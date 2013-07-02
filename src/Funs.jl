@@ -3,6 +3,13 @@ module Funs
 
 export IFun,Interval,evaluate,values,points,chebyshev_transform
 
+
+
+####
+# helper routines
+####
+
+
 alternating_vector(n::Integer) = 2*mod([1:n],2)-1;
 
 function chebyshev_transform(x::Vector)
@@ -30,6 +37,12 @@ end
 points(n)= cos(π*[n-1:-1:0]/(n-1))
 
 # points(d::Interval,n) = (d == [-1,1]) ? points(n) : points(n)
+
+
+
+######
+# IFun
+#####
 
 
 type IFun
