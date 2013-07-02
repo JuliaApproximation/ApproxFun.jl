@@ -12,6 +12,21 @@ function chebyshev_transform(x::Vector)
     ret.*alternating_vector(length(ret))/(length(ret)-1)
 end
 
+function ichebyshev_transform(x::Vector)
+    x[1] *= 2;
+    x[end] *= 2;
+    
+    ret = chebyshev_transform(x);
+    
+    x[1] *= .5;
+    x[end] *= .5;
+    
+    ret[1] *= 2;
+    ret[end] *= 2;
+    
+    flipud(ret.*alternating_vector(length(ret)).*(length(x) - 1).*.5)
+end
+
 points(n)= cos(π*[n-1:-1:0]/(n-1))
 
 # points(d::Interval,n) = (d == [-1,1]) ? points(n) : points(n)
@@ -29,10 +44,10 @@ function IFun(f::Function,n::Integer)
 end
 
 
-function evaluate(f,x)
+function evaluate(f::IFun,x)
     unp = 0;
     un = f.coefficients[end];
-    n = length(f.coefficients);
+    n = length(f);
     for k = n-1:-1:2
         uk = 2.*x.*un - unp + f.coefficients[k];
         unp = un;
@@ -45,10 +60,13 @@ end
 
 
 
-function values(f)
-    f.domain
+function values(f::IFun)
+   ichebyshev_transform(f.coefficients) 
 end
 
+function Base.length(f::IFun)
+    length(f.coefficients)
+end
 
 
 end #module
