@@ -1,5 +1,5 @@
 module Funs
-    using Base
+    using Base, Winston
 
 export IFun,Interval,evaluate,values,points,chebyshev_transform
 
@@ -64,8 +64,16 @@ function values(f::IFun)
    ichebyshev_transform(f.coefficients) 
 end
 
+function points(f::IFun)
+    points(length(f))
+end
+
 function Base.length(f::IFun)
     length(f.coefficients)
+end
+
+function Winston.plot(f::IFun)
+    plot(points(f),values(f))
 end
 
 
