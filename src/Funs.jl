@@ -58,16 +58,20 @@ end
 
 
 function evaluate(f::IFun,x)
-    unp = 0;
-    un = f.coefficients[end];
-    n = length(f);
+    evaluate(f.coefficients,x)
+end
+
+function evaluate(v::Vector{Float64},x::Real)
+    unp = 0.;
+    un = v[end];
+    n = length(v);
     for k = n-1:-1:2
-        uk = 2.*x.*un - unp + f.coefficients[k];
+        uk = 2.*x.*un - unp + v[k];
         unp = un;
         un = uk;
     end
 
-    uk = 2.*x.*un - unp + 2*f.coefficients[1];
+    uk = 2.*x.*un - unp + 2*v[1];
     .5*(uk -unp)
 end
 
