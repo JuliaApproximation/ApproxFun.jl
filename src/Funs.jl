@@ -1,4 +1,5 @@
 module Funs
+    using Base
 
 export IFun,Interval,evaluate,values,points,chebyshev_transform
 
@@ -29,7 +30,17 @@ end
 
 
 function evaluate(f,x)
-    f.coefficients
+    unp = 0;
+    un = f.coefficients[end];
+    n = length(f.coefficients);
+    for k = n-1:-1:2
+        uk = 2.*x.*un - unp + f.coefficients[k];
+        unp = un;
+        un = uk;
+    end
+
+    uk = 2.*x.*un - unp + 2*f.coefficients[1];
+    .5*(uk -unp)
 end
 
 
@@ -37,5 +48,7 @@ end
 function values(f)
     f.domain
 end
+
+
 
 end #module
