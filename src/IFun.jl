@@ -326,14 +326,14 @@ function Base.diff(f::IFun)
     # Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
-    to_uintervalD(f.domain,0)*IFun(ultraiconv(ultradiff(f.coefficients)))
+    to_uintervalD(f.domain,0)*IFun(ultraiconv(ultradiff(f.coefficients)),f.domain)
 end
 
 function Base.cumsum(f::IFun)
     # Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
-    from_uintervalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)))    
+    from_uintervalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)),f.domain)    
 end
 
 

@@ -26,3 +26,7 @@ eocf = IFun(x->cos(x)./exp(x))
 
 @assert norm((ef - diff(cumsum(ef))).coefficients) < 10eps()
 @assert norm((cf - diff(cumsum(cf))).coefficients) < 10eps()
+
+
+ef2 = IFun(exp,[1,2]);
+@assert norm((ef2 - diff(cumsum(ef2))).coefficients) < 10eps()
