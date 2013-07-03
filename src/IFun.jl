@@ -38,8 +38,8 @@ abstract Fun
 
 
 
-type IFun <: Fun
-    coefficients::Vector
+type IFun{T<:Number} <: Fun
+    coefficients::Vector{T}
     domain::Domain
 end
 
@@ -178,7 +178,7 @@ end
 
 function .*(f::IFun,g::IFun)
     @assert f.domain == g.domain
-
+    #TODO Coefficient space version
     n = length(f) + length(g) - 1;
     f2 = pad(f,n);
     g2 = pad(g,n);
@@ -231,8 +231,13 @@ end
 ## Norm
 
 
+## Mapped functions
 
+import Base.imag, Base.real
 
+for op = (:real,:imag) 
+    @eval ($op)(f::IFun) = IFun(($op)(f.coefficients),f.domain)
+end
 
 
 ## Differentiation
@@ -253,8 +258,18 @@ end
 
 ## Plotting
 
+
+# function Winston.plot(f::IFun{Complex})
+#     plot(points(f),values(real(f)),points(f),values(imag(f)))
+# end
+
+
 function Winston.plot(f::IFun)
-    plot(points(f),values(f))
+    plot(points(f),values(real(f)),points(f),values(imag(f)))
 end
+
+
+
+
 
 
