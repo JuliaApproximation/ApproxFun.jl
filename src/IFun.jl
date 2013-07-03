@@ -60,6 +60,9 @@ function IFun(f::Function,d::Vector,n::Integer)
     IFun(f,apply(Interval,d),n)
 end
 
+function IFun(cfs::Vector)
+	IFun(cfs,Interval(-1,1))
+end
 
 function IFun(cfs::Vector,d::Vector)
 	IFun(cfs,apply(Interval,d))
@@ -99,7 +102,23 @@ function Base.length(f::IFun)
 end
 
 
-using Winston
+
+function pad!(f::IFun,n::Integer)
+	if (n > length(f))
+		append!(f.coefficients,zeros(n - length(f)));
+	else
+		resize!(f.coefficients,n);
+	end
+end
+
+
+function pad(f::IFun,n::Integer)
+	g = deepcopy(f);
+	pad!(g,n);
+	g
+end
+
+
 
 function Winston.plot(f::IFun)
     plot(points(f),values(f))
