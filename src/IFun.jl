@@ -343,6 +343,40 @@ end
 
 ## Root finding
 
+function bisection(f::IFun,d::Interval)
+    tol = 10eps();
+    m = .5*(d.a + d.b);
+
+    if(length(d) > tol)
+        fm = evaluate(f,m);
+    
+        if fm > 0
+            return bisection(f,Interval(d.a,m))
+        else
+            return bisection(f,Interval(m,d.b))
+        end
+    else
+        return m
+    end
+end
+
+bisection(f::IFun)=bisection(f,f.domain)
+    
+bisection_roots(f::IFun,x::Real) = bisection(f-x)
+bisection_roots(f::IFun,xl::Vector) = map(x->bisection(f-x),xl)
+
+
+## Sampling
+
+function sample(f::IFun,n::Integer)
+    cf = cumsum(f);
+    cf = cf - evaluate(cf,f.domain.a);
+    cf = cf/evaluate(cf,f.domain.b);
+    
+    bisection_roots(cf,rand(n))
+end
+
+
 
 ## Plotting
 
