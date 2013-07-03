@@ -118,7 +118,15 @@ function pad(f::IFun,n::Integer)
 	g
 end
 
+function +(f::IFun,g::IFun)
+	@assert f.domain == g.domain
 
+	n = max(length(f),length(g))
+	f2 = pad(f,n);
+	g2 = pad(g,n);
+	
+	IFun(f2.coefficients + g2.coefficients,f.domain)
+end
 
 function Winston.plot(f::IFun)
     plot(points(f),values(f))

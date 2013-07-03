@@ -19,3 +19,6 @@ end
 function from_uinterval(d::Interval,x)
 	.5*(d.a + d.b) + .5*(d.b - d.a)x
 end
+
+
+==(d::Interval,m::Interval) = d.a == m.a && d.b == m.b
