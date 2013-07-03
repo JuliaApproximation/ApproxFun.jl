@@ -8,3 +8,5 @@ ef = IFun(exp);
 
 
 cf = IFun(cos); 
+
+ecf = IFun(x->cos(x).*exp(x))

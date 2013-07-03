@@ -139,9 +139,11 @@ end
 
 
 function pad(f::IFun,n::Integer)
-	g = deepcopy(f);
-	pad!(g,n);
-	g
+	if (n > length(f))
+		IFun([f.coefficients,zeros(n - length(f))],f.domain);
+	else
+		IFun(f.coefficients[1:n],f.domain);
+	end
 end
 
 
@@ -161,7 +163,7 @@ for op = (:+,:-)
             
             IFun(($op)(f2.coefficients,g2.coefficients),f.domain)
         end
-    
+
         function ($op)(f::IFun,c::Number)
             f2 = deepcopy(f);
             
@@ -170,22 +172,56 @@ for op = (:+,:-)
             f2
         end
     end
+end 
+
+
+
+function .*(f::IFun,g::IFun)
+    @assert f.domain == g.domain
+
+    n = length(f) + length(g) - 1;
+    f2 = pad(f,n);
+    g2 = pad(g,n);
+    
+    IFun(chebyshev_transform(values(f2).*values(g2)),f.domain)
 end
 
 
-for op = (:.*,:./)
+
+
+for op = (:*,:.*,:./,:/)
+    @eval ($op)(f::IFun,c::Number) = IFun(($op)(f.coefficients,c),f.domain)
+end 
+
+-(f::IFun)=IFun(-f.coefficients,f.domain)
+-(c::Number,f::IFun)=-(f-c)
+
+
+for op = (:*,:.*,:+)
+    @eval ($op)(c::Number,f::IFun)=($op)(f,c)
+end
+
+
+
+
+# division by fun 
+
+for op = (:./,:/)
     @eval begin
-        function ($op)(f::IFun,g::IFun)
-            @assert f.domain == g.domain
+        function ($op)(c::Number,f::IFun)
+            #TODO choose the length
         
-            n = length(f) + length(g) - 1;
-            f2 = pad(f,n);
-            g2 = pad(g,n);
+            f2 = pad(f,2*length(f));
             
-            IFun(chebyshev_transform(($op)(values(f2),values(g2))),f.domain)
+            f2 = IFun(chebyshev_transform(c/values(f2)),f.domain);
+            
+            @assert abs(f2.coefficients[end]) < 10*eps()
+            
+            f2
         end
     end
 end
+
 
 
 
