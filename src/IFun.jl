@@ -215,12 +215,22 @@ for op = (:./,:/)
             
             f2 = IFun(chebyshev_transform(c/values(f2)),f.domain);
             
-            @assert abs(f2.coefficients[end]) < 10*eps()
+            if max(abs(f2.coefficients[end-1:end])) > 10*eps()
+                warn("Division has not converged, may be inaccurate")
+            end
             
             f2
         end
     end
 end
+
+./(f::IFun,g::IFun)=f.*(1./g)
+
+
+
+## Norm
+
+
 
 
 
