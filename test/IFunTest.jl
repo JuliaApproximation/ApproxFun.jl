@@ -12,7 +12,7 @@ cf = IFun(cos);
 ecf = IFun(x->cos(x).*exp(x))
 
 
-@assert norm((ecf-cf.*ef).coefficients)<10eps()
+@assert norm((ecf-cf.*ef).coefficients)<100eps()
 
 eocf = IFun(x->cos(x)./exp(x))
 
@@ -23,3 +23,6 @@ eocf = IFun(x->cos(x)./exp(x))
 
 
 @assert norm((ef - diff(ef)).coefficients)<10E-11
+
+@assert norm((ef - diff(cumsum(ef))).coefficients) < 10eps()
+@assert norm((cf - diff(cumsum(cf))).coefficients) < 10eps()

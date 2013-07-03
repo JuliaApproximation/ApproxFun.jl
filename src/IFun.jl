@@ -270,9 +270,11 @@ end
 ## Start of support for UFun
 
 # diff from T -> U
-function ultradiff(v::Vector)
-    [1:length(v)-1].*v[2:end]
-end
+ultradiff(v::Vector)=[1:length(v)-1].*v[2:end]
+
+#int from U ->T
+ultraint(v::Vector)=[0,v./[1:length(v)]]
+
 
 
 # Convert from U -> T
@@ -293,6 +295,31 @@ function ultraiconv(v::Vector)
 end
 
 
+# Convert U to T
+function ultraconv(v::Vector)
+    n = length(v);
+    w = zeros(n);
+    
+    if n == 1
+        w[1] = v[1];
+    elseif n == 2
+        w[1] = v[1];
+        w[2] = .5v[2];
+    else
+        w[1] = v[1] - .5v[3];        
+    
+        for k = 2:n-2
+            w[k] = .5*(v[k] - v[k+2]);
+        end
+    
+        w[n-1] = .5v[n-1];
+        w[n] = .5v[n];        
+    end
+    
+    w
+end
+
+
 # diff T -> U, then convert U -> T
 function Base.diff(f::IFun)
 
@@ -304,15 +331,14 @@ end
 
 function Base.cumsum(f::IFun)
     # Will need to change code for other domains
-    @assert f.domain <: Interval
+    @assert typeof(f.domain) <: Interval
     
-    
+    from_uintervalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)))    
 end
 
 
-function ==(f::IFun,g::IFun)
-    f.coefficients == g.coefficients && f.domain == g.domain
-end
+==(f::IFun,g::IFun) =  (f.coefficients == g.coefficients && f.domain == g.domain)
+
 
 
 ## Root finding
@@ -326,9 +352,8 @@ end
 # end
 
 
-function Winston.plot(f::IFun)
-    plot(points(f),values(real(f)),points(f),values(imag(f)))
-end
+Winston.plot(f::IFun) = plot(points(f),values(real(f)),points(f),values(imag(f)))
+
 
 
 
