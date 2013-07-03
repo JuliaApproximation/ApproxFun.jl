@@ -8,9 +8,9 @@ abstract Domain
 
 ## Interval
 
-type Interval <: Domain
-	a
-	b
+type Interval{T<:Real} <: Domain
+	a::T
+	b::T
 end
 
 

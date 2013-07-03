@@ -37,6 +37,7 @@ points(d::Domain,n::Integer) = from_uinterval(d,points(n))
 abstract Fun
 
 
+unit_interval = Interval(-1.,1.)
 
 type IFun{T<:Number} <: Fun
     coefficients::Vector{T}
@@ -46,7 +47,7 @@ end
 
 
 function IFun(f::Function,n::Integer)
-    IFun(f,Interval(-1,1),n)
+    IFun(f,unit_interval,n)
 end
 
 function IFun(f::Function,d::Domain,n::Integer)
@@ -58,7 +59,7 @@ function IFun(f::Function,d::Vector,n::Integer)
 end
 
 function IFun(cfs::Vector)
-	IFun(cfs,Interval(-1,1))
+	IFun(cfs,unit_interval)
 end
 
 function IFun(cfs::Vector,d::Vector)
@@ -67,7 +68,7 @@ end
 
 
 function IFun(f::Function)
-    IFun(f,Interval(-1,1))
+    IFun(f,unit_interval)
 end
 
 function IFun(f::Function,d::Vector)
@@ -344,26 +345,27 @@ end
 ## Root finding
 
 function bisection(f::IFun,d::Interval)
-    tol = 10eps();
-    m = .5*(d.a + d.b);
+    tol = 10E-14;
+    m = .5*(d.a + d.b);    
 
-    if(length(d) > tol)
+    while(length(d) > tol)
+        m = .5*(d.a + d.b);    
         fm = evaluate(f,m);
     
         if fm > 0
-            return bisection(f,Interval(d.a,m))
+            d = Interval(d.a,m);
         else
-            return bisection(f,Interval(m,d.b))
+            d = Interval(m,d.b);
         end
-    else
-        return m
     end
+    
+    m
 end
 
 bisection(f::IFun)=bisection(f,f.domain)
     
-bisection_roots(f::IFun,x::Real) = bisection(f-x)
-bisection_roots(f::IFun,xl::Vector) = map(x->bisection(f-x),xl)
+bisection_inv(f::IFun,x::Real) = bisection(f-x)
+bisection_inv(f::IFun,xl::Vector) = map(x->bisection(f-x),xl)
 
 
 ## Sampling
@@ -373,7 +375,7 @@ function sample(f::IFun,n::Integer)
     cf = cf - evaluate(cf,f.domain.a);
     cf = cf/evaluate(cf,f.domain.b);
     
-    bisection_roots(cf,rand(n))
+    bisection_inv(cf,rand(n))
 end
 
 
@@ -386,7 +388,7 @@ end
 # end
 
 
-Winston.plot(f::IFun) = plot(points(f),values(real(f)),points(f),values(imag(f)))
+Winston.plot(f::IFun) = plot(points(pad(f,2length(f))),values(real(pad(f,2length(f)))),points(pad(f,2length(f))),values(imag(pad(f,2length(f)))))
 
 
 
