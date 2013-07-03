@@ -1,4 +1,4 @@
-
+using Funs
 
 ef = IFun(exp);
 
@@ -16,7 +16,10 @@ ecf = IFun(x->cos(x).*exp(x))
 
 eocf = IFun(x->cos(x)./exp(x))
 
-@assert norm((eocf-cf./ef).coefficients)<10eps()
+@assert max(abs((eocf-cf./ef).coefficients))<1000eps()
 
 
-@assert norm(((cf/3).*(3/cf)-1).coefficients)<100eps()
+@assert norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
+
+
+@assert norm((ef - diff(ef)).coefficients)<10E-11

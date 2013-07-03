@@ -75,12 +75,15 @@ function IFun(f::Function,d::Vector)
 end
 
 function IFun(f::Function, d::Domain)
-    tol = 10*eps();
+    #reuse function values
+
+    tol = 200*eps();
 
     for logn = 2:20
         cf = IFun(f, d, 2^logn);
         
         if max(abs(cf.coefficients[end]),abs(cf.coefficients[end-1])) < tol
+            chop!(cf,tol);
             return cf;
         end
     end
@@ -96,7 +99,16 @@ function evaluate(f::IFun,x)
     evaluate(f.coefficients,to_uinterval(f.domain,x))
 end
 
-function evaluate(v::Vector{Float64},x::Real)
+
+##TODO: Speed up vector method
+
+function evaluate(v::Vector,xl::Vector)
+    map(x->evaluate(v,x),xl)
+end
+
+function evaluate(v::Vector,x::Real)
+    @assert (-1 <= x) && (x <= 1)
+
     unp = 0.;
     un = v[end];
     n = length(v);
@@ -144,6 +156,18 @@ function pad(f::IFun,n::Integer)
 	else
 		IFun(f.coefficients[1:n],f.domain);
 	end
+end
+
+
+function chop!(f::IFun,tol::Real)
+    @assert tol > 0
+
+    for k=[length(f):-1:1]
+        if abs(f.coefficients[k]) > tol
+            resize!(f.coefficients,k);
+            return;
+        end
+    end
 end
 
 
@@ -240,20 +264,58 @@ for op = (:real,:imag)
 end
 
 
-## Differentiation
+## Differentiation and integration
 
-function diff(f::IFun)
+
+## Start of support for UFun
+
+# diff from T -> U
+function ultradiff(v::Vector)
+    [1:length(v)-1].*v[2:end]
+end
+
+
+# Convert from U -> T
+function ultraiconv(v::Vector)
+    n = length(v);
+    w = zeros(n);
+    
+    w[end] = 2v[end];
+    w[end-1] = 2v[end-1];
+    
+    for k = n-2:-1:2
+        w[k] = 2*(v[k] + .5w[k+2]);
+    end
+    
+    w[1] = v[1] + .5w[3];
+    
+    w
+end
+
+
+# diff T -> U, then convert U -> T
+function Base.diff(f::IFun)
 
     # Will need to change code for other domains
-    @assert f.domain <: Interval
+    @assert typeof(f.domain) <: Interval
+    
+    to_uintervalD(f.domain,0)*IFun(ultraiconv(ultradiff(f.coefficients)))
+end
 
-    to_uintervalD(d,0)
+function Base.cumsum(f::IFun)
+    # Will need to change code for other domains
+    @assert f.domain <: Interval
+    
+    
 end
 
 
 function ==(f::IFun,g::IFun)
     f.coefficients == g.coefficients && f.domain == g.domain
 end
+
+
+## Root finding
 
 
 ## Plotting
