@@ -1,6 +1,5 @@
-####
-# helper routines
-####
+## helper routines
+
 
 
 alternating_vector(n::Integer) = 2*mod([1:n],2)-1;
@@ -13,16 +12,16 @@ function chebyshev_transform(x::Vector)
 end
 
 function ichebyshev_transform(x::Vector)
-    x[1] *= 2;
-    x[end] *= 2;
+    x[1] *= 2.;
+    x[end] *= 2.;
     
     ret = chebyshev_transform(x);
     
     x[1] *= .5;
     x[end] *= .5;
     
-    ret[1] *= 2;
-    ret[end] *= 2;
+    ret[1] *= 2.;
+    ret[end] *= 2.;
     
     flipud(ret.*alternating_vector(length(ret)).*(length(x) - 1).*.5)
 end
@@ -33,9 +32,7 @@ points(d::Domain,n::Integer) = from_uinterval(d,points(n))
 
 
 
-######
-# IFun
-#####
+##  IFun
 
 abstract Fun
 
@@ -69,6 +66,32 @@ function IFun(cfs::Vector,d::Vector)
 end
 
 
+function IFun(f::Function)
+    IFun(f,Interval(-1,1))
+end
+
+function IFun(f::Function,d::Vector)
+    IFun(f,apply(Interval,d))
+end
+
+function IFun(f::Function, d::Domain)
+    tol = 10*eps();
+
+    for logn = 2:20
+        cf = IFun(f, d, 2^logn);
+        
+        if max(abs(cf.coefficients[end]),abs(cf.coefficients[end-1])) < tol
+            return cf;
+        end
+    end
+    
+    warn("Maximum length reached");
+    
+    cf
+end
+
+
+
 function evaluate(f::IFun,x)
     evaluate(f.coefficients,to_uinterval(f.domain,x))
 end
@@ -96,6 +119,7 @@ end
 function points(f::IFun)
     points(f.domain,length(f))
 end
+
 
 function Base.length(f::IFun)
     length(f.coefficients)
@@ -131,7 +155,7 @@ end
 function .*(f::IFun,g::IFun)
 	@assert f.domain == g.domain
 
-	n = length(f)*length(g);
+	n = length(f) + length(g) - 1;
 	f2 = pad(f,n);
 	g2 = pad(g,n);
 	
