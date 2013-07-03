@@ -128,6 +128,18 @@ function +(f::IFun,g::IFun)
 	IFun(f2.coefficients + g2.coefficients,f.domain)
 end
 
+function .*(f::IFun,g::IFun)
+	@assert f.domain == g.domain
+
+	n = length(f)*length(g);
+	f2 = pad(f,n);
+	g2 = pad(g,n);
+	
+	IFun(chebyshev_transform(values(f2).*values(g2)),f.domain)
+end
+
+
+
 function Winston.plot(f::IFun)
     plot(points(f),values(f))
 end
