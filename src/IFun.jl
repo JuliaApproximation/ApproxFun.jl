@@ -80,13 +80,17 @@ function IFun(f::Function, d::Domain)
 
     tol = 200*eps();
 
+    oldcf = IFun(f,d,2 + 1);
+
     for logn = 2:20
-        cf = IFun(f, d, 2^logn);
+        cf = IFun(f, d, 2^logn + 1);
         
-        if max(abs(cf.coefficients[end]),abs(cf.coefficients[end-1])) < tol
+        if max(abs(cf.coefficients[end]),abs(cf.coefficients[end-1]),max(abs(cf.coefficients[1:2^(logn-1) + 1] - oldcf.coefficients))) < tol
             chop!(cf,tol);
             return cf;
         end
+        
+        oldcf = cf;
     end
     
     warn("Maximum length reached");
@@ -296,7 +300,7 @@ function ultraiconv(v::Vector)
 end
 
 
-# Convert U to T
+# Convert T -> U
 function ultraconv(v::Vector)
     n = length(v);
     w = zeros(n);
@@ -309,9 +313,7 @@ function ultraconv(v::Vector)
     else
         w[1] = v[1] - .5v[3];        
     
-        for k = 2:n-2
-            w[k] = .5*(v[k] - v[k+2]);
-        end
+        w[2:n-2] = .5*(v[2:n-2] - v[4:n]);
     
         w[n-1] = .5v[n-1];
         w[n] = .5v[n];        
