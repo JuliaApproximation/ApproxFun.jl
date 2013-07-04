@@ -128,6 +128,38 @@ function evaluate(v::Vector,x::Real)
 end
 
 
+function evaluate_list(v::Vector{Float64},x::Vector{Float64})
+    m = length(x);
+    unp = zeros(m);
+    un = v[end].*ones(m);
+    n = length(v);
+    x=2x;
+    
+    for k = n-1:-1:2
+        uk = x.*un - unp + v[k];
+        unp = un;
+        un = uk;
+    end
+
+    #.25x
+    .5x.*un+ v[1] -unp
+end
+
+function Clenshaw_evaluate(c::Vector{Float64},x::Vector{Float64})
+    bk1 = zeros(length(x));
+    bk2 = bk1;
+    x=2x;
+    
+    for k = 1:length(c)-1
+        bk = c[k] + x.*bk1 - bk2;
+        bk2 = bk1;
+        bk1 = bk;
+    end
+
+    c[end] + .5*x.*bk1 - bk2
+end
+
+
 
 function values(f::IFun)
    ichebyshev_transform(f.coefficients) 
@@ -364,10 +396,25 @@ function bisection(f::IFun,d::Interval)
     m
 end
 
+
 bisection(f::IFun)=bisection(f,f.domain)
     
 bisection_inv(f::IFun,x::Real) = bisection(f-x)
-bisection_inv(f::IFun,xl::Vector) = map(x->bisection(f-x),xl)
+
+function bisection_inv(f::Vector{Float64},xl::Vector{Float64}) 
+    n = length(xl);
+    a = -ones(n);
+    b = ones(n);
+    
+    for k=1:47
+        m=.5*(a+b);
+        vals = evaluate(f,m);
+        I1 = vals-xl.<=0; I2 = vals-xl.>0; 
+        a = I1.*m + I2.*a;
+        b = I1.*a + I2.*m;
+    end
+    m=.5*(a+b)    
+end
 
 
 ## Sampling
