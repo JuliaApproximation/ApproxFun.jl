@@ -128,35 +128,19 @@ function evaluate(v::Vector,x::Real)
 end
 
 
-function evaluate_list(v::Vector{Float64},x::Vector{Float64})
-    m = length(x);
-    unp = zeros(m);
-    un = v[end].*ones(m);
-    n = length(v);
-    x=2x;
-    
-    for k = n-1:-1:2
-        uk = x.*un - unp + v[k];
-        unp = un;
-        un = uk;
+
+function clenshaw(c::Vector{Float64},x::Vector{Float64})
+    cl = similar(x)
+    for i = 1:length(x)
+        X = 2 * x[i]
+        bk1 = 0.0;
+        bk2 = 0.0;
+        for k = length(c):-1:2
+            bk2, bk1 = bk1, c[k] + X * bk1 - bk2
+        end
+        cl[i] = c[1] + 0.5 * X * bk1 - bk2
     end
-
-    #.25x
-    .5x.*un+ v[1] -unp
-end
-
-function Clenshaw_evaluate(c::Vector{Float64},x::Vector{Float64})
-    bk1 = zeros(length(x));
-    bk2 = bk1;
-    x=2x;
-    
-    for k = 1:length(c)-1
-        bk = c[k] + x.*bk1 - bk2;
-        bk2 = bk1;
-        bk1 = bk;
-    end
-
-    c[end] + .5*x.*bk1 - bk2
+    cl
 end
 
 
@@ -408,10 +392,10 @@ function bisection_inv(f::Vector{Float64},xl::Vector{Float64})
     
     for k=1:47
         m=.5*(a+b);
-        vals = evaluate(f,m);
+        vals = clenshaw(f,m);
         I1 = vals-xl.<=0; I2 = vals-xl.>0; 
         a = I1.*m + I2.*a;
-        b = I1.*a + I2.*m;
+        b = I1.*b + I2.*m;
     end
     m=.5*(a+b)    
 end
@@ -424,7 +408,7 @@ function sample(f::IFun,n::Integer)
     cf = cf - evaluate(cf,f.domain.a);
     cf = cf/evaluate(cf,f.domain.b);
     
-    bisection_inv(cf,rand(n))
+    bisection_inv(cf.coefficients,rand(n))
 end
 
 
