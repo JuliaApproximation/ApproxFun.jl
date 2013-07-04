@@ -101,30 +101,20 @@ end
 
 
 function evaluate(f::IFun,x)
-    evaluate(f.coefficients,to_uinterval(f.domain,x))
+    clenshaw(f.coefficients,to_uinterval(f.domain,x))
 end
 
 
-##TODO: Speed up vector method
+function clenshaw(c::Vector{Float64},x::Float64)
 
-function evaluate(v::Vector,xl::Vector)
-    map(x->evaluate(v,x),xl)
-end
-
-function evaluate(v::Vector,x::Real)
-    @assert (-1 <= x) && (x <= 1)
-
-    unp = 0.;
-    un = v[end];
-    n = length(v);
-    for k = n-1:-1:2
-        uk = 2.*x.*un - unp + v[k];
-        unp = un;
-        un = uk;
+    x = 2x;
+    bk1 = 0.0;
+    bk2 = 0.0;
+    for k = length(c):-1:2
+        bk2, bk1 = bk1, c[k] + x * bk1 - bk2
     end
 
-    uk = 2.*x.*un - unp + 2*v[1];
-    .5*(uk -unp)
+    c[1] + 0.5 * x * bk1 - bk2
 end
 
 
@@ -142,6 +132,8 @@ function clenshaw(c::Vector{Float64},x::Vector{Float64})
     end
     cl
 end
+
+
 
 
 
