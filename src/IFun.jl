@@ -104,6 +104,10 @@ function evaluate(f::IFun,x)
     clenshaw(f.coefficients,to_uinterval(f.domain,x))
 end
 
+function Base.getindex(f::IFun,x)
+       evaluate(f,x)
+end
+
 
 function clenshaw(c::Vector{Float64},x::Float64)
 
