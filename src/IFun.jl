@@ -118,6 +118,7 @@ function clenshaw(c::Vector{Float64},x::Float64)
     bk2 = 0.0;
     for k = length(c):-1:2
         bk2, bk1 = bk1, c[k] + x * bk1 - bk2
+#        print(bk2,bk1)
     end
 
     c[1] + 0.5 * x * bk1 - bk2
@@ -144,14 +145,18 @@ function clenshaw(c::Vector{Float64},x::Vector{Float64})
             bk_v[i] = ck + x_v[i] * bk1_v[i] - bk2_v[i]
         end
         bk2_v, bk1_v, bk_v = bk1_v, bk_v, bk2_v
+        
+#         print(bk2,bk1,bk)
     end
 
-    # bk can be reused to store the results and return
-    @inbounds ce = c[1]
-    for i in 1 : n
-        bk_v[i] = ce + .5 * x_v[i] * bk1_v[i] - bk2_v[i]
-    end
-    bk
+#     bk2,bk1,bk,
+     c[1] + 0.5x .* bk2 - bk
+#     # bk can be reused to store the results and return
+#     @inbounds ce = c[1]
+#     for i in 1 : n
+#         bk_v[i] = ce + .5 * x_v[i] * bk_v[i] - bk1_v[i]
+#     end
+#    c[1] + 0.5x .* bk1 - bk2
 end
 
 
