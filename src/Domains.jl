@@ -1,6 +1,6 @@
 
 
-export Domain,to_uinterval,from_uinterval
+export Domain,tointerval,frominterval
 
 
 abstract Domain
@@ -13,22 +13,13 @@ type Interval{T<:Real} <: Domain
 	b::T
 end
 
+tointerval(d::Interval,x)=(d.a + d.b - 2x)/(d.a - d.b)
+tointervalD(d::Interval,x)=2/( d.b- d.a)
+frominterval(d::Interval,x)=.5*(d.a + d.b) + .5*(d.b - d.a)x
+fromintervalD(d::Interval,x)=.5*( d.b- d.a)
 
-
-function to_uinterval(d::Interval,x)
-	(d.a + d.b - 2x)/(d.a - d.b)
-end
-
-function to_uintervalD(d::Interval,x)
-	 2/( d.b- d.a)
-end
-
-function from_uinterval(d::Interval,x)
-	.5*(d.a + d.b) + .5*(d.b - d.a)x
-end
-
-function from_uintervalD(d::Interval,x)
-	 .5*( d.b- d.a)
+for op = (:tointerval,:tointervalD,:frominterval,:fromintervalD)
+    @eval ($op)(f::AbstractFun,x)=($op)(f.domain,x)
 end
 
 Base.length(d::Interval) = d.b - d.a

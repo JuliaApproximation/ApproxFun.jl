@@ -2,20 +2,20 @@
 
 
 
-alternating_vector(n::Integer) = 2*mod([1:n],2)-1;
+alternatingvector(n::Integer) = 2*mod([1:n],2)-1;
 
-function chebyshev_transform(x::Vector)
+function chebyshevtransform(x::Vector)
     ret = FFTW.r2r(x, FFTW.REDFT00);
     ret[1] *= .5;
     ret[end] *= .5;    
-    ret.*alternating_vector(length(ret))/(length(ret)-1)
+    ret.*alternatingvector(length(ret))/(length(ret)-1)
 end
 
-function ichebyshev_transform(x::Vector)
+function ichebyshevtransform(x::Vector)
     x[1] *= 2.;
     x[end] *= 2.;
     
-    ret = chebyshev_transform(x);
+    ret = chebyshevtransform(x);
     
     x[1] *= .5;
     x[end] *= .5;
@@ -23,25 +23,27 @@ function ichebyshev_transform(x::Vector)
     ret[1] *= 2.;
     ret[end] *= 2.;
     
-    flipud(ret.*alternating_vector(length(ret)).*(length(x) - 1).*.5)
+    flipud(ret.*alternatingvector(length(ret)).*(length(x) - 1).*.5)
 end
 
 points(n::Integer)= cos(π*[n-1:-1:0]/(n-1))
 
-points(d::Domain,n::Integer) = from_uinterval(d,points(n))
+points(d::Domain,n::Integer) = frominterval(d,points(n))
 
 
 
 ##  Constructors
 
-abstract Fun
-
 
 unit_interval = Interval(-1.,1.)
 
-type IFun{T<:Number} <: Fun
+type IFun{T<:Number} <: AbstractFun
     coefficients::Vector{T}
     domain::Domain
+end
+
+function Fun(x...)
+    IFun(x)
 end
 
 
@@ -51,7 +53,7 @@ function IFun(f::Function,n::Integer)
 end
 
 function IFun(f::Function,d::Domain,n::Integer)
-    IFun(chebyshev_transform(f(points(d,n))),d)
+    IFun(chebyshevtransform(f(points(d,n))),d)
 end
 
 function IFun(f::Function,d::Vector,n::Integer)
@@ -101,7 +103,7 @@ end
 
 
 function evaluate(f::IFun,x)
-    clenshaw(f.coefficients,to_uinterval(f.domain,x))
+    clenshaw(f.coefficients,tointerval(f.domain,x))
 end
 
 function Base.getindex(f::IFun,x)
@@ -142,7 +144,7 @@ end
 
 
 function values(f::IFun)
-   ichebyshev_transform(f.coefficients) 
+   ichebyshevtransform(f.coefficients) 
 end
 
 function points(f::IFun)
@@ -176,16 +178,24 @@ function pad(f::IFun,n::Integer)
 end
 
 
-function chop!(f::IFun,tol::Real)
+
+
+
+function chop!(c::Vector,tol::Real)
     @assert tol > 0
 
-    for k=[length(f):-1:1]
-        if abs(f.coefficients[k]) > tol
-            resize!(f.coefficients,k);
-            return;
+    for k=[length(c):-1:1]
+        if abs(c[k]) > tol
+            resize!(c,k);
+            return c;
         end
     end
+    
+    []
 end
+
+chop!(f::IFun,tol::Real)=chop!(f.coefficients,tol)
+Base.chop(f,tol)=chop!(deepcopy(f),tol)
 
 
 ## Addition and multiplication
@@ -224,7 +234,7 @@ function .*(f::IFun,g::IFun)
     f2 = pad(f,n);
     g2 = pad(g,n);
     
-    IFun(chebyshev_transform(values(f2).*values(g2)),f.domain)
+    IFun(chebyshevtransform(values(f2).*values(g2)),f.domain)
 end
 
 
@@ -254,7 +264,7 @@ for op = (:./,:/)
         
             f2 = pad(f,2*length(f));
             
-            f2 = IFun(chebyshev_transform(c/values(f2)),f.domain);
+            f2 = IFun(chebyshevtransform(c/values(f2)),f.domain);
             
             if max(abs(f2.coefficients[end-1:end])) > 10*eps()
                 warn("Division has not converged, may be inaccurate")
@@ -341,14 +351,14 @@ function Base.diff(f::IFun)
     # Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
-    to_uintervalD(f.domain,0)*IFun(ultraiconv(ultradiff(f.coefficients)),f.domain)
+    tointervalD(f.domain,0)*IFun(ultraiconv(ultradiff(f.coefficients)),f.domain)
 end
 
 function Base.cumsum(f::IFun)
     # Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
-    from_uintervalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)),f.domain)    
+    fromintervalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)),f.domain)    
 end
 
 
@@ -357,6 +367,35 @@ end
 
 
 ## Root finding
+
+
+function complexroots(cin::Vector)
+    c=chop(cin,10eps());
+    if c == []
+        return [];
+    end
+    
+    n=length(c)-1;
+    
+    I = [ones(Int64,n),2:n-1,2:n];
+    J=[1:n,3:n,1:n-1];
+    V = [-c[end-1]/(2c[end]),.5-c[end-2]/(2c[end]),-c[end-3:-1:1]/(2c[end]),.5*ones(n-2),.5*ones(n-2),1];
+    C=sparse(I,J,V);
+    A=zeros(n,n);
+    A[1:end,1:end]=C[1:end,1:end];
+    
+    Λ,V=eig(A);
+    Λ
+end
+
+
+function complexroots(f::IFun)
+    frominterval(f,complexroots(f.coefficients))
+end
+
+function roots(f::IFun)
+    complexroots(f)
+end
 
 function bisection(f::IFun,d::Interval)
     tol = 10E-14;
@@ -379,9 +418,9 @@ end
 
 bisection(f::IFun)=bisection(f,f.domain)
     
-bisection_inv(f::IFun,x::Real) = bisection(f-x)
+bisectioninv(f::IFun,x::Real) = bisection(f-x)
 
-function bisection_inv(f::Vector{Float64},xl::Vector{Float64}) 
+function bisectioninv(f::Vector{Float64},xl::Vector{Float64}) 
     n = length(xl);
     a = -ones(n);
     b = ones(n);
@@ -404,7 +443,7 @@ function sample(f::IFun,n::Integer)
     cf = cf - evaluate(cf,f.domain.a);
     cf = cf/evaluate(cf,f.domain.b);
     
-    bisection_inv(cf.coefficients,rand(n))
+    bisectioninv(cf.coefficients,rand(n))
 end
 
 
