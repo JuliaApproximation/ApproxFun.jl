@@ -1,5 +1,5 @@
 module Funs
-    using Base, Winston
+    using Base, Winston, NumericExtensions
 
 export Fun,IFun,Interval,evaluate,values,points,chebyshev_transform
 export pad!,pad,sample,chop!,complexroots,roots

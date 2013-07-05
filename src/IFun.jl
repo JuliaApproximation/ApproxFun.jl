@@ -88,7 +88,7 @@ function IFun(f::Function, d::Domain)
         cf = IFun(f, d, 2^logn + 1);
         
         if max(abs(cf.coefficients[end]),abs(cf.coefficients[end-1]),max(abs(cf.coefficients[1:2^(logn-1) + 1] - oldcf.coefficients))) < tol
-            chop!(cf,tol);
+            chop!(cf,10eps());
             return cf;
         end
         
@@ -123,22 +123,129 @@ function clenshaw(c::Vector{Float64},x::Float64)
     c[1] + 0.5 * x * bk1 - bk2
 end
 
-
+using NumericExtensions
 
 function clenshaw(c::Vector{Float64},x::Vector{Float64})
-    cl = similar(x)
-    for i = 1:length(x)
-        X = 2 * x[i]
-        bk1 = 0.0;
-        bk2 = 0.0;
-        for k = length(c):-1:2
-            bk2, bk1 = bk1, c[k] + X * bk1 - bk2
+    n = length(x)
+    bk1 = zeros(n)
+    bk2 = zeros(n)
+    x=2x
+
+    bk = Array(Float64, n)
+
+    x_v = unsafe_view(x)
+    bk1_v = unsafe_view(bk1)
+    bk2_v = unsafe_view(bk2)
+    bk_v = unsafe_view(bk)
+
+    for k in  length(c):-1:2
+        @inbounds ck = c[k]
+        for i in 1 : n
+            bk_v[i] = ck + x_v[i] * bk1_v[i] - bk2_v[i]
         end
-        cl[i] = c[1] + 0.5 * X * bk1 - bk2
+        bk2_v, bk1_v, bk_v = bk1_v, bk_v, bk2_v
     end
-    cl
+
+    # bk can be reused to store the results and return
+    @inbounds ce = c[1]
+    for i in 1 : n
+        bk_v[i] = ce + .5 * x_v[i] * bk1_v[i] - bk2_v[i]
+    end
+    bk
 end
 
+
+
+# function clenshaw1(c::Vector{Float64})
+# 
+#     bk11 = 0.0;
+#     bk21 = 0.0;
+#     for k = length(c):-1:2
+#         bk21, bk11 = bk11, c[k]  - bk21
+#     end
+# 
+#     c[1]  - bk21
+# end
+
+
+# function clenshaw2(c::Vector{Float64})
+#     n = 1
+#     bk1 = zeros(n)
+#     bk2 = zeros(n)
+# 
+#     bk = Array(Float64, n)
+#     for k in length(c):-1:2
+#         ck = c[k]
+#         for i in 1 : n
+#             @inbounds bk[i] = ck - bk2[i]
+#         end
+#         bk2 = bk1
+#         bk1 = bk
+#     end
+# 
+#     # bk can be reused to store the results and return
+#     ce = c[1]
+#     for i in 1 : n        
+#         @inbounds bk[i] = ce  - bk2[i]
+#     end
+#     bk
+# end
+
+
+
+# function clenshaw(c::Vector{Float64},x::Vector{Float64})
+#     n = length(x)
+#     bk1 = zeros(n)
+#     bk2 = bk1
+#     x=2x
+# 
+#     bk = Array(Float64, n)
+#     for k in length(c):-1:2
+#         ck = c[k]
+#         for i in 1 : n
+#             @inbounds bk[i] = ck + x[i] * bk1[i] - bk2[i]
+#         end
+#         bk2 = bk1
+#         bk1 = deepcopy(bk)
+#     end
+# 
+#     # bk can be reused to store the results and return
+#     ce = c[1]
+#     for i in 1 : n        
+#         @inbounds bk[i] = ce + .5 * x[i] * bk1[i] - bk2[i]
+#     end
+#     bk
+# end
+
+# function clenshaw(c::Vector{Float64},x::Vector{Float64})
+#     n = length(x)
+#     bk1 = zeros(n)
+#     bk2 = zeros(n)
+#     x=2x
+#     
+#     bk = Array(Float64, n)
+#     
+#     x_v = unsafe_view(x)
+#     bk1_v = unsafe_view(bk1)
+#     bk2_v = unsafe_view(bk2)
+#     bk_v = unsafe_view(bk)
+#     
+#     for k = length(c):-1:2
+#        ck = c[k]
+#        for i in 1 : n
+#            bk_v[i] = ck + x_v[i] * bk1_v[i] - bk2_v[i]
+#        end
+#        bk2_v = bk1_v
+#        bk1_v = bk_v
+#     end
+#     
+#     # bk can be reused to store the results and return
+#     ce = c[1]
+#     for i in 1 : n        
+#        bk_v[i] = ce + .5 * x[i] * bk1_v[i] - bk2_v[i]
+#     end
+#     bk
+# end
 
 
 
@@ -420,14 +527,14 @@ bisection(f::IFun)=bisection(f,f.domain)
     
 bisectioninv(f::IFun,x::Real) = bisection(f-x)
 
-function bisectioninv(f::Vector{Float64},xl::Vector{Float64}) 
+function bisectioninv(c::Vector{Float64},xl::Vector{Float64}) 
     n = length(xl);
     a = -ones(n);
     b = ones(n);
     
     for k=1:47
         m=.5*(a+b);
-        vals = clenshaw(f,m);
+        vals = clenshaw(c,m);
         I1 = vals-xl.<=0; I2 = vals-xl.>0; 
         a = I1.*m + I2.*a;
         b = I1.*b + I2.*m;
