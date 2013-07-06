@@ -145,113 +145,11 @@ function clenshaw(c::Vector{Float64},x::Vector{Float64})
             bk_v[i] = ck + x_v[i] * bk1_v[i] - bk2_v[i]
         end
         bk2_v, bk1_v, bk_v = bk1_v, bk_v, bk2_v
-        
-#         print(bk2,bk1,bk)
     end
 
-#     bk2,bk1,bk,
+#    TODO: Figure out why bk2 is bk1 and bk is bk2
      c[1] + 0.5x .* bk2 - bk
-#     # bk can be reused to store the results and return
-#     @inbounds ce = c[1]
-#     for i in 1 : n
-#         bk_v[i] = ce + .5 * x_v[i] * bk_v[i] - bk1_v[i]
-#     end
-#    c[1] + 0.5x .* bk1 - bk2
 end
-
-
-
-# function clenshaw1(c::Vector{Float64})
-# 
-#     bk11 = 0.0;
-#     bk21 = 0.0;
-#     for k = length(c):-1:2
-#         bk21, bk11 = bk11, c[k]  - bk21
-#     end
-# 
-#     c[1]  - bk21
-# end
-
-
-# function clenshaw2(c::Vector{Float64})
-#     n = 1
-#     bk1 = zeros(n)
-#     bk2 = zeros(n)
-# 
-#     bk = Array(Float64, n)
-#     for k in length(c):-1:2
-#         ck = c[k]
-#         for i in 1 : n
-#             @inbounds bk[i] = ck - bk2[i]
-#         end
-#         bk2 = bk1
-#         bk1 = bk
-#     end
-# 
-#     # bk can be reused to store the results and return
-#     ce = c[1]
-#     for i in 1 : n        
-#         @inbounds bk[i] = ce  - bk2[i]
-#     end
-#     bk
-# end
-
-
-
-# function clenshaw(c::Vector{Float64},x::Vector{Float64})
-#     n = length(x)
-#     bk1 = zeros(n)
-#     bk2 = bk1
-#     x=2x
-# 
-#     bk = Array(Float64, n)
-#     for k in length(c):-1:2
-#         ck = c[k]
-#         for i in 1 : n
-#             @inbounds bk[i] = ck + x[i] * bk1[i] - bk2[i]
-#         end
-#         bk2 = bk1
-#         bk1 = deepcopy(bk)
-#     end
-# 
-#     # bk can be reused to store the results and return
-#     ce = c[1]
-#     for i in 1 : n        
-#         @inbounds bk[i] = ce + .5 * x[i] * bk1[i] - bk2[i]
-#     end
-#     bk
-# end
-
-# function clenshaw(c::Vector{Float64},x::Vector{Float64})
-#     n = length(x)
-#     bk1 = zeros(n)
-#     bk2 = zeros(n)
-#     x=2x
-#     
-#     bk = Array(Float64, n)
-#     
-#     x_v = unsafe_view(x)
-#     bk1_v = unsafe_view(bk1)
-#     bk2_v = unsafe_view(bk2)
-#     bk_v = unsafe_view(bk)
-#     
-#     for k = length(c):-1:2
-#        ck = c[k]
-#        for i in 1 : n
-#            bk_v[i] = ck + x_v[i] * bk1_v[i] - bk2_v[i]
-#        end
-#        bk2_v = bk1_v
-#        bk1_v = bk_v
-#     end
-#     
-#     # bk can be reused to store the results and return
-#     ce = c[1]
-#     for i in 1 : n        
-#        bk_v[i] = ce + .5 * x[i] * bk1_v[i] - bk2_v[i]
-#     end
-#     bk
-# end
-
 
 
 
