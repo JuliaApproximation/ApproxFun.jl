@@ -43,21 +43,31 @@ Plotting is accomplished via Winston:
 	using Winston
 	plot(f)
 	
-We can compare the histograms of f with the GUE in RandomMatrices:
+This looks like the histogram:
+
+	plothist(x,100)
+	
+We can compare the histograms of x with the GUE:
 
 
+	function sampleeigs(n,m)
+	    x=zeros(n,m);
+	    
+	    for k=1:m
+	        G=randn(n,n)+randn(n,n)*im;
+	        x[:,k]=eig((G+G')/sqrt(8n))[1];
+	    end
+	    
+	    reshape(x,n*m)
+	end
+	
+	
+	x2 = sampleeigs(4,10000)
+	plothist(x2,100)
 
-function sampleeigs(n,m)
-    x=zeros(n,m);
-    
-    for k=1:m
-        x[:,k]=eig(RandomMatrices.GaussianHermiteTridiagonalMatrix(n,2))[1];
-    end
-    
-    reshape(x,n*m)
-end
 
-x2 = sampleeigs(4,10000)
+This is a misleading comparison: x are iid while x2 have repulsion.
+
 
 
 
