@@ -294,6 +294,11 @@ end
 
 ## Norm
 
+import Base.norm
+
+norm(f::IFun)=sqrt(sum(f.*f))
+
+
 
 ## Mapped functions
 
@@ -373,6 +378,10 @@ function Base.cumsum(f::IFun)
     
     fromintervalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)),f.domain)    
 end
+
+Base.sum(f::IFun)=([-1.,1.]'*cumsum(f)[[f.domain.a,f.domain.b]])[1]
+    
+
 
 
 ==(f::IFun,g::IFun) =  (f.coefficients == g.coefficients && f.domain == g.domain)
