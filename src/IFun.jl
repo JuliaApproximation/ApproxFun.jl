@@ -42,9 +42,6 @@ type IFun{T<:Number} <: AbstractFun
     domain::Domain
 end
 
-function Fun(x...)
-    IFun(x)
-end
 
 
 
@@ -477,8 +474,24 @@ end
 #     plot(points(f),values(real(f)),points(f),values(imag(f)))
 # end
 
+function plot(f::IFun{Float64}) 
+    p = FramedPlot();
+    pts = points(pad(f,2length(f)));
+    vals =values(pad(f,2length(f)));
+    add(p,Curve(pts,vals,"color","blue"));   
+    Winston.display(p);
+    p
+end
 
-Winston.plot(f::IFun) = plot(points(pad(f,2length(f))),values(real(pad(f,2length(f)))),points(pad(f,2length(f))),values(imag(pad(f,2length(f)))))
+function plot(f::IFun{Complex{Float64}}) 
+    p = FramedPlot();
+    pts = points(pad(f,2length(f)));
+    vals =values(pad(f,2length(f)));
+    add(p,Curve(pts,real(vals),"color","blue"));
+    add(p,Curve(pts,imag(vals),"color","red"));    
+    Winston.display(p);
+    p
+end
 
 
 
