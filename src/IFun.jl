@@ -149,6 +149,15 @@ function clenshaw(c::Vector{Float64},x::Vector{Float64})
     end
     
     bk
+    
+#     ## Hack to corect the fact bk_v keeps changing    
+#     for i in 1 : n
+#         bk_v[i] = ce + .5 * x_v[i] * bk1_v[i] - bk2_v[i]
+#     end
+#     
+# 
+#      j = mod(length(c), 3)
+#     j == 0 ? bk1 : j == 1 ? bk : bk2
 end
 
 
