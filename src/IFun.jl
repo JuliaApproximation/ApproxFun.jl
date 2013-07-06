@@ -118,7 +118,6 @@ function clenshaw(c::Vector{Float64},x::Float64)
     bk2 = 0.0;
     for k = length(c):-1:2
         bk2, bk1 = bk1, c[k] + x * bk1 - bk2
-#        print(bk2,bk1)
     end
 
     c[1] + 0.5 * x * bk1 - bk2
@@ -147,8 +146,12 @@ function clenshaw(c::Vector{Float64},x::Vector{Float64})
         bk2_v, bk1_v, bk_v = bk1_v, bk_v, bk2_v
     end
 
-#    TODO: Figure out why bk2 is bk1 and bk is bk2
-     c[1] + 0.5x .* bk2 - bk
+    @inbounds ce = c[1]
+    for i in 1 : n
+        bk[i] = ce + .5 * x_v[i] * bk1_v[i] - bk2_v[i]
+    end
+    
+    bk
 end
 
 
@@ -450,8 +453,8 @@ end
 
 function sample(f::IFun,n::Integer)
     cf = cumsum(f);
-    cf = cf - evaluate(cf,f.domain.a);
-    cf = cf/evaluate(cf,f.domain.b);
+    cf = cf - cf[f.domain.a];
+    cf = cf/cf[f.domain.b];
     
     bisectioninv(cf.coefficients,rand(n))
 end

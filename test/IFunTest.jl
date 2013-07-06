@@ -11,6 +11,14 @@ cf = IFun(cos);
 
 ecf = IFun(x->cos(x).*exp(x))
 
+@assert abs(ef[.5]-exp(.5))<100eps()
+@assert abs(ecf[.123456]-cos(.123456).*exp(.123456))<100eps()
+
+r=2.*rand(100)-1;
+
+@assert max(abs(ef[r]-exp(r)))<100eps()
+@assert max(abs(ecf[r]-cos(r).*exp(r)))<100eps()
+
 
 @assert norm((ecf-cf.*ef).coefficients)<100eps()
 
@@ -30,3 +38,10 @@ eocf = IFun(x->cos(x)./exp(x))
 
 ef2 = IFun(exp,[1,2]);
 @assert norm((ef2 - diff(cumsum(ef2))).coefficients) < 10eps()
+
+
+@assert abs(ef2[1.5]-exp(1.5))<100eps()
+
+r=rand(100) + 1;
+
+@assert max(abs(ef2[r]-exp(r)))<100eps()
