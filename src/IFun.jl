@@ -471,7 +471,7 @@ function sample(f::IFun,n::Integer)
     cf = cf - cf[f.domain.a];
     cf = cf/cf[f.domain.b];
     
-    bisectioninv(cf.coefficients,rand(n))
+    frominterval(f,bisectioninv(cf.coefficients,rand(n)))
 end
 
 

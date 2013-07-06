@@ -35,13 +35,32 @@ Other operations including random number sampling using [Olver & Townsend 2013].
 We can apply this to any positive function.  The following samples the spectral density of an n = 4 Gaussian Unitary Ensemble):
 
 	f = Fun(x->(9+72x.^2-192x.^4+512x.^6).*exp(-4x.^2),[-4,4])
-	x = sample(f,10000)
+	x = sample(f,40000)
 		
 		
 Plotting is accomplished via Winston:
 
 	using Winston
 	plot(f)
+	
+We can compare the histograms of f with the GUE in RandomMatrices:
+
+
+
+function sampleeigs(n,m)
+    x=zeros(n,m);
+    
+    for k=1:m
+        x[:,k]=eig(RandomMatrices.GaussianHermiteTridiagonalMatrix(n,2))[1];
+    end
+    
+    reshape(x,n*m)
+end
+
+x2 = sampleeigs(4,10000)
+
+
+
 	
 	
 References:
