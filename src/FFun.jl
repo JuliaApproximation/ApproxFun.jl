@@ -64,6 +64,11 @@ end
 
 Base.getindex(f::FFun,x)=evaluate(f,x)
 
+##Data routines  TODO: Unify with IFun
+values(f::FFun)=0
+points(f::IFun)=points(f.domain,length(f))
+Base.length(f::IFun)=length(f.coefficients)
+
 
 ##Plotting
 

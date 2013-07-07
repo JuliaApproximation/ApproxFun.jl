@@ -157,18 +157,15 @@ end
 
 
 
-function values(f::IFun)
-   ichebyshevtransform(f.coefficients) 
-end
 
-function points(f::IFun)
-    points(f.domain,length(f))
-end
+##Data routines
+values(f::IFun)=ichebyshevtransform(f.coefficients) 
+
+points(f::IFun)=points(f.domain,length(f))
 
 
-function Base.length(f::IFun)
-    length(f.coefficients)
-end
+Base.length(f::IFun)=length(f.coefficients)
+
 
 
 ## Matipulate length

@@ -14,9 +14,16 @@ end
 ShiftVector(neg::Vector,nonneg::Vector)=ShiftVector([neg,nonneg],length(neg)+1)
 
 Base.length(sl::ShiftVector)=length(sl.vector)
-Base.getindex(sl::ShiftVector,k::Integer)=sl.vector[k+sl.index]
 firstindex(sl::ShiftVector)=1-sl.index
 lastindex(sl::ShiftVector)=length(sl)-sl.index
+
+Base.getindex(sl::ShiftVector,k::Integer)=sl.vector[k+sl.index]
+Base.getindex(sl::ShiftVector,r::Range1)=sl.vector[r+sl.index]
+Base.endof(sv::ShiftVector)=sv.vector[end]
+Base.last(sv::ShiftVector)=last(sv.vector)
+Base.first(sv::ShiftVector)=first(sv.vector)
+
+
 
 
 for op = (:*,:.*,:./,:/)
@@ -46,22 +53,45 @@ end
 
 
 
+
+
+
 ##FFT That returns ShiftVector
-function svfft(v)
+function svfft(v::Vector)
         n=length(v)
         v=FFTW.fft(v)./n
-        if(mod(length(v),2) == 0)
-            ind=convert(Integer,length(v)/2)
-            v=(-1)^n*alternatingvector(n).*v          
+        if mod(n,2) == 0
+            ind=convert(Integer,n/2)
+            v=alternatingvector(n).*v          
             ShiftVector(v[ind+1:end],            
                         v[1:ind])            
-        elseif(mod(length(v),4)==3)
-            ind=convert(Integer,(length(v)+1)/2)
+        elseif mod(n,4)==3
+            ind=convert(Integer,(n+1)/2)
             ShiftVector(-alternatingvector(n-ind).*v[ind+1:end],            
                         alternatingvector(ind).*v[1:ind])                
         else #mod(length(v),4)==1
-            ind=convert(Integer,(length(v)+1)/2)
+            ind=convert(Integer,(n+1)/2)
             ShiftVector(alternatingvector(n-ind).*v[ind+1:end],            
                         alternatingvector(ind).*v[1:ind])             
         end
+end
+
+
+
+
+
+function isvfft(sv::ShiftVector)
+        n=length(sv)
+        ind = sv.index        
+        
+        if mod(n,2) == 0
+            v=alternatingvector(n).*[sv[0:lastindex(sv)],sv[firstindex(sv):-1]]      
+        elseif mod(n,4)==3
+            v=[alternatingvector(n-ind+1).*sv[0:lastindex(sv)],
+                -alternatingvector(ind-1).*sv[firstindex(sv):-1]]    
+        else #mod(length(v),4)==1
+            v=[alternatingvector(n-ind+1).*sv[0:lastindex(sv)],alternatingvector(ind-1).*sv[firstindex(sv):-1]]         
+        end
+        
+        FFTW.ifft(n*v)
 end
