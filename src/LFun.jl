@@ -103,7 +103,9 @@ function evaluate(f::IFun,x)
     clenshaw(f.coefficients,tointerval(f.domain,x))
 end
 
-Base.getindex(f::IFun,x)=evaluate(f,x)
+function Base.getindex(f::IFun,x)
+       evaluate(f,x)
+end
 
 
 function clenshaw(c::Vector{Float64},x::Float64)

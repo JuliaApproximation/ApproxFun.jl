@@ -76,3 +76,5 @@ This is a misleading comparison: x are iid while x2 have repulsion.
 References:
 	
 S. Olver & A. Townsend,  (2013), Fast inverse transform sampling in one and two dimensions, arXiv:1307.1223.
+
+
