@@ -27,7 +27,7 @@ Base.first(sv::ShiftVector)=first(sv.vector)
 
 ##Assignment
 
-Base.setindex!(sv::ShiftVector,x::Number,k::Integer)=sv.vector[k+sv.index]
+Base.setindex!(sv::ShiftVector,x::Number,k::Integer)=sv.vector[k+sv.index]=x
 
 
 

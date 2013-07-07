@@ -131,14 +131,13 @@ for op = (:+,:-)
             FFun(($op)(f2.coefficients,g2.coefficients),f.domain)
         end
 
-##TODO: assignment to shiftvector
-#         function ($op)(f::FFun,c::Number)
-#             f2 = deepcopy(f);
-#             
-#             f2.coefficients[0] = ($op)(f2.coefficients[0],c);
-#             
-#             f2
-#         end
+        function ($op)(f::FFun,c::Number)
+            f2 = deepcopy(f);
+            
+            f2.coefficients[0] = ($op)(f2.coefficients[0],c);
+            
+            f2
+        end
     end
 end 
 
