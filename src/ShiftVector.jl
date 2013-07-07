@@ -17,6 +17,8 @@ Base.length(sl::ShiftVector)=length(sl.vector)
 firstindex(sl::ShiftVector)=1-sl.index
 lastindex(sl::ShiftVector)=length(sl)-sl.index
 
+range(sv::ShiftVector)=firstindex(sv):lastindex(sv)
+
 Base.getindex(sl::ShiftVector,k::Integer)=sl.vector[k+sl.index]
 Base.getindex(sl::ShiftVector,r::Range1)=sl.vector[r+sl.index]
 Base.endof(sv::ShiftVector)=sv.vector[end]
@@ -39,6 +41,21 @@ for op = (:*,:.*,:+)
 end
 
 
+
+##TODO: is being able to add vectors of different sizes desired behaviour?
+for op = (:+,:-)
+    @eval begin
+        function ($op)(f::ShiftVector,g::ShiftVector)
+            @assert range(f) == range(g)
+            @assert f.index == g.index
+            
+            ShiftVector(($op)(f.vector,g.vector),f.index)
+        end
+    end
+end 
+
+
+
 function Base.print(sl::ShiftVector)
     print("[")
     for k = firstindex(sl):-1
@@ -50,6 +67,13 @@ function Base.print(sl::ShiftVector)
     end    
     print("]")
 end
+
+
+#TODO f[0:end]
+
+pad(f::ShiftVector,r::Range1)=ShiftVector(
+    padleft(f[firstindex(f):-1],-first(r)),
+    pad(f[0:lastindex(f)],last(r)+1))
 
 
 
@@ -83,6 +107,9 @@ end
 function isvfft(sv::ShiftVector)
         n=length(sv)
         ind = sv.index        
+        
+        #TODO: non normalized index ranges
+        @assert n/2 <= ind <= n/2+1
         
         if mod(n,2) == 0
             v=alternatingvector(n).*[sv[0:lastindex(sv)],sv[firstindex(sv):-1]]      

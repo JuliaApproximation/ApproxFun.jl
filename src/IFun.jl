@@ -171,22 +171,8 @@ Base.length(f::IFun)=length(f.coefficients)
 ## Matipulate length
 
 
-function pad!(f::IFun,n::Integer)
-	if (n > length(f))
-		append!(f.coefficients,zeros(n - length(f)));
-	else
-		resize!(f.coefficients,n);
-	end
-end
-
-
-function pad(f::IFun,n::Integer)
-	if (n > length(f))
-		IFun([f.coefficients,zeros(n - length(f))],f.domain);
-	else
-		IFun(f.coefficients[1:n],f.domain);
-	end
-end
+pad!(f::IFun,n::Integer)=pad!(f.coefficients,n)
+pad(f::IFun,n::Integer)=IFun(pad(f.coefficients,n),f.domain)
 
 
 
