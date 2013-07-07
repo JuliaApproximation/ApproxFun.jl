@@ -65,26 +65,19 @@ end
 Base.getindex(f::FFun,x)=evaluate(f,x)
 
 ##Data routines  TODO: Unify with IFun
-values(f::FFun)=0
-points(f::IFun)=points(f.domain,length(f))
-Base.length(f::IFun)=length(f.coefficients)
+values(f::FFun)=isvfft(f.coefficients)
+points(f::FFun)=points(f.domain,length(f))
+Base.length(f::FFun)=length(f.coefficients)
 
 
 ##Plotting
 
-function plot(f::FFun{Float64}) 
-    p = FramedPlot();
-    pts = points(pad(f,2length(f)));
-    vals =values(pad(f,2length(f)));
-    add(p,Curve(pts,vals,"color","blue"));   
-    Winston.display(p);
-    p
-end
+#TODO: Pad
 
 function plot(f::FFun{Complex{Float64}}) 
     p = FramedPlot();
-    pts = points(pad(f,2length(f)));
-    vals =values(pad(f,2length(f)));
+    pts = [points(f),f.domain.b];
+    vals =[values(f),f[f.domain.b]];
     add(p,Curve(pts,real(vals),"color","blue"));
     add(p,Curve(pts,imag(vals),"color","red"));    
     Winston.display(p);
