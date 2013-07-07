@@ -149,6 +149,49 @@ for op = (:*,:.*,:+)
 end
 
 
+## Norm
+
+import Base.norm
+
+
+##TODO: this is mapped L^2[-π,π] norm, 
+norm(f::FFun)=norm(f.coefficients.vector)
+
+
+##TODO: Implement coefficient space real and imag
+
+import Base.imag, Base.real
+
+for op = (:real,:imag) 
+    @eval ($op)(f::FFun) = IFun(svfft(($op)(values(f))),f.domain)
+end
+
+
+##Differentiation
+
+
+##TODO:Figure out how to do type <: Number
+#Base.diff(f::FFun{Complex,PeriodicInterval})
+function Base.diff(f::FFun) 
+    if typeof(f.domain) <: PeriodicInterval
+        tocanonicalD(f.domain,0)*FFun(
+                        ShiftVector(1.im*[firstindex(f.coefficients):-1],
+                                    1.im*[0:lastindex(f.coefficients)]).*f.coefficients,
+                        f.domain)
+    else#Circle
+        ##TODO: general radii
+        @assert f.domain.radius == 1.
+        cfs = f.coefficients
+        # Now shift everything by one
+        FFun(ShiftVector(
+                        [([firstindex(cfs):-1].*cfs[firstindex(cfs):-1]),0],
+                        [1:lastindex(cfs)].*cfs[1:lastindex(cfs)]
+                        ),
+            f.domain)
+    end
+end
+
+
 
 ##TODO: Division by FFun
 
@@ -157,7 +200,7 @@ end
 
 #TODO: Pad
 
-function plot(f::FFun{Complex{Float64}}) 
+function plot(f::FFun) 
     p = FramedPlot();
     pts = [points(f),f.domain.b];
     vals =[values(f),f[f.domain.b]];

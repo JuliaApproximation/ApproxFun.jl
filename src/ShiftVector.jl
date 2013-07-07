@@ -43,7 +43,7 @@ end
 
 
 ##TODO: is being able to add vectors of different sizes desired behaviour?
-for op = (:+,:-)
+for op = (:+,:-,:.*,:./)
     @eval begin
         function ($op)(f::ShiftVector,g::ShiftVector)
             @assert range(f) == range(g)
