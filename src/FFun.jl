@@ -1,6 +1,6 @@
+##TODO: unify tolerances
 
 
-periodic_interval = PeriodicInterval(-1.π,1.π)
 
 type FFun{T<:Number,D<:PeriodicDomain} <: AbstractFun
     coefficients::ShiftVector{T}
@@ -9,7 +9,7 @@ end
 
 
 function FFun(f::Function,n::Integer)
-    FFun(f,periodic_interval,n)
+    FFun(f,PeriodicInterval(),n)
 end
 
 function FFun(f::Function,d::Domain,n::Integer)
@@ -21,7 +21,7 @@ function FFun(f::Function,d::Vector,n::Integer)
 end
 
 function FFun(cfs::ShiftVector)
-	FFun(cfs,periodic_interval)
+	FFun(cfs,PeriodicInterval())
 end
 
 function FFun(cfs::ShiftVector,d::Vector)
@@ -30,7 +30,7 @@ end
 
 
 function FFun(f::Function)
-    FFun(f,periodic_interval)
+    FFun(f,PeriodicInterval())
 end
 
 function FFun(f::Function,d::Vector)
@@ -38,7 +38,36 @@ function FFun(f::Function,d::Vector)
 end
 
 
-##TODO: Adaptive routine
+function FFun(f::Function, d::Domain)
+    #reuse function values
+
+    tol = 200*eps();
+
+    oldcf = FFun(f,d,2);
+
+    for logn = 2:20
+        cf = FFun(f, d, 2^logn);
+        
+        if max(
+            abs(last(cf.coefficients)),
+            abs(cf.coefficients.vector[end-1]),
+            abs(cf.coefficients.vector[1]),
+            abs(cf.coefficients.vector[2])
+##TODO: compare coefficients            
+#             ,
+#             max(abs(cf.coefficients[1:2^(logn-1) + 1] - oldcf.coefficients))
+        ) < tol
+            return cf;
+        end
+        
+        oldcf = cf;
+    end
+    
+    warn("Maximum length reached");
+    
+    cf
+end
+
 
 
 
@@ -183,6 +212,7 @@ function Base.diff(f::FFun)
     else#Circle
         ##TODO: general radii
         @assert f.domain.radius == 1.
+        @assert f.domain.center == 0
         cfs = f.coefficients
         # Now shift everything by one
         FFun(ShiftVector(
@@ -194,7 +224,37 @@ function Base.diff(f::FFun)
 end
 
 
-##TODO: Decide how cumsum should work
+
+
+function Base.cumsum(f::FFun)
+    tol = 10eps()
+
+    if typeof(f.domain) <: PeriodicInterval
+        @assert abs(f.coefficients[0]) < tol
+        
+        ##TODO: mapped domains
+        
+        @assert f.domain.a ==-π
+        @assert f.domain.b ==π        
+        FFun(
+                        ShiftVector(-1.im./[firstindex(f.coefficients):-1],
+                                    [0,(-1.im./[1:lastindex(f.coefficients)])]).*f.coefficients,
+                        f.domain)
+    else#Circle
+        @assert abs(f.coefficients[-1]) < tol        
+        ##TODO: general radii        
+        @assert f.domain.radius == 1.
+        @assert f.domain.center == 0        
+        
+        cfs = f.coefficients
+        # Now shift everything by one
+        FFun(ShiftVector(
+                        [cfs[firstindex(cfs):-1]./[firstindex(cfs):-1]],
+                        [0,(cfs[1:lastindex(cfs)]./[1:lastindex(cfs)])]
+                        ),
+            f.domain)
+    end    
+end
 
 
 

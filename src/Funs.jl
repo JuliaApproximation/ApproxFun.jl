@@ -54,7 +54,9 @@ include("FFun.jl")
 
 ##TODO: Add "FFun" for Fourier, following routine will decide
 # whether input is IFun or FFun
-Fun(x...)=apply(IFun,x)
+Fun(x)=IFun(x)
+Fun(x,d::IntervalDomain)=IFun(x,d)
+Fun(x,d::PeriodicDomain)=FFun(x,d)
 
 
 end #module

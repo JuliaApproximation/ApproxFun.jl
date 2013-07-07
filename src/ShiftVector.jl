@@ -25,6 +25,9 @@ Base.endof(sv::ShiftVector)=sv.vector[end]
 Base.last(sv::ShiftVector)=last(sv.vector)
 Base.first(sv::ShiftVector)=first(sv.vector)
 
+##Assignment
+
+Base.setindex!(sv::ShiftVector,x::Number,k::Integer)=sv.vector[k+sv.index]
 
 
 
@@ -122,3 +125,5 @@ function isvfft(sv::ShiftVector)
         
         FFTW.ifft(n*v)
 end
+
+

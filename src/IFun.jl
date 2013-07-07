@@ -33,7 +33,7 @@ end
 ##  Constructors
 
 
-unit_interval = Interval(-1.,1.)
+
 
 type IFun{T<:Number} <: AbstractFun
     coefficients::Vector{T}
@@ -44,7 +44,7 @@ end
 
 
 function IFun(f::Function,n::Integer)
-    IFun(f,unit_interval,n)
+    IFun(f,Interval(),n)
 end
 
 function IFun(f::Function,d::Domain,n::Integer)
@@ -56,7 +56,7 @@ function IFun(f::Function,d::Vector,n::Integer)
 end
 
 function IFun(cfs::Vector)
-	IFun(cfs,unit_interval)
+	IFun(cfs,Interval())
 end
 
 function IFun(cfs::Vector,d::Vector)
@@ -65,7 +65,7 @@ end
 
 
 function IFun(f::Function)
-    IFun(f,unit_interval)
+    IFun(f,Interval())
 end
 
 function IFun(f::Function,d::Vector)

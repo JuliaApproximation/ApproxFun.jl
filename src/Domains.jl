@@ -30,6 +30,7 @@ type Interval{T<:Number} <: IntervalDomain
 	b::T
 end
 
+Interval()=Interval(-1.,1.)
 
 
 ## Points
@@ -78,6 +79,8 @@ type PeriodicInterval{T<:Number} <: PeriodicDomain
 	a::T
 	b::T
 end
+
+PeriodicInterval()=PeriodicInterval(-1.π,1.π)
 
 
 Interval(d::PeriodicInterval)=Interval(d.a,d.b)
