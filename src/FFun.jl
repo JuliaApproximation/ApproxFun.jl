@@ -149,6 +149,8 @@ for op = (:*,:.*,:+)
 end
 
 
+##TODO: Division by FFun
+
 ## Norm
 
 import Base.norm
@@ -192,8 +194,14 @@ function Base.diff(f::FFun)
 end
 
 
+##TODO: Decide how cumsum should work
 
-##TODO: Division by FFun
+
+
+##TODO: Root finding
+
+##TODO: Sampling
+
 
 
 ##Plotting
