@@ -118,10 +118,15 @@ function .*(f::FFun,g::FFun)
     #TODO Coefficient space version
     fi = firstindex(f.coefficients)+firstindex(g.coefficients)
     li = lastindex(f.coefficients)+lastindex(g.coefficients)
-    f2 = pad(f,fi:li);
-    g2 = pad(g,fi:li);
     
-    print(fi," ",li)
+    ##Todo: Fix following hack to ensure FFT index range
+    li = max(-fi,li)
+    fi = min(fi,-li)    
+    
+    
+    f2 = pad(f,fi:li)
+    g2 = pad(g,fi:li)
+    
 
     FFun(svfft(values(f2).*values(g2)),f.domain)
 end
