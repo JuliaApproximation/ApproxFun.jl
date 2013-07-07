@@ -1,6 +1,6 @@
 
 
-export ShiftVector
+export ShiftVector,firstindex,lastindex
 
 
 

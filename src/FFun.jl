@@ -41,9 +41,27 @@ end
 ##Evaluation
 
 
-function evaluate(f::FFun,x)
-    0
+evaluate(f::FFun,x)=horner(f.coefficients,tocanonical(f,x))
+
+function horner(v::ShiftVector,x)
+    ret = 0.;
+    ei = exp(1.im.*x);
+    ein = exp(-1.im.*x);    
+    
+    p = 1.;
+    for k = 0:lastindex(v)
+        ret += v[k]*p;
+        p *= ei;
+    end
+    p=ein;
+    for k = -1:-1:firstindex(v)
+        ret+= v[k]*p;
+        p *= ein;
+    end
+    
+    ret
 end
+
 Base.getindex(f::FFun,x)=evaluate(f,x)
 
 
