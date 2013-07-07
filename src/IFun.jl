@@ -156,6 +156,10 @@ function clenshaw(c::Vector{Float64},x::Vector{Float64})
 end
 
 
+##TODO: Figure out better way to do this
+clenshaw(c::Vector{Complex{Float64}},x::Vector{Float64})=clenshaw(real(c),x) + clenshaw(imag(c),x).*im
+
+
 
 
 ##Data routines
@@ -280,15 +284,15 @@ end
 
 import Base.norm
 
-norm(f::IFun)=sqrt(sum(f.*f))
+norm(f::IFun)=sqrt(sum(f.*conj(f)))
 
 
 
 ## Mapped functions
 
-import Base.imag, Base.real
+import Base.imag, Base.real, Base.conj
 
-for op = (:real,:imag) 
+for op = (:real,:imag,:conj) 
     @eval ($op)(f::IFun) = IFun(($op)(f.coefficients),f.domain)
 end
 
@@ -325,7 +329,7 @@ end
 
 
 # Convert T -> U
-function ultraconv(v::Vector)
+function ultraconv(v::Vector{Float64})
     n = length(v);
     w = zeros(n);
     
@@ -345,6 +349,7 @@ function ultraconv(v::Vector)
     
     w
 end
+ultraconv(v::Vector{Complex{Float64}})=ultraconv(real(v)) + ultraconv(imag(v))*1.im
 
 
 # diff T -> U, then convert U -> T

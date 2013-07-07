@@ -39,7 +39,7 @@ end
 
 
 function FFun(f::Function, d::Domain)
-    #reuse function values
+    #TODO: reuse function values
 
     tol = 200*eps();
 
