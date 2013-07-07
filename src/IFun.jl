@@ -26,9 +26,7 @@ function ichebyshevtransform(x::Vector)
     flipud(ret.*alternatingvector(length(ret)).*(length(x) - 1).*.5)
 end
 
-points(n::Integer)= cos(π*[n-1:-1:0]/(n-1))
 
-points(d::Domain,n::Integer) = frominterval(d,points(n))
 
 
 
@@ -98,11 +96,10 @@ function IFun(f::Function, d::Domain)
 end
 
 
+##Evaluation
 
-function evaluate(f::IFun,x)
-    clenshaw(f.coefficients,tointerval(f.domain,x))
-end
 
+evaluate(f::IFun,x)=clenshaw(f.coefficients,tocanonical(f.domain,x))
 Base.getindex(f::IFun,x)=evaluate(f,x)
 
 
@@ -373,14 +370,14 @@ function Base.diff(f::IFun)
     # Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
-    tointervalD(f.domain,0)*IFun(ultraiconv(ultradiff(f.coefficients)),f.domain)
+    tocanonicalD(f.domain,0)*IFun(ultraiconv(ultradiff(f.coefficients)),f.domain)
 end
 
 function Base.cumsum(f::IFun)
     # Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
-    fromintervalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)),f.domain)    
+    fromcanonicalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)),f.domain)    
 end
 
 Base.sum(f::IFun)=([-1.,1.]'*cumsum(f)[[f.domain.a,f.domain.b]])[1]
@@ -416,7 +413,7 @@ end
 
 
 function complexroots(f::IFun)
-    frominterval(f,complexroots(f.coefficients))
+    fromcanonical(f,complexroots(f.coefficients))
 end
 
 function roots(f::IFun)
@@ -469,7 +466,7 @@ function sample(f::IFun,n::Integer)
     cf = cf - cf[f.domain.a];
     cf = cf/cf[f.domain.b];
     
-    frominterval(f,bisectioninv(cf.coefficients,rand(n)))
+    fromcanonical(f,bisectioninv(cf.coefficients,rand(n)))
 end
 
 
