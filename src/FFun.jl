@@ -2,9 +2,9 @@
 
 periodic_interval = PeriodicInterval(-1.π,1.π)
 
-type FFun{T<:Number} <: AbstractFun
+type FFun{T<:Number,D<:PeriodicDomain} <: AbstractFun
     coefficients::ShiftVector{T}
-    domain::Domain
+    domain::D
 end
 
 
@@ -48,6 +48,8 @@ end
 
 evaluate(f::FFun,x)=horner(f.coefficients,tocanonical(f,x))
 
+
+##TODO: fast list routine
 function horner(v::ShiftVector,x)
     ret = 0.;
     ei = exp(1.im.*x);
@@ -56,12 +58,12 @@ function horner(v::ShiftVector,x)
     p = 1.;
     for k = 0:lastindex(v)
         ret += v[k]*p;
-        p *= ei;
+        p .*= ei;
     end
     p=ein;
     for k = -1:-1:firstindex(v)
         ret+= v[k]*p;
-        p *= ein;
+        p .*= ein;
     end
     
     ret

@@ -25,7 +25,7 @@ chebyshevpoints(n::Integer)= cos(1.π*[n-1:-1:0]/(n-1))
 points(d::IntervalDomain,n::Integer) = fromcanonical(d, chebyshevpoints(n))
 
 
-type Interval{T<:Number} <: Domain
+type Interval{T<:Number} <: IntervalDomain
 	a::T
 	b::T
 end
