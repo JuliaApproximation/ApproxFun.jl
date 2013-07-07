@@ -1,4 +1,6 @@
-Funs is a package for approximating functions.  It currently supports intervals.  It is heavily influenced by the Matlab package chebfun (http://www.chebfun.org) and the Mathematica package RHPackage (http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
+Funs is a package for approximating functions.  It currently supports intervals, periodic intervals and the unit circle.  It is heavily influenced by the Matlab package chebfun (http://www.chebfun.org) and the Mathematica package RHPackage (http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
+
+
 
 To construct an approximation of exp(x) on [-1,1], simply call
 
@@ -67,6 +69,30 @@ We can compare the histograms of x with the GUE:
 
 
 This is a misleading comparison: x are iid while x2 have repulsion.
+
+
+
+There is also support for Fourier representations of functions on periodic intervals.  Use FFun to ensure that the representation is periodic:
+
+	f = FFun(cos)
+	
+The default domain is [Ð¹,¹].  
+
+
+Differentiation is again accomplished with diff, so the following will be small:
+
+	norm(diff(f) + FFun(sin))
+
+Indefinite integration is only supported when the zeroth Fourier coefficient is zero:
+	
+	norm(cumsum(f) - FFun(sin))	
+
+	
+	
+Alternatively, a Laurent series can be constructed on the unit circle:
+
+	c = FFun(cos,Circle())
+	
 
 
 
