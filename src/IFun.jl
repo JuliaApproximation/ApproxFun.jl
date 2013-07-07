@@ -2,7 +2,7 @@
 
 
 
-alternatingvector(n::Integer) = 2*mod([1:n],2)-1;
+
 
 function chebyshevtransform(x::Vector)
     ret = FFTW.r2r(x, FFTW.REDFT00);
