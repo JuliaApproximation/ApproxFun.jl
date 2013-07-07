@@ -284,7 +284,7 @@ end
 
 import Base.norm
 
-norm(f::IFun)=sqrt(sum(f.*conj(f)))
+norm(f::IFun)=real(sqrt(sum(f.*conj(f))))
 
 
 

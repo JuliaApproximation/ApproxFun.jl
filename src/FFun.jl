@@ -249,7 +249,7 @@ function Base.cumsum(f::FFun)
         # Now shift everything by one
         FFun(ShiftVector(
                         [cfs[firstindex(cfs):-1]./[firstindex(cfs):-1]],
-                        [0,(cfs[1:lastindex(cfs)]./[1:lastindex(cfs)])]
+                        [0,(cfs[0:lastindex(cfs)]./[1:lastindex(cfs)+1])]
                         ),
             f.domain)
     end    

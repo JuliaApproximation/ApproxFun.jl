@@ -1,6 +1,6 @@
 
 
-export Domain,tocanonical,fromcanonical,Circle
+export Domain,tocanonical,fromcanonical,Circle,PeriodicInterval,Interval
 
 
 abstract Domain
