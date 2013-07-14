@@ -57,7 +57,7 @@ include("FFun.jl")
 Fun(x)=IFun(x)
 Fun(x,d::IntervalDomain)=IFun(x,d)
 Fun(x,d::PeriodicDomain)=FFun(x,d)
-
+Fun(x,d)=IFun(x,d)
 
 end #module
 

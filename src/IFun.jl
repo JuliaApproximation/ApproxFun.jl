@@ -79,11 +79,22 @@ end
 ##Evaluation
 
 
-evaluate(f::IFun,x)=clenshaw(f.coefficients,tocanonical(f.domain,x))
 Base.getindex(f::IFun,x)=evaluate(f,x)
+evaluate(f::IFun,x)=clenshaw(f.coefficients,tocanonical(f.domain,x))
 
 
-function clenshaw(c::Vector,x)
+
+
+
+function clenshaw(c,x)
+    if max(abs(imag(x))) < 10*eps()
+        clenshaw(c,real(x))
+    else
+        clenshaw(c,real(x))+im*clenshaw(c,imag(x))    
+    end
+end
+
+function clenshaw(c::Vector,x::Real)
 
     x = 2x;
     bk1 = 0.0;
@@ -97,7 +108,7 @@ end
 
 using NumericExtensions
 
-function clenshaw(c::Vector,x::Vector)
+function clenshaw(c::Vector,x::Vector{Real})
     n = length(x)
     bk1 = zeros(n)
     bk2 = zeros(n)
@@ -290,9 +301,9 @@ ultraint(v::Vector)=[0,v./[1:length(v)]]
 
 
 # Convert from U -> T
-function ultraiconv(v::Vector)
+function ultraiconv(v::Vector{Float64})
     n = length(v);
-    w = zeros(n);
+    w = Array(Float64,n);
     
     w[end] = 2v[end];
     w[end-1] = 2v[end-1];
@@ -310,7 +321,7 @@ end
 # Convert T -> U
 function ultraconv(v::Vector{Float64})
     n = length(v);
-    w = zeros(n);
+    w = Array(Float64,n);
     
     if n == 1
         w[1] = v[1];
@@ -328,6 +339,8 @@ function ultraconv(v::Vector{Float64})
     
     w
 end
+
+ultraiconv(v::Vector{Complex{Float64}})=ultraiconv(real(v)) + ultraiconv(imag(v))*1.im
 ultraconv(v::Vector{Complex{Float64}})=ultraconv(real(v)) + ultraconv(imag(v))*1.im
 
 
@@ -347,7 +360,10 @@ function Base.cumsum(f::IFun)
     fromcanonicalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)),f.domain)    
 end
 
-Base.sum(f::IFun)=([-1.,1.]'*cumsum(f)[[f.domain.a,f.domain.b]])[1]
+function Base.sum(f::IFun)
+    cf=cumsum(f).coefficients
+    clenshaw(cf,1.) - clenshaw(cf,-1.)
+end
     
 
 
@@ -415,7 +431,10 @@ function bisectioninv(c::Vector{Float64},xl::Vector{Float64})
     a = -ones(n);
     b = ones(n);
     
-    for k=1:47
+#     a_v = unsafe_view(a);
+#     b_v = unsafe_view(b);    
+    
+    for k=1:47  #TODO: 
         m=.5*(a+b);
         vals = clenshaw(c,m);
         I1 = vals-xl.<=0; I2 = vals-xl.>0; 

@@ -11,3 +11,10 @@ tic();y=f[x];toc()
 tic();y=f[.1];toc()
 #0.000352981
 
+
+f=Fun(exp)
+
+tic();x=sample(f,10000);toc()
+#0.067385032
+
+
