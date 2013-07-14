@@ -1,4 +1,4 @@
-module Funs
+module ApproxFun
     using Base, Winston, NumericExtensions
 
 export Fun,IFun,FFun,Interval,evaluate,values,points,chebyshevtransform
