@@ -1,4 +1,4 @@
-## Helper routines
+## transforms
 
 
 
@@ -43,31 +43,14 @@ end
 
 
 
-function IFun(f::Function,n::Integer)
-    IFun(f,Interval(),n)
-end
-
-function IFun(f::Function,d::Domain,n::Integer)
-    IFun(chebyshevtransform(f(points(d,n))),d)
-end
-
+IFun(f::Function,n::Integer)=IFun(f,Interval(),n)
+IFun(f::Function,d::Domain,n::Integer)=IFun(chebyshevtransform(f(points(d,n))),d)
 IFun(f::Function,d::Vector,n::Integer)=IFun(f,apply(Interval,d),n)
-
-
 IFun(cfs::Vector)=IFun(cfs,Interval())
+IFun(cfs::Vector,d::Vector)=IFun(cfs,apply(Interval,d))
+IFun(f::Function)=IFun(f,Interval())
+IFun(f::Function,d::Vector)=IFun(f,apply(Interval,d))
 
-function IFun(cfs::Vector,d::Vector)
-	IFun(cfs,apply(Interval,d))
-end
-
-
-function IFun(f::Function)
-    IFun(f,Interval())
-end
-
-function IFun(f::Function,d::Vector)
-    IFun(f,apply(Interval,d))
-end
 
 function IFun(f::Function, d::Domain)
     #reuse function values
@@ -100,7 +83,7 @@ evaluate(f::IFun,x)=clenshaw(f.coefficients,tocanonical(f.domain,x))
 Base.getindex(f::IFun,x)=evaluate(f,x)
 
 
-function clenshaw(c::Vector{Float64},x::Float64)
+function clenshaw(c::Vector,x)
 
     x = 2x;
     bk1 = 0.0;
@@ -114,13 +97,14 @@ end
 
 using NumericExtensions
 
-function clenshaw(c::Vector{Float64},x::Vector{Float64})
+function clenshaw(c::Vector,x::Vector)
     n = length(x)
     bk1 = zeros(n)
     bk2 = zeros(n)
     x=2x
-
-    bk = Array(Float64, n)
+    
+    @assert length(c) > 0 
+    bk =  Array(typeof(first(c)),n) 
 
     x_v = unsafe_view(x)
     bk1_v = unsafe_view(bk1)
@@ -153,8 +137,6 @@ function clenshaw(c::Vector{Float64},x::Vector{Float64})
 end
 
 
-##TODO: Figure out better way to do this
-clenshaw(c::Vector{Complex{Float64}},x::Vector{Float64})=clenshaw(real(c),x) + clenshaw(imag(c),x).*im
 
 
 
