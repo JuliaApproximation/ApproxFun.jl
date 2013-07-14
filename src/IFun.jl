@@ -51,13 +51,10 @@ function IFun(f::Function,d::Domain,n::Integer)
     IFun(chebyshevtransform(f(points(d,n))),d)
 end
 
-function IFun(f::Function,d::Vector,n::Integer)
-    IFun(f,apply(Interval,d),n)
-end
+IFun(f::Function,d::Vector,n::Integer)=IFun(f,apply(Interval,d),n)
 
-function IFun(cfs::Vector)
-	IFun(cfs,Interval())
-end
+
+IFun(cfs::Vector)=IFun(cfs,Interval())
 
 function IFun(cfs::Vector,d::Vector)
 	IFun(cfs,apply(Interval,d))
