@@ -8,35 +8,14 @@ type FFun{T<:Number,D<:PeriodicDomain} <: AbstractFun
 end
 
 
-function FFun(f::Function,n::Integer)
-    FFun(f,PeriodicInterval(),n)
-end
 
-function FFun(f::Function,d::Domain,n::Integer)
-    FFun(svfft(f(points(d,n))),d)
-end
-
-function FFun(f::Function,d::Vector,n::Integer)
-    FFun(f,apply(PeriodicInterval,d),n)
-end
-
-function FFun(cfs::ShiftVector)
-	FFun(cfs,PeriodicInterval())
-end
-
-function FFun(cfs::ShiftVector,d::Vector)
-	FFun(cfs,apply(PeriodicInterval,d))
-end
-
-
-function FFun(f::Function)
-    FFun(f,PeriodicInterval())
-end
-
-function FFun(f::Function,d::Vector)
-    FFun(f,apply(PeriodicInterval,d))
-end
-
+FFun(f::Function,n::Integer)=FFun(f,PeriodicInterval(),n)
+FFun(f::Function,d::Domain,n::Integer)=FFun(svfft(f(points(d,n))),d)
+FFun(f::Function,d::Vector,n::Integer)=FFun(f,apply(PeriodicInterval,d),n)
+FFun(cfs::ShiftVector)=FFun(cfs,PeriodicInterval())
+FFun(cfs::ShiftVector,d::Vector)=FFun(cfs,apply(PeriodicInterval,d))
+FFun(f::Function)=FFun(f,PeriodicInterval())
+FFun(f::Function,d::Vector)=FFun(f,apply(PeriodicInterval,d))
 
 function FFun(f::Function, d::Domain)
     #TODO: reuse function values
