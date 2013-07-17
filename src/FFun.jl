@@ -176,67 +176,7 @@ for op = (:real,:imag)
 end
 
 
-##Differentiation
 
-
-##TODO:Figure out how to do type <: Number
-#Base.diff(f::FFun{Complex,PeriodicInterval})
-
-function Base.diff{T<:Number}(f::FFun{T,Circle}) 
-        ##TODO: general radii
-        @assert f.domain.radius == 1.
-        @assert f.domain.center == 0
-        cfs = f.coefficients
-        # Now shift everything by one
-        FFun(ShiftVector(
-                        [([firstindex(cfs):-1].*cfs[firstindex(cfs):-1]),0],
-                        [1:lastindex(cfs)].*cfs[1:lastindex(cfs)]
-                        ),
-            f.domain)    
-end
-
-
-function Base.diff{T<:Number,M<:Number}(f::FFun{T,PeriodicInterval{M}}) 
-    tocanonicalD(f.domain,0)*FFun(
-                    ShiftVector(1.im*[firstindex(f.coefficients):-1],
-                                1.im*[0:lastindex(f.coefficients)]).*f.coefficients,
-                    f.domain)
-end
-
-
-
-
-
-
-function Base.cumsum(f::FFun)
-    tol = 10eps()
-
-    if typeof(f.domain) <: PeriodicInterval
-        @assert abs(f.coefficients[0]) < tol
-        
-        ##TODO: mapped domains
-        
-        @assert f.domain.a ==-π
-        @assert f.domain.b ==π        
-        FFun(
-                        ShiftVector(-1.im./[firstindex(f.coefficients):-1],
-                                    [0,(-1.im./[1:lastindex(f.coefficients)])]).*f.coefficients,
-                        f.domain)
-    else#Circle
-        @assert abs(f.coefficients[-1]) < tol        
-        ##TODO: general radii        
-        @assert f.domain.radius == 1.
-        @assert f.domain.center == 0        
-        
-        cfs = f.coefficients
-        # Now shift everything by one
-        FFun(ShiftVector(
-                        [cfs[firstindex(cfs):-1]./[firstindex(cfs):-1]],
-                        [0,(cfs[0:lastindex(cfs)]./[1:lastindex(cfs)+1])]
-                        ),
-            f.domain)
-    end    
-end
 
 
 

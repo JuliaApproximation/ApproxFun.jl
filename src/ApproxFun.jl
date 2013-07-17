@@ -52,6 +52,11 @@ include("ShiftVector.jl")
 include("FFun.jl")
 
 
+include("PeriodicInterval.jl")
+include("Circle.jl")
+
+
+
 ##TODO: Add "FFun" for Fourier, following routine will decide
 # whether input is IFun or FFun
 Fun(x)=IFun(x)
