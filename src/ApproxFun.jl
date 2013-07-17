@@ -51,7 +51,7 @@ include("IFun.jl")
 include("ShiftVector.jl")
 include("FFun.jl")
 
-
+include("Interval.jl")
 include("PeriodicInterval.jl")
 include("Circle.jl")
 

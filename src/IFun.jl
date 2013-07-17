@@ -35,9 +35,9 @@ end
 
 
 
-type IFun{T<:Number} <: AbstractFun
+type IFun{T<:Number,D<:IntervalDomain} <: AbstractFun
     coefficients::Vector{T}
-    domain::Domain
+    domain::D
 end
 
 
@@ -344,28 +344,6 @@ ultraiconv(v::Vector{Complex{Float64}})=ultraiconv(real(v)) + ultraiconv(imag(v)
 ultraconv(v::Vector{Complex{Float64}})=ultraconv(real(v)) + ultraconv(imag(v))*1.im
 
 
-# diff T -> U, then convert U -> T
-function Base.diff(f::IFun)
-
-    # Will need to change code for other domains
-    @assert typeof(f.domain) <: Interval
-    
-    tocanonicalD(f.domain,0)*IFun(ultraiconv(ultradiff(f.coefficients)),f.domain)
-end
-
-function Base.cumsum(f::IFun)
-    # Will need to change code for other domains
-    @assert typeof(f.domain) <: Interval
-    
-    fromcanonicalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)),f.domain)    
-end
-
-function Base.sum(f::IFun)
-    cf=cumsum(f).coefficients
-    clenshaw(cf,1.) - clenshaw(cf,-1.)
-end
-    
-
 
 
 ==(f::IFun,g::IFun) =  (f.coefficients == g.coefficients && f.domain == g.domain)
@@ -403,28 +381,9 @@ function roots(f::IFun)
     complexroots(f)
 end
 
-function bisection(f::IFun,d::Interval)
-    tol = 10E-14;
-    m = .5*(d.a + d.b);    
 
-    while(length(d) > tol)
-        m = .5*(d.a + d.b);    
-        fm = evaluate(f,m);
     
-        if fm > 0
-            d = Interval(d.a,m);
-        else
-            d = Interval(m,d.b);
-        end
-    end
-    
-    m
-end
-
-
-bisection(f::IFun)=bisection(f,f.domain)
-    
-bisectioninv(f::IFun,x::Real) = bisection(f-x)
+bisectioninv(f::IFun,x::Real) = first(bisection(f,[x]))
 
 function bisectioninv(c::Vector{Float64},xl::Vector{Float64}) 
     n = length(xl);
