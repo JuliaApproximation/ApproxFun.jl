@@ -181,13 +181,8 @@ end
 
 ##TODO:Figure out how to do type <: Number
 #Base.diff(f::FFun{Complex,PeriodicInterval})
-function Base.diff(f::FFun) 
-    if typeof(f.domain) <: PeriodicInterval
-        tocanonicalD(f.domain,0)*FFun(
-                        ShiftVector(1.im*[firstindex(f.coefficients):-1],
-                                    1.im*[0:lastindex(f.coefficients)]).*f.coefficients,
-                        f.domain)
-    else#Circle
+
+function Base.diff{T<:Number}(f::FFun{T,Circle}) 
         ##TODO: general radii
         @assert f.domain.radius == 1.
         @assert f.domain.center == 0
@@ -197,9 +192,18 @@ function Base.diff(f::FFun)
                         [([firstindex(cfs):-1].*cfs[firstindex(cfs):-1]),0],
                         [1:lastindex(cfs)].*cfs[1:lastindex(cfs)]
                         ),
-            f.domain)
-    end
+            f.domain)    
 end
+
+
+function Base.diff{T<:Number,M<:Number}(f::FFun{T,PeriodicInterval{M}}) 
+    tocanonicalD(f.domain,0)*FFun(
+                    ShiftVector(1.im*[firstindex(f.coefficients):-1],
+                                1.im*[0:lastindex(f.coefficients)]).*f.coefficients,
+                    f.domain)
+end
+
+
 
 
 
