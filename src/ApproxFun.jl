@@ -1,5 +1,5 @@
 module ApproxFun
-    using Base, Winston, NumericExtensions
+    using Base, NumericExtensions
 
 export Fun,IFun,FFun,Interval,evaluate,values,points,chebyshevtransform
 export pad!,pad,sample,chop!,complexroots,roots,plot,svfft

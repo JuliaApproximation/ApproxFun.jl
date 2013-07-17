@@ -108,14 +108,14 @@ end
 
 using NumericExtensions
 
-function clenshaw(c::Vector,x::Vector{Real})
+function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M})
     n = length(x)
     bk1 = zeros(n)
     bk2 = zeros(n)
     x=2x
     
     @assert length(c) > 0 
-    bk =  Array(typeof(first(c)),n) 
+    bk =  Array(T,n) 
 
     x_v = unsafe_view(x)
     bk1_v = unsafe_view(bk1)

@@ -1,4 +1,3 @@
-using Funs
 
 ef = IFun(exp);
 
