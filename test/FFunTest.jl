@@ -1,5 +1,3 @@
-using Funs
-
 @assert norm(IFun(x->FFun(cos)[x])-IFun(cos)) <100eps()
 
 
