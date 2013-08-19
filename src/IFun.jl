@@ -423,8 +423,11 @@ end
 #     plot(points(f),values(real(f)),points(f),values(imag(f)))
 # end
 
+
+using Winston
+
 function plot(f::IFun{Float64}) 
-    p = FramedPlot();
+    p = Winston.FramedPlot();
     pts = points(pad(f,2length(f)));
     vals =values(pad(f,2length(f)));
     add(p,Curve(pts,vals,"color","blue"));   
@@ -433,7 +436,7 @@ function plot(f::IFun{Float64})
 end
 
 function plot(f::IFun{Complex{Float64}}) 
-    p = FramedPlot();
+    p = Winston.FramedPlot();
     pts = points(pad(f,2length(f)));
     vals =values(pad(f,2length(f)));
     add(p,Curve(pts,real(vals),"color","blue"));
