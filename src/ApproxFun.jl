@@ -3,7 +3,7 @@ module ApproxFun
 
 export Fun,IFun,FFun,Interval,evaluate,values,points,chebyshevtransform
 export pad!,pad,sample,chop!,complexroots,roots,plot,svfft
-export multiplybyx
+export multiplybyx,IntervalDomain,fasttimes
 
 
 

@@ -43,7 +43,7 @@ end
 
 
 
-type IFun{T<:Number,D<:IntervalDomain} <: AbstractFun
+type IFun{T<:Union(Float64,Complex{Float64}),D<:IntervalDomain} <: AbstractFun
     coefficients::Vector{T}
     domain::D
 end
@@ -54,8 +54,9 @@ end
 IFun(f::Function,n::Integer)=IFun(f,Interval(),n)
 IFun(f::Function,d::Domain,n::Integer)=IFun(chebyshevtransform(f(points(d,n))),d)
 IFun(f::Function,d::Vector,n::Integer)=IFun(f,apply(Interval,d),n)
-IFun(cfs::Vector)=IFun(cfs,Interval())
-IFun(cfs::Vector,d::Vector)=IFun(cfs,apply(Interval,d))
+IFun(cfs::Vector)=IFun(1.*cfs,Interval())
+IFun(cfs::Vector,d::Vector)=IFun(1.*cfs,apply(Interval,d))
+IFun(cfs::Vector,d::IntervalDomain)=IFun(1.*cfs,d)
 IFun(f::Function)=IFun(f,Interval())
 IFun(f::Function,d::Vector)=IFun(f,apply(Interval,d))
 
@@ -83,6 +84,10 @@ function IFun(f::Function, d::Domain)
     cf
 end
 
+##Convert routines
+Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([1.*x])
+Base.convert(::Type{IFun},x::Int64)=IFun([1.*x])
+Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.*x
 
 ##Evaluation
 
@@ -235,6 +240,8 @@ function .*(f::IFun,g::IFun)
     
     IFun(chebyshevtransform(values(f2).*values(g2)),f.domain)
 end
+
+fasttimes(f2,g2)=IFun(chebyshevtransform(values(f2).*values(g2)),f2.domain)
 
 
 
@@ -460,6 +467,24 @@ end
 
 
 
+## Array routines
 
+function ApproxFun.values{T,D}(p::Array{IFun{T,D},1})
+    n = max(map(length,p))
+    ret = Array(T,length(p),n)
+    for i = 1:length(p)
+        ret[i,:] = values(pad(p[i],n));
+    end
+    ret
+end
 
+function ApproxFun.values{T,D}(p::Array{IFun{T,D},2})
+    @assert size(p)[1] == 1
 
+    n = max(map(length,p))
+    ret = Array(T,n,length(p))
+    for i = 1:length(p)
+        ret[:,i] = values(pad(p[i],n));
+    end
+    ret
+end
