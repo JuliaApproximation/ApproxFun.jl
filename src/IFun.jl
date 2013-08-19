@@ -5,25 +5,33 @@
 
 
 function chebyshevtransform(x::Vector)
-    ret = FFTW.r2r(x, FFTW.REDFT00);
-    ret[1] *= .5;
-    ret[end] *= .5;    
-    ret.*alternatingvector(length(ret))/(length(ret)-1)
+    if(length(x) == 1)
+        x
+    else
+        ret = FFTW.r2r(x, FFTW.REDFT00);
+        ret[1] *= .5;
+        ret[end] *= .5;    
+        ret.*alternatingvector(length(ret))/(length(ret)-1)
+    end
 end
 
 function ichebyshevtransform(x::Vector)
-    x[1] *= 2.;
-    x[end] *= 2.;
-    
-    ret = chebyshevtransform(x);
-    
-    x[1] *= .5;
-    x[end] *= .5;
-    
-    ret[1] *= 2.;
-    ret[end] *= 2.;
-    
-    flipud(ret.*alternatingvector(length(ret)).*(length(x) - 1).*.5)
+    if(length(x) == 1)
+        x
+    else
+        x[1] *= 2.;
+        x[end] *= 2.;
+        
+        ret = chebyshevtransform(x);
+        
+        x[1] *= .5;
+        x[end] *= .5;
+        
+        ret[1] *= 2.;
+        ret[end] *= 2.;
+        
+        flipud(ret.*alternatingvector(length(ret)).*(length(x) - 1).*.5)
+    end
 end
 
 
@@ -269,6 +277,10 @@ end
 ./(f::IFun,g::IFun)=f.*(1./g)
 
 
+##Coefficient space operators
+
+
+multiplybyx(f::IFun)=IFun([0,1,.5*ones(length(f)-1)].*[0,f.coefficients]+[.5*f.coefficients[2:end],0,0],f.domain)
 
 ## Norm
 
