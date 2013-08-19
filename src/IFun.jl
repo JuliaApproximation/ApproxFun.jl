@@ -434,6 +434,9 @@ function sample(f::IFun,n::Integer)
 end
 
 
+sample(f::IFun)=sample(f,1)[1]
+
+
 
 ## Plotting
 
@@ -469,7 +472,7 @@ end
 
 ## Array routines
 
-function ApproxFun.values{T,D}(p::Array{IFun{T,D},1})
+function values{T,D}(p::Array{IFun{T,D},1})
     n = max(map(length,p))
     ret = Array(T,length(p),n)
     for i = 1:length(p)
@@ -478,7 +481,7 @@ function ApproxFun.values{T,D}(p::Array{IFun{T,D},1})
     ret
 end
 
-function ApproxFun.values{T,D}(p::Array{IFun{T,D},2})
+function values{T,D}(p::Array{IFun{T,D},2})
     @assert size(p)[1] == 1
 
     n = max(map(length,p))
@@ -488,3 +491,24 @@ function ApproxFun.values{T,D}(p::Array{IFun{T,D},2})
     end
     ret
 end
+
+function coefficients{T,D}(p::Array{IFun{T,D},1})
+    n = max(map(length,p))
+    ret = Array(T,length(p),n)
+    for i = 1:length(p)
+        ret[i,:] = pad(p[i],n).coefficients
+    end
+    ret
+end
+
+
+
+function *{T,D}(A::Array{Float64,2},p::Array{IFun{T,D},1})
+    cfs=(A*coefficients(p))'
+    ret = Array(IFun{T,D},size(A)[1])
+    for i = 1:size(A)[1]
+        ret[i] = IFun(cfs[:,i],p[i].domain)
+    end
+    ret
+end
+
