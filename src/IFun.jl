@@ -71,7 +71,7 @@ function IFun(f::Function, d::Domain)
     for logn = 2:20
         cf = IFun(f, d, 2^logn + 1);
         
-        if max(abs(cf.coefficients[end]),abs(cf.coefficients[end-1]),max(abs(cf.coefficients[1:2^(logn-1) + 1] - oldcf.coefficients))) < tol
+        if max(abs(cf.coefficients[end]),abs(cf.coefficients[end-1]),maximum(abs(cf.coefficients[1:2^(logn-1) + 1] - oldcf.coefficients))) < tol
             chop!(cf,10eps());
             return cf;
         end
@@ -100,7 +100,7 @@ evaluate(f::IFun,x)=clenshaw(f.coefficients,tocanonical(f.domain,x))
 
 
 function clenshaw(c,x)
-    if max(abs(imag(x))) < 10*eps()
+    if maximum(abs(imag(x))) < 10*eps()
         clenshaw(c,real(x))
     else
         clenshaw(c,real(x))+im*clenshaw(c,imag(x))    
