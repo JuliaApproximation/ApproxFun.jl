@@ -287,7 +287,12 @@ end
 ##Coefficient space operators
 
 
-multiplybyx(f::IFun)=IFun([0,1,.5*ones(length(f)-1)].*[0,f.coefficients]+[.5*f.coefficients[2:end],0,0],f.domain)
+function multiplybyx(f::IFun)
+    a = f.domain.a
+    b = f.domain.b
+    g = IFun([0,1,.5*ones(length(f)-1)].*[0,f.coefficients]+[.5*f.coefficients[2:end],0,0],f.domain) #Gives multiplybyx on unit interval
+    (b-a)/2*g + (b+a)/2
+end
 
 ## Norm
 
@@ -473,7 +478,7 @@ end
 ## Array routines
 
 function values{T,D}(p::Array{IFun{T,D},1})
-    n = max(map(length,p))
+    n = maximum(map(length,p))
     ret = Array(T,length(p),n)
     for i = 1:length(p)
         ret[i,:] = values(pad(p[i],n));
@@ -484,7 +489,7 @@ end
 function values{T,D}(p::Array{IFun{T,D},2})
     @assert size(p)[1] == 1
 
-    n = max(map(length,p))
+    n = maximum(map(length,p))
     ret = Array(T,n,length(p))
     for i = 1:length(p)
         ret[:,i] = values(pad(p[i],n));
@@ -493,7 +498,7 @@ function values{T,D}(p::Array{IFun{T,D},2})
 end
 
 function coefficients{T,D}(p::Array{IFun{T,D},1})
-    n = max(map(length,p))
+    n = maximum(map(length,p))
     ret = Array(T,length(p),n)
     for i = 1:length(p)
         ret[i,:] = pad(p[i],n).coefficients
