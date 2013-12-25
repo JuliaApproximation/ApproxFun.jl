@@ -16,15 +16,15 @@ eocf = IFun(x->cos(x)./exp(x))
 
 r=2.*rand(100)-1;
 
-@assert max(abs(ef[r]-exp(r)))<100eps()
-@assert max(abs(ecf[r]-cos(r).*exp(r)))<100eps()
+@assert maximum(abs(ef[r]-exp(r)))<100eps()
+@assert maximum(abs(ecf[r]-cos(r).*exp(r)))<100eps()
 
 
 @assert norm((ecf-cf.*ef).coefficients)<100eps()
 
 
 
-@assert max(abs((eocf-cf./ef).coefficients))<1000eps()
+@assert maximum(abs((eocf-cf./ef).coefficients))<1000eps()
 
 
 @assert norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
@@ -63,14 +63,14 @@ x=1.5;
 
 
 
-@assert max(abs(ef[r]-exp(r)))<100eps()
-@assert max(abs(ecf[r]-cos(r).*exp(r)))<100eps()
+@assert maximum(abs(ef[r]-exp(r)))<100eps()
+@assert maximum(abs(ecf[r]-cos(r).*exp(r)))<100eps()
 
 
 @assert norm((ecf-cf.*ef).coefficients)<100eps()
 
 
-@assert max(abs((eocf-cf./ef).coefficients))<1000eps()
+@assert maximum(abs((eocf-cf./ef).coefficients))<1000eps()
 
 
 @assert norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
