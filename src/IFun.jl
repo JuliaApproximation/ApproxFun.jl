@@ -459,7 +459,7 @@ function plot(f::IFun{Float64})
     vals =values(pad(f,2length(f)));
     add(p,Curve(pts,vals,"color","blue"));   
     Winston.display(p);
-    p
+#    p
 end
 
 function plot(f::IFun{Complex{Float64}}) 
@@ -469,7 +469,7 @@ function plot(f::IFun{Complex{Float64}})
     add(p,Curve(pts,real(vals),"color","blue"));
     add(p,Curve(pts,imag(vals),"color","red"));    
     Winston.display(p);
-    p
+#    p
 end
 
 
