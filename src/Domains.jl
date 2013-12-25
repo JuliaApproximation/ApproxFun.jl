@@ -1,6 +1,7 @@
 
 
 export Domain,tocanonical,fromcanonical,Circle,PeriodicInterval,Interval
+export chebyshevpoints
 
 
 abstract Domain
