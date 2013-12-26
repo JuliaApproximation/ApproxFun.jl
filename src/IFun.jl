@@ -84,6 +84,12 @@ function IFun(f::Function, d::Domain)
     cf
 end
 
+##Coefficient routines
+
+coefficients(f::IFun)=f.coefficients
+coefficients(f::IFun,m::Integer)=m == 1 ? ultraconv(f.coefficients) : error("higher order ultra series not implemented")
+
+
 ##Convert routines
 Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([1.*x])
 Base.convert(::Type{IFun},x::Int64)=IFun([1.*x])
@@ -407,7 +413,7 @@ end
 
 
     
-bisectioninv(f::IFun,x::Real) = first(bisection(f,[x]))
+bisectioninv(f::IFun,x::Real) = first(bisectioninv(f,[x]))
 
 function bisectioninv(c::Vector{Float64},xl::Vector{Float64}) 
     n = length(xl);
@@ -505,6 +511,7 @@ function coefficients{T,D}(p::Array{IFun{T,D},1})
     end
     ret
 end
+
 
 
 

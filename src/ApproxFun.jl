@@ -7,7 +7,7 @@ export multiplybyx,IntervalDomain,fasttimes
 
 ##Testing
 export bisectioninv, clenshaw
-
+export coefficients
 
 
 
@@ -59,6 +59,8 @@ include("Interval.jl")
 include("PeriodicInterval.jl")
 include("Circle.jl")
 
+
+include("Operator.jl")
 
 
 ##Following routine decides
