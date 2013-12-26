@@ -186,3 +186,5 @@ function \(A::Array{Operator,1},b::Array{Any,1})
         end
     end
 end
+
+\(A::Array{Operator,1},b::Union(Array{Float64,1},Array{Float64,2}))=A\convert(Array{Any,1},b)
