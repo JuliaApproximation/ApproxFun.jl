@@ -4,6 +4,8 @@ export differentialorder,conversionmatrix,derivativematrix,tomatrix
 abstract Operator
 
 
+##Operator types
+
 type EvaluationOperator <: Operator
     x
     domain::IntervalDomain
@@ -16,6 +18,9 @@ type DifferentialOperator <: Operator
     coefficients::Vector
     domain::IntervalDomain
 end
+
+
+##Information about operator
 
 
 Base.size(::EvaluationOperator)=Any[1,Inf]
@@ -41,7 +46,11 @@ end
 Base.getindex(op::EvaluationOperator,k::Range1)=[op[l] for l=k]
 function Base.getindex(op::EvaluationOperator,j::Range1,k::Range1)
   @assert j[1]==1 && j[end]==1
-  op[k]'
+  op[k]' #TODO conjugate transpose?
+end
+function Base.getindex(op::EvaluationOperator,j::Integer,k::Range1)
+  @assert j==1
+  op[k]' #TODO conjugate transpose?
 end
 
 
@@ -131,7 +140,21 @@ Base.getindex(op::DifferentialOperator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
 ## ultraconv
 
 ultraconv(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))*v
+ultraiconv(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))\v
 coefficients(f::IFun,m::Integer)=ultraconv(f.coefficients,m)
+
+## Multiplication
+
+#TODO: bet bottom length right
+function *(A::DifferentialOperator,b::IFun)
+    n=length(b)
+    od=differentialorder(A)
+    IFun(ultraiconv(A[1:n,1:n]*b.coefficients,od),b.domain)
+end
+
+
+*(A::EvaluationOperator,b::IFun)=dot(A[1:length(b)],b.coefficients)
+*(A::Array{Operator,1},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
 
 
 ## Linear Solve
@@ -153,8 +176,11 @@ function \(A::Array{Operator,1},b::Array{Any,1})
     
     map(x -> typeof(x) <: IFun ? (@assert d == x.domain) : 0,b)  
     
-    
+    #min length
     m = mapreduce(x-> typeof(x) <: IFun ? length(x) : 1, +, b)
+    
+    #number of bc rows
+    nbc=mapreduce(a-> size(a)[1] == Inf ? 0 : size(a)[1],+,A)    
     
     rhs=copy(b)
     
@@ -163,16 +189,15 @@ function \(A::Array{Operator,1},b::Array{Any,1})
     
         M = tomatrix(A,n)
         
-        #number of bc rows
-        nbc=mapreduce(a-> size(a)[1] == Inf ? 0 : size(a)[1],+,A)
+
         #size of each part
         sz = map(a-> size(a)[1]== Inf ? n - nbc : size(a)[1],A)
         
 
         
         for j = 1:length(b)
-            if typeof(b[j]) == IFun
-                rhs[j] = pad(coefficients(x,differentialorder(A)),n-nbc) 
+            if typeof(b[j]) <: IFun
+                rhs[j] = pad(coefficients(b[j],differentialorder(A)),sz[j]) 
             else
                 rhs[j] = b[j].*ones(sz[j])
             end
@@ -188,3 +213,9 @@ function \(A::Array{Operator,1},b::Array{Any,1})
 end
 
 \(A::Array{Operator,1},b::Union(Array{Float64,1},Array{Float64,2}))=A\convert(Array{Any,1},b)
+
+
+
+
+
+
