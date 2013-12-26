@@ -1,5 +1,6 @@
 export EvaluationOperator,DifferentialOperator,Operator
 export differentialorder,conversionmatrix,derivativematrix,tomatrix
+export toeplitzmatrix,hankelmatrix,multiplicationmatrix
 
 abstract Operator
 
@@ -18,6 +19,7 @@ type DifferentialOperator <: Operator
     coefficients::Vector
     domain::IntervalDomain
 end
+
 
 
 ##Information about operator
@@ -119,14 +121,14 @@ end
 
 
 function Base.getindex(op::DifferentialOperator,k::Range1,j::Range1)
-    m = max(k[end],j[end])
+    m = max(k[end],j[end])  #TODO: smart indexing
     
     ret = spzeros(m,m)
     
     od = differentialorder(op)
     
     for l = 1:length(op.coefficients)
-        ret += op.coefficients[l]*derivativematrix(l-1,0:od,op.domain,m)
+        ret += conversionmatrix(l-1:od,m)*multiplicationmatrix(l-1,op.coefficients[l],m)*derivativematrix(l-1,op.domain,m)
     end
     
     ret[k,j]
@@ -136,6 +138,49 @@ end
 
 Base.getindex(op::DifferentialOperator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
 
+## Multiplication matrix
+
+function toeplitzmatrix(v::Vector,n::Integer)
+    ret = spzeros(n,n)
+
+    for k=1:n
+        ret[k,k] = 2v[1]
+    end
+    
+    for j=1:length(v)-1
+        for k=1:n-j
+            ret[k,k + j] = v[j+1]
+            ret[k + j,k] = v[j+1]            
+        end
+    end
+  
+    ret
+end
+
+function hankelmatrix(v::Vector,n::Integer)
+    ret = spzeros(n,n)
+    
+    for j=1:length(v)
+        for k=1:j
+            ret[k,j-k+1] = v[j]        
+        end
+    end
+  
+    ret
+end
+
+
+toeplitzmatrix(f::IFun,n::Integer)=toeplitzmatrix(f.coefficients,n)
+
+multiplicationmatrix(f::IFun,n::Integer)=.5(toeplitzmatrix(f,n) + [spzeros(1,n),hankelmatrix(f.coefficients[2:end],n)[1:end-1,:]])
+
+multiplicationmatrix(a::Number,n::Integer)=a*speye(n)
+
+function multiplicationmatrix(l::Integer,a,n)
+    @assert l==0 || typeof(a) <: Number
+    
+    multiplicationmatrix(a,n)
+end
 
 ## ultraconv
 
@@ -143,7 +188,7 @@ ultraconv(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))*v
 ultraiconv(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))\v
 coefficients(f::IFun,m::Integer)=ultraconv(f.coefficients,m)
 
-## Multiplication
+## Multiplication of operators
 
 #TODO: bet bottom length right
 function *(A::DifferentialOperator,b::IFun)
