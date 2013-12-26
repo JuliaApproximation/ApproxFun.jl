@@ -87,7 +87,6 @@ end
 ##Coefficient routines
 
 coefficients(f::IFun)=f.coefficients
-coefficients(f::IFun,m::Integer)=m == 1 ? ultraconv(f.coefficients) : error("higher order ultra series not implemented")
 
 
 ##Convert routines
