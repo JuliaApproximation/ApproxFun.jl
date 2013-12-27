@@ -13,12 +13,19 @@ type EvaluationOperator <: Operator
 end
 
 EvaluationOperator(x)=EvaluationOperator(x,Interval())
-
+EvaluationOperator(x,d::Vector)=EvaluationOperator(x,Interval(d))
 
 type DifferentialOperator <: Operator
     coefficients::Vector
     domain::IntervalDomain
 end
+
+#TODO ensure any funs match coefficients
+
+DifferentialOperator(cfs)=DifferentialOperator(cfs,Interval())
+DifferentialOperator(cfs,d::Vector)=DifferentialOperator(cfs,Interval(d))
+
+
 
 
 
@@ -188,7 +195,7 @@ ultraconv(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))*v
 ultraiconv(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))\v
 coefficients(f::IFun,m::Integer)=ultraconv(f.coefficients,m)
 
-## Multiplication of operators
+## Multiplication of operator * fun
 
 #TODO: bet bottom length right
 function *(A::DifferentialOperator,b::IFun)
@@ -200,6 +207,29 @@ end
 
 *(A::EvaluationOperator,b::IFun)=dot(A[1:length(b)],b.coefficients)
 *(A::Array{Operator,1},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
+
+## Addidition of Differential operators
+
+function +(A::DifferentialOperator,B::DifferentialOperator)
+    @assert A.domain == B.domain
+    
+    n = max(length(A.coefficients),length(B.coefficients))
+    
+    DifferentialOperator(pad(A.coefficients,n) + pad(B.coefficients,n),A.domain)
+end
+
+-(A::DifferentialOperator)=DifferentialOperator(-A.coefficients,A.domain)
+
+function -(A::DifferentialOperator,B::DifferentialOperator)
+    @assert A.domain == B.domain
+    
+    n = max(length(A.coefficients),length(B.coefficients))
+    
+    DifferentialOperator(pad(A.coefficients,n) - pad(B.coefficients,n),A.domain)
+end
+
+*(a::Number,B::DifferentialOperator)=DifferentialOperator(a.*B.coefficients,B.domain)
+
 
 
 ## Linear Solve

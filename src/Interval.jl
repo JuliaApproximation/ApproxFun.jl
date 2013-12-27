@@ -17,6 +17,11 @@ function Interval(d::Vector)
 end
 
 
+Base.convert{D<:Interval}(::Type{D},i::Vector)=Interval(i)
+Interval(a::Number,b::Number) = Interval(promote(a,b)...)
+
+
+
 
 ## Map interval
 

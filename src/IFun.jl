@@ -81,7 +81,7 @@ function IFun(f::Function, d::Domain)
     
     warn("Maximum length reached");
     
-    cf
+    oldcf
 end
 
 ##Coefficient routines
