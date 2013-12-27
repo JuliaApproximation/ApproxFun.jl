@@ -331,17 +331,24 @@ ultraint(v::Vector)=[0,v./[1:length(v)]]
 
 # Convert from U -> T
 function ultraiconv(v::Vector{Float64})
-    n = length(v);
-    w = Array(Float64,n);
-    
-    w[end] = 2v[end];
-    w[end-1] = 2v[end-1];
-    
-    for k = n-2:-1:2
-        w[k] = 2*(v[k] + .5w[k+2]);
+    n = length(v)
+    w = Array(Float64,n)
+        
+    if n == 1
+        w[1] = v[1]
+    elseif n == 2
+        w[1] = v[1]
+        w[2] = 2v[2]
+    else
+        w[end] = 2v[end];
+        w[end-1] = 2v[end-1];
+        
+        for k = n-2:-1:2
+            w[k] = 2*(v[k] + .5w[k+2]);
+        end
+        
+        w[1] = v[1] + .5w[3];
     end
-    
-    w[1] = v[1] + .5w[3];
     
     w
 end

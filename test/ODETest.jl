@@ -9,3 +9,9 @@ X=DifferentialOperator([Fun(x->x,d)],d);
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 
 @assert abs(u[0.]-airyai(0.)) < 10eps()
+
+
+
+f=Fun(x->x.^2)
+D=diff(f.domain)
+@assert norm(D*f - diff(f)) < 10eps()
