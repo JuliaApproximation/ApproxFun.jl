@@ -48,11 +48,43 @@ function Base.getindex(op::EvaluationOperator,k::Integer)
     elseif  abs(op.x-op.domain.b) < tol
         1.
     else
-        error("getindex not implemented for general")
+        p = zeros(k)
+        p[1] = 1.
+        p[2] = op.x
+        
+        for j=2:k-1
+            p[j+1] = 2x*p[j] - p[j-1]
+        end
+        
+        p[k]
   end
 end
 
-Base.getindex(op::EvaluationOperator,k::Range1)=[op[l] for l=k]
+function Base.getindex(op::EvaluationOperator,k::Range1)
+   tol = 200.*eps()
+
+    if abs(op.x-op.domain.a) < tol
+        -(-1.).^k
+    elseif  abs(op.x-op.domain.b) < tol
+        ones(size(k)[1])
+    else
+        #TODO k[end] == 1
+        
+        x = tocanonical(op.domain,op.x)
+        
+        p = zeros(k[end])
+        p[1] = 1.
+        p[2] = x
+        
+        for j=2:k[end]-1
+            p[j+1] = 2x*p[j] - p[j-1]
+        end
+        
+        p[k]
+    end
+end
+
+
 function Base.getindex(op::EvaluationOperator,j::Range1,k::Range1)
   @assert j[1]==1 && j[end]==1
   op[k]' #TODO conjugate transpose?

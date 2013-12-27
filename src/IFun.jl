@@ -421,12 +421,22 @@ end
 
 function Base.maximum(f::IFun)
     pts=[f.domain.a,f.domain.b,roots(diff(f))]
-    mapreduce(x->f[x],max,pts)
+    maximum(f[pts])
 end
 
 function Base.minimum(f::IFun)
     pts=[f.domain.a,f.domain.b,roots(diff(f))]
-  mapreduce(x->f[x],min,pts)
+    minimum(f[pts])
+end
+
+function Base.indmax(f::IFun)
+    pts=[f.domain.a,f.domain.b,roots(diff(f))]
+    pts[indmax(f[pts])]
+end
+
+function Base.indmin(f::IFun)
+    pts=[f.domain.a,f.domain.b,roots(diff(f))]
+    pts[indmin(f[pts])]
 end
 
 
