@@ -391,21 +391,23 @@ ultraconv(v::Vector{Complex{Float64}})=ultraconv(real(v)) + ultraconv(imag(v))*1
 
 function complexroots(cin::Vector)
     c=chop(cin,10eps());
-    if c == []
-        return [];
+    if c == [] || length(c) == 1
+        return []
+    elseif length(c) == 2
+        return [-c[1]/c[2]]
+    else 
+        n=length(c)-1;
+        
+        I = [ones(Int64,n),2:n-1,2:n];
+        J=[1:n,3:n,1:n-1];
+        V = [-c[end-1]/(2c[end]),.5-c[end-2]/(2c[end]),-c[end-3:-1:1]/(2c[end]),.5*ones(n-2),.5*ones(n-2),1];
+        C=sparse(I,J,V);
+        A=zeros(n,n);
+        A[1:end,1:end]=C[1:end,1:end];
+        
+        Λ,V=eig(A);
+        return Λ    
     end
-    
-    n=length(c)-1;
-    
-    I = [ones(Int64,n),2:n-1,2:n];
-    J=[1:n,3:n,1:n-1];
-    V = [-c[end-1]/(2c[end]),.5-c[end-2]/(2c[end]),-c[end-3:-1:1]/(2c[end]),.5*ones(n-2),.5*ones(n-2),1];
-    C=sparse(I,J,V);
-    A=zeros(n,n);
-    A[1:end,1:end]=C[1:end,1:end];
-    
-    Λ,V=eig(A);
-    Λ
 end
 
 
@@ -415,6 +417,16 @@ end
 
 function roots(f::IFun)
     complexroots(f)
+end
+
+function Base.maximum(f::IFun)
+    pts=[f.domain.a,f.domain.b,roots(diff(f))]
+    mapreduce(x->f[x],max,pts)
+end
+
+function Base.minimum(f::IFun)
+    pts=[f.domain.a,f.domain.b,roots(diff(f))]
+  mapreduce(x->f[x],min,pts)
 end
 
 
