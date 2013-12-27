@@ -61,6 +61,7 @@ include("Circle.jl")
 
 
 include("Operator.jl")
+include("specialfunctions.jl")
 
 
 ##Following routine decides

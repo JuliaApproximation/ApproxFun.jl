@@ -259,6 +259,8 @@ function \(A::Array{Operator,1},b::Array{Any,1})
     
     rhs=copy(b)
     
+    nrm=mapreduce(norm,max,b)
+    
     for logn = 3:20
         n = 2^logn + m
     
@@ -281,7 +283,7 @@ function \(A::Array{Operator,1},b::Array{Any,1})
         
         cfs = M\vcat(rhs...)
         
-        if (maximum(abs(cfs[end-8:end])) < eps())
+        if (maximum(abs(cfs[end-8:end])) < nrm*eps())
             return IFun(chop(cfs,eps()),d)
         end
     end

@@ -15,3 +15,16 @@ u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 f=Fun(x->x.^2)
 D=diff(f.domain)
 @assert norm(D*f - diff(f)) < 10eps()
+
+
+##Test versus exp
+
+f=Fun(x->-x.^2)
+g=Fun(t->exp(-t.^2))
+
+@assert norm(Fun(t->exp(f[t]))-g)<10eps()
+
+fp=diff(f);
+Bm=EvaluationOperator(f.domain.a,f.domain);
+u=[Bm,DifferentialOperator([-fp,1.],f.domain)]\[exp(f[f.domain.a]),0.];
+@assert norm(u-g)<10eps()
