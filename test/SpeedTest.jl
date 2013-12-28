@@ -4,11 +4,11 @@ c = rand(1000);
 x=rand(10000);
 f=Fun(c);
 
-tic();y=f[x];toc()
+@time y=f[x]
 #0.012482274
 
 
-tic();y=f[.1];toc()
+@ time y=f[.1]
 #0.000352981
 
 
