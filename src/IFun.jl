@@ -137,12 +137,13 @@ end
 #Note that bk1, bk2, and bk are overwritten
 function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},bk::Vector{T},bk1::Vector{T},bk2::Vector{T})
     n = length(x)
-    x=2x
+#    x=2x
 
     x_v = unsafe_view(x)
     bk1_v = unsafe_view(bk1)
     bk2_v = unsafe_view(bk2)
     bk_v = unsafe_view(bk)
+    c_v = unsafe_view(c)
     
     for i = 1:n
         bk1_v[i] = 0.
@@ -150,16 +151,16 @@ function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},bk::Vector{T},bk1
     end
 
     for k in  length(c):-1:2
-        @inbounds ck = c[k]
+        ck = c_v[k]
         for i in 1 : n
-            bk_v[i] = ck + x_v[i] * bk1_v[i] - bk2_v[i]
+            bk_v[i] = ck + 2x_v[i] * bk1_v[i] - bk2_v[i]
         end
         bk2_v, bk1_v, bk_v = bk1_v, bk_v, bk2_v
     end
 
-    @inbounds ce = c[1]
+    ce = c_v[1]
     for i in 1 : n
-        bk[i] = ce + .5 * x_v[i] * bk1_v[i] - bk2_v[i]
+        bk[i] = ce + .5 * 2x_v[i] * bk1_v[i] - bk2_v[i]
     end
     
     bk
