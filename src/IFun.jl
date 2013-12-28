@@ -54,9 +54,9 @@ end
 IFun(f::Function,n::Integer)=IFun(f,Interval(),n)
 IFun(f::Function,d::Domain,n::Integer)=IFun(chebyshevtransform(f(points(d,n))),d)
 IFun(f::Function,d::Vector,n::Integer)=IFun(f,apply(Interval,d),n)
-IFun(cfs::Vector)=IFun(1.*cfs,Interval())
-IFun(cfs::Vector,d::Vector)=IFun(1.*cfs,apply(Interval,d))
-IFun(cfs::Vector,d::IntervalDomain)=IFun(1.*cfs,d)
+IFun(cfs::Vector)=IFun(1.0*cfs,Interval())
+IFun(cfs::Vector,d::Vector)=IFun(1.0*cfs,apply(Interval,d))
+IFun(cfs::Vector,d::IntervalDomain)=IFun(1.0*cfs,d)
 IFun(f::Function)=IFun(f,Interval())
 IFun(f::Function,d::Vector)=IFun(f,apply(Interval,d))
 
