@@ -127,18 +127,27 @@ end
 using NumericExtensions
 
 function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M})
-    n = length(x)
-    bk1 = zeros(n)
-    bk2 = zeros(n)
-    x=2x
-    
     @assert length(c) > 0 
-    bk =  Array(T,n) 
+    
+    n = length(x)
+    clenshaw(c,x,Array(T,n),Array(T,n),Array(T,n))
+end
+
+
+#Note that bk1, bk2, and bk are overwritten
+function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},bk::Vector{T},bk1::Vector{T},bk2::Vector{T})
+    n = length(x)
+    x=2x
 
     x_v = unsafe_view(x)
     bk1_v = unsafe_view(bk1)
     bk2_v = unsafe_view(bk2)
     bk_v = unsafe_view(bk)
+    
+    for i = 1:n
+        bk1_v[i] = 0.
+        bk2_v[i] = 0.
+    end
 
     for k in  length(c):-1:2
         @inbounds ck = c[k]
@@ -277,7 +286,7 @@ for op = (:./,:/)
             
             f2 = IFun(chebyshevtransform(c/values(f2)),f.domain);
             
-            if max(abs(f2.coefficients[end-1:end])) > 10*eps()
+            if maximum(abs(f2.coefficients[end-1:end])) > 10*eps()
                 warn("Division has not converged, may be inaccurate")
             end
             
@@ -449,14 +458,19 @@ function bisectioninv(c::Vector{Float64},xl::Vector{Float64})
     b = ones(n);
     
 #     a_v = unsafe_view(a);
-#     b_v = unsafe_view(b);    
+#     b_v = unsafe_view(b);
+
+    bk1 = Array(Float64,n);
+    bk2 = Array(Float64,n);   
+    bk = Array(Float64,n);       
     
-    for k=1:47  #TODO: 
+    for k=1:47  #TODO: decide 47
         m=.5*(a+b);
-        vals = clenshaw(c,m);
-        I1 = vals-xl.<=0; I2 = vals-xl.>0; 
-        a = I1.*m + I2.*a;
-        b = I1.*b + I2.*m;
+        vals = clenshaw(c,m,bk,bk1,bk2);
+        
+        for j = 1:n
+            (vals[j] <= xl[j]) ? (a[j] = m[j]) : (b[j] = m[j])
+        end
     end
     m=.5*(a+b)    
 end

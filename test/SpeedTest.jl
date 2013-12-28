@@ -1,4 +1,4 @@
-using Funs
+using ApproxFun
 
 c = rand(1000);
 x=rand(10000);
@@ -14,7 +14,7 @@ tic();y=f[.1];toc()
 
 f=Fun(exp)
 
-tic();x=sample(f,10000);toc()
-#0.067385032
+@time x=sample(f,10000)
+#0.015744034 or 0.039095687
 
 
