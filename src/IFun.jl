@@ -330,7 +330,7 @@ ultraint(v::Vector)=[0,v./[1:length(v)]]
 
 
 # Convert from U -> T
-function ultraiconv(v::Vector{Float64})
+function ultraiconversion(v::Vector{Float64})
     n = length(v)
     w = Array(Float64,n)
         
@@ -355,7 +355,7 @@ end
 
 
 # Convert T -> U
-function ultraconv(v::Vector{Float64})
+function ultraconversion(v::Vector{Float64})
     n = length(v);
     w = Array(Float64,n);
     
@@ -376,8 +376,8 @@ function ultraconv(v::Vector{Float64})
     w
 end
 
-ultraiconv(v::Vector{Complex{Float64}})=ultraiconv(real(v)) + ultraiconv(imag(v))*1.im
-ultraconv(v::Vector{Complex{Float64}})=ultraconv(real(v)) + ultraconv(imag(v))*1.im
+ultraiconversion(v::Vector{Complex{Float64}})=ultraiconversion(real(v)) + ultraiconversion(imag(v))*1.im
+ultraconversion(v::Vector{Complex{Float64}})=ultraconversion(real(v)) + ultraconversion(imag(v))*1.im
 
 
 

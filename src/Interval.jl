@@ -51,14 +51,14 @@ function Base.diff{T<:Number,M<:Number}(f::IFun{T,Interval{M}})
     # Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
-    tocanonicalD(f.domain,0)*IFun(ultraiconv(ultradiff(f.coefficients)),f.domain)
+    tocanonicalD(f.domain,0)*IFun(ultraiconversion(ultradiff(f.coefficients)),f.domain)
 end
 
 function Base.cumsum{T<:Number,M<:Number}(f::IFun{T,Interval{M}})
     # Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
-    fromcanonicalD(f.domain,0)*IFun(ultraint(ultraconv(f.coefficients)),f.domain)    
+    fromcanonicalD(f.domain,0)*IFun(ultraint(ultraconversion(f.coefficients)),f.domain)    
 end
 
 function Base.sum{T<:Number,M<:Number}(f::IFun{T,Interval{M}})

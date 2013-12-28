@@ -223,9 +223,9 @@ end
 
 ## ultraconv
 
-ultraconv(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))*v
-ultraiconv(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))\v
-coefficients(f::IFun,m::Integer)=ultraconv(f.coefficients,m)
+ultraconversion(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))*v
+ultraiconversion(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))\v
+coefficients(f::IFun,m::Integer)=ultraconversion(f.coefficients,m)
 
 ## Multiplication of operator * fun
 
@@ -233,7 +233,7 @@ coefficients(f::IFun,m::Integer)=ultraconv(f.coefficients,m)
 function *(A::DifferentialOperator,b::IFun)
     n=length(b)
     od=differentialorder(A)
-    IFun(ultraiconv(A[1:n,1:n]*b.coefficients,od),b.domain)
+    IFun(ultraiconversion(A[1:n,1:n]*b.coefficients,od),b.domain)
 end
 
 
