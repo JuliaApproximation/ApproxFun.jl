@@ -14,7 +14,7 @@ f=Fun(c);
 
 f=Fun(exp)
 
-@time x=sample(f,10000)
-#0.015744034 or 0.039095687
+@time x=sample(f,100000)
+#0.213793292
 
 

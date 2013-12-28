@@ -61,7 +61,15 @@ IFun(f::Function)=IFun(f,Interval())
 IFun(f::Function,d::Vector)=IFun(f,apply(Interval,d))
 
 
-function IFun(f::Function, d::Domain)
+function randomIFun(f::Function,d::Domain)
+    @assert d == Interval()
+
+    #TODO: implement other domains
+    
+    IFun(chebyshevtransform(randomadaptivebary(f)),d)
+end
+
+function zerocfsIFun(f::Function,d::Domain)
     #reuse function values
 
     tol = 200*eps();
@@ -82,6 +90,15 @@ function IFun(f::Function, d::Domain)
     warn("Maximum length reached");
     
     oldcf
+end
+
+
+function IFun(f::Function, d::Domain; method="zerocoefficients")
+    if method == "zerocoefficients"
+        zerocfsIFun(f,d)
+    else
+        randomIFun(f,d)    
+    end
 end
 
 ##Coefficient routines

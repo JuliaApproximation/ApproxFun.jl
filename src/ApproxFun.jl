@@ -48,6 +48,8 @@ end
 
 include("Domains.jl")
 
+include("bary.jl")
+
 ##Chebyshev Routines
 include("IFun.jl")
 
