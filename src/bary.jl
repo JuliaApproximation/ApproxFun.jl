@@ -2,8 +2,9 @@
 
 export bary,barysum
 
-function barysum(v,pt,x)
+function bary(v::Vector{Float64},pt::Vector{Float64},x::Float64)
   n=length(v)  
+  @assert n == length(pt)
   vv = unsafe_view(v)
   
   pts = unsafe_view(pt)
@@ -31,14 +32,9 @@ function barysum(v,pt,x)
   retn/retd
 end
   
-  
-function bary(v::Array{Float64,1},x::Float64)
-  barysum(v,chebyshevpoints(length(v)),x)
-end
 
-function bary(v::Array{Float64,1},d,x::Float64)
-  bary(v,tocanonical(d,x))
-end
+bary(v::Vector{Float64},x::Float64)=bary(v,chebyshevpoints(length(v)),x)
+bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 
 function randomadaptivebary(f::Function)
   r=rand()
