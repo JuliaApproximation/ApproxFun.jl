@@ -65,6 +65,8 @@ include("Circle.jl")
 include("Operator.jl")
 include("specialfunctions.jl")
 
+include("Fun2D.jl")
+
 
 ##Following routine decides
 # whether input is IFun or FFun
