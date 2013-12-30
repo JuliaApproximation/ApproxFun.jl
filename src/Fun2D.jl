@@ -7,10 +7,12 @@ type Fun2D{T<:IFun}
   B::Vector{T}
   
   function Fun2D(A::Vector{T},B::Vector{T})
-#    @assert length(A) == length(B)
+    @assert length(A) == length(B)
     new(A,B)
   end
 end
+
+Fun2D{T<:IFun}(A::Vector{T},B::Vector{T})=Fun2D{T}(A,B)
 
 
 
@@ -22,7 +24,7 @@ function Fun2D(f::Function)
     r=rand(2)
     a=Fun(x->f(x,r[2]))
     b=Fun(y->f(r[1],y))
-    A=IFun[];B=IFun[];
+    A=typeof(a)[];B=typeof(b)[];
     
     
     while norm(a) > tol || norm(b) > tol
@@ -39,3 +41,9 @@ end
 
 Base.getindex(f::Fun2D,x,y)=dot(map(q->q[x],f.A),map(q->q[y],f.B))
 Base.rank(f::Fun2D)=length(f.A)
+Base.sum(g::Fun2D)=dot(map(sum,g.A),map(sum,g.B))
+
+for op = (:*,:.*,:./,:/)
+    @eval ($op){T<:IFun}(A::Array{T,1},c::Number)=map(f->($op)(f,c),A)
+    @eval ($op)(f::Fun2D,c::Number) = Fun2D(($op)(f.A,c),f.B)
+end 
