@@ -22,8 +22,8 @@ end
 
 abstract IntervalDomain <: Domain
 
-chebyshevpoints(n::Integer)= cos(1.π*[n-1:-1:0]/(n-1))
-points(d::IntervalDomain,n::Integer) = fromcanonical(d, chebyshevpoints(n))
+chebyshevpoints(n::Integer)= [cos(1.π*k/(n-1)) for k = n-1:-1:0]
+points(d::IntervalDomain,n::Integer) =  [fromcanonical(d,cos(1.π*k/(n-1))) for k = n-1:-1:0]
 points(d::Vector,n::Integer)=points(Interval(d),n)
 
 

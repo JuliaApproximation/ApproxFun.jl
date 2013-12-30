@@ -1,3 +1,6 @@
+using ApproxFun
+
+
 
 ef = IFun(exp);
 

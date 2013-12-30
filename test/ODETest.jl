@@ -1,3 +1,6 @@
+using ApproxFun
+
+
 m=100.;
 d=Interval(-m,5.);
 Bm=EvaluationOperator(d.a,d);
