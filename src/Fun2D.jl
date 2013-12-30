@@ -39,11 +39,39 @@ function Fun2D(f::Function)
     Fun2D(A,B)
 end
 
-Base.getindex(f::Fun2D,x,y)=dot(map(q->q[x],f.A),map(q->q[y],f.B))
+evaluate(f::Fun2D,x::Real,y::Real)=dot(map(q->q[x],f.A),map(q->q[y],f.B))
+evaluate(f::Fun2D,x::Real,::Colon)=dot(map(q->q[x],f.A),f.B)
+function evaluate(f::Fun2D,::Colon,y::Real)
+    m = maximum(map(length,f.A))
+    r=rank(f)
+    ret = zeros(m)
+    ret_v = unsafe_view(ret)
+    
+    for k=1:r
+        for j=1:length(f.A[k])
+            ret_v[j] += f.A[k].coefficients[j]*f.B[k][y]
+        end
+    end
+    
+    IFun(ret,f.A[1].domain)
+end
+
+Base.getindex(f::Fun2D,x,y)=evaluate(f,x,y)
+
 Base.rank(f::Fun2D)=length(f.A)
 Base.sum(g::Fun2D)=dot(map(sum,g.A),map(sum,g.B))
+Base.sum(g::Fun2D,n::Integer)=(n==1)?dot(map(sum,g.A),g.B):dot(map(sum,g.B),g.A)
+Base.cumsum(g::Fun2D,n::Integer)=(n==1)?Fun2D(map(cumsum,g.A),copy(g.B)):Fun2D(copy(g.A),map(cumsum,g.B))
 
 for op = (:*,:.*,:./,:/)
     @eval ($op){T<:IFun}(A::Array{T,1},c::Number)=map(f->($op)(f,c),A)
     @eval ($op)(f::Fun2D,c::Number) = Fun2D(($op)(f.A,c),f.B)
 end 
+
+function sample(f::Fun2D,n::Integer)
+    ry=sample(sum(f,1),n)
+    rx=[sample(evaluate(f,:,ry[k])) for k=1:n]
+    [rx ry]
+end
+
+sample(f::Fun2D)=sample(f,1)[1,:]
