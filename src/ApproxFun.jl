@@ -51,8 +51,9 @@ include("Domains.jl")
 include("bary.jl")
 
 ##Chebyshev Routines
+include("clenshaw.jl")
 include("IFun.jl")
-include("sample.jl")
+
 
 ##Fourier Routines
 include("ShiftVector.jl")
@@ -67,6 +68,8 @@ include("Operator.jl")
 include("specialfunctions.jl")
 
 include("Fun2D.jl")
+
+include("sample.jl")
 
 
 ##Following routine decides

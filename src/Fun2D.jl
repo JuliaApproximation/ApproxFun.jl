@@ -105,13 +105,4 @@ for op = (:*,:.*,:./,:/)
     @eval ($op)(f::Fun2D,c::Number) = Fun2D(($op)(f.A,c),f.B)
 end 
 
-function sample(f::Fun2D,n::Integer)
-    ry=sample(sum(f,1),n)
-    
-    
-    
-    rx=[sample(evaluate(f,:,ry[k])) for k=1:n]
-    [rx ry]
-end
 
-sample(f::Fun2D)=sample(f,1)[1,:]
