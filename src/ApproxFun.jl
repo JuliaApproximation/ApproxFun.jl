@@ -52,6 +52,7 @@ include("bary.jl")
 
 ##Chebyshev Routines
 include("IFun.jl")
+include("sample.jl")
 
 ##Fourier Routines
 include("ShiftVector.jl")
