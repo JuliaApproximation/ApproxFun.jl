@@ -17,47 +17,56 @@ Fun2D{T<:IFun}(A::Vector{T},B::Vector{T})=Fun2D{T}(A,B)
 
 
   
-function findapproxmax(f::Function)
-pts=chebyshevpoints(20)
+function findapproxmax(f::Function,dx::IntervalDomain,dy::IntervalDomain)
+ptsx=points(dx,20)
+ptsy=points(dy,20)
 
-  mpt=[rand(),rand()]  
+  mpt=[fromcanonical(dx,rand()),fromcanonical(dy,rand())]  
   maxi=abs(f(mpt[1],mpt[2]))
 
 
-    for k = 1:length(pts),j=1:length(pts)
-      val=abs(f(pts[k],pts[j])) 
+    for k = 1:length(ptsx),j=1:length(ptsy)
+      val=abs(f(ptsx[k],ptsy[j])) 
       if val > maxi
         maxi = val
-        mpt[1]=pts[k];mpt[2]=pts[j]
+        mpt[1]=ptsx[k];mpt[2]=ptsy[j]
       end
     end
     mpt
 end
 
-function Fun2D(f::Function)
+function Fun2D(f::Function,dx::IntervalDomain,dy::IntervalDomain)
     tol=1000eps()
     
-    r=findapproxmax(f)
-    a=Fun(x->f(x,r[2]))
-    b=Fun(y->f(r[1],y))
+    r=findapproxmax(f,dx,dy)
+    a=Fun(x->f(x,r[2]),dx)
+    b=Fun(y->f(r[1],y),dy)
     A=typeof(a)[];B=typeof(b)[];
     
     
     while norm(a) > tol || norm(b) > tol
         A=[A,a];B=[B,b/b[r[2]]]    
-        r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y))
+        r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy)
         Ar=map(q->q[r[1]],A)
         Br=map(q->q[r[2]],B)
-        a=Fun(x->f(x,r[2])) - dot(Br,A)
-        b=Fun(y->f(r[1],y))-dot(Ar,B)
+        a=Fun(x->f(x,r[2]),dx) - dot(Br,A)  #TODO: fix dot for other domains
+        b=Fun(y->f(r[1],y),dy)-dot(Ar,B)
     end
       
     Fun2D(A,B)
 end
 
+Fun2D(f::Function,d1::Vector,d2::Vector)=Fun2D(f,Interval(d1),Interval(d2))
+Fun2D(f::Function)=Fun2D(f,Interval(),Interval())
+
+domain(f::Fun2D,k::Integer)=k==1? first(f.A).domain : first(f.B).domain
+
+
 evaluate{T<:IFun}(A::Vector{T},B::Vector{T},x::Real,y::Real)=dot(evaluate(A,x),evaluate(B,y))
 evaluate{T<:IFun}(A::Vector{T},x::Real)=Float64[A[k][x] for k=1:length(A)]
 function evaluate{T<:IFun}(A::Vector{T},x::Vector{Float64})
+    x = tocanonical(first(A),x)
+
     n=length(x)
     ret=Array(Float64,length(A),n)
     
@@ -90,7 +99,7 @@ function evaluate(f::Fun2D,::Colon,y::Real)
         end
     end
     
-    IFun(ret,f.A[1].domain)
+    IFun(ret,first(f.A).domain)
 end
 
 Base.getindex(f::Fun2D,x,y)=evaluate(f,x,y)
