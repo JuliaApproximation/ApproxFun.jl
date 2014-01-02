@@ -158,7 +158,7 @@ function chop!(c::Vector,tol::Real)
     []
 end
 
-chop!(f::IFun,tol::Real)=chop!(f.coefficients,tol)
+chop!(f::IFun,tol::Real)=(chop!(f.coefficients,tol); f)
 Base.chop(f,tol)=chop!(deepcopy(f),tol)
 
 

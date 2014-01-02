@@ -15,7 +15,7 @@ function coefficientmatrix{T<:IFun}(B::Vector{T})
   ret
 end
 
-*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficientmatrix(v)*a,first(v).domain)
+*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficientmatrix(v)*a,first(v).domain) #TODO: Fun*vec should be Array[IFun]
 
 
 
@@ -37,10 +37,10 @@ Fun2D{T<:IFun}(A::Vector{T},B::Vector{T})=Fun2D{T}(A,B)
 
 
 
-  
-function findapproxmax(f::Function,dx::IntervalDomain,dy::IntervalDomain)
-ptsx=points(dx,20)
-ptsy=points(dy,20)
+findapproxmax(f::Function,dx::IntervalDomain,dy::IntervalDomain)=findapproxmax(f,dx,dy, 20, 20)
+function findapproxmax(f::Function,dx::IntervalDomain,dy::IntervalDomain, gridx::Integer, gridy::Integer)
+ptsx=points(dx,gridx)
+ptsy=points(dy,gridy)
 
   mpt=[fromcanonical(dx,rand()),fromcanonical(dy,rand())]  
   maxi=abs(f(mpt[1],mpt[2]))
@@ -56,25 +56,31 @@ ptsy=points(dy,20)
     mpt
 end
 
-function Fun2D(f::Function,dx::IntervalDomain,dy::IntervalDomain)
+
+Fun2D(f::Function,dx::IntervalDomain,dy::IntervalDomain)=Fun2D(f,dx,dy,20,20)
+function Fun2D(f::Function,dx::IntervalDomain,dy::IntervalDomain,gridx::Integer,gridy::Integer)
     tol=1000eps()
     
-    r=findapproxmax(f,dx,dy)
+    r=findapproxmax(f,dx,dy,gridx,gridy)
     a=Fun(x->f(x,r[2]),dx)
     b=Fun(y->f(r[1],y),dy)
     A=typeof(a)[];B=typeof(b)[];
     
     
-    while norm(a) > tol || norm(b) > tol
+    for k=1:50
+        if norm(a.coefficients) < tol && norm(b.coefficients) < tol
+            return Fun2D(A,B)
+        end
+        
         A=[A,a];B=[B,b/b[r[2]]]    
-        r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy)
+        r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy,gridx,gridy)
         Ar=map(q->q[r[1]],A)
         Br=map(q->q[r[2]],B)
         a=Fun(x->f(x,r[2]),dx) - A*Br
         b=Fun(y->f(r[1],y),dy)- B*Ar
     end
       
-    Fun2D(A,B)
+    error("Maximum rank of 50 reached")
 end
 
 Fun2D(f::Function,d1::Vector,d2::Vector)=Fun2D(f,Interval(d1),Interval(d2))
@@ -83,7 +89,7 @@ Fun2D(f::Function)=Fun2D(f,Interval(),Interval())
 domain(f::Fun2D,k::Integer)=k==1? first(f.A).domain : first(f.B).domain
 
 
-evaluate{T<:IFun}(A::Vector{T},B::Vector{T},x::Real,y::Real)=dot(evaluate(A,x),evaluate(B,y))
+
 evaluate{T<:IFun}(A::Vector{T},x::Real)=Float64[A[k][x] for k=1:length(A)]
 function evaluate{T<:IFun}(A::Vector{T},x::Vector{Float64})
     x = tocanonical(first(A),x)
@@ -107,7 +113,7 @@ function evaluate{T<:IFun}(A::Vector{T},x::Vector{Float64})
 end
 
 evaluate(f::Fun2D,x::Real,y::Real)=evaluate(f.A,f.B,x,y)
-evaluate(f::Fun2D,x::Real,::Colon)=dot(evaluate(f.A,x),f.B)
+evaluate(f::Fun2D,x::Real,::Colon)=f.B*evaluate(f.A,x)
 function evaluate(f::Fun2D,::Colon,y::Real)
     m = maximum(map(length,f.A))
     r=rank(f)
@@ -126,8 +132,11 @@ end
 Base.getindex(f::Fun2D,x,y)=evaluate(f,x,y)
 
 Base.rank(f::Fun2D)=length(f.A)
-Base.sum(g::Fun2D)=dot(map(sum,g.A),map(sum,g.B))
-Base.sum(g::Fun2D,n::Integer)=(n==1)?dot(map(sum,g.A),g.B):dot(map(sum,g.B),g.A)
+Base.sum(g::Fun2D)=dot(map(sum,g.A),map(sum,g.B)) #TODO: not complexconjugate
+evaluate{T<:IFun}(A::Vector{T},B::Vector{T},x::Real,y::Real)=dot(evaluate(A,x),evaluate(B,y)) #TODO: not complexconjugate
+
+
+Base.sum(g::Fun2D,n::Integer)=(n==1)?g.B*map(sum,g.A):g.A*map(sum,g.B) #TODO: Fun*vec should be Array[IFun]
 Base.cumsum(g::Fun2D,n::Integer)=(n==1)?Fun2D(map(cumsum,g.A),copy(g.B)):Fun2D(copy(g.A),map(cumsum,g.B))
 
 for op = (:*,:.*,:./,:/)

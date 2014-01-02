@@ -66,6 +66,7 @@ include("Circle.jl")
 
 include("Operator.jl")
 include("specialfunctions.jl")
+include("Line.jl")
 
 include("Fun2D.jl")
 

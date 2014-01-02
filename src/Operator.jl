@@ -200,7 +200,7 @@ function hankelmatrix(v::Vector,n::Integer)
     ret = spzeros(n,n)
     
     for j=1:length(v)
-        for k=1:j
+        for k=max(j-n+1,1):min(j,n)
             ret[k,j-k+1] = v[j]        
         end
     end
@@ -213,12 +213,21 @@ toeplitzmatrix(f::IFun,n::Integer)=toeplitzmatrix(f.coefficients,n)
 
 multiplicationmatrix(f::IFun,n::Integer)=.5(toeplitzmatrix(f,n) + [spzeros(1,n),hankelmatrix(f.coefficients[2:end],n)[1:end-1,:]])
 
+umultiplicationmatrix(f::IFun,n::Integer)=.5(toeplitzmatrix(f,n)  - hankelmatrix(f.coefficients[3:end],n))
+
+
 multiplicationmatrix(a::Number,n::Integer)=a*speye(n)
 
 function multiplicationmatrix(l::Integer,a,n)
-    @assert l==0 || typeof(a) <: Number
-    
-    multiplicationmatrix(a,n)
+    if typeof(a) <: Number
+        return a*speye(n)
+    elseif l==0
+        multiplicationmatrix(a,n)
+    elseif l==1
+        umultiplicationmatrix(a,n)
+    else
+        error("higher order multiplication not yet implemented")
+    end
 end
 
 ## ultraconv
@@ -274,7 +283,9 @@ function tomatrix(A::Array{Operator,1},n::Integer)
   mapreduce(a-> size(a)[1] == Inf ? a[1:n-nbc,1:n] : a[1:size(a)[1],1:n],vcat,A)
 end
 
-function \(A::Array{Operator,1},b::Array{Any,1})
+\(A::Array{Operator,1},b::Array{Any,1})=\(A,b,eps())
+
+function \(A::Array{Operator,1},b::Array{Any,1},tol::Float64)
     @assert length(A) == length(b)
 
     d=A[1].domain
@@ -291,7 +302,8 @@ function \(A::Array{Operator,1},b::Array{Any,1})
     
     rhs=copy(b)
     
-    nrm=mapreduce(norm,max,b)
+    ##TODO: relative vs absolute accuracy
+#    nrm=mapreduce(norm,max,b)
     
     for logn = 3:20
         n = 2^logn + m
@@ -315,7 +327,7 @@ function \(A::Array{Operator,1},b::Array{Any,1})
         
         cfs = M\vcat(rhs...)
         
-        if (maximum(abs(cfs[end-8:end])) < nrm*eps())
+        if (maximum(abs(cfs[end-8:end])) < tol)
             return IFun(chop(cfs,eps()),d)
         end
     end
