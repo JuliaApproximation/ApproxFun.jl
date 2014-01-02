@@ -1,16 +1,7 @@
 
-export coefficientmatrix,normalizedcumsum,normalizedcumsum!
+export normalizedcumsum,normalizedcumsum!
 
-function coefficientmatrix{T<:IFun}(B::Vector{T})
-    m=mapreduce(length,max,B)
-  n=length(B)
-  ret = Array(Float64,m,length(B))
-  for k=1:m,j=1:n
-    ret[k,j] = length(B[j]) < k ? 0. : B[j].coefficients[k]
-  end
-  
-  ret
-end
+
 
 ##bisection inverse
 

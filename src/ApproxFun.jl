@@ -80,6 +80,7 @@ Fun(x,d::PeriodicDomain)=FFun(x,d)
 Fun(x,d)=IFun(x,d)
 Fun(x,d::IntervalDomain,n::Integer)=IFun(x,d,n)
 Fun(x,d::PeriodicDomain,n::Integer)=FFun(x,d,n)
+FUn(x,d::Vector,n::Integer)=IFun(x,d,n)
 
 end #module
 

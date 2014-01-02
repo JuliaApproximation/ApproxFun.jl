@@ -1,5 +1,26 @@
 
-export Fun2D
+export coefficientmatrix, Fun2D
+
+
+## Vector of fun routines
+
+function coefficientmatrix{T<:IFun}(B::Vector{T})
+    m=mapreduce(length,max,B)
+  n=length(B)
+  ret = Array(Float64,m,length(B))
+  for k=1:m,j=1:n
+    ret[k,j] = length(B[j]) < k ? 0. : B[j].coefficients[k]
+  end
+  
+  ret
+end
+
+*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficientmatrix(v)*a,first(v).domain)
+
+
+
+## Fun2D
+
 
 type Fun2D{T<:IFun}
 #TODO: allow mix of IFun and FFun
@@ -49,8 +70,8 @@ function Fun2D(f::Function,dx::IntervalDomain,dy::IntervalDomain)
         r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy)
         Ar=map(q->q[r[1]],A)
         Br=map(q->q[r[2]],B)
-        a=Fun(x->f(x,r[2]),dx) - dot(Br,A)  #TODO: fix dot for other domains
-        b=Fun(y->f(r[1],y),dy)-dot(Ar,B)
+        a=Fun(x->f(x,r[2]),dx) - A*Br
+        b=Fun(y->f(r[1],y),dy)- B*Ar
     end
       
     Fun2D(A,B)
