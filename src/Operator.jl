@@ -1,6 +1,7 @@
 export EvaluationOperator,DifferentialOperator,Operator
 export differentialorder,conversionmatrix,derivativematrix,tomatrix
 export toeplitzmatrix,hankelmatrix,multiplicationmatrix
+export dirichlet
 
 abstract Operator
 
@@ -15,16 +16,19 @@ end
 EvaluationOperator(x)=EvaluationOperator(x,Interval())
 EvaluationOperator(x,d::Vector)=EvaluationOperator(x,Interval(d))
 
-type DifferentialOperator <: Operator
-    coefficients::Vector
+type DifferentialOperator{T<:IFun} <: Operator
+    coefficients::Vector{T}
     domain::IntervalDomain
 end
 
-#TODO ensure any funs match coefficients
+#TODOL ensure any funs match coefficients
 
-DifferentialOperator(cfs)=DifferentialOperator(cfs,Interval())
+DifferentialOperator(cfs::Vector)=DifferentialOperator(cfs,Interval())
 DifferentialOperator(cfs,d::Vector)=DifferentialOperator(cfs,Interval(d))
-
+DifferentialOperator{T<:Real}(cfs::Vector{T},d::IntervalDomain)=DifferentialOperator(IFun([1.],d)*cfs,d)
+function DifferentialOperator(cfs::Vector{Any},d::IntervalDomain)
+    DifferentialOperator(IFun([1.],d)*cfs,d)
+end
 
 
 
@@ -99,7 +103,8 @@ MultiplicationOperator(a::IFun)=DifferentialOperator([a])
 Base.diff(d::IntervalDomain,n::Integer)=DifferentialOperator([zeros(n),1.],d)
 Base.diff(d::IntervalDomain)=Base.diff(d,1)
 
-
+evaluate(d::IntervalDomain,x)=EvaluationOperator(x,d)
+dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
 
 
 function derivativematrix(μ::Integer,d::Domain,m::Integer)
@@ -218,14 +223,16 @@ umultiplicationmatrix(f::IFun,n::Integer)=.5(toeplitzmatrix(f,n)  - hankelmatrix
 
 multiplicationmatrix(a::Number,n::Integer)=a*speye(n)
 
-function multiplicationmatrix(l::Integer,a,n)
-    if typeof(a) <: Number
-        return a*speye(n)
+multiplicationmatrix(l::Integer,a::Number,n)=a*speye(n)
+
+function multiplicationmatrix(l::Integer,a::IFun,n)
+    if length(a) == 1
+        multiplicationmatrix(a.coefficients[1],n)
     elseif l==0
         multiplicationmatrix(a,n)
     elseif l==1
         umultiplicationmatrix(a,n)
-    else
+    elseif 
         error("higher order multiplication not yet implemented")
     end
 end
@@ -271,6 +278,16 @@ end
 
 *(a::Number,B::DifferentialOperator)=DifferentialOperator(a.*B.coefficients,B.domain)
 
+function +(a::IFun, B::DifferentialOperator)
+    @assert a.domain == B.domain
+
+    cfs = deepcopy(B.coefficients)
+    cfs[1] = cfs[1] + a
+    DifferentialOperator(cfs,B.domain)
+end
+
++(B::DifferentialOperator,a::IFun)=a+B
+-(B::DifferentialOperator,a::IFun)=-a + B
 
 
 ## Linear Solve

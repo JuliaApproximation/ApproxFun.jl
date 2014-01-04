@@ -1,5 +1,9 @@
 export coefficientmatrix
 
+## scalar fun times vector
+
+*{T<:Union(Number,IFun,Any)}(f::IFun,v::Vector{T})=typeof(f)[f.*v[k] for k=1:length(v)]
+*{T<:Union(Number,IFun,Any)}(v::Vector{T},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
 
 ## Vector of fun routines
 

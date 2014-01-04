@@ -14,9 +14,13 @@ with continuous indices.  To evaluate the function at a point, we use the vector
 
 	f[.1]
 	
+which will return a high accuracy approximation to  exp(.1).  
+
+
 # Differentiation and integration	
-	
-which will return a high accuracy approximation to  exp(.1).  Differentiation uses the 
+
+
+Differentiation uses the 
 diff operator:
 
 	fp = diff(f)
