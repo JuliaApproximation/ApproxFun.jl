@@ -68,6 +68,7 @@ include("Circle.jl")
 include("Operator.jl")
 include("specialfunctions.jl")
 
+include("VectorFun.jl")
 include("Fun2D.jl")
 
 include("sample.jl")

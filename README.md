@@ -1,4 +1,4 @@
-Funs is a package for approximating functions.  It currently supports intervals, periodic intervals and the unit circle.  It is heavily influenced by the Matlab package chebfun (http://www.chebfun.org) and the Mathematica package RHPackage (http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
+Funs is a package for approximating functions.  It currently supports intervals, the real line, periodic intervals and the unit circle.  It is heavily influenced by the Matlab package chebfun (http://www.chebfun.org) and the Mathematica package RHPackage (http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
 
 
 
@@ -42,7 +42,6 @@ We can apply this to any positive function.  The following samples the spectral 
 		
 Plotting is accomplished via Winston:
 
-	using Winston
 	plot(f)
 	
 This looks like the histogram:

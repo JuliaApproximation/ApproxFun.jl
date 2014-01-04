@@ -13,7 +13,12 @@ end
 
 ShiftVector(neg::Vector,nonneg::Vector)=ShiftVector([neg,nonneg],length(neg)+1)
 
-Base.length(sl::ShiftVector)=length(sl.vector)
+
+for op = (:(Base.last),:(Base.first),:(Base.norm),:(Base.endof),:(Base.length))
+    @eval ($op)(sv::ShiftVector) = ($op)(sv.vector)
+end
+
+
 firstindex(sl::ShiftVector)=1-sl.index
 lastindex(sl::ShiftVector)=length(sl)-sl.index
 
@@ -21,9 +26,7 @@ range(sv::ShiftVector)=firstindex(sv):lastindex(sv)
 
 Base.getindex(sl::ShiftVector,k::Integer)=sl.vector[k+sl.index]
 Base.getindex(sl::ShiftVector,r::Range1)=sl.vector[r+sl.index]
-Base.endof(sv::ShiftVector)=sv.vector[end]
-Base.last(sv::ShiftVector)=last(sv.vector)
-Base.first(sv::ShiftVector)=first(sv.vector)
+
 
 ##Assignment
 
