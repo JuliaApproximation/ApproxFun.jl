@@ -38,7 +38,7 @@ Base.length(d::PeriodicInterval) = d.b - d.a
 ##Differentiation and integration
 
 
-function Base.diff{T<:Number,M<:Number}(f::FFun{T,PeriodicInterval{M}}) 
+function Base.diff{T<:Number,M<:PeriodicInterval}(f::FFun{T,M}) 
     tocanonicalD(f.domain,0)*FFun(
                     ShiftVector(1.im*[firstindex(f.coefficients):-1],
                                 1.im*[0:lastindex(f.coefficients)]).*f.coefficients,
@@ -49,7 +49,7 @@ end
 
 
 
-function Base.cumsum{T<:Number,M<:Number}(f::FFun{T,PeriodicInterval{M}}) 
+function integrate{T<:Number,M<:PeriodicInterval}(f::FFun{T,M}) 
     tol = 10eps()
     @assert abs(f.coefficients[0]) < tol
     
@@ -62,6 +62,8 @@ function Base.cumsum{T<:Number,M<:Number}(f::FFun{T,PeriodicInterval{M}})
                                 [0,(-1.im./[1:lastindex(f.coefficients)])]).*f.coefficients,
                     f.domain)
 end
+
+Base.sum{T<:Number,M<:PeriodicInterval}(f::FFun{T,M})=f.coefficients[0].*length(f.domain)
 
 
 

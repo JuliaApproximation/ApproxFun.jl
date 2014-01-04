@@ -15,8 +15,12 @@ Circle(r)=Circle(0.,r)
 Circle()=Circle(1.)
 
 
-tocanonical(d::Circle,ζ)=-1.im*log((ζ-d.center)/d.radius)
-tocanonicalD(d::Circle,ζ)=-1.im./((ζ-d.center))  #TODO: Check formula
+function tocanonical(d::Circle,ζ)
+    v=(ζ-d.center)/d.radius
+    v==-1.0 ? -1.π : angle(v)
+end
+
+tocanonicalD(d::Circle,ζ)=-1.im./(ζ-d.center)  #TODO: Check formula
 fromcanonical(d::Circle,θ)=d.radius*exp(1.im*θ) + d.center
 fromcanonicalD(d::Circle,θ)=d.radius*1.im*exp(1.im*θ)
 
@@ -49,7 +53,7 @@ end
 
 
 
-function Base.cumsum{T<:Number}(f::FFun{T,Circle}) 
+function integrate{T<:Number}(f::FFun{T,Circle}) 
     tol = 10eps()
     @assert abs(f.coefficients[-1]) < tol        
     ##TODO: general radii        

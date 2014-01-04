@@ -10,4 +10,4 @@ using ApproxFun
 f=Fun(exp,Circle());
 
 @assert norm(diff(f)-f)<100eps()
-@assert norm(cumsum(f)+1-f)<100eps()
+@assert norm(integrate(f)+1-f)<100eps()

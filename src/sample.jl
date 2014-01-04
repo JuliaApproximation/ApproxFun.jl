@@ -78,7 +78,6 @@ end
 
 function normalizedcumsum(f::IFun)
     cf = cumsum(f)
-    cf = cf - foldr(-,cf.coefficients)
     cf = cf/reduce(+,cf.coefficients)
     
     cf    
@@ -122,7 +121,7 @@ end
 
 ## Sampling
 
-sample(f::IFun,n::Integer)=samplecdf(normalizedcumsum(f))
+sample(f::IFun,n::Integer)=samplecdf(normalizedcumsum(f),n)
 
 
 samplecdf(cf::IFun,n::Integer)=fromcanonical(cf,bisectioninv(cf.coefficients,rand(n)))

@@ -7,7 +7,7 @@ export multiplybyx,IntervalDomain,fasttimes
 
 ##Testing
 export bisectioninv, clenshaw
-export coefficients
+export coefficients, integrate
 
 
 
@@ -52,6 +52,7 @@ include("bary.jl")
 
 ##Chebyshev Routines
 include("clenshaw.jl")
+include("ultraspherical.jl")
 include("IFun.jl")
 
 

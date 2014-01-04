@@ -47,16 +47,12 @@ const x2sec2fun=IFun(x->x2sec(x).^2)
 
 linecumsumop=[EvaluationOperator(-1.),DifferentialOperator([0.,2./π.*IFun(x->(x.^2-1).^2)])];
 
-function Base.cumsum{T<:Number}(f::IFun{T,Line})
+function integrate{T<:Number}(f::IFun{T,Line})
     #TODO: choose length smarter
 
     g=chop(ApproxFun.x2sec2fun.*IFun(f.coefficients),1000eps())
     
     IFun(tomatrix(linecumsumop,length(g)+1)\[0.,coefficients(g,1)],f.domain)
-end
-
-function Base.sum{T<:Number}(f::IFun{T,Line})
-    reduce(+,cumsum(f).coefficients)
 end
 
 

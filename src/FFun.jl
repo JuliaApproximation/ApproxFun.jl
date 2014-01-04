@@ -177,6 +177,15 @@ end
 
 
 
+## Integration
+
+Base.first(cf::FFun)=(-1.)^(cf.coefficients.index+1).*foldr(-,cf.coefficients.vector)
+
+function Base.cumsum(f::FFun)
+    cf = integrate(f)
+    cf - first(cf)
+end
+
 
 
 

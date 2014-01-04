@@ -8,7 +8,7 @@ f=Fun(x->exp(im.*x))
 @assert norm(diff(f)-im*f) < 1000eps()
 
 
-@assert norm(cumsum(f)+im*f-f.coefficients[1]*im) < 100eps()
+@assert norm(integrate(f)+im*f-f.coefficients[1]*im) < 100eps()
 
 
 @assert norm(real(f)-Fun(cos)) < eps()
@@ -25,7 +25,7 @@ f=Fun(x->exp(im.*x),[1,2])
 @assert norm(diff(f)-im*f) < 1000eps()
 
 
-@assert norm(cumsum(f)+im*f-f.coefficients[1]*im) < 100eps()
+@assert norm(integrate(f)+im*f-f.coefficients[1]*im) < 100eps()
 
 
 @assert norm(real(f)-Fun(cos,f.domain)) < eps()
@@ -51,5 +51,5 @@ f=Fun(x->exp(im.*x),[1im,2+.5im])
 @assert norm(diff(f)-im*f) < 1000eps()
 
 
-@assert norm(cumsum(f)+im*f-f.coefficients[1]*im) < 100eps()
+@assert norm(integrate(f)+im*f-f.coefficients[1]*im) < 100eps()
 

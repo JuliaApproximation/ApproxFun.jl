@@ -48,23 +48,20 @@ Base.length(d::Interval) = d.b - d.a
 
 
 # diff T -> U, then convert U -> T
-function Base.diff{T<:Number,M<:Number}(f::IFun{T,Interval{M}})
+function Base.diff{T<:Number,M<:Interval}(f::IFun{T,M})
 
-    # Will need to change code for other domains
+    # TODO: Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
     tocanonicalD(f.domain,0)*IFun(ultraiconversion(ultradiff(f.coefficients)),f.domain)
 end
 
-function Base.cumsum{T<:Number,M<:Number}(f::IFun{T,Interval{M}})
-    # Will need to change code for other domains
+function integrate{T<:Number,M<:Interval}(f::IFun{T,M})
+    # TODO: Will need to change code for other domains
     @assert typeof(f.domain) <: Interval
     
     fromcanonicalD(f.domain,0)*IFun(ultraint(ultraconversion(f.coefficients)),f.domain)    
 end
 
-function Base.sum{T<:Number,M<:Number}(f::IFun{T,Interval{M}})
-    cf=cumsum(f).coefficients
-    clenshaw(cf,1.) - clenshaw(cf,-1.)
-end
+
     
