@@ -26,7 +26,7 @@ function findapproxmax(f::Function,dx::Domain,dy::Domain, gridx::Integer, gridy:
     ptsx=points(dx,gridx)
     ptsy=points(dy,gridy)
 
-  mpt=[fromcanonical(dx,rand()),fromcanonical(dy,rand())]  
+  mpt=[fromcanonical(dx,0.),fromcanonical(dy,0.)]  
   maxi=abs(f(mpt[1],mpt[2]))
 
 
