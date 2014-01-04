@@ -46,23 +46,24 @@ end
 
 
 
-include("Domains.jl")
+include("Domains/Domain.jl")
 
-include("bary.jl")
+
 
 ##Chebyshev Routines
-include("clenshaw.jl")
-include("ultraspherical.jl")
-include("IFun.jl")
+include("IFun/bary.jl")
+include("IFun/clenshaw.jl")
+include("IFun/ultraspherical.jl")
+include("IFun/IFun.jl")
 
 
 ##Fourier Routines
-include("ShiftVector.jl")
-include("FFun.jl")
+include("FFun/ShiftVector.jl")
+include("FFun/FFun.jl")
 
-include("Interval.jl")
-include("PeriodicInterval.jl")
-include("Circle.jl")
+# Canonical domains
+include("Domains/Interval.jl")
+include("Domains/PeriodicInterval.jl")
 
 
 include("Operator.jl")
@@ -88,7 +89,8 @@ Fun(x,d::Vector,n::Integer)=IFun(x,d,n)
 
 ## Other domains
 
-include("Line.jl")
+include("Domains/Line.jl")
+include("Domains/Circle.jl")
 
 end #module
 
