@@ -72,7 +72,7 @@ function Fun2D(f::Function,dx::IntervalDomain,dy::IntervalDomain,gridx::Integer,
             return Fun2D(A,B)
         end
         
-        A=[A,a];B=[B,b/b[r[2]]]    
+        A=[A,a/sqrt(a[r[1]])];B=[B,b/sqrt(b[r[2]])]    
         r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy,gridx,gridy)
         Ar=map(q->q[r[1]],A)
         Br=map(q->q[r[2]],B)

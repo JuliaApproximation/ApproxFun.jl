@@ -48,10 +48,34 @@ const x2sec2fun=IFun(x->x2sec(x).^2)
 linecumsumop=[EvaluationOperator(-1.),DifferentialOperator([0.,2./π.*IFun(x->(x.^2-1).^2)])];
 
 function Base.cumsum{T<:Number}(f::IFun{T,Line})
-        IFun(\(linecumsumop,[0.,chop(x2sec2fun.*IFun(f.coefficients),1000eps())],1000eps()).coefficients,f.domain)
+    #TODO: choose length smarter
+
+    g=chop(ApproxFun.x2sec2fun.*IFun(f.coefficients),1000eps())
+    
+    IFun(tomatrix(linecumsumop,length(g)+1)\[0.,coefficients(g,1)],f.domain)
 end
 
 function Base.sum{T<:Number}(f::IFun{T,Line})
     reduce(+,cumsum(f).coefficients)
 end
+
+
+## sample
+
+
+function sample(f::Fun2D{IFun{Float64,Line}},n::Integer)
+    cf=normalizedcumsum(sum(f,1))
+    CB=coefficientmatrix(map(cumsum,f.B))
     
+    ry=samplecdf(cf,n)
+    fA=evaluate(f.A,ry)
+    CBfA=CB*fA  #cumsums at points
+    multiply_oneatright!(CBfA)
+    
+    rx=fromcanonical(first(f.B).domain,bisectioninv(CBfA,rand(n)))
+    
+    [rx ry]
+end
+    
+
+

@@ -1,6 +1,6 @@
 
 export normalizedcumsum,normalizedcumsum!
-
+export samplecdf
 
 
 ##bisection inverse
@@ -77,9 +77,9 @@ end
 ##normalized cumsum
 
 function normalizedcumsum(f::IFun)
-    cf = cumsum(f);
-    cf = cf - cf[f.domain.a];
-    cf = cf/cf[f.domain.b];
+    cf = cumsum(f)
+    cf = cf - foldr(-,cf.coefficients)
+    cf = cf/reduce(+,cf.coefficients)
     
     cf    
 end
@@ -122,13 +122,14 @@ end
 
 ## Sampling
 
-function sample(f::IFun,n::Integer)
-    cf = normalizedcumsum(f)
-    fromcanonical(f,bisectioninv(cf.coefficients,rand(n)))
-end
+sample(f::IFun,n::Integer)=samplecdf(normalizedcumsum(f))
+
+
+samplecdf(cf::IFun,n::Integer)=fromcanonical(cf,bisectioninv(cf.coefficients,rand(n)))
 
 
 sample(f::IFun)=sample(f,1)[1]
+samplecdf(f::IFun)=samplecdf(f,1)[1]
 
 
 
@@ -136,13 +137,17 @@ sample(f::IFun)=sample(f,1)[1]
 
 ##2D sample
 
-function sample(f::Fun2D,n::Integer)
+function sample{T<:Interval}(f::Fun2D{IFun{Float64,T}},n::Integer)
+    #TODO: allow not unit interval
+
+    @assert f.domain == Interval()
+
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficientmatrix(f.B)
     AB=CB*fA
     normalizedcumsum!(AB)
-    rx=bisectioninv(AB,rand(n))
+    rx=bisectioninv(AB,rand(n))  
   [rx ry]
 end
 
