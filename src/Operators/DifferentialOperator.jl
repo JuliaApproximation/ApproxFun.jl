@@ -1,4 +1,4 @@
-export DifferentialOperator,ToeplitzOperator
+export DifferentialOperator
 export conversionmatrix,derivativematrix
 export hankelmatrix,multiplicationmatrix
 
@@ -133,37 +133,6 @@ function Base.getindex(op::DifferentialOperator,k::Range1,j::Range1)
 end
 
 
-
-
-
-##TODO: Support T<: ShiftVector
-type ToeplitzOperator{V<:Vector} <: InfiniteOperator
-    coefficients::V
-end
-
-ToeplitzOperator(f::IFun)=ToeplitzOperator(f.coefficients)
-
-function Base.getindex(T::ToeplitzOperator,kr::Range1,jr::Range1)
-    v = T.coefficients
-
-    ret = spzeros(length(kr),length(jr))
-
-
-    for m=1:length(v)
-        for k=(intersect(kr,jr+1-m))
-          ret[k-kr[1]+1,k-jr[1]+m] = v[m]         
-        end
-    
-        for k=(intersect(kr+1-m,jr))
-          ret[k-kr[1]+m,k-jr[1]+1] += v[m]         
-        end    
-    end
-  
-    ret
-end
-
-
-bandrange(T::ToeplitzOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
 
 
 function hankelmatrix(v::Vector,n::Integer)

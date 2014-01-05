@@ -1,18 +1,8 @@
-export BandedOperator,givensreduce!
-
-type BandedOperator <: InfiniteOperator
-  op::InfiniteOperator
-  data::Vector{Vector{Float64}} 
-  datalength::Integer
-end
 
 
-BandedOperator(op::InfiniteOperator)=BandedOperator(op,[],0);
+export MutableBandedOperator,givensreduce!
 
-
-#for bandrange, we save room for changed entries during Givens
-bandrange(b::BandedOperator)=bandrange(b.op)[1]:(bandrange(b.op)[end]-bandrange(b.op)[1])
-
+## General routines
 
 function indexrange(b::BandedOperator,k::Integer)
     ret = bandrange(b) + k
@@ -21,10 +11,33 @@ function indexrange(b::BandedOperator,k::Integer)
 end
 
 
-datalength(b::BandedOperator)=b.datalength
+## MutableBandedOperator
 
 
-function Base.getindex(b::BandedOperator,kr::Range1,jr::Range1)
+type MutableBandedOperator{T<:Number,M<:BandedOperator} <: BandedOperator
+  op::M
+  data::ShiftArray{T}  
+  datalength::Integer
+end
+
+
+MutableBandedOperator(op::BandedOperator)=MutableBandedOperator(op,ShiftArray(index(op)),0)
+
+
+index(B::MutableBandedOperator)=index(B.op)
+
+
+#for bandrange, we save room for changed entries during Givens
+bandrange(b::MutableBandedOperator)=bandrange(b.op)[1]:(bandrange(b.op)[end]-bandrange(b.op)[1])
+
+
+
+
+
+datalength(b::MutableBandedOperator)=b.datalength
+
+
+function Base.getindex(b::MutableBandedOperator,kr::Range1,jr::Range1)
   ret = spzeros(length(kr),length(jr))
   
   for k = kr
@@ -35,7 +48,7 @@ function Base.getindex(b::BandedOperator,kr::Range1,jr::Range1)
       if k > datalength(b)
         ret[k-kr[1]+1,j-jr[1]+1] = b.op[k,j]
       else
-        ret[k-kr[1]+1,j-jr[1]+1] = b.data[k][j - ir[1] + 1]
+        ret[k-kr[1]+1,j-jr[1]+1] = b.data[k,j - k]
       end
     end
   end
@@ -43,23 +56,17 @@ function Base.getindex(b::BandedOperator,kr::Range1,jr::Range1)
   ret
 end
 
-getindex!(b::BandedOperator,kr::Range1,jr::Range1)=resizedata!(b,kr[end])[kr,jr]
-getindex!(b::BandedOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,jr]
+getindex!(b::MutableBandedOperator,kr::Range1,jr::Range1)=resizedata!(b,kr[end])[kr,jr]
+getindex!(b::MutableBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,jr]
 
-function resizedata!(b::BandedOperator,n::Integer)
+function resizedata!{T<:Number,M<:BandedOperator}(b::MutableBandedOperator{T,M},n::Integer)
   l = datalength(b)
   if n > l
-    resize!(b.data,2n)
-    
-    for k=l+1:n
-      b.data[k] = Array(Float64,length(bandrange(b)))
-    end
-
-    sh = bandrange(b)[1]    
+    resize!(b.data,2n,length(bandrange(b)))
     
     for k=l+1:n
       for j=indexrange(b,k)
-        b.data[k][j-k-sh+1] = b.op[k,j]
+        b.data[k,j-k] = b.op[k,j]
       end
       
       b.datalength = n;
@@ -69,17 +76,17 @@ function resizedata!(b::BandedOperator,n::Integer)
   b
 end
 
-function Base.setindex!(b::BandedOperator,x,k::Integer,j::Integer)
+function Base.setindex!(b::MutableBandedOperator,x,k::Integer,j::Integer)
   resizedata!(b,k)
   
   if abs(b[k,j] - x) > 10eps()
       sh = bandrange(b)[1] 
-      b.data[k][j-k-sh+1] = x
+      b.data[k,j-k] = x
       x
   end
 end
 
-function givensreduce!(B::BandedOperator,k1::Integer,k2::Integer,j1::Integer)
+function givensreduce!(B::MutableBandedOperator,k1::Integer,k2::Integer,j1::Integer)
   a=getindex!(B,k1,j1);b=getindex!(B,k2,j1);
   sq=sqrt(a*a + b*b);
   a=a/sq;b=b/sq;
@@ -98,10 +105,10 @@ function givensreduce!(B::BandedOperator,k1::Integer,k2::Integer,j1::Integer)
   B
 end
 
-function givensreduce!(B::BandedOperator,k1::Range1,j1::Integer)
+function givensreduce!(B::MutableBandedOperator,k1::Range1,j1::Integer)
   for k=k1[2]:k1[end]
     givensreduce!(B,k1[1],k,j1)
   end
 end
 
-givensreduce!(B::BandedOperator,j::Integer)=givensreduce!(B,j:(j-bandrange(B)[1]),j)
+givensreduce!(B::MutableBandedOperator,j::Integer)=givensreduce!(B,j:(j-bandrange(B)[1]),j)

@@ -7,6 +7,7 @@ export bandrange
 abstract Operator
 abstract RowOperator <: Operator
 abstract InfiniteOperator <: Operator
+abstract BandedOperator <: InfiniteOperator
 
 abstract ShiftOperator <: Operator #For biinfinite operators
 abstract InfiniteShiftOperator <: ShiftOperator
@@ -102,10 +103,13 @@ end
 \(A::Array{Operator,1},b::Union(Array{Float64,1},Array{Float64,2}))=A\convert(Array{Any,1},b)
 
 
+include("ShiftArray.jl")
 
 
+include("ToeplitzOperator.jl")
 include("EvaluationOperator.jl")
 include("DifferentialOperator.jl")
+
 include("BandedOperator.jl")
 
 
