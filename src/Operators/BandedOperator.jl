@@ -80,28 +80,39 @@ end
 function Base.setindex!(b::MutableBandedOperator,x,k::Integer,j::Integer)
     resizedata!(b,k)
   
-    sh = bandrange(b)[1] 
     b.data[k,j-k] = x
     x
 end
 
+function fastgetindex(b,data,k::Integer,j::Integer)
+    data[k,j-k + b.data.colindex]
+end
+
+function fastsetindex!(b,data,x,k::Integer,j::Integer)
+    data[k,j-k + b.data.colindex] = x
+end
+
+##TODO: decide adaptive resize
 function givensreduce!(B::MutableBandedOperator,k1::Integer,k2::Integer,j1::Integer)
-    a=getindex!(B,k1,j1);b=getindex!(B,k2,j1);
+    data = unsafe_view(B.data.data)
+
+    a=fastgetindex(B,data,k1,j1);b=fastgetindex(B,data,k2,j1);
     sq=sqrt(a*a + b*b);
     a=a/sq;b=b/sq;
     
     #TODO: Assuming that left rows are already zero
     
     for j = j1:indexrange(B,k1)[end]
-        B1 = B[k1,j]
-        B2 = B[k2,j]
+        B1 = fastgetindex(B,data,k1,j)
+        B2 = fastgetindex(B,data,k2,j)
         
-        B[k1,j] = a*B1 + b*B2
-        B[k2,j] = -b*B1 + a*B2
+        fastsetindex!(B,data, a*B1 + b*B2,k1,j)
+        fastsetindex!(B,data,-b*B1 + a*B2, k2,j)
     end
     
     for j=indexrange(B,k1)[end]+1:indexrange(B,k2)[end]
-        B[k2,j] = a*B[k2,j]
+        B2 = fastgetindex(B,data,k2,j)
+        fastsetindex!(B,data,a*B2,k2,j)
     end
     
     #TODO: assert that the remaining of k2 are zero
