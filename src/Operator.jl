@@ -43,6 +43,7 @@ DifferentialOperator(cfs::Vector{Any},d::IntervalDomain)=DifferentialOperator(IF
 MultiplicationOperator(a::IFun)=DifferentialOperator([a])
 Base.diff(d::IntervalDomain,n::Integer)=DifferentialOperator([zeros(n),1.],d)
 Base.diff(d::IntervalDomain)=Base.diff(d,1)
+Base.eye(d::IntervalDomain)=DifferentialOperator([1.],d)
 
 
 
@@ -282,7 +283,9 @@ function -(A::DifferentialOperator,B::DifferentialOperator)
     DifferentialOperator(pad(A.coefficients,n) - pad(B.coefficients,n),A.domain)
 end
 
-*(a::Number,B::DifferentialOperator)=DifferentialOperator(a.*B.coefficients,B.domain)
+*(a::Number,B::DifferentialOperator)=DifferentialOperator(a*B.coefficients,B.domain)
+*(a::IFun,B::DifferentialOperator)=DifferentialOperator(a*B.coefficients,B.domain)
+
 
 function +(a::IFun, B::DifferentialOperator)
     @assert a.domain == B.domain
