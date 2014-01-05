@@ -1,7 +1,8 @@
-export EvaluationOperator,DifferentialOperator,Operator
-export differentialorder,conversionmatrix,derivativematrix,tomatrix
-export toeplitzmatrix,hankelmatrix,multiplicationmatrix
-export dirichlet, neumann
+export Operator,RowOperator,InfiniteOperator
+export differentialorder,tomatrix
+export bandrange
+
+
 
 abstract Operator
 abstract RowOperator <: Operator
@@ -17,6 +18,15 @@ include("DifferentialOperator.jl")
 
 
 differentialorder(A::Array{Operator,1})=mapreduce(differentialorder,max,A)
+
+Base.size(::InfiniteOperator)=[Inf,Inf]
+Base.size(::RowOperator)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
+Base.size(op::Operator,k::Integer)=size(op)[k]
+
+
+Base.getindex(op::InfiniteOperator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
+Base.getindex(op::InfiniteOperator,k::Integer,j::Range1)=op[k:k,j][1,:]
+Base.getindex(op::InfiniteOperator,k::Range1,j::Integer)=op[k,j:j][:,1]
 
 ## Multiplication of operator * fun
 

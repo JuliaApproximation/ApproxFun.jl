@@ -1,3 +1,6 @@
+export dirichlet, neumann
+export EvaluationOperator
+
 ## EvaluationOperator constructors
 
 type EvaluationOperator <: RowOperator
@@ -14,10 +17,6 @@ EvaluationOperator(d::Vector,x,o)=EvaluationOperator(Interval(d),x,o)
 evaluate(d::IntervalDomain,x)=EvaluationOperator(d,x)
 dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
 neumann(d::IntervalDomain)=[EvaluationOperator(d,d.a,1),EvaluationOperator(d,d.b,1)]
-
-
-
-Base.size(::EvaluationOperator)=Any[1,Inf]
 
 
 differentialorder(d::EvaluationOperator)=0 ##TODO: decide whether 0 is the correct

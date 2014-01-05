@@ -1,3 +1,7 @@
+export DifferentialOperator,ToeplitzOperator
+export conversionmatrix,derivativematrix
+export hankelmatrix,multiplicationmatrix
+
 ## DifferentialOperator constructors
 
 type DifferentialOperator{T<:IFun} <: InfiniteOperator
@@ -24,12 +28,35 @@ Base.eye(d::IntervalDomain)=DifferentialOperator([1.],d)
 
 
 
-Base.size(::DifferentialOperator)=[Inf,Inf]
-
-
 differentialorder(d::DifferentialOperator)=length(d.coefficients)-1
 
+##TODO: Should band always include 0?
 
+function subbandindex(d::DifferentialOperator)
+    ret = 0
+    
+    for k = 1:length(d.coefficients)
+        ret = min(ret,k - length(d.coefficients[k]))
+    end
+    
+    ret
+end
+
+function superbandindex(d::DifferentialOperator)
+    od=differentialorder(d)
+  
+    ret = 0
+    
+    for k = 1:length(d.coefficients)
+        if (norm(d.coefficients[k].coefficients) > eps())
+            ret = max(ret,2(od - k) + k + length(d.coefficients[k]))
+        end
+    end
+    
+    ret
+end
+
+bandrange(d::DifferentialOperator)=subbandindex(d):superbandindex(d)
 
 
 
@@ -107,26 +134,34 @@ end
 
 
 
-Base.getindex(op::DifferentialOperator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
 
-## Multiplication matrix
 
-function toeplitzmatrix(v::Vector,n::Integer)
-    ret = spzeros(n,n)
+##TODO: Support T<: ShiftVector
+type ToeplitzOperator{V<:Vector} <: InfiniteOperator
+    coefficients::V
+end
 
-    for k=1:n
-        ret[k,k] = 2v[1]
-    end
-    
-    for j=1:length(v)-1
-        for k=1:n-j
-            ret[k,k + j] = v[j+1]
-            ret[k + j,k] = v[j+1]            
+ToeplitzOperator(f::IFun)=ToeplitzOperator(f.coefficients)
+
+function Base.getindex(T::ToeplitzOperator,kr::Range1,jr::Range1)
+    v = T.coefficients
+
+    ret = spzeros(length(kr),length(jr))
+
+
+    for m=1:length(v)
+        for k=(intersect(kr,jr+1-m))
+          ret[k-kr[1]+1,k-jr[1]+m] = v[m]         
         end
+    
+        for k=(intersect(kr+1-m,jr))
+          ret[k-kr[1]+m,k-jr[1]+1] += v[m]         
+        end    
     end
   
     ret
 end
+
 
 function hankelmatrix(v::Vector,n::Integer)
     ret = spzeros(n,n)
@@ -141,11 +176,13 @@ function hankelmatrix(v::Vector,n::Integer)
 end
 
 
-toeplitzmatrix(f::IFun,n::Integer)=toeplitzmatrix(f.coefficients,n)
+## Multiplication matrix
 
-multiplicationmatrix(f::IFun,n::Integer)=.5(toeplitzmatrix(f,n) + [spzeros(1,n),hankelmatrix(f.coefficients[2:end],n)[1:end-1,:]])
 
-umultiplicationmatrix(f::IFun,n::Integer)=.5(toeplitzmatrix(f,n)  - hankelmatrix(f.coefficients[3:end],n))
+
+multiplicationmatrix(f::IFun,n::Integer)=.5(ToeplitzOperator(f)[1:n,1:n] + [spzeros(1,n),hankelmatrix(f.coefficients[2:end],n)[1:end-1,:]])
+
+umultiplicationmatrix(f::IFun,n::Integer)=.5(ToeplitzOperator(f)[1:n,1:n]  - hankelmatrix(f.coefficients[3:end],n))
 
 
 multiplicationmatrix(a::Number,n::Integer)=a*speye(n)
