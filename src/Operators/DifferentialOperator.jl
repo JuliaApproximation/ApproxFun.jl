@@ -1,33 +1,6 @@
-export EvaluationOperator,DifferentialOperator,Operator
-export differentialorder,conversionmatrix,derivativematrix,tomatrix
-export toeplitzmatrix,hankelmatrix,multiplicationmatrix
-export dirichlet, neumann
-
-abstract Operator
-
-
-## EvaluationOperator constructors
-
-type EvaluationOperator <: Operator
-    x
-    domain::IntervalDomain
-    order::Integer
-end
-
-EvaluationOperator(x)=EvaluationOperator(x,Interval(),0)
-EvaluationOperator(x,d)=EvaluationOperator(x,d,0)
-EvaluationOperator(x,d::Vector,o)=EvaluationOperator(x,Interval(d),o)
-
-
-evaluate(d::IntervalDomain,x)=EvaluationOperator(x,d)
-dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
-neumann(d::IntervalDomain)=[EvaluationOperator(d.a,d,1),EvaluationOperator(d.b,d,1)]
-
-
-
 ## DifferentialOperator constructors
 
-type DifferentialOperator{T<:IFun} <: Operator
+type DifferentialOperator{T<:IFun} <: InfiniteOperator
     coefficients::Vector{T}
     domain::IntervalDomain
 end
@@ -50,66 +23,13 @@ Base.eye(d::IntervalDomain)=DifferentialOperator([1.],d)
 ##Information about operator
 
 
-Base.size(::EvaluationOperator)=Any[1,Inf]
+
 Base.size(::DifferentialOperator)=[Inf,Inf]
 
 
-differentialorder(d::EvaluationOperator)=0 ##TODO: decide whether 0 is the correct
 differentialorder(d::DifferentialOperator)=length(d.coefficients)-1
-differentialorder(A::Array{Operator,1})=mapreduce(differentialorder,max,A)
 
 
-function evaluatechebyshev(n::Integer,x)
-    if n == 1
-        [1.]
-    else
-        p = zeros(n)
-        p[1] = 1.
-        p[2] = x
-        
-        for j=2:n-1
-            p[j+1] = 2x*p[j] - p[j-1]
-        end
-        
-        p
-    end
-end
-
-
-Base.getindex(op::EvaluationOperator,k::Integer)=op[k:k][1]
-
-
-##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex(op::EvaluationOperator,k::Range1)
-   tol = 200.*eps()
-    x = op.x
-    d = op.domain
-
-    if abs(x-d.a) < tol && op.order ==0
-        -(-1.).^k
-    elseif  abs(x-d.b) < tol && op.order ==0
-        ones(size(k)[1])
-    elseif  abs(x-d.a) < tol && op.order ==1
-        (k-1).*(k-1).*(-1.).^k*2/(d.b-d.a) 
-    elseif  abs(x-d.b) < tol && op.order ==1
-        (k-1).*(k-1)*2/(d.b-d.a) 
-    elseif op.order == 0
-        
-        evaluatechebyshev(k[end],tocanonical(d,x))[k]
-    else
-        error("Only first and zero order implemented")
-    end
-end
-
-
-function Base.getindex(op::EvaluationOperator,j::Range1,k::Range1)
-  @assert j[1]==1 && j[end]==1
-  op[k]' #TODO conjugate transpose?
-end
-function Base.getindex(op::EvaluationOperator,j::Integer,k::Range1)
-  @assert j==1
-  op[k]' #TODO conjugate transpose?
-end
 
 
 
@@ -250,18 +170,7 @@ ultraconversion(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))
 ultraiconversion(v::Vector{Float64},μ::Integer)=conversionmatrix(0:μ,length(v))\v
 coefficients(f::IFun,m::Integer)=ultraconversion(f.coefficients,m)
 
-## Multiplication of operator * fun
 
-#TODO: bet bottom length right
-function *(A::DifferentialOperator,b::IFun)
-    n=length(b)
-    od=differentialorder(A)
-    IFun(ultraiconversion(A[1:n,1:n]*b.coefficients,od),b.domain)
-end
-
-
-*(A::EvaluationOperator,b::IFun)=dot(A[1:length(b)],b.coefficients)
-*{T<:Operator}(A::Vector{T},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
 
 ## Addidition of Differential operators
 
@@ -297,72 +206,6 @@ end
 
 +(B::DifferentialOperator,a::IFun)=a+B
 -(B::DifferentialOperator,a::IFun)=-a + B
-
-
-## Linear Solve
-
-function tomatrix(A::Array{Operator,1},n::Integer)  
-  B = spzeros(n,n)
-  
-  nbc = mapreduce(a-> size(a)[1] == Inf ? 0 : size(a)[1],+,A)
-  
-  mapreduce(a-> size(a)[1] == Inf ? a[1:n-nbc,1:n] : a[1:size(a)[1],1:n],vcat,A)
-end
-
-\(A::Array{Operator,1},b::Array{Any,1})=\(A,b,eps())
-
-function \(A::Array{Operator,1},b::Array{Any,1},tol::Float64)
-    @assert length(A) == length(b)
-
-    d=A[1].domain
-    
-    map(x -> (@assert d == x.domain),A)
-    
-    map(x -> typeof(x) <: IFun ? (@assert d == x.domain) : 0,b)  
-    
-    #min length
-    m = mapreduce(x-> typeof(x) <: IFun ? length(x) : 1, +, b)
-    
-    #number of bc rows
-    nbc=mapreduce(a-> size(a)[1] == Inf ? 0 : size(a)[1],+,A)    
-    
-    rhs=copy(b)
-    
-    ##TODO: relative vs absolute accuracy
-#    nrm=mapreduce(norm,max,b)
-    
-    for logn = 3:20
-        n = 2^logn + m
-    
-        M = tomatrix(A,n)
-        
-
-        #size of each part
-        sz = map(a-> size(a)[1]== Inf ? n - nbc : size(a)[1],A)
-        
-
-        
-        for j = 1:length(b)
-            if typeof(b[j]) <: IFun
-                rhs[j] = pad(coefficients(b[j],differentialorder(A)),sz[j]) 
-            else
-                rhs[j] = b[j].*ones(sz[j])
-            end
-        end
-
-        
-        cfs = M\vcat(rhs...)
-        
-        if (maximum(abs(cfs[end-8:end])) < tol)
-            return IFun(chop(cfs,eps()),d)
-        end
-    end
-end
-
-\(A::Array{Operator,1},b::Union(Array{Float64,1},Array{Float64,2}))=A\convert(Array{Any,1},b)
-
-
-
 
 
 

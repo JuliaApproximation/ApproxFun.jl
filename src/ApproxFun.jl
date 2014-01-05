@@ -51,14 +51,10 @@ include("Domains/Domain.jl")
 
 
 ##Chebyshev Routines
-include("IFun/bary.jl")
-include("IFun/clenshaw.jl")
-include("IFun/ultraspherical.jl")
 include("IFun/IFun.jl")
 
 
 ##Fourier Routines
-include("FFun/ShiftVector.jl")
 include("FFun/FFun.jl")
 
 # Canonical domains
@@ -66,11 +62,11 @@ include("Domains/Interval.jl")
 include("Domains/PeriodicInterval.jl")
 
 
-include("Operator.jl")
-include("specialfunctions.jl")
+include("Operators/Operator.jl")
 
-include("VectorFun.jl")
-include("Fun2D.jl")
+
+include("Multivariate/VectorFun.jl")
+include("Multivariate/Fun2D.jl")
 
 include("sample.jl")
 

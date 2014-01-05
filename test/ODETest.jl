@@ -6,8 +6,8 @@ using ApproxFun
 
 
 d=Interval(-10.,5.);
-Bm=EvaluationOperator(d.a,d);
-Bp=EvaluationOperator(d.b,d);
+Bm=EvaluationOperator(d,d.a);
+Bp=EvaluationOperator(d,d.b);
 B=[Bm,Bp];
 D2=diff(d,2);
 X=DifferentialOperator([Fun(x->x,d)],d);
@@ -42,6 +42,6 @@ g=Fun(t->exp(-t.^2))
 @assert norm(Fun(t->exp(f[t]))-g)<10eps()
 
 fp=diff(f);
-Bm=EvaluationOperator(f.domain.a,f.domain);
+Bm=EvaluationOperator(f.domain,f.domain.a);
 u=[Bm,DifferentialOperator([-fp,1.],f.domain)]\[exp(f[f.domain.a]),0.];
 @assert norm(u-g)<10eps()

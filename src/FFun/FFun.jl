@@ -1,3 +1,5 @@
+include("ShiftVector.jl")
+
 ##TODO: unify tolerances
 
 

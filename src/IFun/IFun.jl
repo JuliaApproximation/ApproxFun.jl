@@ -1,4 +1,6 @@
-
+include("bary.jl")
+include("clenshaw.jl")
+include("ultraspherical.jl")
 
 
 ## transforms
