@@ -1,8 +1,11 @@
 using ApproxFun
 
 
-m=100.;
-d=Interval(-m,5.);
+
+##Airy equation 
+
+
+d=Interval(-10.,5.);
 Bm=EvaluationOperator(d.a,d);
 Bp=EvaluationOperator(d.b,d);
 B=[Bm,Bp];
@@ -11,13 +14,24 @@ X=DifferentialOperator([Fun(x->x,d)],d);
 
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 
-@assert abs(u[0.]-airyai(0.)) < 10eps()
+@assert abs(u[0.]-airyai(0.)) < 1000eps()
+
+
+B=neumann(d);
+A=[B;D2-X];                
+b=[airyaiprime(d.a),airyaiprime(d.b),0.];   
+    
+u=A\b;                     
+
+@assert abs(u[0.]-airyai(0.)) < 1000eps()
+
+## Neumann condition
 
 
 
 f=Fun(x->x.^2)
 D=diff(f.domain)
-@assert norm(D*f - diff(f)) < 10eps()
+@assert norm(D*f - diff(f)) < 100eps()
 
 
 ##Test versus exp
