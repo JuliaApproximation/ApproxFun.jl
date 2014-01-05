@@ -1,35 +1,48 @@
 export EvaluationOperator,DifferentialOperator,Operator
 export differentialorder,conversionmatrix,derivativematrix,tomatrix
 export toeplitzmatrix,hankelmatrix,multiplicationmatrix
-export dirichlet
+export dirichlet, neumann
 
 abstract Operator
 
 
-##Operator types
+## EvaluationOperator constructors
 
 type EvaluationOperator <: Operator
     x
     domain::IntervalDomain
+    order::Integer
 end
 
-EvaluationOperator(x)=EvaluationOperator(x,Interval())
-EvaluationOperator(x,d::Vector)=EvaluationOperator(x,Interval(d))
+EvaluationOperator(x)=EvaluationOperator(x,Interval(),0)
+EvaluationOperator(x,d)=EvaluationOperator(x,d,0)
+EvaluationOperator(x,d::Vector,o)=EvaluationOperator(x,Interval(d),o)
+
+
+evaluate(d::IntervalDomain,x)=EvaluationOperator(x,d)
+dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
+neumann(d::IntervalDomain)=[EvaluationOperator(d.a,d,1),EvaluationOperator(d.b,d,1)]
+
+
+
+## DifferentialOperator constructors
 
 type DifferentialOperator{T<:IFun} <: Operator
     coefficients::Vector{T}
     domain::IntervalDomain
 end
 
-#TODOL ensure any funs match coefficients
+##TODO: ensure any funs match coefficients
 
 DifferentialOperator(cfs::Vector)=DifferentialOperator(cfs,Interval())
 DifferentialOperator(cfs,d::Vector)=DifferentialOperator(cfs,Interval(d))
 DifferentialOperator{T<:Real}(cfs::Vector{T},d::IntervalDomain)=DifferentialOperator(IFun([1.],d)*cfs,d)
-function DifferentialOperator(cfs::Vector{Any},d::IntervalDomain)
-    DifferentialOperator(IFun([1.],d)*cfs,d)
-end
+DifferentialOperator(cfs::Vector{Any},d::IntervalDomain)=DifferentialOperator(IFun([1.],d)*cfs,d)
 
+
+MultiplicationOperator(a::IFun)=DifferentialOperator([a])
+Base.diff(d::IntervalDomain,n::Integer)=DifferentialOperator([zeros(n),1.],d)
+Base.diff(d::IntervalDomain)=Base.diff(d,1)
 
 
 
@@ -40,51 +53,50 @@ Base.size(::EvaluationOperator)=Any[1,Inf]
 Base.size(::DifferentialOperator)=[Inf,Inf]
 
 
-differentialorder(::EvaluationOperator)=0
+differentialorder(d::EvaluationOperator)=0 ##TODO: decide whether 0 is the correct
 differentialorder(d::DifferentialOperator)=length(d.coefficients)-1
 differentialorder(A::Array{Operator,1})=mapreduce(differentialorder,max,A)
 
-function Base.getindex(op::EvaluationOperator,k::Integer)
-    tol = 200.*eps()
 
-    if abs(op.x-op.domain.a) < tol
-        (-1.)^(k-1)
-    elseif  abs(op.x-op.domain.b) < tol
-        1.
+function evaluatechebyshev(n::Integer,x)
+    if n == 1
+        [1.]
     else
-        p = zeros(k)
-        p[1] = 1.
-        p[2] = op.x
-        
-        for j=2:k-1
-            p[j+1] = 2x*p[j] - p[j-1]
-        end
-        
-        p[k]
-  end
-end
-
-function Base.getindex(op::EvaluationOperator,k::Range1)
-   tol = 200.*eps()
-
-    if abs(op.x-op.domain.a) < tol
-        -(-1.).^k
-    elseif  abs(op.x-op.domain.b) < tol
-        ones(size(k)[1])
-    else
-        #TODO k[end] == 1
-        
-        x = tocanonical(op.domain,op.x)
-        
-        p = zeros(k[end])
+        p = zeros(n)
         p[1] = 1.
         p[2] = x
         
-        for j=2:k[end]-1
+        for j=2:n-1
             p[j+1] = 2x*p[j] - p[j-1]
         end
         
-        p[k]
+        p
+    end
+end
+
+
+Base.getindex(op::EvaluationOperator,k::Integer)=op[k:k][1]
+
+
+##TODO: the overloading as both vector and row vector may be confusing
+function Base.getindex(op::EvaluationOperator,k::Range1)
+   tol = 200.*eps()
+    x = op.x
+    d = op.domain
+
+    if abs(x-d.a) < tol && op.order ==0
+        -(-1.).^k
+    elseif  abs(x-d.b) < tol && op.order ==0
+        ones(size(k)[1])
+    elseif  abs(x-d.a) < tol && op.order ==1
+        (k-1).*(k-1).*(-1.).^k*2/(d.b-d.a) 
+    elseif  abs(x-d.b) < tol && op.order ==1
+        (k-1).*(k-1)*2/(d.b-d.a) 
+    elseif op.order == 0
+        
+        evaluatechebyshev(k[end],tocanonical(d,x))[k]
+    else
+        error("Only first and zero order implemented")
     end
 end
 
@@ -99,12 +111,6 @@ function Base.getindex(op::EvaluationOperator,j::Integer,k::Range1)
 end
 
 
-MultiplicationOperator(a::IFun)=DifferentialOperator([a])
-Base.diff(d::IntervalDomain,n::Integer)=DifferentialOperator([zeros(n),1.],d)
-Base.diff(d::IntervalDomain)=Base.diff(d,1)
-
-evaluate(d::IntervalDomain,x)=EvaluationOperator(x,d)
-dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
 
 
 function derivativematrix(μ::Integer,d::Domain,m::Integer)
@@ -254,7 +260,7 @@ end
 
 
 *(A::EvaluationOperator,b::IFun)=dot(A[1:length(b)],b.coefficients)
-*(A::Array{Operator,1},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
+*{T<:Operator}(A::Vector{T},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
 
 ## Addidition of Differential operators
 

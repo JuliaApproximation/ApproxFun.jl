@@ -13,10 +13,21 @@
                                # 10, with 0 rhs
     #Solve ODE
     
-    u=A\b                      # u satisfies A*u = b, or in other words, 
+    u=A\b;                     # u satisfies A*u = b, or in other words, 
                                # B*u = [airyai(-100.),0.] and (D2 - x)*u = 0.
                                
     # Check the accuracy                           
     norm(u - Fun(airyai,d))                                
     
     
+## We now solve with Neumann conditions
+
+    B=neumann(d);
+    A=[B;D2-x];                
+    b=[airyaiprime(-100.),0.,0.];   
+    
+    u=A\b;                     
+                              
+                               
+    # Check the accuracy                           
+    norm(u - Fun(airyai,d))        
