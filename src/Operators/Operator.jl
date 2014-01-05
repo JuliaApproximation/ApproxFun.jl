@@ -13,9 +13,6 @@ abstract InfiniteShiftOperator <: ShiftOperator
 abstract RowShiftOperator <: ShiftOperator
 
 
-include("EvaluationOperator.jl")
-include("DifferentialOperator.jl")
-
 
 differentialorder(A::Array{Operator,1})=mapreduce(differentialorder,max,A)
 
@@ -105,6 +102,11 @@ end
 \(A::Array{Operator,1},b::Union(Array{Float64,1},Array{Float64,2}))=A\convert(Array{Any,1},b)
 
 
+
+
+include("EvaluationOperator.jl")
+include("DifferentialOperator.jl")
+include("BandedOperator.jl")
 
 
 include("specialfunctions.jl")

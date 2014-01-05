@@ -163,6 +163,9 @@ function Base.getindex(T::ToeplitzOperator,kr::Range1,jr::Range1)
 end
 
 
+bandrange(T::ToeplitzOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
+
+
 function hankelmatrix(v::Vector,n::Integer)
     ret = spzeros(n,n)
     
