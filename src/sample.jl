@@ -83,6 +83,16 @@ function normalizedcumsum(f::IFun)
     cf    
 end
 
+function subtract_zeroatleft!(fin::Vector{Float64})
+    f=unsafe_view(fin)
+
+    for k=2:length(f)
+        f[1] += (-1.)^k.*f[k]
+    end
+    
+    fin
+end
+
 function subtract_zeroatleft!(fin::Array{Float64,2})
     f=unsafe_view(fin)
 
@@ -90,6 +100,24 @@ function subtract_zeroatleft!(fin::Array{Float64,2})
         f[1,j] += (-1.)^k.*f[k,j]
     end
     
+    fin
+end
+
+function multiply_oneatright!(fin::Vector{Float64})
+    f=unsafe_view(fin)
+
+
+    val=0.
+    for k=1:length(f)
+        val+=f[k]
+    end
+    
+    val=1./val
+
+    for k=1:length(f)
+        f[k] *= val
+    end
+        
     fin
 end
 
@@ -112,7 +140,7 @@ function multiply_oneatright!(fin::Array{Float64,2})
     fin
 end
 
-function normalizedcumsum!(f::Array{Float64,2})
+function normalizedcumsum!(f)
     ultraconversion!(f)
     ultraint!(f)
     subtract_zeroatleft!(f)
@@ -129,7 +157,7 @@ samplecdf(cf::IFun,n::Integer)=fromcanonical(cf,bisectioninv(cf.coefficients,ran
 
 sample(f::IFun)=sample(f,1)[1]
 samplecdf(f::IFun)=samplecdf(f,1)[1]
-
+samplecdf(v::Vector)=bisectioninv(v,rand())
 
 
 

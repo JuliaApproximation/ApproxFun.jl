@@ -3,28 +3,33 @@ include("clenshaw.jl")
 include("ultraspherical.jl")
 
 
+export plan_chebyshevtransform
+
 ## transforms
 
-
-function chebyshevtransform(x::Vector)
+plan_chebyshevtransform(x)=FFTW.plan_r2r(x, FFTW.REDFT00)
+chebyshevtransform(x)=chebyshevtransform(x,plan_chebyshevtransform(x))
+function chebyshevtransform(x::Vector,plan::Function)
     if(length(x) == 1)
         x
     else
-        ret = FFTW.r2r(x, FFTW.REDFT00);
+        ret = plan(x);
         ret[1] *= .5;
         ret[end] *= .5;    
         ret.*alternatingvector(length(ret))/(length(ret)-1)
     end
 end
 
-function ichebyshevtransform(x::Vector)
+
+ichebyshevtransform(x)=ichebyshevtransform(x,plan_chebyshevtransform(x))
+function ichebyshevtransform(x::Vector,plan::Function)
     if(length(x) == 1)
         x
     else
         x[1] *= 2.;
         x[end] *= 2.;
         
-        ret = chebyshevtransform(x);
+        ret = chebyshevtransform(x,plan);
         
         x[1] *= .5;
         x[end] *= .5;

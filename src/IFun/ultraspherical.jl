@@ -12,8 +12,8 @@ ultraint(v::Vector)=[0,v./[1:length(v)]]
 function ultraint!(vin::Array{Float64,2})
     v=unsafe_view(vin)
 
-    for k=size(v)[1]:-1:2
-        for j=1:size(v)[2]
+    for k=size(v,1):-1:2
+        for j=1:size(v,2)
             v[k,j] = v[k-1,j]/(k-1)
         end
     end
@@ -21,6 +21,18 @@ function ultraint!(vin::Array{Float64,2})
     for j=1:size(v)[2]
         v[1,j] = 0.
     end
+    
+    vin
+end
+
+function ultraint!(vin::Vector{Float64})
+    v=unsafe_view(vin)
+
+    for k=length(v):-1:2
+        v[k] = v[k-1]/(k-1)
+    end
+    
+    v[1] = 0.
     
     vin
 end
@@ -71,6 +83,28 @@ function ultraconversion(v::Vector{Float64})
     end
     
     w
+end
+
+function ultraconversion!(v::Vector{Float64})
+    n = length(v) #number of coefficients
+
+    vv=unsafe_view(v)
+
+    if n == 1
+        #do nothing
+    elseif n == 2
+        vv[2] *= .5
+    else
+        vv[1] -= .5vv[3];        
+    
+        for j=2:n-2
+            vv[j] = .5*(vv[j] - vv[j+2]);
+        end
+        vv[n-1] *= .5;
+        vv[n] *= .5;                
+    end
+    
+    return v
 end
 
 function ultraconversion!(v::Array{Float64,2})
