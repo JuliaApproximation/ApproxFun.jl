@@ -50,7 +50,7 @@ function randomadaptivebary(f::Function)
       n=2^logn + 1
       pts=chebyshevpoints(n)
       vals=f(pts)
-      err=abs(barysum(vals,pts,r)-fr)/n
+      err=abs(bary(vals,pts,r)-fr)/n
       logn+=1
   end
   

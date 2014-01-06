@@ -7,16 +7,29 @@ export plan_chebyshevtransform
 
 ## transforms
 
+
+function negateeven!(x)
+    y = unsafe_view(x)
+    for k =2:2:length(x)
+        y[k] = -y[k]
+    end
+    
+    x
+end
+
 plan_chebyshevtransform(x)=FFTW.plan_r2r(x, FFTW.REDFT00)
 chebyshevtransform(x)=chebyshevtransform(x,plan_chebyshevtransform(x))
 function chebyshevtransform(x::Vector,plan::Function)
     if(length(x) == 1)
         x
     else
-        ret = plan(x);
-        ret[1] *= .5;
-        ret[end] *= .5;    
-        ret.*alternatingvector(length(ret))/(length(ret)-1)
+        ret = plan(x)
+        ret[1] *= .5
+        ret[end] *= .5   
+        negateeven!(ret)
+        ret*=1./(length(ret)-1)
+        
+        ret
     end
 end
 
