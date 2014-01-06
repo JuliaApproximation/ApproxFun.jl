@@ -1,6 +1,6 @@
 
 
-export MutableBandedOperator,givensreduce!
+export MutableBandedOperator,givensreduce!,adaptiveqr
 
 ## General routines
 
@@ -93,12 +93,15 @@ function fastsetindex!(b,data,x,k::Integer,j::Integer)
 end
 
 ##TODO: decide adaptive resize
-function givensreduce!(B::MutableBandedOperator,k1::Integer,k2::Integer,j1::Integer)
+function givensreduce!(B::MutableBandedOperator,v::Vector,k1::Integer,k2::Integer,j1::Integer)
     data = unsafe_view(B.data.data)
 
-    a=fastgetindex(B,data,k1,j1);b=fastgetindex(B,data,k2,j1);
-    sq=sqrt(a*a + b*b);
-    a=a/sq;b=b/sq;
+    a=fastgetindex(B,data,k1,j1);b=fastgetindex(B,data,k2,j1)
+    sq=sqrt(a*a + b*b)
+    a=a/sq;b=b/sq
+    
+    v[k1],v[k2] = a*v[k1] + b*v[k2],-b*v[k1] + a*v[k2]    
+    
     
     #TODO: Assuming that left rows are already zero
     
@@ -119,10 +122,58 @@ function givensreduce!(B::MutableBandedOperator,k1::Integer,k2::Integer,j1::Inte
     B
 end
 
-function givensreduce!(B::MutableBandedOperator,k1::Range1,j1::Integer)
+function givensreduce!(B::MutableBandedOperator,v::Vector,k1::Range1,j1::Integer)
   for k=k1[2]:k1[end]
-    givensreduce!(B,k1[1],k,j1)
+    givensreduce!(B,v,k1[1],k,j1)
   end
 end
 
-givensreduce!(B::MutableBandedOperator,j::Integer)=givensreduce!(B,j:(j-bandrange(B)[1]),j)
+givensreduce!(B::MutableBandedOperator,v::Vector,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)
+
+
+function backsubstitution!(B,u)
+  n=length(u)
+  b=bandrange(B)[end]
+  
+  for k=n:-1:1
+    for j=k+1:min(n,k+b)
+      u[k]-=B[k,j]*u[j]
+    end
+      
+    u[k] /= B[k,k]
+  end
+  
+  u
+end
+
+function adaptiveqr(A,v)
+  u=[v,zeros(100)]
+  B=MutableBandedOperator(A)
+  
+  l = length(v) + 100  
+  resizedata!(B,100)
+  
+  
+  j=1
+  b=-bandrange(B)[1]
+  
+  tol=.001eps()
+  
+  
+  ##TODO: check js
+  while norm(u[j:j+b-1]) > tol
+    if j + b == l
+      u = [u,zeros(l)]      
+      l *= 2
+      resizedata!(B,l)
+    end
+
+    
+    givensreduce!(B,u,j)
+    j+=1
+  end
+  
+  backsubstitution!(B,u[1:j-1])
+end
+
+

@@ -9,9 +9,8 @@ export plan_chebyshevtransform
 
 
 function negateeven!(x)
-    y = unsafe_view(x)
     for k =2:2:length(x)
-        y[k] = -y[k]
+        x[k] *= -1.
     end
     
     x
@@ -39,10 +38,11 @@ function ichebyshevtransform(x::Vector,plan::Function)
     if(length(x) == 1)
         x
     else
+        ##TODO: make thread safe
         x[1] *= 2.;
         x[end] *= 2.;
         
-        ret = chebyshevtransform(x,plan);
+        ret = chebyshevtransform(x,plan)::typeof(x)
         
         x[1] *= .5;
         x[end] *= .5;
@@ -50,7 +50,11 @@ function ichebyshevtransform(x::Vector,plan::Function)
         ret[1] *= 2.;
         ret[end] *= 2.;
         
-        flipud(ret.*alternatingvector(length(ret)).*(length(x) - 1).*.5)
+        negateeven!(ret)
+        
+        ret *= .5*(length(x) - 1)
+        
+        flipud(ret)
     end
 end
 
