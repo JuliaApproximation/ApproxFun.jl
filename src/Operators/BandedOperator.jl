@@ -131,7 +131,7 @@ end
 givensreduce!(B::MutableBandedOperator,v::Vector,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)
 
 
-function backsubstitution!(B,u)
+function backsubstitution!(B::MutableBandedOperator,u)
   n=length(u)
   b=bandrange(B)[end]
   

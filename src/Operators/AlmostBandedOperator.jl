@@ -1,6 +1,6 @@
 
 
-export MutableAlmostBandedOperator
+export MutableAlmostBandedOperator, adaptiveqr!
 
 
 
@@ -112,19 +112,17 @@ function setfillindex!(b::MutableAlmostBandedOperator,x,k::Integer,j::Integer)
     b.filldata[k] = x
 end
 
-function fastgetindex(b,data,k::Integer,j::Integer)
-    data[k,j-k + b.data.colindex]
-end
-
-function fastsetindex!(b,data,x,k::Integer,j::Integer)
-    data[k,j-k + b.data.colindex] = x
-end
+# function fastgetindex(b,data,k::Integer,j::Integer)
+#     data[k,j-k + b.data.colindex]
+# end
+# 
+# function fastsetindex!(b,data,x,k::Integer,j::Integer)
+#     data[k,j-k + b.data.colindex] = x
+# end
 
 ##TODO: decide adaptive resize
 function givensreduce!(B::MutableAlmostBandedOperator,v::Vector,k1::Integer,k2::Integer,j1::Integer)
-    data = unsafe_view(B.data.data)
-
-    a=fastgetindex(B,data,k1,j1);b=fastgetindex(B,data,k2,j1)
+    a=B[k1,j1];b=B[k2,j1]
     sq=sqrt(a*a + b*b)
     a=a/sq;b=b/sq
     
@@ -134,17 +132,23 @@ function givensreduce!(B::MutableAlmostBandedOperator,v::Vector,k1::Integer,k2::
     #TODO: Assuming that left rows are already zero
     
     for j = j1:indexrange(B,k1)[end]
-        B1 = fastgetindex(B,data,k1,j)
-        B2 = fastgetindex(B,data,k2,j)
+        B1 = B[k1,j]
+        B2 = B[k2,j]
         
-        fastsetindex!(B,data, a*B1 + b*B2,k1,j)
-        fastsetindex!(B,data,-b*B1 + a*B2, k2,j)
+        B[k1,j],B[k2,j]= a*B1 + b*B2,-b*B1 + a*B2
     end
     
     for j=indexrange(B,k1)[end]+1:indexrange(B,k2)[end]
-        B2 = fastgetindex(B,data,k2,j)
-        fastsetindex!(B,data,a*B2,k2,j)
+        B1 = B[k1,j]
+        B2 = B[k2,j]
+        
+        B[k2,j]=a*B2 - b*B1
     end
+    
+    B1 = B.filldata[k1]
+    B2 = B.filldata[k2]
+    
+    B.filldata[k1],B.filldata[k2] = a*B1 + b*B2,-b*B1 + a*B2
     
     #TODO: assert that the remaining of k2 are zero
     B
@@ -159,27 +163,41 @@ end
 givensreduce!(B::MutableAlmostBandedOperator,v::Vector,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)
 
 
-function backsubstitution!(B,u)
-  n=length(u)
-  b=bandrange(B)[end]
-  
-  for k=n:-1:1
-    for j=k+1:min(n,k+b)
-      u[k]-=B[k,j]*u[j]
+function backsubstitution!(B::MutableAlmostBandedOperator,u)
+    n=length(u)
+    b=bandrange(B)[end]
+    
+    
+    
+    for k=n:-1:n-b
+        for j=k+1:n
+            u[k]-=B[k,j]*u[j]
+        end
+          
+        u[k] /= B[k,k]
     end
-      
-    u[k] /= B[k,k]
-  end
+    
+    pk = 0
+    for k=n-b-1:-1:1
+        pk = u[k+b+1]*B.bc[k+b+1] + pk
+        for j=k+1:k+b
+            u[k]-=B[k,j]*u[j]
+        end
+        
+        u[k] -= b.filldata[k]*pk
+          
+        u[k] /= B[k,k]
+    end
   
   u
 end
 
-function adaptiveqr(A,v)
+
+function adaptiveqr!(B::MutableAlmostBandedOperator,v)
   u=[v,zeros(100)]
-  B=MutableAlmostBandedOperator(A)
   
   l = length(v) + 100  
-  resizedata!(B,100)
+  resizedata!(B,l)
   
   
   j=1
