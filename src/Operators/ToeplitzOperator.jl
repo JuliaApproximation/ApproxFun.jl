@@ -1,43 +1,27 @@
-export ToeplitzOperator, index
+export ToeplitzOperator
+
+
+function Base.getindex(B::BandedOperator,k,j)
+    A=ShiftArray(zeros(length(k),length(bandrange(B))),index(B))
+    copybandedentries(B,A,1:length(k),0,1:length(bandrange(B)),0)
+    BandedArray(A)[k,j]
+end
 
 
 
-##TODO: Support T<: ShiftVector
-type ToeplitzOperator{V<:Vector} <: BandedOperator
+type ToeplitzOperator{V<:Union(Vector,ShiftVector)} <: BandedOperator
     coefficients::V
 end
 
-ToeplitzOperator(f::IFun)=ToeplitzOperator(f.coefficients)
-
-
-index(T::ToeplitzOperator)=length(T.coefficients)
-
-function Base.getindex(T::ToeplitzOperator,kr::Range1,jr::Range1)
-    v = T.coefficients
-
-    ret = spzeros(length(kr),length(jr))
-
-
-    for m=1:length(v)
-        for k=(intersect(kr,jr+1-m))
-          ret[k-kr[1]+1,k-jr[1]+m] = v[m]         
-        end
-    
-        for k=(intersect(kr+1-m,jr))
-          ret[k-kr[1]+m,k-jr[1]+1] += v[m]         
-        end    
-    end
-  
-    ret
-end
-
+ToeplitzOperator(f::AbstractFun)=ToeplitzOperator(f.coefficients)
+index{M<:Vector}(T::ToeplitzOperator{M})=length(T.coefficients)
+index{M<:ShiftVector}(T::ToeplitzOperator{M})=T.coefficients.index
 
 
 
 #TODO: assert?
 #TODO: we assume A is initialized to 0
-#TODO: Allow shift
-function copybandedentries(T::ToeplitzOperator,A::ShiftArray,kr::Range1,ksh::Integer,jr::Range1,jsh::Integer)
+function copybandedentries{M<:Vector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1,ksh::Integer,jr::Range1,jsh::Integer)
     v = T.coefficients
     
     
@@ -49,4 +33,22 @@ function copybandedentries(T::ToeplitzOperator,A::ShiftArray,kr::Range1,ksh::Int
 end
 
 
-bandrange(T::ToeplitzOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
+bandrange{M<:Vector}(T::ToeplitzOperator{M})=(1-length(T.coefficients):length(T.coefficients)-1)
+
+
+
+function copybandedentries{M<:ShiftVector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1,ksh::Integer,jr::Range1,jsh::Integer)
+    v = T.coefficients
+    
+    
+    for k=kr,j=max(jr[1],range(v)[1]):min(jr[end],range(v)[end])
+        A[k+ksh,j+jsh] = v[j]
+    end
+    
+    A
+end
+
+
+bandrange{M<:ShiftVector}(T::ToeplitzOperator{M})=range(T.coefficients)
+
+

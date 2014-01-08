@@ -1,6 +1,6 @@
 
 
-export ShiftVector,firstindex,lastindex
+export ShiftVector,firstindex,lastindex,index
 
 
 
@@ -18,7 +18,7 @@ for op = (:(Base.last),:(Base.first),:(Base.norm),:(Base.endof),:(Base.length))
     @eval ($op)(sv::ShiftVector) = ($op)(sv.vector)
 end
 
-
+index(sl::ShiftVector)=sl.index
 firstindex(sl::ShiftVector)=1-sl.index
 lastindex(sl::ShiftVector)=length(sl)-sl.index
 
