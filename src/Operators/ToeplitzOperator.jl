@@ -36,12 +36,13 @@ end
 
 #TODO: assert?
 #TODO: we assume A is initialized to 0
-function copybandedentries(T::ToeplitzOperator,A::ShiftArray,kr::Range1,jr::Range1)
+#TODO: Allow shift
+function copybandedentries(T::ToeplitzOperator,A::ShiftArray,kr::Range1,ksh::Integer,jr::Range1,jsh::Integer)
     v = T.coefficients
     
     
-    for k=kr,j=jr[1]:min(jr[end],length(v)-1)
-        A[k,j] = (j ==0) ? 2v[1] : v[abs(j)+1]
+    for k=kr,j=max(jr[1],1-length(v)):min(jr[end],length(v)-1)
+        A[k+ksh,j+jsh] = (j ==0) ? 2v[1] : v[abs(j)+1]
     end
     
     A

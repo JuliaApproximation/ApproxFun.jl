@@ -7,7 +7,8 @@ export bandrange
 abstract Operator
 abstract RowOperator <: Operator
 abstract InfiniteOperator <: Operator
-abstract BandedOperator <: InfiniteOperator
+abstract AlmostBandedOperator <: InfiniteOperator
+abstract BandedOperator <: AlmostBandedOperator
 
 abstract ShiftOperator <: Operator #For biinfinite operators
 abstract InfiniteShiftOperator <: ShiftOperator
@@ -111,7 +112,7 @@ include("EvaluationOperator.jl")
 include("DifferentialOperator.jl")
 
 include("BandedOperator.jl")
-
+include("AlmostBandedOperator.jl")
 
 include("specialfunctions.jl")
 

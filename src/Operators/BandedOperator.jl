@@ -4,7 +4,7 @@ export MutableBandedOperator,givensreduce!,adaptiveqr
 
 ## General routines
 
-function indexrange(b::BandedOperator,k::Integer)
+function indexrange(b::AlmostBandedOperator,k::Integer)
     ret = bandrange(b) + k
   
     (ret[1] < 1) ? (1:ret[end]) : ret
