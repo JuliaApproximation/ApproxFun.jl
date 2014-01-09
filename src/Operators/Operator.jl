@@ -30,7 +30,7 @@ function Base.getindex(B::BandedOperator,k::Range1,j::Range1)
     ##TODO: this is wasteful
     n = max(k[end],j[end])
     A=ShiftArray(zeros(n,length(bandrange(B))),index(B))
-    addentries!(B,A,1:n,0,0)
+    addentries!(B,A,1:n)
     BandedArray(A)[k,j]
 end
 
@@ -118,6 +118,7 @@ include("DifferentialOperator.jl")
 
 include("BandedOperator.jl")
 include("AlmostBandedOperator.jl")
+include("OperatorAlgebra.jl")
 
 include("specialfunctions.jl")
 

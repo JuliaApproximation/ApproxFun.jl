@@ -14,12 +14,12 @@ ToeplitzOperator(f::AbstractFun)=ToeplitzOperator(f.coefficients)
 
 
 
-function addentries!{M<:Vector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1,ksh::Integer,jsh::Integer)
+function addentries!{M<:Vector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1)
     v = T.coefficients
     
     
     for k=kr,j=1-length(v):length(v)-1
-        A[k+ksh,j+jsh] += (j ==0) ? 2v[1] : v[abs(j)+1]
+        A[k,j] += (j ==0) ? 2v[1] : v[abs(j)+1]
     end
     
     A
@@ -30,12 +30,12 @@ bandrange{M<:Vector}(T::ToeplitzOperator{M})=(1-length(T.coefficients):length(T.
 
 
 
-function addentries!{M<:ShiftVector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1,ksh::Integer,jsh::Integer)
+function addentries!{M<:ShiftVector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1)
     v = T.coefficients
     
     
     for k=kr,j=range(v)[1]:range(v)[end]
-        A[k+ksh,j+jsh] += v[j]
+        A[k,j] += v[j]
     end
     
     A
@@ -54,12 +54,12 @@ end
 
 HankelOperator(f::IFun)=HankelOperator(f.coefficients)
 
-function addentries!(T::HankelOperator,A::ShiftArray,kr::Range1,ksh::Integer,jsh::Integer)
+function addentries!(T::HankelOperator,A::ShiftArray,kr::Range1)
     v=T.coefficients
   
     for j=1:length(v)
         for k=intersect(kr,1:j)
-            A[k+ksh,j-2k+1+jsh] += v[j]
+            A[k,j-2k+1] += v[j]
         end
     end
     
@@ -80,13 +80,17 @@ end
 MultiplicationOperator(f::IFun)=MultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(.5f))
 
 
-function addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1,ksh::Integer,jsh::Integer)
-    addentries!(M.T,A,kr,ksh,jsh)
-    if kr[1] == 1
-        addentries!(M.H,A,2:kr[end],ksh,jsh)    
-    else
-        addentries!(M.H,A,kr,ksh,jsh)     
+function addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
+    addentries!(M.T,A,kr)
+    addentries!(M.H,A,kr)        
+    
+    if kr[1] == 1  
+        for j=1:length(M.H.coefficients)
+            A[1,j-1] -= M.H.coefficients[j]
+        end
     end   
+    
+    A
 end
 
 
