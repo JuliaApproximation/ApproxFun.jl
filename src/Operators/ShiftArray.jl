@@ -8,6 +8,7 @@ end
 ShiftArray(ind)=ShiftArray(Array(Float64,0,0),ind)
 
 Base.setindex!(S::ShiftArray,x,k::Integer,j::Integer)=(S.data[k, j + S.colindex] = x)
+
 Base.getindex(S::ShiftArray,k,j) = S.data[k, j + S.colindex]
 
 
@@ -54,5 +55,5 @@ end
 
 Base.full(B::BandedArray)=full(SparseMatrix(B))
 
-Base.getindex(B::BandedArray,k,j)=SparseMatrix(B)[k,j]
+Base.getindex(B::BandedArray,k,j)=full(B)[k,j]
 

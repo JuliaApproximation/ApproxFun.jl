@@ -1,11 +1,6 @@
 export ToeplitzOperator
 
 
-function Base.getindex(B::BandedOperator,k,j)
-    A=ShiftArray(zeros(length(k),length(bandrange(B))),index(B))
-    copybandedentries(B,A,1:length(k),0,1:length(bandrange(B)),0)
-    BandedArray(A)[k,j]
-end
 
 
 
@@ -21,7 +16,7 @@ index{M<:ShiftVector}(T::ToeplitzOperator{M})=T.coefficients.index
 
 #TODO: assert?
 #TODO: we assume A is initialized to 0
-function copybandedentries{M<:Vector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1,ksh::Integer,jr::Range1,jsh::Integer)
+function addentries!{M<:Vector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1,ksh::Integer,jr::Range1,jsh::Integer)
     v = T.coefficients
     
     
@@ -37,7 +32,7 @@ bandrange{M<:Vector}(T::ToeplitzOperator{M})=(1-length(T.coefficients):length(T.
 
 
 
-function copybandedentries{M<:ShiftVector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1,ksh::Integer,jr::Range1,jsh::Integer)
+function addentries!{M<:ShiftVector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1,ksh::Integer,jr::Range1,jsh::Integer)
     v = T.coefficients
     
     

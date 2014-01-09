@@ -7,8 +7,8 @@ export bandrange
 abstract Operator
 abstract RowOperator <: Operator
 abstract InfiniteOperator <: Operator
-abstract AlmostBandedOperator <: InfiniteOperator
-abstract BandedOperator <: AlmostBandedOperator
+abstract BandedBelowOperator <: InfiniteOperator
+abstract BandedOperator <: BandedBelowOperator
 
 abstract ShiftOperator <: Operator #For biinfinite operators
 abstract InfiniteShiftOperator <: ShiftOperator
@@ -26,17 +26,23 @@ Base.size(op::Operator,k::Integer)=size(op)[k]
 Base.getindex(op::InfiniteOperator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
 Base.getindex(op::InfiniteOperator,k::Integer,j::Range1)=op[k:k,j][1,:]
 Base.getindex(op::InfiniteOperator,k::Range1,j::Integer)=op[k,j:j][:,1]
+function Base.getindex(B::BandedOperator,k::Range1,j::Range1)
+    ##TODO: this is wasteful
+    n = max(k[end],j[end])
+    A=ShiftArray(zeros(n,length(bandrange(B))),index(B))
+    addentries!(B,A,1:n,0,bandrange(B),0)
+#    print("k = " * string(k) * " j = " * string(j) * "\n")
+    BandedArray(A)[k,j]
+end
+
 
 ## Multiplication of operator * fun
 
-#TODO: get bottom length right
-function *(A::InfiniteOperator,b::IFun)
-    n=length(b)
-    od=differentialorder(A)
-    IFun(ultraiconversion(A[1:n,1:n]*b.coefficients,od),b.domain)
-end
+*(A::BandedBelowOperator,b::Vector)= A[1:length(b)-bandrange(A)[1],1:length(b)]*b
+*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*b.coefficients,differentialorder(A)),b.domain)
 
-*(A::RowOperator,b::IFun)=dot(A[1:length(b)],b.coefficients)
+*(A::RowOperator,b::Vector)=dot(A[1:length(b)],b)
+*(A::RowOperator,b::IFun)=A*b.coefficients
 *{T<:Operator}(A::Vector{T},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
 
 

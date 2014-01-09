@@ -4,11 +4,7 @@ export MutableBandedOperator,givensreduce!,adaptiveqr
 
 ## General routines
 
-function indexrange(b::AlmostBandedOperator,k::Integer)
-    ret = bandrange(b) + k
-  
-    (ret[1] < 1) ? (1:ret[end]) : ret
-end
+
 
 
 ## MutableBandedOperator
@@ -146,7 +142,7 @@ function backsubstitution!(B::MutableBandedOperator,u)
   u
 end
 
-function adaptiveqr(A,v)
+function adaptiveqr(A::BandedOperator,v)
   u=[v,zeros(100)]
   B=MutableBandedOperator(A)
   

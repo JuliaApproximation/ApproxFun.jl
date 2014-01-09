@@ -4,10 +4,18 @@ export MutableAlmostBandedOperator, adaptiveqr!
 
 
 
+function indexrange(b::BandedBelowOperator,k::Integer)
+    ret = bandrange(b) + k
+  
+    (ret[1] < 1) ? (1:ret[end]) : ret
+end
+
+
+
 ## MutableAlmostBandedOperator
 
 
-type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator} <: AlmostBandedOperator
+type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator} <: BandedBelowOperator
     bc::RowOperator
     op::M
     data::ShiftArray{T}  
@@ -19,29 +27,39 @@ end
 #TODO: index(op) + 1 -> length(bc) + index(op)
 MutableAlmostBandedOperator(bc::RowOperator,op::BandedOperator)=MutableAlmostBandedOperator(bc,op,ShiftArray(index(op)+1),Array(Float64,0),0)
 
+function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
+    @assert length(B) == 2 ##TODO: make general
+    @assert typeof(B[1]) <: RowOperator
+    @assert typeof(B[2]) <: BandedOperator
+    
+    MutableAlmostBandedOperator(B[1],B[2])
+end
+
 
 index(B::MutableAlmostBandedOperator)=index(B.op)
 numbcs(B::MutableAlmostBandedOperator)=1
 
 # for bandrange, we save room for changed entries during Givens
-bandrange(b::MutableAlmostBandedOperator)=(bandrange(b.op)[1]-1):(bandrange(b.op)[end]-bandrange(b.op)[1]-1)
+bandrange(B::MutableAlmostBandedOperator)=(bandrange(B.op)[1]-1):(bandrange(B.op)[end]-bandrange(B.op)[1])
 datalength(b::MutableAlmostBandedOperator)=b.datalength
 
 
-function Base.getindex(b::MutableAlmostBandedOperator,kr::Range1,jr::Range1)
+
+
+function Base.getindex(B::MutableAlmostBandedOperator,kr::Range1,jr::Range1)
     ret = spzeros(length(kr),length(jr))
     
     
     for k = kr
-        if k <= datalength(b) || k == 1 #bc
+        if k <= datalength(B) || k == 1 #bc
             for j=jr
-                ret[k,j] = b[k,j]
+                ret[k,j] = B[k,j]
             end
         else
-            ir = bandrange(b) + k
+            ir = bandrange(B) + k
             
             for j=max(ir[1],jr[1]):min(ir[end],jr[end])
-                ret[k-kr[1]+1,j-jr[1]+1] = b[k,j]
+                ret[k-kr[1]+1,j-jr[1]+1] = B[k,j]
             end
         end
     end
@@ -61,7 +79,7 @@ function Base.getindex(b::MutableAlmostBandedOperator,k::Integer,j::Integer)
     elseif k <= bc
         b.bc[j]
     else
-        b.op[k-bc,j]
+        b.op[k-bc,j]##TODO: Slow
     end
 end
 
@@ -85,10 +103,10 @@ function resizedata!{T<:Number,M<:BandedOperator}(b::MutableAlmostBandedOperator
             end
             
             if n > 1
-                copybandedentries(b.op,b.data,l+1:n,1,bandrange(b.op),-1)
+                addentries!(b.op,b.data,l+1:n,1,bandrange(b.op),-1)
             end
         else
-            copybandedentries(b.op,b.data,l+1:n,1,bandrange(b.op),-1)
+            addentries!(b.op,b.data,l+1:n,1,bandrange(b.op),-1)
         end
         
 
@@ -184,7 +202,7 @@ function backsubstitution!(B::MutableAlmostBandedOperator,u)
             u[k]-=B[k,j]*u[j]
         end
         
-        u[k] -= b.filldata[k]*pk
+        u[k] -= B.filldata[k]*pk
           
         u[k] /= B[k,k]
     end
@@ -193,33 +211,35 @@ function backsubstitution!(B::MutableAlmostBandedOperator,u)
 end
 
 
-function adaptiveqr!(B::MutableAlmostBandedOperator,v)
-  u=[v,zeros(100)]
-  
-  l = length(v) + 100  
-  resizedata!(B,l)
-  
-  
-  j=1
-  b=-bandrange(B)[1]
-  
-  tol=.001eps()
-  
-  
-  ##TODO: check js
-  while norm(u[j:j+b-1]) > tol
-    if j + b == l
-      u = [u,zeros(l)]      
-      l *= 2
-      resizedata!(B,l)
-    end
 
+adaptiveqr{T<:Operator}(B::Vector{T},v::Vector) = adaptiveqr!(MutableAlmostBandedOperator(B),copy(v))
+function adaptiveqr!(B::MutableAlmostBandedOperator,v::Vector)
+    u=[v,zeros(100)]
     
-    givensreduce!(B,u,j)
-    j+=1
-  end
+    l = length(v) + 100  
+    resizedata!(B,l)
+    
+    
+    j=1
+    b=-bandrange(B)[1]
+    
+    tol=.001eps()
+    
+    
+    ##TODO: check js
+    while norm(u[j:j+b-1]) > tol
+        if j + b == l
+            u = [u,zeros(l)]      
+            l *= 2
+            resizedata!(B,l)
+        end
+        
+        
+        givensreduce!(B,u,j)
+        j+=1
+    end
   
-  backsubstitution!(B,u[1:j-1])
+    backsubstitution!(B,u[1:j-1])
 end
 
 
