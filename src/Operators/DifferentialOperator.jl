@@ -2,7 +2,7 @@ export DifferentialOperator
 export ConversionOperator
 export conversionmatrix,derivativematrix
 export multiplicationmatrix
-
+export DerivativeOperator
 
 
 
