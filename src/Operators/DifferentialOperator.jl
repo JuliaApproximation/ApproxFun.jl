@@ -17,7 +17,7 @@ DifferentialOperator{T<:Real}(cfs::Vector{T},d::IntervalDomain)=DifferentialOper
 DifferentialOperator(cfs::Vector{Any},d::IntervalDomain)=DifferentialOperator(IFun([1.],d)*cfs,d)
 
 
-MultiplicationOperator(a::IFun)=DifferentialOperator([a])
+
 Base.diff(d::IntervalDomain,n::Integer)=DifferentialOperator([zeros(n),1.],d)
 Base.diff(d::IntervalDomain)=Base.diff(d,1)
 Base.eye(d::IntervalDomain)=DifferentialOperator([1.],d)

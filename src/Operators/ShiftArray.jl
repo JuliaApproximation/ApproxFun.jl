@@ -5,7 +5,7 @@ type ShiftArray{T<:Number}
   colindex::Integer
 end
 
-ShiftArray(ind)=ShiftArray(Array(Float64,0,0),ind)
+ShiftArray(ind::Integer)=ShiftArray(Array(Float64,0,0),ind)
 
 Base.setindex!(S::ShiftArray,x,k::Integer,j::Integer)=(S.data[k, j + S.colindex] = x)
 

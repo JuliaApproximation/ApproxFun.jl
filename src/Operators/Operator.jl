@@ -31,7 +31,6 @@ function Base.getindex(B::BandedOperator,k::Range1,j::Range1)
     n = max(k[end],j[end])
     A=ShiftArray(zeros(n,length(bandrange(B))),index(B))
     addentries!(B,A,1:n,0,0)
-#    print("k = " * string(k) * " j = " * string(j) * "\n")
     BandedArray(A)[k,j]
 end
 
