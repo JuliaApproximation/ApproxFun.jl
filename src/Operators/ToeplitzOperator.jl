@@ -4,6 +4,7 @@ export ToeplitzOperator, HankelOperator, MultiplicationOperator
 
 
 
+
 type ToeplitzOperator{V<:Union(Vector,ShiftVector)} <: BandedOperator
     coefficients::V
 end
@@ -69,6 +70,8 @@ end
 bandrange(T::HankelOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
 
 
+## MultiplicationOperator
+
 type MultiplicationOperator <: BandedOperator
     T::ToeplitzOperator
     H::HankelOperator
@@ -88,6 +91,8 @@ end
 
 
 bandrange(T::MultiplicationOperator)=(1-length(T.T.coefficients):length(T.T.coefficients)-1)
+
+
 
 
 

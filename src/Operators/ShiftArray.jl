@@ -13,6 +13,7 @@ Base.getindex(S::ShiftArray,k,j) = S.data[k, j + S.colindex]
 
 
 Base.size(S::ShiftArray,k)=size(S.data,k)
+columnrange(A::ShiftArray)=(1:size(A,2))-A.colindex
 
 function Base.resize!(S::ShiftArray,n::Integer,m::Integer)
     olddata = S.data
