@@ -25,15 +25,19 @@ type TimesOperator <: BandedOperator
     B::BandedOperator
 end
 
-bandrange(P::PlusOperator)=(bandrange(A)[1]+bandrange(B)[1]):(bandrange(A)[end]+bandrange(B)[end])
+bandrange(P::TimesOperator)=(bandrange(P.A)[1]+bandrange(P.B)[1]):(bandrange(P.A)[end]+bandrange(P.B)[end])
 
 function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
-#     ShiftArray(zeros(n+2,
-#     addentries!(M.B,A,1:n+2)
-#     multiplyentries!(M.A,A,kr)
-
+    Z = ShiftArray(zeros(length(kr)+bandrange(P.A)[end],size(A,2)),A.colindex,1-kr[1])
+    addentries!(P.B,Z,kr[1]:(kr[end]+bandrange(P.A)[end]))
+    multiplyentries!(P.A,Z,kr)
+    
+    for k=kr,j=columnrange(A)
+        A[k,j] += Z[k,j]
+    end
+    
     A
 end
 
 
-+(A::BandedOperator,B::BandedOperator)=PlusOperator([A,B])
+*(A::BandedOperator,B::BandedOperator)=TimesOperator(A,B)

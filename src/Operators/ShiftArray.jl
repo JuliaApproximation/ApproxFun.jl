@@ -3,19 +3,22 @@ export ShiftArray,BandedArray
 type ShiftArray{T<:Number}
   data::Array{T,2}#TODO: probably should have more cols than rows
   colindex::Integer
+  rowindex::Integer
 end
 
-ShiftArray(ind::Integer)=ShiftArray(Array(Float64,0,0),ind)
+ShiftArray(dat::Array,ind::Integer)=ShiftArray(dat,ind,0)
+ShiftArray(ind::Integer)=ShiftArray(Array(Float64,0,0),ind,0)
 
-Base.setindex!(S::ShiftArray,x,k::Integer,j::Integer)=(S.data[k, j + S.colindex] = x)
+Base.setindex!(S::ShiftArray,x,k::Integer,j::Integer)=(S.data[k + S.rowindex, j + S.colindex] = x)
 
-Base.getindex(S::ShiftArray,k,j) = S.data[k, j + S.colindex]
+Base.getindex(S::ShiftArray,k,j) = S.data[k + S.rowindex, j + S.colindex]
 
 
 Base.size(S::ShiftArray,k)=size(S.data,k)
 columnrange(A::ShiftArray)=(1:size(A,2))-A.colindex
+rowrange(A::ShiftArray)=(1:size(A,1))-A.rowindex
 
-*(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.colindex)
+*(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.colindex,S.rowindex)
 
 function Base.resize!(S::ShiftArray,n::Integer,m::Integer)
     olddata = S.data
