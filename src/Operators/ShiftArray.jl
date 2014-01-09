@@ -56,4 +56,4 @@ end
 Base.full(B::BandedArray)=full(SparseMatrix(B))
 
 Base.getindex(B::BandedArray,k,j)=full(B)[k,j]
-
+Base.setindex!(B::BandedArray,k::Integer,j::Integer)=B.data[k,j-k]

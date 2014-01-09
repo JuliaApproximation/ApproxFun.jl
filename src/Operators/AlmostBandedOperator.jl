@@ -103,10 +103,10 @@ function resizedata!{T<:Number,M<:BandedOperator}(b::MutableAlmostBandedOperator
             end
             
             if n > 1
-                addentries!(b.op,b.data,l+1:n,1,bandrange(b.op),-1)
+                addentries!(b.op,b.data,l+1:n,1,-1)
             end
         else
-            addentries!(b.op,b.data,l+1:n,1,bandrange(b.op),-1)
+            addentries!(b.op,b.data,l+1:n,1,-1)
         end
         
 

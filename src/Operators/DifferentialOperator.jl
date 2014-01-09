@@ -1,6 +1,6 @@
 export DifferentialOperator
 export conversionmatrix,derivativematrix
-export hankelmatrix,multiplicationmatrix
+export multiplicationmatrix
 
 ## DifferentialOperator constructors
 
@@ -134,27 +134,13 @@ end
 
 
 
-
-function hankelmatrix(v::Vector,n::Integer)
-    ret = spzeros(n,n)
-    
-    for j=1:length(v)
-        for k=max(j-n+1,1):min(j,n)
-            ret[k,j-k+1] = v[j]        
-        end
-    end
-  
-    ret
-end
-
-
 ## Multiplication matrix
 
 
 
-multiplicationmatrix(f::IFun,n::Integer)=.5(ToeplitzOperator(f)[1:n,1:n] + [spzeros(1,n),hankelmatrix(f.coefficients[2:end],n)[1:end-1,:]])
+multiplicationmatrix(f::IFun,n::Integer)=.5(ToeplitzOperator(f)[1:n,1:n] + [spzeros(1,n),HankelOperator(f.coefficients[2:end])[1:n-1,1:n]])
 
-umultiplicationmatrix(f::IFun,n::Integer)=.5(ToeplitzOperator(f)[1:n,1:n]  - hankelmatrix(f.coefficients[3:end],n))
+umultiplicationmatrix(f::IFun,n::Integer)=.5(ToeplitzOperator(f)[1:n,1:n]  - HankelOperator(f.coefficients[3:end])[1:n,1:n])
 
 
 multiplicationmatrix(a::Number,n::Integer)=a*speye(n)
