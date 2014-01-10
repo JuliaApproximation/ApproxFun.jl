@@ -32,8 +32,8 @@ end
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function MutableAlmostBandedOperator(bc::RowOperator,op::BandedOperator)
-    data = ShiftArray(index(op)+1)
-    bcdata = bc[1:bandrange(op)[end]+1]        
+    data = ShiftArray(index(op))
+    bcdata = bc[1:bandrange(op)[end]+2]  #TODO: change 2 to numbcs  
                 
     MutableAlmostBandedOperator(bc,op,data,Float64[],bcdata,1.,0 )
 end
@@ -86,7 +86,7 @@ function Base.getindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)
     if k <= nbc
         (j <= length(B.bcdata))? B.bcdata[j] : B.bcfilldata*B.bc[j]
     elseif k-nbc <= datalength(B) && j <= ir[end] && ir[1] <= j
-        B.data[k-nbc,j-k]
+        B.data[k-nbc,j-k+nbc]
     elseif k-nbc <= datalength(B) && j > ir[end]
         B.filldata[k-nbc]*B.bc[j]
     else
@@ -117,10 +117,11 @@ end
 
 function Base.setindex!(B::MutableAlmostBandedOperator,x,k::Integer,j::Integer)
     if k==1
-        B.bcdata[k,j] = x
+        B.bcdata[j] = x
     else
         resizedata!(B,k)      
-        B.data[k-numbcs(B),j-k] = x
+        nbc = numbcs(B)
+        B.data[k-nbc,j-k+nbc] = x
     end
     x
 end
