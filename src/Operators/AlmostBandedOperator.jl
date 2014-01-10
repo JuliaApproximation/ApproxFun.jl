@@ -35,18 +35,18 @@ function MutableAlmostBandedOperator{R<:RowOperator}(bc::Vector{R},op::BandedOpe
     data = ShiftArray(index(op))
     
     nbc = length(bc)
-    bcdata = Float64[bc[k][j] for k=1:nbc, j=1:length(bandrange(op))]
+    bcdata = Float64[bc[k][j] for k=1:nbc, j=1:length(bandrange(op))+nbc-1]
     bcfilldata = eye(nbc)
                 
     MutableAlmostBandedOperator(bc,op,data,Array(Float64,0,nbc),bcdata,bcfilldata,0 )
 end
 
 function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
-    @assert length(B) == 2 ##TODO: make general
-    @assert typeof(B[1]) <: RowOperator
-    @assert typeof(B[2]) <: BandedOperator
+    bcs = RowOperator[B[k] for k=1:length(B)-1]
     
-    MutableAlmostBandedOperator([B[1]],B[2])
+    @assert typeof(B[end]) <: BandedOperator
+    
+    MutableAlmostBandedOperator(bcs,B[end])
 end
 
 
@@ -83,20 +83,28 @@ end
 
 function fillvalue(B::MutableAlmostBandedOperator,k::Integer,j::Integer)
     nbc = numbcs(B)
+    ret = 0.
+    
     if k <= nbc
-        dot(B.bcfilldata[k,:],Float64[B.bc[k][j] for k=1:nbc])
+        for m=1:nbc
+            ret += B.bcfilldata[k,m]*B.bc[m][j]
+        end
     else
-        dot(B.filldata[k-nbc,:],Float64[B.bc[k][j] for k=1:nbc])    
+        for m=1:nbc
+            ret += B.filldata[k-nbc,m]*B.bc[m][j]
+        end    
     end
+    
+    ret
 end
 
 
 function Base.getindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
-    ir = bandrange(B) + k
+    ir = indexrange(B,k)
     nbc = numbcs(B)
     
     if k <= nbc
-        if j <= size(B.bcdata,2)
+        if j <= ir[end]
             B.bcdata[k,j] 
         else
             fillvalue(B,k,j)
