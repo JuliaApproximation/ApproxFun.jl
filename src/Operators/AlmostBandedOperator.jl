@@ -27,6 +27,8 @@ type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:RowOperator} <: 
     bcfilldata::Array{T,2}
     
     datalength::Integer
+    
+    bandrange::Range1
 end
 
 
@@ -38,7 +40,8 @@ function MutableAlmostBandedOperator{R<:RowOperator}(bc::Vector{R},op::BandedOpe
     bcdata = Float64[bc[k][j] for k=1:nbc, j=1:length(bandrange(op))+nbc-1]
     bcfilldata = eye(nbc)
                 
-    MutableAlmostBandedOperator(bc,op,data,Array(Float64,0,nbc),bcdata,bcfilldata,0 )
+    br=(bandrange(op)[1]-nbc):(length(bandrange(op))-1)
+    MutableAlmostBandedOperator(bc,op,data,Array(Float64,0,nbc),bcdata,bcfilldata,0, br )
 end
 
 function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
@@ -54,7 +57,7 @@ index(B::MutableAlmostBandedOperator)=index(B.op)
 numbcs(B::MutableAlmostBandedOperator)=length(B.bc)
 
 # for bandrange, we save room for changed entries during Givens
-bandrange(B::MutableAlmostBandedOperator)=(bandrange(B.op)[1]-numbcs(B)):(length(bandrange(B.op))-1)
+bandrange(B::MutableAlmostBandedOperator)=B.bandrange
 datalength(B::MutableAlmostBandedOperator)=B.datalength
 
 
