@@ -17,25 +17,28 @@ index(b::BandedBelowOperator)=1-bandrange(b)[1]
 ## MutableAlmostBandedOperator
 
 
-type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator} <: BandedBelowOperator
-    bc::RowOperator
+type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:RowOperator} <: BandedBelowOperator
+    bc::Vector{R}
     op::M
-    data::ShiftArray{T}  
-    filldata::Vector{T}
+    data::ShiftArray{T}   #Shifted to encapsolate bandedness
+    filldata::Array{T,2}
     
-    bcdata::Vector
-    bcfilldata::T
+    bcdata::Array{T,2}
+    bcfilldata::Array{T,2}
     
     datalength::Integer
 end
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
-function MutableAlmostBandedOperator(bc::RowOperator,op::BandedOperator)
+function MutableAlmostBandedOperator{R<:RowOperator}(bc::Vector{R},op::BandedOperator)
     data = ShiftArray(index(op))
-    bcdata = bc[1:length(bandrange(op))]  
+    
+    nbc = length(bc)
+    bcdata = Float64[bc[k][j] for k=1:nbc, j=1:length(bandrange(op))]
+    bcfilldata = eye(nbc)
                 
-    MutableAlmostBandedOperator(bc,op,data,Float64[],bcdata,1.,0 )
+    MutableAlmostBandedOperator(bc,op,data,Array(Float64,0,nbc),bcdata,bcfilldata,0 )
 end
 
 function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
@@ -43,15 +46,15 @@ function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
     @assert typeof(B[1]) <: RowOperator
     @assert typeof(B[2]) <: BandedOperator
     
-    MutableAlmostBandedOperator(B[1],B[2])
+    MutableAlmostBandedOperator([B[1]],B[2])
 end
 
 
 index(B::MutableAlmostBandedOperator)=index(B.op)
-numbcs(B::MutableAlmostBandedOperator)=1
+numbcs(B::MutableAlmostBandedOperator)=length(B.bc)
 
 # for bandrange, we save room for changed entries during Givens
-bandrange(B::MutableAlmostBandedOperator)=(bandrange(B.op)[1]-1):(length(bandrange(B.op))-1)
+bandrange(B::MutableAlmostBandedOperator)=(bandrange(B.op)[1]-numbcs(B)):(length(bandrange(B.op))-1)
 datalength(B::MutableAlmostBandedOperator)=B.datalength
 
 
@@ -62,7 +65,7 @@ function Base.getindex(B::MutableAlmostBandedOperator,kr::Range1,jr::Range1)
     
     
     for k = kr
-        if k <= datalength(B) || k == 1 #bc
+        if k <= datalength(B) || k <= numbcs(B)
             for j=jr
                 ret[k,j] = B[k,j]
             end
@@ -78,17 +81,30 @@ function Base.getindex(B::MutableAlmostBandedOperator,kr::Range1,jr::Range1)
     ret
 end
 
+function fillvalue(B::MutableAlmostBandedOperator,k::Integer,j::Integer)
+    nbc = numbcs(B)
+    if k <= nbc
+        dot(B.bcfilldata[k,:],Float64[B.bc[k][j] for k=1:nbc])
+    else
+        dot(B.filldata[k-nbc,:],Float64[B.bc[k][j] for k=1:nbc])    
+    end
+end
+
 
 function Base.getindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
     ir = bandrange(B) + k
     nbc = numbcs(B)
     
     if k <= nbc
-        (j <= length(B.bcdata))? B.bcdata[j] : B.bcfilldata*B.bc[j]
+        if j <= size(B.bcdata,2)
+            B.bcdata[k,j] 
+        else
+            fillvalue(B,k,j)
+        end
     elseif k-nbc <= datalength(B) && j <= ir[end] && ir[1] <= j
         B.data[k-nbc,j-k+nbc]
     elseif k-nbc <= datalength(B) && j > ir[end]
-        B.filldata[k-nbc]*B.bc[j]
+        fillvalue(B,k,j)
     else
         B.op[k-nbc,j]##TODO: Slow
     end
@@ -100,12 +116,13 @@ getindex!(b::MutableAlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,
 
 function resizedata!{T<:Number,M<:BandedOperator}(B::MutableAlmostBandedOperator{T,M},n::Integer)
     l = datalength(B)
+    nbc=numbcs(B)
     if n > l
         resize!(B.data,2n,length(bandrange(B)))
-        resize!(B.filldata,2n)  
-        for j=l+1:n
-            B.filldata[j]=0.
-        end
+        
+        newfilldata=zeros(2n,nbc)
+        newfilldata[1:l,:]=B.filldata
+        B.filldata=newfilldata
         
         addentries!(B.op,B.data,l+1:n)
         
@@ -116,26 +133,26 @@ function resizedata!{T<:Number,M<:BandedOperator}(B::MutableAlmostBandedOperator
 end
 
 function Base.setindex!(B::MutableAlmostBandedOperator,x,k::Integer,j::Integer)
-    if k==1
-        B.bcdata[j] = x
+    nbc = numbcs(B)
+
+    if k<=nbc
+        B.bcdata[k,j] = x
     else
         resizedata!(B,k)      
-        nbc = numbcs(B)
         B.data[k-nbc,j-k+nbc] = x
     end
     x
 end
 
 function setfilldata!(B::MutableAlmostBandedOperator,x,k::Integer,j::Integer)
-    @assert j == 1 ##TODO: multiple bcs
-    if k==1
-        B.bcfilldata = x
+    if k<= numbcs(B)
+        B.bcfilldata[k,j] = x
     else
-        B.filldata[k-numbcs(B)] = x
+        B.filldata[k-numbcs(B),j] = x
     end
 end
 
-getfilldata(B::MutableAlmostBandedOperator,k::Integer,j::Integer)=(k==1)?B.bcfilldata:B.filldata[k-numbcs(B)]
+getfilldata(B::MutableAlmostBandedOperator,k::Integer,j::Integer)=(k<=numbcs(B))?B.bcfilldata[k,j]:B.filldata[k-numbcs(B),j]
 
 
 
@@ -164,14 +181,15 @@ function givensreduce!(B::MutableAlmostBandedOperator,v::Vector,k1::Integer,k2::
         B[k2,j]=a*B2 - b*B1
     end
     
-    B1 = getfilldata(B,k1,1)
-    B2 = getfilldata(B,k2,1)
+    for j=1:numbcs(B)
+        B1 = getfilldata(B,k1,j)
+        B2 = getfilldata(B,k2,j)
     
-    setfilldata!(B, a*B1 + b*B2,k1,1)
-    setfilldata!(B,-b*B1 + a*B2,k2,1)    
+        setfilldata!(B, a*B1 + b*B2,k1,j)
+        setfilldata!(B,-b*B1 + a*B2,k2,j)    
+    end
     
-    
-    #TODO: assert that the remaining of k2 are zero
+
     B
 end
 
@@ -198,14 +216,14 @@ function backsubstitution!(B::MutableAlmostBandedOperator,u)
         u[k] /= B[k,k]
     end
     
-    pk = 0
+    pk = 0##TODO more than 1
     for k=n-b-1:-1:1
-        pk = u[k+b+1]*B.bc[k+b+1] + pk
+        pk = u[k+b+1]*B.bc[1][k+b+1] + pk
         for j=k+1:k+b
             u[k]-=B[k,j]*u[j]
         end
         
-        u[k] -= getfilldata(B,k,1)*pk
+        u[k] -= getfilldata(B,k,1)*pk  
           
         u[k] /= B[k,k]
     end
