@@ -129,7 +129,7 @@ function resizedata!{T<:Number,M<:BandedOperator}(B::MutableAlmostBandedOperator
         resize!(B.data,2n,length(bandrange(B)))
         
         newfilldata=zeros(2n,nbc)
-        newfilldata[1:l,:]=B.filldata
+        newfilldata[1:l,:]=B.filldata[1:l,:]
         B.filldata=newfilldata
         
         addentries!(B.op,B.data,l+1:n)
