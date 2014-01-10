@@ -213,7 +213,7 @@ givensreduce!(B::MutableAlmostBandedOperator,v::Vector,j::Integer)=givensreduce!
 function backsubstitution!(B::MutableAlmostBandedOperator,u)
     n=length(u)
     b=bandrange(B)[end]
-    
+    nbc = numbcs(B)
     
     
     for k=n:-1:n-b
@@ -224,14 +224,19 @@ function backsubstitution!(B::MutableAlmostBandedOperator,u)
         u[k] /= B[k,k]
     end
     
-    pk = 0##TODO more than 1
+    pk = zeros(nbc)
     for k=n-b-1:-1:1
-        pk = u[k+b+1]*B.bc[1][k+b+1] + pk
+        for j=1:nbc
+            pk[j] += u[k+b+1]*B.bc[j][k+b+1]
+        end
+        
         for j=k+1:k+b
             u[k]-=B[k,j]*u[j]
         end
         
-        u[k] -= getfilldata(B,k,1)*pk  
+        for j=1:nbc
+            u[k] -= getfilldata(B,k,j)*pk[j]
+        end
           
         u[k] /= B[k,k]
     end
