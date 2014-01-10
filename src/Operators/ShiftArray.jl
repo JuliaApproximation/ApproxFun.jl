@@ -2,8 +2,8 @@ export ShiftArray,BandedArray
 
 type ShiftArray{T<:Number}
   data::Array{T,2}#TODO: probably should have more cols than rows
-  colindex::Integer
-  rowindex::Integer
+  colindex::Int
+  rowindex::Int
 end
 
 ShiftArray(dat::Array,ind::Integer)=ShiftArray(dat,ind,0)
@@ -33,8 +33,8 @@ end
 
 
 
-type BandedArray
-    data::ShiftArray
+type BandedArray{T<:Number}
+    data::ShiftArray{T}
 end
 
 Base.size(S::ShiftArray,k)=size(S.data,k)

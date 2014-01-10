@@ -48,8 +48,8 @@ bandrange{M<:ShiftVector}(T::ToeplitzOperator{M})=range(T.coefficients)
 ## Hankel Operator
 
 
-type HankelOperator <: BandedOperator
-    coefficients::Vector
+type HankelOperator{T<:Number} <: BandedOperator
+    coefficients::Vector{T}
 end
 
 HankelOperator(f::IFun)=HankelOperator(f.coefficients)
@@ -72,15 +72,18 @@ bandrange(T::HankelOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
 
 ## MultiplicationOperator
 
-type MultiplicationOperator <: BandedOperator
-    T::ToeplitzOperator
-    H::HankelOperator
+abstract MultiplicationOperator <:BandedOperator
+
+type TMultiplicationOperator{T<:Number} <: MultiplicationOperator
+    T::ToeplitzOperator{Vector{T}}
+    H::HankelOperator{T}
 end
 
-MultiplicationOperator(f::IFun)=MultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(.5f))
+
+TMultiplicationOperator(f::IFun)=TMultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(.5f))
 
 
-function addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
+function addentries!(M::TMultiplicationOperator,A::ShiftArray,kr::Range1)
     addentries!(M.T,A,kr)
     addentries!(M.H,A,kr)        
     
@@ -92,6 +95,21 @@ function addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
     
     A
 end
+
+type UMultiplicationOperator{T<:Number} <: MultiplicationOperator
+    T::ToeplitzOperator{Vector{T}}
+    H::HankelOperator{T}
+end
+
+UMultiplicationOperator(f::IFun)=UMultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(-.5f.coefficients[3:end]))
+
+
+function addentries!(M::UMultiplicationOperator,A::ShiftArray,kr::Range1)
+    addentries!(M.T,A,kr)
+    addentries!(M.H,A,kr)        
+end
+
+
 
 
 bandrange(T::MultiplicationOperator)=(1-length(T.T.coefficients):length(T.T.coefficients)-1)

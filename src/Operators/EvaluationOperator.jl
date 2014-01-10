@@ -3,9 +3,9 @@ export EvaluationOperator
 
 ## EvaluationOperator constructors
 
-type EvaluationOperator <: RowOperator
-    domain::IntervalDomain
-    x
+type EvaluationOperator{D<:IntervalDomain,T<:Number} <: RowOperator
+    domain::D
+    x::T
     order::Integer
 end
 

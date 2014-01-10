@@ -3,7 +3,7 @@ export ConversionOperator
 ## ConversionOperator
 
 type ConversionOperator <: BandedOperator
-    λ::Integer
+    λ::Int
 end
 
 function ConversionOperator(r::Range1)

@@ -26,9 +26,9 @@ type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:RowOperator} <: 
     bcdata::Array{T,2}
     bcfilldata::Array{T,2}
     
-    datalength::Integer
+    datalength::Int
     
-    bandrange::Range1{Int64}
+    bandrange::Range1{Int}
 end
 
 

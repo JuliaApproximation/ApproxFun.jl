@@ -16,10 +16,12 @@ differentialorder(::BandedOperator)=0
 
 ## DerivativeOperator
 
-type DerivativeOperator <: BandedOperator
-    order::Range1
-    domain::IntervalDomain
+type DerivativeOperator{D<:IntervalDomain} <: BandedOperator
+    order::Range1{Int}
+    domain::D
 end
+
+DerivativeOperator(k::Integer,d::IntervalDomain)=DerivativeOperator(k-1:k,d)
 
 function addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)
     @assert D.order[1] == 0  ##TODO other orders
@@ -44,9 +46,9 @@ differentialorder(D::DerivativeOperator)=D.order[end]
 
 ## DifferentialOperator constructors
 
-type DifferentialOperator{T<:IFun} <: InfiniteOperator
+type DifferentialOperator{T<:IFun,D<:IntervalDomain} <: InfiniteOperator
     coefficients::Vector{T}
-    domain::IntervalDomain
+    domain::D
 end
 
 ##TODO: ensure any funs match coefficients

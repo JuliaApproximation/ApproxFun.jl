@@ -117,7 +117,6 @@ include("EvaluationOperator.jl")
 include("ConversionOperator.jl")
 include("DifferentialOperator.jl")
 
-include("BandedOperator.jl")
 include("AlmostBandedOperator.jl")
 include("OperatorAlgebra.jl")
 
