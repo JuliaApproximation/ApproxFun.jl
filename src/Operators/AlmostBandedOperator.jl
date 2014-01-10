@@ -33,7 +33,7 @@ end
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function MutableAlmostBandedOperator(bc::RowOperator,op::BandedOperator)
     data = ShiftArray(index(op))
-    bcdata = bc[1:bandrange(op)[end]+2]  #TODO: change 2 to numbcs  
+    bcdata = bc[1:length(bandrange(op))]  
                 
     MutableAlmostBandedOperator(bc,op,data,Float64[],bcdata,1.,0 )
 end
@@ -51,8 +51,8 @@ index(B::MutableAlmostBandedOperator)=index(B.op)
 numbcs(B::MutableAlmostBandedOperator)=1
 
 # for bandrange, we save room for changed entries during Givens
-bandrange(B::MutableAlmostBandedOperator)=(bandrange(B.op)[1]-1):(bandrange(B.op)[end]-bandrange(B.op)[1])
-datalength(b::MutableAlmostBandedOperator)=b.datalength
+bandrange(B::MutableAlmostBandedOperator)=(bandrange(B.op)[1]-1):(length(bandrange(B.op))-1)
+datalength(B::MutableAlmostBandedOperator)=B.datalength
 
 
 
@@ -214,7 +214,7 @@ function backsubstitution!(B::MutableAlmostBandedOperator,u)
 end
 
 
-
+adaptiveqr(M::Vector{Operator},b::Vector{Any})=IFun(adaptiveqr(M,vcat(map(f-> typeof(f)<: IFun? coefficients(f,1) :  f,b)...)),b[end].domain)
 adaptiveqr{T<:Operator}(B::Vector{T},v::Vector) = adaptiveqr!(MutableAlmostBandedOperator(B),copy(v))
 function adaptiveqr!(B::MutableAlmostBandedOperator,v::Vector)
     u=[v,zeros(100)]

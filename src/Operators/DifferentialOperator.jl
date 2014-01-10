@@ -8,7 +8,7 @@ export DerivativeOperator
 
 
 
-
+differentialorder(::BandedOperator)=0
 
 ## ConversionOperator
 
@@ -69,7 +69,7 @@ function addentries!(C::DerivativeOperator,A::ShiftArray,kr::Range1)
 end
 
 bandrange(D::DerivativeOperator)=0:length(D.order)
-
+differentialorder(D::DerivativeOperator)=D.order[end]
 
 
 

@@ -7,6 +7,7 @@ type PlusOperator <: BandedOperator
 end
 
 bandrange(P::PlusOperator)=mapreduce(op->bandrange(op)[1],min,P.ops):mapreduce(op->bandrange(op)[end],max,P.ops)
+differentialorder(P::PlusOperator)=mapreduce(differentialorder,max,P.ops)
 
 function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
     for op in P.ops
