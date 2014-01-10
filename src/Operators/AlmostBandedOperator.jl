@@ -28,7 +28,7 @@ type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:RowOperator} <: 
     
     datalength::Integer
     
-    bandrange::Range1
+    bandrange::Range1{Int64}
 end
 
 
@@ -73,7 +73,7 @@ function Base.getindex(B::MutableAlmostBandedOperator,kr::Range1,jr::Range1)
                 ret[k,j] = B[k,j]
             end
         else
-            ir = bandrange(B) + k
+            ir = (bandrange(B) + k)::Range1{Int64}
             
             for j=max(ir[1],jr[1]):min(ir[end],jr[end])
                 ret[k-kr[1]+1,j-jr[1]+1] = B[k,j]
@@ -84,38 +84,48 @@ function Base.getindex(B::MutableAlmostBandedOperator,kr::Range1,jr::Range1)
     ret
 end
 
-function fillvalue(B::MutableAlmostBandedOperator,k::Integer,j::Integer)
+function fillgetindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)
     nbc = numbcs(B)
     ret = 0.
     
     if k <= nbc
         for m=1:nbc
-            ret += B.bcfilldata[k,m]*B.bc[m][j]
+            bcv = B.bc[m][j]::Float64        
+            ret += B.bcfilldata[k,m]*bcv
         end
     else
         for m=1:nbc
-            ret += B.filldata[k-nbc,m]*B.bc[m][j]
+            bcv = B.bc[m][j]::Float64
+            ret += B.filldata[k-nbc,m]*bcv
         end    
     end
     
     ret
 end
 
+function datagetindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
+    nbc = numbcs(B)::Integer
+    if k <= nbc
+        B.bcdata[k,j] 
+    else
+        B.data[k-nbc,j-k+nbc]
+    end
+end
 
 function Base.getindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
-    ir = indexrange(B,k)
-    nbc = numbcs(B)
+    ir = indexrange(B,k)::Range1{Int64}
+    nbc = numbcs(B)::Integer
     
     if k <= nbc
         if j <= ir[end]
             B.bcdata[k,j] 
         else
-            fillvalue(B,k,j)
+            fillgetindex(B,k,j)
         end
     elseif k-nbc <= datalength(B) && j <= ir[end] && ir[1] <= j
         B.data[k-nbc,j-k+nbc]
     elseif k-nbc <= datalength(B) && j > ir[end]
-        fillvalue(B,k,j)
+        fillgetindex(B,k,j)
     else
         B.op[k-nbc,j]##TODO: Slow
     end
@@ -129,7 +139,7 @@ function resizedata!{T<:Number,M<:BandedOperator}(B::MutableAlmostBandedOperator
     l = datalength(B)
     nbc=numbcs(B)
     if n > l
-        resize!(B.data,2n,length(bandrange(B)))
+        resize!(B.data,2n,length(B.bandrange))
         
         newfilldata=zeros(2n,nbc)
         newfilldata[1:l,:]=B.filldata[1:l,:]
@@ -169,7 +179,8 @@ getfilldata(B::MutableAlmostBandedOperator,k::Integer,j::Integer)=(k<=numbcs(B))
 
 ##TODO: decide adaptive resize
 function givensreduce!(B::MutableAlmostBandedOperator,v::Vector,k1::Integer,k2::Integer,j1::Integer)
-    a=B[k1,j1];b=B[k2,j1]
+    a=datagetindex(B,k1,j1)::Float64
+    b=datagetindex(B,k2,j1)::Float64
     sq=sqrt(a*a + b*b)
     a=a/sq;b=b/sq
     
@@ -178,23 +189,26 @@ function givensreduce!(B::MutableAlmostBandedOperator,v::Vector,k1::Integer,k2::
     
     #TODO: Assuming that left rows are already zero
     
-    for j = j1:indexrange(B,k1)[end]
-        B1 = B[k1,j]
-        B2 = B[k2,j]
+    ir1=indexrange(B,k1)::Range1{Int64}
+    ir2=indexrange(B,k2)::Range1{Int64}    
+    
+    for j = j1:ir1[end]
+        B1 = datagetindex(B,k1,j)::Float64
+        B2 = datagetindex(B,k2,j)::Float64
         
         B[k1,j],B[k2,j]= a*B1 + b*B2,-b*B1 + a*B2
     end
     
-    for j=indexrange(B,k1)[end]+1:indexrange(B,k2)[end]
-        B1 = B[k1,j]
-        B2 = B[k2,j]
+    for j=ir1[end]+1:ir2[end]
+        B1 = fillgetindex(B,k1,j)::Float64
+        B2 = datagetindex(B,k2,j)::Float64
         
         B[k2,j]=a*B2 - b*B1
     end
     
     for j=1:numbcs(B)
-        B1 = getfilldata(B,k1,j)
-        B2 = getfilldata(B,k2,j)
+        B1 = getfilldata(B,k1,j)::Float64
+        B2 = getfilldata(B,k2,j)::Float64
     
         setfilldata!(B, a*B1 + b*B2,k1,j)
         setfilldata!(B,-b*B1 + a*B2,k2,j)    
@@ -215,7 +229,7 @@ givensreduce!(B::MutableAlmostBandedOperator,v::Vector,j::Integer)=givensreduce!
 
 function backsubstitution!(B::MutableAlmostBandedOperator,u)
     n=length(u)
-    b=bandrange(B)[end]
+    b=bandrange(B)[end]::Integer
     nbc = numbcs(B)
     
     

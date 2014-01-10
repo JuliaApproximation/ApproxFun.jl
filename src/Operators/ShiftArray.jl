@@ -9,7 +9,7 @@ end
 ShiftArray(dat::Array,ind::Integer)=ShiftArray(dat,ind,0)
 ShiftArray(ind::Integer)=ShiftArray(Array(Float64,0,0),ind,0)
 
-Base.setindex!(S::ShiftArray,x,k::Integer,j::Integer)=(S.data[k + S.rowindex, j + S.colindex] = x)
+Base.setindex!{T<:Number}(S::ShiftArray{T},x::T,k::Integer,j::Integer)=(S.data[k + S.rowindex, j + S.colindex] = x)
 
 Base.getindex(S::ShiftArray,k,j) = S.data[k + S.rowindex, j + S.colindex]
 
