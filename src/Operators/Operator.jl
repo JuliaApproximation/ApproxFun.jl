@@ -114,6 +114,7 @@ include("ShiftArray.jl")
 
 include("ToeplitzOperator.jl")
 include("EvaluationOperator.jl")
+include("ConversionOperator.jl")
 include("DifferentialOperator.jl")
 
 include("BandedOperator.jl")

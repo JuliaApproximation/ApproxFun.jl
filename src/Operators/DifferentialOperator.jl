@@ -1,5 +1,4 @@
 export DifferentialOperator
-export ConversionOperator
 export conversionmatrix,derivativematrix
 export multiplicationmatrix
 export DerivativeOperator
@@ -10,42 +9,7 @@ export DerivativeOperator
 
 differentialorder(::BandedOperator)=0
 
-## ConversionOperator
 
-type ConversionOperator <: BandedOperator
-    order::Range1
-end
-
-function addentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
-    @assert C.order == 0:1
-    
-    for k=kr
-        A[k,0] += (k == 1)? 1. : .5
-        A[k,2] += -.5        
-    end
-    
-    A
-end
-
-
-function multiplyentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
-    @assert C.order == 0:1
-
-    cr=columnrange(A)
-    
-    #We assume here that the extra rows are redundant
-    for k=max(2,kr[1]):kr[end]+2,j=cr
-        A[k,j] *= .5
-    end
-    
-    #We assume that A has allocated 2 more bandwidth
-    for k=kr[1]:kr[end],j=(cr[1]+2):cr[end]
-        A[k,j] -= A[k+2,j-2]
-    end 
-end
-
-
-bandrange(C::ConversionOperator)=0:2(length(C.order)-1)
 
 
 
@@ -57,12 +21,15 @@ type DerivativeOperator <: BandedOperator
     domain::IntervalDomain
 end
 
-function addentries!(C::DerivativeOperator,A::ShiftArray,kr::Range1)
-    @assert C.order == 0:1  ##TODO other orders
-    @assert C.domain == Interval() ##TODO other domains
+function addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)
+    @assert D.order[1] == 0  ##TODO other orders
+
+    
+    μ=D.order[end]
+    C=2.^(μ-1).*factorial(μ-1).*(2./(D.domain.b-D.domain.a)).^μ
     
     for k=kr
-        A[k,1] += k
+        A[k,μ] += C*(μ+k-1)
     end
     
     A
