@@ -237,7 +237,7 @@ function backsubstitution!(B::MutableAlmostBandedOperator,u)
     nbc = numbcs(B)
     
     
-    for k=n:-1:n-b
+    for k=n:-1:max(1,n-b)
         for j=k+1:n
             u[k]-=B[k,j]*u[j]
         end
@@ -266,9 +266,10 @@ function backsubstitution!(B::MutableAlmostBandedOperator,u)
 end
 
 
-adaptiveqr(M::Vector{Operator},b::Vector{Any})=IFun(adaptiveqr(M,vcat(map(f-> typeof(f)<: IFun? coefficients(f,1) :  f,b)...)),b[end].domain)
-adaptiveqr{T<:Operator}(B::Vector{T},v::Vector) = adaptiveqr!(MutableAlmostBandedOperator(B),copy(v))
-function adaptiveqr!(B::MutableAlmostBandedOperator,v::Vector)
+adaptiveqr(M,b)=adaptiveqr(M,b,eps())
+adaptiveqr(M::Vector{Operator},b::Vector{Any},tol::Float64)=IFun(adaptiveqr(M,vcat(map(f-> typeof(f)<: IFun? coefficients(f,rangespace(M[end])) :  f,b)...),tol),b[end].domain)
+adaptiveqr{T<:Operator}(B::Vector{T},v::Vector,tol::Float64) = adaptiveqr!(MutableAlmostBandedOperator(B),v,tol)  #May need to copy v in the future
+function adaptiveqr!(B::MutableAlmostBandedOperator,v::Vector,tol::Float64)
     u=[v,zeros(100)]
     
     l = length(v) + 100  
@@ -278,11 +279,8 @@ function adaptiveqr!(B::MutableAlmostBandedOperator,v::Vector)
     j=1
     b=-bandrange(B)[1]
     
-    tol=.001eps()
-    
-    
-    ##TODO: check js
-    while norm(u[j:j+b-1]) > tol
+    ##TODO: we can allow early convergence
+    while norm(u[j:j+b-1]) > tol  || j <= length(v)
         if j + b == l
             u = [u,zeros(l)]      
             l *= 2

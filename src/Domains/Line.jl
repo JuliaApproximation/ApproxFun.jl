@@ -45,16 +45,16 @@ x2sec(x::Vector)=map(x2sec,x)
 
 ##TODO: reimplement
 
-# const x2sec2fun=IFun(x->x2sec(x).^2)
-# 
-# linecumsumop=[EvaluationOperator(-1.),DifferentialOperator([0.,2./π.*IFun(x->(x.^2-1).^2)])];
+const x2sec2fun_glob =IFun(x->x2sec(x).^2,21)
+ 
+const linecumsumop_glob=[EvaluationOperator(Interval(),-1.),IFun(x->2./π.*(x.^2-1).^2,5)*diff(Interval())]
 
-function integrate{T<:Number}(f::IFun{T,Line})
-    #TODO: choose length smarter
 
-    g=chop(ApproxFun.x2sec2fun.*IFun(f.coefficients),1000eps())
+integrate{T<:Number}(f::IFun{T,Line})=integrate(f,linecumsumop_glob,x2sec2fun_glob)
+function integrate{T<:Number}(f::IFun{T,Line},linecumsumop::Vector{Operator},x2sec2fun::IFun)
+    g=chop(x2sec2fun.*IFun(f.coefficients),100eps())
     
-    IFun(tomatrix(linecumsumop,length(g)+1)\[0.,coefficients(g,1)],f.domain)
+    IFun(linecumsumop\[0.,g],f.domain)
 end
 
 
