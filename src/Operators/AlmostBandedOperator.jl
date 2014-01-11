@@ -185,7 +185,12 @@ getfilldata(B::MutableAlmostBandedOperator,k::Integer,j::Integer)=(k<=numbcs(B))
 function givensreduce!(B::MutableAlmostBandedOperator,v::Vector,k1::Integer,k2::Integer,j1::Integer)
     a=datagetindex(B,k1,j1)::Float64
     b=datagetindex(B,k2,j1)::Float64
-    sq=sqrt(a*a + b*b)
+    
+    if b == 0.
+        return B;
+    end    
+    
+    sq=sqrt(a*a + b*b)    
     a=a/sq;b=b/sq
     
     v[k1],v[k2] = a*v[k1] + b*v[k2],-b*v[k1] + a*v[k2]    

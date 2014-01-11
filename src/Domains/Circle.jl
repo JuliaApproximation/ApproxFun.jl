@@ -6,9 +6,9 @@ export Circle
 ##  Circle
 
 
-type Circle <: PeriodicDomain
-	center
-	radius
+type Circle{T<:Number} <: PeriodicDomain
+	center{T}
+	radius::Float64
 end
 
 Circle(r)=Circle(0.,r)

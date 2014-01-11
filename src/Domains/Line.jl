@@ -6,9 +6,10 @@ export Line, PeriodicLine
 
 ## Standard interval
 
+
 type Line <: IntervalDomain
-    centre
-    angle
+    centre::Float64  ##TODO Allow complex
+    angle::Float64
     
     Line(c,a)=(@assert c==a==0.; new(c,a))
 end
