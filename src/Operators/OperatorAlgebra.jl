@@ -56,19 +56,41 @@ rangespace(P::TimesOperator)=rangespace(P.ops[1])
 
 bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->bandrange(x)[end],+,P.ops)
 
-function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
-    kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
+# function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
+#     kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
+# 
+#     Z = ShiftArray(zeros(length(kre),size(A,2)),A.colindex,1-kr[1])
+#     addentries!(P.ops[end],Z,kre)
+#     
+#     for j=length(P.ops)-1:-1:1
+#         krr=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:j-1]))    
+#         multiplyentries!(P.ops[j],Z,krr)
+#     end
+#     
+#     for k=kr,j=columnrange(A)
+#         A[k,j] += Z[k,j]
+#     end
+#     
+#     A
+# end
 
-    Z = ShiftArray(zeros(length(kre),size(A,2)),A.colindex,1-kr[1])
-    addentries!(P.ops[end],Z,kre)
+function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
+    krl=Array(Range1,length(P.ops))
     
-    for j=length(P.ops)-1:-1:1
-        krr=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:j-1]))    
-        multiplyentries!(P.ops[j],Z,krr)
+    krl[1]=kr
+    
+    for m=1:length(P.ops)-1
+      krl[m+1]=indexrange(P.ops[m],krl[m][1])[1]:indexrange(P.ops[m],krl[m][end])[end]
     end
     
-    for k=kr,j=columnrange(A)
-        A[k,j] += Z[k,j]
+    BA=BandedArray(P.ops[end],krl[end])
+    
+    for m=(length(P.ops)-1):-1:1
+      BA=BandedArray(P.ops[m],krl[m])*BA
+    end
+    
+    for k=kr,j=columnrange(BA.data)
+        A[k,j] += BA.data[k,j]
     end
     
     A
