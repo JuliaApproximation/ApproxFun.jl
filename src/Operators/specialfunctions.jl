@@ -2,7 +2,8 @@
 
 function Base.exp(f::IFun)
     xm=indmax(f)
-    B=EvaluationOperator(xm,f.domain)
-    A=[B,DifferentialOperator([-diff(f),1.])]
+    B=EvaluationOperator(f.domain,xm)
+    D=diff(f.domain)
+    A=[B,D-diff(f)]
     A\[exp(f[xm]),0.]    
 end

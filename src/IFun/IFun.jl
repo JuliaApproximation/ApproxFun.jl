@@ -346,10 +346,19 @@ function complexroots(f::IFun)
     fromcanonical(f,complexroots(f.coefficients))
 end
 
+
+
 function roots(f::IFun)
-    complexroots(f)
+    irts=map(real,filter!(x->abs(x)<=1.,filter!(isreal,complexroots(f.coefficients))))
+    if length(irts)==0
+        Float64[]
+    else
+        fromcanonical(f,irts)
+    end
 end
 
+
+##TODO: allow using routines for complex domains below
 function Base.maximum(f::IFun)
     pts=[f.domain.a,f.domain.b,roots(diff(f))]
     maximum(f[pts])
