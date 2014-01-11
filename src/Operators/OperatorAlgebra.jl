@@ -115,9 +115,7 @@ end
 *(A::BandedOperator,B::BandedOperator)=TimesOperator([A,B])
 
 
-*(A::BandedOperator,f::IFun)=A*MultiplicationOperator(f,domainspace(A))
 *(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
-*(A::BandedOperator,c::Number)=A*MultiplicationOperator(c,domainspace(A))
 *(c::Number,A::BandedOperator)=MultiplicationOperator(c,rangespace(A))*A
 
 

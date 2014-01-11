@@ -294,7 +294,7 @@ function adaptiveqr!(B::MutableAlmostBandedOperator,v::Vector)
         j+=1
     end
   
-    backsubstitution!(B,u[1:j-1])
+    backsubstitution!(B,u[1:max(j-1,length(v))])
 end
 
 
