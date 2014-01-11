@@ -5,11 +5,13 @@ export PlusOperator,TimesOperator
 
 
 
-type PlusOperator <: BandedOperator
-    ops::Vector{BandedOperator}
+type PlusOperator{T<:BandedOperator} <: BandedOperator
+    ops::Vector{T}
     
-    PlusOperator(ops::Vector{BandedOperator})=new(promoterangespace(ops))
+    PlusOperator{T}(ops::Vector{T})=new(promoterangespace(ops))
 end
+
+PlusOperator{T<:BandedOperator}(ops::Vector{T})=PlusOperator{T}(ops)
 
 domainspace(P::PlusOperator)=domainspace(P.ops[1])
 rangespace(P::PlusOperator)=rangespace(P.ops[1])
@@ -33,17 +35,20 @@ end
 -(f::IFun,A::BandedOperator)=MultiplicationOperator(f)-A
 
 
-type TimesOperator <: BandedOperator
-    ops::Vector{BandedOperator}
+type TimesOperator{T<:BandedOperator} <: BandedOperator
+    ops::Vector{T}
     
-    function TimesOperator(ops::Vector{BandedOperator})
+    function TimesOperator{T}(ops::Vector{T})
         for k=1:length(ops)-1
             @assert domainspace(ops[k])==rangespace(ops[k+1])
         end
         
         new(ops)
-    end
+    end    
 end
+
+TimesOperator{T<:BandedOperator}(ops::Vector{T})=TimesOperator{T}(ops)
+
 
 domainspace(P::TimesOperator)=domainspace(P.ops[end])
 rangespace(P::TimesOperator)=rangespace(P.ops[1])

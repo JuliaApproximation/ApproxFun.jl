@@ -98,7 +98,7 @@ function promoterangespace(P::BandedOperator,k::Integer)
     (k==rangespace(P))? P : ConversionOperator(rangespace(P):k)*P 
 end
 
-function promoterangespace(ops::Vector{BandedOperator})
+function promoterangespace{T<:BandedOperator}(ops::Vector{T})
     k=mapreduce(rangespace,max,ops)
     BandedOperator[promoterangespace(op,k) for op in ops]
 end

@@ -52,7 +52,7 @@ end
 
 
 ##TODO: reimplement tolerance
-\(A::Vector{Operator},b::Vector)=adaptiveqr(A,b)
+\(A::Vector{Operator},b::Vector)=IFun(adaptiveqr(A,b),A[1].domain)
 
 
 

@@ -84,6 +84,7 @@ IFun(cfs::Vector,d::IntervalDomain)=IFun(1.0*cfs,d)
 IFun(f::Function)=IFun(f,Interval())
 IFun(f::Function,d::Vector)=IFun(f,apply(Interval,d))
 
+IFun(f::IFun,d)=IFun(f.coefficients,d)
 
 ## Adaptive constructors
 
