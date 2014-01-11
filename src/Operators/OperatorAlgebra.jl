@@ -28,7 +28,9 @@ end
 
 +(A::BandedOperator,B::BandedOperator)=PlusOperator([A,B])
 +(A::BandedOperator,f::IFun)=A+MultiplicationOperator(f)
-+(f::IFun.A::BandedOperator)=MultiplicationOperator(f)+A
++(f::IFun,A::BandedOperator)=MultiplicationOperator(f)+A
+-(A::BandedOperator,f::IFun)=A+MultiplicationOperator(-f)
+-(f::IFun,A::BandedOperator)=MultiplicationOperator(f)-A
 
 
 type TimesOperator <: BandedOperator
@@ -73,8 +75,3 @@ end
 *(A::BandedOperator,B::BandedOperator)=TimesOperator([A,B])
 
 
-
-
-## Depricated
-
-differentialorder(P::PlusOperator)=mapreduce(differentialorder,max,P.ops)

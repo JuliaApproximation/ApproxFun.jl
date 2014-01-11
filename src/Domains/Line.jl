@@ -43,9 +43,11 @@ Base.length(d::Interval) = Inf
 x2sec(x::Number)=abs(x)==1.? -4./π : (x.^2-1).*sec(π/2.*x)
 x2sec(x::Vector)=map(x2sec,x)
 
-const x2sec2fun=IFun(x->x2sec(x).^2)
+##TODO: reimplement
 
-linecumsumop=[EvaluationOperator(-1.),DifferentialOperator([0.,2./π.*IFun(x->(x.^2-1).^2)])];
+# const x2sec2fun=IFun(x->x2sec(x).^2)
+# 
+# linecumsumop=[EvaluationOperator(-1.),DifferentialOperator([0.,2./π.*IFun(x->(x.^2-1).^2)])];
 
 function integrate{T<:Number}(f::IFun{T,Line})
     #TODO: choose length smarter

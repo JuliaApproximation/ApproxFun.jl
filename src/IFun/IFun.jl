@@ -85,6 +85,8 @@ IFun(f::Function)=IFun(f,Interval())
 IFun(f::Function,d::Vector)=IFun(f,apply(Interval,d))
 
 
+## Adaptive constructors
+
 function randomIFun(f::Function,d::Domain)
     @assert d == Interval()
 
@@ -128,7 +130,7 @@ end
 ##Coefficient routines
 
 coefficients(f::IFun)=f.coefficients
-
+coefficients(f::IFun,m::Integer)=ultraconversion(f.coefficients,m)
 
 ##Convert routines
 Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([1.*x])

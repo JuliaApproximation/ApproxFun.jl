@@ -19,9 +19,6 @@ dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
 neumann(d::IntervalDomain)=[EvaluationOperator(d,d.a,1),EvaluationOperator(d,d.b,1)]
 
 
-differentialorder(d::EvaluationOperator)=0 ##TODO: decide whether 0 is the correct
-
-
 
 function evaluatechebyshev(n::Integer,x)
     if n == 1
@@ -50,7 +47,7 @@ function Base.getindex(op::EvaluationOperator,k::Range1)
     d = op.domain
 
     if abs(x-d.a) < tol && op.order ==0
-        -(-1.).^k
+        -(-1.).^k  ##TODO: speed up
     elseif  abs(x-d.b) < tol && op.order ==0
         ones(size(k)[1])
     elseif  abs(x-d.a) < tol && op.order ==1
