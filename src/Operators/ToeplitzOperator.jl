@@ -84,12 +84,17 @@ type MultiplicationOperator{T<:Number} <: BandedOperator
 end
 
 
+MultiplicationOperator(c::Number)=MultiplicationOperator(IFun([1.c]))
+MultiplicationOperator(c::Number,k::Int)=MultiplicationOperator(IFun([1.c]),k)
 MultiplicationOperator(f::IFun)=MultiplicationOperator(f,0)
 function MultiplicationOperator(f::IFun,k::Int)
     if k ==0 
         MultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(.5f),0)
     elseif k ==1
         MultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(-.5f.coefficients[3:end]),1)
+    elseif length(f) == 1
+        ##TODO: Do a better construction
+        MultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(0.f),k)
     else
         error("Higher order multiplication not implemented")
     end
@@ -130,8 +135,6 @@ end
 
 
 bandrange(T::MultiplicationOperator)=(1-length(T.T.coefficients):length(T.T.coefficients)-1)
-
-
 
 
 

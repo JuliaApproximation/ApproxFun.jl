@@ -33,6 +33,8 @@ end
 +(f::IFun,A::BandedOperator)=MultiplicationOperator(f)+A
 -(A::BandedOperator,f::IFun)=A+MultiplicationOperator(-f)
 -(f::IFun,A::BandedOperator)=MultiplicationOperator(f)-A
++(c::Number,A::BandedOperator)=MultiplicationOperator(c)+A
++(A::BandedOperator,c::Number)=A+MultiplicationOperator(c)
 
 
 type TimesOperator{T<:BandedOperator} <: BandedOperator
@@ -56,25 +58,28 @@ rangespace(P::TimesOperator)=rangespace(P.ops[1])
 
 bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->bandrange(x)[end],+,P.ops)
 
-# function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
-#     kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
-# 
-#     Z = ShiftArray(zeros(length(kre),size(A,2)),A.colindex,1-kr[1])
-#     addentries!(P.ops[end],Z,kre)
-#     
-#     for j=length(P.ops)-1:-1:1
-#         krr=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:j-1]))    
-#         multiplyentries!(P.ops[j],Z,krr)
-#     end
-#     
-#     for k=kr,j=columnrange(A)
-#         A[k,j] += Z[k,j]
-#     end
-#     
-#     A
-# end
 
-function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
+##TODO: We keep this around because its faster
+## need to unify 
+function old_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
+    kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
+
+    Z = ShiftArray(zeros(length(kre),size(A,2)),A.colindex,1-kr[1])
+    addentries!(P.ops[end],Z,kre)
+    
+    for j=length(P.ops)-1:-1:1
+        krr=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:j-1]))    
+        multiplyentries!(P.ops[j],Z,krr)
+    end
+    
+    for k=kr,j=columnrange(A)
+        A[k,j] += Z[k,j]
+    end
+    
+    A
+end
+
+function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
     krl=Array(Range1,length(P.ops))
     
     krl[1]=kr
@@ -96,9 +101,24 @@ function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
     A
 end
 
+function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
+    if all(f->typeof(f)<:ConversionOperator,P.ops[1:end-1])
+        old_addentries!(P,A,kr)
+    else
+        new_addentries!(P,A,kr)
+    end
+end
+
 *(A::TimesOperator,B::TimesOperator)=TimesOperator([A.ops,B.ops])
 *(A::TimesOperator,B::BandedOperator)=TimesOperator([A.ops,B])
 *(A::BandedOperator,B::TimesOperator)=TimesOperator([A,B.ops])
 *(A::BandedOperator,B::BandedOperator)=TimesOperator([A,B])
+
+
+*(A::BandedOperator,f::IFun)=A*MultiplicationOperator(f,domainspace(A))
+*(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
+*(A::BandedOperator,c::Number)=A*MultiplicationOperator(c,domainspace(A))
+*(c::Number,A::BandedOperator)=MultiplicationOperator(c,rangespace(A))*A
+
 
 
