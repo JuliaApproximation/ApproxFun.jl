@@ -30,6 +30,7 @@ bandrange{M<:Vector}(T::ToeplitzOperator{M})=(1-length(T.coefficients):length(T.
 
 
 
+
 function addentries!{M<:ShiftVector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1)
     v = T.coefficients
     
@@ -40,6 +41,8 @@ function addentries!{M<:ShiftVector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Ra
     
     A
 end
+
+
 
 
 bandrange{M<:ShiftVector}(T::ToeplitzOperator{M})=range(T.coefficients)
