@@ -10,7 +10,7 @@ Bm=EvaluationOperator(d,d.a);
 Bp=EvaluationOperator(d,d.b);
 B=[Bm,Bp];
 D2=diff(d,2);
-X=DifferentialOperator([Fun(x->x,d)],d);
+X=MultiplicationOperator(Fun(x->x));
 
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 
@@ -43,5 +43,5 @@ g=Fun(t->exp(-t.^2))
 
 fp=diff(f);
 Bm=EvaluationOperator(f.domain,f.domain.a);
-u=[Bm,DifferentialOperator([-fp,1.],f.domain)]\[exp(f[f.domain.a]),0.];
+u=[Bm,diff(f.domain) - fp]\[exp(f[f.domain.a]),0.];
 @assert norm(u-g)<10eps()
