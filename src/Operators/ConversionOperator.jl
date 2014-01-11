@@ -6,11 +6,16 @@ type ConversionOperator <: BandedOperator
     λ::Int
 end
 
+domainspace(M::ConversionOperator)=M.λ-1
+rangespace(M::ConversionOperator)=M.λ
+
 function ConversionOperator(r::Range1)
+    @assert r[end] > r[1]
+
     if length(r)==2
-        ConversionOperator(r[1])
+        ConversionOperator(r[2])
     else
-        ConversionOperator(r[end]-1)*ConversionOperator(r[1]:r[end-1])
+        ConversionOperator(r[end])*ConversionOperator(r[1]:r[end-1])
     end
 end    
 
@@ -25,15 +30,15 @@ end
 
 function conversion_addentries!(λ::Integer,A::ShiftArray,kr::Range1)
     for k=kr
-        A[k,0] += λ./(k - 1 + λ)
-        A[k,2] += -λ./(k + λ + 1)
+        A[k,0] += (λ-1.)./(k - 2. + λ)
+        A[k,2] += -(λ-1.)./(k + λ)
     end
     
     A    
 end
 
 function one_conversion_multiplyentries!(A::ShiftArray,kr::Range1)
-    cr=columnrange(A)::Range1{Int64}
+    cr=columnrange(A)::Range1{Int}
     
     #We assume here that the extra rows are redundant
     for k=max(2,kr[1]):kr[end]+2,j=cr
@@ -53,7 +58,7 @@ function conversion_multiplyentries!(λ::Integer,A::ShiftArray,kr::Range1)
     
     #We assume here that the extra rows are redundant
     for k=kr[1]:kr[end]+2,j=cr
-        A[k,j] *= λf./(k - 1. + λf)
+        A[k,j] *= (λf-1)./(k - 2. + λf)
     end
     
     #We assume that A has allocated 2 more bandwidth
@@ -64,7 +69,7 @@ end
 
 
 function addentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
-    if C.λ == 0
+    if C.λ == 1
         one_conversion_addentries!(A,kr)
     else
         conversion_addentries!(C.λ,A,kr)
@@ -73,7 +78,7 @@ end
 
 
 function multiplyentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
-    if C.λ == 0
+    if C.λ == 1
         one_conversion_multiplyentries!(A,kr)
     else
         conversion_multiplyentries!(C.λ,A,kr)
@@ -82,4 +87,21 @@ end
 
 
 bandrange(C::ConversionOperator)=0:2
+
+
+
+## Operator space manipulation
+
+function promoterangespace(P::BandedOperator,k::Integer)
+    @assert k >= rangespace(P)
+    
+    (k==rangespace(P))? P : ConversionOperator(rangespace(P):k)*P 
+end
+
+function promoterangespace(ops::Vector{BandedOperator})
+    k=mapreduce(rangespace,max,ops)
+    BandedOperator[promoterangespace(op,k) for op in ops]
+end
+
+
 

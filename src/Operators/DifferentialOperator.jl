@@ -38,6 +38,13 @@ function addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)
 end
 
 bandrange(D::DerivativeOperator)=0:length(D.order)
+domainspace(M::DerivativeOperator)=M.order[1]
+rangespace(M::DerivativeOperator)=M.order[end]
+
+
+
+
+## Depricated
 differentialorder(D::DerivativeOperator)=D.order[end]
 
 

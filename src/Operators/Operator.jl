@@ -15,8 +15,10 @@ abstract InfiniteShiftOperator <: ShiftOperator
 abstract RowShiftOperator <: ShiftOperator
 
 
+## We assume operators are T->T
+rangespace(A::InfiniteOperator)=0
+domainspace(A::InfiniteOperator)=0
 
-differentialorder(A::Array{Operator,1})=mapreduce(differentialorder,max,A)
 
 Base.size(::InfiniteOperator)=[Inf,Inf]
 Base.size(::RowOperator)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
@@ -33,6 +35,11 @@ function Base.getindex(B::BandedOperator,k::Range1,j::Range1)
     addentries!(B,A,1:n)
     BandedArray(A)[k,j]
 end
+
+
+## Depricated
+
+differentialorder(A::Array{Operator,1})=mapreduce(differentialorder,max,A)
 
 
 ## Multiplication of operator * fun

@@ -2,12 +2,20 @@
 
 export PlusOperator,TimesOperator
 
+
+
+
 type PlusOperator <: BandedOperator
     ops::Vector{BandedOperator}
+    
+    PlusOperator(ops::Vector{BandedOperator})=new(promoterangespace(ops))
 end
 
+domainspace(P::PlusOperator)=domainspace(P.ops[1])
+rangespace(P::PlusOperator)=rangespace(P.ops[1])
+
 bandrange(P::PlusOperator)=mapreduce(op->bandrange(op)[1],min,P.ops):mapreduce(op->bandrange(op)[end],max,P.ops)
-differentialorder(P::PlusOperator)=mapreduce(differentialorder,max,P.ops)
+
 
 function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
     for op in P.ops
@@ -19,11 +27,25 @@ end
 
 
 +(A::BandedOperator,B::BandedOperator)=PlusOperator([A,B])
++(A::BandedOperator,f::IFun)=A+MultiplicationOperator(f)
++(f::IFun.A::BandedOperator)=MultiplicationOperator(f)+A
 
 
 type TimesOperator <: BandedOperator
     ops::Vector{BandedOperator}
+    
+    function TimesOperator(ops::Vector{BandedOperator})
+        for k=1:length(ops)-1
+            @assert domainspace(ops[k])==rangespace(ops[k+1])
+        end
+        
+        new(ops)
+    end
 end
+
+domainspace(P::TimesOperator)=domainspace(P.ops[end])
+rangespace(P::TimesOperator)=rangespace(P.ops[1])
+
 
 bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->bandrange(x)[end],+,P.ops)
 
@@ -49,3 +71,10 @@ end
 *(A::TimesOperator,B::BandedOperator)=TimesOperator([A.ops,B])
 *(A::BandedOperator,B::TimesOperator)=TimesOperator([A,B.ops])
 *(A::BandedOperator,B::BandedOperator)=TimesOperator([A,B])
+
+
+
+
+## Depricated
+
+differentialorder(P::PlusOperator)=mapreduce(differentialorder,max,P.ops)

@@ -31,6 +31,10 @@ type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:RowOperator} <: 
     bandrange::Range1{Int}
 end
 
+domainspace(M::MutableAlmostBandedOperator)=domainspace(M.op)
+rangespace(M::MutableAlmostBandedOperator)=rangespace(M.op)
+
+
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function MutableAlmostBandedOperator{R<:RowOperator}(bc::Vector{R},op::BandedOperator)

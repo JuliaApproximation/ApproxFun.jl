@@ -72,18 +72,32 @@ bandrange(T::HankelOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
 
 ## MultiplicationOperator
 
-abstract MultiplicationOperator <:BandedOperator
 
-type TMultiplicationOperator{T<:Number} <: MultiplicationOperator
+type MultiplicationOperator{T<:Number} <: BandedOperator
     T::ToeplitzOperator{Vector{T}}
     H::HankelOperator{T}
+    
+    space::Int
 end
 
 
-TMultiplicationOperator(f::IFun)=TMultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(.5f))
+MultiplicationOperator(f::IFun)=MultiplicationOperator(f,0)
+function MultiplicationOperator(f::IFun,k::Int)
+    if k ==0 
+        MultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(.5f),0)
+    elseif k ==1
+        MultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(-.5f.coefficients[3:end]),1)
+    else
+        error("Higher order multiplication not implemented")
+    end
+end
 
 
-function addentries!(M::TMultiplicationOperator,A::ShiftArray,kr::Range1)
+domainspace(M::MultiplicationOperator)=M.space
+rangespace(M::MultiplicationOperator)=M.space
+
+
+function zeromultiplication_addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
     addentries!(M.T,A,kr)
     addentries!(M.H,A,kr)        
     
@@ -96,17 +110,17 @@ function addentries!(M::TMultiplicationOperator,A::ShiftArray,kr::Range1)
     A
 end
 
-type UMultiplicationOperator{T<:Number} <: MultiplicationOperator
-    T::ToeplitzOperator{Vector{T}}
-    H::HankelOperator{T}
-end
-
-UMultiplicationOperator(f::IFun)=UMultiplicationOperator(ToeplitzOperator(.5f),HankelOperator(-.5f.coefficients[3:end]))
-
-
-function addentries!(M::UMultiplicationOperator,A::ShiftArray,kr::Range1)
+function onemultiplication_addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
     addentries!(M.T,A,kr)
     addentries!(M.H,A,kr)        
+end
+
+function addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
+    if M.space == 0
+        zeromultiplication_addentries!(M,A,kr)
+    else
+        onemultiplication_addentries!(M,A,kr)
+    end
 end
 
 
