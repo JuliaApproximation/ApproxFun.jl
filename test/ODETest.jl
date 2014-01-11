@@ -10,7 +10,7 @@ Bm=EvaluationOperator(d,d.a);
 Bp=EvaluationOperator(d,d.b);
 B=[Bm,Bp];
 D2=diff(d,2);
-X=MultiplicationOperator(Fun(x->x));
+X=MultiplicationOperator(Fun(x->x,d));
 
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 

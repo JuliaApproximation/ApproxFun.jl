@@ -7,7 +7,7 @@ export Circle
 
 
 type Circle{T<:Number} <: PeriodicDomain
-	center{T}
+	center::T
 	radius::Float64
 end
 
@@ -38,7 +38,7 @@ Base.length(d::Circle) = 2π*d.radius
 ## Diff and integration
 
 
-function Base.diff{T<:Number}(f::FFun{T,Circle}) 
+function Base.diff{T<:Number,D<:Circle}(f::FFun{T,D}) 
         ##TODO: general radii
         @assert f.domain.radius == 1.
         @assert f.domain.center == 0
@@ -53,7 +53,7 @@ end
 
 
 
-function integrate{T<:Number}(f::FFun{T,Circle}) 
+function integrate{T<:Number,D<:Circle}(f::FFun{T,D}) 
     tol = 10eps()
     @assert abs(f.coefficients[-1]) < tol        
     ##TODO: general radii        
