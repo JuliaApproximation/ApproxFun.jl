@@ -53,7 +53,8 @@ ultraconversion(g::Vector,m::Integer)=ConversionOperator(0:m)*g
 ## Linear Solve
 
 
-##TODO: reimplement tolerance
+
+\(A::Vector{Operator},b::Vector,tol::Float64)=IFun(adaptiveqr(A,b,tol),A[1].domain)
 \(A::Vector{Operator},b::Vector)=IFun(adaptiveqr(A,b),A[1].domain)
 
 
