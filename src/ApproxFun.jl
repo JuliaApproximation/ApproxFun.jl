@@ -85,6 +85,7 @@ Fun(x,d::Vector,n::Integer)=IFun(x,d,n)
 
 ## Other domains
 
+include("Domains/Ray.jl")
 include("Domains/Line.jl")
 include("Domains/Circle.jl")
 

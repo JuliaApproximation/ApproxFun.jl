@@ -27,7 +27,7 @@ fromcanonicalD(d::Line,x)=.5π*sec(.5π*x).^2
 
 
 
-Base.length(d::Interval) = Inf
+Base.length(d::Line) = Inf
 
 
 
