@@ -5,16 +5,17 @@ export ToeplitzOperator, HankelOperator, MultiplicationOperator
 
 
 
-type ToeplitzOperator{V<:Union(Vector,ShiftVector)} <: BandedOperator{Float64}
+type ToeplitzOperator{T<:Number,V<:Union(Vector{T},ShiftVector{T})} <: BandedOperator{T}
     coefficients::V
 end
 
+ToeplitzOperator{T<:Number}(V::Vector{T})=ToeplitzOperator{T,typeof(V)}(V)
 ToeplitzOperator(f::AbstractFun)=ToeplitzOperator(f.coefficients)
 
 
 
 
-function addentries!{M<:Vector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1)
+function addentries!{N<:Number,M<:Vector}(T::ToeplitzOperator{N,M},A::ShiftArray,kr::Range1)
     v = T.coefficients
     
     
@@ -26,12 +27,12 @@ function addentries!{M<:Vector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1)
 end
 
 
-bandrange{M<:Vector}(T::ToeplitzOperator{M})=(1-length(T.coefficients):length(T.coefficients)-1)
+bandrange{N<:Number,M<:Vector}(T::ToeplitzOperator{N,M})=(1-length(T.coefficients):length(T.coefficients)-1)
 
 
 
 
-function addentries!{M<:ShiftVector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Range1)
+function addentries!{N<:Number,M<:ShiftVector}(T::ToeplitzOperator{N,M},A::ShiftArray,kr::Range1)
     v = T.coefficients
     
     
@@ -43,9 +44,7 @@ function addentries!{M<:ShiftVector}(T::ToeplitzOperator{M},A::ShiftArray,kr::Ra
 end
 
 
-
-
-bandrange{M<:ShiftVector}(T::ToeplitzOperator{M})=range(T.coefficients)
+bandrange{N<:Number,M<:ShiftVector}(T::ToeplitzOperator{N,M})=range(T.coefficients)
 
 
 ## Hankel Operator
@@ -77,7 +76,7 @@ bandrange(T::HankelOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
 
 
 type MultiplicationOperator{T<:Number} <: BandedOperator{T}
-    T::ToeplitzOperator{Vector{T}}
+    T::ToeplitzOperator{T,Vector{T}}
     H::HankelOperator{T}
     
     space::Int
