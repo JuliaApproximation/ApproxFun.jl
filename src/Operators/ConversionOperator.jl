@@ -103,5 +103,17 @@ function promoterangespace{T<:BandedOperator}(ops::Vector{T})
     BandedOperator[promoterangespace(op,k) for op in ops]
 end
 
+function promotedomainspace(P::BandedOperator,k::Integer)
+    @assert k <= domainspace(P)
+    
+    (k==domainspace(P))? P : P*ConversionOperator(k:domainspace(P))
+end
+
+function promotedomainspace{T<:BandedOperator}(ops::Vector{T})
+    k=mapreduce(domainspace,min,ops)
+    BandedOperator[promotedomainspace(op,k) for op in ops]
+end
+
+promotespaces(ops)=promotedomainspace(promoterangespace(ops))
 
 

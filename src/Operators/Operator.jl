@@ -38,11 +38,11 @@ end
 ## Multiplication of operator * fun
 
 
-ultraiconversion(g::Vector,m::Integer)=backsubstitution!(MutableAlmostBandedOperator(Operator[ConversionOperator(0:m)]),copy(g))
-ultraconversion(g::Vector,m::Integer)=ConversionOperator(0:m)*g
+ultraiconversion(g::Vector,m::Integer)=(m==0)? g : backsubstitution!(MutableAlmostBandedOperator(Operator[ConversionOperator(0:m)]),copy(g))
+ultraconversion(g::Vector,m::Integer)=(m==0)? g : ConversionOperator(0:m)*g
 
 *(A::BandedBelowOperator,b::Vector)= A[1:length(b)-bandrange(A)[1],1:length(b)]*b
-*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*b.coefficients,rangespace(A)),b.domain)
+*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A)),rangespace(A)),b.domain)
 
 *(A::RowOperator,b::Vector)=dot(A[1:length(b)],b)
 *(A::RowOperator,b::IFun)=A*b.coefficients
