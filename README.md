@@ -92,8 +92,15 @@ Alternatively, a Laurent series can be constructed on the unit circle:
 	
 
 
+# Solving differential equations
 
+We can solve ODEs, the following solves the Airy equation u' = x u as a BVP on [-1000,10]:
 
+	x=Fun(x->x,[-1000.,15.]);
+   	d=x.domain;
+	D=diff(d);
+	u = [dirichlet(d),D^2 - x] \ [airyai(d.a),0.];
+	plot(u)
 	
 	
 # References
