@@ -66,6 +66,7 @@ include("ToeplitzOperator.jl")
 include("EvaluationOperator.jl")
 include("ConversionOperator.jl")
 include("DerivativeOperator.jl")
+include("IntegrationOperator.jl")
 
 include("AlmostBandedOperator.jl")
 include("OperatorAlgebra.jl")

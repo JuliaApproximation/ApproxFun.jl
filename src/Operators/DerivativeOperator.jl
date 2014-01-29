@@ -24,7 +24,7 @@ function addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)
     A
 end
 
-bandrange(D::DerivativeOperator)=0:length(D.order)
+bandrange(D::DerivativeOperator)=0:(length(D.order)-1)
 domainspace(M::DerivativeOperator)=M.order[1]
 rangespace(M::DerivativeOperator)=M.order[end]
 
@@ -37,6 +37,8 @@ end
 
 ^(D1::DerivativeOperator,k::Integer)=DerivativeOperator(D1.order[1]:D1.order[1]+k*(length(D1.order)-1),D1.domain)
 
+
+## Convenience routines
 
 Base.diff(d::IntervalDomain,μ::Integer)=DerivativeOperator(0:μ,d)
 Base.diff(d::IntervalDomain)=Base.diff(d,1)
