@@ -10,8 +10,8 @@ ShiftArray(dat::Array,ind::Integer)=ShiftArray(dat,ind,0)
 ShiftArray(ind::Integer)=ShiftArray(Array(Float64,0,0),ind,0)
 
 
-function ShiftArray(B::BandedOperator,k::Range1,j::Range1)
-    A=ShiftArray(zeros(length(k),length(j)),1-j[1],1-k[1])
+function ShiftArray{T<:Number}(B::BandedOperator{T},k::Range1,j::Range1)
+    A=ShiftArray(zeros(T,length(k),length(j)),1-j[1],1-k[1])
     addentries!(B,A,k)
 end
 
@@ -64,9 +64,9 @@ rowrange(B::BandedArray)=rowrange(B.data)
 columnrange(B::BandedArray)=indexrange(B,rowrange(B)[1])[1]:indexrange(B,rowrange(B)[end])[end]
 columnindexrange(B::BandedArray,j::Integer)=max(1,j-bandrange(B)[end]):min((j-bandrange(B)[1]),size(B,1))
 
-function Base.sparse(B::BandedArray)
+function Base.sparse{T<:Number}(B::BandedArray{T})
   ind = B.data.colindex
-  ret = spzeros(size(B,1),size(B,2))
+  ret = spzeros(T,size(B,1),size(B,2))
     
   for k=rowrange(B)
     for j=indexrange(B,k)
