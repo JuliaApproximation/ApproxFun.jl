@@ -272,9 +272,9 @@ end
 
 
 adaptiveqr(M,b)=adaptiveqr(M,b,eps())
-adaptiveqr(M::Vector{Operator},b::Vector{Any},tol::Float64)=IFun(adaptiveqr(M,vcat(map(f-> typeof(f)<: IFun? coefficients(f,rangespace(M[end])) :  f,b)...),tol),b[end].domain)
-adaptiveqr{T<:Operator}(B::Vector{T},v::Vector,tol::Float64) = adaptiveqr!(MutableAlmostBandedOperator(B),v,tol)  #May need to copy v in the future
-function adaptiveqr!(B::MutableAlmostBandedOperator,v::Vector,tol::Float64)
+adaptiveqr{T<:Operator}(M::Vector{T},b::Vector,tol::Float64)=IFun(adaptiveqr(M,vcat(map(f-> typeof(f)<: IFun? coefficients(f,rangespace(M[end])) :  f,b)...),tol),domain([M,b]))
+adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Vector{V},tol::Float64) = adaptiveqr!(MutableAlmostBandedOperator(B),v,tol)  #May need to copy v in the future
+function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Vector{V},tol::Float64)
     u=[v,zeros(100)]
     
     l = length(v) + 100  

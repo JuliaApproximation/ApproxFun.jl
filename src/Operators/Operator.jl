@@ -17,6 +17,26 @@ abstract RowShiftOperator <: ShiftOperator
 ## We assume operators are T->T
 rangespace(A::InfiniteOperator)=0
 domainspace(A::InfiniteOperator)=0
+domain(A::Operator)=Any
+
+domain(f::IFun)=f.domain
+domain(::Number)=Any
+
+function domain(P::Vector)
+    ret = Any
+    
+    for op in P
+        d = domain(op)
+        @assert ret == Any || d == Any || ret == d
+        
+        if d != Any
+            ret = d
+        end
+    end
+    
+    ret
+end
+
 
 
 Base.size(::InfiniteOperator)=[Inf,Inf]
@@ -54,8 +74,10 @@ ultraconversion(g::Vector,m::Integer)=(m==0)? g : ConversionOperator(0:m)*g
 
 
 
-\(A::Vector{Operator},b::Vector,tol::Float64)=IFun(adaptiveqr(A,b,tol),A[1].domain)
-\(A::Vector{Operator},b::Vector)=IFun(adaptiveqr(A,b),A[1].domain)
+\{T<:Operator}(A::Vector{T},b::Vector,tol::Float64)=IFun(adaptiveqr(A,b,tol),domain([A,b]))
+\{T<:Operator}(A::Vector{T},b::Vector)=IFun(adaptiveqr(A,b),domain([A,b]))
+\(A::Operator,b::Vector)=[A]\b
+\(A::Operator,b::IFun)=[A]\[b]
 
 
 

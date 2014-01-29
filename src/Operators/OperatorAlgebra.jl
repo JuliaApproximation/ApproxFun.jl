@@ -16,6 +16,8 @@ PlusOperator{T<:BandedOperator}(ops::Vector{T})=PlusOperator{T}(ops)
 domainspace(P::PlusOperator)=domainspace(P.ops[1])
 rangespace(P::PlusOperator)=rangespace(P.ops[1])
 
+domain(P::PlusOperator)=domain(P.ops)
+
 bandrange(P::PlusOperator)=mapreduce(op->bandrange(op)[1],min,P.ops):mapreduce(op->bandrange(op)[end],max,P.ops)
 
 
@@ -54,6 +56,8 @@ TimesOperator{T<:BandedOperator}(ops::Vector{T})=TimesOperator{T}(ops)
 
 domainspace(P::TimesOperator)=domainspace(P.ops[end])
 rangespace(P::TimesOperator)=rangespace(P.ops[1])
+
+domain(P::TimesOperator)=domain(P.ops)
 
 
 bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->bandrange(x)[end],+,P.ops)

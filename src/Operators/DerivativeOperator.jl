@@ -27,6 +27,7 @@ end
 bandrange(D::DerivativeOperator)=0:(length(D.order)-1)
 domainspace(M::DerivativeOperator)=M.order[1]
 rangespace(M::DerivativeOperator)=M.order[end]
+domain(D::DerivativeOperator)=D.domain
 
 
 function *(D1::DerivativeOperator,D2::DerivativeOperator)

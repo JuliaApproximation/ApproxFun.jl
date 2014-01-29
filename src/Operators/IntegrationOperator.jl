@@ -17,6 +17,7 @@ function bandrange(M::IntegrationOperator)
 end
 domainspace(M::IntegrationOperator)=first(M.order)
 rangespace(M::IntegrationOperator)=endof(M.order)
+domain(Q::IntegrationOperator)=Q.domain
 
 ##Very similar to conversion
 function addentries!(Q::IntegrationOperator,A::ShiftArray,kr::Range1)
