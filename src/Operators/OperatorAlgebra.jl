@@ -5,13 +5,26 @@ export PlusOperator,TimesOperator
 
 
 
-type PlusOperator{B<:BandedOperator} <: BandedOperator{Float64} #TODO: Change to T
+type PlusOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T} 
     ops::Vector{B}
     
     PlusOperator{B}(ops::Vector{B})=new(promotespaces(ops))
 end
 
-PlusOperator{B<:BandedOperator}(ops::Vector{B})=PlusOperator{B}(ops)
+
+typeofdata{T<:Number}(::BandedOperator{T})=T
+function PlusOperator{B<:BandedOperator}(ops::Vector{B})
+    T = Float64
+    
+    for op in ops
+        if typeofdata(op) == Complex{Float64}
+            T = Complex{Float64}
+        end
+    end
+    
+    PlusOperator{T,B}(ops)
+end
+
 
 domainspace(P::PlusOperator)=domainspace(P.ops[1])
 rangespace(P::PlusOperator)=rangespace(P.ops[1])
@@ -39,10 +52,10 @@ end
 +(A::BandedOperator,c::Number)=A+MultiplicationOperator(c)
 
 
-type TimesOperator{T<:BandedOperator} <: BandedOperator{Float64} #TODO:Chgange to T
-    ops::Vector{T}
+type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
+    ops::Vector{B}
     
-    function TimesOperator{T}(ops::Vector{T})
+    function TimesOperator{B}(ops::Vector{B})
         for k=1:length(ops)-1
             @assert domainspace(ops[k])==rangespace(ops[k+1])
         end
@@ -51,7 +64,17 @@ type TimesOperator{T<:BandedOperator} <: BandedOperator{Float64} #TODO:Chgange t
     end    
 end
 
-TimesOperator{T<:BandedOperator}(ops::Vector{T})=TimesOperator{T}(ops)
+function TimesOperator{B<:BandedOperator}(ops::Vector{B})
+    T = Float64
+    
+    for op in ops
+        if typeofdata(op) == Complex{Float64}
+            T = Complex{Float64}
+        end
+    end
+    
+    TimesOperator{T,B}(ops)
+end
 
 
 domainspace(P::TimesOperator)=domainspace(P.ops[end])
@@ -65,10 +88,10 @@ bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->b
 
 ##TODO: We keep this around because its faster
 ## need to unify 
-function old_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
+function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Range1)
     kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
 
-    Z = ShiftArray(zeros(length(kre),size(A,2)),A.colindex,1-kr[1])
+    Z = ShiftArray(zeros(T,length(kre),size(A,2)),A.colindex,1-kr[1])
     addentries!(P.ops[end],Z,kre)
     
     for j=length(P.ops)-1:-1:1

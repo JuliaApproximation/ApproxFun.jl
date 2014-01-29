@@ -47,7 +47,7 @@ function one_conversion_multiplyentries!(A::ShiftArray,kr::Range1)
     
     #We assume that A has allocated 2 more bandwidth
     for k=kr[1]:kr[end],j=(cr[1]+2):cr[end]
-        A[k,j] -= A[k+2,j-2]::Float64
+        A[k,j] -= A[k+2,j-2]
     end 
 end
 
@@ -63,7 +63,7 @@ function conversion_multiplyentries!(λ::Integer,A::ShiftArray,kr::Range1)
     
     #We assume that A has allocated 2 more bandwidth
     for k=kr,j=(cr[1]+2):cr[end]
-        A[k,j] -= A[k+2,j-2]::Float64
+        A[k,j] -= A[k+2,j-2]
     end 
 end
 
