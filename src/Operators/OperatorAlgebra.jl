@@ -5,13 +5,13 @@ export PlusOperator,TimesOperator
 
 
 
-type PlusOperator{T<:BandedOperator} <: BandedOperator
-    ops::Vector{T}
+type PlusOperator{B<:BandedOperator} <: BandedOperator{Float64} #TODO: Change to T
+    ops::Vector{B}
     
-    PlusOperator{T}(ops::Vector{T})=new(promotespaces(ops))
+    PlusOperator{B}(ops::Vector{B})=new(promotespaces(ops))
 end
 
-PlusOperator{T<:BandedOperator}(ops::Vector{T})=PlusOperator{T}(ops)
+PlusOperator{B<:BandedOperator}(ops::Vector{B})=PlusOperator{B}(ops)
 
 domainspace(P::PlusOperator)=domainspace(P.ops[1])
 rangespace(P::PlusOperator)=rangespace(P.ops[1])
@@ -39,7 +39,7 @@ end
 +(A::BandedOperator,c::Number)=A+MultiplicationOperator(c)
 
 
-type TimesOperator{T<:BandedOperator} <: BandedOperator
+type TimesOperator{T<:BandedOperator} <: BandedOperator{Float64} #TODO:Chgange to T
     ops::Vector{T}
     
     function TimesOperator{T}(ops::Vector{T})

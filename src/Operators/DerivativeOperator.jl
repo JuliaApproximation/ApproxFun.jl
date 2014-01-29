@@ -3,7 +3,7 @@ export DerivativeOperator
 
 ## DerivativeOperator
 
-type DerivativeOperator{D<:IntervalDomain} <: BandedOperator
+type DerivativeOperator{D<:IntervalDomain} <: BandedOperator{Float64}
     order::Range1{Int}
     domain::D
 end
@@ -39,11 +39,6 @@ end
 ^(D1::DerivativeOperator,k::Integer)=DerivativeOperator(D1.order[1]:D1.order[1]+k*(length(D1.order)-1),D1.domain)
 
 
-## Convenience routines
-
-Base.diff(d::IntervalDomain,μ::Integer)=DerivativeOperator(0:μ,d)
-Base.diff(d::IntervalDomain)=Base.diff(d,1)
-Base.eye(d::IntervalDomain)=MultiplicationOperator(IFun([1.],d))
 
 
 

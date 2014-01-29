@@ -3,15 +3,15 @@ export bandrange
 
 
 
-abstract Operator
-abstract RowOperator <: Operator
-abstract InfiniteOperator <: Operator
-abstract BandedBelowOperator <: InfiniteOperator
-abstract BandedOperator <: BandedBelowOperator
+abstract Operator{T} #T is the entry type, Flaot64 or Complex{Float64}
+abstract RowOperator{T} <: Operator{T}
+abstract InfiniteOperator{T} <: Operator{T}
+abstract BandedBelowOperator{T} <: InfiniteOperator{T}
+abstract BandedOperator{T} <: BandedBelowOperator{T}
 
-abstract ShiftOperator <: Operator #For biinfinite operators
-abstract InfiniteShiftOperator <: ShiftOperator
-abstract RowShiftOperator <: ShiftOperator
+abstract ShiftOperator{T} <: Operator{T} #For biinfinite operators
+abstract InfiniteShiftOperator{T} <: ShiftOperator{T}
+abstract RowShiftOperator{T} <: ShiftOperator{T}
 
 
 ## We assume operators are T->T
@@ -95,3 +95,18 @@ include("OperatorAlgebra.jl")
 
 include("specialfunctions.jl")
 
+
+
+## Convenience routines
+
+Base.diff(d::IntervalDomain,μ::Integer)=DerivativeOperator(0:μ,d)
+Base.diff(d::IntervalDomain)=Base.diff(d,1)
+Base.eye(d::IntervalDomain)=MultiplicationOperator(IFun([1.],d))
+integrate(d::IntervalDomain)=IntegrationOperator(1,d)
+
+evaluate(d::IntervalDomain,x)=EvaluationOperator(d,x)
+dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
+neumann(d::IntervalDomain)=[EvaluationOperator(d,d.a,1),EvaluationOperator(d,d.b,1)]
+
+Base.start(d::IntervalDomain)=evaluate(d,d.a)
+Base.endof(d::IntervalDomain)=evaluate(d,d.b)

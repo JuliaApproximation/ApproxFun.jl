@@ -2,7 +2,7 @@ export IntegrationOperator
 
 ## IntegrationOperator
 
-type IntegrationOperator{D<:IntervalDomain} <: BandedOperator
+type IntegrationOperator{D<:IntervalDomain} <: BandedOperator{Float64}
     order::Range1{Int}
     domain::D
 end
@@ -32,4 +32,3 @@ function addentries!(Q::IntegrationOperator,A::ShiftArray,kr::Range1)
 end
 
 
-integrate(d::IntervalDomain)=IntegrationOperator(1,d)

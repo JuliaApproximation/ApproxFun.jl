@@ -3,7 +3,7 @@ export EvaluationOperator
 
 ## EvaluationOperator constructors
 
-type EvaluationOperator{D<:IntervalDomain,T<:Number} <: RowOperator
+type EvaluationOperator{D<:IntervalDomain,T<:Number} <: RowOperator{T}
     domain::D
     x::T
     order::Integer
@@ -13,10 +13,6 @@ EvaluationOperator(x)=EvaluationOperator(Interval(),x,0)
 EvaluationOperator(d,x)=EvaluationOperator(d,x,0)
 EvaluationOperator(d::Vector,x,o)=EvaluationOperator(Interval(d),x,o)
 
-
-evaluate(d::IntervalDomain,x)=EvaluationOperator(d,x)
-dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
-neumann(d::IntervalDomain)=[EvaluationOperator(d,d.a,1),EvaluationOperator(d,d.b,1)]
 
 
 

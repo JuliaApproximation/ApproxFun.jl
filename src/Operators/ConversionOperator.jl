@@ -2,7 +2,7 @@ export ConversionOperator
 
 ## ConversionOperator
 
-type ConversionOperator <: BandedOperator
+type ConversionOperator <: BandedOperator{Float64}
     λ::Int
 end
 
@@ -100,7 +100,7 @@ end
 
 function promoterangespace{T<:BandedOperator}(ops::Vector{T})
     k=mapreduce(rangespace,max,ops)
-    BandedOperator[promoterangespace(op,k) for op in ops]
+    T[promoterangespace(op,k) for op in ops]
 end
 
 function promotedomainspace(P::BandedOperator,k::Integer)
@@ -111,7 +111,7 @@ end
 
 function promotedomainspace{T<:BandedOperator}(ops::Vector{T})
     k=mapreduce(domainspace,min,ops)
-    BandedOperator[promotedomainspace(op,k) for op in ops]
+    T[promotedomainspace(op,k) for op in ops]
 end
 
 promotespaces(ops)=promotedomainspace(promoterangespace(ops))

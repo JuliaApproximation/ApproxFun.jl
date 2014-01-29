@@ -17,7 +17,7 @@ index(b::BandedBelowOperator)=1-bandrange(b)[1]
 ## MutableAlmostBandedOperator
 
 
-type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:RowOperator} <: BandedBelowOperator
+type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:RowOperator} <: BandedBelowOperator{T}
     bc::Vector{R}
     op::M
     data::ShiftArray{T}   #Shifted to encapsolate bandedness
