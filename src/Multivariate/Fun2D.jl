@@ -56,7 +56,9 @@ function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer)
             return Fun2D(A,B)
         end
         
-        A=[A,a/sqrt(a[r[1]])];B=[B,b/sqrt(b[r[2]])]    
+        
+        ##Todo negative orientation 
+        A=[A,a/sqrt(abs(a[r[1]]))];B=[B,sign(b[r[2]]).*b/sqrt(abs(b[r[2]]))]    
         r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy,gridx,gridy)
         Ar=map(q->q[r[1]],A)
         Br=map(q->q[r[2]],B)
