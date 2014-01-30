@@ -7,7 +7,8 @@ type ShiftArray{T<:Number}
 end
 
 ShiftArray(dat::Array,ind::Integer)=ShiftArray(dat,ind,0)
-ShiftArray(ind::Integer)=ShiftArray(Array(Float64,0,0),ind,0)
+ShiftArray(T::DataType,ind::Integer)=ShiftArray(Array(T,0,0),ind,0)
+ShiftArray(ind::Integer)=ShiftArray(Float64,ind)
 
 
 function ShiftArray{T<:Number}(B::BandedOperator{T},k::Range1,j::Range1)
@@ -28,9 +29,9 @@ rowrange(A::ShiftArray)=(1:size(A,1))-A.rowindex
 
 *(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.colindex,S.rowindex)
 
-function Base.resize!(S::ShiftArray,n::Integer,m::Integer)
+function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer,m::Integer)
     olddata = S.data
-    S.data = zeros(n,m)
+    S.data = zeros(T,n,m)
     
     if size(olddata,1) != 0
         S.data[1:size(olddata,1),1:m] = olddata[:,1:m]
@@ -99,11 +100,13 @@ Base.setindex!(B::BandedArray,x,k::Integer,j::Integer)=(B.data[k,j-k]=x)
 # end
 
 
-function *(A::BandedArray,B::BandedArray)
+function *{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})
+    typ = (T == Complex{Float64} || M == Complex{Float64}) ? Complex{Float64} : Float64
+
     @assert columnrange(A) == rowrange(B)
   
     S = BandedArray(
-        ShiftArray(zeros(size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
+        ShiftArray(zeros(typ,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
         A.data.colindex+B.data.colindex-1,
         A.data.rowindex));
     

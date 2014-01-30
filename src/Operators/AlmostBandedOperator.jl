@@ -38,7 +38,7 @@ rangespace(M::MutableAlmostBandedOperator)=rangespace(M.op)
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function MutableAlmostBandedOperator{T<:Number,R<:RowOperator}(bc::Vector{R},op::BandedOperator{T})
-    data = ShiftArray(index(op))
+    data = ShiftArray(T,index(op))
     
     nbc = length(bc)
     bcdata = T[bc[k][j] for k=1:nbc, j=1:length(bandrange(op))+nbc-1]
@@ -94,12 +94,12 @@ function fillgetindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::In
     
     if k <= nbc
         for m=1:nbc
-            bcv = B.bc[m][j]::T        
+            bcv = B.bc[m][j]     
             ret += B.bcfilldata[k,m]*bcv
         end
     else
         for m=1:nbc
-            bcv = B.bc[m][j]::T
+            bcv = B.bc[m][j]
             ret += B.filldata[k-nbc,m]*bcv
         end    
     end
@@ -183,8 +183,8 @@ getfilldata(B::MutableAlmostBandedOperator,k::Integer,j::Integer)=(k<=numbcs(B))
 
 ##TODO: decide adaptive resize
 function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Vector,k1::Integer,k2::Integer,j1::Integer)
-    a=datagetindex(B,k1,j1)::T
-    b=datagetindex(B,k2,j1)::T
+    a=datagetindex(B,k1,j1)
+    b=datagetindex(B,k2,j1)
     
     if b == 0.
         return B;
@@ -202,22 +202,22 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::V
     ir2=indexrange(B,k2)::Range1{Int64}    
     
     for j = j1:ir1[end]
-        B1 = datagetindex(B,k1,j)::T
-        B2 = datagetindex(B,k2,j)::T
+        B1 = datagetindex(B,k1,j)
+        B2 = datagetindex(B,k2,j)
         
         B[k1,j],B[k2,j]= a*B1 + b*B2,-b*B1 + a*B2
     end
     
     for j=ir1[end]+1:ir2[end]
-        B1 = fillgetindex(B,k1,j)::T
-        B2 = datagetindex(B,k2,j)::T
+        B1 = fillgetindex(B,k1,j)
+        B2 = datagetindex(B,k2,j)
         
         B[k2,j]=a*B2 - b*B1
     end
     
     for j=1:numbcs(B)
-        B1 = getfilldata(B,k1,j)::T
-        B2 = getfilldata(B,k2,j)::T
+        B1 = getfilldata(B,k1,j)
+        B2 = getfilldata(B,k2,j)
     
         setfilldata!(B, a*B1 + b*B2,k1,j)
         setfilldata!(B,-b*B1 + a*B2,k2,j)    
