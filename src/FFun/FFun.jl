@@ -195,18 +195,3 @@ end
 
 ##TODO: Sampling
 
-
-
-##Plotting
-
-#TODO: Pad
-
-function plot(f::FFun) 
-    p = FramedPlot();
-    pts = [points(f),f.domain.b];
-    vals =[values(f),f[f.domain.b]];
-    add(p,Curve(pts,real(vals),"color","blue"));
-    add(p,Curve(pts,imag(vals),"color","red"));    
-    Winston.display(p);
-    p
-end

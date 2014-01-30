@@ -89,6 +89,9 @@ include("Domains/Ray.jl")
 include("Domains/Line.jl")
 include("Domains/Circle.jl")
 
+include("Plotting/IFunPlot.jl")
+
+
 end #module
 
 

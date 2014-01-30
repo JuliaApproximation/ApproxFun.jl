@@ -380,39 +380,6 @@ function Base.indmin(f::IFun)
 end
 
 
-    
-
-
-
-## Plotting
-
-
-# function Winston.plot(f::IFun{Complex})
-#     plot(points(f),values(real(f)),points(f),values(imag(f)))
-# end
-
-
-using Winston
-
-function plot(f::IFun{Float64}) 
-    p = Winston.FramedPlot();
-    pts = points(pad(f,2length(f)));
-    vals =values(pad(f,2length(f)));
-    add(p,Curve(pts,vals,"color","blue"));   
-    Winston.display(p);
-#    p
-end
-
-function plot(f::IFun{Complex{Float64}}) 
-    p = Winston.FramedPlot();
-    pts = points(pad(f,2length(f)));
-    vals =values(pad(f,2length(f)));
-    add(p,Curve(pts,real(vals),"color","blue"));
-    add(p,Curve(pts,imag(vals),"color","red"));    
-    Winston.display(p);
-#    p
-end
-
 
 
 
