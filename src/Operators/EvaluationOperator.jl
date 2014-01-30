@@ -1,5 +1,5 @@
 export dirichlet, neumann
-export EvaluationOperator
+export EvaluationOperator, BasisOperator
 
 ## EvaluationOperator constructors
 
@@ -69,3 +69,26 @@ function Base.getindex(op::EvaluationOperator,j::Integer,k::Range1)
 end
 
 
+
+
+type BasisOperator <: RowOperator{Float64}
+    k::Integer
+end
+
+
+##TODO: the overloading as both vector and row vector may be confusing
+Base.getindex(op::BasisOperator,k::Integer)=(k==op.k)?1.:0.
+
+function Base.getindex(op::BasisOperator,k::Range1)
+    convert(Vector{Float64},k.==op.k)
+end
+
+
+function Base.getindex(op::BasisOperator,j::Range1,k::Range1)
+  @assert j[1]==1 && j[end]==1
+  op[k]' #TODO conjugate transpose?
+end
+function Base.getindex(op::BasisOperator,j::Integer,k::Range1)
+  @assert j==1
+  op[k]' #TODO conjugate transpose?
+end
