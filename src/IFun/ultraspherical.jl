@@ -9,32 +9,28 @@ ultradiff(v::Vector)=[1:length(v)-1].*v[2:end]
 ultraint(v::Vector)=[0,v./[1:length(v)]]
 
 #TODO: what about missing truncation?
-function ultraint!(vin::Array{Float64,2})
-    v=unsafe_view(vin)
-
+function ultraint!(v::Array{Float64,2})
     for k=size(v,1):-1:2
         for j=1:size(v,2)
-            v[k,j] = v[k-1,j]/(k-1)
+            @inbounds v[k,j] = v[k-1,j]/(k-1)
         end
     end
     
     for j=1:size(v)[2]
-        v[1,j] = 0.
+        @inbounds v[1,j] = 0.
     end
     
-    vin
+    v
 end
 
-function ultraint!(vin::Vector{Float64})
-    v=unsafe_view(vin)
-
+function ultraint!(v::Vector{Float64})
     for k=length(v):-1:2
-        v[k] = v[k-1]/(k-1)
+        @inbounds v[k] = v[k-1]/(k-1)
     end
     
-    v[1] = 0.
+    @inbounds v[1] = 0.
     
-    vin
+    v
 end
 
 
@@ -88,20 +84,18 @@ end
 function ultraconversion!(v::Vector{Float64})
     n = length(v) #number of coefficients
 
-    vv=unsafe_view(v)
-
     if n == 1
         #do nothing
     elseif n == 2
-        vv[2] *= .5
+        @inbounds v[2] *= .5
     else
-        vv[1] -= .5vv[3];        
+        @inbounds v[1] -= .5v[3];        
     
         for j=2:n-2
-            vv[j] = .5*(vv[j] - vv[j+2]);
+            @inbounds v[j] = .5*(v[j] - v[j+2]);
         end
-        vv[n-1] *= .5;
-        vv[n] *= .5;                
+        @inbounds v[n-1] *= .5;
+        @inbounds v[n] *= .5;                
     end
     
     return v
@@ -111,23 +105,22 @@ function ultraconversion!(v::Array{Float64,2})
     n = size(v)[1] #number of coefficients
     m = size(v)[2] #number of funs
 
-    vv=unsafe_view(v)
 
     if n == 1
         #do nothing
     elseif n == 2
         for k=1:m
-            vv[2,k] *= .5
+            @inbounds v[2,k] *= .5
         end
     else
         for k=1:m
-            vv[1,k] -= .5vv[3,k];        
+            @inbounds v[1,k] -= .5v[3,k];        
         
             for j=2:n-2
-                vv[j,k] = .5*(vv[j,k] - vv[j+2,k]);
+                @inbounds v[j,k] = .5*(v[j,k] - v[j+2,k]);
             end
-            vv[n-1,k] *= .5;
-            vv[n,k] *= .5;                
+            @inbounds v[n-1,k] *= .5;
+            v[n,k] *= .5;                
         end
     end
     

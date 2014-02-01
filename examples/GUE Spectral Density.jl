@@ -4,16 +4,12 @@
 	x = sample(f,40000)
 		
 		
-# The PDF
+# The PDF compared to the samples
 
-	plot(f)
-	
-# looks like the histogram:
-
-	Winston.plothist(x,100)
+    plot(f/sum(f));PyPlot.plt.hist(x,100,normed=true)
 	
 #We can compare the histograms of x with the GUE:
 
     using RandomMatrices
 
-    Winston.plothist(vcat([eigvalrand(GaussianHermite(2),2) for k=1:1000]...),-4:.1:4)
+    PySide.plt.hist(vcat([eigvalrand(GaussianHermite(2),2) for k=1:1000]...),-4:.1:4)

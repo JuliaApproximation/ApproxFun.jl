@@ -72,6 +72,9 @@ end
 Fun2D(f::Function,d1::Vector,d2::Vector)=Fun2D(f,Interval(d1),Interval(d2))
 Fun2D(f::Function)=Fun2D(f,Interval(),Interval())
 
+Fun2D(f::Fun2D,d1::IntervalDomain,d2::IntervalDomain)=Fun2D(map(g->Fun(g.coefficients,d1),f.A),map(g->Fun(g.coefficients,d2),f.B))
+
+
 domain(f::Fun2D,k::Integer)=k==1? first(f.A).domain : first(f.B).domain
 
 

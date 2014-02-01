@@ -47,24 +47,9 @@ following code samples 10,000 standard normals:
 
 	f = Fun(x->exp(-x.^2),[-10,10])
 	x = sample(f,10000)
-	Winston.plothist(x,-10:.1:10)
+	PyPlot.plt.hist(x,-10.:.1:10.)
 	
-We can apply this to any positive function.  The following samples the spectral density 
-of an n = 4 Gaussian Unitary Ensemble):
-
-	f = Fun(x->(9+72x.^2-192x.^4+512x.^6).*exp(-4x.^2),[-4,4])
-	x = sample(f,40000)
-		
-# Plotting
-		
-We can plot f:
-
-	plot(f)
-	
-This looks like the histogram:
-
-	Winston.plothist(x,-4:.1:4)
-	
+We can apply this to any positive smooth PDF.  
 
 
 

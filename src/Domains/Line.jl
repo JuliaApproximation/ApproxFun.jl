@@ -52,7 +52,7 @@ const linecumsumop_glob=[EvaluationOperator(Interval(),-1.),IFun(x->2./π.*(x.^2
 
 
 integrate{T<:Number}(f::IFun{T,Line})=integrate(f,linecumsumop_glob,x2sec2fun_glob)
-function integrate{T<:Number}(f::IFun{T,Line},linecumsumop::Vector{Operator},x2sec2fun::IFun)
+function integrate{T<:Number,O<:Operator}(f::IFun{T,Line},linecumsumop::Vector{O},x2sec2fun::IFun)
     g=chop(x2sec2fun.*IFun(f.coefficients),100eps())
     
     IFun(linecumsumop\[0.,g],f.domain)

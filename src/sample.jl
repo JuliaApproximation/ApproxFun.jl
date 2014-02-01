@@ -15,8 +15,6 @@ function bisectioninv(c::Vector{Float64},x::Float64)
     a = -1.;
     b = 1.;
     
-#     a_v = unsafe_view(a);
-#     b_v = unsafe_view(b);    
     
     for k=1:47  #TODO: decide 47
         m=.5*(a+b);
@@ -34,8 +32,6 @@ function bisectioninv(c::Vector{Float64},xl::Vector{Float64},bk::Vector{Float64}
     a = -ones(n);
     b = ones(n);
     
-#     a_v = unsafe_view(a);
-#     b_v = unsafe_view(b);    
     
     for k=1:47  #TODO: decide 47
         m=.5*(a+b);
@@ -58,8 +54,6 @@ function bisectioninv(c::Array{Float64,2},xl::Vector{Float64},bk::Vector{Float64
     a = -ones(n);
     b = ones(n);
     
-#     a_v = unsafe_view(a);
-#     b_v = unsafe_view(b);    
     
     for k=1:47  #TODO: decide 47
         m=.5*(a+b);
@@ -83,30 +77,23 @@ function normalizedcumsum(f::IFun)
     cf    
 end
 
-function subtract_zeroatleft!(fin::Vector{Float64})
-    f=unsafe_view(fin)
-
+function subtract_zeroatleft!(f::Vector{Float64})
     for k=2:length(f)
-        f[1] += (-1.)^k.*f[k]
+        @inbounds f[1] += (-1.)^k.*f[k]
     end
     
-    fin
+    f
 end
 
-function subtract_zeroatleft!(fin::Array{Float64,2})
-    f=unsafe_view(fin)
-
+function subtract_zeroatleft!(f::Array{Float64,2})
     for k=2:size(f)[1],j=1:size(f)[2]
-        f[1,j] += (-1.)^k.*f[k,j]
+        @inbounds f[1,j] += (-1.)^k.*f[k,j]
     end
     
-    fin
+    f
 end
 
-function multiply_oneatright!(fin::Vector{Float64})
-    f=unsafe_view(fin)
-
-
+function multiply_oneatright!(f::Vector{Float64})
     val=0.
     for k=1:length(f)
         val+=f[k]
@@ -115,14 +102,13 @@ function multiply_oneatright!(fin::Vector{Float64})
     val=1./val
 
     for k=1:length(f)
-        f[k] *= val
+        @inbounds f[k] *= val
     end
         
-    fin
+    f
 end
 
-function multiply_oneatright!(fin::Array{Float64,2})
-    f=unsafe_view(fin)
+function multiply_oneatright!(f::Array{Float64,2})
 
     for j=1:size(f)[2]
         val=0.
@@ -133,11 +119,11 @@ function multiply_oneatright!(fin::Array{Float64,2})
         val=1./val
     
         for k=1:size(f)[1]
-            f[k,j] *= val
+            @inbounds f[k,j] *= val
         end
     end
         
-    fin
+    f
 end
 
 function normalizedcumsum!(f)
@@ -165,10 +151,6 @@ samplecdf(v::Vector)=bisectioninv(v,rand())
 ##2D sample
 
 function sample{T<:Interval}(f::Fun2D{IFun{Float64,T}},n::Integer)
-    #TODO: allow not unit interval
-
-    @assert f.domain == Interval()
-
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficientmatrix(f.B)
