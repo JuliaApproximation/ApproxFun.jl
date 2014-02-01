@@ -14,6 +14,6 @@ plot(sum(f,1)/sum(f));PyPlot.plt.hist(vcat(r...),-4.:.1:4.,normed=true);
 	
 #We can compare the histograms of x with the GUE:
 
-    using RandomMatrices
+using RandomMatrices
 
-    PySide.plt.hist(vcat([eigvalrand(GaussianHermite(2),2) for k=1:1000]...),-4:.1:4)
+PyPlot.plt.hist(vcat([eigvalrand(GaussianHermite(2),2) for k=1:10000]...),-4:.1:4)
