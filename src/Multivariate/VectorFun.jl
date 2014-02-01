@@ -64,10 +64,10 @@ function evaluate{T<:IFun}(A::Vector{T},x::Vector{Float64})
     bk2=Array(Float64,n)
     
     for k=1:length(A)
-        bk=clenshaw(A[k].coefficients,x,bk,bk1,bk2)
+        bkr=clenshaw(A[k].coefficients,x,bk,bk1,bk2)
         
         for j=1:n
-            ret[k,j]=bk[j]
+            ret[k,j]=bkr[j]
         end
     end
     

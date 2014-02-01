@@ -34,15 +34,4 @@ end
 
 ##2D
 
-function plot(f::Fun2D)
-    xm=3mapreduce(length,max,f.A);
-    ym=3mapreduce(length,max,f.B);
-    ptsx=points(first(f.A).domain,xm);
-    ptsy=points(first(f.B).domain,ym);
-    ret=zeros(xm,ym);
-    for k=1:length(f.A)
-        ret+=values(pad(f.A[k],xm))*values(pad(f.B[k],ym))'
-    end
-    
-    PyPlot.surf(ptsx,ptsy,ret')
-end
+plot(f::Fun2D)=PyPlot.surf(points(f,1),points(f,2),values(f)')

@@ -38,6 +38,7 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Vector{T},bk::Vector{T},bk1::Vecto
     for i = 1:n
         @inbounds bk1[i] = 0.
         @inbounds bk2[i] = 0.
+        @inbounds bk[i] = 0.        
     end
 
     for k=m:-1:2
@@ -71,6 +72,7 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Real,bk::Vector{T},bk1::Vector{T},
     for i = 1:n
         @inbounds bk1[i] = 0.
         @inbounds bk2[i] = 0.
+        @inbounds bk[i] = 0.                
     end
 
     for k=m:-1:2
@@ -103,6 +105,7 @@ function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},bk::Vector{T},bk1
     for i = 1:n
         @inbounds bk1[i] = 0.
         @inbounds bk2[i] = 0.
+        @inbounds bk[i] = 0.                
     end
 
     for k in  length(c):-1:2
@@ -119,13 +122,4 @@ function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},bk::Vector{T},bk1
     end
     
     bk
-    
-#     ## Hack to corect the fact bk_v keeps changing    
-#     for i in 1 : n
-#         bk_v[i] = ce + .5 * x_v[i] * bk1_v[i] - bk2_v[i]
-#     end
-#     
-# 
-#      j = mod(length(c), 3)
-#     j == 0 ? bk1 : j == 1 ? bk : bk2
 end

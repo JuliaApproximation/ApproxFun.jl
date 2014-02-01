@@ -77,7 +77,25 @@ Fun2D(f::Fun2D,d1::IntervalDomain,d2::IntervalDomain)=Fun2D(map(g->Fun(g.coeffic
 
 domain(f::Fun2D,k::Integer)=k==1? first(f.A).domain : first(f.B).domain
 
+function values(f::Fun2D)
+    xm=mapreduce(length,max,f.A)
+    ym=mapreduce(length,max,f.B)    
+    ret=zeros(xm,ym)
+    for k=1:length(f.A)
+        ret+=values(pad(f.A[k],xm))*values(pad(f.B[k],ym))'
+    end
+    ret
+end
 
+function points(f::Fun2D,k::Integer)
+    if k==1
+        xm=mapreduce(length,max,f.A)
+        points(first(f.A).domain,xm)
+    else
+        ym=mapreduce(length,max,f.B)
+        points(first(f.B).domain,ym)
+    end
+end
 
 
 
@@ -87,11 +105,10 @@ function evaluate(f::Fun2D,::Colon,y::Real)
     m = maximum(map(length,f.A))
     r=rank(f)
     ret = zeros(m)
-    ret_v = unsafe_view(ret)
     
     for k=1:r
         for j=1:length(f.A[k])
-            ret_v[j] += f.A[k].coefficients[j]*f.B[k][y]
+            @inbounds ret[j] += f.A[k].coefficients[j]*f.B[k][y]
         end
     end
     

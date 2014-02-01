@@ -1,12 +1,16 @@
-#The following samples the spectral density of an n = 4 Gaussian Unitary Ensemble):
+using ApproxFun
 
-	f = Fun(x->(9+72x.^2-192x.^4+512x.^6).*exp(-4x.^2),[-4,4])
-	x = sample(f,40000)
-		
-		
-# The PDF compared to the samples
+#The following samples eigenvalues of an n = 2 Gaussian Unitary Ensemble:
 
-    plot(f/sum(f));PyPlot.plt.hist(x,100,normed=true)
+ff=(x,y)->(x-y).^2.*exp(-x.^2/2-y.^2/2);
+f=Fun2D(ff,[-4.,4.],[-4.,4.]);
+r=sample(f,5000)
+
+
+#We can compare the histogram to the 1-point correlation
+
+plot(sum(f,1)/sum(f));PyPlot.plt.hist(vcat(r...),-4.:.1:4.,normed=true);
+		
 	
 #We can compare the histograms of x with the GUE:
 

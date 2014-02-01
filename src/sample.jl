@@ -157,7 +157,7 @@ function sample{T<:Interval}(f::Fun2D{IFun{Float64,T}},n::Integer)
     AB=CB*fA
     normalizedcumsum!(AB)
     rx=bisectioninv(AB,rand(n))  
-  [rx ry]
+  [fromcanonical(domain(f,1),rx) ry]
 end
 
 sample(f::Fun2D)=sample(f,1)[1,:]
