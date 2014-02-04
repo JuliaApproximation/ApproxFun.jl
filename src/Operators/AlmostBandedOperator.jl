@@ -277,7 +277,7 @@ adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Vector{V},tol::Float64) = adap
 function adaptiveqr!{V<:Number,T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Vector{V},tol::Float64)  ##TODO complex V, real T
     
 
-    u=[v,zeros(T,100)]
+    u=[v,zeros(T,100)]::Vector{T}
     
     l = length(v) + 100  
     resizedata!(B,l)
@@ -289,7 +289,7 @@ function adaptiveqr!{V<:Number,T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M
     ##TODO: we can allow early convergence
     while norm(u[j:j+b-1]) > tol  || j <= length(v)
         if j + b == l
-            u = [u,zeros(l)]      
+            u = [u,zeros(T,l)]::Vector{T}
             l *= 2
             resizedata!(B,l)
         end
