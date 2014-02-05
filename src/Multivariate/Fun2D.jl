@@ -82,7 +82,27 @@ function values(f::Fun2D)
     ym=mapreduce(length,max,f.B)    
     ret=zeros(xm,ym)
     for k=1:length(f.A)
-        ret+=values(pad(f.A[k],xm))*values(pad(f.B[k],ym))'
+        ret+=values(pad(f.A[k],xm))*values(pad(f.B[k],ym)).'
+    end
+    ret
+end
+
+function coefficients(f::Fun2D)
+    xm=mapreduce(length,max,f.A)
+    ym=mapreduce(length,max,f.B)    
+    ret=zeros(xm,ym)
+    for k=1:length(f.A)
+        ret+=pad(f.A[k].coefficients,xm)*pad(f.B[k].coefficients,ym).'
+    end
+    ret
+end
+
+function coefficients(f::Fun2D,n::Integer,m::Integer)
+    xm=mapreduce(length,max,f.A)
+    ym=mapreduce(length,max,f.B)    
+    ret=zeros(xm,ym)
+    for k=1:length(f.A)
+        ret+=pad(coefficients(f.A[k],n),xm)*pad(coefficients(f.B[k],m),ym).'
     end
     ret
 end
@@ -129,6 +149,6 @@ integrate(g::Fun2D,n::Integer)=(n==1)?Fun2D(map(integrate,g.A),copy(g.B)):Fun2D(
 for op = (:*,:.*,:./,:/)
     @eval ($op){T<:IFun}(A::Array{T,1},c::Number)=map(f->($op)(f,c),A)
     @eval ($op)(f::Fun2D,c::Number) = Fun2D(($op)(f.A,c),f.B)
+    @eval ($op)(c::Number,f::Fun2D) = Fun2D(($op)(c,f.A),f.B)
 end 
-
 

@@ -34,6 +34,27 @@ function pad(f::Vector,n::Integer)
 	end
 end
 
+function pad{T}(A::Array{T},n::Integer,m::Integer)
+	if n <= size(A,1) && m <= size(A,2)
+        A[1:n,1:m]
+	else
+        ret = zeros(T,n,m)
+        
+        if n <= size(A,1)
+            ret[1:n,1:size(A,2)] = A[1:n,:]
+        elseif m <= size(A,2)
+            ret[1:size(A,1),1:m] = A[:,1:m]
+        else
+            ret[1:size(A,1),1:size(A,2)]=A
+        end
+        
+        ret
+	end
+end
+
+
+
+
 #TODO:padleft!
 
 function padleft(f::Vector,n::Integer)
@@ -90,6 +111,8 @@ include("Domains/Line.jl")
 include("Domains/Circle.jl")
 
 include("Plotting/IFunPlot.jl")
+
+include("PDE/pdesolve.jl")
 
 
 end #module
