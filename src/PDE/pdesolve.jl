@@ -100,7 +100,7 @@ function constrained_lyap(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
     bcerr = norm(X11 - X11a);
 
     if bcerr>tol
-       warning("Boundary conditions differ by %s", bcerr);
+       warn("Boundary conditions differ by " * string(bcerr));
     end
     
 
@@ -126,10 +126,17 @@ function pdesolve(Bxin,Byin,Lin,Min,Fin,n)
     
     Lx=Xop[1][1:n-2,1:n];Ly=Yop[1][1:n-2,1:n]
     Mx=Xop[2][1:n-2,1:n];My=Yop[2][1:n-2,1:n]    
-    F=pad(coefficients(Fin,Xsp,Ysp),n-2,n-2)
-    X=constrained_lyap({Bx Gx; By Gy},{Lx,Ly},{Mx,My},F);
+    
+    if typeof(Fin)<:Fun2D
+        F=pad(coefficients(Fin,Xsp,Ysp),n-2,n-2)
+    elseif typeof(Fin) <:Number
+        F=zeros(n-2,n-2)
+        F[1,1]=Fin
+    end
+    
+    X=constrained_lyap({Bx Gx; By Gy},{Lx,Ly},{Mx,My},F)
 
-    U,Σ,V=svd(X);
+    U,Σ,V=svd(X)
 
 
     A=IFun[IFun(U[:,k].*sqrt(Σ[k])) for k=1:size(X,2)]
