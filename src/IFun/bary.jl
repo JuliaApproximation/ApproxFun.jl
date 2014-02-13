@@ -2,32 +2,29 @@
 
 export bary,barysum
 
-function bary(v::Vector{Float64},pt::Vector{Float64},x::Float64)
+function bary(v::Vector{Float64},pts::Vector{Float64},x::Float64)
   n=length(v)  
-  @assert n == length(pt)
-  vv = unsafe_view(v)
-  
-  pts = unsafe_view(pt)
+  @assert n == length(pts)
   
   
   retd = .5/(x-pts[1])
   retn = v[1]*retd
   
   for i = 2:2:n-1
-    cd = 1./(x-pts[i])
+    @inbounds cd = 1./(x-pts[i])
     retd -= cd
-    retn -= vv[i]*cd
+    @inbounds retn -= v[i]*cd
   end
   
   for i = 3:2:n-1
-    cd = 1./(x-pts[i])    
+    @inbounds cd = 1./(x-pts[i])    
     retd += cd
-    retn += vv[i]*cd
+    @inbounds retn += v[i]*cd
   end
 
   cd = .5*(-1.)^(n-1)/(x-pts[n])  
   retd += cd
-  retn += vv[n]*cd
+  retn += v[n]*cd
   
   retn/retd
 end
