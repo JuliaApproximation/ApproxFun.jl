@@ -50,6 +50,8 @@ end
 -(f::IFun,A::BandedOperator)=MultiplicationOperator(f)-A
 +(c::Number,A::BandedOperator)=MultiplicationOperator(c)+A
 +(A::BandedOperator,c::Number)=A+MultiplicationOperator(c)
+-(c::Number,A::BandedOperator)=MultiplicationOperator(c)-A
+-(A::BandedOperator,c::Number)=A-MultiplicationOperator(c)
 
 
 type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}

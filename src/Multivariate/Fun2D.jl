@@ -13,12 +13,25 @@ type Fun2D{T<:AbstractFun,M<:AbstractFun}
   
   function Fun2D(A::Vector{T},B::Vector{M})
     @assert length(A) == length(B)
+    @assert length(A) > 0
     new(A,B)
   end
 end
 
 Fun2D{T<:AbstractFun,M<:AbstractFun}(A::Vector{T},B::Vector{M})=Fun2D{T,M}(A,B)
 
+
+Fun2D{T<:Number}(A::Array{T})=Fun2D(A,Interval(),Interval())
+function Fun2D{T<:Number}(X::Array{T},dx::IntervalDomain,dy::IntervalDomain)
+    U,Σ,V=svd(X)
+    m=max(1,count(s->s>10eps(),Σ))
+    
+
+    A=IFun[IFun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
+    B=IFun[IFun(V[:,k].*sqrt(Σ[k]),dy) for k=1:m]
+
+    Fun2D(A,B)
+end
 
 
 findapproxmax(f::Function,dx::Domain,dy::Domain)=findapproxmax(f,dx,dy, 20, 20)

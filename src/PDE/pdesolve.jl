@@ -5,6 +5,19 @@ include("lyap.jl")
 
 toarray{T<:RowOperator}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 toarray{T<:IFun}(B::Array{T},n)=Float64[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n];
+function toarray(B::Any,n)
+    ret = zeros(length(B),n)
+    
+    for k=1:length(B), j=1:n
+        if  typeof(B[k]) <: IFun
+            ret[k,j] = j<=length(B[k])?B[k].coefficients[j]:0 
+        elseif typeof(B[k]) <: Number && j == 1
+            ret[k,j] = B[k]
+        end
+    end
+
+    ret
+end
 
 
 function nonsingular_permute(B)
@@ -98,14 +111,29 @@ end
 
 
 
+function pdesolve(Bxin,Byin,Lin,Min,Fin::Number,n)
+    F=zeros(n-2,n-2)
+    F[1,1]=Fin
+    
+    pdesolve(Bxin,Byin,Lin,Min,F,n)
+end
 
-function pdesolve(Bxin,Byin,Lin,Min,Fin,n)
-
+function pdesolve(Bxin,Byin,Lin,Min,Fin::Fun2D,n)
     Xop=promotespaces([Lin[1],Min[1]])
     Yop=promotespaces([Lin[2],Min[2]])
     
     Xsp=rangespace(Xop[1])
     Ysp=rangespace(Yop[1])    
+    
+    F=pad(coefficients(Fin,Xsp,Ysp),n-2,n-2)
+    pdesolve(Bxin,Byin,Lin,Min,F,n)
+end
+
+function pdesolve(Bxin,Byin,Lin,Min,F::Array,n)
+
+    Xop=promotespaces([Lin[1],Min[1]])
+    Yop=promotespaces([Lin[2],Min[2]])
+
     
     Bx=toarray(Bxin[1],n);By=toarray(Byin[1],n)
     Gx=toarray(Bxin[2],n);Gy=toarray(Byin[2],n)    
@@ -113,21 +141,7 @@ function pdesolve(Bxin,Byin,Lin,Min,Fin,n)
     Lx=Xop[1][1:n-2,1:n];Ly=Yop[1][1:n-2,1:n]
     Mx=Xop[2][1:n-2,1:n];My=Yop[2][1:n-2,1:n]    
     
-    if typeof(Fin)<:Fun2D
-        F=pad(coefficients(Fin,Xsp,Ysp),n-2,n-2)
-    elseif typeof(Fin) <:Number
-        F=zeros(n-2,n-2)
-        F[1,1]=Fin
-    end
     
-    X=constrained_lyap({Bx Gx; By Gy},{Lx,Ly},{Mx,My},F)
-
-    U,Σ,V=svd(X)
-    m=count(s->s>10eps(),Σ)
-
-    A=IFun[IFun(U[:,k].*sqrt(Σ[k])) for k=1:m]
-    B=IFun[IFun(V[:,k].*sqrt(Σ[k])) for k=1:m]
-
-    Fun2D(A,B)
+    Fun2D(constrained_lyap({Bx Gx; By Gy},{Lx,Ly},{Mx,My},F))
 end
 
