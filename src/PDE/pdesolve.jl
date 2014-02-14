@@ -112,7 +112,7 @@ end
 
 
 function pdesolve(Bxin,Byin,Lin,Min,Fin::Number,n)
-    F=zeros(n-2,n-2)
+    F=zeros(n-length(Bxin[1]),n-length(Byin[1]))
     F[1,1]=Fin
     
     pdesolve(Bxin,Byin,Lin,Min,F,n)
@@ -138,8 +138,10 @@ function pdesolve(Bxin,Byin,Lin,Min,F::Array,n)
     Bx=toarray(Bxin[1],n);By=toarray(Byin[1],n)
     Gx=toarray(Bxin[2],n);Gy=toarray(Byin[2],n)    
     
-    Lx=Xop[1][1:n-2,1:n];Ly=Yop[1][1:n-2,1:n]
-    Mx=Xop[2][1:n-2,1:n];My=Yop[2][1:n-2,1:n]    
+    nbcx=length(Bxin[1]);nbcy=length(Byin[1]);
+    
+    Lx=Xop[1][1:n-nbcx,1:n];Ly=Yop[1][1:n-nbcy,1:n]
+    Mx=Xop[2][1:n-nbcx,1:n];My=Yop[2][1:n-nbcy,1:n]    
     
     
     Fun2D(constrained_lyap({Bx Gx; By Gy},{Lx,Ly},{Mx,My},F))
