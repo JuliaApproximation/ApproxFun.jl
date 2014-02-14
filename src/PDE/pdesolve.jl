@@ -1,5 +1,8 @@
 export pdesolve
 
+include("lyap.jl")
+
+
 toarray{T<:RowOperator}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 toarray{T<:IFun}(B::Array{T},n)=Float64[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n];
 
@@ -51,35 +54,18 @@ end
 
 
 
-function lyapdiag!(A::Vector,B::Vector,F)
-    for i=1:size(F,1),j=1:size(F,2)
-        F[i,j] *= 1./(A[i]+B[j])
-    end
-    
-    F
-end
 
-function lyap(A,B,F)
-  Λ,V=eig(A)
-  Ω,W=eig(B)
-    
-    F=inv(V)*F*W
-    
-    Y=lyapdiag!(Λ,Ω,F)
-    
-    V*Y*inv(W)
-end
 
 
 
 constrained_lyap(B,L,M,F)=constrained_lyap(B[1,1],B[1,2],B[2,1],B[2,2],L[1],L[2],M[1],M[2],F)
 
 function constrained_lyap(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
-     Rx,Gx,Lx,Mx,Px=regularize_bcs(Bx,Gx,Lx,Mx);
-    Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,Ly,My);
+     Rx,Gx,Lx,Mx,Px=regularize_bcs(Bx,Gx,Lx,Mx)
+    Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,Ly,My)
 
-    Lx,F = reduce_dofs(Rx,Gx,Lx,Ly,F);
-    Mx,F = reduce_dofs(Rx,Gx,Mx,My,F);
+    Lx,F = reduce_dofs(Rx,Gx,Lx,Ly,F)
+    Mx,F = reduce_dofs(Rx,Gx,Mx,My,F)
     Ly,F = reduce_dofs(Rx,Gx,Ly,Lx,F.');    F = F.';
     My,F = reduce_dofs(Rx,Gx,My,Mx,F.');    F = F.';       
 
@@ -87,7 +73,7 @@ function constrained_lyap(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
     A=Lx[:,Kx+1:end];B=Ly[:,Ky+1:end];
     C=Mx[:,Kx+1:end];D=My[:,Ky+1:end];
 
-    X22=lyap(C\A,(B\D).',inv(C)*F*inv(B).');
+    X22=lyap(C\A,(B\D).',inv(C)*F*inv(B).')
 
 
     X12 = Gx[:,Ky+1:end] - Rx[:,Kx+1:end]*X22;
@@ -137,10 +123,10 @@ function pdesolve(Bxin,Byin,Lin,Min,Fin,n)
     X=constrained_lyap({Bx Gx; By Gy},{Lx,Ly},{Mx,My},F)
 
     U,Σ,V=svd(X)
+    m=count(s->s>10eps(),Σ)
 
-
-    A=IFun[IFun(U[:,k].*sqrt(Σ[k])) for k=1:size(X,2)]
-    B=IFun[IFun(V[:,k].*sqrt(Σ[k])) for k=1:size(X,1)]
+    A=IFun[IFun(U[:,k].*sqrt(Σ[k])) for k=1:m]
+    B=IFun[IFun(V[:,k].*sqrt(Σ[k])) for k=1:m]
 
     Fun2D(A,B)
 end
