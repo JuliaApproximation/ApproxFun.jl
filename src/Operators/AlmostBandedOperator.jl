@@ -57,8 +57,8 @@ function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
 end
 
 
-index(B::MutableAlmostBandedOperator)=index(B.op)
-numbcs(B::MutableAlmostBandedOperator)=length(B.bc)
+index(B::MutableAlmostBandedOperator)=index(B.op)::Int
+numbcs(B::MutableAlmostBandedOperator)=length(B.bc)::Int
 
 # for bandrange, we save room for changed entries during Givens
 bandrange(B::MutableAlmostBandedOperator)=B.bandrange
@@ -94,31 +94,32 @@ function fillgetindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::In
     
     if k <= nbc
         for m=1:nbc
-            bcv = B.bc[m][j]     
+            @inbounds bcv = B.bc[m][j]    
             ret += B.bcfilldata[k,m]*bcv
         end
     else
         for m=1:nbc
-            bcv = B.bc[m][j]
-            ret += B.filldata[k-nbc,m]*bcv
+            @inbounds bcv = B.bc[m][j]
+            @inbounds fd=B.filldata[k-nbc,m]::T
+            ret += fd*bcv
         end    
     end
     
-    ret
+    ret::T
 end
 
-function datagetindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
-    nbc = numbcs(B)::Integer
+function datagetindex{T,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::Integer,j::Integer)  
+    nbc = numbcs(B)
     if k <= nbc
-        B.bcdata[k,j] 
+        B.bcdata[k,j]::T
     else
-        B.data[k-nbc,j-k+nbc]
+        B.data[k-nbc,j-k+nbc]::T
     end
 end
 
 function Base.getindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
     ir = indexrange(B,k)::Range1{Int64}
-    nbc = numbcs(B)::Integer
+    nbc = numbcs(B)
     
     if k <= nbc
         if j <= ir[end]
@@ -190,7 +191,9 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::V
         return B;
     end    
     
-    sq=sqrt(a*a + b*b)    
+
+    
+    sq=sqrt(abs2(a) + abs2(b))    
     a=a/sq;b=b/sq
     
     v[k1],v[k2] = a*v[k1] + b*v[k2],-b*v[k1] + a*v[k2]    
@@ -238,7 +241,7 @@ givensreduce!(B::MutableAlmostBandedOperator,v::Vector,j::Integer)=givensreduce!
 
 function backsubstitution!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},u)
     n=length(u)
-    b=bandrange(B)[end]::Integer
+    b=bandrange(B)[end]::Int
     nbc = numbcs(B)
     
     

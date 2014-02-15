@@ -37,25 +37,29 @@ Base.getindex(op::EvaluationOperator,k::Integer)=op[k:k][1]
 
 
 ##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex(op::EvaluationOperator,k::Range1)
+function Base.getindex{D,T}(op::EvaluationOperator{D,T},k::Range1)
    tol = 200.*eps()
     x = op.x
     d = op.domain
 
+    ret = 0.
+    
     if abs(x-d.a) < tol && op.order ==0
-        -(-1.).^k  ##TODO: speed up
+        ret=-(-1.).^k  ##TODO: speed up
     elseif  abs(x-d.b) < tol && op.order ==0
-        ones(size(k)[1])
+        ret=ones(size(k)[1])
     elseif  abs(x-d.a) < tol && op.order ==1
-        (k-1).*(k-1).*(-1.).^k*2/(d.b-d.a) 
+        ret=(k-1).*(k-1).*(-1.).^k*2/(d.b-d.a) 
     elseif  abs(x-d.b) < tol && op.order ==1
-        (k-1).*(k-1)*2/(d.b-d.a) 
+        ret=(k-1).*(k-1)*2/(d.b-d.a) 
     elseif op.order == 0
         
-        evaluatechebyshev(k[end],tocanonical(d,x))[k]
+        ret=evaluatechebyshev(k[end],tocanonical(d,x))[k]
     else
         error("Only first and zero order implemented")
     end
+    
+    ret
 end
 
 
