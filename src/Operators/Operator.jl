@@ -61,7 +61,29 @@ end
 ultraiconversion(g::Vector,m::Integer)=(m==0)? g : backsubstitution!(MutableAlmostBandedOperator(Operator[ConversionOperator(0:m)]),copy(g))
 ultraconversion(g::Vector,m::Integer)=(m==0)? g : ConversionOperator(0:m)*g
 
-*(A::BandedBelowOperator,b::Vector)= A[1:length(b)-bandrange(A)[1],1:length(b)]*b
+function *{T<:Number}(A::BandedOperator,b::Vector{T})
+    n=length(b)
+    m=n-bandrange(A)[1]
+    ret = zeros(T,m)
+    BA = BandedArray(A,1:m)
+    
+    for k=1:n - bandrange(A)[end]
+        for j=indexrange(BA,k)
+            ret[k] += BA[k,j]*b[j] 
+        end
+    end
+    
+    for k=n-bandrange(A)[end]+1:m
+        for j=indexrange(BA,k)[1]: m
+            ret[k] += BA[k,j]*b[j]             
+        end
+    end
+
+    ret
+end
+
+
+
 *(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A)),rangespace(A)),b.domain)
 
 *(A::RowOperator,b::Vector)=dot(A[1:length(b)],b)
