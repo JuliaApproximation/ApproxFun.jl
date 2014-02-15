@@ -74,7 +74,7 @@ function *{T<:Number}(A::BandedOperator,b::Vector{T})
     end
     
     for k=n-bandrange(A)[end]+1:m
-        for j=indexrange(BA,k)[1]: m
+        for j=indexrange(BA,k)[1]:n
             ret[k] += BA[k,j]*b[j]             
         end
     end
