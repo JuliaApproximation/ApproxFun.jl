@@ -101,22 +101,17 @@ function zerocfsIFun(f::Function,d::Domain)
 
     tol = 200*eps();
 
-    oldcf = IFun(f,d,2 + 1);
-
-    for logn = 2:20
+    for logn = 4:20
         cf = IFun(f, d, 2^logn + 1);
         
-        if max(abs(cf.coefficients[end]),abs(cf.coefficients[end-1]),maximum(abs(cf.coefficients[1:2^(logn-1) + 1] - oldcf.coefficients))) < tol
-            chop!(cf,10eps());
-            return cf;
+        if maximum(abs(cf.coefficients[end-8:end])) < tol*maximum(abs(cf.coefficients[1:8]))
+            return chop!(cf,10eps()*maximum(abs(cf.coefficients)))
         end
-        
-        oldcf = cf;
     end
     
-    warn("Maximum length reached");
+    warn("Maximum length reached")
     
-    oldcf
+    cf
 end
 
 

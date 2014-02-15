@@ -288,7 +288,7 @@ function adaptiveqr!{V<:Number,T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M
     
     j=1
     b=-bandrange(B)[1]
-    
+    ##TODO: can fail if bandrange is too large
     ##TODO: we can allow early convergence
     while norm(u[j:j+b-1]) > tol  || j <= length(v)
         if j + b == l
