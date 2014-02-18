@@ -191,7 +191,28 @@ end
 
 
 
-##TODO: Root finding
+## Root finding
 
-##TODO: Sampling
+function complexroots{T<:Number}(coefficients::ShiftVector{T})
+    c=chop(coefficients.vector,10eps())
+    n=length(c)-1
+    A=zeros(T,n,n)
+    A[:,end]=c[1:end-1]/c[end]
+    for k=2:n
+        A[k,k-1]=1.
+    end
+    eigvals(A)
+end
+
+complexroots(f::FFun)=fromcanonical(f,tocanonical(Circle(),complexroots(f.coefficients)))
+
+
+function roots(f::FFun)
+    irts=filter!(x->abs(abs(x)-1)<=100.eps(),complexroots(f.coefficients))
+    if length(irts)==0
+        Complex{Float64}[]
+    else
+        fromcanonical(f,tocanonical(Circle(),irts))
+    end
+end
 

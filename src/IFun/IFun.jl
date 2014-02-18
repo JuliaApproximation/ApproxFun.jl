@@ -327,12 +327,9 @@ function complexroots(cin::Vector)
         I = [ones(Int64,n),2:n-1,2:n];
         J=[1:n,3:n,1:n-1];
         V = [-c[end-1]/(2c[end]),.5-c[end-2]/(2c[end]),-c[end-3:-1:1]/(2c[end]),.5*ones(n-2),.5*ones(n-2),1];
-        C=sparse(I,J,V);
-        A=zeros(n,n);
-        A[1:end,1:end]=C[1:end,1:end];
+        A=full(sparse(I,J,V));
         
-        Λ,V=eig(A);
-        return Λ    
+        return eigvals(A)
     end
 end
 
