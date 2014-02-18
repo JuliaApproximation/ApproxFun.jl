@@ -10,7 +10,7 @@ end
 
 DerivativeOperator(k::Integer,d::IntervalDomain)=DerivativeOperator(k-1:k,d)
 
-function addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)
+function addentries!{T<:Interval}(D::DerivativeOperator{T},A::ShiftArray,kr::Range1)
     @assert D.order[1] == 0  ##TODO other orders
 
     
