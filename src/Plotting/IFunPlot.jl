@@ -2,6 +2,7 @@
 
 using PyPlot
 
+export complexplot
 
 function plot(f::IFun{Float64}) 
     pf = pad(f,3length(f))
@@ -15,6 +16,22 @@ function plot(f::IFun{Complex{Float64}})
 
     PyPlot.plot(pts,real(vals))
     PyPlot.plot(pts,imag(vals),color="red")
+end
+
+function complexplot(f::IFun{Complex{Float64}}) 
+    pf = pad(f,4length(f))
+    vals =values(pf)
+
+    PyPlot.plot(real(vals),imag(vals))
+    PyPlot.arrow(real(vals[end-1]),imag(vals[end-1]),real(vals[end]-vals[end-1]),imag(vals[end]-vals[end-1]),width=.01,edgecolor="white")    
+end
+
+function complexplot(f::FFun{Complex{Float64}}) 
+    pts = [points(f),first(points(f))]
+    vals =[values(f),first(values(f))]
+
+    PyPlot.plot(real(vals),imag(vals))
+    PyPlot.arrow(real(vals[end-1]),imag(vals[end-1]),real(vals[end]-vals[end-1]),imag(vals[end]-vals[end-1]),width=.01,edgecolor="white")    
 end
 
 
