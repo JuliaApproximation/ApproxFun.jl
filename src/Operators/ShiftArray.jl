@@ -28,6 +28,27 @@ columnrange(A::ShiftArray)=(1:size(A,2))-A.colindex
 rowrange(A::ShiftArray)=(1:size(A,1))-A.rowindex
 
 *(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.colindex,S.rowindex)
+*(x::Number,S::ShiftArray)=ShiftArray(x*S.data,S.colindex,S.rowindex)
+.*(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.colindex,S.rowindex)
+.*(x::Number,S::ShiftArray)=ShiftArray(x*S.data,S.colindex,S.rowindex)
+
+
+function +{T<:Number}(A::ShiftArray{T},B::ShiftArray{T})
+    @assert size(A,1) == size(B,1)
+    @assert A.rowindex == B.rowindex
+    
+    cmin=min(columnrange(A)[1],columnrange(A)[1])
+    cmax=min(columnrange(A)[end],columnrange(A)[end])    
+    cind=1-cmin
+    
+    ret=zeros(T,size(A,1),cmax-cmin+1)
+    
+    ret[:,columnrange(A)+cind]=A.data
+    ret[:,columnrange(B)+cind]+=B.data
+    
+    ShiftArray(ret,cind,A.rowindex)
+end
+
 
 function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer,m::Integer)
     olddata = S.data
