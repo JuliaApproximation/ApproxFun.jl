@@ -96,8 +96,23 @@ end
 
 
 
-\{T<:Operator}(A::Vector{T},b::Vector,tol::Float64)=IFun(adaptiveqr(A,b,tol),domain([A,b]))
-\{T<:Operator}(A::Vector{T},b::Vector)=IFun(adaptiveqr(A,b),domain([A,b]))
+function \{T<:Operator}(A::Vector{T},b::Vector,tol::Float64)
+    d=domain([A,b])
+    u=adaptiveqr(A,b,tol)
+    
+    d != Any ? 
+        IFun(u,d) :
+        u
+end
+
+function \{T<:Operator}(A::Vector{T},b::Vector)
+    d=domain([A,b])
+    u=adaptiveqr(A,b)
+    
+    d != Any ? 
+        IFun(u,d) :
+        u
+end
 \(A::Operator,b::Vector)=[A]\b
 \(A::Operator,b::IFun)=[A]\[b]
 

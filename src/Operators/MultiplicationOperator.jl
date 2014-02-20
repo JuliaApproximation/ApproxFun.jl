@@ -8,7 +8,7 @@ type MultiplicationOperator{T<:Number,D<:IntervalDomain} <: BandedOperator{T}
 end
 
 
-MultiplicationOperator(c::Number,k::Int)=ToeplitzOperator([1.c])
+MultiplicationOperator(c::Number,k::Int)=ToeplitzOperator([.5c])
 MultiplicationOperator(f)=MultiplicationOperator(f,0)
 
 
