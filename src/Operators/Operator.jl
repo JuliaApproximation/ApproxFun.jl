@@ -107,6 +107,8 @@ include("ShiftArray.jl")
 
 
 include("ToeplitzOperator.jl")
+include("MultiplicationOperator.jl")
+
 include("EvaluationOperator.jl")
 include("ConversionOperator.jl")
 include("DerivativeOperator.jl")
