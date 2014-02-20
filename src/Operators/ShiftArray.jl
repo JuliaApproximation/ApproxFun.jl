@@ -100,7 +100,7 @@ end
 
 BandedArray(S::ShiftArray)=BandedArray(S,rowrange(S)[end]+columnrange(S)[end])
 BandedArray(B::BandedOperator,k::Range1)=BandedArray(ShiftArray(B,k,bandrange(B)))
-
+BandedArray(B::BandedOperator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
 
 
 Base.size(B::BandedArray)=(rowrange(B.data)[end],B.colsize)
@@ -122,7 +122,7 @@ end
 
 rowrange(B::BandedArray)=rowrange(B.data)
 columnindexrange(B::BandedArray,j::Integer)=max(1,j-bandrange(B)[end]):min((j-bandrange(B)[1]),B.colsize)
-columnrange(B::BandedArray)=columnindexrange(B,rowrange(B)[1])[1]:columnindexrange(B,rowrange(B)[end])[end]
+columnrange(B::BandedArray)=columnindexrange(B,rowrange(B)[1])[1]:B.colsize
 
 
 function Base.sparse{T<:Number}(B::BandedArray{T})

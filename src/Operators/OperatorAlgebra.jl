@@ -120,7 +120,7 @@ function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
     BA=BandedArray(P.ops[end],krl[end])
     
     for m=(length(P.ops)-1):-1:1
-      BA=BandedArray(P.ops[m],krl[m])*BA
+      BA=BandedArray(P.ops[m],krl[m],krl[m+1][end])*BA
     end
     
     for k=kr,j=columnrange(BA.data)

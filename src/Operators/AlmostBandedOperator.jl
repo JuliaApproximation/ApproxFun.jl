@@ -231,9 +231,13 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::V
 end
 
 function givensreduce!(B::MutableAlmostBandedOperator,v::Vector,k1::Range1,j1::Integer)
-  for k=k1[2]:k1[end]
-    givensreduce!(B,v,k1[1],k,j1)
-  end
+    if length(k1)>1
+        for k=k1[2]:k1[end]
+            givensreduce!(B,v,k1[1],k,j1)
+        end
+    else
+        B 
+    end
 end
 
 givensreduce!(B::MutableAlmostBandedOperator,v::Vector,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)

@@ -50,7 +50,7 @@ Base.getindex(op::InfiniteOperator,k::Range1,j::Integer)=op[k,j:j][:,1]
 
 
 function Base.getindex(B::BandedOperator,k::Range1,j::Range1)
-    BandedArray(B,k)[k,j]
+    BandedArray(B,k,j[end])[k,j]
 end
 
 
