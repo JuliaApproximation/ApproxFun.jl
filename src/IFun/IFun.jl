@@ -264,6 +264,16 @@ end
 
 ./(f::IFun,g::IFun)=f.*(1./g)
 
+function .^(f::IFun,k::Integer)
+    if k == 0
+        1.
+    elseif k > 0
+        f.*f.^(k-1)
+    else
+        f./f.^(k+1)
+    end
+end
+
 
 ##Coefficient space operators
 

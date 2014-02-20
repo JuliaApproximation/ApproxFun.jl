@@ -58,3 +58,15 @@ A=[B,D+1im*w];
 u = A\[0.,f];
 abs(u[1.]exp(1im*w)-u[-1.]exp(-1im*w)-(-0.18575766879136255 + 0.17863980562549928im ))<eps()
 
+
+
+## Bessel
+
+d=Interval()
+D=diff(d)
+x=Fun(identity,d)
+A=x.^2*D^2+x*D+x.^2;
+u=[start(d),A]\[besselj(0,d.a),0.];
+@assert abs(u[0.1]-besselj(0.,0.1))<10eps()
+
+
