@@ -112,7 +112,7 @@ function zerocfsIFun(f::Function,d::Domain)
     
     warn("Maximum length reached")
     
-    cf
+    IFun(f,d,2^21 + 1)
 end
 
 
