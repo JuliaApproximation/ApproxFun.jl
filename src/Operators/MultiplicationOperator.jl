@@ -1,6 +1,20 @@
 export MultiplicationOperator
 
 
+type ConstantOperator{T<:Number} <: BandedOperator{T}
+    c::T
+    
+    space::Int
+end
+
+domainspace(M::ConstantOperator)=M.space
+rangespace(M::ConstantOperator)=M.space
+
+bandrange(T::ConstantOperator)=0:0
+
+addentries!(C::ConstantOperator,A::ShiftArray,kr::Range1)=toeplitz_addentries!([.5C.c],A,kr)
+
+
 type MultiplicationOperator{T<:Number,D<:IntervalDomain} <: BandedOperator{T}
     f::IFun{T,D}
     
@@ -8,7 +22,7 @@ type MultiplicationOperator{T<:Number,D<:IntervalDomain} <: BandedOperator{T}
 end
 
 
-MultiplicationOperator(c::Number,k::Int)=ToeplitzOperator([.5c])
+MultiplicationOperator(c::Number,k::Int)=ConstantOperator(c,k)
 MultiplicationOperator(f)=MultiplicationOperator(f,0)
 
 
@@ -47,15 +61,15 @@ function usmultiplication_addentries!(λ::Integer,a::Vector,A::ShiftArray,kr::Ra
     end
 
     if length(a) > 1
-        jkr=kr[1]:kr[end]+length(a)-2
-        J=BandedArray(ShiftArray(zeros(length(jkr),3),2),length(jkr))
+        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+        J=BandedArray(ShiftArray(zeros(length(jkr),3),2,1-jkr[1]),jkr)
         usjacobi_addentries!(λ,J.data,jkr)
     
         C1=2λ*J;
     
         shiftarray_const_addentries!(C1.data,a[2],A,kr)
 
-        C0=BandedArray(ShiftArray(ones(length(jkr),1),1),length(jkr))
+        C0=BandedArray(ShiftArray(ones(length(jkr),1),1,1-jkr[1]),jkr)
     
         for k=1:length(a)-2    
             C1,C0=2(k+λ)./(k+1)*J*C1-(k+2λ-1)./(k+1).*C0,C1
