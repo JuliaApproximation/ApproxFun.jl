@@ -90,7 +90,7 @@ end
 
 function fillgetindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::Integer,j::Integer)
     nbc = numbcs(B)
-    ret = 0.
+    ret = zero(T)
     
     if k <= nbc
         for m=1:nbc
