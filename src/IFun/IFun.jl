@@ -85,6 +85,7 @@ IFun(f::Function)=IFun(f,Interval())
 IFun(f::Function,d::Vector)=IFun(f,apply(Interval,d))
 
 IFun(f::IFun,d)=IFun(f.coefficients,d)
+IFun(f::IFun)=IFun(f.coefficients)
 
 ## Adaptive constructors
 

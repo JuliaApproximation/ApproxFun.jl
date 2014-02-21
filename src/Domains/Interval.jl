@@ -48,20 +48,13 @@ Base.length(d::Interval) = d.b - d.a
 
 
 # diff T -> U, then convert U -> T
-function Base.diff{T<:Number,M<:Interval}(f::IFun{T,M})
+Base.diff{T<:Number,M<:Interval}(f::IFun{T,M})=tocanonicalD(f.domain,0)*IFun(ultraiconversion(ultradiff(f.coefficients)),f.domain)
+integrate{T<:Number,M<:Interval}(f::IFun{T,M})=fromcanonicalD(f.domain,0)*IFun(ultraint(ultraconversion(f.coefficients)),f.domain)    
 
-    # TODO: Will need to change code for other domains
-    @assert typeof(f.domain) <: Interval
-    
-    tocanonicalD(f.domain,0)*IFun(ultraiconversion(ultradiff(f.coefficients)),f.domain)
+
+Base.diff{T<:Number,M<:IntervalDomain}(f::IFun{T,M})=IFun(x->tocanonicalD(f.domain,x),f.domain).*IFun(diff(IFun(f)),f.domain)
+
+function Base.diff(f::IFun,k::Integer)
+    @assert k >= 0
+    (k==0)?f:diff(diff(f),k-1)
 end
-
-function integrate{T<:Number,M<:Interval}(f::IFun{T,M})
-    # TODO: Will need to change code for other domains
-    @assert typeof(f.domain) <: Interval
-    
-    fromcanonicalD(f.domain,0)*IFun(ultraint(ultraconversion(f.coefficients)),f.domain)    
-end
-
-
-    
