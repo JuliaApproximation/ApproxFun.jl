@@ -40,7 +40,7 @@ end
 #TODO: Pad
 
 function plot(f::FFun) 
-    pts = [points(f),f.domain.b]
+    pts = [points(f),first(points(f))]
     vals =[values(f),first(values(f))]
 
     PyPlot.plot(pts,real(vals))
