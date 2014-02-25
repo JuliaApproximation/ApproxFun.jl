@@ -20,3 +20,12 @@ X=MultiplicationOperator(x)
 @assert norm(X*f-(x.*f)) < 100eps()
 
 @assert norm(ConversionOperator(0:2)*X*f.coefficients-coefficients(x.*f,2)) < 100eps()
+
+
+## Special functions
+
+x=Fun(identity);
+@assert norm(cos(x)-Fun(cos))<10eps()
+@assert norm(sin(x)-Fun(sin))<10eps()
+@assert norm(exp(x)-Fun(exp))<10eps()
+@assert norm(sin(x)./x-Fun(x->sinc(x/π)))<10eps()

@@ -23,6 +23,11 @@ Base.convert{D<:Interval}(::Type{D},i::Vector)=Interval(i)
 Interval(a::Number,b::Number) = Interval(promote(a,b)...)
 
 
+## Information
+
+Base.first(d::Interval)=d.a
+Base.last(d::Interval)=d.b
+
 
 
 ## Map interval

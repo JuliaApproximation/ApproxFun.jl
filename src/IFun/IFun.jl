@@ -16,7 +16,7 @@ function negateeven!(x)
     x
 end
 
-plan_chebyshevtransform(x)=FFTW.plan_r2r(x, FFTW.REDFT00)
+plan_chebyshevtransform(x)=length(x)==1?identity:FFTW.plan_r2r(x, FFTW.REDFT00)
 chebyshevtransform(x)=chebyshevtransform(x,plan_chebyshevtransform(x))
 function chebyshevtransform(x::Vector,plan::Function)
     if(length(x) == 1)
@@ -242,28 +242,6 @@ end
 
 
 
-
-# division by fun 
-
-for op = (:./,:/)
-    @eval begin
-        function ($op)(c::Number,f::IFun)
-            #TODO choose the length
-        
-            f2 = pad(f,2*length(f));
-            
-            f2 = IFun(chebyshevtransform(c/values(f2)),f.domain);
-            
-            if maximum(abs(f2.coefficients[end-1:end])) > 10*eps()
-                warn("Division has not converged, may be inaccurate")
-            end
-            
-            f2
-        end
-    end
-end
-
-./(f::IFun,g::IFun)=f.*(1./g)
 
 function .^(f::IFun,k::Integer)
     if k == 0

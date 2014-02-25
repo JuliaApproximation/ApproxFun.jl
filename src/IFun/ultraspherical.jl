@@ -3,7 +3,7 @@ export ultraconversion!,ultraint!
 ## Start of support for UFun
 
 # diff from T -> U
-ultradiff(v::Vector)=[1:length(v)-1].*v[2:end]
+ultradiff(v::Vector)=length(v)==1.?[0.]:([1:length(v)-1].*v[2:end])
 
 #int from U ->T
 ultraint(v::Vector)=[0,v./[1:length(v)]]
