@@ -110,9 +110,16 @@ include("Domains/Ray.jl")
 include("Domains/Line.jl")
 include("Domains/Circle.jl")
 
-include("Plotting/IFunPlot.jl")
+## Further extra features
+
+include("Singularities/SingFun.jl")
 
 include("PDE/pdesolve.jl")
+
+include("Plotting/IFunPlot.jl")
+
+
+
 
 
 end #module

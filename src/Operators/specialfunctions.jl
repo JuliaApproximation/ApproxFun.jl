@@ -1,6 +1,6 @@
 # division by fun 
 
-for op = (:./,:/)
+for op in (:./,:/)
     @eval begin
         ($op)(c::Union(Number,IFun),f::IFun)=MultiplicationOperator(f)\[c]
     end
@@ -17,11 +17,39 @@ function Base.exp(f::IFun)
 end
 
 
-for op = (:(Base.cos),:(Base.sin),:(Base.sqrt)
+for op in (:(Base.cos),:(Base.sin))
     @eval begin
         ($op)(f::IFun)=IFun(x->($op)(f[x]),f.domain)
     end
 end
+
+function Base.sqrt(f::IFun)
+    fc = IFun(f)
+    x=IFun(identity)
+
+    r = sort(roots(fc))
+    tol= 10eps()
+    
+    @assert length(r) <= 2
+    
+    if length(r) == 0
+        IFun(x->sqrt(f[x]),f.domain)
+    elseif length(r) == 1
+        @assert abs(abs(r[1])-1) < tol
+        
+        if abs(r[1]-1.) < tol
+            SingFun(IFun(sqrt(fc./(1-x)),f.domain),0,.5)
+        else
+            SingFun(IFun(sqrt(fc./(1+x)),f.domain),.5,0)        
+        end
+    else
+        @assert abs(r[1]+1) < tol
+        @assert abs(r[2]-1) < tol        
+    
+        SingFun(IFun(sqrt(fc./(1-x.^2)),f.domain),.5,.5)                
+    end
+end
+
 
 
 ## The following code will fail when xp and xm correspond to zeros of sin

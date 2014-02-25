@@ -4,6 +4,7 @@ using PyPlot
 
 export complexplot
 
+
 function plot(f::IFun{Float64}) 
     pf = pad(f,3length(f))
     PyPlot.plot(points(pf),values(pf))
@@ -52,3 +53,21 @@ end
 ##2D
 
 plot(f::Fun2D)=PyPlot.surf(points(f,1),points(f,2),values(f)')
+
+
+
+## SingFun
+
+function plot(f::SingFun) 
+    pf = pad(f,3length(f)+100)
+    
+    if f.α >= 0 && f.β >= 0
+        PyPlot.plot(points(pf),values(pf))
+    elseif f.α >= 0
+        PyPlot.plot(points(pf)[1:end-1],values(pf)[1:end-1])    
+    elseif f.β >= 0    
+        PyPlot.plot(points(pf)[2:end],values(pf)[2:end])    
+    else
+        PyPlot.plot(points(pf)[2:end-1],values(pf)[2:end-1])
+    end
+end
