@@ -1,10 +1,39 @@
 # division by fun 
 
+./(f::IFun,g::IFun)=MultiplicationOperator(g)\[f]
+
 for op in (:./,:/)
     @eval begin
-        ($op)(c::Union(Number,IFun),f::IFun)=MultiplicationOperator(f)\[c]
+        function ($op)(c::Number,f::IFun)
+            fc = IFun(f)
+            r = roots(fc)
+            x = IFun(identity)
+            
+            tol = 10eps()
+            
+            @assert length(r) <= 2
+            
+            if length(r) == 0
+                MultiplicationOperator(f)\[c]
+            elseif length(r) == 1
+                @assert abs(abs(r[1]) - 1.) < tol
+                
+                if sign(r[1]) < 0
+                    SingFun(IFun(c./(fc./(x+1)),f.domain),-1.,0.)
+                else
+                    SingFun(IFun(c./(fc./(1-x)),f.domain),0.,-1.)                
+                end 
+            else
+                @assert abs(r[1]+1) < tol
+                @assert abs(r[2]-1) < tol                        
+                
+                SingFun(IFun(c./(fc./(1-x.^2)),f.domain),-1.,-1.)                     
+            end
+        end
     end
 end
+
+
 
 
 ## We use \ as the IFun constructor might miss isolated features

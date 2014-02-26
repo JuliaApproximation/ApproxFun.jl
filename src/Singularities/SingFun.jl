@@ -19,7 +19,7 @@ evaluate(f::SingFun,x)=f.fun[x].*jacobiweight(f,x)
 values(f::SingFun)=values(f.fun).*jacobiweight(f,points(f))
 
 
-for op in (:tocanonical,:fromcanonical)
+for op in (:tocanonical,:fromcanonical,:fromcanonicalD,:tocanonicalD)
     @eval begin
         ($op)(f::SingFun,x)=($op)(f.fun,x)
     end
@@ -31,5 +31,38 @@ for op in (:(Base.length),:points)
     end
 end
 
+for op in (:*,:.*,:/,:./)
+    @eval begin
+        ($op)(f::SingFun,c::Number)=SingFun(($op)(f.fun,c),f.α,f.β)
+        ($op)(c::Number,f::SingFun)=SingFun(($op)(c,f.fun),f.α,f.β)        
+    end
+end
+
+.*(f::SingFun,g::SingFun)=SingFun(f.fun.*g.fun,f.α+g.α,f.β+g.β)
+./(f::SingFun,g::SingFun)=SingFun(f.fun./g.fun,f.α-g.α,f.β-g.β)
+
+for op in (:+,:-)
+    @eval begin
+        function ($op)(f::SingFun,g::SingFun)
+            @assert f.α==g.α
+            @assert f.β==g.β
+            SingFun(($op)(f.fun,g.fun),f.α,f.β)
+        end
+    end
+end
+
+
 
 pad(f::SingFun,n)=SingFun(pad(f.fun,n),f.α,f.β)
+
+
+## Calculus
+
+function Base.sum(f::SingFun)
+    ##TODO: generalize
+
+    @assert f.α==.5
+    @assert f.β==.5
+    fromcanonicalD(f,0.)*coefficients(f.fun,1)[1]*π/2
+end
+
