@@ -67,15 +67,15 @@ function Base.sqrt(f::IFun)
         @assert abs(abs(r[1])-1) < tol
         
         if abs(r[1]-1.) < tol
-            SingFun(IFun(sqrt(fc./(1-x)),f.domain),0,.5)
+            SingFun(IFun(sqrt(MultiplicationOperator(1-x)\fc),f.domain),0.,.5)
         else
-            SingFun(IFun(sqrt(fc./(1+x)),f.domain),.5,0)        
+            SingFun(IFun(sqrt(MultiplicationOperator(1+x)\fc),f.domain),.5,0.)        
         end
     else
         @assert abs(r[1]+1) < tol
         @assert abs(r[2]-1) < tol        
     
-        SingFun(IFun(sqrt(fc./(1-x.^2)),f.domain),.5,.5)                
+        SingFun(IFun(sqrt(MultiplicationOperator(1-x.^2)\fc),f.domain),.5,.5)                
     end
 end
 

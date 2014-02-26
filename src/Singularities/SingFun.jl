@@ -6,6 +6,8 @@ type SingFun{T<:IFun} <: AbstractFun
     β::Float64
 end
 
+SingFun(f::IFun)=SingFun(f,0.,0.)
+
 Base.getindex(f::SingFun,x)=evaluate(f,x)
 
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
@@ -40,6 +42,9 @@ end
 
 .*(f::SingFun,g::SingFun)=SingFun(f.fun.*g.fun,f.α+g.α,f.β+g.β)
 ./(f::SingFun,g::SingFun)=SingFun(f.fun./g.fun,f.α-g.α,f.β-g.β)
+./(f::SingFun,g::IFun)=f./SingFun(g)
+./(f::IFun,g::SingFun)=SIngFun(f)./g
+
 
 for op in (:+,:-)
     @eval begin

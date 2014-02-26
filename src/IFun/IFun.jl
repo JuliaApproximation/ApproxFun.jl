@@ -330,7 +330,11 @@ end
 
 
 function roots(f::IFun)
-    irts=map(real,filter!(x->abs(x)<=1.,filter!(isreal,complexroots(f.coefficients))))
+    irts=map(real,filter!(x->abs(x)<=1.+10eps(),filter!(isreal,complexroots(f.coefficients))))
+    
+    map!(x->x>1.?1.:x,irts)
+    map!(x->x<-1.?-1.:x,irts)
+        
     if length(irts)==0
         Float64[]
     else
