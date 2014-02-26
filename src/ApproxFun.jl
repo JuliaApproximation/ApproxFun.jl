@@ -9,6 +9,7 @@ export multiplybyx,IntervalDomain,fasttimes
 export bisectioninv, clenshaw
 export coefficients, integrate
 
+export domain
 
 
 abstract AbstractFun
@@ -102,6 +103,10 @@ Fun(x,d::IntervalDomain,n::Integer)=IFun(x,d,n)
 Fun(x,d::PeriodicDomain,n::Integer)=FFun(x,d,n)
 Fun(x,d::Vector,n::Integer)=IFun(x,d,n)
 
+
+## General routines
+
+domain(f::AbstractFun)=f.domain
 
 
 ## Other domains

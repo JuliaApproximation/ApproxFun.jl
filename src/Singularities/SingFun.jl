@@ -27,7 +27,7 @@ for op in (:tocanonical,:fromcanonical,:fromcanonicalD,:tocanonicalD)
     end
 end
 
-for op in (:(Base.length),:points)
+for op in (:(Base.length),:points,:domain)
     @eval begin
         ($op)(f::SingFun)=($op)(f.fun)        
     end
@@ -42,9 +42,13 @@ end
 
 .*(f::SingFun,g::SingFun)=SingFun(f.fun.*g.fun,f.α+g.α,f.β+g.β)
 ./(f::SingFun,g::SingFun)=SingFun(f.fun./g.fun,f.α-g.α,f.β-g.β)
-./(f::SingFun,g::IFun)=f./SingFun(g)
-./(f::IFun,g::SingFun)=SIngFun(f)./g
 
+for op in (:./,:.*)
+    @eval begin
+        ($op)(f::SingFun,g::IFun)=($op)(f,SingFun(g))
+        ($op)(f::IFun,g::SingFun)=($op)(SingFun(f),g)
+    end
+end
 
 for op in (:+,:-)
     @eval begin
