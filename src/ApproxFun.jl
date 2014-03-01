@@ -125,6 +125,23 @@ include("Plotting/IFunPlot.jl")
 
 
 
+function Interval(d::Vector)
+    @assert length(d) == 2
+    
+    if d[1] ==-Inf && d[2] == Inf
+        Line()
+    elseif d[2] == Inf
+        Ray(0,0)
+    elseif d[1] == -Inf
+        Ray(0,π)
+    else
+        Interval(d[1],d[2])
+    end
+end
+
+
+
+
 
 
 end #module

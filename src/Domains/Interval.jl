@@ -12,11 +12,6 @@ type Interval{T<:Number} <: IntervalDomain
 end
 
 Interval()=Interval(-1.,1.)
-function Interval(d::Vector)
-    @assert length(d) == 2
-    
-    Interval(d[1],d[2])
-end
 
 
 Base.convert{D<:Interval}(::Type{D},i::Vector)=Interval(i)
