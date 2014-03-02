@@ -36,7 +36,18 @@ end
 for op in (:*,:.*,:/,:./)
     @eval begin
         ($op)(f::SingFun,c::Number)=SingFun(($op)(f.fun,c),f.α,f.β)
+    end
+end
+
+for op in (:*,:.*)
+    @eval begin
         ($op)(c::Number,f::SingFun)=SingFun(($op)(c,f.fun),f.α,f.β)        
+    end
+end
+
+for op in (:/,:./)
+    @eval begin
+        ($op)(c::Number,f::SingFun)=SingFun(($op)(c,f.fun),-f.α,-f.β)        
     end
 end
 

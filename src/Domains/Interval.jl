@@ -58,3 +58,13 @@ function Base.diff(f::IFun,k::Integer)
     @assert k >= 0
     (k==0)?f:diff(diff(f),k-1)
 end
+
+##Coefficient space operators
+
+
+function multiplybyx{T<:Number,D<:Interval}(f::IFun{T,D})
+    a = f.domain.a
+    b = f.domain.b
+    g = IFun([0,1,.5*ones(length(f)-1)].*[0,f.coefficients]+[.5*f.coefficients[2:end],0,0],f.domain) #Gives multiplybyx on unit interval
+    (b-a)/2*g + (b+a)/2
+end

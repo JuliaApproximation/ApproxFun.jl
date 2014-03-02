@@ -254,16 +254,6 @@ function .^(f::IFun,k::Integer)
 end
 
 
-##Coefficient space operators
-
-
-function multiplybyx(f::IFun)
-    a = f.domain.a
-    b = f.domain.b
-    g = IFun([0,1,.5*ones(length(f)-1)].*[0,f.coefficients]+[.5*f.coefficients[2:end],0,0],f.domain) #Gives multiplybyx on unit interval
-    (b-a)/2*g + (b+a)/2
-end
-
 ## Norm
 
 import Base.norm
