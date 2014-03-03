@@ -61,6 +61,8 @@ end
 
 ##multiplybyx
 
+
+
 function multiplybyx{T<:Number,D<:Line}(f::IFun{T,D})
     ct=Fun(x->x.*cot(π*x/2),28)
     x=Fun(identity)

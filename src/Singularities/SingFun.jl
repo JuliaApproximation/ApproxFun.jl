@@ -6,6 +6,8 @@ type SingFun{T<:IFun} <: AbstractFun
     β::Float64
 end
 
+SingFun(f,a::Integer,b::Integer)=SingFun(f,1.a,1.b)
+
 SingFun(f::IFun)=SingFun(f,0.,0.)
 
 Base.getindex(f::SingFun,x)=evaluate(f,x)

@@ -279,9 +279,12 @@ end
 
 
 adaptiveqr(M,b)=adaptiveqr(M,b,eps())
-adaptiveqr{T<:Operator}(M::Vector{T},b::Vector,tol::Float64)=IFun(adaptiveqr(M,vcat(map(f-> typeof(f)<: IFun? coefficients(f,rangespace(M[end])) :  f,b)...),tol),domain([M,b]))
-adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Vector{V},tol::Float64) = adaptiveqr!(MutableAlmostBandedOperator(B),v,tol)  #May need to copy v in the future
-function adaptiveqr!{V<:Number,T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Vector{V},tol::Float64)  ##TODO complex V, real T
+adaptiveqr(M,b,tol)=adaptiveqr(M,b,tol,Inf)
+adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
+
+adaptiveqr{T<:Operator}(M::Vector{T},b::Vector,tol::Float64,N)=IFun(adaptiveqr(M,vcat(map(f-> typeof(f)<: IFun? coefficients(f,rangespace(M[end])) :  f,b)...),tol,N),domain([M,b]))
+adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Vector{V},tol::Float64,N) = adaptiveqr!(MutableAlmostBandedOperator(B),v,tol,N)  #May need to copy v in the future
+function adaptiveqr!{V<:Number,T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Vector{V},tol::Float64,N)  ##TODO complex V, real T
     
 
     u=[v,zeros(T,100)]::Vector{T}
@@ -294,7 +297,7 @@ function adaptiveqr!{V<:Number,T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M
     b=-bandrange(B)[1]
     ##TODO: can fail if bandrange is too large
     ##TODO: we can allow early convergence
-    while norm(u[j:j+b-1]) > tol  || j <= length(v)
+    while j <= N && (norm(u[j:j+b-1]) > tol  || j <= length(v))
         if j + b == l
             u = [u,zeros(T,l)]::Vector{T}
             l *= 2

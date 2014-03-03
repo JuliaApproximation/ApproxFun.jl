@@ -1,5 +1,5 @@
 export Operator,RowOperator,InfiniteOperator
-export bandrange
+export bandrange, linsolve
 
 
 
@@ -96,23 +96,16 @@ end
 
 
 
-function \{T<:Operator}(A::Vector{T},b::Vector,tol::Float64)
+function linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=eps(),maxlength=Inf)
     d=domain([A,b])
-    u=adaptiveqr(A,b,tol)
+    u=adaptiveqr(A,b,tolerance,maxlength)
     
     d != Any ? 
         IFun(u,d) :
         u
 end
 
-function \{T<:Operator}(A::Vector{T},b::Vector)
-    d=domain([A,b])
-    u=adaptiveqr(A,b)
-    
-    d != Any ? 
-        IFun(u,d) :
-        u
-end
+\{T<:Operator}(A::Vector{T},b::Vector)=linsolve(A,b)
 \(A::Operator,b::Vector)=[A]\b
 \(A::Operator,b::IFun)=[A]\[b]
 
