@@ -61,14 +61,20 @@ end
 
 ##multiplybyx
 
-
-
-function multiplybyx{T<:Number,D<:Line}(f::IFun{T,D})
+function identity_fun(d::Line)
     ct=Fun(x->x.*cot(π*x/2),28)
     x=Fun(identity)
     u=SingFun(ct./(1-x.^2),1.,1.)
-    IFun((x.*IFun(f)./u).fun./(1-x.^2),f.domain)
+    SingFun(IFun((x./u).fun,Line()),-1.,-1.)
 end
+
+
+# function multiplybyx{T<:Number,D<:Line}(f::IFun{T,D})
+#     ct=Fun(x->x.*cot(π*x/2),28)
+#     x=Fun(identity)
+#     u=SingFun(ct./(1-x.^2),1.,1.)
+#     IFun((x.*IFun(f)./u).fun./(1-x.^2),f.domain)
+# end
 
 
 ## sample

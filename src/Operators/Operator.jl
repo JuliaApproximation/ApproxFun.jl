@@ -38,7 +38,6 @@ function domain(P::Vector)
 end
 
 
-
 Base.size(::InfiniteOperator)=[Inf,Inf]
 Base.size(::RowOperator)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
 Base.size(op::Operator,k::Integer)=size(op)[k]

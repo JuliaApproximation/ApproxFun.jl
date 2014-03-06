@@ -61,6 +61,8 @@ end
 
 ##Coefficient space operators
 
+identity_fun(d::Interval)=Fun([.5*(d.b+d.a),.5*(d.b-d.a)],d)
+
 
 function multiplybyx{T<:Number,D<:Interval}(f::IFun{T,D})
     a = f.domain.a

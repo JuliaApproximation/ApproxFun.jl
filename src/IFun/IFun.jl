@@ -117,7 +117,9 @@ end
 
 
 function IFun(f::Function, d::Domain; method="zerocoefficients")
-    if method == "zerocoefficients"
+    if f==identity
+        identity_fun(d)
+    elseif method == "zerocoefficients"
         zerocfsIFun(f,d)
     else
         randomIFun(f,d)    

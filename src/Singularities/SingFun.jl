@@ -1,5 +1,8 @@
 export SingFun
 
+
+include("divide_singularity.jl") 
+
 type SingFun{T<:IFun} <: AbstractFun
     fun::T
     α::Float64
@@ -77,14 +80,42 @@ end
 
 pad(f::SingFun,n)=SingFun(pad(f.fun,n),f.α,f.β)
 
+## transform alpha, beta
+# We assume that the user knows whether this is possible
+#TODO: We also assume it is applied to "Schwartz data", but this can be fixed
+
+
+function increase_jacobi_parameter(s,f::SingFun)
+    if s == -1
+        SingFun(divide_singularity(s,f.fun),f.α+1,f.β)
+    elseif s == 1
+        SingFun(divide_singularity(s,f.fun),f.α,f.β+1)    
+    end
+end
+
+increase_jacobi_parameter(f::SingFun)=increase_jacobi_parameter(+1,increase_jacobi_parameter(-1,f))
+
+
+
 
 ## Calculus
 
 function Base.sum(f::SingFun)
     ##TODO: generalize
 
-    @assert f.α==.5
-    @assert f.β==.5
-    fromcanonicalD(f,0.)*coefficients(f.fun,1)[1]*π/2
+    if f.α==.5 && f.β==.5
+        fromcanonicalD(f,0.)*coefficients(f.fun,1)[1]*π/2
+    elseif f.α==0. && f.β==0.
+        sum(f.fun)
+    elseif f.α<0. && f.β<0.
+        #TODO: should be < -1.
+        sum(increase_jacobi_parameter(f))
+    elseif f.α < 0
+        sum(increase_jacobi_parameter(-1,f))
+    elseif  f.β < 0
+        sum(increase_jacobi_parameter(+1,f))    
+    else
+        error("sum not implemented for all Jacobi parameters")
+    end
 end
 
