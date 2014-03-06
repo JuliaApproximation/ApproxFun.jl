@@ -88,6 +88,9 @@ function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer,m::Integer)
     S
 end
 
+sazeros(T::DataType,n::Range1,m::Range1)=ShiftArray(zeros(length(n),length(m)),1-m[1],1-n[1])
+sazeros(n::Range1,m::Range1)=sazeros(Float64,n,m)
+
 
 
 ## Allows flexible row index ranges

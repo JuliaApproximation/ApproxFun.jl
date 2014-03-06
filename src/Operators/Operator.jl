@@ -122,9 +122,14 @@ include("DerivativeOperator.jl")
 include("IntegrationOperator.jl")
 
 include("AlmostBandedOperator.jl")
+include("adaptiveqr.jl")
+
+
 include("OperatorAlgebra.jl")
 
 include("specialfunctions.jl")
+
+include("TransposeOperator.jl")
 
 
 
