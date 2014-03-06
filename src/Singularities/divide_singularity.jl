@@ -44,4 +44,38 @@ end
 
 divide_singularity(s,v::Vector)=idirichlet_transform(s,dirichlet_divide_singularity(s,dirichlet_transform(s,v)))
 divide_singularity(s,f::IFun)=IFun(divide_singularity(s,f.coefficients),f.domain)
+divide_singularity(f::IFun)=divide_singularity(+1,divide_singularity(-1,f))
 
+
+
+
+## both left and right dirichlet_transform
+
+function dirichlet_transform{T<:Number}(v::Vector{T})
+    n=length(v)
+    w=zeros(T,n-2)
+    w[n-2]=v[n]
+    w[n-3]=v[n-1]    
+    for k=n-4:-1:1
+        @inbounds w[k]=v[k+2] + w[k+2] 
+    end
+    
+    w
+end
+
+
+
+function idirichlet_transform{T<:Number}(v::Vector{T})
+    n=length(v)
+    w=zeros(T,n+2)
+    w[1]=-v[1]
+    w[2]=-v[2]    
+    for k=3:n
+        @inbounds w[k]=v[k-2] - v[k] 
+    end
+    
+    w[n+1]=v[n-1]
+    w[n+2]=v[n]
+    
+    w
+end
