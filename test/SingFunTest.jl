@@ -12,6 +12,7 @@ u=sqrt(4-x.^2)/(2π)
 
 
 f=Fun(x->x.*cot(π*x/2))
+x=Fun(identity)
 u=SingFun(f./(1-x.^2),1.,1.)
 @assert abs(1./(.1.*cot(π*.1/2))-(1./u)[.1]) <10eps()
 
