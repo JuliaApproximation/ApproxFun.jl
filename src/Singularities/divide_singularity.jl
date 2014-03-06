@@ -27,6 +27,21 @@ function idirichlet_transform{T<:Number}(s,v::Vector{T})
     w
 end
 
+
+function dirichletrange_divide_singularity{T<:Number}(s,v::Vector{T})
+    n=length(v)
+    w=zeros(T,n)
+    w[n]=-2s*v[n]
+    
+    for k=n-1:-1:2
+        @inbounds w[k]=-2s*(v[k] - .5w[k+1])
+    end
+    
+    w[1]=-s*(v[1]-.5w[2])
+    
+    w    
+end
+
 function dirichlet_divide_singularity{T<:Number}(s,v::Vector{T})
     n=length(v)
     w=zeros(T,n-1)
@@ -42,9 +57,12 @@ function dirichlet_divide_singularity{T<:Number}(s,v::Vector{T})
     w    
 end
 
-divide_singularity(s,v::Vector)=idirichlet_transform(s,dirichlet_divide_singularity(s,dirichlet_transform(s,v)))
+#divide_singularity(s,v::Vector)=idirichlet_transform(s,dirichlet_divide_singularity(s,dirichlet_transform(s,v)))
+
+divide_singularity(s,v::Vector)=dirichletrange_divide_singularity(s,dirichlet_transform(s,v))
+#divide_singularity(s,v::Vector)=idirichlet_transform(s,dirichlet_transform(s,dirichletrange_divide_singularity(s,dirichlet_transform(s,v))))
 divide_singularity(s,f::IFun)=IFun(divide_singularity(s,f.coefficients),f.domain)
-divide_singularity(f::IFun)=divide_singularity(+1,divide_singularity(-1,f))
+
 
 
 
@@ -79,3 +97,24 @@ function idirichlet_transform{T<:Number}(v::Vector{T})
     
     w
 end
+
+
+
+function dirichletrange_divide_singularity{T<:Number}(v::Vector{T})
+    n=length(v)
+    w=zeros(T,n)
+    w[n]=-4v[n]
+    w[n-1]=-4v[n-1]
+    
+    for k=n-2:-1:2
+        @inbounds w[k]=-4*(v[k] - .25w[k+2])
+    end
+    
+    w[1]=-2(v[1]-.25w[3])
+    
+    w    
+end
+
+
+divide_singularity(v::Vector)=dirichletrange_divide_singularity(dirichlet_transform(v))
+divide_singularity(f::IFun)=IFun(divide_singularity(f.coefficients),f.domain)

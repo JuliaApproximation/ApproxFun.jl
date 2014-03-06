@@ -93,7 +93,7 @@ function increase_jacobi_parameter(s,f::SingFun)
     end
 end
 
-increase_jacobi_parameter(f::SingFun)=increase_jacobi_parameter(+1,increase_jacobi_parameter(-1,f))
+increase_jacobi_parameter(f::SingFun)=SingFun(divide_singularity(f.fun),f.α+1,f.β+1)    
 
 
 
