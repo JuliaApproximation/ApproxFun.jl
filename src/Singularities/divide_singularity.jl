@@ -72,10 +72,13 @@ divide_singularity(s,f::IFun)=IFun(divide_singularity(s,f.coefficients),f.domain
 function dirichlet_transform{T<:Number}(v::Vector{T})
     n=length(v)
     w=zeros(T,n-2)
-    w[n-2]=v[n]
-    w[n-3]=v[n-1]    
-    for k=n-4:-1:1
-        @inbounds w[k]=v[k+2] + w[k+2] 
+
+    for k=n-2:-1:1
+        @inbounds w[k]=v[k+2] 
+        
+        if k <= n-4
+            @inbounds w[k] += w[k+2] 
+        end
     end
     
     w
