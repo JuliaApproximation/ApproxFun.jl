@@ -24,12 +24,22 @@ Line()=Line(0.,0.)
 
 ##TODO non-1 alpha,beta
 function tocanonical(d::Line,x)
-    @assert α==β==-1.
-    .5(sqrt(1+4x.^2) - 1)./x
+    @assert d.α==d.β==-1. || d.α==d.β==-.5
+
+    if d.α==d.β==-1.
+        .5(sqrt(1+4x.^2) - 1)./x
+    elseif d.α==d.β==-.5
+        x./sqrt(1+x.^2)
+    end
 end
 function tocanonicalD(d::Line,x)
-    @assert α==β==-1.
-    -.5((1+4x.^2).^(-.5) - 1)./x.^2
+    @assert d.α==d.β==-1. || d.α==d.β==-.5
+    
+    if d.α==d.β==-1.
+        -.5((1+4x.^2).^(-.5) - 1)./x.^2
+    elseif d.α==d.β==-.5
+        (1+x.^2).^(-3/2)
+    end    
 end
 fromcanonical(d::Line,x)=x.*(1+x).^d.α.*(1-x).^d.β
 fromcanonicalD(d::Line,x)=(1 - (d.β-d.α)x - (d.β+d.α+1)x.^2).*(1+x).^(d.α-1).*(1-x).^(d.β-1)
@@ -98,7 +108,7 @@ end
 
 
 function integrate{T<:Number}(f::IFun{T,Line})
-    @assert α==β==-1.
+    @assert f.domain.α==f.domain.β==-1.
     Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f),1))),f.domain)
 end
 
