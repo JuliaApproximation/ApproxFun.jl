@@ -10,20 +10,29 @@ export Line, PeriodicLine
 type Line <: IntervalDomain
     centre::Float64  ##TODO Allow complex
     angle::Float64
+    α::Float64
+    β::Float64    
     
-    Line(c,a)=(@assert c==a==0.; new(c,a))
+    Line(c,a,α,β)=(@assert c==a==0.; @assert α<0; @assert β<0; new(c,a,α,β))
 end
 
+Line(c,a)=Line(c,a,-1.,-1.)
 Line()=Line(0.,0.)
 
 ## Map interval
 
 
-
-tocanonical(d::Line,x)=2/π*atan(x)
-tocanonicalD(d::Line,x)=2./(π*(1+x.^2))
-fromcanonical(d::Line,x)=tan(.5π*x)
-fromcanonicalD(d::Line,x)=.5π*sec(.5π*x).^2
+##TODO non-1 alpha,beta
+function tocanonical(d::Line,x)
+    @assert α==β==-1.
+    .5(sqrt(1+4x.^2) - 1)./x
+end
+function tocanonicalD(d::Line,x)
+    @assert α==β==-1.
+    -.5((1+4x.^2).^(-.5) - 1)./x.^2
+end
+fromcanonical(d::Line,x)=x.*(1+x).^d.α.*(1-x).^d.β
+fromcanonicalD(d::Line,x)=(1 - (d.β-d.α)x - (d.β+d.α+1)x.^2).*(1+x).^(d.α-1).*(1-x).^(d.β-1)
 
 
 
@@ -31,7 +40,7 @@ Base.length(d::Line) = Inf
 
 
 
-==(d::Line,m::Line) = d.centre == m.centre && d.angle == m.angle
+==(d::Line,m::Line) = d.centre == m.centre && d.angle == m.angle && d.β == m.β &&d.α == m.α
 
 ##Integration
 
@@ -61,7 +70,7 @@ end
 
 # This takes a vector in dirichlet-neumann series on [-1,1]
 # and return coefficients in T series that satisfy
-# (1-x^2)u' = f
+# (1-x^2)^2 u' = f
 function uneumannrange_xsqd{T<:Number}(v::Vector{T})
     n = length(v)
     w=Array(T,n+1)
@@ -86,21 +95,23 @@ end
 #integration functions
 #integration is done by solving (1-x^2)^2 u' = (1-x^2)^2 M' f, u[-1] == 0
 
-x2sec(x::Number)=abs(x)==1.? -4./π : (x.^2-1).*sec(π/2.*x)
-x2sec(x::Vector)=map(x2sec,x)
 
 
-integrate{T<:Number}(f::IFun{T,Line})=Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(π/2*IFun(x->x2sec(x).^2,21).*Fun(f),1))),f.domain)
+function integrate{T<:Number}(f::IFun{T,Line})
+    @assert α==β==-1.
+    Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f),1))),f.domain)
+end
 
 
 
 ##multiplybyx
 
 function identity_fun(d::Line)
-    ct=Fun(x->x.*cot(π*x/2),28)
     x=Fun(identity)
-    u=SingFun(ct./(1-x.^2),1.,1.)
-    SingFun(IFun((x./u).fun,Line()),-1.,-1.)
+    a=1./(1-x).^d.α
+    b=1./(1+x).^d.β
+    sf=x.*a.*b
+    SingFun(Fun(sf.fun,d),sf.α,sf.β)
 end
 
 
