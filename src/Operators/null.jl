@@ -1,4 +1,4 @@
-function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer,n)
+function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
     a=datagetindex(B,k1,j1)
     b=datagetindex(B,k2,j1)
     
@@ -45,13 +45,15 @@ end
 
 
 
-function Base.null(A::BandedOperator)
+function Base.null{T<:Number}(A::BandedOperator{T})
     M=MutableAlmostBandedOperator([A'])
-    n=200  #TODO: change 200
+    n=100  
     resizedata!(M,n)
     m=bandrange(A)[end]
-    Q=Vector[eye(n,m)[:,k] for k=1:m]
-    
+    Q=Vector{T}[zeros(T,n) for j=1:m]
+    for j=1:m
+        Q[j][j]=one(T)
+    end
     
     ret=Q[1]
      
@@ -60,8 +62,17 @@ function Base.null(A::BandedOperator)
     while norm(M.data.data[k+1,:])>eps()
         k+=1
         
+        if k+m >= n
+            n=2n
+            resizedata!(M,2n)
+            
+            for j=1:m
+                Q[j]=[Q[j],zeros(T,n)]
+            end
+        end
+        
         for j=1:m-1
-            M,a,b=givensreduceab!(M,k,k+j,k,n)   
+            M,a,b=givensreduceab!(M,k,k+j,k)   
             Q[1],Q[1+j]=a*Q[1]+b*Q[1+j],-b*Q[1]+a*Q[1+j]
         end
         
@@ -71,9 +82,10 @@ function Base.null(A::BandedOperator)
             Q[j]=Q[j+1]
         end
         
-        M,a,b=givensreduceab!(M,k,k+m,k,n)   
+        M,a,b=givensreduceab!(M,k,k+m,k)   
         
-        Q[m] = -b*ret+a*eye(n)[:,k+m]
+        Q[m] = -b*ret
+        Q[m][k+m] += a
     end
     
     
