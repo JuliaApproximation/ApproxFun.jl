@@ -108,10 +108,10 @@ end
 
 
 function integrate{T<:Number}(f::IFun{T,Line})
-    @assert d.α==d.β==-1.
+    @assert f.domain.α==f.domain.β==-1.
     # || d.α==d.β==-.5
     
-    if d.α==d.β==-1.
+    if f.domain.α==f.domain.β==-1.
         Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f),1))),f.domain)
     end
 #     elseif d.α==d.β==-.5
@@ -121,6 +121,16 @@ function integrate{T<:Number}(f::IFun{T,Line})
 
 end
 
+for T in {Float64,Complex{Float64}}
+    function Base.sum(f::IFun{T,Line})
+        if f.domain.α==f.domain.β==-.5
+            sum(SingFun(divide_singularity(Fun(f)),-.5,-.5))
+        else
+            cf = integrate(f)
+            last(cf) - first(cf)
+        end
+    end
+end
 
 
 ##multiplybyx
