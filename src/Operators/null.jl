@@ -46,6 +46,14 @@ end
 #assume dimension of kernel is range space
 Base.null(A::BandedOperator)=null(A,rangespace(A))
 
+
+function applygivens!(Q,k,a,b)
+    for j=1:length(Q[1])
+        Q[1][j],Q[k][j]=a*Q[1][j]+b*Q[k][j],-b*Q[1][j]+a*Q[k][j]
+    end
+end
+
+
 #d is number of elements in the kernel
 function Base.null{T<:Number}(A::BandedOperator{T},d)
     M=MutableAlmostBandedOperator([A'])
@@ -74,12 +82,7 @@ function Base.null{T<:Number}(A::BandedOperator{T},d)
         end
         
         for j=1:m-1
-            a::T,b::T=givensreduceab!(M,k,k+j,k)   
-            
-            q1=Q[1]::Vector{T}
-            q2=Q[1+j]::Vector{T}
-            
-            Q[1],Q[1+j]=a*q1+b*q2,-b*q1+a*q2
+            applygivens!(Q,1+j,givensreduceab!(M,k,k+j,k)... )
         end
         
         ret=Q[1]
