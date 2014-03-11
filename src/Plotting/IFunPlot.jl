@@ -71,3 +71,12 @@ function plot(f::SingFun)
         PyPlot.plot(points(pf)[2:end-1],values(pf)[2:end-1])
     end
 end
+
+
+## ArrayFun
+
+function plot{T<:AbstractFun}(v::Vector{T})
+    for f in v
+        plot(f)
+    end
+end

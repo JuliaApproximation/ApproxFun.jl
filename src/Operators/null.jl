@@ -3,7 +3,7 @@ function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1
     b=datagetindex(B,k2,j1)
     
     if b == 0.
-        return B,1.,0.
+        return one(T),zero(T)
     end    
     
 
@@ -39,13 +39,15 @@ function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1
     end
     
 
-    B,a,b
+    a::T,b::T
 end
 
 
+#assume dimension of kernel is range space
+Base.null(A::BandedOperator)=null(A,rangespace(A))
 
-
-function Base.null{T<:Number}(A::BandedOperator{T})
+#d is number of elements in the kernel
+function Base.null{T<:Number}(A::BandedOperator{T},d)
     M=MutableAlmostBandedOperator([A'])
     n=100  
     resizedata!(M,n)
@@ -59,7 +61,7 @@ function Base.null{T<:Number}(A::BandedOperator{T})
      
     k=0
     
-    while norm(M.data.data[k+1,:])>eps()
+    while norm(M.data.data[k+1:k+d,:])>eps()
         k+=1
         
         if k+m >= n
@@ -72,8 +74,12 @@ function Base.null{T<:Number}(A::BandedOperator{T})
         end
         
         for j=1:m-1
-            M,a,b=givensreduceab!(M,k,k+j,k)   
-            Q[1],Q[1+j]=a*Q[1]+b*Q[1+j],-b*Q[1]+a*Q[1+j]
+            a::T,b::T=givensreduceab!(M,k,k+j,k)   
+            
+            q1=Q[1]::Vector{T}
+            q2=Q[1+j]::Vector{T}
+            
+            Q[1],Q[1+j]=a*q1+b*q2,-b*q1+a*q2
         end
         
         ret=Q[1]
@@ -82,13 +88,13 @@ function Base.null{T<:Number}(A::BandedOperator{T})
             Q[j]=Q[j+1]
         end
         
-        M,a,b=givensreduceab!(M,k,k+m,k)   
+        a,b=givensreduceab!(M,k,k+m,k)   
         
         Q[m] = -b*ret
         Q[m][k+m] += a
     end
     
     
-    Fun(Q[1][1:k],domain(A))
+    IFun[Fun(Q[j][1:k],domain(A)) for j=1:d]
 end
 
