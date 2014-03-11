@@ -131,6 +131,8 @@ include("specialfunctions.jl")
 
 include("TransposeOperator.jl")
 
+include("null.jl")
+
 
 
 ## Convenience routines
