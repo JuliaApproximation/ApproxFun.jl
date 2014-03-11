@@ -17,3 +17,7 @@ u=SingFun(f./(1-x.^2),1.,1.)
 @assert abs(1./(.1.*cot(π*.1/2))-(1./u)[.1]) <10eps()
 
 @assert abs((x./u)[.1]-tan(π*.1/2)) < 10eps()
+
+
+f=Fun(x->exp(-x.^2),Line(0.,0.,-.5,-.5),400)
+@assert abs(sum(f)-sqrt(π)) < 10eps()
