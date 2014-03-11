@@ -108,8 +108,17 @@ end
 
 
 function integrate{T<:Number}(f::IFun{T,Line})
-    @assert f.domain.α==f.domain.β==-1.
-    Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f),1))),f.domain)
+    @assert d.α==d.β==-1.
+    # || d.α==d.β==-.5
+    
+    if d.α==d.β==-1.
+        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f),1))),f.domain)
+    end
+#     elseif d.α==d.β==-.5
+#         u=divide_singularity(f)
+#             integrate(SingFun(Fun(u),-.5,-.5))
+#     end  
+
 end
 
 

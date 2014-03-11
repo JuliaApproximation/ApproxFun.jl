@@ -103,10 +103,12 @@ increase_jacobi_parameter(f::SingFun)=SingFun(divide_singularity(f.fun),f.α+1,f
 function Base.sum(f::SingFun)
     ##TODO: generalize
 
-    if f.α==.5 && f.β==.5
+    if f.α==f.β==.5
         fromcanonicalD(f,0.)*coefficients(f.fun,1)[1]*π/2
-    elseif f.α==0. && f.β==0.
+    elseif f.α==f.β==0.
         sum(f.fun)
+    elseif f.α==f.β==-.5
+        π*f.fun.coefficients[1]
     elseif f.α<0. && f.β<0.
         #TODO: should be < -1.
         sum(increase_jacobi_parameter(f))
@@ -119,3 +121,17 @@ function Base.sum(f::SingFun)
     end
 end
 
+
+
+function integrate(f::SingFun)    
+    if f.α==f.β==0.
+        SingFun(integrate(f.fun),0.,0.)
+    else
+        d=domain(f)
+            
+        @assert d==Interval()
+        @assert f.α==f.β==-.5
+    
+        SingFun(Fun(ultraiconversion(-f.fun.coefficients[2:end]./[1:length(f)-1])),.5,.5)
+    end
+end
