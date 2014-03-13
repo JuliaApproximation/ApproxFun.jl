@@ -2,11 +2,20 @@ export DerivativeOperator
 
 
 
-function derivative_addentries!(μ::Integer,d::Interval,A::ShiftArray,kr::Range1)
-    C=2.^(μ-1).*factorial(μ-1).*(2./(d.b-d.a)).^μ
-    
-    for k=kr
-        A[k,μ] += C*(μ+k-1)
+function derivative_addentries!(order::Range1,d::Interval,A::ShiftArray,kr::Range1)
+    m=length(order)-1
+
+
+    if order[1] == 0
+        C=2.^(m-1).*factorial(order[end]-1)*(2./(d.b-d.a)).^m    
+        for k=kr
+            A[k,m] += C*(order[end]+k-1)
+        end
+    else
+        C=2.^m.*factorial(order[end]-1)./factorial(order[1]-1)*(2./(d.b-d.a)).^m        
+        for k=kr        
+            A[k,m] += C
+        end
     end
     
     A
@@ -21,10 +30,8 @@ type USDerivativeOperator <: BandedOperator{Float64}
 end
 
 
-function addentries!(D::USDerivativeOperator,A::ShiftArray,kr::Range1)
-    @assert D.order[1] == 0  ##TODO other orders
-    derivative_addentries!(D.order[end],Interval(),A,kr)
-end
+addentries!(D::USDerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentries!(D.order,Interval(),A,kr)
+
 
 bandrange(D::USDerivativeOperator)=0:(length(D.order)-1)
 domainspace(M::USDerivativeOperator)=M.order[1]
@@ -59,10 +66,7 @@ DerivativeOperator(k::Integer,d::IntervalDomain)=DerivativeOperator(k-1:k,d)
 ## Operator Routine
 
 
-function addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)
-    @assert D.order[1] == 0  ##TODO other orders
-    derivative_addentries!(D.order[end],D.domain,A,kr)
-end
+addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentries!(D.order,D.domain,A,kr)
 
 
 

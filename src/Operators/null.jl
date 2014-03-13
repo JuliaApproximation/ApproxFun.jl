@@ -55,7 +55,7 @@ end
 
 
 #d is number of elements in the kernel
-function Base.null{T<:Number}(A::BandedOperator{T},d)
+function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
     M=MutableAlmostBandedOperator([A'])
     n=100  
     resizedata!(M,n)
