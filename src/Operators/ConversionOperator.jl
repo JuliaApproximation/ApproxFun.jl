@@ -114,6 +114,7 @@ function promotedomainspace{T<:BandedOperator}(ops::Vector{T})
     T[promotedomainspace(op,k) for op in ops]
 end
 
-promotespaces(ops)=promotedomainspace(promoterangespace(ops))
+promotespaces(ops::Vector)=promotedomainspace(promoterangespace(ops))
 
+promotespaces(op::BandedOperator,od::Range1)=promotedomainspace(promoterangespace(op,od[end]),od[1])
 

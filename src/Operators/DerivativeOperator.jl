@@ -88,6 +88,8 @@ end
 
 
 
+promotedomainspace(D::DerivativeOperator,k::Integer)=DerivativeOperator(D.order + k,D.domain)
+
 
 
 
