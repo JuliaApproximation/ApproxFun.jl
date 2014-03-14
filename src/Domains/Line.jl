@@ -23,6 +23,17 @@ Line()=Line(0.,0.)
 
 
 ##TODO non-1 alpha,beta
+
+function tocanonical(d::Line,x::Number)
+    @assert d.α==d.β==-1. || d.α==d.β==-.5
+    
+    if d.α==d.β==-1.
+        abs(x) < 10eps()?0.:.5(sqrt(1+4x.^2) - 1)./x
+    elseif d.α==d.β==-.5
+        x./sqrt(1+x.^2)
+    end
+end
+
 function tocanonical(d::Line,v::Vector)
     @assert d.α==d.β==-1. || d.α==d.β==-.5
     
