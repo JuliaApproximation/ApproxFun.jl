@@ -33,7 +33,7 @@ function evaluatechebyshev(n::Integer,x)
 end
 
 
-Base.getindex(op::EvaluationOperator,k::Integer)=op[k:k][1]
+
 
 
 ##TODO: the overloading as both vector and row vector may be confusing
@@ -60,16 +60,6 @@ function Base.getindex{D,T}(op::EvaluationOperator{D,T},k::Range1)
     end
     
     ret
-end
-
-
-function Base.getindex(op::EvaluationOperator,j::Range1,k::Range1)
-  @assert j[1]==1 && j[end]==1
-  op[k]' #TODO conjugate transpose?
-end
-function Base.getindex(op::EvaluationOperator,j::Integer,k::Range1)
-  @assert j==1
-  op[k]' #TODO conjugate transpose?
 end
 
 

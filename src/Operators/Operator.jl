@@ -54,6 +54,17 @@ end
 
 
 
+Base.getindex(op::RowOperator,k::Integer)=op[k:k][1]
+
+function Base.getindex(op::RowOperator,j::Range1,k::Range1)
+  @assert j[1]==1 && j[end]==1
+  op[k]' #TODO conjugate transpose?
+end
+function Base.getindex(op::RowOperator,j::Integer,k::Range1)
+  @assert j==1
+  op[k]' #TODO conjugate transpose?
+end
+
 ## Multiplication of operator * fun
 
 
@@ -130,6 +141,8 @@ include("OperatorAlgebra.jl")
 include("specialfunctions.jl")
 
 include("TransposeOperator.jl")
+include("StrideOperator.jl")
+
 
 include("null.jl")
 
