@@ -23,22 +23,36 @@ Line()=Line(0.,0.)
 
 
 ##TODO non-1 alpha,beta
-function tocanonical(d::Line,x)
-    @assert d.α==d.β==-1. || d.α==d.β==-.5
 
+function tocanonical(d::Line,x::Number)
+    @assert d.α==d.β==-1. || d.α==d.β==-.5
+    
     if d.α==d.β==-1.
-        .5(sqrt(1+4x.^2) - 1)./x
+        abs(x) < 10eps()?0.:.5(sqrt(1+4x.^2) - 1)./x
     elseif d.α==d.β==-.5
         x./sqrt(1+x.^2)
     end
 end
-function tocanonicalD(d::Line,x)
+
+function tocanonical(d::Line,v::Vector)
     @assert d.α==d.β==-1. || d.α==d.β==-.5
     
     if d.α==d.β==-1.
-        -.5((1+4x.^2).^(-.5) - 1)./x.^2
+        map(x->abs(x) < 10eps()?0.:.5(sqrt(1+4x.^2) - 1)./x,v)
     elseif d.α==d.β==-.5
-        (1+x.^2).^(-3/2)
+        v./sqrt(1+v.^2)
+    end
+end
+function tocanonicalD(d::Line,v::Vector)
+    @assert d.α==d.β==-1. || d.α==d.β==-.5
+    
+    if d.α==d.β==-1.
+        map(x->(abs(x) < 10eps()?
+            1.:
+            -.5((1+4x.^2).^(-.5) - 1)./x.^2
+        ),v)
+    elseif d.α==d.β==-.5
+        (1+v.^2).^(-3/2)
     end    
 end
 fromcanonical(d::Line,x)=x.*(1+x).^d.α.*(1-x).^d.β

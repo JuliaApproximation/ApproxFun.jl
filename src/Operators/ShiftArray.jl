@@ -112,10 +112,18 @@ Base.size(B::BandedArray)=(rowrange(B.data)[end],B.colrange[end])
 Base.size(B::BandedArray,k::Integer)=size(B)[k]
 
 bandrange(B::BandedArray)=columnrange(B.data)
-indexrange(B::BandedArray,k::Integer)=intersect(bandrange(B) + k,columnrange(B))
+function indexrange(B::BandedArray,k::Integer)
+    br=bandrange(B)
+    cr=columnrange(B)
+    max(br[1] + k,cr[1]):min(br[end]+k,cr[end])
+end
 
 rowrange(B::BandedArray)=rowrange(B.data)
-columnindexrange(B::BandedArray,j::Integer)=intersect(j-bandrange(B)[end]:j-bandrange(B)[1],rowrange(B))
+function columnindexrange(B::BandedArray,j::Integer)
+    br=bandrange(B)
+    rr=rowrange(B)
+    max(j-br[end],rr[1]):min(rr[end],j-br[1])
+end
 columnrange(B::BandedArray)=B.colrange
 
 
@@ -134,8 +142,8 @@ end
 
 Base.full(B::BandedArray)=full(sparse(B))
 
-function Base.getindex(B::BandedArray,k::Integer,j::Integer)
-    B.data[k,j-k]
+function Base.getindex{T<:Number}(B::BandedArray{T},k::Integer,j::Integer)
+    B.data[k,j-k]::T
 end
 
 Base.getindex(B::BandedArray,k::Range1,j::Range1)=sparse(B)[k,j]  ##TODO: Very slow
@@ -154,6 +162,31 @@ Base.setindex!(B::BandedArray,x,k::Integer,j::Integer)=(B.data[k,j-k]=x)
 # end
 
 
+
+function *{T<:Number}(A::BandedArray{T},B::BandedArray{T})
+    @assert columnrange(A) == rowrange(B)
+  
+    S = BandedArray(
+            ShiftArray(zeros(T,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
+                        A.data.colindex+B.data.colindex-1,
+                        A.data.rowindex),
+            B.colrange
+        );
+    
+    
+    for k=rowrange(S)
+        for j=indexrange(S,k)
+          for m=max(indexrange(A,k)[1],columnindexrange(B,j)[1]):min(indexrange(A,k)[end],columnindexrange(B,j)[end])
+                S[k,j] += A[k,m]*B[m,j]
+          end
+        end
+    end
+  
+    S
+end
+
+
+##TODO: Speed up: can't tell what type S is on compile time
 function *{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})
     typ = (T == Complex{Float64} || M == Complex{Float64}) ? Complex{Float64} : Float64
 
@@ -170,7 +203,9 @@ function *{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})
     for k=rowrange(S)
         for j=indexrange(S,k)
           for m=max(indexrange(A,k)[1],columnindexrange(B,j)[1]):min(indexrange(A,k)[end],columnindexrange(B,j)[end])
-                S[k,j] += A[k,m]*B[m,j]
+                a=A[k,m]::T
+                b=B[m,j]::M
+                S[k,j] += a*b
           end
         end
     end

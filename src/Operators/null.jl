@@ -55,11 +55,11 @@ end
 
 
 #d is number of elements in the kernel
-function Base.null{T<:Number}(A::BandedOperator{T},d)
+function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
     M=MutableAlmostBandedOperator([A'])
-    n=100  
-    resizedata!(M,n)
     m=bandrange(A)[end]
+    n=m+100  
+    resizedata!(M,n)
     Q=Vector{T}[zeros(T,n) for j=1:m]
     for j=1:m
         Q[j][j]=one(T)
@@ -69,7 +69,7 @@ function Base.null{T<:Number}(A::BandedOperator{T},d)
      
     k=0
     
-    while norm(M.data.data[k+1:k+d,:])>eps()
+    while norm(M.data.data[k+1:k+d,:])>eps()  && k <= maxit
         k+=1
         
         if k+m >= n

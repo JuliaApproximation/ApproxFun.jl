@@ -59,7 +59,9 @@ type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
     
     function TimesOperator{B}(ops::Vector{B})
         for k=1:length(ops)-1
-            @assert domainspace(ops[k])==rangespace(ops[k+1])
+            if domainspace(ops[k])!=rangespace(ops[k+1])
+                ops[k]=promotedomainspace(ops[k],rangespace(ops[k+1]))
+            end
         end
         
         new(ops)
