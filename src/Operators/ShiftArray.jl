@@ -17,6 +17,8 @@ function ShiftArray{T<:Number}(B::BandedOperator{T},k::Range1,j::Range1)
 end
 
 
+ShiftArray(B::BandedOperator,k::Range1)=ShiftArray(B,k,bandrange(B))
+
 
 Base.setindex!{T<:Number}(S::ShiftArray{T},x::T,k::Integer,j::Integer)=(S.data[k + S.rowindex, j + S.colindex] = x)
 
