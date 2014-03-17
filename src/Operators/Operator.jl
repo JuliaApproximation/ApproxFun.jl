@@ -161,3 +161,7 @@ neumann(d::IntervalDomain)=[EvaluationOperator(d,d.a,1),EvaluationOperator(d,d.b
 
 Base.start(d::IntervalDomain)=evaluate(d,d.a)
 Base.endof(d::IntervalDomain)=evaluate(d,d.b)
+
+## Conversion
+
+Base.convert{N<:Number}(A::Type{Operator},n::N)=ConstantOperator(1.n,0)
