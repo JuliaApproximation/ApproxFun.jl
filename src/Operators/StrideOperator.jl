@@ -42,6 +42,8 @@ function addentries!{T<:Number}(S::StrideOperator{T},A::ShiftArray,kr::Range1)
 end
 
 
+domain(S::StrideOperator)=domain(S.op)
+
 
 type StrideRowOperator{T<:Number,B<:RowOperator} <: RowOperator{T}
     op::B
