@@ -102,7 +102,12 @@ function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
 end
 
 
-Base.null{T<:BandedOperator}(A::Array{T,2},d)=null(interlace(A),d)
+function Base.null{T<:BandedOperator}(A::Array{T,2},d)
+    ret = null(interlace(A),d)
+    
+    [IFun(ret[1].coefficients[1:2:end],ret[1].domain) IFun(ret[2].coefficients[1:2:end],ret[1].domain);
+    IFun(ret[1].coefficients[2:2:end],ret[1].domain) IFun(ret[2].coefficients[2:2:end],ret[1].domain)]
+end
 
 function Base.null{T<:BandedOperator}(A::Array{T,2})
     d = 0
@@ -110,5 +115,5 @@ function Base.null{T<:BandedOperator}(A::Array{T,2})
         d += max(rangespace(A[k,1]),rangespace(A[k,2]))
     end
     
-    null(interlace(A),d)
+    null(A,d)
 end
