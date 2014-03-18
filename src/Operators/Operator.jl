@@ -115,7 +115,16 @@ function linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=eps(),maxlength=
         u
 end
 
+
+##Todo nxn operator
+function linsolve{T<:Operator}(A::Array{T,2},b)
+    ret=linsolve(interlace(A),b)
+    [IFun(ret.coefficients[1:2:end],ret.domain),
+    IFun(ret.coefficients[2:2:end],ret.domain)]
+end
+
 \{T<:Operator}(A::Vector{T},b::Vector)=linsolve(A,b)
+\{T<:Operator}(A::Array{T,2},b::Vector)=linsolve(A,b)
 \(A::Operator,b::Vector)=[A]\b
 \(A::Operator,b::IFun)=[A]\[b]
 

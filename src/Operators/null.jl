@@ -101,3 +101,14 @@ function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
     IFun[Fun(Q[j][1:k],domain(A)) for j=1:d]
 end
 
+
+Base.null{T<:BandedOperator}(A::Array{T,2},d)=null(interlace(A),d)
+
+function Base.null{T<:BandedOperator}(A::Array{T,2})
+    d = 0
+    for k=1:size(A,1)
+        d += max(rangespace(A[k,1]),rangespace(A[k,2]))
+    end
+    
+    null(interlace(A),d)
+end

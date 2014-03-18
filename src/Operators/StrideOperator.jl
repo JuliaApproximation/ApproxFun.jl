@@ -56,3 +56,49 @@ StrideRowOperator{T<:Number}(B::RowOperator{T},r,rs)=StrideRowOperator{T,typeof(
 
 Base.getindex{T<:Number}(op::StrideRowOperator{T},kr::Range1)=[((k-1)%op.stride==op.rowindex)?op.op[fld(k-1,op.stride)+1]:zero(T) for k=kr]
 
+
+
+##interlace block operators
+
+iszerooperator(A::ConstantOperator)=A.c==0.
+iszerooperator(A)=false
+function isboundaryrow(A,k)
+    for j=1:size(A,2)
+        if typeof(A[k,j]) <: RowOperator
+            return true
+        end
+    end
+        
+    return false
+end
+
+function interlace{T<:Operator}(A::Array{T,2})
+    for k=1:size(A,1)-2
+        @assert isboundaryrow(A,k) 
+    end
+    
+    S=Array(Operator,size(A,1)-1)
+    
+    for k=1:size(A,1)-2
+        if iszerooperator(A[k,2])
+            S[k] = StrideRowOperator(A[k,1],0,2)
+        else
+            S[k] = StrideRowOperator(A[k,2],1,2)
+        end
+    end
+
+    A31,A32=promotespaces([A[end-1,1],A[end-1,2]])
+    A41,A42=promotespaces([A[end,1],A[end,2]])
+
+    S[end] = StrideOperator(A31,0,0,2) + StrideOperator(A32,0,1,2) + 
+    StrideOperator(A41,1,-1,2) + StrideOperator(A42,1,0,2) 
+    
+    if(size(S,1) ==1)
+        S[1]
+    else
+        S
+    end
+end
+
+
+
