@@ -1,3 +1,5 @@
+using ApproxFun
+
 x=Fun(x->x);
 d=x.domain;
 D=diff(d);

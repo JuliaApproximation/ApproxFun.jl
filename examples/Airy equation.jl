@@ -1,3 +1,5 @@
+using ApproxFun
+
 #The following solves the Airy ODE with dirichlet boundary conditions
 
 	x=Fun(x->x,[-1000.,15.]);  # Fun corresponding to multiplication by x, on [-100,15]

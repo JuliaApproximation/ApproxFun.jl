@@ -1,3 +1,5 @@
+using ApproxFun
+
 function lanczos(w,N)
     x = Fun(identity,domain(w))
     P = Array(IFun,N + 1)
@@ -42,7 +44,9 @@ lmin = (1-sqrt(r))^2
 
 x= Fun(identity,[lmin,lmax])
 
-f=sqrt((lmax-x).*(x-lmin))./x
+w=sqrt((lmax-x).*(x-lmin))./(π*x)
+
+lanczos(w,5)
 
 
 # Wachter law
@@ -57,3 +61,5 @@ lmin = (c-d)^2
 x = Fun(identity,[lmin,lmax])
 
 w = (a+b) * sqrt((x-lmin).*(lmax-x))./(2π*x.*(1-x))
+
+lanczos(w,5)
