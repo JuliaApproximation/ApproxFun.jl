@@ -73,9 +73,7 @@ end
 ##TODO: the overloading as both vector and row vector may be confusing
 Base.getindex(op::BasisOperator,k::Integer)=(k==op.k)?1.:0.
 
-function Base.getindex(op::BasisOperator,k::Range1)
-    convert(Vector{Float64},k.==op.k)
-end
+Base.getindex(op::BasisOperator,k::Range1)=convert(Vector{Float64},k.==op.k)
 
 
 function Base.getindex(op::BasisOperator,j::Range1,k::Range1)

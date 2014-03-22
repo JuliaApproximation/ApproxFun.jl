@@ -54,6 +54,10 @@ end
 -(A::BandedOperator,c::Number)=A-MultiplicationOperator(c)
 
 
+
+## Times Operator
+
+
 type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
     ops::Vector{B}
     

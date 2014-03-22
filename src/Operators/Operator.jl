@@ -118,9 +118,9 @@ end
 
 ##Todo nxn operator
 function linsolve{T<:Operator}(A::Array{T,2},b)
-    ret=linsolve(interlace(A),b)
-    [IFun(ret.coefficients[1:2:end],ret.domain),
-    IFun(ret.coefficients[2:2:end],ret.domain)]
+    ret=adaptiveqr(interlace(A),b)
+    [IFun(ret[1:2:end],domain(A[:,1])),
+    IFun(ret[2:2:end],domain(A[:,2]))]
 end
 
 \{T<:Operator}(A::Vector{T},b::Vector)=linsolve(A,b)
@@ -146,6 +146,7 @@ include("adaptiveqr.jl")
 
 
 include("OperatorAlgebra.jl")
+include("RowOperatorAlgebra.jl")
 
 include("specialfunctions.jl")
 

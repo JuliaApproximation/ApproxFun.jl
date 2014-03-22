@@ -82,8 +82,10 @@ function interlace{T<:Operator}(A::Array{T,2})
     for k=1:size(A,1)-2
         if iszerooperator(A[k,2])
             S[k] = StrideRowOperator(A[k,1],0,2)
-        else
+        elseif iszerooperator(A[k,1])
             S[k] = StrideRowOperator(A[k,2],1,2)
+        else
+            S[k] = StrideRowOperator(A[k,1],0,2)+StrideRowOperator(A[k,2],1,2)
         end
     end
 
