@@ -22,12 +22,12 @@ FFun(f::Function,d::Vector)=FFun(f,apply(PeriodicInterval,d))
 function FFun(f::Function, d::Domain)
     #TODO: reuse function values
 
-    tol = 200*eps();
+    tol = 200*eps()
 
-    oldcf = FFun(f,d,2);
+    oldcf = FFun(f,d,2)
 
     for logn = 2:20
-        cf = FFun(f, d, 2^logn);
+        cf = FFun(f, d, 2^logn)
         
         if max(
             abs(last(cf.coefficients)),
@@ -67,7 +67,7 @@ function horner(v::ShiftVector,x)
     
     p = 1.;
     for k = 0:lastindex(v)
-        ret += v[k]*p;
+        ret .+= v[k]*p;
         p .*= ei;
     end
     p=ein;

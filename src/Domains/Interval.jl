@@ -29,9 +29,9 @@ Base.last(d::Interval)=d.b
 
 
 
-tocanonical(d::Interval,x)=(d.a + d.b - 2x)/(d.a - d.b)
+tocanonical(d::Interval,x)=(d.a + d.b .- 2x)/(d.a - d.b)
 tocanonicalD(d::Interval,x)=2/( d.b- d.a)
-fromcanonical(d::Interval,x)=.5*(d.a + d.b) + .5*(d.b - d.a)x
+fromcanonical(d::Interval,x)=.5*(d.a + d.b) .+ .5*(d.b - d.a)x
 fromcanonicalD(d::Interval,x)=.5*( d.b- d.a)
 
 

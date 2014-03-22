@@ -2,14 +2,14 @@ using ApproxFun
 
 
 
-ef = IFun(exp);
+ef = IFun(exp)
 
 
 @assert ef == -(-ef)
 @assert ef == (ef-1) + 1
 
 
-cf = IFun(cos); 
+cf = IFun(cos)
 
 ecf = IFun(x->cos(x).*exp(x))
 eocf = IFun(x->cos(x)./exp(x))
@@ -17,7 +17,7 @@ eocf = IFun(x->cos(x)./exp(x))
 @assert abs(ef[.5]-exp(.5))<100eps()
 @assert abs(ecf[.123456]-cos(.123456).*exp(.123456))<100eps()
 
-r=2.*rand(100)-1;
+r=2.*rand(100) .- 1
 
 @assert maximum(abs(ef[r]-exp(r)))<100eps()
 @assert maximum(abs(ecf[r]-cos(r).*exp(r)))<100eps()
@@ -50,15 +50,15 @@ r=2.*rand(100)-1;
 ##Check other domains
 
 
-ef = IFun(exp,[1,2]);
-cf = IFun(cos,[1,2]); 
+ef = IFun(exp,[1,2])
+cf = IFun(cos,[1,2])
 
 ecf = IFun(x->cos(x).*exp(x),[1,2])
 eocf = IFun(x->cos(x)./exp(x),[1,2])
 
 
-r=rand(100) + 1;
-x=1.5;
+r=rand(100) .+ 1
+x=1.5
 
 
 

@@ -1,8 +1,8 @@
 using ApproxFun
 
-c = rand(1000);
-x=rand(10000);
-f=Fun(c);
+c = rand(1000)
+x=rand(10000)
+f=Fun(c)
 
 @time y=f[x]
 # 0.012482274  with unsafe_view

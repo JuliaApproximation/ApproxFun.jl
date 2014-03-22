@@ -16,7 +16,7 @@ abstract AbstractFun
 
 
 ## Helper routines
-alternatingvector(n::Integer) = 2*mod([1:n],2)-1
+alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
 
 function pad!(f::Vector,n::Integer)
 	if (n > length(f))
