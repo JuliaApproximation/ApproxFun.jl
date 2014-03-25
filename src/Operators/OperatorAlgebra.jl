@@ -99,7 +99,7 @@ bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->b
 function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Range1)
     kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
 
-    Z = ShiftArray(zeros(T,length(kre),size(A,2)),A.colindex,1-kr[1])
+    Z = ShiftArray(zeros(T,length(kre),size(A,2)),1-kr[1],A.colindex)
     addentries!(P.ops[end],Z,kre)
     
     for j=length(P.ops)-1:-1:1
