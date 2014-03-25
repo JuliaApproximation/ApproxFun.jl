@@ -1,0 +1,95 @@
+export DerivativeOperator
+
+
+
+function derivative_addentries!(order::Range1,d::Interval,A::ShiftArray,kr::Range1)
+    m=length(order)-1
+
+
+    if order[1] == 0
+        C=2.^(m-1).*factorial(order[end]-1)*(2./(d.b-d.a)).^m    
+        for k=kr
+            A[k,m] += C*(order[end]+k-1)
+        end
+    else
+        C=2.^m.*factorial(order[end]-1)./factorial(order[1]-1)*(2./(d.b-d.a)).^m        
+        for k=kr        
+            A[k,m] += C
+        end
+    end
+    
+    A
+end
+
+
+
+## TODO: Unify Defs
+
+type USDerivativeOperator <: BandedOperator{Float64}
+    order::Range1{Int}
+end
+
+
+addentries!(D::USDerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentries!(D.order,Interval(),A,kr)
+
+
+bandrange(D::USDerivativeOperator)=0:(length(D.order)-1)
+domainspace(M::USDerivativeOperator)=M.order[1]
+rangespace(M::USDerivativeOperator)=M.order[end]
+
+
+## DerivativeOperator
+
+
+
+type DerivativeOperator{D<:Interval} <: BandedOperator{Float64}
+    order::Range1{Int}
+    domain::D
+end
+
+function DerivativeOperator(order::Range1,d::IntervalDomain)
+    @assert order[1] == 0 && order[end] <= 2  ##TODO other orders
+    
+    Mp = Fun(x->tocanonicalD(d,x),d)
+    
+    if order[end] == 1
+        Mp*USDerivativeOperator(0:1)
+    elseif order[end] == 2
+        (Mp.^2)*USDerivativeOperator(0:2) + diff(Mp)*USDerivativeOperator(0:1)
+    end
+end
+
+DerivativeOperator(k::Integer,d::IntervalDomain)=DerivativeOperator(k-1:k,d)
+
+
+
+## Operator Routine
+
+
+addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentries!(D.order,D.domain,A,kr)
+
+
+
+
+
+bandrange(D::DerivativeOperator)=0:(length(D.order)-1)
+domainspace(M::DerivativeOperator)=M.order[1]
+rangespace(M::DerivativeOperator)=M.order[end]
+domain(D::DerivativeOperator)=D.domain
+
+
+function *(D1::DerivativeOperator,D2::DerivativeOperator)
+    @assert D1.domain == D2.domain
+    
+    DerivativeOperator(D2.order[1]:D2.order[2]+length(D1.order)-1,D1.domain)
+end
+
+^(D1::DerivativeOperator,k::Integer)=DerivativeOperator(D1.order[1]:D1.order[1]+k*(length(D1.order)-1),D1.domain)
+
+
+
+promotedomainspace(D::DerivativeOperator,k::Integer)=DerivativeOperator(D.order + k,D.domain)
+
+
+
+

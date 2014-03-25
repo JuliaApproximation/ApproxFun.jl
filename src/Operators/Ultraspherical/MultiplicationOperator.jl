@@ -62,14 +62,14 @@ function usmultiplication_addentries!(λ::Integer,a::Vector,A::ShiftArray,kr::Ra
 
     if length(a) > 1
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
-        J=BandedArray(ShiftArray(zeros(length(jkr),3),2,1-jkr[1]),jkr)
+        J=BandedArray(ShiftArray(zeros(length(jkr),3),1-jkr[1],2),jkr)
         usjacobi_addentries!(λ,J.data,jkr)
     
         C1=2λ*J;
     
         shiftarray_const_addentries!(C1.data,a[2],A,kr)
 
-        C0=BandedArray(ShiftArray(ones(length(jkr),1),1,1-jkr[1]),jkr)
+        C0=BandedArray(ShiftArray(ones(length(jkr),1),1-jkr[1],1),jkr)
     
         for k=1:length(a)-2    
             C1,C0=2(k+λ)./(k+1)*J*C1-(k+2λ-1)./(k+1).*C0,C1

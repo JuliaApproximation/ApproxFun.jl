@@ -2,17 +2,17 @@ export ShiftArray,BandedArray
 
 type ShiftArray{T<:Number}
   data::Array{T,2}
+  rowindex::Int    
   colindex::Int
-  rowindex::Int  ##TODO: Change to row, col
 end
 
-ShiftArray(dat::Array,ind::Integer)=ShiftArray(dat,ind,0)
-ShiftArray(T::DataType,ind::Integer)=ShiftArray(Array(T,0,0),ind,0)
+ShiftArray(dat::Array,ind::Integer)=ShiftArray(dat,0,ind)
+ShiftArray(T::DataType,ind::Integer)=ShiftArray(Array(T,0,0),0,ind)
 ShiftArray(ind::Integer)=ShiftArray(Float64,ind)
 
 
 function ShiftArray{T<:Number}(B::BandedOperator{T},k::Range1,j::Range1)
-    A=ShiftArray(zeros(T,length(k),length(j)),1-j[1],1-k[1])
+    A=ShiftArray(zeros(T,length(k),length(j)),1-k[1],1-j[1])
     addentries!(B,A,k)
 end
 
@@ -29,10 +29,10 @@ Base.size(S::ShiftArray,k)=size(S.data,k)
 columnrange(A::ShiftArray)=(1:size(A,2))-A.colindex
 rowrange(A::ShiftArray)=(1:size(A,1))-A.rowindex
 
-*(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.colindex,S.rowindex)
-*(x::Number,S::ShiftArray)=ShiftArray(x*S.data,S.colindex,S.rowindex)
-.*(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.colindex,S.rowindex)
-.*(x::Number,S::ShiftArray)=ShiftArray(x*S.data,S.colindex,S.rowindex)
+*(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.rowindex,S.colindex)
+*(x::Number,S::ShiftArray)=ShiftArray(x*S.data,S.rowindex,S.colindex)
+.*(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.rowindex,S.colindex)
+.*(x::Number,S::ShiftArray)=ShiftArray(x*S.data,S.rowindex,S.colindex)
 
 
 
@@ -59,7 +59,7 @@ function +{T<:Number}(A::ShiftArray{T},B::ShiftArray{T})
     ret[:,columnrange(A)+cind]=A.data
     ret[:,columnrange(B)+cind]+=B.data
     
-    ShiftArray(ret,cind,A.rowindex)
+    ShiftArray(ret,A.rowindex,cind)
 end
 
 function -{T<:Number}(A::ShiftArray{T},B::ShiftArray{T})
@@ -75,7 +75,7 @@ function -{T<:Number}(A::ShiftArray{T},B::ShiftArray{T})
     ret[:,columnrange(A)+cind]=A.data
     ret[:,columnrange(B)+cind]-=B.data
     
-    ShiftArray(ret,cind,A.rowindex)
+    ShiftArray(ret,A.rowindex,cind)
 end
 
 
@@ -90,7 +90,7 @@ function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer,m::Integer)
     S
 end
 
-sazeros(T::DataType,n::Range1,m::Range1)=ShiftArray(zeros(length(n),length(m)),1-m[1],1-n[1])
+sazeros(T::DataType,n::Range1,m::Range1)=ShiftArray(zeros(length(n),length(m)),1-n[1],1-m[1])
 sazeros(n::Range1,m::Range1)=sazeros(Float64,n,m)
 
 
@@ -170,8 +170,8 @@ function *{T<:Number}(A::BandedArray{T},B::BandedArray{T})
   
     S = BandedArray(
             ShiftArray(zeros(T,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
-                        A.data.colindex+B.data.colindex-1,
-                        A.data.rowindex),
+                        A.data.rowindex,
+                        A.data.colindex+B.data.colindex-1),
             B.colrange
         );
     
@@ -196,8 +196,8 @@ function *{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})
   
     S = BandedArray(
             ShiftArray(zeros(typ,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
-                        A.data.colindex+B.data.colindex-1,
-                        A.data.rowindex),
+                        A.data.rowindex,
+                        A.data.colindex+B.data.colindex-1),
             B.colrange
         );
     

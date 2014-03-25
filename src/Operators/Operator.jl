@@ -134,12 +134,12 @@ include("ShiftArray.jl")
 
 
 include("ToeplitzOperator.jl")
-include("MultiplicationOperator.jl")
 
-include("EvaluationOperator.jl")
-include("ConversionOperator.jl")
-include("DerivativeOperator.jl")
-include("IntegrationOperator.jl")
+include("Ultraspherical/MultiplicationOperator.jl")
+include("Ultraspherical/EvaluationOperator.jl")
+include("Ultraspherical/ConversionOperator.jl")
+include("Ultraspherical/DerivativeOperator.jl")
+include("Ultraspherical/IntegrationOperator.jl")
 
 include("AlmostBandedOperator.jl")
 include("adaptiveqr.jl")
