@@ -94,13 +94,13 @@ function fillgetindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::In
     
     if k <= nbc
         for m=1:nbc
-            @inbounds bcv = B.bc[m][j]    
+            bcv = B.bc[m][j]    
             ret += B.bcfilldata[k,m]*bcv
         end
     else
         for m=1:nbc
-            @inbounds bcv = B.bc[m][j]
-            @inbounds fd=B.filldata[k-nbc,m]::T
+            bcv = B.bc[m][j]
+            fd=B.filldata[k-nbc,m]::T
             ret += fd*bcv
         end    
     end

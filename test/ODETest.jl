@@ -56,7 +56,7 @@ w=10.;
 B=BasisOperator(floor(w));
 A=[B,D+1im*w];
 u = A\[0.,f];
-abs(u[1.]exp(1im*w)-u[-1.]exp(-1im*w)-(-0.18575766879136255 + 0.17863980562549928im ))<eps()
+@assert abs(u[1.]exp(1im*w)-u[-1.]exp(-1im*w)-(-0.18575766879136255 + 0.17863980562549928im ))<eps()
 
 
 
