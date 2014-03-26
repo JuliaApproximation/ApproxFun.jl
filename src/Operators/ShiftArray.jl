@@ -90,7 +90,7 @@ function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer,m::Integer)
     S
 end
 
-sazeros(T::DataType,n::Range1,m::Range1)=ShiftArray(zeros(length(n),length(m)),1-n[1],1-m[1])
+sazeros(T::DataType,n::Range1,m::Range1)=ShiftArray(zeros(T,length(n),length(m)),1-n[1],1-m[1])
 sazeros(n::Range1,m::Range1)=sazeros(Float64,n,m)
 
 
@@ -148,7 +148,16 @@ function Base.getindex{T<:Number}(B::BandedArray{T},k::Integer,j::Integer)
     B.data[k,j-k]::T
 end
 
-Base.getindex(B::BandedArray,k::Range1,j::Range1)=sparse(B)[k,j]  ##TODO: Very slow
+function Base.getindex{T}(B::BandedArray{T},kr::Range1,jr::Range1)
+    ret = spzeros(T,length(kr),length(jr))
+    for k=kr
+        for j=indexrange(B,k)
+            ret[k - kr[1] + 1, j - jr[1] + 1] = B[k,j]
+        end
+    end
+    
+    ret
+end
 Base.setindex!(B::BandedArray,x,k::Integer,j::Integer)=(B.data[k,j-k]=x)
 
 # function multiplyentries!(A::BandedArray,B::BandedArray)

@@ -11,6 +11,7 @@ abstract BandedOperator{T} <: BandedBelowOperator{T}
 
 abstract ShiftOperator{T} <: Operator{T} #For biinfinite operators
 abstract InfiniteShiftOperator{T} <: ShiftOperator{T}
+abstract BandedShiftOperator{T} <: InfiniteShiftOperator{T}
 abstract RowShiftOperator{T} <: ShiftOperator{T}
 
 
@@ -153,6 +154,7 @@ include("specialfunctions.jl")
 include("TransposeOperator.jl")
 include("StrideOperator.jl")
 
+include("Fourier/FourierDerivativeOperator.jl")
 
 include("null.jl")
 
