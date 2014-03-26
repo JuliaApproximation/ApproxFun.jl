@@ -11,13 +11,13 @@ ShiftArray(T::DataType,ind::Integer)=ShiftArray(Array(T,0,0),0,ind)
 ShiftArray(ind::Integer)=ShiftArray(Float64,ind)
 
 
-function ShiftArray{T<:Number}(B::BandedOperator{T},k::Range1,j::Range1)
+function ShiftArray{T<:Number}(B::Operator{T},k::Range1,j::Range1)
     A=ShiftArray(zeros(T,length(k),length(j)),1-k[1],1-j[1])
     addentries!(B,A,k)
 end
 
 
-ShiftArray(B::BandedOperator,k::Range1)=ShiftArray(B,k,bandrange(B))
+ShiftArray(B::Operator,k::Range1)=ShiftArray(B,k,bandrange(B))
 
 
 Base.setindex!{T<:Number}(S::ShiftArray{T},x::T,k::Integer,j::Integer)=(S.data[k + S.rowindex, j + S.colindex] = x)
@@ -106,8 +106,8 @@ end
 
 BandedArray(S::ShiftArray,cs::Integer)=BandedArray(S,max(1,rowrange(S)[1] + columnrange(S)[1]):cs)
 BandedArray(S::ShiftArray)=BandedArray(S,rowrange(S)[end]+columnrange(S)[end])
-BandedArray(B::BandedOperator,k::Range1)=BandedArray(ShiftArray(B,k,bandrange(B)))
-BandedArray(B::BandedOperator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
+BandedArray(B::Operator,k::Range1)=BandedArray(ShiftArray(B,k,bandrange(B)))
+BandedArray(B::Operator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
 
 
 Base.size(B::BandedArray)=(rowrange(B.data)[end],B.colrange[end])

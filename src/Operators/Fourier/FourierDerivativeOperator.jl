@@ -13,7 +13,7 @@ end
 
 
 
-type FourierDerivativeOperator <: BandedShiftOperator{Float64}
+type FourierDerivativeOperator <: BandedShiftOperator{Complex{Float64}}
     order::Int
 end
 

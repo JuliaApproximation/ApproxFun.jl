@@ -44,15 +44,9 @@ Base.size(::RowOperator)=Any[1,Inf] #use Any vector so the 1 doesn't become a fl
 Base.size(op::Operator,k::Integer)=size(op)[k]
 
 
-Base.getindex(op::InfiniteOperator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
-Base.getindex(op::InfiniteOperator,k::Integer,j::Range1)=op[k:k,j][1,:]
-Base.getindex(op::InfiniteOperator,k::Range1,j::Integer)=op[k,j:j][:,1]
-
-
-function Base.getindex(B::BandedOperator,k::Range1,j::Range1)
-    BandedArray(B,k,j[end])[k,j]
-end
-
+Base.getindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
+Base.getindex(op::Operator,k::Integer,j::Range1)=op[k:k,j][1,:]
+Base.getindex(op::Operator,k::Range1,j::Integer)=op[k,j:j][:,1]
 
 
 Base.getindex(op::RowOperator,k::Integer)=op[k:k][1]
@@ -65,6 +59,15 @@ function Base.getindex(op::RowOperator,j::Integer,k::Range1)
   @assert j==1
   op[k]' #TODO conjugate transpose?
 end
+
+
+
+function Base.getindex(B::Operator,k::Range1,j::Range1)
+    BandedArray(B,k,j)[k,j]
+end
+
+
+
 
 ## Multiplication of operator * fun
 
