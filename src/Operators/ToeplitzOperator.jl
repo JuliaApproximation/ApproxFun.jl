@@ -1,4 +1,4 @@
-export ToeplitzOperator, HankelOperator
+export ToeplitzOperator, HankelOperator, LaurentOperator
 
 
 
@@ -62,3 +62,16 @@ addentries!(T::HankelOperator,A::ShiftArray,kr::Range1)=hankel_addentries!(T.coe
 
 bandrange(T::HankelOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
 
+
+
+## Laurent Operator
+
+type LaurentOperator{T<:Number} <: BandedShiftOperator{T}
+    coefficients::ShiftVector{T}
+end
+
+
+addentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=toeplitz_addentries!(T.coefficients,A,kr)
+bandrange(T::LaurentOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
+
+LaurentOperator(f::FFun)=LaurentOperator(f.coefficients)

@@ -23,6 +23,7 @@ end
 
 
 MultiplicationOperator(c::Number,k::Int)=ConstantOperator(c,k)
+MultiplicationOperator(f::FFun)=LaurentOperator(f)
 MultiplicationOperator(f)=MultiplicationOperator(f,0)
 
 

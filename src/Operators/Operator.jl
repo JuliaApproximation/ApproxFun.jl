@@ -166,7 +166,9 @@ include("null.jl")
 ## Convenience routines
 
 Base.diff(d::IntervalDomain,μ::Integer)=DerivativeOperator(0:μ,d)
-Base.diff(d::IntervalDomain)=Base.diff(d,1)
+Base.diff(d::PeriodicDomain,μ::Integer)=FourierDerivativeOperator(μ)
+Base.diff(d::Domain)=Base.diff(d,1)
+
 Base.eye(d::IntervalDomain)=MultiplicationOperator(IFun([1.],d))
 integrate(d::IntervalDomain)=IntegrationOperator(1,d)
 

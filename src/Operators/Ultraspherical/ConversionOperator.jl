@@ -92,6 +92,13 @@ bandrange(C::ConversionOperator)=0:2
 
 ## Operator space manipulation
 
+
+promoterangespace(P::ShiftOperator,k)=P
+promoterangespace{T<:ShiftOperator}(ops::Vector{T})=ops
+promotedomainspace(P::ShiftOperator,k)=P
+promotedomainspace{T<:ShiftOperator}(ops::Vector{T})=ops
+
+
 function promoterangespace(P::BandedOperator,k::Integer)
     @assert k >= rangespace(P)
     

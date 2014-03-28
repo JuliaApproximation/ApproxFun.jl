@@ -1,6 +1,5 @@
 ## Plotting
 
-using PyPlot
 
 export complexplot
 

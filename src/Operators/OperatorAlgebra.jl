@@ -5,15 +5,15 @@ export PlusOperator,TimesOperator
 
 
 
-type PlusOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T} 
+type PlusOperator{T<:Number,B<:Operator} <: BandedOperator{T} 
     ops::Vector{B}
     
     PlusOperator{B}(ops::Vector{B})=new(promotespaces(ops))
 end
 
 
-typeofdata{T<:Number}(::BandedOperator{T})=T
-function PlusOperator{B<:BandedOperator}(ops::Vector{B})
+typeofdata{T<:Number}(::Operator{T})=T
+function PlusOperator{B<:Operator}(ops::Vector{B})
     T = Float64
     
     for op in ops
@@ -43,15 +43,15 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
 end
 
 
-+(A::BandedOperator,B::BandedOperator)=PlusOperator([A,B])
-+(A::BandedOperator,f::IFun)=A+MultiplicationOperator(f)
-+(f::IFun,A::BandedOperator)=MultiplicationOperator(f)+A
--(A::BandedOperator,f::IFun)=A+MultiplicationOperator(-f)
--(f::IFun,A::BandedOperator)=MultiplicationOperator(f)-A
-+(c::Number,A::BandedOperator)=MultiplicationOperator(c)+A
-+(A::BandedOperator,c::Number)=A+MultiplicationOperator(c)
--(c::Number,A::BandedOperator)=MultiplicationOperator(c)-A
--(A::BandedOperator,c::Number)=A-MultiplicationOperator(c)
++(A::Operator,B::Operator)=PlusOperator([A,B])
++(A::Operator,f::AbstractFun)=A+MultiplicationOperator(f)
++(f::AbstractFun,A::Operator)=MultiplicationOperator(f)+A
+-(A::Operator,f::AbstractFun)=A+MultiplicationOperator(-f)
+-(f::AbstractFun,A::Operator)=MultiplicationOperator(f)-A
++(c::Number,A::Operator)=MultiplicationOperator(c)+A
++(A::Operator,c::Number)=A+MultiplicationOperator(c)
+-(c::Number,A::Operator)=MultiplicationOperator(c)-A
+-(A::Operator,c::Number)=A-MultiplicationOperator(c)
 
 
 
