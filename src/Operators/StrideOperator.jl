@@ -5,7 +5,7 @@ export StrideOperator,StrideRowOperator
 
 
 
-type StrideOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
+type StrideOperator{T<:Number,B<:Operator{T}} <: BandedOperator{T}
     op::B
     rowindex::Int
     colindex::Int
@@ -17,12 +17,24 @@ type StrideOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
     end
 end
 
-StrideOperator{T<:Number}(B::BandedOperator{T},r,c,rs)=StrideOperator{T,typeof(B)}(B,r,c,rs)
+StrideOperator{T<:Number}(B::Operator{T},r,c,rs)=StrideOperator{T,typeof(B)}(B,r,c,rs)
 
-bandrange(S::StrideOperator)=(min(0,S.colindex + S.stride*bandrange(S.op)[1]):max(S.colindex + S.stride*bandrange(S.op)[end],0))
+function bandrange(S::StrideOperator)
+    if S.stride > 0
+        min(0,S.colindex + S.stride*bandrange(S.op)[1]):max(S.colindex + S.stride*bandrange(S.op)[end],0)
+    else
+        min(S.colindex + S.stride*bandrange(S.op)[end],0):max(0,S.colindex + S.stride*bandrange(S.op)[1])
+    end
+end
 
 
-divrowrange(S,r)=fld(r[1]-S.rowindex,S.stride)+1:fld(r[end]-S.rowindex-1,S.stride)+1
+function divrowrange(S,r)
+    if S.stride > 0
+        fld(r[1]-S.rowindex,S.stride)+1:fld(r[end]-S.rowindex-1,S.stride)+1
+    else
+        -fld(r[end]-S.rowindex-1,-S.stride)-1:-fld(r[1]-S.rowindex,-S.stride)-1
+    end
+end
 #divcolumnrange(S,r)=fld(r[1]+1,S.stride):fld(r[end],S.stride)
 
 
@@ -35,7 +47,11 @@ function addentries!{T<:Number}(S::StrideOperator{T},A::ShiftArray,kr::Range1)
     A1=ShiftArray(S.op,r1)
     
     for k=r1, j=columnrange(A1)
-        A[S.stride*(k-1) + S.rowindex + 1,S.stride*j + S.colindex] = A1[k,j]
+        if S.stride > 0
+            A[S.stride*(k-1) + S.rowindex + 1,S.stride*j + S.colindex] = A1[k,j]
+        else
+            A[S.stride*(k+1) + S.rowindex + 1,S.stride*j + S.colindex] = A1[k,j]          
+        end
     end
     
     A
@@ -101,6 +117,8 @@ function interlace{T<:Operator}(A::Array{T,2})
         S
     end
 end
+
+
 
 
 
