@@ -141,6 +141,18 @@ end
 
 
 
+function PeriodicInterval(d::Vector)
+    @assert length(d) == 2
+    
+    if d[1] ==-Inf && d[2] == Inf
+        PeriodicLine()
+    else
+        PeriodicInterval(d[1],d[2])
+    end
+end
+
+
+
 
 
 

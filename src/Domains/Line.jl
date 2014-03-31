@@ -185,3 +185,24 @@ end
     
 
 
+## Periodic line
+
+type PeriodicLine <: PeriodicDomain
+    centre::Float64  ##TODO Allow complex
+    angle::Float64
+    L::Float64
+    
+    PeriodicLine(c,a,L)=(@assert c==a==0.;@assert L==1.; new(c,a,L))
+end
+
+PeriodicLine(c,a)=PeriodicLine(c,a,1.)
+PeriodicLine()=PeriodicLine(0.,0.)
+
+tocanonical(d::PeriodicLine,x)=tocanonical(Circle(),(d.L*im .- x)./(d.L*im .+ x))
+function fromcanonical(d::PeriodicLine,θ)
+    ζ=fromcanonical(Circle(),θ)
+     1.im*d.L*(ζ .- 1)./(ζ .+ 1)
+end
+
+
+

@@ -17,7 +17,7 @@ FFun(f::Function,d::Vector,n::Integer)=FFun(f,apply(PeriodicInterval,d),n)
 FFun(cfs::ShiftVector)=FFun(cfs,PeriodicInterval())
 FFun(cfs::ShiftVector,d::Vector)=FFun(cfs,apply(PeriodicInterval,d))
 FFun(f::Function)=FFun(f,PeriodicInterval())
-FFun(f::Function,d::Vector)=FFun(f,apply(PeriodicInterval,d))
+FFun(f::Function,d::Vector)=FFun(f,PeriodicInterval(d))
 
 function FFun(f::Function, d::Domain)
     #TODO: reuse function values
