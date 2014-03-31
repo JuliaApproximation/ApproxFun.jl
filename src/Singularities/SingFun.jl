@@ -15,7 +15,7 @@ SingFun(f::IFun)=SingFun(f,0.,0.)
 
 Base.getindex(f::SingFun,x)=evaluate(f,x)
 
-jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
+jacobiweight(α,β,x)=(1.+x).^α.*(1.-x).^β
 jacobiweight(f::SingFun,x)=jacobiweight(f.α,f.β,tocanonical(f,x))
 
 

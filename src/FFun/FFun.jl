@@ -50,7 +50,8 @@ function FFun(f::Function, d::Domain)
 end
 
 
-
+FFun(f::FFun,d)=FFun(f.coefficients,d)
+FFun(f::FFun)=FFun(f.coefficients)
 
 
 ##Evaluation

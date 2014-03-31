@@ -10,6 +10,7 @@ type ToeplitzOperator{T<:Number,V<:Union(Vector{T},ShiftVector{T})} <: BandedOpe
 end
 
 ToeplitzOperator{T<:Number}(V::Vector{T})=ToeplitzOperator{T,typeof(V)}(V)
+ToeplitzOperator{T<:Number}(V::ShiftVector{T})=ToeplitzOperator{T,typeof(V)}(V)
 ToeplitzOperator(f::AbstractFun)=ToeplitzOperator(f.coefficients)
 
 
