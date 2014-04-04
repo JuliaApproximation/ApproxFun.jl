@@ -118,7 +118,11 @@ function interlace{T<:Operator}(A::Array{T,2})
     end
 end
 
-
-
+## only works for BandedShiftOperator
+function interlace(A::Operator)
+    S1=StrideOperator(A,2,0,2)
+    S2=StrideOperator(A,1,0,-2)
+    S1+S2
+end
 
 

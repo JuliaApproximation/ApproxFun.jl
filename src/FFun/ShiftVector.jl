@@ -130,3 +130,11 @@ function isvfft(sv::ShiftVector)
 end
 
 
+
+##interlace pos and neg coefficients
+function interlace{T}(v::ShiftVector{T})
+    ret=Array(T,length(v.vector))
+    ret[1:2:end]=v.vector[v.index:end]
+    ret[2:2:end]=v.vector[v.index-1:-1:1]
+    ret
+end
