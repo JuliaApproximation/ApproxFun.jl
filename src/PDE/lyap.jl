@@ -76,7 +76,7 @@ function lyap(A,B,C,D,E)
     Z1=AC[:right];Z2=BD[:right]
     
     Y=lyapuptriang(AC[:S],BD[:S],AC[:T],BD[:T],Q1'*E*Q2)
-    Z1'*Y*Z2
+    Z1*Y*Z2'
 end
 
 
