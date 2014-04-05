@@ -79,8 +79,8 @@ function constrained_lyap(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
 
     Lx,F = reduce_dofs(Rx,Gx,Lx,Ly,F)
     Mx,F = reduce_dofs(Rx,Gx,Mx,My,F)
-    Ly,F = reduce_dofs(Rx,Gx,Ly,Lx,F.');    F = F.';
-    My,F = reduce_dofs(Rx,Gx,My,Mx,F.');    F = F.';       
+    Ly,F = reduce_dofs(Ry,Gy,Ly,Lx,F.');    F = F.';
+    My,F = reduce_dofs(Ry,Gy,My,Mx,F.');    F = F.';       
 
     Kx = size(Bx,1); Ky = size(By,1);
     A=Lx[:,Kx+1:end];B=Ly[:,Ky+1:end];
