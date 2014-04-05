@@ -86,7 +86,7 @@ function constrained_lyap(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
     A=Lx[:,Kx+1:end];B=Ly[:,Ky+1:end];
     C=Mx[:,Kx+1:end];D=My[:,Ky+1:end];
 
-    X22=lyap(C\A,(B\D).',inv(C)*F*inv(B).')
+    X22=lyap(A,B,C,D,F)
 
 
     X12 = Gx[:,Ky+1:end] - Rx[:,Kx+1:end]*X22;
