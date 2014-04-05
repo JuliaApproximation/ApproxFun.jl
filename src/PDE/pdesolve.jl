@@ -144,6 +144,7 @@ function pdesolve(Bxin,Byin,Lin,Min,F::Array,n)
     Mx=Xop[2][1:n-nbcx,1:n];My=Yop[2][1:n-nbcy,1:n]    
     
     
-    Fun2D(constrained_lyap({Bx Gx; By Gy},{Lx,Ly},{Mx,My},F))
+    Fun2D(constrained_lyap({Bx Gx; By Gy},{Lx,Ly},{Mx,My},F),
+            domain(Lin[1]),domain(Lin[2]))
 end
 
