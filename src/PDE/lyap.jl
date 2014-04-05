@@ -11,7 +11,7 @@ end
 function lyapuptriang{N}(P::Array{N},R::Array{N},S::Array{N},T::Array{N},F::Array{N})
     m=size(P,2); n = size(T,2)
     Y=zeros(N,m,n)
-    PY = zeros(N,m,m); SY = zeros(N,m,m)
+    PY = zeros(N,m,n); SY = zeros(N,m,n)
     
     k=n
     while k > 1
@@ -34,9 +34,9 @@ function lyapuptriang{N}(P::Array{N},R::Array{N},S::Array{N},T::Array{N},F::Arra
                 rhs2 -= R[k,j]*PY[:,j] + T[k,j]*SY[:,j]
             end
             
-            SM = zeros(N,2n,2n)
-            up=1:n
-            down=n+1:2n
+            SM = zeros(N,2m,2m)
+            up=1:m
+            down=m+1:2m
             
             SM[up,up]=R[k-1,k-1]*P + T[k-1,k-1]*S
             SM[up,down]=R[k-1,k]*P + T[k-1,k]*S
