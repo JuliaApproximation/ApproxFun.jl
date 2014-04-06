@@ -51,7 +51,7 @@ end
 
 ##2D
 
-plot(f::Fun2D)=PyPlot.surf(points(f,1),points(f,2),values(f)';linewidth=0,rstride=1,cstride=1)
+plot(f::Fun2D; kwds...)=PyPlot.surf(points(f,1),points(f,2),values(f)';linewidth=0,rstride=1,cstride=1,kwds...)
 
 
 
