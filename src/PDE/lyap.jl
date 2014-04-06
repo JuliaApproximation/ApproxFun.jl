@@ -29,23 +29,23 @@ function lyapuptriang{N}(P::Array{N},R::Array{N},S::Array{N},T::Array{N},F::Arra
             k -= 1
         else
             rhs1 = F[:,k-1];rhs2=F[:,k]
-            for j = k+1:n
-                rhs1 -= R[k-1,j]*PY[:,j] + T[k-1,j]*SY[:,j]
-                rhs2 -= R[k,j]*PY[:,j] + T[k,j]*SY[:,j]
+            for j = k+1:n, l=1:m
+                rhs1[l] -= R[k-1,j]*PY[l,j] + T[k-1,j]*SY[l,j]
+                rhs2[l] -= R[k,j]*PY[l,j] + T[k,j]*SY[l,j]
             end
             
-            SM = zeros(N,2m,2m)
-            up=1:m
-            down=m+1:2m
+            SM = Array(N,2m,2m)
             
-            SM[up,up]=R[k-1,k-1]*P + T[k-1,k-1]*S
-            SM[up,down]=R[k-1,k]*P + T[k-1,k]*S
-            SM[down,up] = R[k,k-1]*P + T[k,k-1]*S
-            SM[down,down] = R[k,k]*P + T[k,k]*S
+            for i=1:m,j=1:m
+                SM[i,j] = R[k-1,k-1]*P[i,j] + T[k-1,k-1]*S[i,j]
+                SM[i,j+m] = R[k-1,k]*P[i,j] + T[k-1,k]*S[i,j]
+                SM[i+m,j] = R[k,k-1]*P[i,j] + T[k,k-1]*S[i,j]
+                SM[i+m,j+m] = R[k,k]*P[i,j] + T[k,k]*S[i,j]
+            end
             
             UM = SM\[rhs1;rhs2]
             
-            Y[:,k-1] = UM[up];Y[:,k]=UM[down]
+            Y[:,k-1] = UM[1:m];Y[:,k]=UM[m+1:end]
             
             PY[:,k]=P*Y[:,k];PY[:,k-1]=P*Y[:,k-1]
             SY[:,k]=S*Y[:,k];SY[:,k-1]=S*Y[:,k-1]                  
