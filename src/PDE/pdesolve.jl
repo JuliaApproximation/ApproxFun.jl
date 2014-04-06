@@ -48,7 +48,7 @@ function regularize_bcs(B, G, L, M)
     
     K = size(B,1)
     
-    G = inv(R[:,1:K])*Q*G
+    G = inv(R[:,1:K])*Q'*G
     R = inv(R[:,1:K])*R
     
     R,G, L, M, P
@@ -89,10 +89,10 @@ function constrained_lyap(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
     X22=lyap(A,B,C,D,F)
 
 
-    X12 = Gx[:,Ky+1:end] - Rx[:,Kx+1:end]*X22;
-    X21 = Gy[:,Kx+1:end].' - X22*Ry[:,Ky+1:end].';
-    X11 = Gx[:,1:Ky] - Rx[:,Kx+1:end]*X21;
-    X11a= Gy[:,1:Kx].' - X12*Ry[:,Ky+1:end].';
+    X12 = Gx[:,Ky+1:end] - Rx[:,Kx+1:end]*X22
+    X21 = Gy[:,Kx+1:end].' - X22*Ry[:,Ky+1:end].'
+    X11 = Gx[:,1:Ky] - Rx[:,Kx+1:end]*X21
+    X11a= Gy[:,1:Kx].' - X12*Ry[:,Ky+1:end].'
     
     
     tol = 1e-13;
