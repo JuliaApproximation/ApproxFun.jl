@@ -8,10 +8,10 @@ end
 
 # Solve P*Y*T' + S*Y*R' = F 
 # where P,T, S and R are upper triangular
-function lyapuptriang{N}(P::Array{N},R::Array{N},S::Array{N},T::Array{N},F::Array{N})
+function lyapuptriang{N}(P,R,S,T,F::Array{N})
     m=size(P,2); n = size(T,2)
-    Y=zeros(N,m,n)
-    PY = zeros(N,m,n); SY = zeros(N,m,n)
+    Y=Array(N,m,n)
+    PY = Array(N,m,n); SY = Array(N,m,n)
     
     k=n
     while k > 1

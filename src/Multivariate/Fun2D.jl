@@ -165,3 +165,5 @@ for op = (:*,:.*,:./,:/)
     @eval ($op)(c::Number,f::Fun2D) = Fun2D(($op)(c,f.A),f.B)
 end 
 
+real(u::Fun2D)=Fun2D([map(real,u.A),map(imag,u.A)],[map(real,u.B),-map(imag,u.B)])
+imag(u::Fun2D)=Fun2D([map(real,u.A),map(imag,u.A)],[map(imag,u.B),map(real,u.B)])
