@@ -18,8 +18,8 @@ function lyapuptriang{N}(P,R,S,T,F::Array{N})
         if T[k,k-1] == 0 && R[k,k-1] == 0
             rhs = F[:,k]
             if k < n                
-                for j = k+1:n
-                    rhs -= R[k,j]*PY[:,j] + T[k,j]*SY[:,j]
+                for j = k+1:n, l=1:m
+                    rhs[l] -= R[k,j]*PY[l,j] + T[k,j]*SY[l,j]
                 end
             end
     
