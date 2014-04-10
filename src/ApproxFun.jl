@@ -2,7 +2,7 @@ module ApproxFun
     using Base, PyPlot
 
 export Fun,IFun,FFun,Interval,evaluate,values,points,chebyshevtransform
-export pad!,pad,sample,chop!,complexroots,roots,plot,svfft
+export pad!,pad,sample,chop!,complexroots,roots,svfft
 export multiplybyx,IntervalDomain,fasttimes
 
 ##Testing
@@ -121,7 +121,7 @@ include("Singularities/SingFun.jl")
 
 include("PDE/pdesolve.jl")
 
-include("Plotting/IFunPlot.jl")
+include("Plotting/Plot.jl")
 
 
 

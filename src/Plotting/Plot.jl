@@ -1,7 +1,7 @@
 ## Plotting
 
 
-export complexplot
+export plot,complexplot,contour
 
 
 function plot(f::IFun{Float64}) 
@@ -52,6 +52,8 @@ end
 ##2D
 
 plot(f::Fun2D; kwds...)=PyPlot.surf(points(f,1),points(f,2),values(f)';linewidth=0,rstride=1,cstride=1,kwds...)
+
+contour(f::Fun2D; kwds...)=PyPlot.contour(points(f,1),points(f,2),values(f)';kwds...)
 
 
 
