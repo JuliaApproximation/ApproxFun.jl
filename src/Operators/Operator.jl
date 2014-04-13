@@ -110,7 +110,7 @@ end
 
 
 
-function linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=eps(),maxlength=Inf)
+function linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
     d=domain([A,b])
     u=adaptiveqr(A,b,tolerance,maxlength)
     

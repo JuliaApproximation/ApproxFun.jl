@@ -5,7 +5,7 @@ include("lyap.jl")
 
 toarray{T<:RowOperator}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 toarray{T<:IFun}(B::Array{T},n)=Float64[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n];
-function toarray(B::Any,n)
+function toarray(B::Array,n)
     ret = zeros(length(B),n)
     
     for k=1:length(B), j=1:n
@@ -16,6 +16,21 @@ function toarray(B::Any,n)
         end
     end
 
+    ret
+end
+
+function toarray{T<:Operator}(A::Vector{T},n::Integer,m::Integer)
+    ret = zeros(n,m)
+    
+    nbc = typeof(A[end])<:RowOperator?length(A):length(A)-1
+    for k=1:nbc
+        ret[k,:]=A[k][1:m]
+    end
+    
+    if nbc < length(A)
+        ret[nbc+1:end,:]=A[end][1:n-nbc,1:m]
+    end
+    
     ret
 end
 
@@ -75,13 +90,8 @@ end
 
 
 
-
-
-
-constrained_lyap(B,L,M,F)=constrained_lyap(B[1,1],B[1,2],B[2,1],B[2,2],L[1],L[2],M[1],M[2],F)
-
-function constrained_lyap(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
-     Rx,Gx,Lx,Mx,Px=regularize_bcs(Bx,Gx,Lx,Mx)
+function reduce_constrained(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
+    Rx,Gx,Lx,Mx,Px=regularize_bcs(Bx,Gx,Lx,Mx)
     Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,Ly,My)
 
     Lx,F = reduce_dofs(Rx,Gx,Lx,Ly,F)
@@ -92,10 +102,19 @@ function constrained_lyap(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
     Kx = size(Bx,1); Ky = size(By,1);
     A=Lx[:,Kx+1:end];B=Ly[:,Ky+1:end];
     C=Mx[:,Kx+1:end];D=My[:,Ky+1:end];
+    
+    A,B,C,D,F,Rx,Gx,Px,Ry,Gy,Py
+end
+
+
+constrained_lyap(B,L,M,F)=constrained_lyap(B[1,1],B[1,2],B[2,1],B[2,2],L[1],L[2],M[1],M[2],F)
+
+function constrained_lyap(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
+    A,B,C,D,F,Rx,Gx,Px,Ry,Gy,Py = reduce_constrained(Bx,Gx,By,Gy,Lx,Ly,Mx,My,F)
 
     X22=lyap(A,B,C,D,F)
 
-
+    Kx = size(Bx,1); Ky = size(By,1);
     X12 = Gx[:,Ky+1:end] - Rx[:,Kx+1:end]*X22
     X21 = Gy[:,Kx+1:end].' - X22*Ry[:,Ky+1:end].'
     X11 = Gx[:,1:Ky] - Rx[:,Kx+1:end]*X21
@@ -138,8 +157,8 @@ function pdesolve(Bxin,Byin,Lin,Min,Fin::Fun2D,nx::Integer,ny::Integer)
     pdesolve(Bxin,Byin,Lin,Min,F,nx,ny)
 end
 
-function pdesolve(Bxin,Byin,Lin,Min,F::Array,nx::Integer,ny::Integer)
 
+function pdetoarray(Bxin,Byin,Lin,Min,nx::Integer,ny::Integer)
     Xop=promotespaces([Lin[1],Min[1]])
     Yop=promotespaces([Lin[2],Min[2]])
 
@@ -151,6 +170,13 @@ function pdesolve(Bxin,Byin,Lin,Min,F::Array,nx::Integer,ny::Integer)
     
     Lx=Xop[1][1:nx-nbcx,1:nx];Ly=Yop[1][1:ny-nbcy,1:ny]
     Mx=Xop[2][1:nx-nbcx,1:nx];My=Yop[2][1:ny-nbcy,1:ny]    
+    
+    Bx,Gx,By,Gy,Lx,Ly,Mx,My    
+end
+
+function pdesolve(Bxin,Byin,Lin,Min,F::Array,nx::Integer,ny::Integer)
+
+    Bx,Gx,By,Gy,Lx,Ly,Mx,My=pdetoarray(Bxin,Byin,Lin,Min,nx,ny)
     
     
     Fun2D(constrained_lyap({Bx Gx; By Gy},{Lx,Ly},{Mx,My},F),
