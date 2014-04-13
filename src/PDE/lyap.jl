@@ -70,8 +70,8 @@ end
 
 ##Solves A*X*B.' + C*X*D.' = E
 function lyap(A,B,C,D,E)
-    AC=schurfact(A,C)
-    BD=schurfact(B,D)
+    AC=schurfact(full(A),full(C))
+    BD=schurfact(full(B),full(D))
     Q1=AC[:left];Q2=BD[:left]
     Z1=AC[:right];Z2=BD[:right]
     

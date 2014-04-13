@@ -36,30 +36,37 @@ end
 
 
 function regularize_bcs(B, G, L, M)
-    P = nonsingular_permute(B)
-    
-    B = B*P
-    
-    L = L*P
-    M = M*P
-    
-    Q,R = qr(B)
-    Q=Q[:,1:size(B,1)]
-    
-    K = size(B,1)
-    
-    G = inv(R[:,1:K])*Q'*G
-    R = inv(R[:,1:K])*R
+    if length(B) == 0
+        R = B
+        P = eye(size(L,2))
+    else
+        P = nonsingular_permute(B)
+        
+        B = B*P
+        
+        L = L*P
+        M = M*P
+        
+        Q,R = qr(B)
+        Q=Q[:,1:size(B,1)]
+        
+        K = size(B,1)
+        
+        G = inv(R[:,1:K])*Q'*G
+        R = inv(R[:,1:K])*R
+    end
     
     R,G, L, M, P
 end
 
 
 function reduce_dofs( R,G, Mx, My, F )
-    GM = G*My.'
-    for k = 1:size(R,1)
-            F = F - Mx[:,k]*GM[k,:]
-            Mx = Mx - Mx[:,k]*R[k,:]
+    if length(R) > 0
+        GM = G*My.'
+        for k = 1:size(R,1)
+                F = F - Mx[:,k]*GM[k,:]
+                Mx = Mx - Mx[:,k]*R[k,:]
+        end
     end
         
     Mx, F
