@@ -11,6 +11,8 @@ export coefficients, integrate
 
 export domain
 
+import PyPlot.plot
+
 
 abstract AbstractFun
 
