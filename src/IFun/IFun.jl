@@ -159,7 +159,7 @@ Base.length(f::IFun)=length(f.coefficients)
 
 
 
-## Matipulate length
+## Manipulate length
 
 
 pad!(f::IFun,n::Integer)=pad!(f.coefficients,n)
@@ -184,6 +184,8 @@ end
 
 chop!(f::IFun,tol::Real)=(chop!(f.coefficients,tol); f)
 Base.chop(f,tol)=chop!(deepcopy(f),tol)
+
+chop!(f)=chop!(f,eps())
 
 
 ## Addition and multiplication
@@ -222,7 +224,7 @@ function .*(f::IFun,g::IFun)
     f2 = pad(f,n);
     g2 = pad(g,n);
     
-    IFun(chebyshevtransform(values(f2).*values(g2)),f.domain)
+    chop!(IFun(chebyshevtransform(values(f2).*values(g2)),f.domain),10eps())
 end
 
 fasttimes(f2,g2)=IFun(chebyshevtransform(values(f2).*values(g2)),f2.domain)
