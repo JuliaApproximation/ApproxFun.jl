@@ -20,14 +20,14 @@ Ray()=Ray(0.,0.)
 
 
 
-ray_tocanonical(x)=(x-1.)./(1.+x)
+ray_tocanonical(x)=(x.-1.)./(1.+x)
 ray_tocanonicalD(x)=2./((1.+x).^2)
 ray_fromcanonical(x)=(1.+x)./(1.-x)
-ray_fromcanonicalD(x)=2./((x-1.).^2)
+ray_fromcanonicalD(x)=2./((x.-1.).^2)
 
-tocanonical(d::Ray,x)=ray_tocanonical(x-d.centre)
-tocanonicalD(d::Ray,x)=ray_tocanonicalD(x-d.centre)
-fromcanonical(d::Ray,x)=ray_fromcanonical(x)+d.centre
+tocanonical(d::Ray,x)=ray_tocanonical(x.-d.centre)
+tocanonicalD(d::Ray,x)=ray_tocanonicalD(x.-d.centre)
+fromcanonical(d::Ray,x)=ray_fromcanonical(x).+d.centre
 fromcanonicalD(d::Ray,x)=ray_fromcanonicalD(x)
 
 

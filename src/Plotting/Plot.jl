@@ -1,15 +1,15 @@
 ## Plotting
 
 
-export plot,complexplot,contour
+export complexplot,contour
 
 
-function plot(f::IFun{Float64}) 
+function PyPlot.plot(f::IFun{Float64}) 
     pf = pad(f,3length(f))
     PyPlot.plot(points(pf),values(pf))
 end
 
-function plot(f::IFun{Complex{Float64}}) 
+function PyPlot.plot(f::IFun{Complex{Float64}}) 
     pf = pad(f,3length(f))
     pts = points(pf)
     vals =values(pf)
@@ -39,7 +39,7 @@ end
 
 #TODO: Pad
 
-function plot(f::FFun) 
+function PyPlot.plot(f::FFun) 
     pts = [points(f),first(points(f))]
     vals =[values(f),first(values(f))]
 
@@ -51,7 +51,7 @@ end
 
 ##2D
 
-plot(f::Fun2D; kwds...)=PyPlot.surf(points(f,1),points(f,2),values(f)';linewidth=0,rstride=1,cstride=1,kwds...)
+PyPlot.plot(f::Fun2D; kwds...)=PyPlot.surf(points(f,1),points(f,2),values(f)';linewidth=0,rstride=1,cstride=1,kwds...)
 
 contour(f::Fun2D; kwds...)=PyPlot.contour(points(f,1),points(f,2),values(f)';kwds...)
 
@@ -59,7 +59,7 @@ contour(f::Fun2D; kwds...)=PyPlot.contour(points(f,1),points(f,2),values(f)';kwd
 
 ## SingFun
 
-function plot(f::SingFun) 
+function PyPlot.plot(f::SingFun) 
     pf = pad(f,3length(f)+100)
     
     if f.α >= 0 && f.β >= 0
@@ -76,7 +76,7 @@ end
 
 ## ArrayFun
 
-function plot{T<:AbstractFun}(v::Vector{T})
+function PyPlot.plot{T<:AbstractFun}(v::Vector{T})
     for f in v
         plot(f)
     end
