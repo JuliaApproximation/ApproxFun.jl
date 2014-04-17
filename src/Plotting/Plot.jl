@@ -4,9 +4,16 @@
 export complexplot,contour
 
 
-function PyPlot.plot(f::IFun{Float64}) 
+function PyPlot.plot(f::IFun{Float64};axis=-1) 
     pf = pad(f,3length(f))
     PyPlot.plot(points(pf),values(pf))
+    if axis!=-1
+        if length(axis) == 4
+            PyPlot.axis(axis)
+        else
+            PyPlot.axis([f.domain.a,f.domain.b,axis])
+        end
+    end
 end
 
 function PyPlot.plot(f::IFun{Complex{Float64}}) 
