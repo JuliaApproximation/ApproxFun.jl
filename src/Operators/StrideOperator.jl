@@ -30,15 +30,21 @@ function bandrange(S::StrideOperator)
     
     if S.colstride >= 0 && S.rowstride >= 0
         (st*br[1]:st*br[end])-S.rowindex+S.colindex
+    elseif S.colstride >= 0
+    
+    elseif S.rowstride >= 0
+        -(S.colindex-1-bandrange(L)[1]):S.colindex-1-bandrange(L)[1]    
     else
-
+        error("negative negative not implemented")
     end
 end
 
 
 function divrowrange(S,r)
-    if S.rowstride > 0
+    if S.rowstride > 0 && S.colstride > 0
         div(r[1] - S.rowindex+S.rowstride-1,S.rowstride):div(r[end]-S.rowindex,S.rowstride)
+    elseif S.rowstride > 0
+        div(r[1] - S.rowindex+S.rowstride-1,S.rowstride):min(div(r[end]-S.rowindex,S.rowstride),S.colindex-bandrange(S.op)[1]-1)
     elseif S.rowstride < 0
         -div(r[end]-S.rowindex,-S.rowstride):-div(r[1] - S.rowindex-S.rowstride-1,-S.rowstride)
     end
@@ -50,17 +56,44 @@ end
 #S[k,j] == A[k,j-k]
 #A[rowstride*k + rowindex,colstride*j + colindex - k] == op[k,j]
 
-function addentries!{T<:Number}(S::StrideOperator{T},A::ShiftArray,kr::Range1)
+function stride_pospos_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
     r1=divrowrange(S,kr)
 
     B1=BandedArray(S.op,r1)
     B=BandedArray(A)
     
-    for k=r1, j=columnindexrange(B1,k)
-        B[S.rowstride*k + S.rowindex,S.colstride*j + S.colindex] = B1[k,j]
+    for k=r1, j=columnrange(B1.data)+k
+        B[S.rowstride*k + S.rowindex,S.colstride*j + S.colindex] = B1.data[k,j-k]
     end
     
     A
+end
+
+function stride_posneg_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
+    r1=divrowrange2(S,kr)
+    B1=BandedArray(S.op,r1)
+    B=BandedArray(A)
+    
+    for k=r1, j=bandrange(S.op)
+        if S.colstride*(j+k) + S.colindex > 0
+            B[S.rowstride*k + S.rowindex,S.colstride*(j+k) + S.colindex] = B1.data[k,j]
+        end
+    end
+
+    
+    A
+end
+
+function addentries!(S::StrideOperator,A,kr)
+    if S.rowstride > 0 && S.colstride > 0
+        stride_pospos_addentries!(S,A,kr)
+    elseif S.rowstride > 0
+        stride_posneg_addentries!(S,A,kr)    
+    elseif S.colstride > 0
+        stride_negpos_addentries!(S,A,kr)            
+    else
+        stride_negneg_addentries!(S,A,kr)            
+    end
 end
 
 
