@@ -4,54 +4,60 @@ export StrideOperator,StrideRowOperator
 
 
 
-
+#S[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
+#S[k,j] == op[(k-rowindex)/rowstride,(j-colindex)/colstride]
 type StrideOperator{T<:Number,B<:Operator{T}} <: BandedOperator{T}
     op::B
-    rowindex::Int
-    colindex::Int
-    stride::Int  ##TODO: rowstride,colstride
+    rowindex::Int       
+    colindex::Int       
+    rowstride::Int
+    colstride::Int
     
-    function StrideOperator(o,r,c,s)
+    function StrideOperator(o,r,c,rs,cs)
+        @assert abs(rs) == abs(cs)
         
-        new(o,r,c,s)
+        new(o,r,c,rs,cs)
     end
 end
 
-StrideOperator{T<:Number}(B::Operator{T},r,c,rs)=StrideOperator{T,typeof(B)}(B,r,c,rs)
+StrideOperator{T<:Number}(B::Operator{T},r,c,rs,cs)=StrideOperator{T,typeof(B)}(B,r,c,rs,cs)
+StrideOperator{T<:Number}(B::Operator{T},r,c,rs)=StrideOperator{T,typeof(B)}(B,r,c,rs,rs)
 
 function bandrange(S::StrideOperator)
-    if S.stride > 0
-        min(0,S.colindex + S.stride*bandrange(S.op)[1]):max(S.colindex + S.stride*bandrange(S.op)[end],0)
+    br=bandrange(S.op)
+    
+    st = S.colstride
+    
+    if S.colstride >= 0 && S.rowstride >= 0
+        (st*br[1]:st*br[end])-S.rowindex+S.colindex
     else
-        min(S.colindex + S.stride*bandrange(S.op)[end],0):max(0,S.colindex + S.stride*bandrange(S.op)[1])
+
     end
 end
 
 
 function divrowrange(S,r)
-    if S.stride > 0
-        fld(r[1]-S.rowindex,S.stride)+1:fld(r[end]-S.rowindex-1,S.stride)+1
-    else
-        -fld(r[end]-S.rowindex-1,-S.stride)-1:-fld(r[1]-S.rowindex,-S.stride)-1
+    if S.rowstride > 0
+        div(r[1] - S.rowindex+S.rowstride-1,S.rowstride):div(r[end]-S.rowindex,S.rowstride)
+    elseif S.rowstride < 0
+        -div(r[end]-S.rowindex,-S.rowstride):-div(r[1] - S.rowindex-S.rowstride-1,-S.rowstride)
     end
 end
-#divcolumnrange(S,r)=fld(r[1]+1,S.stride):fld(r[end],S.stride)
 
 
-# firststriderow(S,n)=S.stride*fld(n+S.stride-2-S.rowindex,S.stride)+S.rowindex+1
-# laststriderow(S,n)=firststriderow(S,n-S.stride+1)
+
+#S[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
+#S[k,j] == A[k,j-k]
+#A[rowstride*k + rowindex,colstride*j + colindex - k] == op[k,j]
 
 function addentries!{T<:Number}(S::StrideOperator{T},A::ShiftArray,kr::Range1)
-    r1=divrowrange(S,rowrange(A))
+    r1=divrowrange(S,kr)
 
-    A1=ShiftArray(S.op,r1)
+    B1=BandedArray(S.op,r1)
+    B=BandedArray(A)
     
-    for k=r1, j=columnrange(A1)
-        if S.stride > 0
-            A[S.stride*(k-1) + S.rowindex + 1,S.stride*j + S.colindex] = A1[k,j]
-        else
-            A[S.stride*(k+1) + S.rowindex + 1,S.stride*j + S.colindex] = A1[k,j]          
-        end
+    for k=r1, j=columnindexrange(B1,k)
+        B[S.rowstride*k + S.rowindex,S.colstride*j + S.colindex] = B1[k,j]
     end
     
     A
@@ -59,6 +65,9 @@ end
 
 
 domain(S::StrideOperator)=domain(S.op)
+
+
+## StrideRowOperator
 
 
 type StrideRowOperator{T<:Number,B<:RowOperator} <: RowOperator{T}

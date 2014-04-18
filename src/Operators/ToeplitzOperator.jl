@@ -73,6 +73,6 @@ end
 
 
 addentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=toeplitz_addentries!(T.coefficients,A,kr)
-bandrange(T::LaurentOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
+bandrange(T::LaurentOperator)=firstindex(T.coefficients):lastindex(T.coefficients)
 
 LaurentOperator(f::FFun)=LaurentOperator(f.coefficients)
