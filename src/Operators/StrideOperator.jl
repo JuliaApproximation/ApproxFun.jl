@@ -33,7 +33,7 @@ function bandrange(S::StrideOperator)
     elseif S.colstride >= 0
     
     elseif S.rowstride >= 0
-        -(S.colindex-1-bandrange(L)[1]):S.colindex-1-bandrange(L)[1]    
+        -(S.colindex+S.rowindex-2-bandrange(S.op)[1]):S.colindex+S.rowindex-2-bandrange(S.op)[1]    
     else
         error("negative negative not implemented")
     end
@@ -70,13 +70,13 @@ function stride_pospos_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
 end
 
 function stride_posneg_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
-    r1=divrowrange2(S,kr)
-    B1=BandedArray(S.op,r1)
+    r1=divrowrange(S,kr)
+    B1=ShiftArray(S.op,r1)
     B=BandedArray(A)
     
     for k=r1, j=bandrange(S.op)
         if S.colstride*(j+k) + S.colindex > 0
-            B[S.rowstride*k + S.rowindex,S.colstride*(j+k) + S.colindex] = B1.data[k,j]
+            B[S.rowstride*k + S.rowindex,S.colstride*(j+k) + S.colindex] = B1[k,j]
         end
     end
 
