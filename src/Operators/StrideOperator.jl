@@ -31,7 +31,7 @@ function bandrange(S::StrideOperator)
     if S.colstride >= 0 && S.rowstride >= 0
         (st*br[1]:st*br[end])-S.rowindex+S.colindex
     elseif S.colstride >= 0
-    
+        -(S.colindex+S.rowindex-2+bandrange(S.op)[end]):S.colindex+S.rowindex-2+bandrange(S.op)[end]        
     elseif S.rowstride >= 0
         -(S.colindex+S.rowindex-2-bandrange(S.op)[1]):S.colindex+S.rowindex-2-bandrange(S.op)[1]    
     else
@@ -46,7 +46,7 @@ function divrowrange(S,r)
     elseif S.rowstride > 0
         div(r[1] - S.rowindex+S.rowstride-1,S.rowstride):min(div(r[end]-S.rowindex,S.rowstride),S.colindex-bandrange(S.op)[1]-1)
     elseif S.rowstride < 0
-        -div(r[end]-S.rowindex,-S.rowstride):-div(r[1] - S.rowindex-S.rowstride-1,-S.rowstride)
+        max(-S.colindex-bandrange(S.op)[end]+1,-div(r[end] -S.rowindex,-S.rowstride)):-div(r[1]-S.rowindex,-S.rowstride)
     end
 end
 
@@ -90,7 +90,7 @@ function addentries!(S::StrideOperator,A,kr)
     elseif S.rowstride > 0
         stride_posneg_addentries!(S,A,kr)    
     elseif S.colstride > 0
-        stride_negpos_addentries!(S,A,kr)            
+        stride_posneg_addentries!(S,A,kr)            
     else
         stride_negneg_addentries!(S,A,kr)            
     end
