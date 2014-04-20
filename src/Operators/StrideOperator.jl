@@ -15,6 +15,7 @@ type StrideOperator{T<:Number,B<:Operator{T}} <: BandedOperator{T}
     
     function StrideOperator(o,r,c,rs,cs)
         @assert abs(rs) == abs(cs)
+        @assert rs != 0
         
         new(o,r,c,rs,cs)
     end
@@ -26,27 +27,38 @@ StrideOperator{T<:Number}(B::Operator{T},r,c,rs)=StrideOperator{T,typeof(B)}(B,r
 function bandrange(S::StrideOperator)
     br=bandrange(S.op)
     
-    st = S.colstride
+    st = abs(S.colstride)
     
-    if S.colstride >= 0 && S.rowstride >= 0
+    if S.colstride > 0 && S.rowstride > 0
         (st*br[1]:st*br[end])-S.rowindex+S.colindex
-    elseif S.colstride >= 0
-        -(S.colindex+S.rowindex-2+bandrange(S.op)[end]):S.colindex+S.rowindex-2+bandrange(S.op)[end]        
-    elseif S.rowstride >= 0
-        -(S.colindex+S.rowindex-2-bandrange(S.op)[1]):S.colindex+S.rowindex-2-bandrange(S.op)[1]    
+    elseif S.colstride > 0
+        -(S.colindex+S.rowindex-2+st*br[end]):S.colindex+S.rowindex-2+st*br[end]        
+    elseif S.rowstride > 0
+        -(S.colindex+S.rowindex-2-st*br[1]):S.colindex+S.rowindex-2-st*br[1]    
     else
-        error("negative negative not implemented")
+        (-st*br[end]:-st*br[1])-S.rowindex+S.colindex
     end
+end
+
+# First index above
+function firstrw(S,k::Integer)
+    rs = S.rowstride
+    ri= S.rowindex
+    rs>0?fld(k-ri+rs-1,rs):fld(k-ri,rs)
+end
+#Last index below
+function lastrw(S,k::Integer)
+    rs = S.rowstride
+    ri= S.rowindex
+    rs>0?fld(k-ri,rs):fld(k-ri+rs+1,rs)
 end
 
 
 function divrowrange(S,r)
-    if S.rowstride > 0 && S.colstride > 0
-        div(r[1] - S.rowindex+S.rowstride-1,S.rowstride):div(r[end]-S.rowindex,S.rowstride)
-    elseif S.rowstride > 0
-        div(r[1] - S.rowindex+S.rowstride-1,S.rowstride):min(div(r[end]-S.rowindex,S.rowstride),S.colindex-bandrange(S.op)[1]-1)
-    elseif S.rowstride < 0
-        max(-S.colindex-bandrange(S.op)[end]+1,-div(r[end] -S.rowindex,-S.rowstride)):-div(r[1]-S.rowindex,-S.rowstride)
+    if S.rowstride > 0
+        firstrw(S,r[1]):lastrw(S,r[end])
+    else #neg neg
+        lastrw(S,r[end]):firstrw(S,r[1])
     end
 end
 
@@ -75,7 +87,7 @@ function stride_posneg_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
     B=BandedArray(A)
     
     for k=r1, j=bandrange(S.op)
-        if S.colstride*(j+k) + S.colindex > 0
+        if S.colstride*(j+k) + S.colindex > 0 && S.rowstride*k + S.rowindex > 0
             B[S.rowstride*k + S.rowindex,S.colstride*(j+k) + S.colindex] = B1[k,j]
         end
     end
@@ -91,8 +103,8 @@ function addentries!(S::StrideOperator,A,kr)
         stride_posneg_addentries!(S,A,kr)    
     elseif S.colstride > 0
         stride_posneg_addentries!(S,A,kr)            
-    else
-        stride_negneg_addentries!(S,A,kr)            
+    else #neg neg
+        stride_pospos_addentries!(S,A,kr)            
     end
 end
 
