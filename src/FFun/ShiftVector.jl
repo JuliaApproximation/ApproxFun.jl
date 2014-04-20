@@ -14,9 +14,11 @@ end
 ShiftVector(neg::Vector,nonneg::Vector)=ShiftVector([neg,nonneg],length(neg)+1)
 
 
-for op = (:(Base.last),:(Base.first),:(Base.norm),:(Base.endof),:(Base.length))
+for op = (:(Base.last),:(Base.first),:(Base.norm),:(Base.length))
     @eval ($op)(sv::ShiftVector) = ($op)(sv.vector)
 end
+
+Base.endof(sl::ShiftVector)=endof(sl.vector)-sl.index
 
 index(sl::ShiftVector)=sl.index
 firstindex(sl::ShiftVector)=1-sl.index
@@ -27,6 +29,8 @@ range(sv::ShiftVector)=firstindex(sv):lastindex(sv)
 Base.getindex(sl::ShiftVector,k::Integer)=sl.vector[k+sl.index]
 Base.getindex(sl::ShiftVector,r::Range1)=sl.vector[r+sl.index]
 
+
+Base.flipud(sl::ShiftVector)=ShiftVector(flipud(sl[1:end]),flipud(sl[firstindex(sl):0]))
 
 ##Assignment
 
@@ -138,3 +142,6 @@ function interlace{T}(v::ShiftVector{T})
     ret[2:2:end]=v.vector[v.index-1:-1:1]
     ret
 end
+
+deinterlace(v::Vector)=ShiftVector(flipud(v[2:2:end]),v[1:2:end])
+

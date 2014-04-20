@@ -173,10 +173,13 @@ function interlace{T<:Operator}(A::Array{T,2})
 end
 
 ## only works for BandedShiftOperator
-function interlace(A::Operator)
-    S1=StrideOperator(A,2,0,2)
-    S2=StrideOperator(A,1,0,-2)
-    S1+S2
+function interlace(L::Operator)
+    SPP=StrideOperator(L,1,1,2,2)
+    SMM=StrideOperator(L,0,0,-2,-2)
+    SPM=StrideOperator(L,0,1,-2,2)
+    SMP=StrideOperator(L,1,0,2,-2)
+    
+    SPM+SMP+SPP+SMM
 end
 
 
