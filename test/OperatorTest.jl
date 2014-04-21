@@ -28,4 +28,4 @@ x=Fun(identity);
 @assert norm(cos(x)-Fun(cos))<10eps()
 @assert norm(sin(x)-Fun(sin))<10eps()
 @assert norm(exp(x)-Fun(exp))<10eps()
-@assert norm(sin(x)./x-Fun(x->sinc(x/π)))<10eps()
+@assert norm(sin(x)./x-Fun(x->sinc(x/π)))<100eps()

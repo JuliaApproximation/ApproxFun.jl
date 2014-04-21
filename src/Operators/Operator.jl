@@ -121,16 +121,21 @@ end
 
 
 ##Todo nxn operator
-function linsolve{T<:Operator}(A::Array{T,2},b)
-    ret=adaptiveqr(interlace(A),b)
-    [IFun(ret[1:2:end],domain(A[:,1])),
-    IFun(ret[2:2:end],domain(A[:,2]))]
-end
+# function linsolve{T<:Operator}(A::Array{T,2},b::Vector)
+#     ret=adaptiveqr(interlace(A),b)
+#     [IFun(ret[1:2:end],domain(A[:,1])),
+#     IFun(ret[2:2:end],domain(A[:,2]))]
+# end
+# 
 
-\{T<:Operator}(A::Vector{T},b::Vector)=linsolve(A,b)
+
+linsolve(A::Operator,b::Vector;kwds...)=linsolve([A],b;kwds...)
+linsolve(A,b;kwds...)=linsolve(A,[b];kwds...)
+
+
 \{T<:Operator}(A::Array{T,2},b::Vector)=linsolve(A,b)
-\(A::Operator,b::Vector)=[A]\b
-\(A::Operator,b::IFun)=[A]\[b]
+\{T<:Operator}(A::Vector{T},b::Vector)=linsolve(A,b)
+\(A::Operator,b)=linsolve(A,b)
 
 
 

@@ -1,6 +1,6 @@
 # division by fun 
 
-./(f::IFun,g::IFun)=MultiplicationOperator(g)\[f]
+./(f::IFun,g::IFun)=linsolve(MultiplicationOperator(g),f;tolerance=10eps())
 
 for op in (:./,:/)
     @eval begin
@@ -14,7 +14,7 @@ for op in (:./,:/)
             @assert length(r) <= 2
             
             if length(r) == 0
-                MultiplicationOperator(f)\[c]
+                linsolve(MultiplicationOperator(f),c;tolerance=tol)
             elseif length(r) == 1
                 @assert abs(abs(r[1]) - 1.) < tol
                 
@@ -75,7 +75,7 @@ function Base.sqrt(f::IFun)
         @assert abs(r[1]+1) < tol
         @assert abs(r[2]-1) < tol        
     
-        SingFun(IFun(sqrt(MultiplicationOperator(1-x.^2)\fc),f.domain),.5,.5)                
+        SingFun(IFun(sqrt(linsolve(MultiplicationOperator(1-x.^2),fc;tolerance=eps())),f.domain),.5,.5)                
     end
 end
 
