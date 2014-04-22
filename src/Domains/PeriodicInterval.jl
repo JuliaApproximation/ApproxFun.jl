@@ -45,6 +45,10 @@ function Base.diff{T<:Number,M<:PeriodicInterval}(f::FFun{T,M})
                     f.domain)
 end
 
+function Base.diff(f::FFun,k::Integer)
+    @assert k >= 0
+    (k==0)?f:diff(diff(f),k-1)
+end
 
 
 

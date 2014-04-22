@@ -109,14 +109,33 @@ end
 ## Linear Solve
 
 
+IFun_coefficients(b::Vector,sp)=vcat(map(f-> typeof(f)<: IFun? coefficients(f,sp) :  f,b)...)
+FFun_coefficients(b::Vector)=vcat(map(f-> typeof(f)<: FFun? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
+
+function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
+    u=adaptiveqr(A,IFun_coefficients(b,rangespace(M[end])),tolerance,maxlength)
+    
+    IFun(u,domain([A,b]))
+end
+
+function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
+    @assert length(A) == 1
+
+    u=adaptiveqr([interlace(A[1])],FFun_coefficients(b),tolerance,maxlength)
+    
+    FFun(deinterlace(u),domain([A,b]))    
+end
 
 function linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
     d=domain([A,b])
-    u=adaptiveqr(A,b,tolerance,maxlength)
-    
-    d != Any ? 
-        IFun(u,d) :
-        u
+
+    if typeof(d) <: IntervalDomain
+        IFun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
+    elseif typeof(d) <: PeriodicDomain
+        FFun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
+    else
+        adaptiveqr(A,b,tolerance,maxlength)
+    end    
 end
 
 

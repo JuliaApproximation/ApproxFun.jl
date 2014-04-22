@@ -23,3 +23,8 @@ addentries!(D::FourierDerivativeOperator,A::ShiftArray,kr::Range1)=fourier_deriv
 
 bandrange(D::FourierDerivativeOperator)=0:0
 
+domain(::FourierDerivativeOperator)=PeriodicInterval()
+
+
+
+^(D1::FourierDerivativeOperator,k::Integer)=FourierDerivativeOperator(D1.order*k)

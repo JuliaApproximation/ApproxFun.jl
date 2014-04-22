@@ -29,3 +29,16 @@ x=Fun(identity);
 @assert norm(sin(x)-Fun(sin))<10eps()
 @assert norm(exp(x)-Fun(exp))<10eps()
 @assert norm(sin(x)./x-Fun(x->sinc(x/π)))<100eps()
+
+
+
+## Periodic
+
+a=FFun(t-> cos(t) + sin(2t),3)
+d=a.domain
+D=diff(d)
+L=D^2+a;
+f=FFun(t->cos(cos(t)));
+u=L\f;
+
+@assert norm(diff(u,2)+a.*u-f) < 10eps()
