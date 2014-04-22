@@ -113,7 +113,7 @@ IFun_coefficients(b::Vector,sp)=vcat(map(f-> typeof(f)<: IFun? coefficients(f,sp
 FFun_coefficients(b::Vector)=vcat(map(f-> typeof(f)<: FFun? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
 
 function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
-    u=adaptiveqr(A,IFun_coefficients(b,rangespace(M[end])),tolerance,maxlength)
+    u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
     
     IFun(u,domain([A,b]))
 end
