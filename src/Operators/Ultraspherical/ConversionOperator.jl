@@ -97,7 +97,9 @@ promoterangespace(P::ShiftOperator,k)=P
 promoterangespace{T<:ShiftOperator}(ops::Vector{T})=ops
 promotedomainspace(P::ShiftOperator,k)=P
 promotedomainspace{T<:ShiftOperator}(ops::Vector{T})=ops
-
+##TODO: Fix: we are assuming must have Fourier
+promoterangespace{T<:Operator}(ops::Vector{T})=ops
+promotedomainspace{T<:Operator}(ops::Vector{T})=ops
 
 function promoterangespace(P::BandedOperator,k::Integer)
     @assert k >= rangespace(P)
@@ -109,6 +111,8 @@ function promoterangespace{T<:BandedOperator}(ops::Vector{T})
     k=mapreduce(rangespace,max,ops)
     T[promoterangespace(op,k) for op in ops]
 end
+
+
 
 function promotedomainspace(P::BandedOperator,k::Integer)
     @assert k <= domainspace(P)
