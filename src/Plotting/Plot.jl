@@ -46,12 +46,20 @@ end
 
 #TODO: Pad
 
-function PyPlot.plot(f::FFun) 
+function PyPlot.plot(f::FFun;axis=-1) 
     pts = [points(f),first(points(f))]
     vals =[values(f),first(values(f))]
 
     PyPlot.plot(pts,real(vals))
     PyPlot.plot(pts,imag(vals),color="red")
+    
+    if axis!=-1
+        if length(axis) == 4
+            PyPlot.axis(axis)
+        else
+            PyPlot.axis([f.domain.a,f.domain.b,axis])
+        end
+    end    
 end
 # 
 

@@ -3,7 +3,7 @@ export FourierDerivativeOperator
 
 
 function fourier_derivative_addentries!(m::Integer,d::PeriodicInterval,A::ShiftArray,kr::Range1)
-    C=π./(d.b-d.a)*im
+    C=2π./(d.b-d.a)*im
 
     for k=kr
         A[k,0] += (C*k)^m
