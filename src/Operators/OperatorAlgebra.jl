@@ -63,7 +63,9 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
     A
 end
 
-
++(A::PlusOperator,B::PlusOperator)=PlusOperator([A.ops,B.ops])
++(A::PlusOperator,B::Operator)=PlusOperator([A.ops,B])
++(A::Operator,B::PlusOperator)=PlusOperator([A,B.ops])
 +(A::Operator,B::Operator)=PlusOperator([A,B])
 +(A::Operator,f::AbstractFun)=A+MultiplicationOperator(f)
 +(f::AbstractFun,A::Operator)=MultiplicationOperator(f)+A

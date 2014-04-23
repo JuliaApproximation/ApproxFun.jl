@@ -30,13 +30,13 @@ function bandrange(S::StrideOperator)
     st = abs(S.colstride)
     
     if S.colstride > 0 && S.rowstride > 0
-        (st*br[1]:st*br[end])-S.rowindex+S.colindex
+        min(st*br[1]-S.rowindex+S.colindex,0):max(st*br[end]-S.rowindex+S.colindex,0)
     elseif S.colstride > 0
-        -(S.colindex+S.rowindex-2+st*br[end]):S.colindex+S.rowindex-2+st*br[end]        
+        min(-(S.colindex+S.rowindex-2+st*br[end]),0):max(S.colindex+S.rowindex-2+st*br[end],0)
     elseif S.rowstride > 0
-        -(S.colindex+S.rowindex-2-st*br[1]):S.colindex+S.rowindex-2-st*br[1]    
+        min(-(S.colindex+S.rowindex-2-st*br[1]),0):max(S.colindex+S.rowindex-2-st*br[1],0)
     else
-        (-st*br[end]:-st*br[1])-S.rowindex+S.colindex
+        min(-st*br[end]-S.rowindex+S.colindex,0):max(-st*br[1]-S.rowindex+S.colindex,0)
     end
 end
 
