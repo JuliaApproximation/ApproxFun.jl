@@ -16,8 +16,6 @@ abstract RowShiftOperator{T} <: ShiftOperator{T}
 
 
 ## We assume operators are T->T
-rangespace(A::InfiniteOperator)=0
-domainspace(A::InfiniteOperator)=0
 domain(A::Operator)=Any
 
 domain(f::IFun)=f.domain
@@ -98,7 +96,7 @@ end
 
 
 
-*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A)),rangespace(A)),b.domain)
+*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A).order),rangespace(A).order),b.domain)
 
 *(A::RowOperator,b::Vector)=dot(A[1:length(b)],b)
 *(A::RowOperator,b::IFun)=A*b.coefficients
@@ -113,7 +111,7 @@ IFun_coefficients(b::Vector,sp)=vcat(map(f-> typeof(f)<: IFun? coefficients(f,sp
 FFun_coefficients(b::Vector)=vcat(map(f-> typeof(f)<: FFun? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
 
 function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
-    u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
+    u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end]).order),tolerance,maxlength)  ##TODO: depends on ordering of A
     
     IFun(u,domain([A,b]))
 end

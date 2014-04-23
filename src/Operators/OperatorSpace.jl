@@ -31,13 +31,13 @@ end
 
 ##Check domain compatibility
 
-domainscompatible(a::UltrasphericalSpace,b::UltrasphericalSpace) = a.domain == b.domain
+domainscompatible(a::UltrasphericalSpace,b::UltrasphericalSpace) = a.domain == Any || b.domain == Any || a.domain == b.domain
 domainscompatible(a::DataType,b::DataType) = a == Any && b==Any
 domainscompatible(a::DataType,b) = a == Any
 domainscompatible(a,b::DataType) = b == Any
 domainscompatible(a,b) = a==b
 
-spacescompatible(a::UltrasphericalSpace,b::UltrasphericalSpace) = domainscompatible(a,b) && a.order > b.order
+spacescompatible(a::UltrasphericalSpace,b::UltrasphericalSpace) = domainscompatible(a,b) && a.order >= b.order
 spacescompatible(a::DataType,b::DataType) = a == Any && b==Any
 spacescompatible(a::DataType,b) = a == Any
 spacescompatible(a,b::DataType) = b == Any
@@ -50,19 +50,56 @@ domainspace(A::Operator)=Any
 
 ##max space
 
-function max(a::UltrasphericalSpace,b::UltrasphericalSpace)
+
+
+function Base.max(a::UltrasphericalSpace,b::UltrasphericalSpace)
     @assert domainscompatible(a,b)
     
     a.order > b.order?a:b
 end
 
-max(a::OperatorSpace,b::DataType)=a
-max(b::DataType,a)=a
-function max(a::OperatorSpace,b::OperatorSpace)
+Base.max(a::OperatorSpace,b::DataType)=a
+Base.max(b::DataType,a)=a
+function Base.max(a::OperatorSpace,b::OperatorSpace)
     @assert a==b
     
     a
 end
+
+function Base.min(a::UltrasphericalSpace,b::UltrasphericalSpace)
+    @assert domainscompatible(a,b)
+    
+    a.order < b.order?a:b
+end
+
+Base.min(a::OperatorSpace,b::DataType)=a
+Base.min(b::DataType,a)=a
+function Base.min(a::OperatorSpace,b::OperatorSpace)
+    @assert a==b
+    
+    a
+end
+
+function findmindomainspace(ops::Vector)
+    sp = Any
+    
+    for op in ops
+        sp = min(sp,domainspace(op))
+    end
+    
+    sp
+end
+
+function findmaxrangespace(ops::Vector)
+    sp = Any
+    
+    for op in ops
+        sp = max(sp,rangespace(op))
+    end
+    
+    sp
+end
+
 
 ## Operator space manipulation
 
@@ -76,20 +113,24 @@ function promoterangespace(P::Operator,sp::Space)
         @assert typeof(sp) <: UltrasphericalSpace
         @assert spacescompatible(sp,psp)
         
-        ConversionOperator(psp.order:sp.order)*P
+        if psp.order == sp.order
+            P
+        else
+            ConversionOperator(psp.order:sp.order)*P
+        end
     end
 end
 
 
 function promoterangespace{T<:Operator}(ops::Vector{T})
-    k=mapreduce(rangespace,max,ops)
+    k=findmaxrangespace(ops)
     T[promoterangespace(op,k) for op in ops]
 end
 
 
 
-function promotedomainspace(P::BandedOperator,sp::Space)
-    psp = domainpace(P)
+function promotedomainspace(P::Operator,sp::Space)
+    psp = domainspace(P)
     
     if psp == Any || sp == Any || psp == sp
         P
@@ -98,14 +139,19 @@ function promotedomainspace(P::BandedOperator,sp::Space)
         @assert typeof(sp) <: UltrasphericalSpace
         @assert spacescompatible(psp,sp)
         
-        P*ConversionOperator(sp.order:psp.order)
+        
+        if psp.order == sp.order
+            P
+        else
+            P*ConversionOperator(sp.order:psp.order)
+        end
     end
 end
 
 
 
 function promotedomainspace{T<:Operator}(ops::Vector{T})
-    k=mapreduce(domainspace,min,ops)
+    k=findmindomainspace(ops)
     T[promotedomainspace(op,k) for op in ops]
 end
 
