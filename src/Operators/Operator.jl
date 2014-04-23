@@ -65,6 +65,16 @@ function Base.getindex(B::Operator,k::Range1,j::Range1)
 end
 
 
+## indexrange
+
+function indexrange(b::BandedBelowOperator,k::Integer)
+    ret = bandrange(b) + k
+  
+    (ret[1] < 1) ? (1:ret[end]) : ret
+end
+
+index(b::BandedBelowOperator)=1-bandrange(b)[1]
+
 
 
 ## Multiplication of operator * fun
@@ -198,6 +208,8 @@ Base.diff(d::PeriodicDomain,μ::Integer)=FourierDerivativeOperator(μ)
 Base.diff(d::Domain)=Base.diff(d,1)
 
 Base.eye(d::IntervalDomain)=MultiplicationOperator(IFun([1.],d))
+Base.eye(d::PeriodicDomain)=MultiplicationOperator(FFun(ShiftVector([1.],1),d))
+
 integrate(d::IntervalDomain)=IntegrationOperator(1,d)
 
 evaluate(d::IntervalDomain,x)=EvaluationOperator(d,x)

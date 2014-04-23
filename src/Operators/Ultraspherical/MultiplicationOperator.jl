@@ -9,7 +9,7 @@ type MultiplicationOperator{T<:Number,D<:IntervalDomain} <: BandedOperator{T}
 end
 
 
-MultiplicationOperator(c::Number,k::Int)=ConstantOperator(c,k)
+MultiplicationOperator(c::Number,k)=ConstantOperator(c)
 MultiplicationOperator(f::FFun)=LaurentOperator(f)
 MultiplicationOperator(f)=MultiplicationOperator(f,0)
 

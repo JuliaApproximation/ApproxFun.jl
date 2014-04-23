@@ -70,7 +70,9 @@ end
 -(A::Operator,f::AbstractFun)=A+MultiplicationOperator(-f)
 -(f::AbstractFun,A::Operator)=MultiplicationOperator(f)-A
 +(c::Number,A::Operator)=MultiplicationOperator(c)+A
+.+(c::Number,A::Operator)=MultiplicationOperator(c)+A
 +(A::Operator,c::Number)=A+MultiplicationOperator(c)
+.+(A::Operator,c::Number)=A+MultiplicationOperator(c)
 -(c::Number,A::Operator)=MultiplicationOperator(c)-A
 -(A::Operator,c::Number)=A-MultiplicationOperator(c)
 
@@ -79,9 +81,10 @@ end
 ## Times Operator
 
 
-type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
+type TimesOperator{T<:Number,B<:Operator} <: BandedOperator{T}
     ops::Vector{B}
     
+    ##TODO: Probably should go other way
     function TimesOperator{B}(ops::Vector{B})
         for k=1:length(ops)-1
             ops[k]=promotedomainspace(ops[k],rangespace(ops[k+1]))
@@ -91,7 +94,7 @@ type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
     end    
 end
 
-function TimesOperator{B<:BandedOperator}(ops::Vector{B})
+function TimesOperator{B<:Operator}(ops::Vector{B})
     T = Float64
     
     for op in ops
@@ -185,15 +188,16 @@ function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
 end
 
 *(A::TimesOperator,B::TimesOperator)=TimesOperator([A.ops,B.ops])
-*(A::TimesOperator,B::BandedOperator)=TimesOperator([A.ops,B])
-*(A::BandedOperator,B::TimesOperator)=TimesOperator([A,B.ops])
-*(A::BandedOperator,B::BandedOperator)=TimesOperator([A,B])
+*(A::TimesOperator,B::Operator)=TimesOperator([A.ops,B])
+*(A::Operator,B::TimesOperator)=TimesOperator([A,B.ops])
+*(A::Operator,B::Operator)=TimesOperator([A,B])
 
 
--(A::BandedOperator)=ConstantOperator(-1.)*A
--(A::BandedOperator,B::BandedOperator)=A+(-B)
+-(A::Operator)=ConstantOperator(-1.)*A
+-(A::Operator,B::Operator)=A+(-B)
 
 *(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
+*(f::FFun,A::Operator)=MultiplicationOperator(f)*A
 *(c::Number,A::Operator)=ConstantOperator(c)*A
 
 
