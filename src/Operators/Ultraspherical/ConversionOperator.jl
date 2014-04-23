@@ -6,8 +6,8 @@ type ConversionOperator <: BandedOperator{Float64}
     λ::Int
 end
 
-domainspace(M::ConversionOperator)=M.λ-1
-rangespace(M::ConversionOperator)=M.λ
+domainspace(M::ConversionOperator)=UltrasphericalSpace(M.λ-1)
+rangespace(M::ConversionOperator)=UltrasphericalSpace(M.λ)
 
 function ConversionOperator(r::Range1)
     @assert r[end] > r[1]
@@ -90,42 +90,4 @@ bandrange(C::ConversionOperator)=0:2
 
 
 
-## Operator space manipulation
-
-
-promoterangespace(P::ShiftOperator,k)=P
-promoterangespace{T<:ShiftOperator}(ops::Vector{T})=ops
-promotedomainspace(P::ShiftOperator,k)=P
-promotedomainspace{T<:ShiftOperator}(ops::Vector{T})=ops
-##TODO: Fix: we are assuming must have Fourier
-promoterangespace{T<:Operator}(ops::Vector{T})=ops
-promotedomainspace{T<:Operator}(ops::Vector{T})=ops
-
-function promoterangespace(P::BandedOperator,k::Integer)
-    @assert k >= rangespace(P)
-    
-    (k==rangespace(P))? P : ConversionOperator(rangespace(P):k)*P 
-end
-
-function promoterangespace{T<:BandedOperator}(ops::Vector{T})
-    k=mapreduce(rangespace,max,ops)
-    T[promoterangespace(op,k) for op in ops]
-end
-
-
-
-function promotedomainspace(P::BandedOperator,k::Integer)
-    @assert k <= domainspace(P)
-    
-    (k==domainspace(P))? P : P*ConversionOperator(k:domainspace(P))
-end
-
-function promotedomainspace{T<:BandedOperator}(ops::Vector{T})
-    k=mapreduce(domainspace,min,ops)
-    T[promotedomainspace(op,k) for op in ops]
-end
-
-promotespaces(ops::Vector)=promotedomainspace(promoterangespace(ops))
-
-promotespaces(op::BandedOperator,od::Range1)=promotedomainspace(promoterangespace(op,od[end]),od[1])
 

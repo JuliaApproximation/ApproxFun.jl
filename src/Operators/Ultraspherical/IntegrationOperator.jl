@@ -15,8 +15,8 @@ function bandrange(M::IntegrationOperator)
 
     -1:0
 end
-domainspace(M::IntegrationOperator)=first(M.order)
-rangespace(M::IntegrationOperator)=endof(M.order)
+domainspace(M::IntegrationOperator)=UltrasphericalSpace(M.order[1],M.domain)
+rangespace(M::IntegrationOperator)=UltrasphericalSpace(M.order[end],M.domain)
 domain(Q::IntegrationOperator)=Q.domain
 
 ##Very similar to conversion

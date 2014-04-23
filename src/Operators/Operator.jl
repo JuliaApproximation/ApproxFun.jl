@@ -160,14 +160,19 @@ linsolve(A,b;kwds...)=linsolve(A,[b];kwds...)
 
 include("ShiftArray.jl")
 
+include("OperatorSpace.jl")
 
 include("ToeplitzOperator.jl")
+
+include("ConstantOperator.jl")
 
 include("Ultraspherical/MultiplicationOperator.jl")
 include("Ultraspherical/EvaluationOperator.jl")
 include("Ultraspherical/ConversionOperator.jl")
 include("Ultraspherical/DerivativeOperator.jl")
 include("Ultraspherical/IntegrationOperator.jl")
+
+
 
 include("AlmostBandedOperator.jl")
 include("adaptiveqr.jl")

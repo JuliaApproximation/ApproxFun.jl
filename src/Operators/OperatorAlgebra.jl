@@ -26,8 +26,29 @@ function PlusOperator{B<:Operator}(ops::Vector{B})
 end
 
 
-domainspace(P::PlusOperator)=domainspace(P.ops[1])
-rangespace(P::PlusOperator)=rangespace(P.ops[1])
+function domainspace(P::PlusOperator)
+    for op in P.ops
+        sp = domainspace(op)
+        
+        if sp != Any
+            return sp
+        end
+    end
+    
+    Any
+end
+
+function rangespace(P::PlusOperator)
+    for op in P.ops
+        sp = rangespace(op)
+        
+        if sp != Any
+            return sp
+        end
+    end
+    
+    Any
+end
 
 domain(P::PlusOperator)=domain(P.ops)
 
@@ -63,9 +84,7 @@ type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
     
     function TimesOperator{B}(ops::Vector{B})
         for k=1:length(ops)-1
-            if domainspace(ops[k])!=rangespace(ops[k+1])
-                ops[k]=promotedomainspace(ops[k],rangespace(ops[k+1]))
-            end
+            ops[k]=promotedomainspace(ops[k],rangespace(ops[k+1]))
         end
         
         new(ops)
@@ -85,8 +104,29 @@ function TimesOperator{B<:BandedOperator}(ops::Vector{B})
 end
 
 
-domainspace(P::TimesOperator)=domainspace(P.ops[end])
-rangespace(P::TimesOperator)=rangespace(P.ops[1])
+function domainspace(P::TimesOperator)
+    for k=length(P.ops):-1:1
+        sp = domainspace(P.ops[k])
+        
+        if sp != Any
+            return sp
+        end
+    end
+    
+    Any
+end
+
+function rangespace(P::TimesOperator)
+    for op in P.ops
+        sp = rangespace(op)
+        
+        if sp != Any
+            return sp
+        end
+    end
+    
+    Any
+end
 
 domain(P::TimesOperator)=domain(P.ops)
 
@@ -150,11 +190,11 @@ end
 *(A::BandedOperator,B::BandedOperator)=TimesOperator([A,B])
 
 
--(A::BandedOperator)=MultiplicationOperator(-1.,rangespace(A))*A
+-(A::BandedOperator)=ConstantOperator(-1.)*A
 -(A::BandedOperator,B::BandedOperator)=A+(-B)
 
 *(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
-*(c::Number,A::BandedOperator)=MultiplicationOperator(c,rangespace(A))*A
+*(c::Number,A::Operator)=ConstantOperator(c)*A
 
 
 

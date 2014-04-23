@@ -26,5 +26,8 @@ bandrange(D::FourierDerivativeOperator)=0:0
 domain(::FourierDerivativeOperator)=PeriodicInterval()
 
 
+domainspace(::FourierDerivativeOperator)=FourierSpace()
+rangespace(::FourierDerivativeOperator)=FourierSpace()
+
 
 ^(D1::FourierDerivativeOperator,k::Integer)=FourierDerivativeOperator(D1.order*k)
