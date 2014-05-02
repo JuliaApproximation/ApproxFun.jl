@@ -11,12 +11,12 @@ IntegrationOperator(k::Integer,d::IntervalDomain)=IntegrationOperator(k:k-1,d)
 
 function bandrange(M::IntegrationOperator)
     @assert first(M.order) == 1
-    @assert endof(M.order) == 0
+    @assert last(M.order) == 0
 
     -1:0
 end
-domainspace(M::IntegrationOperator)=first(M.order)
-rangespace(M::IntegrationOperator)=endof(M.order)
+domainspace(M::IntegrationOperator)=UltrasphericalSpace(first(M.order),M.domain)
+rangespace(M::IntegrationOperator)=UltrasphericalSpace(last(M.order),M.domain)
 domain(Q::IntegrationOperator)=Q.domain
 
 ##Very similar to conversion

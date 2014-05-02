@@ -217,3 +217,10 @@ function roots(f::FFun)
     end
 end
 
+
+function chop!(f::FFun,tol)
+    chop!(f.coefficients,tol)
+    f
+end
+chop(f::FFun,tol)=FFun(chop(f.coefficients,tol),f.domain)
+

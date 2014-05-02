@@ -145,3 +145,39 @@ end
 
 deinterlace(v::Vector)=ShiftVector(flipud(v[2:2:end]),v[1:2:end])
 
+
+
+function Base.resize!(c::ShiftVector,k::Range1)
+   fi=firstindex(c)
+
+   splice!(c.vector,last(k)+c.index+1:length(c.vector)) 
+   splice!(c.vector,1:first(k)+c.index-1)
+   c.index += fi - first(k) 
+   
+   c
+end
+
+
+## chop
+
+function chop!(c::ShiftVector,tol::Real)
+    @assert tol > 0
+
+    for k=firstindex(c):lastindex(c)
+        if abs(c[k]) > tol
+            resize!(c,k:lastindex(c))
+            break
+        end
+    end
+    
+    for k=lastindex(c):-1:firstindex(c)
+        if abs(c[k]) > tol
+            resize!(c,firstindex(c):k)
+            break
+        end
+    end    
+    
+    c
+end
+
+Base.chop(c::ShiftVector,tol::Real)=chop!(deepcopy(c),tol)

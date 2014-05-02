@@ -16,8 +16,6 @@ abstract RowShiftOperator{T} <: ShiftOperator{T}
 
 
 ## We assume operators are T->T
-rangespace(A::InfiniteOperator)=0
-domainspace(A::InfiniteOperator)=0
 domain(A::Operator)=Any
 
 domain(f::IFun)=f.domain
@@ -67,6 +65,16 @@ function Base.getindex(B::Operator,k::Range1,j::Range1)
 end
 
 
+## indexrange
+
+function indexrange(b::BandedBelowOperator,k::Integer)
+    ret = bandrange(b) + k
+  
+    (ret[1] < 1) ? (1:ret[end]) : ret
+end
+
+index(b::BandedBelowOperator)=1-bandrange(b)[1]
+
 
 
 ## Multiplication of operator * fun
@@ -98,7 +106,7 @@ end
 
 
 
-*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A)),rangespace(A)),b.domain)
+*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A).order),rangespace(A).order),b.domain)
 
 *(A::RowOperator,b::Vector)=dot(A[1:length(b)],b)
 *(A::RowOperator,b::IFun)=A*b.coefficients
@@ -113,7 +121,7 @@ IFun_coefficients(b::Vector,sp)=vcat(map(f-> typeof(f)<: IFun? coefficients(f,sp
 FFun_coefficients(b::Vector)=vcat(map(f-> typeof(f)<: FFun? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
 
 function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
-    u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
+    u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end]).order),tolerance,maxlength)  ##TODO: depends on ordering of A
     
     IFun(u,domain([A,b]))
 end
@@ -160,14 +168,19 @@ linsolve(A,b;kwds...)=linsolve(A,[b];kwds...)
 
 include("ShiftArray.jl")
 
+include("OperatorSpace.jl")
 
 include("ToeplitzOperator.jl")
+
+include("ConstantOperator.jl")
 
 include("Ultraspherical/MultiplicationOperator.jl")
 include("Ultraspherical/EvaluationOperator.jl")
 include("Ultraspherical/ConversionOperator.jl")
 include("Ultraspherical/DerivativeOperator.jl")
 include("Ultraspherical/IntegrationOperator.jl")
+
+
 
 include("AlmostBandedOperator.jl")
 include("adaptiveqr.jl")
@@ -191,10 +204,12 @@ include("null.jl")
 ## Convenience routines
 
 Base.diff(d::IntervalDomain,μ::Integer)=DerivativeOperator(0:μ,d)
-Base.diff(d::PeriodicDomain,μ::Integer)=FourierDerivativeOperator(μ)
+Base.diff(d::PeriodicDomain,μ::Integer)=FourierDerivativeOperator(μ,d)
 Base.diff(d::Domain)=Base.diff(d,1)
 
 Base.eye(d::IntervalDomain)=MultiplicationOperator(IFun([1.],d))
+Base.eye(d::PeriodicDomain)=MultiplicationOperator(FFun(ShiftVector([1.],1),d))
+
 integrate(d::IntervalDomain)=IntegrationOperator(1,d)
 
 evaluate(d::IntervalDomain,x)=EvaluationOperator(d,x)

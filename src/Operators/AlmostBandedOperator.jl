@@ -4,13 +4,7 @@ export MutableAlmostBandedOperator
 
 
 
-function indexrange(b::BandedBelowOperator,k::Integer)
-    ret = bandrange(b) + k
-  
-    (ret[1] < 1) ? (1:ret[end]) : ret
-end
 
-index(b::BandedBelowOperator)=1-bandrange(b)[1]
 
 
 

@@ -1,19 +1,6 @@
 export MultiplicationOperator
 
 
-type ConstantOperator{T<:Number} <: BandedOperator{T}
-    c::T
-    
-    space::Int
-end
-
-domainspace(M::ConstantOperator)=M.space
-rangespace(M::ConstantOperator)=M.space
-
-bandrange(T::ConstantOperator)=0:0
-
-addentries!(C::ConstantOperator,A::ShiftArray,kr::Range1)=toeplitz_addentries!([.5C.c],A,kr)
-
 
 type MultiplicationOperator{T<:Number,D<:IntervalDomain} <: BandedOperator{T}
     f::IFun{T,D}
@@ -22,14 +9,14 @@ type MultiplicationOperator{T<:Number,D<:IntervalDomain} <: BandedOperator{T}
 end
 
 
-MultiplicationOperator(c::Number,k::Int)=ConstantOperator(c,k)
+MultiplicationOperator(c::Number,k)=ConstantOperator(c)
 MultiplicationOperator(f::FFun)=LaurentOperator(f)
 MultiplicationOperator(f)=MultiplicationOperator(f,0)
 
 
 
-domainspace(M::MultiplicationOperator)=M.space
-rangespace(M::MultiplicationOperator)=M.space
+domainspace(M::MultiplicationOperator)=UltrasphericalSpace(M.space,domain(M.f))
+rangespace(M::MultiplicationOperator)=UltrasphericalSpace(M.space,domain(M.f))
 
 
 function zeromultiplication_addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)

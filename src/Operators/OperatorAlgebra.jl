@@ -26,8 +26,29 @@ function PlusOperator{B<:Operator}(ops::Vector{B})
 end
 
 
-domainspace(P::PlusOperator)=domainspace(P.ops[1])
-rangespace(P::PlusOperator)=rangespace(P.ops[1])
+function domainspace(P::PlusOperator)
+    for op in P.ops
+        sp = domainspace(op)
+        
+        if sp != Any
+            return sp
+        end
+    end
+    
+    Any
+end
+
+function rangespace(P::PlusOperator)
+    for op in P.ops
+        sp = rangespace(op)
+        
+        if sp != Any
+            return sp
+        end
+    end
+    
+    Any
+end
 
 domain(P::PlusOperator)=domain(P.ops)
 
@@ -42,14 +63,18 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
     A
 end
 
-
++(A::PlusOperator,B::PlusOperator)=PlusOperator([A.ops,B.ops])
++(A::PlusOperator,B::Operator)=PlusOperator([A.ops,B])
++(A::Operator,B::PlusOperator)=PlusOperator([A,B.ops])
 +(A::Operator,B::Operator)=PlusOperator([A,B])
 +(A::Operator,f::AbstractFun)=A+MultiplicationOperator(f)
 +(f::AbstractFun,A::Operator)=MultiplicationOperator(f)+A
 -(A::Operator,f::AbstractFun)=A+MultiplicationOperator(-f)
 -(f::AbstractFun,A::Operator)=MultiplicationOperator(f)-A
 +(c::Number,A::Operator)=MultiplicationOperator(c)+A
+.+(c::Number,A::Operator)=MultiplicationOperator(c)+A
 +(A::Operator,c::Number)=A+MultiplicationOperator(c)
+.+(A::Operator,c::Number)=A+MultiplicationOperator(c)
 -(c::Number,A::Operator)=MultiplicationOperator(c)-A
 -(A::Operator,c::Number)=A-MultiplicationOperator(c)
 
@@ -58,21 +83,20 @@ end
 ## Times Operator
 
 
-type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
+type TimesOperator{T<:Number,B<:Operator} <: BandedOperator{T}
     ops::Vector{B}
     
+    ##TODO: Probably should go other way
     function TimesOperator{B}(ops::Vector{B})
         for k=1:length(ops)-1
-            if domainspace(ops[k])!=rangespace(ops[k+1])
-                ops[k]=promotedomainspace(ops[k],rangespace(ops[k+1]))
-            end
+            ops[k]=promotedomainspace(ops[k],rangespace(ops[k+1]))
         end
         
         new(ops)
     end    
 end
 
-function TimesOperator{B<:BandedOperator}(ops::Vector{B})
+function TimesOperator{B<:Operator}(ops::Vector{B})
     T = Float64
     
     for op in ops
@@ -85,8 +109,29 @@ function TimesOperator{B<:BandedOperator}(ops::Vector{B})
 end
 
 
-domainspace(P::TimesOperator)=domainspace(P.ops[end])
-rangespace(P::TimesOperator)=rangespace(P.ops[1])
+function domainspace(P::TimesOperator)
+    for k=length(P.ops):-1:1
+        sp = domainspace(P.ops[k])
+        
+        if sp != Any
+            return sp
+        end
+    end
+    
+    Any
+end
+
+function rangespace(P::TimesOperator)
+    for op in P.ops
+        sp = rangespace(op)
+        
+        if sp != Any
+            return sp
+        end
+    end
+    
+    Any
+end
 
 domain(P::TimesOperator)=domain(P.ops)
 
@@ -145,16 +190,17 @@ function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
 end
 
 *(A::TimesOperator,B::TimesOperator)=TimesOperator([A.ops,B.ops])
-*(A::TimesOperator,B::BandedOperator)=TimesOperator([A.ops,B])
-*(A::BandedOperator,B::TimesOperator)=TimesOperator([A,B.ops])
-*(A::BandedOperator,B::BandedOperator)=TimesOperator([A,B])
+*(A::TimesOperator,B::Operator)=TimesOperator([A.ops,B])
+*(A::Operator,B::TimesOperator)=TimesOperator([A,B.ops])
+*(A::Operator,B::Operator)=TimesOperator([A,B])
 
 
--(A::BandedOperator)=MultiplicationOperator(-1.,rangespace(A))*A
--(A::BandedOperator,B::BandedOperator)=A+(-B)
+-(A::Operator)=ConstantOperator(-1.)*A
+-(A::Operator,B::Operator)=A+(-B)
 
 *(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
-*(c::Number,A::BandedOperator)=MultiplicationOperator(c,rangespace(A))*A
+*(f::FFun,A::Operator)=MultiplicationOperator(f)*A
+*(c::Number,A::Operator)=ConstantOperator(c)*A
 
 
 
