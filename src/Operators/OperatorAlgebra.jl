@@ -144,13 +144,15 @@ bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->b
 function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Range1)
     kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
 
-    Z = ShiftArray(zeros(T,length(kre),size(A,2)),1-kr[1],A.colindex)
+    Z = sazeros(T,kre,bandrange(P))
     addentries!(P.ops[end],Z,kre)
     
-    for j=length(P.ops)-1:-1:1
+    for j=length(P.ops)-1:-1:2
         krr=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:j-1]))    
         multiplyentries!(P.ops[j],Z,krr)
     end
+    
+    multiplyentries!(P.ops[1],Z,kr)    
     
     for k=kr,j=columnrange(A)
         A[k,j] += Z[k,j]
@@ -198,7 +200,7 @@ end
 -(A::Operator)=ConstantOperator(-1.)*A
 -(A::Operator,B::Operator)=A+(-B)
 
-*(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
+*(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A).order)*A
 *(f::FFun,A::Operator)=MultiplicationOperator(f)*A
 *(c::Number,A::Operator)=ConstantOperator(c)*A
 
