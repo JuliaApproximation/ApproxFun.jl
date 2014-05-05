@@ -71,12 +71,12 @@ end
 +(f::AbstractFun,A::Operator)=MultiplicationOperator(f)+A
 -(A::Operator,f::AbstractFun)=A+MultiplicationOperator(-f)
 -(f::AbstractFun,A::Operator)=MultiplicationOperator(f)-A
-+(c::Number,A::Operator)=MultiplicationOperator(c)+A
-.+(c::Number,A::Operator)=MultiplicationOperator(c)+A
-+(A::Operator,c::Number)=A+MultiplicationOperator(c)
-.+(A::Operator,c::Number)=A+MultiplicationOperator(c)
--(c::Number,A::Operator)=MultiplicationOperator(c)-A
--(A::Operator,c::Number)=A-MultiplicationOperator(c)
++(c::Number,A::Operator)=MultiplicationOperator(Fun(c,domain(A)))+A
+.+(c::Number,A::Operator)=MultiplicationOperator(Fun(c,domain(A)))+A
++(A::Operator,c::Number)=A+MultiplicationOperator(Fun(c,domain(A)))
+.+(A::Operator,c::Number)=A+MultiplicationOperator(Fun(c,domain(A)))
+-(c::Number,A::Operator)=MultiplicationOperator(Fun(c,domain(A)))-A
+-(A::Operator,c::Number)=A-MultiplicationOperator(Fun(c,domain(A)))
 
 
 

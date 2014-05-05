@@ -87,6 +87,9 @@ IFun(f::Function,d::Vector)=IFun(f,Interval(d))
 IFun(f::IFun,d)=IFun(f.coefficients,d)
 IFun(f::IFun)=IFun(f.coefficients)
 
+IFun(c::Number)=IFun([c])
+IFun(c::Number,d)=IFun([c],d)
+
 ## Adaptive constructors
 
 function randomIFun(f::Function,d::Domain)
