@@ -83,6 +83,8 @@ function multiplyentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
     else
         conversion_multiplyentries!(C.λ,A,kr)
     end
+    
+    A
 end
 
 

@@ -142,9 +142,12 @@ bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->b
 ##TODO: We keep this around because its faster
 ## need to unify 
 function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Range1)
+    cr = columnrange(A)
+    br = bandrange(P)
+
     kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
 
-    Z = sazeros(T,kre,bandrange(P))
+    Z = sazeros(T,kre,br)
     addentries!(P.ops[end],Z,kre)
     
     for j=length(P.ops)-1:-1:2
@@ -154,7 +157,7 @@ function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Ra
     
     multiplyentries!(P.ops[1],Z,kr)    
     
-    for k=kr,j=columnrange(A)
+    for k=kr,j=max(cr[1],br[1]):min(cr[end],br[end])
         A[k,j] += Z[k,j]
     end
     
