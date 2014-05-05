@@ -6,8 +6,8 @@ function lyapdiag!(A::Vector,B::Vector,F)
     F
 end
 
-# Solve P*Y*T' + S*Y*R' = F 
-# where P,T, S and R are upper triangular
+# Solve P*Y*R' + S*Y*T' = F 
+# where P,R,S and T are upper triangular
 function lyapuptriang{N}(P,R,S,T,F::Array{N})
     m=size(P,2); n = size(T,2)
     Y=Array(N,m,n)
