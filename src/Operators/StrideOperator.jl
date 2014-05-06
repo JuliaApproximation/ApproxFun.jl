@@ -143,27 +143,43 @@ function isboundaryrow(A,k)
 end
 
 function interlace{T<:Operator}(A::Array{T,2})
-    for k=1:size(A,1)-2
+    m,n=size(A)
+
+    br=m-n #num boundary rows
+
+    for k=1:br
         @assert isboundaryrow(A,k) 
     end
     
-    S=Array(Operator,size(A,1)-1)
+    S=Array(Operator,br+1)
     
-    for k=1:size(A,1)-2
-        if iszerooperator(A[k,2])
-            S[k] = StrideRowOperator(A[k,1],-1,2)
-        elseif iszerooperator(A[k,1])
-            S[k] = StrideRowOperator(A[k,2],0,2)
-        else
-            S[k] = StrideRowOperator(A[k,1],-1,2)+StrideRowOperator(A[k,2],0,2)
+    for k=1:br, j=1:n
+        if !iszerooperator(A[k,j])
+            op = StrideRowOperator(A[k,j],j-n,n)
+            
+            if !isdefined(S,k)
+                S[k] = op
+            else
+                S[k] = S[k] + op
+            end
         end
     end
 
-    A31,A32=promotespaces([A[end-1,1],A[end-1,2]])
-    A41,A42=promotespaces([A[end,1],A[end,2]])
-
-    S[end] = StrideOperator(A31,-1,-1,2) + StrideOperator(A32,-1,0,2) + 
-    StrideOperator(A41,0,-1,2) + StrideOperator(A42,0,0,2) 
+    for k=br+1:m
+        Ap=promotespaces([A[k,:]...])
+        
+        for j=1:n
+            if !iszerooperator(A[k,j])  #not sure what promote does for constant operator
+                op = StrideOperator(Ap[j],k-br-n,j-n,n)
+            
+                if !isdefined(S,br+1)
+                    S[br+1] = op
+                else
+                    S[br+1] = S[br+1] + op
+                end
+            end            
+        end
+    end
     
     if(size(S,1) ==1)
         S[1]
