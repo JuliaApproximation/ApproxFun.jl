@@ -183,15 +183,23 @@ function chop!(c::Vector,tol::Real)
 
     for k=[length(c):-1:1]
         if abs(c[k]) > tol
-            resize!(c,k);
-            return c;
+            resize!(c,k)
+            return c
         end
     end
     
-    []
+    resize!(c,0)
+    c
 end
 
-chop!(f::IFun,tol::Real)=(chop!(f.coefficients,tol); f)
+function chop!(f::IFun,tol::Real)
+    chop!(f.coefficients,tol)
+    if length(f.coefficients) == 0
+        f.coefficients = [0.]
+    end
+    
+    f
+end
 chop(f::Union(IFun,Vector),tol)=chop!(deepcopy(f),tol)
 
 chop!(f::Union(IFun,Vector))=chop!(f,eps())
