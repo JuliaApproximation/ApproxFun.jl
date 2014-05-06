@@ -141,6 +141,24 @@ end
      IFun[IFun(ret[k:m:end],commondomain(A[:,k])) for k=1:m]
  end
  
+function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any})
+    m,n=size(A)
+
+    br=m-n
+
+    l=mapreduce(length,max,b[br+1:end])
+
+    r=zeros(Float64,br+n*l)  ##TODO: support complex
+    
+    r[1:br]=b[1:br]
+    
+    for k=br+1:m
+        sp=findmaxrangespace([A[k,:]...]).order
+        r[k:n:end]=pad(coefficients(b[k],sp),l)
+    end
+
+    linsolve(A,r)
+end 
 
 
 linsolve(A::Operator,b::Vector;kwds...)=linsolve([A],b;kwds...)
