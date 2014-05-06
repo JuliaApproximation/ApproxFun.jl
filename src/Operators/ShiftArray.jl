@@ -106,7 +106,7 @@ end
 
 BandedArray(S::ShiftArray,cs::Integer)=BandedArray(S,max(1,rowrange(S)[1] + columnrange(S)[1]):cs)
 BandedArray(S::ShiftArray)=BandedArray(S,rowrange(S)[end]+columnrange(S)[end])
-BandedArray(B::Operator,k::Range1)=BandedArray(ShiftArray(B,k,bandrange(B)))
+BandedArray(B::Operator,k::Range1)=BandedArray(B,k,(k[1]+bandrange(B)[1]):(k[end]+bandrange(B)[end]))
 BandedArray(B::Operator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
 
 

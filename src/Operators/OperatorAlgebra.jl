@@ -147,8 +147,7 @@ function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Ra
 
     kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
 
-    Z = sazeros(T,kre,br)
-    addentries!(P.ops[end],Z,kre)
+    Z = ShiftArray(P.ops[end],kre,br)
     
     for j=length(P.ops)-1:-1:2
         krr=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:j-1]))    
@@ -170,13 +169,14 @@ function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
     krl[1]=kr
     
     for m=1:length(P.ops)-1
-      krl[m+1]=indexrange(P.ops[m],krl[m][1])[1]:indexrange(P.ops[m],krl[m][end])[end]
+        br=bandrange(P.ops[m])
+         krl[m+1]=(br[1] + krl[m][1]):(br[end] + krl[m][end])
     end
     
     BA=BandedArray(P.ops[end],krl[end])
     
     for m=(length(P.ops)-1):-1:1
-      BA=BandedArray(P.ops[m],krl[m],krl[m+1][end])*BA
+      BA=BandedArray(P.ops[m],krl[m],krl[m+1])*BA
     end
     
     for k=kr,j=columnrange(BA.data)

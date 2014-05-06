@@ -70,6 +70,8 @@ end
 
 
 function addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
+    kr = max(kr[1],1):kr[end]
+
     if M.space == 0
         zeromultiplication_addentries!(M,A,kr)
     elseif M.space == 1

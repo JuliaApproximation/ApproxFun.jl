@@ -46,7 +46,7 @@ function one_conversion_multiplyentries!(A::ShiftArray,kr::Range1)
     end
     
     #We assume that A has allocated 2 more bandwidth
-    for k=kr[1]:kr[end],j=(cr[1]+2):cr[end]
+    for k=max(1,kr[1]):kr[end],j=(cr[1]+2):cr[end]
         A[k,j] -= A[k+2,j-2]
     end 
 end
@@ -57,18 +57,20 @@ function conversion_multiplyentries!(λ::Integer,A::ShiftArray,kr::Range1)
     λf = 1.λ
     
     #We assume here that the extra rows are redundant
-    for k=kr[1]:kr[end]+2,j=cr
+    for k=max(kr[1],1):kr[end]+2,j=cr
         A[k,j] *= (λf-1)./(k - 2. + λf)
     end
     
     #We assume that A has allocated 2 more bandwidth
-    for k=kr,j=(cr[1]+2):cr[end]
+    for k=max(kr[1],1):kr[end],j=(cr[1]+2):cr[end]
         A[k,j] -= A[k+2,j-2]
     end 
 end
 
 
 function addentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
+    kr = max(kr[1],1):kr[end]
+
     if C.λ == 1
         one_conversion_addentries!(A,kr)
     else

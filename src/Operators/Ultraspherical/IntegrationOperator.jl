@@ -24,7 +24,7 @@ function addentries!(Q::IntegrationOperator,A::ShiftArray,kr::Range1)
     @assert first(Q.order) == 1
     @assert endof(Q.order) == 0
 
-    for k=kr
+    for k=max(kr[1],1):kr[end]
         A[k,-1] += .5(Q.domain.b-Q.domain.a)./(k-1)
     end
     

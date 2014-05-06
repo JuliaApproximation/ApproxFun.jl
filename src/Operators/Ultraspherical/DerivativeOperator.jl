@@ -30,7 +30,7 @@ type USDerivativeOperator <: BandedOperator{Float64}
 end
 
 
-addentries!(D::USDerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentries!(D.order,Interval(),A,kr)
+addentries!(D::USDerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentries!(D.order,Interval(),A,max(kr[1],1):kr[end])
 
 
 bandrange(D::USDerivativeOperator)=0:(length(D.order)-1)
@@ -66,7 +66,7 @@ DerivativeOperator(k::Integer,d::IntervalDomain)=DerivativeOperator(k-1:k,d)
 ## Operator Routine
 
 
-addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentries!(D.order,D.domain,A,kr)
+addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentries!(D.order,D.domain,A,  max(kr[1],1):kr[end])
 
 
 
