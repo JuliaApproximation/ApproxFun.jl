@@ -124,7 +124,7 @@ end
 StrideRowOperator{T<:Number}(B::RowOperator{T},r,rs)=StrideRowOperator{T,typeof(B)}(B,r,rs)
 
 
-Base.getindex{T<:Number}(op::StrideRowOperator{T},kr::Range1)=[((k-1)%op.stride==op.rowindex)?op.op[fld(k-1,op.stride)+1]:zero(T) for k=kr]
+Base.getindex{T<:Number}(op::StrideRowOperator{T},kr::Range1)=[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
 
 
 
@@ -151,19 +151,19 @@ function interlace{T<:Operator}(A::Array{T,2})
     
     for k=1:size(A,1)-2
         if iszerooperator(A[k,2])
-            S[k] = StrideRowOperator(A[k,1],0,2)
+            S[k] = StrideRowOperator(A[k,1],-1,2)
         elseif iszerooperator(A[k,1])
-            S[k] = StrideRowOperator(A[k,2],1,2)
+            S[k] = StrideRowOperator(A[k,2],0,2)
         else
-            S[k] = StrideRowOperator(A[k,1],0,2)+StrideRowOperator(A[k,2],1,2)
+            S[k] = StrideRowOperator(A[k,1],-1,2)+StrideRowOperator(A[k,2],0,2)
         end
     end
 
     A31,A32=promotespaces([A[end-1,1],A[end-1,2]])
     A41,A42=promotespaces([A[end,1],A[end,2]])
 
-    S[end] = StrideOperator(A31,0,0,2) + StrideOperator(A32,0,1,2) + 
-    StrideOperator(A41,1,-1,2) + StrideOperator(A42,1,0,2) 
+    S[end] = StrideOperator(A31,-1,-1,2) + StrideOperator(A32,-1,0,2) + 
+    StrideOperator(A41,0,-1,2) + StrideOperator(A42,0,0,2) 
     
     if(size(S,1) ==1)
         S[1]

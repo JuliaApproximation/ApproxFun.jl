@@ -110,6 +110,9 @@ Fun(x,d::Vector,n::Integer)=IFun(x,d,n)
 ## General routines
 
 domain(f::AbstractFun)=f.domain
+domain(::Number)=Any
+domain{T<:AbstractFun}(v::Vector{T})=map(domain,v)
+
 
 
 ## Other domains
@@ -128,17 +131,21 @@ include("Plotting/Plot.jl")
 
 
 
-function Interval(d::Vector)
-    @assert length(d) == 2
-    
-    if d[1] ==-Inf && d[2] == Inf
-        Line()
-    elseif d[2] == Inf
-        Ray(0,0)
-    elseif d[1] == -Inf
-        Ray(0,π)
+function Interval{T<:Number}(d::Vector{T})
+    @assert length(d) >1
+
+    if length(d) == 2    
+        if d[1] ==-Inf && d[2] == Inf
+            Line()
+        elseif d[2] == Inf
+            Ray(0,0)
+        elseif d[1] == -Inf
+            Ray(0,π)
+        else
+            Interval(d[1],d[2])
+        end
     else
-        Interval(d[1],d[2])
+        [Interval(d[1],d[2]),Interval(d[2:end])]
     end
 end
 

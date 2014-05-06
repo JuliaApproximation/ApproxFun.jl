@@ -78,18 +78,23 @@ end
 
 IFun(f::Function,n::Integer)=IFun(f,Interval(),n)
 IFun(f::Function,d::Domain,n::Integer)=IFun(chebyshevtransform(f(points(d,n))),d)
-IFun(f::Function,d::Vector,n::Integer)=IFun(f,Interval(d),n)
+IFun{T<:Number}(f::Function,d::Vector{T},n::Integer)=IFun(f,Interval(d),n)
 IFun(cfs::Vector)=IFun(1.0*cfs,Interval())
-IFun(cfs::Vector,d::Vector)=IFun(1.0*cfs,Interval(d))
+IFun{T<:Number}(cfs::Vector,d::Vector{T})=IFun(1.0*cfs,Interval(d))
 IFun(cfs::Vector,d::IntervalDomain)=IFun(1.0*cfs,d)
 IFun(f::Function)=IFun(f,Interval())
-IFun(f::Function,d::Vector)=IFun(f,Interval(d))
+IFun{T<:Number}(f::Function,d::Vector{T})=IFun(f,Interval(d))
 
-IFun(f::IFun,d)=IFun(f.coefficients,d)
+IFun{T<:Number}(f::IFun,d::Union(IntervalDomain,Vector{T}))=IFun(f.coefficients,d)
 IFun(f::IFun)=IFun(f.coefficients)
 
 IFun(c::Number)=IFun([c])
 IFun(c::Number,d)=IFun([c],d)
+
+## List constructor
+
+IFun{T<:IntervalDomain}(c::Number,dl::Vector{T})=map(d->IFun(c,d),dl)
+IFun{T<:IntervalDomain}(f,dl::Vector{T})=map(d->IFun(f,d),dl)
 
 ## Adaptive constructors
 

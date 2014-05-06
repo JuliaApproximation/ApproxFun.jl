@@ -18,10 +18,8 @@ abstract RowShiftOperator{T} <: ShiftOperator{T}
 ## We assume operators are T->T
 domain(A::Operator)=Any
 
-domain(f::IFun)=f.domain
-domain(::Number)=Any
 
-function domain(P::Vector)
+function domain{T<:Number}(P::Vector{T})
     ret = Any
     
     for op in P
@@ -206,4 +204,4 @@ Base.endof(d::IntervalDomain)=evaluate(d,d.b)
 
 ## Conversion
 
-Base.convert{N<:Number}(A::Type{Operator},n::N)=ConstantOperator(1.n,0)
+Base.convert{N<:Number}(A::Type{Operator},n::N)=ConstantOperator(1.n)
