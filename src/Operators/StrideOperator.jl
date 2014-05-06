@@ -109,7 +109,7 @@ function addentries!(S::StrideOperator,A,kr)
 end
 
 
-domain(S::StrideOperator)=domain(S.op)
+domain(S::StrideOperator)=Any ##TODO: tensor product
 
 
 ## StrideRowOperator

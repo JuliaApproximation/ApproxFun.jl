@@ -19,7 +19,7 @@ abstract RowShiftOperator{T} <: ShiftOperator{T}
 domain(A::Operator)=Any
 
 
-function domain{T<:Number}(P::Vector{T})
+function commondomain(P::Vector)
     ret = Any
     
     for op in P
@@ -106,7 +106,7 @@ FFun_coefficients(b::Vector)=vcat(map(f-> typeof(f)<: FFun? interlace(f.coeffici
 function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
     u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end]).order),tolerance,maxlength)  ##TODO: depends on ordering of A
     
-    IFun(u,domain([A,b]))
+    IFun(u,commondomain([A,b]))
 end
 
 function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
@@ -114,11 +114,11 @@ function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),m
 
     u=adaptiveqr([interlace(A[1])],FFun_coefficients(b),tolerance,maxlength)
     
-    FFun(deinterlace(u),domain([A,b]))    
+    FFun(deinterlace(u),commondomain([A,b]))    
 end
 
 function linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
-    d=domain([A,b])
+    d=commondomain([A,b])
 
     if typeof(d) <: IntervalDomain
         IFun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)

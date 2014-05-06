@@ -50,7 +50,7 @@ function rangespace(P::PlusOperator)
     Any
 end
 
-domain(P::PlusOperator)=domain(P.ops)
+domain(P::PlusOperator)=commondomain(P.ops)
 
 bandrange(P::PlusOperator)=mapreduce(op->bandrange(op)[1],min,P.ops):mapreduce(op->bandrange(op)[end],max,P.ops)
 
@@ -133,7 +133,7 @@ function rangespace(P::TimesOperator)
     Any
 end
 
-domain(P::TimesOperator)=domain(P.ops)
+domain(P::TimesOperator)=commondomain(P.ops)
 
 
 bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->bandrange(x)[end],+,P.ops)
