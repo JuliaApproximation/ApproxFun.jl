@@ -86,22 +86,7 @@ ultraconversion(g::Vector,m::Integer)=(m==0)? g : ConversionOperator(0:m)*g
 function *{T<:Number}(A::BandedOperator,b::Vector{T})
     n=length(b)
     m=n-bandrange(A)[1]
-    ret = zeros(T,m)
-    BA = BandedArray(A,1:m)
-    
-    for k=1:n - bandrange(A)[end]
-        for j=indexrange(BA,k)
-            ret[k] += BA[k,j]*b[j] 
-        end
-    end
-    
-    for k=max(n-bandrange(A)[end]+1,1):m
-        for j=indexrange(BA,k)[1]:n
-            ret[k] += BA[k,j]*b[j]             
-        end
-    end
-
-    ret
+    BandedArray(A,1:m,1:n)*b
 end
 
 

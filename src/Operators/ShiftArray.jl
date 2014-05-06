@@ -114,14 +114,14 @@ Base.size(B::BandedArray)=(rowrange(B.data)[end],B.colrange[end])
 Base.size(B::BandedArray,k::Integer)=size(B)[k]
 
 bandrange(B::BandedArray)=columnrange(B.data)
-function indexrange(B::BandedArray,k::Integer)
+function indexrange(B::BandedArray,k::Integer)  #k is the row
     br=bandrange(B)
     cr=columnrange(B)
     max(br[1] + k,cr[1]):min(br[end]+k,cr[end])
 end
 
 rowrange(B::BandedArray)=rowrange(B.data)
-function columnindexrange(B::BandedArray,j::Integer)
+function columnindexrange(B::BandedArray,j::Integer)  #j is the column
     br=bandrange(B)
     rr=rowrange(B)
     max(j-br[end],rr[1]):min(rr[end],j-br[1])
@@ -222,6 +222,22 @@ function *{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})
     end
   
     S
+end
+
+
+function *{T<:Number,M<:Number}(A::BandedArray{T},b::Vector{M})
+    typ = (T == Complex{Float64} || M == Complex{Float64}) ? Complex{Float64} : Float64
+
+    @assert columnrange(A) == 1:length(b)
+    
+    ret = zeros(typ,rowrange(A)[end])
+    
+    for k=rowrange(A), j=indexrange(A,k)
+        ret[k] += A[k,j]*b[j]
+    end
+    
+  
+    ret
 end
 
 *(a::Number,B::BandedArray)=BandedArray(a*B.data,B.colrange)

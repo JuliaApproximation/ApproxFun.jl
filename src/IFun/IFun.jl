@@ -2,6 +2,7 @@ include("bary.jl")
 include("clenshaw.jl")
 include("ultraspherical.jl")
 
+import Base.chop
 
 export plan_chebyshevtransform
 
@@ -186,9 +187,9 @@ function chop!(c::Vector,tol::Real)
 end
 
 chop!(f::IFun,tol::Real)=(chop!(f.coefficients,tol); f)
-Base.chop(f,tol)=chop!(deepcopy(f),tol)
+chop(f::Union(IFun,Vector),tol)=chop!(deepcopy(f),tol)
 
-chop!(f)=chop!(f,eps())
+chop!(f::Union(IFun,Vector))=chop!(f,eps())
 
 
 ## Addition and multiplication
@@ -302,7 +303,7 @@ end
 
 
 function complexroots(cin::Vector)
-    c=chop(cin,10eps());
+    c=chop(cin,10eps())
     if c == [] || length(c) == 1
         return []
     elseif length(c) == 2
