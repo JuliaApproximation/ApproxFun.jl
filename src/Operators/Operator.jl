@@ -131,17 +131,17 @@ end
 
 
 ##Todo nxn operator
- function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Vector{M})
+ function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Vector{M};tolerance=0.01eps(),maxlength=Inf)
     m = size(A,2)
  
-     ret=adaptiveqr(interlace(A),b)  #Given just an array, we don't know how to interlace
-                                     #so assume user knows
+     ret=adaptiveqr(interlace(A),b,tolerance,maxlength)  #Given just an array, we don't know how to interlace
+                                                         #so assume user knows
                                      
                                      
      IFun[IFun(ret[k:m:end],commondomain(A[:,k])) for k=1:m]
  end
  
-function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any})
+function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
     m,n=size(A)
 
     br=m-n
@@ -157,7 +157,7 @@ function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any})
         r[k:n:end]=pad(coefficients(b[k],sp),l)
     end
 
-    linsolve(A,r)
+    linsolve(A,r;kwds...)
 end 
 
 

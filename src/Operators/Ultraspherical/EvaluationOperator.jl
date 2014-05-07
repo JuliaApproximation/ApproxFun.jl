@@ -52,11 +52,15 @@ function Base.getindex{D,T}(op::EvaluationOperator{D,T},k::Range1)
         ret=(k-1).*(k-1).*(-1.).^k*2/(d.b-d.a) 
     elseif  abs(x-d.b) < tol && op.order ==1
         ret=(k-1).*(k-1)*2/(d.b-d.a) 
+    elseif  abs(x-d.a) < tol && op.order ==2
+        ret=-(k.-1).^2.*((k.-1).^2.-1)/3.*(-1.).^k*(2/(d.b-d.a))^2
+    elseif  abs(x-d.b) < tol && op.order ==2
+        ret=(k.-1).^2.*((k.-1).^2.-1)/3*(2/(d.b-d.a))^2  
     elseif op.order == 0
         
         ret=evaluatechebyshev(k[end],tocanonical(d,x))[k]
     else
-        error("Only first and zero order implemented")
+        error("Only zero–second order implemented")
     end
     
     ret
