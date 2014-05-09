@@ -124,7 +124,7 @@ end
 
 function promoterangespace{T<:Operator}(ops::Vector{T})
     k=findmaxrangespace(ops)
-    T[promoterangespace(op,k) for op in ops]
+    Operator[promoterangespace(op,k) for op in ops]
 end
 
 

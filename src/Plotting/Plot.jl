@@ -47,6 +47,12 @@ end
 #TODO: Pad
 
 function PyPlot.plot(f::FFun;axis=-1) 
+    f=deepcopy(f)
+    
+    m=max(-firstindex(f.coefficients),lastindex(f.coefficients))
+    
+    f.coefficients=pad(f.coefficients,-m:m)
+
     pts = [points(f),first(points(f))]
     vals =[values(f),first(values(f))]
 

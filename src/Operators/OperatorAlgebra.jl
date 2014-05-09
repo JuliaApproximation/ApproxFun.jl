@@ -7,8 +7,6 @@ export PlusOperator,TimesOperator
 
 type PlusOperator{T<:Number,B<:Operator} <: BandedOperator{T} 
     ops::Vector{B}
-    
-    PlusOperator{B}(ops::Vector{B})=new(promotespaces(ops))
 end
 
 
@@ -22,7 +20,8 @@ function PlusOperator{B<:Operator}(ops::Vector{B})
         end
     end
     
-    PlusOperator{T,B}(ops)
+    pops=promotespaces(ops)
+    PlusOperator{T,Operator}(pops)
 end
 
 
