@@ -137,7 +137,7 @@ end
 
 ##interlace pos and neg coefficients
 function interlace{T}(v::ShiftVector{T})
-    ret=Array(T,length(v.vector))
+    ret=zeros(T,2*max(-firstindex(v),lastindex(v))+1)
     
     j=1
     for k=0:lastindex(v)
