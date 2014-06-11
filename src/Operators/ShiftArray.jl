@@ -10,11 +10,12 @@ ShiftArray(dat::Array,ind::Integer)=ShiftArray(dat,0,ind)
 ShiftArray(T::DataType,ind::Integer)=ShiftArray(Array(T,0,0),0,ind)
 ShiftArray(ind::Integer)=ShiftArray(Float64,ind)
 
+sazeros(T::DataType,n::Range1,m::Range1)=ShiftArray(zeros(T,length(n),length(m)),1-n[1],1-m[1])
+sazeros(n::Range1,m::Range1)=sazeros(Float64,n,m)
 
-function ShiftArray{T<:Number}(B::Operator{T},k::Range1,j::Range1)
-    A=ShiftArray(zeros(T,length(k),length(j)),1-k[1],1-j[1])
-    addentries!(B,A,k)
-end
+
+
+ShiftArray{T<:Number}(B::Operator{T},k::Range1,j::Range1)=addentries!(B,sazeros(T,k,j),k)
 
 
 ShiftArray(B::Operator,k::Range1)=ShiftArray(B,k,bandrange(B))
@@ -90,8 +91,6 @@ function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer,m::Integer)
     S
 end
 
-sazeros(T::DataType,n::Range1,m::Range1)=ShiftArray(zeros(T,length(n),length(m)),1-n[1],1-m[1])
-sazeros(n::Range1,m::Range1)=sazeros(Float64,n,m)
 
 
 

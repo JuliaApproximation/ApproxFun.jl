@@ -198,6 +198,8 @@ include("specialfunctions.jl")
 
 include("TransposeOperator.jl")
 include("StrideOperator.jl")
+include("SliceOperator.jl")
+
 include("CompactOperator.jl")
 
 include("Fourier/FourierDerivativeOperator.jl")
