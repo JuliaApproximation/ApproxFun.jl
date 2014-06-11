@@ -85,7 +85,8 @@ IFun(cfs::Vector,d::IntervalDomain)=IFun(1.0*cfs,d)
 IFun(f::Function)=IFun(f,Interval())
 IFun{T<:Number}(f::Function,d::Vector{T})=IFun(f,Interval(d))
 
-IFun{T<:Number}(f::IFun,d::Union(IntervalDomain,Vector{T}))=IFun(f.coefficients,d)
+IFun(f::IFun,d::IntervalDomain)=IFun(f.coefficients,d)
+IFun{T<:Number}(f::IFun,d::Vector{T})=IFun(f.coefficients,d)
 IFun(f::IFun)=IFun(f.coefficients)
 
 IFun(c::Number)=IFun([c])
