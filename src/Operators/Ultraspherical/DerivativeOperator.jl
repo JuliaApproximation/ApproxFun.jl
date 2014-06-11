@@ -89,7 +89,7 @@ end
 
 
 #promoting domain space is allowed to change range space
-promotedomainspace(D::DerivativeOperator,sp::UltrasphericalSpace)=DerivativeOperator(D.order + sp.order,D.domain)
+promotedomainspace(D::DerivativeOperator,sp::UltrasphericalSpace)=DerivativeOperator(D.order -D.order[1] + sp.order,D.domain)
 
 
 

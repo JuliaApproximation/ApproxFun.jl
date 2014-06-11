@@ -42,3 +42,22 @@ f=FFun(t->cos(cos(t)));
 u=L\f;
 
 @assert norm(diff(u,2)+a.*u-f) < 10eps()
+
+
+
+## Check mixed
+
+d=Interval()
+D=diff(d)
+x=Fun(identity,d)
+A=D*(x*D)
+B=D+x*D^2
+C=x*D^2+D
+@assert norm((A-B)[1:10,1:10])<eps()
+@assert norm((B-A)[1:10,1:10])<eps()
+@assert norm((A-C)[1:10,1:10])<eps()
+@assert norm((C-A)[1:10,1:10])<eps()
+@assert norm((C-B)[1:10,1:10])<eps()
+@assert norm((B-C)[1:10,1:10])<eps()
+
+

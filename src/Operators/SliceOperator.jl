@@ -44,7 +44,7 @@ domain(S::SliceOperator)=Any
 
 
 Base.ndims(::BandedOperator)=2
-function Base.getindex(B::BandedOperator,k::FloatRange,j::FloatRange)
+function Base.getindex(B::BandedOperator,k::Base.FloatRange,j::Base.FloatRange)
     @assert last(k)==Inf && last(j)==Inf
     
     SliceOperator(B,convert(Integer,first(k)),convert(Integer,first(j)),1,1)
