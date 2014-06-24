@@ -21,7 +21,7 @@ ShiftArray{T<:Number}(B::Operator{T},k::Range1,j::Range1)=addentries!(B,sazeros(
 ShiftArray(B::Operator,k::Range1)=ShiftArray(B,k,bandrange(B))
 
 
-Base.setindex!{T<:Number}(S::ShiftArray{T},x::T,k::Integer,j::Integer)=(S.data[k + S.rowindex, j + S.colindex] = x)
+Base.setindex!(S::ShiftArray,x::Number,k::Integer,j::Integer)=(S.data[k + S.rowindex, j + S.colindex] = x)
 
 Base.getindex(S::ShiftArray,k,j) = S.data[k + S.rowindex, j + S.colindex]
 
