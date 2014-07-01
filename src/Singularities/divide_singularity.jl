@@ -78,8 +78,8 @@ function dirichlettransform!(w::Vector)
 end
 
 function idirichlettransform!(w::Vector)
-    for k=length(v)-2:-1:1
-        @inbounds w[k]-= w[k-2] 
+    for k=3:length(w)
+        @inbounds w[k-2]-= w[k] 
     end
     
     w
