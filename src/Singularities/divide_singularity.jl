@@ -68,56 +68,44 @@ divide_singularity(s,f::IFun)=IFun(divide_singularity(s,f.coefficients),f.domain
 
 
 ## both left and right dirichlet_transform
-
-function dirichlet_transform{T<:Number}(v::Vector{T})
-    n=length(v)
-    w=zeros(T,n-2)
-
-    for k=n-2:-1:1
-        @inbounds w[k]=v[k+2] 
-        
-        if k <= n-4
-            @inbounds w[k] += w[k+2] 
-        end
+# converts to f_0 T_0 + f_1 T_1 +  \sum f_k (T_k - T_{k-2})
+function dirichlettransform!(w::Vector)
+    for k=length(w)-2:-1:1
+        @inbounds w[k] += w[k+2] 
     end
     
     w
 end
 
-
-
-function idirichlet_transform{T<:Number}(v::Vector{T})
-    n=length(v)
-    w=zeros(T,n+2)
-    w[1]=-v[1]
-    w[2]=-v[2]    
-    for k=3:n
-        @inbounds w[k]=v[k-2] - v[k] 
+function idirichlettransform!(w::Vector)
+    for k=length(v)-2:-1:1
+        @inbounds w[k]-= w[k-2] 
     end
-    
-    w[n+1]=v[n-1]
-    w[n+2]=v[n]
     
     w
 end
 
+dirichlettransform(v::Vector)=dirichlettransform!(deepcopy(v))
+idirichlettransform(v::Vector)=idirichlettransform!(deepcopy(v))
 
 
+
+# assume that v[1] == v[2] ==0.
 function dirichletrange_divide_singularity{T<:Number}(v::Vector{T})
     n=length(v)
-    w=zeros(T,n)
-    w[n]=-4v[n]
-    w[n-1]=-4v[n-1]
+    w=zeros(T,n-2)
+    w[n-2]=-4v[n]
+    w[n-3]=-4v[n-1]
     
-    for k=n-2:-1:2
-        @inbounds w[k]=-4*(v[k] - .25w[k+2])
+    for k=n-4:-1:2
+        @inbounds w[k]=-4*(v[k+2] - .25w[k+2])
     end
     
-    w[1]=-2(v[1]-.25w[3])
+    w[1]=-2(v[3]-.25w[3])
     
     w    
 end
 
 
-divide_singularity(v::Vector)=dirichletrange_divide_singularity(dirichlet_transform(v))
+divide_singularity(v::Vector)=dirichletrange_divide_singularity(dirichlettransform(v))
 divide_singularity(f::IFun)=IFun(divide_singularity(f.coefficients),f.domain)
