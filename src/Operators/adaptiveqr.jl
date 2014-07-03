@@ -103,12 +103,23 @@ adaptiveqr(M,b)=adaptiveqr(M,b,eps())
 adaptiveqr(M,b,tol)=adaptiveqr(M,b,tol,Inf)
 adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
-adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Vector{V},tol::Float64,N) = adaptiveqr!(MutableAlmostBandedOperator(B),v,tol,N)  #May need to copy v in the future
-function adaptiveqr!{V<:Number,T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Vector{V},tol::Float64,N)  ##TODO complex V, real T
+
+promote_rule2{T<:Complex}(::Type{T},::Type{Complex{Float64}})=Complex{Float64}
+promote_rule2{T<:Real}(::Type{T},::Type{Complex{Float64}})=Complex{Float64}
+promote_rule2{T<:Real}(::Type{Complex{Float64}},::Type{T})=Complex{Float64}
+promote_rule2{T<:Real}(::Type{T},::Type{Float64})=Float64
+promote_rule2{T<:Integer}(::Type{Float64},::Type{T})=Float64
+
+
+
+convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Vector{V})=convert(Vector{promote_rule2(T,V)},v)
+
+adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Vector{V},tol::Float64,N) = adaptiveqr!(MutableAlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
+function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Vector{V},tol::Float64,N)  
     b=-bandrange(B)[1]
     m=100+b
 
-    u=[v,zeros(T,m)]::Vector{T}
+    u=[v,zeros(V,m)]::Vector{V}
     
     l = length(v) + m  
     resizedata!(B,l)
@@ -118,7 +129,7 @@ function adaptiveqr!{V<:Number,T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M
     ##TODO: we can allow early convergence
     while j <= N && (norm(u[j:j+b-1]) > tol  || j <= length(v))
         if j + b == l
-            u = [u,zeros(T,l)]::Vector{T}
+            u = [u,zeros(V,l)]::Vector{V}
             l *= 2
             resizedata!(B,l)
         end
