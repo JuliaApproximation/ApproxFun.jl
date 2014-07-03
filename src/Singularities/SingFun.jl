@@ -108,7 +108,7 @@ function Base.sum(f::SingFun)
     elseif f.α==f.β==0.
         sum(f.fun)
     elseif f.α==f.β==-.5
-        π*f.fun.coefficients[1]
+        fromcanonicalD(f,0.)*π*f.fun.coefficients[1]
     elseif f.α<0. && f.β<0.
         #TODO: should be < -1.
         sum(increase_jacobi_parameter(f))
