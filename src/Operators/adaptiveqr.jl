@@ -64,7 +64,7 @@ end
 givensreduce!(B::MutableAlmostBandedOperator,v::Vector,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)
 
 
-function backsubstitution!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},u)
+function backsubstitution!{T<:Number}(B::MutableAlmostBandedOperator,u::Vector{T})
     n=length(u)
     b=bandrange(B)[end]::Int
     nbc = numbcs(B)
