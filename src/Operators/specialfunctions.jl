@@ -38,7 +38,7 @@ end
 
 ## We use \ as the IFun constructor might miss isolated features
 function Base.exp(f::IFun)
-    xm=indmax(f)
+    xm=indmax(real(f))
     B=EvaluationOperator(f.domain,xm)
     D=diff(f.domain)
     A=[B,D-diff(f)]

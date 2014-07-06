@@ -54,8 +54,8 @@ function findapproxmax(f::Function,dx::Domain,dy::Domain, gridx::Integer, gridy:
 end
 
 
-Fun2D(f::Function,dx::Domain,dy::Domain)=Fun2D(f,dx,dy,20,20)
-function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer)
+Fun2D(f::Function,dx::Domain,dy::Domain)=Fun2D(f,dx,dy,30,30)
+function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer;maxrank=100::Integer)
     tol=1000eps()
     
     r=findapproxmax(f,dx,dy,gridx,gridy)
@@ -64,7 +64,7 @@ function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer)
     A=typeof(a)[];B=typeof(b)[];
     
     
-    for k=1:50
+    for k=1:maxrank
         if norm(a.coefficients) < tol && norm(b.coefficients) < tol
             return Fun2D(A,B)
         end
@@ -79,13 +79,15 @@ function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer)
         b=Fun(y->f(r[1],y),dy)- B*Ar
     end
       
-    error("Maximum rank of 50 reached")
+    error("Maximum rank of " * string(maxrank) * " reached")
 end
 
 Fun2D(f::Function,d1::Vector,d2::Vector)=Fun2D(f,Interval(d1),Interval(d2))
 Fun2D(f::Function)=Fun2D(f,Interval(),Interval())
 
 Fun2D(f::Fun2D,d1::IntervalDomain,d2::IntervalDomain)=Fun2D(map(g->Fun(g.coefficients,d1),f.A),map(g->Fun(g.coefficients,d2),f.B))
+
+Fun2D(f::Fun2D)=Fun2D(f,Interval(),Interval())
 
 
 domain(f::Fun2D,k::Integer)=k==1? first(f.A).domain : first(f.B).domain

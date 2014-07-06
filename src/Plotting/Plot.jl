@@ -3,6 +3,10 @@
 
 export complexplot,contour
 
+function PyPlot.plot(r::Range,f::IFun{Float64})
+    PyPlot.plot(r,f[[r]])
+end
+
 
 function PyPlot.plot(f::IFun{Float64};axis=-1) 
     pf = pad(f,3length(f))
@@ -34,7 +38,7 @@ function complexplot(f::IFun{Complex{Float64}})
 end
 
 function complexplot(f::FFun{Complex{Float64}}) 
-    pts = [points(f),first(points(f))]
+    pts = [points(f),fromcanonical(f,π)]
     vals =[values(f),first(values(f))]
 
     PyPlot.plot(real(vals),imag(vals))
@@ -53,7 +57,7 @@ function PyPlot.plot(f::FFun;axis=-1)
     
     f.coefficients=pad(f.coefficients,-m:m)
 
-    pts = [points(f),first(points(f))]
+    pts = [points(f),fromcanonical(f,π)]
     vals =[values(f),first(values(f))]
 
     PyPlot.plot(pts,real(vals))
