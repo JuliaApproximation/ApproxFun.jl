@@ -5,37 +5,36 @@ package chebfun (http://www.chebfun.org) and the Mathematica package RHPackage
 
 
 
-To construct an approximation of exp(x) on [-1,1], call
+To construct an approximation of `exp(x)` on `[-1,1]`, call
 
 	f = Fun(exp,[-1,1])
 	
-The convention is to treat f as a vector.  In other words, we view functions as vectors 
+The convention is to treat `f` as a vector.  In other words, we view functions as vectors 
 with continuous indices.  To evaluate the function at a point, we use the vector notation:
 
 	f[.1]
 	
-which will return a high accuracy approximation to  exp(.1).  
+which will return a high accuracy approximation to `exp(.1)`.  
 
 
 # Differentiation and integration	
 
 
-Differentiation uses the 
-diff operator:
+Differentiation uses the `diff` operator:
 
 	fp = diff(f)
 	
-Because the exponential is it's own derivative, the norm is small:
+Because the exponential is its own derivative, the `norm` is small:
 
 	norm(f-fp)
 	
-Similarly, cumsum defines an indefinite integration operator:
+Similarly, `cumsum` defines an indefinite integration operator:
 
 	g = cumsum(f)
 	g = g + f[-1]
 	norm(f - g)
 	
-You can also add and multiply (use .* as these are treated like vectors):
+You can also add and multiply (use `.*` as these are treated like vectors):
 
 	Fun(exp).*Fun(cos)				#gives a representation of exp(x)cos(x) on [-1,1]
 	Fun(exp) + Fun(cos)				#gives a representation of exp(x) + cos(x) on [-1,1]	
@@ -54,14 +53,14 @@ We can apply this to any positive smooth PDF.
 
 
 There is also support for Fourier representations of functions on periodic intervals.  
-Use FFun to ensure that the representation is periodic:
+Use `FFun` to ensure that the representation is periodic:
 
 	f = FFun(cos)
 	
-The default domain is [й,�].  
+The default domain is `[й,�]`.  
 
 
-Differentiation is again accomplished with diff, so the following will be small:
+Differentiation is again accomplished with `diff`, so the following will be small:
 
 	norm(diff(f) + FFun(sin))
 
@@ -79,7 +78,7 @@ Alternatively, a Laurent series can be constructed on the unit circle:
 
 # Solving differential equations
 
-We can solve ODEs, the following solves the Airy equation u' = x u as a BVP on [-1000,10]:
+We can solve ODEs, the following solves the Airy equation `u' = x u` as a BVP on `[-1000,10]`:
 
 	x=Fun(x->x,[-1000.,15.]);
    	d=x.domain;
