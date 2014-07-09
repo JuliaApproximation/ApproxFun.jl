@@ -208,3 +208,36 @@ end
 
 
 
+## Multiplication of operator * fun
+
+
+ultraiconversion(g::Vector,m::Integer)=(m==0)? g : backsubstitution!(MutableAlmostBandedOperator(Operator[ConversionOperator(0:m)]),copy(g))
+ultraconversion(g::Vector,m::Integer)=(m==0)? g : ConversionOperator(0:m)*g
+
+
+function *{T<:Number}(A::TimesOperator,b::Vector{T})
+    ret = b
+    for k=length(A.ops):-1:1
+        ret = A.ops[k]*ret
+    end
+    
+    ret
+end
+
+
+function *{T<:Number}(A::BandedOperator,b::Vector{T})
+    n=length(b)
+    m=n-bandrange(A)[1]
+    BandedArray(A,1:m,1:n)*b
+end
+
+
+
+*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A).order),rangespace(A).order),b.domain)
+
+*(A::RowOperator,b::Vector)=dot(A[1:length(b)],b)
+*(A::RowOperator,b::IFun)=A*b.coefficients
+*{T<:Operator}(A::Vector{T},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
+
+
+
