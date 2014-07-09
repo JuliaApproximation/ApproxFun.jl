@@ -73,11 +73,15 @@ type IFun{T<:Union(Float64,Complex{Float64}),D<:IntervalDomain} <: AbstractFun
     domain::D
 end
 
-
+function IFun(f::Function,d::Domain,n::Integer)
+    pts=points(d,n)
+    T=typeof(f(pts[1]))
+    vals=T[f(x) for x in pts]
+    IFun(chebyshevtransform(vals),d)
+end
 
 
 IFun(f::Function,n::Integer)=IFun(f,Interval(),n)
-IFun(f::Function,d::Domain,n::Integer)=IFun(chebyshevtransform(f(points(d,n))),d)
 IFun{T<:Number}(f::Function,d::Vector{T},n::Integer)=IFun(f,Interval(d),n)
 IFun(cfs::Vector)=IFun(1.0*cfs,Interval())
 IFun{T<:Number}(cfs::Vector,d::Vector{T})=IFun(1.0*cfs,Interval(d))
