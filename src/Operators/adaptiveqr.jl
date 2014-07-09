@@ -115,8 +115,8 @@ promote_rule2{T<:Integer}(::Type{Float64},::Type{T})=Float64
 convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Vector{V})=convert(Vector{promote_rule2(T,V)},v)
 
 
-function slnorm{V<:Number}(u::Vector{V},r::Range)
-    ret = zero(V)
+function slnorm(u::Vector,r::Range)
+    ret = 0.
     for j=r
         ret=max(abs(u[j]),ret)
     end

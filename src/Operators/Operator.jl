@@ -35,7 +35,7 @@ function commondomain(P::Vector)
 end
 
 commondomain{T<:Number}(P::Vector,g::Vector{T})=commondomain(P)
-commondomain(P::Vector,g)=commondomain(P)
+commondomain(P::Vector,g)=commondomain([P,g])
 
 
 Base.size(::InfiniteOperator)=[Inf,Inf]
