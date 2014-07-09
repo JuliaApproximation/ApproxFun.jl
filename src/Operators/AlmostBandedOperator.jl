@@ -136,13 +136,15 @@ getindex!(b::MutableAlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,
 
 function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableAlmostBandedOperator{T,M,R},n::Integer)
     l = datalength(B)
-    nbc=numbcs(B)
+    nbc=numbcs(B)::Int
     if n > l
         resize!(B.data,2n,length(B.bandrange))
-        
-        newfilldata=zeros(T,2n,nbc)
-        newfilldata[1:l,:]=B.filldata[1:l,:]
-        B.filldata=newfilldata
+
+        if nbc>0        
+            newfilldata=zeros(T,2n,nbc)
+            newfilldata[1:l,:]=B.filldata[1:l,:]
+            B.filldata=newfilldata
+        end
         
         addentries!(B.op,B.data,l+1:n)
         

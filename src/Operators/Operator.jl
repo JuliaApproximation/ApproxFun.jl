@@ -34,6 +34,9 @@ function commondomain(P::Vector)
     ret
 end
 
+commondomain{T<:Number}(P::Vector,g::Vector{T})=commondomain(P)
+commondomain(P::Vector,g)=commondomain(P)
+
 
 Base.size(::InfiniteOperator)=[Inf,Inf]
 Base.size(::RowOperator)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
@@ -106,7 +109,7 @@ FFun_coefficients(b::Vector)=vcat(map(f-> typeof(f)<: FFun? interlace(f.coeffici
 function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
     u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end]).order),tolerance,maxlength)  ##TODO: depends on ordering of A
     
-    IFun(u,commondomain([A,b]))
+    IFun(u,commondomain(A,b))
 end
 
 function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
@@ -114,11 +117,11 @@ function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),m
 
     u=adaptiveqr([interlace(A[1])],FFun_coefficients(b),tolerance,maxlength)
     
-    FFun(deinterlace(u),commondomain([A,b]))    
+    FFun(deinterlace(u),commondomain(A,b))    
 end
 
 function linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=Inf)
-    d=commondomain([A,b])
+    d=commondomain(A,b)
 
     if typeof(d) <: IntervalDomain
         IFun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)

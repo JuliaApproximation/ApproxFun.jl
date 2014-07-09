@@ -114,6 +114,15 @@ promote_rule2{T<:Integer}(::Type{Float64},::Type{T})=Float64
 
 convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Vector{V})=convert(Vector{promote_rule2(T,V)},v)
 
+
+function slnorm{V<:Number}(u::Vector{V},r::Range)
+    ret = zero(V)
+    for j=r
+        ret=max(abs(u[j]),ret)
+    end
+    ret
+end
+
 adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Vector{V},tol::Float64,N) = adaptiveqr!(MutableAlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
 function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Vector{V},tol::Float64,N)  
     b=-bandrange(B)[1]
@@ -127,7 +136,7 @@ function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Vector{V},tol:
     
     j=1
     ##TODO: we can allow early convergence
-    while j <= N && (norm(u[j:j+b-1]) > tol  || j <= length(v))
+    while j <= N && (slnorm(u,j:j+b-1) > tol  || j <= length(v))
         if j + b == l
             u = [u,zeros(V,l)]::Vector{V}
             l *= 2
