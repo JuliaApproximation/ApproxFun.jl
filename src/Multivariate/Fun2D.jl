@@ -34,7 +34,7 @@ function Fun2D{T<:Number}(X::Array{T},dx::IntervalDomain,dy::IntervalDomain)
 end
 
 
-findapproxmax(f::Function,dx::Domain,dy::Domain)=findapproxmax(f,dx,dy, 20, 20)
+findapproxmax(f::Function,dx::Domain,dy::Domain)=findapproxmax(f,dx,dy, 40, 40)
 function findapproxmax(f::Function,dx::Domain,dy::Domain, gridx::Integer, gridy::Integer)
     ptsx=points(dx,gridx)
     ptsy=points(dy,gridy)
@@ -54,7 +54,7 @@ function findapproxmax(f::Function,dx::Domain,dy::Domain, gridx::Integer, gridy:
 end
 
 
-Fun2D(f::Function,dx::Domain,dy::Domain)=Fun2D(f,dx,dy,30,30)
+Fun2D(f::Function,dx::Domain,dy::Domain)=Fun2D(f,dx,dy,40,40)
 function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer;maxrank=100::Integer)
     tol=1000eps()
     
@@ -75,8 +75,15 @@ function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer;m
         r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy,gridx,gridy)
         Ar=map(q->q[r[1]],A)
         Br=map(q->q[r[2]],B)
-        a=Fun(x->f(x,r[2]),dx) - A*Br
-        b=Fun(y->f(r[1],y),dy)- B*Ar
+        
+        ##TODO: Should allow FFun
+        a=IFun(x->f(x,r[2]),dx; method="abszerocoefficients") - A*Br
+        b=IFun(y->f(r[1],y),dy; method="abszerocoefficients")- B*Ar
+        
+        
+        ##Remove coefficients that get killed by a/b
+        a=chop!(a,10*sqrt(abs(a[r[1]]))*eps()/maximum(abs(b.coefficients)))
+        b=chop!(b,10*sqrt(abs(b[r[2]]))*eps()/maximum(abs(a.coefficients)))        
     end
       
     error("Maximum rank of " * string(maxrank) * " reached")

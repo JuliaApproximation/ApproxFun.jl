@@ -76,9 +76,9 @@ end
 
 ##2D
 
-PyPlot.plot(f::Fun2D; kwds...)=PyPlot.surf(points(f,1),points(f,2),values(f)';linewidth=0,rstride=1,cstride=1,kwds...)
+PyPlot.plot(f::Fun2D; rstride=2,cstride=2,kwds...)=PyPlot.surf(points(f,1),points(f,2),values(f)';linewidth=0,rstride=rstride,cstride=cstride,kwds...)
 
-contour(f::Fun2D; kwds...)=PyPlot.contour(points(f,1),points(f,2),values(f)';kwds...)
+PyPlot.contour(f::Fun2D; kwds...)=PyPlot.contour(points(f,1),points(f,2),values(f)';kwds...)
 
 
 

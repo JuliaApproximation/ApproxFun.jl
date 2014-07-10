@@ -129,12 +129,32 @@ function zerocfsIFun(f::Function,d::Domain)
     IFun(f,d,2^21 + 1)
 end
 
+function abszerocfsIFun(f::Function,d::Domain)
+    #reuse function values
+
+    tol = 200eps();
+
+    for logn = 4:20
+        cf = IFun(f, d, 2^logn + 1);
+        
+        if maximum(abs(cf.coefficients[end-8:end])) < tol
+            return chop!(cf,10eps())
+        end
+    end
+    
+    warn("Maximum length reached")
+    
+    IFun(f,d,2^21 + 1)
+end
+
 
 function IFun(f::Function, d::Domain; method="zerocoefficients")
     if f==identity
         identity_fun(d)
     elseif method == "zerocoefficients"
         zerocfsIFun(f,d)
+    elseif method == "abszerocoefficients"
+        abszerocfsIFun(f,d)
     else
         randomIFun(f,d)    
     end
