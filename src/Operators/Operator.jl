@@ -162,12 +162,7 @@ include("ToeplitzOperator.jl")
 
 include("ConstantOperator.jl")
 
-include("Ultraspherical/MultiplicationOperator.jl")
-include("Ultraspherical/EvaluationOperator.jl")
-include("Ultraspherical/ConversionOperator.jl")
-include("Ultraspherical/DerivativeOperator.jl")
-include("Ultraspherical/IntegrationOperator.jl")
-
+include("Ultraspherical/Ultraspherical.jl")
 
 
 include("AlmostBandedOperator.jl")
@@ -186,6 +181,7 @@ include("SliceOperator.jl")
 include("CompactOperator.jl")
 
 include("Fourier/FourierDerivativeOperator.jl")
+include("Fourier/FourierSpace.jl")
 
 include("null.jl")
 

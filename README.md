@@ -1,4 +1,4 @@
-Funs is a package for approximating functions.  It currently supports intervals, the real 
+ApproxFun is a package for approximating functions.  It currently supports intervals, the real 
 line, periodic intervals and the unit circle.  It is heavily influenced by the Matlab 
 package chebfun (http://www.chebfun.org) and the Mathematica package RHPackage 
 (http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
@@ -89,7 +89,9 @@ We can solve ODEs, the following solves the Airy equation u' = x u as a BVP on [
 	
 	
 # References
+
+S. Olver & A. Townsend (2013), A fast and well-conditioned spectral method, SIAM Review, 55:462Ð489.
 	
-S. Olver & A. Townsend,  (2013), Fast inverse transform sampling in one and two dimensions, arXiv:1307.1223.
+S. Olver & A. Townsend  (2013), Fast inverse transform sampling in one and two dimensions, arXiv:1307.1223.
 
 
