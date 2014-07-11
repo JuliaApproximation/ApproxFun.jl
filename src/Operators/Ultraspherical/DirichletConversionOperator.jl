@@ -18,7 +18,7 @@ function addentries!(C::DirichletConversionOperator,A::ShiftArray,kr::Range1)
     elseif  C.left == 0 &&  C.right == 1
         toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
     elseif C.left == C.right == 1
-        toeplitz_addentries!(ShiftVector([1.,0.,1.],1),A,kr)    
+        toeplitz_addentries!(ShiftVector([1.,0.,-1.],1),A,kr)    
     else
         error("Higher order Dirichlet not implmented")
     end

@@ -87,6 +87,7 @@ include("Domains/Interval.jl")
 include("Domains/PeriodicInterval.jl")
 
 
+include("LinearAlgebra/LinearAlgebra.jl")
 include("Operators/Operator.jl")
 
 
