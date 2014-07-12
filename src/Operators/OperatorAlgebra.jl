@@ -178,9 +178,15 @@ function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
       BA=BandedArray(P.ops[m],krl[m],krl[m+1])*BA
     end
     
-    for k=kr,j=columnrange(BA.data)
-        A[k,j] += BA.data[k,j]
-    end
+#     for k=kr,j=columnrange(BA.data)
+#         @inbounds a=@safastget(A,k,j)
+#         @inbounds b=@safastget(BA.data,k,j)
+#         @inbounds @safastset!(A,a + b,k,j)
+#     end
+    
+    
+    cr=columnrange(BA.data)
+    @inbounds A.data[kr+A.rowindex,cr+A.colindex]+=BA.data.data
     
     A
 end

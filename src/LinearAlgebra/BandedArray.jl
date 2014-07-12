@@ -25,8 +25,8 @@ columnrange(B::BandedArray)=Range1(B.colinds...)  # the range of columns of the 
 
 ## the range of columns in row k
 function columninds(B::BandedArray,k::Integer)  #k is the row
-    br=bandinds(B)
-    cr=columninds(B)
+    br=columninds(B.data)  #same as bandinds
+    cr=B.colinds
     max(br[1] + k,cr[1]),min(br[end]+k,cr[end])
 end
 
@@ -87,15 +87,18 @@ Base.setindex!(B::BandedArray,x,k::Integer,j::Integer)=(B.data[k,j-k]=x)
 # end
 
 
-function bamultiply(typ::DataType,A::BandedArray,B::BandedArray)
+function bamultiply{T}(::Type{T},A::BandedArray,B::BandedArray)
     @assert columnrange(A) == rowrange(B)
 
     ri=A.data.rowindex
     Aci=A.data.colindex    
     ci=Aci+B.data.colindex-1        
+# 
+     biA=bandinds(A)
+     biB=bandinds(B)
 
     S = BandedArray(
-            ShiftArray(zeros(typ,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
+            ShiftArray(zeros(T,size(A.data.data,1),biA[end]-biA[1]+1+biB[end]-biB[1]),
                         ri,ci),
             B.colinds
         )
@@ -103,16 +106,23 @@ function bamultiply(typ::DataType,A::BandedArray,B::BandedArray)
     bamultiply(S,A,B)
 end
 
+
+
+macro bafastget(A, k,j)
+    return :(getindex($A.data.data,$k +$A.data.rowindex,$j-$k+$A.data.colindex))
+end
+
+
+
+
+*{T<:Number}(A::BandedArray{T},B::BandedArray{T})=bamultiply(T,A,B)
+*{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})=bamultiply(T == Complex{Float64} || M == Complex{Float64} ? Complex{Float64} : Float64,A,B)
+
+
+
 function bamultiply(S::BandedArray,A::BandedArray,B::BandedArray)    
-    ri=A.data.rowindex
-    Aci=A.data.colindex
-    Bri=B.data.rowindex    
-    Bci=B.data.colindex
-
-    
+    ri=A.data.rowindex    
     ci=S.data.colindex
-
-    
     
     for k=rowrange(S)
         for j=columnrange(S,k)
@@ -120,9 +130,7 @@ function bamultiply(S::BandedArray,A::BandedArray,B::BandedArray)
           rinds=columninds(A,k)        
         
           for m=max(rinds[1],cinds[1]):min(rinds[end],cinds[end])
-                a=A.data.data[k+ri,m-k+Aci]
-                b=B.data.data[m+Bri,j-m+Bci]
-                @inbounds S.data.data[k+ri,j-k+ci] += a*b
+                @inbounds S.data.data[k+ri,j-k+ci] += @bafastget(A,k,m)*@bafastget(B,m,j)
           end
         end
     end
@@ -130,8 +138,6 @@ function bamultiply(S::BandedArray,A::BandedArray,B::BandedArray)
     S
 end
 
-*{T<:Number}(A::BandedArray{T},B::BandedArray{T})=bamultiply(T,A,B)
-*{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})=bamultiply((T == Complex{Float64} || M == Complex{Float64}) ? Complex{Float64} : Float64,A,B)
 
 
 
@@ -140,14 +146,15 @@ function *{T<:Number,M<:Number}(A::BandedArray{T},b::Vector{M})
 
     @assert columnrange(A) == 1:length(b)
     
-    ret = zeros(typ,rowrange(A)[end])
-    
+    bamultiply(zeros(typ,rowrange(A)[end]),A,b)
+end
+
+
+function bamultiply(S::Vector,A::BandedArray,b::Vector)    
     for k=rowrange(A), j=columnrange(A,k)
-        @inbounds ret[k] += A[k,j]*b[j]
+        @inbounds S[k] += A[k,j]*b[j]
     end
-    
-  
-    ret
+    S
 end
 
 *(a::Number,B::BandedArray)=BandedArray(a*B.data,B.colinds)
