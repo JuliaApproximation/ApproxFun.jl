@@ -87,66 +87,31 @@ Base.setindex!(B::BandedArray,x,k::Integer,j::Integer)=(B.data[k,j-k]=x)
 # end
 
 
-
-function *{T<:Number}(A::BandedArray{T},B::BandedArray{T})
+function bamultiply(typ::DataType,A::BandedArray,B::BandedArray)
     @assert columnrange(A) == rowrange(B)
-  
+
     ri=A.data.rowindex
-    Aci=A.data.colindex
-    Bri=B.data.rowindex    
-    Bci=B.data.colindex
+    Aci=A.data.colindex    
+    ci=Aci+B.data.colindex-1        
 
-    
-    ci=Aci+B.data.colindex-1
-  
-    S = BandedArray(
-            ShiftArray(zeros(T,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
-                        ri,ci),
-            B.colinds
-        );
-        
-        
-    
-    
-    for k=rowrange(S)
-        for j=columnrange(S,k)
-          cinds=rowinds(B,j)
-          rinds=columninds(A,k)
-        
-          for m=max(rinds[1],cinds[1]):min(rinds[end],cinds[end])
-                # not using getindex to make this as fast as possible
-                @inbounds S.data.data[k+ri,j-k+ci] += A.data.data[k+ri,m-k+Aci]*B.data.data[m+Bri,j-m+Bci]
-          end
-        end
-    end
-  
-    S
-end
-
-
-
-
-
-##TODO: Speed up: can't tell what type S is on compile time
-function *{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})
-    typ = (T == Complex{Float64} || M == Complex{Float64}) ? Complex{Float64} : Float64
-
-    @assert columnrange(A) == rowrange(B)
-    
-    ri=A.data.rowindex
-    Aci=A.data.colindex
-    Bri=B.data.rowindex    
-    Bci=B.data.colindex
-
-    
-    ci=Aci+B.data.colindex-1    
-    
-  
     S = BandedArray(
             ShiftArray(zeros(typ,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
                         ri,ci),
             B.colinds
-        );
+        )
+        
+    bamultiply(S,A,B)
+end
+
+function bamultiply(S::BandedArray,A::BandedArray,B::BandedArray)    
+    ri=A.data.rowindex
+    Aci=A.data.colindex
+    Bri=B.data.rowindex    
+    Bci=B.data.colindex
+
+    
+    ci=S.data.colindex
+
     
     
     for k=rowrange(S)
@@ -164,6 +129,10 @@ function *{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})
   
     S
 end
+
+*{T<:Number}(A::BandedArray{T},B::BandedArray{T})=bamultiply(T,A,B)
+*{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})=bamultiply((T == Complex{Float64} || M == Complex{Float64}) ? Complex{Float64} : Float64,A,B)
+
 
 
 function *{T<:Number,M<:Number}(A::BandedArray{T},b::Vector{M})
