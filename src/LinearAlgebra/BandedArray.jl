@@ -124,26 +124,40 @@ function *{T<:Number}(A::BandedArray{T},B::BandedArray{T})
 end
 
 
+
+
+
 ##TODO: Speed up: can't tell what type S is on compile time
 function *{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})
     typ = (T == Complex{Float64} || M == Complex{Float64}) ? Complex{Float64} : Float64
 
     @assert columnrange(A) == rowrange(B)
+    
+    ri=A.data.rowindex
+    Aci=A.data.colindex
+    Bri=B.data.rowindex    
+    Bci=B.data.colindex
+
+    
+    ci=Aci+B.data.colindex-1    
+    
   
     S = BandedArray(
             ShiftArray(zeros(typ,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
-                        A.data.rowindex,
-                        A.data.colindex+B.data.colindex-1),
+                        ri,ci),
             B.colinds
         );
     
     
     for k=rowrange(S)
-        for j=indexrange(S,k)
-          for m=max(indexrange(A,k)[1],columnindexrange(B,j)[1]):min(indexrange(A,k)[end],columnindexrange(B,j)[end])
-                a=A[k,m]::T
-                b=B[m,j]::M
-                S[k,j] += a*b
+        for j=columnrange(S,k)
+          cinds=rowinds(B,j)
+          rinds=columninds(A,k)        
+        
+          for m=max(rinds[1],cinds[1]):min(rinds[end],cinds[end])
+                a=A.data.data[k+ri,m-k+Aci]
+                b=B.data.data[m+Bri,j-m+Bci]
+                @inbounds S.data.data[k+ri,j-k+ci] += a*b
           end
         end
     end
