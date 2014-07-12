@@ -21,22 +21,26 @@ Base.size(B::BandedArray,k::Integer)=size(B)[k]
 bandinds(B::BandedArray)=columninds(B.data)
 bandrange(B::BandedArray)=columnrange(B.data)
 columninds(B::BandedArray)=B.colinds
-columnrange(B::BandedArray)=Range1(B.colinds...)
+columnrange(B::BandedArray)=Range1(B.colinds...)  # the range of columns of the whole matrix
 
-
-function indexrange(B::BandedArray,k::Integer)  #k is the row
+## the range of columns in row k
+function columninds(B::BandedArray,k::Integer)  #k is the row
     br=bandinds(B)
     cr=columninds(B)
-    max(br[1] + k,cr[1]):min(br[end]+k,cr[end])
+    max(br[1] + k,cr[1]),min(br[end]+k,cr[end])
 end
 
-rowrange(B::BandedArray)=rowrange(B.data)
-function columnindexrange(B::BandedArray,j::Integer)  #j is the column
-    br=bandrange(B)
-    rr=rowrange(B)
-    max(j-br[end],rr[1]):min(rr[end],j-br[1])
+columnrange(B::BandedArray,k::Integer)=Range1(columninds(B,k)...)
+
+rowinds(B::BandedArray)=rowinds(B.data)
+rowrange(B::BandedArray)=rowrange(B.data)  #the row range of the whole matrix
+function rowinds(B::BandedArray,j::Integer)  #j is the column
+    br=bandinds(B)
+    rr=rowinds(B)
+    max(j-br[end],rr[1]),min(rr[end],j-br[1])
 end
 
+rowrange(B::BandedArray,k::Integer)=Range1(rowinds(B,k)...)
 
 
 function Base.sparse{T<:Number}(B::BandedArray{T})
@@ -44,7 +48,7 @@ function Base.sparse{T<:Number}(B::BandedArray{T})
   ret = spzeros(T,size(B,1),size(B,2))
     
   for k=rowrange(B)
-    for j=indexrange(B,k)
+    for j=columnrange(B,k)
       ret[k,j]=B.data[k,j-k]
     end
   end
@@ -61,7 +65,7 @@ end
 function Base.getindex{T}(B::BandedArray{T},kr::Range1,jr::Range1)
     ret = spzeros(T,length(kr),length(jr))
     for k=kr
-        for j=indexrange(B,k)
+        for j=columnrange(B,k)
             ret[k - kr[1] + 1, j - jr[1] + 1] = B[k,j]
         end
     end
@@ -87,18 +91,31 @@ Base.setindex!(B::BandedArray,x,k::Integer,j::Integer)=(B.data[k,j-k]=x)
 function *{T<:Number}(A::BandedArray{T},B::BandedArray{T})
     @assert columnrange(A) == rowrange(B)
   
+    ri=A.data.rowindex
+    Aci=A.data.colindex
+    Bri=B.data.rowindex    
+    Bci=B.data.colindex
+
+    
+    ci=Aci+B.data.colindex-1
+  
     S = BandedArray(
             ShiftArray(zeros(T,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
-                        A.data.rowindex,
-                        A.data.colindex+B.data.colindex-1),
+                        ri,ci),
             B.colinds
         );
+        
+        
     
     
     for k=rowrange(S)
-        for j=indexrange(S,k)
-          for m=max(indexrange(A,k)[1],columnindexrange(B,j)[1]):min(indexrange(A,k)[end],columnindexrange(B,j)[end])
-                S[k,j] += A[k,m]*B[m,j]
+        for j=columnrange(S,k)
+          cinds=rowinds(B,j)
+          rinds=columninds(A,k)
+        
+          for m=max(rinds[1],cinds[1]):min(rinds[end],cinds[end])
+                # not using getindex to make this as fast as possible
+                @inbounds S.data.data[k+ri,j-k+ci] += A.data.data[k+ri,m-k+Aci]*B.data.data[m+Bri,j-m+Bci]
           end
         end
     end
@@ -142,8 +159,8 @@ function *{T<:Number,M<:Number}(A::BandedArray{T},b::Vector{M})
     
     ret = zeros(typ,rowrange(A)[end])
     
-    for k=rowrange(A), j=indexrange(A,k)
-        ret[k] += A[k,j]*b[j]
+    for k=rowrange(A), j=columnrange(A,k)
+        @inbounds ret[k] += A[k,j]*b[j]
     end
     
   
