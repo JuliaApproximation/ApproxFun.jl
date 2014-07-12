@@ -23,8 +23,12 @@ Base.getindex(S::ShiftArray,k,j) = S.data[k + S.rowindex, j + S.colindex]
 
 
 Base.size(S::ShiftArray,k)=size(S.data,k)
-columnrange(A::ShiftArray)=(1:size(A,2))-A.colindex
-rowrange(A::ShiftArray)=(1:size(A,1))-A.rowindex
+
+columninds(A::ShiftArray)=1-A.colindex,size(A,2)-A.colindex
+rowinds(A::ShiftArray)=1-A.rowindex,size(A,1)-A.rowindex
+
+columnrange(A::ShiftArray)=Range1(columninds(A)...)
+rowrange(A::ShiftArray)=Range1(rowinds(A)...)
 
 *(S::ShiftArray,x::Number)=ShiftArray(x*S.data,S.rowindex,S.colindex)
 *(x::Number,S::ShiftArray)=ShiftArray(x*S.data,S.rowindex,S.colindex)
@@ -47,8 +51,8 @@ function +{T<:Number}(A::ShiftArray{T},B::ShiftArray{T})
     @assert size(A,1) == size(B,1)
     @assert A.rowindex == B.rowindex
     
-    cmin=min(columnrange(A)[1],columnrange(B)[1])
-    cmax=max(columnrange(A)[end],columnrange(B)[end])    
+    cmin=min(columninds(A)[1],columninds(B)[1])
+    cmax=max(columninds(A)[end],columninds(B)[end])    
     cind=1-cmin
     
     ret=zeros(T,size(A,1),cmax-cmin+1)
@@ -63,8 +67,8 @@ function -{T<:Number}(A::ShiftArray{T},B::ShiftArray{T})
     @assert size(A,1) == size(B,1)
     @assert A.rowindex == B.rowindex
     
-    cmin=min(columnrange(A)[1],columnrange(B)[1])
-    cmax=max(columnrange(A)[end],columnrange(B)[end])    
+    cmin=min(columninds(A)[1],columninds(B)[1])
+    cmax=max(columninds(A)[end],columninds(B)[end])    
     cind=1-cmin
     
     ret=zeros(T,size(A,1),cmax-cmin+1)

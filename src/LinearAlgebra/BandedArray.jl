@@ -4,24 +4,29 @@
 ## Allows flexible row index ranges
 type BandedArray{T<:Number}
     data::ShiftArray{T}#TODO: probably should have more cols than rows
-    colrange::Range1{Int}
+    colinds::(Int,Int)   #colinds[1]:colinds[end] is the column range
 end
 
 #Note: data may start at not the first row.  This corresponds to the first rows being identically zero
 
+BandedArray(S::ShiftArray,r::Range)=BandedArray(S,(r[1],r[end]))
+BandedArray(S::ShiftArray,cs::Integer)=BandedArray(S,(max(1,rowinds(S)[1] + columninds(S)[1]),cs))
+BandedArray(S::ShiftArray)=BandedArray(S,rowinds(S)[end]+columninds(S)[end])
 
-BandedArray(S::ShiftArray,cs::Integer)=BandedArray(S,max(1,rowrange(S)[1] + columnrange(S)[1]):cs)
-BandedArray(S::ShiftArray)=BandedArray(S,rowrange(S)[end]+columnrange(S)[end])
 
 
-
-Base.size(B::BandedArray)=(rowrange(B.data)[end],B.colrange[end])
+Base.size(B::BandedArray)=(rowrange(B.data)[end],B.colinds[end])
 Base.size(B::BandedArray,k::Integer)=size(B)[k]
 
+bandinds(B::BandedArray)=columninds(B.data)
 bandrange(B::BandedArray)=columnrange(B.data)
+columninds(B::BandedArray)=B.colinds
+columnrange(B::BandedArray)=Range1(B.colinds...)
+
+
 function indexrange(B::BandedArray,k::Integer)  #k is the row
-    br=bandrange(B)
-    cr=columnrange(B)
+    br=bandinds(B)
+    cr=columninds(B)
     max(br[1] + k,cr[1]):min(br[end]+k,cr[end])
 end
 
@@ -31,7 +36,7 @@ function columnindexrange(B::BandedArray,j::Integer)  #j is the column
     rr=rowrange(B)
     max(j-br[end],rr[1]):min(rr[end],j-br[1])
 end
-columnrange(B::BandedArray)=B.colrange
+
 
 
 function Base.sparse{T<:Number}(B::BandedArray{T})
@@ -86,7 +91,7 @@ function *{T<:Number}(A::BandedArray{T},B::BandedArray{T})
             ShiftArray(zeros(T,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
                         A.data.rowindex,
                         A.data.colindex+B.data.colindex-1),
-            B.colrange
+            B.colinds
         );
     
     
@@ -112,7 +117,7 @@ function *{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})
             ShiftArray(zeros(typ,size(A.data.data,1),length(bandrange(A))+length(bandrange(B))-1),
                         A.data.rowindex,
                         A.data.colindex+B.data.colindex-1),
-            B.colrange
+            B.colinds
         );
     
     
@@ -145,22 +150,22 @@ function *{T<:Number,M<:Number}(A::BandedArray{T},b::Vector{M})
     ret
 end
 
-*(a::Number,B::BandedArray)=BandedArray(a*B.data,B.colrange)
-*(B::BandedArray,a::Number)=BandedArray(B.data*a,B.colrange)
-.*(a::Number,B::BandedArray)=BandedArray(a.*B.data,B.colrange)
-.*(B::BandedArray,a::Number)=BandedArray(B.data.*a,B.colrange)
+*(a::Number,B::BandedArray)=BandedArray(a*B.data,B.colinds)
+*(B::BandedArray,a::Number)=BandedArray(B.data*a,B.colinds)
+.*(a::Number,B::BandedArray)=BandedArray(a.*B.data,B.colinds)
+.*(B::BandedArray,a::Number)=BandedArray(B.data.*a,B.colinds)
 
 
 function +(A::BandedArray,B::BandedArray)
-    @assert A.colrange == B.colrange
+    @assert A.colinds == B.colinds
 
-    BandedArray(A.data + B.data,A.colrange)
+    BandedArray(A.data + B.data,A.colinds)
 end
 
 function -(A::BandedArray,B::BandedArray)
-    @assert A.colrange == B.colrange
+    @assert A.colinds == B.colinds
 
-    BandedArray(A.data - B.data,A.colrange)
+    BandedArray(A.data - B.data,A.colinds)
 end
 
 
