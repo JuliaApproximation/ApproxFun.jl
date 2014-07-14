@@ -8,7 +8,7 @@ export ShiftVector,firstindex,lastindex,index
 
 type ShiftVector{T<:Number}
     vector::Vector{T}
-    index::Integer
+    index::Int
 end
 
 ShiftVector(neg::Vector,nonneg::Vector)=ShiftVector([neg,nonneg],length(neg)+1)
