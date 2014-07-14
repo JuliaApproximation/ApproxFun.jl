@@ -87,6 +87,18 @@ Base.setindex!(B::BandedArray,x,k::Integer,j::Integer)=(B.data[k,j-k]=x)
 # end
 
 
+macro bafastget(A, k,j)
+    return :(getindex($A.data.data,$k +$A.data.rowindex,$j-$k+$A.data.colindex))
+end
+
+
+*{T<:Number}(A::BandedArray{T},B::BandedArray{T})=bamultiply(T,A,B)
+*(A::BandedArray{Complex{Float64}},B::BandedArray{Float64})=bamultiply(Complex{Float64},A,B)
+*(A::BandedArray{Float64},B::BandedArray{Complex{Float64}})=bamultiply(Complex{Float64},A,B)
+*{T<:Number}(A::BandedArray{T},b::Vector{T})=bamultiply(T,A,b)
+*(A::BandedArray{Complex{Float64}},b::Vector{Float64})=bamultiply(Complex{Float64},A,b)
+*(A::BandedArray{Float64},b::Vector{Complex{Float64}})=bamultiply(Complex{Float64},A,b)
+
 function bamultiply{T}(::Type{T},A::BandedArray,B::BandedArray)
     @assert columnrange(A) == rowrange(B)
 
@@ -108,15 +120,6 @@ end
 
 
 
-macro bafastget(A, k,j)
-    return :(getindex($A.data.data,$k +$A.data.rowindex,$j-$k+$A.data.colindex))
-end
-
-
-
-
-*{T<:Number}(A::BandedArray{T},B::BandedArray{T})=bamultiply(T,A,B)
-*{T<:Number,M<:Number}(A::BandedArray{T},B::BandedArray{M})=bamultiply(T == Complex{Float64} || M == Complex{Float64} ? Complex{Float64} : Float64,A,B)
 
 
 
@@ -141,16 +144,12 @@ end
 
 
 
-function *{T<:Number,M<:Number}(A::BandedArray{T},b::Vector{M})
-    typ = (T == Complex{Float64} || M == Complex{Float64}) ? Complex{Float64} : Float64
 
-    @assert columnrange(A) == 1:length(b)
-    
-    bamultiply(zeros(typ,rowrange(A)[end]),A,b)
-end
 
+bamultiply{T}(::Type{T},A::BandedArray,b::Vector)=bamultiply(zeros(T,rowrange(A)[end]),A,b)
 
 function bamultiply(S::Vector,A::BandedArray,b::Vector)    
+    @assert columnrange(A) == 1:length(b)
     for k=rowrange(A), j=columnrange(A,k)
         @inbounds S[k] += A[k,j]*b[j]
     end
