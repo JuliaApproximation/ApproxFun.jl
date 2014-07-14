@@ -216,7 +216,7 @@ end
 
 ## Multiplication of operator * fun
 
-
+##TODO: Why two implmenetations?
 ultraiconversion(g::Vector,m::Integer)=(m==0)? g : backsubstitution!(MutableAlmostBandedOperator(Operator[ConversionOperator(0:m)]),copy(g))
 ultraconversion(g::Vector,m::Integer)=(m==0)? g : ConversionOperator(0:m)*g
 
