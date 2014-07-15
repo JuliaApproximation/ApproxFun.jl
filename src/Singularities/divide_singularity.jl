@@ -85,8 +85,8 @@ function idirichlettransform!(w::Vector)
     w
 end
 
-dirichlettransform(v::Vector)=dirichlettransform!(deepcopy(v))
-idirichlettransform(v::Vector)=idirichlettransform!(deepcopy(v))
+dirichlettransform(v::Vector)=dirichlettransform!(copy(v))
+idirichlettransform(v::Vector)=idirichlettransform!(copy(v))
 
 
 

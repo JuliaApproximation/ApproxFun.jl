@@ -216,9 +216,24 @@ end
 
 ## Multiplication of operator * fun
 
-##TODO: Why two implmenetations?
-ultraiconversion(g::Vector,m::Integer)=(m==0)? g : backsubstitution!(MutableAlmostBandedOperator(Operator[ConversionOperator(0:m)]),copy(g))
-ultraconversion(g::Vector,m::Integer)=(m==0)? g : ConversionOperator(0:m)*g
+function ultraiconversion{T}(g::Vector{T},m::Integer)
+    if m==0 
+        g 
+    elseif m==1
+        ultraiconversion(g)
+    else
+        backsubstitution!(MutableAlmostBandedOperator(Operator[ConversionOperator(0:m)]),copy(g))::Vector{T}
+    end
+end
+function ultraconversion{T}(g::Vector{T},m::Integer)
+    if m==0
+        g 
+    elseif m==1
+        ultraconversion(g)
+    else
+        (ConversionOperator(0:m)*g)::Vector{T}
+    end
+end
 
 
 function *{T<:Number}(A::TimesOperator,b::Vector{T})
