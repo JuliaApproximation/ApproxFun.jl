@@ -1,6 +1,5 @@
 export pdesolve
 
-include("lyap.jl")
 
 
 toarray{T<:RowOperator}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];

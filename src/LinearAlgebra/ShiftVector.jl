@@ -96,17 +96,17 @@ function svfft(v::Vector)
         v=FFTW.fft(v)./n
         if mod(n,2) == 0
             ind=convert(Integer,n/2)
-            v=alternatingvector(n).*v          
+            v=alternatesign!(v)
             ShiftVector(v[ind+1:end],            
                         v[1:ind])            
         elseif mod(n,4)==3
             ind=convert(Integer,(n+1)/2)
-            ShiftVector(-alternatingvector(n-ind).*v[ind+1:end],            
-                        alternatingvector(ind).*v[1:ind])                
+            ShiftVector(-alternatesign!(v[ind+1:end]),     
+                        alternatesign!(v[1:ind]))             
         else #mod(length(v),4)==1
             ind=convert(Integer,(n+1)/2)
-            ShiftVector(alternatingvector(n-ind).*v[ind+1:end],            
-                        alternatingvector(ind).*v[1:ind])             
+            ShiftVector(alternatesign!(v[ind+1:end]),        
+                        alternatesign!(v[1:ind]))             
         end
 end
 
@@ -122,12 +122,12 @@ function isvfft(sv::ShiftVector)
         @assert n/2 <= ind <= n/2+1
         
         if mod(n,2) == 0
-            v=alternatingvector(n).*[sv[0:lastindex(sv)],sv[firstindex(sv):-1]]      
+            v=alternatesign!([sv[0:lastindex(sv)],sv[firstindex(sv):-1]])
         elseif mod(n,4)==3
-            v=[alternatingvector(n-ind+1).*sv[0:lastindex(sv)],
-                -alternatingvector(ind-1).*sv[firstindex(sv):-1]]    
+            v=[alternatesign!(sv[0:lastindex(sv)]),
+                -alternatesign!(sv[firstindex(sv):-1])]    
         else #mod(length(v),4)==1
-            v=[alternatingvector(n-ind+1).*sv[0:lastindex(sv)],alternatingvector(ind-1).*sv[firstindex(sv):-1]]         
+            v=[alternatiesign!(sv[0:lastindex(sv)]),alternatesign!(sv[firstindex(sv):-1])]         
         end
         
         FFTW.ifft(n*v)

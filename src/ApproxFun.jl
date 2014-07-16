@@ -17,59 +17,7 @@ export plot
 
 abstract AbstractFun
 
-
-## Helper routines
-alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
-
-function pad!(f::Vector,n::Integer)
-	if (n > length(f))
-		append!(f,zeros(n - length(f)))
-	else
-		resize!(f,n)
-	end
-end
-
-
-function pad(f::Vector,n::Integer)
-	if (n > length(f))
-        [f,zeros(n - length(f))]
-	else
-        f[1:n]
-	end
-end
-
-function pad{T}(A::Array{T},n::Integer,m::Integer)
-	if n <= size(A,1) && m <= size(A,2)
-        A[1:n,1:m]
-	else
-        ret = zeros(T,n,m)
-        
-        if n <= size(A,1)
-            ret[1:n,1:size(A,2)] = A[1:n,:]
-        elseif m <= size(A,2)
-            ret[1:size(A,1),1:m] = A[:,1:m]
-        else
-            ret[1:size(A,1),1:size(A,2)]=A
-        end
-        
-        ret
-	end
-end
-
-
-
-
-#TODO:padleft!
-
-function padleft(f::Vector,n::Integer)
-	if (n > length(f))
-        [zeros(n - length(f)),f]
-	else
-        f[end-n+1:end]
-	end
-end
-
-
+include("LinearAlgebra/LinearAlgebra.jl")
 
 include("Domains/Domain.jl")
 
@@ -87,7 +35,6 @@ include("Domains/Interval.jl")
 include("Domains/PeriodicInterval.jl")
 
 
-include("LinearAlgebra/LinearAlgebra.jl")
 include("Operators/Operator.jl")
 
 
