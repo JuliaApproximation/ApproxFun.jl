@@ -13,13 +13,12 @@ end
 
 FFun(f::Function,n::Integer)=FFun(f,PeriodicInterval(),n)
 FFun(f::Function,d::Domain,n::Integer)=FFun(svfft(f(points(d,n))),d)
-FFun(f::Function,d::Vector,n::Integer)=FFun(f,apply(PeriodicInterval,d),n)
 FFun(cfs::ShiftVector)=FFun(cfs,PeriodicInterval())
-FFun(cfs::ShiftVector,d::Vector)=FFun(cfs,apply(PeriodicInterval,d))
+
 FFun(f::Function)=FFun(f,PeriodicInterval())
-FFun(f::Function,d::Vector)=FFun(f,PeriodicInterval(d))
 FFun(c::Number)=FFun(ShiftVector([c],1))
 FFun(c::Number,d)=FFun(ShiftVector([c],1),d)
+
 
 function FFun(f::Function, d::Domain)
     #TODO: reuse function values
@@ -54,6 +53,16 @@ end
 
 FFun(f::FFun,d)=FFun(f.coefficients,d)
 FFun(f::FFun)=FFun(f.coefficients)
+
+
+## deal with [a,b] short hand
+
+
+FFun(f::Function,d::Vector,n::Integer)=FFun(f,PeriodicInterval(d),n)
+FFun(cfs::ShiftVector,d::Vector)=FFun(cfs,PeriodicInterval(d))
+FFun(f::Function,d::Vector)=FFun(f,PeriodicInterval(d))
+
+
 
 
 ##Evaluation

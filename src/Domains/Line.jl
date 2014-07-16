@@ -19,6 +19,7 @@ end
 Line(c,a)=Line(c,a,-1.,-1.)
 Line()=Line(0.,0.)
 
+
 ## Map interval
 
 
@@ -196,33 +197,44 @@ end
 PeriodicLine(c,a)=PeriodicLine(c,a,1.)
 PeriodicLine()=PeriodicLine(0.,0.)
 
-function PeriodicLine(d::Vector)
-    @assert length(d) ==2
-    @assert abs(d[1]) == abs(d[2]) == Inf
-    
-    if abs(real(d[1])) < Inf 
-        @assert real(d[1])==real(d[2])
-        @assert sign(imag(d[1]))==-sign(imag(d[2]))
-        
-        PeriodicLine(real(d[2]),angle(d[2]))
-        
-    elseif abs(imag(d[1])) < Inf
-        @assert imag(d[1])==imag(d[2])        
-        @assert sign(real(d[1]))==-sign(real(d[2]))
-        
-        PeriodicLine(imag(d[2]),angle(d[2]))
-    else
-        @assert angle(d[2]) == -angle(d[1])
-        
-        PeriodicLine(0.,angle(d[2]))
-    end
-end
+
 
 tocircle(d::PeriodicLine,x)=(d.L*im .- exp(-im*d.angle)*(x-d.centre))./(d.L*im .+ exp(-im*d.angle)*(x-d.centre))
 fromcircle(d::PeriodicLine,ζ)=exp(im*d.angle)*1.im*d.L*(ζ .- 1)./(ζ .+ 1)+d.centre
 
 tocanonical(d::PeriodicLine,x)=tocanonical(Circle(),tocircle(d,x))
 fromcanonical(d::PeriodicLine,θ)=fromcircle(d,fromcanonical(Circle(),θ))
+
+
+
+
+
+## vectorized
+
+for typ in (:Line,:PeriodicLine)
+    @eval function ($typ)(d::Vector)
+        @assert length(d) ==2
+        @assert abs(d[1]) == abs(d[2]) == Inf
+        
+        if abs(real(d[1])) < Inf 
+            @assert real(d[1])==real(d[2])
+            @assert sign(imag(d[1]))==-sign(imag(d[2]))
+            
+            $typ(real(d[2]),angle(d[2]))
+            
+        elseif abs(imag(d[1])) < Inf
+            @assert imag(d[1])==imag(d[2])        
+            @assert sign(real(d[1]))==-sign(real(d[2]))
+            
+            $typ(imag(d[2]),angle(d[2]))
+        else
+            @assert angle(d[2]) == -angle(d[1])
+            
+            $typ(0.,angle(d[2]))
+        end
+    end
+end
+
 
 
 
