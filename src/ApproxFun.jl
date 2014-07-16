@@ -91,13 +91,13 @@ function Interval{T<:Number}(d::Vector{T})
             Interval(d[1],d[2])
         end
     else
-        [Interval(d[1],d[2]),Interval(d[2:end])]
+        [Interval(d[1:2]),Interval(d[2:end])]
     end
 end
 
 
 
-function PeriodicInterval(d::Vector)
+function PeriodicInterval{T<:Number}(d::Vector{T})
     @assert length(d) == 2
     
     if abs(d[1]) ==Inf
