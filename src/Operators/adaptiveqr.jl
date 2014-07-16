@@ -29,17 +29,18 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::V
         B1 = datagetindex(B,k1,j)
         B2 = datagetindex(B,k2,j)
         
-        B[k1,j],B[k2,j]= a*B1 + b*B2,-b*B1 + a*B2
+        fastsetindex!(B,a*B1 + b*B2,k1,j)
+        fastsetindex!(B,-b*B1 + a*B2,k2,j)        
     end
     
     for j=ir1[end]+1:ir2[end]
         B1 = fillgetindex(B,k1,j)
         B2 = datagetindex(B,k2,j)
         
-        B[k2,j]=a*B2 - b*B1
+        fastsetindex!(B,a*B2 - b*B1,k2,j)
     end
     
-    for j=1:numbcs(B)
+    for j=1:B.numbcs
         B1 = getfilldata(B,k1,j)
         B2 = getfilldata(B,k2,j)
     
@@ -67,7 +68,7 @@ givensreduce!(B::MutableAlmostBandedOperator,v::Vector,j::Integer)=givensreduce!
 function backsubstitution!{T<:Number}(B::MutableAlmostBandedOperator,u::Vector{T})
     n=length(u)
     b=bandrange(B)[end]::Int
-    nbc = numbcs(B)
+    nbc = B.numbcs
     
     
     for k=n:-1:max(1,n-b)

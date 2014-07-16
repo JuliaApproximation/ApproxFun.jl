@@ -23,7 +23,11 @@ type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:RowOperator} <: 
     datalength::Int
     
     bandrange::Range1{Int}
+    
+    numbcs::Int
 end
+
+MutableAlmostBandedOperator(bc,ops...)=MutableAlmostBandedOperator(bc,ops...,length(bc))
 
 domainspace(M::MutableAlmostBandedOperator)=domainspace(M.op)
 rangespace(M::MutableAlmostBandedOperator)=rangespace(M.op)
@@ -52,7 +56,7 @@ end
 
 
 index(B::MutableAlmostBandedOperator)=index(B.op)::Int
-numbcs(B::MutableAlmostBandedOperator)=length(B.bc)::Int
+
 
 # for bandrange, we save room for changed entries during Givens
 bandrange(B::MutableAlmostBandedOperator)=B.bandrange
@@ -66,7 +70,7 @@ function Base.getindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},kr::
     
     
     for k = kr
-        if k <= datalength(B) || k <= numbcs(B)
+        if k <= datalength(B) || k <= B.numbcs
             for j=jr
                 ret[k,j] = B[k,j]
             end
@@ -83,7 +87,7 @@ function Base.getindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},kr::
 end
 
 function fillgetindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::Integer,j::Integer)
-    nbc = numbcs(B)
+    nbc = B.numbcs
     ret = zero(T)
     
     if k <= nbc
@@ -102,18 +106,18 @@ function fillgetindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::In
     ret::T
 end
 
-function datagetindex{T,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::Integer,j::Integer)  
-    nbc = numbcs(B)
+function datagetindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
+    nbc = B.numbcs
     if k <= nbc
-        B.bcdata[k,j]::T
+        B.bcdata[k,j]
     else
-        B.data[k-nbc,j-k+nbc]::T
+        B.data[k-nbc,j-k+nbc]
     end
 end
 
 function Base.getindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
     ir = indexrange(B,k)::Range1{Int64}
-    nbc = numbcs(B)
+    nbc = B.numbcs
     
     if k <= nbc
         if j <= ir[end]
@@ -135,18 +139,17 @@ getindex!(b::MutableAlmostBandedOperator,kr::Range1,jr::Range1)=resizedata!(b,kr
 getindex!(b::MutableAlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,jr]
 
 function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableAlmostBandedOperator{T,M,R},n::Integer)
-    l = datalength(B)
-    nbc=numbcs(B)::Int
-    if n > l
+    if n > B.datalength
+        nbc=B.numbcs
         resize!(B.data,2n,length(B.bandrange))
 
         if nbc>0        
             newfilldata=zeros(T,2n,nbc)
-            newfilldata[1:l,:]=B.filldata[1:l,:]
+            newfilldata[1:B.datalength,:]=B.filldata[1:B.datalength,:]
             B.filldata=newfilldata
         end
         
-        addentries!(B.op,B.data,l+1:n)
+        addentries!(B.op,B.data,B.datalength+1:n)
         
         B.datalength = n
     end
@@ -154,27 +157,37 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableAlmostBandedOperat
     B
 end
 
-function Base.setindex!(B::MutableAlmostBandedOperator,x,k::Integer,j::Integer)
-    nbc = numbcs(B)
 
-    if k<=nbc
+function Base.setindex!(B::MutableAlmostBandedOperator,x,k::Integer,j::Integer)
+    if k<=B.numbcs
         B.bcdata[k,j] = x
     else
         resizedata!(B,k)      
-        B.data[k-nbc,j-k+nbc] = x
+        B.data[k-B.numbcs,j-k+B.numbcs] = x
+    end
+    x
+end
+
+
+##fast assumes we are inbounds and already resized
+function fastsetindex!(B::MutableAlmostBandedOperator,x,k::Integer,j::Integer)
+    if k<=B.numbcs
+        @inbounds B.bcdata[k,j] = x
+    else
+        @inbounds B.data[k-B.numbcs,j-k+B.numbcs] = x
     end
     x
 end
 
 function setfilldata!(B::MutableAlmostBandedOperator,x,k::Integer,j::Integer)
-    if k<= numbcs(B)
+    if k<= B.numbcs
         B.bcfilldata[k,j] = x
     else
-        B.filldata[k-numbcs(B),j] = x
+        B.filldata[k-B.numbcs,j] = x
     end
 end
 
-getfilldata(B::MutableAlmostBandedOperator,k::Integer,j::Integer)=(k<=numbcs(B))?B.bcfilldata[k,j]:B.filldata[k-numbcs(B),j]
+getfilldata(B::MutableAlmostBandedOperator,k::Integer,j::Integer)=(k<=B.numbcs)?B.bcfilldata[k,j]:B.filldata[k-B.numbcs,j]
 
 
 
