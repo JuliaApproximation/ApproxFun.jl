@@ -107,13 +107,13 @@ function fillgetindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::In
 end
 
 function datagetindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
-    nbc = B.numbcs
-    if k <= nbc
+    if k <= B.numbcs
         B.bcdata[k,j]
     else
-        B.data[k-nbc,j-k+nbc]
+        B.data[k-B.numbcs,j-k+B.numbcs]
     end
 end
+
 
 function Base.getindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
     ir = indexrange(B,k)::Range1{Int64}
