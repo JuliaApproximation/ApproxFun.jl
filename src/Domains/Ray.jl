@@ -37,8 +37,8 @@ end
 
 
 
-ray_tocanonical(x)=(x.-1.)./(1.+x)
-ray_tocanonicalD(x)=2./((1.+x).^2)
+ray_tocanonical(x)=(x==Inf)?1.:(x.-1.)./(1.+x)
+ray_tocanonicalD(x)=(x==Inf)?0.:2./((1.+x).^2)
 ray_fromcanonical(x)=(1.+x)./(1.-x)
 ray_fromcanonicalD(x)=2./((x.-1.).^2)
 
@@ -50,7 +50,7 @@ ray_fromcanonicalD(o,x)=(o?1:-1)*ray_fromcanonicalD((o?1:-1)*x)
 function cistyped(a::Real)
     if a==0
         1.
-    elseif a==π
+    elseif a==π||a==-π
         -1.
     else
         cis(a)
