@@ -39,7 +39,7 @@ end
 ## We use \ as the IFun constructor might miss isolated features
 function Base.exp(f::IFun)
     xm=indmax(real(f))
-    B=EvaluationOperator(f.domain,xm)
+    B=EvaluationFunctional(f.domain,xm)
     D=diff(f.domain)
     A=[B,D-diff(f)]
     A\[exp(f[xm]),0.]    
@@ -89,7 +89,7 @@ end
 #             D=diff(d)
 #             f2=f.*f
 #             xp=indmax(f2);xm=indmin(f2);
-#             B=[EvaluationOperator(d,xm),EvaluationOperator(d,xp)]
+#             B=[EvaluationFunctional(d,xm),EvaluationFunctional(d,xp)]
 #             fp=diff(f)
 #             fpp=diff(fp)
 #             [B,fp*D^2 - fpp*D + fp.^3]\[($op)(f[xm]),($op)(f[xp])]

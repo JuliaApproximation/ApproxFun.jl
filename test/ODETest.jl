@@ -6,8 +6,8 @@ using ApproxFun
 
 
 d=Interval(-10.,5.);
-Bm=EvaluationOperator(d,d.a);
-Bp=EvaluationOperator(d,d.b);
+Bm=EvaluationFunctional(d,d.a);
+Bp=EvaluationFunctional(d,d.b);
 B=[Bm,Bp];
 D2=diff(d,2);
 X=MultiplicationOperator(Fun(x->x,d));
@@ -42,7 +42,7 @@ g=Fun(t->exp(-t.^2))
 @assert norm(Fun(t->exp(f[t]))-g)<10eps()
 
 fp=diff(f);
-Bm=EvaluationOperator(f.domain,f.domain.a);
+Bm=EvaluationFunctional(f.domain,f.domain.a);
 u=[Bm,diff(f.domain) - fp]\[exp(f[f.domain.a]),0.];
 @assert norm(u-g)<10eps()
 
@@ -53,7 +53,7 @@ u=[Bm,diff(f.domain) - fp]\[exp(f[f.domain.a]),0.];
 f=Fun(exp);
 D=diff(f.domain);
 w=10.;
-B=BasisOperator(floor(w));
+B=BasisFunctional(floor(w));
 A=[B,D+1im*w];
 u = A\[0.,f];
 @assert abs(u[1.]exp(1im*w)-u[-1.]exp(-1im*w)-(-0.18575766879136255 + 0.17863980562549928im ))<eps()

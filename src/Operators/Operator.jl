@@ -131,9 +131,9 @@ Base.eye(d::PeriodicDomain)=MultiplicationOperator(FFun(ShiftVector([1.],1),d))
 
 integrate(d::IntervalDomain)=IntegrationOperator(1,d)
 
-evaluate(d::IntervalDomain,x)=EvaluationOperator(d,x)
+evaluate(d::IntervalDomain,x)=EvaluationFunctional(d,x)
 dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
-neumann(d::IntervalDomain)=[EvaluationOperator(d,d.a,1),EvaluationOperator(d,d.b,1)]
+neumann(d::IntervalDomain)=[EvaluationFunctional(d,d.a,1),EvaluationFunctional(d,d.b,1)]
 
 Base.start(d::IntervalDomain)=evaluate(d,d.a)
 Base.endof(d::IntervalDomain)=evaluate(d,d.b)
