@@ -1,6 +1,6 @@
 
 
-export StrideOperator,StrideRowOperator
+export StrideOperator,StrideFunctional
 
 
 
@@ -112,19 +112,19 @@ end
 domain(S::StrideOperator)=Any ##TODO: tensor product
 
 
-## StrideRowOperator
+## StrideFunctional
 
 
-type StrideRowOperator{T<:Number,B<:RowOperator} <: RowOperator{T}
+type StrideFunctional{T<:Number,B<:Functional} <: Functional{T}
     op::B
     rowindex::Int
     stride::Int  
 end
 
-StrideRowOperator{T<:Number}(B::RowOperator{T},r,rs)=StrideRowOperator{T,typeof(B)}(B,r,rs)
+StrideFunctional{T<:Number}(B::Functional{T},r,rs)=StrideFunctional{T,typeof(B)}(B,r,rs)
 
 
-Base.getindex{T<:Number}(op::StrideRowOperator{T},kr::Range1)=[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
+Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range1)=[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
 
 
 
@@ -134,7 +134,7 @@ iszerooperator(A::ConstantOperator)=A.c==0.
 iszerooperator(A)=false
 function isboundaryrow(A,k)
     for j=1:size(A,2)
-        if typeof(A[k,j]) <: RowOperator
+        if typeof(A[k,j]) <: Functional
             return true
         end
     end
@@ -155,7 +155,7 @@ function interlace{T<:Operator}(A::Array{T,2})
     
     for k=1:br, j=1:n
         if !iszerooperator(A[k,j])
-            op = StrideRowOperator(A[k,j],j-n,n)
+            op = StrideFunctional(A[k,j],j-n,n)
             
             if !isdefined(S,k)
                 S[k] = op

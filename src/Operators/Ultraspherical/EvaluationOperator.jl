@@ -3,7 +3,7 @@ export EvaluationOperator, BasisOperator
 
 ## EvaluationOperator constructors
 
-type EvaluationOperator{D<:IntervalDomain,T<:Number} <: RowOperator{T}
+type EvaluationOperator{D<:IntervalDomain,T<:Number} <: Functional{T}
     domain::D
     x::T
     order::Integer
@@ -69,7 +69,7 @@ end
 
 
 
-type BasisOperator <: RowOperator{Float64}
+type BasisOperator <: Functional{Float64}
     k::Integer
 end
 

@@ -255,6 +255,8 @@ function ultraconversion{T}(g::Vector{T},m::Integer)
 end
 
 
+## Operations
+
 function *{T<:Number}(A::TimesOperator,b::Vector{T})
     ret = b
     for k=length(A.ops):-1:1
@@ -273,10 +275,10 @@ end
 
 
 
+
 *(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A).order),rangespace(A).order),b.domain)
 
-*(A::RowOperator,b::Vector)=dot(A[1:length(b)],b)
-*(A::RowOperator,b::IFun)=A*b.coefficients
+
 *{T<:Operator}(A::Vector{T},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
 
 

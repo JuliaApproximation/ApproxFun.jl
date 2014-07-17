@@ -16,7 +16,7 @@ export MutableAlmostBandedOperator
 ## MutableAlmostBandedOperator
 
 
-type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:RowOperator} <: BandedBelowOperator{T}
+type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:Functional} <: BandedBelowOperator{T}
     bc::Vector{R}
     op::M
     data::ShiftArray{T}   #Shifted to encapsolate bandedness
@@ -40,7 +40,7 @@ rangespace(M::MutableAlmostBandedOperator)=rangespace(M.op)
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
-function MutableAlmostBandedOperator{T<:Number,R<:RowOperator}(bc::Vector{R},op::BandedOperator{T})
+function MutableAlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedOperator{T})
     data = ShiftArray(T,index(op))
     
     nbc = length(bc)
@@ -52,7 +52,7 @@ function MutableAlmostBandedOperator{T<:Number,R<:RowOperator}(bc::Vector{R},op:
 end
 
 function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
-    bcs = RowOperator[B[k] for k=1:length(B)-1]
+    bcs = Functional[B[k] for k=1:length(B)-1]
     
     @assert typeof(B[end]) <: BandedOperator
     

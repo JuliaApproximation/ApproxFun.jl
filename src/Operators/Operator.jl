@@ -1,10 +1,10 @@
-export Operator,RowOperator,InfiniteOperator
+export Operator,Functional,InfiniteOperator
 export bandrange, linsolve
 
 
 
 abstract Operator{T} #T is the entry type, Flaot64 or Complex{Float64}
-abstract RowOperator{T} <: Operator{T}
+abstract Functional{T} <: Operator{T}
 abstract InfiniteOperator{T} <: Operator{T}
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
 abstract BandedOperator{T} <: BandedBelowOperator{T}
@@ -39,7 +39,7 @@ commondomain(P::Vector,g)=commondomain([P,g])
 
 
 Base.size(::InfiniteOperator)=[Inf,Inf]
-Base.size(::RowOperator)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
+Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
 Base.size(op::Operator,k::Integer)=size(op)[k]
 
 
@@ -48,13 +48,13 @@ Base.getindex(op::Operator,k::Integer,j::Range1)=op[k:k,j][1,:]
 Base.getindex(op::Operator,k::Range1,j::Integer)=op[k,j:j][:,1]
 
 
-Base.getindex(op::RowOperator,k::Integer)=op[k:k][1]
+Base.getindex(op::Functional,k::Integer)=op[k:k][1]
 
-function Base.getindex(op::RowOperator,j::Range1,k::Range1)
+function Base.getindex(op::Functional,j::Range1,k::Range1)
   @assert j[1]==1 && j[end]==1
   op[k]' #TODO conjugate transpose?
 end
-function Base.getindex(op::RowOperator,j::Integer,k::Range1)
+function Base.getindex(op::Functional,j::Integer,k::Range1)
   @assert j==1
   op[k]' #TODO conjugate transpose?
 end
@@ -103,7 +103,7 @@ include("adaptiveqr.jl")
 
 
 include("OperatorAlgebra.jl")
-include("RowOperatorAlgebra.jl")
+include("FunctionalAlgebra.jl")
 
 include("specialfunctions.jl")
 

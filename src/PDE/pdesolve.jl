@@ -2,7 +2,7 @@ export pdesolve
 
 
 
-toarray{T<:RowOperator}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
+toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 toarray{T<:IFun}(B::Array{T},n)=Float64[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n];
 function toarray(B::Array,n)
     ret = zeros(length(B),n)
@@ -21,7 +21,7 @@ end
 function toarray{T<:Operator}(A::Vector{T},n::Integer,m::Integer)
     ret = zeros(n,m)
     
-    nbc = typeof(A[end])<:RowOperator?length(A):length(A)-1
+    nbc = typeof(A[end])<:Functional?length(A):length(A)-1
     for k=1:nbc
         ret[k,:]=A[k][1:m]
     end

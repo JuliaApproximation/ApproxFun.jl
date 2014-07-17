@@ -6,7 +6,7 @@ export SavedBandedOperator
 
 
 
-
+## SavedFunctional
 
 
 
@@ -70,4 +70,3 @@ function resizedata!(B::SavedBandedOperator,n::Integer)
 end
 
 
-## SavedRowOperator
