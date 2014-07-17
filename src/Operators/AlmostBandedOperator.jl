@@ -169,11 +169,8 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableAlmostBandedOperat
     if n > B.datalength    
         nbc=B.numbcs
         
-        if B.datalength==0  ##data doesn't know how many columns it has yet
-            resize!(B.data,2n,length(B.bandrange))  
-        else
-            resize!(B.data,2n)
-        end
+        ## TODO: Requires fill with zeros!!  rename resize!
+        resize!(B.data,2n,length(B.bandrange))  
 
         if nbc>0      
             for bc in B.bc
