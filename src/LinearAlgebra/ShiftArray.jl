@@ -85,7 +85,7 @@ function -{T<:Number}(A::ShiftArray{T},B::ShiftArray{T})
     ShiftArray(ret,A.rowindex,cind)
 end
 
-
+##Resize rows and columns, padding with zeros to get new columns correct
 function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer,m::Integer)
     olddata = S.data
     S.data = zeros(T,n,m)
@@ -98,6 +98,17 @@ function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer,m::Integer)
 end
 
 
+##Resize just rows, NOT padding with zeros 
+function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer)
+    olddata = S.data
+    S.data = Array(T,n,size(olddata,2))
+    
+    if size(olddata,1) != 0
+        S.data[1:size(olddata,1),:] = olddata
+    end
+    
+    S
+end
 
 
 

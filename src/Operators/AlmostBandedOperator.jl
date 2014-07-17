@@ -48,7 +48,8 @@ function MutableAlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::
     bcfilldata = eye(T,nbc)
                 
     br=(bandrange(op)[1]-nbc):(length(bandrange(op))-1)
-    MutableAlmostBandedOperator(SavedFunctional[SavedFunctional(bcc) for bcc in bc],op,data,Array(T,0,nbc),bcdata,bcfilldata,0, br )
+    ##TODO complex functions
+    MutableAlmostBandedOperator(SavedFunctional{Float64}[SavedFunctional(bcc) for bcc in bc],op,data,Array(T,0,nbc),bcdata,bcfilldata,0, br )
 end
 
 function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
@@ -108,32 +109,36 @@ function Base.getindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},kr::
     ret
 end
 
+
+##UNSAFE
 function fillgetindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::Integer,j::Integer)
     nbc = B.numbcs
     ret = zero(T)
     
     if k <= nbc
         for m=1:nbc
-            bcv = B.bc[m][j]    
-            ret += B.bcfilldata[k,m]*bcv
+            @inbounds bcv = B.bc[m].data[j]    
+            @inbounds ret += B.bcfilldata[k,m]*bcv
         end
     else
         for m=1:nbc
-            bcv = B.bc[m][j]
-            fd=B.filldata[k-nbc,m]::T
+            @inbounds bcv = B.bc[m].data[j]
+            @inbounds fd=B.filldata[k-nbc,m]
             ret += fd*bcv
         end    
     end
     
-    ret::T
+    ret
 end
 
 function datagetindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
     if k <= B.numbcs
-        B.bcdata[k,j]
+        @inbounds ret=B.bcdata[k,j]
     else
-        B.data[k-B.numbcs,j-k+B.numbcs]
+        @inbounds ret=B.data[k-B.numbcs,j-k+B.numbcs]
     end
+    
+    ret
 end
 
 
@@ -163,7 +168,12 @@ getindex!(b::MutableAlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,
 function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableAlmostBandedOperator{T,M,R},n::Integer)
     if n > B.datalength    
         nbc=B.numbcs
-        resize!(B.data,2n,length(B.bandrange))
+        
+        if B.datalength==0  ##data doesn't know how many columns it has yet
+            resize!(B.data,2n,length(B.bandrange))  
+        else
+            resize!(B.data,2n)
+        end
 
         if nbc>0      
             for bc in B.bc
