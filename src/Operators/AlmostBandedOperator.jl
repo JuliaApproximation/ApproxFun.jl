@@ -16,7 +16,7 @@ export MutableAlmostBandedOperator
 ## MutableAlmostBandedOperator
 
 
-type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:Functional} <: BandedBelowOperator{T}
+type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:SavedFunctional} <: BandedBelowOperator{T}
     bc::Vector{R}
     op::M
     data::ShiftArray{T}   #Shifted to encapsolate bandedness
@@ -48,7 +48,7 @@ function MutableAlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::
     bcfilldata = eye(T,nbc)
                 
     br=(bandrange(op)[1]-nbc):(length(bandrange(op))-1)
-    MutableAlmostBandedOperator(bc,op,data,Array(T,0,nbc),bcdata,bcfilldata,0, br )
+    MutableAlmostBandedOperator(SavedFunctional[SavedFunctional(bcc) for bcc in bc],op,data,Array(T,0,nbc),bcdata,bcfilldata,0, br )
 end
 
 function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
@@ -161,11 +161,15 @@ getindex!(b::MutableAlmostBandedOperator,kr::Range1,jr::Range1)=resizedata!(b,kr
 getindex!(b::MutableAlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,jr]
 
 function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableAlmostBandedOperator{T,M,R},n::Integer)
-    if n > B.datalength
+    if n > B.datalength    
         nbc=B.numbcs
         resize!(B.data,2n,length(B.bandrange))
 
-        if nbc>0        
+        if nbc>0      
+            for bc in B.bc
+                resizedata!(bc,n)
+            end
+          
             newfilldata=zeros(T,2n,nbc)
             newfilldata[1:B.datalength,:]=B.filldata[1:B.datalength,:]
             B.filldata=newfilldata

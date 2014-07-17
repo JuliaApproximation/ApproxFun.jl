@@ -1,6 +1,6 @@
 
 
-export SavedBandedOperator
+export SavedFunctional,SavedBandedOperator
 
 
 
@@ -8,8 +8,42 @@ export SavedBandedOperator
 
 ## SavedFunctional
 
+type SavedFunctional{T<:Number,M<:Functional} <: Functional{T}
+    op::M
+    data::Vector{T}
+    datalength::Int
+end
+
+function SavedFunctional{T<:Number}(op::Functional{T})
+    data = Array(T,0)
+    
+    SavedFunctional(op,data,0)
+end
 
 
+function Base.getindex(B::SavedFunctional,k::Integer)
+    resizedata!(B,k)
+    B.data[k] 
+end
+
+function Base.getindex(B::SavedFunctional,k::Range)
+    resizedata!(B,k[end])
+    B.data[k] 
+end
+
+
+
+function resizedata!(B::SavedFunctional,n::Integer)
+    if n > B.datalength
+        resize!(B.data,2n)
+
+        B.data[B.datalength+1:n]=B.op[B.datalength+1:n]
+        
+        B.datalength = n
+    end
+    
+    B
+end
 
 
 
@@ -29,8 +63,7 @@ end
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function SavedBandedOperator{T<:Number}(op::BandedOperator{T})
-    data = ShiftArray(T,index(op))
-    
+    data = ShiftArray(T,index(op))    
     SavedBandedOperator(op,data,0)
 end
 

@@ -97,7 +97,7 @@ include("ConstantOperator.jl")
 
 include("Ultraspherical/Ultraspherical.jl")
 
-include("SavedBandedOperator.jl")
+include("SavedOperator.jl")
 include("AlmostBandedOperator.jl")
 include("adaptiveqr.jl")
 
