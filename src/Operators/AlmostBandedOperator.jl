@@ -8,6 +8,11 @@ export MutableAlmostBandedOperator
 
 
 
+
+
+
+
+
 ## MutableAlmostBandedOperator
 
 
@@ -62,6 +67,23 @@ index(B::MutableAlmostBandedOperator)=index(B.op)::Int
 bandrange(B::MutableAlmostBandedOperator)=B.bandrange
 datalength(B::MutableAlmostBandedOperator)=B.datalength
 
+
+
+function addentries!(B::MutableAlmostBandedOperator,A::ShiftArray,kr::Range1)
+    @assert kr[1] > B.numbcs  #can't write infinite rows 
+    
+    # We assume that the operator is not filled-in
+    
+    br=bandrange(B)
+    for k=kr[1]:min(kr[end],B.datalength), j=br
+        A[k,j]+=B.data[k,j]
+    end
+    for k=max(B.datalength+1,kr[1]):kr[end], j=br
+        A[k,j]+=B.op[k,j]
+    end    
+    
+    A
+end
 
 
 
