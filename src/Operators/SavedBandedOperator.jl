@@ -51,7 +51,7 @@ function addentries!(B::SavedBandedOperator,A::ShiftArray,kr::Range1)
     br=bandrange(B)
 
     for k=kr, j=br
-        A[k,j]+=B.data[k,j]
+        @safastset!(A,@safastget(B.data,k,j)+@safastget(A,k,j) ,k,j)
     end
     
     A

@@ -51,7 +51,15 @@ end
 
 domain(P::PlusOperator)=commondomain(P.ops)
 
-bandrange(P::PlusOperator)=mapreduce(op->bandrange(op)[1],min,P.ops):mapreduce(op->bandrange(op)[end],max,P.ops)
+function bandrange(P::PlusOperator)
+    b1,b2=0,0
+    for op in P.ops
+        br=bandrange(op)
+        b1=min(br[1]::Int,b1)
+        b2=max(br[end]::Int,b2)
+    end
+    b1:b2
+end
 
 
 function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
@@ -136,6 +144,17 @@ domain(P::TimesOperator)=commondomain(P.ops)
 
 
 bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->bandrange(x)[end],+,P.ops)
+
+
+function bandrange(P::TimesOperator)
+    b1,b2=0,0
+    for op in P.ops
+        br=bandrange(op)
+        b1+=br[1]::Int
+        b2+=br[end]::Int
+    end
+    b1:b2
+end
 
 
 ##TODO: We keep this around because its faster
