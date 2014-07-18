@@ -158,19 +158,17 @@ bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
 
 
 ##TODO: We keep this around because its faster
-## need to unify 
+## need to unify, maybe implement multiplyentries! with option of overriding?
 function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Range1)
     cr = columnrange(A)
     br = bandinds(P)
 
-
-    ##TODO Get rid of mapreduce
-    kre=kr[1]:(kr[end]+mapreduce(x->bandinds(x)[end],+,P.ops[1:end-1]))
+    kre=kr[1]:(kr[end]+bandindssum(slice(P.ops,1:length(P.ops)-1),2))
 
     Z = ShiftArray(P.ops[end],kre,Range1(br...))
     
     for j=length(P.ops)-1:-1:2
-        krr=kr[1]:(kr[end]+mapreduce(x->bandinds(x)[end],+,P.ops[1:j-1]))    
+        krr=kr[1]:(kr[end]+bandindssum(slice(P.ops,1:j-1),2))
         multiplyentries!(P.ops[j],Z,krr)
     end
     
