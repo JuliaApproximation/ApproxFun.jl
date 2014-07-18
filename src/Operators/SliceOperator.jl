@@ -23,12 +23,12 @@ end
 SliceOperator{T<:Number}(B::Operator{T},r,c,rs,cs)=SliceOperator{T,typeof(B)}(B,r,c,rs,cs)
 SliceOperator{T<:Number}(B::Operator{T},r,c,rs)=SliceOperator{T,typeof(B)}(B,r,c,rs,rs)
 
-function bandrange(S::SliceOperator)
-    br=bandrange(S.op)
+function bandinds(S::SliceOperator)
+    br=bandinds(S.op)
     
     sh=S.colindex-S.rowindex
     
-    min(br[1]-sh,0):max(0,br[end]-sh)
+    (min(br[1]-sh,0),max(0,br[end]-sh))
 end
  
 function addentries!(S::SliceOperator,A,kr)

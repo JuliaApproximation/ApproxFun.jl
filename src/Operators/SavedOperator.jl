@@ -74,7 +74,7 @@ index(B::SavedBandedOperator)=index(B.op)::Int
 
 domainspace(M::SavedBandedOperator)=domainspace(M.op)
 rangespace(M::SavedBandedOperator)=rangespace(M.op)
-bandrange(B::SavedBandedOperator)=bandrange(B.op)
+bandinds(B::SavedBandedOperator)=bandinds(B.op)
 datalength(B::SavedBandedOperator)=B.datalength
 
 
@@ -92,7 +92,7 @@ end
 
 function resizedata!(B::SavedBandedOperator,n::Integer)
     if n > B.datalength
-        resize!(B.data,2n,length(bandrange(B)))
+        resize!(B.data,2n,bandrangelength(B))
 
         addentries!(B.op,B.data,B.datalength+1:n)
         

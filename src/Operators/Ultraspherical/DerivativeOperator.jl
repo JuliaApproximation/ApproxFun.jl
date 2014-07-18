@@ -33,7 +33,7 @@ end
 addentries!(D::USDerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentries!(D.order,Interval(),A,max(kr[1],1):kr[end])
 
 
-bandrange(D::USDerivativeOperator)=0:(length(D.order)-1)
+bandinds(D::USDerivativeOperator)=0,(length(D.order)-1)
 domainspace(M::USDerivativeOperator)=UltrasphericalSpace(M.order[1])
 rangespace(M::USDerivativeOperator)=UltrasphericalSpace(M.order[end])
 
@@ -72,7 +72,7 @@ addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentrie
 
 
 
-bandrange(D::DerivativeOperator)=0:(length(D.order)-1)
+bandinds(D::DerivativeOperator)=0,(length(D.order)-1)
 domainspace(M::DerivativeOperator)=UltrasphericalSpace(M.order[1],M.domain)
 rangespace(M::DerivativeOperator)=UltrasphericalSpace(M.order[end],M.domain)
 domain(D::DerivativeOperator)=D.domain

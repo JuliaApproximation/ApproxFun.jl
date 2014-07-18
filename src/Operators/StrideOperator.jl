@@ -24,19 +24,19 @@ end
 StrideOperator{T<:Number}(B::Operator{T},r,c,rs,cs)=StrideOperator{T,typeof(B)}(B,r,c,rs,cs)
 StrideOperator{T<:Number}(B::Operator{T},r,c,rs)=StrideOperator{T,typeof(B)}(B,r,c,rs,rs)
 
-function bandrange(S::StrideOperator)
-    br=bandrange(S.op)
+function bandinds(S::StrideOperator)
+    br=bandinds(S.op)
     
     st = abs(S.colstride)
     
     if S.colstride > 0 && S.rowstride > 0
-        min(st*br[1]-S.rowindex+S.colindex,0):max(st*br[end]-S.rowindex+S.colindex,0)
+        min(st*br[1]-S.rowindex+S.colindex,0),max(st*br[end]-S.rowindex+S.colindex,0)
     elseif S.colstride > 0
-        min(-(S.colindex+S.rowindex-2+st*br[end]),0):max(S.colindex+S.rowindex-2+st*br[end],0)
+        min(-(S.colindex+S.rowindex-2+st*br[end]),0),max(S.colindex+S.rowindex-2+st*br[end],0)
     elseif S.rowstride > 0
-        min(-(S.colindex+S.rowindex-2-st*br[1]),0):max(S.colindex+S.rowindex-2-st*br[1],0)
+        min(-(S.colindex+S.rowindex-2-st*br[1]),0),max(S.colindex+S.rowindex-2-st*br[1],0)
     else
-        min(-st*br[end]-S.rowindex+S.colindex,0):max(-st*br[1]-S.rowindex+S.colindex,0)
+        min(-st*br[end]-S.rowindex+S.colindex,0),max(-st*br[1]-S.rowindex+S.colindex,0)
     end
 end
 
@@ -86,7 +86,9 @@ function stride_posneg_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
     B1=ShiftArray(S.op,r1)
     B=BandedArray(A)
     
-    for k=r1, j=bandrange(S.op)
+    br=bandrange(S.op)
+    
+    for k=r1, j=br
         if S.colstride*(j+k) + S.colindex > 0 && S.rowstride*k + S.rowindex > 0
             B[S.rowstride*k + S.rowindex,S.colstride*(j+k) + S.colindex] = B1[k,j]
         end

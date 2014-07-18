@@ -90,7 +90,7 @@ function multiplyentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
 end
 
 
-bandrange(C::ConversionOperator)=0:2
+bandinds(C::ConversionOperator)=0,2
 
 
 

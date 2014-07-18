@@ -52,8 +52,8 @@ addentries!(T::ToeplitzOperator,A::ShiftArray,kr::Range1)=toeplitz_addentries!(T
 
 
 
-bandrange{N<:Number,M<:Vector}(T::ToeplitzOperator{N,M})=(1-length(T.coefficients):length(T.coefficients)-1)
-bandrange{N<:Number,M<:ShiftVector}(T::ToeplitzOperator{N,M})=range(T.coefficients)
+bandinds{N<:Number,M<:Vector}(T::ToeplitzOperator{N,M})=(1-length(T.coefficients),length(T.coefficients)-1)
+bandinds{N<:Number,M<:ShiftVector}(T::ToeplitzOperator{N,M})=firstindex(T.coefficients),lastindex(T.coefficients)
 
 
 ## Hankel Operator
@@ -80,7 +80,7 @@ end
 
 addentries!(T::HankelOperator,A::ShiftArray,kr::Range1)=hankel_addentries!(T.coefficients,A,kr)
 
-bandrange(T::HankelOperator)=(1-length(T.coefficients):length(T.coefficients)-1)
+bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
 
 
 
@@ -92,7 +92,7 @@ end
 
 
 addentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=laurent_addentries!(T.coefficients,A,kr)
-bandrange(T::LaurentOperator)=firstindex(T.coefficients):lastindex(T.coefficients)
+bandinds(T::LaurentOperator)=firstindex(T.coefficients),lastindex(T.coefficients)
 
 LaurentOperator(f::FFun)=LaurentOperator(flipud(f.coefficients))
 

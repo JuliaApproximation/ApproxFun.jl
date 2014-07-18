@@ -84,7 +84,7 @@ end
 
 
 
-bandrange(T::MultiplicationOperator)=(1-length(T.f.coefficients):length(T.f.coefficients)-1)
+bandinds(T::MultiplicationOperator)=(1-length(T.f.coefficients),length(T.f.coefficients)-1)
 domain(T::MultiplicationOperator)=T.f.domain
 
 

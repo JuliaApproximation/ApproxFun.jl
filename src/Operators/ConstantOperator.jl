@@ -8,7 +8,7 @@ end
 domainspace(M::ConstantOperator)=Any
 rangespace(M::ConstantOperator)=Any
 
-bandrange(T::ConstantOperator)=0:0
+bandinds(T::ConstantOperator)=0,0
 
 addentries!(C::ConstantOperator,A::ShiftArray,kr::Range1)=laurent_addentries!([.5C.c],A,kr)
 

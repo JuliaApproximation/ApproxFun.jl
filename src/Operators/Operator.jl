@@ -5,15 +5,20 @@ export bandrange, linsolve
 
 abstract Operator{T} #T is the entry type, Flaot64 or Complex{Float64}
 abstract Functional{T} <: Operator{T}
-abstract InfiniteOperator{T} <: Operator{T}
+abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
 abstract BandedOperator{T} <: BandedBelowOperator{T}
 
 abstract ShiftOperator{T} <: Operator{T} #For biinfinite operators
 abstract InfiniteShiftOperator{T} <: ShiftOperator{T}
 abstract BandedShiftOperator{T} <: InfiniteShiftOperator{T}
-abstract RowShiftOperator{T} <: ShiftOperator{T}
+abstract ShiftFunctional{T} <: Functional{T}
 
+
+##TODO: Change BandedOperator -> BandedInfiniteOperator
+##TODO: Remove InfiniteShiftOperator
+##TODO: Add BandedOperator = Union(BandedInfiniteOperator,BandedShiftOperator)
+##TODO: Why do we need BandedOperator to check for row>0?
 
 ## We assume operators are T->T
 domain(A::Operator)=Any
@@ -66,15 +71,21 @@ function Base.getindex(B::Operator,k::Range1,j::Range1)
 end
 
 
-## indexrange
+## bandrange and indexrange
 
-function indexrange(b::BandedBelowOperator,k::Integer)
-    ret = bandrange(b) + k
-  
-    (ret[1] < 1) ? (1:ret[end]) : ret
+bandrange(b::BandedBelowOperator)=Range1(bandinds(b)...)
+function bandrangelength(B::BandedBelowOperator)
+    bndinds=bandinds(B)
+    bndinds[end]-bndinds[1]+1
 end
 
-index(b::BandedBelowOperator)=1-bandrange(b)[1]
+function indexrange(b::BandedBelowOperator,k::Integer)
+    ret = bandinds(b) + k
+  
+    (ret[1] < 1) ? (1:ret[end]) : Range1(ret...)
+end
+
+index(b::BandedBelowOperator)=1-bandinds(b)[1]
 
 
 
@@ -83,7 +94,7 @@ index(b::BandedBelowOperator)=1-bandrange(b)[1]
 
 ShiftArray{T<:Number}(B::Operator{T},k::Range1,j::Range1)=addentries!(B,sazeros(T,k,j),k)
 ShiftArray(B::Operator,k::Range1)=ShiftArray(B,k,bandrange(B))
-BandedArray(B::Operator,k::Range1)=BandedArray(B,k,(k[1]+bandrange(B)[1]):(k[end]+bandrange(B)[end]))
+BandedArray(B::Operator,k::Range1)=BandedArray(B,k,(k[1]+bandinds(B)[1]):(k[end]+bandinds(B)[end]))
 BandedArray(B::Operator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
 
 

@@ -10,7 +10,7 @@ end
 domainspace(M::DirichletConversionOperator)=UltrasphericalDirchletSpace(0,Any,1,0)
 rangespace(M::DirichletConversionOperator)=UltrasphericalSpace(0)
 
-bandrange(C::DirichletConversionOperator)=0:(C.left+C.right)
+bandinds(C::DirichletConversionOperator)=0,(C.left+C.right)
 
 function addentries!(C::DirichletConversionOperator,A::ShiftArray,kr::Range1)
     if C.left == 1 &&  C.right == 0

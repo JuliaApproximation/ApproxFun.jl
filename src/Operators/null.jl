@@ -57,7 +57,7 @@ end
 #d is number of elements in the kernel
 function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
     M=MutableAlmostBandedOperator([A'])
-    m=bandrange(A)[end]
+    m=bandinds(A)[end]
     n=m+100  
     resizedata!(M,n)
     Q=Vector{T}[zeros(T,n) for j=1:m]

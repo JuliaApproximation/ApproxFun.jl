@@ -51,14 +51,14 @@ end
 
 domain(P::PlusOperator)=commondomain(P.ops)
 
-function bandrange(P::PlusOperator)
+function bandinds(P::PlusOperator)
     b1,b2=0,0
     for op in P.ops
-        br=bandrange(op)
+        br=bandinds(op)
         b1=min(br[1]::Int,b1)
         b2=max(br[end]::Int,b2)
     end
-    b1:b2
+    (b1,b2)
 end
 
 
@@ -143,32 +143,34 @@ end
 domain(P::TimesOperator)=commondomain(P.ops)
 
 
-bandrange(P::TimesOperator)=mapreduce(x->bandrange(x)[1],+,P.ops):mapreduce(x->bandrange(x)[end],+,P.ops)
-
-
-function bandrange(P::TimesOperator)
-    b1,b2=0,0
-    for op in P.ops
-        br=bandrange(op)
-        b1+=br[1]::Int
-        b2+=br[end]::Int
+function bandindssum(P,k)
+    ret=0
+    for op in P
+        ret+=bandinds(op)[k]::Int
     end
-    b1:b2
+    ret
 end
+
+bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
+
+
+
 
 
 ##TODO: We keep this around because its faster
 ## need to unify 
 function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Range1)
     cr = columnrange(A)
-    br = bandrange(P)
+    br = bandinds(P)
 
-    kre=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:end-1]))
+
+    ##TODO Get rid of mapreduce
+    kre=kr[1]:(kr[end]+mapreduce(x->bandinds(x)[end],+,P.ops[1:end-1]))
 
     Z = ShiftArray(P.ops[end],kre,br)
     
     for j=length(P.ops)-1:-1:2
-        krr=kr[1]:(kr[end]+mapreduce(x->bandrange(x)[end],+,P.ops[1:j-1]))    
+        krr=kr[1]:(kr[end]+mapreduce(x->bandinds(x)[end],+,P.ops[1:j-1]))    
         multiplyentries!(P.ops[j],Z,krr)
     end
     
@@ -187,7 +189,7 @@ function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
     krl[1]=kr
     
     for m=1:length(P.ops)-1
-        br=bandrange(P.ops[m])
+        br=bandinds(P.ops[m])
          krl[m+1]=(br[1] + krl[m][1]):(br[end] + krl[m][end])
     end
     
@@ -269,7 +271,7 @@ end
 
 function *{T<:Number}(A::BandedOperator,b::Vector{T})
     n=length(b)
-    m=n-bandrange(A)[1]
+    m=n-bandinds(A)[1]
     BandedArray(A,1:m,1:n)*b
 end
 

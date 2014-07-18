@@ -17,19 +17,19 @@ export MutableAlmostBandedOperator
 
 
 type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:SavedFunctional} <: BandedBelowOperator{T}
-    bc::Vector{R}
-    op::M
-    data::ShiftArray{T}   #Shifted to encapsolate bandedness
-    filldata::Array{T,2}
+    bc::Vector{R}         # The boundary rows
+    op::M                 # The underlying op that is modified
+    data::ShiftArray{T}   # Shifted to encapsolate bandedness  ##TODO: Change to BandedArray
+    filldata::Array{T,2}  # The combination of bcs
     
-    bcdata::Array{T,2}
+    bcdata::Array{T,2}  # The filled-in data for the boundary rows.  This is a rectangular
     bcfilldata::Array{T,2}
     
-    datalength::Int
+    datalength::Int       # How long data is.  We can't use the array length of data as we double the memory allocation but don't want to fill in
     
-    bandrange::Range1{Int}
+    bandinds::(Int,Int)   # Encodes the bandrange
     
-    numbcs::Int
+    numbcs::Int            # The length of bc.  We store this for quicker access, but maybe remove
 end
 
 MutableAlmostBandedOperator(bc,ops...)=MutableAlmostBandedOperator(bc,ops...,length(bc))
@@ -42,13 +42,18 @@ rangespace(M::MutableAlmostBandedOperator)=rangespace(M.op)
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function MutableAlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedOperator{T})
     data = ShiftArray(T,index(op))
-    
+    bndinds=bandinds(op)
+    bndindslength=bndinds[end]-bndinds[1]+1
     nbc = length(bc)
-    bcdata = T[bc[k][j] for k=1:nbc, j=1:length(bandrange(op))+nbc-1]
+    
+    
+    
+    bcdata = T[bc[k][j] for k=1:nbc, j=1:bndindslength+nbc-1]   
     bcfilldata = eye(T,nbc)
                 
-    br=(bandrange(op)[1]-nbc):(length(bandrange(op))-1)
-    ##TODO complex functions
+    br=((bndinds[1]-nbc),(bndindslength-1))
+    ##TODO complex functionals
+    ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
     MutableAlmostBandedOperator(SavedFunctional{Float64}[SavedFunctional(bcc) for bcc in bc],op,data,Array(T,0,nbc),bcdata,bcfilldata,0, br )
 end
 
@@ -65,9 +70,8 @@ index(B::MutableAlmostBandedOperator)=index(B.op)::Int
 
 
 # for bandrange, we save room for changed entries during Givens
-bandrange(B::MutableAlmostBandedOperator)=B.bandrange
+bandinds(B::MutableAlmostBandedOperator)=B.bandinds
 datalength(B::MutableAlmostBandedOperator)=B.datalength
-
 
 
 function addentries!(B::MutableAlmostBandedOperator,A::ShiftArray,kr::Range1)
@@ -98,9 +102,9 @@ function Base.getindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},kr::
                 ret[k,j] = B[k,j]
             end
         else
-            ir = (bandrange(B) + k)::Range1{Int64}
+            ir = B.bandinds
             
-            for j=max(ir[1],jr[1]):min(ir[end],jr[end])
+            for j=max(ir[1]+k,jr[1]):min(ir[end]+k,jr[end])
                 ret[k-kr[1]+1,j-jr[1]+1] = B[k,j]
             end
         end
@@ -170,7 +174,7 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableAlmostBandedOperat
         nbc=B.numbcs
         
         ## TODO: Requires fill with zeros!!  rename resize!
-        resize!(B.data,2n,length(B.bandrange))  
+        resize!(B.data,2n,bandrangelength(B))
 
         if nbc>0      
             for bc in B.bc

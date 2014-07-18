@@ -24,7 +24,7 @@ end
 addentries!(D::FourierDerivativeOperator,A::ShiftArray,kr::Range1)=fourier_derivative_addentries!(D.order,D.domain,A,kr)
 
 
-bandrange(D::FourierDerivativeOperator)=0:0
+bandinds(D::FourierDerivativeOperator)=0,0
 
 domain(D::FourierDerivativeOperator)=D.domain
 
