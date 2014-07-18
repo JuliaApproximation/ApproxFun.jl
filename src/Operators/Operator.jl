@@ -79,10 +79,12 @@ function bandrangelength(B::BandedBelowOperator)
     bndinds[end]-bndinds[1]+1
 end
 
+
+##TODO: Change to columnindexrange to match BandedOperator
 function indexrange(b::BandedBelowOperator,k::Integer)
-    ret = bandinds(b) + k
+    ret = bandinds(b)
   
-    (ret[1] < 1) ? (1:ret[end]) : Range1(ret...)
+    (ret[1]  + k < 1) ? (1:(ret[end] + k)) : Range1(ret...)+k
 end
 
 index(b::BandedBelowOperator)=1-bandinds(b)[1]

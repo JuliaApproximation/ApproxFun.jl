@@ -167,7 +167,7 @@ function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Ra
     ##TODO Get rid of mapreduce
     kre=kr[1]:(kr[end]+mapreduce(x->bandinds(x)[end],+,P.ops[1:end-1]))
 
-    Z = ShiftArray(P.ops[end],kre,br)
+    Z = ShiftArray(P.ops[end],kre,Range1(br...))
     
     for j=length(P.ops)-1:-1:2
         krr=kr[1]:(kr[end]+mapreduce(x->bandinds(x)[end],+,P.ops[1:j-1]))    
