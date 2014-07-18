@@ -6,7 +6,7 @@ export EvaluationFunctional, BasisFunctional
 type EvaluationFunctional{D<:IntervalDomain,T<:Number} <: Functional{T}
     domain::D
     x::T
-    order::Integer
+    order::Int
 end
 
 EvaluationFunctional(x)=EvaluationFunctional(Interval(),x,0)
