@@ -147,7 +147,7 @@ end
 
 
 function Base.getindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)  
-    ir = indexrange(B,k)::Range1{Int64}
+    ir = columninds(B,k)::(Int,Int)
     nbc = B.numbcs
     
     if k <= nbc
@@ -161,6 +161,7 @@ function Base.getindex(B::MutableAlmostBandedOperator,k::Integer,j::Integer)
     elseif k-nbc <= datalength(B) && j > ir[end]
         fillgetindex(B,k,j)
     else
+#        warn("Should not access op indices")
         B.op[k-nbc,j]##TODO: Slow
     end
 end
