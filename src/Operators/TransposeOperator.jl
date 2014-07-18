@@ -23,7 +23,7 @@ bandinds(P::TransposeOperator)=-bandinds(P.op)[end],-bandinds(P.op)[1]
 function addentries!{T<:Number}(P::TransposeOperator,A::ShiftArray{T},kr::Range1)
     br=bandinds(P.op)
     kr2=max(kr[1]-br[end],1):kr[end]-br[1]
-    B=sazeros(T,kr2,br)
+    B=sazeros(T,kr2,Range1(br...))
     addentries!(P.op,B,kr2)
 
     brP=bandrange(P)
