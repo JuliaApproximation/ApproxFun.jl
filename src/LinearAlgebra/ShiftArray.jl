@@ -1,5 +1,5 @@
 
-
+##TODO Allow general T
 type ShiftArray{T<:Number}
   data::Array{T,2}
   rowindex::Int    

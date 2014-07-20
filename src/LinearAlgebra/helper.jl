@@ -62,3 +62,19 @@ function padleft(f::Vector,n::Integer)
 	end
 end
 
+
+
+##chop!
+function chop!(c::Vector,tol::Real)
+    @assert tol > 0
+
+    for k=[length(c):-1:1]
+        if abs(c[k]) > tol
+            resize!(c,k)
+            return c
+        end
+    end
+    
+    resize!(c,0)
+    c
+end

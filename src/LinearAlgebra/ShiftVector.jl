@@ -4,7 +4,7 @@ export ShiftVector,firstindex,lastindex,index
 
 
 
-## Interval
+## TODO: Allow general T
 
 type ShiftVector{T<:Number}
     vector::Vector{T}
@@ -170,11 +170,11 @@ end
 
 
 ## chop
-
+##TODO: what if all entries are zero
 function chop!(c::ShiftVector,tol::Real)
     @assert tol > 0
 
-    for k=firstindex(c):lastindex(c)
+    for k=range(c)
         if abs(c[k]) > tol
             resize!(c,k:lastindex(c))
             break

@@ -200,23 +200,6 @@ pad!(f::IFun,n::Integer)=pad!(f.coefficients,n)
 pad(f::IFun,n::Integer)=IFun(pad(f.coefficients,n),f.domain)
 
 
-
-
-
-function chop!(c::Vector,tol::Real)
-    @assert tol > 0
-
-    for k=[length(c):-1:1]
-        if abs(c[k]) > tol
-            resize!(c,k)
-            return c
-        end
-    end
-    
-    resize!(c,0)
-    c
-end
-
 function chop!(f::IFun,tol::Real)
     chop!(f.coefficients,tol)
     if length(f.coefficients) == 0
