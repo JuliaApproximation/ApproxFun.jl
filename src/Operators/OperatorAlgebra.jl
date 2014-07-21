@@ -269,8 +269,13 @@ end
 
 function *{T<:Number}(A::BandedOperator,b::Vector{T})
     n=length(b)
-    m=n-bandinds(A)[1]
-    BandedArray(A,1:m,1:n)*b
+    
+    if n>0
+        m=n-bandinds(A)[1]
+        BandedArray(A,1:m,1:n)*b
+    else
+        b
+    end
 end
 
 

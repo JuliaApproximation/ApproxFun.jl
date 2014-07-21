@@ -6,3 +6,4 @@ include("ShiftArray.jl")
 include("BandedArray.jl")
 
 include("lyap.jl")
+include("constrained_lyap.jl")
