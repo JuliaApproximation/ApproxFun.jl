@@ -122,7 +122,7 @@ TimesOperator(A::Operator,B::TimesOperator)=TimesOperator([A,B.ops])
 TimesOperator(A::Operator,B::Operator)=TimesOperator([A,B])
 
 function promotetimes{B}(opsin::Vector{B})
-    ops=B[op for op in opsin]
+    ops=copy(opsin)
     
     for k=length(ops)-1:-1:1
         op=promotedomainspace(ops[k],rangespace(ops[k+1]))
