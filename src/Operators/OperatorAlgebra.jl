@@ -211,7 +211,7 @@ function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
 end
 
 function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
-    if all(f->typeof(f)<:ConversionOperator,P.ops[1:end-1])
+    if all(f->typeof(f)<:USConversionOperator,P.ops[1:end-1])  ##TODO: fix hack
         old_addentries!(P,A,kr)
     else
         new_addentries!(P,A,kr)
@@ -233,26 +233,6 @@ end
 
 
 
-## Multiplication of operator * fun
-
-function ultraiconversion{T}(g::Vector{T},m::Integer)
-    if m==0 
-        g 
-    elseif m==1
-        ultraiconversion(g)
-    else
-        backsubstitution!(MutableAlmostBandedOperator(Operator[ConversionOperator(0:m)]),copy(g))::Vector{T}
-    end
-end
-function ultraconversion{T}(g::Vector{T},m::Integer)
-    if m==0
-        g 
-    elseif m==1
-        ultraconversion(g)
-    else
-        (ConversionOperator(0:m)*g)::Vector{T}
-    end
-end
 
 
 ## Operations
@@ -279,12 +259,6 @@ function *{T<:Number}(A::BandedOperator,b::Vector{T})
 end
 
 
-
-
-*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A).order),rangespace(A).order),b.domain)
-
-
-*{T<:Operator}(A::Vector{T},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
 
 
 

@@ -13,13 +13,13 @@ Q=integrate(d);
 x=Fun(identity)
 X=MultiplicationOperator(x)
 
-@assert norm(ConversionOperator(0:2)\coefficients(x.*f,2)-(x.*f).coefficients) < 100eps()
+@assert norm(USConversionOperator(0:2)\coefficients(x.*f,2)-(x.*f).coefficients) < 100eps()
 
-@assert norm((ConversionOperator(0:2)\(D^2*f))-diff(diff(f))) < 100eps()
+@assert norm((USConversionOperator(0:2)\(D^2*f))-diff(diff(f))) < 100eps()
 
 @assert norm(X*f-(x.*f)) < 100eps()
 
-@assert norm(ConversionOperator(0:2)*X*f.coefficients-coefficients(x.*f,2)) < 100eps()
+@assert norm(USConversionOperator(0:2)*X*f.coefficients-coefficients(x.*f,2)) < 100eps()
 
 
 ## Special functions

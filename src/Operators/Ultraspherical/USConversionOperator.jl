@@ -1,21 +1,24 @@
-export ConversionOperator
+export USConversionOperator
 
-## ConversionOperator
+## USConversionOperator
 
-type ConversionOperator <: BandedOperator{Float64}
+type USConversionOperator <: BandedOperator{Float64}
     λ::Int
 end
 
-domainspace(M::ConversionOperator)=UltrasphericalSpace(M.λ-1)
-rangespace(M::ConversionOperator)=UltrasphericalSpace(M.λ)
+ConversionOperator(a::UltrasphericalSpace,b::UltrasphericalSpace)=USConversionOperator(a.order:b.order)
 
-function ConversionOperator(r::Range1)
+
+domainspace(M::USConversionOperator)=UltrasphericalSpace(M.λ-1)
+rangespace(M::USConversionOperator)=UltrasphericalSpace(M.λ)
+
+function USConversionOperator(r::Range1)
     @assert r[end] > r[1]
 
     if length(r)==2
-        ConversionOperator(r[2])
+        USConversionOperator(r[2])
     else
-        ConversionOperator(r[end])*ConversionOperator(r[1]:r[end-1])
+        USConversionOperator(r[end])*USConversionOperator(r[1]:r[end-1])
     end
 end    
 
@@ -68,7 +71,7 @@ function conversion_multiplyentries!(λ::Integer,A::ShiftArray,kr::Range1)
 end
 
 
-function addentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
+function addentries!(C::USConversionOperator,A::ShiftArray,kr::Range1)
     kr = max(kr[1],1):kr[end]
 
     if C.λ == 1
@@ -79,7 +82,7 @@ function addentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
 end
 
 
-function multiplyentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
+function multiplyentries!(C::USConversionOperator,A::ShiftArray,kr::Range1)
     if C.λ == 1
         one_conversion_multiplyentries!(A,kr)
     else
@@ -90,7 +93,7 @@ function multiplyentries!(C::ConversionOperator,A::ShiftArray,kr::Range1)
 end
 
 
-bandinds(C::ConversionOperator)=0,2
+bandinds(C::USConversionOperator)=0,2
 
 
 

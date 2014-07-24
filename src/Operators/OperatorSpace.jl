@@ -70,6 +70,41 @@ function findmaxrangespace(ops::Vector)
 end
 
 
+## promotion
+
+function promoterangespace(P::Operator,sp::Space)
+    psp = rangespace(P)
+    
+    if psp == Any || sp == Any || psp == sp
+        P
+    else       
+        if psp == sp
+            P
+        else
+            ConversionOperator(psp,sp)*P
+        end
+    end
+end
+
+
+function promotedomainspace(P::Operator,sp::Space)
+    psp = domainspace(P)
+    
+    if psp == Any || sp == Any || psp == sp
+        P
+    else        
+        if psp == sp
+            P
+        else
+            P*ConversionOperator(sp,psp)
+        end
+    end
+end
+
+
+
+
+
 
 function promoterangespace{T<:Operator}(ops::Vector{T})
     k=findmaxrangespace(ops)
