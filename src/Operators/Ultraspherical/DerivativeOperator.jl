@@ -78,6 +78,12 @@ rangespace(M::DerivativeOperator)=UltrasphericalSpace(M.order[end],M.domain)
 domain(D::DerivativeOperator)=D.domain
 
 
+
+#promoting domain space is allowed to change range space
+promotedomainspace(D::DerivativeOperator,sp::UltrasphericalSpace)=DerivativeOperator(D.order -D.order[1] + sp.order,D.domain)
+
+
+## simplify higher order derivatives
 function *(D1::DerivativeOperator,D2::DerivativeOperator)
     @assert D1.domain == D2.domain
     
@@ -85,12 +91,6 @@ function *(D1::DerivativeOperator,D2::DerivativeOperator)
 end
 
 ^(D1::DerivativeOperator,k::Integer)=DerivativeOperator(D1.order[1]:D1.order[1]+k*(length(D1.order)-1),D1.domain)
-
-
-
-#promoting domain space is allowed to change range space
-promotedomainspace(D::DerivativeOperator,sp::UltrasphericalSpace)=DerivativeOperator(D.order -D.order[1] + sp.order,D.domain)
-
 
 
 

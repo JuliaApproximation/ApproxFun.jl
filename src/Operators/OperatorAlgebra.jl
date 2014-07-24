@@ -93,15 +93,15 @@ end
 type TimesOperator{T<:Number,B<:Operator} <: BandedOperator{T}
     ops::Vector{B}
     
-
     function TimesOperator{B}(ops::Vector{B})
-        for k=length(ops)-1:-1:1
-            ops[k]=promotedomainspace(ops[k],rangespace(ops[k+1]))
+        for k=1:length(ops)-1
+            @assert domainspace(ops[k])==Any || rangespace(ops[k+1])==Any || domainspace(ops[k])==rangespace(ops[k+1])
         end
         
         new(ops)
-    end    
+    end
 end
+
 
 function TimesOperator{B<:Operator}(ops::Vector{B})
     T = Float64
@@ -114,6 +114,28 @@ function TimesOperator{B<:Operator}(ops::Vector{B})
     
     TimesOperator{T,B}(ops)
 end
+
+
+TimesOperator(A::TimesOperator,B::TimesOperator)=TimesOperator([A.ops,B.ops])
+TimesOperator(A::TimesOperator,B::Operator)=TimesOperator([A.ops,B])
+TimesOperator(A::Operator,B::TimesOperator)=TimesOperator([A,B.ops])
+TimesOperator(A::Operator,B::Operator)=TimesOperator([A,B])
+
+function promotetimes{B}(opsin::Vector{B})
+    ops=B[op for op in opsin]
+    
+    for k=length(ops)-1:-1:1
+        op=promotedomainspace(ops[k],rangespace(ops[k+1]))
+        if op==()
+            ops=ops[[1:k-1,k+1:end]]  ## remove the op
+        else
+            ops[k]=op
+        end
+    end
+    
+    TimesOperator(ops)
+end    
+
 
 
 function domainspace(P::TimesOperator)
@@ -218,10 +240,14 @@ function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
     end
 end
 
-*(A::TimesOperator,B::TimesOperator)=TimesOperator([A.ops,B.ops])
-*(A::TimesOperator,B::Operator)=TimesOperator([A.ops,B])
-*(A::Operator,B::TimesOperator)=TimesOperator([A,B.ops])
-*(A::Operator,B::Operator)=TimesOperator([A,B])
+
+## Algebra: assume we promote
+
+
+*(A::TimesOperator,B::TimesOperator)=promotetimes([A.ops,B.ops])
+*(A::TimesOperator,B::Operator)=promotetimes([A.ops,B])
+*(A::Operator,B::TimesOperator)=promotetimes([A,B.ops])
+*(A::Operator,B::Operator)=promotetimes([A,B])
 
 
 -(A::Operator)=ConstantOperator(-1.)*A

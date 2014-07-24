@@ -88,3 +88,8 @@ bandinds(T::MultiplicationOperator)=(1-length(T.f.coefficients),length(T.f.coeff
 domain(T::MultiplicationOperator)=T.f.domain
 
 
+
+##multiplication can always be promoted, range space is allowed to change
+promotedomainspace(D::MultiplicationOperator,sp::UltrasphericalSpace)=MultiplicationOperator(D.f,sp.order)
+
+

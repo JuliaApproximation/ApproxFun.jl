@@ -68,19 +68,40 @@ function findmaxrangespace(ops::Vector)
 end
 
 
+
 ## promotion
+
+
+## Space Operator is used to wrap an Any space operator 
+type SpaceOperator{T<:Number,O<:Operator{T},S<:OperatorSpace} <: BandedOperator{T}
+    op::O
+    space::S
+#     
+#     function SpaceOperator{T,O,S}(o::O,s::S)
+#         @assert domainspace(o)==rangespace(o)==Any
+#         new(o,s)
+#     end
+end
+
+SpaceOperator{T<:Number,S<:OperatorSpace}(o::Operator{T},s::S)=SpaceOperator{T,typeof(o),S}(o,s)
+
+domainspace(S::SpaceOperator)=S.space
+rangespace(S::SpaceOperator)=S.space
+addentries!(S::SpaceOperator,A,kr)=addentries!(S.op,A,kr)
+bandinds(S::SpaceOperator)=bandinds(S.op)
+
+
+
 
 function promoterangespace(P::Operator,sp::Space)
     psp = rangespace(P)
     
-    if psp == Any || sp == Any || psp == sp
+    if sp == Any || psp == sp
         P
-    else       
-        if psp == sp
-            P
-        else
-            ConversionOperator(psp,sp)*P
-        end
+    elseif psp == Any
+        SpaceOperator(P,sp) #we assume Any is always mapped to Any     
+    else   
+        TimesOperator(ConversionOperator(psp,sp),P)
     end
 end
 
@@ -88,14 +109,12 @@ end
 function promotedomainspace(P::Operator,sp::Space)
     psp = domainspace(P)
     
-    if psp == Any || sp == Any || psp == sp
+    if sp == Any || psp == sp
         P
+    elseif psp == Any
+        SpaceOperator(P,sp) #we assume Any is always mapped to Any     
     else        
-        if psp == sp
-            P
-        else
-            P*ConversionOperator(sp,psp)
-        end
+        TimesOperator(P,ConversionOperator(sp,psp))
     end
 end
 
@@ -114,7 +133,7 @@ end
 
 function promotedomainspace{T<:Operator}(ops::Vector{T})
     k=findmindomainspace(ops)
-    T[promotedomainspace(op,k) for op in ops]
+    Operator[promotedomainspace(op,k) for op in ops]
 end
 
 #It's important that domain space is promoted first as it might impact range space
