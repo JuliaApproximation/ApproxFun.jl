@@ -1,6 +1,8 @@
 
 abstract OperatorSpace
 
+export OperatorSpace, domainspace, rangespace
+
 ## Any is allowed as a Space
 typealias Space Union(OperatorSpace,DataType)
 
@@ -19,10 +21,6 @@ domainscompatible(a,b::DataType) = b == Any
 domainscompatible(a,b) = a==b
 
 
-spacescompatible(a::DataType,b::DataType) = a == Any && b==Any
-spacescompatible(a::DataType,b) = a == Any
-spacescompatible(a,b::DataType) = b == Any
-spacescompatible(a,b) = a==b
 
 ##Default is Any
 

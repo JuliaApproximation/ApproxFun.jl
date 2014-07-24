@@ -15,7 +15,7 @@ UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,Any)
 ##Check domain compatibility
 
 domainscompatible(a::UltrasphericalSpace,b::UltrasphericalSpace) = a.domain == Any || b.domain == Any || a.domain == b.domain
-spacescompatible(a::UltrasphericalSpace,b::UltrasphericalSpace) = domainscompatible(a,b) && a.order >= b.order
+
 
 #TODO: bad override?
 ==(a::UltrasphericalSpace,b::UltrasphericalSpace)=a.order==b.order && domainscompatible(a,b)
