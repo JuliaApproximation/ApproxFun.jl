@@ -121,11 +121,13 @@ function fillgetindex{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k::In
     
     if k <= nbc
         for m=1:nbc
+            @assert j <= B.bc[m].datalength #TODO: temporary for debugging
             @inbounds bcv = B.bc[m].data[j]    
             @inbounds ret += B.bcfilldata[k,m]*bcv
         end
     else
         for m=1:nbc
+            @assert j <= B.bc[m].datalength #TODO: temporary for debugging        
             @inbounds bcv = B.bc[m].data[j]
             @inbounds fd=B.filldata[k-nbc,m]
             ret += fd*bcv
@@ -179,7 +181,7 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableAlmostBandedOperat
 
         if nbc>0      
             for bc in B.bc
-                resizedata!(bc,n)
+                resizedata!(bc,n+B.bandinds[end]+1)         ## do all columns in the row, +1 for the fill
             end
           
             newfilldata=zeros(T,2n,nbc)

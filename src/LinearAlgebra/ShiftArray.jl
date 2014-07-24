@@ -98,17 +98,17 @@ function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer,m::Integer)
 end
 
 
-##Resize just rows, NOT padding with zeros 
-function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer)
-    olddata = S.data
-    S.data = Array(T,n,size(olddata,2))
-    
-    if size(olddata,1) != 0
-        S.data[1:size(olddata,1),:] = olddata
-    end
-    
-    S
-end
+# ##Resize just rows, NOT padding with zeros 
+# function Base.resize!{T<:Number}(S::ShiftArray{T},n::Integer)
+#     olddata = S.data
+#     S.data = Array(T,n,size(olddata,2))
+#     
+#     if size(olddata,1) != 0
+#         S.data[1:size(olddata,1),:] = olddata
+#     end
+#     
+#     S
+# end
 
 
 
