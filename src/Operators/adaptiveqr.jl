@@ -149,6 +149,10 @@ function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Vector{V},tol:
         j+=1
     end
   
+    if j >= N
+        warn("Maximum number of iterations " * string(N) * " reached")
+    end
+      
     backsubstitution!(B,u[1:max(j-1,length(v))])
 end
 
