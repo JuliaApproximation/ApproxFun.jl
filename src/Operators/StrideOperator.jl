@@ -168,7 +168,7 @@ function interlace{T<:Operator}(A::Array{T,2})
     end
 
     for k=br+1:m
-        Ap=promotespaces([A[k,:]...])
+        Ap=promotespaces(vec(A[k,:]))
         
         for j=1:n
             if !iszerooperator(A[k,j])  #not sure what promote does for constant operator

@@ -93,34 +93,19 @@ bandinds(S::SpaceOperator)=bandinds(S.op)
 domain(S::SpaceOperator)=domain(S.space)
 
 
-
-
-function promoterangespace(P::Operator,sp::Space)
-    psp = rangespace(P)
-    
-    if sp == Any || psp == sp
-        P
-    elseif psp == Any
-        SpaceOperator(P,sp) #we assume Any is always mapped to Any     
-    else   
-        TimesOperator(ConversionOperator(psp,sp),P)
+for op in (:promoterangespace,:promotedomainspace)
+    @eval begin
+        ($op)(P::Operator,::Type{Any})=P
+        ($op)(P::Operator,sp::OperatorSpace,::Type{Any})=SpaceOperator(P,sp)
     end
 end
 
-
-function promotedomainspace(P::Operator,sp::Space)
-    psp = domainspace(P)
-    
-    if sp == Any || psp == sp
-        P
-    elseif psp == Any
-        SpaceOperator(P,sp) #we assume Any is always mapped to Any     
-    else        
-        TimesOperator(P,ConversionOperator(sp,psp))
-    end
-end
-
-
+promoterangespace(P::Operator,sp::OperatorSpace)=promoterangespace(P,sp,rangespace(P))
+promotedomainspace(P::Operator,sp::OperatorSpace)=promotedomainspace(P,sp,domainspace(P))
+        
+        
+promoterangespace(P::Operator,sp::OperatorSpace,cursp::OperatorSpace)=(sp==cursp)?P:TimesOperator(ConversionOperator(cursp,sp),P)
+promotedomainspace(P::Operator,sp::OperatorSpace,cursp::OperatorSpace)=(sp==cursp)?P:TimesOperator(P,ConversionOperator(sp,cursp))
 
 
 
