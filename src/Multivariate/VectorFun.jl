@@ -65,6 +65,7 @@ end
 
 #TODO: fix for complex 
 evaluate{T<:AbstractFun}(A::Vector{T},x::Real)=Float64[real(A[k][x]) for k=1:length(A)]
+evaluate{T<:AbstractFun}(A::Array{T},x::Real)=Float64[real(A[k,j][x]) for k=1:size(A,1),j=1:size(A,2)]
 
 
 function evaluate{T<:IFun}(A::Vector{T},x::Vector{Float64})

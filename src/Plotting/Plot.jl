@@ -101,7 +101,7 @@ end
 
 ## ArrayFun
 
-function PyPlot.plot{T<:AbstractFun}(v::Vector{T})
+function PyPlot.plot{T<:AbstractFun}(v::Array{T})
     for f in v
         plot(f)
     end

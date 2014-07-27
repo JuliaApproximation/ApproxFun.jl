@@ -75,6 +75,8 @@ function backsubstitution!{T<:Number}(B::MutableAlmostBandedOperator,u::Array{T}
      pk = zeros(T,nbc)
     
     for c=1:size(u,2)
+        fill!(pk,zero(T))
+    
         # before we get to filled rows
         for k=n:-1:max(1,n-b)
             for j=k+1:n
@@ -154,7 +156,8 @@ function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Array{V},tol::
         warn("Maximum number of iterations " * string(N) * " reached")
     end
       
-    backsubstitution!(B,isa(u,Vector)?u[1:max(j-1,length(v))]:u[1:max(j-1,length(v)),:])
+    ##TODO: why max original length?
+    backsubstitution!(B,isa(u,Vector)?u[1:max(j-1,length(v))]:u[1:max(j-1,size(v,1)),:])
 end
 
 

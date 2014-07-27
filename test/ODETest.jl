@@ -73,15 +73,12 @@ u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
 
 ## Matrix exponential
 
-A=rand(2,2);
-d=fill(Interval(0.,1.),2);
-B=EvaluationFunctional(d,0.);
-D=DerivativeOperator(d);
-
-L=[B;
-    D-A];
-u1=L\[1.,0.];
-u2=L\[0.,1.];
-@assert norm([u1[1][1.] u2[1][1.];
-    u1[2][1.] u2[2][1.]]-expm(A))<10eps()
+n=4
+d=fill(Interval(0.,1.),n)
+B=EvaluationFunctional(d,0.)
+D=DerivativeOperator(d)
+A=rand(n,n)
+L=[B;D-A]
+u=L\eye(n)
+@assert norm(evaluate(u,1.)-expm(A))<100eps()
 

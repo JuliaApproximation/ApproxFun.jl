@@ -39,7 +39,7 @@ function commondomain(P::Vector)
     ret
 end
 
-commondomain{T<:Number}(P::Vector,g::Vector{T})=commondomain(P)
+commondomain{T<:Number}(P::Vector,g::Array{T})=commondomain(P)
 commondomain(P::Vector,g)=commondomain([P,g])
 
 

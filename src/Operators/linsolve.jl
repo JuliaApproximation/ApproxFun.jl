@@ -10,6 +10,14 @@ function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),m
     IFun(u,commondomain(A,b))
 end
 
+function IFun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)
+    u=adaptiveqr(A,b,tolerance,maxlength)  ##TODO: depends on ordering of A
+    d=commondomain(A)
+    IFun[IFun(u[:,k],d) for k=1:size(u,2)]
+end
+
+
+
 function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
     @assert length(A) == 1
 
@@ -31,16 +39,26 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxleng
 end
 
 
-##Todo nxn operator
  function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Vector{M};tolerance=0.01eps(),maxlength=1000000)
     m = size(A,2)
  
      ret=adaptiveqr(interlace(A),b,tolerance,maxlength)  #Given just an array, we don't know how to interlace
-                                                         #so assume user knows
+                                                         #so assume user knows, this is correct for bc rows
                                      
                                      
      IFun[IFun(ret[k:m:end],commondomain(A[:,k])) for k=1:m]
  end
+ 
+ 
+function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Array{M,2};tolerance=0.01eps(),maxlength=1000000)
+    m = size(A,2)
+    
+    ret=adaptiveqr(interlace(A),b,tolerance,maxlength)  #Given just an array, we don't know how to interlace
+                                                     #so assume user knows, this is correct for bc rows
+                                 
+                                 
+    IFun[IFun(ret[k:m:end,j],commondomain(A[:,k])) for k=1:m,j=1:size(b,2)]
+end
  
 function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
     m,n=size(A)
