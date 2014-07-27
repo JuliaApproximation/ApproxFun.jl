@@ -135,6 +135,7 @@ include("Fourier/FourierDerivativeOperator.jl")
 include("Fourier/FourierSpace.jl")
 
 include("null.jl")
+include("systems.jl")
 
 
 
@@ -146,6 +147,8 @@ Base.diff(d::Domain)=Base.diff(d,1)
 
 Base.eye(d::IntervalDomain)=MultiplicationOperator(IFun([1.],d))
 Base.eye(d::PeriodicDomain)=MultiplicationOperator(FFun(ShiftVector([1.],1),d))
+Base.zero{T<:Number}(::Type{Operator{T}})=ConstantOperator(zero(T))
+Base.zero{O<:Operator}(::Type{O})=ConstantOperator(0.0)
 
 integrate(d::IntervalDomain)=IntegrationOperator(1,d)
 
@@ -153,8 +156,6 @@ evaluate(d::IntervalDomain,x)=EvaluationFunctional(d,x)
 dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
 neumann(d::IntervalDomain)=[EvaluationFunctional(d,d.a,1),EvaluationFunctional(d,d.b,1)]
 
-Base.start(d::IntervalDomain)=evaluate(d,d.a)
-Base.endof(d::IntervalDomain)=evaluate(d,d.b)
 
 ## Conversion
 

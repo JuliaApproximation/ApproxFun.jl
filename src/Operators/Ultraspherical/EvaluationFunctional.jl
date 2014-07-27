@@ -9,9 +9,9 @@ type EvaluationFunctional{D<:IntervalDomain,T<:Number} <: Functional{T}
     order::Int
 end
 
-EvaluationFunctional(x)=EvaluationFunctional(Interval(),x,0)
-EvaluationFunctional(d,x)=EvaluationFunctional(d,x,0)
-EvaluationFunctional(d::Vector,x,o)=EvaluationFunctional(Interval(d),x,o)
+EvaluationFunctional(x::Number)=EvaluationFunctional(Interval(),x,0)
+EvaluationFunctional(d::IntervalDomain,x::Number)=EvaluationFunctional(d,x,0)
+EvaluationFunctional{T<:Number}(d::Vector{T},x::Number,o::Integer)=EvaluationFunctional(Interval(d),x,o)
 
 
 

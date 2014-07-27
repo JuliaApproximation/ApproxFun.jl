@@ -60,7 +60,7 @@ function DerivativeOperator(order::Range1,d::IntervalDomain)
 end
 
 DerivativeOperator(k::Integer,d::IntervalDomain)=DerivativeOperator(k-1:k,d)
-
+DerivativeOperator(d::IntervalDomain)=DerivativeOperator(1,d)
 
 
 ## Operator Routine
