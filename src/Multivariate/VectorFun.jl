@@ -10,7 +10,8 @@
 
 ## Vector of fun routines
 
-function coefficients{N<:Number,D}(f::Vector{IFun{N,D}},m...)
+
+function coefficients{N,D}(f::Vector{IFun{N,D}},m...)
     n=mapreduce(length,max,f)
     m=length(f)
     R=zeros(N,n,m)
@@ -37,24 +38,20 @@ function coefficients{T<:FFun}(B::Vector{T})
 end
 
 
-function values{T,D}(p::Vector{IFun{T,D}})
-    n = maximum(map(length,p))
-    ret = Array(T,length(p),n)
-    for i = 1:length(p)
-        ret[i,:] = values(pad(p[i],n));
+function values{N,D}(f::Vector{IFun{N,D}})
+    n=mapreduce(length,max,f)
+    m=length(f)
+    R=zeros(N,n,m)
+    for k=1:m
+        R[:,k] = values(pad(f[k],n))
     end
-    ret
+    R
 end
 
 function values{T,D}(p::Array{IFun{T,D},2})
     @assert size(p)[1] == 1
 
-    n = maximum(map(length,p))
-    ret = Array(T,n,length(p))
-    for i = 1:length(p)
-        ret[:,i] = values(pad(p[i],n))
-    end
-    ret
+   values(vec(p))
 end
 
 

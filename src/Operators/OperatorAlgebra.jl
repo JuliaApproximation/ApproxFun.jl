@@ -78,10 +78,17 @@ end
 +(f::AbstractFun,A::Operator)=MultiplicationOperator(f)+A
 -(A::Operator,f::AbstractFun)=A+MultiplicationOperator(-f)
 -(f::AbstractFun,A::Operator)=MultiplicationOperator(f)-A
+
+
+
++(c::UniformScaling,A::Operator)=ConstantOperator(1.0c.λ)+A
++(A::Operator,c::UniformScaling)=A+ConstantOperator(1.0c.λ)
+-(c::UniformScaling,A::Operator)=ConstantOperator(1.0c.λ)-A
+-(A::Operator,c::UniformScaling)=A-ConstantOperator(1.0c.λ)
+
+
 +(c::Number,A::Operator)=ConstantOperator(c)+A
-.+(c::Number,A::Operator)=ConstantOperator(c)+A
 +(A::Operator,c::Number)=A+ConstantOperator(c)
-.+(A::Operator,c::Number)=A+ConstantOperator(c)
 -(c::Number,A::Operator)=ConstantOperator(c)-A
 -(A::Operator,c::Number)=A-ConstantOperator(c)
 

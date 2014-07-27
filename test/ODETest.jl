@@ -54,7 +54,7 @@ f=Fun(exp);
 D=diff(f.domain);
 w=10.;
 B=BasisFunctional(floor(w));
-A=[B,D+1im*w];
+A=[B,D+1im*w*I];
 u = A\[0.,f];
 @assert abs(u[1.]exp(1im*w)-u[-1.]exp(-1im*w)-(-0.18575766879136255 + 0.17863980562549928im ))<eps()
 

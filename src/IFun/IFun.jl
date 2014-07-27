@@ -421,30 +421,3 @@ end
 
 
 
-
-
-## Array routines
-
-function values{T,D}(p::Vector{IFun{T,D}})
-    n = maximum(map(length,p))
-    ret = Array(T,length(p),n)
-    for i = 1:length(p)
-        ret[i,:] = values(pad(p[i],n));
-    end
-    ret
-end
-
-function values{T,D}(p::Array{IFun{T,D},2})
-    @assert size(p)[1] == 1
-
-    n = maximum(map(length,p))
-    ret = Array(T,n,length(p))
-    for i = 1:length(p)
-        ret[:,i] = values(pad(p[i],n))
-    end
-    ret
-end
-
-
-
-
