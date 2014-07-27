@@ -55,7 +55,11 @@ function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
     
     for k=br+1:m
         sp=findmaxrangespace([A[k,:]...]).order
-        r[k:n:end]=pad(coefficients(b[k],sp),l)
+        if typeof(b[k])<:AbstractFun
+            r[k:n:end]=pad(coefficients(b[k],sp),l)
+        else  #type is vector
+            r[k:n:end]=pad(b[k],l)
+        end
     end
 
     linsolve(A,r;kwds...)

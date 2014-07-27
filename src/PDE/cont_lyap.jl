@@ -89,7 +89,7 @@ function cont_constrained_lyap(Bxin,Byin,Lin,Min,F,ny)
 
     F=pad(F,size(F,1),size(Q2,1))*Q2
     
-    Gx=pad(Gx,size(Gx,1),size(Z2,1)+2)[:,Ky+1:end]*Z2
+    Gx=pad(Gx,size(Gx,1),size(Z2,1)+Ky)[:,Ky+1:end]*Z2
 
     Y=cont_constrained_lyapuptriang(Bx,Gx,Lx,R,Mx,T,F);
     m=mapreduce(length,max,Y)

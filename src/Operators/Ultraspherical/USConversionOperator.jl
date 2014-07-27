@@ -13,7 +13,7 @@ domainspace(M::USConversionOperator)=UltrasphericalSpace(M.λ-1)
 rangespace(M::USConversionOperator)=UltrasphericalSpace(M.λ)
 
 function USConversionOperator(r::Range1)
-    @assert r[end] > r[1]
+    @assert length(r)>1 && r[end] > r[1]
 
     if length(r)==2
         USConversionOperator(r[2])

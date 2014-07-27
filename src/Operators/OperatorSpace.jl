@@ -26,6 +26,7 @@ domainscompatible(a,b) = a==b
 
 rangespace(A::Operator)=Any
 domainspace(A::Operator)=Any
+domain(A::OperatorSpace)=A.domain # assume it has a field domain
 
 ##max space
 
@@ -89,6 +90,7 @@ domainspace(S::SpaceOperator)=S.space
 rangespace(S::SpaceOperator)=S.space
 addentries!(S::SpaceOperator,A,kr)=addentries!(S.op,A,kr)
 bandinds(S::SpaceOperator)=bandinds(S.op)
+domain(S::SpaceOperator)=domain(S.space)
 
 
 

@@ -70,3 +70,23 @@ u=[start(d),A]\[besselj(0,d.a),0.];
 @assert abs(u[0.1]-besselj(0.,0.1))<10eps()
 
 
+
+## Matrix exponential
+
+A=rand(2,2);
+d=Interval(0.,1.);
+B=dirichlet(d)[1];
+D=diff(d);
+
+D2=Operator[D 0.;
+0. D];
+B2=Operator[B 0.;
+0. B];
+L=convert(Array{Operator,2},
+[B2;
+    D2-A]);
+u1=L\[1.,0.];
+u2=L\[0.,1.];
+@assert norm([u1[1][1.] u2[1][1.];
+    u1[2][1.] u2[2][1.]]-expm(A))<10eps()
+
