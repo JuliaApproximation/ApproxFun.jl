@@ -105,15 +105,11 @@ adaptiveqr(M,b,tol)=adaptiveqr(M,b,tol,Inf)
 adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
 
-promote_rule2{T<:Complex}(::Type{T},::Type{Complex{Float64}})=Complex{Float64}
-promote_rule2{T<:Real}(::Type{T},::Type{Complex{Float64}})=Complex{Float64}
-promote_rule2{T<:Real}(::Type{Complex{Float64}},::Type{T})=Complex{Float64}
-promote_rule2{T<:Real}(::Type{T},::Type{Float64})=Float64
-promote_rule2{T<:Integer}(::Type{Float64},::Type{T})=Float64
 
 
 
-convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Vector{V})=convert(Vector{promote_rule2(T,V)},v)
+
+convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Vector{V})=convert(Vector{promote_type(T,V)},v)
 
 
 function slnorm(u::Vector,r::Range)

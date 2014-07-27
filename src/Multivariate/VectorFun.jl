@@ -1,4 +1,4 @@
-export coefficientmatrix
+
 
 ## scalar fun times vector
 
@@ -10,20 +10,17 @@ export coefficientmatrix
 
 ## Vector of fun routines
 
-function coefficientmatrix{T<:IFun}(B::Vector{T})
-    m=mapreduce(length,max,B)
-    n=length(B)
-    ret = zeros(m,length(B))
-    for j=1:n
-        for k=1:length(B[j])
-            ret[k,j] =  B[j].coefficients[k]
-        end
+function coefficients{N<:Number}(f::Vector{IFun{N}},m...)
+    n=mapreduce(length,max,f)
+    R=zeros(n,length(f))
+    for k=1:length(f)
+        R[1:length(f[k]),k]=coefficients(f,m)
     end
-    
-    ret
+    R
 end
 
-function coefficientmatrix{T<:FFun}(B::Vector{T})
+
+function coefficients{T<:FFun}(B::Vector{T})
     m=mapreduce(length,max,B)
     fi=mapreduce(f->firstindex(f.coefficients),min,B)
 
@@ -40,10 +37,10 @@ end
 
 
 #TODO: Fun*vec should be Array[IFun]
-*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficientmatrix(v)*a,first(v).domain) 
+*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).domain) 
 function *{T<:FFun}(v::Vector{T},a::Vector)
     fi=mapreduce(f->firstindex(f.coefficients),min,v)
-    FFun(ShiftVector(coefficientmatrix(v)*a,1-fi),first(v).domain) 
+    FFun(ShiftVector(coefficients(v)*a,1-fi),first(v).domain) 
 end
 
 ## evaluation

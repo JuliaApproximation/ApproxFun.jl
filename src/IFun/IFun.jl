@@ -75,9 +75,17 @@ end
 
 function IFun(f::Function,d::Domain,n::Integer)
     pts=points(d,n)
-    T=typeof(f(pts[1]))
-    vals=T[f(x) for x in pts]
-    IFun(chebyshevtransform(vals),d)
+    f1=f(pts[1])
+    T=typeof(f1)
+        
+    if T <: Vector
+        IFun{typeof(f1[1]),typeof(d)}[IFun(x->f(x)[k],d,n) for k=1:length(f1)]
+    elseif T <: Array
+        IFun{typeof(f1[1,1]),typeof(d)}[IFun(x->f(x)[k,j],d,n) for k=1:size(f1,1),j=1:size(f1,2)]    
+    else
+        vals=T[f(x) for x in pts]
+        IFun(chebyshevtransform(vals),d)
+    end
 end
 
 
@@ -111,13 +119,38 @@ function randomIFun(f::Function,d::Domain)
     IFun(chebyshevtransform(randomadaptivebary(f)),d)
 end
 
+
+function veczerocfsIFun(f::Function,d::Domain)
+    #reuse function values
+
+    tol = 200*eps()
+
+    for logn = 4:20
+        cf = IFun(f, d, 2^logn + 1)
+        cfs=coefficients(cf)
+        
+        if norm(cfs[:,end-8:end],Inf) < tol*norm(cfs[:,1:8],Inf)
+            nrm=norm(cfs,Inf)
+            return map!(g->chop!(g,10eps()*nrm),cf)
+        end
+    end
+    
+    warn("Maximum length reached")
+    
+    IFun(f,d,2^21 + 1)
+end
+
 function zerocfsIFun(f::Function,d::Domain)
     #reuse function values
 
-    tol = 200*eps();
+    if typeof(f(first(d)))<:Vector
+        return veczerocfsIFun(f,d)
+    end
+
+    tol = 200*eps()
 
     for logn = 4:20
-        cf = IFun(f, d, 2^logn + 1);
+        cf = IFun(f, d, 2^logn + 1)
         
         if maximum(abs(cf.coefficients[end-8:end])) < tol*maximum(abs(cf.coefficients[1:8]))
             return chop!(cf,10eps()*maximum(abs(cf.coefficients)))
@@ -128,6 +161,9 @@ function zerocfsIFun(f::Function,d::Domain)
     
     IFun(f,d,2^21 + 1)
 end
+
+
+
 
 function abszerocfsIFun(f::Function,d::Domain)
     #reuse function values

@@ -66,7 +66,7 @@ d=Interval()
 D=diff(d)
 x=Fun(identity,d)
 A=x.^2*D^2+x*D+x.^2;
-u=[start(d),A]\[besselj(0,d.a),0.];
+u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
 @assert abs(u[0.1]-besselj(0.,0.1))<10eps()
 
 
@@ -74,17 +74,12 @@ u=[start(d),A]\[besselj(0,d.a),0.];
 ## Matrix exponential
 
 A=rand(2,2);
-d=Interval(0.,1.);
-B=dirichlet(d)[1];
-D=diff(d);
+d=fill(Interval(0.,1.),2);
+B=EvaluationFunctional(d,0.);
+D=DerivativeOperator(d);
 
-D2=Operator[D 0.;
-0. D];
-B2=Operator[B 0.;
-0. B];
-L=convert(Array{Operator,2},
-[B2;
-    D2-A]);
+L=[B;
+    D-A];
 u1=L\[1.,0.];
 u2=L\[0.,1.];
 @assert norm([u1[1][1.] u2[1][1.];
