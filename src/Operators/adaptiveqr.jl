@@ -4,7 +4,7 @@ export adaptiveqr!
 
 
 ##TODO: decide adaptive resize
-function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Vector,k1::Integer,k2::Integer,j1::Integer)
+function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
     a=datagetindex(B,k1,j1)
     b=datagetindex(B,k2,j1)
     
@@ -17,7 +17,9 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::V
     sq=sqrt(abs2(a) + abs2(b))    
     a=a/sq;b=b/sq
     
-    v[k1],v[k2] = a*v[k1] + b*v[k2],-b*v[k1] + a*v[k2]    
+    for j=size(v,2)
+        v[k1,j],v[k2,j] = a*v[k1,j] + b*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
+    end
     
     
     #TODO: Assuming that left rows are already zero
@@ -52,7 +54,7 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::V
     B
 end
 
-function givensreduce!(B::MutableAlmostBandedOperator,v::Vector,k1::Range1,j1::Integer)
+function givensreduce!(B::MutableAlmostBandedOperator,v::Array,k1::Range1,j1::Integer)
     if length(k1)>1
         for k=k1[2]:k1[end]
             givensreduce!(B,v,k1[1],k,j1)
@@ -62,41 +64,44 @@ function givensreduce!(B::MutableAlmostBandedOperator,v::Vector,k1::Range1,j1::I
     end
 end
 
-givensreduce!(B::MutableAlmostBandedOperator,v::Vector,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)
+givensreduce!(B::MutableAlmostBandedOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)
 
 
-function backsubstitution!{T<:Number}(B::MutableAlmostBandedOperator,u::Vector{T})
-    n=length(u)
-    b=bandrange(B)[end]::Int
+function backsubstitution!{T<:Number}(B::MutableAlmostBandedOperator,u::Array{T})
+    n=size(u,1)
+    b=B.bandinds[end]
     nbc = B.numbcs
     
+     pk = zeros(T,nbc)
     
-    for k=n:-1:max(1,n-b)
-        for j=k+1:n
-            u[k]-=B[k,j]*u[j]
-        end
-          
-        u[k] /= B[k,k]
-    end
-    
-    pk = zeros(T,nbc)
-    for k=n-b-1:-1:1
-        for j=1:nbc
-            pk[j] += u[k+b+1]*B.bc[j][k+b+1]
+    for c=1:size(u,2)
+        # before we get to filled rows
+        for k=n:-1:max(1,n-b)
+            for j=k+1:n
+                u[k,c]-=B[k,j]*u[j,c]
+            end
+              
+            u[k,c] /= B[k,k]
         end
         
-        for j=k+1:k+b
-            u[k]-=B[k,j]*u[j]
+       #filled rows
+        for k=n-b-1:-1:1
+            for j=1:nbc
+                pk[j] += u[k+b+1,c]*B.bc[j][k+b+1]
+            end
+            
+            for j=k+1:k+b
+                u[k,c]-=B[k,j]*u[j,c]
+            end
+            
+            for j=1:nbc
+                u[k,c] -= getfilldata(B,k,j)*pk[j]
+            end
+              
+            u[k,c] /= B[k,k]
         end
-        
-        for j=1:nbc
-            u[k] -= getfilldata(B,k,j)*pk[j]
-        end
-          
-        u[k] /= B[k,k]
     end
-  
-  u
+    u
 end
 
 
@@ -112,31 +117,31 @@ adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Vector{V})=convert(Vector{promote_type(T,V)},v)
 
 
-function slnorm(u::Vector,r::Range)
-    ret = 0.
-    for j=r
-        ret=max(abs(u[j]),ret)
+function slnorm(u::Array,r::Range)
+    ret = 0.0
+    for k=r,j=1:size(u,2)
+        ret=max(abs(u[k,j]),ret)
     end
     ret
 end
 
-adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Vector{V},tol::Float64,N) = adaptiveqr!(MutableAlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
-function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Vector{V},tol::Float64,N)  
+adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Array{V},tol::Float64,N) = adaptiveqr!(MutableAlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
+function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Array{V},tol::Float64,N)  
     b=-bandrange(B)[1]
     m=100+b
-
-    u=[v,zeros(V,m)]::Vector{V}
     
     l = length(v) + m  
+    
+    u=pad(v,l,size(v,2))    
     resizedata!(B,l)
     
     
     j=1
     ##TODO: we can allow early convergence
-    while j <= N && (slnorm(u,j:j+b-1) > tol  || j <= length(v))
+    while j <= N && (slnorm(u,j:j+b-1) > tol  || j <= size(v,1))
         if j + b == l
-            u = [u,zeros(V,l)]::Vector{V}
             l *= 2
+            u = pad(u,l,size(u,2))            
             resizedata!(B,l)
         end
         
@@ -149,7 +154,7 @@ function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Vector{V},tol:
         warn("Maximum number of iterations " * string(N) * " reached")
     end
       
-    backsubstitution!(B,u[1:max(j-1,length(v))])
+    backsubstitution!(B,isa(u,Vector)?u[1:max(j-1,length(v))]:u[1:max(j-1,length(v)),:])
 end
 
 

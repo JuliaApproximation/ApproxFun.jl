@@ -31,7 +31,12 @@ function pad{T}(f::Vector{T},n::Integer)
 	end
 end
 
-function pad{T}(A::Array{T},n::Integer,m::Integer)
+function pad(v::Vector,n::Integer,m::Integer)
+    @assert m==1
+    pad(v,n)
+end
+
+function pad{T}(A::Array{T,2},n::Integer,m::Integer)
 	if n <= size(A,1) && m <= size(A,2)
         A[1:n,1:m]
 	else
