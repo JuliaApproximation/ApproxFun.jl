@@ -159,4 +159,12 @@ neumann(d::IntervalDomain)=[EvaluationFunctional(d,d.a,1),EvaluationFunctional(d
 
 ## Conversion
 
-Base.convert{N<:Number}(A::Type{Operator},n::N)=ConstantOperator(1.n)
+Base.convert{T<:Number}(A::Type{Operator{T}},n::Number)=ConstantOperator(one(T)*n)
+
+## Promotion
+
+for T in (:Float64,:Int64,:(Complex{Float64}))
+    @eval Base.promote_rule{N<:Number,O<:Operator{$T}}(::Type{N},::Type{O})=Operator{promote_type(N,$T)}
+end
+
+Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O})=Operator
