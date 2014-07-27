@@ -8,8 +8,8 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::A
     a=datagetindex(B,k1,j1)
     b=datagetindex(B,k2,j1)
     
-    if b == 0.
-        return B;
+    if b == 0.0
+        return B
     end    
     
 
@@ -17,7 +17,7 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::A
     sq=sqrt(abs2(a) + abs2(b))    
     a=a/sq;b=b/sq
     
-    for j=size(v,2)
+    for j=1:size(v,2)
         v[k1,j],v[k2,j] = a*v[k1,j] + b*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
     end
     
@@ -115,7 +115,7 @@ adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
 
 convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Vector{V})=convert(Vector{promote_type(T,V)},v)
-
+convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Array{V,2})=convert(Array{promote_type(T,V),2},v)
 
 function slnorm(u::Array,r::Range)
     ret = 0.0
@@ -127,7 +127,7 @@ end
 
 adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Array{V},tol::Float64,N) = adaptiveqr!(MutableAlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
 function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Array{V},tol::Float64,N)  
-    b=-bandrange(B)[1]
+    b=-B.bandinds[1]
     m=100+b
     
     l = length(v) + m  

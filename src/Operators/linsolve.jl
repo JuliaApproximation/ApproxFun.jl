@@ -1,8 +1,8 @@
 ## Linear Solve
 
 
-IFun_coefficients(b::Vector,sp)=vcat(map(f-> typeof(f)<: IFun? coefficients(f,sp) :  f,b)...)
-FFun_coefficients(b::Vector)=vcat(map(f-> typeof(f)<: FFun? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
+IFun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,IFun)? coefficients(f,sp) :  f,b)...)
+FFun_coefficients(b::Vector)=vcat(map(f-> isa(f,FFun)? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
 
 function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
     u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end]).order),tolerance,maxlength)  ##TODO: depends on ordering of A
@@ -18,7 +18,7 @@ function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),m
     FFun(deinterlace(u),commondomain(A,b))    
 end
 
-function linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
+function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxlength=1000000)
     d=commondomain(A,b)
 
     if typeof(d) <: IntervalDomain
@@ -55,7 +55,7 @@ function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
     
     for k=br+1:m
         sp=findmaxrangespace([A[k,:]...]).order
-        if typeof(b[k])<:AbstractFun
+        if isa(b[k],AbstractFun)
             r[k:n:end]=pad(coefficients(b[k],sp),l)
         else  #type is vector
             r[k:n:end]=pad(b[k],l)
@@ -66,11 +66,11 @@ function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
 end 
 
 
-linsolve(A::Operator,b::Vector;kwds...)=linsolve([A],b;kwds...)
+linsolve(A::Operator,b::Array;kwds...)=linsolve([A],b;kwds...)
 linsolve(A,b;kwds...)=linsolve(A,[b];kwds...)
 
 
-\{T<:Operator}(A::Array{T,2},b::Vector)=linsolve(A,b)
-\{T<:Operator}(A::Vector{T},b::Vector)=linsolve(A,b)
+\{T<:Operator}(A::Array{T,2},b::Array)=linsolve(A,b)
+\{T<:Operator}(A::Vector{T},b::Array)=linsolve(A,b)
 \(A::Operator,b)=linsolve(A,b)
 
