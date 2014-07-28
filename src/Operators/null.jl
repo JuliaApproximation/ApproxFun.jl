@@ -1,50 +1,8 @@
-function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
-    a=datagetindex(B,k1,j1)
-    b=datagetindex(B,k2,j1)
-    
-    if b == 0.
-        return one(T),zero(T)
-    end    
-    
 
-    
-    sq=sqrt(abs2(a) + abs2(b))    
-    a=a/sq;b=b/sq
-    
-    #TODO: Assuming that left rows are already zero
-    
-    ir1=indexrange(B,k1)::Range1{Int64}
-    ir2=indexrange(B,k2)::Range1{Int64}    
-    
-    for j = j1:ir1[end]
-        B1 = datagetindex(B,k1,j)
-        B2 = datagetindex(B,k2,j)
-        
-        B[k1,j],B[k2,j]= a*B1 + b*B2,-b*B1 + a*B2
-    end
-    
-    for j=ir1[end]+1:ir2[end]
-        B1 = fillgetindex(B,k1,j)
-        B2 = datagetindex(B,k2,j)
-        
-        B[k2,j]=a*B2 - b*B1
-    end
-    
-    for j=1:numbcs(B)
-        B1 = getfilldata(B,k1,j)
-        B2 = getfilldata(B,k2,j)
-    
-        setfilldata!(B, a*B1 + b*B2,k1,j)
-        setfilldata!(B,-b*B1 + a*B2,k2,j)    
-    end
-    
-
-    a::T,b::T
-end
 
 
 #assume dimension of kernel is range space
-Base.null(A::BandedOperator)=null(A,rangespace(A))
+Base.null(A::BandedOperator)=null(A,rangespace(A).order)
 
 
 function applygivens!(Q,k,a,b)

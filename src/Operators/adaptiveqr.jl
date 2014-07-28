@@ -3,24 +3,18 @@
 export adaptiveqr!
 
 
-##TODO: decide adaptive resize
-function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
+function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
     a=datagetindex(B,k1,j1)
     b=datagetindex(B,k2,j1)
     
-    if b == 0.0
-        return B
+    if b == 0.
+        return one(T),zero(T)
     end    
     
 
     
     sq=sqrt(abs2(a) + abs2(b))    
     a=a/sq;b=b/sq
-    
-    for j=1:size(v,2)
-        v[k1,j],v[k2,j] = a*v[k1,j] + b*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
-    end
-    
     
     #TODO: Assuming that left rows are already zero
     
@@ -31,15 +25,14 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::A
         B1 = datagetindex(B,k1,j)
         B2 = datagetindex(B,k2,j)
         
-        fastsetindex!(B,a*B1 + b*B2,k1,j)
-        fastsetindex!(B,-b*B1 + a*B2,k2,j)        
+        B[k1,j],B[k2,j]= a*B1 + b*B2,-b*B1 + a*B2
     end
     
     for j=ir1[end]+1:ir2[end]
         B1 = fillgetindex(B,k1,j)
         B2 = datagetindex(B,k2,j)
         
-        fastsetindex!(B,a*B2 - b*B1,k2,j)
+        B[k2,j]=a*B2 - b*B1
     end
     
     for j=1:B.numbcs
@@ -50,6 +43,18 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::A
         setfilldata!(B,-b*B1 + a*B2,k2,j)    
     end
     
+
+    a::T,b::T
+end
+
+function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
+    a,b=givensreduceab!(B,k1,k2,j1)
+    
+    if b != 0.0
+        for j=1:size(v,2)
+            v[k1,j],v[k2,j] = a*v[k1,j] + b*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
+        end
+    end        
 
     B
 end
