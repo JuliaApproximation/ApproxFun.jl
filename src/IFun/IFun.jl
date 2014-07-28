@@ -187,6 +187,10 @@ end
 function IFun(f::Function, d::Domain; method="zerocoefficients")
     if f==identity
         identity_fun(d)
+    elseif f==zero
+        IFun([0.0],d)
+    elseif f==one
+        IFun([1.0],d)    
     elseif method == "zerocoefficients"
         zerocfsIFun(f,d)
     elseif method == "abszerocoefficients"

@@ -11,12 +11,12 @@
 ## Vector of fun routines
 
 
-function coefficients{N,D}(f::Vector{IFun{N,D}},m...)
+function coefficients{N,D}(f::Vector{IFun{N,D}},o...)
     n=mapreduce(length,max,f)
     m=length(f)
     R=zeros(N,n,m)
     for k=1:m
-        R[1:length(f[k]),k]=coefficients(f[k],m...)
+        R[1:length(f[k]),k]=coefficients(f[k],o...)
     end
     R
 end

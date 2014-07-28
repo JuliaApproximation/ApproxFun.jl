@@ -38,3 +38,8 @@ points(d::PeriodicDomain,n::Integer) = fromcanonical(d, fourierpoints(n))
 fourierpoints(n::Integer)= 1.π*[-1.:2/n:1. - 2/n]
 
 
+
+## conveninece routines
+
+Base.ones(d::Domain)=Fun(one,d)
+Base.zeros(d::Domain)=Fun(zero,d)

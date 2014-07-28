@@ -1,3 +1,6 @@
+
+# permute the columns until the principle subblock is nonsingular
+# assume B approximates K x ∞
 function nonsingular_permute(B)
     K = size(B,1)
     
@@ -12,12 +15,21 @@ function nonsingular_permute(B)
     P = P[:,[k:K+k-1,1:k-1,K+k:end]]
 end
 
-
-function regularize_bcs(B, G, L, M)
+## rearrange the rows and columns of bcs so that the principle block 
+# is identity
+# assume we have the condition 
+#    BX=G
+# where B is  K x n, X is n x m and G is K x m
+#
+# We also need to update L & M in
+#    LX* + MX* = *
+# to reflect the new ordering of rows of X
+function regularize_bcs(B::Array, G::Array, L::Array, M::Array)
     if length(B) == 0
         R = B
         P = eye(size(L,2))
     else
+        # permute rows of X/columns of B so principle block of B is nonsingular
         P = nonsingular_permute(B)
         
         B = B*P
@@ -25,11 +37,15 @@ function regularize_bcs(B, G, L, M)
         L = L*P
         M = M*P
         
+        # we apply Q' to upper triangularize B,
+        # avoiding any need to permute rows
         Q,R = qr(B)
         Q=Q[:,1:size(B,1)]
         
         K = size(B,1)
         
+        # we invert the principle block of R
+        # so that the BC leads with the identity
         G = inv(R[:,1:K])*Q'*G
         R = inv(R[:,1:K])*R
     end
