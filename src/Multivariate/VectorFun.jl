@@ -1,12 +1,5 @@
 
 
-## scalar fun times vector
-
-*{T<:Union(Number,IFun)}(f::IFun,v::Vector{T})=typeof(f)[f.*v[k] for k=1:length(v)]
-*{T<:Union(Number,IFun)}(v::Vector{T},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
-*(f::IFun,v::Vector{Any})=typeof(f)[f.*v[k] for k=1:length(v)]
-*(v::Vector{Any},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
-
 
 ## Vector of fun routines
 
@@ -110,18 +103,42 @@ end
 
 ## Algebra
 
-#TODO: Fun*vec should be Array[IFun]
-*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).domain) 
+## scalar fun times vector
+
+*{T<:Union(Number,IFun)}(f::IFun,v::Vector{T})=typeof(f)[f.*v[k] for k=1:length(v)]
+*{T<:Union(Number,IFun)}(v::Vector{T},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
+*(f::IFun,v::Vector{Any})=typeof(f)[f.*v[k] for k=1:length(v)]
+*(v::Vector{Any},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
+ 
+
+#*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).domain) 
+
+
 function *{T<:FFun}(v::Vector{T},a::Vector)
     fi=mapreduce(f->firstindex(f.coefficients),min,v)
     FFun(ShiftVector(coefficients(v)*a,1-fi),first(v).domain) 
 end
 
-function *{T,D}(A::Array{Float64,2},p::Vector{IFun{T,D}})
-    cfs=(A*coefficients(p))'
-    ret = Array(IFun{T,D},size(A)[1])
-    for i = 1:size(A)[1]
-        ret[i] = IFun(cfs[:,i],p[i].domain)
+# function *{N<:Number,D}(A::Array{N,2},p::Vector{IFun{N,D}})
+#     cfs=A*coefficients(p).'
+#     ret = Array(IFun{N,D},size(A)[1])
+#     for i = 1:size(A)[1]
+#         ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
+#     end
+#     ret
+# end
+
+## Need to catch A*p, A'*p, A.'*p
+##TODO: A may not be same type as p
+for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
+    @eval begin
+        function ($op){T<:Number,D}(A::Array{T,2}, p::Vector{IFun{T,D}})
+            cfs=$op(A,coefficients(p).')
+            ret = Array(IFun{T,D},size(cfs,1))
+            for i = 1:size(A)[1]
+                ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
+            end
+            ret    
+        end
     end
-    ret
 end

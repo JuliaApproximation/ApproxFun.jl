@@ -19,7 +19,7 @@ end
 # is identity
 # assume we have the condition 
 #    BX=G
-# where B is  K x n, X is n x m and G is K x m
+# where B is  K x n, X is n x m and G is K x *
 #
 # We also need to update L & M in
 #    LX* + MX* = *
