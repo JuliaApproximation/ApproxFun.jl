@@ -13,17 +13,28 @@ end
 adaptiveplus(f,g,h)=adaptiveplus(adaptiveplus(f,g),h)
 
 
+#Use XR' = G' = [G1 G2 G3...] to reduce columns of A in
+# MXA' + *X* =F
+# here G is a vector of IFuns
 
-function cont_reduce_dofs( R,G, Mx, My, F )
+
+function cont_reduce_dofs{T<:IFun}( R,G::Vector{T}, A::Array, M::Operator, F::Array )
     if length(R) > 0
-        GM = [My*(G.')[:,k] for k=1:size(G,1)]
+        # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
+        # then kill the row by subtracting
+        # MXR'[:,k]*A'[k,:]  from MXA'
+        # i.e., subtacting A[:,k]*R[k,:] from A
+        # and M*G'[:,k]*A'[k,:] from F
+        # i.e. M*G[k]*A[:,k]' from 
+        
         for k = 1:size(R,1)
-            F = F - pad(Mx[k]*GM[k].',size(F,1),size(F,2))
-                Mx = Mx - Mx[:,k]*R[k,:]
+            MG = M*G[k].coefficients         # coefficients in the range space of M      
+            F = F - pad(MG*A[:,k].',size(F,1),size(F,2))
+            A = A - A[:,k]*R[k,:]
         end
     end
         
-    Mx, F
+    A, F
 end
 
 
@@ -73,22 +84,24 @@ end
 function cont_constrained_lyap(Bxin,Byin,Lin,Min,F,ny)
     Xop=promotespaces([Lin[1],Min[1]])
     Lx=SavedBandedOperator(Xop[1]);Mx=SavedBandedOperator(Xop[2])
-    Gx=Bxin[2]
-    Bx=Bxin[1]
+
     
     By,Gy,Ly,My=pdetoarray(Byin,Lin[2],Min[2],ny)
     Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,Ly,My)
-    Ly,F = cont_reduce_dofs(Ry,Gy,Ly,Lx,F.');    F = F.';
+    Ly,F = cont_reduce_dofs(Ry,Gy,Ly,Lx,F)
 
-    Ky = size(By,1);
-    B=Ly[:,Ky+1:end];
-    D=My[:,Ky+1:end];
-    BD=schurfact(full(B),full(D));
-    Q2=BD[:left];Z2=BD[:right];
-    R=BD[:S]; T=BD[:T];
+    Ky = size(By,1)
+    B=Ly[:,Ky+1:end]
+    D=My[:,Ky+1:end]
+    BD=schurfact(full(B),full(D))
+    Q2=BD[:left];Z2=BD[:right]
+    R=BD[:S]; T=BD[:T]
 
     F=pad(F,size(F,1),size(Q2,1))*Q2
     
+    ##TODO: finish from here
+        Gx=Bxin[2]
+    Bx=Bxin[1]
     Gx=pad(Gx,size(Gx,1),size(Z2,1)+Ky)[:,Ky+1:end]*Z2
 
     Y=cont_constrained_lyapuptriang(Bx,Gx,Lx,R,Mx,T,F);
