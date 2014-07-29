@@ -3,6 +3,8 @@ export pdesolve
 
 include("cont_lyap.jl")
 
+
+##TODO: Unify with coefficients()
 toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 toarray{T<:IFun}(B::Array{T},n)=Float64[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n];
 function toarray(B::Array,n)

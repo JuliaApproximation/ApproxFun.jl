@@ -81,14 +81,26 @@ function cont_constrained_lyapuptriang{N}(Bx,Gx,P,R,S,T,F::Array{N})
     Y
 end
 
+
+## Solve ∞-dimensional lyap equation
+#
+#   Bx*X=[Gx[1](y);Gx[2](y);...]=Gx'
+#   X*By' = [Gy[1](x) Gy[2](x) ...]
+#   Lx*X*Ly' + Mx*X*My' = F
+#
+# by discretizing in y
+
+
 function cont_constrained_lyap(Bxin,Byin,Lin,Min,F,ny)
     Xop=promotespaces([Lin[1],Min[1]])
     Lx=SavedBandedOperator(Xop[1]);Mx=SavedBandedOperator(Xop[2])
 
+    #discretize in Y
+    By,Gy,Ly,My=pdetoarray(Byin,Lin[2],Min[2],ny) 
     
-    By,Gy,Ly,My=pdetoarray(Byin,Lin[2],Min[2],ny)
-    Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,Ly,My)
-    Ly,F = cont_reduce_dofs(Ry,Gy,Ly,Lx,F)
+
+    Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,Ly,My) 
+    Ly,F = cont_reduce_dofs(Ry,Gy,Ly,Lx,F)     
 
     Ky = size(By,1)
     B=Ly[:,Ky+1:end]
@@ -99,16 +111,19 @@ function cont_constrained_lyap(Bxin,Byin,Lin,Min,F,ny)
 
     F=pad(F,size(F,1),size(Q2,1))*Q2
     
-    ##TODO: finish from here
-        Gx=Bxin[2]
-    Bx=Bxin[1]
-    Gx=pad(Gx,size(Gx,1),size(Z2,1)+Ky)[:,Ky+1:end]*Z2
 
-    Y=cont_constrained_lyapuptriang(Bx,Gx,Lx,R,Mx,T,F);
+    ## we've discretized, in y, and rhs for Bx is a function of y
+    # so we need to discetize it as well
+    Gx=toarray(Bxin[2],ny)
+    # remove unused DOFs and rearrange columns
+    Gx=Gx[:,Ky+1:end]*Z2
+
+
+    Y=cont_constrained_lyapuptriang(Bxin[1],Gx,Lx,R,Mx,T,F)
     m=mapreduce(length,max,Y)
-    Y22=hcat([pad(Y[k],m) for k=1:length(Y)]...);
-    X22=Y22*Z2';
-    X11=pad(Gy',size(X22,1),2)-X22*Ry[:,Ky+1:end]';
+    Y22=hcat([pad(Y[k],m) for k=1:length(Y)]...)
+    X22=Y22*Z2'
+    X11=pad(Gy',size(X22,1),2)-X22*Ry[:,Ky+1:end]'
     [X11 X22]
 end
 
