@@ -14,7 +14,7 @@ EvaluationFunctional(d::IntervalDomain,x::Number)=EvaluationFunctional(d,x,0)
 EvaluationFunctional{T<:Number}(d::Vector{T},x::Number,o::Integer)=EvaluationFunctional(Interval(d),x,o)
 
 
-
+domain(E::EvaluationFunctional)=E.domain
 
 function evaluatechebyshev(n::Integer,x)
     if n == 1

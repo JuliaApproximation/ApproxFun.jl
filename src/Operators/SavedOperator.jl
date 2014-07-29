@@ -68,7 +68,7 @@ function SavedBandedOperator{T<:Number}(op::BandedOperator{T})
 end
 
 index(B::SavedBandedOperator)=index(B.op)::Int
-
+domain(S::SavedBandedOperator)=domain(S.op)
 
 
 
