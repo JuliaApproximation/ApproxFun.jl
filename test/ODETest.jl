@@ -17,6 +17,19 @@ u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 @assert abs(u[0.]-airyai(0.)) < 1000eps()
 
 
+
+d=Interval(-1000.,5.);
+Bm=EvaluationFunctional(d,d.a);
+Bp=EvaluationFunctional(d,d.b);
+B=[Bm,Bp];
+D2=diff(d,2);
+X=MultiplicationOperator(Fun(x->x,d));
+
+u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
+@assert abs(u[0.]-airyai(0.))/length(u)<100eps()
+
+
+
 B=neumann(d);
 A=[B;D2-X];                
 b=[airyaiprime(d.a),airyaiprime(d.b),0.];   
@@ -82,3 +95,13 @@ L=[B;D-A]
 u=L\eye(n)
 @assert norm(evaluate(u,1.)-expm(A))<100eps()
 
+
+
+## Null space
+
+d=Interval(-50.,5.)
+D=diff(d)
+x=Fun(identity,d)
+u=null(D^2-x)
+c=[evaluate(u,d.a)'; evaluate(u,d.b)']\[airyai(d.a),airyai(d.b)]
+@assert norm(dot(c,u)-Fun(airyai,d))<eps()
