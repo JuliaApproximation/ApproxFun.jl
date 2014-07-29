@@ -29,7 +29,9 @@ function cont_reduce_dofs{T<:IFun}( R,G::Vector{T}, A::Array, M::Operator, F::Ar
         
         for k = 1:size(R,1)
             MG = M*G[k].coefficients         # coefficients in the range space of M      
-            F = F - pad(MG*A[:,k].',size(F,1),size(F,2))
+            MGA = MG*A[:,k].'
+            m=max(size(F,1),size(MGA,1))
+            F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
             A = A - A[:,k]*R[k,:]
         end
     end
@@ -43,7 +45,8 @@ end
 # where R and T are upper triangular
 function cont_constrained_lyapuptriang{N}(Bx,Gx,P,R,S,T,F::Array{N})
     n = size(T,2)
-    Y=Array(Vector{N},n)
+    ##TODO: complex
+    Y=Array(IFun{Float64,Interval{Float64}},n)
     PY=Array(Vector{N},n)
     SY=Array(Vector{N},n)
 
@@ -60,11 +63,31 @@ function cont_constrained_lyapuptriang{N}(Bx,Gx,P,R,S,T,F::Array{N})
             op=(R[k,k]*P + T[k,k]*S);
             Y[k]=chop!([Bx,op]\[Gx[:,k],rhs],eps());
             
-            PY[k]=P*Y[k];
-            SY[k]=S*Y[k];   
+            PY[k]=P*Y[k].coefficients;SY[k]=S*Y[k].coefficients
+            
             k-=1
         else
-            error("non-upper triangular not implemented")
+            rhs1=F[:,k-1]
+            rhs2=F[:,k]
+        
+            if k < n
+                for j=k+1:n
+                    rhs1= adaptiveplus(rhs1,-R[k-1,j]*PY[j],-T[k-1,j]*SY[j])
+                    rhs2= adaptiveplus(rhs2,-R[k,j]*PY[j],-T[k,j]*SY[j])        
+                end
+            end
+        
+        
+            A=[blkdiag(Bx,Bx);
+                R[k-1:k,k-1:k].*P+T[k-1:k,k-1:k].*S];
+            b={Gx[:,k-1]...,Gx[:,k]...,rhs1,rhs2}
+            y=A\b
+            Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
+        
+            PY[k-1]=P*Y[k-1].coefficients; PY[k]=P*Y[k].coefficients
+            SY[k-1]=S*Y[k-1].coefficients; SY[k]=S*Y[k].coefficients
+            
+            k-=2
         end
     end
 
@@ -75,7 +98,7 @@ function cont_constrained_lyapuptriang{N}(Bx,Gx,P,R,S,T,F::Array{N})
             rhs= adaptiveplus(rhs,-R[k,j]*PY[j],-T[k,j]*SY[j])
         end
 
-        Y[k]=chop!([Bx,(R[k,k]*P + T[k,k]*S)]\[Gx[:,k],rhs],eps());
+        Y[k]=chop!([Bx,(R[k,k]*P + T[k,k]*S)]\[Gx[:,k],rhs],eps())
     end
     
     Y
@@ -90,16 +113,14 @@ end
 #
 # by discretizing in y
 
-
-function cont_constrained_lyap(Bxin,Byin,Lin,Min,F,ny)
+##TODO: F should be adaptive rather than array
+function cont_constrained_lyap(Bxin,Byin,Lin,Min,F::Array,ny)
     Xop=promotespaces([Lin[1],Min[1]])
     Lx=SavedBandedOperator(Xop[1]);Mx=SavedBandedOperator(Xop[2])
 
     #discretize in Y
     By,Gy,Ly,My=pdetoarray(Byin,Lin[2],Min[2],ny) 
-    
-
-    Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,Ly,My) 
+    Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,full(Ly),full(My)) 
     Ly,F = cont_reduce_dofs(Ry,Gy,Ly,Lx,F)     
 
     Ky = size(By,1)
@@ -120,11 +141,11 @@ function cont_constrained_lyap(Bxin,Byin,Lin,Min,F,ny)
 
 
     Y=cont_constrained_lyapuptriang(Bxin[1],Gx,Lx,R,Mx,T,F)
-    m=mapreduce(length,max,Y)
-    Y22=hcat([pad(Y[k],m) for k=1:length(Y)]...)
-    X22=Y22*Z2'
-    X11=pad(Gy',size(X22,1),2)-X22*Ry[:,Ky+1:end]'
-    [X11 X22]
+    
+    X22=Z2*Y  #think of it as transpose
+    X11=Gy-Ry[:,Ky+1:end]*X22
+    [X11,X22].'
+
 end
 
 

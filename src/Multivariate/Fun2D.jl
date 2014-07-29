@@ -33,6 +33,20 @@ function Fun2D{T<:Number}(X::Array{T},dx::IntervalDomain,dy::IntervalDomain)
     Fun2D(A,B)
 end
 
+## We take the convention that row vector pads down
+# TODO: Vector pads right
+function Fun2D{T<:Number,D}(X::Array{IFun{T,D},2},dy::IntervalDomain)
+    @assert size(X,1)==1
+    
+    m=mapreduce(length,max,X)
+    M=zeros(T,m,length(X))
+    for k=1:length(X)
+        M[1:length(X[k]),k]=X[k].coefficients
+    end
+    
+    Fun2D(M,domain(X[1]),dy)
+end
+
 
 findapproxmax(f::Function,dx::Domain,dy::Domain)=findapproxmax(f,dx,dy, 40, 40)
 function findapproxmax(f::Function,dx::Domain,dy::Domain, gridx::Integer, gridy::Integer)

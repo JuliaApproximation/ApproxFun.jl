@@ -102,11 +102,10 @@ function pdesolve(Bxin,Byin,Lin,Min,Fin::Number,ny::Integer)
     pdesolve(Bxin,Byin,Lin,Min,F,ny)
 end
 
-pdesolve(Bxin,Byin,Lin,Min,Fin::Fun2D,ny::Integer)=pdesolve(Bxin,Byin,Lin,Min,coefficients(Fin,Xsp,Ysp),nx,ny)
+pdesolve(Bxin,Byin,Lin,Min,Fin::Fun2D,ny::Integer)=pdesolve(Bxin,Byin,Lin,Min,coefficients(Fin,Xsp,Ysp),ny)
 
 
 
-pdesolve(Bx,By,Lin,Min,F::Array,ny::Integer)=Fun2D(cont_constrained_lyap(Bx, By,Lin,Min,F,ny),
-            domain(Lin[1]),domain(Lin[2]))
+pdesolve(Bx,By,Lin,Min,F::Array,ny::Integer)=Fun2D(cont_constrained_lyap(Bx, By,Lin,Min,F,ny),domain(Lin[2]))
 
 
