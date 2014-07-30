@@ -1,7 +1,7 @@
 module ApproxFun
-    using Base, PyPlot
+    using Base
 
-export Fun,IFun,FFun,Interval,evaluate,values,points,chebyshevtransform
+export AbstractFun, Fun,IFun,FFun,Interval,evaluate,values,points,chebyshevtransform
 export pad!,pad,sample,chop!,complexroots,roots,svfft
 export multiplybyx,IntervalDomain,fasttimes
 
@@ -11,8 +11,6 @@ export coefficients, integrate
 
 export domain
 
-import PyPlot.plot
-export plot
 
 
 abstract AbstractFun
@@ -75,7 +73,12 @@ include("Singularities/SingFun.jl")
 
 include("PDE/pdesolve.jl")
 
-include("Plotting/Plot.jl")
+if filemode(Pkg.dir("PyPlot")) != 0
+    include("Plotting/Plot.jl")
+end
+
+
+
 
 
 

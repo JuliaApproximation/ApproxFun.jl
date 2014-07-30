@@ -1,6 +1,9 @@
 ## Plotting
 
 
+using PyPlot    
+import PyPlot.plot
+export plot
 export complexplot,contour
 
 function PyPlot.plot(r::Range,f::IFun{Float64})
@@ -106,3 +109,5 @@ function PyPlot.plot{T<:AbstractFun}(v::Array{T})
         plot(f)
     end
 end
+
+

@@ -207,18 +207,23 @@ for op = (:+,:-)
             @assert f.domain == g.domain
         
             n = max(length(f),length(g))
-            f2 = pad(f,n);
-            g2 = pad(g,n);
+            f2 = pad(f,n); g2 = pad(g,n)
             
             IFun(($op)(f2.coefficients,g2.coefficients),f.domain)
         end
 
-        function ($op)(f::IFun,c::Number)
-            f2 = deepcopy(f);
+        function ($op){N<:Number,T<:Number}(f::IFun{T},c::N)
+            n=length(f)
             
-            f2.coefficients[1] = ($op)(f2.coefficients[1],c);
+            v=Array(promote_type(N,T),n==0?1:n)
             
-            f2
+            v[1] =($op)(n==0?$zero(T):f.coefficients[1],c)
+            
+            if n>1
+                v[2:end]=f.coefficients[2:end]
+            end
+            
+            IFun(v,domain(f))
         end
     end
 end 
