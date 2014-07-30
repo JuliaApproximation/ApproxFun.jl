@@ -1,4 +1,4 @@
-using ApproxFun
+using ApproxFun,Base.Test
 
 
 
@@ -14,7 +14,7 @@ X=MultiplicationOperator(Fun(x->x,d));
 
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 
-@assert abs(u[0.]-airyai(0.)) < 1000eps()
+@test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
 
 
 
@@ -26,7 +26,7 @@ D2=diff(d,2);
 X=MultiplicationOperator(Fun(x->x,d));
 
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
-@assert abs(u[0.]-airyai(0.))/length(u)<100eps()
+@test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
 
 
 
@@ -36,7 +36,7 @@ b=[airyaiprime(d.a),airyaiprime(d.b),0.];
     
 u=A\b;                     
 
-@assert abs(u[0.]-airyai(0.)) < 1000eps()
+@test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
 
 ## Neumann condition
 
@@ -44,7 +44,7 @@ u=A\b;
 
 f=Fun(x->x.^2)
 D=diff(f.domain)
-@assert norm(D*f - diff(f)) < 100eps()
+@test norm(D*f-diff(f))<100eps()
 
 
 ##Test versus exp
@@ -52,12 +52,12 @@ D=diff(f.domain)
 f=Fun(x->-x.^2)
 g=Fun(t->exp(-t.^2))
 
-@assert norm(Fun(t->exp(f[t]))-g)<10eps()
+@test_approx_eq norm(Fun(t->exp(f[t]))-g) 0
 
 fp=diff(f);
 Bm=EvaluationFunctional(f.domain,f.domain.a);
 u=[Bm,diff(f.domain) - fp]\[exp(f[f.domain.a]),0.];
-@assert norm(u-g)<10eps()
+@test norm(u-g)<100eps()
 
 
 
@@ -69,7 +69,7 @@ w=10.;
 B=BasisFunctional(floor(w));
 A=[B,D+1im*w*I];
 u = A\[0.,f];
-@assert abs(u[1.]exp(1im*w)-u[-1.]exp(-1im*w)-(-0.18575766879136255 + 0.17863980562549928im ))<eps()
+@test_approx_eq (u[1.]exp(1im*w)-u[-1.]exp(-1im*w)) (-0.18575766879136255 + 0.17863980562549928im )
 
 
 
@@ -80,7 +80,7 @@ D=diff(d)
 x=Fun(identity,d)
 A=x.^2*D^2+x*D+x.^2;
 u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
-@assert abs(u[0.1]-besselj(0.,0.1))<10eps()
+@test_approx_eq u[0.1] besselj(0.,0.1)
 
 
 
@@ -93,7 +93,7 @@ D=DerivativeOperator(d)
 A=rand(n,n)
 L=[B;D-A]
 u=L\eye(n)
-@assert norm(evaluate(u,1.)-expm(A))<100eps()
+@test norm(evaluate(u,1.)-expm(A))<100eps()
 
 
 
@@ -104,4 +104,6 @@ D=diff(d)
 x=Fun(identity,d)
 u=null(D^2-x)
 c=[evaluate(u,d.a)'; evaluate(u,d.b)']\[airyai(d.a),airyai(d.b)]
-@assert norm(dot(c,u)-Fun(airyai,d))<eps()
+@test norm(dot(c,u)-Fun(airyai,d))<100eps()
+
+

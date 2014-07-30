@@ -1,4 +1,4 @@
-using ApproxFun
+using ApproxFun, Base.Test
 
 
 f=Fun(exp);
@@ -7,28 +7,28 @@ D=diff(d);
 I=eye(d);
 Q=integrate(d);
 
-@assert norm((Q+I)*f-(integrate(f)+f)) < eps()
-@assert norm((Q)*f-(integrate(f))) < eps()
+@test norm((Q+I)*f-(integrate(f)+f)) < eps()
+@test norm((Q)*f-(integrate(f))) < eps()
 
 x=Fun(identity)
 X=MultiplicationOperator(x)
 
-@assert norm(USConversionOperator(0:2)\coefficients(x.*f,2)-(x.*f).coefficients) < 100eps()
+@test norm(USConversionOperator(0:2)\coefficients(x.*f,2)-(x.*f).coefficients) < 100eps()
 
-@assert norm((USConversionOperator(0:2)\(D^2*f))-diff(diff(f))) < 100eps()
+@test norm((USConversionOperator(0:2)\(D^2*f))-diff(diff(f))) < 100eps()
 
-@assert norm(X*f-(x.*f)) < 100eps()
+@test norm(X*f-(x.*f)) < 100eps()
 
-@assert norm(USConversionOperator(0:2)*X*f.coefficients-coefficients(x.*f,2)) < 100eps()
+@test norm(USConversionOperator(0:2)*X*f.coefficients-coefficients(x.*f,2)) < 100eps()
 
 
 ## Special functions
 
 x=Fun(identity);
-@assert norm(cos(x)-Fun(cos))<10eps()
-@assert norm(sin(x)-Fun(sin))<10eps()
-@assert norm(exp(x)-Fun(exp))<10eps()
-@assert norm(sin(x)./x-Fun(x->sinc(x/π)))<100eps()
+@test norm(cos(x)-Fun(cos))<10eps()
+@test norm(sin(x)-Fun(sin))<10eps()
+@test norm(exp(x)-Fun(exp))<10eps()
+@test norm(sin(x)./x-Fun(x->sinc(x/π)))<100eps()
 
 
 
@@ -41,7 +41,7 @@ L=D^2+a;
 f=FFun(t->cos(cos(t)));
 u=L\f;
 
-@assert norm(diff(u,2)+a.*u-f) < 10eps()
+@test norm(diff(u,2)+a.*u-f) < 10eps()
 
 
 
@@ -53,11 +53,11 @@ x=Fun(identity,d)
 A=D*(x*D)
 B=D+x*D^2
 C=x*D^2+D
-@assert norm((A-B)[1:10,1:10]|>full)<eps()
-@assert norm((B-A)[1:10,1:10]|>full)<eps()
-@assert norm((A-C)[1:10,1:10]|>full)<eps()
-@assert norm((C-A)[1:10,1:10]|>full)<eps()
-@assert norm((C-B)[1:10,1:10]|>full)<eps()
-@assert norm((B-C)[1:10,1:10]|>full)<eps()
+@test norm((A-B)[1:10,1:10]|>full)<eps()
+@test norm((B-A)[1:10,1:10]|>full)<eps()
+@test norm((A-C)[1:10,1:10]|>full)<eps()
+@test norm((C-A)[1:10,1:10]|>full)<eps()
+@test norm((C-B)[1:10,1:10]|>full)<eps()
+@test norm((B-C)[1:10,1:10]|>full)<eps()
 
 

@@ -1,12 +1,12 @@
-using ApproxFun
+using ApproxFun, Base.Test
 
 
 
 ef = IFun(exp)
 
 
-@assert ef == -(-ef)
-@assert ef == (ef-1) + 1
+@test ef == -(-ef)
+@test ef == (ef-1) + 1
 
 
 cf = IFun(cos)
@@ -14,36 +14,36 @@ cf = IFun(cos)
 ecf = IFun(x->cos(x).*exp(x))
 eocf = IFun(x->cos(x)./exp(x))
 
-@assert abs(ef[.5]-exp(.5))<100eps()
-@assert abs(ecf[.123456]-cos(.123456).*exp(.123456))<100eps()
+@test_approx_eq ef[.5] exp(.5)
+@test_approx_eq ecf[.123456] cos(.123456).*exp(.123456)
 
 r=2.*rand(100) .- 1
 
-@assert maximum(abs(ef[r]-exp(r)))<100eps()
-@assert maximum(abs(ecf[r]-cos(r).*exp(r)))<100eps()
+@test maximum(abs(ef[r]-exp(r)))<100eps()
+@test maximum(abs(ecf[r]-cos(r).*exp(r)))<100eps()
 
 
-@assert norm((ecf-cf.*ef).coefficients)<100eps()
+@test norm((ecf-cf.*ef).coefficients)<100eps()
 
 
 
-@assert maximum(abs((eocf-cf./ef).coefficients))<1000eps()
+@test maximum(abs((eocf-cf./ef).coefficients))<1000eps()
 
 
-@assert norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
+@test norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
 
 
 ## Diff and cumsum
 
 
-@assert norm((ef - diff(ef)).coefficients)<10E-11
+@test norm((ef - diff(ef)).coefficients)<10E-11
 
-@assert norm((ef - diff(cumsum(ef))).coefficients) < 10eps()
-@assert norm((cf - diff(cumsum(cf))).coefficients) < 10eps()
+@test norm((ef - diff(cumsum(ef))).coefficients) < 10eps()
+@test norm((cf - diff(cumsum(cf))).coefficients) < 10eps()
 
-@assert abs(sum(ef) - 2.3504023872876028) < 10eps()
+@test_approx_eq sum(ef)  2.3504023872876028
 
-@assert abs(norm(ef) - 1.90443178083307) < 10eps()
+@test_approx_eq norm(ef)  1.90443178083307
 
 
 
@@ -62,32 +62,32 @@ x=1.5
 
 
 
-@assert abs(ef[x]-exp(x))<100eps()
+@test_approx_eq ef[x] exp(x)
 
 
 
-@assert maximum(abs(ef[r]-exp(r)))<100eps()
-@assert maximum(abs(ecf[r]-cos(r).*exp(r)))<100eps()
+@test maximum(abs(ef[r]-exp(r)))<100eps()
+@test maximum(abs(ecf[r]-cos(r).*exp(r)))<100eps()
 
 
-@assert norm((ecf-cf.*ef).coefficients)<100eps()
+@test norm((ecf-cf.*ef).coefficients)<100eps()
 
 
-@assert maximum(abs((eocf-cf./ef).coefficients))<1000eps()
+@test maximum(abs((eocf-cf./ef).coefficients))<1000eps()
 
 
-@assert norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
+@test norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
 
 
 ## Diff and cumsum
 
 
-@assert norm((ef - diff(ef)).coefficients)<10E-11
+@test norm((ef - diff(ef)).coefficients)<10E-11
 
-@assert norm((ef - diff(cumsum(ef))).coefficients) < 10eps()
-@assert norm((cf - diff(cumsum(cf))).coefficients) < 10eps()
+@test norm((ef - diff(cumsum(ef))).coefficients) < 10eps()
+@test norm((cf - diff(cumsum(cf))).coefficients) < 10eps()
 
-@assert abs(sum(ef) - 4.670774270471604) < 10eps()
+@test_approx_eq sum(ef) 4.670774270471604
 
-@assert abs(norm(ef) - 4.858451087240335) < 10eps()
+@test_approx_eq norm(ef) 4.858451087240335
 

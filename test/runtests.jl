@@ -1,0 +1,7 @@
+include("ComplexIFunTest.jl")
+include("FFunTest.jl")
+include("IFunTest.jl")
+include("ODETest.jl")
+include("OperatorTest.jl")
+include("SingFunTest.jl")
+include("SpeedTest.jl")

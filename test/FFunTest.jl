@@ -1,13 +1,13 @@
-using ApproxFun
+using ApproxFun, Base.Test
 
-@assert norm(IFun(x->FFun(cos)[x])-IFun(cos)) <100eps()
+@test norm(IFun(x->FFun(cos)[x])-IFun(cos)) <100eps()
 
 
-@assert norm(diff(FFun(cos))+FFun(sin)) < 100eps()
+@test norm(diff(FFun(cos))+FFun(sin)) < 100eps()
 
-@assert norm(diff(FFun(cos,Circle()))+FFun(sin,Circle()))<100eps()
+@test norm(diff(FFun(cos,Circle()))+FFun(sin,Circle()))<100eps()
 
 f=Fun(exp,Circle());
 
-@assert norm(diff(f)-f)<100eps()
-@assert norm(integrate(f)+1-f)<100eps()
+@test norm(diff(f)-f)<100eps()
+@test norm(integrate(f)+1-f)<100eps()
