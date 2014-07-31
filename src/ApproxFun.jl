@@ -73,7 +73,7 @@ include("Singularities/SingFun.jl")
 
 include("PDE/pdesolve.jl")
 
-if filemode(Pkg.dir("PyPlot")) != 0
+if isdir(Pkg.dir("PyPlot"))
     include("Plotting/Plot.jl")
 end
 
