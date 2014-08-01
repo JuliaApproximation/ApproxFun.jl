@@ -3,6 +3,8 @@ export bandrange, linsolve
 
 
 
+
+
 abstract Operator{T} #T is the entry type, Flaot64 or Complex{Float64}
 abstract Functional{T} <: Operator{T}
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
@@ -73,6 +75,7 @@ end
 
 ## bandrange and indexrange
 
+bandrange(b::BandedShiftOperator)=Range1(bandinds(b)...)
 bandrange(b::BandedBelowOperator)=Range1(bandinds(b)...)
 function bandrangelength(B::BandedBelowOperator)
     bndinds=bandinds(B)
