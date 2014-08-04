@@ -12,7 +12,7 @@ export coefficients, integrate
 export domain
 
 
-
+##TODO Incorporate type
 abstract AbstractFun
 
 include("LinearAlgebra/LinearAlgebra.jl")

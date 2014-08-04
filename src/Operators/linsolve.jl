@@ -60,6 +60,11 @@ function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Array{M,2};tolerance=0
     IFun{M,typeof(commondomain(A[:,1]))}[IFun(ret[k:m:end,j],commondomain(A[:,k])) for k=1:m,j=1:size(b,2)]
 end
  
+
+scalarorfuntype{T<:Number}(::IFun{T})=T
+scalarorfuntype{T<:Number}(::T)=T
+scalarorfuntype(b::Vector{Any})=promote_type(map(scalarorfuntype,b)...)
+ 
 function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
     m,n=size(A)
 
@@ -67,16 +72,19 @@ function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
 
     l=mapreduce(length,max,b[br+1:end])
 
-    r=zeros(Float64,br+n*l)  ##TODO: support complex
+    r=zeros(scalarorfuntype(b),br+n*l)
     
     r[1:br]=b[1:br]
     
     for k=br+1:m
         sp=findmaxrangespace([A[k,:]...]).order
-        if isa(b[k],AbstractFun)
+        if k > length(b)## assume its zer
+            r[k:n:end]=zeros(l)
+        elseif isa(b[k],AbstractFun)
+            ##TODO: boiunds check
             r[k:n:end]=pad(coefficients(b[k],sp),l)
-        else  #type is vector
-            r[k:n:end]=pad(b[k],l)
+        else  #type is scalar
+            r[k:n:end]=pad([b[k]],l)
         end
     end
 
