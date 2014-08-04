@@ -102,7 +102,7 @@ function pdesolve(Bxin,Byin,Lin,Min,Fin::Number,ny::Integer)
     pdesolve(Bxin,Byin,Lin,Min,F,ny)
 end
 
-pdesolve(Bxin,Byin,Lin,Min,Fin::Fun2D,ny::Integer)=pdesolve(Bxin,Byin,Lin,Min,coefficients(Fin,Xsp,Ysp),ny)
+pdesolve(Bxin,Byin,Lin,Min,Fin::Fun2D,ny::Integer)=pdesolve(Bxin,Byin,Lin,Min,coefficients(Fin,rangespace(Lin[1]+Min[1]),rangespace(Lin[2]+Min[2])),ny)
 
 
 

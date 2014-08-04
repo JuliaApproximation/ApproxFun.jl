@@ -63,6 +63,7 @@ end
 
 scalarorfuntype{T<:Number}(::IFun{T})=T
 scalarorfuntype{T<:Number}(::T)=T
+scalarorfuntype{T<:Number}(b::Vector{T})=T
 scalarorfuntype(b::Vector{Any})=promote_type(map(scalarorfuntype,b)...)
  
 function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)

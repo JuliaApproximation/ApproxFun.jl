@@ -119,14 +119,9 @@ function *{T<:FFun}(v::Vector{T},a::Vector)
     FFun(ShiftVector(coefficients(v)*a,1-fi),first(v).domain) 
 end
 
-# function *{N<:Number,D}(A::Array{N,2},p::Vector{IFun{N,D}})
-#     cfs=A*coefficients(p).'
-#     ret = Array(IFun{N,D},size(A)[1])
-#     for i = 1:size(A)[1]
-#         ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
-#     end
-#     ret
-# end
+*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).domain) 
+*{T<:IFun}(v::Vector{T},a::Number)=T[vk*a for vk in v]
+*{T<:IFun}(a::Number,v::Vector{T})=T[vk*a for vk in v]
 
 ## Need to catch A*p, A'*p, A.'*p
 ##TODO: A may not be same type as p
@@ -140,5 +135,30 @@ for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
             end
             ret    
         end
+        function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{IFun{V,D}})
+            cfs=$op(A,coefficients(p).')
+            ret = Array(IFun{promote_type(T,V),D},size(cfs,1))
+            for i = 1:size(A)[1]
+                ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
+            end
+            ret    
+        end      
+        
+        function ($op){T<:Number,D}(p::Vector{IFun{T,D}},A::Array{T,2})
+            cfs=$op(A,coefficients(p).')
+            ret = Array(IFun{T,D},size(cfs,1))
+            for i = 1:size(A)[1]
+                ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
+            end
+            ret    
+        end
+        function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{IFun{V,D}})
+            cfs=$op(A,coefficients(p).')
+            ret = Array(IFun{promote_type(T,V),D},size(cfs,1))
+            for i = 1:size(A)[1]
+                ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
+            end
+            ret    
+        end                
     end
 end

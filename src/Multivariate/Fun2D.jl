@@ -28,7 +28,7 @@ function Fun2D{T<:Number}(X::Array{T},dx::IntervalDomain,dy::IntervalDomain)
     
 
     A=IFun[IFun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
-    B=IFun[IFun(V[:,k].*sqrt(Σ[k]),dy) for k=1:m]
+    B=IFun[IFun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
 
     Fun2D(A,B)
 end
@@ -187,6 +187,11 @@ for op = (:*,:.*,:./,:/)
     @eval ($op)(f::Fun2D,c::Number) = Fun2D(($op)(f.A,c),f.B)
     @eval ($op)(c::Number,f::Fun2D) = Fun2D(($op)(c,f.A),f.B)
 end 
+
++(f::Fun2D,g::Fun2D)=Fun2D([f.A,g.A],[f.B,g.B])
+-(f::Fun2D)=Fun2D(-f.A,f.B)
+-(f::Fun2D,g::Fun2D)=f+(-g)
+
 
 real(u::Fun2D)=Fun2D([map(real,u.A),map(imag,u.A)],[map(real,u.B),-map(imag,u.B)])
 imag(u::Fun2D)=Fun2D([map(real,u.A),map(imag,u.A)],[map(imag,u.B),map(real,u.B)])

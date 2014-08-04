@@ -43,10 +43,13 @@ end
 
 # Solve Bx*Y=Gx and P*Y*R' + S*Y*T' = F 
 # where R and T are upper triangular
-function cont_constrained_lyapuptriang{N}(Bx,Gx,P,R,S,T,F::Array{N})
+
+##TODO: Support complex in second variable
+cont_constrained_lyapuptriang{PT,FT,ST}(Bx,Gx,P::Operator{PT},R,S::Operator{ST},T,F::Array{FT})=cont_constrained_lyapuptriang(promote_type(PT,ST,FT),Bx,Gx,P,R,S,T,F)
+function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
     n = size(T,2)
     ##TODO: complex
-    Y=Array(IFun{Float64,Interval{Float64}},n)
+    Y=Array(IFun{N,Interval{Float64}},n)
     PY=Array(Vector{N},n)
     SY=Array(Vector{N},n)
 
@@ -60,8 +63,8 @@ function cont_constrained_lyapuptriang{N}(Bx,Gx,P,R,S,T,F::Array{N})
                 end
             end
 
-            op=(R[k,k]*P + T[k,k]*S);
-            Y[k]=chop!([Bx,op]\[Gx[:,k],rhs],eps());
+            op=(R[k,k]*P + T[k,k]*S)
+            Y[k]=chop!([Bx,op]\[Gx[:,k],rhs],eps())
             
             PY[k]=P*Y[k].coefficients;SY[k]=S*Y[k].coefficients
             
@@ -79,7 +82,7 @@ function cont_constrained_lyapuptriang{N}(Bx,Gx,P,R,S,T,F::Array{N})
         
         
             A=[blkdiag(Bx,Bx);
-                R[k-1:k,k-1:k].*P+T[k-1:k,k-1:k].*S];
+                R[k-1:k,k-1:k].*P+T[k-1:k,k-1:k].*S]
             b={Gx[:,k-1]...,Gx[:,k]...,rhs1,rhs2}
             y=A\b
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
@@ -143,7 +146,7 @@ function cont_constrained_lyap(Bxin,Byin,Lin,Min,F::Array,ny)
     Y=cont_constrained_lyapuptriang(Bxin[1],Gx,Lx,R,Mx,T,F)
     
     X22=Z2*Y  #think of it as transpose
-    X11=Gy-Ry[:,Ky+1:end]*X22
+    X11=convert(typeof(X22),Gy-Ry[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
     [X11,X22].'
 
 end
