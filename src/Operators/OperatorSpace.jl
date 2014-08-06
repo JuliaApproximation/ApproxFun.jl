@@ -48,6 +48,8 @@ function Base.min(a::OperatorSpace,b::OperatorSpace)
     a
 end
 
+
+##TODO: Do we need both max and min?
 function findmindomainspace(ops::Vector)
     sp = Any
     

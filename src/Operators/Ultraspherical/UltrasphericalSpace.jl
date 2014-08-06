@@ -14,7 +14,7 @@ UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,Any)
 
 ##Check domain compatibility
 
-domainscompatible(a::UltrasphericalSpace,b::UltrasphericalSpace) = a.domain == Any || b.domain == Any || a.domain == b.domain
+domainscompatible(a::OperatorSpace,b::OperatorSpace) = a.domain == Any || b.domain == Any || a.domain == b.domain
 
 
 #TODO: bad override?
@@ -45,14 +45,28 @@ end
 # DirichletSpaces
 
 
-type UltrasphericalDirchletSpace{T<:Union(IntervalDomain,DataType)} <: OperatorSpace
-    order::Int
+type ChebyshevDirichletSpace{T<:Union(IntervalDomain,DataType)} <: OperatorSpace
     domain::T 
     left::Int
     right::Int    
 end
 
-==(a::UltrasphericalDirchletSpace,b::UltrasphericalDirchletSpace)=a.order==b.order && a.domain==b.domain && a.left==b.left && a.right==b.right
+==(a::ChebyshevDirichletSpace,b::ChebyshevDirichletSpace)= a.domain==b.domain && a.left==b.left && a.right==b.right
+
+function Base.max(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
+    @assert domainscompatible(a,b)
+    
+    a
+end
+Base.max(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=max(a,b)
+
+function Base.min(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
+    @assert domainscompatible(a,b)
+    
+    b
+end
+Base.min(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=min(a,b)
+
 
 
 ##Check domain compatibility

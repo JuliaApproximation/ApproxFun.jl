@@ -92,6 +92,11 @@ end
 -(c::Number,A::Operator)=ConstantOperator(c)-A
 -(A::Operator,c::Number)=A-ConstantOperator(c)
 
+.+(c::Number,A::Operator)=ConstantOperator(c)+A
+.+(A::Operator,c::Number)=A+ConstantOperator(c)
+.-(c::Number,A::Operator)=ConstantOperator(c)-A
+.-(A::Operator,c::Number)=A-ConstantOperator(c)
+
 
 
 ## Times Operator
