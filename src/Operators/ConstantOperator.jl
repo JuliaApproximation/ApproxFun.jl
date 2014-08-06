@@ -12,6 +12,4 @@ bandinds(T::ConstantOperator)=0,0
 
 addentries!(C::ConstantOperator,A::ShiftArray,kr::Range1)=laurent_addentries!([.5C.c],A,kr)
 
-
-
-
+==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
