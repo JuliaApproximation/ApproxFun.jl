@@ -86,7 +86,7 @@ end
 function zerocfsIFun(f::Function,d::Domain)
     #reuse function values
 
-    if isa(f(first(d)),Vector)
+    if isa(f(fromcanonical(d,0.)),Vector)
         return veczerocfsIFun(f,d)
     end
 

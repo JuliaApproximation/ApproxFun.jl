@@ -172,7 +172,7 @@ end
 
 function sample(f::Fun2D{IFun{Float64,Line}},n::Integer)
     cf=normalizedcumsum(sum(f,1))
-    CB=coefficientmatrix(map(cumsum,f.B))
+    CB=coefficients(map(cumsum,f.B))
     
     ry=samplecdf(cf,n)
     fA=evaluate(f.A,ry)
