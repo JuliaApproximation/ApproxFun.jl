@@ -127,7 +127,7 @@ function isvfft(sv::ShiftVector)
             v=[alternatesign!(sv[0:lastindex(sv)]),
                 -alternatesign!(sv[firstindex(sv):-1])]    
         else #mod(length(v),4)==1
-            v=[alternatiesign!(sv[0:lastindex(sv)]),alternatesign!(sv[firstindex(sv):-1])]         
+            v=[alternatesign!(sv[0:lastindex(sv)]),alternatesign!(sv[firstindex(sv):-1])]         
         end
         
         FFTW.ifft(n*v)

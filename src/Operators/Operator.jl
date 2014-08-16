@@ -162,7 +162,8 @@ neumann(d::IntervalDomain)=[EvaluationFunctional(d,d.a,1),EvaluationFunctional(d
 
 ## Conversion
 
-Base.convert{T<:Number}(A::Type{Operator{T}},n::Number)=ConstantOperator(one(T)*n)
+Base.convert{T<:Operator}(A::Type{T},n::Number)=ConstantOperator(1.0*n)
+
 
 ## Promotion
 
