@@ -1,9 +1,11 @@
 export MultiplicationOperator
 
 
-type ConstantOperator{T<:Number} <: BandedOperator{T}
+type ConstantOperator{T<:Union(Float64,Complex{Float64})} <: BandedOperator{T}
     c::T
 end
+
+ConstantOperator(c::Number)=ConstantOperator(1.0c)
 
 domainspace(M::ConstantOperator)=Any
 rangespace(M::ConstantOperator)=Any

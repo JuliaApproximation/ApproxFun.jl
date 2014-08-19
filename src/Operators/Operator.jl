@@ -159,6 +159,19 @@ evaluate(d::IntervalDomain,x)=EvaluationFunctional(d,x)
 dirichlet(d::IntervalDomain)=[evaluate(d,d.a),evaluate(d,d.b)]
 neumann(d::IntervalDomain)=[EvaluationFunctional(d,d.a,1),EvaluationFunctional(d,d.b,1)]
 
+function dirichlet{T<:IntervalDomain}(d::Vector{T})
+    m=length(d)
+    B=zeros(Operator,2m,m)
+    B[1,1]=dirichlet(d[1])[1]
+    B[2,end]=dirichlet(d[end])[end]
+    for k=1:m-1
+        B[k+2,k]=dirichlet(d[k])[2]
+        B[k+2,k+1]=-dirichlet(d[k+1])[1]    
+        B[k+m+1,k]=neumann(d[k])[2]
+        B[k+m+1,k+1]=-neumann(d[k+1])[1]        
+    end
+    B
+end
 
 ## Conversion
 

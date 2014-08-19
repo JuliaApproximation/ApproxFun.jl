@@ -70,6 +70,8 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
     A
 end
 
++(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c+B.c)
+-(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c-B.c)
 +(A::PlusOperator,B::PlusOperator)=PlusOperator([A.ops,B.ops])
 +(A::PlusOperator,B::Operator)=PlusOperator([A.ops,B])
 +(A::Operator,B::PlusOperator)=PlusOperator([A,B.ops])
@@ -255,7 +257,7 @@ end
 
 ## Algebra: assume we promote
 
-
+*(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c*B.c)
 *(A::TimesOperator,B::TimesOperator)=promotetimes([A.ops,B.ops])
 *(A::TimesOperator,B::Operator)=promotetimes([A.ops,B])
 *(A::Operator,B::TimesOperator)=promotetimes([A,B.ops])
@@ -268,6 +270,7 @@ end
 *(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A).order)*A
 *(f::FFun,A::Operator)=MultiplicationOperator(f)*A
 *(c::Number,A::Operator)=ConstantOperator(c)*A
+.*(c::Number,A::Operator)=ConstantOperator(c)*A
 
 
 

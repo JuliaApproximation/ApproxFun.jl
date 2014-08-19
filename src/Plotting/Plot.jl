@@ -104,7 +104,10 @@ end
 
 ## ArrayFun
 
-function PyPlot.plot{T<:AbstractFun}(v::Array{T})
+function PyPlot.plot{T<:AbstractFun}(v::Array{T}; axis=-1)
+    if axis != -1
+        PyPlot.axis([v[1].domain.a,v[end].domain.b,axis])
+    end
     for f in v
         plot(f)
     end
