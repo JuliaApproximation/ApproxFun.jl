@@ -1,7 +1,7 @@
 
 abstract OperatorSpace
 
-export OperatorSpace, domainspace, rangespace
+export OperatorSpace, domainspace, rangespace, maxspace, minspace
 
 ## Any is allowed as a Space
 typealias Space Union(OperatorSpace,DataType)
@@ -31,18 +31,18 @@ domain(A::OperatorSpace)=A.domain # assume it has a field domain
 ##max space
 
 
-Base.max(a::OperatorSpace,b::DataType)=a
-Base.max(b::DataType,a)=a
-function Base.max(a::OperatorSpace,b::OperatorSpace)
+maxspace(a::OperatorSpace,b::DataType)=a
+maxspace(b::DataType,a)=a
+function maxspace(a::OperatorSpace,b::OperatorSpace)
     @assert a==b
     
     a
 end
 
 
-Base.min(a::OperatorSpace,b::DataType)=a
-Base.min(b::DataType,a)=a
-function Base.min(a::OperatorSpace,b::OperatorSpace)
+minspace(a::OperatorSpace,b::DataType)=a
+minspace(b::DataType,a)=a
+function minspace(a::OperatorSpace,b::OperatorSpace)
     @assert a==b
     
     a
@@ -54,7 +54,7 @@ function findmindomainspace(ops::Vector)
     sp = Any
     
     for op in ops
-        sp = min(sp,domainspace(op))
+        sp = minspace(sp,domainspace(op))
     end
     
     sp
@@ -64,7 +64,7 @@ function findmaxrangespace(ops::Vector)
     sp = Any
     
     for op in ops
-        sp = max(sp,rangespace(op))
+        sp = maxspace(sp,rangespace(op))
     end
     
     sp

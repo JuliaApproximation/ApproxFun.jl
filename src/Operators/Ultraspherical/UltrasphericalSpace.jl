@@ -24,13 +24,13 @@ domainscompatible(a::OperatorSpace,b::OperatorSpace) = a.domain == Any || b.doma
 
 
 
-function Base.max(a::UltrasphericalSpace,b::UltrasphericalSpace)
+function maxspace(a::UltrasphericalSpace,b::UltrasphericalSpace)
     @assert domainscompatible(a,b)
     
     a.order > b.order?a:b
 end
 
-function Base.min(a::UltrasphericalSpace,b::UltrasphericalSpace)
+function minspace(a::UltrasphericalSpace,b::UltrasphericalSpace)
     @assert domainscompatible(a,b)
     
     a.order < b.order?a:b
@@ -53,19 +53,19 @@ end
 
 ==(a::ChebyshevDirichletSpace,b::ChebyshevDirichletSpace)= a.domain==b.domain && a.left==b.left && a.right==b.right
 
-function Base.max(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
+function maxspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
     @assert domainscompatible(a,b)
     
     a
 end
-Base.max(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=max(a,b)
+Base.max(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=maxspace(a,b)
 
-function Base.min(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
+function minspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
     @assert domainscompatible(a,b)
     
     b
 end
-Base.min(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=min(a,b)
+minspace(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=minspace(a,b)
 
 
 

@@ -73,9 +73,9 @@ include("Singularities/SingFun.jl")
 
 include("PDE/PDE.jl")
 
-if isdir(Pkg.dir("PyPlot"))
-    include("Plotting/Plot.jl")
-end
+
+include("Plot/Plot.jl")
+
 
 
 
