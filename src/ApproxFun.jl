@@ -11,6 +11,7 @@ export coefficients, integrate
 
 export domain
 
+import Base.values
 
 ##TODO Incorporate type
 abstract AbstractFun
@@ -36,8 +37,7 @@ include("Domains/PeriodicInterval.jl")
 include("Operators/Operator.jl")
 
 
-include("Multivariate/VectorFun.jl")
-include("Multivariate/Fun2D.jl")
+include("Multivariate/Multivariate.jl")
 
 include("sample.jl")
 
@@ -71,7 +71,7 @@ include("Domains/Circle.jl")
 
 include("Singularities/SingFun.jl")
 
-include("PDE/pdesolve.jl")
+include("PDE/PDE.jl")
 
 if isdir(Pkg.dir("PyPlot"))
     include("Plotting/Plot.jl")
