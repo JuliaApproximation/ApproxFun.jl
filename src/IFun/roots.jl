@@ -26,18 +26,18 @@ end
 
 
 
-function roots(f::IFun)
-    irts=map(real,filter!(x->abs(x)<=1.+10eps(),filter!(isreal,complexroots(f.coefficients))))
-    
-    map!(x->x>1.?1.:x,irts)
-    map!(x->x<-1.?-1.:x,irts)
-        
-    if length(irts)==0
-        Float64[]
-    else
-        fromcanonical(f,irts)
-    end
-end
+#function roots(f::IFun)
+#    irts=map(real,filter!(x->abs(x)<=1.+10eps(),filter!#(isreal,complexroots(f.coefficients))))
+#    
+#    map!(x->x>1.?1.:x,irts)
+#    map!(x->x<-1.?-1.:x,irts)
+#        
+#    if length(irts)==0
+#        Float64[]
+#    else
+#        fromcanonical(f,irts)
+#    end
+#end
 
 
 ##TODO: allow using routines for complex domains below
@@ -62,13 +62,13 @@ function Base.indmin(f::IFun)
 end
 
 
-function myroots( c, domain )
-# Rename to roots later. 
+function roots( f::IFun )
 # main() command for root finding. 
-
+c = f.coefficients; 
 v = coeffs2vals( c );
 vscale = maxabs( v, 1 );
-hscale = maxabs(domain);
+#hscale = maxabs(domain);
+hscale = 1; 
 
 # Trivial case for f constant: 
 if length( c ) == 1

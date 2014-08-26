@@ -74,7 +74,7 @@ include("Singularities/SingFun.jl")
 include("PDE/PDE.jl")
 
 
-include("Plot/Plot.jl")
+#include("Plot/Plot.jl")
 
 
 
