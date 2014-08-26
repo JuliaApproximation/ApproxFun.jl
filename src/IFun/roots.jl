@@ -61,6 +61,35 @@ function Base.indmin(f::IFun)
     pts[indmin(f[pts])]
 end
 
+
+function myroots( c, domain )
+# Rename to roots later. 
+# main() command for root finding. 
+
+v = coeffs2vals( c );
+vscale = maxabs( v, 1 );
+hscale = maxabs(domain);
+
+# Trivial case for f constant: 
+if length( c ) == 1
+    if ( c[1] == 0 )
+        # Return a root at centre of domain:
+        r = 0
+    else
+        # Return empty:
+        r = [];
+    end
+else
+
+    # Get scaled coefficients for the recursive call:
+    htol = 100*eps(Float64)*max(hscale, 1);
+    r = rootsunit_coeffs(c, htol);
+end
+
+    return r; 
+end
+
+
 function ColleagueEigVals( c )
 # INPUT Chebyshev coefficients. OUTPUT: roots (via eigvals of colleague matrix).
     n = length(c);
@@ -74,4 +103,176 @@ function ColleagueEigVals( c )
     # Standard colleague (See [Good, 1961]):
     r = eigvals(A); 
     return r;
+end
+
+function PruneOptions(r, all, prune, htol)
+# Sometimes roots are pruned out because we don't want complex ones for example.
+# This command deals with pruning. 
+    # Clean the roots up a bit:
+    if ( all==0 )
+        # Remove dangling imaginary parts:
+        mask = abs(imag(r)) .< htol;
+        r = real( r[mask] );
+        # Keep roots inside [-1 1]:
+        r = sort( r[abs(r) .<= 1 + htol] );
+        # Correct roots over ends:
+        if ( ~isempty(r) )
+            r[1] = max(r[1], -1);
+            r[end] = min(r[end], 1);
+        end
+        elseif ( prune==1 )
+        rho = sqrt(eps(Float64))^(-1/n);
+        rho_roots = abs(r + sqrt(r.^2 - 1));
+        rho_roots[rho_roots .< 1] = 1./rho_roots[rho_roots .< 1];
+        r = r[rho_roots .<= rho];
+    end
+    return r;
+end
+
+function rootsunit_coeffs(c, htol)
+# Computes the roots of the polynomial given by the coefficients c on the unit interval.
+    
+    splitPoint = -0.004849834917525;
+    splitInteger = 513;
+    all = 0; 
+    recurse = 1; 
+    prune = 0; 
+
+    #prefs = RootsPref(0, 1, 0);
+    
+    # Define these as persistent, need to compute only once the persistent Tleft Tright
+    n = length(c);
+    # Simplify the coefficients:
+    tailMmax = eps(Float64)*norm(c, 1);
+    # Find the final coefficient about tailMax:
+    idx = findfirst( flipud( abs(c[:]) .> tailMmax ) ); 
+    n = n - idx + 1;
+    
+    # Truncate the coefficients (rather than alias):
+    if ( n > 1 && n < length(c) )
+        c = c[1:n]; 
+    end
+    
+if ( n == 0 )
+    r = [];
+    return r;
+elseif ( n == 1 )
+     # If the function is zero, then place a root in the middle:
+     if ( c[1] == 0 )
+        r = 0; 
+        return r;
+     else
+     # Else return empty:
+        r = [];
+        return r;
+    end
+elseif ( n == 2 )
+    # Is the root in [-1,1]?
+    r = -c[1]/c[2];
+    if ( all==0 )
+        if ( (abs(imag(r)) .> htol) | (r < -(1 + htol)) | (r > (1 + htol)) )
+            r = [];   
+        else
+            r = max( min(real(r), 1), -1);
+        end
+    end
+    # Is n small enough for the roots to be calculated directly?
+elseif ( n <= 50 )
+    
+        # Adjust the coefficients for the colleague matrix:
+        r = ColleagueEigVals(c);
+
+        # Prune roots depending on preferences: 
+        r = PruneOptions( r, all, prune, htol);
+
+# If n <= splitInteger then we can compute the new coefficients with a matrix-vector product.
+elseif ( n <= splitInteger )
+        
+    # Have we assembled the matrices TLEFT and TRIGHT?
+    if ( ~isdefined(:Tleft) )
+        # Create the coefficients for TLEFT using the FFT directly: 
+        x = chebptsAB(splitInteger, [-1, splitPoint]);
+        x = x[:];
+        Tleft = ones(splitInteger,splitInteger); 
+        Tleft[:,2] = x;
+        for k = 3:splitInteger
+                Tleft[:,k] = 2 * x .* Tleft[:,k-1] - Tleft[:,k-2]; 
+        end
+            Tleft = [ Tleft[splitInteger:-1:2,:] ; Tleft[1:(splitInteger-1),:] ];
+        Tleft = real(fft(Tleft,1) / (splitInteger-1));
+            Tleft = triu( [ 0.5*Tleft[1,:] ; Tleft[2:(splitInteger-1),:] ; 0.5*Tleft[splitInteger,:] ] );
+            
+        # Create the coefficients for TRIGHT much in the same way:
+            x = chebptsAB(splitInteger, [splitPoint,1]);
+            x = x[:];
+            Tright = ones(splitInteger,splitInteger); 
+            Tright[:,2] = x;
+        for k = 3:513
+                Tright[:,k] = 2 * x .* Tright[:,k-1] - Tright[:,k-2]; 
+        end
+            Tright = [ Tright[splitInteger:-1:2,:] ; Tright[1:(splitInteger-1),:] ];
+        Tright = real(fft(Tright,1) / (splitInteger-1));
+            Tright = triu( [ 0.5*Tright[1,:] ; Tright[2:(splitInteger-1),:] ; 0.5*Tright[splitInteger,:] ] );
+    end
+    # Compute the new coefficients:
+        cleft = Tleft[1:n,1:n] * c;
+        cright = Tright[1:n,1:n] * c;
+        
+    # Recurse:
+    r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs(cleft, 2*htol) ;
+         (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs(cright, 2*htol) ];
+else 
+    # TODO: Code up the Clenshaw part of roots. Return NaN for now. 
+     r = NaN;
+end
+    return r;
+end
+
+function chebptsAB(n, ab)
+# Remove later. Get chebpts on [a,b]. 
+# Y = CHEBPTSAB(N, [A, B]) is the N-point Chebyshev grid mapped to [A,B].
+    a = ab[1];
+    b = ab[2];
+    x = chebpts(n);                    # [-1,1] grid
+    y = b*(x + 1)/2 + a*(1 - x)/2;     # new grid
+    return y; 
+end
+
+function chebpts( n )
+# Remove later. 
+    # Chebyshev point of the second kind. 
+    m = n - 1;
+    x = transpose( sin(pi*(-m:2:m)/(2*m)) ); 
+end
+
+function coeffs2vals( coeffs )
+# Remove later. 
+#COEFFS2VALS   Convert Chebyshev coefficients to values at Chebyshev points
+
+# Get the length of the input:
+n = size(coeffs, 1);
+
+# Trivial case (constant or empty):
+if  ( n <= 1 )
+    values = coeffs; 
+    return values
+end
+
+# Scale them by 1/2 and mirror the coefficients (to fake a DCT using an FFT):
+tmp = [ coeffs[n,:];coeffs[(n-1):-1:2,:]/2;coeffs[1,:] ; coeffs[2:n-1,:]/2 ];
+
+if ( isreal(coeffs) )
+    # Real-valued case:
+    values = real(fft(tmp));
+elseif ( isreal(im*coeffs) )
+    # Imaginary-valued case:
+    values = im*real(fft(imag(tmp)));
+else
+    # General case:
+    values = fft(tmp);
+end
+
+# Truncate and flip the order:
+values = values[n:-1:1,:];
+return values;
 end
