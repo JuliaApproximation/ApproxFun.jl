@@ -191,7 +191,7 @@ elseif ( n <= splitInteger )
     # Have we assembled the matrices TLEFT and TRIGHT?
     if ( ~isdefined(:Tleft) )
         # Create the coefficients for TLEFT using the FFT directly: 
-        x = chebptsAB(splitInteger, [-1, splitPoint]);
+        x = points([-1,splitPoint],splitInteger);
         x = x[:];
         Tleft = ones(splitInteger,splitInteger); 
         Tleft[:,2] = x;
@@ -203,7 +203,7 @@ elseif ( n <= splitInteger )
             Tleft = triu( [ 0.5*Tleft[1,:] ; Tleft[2:(splitInteger-1),:] ; 0.5*Tleft[splitInteger,:] ] );
             
         # Create the coefficients for TRIGHT much in the same way:
-            x = chebptsAB(splitInteger, [splitPoint,1]);
+            x = points([splitPoint,1],splitInteger);
             x = x[:];
             Tright = ones(splitInteger,splitInteger); 
             Tright[:,2] = x;
@@ -228,22 +228,6 @@ end
     return r;
 end
 
-function chebptsAB(n, ab)
-# Remove later. Get chebpts on [a,b]. 
-# Y = CHEBPTSAB(N, [A, B]) is the N-point Chebyshev grid mapped to [A,B].
-    a = ab[1];
-    b = ab[2];
-    x = chebpts(n);                    # [-1,1] grid
-    y = b*(x + 1)/2 + a*(1 - x)/2;     # new grid
-    return y; 
-end
-
-function chebpts( n )
-# Remove later. 
-    # Chebyshev point of the second kind. 
-    m = n - 1;
-    x = transpose( sin(pi*(-m:2:m)/(2*m)) ); 
-end
 
 function coeffs2vals( coeffs )
 # Remove later. 
