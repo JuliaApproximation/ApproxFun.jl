@@ -61,3 +61,17 @@ function Base.indmin(f::IFun)
     pts[indmin(f[pts])]
 end
 
+function ColleagueEigVals( c )
+# INPUT Chebyshev coefficients. OUTPUT: roots (via eigvals of colleague matrix).
+    n = length(c);
+    c = -1/2 * c[1:n-1] / c[n];
+    n = n - 1; 
+    c[n-1] = c[n-1] + 0.5;
+    oh = 0.5 * ones(n-1, 1);
+    A = diagm(oh[:], 1) + diagm(oh[:], -1);
+    A[n-1, n] = 1;
+    A[:, 1] = flipud(c);
+    # Standard colleague (See [Good, 1961]):
+    r = eigvals(A); 
+    return r;
+end
