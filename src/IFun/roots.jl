@@ -64,6 +64,9 @@ end
 
 function roots( f::IFun )
 # main() command for root finding. 
+
+domain = f.domain; 
+
 c = f.coefficients; 
 v = coeffs2vals( c );
 vscale = maxabs( v, 1 );
@@ -85,8 +88,8 @@ else
     htol = 100*eps(Float64)*max(hscale, 1);
     r = rootsunit_coeffs(c, htol);
 end
-
-    return r; 
+ 
+    return fromcanonical(domain, r); 
 end
 
 
@@ -134,11 +137,11 @@ function rootsunit_coeffs(c, htol)
     
     splitPoint = -0.004849834917525;
     splitInteger = 513;
+
+    # How do we allow users to submit preferences to the roots command. 
     all = 0; 
     recurse = 1; 
     prune = 0; 
-
-    #prefs = RootsPref(0, 1, 0);
     
     # Define these as persistent, need to compute only once the persistent Tleft Tright
     n = length(c);
