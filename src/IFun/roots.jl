@@ -68,7 +68,7 @@ function roots( f::IFun )
 domain = f.domain; 
 
 c = f.coefficients; 
-v = coeffs2vals( c );
+v = ichebyshevtransform( flipud( c ) );
 vscale = maxabs( v, 1 );
 #hscale = maxabs(domain);
 hscale = 1; 
@@ -229,98 +229,16 @@ else
     # In n is to large then don't form evaluation matrix explicitly, just do Clenshaw.  
     # Evaluate the polynomial on both intervals:
     pts = [ points([ -1, splitPoint ],n) ; points([ splitPoint, 1 ],n) ]
-    v = myclenshaw(c, pts[:]);
+    v = clenshaw(c, pts[:]);
     # Get the coefficients on the left:
-    cleft = vals2coeffs(v[1:n]);
+    cleft = chebyshevtransform(v[1:n]);
 
     # Get the coefficients on the right:
-    cright = vals2coeffs(v[n+1:2*n]);
+    cright = chebyshevtransform(v[n+1:2*n]);
     
     # Recurse:
     r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs(cleft, 2*htol) ;
             (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs(cright, 2*htol) ];
 end
     return r;
-end
-
-
-function coeffs2vals( coeffs )
-# Remove later. 
-#COEFFS2VALS   Convert Chebyshev coefficients to values at Chebyshev points
-
-# Get the length of the input:
-n = size(coeffs, 1);
-
-# Trivial case (constant or empty):
-if  ( n <= 1 )
-    values = coeffs; 
-    return values
-end
-
-# Scale them by 1/2 and mirror the coefficients (to fake a DCT using an FFT):
-tmp = [ coeffs[n,:];coeffs[(n-1):-1:2,:]/2;coeffs[1,:] ; coeffs[2:n-1,:]/2 ];
-
-if ( isreal(coeffs) )
-    # Real-valued case:
-    values = real(fft(tmp));
-elseif ( isreal(im*coeffs) )
-    # Imaginary-valued case:
-    values = im*real(fft(imag(tmp)));
-else
-    # General case:
-    values = fft(tmp);
-end
-
-# Truncate and flip the order:
-values = values[n:-1:1,:];
-return values;
-end
-
-function vals2coeffs(values)
-#VALS2COEFFS   Convert values at Chebyshev points to Chebyshev coefficients.
-
-# Get the length of the input:
-    n = size(values, 1);
-
-# Trivial case (constant):
-if ( n <= 1 )
-     return  values; 
-end
-
-# Mirror the values (to fake a DCT using an FFT):
-tmp = [values[n:-1:2,:] ; values[1:n-1,:]];
-
-if ( isreal(values) )
-    # Real-valued case:
-    coeffs = ifft(tmp,1);
-    coeffs = real(coeffs);
-elseif ( isreal(im*values) )
-    # Imaginary-valued case:
-    coeffs = ifft(imag(tmp),1);
-    coeffs = im*real(coeffs);
-else
-    # General case:
-    coeffs = ifft(tmp,1);
-end
-
-# Truncate:
-    coeffs = coeffs[1:n,:];
-
-# Scale the interior coefficients:
-    coeffs[2:n-1,:] *= 2;
-    
-    return coeffs;
-end
-
-function myclenshaw(c, x)
-# Clenshaw scheme for scalar-valued functions.
-bk1 = 0*x; 
-bk2 = bk1;
-x = 2*x;
-for k = size(c,1):-1:2
-    bk = c[k] + x.*bk1 - bk2;
-    bk2 = bk1; 
-    bk1 = bk;
-end
-return c[1] + .5*x.*bk1 - bk2;
 end
