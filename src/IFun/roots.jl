@@ -190,6 +190,7 @@ elseif ( n <= 50 )
 
 # If n <= splitInteger then we can compute the new coefficients with a matrix-vector product.
 elseif ( n <= splitInteger )
+     # For small n (n <= 513) it is faster (at least in MATLAB) to form evaluation matrices explicitly and keep them in memory rather than doing a Clenshaw evaluation every time. 
         
     # Have we assembled the matrices TLEFT and TRIGHT?
     if ( ~isdefined(:Tleft) )
@@ -225,8 +226,19 @@ elseif ( n <= splitInteger )
     r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs(cleft, 2*htol) ;
          (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs(cright, 2*htol) ];
 else 
-    # TODO: Code up the Clenshaw part of roots. Return NaN for now. 
-     r = NaN;
+    # In n is to large then don't form evaluation matrix explicitly, just do Clenshaw.  
+    # Evaluate the polynomial on both intervals:
+    pts = [ points([ -1, splitPoint ],n) ; points([ splitPoint, 1 ],n) ]
+    v = myclenshaw(c, pts[:]);
+    # Get the coefficients on the left:
+    cleft = vals2coeffs(v[1:n]);
+
+    # Get the coefficients on the right:
+    cright = vals2coeffs(v[n+1:2*n]);
+    
+    # Recurse:
+    r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs(cleft, 2*htol) ;
+            (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs(cright, 2*htol) ];
 end
     return r;
 end
@@ -262,4 +274,53 @@ end
 # Truncate and flip the order:
 values = values[n:-1:1,:];
 return values;
+end
+
+function vals2coeffs(values)
+#VALS2COEFFS   Convert values at Chebyshev points to Chebyshev coefficients.
+
+# Get the length of the input:
+    n = size(values, 1);
+
+# Trivial case (constant):
+if ( n <= 1 )
+     return  values; 
+end
+
+# Mirror the values (to fake a DCT using an FFT):
+tmp = [values[n:-1:2,:] ; values[1:n-1,:]];
+
+if ( isreal(values) )
+    # Real-valued case:
+    coeffs = ifft(tmp,1);
+    coeffs = real(coeffs);
+elseif ( isreal(im*values) )
+    # Imaginary-valued case:
+    coeffs = ifft(imag(tmp),1);
+    coeffs = im*real(coeffs);
+else
+    # General case:
+    coeffs = ifft(tmp,1);
+end
+
+# Truncate:
+    coeffs = coeffs[1:n,:];
+
+# Scale the interior coefficients:
+    coeffs[2:n-1,:] *= 2;
+    
+    return coeffs;
+end
+
+function myclenshaw(c, x)
+# Clenshaw scheme for scalar-valued functions.
+bk1 = 0*x; 
+bk2 = bk1;
+x = 2*x;
+for k = size(c,1):-1:2
+    bk = c[k] + x.*bk1 - bk2;
+    bk2 = bk1; 
+    bk1 = bk;
+end
+return c[1] + .5*x.*bk1 - bk2;
 end
