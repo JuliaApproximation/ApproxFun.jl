@@ -129,11 +129,13 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64)
         # Find the roots of the polynomial on each piece and then concatenate. Recurse if necessary.  
         
         # Evaluate the polynomial at Chebyshev grids on both intervals:
-        v = clenshaw( c, [ points([-1,splitPoint ],n) ; points([splitPoint,1],n) ] )
+        v1 = clenshaw( c, points([-1,splitPoint],n)) 
+        v2 = clenshaw( c, points([splitPoint,1] ,n)) 
         
         # Recurse (and map roots back to original interval):
-        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v[1:n]), 2*htol) ;
-                (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevtransform(v[n+1:2*n]), 2*htol) ]
+        p = plan_chebyshevtransform( v1 )
+        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( p(v1), 2*htol) ; 
+                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( p(v2), 2*htol) ]
 
     end
     
