@@ -63,14 +63,12 @@ end
 
 
 function roots( f::IFun )
-# main() for root finding. 
+# FIND THE ROOTS OF A IFUN.  
 
 domain = f.domain
 c = f.coefficients
-v = ichebyshevtransform( flipud( c ) )
-vscale = maxabs( v, 1 )
-#hscale = maxabs(domain)   TODO: fix this. 
-hscale = 1
+vscale = maxabs( values( f ) )
+hscale = maximum( [first(domain), last(domain)] ) 
 
 # Trivial case for f constant: 
 if length( c ) == 1
@@ -87,141 +85,110 @@ end
 
 
 function ColleagueEigVals( c )
-# INPUT Chebyshev coefficients. OUTPUT: roots (via eigvals of colleague matrix).
-    n = length(c)
-    c = -1/2 * c[1:n-1] / c[n]
-    n = n - 1
-    c[n-1] = c[n-1] + 0.5
+# COMPUTE THE ROOTS OF A LOW DEGREE POLYNOMIAL BY USING THE COLLEAGUE MATRIX: 
+    n = length(c) - 1
+    c = -1/2 * c[1:n] / c[n+1]
+    c[n-1] += 0.5
     oh = 0.5 * ones(n-1)
     A = diagm(oh, 1) + diagm(oh, -1)
     A[n-1, n] = 1
     A[:, 1] = flipud(c)
-    # Standard colleague (See [Good, 1961]):
-    r = eigvals(A)
-    return r
+    # TODO: can we speed things up because A is upper-Hessenberg
+    # Standard colleague matrix (See [Good, 1961]):
+    return eigvals( A )
 end
 
-function PruneOptions(r, all, prune, htol)
-# Sometimes roots are pruned out because we don't want complex ones for example.
-# This command deals with pruning. 
-    # Clean the roots up a bit:
+function PruneOptions( r, all, prune, htol )
+# PRUNE UNWANTED ROOTS 
+# Remove roots if they are ones that we do not want. 
+
     if ( all==0 )
+
+        # ONLY KEEP ROOTS ON THE INTERVAL: 
         # Remove dangling imaginary parts:
-        mask = abs(imag(r)) .< htol
-        r = real( r[mask] )
+        r = real( r[ abs(imag(r)) .< htol ] )
         # Keep roots inside [-1 1]:
-        r = sort( r[abs(r) .<= 1 + htol] )
-        # Correct roots over ends:
-        if ( ~isempty(r) )
-            r[1] = max(r[1], -1)
-            r[end] = min(r[end], 1)
-        end
+        r = sort( r[ abs(r) .<= 1+htol ] )
+        # Put roots near ends onto the domain:
+        r = min( max( r, -1 ), 1)
+
     elseif ( prune==1 )
-        rho = sqrt(eps(Float64))^(-1/n)
+
+        # ONLY KEEP ROOTS INSIDE THE BERNSTEIN ELLIPSE:
         rho_roots = abs(r + sqrt(r.^2 - 1))
         rho_roots[rho_roots .< 1] = 1./rho_roots[rho_roots .< 1]
-        r = r[rho_roots .<= rho]
+        r = r[rho_roots .<= sqrt(eps(Float64))^(-1/n)]
     end
+    
+    # Return the pruned roots: 
     return r
 end
 
 function rootsunit_coeffs(c, htol)
 # Computes the roots of the polynomial given by the coefficients c on the unit interval.
-    
-    splitPoint = -0.004849834917525;
-    splitInteger = 513;
 
-    # TODO: How do we allow users to submit preferences to the roots command. 
+    n = length(c)
+    
+    # If recursive subdivision is used, then subdivide [-1,1] into [-1,splitPoint] and [splitPoint,1]. 
+    const splitPoint = -0.004849834917525;
+
+    # TODO: How do we allow users to submit preferences to the roots command? 
     all = 0
     recurse = 1
     prune = 0
     
-    n = length(c)
-    # Simplify the coefficients:
-    tailMmax = eps(Float64)*norm(c, 1)
-    # Find the final coefficient about tailMax:
-    idx = findfirst( flipud( abs(c[:]) .> tailMmax ) ) 
+    # Simplify the coefficients by finding the last coefficient above tailMax:
+    idx = findfirst( flipud( abs(c[:]) .> eps(Float64)*norm(c, 1) ) ) 
     n = n - idx + 1
     
     # Truncate the coefficients (rather than alias):
-    if ( n > 1 && n < length(c) )
-        c = c[1:n]; 
-    end
+    c = ( n > 1 && n < length(c) ) ? c[1:n] : c 
     
-if ( n == 0 )
-    r = []
-elseif ( n == 1 )
-     # Return a root at centre of domain if zero function, otherwise no root:
-    r = ( c[1] == 0 ) ? 0 : [] 
-elseif ( n == 2 )
-    # Is the root in [-1,1]?
-    r = -c[1]/c[2];
-    if ( all==0 )
-        r = ( (abs(imag(r)) .> htol) | (r < -(1 + htol)) | (r > (1 + htol)) ) ? [] : max( min(real(r), 1), -1)
-    end
-    # Is n small enough for the roots to be calculated directly?
-elseif ( n <= 50 )
-        # The recursion subdividing below will keep going until we have a piecewise polynomial of degree at most 50 and we likely end up here for each piece. 
+    if ( n == 0 )
+        
+        # EMPTY FUNCTION
+        r = []
+
+    elseif ( n == 1 )
+        
+        # CONSTANT FUNCTION 
+        r = ( c[1] == 0 ) ? 0 : []
+
+    elseif ( n == 2 )
+
+        # LINEAR POLYNOMIAL
+        r = -c[1]/c[2];
+        if ( all==0 )
+            r = ( (abs(imag(r))>htol) | (abs(real(r))>(1+htol)) ) ? [] : max(min(real(r),1),-1)
+        end
+        
+    elseif ( n <= 50 )
+
+        # COLLEAGUE MATRIX
+        # The recursion subdividing below will keep going until we have a piecewise polynomial 
+        # of degree at most 50 and we likely end up here for each piece. 
     
         # Adjust the coefficients for the colleague matrix:
         r = ColleagueEigVals(c);
 
         # Prune roots depending on preferences: 
-        r = PruneOptions( r, all, prune, htol);
+        r = PruneOptions( r, all, prune, htol );
 
-#  RECURSE SUBDIVISION: 
-elseif ( n <= splitInteger )
-     # For small n (n <= 513) it is faster (at least in MATLAB) to form evaluation matrices explicitly and keep them in memory rather than doing a Clenshaw evaluation every time. 
+    else 
+
+        #  RECURSIVE SUBDIVISION: 
+        # If n > 50, then split the interval [-1,1] into [-1,splitPoint], [splitPoint,1]. 
+        # Find the roots of the polynomial on each piece and then concatenate. Recurse if necessary.  
         
-    # Have we assembled the matrices TLEFT and TRIGHT. If we have do not make them again: 
-    if ( ~isdefined(:Tleft) )
-        # TODO: This can all be done with chebyshevtransforms. Change. 
+        # Evaluate the polynomial at Chebyshev grids on both intervals:
+        v = clenshaw( c, [ points([-1,splitPoint ],n) ; points([splitPoint,1],n) ] )
+        
+        # Recurse (and map roots back to original interval):
+        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v[1:n]), 2*htol) ;
+                (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevtransform(v[n+1:2*n]), 2*htol) ]
 
-        # Create the coefficients for TLEFT using the FFT directly: 
-        x = points([-1,splitPoint],splitInteger)
-        x = x[:]
-        Tleft = ones(splitInteger,splitInteger) 
-        Tleft[:,2] = x
-        for k = 3:splitInteger
-                Tleft[:,k] = 2 * x .* Tleft[:,k-1] - Tleft[:,k-2]
-        end
-        Tleft = [ Tleft[splitInteger:-1:2,:] ; Tleft[1:(splitInteger-1),:] ]
-        Tleft = real(fft(Tleft,1) / (splitInteger-1))
-        Tleft = triu( [ 0.5*Tleft[1,:] ; Tleft[2:(splitInteger-1),:] ;0.5*Tleft[splitInteger,:] ] )
-            
-        # Create the coefficients for TRIGHT much in the same way:
-            x = points([splitPoint,1],splitInteger)
-            x = x[:];
-            Tright = ones(splitInteger,splitInteger)
-            Tright[:,2] = x
-        for k = 3:513
-                Tright[:,k] = 2 * x .* Tright[:,k-1] - Tright[:,k-2]
-        end
-        Tright = [ Tright[splitInteger:-1:2,:] ; Tright[1:(splitInteger-1),:] ]
-        Tright = real(fft(Tright,1) / (splitInteger-1))
-        Tright = triu( [ 0.5*Tright[1,:] ; Tright[2:(splitInteger-1),:] ; 0.5*Tright[splitInteger,:] ] )
     end
-    # Compute the new coefficients:
-        cleft = Tleft[1:n,1:n] * c
-        cright = Tright[1:n,1:n] * c
-        
-    # Recurse:
-    r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs(cleft, 2*htol) ;
-         (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs(cright, 2*htol) ]
-else 
-    # In n is too large then don't form evaluation matrices (TLEFT and TRIGHT) explicitly, just do Clenshaw.  
-    # Evaluate the polynomial on both intervals:
-    pts = [ points([ -1, splitPoint ],n) ; points([ splitPoint, 1 ],n) ]
-    v = clenshaw(c, pts[:])
-    # Get the coefficients on the left:
-    cleft = chebyshevtransform(v[1:n])
-
-    # Get the coefficients on the right:
-    cright = chebyshevtransform(v[n+1:2*n])
     
-    # Recurse:
-    r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs(cleft, 2*htol) ;
-            (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs(cright, 2*htol) ]
-end
+    # Return the roots: 
     return r
 end
