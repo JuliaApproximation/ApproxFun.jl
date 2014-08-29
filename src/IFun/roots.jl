@@ -130,8 +130,8 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64)
         
         # Recurse (and map roots back to original interval):
         p = plan_chebyshevtransform( v1 )
-        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( p(v1), 2*htol) ; 
-                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( p(v2), 2*htol) ]
+        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v1,p), 2*htol) ; 
+                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevtransform(v2,p), 2*htol) ]
 
     end
     
