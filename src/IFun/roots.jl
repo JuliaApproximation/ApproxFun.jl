@@ -87,22 +87,18 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64)
     # If recursive subdivision is used, then subdivide [-1,1] into [-1,splitPoint] and [splitPoint,1]. 
     const splitPoint = -0.004849834917525;
     
-    # Simplify the coefficients by finding the last coefficient above tailMax:
-    idx = findfirst( flipud( abs(c[:]) .> eps(Float64)*norm(c, 1) ) ) 
-    n = n - idx + 1
-    
-    # Truncate the coefficients (rather than alias):
-    c = ( n > 1 && n < length(c) ) ? c[1:n] : c 
-    
+    # Simplify the coefficients by chopping off the tail:
+    c = chop(c,eps()*norm(c, 1))
+
     if n == 0
         
         # EMPTY FUNCTION
-        r = []
+        r = Float64[]
 
     elseif n == 1
         
         # CONSTANT FUNCTION 
-        r = ( c[1] == 0 ) ? 0 : []
+        r = ( c[1] == 0.0 ) ? 0.0 : Float64[]
 
     elseif n == 2
 
