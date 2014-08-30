@@ -46,7 +46,7 @@ end
 adaptiveplus!(f,g,h)=adaptiveplus!(adaptiveplus!(f,g),h)
 
 #f-g-h
-adaptiveminus!(f,g,h)=adaptiveplus!(adaptiveminus!(f,g),h)
+adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 
 
 #Use XR' = G' = [G1 G2 G3...] to reduce columns of A in
