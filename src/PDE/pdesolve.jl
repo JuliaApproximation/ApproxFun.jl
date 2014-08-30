@@ -110,6 +110,7 @@ function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f)
 end
 
 pdesolve{T<:PDEOperator}(A::Vector{T},f)=Fun2D(pdesolve_mat(A,f),domain(A[end],2))
+pdesolve{T<:PDEOperator}(A::Vector{T},f,ny)=Fun2D(pdesolve_mat(A,f,ny),domain(A[end],2))
 
 
 # 

@@ -60,8 +60,18 @@ function lap(d::TensorDomain)
     Dx^2⊗I+I⊗Dy^2
 end
 
-+(A::UniformScaling,B::PDEOperator)=B+ConstantOperator(1.0)⊗ConstantOperator(1.0)
-+(B::PDEOperator,A::UniformScaling)=B+ConstantOperator(1.0)⊗ConstantOperator(1.0)
+function -(A::PDEOperator)
+    ops=copy(A.ops)
+    for k=1:size(ops,1)
+        ops[k,1]=-ops[k,1]
+    end
+    PDEOperator(ops)
+end
+
++(A::UniformScaling,B::PDEOperator)=B+ConstantOperator(1.0A.λ)⊗ConstantOperator(1.0)
++(B::PDEOperator,A::UniformScaling)=B+ConstantOperator(1.0A.λ)⊗ConstantOperator(1.0)
+-(A::UniformScaling,B::PDEOperator)=-B+ConstantOperator(1.0A.λ)⊗ConstantOperator(1.0)
+-(B::PDEOperator,A::UniformScaling)=B+ConstantOperator(-1.0A.λ)⊗ConstantOperator(1.0)
 
 function grad(d::TensorDomain)
     @assert length(d.domains)==2
