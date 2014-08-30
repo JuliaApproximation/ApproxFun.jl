@@ -1,16 +1,52 @@
 function adaptiveplus(f::Vector,g::Vector)
     if length(f)>length(g)
         ret=copy(f)
-        ret[1:length(g)]+=g
+        @inbounds ret[1:length(g)]+=g
     else
         ret=copy(g)
-        ret[1:length(f)]+=f
+        @inbounds ret[1:length(f)]+=f
     end
     
     ret
 end
+
+##May modify either f or g
+function adaptiveplus!(f::Vector,g::Vector)
+    if length(f)>length(g)
+        for k=1:length(g)
+            @inbounds f[k]+=g[k]
+        end
+        f
+    else
+        for k=1:length(f)
+            @inbounds g[k]+=f[k]
+        end
+        g
+    end
+end
+
+function adaptiveminus!(f::Vector,g::Vector)
+    if length(f)>length(g)
+        for k=1:length(g)
+            @inbounds f[k]-=g[k]
+        end
+        f
+    else
+        for k=1:length(g)
+            g[k]*=-1
+        end
+        for k=1:length(f)
+            @inbounds g[k]+=f[k]
+        end
+        g
+    end
+end
         
-adaptiveplus(f,g,h)=adaptiveplus(adaptiveplus(f,g),h)
+##May modify either f,g or h
+adaptiveplus!(f,g,h)=adaptiveplus!(adaptiveplus!(f,g),h)
+
+#f-g-h
+adaptiveminus!(f,g,h)=adaptiveplus!(adaptiveminus!(f,g),h)
 
 
 #Use XR' = G' = [G1 G2 G3...] to reduce columns of A in
@@ -59,7 +95,7 @@ function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
             rhs = F[:,k]
             if k < n
                 for j=k+1:n
-                    rhs= adaptiveplus(rhs,-R[k,j]*PY[j],-T[k,j]*SY[j])
+                    rhs= adaptiveminus!(rhs,R[k,j]*PY[j],T[k,j]*SY[j])
                 end
             end
 
@@ -75,8 +111,8 @@ function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
         
             if k < n
                 for j=k+1:n
-                    rhs1= adaptiveplus(rhs1,-R[k-1,j]*PY[j],-T[k-1,j]*SY[j])
-                    rhs2= adaptiveplus(rhs2,-R[k,j]*PY[j],-T[k,j]*SY[j])        
+                    rhs1= adaptiveminus!(rhs1,R[k-1,j]*PY[j],T[k-1,j]*SY[j])
+                    rhs2= adaptiveminus!(rhs2,R[k,j]*PY[j],T[k,j]*SY[j])        
                 end
             end
         
@@ -98,7 +134,7 @@ function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
         rhs = F[:,k]
 
         for j=2:n
-            rhs= adaptiveplus(rhs,-R[k,j]*PY[j],-T[k,j]*SY[j])
+            rhs= adaptiveminus!(rhs,R[k,j]*PY[j],T[k,j]*SY[j])
         end
 
         Y[k]=chop!([Bx,(R[k,k]*P + T[k,k]*S)]\[Gx[:,k],rhs],eps())
