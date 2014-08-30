@@ -1,3 +1,4 @@
-include("pdesolve.jl")
 include("PDEOperator.jl")
+include("pdesolve.jl")
+
 

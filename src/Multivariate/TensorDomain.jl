@@ -1,4 +1,4 @@
-
+export ⊗
 
 type TensorDomain{D<:Domain}
     domains::Vector{D} 
