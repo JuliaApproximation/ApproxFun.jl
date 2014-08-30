@@ -66,7 +66,7 @@ isyfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1
 ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
 
 
-function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f::Array,ny::Integer)
+function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f::Vector,ny::Integer)
     inds=find(isxfunctional,A)
     Bx=Functional[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[inds]]
     fx=f[inds]
