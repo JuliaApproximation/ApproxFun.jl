@@ -91,3 +91,8 @@ x=1.5
 
 @test_approx_eq norm(ef) 4.858451087240335
 
+
+##Roots
+
+f=Fun(x->sin(10(x-.1)))
+@test norm(f[roots(f)])< 100eps()

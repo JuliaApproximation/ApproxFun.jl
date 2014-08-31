@@ -79,7 +79,8 @@ function PruneOptions( r, htol::Float64 )
     return r
 end
 
-function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64)
+rootsunit_coeffs(c::Array{Float64,1}, htol::Float64)=rootsunit_coeffs(c,htol,ClenshawPlan(Float64,length(c)))
+function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64,clplan::ClenshawPlan{Float64})
 # Computes the roots of the polynomial given by the coefficients c on the unit interval.
 
     
@@ -125,13 +126,14 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64)
         # Find the roots of the polynomial on each piece and then concatenate. Recurse if necessary.  
         
         # Evaluate the polynomial at Chebyshev grids on both intervals:
-        v1 = clenshaw( c, points([-1,splitPoint],n)) 
-        v2 = clenshaw( c, points([splitPoint,1] ,n)) 
+        #(clenshaw! overwrites points)
+        v1 = clenshaw!( c, points([-1,splitPoint],n),clplan) 
+        v2 = clenshaw!( c, points([splitPoint,1] ,n),clplan) 
         
         # Recurse (and map roots back to original interval):
         p = plan_chebyshevtransform( v1 )
-        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v1,p), 2*htol) ; 
-                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevtransform(v2,p), 2*htol) ]
+        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v1,p), 2*htol,clplan) ; 
+                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevtransform(v2,p), 2*htol,clplan) ]
 
     end
     

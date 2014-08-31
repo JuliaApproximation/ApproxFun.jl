@@ -148,3 +148,38 @@ function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},plan::ClenshawPla
     
     bk
 end
+
+
+# overwrite x
+clenshaw!{T<:Real}(c::Vector{T},x::Vector{T})=clenshaw!(c,x,ClenshawPlan(T,length(x)))
+function clenshaw!{T<:Real}(c::Vector{T},x::Vector{T},plan::ClenshawPlan{T})
+    bk=plan.bk    
+    bk1=plan.bk1
+    bk2=plan.bk2
+
+    n = length(x)
+#    x=2x
+
+    
+    for i = 1:n
+        @inbounds bk1[i] = 0.
+        @inbounds bk2[i] = 0.
+        @inbounds bk[i] = 0.                
+    end
+
+    for k in  length(c):-1:2
+        ck = c[k]
+        for i in 1 : n
+            @inbounds bk[i] = ck + 2x[i] * bk1[i] - bk2[i]
+        end
+        bk2, bk1, bk = bk1, bk, bk2
+    end
+
+    ce = c[1]
+    for i in 1 : n
+        @inbounds  x[i] = ce + x[i] * bk1[i] - bk2[i]
+    end
+    
+    x
+end
+
