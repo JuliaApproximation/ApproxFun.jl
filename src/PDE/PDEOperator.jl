@@ -91,3 +91,47 @@ function dirichlet(d::TensorDomain)
     [Bx⊗I,I⊗By]
 end
 
+
+
+
+## Schur PDEOperator
+# represent an operator that's been discretized in the Y direction
+
+type PDEOperatorSchur{T,FT<:Functional}
+    Bx::Vector{FT}
+    Lx::Operator{T}
+    Mx::Operator{T}
+    S::OperatorSchur{T} 
+    
+    indsBx::Vector{Int}
+    indsBy::Vector{Int}
+end
+
+
+function PDEOperatorSchur(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)
+   @assert size(A.ops)==(2,2)
+   PDEOperatorSchur(Bx,A.ops[1,1],A.ops[2,1],OperatorSchur(By,A.ops[1,2],A.ops[2,2],ny),indsBx,indsBy)
+end
+
+isxfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,1])<:Functional
+isyfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,2])<:Functional
+ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
+
+
+function PDEOperatorSchur{T<:PDEOperator}(A::Vector{T},ny::Integer)
+    indsBx=find(isxfunctional,A)
+    Bx=Functional[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[indsBx]]
+    indsBy=find(isyfunctional,A)
+    By=Functional[(@assert Ai.ops[1,1]==ConstantOperator{Float64}(1.0); Ai.ops[1,2]) for Ai in A[indsBy]]
+    inds=find(ispdeop,A)
+    @assert length(inds)==1&&inds[1]==length(A)
+    
+    LL=A[end]
+    
+    
+    PDEOperatorSchur(Bx,By,LL,ny,indsBx,indsBy)
+end
+
+
+
+

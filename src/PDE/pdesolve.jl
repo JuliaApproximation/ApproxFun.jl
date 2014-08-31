@@ -18,39 +18,23 @@ include("cont_lyap.jl")
 # end
 
 
-isxfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,1])<:Functional
-isyfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,2])<:Functional
-ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
 
 
-function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f::Vector,ny::Integer)
-    inds=find(isxfunctional,A)
-    Bx=Functional[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[inds]]
-    fx=f[inds]
-    inds=find(isyfunctional,A)
-    By=Functional[(@assert Ai.ops[1,1]==ConstantOperator{Float64}(1.0); Ai.ops[1,2]) for Ai in A[inds]]
-
-
-    fy=convert(Vector{IFun{Float64, Interval{Float64}}},f[inds])
-    inds=find(ispdeop,A)
-    @assert length(inds)==1&&inds[1]==length(A)
-    LL=A[end]
+function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
+    fx=f[A.indsBx]
+    fy=f[A.indsBy]
     ff=f[end]
     
     if typeof(ff)<:Number
-        F=zeros(1,ny-length(By)) 
+        F=zeros(1,size(A.S,1)-numbcs(A.S)) 
     else
         error("General RHS not implemented")
     end
 
-    if size(LL.ops)==(2,2)
-        cont_constrained_lyap({Bx,fx},{By,fy},
-                                    {LL.ops[1,1],LL.ops[1,2]},
-                                    {LL.ops[2,1],LL.ops[2,2]},F,ny)
-    else
-        error("Higher rank PDEs not implemented") 
-    end
+    cont_constrained_lyap(S,fy,A.Bx,fx,A.Lx,A.Mx,F)
 end
+
+pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f)
 
 
 
@@ -66,8 +50,13 @@ function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f)
     error("Maximum number of iterations " * string(maxit) * "reached")
 end
 
+
+
+pdesolve(A::PDEOperatorSchur,f::Vector)=Fun2D(pdesolve_mat(A,f),A.S.domain)
 pdesolve{T<:PDEOperator}(A::Vector{T},f)=Fun2D(pdesolve_mat(A,f),domain(A[end],2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f,ny)=Fun2D(pdesolve_mat(A,f,ny),domain(A[end],2))
+
+
 
 
 # 
@@ -119,4 +108,5 @@ pdesolve{T<:PDEOperator}(A::Vector{T},f,ny)=Fun2D(pdesolve_mat(A,f,ny),domain(A[
 
 
 \{T<:PDEOperator}(A::Vector{T},f::Vector)=pdesolve(A,f)
+\(A::PDEOperatorSchur,f::Vector)=pdesolve(A,f)
 
