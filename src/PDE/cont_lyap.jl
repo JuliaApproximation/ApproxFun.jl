@@ -54,7 +54,29 @@ adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 # here G is a vector of IFuns
 
 
-function cont_reduce_dofs{T<:IFun}( R,G::Vector{T}, A::Array, M::Operator, F::Array )
+# function cont_reduce_dofs{T<:IFun}( R,G::Vector{T}, A::Array, M::Operator, F::Array )
+#     if length(R) > 0
+#         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
+#         # then kill the row by subtracting
+#         # MXR'[:,k]*A'[k,:]  from MXA'
+#         # i.e., subtacting A[:,k]*R[k,:] from A
+#         # and M*G'[:,k]*A'[k,:] from F
+#         # i.e. M*G[k]*A[:,k]' from 
+#         
+#         for k = 1:size(R,1)
+#             MG = M*G[k].coefficients         # coefficients in the range space of M      
+#             MGA = MG*A[:,k].'
+#             m=max(size(F,1),size(MGA,1))
+#             F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
+#             A = A - A[:,k]*R[k,:]
+#         end
+#     end
+#         
+#     A, F
+# end
+
+
+function cont_reduce_dofs{T<:IFun}( A::Array,G::Vector{T},M::Operator,F::Array )
     if length(R) > 0
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
@@ -63,18 +85,24 @@ function cont_reduce_dofs{T<:IFun}( R,G::Vector{T}, A::Array, M::Operator, F::Ar
         # and M*G'[:,k]*A'[k,:] from F
         # i.e. M*G[k]*A[:,k]' from 
         
-        for k = 1:size(R,1)
+        for k = 1:length(G)
             MG = M*G[k].coefficients         # coefficients in the range space of M      
             MGA = MG*A[:,k].'
             m=max(size(F,1),size(MGA,1))
             F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
-            A = A - A[:,k]*R[k,:]
         end
     end
         
-    A, F
+    F
 end
 
+function cont_reduce_dofs{T<:IFun}(S::OperatorSchur,G::Vector{T},L::Operator,M::Operator,F::Array)
+    F=cont_reduce_dofs(S.Lcols,G,L,F)
+    cont_reduce_dofs(S.Mcols,G,M,F)    
+end
+
+
+regularize_bcs(S::OperatorSchur,Gy)=S.bcQ*Gy
 
 
 # Solve Bx*Y=Gx and P*Y*R' + S*Y*T' = F 
@@ -153,39 +181,72 @@ end
 # by discretizing in y
 
 ##TODO: F should be adaptive rather than array
-function cont_constrained_lyap(Bxin,Byin,Lin,Min,F::Array,ny)
-    Xop=promotespaces([Lin[1],Min[1]])
+
+
+function cont_constrained_lyap(S::OperatorSchur,Gyin,Bx,Gx,Lxin,Mxin,F::Array)
+    Xop=promotespaces([Lxin,Mxin])    
     Lx=SavedBandedOperator(Xop[1]);Mx=SavedBandedOperator(Xop[2])
+    
+    Gy=regularize_bcs(S,Gyin)
 
-    #discretize in Y
-    By,Gy,Ly,My=pdetoarray(Byin,Lin[2],Min[2],ny) 
-    Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,full(Ly),full(My)) 
-    Ly,F = cont_reduce_dofs(Ry,Gy,Ly,Lx,F)     
-    My,f = cont_reduce_dofs(Ry,Gy,My,Mx,F)     
-
-    Ky = size(By,1)
-    B=Ly[:,Ky+1:end]
-    D=My[:,Ky+1:end]
-    BD=schurfact(full(B),full(D))
-    Q2=BD[:left];Z2=BD[:right]
-    R=BD[:S]; T=BD[:T]
-
+    F=cont_reduce_dofs(S,Gy,Lx,Mx,F)  
+    
+    Q2 = S.Q
+    
     F=pad(F,size(F,1),size(Q2,1))*Q2
     
-
+    
+    ny=size(S,2)
+    Ky=numbcs(S)
+    
     ## we've discretized, in y, and rhs for Bx is a function of y
     # so we need to discetize it as well
-    Gx=toarray(Bxin[2],ny)
+    Gx=toarray(Gx,ny)
     # remove unused DOFs and rearrange columns
-    Gx=Gx[:,Ky+1:end]*Z2
-
-
-    Y=cont_constrained_lyapuptriang(Bxin[1],Gx,Lx,R,Mx,T,F)
+    Gx=Gx[:,Ky+1:end]*S.Z
+    
+    Y=cont_constrained_lyapuptriang(Bx,Gx,Lx,S.R,Mx,S.T,F)
     
     X22=Z2*Y  #think of it as transpose
     X11=convert(typeof(X22),Gy-Ry[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
-    [X11,X22].'
-
+    [X11,X22].'    
 end
+
+
+
+# function cont_constrained_lyap(Bxin,Byin,Lin,Min,F::Array,ny)
+#     Xop=promotespaces([Lin[1],Min[1]])
+#     Lx=SavedBandedOperator(Xop[1]);Mx=SavedBandedOperator(Xop[2])
+# 
+#     #discretize in Y
+#     By,Gy,Ly,My=pdetoarray(Byin,Lin[2],Min[2],ny) 
+#     Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,full(Ly),full(My)) 
+#     Ly,F = cont_reduce_dofs(Ry,Gy,Ly,Lx,F)     
+#     My,f = cont_reduce_dofs(Ry,Gy,My,Mx,F)     
+# 
+#     Ky = size(By,1)
+#     B=Ly[:,Ky+1:end]
+#     D=My[:,Ky+1:end]
+#     BD=schurfact(full(B),full(D))
+#     Q2=BD[:left];Z2=BD[:right]
+#     R=BD[:S]; T=BD[:T]
+# 
+#     F=pad(F,size(F,1),size(Q2,1))*Q2
+#     
+# 
+#     ## we've discretized, in y, and rhs for Bx is a function of y
+#     # so we need to discetize it as well
+#     Gx=toarray(Bxin[2],ny)
+#     # remove unused DOFs and rearrange columns
+#     Gx=Gx[:,Ky+1:end]*Z2
+# 
+# 
+#     Y=cont_constrained_lyapuptriang(Bxin[1],Gx,Lx,R,Mx,T,F)
+#     
+#     X22=Z2*Y  #think of it as transpose
+#     X11=convert(typeof(X22),Gy-Ry[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
+#     [X11,X22].'
+# 
+# end
 
 

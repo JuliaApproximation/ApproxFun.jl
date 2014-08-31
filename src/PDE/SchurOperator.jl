@@ -91,31 +91,41 @@ type OperatorSchur{T}
     bcP::Array{T,2}  # permute columns of bcs
     bcQ::Array{T,2}  # normalize bcs
     
-    # A == QRZ',  B == QTZ'
-    # where A/B have degrees of freedom removed
+    # C == QRZ',  D == QTZ'
+    # where C/D have degrees of freedom removed
     Q::Array{T,2}   
     Z::Array{T,2}
                
     R::Array{T,2}
     T::Array{T,2}
+    
+    # L[:,1:k] and M[:,1:k]  so we know how the columns are killed
+    Lcols::Array{T,2}
+    Mcols::Array{T,2}
 end
 
+Base.size(S::OperatorSchur)=size(S.bcP)
+Base.size(S::OperatorSchur,k)=size(S.bcP,k)
 
-function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
-    B,L,M=pdetoarray(B,L,M,n)
-    R,Q,L,M,P=regularize_bcs(B,full(L),full(M))
+numbcs(S::OperatorSchur)=size(S.bcQ,1)
+
+OperatorSchur(B,L::Operator,M::Operator,n::Integer)=OperatorSchur(pdetoarray(B,L,M,n)...)
+OperatorSchur(B,L::SparseArray,M::SparseArray)=OperatorSchur(B,full(L),full(M))
+function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Array,M::Array)
+    B,Q,L,M,P=regularize_bcs(B,L,M)
     
+    Lcols=L[:,1:K];Mcols=M[:,1:K]    
     
-    L=cont_reduce_dofs(R,L)
-    M=cont_reduce_dofs(R,M)
+    L=cont_reduce_dofs(B,L)
+    M=cont_reduce_dofs(B,M)
     
     K = size(B,1)
-    B=L[:,K+1:end]
+    C=L[:,K+1:end]
     D=M[:,K+1:end]
-    BD=schurfact(B,D)
-    Q2=BD[:left];Z2=BD[:right]
-    R=BD[:S]; T=BD[:T]
+    CD=schurfact(C,D)
+    Q2=CD[:left];Z2=CD[:right]
+    R=CD[:S]; T=CD[:T]
     
-    OperatorSchur(P,Q,Q2,Z2,R,T)
+    OperatorSchur(P,Q,Q2,Z2,R,T, Lcols,Mcols)
 end
 
