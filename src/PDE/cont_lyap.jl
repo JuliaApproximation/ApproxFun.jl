@@ -161,6 +161,7 @@ function cont_constrained_lyap(Bxin,Byin,Lin,Min,F::Array,ny)
     By,Gy,Ly,My=pdetoarray(Byin,Lin[2],Min[2],ny) 
     Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,full(Ly),full(My)) 
     Ly,F = cont_reduce_dofs(Ry,Gy,Ly,Lx,F)     
+    My,f = cont_reduce_dofs(Ry,Gy,My,Mx,F)     
 
     Ky = size(By,1)
     B=Ly[:,Ky+1:end]
