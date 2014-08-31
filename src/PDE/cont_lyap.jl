@@ -116,12 +116,20 @@ function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
     SY=Array(Vector{N},n)
 
     k=n
+    m=n  # max length
+    
+    
     while k>1
         if T[k,k-1] == 0 && R[k,k-1] == 0        
-            rhs = F[:,k]
+            rhs = pad!(F[:,k],m)
             if k < n
                 for j=k+1:n
-                    rhs= adaptiveminus!(rhs,R[k,j]*PY[j],T[k,j]*SY[j])
+                    for s=1:length(PY[j])
+                        rhs[s]-=R[k,j]*PY[j][s]
+                    end
+                    for s=1:length(SY[j])
+                        rhs[s]-=T[k,j]*SY[j][s]
+                    end                    
                 end
             end
 
@@ -129,6 +137,7 @@ function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
             Y[k]=chop!([Bx,op]\[Gx[:,k],rhs],eps())
             
             PY[k]=P*Y[k].coefficients;SY[k]=S*Y[k].coefficients
+            m=max(m,length(PY[k]),length(SY[k]))
             
             k-=1
         else
@@ -151,6 +160,8 @@ function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
         
             PY[k-1]=P*Y[k-1].coefficients; PY[k]=P*Y[k].coefficients
             SY[k-1]=S*Y[k-1].coefficients; SY[k]=S*Y[k].coefficients
+            
+            m=max(m,length(PY[k]),length(SY[k]),length(PY[k-1]),length(SY[k-1]))  
             
             k-=2
         end
