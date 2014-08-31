@@ -1,4 +1,4 @@
-using ApproxFun
+using ApproxFun, Base.Test
 
 
 x=Fun(identity);

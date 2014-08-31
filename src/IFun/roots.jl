@@ -82,13 +82,13 @@ end
 function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64)
 # Computes the roots of the polynomial given by the coefficients c on the unit interval.
 
-    n = length(c)
     
     # If recursive subdivision is used, then subdivide [-1,1] into [-1,splitPoint] and [splitPoint,1]. 
     const splitPoint = -0.004849834917525;
     
     # Simplify the coefficients by chopping off the tail:
     c = chop(c,eps()*norm(c, 1))
+    n = length(c)
 
     if n == 0
         
