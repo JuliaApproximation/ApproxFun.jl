@@ -1,3 +1,13 @@
+
+type ClenshawPlan{T}
+    bk::Vector{T}
+    bk1::Vector{T}
+    bk2::Vector{T}
+end
+
+ClenshawPlan{T}(::Type{T},n::Integer)=ClenshawPlan(Array(T,n),Array(T,n),Array(T,n))
+
+
 function clenshaw(c,x)
     if maximum(abs(imag(x))) < 10*eps()
         clenshaw(c,real(x))
@@ -24,16 +34,22 @@ function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M})
     @assert length(c) > 0 
     
     n = length(x)
-    clenshaw(c,x,Array(T,n),Array(T,n),Array(T,n))
+    clenshaw(c,x,ClenshawPlan(T,n))
 end
 
 
 #Clenshaw routine for many Funs, x is a vector of same number of funs
 #each fun is a column
-clenshaw{T<:Number}(c::Array{T,2},x::Vector{T})=clenshaw(c,x,Array(T,size(c)[2]),Array(T,size(c)[2]),Array(T,size(c)[2]))
-function clenshaw{T<:Number}(c::Array{T,2},x::Vector{T},bk::Vector{T},bk1::Vector{T},bk2::Vector{T})
+clenshaw{T<:Number}(c::Array{T,2},x::Vector{T})=clenshaw(c,x,ClenshawPlan(T,size(c)[2]))
+function clenshaw{T<:Number}(c::Array{T,2},x::Vector{T},plan::ClenshawPlan{T})
+    bk=plan.bk    
+    bk1=plan.bk1
+    bk2=plan.bk2
+
+
     n=size(c)[2] #number of funs
     m=size(c)[1] #number of coefficients
+
     
     for i = 1:n
         @inbounds bk1[i] = 0.
@@ -64,8 +80,13 @@ end
 
 #Clenshaw routine for many Funs
 #each fun is a column
-clenshaw{T<:Number}(c::Array{T,2},x::Real)=clenshaw(c,x,Array(T,size(c)[2]),Array(T,size(c)[2]),Array(T,size(c)[2]))
-function clenshaw{T<:Number}(c::Array{T,2},x::Real,bk::Vector{T},bk1::Vector{T},bk2::Vector{T})
+clenshaw{T<:Number}(c::Array{T,2},x::Real)=clenshaw(c,x,ClenshawPlan(T,size(c)[2]))
+function clenshaw{T<:Number}(c::Array{T,2},x::Real,plan::ClenshawPlan{T})
+    bk=plan.bk    
+    bk1=plan.bk1
+    bk2=plan.bk2
+
+
     n=size(c)[2] #number of funs
     m=size(c)[1] #number of coefficients
 
@@ -97,7 +118,11 @@ end
 
 #Clenshaw routine for many points
 #Note that bk1, bk2, and bk are overwritten
-function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},bk::Vector{T},bk1::Vector{T},bk2::Vector{T})
+function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{T})
+    bk=plan.bk    
+    bk1=plan.bk1
+    bk2=plan.bk2
+
     n = length(x)
 #    x=2x
 

@@ -26,16 +26,16 @@ function bisectioninv(c::Vector{Float64},x::Float64)
 end
 
 
-bisectioninv(c::Vector{Float64},xl::Vector{Float64})=(n=length(xl);bisectioninv(c,xl,Array(Float64,n),Array(Float64,n),Array(Float64,n)))
-function bisectioninv(c::Vector{Float64},xl::Vector{Float64},bk::Vector{Float64},bk1::Vector{Float64},bk2::Vector{Float64}) 
-    n = length(xl);
-    a = -ones(n);
-    b = ones(n);
+bisectioninv(c::Vector{Float64},xl::Vector{Float64})=(n=length(xl);bisectioninv(c,xl,ClenshawPlan(Float64,n)))
+function bisectioninv(c::Vector{Float64},xl::Vector{Float64},plan::ClenshawPlan{Float64}) 
+    n = length(xl)
+    a = -ones(n)
+    b = ones(n)
     
     
     for k=1:47  #TODO: decide 47
         m=.5*(a+b);
-        vals = clenshaw(c,m,bk,bk1,bk2);
+        vals = clenshaw(c,m,plan)
         
         for j = 1:n
             (vals[j] <= xl[j]) ? (a[j] = m[j]) : (b[j] = m[j])
@@ -46,18 +46,18 @@ end
 
 
 #here, xl is vector w/ length == #cols of c
-bisectioninv(c::Array{Float64,2},xl::Vector{Float64})=(n=length(xl);bisectioninv(c,xl,Array(Float64,n),Array(Float64,n),Array(Float64,n)))
-function bisectioninv(c::Array{Float64,2},xl::Vector{Float64},bk::Vector{Float64},bk1::Vector{Float64},bk2::Vector{Float64}) 
+bisectioninv(c::Array{Float64,2},xl::Vector{Float64})=(n=length(xl);bisectioninv(c,xl,ClenshawPlan(Float64,n)))
+function bisectioninv(c::Array{Float64,2},xl::Vector{Float64},plan::ClenshawPlan{Float64}) 
     @assert size(c)[2] == length(xl)
 
-    n = length(xl);
-    a = -ones(n);
-    b = ones(n);
+    n = length(xl)
+    a = -ones(n)
+    b = ones(n)
     
     
     for k=1:47  #TODO: decide 47
         m=.5*(a+b);
-        vals = clenshaw(c,m,bk,bk1,bk2);
+        vals = clenshaw(c,m,plan)
         
         for j = 1:n
             (vals[j] <= xl[j]) ? (a[j] = m[j]) : (b[j] = m[j])
