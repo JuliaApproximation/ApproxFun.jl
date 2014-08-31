@@ -73,6 +73,17 @@ end
 -(A::UniformScaling,B::PDEOperator)=-B+ConstantOperator(1.0A.λ)⊗ConstantOperator(1.0)
 -(B::PDEOperator,A::UniformScaling)=B+ConstantOperator(-1.0A.λ)⊗ConstantOperator(1.0)
 
+-(A::PDEOperator,B::PDEOperator)=A+(-B)
+
+function *(c::Number,A::PDEOperator)
+    ops=copy(A.ops)
+    for k=1:size(ops,1)
+        ops[k,1]=c*ops[k,1]
+    end
+    PDEOperator(ops)
+end
+*(A::PDEOperator,c::Number)=c*A
+
 function grad(d::TensorDomain)
     @assert length(d.domains)==2
     Dx=diff(d.domains[1])
