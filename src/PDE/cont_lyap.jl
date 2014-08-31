@@ -77,7 +77,6 @@ adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 
 
 function cont_reduce_dofs{T<:IFun}( A::Array,G::Vector{T},M::Operator,F::Array )
-    if length(R) > 0
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
         # MXR'[:,k]*A'[k,:]  from MXA'
@@ -85,12 +84,11 @@ function cont_reduce_dofs{T<:IFun}( A::Array,G::Vector{T},M::Operator,F::Array )
         # and M*G'[:,k]*A'[k,:] from F
         # i.e. M*G[k]*A[:,k]' from 
         
-        for k = 1:length(G)
-            MG = M*G[k].coefficients         # coefficients in the range space of M      
-            MGA = MG*A[:,k].'
-            m=max(size(F,1),size(MGA,1))
-            F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
-        end
+    for k = 1:length(G)
+        MG = M*G[k].coefficients         # coefficients in the range space of M      
+        MGA = MG*A[:,k].'
+        m=max(size(F,1),size(MGA,1))
+        F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
     end
         
     F
@@ -207,8 +205,8 @@ function cont_constrained_lyap(S::OperatorSchur,Gyin,Bx,Gx,Lxin,Mxin,F::Array)
     
     Y=cont_constrained_lyapuptriang(Bx,Gx,Lx,S.R,Mx,S.T,F)
     
-    X22=Z2*Y  #think of it as transpose
-    X11=convert(typeof(X22),Gy-Ry[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
+    X22=S.Z*Y  #think of it as transpose
+    X11=convert(typeof(X22),Gy-S.bcs[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
     [X11,X22].'    
 end
 

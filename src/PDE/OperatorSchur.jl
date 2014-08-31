@@ -89,7 +89,9 @@ end
 
 type OperatorSchur{T}
     bcP::Array{T,2}  # permute columns of bcs
-    bcQ::Array{T,2}  # normalize bcs
+    bcQ::Array{T,2}  # bc normalizer
+    
+    bcs::Array{T,2} # normalized bcs
     
     # C == QRZ',  D == QTZ'
     # where C/D have degrees of freedom removed
@@ -109,23 +111,24 @@ Base.size(S::OperatorSchur,k)=size(S.bcP,k)
 
 numbcs(S::OperatorSchur)=size(S.bcQ,1)
 
-OperatorSchur(B,L::Operator,M::Operator,n::Integer)=OperatorSchur(pdetoarray(B,L,M,n)...)
-OperatorSchur(B,L::SparseArray,M::SparseArray)=OperatorSchur(B,full(L),full(M))
-function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Array,M::Array)
+OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)=OperatorSchur(pdetoarray(B,L,M,n)...)
+OperatorSchur(B,L::SparseMatrixCSC,M::SparseMatrixCSC)=OperatorSchur(B,full(L),full(M))
+function OperatorSchur(B::Array,L::Array,M::Array)
     B,Q,L,M,P=regularize_bcs(B,L,M)
+    
+    K = size(B,1)    
     
     Lcols=L[:,1:K];Mcols=M[:,1:K]    
     
     L=cont_reduce_dofs(B,L)
     M=cont_reduce_dofs(B,M)
     
-    K = size(B,1)
     C=L[:,K+1:end]
     D=M[:,K+1:end]
     CD=schurfact(C,D)
     Q2=CD[:left];Z2=CD[:right]
     R=CD[:S]; T=CD[:T]
     
-    OperatorSchur(P,Q,Q2,Z2,R,T, Lcols,Mcols)
+    OperatorSchur(P,Q,B,Q2,Z2,R,T, Lcols,Mcols)
 end
 
