@@ -105,7 +105,29 @@ type PDEOperatorSchur{T,FT<:Functional}
     
     indsBx::Vector{Int}
     indsBy::Vector{Int}
+    
+    Rdiags::Vector{SavedBandedOperator{T}}
 end
+
+function PDEOperatorSchur{T}(Bx,Lx::Operator{T},Mx::Operator{T},S::OperatorSchur{T},indsBx,indsBy)
+    ny=size(S,1)
+    nbcs=numbcs(S)
+    Rdiags=Array(SavedBandedOperator{T},ny)
+    Xops=promotespaces([Lx,Mx])
+    Lx=SavedBandedOperator(Xops[1]);Mx=SavedBandedOperator(Xops[2])
+    
+    resizedata!(Lx,ny);resizedata!(Mx,ny)
+    
+    
+    for k=1:ny-nbcs
+        Rdiags[k]=SavedBandedOperator(S.R[k,k]*Lx + S.T[k,k]*Mx)
+        resizedata!(Rdiags[k],ny)
+    end
+
+    
+    PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy,Rdiags)
+end
+
 
 PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::Operator,S::OperatorSchur)=PDEOperatorSchur(Bx,Lx,Mx,S,[1:length(Bx)],length(Bx)+[1:numbcs(S)])
 PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::OperatorSchur)=PDEOperatorSchur(Bx,Lx,ConstantOperator(Mx.λ),S)

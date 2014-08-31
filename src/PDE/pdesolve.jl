@@ -32,7 +32,7 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
         error("General RHS not implemented")
     end
 
-    cont_constrained_lyap(A.S,fy,A.Bx,fx,A.Lx,A.Mx,F)
+    cont_constrained_lyap(A,fy,fx,F)
 end
 
 pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f)

@@ -107,9 +107,9 @@ regularize_bcs(S::OperatorSchur,Gy)=S.bcQ*Gy
 # where R and T are upper triangular
 
 ##TODO: Support complex in second variable
-cont_constrained_lyapuptriang{PT,FT,ST}(Bx,Gx,P::Operator{PT},R,S::Operator{ST},T,F::Array{FT})=cont_constrained_lyapuptriang(promote_type(PT,ST,FT),Bx,Gx,P,R,S,T,F)
-function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
-    n = size(T,2)
+cont_constrained_lyapuptriang{T,FT}(OS::PDEOperatorSchur{T},Gx,F::Array{FT})=cont_constrained_lyapuptriang(promote_type(T,FT),OS,Gx,F)
+function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)
+    n = size(OS.S.T,2)
     ##TODO: complex
     Y=Array(IFun{N,Interval{Float64}},n)
     PY=Array(Vector{N},n)
@@ -120,23 +120,23 @@ function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
     
     
     while k>1
-        if T[k,k-1] == 0 && R[k,k-1] == 0        
+        if OS.S.T[k,k-1] == 0 && OS.S.R[k,k-1] == 0        
             rhs = pad!(F[:,k],m)
             if k < n
                 for j=k+1:n
                     for s=1:length(PY[j])
-                        rhs[s]-=R[k,j]*PY[j][s]
+                        rhs[s]-=OS.S.R[k,j]*PY[j][s]
                     end
                     for s=1:length(SY[j])
-                        rhs[s]-=T[k,j]*SY[j][s]
+                        rhs[s]-=OS.S.T[k,j]*SY[j][s]
                     end                    
                 end
             end
 
-            op=(R[k,k]*P + T[k,k]*S)
-            Y[k]=chop!([Bx,op]\[Gx[:,k],rhs],eps())
+            op=OS.Rdiags[k]
+            Y[k]=chop!([OS.Bx,op]\[Gx[:,k],rhs],eps())
             
-            PY[k]=P*Y[k].coefficients;SY[k]=S*Y[k].coefficients
+            PY[k]=OS.Lx*Y[k].coefficients;SY[k]=OS.Mx*Y[k].coefficients
             m=max(m,length(PY[k]),length(SY[k]))
             
             k-=1
@@ -146,20 +146,20 @@ function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
         
             if k < n
                 for j=k+1:n
-                    rhs1= adaptiveminus!(rhs1,R[k-1,j]*PY[j],T[k-1,j]*SY[j])
-                    rhs2= adaptiveminus!(rhs2,R[k,j]*PY[j],T[k,j]*SY[j])        
+                    rhs1= adaptiveminus!(rhs1,OS.S.R[k-1,j]*PY[j],OS.S.T[k-1,j]*SY[j])
+                    rhs2= adaptiveminus!(rhs2,OS.S.R[k,j]*PY[j],OS.S.T[k,j]*SY[j])        
                 end
             end
         
         
-            A=[blkdiag(Bx,Bx);
-                R[k-1:k,k-1:k].*P+T[k-1:k,k-1:k].*S]
+            A=[blkdiag(OS.Bx,OS.Bx);
+                OS.S.R[k-1:k,k-1:k].*P+OS.S.T[k-1:k,k-1:k].*S]
             b={Gx[:,k-1]...,Gx[:,k]...,rhs1,rhs2}
             y=A\b
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
         
-            PY[k-1]=P*Y[k-1].coefficients; PY[k]=P*Y[k].coefficients
-            SY[k-1]=S*Y[k-1].coefficients; SY[k]=S*Y[k].coefficients
+            PY[k-1]=OS.Lx*Y[k-1].coefficients; PY[k]=OS.Lx*Y[k].coefficients
+            SY[k-1]=OS.Mx*Y[k-1].coefficients; SY[k]=OS.Mx*Y[k].coefficients
             
             m=max(m,length(PY[k]),length(SY[k]),length(PY[k-1]),length(SY[k-1]))  
             
@@ -171,10 +171,10 @@ function cont_constrained_lyapuptriang{N}(::Type{N},Bx,Gx,P,R,S,T,F::Array)
         rhs = F[:,k]
 
         for j=2:n
-            rhs= adaptiveminus!(rhs,R[k,j]*PY[j],T[k,j]*SY[j])
+            rhs= adaptiveminus!(rhs,OS.S.R[k,j]*PY[j],OS.S.T[k,j]*SY[j])
         end
 
-        Y[k]=chop!([Bx,(R[k,k]*P + T[k,k]*S)]\[Gx[:,k],rhs],eps())
+        Y[k]=chop!([OS.Bx,OS.Rdiags[k]]\[Gx[:,k],rhs],eps())
     end
     
     Y
@@ -192,32 +192,28 @@ end
 ##TODO: F should be adaptive rather than array
 
 
-function cont_constrained_lyap(S::OperatorSchur,Gyin,Bx,Gx,Lxin,Mxin,F::Array)
-    Xop=promotespaces([Lxin,Mxin])    
-    Lx=SavedBandedOperator(Xop[1]);Mx=SavedBandedOperator(Xop[2])
+function cont_constrained_lyap(OS::PDEOperatorSchur,Gyin,Gx,F::Array)    
+    Gy=regularize_bcs(OS.S,Gyin)
+    F=cont_reduce_dofs(OS.S,Gy,OS.Lx,OS.Mx,F)  
     
-    Gy=regularize_bcs(S,Gyin)
-
-    F=cont_reduce_dofs(S,Gy,Lx,Mx,F)  
-    
-    Q2 = S.Q
+    Q2 = OS.S.Q
     
     F=pad(F,size(F,1),size(Q2,1))*Q2
     
     
-    ny=size(S,2)
-    Ky=numbcs(S)
+    ny=size(OS.S,2)
+    Ky=numbcs(OS.S)
     
     ## we've discretized, in y, and rhs for Bx is a function of y
     # so we need to discetize it as well
     Gx=toarray(Gx,ny)
     # remove unused DOFs and rearrange columns
-    Gx=Gx[:,Ky+1:end]*S.Z
+    Gx=Gx[:,Ky+1:end]*OS.S.Z
     
-    Y=cont_constrained_lyapuptriang(Bx,Gx,Lx,S.R,Mx,S.T,F)
+    Y=cont_constrained_lyapuptriang(OS,Gx,F)
     
-    X22=S.Z*Y  #think of it as transpose
-    X11=convert(typeof(X22),Gy-S.bcs[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
+    X22=OS.S.Z*Y  #think of it as transpose
+    X11=convert(typeof(X22),Gy-OS.S.bcs[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
     [X11,X22].'    
 end
 
