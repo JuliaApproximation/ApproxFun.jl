@@ -1,3 +1,6 @@
+
+import Base.chop 
+
 ## Helper routines
 alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
 
@@ -73,7 +76,7 @@ end
 function chop!(c::Vector,tol::Real)
     @assert tol > 0
 
-    for k=[length(c):-1:1]
+    for k=length(c):-1:1
         if abs(c[k]) > tol
             resize!(c,k)
             return c
@@ -83,3 +86,7 @@ function chop!(c::Vector,tol::Real)
     resize!(c,0)
     c
 end
+
+chop(f::Vector,tol)=chop!(copy(f),tol)
+chop!(f::Vector)=chop!(f,eps())
+

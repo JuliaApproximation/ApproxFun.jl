@@ -2,7 +2,6 @@ include("bary.jl")
 include("clenshaw.jl")
 include("ultraspherical.jl")
 
-import Base.chop
 
 
 
@@ -191,9 +190,8 @@ function chop!(f::IFun,tol::Real)
     
     f
 end
-chop(f::Union(IFun,Vector),tol)=chop!(deepcopy(f),tol)
-
-chop!(f::Union(IFun,Vector))=chop!(f,eps())
+chop(f::IFun,tol)=chop!(IFun(copy(f.coefficients),f.domain),tol)
+chop!(f::IFun)=chop!(f,eps())
 
 
 ## Addition and multiplication
