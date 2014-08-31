@@ -120,7 +120,8 @@ function domain(L,M)
 end
 
 
-
+OperatorSchur{FT<:Functional}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L.λ),M,n)
+OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M.λ),n)
 OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)=OperatorSchur(pdetoarray(B,L,M,n)...,domain(L,M))
 OperatorSchur(B,L::SparseMatrixCSC,M::SparseMatrixCSC,d)=OperatorSchur(B,full(L),full(M),d)
 function OperatorSchur(B::Array,L::Array,M::Array,d)

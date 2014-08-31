@@ -107,6 +107,10 @@ type PDEOperatorSchur{T,FT<:Functional}
     indsBy::Vector{Int}
 end
 
+PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::Operator,S::OperatorSchur)=PDEOperatorSchur(Bx,Lx,Mx,S,[1:length(Bx)],length(Bx)+[1:numbcs(S)])
+PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::OperatorSchur)=PDEOperatorSchur(Bx,Lx,ConstantOperator(Mx.λ),S)
+PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::OperatorSchur)=PDEOperatorSchur(Bx,ConstantOperator(Lx.λ),Mx,S)
+
 
 function PDEOperatorSchur(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)
    @assert size(A.ops)==(2,2)
