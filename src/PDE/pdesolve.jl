@@ -22,16 +22,17 @@ include("cont_lyap.jl")
 
 function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
     fx=f[A.indsBx]
-    fy=f[A.indsBy]
+    fy=convert(Vector{typeof(f[A.indsBy[1]])},f[A.indsBy])
     ff=f[end]
     
     if typeof(ff)<:Number
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
+        F[1,1]=ff
     else
         error("General RHS not implemented")
     end
 
-    cont_constrained_lyap(S,fy,A.Bx,fx,A.Lx,A.Mx,F)
+    cont_constrained_lyap(A.S,fy,A.Bx,fx,A.Lx,A.Mx,F)
 end
 
 pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f)
