@@ -9,7 +9,7 @@ include("ultraspherical.jl")
 
 
 
-
+##TODO: No zero length funs
 type IFun{T<:Union(Float64,Complex{Float64}),D<:IntervalDomain} <: AbstractFun
     coefficients::Vector{T}
     domain::D

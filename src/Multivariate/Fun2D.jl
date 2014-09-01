@@ -2,8 +2,6 @@
 export Fun2D
 
 
-abstract MultivariateFun
-#implements coefficients/values
 
 ## Fun2D
 
@@ -172,7 +170,7 @@ function evaluate(f::Fun2D,::Colon,y::Real)
     IFun(ret,first(f.A).domain)
 end
 
-Base.getindex(f::Fun2D,x,y)=evaluate(f,x,y)
+
 
 Base.rank(f::Fun2D)=length(f.A)
 Base.sum(g::Fun2D)=dot(map(sum,g.A),map(sum,g.B)) #TODO: not complexconjugate

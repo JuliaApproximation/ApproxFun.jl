@@ -10,7 +10,7 @@ end
 function TensorFun{T<:Number}(cfs::Array{T},dx,dy)
     ret=Array(IFun{T,typeof(dx)},size(cfs,2))
     for k=1:size(cfs,2)
-        ret[k]=IFun(chop!(cfs[:,k],10eps()),dx)
+        ret[k]=chop!(IFun(cfs[:,k],dx),10eps())
     end
     TensorFun(ret,dy)
 end
@@ -49,6 +49,10 @@ points(f::TensorFun,k)=points(domain(f,k),size(f,k))
 
 domain(f::TensorFun,k::Integer)=k==1?domain(f.coefficients[1]):f.domainy
 
+
+evaluate(f::TensorFun,x::Real,::Colon)=IFun([fc[x] for fc in f.coefficients],f.domainy)
+evaluate(f::TensorFun,x::Real,y::Real)=evaluate(f,x,:)[y]
+evaluate(f::TensorFun,x::Colon,y::Real)=evaluate(f.',y,:)
 
 
 
