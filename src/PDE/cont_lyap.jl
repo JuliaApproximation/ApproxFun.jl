@@ -214,7 +214,9 @@ function cont_constrained_lyap(OS::PDEOperatorSchur,Gyin,Gx,F::Array)
     
     X22=OS.S.Z*Y  #think of it as transpose
     X11=convert(typeof(X22),Gy-OS.S.bcs[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
-    [X11,X22].'    
+    X=[X11,X22].'    
+    X=X*OS.S.bcP.'
+    convert(Array{typeof(X[1,1]),2},X)
 end
 
 
