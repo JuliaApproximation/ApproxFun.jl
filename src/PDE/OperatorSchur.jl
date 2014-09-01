@@ -105,26 +105,25 @@ type OperatorSchur{T}
     Lcols::Array{T,2}
     Mcols::Array{T,2}
     
-    domain::IntervalDomain
+    domainspace::OperatorSpace
+    rangespace::OperatorSpace    
 end
 
 Base.size(S::OperatorSchur)=size(S.bcP)
 Base.size(S::OperatorSchur,k)=size(S.bcP,k)
 
 numbcs(S::OperatorSchur)=size(S.bcQ,1)
-
-##TODO: Move to central location
-function domain(L,M)
-    d=domain(L)
-    d==Any?domain(M):domain(L)
-end
+domainspace(S::OperatorSchur)=S.domainspace
+rangespace(S::OperatorSchur)=S.rangespace
+domain(S::OperatorSchur)=domain(domainspace(S))
 
 
-OperatorSchur{FT<:Functional}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L.λ),M,n)
-OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M.λ),n)
-OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)=OperatorSchur(pdetoarray(B,L,M,n)...,domain(L,M))
-OperatorSchur(B,L::SparseMatrixCSC,M::SparseMatrixCSC,d)=OperatorSchur(B,full(L),full(M),d)
-function OperatorSchur(B::Array,L::Array,M::Array,d)
+
+OperatorSchur{FT<:Functional}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L),M,n)
+OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M),n)
+OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)=OperatorSchur(pdetoarray(B,L,M,n)...,findmindomainspace([L,M]),findmaxrangespace([L,M]))
+OperatorSchur(B,L::SparseMatrixCSC,M::SparseMatrixCSC,ds,rs)=OperatorSchur(B,full(L),full(M),ds,rs)
+function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
     B,Q,L,M,P=regularize_bcs(B,L,M)
     
     K = size(B,1)    
@@ -140,6 +139,6 @@ function OperatorSchur(B::Array,L::Array,M::Array,d)
     Q2=CD[:left];Z2=CD[:right]
     R=CD[:S]; T=CD[:T]
     
-    OperatorSchur(P,Q,B,Q2,Z2,R,T, Lcols,Mcols,d)
+    OperatorSchur(P,Q,B,Q2,Z2,R,T, Lcols,Mcols,ds,rs)
 end
 

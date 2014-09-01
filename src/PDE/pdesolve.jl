@@ -17,19 +17,35 @@ include("cont_lyap.jl")
 #     Bx,Gx,By,Gy,Lx,Ly,Mx,My    
 # end
 
-
+function convert2funvec{T<:Number,D<:IntervalDomain}(f::Vector{T},d::D)
+    ret=Array(IFun{T,D},length(f))
+    for k=1:length(f)
+        ret[k]=IFun(f[k],d)
+    end
+    ret
+end
+convert2funvec{T<:IFun}(f::Vector{T},d::IntervalDomain)=f
+function convert2funvec{D<:IntervalDomain}(f::Vector{Any},d::D)
+    ##TODO: Complex
+    ret=Array(IFun{Float64,D},length(f))
+    for k=1:length(f)
+        ##TODO: Check domains match for IFuns
+        ret[k]=IFun(f[k],d)
+    end
+    ret
+end
 
 
 function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
-    fx=f[A.indsBx]
-    fy=convert(Vector{typeof(f[A.indsBy[1]])},f[A.indsBy])
+    fx=convert2funvec(f[A.indsBx],domain(A,2))
+    fy=convert2funvec(f[A.indsBy],domain(A,1))
     ff=f[end]
     
     if typeof(ff)<:Number
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff
-    else
-        error("General RHS not implemented")
+    else # typeof(ff) <:Fun2D
+        F=coefficients(ff,rangespace(A,1).order,rangespace(A,2).order)
     end
 
     cont_constrained_lyap(A,fy,fx,F)
@@ -53,7 +69,7 @@ end
 
 
 
-pdesolve(A::PDEOperatorSchur,f::Vector)=Fun2D(pdesolve_mat(A,f),A.S.domain)
+pdesolve(A::PDEOperatorSchur,f::Vector)=Fun2D(pdesolve_mat(A,f),domain(A,2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f)=Fun2D(pdesolve_mat(A,f),domain(A[end],2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f,ny)=Fun2D(pdesolve_mat(A,f,ny),domain(A[end],2))
 

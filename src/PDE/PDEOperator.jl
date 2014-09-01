@@ -169,6 +169,10 @@ function PDEOperatorSchur{T<:PDEOperator}(A::Vector{T},ny::Integer)
     PDEOperatorSchur(Bx,By,LL,ny,indsBx,indsBy)
 end
 
+Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
 
 
+domainspace(P::PDEOperatorSchur,k::Integer)=k==1?domainspace(P.Lx):domainspace(P.S)
+rangespace(P::PDEOperatorSchur,k::Integer)=k==1?rangespace(P.Lx):rangespace(P.S)
+domain(P::PDEOperatorSchur,k::Integer)=k==1?domain(P.Lx):domain(P.S)
 
