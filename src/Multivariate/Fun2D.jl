@@ -2,12 +2,13 @@
 export Fun2D
 
 
-
+abstract MultivariateFun
+#implements coefficients/values
 
 ## Fun2D
 
 
-type Fun2D{T<:AbstractFun,M<:AbstractFun}
+type Fun2D{T<:AbstractFun,M<:AbstractFun}<:MultivariateFun
   A::Vector{T}
   B::Vector{M}
   

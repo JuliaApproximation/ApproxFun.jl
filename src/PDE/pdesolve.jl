@@ -44,7 +44,7 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
     if typeof(ff)<:Number
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff
-    else # typeof(ff) <:Fun2D
+    else # typeof(ff) <:Fun2D || TensorFun
         F=coefficients(ff,rangespace(A,1).order,rangespace(A,2).order)
     end
 
@@ -69,9 +69,9 @@ end
 
 
 
-pdesolve(A::PDEOperatorSchur,f::Vector)=Fun2D(pdesolve_mat(A,f),domain(A,2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f)=Fun2D(pdesolve_mat(A,f),domain(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f,ny)=Fun2D(pdesolve_mat(A,f,ny),domain(A[end],2))
+pdesolve(A::PDEOperatorSchur,f::Vector)=TensorFun(pdesolve_mat(A,f),domain(A,2))
+pdesolve{T<:PDEOperator}(A::Vector{T},f)=TensorFun(pdesolve_mat(A,f),domain(A[end],2))
+pdesolve{T<:PDEOperator}(A::Vector{T},f,ny)=TensorFun(pdesolve_mat(A,f,ny),domain(A[end],2))
 
 
 
