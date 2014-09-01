@@ -103,6 +103,13 @@ function dirichlet(d::TensorDomain)
     [Bx⊗I,I⊗By]
 end
 
+function neumann(d::TensorDomain)
+    @assert length(d.domains)==2
+    Bx=neumann(d.domains[1])
+    By=neumann(d.domains[2])
+    [Bx⊗I,I⊗By]
+end
+
 
 function *(L::PDEOperator,f::Fun2D)
     @assert size(L.ops,2)==2
@@ -149,6 +156,7 @@ function PDEOperatorSchur{T}(Bx,Lx::Operator{T},Mx::Operator{T},S::OperatorSchur
     
     
     for k=1:ny-nbcs
+        ##TODO: Do block case
         Rdiags[k]=SavedBandedOperator(S.R[k,k]*Lx + S.T[k,k]*Mx)
         resizedata!(Rdiags[k],ny)
     end

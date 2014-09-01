@@ -153,7 +153,7 @@ function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::A
         
         
             A=[blkdiag(OS.Bx,OS.Bx);
-                OS.S.R[k-1:k,k-1:k].*P+OS.S.T[k-1:k,k-1:k].*S]
+                OS.S.R[k-1:k,k-1:k].*OS.Lx+OS.S.T[k-1:k,k-1:k].*OS.Mx]
             b={Gx[:,k-1]...,Gx[:,k]...,rhs1,rhs2}
             y=A\b
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
