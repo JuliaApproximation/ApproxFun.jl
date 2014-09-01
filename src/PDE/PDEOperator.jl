@@ -41,7 +41,8 @@ end
 
 function +(A::PDEOperator,B::PDEOperator)
     ret=copy(A.ops)
-    for k=1:size(B.ops,1),j=1:size(A.ops,1)
+    for k=1:size(B.ops,1)
+        ##TODO: might not be ordered
         if ret[k,1]==B.ops[k,1]
             ret[k,2]+=B.ops[k,2]
         elseif ret[k,2]==B.ops[k,2]
@@ -102,6 +103,23 @@ function dirichlet(d::TensorDomain)
     [Bx⊗I,I⊗By]
 end
 
+
+function *(L::PDEOperator,f::Fun2D)
+    @assert size(L.ops,2)==2
+    @assert size(L.ops,1)==2    
+    n=length(f.A)
+    A=Array(IFun,2n)
+    B=Array(IFun,2n)
+    
+    for k=1:n
+        A[k]=L.ops[1,1]*f.A[k]
+        B[k]=L.ops[1,2]*f.B[k]        
+        A[k+n]=L.ops[2,1]*f.A[k]
+        B[k+n]=L.ops[2,2]*f.B[k]        
+    end
+    
+    Fun2D(A,B)
+end
 
 
 
