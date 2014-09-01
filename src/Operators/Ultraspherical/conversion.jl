@@ -20,7 +20,10 @@ function ultraconversion{T}(g::Vector{T},m::Integer)
 end
 
 
-*(A::InfiniteOperator,b::IFun)=IFun(ultraiconversion(A*ultraconversion(b.coefficients,domainspace(A).order),rangespace(A).order),b.domain)
+function *(A::InfiniteOperator,b::IFun)
+    dsp=domainspace(A)
+    dsp==Any?IFun(A*b.coefficients,b.domain):IFun(ultraiconversion(A*ultraconversion(b.coefficients,dsp.order),rangespace(A).order),b.domain)
+end
 
 
 *{T<:Operator}(A::Vector{T},b::IFun)=map(a->a*b,convert(Array{Any,1},A))

@@ -6,6 +6,7 @@ type ConstantOperator{T<:Union(Float64,Complex{Float64})} <: BandedOperator{T}
 end
 
 ConstantOperator(c::Number)=ConstantOperator(1.0c)
+ConstantOperator(L::UniformScaling)=ConstantOperator(L.λ)
 
 domainspace(M::ConstantOperator)=Any
 rangespace(M::ConstantOperator)=Any
