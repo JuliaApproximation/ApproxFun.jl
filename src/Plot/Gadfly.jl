@@ -1,7 +1,6 @@
 ## Plotting
 
 
-using DataFrames  
 export plot
 export complexplot,contour
 
@@ -17,14 +16,16 @@ end
 
 
 function cplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
+    require("Gadfly")
+    require("DataFrames")    
     r=real(y)
     i=imag(y)
     if axis==-1
-        plot(DataFrames.DataFrame({[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]},DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
-        x="x",y="y",color="Function",Geom.line)
+        Main.Gadfly.plot(Main.DataFrames.DataFrame({[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]},Main.DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
+        x="x",y="y",color="Function",Main.Gadfly.Geom.line)
     else
-        plot(DataFrames.DataFrame({[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]},DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
-        x="x",y="y",color="Function",Geom.line, Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))      
+        Main.Gadfly.plot(Main.DataFrames.DataFrame({[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]},Main.DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
+        x="x",y="y",color="Function",Main.Gadfly.Geom.line, Main.Gadfly.Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))      
     end
 end
 
