@@ -58,7 +58,7 @@ end
 
 
 function plot(r::Range,f::IFun{Float64};opts...)
-    plot(r,f[[r]];opts)
+    plot(r,f[[r]];opts...)
 end
 
 contour(f::MultivariateFun;opts...)=contour(points(f,1),points(f,2),values(f);opts...)
