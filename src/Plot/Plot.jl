@@ -1,3 +1,3 @@
-if isdir(Pkg.dir("PyPlot"))
-    include("PyPlot.jl")
+if isdir(Pkg.dir("Gadfly"))
+    include("Gadfly.jl")
 end
