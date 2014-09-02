@@ -4,7 +4,9 @@
 export plot
 export complexplot,contour
 
-function gplot(xx::Vector,yy::Vector;axis=-1)
+
+## Vector routines
+function plot(xx::Vector,yy::Vector;axis=-1)
     require("Gadfly")
     if axis==-1
         Main.Gadfly.plot(x=xx, y=yy, Main.Gadfly.Geom.line)
@@ -15,7 +17,7 @@ end
 
 
 
-function cplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
+function plot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
     require("Gadfly")
     require("DataFrames")    
     r=real(y)
@@ -29,13 +31,25 @@ function cplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
     end
 end
 
+function contour(x::Vector,y::Vector,z::Matrix)
+    require("Gadfly")
+    Main.Gadfly.plot(x=x,y=y,z=z,Main.Gadfly.Geom.contour)
+end
+
+
+## Fun routines
+
 
 function plot{T<:Real}(f::IFun{T};opts...)
     f=pad(f,3length(f)+50)
-    gplot(points(f),values(f);opts...)
+    plot(points(f),values(f);opts...)
 end
 
 function plot{T<:Complex}(f::IFun{T};opts...)
     f=pad(f,3length(f)+50)
-    cplot(points(f),values(f);opts...)
+    plot(points(f),values(f);opts...)
 end
+
+
+contour(f::MultivariateFun)=contour(points(f,1),points(f,2),values(f))
+
