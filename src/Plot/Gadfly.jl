@@ -1,7 +1,7 @@
 ## Plotting
 
 
-using Gadfly    
+using Gadfly, DataFrames  
 import Gadfly.plot
 export plot
 export complexplot,contour
@@ -20,10 +20,10 @@ function cplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
     r=real(y)
     i=imag(y)
     if axis==-1
-        plot(DataFrame({[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]},DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
+        plot(DataFrames.DataFrame({[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]},DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
         x="x",y="y",color="Function",Geom.line)
     else
-        plot(DataFrame({[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]},DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
+        plot(DataFrames.DataFrame({[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]},DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
         x="x",y="y",color="Function",Geom.line, Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))      
     end
 end
