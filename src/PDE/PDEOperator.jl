@@ -84,6 +84,12 @@ function *(c::Number,A::PDEOperator)
     PDEOperator(ops)
 end
 *(A::PDEOperator,c::Number)=c*A
+function *(A::PDEOperator,B::PDEOperator)
+    # TODO: higher rank operators
+    @assert size(A.ops,1)==size(B.ops,1)==1
+    @assert size(A.ops,2)==size(B.ops,2)==2
+    PDEOperator([A.ops[1,1]*B.ops[1,1] A.ops[1,2]*B.ops[1,2]])
+end
 
 ##TODO how to determine whether x or y?
 function *(a::IFun,A::PDEOperator)

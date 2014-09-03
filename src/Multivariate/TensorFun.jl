@@ -61,6 +61,10 @@ evaluate(f::TensorFun,x::Range,y::Range)=evaluate(f,[x],[y])
 *(f::TensorFun,c::Number)=c*f
 
 
+
+chop(f::TensorFun,es...)=TensorFun(map(g->chop(g,es...),f.coefficients),f.domainy)
+
+
 ##TODO: following assumes f is never changed....maybe should be deepcopy?
 function +(f::TensorFun,c::Number)
     cfs=copy(f.coefficients)

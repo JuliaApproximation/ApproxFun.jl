@@ -61,7 +61,10 @@ function plot(r::Range,f::IFun{Float64};opts...)
     plot(r,f[[r]];opts...)
 end
 
-contour(f::MultivariateFun;opts...)=contour(points(f,1),points(f,2),values(f);opts...)
+function contour(f::MultivariateFun;opts...)
+    f=chop(f,10e-10)
+    contour(points(f,1),points(f,2),values(f);opts...)
+end
 
 
 function complexplot(f::IFun{Complex{Float64}};opts...) 

@@ -87,7 +87,7 @@ promotedomainspace(D::DerivativeOperator,sp::UltrasphericalSpace)=DerivativeOper
 function *(D1::DerivativeOperator,D2::DerivativeOperator)
     @assert D1.domain == D2.domain
     
-    DerivativeOperator(D2.order[1]:D2.order[2]+length(D1.order)-1,D1.domain)
+    DerivativeOperator(D2.order[1]:D2.order[end]+length(D1.order)-1,D1.domain)
 end
 
 ^(D1::DerivativeOperator,k::Integer)=DerivativeOperator(D1.order[1]:D1.order[1]+k*(length(D1.order)-1),D1.domain)
