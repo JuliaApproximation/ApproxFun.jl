@@ -49,3 +49,18 @@ end
 
 
 
+function plot(xx::Range,yy::Range,f::MultivariateFun)
+    vals      = evaluate(f,xx,yy)
+    vals=[vals[:,1] vals vals[:,end]];
+    vals=[vals[1,:]; vals; vals[end,:]]    
+    surf(vals)    
+end
+
+function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
+    vals      = evaluate(f,xx,yy)
+    vals=[vals[:,1] vals vals[:,end]];
+    vals=[vals[1,:]; vals; vals[end,:]]    
+    surf(vals,obj,window)    
+end
+
+

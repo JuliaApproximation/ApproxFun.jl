@@ -22,7 +22,7 @@ function domain(LL::PDEOperator,j::Integer)
     return Any
 end
 
-function domain(LL)
+function domain(LL::PDEOperator)
     @assert size(LL.ops,2)==2
     domain(LL,1)⊗domain(LL,2)
 end
