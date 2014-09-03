@@ -48,7 +48,7 @@ values(f::TensorFun)=values(Fun2D(f))
 points(f::TensorFun,k)=points(domain(f,k),size(f,k))
 
 domain(f::TensorFun,k::Integer)=k==1?domain(f.coefficients[1]):f.domainy
-
+domain(LL::TensorFun)=domain(LL,1)⊗domain(LL,2)
 
 evaluate(f::TensorFun,x::Real,::Colon)=IFun([fc[x] for fc in f.coefficients],f.domainy)
 evaluate(f::TensorFun,x::Real,y::Real)=evaluate(f,x,:)[y]
