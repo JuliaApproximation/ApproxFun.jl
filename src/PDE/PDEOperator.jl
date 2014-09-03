@@ -1,5 +1,5 @@
 
-export lap,grad
+export lap,grad,timedirichlet
 
 
 type PDEOperator
@@ -56,8 +56,8 @@ end
 
 function lap(d::TensorDomain)
     @assert length(d.domains)==2
-    Dx=diff(d.domains[1])
-    Dy=diff(d.domains[2])    
+    Dx=Base.diff(d.domains[1])
+    Dy=Base.diff(d.domains[2])    
     Dx^2⊗I+I⊗Dy^2
 end
 
@@ -85,13 +85,17 @@ function *(c::Number,A::PDEOperator)
 end
 *(A::PDEOperator,c::Number)=c*A
 
-function grad(d::TensorDomain)
-    @assert length(d.domains)==2
-    Dx=diff(d.domains[1])
-    Dy=diff(d.domains[2])    
-    [Dx⊗I,I⊗Dy]
+##TODO how to determine whether x or y?
+function *(a::IFun,A::PDEOperator)
+    ops = copy(A.ops)
+    for k=1:size(ops,1)
+        ops[k,1]=a*ops[k,1]
+    end
+    PDEOperator(ops)
 end
 
+Base.diff(d::TensorDomain,k)=k==1?Base.diff(d.domains[1])⊗I:I⊗Base.diff(d.domains[2])  
+grad(d::TensorDomain)=[Base.diff(d,k) for k=1:length(d.domains)]
 
 
 
@@ -108,6 +112,13 @@ function neumann(d::TensorDomain)
     Bx=neumann(d.domains[1])
     By=neumann(d.domains[2])
     [Bx⊗I,I⊗By]
+end
+
+function timedirichlet(d::TensorDomain)
+    @assert length(d.domains)==2
+    Bx=dirichlet(d.domains[1])
+    Bt=dirichlet(d.domains[2])[1]
+    [I⊗Bt,Bx⊗I]
 end
 
 

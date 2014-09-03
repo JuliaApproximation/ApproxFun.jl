@@ -47,6 +47,22 @@ function surf(vals::Matrix)
     glupdatewindow(obj,window)
 end
 
+function surf(xx::Matrix,yy::Matrix,vals::Matrix)
+    GLAbstraction=Main.GLAbstraction
+    ModernGL=Main.ModernGL
+    GLPlot=Main.GLPlot
+    
+    window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.))
+    
+    ModernGL.glClearColor(1,1,1,0)
+    obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , xrange=xx,yrange=yy,primitive=GLPlot.SURFACE(), color=map(colorf,vals))
+
+
+    glupdatewindow(obj,window)
+end
+
+surf(x::Vector,y::Vector,z::Matrix)=surf(x*ones(1,length(y)),ones(length(x))*y.',z)
+
 
 
 function plot(xx::Range,yy::Range,f::MultivariateFun)
@@ -62,5 +78,7 @@ function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
     vals=[vals[1,:]; vals; vals[end,:]]    
     surf(vals,obj,window)    
 end
+
+plot(f::MultivariateFun)=surf(points(f,1),points(f,2),values(f))
 
 

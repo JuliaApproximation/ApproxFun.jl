@@ -37,16 +37,22 @@ end
 
 
 function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
+    if length(f) < length(A.indsBx)+length(A.indsBy)+1
+        f=[f,zeros(length(A.indsBx)+length(A.indsBy)+1-length(f))]
+    end
+
     fx=convert2funvec(f[A.indsBx],domain(A,2))
     fy=convert2funvec(f[A.indsBy],domain(A,1))
-    ff=f[end]
     
+
+    ff=f[end]
     if typeof(ff)<:Number
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff
     else # typeof(ff) <:Fun2D || TensorFun
         F=coefficients(ff,rangespace(A,1).order,rangespace(A,2).order)
-    end
+    end        
+    
 
     cont_constrained_lyap(A,fy,fx,F)
 end
@@ -126,4 +132,6 @@ pdesolve{T<:PDEOperator}(A::Vector{T},f,ny)=TensorFun(pdesolve_mat(A,f,ny),domai
 
 \{T<:PDEOperator}(A::Vector{T},f::Vector)=pdesolve(A,f)
 \(A::PDEOperatorSchur,f::Vector)=pdesolve(A,f)
+\{T<:PDEOperator}(A::Vector{T},f::IFun)=pdesolve(A,[f])
+\(A::PDEOperatorSchur,f::IFun)=pdesolve(A,[f])
 
