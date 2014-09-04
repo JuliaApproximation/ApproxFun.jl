@@ -15,6 +15,8 @@ function TensorFun{T<:Number}(cfs::Array{T},dx,dy)
     TensorFun(ret,dy)
 end
 
+TensorFun(cfs::Array,d::TensorDomain)=TensorFun(cfs,d[1],d[2])
+
 TensorFun(f::Fun2D)=TensorFun(coefficients(f),domain(f,1),domain(f,2))
 
 TensorFun(f::Function,d1...)=TensorFun(Fun2D(f,d1...))
@@ -44,22 +46,7 @@ function coefficients(f::TensorFun,ox::Integer,oy::Integer)
     B
 end
 
-function values(f::TensorFun)
-    m,n=size(f)
-    p=plan_chebyshevtransform(pad(f.coefficients[1].coefficients,m))
-    p2=plan_chebyshevtransform(pad(f.coefficients[1].coefficients,n))
-    A=Array(Float64,m,n)
-    for k=1:n
-        A[:,k]=ichebyshevtransform(pad(f.coefficients[k].coefficients,m),p)
-    end
-    
-    for k=1:m
-        A[k,:]=ichebyshevtransform(vec(A[k,:]),p2)
-    end
-    
-    
-    A
-end
+values(f::TensorFun)=ichebyshevtransform(coefficients(f))
 
 points(f::TensorFun,k)=points(domain(f,k),size(f,k))
 
@@ -113,6 +100,14 @@ end
 Fun2D(f::TensorFun)=Fun2D(f.coefficients.',domain(f,2))
 
 .'(f::TensorFun)=TensorFun(coefficients(f).',domain(f,2),domain(f,1))
+
+
+#TODO: adaptive
+for op in (:(Base.sin),:(Base.cos))
+    @eval begin
+        ($op)(f::TensorFun)=TensorFun(chebyshevtransform($op(values(f))),domain(f))
+    end
+end
 
 
 
