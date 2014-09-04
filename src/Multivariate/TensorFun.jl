@@ -28,6 +28,7 @@ function funlist2coefficients{T<:Number,D<:IntervalDomain}(f::Vector{IFun{T,D}})
     for k=1:length(f)
         A[1:length(f[k]),k]=f[k].coefficients
     end
+    A
 end
 
 coefficients(f::TensorFun)=funlist2coefficients(f.coefficients)
@@ -43,7 +44,22 @@ function coefficients(f::TensorFun,ox::Integer,oy::Integer)
     B
 end
 
-values(f::TensorFun)=values(Fun2D(f))
+function values(f::TensorFun)
+    m,n=size(f)
+    p=plan_chebyshevtransform(pad(f.coefficients[1].coefficients,m))
+    p2=plan_chebyshevtransform(pad(f.coefficients[1].coefficients,n))
+    A=Array(Float64,m,n)
+    for k=1:n
+        A[:,k]=ichebyshevtransform(pad(f.coefficients[k].coefficients,m),p)
+    end
+    
+    for k=1:m
+        A[k,:]=ichebyshevtransform(vec(A[k,:]),p2)
+    end
+    
+    
+    A
+end
 
 points(f::TensorFun,k)=points(domain(f,k),size(f,k))
 

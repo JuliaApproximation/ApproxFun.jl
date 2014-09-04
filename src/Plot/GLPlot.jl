@@ -4,7 +4,7 @@
 export surf
 
 
-colorf(x)=x>0?Main.GLAbstraction.Vec4(.1,.1,0.5+3x,.1):Main.GLAbstraction.Vec4(.1,.1-3x,0.5,.1)
+#colorf(x)=x>0?Main.GLAbstraction.Vec4(.1,.1,0.5+3x,.1):Main.GLAbstraction.Vec4(.1,.1-3x,0.5,.1)
 
 
 function glupdatewindow(obj,window)
@@ -24,11 +24,11 @@ function surf(vals::Matrix,obj,window)##obj should be type RenderObject, window 
     GLAbstraction=Main.GLAbstraction
     
     zvalues = obj.uniforms[:z] 
-    colrs=obj.uniforms[:color]    
+#    colrs=obj.uniforms[:color]    
     
-    color     = map(colorf,vals)    
+#    color     = map(colorf,vals)    
     GLAbstraction.update!(zvalues, map(GLAbstraction.Vec1,vals)) # now you can simply update the gpu object, which should be very efficient
-     GLAbstraction.update!(colrs,color)
+#     GLAbstraction.update!(colrs,color)
 
     glupdatewindow(obj,window)
 end
@@ -41,7 +41,7 @@ function surf(vals::Matrix)
     window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.))
     
     ModernGL.glClearColor(1,1,1,0)
-    obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , primitive=GLPlot.SURFACE(), color=map(colorf,vals))
+    obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , primitive=GLPlot.SURFACE(), color="xyz.z>0 ? vec4(.1,.1,0.5+3*xyz.z,.1) : vec4(.1,.1-3*xyz.z,0.5,.1);")
 
 
     glupdatewindow(obj,window)
@@ -55,7 +55,7 @@ function surf(xx::Matrix,yy::Matrix,vals::Matrix)
     window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.))
     
     ModernGL.glClearColor(1,1,1,0)
-    obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , xrange=xx,yrange=yy,primitive=GLPlot.SURFACE(), color=map(colorf,vals))
+    obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , xrange=xx,yrange=yy,primitive=GLPlot.SURFACE(), color="xyz.z>0 ? vec4(.1,.1,0.5+3*xyz.z,.1) : vec4(.1,.1-3*xyz.z,0.5,.1);")
 
 
     glupdatewindow(obj,window)

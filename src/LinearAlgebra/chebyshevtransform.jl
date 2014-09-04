@@ -1,14 +1,26 @@
-export plan_chebyshevtransform
+export plan_chebyshevtransform, ichebyshevtransform,chebyshevtransform
 
 ## transforms
 
 
-function negateeven!(x)
+function negateeven!(x::Vector)
     for k =2:2:length(x)
-        x[k] *= -1.
+        x[k] *= -1
     end
     
     x
+end
+
+#checkerboard, same as applying negativeeven! to all rows then all columns
+function negateeven!(X::Matrix)
+    for k =2:2:size(X,1),j=1:2:size(X,2)
+        X[k,j] *= -1
+    end
+    for k =1:2:size(X,1),j=2:2:size(X,2)
+        X[k,j] *= -1
+    end    
+    
+    X
 end
 
 plan_chebyshevtransform(x)=length(x)==1?identity:FFTW.plan_r2r(x, FFTW.REDFT00)
@@ -17,9 +29,9 @@ function chebyshevtransform(x::Vector,plan::Function)
     if(length(x) == 1)
         x
     else
-        ret = plan(x)
-        ret[1] *= .5
-        ret[end] *= .5   
+        ret = plan(x)::typeof(x)
+        ret[1] /= 2
+        ret[end] /= 2   
         negateeven!(ret)
         ret*=1./(length(ret)-1)
         
@@ -34,16 +46,16 @@ function ichebyshevtransform(x::Vector,plan::Function)
         x
     else
         ##TODO: make thread safe
-        x[1] *= 2.;
-        x[end] *= 2.;
+        x[1] *= 2;
+        x[end] *= 2;
         
         ret = chebyshevtransform(x,plan)::typeof(x)
         
-        x[1] *= .5;
-        x[end] *= .5;
+        x[1] /=2;
+        x[end] /=2;
         
-        ret[1] *= 2.;
-        ret[end] *= 2.;
+        ret[1] *= 2;
+        ret[end] *= 2;
         
         negateeven!(ret)
         
@@ -52,3 +64,35 @@ function ichebyshevtransform(x::Vector,plan::Function)
         flipud(ret)
     end
 end
+
+
+
+function chebyshevtransform(A::Matrix)
+    if(size(A) == (1,1))
+        A
+    else
+        R=FFTW.r2r(A,FFTW.REDFT00)/((size(A,1)-1)*(size(A,2)-1))
+        
+        R[:,1]/=2;R[:,end]/=2
+        R[1,:]/=2;R[end,:]/=2
+        
+        negateeven!(R)
+        R
+    end
+end
+
+function ichebyshevtransform(X::Matrix)
+    if(size(X) == (1,1))
+        X
+    else
+        X[1,:]*=2;X[end,:]*=2;X[:,1]*=2;X[:,end]*=2
+        R=chebyshevtransform(X)
+        X[1,:]/=2;X[end,:]/=2;X[:,1]/=2;X[:,end]/=2
+        R[1,:]*=2;R[end,:]*=2;R[:,1]*=2;R[:,end]*=2
+        negateeven!(R)
+        R*=(size(X,1)-1)*(size(X,2)-1)/4
+        
+        flipud(fliplr(R))
+    end
+end
+
