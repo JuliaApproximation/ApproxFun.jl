@@ -35,3 +35,5 @@ roots(f)
 roots(f)
 @time roots(f)
 println("Roots: Time should be ~0.18")
+
+

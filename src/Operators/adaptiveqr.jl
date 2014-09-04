@@ -25,7 +25,7 @@ function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1
         B1 = datagetindex(B,k1,j)
         B2 = datagetindex(B,k2,j)
         
-        B[k1,j],B[k2,j]= a*B1 + b*B2,-b*B1 + a*B2
+        B[k1,j],B[k2,j]= conj(a)*B1 + conj(b)*B2,-b*B1 + a*B2
     end
     
     for j=ir1[end]+1:ir2[end]
@@ -39,7 +39,7 @@ function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1
         B1 = getfilldata(B,k1,j)
         B2 = getfilldata(B,k2,j)
     
-        setfilldata!(B, a*B1 + b*B2,k1,j)
+        setfilldata!(B, conj(a)*B1 + conj(b)*B2,k1,j)
         setfilldata!(B,-b*B1 + a*B2,k2,j)    
     end
     
@@ -52,7 +52,7 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::A
     
     if b != 0.0
         for j=1:size(v,2)
-            v[k1,j],v[k2,j] = a*v[k1,j] + b*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
+            v[k1,j],v[k2,j] = conj(a)*v[k1,j] + conj(b)*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
         end
     end        
 
