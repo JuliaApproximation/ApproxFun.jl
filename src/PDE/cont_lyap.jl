@@ -107,8 +107,9 @@ regularize_bcs(S::OperatorSchur,Gy)=S.bcQ*Gy
 # where R and T are upper triangular
 
 ##TODO: Support complex in second variable
-cont_constrained_lyapuptriang{T,FT}(OS::PDEOperatorSchur{T},Gx,F::Array{FT})=cont_constrained_lyapuptriang(promote_type(T,FT),OS,Gx,F)
-function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)
+cont_constrained_lyapuptriang{T,FT}(OS::PDEOperatorSchur{T},Gx,F::Array{FT},nx=100000)=cont_constrained_lyapuptriang(promote_type(T,FT),OS,Gx,F,nx)
+#cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)=cont_constrained_lyapuptriang(N,OS,Gx,F,100000)
+function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array,nx::Integer)
     n = size(OS.S.T,2)
     ##TODO: complex
     Y=Array(IFun{N,Interval{Float64}},n)
@@ -134,7 +135,7 @@ function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::A
             end
 
             op=OS.Rdiags[k]
-            Y[k]=chop!([OS.Bx,op]\[Gx[:,k],rhs],eps())
+            Y[k]=chop!(linsolve([OS.Bx,op],[Gx[:,k],rhs];maxlength=nx),eps())
             
             PY[k]=OS.Lx*Y[k].coefficients;SY[k]=OS.Mx*Y[k].coefficients
             m=max(m,length(PY[k]),length(SY[k]))
@@ -155,7 +156,7 @@ function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::A
             A=[blkdiag(OS.Bx,OS.Bx);
                 OS.S.R[k-1:k,k-1:k].*OS.Lx+OS.S.T[k-1:k,k-1:k].*OS.Mx]
             b={Gx[:,k-1]...,Gx[:,k]...,rhs1,rhs2}
-            y=A\b
+            y=linsolve(A,b;maxlength=nx)
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
         
             PY[k-1]=OS.Lx*Y[k-1].coefficients; PY[k]=OS.Lx*Y[k].coefficients
@@ -194,7 +195,7 @@ end
 #      to others (and me too!!)
 
 
-function cont_constrained_lyap(OS::PDEOperatorSchur,Gyin,Gx,F::Array)    
+function cont_constrained_lyap(OS::PDEOperatorSchur,Gyin,Gx,F::Array,nx=100000)    
     Gy=regularize_bcs(OS.S,Gyin)
     F=cont_reduce_dofs(OS.S,Gy,OS.Lx,OS.Mx,F)  
     
@@ -214,7 +215,7 @@ function cont_constrained_lyap(OS::PDEOperatorSchur,Gyin,Gx,F::Array)
     # remove unused DOFs and rearrange columns
     Gx=Gx[:,Ky+1:end]*OS.S.Z
     
-    Y=cont_constrained_lyapuptriang(OS,Gx,F)
+    Y=cont_constrained_lyapuptriang(OS,Gx,F,nx)
     # Y is a Vector{Fun}, so that Y[k][j] corresponds to matrix element M[k,j]
     # This means acting on Y is acting on *columns* of M
     

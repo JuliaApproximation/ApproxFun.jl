@@ -44,7 +44,7 @@ function convert2funvec{D<:IntervalDomain}(f::Vector{Any},d::D)
 end
 
 
-function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
+function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
     if length(f) < length(A.indsBx)+length(A.indsBy)+1
         f=[f,zeros(length(A.indsBx)+length(A.indsBy)+1-length(f))]
     end
@@ -62,9 +62,10 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
     end        
     
 
-    cont_constrained_lyap(A,fy,fx,F)
+    cont_constrained_lyap(A,fy,fx,F,nx)
 end
 
+pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,nx::Integer,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f,nx)
 pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f)
 
 
@@ -83,9 +84,9 @@ end
 
 
 
-pdesolve(A::PDEOperatorSchur,f::Vector)=TensorFun(pdesolve_mat(A,f),domain(A,2))
+pdesolve(A::PDEOperatorSchur,f::Vector,nx...)=TensorFun(pdesolve_mat(A,f,nx...),domain(A,2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f)=TensorFun(pdesolve_mat(A,f),domain(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f,ny)=TensorFun(pdesolve_mat(A,f,ny),domain(A[end],2))
+pdesolve{T<:PDEOperator}(A::Vector{T},f,n...)=TensorFun(pdesolve_mat(A,f,n...),domain(A[end],2))
 
 
 
