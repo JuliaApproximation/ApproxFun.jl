@@ -87,27 +87,31 @@ function cont_reduce_dofs( R,A::Array )
 end
 
 
-type OperatorSchur{T}
-    bcP::Array{T,2}  # permute columns of bcs
-    bcQ::Array{T,2}  # bc normalizer
+type OperatorSchur{BT<:Number,MT<:Number}
+    bcP::Array{BT,2}  # permute columns of bcs
+    bcQ::Array{BT,2}  # bc normalizer
     
-    bcs::Array{T,2} # normalized bcs
+    bcs::Array{BT,2} # normalized bcs
     
     # C == QRZ',  D == QTZ'
     # where C/D have degrees of freedom removed
-    Q::Array{T,2}   
-    Z::Array{T,2}
+    Q::Array{MT,2}   
+    Z::Array{MT,2}
                
-    R::Array{T,2}
-    T::Array{T,2}
+    R::Array{MT,2}
+    T::Array{MT,2}
     
     # L[:,1:k] and M[:,1:k]  so we know how the columns are killed
-    Lcols::Array{T,2}
-    Mcols::Array{T,2}
+    Lcols::Array{MT,2}
+    Mcols::Array{MT,2}
     
     domainspace::OperatorSpace
     rangespace::OperatorSpace    
 end
+
+#make sure cols are same type as ops
+OperatorSchur{M<:Number}(bcP,bcQ,bcs,Q::Array{M,2},Z::Array{M,2},R::Array{M,2},T::Array{M,2},Lcols::Array,Mcols::Array,ds,rs)=
+    OperatorSchur(bcP,bcQ,bcs,Q,Z,R,T,convert(Array{M},Lcols),convert(Array{M},Mcols),ds,rs)
 
 Base.size(S::OperatorSchur)=size(S.bcP)
 Base.size(S::OperatorSchur,k)=size(S.bcP,k)
