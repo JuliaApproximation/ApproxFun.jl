@@ -148,9 +148,23 @@ coefficients(f::IFun)=f.coefficients
 coefficients(f::IFun,m::Integer)=ultraconversion(f.coefficients,m)
 
 ##Convert routines
-Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([1.*x])
-Base.convert(::Type{IFun},x::Int64)=IFun([1.*x])
-Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.*x
+
+
+Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([1.0*x])
+Base.convert(::Type{IFun},x::Int64)=IFun([1.0*x])
+Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.0*x
+
+
+# Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([one(T)*x])
+# Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.0*x 
+# 
+# Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([1.*x])
+# Base.convert(::Type{IFun},x::Int64)=IFun([1.*x])
+# Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.*x
+# 
+# Base.convert{N<:Number,D<:IntervalDomain}(::Type{IFun{Complex{Float64},D}},f::IFun{N,D})=IFun(convert(Vector{Complex{Float64}},f.coefficients),f.domain)
+# Base.promote_rule{T<:Number,D<:IntervalDomain}(::Type{IFun{Complex{Float64},D}},::Type{IFun{T,D}})=IFun{Complex{Float64},D}
+# #Base.promote_rule{T<:Number,IF<:IFun}(::Type{IF},::Type{T})=IF
 
 ##Evaluation
 
@@ -167,10 +181,7 @@ Base.last(f::IFun)=reduce(+,f.coefficients)
 
 ##Data routines
 values(f::IFun)=ichebyshevtransform(f.coefficients) 
-
 points(f::IFun)=points(f.domain,length(f))
-
-
 Base.length(f::IFun)=length(f.coefficients)
 
 
@@ -285,6 +296,8 @@ for op = (:real,:imag,:conj)
     @eval ($op)(f::IFun) = IFun(($op)(f.coefficients),f.domain)
 end
 
+Base.abs2{D}(f::IFun{Float64,D})=f.^2
+Base.abs2{D}(f::IFun{Complex{Float64},D})=real(f).^2+imag(f).^2
 
 ## Differentiation and integration
 
