@@ -109,5 +109,7 @@ for op in (:(Base.sin),:(Base.cos))
     end
 end
 
-
+for op = (:(Base.real),:(Base.imag),:(Base.conj)) 
+    @eval ($op)(f::TensorFun) = TensorFun(map($op,f.coefficients),f.domainy)
+end
 
