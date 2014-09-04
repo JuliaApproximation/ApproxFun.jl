@@ -4,7 +4,6 @@ using ApproxFun, Base.Test
 f=Fun(exp);
 d=f.domain;
 D=diff(d);
-I=eye(d);
 Q=integrate(d);
 
 @test norm((Q+I)*f-(integrate(f)+f)) < eps()
