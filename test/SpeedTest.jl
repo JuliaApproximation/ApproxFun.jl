@@ -37,3 +37,32 @@ roots(f)
 println("Roots: Time should be ~0.18")
 
 
+## ODEs
+
+d=Interval(-1000.,5.)
+x=Fun(identity,d)
+u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
+u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
+@time u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
+println("Airy: should be ~0.05")
+
+## PDEs
+
+d=Interval()⊗Interval()
+
+x=Fun(identity,d[1]);y=Fun(identity,d[2])
+
+#dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
+A=[dirichlet(d),lap(d)]
+f=[real(exp(-1+1.im*y)),
+                        real(exp(1+1im*y)),
+                        real(exp(x-1im)),
+                        real(exp(x+1im))]
+u=pdesolve(A,f,100)
+u=pdesolve(A,f,100)
+@time u=pdesolve(A,f,100);
+S=schurfact(A,100)
+u=S\f
+u=S\f
+@time u=S\f;
+println("Laplace: should be ~0.08, 0.02")
