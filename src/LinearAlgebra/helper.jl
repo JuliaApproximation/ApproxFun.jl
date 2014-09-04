@@ -74,7 +74,7 @@ end
 
 ##chop!
 function chop!(c::Vector,tol::Real)
-    @assert tol > 0
+    @assert tol >= 0
 
     for k=length(c):-1:1
         if abs(c[k]) > tol

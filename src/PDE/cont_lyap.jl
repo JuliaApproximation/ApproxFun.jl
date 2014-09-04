@@ -189,7 +189,9 @@ end
 #
 # by discretizing in y
 
-##TODO: F should be adaptive rather than array
+#TODO: F should be adaptive rather than array
+#TODO: Describe precisely the permutation structure of OS so this algorithm actually makes sense
+#      to others (and me too!!)
 
 
 function cont_constrained_lyap(OS::PDEOperatorSchur,Gyin,Gx,F::Array)    
@@ -206,11 +208,15 @@ function cont_constrained_lyap(OS::PDEOperatorSchur,Gyin,Gx,F::Array)
     
     ## we've discretized, in y, and rhs for Bx is a function of y
     # so we need to discetize it as well
-    Gx=toarray(Gx,ny)
+    # and permute columns by P
+
+    Gx=toarray(Gx,ny)*OS.S.bcP  
     # remove unused DOFs and rearrange columns
     Gx=Gx[:,Ky+1:end]*OS.S.Z
     
     Y=cont_constrained_lyapuptriang(OS,Gx,F)
+    # Y is a Vector{Fun}, so that Y[k][j] corresponds to matrix element M[k,j]
+    # This means acting on Y is acting on *columns* of M
     
     X22=OS.S.Z*Y  #think of it as transpose
     X11=convert(typeof(X22),Gy-OS.S.bcs[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type

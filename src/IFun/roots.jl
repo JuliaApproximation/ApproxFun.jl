@@ -40,9 +40,16 @@ end
 
 function roots( f::IFun )
 # FIND THE ROOTS OF AN IFUN.  
+
     domain = f.domain
     c = f.coefficients
     vscale = maxabs( values( f ) )
+    if vscale == 0
+        warn("Tried to take roots of a zero function.  Returning [].")
+        ##TODO: could be complex domain, in which case type should be Complex{Float64}
+        return Float64[]
+    end    
+    
     hscale = maximum( [first(domain), last(domain)] ) 
     htol = eps(Float64)*max(hscale, 1)
     r = rootsunit_coeffs(c./vscale, htol)
@@ -143,25 +150,34 @@ end
 
 
 
-
-##TODO: allow using routines for complex domains below
-function Base.maximum(f::IFun)
-    pts=[f.domain.a,f.domain.b,roots(diff(f))]
-    maximum(f[pts])
+for op in (:(Base.maximum),:(Base.minimum))
+    @eval begin
+        function ($op)(f::IFun)
+            # the following avoids warning when diff(f)==0
+            if length(f) <=2
+                pts=[f.domain.a,f.domain.b]
+            else
+                pts=[f.domain.a,f.domain.b,roots(diff(f))]
+            end
+                
+            $op(f[pts])
+        end
+    end
 end
 
-function Base.minimum(f::IFun)
-    pts=[f.domain.a,f.domain.b,roots(diff(f))]
-    minimum(f[pts])
-end
 
-function Base.indmax(f::IFun)
-    pts=[f.domain.a,f.domain.b,roots(diff(f))]
-    pts[indmax(f[pts])]
-end
-
-function Base.indmin(f::IFun)
-    pts=[f.domain.a,f.domain.b,roots(diff(f))]
-    pts[indmin(f[pts])]
+for op in (:(Base.indmax),:(Base.indmin))
+    @eval begin
+        function ($op)(f::IFun)
+            # the following avoids warning when diff(f)==0
+            if length(f) <=2
+                pts=[f.domain.a,f.domain.b]
+            else
+                pts=[f.domain.a,f.domain.b,roots(diff(f))]
+            end
+                
+            pts[$op(f[pts])]
+        end
+    end
 end
 
