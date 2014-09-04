@@ -25,17 +25,17 @@ function convert2funvec{T<:Number,D<:IntervalDomain}(f::Vector{T},d::D)
     ret
 end
 convert2funvec{T<:IFun}(f::Vector{T},d::IntervalDomain)=f
-
-
-
 function convert2funvec{D<:IntervalDomain}(f::Vector{Any},d::D)
     mytyp=IFun{Float64,D}
     
     for fk in f
-        mytyp=promote_type(mytyp,typeof(fk))
+        if typeof(fk) == IFun{Complex{Float64},D}
+            mytyp=IFun{Complex{Float64},D}
+        end
     end
     
     ret=Array(mytyp,length(f))
+    
     for k=1:length(f)
         ##TODO: Check domains match for IFuns
         ret[k]=IFun(f[k],d)
@@ -46,7 +46,7 @@ end
 
 function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
     if length(f) < length(A.indsBx)+length(A.indsBy)+1
-        f=Any[f,zeros(length(A.indsBx)+length(A.indsBy)+1-length(f))...]
+        f=[f,zeros(length(A.indsBx)+length(A.indsBy)+1-length(f))]
     end
 
     fx=convert2funvec(f[A.indsBx],domain(A,2))
@@ -57,10 +57,6 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
     if typeof(ff)<:Number
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff
-    elseif typeof(ff)<:IFun
-        @assert length(ff)==1
-        F=zeros(1,size(A.S,1)-numbcs(A.S)) 
-        F[1,1]=ff.coefficients[1]        
     else # typeof(ff) <:Fun2D || TensorFun
         F=coefficients(ff,rangespace(A,1).order,rangespace(A,2).order)
     end        
