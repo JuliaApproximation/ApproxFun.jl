@@ -61,12 +61,6 @@ function plot(r::Range,f::IFun{Float64};opts...)
     plot(r,f[[r]];opts...)
 end
 
-function contour(f::MultivariateFun;opts...)
-    f=chop(f,10e-10)
-    contour(points(f,1),points(f,2),values(f);opts...)
-end
-
-
 function complexplot(f::IFun{Complex{Float64}};opts...) 
     f=pad(f,3length(f)+50)
     vals =values(f)
@@ -75,3 +69,52 @@ function complexplot(f::IFun{Complex{Float64}};opts...)
 end
 
 
+##FFun
+
+function plot(f::FFun;opts...) 
+    f=deepcopy(f)
+    
+    m=max(-firstindex(f.coefficients),lastindex(f.coefficients))
+    
+    f.coefficients=pad(f.coefficients,-m:m)
+
+    pts = [points(f),fromcanonical(f,π)]
+    vals =[values(f),first(values(f))]
+
+    plot(pts,vals;opts...)
+end
+
+
+function complexplot(f::FFun{Complex{Float64}};opts...) 
+    pts = [points(f),fromcanonical(f,π)]
+    vals =[values(f),first(values(f))]
+
+    plot(real(vals),imag(vals);opts...)
+end
+
+
+## SingFun
+
+
+function plot(f::SingFun;opts...) 
+    pf = pad(f,3length(f)+100)
+    
+    if f.α >= 0 && f.β >= 0
+        plot(points(pf),values(pf);opts...)
+    elseif f.α >= 0
+        plot(points(pf)[1:end-1],values(pf)[1:end-1];opts...)    
+    elseif f.β >= 0    
+        plot(points(pf)[2:end],values(pf)[2:end];opts...)    
+    else
+        plot(points(pf)[2:end-1],values(pf)[2:end-1];opts...)
+    end
+end
+
+
+
+## Multivariate
+
+function contour(f::MultivariateFun;opts...)
+    f=chop(f,10e-10)
+    contour(points(f,1),points(f,2),values(f);opts...)
+end
