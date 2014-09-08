@@ -1,6 +1,6 @@
 `ApproxFun` is a package for approximating functions.  It currently supports intervals, the real 
 line, periodic intervals and the unit circle.  It is heavily influenced by the Matlab 
-package [`chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
+package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
 
 
 
