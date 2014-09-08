@@ -87,9 +87,9 @@ end
 
 
 pdesolve(A::PDEOperatorSchur,f::Vector,nx...)=TensorFun(pdesolve_mat(A,f,nx...),domain(A,2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f)=TensorFun(pdesolve_mat(A,f),domain(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f,n...)=TensorFun(pdesolve_mat(A,f,n...),domain(A[end],2))
-
+pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector)=TensorFun(pdesolve_mat(A,f),domain(A[end],2))
+pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n...)=TensorFun(pdesolve_mat(A,f,n...),domain(A[end],2))
+pdesolve{T<:PDEOperator}(A::Vector{T},f::IFun,n...)=pdesolve(A,[f],n...)
 
 
 
@@ -144,6 +144,6 @@ pdesolve{T<:PDEOperator}(A::Vector{T},f,n...)=TensorFun(pdesolve_mat(A,f,n...),d
 
 \{T<:PDEOperator}(A::Vector{T},f::Vector)=pdesolve(A,f)
 \(A::PDEOperatorSchur,f::Vector)=pdesolve(A,f)
-\{T<:PDEOperator}(A::Vector{T},f::IFun)=pdesolve(A,[f])
-\(A::PDEOperatorSchur,f::IFun)=pdesolve(A,[f])
+\{T<:PDEOperator}(A::Vector{T},f::IFun)=pdesolve(A,f)
+\(A::PDEOperatorSchur,f::IFun)=pdesolve(A,f)
 
