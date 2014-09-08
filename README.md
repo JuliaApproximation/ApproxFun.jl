@@ -53,7 +53,7 @@ following code samples 10,000 standard normals:
 	
 We can apply this to any positive smooth PDF.  
 
-
+# Periodic functions
 
 There is also support for Fourier representations of functions on periodic intervals.  
 Use `FFun` to ensure that the representation is periodic:
