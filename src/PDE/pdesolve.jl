@@ -70,9 +70,11 @@ pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(PDEOperato
 
 
 
-function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f)
+pdesolve_mat{T<:PDEOperator}(A::Vector{T},f)=pdesolve_mat(A,f,10000eps())
+function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,tol::Real)
+    @assert tol>0
     maxit=11
-    tol=10000eps()
+   
     for k=5:maxit
         u=pdesolve_mat(A,f,2^k)
         if norm(map(f->norm(f.coefficients),u[end-2:end]))<tol
@@ -87,6 +89,7 @@ end
 pdesolve(A::PDEOperatorSchur,f::Vector,nx...)=TensorFun(pdesolve_mat(A,f,nx...),domain(A,2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f)=TensorFun(pdesolve_mat(A,f),domain(A[end],2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f,n...)=TensorFun(pdesolve_mat(A,f,n...),domain(A[end],2))
+
 
 
 

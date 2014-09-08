@@ -55,6 +55,7 @@ end
 
 *(c::Number,B::Functional)=ConstantTimesFunctional(c,B)
 *(B::Functional,c::Number)=ConstantTimesFunctional(c,B)
+/(B::Functional,c::Number)=ConstantTimesFunctional(1.0/c,B)
 *(B::Functional,O::TimesOperator)=FunctionalTimesBandedOperator(B,O)
 *(B::Functional,O::BandedOperator)=FunctionalTimesBandedOperator(B,O)
 
