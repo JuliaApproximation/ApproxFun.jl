@@ -7,7 +7,7 @@ type TensorFun{F<:IFun,D<:IntervalDomain}<:MultivariateFun
     domainy::D
 end
 
-function TensorFun{T<:Number}(cfs::Array{T},dx,dy)
+function TensorFun{T<:Number}(cfs::Matrix{T},dx,dy)
     ret=Array(IFun{T,typeof(dx)},size(cfs,2))
     for k=1:size(cfs,2)
         ret[k]=chop!(IFun(cfs[:,k],dx),10eps())
@@ -99,7 +99,7 @@ end
 
 Fun2D(f::TensorFun)=Fun2D(f.coefficients.',domain(f,2))
 
-.'(f::TensorFun)=TensorFun(coefficients(f).',domain(f,2),domain(f,1))
+Base.transpose(f::TensorFun)=TensorFun(coefficients(f).',domain(f,2),domain(f,1))
 
 
 #TODO: adaptive
@@ -109,5 +109,7 @@ for op in (:(Base.sin),:(Base.cos))
     end
 end
 
-
+for op = (:(Base.real),:(Base.imag),:(Base.conj)) 
+    @eval ($op)(f::TensorFun) = TensorFun(map($op,f.coefficients),f.domainy)
+end
 

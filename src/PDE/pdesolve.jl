@@ -26,8 +26,16 @@ function convert2funvec{T<:Number,D<:IntervalDomain}(f::Vector{T},d::D)
 end
 convert2funvec{T<:IFun}(f::Vector{T},d::IntervalDomain)=f
 function convert2funvec{D<:IntervalDomain}(f::Vector{Any},d::D)
-    ##TODO: Complex
-    ret=Array(IFun{Float64,D},length(f))
+    mytyp=IFun{Float64,D}
+    
+    for fk in f
+        if typeof(fk) == IFun{Complex{Float64},D}
+            mytyp=IFun{Complex{Float64},D}
+        end
+    end
+    
+    ret=Array(mytyp,length(f))
+    
     for k=1:length(f)
         ##TODO: Check domains match for IFuns
         ret[k]=IFun(f[k],d)
@@ -36,7 +44,7 @@ function convert2funvec{D<:IntervalDomain}(f::Vector{Any},d::D)
 end
 
 
-function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
+function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
     if length(f) < length(A.indsBx)+length(A.indsBy)+1
         f=[f,zeros(length(A.indsBx)+length(A.indsBy)+1-length(f))]
     end
@@ -54,9 +62,10 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector)
     end        
     
 
-    cont_constrained_lyap(A,fy,fx,F)
+    cont_constrained_lyap(A,fy,fx,F,nx)
 end
 
+pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,nx::Integer,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f,nx)
 pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f)
 
 
@@ -77,9 +86,10 @@ end
 
 
 
-pdesolve(A::PDEOperatorSchur,f::Vector)=TensorFun(pdesolve_mat(A,f),domain(A,2))
+pdesolve(A::PDEOperatorSchur,f::Vector,nx...)=TensorFun(pdesolve_mat(A,f,nx...),domain(A,2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f)=TensorFun(pdesolve_mat(A,f),domain(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f,nytol)=TensorFun(pdesolve_mat(A,f,nytol),domain(A[end],2))
+pdesolve{T<:PDEOperator}(A::Vector{T},f,n...)=TensorFun(pdesolve_mat(A,f,n...),domain(A[end],2))
+
 
 
 

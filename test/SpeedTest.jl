@@ -65,4 +65,4 @@ S=schurfact(A,100)
 u=S\f
 u=S\f
 @time u=S\f;
-println("Laplace: should be ~0.08, 0.02")
+println("Laplace: should be ~0.04, 0.02")
