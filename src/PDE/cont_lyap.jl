@@ -111,8 +111,8 @@ cont_constrained_lyapuptriang{T,FT}(OS::PDEOperatorSchur{T},Gx,F::Array{FT},nx=1
 #cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)=cont_constrained_lyapuptriang(N,OS,Gx,F,100000)
 function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array,nx::Integer)
     n = size(OS.S.T,2)
-    ##TODO: complex
-    Y=Array(IFun{N,UltrasphericalSpace{Interval{Float64}}},n)
+
+    Y=Array(IFun{N},n)
     PY=Array(Vector{N},n)
     SY=Array(Vector{N},n)
 

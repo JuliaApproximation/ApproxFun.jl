@@ -2,9 +2,9 @@ export TensorFun
 
 
 
-type TensorFun{F<:IFun,D<:IntervalDomain}<:MultivariateFun
-    coefficients::Vector{F}     # coefficients are in x
-    domainy::D
+type TensorFun{T<:Union(Float64,Complex{Float64})}<:MultivariateFun
+    coefficients::Vector{IFun{T}}     # coefficients are in x
+    domainy::IntervalDomain
 end
 
 function TensorFun{T<:Number}(cfs::Matrix{T},dx,dy)
@@ -57,7 +57,7 @@ space(f::TensorFun,k::Integer)=k==1?space(f.coefficients[1]):UltrasphericalSpace
 
 
 
-evaluate(f::TensorFun,x::Real,::Colon)=IFun([fc[x] for fc in f.coefficients],f.domainy)
+evaluate{T}(f::TensorFun{T},x::Real,::Colon)=IFun(T[fc[x] for fc in f.coefficients],f.domainy)
 evaluate(f::TensorFun,x::Real,y::Real)=evaluate(f,x,:)[y]
 evaluate(f::TensorFun,x::Colon,y::Real)=evaluate(f.',y,:)
 evaluate(f::TensorFun,xx::Vector,yy::Vector)=hcat([evaluate(f,x,:)[[yy]] for x in xx]...).'

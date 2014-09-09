@@ -14,7 +14,8 @@ type IFun{T<:Union(Float64,Complex{Float64})} <: AbstractFun
     coefficients::Vector{T}
     space::IntervalDomainSpace
 end
-IFun(coefs::Vector,d::IntervalDomainSpace)=IFun(1.0*coefs,d)
+
+IFun{T<:Number}(coefs::Vector{T},d::IntervalDomainSpace)=IFun(1.0*coefs,d)
 
 
 function IFun(f::Function,d::IntervalDomainSpace,n::Integer)
