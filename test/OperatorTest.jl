@@ -2,7 +2,7 @@ using ApproxFun, Base.Test
 
 
 f=Fun(exp);
-d=f.domain;
+d=domain(f);
 D=diff(d);
 Q=integrate(d);
 
@@ -34,7 +34,7 @@ x=Fun(identity);
 ## Periodic
 
 a=FFun(t-> cos(t) + sin(2t),3)
-d=a.domain
+d=domain(a)
 D=diff(d)
 L=D^2+a;
 f=FFun(t->cos(cos(t)));

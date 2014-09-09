@@ -28,9 +28,9 @@ f=Fun(x->exp(im.*x),[1,2])
 @test norm(integrate(f)+im*f-f.coefficients[1]*im) < 100eps()
 
 
-@test norm(real(f)-Fun(cos,f.domain)) < eps()
+@test norm(real(f)-Fun(cos,domain(f))) < eps()
 
-@test norm(real(f-Fun(cos,f.domain))) < eps()
+@test norm(real(f-Fun(cos,domain(f)))) < eps()
 
 
 ##Check complex domains

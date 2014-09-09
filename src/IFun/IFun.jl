@@ -10,12 +10,14 @@ include("ultraspherical.jl")
 
 
 ##TODO: No zero length funs
-type IFun{T<:Union(Float64,Complex{Float64}),D<:IntervalDomain} <: AbstractFun
+type IFun{T<:Union(Float64,Complex{Float64}),S<:IntervalDomainSpace} <: AbstractFun
     coefficients::Vector{T}
-    domain::D
+    space::S
 end
+IFun(coefs::Vector,d::IntervalDomainSpace)=IFun(1.0*coefs,d)
 
-function IFun(f::Function,d::Domain,n::Integer)
+
+function IFun(f::Function,d::IntervalDomainSpace,n::Integer)
     pts=points(d,n)
     f1=f(pts[1])
     T=typeof(f1)
@@ -30,20 +32,25 @@ function IFun(f::Function,d::Domain,n::Integer)
     end
 end
 
+IFun(f::IFun,d::IntervalDomainSpace)=IFun(f.coefficients,d)
+
+
+IFun(f,d::IntervalDomain)=IFun(f,ChebyshevSpace(d))
+IFun(f,d::IntervalDomain,n)=IFun(f,ChebyshevSpace(d),n)
 
 IFun(f::Function,n::Integer)=IFun(f,Interval(),n)
 IFun{T<:Number}(f::Function,d::Vector{T},n::Integer)=IFun(f,Interval(d),n)
 IFun(cfs::Vector)=IFun(1.0*cfs,Interval())
 IFun{T<:Number}(cfs::Vector,d::Vector{T})=IFun(1.0*cfs,Interval(d))
-IFun(cfs::Vector,d::IntervalDomain)=IFun(1.0*cfs,d)
 IFun(f::Function)=IFun(f,Interval())
 IFun{T<:Number}(f::Function,d::Vector{T})=IFun(f,Interval(d))
 
-IFun(f::IFun,d::IntervalDomain)=IFun(f.coefficients,d)
+
 IFun{T<:Number}(f::IFun,d::Vector{T})=IFun(f.coefficients,d)
 IFun(f::IFun)=IFun(f.coefficients)
 
 IFun(c::Number)=IFun([c])
+IFun(c::Number,d::IntervalDomain)=IFun([c],d)
 IFun(c::Number,d)=IFun([c],d)
 
 ## List constructor
@@ -53,7 +60,7 @@ IFun{T<:IntervalDomain}(f,dl::Vector{T})=map(d->IFun(f,d),dl)
 
 ## Adaptive constructors
 
-function randomIFun(f::Function,d::Domain)
+function randomIFun(f::Function,d::IntervalDomain)
     @assert d == Interval()
 
     #TODO: implement other domains
@@ -62,7 +69,7 @@ function randomIFun(f::Function,d::Domain)
 end
 
 
-function veczerocfsIFun(f::Function,d::Domain)
+function veczerocfsIFun(f::Function,d::IntervalDomain)
     #reuse function values
 
     tol = 200*eps()
@@ -82,7 +89,7 @@ function veczerocfsIFun(f::Function,d::Domain)
     IFun(f,d,2^21 + 1)
 end
 
-function zerocfsIFun(f::Function,d::Domain)
+function zerocfsIFun(f::Function,d::IntervalDomain)
     #reuse function values
 
     if isa(f(fromcanonical(d,0.)),Vector)
@@ -107,7 +114,7 @@ end
 
 
 
-function abszerocfsIFun(f::Function,d::Domain)
+function abszerocfsIFun(f::Function,d::IntervalDomain)
     #reuse function values
 
     tol = 200eps();
@@ -126,7 +133,7 @@ function abszerocfsIFun(f::Function,d::Domain)
 end
 
 
-function IFun(f::Function, d::Domain; method="zerocoefficients")
+function IFun(f::Function, d::IntervalDomain; method="zerocoefficients")
     if f==identity
         identity_fun(d)
     elseif f==zero
@@ -150,9 +157,9 @@ coefficients(f::IFun,m::Integer)=ultraconversion(f.coefficients,m)
 ##Convert routines
 
 
-Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([1.0*x])
+Base.convert{T<:Number,D<:IntervalDomainSpace}(::Type{IFun{T,D}},x::Number)=IFun([1.0*x])
 Base.convert(::Type{IFun},x::Int64)=IFun([1.0*x])
-Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.0*x
+Base.convert{D<:IntervalDomainSpace}(::Type{IFun{Float64,D}},x::IFun)=1.0*x
 
 
 # Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([one(T)*x])
@@ -162,7 +169,7 @@ Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.0*x
 # Base.convert(::Type{IFun},x::Int64)=IFun([1.*x])
 # Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.*x
 # 
-# Base.convert{N<:Number,D<:IntervalDomain}(::Type{IFun{Complex{Float64},D}},f::IFun{N,D})=IFun(convert(Vector{Complex{Float64}},f.coefficients),f.domain)
+# Base.convert{N<:Number,D<:IntervalDomain}(::Type{IFun{Complex{Float64},D}},f::IFun{N,D})=IFun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
 # Base.promote_rule{T<:Number,D<:IntervalDomain}(::Type{IFun{Complex{Float64},D}},::Type{IFun{T,D}})=IFun{Complex{Float64},D}
 # #Base.promote_rule{T<:Number,IF<:IFun}(::Type{IF},::Type{T})=IF
 
@@ -170,18 +177,18 @@ Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.0*x
 
 
 Base.getindex(f::IFun,x)=evaluate(f,x)
-evaluate(f::IFun,x)=clenshaw(f.coefficients,tocanonical(f.domain,x))
+evaluate(f::IFun,x)=clenshaw(f.coefficients,tocanonical(f,x))
 
 
 Base.first(f::IFun)=foldr(-,f.coefficients)
 Base.last(f::IFun)=reduce(+,f.coefficients)
 
 
-
+space(f::IFun)=f.space
 
 ##Data routines
 values(f::IFun)=ichebyshevtransform(f.coefficients) 
-points(f::IFun)=points(f.domain,length(f))
+points(f::IFun)=points(domain(f),length(f))
 Base.length(f::IFun)=length(f.coefficients)
 
 
@@ -190,7 +197,7 @@ Base.length(f::IFun)=length(f.coefficients)
 
 
 pad!(f::IFun,n::Integer)=pad!(f.coefficients,n)
-pad(f::IFun,n::Integer)=IFun(pad(f.coefficients,n),f.domain)
+pad(f::IFun,n::Integer)=IFun(pad(f.coefficients,n),f.space)
 
 
 function chop!(f::IFun,tol::Real)
@@ -201,7 +208,7 @@ function chop!(f::IFun,tol::Real)
     
     f
 end
-chop(f::IFun,tol)=chop!(IFun(copy(f.coefficients),f.domain),tol)
+chop(f::IFun,tol)=chop!(IFun(copy(f.coefficients),f.space),tol)
 chop!(f::IFun)=chop!(f,eps())
 
 
@@ -213,12 +220,12 @@ chop!(f::IFun)=chop!(f,eps())
 for op = (:+,:-)
     @eval begin
         function ($op)(f::IFun,g::IFun)
-            @assert f.domain == g.domain
+            @assert f.space == g.space
         
             n = max(length(f),length(g))
             f2 = pad(f,n); g2 = pad(g,n)
             
-            IFun(($op)(f2.coefficients,g2.coefficients),f.domain)
+            IFun(($op)(f2.coefficients,g2.coefficients),f.space)
         end
 
         function ($op){N<:Number,T<:Number}(f::IFun{T},c::N)
@@ -240,25 +247,25 @@ end
 
 
 function .*(f::IFun,g::IFun)
-    @assert f.domain == g.domain
+    @assert f.space == g.space
     #TODO Coefficient space version
     n = length(f) + length(g) - 1;
     f2 = pad(f,n);
     g2 = pad(g,n);
     
-    chop!(IFun(chebyshevtransform(values(f2).*values(g2)),f.domain),10eps())
+    chop!(IFun(chebyshevtransform(values(f2).*values(g2)),f.space),10eps())
 end
 
-fasttimes(f2,g2)=IFun(chebyshevtransform(values(f2).*values(g2)),f2.domain)
+fasttimes(f2,g2)=IFun(chebyshevtransform(values(f2).*values(g2)),f2.space)
 
 
 
 
 for op = (:*,:.*,:./,:/)
-    @eval ($op)(f::IFun,c::Number) = IFun(($op)(f.coefficients,c),f.domain)
+    @eval ($op)(f::IFun,c::Number) = IFun(($op)(f.coefficients,c),f.space)
 end 
 
--(f::IFun)=IFun(-f.coefficients,f.domain)
+-(f::IFun)=IFun(-f.coefficients,f.space)
 -(c::Number,f::IFun)=-(f-c)
 
 
@@ -293,13 +300,13 @@ norm(f::IFun)=real(sqrt(sum(f.*conj(f))))
 import Base.imag, Base.real, Base.conj
 
 for op = (:real,:imag,:conj) 
-    @eval ($op)(f::IFun) = IFun(($op)(f.coefficients),f.domain)
+    @eval ($op)(f::IFun) = IFun(($op)(f.coefficients),f.space)
 end
 
 Base.abs2{D}(f::IFun{Float64,D})=f.^2
 Base.abs2{D}(f::IFun{Complex{Float64},D})=real(f).^2+imag(f).^2
 
-## Differentiation and integration
+##  integration
 
 
 
@@ -315,7 +322,7 @@ end
 
 
 
-==(f::IFun,g::IFun) =  (f.coefficients == g.coefficients && f.domain == g.domain)
+==(f::IFun,g::IFun) =  (f.coefficients == g.coefficients && f.space == g.space)
 
 
 

@@ -13,6 +13,8 @@ typealias Space Union(FunctionSpace,DataType)
 
 
 
+points(d::DomainSpace,n)=points(domain(d),n)
+
 ##Check domain compatibility
 
 domainscompatible(a::DataType,b::DataType) = a == Any && b==Any

@@ -41,7 +41,7 @@ end
 function roots( f::IFun )
 # FIND THE ROOTS OF AN IFUN.  
 
-    domain = f.domain
+    d = domain(f)
     c = f.coefficients
     vscale = maxabs( values( f ) )
     if vscale == 0
@@ -50,11 +50,11 @@ function roots( f::IFun )
         return Float64[]
     end    
     
-    hscale = maximum( [first(domain), last(domain)] ) 
+    hscale = maximum( [first(d), last(d)] ) 
     htol = eps(Float64)*max(hscale, 1)
     r = rootsunit_coeffs(c./vscale, htol)
     # Map roots from [-1,1] to domain of f: 
-    return fromcanonical(domain, r)
+    return fromcanonical(d, r)
 end
 
 
@@ -153,11 +153,12 @@ end
 for op in (:(Base.maximum),:(Base.minimum))
     @eval begin
         function ($op)(f::IFun)
+            d=domain(f)
             # the following avoids warning when diff(f)==0
             if length(f) <=2
-                pts=[f.domain.a,f.domain.b]
+                pts=[d.a,d.b]
             else
-                pts=[f.domain.a,f.domain.b,roots(diff(f))]
+                pts=[d.a,d.b,roots(diff(f))]
             end
                 
             $op(f[pts])
@@ -170,10 +171,11 @@ for op in (:(Base.indmax),:(Base.indmin))
     @eval begin
         function ($op)(f::IFun)
             # the following avoids warning when diff(f)==0
+            d=domain(f)
             if length(f) <=2
-                pts=[f.domain.a,f.domain.b]
+                pts=[d.a,d.b]
             else
-                pts=[f.domain.a,f.domain.b,roots(diff(f))]
+                pts=[d.a,d.b,roots(diff(f))]
             end
                 
             pts[$op(f[pts])]

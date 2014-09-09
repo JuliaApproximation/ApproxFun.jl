@@ -43,7 +43,7 @@ u=A\b;
 
 
 f=Fun(x->x.^2)
-D=diff(f.domain)
+D=diff(domain(f))
 @test norm(D*f-diff(f))<100eps()
 
 
@@ -55,8 +55,8 @@ g=Fun(t->exp(-t.^2))
 @test_approx_eq norm(Fun(t->exp(f[t]))-g) 0
 
 fp=diff(f);
-Bm=EvaluationFunctional(f.domain,f.domain.a);
-u=[Bm,diff(f.domain) - fp]\[exp(f[f.domain.a]),0.];
+Bm=EvaluationFunctional(domain(f),domain(f).a);
+u=[Bm,diff(domain(f)) - fp]\[exp(f[domain(f).a]),0.];
 @test norm(u-g)<100eps()
 
 
@@ -64,7 +64,7 @@ u=[Bm,diff(f.domain) - fp]\[exp(f[f.domain.a]),0.];
 ## Oscillatory integral
 
 f=Fun(exp);
-D=diff(f.domain);
+D=diff(domain(f));
 w=10.;
 B=BasisFunctional(floor(w));
 A=[B,D+1im*w*I];

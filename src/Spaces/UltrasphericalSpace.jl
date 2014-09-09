@@ -2,13 +2,15 @@
 
 #Ultraspherical Spaces
 
+
+
 type UltrasphericalSpace{T<:Union(IntervalDomain,DataType)} <: IntervalDomainSpace
     order::Int
     domain::T     
 end
 
 UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,Any)
-
+ChebyshevSpace(d::IntervalDomain)=UltrasphericalSpace(0,d)
 
 
 

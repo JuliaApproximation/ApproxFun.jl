@@ -111,7 +111,7 @@ end
 *(v::Vector{Any},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
  
 
-#*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).domain) 
+#*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).space) 
 
 
 function *{T<:FFun}(v::Vector{T},a::Vector)
@@ -119,7 +119,7 @@ function *{T<:FFun}(v::Vector{T},a::Vector)
     FFun(ShiftVector(coefficients(v)*a,1-fi),first(v).domain) 
 end
 
-*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).domain) 
+*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).space) 
 *{T<:IFun}(v::Vector{T},a::Number)=T[vk*a for vk in v]
 *{T<:IFun}(a::Number,v::Vector{T})=T[vk*a for vk in v]
 
@@ -131,7 +131,7 @@ for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
             cfs=$op(A,coefficients(p).')
             ret = Array(IFun{T,D},size(cfs,1))
             for i = 1:size(A)[1]
-                ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
+                ret[i] = IFun(vec(cfs[i,:]),p[i].space)
             end
             ret    
         end
@@ -139,7 +139,7 @@ for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
             cfs=$op(A,coefficients(p).')
             ret = Array(IFun{promote_type(T,V),D},size(cfs,1))
             for i = 1:size(A)[1]
-                ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
+                ret[i] = IFun(vec(cfs[i,:]),p[i].space)
             end
             ret    
         end      
@@ -148,7 +148,7 @@ for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
             cfs=$op(A,coefficients(p).')
             ret = Array(IFun{T,D},size(cfs,1))
             for i = 1:size(A)[1]
-                ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
+                ret[i] = IFun(vec(cfs[i,:]),p[i].space)
             end
             ret    
         end
@@ -156,7 +156,7 @@ for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
             cfs=$op(A,coefficients(p).')
             ret = Array(IFun{promote_type(T,V),D},size(cfs,1))
             for i = 1:size(A)[1]
-                ret[i] = IFun(vec(cfs[i,:]),p[i].domain)
+                ret[i] = IFun(vec(cfs[i,:]),p[i].space)
             end
             ret    
         end                

@@ -61,7 +61,7 @@ end
 
 divide_singularity(s,v::Vector)=dirichletrange_divide_singularity(s,dirichlet_transform(s,v))
 #divide_singularity(s,v::Vector)=idirichlet_transform(s,dirichlet_transform(s,dirichletrange_divide_singularity(s,dirichlet_transform(s,v))))
-divide_singularity(s,f::IFun)=IFun(divide_singularity(s,f.coefficients),f.domain)
+divide_singularity(s,f::IFun)=IFun(divide_singularity(s,f.coefficients),f.space)
 
 
 
@@ -108,4 +108,4 @@ end
 
 
 divide_singularity(v::Vector)=dirichletrange_divide_singularity(dirichlettransform(v))
-divide_singularity(f::IFun)=IFun(divide_singularity(f.coefficients),f.domain)
+divide_singularity(f::IFun)=IFun(divide_singularity(f.coefficients),f.space)

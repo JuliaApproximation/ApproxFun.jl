@@ -10,7 +10,7 @@ abstract Domain
 ##General routines
 
 for op = (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD)
-    @eval ($op)(f::AbstractFun,x)=($op)(f.domain,x)
+    @eval ($op)(f::AbstractFun,x)=($op)(domain(f),x)
 end
 
 

@@ -110,7 +110,7 @@ Fun2D(f::Fun2D,d1::IntervalDomain,d2::IntervalDomain)=Fun2D(map(g->Fun(g.coeffic
 Fun2D(f::Fun2D)=Fun2D(f,Interval(),Interval())
 
 
-domain(f::Fun2D,k::Integer)=k==1? first(f.A).domain : first(f.B).domain
+domain(f::Fun2D,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
 
 function values(f::Fun2D)
     xm=mapreduce(length,max,f.A)
@@ -145,10 +145,10 @@ end
 function points(f::Fun2D,k::Integer)
     if k==1
         xm=mapreduce(length,max,f.A)
-        points(first(f.A).domain,xm)
+        points(first(f.A),xm)
     else
         ym=mapreduce(length,max,f.B)
-        points(first(f.B).domain,ym)
+        points(first(f.B),ym)
     end
 end
 
@@ -167,7 +167,7 @@ function evaluate(f::Fun2D,::Colon,y::Real)
         end
     end
     
-    IFun(ret,first(f.A).domain)
+    IFun(ret,first(f.A).space)
 end
 
 

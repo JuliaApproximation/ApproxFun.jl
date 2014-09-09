@@ -2,7 +2,7 @@ export MultiplicationOperator
 
 
 
-type MultiplicationOperator{T<:Number,D<:IntervalDomain} <: BandedOperator{T}
+type MultiplicationOperator{T<:Number,D<:IntervalDomainSpace} <: BandedOperator{T}
     f::IFun{T,D}
     
     space::Int
@@ -85,7 +85,7 @@ end
 
 
 bandinds(T::MultiplicationOperator)=(1-length(T.f.coefficients),length(T.f.coefficients)-1)
-domain(T::MultiplicationOperator)=T.f.domain
+domain(T::MultiplicationOperator)=domain(T.f)
 
 
 

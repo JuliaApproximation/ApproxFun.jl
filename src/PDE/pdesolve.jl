@@ -17,15 +17,15 @@ include("cont_lyap.jl")
 #     Bx,Gx,By,Gy,Lx,Ly,Mx,My    
 # end
 
-function convert2funvec{T<:Number,D<:IntervalDomain}(f::Vector{T},d::D)
+function convert2funvec{T<:Number,D<:IntervalDomainSpace}(f::Vector{T},d::D)
     ret=Array(IFun{T,D},length(f))
     for k=1:length(f)
         ret[k]=IFun(f[k],d)
     end
     ret
 end
-convert2funvec{T<:IFun}(f::Vector{T},d::IntervalDomain)=f
-function convert2funvec{D<:IntervalDomain}(f::Vector{Any},d::D)
+convert2funvec{T<:IFun}(f::Vector{T},d::IntervalDomainSpace)=f
+function convert2funvec{D<:IntervalDomainSpace}(f::Vector{Any},d::D)
     mytyp=IFun{Float64,D}
     
     for fk in f
@@ -49,8 +49,9 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
         f=[f,zeros(length(A.indsBx)+length(A.indsBy)+1-length(f))]
     end
 
-    fx=convert2funvec(f[A.indsBx],domain(A,2))
-    fy=convert2funvec(f[A.indsBy],domain(A,1))
+    ##TODO: makes more sense as a domain space of the boundary ops once thats set up
+    fx=convert2funvec(f[A.indsBx],ChebyshevSpace(domain(A,2)))
+    fy=convert2funvec(f[A.indsBy],ChebyshevSpace(domain(A,1)))
     
 
     ff=f[end]

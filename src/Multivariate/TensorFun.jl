@@ -8,7 +8,7 @@ type TensorFun{F<:IFun,D<:IntervalDomain}<:MultivariateFun
 end
 
 function TensorFun{T<:Number}(cfs::Matrix{T},dx,dy)
-    ret=Array(IFun{T,typeof(dx)},size(cfs,2))
+    ret=Array(IFun{T,UltrasphericalSpace{typeof(dx)}},size(cfs,2))
     for k=1:size(cfs,2)
         ret[k]=chop!(IFun(cfs[:,k],dx),10eps())
     end
@@ -25,7 +25,7 @@ Base.size(f::TensorFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):len
 Base.size(f::TensorFun)=(size(f,1),size(f,2))
 
 
-function funlist2coefficients{T<:Number,D<:IntervalDomain}(f::Vector{IFun{T,D}})
+function funlist2coefficients{T<:Number,D<:IntervalDomainSpace}(f::Vector{IFun{T,D}})
     A=zeros(T,mapreduce(length,max,f),length(f))
     for k=1:length(f)
         A[1:length(f[k]),k]=f[k].coefficients
@@ -52,6 +52,10 @@ points(f::TensorFun,k)=points(domain(f,k),size(f,k))
 
 domain(f::TensorFun,k::Integer)=k==1?domain(f.coefficients[1]):f.domainy
 domain(LL::TensorFun)=domain(LL,1)⊗domain(LL,2)
+
+space(f::TensorFun,k::Integer)=k==1?space(f.coefficients[1]):UltrasphericalSpace{f.domainy}
+
+
 
 evaluate(f::TensorFun,x::Real,::Colon)=IFun([fc[x] for fc in f.coefficients],f.domainy)
 evaluate(f::TensorFun,x::Real,y::Real)=evaluate(f,x,:)[y]

@@ -4,6 +4,7 @@ export Line, PeriodicLine
 
 
 
+
 ## Standard interval
 
 
@@ -15,6 +16,8 @@ type Line <: IntervalDomain
     
     Line(c,a,α,β)=(@assert c==a==0.; @assert α<0; @assert β<0; new(c,a,α,β))
 end
+
+typealias LineSpace UltrasphericalSpace{Line}
 
 Line(c,a)=Line(c,a,-1.,-1.)
 Line()=Line(0.,0.)
@@ -122,12 +125,12 @@ end
 
 
 
-function integrate{T<:Number}(f::IFun{T,Line})
-    @assert f.domain.α==f.domain.β==-1.
+function integrate{T<:Number}(f::IFun{T,LineSpace})
+    @assert domain(f).α==domain(f).β==-1.
     # || d.α==d.β==-.5
     
-    if f.domain.α==f.domain.β==-1.
-        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f),1))),f.domain)
+    if domain(f).α==domain(f).β==-1.
+        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f),1))),f.space)
     end
 #     elseif d.α==d.β==-.5
 #         u=divide_singularity(f)
@@ -137,8 +140,8 @@ function integrate{T<:Number}(f::IFun{T,Line})
 end
 
 for T in {Float64,Complex{Float64}}
-    function Base.sum(f::IFun{T,Line})
-        if f.domain.α==f.domain.β==-.5
+    function Base.sum(f::IFun{T,LineSpace})
+        if domain(f).α==domain(f).β==-.5
             sum(SingFun(divide_singularity(Fun(f)),-.5,-.5))
         else
             cf = integrate(f)
@@ -159,18 +162,18 @@ function identity_fun(d::Line)
 end
 
 
-# function multiplybyx{T<:Number,D<:Line}(f::IFun{T,D})
+# function multiplybyx{T<:Number,D<:LineSpace}(f::IFun{T,D})
 #     ct=Fun(x->x.*cot(π*x/2),28)
 #     x=Fun(identity)
 #     u=SingFun(ct./(1-x.^2),1.,1.)
-#     IFun((x.*IFun(f)./u).fun./(1-x.^2),f.domain)
+#     IFun((x.*IFun(f)./u).fun./(1-x.^2),domain(f))
 # end
 
 
 ## sample
 
 
-function sample(f::Fun2D{IFun{Float64,Line}},n::Integer)
+function sample(f::Fun2D{IFun{Float64,LineSpace}},n::Integer)
     cf=normalizedcumsum(sum(f,1))
     CB=coefficients(map(cumsum,f.B))
     
@@ -179,7 +182,7 @@ function sample(f::Fun2D{IFun{Float64,Line}},n::Integer)
     CBfA=CB*fA  #cumsums at points
     multiply_oneatright!(CBfA)
     
-    rx=fromcanonical(first(f.B).domain,bisectioninv(CBfA,rand(n)))
+    rx=fromcanonical(first(f.B),bisectioninv(CBfA,rand(n)))
     
     [rx ry]
 end

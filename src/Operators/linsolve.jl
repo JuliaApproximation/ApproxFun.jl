@@ -57,7 +57,7 @@ function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Array{M,2};tolerance=0
                                                      #so assume user knows, this is correct for bc rows
                                  
                                  
-    IFun{M,typeof(commondomain(A[:,1]))}[IFun(ret[k:m:end,j],commondomain(A[:,k])) for k=1:m,j=1:size(b,2)]
+    IFun[IFun(ret[k:m:end,j],commondomain(A[:,k])) for k=1:m,j=1:size(b,2)]
 end
  
 

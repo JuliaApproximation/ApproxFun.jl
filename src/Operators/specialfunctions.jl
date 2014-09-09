@@ -19,15 +19,15 @@ for op in (:./,:/)
                 @assert abs(abs(r[1]) - 1.) < tol
                 
                 if sign(r[1]) < 0
-                    SingFun(IFun(c./(fc./(x+1)),f.domain),-1.,0.)
+                    SingFun(IFun(c./(fc./(x+1)),f.space),-1.,0.)
                 else
-                    SingFun(IFun(c./(fc./(1-x)),f.domain),0.,-1.)                
+                    SingFun(IFun(c./(fc./(1-x)),f.space),0.,-1.)                
                 end 
             else
                 @assert abs(r[1]+1) < tol
                 @assert abs(r[2]-1) < tol                        
                 
-                SingFun(IFun(c./(fc./(1-x.^2)),f.domain),-1.,-1.)                     
+                SingFun(IFun(c./(fc./(1-x.^2)),f.space),-1.,-1.)                     
             end
         end
     end
@@ -39,8 +39,8 @@ end
 ## We use \ as the IFun constructor might miss isolated features
 function Base.exp(f::IFun)
     xm=indmax(real(f))
-    B=EvaluationFunctional(f.domain,xm)
-    D=diff(f.domain)
+    B=EvaluationFunctional(domain(f),xm)
+    D=diff(domain(f))
     A=[B,D-diff(f)]
     A\[exp(f[xm]),0.]    
 end
@@ -48,7 +48,7 @@ end
 
 for op in (:(Base.cos),:(Base.sin))
     @eval begin
-        ($op)(f::IFun)=IFun(x->($op)(f[x]),f.domain)
+        ($op)(f::IFun)=IFun(x->($op)(f[x]),domain(f))
     end
 end
 
@@ -62,20 +62,20 @@ function Base.sqrt(f::IFun)
     @assert length(r) <= 2
     
     if length(r) == 0
-        IFun(x->sqrt(f[x]),f.domain)
+        IFun(x->sqrt(f[x]),domain(f))
     elseif length(r) == 1
         @assert abs(abs(r[1])-1) < tol
         
         if abs(r[1]-1.) < tol
-            SingFun(IFun(sqrt(MultiplicationOperator(1-x)\fc),f.domain),0.,.5)
+            SingFun(IFun(sqrt(MultiplicationOperator(1-x)\fc),f.space),0.,.5)
         else
-            SingFun(IFun(sqrt(MultiplicationOperator(1+x)\fc),f.domain),.5,0.)        
+            SingFun(IFun(sqrt(MultiplicationOperator(1+x)\fc),f.space),.5,0.)        
         end
     else
         @assert abs(r[1]+1) < tol
         @assert abs(r[2]-1) < tol        
     
-        SingFun(IFun(sqrt(linsolve(MultiplicationOperator(1-x.^2),fc;tolerance=eps())),f.domain),.5,.5)                
+        SingFun(IFun(sqrt(linsolve(MultiplicationOperator(1-x.^2),fc;tolerance=eps())),f.space),.5,.5)                
     end
 end
 
@@ -85,7 +85,7 @@ end
 # for op = (:(Base.cos),:(Base.sin))
 #     @eval begin
 #         function ($op)(f::IFun)
-#             d=f.domain
+#             d=domain(f)
 #             D=diff(d)
 #             f2=f.*f
 #             xp=indmax(f2);xm=indmin(f2);

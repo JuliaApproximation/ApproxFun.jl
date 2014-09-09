@@ -22,7 +22,7 @@ end
 
 function *(A::InfiniteOperator,b::IFun)
     dsp=domainspace(A)
-    dsp==Any?IFun(A*b.coefficients,b.domain):IFun(ultraiconversion(A*ultraconversion(b.coefficients,dsp.order),rangespace(A).order),b.domain)
+    dsp==Any?IFun(A*b.coefficients,b.space):IFun(ultraiconversion(A*ultraconversion(b.coefficients,dsp.order),rangespace(A).order),b.space)
 end
 
 

@@ -112,7 +112,7 @@ cont_constrained_lyapuptriang{T,FT}(OS::PDEOperatorSchur{T},Gx,F::Array{FT},nx=1
 function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array,nx::Integer)
     n = size(OS.S.T,2)
     ##TODO: complex
-    Y=Array(IFun{N,Interval{Float64}},n)
+    Y=Array(IFun{N,UltrasphericalSpace{Interval{Float64}}},n)
     PY=Array(Vector{N},n)
     SY=Array(Vector{N},n)
 
