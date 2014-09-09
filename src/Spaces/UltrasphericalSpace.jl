@@ -2,7 +2,7 @@
 
 #Ultraspherical Spaces
 
-type UltrasphericalSpace{T<:Union(IntervalDomain,DataType)} <: OperatorSpace
+type UltrasphericalSpace{T<:Union(IntervalDomain,DataType)} <: IntervalDomainSpace
     order::Int
     domain::T     
 end
@@ -11,10 +11,6 @@ UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,Any)
 
 
 
-
-##Check domain compatibility
-
-domainscompatible(a::OperatorSpace,b::OperatorSpace) = a.domain == Any || b.domain == Any || a.domain == b.domain
 
 
 #TODO: bad override?
@@ -45,7 +41,7 @@ end
 # DirichletSpaces
 
 
-type ChebyshevDirichletSpace{T<:Union(IntervalDomain,DataType)} <: OperatorSpace
+type ChebyshevDirichletSpace{T<:Union(IntervalDomain,DataType)} <: IntervalDomainSpace
     domain::T 
     left::Int
     right::Int    

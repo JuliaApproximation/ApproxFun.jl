@@ -1,6 +1,6 @@
 
 
-type FourierSpace{T<:Union(PeriodicDomain,DataType)} <: OperatorSpace
+type FourierSpace{T<:Union(PeriodicDomain,DataType)} <: PeriodicDomainSpace
     domain::T
 end
 

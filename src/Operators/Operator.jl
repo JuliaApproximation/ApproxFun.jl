@@ -24,6 +24,8 @@ abstract ShiftFunctional{T} <: Functional{T}
 
 ## We assume operators are T->T
 domain(A::Operator)=Any
+rangespace(A::Operator)=Any
+domainspace(A::Operator)=Any
 
 
 function commondomain(P::Vector)

@@ -105,8 +105,8 @@ type OperatorSchur{BT<:Number,MT<:Number}
     Lcols::Array{MT,2}
     Mcols::Array{MT,2}
     
-    domainspace::OperatorSpace
-    rangespace::OperatorSpace    
+    domainspace::FunctionSpace
+    rangespace::FunctionSpace    
 end
 
 #make sure cols are same type as ops

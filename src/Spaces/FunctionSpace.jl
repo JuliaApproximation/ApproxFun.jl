@@ -18,14 +18,13 @@ typealias Space Union(FunctionSpace,DataType)
 domainscompatible(a::DataType,b::DataType) = a == Any && b==Any
 domainscompatible(a::DataType,b) = a == Any
 domainscompatible(a,b::DataType) = b == Any
-domainscompatible(a,b) = a==b
+domainscompatible(a,b) = a==b  ##TODO: what is this suppose to do?
+
+##Check domain compatibility
+
+domainscompatible(a::DomainSpace,b::DomainSpace) = a.domain == Any || b.domain == Any || a.domain == b.domain
 
 
-
-##Default is Any
-
-rangespace(A::Operator)=Any
-domainspace(A::Operator)=Any
 domain(A::DomainSpace)=A.domain # assume it has a field domain
 
 ##max space
