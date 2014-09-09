@@ -38,7 +38,7 @@ function surf(vals::Matrix)
     ModernGL=Main.ModernGL
     GLPlot=Main.GLPlot
     
-    window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.))
+    window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.),async=true)
     
     ModernGL.glClearColor(1,1,1,0)
     obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , primitive=GLPlot.SURFACE(), color="xyz.z>0 ? vec4(.1,.1,0.5+3*xyz.z,.1) : vec4(.1,.1-3*xyz.z,0.5,.1);")
@@ -52,7 +52,7 @@ function surf(xx::Matrix,yy::Matrix,vals::Matrix)
     ModernGL=Main.ModernGL
     GLPlot=Main.GLPlot
     
-    window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.))
+    window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.),async=true)
     
     ModernGL.glClearColor(1,1,1,0)
     obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , xrange=xx,yrange=yy,primitive=GLPlot.SURFACE(), color="xyz.z>0 ? vec4(.1,.1,0.5+3*xyz.z,.1) : vec4(.1,.1-3*xyz.z,0.5,.1);")
