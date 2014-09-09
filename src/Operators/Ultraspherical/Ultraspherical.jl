@@ -1,5 +1,3 @@
-include("UltrasphericalSpace.jl")
-
 include("MultiplicationOperator.jl")
 include("EvaluationFunctional.jl")
 include("USConversionOperator.jl")

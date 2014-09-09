@@ -19,7 +19,7 @@ abstract AbstractFun
 include("LinearAlgebra/LinearAlgebra.jl")
 
 include("Domains/Domain.jl")
-
+include("Spaces/Spaces.jl")
 
 
 ##Chebyshev Routines

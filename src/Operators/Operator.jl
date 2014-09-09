@@ -110,7 +110,7 @@ BandedArray(B::Operator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),c
 
 include("linsolve.jl")
 
-include("OperatorSpace.jl")
+include("SpaceOperator.jl")
 
 include("ToeplitzOperator.jl")
 
@@ -135,7 +135,6 @@ include("SliceOperator.jl")
 include("CompactOperator.jl")
 
 include("Fourier/FourierDerivativeOperator.jl")
-include("Fourier/FourierSpace.jl")
 
 include("null.jl")
 include("systems.jl")
