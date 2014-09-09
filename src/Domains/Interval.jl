@@ -6,7 +6,7 @@ export Interval
 
 ## Standard interval
 
-type Interval{T<:Number} <: IntervalDomain
+immutable Interval{T<:Number} <: IntervalDomain
 	a::T
 	b::T
 end

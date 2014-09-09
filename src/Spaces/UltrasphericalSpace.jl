@@ -4,7 +4,7 @@
 
 
 
-type UltrasphericalSpace{T<:IntervalDomain} <: IntervalDomainSpace
+immutable UltrasphericalSpace{T<:IntervalDomain} <: IntervalDomainSpace
     order::Int
     domain::T     
 end
@@ -43,7 +43,7 @@ end
 # DirichletSpaces
 
 
-type ChebyshevDirichletSpace{T<:Union(IntervalDomain,AnyDomain)} <: IntervalDomainSpace
+immutable ChebyshevDirichletSpace{T<:Union(IntervalDomain,AnyDomain)} <: IntervalDomainSpace
     domain::T 
     left::Int
     right::Int    

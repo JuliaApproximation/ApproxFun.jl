@@ -9,12 +9,12 @@ abstract PeriodicDomainSpace <: DomainSpace
 export FunctionSpace, domainspace, rangespace, maxspace, minspace
 
 
-type ConstantSpace <: FunctionSpace
+immutable ConstantSpace <: FunctionSpace
 end
 
 domain(::ConstantSpace)=AnyDomain()
 
-type AnySpace <: FunctionSpace
+immutable AnySpace <: FunctionSpace
 end
 
 domain(::AnySpace)=AnyDomain()

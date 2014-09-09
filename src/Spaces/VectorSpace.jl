@@ -1,4 +1,4 @@
-type VectorSpace <: OperatorSpace
+immutable VectorSpace <: OperatorSpace
     dimension::Int
 end
 

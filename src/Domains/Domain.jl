@@ -6,7 +6,7 @@ export chebyshevpoints
 
 abstract Domain
 
-type AnyDomain <: Domain
+immutable AnyDomain <: Domain
 end
 
 

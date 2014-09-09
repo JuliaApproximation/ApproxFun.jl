@@ -7,7 +7,7 @@ export Ray
 ## Standard interval
 
 
-type Ray <: IntervalDomain
+immutable Ray <: IntervalDomain
     centre::Float64  
     angle::Float64
     orientation::Bool

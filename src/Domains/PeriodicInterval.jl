@@ -3,7 +3,7 @@
 export PeriodicInterval
 
 
-type PeriodicInterval{T<:Number} <: PeriodicDomain
+immutable PeriodicInterval{T<:Number} <: PeriodicDomain
 	a::T
 	b::T
 end

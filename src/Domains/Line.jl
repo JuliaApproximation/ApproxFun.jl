@@ -8,7 +8,7 @@ export Line, PeriodicLine
 ## Standard interval
 
 
-type Line <: IntervalDomain
+immutable Line <: IntervalDomain
     centre::Float64  ##TODO Allow complex
     angle::Float64
     α::Float64
@@ -98,7 +98,7 @@ end
 
 ## Periodic line
 
-type PeriodicLine <: PeriodicDomain
+immutable PeriodicLine <: PeriodicDomain
     centre::Float64  ##TODO Allow complex
     angle::Float64
     L::Float64
