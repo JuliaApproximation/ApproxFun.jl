@@ -90,8 +90,8 @@ function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer;m
         Br=map(q->q[r[2]],B)
         
         ##TODO: Should allow FFun
-        a=IFun(x->f(x,r[2]),dx; method="abszerocoefficients") - A*Br
-        b=IFun(y->f(r[1],y),dy; method="abszerocoefficients")- B*Ar
+        a=IFun(x->f(x,r[2]),dx; method="abszerocoefficients") - dot(conj(Br),A)
+        b=IFun(y->f(r[1],y),dy; method="abszerocoefficients")- dot(conj(Ar),B)
         
         
         ##Remove coefficients that get killed by a/b

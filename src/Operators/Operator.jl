@@ -33,9 +33,9 @@ function commondomain(P::Vector)
     
     for op in P
         d = domain(op)
-        @assert ret == Any || d == Any || ret == d
+        @assert ret == Any || d == Any || d == AnyDomain() || ret == d
         
-        if d != Any
+        if d != Any && d != AnyDomain()
             ret = d
         end
     end

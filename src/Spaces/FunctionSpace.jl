@@ -8,6 +8,17 @@ abstract PeriodicDomainSpace <: DomainSpace
 
 export FunctionSpace, domainspace, rangespace, maxspace, minspace
 
+
+type ConstantSpace <: FunctionSpace
+end
+
+domain(::ConstantSpace)=AnyDomain()
+
+type AnySpace <: FunctionSpace
+end
+
+domain(::AnySpace)=AnyDomain()
+
 ## Any is allowed as a Space
 typealias Space Union(FunctionSpace,DataType)
 

@@ -105,11 +105,11 @@ end
 
 ## scalar fun times vector
 
-*{T<:Union(Number,IFun)}(f::IFun,v::Vector{T})=typeof(f)[f.*v[k] for k=1:length(v)]
-*{T<:Union(Number,IFun)}(v::Vector{T},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
-*(f::IFun,v::Vector{Any})=typeof(f)[f.*v[k] for k=1:length(v)]
-*(v::Vector{Any},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
- 
+# *{T<:Union(Number,IFun)}(f::IFun,v::Vector{T})=typeof(f)[f.*v[k] for k=1:length(v)]
+# *{T<:Union(Number,IFun)}(v::Vector{T},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
+# *(f::IFun,v::Vector{Any})=typeof(f)[f.*v[k] for k=1:length(v)]
+# *(v::Vector{Any},f::IFun)=typeof(f)[v[k].*f for k=1:length(v)]
+#  
 
 #*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).space) 
 
@@ -119,46 +119,46 @@ function *{T<:FFun}(v::Vector{T},a::Vector)
     FFun(ShiftVector(coefficients(v)*a,1-fi),first(v).domain) 
 end
 
-*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).space) 
-*{T<:IFun}(v::Vector{T},a::Number)=T[vk*a for vk in v]
-*{T<:IFun}(a::Number,v::Vector{T})=T[vk*a for vk in v]
-
-## Need to catch A*p, A'*p, A.'*p
-##TODO: A may not be same type as p
-for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
-    @eval begin
-        function ($op){T<:Number}(A::Array{T,2}, p::Vector{IFun{T}})
-            cfs=$op(A,coefficients(p).')
-            ret = Array(IFun{T},size(cfs,1))
-            for i = 1:size(A)[1]
-                ret[i] = IFun(vec(cfs[i,:]),p[i].space)
-            end
-            ret    
-        end
-        function ($op){T<:Number,V<:Number}(A::Array{T,2}, p::Vector{IFun{V}})
-            cfs=$op(A,coefficients(p).')
-            ret = Array(IFun{promote_type(T,V)},size(cfs,1))
-            for i = 1:size(A)[1]
-                ret[i] = IFun(vec(cfs[i,:]),p[i].space)
-            end
-            ret    
-        end      
-        
-        function ($op){T<:Number}(p::Vector{IFun{T}},A::Array{T,2})
-            cfs=$op(A,coefficients(p).')
-            ret = Array(IFun{T},size(cfs,1))
-            for i = 1:size(A)[1]
-                ret[i] = IFun(vec(cfs[i,:]),p[i].space)
-            end
-            ret    
-        end
-        function ($op){T<:Number,V<:Number}(A::Array{T,2}, p::Vector{IFun{V}})
-            cfs=$op(A,coefficients(p).')
-            ret = Array(IFun{promote_type(T,V)},size(cfs,1))
-            for i = 1:size(A)[1]
-                ret[i] = IFun(vec(cfs[i,:]),p[i].space)
-            end
-            ret    
-        end                
-    end
-end
+# *{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).space) 
+# *{T<:IFun}(v::Vector{T},a::Number)=T[vk*a for vk in v]
+# *{T<:IFun}(a::Number,v::Vector{T})=T[vk*a for vk in v]
+# 
+# ## Need to catch A*p, A'*p, A.'*p
+# ##TODO: A may not be same type as p
+ for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
+     @eval begin
+         function ($op){T<:Number}(A::Array{T,2}, p::Vector{IFun{T}})
+             cfs=$op(A,coefficients(p).')
+             ret = Array(IFun{T},size(cfs,1))
+             for i = 1:size(A)[1]
+                 ret[i] = IFun(vec(cfs[i,:]),p[i].space)
+             end
+             ret    
+         end
+         function ($op){T<:Number,V<:Number}(A::Array{T,2}, p::Vector{IFun{V}})
+             cfs=$op(A,coefficients(p).')
+             ret = Array(IFun{promote_type(T,V)},size(cfs,1))
+             for i = 1:size(A)[1]
+                 ret[i] = IFun(vec(cfs[i,:]),p[i].space)
+             end
+             ret    
+         end      
+         
+         function ($op){T<:Number}(p::Vector{IFun{T}},A::Array{T,2})
+             cfs=$op(A,coefficients(p).')
+             ret = Array(IFun{T},size(cfs,1))
+             for i = 1:size(A)[1]
+                 ret[i] = IFun(vec(cfs[i,:]),p[i].space)
+             end
+             ret    
+         end
+         function ($op){T<:Number,V<:Number}(A::Array{T,2}, p::Vector{IFun{V}})
+             cfs=$op(A,coefficients(p).')
+             ret = Array(IFun{promote_type(T,V)},size(cfs,1))
+             for i = 1:size(A)[1]
+                 ret[i] = IFun(vec(cfs[i,:]),p[i].space)
+             end
+             ret    
+         end                
+     end
+ end

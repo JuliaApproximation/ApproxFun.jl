@@ -55,7 +55,7 @@ Fun(x,d::Vector,n::Integer)=IFun(x,d,n)
 
 ## General routines
 
-domain(f::IFun)=f.space.domain
+domain(f::IFun)=domain(f.space)
 domain(f::FFun)=f.domain
 domain(::Number)=Any
 domain{T<:AbstractFun}(v::Vector{T})=map(domain,v)

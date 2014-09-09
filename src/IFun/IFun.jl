@@ -12,10 +12,12 @@ include("ultraspherical.jl")
 ##TODO: No zero length funs
 type IFun{T<:Union(Float64,Complex{Float64})} <: AbstractFun
     coefficients::Vector{T}
-    space::IntervalDomainSpace
+    space::FunctionSpace
 end
 
-IFun{T<:Number}(coefs::Vector{T},d::IntervalDomainSpace)=IFun(1.0*coefs,d)
+
+
+IFun{T<:Union(Int64,Complex{Int64})}(coefs::Vector{T},d::FunctionSpace)=IFun(1.0*coefs,d)
 
 
 function IFun(f::Function,d::IntervalDomainSpace,n::Integer)
@@ -158,21 +160,17 @@ coefficients(f::IFun,m::Integer)=ultraconversion(f.coefficients,m)
 ##Convert routines
 
 
-Base.convert{T<:Number}(::Type{IFun{T}},x::Number)=IFun([1.0*x])
-Base.convert(::Type{IFun},x::Int64)=IFun([1.0*x])
-Base.convert(::Type{IFun{Float64}},x::IFun)=1.0*x
+Base.convert{T<:Number}(::Type{IFun{T}},x::Number)=IFun([one(T)*x],ConstantSpace())
+Base.convert(::Type{IFun{Complex{Float64}}},f::IFun)=IFun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
+Base.promote_rule{T<:Number}(::Type{IFun{Complex{Float64}}},::Type{IFun{T}})=IFun{Complex{Float64}}
+Base.promote_rule{T<:Number,IF<:IFun}(::Type{IF},::Type{T})=IF
 
+for op in (:(Base.zero),:(Base.one))
+    @eval begin
+        ($op){T}(::Type{IFun{T}})=IFun([$op(T)],ConstantSpace())
+    end
+end
 
-# Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([one(T)*x])
-# Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.0*x 
-# 
-# Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([1.*x])
-# Base.convert(::Type{IFun},x::Int64)=IFun([1.*x])
-# Base.convert{D<:IntervalDomain}(::Type{IFun{Float64,D}},x::IFun)=1.*x
-# 
-# Base.convert{N<:Number,D<:IntervalDomain}(::Type{IFun{Complex{Float64},D}},f::IFun{N,D})=IFun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
-# Base.promote_rule{T<:Number,D<:IntervalDomain}(::Type{IFun{Complex{Float64},D}},::Type{IFun{T,D}})=IFun{Complex{Float64},D}
-# #Base.promote_rule{T<:Number,IF<:IFun}(::Type{IF},::Type{T})=IF
 
 ##Evaluation
 
@@ -186,6 +184,7 @@ Base.last(f::IFun)=reduce(+,f.coefficients)
 
 
 space(f::IFun)=f.space
+spacescompatible(f::IFun,g::IFun)=typeof(f.space)<:ConstantSpace || typeof(g.space)<:ConstantSpace || f.space == g.space
 
 ##Data routines
 values(f::IFun)=ichebyshevtransform(f.coefficients) 
@@ -221,7 +220,7 @@ chop!(f::IFun)=chop!(f,eps())
 for op = (:+,:-)
     @eval begin
         function ($op)(f::IFun,g::IFun)
-            @assert f.space == g.space
+            @assert spacescompatible(f,g)
         
             n = max(length(f),length(g))
             f2 = pad(f,n); g2 = pad(g,n)

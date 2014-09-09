@@ -58,6 +58,9 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
     if typeof(ff)<:Number
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff
+    elseif typeof(ff)<:IFun && typeof(ff.space) <: ConstantSpace
+        F=zeros(1,size(A.S,1)-numbcs(A.S)) 
+        F[1,1]=ff.coefficients[1]        
     else # typeof(ff) <:Fun2D || TensorFun
         F=coefficients(ff,rangespace(A,1).order,rangespace(A,2).order)
     end        

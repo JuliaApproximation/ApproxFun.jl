@@ -6,6 +6,9 @@ export chebyshevpoints
 
 abstract Domain
 
+type AnyDomain <: Domain
+end
+
 
 ##General routines
 
