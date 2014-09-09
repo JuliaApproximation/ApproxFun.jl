@@ -19,7 +19,7 @@ abstract AbstractFun
 include("LinearAlgebra/LinearAlgebra.jl")
 
 include("Domains/Domain.jl")
-include("Spaces/Spaces.jl")
+include("Spaces/FunctionSpace.jl")
 
 
 ##Chebyshev Routines
@@ -32,14 +32,14 @@ include("FFun/FFun.jl")
 # Canonical domains
 include("Domains/Interval.jl")
 include("Domains/PeriodicInterval.jl")
-
+include("Spaces/Spaces.jl")
 
 include("Operators/Operator.jl")
 
 
 include("Multivariate/Multivariate.jl")
 
-include("sample.jl")
+
 
 
 ##Following routine decides
@@ -78,6 +78,7 @@ include("PDE/PDE.jl")
 include("Plot/Plot.jl")
 
 
+include("sample.jl")
 
 
 

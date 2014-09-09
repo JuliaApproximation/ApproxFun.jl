@@ -150,7 +150,7 @@ samplecdf(v::Vector)=bisectioninv(v,rand())
 
 ##2D sample
 
-function sample{T<:Interval}(f::Fun2D{IFun{Float64,T}},n::Integer)
+function sample(::Type{Interval},::Type{Interval},f::Fun2D{IFun{Float64}},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficientmatrix(f.B)
@@ -160,4 +160,23 @@ function sample{T<:Interval}(f::Fun2D{IFun{Float64,T}},n::Integer)
   [fromcanonical(domain(f,1),rx) ry]
 end
 
+
+
+function sample(::Type{Line},::Type{Line},f::Fun2D{IFun{Float64}},n::Integer)
+    cf=normalizedcumsum(sum(f,1))
+    CB=coefficients(map(cumsum,f.B))
+    
+    ry=samplecdf(cf,n)
+    fA=evaluate(f.A,ry)
+    CBfA=CB*fA  #cumsums at points
+    multiply_oneatright!(CBfA)
+    
+    rx=fromcanonical(first(f.B),bisectioninv(CBfA,rand(n)))
+    
+    [rx ry]
+end
+
+sample(f::Fun2D{IFun{Float64}},n::Integer)=sample(domain(f,1),domain(f,2),f,n)
 sample(f::Fun2D)=sample(f,1)[1,:]
+
+    

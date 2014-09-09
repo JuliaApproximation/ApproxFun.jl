@@ -1,6 +1,6 @@
 ##TODO: Unify with coefficients()
 toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
-toarray{T<:Number,D<:IntervalDomain}(B::Array{IFun{T,D}},n)=T[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n]
+toarray{T<:Number}(B::Array{IFun{T}},n)=T[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n]
 function toarray(B::Array,n)
     ret = zeros(length(B),n)
     

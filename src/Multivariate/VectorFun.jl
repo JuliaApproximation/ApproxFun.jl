@@ -4,7 +4,7 @@
 ## Vector of fun routines
 
 
-function coefficients{N,D}(f::Vector{IFun{N,D}},o...)
+function coefficients{N}(f::Vector{IFun{N}},o...)
     n=mapreduce(length,max,f)
     m=length(f)
     R=zeros(N,n,m)
@@ -31,7 +31,7 @@ function coefficients{T<:FFun}(B::Vector{T})
 end
 
 
-function values{N,D}(f::Vector{IFun{N,D}})
+function values{N}(f::Vector{IFun{N}})
     n=mapreduce(length,max,f)
     m=length(f)
     R=zeros(N,n,m)
@@ -41,7 +41,7 @@ function values{N,D}(f::Vector{IFun{N,D}})
     R
 end
 
-function values{T,D}(p::Array{IFun{T,D},2})
+function values{T}(p::Array{IFun{T},2})
     @assert size(p)[1] == 1
 
    values(vec(p))
@@ -127,34 +127,34 @@ end
 ##TODO: A may not be same type as p
 for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
     @eval begin
-        function ($op){T<:Number,D}(A::Array{T,2}, p::Vector{IFun{T,D}})
+        function ($op){T<:Number}(A::Array{T,2}, p::Vector{IFun{T}})
             cfs=$op(A,coefficients(p).')
-            ret = Array(IFun{T,D},size(cfs,1))
+            ret = Array(IFun{T},size(cfs,1))
             for i = 1:size(A)[1]
                 ret[i] = IFun(vec(cfs[i,:]),p[i].space)
             end
             ret    
         end
-        function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{IFun{V,D}})
+        function ($op){T<:Number,V<:Number}(A::Array{T,2}, p::Vector{IFun{V}})
             cfs=$op(A,coefficients(p).')
-            ret = Array(IFun{promote_type(T,V),D},size(cfs,1))
+            ret = Array(IFun{promote_type(T,V)},size(cfs,1))
             for i = 1:size(A)[1]
                 ret[i] = IFun(vec(cfs[i,:]),p[i].space)
             end
             ret    
         end      
         
-        function ($op){T<:Number,D}(p::Vector{IFun{T,D}},A::Array{T,2})
+        function ($op){T<:Number}(p::Vector{IFun{T}},A::Array{T,2})
             cfs=$op(A,coefficients(p).')
-            ret = Array(IFun{T,D},size(cfs,1))
+            ret = Array(IFun{T},size(cfs,1))
             for i = 1:size(A)[1]
                 ret[i] = IFun(vec(cfs[i,:]),p[i].space)
             end
             ret    
         end
-        function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{IFun{V,D}})
+        function ($op){T<:Number,V<:Number}(A::Array{T,2}, p::Vector{IFun{V}})
             cfs=$op(A,coefficients(p).')
-            ret = Array(IFun{promote_type(T,V),D},size(cfs,1))
+            ret = Array(IFun{promote_type(T,V)},size(cfs,1))
             for i = 1:size(A)[1]
                 ret[i] = IFun(vec(cfs[i,:]),p[i].space)
             end

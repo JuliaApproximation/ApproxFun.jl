@@ -66,10 +66,35 @@ end
 minspace(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=minspace(a,b)
 
 
+##Integration and differentiation
 
-##Check domain compatibility
 
-# domainscompatible(a::UltrasphericalDirchletSpace,b::UltrasphericalDirchletSpace) = a.domain == Any || b.domain == Any || a.domain == b.domain
-# 
-# 
-# spacescompatible(a::UltrasphericalDirchletSpace,b::UltrasphericalSpace) = domainscompatible(a,b) && a.order >= b.order
+# diff T -> U, then convert U -> T
+function differentiate(sp::UltrasphericalSpace,cfs::Vector)
+    @assert sp.order==0
+    chebyshevdifferentiate(domain(sp),cfs)
+end
+
+function integrate(sp::UltrasphericalSpace,cfs::Vector)
+    @assert sp.order==0
+    chebyshevintegrate(domain(sp),cfs)
+end
+
+function chebyshevsum(d::IntervalDomain,cfs::Vector)
+    cf=IFun(chebyshevintegrate(d,cfs),d)
+    last(cf) - first(cf)
+end
+
+
+function Base.sum(sp::UltrasphericalSpace,cfs::Vector)
+    @assert sp.order==0
+    chebyshevsum(domain(sp),cfs)
+end
+
+chebyshevdifferentiate(d::Interval,cfs::Vector)=tocanonicalD(d,0)*ultraiconversion(ultradiff(cfs))
+##TODO: can we get rid of reference to IFun?
+chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(IFun(x->tocanonicalD(d,x),d).*IFun(diff(IFun(cfs)),d)).coefficients
+chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint(ultraconversion(cfs))   
+
+
+

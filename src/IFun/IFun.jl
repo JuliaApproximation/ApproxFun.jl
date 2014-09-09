@@ -10,9 +10,9 @@ include("ultraspherical.jl")
 
 
 ##TODO: No zero length funs
-type IFun{T<:Union(Float64,Complex{Float64}),S<:IntervalDomainSpace} <: AbstractFun
+type IFun{T<:Union(Float64,Complex{Float64})} <: AbstractFun
     coefficients::Vector{T}
-    space::S
+    space::IntervalDomainSpace
 end
 IFun(coefs::Vector,d::IntervalDomainSpace)=IFun(1.0*coefs,d)
 
@@ -120,7 +120,7 @@ function abszerocfsIFun(f::Function,d::IntervalDomain)
     tol = 200eps();
 
     for logn = 4:20
-        cf = IFun(f, d, 2^logn + 1);
+        cf = IFun(f, d, 2^logn + 1)
         
         if maximum(abs(cf.coefficients[end-8:end])) < tol
             return chop!(cf,10eps())
@@ -157,9 +157,9 @@ coefficients(f::IFun,m::Integer)=ultraconversion(f.coefficients,m)
 ##Convert routines
 
 
-Base.convert{T<:Number,D<:IntervalDomainSpace}(::Type{IFun{T,D}},x::Number)=IFun([1.0*x])
+Base.convert{T<:Number}(::Type{IFun{T}},x::Number)=IFun([1.0*x])
 Base.convert(::Type{IFun},x::Int64)=IFun([1.0*x])
-Base.convert{D<:IntervalDomainSpace}(::Type{IFun{Float64,D}},x::IFun)=1.0*x
+Base.convert(::Type{IFun{Float64}},x::IFun)=1.0*x
 
 
 # Base.convert{T<:Number,D<:IntervalDomain}(::Type{IFun{T,D}},x::Number)=IFun([one(T)*x])
@@ -303,11 +303,17 @@ for op = (:real,:imag,:conj)
     @eval ($op)(f::IFun) = IFun(($op)(f.coefficients),f.space)
 end
 
-Base.abs2{D}(f::IFun{Float64,D})=f.^2
-Base.abs2{D}(f::IFun{Complex{Float64},D})=real(f).^2+imag(f).^2
+Base.abs2(f::IFun{Float64})=f.^2
+Base.abs2(f::IFun{Complex{Float64}})=real(f).^2+imag(f).^2
 
 ##  integration
 
+differentiate(f::IFun)=IFun(differentiate(f.space,f.coefficients),f.space)
+integrate(f::IFun)=IFun(integrate(f.space,f.coefficients),f.space)
+function Base.sum(sp::IntervalDomainSpace,cfs::Vector)
+    cf=integrate(sp,cfs)
+    last(cf) - first(cf)
+end
 
 
 function Base.cumsum(f::IFun)
@@ -315,10 +321,17 @@ function Base.cumsum(f::IFun)
     cf - first(cf)
 end
 
-function Base.sum(f::IFun)
-    cf=integrate(f)
-    last(cf) - first(cf)
+Base.sum(f::IFun)=sum(f.space,f.coefficients)
+
+
+
+
+function differentiate(f::IFun,k::Integer)
+    @assert k >= 0
+    (k==0)?f:differentiate(differentiate(f),k-1)
 end
+
+Base.diff(f::IFun,n...)=differentiate(f,n...)
 
 
 

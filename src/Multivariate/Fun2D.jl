@@ -34,7 +34,7 @@ end
 
 ## We take the convention that row vector pads down
 # TODO: Vector pads right
-function Fun2D{T<:Number,D}(X::Array{IFun{T,D},2},dy::IntervalDomain)
+function Fun2D{T<:Number}(X::Array{IFun{T},2},dy::IntervalDomain)
     @assert size(X,1)==1
     
     m=mapreduce(length,max,X)

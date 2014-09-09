@@ -2,9 +2,9 @@ export MultiplicationOperator
 
 
 
-type MultiplicationOperator{T<:Number,D<:IntervalDomainSpace} <: BandedOperator{T}
-    f::IFun{T,D}
-    
+type MultiplicationOperator{T<:Number} <: BandedOperator{T}
+    f::IFun{T}
+    ##TODO: space goes in f
     space::Int
 end
 
