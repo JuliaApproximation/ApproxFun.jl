@@ -6,13 +6,13 @@
 ## promotion
 
 
-## Space Operator is used to wrap an Any space operator 
+## Space Operator is used to wrap an AnySpace() operator 
 type SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace} <: BandedOperator{T}
     op::O
     space::S
 #     
 #     function SpaceOperator{T,O,S}(o::O,s::S)
-#         @assert domainspace(o)==rangespace(o)==Any
+#         @assert domainspace(o)==rangespace(o)==AnySpace()
 #         new(o,s)
 #     end
 end
@@ -28,8 +28,8 @@ domain(S::SpaceOperator)=domain(S.space)
 
 for op in (:promoterangespace,:promotedomainspace)
     @eval begin
-        ($op)(P::Operator,::Type{Any})=P
-        ($op)(P::Operator,sp::FunctionSpace,::Type{Any})=SpaceOperator(P,sp)
+        ($op)(P::Operator,::AnySpace)=P
+        ($op)(P::Operator,sp::FunctionSpace,::AnySpace)=SpaceOperator(P,sp)
     end
 end
 

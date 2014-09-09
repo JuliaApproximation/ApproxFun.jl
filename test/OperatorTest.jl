@@ -12,13 +12,13 @@ Q=integrate(d);
 x=Fun(identity)
 X=MultiplicationOperator(x)
 
-@test norm(USConversionOperator(0:2)\coefficients(x.*f,2)-(x.*f).coefficients) < 100eps()
+@test norm(USConversionOperator(0:2,domain(x))\coefficients(x.*f,2)-(x.*f).coefficients) < 100eps()
 
-@test norm((USConversionOperator(0:2)\(D^2*f))-diff(diff(f))) < 100eps()
+@test norm((USConversionOperator(0:2,domain(x))\(D^2*f))-diff(diff(f))) < 100eps()
 
 @test norm(X*f-(x.*f)) < 100eps()
 
-@test norm(USConversionOperator(0:2)*X*f.coefficients-coefficients(x.*f,2)) < 100eps()
+@test norm(USConversionOperator(0:2,domain(x))*X*f.coefficients-coefficients(x.*f,2)) < 100eps()
 
 
 ## Special functions

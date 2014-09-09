@@ -4,12 +4,12 @@
 
 
 
-type UltrasphericalSpace{T<:Union(IntervalDomain,DataType)} <: IntervalDomainSpace
+type UltrasphericalSpace{T<:IntervalDomain} <: IntervalDomainSpace
     order::Int
     domain::T     
 end
 
-UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,Any)
+#UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,AnyDomain())
 ChebyshevSpace(d::IntervalDomain)=UltrasphericalSpace(0,d)
 
 
@@ -43,7 +43,7 @@ end
 # DirichletSpaces
 
 
-type ChebyshevDirichletSpace{T<:Union(IntervalDomain,DataType)} <: IntervalDomainSpace
+type ChebyshevDirichletSpace{T<:Union(IntervalDomain,AnyDomain)} <: IntervalDomainSpace
     domain::T 
     left::Int
     right::Int    

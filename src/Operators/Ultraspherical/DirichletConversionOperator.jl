@@ -9,7 +9,7 @@ end
 
 DirichletConversionOperator(B::ChebyshevDirichletSpace)=DirichletConversionOperator(B.left,B.right)
 
-domainspace(M::DirichletConversionOperator)=ChebyshevDirichletSpace(Any,M.left,M.right)
+domainspace(M::DirichletConversionOperator)=ChebyshevDirichletSpace(AnyDomain(),M.left,M.right)
 rangespace(M::DirichletConversionOperator)=UltrasphericalSpace(0)
 
 bandinds(C::DirichletConversionOperator)=0,(C.left+C.right)

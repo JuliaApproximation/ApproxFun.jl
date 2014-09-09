@@ -29,24 +29,24 @@ function domainspace(P::PlusOperator)
     for op in P.ops
         sp = domainspace(op)
         
-        if sp != Any
+        if sp != AnySpace()
             return sp
         end
     end
     
-    Any
+    AnySpace()
 end
 
 function rangespace(P::PlusOperator)
     for op in P.ops
         sp = rangespace(op)
         
-        if sp != Any
+        if sp != AnySpace()
             return sp
         end
     end
     
-    Any
+    AnySpace()
 end
 
 domain(P::PlusOperator)=commondomain(P.ops)
@@ -109,7 +109,7 @@ type TimesOperator{T<:Number,B<:Operator} <: BandedOperator{T}
     
     function TimesOperator{B}(ops::Vector{B})
         for k=1:length(ops)-1
-            @assert domainspace(ops[k])==Any || rangespace(ops[k+1])==Any || domainspace(ops[k])==rangespace(ops[k+1])
+            @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() || domainspace(ops[k])==rangespace(ops[k+1])
         end
         
         new(ops)
@@ -156,24 +156,24 @@ function domainspace(P::TimesOperator)
     for k=length(P.ops):-1:1
         sp = domainspace(P.ops[k])
         
-        if sp != Any
+        if sp != AnySpace()
             return sp
         end
     end
     
-    Any
+    AnySpace()
 end
 
 function rangespace(P::TimesOperator)
     for op in P.ops
         sp = rangespace(op)
         
-        if sp != Any
+        if sp != AnySpace()
             return sp
         end
     end
     
-    Any
+    AnySpace()
 end
 
 domain(P::TimesOperator)=commondomain(P.ops)

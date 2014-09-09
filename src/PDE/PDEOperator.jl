@@ -15,11 +15,11 @@ PDEOperator(A,B)=PDEOperator([A B])
 function domain(LL::PDEOperator,j::Integer)
     for k=1:size(LL.ops,1)
         dx=domain(LL.ops[k,j]) 
-        if dx != Any
+        if dx != AnyDomain()
             return dx
         end
     end
-    return Any
+    return AnyDomain()
 end
 
 function domain(LL::PDEOperator)

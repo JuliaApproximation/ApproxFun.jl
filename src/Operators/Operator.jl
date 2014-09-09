@@ -23,19 +23,19 @@ abstract ShiftFunctional{T} <: Functional{T}
 ##TODO: Why do we need BandedOperator to check for row>0?
 
 ## We assume operators are T->T
-domain(A::Operator)=Any
-rangespace(A::Operator)=Any
-domainspace(A::Operator)=Any
+domain(A::Operator)=AnyDomain()
+rangespace(A::Operator)=AnySpace()
+domainspace(A::Operator)=AnySpace()
 
 
 function commondomain(P::Vector)
-    ret = Any
+    ret = AnyDomain()
     
     for op in P
         d = domain(op)
-        @assert ret == Any || d == Any || d == AnyDomain() || ret == d
+        @assert ret == AnyDomain() || d == AnyDomain() || ret == d
         
-        if d != Any && d != AnyDomain()
+        if d != AnyDomain()
             ret = d
         end
     end
