@@ -35,7 +35,7 @@ function IFun(f::Function,d::IntervalDomainSpace,n::Integer)
     end
 end
 
-IFun(f::IFun,d::IntervalDomainSpace)=IFun(f.coefficients,d)
+IFun(f::IFun,d::IntervalDomainSpace)=IFun(coefficients(f),d)
 
 
 IFun(f,d::IntervalDomain)=IFun(f,ChebyshevSpace(d))
@@ -49,8 +49,8 @@ IFun(f::Function)=IFun(f,Interval())
 IFun{T<:Number}(f::Function,d::Vector{T})=IFun(f,Interval(d))
 
 
-IFun{T<:Number}(f::IFun,d::Vector{T})=IFun(f.coefficients,d)
-IFun(f::IFun)=IFun(f.coefficients)
+IFun{T<:Number}(f::IFun,d::Vector{T})=IFun(coefficients(f),d)
+IFun(f::IFun)=IFun(coefficients(f))
 
 IFun(c::Number)=IFun([c])
 IFun(c::Number,d::IntervalDomain)=IFun([c],d)
@@ -154,8 +154,7 @@ end
 
 ##Coefficient routines
 
-coefficients(f::IFun)=f.coefficients
-coefficients(f::IFun,m::Integer)=ultraconversion(f.coefficients,m)
+coefficients(f::IFun)=coefficients(f,ChebyshevSpace(domain(f)))
 
 ##Convert routines
 
@@ -176,18 +175,19 @@ end
 
 
 Base.getindex(f::IFun,x)=evaluate(f,x)
-evaluate(f::IFun,x)=clenshaw(f.coefficients,tocanonical(f,x))
+evaluate(f::IFun,x)=clenshaw(coefficients(f),tocanonical(f,x))
 
 
-Base.first(f::IFun)=foldr(-,f.coefficients)
-Base.last(f::IFun)=reduce(+,f.coefficients)
+Base.first(f::IFun)=foldr(-,coefficients(f))
+Base.last(f::IFun)=reduce(+,coefficients(f))
 
 
 space(f::IFun)=f.space
 spacescompatible(f::IFun,g::IFun)=typeof(f.space)<:ConstantSpace || typeof(g.space)<:ConstantSpace || f.space == g.space
+domainscompatible(f::IFun,g::IFun)=domain(f)==AnyDomain() || domain(g)==AnyDomain() || domain(f) == domain(g)
 
 ##Data routines
-values(f::IFun)=ichebyshevtransform(f.coefficients) 
+values(f::IFun)=ichebyshevtransform(coefficients(f)) 
 points(f::IFun)=points(domain(f),length(f))
 Base.length(f::IFun)=length(f.coefficients)
 
@@ -220,23 +220,23 @@ chop!(f::IFun)=chop!(f,eps())
 for op = (:+,:-)
     @eval begin
         function ($op)(f::IFun,g::IFun)
-            @assert spacescompatible(f,g)
+            @assert domainscompatible(f,g)
         
             n = max(length(f),length(g))
             f2 = pad(f,n); g2 = pad(g,n)
             
-            IFun(($op)(f2.coefficients,g2.coefficients),f.space)
+            IFun(($op)(coefficients(f2),coefficients(g2)),f.space)
         end
 
         function ($op){N<:Number,T<:Number}(f::IFun{T},c::N)
             n=length(f)
             
             v=Array(promote_type(N,T),n==0?1:n)
-            
-            v[1] =($op)(n==0?$zero(T):f.coefficients[1],c)
+            cfs=coefficients(f)
+            v[1] =($op)(n==0?$zero(T):cfs[1],c)
             
             if n>1
-                v[2:end]=f.coefficients[2:end]
+                v[2:end]=cfs[2:end]
             end
             
             IFun(v,domain(f))
@@ -249,9 +249,8 @@ end
 function .*(f::IFun,g::IFun)
     @assert f.space == g.space
     #TODO Coefficient space version
-    n = length(f) + length(g) - 1;
-    f2 = pad(f,n);
-    g2 = pad(g,n);
+    n = length(f) + length(g) - 1
+    f2 = pad(f,n); g2 = pad(g,n)
     
     chop!(IFun(chebyshevtransform(values(f2).*values(g2)),f.space),10eps())
 end
@@ -300,6 +299,7 @@ norm(f::IFun)=real(sqrt(sum(f.*conj(f))))
 import Base.imag, Base.real, Base.conj
 
 for op = (:real,:imag,:conj) 
+    ##TODO: this assumes real space
     @eval ($op)(f::IFun) = IFun(($op)(f.coefficients),f.space)
 end
 

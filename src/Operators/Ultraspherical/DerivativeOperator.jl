@@ -34,8 +34,8 @@ addentries!(D::USDerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentr
 
 
 bandinds(D::USDerivativeOperator)=0,(length(D.order)-1)
-domainspace(M::USDerivativeOperator)=UltrasphericalSpace(M.order[1])
-rangespace(M::USDerivativeOperator)=UltrasphericalSpace(M.order[end])
+domainspace(M::USDerivativeOperator)=UltrasphericalSpace{M.order[1]}()
+rangespace(M::USDerivativeOperator)=UltrasphericalSpace{M.order[end]}()
 
 
 ## DerivativeOperator
@@ -73,14 +73,14 @@ addentries!(D::DerivativeOperator,A::ShiftArray,kr::Range1)=derivative_addentrie
 
 
 bandinds(D::DerivativeOperator)=0,(length(D.order)-1)
-domainspace(M::DerivativeOperator)=UltrasphericalSpace(M.order[1],M.domain)
-rangespace(M::DerivativeOperator)=UltrasphericalSpace(M.order[end],M.domain)
+domainspace(M::DerivativeOperator)=UltrasphericalSpace{M.order[1]}(M.domain)
+rangespace(M::DerivativeOperator)=UltrasphericalSpace{M.order[end]}(M.domain)
 domain(D::DerivativeOperator)=D.domain
 
 
 
 #promoting domain space is allowed to change range space
-promotedomainspace(D::DerivativeOperator,sp::UltrasphericalSpace)=DerivativeOperator(D.order -D.order[1] + sp.order,D.domain)
+promotedomainspace{sporder}(D::DerivativeOperator,sp::UltrasphericalSpace{sporder})=DerivativeOperator(D.order -D.order[1] + sporder,D.domain)
 
 
 ## simplify higher order derivatives

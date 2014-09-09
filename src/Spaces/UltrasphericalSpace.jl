@@ -4,34 +4,36 @@
 
 
 
-immutable UltrasphericalSpace{T<:IntervalDomain} <: IntervalDomainSpace
-    order::Int
-    domain::T     
+immutable UltrasphericalSpace{O} <: IntervalDomainSpace
+    domain::IntervalDomain
 end
 
 #UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,AnyDomain())
-ChebyshevSpace(d::IntervalDomain)=UltrasphericalSpace(0,d)
+#ChebyshevSpace(d::IntervalDomain)=UltrasphericalSpace(0,d)
 
+typealias ChebyshevSpace UltrasphericalSpace{0}
+
+order{o}(::UltrasphericalSpace{o})=o
 
 
 
 #TODO: bad override?
-==(a::UltrasphericalSpace,b::UltrasphericalSpace)=a.order==b.order && domainscompatible(a,b)
+=={T}(a::UltrasphericalSpace{T},b::UltrasphericalSpace{T})=domainscompatible(a,b)
 
 ##max space
 
 
 
-function maxspace(a::UltrasphericalSpace,b::UltrasphericalSpace)
+function maxspace{aorder,border}(a::UltrasphericalSpace{aorder},b::UltrasphericalSpace{border})
     @assert domainscompatible(a,b)
     
-    a.order > b.order?a:b
+    aorder > border?a:b
 end
 
-function minspace(a::UltrasphericalSpace,b::UltrasphericalSpace)
+function minspace{aorder,border}(a::UltrasphericalSpace{aorder},b::UltrasphericalSpace{border})
     @assert domainscompatible(a,b)
     
-    a.order < b.order?a:b
+    aorder < border?a:b
 end
 
 
@@ -70,15 +72,12 @@ minspace(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=minspace(a,b)
 
 
 # diff T -> U, then convert U -> T
-function differentiate(sp::UltrasphericalSpace,cfs::Vector)
-    @assert sp.order==0
+function differentiate(sp::ChebyshevSpace,cfs::Vector)
     chebyshevdifferentiate(domain(sp),cfs)
 end
 
-function integrate(sp::UltrasphericalSpace,cfs::Vector)
-    @assert sp.order==0
-    chebyshevintegrate(domain(sp),cfs)
-end
+integrate(sp::ChebyshevSpace,cfs::Vector)=chebyshevintegrate(domain(sp),cfs)
+integrate(sp::UltrasphericalSpace{1},cfs::Vector)=fromcanonicalD(domain(sp),0)*ultraint(cfs)
 
 function chebyshevsum(d::IntervalDomain,cfs::Vector)
     cf=IFun(chebyshevintegrate(d,cfs),d)
@@ -86,8 +85,7 @@ function chebyshevsum(d::IntervalDomain,cfs::Vector)
 end
 
 
-function Base.sum(sp::UltrasphericalSpace,cfs::Vector)
-    @assert sp.order==0
+function Base.sum(sp::ChebyshevSpace,cfs::Vector)
     chebyshevsum(domain(sp),cfs)
 end
 
@@ -97,4 +95,18 @@ chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(IFun(x->tocanonicalD(d,x)
 chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint(ultraconversion(cfs))   
 
 
+
+
+
+## coefficients
+
+function coefficients(f::IFun,m::Integer)
+    @assert typeof(space(f))<:ChebyshevSpace
+    ultraconversion(f.coefficients,m)
+end
+function coefficients{m}(f::IFun,msp::UltrasphericalSpace{m})
+    sp = space(f)
+
+    ultraconversion(f.coefficients,space(f),msp)
+end
 

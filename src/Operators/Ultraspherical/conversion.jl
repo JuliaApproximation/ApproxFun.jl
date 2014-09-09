@@ -19,10 +19,13 @@ function ultraconversion{T}(g::Vector{T},m::Integer)
     end
 end
 
+# convert from s -> t
+ultraconversion{s,m}(g::Vector,::UltrasphericalSpace{s},::UltrasphericalSpace{m})=ultraconversion(ultraiconversion(g,s),m)
+ultraconversion(g::Vector,::ConstantSpace,::UltrasphericalSpace)=g
 
 function *(A::InfiniteOperator,b::IFun)
     dsp=domainspace(A)
-    dsp==AnySpace()?IFun(A*b.coefficients,b.space):IFun(ultraiconversion(A*ultraconversion(b.coefficients,dsp.order),rangespace(A).order),b.space)
+    dsp==AnySpace()?IFun(A*b.coefficients,b.space):IFun(A*coefficients(b,dsp),rangespace(A))
 end
 
 

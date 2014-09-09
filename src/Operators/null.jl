@@ -2,7 +2,7 @@
 
 
 #assume dimension of kernel is range space
-Base.null(A::BandedOperator)=null(A,rangespace(A).order)
+Base.null(A::BandedOperator)=null(A,order(rangespace(A)))
 
 
 function applygivens!(Q,k,a,b)

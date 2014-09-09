@@ -267,7 +267,7 @@ end
 -(A::Operator)=ConstantOperator(-1.)*A
 -(A::Operator,B::Operator)=A+(-B)
 
-*(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A).order)*A
+*(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
 *(f::FFun,A::Operator)=MultiplicationOperator(f)*A
 *(c::Number,A::Operator)=ConstantOperator(c)*A
 .*(c::Number,A::Operator)=ConstantOperator(c)*A

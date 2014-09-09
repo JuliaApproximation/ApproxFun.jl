@@ -8,15 +8,15 @@ type MultiplicationOperator{T<:Number} <: BandedOperator{T}
     space::Int
 end
 
-
+MultiplicationOperator{o}(f::IFun,::UltrasphericalSpace{o})=MultiplicationOperator(f,o)
 MultiplicationOperator(c::Number,k)=ConstantOperator(c)
 MultiplicationOperator(f::FFun)=LaurentOperator(f)
 MultiplicationOperator(f)=MultiplicationOperator(f,0)
 
 
 
-domainspace(M::MultiplicationOperator)=UltrasphericalSpace(M.space,domain(M.f))
-rangespace(M::MultiplicationOperator)=UltrasphericalSpace(M.space,domain(M.f))
+domainspace(M::MultiplicationOperator)=UltrasphericalSpace{M.space}(domain(M.f))
+rangespace(M::MultiplicationOperator)=UltrasphericalSpace{M.space}(domain(M.f))
 
 
 function zeromultiplication_addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
@@ -90,6 +90,6 @@ domain(T::MultiplicationOperator)=domain(T.f)
 
 
 ##multiplication can always be promoted, range space is allowed to change
-promotedomainspace(D::MultiplicationOperator,sp::UltrasphericalSpace)=MultiplicationOperator(D.f,sp.order)
+promotedomainspace{order}(D::MultiplicationOperator,sp::UltrasphericalSpace{order})=MultiplicationOperator(D.f,order)
 
 

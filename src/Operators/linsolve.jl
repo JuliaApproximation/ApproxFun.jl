@@ -5,7 +5,7 @@ IFun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,IFun)? coefficients(f,sp) :  
 FFun_coefficients(b::Vector)=vcat(map(f-> isa(f,FFun)? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
 
 function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
-    u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end]).order),tolerance,maxlength)  ##TODO: depends on ordering of A
+    u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
     
     IFun(u,commondomain(A,b))
 end
@@ -78,7 +78,7 @@ function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
     r[1:br]=b[1:br]
     
     for k=br+1:m
-        sp=findmaxrangespace([A[k,:]...]).order
+        sp=findmaxrangespace([A[k,:]...])
         if k > length(b)## assume its zer
             r[k:n:end]=zeros(l)
         elseif isa(b[k],AbstractFun)

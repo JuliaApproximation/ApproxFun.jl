@@ -15,8 +15,8 @@ function bandinds(M::IntegrationOperator)
 
     -1,0
 end
-domainspace(M::IntegrationOperator)=UltrasphericalSpace(first(M.order),M.domain)
-rangespace(M::IntegrationOperator)=UltrasphericalSpace(last(M.order),M.domain)
+domainspace(M::IntegrationOperator)=UltrasphericalSpace{first(M.order)}(M.domain)
+rangespace(M::IntegrationOperator)=UltrasphericalSpace{last(M.order)}(M.domain)
 domain(Q::IntegrationOperator)=Q.domain
 
 ##Very similar to conversion
