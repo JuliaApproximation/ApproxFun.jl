@@ -308,20 +308,15 @@ Base.abs2(f::IFun{Complex{Float64}})=real(f).^2+imag(f).^2
 
 ##  integration
 
-differentiate(f::IFun)=IFun(differentiate(f.space,f.coefficients),f.space)
-integrate(f::IFun)=IFun(integrate(f.space,f.coefficients),f.space)
-function Base.sum(sp::IntervalDomainSpace,cfs::Vector)
-    cf=integrate(sp,cfs)
-    last(cf) - first(cf)
-end
-
-
 function Base.cumsum(f::IFun)
     cf = integrate(f)
     cf - first(cf)
 end
 
-Base.sum(f::IFun)=sum(f.space,f.coefficients)
+function Base.sum(f::IFun)
+    cf=integrate(f)
+    last(cf) - first(cf)
+end
 
 
 

@@ -11,7 +11,9 @@ end
 #UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,AnyDomain())
 #ChebyshevSpace(d::IntervalDomain)=UltrasphericalSpace(0,d)
 
+
 typealias ChebyshevSpace UltrasphericalSpace{0}
+
 
 order{o}(::UltrasphericalSpace{o})=o
 
@@ -57,27 +59,14 @@ evaluate{T}(f::IFun{T,ChebyshevSpace},x)=clenshaw(f.coefficients,tocanonical(f,x
 
 
 # diff T -> U, then convert U -> T
-function differentiate(sp::ChebyshevSpace,cfs::Vector)
-    chebyshevdifferentiate(domain(sp),cfs)
-end
-
-integrate(sp::ChebyshevSpace,cfs::Vector)=chebyshevintegrate(domain(sp),cfs)
-integrate(sp::UltrasphericalSpace{1},cfs::Vector)=fromcanonicalD(domain(sp),0)*ultraint(cfs)
-
-function chebyshevsum(d::IntervalDomain,cfs::Vector)
-    cf=IFun(chebyshevintegrate(d,cfs),d)
-    last(cf) - first(cf)
-end
-
-
-function Base.sum(sp::ChebyshevSpace,cfs::Vector)
-    chebyshevsum(domain(sp),cfs)
-end
-
-chebyshevdifferentiate(d::Interval,cfs::Vector)=tocanonicalD(d,0)*ultraiconversion(ultradiff(cfs))
-##TODO: can we get rid of reference to IFun?
-chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(IFun(x->tocanonicalD(d,x),d).*IFun(diff(IFun(cfs)),d)).coefficients
+integrate{T}(f::IFun{T,ChebyshevSpace})=IFun(chebyshevintegrate(domain(f),f.coefficients),f.space)
+integrate{T}(f::IFun{T,UltrasphericalSpace{1}})=IFun(fromcanonicalD(f,0)*ultraint(f.coefficients),ChebyshevSpace(domain(f)))
 chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint(ultraconversion(cfs))   
+
+
+differentiate{T}(f::IFun{T,ChebyshevSpace})=IFun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
+chebyshevdifferentiate(d::Interval,cfs::Vector)=tocanonicalD(d,0)*ultraiconversion(ultradiff(cfs))
+chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(IFun(x->tocanonicalD(d,x),d).*IFun(diff(IFun(cfs)),d)).coefficients
 
 
 
