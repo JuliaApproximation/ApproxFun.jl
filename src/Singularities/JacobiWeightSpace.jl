@@ -21,6 +21,18 @@ itransform{J<:JacobiWeightSpace}(sp::J,cfs::Vector)=itransform(ChebyshevSpace(do
 ##TODO: paradigm for same space
 spaceconversion(f::Vector,::JacobiWeightSpace{0,0},::ChebyshevSpace)=f
 spaceconversion(f::Vector,::ChebyshevSpace,::JacobiWeightSpace{0,0})=f
+function spaceconversion{α,β,c,d}(f::Vector,sp1::JacobiWeightSpace{α,β},sp2::JacobiWeightSpace{c,d})
+    if c>α && d>β
+        spaceconversion(divide_singularity(f),JacobiWeightSpace{α+1,β+1}(domain(f)),sp2)
+    elseif c>α
+        spaceconversion(divide_singularity(-1,f),JacobiWeightSpace{α+1,β}(domain(f)),sp2)    
+    elseif d>β
+        spaceconversion(divide_singularity(1,f),JacobiWeightSpace{α,β+1}(domain(f)),sp2)        
+    else
+        error("Need to implement decreasing jacobi")
+    end
+end
+
 
 function Base.sum{T<:Number,α,β}(f::IFun{T,JacobiWeightSpace{α,β}})
     ##TODO: generalize
