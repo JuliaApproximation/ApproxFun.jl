@@ -307,7 +307,7 @@ function Base.cumsum(f::IFun)
     cf - first(cf)
 end
 
-function Base.sum(f::IFun)
+function Base.sum{T<:Number}(f::IFun{T})
     cf=integrate(f)
     last(cf) - first(cf)
 end

@@ -65,13 +65,11 @@ domain{T<:AbstractFun}(v::Vector{T})=map(domain,v)
 ## Other domains
 
 include("Domains/Ray.jl")
-include("Domains/Line.jl")
-include("Spaces/LineSpace.jl")
 include("Domains/Circle.jl")
 
 ## Further extra features
 
-include("Singularities/SingFun.jl")
+include("Singularities/Singularities.jl")
 
 include("PDE/PDE.jl")
 

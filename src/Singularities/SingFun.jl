@@ -1,7 +1,6 @@
 export SingFun
 
 
-include("divide_singularity.jl") 
 
 type SingFun{T<:IFun} <: AbstractFun
     fun::T

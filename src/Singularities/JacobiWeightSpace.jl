@@ -9,7 +9,7 @@ immutable JacobiWeightSpace{α,β} <: IntervalDomainSpace
 end
 
 jacobiweight(α,β,x)=(1.+x).^α.*(1.-x).^β
-jacobiweight{α,β}(sp::JacobiSpace{α,β},x)=jacobiweight(α,β,tocanonical(sp,x))
+jacobiweight{α,β}(sp::JacobiWeightSpace{α,β},x)=jacobiweight(α,β,tocanonical(sp,x))
 
 evaluate{T,J<:JacobiWeightSpace}(f::IFun{T,J},x)=jacobiweight(space(f),x).*IFun(f.coefficients,domain(f))[x]
 
@@ -22,7 +22,7 @@ itransform{J<:JacobiWeightSpace}(sp::J,cfs::Vector)=itransform(ChebyshevSpace(do
 spaceconversion(f::Vector,::JacobiWeightSpace{0,0},::ChebyshevSpace)=f
 spaceconversion(f::Vector,::ChebyshevSpace,::JacobiWeightSpace{0,0})=f
 
-function Base.sum{T,α,β}(f::IFun{T,JacobiWeightSpace{α,β}})
+function Base.sum{T<:Number,α,β}(f::IFun{T,JacobiWeightSpace{α,β}})
     ##TODO: generalize
 
     if α==β==.5
