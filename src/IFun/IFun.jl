@@ -192,8 +192,8 @@ spacescompatible(f::IFun,g::IFun)=typeof(f.space)<:ConstantSpace || typeof(g.spa
 domainscompatible(f::IFun,g::IFun)=domain(f)==AnyDomain() || domain(g)==AnyDomain() || domain(f) == domain(g)
 
 ##Data routines
-values(f::IFun)=ichebyshevtransform(coefficients(f)) 
-points(f::IFun)=points(domain(f),length(f))
+values(f::IFun)=itransform(f.space,f.coefficients) 
+points(f::IFun)=points(f.space,length(f))
 Base.length(f::IFun)=length(f.coefficients)
 
 

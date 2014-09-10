@@ -48,6 +48,10 @@ for op in (:(Base.ones),:(Base.zeros))
 end
 
 
+## transform
+
+itransform(::ChebyshevSpace,cfs::Vector)=ichebyshevtransform(cfs)
+itransform(sp::UltrasphericalSpace,cfs::Vector)=itransform(ChebyshevSpace(domain(sp)),spaceconversion(cfs,sp,ChebyshevSpace(domain(sp))))
 
 
 ## evaluation
