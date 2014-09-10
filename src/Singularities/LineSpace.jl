@@ -98,7 +98,7 @@ for T in {Float64,Complex{Float64}}
     function Base.sum(f::IFun{T,LineSpace})
         d=domain(f)
         if d.α==d.β==-.5
-            sum(SingFun(divide_singularity(Fun(f.coefficients)),-.5,-.5))
+            sum(IFun(divide_singularity(f.coefficients),JacobiWeightSpace(-.5,-.5,Interval())))
         else
             cf = integrate(f)
             last(cf) - first(cf)

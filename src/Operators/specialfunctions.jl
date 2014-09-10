@@ -1,10 +1,10 @@
 # division by fun 
 
-./(f::IFun,g::IFun)=linsolve(MultiplicationOperator(g),f;tolerance=10eps())
+./{T,N,a,b}(f::IFun{T,UltrasphericalSpace{a}},g::IFun{N,UltrasphericalSpace{b}})=linsolve(MultiplicationOperator(g),f;tolerance=10eps())
 
 for op in (:./,:/)
     @eval begin
-        function ($op)(c::Number,f::IFun)
+        function ($op){T}(c::Number,f::IFun{T,ChebyshevSpace})
             fc = IFun(f)
             r = roots(fc)
             x = IFun(identity)
@@ -19,15 +19,15 @@ for op in (:./,:/)
                 @assert abs(abs(r[1]) - 1.) < tol
                 
                 if sign(r[1]) < 0
-                    SingFun(IFun(c./(fc./(x+1)),f.space),-1.,0.)
+                    IFun(coefficients(c./(fc./(x+1))),JacobiWeightSpace(-1,0,domain(f)))
                 else
-                    SingFun(IFun(c./(fc./(1-x)),f.space),0.,-1.)                
+                    IFun(coefficients(c./(fc./(1-x))),JacobiWeightSpace(0,-1,domain(f)))                
                 end 
             else
                 @assert abs(r[1]+1) < tol
                 @assert abs(r[2]-1) < tol                        
                 
-                SingFun(IFun(c./(fc./(1-x.^2)),f.space),-1.,-1.)                     
+                IFun(coefficients(c./(fc./(1-x.^2))),JacobiWeightSpace(-1,-1,domain(f)))  
             end
         end
     end
@@ -67,15 +67,15 @@ function Base.sqrt(f::IFun)
         @assert abs(abs(r[1])-1) < tol
         
         if abs(r[1]-1.) < tol
-            SingFun(IFun(sqrt(MultiplicationOperator(1-x)\fc),f.space),0.,.5)
+            IFun(coefficients(sqrt(MultiplicationOperator(1-x)\fc)),JacobiWeightSpace(0.,.5,domain(f)))
         else
-            SingFun(IFun(sqrt(MultiplicationOperator(1+x)\fc),f.space),.5,0.)        
+            IFun(coefficients(sqrt(MultiplicationOperator(1+x)\fc)),JacobiWeightSpace(.5,0.,domain(f)))
         end
     else
         @assert abs(r[1]+1) < tol
         @assert abs(r[2]-1) < tol        
     
-        SingFun(IFun(sqrt(linsolve(MultiplicationOperator(1-x.^2),fc;tolerance=eps())),f.space),.5,.5)                
+        IFun(coefficients(sqrt(linsolve(MultiplicationOperator(1-x.^2),fc;tolerance=eps()))),JacobiWeightSpace(.5,.5,domain(f)))  
     end
 end
 

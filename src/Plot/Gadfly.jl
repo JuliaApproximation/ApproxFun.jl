@@ -95,20 +95,20 @@ end
 
 ## SingFun
 
-
-function plot(f::SingFun;opts...) 
-    pf = pad(f,3length(f)+100)
-    
-    if f.α >= 0 && f.β >= 0
-        plot(points(pf),values(pf);opts...)
-    elseif f.α >= 0
-        plot(points(pf)[1:end-1],values(pf)[1:end-1];opts...)    
-    elseif f.β >= 0    
-        plot(points(pf)[2:end],values(pf)[2:end];opts...)    
-    else
-        plot(points(pf)[2:end-1],values(pf)[2:end-1];opts...)
-    end
-end
+##TODO: reimplement
+# function plot(f::SingFun;opts...) 
+#     pf = pad(f,3length(f)+100)
+#     
+#     if f.α >= 0 && f.β >= 0
+#         plot(points(pf),values(pf);opts...)
+#     elseif f.α >= 0
+#         plot(points(pf)[1:end-1],values(pf)[1:end-1];opts...)    
+#     elseif f.β >= 0    
+#         plot(points(pf)[2:end],values(pf)[2:end];opts...)    
+#     else
+#         plot(points(pf)[2:end-1],values(pf)[2:end-1];opts...)
+#     end
+# end
 
 
 

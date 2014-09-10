@@ -108,4 +108,4 @@ end
 
 
 divide_singularity(v::Vector)=dirichletrange_divide_singularity(dirichlettransform(v))
-divide_singularity(f::IFun)=IFun(divide_singularity(f.coefficients),f.space)
+

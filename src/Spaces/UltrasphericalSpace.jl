@@ -55,6 +55,17 @@ transform(sp::DomainSpace,vals::Vector)=spaceconversion(chebyshevtransform(vals)
 itransform(sp::DomainSpace,cfs::Vector)=ichebyshevtransform(spaceconversion(cfs,sp,ChebyshevSpace(domain(sp))))
 
 
+## Algebra
+
+function .*{T,N,a,b}(f::IFun{T,UltrasphericalSpace{a}},g::IFun{N,UltrasphericalSpace{b}})
+    @assert domainscompatible(f,g)
+    #TODO Coefficient space version
+    n = length(f) + length(g) - 1
+    f2 = pad(f,n); g2 = pad(g,n)
+    
+    chop!(IFun(chebyshevtransform(values(f2).*values(g2)),domain(f)),10eps())
+end
+
 
 
 ## Calculus

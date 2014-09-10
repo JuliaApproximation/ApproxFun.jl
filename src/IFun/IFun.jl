@@ -35,7 +35,7 @@ function IFun(f::Function,d::IntervalDomainSpace,n::Integer)
     end
 end
 
-IFun(f::IFun,d::IntervalDomainSpace)=IFun(coefficients(f),d)
+IFun(f::IFun,d::IntervalDomainSpace)=IFun(coefficients(f,d),d)
 
 
 IFun(f,d::IntervalDomain)=IFun(f,ChebyshevSpace(d))
@@ -239,15 +239,6 @@ for op = (:+,:-)
 end 
 
 
-
-function .*(f::IFun,g::IFun)
-    @assert domainscompatible(f,g)
-    #TODO Coefficient space version
-    n = length(f) + length(g) - 1
-    f2 = pad(f,n); g2 = pad(g,n)
-    
-    chop!(IFun(chebyshevtransform(values(f2).*values(g2)),domain(f)),10eps())
-end
 
 fasttimes(f2,g2)=IFun(chebyshevtransform(values(f2).*values(g2)),domain(f2))
 

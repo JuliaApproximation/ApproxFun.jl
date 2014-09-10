@@ -4,7 +4,7 @@ typealias ChebyshevSpace UltrasphericalSpace{0}
 
 ## Space conversion default is through Chebyshev
 
-spaceconversion{sp}(cfs::Vector,::sp,::sp)=cfs
+spaceconversion(f::Vector,sp::FunctionSpace)=spaceconversion(f,ChebyshevSpace(AnyDomain()),sp)
 spaceconversion(f::Vector,::ChebyshevSpace,sp2::ChebyshevSpace)=f
 spaceconversion(f::Vector,::ChebyshevSpace,sp2::FunctionSpace)=error("Override space conversion from ChebyshevSpace to " * string(typeof(sp2)))
 spaceconversion(f::Vector,sp2::FunctionSpace,::ChebyshevSpace)=error("Override space conversion from " * string(typeof(sp2)) * " to ChebyshevSpace")
