@@ -31,7 +31,7 @@ function IFun(f::Function,d::IntervalDomainSpace,n::Integer)
         IFun{typeof(f1[1,1]),typeof(d)}[IFun(x->f(x)[k,j],d,n) for k=1:size(f1,1),j=1:size(f1,2)]    
     else
         vals=T[f(x) for x in pts]
-        IFun(chebyshevtransform(vals),d)
+        IFun(transform(d,vals),d)
     end
 end
 
@@ -153,9 +153,7 @@ function IFun(f::Function, d::IntervalDomain; method="zerocoefficients")
 end
 
 ##Coefficient routines
-
-##TODO: domainscompatible?
-spaceconversion{sp}(cfs::Vector,::sp,::sp)=cfs
+#TODO: domainscompatible?
 coefficients(f::IFun,msp::FunctionSpace)=spaceconversion(f.coefficients,space(f),msp)
 coefficients(f::IFun)=coefficients(f,ChebyshevSpace(domain(f)))
 

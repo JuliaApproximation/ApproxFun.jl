@@ -6,7 +6,7 @@ abstract DomainSpace <: FunctionSpace
 abstract IntervalDomainSpace <: DomainSpace
 abstract PeriodicDomainSpace <: DomainSpace
 
-export FunctionSpace, domainspace, rangespace, maxspace, minspace
+export FunctionSpace, ChebyshevSpace, domainspace, rangespace, maxspace, minspace
 
 
 immutable ConstantSpace <: FunctionSpace
@@ -14,13 +14,13 @@ end
 
 domain(::ConstantSpace)=AnyDomain()
 
+
 immutable AnySpace <: FunctionSpace
 end
 
 domain(::AnySpace)=AnyDomain()
 points(d::DomainSpace,n)=points(domain(d),n)
 
-##Check domain compatibility
 
 
 ##Check domain compatibility

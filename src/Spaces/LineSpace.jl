@@ -17,6 +17,10 @@ for op in (:(Base.ones),:(Base.zeros))
 end
 
 
+## Transform
+
+transform(::LineSpace,vals::Vector)=chebyshevtransform(vals)
+
 ## evaluation
 
 evaluate{T}(f::IFun{T,LineSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
@@ -94,7 +98,7 @@ for T in {Float64,Complex{Float64}}
     function Base.sum(f::IFun{T,LineSpace})
         d=domain(f)
         if d.α==d.β==-.5
-            sum(SingFun(divide_singularity(Fun(f)),-.5,-.5))
+            sum(SingFun(divide_singularity(Fun(f.coefficients)),-.5,-.5))
         else
             cf = integrate(f)
             last(cf) - first(cf)
