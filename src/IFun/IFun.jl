@@ -167,8 +167,13 @@ Base.convert{T<:Number,S<:FunctionSpace}(::Type{IFun{Complex{Float64},S}},f::IFu
 Base.promote_rule{T<:Number,S<:FunctionSpace}(::Type{IFun{Complex{Float64},S}},::Type{IFun{T,S}})=IFun{Complex{Float64},S}
 Base.promote_rule{T<:Number,IF<:IFun}(::Type{IF},::Type{T})=IF
 
+
 Base.zero{T,S<:DomainSpace}(::Type{IFun{T,S}})=zeros(T,S(AnyDomain()))
 Base.one{T,S<:DomainSpace}(::Type{IFun{T,S}})=ones(T,S(AnyDomain()))
+for op in (:(Base.zeros),:(Base.ones))
+    @eval ($op){T}(f::IFun{T})=$op(T,f.space)
+end
+
 
 
 ##Evaluation
@@ -220,42 +225,33 @@ chop!(f::IFun)=chop!(f,eps())
 for op = (:+,:-)
     @eval begin
         function ($op)(f::IFun,g::IFun)
-            @assert domainscompatible(f,g)
-        
-            n = max(length(f),length(g))
-            f2 = pad(f,n); g2 = pad(g,n)
+            if spacescompatible(f,g)
+                n = max(length(f),length(g))
+                f2 = pad(f,n); g2 = pad(g,n)
             
-            IFun(($op)(coefficients(f2),coefficients(g2)),f.space)
+                IFun(($op)(coefficients(f2),coefficients(g2)),domain(f)!=AnyDomain()?f.space:g.space)
+            else 
+                $op(IFun(f,domain(f)),IFun(g,domain(g))) # convert to Chebyshev
+            end
         end
 
-        function ($op){N<:Number,T<:Number}(f::IFun{T},c::N)
-            n=length(f)
-            
-            v=Array(promote_type(N,T),n==0?1:n)
-            cfs=coefficients(f)
-            v[1] =($op)(n==0?$zero(T):cfs[1],c)
-            
-            if n>1
-                v[2:end]=cfs[2:end]
-            end
-            
-            IFun(v,domain(f))
-        end
+        ($op){N<:Number,T<:Number}(f::IFun{T},c::N)=$op(f,c*ones(f))
+        ($op){N<:Number,T<:Number}(c::N,f::IFun{T})=$op(c*ones(f),f)    
     end
 end 
 
 
 
 function .*(f::IFun,g::IFun)
-    @assert f.space == g.space
+    @assert domainscompatible(f,g)
     #TODO Coefficient space version
     n = length(f) + length(g) - 1
     f2 = pad(f,n); g2 = pad(g,n)
     
-    chop!(IFun(chebyshevtransform(values(f2).*values(g2)),f.space),10eps())
+    chop!(IFun(chebyshevtransform(values(f2).*values(g2)),domain(f)),10eps())
 end
 
-fasttimes(f2,g2)=IFun(chebyshevtransform(values(f2).*values(g2)),f2.space)
+fasttimes(f2,g2)=IFun(chebyshevtransform(values(f2).*values(g2)),domain(f2))
 
 
 
