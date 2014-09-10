@@ -101,4 +101,21 @@ bandinds(C::USConversionOperator)=0,2
 
 
 
+## spaceconversion
 
+
+function maxspace{aorder,border}(a::UltrasphericalSpace{aorder},b::UltrasphericalSpace{border})
+    @assert domainscompatible(a,b)
+    
+    aorder > border?a:b
+end
+
+function minspace{aorder,border}(a::UltrasphericalSpace{aorder},b::UltrasphericalSpace{border})
+    @assert domainscompatible(a,b)
+    
+    aorder < border?a:b
+end
+
+
+spaceconversion(g::Vector,::UltrasphericalSpace{1},::ChebyshevSpace)=ultraiconversion(g)
+spaceconversion(g::Vector,::ChebyshevSpace,::UltrasphericalSpace{1})=ultraconversion(g)

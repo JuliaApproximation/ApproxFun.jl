@@ -69,16 +69,3 @@ end
 
 =={l,r}(a::ChebyshevDirichletSpace{l,r},b::ChebyshevDirichletSpace{l,r})= a.domain==b.domain
 
-function maxspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
-    @assert domainscompatible(a,b)
-    
-    a
-end
-Base.max(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=maxspace(a,b)
-
-function minspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
-    @assert domainscompatible(a,b)
-    
-    b
-end
-minspace(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=minspace(a,b)

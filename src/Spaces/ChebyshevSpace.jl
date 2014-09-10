@@ -14,7 +14,7 @@ spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpa
 function spaceconversion(f::Vector,a::FunctionSpace,b::FunctionSpace)
     if minspace(a,b)==a
         ConversionOperator(a,b)*f
-    elseif maxspace(a,b)==b
+    elseif maxspace(a,b)==a
         ConversionOperator(b,a)\f    
     elseif typeof(a) <: ChebyshevSpace
         error("Override spaceconversion or implement ConversionOperator from ChebyshevSpace to " * string(typeof(b)))

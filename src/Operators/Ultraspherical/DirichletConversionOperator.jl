@@ -41,3 +41,16 @@ ConversionOperator(B::ChebyshevDirichletSpace,A::UltrasphericalSpace)=Conversion
 
 
 
+function maxspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
+    @assert domainscompatible(a,b)
+    
+    a
+end
+
+function minspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
+    @assert domainscompatible(a,b)
+    
+    b
+end
+minspace(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=minspace(a,b)
+
