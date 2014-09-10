@@ -5,7 +5,7 @@
 
 
 immutable UltrasphericalSpace{O} <: IntervalDomainSpace
-    domain::IntervalDomain
+    domain::Union(IntervalDomain,AnyDomain)
 end
 
 #UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,AnyDomain())

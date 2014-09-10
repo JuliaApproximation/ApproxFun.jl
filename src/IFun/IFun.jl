@@ -10,9 +10,9 @@ include("ultraspherical.jl")
 
 
 ##TODO: No zero length funs
-type IFun{T<:Union(Float64,Complex{Float64})} <: AbstractFun
+type IFun{T<:Union(Float64,Complex{Float64}),S<:FunctionSpace} <: AbstractFun
     coefficients::Vector{T}
-    space::FunctionSpace
+    space::S
 end
 
 
@@ -162,14 +162,14 @@ coefficients(f::IFun)=coefficients(f,ChebyshevSpace(domain(f)))
 ##Convert routines
 
 
-Base.convert{T<:Number}(::Type{IFun{T}},x::Number)=IFun([one(T)*x],ConstantSpace())
-Base.convert(::Type{IFun{Complex{Float64}}},f::IFun)=IFun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
-Base.promote_rule{T<:Number}(::Type{IFun{Complex{Float64}}},::Type{IFun{T}})=IFun{Complex{Float64}}
+Base.convert{T<:Number,S<:DomainSpace}(::Type{IFun{T,S}},x::Number)=IFun([one(T)*x],S(AnyDomain()))
+Base.convert{T<:Number,S<:FunctionSpace}(::Type{IFun{Complex{Float64},S}},f::IFun{T,S})=IFun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
+Base.promote_rule{T<:Number,S<:FunctionSpace}(::Type{IFun{Complex{Float64},S}},::Type{IFun{T,S}})=IFun{Complex{Float64},S}
 Base.promote_rule{T<:Number,IF<:IFun}(::Type{IF},::Type{T})=IF
 
 for op in (:(Base.zero),:(Base.one))
     @eval begin
-        ($op){T}(::Type{IFun{T}})=IFun([$op(T)],ConstantSpace())
+        ($op){T,S<:DomainSpace}(::Type{IFun{T,S}})=IFun([$op(T)],S(AnyDomain()))
     end
 end
 
@@ -188,7 +188,7 @@ Base.last(f::IFun)=reduce(+,coefficients(f))
 
 
 space(f::IFun)=f.space
-spacescompatible(f::IFun,g::IFun)=typeof(f.space)<:ConstantSpace || typeof(g.space)<:ConstantSpace || f.space == g.space
+spacescompatible(f::IFun,g::IFun)=typeof(f.space)<:ConstantSpace || typeof(g.space)<:ConstantSpace || (domainscompatible(f,g)&&typeof(f.space) == typeof(g.space))
 domainscompatible(f::IFun,g::IFun)=domain(f)==AnyDomain() || domain(g)==AnyDomain() || domain(f) == domain(g)
 
 ##Data routines
