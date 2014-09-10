@@ -174,8 +174,6 @@ Base.one{T,S<:DomainSpace}(::Type{IFun{T,S}})=ones(T,S(AnyDomain()))
 ##Evaluation
 
 
-evaluate(f::IFun,x)=evaluate(f.space,f.coefficients,x)
-
 Base.getindex(f::IFun,x)=evaluate(f,x)
 
 
@@ -202,10 +200,10 @@ pad!(f::IFun,n::Integer)=pad!(f.coefficients,n)
 pad(f::IFun,n::Integer)=IFun(pad(f.coefficients,n),f.space)
 
 
-function chop!(f::IFun,tol::Real)
+function chop!{T}(f::IFun{T},tol::Real)
     chop!(f.coefficients,tol)
     if length(f.coefficients) == 0
-        f.coefficients = [0.]
+        f.coefficients = [zero(T)]
     end
     
     f

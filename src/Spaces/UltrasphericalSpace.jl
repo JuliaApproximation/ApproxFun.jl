@@ -50,7 +50,7 @@ end
 
 ## evaluation
 
-evaluate(sp::ChebyshevSpace,cfs::Vector,x)=clenshaw(cfs,tocanonical(sp,x))
+evaluate{T}(f::IFun{T,ChebyshevSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
 
 
 ##Integration and differentiation
