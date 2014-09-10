@@ -299,6 +299,14 @@ function *{T<:Number}(A::BandedOperator,b::Vector{T})
     end
 end
 
+function *(A::InfiniteOperator,b::IFun)
+    dsp=domainspace(A)
+    dsp==AnySpace()?IFun(A*b.coefficients,b.space):IFun(A*coefficients(b,dsp),rangespace(A))
+end
+
+
+*{T<:Operator}(A::Vector{T},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
+
 
 
 

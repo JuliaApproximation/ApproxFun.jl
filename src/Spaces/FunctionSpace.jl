@@ -18,6 +18,9 @@ domain(::ConstantSpace)=AnyDomain()
 immutable AnySpace <: FunctionSpace
 end
 
+immutable NoSpace <: FunctionSpace
+end
+
 domain(::AnySpace)=AnyDomain()
 points(d::DomainSpace,n)=points(domain(d),n)
 
@@ -35,22 +38,30 @@ for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD)
     @eval ($op)(sp::DomainSpace,x)=$op(domain(sp),x)
 end
 
-##max space
 
+
+# gives a space c that has a banded conversion operator from a and b
 maxspace(a::AnySpace,b::AnySpace)=a
 maxspace(a::FunctionSpace,b::AnySpace)=a
 maxspace(b::AnySpace,a::FunctionSpace)=a
 function maxspace(a::FunctionSpace,b::FunctionSpace)
-    @assert a==b    
-    a
+    if a==b    
+        a
+    else
+        NoSpace()
+    end
 end
 
+# gives a space c that has a banded conversion operator to a and b
 minspace(a::AnySpace,b::AnySpace)=a
 minspace(a::FunctionSpace,b::AnySpace)=a
 minspace(b::AnySpace,a::FunctionSpace)=a
 function minspace(a::FunctionSpace,b::FunctionSpace)
-    @assert a==b
-    a
+    if a==b
+        a
+    else
+        NoSpace()
+    end
 end
 
 
@@ -74,10 +85,6 @@ function findmaxrangespace(ops::Vector)
     
     sp
 end
-
-
-
-
 
 
 

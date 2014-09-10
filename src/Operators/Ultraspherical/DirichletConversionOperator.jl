@@ -7,10 +7,10 @@ type DirichletConversionOperator <: BandedOperator{Float64}
     right::Int
 end
 
-DirichletConversionOperator(B::ChebyshevDirichletSpace)=DirichletConversionOperator(B.left,B.right)
+DirichletConversionOperator{l,r}(::ChebyshevDirichletSpace{l,r})=DirichletConversionOperator(l,r)
 
-domainspace(M::DirichletConversionOperator)=ChebyshevDirichletSpace(AnyDomain(),M.left,M.right)
-rangespace(M::DirichletConversionOperator)=ChebyshevSpace()
+domainspace(M::DirichletConversionOperator)=ChebyshevDirichletSpace{M.left,M.right}(AnyDomain())
+rangespace(::DirichletConversionOperator)=ChebyshevSpace()
 
 bandinds(C::DirichletConversionOperator)=0,(C.left+C.right)
 
@@ -36,12 +36,8 @@ function addentries!(C::DirichletConversionOperator,A::ShiftArray,kr::Range1)
     end
 end
 
-function ConversionOperator(B::ChebyshevDirichletSpace,A::UltrasphericalSpace)
-    if A.order == 0
-        DirichletConversionOperator(B)
-    else
-        ConversionOperator(ChebyshevSpace(),A)*DirichletConversionOperator(B)
-    end
-end
+ConversionOperator(B::ChebyshevDirichletSpace,A::ChebyshevSpace)= DirichletConversionOperator(B)
+ConversionOperator(B::ChebyshevDirichletSpace,A::UltrasphericalSpace)=ConversionOperator(ChebyshevSpace(),A)*DirichletConversionOperator(B)
+
 
 

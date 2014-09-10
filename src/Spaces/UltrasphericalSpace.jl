@@ -21,21 +21,6 @@ order{o}(::UltrasphericalSpace{o})=o
 #TODO: bad override?
 =={T}(a::UltrasphericalSpace{T},b::UltrasphericalSpace{T})=domainscompatible(a,b)
 
-##max space
-
-
-
-function maxspace{aorder,border}(a::UltrasphericalSpace{aorder},b::UltrasphericalSpace{border})
-    @assert domainscompatible(a,b)
-    
-    aorder > border?a:b
-end
-
-function minspace{aorder,border}(a::UltrasphericalSpace{aorder},b::UltrasphericalSpace{border})
-    @assert domainscompatible(a,b)
-    
-    aorder < border?a:b
-end
 
 
 
@@ -78,13 +63,11 @@ integrate{T}(f::IFun{T,UltrasphericalSpace{1}})=IFun(fromcanonicalD(f,0)*ultrain
 # DirichletSpaces
 
 
-immutable ChebyshevDirichletSpace{T<:Union(IntervalDomain,AnyDomain)} <: IntervalDomainSpace
-    domain::T 
-    left::Int
-    right::Int    
+immutable ChebyshevDirichletSpace{left,right} <: IntervalDomainSpace
+    domain::Union(IntervalDomain,AnyDomain)
 end
 
-==(a::ChebyshevDirichletSpace,b::ChebyshevDirichletSpace)= a.domain==b.domain && a.left==b.left && a.right==b.right
+=={l,r}(a::ChebyshevDirichletSpace{l,r},b::ChebyshevDirichletSpace{l,r})= a.domain==b.domain
 
 function maxspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
     @assert domainscompatible(a,b)
