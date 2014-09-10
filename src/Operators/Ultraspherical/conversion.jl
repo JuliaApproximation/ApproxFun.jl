@@ -20,8 +20,8 @@ function ultraconversion{T}(g::Vector{T},m::Integer)
 end
 
 # convert from s -> t
-ultraconversion{s,m}(g::Vector,::UltrasphericalSpace{s},::UltrasphericalSpace{m})=ultraconversion(ultraiconversion(g,s),m)
-ultraconversion(g::Vector,::ConstantSpace,::UltrasphericalSpace)=g
+spaceconversion{s,m}(g::Vector,::UltrasphericalSpace{s},::UltrasphericalSpace{m})=ultraconversion(ultraiconversion(g,s),m)
+spaceconversion(g::Vector,::ConstantSpace,::UltrasphericalSpace)=g
 
 function *(A::InfiniteOperator,b::IFun)
     dsp=domainspace(A)

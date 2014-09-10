@@ -42,8 +42,8 @@ end
 
 
 
-usmultiplication_addentries!(λ::Integer,a::IFun,A,kr)=usmultiplication_addentries!(λ,coefficients(a,λ),A,kr)
-function usmultiplication_addentries!(λ::Integer,a::Vector,A::ShiftArray,kr::Range1)
+usmultiplication_addentries!(sp::UltrasphericalSpace,a::IFun,A,kr)=usmultiplication_addentries!(sp,coefficients(a,sp),A,kr)
+function usmultiplication_addentries!{λ}(::UltrasphericalSpace{λ},a::Vector,A::ShiftArray,kr::Range1)
     for k=kr
         A[k,0]=a[1] 
     end
@@ -77,7 +77,7 @@ function addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
     elseif M.space == 1
         onemultiplication_addentries!(M,A,kr)
     else
-        usmultiplication_addentries!(M.space,M.f,A,kr)
+        usmultiplication_addentries!(domainspace(M),M.f,A,kr)
     end
 end
 

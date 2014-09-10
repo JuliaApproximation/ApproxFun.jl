@@ -30,6 +30,11 @@ domainscompatible(a::DomainSpace,b::DomainSpace) = a.domain == AnyDomain() || b.
 
 domain(A::DomainSpace)=A.domain # assume it has a field domain
 
+
+for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD)
+    @eval ($op)(sp::DomainSpace,x)=$op(domain(sp),x)
+end
+
 ##max space
 
 maxspace(a::AnySpace,b::AnySpace)=a

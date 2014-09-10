@@ -1,5 +1,7 @@
 using ApproxFun, Base.Test
 
+gc_disable()
+
 c = rand(1000)
 x=rand(10000)
 f=Fun(c)

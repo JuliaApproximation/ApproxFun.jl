@@ -104,7 +104,7 @@ function Base.sum(f::SingFun)
     ##TODO: generalize
 
     if f.α==f.β==.5
-        fromcanonicalD(f,0.)*coefficients(f.fun,1)[1]*π/2
+        fromcanonicalD(f,0.)*coefficients(f.fun,UltrasphericalSpace{1}(domain(f)))[1]*π/2
     elseif f.α==f.β==0.
         sum(f.fun)
     elseif f.α==f.β==-.5

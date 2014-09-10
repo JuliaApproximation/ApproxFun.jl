@@ -154,6 +154,9 @@ end
 
 ##Coefficient routines
 
+##TODO: domainscompatible?
+spaceconversion{sp}(cfs::Vector,::sp,::sp)=cfs
+coefficients(f::IFun,msp::FunctionSpace)=spaceconversion(f.coefficients,space(f),msp)
 coefficients(f::IFun)=coefficients(f,ChebyshevSpace(domain(f)))
 
 ##Convert routines
@@ -174,8 +177,10 @@ end
 ##Evaluation
 
 
+evaluate(f::IFun,x)=evaluate(f.space,f.coefficients,x)
+
 Base.getindex(f::IFun,x)=evaluate(f,x)
-evaluate(f::IFun,x)=clenshaw(coefficients(f),tocanonical(f,x))
+
 
 
 Base.first(f::IFun)=foldr(-,coefficients(f))

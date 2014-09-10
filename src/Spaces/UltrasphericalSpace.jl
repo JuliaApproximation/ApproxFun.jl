@@ -68,6 +68,11 @@ end
 minspace(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=minspace(a,b)
 
 
+## evaluation
+
+evaluate(sp::ChebyshevSpace,cfs::Vector,x)=clenshaw(cfs,tocanonical(sp,x))
+
+
 ##Integration and differentiation
 
 
@@ -97,16 +102,4 @@ chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint(ultraco
 
 
 
-
-## coefficients
-
-function coefficients(f::IFun,m::Integer)
-    @assert typeof(space(f))<:ChebyshevSpace
-    ultraconversion(f.coefficients,m)
-end
-function coefficients{m}(f::IFun,msp::UltrasphericalSpace{m})
-    sp = space(f)
-
-    ultraconversion(f.coefficients,space(f),msp)
-end
 
