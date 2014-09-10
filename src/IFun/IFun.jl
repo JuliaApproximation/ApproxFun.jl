@@ -162,16 +162,13 @@ coefficients(f::IFun)=coefficients(f,ChebyshevSpace(domain(f)))
 ##Convert routines
 
 
-Base.convert{T<:Number,S<:DomainSpace}(::Type{IFun{T,S}},x::Number)=IFun([one(T)*x],S(AnyDomain()))
+Base.convert{T<:Number,S<:DomainSpace}(::Type{IFun{T,S}},x::Number)=x*ones(T,S(AnyDomain()))
 Base.convert{T<:Number,S<:FunctionSpace}(::Type{IFun{Complex{Float64},S}},f::IFun{T,S})=IFun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
 Base.promote_rule{T<:Number,S<:FunctionSpace}(::Type{IFun{Complex{Float64},S}},::Type{IFun{T,S}})=IFun{Complex{Float64},S}
 Base.promote_rule{T<:Number,IF<:IFun}(::Type{IF},::Type{T})=IF
 
-for op in (:(Base.zero),:(Base.one))
-    @eval begin
-        ($op){T,S<:DomainSpace}(::Type{IFun{T,S}})=IFun([$op(T)],S(AnyDomain()))
-    end
-end
+Base.zero{T,S<:DomainSpace}(::Type{IFun{T,S}})=zeros(T,S(AnyDomain()))
+Base.one{T,S<:DomainSpace}(::Type{IFun{T,S}})=ones(T,S(AnyDomain()))
 
 
 ##Evaluation

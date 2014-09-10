@@ -38,34 +38,14 @@ end
 
 
 
-## Operator space manipulation
+## Construction
 
-
-
-# DirichletSpaces
-
-
-immutable ChebyshevDirichletSpace{T<:Union(IntervalDomain,AnyDomain)} <: IntervalDomainSpace
-    domain::T 
-    left::Int
-    right::Int    
+#domain(S) may be any domain
+for op in (:(Base.ones),:(Base.zeros))
+    @eval ($op){T<:Number,O}(::Type{T},S::UltrasphericalSpace{O})=IFun(($op)(T,1),S)
 end
 
-==(a::ChebyshevDirichletSpace,b::ChebyshevDirichletSpace)= a.domain==b.domain && a.left==b.left && a.right==b.right
 
-function maxspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
-    @assert domainscompatible(a,b)
-    
-    a
-end
-Base.max(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=maxspace(a,b)
-
-function minspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
-    @assert domainscompatible(a,b)
-    
-    b
-end
-minspace(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=minspace(a,b)
 
 
 ## evaluation
@@ -103,3 +83,32 @@ chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint(ultraco
 
 
 
+
+
+
+
+
+# DirichletSpaces
+
+
+immutable ChebyshevDirichletSpace{T<:Union(IntervalDomain,AnyDomain)} <: IntervalDomainSpace
+    domain::T 
+    left::Int
+    right::Int    
+end
+
+==(a::ChebyshevDirichletSpace,b::ChebyshevDirichletSpace)= a.domain==b.domain && a.left==b.left && a.right==b.right
+
+function maxspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
+    @assert domainscompatible(a,b)
+    
+    a
+end
+Base.max(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=maxspace(a,b)
+
+function minspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
+    @assert domainscompatible(a,b)
+    
+    b
+end
+minspace(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=minspace(a,b)
