@@ -19,6 +19,13 @@ addentries!(C::ConstantOperator,A::ShiftArray,kr::Range1)=laurent_addentries!([.
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
 
+## Algebra
+
++(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c+B.c)
+-(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c-B.c)
+
+
+
 ## Basis Functional
 
 type BasisFunctional <: Functional{Float64}
@@ -28,3 +35,4 @@ end
 
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
 Base.getindex(op::BasisFunctional,k::Range1)=convert(Vector{Float64},k.==op.k)
+

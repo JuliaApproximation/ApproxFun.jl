@@ -70,8 +70,6 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
     A
 end
 
-+(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c+B.c)
--(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c-B.c)
 +(A::PlusOperator,B::PlusOperator)=PlusOperator([A.ops,B.ops])
 +(A::PlusOperator,B::Operator)=PlusOperator([A.ops,B])
 +(A::Operator,B::PlusOperator)=PlusOperator([A,B.ops])
