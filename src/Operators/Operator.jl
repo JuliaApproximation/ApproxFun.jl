@@ -117,6 +117,7 @@ include("SpaceOperator.jl")
 include("ToeplitzOperator.jl")
 
 include("ConstantOperator.jl")
+include("ConversionOperator.jl")
 
 include("Ultraspherical/Ultraspherical.jl")
 

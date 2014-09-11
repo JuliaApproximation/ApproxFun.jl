@@ -7,6 +7,7 @@ end
 
 ConstantOperator(c::Number)=ConstantOperator(1.0c)
 ConstantOperator(L::UniformScaling)=ConstantOperator(L.λ)
+IdentityOperatior()=ConstantOperator(1.0)
 
 domainspace(M::ConstantOperator)=AnySpace()
 rangespace(M::ConstantOperator)=AnySpace()

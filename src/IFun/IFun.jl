@@ -17,6 +17,7 @@ end
 
 
 
+
 IFun{T<:Union(Int64,Complex{Int64})}(coefs::Vector{T},d::FunctionSpace)=IFun(1.0*coefs,d)
 
 
@@ -36,7 +37,9 @@ function IFun(f::Function,d::IntervalDomainSpace,n::Integer)
 end
 
 IFun(f::IFun,d::IntervalDomainSpace)=IFun(coefficients(f,d),d)
-
+IFun{T<:IntervalDomainSpace}(f,::Type{T})=IFun(f,T(Interval()))
+IFun{T<:IntervalDomainSpace}(f::IFun,::Type{T})=IFun(f,T(domain(f)))
+IFun{T<:IntervalDomainSpace}(f,::Type{T},n::Integer)=IFun(f,T(Interval()),n)
 
 IFun(f,d::IntervalDomain)=IFun(f,ChebyshevSpace(d))
 IFun(f,d::IntervalDomain,n)=IFun(f,ChebyshevSpace(d),n)
@@ -54,6 +57,7 @@ IFun(f::IFun)=IFun(coefficients(f))
 
 IFun(c::Number)=IFun([c])
 IFun(c::Number,d::IntervalDomain)=IFun([c],d)
+IFun{T<:IntervalDomainSpace}(c::Number,::Type{T})=IFun(c,T(AnyDomain()))
 IFun(c::Number,d)=IFun([c],d)
 
 ## List constructor
@@ -79,7 +83,7 @@ function veczerocfsIFun(f::Function,d::IntervalDomain)
 
     for logn = 4:20
         cf = IFun(f, d, 2^logn + 1)
-        cfs=coefficients(cf)
+        cfs=coefficients(cf)  ##TODO: general domain
         
         if norm(cfs[:,end-8:end],Inf) < tol*norm(cfs[:,1:8],Inf)
             nrm=norm(cfs,Inf)
@@ -92,11 +96,11 @@ function veczerocfsIFun(f::Function,d::IntervalDomain)
     IFun(f,d,2^21 + 1)
 end
 
-function zerocfsIFun(f::Function,d::IntervalDomain)
+function zerocfsIFun(f::Function,d::IntervalDomainSpace)
     #reuse function values
 
     if isa(f(fromcanonical(d,0.)),Vector)
-        return veczerocfsIFun(f,d)
+        return veczerocfsIFun(f,domain(d))
     end
 
     tol = 200*eps()
@@ -117,7 +121,7 @@ end
 
 
 
-function abszerocfsIFun(f::Function,d::IntervalDomain)
+function abszerocfsIFun(f::Function,d::IntervalDomainSpace)
     #reuse function values
 
     tol = 200eps();
@@ -136,13 +140,13 @@ function abszerocfsIFun(f::Function,d::IntervalDomain)
 end
 
 
-function IFun(f::Function, d::IntervalDomain; method="zerocoefficients")
+function IFun(f::Function, d::IntervalDomainSpace; method="zerocoefficients")
     if f==identity
         identity_fun(d)
     elseif f==zero
-        IFun([0.0],d)
+        zeros(Float64,d)
     elseif f==one
-        IFun([1.0],d)    
+        ones(Float64,d)
     elseif method == "zerocoefficients"
         zerocfsIFun(f,d)
     elseif method == "abszerocoefficients"
@@ -151,6 +155,7 @@ function IFun(f::Function, d::IntervalDomain; method="zerocoefficients")
         randomIFun(f,d)    
     end
 end
+IFun(f::Function,d::IntervalDomain;opts...)=IFun(f,ChebyshevSpace(d);opts...)
 
 ##Coefficient routines
 #TODO: domainscompatible?

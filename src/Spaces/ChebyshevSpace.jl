@@ -7,7 +7,6 @@ typealias ChebyshevSpace UltrasphericalSpace{0}
 ## Space conversion default is through Chebyshev
 
 spaceconversion(f::Vector,sp::FunctionSpace)=spaceconversion(f,ChebyshevSpace(AnyDomain()),sp)
-spaceconversion{T<:FunctionSpace}(f::Vector,::T,sp2::T)=f       #TODO: Check domains?
 spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpace)=spaceconversion(spaceconversion(f,sp1,sp2),sp2,sp3)
 
 
@@ -15,7 +14,9 @@ spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpa
 
 function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
     ct=conversion_type(a,b)
-    if ct==a
+    if a==b
+        f
+    elseif ct==a
         ConversionOperator(a,b)*f
     elseif ct==b
         ConversionOperator(b,a)\f    
@@ -61,3 +62,8 @@ chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint(ultraco
 differentiate{T}(f::IFun{T,ChebyshevSpace})=IFun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
 chebyshevdifferentiate(d::Interval,cfs::Vector)=tocanonicalD(d,0)*ultraiconversion(ultradiff(cfs))
 chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(IFun(x->tocanonicalD(d,x),d).*IFun(diff(IFun(cfs)),d)).coefficients
+
+
+## identity_fun
+
+identity_fun(d::ChebyshevSpace)=identity_fun(domain(d))

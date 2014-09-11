@@ -37,7 +37,7 @@ function addentries!(C::DirichletConversionOperator,A::ShiftArray,kr::Range1)
 end
 
 ConversionOperator(B::ChebyshevDirichletSpace,A::ChebyshevSpace)= DirichletConversionOperator(B)
-conversion_rule(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=b
+conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
 
 
 
