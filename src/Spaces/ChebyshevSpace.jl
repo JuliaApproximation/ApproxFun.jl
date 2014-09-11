@@ -2,6 +2,8 @@
 
 typealias ChebyshevSpace UltrasphericalSpace{0}
 
+
+
 ## Space conversion default is through Chebyshev
 
 spaceconversion(f::Vector,sp::FunctionSpace)=spaceconversion(f,ChebyshevSpace(AnyDomain()),sp)
@@ -11,15 +13,16 @@ spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpa
 
 ## spaceconversion defaults to calling ConversionOperator, otherwise it tries to pipe through ChebyshevSpace
 
-function spaceconversion(f::Vector,a::FunctionSpace,b::FunctionSpace)
-    if minspace(a,b)==a
+function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
+    ct=conversion_type(a,b)
+    if ct==a
         ConversionOperator(a,b)*f
-    elseif maxspace(a,b)==a
+    elseif ct==b
         ConversionOperator(b,a)\f    
     elseif typeof(a) <: ChebyshevSpace
-        error("Override spaceconversion or implement ConversionOperator from ChebyshevSpace to " * string(typeof(b)))
+        error("Override spaceconversion or implement ConversionOperator from ChebyshevSpace to " * string(B))
     elseif typeof(b) <: ChebyshevSpace
-        error("Override spaceconversion or implement ConversionOperator from " * string(typeof(a)) * " to ChebyshevSpace")
+        error("Override spaceconversion or implement ConversionOperator from " * string(A) * " to ChebyshevSpace")
     else
         spaceconversion(f,a,ChebyshevSpace(AnyDomain()),b)
     end

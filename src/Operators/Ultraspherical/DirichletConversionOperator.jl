@@ -37,20 +37,7 @@ function addentries!(C::DirichletConversionOperator,A::ShiftArray,kr::Range1)
 end
 
 ConversionOperator(B::ChebyshevDirichletSpace,A::ChebyshevSpace)= DirichletConversionOperator(B)
-ConversionOperator(B::ChebyshevDirichletSpace,A::UltrasphericalSpace)=ConversionOperator(ChebyshevSpace(),A)*DirichletConversionOperator(B)
+conversion_rule(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=b
 
 
-
-function maxspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
-    @assert domainscompatible(a,b)
-    
-    a
-end
-
-function minspace(a::UltrasphericalSpace,b::ChebyshevDirichletSpace)
-    @assert domainscompatible(a,b)
-    
-    b
-end
-minspace(b::ChebyshevDirichletSpace,a::UltrasphericalSpace)=minspace(a,b)
 

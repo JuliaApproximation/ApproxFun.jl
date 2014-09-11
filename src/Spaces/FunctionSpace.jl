@@ -40,17 +40,15 @@ end
 
 
 
-# gives a space c that has a banded conversion operator from a and b
-maxspace(a::AnySpace,b::AnySpace)=a
-maxspace(a::FunctionSpace,b::AnySpace)=a
-maxspace(b::AnySpace,a::FunctionSpace)=a
-function maxspace(a::FunctionSpace,b::FunctionSpace)
-    if a==b    
-        a
-    else
-        NoSpace()
-    end
+
+conversion_rule(a::FunctionSpace,b::FunctionSpace)=NoSpace()
+conversion_rule{S<:FunctionSpace}(a::S,b::S)=a
+
+function conversion_type(a,b)
+    cr=conversion_rule(a,b)
+    cr==NoSpace()?conversion_rule(b,a):cr
 end
+
 
 # gives a space c that has a banded conversion operator to a and b
 minspace(a::AnySpace,b::AnySpace)=a
@@ -60,10 +58,31 @@ function minspace(a::FunctionSpace,b::FunctionSpace)
     if a==b
         a
     else
-        NoSpace()
+        conversion_type(a,b)
     end
 end
 
+
+
+
+# gives a space c that has a banded conversion operator from a and b
+maxspace(a::AnySpace,b::AnySpace)=a
+maxspace(a::FunctionSpace,b::AnySpace)=a
+maxspace(b::AnySpace,a::FunctionSpace)=a
+function maxspace(a::FunctionSpace,b::FunctionSpace)
+    if a==b    
+        a
+    else
+        cr=conversion_type(a,b)
+        if cr==a
+            b
+        elseif cr ==b
+            a
+        else
+            NoSpace()
+        end
+    end
+end
 
 ##TODO: Do we need both max and min?
 function findmindomainspace(ops::Vector)

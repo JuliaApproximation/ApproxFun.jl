@@ -176,7 +176,7 @@ end
 
 ##Evaluation
 
-
+evaluate{T,S}(f::IFun{T,S},x)=evaluate(IFun(f,domain(f)),x)  #Default is convert to Chebyshev
 Base.getindex(f::IFun,x)=evaluate(f,x)
 
 
