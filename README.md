@@ -110,7 +110,7 @@ We can solve PDEs, the following solves Helmholtz `Δu + 100u=0` with `u(±1,y)=
 
 S. Olver & A. Townsend (2013), A fast and well-conditioned spectral method, SIAM Review, 55:462Ð489.
 	
-S. Olver & A. Townsend  (2013), Fast inverse transform sampling in one and two dimensions, arXiv:1307.1223.
+S. Olver & A. Townsend (2013), Fast inverse transform sampling in one and two dimensions, arXiv:1307.1223.
 
-A. Townsend & S. Olver (2014), The automatic solution of partial differential equations using a global spectral method
+A. Townsend & S. Olver (2014), The automatic solution of partial differential equations using a global spectral method, arXiv:1409:2789
 
