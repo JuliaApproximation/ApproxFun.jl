@@ -5,11 +5,16 @@ export ldirichlet,rdirichlet,lneumann,rneumann
 
 
 
+
 abstract Operator{T} #T is the entry type, Flaot64 or Complex{Float64}
 abstract Functional{T} <: Operator{T}
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
 abstract BandedOperator{T} <: BandedBelowOperator{T}
+
+
+## TODO: decide on ShiftOperator
+#         maybe as a wrapper, so adentries! is different
 
 abstract ShiftOperator{T} <: Operator{T} #For biinfinite operators
 abstract InfiniteShiftOperator{T} <: ShiftOperator{T}
@@ -17,34 +22,15 @@ abstract BandedShiftOperator{T} <: InfiniteShiftOperator{T}
 abstract ShiftFunctional{T} <: Functional{T}
 
 
-##TODO: Change BandedOperator -> BandedInfiniteOperator
-##TODO: Remove InfiniteShiftOperator
-##TODO: Add BandedOperator = Union(BandedInfiniteOperator,BandedShiftOperator)
 ##TODO: Why do we need BandedOperator to check for row>0?
 
 ## We assume operators are T->T
-domain(A::Operator)=AnyDomain()
 rangespace(A::Operator)=AnySpace()
 domainspace(A::Operator)=AnySpace()
+rangespace(A::Functional)=ScalarSpace()
+domain(A::Operator)=domain(domainspace(A))
 
 
-function commondomain(P::Vector)
-    ret = AnyDomain()
-    
-    for op in P
-        d = domain(op)
-        @assert ret == AnyDomain() || d == AnyDomain() || ret == d
-        
-        if d != AnyDomain()
-            ret = d
-        end
-    end
-    
-    ret
-end
-
-commondomain{T<:Number}(P::Vector,g::Array{T})=commondomain(P)
-commondomain(P::Vector,g)=commondomain([P,g])
 
 
 Base.size(::InfiniteOperator)=[Inf,Inf]
@@ -52,11 +38,11 @@ Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a flo
 Base.size(op::Operator,k::Integer)=size(op)[k]
 
 
+## geteindex
+
 Base.getindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
 Base.getindex(op::Operator,k::Integer,j::Range1)=op[k:k,j][1,:]
 Base.getindex(op::Operator,k::Range1,j::Integer)=op[k,j:j][:,1]
-
-
 Base.getindex(op::Functional,k::Integer)=op[k:k][1]
 
 function Base.getindex(op::Functional,j::Range1,k::Range1)
@@ -73,6 +59,7 @@ end
 function Base.getindex(B::Operator,k::Range1,j::Range1)
     BandedArray(B,k,j)[k,j]
 end
+
 
 
 ## bandrange and indexrange
@@ -97,7 +84,7 @@ indexrange(b::BandedBelowOperator,k::Integer)=Range1(columninds(b,k)...)
 
 
 
-index(b::BandedBelowOperator)=1-bandinds(b)[1]
+index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of BandedArray.index
 
 
 
@@ -199,6 +186,7 @@ end
 
 ## Conversion
 
+# TODO: can convert return different type?
 Base.convert{T<:Operator}(A::Type{T},n::Number)=ConstantOperator(1.0*n)
 
 

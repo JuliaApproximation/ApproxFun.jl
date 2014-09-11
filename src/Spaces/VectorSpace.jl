@@ -1,5 +1,6 @@
-immutable VectorSpace <: OperatorSpace
-    dimension::Int
+immutable VectorSpace{d} <: FunctionSpace
 end
 
-==(a::VectorSpace,b::VectorSpace)= a.dimension==b.dimension
+typealias ScalarSpace VectorSpace{1}
+
+=={d}(::VectorSpace{d},::VectorSpace{d})=true

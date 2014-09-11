@@ -46,3 +46,26 @@ fourierpoints(n::Integer)= 1.π*[-1.:2/n:1. - 2/n]
 
 Base.ones(d::Domain)=Fun(one,d)
 Base.zeros(d::Domain)=Fun(zero,d)
+
+
+
+
+
+function commondomain(P::Vector)
+    ret = AnyDomain()
+    
+    for op in P
+        d = domain(op)
+        @assert ret == AnyDomain() || d == AnyDomain() || ret == d
+        
+        if d != AnyDomain()
+            ret = d
+        end
+    end
+    
+    ret
+end
+
+commondomain{T<:Number}(P::Vector,g::Array{T})=commondomain(P)
+commondomain(P::Vector,g)=commondomain([P,g])
+

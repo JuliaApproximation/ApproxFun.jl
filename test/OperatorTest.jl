@@ -13,7 +13,7 @@ x=Fun(identity)
 X=MultiplicationOperator(x)
 
 A=USConversionOperator(0:2,domain(x))
-@test norm(A\coefficients(x.*f,rangespace(A))-(x.*f).coefficients) < 100eps()
+@test norm(A\IFun(x.*f,rangespace(A))-(x.*f)) < 100eps()
 
 @test norm((USConversionOperator(0:2,domain(x))\(D^2*f))-diff(diff(f))) < 100eps()
 

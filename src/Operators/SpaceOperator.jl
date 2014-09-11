@@ -1,13 +1,6 @@
 
-
-
-
-
-## promotion
-
-
 ## Space Operator is used to wrap an AnySpace() operator 
-type SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace} <: BandedOperator{T}
+immutable SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace} <: BandedOperator{T}
     op::O
     space::S
 #     
@@ -59,3 +52,7 @@ end
 #It's important that domain space is promoted first as it might impact range space
 promotespaces(ops::Vector)=promoterangespace(promotedomainspace(ops))
 
+
+immutable SpaceFunctional{T<:Number,O<:Functional{T},S<:FunctionSpace} <: Functional{T}
+
+end  

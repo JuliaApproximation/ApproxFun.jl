@@ -14,14 +14,14 @@ EvaluationFunctional(d::IntervalDomain,x::Number)=EvaluationFunctional(d,x,0)
 EvaluationFunctional{T<:Number}(d::Vector{T},x::Number,o::Integer)=EvaluationFunctional(Interval(d),x,o)
 
 
-domain(E::EvaluationFunctional)=E.domain
+domainspace(E::EvaluationFunctional)=ChebyshevSpace(E.domain)
 
-function evaluatechebyshev(n::Integer,x)
+function evaluatechebyshev{T<:Number}(n::Integer,x::T)
     if n == 1
-        [1.]
+        [one(T)]
     else
-        p = zeros(n)
-        p[1] = 1.
+        p = zeros(T,n)
+        p[1] = one(T)
         p[2] = x
         
         for j=2:n-1
@@ -67,24 +67,3 @@ function Base.getindex{D,T}(op::EvaluationFunctional{D,T},k::Range1)
 end
 
 
-
-
-type BasisFunctional <: Functional{Float64}
-    k::Integer
-end
-
-
-##TODO: the overloading as both vector and row vector may be confusing
-Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
-
-Base.getindex(op::BasisFunctional,k::Range1)=convert(Vector{Float64},k.==op.k)
-
-
-function Base.getindex(op::BasisFunctional,j::Range1,k::Range1)
-  @assert j[1]==1 && j[end]==1
-  op[k]' #TODO conjugate transpose?
-end
-function Base.getindex(op::BasisFunctional,j::Integer,k::Range1)
-  @assert j==1
-  op[k]' #TODO conjugate transpose?
-end
