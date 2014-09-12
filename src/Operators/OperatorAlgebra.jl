@@ -5,13 +5,28 @@ export PlusOperator,TimesOperator
 
 
 
-type PlusOperator{T<:Number,B<:Operator} <: BandedOperator{T} 
+##PlusFunctional
+
+immutable PlusFunctional{T<:Number,B<:Functional} <: Functional{T} 
+    ops::Vector{B}
+end
+
+
+Base.getindex(op::PlusFunctional,k::Range1)=mapreduce(o->o[k],+,op.ops)
+
+
+
+
+immutable PlusOperator{T<:Number,B<:Operator} <: BandedOperator{T} 
     ops::Vector{B}
 end
 
 
 typeofdata{T<:Number}(::Operator{T})=T
-function PlusOperator{B<:Operator}(ops::Vector{B})
+
+
+# constructor for either one
+function PlusFunctionalOperator(PF,PF2,ops)
     T = Float64
     
     for op in ops
@@ -21,21 +36,41 @@ function PlusOperator{B<:Operator}(ops::Vector{B})
     end
     
     pops=promotespaces(ops)
-    PlusOperator{T,Operator}(pops)
+    PF{T,PF2}(pops)
 end
-
-
-function domainspace(P::PlusOperator)
-    for op in P.ops
-        sp = domainspace(op)
-        
-        if sp != AnySpace()
-            return sp
-        end
-    end
     
-    AnySpace()
+## TODO: figure out how to do this with for over a tuple
+PlusFunctional{B<:Functional}(ops::Vector{B})=PlusFunctionalOperator(PlusFunctional,Functional,ops)
+PlusOperator{B<:Operator}(ops::Vector{B})=PlusFunctionalOperator(PlusOperator,Operator,ops)
+
+
+
+for SS in (:(PlusFunctional,Functional),:(PlusOperator,Operator))
+    @eval begin
+        function domainspace(P::($SS[1]))
+            for op in P.ops
+                sp = domainspace(op)
+                
+                if sp != AnySpace()
+                    return sp
+                end
+            end
+            
+            AnySpace()
+        end        
+        
+        domain(P::($SS[1]))=commondomain(P.ops)
+
+    
+        +(A::($SS[1]),B::($SS[1]))=$SS[1]([A.ops,B.ops])
+        +(A::($SS[1]),B::($SS[2]))=$SS[1]([A.ops,B])
+        +(A::($SS[2]),B::($SS[1]))=$SS[1]([A,B.ops])
+        +(A::($SS[2]),B::($SS[2]))=$SS[1]([A,B])
+    end
 end
+
+
+
 
 function rangespace(P::PlusOperator)
     for op in P.ops
@@ -49,7 +84,6 @@ function rangespace(P::PlusOperator)
     AnySpace()
 end
 
-domain(P::PlusOperator)=commondomain(P.ops)
 
 function bandinds(P::PlusOperator)
     b1,b2=0,0
@@ -70,10 +104,7 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
     A
 end
 
-+(A::PlusOperator,B::PlusOperator)=PlusOperator([A.ops,B.ops])
-+(A::PlusOperator,B::Operator)=PlusOperator([A.ops,B])
-+(A::Operator,B::PlusOperator)=PlusOperator([A,B.ops])
-+(A::Operator,B::Operator)=PlusOperator([A,B])
+
 +(A::Operator,f::AbstractFun)=A+MultiplicationOperator(f)
 +(f::AbstractFun,A::Operator)=MultiplicationOperator(f)+A
 -(A::Operator,f::AbstractFun)=A+MultiplicationOperator(-f)
@@ -100,6 +131,43 @@ end
 
 
 ## Times Operator
+
+immutable ConstantTimesFunctional{T<:Number,B<:Functional} <: Functional{T}
+    c::T
+    op::B
+end
+
+Base.getindex(op::ConstantTimesFunctional,k::Range1)=op.c*op.op[k]
+
+
+
+type TimesFunctional{T<:Number,A<:Functional,B<:BandedOperator} <: Functional{T}
+    functional::A
+    op::B
+end
+
+for S in (:ConstantTimesFunctional,:TimesFunctional)
+    @eval domainspace(T::($S))=domainspace($S.op)
+end
+
+
+TimesFunctional{T<:Number}(A::Functional{T},B::BandedOperator{T})=TimesFunctional{T,typeof(A),typeof(B)}(A,B)
+
+
+function Base.getindex{T<:Number}(f::TimesFunctional{T},jr::Range)#j is columns
+    bi=ApproxFun.bandinds(f.op)
+    B=BandedArray(f.op,(jr[1]-bi[end]):(jr[end]-bi[1]))
+    r=zeros(T,length(jr))
+    for j in jr, k=j-bi[end]:j-bi[1]
+        if k>=1
+            r[j-jr[1]+1]+=f.functional[k]*B[k,j]
+        end
+    end
+    r
+end
+
+
+
 
 
 type TimesOperator{T<:Number,B<:Operator} <: BandedOperator{T}
@@ -255,7 +323,22 @@ end
 
 ## Algebra: assume we promote
 
-*(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c*B.c)
+## Operations
+*(A::Functional,b::Vector)=dot(A[1:length(b)],b)
+*(A::Functional,b::IFun)=A*b.coefficients
+
+
+*(c::Number,B::Functional)=ConstantTimesFunctional(c,B)
+*(B::Functional,c::Number)=ConstantTimesFunctional(c,B)
+/(B::Functional,c::Number)=ConstantTimesFunctional(1.0/c,B)
+*(B::Functional,O::TimesOperator)=TimesFunctional(B,O)  # Needed to avoid ambiguity
+*(B::Functional,O::BandedOperator)=TimesFunctional(B,O)
+
+-{T<:Number}(B::Functional{T})=ConstantTimesFunctional(-one(T),B)
+
+
+-(A::Functional,B::Functional)=PlusFunctional([A,-B])
+
 *(A::TimesOperator,B::TimesOperator)=promotetimes([A.ops,B.ops])
 *(A::TimesOperator,B::Operator)=promotetimes([A.ops,B])
 *(A::Operator,B::TimesOperator)=promotetimes([A,B.ops])

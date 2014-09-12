@@ -114,7 +114,6 @@ include("adaptiveqr.jl")
 
 
 include("OperatorAlgebra.jl")
-include("FunctionalAlgebra.jl")
 
 include("specialfunctions.jl")
 

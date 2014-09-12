@@ -21,9 +21,9 @@ addentries!(C::ConstantOperator,A::ShiftArray,kr::Range1)=laurent_addentries!([.
 
 ## Algebra
 
-+(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c+B.c)
--(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c-B.c)
-
+for op in (:+,:-,:*)
+    @eval ($op)(A::ConstantOperator,B::ConstantOperator)=ConstantOperator($op(A.c,B.c))
+end
 
 
 ## Basis Functional
