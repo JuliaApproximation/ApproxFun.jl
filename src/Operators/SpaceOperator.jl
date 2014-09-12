@@ -1,4 +1,13 @@
 
+
+immutable SpaceFunctional{T<:Number,O<:Functional{T},S<:FunctionSpace} <: Functional{T}
+    op::O
+    space::S
+end
+
+getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
+
+
 ## Space Operator is used to wrap an AnySpace() operator 
 immutable SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace} <: BandedOperator{T}
     op::O
@@ -12,12 +21,21 @@ end
 
 SpaceOperator{T<:Number,S<:FunctionSpace}(o::Operator{T},s::S)=SpaceOperator{T,typeof(o),S}(o,s)
 
-domainspace(S::SpaceOperator)=S.space
+for TT in (:SpaceFunctional,:SpaceOperator)
+    @eval begin
+        domainspace(S::($TT))=S.space
+        domain(S::($TT))=domain(S.space)
+    end
+end
+
+
 rangespace(S::SpaceOperator)=S.space
 addentries!(S::SpaceOperator,A,kr)=addentries!(S.op,A,kr)
-bandinds(S::SpaceOperator)=bandinds(S.op)
-domain(S::SpaceOperator)=domain(S.space)
 
+bandinds(S::SpaceOperator)=bandinds(S.op)
+
+
+promotedomainspace(P::Functional,sp::FunctionSpace,::AnySpace)=SpaceFunctional(P,sp)
 
 for op in (:promoterangespace,:promotedomainspace)
     @eval begin
@@ -30,8 +48,12 @@ promoterangespace(P::Operator,sp::FunctionSpace)=promoterangespace(P,sp,rangespa
 promotedomainspace(P::Operator,sp::FunctionSpace)=promotedomainspace(P,sp,domainspace(P))
         
         
+
 promoterangespace(P::Operator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(ConversionOperator(cursp,sp),P)
+
+promotedomainspace(P::Functional,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesFunctional(P,ConversionOperator(sp,cursp))
 promotedomainspace(P::Operator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(P,ConversionOperator(sp,cursp))
+
 
 
 
@@ -42,6 +64,10 @@ function promoterangespace{T<:Operator}(ops::Vector{T})
 end
 
 
+function promotedomainspace{T<:Functional}(ops::Vector{T})
+    k=findmindomainspace(ops)
+    Functional[promotedomainspace(op,k) for op in ops]
+end
 
 
 function promotedomainspace{T<:Operator}(ops::Vector{T})
@@ -52,7 +78,3 @@ end
 #It's important that domain space is promoted first as it might impact range space
 promotespaces(ops::Vector)=promoterangespace(promotedomainspace(ops))
 
-
-immutable SpaceFunctional{T<:Number,O<:Functional{T},S<:FunctionSpace} <: Functional{T}
-
-end  

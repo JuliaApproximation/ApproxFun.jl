@@ -12,7 +12,7 @@ immutable PlusFunctional{T<:Number,B<:Functional} <: Functional{T}
 end
 
 
-Base.getindex(op::PlusFunctional,k::Range1)=mapreduce(o->o[k],+,op.ops)
+Base.getindex(op::PlusFunctional,k::Range)=mapreduce(o->o[k],+,op.ops)
 
 
 
@@ -147,7 +147,7 @@ type TimesFunctional{T<:Number,A<:Functional,B<:BandedOperator} <: Functional{T}
 end
 
 for S in (:ConstantTimesFunctional,:TimesFunctional)
-    @eval domainspace(T::($S))=domainspace($S.op)
+    @eval domainspace(T::($S))=domainspace(T.op)
 end
 
 
