@@ -25,7 +25,7 @@ end
 
 ## TODO: Unify Defs
 
-type USDerivativeOperator <: BandedOperator{Float64}
+immutable USDerivativeOperator <: BandedOperator{Float64}
     order::Range1{Int}
 end
 
@@ -42,7 +42,7 @@ rangespace(M::USDerivativeOperator)=UltrasphericalSpace{M.order[end]}()
 
 
 
-type DerivativeOperator{D<:Interval} <: BandedOperator{Float64}
+immutable DerivativeOperator{D<:Interval} <: BandedOperator{Float64}
     order::Range1{Int}
     domain::D
 end
