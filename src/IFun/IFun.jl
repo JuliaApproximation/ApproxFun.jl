@@ -21,7 +21,7 @@ end
 IFun{T<:Union(Int64,Complex{Int64})}(coefs::Vector{T},d::FunctionSpace)=IFun(1.0*coefs,d)
 
 
-function IFun(f::Function,d::IntervalDomainSpace,n::Integer)
+function IFun(f::Function,d::DomainSpace,n::Integer)
     pts=points(d,n)
     f1=f(pts[1])
     T=typeof(f1)
@@ -36,10 +36,18 @@ function IFun(f::Function,d::IntervalDomainSpace,n::Integer)
     end
 end
 
-IFun(f::IFun,d::IntervalDomainSpace)=IFun(coefficients(f,d),d)
+# the following is to avoid ambiguity
+for SS in (:IntervalDomainSpace,:PeriodicDomainSpace)
+    @eval IFun(f::IFun,d::($SS))=IFun(coefficients(f,d),d)
+    @eval IFun{T<:($SS)}(f::IFun,::Type{T})=IFun(f,T(domain(f)))
+    @eval IFun{T<:($SS)}(c::Number,::Type{T})=IFun(c,T(AnyDomain()))
+end
+
+
 IFun{T<:IntervalDomainSpace}(f,::Type{T})=IFun(f,T(Interval()))
-IFun{T<:IntervalDomainSpace}(f::IFun,::Type{T})=IFun(f,T(domain(f)))
+IFun{T<:PeriodicDomainSpace}(f,::Type{T})=IFun(f,T(PeriodicInterval()))
 IFun{T<:IntervalDomainSpace}(f,::Type{T},n::Integer)=IFun(f,T(Interval()),n)
+IFun{T<:PeriodicDomainSpace}(f,::Type{T},n::Integer)=IFun(f,T(PeriodicInterval()),n)
 
 IFun(f,d::IntervalDomain)=IFun(f,ChebyshevSpace(d))
 IFun(f,d::IntervalDomain,n)=IFun(f,ChebyshevSpace(d),n)
@@ -56,14 +64,17 @@ IFun{T<:Number}(f::IFun,d::Vector{T})=IFun(coefficients(f),d)
 IFun(f::IFun)=IFun(coefficients(f))
 
 IFun(c::Number)=IFun([c])
-IFun(c::Number,d::IntervalDomain)=IFun([c],d)
-IFun{T<:IntervalDomainSpace}(c::Number,::Type{T})=IFun(c,T(AnyDomain()))
+
+for DD in (:IntervalDomain,:PeriodicDomain)
+    @eval IFun(c::Number,d::($DD))=IFun([c],d)
+end
+
 IFun(c::Number,d)=IFun([c],d)
 
 ## List constructor
 
-IFun{T<:IntervalDomain}(c::Number,dl::Vector{T})=map(d->IFun(c,d),dl)
-IFun{T<:IntervalDomain}(f,dl::Vector{T})=map(d->IFun(f,d),dl)
+IFun{T<:Domain}(c::Number,dl::Vector{T})=map(d->IFun(c,d),dl)
+IFun{T<:Domain}(f,dl::Vector{T})=map(d->IFun(f,d),dl)
 
 ## Adaptive constructors
 
@@ -96,10 +107,10 @@ function veczerocfsIFun(f::Function,d::IntervalDomain)
     IFun(f,d,2^21 + 1)
 end
 
-function zerocfsIFun(f::Function,d::IntervalDomainSpace)
+function zerocfsIFun(f::Function,d::DomainSpace)
     #reuse function values
 
-    if isa(f(fromcanonical(d,0.)),Vector)
+    if isa(f(fromcanonical(d,0.)),Vector)       #TODO: is 0. going to always be in canonical?
         return veczerocfsIFun(f,domain(d))
     end
 
@@ -121,7 +132,7 @@ end
 
 
 
-function abszerocfsIFun(f::Function,d::IntervalDomainSpace)
+function abszerocfsIFun(f::Function,d::DomainSpace)
     #reuse function values
 
     tol = 200eps();
@@ -140,7 +151,7 @@ function abszerocfsIFun(f::Function,d::IntervalDomainSpace)
 end
 
 
-function IFun(f::Function, d::IntervalDomainSpace; method="zerocoefficients")
+function IFun(f::Function, d::DomainSpace; method="zerocoefficients")
     if f==identity
         identity_fun(d)
     elseif f==zero
@@ -274,6 +285,21 @@ function .^(f::IFun,k::Integer)
         f./f.^(k+1)
     end
 end
+
+
+# multiplying 2 Funs, we assume this can be done by transform
+# the parametrizations are to make it the broadest definition
+
+function .*{T,N,S}(f::IFun{T,S},g::IFun{N,S})
+    @assert domainscompatible(f,g)
+    #TODO Coefficient space version
+    n = length(f) + length(g) - 1
+    f2 = pad(f,n); g2 = pad(g,n)
+    
+    sp=space(f)
+    chop!(IFun(transform(sp,values(f2).*values(g2)),sp),10eps())
+end
+
 
 
 ## Norm

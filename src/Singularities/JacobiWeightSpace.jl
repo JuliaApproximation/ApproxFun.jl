@@ -54,7 +54,7 @@ for op in (:/,:./)
     end
 end
 
-function .*{T<:Number}(f::IFun{T,JacobiWeightSpace},g::IFun{T,JacobiWeightSpace})
+function .*{T,N}(f::IFun{T,JacobiWeightSpace},g::IFun{N,JacobiWeightSpace})
     @assert domainscompatible(f,g)
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β    
@@ -62,7 +62,7 @@ function .*{T<:Number}(f::IFun{T,JacobiWeightSpace},g::IFun{T,JacobiWeightSpace}
 end
 
 
-function ./{T<:Number}(f::IFun{T,JacobiWeightSpace},g::IFun{T,JacobiWeightSpace})
+function ./{T,N}(f::IFun{T,JacobiWeightSpace},g::IFun{N,JacobiWeightSpace})
     @assert domainscompatible(f,g)
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β    

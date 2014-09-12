@@ -16,7 +16,7 @@ Circle()=Circle(1.)
 
 
 function tocanonical(d::Circle,ζ)
-    v=(ζ.-d.center)/d.radius .- 0.im#Subtract 0.im so branch cut is right
+    v=(ζ-d.center)/d.radius - 0.im#Subtract 0.im so branch cut is right
     -1.im.*log(v)
 end
 
