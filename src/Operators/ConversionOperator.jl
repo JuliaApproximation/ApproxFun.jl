@@ -16,4 +16,5 @@ function ConversionOperator(a::FunctionSpace,b::FunctionSpace)
     end
 end
 
-
+## convert TO Chebyshev
+ConversionOperator(A::FunctionSpace)=ConversionOperator(A,ChebyshevSpace(domain(A)))

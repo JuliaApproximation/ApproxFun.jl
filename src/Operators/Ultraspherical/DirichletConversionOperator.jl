@@ -2,7 +2,7 @@ export DirichletConversionOperator
 
 ## ConversionOperator
 
-type DirichletConversionOperator <: BandedOperator{Float64}
+immutable DirichletConversionOperator <: BandedOperator{Float64}
     left::Int
     right::Int
 end
@@ -40,4 +40,18 @@ ConversionOperator(B::ChebyshevDirichletSpace,A::ChebyshevSpace)= DirichletConve
 conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
 
 
+# s==false <=> left, s==true <=> right
+immutable DirichletEvaluationFunctional{s,l,r} <: Functional{Float64}
+    space::ChebyshevDirichletSpace{l,r}
+end
 
+getindex(B::DirichletEvaluationFunctional{false,1,0},kr::Range)=Float64[k==1?1.0:0.0 for k=kr]
+getindex(B::DirichletEvaluationFunctional{false,1,1},kr::Range)=Float64[k==1?1.0:(k==2?-1.0:0.0) for k=kr]
+getindex(B::DirichletEvaluationFunctional{true,0,1},kr::Range)=Float64[k==1?1.0:0.0 for k=kr]
+getindex(B::DirichletEvaluationFunctional{true,1,1},kr::Range)=Float64[k<=2?1.0:0.0 for k=kr]
+
+
+domainspace(B::DirichletEvaluationFunctional)=B.space
+
+ldirichlet{l,r}(sp::ChebyshevDirichletSpace{l,r})=(l==1?DirichletEvaluationFunctional{false,l,r}(sp):ldirichlet(domain(sp))*ConversionOperator(sp))
+rdirichlet{l,r}(sp::ChebyshevDirichletSpace{l,r})=(r==1?DirichletEvaluationFunctional{true,l,r}(sp):rdirichlet(domain(sp))*ConversionOperator(sp))
