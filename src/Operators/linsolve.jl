@@ -1,13 +1,45 @@
+##commondomainspace
+
+##TODO: is this too hacky?
+domainspace(f::IFun)=space(f)
+
+function commondomainspace(P::Vector)
+    ret = AnySpace()
+    
+    for op in P
+        d = domainspace(op)
+        @assert ret == AnySpace() || d == AnySpace() || typeof(ret) == typeof(d)
+        
+        if d != AnySpace()
+            ret = d
+            
+            if domain(ret) != AnyDomain()
+                return ret
+            end
+        end
+    end
+    
+    ret
+end
+
+commondomainspace{T<:Number}(P::Vector,g::Array{T})=commondomainspace(P)
+commondomainspace(P::Vector,g)=commondomainspace([P,g])
+
+
+
 ## Linear Solve
+
+
 
 
 IFun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,IFun)? coefficients(f,sp) :  f,b)...)
 FFun_coefficients(b::Vector)=vcat(map(f-> isa(f,FFun)? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
 
 function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
+    A=promotedomainspace(A)
     u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
     
-    IFun(u,commondomain(A,b))
+    IFun(u,commondomainspace(A,b))
 end
 
 function IFun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)

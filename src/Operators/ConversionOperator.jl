@@ -8,9 +8,9 @@ function ConversionOperator(a::FunctionSpace,b::FunctionSpace)
     elseif conversion_type(a,b) != NoSpace()
         error("Override ConversionOperator if you override conversion_type(" * string(typeof(a)) *","*string(typeof(b))*")") 
     elseif typeof(a) <: ChebyshevSpace
-        error("Override ConversionOperator from ChebyshevSpace to " * string(B))
+        error("Override ConversionOperator from ChebyshevSpace to " * string(typeof(b)))
     elseif typeof(b) <: ChebyshevSpace
-        error("Override ConversionOperator from " * string(A) * " to ChebyshevSpace")
+        error("Override ConversionOperator from " * string(typeof(a)) * " to ChebyshevSpace")
     else
         ConversionOperator(a,ChebyshevSpace(AnyDomain()),b)
     end

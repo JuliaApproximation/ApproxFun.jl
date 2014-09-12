@@ -5,6 +5,8 @@ immutable SpaceFunctional{T<:Number,O<:Functional{T},S<:FunctionSpace} <: Functi
     space::S
 end
 
+SpaceFunctional{T<:Number,S<:FunctionSpace}(o::Functional{T},s::S)=SpaceFunctional{T,typeof(o),S}(o,s)
+
 getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
 
 
