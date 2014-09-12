@@ -1,8 +1,8 @@
 
 
-export FourierSpace,TaylorSpace,PoleSpace,CosSpace,SinSpace
+export FourierSpace,TaylorSpace,HardySpace,CosSpace,SinSpace
 
-for T in (:FourierSpace,:TaylorSpace,:PoleSpace,:CosSpace,:SinSpace)
+for T in (:FourierSpace,:CosSpace,:SinSpace)
     @eval begin
         immutable $T <: PeriodicDomainSpace
             domain::Union(PeriodicDomain,AnyDomain)
@@ -11,11 +11,22 @@ for T in (:FourierSpace,:TaylorSpace,:PoleSpace,:CosSpace,:SinSpace)
     end
 end
 
+# s == true means analytic inside, taylor series
+# s == false means anlytic outside and decaying at infinity
+immutable HardySpace{s} <: PeriodicDomainSpace
+    domain::Union(PeriodicDomain,AnyDomain)
+end
 
+=={s}(a::HardySpace{s},b::HardySpace{s})= a.domain==b.domain
 
+typealias TaylorSpace HardySpace{true}
+typealias PoleSpace HardySpace{false}
 
 transform(::TaylorSpace,vals::Vector)=alternatesign!(fft(vals)/length(vals))
-itransform(::TaylorSpace,vals::Vector)=alternatesign!(ifft(vals)*length(vals))
+itransform(::TaylorSpace,cfs::Vector)=ifft(alternatesign!(cfs))*length(cfs)
+
+transform(::PoleSpace,vals::Vector)=-alternatesign!(flipud(fft(vals))/length(vals))
+itransform(::PoleSpace,cfs::Vector)=ifft(flipud(alternatesign!(-cfs)))*length(cfs)
 
 function evaluate{T}(f::IFun{T,TaylorSpace},z)
     d=domain(f)
@@ -23,6 +34,19 @@ function evaluate{T}(f::IFun{T,TaylorSpace},z)
         horner(f.coefficients,(z-d.center)/d.radius)
     else
         horner(f.coefficients,fromcanonical(Circle(),tocanonical(f,z)))
+    end
+end
+
+function evaluate{T}(f::IFun{T,PoleSpace},z)
+    d=domain(f)
+    if typeof(d) <: Circle
+        z=(z-d.center)/d.radius
+        z=1./z
+        z.*horner(f.coefficients,z)
+    else
+        z=fromcanonical(Circle(),tocanonical(f,z))
+        z=1./z
+        z.*horner(f.coefficients,z)
     end
 end
 
