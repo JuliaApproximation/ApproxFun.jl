@@ -202,8 +202,9 @@ Base.last(f::IFun)=reduce(+,coefficients(f))
 
 
 space(f::IFun)=f.space
-spacescompatible(f::IFun,g::IFun)=typeof(f.space)<:ConstantSpace || typeof(g.space)<:ConstantSpace || (domainscompatible(f,g)&&typeof(f.space) == typeof(g.space))
-domainscompatible(f::IFun,g::IFun)=domain(f)==AnyDomain() || domain(g)==AnyDomain() || domain(f) == domain(g)
+spacescompatible(f::IFun,g::IFun)=spacescompatible(space(f),space(g))
+
+
 
 ##Data routines
 values(f::IFun)=itransform(f.space,f.coefficients) 
@@ -243,7 +244,7 @@ for op = (:+,:-)
                 n = max(length(f),length(g))
                 f2 = pad(f,n); g2 = pad(g,n)
             
-                IFun(($op)(coefficients(f2),coefficients(g2)),domain(f)!=AnyDomain()?f.space:g.space)
+                IFun(($op)(f2.coefficients,g2.coefficients),domain(f)!=AnyDomain()?f.space:g.space)
             else 
                 $op(IFun(f,domain(f)),IFun(g,domain(g))) # convert to Chebyshev
             end

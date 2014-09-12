@@ -28,7 +28,9 @@ points(d::DomainSpace,n)=points(domain(d),n)
 
 ##Check domain compatibility
 
-domainscompatible(a::DomainSpace,b::DomainSpace) = a.domain == AnyDomain() || b.domain == AnyDomain() || a.domain == b.domain
+domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() || domain(a) == domain(b)
+#override for space data
+spacescompatible(f::DomainSpace,g::DomainSpace)=typeof(f)<:ConstantSpace || typeof(g)<:ConstantSpace || (domainscompatible(f,g)&&typeof(f) == typeof(g)) 
 
 
 domain(A::DomainSpace)=A.domain # assume it has a field domain

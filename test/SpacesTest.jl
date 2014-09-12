@@ -12,4 +12,8 @@ B=dirichlet(sp)
 D=diff(d)
 L=D^2+I
 
-norm(([B,L]\[1.])-([dirichlet(d),L]\[1.]))
+@test norm(([B,L]\[1.])-([dirichlet(d),L]\[1.])) <eps()
+
+f=IFun(t->cos(t)+cos(3t),CosSpace)
+
+@test (f.*f-IFun(t->(cos(t)+cos(3t))^2,CosSpace)).coefficients|>norm <100eps()

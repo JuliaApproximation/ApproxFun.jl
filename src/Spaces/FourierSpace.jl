@@ -40,3 +40,9 @@ function horner{T}(v::Vector{T},z)
     
     ret
 end
+
+points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
+transform(::CosSpace,vals)=chebyshevtransform(vals)
+itransform(::CosSpace,vals)=ichebyshevtransform(vals)
+
+evaluate{T}(f::IFun{T,CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
