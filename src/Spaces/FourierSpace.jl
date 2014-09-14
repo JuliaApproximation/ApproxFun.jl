@@ -1,6 +1,6 @@
 
 
-export FourierSpace,TaylorSpace,HardySpace,CosSpace,SinSpace
+export FourierSpace,TaylorSpace,HardySpace,CosSpace,SinSpace,LaurentSpace
 
 for T in (:FourierSpace,:CosSpace,:SinSpace)
     @eval begin
@@ -70,3 +70,15 @@ transform(::CosSpace,vals)=chebyshevtransform(vals)
 itransform(::CosSpace,vals)=ichebyshevtransform(vals)
 
 evaluate{T}(f::IFun{T,CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
+
+
+
+## Laurent space
+
+typealias LaurentSpace SumSpace{HardySpace{true},HardySpace{false}}
+LaurentSpace(d::PeriodicDomain)=SumSpace((HardySpace{true}(d),HardySpace{false}(d)))
+
+points(sp::LaurentSpace,n)=points(domain(sp),n)
+transform(::LaurentSpace,vals)=svfft(vals)|>interlace
+itransform(::LaurentSpace,cfs)=isvfft(deinterlace(cfs))
+
