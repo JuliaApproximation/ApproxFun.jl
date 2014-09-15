@@ -20,11 +20,11 @@ function complexroots(cin::Vector)
 end
 
 
-function complexroots{T,D<:IntervalDomainSpace}(f::IFun{T,D})
+function complexroots{T,D<:IntervalDomainSpace}(f::Fun{T,D})
     fromcanonical(f,complexroots(f.coefficients))
 end
 
-#function roots(f::IFun)
+#function roots(f::Fun)
 #    irts=map(real,filter!(x->abs(x)<=1.+10eps(),filter!#(isreal,complexroots(f.coefficients))))
 #    
 #    map!(x->x>1.?1.:x,irts)
@@ -38,7 +38,7 @@ end
 #end
 
 
-function roots{T}( f::IFun{T,ChebyshevSpace} )
+function roots{T}( f::Fun{T,ChebyshevSpace} )
 # FIND THE ROOTS OF AN IFUN.  
 
     d = domain(f)
@@ -152,7 +152,7 @@ end
 
 for op in (:(Base.maximum),:(Base.minimum))
     @eval begin
-        function ($op)(f::IFun)
+        function ($op)(f::Fun)
             d=domain(f)
             # the following avoids warning when diff(f)==0
             if length(f) <=2
@@ -169,7 +169,7 @@ end
 
 for op in (:(Base.indmax),:(Base.indmin))
     @eval begin
-        function ($op)(f::IFun)
+        function ($op)(f::Fun)
             # the following avoids warning when diff(f)==0
             d=domain(f)
             if length(f) <=2
@@ -205,10 +205,10 @@ function complexroots{T<:Number}(coefficients::ShiftVector{T})
     eigvals(A)
 end
 
-complexroots{T}(f::IFun{T,LaurentSpace})=fromcanonical(f,tocanonical(Circle(),complexroots(deinterlace(f.coefficients))))
+complexroots{T}(f::Fun{T,LaurentSpace})=fromcanonical(f,tocanonical(Circle(),complexroots(deinterlace(f.coefficients))))
 
 
-function roots{T}(f::IFun{T,LaurentSpace})
+function roots{T}(f::Fun{T,LaurentSpace})
     irts=filter!(x->abs(abs(x)-1)<=100.eps(),complexroots(deinterlace(f.coefficients)))
     if length(irts)==0
         Complex{Float64}[]

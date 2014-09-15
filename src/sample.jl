@@ -6,7 +6,7 @@ export samplecdf
 ##bisection inverse
 
 
-bisectioninv(f::IFun,x::Real) = first(bisectioninv(f,[x]))
+bisectioninv(f::Fun,x::Real) = first(bisectioninv(f,[x]))
 
 
 
@@ -70,7 +70,7 @@ end
 
 ##normalized cumsum
 
-function normalizedcumsum(f::IFun)
+function normalizedcumsum(f::Fun)
     cf = cumsum(f)
     cf = cf/reduce(+,cf.coefficients)
     
@@ -135,14 +135,14 @@ end
 
 ## Sampling
 
-sample(f::IFun,n::Integer)=samplecdf(normalizedcumsum(f),n)
+sample(f::Fun,n::Integer)=samplecdf(normalizedcumsum(f),n)
 
 
-samplecdf(cf::IFun,n::Integer)=fromcanonical(cf,bisectioninv(cf.coefficients,rand(n)))
+samplecdf(cf::Fun,n::Integer)=fromcanonical(cf,bisectioninv(cf.coefficients,rand(n)))
 
 
-sample(f::IFun)=sample(f,1)[1]
-samplecdf(f::IFun)=samplecdf(f,1)[1]
+sample(f::Fun)=sample(f,1)[1]
+samplecdf(f::Fun)=samplecdf(f,1)[1]
 samplecdf(v::Vector)=bisectioninv(v,rand())
 
 
@@ -150,7 +150,7 @@ samplecdf(v::Vector)=bisectioninv(v,rand())
 
 ##2D sample
 
-function sample(::Type{Interval},::Type{Interval},f::Fun2D{IFun{Float64}},n::Integer)
+function sample(::Type{Interval},::Type{Interval},f::Fun2D{Fun{Float64}},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficientmatrix(f.B)
@@ -162,7 +162,7 @@ end
 
 
 
-function sample(::Type{Line},::Type{Line},f::Fun2D{IFun{Float64}},n::Integer)
+function sample(::Type{Line},::Type{Line},f::Fun2D{Fun{Float64}},n::Integer)
     cf=normalizedcumsum(sum(f,1))
     CB=coefficients(map(cumsum,f.B))
     
@@ -176,7 +176,7 @@ function sample(::Type{Line},::Type{Line},f::Fun2D{IFun{Float64}},n::Integer)
     [rx ry]
 end
 
-sample(f::Fun2D{IFun{Float64}},n::Integer)=sample(domain(f,1),domain(f,2),f,n)
+sample(f::Fun2D{Fun{Float64}},n::Integer)=sample(domain(f,1),domain(f,2),f,n)
 sample(f::Fun2D)=sample(f,1)[1,:]
 
     

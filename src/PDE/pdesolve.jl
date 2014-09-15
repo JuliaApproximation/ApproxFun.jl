@@ -18,27 +18,27 @@ include("cont_lyap.jl")
 # end
 
 function convert2funvec{T<:Number}(f::Vector{T},d::IntervalDomainSpace)
-    ret=Array(IFun{T},length(f))
+    ret=Array(Fun{T},length(f))
     for k=1:length(f)
-        ret[k]=IFun(f[k],d)
+        ret[k]=Fun(f[k],d)
     end
     ret
 end
-convert2funvec{T<:IFun}(f::Vector{T},d::IntervalDomainSpace)=f
+convert2funvec{T<:Fun}(f::Vector{T},d::IntervalDomainSpace)=f
 function convert2funvec(f::Vector{Any},d::IntervalDomainSpace)
-    mytyp=IFun{Float64}
+    mytyp=Fun{Float64}
     
     for fk in f
-        if typeof(fk) == IFun{Complex{Float64}}
-            mytyp=IFun{Complex{Float64}}
+        if typeof(fk) == Fun{Complex{Float64}}
+            mytyp=Fun{Complex{Float64}}
         end
     end
     
     ret=Array(mytyp,length(f))
     
     for k=1:length(f)
-        ##TODO: Check domains match for IFuns
-        ret[k]=IFun(f[k],d)
+        ##TODO: Check domains match for Funs
+        ret[k]=Fun(f[k],d)
     end
     ret
 end
@@ -58,7 +58,7 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
     if typeof(ff)<:Number
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff
-    elseif typeof(ff)<:IFun && domain(ff) == AnyDomain()
+    elseif typeof(ff)<:Fun && domain(ff) == AnyDomain()
         ##TODO: beter method of telling constant fun
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff.coefficients[1]        
@@ -94,7 +94,7 @@ end
 pdesolve(A::PDEOperatorSchur,f::Vector,nx...)=TensorFun(pdesolve_mat(A,f,nx...),domain(A,2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector)=TensorFun(pdesolve_mat(A,f),domain(A[end],2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n...)=TensorFun(pdesolve_mat(A,f,n...),domain(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f::IFun,n...)=pdesolve(A,[f],n...)
+pdesolve{T<:PDEOperator}(A::Vector{T},f::Fun,n...)=pdesolve(A,[f],n...)
 
 
 
@@ -149,6 +149,6 @@ pdesolve{T<:PDEOperator}(A::Vector{T},f::IFun,n...)=pdesolve(A,[f],n...)
 
 \{T<:PDEOperator}(A::Vector{T},f::Vector)=pdesolve(A,f)
 \(A::PDEOperatorSchur,f::Vector)=pdesolve(A,f)
-\{T<:PDEOperator}(A::Vector{T},f::IFun)=pdesolve(A,f)
-\(A::PDEOperatorSchur,f::IFun)=pdesolve(A,f)
+\{T<:PDEOperator}(A::Vector{T},f::Fun)=pdesolve(A,f)
+\(A::PDEOperatorSchur,f::Fun)=pdesolve(A,f)
 

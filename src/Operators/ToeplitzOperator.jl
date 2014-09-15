@@ -11,7 +11,8 @@ end
 
 ToeplitzOperator{T<:Number}(V::Vector{T})=ToeplitzOperator{T,typeof(V)}(V)
 ToeplitzOperator{T<:Number}(V::ShiftVector{T})=ToeplitzOperator{T,typeof(V)}(V)
-ToeplitzOperator(f::AbstractFun)=ToeplitzOperator(f.coefficients)
+ToeplitzOperator{T,D}(f::Fun{T,D})=ToeplitzOperator(f.coefficients)
+ToeplitzOperator{T}(f::Fun{T,LaurentSpace})=ToeplitzOperator(f.coefficients|>deinterlace)
 
 
 function laurent_addentries!(v::Vector,A::ShiftArray,kr::Range1)    
@@ -63,7 +64,7 @@ type HankelOperator{T<:Number} <: BandedOperator{T}
     coefficients::Vector{T}
 end
 
-HankelOperator(f::IFun)=HankelOperator(f.coefficients)
+HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
 function hankel_addentries!(v::Vector,A::ShiftArray,kr::Range1)
     for j=1:length(v)
@@ -94,5 +95,5 @@ end
 addentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=laurent_addentries!(T.coefficients,A,kr)
 bandinds(T::LaurentOperator)=firstindex(T.coefficients),lastindex(T.coefficients)
 
-LaurentOperator{T}(f::IFun{T,LaurentSpace})=LaurentOperator(flipud(f.coefficients))
+LaurentOperator{T}(f::Fun{T,LaurentSpace})=LaurentOperator(flipud(f.coefficients))
 

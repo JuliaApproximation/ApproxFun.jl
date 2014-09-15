@@ -3,14 +3,14 @@ export TensorFun
 
 
 type TensorFun{T<:Union(Float64,Complex{Float64})}<:MultivariateFun
-    coefficients::Vector{IFun{T}}     # coefficients are in x
+    coefficients::Vector{Fun{T}}     # coefficients are in x
     domainy::IntervalDomain
 end
 
 function TensorFun{T<:Number}(cfs::Matrix{T},dx,dy)
-    ret=Array(IFun{T},size(cfs,2))
+    ret=Array(Fun{T},size(cfs,2))
     for k=1:size(cfs,2)
-        ret[k]=chop!(IFun(cfs[:,k],dx),10eps())
+        ret[k]=chop!(Fun(cfs[:,k],dx),10eps())
     end
     TensorFun(ret,dy)
 end
@@ -25,7 +25,7 @@ Base.size(f::TensorFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):len
 Base.size(f::TensorFun)=(size(f,1),size(f,2))
 
 
-function funlist2coefficients{T<:Number}(f::Vector{IFun{T}})
+function funlist2coefficients{T<:Number}(f::Vector{Fun{T}})
     A=zeros(T,mapreduce(length,max,f),length(f))
     for k=1:length(f)
         A[1:length(f[k]),k]=f[k].coefficients
@@ -57,7 +57,7 @@ space(f::TensorFun,k::Integer)=k==1?space(f.coefficients[1]):UltrasphericalSpace
 
 
 
-evaluate{T}(f::TensorFun{T},x::Real,::Colon)=IFun(T[fc[x] for fc in f.coefficients],f.domainy)
+evaluate{T}(f::TensorFun{T},x::Real,::Colon)=Fun(T[fc[x] for fc in f.coefficients],f.domainy)
 evaluate(f::TensorFun,x::Real,y::Real)=evaluate(f,x,:)[y]
 evaluate(f::TensorFun,x::Colon,y::Real)=evaluate(f.',y,:)
 evaluate(f::TensorFun,xx::Vector,yy::Vector)=hcat([evaluate(f,x,:)[[yy]] for x in xx]...).'

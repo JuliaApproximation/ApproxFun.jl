@@ -13,7 +13,7 @@ ChebyshevSpace(d::Line)=LineSpace(d)
 
 #domain(S) may be any domain
 for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op){T<:Number}(::Type{T},S::LineSpace)=IFun(($op)(T,1),S)
+    @eval ($op){T<:Number}(::Type{T},S::LineSpace)=Fun(($op)(T,1),S)
 end
 
 
@@ -23,7 +23,7 @@ transform(::LineSpace,vals::Vector)=chebyshevtransform(vals)
 
 ## evaluation
 
-evaluate{T}(f::IFun{T,LineSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
+evaluate{T}(f::Fun{T,LineSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
 
 
 
@@ -80,12 +80,12 @@ end
 
 
 
-function integrate{T}(f::IFun{T,LineSpace})
+function integrate{T}(f::Fun{T,LineSpace})
     @assert d.α==d.β==-1.
     # || d.α==d.β==-.5
     
 #    if domain(f).α==domain(f).β==-1.
-        IFun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(cfs),1))),f.space)
+        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(cfs),1))),f.space)
 #    end
 #     elseif d.α==d.β==-.5
 #         u=divide_singularity(f)
@@ -95,10 +95,10 @@ function integrate{T}(f::IFun{T,LineSpace})
 end
 
 for T in {Float64,Complex{Float64}}
-    function Base.sum(f::IFun{T,LineSpace})
+    function Base.sum(f::Fun{T,LineSpace})
         d=domain(f)
         if d.α==d.β==-.5
-            sum(IFun(divide_singularity(f.coefficients),JacobiWeightSpace(-.5,-.5,Interval())))
+            sum(Fun(divide_singularity(f.coefficients),JacobiWeightSpace(-.5,-.5,Interval())))
         else
             cf = integrate(f)
             last(cf) - first(cf)

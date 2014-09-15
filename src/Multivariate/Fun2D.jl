@@ -6,7 +6,7 @@ export Fun2D
 ## Fun2D
 
 
-type Fun2D{T<:AbstractFun,M<:AbstractFun}<:MultivariateFun
+type Fun2D{T<:Fun,M<:Fun}<:MultivariateFun
   A::Vector{T}
   B::Vector{M}
   
@@ -17,7 +17,7 @@ type Fun2D{T<:AbstractFun,M<:AbstractFun}<:MultivariateFun
   end
 end
 
-Fun2D{T<:AbstractFun,M<:AbstractFun}(A::Vector{T},B::Vector{M})=Fun2D{T,M}(A,B)
+Fun2D{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M})=Fun2D{T,M}(A,B)
 
 
 Fun2D{T<:Number}(A::Array{T})=Fun2D(A,Interval(),Interval())
@@ -26,15 +26,15 @@ function Fun2D{T<:Number}(X::Array{T},dx::IntervalDomain,dy::IntervalDomain)
     m=max(1,count(s->s>10eps(),Σ))
     
 
-    A=IFun[IFun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
-    B=IFun[IFun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
+    A=Fun[Fun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
+    B=Fun[Fun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
 
     Fun2D(A,B)
 end
 
 ## We take the convention that row vector pads down
 # TODO: Vector pads right
-function Fun2D{T<:Number}(X::Array{IFun{T},2},dy::IntervalDomain)
+function Fun2D{T<:Number}(X::Array{Fun{T},2},dy::IntervalDomain)
     @assert size(X,1)==1
     
     m=mapreduce(length,max,X)
@@ -90,8 +90,8 @@ function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer;m
         Br=map(q->q[r[2]],B)
         
         ##TODO: Should allow FFun
-        a=IFun(x->f(x,r[2]),dx; method="abszerocoefficients") - dot(conj(Br),A)
-        b=IFun(y->f(r[1],y),dy; method="abszerocoefficients")- dot(conj(Ar),B)
+        a=Fun(x->f(x,r[2]),dx; method="abszerocoefficients") - dot(conj(Br),A)
+        b=Fun(y->f(r[1],y),dy; method="abszerocoefficients")- dot(conj(Ar),B)
         
         
         ##Remove coefficients that get killed by a/b
@@ -167,22 +167,22 @@ function evaluate(f::Fun2D,::Colon,y::Real)
         end
     end
     
-    IFun(ret,first(f.A).space)
+    Fun(ret,first(f.A).space)
 end
 
 
 
 Base.rank(f::Fun2D)=length(f.A)
 Base.sum(g::Fun2D)=dot(map(sum,g.A),map(sum,g.B)) #TODO: not complexconjugate
-evaluate{T<:AbstractFun,M<:AbstractFun}(A::Vector{T},B::Vector{M},x,y)=dot(evaluate(A,x),evaluate(B,y)) #TODO: not complexconjugate
+evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x,y)=dot(evaluate(A,x),evaluate(B,y)) #TODO: not complexconjugate
 
 
-Base.sum(g::Fun2D,n::Integer)=(n==1)?g.B*map(sum,g.A):g.A*map(sum,g.B) #TODO: Fun*vec should be Array[IFun]
+Base.sum(g::Fun2D,n::Integer)=(n==1)?g.B*map(sum,g.A):g.A*map(sum,g.B) #TODO: Fun*vec should be Array[Fun]
 Base.cumsum(g::Fun2D,n::Integer)=(n==1)?Fun2D(map(cumsum,g.A),copy(g.B)):Fun2D(copy(g.A),map(cumsum,g.B))
 integrate(g::Fun2D,n::Integer)=(n==1)?Fun2D(map(integrate,g.A),copy(g.B)):Fun2D(copy(g.A),map(integrate,g.B))
 
 for op = (:*,:.*,:./,:/)
-    @eval ($op){T<:IFun}(A::Array{T,1},c::Number)=map(f->($op)(f,c),A)
+    @eval ($op){T<:Fun}(A::Array{T,1},c::Number)=map(f->($op)(f,c),A)
     @eval ($op)(f::Fun2D,c::Number) = Fun2D(($op)(f.A,c),f.B)
     @eval ($op)(c::Number,f::Fun2D) = Fun2D(($op)(c,f.A),f.B)
 end 

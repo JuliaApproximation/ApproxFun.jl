@@ -28,7 +28,7 @@ order{o}(::UltrasphericalSpace{o})=o
 
 #domain(S) may be any domain
 for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op){T<:Number,O}(::Type{T},S::UltrasphericalSpace{O})=IFun(($op)(T,1),S)
+    @eval ($op){T<:Number,O}(::Type{T},S::UltrasphericalSpace{O})=Fun(($op)(T,1),S)
 end
 
 
@@ -45,7 +45,7 @@ itransform(sp::IntervalDomainSpace,cfs::Vector)=ichebyshevtransform(spaceconvers
 
 ## Calculus
 
-integrate{T}(f::IFun{T,UltrasphericalSpace{1}})=IFun(fromcanonicalD(f,0)*ultraint(f.coefficients),ChebyshevSpace(domain(f)))
+integrate{T}(f::Fun{T,UltrasphericalSpace{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coefficients),ChebyshevSpace(domain(f)))
 
 
 

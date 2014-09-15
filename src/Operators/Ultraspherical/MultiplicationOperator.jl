@@ -3,14 +3,14 @@ export MultiplicationOperator
 
 
 type MultiplicationOperator{T<:Number} <: BandedOperator{T}
-    f::IFun{T}
+    f::Fun{T}
     ##TODO: space goes in f
     space::Int
 end
 
-MultiplicationOperator{o}(f::IFun,::UltrasphericalSpace{o})=MultiplicationOperator(f,o)
+MultiplicationOperator{o}(f::Fun,::UltrasphericalSpace{o})=MultiplicationOperator(f,o)
 MultiplicationOperator(c::Number,k)=ConstantOperator(c)
-MultiplicationOperator{T}(f::IFun{T,LaurentSpace})=LaurentOperator(f)
+MultiplicationOperator{T}(f::Fun{T,LaurentSpace})=LaurentOperator(f)
 MultiplicationOperator(f)=MultiplicationOperator(f,0)
 
 
@@ -42,7 +42,7 @@ end
 
 
 
-usmultiplication_addentries!(sp::UltrasphericalSpace,a::IFun,A,kr)=usmultiplication_addentries!(sp,coefficients(a,sp),A,kr)
+usmultiplication_addentries!(sp::UltrasphericalSpace,a::Fun,A,kr)=usmultiplication_addentries!(sp,coefficients(a,sp),A,kr)
 function usmultiplication_addentries!{λ}(::UltrasphericalSpace{λ},a::Vector,A::ShiftArray,kr::Range1)
     for k=kr
         A[k,0]=a[1] 

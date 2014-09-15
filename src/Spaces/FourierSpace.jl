@@ -28,7 +28,7 @@ itransform(::TaylorSpace,cfs::Vector)=ifft(alternatesign!(cfs))*length(cfs)
 transform(::PoleSpace,vals::Vector)=-alternatesign!(flipud(fft(vals))/length(vals))
 itransform(::PoleSpace,cfs::Vector)=ifft(flipud(alternatesign!(-cfs)))*length(cfs)
 
-function evaluate{T}(f::IFun{T,TaylorSpace},z)
+function evaluate{T}(f::Fun{T,TaylorSpace},z)
     d=domain(f)
     if typeof(d) <: Circle
         horner(f.coefficients,(z-d.center)/d.radius)
@@ -37,7 +37,7 @@ function evaluate{T}(f::IFun{T,TaylorSpace},z)
     end
 end
 
-function evaluate{T}(f::IFun{T,PoleSpace},z)
+function evaluate{T}(f::Fun{T,PoleSpace},z)
     d=domain(f)
     if typeof(d) <: Circle
         z=(z-d.center)/d.radius
@@ -70,13 +70,13 @@ end
 points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
 transform(::CosSpace,vals)=chebyshevtransform(vals)
 itransform(::CosSpace,cfs)=ichebyshevtransform(cfs)
-evaluate{T}(f::IFun{T,CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
+evaluate{T}(f::Fun{T,CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
 points(sp::SinSpace,n)=fromcanonical(domain(sp),(π*[1:n])/(n+1))
 transform(::SinSpace,vals)=FFTW.r2r(vals,FFTW.RODFT00)/(length(vals)+1)
 itransform(::SinSpace,cfs)=FFTW.r2r(cfs,FFTW.RODFT00)/2
-evaluate{T}(f::IFun{T,SinSpace},t)=sum([f.coefficients[k]*sin(k*tocanonical(f,t)) for k=1:length(f)])
+evaluate{T}(f::Fun{T,SinSpace},t)=sum([f.coefficients[k]*sin(k*tocanonical(f,t)) for k=1:length(f)])
 
 
 
@@ -93,7 +93,7 @@ itransform(::LaurentSpace,cfs)=isvfft(deinterlace(cfs))
 
 
 for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op){T<:Number}(::Type{T},S::LaurentSpace)=IFun(($op)(T,1),S)
+    @eval ($op){T<:Number}(::Type{T},S::LaurentSpace)=Fun(($op)(T,1),S)
 end
 
 
@@ -102,9 +102,9 @@ end
 ##Differentiation and integration
 
 
-differentiate{T}(f::IFun{T,LaurentSpace})=IFun(interlace(fourierdiff(domain(f),deinterlace(f.coefficients))),f.space)
-Base.sum{T}(f::IFun{T,LaurentSpace})=fouriersum(domain(f),deinterlace(f.coefficients))
-integrate{T}(f::IFun{T,LaurentSpace})=IFun(interlace(fourierintegrate(domain(f),deinterlace(f.coefficients))),f.space)
+differentiate{T}(f::Fun{T,LaurentSpace})=Fun(interlace(fourierdiff(domain(f),deinterlace(f.coefficients))),f.space)
+Base.sum{T}(f::Fun{T,LaurentSpace})=fouriersum(domain(f),deinterlace(f.coefficients))
+integrate{T}(f::Fun{T,LaurentSpace})=Fun(interlace(fourierintegrate(domain(f),deinterlace(f.coefficients))),f.space)
 
 
 fourierdiff(d::PeriodicInterval,cfs::ShiftVector)=tocanonicalD(d,0)*ShiftVector(1.im*[firstindex(cfs):-1],1.im*[0:lastindex(cfs)]).*cfs

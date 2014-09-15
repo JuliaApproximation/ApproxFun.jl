@@ -136,7 +136,7 @@ Base.diff(d::IntervalDomain,μ::Integer)=DerivativeOperator(0:μ,d)
 Base.diff(d::PeriodicDomain,μ::Integer)=FourierDerivativeOperator(μ,d)
 Base.diff(d::Domain)=Base.diff(d,1)
 
-Base.eye(d::IntervalDomain)=MultiplicationOperator(IFun([1.],d))
+Base.eye(d::IntervalDomain)=MultiplicationOperator(Fun([1.],d))
 Base.eye(d::PeriodicDomain)=MultiplicationOperator(FFun(ShiftVector([1.],1),d))
 Base.zero{T<:Number}(::Type{Operator{T}})=ConstantOperator(zero(T))
 Base.zero{O<:Operator}(::Type{O})=ConstantOperator(0.0)

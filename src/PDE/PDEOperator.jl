@@ -32,9 +32,9 @@ end
 ⊗(A::Operator,B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
 ⊗(A::UniformScaling,B::Operator)=ConstantOperator(1.0A.λ)⊗B
 
-⊗(A::IFun,B::IFun)=MultiplicationOperator(A)⊗MultiplicationOperator(B)
-⊗(A,B::IFun)=A⊗MultiplicationOperator(B)
-⊗(A::IFun,B)=MultiplicationOperator(A)⊗B
+⊗(A::Fun,B::Fun)=MultiplicationOperator(A)⊗MultiplicationOperator(B)
+⊗(A,B::Fun)=A⊗MultiplicationOperator(B)
+⊗(A::Fun,B)=MultiplicationOperator(A)⊗B
 
 ⊗{T<:Operator}(A::Vector{T},B::Operator)=PDEOperator[PDEOperator(Ai,B) for Ai in A]
 ⊗{T<:Operator}(A::Operator,B::Vector{T})=PDEOperator[PDEOperator(A,Bi) for Bi in B]
@@ -96,7 +96,7 @@ function *(A::PDEOperator,B::PDEOperator)
 end
 
 ##TODO how to determine whether x or y?
-function *(a::IFun,A::PDEOperator)
+function *(a::Fun,A::PDEOperator)
     ops = copy(A.ops)
     for k=1:size(ops,1)
         ops[k,1]=a*ops[k,1]
@@ -136,8 +136,8 @@ function *(L::PDEOperator,f::Fun2D)
     @assert size(L.ops,2)==2
     @assert size(L.ops,1)==2    
     n=length(f.A)
-    A=Array(IFun,2n)
-    B=Array(IFun,2n)
+    A=Array(Fun,2n)
+    B=Array(Fun,2n)
     
     for k=1:n
         A[k]=L.ops[1,1]*f.A[k]

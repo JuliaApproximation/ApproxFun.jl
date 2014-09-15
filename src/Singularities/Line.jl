@@ -83,11 +83,11 @@ function identity_fun(d::Line)
 end
 
 
-# function multiplybyx{T<:Number,D<:LineSpace}(f::IFun{T,D})
+# function multiplybyx{T<:Number,D<:LineSpace}(f::Fun{T,D})
 #     ct=Fun(x->x.*cot(π*x/2),28)
 #     x=Fun(identity)
 #     u=SingFun(ct./(1-x.^2),1.,1.)
-#     IFun((x.*IFun(f)./u).fun./(1-x.^2),domain(f))
+#     Fun((x.*Fun(f)./u).fun./(1-x.^2),domain(f))
 # end
 
 

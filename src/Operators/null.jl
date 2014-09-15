@@ -56,15 +56,15 @@ function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
     end
     
     
-    IFun[Fun(Q[j][1:k],domain(A)) for j=1:d]
+    Fun[Fun(Q[j][1:k],domain(A)) for j=1:d]
 end
 
 
 function Base.null{T<:BandedOperator}(A::Array{T,2},d)
     ret = null(interlace(A),d)
     
-    [IFun(ret[1].coefficients[1:2:end],ret[1].domain) IFun(ret[2].coefficients[1:2:end],ret[1].domain);
-    IFun(ret[1].coefficients[2:2:end],ret[1].domain) IFun(ret[2].coefficients[2:2:end],ret[1].domain)]
+    [Fun(ret[1].coefficients[1:2:end],ret[1].domain) Fun(ret[2].coefficients[1:2:end],ret[1].domain);
+    Fun(ret[1].coefficients[2:2:end],ret[1].domain) Fun(ret[2].coefficients[2:2:end],ret[1].domain)]
 end
 
 function Base.null{T<:BandedOperator}(A::Array{T,2})

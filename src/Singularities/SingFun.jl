@@ -2,7 +2,7 @@ export SingFun
 
 
 
-type SingFun{T<:IFun} <: AbstractFun
+type SingFun{T<:Fun} <: AbstractFun
     fun::T
     α::Float64
     β::Float64
@@ -10,7 +10,7 @@ end
 
 SingFun(f,a::Integer,b::Integer)=SingFun(f,1.a,1.b)
 
-SingFun(f::IFun)=SingFun(f,0.,0.)
+SingFun(f::Fun)=SingFun(f,0.,0.)
 
 Base.getindex(f::SingFun,x)=evaluate(f,x)
 
@@ -60,8 +60,8 @@ end
 
 for op in (:./,:.*)
     @eval begin
-        ($op)(f::SingFun,g::IFun)=($op)(f,SingFun(g))
-        ($op)(f::IFun,g::SingFun)=($op)(SingFun(f),g)
+        ($op)(f::SingFun,g::Fun)=($op)(f,SingFun(g))
+        ($op)(f::Fun,g::SingFun)=($op)(SingFun(f),g)
     end
 end
 

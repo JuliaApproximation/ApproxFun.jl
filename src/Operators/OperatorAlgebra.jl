@@ -105,10 +105,10 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
 end
 
 
-+(A::Operator,f::AbstractFun)=A+MultiplicationOperator(f)
-+(f::AbstractFun,A::Operator)=MultiplicationOperator(f)+A
--(A::Operator,f::AbstractFun)=A+MultiplicationOperator(-f)
--(f::AbstractFun,A::Operator)=MultiplicationOperator(f)-A
++(A::Operator,f::Fun)=A+MultiplicationOperator(f)
++(f::Fun,A::Operator)=MultiplicationOperator(f)+A
+-(A::Operator,f::Fun)=A+MultiplicationOperator(-f)
+-(f::Fun,A::Operator)=MultiplicationOperator(f)-A
 
 
 
@@ -327,7 +327,7 @@ end
 
 ## Operations
 *(A::Functional,b::Vector)=dot(A[1:length(b)],b)
-*(A::Functional,b::IFun)=A*b.coefficients
+*(A::Functional,b::Fun)=A*b.coefficients
 
 
 *(c::Number,B::Functional)=ConstantTimesFunctional(c,B)
@@ -350,7 +350,7 @@ end
 -(A::Operator)=ConstantOperator(-1.)*A
 -(A::Operator,B::Operator)=A+(-B)
 
-*(f::IFun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
+*(f::Fun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
 
 *(c::Number,A::Operator)=ConstantOperator(c)*A
 .*(c::Number,A::Operator)=ConstantOperator(c)*A
@@ -382,13 +382,13 @@ function *{T<:Number}(A::BandedOperator,b::Vector{T})
     end
 end
 
-function *(A::InfiniteOperator,b::IFun)
+function *(A::InfiniteOperator,b::Fun)
     dsp=domainspace(A)
-    dsp==AnySpace()?IFun(A*b.coefficients,b.space):IFun(A*coefficients(b,dsp),rangespace(A))
+    dsp==AnySpace()?Fun(A*b.coefficients,b.space):Fun(A*coefficients(b,dsp),rangespace(A))
 end
 
 
-*{T<:Operator}(A::Vector{T},b::IFun)=map(a->a*b,convert(Array{Any,1},A))
+*{T<:Operator}(A::Vector{T},b::Fun)=map(a->a*b,convert(Array{Any,1},A))
 
 
 
