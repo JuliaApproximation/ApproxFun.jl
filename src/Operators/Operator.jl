@@ -6,20 +6,14 @@ export ldirichlet,rdirichlet,lneumann,rneumann
 
 
 
-abstract Operator{T} #T is the entry type, Flaot64 or Complex{Float64}
+abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
 abstract Functional{T} <: Operator{T}
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
 abstract BandedOperator{T} <: BandedBelowOperator{T}
 
 
-## TODO: decide on ShiftOperator
-#         maybe as a wrapper, so adentries! is different
 
-abstract ShiftOperator{T} <: Operator{T} #For biinfinite operators
-abstract InfiniteShiftOperator{T} <: ShiftOperator{T}
-abstract BandedShiftOperator{T} <: InfiniteShiftOperator{T}
-abstract ShiftFunctional{T} <: Functional{T}
 
 
 ##TODO: Why do we need BandedOperator to check for row>0?
@@ -64,7 +58,6 @@ end
 
 ## bandrange and indexrange
 
-bandrange(b::BandedShiftOperator)=Range1(bandinds(b)...)
 bandrange(b::BandedBelowOperator)=Range1(bandinds(b)...)
 function bandrangelength(B::BandedBelowOperator)
     bndinds=bandinds(B)
@@ -96,7 +89,7 @@ ShiftArray(B::Operator,k::Range1)=ShiftArray(B,k,bandrange(B))
 BandedArray(B::Operator,k::Range1)=BandedArray(B,k,(k[1]+bandinds(B)[1]):(k[end]+bandinds(B)[end]))
 BandedArray(B::Operator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
 
-
+include("ShiftOperator.jl")
 include("linsolve.jl")
 
 include("SpaceOperator.jl")

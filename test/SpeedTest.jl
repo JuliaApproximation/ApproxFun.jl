@@ -50,7 +50,7 @@ println("Airy: should be ~0.05")
 
 ## PDEs
 
-d=Interval()⊗Interval()
+d=Interval()^2
 
 x=Fun(identity,d[1]);y=Fun(identity,d[2])
 

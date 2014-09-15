@@ -34,16 +34,20 @@ end
 
 ## We take the convention that row vector pads down
 # TODO: Vector pads right
-function Fun2D{T<:Number}(X::Array{Fun{T},2},dy::IntervalDomain)
-    @assert size(X,1)==1
-    
-    m=mapreduce(length,max,X)
-    M=zeros(T,m,length(X))
-    for k=1:length(X)
-        M[1:length(X[k]),k]=X[k].coefficients
+for T in (:Float64,:(Complex{Float64}))
+    @eval begin
+        function Fun2D{F<:Fun{$T}}(X::Array{F,2},dy::IntervalDomain)
+            @assert size(X,1)==1
+            
+            m=mapreduce(length,max,X)
+            M=zeros($T,m,length(X))
+            for k=1:length(X)
+                M[1:length(X[k]),k]=X[k].coefficients
+            end
+            
+            Fun2D(M,domain(X[1]),dy)
+        end
     end
-    
-    Fun2D(M,domain(X[1]),dy)
 end
 
 

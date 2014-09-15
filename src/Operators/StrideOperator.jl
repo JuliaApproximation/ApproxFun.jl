@@ -191,7 +191,7 @@ function interlace{T<:Operator}(A::Array{T,2})
 end
 
 ## only works for BandedShiftOperator
-function interlace(L::Operator)
+function interlace(L::BandedShiftOperator)
     SPP=StrideOperator(L,1,1,2,2)
     SMM=StrideOperator(L,0,0,-2,-2)
     SPM=StrideOperator(L,0,1,-2,2)
