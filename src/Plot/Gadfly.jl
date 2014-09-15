@@ -6,7 +6,7 @@ export complexplot,contour
 
 
 ## Vector routines
-function plot(xx::Vector,yy::Vector;axis=-1)
+function gadflyplot(xx::Vector,yy::Vector;axis=-1)
     require("Gadfly")
     if axis==-1
         Main.Gadfly.plot(x=xx, y=yy, Main.Gadfly.Geom.path)
@@ -19,7 +19,7 @@ end
 
 
 
-function plot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
+function gadflyplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
     require("Gadfly")
     require("DataFrames")    
     r=real(y)
@@ -33,7 +33,7 @@ function plot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
     end
 end
 
-function contour(x::Vector,y::Vector,z::Matrix;levels=-1)
+function gadflycontour(x::Vector,y::Vector,z::Matrix;levels=-1)
     require("Gadfly")
     if levels==-1
         Main.Gadfly.plot(x=x,y=y,z=z,Main.Gadfly.Geom.contour)
@@ -42,79 +42,3 @@ function contour(x::Vector,y::Vector,z::Matrix;levels=-1)
     end
 end
 
-
-## Fun routines
-
-
-function plot{T<:Real}(f::Fun{T};opts...)
-    f=pad(f,3length(f)+50)
-    plot(points(f),values(f);opts...)
-end
-
-function plot{T<:Complex}(f::Fun{T};opts...)
-    f=pad(f,3length(f)+50)
-    plot(points(f),values(f);opts...)
-end
-
-
-function plot(r::Range,f::Fun{Float64};opts...)
-    plot(r,f[[r]];opts...)
-end
-
-function complexplot(f::Fun{Complex{Float64}};opts...) 
-    f=pad(f,3length(f)+50)
-    vals =values(f)
-
-    plot(real(vals),imag(vals);opts...)
-end
-
-
-##FFun
-
-# function plot(f::FFun;opts...) 
-#     f=deepcopy(f)
-#     
-#     m=max(-firstindex(f.coefficients),lastindex(f.coefficients))
-#     
-#     f.coefficients=pad(f.coefficients,-m:m)
-# 
-#     pts = [points(f),fromcanonical(f,π)]
-#     vals =[values(f),first(values(f))]
-# 
-#     plot(pts,vals;opts...)
-# end
-# 
-# 
-# function complexplot(f::FFun{Complex{Float64}};opts...) 
-#     pts = [points(f),fromcanonical(f,π)]
-#     vals =[values(f),first(values(f))]
-# 
-#     plot(real(vals),imag(vals);opts...)
-# end
-
-
-## SingFun
-
-##TODO: reimplement
-# function plot(f::SingFun;opts...) 
-#     pf = pad(f,3length(f)+100)
-#     
-#     if f.α >= 0 && f.β >= 0
-#         plot(points(pf),values(pf);opts...)
-#     elseif f.α >= 0
-#         plot(points(pf)[1:end-1],values(pf)[1:end-1];opts...)    
-#     elseif f.β >= 0    
-#         plot(points(pf)[2:end],values(pf)[2:end];opts...)    
-#     else
-#         plot(points(pf)[2:end-1],values(pf)[2:end-1];opts...)
-#     end
-# end
-
-
-
-## Multivariate
-
-function contour(f::MultivariateFun;opts...)
-    f=chop(f,10e-10)
-    contour(points(f,1),points(f,2),values(f);opts...)
-end
