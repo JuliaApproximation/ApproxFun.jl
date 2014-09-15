@@ -6,18 +6,18 @@ export Fun2D
 ## Fun2D
 
 
-type Fun2D{T<:Fun,M<:Fun}<:MultivariateFun
-  A::Vector{T}
-  B::Vector{M}
+type Fun2D{T<:Number,S<:DomainSpace,M<:DomainSpace}<:MultivariateFun
+  A::Vector{Fun{T,S}}
+  B::Vector{Fun{T,M}}
   
-  function Fun2D(A::Vector{T},B::Vector{M})
+  function Fun2D(A::Vector{Fun{T,S}},B::Vector{Fun{T,M}})
     @assert length(A) == length(B)
     @assert length(A) > 0
     new(A,B)
   end
 end
 
-Fun2D{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M})=Fun2D{T,M}(A,B)
+Fun2D{T,S,M}(A::Vector{Fun{T,S}},B::Vector{Fun{T,M}})=Fun2D{T,S,M}(A,B)
 
 
 Fun2D{T<:Number}(A::Array{T})=Fun2D(A,Interval(),Interval())
@@ -26,8 +26,8 @@ function Fun2D{T<:Number}(X::Array{T},dx::IntervalDomain,dy::IntervalDomain)
     m=max(1,count(s->s>10eps(),Σ))
     
 
-    A=Fun[Fun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
-    B=Fun[Fun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
+    A=Fun{T,ChebyshevSpace}[Fun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
+    B=Fun{T,ChebyshevSpace}[Fun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
 
     Fun2D(A,B)
 end
