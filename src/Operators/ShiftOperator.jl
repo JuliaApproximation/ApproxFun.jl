@@ -3,14 +3,21 @@
 abstract BandedShiftOperator{T} <: BandedOperator{T}
 abstract ShiftFunctional{T} <: Functional{T}
 
-bandrange(b::BandedShiftOperator)=Range1(bandinds(b)...)
+
+function bandinds(b::BandedShiftOperator)
+    bi=shiftbandinds(b)
+    m=max(-bi[1],bi[2])
+    [-2m,2m]
+end
+
+shiftbandrange(b::BandedShiftOperator)=Range1(shiftbandinds(b)...)
 
 
 
 shiftShiftArray{T<:Number}(B::BandedShiftOperator{T},k::Range1,j::Range1)=shiftaddentries!(B,sazeros(T,k,j),k)
-shiftShiftArray(B::BandedShiftOperator,k::Range1)=shiftShiftArray(B,k,bandrange(B))
-shiftBandedArray(B::BandedShiftOperator,k::Range1)=shiftBandedArray(B,k,(k[1]+bandinds(B)[1]):(k[end]+bandinds(B)[end]))
-shiftBandedArray(B::BandedShiftOperator,k::Range1,cs)=BandedArray(shiftShiftArray(B,k,bandrange(B)),cs)
+shiftShiftArray(B::BandedShiftOperator,k::Range1)=shiftShiftArray(B,k,shiftbandrange(B))
+shiftBandedArray(B::BandedShiftOperator,k::Range1)=shiftBandedArray(B,k,(k[1]+shiftbandinds(B)[1]):(k[end]+shiftbandinds(B)[end]))
+shiftBandedArray(B::BandedShiftOperator,k::Range1,cs)=BandedArray(shiftShiftArray(B,k,shiftbandrange(B)),cs)
 
 
 # BandedShiftOperator overrides shiftaddentries!
@@ -34,7 +41,7 @@ function shift_stride_posneg_addentries!(ri,ci,rs,cs,S,A::ShiftArray,kr::Range)
     B1=shiftShiftArray(S,r1)
     B=BandedArray(A)
     
-    br=bandrange(S)
+    br=shiftbandrange(S)
     
     for k=r1, j=br
         if cs*(j+k) + ci > 0 && rs*k + ri > 0

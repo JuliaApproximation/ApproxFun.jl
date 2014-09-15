@@ -93,7 +93,7 @@ end
 
 
 shiftaddentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=laurent_addentries!(T.coefficients,A,kr)
-bandinds(T::LaurentOperator)=firstindex(T.coefficients),lastindex(T.coefficients)
+shiftbandinds(T::LaurentOperator)=firstindex(T.coefficients),lastindex(T.coefficients)
 
-LaurentOperator{T}(f::Fun{T,LaurentSpace})=LaurentOperator(flipud(f.coefficients))
+LaurentOperator{T}(f::Fun{T,LaurentSpace})=LaurentOperator(flipud(f.coefficients|>deinterlace))
 
