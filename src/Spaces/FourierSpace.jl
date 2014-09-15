@@ -83,12 +83,18 @@ evaluate{T}(f::IFun{T,SinSpace},t)=sum([f.coefficients[k]*sin(k*tocanonical(f,t)
 ## Laurent space
 
 typealias LaurentSpace PeriodicSumSpace{HardySpace{true},HardySpace{false}}
-LaurentSpace(d::PeriodicDomain)=PeriodicSumSpace((HardySpace{true}(d),HardySpace{false}(d)))
+LaurentSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace((HardySpace{true}(d),HardySpace{false}(d)))
 
 points(sp::LaurentSpace,n)=points(domain(sp),n)
 transform(::LaurentSpace,vals)=svfft(vals)|>interlace
 itransform(::LaurentSpace,cfs)=isvfft(deinterlace(cfs))
 
+## Ones and zeros
+
+
+for op in (:(Base.ones),:(Base.zeros))
+    @eval ($op){T<:Number}(::Type{T},S::LaurentSpace)=IFun(($op)(T,1),S)
+end
 
 
 
@@ -151,8 +157,16 @@ function fourierintegrate(d::Circle,cfs::ShiftVector)
 end
 
 
-function fouriersum(d::Circle,cfs::ShiftVector)
+function fouriersum{T}(d::Circle,cfs::ShiftVector{T})
     @assert d.radius == 1.
     @assert d.center == 0   
-    cfs[-1]
+    if firstindex(cfs) <= -1
+        cfs[-1]
+    else
+        zero(T)
+    end
 end
+
+
+
+

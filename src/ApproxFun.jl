@@ -44,8 +44,9 @@ include("Multivariate/Multivariate.jl")
 ##Following routine decides
 # whether input is IFun or FFun
 
-FFun(x,d)=IFun(x,LaurentSpace(d))
-FFun(x,d,n...)=IFun(x,LaurentSpace(d),n...)
+FFun(x,d::PeriodicDomain)=IFun(x,LaurentSpace(d))
+FFun(x,d::PeriodicDomain,n...)=IFun(x,LaurentSpace(d),n...)
+FFun(f,n::Integer)=IFun(f,LaurentSpace(PeriodicInterval()),n)
 FFun(f)=IFun(f,LaurentSpace(PeriodicInterval()))
 
 Fun(x)=IFun(x)
