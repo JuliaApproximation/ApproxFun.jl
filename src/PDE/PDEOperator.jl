@@ -1,5 +1,5 @@
 
-export lap,grad,timedirichlet
+export lap,grad,timedirichlet, ⊗
 
 
 type PDEOperator

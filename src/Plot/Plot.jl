@@ -48,11 +48,11 @@ function contour(x,y::Vector,z::Array;opts...)
     end
 end
 
-function surf(x::Vector,y::Vector,z::Array;opts...)
+function surf(x...;opts...)
     if plotter3D=="GLPlot"
-        glsurf(x,y;opts...)
+        glsurf(x...;opts...)
     elseif plotter3D=="PyPlot"
-        pysurf(x,y;opts...)
+        pysurf(x...;opts...)
     else
         error("Plotter " * plotter3D * " not supported.")
     end

@@ -111,7 +111,7 @@ function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
         sp=findmaxrangespace([A[k,:]...])
         if k > length(b)## assume its zer
             r[k:n:end]=zeros(l)
-        elseif isa(b[k],AbstractFun)
+        elseif isa(b[k],Fun)
             ##TODO: boiunds check
             r[k:n:end]=pad(coefficients(b[k],sp),l)
         else  #type is scalar

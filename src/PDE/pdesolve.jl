@@ -24,7 +24,7 @@ function convert2funvec{T<:Number,D}(f::Vector{T},d::D)
     end
     ret
 end
-convert2funvec{T<:Fun,D}(f::Vector{T},d::D)=Fun{T,D}[fk for fk in f]
+convert2funvec{T<:Fun,D}(f::Vector{T},d::D)=f
 function convert2funvec{D}(f::Vector{Any},d::D)
     mytyp=Fun{Float64,D}
     
