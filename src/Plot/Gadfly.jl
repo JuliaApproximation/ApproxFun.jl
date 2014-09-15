@@ -71,26 +71,26 @@ end
 
 ##FFun
 
-function plot(f::FFun;opts...) 
-    f=deepcopy(f)
-    
-    m=max(-firstindex(f.coefficients),lastindex(f.coefficients))
-    
-    f.coefficients=pad(f.coefficients,-m:m)
-
-    pts = [points(f),fromcanonical(f,π)]
-    vals =[values(f),first(values(f))]
-
-    plot(pts,vals;opts...)
-end
-
-
-function complexplot(f::FFun{Complex{Float64}};opts...) 
-    pts = [points(f),fromcanonical(f,π)]
-    vals =[values(f),first(values(f))]
-
-    plot(real(vals),imag(vals);opts...)
-end
+# function plot(f::FFun;opts...) 
+#     f=deepcopy(f)
+#     
+#     m=max(-firstindex(f.coefficients),lastindex(f.coefficients))
+#     
+#     f.coefficients=pad(f.coefficients,-m:m)
+# 
+#     pts = [points(f),fromcanonical(f,π)]
+#     vals =[values(f),first(values(f))]
+# 
+#     plot(pts,vals;opts...)
+# end
+# 
+# 
+# function complexplot(f::FFun{Complex{Float64}};opts...) 
+#     pts = [points(f),fromcanonical(f,π)]
+#     vals =[values(f),first(values(f))]
+# 
+#     plot(real(vals),imag(vals);opts...)
+# end
 
 
 ## SingFun

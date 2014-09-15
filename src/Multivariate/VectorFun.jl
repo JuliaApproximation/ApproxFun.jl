@@ -15,20 +15,20 @@ function coefficients{N}(f::Vector{IFun{N}},o...)
 end
 
 
-function coefficients{T<:FFun}(B::Vector{T})
-    m=mapreduce(length,max,B)
-    fi=mapreduce(f->firstindex(f.coefficients),min,B)
-
-    n=length(B)
-    ret = zeros(Complex{Float64},m,length(B))
-    for j=1:n
-        for k=firstindex(B[j].coefficients):lastindex(B[j].coefficients)
-            ret[k - fi + 1,j] = B[j].coefficients[k]
-        end
-    end
-  
-    ret
-end
+# function coefficients{T<:FFun}(B::Vector{T})
+#     m=mapreduce(length,max,B)
+#     fi=mapreduce(f->firstindex(f.coefficients),min,B)
+# 
+#     n=length(B)
+#     ret = zeros(Complex{Float64},m,length(B))
+#     for j=1:n
+#         for k=firstindex(B[j].coefficients):lastindex(B[j].coefficients)
+#             ret[k - fi + 1,j] = B[j].coefficients[k]
+#         end
+#     end
+#   
+#     ret
+# end
 
 
 function values{N}(f::Vector{IFun{N}})
@@ -82,22 +82,22 @@ function evaluate{T<:IFun}(A::Vector{T},x::Vector{Float64})
     ret
 end
 
-function evaluate{T<:FFun}(A::Vector{T},x::Vector{Float64})
-    x = tocanonical(first(A),x)
-
-    n=length(x)
-    ret=Array(Float64,length(A),n)
-    
-    for k=1:length(A)
-        bk=horner(A[k].coefficients,x)
-        
-        for j=1:n
-            ret[k,j]=bk[j]
-        end
-    end
-    
-    ret
-end
+# function evaluate{T<:FFun}(A::Vector{T},x::Vector{Float64})
+#     x = tocanonical(first(A),x)
+# 
+#     n=length(x)
+#     ret=Array(Float64,length(A),n)
+#     
+#     for k=1:length(A)
+#         bk=horner(A[k].coefficients,x)
+#         
+#         for j=1:n
+#             ret[k,j]=bk[j]
+#         end
+#     end
+#     
+#     ret
+# end
 
 
 
@@ -113,11 +113,11 @@ end
 
 #*{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).space) 
 
-
-function *{T<:FFun}(v::Vector{T},a::Vector)
-    fi=mapreduce(f->firstindex(f.coefficients),min,v)
-    FFun(ShiftVector(coefficients(v)*a,1-fi),first(v).domain) 
-end
+# 
+# function *{T<:FFun}(v::Vector{T},a::Vector)
+#     fi=mapreduce(f->firstindex(f.coefficients),min,v)
+#     FFun(ShiftVector(coefficients(v)*a,1-fi),first(v).domain) 
+# end
 
 # *{T<:IFun}(v::Vector{T},a::Vector)=IFun(coefficients(v)*a,first(v).space) 
 # *{T<:IFun}(v::Vector{T},a::Number)=T[vk*a for vk in v]

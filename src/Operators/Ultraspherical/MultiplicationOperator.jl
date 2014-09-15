@@ -10,7 +10,7 @@ end
 
 MultiplicationOperator{o}(f::IFun,::UltrasphericalSpace{o})=MultiplicationOperator(f,o)
 MultiplicationOperator(c::Number,k)=ConstantOperator(c)
-MultiplicationOperator(f::FFun)=LaurentOperator(f)
+MultiplicationOperator{T}(f::IFun{T,LaurentSpace})=LaurentOperator(f)
 MultiplicationOperator(f)=MultiplicationOperator(f,0)
 
 

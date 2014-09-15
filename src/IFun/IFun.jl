@@ -330,7 +330,7 @@ function Base.cumsum(f::IFun)
     cf - first(cf)
 end
 
-function Base.sum{T<:Number}(f::IFun{T})
+function Base.sum{T}(f::IFun{T})
     cf=integrate(f)
     last(cf) - first(cf)
 end
@@ -351,4 +351,3 @@ Base.diff(f::IFun,n...)=differentiate(f,n...)
 
 
 
-include("roots.jl")

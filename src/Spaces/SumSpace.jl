@@ -1,13 +1,18 @@
 
 
-immutable SumSpace{S<:DomainSpace,T<:DomainSpace} <: DomainSpace
+immutable PeriodicSumSpace{S<:DomainSpace,T<:DomainSpace} <: PeriodicDomainSpace
     spaces::(S,T)
 end
 
-function SumSpace{S<:DomainSpace,T<:DomainSpace}(A::S,B::T)
+function PeriodicSumSpace{S<:DomainSpace,T<:DomainSpace}(A::S,B::T)
     @assert domain(A)==domain(B)
-    SumSpace{S,T}((A,B))
+    PeriodicSumSpace{S,T}((A,B))
 end
+
+##TODO IntervalSumSpace
+typealias SumSpace PeriodicSumSpace
+
+
 
 
 domain(A::SumSpace)=domain(A.spaces[1])

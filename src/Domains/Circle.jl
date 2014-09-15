@@ -35,37 +35,5 @@ Base.length(d::Circle) = 2π*d.radius
 
 
 
-## Diff and integration
 
-
-function Base.diff{T<:Number,D<:Circle}(f::FFun{T,D}) 
-        ##TODO: general radii
-        @assert f.domain.radius == 1.
-        @assert f.domain.center == 0
-        cfs = f.coefficients
-        # Now shift everything by one
-        FFun(ShiftVector(
-                        [([firstindex(cfs):-1].*cfs[firstindex(cfs):-1]),0],
-                        [1:lastindex(cfs)].*cfs[1:lastindex(cfs)]
-                        ),
-            f.domain)    
-end
-
-
-
-function integrate{T<:Number,D<:Circle}(f::FFun{T,D}) 
-    tol = 10eps()
-    @assert abs(f.coefficients[-1]) < tol        
-    ##TODO: general radii        
-    @assert f.domain.radius == 1.
-    @assert f.domain.center == 0        
-    
-    cfs = f.coefficients
-    # Now shift everything by one
-    FFun(ShiftVector(
-                    [cfs[firstindex(cfs):-1]./[firstindex(cfs):-1]],
-                    [0,(cfs[0:lastindex(cfs)]./[1:lastindex(cfs)+1])]
-                    ),
-        f.domain)
-end
 

@@ -35,39 +35,3 @@ Base.length(d::PeriodicInterval) = d.b - d.a
 
 
 
-##Differentiation and integration
-
-
-function Base.diff{T<:Number,M<:PeriodicInterval}(f::FFun{T,M}) 
-    tocanonicalD(f.domain,0)*FFun(
-                    ShiftVector(1.im*[firstindex(f.coefficients):-1],
-                                1.im*[0:lastindex(f.coefficients)]).*f.coefficients,
-                    f.domain)
-end
-
-function Base.diff(f::FFun,k::Integer)
-    @assert k >= 0
-    (k==0)?f:diff(diff(f),k-1)
-end
-
-
-
-
-function integrate{T<:Number,M<:PeriodicInterval}(f::FFun{T,M}) 
-    tol = 10eps()
-    @assert abs(f.coefficients[0]) < tol
-    
-    ##TODO: mapped domains
-    
-    @assert f.domain.a ==-π
-    @assert f.domain.b ==π        
-    FFun(
-                    ShiftVector(-1.im./[firstindex(f.coefficients):-1],
-                                [0,(-1.im./[1:lastindex(f.coefficients)])]).*f.coefficients,
-                    f.domain)
-end
-
-Base.sum{T<:Number,M<:PeriodicInterval}(f::FFun{T,M})=f.coefficients[0].*length(f.domain)
-
-
-

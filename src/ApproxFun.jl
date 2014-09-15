@@ -1,7 +1,7 @@
 module ApproxFun
     using Base
 
-export AbstractFun, Fun,IFun,FFun,Interval,evaluate,values,points,chebyshevtransform
+export AbstractFun, Fun,FFun,IFun,Interval,evaluate,values,points,chebyshevtransform
 export pad!,pad,sample,chop!,complexroots,roots,svfft
 export multiplybyx,IntervalDomain,fasttimes
 
@@ -26,12 +26,11 @@ include("Spaces/FunctionSpace.jl")
 include("IFun/IFun.jl")
 
 
-##Fourier Routines
-include("FFun/FFun.jl")
-
 # Canonical domains
 include("Domains/Interval.jl")
 include("Domains/PeriodicInterval.jl")
+include("Domains/Ray.jl")
+include("Domains/Circle.jl")
 include("Spaces/Spaces.jl")
 
 include("Operators/Operator.jl")
@@ -44,6 +43,11 @@ include("Multivariate/Multivariate.jl")
 
 ##Following routine decides
 # whether input is IFun or FFun
+
+FFun(x,d)=IFun(x,LaurentSpace(d))
+FFun(x,d,n...)=IFun(x,LaurentSpace(d),n...)
+FFun(f)=IFun(f,LaurentSpace(PeriodicInterval()))
+
 Fun(x)=IFun(x)
 Fun(x,d::IntervalDomain)=IFun(x,d)
 Fun(x,d::PeriodicDomain)=FFun(x,d)
@@ -56,7 +60,7 @@ Fun(x,d::Vector,n::Integer)=IFun(x,d,n)
 ## General routines
 
 domain(f::IFun)=domain(f.space)
-domain(f::FFun)=f.domain
+#domain(f::FFun)=f.domain
 domain(::Number)=Any
 domain{T<:AbstractFun}(v::Vector{T})=map(domain,v)
 
@@ -64,8 +68,6 @@ domain{T<:AbstractFun}(v::Vector{T})=map(domain,v)
 
 ## Other domains
 
-include("Domains/Ray.jl")
-include("Domains/Circle.jl")
 
 ## Further extra features
 

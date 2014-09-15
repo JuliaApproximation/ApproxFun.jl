@@ -94,5 +94,5 @@ end
 addentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=laurent_addentries!(T.coefficients,A,kr)
 bandinds(T::LaurentOperator)=firstindex(T.coefficients),lastindex(T.coefficients)
 
-LaurentOperator(f::FFun)=LaurentOperator(flipud(f.coefficients))
+LaurentOperator{T}(f::IFun{T,LaurentSpace})=LaurentOperator(flipud(f.coefficients))
 
