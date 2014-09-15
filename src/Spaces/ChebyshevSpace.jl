@@ -12,6 +12,11 @@ spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpa
 
 ## spaceconversion defaults to calling ConversionOperator, otherwise it tries to pipe through ChebyshevSpace
 
+function spaceconversion{A<:FunctionSpace}(f::Vector,a::A,b::A)
+    @assert spacescompatible(a,b)
+        f
+end
+
 function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
     ct=conversion_type(a,b)
     if a==b

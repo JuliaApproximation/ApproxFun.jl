@@ -21,16 +21,16 @@ type FourierDerivativeOperator{D<:PeriodicInterval} <: BandedShiftOperator{Compl
 end
 
 
-addentries!(D::FourierDerivativeOperator,A::ShiftArray,kr::Range1)=fourier_derivative_addentries!(D.order,D.domain,A,kr)
+shiftaddentries!(D::FourierDerivativeOperator,A::ShiftArray,kr::Range1)=fourier_derivative_addentries!(D.order,D.domain,A,kr)
 
 
-bandinds(D::FourierDerivativeOperator)=0,0
+shiftbandinds(D::FourierDerivativeOperator)=0,0
 
 domain(D::FourierDerivativeOperator)=D.domain
 
 
-domainspace(D::FourierDerivativeOperator)=FourierSpace(D.domain)
-rangespace(D::FourierDerivativeOperator)=FourierSpace(D.domain)
+domainspace(D::FourierDerivativeOperator)=LaurentSpace(D.domain)
+rangespace(D::FourierDerivativeOperator)=LaurentSpace(D.domain)
 
 
 ^(D1::FourierDerivativeOperator,k::Integer)=FourierDerivativeOperator(D1.order*k,D1.domain)

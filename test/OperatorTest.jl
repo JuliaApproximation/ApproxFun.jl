@@ -34,16 +34,16 @@ x=Fun(identity);
 
 
 ## Periodic
-#TODO: reimplement
 
-# a=FFun(t-> cos(t) + sin(2t),3)
-# d=domain(a)
-# D=diff(d)
-# L=D^2+a;
-# f=FFun(t->cos(cos(t)));
-# u=L\f;
-# 
-# @test norm(diff(u,2)+a.*u-f) < 10eps()
+
+a=FFun(t-> cos(t) + sin(2t),3)
+d=domain(a)
+D=diff(d)
+L=D^2+a
+f=FFun(t->cos(cos(t)))
+u=L\f
+
+@test norm(diff(u,2)+a.*u-f) < 10eps()
 
 
 

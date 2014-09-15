@@ -32,17 +32,17 @@ commondomainspace(P::Vector,g)=commondomainspace([P,g])
 
 
 
-IFun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,Fun)? coefficients(f,sp) :  f,b)...)
-FFun_coefficients(b::Vector)=vcat(map(f-> isa(f,FFun)? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
+Fun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,Fun)? coefficients(f,sp) :  f,b)...)
 
-function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
+
+function Fun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
     A=promotedomainspace(A)
-    u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
+    u=adaptiveqr(A,Fun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
     
     Fun(u,commondomainspace(A,b))
 end
 
-function IFun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)
+function Fun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)
     u=adaptiveqr(A,b,tolerance,maxlength)  ##TODO: depends on ordering of A
     d=commondomain(A)
     Fun[Fun(u[:,k],d) for k=1:size(u,2)]
@@ -50,21 +50,19 @@ end
 
 
 
-function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
-    @assert length(A) == 1
-
-    u=adaptiveqr([interlace(A[1])],FFun_coefficients(b),tolerance,maxlength)
-    
-    FFun(deinterlace(u),commondomain(A,b))    
-end
+# function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
+#     @assert length(A) == 1
+# 
+#     u=adaptiveqr([interlace(A[1])],FFun_coefficients(b),tolerance,maxlength)
+#     
+#     FFun(deinterlace(u),commondomain(A,b))    
+# end
 
 function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxlength=1000000)
     d=commondomain(A,b)
 
-    if typeof(d) <: IntervalDomain
-        IFun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
-    elseif typeof(d) <: PeriodicDomain
-        FFun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
+    if typeof(d) <: Domain
+        Fun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
     else
         adaptiveqr(A,b,tolerance,maxlength)
     end    

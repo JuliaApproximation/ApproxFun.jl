@@ -72,7 +72,7 @@ function stride_pospos_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
     B=BandedArray(A)
     
     for k=r1, j=columnrange(B1.data)+k
-        B[S.rowstride*k + S.rowindex,S.colstride*j + S.colindex] = B1.data[k,j-k]
+        B[S.rowstride*k + S.rowindex,S.colstride*j + S.colindex] += B1.data[k,j-k]
     end
     
     A
@@ -87,7 +87,7 @@ function stride_posneg_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
     
     for k=r1, j=br
         if S.colstride*(j+k) + S.colindex > 0 && S.rowstride*k + S.rowindex > 0
-            B[S.rowstride*k + S.rowindex,S.colstride*(j+k) + S.colindex] = B1[k,j]
+            B[S.rowstride*k + S.rowindex,S.colstride*(j+k) + S.colindex] += B1[k,j]
         end
     end
 
