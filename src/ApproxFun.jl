@@ -1,7 +1,7 @@
 module ApproxFun
     using Base
 
-export Fun,FFun,Interval,evaluate,values,points,chebyshevtransform
+export Fun,IFun,FFun,Interval,evaluate,values,points,chebyshevtransform
 export pad!,pad,sample,chop!,complexroots,roots,svfft
 export multiplybyx,IntervalDomain,fasttimes
 

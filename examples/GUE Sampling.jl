@@ -1,3 +1,6 @@
+Pkg.add("PyPlot")
+Pkg.add("RandomMatrices")
+
 using ApproxFun
 
 #The following samples eigenvalues of an n = 2 Gaussian Unitary Ensemble:

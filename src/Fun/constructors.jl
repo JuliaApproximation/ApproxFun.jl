@@ -163,3 +163,5 @@ FFun{T<:Number}(x,d::Vector{T})=Fun(x,LaurentSpace(d))
 FFun{T<:Number}(x,d::Vector{T},n...)=Fun(x,LaurentSpace(d),n...)
 FFun(f,n::Integer)=Fun(f,LaurentSpace(PeriodicInterval()),n)
 FFun(f)=Fun(f,LaurentSpace(PeriodicInterval()))
+
+typealias IFun{T,D} Fun{T,D}
