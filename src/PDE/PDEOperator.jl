@@ -58,7 +58,7 @@ function +(A::PDEOperator,B::PDEOperator)
     PDEOperator(ret)
 end
 
-function lap(d::TensorDomain)
+function lap(d::ProductDomain)
     @assert length(d.domains)==2
     Dx=Base.diff(d.domains[1])
     Dy=Base.diff(d.domains[2])    
@@ -104,27 +104,27 @@ function *(a::Fun,A::PDEOperator)
     PDEOperator(ops)
 end
 
-Base.diff(d::TensorDomain,k)=k==1?Base.diff(d.domains[1])⊗I:I⊗Base.diff(d.domains[2])  
-grad(d::TensorDomain)=[Base.diff(d,k) for k=1:length(d.domains)]
+Base.diff(d::ProductDomain,k)=k==1?Base.diff(d.domains[1])⊗I:I⊗Base.diff(d.domains[2])  
+grad(d::ProductDomain)=[Base.diff(d,k) for k=1:length(d.domains)]
 
 
 
 
-function dirichlet(d::TensorDomain)
+function dirichlet(d::ProductDomain)
     @assert length(d.domains)==2
     Bx=dirichlet(d.domains[1])
     By=dirichlet(d.domains[2])
     [Bx⊗I,I⊗By]
 end
 
-function neumann(d::TensorDomain)
+function neumann(d::ProductDomain)
     @assert length(d.domains)==2
     Bx=neumann(d.domains[1])
     By=neumann(d.domains[2])
     [Bx⊗I,I⊗By]
 end
 
-function timedirichlet(d::TensorDomain)
+function timedirichlet(d::ProductDomain)
     @assert length(d.domains)==2
     Bx=dirichlet(d.domains[1])
     Bt=dirichlet(d.domains[2])[1]
