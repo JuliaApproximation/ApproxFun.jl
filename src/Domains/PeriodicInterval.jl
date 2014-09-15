@@ -26,6 +26,13 @@ function PeriodicInterval{T<:Number}(d::Vector{T})
     end
 end
 
+## Information
+
+Base.first(d::PeriodicInterval)=d.a
+
+# we disable last since the domain is "periodic"
+#Base.last(d::Interval)=d.b
+
 
 ## Map periodic interval
 

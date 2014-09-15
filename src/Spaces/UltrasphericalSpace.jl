@@ -41,6 +41,11 @@ itransform(sp::IntervalDomainSpace,cfs::Vector)=ichebyshevtransform(spaceconvers
 
 
 
+## Fast evaluation
+
+Base.first{T,O}(f::Fun{T,UltrasphericalSpace{O}})=foldr(-,coefficients(f))
+Base.last{T,O}(f::Fun{T,UltrasphericalSpace{O}})=reduce(+,coefficients(f))
+
 
 
 ## Calculus

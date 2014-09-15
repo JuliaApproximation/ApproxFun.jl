@@ -58,8 +58,10 @@ spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
 evaluate{T,S}(f::Fun{T,S},x)=evaluate(Fun(f,domain(f)),x)  #Default is convert to Chebyshev
 Base.getindex(f::Fun,x)=evaluate(f,x)
 
-Base.first(f::Fun)=foldr(-,coefficients(f))
-Base.last(f::Fun)=reduce(+,coefficients(f))
+for op in (:(Base.first),:(Base.last))
+    @eval $op{T,S}(f::Fun{T,S})=f[$op(domain(f))]
+end
+
 
 
 

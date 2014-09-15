@@ -121,7 +121,7 @@ function fourierintegrate(d::PeriodicInterval,cfs::ShiftVector)
     @assert d.a ==-π
     @assert d.b ==π        
     ShiftVector(-1.im./[firstindex(cfs):-1],
-                [0,(-1.im./[1:lastindex(cfs)])]).cfs
+                [0,(-1.im./[1:lastindex(cfs)])])
 end
 
 fouriersum(d::PeriodicInterval,cfs::ShiftVector)=cfs[0].*length(d)
