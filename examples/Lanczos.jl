@@ -6,7 +6,7 @@ function lanczos(w,N)
     β = Array(Float64,N)
     γ = Array(Float64,N)
 
-    P[1] = Fun([1./sqrt(sum(w))],x.domain)
+    P[1] = Fun([1./sqrt(sum(w))],domain(x))
 
     v = x.*P[1]
     β[1] = sum(w.*v.*P[1])

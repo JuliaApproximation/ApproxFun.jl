@@ -4,25 +4,25 @@ export USConversionOperator
 
 type USConversionOperator <: BandedOperator{Float64}
     λ::Int
-    domain::IntervalDomain
+    domain::Union(IntervalDomain,AnyDomain)
 end
 
 function ConversionOperator{ao,bo}(a::UltrasphericalSpace{ao},b::UltrasphericalSpace{bo})
-    @assert domain(a) == domain(b)
-    USConversionOperator(ao:bo,domain(a))
+    @assert domainscompatible(a,b)
+    USConversionOperator(ao,bo,domain(a))
 end
 
 
 domainspace(M::USConversionOperator)=UltrasphericalSpace{M.λ-1}(M.domain)
 rangespace(M::USConversionOperator)=UltrasphericalSpace{M.λ}(M.domain)
 
-function USConversionOperator(r::Range1,d::IntervalDomain)
-    @assert length(r)>1 && r[end] > r[1]
+function USConversionOperator(r1::Integer,r2::Integer,d::Domain)
+    @assert r2 > r1
 
-    if length(r)==2
-        USConversionOperator(r[2],d)
+    if r2==r1+1
+        USConversionOperator(r2,d)
     else
-        USConversionOperator(r[end],d)*USConversionOperator(r[1]:r[end-1],d)
+        USConversionOperator(r2,d)*USConversionOperator(r1,r2-1,d)
     end
 end    
 
