@@ -14,6 +14,23 @@ end
 Interval()=Interval(-1.,1.)
 
 
+function Interval{T<:Number}(d::Vector{T})
+    @assert length(d) >1
+
+    if length(d) == 2    
+        if abs(d[1]) == Inf && abs(d[2]) == Inf
+            Line(d)
+        elseif abs(d[2]) == Inf || abs(d[1]) == Inf
+            Ray(d)
+        else
+            Interval(d[1],d[2])
+        end
+    else
+        [Interval(d[1:2]),Interval(d[2:end])]
+    end
+end
+
+
 
 Base.convert{D<:Interval}(::Type{D},i::Vector)=Interval(i)
 Interval(a::Number,b::Number) = Interval(promote(a,b)...)

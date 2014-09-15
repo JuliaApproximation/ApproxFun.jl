@@ -26,7 +26,7 @@ abstract IntervalDomain <: Domain
 chebyshevpoints(n::Integer)= [cos(1.π*k/(n-1)) for k = n-1:-1:0]
 points(d::IntervalDomain,n::Integer) =  [fromcanonical(d,cos(1.π*k/(n-1))) for k = n-1:-1:0]
 points(d::Vector,n::Integer)=points(Interval(d),n)
-
+bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 
 ####
 ## Periodic domains

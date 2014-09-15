@@ -31,7 +31,6 @@ end
   
 
 bary(v::Vector{Float64},x::Float64)=bary(v,chebyshevpoints(length(v)),x)
-bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 
 function randomadaptivebary(f::Function)
   r=rand()

@@ -16,6 +16,16 @@ PeriodicInterval(d::Interval)=PeriodicInterval(d.a,d.b)
 
 
 
+function PeriodicInterval{T<:Number}(d::Vector{T})
+    @assert length(d) == 2
+    
+    if abs(d[1]) ==Inf
+        PeriodicLine(d)
+    else
+        PeriodicInterval(d[1],d[2])
+    end
+end
+
 
 ## Map periodic interval
 
