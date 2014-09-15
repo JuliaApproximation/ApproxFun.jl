@@ -28,8 +28,12 @@ points(d::IntervalDomain,n::Integer) =  [fromcanonical(d,cos(1.π*k/(n-1))) for 
 points(d::Vector,n::Integer)=points(Interval(d),n)
 bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 
-####
-## Periodic domains
+
+Base.first(d::IntervalDomain)=fromcanonical(d,-1.0)
+Base.last(d::IntervalDomain)=fromcanonical(d,1.0)
+
+
+###### Periodic domains
 
 abstract PeriodicDomain <: Domain
 

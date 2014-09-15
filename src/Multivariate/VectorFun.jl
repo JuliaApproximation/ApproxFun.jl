@@ -4,7 +4,7 @@
 ## Vector of fun routines
 
 
-function coefficients{N}(f::Vector{Fun{N}},o...)
+function coefficients{N,D}(f::Vector{Fun{N,D}},o...)
     n=mapreduce(length,max,f)
     m=length(f)
     R=zeros(N,n,m)
@@ -67,12 +67,10 @@ function evaluate{T<:Fun}(A::Vector{T},x::Vector{Float64})
     n=length(x)
     ret=Array(Float64,length(A),n)
     
-    bk=Array(Float64,n)
-    bk1=Array(Float64,n)
-    bk2=Array(Float64,n)
+    cplan=ClenshawPlan(Float64,n)
     
     for k=1:length(A)
-        bkr=clenshaw(A[k].coefficients,x,bk,bk1,bk2)
+        bkr=clenshaw(A[k].coefficients,x,cplan)
         
         for j=1:n
             ret[k,j]=bkr[j]
@@ -125,6 +123,11 @@ end
 # 
 # ## Need to catch A*p, A'*p, A.'*p
 # ##TODO: A may not be same type as p
+
+
+dotu{N<:Real,D,T}(f::Vector{Fun{N,D}},g::Vector{T})=dot(f,g)
+dotu{D,T}(f::Vector{Fun{Complex{Float64},D}},g::Vector{T})=dot(conj(f),g)
+
  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
      @eval begin
          function ($op){T<:Number}(A::Array{T,2}, p::Vector{Fun{T}})

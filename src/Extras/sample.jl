@@ -153,7 +153,7 @@ samplecdf(v::Vector)=bisectioninv(v,rand())
 function sample(f::Fun2D{Float64,ChebyshevSpace,ChebyshevSpace},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
-    CB=coefficientmatrix(f.B)
+    CB=coefficients(f.B)
     AB=CB*fA
     normalizedcumsum!(AB)
     rx=bisectioninv(AB,rand(n))  

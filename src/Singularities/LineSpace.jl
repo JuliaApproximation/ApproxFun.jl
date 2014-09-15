@@ -23,6 +23,9 @@ transform(::LineSpace,vals::Vector)=chebyshevtransform(vals)
 
 ## evaluation
 
+for op in (:(Base.first),:(Base.last))
+    @eval $op{T}(f::Fun{T,LineSpace})=$op(Fun(f.coefficients))
+end
 evaluate{T}(f::Fun{T,LineSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
 
 
@@ -81,11 +84,12 @@ end
 
 
 function integrate{T}(f::Fun{T,LineSpace})
+    d=domain(f)
     @assert d.α==d.β==-1.
     # || d.α==d.β==-.5
     
 #    if domain(f).α==domain(f).β==-1.
-        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(cfs),1))),f.space)
+        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f.coefficients),UltrasphericalSpace{1}))),f.space)
 #    end
 #     elseif d.α==d.β==-.5
 #         u=divide_singularity(f)

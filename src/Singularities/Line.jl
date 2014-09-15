@@ -65,7 +65,8 @@ fromcanonicalD(d::Line,x)=(1 .- (d.β-d.α)x .- (d.β+d.α.+1)x.^2).*(1.+x).^(d.
 
 
 Base.length(d::Line) = Inf
-
+Base.first(d::Line)= -Inf
+Base.last(d::Line)= Inf
 
 
 ==(d::Line,m::Line) = d.centre == m.centre && d.angle == m.angle && d.β == m.β &&d.α == m.α
