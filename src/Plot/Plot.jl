@@ -38,17 +38,17 @@ function plot(x,y::Vector;opts...)
     end
 end
 
-function contour(x,y::Vector;opts...)
+function contour(x,y::Vector,z::Array;opts...)
     if plotter2D=="Gadfly"
-        gadflycontour(x,y;opts...)
+        gadflycontour(x,y,z;opts...)
     elseif plotter2D=="PyPlot"
-        pycontour(x,y;opts...)
+        pycontour(x,y,z;opts...)
     else
         error("Plotter " * plotter2D * " not supported.")
     end
 end
 
-function surf(x::Vector,y::Vector,z::Vector;opts...)
+function surf(x::Vector,y::Vector,z::Array;opts...)
     if plotter3D=="GLPlot"
         glsurf(x,y;opts...)
     elseif plotter3D=="PyPlot"

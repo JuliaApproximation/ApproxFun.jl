@@ -17,20 +17,20 @@ include("cont_lyap.jl")
 #     Bx,Gx,By,Gy,Lx,Ly,Mx,My    
 # end
 
-function convert2funvec{T<:Number}(f::Vector{T},d::IntervalDomainSpace)
-    ret=Array(Fun{T},length(f))
+function convert2funvec{T<:Number,D}(f::Vector{T},d::D)
+    ret=Array(Fun{T,D},length(f))
     for k=1:length(f)
         ret[k]=Fun(f[k],d)
     end
     ret
 end
-convert2funvec{T<:Fun}(f::Vector{T},d::IntervalDomainSpace)=f
-function convert2funvec(f::Vector{Any},d::IntervalDomainSpace)
-    mytyp=Fun{Float64}
+convert2funvec{T<:Fun,D}(f::Vector{T},d::D)=Fun{T,D}[fk for fk in f]
+function convert2funvec{D}(f::Vector{Any},d::D)
+    mytyp=Fun{Float64,D}
     
     for fk in f
-        if typeof(fk) == Fun{Complex{Float64}}
-            mytyp=Fun{Complex{Float64}}
+        if typeof(fk) <: Fun{Complex{Float64}}
+            mytyp=Fun{Complex{Float64},D}
         end
     end
     
