@@ -41,27 +41,24 @@ function bandinds(S::StrideOperator)
 end
 
 # First index above
-function firstrw(S,k::Integer)
-    rs = S.rowstride
-    ri= S.rowindex
-    rs>0?fld(k-ri+rs-1,rs):fld(k-ri,rs)
-end
+firstrw(rs,ri,k::Integer)=rs>0?fld(k-ri+rs-1,rs):fld(k-ri,rs)
+firstrw(S,k::Integer)=firstrw(S.rowstride,S.rowindex,k)
+
 #Last index below
-function lastrw(S,k::Integer)
-    rs = S.rowstride
-    ri= S.rowindex
-    rs>0?fld(k-ri,rs):fld(k-ri+rs+1,rs)
-end
+lastrw(rs,ri,k::Integer)=rs>0?fld(k-ri,rs):fld(k-ri+rs+1,rs)
 
 
-function divrowrange(S,r)
-    if S.rowstride > 0
-        firstrw(S,r[1]):lastrw(S,r[end])
+function divrowrange(rs,ri,r)
+    if rs > 0
+        firstrw(rs,ri,r[1]):lastrw(rs,ri,r[end])
     else #neg neg
-        lastrw(S,r[end]):firstrw(S,r[1])
+        lastrw(rs,ri,r[end]):firstrw(rs,ri,r[1])
     end
 end
 
+for op in (:firstrw,:lastrw,:divrowrange)
+    @eval $op(S,k...)=$op(S.rowstride,S.rowindex,k...)
+end
 
 
 #S[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
@@ -190,14 +187,14 @@ function interlace{T<:Operator}(A::Array{T,2})
     end
 end
 
-## only works for BandedShiftOperator
-function interlace(L::BandedShiftOperator)
-    SPP=StrideOperator(L,1,1,2,2)
-    SMM=StrideOperator(L,0,0,-2,-2)
-    SPM=StrideOperator(L,0,1,-2,2)
-    SMP=StrideOperator(L,1,0,2,-2)
-    
-    SPM+SMP+SPP+SMM
-end
+# ## only works for BandedShiftOperator
+# function interlace(L::BandedShiftOperator)
+#     SPP=StrideOperator(L,1,1,2,2)
+#     SMM=StrideOperator(L,0,0,-2,-2)
+#     SPM=StrideOperator(L,0,1,-2,2)
+#     SMP=StrideOperator(L,1,0,2,-2)
+#     
+#     SPM+SMP+SPP+SMM
+# end
 
 

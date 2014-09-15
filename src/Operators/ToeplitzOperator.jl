@@ -15,7 +15,7 @@ ToeplitzOperator{T,D}(f::Fun{T,D})=ToeplitzOperator(f.coefficients)
 ToeplitzOperator{T}(f::Fun{T,LaurentSpace})=ToeplitzOperator(f.coefficients|>deinterlace)
 
 
-function laurent_addentries!(v::Vector,A::ShiftArray,kr::Range1)    
+function laurent_addentries!(v::Vector,A,kr::Range1)    
     for k=kr,j=1-length(v):length(v)-1
         A[k,j] += (j ==0) ? 2v[1] : v[abs(j)+1]
     end
@@ -23,7 +23,7 @@ function laurent_addentries!(v::Vector,A::ShiftArray,kr::Range1)
     A
 end
 
-function laurent_addentries!(v::ShiftVector,A::ShiftArray,kr::Range1)    
+function laurent_addentries!(v::ShiftVector,A,kr::Range1)    
     for k=kr,j=range(v)[1]:range(v)[end]
         A[k,j] += v[j]
     end
@@ -92,7 +92,7 @@ type LaurentOperator{T<:Number} <: BandedShiftOperator{T}
 end
 
 
-addentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=laurent_addentries!(T.coefficients,A,kr)
+shiftaddentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=laurent_addentries!(T.coefficients,A,kr)
 bandinds(T::LaurentOperator)=firstindex(T.coefficients),lastindex(T.coefficients)
 
 LaurentOperator{T}(f::Fun{T,LaurentSpace})=LaurentOperator(flipud(f.coefficients))
