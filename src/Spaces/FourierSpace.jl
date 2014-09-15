@@ -65,11 +65,18 @@ function horner{T}(v::Vector{T},z)
     ret
 end
 
+## Cos and Sin space
+
 points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
 transform(::CosSpace,vals)=chebyshevtransform(vals)
-itransform(::CosSpace,vals)=ichebyshevtransform(vals)
-
+itransform(::CosSpace,cfs)=ichebyshevtransform(cfs)
 evaluate{T}(f::IFun{T,CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
+
+
+points(sp::SinSpace,n)=fromcanonical(domain(sp),(π*[1:n])/(n+1))
+transform(::SinSpace,vals)=FFTW.r2r(vals,FFTW.RODFT00)/(length(vals)+1)
+itransform(::SinSpace,cfs)=FFTW.r2r(cfs,FFTW.RODFT00)/2
+evaluate{T}(f::IFun{T,SinSpace},t)=sum([f.coefficients[k]*sin(k*tocanonical(f,t)) for k=1:length(f)])
 
 
 
