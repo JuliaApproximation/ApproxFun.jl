@@ -104,7 +104,6 @@ include("calculus.jl")
 include("EvaluationFunctional.jl")
 
 
-include("Ultraspherical/Ultraspherical.jl")
 
 include("SavedOperator.jl")
 include("AlmostBandedOperator.jl")
@@ -113,15 +112,12 @@ include("adaptiveqr.jl")
 
 include("algebra.jl")
 
-include("specialfunctions.jl")
-
 include("TransposeOperator.jl")
 include("StrideOperator.jl")
 include("SliceOperator.jl")
 
 include("CompactOperator.jl")
 
-include("Fourier/FourierDerivativeOperator.jl")
 
 include("null.jl")
 include("systems.jl")

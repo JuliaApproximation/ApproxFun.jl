@@ -23,10 +23,11 @@ include("Fun/Fun.jl")
 include("Fun/constructors.jl")
 
 
-include("Spaces/Spaces.jl")
 include("Operators/Operator.jl")
 include("Multivariate/Multivariate.jl")
 
+
+include("Spaces/Spaces.jl")
 
 
 

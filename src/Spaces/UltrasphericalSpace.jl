@@ -65,3 +65,7 @@ end
 
 =={l,r}(a::ChebyshevDirichletSpace{l,r},b::ChebyshevDirichletSpace{l,r})= a.domain==b.domain
 
+
+
+
+include("UltrasphericalOperators.jl")
