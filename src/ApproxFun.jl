@@ -17,16 +17,12 @@ import Base.values
 
 include("LinearAlgebra/LinearAlgebra.jl")
 
-include("Domains/Domains.jl")
-include("Spaces/FunctionSpace.jl")
+
 include("Fun/Fun.jl")
-include("Fun/constructors.jl")
-
-
 include("Operators/Operator.jl")
 include("Multivariate/Multivariate.jl")
 
-
+include("Domains/Domains.jl")
 include("Spaces/Spaces.jl")
 
 

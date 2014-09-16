@@ -1,5 +1,8 @@
 
 
+include("Domain.jl")
+include("FunctionSpace.jl")
+
 
 ##  Constructors
 
@@ -223,3 +226,8 @@ end
 
 
 integrate{T,D}(f::Fun{T,D})=integrate(Fun(f,domain(f)))
+
+
+
+include("constructors.jl")
+
