@@ -2,17 +2,20 @@ export MultiplicationOperator
 
 
 
-type MultiplicationOperator{T<:Number,D<:FunctionSpace} <: BandedOperator{T}
+type MultiplicationOperator{T<:Number,D<:FunctionSpace,S<:FunctionSpace} <: BandedOperator{T}
     f::Fun{T,D}
+    space::S
 end
+
+MultiplicationOperator(f::Fun)=MultiplicationOperator(f,space(f))
 
 MultiplicationOperator(c::Number)=ConstantOperator(c)
 
 
 
 
-domainspace(M::MultiplicationOperator)=space(M.f)
-rangespace(M::MultiplicationOperator)=space(M.f)
+domainspace(M::MultiplicationOperator)=M.space
+rangespace(M::MultiplicationOperator)=M.space
 
 
 
@@ -25,6 +28,6 @@ domain(T::MultiplicationOperator)=domain(T.f)
 
 ##multiplication can always be promoted, range space is allowed to change
 promotedomainspace(D::MultiplicationOperator,sp::AnySpace)=D
-promotedomainspace(D::MultiplicationOperator,sp::FunctionSpace)=MultiplicationOperator(Fun(D.f,sp))
+promotedomainspace(D::MultiplicationOperator,sp::FunctionSpace)=MultiplicationOperator(D.f,sp)
 
 

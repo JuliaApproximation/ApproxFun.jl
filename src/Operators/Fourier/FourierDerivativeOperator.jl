@@ -40,4 +40,4 @@ rangespace(D::FourierDerivativeOperator)=LaurentSpace(D.domain)
 
 ## Multiplication 
 
-addentries!{T}(M::MultiplicationOperator{T,LaurentSpace},A,k)=addentries!(LaurentOperator(M.f),A,k)
+addentries!{T}(M::MultiplicationOperator{T,LaurentSpace,LaurentSpace},A,k)=addentries!(LaurentOperator(M.f),A,k)
