@@ -11,5 +11,4 @@ include("MultivariateTest.jl")
 include("SpacesTest.jl")
 include("SpeedTest.jl")
 include("ExamplesTest.jl")
-
-
+include("ReadmeTest.jl")

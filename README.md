@@ -88,7 +88,7 @@ We can solve ODEs, the following solves the Airy equation `u' = x u` as a BVP on
 
 
 	x=Fun(identity,[-1000.,15.])
-   	d=x.domain
+   	d=domain(x)
 	D=diff(d)
 	u = [dirichlet(d),D^2 - x] \ [airyai(d.a),0.]
 	
@@ -99,7 +99,7 @@ We can solve ODEs, the following solves the Airy equation `u' = x u` as a BVP on
 We can solve PDEs, the following solves Helmholtz `Δu + 100u=0` with `u(±1,y)=u(x,±1)=1`
 
 
-    d=Interval()⊗Interval()						# Defines a rectangle
+    d=Interval()^2          					# Defines a rectangle
     
     u=[dirichlet(d),lap(d)+100I]\ones(4)		# First four entries of rhs are 
     											# boundary conditions

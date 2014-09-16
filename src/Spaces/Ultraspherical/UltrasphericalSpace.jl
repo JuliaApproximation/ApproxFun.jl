@@ -30,6 +30,7 @@ order{o}(::UltrasphericalSpace{o})=o
 #domain(S) may be any domain
 for op in (:(Base.ones),:(Base.zeros))
     @eval ($op){T<:Number,O}(::Type{T},S::UltrasphericalSpace{O})=Fun(($op)(T,1),S)
+    @eval ($op){O}(S::UltrasphericalSpace{O})=Fun(($op)(1),S)    
 end
 
 
