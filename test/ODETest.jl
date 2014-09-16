@@ -78,8 +78,15 @@ u = A\[0.,f];
 d=Interval()
 D=diff(d)
 x=Fun(identity,d)
-A=x.^2*D^2+x*D+x.^2;
+A=x.^2*D^2+x*D+x.^2
 u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
+
+
+@test norm(A*u)<eps()
+@test norm(Fun(A.ops[1]*u,d)-x.^2.*diff(u,2))<eps()
+@test norm(Fun(A.ops[2]*u,d)-x.*diff(u)) < eps()
+@test norm(Fun(A.ops[end]*u,d)-x.^2.*u) < eps()
+@test norm(x.^2.*diff(u,2) + x.*diff(u) + x.^2.*u)<eps()
 @test_approx_eq u[0.1] besselj(0.,0.1)
 
 

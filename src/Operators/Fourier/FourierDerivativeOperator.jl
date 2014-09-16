@@ -1,6 +1,8 @@
 export FourierDerivativeOperator
 
 
+## Derivative
+
 
 function fourier_derivative_addentries!(m::Integer,d::PeriodicInterval,A::ShiftArray,kr::Range1)
     C=2π./(d.b-d.a)*im
@@ -34,3 +36,8 @@ rangespace(D::FourierDerivativeOperator)=LaurentSpace(D.domain)
 
 
 ^(D1::FourierDerivativeOperator,k::Integer)=FourierDerivativeOperator(D1.order*k,D1.domain)
+
+
+## Multiplication 
+
+addentries!{T}(M::MultiplicationOperator{T,LaurentSpace},A,k)=addentries!(LaurentOperator(M.f),A,k)

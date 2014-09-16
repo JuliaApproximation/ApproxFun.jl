@@ -43,7 +43,7 @@ Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
 
 
 Fun{T<:Number}(f::Fun,d::Vector{T})=Fun(coefficients(f),d)
-Fun(f::Fun)=Fun(coefficients(f))
+Fun(f::Fun)=Fun(coefficients(f))  ##TODO: should this project to interval?
 
 Fun(c::Number)=Fun([c])
 

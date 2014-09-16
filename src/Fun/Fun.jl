@@ -148,20 +148,6 @@ function .^(f::Fun,k::Integer)
 end
 
 
-# multiplying 2 Funs, we assume this can be done by transform
-# the parametrizations are to make it the broadest definition
-
-function .*{T,N,S}(f::Fun{T,S},g::Fun{N,S})
-    @assert domainscompatible(f,g)
-    #TODO Coefficient space version
-    n = length(f) + length(g) - 1
-    f2 = pad(f,n); g2 = pad(g,n)
-    
-    sp=space(f)
-    chop!(Fun(transform(sp,values(f2).*values(g2)),sp),10eps())
-end
-
-
 
 ## Norm
 
@@ -190,12 +176,6 @@ function Base.cumsum(f::Fun)
     cf - first(cf)
 end
 
-function Base.sum{T}(f::Fun{T})
-    cf=integrate(f)
-    last(cf) - first(cf)
-end
-
-
 
 
 function differentiate(f::Fun,k::Integer)
@@ -211,3 +191,35 @@ Base.diff(f::Fun,n...)=differentiate(f,n...)
 
 
 
+
+
+## Overrideable
+
+
+# multiplying 2 Funs, we assume this can be done by transform
+# the parametrizations are to make it the broadest definition
+
+function .*{T,N,S}(f::Fun{T,S},g::Fun{N,S})
+    @assert domainscompatible(f,g)
+    #TODO Coefficient space version
+    n = length(f) + length(g) - 1
+    f2 = pad(f,n); g2 = pad(g,n)
+    
+    sp=space(f)
+    chop!(Fun(transform(sp,values(f2).*values(g2)),sp),10eps())
+end
+
+# When the spaces differ we promote and multiply
+function .*{T,N,S,V}(f::Fun{T,S},g::Fun{N,V})
+    sp=minspace(space(f),space(g))
+    Fun(f,sp).*Fun(g,sp)
+end
+
+
+function Base.sum{T}(f::Fun{T})
+    cf=integrate(f)
+    last(cf) - first(cf)
+end
+
+
+integrate{T,D}(f::Fun{T,D})=integrate(Fun(f,domain(f)))

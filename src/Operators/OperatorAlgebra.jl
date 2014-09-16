@@ -350,7 +350,7 @@ end
 -(A::Operator)=ConstantOperator(-1.)*A
 -(A::Operator,B::Operator)=A+(-B)
 
-*(f::Fun,A::BandedOperator)=MultiplicationOperator(f,rangespace(A))*A
+*(f::Fun,A::BandedOperator)=MultiplicationOperator(f)*A
 
 *(c::Number,A::Operator)=ConstantOperator(c)*A
 .*(c::Number,A::Operator)=ConstantOperator(c)*A
@@ -381,7 +381,7 @@ function *{T<:Number}(A::BandedOperator,b::Vector{T})
         b
     end
 end
-
+ ##TODO: Make * and \ consistent in return type
 function *(A::InfiniteOperator,b::Fun)
     dsp=domainspace(A)
     dsp==AnySpace()?Fun(A*b.coefficients,b.space):Fun(A*coefficients(b,dsp),rangespace(A))

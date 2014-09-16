@@ -22,9 +22,9 @@ function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
     if a==b
         f
     elseif ct==a
-        ConversionOperator(a,b)*f
+        ConversionOperator(a,b)*f  ##TODO: Make * and \ consistent in return type
     elseif ct==b
-        ConversionOperator(b,a)\f    
+        (ConversionOperator(b,a)\f).coefficients
     elseif typeof(a) <: ChebyshevSpace
         error("Override spaceconversion or implement ConversionOperator from ChebyshevSpace to " * string(B))
     elseif typeof(b) <: ChebyshevSpace

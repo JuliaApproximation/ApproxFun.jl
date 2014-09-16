@@ -1,32 +1,13 @@
-export MultiplicationOperator
-
-
-
-type MultiplicationOperator{T<:Number} <: BandedOperator{T}
-    f::Fun{T}
-    ##TODO: space goes in f
-    space::Int
+function addentries!{T}(M::MultiplicationOperator{T,ChebyshevSpace},A::ShiftArray,kr::Range1)
+    cfs=coefficients(M.f)
+    toeplitz_addentries!(.5cfs,A,kr)
+    hankel_addentries!(.5cfs,A,max(kr[1],2):kr[end])            
 end
 
-MultiplicationOperator{o}(f::Fun,::UltrasphericalSpace{o})=MultiplicationOperator(f,o)
-MultiplicationOperator(c::Number,k)=ConstantOperator(c)
-MultiplicationOperator{T}(f::Fun{T,LaurentSpace})=LaurentOperator(f)
-MultiplicationOperator(f)=MultiplicationOperator(f,0)
-
-
-
-domainspace(M::MultiplicationOperator)=UltrasphericalSpace{M.space}(domain(M.f))
-rangespace(M::MultiplicationOperator)=UltrasphericalSpace{M.space}(domain(M.f))
-
-
-function zeromultiplication_addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
-    toeplitz_addentries!(.5M.f.coefficients,A,kr)
-    hankel_addentries!(.5M.f.coefficients,A,max(kr[1],2):kr[end])            
-end
-
-function onemultiplication_addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
-    toeplitz_addentries!(.5M.f.coefficients,A,kr)
-    hankel_addentries!(-.5M.f.coefficients[3:end],A,kr)    
+function addentries!{T}(M::MultiplicationOperator{T,UltrasphericalSpace{1}},A::ShiftArray,kr::Range1)
+    cfs=coefficients(M.f)
+    toeplitz_addentries!(.5cfs,A,kr)
+    hankel_addentries!(-.5cfs[3:end],A,kr)    
 end
 
 
@@ -39,11 +20,8 @@ function usjacobi_addentries!(λ::Integer,A::ShiftArray,kr::Range1)
     A
 end
 
-
-
-
-usmultiplication_addentries!(sp::UltrasphericalSpace,a::Fun,A,kr)=usmultiplication_addentries!(sp,coefficients(a,sp),A,kr)
-function usmultiplication_addentries!{λ}(::UltrasphericalSpace{λ},a::Vector,A::ShiftArray,kr::Range1)
+function addentries!{T,λ}(M::MultiplicationOperator{T,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+    a=coefficients(M.f,domainspace(M))
     for k=kr
         A[k,0]=a[1] 
     end
@@ -53,7 +31,7 @@ function usmultiplication_addentries!{λ}(::UltrasphericalSpace{λ},a::Vector,A:
         J=BandedArray(ShiftArray(zeros(length(jkr),3),1-jkr[1],2),jkr)
         usjacobi_addentries!(λ,J.data,jkr)
     
-        C1=2λ*J;
+        C1=2λ*J
     
         shiftarray_const_addentries!(C1.data,a[2],A,kr)
 
@@ -68,28 +46,6 @@ function usmultiplication_addentries!{λ}(::UltrasphericalSpace{λ},a::Vector,A:
     A
 end
 
+ 
 
-function addentries!(M::MultiplicationOperator,A::ShiftArray,kr::Range1)
-    kr = max(kr[1],1):kr[end]
-
-    if M.space == 0
-        zeromultiplication_addentries!(M,A,kr)
-    elseif M.space == 1
-        onemultiplication_addentries!(M,A,kr)
-    else
-        usmultiplication_addentries!(domainspace(M),M.f,A,kr)
-    end
-end
-
-
-
-
-bandinds(T::MultiplicationOperator)=(1-length(T.f.coefficients),length(T.f.coefficients)-1)
-domain(T::MultiplicationOperator)=domain(T.f)
-
-
-
-##multiplication can always be promoted, range space is allowed to change
-promotedomainspace{order}(D::MultiplicationOperator,sp::UltrasphericalSpace{order})=MultiplicationOperator(D.f,order)
-
-
+ 
