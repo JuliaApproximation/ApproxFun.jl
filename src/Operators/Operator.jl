@@ -142,21 +142,20 @@ Base.zero{O<:Operator}(::Type{O})=ConstantOperator(0.0)
 integrate(d::IntervalDomain)=IntegrationOperator(1,d)
 
 evaluate(d::IntervalDomain,x)=EvaluationFunctional(d,x)
-ldirichlet(d::IntervalDomain)=evaluate(d,d.a)
-rdirichlet(d::IntervalDomain)=evaluate(d,d.b)
+ldirichlet(d::IntervalDomain)=EvaluationFunctional(d,d.a)
+rdirichlet(d::IntervalDomain)=EvaluationFunctional(d,d.b)
 lneumann(d::IntervalDomain)=EvaluationFunctional(d,d.a,1)
 rneumann(d::IntervalDomain)=EvaluationFunctional(d,d.b,1)
 
 
-for func in (:ldirichlet,:rdirichlet,:lneumann,:rneumann)
-    @eval ($func)(d::IntervalDomainSpace)=$func(domain(d))*ConversionOperator(d)
-end
+ldirichlet(d::IntervalDomainSpace)=EvaluationFunctional(d,first(domain(d)))
+rdirichlet(d::IntervalDomainSpace)=EvaluationFunctional(d,last(domain(d)))
+lneumann(d::IntervalDomainSpace)=EvaluationFunctional(d,first(domain(d)),1)
+rneumann(d::IntervalDomainSpace)=EvaluationFunctional(d,last(domain(d)),1)
 
 
-dirichlet(d::IntervalDomain)=[ldirichlet(d),rdirichlet(d)]
-dirichlet(d::IntervalDomainSpace)=[ldirichlet(d),rdirichlet(d)]
-neumann(d::IntervalDomain)=[lneumann(d),rneumann(d)]
-neumann(d::IntervalDomainSpace)=[lneumann(d),rneumann(d)]
+dirichlet(d::Union(IntervalDomain,IntervalDomainSpace))=[ldirichlet(d),rdirichlet(d)]
+neumann(d::Union(IntervalDomain,IntervalDomainSpace))=[lneumann(d),rneumann(d)]
 
 
 function dirichlet{T<:IntervalDomain}(d::Vector{T})

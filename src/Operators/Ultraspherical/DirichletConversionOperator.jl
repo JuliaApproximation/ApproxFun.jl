@@ -40,18 +40,36 @@ ConversionOperator(B::ChebyshevDirichletSpace,A::ChebyshevSpace)= DirichletConve
 conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
 
 
-# s==false <=> left, s==true <=> right
-immutable DirichletEvaluationFunctional{s,l,r} <: Functional{Float64}
-    space::ChebyshevDirichletSpace{l,r}
+
+function getindex(B::EvaluationFunctional{Float64,ChebyshevDirichletSpace{1,0}},kr::Range)
+    d = domain(B)
+    
+    if abs(x-d.a) < tol && B.order == 0
+        Float64[k==1?1.0:0.0 for k=kr]
+    else
+        getindex(EvaluationFunctional(d)*ConversionOperator(domainspace(B)),kr)
+    end
 end
 
-getindex(B::DirichletEvaluationFunctional{false,1,0},kr::Range)=Float64[k==1?1.0:0.0 for k=kr]
-getindex(B::DirichletEvaluationFunctional{false,1,1},kr::Range)=Float64[k==1?1.0:(k==2?-1.0:0.0) for k=kr]
-getindex(B::DirichletEvaluationFunctional{true,0,1},kr::Range)=Float64[k==1?1.0:0.0 for k=kr]
-getindex(B::DirichletEvaluationFunctional{true,1,1},kr::Range)=Float64[k<=2?1.0:0.0 for k=kr]
+function getindex(B::EvaluationFunctional{Float64,ChebyshevDirichletSpace{0,1}},kr::Range)
+    d = domain(B)
+    
+    if abs(x-d.b) < tol && B.order == 0
+        Float64[k==1?1.0:0.0 for k=kr]
+    else
+        getindex(EvaluationFunctional(d)*ConversionOperator(domainspace(B)),kr)
+    end
+end
 
-
-domainspace(B::DirichletEvaluationFunctional)=B.space
-
-ldirichlet{l,r}(sp::ChebyshevDirichletSpace{l,r})=(l==1?DirichletEvaluationFunctional{false,l,r}(sp):ldirichlet(domain(sp))*ConversionOperator(sp))
-rdirichlet{l,r}(sp::ChebyshevDirichletSpace{l,r})=(r==1?DirichletEvaluationFunctional{true,l,r}(sp):rdirichlet(domain(sp))*ConversionOperator(sp))
+function getindex(B::EvaluationFunctional{Float64,ChebyshevDirichletSpace{1,1}},kr::Range)
+   tol = 200.*eps()
+    d = domain(B)
+    
+    if abs(B.x-d.a) < tol && B.order == 0
+        Float64[k==1?1.0:(k==2?-1.0:0.0) for k=kr]
+    elseif abs(B.x-d.b) < tol && B.order == 0
+        Float64[k<=2?1.0:0.0 for k=kr]
+    else
+        getindex(EvaluationFunctional(d)*ConversionOperator(domainspace(B)),kr)
+    end
+end
