@@ -4,6 +4,7 @@ typealias ChebyshevSpace UltrasphericalSpace{0}
 
 
 Space(d::IntervalDomain)=ChebyshevSpace(d)
+canonicalspace(S::IntervalDomainSpace)=ChebyshevSpace(domain(S))
 
 ## Space conversion default is through Chebyshev
 

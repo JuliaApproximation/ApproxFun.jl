@@ -315,7 +315,7 @@ function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
 end
 
 function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
-    if all(f->typeof(f)<:USConversionOperator,P.ops[1:end-1])  ##TODO: fix hack
+    if all(f->isa(f,ConversionOperator)&&isa(domainspace(f),UltrasphericalSpace)&&isa(rangespace(f),UltrasphericalSpace),P.ops[1:end-1])  ##TODO: fix hack
         old_addentries!(P,A,kr)
     else
         new_addentries!(P,A,kr)

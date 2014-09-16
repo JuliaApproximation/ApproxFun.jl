@@ -1,4 +1,5 @@
 
+export UltrasphericalSpace
 
 #Ultraspherical Spaces
 

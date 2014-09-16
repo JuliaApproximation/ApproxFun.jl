@@ -12,14 +12,14 @@ Q=integrate(d)
 x=Fun(identity)
 X=MultiplicationOperator(x)
 
-A=USConversionOperator(0,2,domain(x))
+A=ConversionOperator(ChebyshevSpace(d),UltrasphericalSpace{2}(d))
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
 
-@test norm((USConversionOperator(0,2,domain(x))\(D^2*f))-diff(diff(f))) < 100eps()
+@test norm((ConversionOperator(ChebyshevSpace(d),UltrasphericalSpace{2}(d))\(D^2*f))-diff(diff(f))) < 100eps()
 
 @test norm(X*f-(x.*f)) < 100eps()
 
-A=USConversionOperator(0,2,domain(x))*X
+A=ConversionOperator(ChebyshevSpace(d),UltrasphericalSpace{2}(d))*X
 @test norm(A*f.coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
 
 

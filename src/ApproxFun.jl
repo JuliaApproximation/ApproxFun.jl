@@ -20,13 +20,13 @@ include("LinearAlgebra/LinearAlgebra.jl")
 include("Domains/Domains.jl")
 include("Spaces/FunctionSpace.jl")
 include("Fun/Fun.jl")
-include("Spaces/Spaces.jl")
 include("Fun/constructors.jl")
 
 
-
+include("Spaces/Spaces.jl")
 include("Operators/Operator.jl")
 include("Multivariate/Multivariate.jl")
+
 
 
 

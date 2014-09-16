@@ -42,6 +42,7 @@ canonicaldomain{T<:PeriodicDomainSpace}(::Type{T})=PeriodicInterval()
 
 
 
+
 for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD)
     @eval ($op)(sp::DomainSpace,x)=$op(domain(sp),x)
 end

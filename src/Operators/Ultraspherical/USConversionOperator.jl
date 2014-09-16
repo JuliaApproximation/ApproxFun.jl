@@ -1,32 +1,19 @@
-export USConversionOperator
-
-## USConversionOperator
-
-type USConversionOperator <: BandedOperator{Float64}
-    λ::Int
-    domain::Union(IntervalDomain,AnyDomain)
-end
-
-function ConversionOperator{ao,bo}(a::UltrasphericalSpace{ao},b::UltrasphericalSpace{bo})
-    @assert domainscompatible(a,b)
-    USConversionOperator(ao,bo,domain(a))
-end
 
 
-domainspace(M::USConversionOperator)=UltrasphericalSpace{M.λ-1}(M.domain)
-rangespace(M::USConversionOperator)=UltrasphericalSpace{M.λ}(M.domain)
 
-function USConversionOperator(r1::Integer,r2::Integer,d::Domain)
-    @assert r2 > r1
+function ConversionOperator{a,b}(A::UltrasphericalSpace{a},B::UltrasphericalSpace{b})
+    @assert b > a
 
-    if r2==r1+1
-        USConversionOperator(r2,d)
+    if b==a+1
+        ConversionOperator{UltrasphericalSpace{a},UltrasphericalSpace{b}}(A,B)
     else
-        USConversionOperator(r2,d)*USConversionOperator(r1,r2-1,d)
+        d=domain(A)
+        ConversionOperator(UltrasphericalSpace{b-1}(d),B)*ConversionOperator(A,UltrasphericalSpace{b-1}(d))
     end
-end    
+end   
 
-function one_conversion_addentries!(A::ShiftArray,kr::Range1)
+
+function addentries!(M::ConversionOperator{ChebyshevSpace,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
     for k=kr
         A[k,0] += (k == 1)? 1. : .5
         A[k,2] += -.5        
@@ -35,7 +22,8 @@ function one_conversion_addentries!(A::ShiftArray,kr::Range1)
     A    
 end
 
-function conversion_addentries!(λ::Integer,A::ShiftArray,kr::Range1)
+function addentries!{m,λ}(M::ConversionOperator{UltrasphericalSpace{m},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+    @assert λ==m+1
     for k=kr
         A[k,0] += (λ-1.)./(k - 2. + λ)
         A[k,2] += -(λ-1.)./(k + λ)
@@ -44,7 +32,7 @@ function conversion_addentries!(λ::Integer,A::ShiftArray,kr::Range1)
     A    
 end
 
-function one_conversion_multiplyentries!(A::ShiftArray,kr::Range1)
+function multiplyentries!(M::ConversionOperator{ChebyshevSpace,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
     cr=columnrange(A)::Range1{Int}
     
     #We assume here that the extra rows are redundant
@@ -58,7 +46,8 @@ function one_conversion_multiplyentries!(A::ShiftArray,kr::Range1)
     end 
 end
 
-function conversion_multiplyentries!(λ::Integer,A::ShiftArray,kr::Range1)
+function multiplyentries!{m,λ}(M::ConversionOperator{UltrasphericalSpace{m},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+    @assert λ==m+1
     cr=columnrange(A)::Range1{Int64}
     
     λf = 1.λ
@@ -74,36 +63,13 @@ function conversion_multiplyentries!(λ::Integer,A::ShiftArray,kr::Range1)
     end 
 end
 
-
-function addentries!(C::USConversionOperator,A::ShiftArray,kr::Range1)
-    kr = max(kr[1],1):kr[end]
-
-    if C.λ == 1
-        one_conversion_addentries!(A,kr)
-    else
-        conversion_addentries!(C.λ,A,kr)
-    end
-end
-
-
-function multiplyentries!(C::USConversionOperator,A::ShiftArray,kr::Range1)
-    if C.λ == 1
-        one_conversion_multiplyentries!(A,kr)
-    else
-        conversion_multiplyentries!(C.λ,A,kr)
-    end
-    
-    A
-end
-
-
-bandinds(C::USConversionOperator)=0,2
+bandinds{m,λ}(C::ConversionOperator{UltrasphericalSpace{m},UltrasphericalSpace{λ}})=0,2
 
 
 
 ## spaceconversion
 
-# return the space that has banded ConversionOperator
+# return the space that has banded ConversionOperator to the other
 function conversion_rule{aorder,border}(a::UltrasphericalSpace{aorder},b::UltrasphericalSpace{border})
     @assert domainscompatible(a,b)
     
