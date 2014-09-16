@@ -1,6 +1,6 @@
 # division by fun 
 
-./{T,N,a,b}(f::Fun{T,UltrasphericalSpace{a}},g::Fun{N,UltrasphericalSpace{b}})=linsolve(MultiplicationOperator(g),f;tolerance=10eps())
+./{T,N,a,b}(f::Fun{T,UltrasphericalSpace{a}},g::Fun{N,UltrasphericalSpace{b}})=linsolve(Multiplication(g),f;tolerance=10eps())
 
 for op in (:./,:/)
     @eval begin
@@ -14,7 +14,7 @@ for op in (:./,:/)
             @assert length(r) <= 2
             
             if length(r) == 0
-                linsolve(MultiplicationOperator(f),c;tolerance=tol)
+                linsolve(Multiplication(f),c;tolerance=tol)
             elseif length(r) == 1
                 @assert abs(abs(r[1]) - 1.) < tol
                 
@@ -39,7 +39,7 @@ end
 ## We use \ as the Fun constructor might miss isolated features
 function Base.exp(f::Fun)
     xm=indmax(real(f))
-    B=EvaluationFunctional(domain(f),xm)
+    B=Evaluation(domain(f),xm)
     D=diff(domain(f))
     A=[B,D-diff(f)]
     A\[exp(f[xm]),0.]    
@@ -67,15 +67,15 @@ function Base.sqrt(f::Fun)
         @assert abs(abs(r[1])-1) < tol
         
         if abs(r[1]-1.) < tol
-            Fun(coefficients(sqrt(MultiplicationOperator(1-x)\fc)),JacobiWeightSpace(0.,.5,domain(f)))
+            Fun(coefficients(sqrt(Multiplication(1-x)\fc)),JacobiWeightSpace(0.,.5,domain(f)))
         else
-            Fun(coefficients(sqrt(MultiplicationOperator(1+x)\fc)),JacobiWeightSpace(.5,0.,domain(f)))
+            Fun(coefficients(sqrt(Multiplication(1+x)\fc)),JacobiWeightSpace(.5,0.,domain(f)))
         end
     else
         @assert abs(r[1]+1) < tol
         @assert abs(r[2]-1) < tol        
     
-        Fun(coefficients(sqrt(linsolve(MultiplicationOperator(1-x.^2),fc;tolerance=eps()))),JacobiWeightSpace(.5,.5,domain(f)))  
+        Fun(coefficients(sqrt(linsolve(Multiplication(1-x.^2),fc;tolerance=eps()))),JacobiWeightSpace(.5,.5,domain(f)))  
     end
 end
 
@@ -89,7 +89,7 @@ end
 #             D=diff(d)
 #             f2=f.*f
 #             xp=indmax(f2);xm=indmin(f2);
-#             B=[EvaluationFunctional(d,xm),EvaluationFunctional(d,xp)]
+#             B=[Evaluation(d,xm),Evaluation(d,xp)]
 #             fp=diff(f)
 #             fpp=diff(fp)
 #             [B,fp*D^2 - fpp*D + fp.^3]\[($op)(f[xm]),($op)(f[xp])]

@@ -1,7 +1,7 @@
-export DerivativeOperator,IntegrationOperator
+export Derivative,Integral
 
 
-for TT in (:DerivativeOperator,:IntegrationOperator)
+for TT in (:Derivative,:Integral)
     @eval begin
         immutable $TT{T<:Number,S<:FunctionSpace} <: BandedOperator{T}
             space::S        # the domain space
@@ -26,34 +26,34 @@ for TT in (:DerivativeOperator,:IntegrationOperator)
 end
 
 # the default domain space is higher to avoid negative ultraspherical spaces
-DerivativeOperator(d::IntervalDomain,n::Integer)=DerivativeOperator(ChebyshevSpace(d),n)
-IntegrationOperator(d::IntervalDomain,n::Integer)=IntegrationOperator(UltrasphericalSpace{1}(d),n)
+Derivative(d::IntervalDomain,n::Integer)=Derivative(ChebyshevSpace(d),n)
+Integral(d::IntervalDomain,n::Integer)=Integral(UltrasphericalSpace{1}(d),n)
 
 
 #promoting domain space is allowed to change range space
 # for integration, we fall back on existing conversion for now
-promotedomainspace(D::DerivativeOperator,sp::AnySpace)=D
+promotedomainspace(D::Derivative,sp::AnySpace)=D
 
-function promotedomainspace{S<:FunctionSpace}(D::DerivativeOperator,sp::S)
+function promotedomainspace{S<:FunctionSpace}(D::Derivative,sp::S)
     if domain(sp) == AnyDomain()
-         DerivativeOperator(S(domain(D)),D.order)
+         Derivative(S(domain(D)),D.order)
     else
-        DerivativeOperator(sp,D.order)
+        Derivative(sp,D.order)
     end
 end        
 
 
 ## simplify higher order derivatives/integration
-function *(D1::DerivativeOperator,D2::DerivativeOperator)
+function *(D1::Derivative,D2::Derivative)
     @assert domain(D1) == domain(D2)
     
-    DerivativeOperator(D2.space,D1.order+D2.order)
+    Derivative(D2.space,D1.order+D2.order)
 end
 
 
 ## Overrideable
-bandinds{T,S<:IntervalDomainSpace}(D::DerivativeOperator{T,S})=0,D.order
-bandinds{T,S<:IntervalDomainSpace}(D::IntegrationOperator{T,S})=-D.order,0
+bandinds{T,S<:IntervalDomainSpace}(D::Derivative{T,S})=0,D.order
+bandinds{T,S<:IntervalDomainSpace}(D::Integral{T,S})=-D.order,0
 
 
 
@@ -61,15 +61,15 @@ bandinds{T,S<:IntervalDomainSpace}(D::IntegrationOperator{T,S})=-D.order,0
 
 ## Convenience routines
 
-Base.diff(d::DomainSpace,μ::Integer)=DerivativeOperator(d,μ)
-Base.diff(d::Domain,μ::Integer)=DerivativeOperator(d,μ)
+Base.diff(d::DomainSpace,μ::Integer)=Derivative(d,μ)
+Base.diff(d::Domain,μ::Integer)=Derivative(d,μ)
 Base.diff(d::Domain)=Base.diff(d,1)
 
-integrate(d::Domain)=IntegrationOperator(d,1)
+integrate(d::Domain)=Integral(d,1)
 
 
 
-#^(D1::DerivativeOperator,k::Integer)=DerivativeOperator(D1.order*k,D1.space)
+#^(D1::Derivative,k::Integer)=Derivative(D1.order*k,D1.space)
 
 
 

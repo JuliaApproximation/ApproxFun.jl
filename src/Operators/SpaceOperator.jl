@@ -51,10 +51,10 @@ promotedomainspace(P::Operator,sp::FunctionSpace)=promotedomainspace(P,sp,domain
         
         
 
-promoterangespace(P::Operator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(ConversionOperator(cursp,sp),P)
+promoterangespace(P::Operator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(Conversion(cursp,sp),P)
 
-promotedomainspace(P::Functional,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesFunctional(P,ConversionOperator(sp,cursp))
-promotedomainspace(P::Operator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(P,ConversionOperator(sp,cursp))
+promotedomainspace(P::Functional,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesFunctional(P,Conversion(sp,cursp))
+promotedomainspace(P::Operator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(P,Conversion(sp,cursp))
 
 
 

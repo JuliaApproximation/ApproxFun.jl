@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-
+import ApproxFun.Multiplication
 
 f=Fun(exp)
 d=domain(f)
@@ -10,16 +10,16 @@ Q=integrate(d)
 @test norm((Q)*f-(integrate(f))) < eps()
 
 x=Fun(identity)
-X=MultiplicationOperator(x)
+X=Multiplication(x)
 
-A=ConversionOperator(ChebyshevSpace(d),UltrasphericalSpace{2}(d))
+A=Conversion(ChebyshevSpace(d),UltrasphericalSpace{2}(d))
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
 
-@test norm((ConversionOperator(ChebyshevSpace(d),UltrasphericalSpace{2}(d))\(D^2*f))-diff(diff(f))) < 100eps()
+@test norm((Conversion(ChebyshevSpace(d),UltrasphericalSpace{2}(d))\(D^2*f))-diff(diff(f))) < 100eps()
 
 @test norm(X*f-(x.*f)) < 100eps()
 
-A=ConversionOperator(ChebyshevSpace(d),UltrasphericalSpace{2}(d))*X
+A=Conversion(ChebyshevSpace(d),UltrasphericalSpace{2}(d))*X
 @test norm(A*f.coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
 
 

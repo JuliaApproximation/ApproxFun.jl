@@ -98,10 +98,10 @@ include("ToeplitzOperator.jl")
 include("ConstantOperator.jl")
 
 
-include("ConversionOperator.jl")
-include("MultiplicationOperator.jl")
+include("Conversion.jl")
+include("Multiplication.jl")
 include("calculus.jl")
-include("EvaluationFunctional.jl")
+include("Evaluation.jl")
 
 
 

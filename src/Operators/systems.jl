@@ -1,6 +1,6 @@
 ##Operators
 
-for op in (:DerivativeOperator,:IntegrationOperator)
+for op in (:Derivative,:Integral)
     @eval begin
         function ($op){T<:IntervalDomain}(d::Vector{T})
             n=length(d)
@@ -17,11 +17,11 @@ end
 
 
 
-function EvaluationFunctional{T<:IntervalDomain}(d::Vector{T},x...)
+function Evaluation{T<:IntervalDomain}(d::Vector{T},x...)
     n=length(d)
     R=zeros(Operator,n,n)
     for k=1:n
-        R[k,k]=EvaluationFunctional(d[k],x...)
+        R[k,k]=Evaluation(d[k],x...)
     end
     
     R

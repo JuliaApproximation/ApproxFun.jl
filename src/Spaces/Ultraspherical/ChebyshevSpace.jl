@@ -12,7 +12,7 @@ spaceconversion(f::Vector,sp::FunctionSpace)=spaceconversion(f,ChebyshevSpace(An
 spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpace)=spaceconversion(spaceconversion(f,sp1,sp2),sp2,sp3)
 
 
-## spaceconversion defaults to calling ConversionOperator, otherwise it tries to pipe through ChebyshevSpace
+## spaceconversion defaults to calling Conversion, otherwise it tries to pipe through ChebyshevSpace
 
 function spaceconversion{A<:FunctionSpace}(f::Vector,a::A,b::A)
     @assert spacescompatible(a,b)
@@ -24,13 +24,13 @@ function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
     if a==b
         f
     elseif ct==a
-        ConversionOperator(a,b)*f  ##TODO: Make * and \ consistent in return type
+        Conversion(a,b)*f  ##TODO: Make * and \ consistent in return type
     elseif ct==b
-        (ConversionOperator(b,a)\f).coefficients
+        (Conversion(b,a)\f).coefficients
     elseif typeof(a) <: ChebyshevSpace
-        error("Override spaceconversion or implement ConversionOperator from ChebyshevSpace to " * string(B))
+        error("Override spaceconversion or implement Conversion from ChebyshevSpace to " * string(B))
     elseif typeof(b) <: ChebyshevSpace
-        error("Override spaceconversion or implement ConversionOperator from " * string(A) * " to ChebyshevSpace")
+        error("Override spaceconversion or implement Conversion from " * string(A) * " to ChebyshevSpace")
     else
         spaceconversion(f,a,ChebyshevSpace(AnyDomain()),b)
     end

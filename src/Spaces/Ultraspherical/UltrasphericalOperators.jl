@@ -21,7 +21,7 @@ end
 
 
 ##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex(op::EvaluationFunctional{Float64,Bool,ChebyshevSpace},k::Range)
+function Base.getindex(op::Evaluation{Float64,Bool,ChebyshevSpace},k::Range)
     x = op.x
     d = domain(op)
     
@@ -42,7 +42,7 @@ function Base.getindex(op::EvaluationFunctional{Float64,Bool,ChebyshevSpace},k::
     end
 end
 
-function Base.getindex(op::EvaluationFunctional{Float64,Float64,ChebyshevSpace},k::Range)
+function Base.getindex(op::Evaluation{Float64,Float64,ChebyshevSpace},k::Range)
     if op.order == 0    
         evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
     else
@@ -55,13 +55,13 @@ end
 ## Multiplication
 
 
-function addentries!{T,D}(M::MultiplicationOperator{T,D,ChebyshevSpace},A::ShiftArray,kr::Range1)
+function addentries!{T,D}(M::Multiplication{T,D,ChebyshevSpace},A::ShiftArray,kr::Range1)
     cfs=coefficients(M.f)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(.5cfs,A,max(kr[1],2):kr[end])            
 end
 
-function addentries!{T,D}(M::MultiplicationOperator{T,D,UltrasphericalSpace{1}},A::ShiftArray,kr::Range1)
+function addentries!{T,D}(M::Multiplication{T,D,UltrasphericalSpace{1}},A::ShiftArray,kr::Range1)
     cfs=coefficients(M.f)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(-.5cfs[3:end],A,kr)    
@@ -77,7 +77,7 @@ function usjacobi_addentries!(λ::Integer,A::ShiftArray,kr::Range1)
     A
 end
 
-function addentries!{T,D,λ}(M::MultiplicationOperator{T,D,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+function addentries!{T,D,λ}(M::Multiplication{T,D,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
     a=coefficients(M.f,domainspace(M))
     for k=kr
         A[k,0]=a[1] 
@@ -108,13 +108,13 @@ end
 ## Derivative
 
 
-#DerivativeOperator(k::Integer,d::IntervalDomain)=DerivativeOperator(k-1:k,d)
-#DerivativeOperator(d::IntervalDomain)=DerivativeOperator(1,d)
+#Derivative(k::Integer,d::IntervalDomain)=Derivative(k-1:k,d)
+#Derivative(d::IntervalDomain)=Derivative(1,d)
 
 
-rangespace{λ}(D::DerivativeOperator{Float64,UltrasphericalSpace{λ}})=UltrasphericalSpace{λ+D.order}(domain(D))
+rangespace{λ}(D::Derivative{Float64,UltrasphericalSpace{λ}})=UltrasphericalSpace{λ+D.order}(domain(D))
 
-function addentries!{λ}(D::DerivativeOperator{Float64,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+function addentries!{λ}(D::Derivative{Float64,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
     m=D.order
     d=domain(D)
     μ=λ+m
@@ -138,15 +138,15 @@ end
  
 ## TODO: reimplement
 
-# function DerivativeOperator(order::Range1,d::IntervalDomain)
+# function Derivative(order::Range1,d::IntervalDomain)
 #     @assert order[1] == 0 && order[end] <= 2  ##TODO other orders
 #     
 #     Mp = Fun(x->tocanonicalD(d,x),d)
 #     
 #     if order[end] == 1
-#         Mp*USDerivativeOperator(0:1)
+#         Mp*USDerivative(0:1)
 #     elseif order[end] == 2
-#         (Mp.^2)*USDerivativeOperator(0:2) + diff(Mp)*USDerivativeOperator(0:1)
+#         (Mp.^2)*USDerivative(0:2) + diff(Mp)*USDerivative(0:1)
 #     end
 # end
 
@@ -154,9 +154,9 @@ end
 ## Integral
 
 
-rangespace{λ}(D::IntegrationOperator{Float64,UltrasphericalSpace{λ}})=UltrasphericalSpace{λ-D.order}(domain(D))
+rangespace{λ}(D::Integral{Float64,UltrasphericalSpace{λ}})=UltrasphericalSpace{λ-D.order}(domain(D))
 
-function addentries!{λ}(D::IntegrationOperator{Float64,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+function addentries!{λ}(D::Integral{Float64,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
     @assert λ==1
     @assert D.order==1   
     
@@ -177,19 +177,19 @@ end
 
 
 
-function ConversionOperator{a,b}(A::UltrasphericalSpace{a},B::UltrasphericalSpace{b})
+function Conversion{a,b}(A::UltrasphericalSpace{a},B::UltrasphericalSpace{b})
     @assert b > a
 
     if b==a+1
-        ConversionOperator{UltrasphericalSpace{a},UltrasphericalSpace{b}}(A,B)
+        Conversion{UltrasphericalSpace{a},UltrasphericalSpace{b}}(A,B)
     else
         d=domain(A)
-        ConversionOperator(UltrasphericalSpace{b-1}(d),B)*ConversionOperator(A,UltrasphericalSpace{b-1}(d))
+        Conversion(UltrasphericalSpace{b-1}(d),B)*Conversion(A,UltrasphericalSpace{b-1}(d))
     end
 end   
 
 
-function addentries!(M::ConversionOperator{ChebyshevSpace,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
+function addentries!(M::Conversion{ChebyshevSpace,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
     for k=kr
         A[k,0] += (k == 1)? 1. : .5
         A[k,2] += -.5        
@@ -198,7 +198,7 @@ function addentries!(M::ConversionOperator{ChebyshevSpace,UltrasphericalSpace{1}
     A    
 end
 
-function addentries!{m,λ}(M::ConversionOperator{UltrasphericalSpace{m},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+function addentries!{m,λ}(M::Conversion{UltrasphericalSpace{m},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
     @assert λ==m+1
     for k=kr
         A[k,0] += (λ-1.)./(k - 2. + λ)
@@ -208,7 +208,7 @@ function addentries!{m,λ}(M::ConversionOperator{UltrasphericalSpace{m},Ultrasph
     A    
 end
 
-function multiplyentries!(M::ConversionOperator{ChebyshevSpace,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
+function multiplyentries!(M::Conversion{ChebyshevSpace,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
     cr=columnrange(A)::Range1{Int}
     
     #We assume here that the extra rows are redundant
@@ -222,7 +222,7 @@ function multiplyentries!(M::ConversionOperator{ChebyshevSpace,UltrasphericalSpa
     end 
 end
 
-function multiplyentries!{m,λ}(M::ConversionOperator{UltrasphericalSpace{m},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+function multiplyentries!{m,λ}(M::Conversion{UltrasphericalSpace{m},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
     @assert λ==m+1
     cr=columnrange(A)::Range1{Int64}
     
@@ -239,13 +239,13 @@ function multiplyentries!{m,λ}(M::ConversionOperator{UltrasphericalSpace{m},Ult
     end 
 end
 
-bandinds{m,λ}(C::ConversionOperator{UltrasphericalSpace{m},UltrasphericalSpace{λ}})=0,2
+bandinds{m,λ}(C::Conversion{UltrasphericalSpace{m},UltrasphericalSpace{λ}})=0,2
 
 
 
 ## spaceconversion
 
-# return the space that has banded ConversionOperator to the other
+# return the space that has banded Conversion to the other
 function conversion_rule{aorder,border}(a::UltrasphericalSpace{aorder},b::UltrasphericalSpace{border})
     @assert domainscompatible(a,b)
     
@@ -260,23 +260,23 @@ spaceconversion(g::Vector,::ChebyshevSpace,::UltrasphericalSpace{1})=ultraconver
 
 ## Dirichlet Conversion
 
-export DirichletConversionOperator
+export DirichletConversion
 
-## ConversionOperator
+## Conversion
 
-immutable DirichletConversionOperator <: BandedOperator{Float64}
+immutable DirichletConversion <: BandedOperator{Float64}
     left::Int
     right::Int
 end
 
-DirichletConversionOperator{l,r}(::ChebyshevDirichletSpace{l,r})=DirichletConversionOperator(l,r)
+DirichletConversion{l,r}(::ChebyshevDirichletSpace{l,r})=DirichletConversion(l,r)
 
-domainspace(M::DirichletConversionOperator)=ChebyshevDirichletSpace{M.left,M.right}(AnyDomain())
-rangespace(::DirichletConversionOperator)=ChebyshevSpace(AnyDomain())
+domainspace(M::DirichletConversion)=ChebyshevDirichletSpace{M.left,M.right}(AnyDomain())
+rangespace(::DirichletConversion)=ChebyshevSpace(AnyDomain())
 
-bandinds(C::DirichletConversionOperator)=0,(C.left+C.right)
+bandinds(C::DirichletConversion)=0,(C.left+C.right)
 
-function addentries!(C::DirichletConversionOperator,A::ShiftArray,kr::Range1)
+function addentries!(C::DirichletConversion,A::ShiftArray,kr::Range1)
     if C.left == 1 &&  C.right == 0
         toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
     elseif  C.left == 0 &&  C.right == 1
@@ -298,7 +298,7 @@ function addentries!(C::DirichletConversionOperator,A::ShiftArray,kr::Range1)
     end
 end
 
-ConversionOperator(B::ChebyshevDirichletSpace,A::ChebyshevSpace)= DirichletConversionOperator(B)
+Conversion(B::ChebyshevDirichletSpace,A::ChebyshevSpace)= DirichletConversion(B)
 conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
 
 
@@ -306,27 +306,27 @@ conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
 ## Evaluation Functional
 
 
-function getindex(B::EvaluationFunctional{Float64,Bool,ChebyshevDirichletSpace{1,0}},kr::Range)
+function getindex(B::Evaluation{Float64,Bool,ChebyshevDirichletSpace{1,0}},kr::Range)
     d = domain(B)
     
     if B.x == false && B.order == 0
         Float64[k==1?1.0:0.0 for k=kr]
     else
-        getindex(EvaluationFunctional(d)*ConversionOperator(domainspace(B)),kr)
+        getindex(Evaluation(d)*Conversion(domainspace(B)),kr)
     end
 end
 
-function getindex(B::EvaluationFunctional{Float64,Bool,ChebyshevDirichletSpace{0,1}},kr::Range)
+function getindex(B::Evaluation{Float64,Bool,ChebyshevDirichletSpace{0,1}},kr::Range)
     d = domain(B)
     
     if B.x == true && B.order == 0
         Float64[k==1?1.0:0.0 for k=kr]
     else
-        getindex(EvaluationFunctional(d)*ConversionOperator(domainspace(B)),kr)
+        getindex(Evaluation(d)*Conversion(domainspace(B)),kr)
     end
 end
 
-function getindex(B::EvaluationFunctional{Float64,Bool,ChebyshevDirichletSpace{1,1}},kr::Range)
+function getindex(B::Evaluation{Float64,Bool,ChebyshevDirichletSpace{1,1}},kr::Range)
    tol = 200.*eps()
     d = domain(B)
     
@@ -335,6 +335,6 @@ function getindex(B::EvaluationFunctional{Float64,Bool,ChebyshevDirichletSpace{1
     elseif B.x == true && B.order == 0
         Float64[k<=2?1.0:0.0 for k=kr]
     else
-        getindex(EvaluationFunctional(d)*ConversionOperator(domainspace(B)),kr)
+        getindex(Evaluation(d)*Conversion(domainspace(B)),kr)
     end
 end

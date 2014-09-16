@@ -105,10 +105,10 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
 end
 
 
-+(A::Operator,f::Fun)=A+MultiplicationOperator(f)
-+(f::Fun,A::Operator)=MultiplicationOperator(f)+A
--(A::Operator,f::Fun)=A+MultiplicationOperator(-f)
--(f::Fun,A::Operator)=MultiplicationOperator(f)-A
++(A::Operator,f::Fun)=A+Multiplication(f)
++(f::Fun,A::Operator)=Multiplication(f)+A
+-(A::Operator,f::Fun)=A+Multiplication(-f)
+-(f::Fun,A::Operator)=Multiplication(f)-A
 
 
 
@@ -315,7 +315,7 @@ function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
 end
 
 function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
-    if all(f->isa(f,ConversionOperator)&&isa(domainspace(f),UltrasphericalSpace)&&isa(rangespace(f),UltrasphericalSpace),P.ops[1:end-1])  ##TODO: fix hack
+    if all(f->isa(f,Conversion)&&isa(domainspace(f),UltrasphericalSpace)&&isa(rangespace(f),UltrasphericalSpace),P.ops[1:end-1])  ##TODO: fix hack
         old_addentries!(P,A,kr)
     else
         new_addentries!(P,A,kr)
@@ -350,7 +350,7 @@ end
 -(A::Operator)=ConstantOperator(-1.)*A
 -(A::Operator,B::Operator)=A+(-B)
 
-*(f::Fun,A::BandedOperator)=MultiplicationOperator(f)*A
+*(f::Fun,A::BandedOperator)=Multiplication(f)*A
 
 *(c::Number,A::Operator)=ConstantOperator(c)*A
 .*(c::Number,A::Operator)=ConstantOperator(c)*A
