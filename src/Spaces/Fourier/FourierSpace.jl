@@ -2,7 +2,7 @@
 
 export FourierSpace,TaylorSpace,HardySpace,CosSpace,SinSpace,LaurentSpace
 
-for T in (:FourierSpace,:CosSpace,:SinSpace)
+for T in (:CosSpace,:SinSpace)
     @eval begin
         immutable $T <: PeriodicDomainSpace
             domain::Union(PeriodicDomain,AnyDomain)
@@ -99,6 +99,59 @@ itransform(::LaurentSpace,cfs)=isvfft(deinterlace(cfs))
 for op in (:(Base.ones),:(Base.zeros))
     @eval ($op){T<:Number}(::Type{T},S::LaurentSpace)=Fun(($op)(T,1),S)
 end
+
+
+## Fourier space
+
+typealias FourierSpace PeriodicSumSpace{CosSpace,SinSpace}
+FourierSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace((CosSpace(d),SinSpace(d)))
+
+points(sp::FourierSpace,n)=points(domain(sp),n)
+function transform{T<:Number}(::FourierSpace,vals::Vector{T})
+    n=length(vals)
+    cfs=2FFTW.r2r(vals, FFTW.R2HC )/n
+    cfs[1]/=2
+    if iseven(n)
+        cfs[n/2+1]/=2
+        for k=2:2:n/2+1
+            cfs[k]*=-1
+        end  
+    else
+        for k=2:2:(n+1)/2
+            cfs[k]*=-1
+        end     
+    end
+    if mod(n,4)==0
+        for k=n/2+3:2:n
+            cfs[k]*=-1
+        end
+    elseif mod(n,4)==2
+        for k=n/2+2:2:n
+            cfs[k]*=-1
+        end    
+    elseif mod(n,4)==1
+        for k=(n+3)/2:2:n
+            cfs[k]*=-1
+        end   
+    else #mod(n,4)==3
+        for k=(n+5)/2:2:n
+            cfs[k]*=-1
+        end      
+    end
+        
+    ret=Array(T,n)
+    if iseven(n)
+        ret[1:2:end]=cfs[1:n/2]
+        ret[2:2:end]=cfs[end:-1:n/2+1]
+    else
+        ret[1:2:end]=cfs[1:(n+1)/2]
+        ret[2:2:end]=cfs[end:-1:(n+3)/2]
+    end
+    ret    
+end
+
+
+
 
 
 
