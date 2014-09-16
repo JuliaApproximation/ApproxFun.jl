@@ -37,6 +37,10 @@ spacescompatible(f,g)=false
 
 domain(A::DomainSpace)=A.domain # assume it has a field domain
 
+canonicaldomain{T<:IntervalDomainSpace}(::Type{T})=Interval()
+canonicaldomain{T<:PeriodicDomainSpace}(::Type{T})=PeriodicInterval()
+
+
 
 for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD)
     @eval ($op)(sp::DomainSpace,x)=$op(domain(sp),x)

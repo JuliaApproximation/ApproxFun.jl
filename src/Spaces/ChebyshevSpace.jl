@@ -3,6 +3,7 @@
 typealias ChebyshevSpace UltrasphericalSpace{0}
 
 
+Space(d::IntervalDomain)=ChebyshevSpace(d)
 
 ## Space conversion default is through Chebyshev
 

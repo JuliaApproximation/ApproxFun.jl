@@ -84,6 +84,8 @@ evaluate{T}(f::Fun{T,SinSpace},t)=sum([f.coefficients[k]*sin(k*tocanonical(f,t))
 
 typealias LaurentSpace PeriodicSumSpace{HardySpace{true},HardySpace{false}}
 LaurentSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace((HardySpace{true}(d),HardySpace{false}(d)))
+Space(d::PeriodicDomain)=LaurentSpace(d)
+
 
 points(sp::LaurentSpace,n)=points(domain(sp),n)
 transform(::LaurentSpace,vals)=svfft(vals)|>interlace

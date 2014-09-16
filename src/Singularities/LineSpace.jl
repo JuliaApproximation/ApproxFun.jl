@@ -6,7 +6,8 @@ type LineSpace <: IntervalDomainSpace
 end
 
 
-ChebyshevSpace(d::Line)=LineSpace(d)
+Space(d::Line)=LineSpace(d)
+canonicaldomain{T<:LineSpace}(::Type{T})=Line()
 
 
 ## Construction

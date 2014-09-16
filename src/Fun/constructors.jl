@@ -17,22 +17,16 @@ function Fun(f::Function,d::DomainSpace,n::Integer)
 end
 
 # the following is to avoid ambiguity
-for SS in (:IntervalDomainSpace,:PeriodicDomainSpace)
-    @eval Fun(f::Fun,d::($SS))=Fun(coefficients(f,d),d)
-    @eval Fun{T<:($SS)}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
-    @eval Fun{T<:($SS)}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
-end
+Fun(f::Fun,d::DomainSpace)=Fun(coefficients(f,d),d)
+Fun{T<:DomainSpace}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
+Fun{T<:DomainSpace}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
-Fun{T<:IntervalDomainSpace}(f,::Type{T})=Fun(f,T(Interval()))
-Fun{T<:PeriodicDomainSpace}(f,::Type{T})=Fun(f,T(PeriodicInterval()))
-Fun{T<:IntervalDomainSpace}(f,::Type{T},n::Integer)=Fun(f,T(Interval()),n)
-Fun{T<:PeriodicDomainSpace}(f,::Type{T},n::Integer)=Fun(f,T(PeriodicInterval()),n)
+Fun{T<:DomainSpace}(f,::Type{T})=Fun(f,T(canonicaldomain(T)))
+Fun{T<:DomainSpace}(f,::Type{T},n::Integer)=Fun(f,T(canonicaldomain(T)),n)
 
-Fun(f,d::IntervalDomain)=Fun(f,ChebyshevSpace(d))
-Fun(f,d::IntervalDomain,n)=Fun(f,ChebyshevSpace(d),n)
-Fun(f,d::PeriodicDomain)=Fun(f,LaurentSpace(d))
-Fun(f,d::PeriodicDomain,n)=Fun(f,LaurentSpace(d),n)
+Fun(f,d::Domain)=Fun(f,Space(d))
+Fun(f,d::Domain,n)=Fun(f,Space(d),n)
 
 Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
 Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
@@ -47,11 +41,11 @@ Fun(f::Fun)=Fun(coefficients(f))  ##TODO: should this project to interval?
 
 Fun(c::Number)=Fun([c])
 
-for DD in (:IntervalDomain,:PeriodicDomain)
-    @eval Fun(c::Number,d::($DD))=Fun([c],d)
-end
 
-Fun(c::Number,d)=Fun([c],d)
+Fun{T<:DomainSpace}(c::Number,::Type{T})=c*ones(T(AnyDomain()))
+Fun(c::Number,d::Domain)=c*ones(d)
+Fun(c::Number,d::DomainSpace)=c*ones(d)
+Fun(c::Number,n::Integer)=Fun([c],n)
 
 ## List constructor
 
@@ -148,7 +142,7 @@ function Fun(f::Function, d::DomainSpace; method="zerocoefficients")
         randomFun(f,d)    
     end
 end
-Fun(f::Function,d::IntervalDomain;opts...)=Fun(f,ChebyshevSpace(d);opts...)
+Fun(f::Function,d::Domain;opts...)=Fun(f,Space(d);opts...)
 
 
 
