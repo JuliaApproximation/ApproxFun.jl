@@ -99,6 +99,7 @@ include("ToeplitzOperator.jl")
 include("ConstantOperator.jl")
 include("ConversionOperator.jl")
 include("MultiplicationOperator.jl")
+include("DerivativeOperator.jl")
 
 include("Ultraspherical/Ultraspherical.jl")
 
@@ -126,7 +127,10 @@ include("systems.jl")
 
 ## Convenience routines
 
-Base.diff(d::IntervalDomain,μ::Integer)=DerivativeOperator(0:μ,d)
+Base.diff(d::IntervalDomainSpace,μ::Integer)=DerivativeOperator(d,μ)
+Base.diff(d::IntervalDomain,μ::Integer)=diff(ChebyshevSpace(d),μ)
+
+
 Base.diff(d::PeriodicDomain,μ::Integer)=FourierDerivativeOperator(μ,d)
 Base.diff(d::Domain)=Base.diff(d,1)
 

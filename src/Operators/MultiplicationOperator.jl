@@ -2,7 +2,7 @@ export MultiplicationOperator
 
 
 
-type MultiplicationOperator{T<:Number,D<:FunctionSpace,S<:FunctionSpace} <: BandedOperator{T}
+immutable MultiplicationOperator{T<:Number,D<:FunctionSpace,S<:FunctionSpace} <: BandedOperator{T}
     f::Fun{T,D}
     space::S
 end
