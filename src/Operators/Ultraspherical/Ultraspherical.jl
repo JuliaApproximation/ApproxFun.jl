@@ -21,34 +21,35 @@ end
 
 
 ##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex(op::EvaluationFunctional{Float64,ChebyshevSpace},k::Range)
-   tol = 200.*eps()
+function Base.getindex(op::EvaluationFunctional{Float64,Bool,ChebyshevSpace},k::Range)
     x = op.x
     d = domain(op)
-
-    ret = 0.
     
-    if abs(x-d.a) < tol && op.order ==0
-        ret=-(-1.).^k  ##TODO: speed up
-    elseif  abs(x-d.b) < tol && op.order ==0
-        ret=ones(size(k)[1])
-    elseif  abs(x-d.a) < tol && op.order ==1
-        ret=(k-1).*(k-1).*(-1.).^k*2/(d.b-d.a) 
-    elseif  abs(x-d.b) < tol && op.order ==1
-        ret=(k-1).*(k-1)*2/(d.b-d.a) 
-    elseif  abs(x-d.a) < tol && op.order ==2
-        ret=-(k.-1).^2.*((k.-1).^2.-1)/3.*(-1.).^k*(2/(d.b-d.a))^2
-    elseif  abs(x-d.b) < tol && op.order ==2
-        ret=(k.-1).^2.*((k.-1).^2.-1)/3*(2/(d.b-d.a))^2  
-    elseif op.order == 0
-        
-        ret=evaluatechebyshev(k[end],tocanonical(d,x))[k]
+    if     !x && op.order ==0
+        -(-1.).^k  ##TODO: speed up
+    elseif  x && op.order ==0
+        ones(size(k)[1])
+    elseif !x && op.order ==1
+        (k-1).*(k-1).*(-1.).^k*2/(d.b-d.a) 
+    elseif  x && op.order ==1
+        (k-1).*(k-1)*2/(d.b-d.a) 
+    elseif !x && op.order ==2
+        -(k.-1).^2.*((k.-1).^2.-1)/3.*(-1.).^k*(2/(d.b-d.a))^2
+    elseif  x && op.order ==2
+        (k.-1).^2.*((k.-1).^2.-1)/3*(2/(d.b-d.a))^2  
     else
         error("Only zero–second order implemented")
     end
-    
-    ret
 end
+
+function Base.getindex(op::EvaluationFunctional{Float64,Float64,ChebyshevSpace},k::Range)
+    if op.order == 0    
+        evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
+    else
+        error("Only zero–second order implemented")
+    end
+end
+
 
 
 ## Multiplication

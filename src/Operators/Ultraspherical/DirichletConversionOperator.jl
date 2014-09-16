@@ -41,33 +41,36 @@ conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
 
 
 
-function getindex(B::EvaluationFunctional{Float64,ChebyshevDirichletSpace{1,0}},kr::Range)
+## Evaluation Functional
+
+
+function getindex(B::EvaluationFunctional{Float64,Bool,ChebyshevDirichletSpace{1,0}},kr::Range)
     d = domain(B)
     
-    if abs(x-d.a) < tol && B.order == 0
+    if B.x == false && B.order == 0
         Float64[k==1?1.0:0.0 for k=kr]
     else
         getindex(EvaluationFunctional(d)*ConversionOperator(domainspace(B)),kr)
     end
 end
 
-function getindex(B::EvaluationFunctional{Float64,ChebyshevDirichletSpace{0,1}},kr::Range)
+function getindex(B::EvaluationFunctional{Float64,Bool,ChebyshevDirichletSpace{0,1}},kr::Range)
     d = domain(B)
     
-    if abs(x-d.b) < tol && B.order == 0
+    if B.x == true && B.order == 0
         Float64[k==1?1.0:0.0 for k=kr]
     else
         getindex(EvaluationFunctional(d)*ConversionOperator(domainspace(B)),kr)
     end
 end
 
-function getindex(B::EvaluationFunctional{Float64,ChebyshevDirichletSpace{1,1}},kr::Range)
+function getindex(B::EvaluationFunctional{Float64,Bool,ChebyshevDirichletSpace{1,1}},kr::Range)
    tol = 200.*eps()
     d = domain(B)
     
-    if abs(B.x-d.a) < tol && B.order == 0
+    if B.x == false && B.order == 0
         Float64[k==1?1.0:(k==2?-1.0:0.0) for k=kr]
-    elseif abs(B.x-d.b) < tol && B.order == 0
+    elseif B.x == true && B.order == 0
         Float64[k<=2?1.0:0.0 for k=kr]
     else
         getindex(EvaluationFunctional(d)*ConversionOperator(domainspace(B)),kr)
