@@ -18,7 +18,7 @@ end
 #TODO: domainscompatible?
 coefficients(f::Fun,msp::FunctionSpace)=spaceconversion(f.coefficients,space(f),msp)
 coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(AnyDomain()))
-coefficients(f::Fun)=coefficients(f,ChebyshevSpace(domain(f)))
+coefficients(f::Fun)=coefficients(f,Space(domain(f)))  #TODO: coefficients() returns canonical coefficients.  is this confusing??
 
 ##Convert routines
 
