@@ -30,7 +30,6 @@ include("Spaces/Spaces.jl")
 
 ## Further extra features
 
-include("Singularities/Singularities.jl")
 include("PDE/PDE.jl")
 include("Plot/Plot.jl")
 include("Extras/Extras.jl")
