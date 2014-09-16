@@ -1,11 +1,11 @@
 ##TODO: Unify with coefficients()
 toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
-toarray{T<:Number,D<:IntervalDomain}(B::Array{IFun{T,D}},n)=T[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n]
+toarray{T<:Number}(B::Array{Fun{T}},n)=T[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n]
 function toarray(B::Array,n)
     ret = zeros(length(B),n)
     
     for k=1:length(B), j=1:n
-        if  typeof(B[k]) <: IFun
+        if  typeof(B[k]) <: Fun
             ret[k,j] = j<=length(B[k])?B[k].coefficients[j]:0 
         elseif typeof(B[k]) <: Number && j == 1
             ret[k,j] = B[k]
@@ -105,8 +105,8 @@ type OperatorSchur{BT<:Number,MT<:Number}
     Lcols::Array{MT,2}
     Mcols::Array{MT,2}
     
-    domainspace::OperatorSpace
-    rangespace::OperatorSpace    
+    domainspace::FunctionSpace
+    rangespace::FunctionSpace    
 end
 
 #make sure cols are same type as ops

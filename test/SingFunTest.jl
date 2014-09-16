@@ -13,7 +13,7 @@ u=sqrt(4-x.^2)/(2π)
 
 f=Fun(x->x.*cot(π*x/2))
 x=Fun(identity)
-u=SingFun(f./(1-x.^2),1.,1.)
+u=Fun((f./(1-x.^2)).coefficients,JacobiWeightSpace(1.,1.,Interval()))
 @test_approx_eq 1./(.1.*cot(π*.1/2)) (1./u)[.1]
 
 @test_approx_eq (x./u)[.1] tan(π*.1/2)

@@ -17,28 +17,28 @@ include("cont_lyap.jl")
 #     Bx,Gx,By,Gy,Lx,Ly,Mx,My    
 # end
 
-function convert2funvec{T<:Number,D<:IntervalDomain}(f::Vector{T},d::D)
-    ret=Array(IFun{T,D},length(f))
+function convert2funvec{T<:Number,D}(f::Vector{T},d::D)
+    ret=Array(Fun{T,D},length(f))
     for k=1:length(f)
-        ret[k]=IFun(f[k],d)
+        ret[k]=Fun(f[k],d)
     end
     ret
 end
-convert2funvec{T<:IFun}(f::Vector{T},d::IntervalDomain)=f
-function convert2funvec{D<:IntervalDomain}(f::Vector{Any},d::D)
-    mytyp=IFun{Float64,D}
+convert2funvec{T<:Fun,D}(f::Vector{T},d::D)=f
+function convert2funvec{D}(f::Vector{Any},d::D)
+    mytyp=Fun{Float64,D}
     
     for fk in f
-        if typeof(fk) == IFun{Complex{Float64},D}
-            mytyp=IFun{Complex{Float64},D}
+        if typeof(fk) <: Fun{Complex{Float64}}
+            mytyp=Fun{Complex{Float64},D}
         end
     end
     
     ret=Array(mytyp,length(f))
     
     for k=1:length(f)
-        ##TODO: Check domains match for IFuns
-        ret[k]=IFun(f[k],d)
+        ##TODO: Check domains match for Funs
+        ret[k]=Fun(f[k],d)
     end
     ret
 end
@@ -49,16 +49,21 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
         f=[f,zeros(length(A.indsBx)+length(A.indsBy)+1-length(f))]
     end
 
-    fx=convert2funvec(f[A.indsBx],domain(A,2))
-    fy=convert2funvec(f[A.indsBy],domain(A,1))
+    ##TODO: makes more sense as a domain space of the boundary ops once thats set up
+    fx=convert2funvec(f[A.indsBx],ChebyshevSpace(domain(A,2)))
+    fy=convert2funvec(f[A.indsBy],ChebyshevSpace(domain(A,1)))
     
 
     ff=f[end]
     if typeof(ff)<:Number
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff
+    elseif typeof(ff)<:Fun && domain(ff) == AnyDomain()
+        ##TODO: beter method of telling constant fun
+        F=zeros(1,size(A.S,1)-numbcs(A.S)) 
+        F[1,1]=ff.coefficients[1]        
     else # typeof(ff) <:Fun2D || TensorFun
-        F=coefficients(ff,rangespace(A,1).order,rangespace(A,2).order)
+        F=coefficients(ff,rangespace(A,1),rangespace(A,2))
     end        
     
 
@@ -89,7 +94,7 @@ end
 pdesolve(A::PDEOperatorSchur,f::Vector,nx...)=TensorFun(pdesolve_mat(A,f,nx...),domain(A,2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector)=TensorFun(pdesolve_mat(A,f),domain(A[end],2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n...)=TensorFun(pdesolve_mat(A,f,n...),domain(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f::IFun,n...)=pdesolve(A,[f],n...)
+pdesolve{T<:PDEOperator}(A::Vector{T},f::Fun,n...)=pdesolve(A,[f],n...)
 
 
 
@@ -144,6 +149,6 @@ pdesolve{T<:PDEOperator}(A::Vector{T},f::IFun,n...)=pdesolve(A,[f],n...)
 
 \{T<:PDEOperator}(A::Vector{T},f::Vector)=pdesolve(A,f)
 \(A::PDEOperatorSchur,f::Vector)=pdesolve(A,f)
-\{T<:PDEOperator}(A::Vector{T},f::IFun)=pdesolve(A,f)
-\(A::PDEOperatorSchur,f::IFun)=pdesolve(A,f)
+\{T<:PDEOperator}(A::Vector{T},f::Fun)=pdesolve(A,f)
+\(A::PDEOperatorSchur,f::Fun)=pdesolve(A,f)
 

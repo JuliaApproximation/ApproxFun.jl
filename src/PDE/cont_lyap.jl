@@ -51,10 +51,10 @@ adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 
 #Use XR' = G' = [G1 G2 G3...] to reduce columns of A in
 # MXA' + *X* =F
-# here G is a vector of IFuns
+# here G is a vector of Funs
 
 
-# function cont_reduce_dofs{T<:IFun}( R,G::Vector{T}, A::Array, M::Operator, F::Array )
+# function cont_reduce_dofs{T<:Fun}( R,G::Vector{T}, A::Array, M::Operator, F::Array )
 #     if length(R) > 0
 #         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
 #         # then kill the row by subtracting
@@ -76,7 +76,7 @@ adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 # end
 
 
-function cont_reduce_dofs{T<:IFun}( A::Array,G::Vector{T},M::Operator,F::Array )
+function cont_reduce_dofs{T<:Fun}( A::Array,G::Vector{T},M::Operator,F::Array )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
         # MXR'[:,k]*A'[k,:]  from MXA'
@@ -94,7 +94,7 @@ function cont_reduce_dofs{T<:IFun}( A::Array,G::Vector{T},M::Operator,F::Array )
     F
 end
 
-function cont_reduce_dofs{T<:IFun}(S::OperatorSchur,G::Vector{T},L::Operator,M::Operator,F::Array)
+function cont_reduce_dofs{T<:Fun}(S::OperatorSchur,G::Vector{T},L::Operator,M::Operator,F::Array)
     F=cont_reduce_dofs(S.Lcols,G,L,F)
     cont_reduce_dofs(S.Mcols,G,M,F)    
 end
@@ -111,8 +111,8 @@ cont_constrained_lyapuptriang{T,FT}(OS::PDEOperatorSchur{T},Gx,F::Array{FT},nx=1
 #cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)=cont_constrained_lyapuptriang(N,OS,Gx,F,100000)
 function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array,nx::Integer)
     n = size(OS.S.T,2)
-    ##TODO: complex
-    Y=Array(IFun{N,Interval{Float64}},n)
+
+    Y=Array(Fun{N,typeof(domainspace(OS,1))},n)
     PY=Array(Vector{N},n)
     SY=Array(Vector{N},n)
 

@@ -1,5 +1,5 @@
 
-export lap,grad,timedirichlet
+export lap,grad,timedirichlet, ⊗
 
 
 type PDEOperator
@@ -15,11 +15,11 @@ PDEOperator(A,B)=PDEOperator([A B])
 function domain(LL::PDEOperator,j::Integer)
     for k=1:size(LL.ops,1)
         dx=domain(LL.ops[k,j]) 
-        if dx != Any
+        if dx != AnyDomain()
             return dx
         end
     end
-    return Any
+    return AnyDomain()
 end
 
 function domain(LL::PDEOperator)
@@ -32,9 +32,9 @@ end
 ⊗(A::Operator,B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
 ⊗(A::UniformScaling,B::Operator)=ConstantOperator(1.0A.λ)⊗B
 
-⊗(A::IFun,B::IFun)=MultiplicationOperator(A)⊗MultiplicationOperator(B)
-⊗(A,B::IFun)=A⊗MultiplicationOperator(B)
-⊗(A::IFun,B)=MultiplicationOperator(A)⊗B
+⊗(A::Fun,B::Fun)=MultiplicationOperator(A)⊗MultiplicationOperator(B)
+⊗(A,B::Fun)=A⊗MultiplicationOperator(B)
+⊗(A::Fun,B)=MultiplicationOperator(A)⊗B
 
 ⊗{T<:Operator}(A::Vector{T},B::Operator)=PDEOperator[PDEOperator(Ai,B) for Ai in A]
 ⊗{T<:Operator}(A::Operator,B::Vector{T})=PDEOperator[PDEOperator(A,Bi) for Bi in B]
@@ -58,7 +58,7 @@ function +(A::PDEOperator,B::PDEOperator)
     PDEOperator(ret)
 end
 
-function lap(d::TensorDomain)
+function lap(d::ProductDomain)
     @assert length(d.domains)==2
     Dx=Base.diff(d.domains[1])
     Dy=Base.diff(d.domains[2])    
@@ -96,7 +96,7 @@ function *(A::PDEOperator,B::PDEOperator)
 end
 
 ##TODO how to determine whether x or y?
-function *(a::IFun,A::PDEOperator)
+function *(a::Fun,A::PDEOperator)
     ops = copy(A.ops)
     for k=1:size(ops,1)
         ops[k,1]=a*ops[k,1]
@@ -104,27 +104,27 @@ function *(a::IFun,A::PDEOperator)
     PDEOperator(ops)
 end
 
-Base.diff(d::TensorDomain,k)=k==1?Base.diff(d.domains[1])⊗I:I⊗Base.diff(d.domains[2])  
-grad(d::TensorDomain)=[Base.diff(d,k) for k=1:length(d.domains)]
+Base.diff(d::ProductDomain,k)=k==1?Base.diff(d.domains[1])⊗I:I⊗Base.diff(d.domains[2])  
+grad(d::ProductDomain)=[Base.diff(d,k) for k=1:length(d.domains)]
 
 
 
 
-function dirichlet(d::TensorDomain)
+function dirichlet(d::ProductDomain)
     @assert length(d.domains)==2
     Bx=dirichlet(d.domains[1])
     By=dirichlet(d.domains[2])
     [Bx⊗I,I⊗By]
 end
 
-function neumann(d::TensorDomain)
+function neumann(d::ProductDomain)
     @assert length(d.domains)==2
     Bx=neumann(d.domains[1])
     By=neumann(d.domains[2])
     [Bx⊗I,I⊗By]
 end
 
-function timedirichlet(d::TensorDomain)
+function timedirichlet(d::ProductDomain)
     @assert length(d.domains)==2
     Bx=dirichlet(d.domains[1])
     Bt=dirichlet(d.domains[2])[1]
@@ -136,8 +136,8 @@ function *(L::PDEOperator,f::Fun2D)
     @assert size(L.ops,2)==2
     @assert size(L.ops,1)==2    
     n=length(f.A)
-    A=Array(IFun,2n)
-    B=Array(IFun,2n)
+    A=Array(Fun,2n)
+    B=Array(Fun,2n)
     
     for k=1:n
         A[k]=L.ops[1,1]*f.A[k]

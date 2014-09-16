@@ -1,5 +1,7 @@
 using ApproxFun, Base.Test
 
+gc_disable()
+
 c = rand(1000)
 x=rand(10000)
 f=Fun(c)
@@ -48,7 +50,7 @@ println("Airy: should be ~0.05")
 
 ## PDEs
 
-d=Interval()⊗Interval()
+d=Interval()^2
 
 x=Fun(identity,d[1]);y=Fun(identity,d[2])
 

@@ -2,17 +2,17 @@ using ApproxFun, Base.Test
 
 
 
-ef = IFun(exp)
+ef = Fun(exp)
 
 
 @test ef == -(-ef)
 @test ef == (ef-1) + 1
 
 
-cf = IFun(cos)
+cf = Fun(cos)
 
-ecf = IFun(x->cos(x).*exp(x))
-eocf = IFun(x->cos(x)./exp(x))
+ecf = Fun(x->cos(x).*exp(x))
+eocf = Fun(x->cos(x)./exp(x))
 
 @test_approx_eq ef[.5] exp(.5)
 @test_approx_eq ecf[.123456] cos(.123456).*exp(.123456)
@@ -50,11 +50,11 @@ r=2.*rand(100) .- 1
 ##Check other domains
 
 
-ef = IFun(exp,[1,2])
-cf = IFun(cos,[1,2])
+ef = Fun(exp,[1,2])
+cf = Fun(cos,[1,2])
 
-ecf = IFun(x->cos(x).*exp(x),[1,2])
-eocf = IFun(x->cos(x)./exp(x),[1,2])
+ecf = Fun(x->cos(x).*exp(x),[1,2])
+eocf = Fun(x->cos(x)./exp(x),[1,2])
 
 
 r=rand(100) .+ 1

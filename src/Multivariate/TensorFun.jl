@@ -2,20 +2,24 @@ export TensorFun
 
 
 
-type TensorFun{F<:IFun,D<:IntervalDomain}<:MultivariateFun
-    coefficients::Vector{F}     # coefficients are in x
-    domainy::D
+type TensorFun{T<:Union(Float64,Complex{Float64}),S<:FunctionSpace}<:MultivariateFun
+    coefficients::Vector{Fun{T,S}}     # coefficients are in x
+    domainy::IntervalDomain
+end
+
+for T in (:Float64,:(Complex{Float64}))
+    @eval TensorFun{F<:Fun{$T}}(M::Vector{F},dy::Domain)=TensorFun(Fun{$T,typeof(M[1].space)}[Mk for Mk in M],dy)
 end
 
 function TensorFun{T<:Number}(cfs::Matrix{T},dx,dy)
-    ret=Array(IFun{T,typeof(dx)},size(cfs,2))
+    ret=Array(Fun{T},size(cfs,2))
     for k=1:size(cfs,2)
-        ret[k]=chop!(IFun(cfs[:,k],dx),10eps())
+        ret[k]=chop!(Fun(cfs[:,k],dx),10eps())
     end
     TensorFun(ret,dy)
 end
 
-TensorFun(cfs::Array,d::TensorDomain)=TensorFun(cfs,d[1],d[2])
+TensorFun(cfs::Array,d::ProductDomain)=TensorFun(cfs,d[1],d[2])
 
 TensorFun(f::Fun2D)=TensorFun(coefficients(f),domain(f,1),domain(f,2))
 
@@ -24,23 +28,27 @@ TensorFun(f::Function,d1...)=TensorFun(Fun2D(f,d1...))
 Base.size(f::TensorFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
 Base.size(f::TensorFun)=(size(f,1),size(f,2))
 
-
-function funlist2coefficients{T<:Number,D<:IntervalDomain}(f::Vector{IFun{T,D}})
-    A=zeros(T,mapreduce(length,max,f),length(f))
-    for k=1:length(f)
-        A[1:length(f[k]),k]=f[k].coefficients
+for T in (:Float64,:(Complex{Float64}))
+    @eval begin
+        function funlist2coefficients{F<:Fun{$T}}(f::Vector{F})
+            A=zeros($T,mapreduce(length,max,f),length(f))
+            for k=1:length(f)
+                A[1:length(f[k]),k]=f[k].coefficients
+            end
+            A
+        end
     end
-    A
 end
+
 
 coefficients(f::TensorFun)=funlist2coefficients(f.coefficients)
 
-function coefficients(f::TensorFun,ox::Integer,oy::Integer)
+function coefficients(f::TensorFun,ox::FunctionSpace,oy::FunctionSpace)
     m=size(f,1)
     A=[pad!(coefficients(fx,ox),m) for fx in f.coefficients]
     B=hcat(A...)::Array{Float64,2}
     for k=1:size(B,1)
-        B[k,:]=ultraconversion(vec(B[k,:]),oy)
+        B[k,:]=spaceconversion(vec(B[k,:]),ChebyshevSpace(f.domainy),oy)
     end
     
     B
@@ -51,9 +59,13 @@ values(f::TensorFun)=ichebyshevtransform(coefficients(f))
 points(f::TensorFun,k)=points(domain(f,k),size(f,k))
 
 domain(f::TensorFun,k::Integer)=k==1?domain(f.coefficients[1]):f.domainy
-domain(LL::TensorFun)=domain(LL,1)⊗domain(LL,2)
+domain(LL::TensorFun)=domain(LL,1)*domain(LL,2)
 
-evaluate(f::TensorFun,x::Real,::Colon)=IFun([fc[x] for fc in f.coefficients],f.domainy)
+space(f::TensorFun,k::Integer)=k==1?space(f.coefficients[1]):UltrasphericalSpace{f.domainy}
+
+
+
+evaluate{T}(f::TensorFun{T},x::Real,::Colon)=Fun(T[fc[x] for fc in f.coefficients],f.domainy)
 evaluate(f::TensorFun,x::Real,y::Real)=evaluate(f,x,:)[y]
 evaluate(f::TensorFun,x::Colon,y::Real)=evaluate(f.',y,:)
 evaluate(f::TensorFun,xx::Vector,yy::Vector)=hcat([evaluate(f,x,:)[[yy]] for x in xx]...).'

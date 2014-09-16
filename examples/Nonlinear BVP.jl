@@ -3,7 +3,7 @@ using ApproxFun
 # solves u" + 2(1-x^2)u + u^2 = 1 ,  u(-1) = u(1) = 0
 
 x=Fun(identity)
-d=x.domain
+d=domain(x)
 B=dirichlet(d)
 D=diff(d)
 

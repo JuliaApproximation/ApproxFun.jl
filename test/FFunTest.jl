@@ -1,6 +1,6 @@
 using ApproxFun, Base.Test
 
-@test norm(IFun(x->FFun(cos)[x])-IFun(cos)) <100eps()
+@test norm(Fun(x->FFun(cos)[x])-Fun(cos)) <100eps()
 
 
 @test norm(diff(FFun(cos))+FFun(sin)) < 100eps()

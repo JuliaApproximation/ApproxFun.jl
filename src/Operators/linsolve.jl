@@ -1,38 +1,68 @@
+##commondomainspace
+
+##TODO: is this too hacky?
+domainspace(f::Fun)=space(f)
+
+function commondomainspace(P::Vector)
+    ret = AnySpace()
+    
+    for op in P
+        d = domainspace(op)
+        @assert ret == AnySpace() || d == AnySpace() || typeof(ret) == typeof(d)
+        
+        if d != AnySpace()
+            ret = d
+            
+            if domain(ret) != AnyDomain()
+                return ret
+            end
+        end
+    end
+    
+    ret
+end
+
+commondomainspace{T<:Number}(P::Vector,g::Array{T})=commondomainspace(P)
+commondomainspace(P::Vector,g)=commondomainspace([P,g])
+
+
+
 ## Linear Solve
 
 
-IFun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,IFun)? coefficients(f,sp) :  f,b)...)
-FFun_coefficients(b::Vector)=vcat(map(f-> isa(f,FFun)? interlace(f.coefficients) :  interlace(f),b)...) #Assume only FFun or ShiftVector
 
-function IFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
-    u=adaptiveqr(A,IFun_coefficients(b,rangespace(A[end]).order),tolerance,maxlength)  ##TODO: depends on ordering of A
+
+Fun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,Fun)? coefficients(f,sp) :  f,b)...)
+
+
+function Fun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
+    A=promotedomainspace(A)
+    u=adaptiveqr(A,Fun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
     
-    IFun(u,commondomain(A,b))
+    Fun(u,commondomainspace(A,b))
 end
 
-function IFun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)
+function Fun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)
     u=adaptiveqr(A,b,tolerance,maxlength)  ##TODO: depends on ordering of A
     d=commondomain(A)
-    IFun[IFun(u[:,k],d) for k=1:size(u,2)]
+    Fun[Fun(u[:,k],d) for k=1:size(u,2)]
 end
 
 
 
-function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
-    @assert length(A) == 1
-
-    u=adaptiveqr([interlace(A[1])],FFun_coefficients(b),tolerance,maxlength)
-    
-    FFun(deinterlace(u),commondomain(A,b))    
-end
+# function FFun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
+#     @assert length(A) == 1
+# 
+#     u=adaptiveqr([interlace(A[1])],FFun_coefficients(b),tolerance,maxlength)
+#     
+#     FFun(deinterlace(u),commondomain(A,b))    
+# end
 
 function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxlength=1000000)
     d=commondomain(A,b)
 
-    if typeof(d) <: IntervalDomain
-        IFun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
-    elseif typeof(d) <: PeriodicDomain
-        FFun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
+    if typeof(d) <: Domain
+        Fun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
     else
         adaptiveqr(A,b,tolerance,maxlength)
     end    
@@ -46,7 +76,7 @@ end
                                                          #so assume user knows, this is correct for bc rows
                                      
                                      
-     IFun[IFun(ret[k:m:end],commondomain(A[:,k])) for k=1:m]
+     Fun[Fun(ret[k:m:end],commondomain(A[:,k])) for k=1:m]
  end
  
  
@@ -57,11 +87,11 @@ function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Array{M,2};tolerance=0
                                                      #so assume user knows, this is correct for bc rows
                                  
                                  
-    IFun{M,typeof(commondomain(A[:,1]))}[IFun(ret[k:m:end,j],commondomain(A[:,k])) for k=1:m,j=1:size(b,2)]
+    Fun[Fun(ret[k:m:end,j],commondomain(A[:,k])) for k=1:m,j=1:size(b,2)]
 end
  
 
-scalarorfuntype{T<:Number}(::IFun{T})=T
+scalarorfuntype{T<:Number}(::Fun{T})=T
 scalarorfuntype{T<:Number}(::T)=T
 scalarorfuntype{T<:Number}(b::Vector{T})=T
 scalarorfuntype(b::Vector{Any})=promote_type(map(scalarorfuntype,b)...)
@@ -78,10 +108,10 @@ function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
     r[1:br]=b[1:br]
     
     for k=br+1:m
-        sp=findmaxrangespace([A[k,:]...]).order
+        sp=findmaxrangespace([A[k,:]...])
         if k > length(b)## assume its zer
             r[k:n:end]=zeros(l)
-        elseif isa(b[k],AbstractFun)
+        elseif isa(b[k],Fun)
             ##TODO: boiunds check
             r[k:n:end]=pad(coefficients(b[k],sp),l)
         else  #type is scalar

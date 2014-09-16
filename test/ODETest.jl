@@ -1,16 +1,16 @@
 using ApproxFun,Base.Test
-
+import ApproxFun.Multiplication
 
 
 ##Airy equation 
 
 
 d=Interval(-10.,5.);
-Bm=EvaluationFunctional(d,d.a);
-Bp=EvaluationFunctional(d,d.b);
+Bm=Evaluation(d,d.a);
+Bp=Evaluation(d,d.b);
 B=[Bm,Bp];
 D2=diff(d,2);
-X=MultiplicationOperator(Fun(x->x,d));
+X=Multiplication(Fun(x->x,d));
 
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 
@@ -19,11 +19,11 @@ u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 
 
 d=Interval(-1000.,5.);
-Bm=EvaluationFunctional(d,d.a);
-Bp=EvaluationFunctional(d,d.b);
+Bm=Evaluation(d,d.a);
+Bp=Evaluation(d,d.b);
 B=[Bm,Bp];
 D2=diff(d,2);
-X=MultiplicationOperator(Fun(x->x,d));
+X=Multiplication(Fun(x->x,d));
 
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 @test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
@@ -43,7 +43,7 @@ u=A\b;
 
 
 f=Fun(x->x.^2)
-D=diff(f.domain)
+D=diff(domain(f))
 @test norm(D*f-diff(f))<100eps()
 
 
@@ -55,8 +55,8 @@ g=Fun(t->exp(-t.^2))
 @test_approx_eq norm(Fun(t->exp(f[t]))-g) 0
 
 fp=diff(f);
-Bm=EvaluationFunctional(f.domain,f.domain.a);
-u=[Bm,diff(f.domain) - fp]\[exp(f[f.domain.a]),0.];
+Bm=Evaluation(domain(f),domain(f).a);
+u=[Bm,diff(domain(f)) - fp]\[exp(f[domain(f).a]),0.];
 @test norm(u-g)<100eps()
 
 
@@ -64,7 +64,7 @@ u=[Bm,diff(f.domain) - fp]\[exp(f[f.domain.a]),0.];
 ## Oscillatory integral
 
 f=Fun(exp);
-D=diff(f.domain);
+D=diff(domain(f));
 w=10.;
 B=BasisFunctional(floor(w));
 A=[B,D+1im*w*I];
@@ -78,8 +78,15 @@ u = A\[0.,f];
 d=Interval()
 D=diff(d)
 x=Fun(identity,d)
-A=x.^2*D^2+x*D+x.^2;
+A=x.^2*D^2+x*D+x.^2
 u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
+
+
+@test norm(A*u)<eps()
+@test norm(Fun(A.ops[1]*u,d)-x.^2.*diff(u,2))<eps()
+@test norm(Fun(A.ops[2]*u,d)-x.*diff(u)) < eps()
+@test norm(Fun(A.ops[end]*u,d)-x.^2.*u) < eps()
+@test norm(x.^2.*diff(u,2) + x.*diff(u) + x.^2.*u)<eps()
 @test_approx_eq u[0.1] besselj(0.,0.1)
 
 
@@ -88,8 +95,8 @@ u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
 
 n=4
 d=fill(Interval(0.,1.),n)
-B=EvaluationFunctional(d,0.)
-D=DerivativeOperator(d)
+B=Evaluation(d,0.)
+D=Derivative(d)
 A=rand(n,n)
 L=[B;D-A]
 u=L\eye(n)

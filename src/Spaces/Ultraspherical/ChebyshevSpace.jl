@@ -1,0 +1,76 @@
+
+
+typealias ChebyshevSpace UltrasphericalSpace{0}
+
+
+Space(d::IntervalDomain)=ChebyshevSpace(d)
+canonicalspace(S::IntervalDomainSpace)=ChebyshevSpace(domain(S))
+
+## Space conversion default is through Chebyshev
+
+spaceconversion(f::Vector,sp::FunctionSpace)=spaceconversion(f,ChebyshevSpace(AnyDomain()),sp)
+spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpace)=spaceconversion(spaceconversion(f,sp1,sp2),sp2,sp3)
+
+
+## spaceconversion defaults to calling Conversion, otherwise it tries to pipe through ChebyshevSpace
+
+function spaceconversion{A<:FunctionSpace}(f::Vector,a::A,b::A)
+    @assert spacescompatible(a,b)
+        f
+end
+
+function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
+    ct=conversion_type(a,b)
+    if a==b
+        f
+    elseif ct==a
+        Conversion(a,b)*f  ##TODO: Make * and \ consistent in return type
+    elseif ct==b
+        (Conversion(b,a)\f).coefficients
+    elseif typeof(a) <: ChebyshevSpace
+        error("Override spaceconversion or implement Conversion from ChebyshevSpace to " * string(B))
+    elseif typeof(b) <: ChebyshevSpace
+        error("Override spaceconversion or implement Conversion from " * string(A) * " to ChebyshevSpace")
+    else
+        spaceconversion(f,a,ChebyshevSpace(AnyDomain()),b)
+    end
+end
+
+function spaceconversion(g::Vector,::ConstantSpace,::ChebyshevSpace)
+    @assert length(g)==1
+    g
+end
+
+function spaceconversion(g::Vector,::ChebyshevSpace,::ConstantSpace)
+    @assert length(g)==1
+    g
+end
+
+
+
+## Transform
+
+transform(::ChebyshevSpace,vals::Vector)=chebyshevtransform(vals)
+itransform(::ChebyshevSpace,cfs::Vector)=ichebyshevtransform(cfs)
+
+
+## Evaluation
+
+evaluate{T}(f::Fun{T,ChebyshevSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
+
+## Calculus
+
+
+# diff T -> U, then convert U -> T
+integrate{T}(f::Fun{T,ChebyshevSpace})=Fun(chebyshevintegrate(domain(f),f.coefficients),f.space)
+chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint(ultraconversion(cfs))   
+
+
+differentiate{T}(f::Fun{T,ChebyshevSpace})=Fun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
+chebyshevdifferentiate(d::Interval,cfs::Vector)=tocanonicalD(d,0)*ultraiconversion(ultradiff(cfs))
+chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(Fun(x->tocanonicalD(d,x),d).*Fun(diff(Fun(cfs)),d)).coefficients
+
+
+## identity_fun
+
+identity_fun(d::ChebyshevSpace)=identity_fun(domain(d))

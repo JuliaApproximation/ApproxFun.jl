@@ -1,6 +1,12 @@
 
 import Base.chop 
 
+
+dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
+dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=BLAS.dot(conj(f),g)
+dotu{N<:Real,T}(f::Vector{N},g::Vector{T})=dot(f,g)
+
+
 ## Helper routines
 alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
 

@@ -39,8 +39,8 @@ function addentries!(S::SliceOperator,A,kr)
 end
 
 
-
-domain(S::SliceOperator)=Any
+##TODO Slice spaces
+domain(S::SliceOperator)=AnySpace()
 
 
 Base.ndims(::BandedOperator)=2

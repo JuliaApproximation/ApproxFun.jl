@@ -1,7 +1,7 @@
 ## Plotting
 
 
-export surf
+#export surf
 
 
 #colorf(x)=x>0?Main.GLAbstraction.Vec4(.1,.1,0.5+3x,.1):Main.GLAbstraction.Vec4(.1,.1-3x,0.5,.1)
@@ -21,7 +21,7 @@ end
 
 
 ## Vector routines
-function surf(vals::Matrix,obj,window)##obj should be type RenderObject, window should be type Screen
+function glsurf(vals::Matrix,obj,window)##obj should be type RenderObject, window should be type Screen
     GLAbstraction=Main.GLAbstraction
     
     zvalues = obj.uniforms[:z] 
@@ -34,7 +34,7 @@ function surf(vals::Matrix,obj,window)##obj should be type RenderObject, window 
     glupdatewindow(obj,window)
 end
 
-function surf(vals::Matrix)
+function glsurf(vals::Matrix)
     GLAbstraction=Main.GLAbstraction
     ModernGL=Main.ModernGL
     GLPlot=Main.GLPlot
@@ -48,7 +48,7 @@ function surf(vals::Matrix)
     glupdatewindow(obj,window)
 end
 
-function surf(xx::Matrix,yy::Matrix,vals::Matrix)
+function glsurf(xx::Matrix,yy::Matrix,vals::Matrix)
     GLAbstraction=Main.GLAbstraction
     ModernGL=Main.ModernGL
     GLPlot=Main.GLPlot
@@ -62,24 +62,9 @@ function surf(xx::Matrix,yy::Matrix,vals::Matrix)
     glupdatewindow(obj,window)
 end
 
-surf(x::Vector,y::Vector,z::Matrix)=surf(x*ones(1,length(y)),ones(length(x))*y.',z)
+glsurf(x::Vector,y::Vector,z::Matrix)=glsurf(x*ones(1,length(y)),ones(length(x))*y.',z)
 
 
 
-function plot(xx::Range,yy::Range,f::MultivariateFun)
-    vals      = evaluate(f,xx,yy)
-    vals=[vals[:,1] vals vals[:,end]];
-    vals=[vals[1,:]; vals; vals[end,:]]    
-    surf(vals)    
-end
-
-function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
-    vals      = evaluate(f,xx,yy)
-    vals=[vals[:,1] vals vals[:,end]];
-    vals=[vals[1,:]; vals; vals[end,:]]    
-    surf(vals,obj,window)    
-end
-
-plot(f::MultivariateFun)=surf(points(f,1),points(f,2),values(f))
 
 
