@@ -10,6 +10,12 @@ end
 
 PDEOperator(A,B)=PDEOperator([A B])
 
+for op in (:domainspace,:rangespace)
+    @eval begin
+        $op(L::PDEOperator,j::Integer)=$op(L.ops[j])
+        $op(L::PDEOperator)=$op(L,1)⊗$op(L,2)
+    end
+end
 
 
 function domain(LL::PDEOperator,j::Integer)
@@ -218,8 +224,12 @@ end
 
 Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
 
+for op in (:domainspace,:rangespace)
+    @eval begin
+        $op(P::PDEOperatorSchur,k::Integer)=k==1?$op(P.Lx):$op(P.S)
+        $op(L::PDEOperator)=$op(L,1)⊗$op(L,2)
+    end
+end
 
-domainspace(P::PDEOperatorSchur,k::Integer)=k==1?domainspace(P.Lx):domainspace(P.S)
-rangespace(P::PDEOperatorSchur,k::Integer)=k==1?rangespace(P.Lx):rangespace(P.S)
+
 domain(P::PDEOperatorSchur,k::Integer)=k==1?domain(P.Lx):domain(P.S)
-
