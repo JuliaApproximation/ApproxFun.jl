@@ -1,5 +1,6 @@
 export Operator,Functional,InfiniteOperator
 export bandrange, linsolve, periodic
+export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 
 
@@ -93,13 +94,15 @@ include("ShiftOperator.jl")
 include("linsolve.jl")
 
 include("SpaceOperator.jl")
-
 include("ToeplitzOperator.jl")
-
 include("ConstantOperator.jl")
+
+
 include("ConversionOperator.jl")
 include("MultiplicationOperator.jl")
 include("DerivativeOperator.jl")
+include("EvaluationFunctional.jl")
+
 
 include("Ultraspherical/Ultraspherical.jl")
 
