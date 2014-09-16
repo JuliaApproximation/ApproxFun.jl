@@ -107,12 +107,11 @@ typealias FourierSpace PeriodicSumSpace{CosSpace,SinSpace}
 FourierSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace((CosSpace(d),SinSpace(d)))
 
 points(sp::FourierSpace,n)=points(domain(sp),n)
-function transform{T<:Number}(::FourierSpace,vals::Vector{T})
-    n=length(vals)
-    cfs=2FFTW.r2r(vals, FFTW.R2HC )/n
-    cfs[1]/=2
+
+
+function fouriermodalt!(cfs)
+    n=length(cfs)
     if iseven(n)
-        cfs[n/2+1]/=2
         for k=2:2:n/2+1
             cfs[k]*=-1
         end  
@@ -120,7 +119,8 @@ function transform{T<:Number}(::FourierSpace,vals::Vector{T})
         for k=2:2:(n+1)/2
             cfs[k]*=-1
         end     
-    end
+    end    
+    
     if mod(n,4)==0
         for k=n/2+3:2:n
             cfs[k]*=-1
@@ -138,6 +138,18 @@ function transform{T<:Number}(::FourierSpace,vals::Vector{T})
             cfs[k]*=-1
         end      
     end
+    cfs
+end
+
+function transform{T<:Number}(::FourierSpace,vals::Vector{T})
+    n=length(vals)
+    cfs=2FFTW.r2r(vals, FFTW.R2HC )/n
+    cfs[1]/=2
+    if iseven(n)
+        cfs[n/2+1]/=2
+    end
+
+    fouriermodalt!(cfs)
         
     ret=Array(T,n)
     if iseven(n)
@@ -148,6 +160,18 @@ function transform{T<:Number}(::FourierSpace,vals::Vector{T})
         ret[2:2:end]=cfs[end:-1:(n+3)/2]
     end
     ret    
+end
+
+
+function itransform{T<:Number}(::FourierSpace,a::Vector{T})
+    n=length(a)
+    cfs=[a[1:2:end],flipud(a[2:2:end])]
+    fouriermodalt!(cfs)
+    if iseven(n)
+        cfs[n/2+1]*=2
+    end        
+    cfs[1]*=2
+    FFTW.r2r(cfs, FFTW.HC2R )/2  
 end
 
 
