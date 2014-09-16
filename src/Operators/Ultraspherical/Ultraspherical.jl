@@ -122,12 +122,12 @@ function addentries!{λ}(D::DerivativeOperator{Float64,UltrasphericalSpace{λ}},
     @assert isa(d,Interval)
 
     if λ == 0
-        C=2.^(m-1).*factorial(μ-1)*(2./(d.b-d.a)).^m    
+        C=2.^(m-1).*factorial(μ-1)*(2./length(d)).^m    
         for k=kr
             A[k,m] += C*(μ+k-1)
         end
     else
-        C=2.^m.*factorial(μ-1)./factorial(λ-1)*(2./(d.b-d.a)).^m        
+        C=2.^m.*factorial(μ-1)./factorial(λ-1)*(2./length(d)).^m        
         for k=kr        
             A[k,m] += C
         end
@@ -151,12 +151,28 @@ end
 # end
 
  
+## Integral
 
+
+rangespace{λ}(D::IntegrationOperator{Float64,UltrasphericalSpace{λ}})=UltrasphericalSpace{λ-D.order}(domain(D))
+
+function addentries!{λ}(D::IntegrationOperator{Float64,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+    @assert λ==1
+    @assert D.order==1   
+    
+    d=domain(D)
+    
+    for k=max(kr[1],2):kr[end]
+        A[k,-1] += .5length(d)./(k-1)
+    end
+    
+    A
+end
+ 
 
 
 
 include("USConversionOperator.jl")
-include("IntegrationOperator.jl")
 include("DirichletConversionOperator.jl")
 
 

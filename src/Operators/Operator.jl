@@ -100,7 +100,7 @@ include("ConstantOperator.jl")
 
 include("ConversionOperator.jl")
 include("MultiplicationOperator.jl")
-include("DerivativeOperator.jl")
+include("calculus.jl")
 include("EvaluationFunctional.jl")
 
 
@@ -111,7 +111,7 @@ include("AlmostBandedOperator.jl")
 include("adaptiveqr.jl")
 
 
-include("OperatorAlgebra.jl")
+include("algebra.jl")
 
 include("specialfunctions.jl")
 
@@ -128,22 +128,13 @@ include("systems.jl")
 
 
 
-## Convenience routines
+## Conversion
 
-Base.diff(d::DomainSpace,μ::Integer)=DerivativeOperator(d,μ)
-Base.diff(d::IntervalDomain,μ::Integer)=diff(ChebyshevSpace(d),μ)
-Base.diff(d::PeriodicDomain,μ::Integer)=diff(LaurentSpace(d),μ)
-Base.diff(d::Domain)=Base.diff(d,1)
 
 
 Base.zero{T<:Number}(::Type{Operator{T}})=ConstantOperator(zero(T))
 Base.zero{O<:Operator}(::Type{O})=ConstantOperator(0.0)
 
-integrate(d::IntervalDomain)=IntegrationOperator(1,d)
-
-
-
-## Conversion
 
 # TODO: can convert return different type?
 Base.convert{T<:Operator}(A::Type{T},n::Number)=ConstantOperator(1.0*n)

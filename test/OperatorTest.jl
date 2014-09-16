@@ -1,10 +1,10 @@
 using ApproxFun, Base.Test
 
 
-f=Fun(exp);
-d=domain(f);
-D=diff(d);
-Q=integrate(d);
+f=Fun(exp)
+d=domain(f)
+D=diff(d)
+Q=integrate(d)
 
 @test norm((Q+I)*f-(integrate(f)+f)) < eps()
 @test norm((Q)*f-(integrate(f))) < eps()
