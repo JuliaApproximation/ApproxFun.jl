@@ -25,7 +25,7 @@ function convert2funvec{T<:Number,D}(f::Vector{T},d::D)
     ret
 end
 convert2funvec{T<:Fun,D}(f::Vector{T},d::D)=f
-function convert2funvec{D}(f::Vector{Any},d::D)
+function convert2funvec{D}(f::Vector,d::D)
     mytyp=Fun{Float64,D}
     
     for fk in f
@@ -50,8 +50,8 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
     end
 
     ##TODO: makes more sense as a domain space of the boundary ops once thats set up
-    fx=convert2funvec(f[A.indsBx],ChebyshevSpace(domain(A,2)))
-    fy=convert2funvec(f[A.indsBy],ChebyshevSpace(domain(A,1)))
+    fx=convert2funvec(f[A.indsBx],domainspace(A,2))
+    fy=convert2funvec(f[A.indsBy],domainspace(A,1))
     
 
     ff=f[end]
@@ -95,7 +95,8 @@ pdesolve(A::PDEOperatorSchur,f::Vector,nx...)=TensorFun(pdesolve_mat(A,f,nx...),
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector)=TensorFun(pdesolve_mat(A,f),domainspace(A[end],2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n...)=TensorFun(pdesolve_mat(A,f,n...),domainspace(A[end],2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Fun,n...)=pdesolve(A,[f],n...)
-
+pdesolve{T<:PDEOperator}(A::Vector{T},f::MultivariateFun,n...)=pdesolve(A,[f],n...)
+pdesolve(A::PDEOperator,f...)=pdesolve([A],f...)
 
 
 
@@ -151,4 +152,4 @@ pdesolve{T<:PDEOperator}(A::Vector{T},f::Fun,n...)=pdesolve(A,[f],n...)
 \(A::PDEOperatorSchur,f::Vector)=pdesolve(A,f)
 \{T<:PDEOperator}(A::Vector{T},f::Fun)=pdesolve(A,f)
 \(A::PDEOperatorSchur,f::Fun)=pdesolve(A,f)
-
+\(A::PDEOperator,f::MultivariateFun)=pdesolve(A,f)

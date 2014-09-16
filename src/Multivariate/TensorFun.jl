@@ -46,10 +46,10 @@ end
 
 coefficients(f::TensorFun)=funlist2coefficients(f.coefficients)
 
-function coefficients(f::TensorFun,ox::FunctionSpace,oy::FunctionSpace)
+function coefficients{T<:Number}(f::TensorFun{T},ox::FunctionSpace,oy::FunctionSpace)
     m=size(f,1)
     A=[pad!(coefficients(fx,ox),m) for fx in f.coefficients]
-    B=hcat(A...)::Array{Float64,2}
+    B=hcat(A...)::Array{T,2}
     for k=1:size(B,1)
         B[k,:]=spaceconversion(vec(B[k,:]),space(f,2),oy)
     end

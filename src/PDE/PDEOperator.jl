@@ -227,7 +227,7 @@ Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
 for op in (:domainspace,:rangespace)
     @eval begin
         $op(P::PDEOperatorSchur,k::Integer)=k==1?$op(P.Lx):$op(P.S)
-        $op(L::PDEOperator)=$op(L,1)⊗$op(L,2)
+        $op(L::PDEOperatorSchur)=$op(L,1)⊗$op(L,2)
     end
 end
 

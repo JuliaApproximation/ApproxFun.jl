@@ -20,7 +20,8 @@ for TT in (:Derivative,:Integral)
         
         domain(D::$TT)=domain(D.space)
         
-        domainspace(M::$TT)=M.space
+        domainspace(D::$TT)=D.space
+        rangespace{T,S<:PeriodicDomainSpace}(D::$TT{T,S})=D.space        #assume rangespace is the same
         bandinds{T,S<:PeriodicDomainSpace}(D::$TT{T,S})=0,0
     end
 end

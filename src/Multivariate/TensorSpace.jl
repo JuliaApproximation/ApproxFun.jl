@@ -13,7 +13,7 @@ immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace}
     spaces::(S,T)
 end
 
-TensorSpace(A,B)=TensorSpace([A,B])
+TensorSpace(A,B)=TensorSpace((A,B))
 ⊗(A::FunctionSpace,B::FunctionSpace)=TensorSpace(A,B)
 
 

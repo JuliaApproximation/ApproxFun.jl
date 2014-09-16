@@ -100,7 +100,7 @@ function cont_reduce_dofs{T<:Fun}(S::OperatorSchur,G::Vector{T},L::Operator,M::O
 end
 
 
-regularize_bcs(S::OperatorSchur,Gy)=S.bcQ*Gy
+regularize_bcs(S::OperatorSchur,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
 
 
 # Solve Bx*Y=Gx and P*Y*R' + S*Y*T' = F 

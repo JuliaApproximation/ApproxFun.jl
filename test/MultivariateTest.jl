@@ -16,3 +16,6 @@ f=Fun2D((x,y)->cos(x)*sin(y),PeriodicInterval(),PeriodicInterval())
 
 f=Fun2D((x,y)->cos(cos(x)+sin(y)),PeriodicInterval(),PeriodicInterval())
 @test_approx_eq f[.1,.2] cos(cos(.1)+sin(.2))
+
+f=TensorFun((x,y)->cos(cos(x)+sin(y)),PeriodicInterval()^2)
+@test_approx_eq f[.1,.2] cos(cos(.1)+sin(.2))

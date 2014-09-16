@@ -70,6 +70,7 @@ end
 Fun2D(f::Function,dx::FunctionSpace,dy::FunctionSpace)=Fun2D(f,dx,dy,40,40)
 
 Fun2D(f::Function,dx::Domain,dy::Domain,nx...)=Fun2D(f,Space(dx),Space(dy),nx...)
+Fun2D(f,d::ProductDomain)=Fun2D(f,d[1],d[2])
 function Fun2D(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integer,gridy::Integer;maxrank=100::Integer)
     tol=1000eps()
     

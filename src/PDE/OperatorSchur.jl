@@ -51,6 +51,7 @@ function regularize_bcs(B::Array, L::Array, M::Array)
     if length(B) == 0
         R = B
         P = eye(size(L,2))
+        Q= eye(0)
     else
         # permute rows of X/columns of B so principle block of B is nonsingular
         P = nonsingular_permute(B)
