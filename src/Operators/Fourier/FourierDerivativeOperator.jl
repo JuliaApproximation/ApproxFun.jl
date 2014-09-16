@@ -6,6 +6,7 @@ export FourierDerivativeOperator
 
 function addentries!(D::DerivativeOperator{Complex{Float64},LaurentSpace},A::ShiftArray,kr::Range1)
     d=domain(D)
+    m=D.order
     C=2π./(d.b-d.a)*im
 
     for k=kr
