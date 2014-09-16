@@ -21,7 +21,7 @@ Fun2D{T,S,M}(A::Vector{Fun{T,S}},B::Vector{Fun{T,M}})=Fun2D{T,S,M}(A,B)
 
 
 Fun2D{T<:Number}(A::Array{T})=Fun2D(A,Interval(),Interval())
-function Fun2D{T<:Number}(X::Array{T},dx::IntervalDomain,dy::IntervalDomain)
+function Fun2D{T<:Number}(X::Array{T},dx::FunctionSpace,dy::FunctionSpace)
     U,Σ,V=svd(X)
     m=max(1,count(s->s>10eps(),Σ))
     
@@ -36,23 +36,21 @@ end
 # TODO: Vector pads right
 for T in (:Float64,:(Complex{Float64}))
     @eval begin
-        function Fun2D{F<:Fun{$T}}(X::Array{F,2},dy::IntervalDomain)
-            @assert size(X,1)==1
-            
+        function Fun2D{F<:Fun{$T}}(X::Vector{F},dy::FunctionSpace)            
             m=mapreduce(length,max,X)
             M=zeros($T,m,length(X))
             for k=1:length(X)
                 M[1:length(X[k]),k]=X[k].coefficients
             end
             
-            Fun2D(M,domain(X[1]),dy)
+            Fun2D(M,space(X[1]),dy)
         end
     end
 end
 
 
-findapproxmax(f::Function,dx::Domain,dy::Domain)=findapproxmax(f,dx,dy, 40, 40)
-function findapproxmax(f::Function,dx::Domain,dy::Domain, gridx::Integer, gridy::Integer)
+findapproxmax(f::Function,dx::FunctionSpace,dy::FunctionSpace)=findapproxmax(f,dx,dy, 40, 40)
+function findapproxmax(f::Function,dx::FunctionSpace,dy::FunctionSpace, gridx::Integer, gridy::Integer)
     ptsx=points(dx,gridx)
     ptsy=points(dy,gridy)
 
@@ -69,10 +67,10 @@ function findapproxmax(f::Function,dx::Domain,dy::Domain, gridx::Integer, gridy:
     end
     mpt
 end
+Fun2D(f::Function,dx::FunctionSpace,dy::FunctionSpace)=Fun2D(f,dx,dy,40,40)
 
-
-Fun2D(f::Function,dx::Domain,dy::Domain)=Fun2D(f,dx,dy,40,40)
-function Fun2D(f::Function,dx::Domain,dy::Domain,gridx::Integer,gridy::Integer;maxrank=100::Integer)
+Fun2D(f::Function,dx::Domain,dy::Domain,nx...)=Fun2D(f,Space(dx),Space(dy),nx...)
+function Fun2D(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integer,gridy::Integer;maxrank=100::Integer)
     tol=1000eps()
     
     r=findapproxmax(f,dx,dy,gridx,gridy)
@@ -115,6 +113,11 @@ Fun2D(f::Fun2D)=Fun2D(f,Interval(),Interval())
 
 
 domain(f::Fun2D,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
+domain(f::Fun2D)=domain(f,1)*domain(f,2)
+
+space(f::Fun2D,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
+space(f::Fun2D)=space(f,1)⊗space(f,2)
+
 
 function values(f::Fun2D)
     xm=mapreduce(length,max,f.A)
@@ -126,6 +129,7 @@ function values(f::Fun2D)
     ret
 end
 
+#TODO: this is inconsistent with 1D where it does canonical
 function coefficients(f::Fun2D)
     xm=mapreduce(length,max,f.A)
     ym=mapreduce(length,max,f.B)    
