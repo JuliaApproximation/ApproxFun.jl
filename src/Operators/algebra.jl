@@ -17,7 +17,7 @@ Base.getindex(op::PlusFunctional,k::Range)=mapreduce(o->o[k],+,op.ops)
 
 
 
-immutable PlusOperator{T<:Number,B<:Operator} <: BandedOperator{T} 
+immutable PlusOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T} 
     ops::Vector{B}
 end
 
@@ -41,11 +41,11 @@ end
     
 ## TODO: figure out how to do this with for over a tuple
 PlusFunctional{B<:Functional}(ops::Vector{B})=PlusFunctionalOperator(PlusFunctional,Functional,ops)
-PlusOperator{B<:Operator}(ops::Vector{B})=PlusFunctionalOperator(PlusOperator,Operator,ops)
+PlusOperator{B<:BandedOperator}(ops::Vector{B})=PlusFunctionalOperator(PlusOperator,BandedOperator,ops)
 
 
 
-for SS in (:(PlusFunctional,Functional),:(PlusOperator,Operator))
+for SS in (:(PlusFunctional,Functional),:(PlusOperator,BandedOperator))
     @eval begin
         function domainspace(P::($SS[1]))
             for op in P.ops
@@ -172,7 +172,7 @@ end
 
 
 
-type TimesOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
     ops::Vector{B}
     
     function TimesOperator{B}(ops::Vector{B})
@@ -394,3 +394,20 @@ end
 
 
 
+
+
+## promotedomain
+
+for T in (:AnySpace,:FunctionSpace)
+    @eval begin
+        function promotedomainspace(P::TimesOperator,sp::FunctionSpace,cursp::$T)
+            if sp==cursp
+                P
+            elseif length(P.ops)==2
+                P.ops[1]*promotedomainspace(P.ops[end],sp)
+            else
+                TimesOperator(P.ops[1:end-1])*promotedomainspace(P.ops[end],sp)
+            end
+        end
+    end
+end

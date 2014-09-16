@@ -41,8 +41,8 @@ promotedomainspace(P::Functional,sp::FunctionSpace,::AnySpace)=SpaceFunctional(P
 
 for op in (:promoterangespace,:promotedomainspace)
     @eval begin
-        ($op)(P::Operator,::AnySpace)=P
-        ($op)(P::Operator,sp::FunctionSpace,::AnySpace)=SpaceOperator(P,sp)
+        ($op)(P::BandedOperator,::AnySpace)=P
+        ($op)(P::BandedOperator,sp::FunctionSpace,::AnySpace)=SpaceOperator(P,sp)
     end
 end
 
@@ -51,10 +51,9 @@ promotedomainspace(P::Operator,sp::FunctionSpace)=promotedomainspace(P,sp,domain
         
         
 
-promoterangespace(P::Operator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(Conversion(cursp,sp),P)
-
+promoterangespace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(Conversion(cursp,sp),P)
 promotedomainspace(P::Functional,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesFunctional(P,Conversion(sp,cursp))
-promotedomainspace(P::Operator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(P,Conversion(sp,cursp))
+promotedomainspace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(P,Conversion(sp,cursp))
 
 
 
