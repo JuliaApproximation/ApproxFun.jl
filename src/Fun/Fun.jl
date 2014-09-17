@@ -165,8 +165,7 @@ norm(f::Fun)=real(sqrt(sum(f.*conj(f))))
 import Base.imag, Base.real, Base.conj
 
 for op = (:real,:imag,:conj) 
-    ##TODO: this assumes real space
-    @eval ($op)(f::Fun) = Fun(($op)(f.coefficients),f.space)
+    @eval ($op){T,D<:IntervalDomainSpace}(f::Fun{T,D}) = Fun(($op)(f.coefficients),f.space)
 end
 
 Base.abs2(f::Fun{Float64})=f.^2

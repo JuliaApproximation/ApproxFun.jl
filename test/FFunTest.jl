@@ -11,3 +11,6 @@ f=Fun(exp,Circle());
 
 @test norm(diff(f)-f)<100eps()
 @test norm(integrate(f)+1-f)<100eps()
+
+f=FFun(x->exp(-10sin((x-.1)/2)^2))
+@test_approx_eq real(f)[.1] f[.1]
