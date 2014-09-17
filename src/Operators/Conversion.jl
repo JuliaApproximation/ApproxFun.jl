@@ -1,10 +1,12 @@
 export Conversion
 
 
-immutable Conversion{S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{Float64}
+immutable Conversion{S<:FunctionSpace,V<:FunctionSpace,T<:Number} <: BandedOperator{T}
     domainspace::S
     rangespace::V
 end
+Conversion{S<:PeriodicDomainSpace,V<:PeriodicDomainSpace}(A::S,B::V)=Conversion{S,V,Complex{Float64}}(A,B)
+Conversion{S<:IntervalDomainSpace,V<:IntervalDomainSpace}(A::S,B::V)=Conversion{S,V,Float64}(A,B)
 
 domainspace(C::Conversion)=C.domainspace
 rangespace(C::Conversion)=C.rangespace

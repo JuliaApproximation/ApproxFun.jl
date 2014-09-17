@@ -22,3 +22,26 @@ end
 ## Multiplication 
 
 addentries!{T}(M::Multiplication{T,LaurentSpace,LaurentSpace},A,k)=addentries!(LaurentOperator(M.f),A,k)
+
+## Converison
+
+function addentries!(C::Conversion{LaurentSpace,FourierSpace},A::ShiftArray,kr::Range)
+    for k=kr
+        if k==1
+            A[k,0]=1.
+        elseif iseven(k)
+            A[k,0]=-1.im
+            A[k,1]=1.im
+        else #isodd(k)
+            A[k,0]=1
+            A[k,-1]=1
+        end
+    end
+    A
+end
+bandinds(::Conversion{LaurentSpace,FourierSpace})=-1,1
+
+function conversion_rule(A::LaurentSpace,B::FourierSpace)
+    @assert domainscompatible(A,B)
+    B
+end

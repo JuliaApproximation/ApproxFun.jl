@@ -181,7 +181,7 @@ function Conversion{a,b}(A::UltrasphericalSpace{a},B::UltrasphericalSpace{b})
     @assert b > a
 
     if b==a+1
-        Conversion{UltrasphericalSpace{a},UltrasphericalSpace{b}}(A,B)
+        Conversion{UltrasphericalSpace{a},UltrasphericalSpace{b},Float64}(A,B)
     else
         d=domain(A)
         Conversion(UltrasphericalSpace{b-1}(d),B)*Conversion(A,UltrasphericalSpace{b-1}(d))
