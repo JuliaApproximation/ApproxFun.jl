@@ -22,9 +22,9 @@ f=TensorFun((x,y)->cos(cos(x)+sin(y)),PeriodicInterval()^2)
 @test_approx_eq f[.1,.2] cos(cos(.1)+sin(.2))
 @test norm(Float64[cos(cos(x)+sin(y)) for x=points(f,1),y=points(f,2)]-values(f))<1000eps()
 
-
+d=PeriodicInterval()^2
 f=TensorFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
-#test (f.'-f|>coefficients|>norm)< 10eps()
+@test (f.'-f|>coefficients|>norm)< 10eps()
 
 
 

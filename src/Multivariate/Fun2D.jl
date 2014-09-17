@@ -151,10 +151,10 @@ end
 function points(f::Fun2D,k::Integer)
     if k==1
         xm=mapreduce(length,max,f.A)
-        points(first(f.A),xm)
+        points(space(first(f.A)),xm)
     else
         ym=mapreduce(length,max,f.B)
-        points(first(f.B),ym)
+        points(space(first(f.B)),ym)
     end
 end
 

@@ -21,7 +21,7 @@ end
 
 TensorFun(cfs::Array,d::TensorSpace)=TensorFun(cfs,d[1],d[2])
 TensorFun(cfs::Array,d::ProductDomain)=TensorFun(cfs,d[1],d[2])
-TensorFun(f::Function,dy::Domain)=TensorFun(f,Space(dy))
+TensorFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
 TensorFun(f,dy::Domain)=TensorFun(f,Space(dy))
 TensorFun(f,dx::Domain,dy::Domain)=TensorFun(f,Space(dx),Space(dy))
 TensorFun(f::Fun2D)=TensorFun(coefficients(f),space(f,1),space(f,2))
