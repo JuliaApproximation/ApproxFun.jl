@@ -3,6 +3,12 @@ export lap,grad,timedirichlet, ⊗
 
 
 type PDEOperator
+    # 2x2 array 
+    # [Lx Ly;
+    # [Mx My] 
+    # that represents
+    # Lx⊗Ly + Mx⊗My
+ 
     ops::Array{Operator,2}
 end
 
@@ -10,9 +16,12 @@ end
 
 PDEOperator(A,B)=PDEOperator([A B])
 
+
+domainspace(L::PDEOperator,j::Integer)=findmindomainspace(L.ops[:,j])
+rangespace(L::PDEOperator,j::Integer)=findmaxrangespace(L.ops[:,j])
+
 for op in (:domainspace,:rangespace)
     @eval begin
-        $op(L::PDEOperator,j::Integer)=$op(L.ops[j])
         $op(L::PDEOperator)=$op(L,1)⊗$op(L,2)
     end
 end
@@ -70,6 +79,7 @@ function lap(d::ProductDomain)
     Dy=Base.diff(d.domains[2])    
     Dx^2⊗I+I⊗Dy^2
 end
+
 
 function -(A::PDEOperator)
     ops=copy(A.ops)
@@ -223,6 +233,7 @@ function PDEOperatorSchur{T<:PDEOperator}(A::Vector{T},ny::Integer)
 end
 
 Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
+Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
 
 for op in (:domainspace,:rangespace)
     @eval begin

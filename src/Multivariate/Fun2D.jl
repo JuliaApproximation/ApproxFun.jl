@@ -21,13 +21,13 @@ Fun2D{T,S,M}(A::Vector{Fun{T,S}},B::Vector{Fun{T,M}})=Fun2D{T,S,M}(A,B)
 
 
 Fun2D{T<:Number}(A::Array{T})=Fun2D(A,Interval(),Interval())
-function Fun2D{T<:Number}(X::Array{T},dx::FunctionSpace,dy::FunctionSpace)
+function Fun2D{T<:Number,S<:FunctionSpace,W<:FunctionSpace}(X::Array{T},dx::S,dy::W)
     U,Σ,V=svd(X)
     m=max(1,count(s->s>10eps(),Σ))
     
 
-    A=Fun{T,ChebyshevSpace}[Fun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
-    B=Fun{T,ChebyshevSpace}[Fun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
+    A=Fun{T,S}[Fun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
+    B=Fun{T,W}[Fun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
 
     Fun2D(A,B)
 end
@@ -114,10 +114,7 @@ Fun2D(f::Fun2D)=Fun2D(f,Interval(),Interval())
 
 
 domain(f::Fun2D,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
-domain(f::Fun2D)=domain(f,1)*domain(f,2)
-
 space(f::Fun2D,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
-space(f::Fun2D)=space(f,1)⊗space(f,2)
 
 
 function values(f::Fun2D)
@@ -201,5 +198,5 @@ end
 -(f::Fun2D,g::Fun2D)=f+(-g)
 
 
-real(u::Fun2D)=Fun2D([map(real,u.A),map(imag,u.A)],[map(real,u.B),-map(imag,u.B)])
-imag(u::Fun2D)=Fun2D([map(real,u.A),map(imag,u.A)],[map(imag,u.B),map(real,u.B)])
+Base.real(u::Fun2D)=Fun2D([map(real,u.A),map(imag,u.A)],[map(real,u.B),-map(imag,u.B)])
+Base.imag(u::Fun2D)=Fun2D([map(real,u.A),map(imag,u.A)],[map(imag,u.B),map(real,u.B)])

@@ -57,13 +57,22 @@ function coefficients{T<:Number}(f::TensorFun{T},ox::FunctionSpace,oy::FunctionS
     B
 end
 
-values(f::TensorFun)=ichebyshevtransform(coefficients(f))
+function values(f::TensorFun)
+    n=size(f,1)
+    M=hcat(map(fk->values(pad(fk,n)),f.coefficients)...)
+    for k=1:size(f,1)
+        M[k,:]=values(Fun(vec(M[k,:]),space(f,2)))
+    end
+    M     
+end
 
-points(f::TensorFun,k)=points(domain(f,k),size(f,k))
+
+
+
+points(f::TensorFun,k)=points(space(f,k),size(f,k))
 
 space(f::TensorFun,k::Integer)=k==1?space(f.coefficients[1]):f.spacey
 domain(f::TensorFun,k::Integer)=domain(space(f,k))
-domain(LL::TensorFun)=domain(LL,1)*domain(LL,2)
 
 
 
@@ -113,7 +122,19 @@ end
 
 Fun2D(f::TensorFun)=Fun2D(f.coefficients,space(f,2))
 
-Base.transpose(f::TensorFun)=TensorFun(coefficients(f).',domain(f,2),domain(f,1))
+function Base.diff(f::TensorFun,j::Integer)
+    if j==1
+        TensorFun(map(diff,f.coefficients),f.spacey)
+    else
+        diff(f.',1).'
+    end
+end
+
+
+Base.transpose(f::TensorFun)=TensorFun(coefficients(f).',space(f,2),space(f,1))
+
+
+
 
 
 #TODO: adaptive
