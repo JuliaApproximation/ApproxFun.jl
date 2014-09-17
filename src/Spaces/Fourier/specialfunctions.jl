@@ -1,4 +1,4 @@
-function Base.real(f::Fun{Complex{Float64},LaurentSpace})
+function Base.real{T<:Number}(f::Fun{T,LaurentSpace})
     n=length(f)
     cfs=f.coefficients
 
@@ -20,7 +20,7 @@ function Base.real(f::Fun{Complex{Float64},LaurentSpace})
 end
 
 
-function Base.imag(f::Fun{Complex{Float64},LaurentSpace})
+function Base.imag{T<:Number}(f::Fun{T,LaurentSpace})
     n=length(f)
     cfs=f.coefficients
 

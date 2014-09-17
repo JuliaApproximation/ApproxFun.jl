@@ -148,5 +148,11 @@ for op = (:(Base.real),:(Base.imag),:(Base.conj))
     @eval ($op){T,S,V<:RealDomainSpace}(f::TensorFun{T,S,V}) = TensorFun(map($op,f.coefficients),f.spacey)
 end
 
+#For complex bases
+Base.real{T,S,V}(u::TensorFun{T,S,V})=real(TensorFun(real(u.coefficients),space(u,2)).').'-imag(TensorFun(imag(u.coefficients),space(u,2)).').'
+Base.imag{T,S,V}(u::TensorFun{T,S,V})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
+
+
+
 
 

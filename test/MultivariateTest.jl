@@ -34,3 +34,4 @@ A=lap(d)+.1I
 u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 10000eps()
 
+@test_approx_eq real(f)[.1,.2] f[.1,.2]
