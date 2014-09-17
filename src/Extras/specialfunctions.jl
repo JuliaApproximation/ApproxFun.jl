@@ -5,7 +5,7 @@
 for op in (:./,:/)
     @eval begin
         function ($op){T}(c::Number,f::Fun{T,ChebyshevSpace})
-            fc = Fun(f)
+            fc = Fun(canonicalcoefficients(f),Interval())
             r = roots(fc)
             x = Fun(identity)
             
@@ -19,15 +19,15 @@ for op in (:./,:/)
                 @assert abs(abs(r[1]) - 1.) < tol
                 
                 if sign(r[1]) < 0
-                    Fun(coefficients(c./(fc./(x+1))),JacobiWeightSpace(-1,0,domain(f)))
+                    Fun(canonicalcoefficients(c./(fc./(x+1))),JacobiWeightSpace(-1,0,domain(f)))
                 else
-                    Fun(coefficients(c./(fc./(1-x))),JacobiWeightSpace(0,-1,domain(f)))                
+                    Fun(canonicalcoefficients(c./(fc./(1-x))),JacobiWeightSpace(0,-1,domain(f)))                
                 end 
             else
                 @assert abs(r[1]+1) < tol
                 @assert abs(r[2]-1) < tol                        
                 
-                Fun(coefficients(c./(fc./(1-x.^2))),JacobiWeightSpace(-1,-1,domain(f)))  
+                Fun(canonicalcoefficients(c./(fc./(1-x.^2))),JacobiWeightSpace(-1,-1,domain(f)))  
             end
         end
     end
@@ -52,8 +52,8 @@ for op in (:(Base.cos),:(Base.sin))
     end
 end
 
-function Base.sqrt(f::Fun)
-    fc = Fun(f)
+function Base.sqrt{T}(f::Fun{T,ChebyshevSpace})
+    fc = Fun(canonicalcoefficients(f))
     x=Fun(identity)
 
     r = sort(roots(fc))
@@ -67,15 +67,15 @@ function Base.sqrt(f::Fun)
         @assert abs(abs(r[1])-1) < tol
         
         if abs(r[1]-1.) < tol
-            Fun(coefficients(sqrt(Multiplication(1-x)\fc)),JacobiWeightSpace(0.,.5,domain(f)))
+            Fun(canonicalcoefficients(sqrt(Multiplication(1-x)\fc)),JacobiWeightSpace(0.,.5,domain(f)))
         else
-            Fun(coefficients(sqrt(Multiplication(1+x)\fc)),JacobiWeightSpace(.5,0.,domain(f)))
+            Fun(canonicalcoefficients(sqrt(Multiplication(1+x)\fc)),JacobiWeightSpace(.5,0.,domain(f)))
         end
     else
         @assert abs(r[1]+1) < tol
         @assert abs(r[2]-1) < tol        
     
-        Fun(coefficients(sqrt(linsolve(Multiplication(1-x.^2),fc;tolerance=eps()))),JacobiWeightSpace(.5,.5,domain(f)))  
+        Fun(canonicalcoefficients(sqrt(linsolve(Multiplication(1-x.^2),fc;tolerance=eps()))),JacobiWeightSpace(.5,.5,domain(f)))  
     end
 end
 

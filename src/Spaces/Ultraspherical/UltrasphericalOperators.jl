@@ -56,13 +56,13 @@ end
 
 
 function addentries!{T,D}(M::Multiplication{T,D,ChebyshevSpace},A::ShiftArray,kr::Range1)
-    cfs=coefficients(M.f)
+    cfs=canonicalcoefficients(M.f)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(.5cfs,A,max(kr[1],2):kr[end])            
 end
 
 function addentries!{T,D}(M::Multiplication{T,D,UltrasphericalSpace{1}},A::ShiftArray,kr::Range1)
-    cfs=coefficients(M.f)
+    cfs=canonicalcoefficients(M.f)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(-.5cfs[3:end],A,kr)    
 end

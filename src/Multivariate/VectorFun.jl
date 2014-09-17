@@ -3,7 +3,6 @@
 
 ## Vector of fun routines
 
-
 function coefficients{N,D}(f::Vector{Fun{N,D}},o...)
     n=mapreduce(length,max,f)
     m=length(f)
@@ -13,6 +12,8 @@ function coefficients{N,D}(f::Vector{Fun{N,D}},o...)
     end
     R
 end
+
+
 
 
 # function coefficients{T<:FFun}(B::Vector{T})

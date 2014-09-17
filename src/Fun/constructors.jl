@@ -28,16 +28,9 @@ Fun{T<:DomainSpace}(f,::Type{T},n::Integer)=Fun(f,T(canonicaldomain(T)),n)
 Fun(f,d::Domain)=Fun(f,Space(d))
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
 
-Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
-Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
-Fun(cfs::Vector)=Fun(1.0*cfs,Interval())
-Fun{T<:Number}(cfs::Vector,d::Vector{T})=Fun(1.0*cfs,Interval(d))
-Fun(f::Function)=Fun(f,Interval())
-Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
-
 
 Fun{T<:Number}(f::Fun,d::Vector{T})=Fun(coefficients(f),d)
-Fun(f::Fun)=Fun(coefficients(f))  ##TODO: should this project to interval?
+#Fun(f::Fun)=Fun(coefficients(f))  ##TODO: should this project to interval?
 
 Fun(c::Number)=Fun([c])
 
@@ -159,3 +152,12 @@ FFun(f,n::Integer)=Fun(f,LaurentSpace(PeriodicInterval()),n)
 FFun(f)=Fun(f,LaurentSpace(PeriodicInterval()))
 
 typealias IFun{T,D} Fun{T,D}
+
+
+Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
+Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
+Fun(cfs::Vector)=Fun(1.0*cfs,Interval())
+Fun{T<:Number}(cfs::Vector,d::Vector{T})=Fun(1.0*cfs,Interval(d))
+Fun(f::Function)=Fun(f,Interval())
+Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
+
