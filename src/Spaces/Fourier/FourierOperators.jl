@@ -39,7 +39,23 @@ function addentries!(C::Conversion{LaurentSpace,FourierSpace},A::ShiftArray,kr::
     end
     A
 end
+function addentries!(C::Conversion{FourierSpace,LaurentSpace},A::ShiftArray,kr::Range)
+    for k=kr
+        if k==1
+            A[k,0]=1.
+        elseif iseven(k)
+            A[k,0]=0.5im
+            A[k,1]=0.5
+        else #isodd(k)
+            A[k,0]=0.5
+            A[k,-1]=-0.5im
+        end
+    end
+    A
+end
+
 bandinds(::Conversion{LaurentSpace,FourierSpace})=-1,1
+bandinds(::Conversion{FourierSpace,LaurentSpace})=-1,1
 
 function conversion_rule(A::LaurentSpace,B::FourierSpace)
     @assert domainscompatible(A,B)

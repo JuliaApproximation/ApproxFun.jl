@@ -1,6 +1,6 @@
 using ApproxFun, Base.Test
 
-import ApproxFun: ChebyshevDirichletSpace,UltrasphericalSpace
+import ApproxFun: ChebyshevDirichletSpace,UltrasphericalSpace,space
 
 
 @test_approx_eq Fun(exp,ChebyshevDirichletSpace{1,1})[.1] exp(.1)
@@ -23,3 +23,9 @@ f=Fun(t->cos(t)+cos(3t),CosSpace)
 f=Fun(exp,TaylorSpace(Circle()))
 g=Fun(z->1./(z-.1),HardySpace{false}(Circle()))
 @test_approx_eq (f[1.]+g[1.]) (exp(1.) + 1./(1-.1))
+
+
+## Periodic
+f=FFun(x->exp(-10sin((x-.1)/2)^2))
+@test_approx_eq f[.5] (Conversion(space(f),FourierSpace(domain(f)))*f)[.5]
+@test_approx_eq f[.5] Fun(f,FourierSpace)[.5]
