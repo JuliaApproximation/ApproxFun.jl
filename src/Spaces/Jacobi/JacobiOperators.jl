@@ -82,11 +82,11 @@ function Conversion(L::JacobiSpace,M::JacobiSpace)
     end
 end   
 
-bandinds(C::Conversion{Float64,JacobiSpace,JacobiSpace})=(0,1)
+bandinds(C::Conversion{JacobiSpace,JacobiSpace})=(0,1)
 
 
 
-function getdiagonalentry(C::Conversion{Float64,JacobiSpace,JacobiSpace},k,j)
+function getdiagonalentry(C::Conversion{JacobiSpace,JacobiSpace},k,j)
     T=C.domainspace
     if T.b==C.rangespace.b+1
         if j==0
