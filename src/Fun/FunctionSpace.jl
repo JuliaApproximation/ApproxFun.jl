@@ -116,3 +116,41 @@ end
 
 
 
+
+
+
+## Conversion routines
+
+
+## Space conversion default is through canonicalspace
+
+spaceconversion(f::Vector,sp::FunctionSpace)=spaceconversion(f,canonicalspace(sp),sp)
+spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpace)=spaceconversion(spaceconversion(f,sp1,sp2),sp2,sp3)
+
+
+## spaceconversion defaults to calling Conversion, otherwise it tries to pipe through ChebyshevSpace
+
+function spaceconversion{A<:FunctionSpace}(f::Vector,a::A,b::A)
+    @assert spacescompatible(a,b)
+        f
+end
+
+function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
+    ct=conversion_type(a,b)
+    csp=canonicalspace(a)
+    if a==b
+        f
+    elseif ct==a
+        Conversion(a,b)*f  ##TODO: Make * and \ consistent in return type
+    elseif ct==b
+        (Conversion(b,a)\f).coefficients
+    elseif a == csp
+        error("Override spaceconversion or implement Conversion from " * string(typeof(csp)) * " to " * string(B))
+    elseif b == csp
+        error("Override spaceconversion or implement Conversion from " * string(A) * " to " * string(typeof(csp)))
+    else
+        spaceconversion(f,a,csp,b)
+    end
+end
+
+

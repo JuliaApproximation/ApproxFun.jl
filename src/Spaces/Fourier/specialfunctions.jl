@@ -16,7 +16,7 @@ function Base.real(f::Fun{Complex{Float64},LaurentSpace})
         ret[k+1]+=real(cfs[k])
     end    
     
-    Fun(ret,FourierSpace)
+    Fun(ret,FourierSpace(domain(f)))
 end
 
 
@@ -38,6 +38,11 @@ function Base.imag(f::Fun{Complex{Float64},LaurentSpace})
         ret[k+1]+=imag(cfs[k])
     end    
     
-    Fun(ret,FourierSpace)
+    Fun(ret,FourierSpace(domain(f)))
+end
+
+
+for op in (:(Base.real),:(Base.imag),:(Base.conj))
+    @eval $op{T<:Number}(f::Fun{T,FourierSpace})=Fun($op(f.coefficients),f.space)
 end
 
