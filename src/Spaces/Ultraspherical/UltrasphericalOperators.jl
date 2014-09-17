@@ -85,6 +85,7 @@ function addentries!{T,D,λ}(M::Multiplication{T,D,UltrasphericalSpace{λ}},A::S
 
     if length(a) > 1
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+        ##TODO: simplify shift array and combine with Ultraspherical        
         J=BandedArray(ShiftArray(zeros(length(jkr),3),1-jkr[1],2),jkr)
         usjacobi_addentries!(λ,J.data,jkr)
     

@@ -90,13 +90,36 @@ ShiftArray(B::Operator,k::Range1)=ShiftArray(B,k,bandrange(B))
 BandedArray(B::Operator,k::Range1)=BandedArray(B,k,(k[1]+bandinds(B)[1]):(k[end]+bandinds(B)[end]))
 BandedArray(B::Operator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
 
+
+## Default addentries!
+# this allows for just overriding getdiagonalentry
+
+
+function addentries!(B::BandedOperator,A,kr)
+        br=bandinds(B)
+    for k=(max(kr[1],1)):(kr[end])
+        for j=max(br[1],1-k):br[end]
+            A[k,j]=getdiagonalentry(B,k,j)
+        end
+    end
+    
+    A
+end
+
+
+## Standard Operators and linear algebra
+
+
 include("ShiftOperator.jl")
 include("linsolve.jl")
 
 include("SpaceOperator.jl")
 include("ToeplitzOperator.jl")
 include("ConstantOperator.jl")
+include("TridiagonalOperator.jl")
 
+
+## Operators overrided for spaces
 
 include("Conversion.jl")
 include("Multiplication.jl")
@@ -115,7 +138,6 @@ include("algebra.jl")
 include("TransposeOperator.jl")
 include("StrideOperator.jl")
 include("SliceOperator.jl")
-
 include("CompactOperator.jl")
 
 
