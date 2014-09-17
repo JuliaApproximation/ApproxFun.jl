@@ -1,13 +1,14 @@
 
 
-immutable PeriodicSumSpace{S<:DomainSpace,T<:DomainSpace} <: PeriodicDomainSpace
-    spaces::(S,T)
+immutable PeriodicSumSpace{T<:Number,S<:PeriodicDomainSpace{T},V<:PeriodicDomainSpace{T}} <: PeriodicDomainSpace{T}
+    spaces::(S,V)
 end
 
-function PeriodicSumSpace{S<:DomainSpace,T<:DomainSpace}(A::S,B::T)
-    @assert domain(A)==domain(B)
-    PeriodicSumSpace{S,T}((A,B))
+function PeriodicSumSpace{T<:Number}(A::(PeriodicDomainSpace{T},PeriodicDomainSpace{T}))
+    @assert domain(A[1])==domain(A[2])
+    PeriodicSumSpace{T,typeof(A[1]),typeof(A[2])}(A)
 end
+PeriodicSumSpace(A::PeriodicDomainSpace,B::PeriodicDomainSpace)=PeriodicSumSpace((A,B))
 
 ##TODO IntervalSumSpace
 typealias SumSpace PeriodicSumSpace

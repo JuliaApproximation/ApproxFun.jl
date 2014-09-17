@@ -42,7 +42,3 @@ function Base.imag(f::Fun{Complex{Float64},LaurentSpace})
 end
 
 
-for op in (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval $op{T<:Number}(f::Fun{T,FourierSpace})=Fun($op(f.coefficients),f.space)
-end
-

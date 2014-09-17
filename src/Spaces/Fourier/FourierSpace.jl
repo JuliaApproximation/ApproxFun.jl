@@ -4,7 +4,7 @@ export FourierSpace,TaylorSpace,HardySpace,CosSpace,SinSpace,LaurentSpace
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
-        immutable $T <: PeriodicDomainSpace
+        immutable $T <: PeriodicDomainSpace{Float64}
             domain::Union(PeriodicDomain,AnyDomain)
         end
         ==(a::($T),b::($T))= a.domain==b.domain
@@ -13,7 +13,7 @@ end
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
-immutable HardySpace{s} <: PeriodicDomainSpace
+immutable HardySpace{s} <: PeriodicDomainSpace{Complex{Float64}}
     domain::Union(PeriodicDomain,AnyDomain)
 end
 
@@ -30,7 +30,7 @@ itransform(::PoleSpace,cfs::Vector)=ifft(flipud(alternatesign!(-cfs)))*length(cf
 
 function evaluate{T}(f::Fun{T,TaylorSpace},z)
     d=domain(f)
-    if typeof(d) <: Circle
+    if isa(d,Circle)
         horner(f.coefficients,(z-d.center)/d.radius)
     else
         horner(f.coefficients,fromcanonical(Circle(),tocanonical(f,z)))
@@ -39,7 +39,7 @@ end
 
 function evaluate{T}(f::Fun{T,PoleSpace},z)
     d=domain(f)
-    if typeof(d) <: Circle
+    if isa(d,Circle)
         z=(z-d.center)/d.radius
         z=1./z
         z.*horner(f.coefficients,z)
@@ -82,8 +82,8 @@ evaluate{T}(f::Fun{T,SinSpace},t)=sum([f.coefficients[k]*sin(k*tocanonical(f,t))
 
 ## Laurent space
 
-typealias LaurentSpace PeriodicSumSpace{HardySpace{true},HardySpace{false}}
-LaurentSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace((HardySpace{true}(d),HardySpace{false}(d)))
+typealias LaurentSpace PeriodicSumSpace{Complex{Float64},HardySpace{true},HardySpace{false}}
+LaurentSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace(HardySpace{true}(d),HardySpace{false}(d))
 
 Space(d::PeriodicDomain)=LaurentSpace(d)
 canonicalspace(S::PeriodicDomainSpace)=LaurentSpace(domain(S))
@@ -103,7 +103,7 @@ end
 
 ## Fourier space
 
-typealias FourierSpace PeriodicSumSpace{CosSpace,SinSpace}
+typealias FourierSpace PeriodicSumSpace{Float64,CosSpace,SinSpace}
 FourierSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace((CosSpace(d),SinSpace(d)))
 
 points(sp::FourierSpace,n)=points(domain(sp),n)

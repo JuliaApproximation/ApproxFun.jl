@@ -140,11 +140,13 @@ Base.transpose(f::TensorFun)=TensorFun(coefficients(f).',space(f,2),space(f,1))
 #TODO: adaptive
 #TODO: assumes Chebyshev
 for op in (:(Base.sin),:(Base.cos))
-    @eval ($op)(f::TensorFun)=TensorFun(chebyshevtransform($op(values(f))),domain(f))
+    @eval ($op){T,S<:IntervalDomainSpace,V<:IntervalDomainSpace}(f::TensorFun{T,S,V})=TensorFun(chebyshevtransform($op(values(f))),domain(f))
 end
 
-#TODO: assumes real basis
+
 for op = (:(Base.real),:(Base.imag),:(Base.conj)) 
-    @eval ($op)(f::TensorFun) = TensorFun(map($op,f.coefficients),f.spacey)
+    @eval ($op){T,S,V<:RealDomainSpace}(f::TensorFun{T,S,V}) = TensorFun(map($op,f.coefficients),f.spacey)
 end
+
+
 
