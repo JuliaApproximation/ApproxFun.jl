@@ -12,6 +12,7 @@ immutable JacobiWeightSpace <: IntervalDomainSpace
 end
 
 JacobiWeightSpace(a::Number,b::Number,d)=JacobiWeightSpace(1.0a,1.0b,d)
+JacobiWeightSpace(a,b)=JacobiWeightSpace(a,b,Interval())
 
 spacescompatible(A::JacobiWeightSpace,B::JacobiWeightSpace)=A.α==B.α && A.β == B.β
 
