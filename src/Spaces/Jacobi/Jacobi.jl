@@ -55,6 +55,9 @@ immutable JacobiSpace <: IntervalDomainSpace
     b::Float64
     domain::Union(IntervalDomain,AnyDomain)
 end
+LegendreSpace(domain)=JacobiSpace(0.,0.,domain)
+LegendreSpace()=LegendreSpace(Interval())
+JacobiSpace(a,b)=JacobiSpace(a,b,Interval())
 
 ==(a::JacobiSpace,b::JacobiSpace)=a.a==b.a && a.b==b.b && a.domain==b.domain
 
@@ -67,5 +70,7 @@ function conversion_rule(A::JacobiSpace,B::JacobiSpace)
     A.a < B.a?A:B    
 end
 
+
+include("jacobitransform.jl")
 include("JacobiOperators.jl")
 
