@@ -5,84 +5,92 @@
 export JacobiWeightSpace
 
 
-immutable JacobiWeightSpace <: IntervalDomainSpace
+immutable JacobiWeightSpace{S<:IntervalDomainSpace} <: IntervalDomainSpace
     α::Float64
     β::Float64
-    domain::Interval
+    space::S
 end
 
-JacobiWeightSpace(a::Number,b::Number,d)=JacobiWeightSpace(1.0a,1.0b,d)
-JacobiWeightSpace(a,b)=JacobiWeightSpace(a,b,Interval())
+JacobiWeightSpace(a::Number,b::Number,d::IntervalDomainSpace)=JacobiWeightSpace(1.0a,1.0b,d)
+JacobiWeightSpace(a::Number,b::Number,d::Domain)=JacobiWeightSpace(1.0a,1.0b,Space(d))
+JacobiWeightSpace(a,b)=JacobiWeightSpace(a,b,ChebyshevSpace())
 
-spacescompatible(A::JacobiWeightSpace,B::JacobiWeightSpace)=A.α==B.α && A.β == B.β
+domain(S::JacobiWeightSpace)=domain(S.space)
+
+spacescompatible(A::JacobiWeightSpace,B::JacobiWeightSpace)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
 
 
 jacobiweight(α,β,x)=(1.+x).^α.*(1.-x).^β
 jacobiweight(sp::JacobiWeightSpace,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 
-evaluate(f::Fun{JacobiWeightSpace},x)=jacobiweight(space(f),x).*Fun(f.coefficients,domain(f))[x]
+evaluate(f::Fun{JacobiWeightSpace},x)=jacobiweight(space(f),x).*Fun(f.coefficients,space(f).space)[x]
 
-points(sp::JacobiWeightSpace,n)=fromcanonical(sp,chebyshevroots(n))
-transform(sp::JacobiWeightSpace,vals::Vector)=chebyshevrootstransform(vals./jacobiweight(sp,points(sp,length(vals))))
-itransform(sp::JacobiWeightSpace,cfs::Vector)=ichebyshevrootstransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
+
+## Use 1st kind points to avoid singularities
+points(sp::JacobiWeightSpace{ChebyshevSpace},n)=fromcanonical(sp,chebyshevroots(n))
+transform(sp::JacobiWeightSpace{ChebyshevSpace},vals::Vector)=chebyshevrootstransform(vals./jacobiweight(sp,points(sp,length(vals))))
+itransform(sp::JacobiWeightSpace{ChebyshevSpace},cfs::Vector)=ichebyshevrootstransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
 
 
 
 ##TODO: paradigm for same space
-spaceconversion(f::Vector,sp::JacobiWeightSpace,::ChebyshevSpace)=spaceconversion(f,sp,JacobiWeightSpace(0,0,domain(sp)))
-spaceconversion(f::Vector,::ChebyshevSpace,sp::JacobiWeightSpace)=spaceconversion(f,JacobiWeightSpace(0,0,domain(sp)),sp)
-function spaceconversion(f::Vector,sp1::JacobiWeightSpace,sp2::JacobiWeightSpace)
+spaceconversion(f::Vector,sp::JacobiWeightSpace,S2::ChebyshevSpace)=spaceconversion(f,sp,JacobiWeightSpace(0,0,S2))
+spaceconversion(f::Vector,S2::ChebyshevSpace,sp::JacobiWeightSpace)=spaceconversion(f,JacobiWeightSpace(0,0,S2),sp)
+function spaceconversion(f::Vector,sp1::JacobiWeightSpace{ChebyshevSpace},sp2::JacobiWeightSpace{ChebyshevSpace})
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
     if c==α && d==β
         f
     elseif c>α && d>β
-        spaceconversion(divide_singularity(f),JacobiWeightSpace(α+1,β+1,domain(sp1)),sp2)
+        spaceconversion(divide_singularity(f),JacobiWeightSpace(α+1,β+1,sp1.space),sp2)
     elseif c>α
-        spaceconversion(divide_singularity(-1,f),JacobiWeightSpace(α+1,β,domain(sp1)),sp2)    
+        spaceconversion(divide_singularity(-1,f),JacobiWeightSpace(α+1,β,sp1.space),sp2)    
     elseif d>β
-        spaceconversion(divide_singularity(1,f),JacobiWeightSpace(α,β+1,domain(sp1)),sp2)        
+        spaceconversion(divide_singularity(1,f),JacobiWeightSpace(α,β+1,sp1.space),sp2)        
     else
         error("Need to implement decreasing jacobi")
     end
 end
 
-increase_jacobi_parameter(f)=Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β+1,domain(f)))
-increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β,domain(f))):Fun(f,JacobiWeightSpace(f.space.α,f.space.β+1,domain(f)))
+increase_jacobi_parameter(f)=Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β+1,space(f).space))
+increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β,space(f).space)):Fun(f,JacobiWeightSpace(f.space.α,f.space.β+1,space(f).space))
 
 
 ## Algebra
 
 for op in (:/,:./)
     @eval begin
-        ($op)(c::Number,f::Fun{JacobiWeightSpace})=Fun(($op)(c,Fun(f.coefficients)).coefficients,JacobiWeightSpace(-f.space.α,-f.space.β,domain(f)))        
+        ($op){S}(c::Number,f::Fun{JacobiWeightSpace{S}})=Fun(($op)(c,Fun(f.coefficients)).coefficients,JacobiWeightSpace(-f.space.α,-f.space.β,space(f).space))        
     end
 end
 
-function .*{T,N}(f::Fun{JacobiWeightSpace,T},g::Fun{JacobiWeightSpace,N})
+function .*{S,V}(f::Fun{JacobiWeightSpace{S}},g::Fun{JacobiWeightSpace{V}})
     @assert domainscompatible(f,g)
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β    
-    Fun((Fun(f.coefficients).*Fun(g.coefficients)).coefficients,JacobiWeightSpace(fα+gα,fβ+gβ,domain(f)))
+    m=(Fun(f.coefficients,space(f).space).*Fun(g.coefficients,space(g).space))
+    Fun(m.coefficients,JacobiWeightSpace(fα+gα,fβ+gβ,space(m).space))
 end
 
 
-function ./{T,N}(f::Fun{JacobiWeightSpace,T},g::Fun{JacobiWeightSpace,N})
+function ./{T,N}(f::Fun{JacobiWeightSpace{T}},g::Fun{JacobiWeightSpace{N}})
     @assert domainscompatible(f,g)
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β    
-    Fun((Fun(f.coefficients)./Fun(g.coefficients)).coefficients,JacobiWeightSpace(fα-gα,fβ-gβ,domain(f)))
+    m=(Fun(f.coefficients,space(f).space)./Fun(g.coefficients,space(g).space))
+    Fun(m.coefficients,JacobiWeightSpace(fα-gα,fβ-gβ,space(m).space))
 end
 
 for op in (:.*,:./)
-    @eval ($op){T,N,a}(f::Fun{UltrasphericalSpace{a},T},g::Fun{JacobiWeightSpace,N})=$op(Fun(f,JacobiWeightSpace(0,0,domain(f))),g)
-    @eval ($op){T,N,a}(f::Fun{JacobiWeightSpace,N},g::Fun{UltrasphericalSpace{a},T})=$op(f,Fun(g,JacobiWeightSpace(0,0,domain(g)))) 
+    ##TODO: Make general 
+    @eval ($op){S}(f::Fun,g::Fun{JacobiWeightSpace{S}})=$op(Fun(f,JacobiWeightSpace(0,0,space(f))),g)
+    @eval ($op){S}(f::Fun{JacobiWeightSpace{S}},g::Fun)=$op(f,Fun(g,JacobiWeightSpace(0,0,space(g)))) 
 end
 
 
 ## Calculus
 
-function Base.sum(f::Fun{JacobiWeightSpace})
+function Base.sum(f::Fun{JacobiWeightSpace{ChebyshevSpace}})
     ##TODO: generalize
     α,β=f.space.α,f.space.β
     

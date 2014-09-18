@@ -9,6 +9,7 @@ immutable UltrasphericalSpace{O} <: IntervalDomainSpace
     domain::Union(IntervalDomain,AnyDomain)
 end
 
+
 #UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,AnyDomain())
 #ChebyshevSpace(d::IntervalDomain)=UltrasphericalSpace(0,d)
 
