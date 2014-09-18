@@ -20,9 +20,7 @@ function complexroots(cin::Vector)
 end
 
 
-function complexroots{D<:IntervalDomainSpace}(f::Fun{D})
-    fromcanonical(f,complexroots(f.coefficients))
-end
+complexroots{D<:IntervalDomainSpace}(f::Fun{D})=fromcanonical(f,complexroots(f.coefficients))
 
 #function roots(f::Fun)
 #    irts=map(real,filter!(x->abs(x)<=1.+10eps(),filter!#(isreal,complexroots(f.coefficients))))
@@ -140,7 +138,7 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64,clplan::ClenshawPla
         
         # Recurse (and map roots back to original interval):
         p = plan_chebyshevtransform( v1 )
-        r = Float64[ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v1,p), 2*htol,clplan) ; 
+        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v1,p), 2*htol,clplan) ; 
                  (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevtransform(v2,p), 2*htol,clplan) ]
 
     end
