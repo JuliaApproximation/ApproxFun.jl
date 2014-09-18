@@ -3,7 +3,7 @@
 
 ## Vector of fun routines
 
-function coefficients{N,D}(f::Vector{Fun{N,D}},o...)
+function coefficients{D,N}(f::Vector{Fun{D,N}},o...)
     n=mapreduce(length,max,f)
     m=length(f)
     R=zeros(N,n,m)
@@ -32,7 +32,7 @@ end
 # end
 
 
-function values{N}(f::Vector{Fun{N}})
+function values{D,N}(f::Vector{Fun{D,N}})
     n=mapreduce(length,max,f)
     m=length(f)
     R=zeros(N,n,m)
@@ -42,7 +42,7 @@ function values{N}(f::Vector{Fun{N}})
     R
 end
 
-function values{T}(p::Array{Fun{T},2})
+function values{D,T}(p::Array{Fun{D,T},2})
     @assert size(p)[1] == 1
 
    values(vec(p))
@@ -126,39 +126,39 @@ end
 # ##TODO: A may not be same type as p
 
 
-dotu{N<:Real,D,T}(f::Vector{Fun{N,D}},g::Vector{T})=dot(f,g)
-dotu{D,T}(f::Vector{Fun{Complex{Float64},D}},g::Vector{T})=dot(conj(f),g)
+dotu{N<:Real,D,T}(f::Vector{Fun{D,N}},g::Vector{T})=dot(f,g)
+dotu{D,T}(f::Vector{Fun{D,Complex{Float64}}},g::Vector{T})=dot(conj(f),g)
 
  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
      @eval begin
-         function ($op){T<:Number,D}(A::Array{T,2}, p::Vector{Fun{T,D}})
+         function ($op){T<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,T}})
              cfs=$op(A,coefficients(p).')
-             ret = Array(Fun{T,D},size(cfs,1))
+             ret = Array(Fun{D,T},size(cfs,1))
              for i = 1:size(A)[1]
                  ret[i] = Fun(vec(cfs[i,:]),p[i].space)
              end
              ret    
          end
-         function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{V,D}})
+         function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,V}})
              cfs=$op(A,coefficients(p).')
-             ret = Array(Fun{promote_type(T,V),D},size(cfs,1))
+             ret = Array(Fun{D,promote_type(T,V)},size(cfs,1))
              for i = 1:size(A)[1]
                  ret[i] = Fun(vec(cfs[i,:]),p[i].space)
              end
              ret    
          end      
          
-         function ($op){T<:Number,D}(p::Vector{Fun{T,D}},A::Array{T,2})
+         function ($op){T<:Number,D}(p::Vector{Fun{D,T}},A::Array{T,2})
              cfs=$op(A,coefficients(p).')
-             ret = Array(Fun{T,D},size(cfs,1))
+             ret = Array(Fun{D,T},size(cfs,1))
              for i = 1:size(A)[1]
                  ret[i] = Fun(vec(cfs[i,:]),p[i].space)
              end
              ret    
          end
-         function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{V,D}})
+         function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,V}})
              cfs=$op(A,coefficients(p).')
-             ret = Array(Fun{promote_type(T,V),D},size(cfs,1))
+             ret = Array(Fun{D,promote_type(T,V)},size(cfs,1))
              for i = 1:size(A)[1]
                  ret[i] = Fun(vec(cfs[i,:]),p[i].space)
              end

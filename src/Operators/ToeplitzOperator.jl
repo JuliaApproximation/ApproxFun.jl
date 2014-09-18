@@ -11,8 +11,8 @@ end
 
 ToeplitzOperator{T<:Number}(V::Vector{T})=ToeplitzOperator{T,typeof(V)}(V)
 ToeplitzOperator{T<:Number}(V::ShiftVector{T})=ToeplitzOperator{T,typeof(V)}(V)
-ToeplitzOperator{T,D}(f::Fun{T,D})=ToeplitzOperator(f.coefficients)
-ToeplitzOperator{T,D<:PeriodicDomainSpace}(f::Fun{T,D})=ToeplitzOperator(f.coefficients|>deinterlace)
+ToeplitzOperator{T,D}(f::Fun{D,T})=ToeplitzOperator(f.coefficients)
+ToeplitzOperator{T,D<:PeriodicDomainSpace}(f::Fun{D,T})=ToeplitzOperator(f.coefficients|>deinterlace)
 
 
 function laurent_addentries!(v::Vector,A,kr::Range1)    
@@ -95,5 +95,5 @@ end
 shiftaddentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=laurent_addentries!(T.coefficients,A,kr)
 shiftbandinds(T::LaurentOperator)=firstindex(T.coefficients),lastindex(T.coefficients)
 
-LaurentOperator{T,D<:PeriodicDomainSpace}(f::Fun{T,D})=LaurentOperator(flipud(f.coefficients|>deinterlace))
+LaurentOperator{T,D<:PeriodicDomainSpace}(f::Fun{D,T})=LaurentOperator(flipud(f.coefficients|>deinterlace))
 

@@ -25,4 +25,4 @@ function itransform(S::JacobiSpace,cfs::Vector)
 end
 
 
-evaluate{T}(f::Fun{T,JacobiSpace},x)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,x),f.coefficients)
+evaluate(f::Fun{JacobiSpace},x)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,x),f.coefficients)

@@ -9,7 +9,7 @@ include("FunctionSpace.jl")
 
 
 ##TODO: No zero length funs
-type Fun{T<:Union(Float64,Complex{Float64}),S<:FunctionSpace} 
+type Fun{S<:FunctionSpace,T<:Union(Float64,Complex{Float64})} 
     coefficients::Vector{T}
     space::S
 end
@@ -23,16 +23,16 @@ coefficients(f::Fun)=f.coefficients
 ##Convert routines
 
 
-Base.convert{T<:Number,S<:DomainSpace}(::Type{Fun{T,S}},x::Number)=x*ones(T,S(AnyDomain()))
-Base.convert{T<:Number,S<:FunctionSpace}(::Type{Fun{Complex{Float64},S}},f::Fun{T,S})=Fun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
-Base.promote_rule{T<:Number,S<:FunctionSpace}(::Type{Fun{Complex{Float64},S}},::Type{Fun{T,S}})=Fun{Complex{Float64},S}
+Base.convert{T<:Number,S<:DomainSpace}(::Type{Fun{S,T}},x::Number)=x*ones(T,S(AnyDomain()))
+Base.convert{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},f::Fun{S,T})=Fun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
+Base.promote_rule{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},::Type{Fun{S,T}})=Fun{S,Complex{Float64}}
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=IF
 
 
-Base.zero{T,S<:DomainSpace}(::Type{Fun{T,S}})=zeros(T,S(AnyDomain()))
-Base.one{T,S<:DomainSpace}(::Type{Fun{T,S}})=ones(T,S(AnyDomain()))
+Base.zero{T,S<:DomainSpace}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
+Base.one{T,S<:DomainSpace}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
 for op in (:(Base.zeros),:(Base.ones))
-    @eval ($op){T}(f::Fun{T})=$op(T,f.space)
+    @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
 end
 
 
@@ -59,11 +59,11 @@ spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
 
 ##Evaluation
 
-evaluate{T,S}(f::Fun{T,S},x)=evaluate(Fun(f,domain(f)),x)  #Default is convert to Chebyshev
+evaluate{S,T}(f::Fun{S,T},x)=evaluate(Fun(f,domain(f)),x)  #Default is convert to Chebyshev
 Base.getindex(f::Fun,x)=evaluate(f,x)
 
 for op in (:(Base.first),:(Base.last))
-    @eval $op{T,S}(f::Fun{T,S})=f[$op(domain(f))]
+    @eval $op{S,T}(f::Fun{S,T})=f[$op(domain(f))]
 end
 
 
@@ -83,7 +83,7 @@ pad!(f::Fun,n::Integer)=pad!(f.coefficients,n)
 pad(f::Fun,n::Integer)=Fun(pad(f.coefficients,n),f.space)
 
 
-function chop!{T}(f::Fun{T},tol::Real)
+function chop!{S,T}(f::Fun{S,T},tol::Real)
     chop!(f.coefficients,tol)
     if length(f.coefficients) == 0
         f.coefficients = [zero(T)]
@@ -113,8 +113,8 @@ for op = (:+,:-)
             end
         end
 
-        ($op){N<:Number,T<:Number}(f::Fun{T},c::N)=$op(f,c*ones(f))
-        ($op){N<:Number,T<:Number}(c::N,f::Fun{T})=$op(c*ones(f),f)    
+        ($op){N<:Number}(f::Fun,c::N)=$op(f,c*ones(f))
+        ($op){N<:Number}(c::N,f::Fun)=$op(c*ones(f),f)    
     end
 end 
 
@@ -165,11 +165,11 @@ norm(f::Fun)=real(sqrt(sum(f.*conj(f))))
 import Base.imag, Base.real, Base.conj
 
 for op = (:real,:imag,:conj) 
-    @eval ($op){T,D<:RealDomainSpace}(f::Fun{T,D}) = Fun(($op)(f.coefficients),f.space)
+    @eval ($op){T,D<:RealDomainSpace}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 
-Base.abs2(f::Fun{Float64})=f.^2
-Base.abs2(f::Fun{Complex{Float64}})=real(f).^2+imag(f).^2
+Base.abs2{S}(f::Fun{S,Float64})=f.^2
+Base.abs2{S}(f::Fun{S,Complex{Float64}})=real(f).^2+imag(f).^2
 
 ##  integration
 
@@ -201,7 +201,7 @@ Base.diff(f::Fun,n...)=differentiate(f,n...)
 # multiplying 2 Funs, we assume this can be done by transform
 # the parametrizations are to make it the broadest definition
 
-function .*{T,N,S}(f::Fun{T,S},g::Fun{N,S})
+function .*{T,N,S}(f::Fun{S,T},g::Fun{S,N})
     @assert domainscompatible(f,g)
     #TODO Coefficient space version
     n = length(f) + length(g) - 1
@@ -212,19 +212,19 @@ function .*{T,N,S}(f::Fun{T,S},g::Fun{N,S})
 end
 
 # When the spaces differ we promote and multiply
-function .*{T,N,S,V}(f::Fun{T,S},g::Fun{N,V})
+function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     sp=minspace(space(f),space(g))
     Fun(f,sp).*Fun(g,sp)
 end
 
 
-function Base.sum{T}(f::Fun{T})
+function Base.sum{S,T}(f::Fun{S,T})
     cf=integrate(f)
     last(cf) - first(cf)
 end
 
 
-integrate{T,D}(f::Fun{T,D})=integrate(Fun(f,domain(f)))
+integrate{D,T}(f::Fun{D,T})=integrate(Fun(f,domain(f)))
 
 
 

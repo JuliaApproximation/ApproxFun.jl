@@ -1,5 +1,5 @@
 immutable Multiplication{T<:Number,D<:FunctionSpace,S<:FunctionSpace} <: BandedOperator{T}
-    f::Fun{T,D}
+    f::Fun{D,T}
     space::S
 end
 

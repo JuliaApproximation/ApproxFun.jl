@@ -7,17 +7,17 @@ export Fun2D
 
 
 type Fun2D{T<:Number,S<:DomainSpace,M<:DomainSpace}<:MultivariateFun
-  A::Vector{Fun{T,S}}
-  B::Vector{Fun{T,M}}
+  A::Vector{Fun{S,T}}
+  B::Vector{Fun{M,T}}
   
-  function Fun2D(A::Vector{Fun{T,S}},B::Vector{Fun{T,M}})
+  function Fun2D(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}})
     @assert length(A) == length(B)
     @assert length(A) > 0
     new(A,B)
   end
 end
 
-Fun2D{T,S,M}(A::Vector{Fun{T,S}},B::Vector{Fun{T,M}})=Fun2D{T,S,M}(A,B)
+Fun2D{T,S,M}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}})=Fun2D{T,S,M}(A,B)
 
 
 Fun2D{T<:Number}(A::Array{T})=Fun2D(A,Interval(),Interval())
@@ -26,8 +26,8 @@ function Fun2D{T<:Number,S<:FunctionSpace,W<:FunctionSpace}(X::Array{T},dx::S,dy
     m=max(1,count(s->s>10eps(),Σ))
     
 
-    A=Fun{T,S}[Fun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
-    B=Fun{T,W}[Fun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
+    A=Fun{S,T}[Fun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
+    B=Fun{W,T}[Fun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
 
     Fun2D(A,B)
 end
@@ -36,7 +36,7 @@ end
 # TODO: Vector pads right
 for T in (:Float64,:(Complex{Float64}))
     @eval begin
-        function Fun2D{F<:Fun{$T}}(X::Vector{F},dy::FunctionSpace)            
+        function Fun2D{S}(X::Vector{Fun{S,$T}},dy::FunctionSpace)            
             m=mapreduce(length,max,X)
             M=zeros($T,m,length(X))
             for k=1:length(X)

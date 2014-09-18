@@ -1,9 +1,9 @@
 ##Differentiation and integration
 
 
-differentiate{T}(f::Fun{T,LaurentSpace})=Fun(interlace(fourierdiff(domain(f),deinterlace(f.coefficients))),f.space)
-Base.sum{T}(f::Fun{T,LaurentSpace})=fouriersum(domain(f),deinterlace(f.coefficients))
-integrate{T}(f::Fun{T,LaurentSpace})=Fun(interlace(fourierintegrate(domain(f),deinterlace(f.coefficients))),f.space)
+differentiate(f::Fun{LaurentSpace})=Fun(interlace(fourierdiff(domain(f),deinterlace(f.coefficients))),f.space)
+Base.sum(f::Fun{LaurentSpace})=fouriersum(domain(f),deinterlace(f.coefficients))
+integrate(f::Fun{LaurentSpace})=Fun(interlace(fourierintegrate(domain(f),deinterlace(f.coefficients))),f.space)
 
 
 fourierdiff(d::PeriodicInterval,cfs::ShiftVector)=tocanonicalD(d,0)*ShiftVector(1.im*[firstindex(cfs):-1],1.im*[0:lastindex(cfs)]).*cfs

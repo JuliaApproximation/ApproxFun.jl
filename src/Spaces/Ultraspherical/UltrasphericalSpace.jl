@@ -39,14 +39,14 @@ itransform(sp::IntervalDomainSpace,cfs::Vector)=ichebyshevtransform(spaceconvers
 
 ## Fast evaluation
 
-Base.first{T,O}(f::Fun{T,UltrasphericalSpace{O}})=foldr(-,canonicalcoefficients(f))
-Base.last{T,O}(f::Fun{T,UltrasphericalSpace{O}})=reduce(+,canonicalcoefficients(f))
+Base.first{O}(f::Fun{UltrasphericalSpace{O}})=foldr(-,canonicalcoefficients(f))
+Base.last{O}(f::Fun{UltrasphericalSpace{O}})=reduce(+,canonicalcoefficients(f))
 
 
 
 ## Calculus
 
-integrate{T}(f::Fun{T,UltrasphericalSpace{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coefficients),ChebyshevSpace(domain(f)))
+integrate(f::Fun{UltrasphericalSpace{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coefficients),ChebyshevSpace(domain(f)))
 
 
 

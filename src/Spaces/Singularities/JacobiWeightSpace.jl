@@ -19,7 +19,7 @@ spacescompatible(A::JacobiWeightSpace,B::JacobiWeightSpace)=A.α==B.α && A.β =
 jacobiweight(α,β,x)=(1.+x).^α.*(1.-x).^β
 jacobiweight(sp::JacobiWeightSpace,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 
-evaluate{T}(f::Fun{T,JacobiWeightSpace},x)=jacobiweight(space(f),x).*Fun(f.coefficients,domain(f))[x]
+evaluate(f::Fun{JacobiWeightSpace},x)=jacobiweight(space(f),x).*Fun(f.coefficients,domain(f))[x]
 
 #TODO: transform and use first kind points
 itransform(sp::JacobiWeightSpace,cfs::Vector)=itransform(ChebyshevSpace(domain(sp)),cfs).*jacobiweight(sp,points(sp,length(cfs)))
@@ -53,11 +53,11 @@ increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeightSpace(f.space.α+1,f.spac
 
 for op in (:/,:./)
     @eval begin
-        ($op){T<:Number}(c::Number,f::Fun{T,JacobiWeightSpace})=Fun(($op)(c,Fun(f.coefficients)).coefficients,JacobiWeightSpace(-f.space.α,-f.space.β,domain(f)))        
+        ($op)(c::Number,f::Fun{JacobiWeightSpace})=Fun(($op)(c,Fun(f.coefficients)).coefficients,JacobiWeightSpace(-f.space.α,-f.space.β,domain(f)))        
     end
 end
 
-function .*{T,N}(f::Fun{T,JacobiWeightSpace},g::Fun{N,JacobiWeightSpace})
+function .*{T,N}(f::Fun{JacobiWeightSpace,T},g::Fun{JacobiWeightSpace,N})
     @assert domainscompatible(f,g)
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β    
@@ -65,7 +65,7 @@ function .*{T,N}(f::Fun{T,JacobiWeightSpace},g::Fun{N,JacobiWeightSpace})
 end
 
 
-function ./{T,N}(f::Fun{T,JacobiWeightSpace},g::Fun{N,JacobiWeightSpace})
+function ./{T,N}(f::Fun{JacobiWeightSpace,T},g::Fun{JacobiWeightSpace,N})
     @assert domainscompatible(f,g)
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β    
@@ -73,14 +73,14 @@ function ./{T,N}(f::Fun{T,JacobiWeightSpace},g::Fun{N,JacobiWeightSpace})
 end
 
 for op in (:.*,:./)
-    @eval ($op){T,N,a}(f::Fun{T,UltrasphericalSpace{a}},g::Fun{N,JacobiWeightSpace})=$op(Fun(f,JacobiWeightSpace(0,0,domain(f))),g)
-    @eval ($op){T,N,a}(f::Fun{N,JacobiWeightSpace},g::Fun{T,UltrasphericalSpace{a}})=$op(f,Fun(g,JacobiWeightSpace(0,0,domain(g)))) 
+    @eval ($op){T,N,a}(f::Fun{UltrasphericalSpace{a},T},g::Fun{JacobiWeightSpace,N})=$op(Fun(f,JacobiWeightSpace(0,0,domain(f))),g)
+    @eval ($op){T,N,a}(f::Fun{JacobiWeightSpace,N},g::Fun{UltrasphericalSpace{a},T})=$op(f,Fun(g,JacobiWeightSpace(0,0,domain(g)))) 
 end
 
 
 ## Calculus
 
-function Base.sum{T<:Number}(f::Fun{T,JacobiWeightSpace})
+function Base.sum(f::Fun{JacobiWeightSpace})
     ##TODO: generalize
     α,β=f.space.α,f.space.β
     

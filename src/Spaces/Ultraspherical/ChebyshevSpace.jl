@@ -25,17 +25,17 @@ itransform(::ChebyshevSpace,cfs::Vector)=ichebyshevtransform(cfs)
 
 ## Evaluation
 
-evaluate{T}(f::Fun{T,ChebyshevSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
+evaluate(f::Fun{ChebyshevSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
 
 ## Calculus
 
 
 # diff T -> U, then convert U -> T
-integrate{T}(f::Fun{T,ChebyshevSpace})=Fun(chebyshevintegrate(domain(f),f.coefficients),f.space)
+integrate(f::Fun{ChebyshevSpace})=Fun(chebyshevintegrate(domain(f),f.coefficients),f.space)
 chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint(ultraconversion(cfs))   
 
 
-differentiate{T}(f::Fun{T,ChebyshevSpace})=Fun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
+differentiate(f::Fun{ChebyshevSpace})=Fun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
 chebyshevdifferentiate(d::Interval,cfs::Vector)=tocanonicalD(d,0)*ultraiconversion(ultradiff(cfs))
 chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(Fun(x->tocanonicalD(d,x),d).*Fun(diff(Fun(cfs)),d)).coefficients
 

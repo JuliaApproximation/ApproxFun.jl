@@ -26,7 +26,7 @@ itransform(::TaylorSpace,cfs::Vector)=ifft(alternatesign!(cfs))*length(cfs)
 transform(::PoleSpace,vals::Vector)=-alternatesign!(flipud(fft(vals))/length(vals))
 itransform(::PoleSpace,cfs::Vector)=ifft(flipud(alternatesign!(-cfs)))*length(cfs)
 
-function evaluate{T}(f::Fun{T,TaylorSpace},z)
+function evaluate(f::Fun{TaylorSpace},z)
     d=domain(f)
     if isa(d,Circle)
         horner(f.coefficients,(z-d.center)/d.radius)
@@ -35,7 +35,7 @@ function evaluate{T}(f::Fun{T,TaylorSpace},z)
     end
 end
 
-function evaluate{T}(f::Fun{T,PoleSpace},z)
+function evaluate(f::Fun{PoleSpace},z)
     d=domain(f)
     if isa(d,Circle)
         z=(z-d.center)/d.radius
@@ -68,13 +68,13 @@ end
 points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
 transform(::CosSpace,vals)=chebyshevtransform(vals)
 itransform(::CosSpace,cfs)=ichebyshevtransform(cfs)
-evaluate{T}(f::Fun{T,CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
+evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
 points(sp::SinSpace,n)=fromcanonical(domain(sp),(π*[1:n])/(n+1))
 transform(::SinSpace,vals)=FFTW.r2r(vals,FFTW.RODFT00)/(length(vals)+1)
 itransform(::SinSpace,cfs)=FFTW.r2r(cfs,FFTW.RODFT00)/2
-evaluate{T}(f::Fun{T,SinSpace},t)=sum(T[f.coefficients[k]*sin(k*tocanonical(f,t)) for k=1:length(f)])
+evaluate{T}(f::Fun{SinSpace,T},t)=sum(T[f.coefficients[k]*sin(k*tocanonical(f,t)) for k=1:length(f)])
 
 
 

@@ -1,4 +1,4 @@
-function Base.real{T<:Number}(f::Fun{T,LaurentSpace})
+function Base.real(f::Fun{LaurentSpace})
     n=length(f)
     cfs=f.coefficients
 
@@ -20,7 +20,7 @@ function Base.real{T<:Number}(f::Fun{T,LaurentSpace})
 end
 
 
-function Base.imag{T<:Number}(f::Fun{T,LaurentSpace})
+function Base.imag(f::Fun{LaurentSpace})
     n=length(f)
     cfs=f.coefficients
 

@@ -7,9 +7,9 @@ function Fun(f::Function,d::DomainSpace,n::Integer)
     T=typeof(f1)
         
     if T <: Vector
-        Fun{typeof(f1[1]),typeof(d)}[Fun(x->f(x)[k],d,n) for k=1:length(f1)]
+        Fun{typeof(d),typeof(f1[1])}[Fun(x->f(x)[k],d,n) for k=1:length(f1)]
     elseif T <: Array
-        Fun{typeof(f1[1,1]),typeof(d)}[Fun(x->f(x)[k,j],d,n) for k=1:size(f1,1),j=1:size(f1,2)]    
+        Fun{typeof(d),typeof(f1[1,1])}[Fun(x->f(x)[k,j],d,n) for k=1:size(f1,1),j=1:size(f1,2)]    
     else
         vals=T[f(x) for x in pts]
         Fun(transform(d,vals),d)
@@ -151,7 +151,7 @@ FFun{T<:Number}(x,d::Vector{T},n...)=Fun(x,LaurentSpace(d),n...)
 FFun(f,n::Integer)=Fun(f,LaurentSpace(PeriodicInterval()),n)
 FFun(f)=Fun(f,LaurentSpace(PeriodicInterval()))
 
-typealias IFun{T,D} Fun{T,D}
+typealias IFun{D,T} Fun{D,T}
 
 
 Fun(f::Function,n::Integer)=Fun(f,Interval(),n)

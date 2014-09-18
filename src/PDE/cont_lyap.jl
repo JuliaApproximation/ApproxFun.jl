@@ -112,7 +112,7 @@ cont_constrained_lyapuptriang{T,FT}(OS::PDEOperatorSchur{T},Gx,F::Array{FT},nx=1
 function cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array,nx::Integer)
     n = size(OS.S.T,2)
 
-    Y=Array(Fun{N,typeof(domainspace(OS,1))},n)
+    Y=Array(Fun{typeof(domainspace(OS,1)),N},n)
     PY=Array(Vector{N},n)
     SY=Array(Vector{N},n)
 

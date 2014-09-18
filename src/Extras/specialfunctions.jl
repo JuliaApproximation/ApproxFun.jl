@@ -1,10 +1,10 @@
 # division by fun 
 
-./{T,N,a,b}(f::Fun{T,UltrasphericalSpace{a}},g::Fun{N,UltrasphericalSpace{b}})=linsolve(Multiplication(g),f;tolerance=10eps())
+./{a,b}(f::Fun{UltrasphericalSpace{a}},g::Fun{UltrasphericalSpace{b}})=linsolve(Multiplication(g),f;tolerance=10eps())
 
 for op in (:./,:/)
     @eval begin
-        function ($op){T}(c::Number,f::Fun{T,ChebyshevSpace})
+        function ($op)(c::Number,f::Fun{ChebyshevSpace})
             fc = Fun(canonicalcoefficients(f),Interval())
             r = roots(fc)
             x = Fun(identity)
@@ -52,7 +52,7 @@ for op in (:(Base.cos),:(Base.sin))
     end
 end
 
-function Base.sqrt{T}(f::Fun{T,ChebyshevSpace})
+function Base.sqrt(f::Fun{ChebyshevSpace})
     fc = Fun(canonicalcoefficients(f))
     x=Fun(identity)
 

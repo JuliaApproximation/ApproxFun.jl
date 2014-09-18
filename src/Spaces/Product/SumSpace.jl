@@ -17,7 +17,7 @@ typealias SumSpace PeriodicSumSpace
 
 
 domain(A::SumSpace)=domain(A.spaces[1])
-evaluate{T,D<:SumSpace}(f::Fun{T,D},x)=evaluate(Fun(f.coefficients[1:2:end],space(f).spaces[1]),x)+evaluate(Fun(f.coefficients[2:2:end],space(f).spaces[2]),x)
+evaluate{D<:SumSpace,T}(f::Fun{D,T},x)=evaluate(Fun(f.coefficients[1:2:end],space(f).spaces[1]),x)+evaluate(Fun(f.coefficients[2:2:end],space(f).spaces[2]),x)
 
 
 spacescompatible{S,T}(A::SumSpace{S,T},B::SumSpace{S,T})=spacescompatible(A.spaces[1],B.spaces[1]) && spacescompatible(A.spaces[2],B.spaces[2])

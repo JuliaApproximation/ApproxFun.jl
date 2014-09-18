@@ -3,16 +3,16 @@ export TensorFun
 
 
 immutable TensorFun{T<:Union(Float64,Complex{Float64}),S<:FunctionSpace,V<:FunctionSpace}<:MultivariateFun
-    coefficients::Vector{Fun{T,S}}     # coefficients are in x
+    coefficients::Vector{Fun{S,T}}     # coefficients are in x
     spacey::V
 end
 
 for T in (:Float64,:(Complex{Float64}))
-    @eval TensorFun{F<:Fun{$T}}(M::Vector{F},dy::FunctionSpace)=TensorFun{$T,typeof(M[1].space),typeof(dy)}(Fun{$T,typeof(M[1].space)}[Mk for Mk in M],dy)
+    @eval TensorFun{S}(M::Vector{Fun{S,$T}},dy::FunctionSpace)=TensorFun{$T,typeof(M[1].space),typeof(dy)}(Fun{typeof(M[1].space),$T}[Mk for Mk in M],dy)
 end
 
 function TensorFun{T<:Number,S<:FunctionSpace}(cfs::Matrix{T},dx::S,dy::FunctionSpace)
-    ret=Array(Fun{T,S},size(cfs,2))
+    ret=Array(Fun{S,T},size(cfs,2))
     for k=1:size(cfs,2)
         ret[k]=chop!(Fun(cfs[:,k],dx),10eps())
     end
@@ -33,7 +33,7 @@ Base.size(f::TensorFun)=(size(f,1),size(f,2))
 
 for T in (:Float64,:(Complex{Float64}))
     @eval begin
-        function funlist2coefficients{F<:Fun{$T}}(f::Vector{F})
+        function funlist2coefficients{S}(f::Vector{Fun{S,$T}})
             A=zeros($T,mapreduce(length,max,f),length(f))
             for k=1:length(f)
                 A[1:length(f[k]),k]=f[k].coefficients

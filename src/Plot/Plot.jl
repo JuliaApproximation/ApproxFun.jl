@@ -63,22 +63,22 @@ end
 ## Fun routines
 
 
-function plot{T<:Real}(f::Fun{T};opts...)
+function plot{S,T<:Real}(f::Fun{S,T};opts...)
     f=pad(f,3length(f)+50)
     plot(points(f),values(f);opts...)
 end
 
-function plot{T<:Complex}(f::Fun{T};opts...)
+function plot{S,T<:Complex}(f::Fun{S,T};opts...)
     f=pad(f,3length(f)+50)
     plot(points(f),values(f);opts...)
 end
 
 
-function plot(r::Range,f::Fun{Float64};opts...)
+function plot{S}(r::Range,f::Fun{S,Float64};opts...)
     plot(r,f[[r]];opts...)
 end
 
-function complexplot(f::Fun{Complex{Float64}};opts...) 
+function complexplot{S}(f::Fun{S,Complex{Float64}};opts...) 
     f=pad(f,3length(f)+50)
     vals =values(f)
 

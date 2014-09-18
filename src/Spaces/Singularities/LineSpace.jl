@@ -25,9 +25,9 @@ transform(::LineSpace,vals::Vector)=chebyshevtransform(vals)
 ## evaluation
 
 for op in (:(Base.first),:(Base.last))
-    @eval $op{T}(f::Fun{T,LineSpace})=$op(Fun(f.coefficients))
+    @eval $op(f::Fun{LineSpace})=$op(Fun(f.coefficients))
 end
-evaluate{T}(f::Fun{T,LineSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
+evaluate(f::Fun{LineSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
 
 
 
@@ -84,7 +84,7 @@ end
 
 
 
-function integrate{T}(f::Fun{T,LineSpace})
+function integrate(f::Fun{LineSpace})
     d=domain(f)
     @assert d.α==d.β==-1.
     # || d.α==d.β==-.5
@@ -100,7 +100,7 @@ function integrate{T}(f::Fun{T,LineSpace})
 end
 
 for T in {Float64,Complex{Float64}}
-    function Base.sum(f::Fun{T,LineSpace})
+    function Base.sum(f::Fun{LineSpace})
         d=domain(f)
         if d.α==d.β==-.5
             sum(Fun(divide_singularity(f.coefficients),JacobiWeightSpace(-.5,-.5,Interval())))

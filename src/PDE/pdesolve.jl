@@ -18,7 +18,7 @@ include("cont_lyap.jl")
 # end
 
 function convert2funvec{T<:Number,D}(f::Vector{T},d::D)
-    ret=Array(Fun{T,D},length(f))
+    ret=Array(Fun{D,T},length(f))
     for k=1:length(f)
         ret[k]=Fun(f[k],d)
     end
@@ -26,11 +26,11 @@ function convert2funvec{T<:Number,D}(f::Vector{T},d::D)
 end
 convert2funvec{T<:Fun,D}(f::Vector{T},d::D)=f
 function convert2funvec{D}(f::Vector,d::D)
-    mytyp=Fun{Float64,D}
+    mytyp=Fun{D,Float64}
     
     for fk in f
-        if typeof(fk) <: Fun{Complex{Float64}}
-            mytyp=Fun{Complex{Float64},D}
+        if typeof(fk) <: Fun{D,Complex{Float64}}
+            mytyp=Fun{D,Complex{Float64}}
         end
     end
     
