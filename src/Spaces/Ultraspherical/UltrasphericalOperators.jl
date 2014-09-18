@@ -42,7 +42,7 @@ function Base.getindex(op::Evaluation{ChebyshevSpace,Bool},k::Range)
     end
 end
 
-function Base.getindex(op::Evaluation{ChebyshevSpace,Float64},k::Range)
+function Base.getindex(op::Evaluation{ChebyshevSpace},k::Range)
     if op.order == 0    
         evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
     else
@@ -55,13 +55,13 @@ end
 ## Multiplication
 
 
-function addentries!{T,D}(M::Multiplication{T,D,ChebyshevSpace},A::ShiftArray,kr::Range1)
+function addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,ChebyshevSpace},A::ShiftArray,kr::Range1)
     cfs=canonicalcoefficients(M.f)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(.5cfs,A,max(kr[1],2):kr[end])            
 end
 
-function addentries!{T,D}(M::Multiplication{T,D,UltrasphericalSpace{1}},A::ShiftArray,kr::Range1)
+function addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,UltrasphericalSpace{1}},A::ShiftArray,kr::Range1)
     cfs=canonicalcoefficients(M.f)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(-.5cfs[3:end],A,kr)    
@@ -77,7 +77,7 @@ function usjacobi_addentries!(λ::Integer,A::ShiftArray,kr::Range1)
     A
 end
 
-function addentries!{T,D,λ}(M::Multiplication{T,D,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+function addentries!{D<:UltrasphericalSpace,λ}(M::Multiplication{D,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
     a=coefficients(M.f,domainspace(M))
     for k=kr
         A[k,0]=a[1] 

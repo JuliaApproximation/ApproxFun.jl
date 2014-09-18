@@ -1,4 +1,4 @@
-immutable Multiplication{T<:Number,D<:FunctionSpace,S<:FunctionSpace} <: BandedOperator{T}
+immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number} <: BandedOperator{T}
     f::Fun{D,T}
     space::S
 end

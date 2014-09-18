@@ -23,7 +23,7 @@ end
 
 ## Multiplication
 
-function addentries!{T}(M::Multiplication{T,ChebyshevSpace,JacobiSpace},A::ShiftArray,kr::Range1)
+function addentries!(M::Multiplication{ChebyshevSpace,JacobiSpace},A::ShiftArray,kr::Range1)
     for k=kr
         A[k,0]=M.f.coefficients[1] 
     end

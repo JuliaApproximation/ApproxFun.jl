@@ -21,7 +21,7 @@ end
 
 ## Multiplication 
 
-addentries!{T}(M::Multiplication{T,LaurentSpace,LaurentSpace},A,k)=addentries!(LaurentOperator(M.f),A,k)
+addentries!(M::Multiplication{LaurentSpace,LaurentSpace},A,k)=addentries!(LaurentOperator(M.f),A,k)
 
 ## Converison
 
