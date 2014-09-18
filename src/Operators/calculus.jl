@@ -3,12 +3,12 @@ export Derivative,Integral
 
 for TT in (:Derivative,:Integral)
     @eval begin
-        immutable $TT{T<:Number,S<:FunctionSpace} <: BandedOperator{T}
+        immutable $TT{S<:FunctionSpace,T<:Number} <: BandedOperator{T}
             space::S        # the domain space
             order::Int
         end
-        $TT{S<:PeriodicDomainSpace}(sp::S,k::Integer)=$TT{Complex{Float64},S}(sp,k)
-        $TT{S<:FunctionSpace}(sp::S,k::Integer)=$TT{Float64,S}(sp,k)
+        $TT{S<:PeriodicDomainSpace}(sp::S,k::Integer)=$TT{S,Complex{Float64}}(sp,k)
+        $TT{S<:FunctionSpace}(sp::S,k::Integer)=$TT{S,Float64}(sp,k)
         
         $TT(sp::FunctionSpace)=$TT(sp,1)
         $TT()=$TT(AnySpace())
@@ -21,8 +21,8 @@ for TT in (:Derivative,:Integral)
         domain(D::$TT)=domain(D.space)
         
         domainspace(D::$TT)=D.space
-        rangespace{T,S<:PeriodicDomainSpace}(D::$TT{T,S})=D.space        #assume rangespace is the same
-        bandinds{T,S<:PeriodicDomainSpace}(D::$TT{T,S})=0,0
+        rangespace{T,S<:PeriodicDomainSpace}(D::$TT{S,T})=D.space        #assume rangespace is the same
+        bandinds{T,S<:PeriodicDomainSpace}(D::$TT{S,T})=0,0
     end
 end
 
@@ -53,8 +53,8 @@ end
 
 
 ## Overrideable
-bandinds{T,S<:IntervalDomainSpace}(D::Derivative{T,S})=0,D.order
-bandinds{T,S<:IntervalDomainSpace}(D::Integral{T,S})=-D.order,0
+bandinds{T,S<:IntervalDomainSpace}(D::Derivative{S,T})=0,D.order
+bandinds{T,S<:IntervalDomainSpace}(D::Integral{S,T})=-D.order,0
 
 
 

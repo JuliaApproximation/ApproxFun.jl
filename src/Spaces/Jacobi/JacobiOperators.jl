@@ -53,11 +53,11 @@ end
 
 ## Derivative
 
-rangespace(D::Derivative{Float64,JacobiSpace})=JacobiSpace(D.space.a+1,D.space.b+1)
+rangespace(D::Derivative{JacobiSpace})=JacobiSpace(D.space.a+1,D.space.b+1)
 
 
 
-function getdiagonalentry(T::Derivative{Float64,JacobiSpace},k,j)
+function getdiagonalentry(T::Derivative{JacobiSpace},k,j)
     if j==0
         0.
     else #j==1

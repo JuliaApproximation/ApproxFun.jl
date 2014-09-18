@@ -2,7 +2,7 @@
 ## Derivative
 
 
-function addentries!(D::Derivative{Complex{Float64},LaurentSpace},A::ShiftArray,kr::Range1)
+function addentries!(D::Derivative{LaurentSpace},A::ShiftArray,kr::Range1)
     d=domain(D)
     m=D.order
     C=2π./(d.b-d.a)*im

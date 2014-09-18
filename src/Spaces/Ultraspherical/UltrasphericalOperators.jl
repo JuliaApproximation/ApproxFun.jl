@@ -113,9 +113,9 @@ end
 #Derivative(d::IntervalDomain)=Derivative(1,d)
 
 
-rangespace{λ}(D::Derivative{Float64,UltrasphericalSpace{λ}})=UltrasphericalSpace{λ+D.order}(domain(D))
+rangespace{λ}(D::Derivative{UltrasphericalSpace{λ}})=UltrasphericalSpace{λ+D.order}(domain(D))
 
-function addentries!{λ}(D::Derivative{Float64,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+function addentries!{λ}(D::Derivative{UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
     m=D.order
     d=domain(D)
     μ=λ+m
@@ -155,9 +155,9 @@ end
 ## Integral
 
 
-rangespace{λ}(D::Integral{Float64,UltrasphericalSpace{λ}})=UltrasphericalSpace{λ-D.order}(domain(D))
+rangespace{λ}(D::Integral{UltrasphericalSpace{λ}})=UltrasphericalSpace{λ-D.order}(domain(D))
 
-function addentries!{λ}(D::Integral{Float64,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+function addentries!{λ}(D::Integral{UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
     @assert λ==1
     @assert D.order==1   
     
