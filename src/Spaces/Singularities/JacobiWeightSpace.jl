@@ -21,8 +21,9 @@ jacobiweight(sp::JacobiWeightSpace,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x)
 
 evaluate(f::Fun{JacobiWeightSpace},x)=jacobiweight(space(f),x).*Fun(f.coefficients,domain(f))[x]
 
-#TODO: transform and use first kind points
-itransform(sp::JacobiWeightSpace,cfs::Vector)=itransform(ChebyshevSpace(domain(sp)),cfs).*jacobiweight(sp,points(sp,length(cfs)))
+points(sp::JacobiWeightSpace,n)=fromcanonical(sp,chebyshevroots(n))
+transform(sp::JacobiWeightSpace,vals::Vector)=chebyshevrootstransform(vals./jacobiweight(sp,points(sp,length(vals))))
+itransform(sp::JacobiWeightSpace,cfs::Vector)=ichebyshevrootstransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
 
 
 

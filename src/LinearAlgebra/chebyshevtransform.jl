@@ -96,3 +96,21 @@ function ichebyshevtransform(X::Matrix)
     end
 end
 
+
+
+
+## First kind transform
+
+function chebyshevrootstransform(v::Vector)
+    cfs=negateeven!(FFTW.r2r(v,FFTW.REDFT10)/length(v))
+    cfs[1]/=2
+    cfs    
+end
+
+function ichebyshevrootstransform(cfs::Vector)
+    cfs[1]*=2
+    negateeven!(cfs)
+    FFTW.r2r(cfs,FFTW.REDFT01)/2    
+end 
+
+

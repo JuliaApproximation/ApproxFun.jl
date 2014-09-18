@@ -22,9 +22,10 @@ end
 ## Interval Domains
 
 abstract IntervalDomain <: Domain
-
-chebyshevpoints(n::Integer)= [cos(1.π*k/(n-1)) for k = n-1:-1:0]
-points(d::IntervalDomain,n::Integer) =  [fromcanonical(d,cos(1.π*k/(n-1))) for k = n-1:-1:0]
+##TODO: Should fromcanonical be fromcanonical!?
+chebyshevroots(n::Integer)=[cos(π*k) for k=-1.+1/(2n):1/n:-1./(2n)]
+chebyshevpoints(n::Integer)= n==1?[0.]:[cos(1.π*k/(n-1)) for k = n-1:-1:0]
+points(d::IntervalDomain,n::Integer) =  n==1?[fromcanonical(d,0.)]:[fromcanonical(d,cos(1.π*k/(n-1))) for k = n-1:-1:0]
 points(d::Vector,n::Integer)=points(Interval(d),n)
 bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 
