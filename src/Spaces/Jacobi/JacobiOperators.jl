@@ -73,9 +73,9 @@ end
 # multiplies conversion operators to handle otherwise
 
 function Conversion(L::JacobiSpace,M::JacobiSpace)
-    @assert M.b>=L.b && M.a>=L.a
+    @assert (isapprox(M.b,L.b)||M.b>=L.b) && (isapprox(M.a,L.a)||M.a>=L.a)
     
-    if (M.b == L.b+1 && M.a == L.a) || (M.b == L.b && M.a == L.a+1)
+    if (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
         Conversion{JacobiSpace,JacobiSpace,Float64}(L,M)
     elseif M.b > L.b+1
         Conversion(JacobiSpace(M.a,M.b-1),M)*Conversion(L,JacobiSpace(M.a,M.b-1))    
@@ -112,7 +112,7 @@ end
 
 # return the space that has banded Conversion to the other
 function conversion_rule(A::JacobiSpace,B::JacobiSpace)
-    if A.a+1==B.a || A.b+1==B.b
+    if A.a<=B.a || A.b<=B.b
         A
     else
         B
