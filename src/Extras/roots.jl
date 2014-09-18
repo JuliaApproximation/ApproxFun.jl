@@ -59,13 +59,14 @@ end
 
 
 function ColleagueEigVals( c::Array{Float64,1} )
+#TODO: This is command isn't typed correctly
 # COMPUTE THE ROOTS OF A LOW DEGREE POLYNOMIAL BY USING THE COLLEAGUE MATRIX: 
     n = length(c) - 1
     c = -1/2 * c[1:n] / c[n+1]
     c[n-1] += 0.5
     oh = 0.5 * ones(n-1)
     A = diagm(oh, 1) + diagm(oh, -1)
-    A[n-1, n] = 1
+    A[n-1, n] = 1.0
     A[:, 1] = flipud(c)
     # TODO: can we speed things up because A is upper-Hessenberg
     # Standard colleague matrix (See [Good, 1961]):
@@ -106,13 +107,13 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64,clplan::ClenshawPla
     elseif n == 1
         
         # CONSTANT FUNCTION 
-        r = ( c[1] == 0.0 ) ? 0.0 : Float64[]
+        r = ( c[1] == 0.0 ) ? [0.0] : Float64[]
 
     elseif n == 2
 
         # LINEAR POLYNOMIAL
         r = -c[1]/c[2];
-        r = ( (abs(imag(r))>htol) | (abs(real(r))>(1+htol)) ) ? [] : max(min(real(r),1),-1)
+        r = ( (abs(imag(r))>htol) | (abs(real(r))>(1+htol)) ) ? Float64[] : Float64[max(min(real(r),1),-1)]
         
     elseif n <= 50
 
@@ -121,10 +122,10 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64,clplan::ClenshawPla
         # of degree at most 50 and we likely end up here for each piece. 
     
         # Adjust the coefficients for the colleague matrix:
-        r = ColleagueEigVals( c );
+        r = ColleagueEigVals( c )
 
         # Prune roots depending on preferences: 
-        r = PruneOptions( r, htol );
+        r = PruneOptions( r, htol )
 
     else 
 
@@ -139,13 +140,13 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64,clplan::ClenshawPla
         
         # Recurse (and map roots back to original interval):
         p = plan_chebyshevtransform( v1 )
-        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v1,p), 2*htol,clplan) ; 
+        r = Float64[ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v1,p), 2*htol,clplan) ; 
                  (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevtransform(v2,p), 2*htol,clplan) ]
 
     end
     
     # Return the roots: 
-    return r
+    r
 end
 
 
