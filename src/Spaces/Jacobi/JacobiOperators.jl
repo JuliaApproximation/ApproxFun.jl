@@ -69,15 +69,17 @@ end
 ## Integral
 
 ## Conversion
+# We can only increment by a or b by one, so the following
+# multiplies conversion operators to handle otherwise
 
 function Conversion(L::JacobiSpace,M::JacobiSpace)
     @assert M.b>=L.b && M.a>=L.a
-
+    
     if (M.b == L.b+1 && M.a == L.a) || (M.b == L.b && M.a == L.a+1)
         Conversion{JacobiSpace,JacobiSpace,Float64}(L,M)
     elseif M.b > L.b+1
         Conversion(JacobiSpace(M.a,M.b-1),M)*Conversion(L,JacobiSpace(M.a,M.b-1))    
-    elseif M.a > L.a+1
+    else  #if M.a >= L.a+1
         Conversion(JacobiSpace(M.a-1,M.b),M)*Conversion(L,JacobiSpace(M.a-1,M.b))            
     end
 end   
@@ -87,20 +89,35 @@ bandinds(C::Conversion{JacobiSpace,JacobiSpace})=(0,1)
 
 
 function getdiagonalentry(C::Conversion{JacobiSpace,JacobiSpace},k,j)
-    T=C.domainspace
-    if T.b==C.rangespace.b+1
+    L=C.domainspace
+    if L.b+1==C.rangespace.b
         if j==0
-            k==1?1.:(T.a+T.b+k)/(T.a+T.b+2k-1)
+            k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
         else
-            (T.a+k)./(T.a+T.b+2k+1)
+            (L.a+k)./(L.a+L.b+2k+1)
         end    
-    elseif T.a==C.rangespace.a+1
+    elseif L.a+1==C.rangespace.a
         if j==0
-            k==1?1.:(T.a+T.b+k)/(T.a+T.b+2k-1)
+            k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
         else
-            -(T.b+k)./(T.a+T.b+2k+1)
+            -(L.b+k)./(L.a+L.b+2k+1)
         end  
     else
         error("Not implemented")  
     end
 end
+
+
+
+
+# return the space that has banded Conversion to the other
+function conversion_rule(A::JacobiSpace,B::JacobiSpace)
+    if A.a+1==B.a || A.b+1==B.b
+        A
+    else
+        B
+    end
+end
+
+
+

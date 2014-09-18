@@ -66,15 +66,6 @@ jacobip(n::Integer,α,β,v::Vector)=map(x->jacobip(n,α,β,x),v)
 
 
 
-# return the space that has banded Conversion to the other
-function conversion_rule(A::JacobiSpace,B::JacobiSpace)
-    @assert domainscompatible(A,B)
-    
-    @assert sign(A.a-B.a)==sign(A.b-B.b)
-    
-    A.a < B.a?A:B    
-end
-
 
 include("jacobitransform.jl")
 include("JacobiOperators.jl")
