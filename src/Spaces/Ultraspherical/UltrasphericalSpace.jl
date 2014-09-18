@@ -19,12 +19,6 @@ order{o}(::UltrasphericalSpace{o})=o
 
 
 
-#TODO: bad override?
-=={T}(a::UltrasphericalSpace{T},b::UltrasphericalSpace{T})=domainscompatible(a,b)
-
-
-
-
 ## Construction
 
 #domain(S) may be any domain
@@ -64,7 +58,7 @@ immutable ChebyshevDirichletSpace{left,right} <: IntervalDomainSpace
     domain::Union(IntervalDomain,AnyDomain)
 end
 
-=={l,r}(a::ChebyshevDirichletSpace{l,r},b::ChebyshevDirichletSpace{l,r})= a.domain==b.domain
+
 
 
 

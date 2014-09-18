@@ -7,7 +7,6 @@ for T in (:CosSpace,:SinSpace)
         immutable $T <: PeriodicDomainSpace{Float64}
             domain::Union(PeriodicDomain,AnyDomain)
         end
-        ==(a::($T),b::($T))= a.domain==b.domain
     end
 end
 
@@ -17,7 +16,6 @@ immutable HardySpace{s} <: PeriodicDomainSpace{Complex{Float64}}
     domain::Union(PeriodicDomain,AnyDomain)
 end
 
-=={s}(a::HardySpace{s},b::HardySpace{s})= a.domain==b.domain
 
 typealias TaylorSpace HardySpace{true}
 typealias PoleSpace HardySpace{false}

@@ -37,7 +37,7 @@ domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() ||
 #Check whether spaces are the same, override when you need to check parameters
 spacescompatible{D<:DomainSpace}(f::D,g::D)=domainscompatible(f,g) 
 spacescompatible(f,g)=false
-
+==(A::DomainSpace,B::DomainSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
 
 domain(A::DomainSpace)=A.domain # assume it has a field domain
 

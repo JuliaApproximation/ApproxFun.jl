@@ -13,6 +13,9 @@ end
 
 JacobiWeightSpace(a::Number,b::Number,d)=JacobiWeightSpace(1.0a,1.0b,d)
 
+spacescompatible(A::JacobiWeightSpace,B::JacobiWeightSpace)=A.α==B.α && A.β == B.β
+
+
 jacobiweight(α,β,x)=(1.+x).^α.*(1.-x).^β
 jacobiweight(sp::JacobiWeightSpace,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 

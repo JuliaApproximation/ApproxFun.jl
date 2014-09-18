@@ -1,3 +1,17 @@
+export JacobiSpace
+
+immutable JacobiSpace <: IntervalDomainSpace
+    a::Float64
+    b::Float64
+    domain::Union(IntervalDomain,AnyDomain)
+end
+LegendreSpace(domain)=JacobiSpace(0.,0.,domain)
+LegendreSpace()=LegendreSpace(Interval())
+JacobiSpace(a,b)=JacobiSpace(a,b,Interval())
+
+spacescompatible(a::JacobiSpace,b::JacobiSpace)=a.a==b.a && a.b==b.b
+
+
 jacobirecA(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+1:(2k+α+β+1)*(2k+α+β+2)/(2*(k+1)*(k+α+β+1))
 jacobirecB(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(β-α):(α^2-β^2)*(2k+α+β+1)/(2*(k+1)*(k+α+β+1)*(2k+α+β))
 jacobirecC(α,β,k)=(k+α)*(k+β)*(2k+α+β+2)/((k+1)*(k+α+β+1)*(2k+α+β))
@@ -50,16 +64,7 @@ jacobip(n::Integer,α,β,v::Vector)=map(x->jacobip(n,α,β,x),v)
 
 
 
-immutable JacobiSpace <: IntervalDomainSpace
-    a::Float64
-    b::Float64
-    domain::Union(IntervalDomain,AnyDomain)
-end
-LegendreSpace(domain)=JacobiSpace(0.,0.,domain)
-LegendreSpace()=LegendreSpace(Interval())
-JacobiSpace(a,b)=JacobiSpace(a,b,Interval())
 
-==(a::JacobiSpace,b::JacobiSpace)=a.a==b.a && a.b==b.b && a.domain==b.domain
 
 # return the space that has banded Conversion to the other
 function conversion_rule(A::JacobiSpace,B::JacobiSpace)

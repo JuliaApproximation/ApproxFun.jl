@@ -74,7 +74,7 @@ function Conversion(L::JacobiSpace,M::JacobiSpace)
     @assert M.b>=L.b && M.a>=L.a
 
     if (M.b == L.b+1 && M.a == L.a) || (M.b == L.b && M.a == L.a+1)
-        Conversion{JacobiSpace,JacobiSpace,Float64}(A,B)
+        Conversion{JacobiSpace,JacobiSpace,Float64}(L,M)
     elseif M.b > L.b+1
         Conversion(JacobiSpace(M.a,M.b-1),M)*Conversion(L,JacobiSpace(M.a,M.b-1))    
     elseif M.a > L.a+1

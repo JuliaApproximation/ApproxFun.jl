@@ -18,5 +18,11 @@ function transform(S::JacobiSpace,v::Vector)
     V*(w.*v)./nrm
 end
 
+function itransform(S::JacobiSpace,cfs::Vector)
+    n=length(cfs)
+    x=gaussjacobi(n,S.a,S.b)[1]
+    jacobip(0:n-1,S.a,S.b,x)*cfs
+end
+
 
 evaluate{T}(f::Fun{T,JacobiSpace},x)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,x),f.coefficients)
