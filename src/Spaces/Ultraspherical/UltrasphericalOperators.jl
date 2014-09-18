@@ -21,7 +21,7 @@ end
 
 
 ##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex(op::Evaluation{Float64,Bool,ChebyshevSpace},k::Range)
+function Base.getindex(op::Evaluation{ChebyshevSpace,Bool},k::Range)
     x = op.x
     d = domain(op)
     
@@ -42,7 +42,7 @@ function Base.getindex(op::Evaluation{Float64,Bool,ChebyshevSpace},k::Range)
     end
 end
 
-function Base.getindex(op::Evaluation{Float64,Float64,ChebyshevSpace},k::Range)
+function Base.getindex(op::Evaluation{ChebyshevSpace,Float64},k::Range)
     if op.order == 0    
         evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
     else
@@ -286,7 +286,7 @@ conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
 ## Evaluation Functional
 
 
-function getindex(B::Evaluation{Float64,Bool,ChebyshevDirichletSpace{1,0}},kr::Range)
+function getindex(B::Evaluation{ChebyshevDirichletSpace{1,0},Bool},kr::Range)
     d = domain(B)
     
     if B.x == false && B.order == 0
@@ -296,7 +296,7 @@ function getindex(B::Evaluation{Float64,Bool,ChebyshevDirichletSpace{1,0}},kr::R
     end
 end
 
-function getindex(B::Evaluation{Float64,Bool,ChebyshevDirichletSpace{0,1}},kr::Range)
+function getindex(B::Evaluation{ChebyshevDirichletSpace{0,1},Bool},kr::Range)
     d = domain(B)
     
     if B.x == true && B.order == 0
@@ -306,7 +306,7 @@ function getindex(B::Evaluation{Float64,Bool,ChebyshevDirichletSpace{0,1}},kr::R
     end
 end
 
-function getindex(B::Evaluation{Float64,Bool,ChebyshevDirichletSpace{1,1}},kr::Range)
+function getindex(B::Evaluation{ChebyshevDirichletSpace{1,1},Bool},kr::Range)
    tol = 200.*eps()
     d = domain(B)
     

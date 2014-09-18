@@ -3,14 +3,14 @@ export Evaluation
 ## Evaluation constructors
 
 # M = Bool if endpoint
-type Evaluation{T<:Number,M<:Union(Number,Bool),S<:FunctionSpace} <: Functional{T}
+type Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Functional{T}
     space::S
     x::M
     order::Int
 end
 
-Evaluation{M,S<:IntervalDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{Float64,M,S}(sp,x,order)
-Evaluation{M,S<:PeriodicDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{Complex{Float64},M,S}(sp,x,order)
+Evaluation{M,S<:IntervalDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Float64}(sp,x,order)
+Evaluation{M,S<:PeriodicDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Complex{Float64}}(sp,x,order)
 
 
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
