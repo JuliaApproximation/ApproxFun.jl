@@ -70,7 +70,7 @@ function .*{S,V}(f::Fun{JacobiWeightSpace{S}},g::Fun{JacobiWeightSpace{V}})
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β    
     m=(Fun(f.coefficients,space(f).space).*Fun(g.coefficients,space(g).space))
-    Fun(m.coefficients,JacobiWeightSpace(fα+gα,fβ+gβ,space(m).space))
+    Fun(m.coefficients,JacobiWeightSpace(fα+gα,fβ+gβ,space(m)))
 end
 
 
