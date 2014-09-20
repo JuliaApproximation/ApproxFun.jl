@@ -6,7 +6,7 @@ export LowRankFun
 ## LowRankFun
 
 
-type LowRankFun{T<:Number,S<:DomainSpace,M<:DomainSpace}<:MultivariateFun
+type LowRankFun{T<:Number,S<:DomainSpace,M<:DomainSpace}<:BivariateFun
   A::Vector{Fun{S,T}}
   B::Vector{Fun{M,T}}
   

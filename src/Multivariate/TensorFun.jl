@@ -1,7 +1,7 @@
 export TensorFun,ProductFun
 
 
-abstract AbstractProductFun{S,V,T} <: MultivariateFun
+abstract AbstractProductFun{S,V,T} <: BivariateFun
 
 for TY in (:TensorFun,:ProductFun)
     @eval immutable $TY{S<:FunctionSpace,V<:FunctionSpace,T<:Union(Float64,Complex{Float64})}<:AbstractProductFun{S,V,T}
@@ -47,6 +47,10 @@ function ProductFun{ST<:FunctionSpace}(f::Function,S::Vector{ST},T::FunctionSpac
     V=Float64[f(x,t) for x=xx, t=tt]
     ProductFun(transform(S,T,V),S,T)
 end
+
+
+
+
 
 # For specifying spaces by anonymous function
 ProductFun(f::Function,SF::Function,T::FunctionSpace,N::Integer,M::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:M],T,N)
