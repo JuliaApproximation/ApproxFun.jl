@@ -7,6 +7,7 @@ for T in (:CosSpace,:SinSpace)
         immutable $T <: PeriodicDomainSpace{Float64}
             domain::Union(PeriodicDomain,AnyDomain)
         end
+        $T()=$T(PeriodicInterval())
     end
 end
 
@@ -82,6 +83,7 @@ evaluate{T}(f::Fun{SinSpace,T},t)=sum(T[f.coefficients[k]*sin(k*tocanonical(f,t)
 
 typealias LaurentSpace PeriodicSumSpace{Complex{Float64},HardySpace{true},HardySpace{false}}
 LaurentSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace(HardySpace{true}(d),HardySpace{false}(d))
+LaurentSpace()=LaurentSpace(PeriodicInterval())
 
 Space(d::PeriodicDomain)=LaurentSpace(d)
 canonicalspace(S::PeriodicDomainSpace)=LaurentSpace(domain(S))
@@ -103,6 +105,7 @@ end
 
 typealias FourierSpace PeriodicSumSpace{Float64,CosSpace,SinSpace}
 FourierSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace((CosSpace(d),SinSpace(d)))
+FourierSpace()=FourierSpace(PeriodicInterval())
 
 points(sp::FourierSpace,n)=points(domain(sp),n)
 

@@ -1,4 +1,4 @@
-export TensorFun
+export TensorFun,ProductFun
 
 
 abstract AbstractProductFun{S,V,T} <: MultivariateFun
@@ -22,6 +22,16 @@ function TensorFun{T<:Number,S<:FunctionSpace}(cfs::Matrix{T},dx::S,dy::Function
     TensorFun{S,typeof(dy),T}(ret,dy)
 end
 
+function ProductFun{T<:Number,S<:FunctionSpace}(cfs::Matrix{T},dx::Vector{S},dy::FunctionSpace)
+    @assert size(cfs,2)==length(dx)
+    
+    ret=Array(Fun{S,T},size(cfs,2))
+    for k=1:size(cfs,2)
+        ret[k]=chop!(Fun(cfs[:,k],dx[k]),10eps())
+    end
+    TensorFun{S,typeof(dy),T}(ret,dy)
+end
+
 TensorFun(cfs::Array,d::TensorSpace)=TensorFun(cfs,d[1],d[2])
 TensorFun(cfs::Array,d::ProductDomain)=TensorFun(cfs,d[1],d[2])
 TensorFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
@@ -30,6 +40,16 @@ TensorFun(f,dx::Domain,dy::Domain)=TensorFun(f,Space(dx),Space(dy))
 TensorFun(f::LowRankFun)=TensorFun(coefficients(f),space(f,1),space(f,2))
 
 TensorFun(f::Function,d1...)=TensorFun(LowRankFun(f,d1...))
+function ProductFun{ST<:FunctionSpace}(f::Function,S::Vector{ST},T::FunctionSpace,N::Integer)
+    M=length(S)     # We assume the list of spaces is the same length
+    xx=points(S[1],N)
+    tt=points(T,M)
+    V=Float64[f(x,t) for x=xx, t=tt]
+    ProductFun(transform(S,T,V),S,T)
+end
+
+# For specifying spaces by anonymous function
+ProductFun(f::Function,SF::Function,T::FunctionSpace,N::Integer,M::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:M],T,N)
 
 Base.size(f::AbstractProductFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
 Base.size(f::AbstractProductFun)=(size(f,1),size(f,2))
@@ -161,4 +181,21 @@ Base.imag(u::TensorFun)=real(TensorFun(imag(u.coefficients),space(u,2)).').'+ima
 
 
 
+
+
+
+
+## ProductFun transform
+
+function transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Array)
+    # We assume all S spaces have same domain/points
+    C=Array(Complex{Float64},size(V)...)
+    for k=1:size(V,1)
+        C[k,:]=transform(T,vec(V[k,:]))
+    end
+    for k=1:size(C,2)
+        C[:,k]=transform(S[k],C[:,k])
+    end
+    C
+end
 
