@@ -18,3 +18,13 @@ f4=Fun(exp,sp4)
 @test norm((Fun(f,sp2)-f2).coefficients)<10eps()
 @test norm((Fun(f,sp3)-f3).coefficients)<10eps()
 @test norm((Fun(f,sp4)-f4).coefficients)<10eps()
+
+
+m=20
+f=Fun(x->((1-x)/2).^m.*exp(x),JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.)))
+@test abs(f[.1]-(x->((1-x)/2).^m.*exp(x))(.1))<10eps()
+
+
+m=10
+f=Fun(x->besselj(m,m*(1-x)),JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.)))
+@test_approx_eq f[0.] besselj(m,m)

@@ -61,7 +61,7 @@ end
 jacobip(n::Integer,α,β,v::Number)=jacobip(n:n,α,β,v)[1]
 jacobip(n::Range1,α,β,v::Vector)=hcat(map(x->jacobip(n,α,β,x),v)...).'
 jacobip(n::Integer,α,β,v::Vector)=map(x->jacobip(n,α,β,x),v)
-
+jacobip(n,S::JacobiSpace,v)=jacobip(n,S.a,S.b,v)
 
 
 
