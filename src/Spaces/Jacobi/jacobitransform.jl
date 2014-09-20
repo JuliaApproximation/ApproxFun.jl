@@ -1,7 +1,7 @@
 if isdir(Pkg.dir("FastGaussQuadrature"))
     require("FastGaussQuadrature")
     
-    gaussjacobi(n,a,b)=Main.FastGauss.GaussJacobi(n,a,b)
+    gaussjacobi(n,a,b)=Main.FastGaussQuadrature.gaussjacobi(n,a,b)
 else
     gaussjacobi(n,a,b)=error("Currently require FastGaussQuadrature.jl")    
 end
