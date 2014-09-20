@@ -19,8 +19,8 @@ function fourierintegrate(d::PeriodicInterval,cfs::ShiftVector)
     
     @assert d.a ==-π
     @assert d.b ==π        
-    ShiftVector(-1.im./[firstindex(cfs):-1],
-                [0,(-1.im./[1:lastindex(cfs)])])
+    ShiftVector(-1im*cfs[firstindex(cfs):-1]./[firstindex(cfs):-1],
+                [0,(-1im*cfs[1:lastindex(cfs)]./[1:lastindex(cfs)])])
 end
 
 fouriersum(d::PeriodicInterval,cfs::ShiftVector)=cfs[0].*length(d)
@@ -34,8 +34,8 @@ function fourierdiff(d::Circle,cfs::ShiftVector)
 
         # Now shift everything by one
         ShiftVector(
-                        [([firstindex(cfs):-1].*cfs[firstindex(cfs):-1]),0],
-                        [1:lastindex(cfs)].*cfs[1:lastindex(cfs)]
+                        [cfs[firstindex(cfs):-1].*[firstindex(cfs):-1],0],
+                        cfs[1:lastindex(cfs)].*[1:lastindex(cfs)]
                         )
 end
 

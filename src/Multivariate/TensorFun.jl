@@ -171,12 +171,13 @@ end
 
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj)) 
-    @eval ($op){S,V<:RealDomainSpace}(f::AbstractProductFun{S,V}) = AbstractProductFun(map($op,f.coefficients),f.spacey)
+    @eval ($op){S,V<:RealDomainSpace}(f::ProductFun{S,V}) = ProductFun(map($op,f.coefficients),f.spacey)
+    @eval ($op){S,V<:RealDomainSpace}(f::TensorFun{S,V}) = TensorFun(map($op,f.coefficients),f.spacey)    
 end
 
 #For complex bases
-Base.real(u::TensorFun)=real(TensorFun(real(u.coefficients),space(u,2)).').'-imag(TensorFun(imag(u.coefficients),space(u,2)).').'
-Base.imag(u::TensorFun)=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
+Base.real{S,V,T}(u::TensorFun{S,V,T})=real(TensorFun(real(u.coefficients),space(u,2)).').'-imag(TensorFun(imag(u.coefficients),space(u,2)).').'
+Base.imag{S,V,T}(u::TensorFun{S,V,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
 
 
 
