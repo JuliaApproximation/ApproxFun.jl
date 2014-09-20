@@ -48,7 +48,7 @@ following code samples 10,000 standard normals:
 
 	f = Fun(x->exp(-x.^2),[-10,10])
 	x = ApproxFun.sample(f,10000)
-    plot(f)             						# 2D plotting requires Gadfly
+    ApproxFun.plot(f)             				# 2D plotting requires Gadfly
 	Gadfly.plot(x=x,Gadfly.Geom.histogram)
 	
 We can apply this to any positive smooth PDF.  
@@ -59,7 +59,7 @@ There is also support for Fourier representations of functions on periodic inter
 Use `FFun` to ensure that the representation is periodic:
 
 	f = FFun(cos)
-	plot(f)									    # Requires Gadfly
+	ApproxFun.plot(f)						    # Requires Gadfly
 
 The default domain is `[-π,π]`.  
 
@@ -92,7 +92,7 @@ We can solve ODEs, the following solves the Airy equation `u' = x u` as a BVP on
 	D=diff(d)
 	u = [dirichlet(d),D^2 - x] \ [airyai(d.a),0.]
 	
-	plot(u)									    # Requires Gadfly
+	ApproxFun.plot(u)						    # Requires Gadfly
 	
 # Solving partial differential equations
 
@@ -103,7 +103,7 @@ We can solve PDEs, the following solves Helmholtz `Δu + 100u=0` with `u(±1,y)=
     
     u=[dirichlet(d),lap(d)+100I]\ones(4)		# First four entries of rhs are 
     											# boundary conditions
-    contour(u)									# Requires Gadfly
+    ApproxFun.contour(u)						# Requires Gadfly
 	
 	
 # References
