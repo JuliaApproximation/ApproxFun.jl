@@ -1,4 +1,4 @@
-export set2Dplotter, set3Dplotter,setplotter
+export setplotter
 
 if isdir(Pkg.dir("Gadfly"))
     include("Gadfly.jl")
@@ -10,51 +10,58 @@ if isdir(Pkg.dir("PyPlot"))
     include("PyPlot.jl")
 end
 
+plotter={:contour=>"PyPlot",
+    :plot=>"PyPlot",
+    :surf=>"PyPlot"}
 
-plotter2D="Gadfly"
-plotter3D="GLPlot"
 
-set2Dplotter(str)=(global plotter2D=str)
-set3Dplotter(str)=(global plotter3D=str)
+function setplotter(key,val)    
+    global plotter
+    @assert val=="PyPlot" || val =="Gadfly" || val =="GLPlot"
+    plotter[key]=val
+end
+
 function setplotter(str)
     if str=="PyPlot"
-        set2Dplotter(str)
-        set3Dplotter(str)
+        setplotter(:contour,str)
+        setplotter(:plot,str)
+        setplotter(:surf,str)
     elseif str == "GLPlot"
-        set3Dplotter(str)
+        setplotter(:surf,str)        
     else
-        set2Dplotter(str)
+        setplotter(:contour,str)
+        setplotter(:plot,str)
     end
 end
 
 
 function plot(x,y::Vector;opts...)
-    if plotter2D=="Gadfly"
+    if plotter[:plot]=="Gadfly"
         gadflyplot(x,y;opts...)
-    elseif plotter2D=="PyPlot"
+    elseif plotter[:plot]=="PyPlot"
         pyplot(x,y;opts...)
     else
-        error("Plotter " * plotter2D * " not supported.")
+        error("Plotter " * plotter[:plot] * " not supported.")
     end
 end
 
 function contour(x,y::Vector,z::Array;opts...)
-    if plotter2D=="Gadfly"
+    if plotter[:contour]=="Gadfly"
         gadflycontour(x,y,z;opts...)
-    elseif plotter2D=="PyPlot"
+    elseif plotter[:contour]=="PyPlot"
         pycontour(x,y,z;opts...)
     else
-        error("Plotter " * plotter2D * " not supported.")
+        error("Plotter " * plotter[:contour] * " not supported.")
     end
 end
 
 function surf(x...;opts...)
-    if plotter3D=="GLPlot"
+    if plotter[:surf]=="GLPlot"
         glsurf(x...;opts...)
-    elseif plotter3D=="PyPlot"
+    elseif plotter[:surf]=="PyPlot"
         pysurf(x...;opts...)
     else
-        error("Plotter " * plotter3D * " not supported.")
+        error("Plotter " * plotter[:surf] * " not supported.")
     end
 end
 
@@ -133,6 +140,7 @@ end
 
 function contour(f::MultivariateFun;opts...)
     f=chop(f,10e-10)
+    #TODO: pad f
     contour(points(f,1),points(f,2),values(f);opts...)
 end
 
@@ -140,7 +148,7 @@ end
 
 
 ## 3D plotting
-
+# TODO: Use transform
 function plot(xx::Range,yy::Range,f::MultivariateFun)
     vals      = evaluate(f,xx,yy)
     vals=[vals[:,1] vals vals[:,end]];

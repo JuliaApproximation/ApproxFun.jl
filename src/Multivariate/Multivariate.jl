@@ -13,6 +13,8 @@ Base.diff(u::MultivariateFun,j...)=differentiate(u,j...)
 lap(u::BivariateFun)=diff(u,1,2)+diff(u,2,2)
 grad(u::BivariateFun)=[diff(u,1),diff(u,2)]
 
+Base.chop(f::MultivariateFun)=chop(f,10eps())
+
 
 
 include("VectorFun.jl")
