@@ -1,5 +1,7 @@
 abstract MultivariateFun
 
+export Fun2D
+
 #implements coefficients/values/evaluate
 Base.getindex(f::MultivariateFun,x,y)=evaluate(f,x,y)
 space(f::MultivariateFun)=space(f,1)⊗space(f,2)
@@ -13,5 +15,8 @@ grad(u::MultivariateFun)=[diff(u,1),diff(u,2)]
 
 include("VectorFun.jl")
 include("TensorSpace.jl")
-include("Fun2D.jl")
+include("LowRankFun.jl")
 include("TensorFun.jl")
+
+
+Fun2D(f...)=LowRankFun(f...)

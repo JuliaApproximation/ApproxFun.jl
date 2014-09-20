@@ -148,7 +148,7 @@ function timedirichlet(d::ProductDomain)
 end
 
 
-function *(L::PDEOperator,f::Fun2D)
+function *(L::PDEOperator,f::LowRankFun)
     @assert size(L.ops,2)==2
     @assert size(L.ops,1)==2    
     n=length(f.A)
@@ -162,7 +162,7 @@ function *(L::PDEOperator,f::Fun2D)
         B[k+n]=L.ops[2,2]*f.B[k]        
     end
     
-    Fun2D(A,B)
+    LowRankFun(A,B)
 end
 
 

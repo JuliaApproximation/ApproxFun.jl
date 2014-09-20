@@ -24,9 +24,9 @@ TensorFun(cfs::Array,d::ProductDomain)=TensorFun(cfs,d[1],d[2])
 TensorFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
 TensorFun(f,dy::Domain)=TensorFun(f,Space(dy))
 TensorFun(f,dx::Domain,dy::Domain)=TensorFun(f,Space(dx),Space(dy))
-TensorFun(f::Fun2D)=TensorFun(coefficients(f),space(f,1),space(f,2))
+TensorFun(f::LowRankFun)=TensorFun(coefficients(f),space(f,1),space(f,2))
 
-TensorFun(f::Function,d1...)=TensorFun(Fun2D(f,d1...))
+TensorFun(f::Function,d1...)=TensorFun(LowRankFun(f,d1...))
 
 Base.size(f::TensorFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
 Base.size(f::TensorFun)=(size(f,1),size(f,2))
@@ -120,7 +120,7 @@ end
 -(f::TensorFun,g::TensorFun)=f+(-g)
 
 
-Fun2D(f::TensorFun)=Fun2D(f.coefficients,space(f,2))
+LowRankFun(f::TensorFun)=LowRankFun(f.coefficients,space(f,2))
 
 function Base.diff(f::TensorFun,j::Integer)
     if j==1

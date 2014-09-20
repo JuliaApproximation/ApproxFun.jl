@@ -150,7 +150,7 @@ samplecdf(v::Vector)=bisectioninv(v,rand())
 
 ##2D sample
 
-function sample(f::Fun2D{Float64,ChebyshevSpace,ChebyshevSpace},n::Integer)
+function sample(f::LowRankFun{Float64,ChebyshevSpace,ChebyshevSpace},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficients(f.B)
@@ -162,7 +162,7 @@ end
 
 
 
-function sample(f::Fun2D{Float64,LineSpace,LineSpace},n::Integer)
+function sample(f::LowRankFun{Float64,LineSpace,LineSpace},n::Integer)
     cf=normalizedcumsum(sum(f,1))
     CB=coefficients(map(cumsum,f.B))
     
@@ -176,7 +176,5 @@ function sample(f::Fun2D{Float64,LineSpace,LineSpace},n::Integer)
     [rx ry]
 end
 
-
-sample(f::Fun2D)=sample(f,1)[1,:]
-
-    
+sample(f::MultivariateFun,n)=sample(LowRankFun(f),n)
+sample(f::MultivariateFun)=sample(f,1)[1,:]
