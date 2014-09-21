@@ -15,8 +15,9 @@ Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
 
 abstract MultivariateFunctionSpace
 abstract BivariateFunctionSpace <: MultivariateFunctionSpace
+abstract AbstractProductSpace{S,T} <: BivariateFunctionSpace
 
-immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace} <:BivariateFunctionSpace
+immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace} <:AbstractProductSpace{S,T}
     spaces::(S,T)
 end
 
@@ -27,7 +28,7 @@ TensorSpace(A,B)=TensorSpace((A,B))
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
 
 
-immutable ProductSpace{S<:FunctionSpace,T<:FunctionSpace} <: BivariateFunctionSpace
+immutable ProductSpace{S<:FunctionSpace,T<:FunctionSpace} <: AbstractProductSpace{S,T}
     spacesx::Vector{S}
     spacey
 end
