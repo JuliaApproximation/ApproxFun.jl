@@ -53,7 +53,9 @@ end
 
 ## Derivative
 
-rangespace(D::Derivative{JacobiSpace})=JacobiSpace(D.space.a+1,D.space.b+1)
+Derivative(J::JacobiSpace,k::Integer)=k==1?Derivative{JacobiSpace,Float64}(J,1):TimesOperator(Derivative(JacobiSpace(J.a+1,J.b+1,J.domain),k-1),Derivative{JacobiSpace,Float64}(J,1))
+
+rangespace(D::Derivative{JacobiSpace})=JacobiSpace(D.space.a+D.order,D.space.b+D.order)
 
 
 

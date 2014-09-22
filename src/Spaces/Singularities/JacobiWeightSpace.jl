@@ -118,6 +118,16 @@ end
 
 ## Operators
 
+function Derivative{JS<:JacobiWeightSpace}(J::JS,k::Integer)
+    D=Derivative{JS,Float64}(J,1)
+    if k==1
+        D
+    else
+        TimesOperator(Derivative(rangespace(D),k-1),D)
+    end
+end
+
+
 function rangespace{J<:JacobiWeightSpace}(D::Derivative{J})
     S=D.space
     if S.α==S.β==0
@@ -136,6 +146,8 @@ function rangespace{J<:JacobiWeightSpace}(D::Derivative{J})
 end
 
 function addentries!{J<:JacobiWeightSpace}(D::Derivative{J},A::ShiftArray,kr::Range)
+    @assert D.order ==1
+    
     S=D.space
     if S.α==S.β==0
         addentries!(Derivative(S.space),A,kr)
@@ -156,4 +168,11 @@ function addentries!{J<:JacobiWeightSpace}(D::Derivative{J},A::ShiftArray,kr::Ra
     A
 end
 
+
+## Multiplication
+
+addentries!{T,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(M.f,domainspace(M).space),A,kr)
+
+#addentries!{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(Fun(M.f.coefficients,space(M.f).space),domainspace(M).space),A,kr)
+#rangespace{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S})=
 
