@@ -35,8 +35,9 @@ itransform(S::JacobiWeightSpace,cfs::Vector)=jacobiweight(S,points(S,length(cfs)
 
 
 ##TODO: paradigm for same space
-spaceconversion(f::Vector,sp::JacobiWeightSpace,S2::ChebyshevSpace)=spaceconversion(f,sp,JacobiWeightSpace(0,0,S2))
-spaceconversion(f::Vector,S2::ChebyshevSpace,sp::JacobiWeightSpace)=spaceconversion(f,JacobiWeightSpace(0,0,S2),sp)
+spaceconversion(f::Vector,sp::JacobiWeightSpace,S2::JacobiWeightSpace)=error("Still need to implement")
+spaceconversion(f::Vector,sp::JacobiWeightSpace,S2::IntervalDomainSpace)=spaceconversion(f,sp,JacobiWeightSpace(0,0,S2))
+spaceconversion(f::Vector,S2::IntervalDomainSpace,sp::JacobiWeightSpace)=spaceconversion(f,JacobiWeightSpace(0,0,S2),sp)
 function spaceconversion(f::Vector,sp1::JacobiWeightSpace{ChebyshevSpace},sp2::JacobiWeightSpace{ChebyshevSpace})
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
