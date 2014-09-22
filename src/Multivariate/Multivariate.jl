@@ -24,5 +24,7 @@ include("TensorFun.jl")
 
 
 Fun2D(f...)=LowRankFun(f...)
-Fun(f,S::ProductSpace,n::Integer)=ProductFun(f,S[1],S[2],n)
-Fun(f,S::TensorSpace,n::Integer)=TensorFun(f,S[1],S[2],n)
+
+Fun(f,S::TensorSpace,n...)=LowRankFun(f,S[1],S[2],n)
+Fun(f,S::AbstractProductSpace,n...)=ProductFun(f,S,n...)
+Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
