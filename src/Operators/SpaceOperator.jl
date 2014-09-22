@@ -9,11 +9,14 @@ SpaceFunctional{T<:Number,S<:FunctionSpace}(o::Functional{T},s::S)=SpaceFunction
 
 getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
 
+domainspace(S::SpaceFunctional)=S.space
+domain(S::SpaceFunctional)=domain(S.space)
 
 ## Space Operator is used to wrap an AnySpace() operator 
-immutable SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace} <: BandedOperator{T}
+immutable SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{T}
     op::O
-    space::S
+    domainspace::S
+    rangespace::S
 #     
 #     function SpaceOperator{T,O,S}(o::O,s::S)
 #         @assert domainspace(o)==rangespace(o)==AnySpace()
@@ -21,17 +24,15 @@ immutable SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace} <: BandedOper
 #     end
 end
 
-SpaceOperator{T<:Number,S<:FunctionSpace}(o::Operator{T},s::S)=SpaceOperator{T,typeof(o),S}(o,s)
 
-for TT in (:SpaceFunctional,:SpaceOperator)
-    @eval begin
-        domainspace(S::($TT))=S.space
-        domain(S::($TT))=domain(S.space)
-    end
-end
+SpaceOperator{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(o::Operator{T},s::S,rs::V)=SpaceOperator{T,typeof(o),S,V}(o,s,rs)
+SpaceOperator(o,s)=SpaceOperator(o,s,s)
 
 
-rangespace(S::SpaceOperator)=S.space
+domain(S::SpaceOperator)=domain(domainspace(S))
+
+domainspace(S::SpaceOperator)=S.domainspace
+rangespace(S::SpaceOperator)=S.rangespace
 addentries!(S::SpaceOperator,A,kr)=addentries!(S.op,A,kr)
 
 bandinds(S::SpaceOperator)=bandinds(S.op)
