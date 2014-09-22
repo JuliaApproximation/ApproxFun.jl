@@ -6,7 +6,7 @@ ChebyshevSpace()=ChebyshevSpace(Interval())
 
 
 Space(d::IntervalDomain)=ChebyshevSpace(d)
-canonicalspace(S::IntervalDomainSpace)=ChebyshevSpace(domain(S))
+canonicalspace(S::UltrasphericalSpace)=ChebyshevSpace(domain(S))
 
 function spaceconversion(g::Vector,::ConstantSpace,::ChebyshevSpace)
     @assert length(g)==1

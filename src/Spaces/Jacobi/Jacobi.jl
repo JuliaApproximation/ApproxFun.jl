@@ -1,4 +1,4 @@
-export JacobiSpace
+export JacobiSpace,LegendreSpace
 
 immutable JacobiSpace <: IntervalDomainSpace
     a::Float64
@@ -10,6 +10,16 @@ LegendreSpace()=LegendreSpace(Interval())
 JacobiSpace(a,b)=JacobiSpace(a,b,Interval())
 
 spacescompatible(a::JacobiSpace,b::JacobiSpace)=a.a==b.a && a.b==b.b
+
+function canonicalspace(S::JacobiSpace)
+    if isinteger(S.a) && isinteger(S.b)
+        JacobiSpace(0.,0.,domain(S))
+    elseif isinteger(S.a+0.5) && isinteger(S.b+0.5)
+        ChebyshevSpace()
+    else
+        error("There is no canonical space for Jacobi with a="*string(S.a)*" and b="*string(S.b))
+    end
+end
 
 
 jacobirecA(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+1:(2k+α+β+1)*(2k+α+β+2)/(2*(k+1)*(k+α+β+1))

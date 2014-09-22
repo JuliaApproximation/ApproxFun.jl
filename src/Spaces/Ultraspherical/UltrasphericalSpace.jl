@@ -59,6 +59,8 @@ immutable ChebyshevDirichletSpace{left,right} <: IntervalDomainSpace
     domain::Union(IntervalDomain,AnyDomain)
 end
 
+canonicalspace(S::ChebyshevDirichletSpace)=ChebyshevSpace(domain(S))
+
 
 
 

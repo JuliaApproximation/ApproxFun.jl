@@ -57,6 +57,16 @@ increase_jacobi_parameter(f)=Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β+1,s
 increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β,space(f).space)):Fun(f,JacobiWeightSpace(f.space.α,f.space.β+1,space(f).space))
 
 
+
+function canonicalspace(S::JacobiWeightSpace)
+    if S.α==0 && S.β==0
+        canonicalspace(S.space)
+    else
+        #TODO: promote singularities?
+        JacobiWeightSpace(S.α,S.β,canonicalspace(S.space))
+    end
+end
+
 ## Algebra
 
 for op in (:/,:./)
@@ -239,3 +249,4 @@ function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
         end    
     end
 end
+
