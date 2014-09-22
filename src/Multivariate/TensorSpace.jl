@@ -53,6 +53,4 @@ domain(f::ProductSpace)=domain(f.spacesx[1])*domain(f.spacesy)
 Base.getindex(d::ProductSpace,k::Integer)=k==1?d.spacesx:d.spacey
 
 
-
-
-
+space(d::AbstractProductSpace,k::Integer)=d[k]

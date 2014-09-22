@@ -122,7 +122,7 @@ end
 
 
 points(f::TensorFun,k)=points(space(f.coefficients[1]),size(f,k))
-points(f::ProductFun)=points(f.space,size(f,1),size(f,2))
+points(f::ProductFun,k...)=points(f.space,size(f,1),size(f,2),k...)
 
 
 space(f::AbstractProductFun)=f.space
@@ -226,10 +226,10 @@ Base.imag{S,V,T}(u::TensorFun{S,V,T})=real(TensorFun(imag(u.coefficients),space(
 
 ## ProductFun transform
 
-function transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Matrix)
+function transform{ST<:FunctionSpace,N<:Number}(::Type{N},S::Vector{ST},T::FunctionSpace,V::Matrix)
     @assert length(S)==size(V,2)
     # We assume all S spaces have same domain/points
-    C=Array(Complex{Float64},size(V)...)
+    C=Array(N,size(V)...)
     for k=1:size(V,1)
         C[k,:]=transform(T,vec(V[k,:]))
     end
@@ -238,6 +238,11 @@ function transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Matrix)
     end
     C
 end
+transform{ST<:FunctionSpace,N<:Real}(S::Vector{ST},T::RealDomainSpace,V::Matrix{N})=transform(Float64,S,T,V)
+transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Matrix)=transform(Complex{Float64},S,T,V)
+
+
+
 
 for op in (:tocanonical,:fromcanonical)
     @eval $op(f::AbstractProductFun,x...)=$op(space(f),x...)
