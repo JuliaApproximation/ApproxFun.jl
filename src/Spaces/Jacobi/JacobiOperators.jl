@@ -1,6 +1,6 @@
 ## Evaluation
 
-function Base.getindex(op::Evaluation{JacobiSpace,Bool},kr::Range1)
+function Base.getindex(op::Evaluation{JacobiSpace,Bool},kr::Range)
     @assert op.order <= 2
     sp=op.space
     a=sp.a;b=sp.b
@@ -16,7 +16,7 @@ function Base.getindex(op::Evaluation{JacobiSpace,Bool},kr::Range1)
         Float64[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
-function Base.getindex(op::Evaluation{JacobiSpace,Float64},kr::Range1)
+function Base.getindex(op::Evaluation{JacobiSpace,Float64},kr::Range)
     @assert op.order == 0
     jacobip(kr-1,op.space.a,op.space.b,op.x)        
 end
@@ -33,7 +33,7 @@ function addentries!(M::Multiplication{ChebyshevSpace,JacobiSpace},A::ShiftArray
         jkr=max(1,kr[1]-length(M.f)+1):kr[end]+length(M.f)-1
         ##TODO: simplify shift array and combine with Ultraspherical
         J=BandedArray(ShiftArray(zeros(length(jkr),3),1-jkr[1],2),jkr)
-        addentries!(JacobiRecurrence(sp.a,sp.b).',J.data,jkr)  #Multiplication is transpose
+        addentries!(JacobiRecurrenceOperator(sp.a,sp.b).',J.data,jkr)  #Multiplication is transpose
     
         C1=J
     
@@ -77,7 +77,9 @@ end
 function Conversion(L::JacobiSpace,M::JacobiSpace)
     @assert (isapprox(M.b,L.b)||M.b>=L.b) && (isapprox(M.a,L.a)||M.a>=L.a)
     
-    if (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
+    if isapprox(M.a,L.a) && isapprox(M.b,L.b)
+        SpaceOperator(IdentityOperator(),L,M)
+    elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
         Conversion{JacobiSpace,JacobiSpace,Float64}(L,M)
     elseif M.b > L.b+1
         Conversion(JacobiSpace(M.a,M.b-1),M)*Conversion(L,JacobiSpace(M.a,M.b-1))    
@@ -170,4 +172,5 @@ function conversion_rule{m}(A::UltrasphericalSpace{m},B::JacobiSpace)
         NoSpace()
     end
 end
+
 

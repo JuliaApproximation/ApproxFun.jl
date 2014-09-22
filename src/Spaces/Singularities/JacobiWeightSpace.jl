@@ -176,3 +176,66 @@ addentries!{T,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Ran
 addentries!{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(Fun(M.f.coefficients,space(M.f).space),domainspace(M).space),A,kr)
 rangespace{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S})=JacobiWeightSpace(space(M.f).α+M.space.α,space(M.f).β+M.space.β,rangespace(Multiplication(M.f,domainspace(M).space)))
 
+
+
+## Conversion
+
+maxspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
+minspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(max(A.α,B.α),max(A.β,B.β),minspace(A.space,B.space))
+
+function addentries!{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W},SA::ShiftArray,kr::Range)
+    @assert domain(C)==Interval()  ##TODO: General domains
+    A=C.domainspace;B=C.rangespace
+    @assert isinteger(A.α-B.α) && isinteger(A.β-B.β)
+    if A.space==B.space
+        x=Fun(identity)
+        m=(1+x).^int(A.α-B.α).*(1-x).^int(A.β-B.β)
+        addentries!(Multiplication(m,B.space),SA,kr)
+    elseif A.α==B.α && A.β==B.β
+        addentries!(Conversion(A.space,B.space),SA,kr)
+    else
+        C=Conversion(A.space,B.space)
+        x=Fun(identity)
+        m=(1+x).^int(A.α-B.α).*(1-x).^int(A.β-B.β)
+        addentries!(Multiplication(m,B.space)*C,SA,kr)            
+    end
+end
+
+function bandinds{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W})
+    A=C.domainspace;B=C.rangespace
+    @assert isinteger(A.α-B.α) && isinteger(A.β-B.β)
+    if A.space==B.space
+        x=Fun(identity)
+        m=(1+x).^int(A.α-B.α).*(1-x).^int(A.β-B.β)
+        bandinds(Multiplication(m,B.space))
+    elseif A.α==B.α && A.β==B.β
+        bandinds(Conversion(A.space,B.space))
+    else
+        C=Conversion(A.space,B.space)
+        x=Fun(identity)
+        m=(1+x).^int(A.α-B.α).*(1-x).^int(A.β-B.β)
+        bandinds(Multiplication(m,B.space)*C)
+    end
+end
+
+
+## Evaluation
+
+function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
+    S=op.space
+    if op.x
+        @assert S.β>=0
+        if S.β==0
+            getindex(Evaluation(S.space,op.x),kr)
+        else
+            zeros(kr)
+        end
+    else
+        @assert S.α>=0
+        if S.α==0
+            getindex(Evaluation(S.space,op.x),kr)
+        else
+            zeros(kr)
+        end    
+    end
+end

@@ -70,3 +70,14 @@ jacobip(n,S::JacobiSpace,v)=jacobip(n,S.a,S.b,v)
 include("jacobitransform.jl")
 include("JacobiOperators.jl")
 include("JacobiWeightOperators.jl")
+
+
+for op in (:(Base.ones),:(Base.zeros))
+    @eval ($op){T<:Number}(::Type{T},S::JacobiSpace)=Fun(($op)(T,1),S)
+    @eval ($op)(S::JacobiSpace)=Fun(($op)(1),S)    
+end
+
+function identity_fun(J::JacobiSpace)
+    @assert domain(J)==Interval()
+    Fun([(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)],J)
+end
