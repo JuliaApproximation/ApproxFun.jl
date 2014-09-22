@@ -121,3 +121,51 @@ end
 
 
 
+## Ultraspherical Conversion
+
+# Assume m is compatible
+bandinds{m}(C::Conversion{UltrasphericalSpace{m},JacobiSpace})=0,0
+
+
+function addentries!(C::Conversion{ChebyshevSpace,JacobiSpace},A::ShiftArray,kr::Range)
+    S=rangespace(C)
+    @assert S.a==S.b==-0.5
+    jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
+    for k=kr
+        A[k,0]+=1./jp[k]
+    end
+    
+    A
+end
+
+function addentries!(C::Conversion{JacobiSpace,ChebyshevSpace},A::ShiftArray,kr::Range)
+    S=domainspace(C)
+    @assert S.a==S.b==0.
+
+    jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
+    for k=kr
+        A[k,0]+=jp[k]
+    end
+    
+    A
+end
+
+function getdiagonalentry{m}(C::Conversion{UltrasphericalSpace{m},JacobiSpace})
+    @assert B.a+.5==m&&B.b+.5==m
+    gamma(2m+k)*gamma(m+0.5)/(gamma(2m)*gamma(m+k+0.5))
+end
+
+function getdiagonalentry{m}(C::Conversion{JacobiSpace,UltrasphericalSpace{m}})
+    @assert B.a+.5==m&&B.b+.5==m
+    (gamma(2m)*gamma(m+k+0.5))/(gamma(2m+k)*gamma(m+0.5))
+end
+
+
+function conversion_rule{m}(A::UltrasphericalSpace{m},B::JacobiSpace)
+    if B.a+.5==m&&B.b+.5==m
+        A
+    else
+        NoSpace()
+    end
+end
+

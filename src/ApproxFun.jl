@@ -9,7 +9,7 @@ export multiplybyx,IntervalDomain,fasttimes
 export bisectioninv, clenshaw
 export coefficients, integrate
 
-export domain
+export domain,space
 
 import Base.values
 

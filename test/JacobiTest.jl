@@ -37,3 +37,9 @@ f=(x,y)->exp(x.*sin(y))
 u=ProductFun(f,Disk(),50,51)
 @test_approx_eq u[.1,.1] f(.1,.1)
 
+
+
+## Conversion
+
+@test norm(Fun(Fun(exp),JacobiSpace(-.5,-.5))-Fun(exp,JacobiSpace(-.5,-.5)))<eps()
+

@@ -119,9 +119,13 @@ end
 ## Operators
 
 function rangespace{J<:JacobiWeightSpace}(D::Derivative{J})
-    S=space(D)
+    S=D.space
     if S.α==S.β==0
-        rangespace(Derivative(S.space))
+       JacobiWeightSpace(0.,0.,rangespace(Derivative(S.space)))
+    elseif S.α==0
+       JacobiWeightSpace(0.,S.β-1,rangespace(Derivative(S.space)))
+    elseif S.β==0
+       JacobiWeightSpace(S.α-1,0.,rangespace(Derivative(S.space)))
     else
         #We assume the range is the same as the derivative
         # but really in general it should be
@@ -132,12 +136,20 @@ function rangespace{J<:JacobiWeightSpace}(D::Derivative{J})
 end
 
 function addentries!{J<:JacobiWeightSpace}(D::Derivative{J},A::ShiftArray,kr::Range)
-    S=space(D)
+    S=D.space
     if S.α==S.β==0
         addentries!(Derivative(S.space),A,kr)
-    else
+    elseif S.α==0
         x=Fun(identity,S.space)
-        DD=S.α*(1-x) - S.β*(1-x) +(1-x.^2)*Derivative(S.space)
+        DD=-S.β*I +(1-x)*Derivative(S.space)
+        addentries!(DD,A,kr)    
+    elseif S.β==0
+        x=Fun(identity,S.space)
+        DD=S.α*I +(1+x)*Derivative(S.space)
+        addentries!(DD,A,kr)        
+    else 
+        x=Fun(identity,S.space)
+        DD=S.α*(1-x) - S.β*(1+x) +(1-x.^2)*Derivative(S.space)
         addentries!(DD,A,kr)
     end
     
