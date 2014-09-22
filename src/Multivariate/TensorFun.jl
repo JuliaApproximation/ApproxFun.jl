@@ -14,6 +14,8 @@ immutable ProductFun{S<:FunctionSpace,V<:FunctionSpace,SS<:AbstractProductSpace{
     space::SS
 end
 
+ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{S,V})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
+
 
 for T in (:Float64,:(Complex{Float64}))
     @eval begin

@@ -43,7 +43,24 @@ columnspace(D::DiskSpace,k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+
 transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
 
-function Base.real{T}(u::ProductFun{JacobiWeightSpace{JacobiSpace},LaurentSpace,DiskSpace{LaurentSpace},T})
-    real(TensorFun(real(u.coefficients),space(u,2)).').'-imag(TensorFun(imag(u.coefficients),space(u,2)).').'
+function Base.real(f::ProductFun{JacobiWeightSpace{JacobiSpace},LaurentSpace,DiskSpace{LaurentSpace}})
+    cfs=f.coefficients
+    n=length(cfs)
+
+    ret=Array(Fun{JacobiWeightSpace{JacobiSpace},Float64},iseven(n)?n+1:n)
+    ret[1]=real(cfs[1])
+    
+    for k=3:2:n
+        # exp(1im(k-1)/2*x)=cos((k-1)/2 x) +i sin((k-1)/2 x)
+        ret[k]=real(cfs[k])
+        ret[k-1]=-imag(cfs[k])
+    end
+    for k=2:2:n
+        # exp(1im(k-1)/2*x)=cos((k-1)/2 x) +i sin((k-1)/2 x)
+        ret[k]+=imag(cfs[k])
+        ret[k+1]+=real(cfs[k])
+    end    
+    
+    ProductFun(ret,DiskSpace(space(f).domain,FourierSpace()))
 end
 #Base.imag{S,T}(u::ProductFun{S,LarentSpace,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
