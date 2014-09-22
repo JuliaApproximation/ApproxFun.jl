@@ -167,4 +167,10 @@ function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
     surf(vals,obj,window)    
 end
 
+function plot{S<:IntervalDomainSpace,V<:PeriodicDomainSpace}(f::AbstractProductFun{S,V})
+    Px,Py=points(f)
+    vals=values(f)
+    surf([Px Px[:,1]], [Py Py[:,1]], [vals vals[:,1]])
+end
+
 plot(f::MultivariateFun)=surf(points(f,1),points(f,2),values(f))

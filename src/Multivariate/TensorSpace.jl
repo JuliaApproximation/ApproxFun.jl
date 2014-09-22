@@ -1,6 +1,11 @@
 
 abstract MultivariateDomain
+##TODO: MultivariateDomain{2}
 abstract BivariateDomain <: MultivariateDomain
+
+
+
+
 
 immutable ProductDomain{D<:Domain} <:BivariateDomain
     domains::Vector{D} 
@@ -16,42 +21,36 @@ Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
 abstract MultivariateFunctionSpace
 abstract BivariateFunctionSpace <: MultivariateFunctionSpace
 
-immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace} <:BivariateFunctionSpace
+
+fromcanonical(d::MultivariateDomain,x::Tuple)=fromcanonical(d,x...)
+tocanonical(d::MultivariateDomain,x::Tuple)=tocanonical(d,x...)
+fromcanonical(d::MultivariateFunctionSpace,x...)=fromcanonical(domain(d),x...)
+tocanonical(d::MultivariateFunctionSpace,x...)=tocanonical(domain(d),x...)
+
+
+# This means x are represented as space S and y are represented as space T
+abstract AbstractProductSpace{S,T} <: BivariateFunctionSpace
+
+immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace} <:AbstractProductSpace{S,T}
     spaces::(S,T)
 end
 
 TensorSpace(A,B)=TensorSpace((A,B))
 ⊗(A::FunctionSpace,B::FunctionSpace)=TensorSpace(A,B)
-
+domain(f::TensorSpace)=domain(f.spaces[1])*domain(f.spaces[2])
 
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
 
 
-immutable ProductSpace{S<:FunctionSpace,T<:FunctionSpace} <: BivariateFunctionSpace
+immutable ProductSpace{S<:FunctionSpace,T<:FunctionSpace} <: AbstractProductSpace{S,T}
     spacesx::Vector{S}
-    spacey
+    spacey::T
 end
 
 ⊗{S<:FunctionSpace}(A::Vector{S},B::FunctionSpace)=ProductSpace(A,B)
+domain(f::ProductSpace)=domain(f.spacesx[1])*domain(f.spacesy)
 
 Base.getindex(d::ProductSpace,k::Integer)=k==1?d.spacesx:d.spacey
 
 
-
-
-immutable Disk <: BivariateDomain
-    radius::Float64
-    center::(Float64,Float64)
-end
-Disk()=Disk(0.,(0.,0.))
-
-#canonical is rectangle
-# we assume radius and centre are zero for now
-fromcanonical(D::Disk,x,t)=.5*(1-x)*cos(t),.5*(1-x)*sin(t)
-tocanonical(D::Disk,x,y)=1-2sqrt(x^2+y^2),atan2(y,x)
-
-
-immutable DiskSpace <: BivariateFunctionSpace
-    disk::Disk
-end
-
+space(d::AbstractProductSpace,k::Integer)=d[k]

@@ -28,3 +28,12 @@ f=Fun(x->((1-x)/2).^m.*exp(x),JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.)))
 m=10
 f=Fun(x->besselj(m,m*(1-x)),JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.)))
 @test_approx_eq f[0.] besselj(m,m)
+
+
+
+## Disk
+
+f=(x,y)->exp(x.*sin(y))
+u=ProductFun(f,Disk(),50,51)
+@test_approx_eq u[.1,.1] f(.1,.1)
+

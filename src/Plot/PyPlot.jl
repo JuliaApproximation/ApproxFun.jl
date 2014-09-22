@@ -78,7 +78,7 @@ end
 
 function pysurf(x,y,z; rstride=2,cstride=2,kwds...)
     require("PyPlot")
-    Main.PyPlot.surf(x,y,z';linewidth=0,rstride=rstride,cstride=cstride,kwds...)
+    Main.PyPlot.surf(x,y,z;linewidth=0,rstride=rstride,cstride=cstride,kwds...)
 end
 
 function pycontour(kwds...)
