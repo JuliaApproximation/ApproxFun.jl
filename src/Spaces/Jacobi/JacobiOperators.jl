@@ -60,10 +60,11 @@ rangespace(D::Derivative{JacobiSpace})=JacobiSpace(D.space.a+D.order,D.space.b+D
 
 
 function getdiagonalentry(T::Derivative{JacobiSpace},k,j)
+    d=domain(T)
     if j==0
         0.
     else #j==1
-        .5(k+1+T.space.a+T.space.b)
+        (k+1+T.space.a+T.space.b)./length(d)
     end
 end
 

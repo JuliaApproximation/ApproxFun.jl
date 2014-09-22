@@ -52,3 +52,12 @@ ri=0.5./(1-x)
 
 
 @test_approx_eq (ri.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] .5/(1-.1)*exp(.1)
+
+
+## Derivative
+
+S=JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.,Interval(1.,0.)))
+D=Derivative(S)
+f=Fun(exp,domainspace(D))
+@test (D*f-f).coefficients|>norm < eps(1000.)
+@test (diff(f)-f).coefficients|>norm < eps(1000.)
