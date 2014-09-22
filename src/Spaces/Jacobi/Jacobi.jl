@@ -69,4 +69,4 @@ jacobip(n,S::JacobiSpace,v)=jacobip(n,S.a,S.b,v)
 
 include("jacobitransform.jl")
 include("JacobiOperators.jl")
-
+include("JacobiWeightOperators.jl")

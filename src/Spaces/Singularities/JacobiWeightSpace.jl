@@ -113,3 +113,35 @@ function Base.sum(f::Fun{JacobiWeightSpace{ChebyshevSpace}})
     end
 end
 
+
+
+
+## Operators
+
+function rangespace{J<:JacobiWeightSpace}(D::Derivative{J})
+    S=space(D)
+    if S.α==S.β==0
+        rangespace(Derivative(S.space))
+    else
+        #We assume the range is the same as the derivative
+        # but really in general it should be
+        # rangespace(S.α*(1-x) - S.β*(1-x) +(1-x.^2)*Derivative(S.space))
+        # if multiplying by x changes space this needs to be redone
+        JacobiWeightSpace(S.α-1,S.β-1,rangespace(Derivative(S.space)))
+    end
+end
+
+function addentries!{J<:JacobiWeightSpace}(D::Derivative{J},A::ShiftArray,kr::Range)
+    S=space(D)
+    if S.α==S.β==0
+        addentries!(Derivative(S.space),A,kr)
+    else
+        x=Fun(identity,S.space)
+        DD=S.α*(1-x) - S.β*(1-x) +(1-x.^2)*Derivative(S.space)
+        addentries!(DD,A,kr)
+    end
+    
+    A
+end
+
+
