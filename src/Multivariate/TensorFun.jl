@@ -9,9 +9,9 @@ immutable TensorFun{S<:FunctionSpace,V<:FunctionSpace,T<:Union(Float64,Complex{F
     space::TensorSpace{S,V}
 end
 
-immutable ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Union(Float64,Complex{Float64})}<:AbstractProductFun{S,V,T}
+immutable ProductFun{S<:FunctionSpace,V<:FunctionSpace,SS<:AbstractProductSpace{S,V},T<:Union(Float64,Complex{Float64})}<:AbstractProductFun{S,V,T}
     coefficients::Vector{Fun{S,T}}     # coefficients are in x
-    space::AbstractProductSpace{S,V}
+    space::SS
 end
 
 
@@ -21,7 +21,7 @@ for T in (:Float64,:(Complex{Float64}))
         function ProductFun{S}(M::Vector{Fun{S,$T}},dy::FunctionSpace)
             Sx=typeof(M[1].space)
             funs=Fun{Sx,$T}[Mk for Mk in M]
-            ProductFun{Sx,typeof(dy),$T}(funs,ProductSpace(Sx[space(fun) for fun in funs],dy))    
+            ProductFun{Sx,typeof(dy),ProductSpace{Sx,typeof(dy)},$T}(funs,ProductSpace(Sx[space(fun) for fun in funs],dy))    
         end
     end
 end
@@ -40,7 +40,7 @@ function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},
      for k=1:size(cfs,2)
          ret[k]=chop!(Fun(cfs[:,k],columnspace(D,k)),10eps())
      end
-     ProductFun{S,V,T}(ret,D)
+     ProductFun{S,V,typeof(D),T}(ret,D)
 end
 
 TensorFun{T<:Number}(cfs::Matrix{T},d::TensorSpace)=TensorFun(cfs,d[1],d[2])

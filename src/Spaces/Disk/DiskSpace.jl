@@ -43,5 +43,7 @@ columnspace(D::DiskSpace,k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+
 transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
 
-#Base.real{S,LaurentSpace,T}(u::ProductFun{S,V,T})=real(TensorFun(real(u.coefficients),space(u,2)).').'-imag(TensorFun(imag(u.coefficients),space(u,2)).').'
-#Base.imag{S,LaurentSpace,T}(u::ProductFun{S,V,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
+function Base.real{T}(u::ProductFun{JacobiWeightSpace{JacobiSpace},LaurentSpace,DiskSpace{LaurentSpace},T})
+    real(TensorFun(real(u.coefficients),space(u,2)).').'-imag(TensorFun(imag(u.coefficients),space(u,2)).').'
+end
+#Base.imag{S,T}(u::ProductFun{S,LarentSpace,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
