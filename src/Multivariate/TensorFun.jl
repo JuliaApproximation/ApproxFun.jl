@@ -35,15 +35,13 @@ function TensorFun{T<:Number,S<:FunctionSpace}(cfs::Matrix{T},dx::S,dy::Function
     TensorFun{S,typeof(dy),T}(ret,TensorSpace(dx,dy))
 end
 
-# function ProductFun{T<:Number,S<:FunctionSpace}(cfs::Matrix{T},dx::Vector{S},dy::FunctionSpace)
-#     @assert size(cfs,2)==length(dx)
-#     
-#     ret=Array(Fun{S,T},size(cfs,2))
-#     for k=1:size(cfs,2)
-#         ret[k]=chop!(Fun(cfs[:,k],dx[k]),10eps())
-#     end
-#     TensorFun{S,typeof(dy),T}(ret,TensorSpace(dx,dy))
-# end
+function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V})
+     ret=Array(Fun{S,T},size(cfs,2))
+     for k=1:size(cfs,2)
+         ret[k]=chop!(Fun(cfs[:,k],columnspace(D,k)),10eps())
+     end
+     ProductFun{S,V,T}(ret,D)
+end
 
 TensorFun{T<:Number}(cfs::Matrix{T},d::TensorSpace)=TensorFun(cfs,d[1],d[2])
 function TensorFun{F<:Fun}(cfs::Vector{F},d::TensorSpace)
@@ -70,11 +68,11 @@ end
 
 function ProductFun(f::Function,S::AbstractProductSpace,N::Integer,M::Integer)
     ptsx,ptsy=points(S,N,M)
-    V=Float64[f(x,t) for x=ptsx, t=ptsy]#TODO:type
+    V=Float64[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]#TODO:type
     ProductFun(transform(S,V),S)
 end
 
-
+ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Space(D),N,M)
 
 
 
@@ -128,9 +126,10 @@ points(f::ProductFun)=points(f.space,size(f,1),size(f,2))
 
 
 space(f::AbstractProductFun)=f.space
-space(f::TensorFun,k)=f.space.spaces[k]
+space(f::AbstractProductFun,k)=space(space(f),k)
 
 domain(f::AbstractProductFun)=domain(f.space)
+#domain(f::AbstractProductFun,k)=domain(f.space,k)
 
 
 
@@ -227,7 +226,8 @@ Base.imag{S,V,T}(u::TensorFun{S,V,T})=real(TensorFun(imag(u.coefficients),space(
 
 ## ProductFun transform
 
-function transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Array)
+function transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Matrix)
+    @assert length(S)==size(V,2)
     # We assume all S spaces have same domain/points
     C=Array(Complex{Float64},size(V)...)
     for k=1:size(V,1)
@@ -237,5 +237,9 @@ function transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Array)
         C[:,k]=transform(S[k],C[:,k])
     end
     C
+end
+
+for op in (:tocanonical,:fromcanonical)
+    @eval $op(f::AbstractProductFun,x...)=$op(space(f),x...)
 end
 
