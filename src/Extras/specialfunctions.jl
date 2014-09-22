@@ -52,32 +52,38 @@ for op in (:(Base.cos),:(Base.sin))
     end
 end
 
-function Base.sqrt(f::Fun{ChebyshevSpace})
+
+
+function .^(f::Fun{ChebyshevSpace},k::Float64)
     fc = Fun(canonicalcoefficients(f))
     x=Fun(identity)
 
     r = sort(roots(fc))
-    tol= 10eps()
+
     
     @assert length(r) <= 2
     
     if length(r) == 0
-        Fun(x->sqrt(f[x]),domain(f))
+        Fun(x->f[x]^k,domain(f))
     elseif length(r) == 1
-        @assert abs(abs(r[1])-1) < tol
+        @assert isapprox(abs(r[1]),1)
         
-        if abs(r[1]-1.) < tol
-            Fun(canonicalcoefficients(sqrt(Multiplication(1-x)\fc)),JacobiWeightSpace(0.,.5,domain(f)))
+        if isapprox(r[1],1.)
+            Fun(canonicalcoefficients((Multiplication(1-x)\fc)).^k,JacobiWeightSpace(0.,k,domain(f)))
         else
-            Fun(canonicalcoefficients(sqrt(Multiplication(1+x)\fc)),JacobiWeightSpace(.5,0.,domain(f)))
+            Fun(canonicalcoefficients((Multiplication(1+x)\fc)).^k,JacobiWeightSpace(k,0.,domain(f)))
         end
     else
-        @assert abs(r[1]+1) < tol
-        @assert abs(r[2]-1) < tol        
+        @assert isapprox(r[1],-1)
+        @assert isapprox(r[2],1) 
     
-        Fun(canonicalcoefficients(sqrt(linsolve(Multiplication(1-x.^2),fc;tolerance=eps()))),JacobiWeightSpace(.5,.5,domain(f)))  
+        Fun(canonicalcoefficients(linsolve(Multiplication(1-x.^2),fc;tolerance=eps()).^k),JacobiWeightSpace(k,k,domain(f)))  
     end
 end
+
+Base.sqrt(f::Fun{ChebyshevSpace})=f.^0.5
+
+
 
 
 
