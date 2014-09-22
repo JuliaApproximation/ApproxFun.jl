@@ -61,3 +61,6 @@ D=Derivative(S)
 f=Fun(exp,domainspace(D))
 @test (D*f-f).coefficients|>norm < eps(10000.)
 @test (diff(f)-f).coefficients|>norm < eps(10000.)
+@test (D^2*f-f).coefficients|>norm < eps(1000000.)
+@test (D*(D*f)-f).coefficients|>norm < eps(1000000.)
+

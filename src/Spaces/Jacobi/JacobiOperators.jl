@@ -10,15 +10,17 @@ function Base.getindex(op::Evaluation{JacobiSpace,Bool},kr::Range)
         jacobip(kr-1,a,b,x?1.0:-1.0)
     elseif op.order == 1
         @assert !x && b==0 
+        @assert domain(op)==Interval()
         Float64[.5*(a+k)*(k-1)*(-1)^k for k=kr]
     elseif op.order == 2
         @assert !x && b==0     
+        @assert domain(op)==Interval()        
         Float64[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
 function Base.getindex(op::Evaluation{JacobiSpace,Float64},kr::Range)
     @assert op.order == 0
-    jacobip(kr-1,op.space.a,op.space.b,op.x)        
+    jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))        
 end
 
 ## Multiplication
@@ -55,7 +57,7 @@ end
 
 Derivative(J::JacobiSpace,k::Integer)=k==1?Derivative{JacobiSpace,Float64}(J,1):TimesOperator(Derivative(JacobiSpace(J.a+1,J.b+1,J.domain),k-1),Derivative{JacobiSpace,Float64}(J,1))
 
-rangespace(D::Derivative{JacobiSpace})=JacobiSpace(D.space.a+D.order,D.space.b+D.order)
+rangespace(D::Derivative{JacobiSpace})=JacobiSpace(D.space.a+D.order,D.space.b+D.order,domain(D))
 
 
 
@@ -77,15 +79,15 @@ end
 
 function Conversion(L::JacobiSpace,M::JacobiSpace)
     @assert (isapprox(M.b,L.b)||M.b>=L.b) && (isapprox(M.a,L.a)||M.a>=L.a)
-    
+    dm=domain(M)
     if isapprox(M.a,L.a) && isapprox(M.b,L.b)
         SpaceOperator(IdentityOperator(),L,M)
     elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
         Conversion{JacobiSpace,JacobiSpace,Float64}(L,M)
     elseif M.b > L.b+1
-        Conversion(JacobiSpace(M.a,M.b-1),M)*Conversion(L,JacobiSpace(M.a,M.b-1))    
+        Conversion(JacobiSpace(M.a,M.b-1,dm),M)*Conversion(L,JacobiSpace(M.a,M.b-1,dm))    
     else  #if M.a >= L.a+1
-        Conversion(JacobiSpace(M.a-1,M.b),M)*Conversion(L,JacobiSpace(M.a-1,M.b))            
+        Conversion(JacobiSpace(M.a-1,M.b,dm),M)*Conversion(L,JacobiSpace(M.a-1,M.b,dm))            
     end
 end   
 

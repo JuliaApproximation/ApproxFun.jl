@@ -55,7 +55,13 @@ end
 
 
 conversion_rule(a::FunctionSpace,b::FunctionSpace)=NoSpace()
-conversion_rule{S<:FunctionSpace}(a::S,b::S)=a
+function conversion_rule{S<:FunctionSpace}(a::S,b::S)
+    if spacescompatible(a,b)
+        a
+    else
+        NoSpace()
+    end
+end 
 
 function conversion_type(a,b)
     cr=conversion_rule(a,b)
