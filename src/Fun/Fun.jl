@@ -215,7 +215,11 @@ end
 # When the spaces differ we promote and multiply
 function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     sp=minspace(space(f),space(g))
-    Fun(f,sp).*Fun(g,sp)
+    if sp==NoSpace() # see if a multiplication operator is implemented
+        Multiplication(f,space(g))*g
+    else
+        Fun(f,sp).*Fun(g,sp)
+    end
 end
 
 

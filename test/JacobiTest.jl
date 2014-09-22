@@ -43,3 +43,12 @@ u=ProductFun(f,Disk(),50,51)
 
 @test norm(Fun(Fun(exp),JacobiSpace(-.5,-.5))-Fun(exp,JacobiSpace(-.5,-.5)))<eps()
 
+x=Fun(identity)
+ri=0.5./(1-x)
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] (1-.1)./2*exp(.1)
+
+
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] (1-.1)./2*exp(.1)
+
+
+@test_approx_eq (ri.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] .5/(1-.1)*exp(.1)

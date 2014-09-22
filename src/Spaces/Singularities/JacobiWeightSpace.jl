@@ -133,6 +133,26 @@ function Base.sum(f::Fun{JacobiWeightSpace{ChebyshevSpace}})
     end
 end
 
+function differentiate{J<:JacobiWeightSpace}(f::Fun{J})
+    S=f.space
+    if S.α==S.β==0
+        u=differentiate(Fun(f,S.space))
+        Fun(u.coefficients,JacobiWeightSpace(0.,0.,space(u)))
+    elseif S.α==0
+        x=Fun(identity)
+        u=-S.β*f +(1-x).*differentiate(Fun(f,S.space))
+        Fun(u.coefficients,JacobiWeightSpace(0.,S.β-1,space(u)))
+    elseif S.β==0
+        x=Fun(identity)
+        u=S.α*f +(1+x).*differentiate(Fun(f,S.space))
+        Fun(u.coefficients,JacobiWeightSpace(S.α-1,0.,space(u)))        
+    else 
+        x=Fun(identity)
+        u=S.α*(1-x).*f- S.β*(1+x).*f +(1-x.^2).*differentiate(Fun(f,S.space))
+        Fun(u.coefficients,JacobiWeightSpace(S.α-1,S.β-1,space(u)))        
+    end
+end
+
 
 
 
