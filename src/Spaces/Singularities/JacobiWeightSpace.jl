@@ -202,6 +202,8 @@ rangespace{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S})=Ja
 
 maxspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
 minspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(max(A.α,B.α),max(A.β,B.β),minspace(A.space,B.space))
+maxspace(A::IntervalDomainSpace,B::JacobiWeightSpace)=maxspace(JacobiWeightSpace(0.,0.,A),B)
+maxspace(A::JacobiWeightSpace,B::IntervalDomainSpace)=maxspace(A,JacobiWeightSpace(0.,0.,B))
 
 function addentries!{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W},SA::ShiftArray,kr::Range)
     @assert domain(C)==Interval()  ##TODO: General domains
