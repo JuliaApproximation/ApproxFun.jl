@@ -16,7 +16,7 @@ function points(d::Disk,n,m,k)
     ptsx=gaussjacobi(n,1.,0.)[1]
     ptst=points(PeriodicInterval(),m)
     
-    [fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
+    Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 end
 points(d::BivariateDomain,n,m)=points(d,n,m,1),points(d,n,m,2)
 
