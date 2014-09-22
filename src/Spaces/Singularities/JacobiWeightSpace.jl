@@ -173,6 +173,6 @@ end
 
 addentries!{T,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(M.f,domainspace(M).space),A,kr)
 
-#addentries!{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(Fun(M.f.coefficients,space(M.f).space),domainspace(M).space),A,kr)
-#rangespace{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S})=
+addentries!{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(Fun(M.f.coefficients,space(M.f).space),domainspace(M).space),A,kr)
+rangespace{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S})=JacobiWeightSpace(space(M.f).α+M.space.α,space(M.f).β+M.space.β,rangespace(Multiplication(M.f,domainspace(M).space)))
 
