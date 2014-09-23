@@ -42,7 +42,7 @@ itransform(sp::IntervalDomainSpace,cfs::Vector)=ichebyshevtransform(spaceconvers
 
 Base.first{O}(f::Fun{UltrasphericalSpace{O}})=foldr(-,canonicalcoefficients(f))
 Base.last{O}(f::Fun{UltrasphericalSpace{O}})=reduce(+,canonicalcoefficients(f))
-
+identity_fun{m}(d::UltrasphericalSpace{m})=Fun(identity_fun(domain(d)),d)
 
 
 ## Calculus

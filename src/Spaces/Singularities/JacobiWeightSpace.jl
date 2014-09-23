@@ -194,19 +194,19 @@ function addentries!{J<:JacobiWeightSpace}(D::Derivative{J},A::ShiftArray,kr::Ra
     if S.α==S.β==0
         addentries!(Derivative(S.space),A,kr)
     elseif S.α==0
-        x=Fun(identity,S.space)
+        x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)            
         DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
         addentries!(DD,A,kr)    
     elseif S.β==0
-        x=Fun(identity,S.space)
+        x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)        
         DD=(Mp*S.α)*I +(1+M)*Derivative(S.space)
         addentries!(DD,A,kr)        
     else 
-        x=Fun(identity,S.space)
+        x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)
         DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
@@ -218,19 +218,26 @@ end
 
 function bandinds{J<:JacobiWeightSpace}(D::Derivative{J})
     S=D.space
+    d=domain(D)    
     if S.α==S.β==0
         0,1
     elseif S.α==0
-        x=Fun(identity,S.space)
-        DD=-S.β*I +(1-x)*Derivative(S.space)
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)            
+        DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
         bandinds(DD)
     elseif S.β==0
-        x=Fun(identity,S.space)
-        DD=S.α*I +(1+x)*Derivative(S.space)
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)        
+        DD=(Mp*S.α)*I +(1+M)*Derivative(S.space)
         bandinds(DD)
     else 
-        x=Fun(identity,S.space)
-        DD=S.α*(1-x) - S.β*(1+x) +(1-x.^2)*Derivative(S.space)
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)
+        DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
         bandinds(DD)
     end
 end

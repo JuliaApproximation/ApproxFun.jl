@@ -292,7 +292,7 @@ function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
     
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
-         krl[m+1]=(br[1] + krl[m][1]):(br[end] + krl[m][end])
+         krl[m+1]=max(br[1] + krl[m][1],1):(br[end] + krl[m][end])
     end
     
     BA=BandedArray(P.ops[end],krl[end])
