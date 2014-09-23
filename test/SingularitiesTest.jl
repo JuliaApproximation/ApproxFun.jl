@@ -33,7 +33,7 @@ D=Derivative(S)
 f=Fun(Fun(exp,[0.,1.]).coefficients,S)
 x=.1
 @test_approx_eq f[x] exp(x)*x^(-1).*(1-x)^(-1)/4
-@test_approx_eq (D*f)[x] exp(x)*(1+(3-x)*x)/(4*(x-1)^2*x^2)
+@test_approx_eq (D*f)[x] -exp(x)*(1+(x-3)*x)/(4*(x-1)^2*x^2)
 
 
 S=JacobiWeightSpace(-1.,0.,ChebyshevSpace([0.,1.]))
