@@ -97,6 +97,20 @@ for T in (:Float64,:(Complex{Float64}))
 end
 
 
+function pad{S,V,T}(f::TensorFun{S,V,T},n::Integer,m::Integer)
+    ret=Array(Fun{S,T},m)
+    cm=min(length(f.coefficients),m)
+    for k=1:cm
+        ret[k]=pad(f.coefficients[k],n)
+    end
+    zr=zero(space(f,1))
+    for k=cm+1:m
+        ret[k]=zr
+    end
+    TensorFun{S,V,T}(ret,f.space)
+end
+
+
 coefficients(f::AbstractProductFun)=funlist2coefficients(f.coefficients)
 
 function coefficients{S,V,T<:Number}(f::AbstractProductFun{S,V,T},ox::FunctionSpace,oy::FunctionSpace)

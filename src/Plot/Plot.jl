@@ -175,3 +175,5 @@ function plot{S<:IntervalDomainSpace,V<:PeriodicDomainSpace}(f::AbstractProductF
 end
 
 plot(f::MultivariateFun)=surf(points(f,1),points(f,2),values(f))
+
+plot(f::MultivariateFun,obj,window)=surf(values(f),obj,window)

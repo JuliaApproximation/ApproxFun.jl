@@ -48,6 +48,7 @@ function glsurf(vals::Matrix)
     glupdatewindow(obj,window)
 end
 
+
 function glsurf(xx::Matrix,yy::Matrix,vals::Matrix)
     GLAbstraction=Main.GLAbstraction
     ModernGL=Main.ModernGL
@@ -61,6 +62,8 @@ function glsurf(xx::Matrix,yy::Matrix,vals::Matrix)
 
     glupdatewindow(obj,window)
 end
+
+
 
 glsurf(x::Vector,y::Vector,z::Matrix)=glsurf(x*ones(1,length(y)),ones(length(x))*y.',z)
 

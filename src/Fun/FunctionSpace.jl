@@ -167,3 +167,7 @@ function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
 end
 
 
+
+
+## TODO: remove zeros
+Base.zero(S::FunctionSpace)=zeros(S)  
