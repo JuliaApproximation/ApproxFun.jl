@@ -47,9 +47,9 @@ end
 ⊗(A::Operator,B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
 ⊗(A::UniformScaling,B::Operator)=ConstantOperator(1.0A.λ)⊗B
 
-⊗(A::Fun,B::Fun)=MultiplicationOperator(A)⊗MultiplicationOperator(B)
-⊗(A,B::Fun)=A⊗MultiplicationOperator(B)
-⊗(A::Fun,B)=MultiplicationOperator(A)⊗B
+⊗(A::Fun,B::Fun)=Multiplication(A)⊗Multiplication(B)
+⊗(A,B::Fun)=A⊗Multiplication(B)
+⊗(A::Fun,B)=Multiplication(A)⊗B
 
 ⊗{T<:Operator}(A::Vector{T},B::Operator)=PDEOperator[PDEOperator(Ai,B) for Ai in A]
 ⊗{T<:Operator}(A::Operator,B::Vector{T})=PDEOperator[PDEOperator(A,Bi) for Bi in B]

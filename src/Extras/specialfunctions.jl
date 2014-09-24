@@ -1,6 +1,6 @@
 # division by fun 
 
-./{a,b}(f::Fun{UltrasphericalSpace{a}},g::Fun{UltrasphericalSpace{b}})=linsolve(Multiplication(g),f;tolerance=10eps())
+./{a,b}(f::Fun{UltrasphericalSpace{a}},g::Fun{UltrasphericalSpace{b}})=linsolve(Multiplication(g,space(f)),f;tolerance=10eps())
 
 for op in (:./,:/)
     @eval begin
@@ -14,7 +14,7 @@ for op in (:./,:/)
             @assert length(r) <= 2
             
             if length(r) == 0
-                linsolve(Multiplication(f),c;tolerance=tol)
+                linsolve(Multiplication(f,space(f)),c;tolerance=tol)
             elseif length(r) == 1
                 @assert abs(abs(r[1]) - 1.) < tol
                 
@@ -69,15 +69,15 @@ function .^(f::Fun{ChebyshevSpace},k::Float64)
         @assert isapprox(abs(r[1]),1)
         
         if isapprox(r[1],1.)
-            Fun(canonicalcoefficients((Multiplication(1-x)\fc)).^k,JacobiWeightSpace(0.,k,domain(f)))
+            Fun(canonicalcoefficients((Multiplication(1-x,space(fc))\fc)).^k,JacobiWeightSpace(0.,k,domain(f)))
         else
-            Fun(canonicalcoefficients((Multiplication(1+x)\fc)).^k,JacobiWeightSpace(k,0.,domain(f)))
+            Fun(canonicalcoefficients((Multiplication(1+x,space(fc))\fc)).^k,JacobiWeightSpace(k,0.,domain(f)))
         end
     else
         @assert isapprox(r[1],-1)
         @assert isapprox(r[2],1) 
     
-        Fun(canonicalcoefficients(linsolve(Multiplication(1-x.^2),fc;tolerance=eps()).^k),JacobiWeightSpace(k,k,domain(f)))  
+        Fun(canonicalcoefficients(linsolve(Multiplication(1-x.^2,space(fc)),fc;tolerance=eps()).^k),JacobiWeightSpace(k,k,domain(f)))  
     end
 end
 
