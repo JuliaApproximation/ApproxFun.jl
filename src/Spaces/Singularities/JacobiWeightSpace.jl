@@ -327,15 +327,19 @@ function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
                 2^S.α*getindex(Evaluation(S.space,op.x,1),kr)+(tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
             end
         else
-        @assert op.order==0
+            @assert op.order==0
             zeros(kr)
         end
     else
         @assert S.α>=0
-        @assert op.order==0        
         if S.α==0
-            2^S.β*getindex(Evaluation(S.space,op.x),kr)
+            if op.order==0
+                2^S.β*getindex(Evaluation(S.space,op.x),kr)
+            else #op.order ===1
+                2^S.β*getindex(Evaluation(S.space,op.x,1),kr)-(tocanonicalD(d,d.a)*S.β*2^(S.β-1))*getindex(Evaluation(S.space,op.x),kr)
+            end
         else
+            @assert op.order==0        
             zeros(kr)
         end    
     end

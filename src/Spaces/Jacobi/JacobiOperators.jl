@@ -10,8 +10,9 @@ function Base.getindex(op::Evaluation{JacobiSpace,Bool},kr::Range)
         jacobip(kr-1,a,b,x?1.0:-1.0)
     elseif op.order == 1
         @assert !x && b==0 
-        @assert domain(op)==Interval()
-        Float64[.5*(a+k)*(k-1)*(-1)^k for k=kr]
+        d=domain(op)
+        @assert isa(d,Interval)
+        Float64[tocanonicalD(d,d.a)*.5*(a+k)*(k-1)*(-1)^k for k=kr]
     elseif op.order == 2
         @assert !x && b==0     
         @assert domain(op)==Interval()        
