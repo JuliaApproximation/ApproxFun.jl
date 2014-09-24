@@ -27,3 +27,4 @@ promotedomainspace(D::Multiplication,sp::AnySpace)=D
 promotedomainspace(D::Multiplication,sp::FunctionSpace)=Multiplication(D.f,sp)
 
 
+Base.diagm(a::Fun)=Multiplication(a)
