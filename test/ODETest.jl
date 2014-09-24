@@ -100,7 +100,7 @@ D=Derivative(d)
 A=rand(n,n)
 L=[B;D-A]
 u=L\eye(n)
-@test norm(evaluate(u,1.)-expm(A))<100eps()
+@test norm(evaluate(u,1.)-expm(A))<eps(1000.)
 
 
 
@@ -111,6 +111,6 @@ D=diff(d)
 x=Fun(identity,d)
 u=null(D^2-x)
 c=[evaluate(u,d.a)'; evaluate(u,d.b)']\[airyai(d.a),airyai(d.b)]
-@test norm(dot(c,u)-Fun(airyai,d))<100eps()
+@test norm(dot(c,u)-Fun(airyai,d))<eps(1000.)
 
 

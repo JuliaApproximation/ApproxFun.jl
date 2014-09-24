@@ -114,6 +114,8 @@ end
 
 
 rangespace{λ}(D::Derivative{UltrasphericalSpace{λ}})=UltrasphericalSpace{λ+D.order}(domain(D))
+bandinds{S<:UltrasphericalSpace}(D::Derivative{S})=0,D.order
+bandinds{S<:UltrasphericalSpace}(D::Integral{S})=-D.order,0   
 
 function addentries!{λ}(D::Derivative{UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
     m=D.order

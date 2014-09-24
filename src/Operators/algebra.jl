@@ -208,12 +208,18 @@ function promotetimes{B}(opsin::Vector{B})
     ops=copy(opsin)
     
     for k=length(ops)-1:-1:1
-        op=promotedomainspace(ops[k],rangespace(ops[k+1]))
-        if op==()
-            ops=ops[[1:k-1,k+1:end]]  ## remove the op
-        else
-            ops[k]=op
-        end
+#         if isa(ops[k],Conversion)
+#             ops=ops[[1:k-1,k+1:end]]  ## remove the op
+#         else        
+            op=promotedomainspace(ops[k],rangespace(ops[k+1]))
+            if op==()
+                ops=ops[[1:k-1,k+1:end]]  ## remove the op
+            elseif isa(op,TimesOperator)
+                ops=[ops[1:k-1],op.ops,ops[k+1:end]]
+            else
+                ops[k]=op
+            end
+#        end
     end
     
     TimesOperator(ops)
@@ -343,9 +349,10 @@ end
 -(A::Functional,B::Functional)=PlusFunctional([A,-B])
 
 *(A::TimesOperator,B::TimesOperator)=promotetimes([A.ops,B.ops])
-*(A::TimesOperator,B::Operator)=promotetimes([A.ops,B])
-*(A::Operator,B::TimesOperator)=promotetimes([A,B.ops])
-*(A::Operator,B::Operator)=promotetimes([A,B])
+*(A::TimesOperator,B::BandedOperator)=promotetimes([A.ops,B])
+*(A::BandedOperator,B::TimesOperator)=promotetimes([A,B.ops])
+*{T}(A::BandedOperator{T},B::BandedOperator{T})=promotetimes(BandedOperator{T}[A,B])
+*(A::BandedOperator,B::BandedOperator)=promotetimes(BandedOperator[A,B])
 
 
 -(A::Operator)=ConstantOperator(-1.)*A
@@ -398,6 +405,19 @@ end
 
 
 ## promotedomain
+
+for T in (:AnySpace,:FunctionSpace)
+    @eval begin
+        function promotedomainspace{T}(P::PlusOperator{T},sp::FunctionSpace,cursp::$T)
+            if sp==cursp
+                P
+            else
+                PlusOperator(BandedOperator{T}[promotedomainspace(op,sp) for op in P.ops])
+            end
+        end
+    end
+end
+
 
 for T in (:AnySpace,:FunctionSpace)
     @eval begin

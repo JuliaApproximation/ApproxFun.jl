@@ -58,16 +58,17 @@ end
 Derivative(J::JacobiSpace,k::Integer)=k==1?Derivative{JacobiSpace,Float64}(J,1):TimesOperator(Derivative(JacobiSpace(J.a+1,J.b+1,J.domain),k-1),Derivative{JacobiSpace,Float64}(J,1))
 
 rangespace(D::Derivative{JacobiSpace})=JacobiSpace(D.space.a+D.order,D.space.b+D.order,domain(D))
+bandinds(D::Derivative{JacobiSpace})=0,D.order
+bandinds(D::Integral{JacobiSpace})=-D.order,0   
 
 
 
-function getdiagonalentry(T::Derivative{JacobiSpace},k,j)
+function addentries!(T::Derivative{JacobiSpace},A::ShiftArray,kr::Range)
     d=domain(T)
-    if j==0
-        0.
-    else #j==1
-        (k+1+T.space.a+T.space.b)./length(d)
+    for k=kr
+        A[k,1]+=(k+1+T.space.a+T.space.b)./length(d)
     end
+    A
 end
 
 

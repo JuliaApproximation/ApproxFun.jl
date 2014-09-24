@@ -22,7 +22,21 @@ for TT in (:Derivative,:Integral)
         
         domainspace(D::$TT)=D.space
         rangespace{T,S<:PeriodicDomainSpace}(D::$TT{S,T})=D.space        #assume rangespace is the same
-        bandinds{T,S<:PeriodicDomainSpace}(D::$TT{S,T})=0,0
+        
+        function addentries!(D::$TT,A::ShiftArray,kr::Range)   
+            # Default is to convert to Canonical and d
+            sp=domainspace(D)
+            csp=canonicalspace(sp)
+            addentries!(TimesOperator([$TT(csp,D.order),Conversion(sp,csp)]),A,kr)
+        end
+        
+        function bandinds(D::$TT)
+            sp=domainspace(D)
+            csp=canonicalspace(sp)
+            bandinds(TimesOperator([$TT(csp,D.order),Conversion(sp,csp)])) 
+        end
+        
+        rangespace{S,T}(D::$TT{S,T})=rangespace($TT(canonicalspace(domainspace(D)),D.order))
     end
 end
 
@@ -53,8 +67,7 @@ end
 
 
 ## Overrideable
-bandinds{T,S<:IntervalDomainSpace}(D::Derivative{S,T})=0,D.order
-bandinds{T,S<:IntervalDomainSpace}(D::Integral{S,T})=-D.order,0
+
 
 
 
