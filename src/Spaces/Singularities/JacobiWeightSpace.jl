@@ -135,20 +135,28 @@ end
 
 function differentiate{J<:JacobiWeightSpace}(f::Fun{J})
     S=f.space
+    d=domain(f)    
+    ff=Fun(f.coefficients,S.space)    
     if S.α==S.β==0
-        u=differentiate(Fun(f,S.space))
+        u=differentiate(ff)
         Fun(u.coefficients,JacobiWeightSpace(0.,0.,space(u)))
     elseif S.α==0
-        x=Fun(identity)
-        u=-S.β*f +(1-x).*differentiate(Fun(f,S.space))
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)  
+        u=-Mp*S.β*ff +(1-M).*differentiate(ff)
         Fun(u.coefficients,JacobiWeightSpace(0.,S.β-1,space(u)))
     elseif S.β==0
-        x=Fun(identity)
-        u=S.α*f +(1+x).*differentiate(Fun(f,S.space))
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)  
+        u=Mp*S.α*ff +(1+M).*differentiate(ff)
         Fun(u.coefficients,JacobiWeightSpace(S.α-1,0.,space(u)))        
     else 
-        x=Fun(identity)
-        u=S.α*(1-x).*f- S.β*(1+x).*f +(1-x.^2).*differentiate(Fun(f,S.space))
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a) 
+        u=(Mp*S.α)*(1-M).*ff- (Mp*S.β)*(1+M).*ff +(1-M.^2).*differentiate(ff)
         Fun(u.coefficients,JacobiWeightSpace(S.α-1,S.β-1,space(u)))        
     end
 end
@@ -263,7 +271,7 @@ function addentries!{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,
     A=C.domainspace;B=C.rangespace
     @assert isinteger(A.α-B.α) && isinteger(A.β-B.β)
     if A.space==B.space
-        d=domain(D)        
+        d=domain(C)        
         x=Fun(identity,d)
         M=tocanonical(d,x)
         m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
@@ -271,7 +279,7 @@ function addentries!{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,
     elseif A.α==B.α && A.β==B.β
         addentries!(Conversion(A.space,B.space),SA,kr)
     else
-        d=domain(D)        
+        d=domain(C)        
         x=Fun(identity,d)
         M=tocanonical(d,x)    
         C=Conversion(A.space,B.space)
@@ -303,17 +311,26 @@ end
 
 function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
     S=op.space
+    @assert op.order<=1
+    d=domain(op)
+    @assert isa(d,Interval)
     if op.x
         @assert S.β>=0
         if S.β==0
-            getindex(Evaluation(S.space,op.x),kr)
+            if op.order==0
+                2^S.α*getindex(Evaluation(S.space,op.x),kr)
+            else #op.order ===1
+                2^S.α*getindex(Evaluation(S.space,op.x,1),kr)+(tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
+            end
         else
+        @assert op.order==0
             zeros(kr)
         end
     else
         @assert S.α>=0
+        @assert op.order==0        
         if S.α==0
-            getindex(Evaluation(S.space,op.x),kr)
+            2^S.β*getindex(Evaluation(S.space,op.x),kr)
         else
             zeros(kr)
         end    

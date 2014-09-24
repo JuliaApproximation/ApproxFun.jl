@@ -106,10 +106,10 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
 end
 
 
-+(A::Operator,f::Fun)=A+Multiplication(f)
-+(f::Fun,A::Operator)=Multiplication(f)+A
--(A::Operator,f::Fun)=A+Multiplication(-f)
--(f::Fun,A::Operator)=Multiplication(f)-A
++(A::Operator,f::Fun)=A+Multiplication(f,domainspace(A))
++(f::Fun,A::Operator)=Multiplication(f,domainspace(A))+A
+-(A::Operator,f::Fun)=A+Multiplication(-f,domainspace(A))
+-(f::Fun,A::Operator)=Multiplication(f,domainspace(A))-A
 
 
 
