@@ -267,16 +267,18 @@ minspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(max(A.α,B
 maxspace(A::IntervalDomainSpace,B::JacobiWeightSpace)=maxspace(JacobiWeightSpace(0.,0.,A),B)
 maxspace(A::JacobiWeightSpace,B::IntervalDomainSpace)=maxspace(A,JacobiWeightSpace(0.,0.,B))
 
+isapproxinteger(x)=isapprox(x,int(x))
+
 function addentries!{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W},SA::ShiftArray,kr::Range)
     A=C.domainspace;B=C.rangespace
-    @assert isinteger(A.α-B.α) && isinteger(A.β-B.β)
+    @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
     if A.space==B.space
         d=domain(C)        
         x=Fun(identity,d)
         M=tocanonical(d,x)
         m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
         addentries!(Multiplication(m,B.space),SA,kr)
-    elseif A.α==B.α && A.β==B.β
+    elseif isapprox(A.α,B.α) && isapprox(A.β,B.β)
         addentries!(Conversion(A.space,B.space),SA,kr)
     else
         d=domain(C)        
@@ -289,14 +291,16 @@ function addentries!{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,
     end
 end
 
+
+
 function bandinds{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W})
     A=C.domainspace;B=C.rangespace
-    @assert isinteger(A.α-B.α) && isinteger(A.β-B.β)
+    @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
     if A.space==B.space
         x=Fun(identity)
         m=(1+x).^int(A.α-B.α).*(1-x).^int(A.β-B.β)
         bandinds(Multiplication(m,B.space))
-    elseif A.α==B.α && A.β==B.β
+    elseif isapprox(A.α,B.α) && isapprox(A.β,B.β)
         bandinds(Conversion(A.space,B.space))
     else
         C=Conversion(A.space,B.space)
