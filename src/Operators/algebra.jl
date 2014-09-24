@@ -65,7 +65,8 @@ for SS in (:(PlusFunctional,Functional),:(PlusOperator,BandedOperator))
         +(A::($SS[1]),B::($SS[1]))=$SS[1]([A.ops,B.ops])
         +(A::($SS[1]),B::($SS[2]))=$SS[1]([A.ops,B])
         +(A::($SS[2]),B::($SS[1]))=$SS[1]([A,B.ops])
-        +(A::($SS[2]),B::($SS[2]))=$SS[1]([A,B])
+        +{T}(A::($SS[2]{T}),B::($SS[2]{T}))=$SS[1]($SS[2]{T}[A,B])
+        +(A::($SS[2]),B::($SS[2]))=$SS[1]($SS[2][A,B])        
     end
 end
 

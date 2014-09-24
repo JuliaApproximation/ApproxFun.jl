@@ -260,19 +260,23 @@ maxspace(A::IntervalDomainSpace,B::JacobiWeightSpace)=maxspace(JacobiWeightSpace
 maxspace(A::JacobiWeightSpace,B::IntervalDomainSpace)=maxspace(A,JacobiWeightSpace(0.,0.,B))
 
 function addentries!{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W},SA::ShiftArray,kr::Range)
-    @assert domain(C)==Interval()  ##TODO: General domains
     A=C.domainspace;B=C.rangespace
     @assert isinteger(A.α-B.α) && isinteger(A.β-B.β)
     if A.space==B.space
-        x=Fun(identity)
-        m=(1+x).^int(A.α-B.α).*(1-x).^int(A.β-B.β)
+        d=domain(D)        
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
         addentries!(Multiplication(m,B.space),SA,kr)
     elseif A.α==B.α && A.β==B.β
         addentries!(Conversion(A.space,B.space),SA,kr)
     else
+        d=domain(D)        
+        x=Fun(identity,d)
+        M=tocanonical(d,x)    
         C=Conversion(A.space,B.space)
         x=Fun(identity)
-        m=(1+x).^int(A.α-B.α).*(1-x).^int(A.β-B.β)
+        m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
         addentries!(Multiplication(m,B.space)*C,SA,kr)            
     end
 end
