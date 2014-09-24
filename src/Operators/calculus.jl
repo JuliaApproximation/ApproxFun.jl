@@ -23,7 +23,9 @@ for TT in (:Derivative,:Integral)
         domainspace(D::$TT)=D.space
         rangespace{T,S<:PeriodicDomainSpace}(D::$TT{S,T})=D.space        #assume rangespace is the same
         
-        function addentries!(D::$TT,A::ShiftArray,kr::Range)   
+        addentries!{T}(::$TT{AnySpace,T},A::ShiftArray,kr::Range)=error("Spaces cannot be inferred for operator")
+        
+        function addentries!{S,T}(D::$TT{S,T},A::ShiftArray,kr::Range)   
             # Default is to convert to Canonical and d
             sp=domainspace(D)
             csp=canonicalspace(sp)
@@ -37,6 +39,7 @@ for TT in (:Derivative,:Integral)
         end
         
         rangespace{S,T}(D::$TT{S,T})=rangespace($TT(canonicalspace(domainspace(D)),D.order))
+        rangespace{T}(D::$TT{AnySpace,T})=AnySpace()
     end
 end
 
