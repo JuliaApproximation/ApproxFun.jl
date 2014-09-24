@@ -392,7 +392,12 @@ end
  ##TODO: Make * and \ consistent in return type
 function *(A::InfiniteOperator,b::Fun)
     dsp=domainspace(A)
-    dsp==AnySpace()?Fun(A*b.coefficients,b.space):Fun(A*coefficients(b,dsp),rangespace(A))
+    if dsp==AnySpace()
+        A=promotedomainspace(A,b.space)
+        Fun(A*b.coefficients,rangespace(A))
+    else
+        Fun(A*coefficients(b,dsp),rangespace(A))
+    end
 end
 
 

@@ -148,7 +148,7 @@ function timedirichlet(d::ProductDomain)
 end
 
 
-function *(L::PDEOperator,f::LowRankFun)
+function *{S,T}(L::PDEOperator,f::LowRankFun{S,T})
     @assert size(L.ops,2)==2
     @assert size(L.ops,1)==2    
     n=length(f.A)
