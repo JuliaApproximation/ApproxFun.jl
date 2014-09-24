@@ -138,7 +138,7 @@ function coefficients(f::LowRankFun)
     ret
 end
 
-function coefficients(f::LowRankFun,n::Integer,m::Integer)
+function coefficients(f::LowRankFun,n::FunctionSpace,m::FunctionSpace)
     xm=mapreduce(length,max,f.A)
     ym=mapreduce(length,max,f.B)    
     ret=zeros(xm,ym)

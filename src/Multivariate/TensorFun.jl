@@ -137,7 +137,7 @@ end
 
 
 
-points(f::TensorFun,k)=points(space(f.coefficients[1]),size(f,k))
+points(f::TensorFun,k)=points(space(f,k),size(f,k))
 points(f::ProductFun,k...)=points(f.space,size(f,1),size(f,2),k...)
 
 
