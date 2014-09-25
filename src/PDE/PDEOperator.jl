@@ -173,11 +173,11 @@ end
 ## Schur PDEOperator
 # represent an operator that's been discretized in the Y direction
 
-type PDEOperatorSchur{LT<:Number,MT<:Number,OT<:Number,BT<:Number,ST<:Number,FT<:Functional}
+type PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number,FT<:Functional}
     Bx::Vector{FT}
     Lx::Operator{LT}
     Mx::Operator{MT}
-    S::OperatorSchur{OT,BT} 
+    S::OS
     
     indsBx::Vector{Int}
     indsBy::Vector{Int}
@@ -185,7 +185,7 @@ type PDEOperatorSchur{LT<:Number,MT<:Number,OT<:Number,BT<:Number,ST<:Number,FT<
     Rdiags::Vector{SavedBandedOperator{ST}}
 end
 
-function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::OperatorSchur{BT,ST},indsBx,indsBy)
+function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)
     ny=size(S,1)
     nbcs=numbcs(S)
     Rdiags=Array(SavedBandedOperator{promote_type(LT,MT,BT,ST)},ny)
@@ -197,7 +197,7 @@ function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Op
     
     for k=1:ny-nbcs
         ##TODO: Do block case
-        Rdiags[k]=SavedBandedOperator(S.R[k,k]*Lx + S.T[k,k]*Mx)
+        Rdiags[k]=SavedBandedOperator(getdiagonal(S,k,1)*Lx + getdiagonal(S,k,2)*Mx)
         resizedata!(Rdiags[k],ny)
     end
 
@@ -206,9 +206,9 @@ function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Op
 end
 
 
-PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::Operator,S::OperatorSchur)=PDEOperatorSchur(Bx,Lx,Mx,S,[1:length(Bx)],length(Bx)+[1:numbcs(S)])
-PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::OperatorSchur)=PDEOperatorSchur(Bx,Lx,ConstantOperator(Mx.λ),S)
-PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::OperatorSchur)=PDEOperatorSchur(Bx,ConstantOperator(Lx.λ),Mx,S)
+PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::Operator,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,Lx,Mx,S,[1:length(Bx)],length(Bx)+[1:numbcs(S)])
+PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,Lx,ConstantOperator(Mx.λ),S)
+PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,ConstantOperator(Lx.λ),Mx,S)
 
 
 function PDEOperatorSchur(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)

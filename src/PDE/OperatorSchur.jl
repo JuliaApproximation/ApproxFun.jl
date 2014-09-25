@@ -100,7 +100,40 @@ function cont_reduce_dofs( R,A::Array )
 end
 
 
-type OperatorSchur{BT<:Number,MT<:Number}
+abstract AbstractOperatorSchur{BT,MT}
+
+domainspace(S::AbstractOperatorSchur)=S.domainspace
+rangespace(S::AbstractOperatorSchur)=S.rangespace
+domain(S::AbstractOperatorSchur)=domain(domainspace(S))
+
+
+type DiagonalOperatorSchur{MT<:Number} <:AbstractOperatorSchur{MT,MT}
+    R::Vector{MT}
+    T::Vector{MT}
+    
+    domainspace::FunctionSpace
+    rangespace::FunctionSpace       
+end
+
+function DiagonalOperatorSchur{T1<:Number,T2<:Number}(R::Vector{T1},T::Vector{T2},d,r)
+    PT=promote_type(T1,T2)
+    DiagonalOperatorSchur(convert(Vector{PT},R),convert(Vector{PT},T),d,r)
+end
+
+function DiagonalOperatorSchur(L::BandedOperator,M::BandedOperator,n::Integer)
+    Yop=promotespaces([L,M])    
+    DiagonalOperatorSchur(diag(Yop[1][1:n,1:n]),diag(Yop[2][1:n,1:n]),domainspace(Yop[1]),rangespace(Yop[2]))
+end
+
+Base.size(S::DiagonalOperatorSchur,k)=length(S.R)
+Base.size(S::DiagonalOperatorSchur)=size(S,1),size(S,2)
+
+getdiagonal(S::DiagonalOperatorSchur,k,j)=j==1?S.R[k]:S.T[k]
+
+numbcs(::DiagonalOperatorSchur)=0
+
+
+type OperatorSchur{BT<:Number,MT<:Number} <:AbstractOperatorSchur{BT,MT}
     bcP::Array{BT,2}  # permute columns of bcs
     bcQ::Array{BT,2}  # bc normalizer
     
@@ -130,15 +163,20 @@ Base.size(S::OperatorSchur)=size(S.bcP)
 Base.size(S::OperatorSchur,k)=size(S.bcP,k)
 
 numbcs(S::OperatorSchur)=size(S.bcQ,1)
-domainspace(S::OperatorSchur)=S.domainspace
-rangespace(S::OperatorSchur)=S.rangespace
-domain(S::OperatorSchur)=domain(domainspace(S))
+
+getdiagonal(S::OperatorSchur,k,j)=j==1?S.R[k,k]:S.T[k,k]
 
 
 
 OperatorSchur{FT<:Functional}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L),M,n)
 OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M),n)
-OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)=OperatorSchur(pdetoarray(B,L,M,n)...,findmindomainspace([L,M]),findmaxrangespace([L,M]))
+function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
+    if isempty(B) && bandinds(L)==bandinds(M)==(0,0)
+        DiagonalOperatorSchur(L,M,n)
+    else
+        OperatorSchur(pdetoarray(B,L,M,n)...,findmindomainspace([L,M]),findmaxrangespace([L,M]))
+    end
+end
 OperatorSchur(B,L::SparseMatrixCSC,M::SparseMatrixCSC,ds,rs)=OperatorSchur(B,full(L),full(M),ds,rs)
 function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
     B,Q,L,M,P=regularize_bcs(B,L,M)
