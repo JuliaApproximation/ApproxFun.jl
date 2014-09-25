@@ -310,6 +310,21 @@ function bandinds{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W})
     end
 end
 
+isapproxleq(a,b)=a<=b || isapprox(a,b)
+# return the space that has banded Conversion to the other, or NoSpace
+function conversion_rule(A::JacobiWeightSpace,B::JacobiWeightSpace)
+    if isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)    
+        ct=conversion_type(A.space,B.space)
+        if ct == B && isapproxleq(A.α,B.α) && isapproxleq(A.β,B.β)
+            B
+        elseif ct == A && isapproxleq(B.α,A.α) && isapproxleq(B.β,A.β)
+            A
+        end
+    end
+
+    NoSpace()
+end
+
 
 ## Evaluation
 
