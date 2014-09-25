@@ -39,7 +39,7 @@ function spaceconversion(f::Vector,sp1::JacobiWeightSpace,sp2::JacobiWeightSpace
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
     
-    if c==α && d==β
+    if isapprox(c,α) && isapprox(d,β)
         spaceconversion(f,sp1.space,sp2.space)
     else
         (Conversion(sp1,sp2)*f)
