@@ -188,7 +188,7 @@ end
 function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::OperatorSchur{BT,ST},indsBx,indsBy)
     ny=size(S,1)
     nbcs=numbcs(S)
-    Rdiags=Array(SavedBandedOperator{promote_type(LT,MT)},ny)
+    Rdiags=Array(SavedBandedOperator{promote_type(LT,MT,BT,ST)},ny)
     Xops=promotespaces([Lx,Mx])
     Lx=SavedBandedOperator(Xops[1]);Mx=SavedBandedOperator(Xops[2])
     

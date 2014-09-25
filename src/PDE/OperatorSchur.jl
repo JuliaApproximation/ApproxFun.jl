@@ -1,13 +1,25 @@
 ##TODO: Unify with coefficients()
 toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 toarray{T<:Number}(B::Array{Fun{T}},n)=T[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n]
+
+iscomplexfunornumber(A)=false
+iscomplexfunornumber(A::Complex{Float64})=true
+iscomplexfunornumber{S}(A::Fun{S,Complex{Float64}})=true
+
 function toarray(B::Array,n)
-    ret = zeros(length(B),n)
+    T=Float64
+    for Bk in B
+        if iscomplexfunornumber(Bk)
+            T=Complex{Float64}
+        end
+    end    
+
+    ret = zeros(T,length(B),n)
     
     for k=1:length(B), j=1:n
-        if  typeof(B[k]) <: Fun
+        if  isa(B[k],Fun)
             ret[k,j] = j<=length(B[k])?B[k].coefficients[j]:0 
-        elseif typeof(B[k]) <: Number && j == 1
+        elseif isa(B[k],Number) && j == 1
             ret[k,j] = B[k]
         end
     end
@@ -18,7 +30,7 @@ end
 function toarray{T<:Operator}(A::Vector{T},n::Integer,m::Integer)
     ret = zeros(n,m)
     
-    nbc = typeof(A[end])<:Functional?length(A):length(A)-1
+    nbc = isa(A[end],Functional)?length(A):length(A)-1
     for k=1:nbc
         ret[k,:]=A[k][1:m]
     end
