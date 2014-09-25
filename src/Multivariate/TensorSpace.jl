@@ -36,8 +36,10 @@ immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace} <:AbstractProductSpace{
 end
 
 TensorSpace(A,B)=TensorSpace((A,B))
+TensorSpace(A::ProductDomain)=TensorSpace(Space(A[1]),Space(A[2]))
 ⊗(A::FunctionSpace,B::FunctionSpace)=TensorSpace(A,B)
 domain(f::TensorSpace)=domain(f.spaces[1])*domain(f.spaces[2])
+Space(sp::ProductDomain)=TensorSpace(sp)
 
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
 

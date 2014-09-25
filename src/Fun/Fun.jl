@@ -44,7 +44,6 @@ end
 
 domain(f::Fun)=domain(f.space)
 #domain(f::FFun)=f.domain
-domain(::Number)=Any
 domain{T<:Fun}(v::Vector{T})=map(domain,v)
 
 
@@ -109,7 +108,9 @@ for op = (:+,:-)
             
                 Fun(($op)(f2.coefficients,g2.coefficients),domain(f)!=AnyDomain()?f.space:g.space)
             else 
-                $op(Fun(f,domain(f)),Fun(g,domain(g))) # convert to Chebyshev
+                #TODO: is it better to convert to minspace?
+                m=maxspace(f.space,g.space)
+                $op(Fun(f,m),Fun(g,m)) # convert to same space
             end
         end
 
@@ -214,7 +215,11 @@ end
 # When the spaces differ we promote and multiply
 function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     sp=minspace(space(f),space(g))
-    Fun(f,sp).*Fun(g,sp)
+    if sp==NoSpace() # see if a multiplication operator is implemented
+        Multiplication(f,space(g))*g
+    else
+        Fun(f,sp).*Fun(g,sp)
+    end
 end
 
 

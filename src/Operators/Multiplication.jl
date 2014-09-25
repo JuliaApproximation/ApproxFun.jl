@@ -3,7 +3,7 @@ immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number} <: BandedO
     space::S
 end
 
-Multiplication(f::Fun)=Multiplication(f,space(f))
+Multiplication(f::Fun)=Multiplication(f,AnySpace())
 
 Multiplication(c::Number)=ConstantOperator(c)
 
@@ -27,3 +27,4 @@ promotedomainspace(D::Multiplication,sp::AnySpace)=D
 promotedomainspace(D::Multiplication,sp::FunctionSpace)=Multiplication(D.f,sp)
 
 
+Base.diagm(a::Fun)=Multiplication(a)

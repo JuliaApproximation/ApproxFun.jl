@@ -113,7 +113,7 @@ end
 include("ShiftOperator.jl")
 include("linsolve.jl")
 
-include("SpaceOperator.jl")
+include("spacepromotion.jl")
 include("ToeplitzOperator.jl")
 include("ConstantOperator.jl")
 include("TridiagonalOperator.jl")

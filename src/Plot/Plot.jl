@@ -10,6 +10,7 @@ function setplotter(key,val)
     global plotter
     @assert val=="PyPlot" || val =="Gadfly" || val =="GLPlot"
     plotter[key]=val
+    plotter
 end
 
 function setplotter(str)
@@ -174,3 +175,5 @@ function plot{S<:IntervalDomainSpace,V<:PeriodicDomainSpace}(f::AbstractProductF
 end
 
 plot(f::MultivariateFun)=surf(points(f,1),points(f,2),values(f))
+
+plot(f::MultivariateFun,obj,window)=surf(values(f),obj,window)

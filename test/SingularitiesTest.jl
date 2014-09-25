@@ -24,3 +24,42 @@ f=Fun(x->exp(-x.^2),Line(0.,0.,-.5,-.5),400)
 
 f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeightSpace(-.5,-.5))
 @test_approx_eq f[.1] (x->exp(x)/sqrt(1-x.^2))(.1)
+
+
+
+S=JacobiWeightSpace(-1.,-1.,ChebyshevSpace([0.,1.]))
+D=Derivative(S)
+
+f=Fun(Fun(exp,[0.,1.]).coefficients,S)
+x=.1
+@test_approx_eq f[x] exp(x)*x^(-1).*(1-x)^(-1)/4
+@test_approx_eq (D*f)[x] -exp(x)*(1+(x-3)*x)/(4*(x-1)^2*x^2)
+
+
+S=JacobiWeightSpace(-1.,0.,ChebyshevSpace([0.,1.]))
+D=Derivative(S)
+
+f=Fun(Fun(exp,[0.,1.]).coefficients,S)
+x=.1
+@test_approx_eq f[x] exp(x)*x^(-1)/2
+@test_approx_eq (D*f)[x] exp(x)*(x-1)/(2x^2)
+
+
+
+## ODEs
+
+
+for ν in (1.,.123,2.,3.5)
+    S=JacobiWeightSpace(-ν,0.,ChebyshevSpace([0.,1.]))
+    D=Derivative(S)
+    x=Fun(identity,domain(S))
+    L=(x.^2)*D^2+x*D+(x.^2-ν^2);
+    u=[rdirichlet(S),rneumann(S),L]\[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.))]
+    @test_approx_eq_eps u[.1] bessely(ν,.1) eps(100000.)
+    u=[rdirichlet(S),rneumann(S),L]\[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.))]
+    @test_approx_eq_eps u[.1] besselj(ν,.1) eps(100000.)
+end
+    
+
+
+

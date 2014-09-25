@@ -55,7 +55,13 @@ end
 
 
 conversion_rule(a::FunctionSpace,b::FunctionSpace)=NoSpace()
-conversion_rule{S<:FunctionSpace}(a::S,b::S)=a
+function conversion_rule{S<:FunctionSpace}(a::S,b::S)
+    if spacescompatible(a,b)
+        a
+    else
+        NoSpace()
+    end
+end 
 
 function conversion_type(a,b)
     cr=conversion_rule(a,b)
@@ -141,20 +147,27 @@ spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpa
 
 function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
     ct=conversion_type(a,b)
-    csp=canonicalspace(a)
+
     if spacescompatible(a,b)
         f
     elseif spacescompatible(ct,a)
         Conversion(a,b)*f  ##TODO: Make * and \ consistent in return type
     elseif spacescompatible(ct,b)
         (Conversion(b,a)\f).coefficients
-    elseif spacescompatible(a,csp)
-        error("Override spaceconversion or implement Conversion from " * string(typeof(csp)) * " to " * string(B))
-    elseif spacescompatible(b,csp)
-        error("Override spaceconversion or implement Conversion from " * string(A) * " to " * string(typeof(csp)))
     else
-        spaceconversion(f,a,csp,b)
+        csp=canonicalspace(a)
+        if spacescompatible(a,csp)
+            error("Override spaceconversion or implement Conversion from " * string(typeof(csp)) * " to " * string(B))
+        elseif spacescompatible(b,csp)
+            error("Override spaceconversion or implement Conversion from " * string(A) * " to " * string(typeof(csp)))
+        else
+            spaceconversion(f,a,csp,b)
+        end
     end
 end
 
 
+
+
+## TODO: remove zeros
+Base.zero(S::FunctionSpace)=zeros(S)  

@@ -72,3 +72,5 @@ end
 commondomain{T<:Number}(P::Vector,g::Array{T})=commondomain(P)
 commondomain(P::Vector,g)=commondomain([P,g])
 
+
+domain(::Number)=AnyDomain()

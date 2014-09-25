@@ -37,6 +37,7 @@ Fun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,Fun)? coefficients(f,sp) :  f,
 
 function Fun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
     A=promotedomainspace(A)
+    #TODO: Use information from b to promote range space if necessary
     u=adaptiveqr(A,Fun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
     
     Fun(u,commondomainspace(A,b))

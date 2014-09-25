@@ -35,8 +35,18 @@ itransform(S::JacobiWeightSpace,cfs::Vector)=jacobiweight(S,points(S,length(cfs)
 
 
 ##TODO: paradigm for same space
-spaceconversion(f::Vector,sp::JacobiWeightSpace,S2::ChebyshevSpace)=spaceconversion(f,sp,JacobiWeightSpace(0,0,S2))
-spaceconversion(f::Vector,S2::ChebyshevSpace,sp::JacobiWeightSpace)=spaceconversion(f,JacobiWeightSpace(0,0,S2),sp)
+function spaceconversion(f::Vector,sp1::JacobiWeightSpace,sp2::JacobiWeightSpace)
+    α,β=sp1.α,sp1.β
+    c,d=sp2.α,sp2.β
+    
+    if isapprox(c,α) && isapprox(d,β)
+        spaceconversion(f,sp1.space,sp2.space)
+    else
+        (Conversion(sp1,sp2)*f)
+    end
+end
+spaceconversion(f::Vector,sp::JacobiWeightSpace,S2::IntervalDomainSpace)=spaceconversion(f,sp,JacobiWeightSpace(0,0,S2))
+spaceconversion(f::Vector,S2::IntervalDomainSpace,sp::JacobiWeightSpace)=spaceconversion(f,JacobiWeightSpace(0,0,S2),sp)
 function spaceconversion(f::Vector,sp1::JacobiWeightSpace{ChebyshevSpace},sp2::JacobiWeightSpace{ChebyshevSpace})
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
@@ -56,6 +66,16 @@ end
 increase_jacobi_parameter(f)=Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β+1,space(f).space))
 increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β,space(f).space)):Fun(f,JacobiWeightSpace(f.space.α,f.space.β+1,space(f).space))
 
+
+
+function canonicalspace(S::JacobiWeightSpace)
+    if S.α==0 && S.β==0
+        canonicalspace(S.space)
+    else
+        #TODO: promote singularities?
+        JacobiWeightSpace(S.α,S.β,canonicalspace(S.space))
+    end
+end
 
 ## Algebra
 
@@ -110,6 +130,218 @@ function Base.sum(f::Fun{JacobiWeightSpace{ChebyshevSpace}})
         sum(increase_jacobi_parameter(+1,f))    
     else
         error("sum not implemented for all Jacobi parameters")
+    end
+end
+
+function differentiate{J<:JacobiWeightSpace}(f::Fun{J})
+    S=f.space
+    d=domain(f)    
+    ff=Fun(f.coefficients,S.space)    
+    if S.α==S.β==0
+        u=differentiate(ff)
+        Fun(u.coefficients,JacobiWeightSpace(0.,0.,space(u)))
+    elseif S.α==0
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)  
+        u=-Mp*S.β*ff +(1-M).*differentiate(ff)
+        Fun(u.coefficients,JacobiWeightSpace(0.,S.β-1,space(u)))
+    elseif S.β==0
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)  
+        u=Mp*S.α*ff +(1+M).*differentiate(ff)
+        Fun(u.coefficients,JacobiWeightSpace(S.α-1,0.,space(u)))        
+    else 
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a) 
+        u=(Mp*S.α)*(1-M).*ff- (Mp*S.β)*(1+M).*ff +(1-M.^2).*differentiate(ff)
+        Fun(u.coefficients,JacobiWeightSpace(S.α-1,S.β-1,space(u)))        
+    end
+end
+
+
+
+
+## Operators
+
+function Derivative{JS<:JacobiWeightSpace}(J::JS,k::Integer)
+    D=Derivative{JS,Float64}(J,1)
+    if k==1
+        D
+    else
+        TimesOperator(Derivative(rangespace(D),k-1),D)
+    end
+end
+
+
+function rangespace{J<:JacobiWeightSpace}(D::Derivative{J})
+    S=D.space
+    if S.α==S.β==0
+       JacobiWeightSpace(0.,0.,rangespace(Derivative(S.space)))
+    elseif S.α==0
+       JacobiWeightSpace(0.,S.β-1,rangespace(Derivative(S.space)))
+    elseif S.β==0
+       JacobiWeightSpace(S.α-1,0.,rangespace(Derivative(S.space)))
+    else
+        #We assume the range is the same as the derivative
+        # but really in general it should be
+        # rangespace(S.α*(1-x) - S.β*(1-x) +(1-x.^2)*Derivative(S.space))
+        # if multiplying by x changes space this needs to be redone
+        JacobiWeightSpace(S.α-1,S.β-1,rangespace(Derivative(S.space)))
+    end
+end
+
+function addentries!{J<:JacobiWeightSpace}(D::Derivative{J},A::ShiftArray,kr::Range)
+    @assert D.order ==1
+    d=domain(D)
+    @assert isa(d,Interval)
+    
+    S=D.space
+    if S.α==S.β==0
+        addentries!(Derivative(S.space),A,kr)
+    elseif S.α==0
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)            
+        DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
+        addentries!(DD,A,kr)    
+    elseif S.β==0
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)        
+        DD=(Mp*S.α)*I +(1+M)*Derivative(S.space)
+        addentries!(DD,A,kr)        
+    else 
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)
+        DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
+        addentries!(DD,A,kr)
+    end
+    
+    A
+end
+
+function bandinds{J<:JacobiWeightSpace}(D::Derivative{J})
+    S=D.space
+    d=domain(D)    
+    if S.α==S.β==0
+        0,1
+    elseif S.α==0
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)            
+        DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
+        bandinds(DD)
+    elseif S.β==0
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)        
+        DD=(Mp*S.α)*I +(1+M)*Derivative(S.space)
+        bandinds(DD)
+    else 
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        Mp=tocanonicalD(d,d.a)
+        DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
+        bandinds(DD)
+    end
+end
+
+
+## Multiplication
+
+addentries!{T,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(M.f,domainspace(M).space),A,kr)
+
+addentries!{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(Fun(M.f.coefficients,space(M.f).space),domainspace(M).space),A,kr)
+rangespace{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S})=JacobiWeightSpace(space(M.f).α+M.space.α,space(M.f).β+M.space.β,rangespace(Multiplication(M.f,domainspace(M).space)))
+
+
+
+## Conversion
+
+maxspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
+minspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(max(A.α,B.α),max(A.β,B.β),minspace(A.space,B.space))
+maxspace(A::IntervalDomainSpace,B::JacobiWeightSpace)=maxspace(JacobiWeightSpace(0.,0.,A),B)
+maxspace(A::JacobiWeightSpace,B::IntervalDomainSpace)=maxspace(A,JacobiWeightSpace(0.,0.,B))
+
+isapproxinteger(x)=isapprox(x,int(x))
+
+function addentries!{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W},SA::ShiftArray,kr::Range)
+    A=C.domainspace;B=C.rangespace
+    @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
+    if A.space==B.space
+        d=domain(C)        
+        x=Fun(identity,d)
+        M=tocanonical(d,x)
+        m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
+        addentries!(Multiplication(m,B.space),SA,kr)
+    elseif isapprox(A.α,B.α) && isapprox(A.β,B.β)
+        addentries!(Conversion(A.space,B.space),SA,kr)
+    else
+        d=domain(C)        
+        x=Fun(identity,d)
+        M=tocanonical(d,x)    
+        C=Conversion(A.space,B.space)
+        x=Fun(identity)
+        m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
+        addentries!(Multiplication(m,B.space)*C,SA,kr)            
+    end
+end
+
+
+
+function bandinds{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W})
+    A=C.domainspace;B=C.rangespace
+    @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
+    if A.space==B.space
+        x=Fun(identity)
+        m=(1+x).^int(A.α-B.α).*(1-x).^int(A.β-B.β)
+        bandinds(Multiplication(m,B.space))
+    elseif isapprox(A.α,B.α) && isapprox(A.β,B.β)
+        bandinds(Conversion(A.space,B.space))
+    else
+        C=Conversion(A.space,B.space)
+        x=Fun(identity)
+        m=(1+x).^int(A.α-B.α).*(1-x).^int(A.β-B.β)
+        bandinds(Multiplication(m,B.space)*C)
+    end
+end
+
+
+## Evaluation
+
+function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
+    S=op.space
+    @assert op.order<=1
+    d=domain(op)
+    @assert isa(d,Interval)
+    if op.x
+        @assert S.β>=0
+        if S.β==0
+            if op.order==0
+                2^S.α*getindex(Evaluation(S.space,op.x),kr)
+            else #op.order ===1
+                2^S.α*getindex(Evaluation(S.space,op.x,1),kr)+(tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
+            end
+        else
+            @assert op.order==0
+            zeros(kr)
+        end
+    else
+        @assert S.α>=0
+        if S.α==0
+            if op.order==0
+                2^S.β*getindex(Evaluation(S.space,op.x),kr)
+            else #op.order ===1
+                2^S.β*getindex(Evaluation(S.space,op.x,1),kr)-(tocanonicalD(d,d.a)*S.β*2^(S.β-1))*getindex(Evaluation(S.space,op.x),kr)
+            end
+        else
+            @assert op.order==0        
+            zeros(kr)
+        end    
     end
 end
 

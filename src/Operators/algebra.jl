@@ -65,7 +65,8 @@ for SS in (:(PlusFunctional,Functional),:(PlusOperator,BandedOperator))
         +(A::($SS[1]),B::($SS[1]))=$SS[1]([A.ops,B.ops])
         +(A::($SS[1]),B::($SS[2]))=$SS[1]([A.ops,B])
         +(A::($SS[2]),B::($SS[1]))=$SS[1]([A,B.ops])
-        +(A::($SS[2]),B::($SS[2]))=$SS[1]([A,B])
+        +{T}(A::($SS[2]{T}),B::($SS[2]{T}))=$SS[1]($SS[2]{T}[A,B])
+        +(A::($SS[2]),B::($SS[2]))=$SS[1]($SS[2][A,B])        
     end
 end
 
@@ -105,10 +106,10 @@ function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
 end
 
 
-+(A::Operator,f::Fun)=A+Multiplication(f)
-+(f::Fun,A::Operator)=Multiplication(f)+A
--(A::Operator,f::Fun)=A+Multiplication(-f)
--(f::Fun,A::Operator)=Multiplication(f)-A
++(A::Operator,f::Fun)=A+Multiplication(f,domainspace(A))
++(f::Fun,A::Operator)=Multiplication(f,domainspace(A))+A
+-(A::Operator,f::Fun)=A+Multiplication(-f,domainspace(A))
+-(f::Fun,A::Operator)=Multiplication(f,domainspace(A))-A
 
 
 
@@ -207,12 +208,18 @@ function promotetimes{B}(opsin::Vector{B})
     ops=copy(opsin)
     
     for k=length(ops)-1:-1:1
-        op=promotedomainspace(ops[k],rangespace(ops[k+1]))
-        if op==()
-            ops=ops[[1:k-1,k+1:end]]  ## remove the op
-        else
-            ops[k]=op
-        end
+#         if isa(ops[k],Conversion)
+#             ops=ops[[1:k-1,k+1:end]]  ## remove the op
+#         else        
+            op=promotedomainspace(ops[k],rangespace(ops[k+1]))
+            if op==()
+                ops=ops[[1:k-1,k+1:end]]  ## remove the op
+            elseif isa(op,TimesOperator)
+                ops=[ops[1:k-1],op.ops,ops[k+1:end]]
+            else
+                ops[k]=op
+            end
+#        end
     end
     
     TimesOperator(ops)
@@ -292,7 +299,7 @@ function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
     
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
-         krl[m+1]=(br[1] + krl[m][1]):(br[end] + krl[m][end])
+         krl[m+1]=max(br[1] + krl[m][1],1):(br[end] + krl[m][end])
     end
     
     BA=BandedArray(P.ops[end],krl[end])
@@ -342,15 +349,16 @@ end
 -(A::Functional,B::Functional)=PlusFunctional([A,-B])
 
 *(A::TimesOperator,B::TimesOperator)=promotetimes([A.ops,B.ops])
-*(A::TimesOperator,B::Operator)=promotetimes([A.ops,B])
-*(A::Operator,B::TimesOperator)=promotetimes([A,B.ops])
-*(A::Operator,B::Operator)=promotetimes([A,B])
+*(A::TimesOperator,B::BandedOperator)=promotetimes([A.ops,B])
+*(A::BandedOperator,B::TimesOperator)=promotetimes([A,B.ops])
+*{T}(A::BandedOperator{T},B::BandedOperator{T})=promotetimes(BandedOperator{T}[A,B])
+*(A::BandedOperator,B::BandedOperator)=promotetimes(BandedOperator[A,B])
 
 
 -(A::Operator)=ConstantOperator(-1.)*A
 -(A::Operator,B::Operator)=A+(-B)
 
-*(f::Fun,A::BandedOperator)=Multiplication(f)*A
+*(f::Fun,A::BandedOperator)=Multiplication(f,rangespace(A))*A
 
 *(c::Number,A::Operator)=ConstantOperator(c)*A
 .*(c::Number,A::Operator)=ConstantOperator(c)*A
@@ -384,7 +392,12 @@ end
  ##TODO: Make * and \ consistent in return type
 function *(A::InfiniteOperator,b::Fun)
     dsp=domainspace(A)
-    dsp==AnySpace()?Fun(A*b.coefficients,b.space):Fun(A*coefficients(b,dsp),rangespace(A))
+    if dsp==AnySpace()
+        A=promotedomainspace(A,b.space)
+        Fun(A*b.coefficients,rangespace(A))
+    else
+        Fun(A*coefficients(b,dsp),rangespace(A))
+    end
 end
 
 
@@ -397,6 +410,19 @@ end
 
 
 ## promotedomain
+
+for T in (:AnySpace,:FunctionSpace)
+    @eval begin
+        function promotedomainspace{T}(P::PlusOperator{T},sp::FunctionSpace,cursp::$T)
+            if sp==cursp
+                P
+            else
+                PlusOperator(BandedOperator{T}[promotedomainspace(op,sp) for op in P.ops])
+            end
+        end
+    end
+end
+
 
 for T in (:AnySpace,:FunctionSpace)
     @eval begin

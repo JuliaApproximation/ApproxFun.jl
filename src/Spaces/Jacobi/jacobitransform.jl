@@ -20,12 +20,12 @@ end
 
 function itransform(S::JacobiSpace,cfs::Vector)
     n=length(cfs)
-    x=points(S,n)
+    x=points(JacobiSpace(S.a,S.b),n)
     jacobip(0:n-1,S.a,S.b,x)*cfs
 end
 
 
-evaluate(f::Fun{JacobiSpace},x)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,x),f.coefficients)
+evaluate(f::Fun{JacobiSpace},x)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x)),f.coefficients)
 
 
 ## JacobiWeightSpace
@@ -33,7 +33,7 @@ evaluate(f::Fun{JacobiSpace},x)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,x)
 function points(S::JacobiWeightSpace{JacobiSpace},n)
     m=S.β
     if S.α==S.space.b==0 && S.space.a==2m+1
-        gaussjacobi(n,1.,0.)[1]
+        fromcanonical(S,gaussjacobi(n,1.,0.)[1])
     else
         error("JacobiWeightSpace{JacobiSpace} only implemented for special case a=2m+1,b=0 currently")
     end

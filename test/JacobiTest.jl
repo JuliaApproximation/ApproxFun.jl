@@ -37,3 +37,30 @@ f=(x,y)->exp(x.*sin(y))
 u=ProductFun(f,Disk(),50,51)
 @test_approx_eq u[.1,.1] f(.1,.1)
 
+
+
+## Conversion
+
+@test norm(Fun(Fun(exp),JacobiSpace(-.5,-.5))-Fun(exp,JacobiSpace(-.5,-.5)))<eps()
+
+x=Fun(identity)
+ri=0.5./(1-x)
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] (1-.1)./2*exp(.1)
+
+
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] (1-.1)./2*exp(.1)
+
+
+@test_approx_eq (ri.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] .5/(1-.1)*exp(.1)
+
+
+## Derivative
+
+S=JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.,Interval(1.,0.)))
+D=Derivative(S)
+f=Fun(exp,domainspace(D))
+@test (D*f-f).coefficients|>norm < eps(10000.)
+@test (diff(f)-f).coefficients|>norm < eps(10000.)
+@test (D^2*f-f).coefficients|>norm < eps(1000000.)
+@test (D*(D*f)-f).coefficients|>norm < eps(1000000.)
+

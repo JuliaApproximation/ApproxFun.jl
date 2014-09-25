@@ -1,6 +1,9 @@
 
 ## Derivative
 
+bandinds(D::Derivative{LaurentSpace})=0,0
+bandinds(D::Integral{LaurentSpace})=0,0   
+
 
 function addentries!(D::Derivative{LaurentSpace},A::ShiftArray,kr::Range1)
     d=domain(D)

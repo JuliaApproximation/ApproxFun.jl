@@ -10,7 +10,7 @@ Q=integrate(d)
 @test norm((Q)*f-(integrate(f))) < eps()
 
 x=Fun(identity)
-X=Multiplication(x)
+X=Multiplication(x,space(x))
 
 A=Conversion(ChebyshevSpace(d),UltrasphericalSpace{2}(d))
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
@@ -25,7 +25,7 @@ A=Conversion(ChebyshevSpace(d),UltrasphericalSpace{2}(d))*X
 
 ## Special functions
 
-x=Fun(identity);
+x=Fun(identity)
 @test norm(cos(x)-Fun(cos))<10eps()
 @test norm(sin(x)-Fun(sin))<10eps()
 @test norm(exp(x)-Fun(exp))<10eps()

@@ -47,9 +47,9 @@ end
 ⊗(A::Operator,B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
 ⊗(A::UniformScaling,B::Operator)=ConstantOperator(1.0A.λ)⊗B
 
-⊗(A::Fun,B::Fun)=MultiplicationOperator(A)⊗MultiplicationOperator(B)
-⊗(A,B::Fun)=A⊗MultiplicationOperator(B)
-⊗(A::Fun,B)=MultiplicationOperator(A)⊗B
+⊗(A::Fun,B::Fun)=Multiplication(A)⊗Multiplication(B)
+⊗(A,B::Fun)=A⊗Multiplication(B)
+⊗(A::Fun,B)=Multiplication(A)⊗B
 
 ⊗{T<:Operator}(A::Vector{T},B::Operator)=PDEOperator[PDEOperator(Ai,B) for Ai in A]
 ⊗{T<:Operator}(A::Operator,B::Vector{T})=PDEOperator[PDEOperator(A,Bi) for Bi in B]
@@ -75,8 +75,8 @@ end
 
 function lap(d::ProductDomain)
     @assert length(d.domains)==2
-    Dx=Base.diff(d.domains[1])
-    Dy=Base.diff(d.domains[2])    
+    Dx=Derivative(d.domains[1])
+    Dy=Derivative(d.domains[2])    
     Dx^2⊗I+I⊗Dy^2
 end
 
@@ -148,7 +148,7 @@ function timedirichlet(d::ProductDomain)
 end
 
 
-function *(L::PDEOperator,f::LowRankFun)
+function *{S,T}(L::PDEOperator,f::LowRankFun{S,T})
     @assert size(L.ops,2)==2
     @assert size(L.ops,1)==2    
     n=length(f.A)
