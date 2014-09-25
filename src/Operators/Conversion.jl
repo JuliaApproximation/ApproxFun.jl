@@ -15,7 +15,7 @@ rangespace(C::Conversion)=C.rangespace
 Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=Conversion(B,C)*Conversion(A,B)
 
 #TODO: Periodic
-function Conversion(a::RealDomainSpace,b::RealDomainSpace)
+function Conversion{T,V}(a::DomainSpace{T},b::DomainSpace{V})
     if a==b
         IdentityOperator()
     elseif conversion_type(a,b)==NoSpace()
@@ -28,7 +28,7 @@ function Conversion(a::RealDomainSpace,b::RealDomainSpace)
             Conversion(a,sp,b)
         end
     else
-        Conversion{typeof(a),typeof(b),Float64}(a,b)
+        Conversion{typeof(a),typeof(b),promote_type(T,V)}(a,b)
     end
 end
     

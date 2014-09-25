@@ -2,12 +2,12 @@
 abstract FunctionSpace
 
 ##TODO: Confusing: two uses of domain
-abstract DomainSpace <: FunctionSpace
-abstract IntervalDomainSpace <: DomainSpace     # We assume basis is real
-abstract PeriodicDomainSpace{T} <: DomainSpace  # T tells whether the basis is real (cos/sin) or complex
 
+ # T tells whether the basis is real (cos/sin) or complex
+abstract DomainSpace{T} <: FunctionSpace
+abstract IntervalDomainSpace <: DomainSpace{Float64}     # We assume basis is real
+abstract PeriodicDomainSpace{T} <: DomainSpace{T}       
 
-typealias RealDomainSpace Union(IntervalDomainSpace,PeriodicDomainSpace{Float64})
 
 
 export FunctionSpace, ChebyshevSpace, domainspace, rangespace, maxspace, minspace

@@ -43,6 +43,9 @@ function domain(LL::PDEOperator)
 end
 
 
+Base.transpose(LL::PDEOperator)=PDEOperator(LL.ops[:,end:-1:1])
+
+
 ⊗(A::Operator,B::Operator)=PDEOperator(A,B)
 ⊗(A::Operator,B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
 ⊗(A::UniformScaling,B::Operator)=ConstantOperator(1.0A.λ)⊗B

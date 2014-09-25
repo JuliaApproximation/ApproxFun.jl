@@ -14,7 +14,7 @@ end
 ProductDomain(A,B)=ProductDomain([A,B])
 *(A::Domain,B::Domain)=ProductDomain(A,B)
 
-
+Base.transpose(d::ProductDomain)=ProductDomain(d[2],d[1])
 Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
 
 
@@ -56,3 +56,9 @@ Base.getindex(d::ProductSpace,k::Integer)=k==1?d.spacesx:d.spacey
 
 
 space(d::AbstractProductSpace,k::Integer)=d[k]
+
+
+for TT in (:ProductDomain,:TensorSpace)
+    @eval Base.transpose(d::$TT)=$TT(d[2],d[1])
+end
+
