@@ -128,6 +128,24 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
     Y   
 end
 
+function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gyin,Gxin,F::Array,nx=100000)    
+    n = length(OS.rdiags)
+    F=pad(F,size(F,1),n)
+    Gx=toarray(Gxin,n)    
+    
+    Y=Array(Fun{typeof(domainspace(OS.Rdiags[1])),Complex{Float64}},n)  ##TODO: determine whether float or complex
+
+
+    for k=1:n
+        op=OS.Rdiags[k]
+        rhs=[Gx[:,k],F[:,k]]
+        Y[k]=chop!(linsolve([OS.Bx[k],op],rhs;maxlength=nx),eps())
+    end  
+    
+    Y   
+end
+
+
 
 function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::Array,nx::Integer)
     n = size(OS.S.T,2)

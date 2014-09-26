@@ -33,6 +33,8 @@ function space(D::DiskSpace,k::Integer)
     D.spacet
 end
 
+Base.getindex(D::DiskSpace,k::Integer)=space(D,k)
+
 Space(D::Disk)=DiskSpace(D)
 
 points(d::DiskSpace,n...)=points(domain(d),n...)
