@@ -192,7 +192,9 @@ end
 ## Schur PDEOperator
 # represent an operator that's been discretized in the Y direction
 
-type PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number,FT<:Functional}
+abstract AbstractPDEOperatorSchur
+
+type PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
     Bx::Vector{FT}
     Lx::Operator{LT}
     Mx::Operator{MT}
@@ -240,6 +242,9 @@ isyfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1
 ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
 
 
+
+
+
 function PDEOperatorSchur{T<:PDEOperator}(A::Vector{T},ny::Integer)
     indsBx=find(isxfunctional,A)
     Bx=Functional[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[indsBx]]
@@ -272,7 +277,7 @@ domain(P::PDEOperatorSchur,k::Integer)=k==1?domain(P.Lx):domain(P.S)
 
 ## Product
 
-type PDEProductOperatorSchur{ST<:Number,FT<:Functional}
+type PDEProductOperatorSchur{ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
     Bx::Vector{FT}
     Rdiags::Vector{SavedBandedOperator{ST}}
 end
