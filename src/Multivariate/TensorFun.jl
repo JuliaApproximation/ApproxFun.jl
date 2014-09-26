@@ -54,6 +54,8 @@ function TensorFun{F<:Fun}(cfs::Vector{F},d::TensorSpace)
     TensorFun(F,d[2])
 end
 TensorFun(cfs::Array,d::ProductDomain)=TensorFun(cfs,d[1],d[2])
+
+
 TensorFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
 TensorFun(f,dy::Domain)=TensorFun(f,Space(dy))
 TensorFun(f,dx::Domain,dy::Domain)=TensorFun(f,Space(dx),Space(dy))

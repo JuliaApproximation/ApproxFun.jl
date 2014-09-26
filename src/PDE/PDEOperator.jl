@@ -206,6 +206,7 @@ type PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number
     Rdiags::Vector{SavedBandedOperator{ST}}
 end
 
+
 function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)
     ny=size(S,1)
     nbcs=numbcs(S)
@@ -241,6 +242,8 @@ isxfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1
 isyfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,2])<:Functional
 ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
 
+
+bcinds(S::PDEOperatorSchur,k)=k==1?S.indsBx:S.indsBy
 
 
 
@@ -313,6 +316,10 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
     end  
     PDEProductOperatorSchur(BxV,Rdiags)
 end
+
+
+##TODO: Larger Bx
+bcinds(S::PDEProductOperatorSchur,k)=k==1?[1]:[]
 
 # for op in (:domainspace,:rangespace)
 #     @eval begin

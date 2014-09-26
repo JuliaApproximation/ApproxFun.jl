@@ -23,6 +23,6 @@ include("TensorFun.jl")
 
 
 
-Fun(f,S::TensorSpace,n...)=TensorFun(f,S[1],S[2],n...)
+Fun(f,S::TensorSpace,n...)=TensorFun(f,S,n...)
 Fun(f,S::AbstractProductSpace,n...)=ProductFun(f,S,n...)
 Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
