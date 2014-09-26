@@ -24,22 +24,20 @@ end
 function Base.getindex(op::Evaluation{ChebyshevSpace,Bool},k::Range)
     x = op.x
     d = domain(op)
-    
-    if     !x && op.order ==0
-        -(-1.).^k  ##TODO: speed up
-    elseif  x && op.order ==0
-        ones(size(k)[1])
-    elseif !x && op.order ==1
-        (k-1).*(k-1).*(-1.).^k*2/(d.b-d.a) 
-    elseif  x && op.order ==1
-        (k-1).*(k-1)*2/(d.b-d.a) 
-    elseif !x && op.order ==2
-        -(k.-1).^2.*((k.-1).^2.-1)/3.*(-1.).^k*(2/(d.b-d.a))^2
-    elseif  x && op.order ==2
-        (k.-1).^2.*((k.-1).^2.-1)/3*(2/(d.b-d.a))^2  
-    else
-        error("Only zero–second order implemented")
+    p = op.order
+    cst = (2/(d.b-d.a))^p
+
+    if x
+        ret = ones(size(k)[1])
+    elseif !x
+        ret = -(-1.).^k ##TODO: speed up
     end
+
+    for m=0:p-1
+        ret .*= ((k-1).^2-m^2)./(2m+1)
+    end
+
+    return ret*cst
 end
 
 function Base.getindex(op::Evaluation{ChebyshevSpace},k::Range)
