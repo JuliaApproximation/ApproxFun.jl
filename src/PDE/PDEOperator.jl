@@ -304,7 +304,7 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
         Rdiags[k]=SavedBandedOperator(promotedomainspace(getdiagonal(S,k,1)*Lx+getdiagonal(S,k,2)*Mx,csp))
         BxV[k]=SavedFunctional(promotedomainspace(Bx[1],csp))
         resizedata!(Rdiags[k],nt)
-        resizedata!(BxV,nt)        
+        resizedata!(BxV[k],nt)        
     end  
     PDEProductOperatorSchur(BxV,Rdiags)
 end

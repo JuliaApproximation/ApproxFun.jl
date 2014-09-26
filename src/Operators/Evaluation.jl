@@ -8,7 +8,7 @@ type Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Functional{
     x::M
     order::Int
 end
-
+Evaluation(sp::AnySpace,x::Bool)=Evaluation{AnySpace,Bool,Float64}(sp,x,0)
 Evaluation{M,S<:IntervalDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Float64}(sp,x,order)
 Evaluation{M,S<:PeriodicDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Complex{Float64}}(sp,x,order)
 
@@ -22,6 +22,8 @@ Evaluation(x::Union(Number,Bool))=Evaluation(Interval(),x,0)
 domainspace(E::Evaluation)=E.space
 domain(E::Evaluation)=domain(E.space)
 
+promotedomainspace(E::Evaluation,sp::FunctionSpace)=Evaluation(sp,E.x,E.order)
+
 
 ## Convenience routines
 
@@ -33,15 +35,20 @@ lneumann(d::IntervalDomain)=Evaluation(d,false,1)
 rneumann(d::IntervalDomain)=Evaluation(d,true,1)
 
 
-ldirichlet(d::IntervalDomainSpace)=Evaluation(d,false)
-rdirichlet(d::IntervalDomainSpace)=Evaluation(d,true)
-lneumann(d::IntervalDomainSpace)=Evaluation(d,false,1)
-rneumann(d::IntervalDomainSpace)=Evaluation(d,true,1)
+ldirichlet(d::FunctionSpace)=Evaluation(d,false)
+rdirichlet(d::FunctionSpace)=Evaluation(d,true)
+lneumann(d::FunctionSpace)=Evaluation(d,false,1)
+rneumann(d::FunctionSpace)=Evaluation(d,true,1)
+
 
 
 dirichlet(d::Union(IntervalDomain,IntervalDomainSpace))=[ldirichlet(d),rdirichlet(d)]
 neumann(d::Union(IntervalDomain,IntervalDomainSpace))=[lneumann(d),rneumann(d)]
 
+
+for op in (:rdirichlet,:ldirichlet,:dirichlet)
+    @eval $op()=$op(AnySpace())
+end
 
 function dirichlet{T<:IntervalDomain}(d::Vector{T})
     m=length(d)
