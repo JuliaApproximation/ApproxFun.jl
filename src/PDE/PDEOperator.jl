@@ -283,6 +283,7 @@ domain(P::PDEOperatorSchur,k::Integer)=k==1?domain(P.Lx):domain(P.S)
 type PDEProductOperatorSchur{ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
     Bx::Vector{FT}
     Rdiags::Vector{SavedBandedOperator{ST}}
+    domainspace::AbstractProductSpace
 end
 
 function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProductSpace,nt::Integer)
@@ -314,12 +315,14 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
         resizedata!(Rdiags[k],nt)
         resizedata!(BxV[k],nt)        
     end  
-    PDEProductOperatorSchur(BxV,Rdiags)
+    PDEProductOperatorSchur(BxV,Rdiags,sp)
 end
 
 
 ##TODO: Larger Bx
 bcinds(S::PDEProductOperatorSchur,k)=k==1?[1]:[]
+domainspace(S::PDEProductOperatorSchur)=S.domainspace
+domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
 
 # for op in (:domainspace,:rangespace)
 #     @eval begin

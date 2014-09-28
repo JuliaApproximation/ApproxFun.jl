@@ -44,7 +44,7 @@ function convert2funvec{D}(f::Vector,d::D)
 end
 
 
-function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
+function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
     if length(f) < length(indsBx)+length(indsBy)+1
         f=[f,zeros(length(indsBx)+length(indsBy)+1-length(f))]
@@ -52,9 +52,8 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
 
     ##TODO: makes more sense as a domain space of the boundary ops once thats set up
     
-    
-    fx=convert2funvec(f[indsBx],domainspace(A,2))
-    fy=convert2funvec(f[indsBy],domainspace(A,1))
+    fx=isempty(indsBx)?[]:convert2funvec(f[indsBx],domainspace(A,2))
+    fy=isempty(indsBy)?[]:convert2funvec(f[indsBy],domainspace(A,1))
     
 
     ff=f[end]
@@ -65,7 +64,7 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
         ##TODO: beter method of telling constant fun
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff.coefficients[1]        
-    else # typeof(ff) <:Fun2D || TensorFun
+    else # typeof(ff) <:LowRankFun || TensorFun
         F=coefficients(ff,rangespace(A,1),rangespace(A,2))
     end        
     
