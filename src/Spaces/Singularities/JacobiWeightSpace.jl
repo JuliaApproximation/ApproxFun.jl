@@ -166,90 +166,45 @@ end
 
 ## Operators
 
-function Derivative{JS<:JacobiWeightSpace}(J::JS,k::Integer)
-    D=Derivative{JS,Float64}(J,1)
-    if k==1
-        D
-    else
-        TimesOperator(Derivative(rangespace(D),k-1),D)
-    end
-end
 
-
-function rangespace{J<:JacobiWeightSpace}(D::Derivative{J})
-    S=D.space
-    if S.α==S.β==0
-       JacobiWeightSpace(0.,0.,rangespace(Derivative(S.space)))
-    elseif S.α==0
-       JacobiWeightSpace(0.,S.β-1,rangespace(Derivative(S.space)))
-    elseif S.β==0
-       JacobiWeightSpace(S.α-1,0.,rangespace(Derivative(S.space)))
-    else
-        #We assume the range is the same as the derivative
-        # but really in general it should be
-        # rangespace(S.α*(1-x) - S.β*(1-x) +(1-x.^2)*Derivative(S.space))
-        # if multiplying by x changes space this needs to be redone
-        JacobiWeightSpace(S.α-1,S.β-1,rangespace(Derivative(S.space)))
-    end
-end
-
-function addentries!{J<:JacobiWeightSpace}(D::Derivative{J},A::ShiftArray,kr::Range)
-    @assert D.order ==1
-    d=domain(D)
+function Derivative(S::JacobiWeightSpace)
+    d=domain(S)
     @assert isa(d,Interval)
-    
-    S=D.space
+
     if S.α==S.β==0
-        addentries!(Derivative(S.space),A,kr)
+        SpaceOperator(Derivative(S.space),S,JacobiWeightSpace(0.,0.,rangespace(Derivative(S.space))))
     elseif S.α==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)            
         DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
-        addentries!(DD,A,kr)    
+        SpaceOperator(DD,S,JacobiWeightSpace(0.,S.β-1,rangespace(DD)))
     elseif S.β==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)        
         DD=(Mp*S.α)*I +(1+M)*Derivative(S.space)
-        addentries!(DD,A,kr)        
+        SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,0.,rangespace(DD)))
     else 
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)
         DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
-        addentries!(DD,A,kr)
+        SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,S.β-1,rangespace(DD)))
     end
-    
-    A
+
 end
 
-function bandinds{J<:JacobiWeightSpace}(D::Derivative{J})
-    S=D.space
-    d=domain(D)    
-    if S.α==S.β==0
-        0,1
-    elseif S.α==0
-#         x=Fun(identity,d)
-#         M=tocanonical(d,x)
-#         Mp=tocanonicalD(d,d.a)            
-#         DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
-#         bandinds(DD)
-    -1,2
-    elseif S.β==0
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        Mp=tocanonicalD(d,d.a)        
-        DD=(Mp*S.α)*I +(1+M)*Derivative(S.space)
-        bandinds(DD)
-    else 
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        Mp=tocanonicalD(d,d.a)
-        DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
-        bandinds(DD)
+function Derivative(S::JacobiWeightSpace,k::Integer)
+    if k==1
+        Derivative(S)
+    else
+        D=Derivative(S)
+        TimesOperator(Derivative(rangespace(D),k-1),D)
     end
 end
+
+
 
 
 ## Multiplication
@@ -270,47 +225,29 @@ maxspace(A::JacobiWeightSpace,B::IntervalDomainSpace)=maxspace(A,JacobiWeightSpa
 
 isapproxinteger(x)=isapprox(x,int(x))
 
-function addentries!{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W},SA::ShiftArray,kr::Range)
-    A=C.domainspace;B=C.rangespace
+
+
+function Conversion(A::JacobiWeightSpace,B::JacobiWeightSpace)
     @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
+    
     if A.space==B.space
-        d=domain(C)        
+        d=domain(A)        
         x=Fun(identity,d)
         M=tocanonical(d,x)
         m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
-        addentries!(Multiplication(m,B.space),SA,kr)
+        SpaceOperator(Multiplication(m,B.space),A,B)# Wrap the operator with the correct spaces
     elseif isapprox(A.α,B.α) && isapprox(A.β,B.β)
-        addentries!(Conversion(A.space,B.space),SA,kr)
+        SpaceOperator(Conversion(A.space,B.space),A,B)
     else
-        d=domain(C)        
+        d=domain(A)        
         x=Fun(identity,d)
         M=tocanonical(d,x)    
         C=Conversion(A.space,B.space)
-        x=Fun(identity)
         m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
-        addentries!(Multiplication(m,B.space)*C,SA,kr)            
-    end
+        SpaceOperator(Multiplication(m,B.space)*C,A,B)
+    end        
 end
 
-
-
-function bandinds{Y<:JacobiWeightSpace,W<:JacobiWeightSpace}(C::Conversion{Y,W})
-    A=C.domainspace;B=C.rangespace
-    @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
-    if A.space==B.space
-        l=int(A.α-B.α)+int(A.β-B.β)        
-
-        (-l,l)
-    elseif isapprox(A.α,B.α) && isapprox(A.β,B.β)
-        bandinds(Conversion(A.space,B.space))
-    else
-        C2=Conversion(A.space,B.space)
-        l=int(A.α-B.α)+int(A.β-B.β)        
-        bi=bandinds(C2)
-        (bi[1]-l,bi[end]+l)
-        #TODO: Assume polynomial space
-    end
-end
 
 isapproxleq(a,b)=(a<=b || isapprox(a,b))
 # return the space that has banded Conversion to the other, or NoSpace
