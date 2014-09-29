@@ -54,6 +54,7 @@ type SavedBandedOperator{T<:Number,M<:BandedOperator} <: BandedOperator{T}
     op::M
     data::ShiftArray{T}   #Shifted to encapsolate bandedness
     datalength::Int
+    bandinds::(Int,Int)
 end
 
 
@@ -64,7 +65,7 @@ end
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function SavedBandedOperator{T<:Number}(op::BandedOperator{T})
     data = ShiftArray(T,index(op))    
-    SavedBandedOperator(op,data,0)
+    SavedBandedOperator(op,data,0,bandinds(op))
 end
 
 index(B::SavedBandedOperator)=index(B.op)::Int
@@ -74,16 +75,16 @@ domain(S::SavedBandedOperator)=domain(S.op)
 
 domainspace(M::SavedBandedOperator)=domainspace(M.op)
 rangespace(M::SavedBandedOperator)=rangespace(M.op)
-bandinds(B::SavedBandedOperator)=bandinds(B.op)
+bandinds(B::SavedBandedOperator)=B.bandinds
 datalength(B::SavedBandedOperator)=B.datalength
 
 
 
 function addentries!(B::SavedBandedOperator,A::ShiftArray,kr::Range1)       
     resizedata!(B,kr[end])
-    br=bandrange(B)
 
-    for k=kr, j=br
+
+    for k=kr, j=B.bandinds[1]:B.bandinds[end]
         @safastset!(A,@safastget(B.data,k,j)+@safastget(A,k,j) ,k,j)
     end
     

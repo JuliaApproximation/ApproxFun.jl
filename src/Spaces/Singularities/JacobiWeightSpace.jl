@@ -230,11 +230,12 @@ function bandinds{J<:JacobiWeightSpace}(D::Derivative{J})
     if S.α==S.β==0
         0,1
     elseif S.α==0
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        Mp=tocanonicalD(d,d.a)            
-        DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
-        bandinds(DD)
+#         x=Fun(identity,d)
+#         M=tocanonical(d,x)
+#         Mp=tocanonicalD(d,d.a)            
+#         DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
+#         bandinds(DD)
+    -1,2
     elseif S.β==0
         x=Fun(identity,d)
         M=tocanonical(d,x)

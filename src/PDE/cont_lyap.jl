@@ -138,7 +138,7 @@ function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gyin,Gxin,F::Array,nx
 
     for k=1:n
         op=OS.Rdiags[k]
-        rhs=[Gx[:,k],F[:,k]]
+        rhs=[Gx[:,k],F[:,k]]::Vector{Complex{Float64}}
         Y[k]=chop!(linsolve([OS.Bx[k],op],rhs;maxlength=nx),eps())
     end  
     
