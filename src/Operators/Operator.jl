@@ -2,7 +2,7 @@ export Operator,Functional,InfiniteOperator
 export bandrange, linsolve, periodic
 export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
-
+export ldiffbc,rdiffbc,diffbcs
 
 
 
