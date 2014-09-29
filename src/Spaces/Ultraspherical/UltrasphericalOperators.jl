@@ -30,7 +30,7 @@ function Base.getindex(op::Evaluation{ChebyshevSpace,Bool},k::Range)
     if x
         ret = ones(size(k)[1])
     elseif !x
-        ret = -(-1.).^k ##TODO: speed up
+        ret = (-1.)^(p+1)*(-1.).^k ##TODO: speed up
     end
 
     for m=0:p-1
