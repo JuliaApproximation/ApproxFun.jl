@@ -54,6 +54,8 @@ function TensorFun{F<:Fun}(cfs::Vector{F},d::TensorSpace)
     TensorFun(F,d[2])
 end
 TensorFun(cfs::Array,d::ProductDomain)=TensorFun(cfs,d[1],d[2])
+
+
 TensorFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
 TensorFun(f,dy::Domain)=TensorFun(f,Space(dy))
 TensorFun(f,dx::Domain,dy::Domain)=TensorFun(f,Space(dx),Space(dy))
@@ -225,8 +227,8 @@ end
 
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj)) 
-#    @eval ($op){S,V<:RealDomainSpace}(f::ProductFun{S,V}) = ProductFun(map($op,f.coefficients),space(f,2))
-    @eval ($op){S,V<:RealDomainSpace}(f::TensorFun{S,V}) = TensorFun(map($op,f.coefficients),space(f,2))    
+#    @eval ($op){S,V<:DomainSpace{Flaot64}}(f::ProductFun{S,V}) = ProductFun(map($op,f.coefficients),space(f,2))
+    @eval ($op){S,V<:DomainSpace{Float64}}(f::TensorFun{S,V}) = TensorFun(map($op,f.coefficients),space(f,2))    
 end
 
 #For complex bases
@@ -254,7 +256,7 @@ function transform{ST<:FunctionSpace,N<:Number}(::Type{N},S::Vector{ST},T::Funct
     end
     C
 end
-transform{ST<:FunctionSpace,N<:Real}(S::Vector{ST},T::RealDomainSpace,V::Matrix{N})=transform(Float64,S,T,V)
+transform{ST<:FunctionSpace,N<:Real}(S::Vector{ST},T::DomainSpace{Float64},V::Matrix{N})=transform(Float64,S,T,V)
 transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Matrix)=transform(Complex{Float64},S,T,V)
 
 

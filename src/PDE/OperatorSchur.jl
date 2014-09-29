@@ -1,13 +1,25 @@
 ##TODO: Unify with coefficients()
 toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 toarray{T<:Number}(B::Array{Fun{T}},n)=T[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n]
+
+iscomplexfunornumber(A)=false
+iscomplexfunornumber(A::Complex{Float64})=true
+iscomplexfunornumber{S}(A::Fun{S,Complex{Float64}})=true
+
 function toarray(B::Array,n)
-    ret = zeros(length(B),n)
+    T=Float64
+    for Bk in B
+        if iscomplexfunornumber(Bk)
+            T=Complex{Float64}
+        end
+    end    
+
+    ret = zeros(T,length(B),n)
     
     for k=1:length(B), j=1:n
-        if  typeof(B[k]) <: Fun
+        if  isa(B[k],Fun)
             ret[k,j] = j<=length(B[k])?B[k].coefficients[j]:0 
-        elseif typeof(B[k]) <: Number && j == 1
+        elseif isa(B[k],Number) && j == 1
             ret[k,j] = B[k]
         end
     end
@@ -18,7 +30,7 @@ end
 function toarray{T<:Operator}(A::Vector{T},n::Integer,m::Integer)
     ret = zeros(n,m)
     
-    nbc = typeof(A[end])<:Functional?length(A):length(A)-1
+    nbc = isa(A[end],Functional)?length(A):length(A)-1
     for k=1:nbc
         ret[k,:]=A[k][1:m]
     end
@@ -88,7 +100,40 @@ function cont_reduce_dofs( R,A::Array )
 end
 
 
-type OperatorSchur{BT<:Number,MT<:Number}
+abstract AbstractOperatorSchur{BT,MT}
+
+domainspace(S::AbstractOperatorSchur)=S.domainspace
+rangespace(S::AbstractOperatorSchur)=S.rangespace
+domain(S::AbstractOperatorSchur)=domain(domainspace(S))
+
+
+type DiagonalOperatorSchur{MT<:Number} <:AbstractOperatorSchur{MT,MT}
+    R::Vector{MT}
+    T::Vector{MT}
+    
+    domainspace::FunctionSpace
+    rangespace::FunctionSpace       
+end
+
+function DiagonalOperatorSchur{T1<:Number,T2<:Number}(R::Vector{T1},T::Vector{T2},d,r)
+    PT=promote_type(T1,T2)
+    DiagonalOperatorSchur(convert(Vector{PT},R),convert(Vector{PT},T),d,r)
+end
+
+function DiagonalOperatorSchur(L::BandedOperator,M::BandedOperator,n::Integer)
+    Yop=promotespaces([L,M])    
+    DiagonalOperatorSchur(diag(Yop[1][1:n,1:n]),diag(Yop[2][1:n,1:n]),domainspace(Yop[1]),rangespace(Yop[2]))
+end
+
+Base.size(S::DiagonalOperatorSchur,k)=length(S.R)
+Base.size(S::DiagonalOperatorSchur)=size(S,1),size(S,2)
+
+getdiagonal(S::DiagonalOperatorSchur,k,j)=j==1?S.R[k]:S.T[k]
+
+numbcs(::DiagonalOperatorSchur)=0
+
+
+type OperatorSchur{BT<:Number,MT<:Number} <:AbstractOperatorSchur{BT,MT}
     bcP::Array{BT,2}  # permute columns of bcs
     bcQ::Array{BT,2}  # bc normalizer
     
@@ -118,15 +163,20 @@ Base.size(S::OperatorSchur)=size(S.bcP)
 Base.size(S::OperatorSchur,k)=size(S.bcP,k)
 
 numbcs(S::OperatorSchur)=size(S.bcQ,1)
-domainspace(S::OperatorSchur)=S.domainspace
-rangespace(S::OperatorSchur)=S.rangespace
-domain(S::OperatorSchur)=domain(domainspace(S))
+
+getdiagonal(S::OperatorSchur,k,j)=j==1?S.R[k,k]:S.T[k,k]
 
 
 
 OperatorSchur{FT<:Functional}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L),M,n)
 OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M),n)
-OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)=OperatorSchur(pdetoarray(B,L,M,n)...,findmindomainspace([L,M]),findmaxrangespace([L,M]))
+function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
+    if isempty(B) && bandinds(L)==bandinds(M)==(0,0)
+        DiagonalOperatorSchur(L,M,n)
+    else
+        OperatorSchur(pdetoarray(B,L,M,n)...,findmindomainspace([L,M]),findmaxrangespace([L,M]))
+    end
+end
 OperatorSchur(B,L::SparseMatrixCSC,M::SparseMatrixCSC,ds,rs)=OperatorSchur(B,full(L),full(M),ds,rs)
 function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
     B,Q,L,M,P=regularize_bcs(B,L,M)

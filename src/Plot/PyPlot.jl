@@ -76,14 +76,25 @@ end
 
 ##2D
 
-function pysurf(x,y,z; rstride=2,cstride=2,kwds...)
+function pysurf(x::Vector,y::Vector,z; rstride=2,cstride=2,kwds...)
     require("PyPlot")
     Main.PyPlot.surf(x,y,z.';linewidth=0,rstride=rstride,cstride=cstride,kwds...)
 end
 
-function pycontour(x,y,z,kwds...)
+function pycontour(x::Vector,y::Vector,z,kwds...)
     require("PyPlot")
     Main.PyPlot.contour(x,y,z.',kwds...)
+end
+
+
+function pysurf(x::Matrix,y::Matrix,z; rstride=2,cstride=2,kwds...)
+    require("PyPlot")
+    Main.PyPlot.surf(x,y,z;linewidth=0,rstride=rstride,cstride=cstride,kwds...)
+end
+
+function pycontour(x::Matrix,y::Matrix,z,kwds...)
+    require("PyPlot")
+    Main.PyPlot.contour(x,y,z,kwds...)
 end
 
 
