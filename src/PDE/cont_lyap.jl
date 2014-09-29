@@ -129,7 +129,7 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
 end
 
 function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gyin,Gxin,F::Array,nx=100000)    
-    n = length(OS.rdiags)
+    n = length(OS.Rdiags)
     F=pad(F,size(F,1),n)
     Gx=toarray(Gxin,n)    
     

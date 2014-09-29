@@ -338,3 +338,30 @@ Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
 Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
 
 
+
+type ProductRangeSpace <: BivariateFunctionSpace
+    S::PDEProductOperatorSchur
+end
+
+rangespace(S::PDEProductOperatorSchur)=ProductRangeSpace(S)
+
+function space(S::ProductRangeSpace,k)
+    @assert k==2
+    S.S.domainspace[2]
+end 
+
+function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
+    @assert space(f,2)==space(sp,2)
+    
+    n=size(f,2)
+    F=[coefficients(f.coefficients[k],rangespace(sp.S.Rdiags[k])) for k=1:n]
+    m=mapreduce(length,max,F)
+    ret=zeros(T,m,n)
+    for k=1:n
+        ret[1:length(F[k]),k]=F[k]
+    end
+    ret    
+end
+
+
+

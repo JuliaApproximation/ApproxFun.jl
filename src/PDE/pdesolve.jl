@@ -65,7 +65,7 @@ function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff.coefficients[1]        
     else # typeof(ff) <:LowRankFun || TensorFun
-        F=coefficients(ff,rangespace(A,1),rangespace(A,2))
+        F=coefficients(ff,rangespace(A))
     end        
     
 
