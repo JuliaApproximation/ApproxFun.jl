@@ -107,6 +107,15 @@ typealias FourierSpace PeriodicSumSpace{Float64,CosSpace,SinSpace}
 FourierSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace((CosSpace(d),SinSpace(d)))
 FourierSpace()=FourierSpace(PeriodicInterval())
 
+
+#domain(S) may be any domain
+for op in (:(Base.ones),:(Base.zeros)), sp in (:FourierSpace,:LaurentSpace,:(HardySpace{true}),:CosSpace)
+    @eval begin
+        $op{T<:Number}(::Type{T},S::$sp)=Fun($op(T,1),S)
+        $op(S::$sp)=Fun(($op)(1),S)        
+    end
+end
+
 points(sp::FourierSpace,n)=points(domain(sp),n)
 
 

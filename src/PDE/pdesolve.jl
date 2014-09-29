@@ -44,14 +44,16 @@ function convert2funvec{D}(f::Vector,d::D)
 end
 
 
-function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
-    if length(f) < length(A.indsBx)+length(A.indsBy)+1
-        f=[f,zeros(length(A.indsBx)+length(A.indsBy)+1-length(f))]
+function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
+    indsBx=bcinds(A,1);indsBy=bcinds(A,2)
+    if length(f) < length(indsBx)+length(indsBy)+1
+        f=[f,zeros(length(indsBx)+length(indsBy)+1-length(f))]
     end
 
     ##TODO: makes more sense as a domain space of the boundary ops once thats set up
-    fx=convert2funvec(f[A.indsBx],domainspace(A,2))
-    fy=convert2funvec(f[A.indsBy],domainspace(A,1))
+    
+    fx=isempty(indsBx)?[]:convert2funvec(f[indsBx],domainspace(A,2))
+    fy=isempty(indsBy)?[]:convert2funvec(f[indsBy],domainspace(A,1))
     
 
     ff=f[end]
@@ -62,8 +64,8 @@ function pdesolve_mat(A::PDEOperatorSchur,f::Vector,nx=100000)
         ##TODO: beter method of telling constant fun
         F=zeros(1,size(A.S,1)-numbcs(A.S)) 
         F[1,1]=ff.coefficients[1]        
-    else # typeof(ff) <:Fun2D || TensorFun
-        F=coefficients(ff,rangespace(A,1),rangespace(A,2))
+    else # typeof(ff) <:LowRankFun || TensorFun
+        F=coefficients(ff,rangespace(A))
     end        
     
 
@@ -91,8 +93,8 @@ end
 
 
 
-pdesolve(A::PDEOperatorSchur,f::Vector,nx...)=TensorFun(pdesolve_mat(A,f,nx...),domainspace(A,2))
-pdesolve(A::PDEOperatorSchur,f::MultivariateFun,nx...)=pdesolve(A,[f],nx...)
+pdesolve(A::AbstractPDEOperatorSchur,f::Vector,nx...)=Fun(pdesolve_mat(A,f,nx...),domainspace(A))
+pdesolve(A::AbstractPDEOperatorSchur,f::MultivariateFun,nx...)=pdesolve(A,[f],nx...)
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector)=TensorFun(pdesolve_mat(A,f),domainspace(A[end],2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n...)=TensorFun(pdesolve_mat(A,f,n...),domainspace(A[end],2))
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Fun,n...)=pdesolve(A,[f],n...)
@@ -150,8 +152,8 @@ pdesolve(A::PDEOperator,f...)=pdesolve([A],f...)
 
 
 \{T<:PDEOperator}(A::Vector{T},f::Vector)=pdesolve(A,f)
-\(A::PDEOperatorSchur,f::Vector)=pdesolve(A,f)
+\(A::AbstractPDEOperatorSchur,f::Vector)=pdesolve(A,f)
 \{T<:PDEOperator}(A::Vector{T},f::Fun)=pdesolve(A,f)
-\(A::PDEOperatorSchur,f::Fun)=pdesolve(A,f)
-\(A::PDEOperatorSchur,f::MultivariateFun)=pdesolve(A,f)
+\(A::AbstractPDEOperatorSchur,f::Fun)=pdesolve(A,f)
+\(A::AbstractPDEOperatorSchur,f::MultivariateFun)=pdesolve(A,f)
 \(A::PDEOperator,f::MultivariateFun)=pdesolve(A,f)
