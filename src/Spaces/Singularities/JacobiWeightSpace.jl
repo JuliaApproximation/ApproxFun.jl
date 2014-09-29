@@ -166,31 +166,40 @@ end
 
 ## Operators
 
+type JacobiWeightDerivative{S<:BandedOperator} <: AbstractDerivative{Float64}
+    op::S
+    order::Int
+end
+
+addentries!(D::JacobiWeightDerivative,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
+for func in (:rangespace,:domainspace,:bandinds)
+    @eval $func(D::JacobiWeightDerivative)=$func(D.op)
+end
 
 function Derivative(S::JacobiWeightSpace)
     d=domain(S)
     @assert isa(d,Interval)
 
     if S.α==S.β==0
-        SpaceOperator(Derivative(S.space),S,JacobiWeightSpace(0.,0.,rangespace(Derivative(S.space))))
+        JacobiWeightDerivative(SpaceOperator(Derivative(S.space),S,JacobiWeightSpace(0.,0.,rangespace(Derivative(S.space)))),1)
     elseif S.α==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)            
         DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
-        SpaceOperator(DD,S,JacobiWeightSpace(0.,S.β-1,rangespace(DD)))
+        JacobiWeightDerivative(SpaceOperator(DD,S,JacobiWeightSpace(0.,S.β-1,rangespace(DD))),1)
     elseif S.β==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)        
         DD=(Mp*S.α)*I +(1+M)*Derivative(S.space)
-        SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,0.,rangespace(DD)))
+        JacobiWeightDerivative(SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,0.,rangespace(DD))),1)
     else 
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)
         DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
-        SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,S.β-1,rangespace(DD)))
+        JacobiWeightDerivative(SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,S.β-1,rangespace(DD))),1)
     end
 
 end
@@ -200,7 +209,7 @@ function Derivative(S::JacobiWeightSpace,k::Integer)
         Derivative(S)
     else
         D=Derivative(S)
-        TimesOperator(Derivative(rangespace(D),k-1),D)
+        JacobiWeightDerivative(TimesOperator(Derivative(rangespace(D),k-1).op,D.op),k)
     end
 end
 

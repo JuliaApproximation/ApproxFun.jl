@@ -16,7 +16,7 @@ domain(S::SpaceFunctional)=domain(S.space)
 immutable SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{T}
     op::O
     domainspace::S
-    rangespace::S
+    rangespace::V
 #     
 #     function SpaceOperator{T,O,S}(o::O,s::S)
 #         @assert domainspace(o)==rangespace(o)==AnySpace()
