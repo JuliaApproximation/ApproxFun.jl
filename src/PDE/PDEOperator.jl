@@ -332,10 +332,7 @@ domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
 # end
 
 
-## Constructuor
 
-Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
-Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
 
 
 
@@ -363,5 +360,12 @@ function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
     ret    
 end
 
+
+
+## Constructuor
+
+Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
+Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
+Base.schurfact{T<:PDEOperator}(A::Vector{T},S::AbstractProductSpace,n::Integer)=PDEProductOperatorSchur(A,S,n)
 
 
