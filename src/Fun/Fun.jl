@@ -69,7 +69,7 @@ end
 
 
 ##Data routines
-values(f::Fun)=itransform(f.space,f.coefficients) 
+values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...) 
 points(f::Fun)=points(f.space,length(f))
 Base.length(f::Fun)=length(f.coefficients)
 

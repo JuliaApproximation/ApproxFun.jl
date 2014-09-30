@@ -171,3 +171,7 @@ end
 
 ## TODO: remove zeros
 Base.zero(S::FunctionSpace)=zeros(S)  
+Base.zero{T}(::Type{T},S::FunctionSpace)=zeros(T,S)
+Base.zeros{T}(::Type{T},S::FunctionSpace)=Fun(zeros(T,1),S)
+Base.zeros(S::FunctionSpace)=Fun(zeros(1),S)
+

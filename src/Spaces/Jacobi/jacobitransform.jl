@@ -7,22 +7,17 @@ else
 end
 
 points(S::JacobiSpace,n)=fromcanonical(S,gaussjacobi(n,S.a,S.b)[1])
-function transform(S::JacobiSpace,v::Vector)
-    n=length(v)
-    a=S.a;b=S.b
-    x,w=gaussjacobi(n,a,b)
-    
-    V=jacobip(0:n-1,a,b,x)'
+function transform(S::JacobiSpace,v::Vector,x::Vector,w::Vector)
+    V=jacobip(0:length(v)-1,S.a,S.b,x)'
     nrm=(V.^2)*w
     
     V*(w.*v)./nrm
 end
 
-function itransform(S::JacobiSpace,cfs::Vector)
-    n=length(cfs)
-    x=points(JacobiSpace(S.a,S.b),n)
-    jacobip(0:n-1,S.a,S.b,x)*cfs
-end
+transform(S::JacobiSpace,v::Vector)=transform(S,v,gaussjacobi(length(v),S.a,S.b)...)
+
+itransform(S::JacobiSpace,cfs::Vector,x::Vector)=jacobip(0:length(cfs)-1,S.a,S.b,tocanonical(S,x))*cfs
+itransform(S::JacobiSpace,cfs::Vector)=itransform(S,cfs,points(JacobiSpace(S.a,S.b),length(cfs)))
 
 
 evaluate(f::Fun{JacobiSpace},x)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x)),f.coefficients)

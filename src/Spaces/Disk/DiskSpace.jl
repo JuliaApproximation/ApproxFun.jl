@@ -45,6 +45,9 @@ columnspace(D::DiskSpace,k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+
 transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
 
+
+
+
 function Base.real(f::ProductFun{JacobiWeightSpace{JacobiSpace},LaurentSpace,DiskSpace{LaurentSpace}})
     cfs=f.coefficients
     n=length(cfs)

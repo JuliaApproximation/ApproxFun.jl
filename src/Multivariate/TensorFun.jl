@@ -112,6 +112,19 @@ function pad{S,V,T}(f::TensorFun{S,V,T},n::Integer,m::Integer)
     TensorFun{S,V,T}(ret,f.space)
 end
 
+function pad{S,V,SS,T}(f::ProductFun{S,V,SS,T},n::Integer,m::Integer)
+    ret=Array(Fun{S,T},m)
+    cm=min(length(f.coefficients),m)
+    for k=1:cm
+        ret[k]=pad(f.coefficients[k],n)
+    end
+
+    for k=cm+1:m
+        ret[k]=zero(T,columnspace(f,k))
+    end
+    ProductFun{S,V,SS,T}(ret,f.space)
+end
+
 
 coefficients(f::AbstractProductFun)=funlist2coefficients(f.coefficients)
 
@@ -127,13 +140,34 @@ function coefficients{S,V,T<:Number}(f::AbstractProductFun{S,V,T},ox::FunctionSp
 end
 
 # We assume that the spaces have the same values
-function values(f::AbstractProductFun)
-    n=size(f,1)
-    M=hcat(map(fk->values(pad(fk,n)),f.coefficients)...)
-    for k=1:size(f,1)
-        M[k,:]=values(Fun(vec(M[k,:]),space(f,2)))
+function values{S,V,T}(f::TensorFun{S,V,T})
+    M=coefficients(f)
+    n=size(M,1)
+    for k=1:size(M,2)
+        M[:,k]=itransform(space(f,1),M[:,k])
     end
-    M     
+
+    n=size(M,1)
+    for k=1:n
+        M[k,:]=itransform(space(f,2),vec(M[k,:]))
+    end 
+    M  
+end
+
+
+function values(f::ProductFun)
+    M=coefficients(f)
+    n=size(M,1)
+    pts=points(columnspace(f,1),n)
+    for k=1:size(M,2)
+        M[:,k]=itransform(columnspace(f,k),M[:,k],pts)
+    end
+
+    n=size(M,1)
+    for k=1:n
+        M[k,:]=itransform(space(f,2),vec(M[k,:]))
+    end 
+    M  
 end
 
 
@@ -145,6 +179,7 @@ points(f::ProductFun,k...)=points(f.space,size(f,1),size(f,2),k...)
 
 space(f::AbstractProductFun)=f.space
 space(f::AbstractProductFun,k)=space(space(f),k)
+columnspace(f::ProductFun,k)=columnspace(space(f),k)
 
 domain(f::AbstractProductFun)=domain(f.space)
 #domain(f::AbstractProductFun,k)=domain(f.space,k)

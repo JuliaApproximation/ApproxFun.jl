@@ -23,10 +23,9 @@ order{o}(::UltrasphericalSpace{o})=o
 ## Construction
 
 #domain(S) may be any domain
-for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op){T<:Number,O}(::Type{T},S::UltrasphericalSpace{O})=Fun(($op)(T,1),S)
-    @eval ($op){O}(S::UltrasphericalSpace{O})=Fun(($op)(1),S)    
-end
+
+Base.ones{T<:Number,O}(::Type{T},S::UltrasphericalSpace{O})=Fun(ones(T,1),S)
+Base.ones{O}(S::UltrasphericalSpace{O})=Fun(ones(1),S)    
 
 
 ## Transform
