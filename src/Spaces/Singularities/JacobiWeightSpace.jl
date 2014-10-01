@@ -31,7 +31,9 @@ points(sp::JacobiWeightSpace{ChebyshevSpace},n)=fromcanonical(sp,chebyshevroots(
 transform(sp::JacobiWeightSpace{ChebyshevSpace},vals::Vector)=chebyshevrootstransform(vals./jacobiweight(sp,points(sp,length(vals))))
 itransform(sp::JacobiWeightSpace{ChebyshevSpace},cfs::Vector)=ichebyshevrootstransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
 
-itransform(S::JacobiWeightSpace,cfs::Vector)=jacobiweight(S,points(S,length(cfs))).*itransform(S.space,cfs)
+
+plan_itransform(S::JacobiWeightSpace,n::Integer)=points(S,n)
+itransform(S::JacobiWeightSpace,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
 itransform(S::JacobiWeightSpace,cfs::Vector,pts::Vector)=jacobiweight(S,pts).*itransform(S.space,cfs,pts)
 
 ##TODO: paradigm for same space

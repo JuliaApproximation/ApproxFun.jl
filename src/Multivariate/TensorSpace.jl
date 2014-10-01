@@ -62,3 +62,58 @@ for TT in (:ProductDomain,:TensorSpace)
     @eval Base.transpose(d::$TT)=$TT(d[2],d[1])
 end
 
+
+
+##Transforms
+
+function itransform!(S::TensorSpace,M::Matrix)
+    n=size(M,1)
+    for k=1:size(M,2)
+        M[:,k]=itransform(space(S,1),M[:,k])
+    end
+
+    for k=1:n
+        M[k,:]=itransform(space(S,2),vec(M[k,:]))
+    end 
+    M      
+end
+
+function itransform!(S::AbstractProductSpace,M::Matrix)
+    n=size(M,1)
+    pln=plan_itransform(columnspace(S,1),n)
+    for k=1:size(M,2)
+        M[:,k]=itransform(columnspace(S,k),M[:,k],pln)
+    end
+
+    for k=1:n
+        M[k,:]=itransform(space(S,2),vec(M[k,:]))
+    end 
+    M      
+end
+
+function transform!(S::TensorSpace,M::Matrix)
+    n=size(M,1)
+
+    for k=1:size(M,2)
+        M[:,k]=transform(space(S,1),M[:,k])
+    end
+
+    for k=1:n
+        M[k,:]=transform(space(S,2),vec(M[k,:]))
+    end 
+    M      
+end
+
+function transform!(S::AbstractProductSpace,M::Matrix)
+    n=size(M,1)
+    pln=plan_transform(columnspace(S,1),n)
+    for k=1:size(M,2)
+        M[:,k]=transform(columnspace(S,k),M[:,k],pln)
+    end
+    
+    
+    for k=1:n
+        M[k,:]=transform(space(S,2),vec(M[k,:]))
+    end 
+    M      
+end

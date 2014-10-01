@@ -139,37 +139,7 @@ function coefficients{S,V,T<:Number}(f::AbstractProductFun{S,V,T},ox::FunctionSp
     B
 end
 
-# We assume that the spaces have the same values
-function values{S,V,T}(f::TensorFun{S,V,T})
-    M=coefficients(f)
-    n=size(M,1)
-    for k=1:size(M,2)
-        M[:,k]=itransform(space(f,1),M[:,k])
-    end
-
-    n=size(M,1)
-    for k=1:n
-        M[k,:]=itransform(space(f,2),vec(M[k,:]))
-    end 
-    M  
-end
-
-
-function values(f::ProductFun)
-    M=coefficients(f)
-    n=size(M,1)
-    pts=points(columnspace(f,1),n)
-    for k=1:size(M,2)
-        M[:,k]=itransform(columnspace(f,k),M[:,k],pts)
-    end
-
-    n=size(M,1)
-    for k=1:n
-        M[k,:]=itransform(space(f,2),vec(M[k,:]))
-    end 
-    M  
-end
-
+values{S,V,T<:Number}(f::AbstractProductFun{S,V,T})=itransform!(space(f),coefficients(f))
 
 
 

@@ -7,14 +7,15 @@ else
 end
 
 points(S::JacobiSpace,n)=fromcanonical(S,gaussjacobi(n,S.a,S.b)[1])
-function transform(S::JacobiSpace,v::Vector,x::Vector,w::Vector)
+function transform(S::JacobiSpace,v::Vector,xw::(Vector,Vector))
+    x,w=xw
     V=jacobip(0:length(v)-1,S.a,S.b,x)'
     nrm=(V.^2)*w
     
     V*(w.*v)./nrm
 end
 
-transform(S::JacobiSpace,v::Vector)=transform(S,v,gaussjacobi(length(v),S.a,S.b)...)
+transform(S::JacobiSpace,v::Vector)=transform(S,v,gaussjacobi(length(v),S.a,S.b))
 
 itransform(S::JacobiSpace,cfs::Vector,x::Vector)=jacobip(0:length(cfs)-1,S.a,S.b,tocanonical(S,x))*cfs
 itransform(S::JacobiSpace,cfs::Vector)=itransform(S,cfs,points(JacobiSpace(S.a,S.b),length(cfs)))
@@ -33,12 +34,18 @@ function points(S::JacobiWeightSpace{JacobiSpace},n)
         error("JacobiWeightSpace{JacobiSpace} only implemented for special case a=2m+1,b=0 currently")
     end
 end
-function transform(S::JacobiWeightSpace{JacobiSpace},vals::Vector)
+
+
+plan_transform(S::JacobiWeightSpace{JacobiSpace},n::Integer)=gaussjacobi(n,1.,0.)
+
+
+transform(S::JacobiWeightSpace{JacobiSpace},vals::Vector)=transform(S,vals,plan_transform(S,length(vals)))
+function transform(S::JacobiWeightSpace{JacobiSpace},vals::Vector,xw::(Vector,Vector))
     # JacobiSpace and JacobiWeightSpace have different a/b orders
     m=S.β
     if S.α==S.space.b==0 && S.space.a==2m+1
         n=length(vals)
-        x,w=gaussjacobi(n,1.,0.)
+        x,w=xw
         w2=(1-x).^m
         mw=w2.*w
         
@@ -52,4 +59,6 @@ function transform(S::JacobiWeightSpace{JacobiSpace},vals::Vector)
         error("JacobiWeightSpace{JacobiSpace} only implemented for special case a=2m+1,b=0 currently")
     end    
 end
+
+
 
