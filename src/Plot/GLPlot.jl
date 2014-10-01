@@ -26,9 +26,9 @@ function glsurf(vals::Matrix,obj,window)##obj should be type RenderObject, windo
     
     zvalues = obj.uniforms[:z] 
 #    colrs=obj.uniforms[:color]    
-    
+    zvalues[:,:]=float32(vals)
 #    color     = map(colorf,vals)    
-    GLAbstraction.update!(zvalues, map(GLAbstraction.Vec1,vals)) # now you can simply update the gpu object, which should be very efficient
+#    GLAbstraction.update!(zvalues, map(GLAbstraction.Vec1,vals)) # now you can simply update the gpu object, which should be very efficient
 #     GLAbstraction.update!(colrs,color)
 
     glupdatewindow(obj,window)
