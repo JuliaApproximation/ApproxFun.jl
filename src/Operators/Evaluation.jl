@@ -9,6 +9,7 @@ type Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Functional{
     order::Int
 end
 Evaluation(sp::AnySpace,x::Bool)=Evaluation{AnySpace,Bool,Float64}(sp,x,0)
+Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,Float64}(sp,x,k)
 Evaluation{M,S<:IntervalDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Float64}(sp,x,order)
 Evaluation{M,S<:PeriodicDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Complex{Float64}}(sp,x,order)
 
@@ -52,8 +53,12 @@ neumann(d::Union(IntervalDomain,IntervalDomainSpace))=[lneumann(d),rneumann(d)]
 diffbcs(d::Union(IntervalDomain,IntervalDomainSpace),k::Integer) = [ldiffbc(d,k),rdiffbc(d,k)]
 
 
-for op in (:rdirichlet,:ldirichlet,:dirichlet)
+for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann)
     @eval $op()=$op(AnySpace())
+end
+
+for op in (:ldiffbc,:rdiffbc,:diffbcs)
+    @eval $op(k::Integer)=$op(AnySpace(),k)
 end
 
 function dirichlet{T<:IntervalDomain}(d::Vector{T})

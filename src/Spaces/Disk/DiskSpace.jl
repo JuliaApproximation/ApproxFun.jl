@@ -25,7 +25,8 @@ immutable DiskSpace{S<:PeriodicDomainSpace} <: AbstractProductSpace{JacobiWeight
     spacet::S
 end
 
-DiskSpace(D::Disk)=DiskSpace(D,FourierSpace())
+#TODO: Change to Fourier
+DiskSpace(D::Disk)=DiskSpace(D,LaurentSpace())
 
 domain(d::DiskSpace)=d.domain
 function space(D::DiskSpace,k::Integer)
@@ -69,3 +70,14 @@ function Base.real(f::ProductFun{JacobiWeightSpace{JacobiSpace},LaurentSpace,Dis
     ProductFun(ret,DiskSpace(space(f).domain,FourierSpace()))
 end
 #Base.imag{S,T}(u::ProductFun{S,LarentSpace,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
+
+
+
+
+## Operators
+
+function lap(S::DiskSpace)
+    D=Derivative()
+    r=Fun(identity,[1.,0.])
+    (D^2+(1./r)*D)⊗I+(1./r).^2⊗D^2
+end
