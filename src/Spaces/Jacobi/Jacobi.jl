@@ -47,7 +47,7 @@ function getdiagonalentry(J::JacobiRecurrenceOperator,k,j)
 end
 
 
-function jacobip(r::Range1,α,β,x::Number)
+function jacobip(r::Range,α,β,x::Number)
     if x==1. && α==0.
         ones(length(r))
     elseif x==-1. && β==0.

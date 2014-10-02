@@ -50,7 +50,7 @@ function transform(S::JacobiWeightSpace{JacobiSpace},vals::Vector,xw::(Vector,Ve
             V=jacobip(0:n-1,S.space,x)'
             nrm=(V.^2)*w
             (V*(w.*vals))./nrm
-        else
+        elseif n>m
             w2=(1-x).^m
             mw=w2.*w
             
@@ -64,6 +64,8 @@ function transform(S::JacobiWeightSpace{JacobiSpace},vals::Vector,xw::(Vector,Ve
             nrm=(V.^2)*(w2.*mw)
             
             (V*(mw.*vals))./nrm
+        else
+            [0.]
         end
     else
         error("JacobiWeightSpace{JacobiSpace} only implemented for special case a=2m+1,b=0 currently")
