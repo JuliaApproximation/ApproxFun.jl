@@ -44,13 +44,13 @@ rneumann(d::FunctionSpace)=Evaluation(d,true,1)
 
 ldiffbc(d::IntervalDomain,k::Integer) = Evaluation(d,false,k)
 rdiffbc(d::IntervalDomain,k::Integer) = Evaluation(d,true,k)
-ldiffbc(d::IntervalDomainSpace,k::Integer) = Evaluation(d,false,k)
-rdiffbc(d::IntervalDomainSpace,k::Integer) = Evaluation(d,true,k)
+ldiffbc(d::FunctionSpace,k::Integer) = Evaluation(d,false,k)
+rdiffbc(d::FunctionSpace,k::Integer) = Evaluation(d,true,k)
 
 
-dirichlet(d::Union(IntervalDomain,IntervalDomainSpace))=[ldirichlet(d),rdirichlet(d)]
-neumann(d::Union(IntervalDomain,IntervalDomainSpace))=[lneumann(d),rneumann(d)]
-diffbcs(d::Union(IntervalDomain,IntervalDomainSpace),k::Integer) = [ldiffbc(d,k),rdiffbc(d,k)]
+dirichlet(d::Union(IntervalDomain,FunctionSpace))=[ldirichlet(d),rdirichlet(d)]
+neumann(d::Union(IntervalDomain,FunctionSpace))=[lneumann(d),rneumann(d)]
+diffbcs(d::Union(IntervalDomain,FunctionSpace),k::Integer) = [ldiffbc(d,k),rdiffbc(d,k)]
 
 
 for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann)

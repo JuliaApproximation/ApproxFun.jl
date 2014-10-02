@@ -81,3 +81,15 @@ function lap(S::DiskSpace)
     r=Fun(identity,[1.,0.])
     (D^2+(1./r)*D)⊗I+(1./r).^2⊗D^2
 end
+
+neumann(S::DiskSpace)=lneumann()⊗I
+dirichlet(S::DiskSpace)=ldirichlet()⊗I
+diffbcs(S::DiskSpace,k::Integer)=ldiffbc(k)⊗I
+
+for op in (:lap,:neumann,:dirichlet)
+    $op(S::Disk)=$op(Space(S))
+end
+
+
+diffbcs(S::Disk,k)=diffbcs(Space(S),k)
+
