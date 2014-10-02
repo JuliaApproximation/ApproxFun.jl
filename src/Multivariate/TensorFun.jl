@@ -62,18 +62,24 @@ TensorFun(f,dx::Domain,dy::Domain)=TensorFun(f,Space(dx),Space(dy))
 TensorFun(f::LowRankFun)=TensorFun(coefficients(f),space(f,1),space(f,2))
 
 TensorFun(f::Function,d1...)=TensorFun(LowRankFun(f,d1...))
-function ProductFun{ST<:FunctionSpace}(f::Function,S::Vector{ST},T::FunctionSpace,N::Integer)
-    M=length(S)     # We assume the list of spaces is the same length
-    xx=points(S[1],N)
-    tt=points(T,M)
-    V=Float64[f(x,t) for x=xx, t=tt] #TODO:type
-    ProductFun(transform(S,T,V),S,T)
+# function ProductFun{ST<:FunctionSpace}(f::Function,S::Vector{ST},T::FunctionSpace,N::Integer)
+#     M=length(S)     # We assume the list of spaces is the same length
+#     xx=points(S[1],N)
+#     tt=points(T,M)
+#     V=Float64[f(x,t) for x=xx, t=tt] #TODO:type
+#     ProductFun(transform(S,T,V),S,T)
+# end
+
+function ProductFun{SS<:DomainSpace{Float64},VV<:DomainSpace{Float64}}(f::Function,S::AbstractProductSpace{SS,VV},N::Integer,M::Integer)
+    ptsx,ptsy=points(S,N,M)
+    V=Float64[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]#TODO:type
+    ProductFun(transform!(S,V),S)
 end
 
 function ProductFun(f::Function,S::AbstractProductSpace,N::Integer,M::Integer)
     ptsx,ptsy=points(S,N,M)
-    V=Float64[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]#TODO:type
-    ProductFun(transform(S,V),S)
+    V=Complex{Float64}[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
+    ProductFun(transform!(S,V),S)
 end
 
 ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Space(D),N,M)
@@ -249,20 +255,20 @@ Base.imag{S,V,T}(u::TensorFun{S,V,T})=real(TensorFun(imag(u.coefficients),space(
 
 ## ProductFun transform
 
-function transform{ST<:FunctionSpace,N<:Number}(::Type{N},S::Vector{ST},T::FunctionSpace,V::Matrix)
-    @assert length(S)==size(V,2)
-    # We assume all S spaces have same domain/points
-    C=Array(N,size(V)...)
-    for k=1:size(V,1)
-        C[k,:]=transform(T,vec(V[k,:]))
-    end
-    for k=1:size(C,2)
-        C[:,k]=transform(S[k],C[:,k])
-    end
-    C
-end
-transform{ST<:FunctionSpace,N<:Real}(S::Vector{ST},T::DomainSpace{Float64},V::Matrix{N})=transform(Float64,S,T,V)
-transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Matrix)=transform(Complex{Float64},S,T,V)
+# function transform{ST<:FunctionSpace,N<:Number}(::Type{N},S::Vector{ST},T::FunctionSpace,V::Matrix)
+#     @assert length(S)==size(V,2)
+#     # We assume all S spaces have same domain/points
+#     C=Array(N,size(V)...)
+#     for k=1:size(V,1)
+#         C[k,:]=transform(T,vec(V[k,:]))
+#     end
+#     for k=1:size(C,2)
+#         C[:,k]=transform(S[k],C[:,k])
+#     end
+#     C
+# end
+# transform{ST<:FunctionSpace,N<:Real}(S::Vector{ST},T::DomainSpace{Float64},V::Matrix{N})=transform(Float64,S,T,V)
+# transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Matrix)=transform(Complex{Float64},S,T,V)
 
 
 

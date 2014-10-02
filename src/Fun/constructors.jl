@@ -88,7 +88,9 @@ function zerocfsFun(f::Function,d::DomainSpace)
     for logn = 4:20
         cf = Fun(f, d, 2^logn + 1)
         
-        if maximum(abs(cf.coefficients[end-8:end])) < tol*maximum(abs(cf.coefficients[1:8]))
+        
+        # we allow for transformed coefficients being a different size
+        if length(cf) > 8 && maximum(abs(cf.coefficients[end-8:end])) < tol*maximum(abs(cf.coefficients[1:8]))
             return chop!(cf,10eps()*maximum(abs(cf.coefficients)))
         end
     end

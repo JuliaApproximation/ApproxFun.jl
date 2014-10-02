@@ -46,15 +46,25 @@ function transform(S::JacobiWeightSpace{JacobiSpace},vals::Vector,xw::(Vector,Ve
     if S.α==S.space.b==0 && S.space.a==2m+1
         n=length(vals)
         x,w=xw
-        w2=(1-x).^m
-        mw=w2.*w
-        
-        V=jacobip(0:n-1,S.space,x)'
-        
-        
-        nrm=(V.^2)*(w2.*mw)
-        
-        (V*(mw.*vals))./nrm
+        if m==0
+            V=jacobip(0:n-1,S.space,x)'
+            nrm=(V.^2)*w
+            (V*(w.*vals))./nrm
+        else
+            w2=(1-x).^m
+            mw=w2.*w
+            
+            V=jacobip(0:n-int(m)-1,S.space,x)'   
+              # only first m coefficients are accurate
+              # since Gauss quad is accurate up to polys of degree 2n-1
+              # we get one more coefficient because we normalize, so the
+              # error for poly of degree 2n is annihilated
+            
+            
+            nrm=(V.^2)*(w2.*mw)
+            
+            (V*(mw.*vals))./nrm
+        end
     else
         error("JacobiWeightSpace{JacobiSpace} only implemented for special case a=2m+1,b=0 currently")
     end    

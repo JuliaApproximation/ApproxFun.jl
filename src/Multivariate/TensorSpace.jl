@@ -80,6 +80,8 @@ end
 
 function itransform!(S::AbstractProductSpace,M::Matrix)
     n=size(M,1)
+    
+    ## The order matters
     pln=plan_itransform(columnspace(S,1),n)
     for k=1:size(M,2)
         M[:,k]=itransform(columnspace(S,k),M[:,k],pln)
@@ -104,16 +106,26 @@ function transform!(S::TensorSpace,M::Matrix)
     M      
 end
 
-function transform!(S::AbstractProductSpace,M::Matrix)
+function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
     n=size(M,1)
-    pln=plan_transform(columnspace(S,1),n)
-    for k=1:size(M,2)
-        M[:,k]=transform(columnspace(S,k),M[:,k],pln)
-    end
     
-    
+    ## The order matters!!
+    # For Disk Space, this is due to requiring decay
+    # in function
     for k=1:n
         M[k,:]=transform(space(S,2),vec(M[k,:]))
-    end 
+    end     
+    
+    pln=plan_transform(columnspace(S,1),n)
+    for k=1:size(M,2)
+        # col may not be full length
+        col=transform(columnspace(S,k),M[:,k],pln)
+        M[1:length(col),k]=col
+        for j=length(col)+1:n
+            M[j,k]=zero(T) # fill rest with zeros
+        end
+    end
+    
+
     M      
 end
