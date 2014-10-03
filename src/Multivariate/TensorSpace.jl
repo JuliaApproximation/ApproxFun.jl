@@ -134,3 +134,12 @@ end
 ## points
 
 points(d::Union(BivariateDomain,BivariateFunctionSpace),n,m)=points(d,n,m,1),points(d,n,m,2)
+
+function points(d::BivariateFunctionSpace,n,m,k)
+    ptsx=points(columnspace(d,1),n)
+    ptst=points(space(d,2),m)
+    
+    Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
+end
+
+

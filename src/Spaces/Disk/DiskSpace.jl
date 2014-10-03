@@ -44,12 +44,7 @@ Base.getindex(D::DiskSpace,k::Integer)=space(D,k)
 Space(D::Disk)=DiskSpace(D)
 
 
-function points(d::DiskSpace,n,m,k)
-    ptsx=0.5*(1-points(columnspace(d,1),n))
-    ptst=points(PeriodicInterval(),m)
-    
-    Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
-end
+
 
 
 columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.,Interval(1.,0.))))
