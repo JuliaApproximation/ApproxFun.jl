@@ -6,7 +6,6 @@ abstract BivariateDomain <: MultivariateDomain
 
 
 
-
 immutable ProductDomain{D<:Domain} <:BivariateDomain
     domains::Vector{D} 
 end
@@ -129,3 +128,9 @@ function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
 
     M      
 end
+
+
+
+## points
+
+points(d::Union(BivariateDomain,BivariateFunctionSpace),n,m)=points(d,n,m,1),points(d,n,m,2)

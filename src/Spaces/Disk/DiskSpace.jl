@@ -12,18 +12,23 @@ fromcanonical(D::Disk,x,t)=x*cos(t),x*sin(t)
 tocanonical(D::Disk,x,y)=sqrt(x^2+y^2),atan2(y,x)
 
 
-function points(d::Disk,n,m,k)
-    ptsx=0.5*(1-gaussjacobi(n,1.,0.)[1])
-    ptst=points(PeriodicInterval(),m)
-    
-    Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
-end
-points(d::BivariateDomain,n,m)=points(d,n,m,1),points(d,n,m,2)
+# function points(d::Disk,n,m,k)
+#     ptsx=0.5*(1-gaussjacobi(n,1.,0.)[1])
+#     ptst=points(PeriodicInterval(),m)
+#     
+#     Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
+# end
 
-immutable DiskSpace{S<:PeriodicDomainSpace} <: AbstractProductSpace{JacobiWeightSpace{JacobiSpace},LaurentSpace}
+
+# Kind== 0 => Legendre, K==1=>Chebyshev
+immutable DiskSpace{K,S<:PeriodicDomainSpace} <: AbstractProductSpace{JacobiWeightSpace{JacobiSpace},LaurentSpace}
     domain::Disk
     spacet::S
 end
+
+
+DiskSpace{SS}(K::Integer,D::Disk,S::SS)=DiskSpace{K,SS}(D,S)
+DiskSpace{SS}(D::Disk,S::SS)=DiskSpace{1,SS}(D,S)
 
 #TODO: Change to Fourier
 DiskSpace(D::Disk)=DiskSpace(D,LaurentSpace())
@@ -38,18 +43,25 @@ Base.getindex(D::DiskSpace,k::Integer)=space(D,k)
 
 Space(D::Disk)=DiskSpace(D)
 
-points(d::DiskSpace,n...)=points(domain(d),n...)
+
+function points(d::DiskSpace,n,m,k)
+    ptsx=0.5*(1-points(columnspace(d,1),n))
+    ptst=points(PeriodicInterval(),m)
+    
+    Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
+end
 
 
-columnspace(D::DiskSpace,k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.,Interval(1.,0.))))
+columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.,Interval(1.,0.))))
+columnspace{SS}(D::DiskSpace{1,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+0.5,-0.5,Interval(1.,0.))))
 
-transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
-
-
-
+#transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
 
-function Base.real(f::ProductFun{JacobiWeightSpace{JacobiSpace},LaurentSpace,DiskSpace{LaurentSpace}})
+
+
+
+function Base.real{K}(f::ProductFun{JacobiWeightSpace{JacobiSpace},LaurentSpace,DiskSpace{K,LaurentSpace}})
     cfs=f.coefficients
     n=length(cfs)
 
@@ -67,7 +79,7 @@ function Base.real(f::ProductFun{JacobiWeightSpace{JacobiSpace},LaurentSpace,Dis
         ret[k-1]-=imag(cfs[k])
     end
 
-    ProductFun(ret,DiskSpace(space(f).domain,FourierSpace()))
+    ProductFun(ret,DiskSpace{K,FourierSpace}(space(f).domain,FourierSpace()))
 end
 #Base.imag{S,T}(u::ProductFun{S,LarentSpace,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
 
@@ -87,7 +99,7 @@ dirichlet(S::DiskSpace)=ldirichlet()⊗I
 diffbcs(S::DiskSpace,k::Integer)=ldiffbc(k)⊗I
 
 for op in (:lap,:neumann,:dirichlet)
-    $op(S::Disk)=$op(Space(S))
+    @eval $op(S::Disk)=$op(Space(S))
 end
 
 
