@@ -244,7 +244,8 @@ ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
 
 
 bcinds(S::PDEOperatorSchur,k)=k==1?S.indsBx:S.indsBy
-
+numbcs(S::AbstractPDEOperatorSchur,k)=length(bcinds(S,k))
+Base.length(S::PDEOperatorSchur)=size(S.S,1)
 
 
 
@@ -280,11 +281,14 @@ domain(P::PDEOperatorSchur,k::Integer)=k==1?domain(P.Lx):domain(P.S)
 
 ## Product
 
+# Represents an operator on e.g. a Disk
 type PDEProductOperatorSchur{ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
     Bx::Vector{FT}
     Rdiags::Vector{SavedBandedOperator{ST}}
     domainspace::AbstractProductSpace
 end
+
+Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
 
 function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProductSpace,nt::Integer)
     indsBx=find(isxfunctional,A)

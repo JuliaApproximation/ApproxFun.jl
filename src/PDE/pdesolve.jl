@@ -58,11 +58,11 @@ function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
 
     ff=f[end]
     if typeof(ff)<:Number
-        F=zeros(1,size(A.S,1)-numbcs(A.S)) 
+        F=zeros(1,length(A)-numbcs(A,2)) 
         F[1,1]=ff
     elseif typeof(ff)<:Fun && domain(ff) == AnyDomain()
         ##TODO: beter method of telling constant fun
-        F=zeros(1,size(A.S,1)-numbcs(A.S)) 
+        F=zeros(1,length(A)-numbcs(A,2)) 
         F[1,1]=ff.coefficients[1]        
     else # typeof(ff) <:LowRankFun || TensorFun
         F=coefficients(ff,rangespace(A))
