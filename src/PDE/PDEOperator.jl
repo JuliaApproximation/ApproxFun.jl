@@ -198,6 +198,26 @@ function *{S,T}(L::PDEOperator,f::LowRankFun{S,T})
     LowRankFun(A,B)
 end
 
+function tensormult(A::BandedOperator,B::BandedOperator,F::ProductFun)
+    ##TODO: general bands?
+    B=promotedomainspace(B,space(F,2))
+    @assert bandinds(B)==(0,0)
+    @assert rangespace(B)==domainspace(B)
+    ret=copy(F.coefficients)
+    for k=1:length(ret)
+        ret[k]=B[k,k]*A*ret[k]
+    end
+    ProductFun(ret,space(F))
+end
+
+
+function *(A::PDEOperator,F::ProductFun)
+    ret=tensormult(A.ops[1,1],A.ops[1,2],F)
+    for k=2:size(A.ops,1)
+        ret+=tensormult(A.ops[k,1],A.ops[k,2],F)
+    end
+    ret
+end
 
 
 ## Schur PDEOperator
@@ -297,6 +317,7 @@ type PDEProductOperatorSchur{ST<:Number,FT<:Functional} <: AbstractPDEOperatorSc
     Bx::Vector{Vector{FT}}
     Rdiags::Vector{SavedBandedOperator{ST}}
     domainspace::AbstractProductSpace
+    indsBx::Vector{Int}
 end
 
 Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
@@ -336,12 +357,12 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
             resizedata!(Bxx,2nt+100)        
         end
     end  
-    PDEProductOperatorSchur(BxV,Rdiags,sp)
+    PDEProductOperatorSchur(BxV,Rdiags,sp,indsBx)
 end
 
 
 ##TODO: Larger Bx
-bcinds(S::PDEProductOperatorSchur,k)=k==1?[1]:[]
+bcinds(S::PDEProductOperatorSchur,k)=k==1?S.indsBx:[]
 domainspace(S::PDEProductOperatorSchur)=S.domainspace
 domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
 
