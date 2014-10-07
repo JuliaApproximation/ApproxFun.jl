@@ -50,14 +50,12 @@ Base.transpose(LL::PDEOperator)=PDEOperator(LL.ops[:,end:-1:1])
 
 
 function promotedomainspace(P::PDEOperator,S::FunctionSpace,col::Integer)
-    if col==1
-        PDEOperator([promotedomainspace(P.ops[1,1],S) P.ops[1,2];
-                     promotedomainspace(P.ops[2,1],S) P.ops[2,2]])    
-    else
-        @assert col==2
-        PDEOperator([P.ops[1,1] promotedomainspace(P.ops[1,2],S);
-                     P.ops[2,1] promotedomainspace(P.ops[2,2],S)])        
+    ret=copy(P.ops)
+    for k=1:size(P.ops,1)
+        ret[k,col]=promotedomainspace(ret[k,col],S)
     end
+    
+    PDEOperator(ret)
 end
 promotedomainspace(P::PDEOperator,S::TensorSpace)=promotedomainspace(promotedomainspace(P,S[1],1),S[2],2)
 
@@ -132,7 +130,8 @@ function *(A::PDEOperator,B::PDEOperator)
         @assert size(A.ops,1)==size(B.ops,1)==2
         @assert size(A.ops,2)==size(B.ops,2)==2    
         PDEOperator([A.ops[1,1]^2 A.ops[1,2]^2;
-                     2A.ops[1,1]*A.ops[2,1] A.ops[1,2]*A.ops[2,2];
+                     A.ops[1,1]*A.ops[2,1] A.ops[1,2]*A.ops[2,2];
+                     A.ops[2,1]*A.ops[1,1] A.ops[2,2]*A.ops[1,2];                     
                      A.ops[2,1]^2 A.ops[2,2]^2
                     ])    
     else
@@ -218,6 +217,8 @@ function *(A::PDEOperator,F::ProductFun)
     end
     ret
 end
+
+
 
 
 ## Schur PDEOperator
@@ -339,7 +340,7 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
     L=promotedomainspace(L,sp[2],2)
     S=OperatorSchur([],L.ops[:,2],nt)
     @assert(isa(S,DiagonalOperatorSchur))
-    Lx=L.ops[1,1];Mx=L.ops[2,1]
+
     #TODO: Space Type
     BxV=Array(Vector{SavedFunctional{Float64}},nt)
     Rdiags=Array(SavedBandedOperator{Complex{Float64}},nt)    
@@ -409,5 +410,15 @@ end
 Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
 Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
 Base.schurfact{T<:PDEOperator}(A::Vector{T},S::AbstractProductSpace,n::Integer)=PDEProductOperatorSchur(A,S,n)
+
+
+
+function *(A::PDEProductOperatorSchur,F::ProductFun)
+    ret=copy(F.coefficients)
+    for k=1:length(ret)
+        ret[k]=A.Rdiags[k]*ret[k]
+    end
+    ProductFun(ret,space(F))
+end
 
 

@@ -129,7 +129,7 @@ function DiagonalOperatorSchur(L::BandedOperator,M::BandedOperator,n::Integer)
 end
 
 
-function DiagonalOperatorSchur{O<:BandedOperator}(L::Vector{O},n::Integer)
+function DiagonalOperatorSchur{O<:Operator}(L::Vector{O},n::Integer)
     Yop=promotespaces(L)    
     
     ##TODO: type
