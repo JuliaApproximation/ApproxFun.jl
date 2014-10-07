@@ -294,7 +294,7 @@ domain(P::PDEOperatorSchur,k::Integer)=k==1?domain(P.Lx):domain(P.S)
 
 # Represents an operator on e.g. a Disk
 type PDEProductOperatorSchur{ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
-    Bx::Vector{FT}
+    Bx::Vector{Vector{FT}}
     Rdiags::Vector{SavedBandedOperator{ST}}
     domainspace::AbstractProductSpace
 end
@@ -305,7 +305,6 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
     indsBx=find(isxfunctional,A)
     Bx=Functional[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[indsBx]]
     
-    @assert length(Bx)==1  #TODO: this is too restrictve
     
     indsBy=find(isyfunctional,A)
     @assert length(indsBy)==0
@@ -317,18 +316,25 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
     
     
     L=promotedomainspace(L,sp[2],2)
-    S=OperatorSchur([],L.ops[1,2],L.ops[2,2],nt)
+    S=OperatorSchur([],L.ops[:,2],nt)
     @assert(isa(S,DiagonalOperatorSchur))
     Lx=L.ops[1,1];Mx=L.ops[2,1]
     #TODO: Space Type
-    BxV=Array(SavedFunctional{Float64},nt)
+    BxV=Array(Vector{SavedFunctional{Float64}},nt)
     Rdiags=Array(SavedBandedOperator{Complex{Float64}},nt)    
     for k=1:nt
+        op=getdiagonal(S,k,1)*L.ops[1,1]
+        for j=2:size(L.ops,1)
+            op+=getdiagonal(S,k,j)*L.ops[j,1]         
+        end
+    
         csp=columnspace(sp,k)
-        Rdiags[k]=SavedBandedOperator(promotedomainspace(getdiagonal(S,k,1)*Lx+getdiagonal(S,k,2)*Mx,csp))
-        BxV[k]=SavedFunctional(promotedomainspace(Bx[1],csp))
+        Rdiags[k]=SavedBandedOperator(promotedomainspace(op,csp))
+        BxV[k]=SavedFunctional{Float64}[SavedFunctional(promotedomainspace(Bxx,csp)) for Bxx in Bx]
         resizedata!(Rdiags[k],2nt+100)
-        resizedata!(BxV[k],2nt+100)        
+        for Bxx in BxV[k]
+            resizedata!(Bxx,2nt+100)        
+        end
     end  
     PDEProductOperatorSchur(BxV,Rdiags,sp)
 end

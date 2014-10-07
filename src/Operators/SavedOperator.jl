@@ -20,6 +20,8 @@ function SavedFunctional{T<:Number}(op::Functional{T})
     SavedFunctional(op,data,0)
 end
 
+domainspace(F::SavedFunctional)=domainspace(F.op)
+
 
 function Base.getindex(B::SavedFunctional,k::Integer)
     resizedata!(B,k)

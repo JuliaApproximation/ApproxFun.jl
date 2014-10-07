@@ -108,8 +108,8 @@ domain(S::AbstractOperatorSchur)=domain(domainspace(S))
 
 
 type DiagonalOperatorSchur{MT<:Number} <:AbstractOperatorSchur{MT,MT}
-    R::Vector{MT}
-    T::Vector{MT}
+    ops::Vector{Vector{MT}}
+
     
     domainspace::FunctionSpace
     rangespace::FunctionSpace       
@@ -117,7 +117,10 @@ end
 
 function DiagonalOperatorSchur{T1<:Number,T2<:Number}(R::Vector{T1},T::Vector{T2},d,r)
     PT=promote_type(T1,T2)
-    DiagonalOperatorSchur(convert(Vector{PT},R),convert(Vector{PT},T),d,r)
+    A=Array(Vector{PT},2)
+    A[1]=convert(Vector{PT},R)
+    A[2]=convert(Vector{PT},T)
+    DiagonalOperatorSchur(A,d,r)
 end
 
 function DiagonalOperatorSchur(L::BandedOperator,M::BandedOperator,n::Integer)
@@ -125,10 +128,24 @@ function DiagonalOperatorSchur(L::BandedOperator,M::BandedOperator,n::Integer)
     DiagonalOperatorSchur(diag(Yop[1][1:n,1:n]),diag(Yop[2][1:n,1:n]),domainspace(Yop[1]),rangespace(Yop[2]))
 end
 
-Base.size(S::DiagonalOperatorSchur,k)=length(S.R)
+
+function DiagonalOperatorSchur{O<:BandedOperator}(L::Vector{O},n::Integer)
+    Yop=promotespaces(L)    
+    
+    ##TODO: type
+    
+    ops=Array(Vector{Complex{Float64}},length(Yop))
+    for k=1:length(L)
+        ops[k]=diag(Yop[k][1:n,1:n])
+    end
+    
+    DiagonalOperatorSchur(ops,domainspace(Yop[1]),rangespace(Yop[2]))
+end
+
+Base.size(S::DiagonalOperatorSchur,k)=length(S.ops[1])
 Base.size(S::DiagonalOperatorSchur)=size(S,1),size(S,2)
 
-getdiagonal(S::DiagonalOperatorSchur,k,j)=j==1?S.R[k]:S.T[k]
+getdiagonal(S::DiagonalOperatorSchur,k,j)=S.ops[j][k]
 
 numbcs(::DiagonalOperatorSchur)=0
 
@@ -177,6 +194,17 @@ function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::
         OperatorSchur(pdetoarray(B,L,M,n)...,findmindomainspace([L,M]),findmaxrangespace([L,M]))
     end
 end
+
+
+function OperatorSchur{FT<:Functional,O<:Operator}(B::Vector{FT},A::Vector{O},n::Integer)
+    if length(A)==2
+        OperatorSchur(B,A[1],A[2],n)
+    else
+        @assert isempty(B)
+        DiagonalOperatorSchur(A,n)
+    end
+end
+
 OperatorSchur(B,L::SparseMatrixCSC,M::SparseMatrixCSC,ds,rs)=OperatorSchur(B,full(L),full(M),ds,rs)
 function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
     B,Q,L,M,P=regularize_bcs(B,L,M)
