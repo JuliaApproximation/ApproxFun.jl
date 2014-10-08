@@ -242,6 +242,7 @@ for op in (:(Base.sin),:(Base.cos))
     @eval ($op)(f::ProductFun)=Fun(transform!(space(f),$op(values(pad(f,size(f,1)+20,size(f,2))))),space(f))
 end
 
+.^(f::ProductFun,k::Integer)=Fun(transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k),space(f))
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj)) 
 #    @eval ($op){S,V<:DomainSpace{Flaot64}}(f::ProductFun{S,V}) = ProductFun(map($op,f.coefficients),space(f,2))

@@ -4,9 +4,11 @@ immutable Disk <: BivariateDomain
     radius::Float64
     center::(Float64,Float64)
 end
-Disk()=Disk(0.,(0.,0.))
 
-#canonical is rectangle [1,0]x[-π,π]
+Disk(r)=Disk(r,(0.,0.))
+Disk()=Disk(1.)
+
+#canonical is rectangle [r,0]x[-π,π]
 # we assume radius and centre are zero for now
 fromcanonical(D::Disk,x,t)=x*cos(t),x*sin(t)
 tocanonical(D::Disk,x,y)=sqrt(x^2+y^2),atan2(y,x)
@@ -47,8 +49,8 @@ Space(D::Disk)=DiskSpace(D)
 
 
 
-columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.,Interval(1.,0.))))
-columnspace{SS}(D::DiskSpace{1,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+0.5,-0.5,Interval(1.,0.))))
+columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.,Interval(D.domain.radius,0.))))
+columnspace{SS}(D::DiskSpace{1,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+0.5,-0.5,Interval(D.domain.radius,0.))))
 
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
@@ -85,7 +87,7 @@ end
 
 function lap(S::DiskSpace)
     D=Derivative()
-    r=Fun(identity,[1.,0.])
+    r=Fun(identity,[S.domain.radius,0.])
     (D^2+(1./r)*D)⊗I+(1./r).^2⊗D^2
 end
 
