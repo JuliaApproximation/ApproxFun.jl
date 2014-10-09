@@ -3,7 +3,7 @@
 
 ## Vector of fun routines
 
-function coefficients{D,N}(f::Vector{Fun{D,N}},o...)
+function coefficients{N,F}(::Type{N},f::Vector{F},o...)
     n=mapreduce(length,max,f)
     m=length(f)
     R=zeros(N,n,m)
@@ -13,7 +13,7 @@ function coefficients{D,N}(f::Vector{Fun{D,N}},o...)
     R
 end
 
-
+coefficients{F<:Fun}(Q::Vector{F},o...)=coefficients(scalarorfuntype(Q),Q,o...)
 
 
 # function coefficients{T<:FFun}(B::Vector{T})

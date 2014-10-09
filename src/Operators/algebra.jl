@@ -116,7 +116,7 @@ end
 +(c::UniformScaling,A::Operator)=ConstantOperator(1.0c.λ)+A
 +(A::Operator,c::UniformScaling)=A+ConstantOperator(1.0c.λ)
 -(c::UniformScaling,A::Operator)=ConstantOperator(1.0c.λ)-A
--(A::Operator,c::UniformScaling)=A-ConstantOperator(1.0c.λ)
+-(A::Operator,c::UniformScaling)=A+ConstantOperator(-1.0c.λ)
 
 
 

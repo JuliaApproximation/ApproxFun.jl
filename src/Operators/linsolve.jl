@@ -88,14 +88,15 @@ function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Array{M,2};tolerance=0
                                                      #so assume user knows, this is correct for bc rows
                                  
                                  
-    Fun[Fun(ret[k:m:end,j],commondomain(A[:,k])) for k=1:m,j=1:size(b,2)]
+    [Fun(ret[k:m:end,j],commondomain(A[:,k])) for k=1:m,j=1:size(b,2)]
 end
  
 
-scalarorfuntype{T<:Number}(::Fun{T})=T
+scalarorfuntype{S,T<:Number}(::Fun{S,T})=T
 scalarorfuntype{T<:Number}(::T)=T
 scalarorfuntype{T<:Number}(b::Vector{T})=T
 scalarorfuntype(b::Vector{Any})=promote_type(map(scalarorfuntype,b)...)
+scalarorfuntype{F<:Fun}(b::Vector{F})=promote_type(map(scalarorfuntype,b)...)
  
 function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
     m,n=size(A)

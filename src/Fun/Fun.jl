@@ -155,9 +155,9 @@ end
 
 ## Norm
 
-import Base.norm
 
-norm(f::Fun)=real(sqrt(sum(f.*conj(f))))
+Base.dot(f::Fun,g::Fun)=sum(conj(f).*g)
+Base.norm(f::Fun)=real(sqrt(dot(f,f)))
 
 
 
