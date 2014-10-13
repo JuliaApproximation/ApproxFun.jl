@@ -1,8 +1,8 @@
 export setplotter
 
-
-plotter={:contour=>"PyPlot",
-    :plot=>"PyPlot",
+# these defaults are overloaded as packages are loaded
+plotter={:contour=>"Gadfly",
+    :plot=>"Gadfly",
     :surf=>"PyPlot"}
 
 
@@ -26,10 +26,7 @@ function setplotter(str)
     end
 end
 
-if isdir(Pkg.dir("Gadfly"))
-    include("Gadfly.jl")
-    setplotter("Gadfly")
-end
+
 if isdir(Pkg.dir("GLPlot"))
     include("GLPlot.jl")
     setplotter("GLPlot")    
@@ -37,6 +34,10 @@ end
 if isdir(Pkg.dir("PyPlot"))
     include("PyPlot.jl")
     setplotter("PyPlot")    
+end
+if isdir(Pkg.dir("Gadfly"))
+    include("Gadfly.jl")
+    setplotter("Gadfly")
 end
 
 
