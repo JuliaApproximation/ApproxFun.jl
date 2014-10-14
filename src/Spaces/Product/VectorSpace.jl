@@ -1,6 +1,8 @@
-immutable VectorSpace{d} <: FunctionSpace
-end
+## VectorSpace{T,S} encodes a space that is a Vector, with coefficients interlaced
 
-typealias ScalarSpace VectorSpace{1}
 
-=={d}(::VectorSpace{d},::VectorSpace{d})=true
+# immutable VectorSpace{S} <: FunctionSpace
+#     space::S
+#     length::Int
+# end
+
