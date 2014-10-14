@@ -54,22 +54,22 @@ end
 
 
 
-immutable DirectSumSpace{S<:FunctionSpace,T} <: DomainSpace{T}
+immutable PiecewiseSpace{S<:FunctionSpace,T} <: DomainSpace{T}
     spaces::Vector{S} 
 end
 
-DirectSumSpace{S,T}(::DomainSpace{T},spaces::Vector{S})=DirectSumSpace{S,T}(spaces)
-DirectSumSpace(spaces)=DirectSumSpace(first(spaces),spaces)
-Space(d::UnionDomain)=DirectSumSpace(map(Space,d.domains))
-domain(S::DirectSumSpace)=UnionDomain(map(domain,S.spaces))
-Base.length(S::DirectSumSpace)=S.spaces|>length
-Base.getindex(d::DirectSumSpace,k)=d.spaces[k]
+PiecewiseSpace{S,T}(::DomainSpace{T},spaces::Vector{S})=PiecewiseSpace{S,T}(spaces)
+PiecewiseSpace(spaces)=PiecewiseSpace(first(spaces),spaces)
+Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))
+domain(S::PiecewiseSpace)=UnionDomain(map(domain,S.spaces))
+Base.length(S::PiecewiseSpace)=S.spaces|>length
+Base.getindex(d::PiecewiseSpace,k)=d.spaces[k]
 
-Base.vec{S<:DomainSpace,V,T}(f::Fun{DirectSumSpace{S,V},T})=Fun{S,T}[Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j]) for j=1:length(f.space)]
+Base.vec{S<:DomainSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=Fun{S,T}[Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j]) for j=1:length(f.space)]
 
 
 
-function spacescompatible{S,T}(A::DirectSumSpace{S,T},B::DirectSumSpace{S,T})
+function spacescompatible{S,T}(A::PiecewiseSpace{S,T},B::PiecewiseSpace{S,T})
     if length(A) != length(B)
         false
     else
@@ -83,7 +83,7 @@ end
 
 
 
-function transform{T}(S::DirectSumSpace,vals::Vector{T})
+function transform{T}(S::PiecewiseSpace,vals::Vector{T})
     n=length(vals)
     K=length(S)
    k=div(n,K)
@@ -100,10 +100,10 @@ function transform{T}(S::DirectSumSpace,vals::Vector{T})
     vec(M.')
 end
 
-itransform(S::DirectSumSpace,cfs::Vector)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
+itransform(S::PiecewiseSpace,cfs::Vector)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
 
 
-function evaluate{S<:DirectSumSpace}(f::Fun{S},x::Number)
+function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
     d=domain(f)
     vf=vec(f)
     for k=1:length(d)
@@ -124,7 +124,7 @@ function devec{S,T}(v::Vector{Fun{S,T}})
     if mapreduce(space,isequal,v)
         Fun(vec(coefficients(v).'),VectorDomainSpace(space(first(v)),length(v)))
     else
-        Fun(vec(coefficients(v).'),DirectSumSpace(map(space,v)))
+        Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
     end
 end
 
@@ -132,13 +132,13 @@ end
 
 
 for op in (:differentiate,:integrate)
-    @eval $op{V<:Union(VectorDomainSpace,DirectSumSpace)}(f::Fun{V})=devec(map($op,vec(f)))
+    @eval $op{V<:Union(VectorDomainSpace,PiecewiseSpace)}(f::Fun{V})=devec(map($op,vec(f)))
 end
 
 Base.cumsum{V<:VectorDomainSpace}(f::Fun{V})=devec(map(cumsum,vec(f)))
 
 
-function Base.cumsum{V<:DirectSumSpace,T}(f::Fun{V,T})
+function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
     vf=vec(f)
     r=zero(T)
     for k=1:length(vf)
