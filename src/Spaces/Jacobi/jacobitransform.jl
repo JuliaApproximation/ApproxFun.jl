@@ -21,10 +21,11 @@ end
 transform(S::JacobiSpace,v::Vector)=transform(S,v,gaussjacobi(length(v),S.a,S.b))
 
 itransform(S::JacobiSpace,cfs::Vector,x::Vector)=jacobip(0:length(cfs)-1,S.a,S.b,tocanonical(S,x))*cfs
-itransform(S::JacobiSpace,cfs::Vector)=itransform(S,cfs,points(JacobiSpace(S.a,S.b),length(cfs)))
+itransform(S::JacobiSpace,cfs::Vector)=itransform(S,cfs,points(S,length(cfs)))
 
 
-evaluate(f::Fun{JacobiSpace},x)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x)),f.coefficients)
+evaluate(f::Fun{JacobiSpace},x::Number)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x)),f.coefficients)
+evaluate(f::Fun{JacobiSpace},x::Vector)=jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x))*f.coefficients
 
 
 ## JacobiWeightSpace

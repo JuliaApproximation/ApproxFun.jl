@@ -31,6 +31,7 @@ end
 
 DiskSpace{SS}(K::Integer,D::Disk,S::SS)=DiskSpace{K,SS}(D,S)
 DiskSpace{SS}(D::Disk,S::SS)=DiskSpace{1,SS}(D,S)
+DiskSpace(K::Integer,D::Disk)=DiskSpace(K,D,LaurentSpace())
 
 #TODO: Change to Fourier
 DiskSpace(D::Disk)=DiskSpace(D,LaurentSpace())

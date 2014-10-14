@@ -10,7 +10,7 @@ abstract PeriodicDomainSpace{T} <: DomainSpace{T}
 
 
 
-export FunctionSpace, ChebyshevSpace, domainspace, rangespace, maxspace, minspace
+export FunctionSpace, ChebyshevSpace, domainspace, rangespace, maxspace, minspace,Space
 
 
 immutable ConstantSpace <: FunctionSpace
