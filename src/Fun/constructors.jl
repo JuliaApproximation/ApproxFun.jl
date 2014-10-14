@@ -72,7 +72,7 @@ end
 
 function zerocfsFun(f::Function,d::DomainSpace)
     #TODO: reuse function values?
-    f0=f(fromcanonical(d,0.))
+    f0=f(first(domain(d)))
 
     if !isa(d,VectorDomainSpace) && isa(f0,Vector)       #TODO: is 0. going to always be in canonical?
         return zerocfsFun(f,VectorDomainSpace(d,length(f0)))
