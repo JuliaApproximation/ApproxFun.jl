@@ -25,10 +25,6 @@ Base.vec{S<:DomainSpace,V,T}(f::Fun{VectorDomainSpace{S,V},T})=Fun{S,T}[Fun(f.co
 
 evaluate{V<:VectorDomainSpace,T}(f::Fun{V,T},x)=evaluate(vec(f),x)
 
-for op in (:differentiate,:integrate,:(Base.cumsum))
-    @eval $op{V<:VectorDomainSpace}(f::Fun{V})=devec(map($op,vec(f)))
-end
-
 
 
 
@@ -67,8 +63,25 @@ DirectSumSpace(spaces)=DirectSumSpace(first(spaces),spaces)
 Space(d::UnionDomain)=DirectSumSpace(map(Space,d.domains))
 domain(S::DirectSumSpace)=UnionDomain(map(domain,S.spaces))
 Base.length(S::DirectSumSpace)=S.spaces|>length
+Base.getindex(d::DirectSumSpace,k)=d.spaces[k]
 
 Base.vec{S<:DomainSpace,V,T}(f::Fun{DirectSumSpace{S,V},T})=Fun{S,T}[Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j]) for j=1:length(f.space)]
+
+
+
+function spacescompatible{S,T}(A::DirectSumSpace{S,T},B::DirectSumSpace{S,T})
+    if length(A) != length(B)
+        false
+    else
+        ret=true
+        for k=1:length(A)
+            ret= ret && spacescompatible(A[k],B[k])
+        end
+        ret
+    end
+end
+
+
 
 function transform{T}(S::DirectSumSpace,vals::Vector{T})
     n=length(vals)
@@ -87,7 +100,7 @@ function transform{T}(S::DirectSumSpace,vals::Vector{T})
     vec(M.')
 end
 
-itransform(S::DirectSumSpace,cfs::Vector)=vcat([itransform(S.spaces[j],cfs[j:length(f.space):end]) for j=1:length(S)]...)
+itransform(S::DirectSumSpace,cfs::Vector)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
 
 
 function evaluate{S<:DirectSumSpace}(f::Fun{S},x::Number)
@@ -114,5 +127,27 @@ function devec{S,T}(v::Vector{Fun{S,T}})
         Fun(vec(coefficients(v).'),DirectSumSpace(map(space,v)))
     end
 end
+
+
+
+
+for op in (:differentiate,:integrate)
+    @eval $op{V<:Union(VectorDomainSpace,DirectSumSpace)}(f::Fun{V})=devec(map($op,vec(f)))
+end
+
+Base.cumsum{V<:VectorDomainSpace}(f::Fun{V})=devec(map(cumsum,vec(f)))
+
+
+function Base.cumsum{V<:DirectSumSpace,T}(f::Fun{V,T})
+    vf=vec(f)
+    r=zero(T)
+    for k=1:length(vf)
+        vf[k]=cumsum(vf[k]) + r
+        r=last(vf[k])
+    end
+    devec(vf)
+end
+
+
 
 

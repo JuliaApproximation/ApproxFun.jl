@@ -174,7 +174,7 @@ Base.abs2{S}(f::Fun{S,Complex{Float64}})=real(f).^2+imag(f).^2
 
 ##  integration
 
-function Base.cumsum(f::Fun)
+function Base.cumsum{S,T}(f::Fun{S,T})
     cf = integrate(f)
     cf - first(cf)
 end

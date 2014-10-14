@@ -36,8 +36,8 @@ Fun(c::Number,n::Integer)=Fun([c],n)
 
 ## List constructor
 
-Fun{T<:Domain}(c::Number,dl::Vector{T})=map(d->Fun(c,d),dl)
-Fun{T<:Domain}(f,dl::Vector{T})=map(d->Fun(f,d),dl)
+Fun{T<:Domain}(c::Number,dl::Vector{T})=Fun(c,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::Vector{T})=Fun(f,UnionDomain(dl))
 
 ## Adaptive constructors
 
