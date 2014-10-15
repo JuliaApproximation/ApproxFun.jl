@@ -103,28 +103,6 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
     end
 end
 
-##TODO: Do we need both max and min?
-function findmindomainspace(ops::Vector)
-    sp = AnySpace()
-    
-    for op in ops
-        sp = minspace(sp,domainspace(op))
-    end
-    
-    sp
-end
-
-function findmaxrangespace(ops::Vector)
-    sp = AnySpace()
-    
-    for op in ops
-        sp = maxspace(sp,rangespace(op))
-    end
-    
-    sp
-end
-
-
 
 
 
@@ -175,3 +153,16 @@ Base.zero{T<:Number}(::Type{T},S::FunctionSpace)=zeros(T,S)
 Base.zeros{T<:Number}(::Type{T},S::FunctionSpace)=Fun(zeros(T,1),S)
 Base.zeros(S::FunctionSpace)=Fun(zeros(1),S)
 
+
+
+
+## Finite dimensional spaces
+
+
+
+immutable VectorSpace{d} <: FunctionSpace
+end
+
+typealias ScalarSpace VectorSpace{1}
+
+=={d}(::VectorSpace{d},::VectorSpace{d})=true

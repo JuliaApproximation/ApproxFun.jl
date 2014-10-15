@@ -150,12 +150,12 @@ include("systems.jl")
 
 
 
-Base.zero{T<:Number}(::Type{Operator{T}})=ConstantOperator(zero(T))
-Base.zero{O<:Operator}(::Type{O})=ConstantOperator(0.0)
+Base.zero{T<:Number}(::Type{Operator{T}})=ZeroOperator(T)
+Base.zero{O<:Operator}(::Type{O})=ZeroOperator()
 
 
 # TODO: can convert return different type?
-Base.convert{T<:Operator}(A::Type{T},n::Number)=ConstantOperator(1.0*n)
+Base.convert{T<:Operator}(A::Type{T},n::Number)=n==0?ZeroOperator():ConstantOperator(1.0*n)
 
 
 ## Promotion

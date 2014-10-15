@@ -141,6 +141,18 @@ function isboundaryrow(A,k)
     return false
 end
 
+
+function promotespaces{T<:Operator}(A::Array{T,2})
+    A=copy(A)
+    for j=1:size(A,2)
+        A[:,j]=promotedomainspace(A[:,j])
+    end
+    for k=1:size(A,1)
+        A[k,:]=promoterangespace(vec(A[k,:]))
+    end
+    A
+end
+
 function interlace{T<:Operator}(A::Array{T,2})
     m,n=size(A)
 
