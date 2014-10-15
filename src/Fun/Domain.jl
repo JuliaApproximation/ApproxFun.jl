@@ -53,6 +53,9 @@ function Base.in(x,d::PeriodicDomain)
     isapprox(imag(y),0.) && -π-2eps()<=real(y)<=π+2eps()
 end
 
+
+Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
+
 ## conveninece routines
 
 Base.ones(d::Domain)=Fun(one,d)

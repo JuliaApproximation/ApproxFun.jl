@@ -91,18 +91,6 @@ u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
 
 
 
-## Matrix exponential
-
-n=4
-d=fill(Interval(0.,1.),n)
-B=Evaluation(d,0.)
-D=Derivative(d)
-A=rand(n,n)
-L=[B;D-A]
-u=L\eye(n)
-@test norm(evaluate(u,1.)-expm(A))<eps(1000.)
-
-
 
 ## Null space
 

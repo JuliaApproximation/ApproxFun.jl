@@ -23,7 +23,7 @@ function transform!{n}(S::VectorDomainSpace{n},M::Array)
     vec(M.')
 end
 
-Base.vec{S<:DomainSpace,V,T}(f::Fun{VectorDomainSpace{S,V},T})=Fun{S,T}[Fun(f.coefficients[j:length(f.space):end],f.space.space) for j=1:length(f.space)]
+Base.vec{n,S<:DomainSpace,V,T}(f::Fun{VectorDomainSpace{n,S,V},T})=Fun{S,T}[Fun(f.coefficients[j:n:end],f.space.space) for j=1:n]
 
 evaluate{V<:VectorDomainSpace,T}(f::Fun{V,T},x)=evaluate(vec(f),x)
 
@@ -153,6 +153,24 @@ function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
     devec(vf)
 end
 
+
+
+
+
+
+
+## conversion
+
+
+
+function spaceconversion{n}(f::Vector,a::VectorDomainSpace{n},b::VectorDomainSpace{n})
+    A=a.space;B=b.space
+    ret=copy(f)
+    for k=1:n
+        ret[k:n:end]=spaceconversion(ret[k:n:end],A,B)
+    end
+    ret
+end
 
 
 
