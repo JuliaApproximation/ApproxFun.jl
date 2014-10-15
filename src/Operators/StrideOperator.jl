@@ -129,6 +129,8 @@ Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range1)=[((k-op.rowindex)%o
 
 ##interlace block operators
 
+iszerooperator(::ZeroOperator)=true
+iszerooperator(::ZeroFunctional)=true
 iszerooperator(A::ConstantOperator)=A.c==0.
 iszerooperator(A)=false
 function isboundaryrow(A,k)
@@ -157,7 +159,29 @@ function spacescompatible{T<:Operator}(A::Matrix{T})
     true
 end
 
+spacescompatible{T<:Operator}(A::Vector{T})=spacescompatible(map(domainspace,A))
 
+function domainspace{T<:Operator}(A::Matrix{T})
+    @assert spacescompatible(A)
+    
+    spl=map(domainspace,vec(A[1,:]))
+    if spacescompatible(spl)
+        VectorDomainSpace(first(spl),length(spl))
+    else
+        PiecewiseSpace(spl)
+    end
+end
+
+function rangespace{T<:Operator}(A::Array{T})
+    @assert spacescompatible(A)
+    
+    spl=map(rangespace,A[:,1])
+    if spacescompatible(spl)
+        VectorDomainSpace(first(spl),length(spl))
+    else
+        PiecewiseSpace(spl)
+    end
+end
 
 function promotespaces{T<:Operator}(A::Array{T,2})
     A=copy(A)
@@ -172,6 +196,11 @@ end
 
 function interlace{T<:Operator}(A::Array{T,2})
     m,n=size(A)
+    
+    A=promotespaces(A)
+    
+    dsp=domainspace(A)
+
 
     br=m-n #num boundary rows
 
@@ -192,9 +221,13 @@ function interlace{T<:Operator}(A::Array{T,2})
             end
         end
     end
+    
+    for k=1:br
+        S[k]=promotedomainspace(S[k],dsp)
+    end
 
     for k=br+1:m
-        Ap=promotespaces(vec(A[k,:]))
+        Ap=vec(A[k,:])
         
         for j=1:n
             if !iszerooperator(A[k,j])  #not sure what promote does for constant operator
@@ -208,6 +241,10 @@ function interlace{T<:Operator}(A::Array{T,2})
             end            
         end
     end
+    
+    rsp=rangespace(A[br+1:end,1])    
+    
+    S[br+1]=SpaceOperator(S[br+1],dsp,rsp)
     
     if(size(S,1) ==1)
         S[1]
