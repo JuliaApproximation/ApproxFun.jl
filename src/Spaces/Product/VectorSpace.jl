@@ -1,20 +1,22 @@
 ## VectorSpace{T,S} encodes a space that is a Vector, with coefficients interlaced
 
 
-immutable VectorDomainSpace{S,T} <: DomainSpace{T}
-     space::S
-     length::Int
+immutable VectorDomainSpace{n,S,T} <: DomainSpace{T}
+     space::S     
+#      # for AnyDomain() usage
+    VectorDomainSpace(sp::S)=new(sp)
+    VectorDomainSpace(d::Domain)=new(S(d))
  end
 
-VectorDomainSpace{T}(S::DomainSpace{T},n)=VectorDomainSpace{typeof(S),T}(S,n)
-Base.length(S::VectorDomainSpace)=S.length
+VectorDomainSpace{T}(S::DomainSpace{T},n)=VectorDomainSpace{n,typeof(S),T}(S)
+Base.length{n}(::VectorDomainSpace{n})=n
 
 domain(S::VectorDomainSpace)=domain(S.space)
 transform(S::VectorDomainSpace,vals::Vector)=transform!(S,hcat(vals...).')
 
 
-function transform!(S::VectorDomainSpace,M::Array)
-    @assert size(M,2)==S.length
+function transform!{n}(S::VectorDomainSpace{n},M::Array)
+    @assert size(M,2)==n
     for k=1:size(M,2)
         M[:,k]=transform(S.space,M[:,k])
     end
@@ -25,6 +27,9 @@ Base.vec{S<:DomainSpace,V,T}(f::Fun{VectorDomainSpace{S,V},T})=Fun{S,T}[Fun(f.co
 
 evaluate{V<:VectorDomainSpace,T}(f::Fun{V,T},x)=evaluate(vec(f),x)
 
+
+# Base.ones{T<:Number,n}(::Type{T},S::VectorDomainSpace{n})=Fun(ones(T,n),S)
+# Base.ones{O}(S::UltrasphericalSpace{O})=Fun(ones(1),S)    
 
 
 
