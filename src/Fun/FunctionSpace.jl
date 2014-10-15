@@ -39,6 +39,19 @@ spacescompatible{D<:DomainSpace}(f::D,g::D)=domainscompatible(f,g)
 spacescompatible(f,g)=false
 ==(A::DomainSpace,B::DomainSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
 
+
+# check a list of spaces for compatibility
+function spacescompatible{T<:FunctionSpace}(v::Vector{T})
+    for k=1:length(v)-1 
+        if !spacescompatible(v[k],v[k+1])
+            return false
+        end
+    end
+    true
+end
+
+
+
 domain(A::DomainSpace)=A.domain # assume it has a field domain
 
 canonicaldomain{T<:IntervalDomainSpace}(::Type{T})=Interval()
@@ -166,3 +179,4 @@ end
 typealias ScalarSpace VectorSpace{1}
 
 =={d}(::VectorSpace{d},::VectorSpace{d})=true
+spacescompatible{d}(::VectorSpace{d},::VectorSpace{d})=true

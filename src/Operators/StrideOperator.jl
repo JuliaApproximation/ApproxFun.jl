@@ -142,6 +142,23 @@ function isboundaryrow(A,k)
 end
 
 
+
+function spacescompatible{T<:Operator}(A::Matrix{T})
+    for k=1:size(A,1)
+        if !spacescompatible(map(rangespace,vec(A[k,:])))
+            return false
+        end
+    end
+    for k=1:size(A,2)
+        if !spacescompatible(map(domainspace,A[:,k]))
+            return false
+        end
+    end
+    true
+end
+
+
+
 function promotespaces{T<:Operator}(A::Array{T,2})
     A=copy(A)
     for j=1:size(A,2)

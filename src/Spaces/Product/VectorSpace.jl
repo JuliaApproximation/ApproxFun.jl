@@ -54,7 +54,7 @@ end
 
 
 
-immutable PiecewiseSpace{S<:FunctionSpace,T} <: DomainSpace{T}
+immutable PiecewiseSpace{S<:DomainSpace,T} <: DomainSpace{T}
     spaces::Vector{S} 
 end
 
@@ -121,7 +121,7 @@ end
 
 
 function devec{S,T}(v::Vector{Fun{S,T}})
-    if mapreduce(space,isequal,v)
+    if spacescompatible(map(space,v))
         Fun(vec(coefficients(v).'),VectorDomainSpace(space(first(v)),length(v)))
     else
         Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
