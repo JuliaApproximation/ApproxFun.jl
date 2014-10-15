@@ -155,13 +155,19 @@ Base.zero{O<:Operator}(::Type{O})=ZeroOperator()
 
 
 # TODO: can convert return different type?
-Base.convert{T<:Operator}(A::Type{T},n::Number)=n==0?ZeroOperator():ConstantOperator(1.0*n)
+Base.convert{T<:Operator}(A::Type{T},n::Number)=n==0?ZeroOperator():ConstantOperator(n)
+Base.convert{T<:Operator}(A::Type{T},n::UniformScaling)=n.λ==0?ZeroOperator():ConstantOperator(n)
 
 
 ## Promotion
 
 for T in (:Float64,:Int64,:(Complex{Float64}))
     @eval Base.promote_rule{N<:Number,O<:Operator{$T}}(::Type{N},::Type{O})=Operator{promote_type(N,$T)}
+    @eval Base.promote_rule{N<:Number,O<:Operator{$T}}(::Type{UniformScaling{N}},::Type{O})=Operator{promote_type(N,$T)}    
 end
 
 Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O})=Operator
+Base.promote_rule{N<:UniformScaling,O<:Operator}(::Type{N},::Type{O})=Operator
+
+
+
