@@ -9,9 +9,6 @@ ConstantOperator(c::Number)=ConstantOperator(1.0c)
 ConstantOperator(L::UniformScaling)=ConstantOperator(L.λ)
 IdentityOperator()=ConstantOperator(1.0)
 
-domainspace(M::ConstantOperator)=AnySpace()
-rangespace(M::ConstantOperator)=AnySpace()
-
 bandinds(T::ConstantOperator)=0,0
 
 addentries!(C::ConstantOperator,A::ShiftArray,kr::Range1)=laurent_addentries!([.5C.c],A,kr)
@@ -36,3 +33,44 @@ end
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
 Base.getindex(op::BasisFunctional,k::Range1)=convert(Vector{Float64},k.==op.k)
 
+## Zero is a special operator: it makes sense on all spaces, and between all spaces
+
+type ZeroOperator{T,S,V} <: BandedOperator{T}
+    domainspace::S
+    rangespace::V
+end
+
+ZeroOperator{S,V}(d::S,v::V)=ZeroOperator{Float64,S,V}(d,v)
+ZeroOperator()=ZeroOperator(AnySpace(),AnySpace())
+
+domainspace(Z::ZeroOperator)=Z.domainspace
+rangespace(Z::ZeroOperator)=Z.rangespace
+
+bandinds(T::ZeroOperator)=0,0
+
+addentries!(C::ZeroOperator,A::ShiftArray,kr::Range1)=A
+
+promotedomainspace(Z::ZeroOperator,sp::AnySpace)=Z
+promoterangespace(Z::ZeroOperator,sp::AnySpace)=Z
+promotedomainspace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(sp,rangespace(Z))
+promoterangespace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(domainspace(Z),sp)
+promotedomainspace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(sp,rangespace(Z))
+promoterangespace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(domainspace(Z),sp)
+
+
+type ZeroFunctional{S} <: Functional{Float64}
+    domainspace::S
+end
+ZeroFunctional()=ZeroFunctional(AnySpace())
+
+domainspace(Z::ZeroFunctional)=Z.domainspace
+promotedomainspace(Z::ZeroFunctional,sp::FunctionSpace)=ZeroFunctional(sp)
+
+Base.getindex(op::BasisFunctional,k::Integer)=0.
+Base.getindex(op::BasisFunctional,k::Range1)=zeros(length(k))
+
+
+
+
+## Promotion: Zero operators are the only operators that also make sense as functionals
+promoterangespace(op::ZeroOperator,::ScalarSpace)=ZeroFunctional(domainspace(op))

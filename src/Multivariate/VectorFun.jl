@@ -13,6 +13,14 @@ function coefficients{N,F}(::Type{N},f::Vector{F},o...)
     R
 end
 
+
+scalarorfuntype{S,T<:Number}(::Fun{S,T})=T
+scalarorfuntype{T<:Number}(::T)=T
+scalarorfuntype{T<:Number}(b::Vector{T})=T
+scalarorfuntype(b::Vector{Any})=promote_type(map(scalarorfuntype,b)...)
+scalarorfuntype{F<:Fun}(b::Vector{F})=promote_type(map(scalarorfuntype,b)...)
+ 
+
 coefficients{F<:Fun}(Q::Vector{F},o...)=coefficients(scalarorfuntype(Q),Q,o...)
 
 

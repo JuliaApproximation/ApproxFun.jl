@@ -1,5 +1,8 @@
 
 
+## SumSpace{T,S,V} encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
+
+
 immutable PeriodicSumSpace{T<:Number,S<:PeriodicDomainSpace{T},V<:PeriodicDomainSpace{T}} <: PeriodicDomainSpace{T}
     spaces::(S,V)
 end
@@ -21,3 +24,7 @@ evaluate{D<:SumSpace,T}(f::Fun{D,T},x)=evaluate(Fun(f.coefficients[1:2:end],spac
 
 
 spacescompatible{S,T}(A::SumSpace{S,T},B::SumSpace{S,T})=spacescompatible(A.spaces[1],B.spaces[1]) && spacescompatible(A.spaces[2],B.spaces[2])
+
+
+
+

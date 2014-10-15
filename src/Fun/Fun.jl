@@ -23,7 +23,7 @@ coefficients(f::Fun)=f.coefficients
 ##Convert routines
 
 
-Base.convert{T<:Number,S<:DomainSpace}(::Type{Fun{S,T}},x::Number)=x*ones(T,S(AnyDomain()))
+Base.convert{T<:Number,S<:DomainSpace}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
 Base.convert{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},f::Fun{S,T})=Fun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
 Base.promote_rule{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},::Type{Fun{S,T}})=Fun{S,Complex{Float64}}
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=IF
@@ -35,6 +35,8 @@ for op in (:(Base.zeros),:(Base.ones))
     @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
 end
 
+
+coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 
 
 ## domain
@@ -174,7 +176,7 @@ Base.abs2{S}(f::Fun{S,Complex{Float64}})=real(f).^2+imag(f).^2
 
 ##  integration
 
-function Base.cumsum(f::Fun)
+function Base.cumsum{S,T}(f::Fun{S,T})
     cf = integrate(f)
     cf - first(cf)
 end

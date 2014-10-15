@@ -38,6 +38,31 @@ addentries!(S::SpaceOperator,A,kr)=addentries!(S.op,A,kr)
 bandinds(S::SpaceOperator)=bandinds(S.op)
 
 
+
+##TODO: Do we need both max and min?
+function findmindomainspace(ops::Vector)
+    sp = AnySpace()
+    
+    for op in ops
+        sp = minspace(sp,domainspace(op))
+    end
+    
+    sp
+end
+
+function findmaxrangespace(ops::Vector)
+    sp = AnySpace()
+    
+    for op in ops
+        sp = maxspace(sp,rangespace(op))
+    end
+    
+    sp
+end
+
+
+
+
 promotedomainspace(P::Functional,sp::FunctionSpace,::AnySpace)=SpaceFunctional(P,sp)
 
 for op in (:promoterangespace,:promotedomainspace)
@@ -51,7 +76,7 @@ promoterangespace(P::Operator,sp::FunctionSpace)=promoterangespace(P,sp,rangespa
 promotedomainspace(P::Operator,sp::FunctionSpace)=promotedomainspace(P,sp,domainspace(P))
         
         
-
+promoterangespace(P::Functional,::VectorSpace{1},::VectorSpace{1})=P # functionals always map to vector space
 promoterangespace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(Conversion(cursp,sp),P)
 promotedomainspace(P::Functional,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesFunctional(P,Conversion(sp,cursp))
 promotedomainspace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(P,Conversion(sp,cursp))

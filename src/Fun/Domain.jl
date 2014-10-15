@@ -33,6 +33,10 @@ bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 Base.first(d::IntervalDomain)=fromcanonical(d,-1.0)
 Base.last(d::IntervalDomain)=fromcanonical(d,1.0)
 
+function Base.in(x,d::IntervalDomain)
+    y=tocanonical(d,x)
+    isapprox(imag(y),0.) && -1.-2eps()<=real(y)<=1.+2eps()
+end
 
 ###### Periodic domains
 
@@ -44,6 +48,13 @@ points(d::PeriodicDomain,n::Integer) = fromcanonical(d, fourierpoints(n))
 fourierpoints(n::Integer)= 1.π*[-1.:2/n:1. - 2/n]
 
 
+function Base.in(x,d::PeriodicDomain)
+    y=tocanonical(d,x)
+    isapprox(imag(y),0.) && -π-2eps()<=real(y)<=π+2eps()
+end
+
+
+Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
 
 ## conveninece routines
 
