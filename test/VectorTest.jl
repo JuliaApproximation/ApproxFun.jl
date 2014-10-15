@@ -17,8 +17,42 @@ f=Fun(x->[exp(x),cos(x)],d)
 u=Ai\{0.,0.,f};
 u1=vec(u)[1];u2=vec(u)[2];
 f1=vec(f)[1];f2=vec(f)[2];
-@test norm(diff(u2)+u2-f2)<eps()
+
 @test norm(diff(u1)-u1+2.u2-f1)<eps()
+@test norm(diff(u2)+u2-f2)<eps()
+
+
+u=Ai\{0.,0.,f1,f2};
+u1=vec(u)[1];u2=vec(u)[2];
+
+@test norm(diff(u1)-u1+2.u2-f1)<eps()
+@test norm(diff(u2)+u2-f2)<eps()
+
+
+
+
+A=[B 0;
+   Bn 0;
+   0 B;
+   D^2-I 2.I;
+   0 D+I];
+Ai=interlace(A);
+
+u=Ai\{0.,0.,0.,f};
+
+u1=vec(u)[1];u2=vec(u)[2];
+f1=vec(f)[1];f2=vec(f)[2];
+
+@test norm(diff(u1,2)-u1+2.u2-f1)<eps()
+@test norm(diff(u2)+u2-f2)<eps()
+
+
+u=Ai\{0.,0.,0.,f1,f2};
+u1=vec(u)[1];u2=vec(u)[2];
+
+@test norm(diff(u1,2)-u1+2.u2-f1)<eps()
+@test norm(diff(u2)+u2-f2)<eps()
+
 
 
 

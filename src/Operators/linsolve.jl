@@ -35,19 +35,15 @@ commondomainspace(P::Vector,g)=commondomainspace([P,g])
 Fun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,Fun)? coefficients(f,sp) :  f,b)...)
 
 
-function Fun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
-    A=promotedomainspace(A)
-    #TODO: Use information from b to promote range space if necessary
-    u=adaptiveqr(A,Fun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
-    
-    Fun(u,commondomainspace(A,b))
-end
+# function Fun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
+# 
+# end
 
-function Fun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)
-    u=adaptiveqr(A,b,tolerance,maxlength)  ##TODO: depends on ordering of A
-    d=commondomain(A)
-    Fun[Fun(u[:,k],d) for k=1:size(u,2)]
-end
+# function Fun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)
+#     u=adaptiveqr(A,b,tolerance,maxlength)  ##TODO: depends on ordering of A
+#     d=commondomain(A)
+#     Fun[Fun(u[:,k],d) for k=1:size(u,2)]
+# end
 
 
 
@@ -59,14 +55,35 @@ end
 #     FFun(deinterlace(u),commondomain(A,b))    
 # end
 
-function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxlength=1000000)
-    d=commondomain(A,b)
 
-    if typeof(d) <: Domain
-        Fun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
-    else
-        adaptiveqr(A,b,tolerance,maxlength)
+#TODO: return correct type?
+linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps(),maxlength=1000000)=adaptiveqr(promotedomainspace(A),b,tolerance,maxlength)
+
+function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxlength=1000000)
+    A=promotedomainspace(A)
+    
+    for k=1:length(A)-1
+        @assert isa(A[k],Functional)
+    end
+    
+    for k=1:min(length(A)-1,length(b))
+        @assert isa(b[k],Number)
     end    
+    
+    #TODO: Use information from b to promote range space if necessary
+    if length(b)<size(A,1)
+        # the ... converts b to a tuple of numbers so that r is a number Vec    
+        r=[b...]
+    elseif length(b)==size(A,1)
+        r=[b[1:end-1]...,coefficients(b[end],rangespace(A[end]))]
+    else 
+        # we have list of possible funs, devec
+        r=[b[1:size(A,1)-1]...,coefficients(devec(b[size(A,1):end]),rangespace(A[end]))]
+    end
+    
+    u=adaptiveqr(A,r,tolerance,maxlength)  ##TODO: depends on ordering of A
+    
+    Fun(u,commondomainspace(A,b))
 end
 
 

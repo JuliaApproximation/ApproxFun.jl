@@ -133,8 +133,7 @@ function devec{S,T}(v::Vector{Fun{S,T}})
     end
 end
 
-
-
+devec(v::Vector{Any})=devec([v...])
 
 for op in (:differentiate,:integrate)
     @eval $op{V<:Union(VectorDomainSpace,PiecewiseSpace)}(f::Fun{V})=devec(map($op,vec(f)))
@@ -168,6 +167,16 @@ function spaceconversion{n}(f::Vector,a::VectorDomainSpace{n},b::VectorDomainSpa
     ret=copy(f)
     for k=1:n
         ret[k:n:end]=spaceconversion(ret[k:n:end],A,B)
+    end
+    ret
+end
+
+function spaceconversion{n}(f::Vector,a::VectorDomainSpace{n},b::PiecewiseSpace)
+    A=a.space
+    @assert n==length(b.spaces)
+    ret=copy(f)
+    for k=1:n
+        ret[k:n:end]=spaceconversion(ret[k:n:end],A,b.spaces[k])
     end
     ret
 end
