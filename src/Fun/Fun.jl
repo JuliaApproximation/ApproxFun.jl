@@ -36,6 +36,8 @@ for op in (:(Base.zeros),:(Base.ones))
 end
 
 
+coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
+
 
 ## domain
 

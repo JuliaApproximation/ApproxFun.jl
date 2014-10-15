@@ -56,10 +56,14 @@ Fun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,Fun)? coefficients(f,sp) :  f,
 # end
 
 
-#TODO: return correct type?
-linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps(),maxlength=1000000)=adaptiveqr(promotedomainspace(A),b,tolerance,maxlength)
+function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps(),maxlength=1000000)
+    Ad=promotedomainspace(A)
+    ds=commondomainspace(Ad)
+    r=adaptiveqr(Ad,b,tolerance,maxlength)
+    isa(ds,AnySpace)?r:Fun(r,ds)
+end
 
-function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxlength=1000000)
+function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(),maxlength=1000000)
     @assert size(b,2)==1  #TODO: reimplemnt
     A=promotedomainspace(A)
     
@@ -79,6 +83,7 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxleng
         r=[b[1:end-1]...,coefficients(b[end],rangespace(A[end]))]
     else 
         # we have list of possible funs, devec
+        #TODO: constants
         r=[b[1:size(A,1)-1]...,coefficients(devec(b[size(A,1):end]),rangespace(A[end]))]
     end
     
@@ -87,7 +92,22 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxleng
     Fun(u,commondomainspace(A,b))
 end
 
- 
+function linsolve{T<:Operator,F<:Fun}(A::Vector{T},b::Array{F};kwds...)
+    r=Array(Any,size(b))
+    
+    # convert constant funs to constants
+    # this undoes the effect of [0.,f]
+    for k=1:size(A,1)-1,j=1:size(b,2)
+        # we only allow constants
+        @assert length(b[k,j])==1
+        #TODO: 1,1 entry may not be zero
+        r[k,j]=b[k,j].coefficients[1]
+    end
+    
+    r[size(A,1):end,:]=b[size(A,1):end,:]
+    
+    linsolve(A,r;kwds...)
+end
 
  
 linsolve{T<:Operator}(A::Array{T,2},b;kwds...)=linsolve(interlace(A),b;kwds...)
