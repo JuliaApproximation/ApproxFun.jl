@@ -183,3 +183,20 @@ end
 
 
 
+
+## constructor
+
+# columns are coefficients
+Fun{T<:Number}(M::Array{T,2},sp::FunctionSpace)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
+
+
+#There's no MatrixDomainSpace Yet
+function Fun{T<:Number,n,S,Q}(M::Array{T,2},sp::VectorDomainSpace{n,S,Q})
+    ret=Array(Fun{S,promote_type(Q,T)},n,size(M,2))
+    for k=1:size(M,2)
+        ret[:,k]=vec(Fun(M[:,k],sp))
+    end
+    ret
+end
+
+
