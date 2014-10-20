@@ -6,14 +6,8 @@ function Fun(f::Function,d::DomainSpace,n::Integer)
     f1=f(pts[1])
     T=typeof(f1)
         
-    if T <: Vector
-        Fun{typeof(d),typeof(f1[1])}[Fun(x->f(x)[k],d,n) for k=1:length(f1)]
-    elseif T <: Array
-        Fun{typeof(d),typeof(f1[1,1])}[Fun(x->f(x)[k,j],d,n) for k=1:size(f1,1),j=1:size(f1,2)]    
-    else
-        vals=T[f(x) for x in pts]
-        Fun(transform(d,vals),d)
-    end
+    vals=T[f(x) for x in pts]
+    Fun(transform(d,vals),d)
 end
 
 # the following is to avoid ambiguity
@@ -42,8 +36,8 @@ Fun(c::Number,n::Integer)=Fun([c],n)
 
 ## List constructor
 
-Fun{T<:Domain}(c::Number,dl::Vector{T})=map(d->Fun(c,d),dl)
-Fun{T<:Domain}(f,dl::Vector{T})=map(d->Fun(f,d),dl)
+Fun{T<:Domain}(c::Number,dl::Vector{T})=Fun(c,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::Vector{T})=Fun(f,UnionDomain(dl))
 
 ## Adaptive constructors
 
@@ -56,31 +50,32 @@ function randomFun(f::Function,d::IntervalDomain)
 end
 
 
-function veczerocfsFun(f::Function,d::IntervalDomain)
-    #reuse function values
-
-    tol = 200*eps()
-
-    for logn = 4:20
-        cf = Fun(f, d, 2^logn + 1)
-        cfs=coefficients(cf)  ##TODO: general domain
-        
-        if norm(cfs[:,end-8:end],Inf) < tol*norm(cfs[:,1:8],Inf)
-            nrm=norm(cfs,Inf)
-            return map!(g->chop!(g,10eps()*nrm),cf)
-        end
-    end
-    
-    warn("Maximum length reached")
-    
-    Fun(f,d,2^21 + 1)
-end
+# function veczerocfsFun(f::Function,d::IntervalDomain)
+#     #reuse function values
+# 
+#     tol = 200*eps()
+# 
+#     for logn = 4:20
+#         cf = Fun(f, d, 2^logn + 1)
+#         cfs=coefficients(cf)  ##TODO: general domain
+#         
+#         if norm(cfs[:,end-8:end],Inf) < tol*norm(cfs[:,1:8],Inf)
+#             nrm=norm(cfs,Inf)
+#             return map!(g->chop!(g,10eps()*nrm),cf)
+#         end
+#     end
+#     
+#     warn("Maximum length reached")
+#     
+#     Fun(f,d,2^21 + 1)
+# end
 
 function zerocfsFun(f::Function,d::DomainSpace)
-    #reuse function values
+    #TODO: reuse function values?
+    f0=f(first(domain(d)))
 
-    if isa(f(fromcanonical(d,0.)),Vector)       #TODO: is 0. going to always be in canonical?
-        return veczerocfsFun(f,domain(d))
+    if !isa(d,VectorDomainSpace) && isa(f0,Vector)       #TODO: is 0. going to always be in canonical?
+        return zerocfsFun(f,VectorDomainSpace(d,length(f0)))
     end
 
     tol = 200*eps()
@@ -88,7 +83,9 @@ function zerocfsFun(f::Function,d::DomainSpace)
     for logn = 4:20
         cf = Fun(f, d, 2^logn + 1)
         
-        if maximum(abs(cf.coefficients[end-8:end])) < tol*maximum(abs(cf.coefficients[1:8]))
+        
+        # we allow for transformed coefficients being a different size
+        if length(cf) > 8 && maximum(abs(cf.coefficients[end-8:end])) < tol*maximum(abs(cf.coefficients[1:8]))
             return chop!(cf,10eps()*maximum(abs(cf.coefficients)))
         end
     end

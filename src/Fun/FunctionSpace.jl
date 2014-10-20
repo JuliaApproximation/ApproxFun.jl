@@ -10,7 +10,7 @@ abstract PeriodicDomainSpace{T} <: DomainSpace{T}
 
 
 
-export FunctionSpace, ChebyshevSpace, domainspace, rangespace, maxspace, minspace
+export FunctionSpace, ChebyshevSpace, domainspace, rangespace, maxspace, minspace,Space
 
 
 immutable ConstantSpace <: FunctionSpace
@@ -38,6 +38,19 @@ domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() ||
 spacescompatible{D<:DomainSpace}(f::D,g::D)=domainscompatible(f,g) 
 spacescompatible(f,g)=false
 ==(A::DomainSpace,B::DomainSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
+
+
+# check a list of spaces for compatibility
+function spacescompatible{T<:FunctionSpace}(v::Vector{T})
+    for k=1:length(v)-1 
+        if !spacescompatible(v[k],v[k+1])
+            return false
+        end
+    end
+    true
+end
+
+
 
 domain(A::DomainSpace)=A.domain # assume it has a field domain
 
@@ -103,28 +116,6 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
     end
 end
 
-##TODO: Do we need both max and min?
-function findmindomainspace(ops::Vector)
-    sp = AnySpace()
-    
-    for op in ops
-        sp = minspace(sp,domainspace(op))
-    end
-    
-    sp
-end
-
-function findmaxrangespace(ops::Vector)
-    sp = AnySpace()
-    
-    for op in ops
-        sp = maxspace(sp,rangespace(op))
-    end
-    
-    sp
-end
-
-
 
 
 
@@ -171,3 +162,21 @@ end
 
 ## TODO: remove zeros
 Base.zero(S::FunctionSpace)=zeros(S)  
+Base.zero{T<:Number}(::Type{T},S::FunctionSpace)=zeros(T,S)
+Base.zeros{T<:Number}(::Type{T},S::FunctionSpace)=Fun(zeros(T,1),S)
+Base.zeros(S::FunctionSpace)=Fun(zeros(1),S)
+
+
+
+
+## Finite dimensional spaces
+
+
+
+immutable VectorSpace{d} <: FunctionSpace
+end
+
+typealias ScalarSpace VectorSpace{1}
+
+=={d}(::VectorSpace{d},::VectorSpace{d})=true
+spacescompatible{d}(::VectorSpace{d},::VectorSpace{d})=true

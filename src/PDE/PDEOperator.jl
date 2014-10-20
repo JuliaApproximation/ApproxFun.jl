@@ -50,14 +50,12 @@ Base.transpose(LL::PDEOperator)=PDEOperator(LL.ops[:,end:-1:1])
 
 
 function promotedomainspace(P::PDEOperator,S::FunctionSpace,col::Integer)
-    if col==1
-        PDEOperator([promotedomainspace(P.ops[1,1],S) P.ops[1,2];
-                     promotedomainspace(P.ops[2,1],S) P.ops[2,2]])    
-    else
-        @assert col==2
-        PDEOperator([P.ops[1,1] promotedomainspace(P.ops[1,2],S);
-                     P.ops[2,1] promotedomainspace(P.ops[2,2],S)])        
+    ret=copy(P.ops)
+    for k=1:size(P.ops,1)
+        ret[k,col]=promotedomainspace(ret[k,col],S)
     end
+    
+    PDEOperator(ret)
 end
 promotedomainspace(P::PDEOperator,S::TensorSpace)=promotedomainspace(promotedomainspace(P,S[1],1),S[2],2)
 
@@ -128,10 +126,23 @@ end
 *(A::PDEOperator,c::Number)=c*A
 function *(A::PDEOperator,B::PDEOperator)
     # TODO: higher rank operators
-    @assert size(A.ops,1)==size(B.ops,1)==1
-    @assert size(A.ops,2)==size(B.ops,2)==2
-    PDEOperator([A.ops[1,1]*B.ops[1,1] A.ops[1,2]*B.ops[1,2]])
+    if size(A.ops,1)==size(B.ops,1)==1
+        @assert size(A.ops,2)==size(B.ops,2)==2
+        PDEOperator([A.ops[1,1]*B.ops[1,1] A.ops[1,2]*B.ops[1,2]])
+    else
+        @assert A==B
+        @assert size(A.ops,1)==size(B.ops,1)==2
+        @assert size(A.ops,2)==size(B.ops,2)==2 
+        
+        PDEOperator([A.ops[1,1]^2 A.ops[1,2]^2;
+                     A.ops[1,1]*A.ops[2,1] A.ops[1,2]*A.ops[2,2];
+                     A.ops[2,1]*A.ops[1,1] A.ops[2,2]*A.ops[1,2];                     
+                     A.ops[2,1]^2 A.ops[2,2]^2
+                    ])                       
+    end
 end
+
+
 
 ##TODO how to determine whether x or y?
 function *(a::Fun,A::PDEOperator)
@@ -186,6 +197,28 @@ function *{S,T}(L::PDEOperator,f::LowRankFun{S,T})
     
     LowRankFun(A,B)
 end
+
+function tensormult(A::BandedOperator,B::BandedOperator,F::ProductFun)
+    ##TODO: general bands?
+    B=promotedomainspace(B,space(F,2))
+    @assert bandinds(B)==(0,0)
+    @assert rangespace(B)==domainspace(B)
+    ret=copy(F.coefficients)
+    for k=1:length(ret)
+        ret[k]=B[k,k]*A*ret[k]
+    end
+    ProductFun(ret,space(F))
+end
+
+
+function *(A::PDEOperator,F::ProductFun)
+    ret=tensormult(A.ops[1,1],A.ops[1,2],F)
+    for k=2:size(A.ops,1)
+        ret+=tensormult(A.ops[k,1],A.ops[k,2],F)
+    end
+    ret
+end
+
 
 
 
@@ -244,7 +277,8 @@ ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
 
 
 bcinds(S::PDEOperatorSchur,k)=k==1?S.indsBx:S.indsBy
-
+numbcs(S::AbstractPDEOperatorSchur,k)=length(bcinds(S,k))
+Base.length(S::PDEOperatorSchur)=size(S.S,1)
 
 
 
@@ -280,17 +314,20 @@ domain(P::PDEOperatorSchur,k::Integer)=k==1?domain(P.Lx):domain(P.S)
 
 ## Product
 
+# Represents an operator on e.g. a Disk
 type PDEProductOperatorSchur{ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
-    Bx::Vector{FT}
+    Bx::Vector{Vector{FT}}
     Rdiags::Vector{SavedBandedOperator{ST}}
     domainspace::AbstractProductSpace
+    indsBx::Vector{Int}
 end
+
+Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
 
 function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProductSpace,nt::Integer)
     indsBx=find(isxfunctional,A)
     Bx=Functional[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[indsBx]]
     
-    @assert length(Bx)==1  #TODO: this is too restrictve
     
     indsBy=find(isyfunctional,A)
     @assert length(indsBy)==0
@@ -302,25 +339,32 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
     
     
     L=promotedomainspace(L,sp[2],2)
-    S=OperatorSchur([],L.ops[1,2],L.ops[2,2],nt)
+    S=OperatorSchur([],L.ops[:,2],nt)
     @assert(isa(S,DiagonalOperatorSchur))
-    Lx=L.ops[1,1];Mx=L.ops[2,1]
+
     #TODO: Space Type
-    BxV=Array(SavedFunctional{Float64},nt)
+    BxV=Array(Vector{SavedFunctional{Float64}},nt)
     Rdiags=Array(SavedBandedOperator{Complex{Float64}},nt)    
     for k=1:nt
+        op=getdiagonal(S,k,1)*L.ops[1,1]
+        for j=2:size(L.ops,1)
+            op+=getdiagonal(S,k,j)*L.ops[j,1]         
+        end
+    
         csp=columnspace(sp,k)
-        Rdiags[k]=SavedBandedOperator(promotedomainspace(getdiagonal(S,k,1)*Lx+getdiagonal(S,k,2)*Mx,csp))
-        BxV[k]=SavedFunctional(promotedomainspace(Bx[1],csp))
+        Rdiags[k]=SavedBandedOperator(promotedomainspace(op,csp))
+        BxV[k]=SavedFunctional{Float64}[SavedFunctional(promotedomainspace(Bxx,csp)) for Bxx in Bx]
         resizedata!(Rdiags[k],2nt+100)
-        resizedata!(BxV[k],2nt+100)        
+        for Bxx in BxV[k]
+            resizedata!(Bxx,2nt+100)        
+        end
     end  
-    PDEProductOperatorSchur(BxV,Rdiags,sp)
+    PDEProductOperatorSchur(BxV,Rdiags,sp,indsBx)
 end
 
 
 ##TODO: Larger Bx
-bcinds(S::PDEProductOperatorSchur,k)=k==1?[1]:[]
+bcinds(S::PDEProductOperatorSchur,k)=k==1?S.indsBx:[]
 domainspace(S::PDEProductOperatorSchur)=S.domainspace
 domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
 
@@ -332,10 +376,7 @@ domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
 # end
 
 
-## Constructuor
 
-Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
-Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
 
 
 
@@ -363,5 +404,22 @@ function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
     ret    
 end
 
+
+
+## Constructuor
+
+Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
+Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
+Base.schurfact{T<:PDEOperator}(A::Vector{T},S::AbstractProductSpace,n::Integer)=PDEProductOperatorSchur(A,S,n)
+
+
+
+function *(A::PDEProductOperatorSchur,F::ProductFun)
+    ret=copy(F.coefficients)
+    for k=1:length(ret)
+        ret[k]=A.Rdiags[k]*ret[k]
+    end
+    ProductFun(ret,space(F))
+end
 
 

@@ -96,9 +96,7 @@ itransform(::LaurentSpace,cfs)=isvfft(deinterlace(cfs))
 ## Ones and zeros
 
 
-for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op){T<:Number}(::Type{T},S::LaurentSpace)=Fun(($op)(T,1),S)
-end
+Base.ones{T<:Number}(::Type{T},S::LaurentSpace)=Fun(ones(T,1),S)
 
 
 ## Fourier space
@@ -109,10 +107,10 @@ FourierSpace()=FourierSpace(PeriodicInterval())
 
 
 #domain(S) may be any domain
-for op in (:(Base.ones),:(Base.zeros)), sp in (:FourierSpace,:LaurentSpace,:(HardySpace{true}),:CosSpace)
+for sp in (:FourierSpace,:LaurentSpace,:(HardySpace{true}),:CosSpace)
     @eval begin
-        $op{T<:Number}(::Type{T},S::$sp)=Fun($op(T,1),S)
-        $op(S::$sp)=Fun(($op)(1),S)        
+        Base.ones{T<:Number}(::Type{T},S::$sp)=Fun(ones(T,1),S)
+        Base.ones(S::$sp)=Fun(ones(1),S)        
     end
 end
 

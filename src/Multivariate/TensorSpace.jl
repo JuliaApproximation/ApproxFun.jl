@@ -6,7 +6,6 @@ abstract BivariateDomain <: MultivariateDomain
 
 
 
-
 immutable ProductDomain{D<:Domain} <:BivariateDomain
     domains::Vector{D} 
 end
@@ -61,4 +60,86 @@ space(d::AbstractProductSpace,k::Integer)=d[k]
 for TT in (:ProductDomain,:TensorSpace)
     @eval Base.transpose(d::$TT)=$TT(d[2],d[1])
 end
+
+
+
+##Transforms
+
+function itransform!(S::TensorSpace,M::Matrix)
+    n=size(M,1)
+    for k=1:size(M,2)
+        M[:,k]=itransform(space(S,1),M[:,k])
+    end
+
+    for k=1:n
+        M[k,:]=itransform(space(S,2),vec(M[k,:]))
+    end 
+    M      
+end
+
+function itransform!(S::AbstractProductSpace,M::Matrix)
+    n=size(M,1)
+    
+    ## The order matters
+    pln=plan_itransform(columnspace(S,1),n)
+    for k=1:size(M,2)
+        M[:,k]=itransform(columnspace(S,k),M[:,k],pln)
+    end
+
+    for k=1:n
+        M[k,:]=itransform(space(S,2),vec(M[k,:]))
+    end 
+    M      
+end
+
+function transform!(S::TensorSpace,M::Matrix)
+    n=size(M,1)
+
+    for k=1:size(M,2)
+        M[:,k]=transform(space(S,1),M[:,k])
+    end
+
+    for k=1:n
+        M[k,:]=transform(space(S,2),vec(M[k,:]))
+    end 
+    M      
+end
+
+function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
+    n=size(M,1)
+    
+    ## The order matters!!
+    # For Disk Space, this is due to requiring decay
+    # in function
+    for k=1:n
+        M[k,:]=transform(space(S,2),vec(M[k,:]))
+    end     
+    
+    pln=plan_transform(columnspace(S,1),n)
+    for k=1:size(M,2)
+        # col may not be full length
+        col=transform(columnspace(S,k),M[:,k],pln)
+        M[1:length(col),k]=col
+        for j=length(col)+1:n
+            M[j,k]=zero(T) # fill rest with zeros
+        end
+    end
+    
+
+    M      
+end
+
+
+
+## points
+
+points(d::Union(BivariateDomain,BivariateFunctionSpace),n,m)=points(d,n,m,1),points(d,n,m,2)
+
+function points(d::BivariateFunctionSpace,n,m,k)
+    ptsx=points(columnspace(d,1),n)
+    ptst=points(space(d,2),m)
+    
+    Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
+end
+
 

@@ -1,8 +1,8 @@
 export setplotter
 
-
-plotter={:contour=>"PyPlot",
-    :plot=>"PyPlot",
+# these defaults are overloaded as packages are loaded
+plotter={:contour=>"Gadfly",
+    :plot=>"Gadfly",
     :surf=>"PyPlot"}
 
 
@@ -26,10 +26,7 @@ function setplotter(str)
     end
 end
 
-if isdir(Pkg.dir("Gadfly"))
-    include("Gadfly.jl")
-    setplotter("Gadfly")
-end
+
 if isdir(Pkg.dir("GLPlot"))
     include("GLPlot.jl")
     setplotter("GLPlot")    
@@ -37,6 +34,10 @@ end
 if isdir(Pkg.dir("PyPlot"))
     include("PyPlot.jl")
     setplotter("PyPlot")    
+end
+if isdir(Pkg.dir("Gadfly"))
+    include("Gadfly.jl")
+    setplotter("Gadfly")
 end
 
 
@@ -146,7 +147,7 @@ end
 function contour(f::MultivariateFun;opts...)
     f=chop(f,10e-10)
     #TODO: pad f
-    contour(points(f,1),points(f,2),values(f);opts...)
+    contour(points(f,1),points(f,2),real(values(f));opts...)
 end
 
 
@@ -158,22 +159,29 @@ function plot(xx::Range,yy::Range,f::MultivariateFun)
     vals      = evaluate(f,xx,yy)
     vals=[vals[:,1] vals vals[:,end]];
     vals=[vals[1,:]; vals; vals[end,:]]    
-    surf(vals)    
+    surf(real(vals))    
 end
 
 function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
     vals      = evaluate(f,xx,yy)
     vals=[vals[:,1] vals vals[:,end]];
     vals=[vals[1,:]; vals; vals[end,:]]    
-    surf(vals,obj,window)    
+    surf(real(vals),obj,window)    
 end
+
+
+plot(f::MultivariateFun)=surf(points(f,1),points(f,2),real(values(f)))
+plot(f::MultivariateFun,obj,window)=surf(real(values(f)),obj,window)
+
+
 
 function plot{S<:IntervalDomainSpace,V<:PeriodicDomainSpace}(f::AbstractProductFun{S,V})
     Px,Py=points(f)
-    vals=values(f)
+    vals=real(values(f))
     surf([Px Px[:,1]], [Py Py[:,1]], [vals vals[:,1]])
 end
+function plot{S<:IntervalDomainSpace,V<:PeriodicDomainSpace}(f::AbstractProductFun{S,V},obj,window)
+    vals=real(values(f))
+    surf([vals vals[:,1]],obj,window)
+end
 
-plot(f::MultivariateFun)=surf(points(f,1),points(f,2),values(f))
-
-plot(f::MultivariateFun,obj,window)=surf(values(f),obj,window)

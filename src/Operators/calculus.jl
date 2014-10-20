@@ -1,12 +1,20 @@
 export Derivative,Integral
 
+abstract AbstractDerivative{T} <: BandedOperator{T}
+abstract AbstractIntegral{T} <: BandedOperator{T}
+
+immutable Derivative{S<:FunctionSpace,T<:Number} <: AbstractDerivative{T}
+    space::S        # the domain space
+    order::Int
+end
+
+immutable Integral{S<:FunctionSpace,T<:Number} <: AbstractIntegral{T}
+    space::S        # the domain space
+    order::Int
+end
 
 for TT in (:Derivative,:Integral)
     @eval begin
-        immutable $TT{S<:FunctionSpace,T<:Number} <: BandedOperator{T}
-            space::S        # the domain space
-            order::Int
-        end
         $TT{S<:PeriodicDomainSpace}(sp::S,k::Integer)=$TT{S,Complex{Float64}}(sp,k)
         $TT{S<:FunctionSpace}(sp::S,k::Integer)=$TT{S,Float64}(sp,k)
         
@@ -50,9 +58,9 @@ Integral(d::IntervalDomain,n::Integer)=Integral(UltrasphericalSpace{1}(d),n)
 
 #promoting domain space is allowed to change range space
 # for integration, we fall back on existing conversion for now
-promotedomainspace(D::Derivative,sp::AnySpace)=D
+promotedomainspace(D::AbstractDerivative,sp::AnySpace)=D
 
-function promotedomainspace{S<:FunctionSpace}(D::Derivative,sp::S)
+function promotedomainspace{S<:FunctionSpace}(D::AbstractDerivative,sp::S)
     if domain(sp) == AnyDomain()
          Derivative(S(domain(D)),D.order)
     else
@@ -62,10 +70,10 @@ end
 
 
 ## simplify higher order derivatives/integration
-function *(D1::Derivative,D2::Derivative)
+function *(D1::AbstractDerivative,D2::AbstractDerivative)
     @assert domain(D1) == domain(D2)
     
-    Derivative(D2.space,D1.order+D2.order)
+    Derivative(domainspace(D2),D1.order+D2.order)
 end
 
 

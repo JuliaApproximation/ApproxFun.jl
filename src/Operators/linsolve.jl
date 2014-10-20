@@ -35,19 +35,15 @@ commondomainspace(P::Vector,g)=commondomainspace([P,g])
 Fun_coefficients(b::Vector,sp)=vcat(map(f-> isa(f,Fun)? coefficients(f,sp) :  f,b)...)
 
 
-function Fun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
-    A=promotedomainspace(A)
-    #TODO: Use information from b to promote range space if necessary
-    u=adaptiveqr(A,Fun_coefficients(b,rangespace(A[end])),tolerance,maxlength)  ##TODO: depends on ordering of A
-    
-    Fun(u,commondomainspace(A,b))
-end
+# function Fun_linsolve{T<:Operator}(A::Vector{T},b::Vector;tolerance=0.01eps(),maxlength=1000000)
+# 
+# end
 
-function Fun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)
-    u=adaptiveqr(A,b,tolerance,maxlength)  ##TODO: depends on ordering of A
-    d=commondomain(A)
-    Fun[Fun(u[:,k],d) for k=1:size(u,2)]
-end
+# function Fun_linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N,2};tolerance=0.01eps(),maxlength=1000000)
+#     u=adaptiveqr(A,b,tolerance,maxlength)  ##TODO: depends on ordering of A
+#     d=commondomain(A)
+#     Fun[Fun(u[:,k],d) for k=1:size(u,2)]
+# end
 
 
 
@@ -59,69 +55,62 @@ end
 #     FFun(deinterlace(u),commondomain(A,b))    
 # end
 
-function linsolve{T<:Operator}(A::Vector{T},b::Array;tolerance=0.01eps(),maxlength=1000000)
-    d=commondomain(A,b)
 
-    if typeof(d) <: Domain
-        Fun_linsolve(A,b;tolerance=tolerance,maxlength=maxlength)
-    else
-        adaptiveqr(A,b,tolerance,maxlength)
-    end    
+function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps(),maxlength=1000000)
+    Ad=promotedomainspace(A)
+    ds=commondomainspace(Ad)
+    r=adaptiveqr(Ad,b,tolerance,maxlength)
+    isa(ds,AnySpace)?r:Fun(r,ds)
 end
 
-
- function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Vector{M};tolerance=0.01eps(),maxlength=1000000)
-    m = size(A,2)
- 
-     ret=adaptiveqr(interlace(A),b,tolerance,maxlength)  #Given just an array, we don't know how to interlace
-                                                         #so assume user knows, this is correct for bc rows
-                                     
-                                     
-     Fun[Fun(ret[k:m:end],commondomain(A[:,k])) for k=1:m]
- end
- 
- 
-function linsolve{T<:Operator,M<:Number}(A::Array{T,2},b::Array{M,2};tolerance=0.01eps(),maxlength=1000000)
-    m = size(A,2)
+function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(),maxlength=1000000)
+    @assert size(b,2)==1  #TODO: reimplemnt
+    A=promotedomainspace(A)
     
-    ret=adaptiveqr(interlace(A),b,tolerance,maxlength)  #Given just an array, we don't know how to interlace
-                                                     #so assume user knows, this is correct for bc rows
-                                 
-                                 
-    Fun[Fun(ret[k:m:end,j],commondomain(A[:,k])) for k=1:m,j=1:size(b,2)]
-end
- 
-
-scalarorfuntype{T<:Number}(::Fun{T})=T
-scalarorfuntype{T<:Number}(::T)=T
-scalarorfuntype{T<:Number}(b::Vector{T})=T
-scalarorfuntype(b::Vector{Any})=promote_type(map(scalarorfuntype,b)...)
- 
-function linsolve{T<:Operator}(A::Array{T,2},b::Vector{Any};kwds...)
-    m,n=size(A)
-
-    br=m-n
-
-    l=mapreduce(length,max,b[br+1:end])
-
-    r=zeros(scalarorfuntype(b),br+n*l)
-    
-    r[1:br]=b[1:br]
-    
-    for k=br+1:m
-        sp=findmaxrangespace([A[k,:]...])
-        if k > length(b)## assume its zer
-            r[k:n:end]=zeros(l)
-        elseif isa(b[k],Fun)
-            ##TODO: boiunds check
-            r[k:n:end]=pad(coefficients(b[k],sp),l)
-        else  #type is scalar
-            r[k:n:end]=pad([b[k]],l)
-        end
+    for k=1:length(A)-1
+        @assert isa(A[k],Functional)
     end
+    
+    for k=1:min(length(A)-1,length(b))
+        @assert isa(b[k],Number)
+    end    
+    
+    #TODO: Use information from b to promote range space if necessary
+    if length(b)<size(A,1)
+        # the ... converts b to a tuple of numbers so that r is a number Vec    
+        r=[b...]
+    elseif length(b)==size(A,1)
+        r=[b[1:end-1]...,coefficients(b[end],rangespace(A[end]))]
+    else 
+        # we have list of possible funs, devec
+        #TODO: constants
+        r=[b[1:size(A,1)-1]...,coefficients(devec(b[size(A,1):end]),rangespace(A[end]))]
+    end
+    
+    u=adaptiveqr(A,r,tolerance,maxlength)  ##TODO: depends on ordering of A
+    
+    Fun(u,commondomainspace(A,b))
+end
 
+function linsolve{T<:Operator,F<:Fun}(A::Vector{T},b::Array{F};kwds...)
+    r=Array(Any,size(b))
+    
+    # convert constant funs to constants
+    # this undoes the effect of [0.,f]
+    for k=1:size(A,1)-1,j=1:size(b,2)
+        # we only allow constants
+        @assert length(b[k,j])==1
+        #TODO: 1,1 entry may not be zero
+        r[k,j]=b[k,j].coefficients[1]
+    end
+    
+    r[size(A,1):end,:]=b[size(A,1):end,:]
+    
     linsolve(A,r;kwds...)
-end 
+end
+
+ 
+linsolve{T<:Operator}(A::Array{T,2},b;kwds...)=linsolve(interlace(A),b;kwds...)
 
 
 linsolve(A::Operator,b::Array;kwds...)=linsolve([A],b;kwds...)
