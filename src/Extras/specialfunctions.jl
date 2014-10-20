@@ -45,14 +45,12 @@ function Base.exp(f::Fun)
     A\[exp(f[xm]),0.]    
 end
 
-
-for op in (:(Base.cos),:(Base.sin))
+## Less accurate than solving differential equation with \
+for op in (:(Base.cos),:(Base.sin),:(Base.cospi),:(Base.sinpi),:(Base.sinc))
     @eval begin
         ($op)(f::Fun)=Fun(x->($op)(f[x]),domain(f))
     end
 end
-
-
 
 function .^(f::Fun{ChebyshevSpace},k::Float64)
     fc = Fun(canonicalcoefficients(f))
@@ -103,3 +101,21 @@ Base.sqrt(f::Fun{ChebyshevSpace})=f.^0.5
 #     end
 # end
 
+## The following backslash code works for real arguments but fails for complex Funs.
+#=
+function Base.cos(f::Fun)
+    xm=indmax(imag(f))
+    B=Evaluation(domain(f),xm)
+    D=diff(domain(f))
+    A=[B,D-im*diff(f)]
+    real(A\[exp(im*f[xm]),0.])
+end
+
+function Base.sin(f::Fun)
+    xm=indmax(imag(f))
+    B=Evaluation(domain(f),xm)
+    D=diff(domain(f))
+    A=[B,D-im*diff(f)]
+    imag(A\[exp(im*f[xm]),0.])
+end
+=#
