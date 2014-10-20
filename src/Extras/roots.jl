@@ -49,7 +49,7 @@ function roots( f::Fun{ChebyshevSpace} )
     end    
     
     hscale = maximum( [first(d), last(d)] ) 
-    htol = eps(Float64)*max(hscale, 1)
+    htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
     r = rootsunit_coeffs(c./vscale, htol)
     # Map roots from [-1,1] to domain of f: 
     return fromcanonical(d, r)
