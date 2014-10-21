@@ -94,3 +94,28 @@ function Derivative(S::JacobiSquareSpace,k::Integer)
 end
 
 
+
+# return the space that has banded Conversion to the other
+function conversion_rule{m,a,b,n,c,d}(A::JacobiSquareSpace{m,a,b},B::JacobiSquareSpace{n,c,d})
+    if m>=n && a<= c && b<= d
+        A
+    else
+        NoSpace()
+    end
+end
+
+
+##TODO:ConversionWrapper
+function addentries!{m,a,b,n,c,d}(C::Conversion{JacobiSquareSpace{m,a,b},JacobiSquareSpace{n,c,d}},A::ShiftArray,kr::Range)
+    dm=domain(C)
+    addentries!(Conversion(JacobiSpace(a+.5,b-.5,dm),JacobiSpace(c+.5,d-.5,dm)),A,kr)
+end
+
+function bandinds{m,a,b,n,c,d}(C::Conversion{JacobiSquareSpace{m,a,b},JacobiSquareSpace{n,c,d}})
+    dm=domain(C)
+    bandinds(Conversion(JacobiSpace(a+.5,b-.5,dm),JacobiSpace(c+.5,d-.5,dm)))
+end
+
+
+
+
