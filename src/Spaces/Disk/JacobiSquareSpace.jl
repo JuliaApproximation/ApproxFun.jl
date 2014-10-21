@@ -12,6 +12,9 @@ JacobiSquareSpace(m::Integer,d::Domain)=JacobiSquareSpace(m,m,0,d)
 JacobiSquareSpace(m::Integer)=JacobiSquareSpace(m,Interval(1.,0.))
 
 
+jacobispace(B::JacobiSquareSpace)=JacobiSpace(B.a+.5,B.b-.5,domain(B))
+
+
 spacescompatible(A::JacobiSquareSpace,B::JacobiSquareSpace)=A.a==B.a&&A.m==B.m&&A.b==B.b
 
 # We assume domains is [1.,0.]
@@ -79,13 +82,15 @@ function rangespace{T}(M::Multiplication{JacobiWeightSpace{ChebyshevSpace},Jacob
 end
 
 
+
+
 function Derivative(S::JacobiSquareSpace)
      # we have D[r^m f(r^2)] = r^{m-1} (m f(r^2) + 2r^2 f'(r^2))
      a=S.a;b=S.b;m=S.m
      d=domain(S)
      @assert d==Interval(1.,0.)
      
-     JS=JacobiSpace(a+.5,b-.5,d)
+     JS=jacobispace(S)
      D=Derivative(JS)
      M=Multiplication(Fun(identity,d),rangespace(D))
      
@@ -115,20 +120,23 @@ end
 
 
 ##TODO:ConversionWrapper
-function addentries!(C::Conversion{JacobiSquareSpace,JacobiSquareSpace},A::ShiftArray,kr::Range)
+function addentries!{T}(C::Conversion{JacobiSquareSpace,JacobiSquareSpace,T},SA::ShiftArray,kr::Range)
     dm=domain(C)
     A=domainspace(C);B=rangespace(C)
     
-    addentries!(Conversion(JacobiSpace(A.a+.5,A.b-.5,dm),JacobiSpace(B.a+.5,B.b-.5,dm)),A,kr)
+    addentries!(Conversion(jacobispace(A),jacobispace(B)),SA,kr)
 end
 
-function bandinds(C::Conversion{JacobiSquareSpace,JacobiSquareSpace})
+function bandinds{T}(C::Conversion{JacobiSquareSpace,JacobiSquareSpace,T})
     dm=domain(C)
     A=domainspace(C);B=rangespace(C)
     
-    bandinds(Conversion(JacobiSpace(A.a+.5,A.b-.5,dm),JacobiSpace(B.a+.5,B.b-.5,dm)))
+    bandinds(Conversion(jacobispace(A),jacobispace(B)))
 end
 
 
 
-
+function Base.getindex(op::Evaluation{JacobiSquareSpace,Bool},kr::Range)
+    @assert !op.x && op.order ==0
+    getindex(Evaluation(jacobispace(op.space),false,0),kr)
+end
