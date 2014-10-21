@@ -62,7 +62,7 @@ columnspace{SS}(D::DiskSpace{2,SS},k)=(m=div(k,2);JacobiSquareSpace(m,Interval(D
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
 
-
+diskspacetype{K}(D::DiskSpace{K})=K
 
 
 function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,LaurentSpace,D})
@@ -83,7 +83,7 @@ function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,LaurentSpace,D})
         ret[k-1]-=imag(cfs[k])
     end
 
-    ProductFun(ret,DiskSpace{K,JS,FourierSpace}(space(f).domain,FourierSpace()))
+    ProductFun(ret,DiskSpace{diskspacetype(space(f)),JS,FourierSpace}(space(f).domain,FourierSpace()))
 end
 #Base.imag{S,T}(u::ProductFun{S,LarentSpace,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
 
