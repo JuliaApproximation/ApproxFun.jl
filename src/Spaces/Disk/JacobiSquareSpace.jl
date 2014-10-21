@@ -129,19 +129,18 @@ minspace(A::JacobiSquareSpace,B::JacobiSquareSpace)=JacobiSquareSpace(max(A.m,B.
 
 
 ##TODO:ConversionWrapper
-function addentries!{T}(C::Conversion{JacobiSquareSpace,JacobiSquareSpace,T},SA::ShiftArray,kr::Range)
-    dm=domain(C)
-    A=domainspace(C);B=rangespace(C)
-    
-    addentries!(Conversion(jacobispace(A),jacobispace(B)),SA,kr)
+
+function Conversion(A::JacobiSquareSpace,B::JacobiSquareSpace)
+    if A.m==B.m
+        ConversionWrapper(SpaceOperator(Conversion(jacobispace(A),jacobispace(B)),A,B))
+    else
+        @assert A.m == B.m+2
+        
+        M=Multiplication(Fun(identity,domain(B)),jacobispace(B)) #this is multiplication by r^2
+        ConversionWrapper(SpaceOperator(M*Conversion(jacobispace(A),jacobispace(B)),A,B))        
+    end
 end
 
-function bandinds{T}(C::Conversion{JacobiSquareSpace,JacobiSquareSpace,T})
-    dm=domain(C)
-    A=domainspace(C);B=rangespace(C)
-    
-    bandinds(Conversion(jacobispace(A),jacobispace(B)))
-end
 
 
 
