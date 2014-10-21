@@ -93,14 +93,14 @@ function Derivative(S::JacobiSquareSpace)
      JS=jacobispace(S)
      D=Derivative(JS)
      
-#      if m==0
-#      # we have D[ f(r^2)] = 2r f'(r^2)
-#         DerivativeWrapper(SpaceOperator(2*D,S,JacobiSquareSpace(1,a+1,b+1,d)),1)     
-#      else
+      if m==0
+      # we have D[ f(r^2)] = 2r f'(r^2)
+         DerivativeWrapper(SpaceOperator(2*D,S,JacobiSquareSpace(1,a+1,b+1,d)),1)     
+      else
      # we have D[r^m f(r^2)] = r^{m-1} (m f(r^2) + 2r^2 f'(r^2))     
         M=Multiplication(Fun(identity,d),rangespace(D))
         DerivativeWrapper(SpaceOperator(m+2*M*D,S,JacobiSquareSpace(m-1,a+1,b+1,d)),1)
-#    end
+    end
 end
      
 
