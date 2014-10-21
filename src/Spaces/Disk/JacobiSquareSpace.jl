@@ -124,6 +124,9 @@ function conversion_rule(A::JacobiSquareSpace,B::JacobiSquareSpace)
     end
 end
 
+maxspace(A::JacobiSquareSpace,B::JacobiSquareSpace)=JacobiSquareSpace(min(A.m,B.m),max(A.a,B.a),max(A.b,B.b),domain(A))
+minspace(A::JacobiSquareSpace,B::JacobiSquareSpace)=JacobiSquareSpace(max(A.m,B.m),min(A.a,B.a),min(A.b,B.b),domain(A))
+
 
 ##TODO:ConversionWrapper
 function addentries!{T}(C::Conversion{JacobiSquareSpace,JacobiSquareSpace,T},SA::ShiftArray,kr::Range)
