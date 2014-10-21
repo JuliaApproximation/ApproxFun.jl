@@ -10,8 +10,8 @@ Multiplication(c::Number)=ConstantOperator(c)
 
 
 
-domainspace(M::Multiplication)=M.space
-rangespace(M::Multiplication)=M.space
+domainspace{D,S,T}(M::Multiplication{D,S,T})=M.space
+rangespace{D,S,T}(M::Multiplication{D,S,T})=M.space
 
 
 

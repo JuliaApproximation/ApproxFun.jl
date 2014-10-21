@@ -24,7 +24,7 @@ function transform(S::JacobiSquareSpace{0,0,0},vals::Vector,xw::(Vector,Vector))
 
     V=jacobip(0:n-1,m+0.5,-0.5,x)'
     nrm=(V.^2)*w
-    (V*(w.*vals))./nrm
+    (V*(w.*vals))./nrm*2^(m/2)
 end
 
 function transform{m}(S::JacobiSquareSpace{m,m,0},vals::Vector,xw::(Vector,Vector))
@@ -37,7 +37,7 @@ function transform{m}(S::JacobiSquareSpace{m,m,0},vals::Vector,xw::(Vector,Vecto
     mw=w2.*w
     V=jacobip(0:n-int(m/2)-1,m+0.5,-0.5,x)'  
     nrm=(V.^2)*(w2.*mw)    
-    (V*(mw.*vals))./nrm
+    (V*(mw.*vals))./nrm*2^(m/2)
 end
 
 
@@ -48,7 +48,7 @@ end
 plan_itransform(S::JacobiSquareSpace,n)=points(S,n)
 #TODO: general domain
 itransform(S::JacobiSquareSpace,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
-itransform{m,a,b}(S::JacobiSquareSpace{m,a,b},cfs::Vector,x)=x.^m.*jacobip(0:length(cfs)-1,a+0.5,b-0.5,tocanonical(S,x.^2))*cfs*2^(m/2)
+itransform{m,a,b}(S::JacobiSquareSpace{m,a,b},cfs::Vector,x)=x.^m.*jacobip(0:length(cfs)-1,a+0.5,b-0.5,tocanonical(S,x.^2))*cfs
 evaluate{J<:JacobiSquareSpace,T}(f::Fun{J,T},x::Vector)=itransform(f.space,f.coefficients,x)
 evaluate{J<:JacobiSquareSpace,T}(f::Fun{J,T},x::Number)=itransform(f.space,f.coefficients,[x])[1]
 
@@ -57,8 +57,20 @@ evaluate{J<:JacobiSquareSpace,T}(f::Fun{J,T},x::Number)=itransform(f.space,f.coe
 ## Operators
 
 
+function addentries!{T,m,a,b}(M::Multiplication{JacobiWeightSpace{ChebyshevSpace},JacobiSquareSpace{m,a,b},T},A::ShiftArray,kr::Range)
+    @assert length(M.f)==1
+    @assert M.f.space.α ==0.
+    addentries!(ConstantOperator(0.5M.f.coefficients[1]),A,kr)
+end
+function rangespace{T,m,a,b}(M::Multiplication{JacobiWeightSpace{ChebyshevSpace},JacobiSquareSpace{m,a,b},T})
+    @assert length(M.f)==1
+    @assert M.f.space.α ==0.
+    @assert isinteger(M.f.space.β)
+    JacobiSquareSpace{m+int(M.f.space.β),a,b}(domain(M))
+end
 
- function Derivative{m,a,b}(S::JacobiSquareSpace{m,a,b})
+
+function Derivative{m,a,b}(S::JacobiSquareSpace{m,a,b})
      # we have D[r^m f(r^2)] = r^{m-1} (m f(r^2) + 2r^2 f'(r^2))
  
      d=domain(S)
@@ -68,7 +80,7 @@ evaluate{J<:JacobiSquareSpace,T}(f::Fun{J,T},x::Number)=itransform(f.space,f.coe
      D=Derivative(JS)
      M=Multiplication(Fun(identity,d),rangespace(D))
      
-     DerivativeWrapper(SpaceOperator((sqrt(2)*m)+(sqrt(2)*2)*M*D,S,JacobiSquareSpace{m-1,a+1,b+1}(d)),1)
+     DerivativeWrapper(SpaceOperator(m+2*M*D,S,JacobiSquareSpace{m-1,a+1,b+1}(d)),1)
 end
      
 
@@ -80,3 +92,5 @@ function Derivative(S::JacobiSquareSpace,k::Integer)
          DerivativeWrapper(TimesOperator(Derivative(rangespace(D),k-1).op,D.op),k)
      end
 end
+
+
