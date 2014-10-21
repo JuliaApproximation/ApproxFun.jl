@@ -2,12 +2,17 @@
 # represents function of the form r^m g(r^2)
 # as r^m P^{.5+a,b-.5}(r^2)
 
-immutable JacobiSquareSpace{m,a,b} <: IntervalDomainSpace
+immutable JacobiSquareSpace <: IntervalDomainSpace
+    m::Int
+    a::Int
+    b::Int
     domain::Union(Interval,AnyDomain)
 end
-JacobiSquareSpace(m,d::Domain)=JacobiSquareSpace{m,m,0}(d)
+JacobiSquareSpace(m::Integer,d::Domain)=JacobiSquareSpace(m,m,0,d)
 JacobiSquareSpace(m::Integer)=JacobiSquareSpace(m,Interval(1.,0.))
-spacescompatible{m,a,b}(::JacobiSquareSpace{m,a,b},::JacobiSquareSpace{m,a,b})=true
+
+
+spacescompatible(A::JacobiSquareSpace,B::JacobiSquareSpace)=A.a==B.a&&A.m==B.m&&A.b==B.b
 
 # We assume domains is [1.,0.]
 
@@ -16,28 +21,31 @@ points(S::JacobiSquareSpace,n)=sqrt(fromcanonical(S.domain,gausschebyshev(n,4)[1
 plan_transform(S::JacobiSquareSpace,n)=gausschebyshev(n,4)
 
 transform(S::JacobiSquareSpace,vals::Vector)=transform(S,vals,plan_transform(S,length(vals)))
-function transform(S::JacobiSquareSpace{0,0,0},vals::Vector,xw::(Vector,Vector))
-    ## Same as jacobitransform.jl
+
+
+function transform(S::JacobiSquareSpace,vals::Vector,xw::(Vector,Vector))
+    m=S.m;a=S.a;b=S.b
     x,w=xw
-    
+        
     n=length(vals)
-
-    V=jacobip(0:n-1,m+0.5,-0.5,x)'
-    nrm=(V.^2)*w
-    (V*(w.*vals))./nrm*2^(m/2)
-end
-
-function transform{m}(S::JacobiSquareSpace{m,m,0},vals::Vector,xw::(Vector,Vector))
-    ## Same as jacobitransform.jl
-    x,w=xw
     
-    n=length(vals)
+        
+    if m==a==b==0
 
-    w2=(1-x).^(m/2)
-    mw=w2.*w
-    V=jacobip(0:n-int(m/2)-1,m+0.5,-0.5,x)'  
-    nrm=(V.^2)*(w2.*mw)    
-    (V*(mw.*vals))./nrm*2^(m/2)
+        V=jacobip(0:n-1,0.5,-0.5,x)'
+        nrm=(V.^2)*w
+        (V*(w.*vals))./nrm
+    elseif m==a && b==0
+        ## Same as jacobitransform.jl
+    
+        w2=(1-x).^(m/2)
+        mw=w2.*w
+        V=jacobip(0:n-int(m/2)-1,m+0.5,-0.5,x)'  
+        nrm=(V.^2)*(w2.*mw)    
+        (V*(mw.*vals))./nrm*2^(m/2)    
+    else
+        error("transform only implemented for first case")
+    end
 end
 
 
@@ -48,31 +56,32 @@ end
 plan_itransform(S::JacobiSquareSpace,n)=points(S,n)
 #TODO: general domain
 itransform(S::JacobiSquareSpace,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
-itransform{m,a,b}(S::JacobiSquareSpace{m,a,b},cfs::Vector,x)=x.^m.*jacobip(0:length(cfs)-1,a+0.5,b-0.5,tocanonical(S,x.^2))*cfs
-evaluate{J<:JacobiSquareSpace,T}(f::Fun{J,T},x::Vector)=itransform(f.space,f.coefficients,x)
-evaluate{J<:JacobiSquareSpace,T}(f::Fun{J,T},x::Number)=itransform(f.space,f.coefficients,[x])[1]
+itransform(S::JacobiSquareSpace,cfs::Vector,x)=x.^S.m.*jacobip(0:length(cfs)-1,S.a+0.5,S.b-0.5,tocanonical(S,x.^2))*cfs
+evaluate{T}(f::Fun{JacobiSquareSpace,T},x::Vector)=itransform(f.space,f.coefficients,x)
+evaluate{T}(f::Fun{JacobiSquareSpace,T},x::Number)=itransform(f.space,f.coefficients,[x])[1]
 
 
 
 ## Operators
 
 
-function addentries!{T,m,a,b}(M::Multiplication{JacobiWeightSpace{ChebyshevSpace},JacobiSquareSpace{m,a,b},T},A::ShiftArray,kr::Range)
+function addentries!{T}(M::Multiplication{JacobiWeightSpace{ChebyshevSpace},JacobiSquareSpace,T},A::ShiftArray,kr::Range)
     @assert length(M.f)==1
     @assert M.f.space.α ==0.
     addentries!(ConstantOperator(0.5M.f.coefficients[1]),A,kr)
 end
-function rangespace{T,m,a,b}(M::Multiplication{JacobiWeightSpace{ChebyshevSpace},JacobiSquareSpace{m,a,b},T})
+function rangespace{T}(M::Multiplication{JacobiWeightSpace{ChebyshevSpace},JacobiSquareSpace,T})
     @assert length(M.f)==1
     @assert M.f.space.α ==0.
     @assert isinteger(M.f.space.β)
-    JacobiSquareSpace{m+int(M.f.space.β),a,b}(domain(M))
+    ds=domainspace(M)
+    JacobiSquareSpace(ds.m+int(M.f.space.β),ds.a,ds.b,domain(M))
 end
 
 
-function Derivative{m,a,b}(S::JacobiSquareSpace{m,a,b})
+function Derivative(S::JacobiSquareSpace)
      # we have D[r^m f(r^2)] = r^{m-1} (m f(r^2) + 2r^2 f'(r^2))
- 
+     a=S.a;b=S.b;m=S.m
      d=domain(S)
      @assert d==Interval(1.,0.)
      
@@ -80,7 +89,7 @@ function Derivative{m,a,b}(S::JacobiSquareSpace{m,a,b})
      D=Derivative(JS)
      M=Multiplication(Fun(identity,d),rangespace(D))
      
-     DerivativeWrapper(SpaceOperator(m+2*M*D,S,JacobiSquareSpace{m-1,a+1,b+1}(d)),1)
+     DerivativeWrapper(SpaceOperator(m+2*M*D,S,JacobiSquareSpace(m-1,a+1,b+1,d)),1)
 end
      
 
@@ -96,8 +105,8 @@ end
 
 
 # return the space that has banded Conversion to the other
-function conversion_rule{m,a,b,n,c,d}(A::JacobiSquareSpace{m,a,b},B::JacobiSquareSpace{n,c,d})
-    if m>=n && a<= c && b<= d
+function conversion_rule(A::JacobiSquareSpace,B::JacobiSquareSpace)
+    if A.m>=B.m && A.a<= B.a && A.b<= B.b
         A
     else
         NoSpace()
@@ -106,14 +115,18 @@ end
 
 
 ##TODO:ConversionWrapper
-function addentries!{m,a,b,n,c,d}(C::Conversion{JacobiSquareSpace{m,a,b},JacobiSquareSpace{n,c,d}},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{JacobiSquareSpace,JacobiSquareSpace},A::ShiftArray,kr::Range)
     dm=domain(C)
-    addentries!(Conversion(JacobiSpace(a+.5,b-.5,dm),JacobiSpace(c+.5,d-.5,dm)),A,kr)
+    A=domainspace(C);B=rangespace(C)
+    
+    addentries!(Conversion(JacobiSpace(A.a+.5,A.b-.5,dm),JacobiSpace(B.a+.5,B.b-.5,dm)),A,kr)
 end
 
-function bandinds{m,a,b,n,c,d}(C::Conversion{JacobiSquareSpace{m,a,b},JacobiSquareSpace{n,c,d}})
+function bandinds(C::Conversion{JacobiSquareSpace,JacobiSquareSpace})
     dm=domain(C)
-    bandinds(Conversion(JacobiSpace(a+.5,b-.5,dm),JacobiSpace(c+.5,d-.5,dm)))
+    A=domainspace(C);B=rangespace(C)
+    
+    bandinds(Conversion(JacobiSpace(A.a+.5,A.b-.5,dm),JacobiSpace(B.a+.5,B.b-.5,dm)))
 end
 
 

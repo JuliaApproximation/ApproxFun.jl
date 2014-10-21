@@ -57,7 +57,7 @@ Space(D::Disk)=DiskSpace(D)
 
 columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.,Interval(D.domain.radius,0.))))
 columnspace{SS}(D::DiskSpace{1,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+0.5,-0.5,Interval(D.domain.radius,0.))))
-columnspace{SS}(D::DiskSpace{2,SS},k)=(m=1.div(k,2);JacobiSquareSpace(m,Interval(D.domain.radius,0.)))
+columnspace{SS}(D::DiskSpace{2,SS},k)=(m=div(k,2);JacobiSquareSpace(m,Interval(D.domain.radius,0.)))
 
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
