@@ -134,9 +134,9 @@ function Conversion(A::JacobiSquareSpace,B::JacobiSquareSpace)
     if A.m==B.m
         ConversionWrapper(SpaceOperator(Conversion(jacobispace(A),jacobispace(B)),A,B))
     else
-        @assert A.m == B.m+2
-        
-        M=Multiplication(Fun(identity,domain(B)),jacobispace(B)) #this is multiplication by r^2
+        @assert A.m > B.m && iseven(A.m-B.m)
+        r=Fun(identity,domain(B))
+        M=Multiplication(r.^div(A.m-B.m,2),jacobispace(B)) #this is multiplication by r^(2*p)
         ConversionWrapper(SpaceOperator(M*Conversion(jacobispace(A),jacobispace(B)),A,B))        
     end
 end
@@ -145,6 +145,14 @@ end
 
 
 function Base.getindex(op::Evaluation{JacobiSquareSpace,Bool},kr::Range)
-    @assert !op.x && op.order ==0
-    getindex(Evaluation(jacobispace(op.space),false,0),kr)
+    @assert !op.x && op.order <= 1
+    m=op.space.m
+    js=jacobispace(op.space)
+    if op.order ==0
+        getindex(Evaluation(js,false,0),kr)
+    elseif m==0
+        2getindex(Evaluation(js,false,1),kr)
+    else
+        2getindex(Evaluation(js,false,1),kr)+m*getindex(Evaluation(js,false,0),kr)
+    end
 end
