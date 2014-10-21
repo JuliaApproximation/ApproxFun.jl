@@ -38,21 +38,23 @@ end
 
 ## We use \ as the Fun constructor might miss isolated features
 function Base.exp(f::Fun)
-    xm=indmax(real(f))
-    B=Evaluation(domain(f),xm)
-    D=diff(domain(f))
+    rf=chop(real(f),eps())
+
+    xm=rf.coefficients[1]==[0.]?first(domain(rf)):indmax(rf)    
+
+
+    B=Evaluation(space(f),xm)
+    D=Derivative(space(f))
     A=[B,D-diff(f)]
     A\[exp(f[xm]),0.]    
 end
 
-
-for op in (:(Base.cos),:(Base.sin))
+## Less accurate than solving differential equation with \
+for op in (:(Base.cos),:(Base.sin),:(Base.cospi),:(Base.sinpi),:(Base.sinc))
     @eval begin
-        ($op)(f::Fun)=Fun(x->($op)(f[x]),domain(f))
+        $op{S,T}(f::Fun{S,T})=Fun(x->($op)(f[x]),space(f))
     end
 end
-
-
 
 function .^(f::Fun{ChebyshevSpace},k::Float64)
     fc = Fun(canonicalcoefficients(f))
@@ -102,4 +104,10 @@ Base.sqrt(f::Fun{ChebyshevSpace})=f.^0.5
 #         end
 #     end
 # end
+
+## The following backslash code works for real arguments but fails for complex Funs.
+
+
+Base.cos{S<:DomainSpace{Float64},T<:Real}(f::Fun{S,T})=real(exp(im*f))
+Base.sin{S<:DomainSpace{Float64},T<:Real}(f::Fun{S,T})=imag(exp(im*f))
 
