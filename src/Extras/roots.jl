@@ -198,7 +198,7 @@ for op in (:(Base.findmax),:(Base.findmin))
     end
 end
 
-function Base.abs(f::Fun)
+function Base.abs(f::Fun{ChebyshevSpace})
     d=domain(f)
     if length(f) <=1
         pts=[d.a,d.b]
