@@ -348,7 +348,10 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
     for k=1:nt
         op=getdiagonal(S,k,1)*L.ops[1,1]
         for j=2:size(L.ops,1)
-            op+=getdiagonal(S,k,j)*L.ops[j,1]         
+            Skj=getdiagonal(S,k,j)
+            if Skj!=0   # don't add unnecessary ops
+                op+=Skj*L.ops[j,1]         
+            end
         end
     
         csp=columnspace(sp,k)

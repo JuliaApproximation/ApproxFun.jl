@@ -1,7 +1,8 @@
 export Conversion
 
+abstract AbstractConversion{T}<:BandedOperator{T}
 
-immutable Conversion{S<:FunctionSpace,V<:FunctionSpace,T<:Number} <: BandedOperator{T}
+immutable Conversion{S<:FunctionSpace,V<:FunctionSpace,T<:Number} <: AbstractConversion{T}
     domainspace::S
     rangespace::V
 end
@@ -37,3 +38,18 @@ end
 ## convert TO canonical
 Conversion(A::FunctionSpace)=Conversion(A,canonicalspace(A))
 
+
+
+## Wrapper
+# this allows for a Derivative implementation to return another operator, use a SpaceOperator containing
+# the domain and range space
+# but continue to know its a derivative
+
+type ConversionWrapper{S<:BandedOperator} <: AbstractConversion{Float64}
+    op::S
+end
+
+addentries!(D::ConversionWrapper,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
+for func in (:rangespace,:domainspace,:bandinds)
+    @eval $func(D::ConversionWrapper)=$func(D.op)
+end
