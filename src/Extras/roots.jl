@@ -226,6 +226,11 @@ function roots(f::Fun{LaurentSpace})
     if length(irts)==0
         Complex{Float64}[]
     else
-        fromcanonical(f,tocanonical(Circle(),irts))
+        rts=fromcanonical(f,tocanonical(Circle(),irts))
+        if isa(domain(f),PeriodicInterval)
+            real(rts)  # Make type safe?
+        else
+            rts
+        end
     end
 end
