@@ -2,8 +2,8 @@ function timeevolutionsecondorder(B::Vector,op,bcs::Vector,uin::(MultivariateFun
     require("GLPlot")
     setplotter("GLPlot")
     nt=size(uin[1],2)
-    SBE  = schurfact([B,I-h^2*op],space(u0),nt)            # backward euler for first 2 time steps
-    SBDF = schurfact([B,I-4.0/9.0*h^2*op],space(u0),nt)    # BDF formula for subsequent itme steps
+    SBE  = schurfact([B,I-h^2*op],space(uin[1]),nt)            # backward euler for first 2 time steps
+    SBDF = schurfact([B,I-4.0/9.0*h^2*op],space(uin[1]),nt)    # BDF formula for subsequent itme steps
     
     u1,u2=uin
     u3 =SBE\[bcs,2u2-u1]
@@ -16,7 +16,11 @@ function timeevolutionsecondorder(B::Vector,op,bcs::Vector,uin::(MultivariateFun
     end    
 end
 
-timeevolutionsecondorder(B::Vector,op,uin::(MultivariateFun,MultivariateFun),bcs::Vector,h::Real,m::Integer)=timeevolutionsecondorder(B,op,bcs,uin,h,m,plot(pad(uin[end],50,50)))
+function timeevolutionsecondorder(B::Vector,op,uin::(MultivariateFun,MultivariateFun),bcs::Vector,h::Real,m::Integer)
+    require("GLPlot")
+    setplotter("GLPlot")
+    timeevolutionsecondorder(B,op,bcs,uin,h,m,plot(pad(uin[end],50,50)))
+end
 
 timeevolutionsecondorder(B::Vector,op,uin::(MultivariateFun,MultivariateFun),h::Real,dat...)=timeevolutionsecondorder(B,op,uin,zeros(length(B)),h,dat...)
 timeevolutionsecondorder(B::Vector,op,uin::MultivariateFun,dat...)=timeevolutionsecondorder(B,op,(uin,uin),dat...)
