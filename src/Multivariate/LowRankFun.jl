@@ -102,11 +102,13 @@ function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integ
         ##Remove coefficients that get killed by a/b
         maxb=maximum(abs(b.coefficients))
         if maxb != 0
-            a=chop!(a,10*sqrt(abs(a[r[1]]))*eps()/maxb)
+            tol=10*sqrt(abs(a[r[1]]))*eps()/maxb
+            a=chop!(a,tol)
         end
         maxa=maximum(abs(a.coefficients))
         if maxa != 0
-            b=chop!(b,10*sqrt(abs(b[r[2]]))*eps()/maxa)        
+            tol=10*sqrt(abs(b[r[2]]))*eps()/maxa
+            b=chop!(b,tol)        
         end
     end
       
