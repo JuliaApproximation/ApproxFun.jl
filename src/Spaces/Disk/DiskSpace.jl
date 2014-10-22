@@ -92,20 +92,14 @@ end
 
 ## Operators
 
-function lap(S::DiskSpace)
+function lap(S::Disk)
     D=Derivative()
-    r=Fun(identity,[S.domain.radius,0.])
+    r=Fun(identity,[S.radius,0.])
     (D^2+(1./r)*D)⊗I+(1./r).^2⊗D^2
 end
 
-neumann(S::DiskSpace)=lneumann()⊗I
-dirichlet(S::DiskSpace)=ldirichlet()⊗I
-diffbcs(S::DiskSpace,k::Integer)=ldiffbc(k)⊗I
+neumann(S::Disk)=lneumann()⊗I
+dirichlet(S::Disk)=ldirichlet()⊗I
+diffbcs(S::Disk,k::Integer)=ldiffbc(k)⊗I
 
-for op in (:lap,:neumann,:dirichlet)
-    @eval $op(S::Disk)=$op(Space(S))
-end
-
-
-diffbcs(S::Disk,k)=diffbcs(Space(S),k)
 

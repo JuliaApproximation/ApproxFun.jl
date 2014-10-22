@@ -180,6 +180,10 @@ function timedirichlet(d::ProductDomain)
     [I⊗Bt,Bx⊗I]
 end
 
+for op in (:lap,:neumann,:dirichlet,:diffbcs)
+    @eval $op(d::MultivariateFunctionSpace)=$op(domain(d))
+end
+
 
 function *{S,T}(L::PDEOperator,f::LowRankFun{S,T})
     @assert size(L.ops,2)==2
@@ -413,6 +417,7 @@ end
 
 Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
 Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
+Base.schurfact{T<:PDEOperator}(A::Vector{T},S::TensorSpace,n::Integer)=schurfact(A,n)
 Base.schurfact{T<:PDEOperator}(A::Vector{T},S::AbstractProductSpace,n::Integer)=PDEProductOperatorSchur(A,S,n)
 
 
