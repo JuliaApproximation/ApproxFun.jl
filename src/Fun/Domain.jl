@@ -55,6 +55,7 @@ end
 
 
 Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
+Base.last(d::PeriodicDomain)=fromcanonical(d,π)
 
 ## conveninece routines
 

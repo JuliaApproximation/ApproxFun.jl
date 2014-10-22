@@ -1,3 +1,23 @@
+## abs
+
+function Base.abs(f::Fun)
+    d=domain(f)
+
+    pts=roots(f)
+    
+    if isempty(pts)
+        sign(first(f))*f
+    else    
+        da=first(d)
+        isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
+        db=last(d)
+        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts,db]
+        Fun(x->abs(f[x]),pts)
+    end
+end
+
+
+
 # division by fun 
 
 function ./{S,T,U,V}(c::Fun{S,T},f::Fun{U,V})
