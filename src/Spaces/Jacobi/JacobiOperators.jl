@@ -74,7 +74,7 @@ bandinds(D::Integral{JacobiSpace})=-D.order,0
 function addentries!(T::Derivative{JacobiSpace},A::ShiftArray,kr::Range)
     d=domain(T)
     for k=kr
-        A[k,1]+=(k+1+T.space.a+T.space.b)./length(d)
+        A[k,1]+=(k+1+T.space.a+T.space.b)./(d.b-d.a)
     end
     A
 end
