@@ -96,3 +96,9 @@ x=1.5
 
 f=Fun(x->sin(10(x-.1)))
 @test norm(f[roots(f)])< 100eps()
+
+
+## ALiasing
+
+f=Fun(x->cos(50acos(x)))
+@test norm(f.coefficients-eye(length(f))[:,51])<eps(100.)

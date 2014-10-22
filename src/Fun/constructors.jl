@@ -81,7 +81,7 @@ function zerocfsFun(f::Function,d::DomainSpace)
 
     tol = 200*eps()
 
-    r=fromcanonical(d,0.13452398243690872) #random point in both [-π,π] and [-1,1]
+    r=rand(d)
     fr=f(r)
 
     for logn = 4:20

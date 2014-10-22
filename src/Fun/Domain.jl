@@ -85,3 +85,11 @@ commondomain(P::Vector,g)=commondomain([P,g])
 
 
 domain(::Number)=AnyDomain()
+
+
+
+
+## rand
+
+Base.rand(d::IntervalDomain)=fromcanonical(d,2rand()-1)
+Base.rand(d::PeriodicDomain)=fromcanonical(d,2π*rand()-π)

@@ -57,7 +57,7 @@ function points(d::UnionDomain,n)
         vcat([points(d.domains[j],k) for j=r+1:length(d)]...)]
 end
 
-
+Base.rand(d::UnionDomain)=rand(d[rand(1:length(d))])
 
 immutable PiecewiseSpace{S<:DomainSpace,T} <: DomainSpace{T}
     spaces::Vector{S} 

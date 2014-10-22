@@ -180,3 +180,10 @@ typealias ScalarSpace VectorSpace{1}
 
 =={d}(::VectorSpace{d},::VectorSpace{d})=true
 spacescompatible{d}(::VectorSpace{d},::VectorSpace{d})=true
+
+
+
+
+## rand
+
+Base.rand(d::DomainSpace)=rand(domain(d))
