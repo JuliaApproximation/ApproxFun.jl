@@ -198,18 +198,6 @@ for op in (:(Base.findmax),:(Base.findmin))
     end
 end
 
-function Base.abs(f::Fun{ChebyshevSpace})
-    d=domain(f)
-    if length(f) <=1
-        pts=[d.a,d.b]
-    else
-        pts=roots(f)
-	isapprox(d.a,pts[1]) ? pts[1] = d.a : pts = [d.a,pts]
-	isapprox(d.b,pts[end]) ? pts[end] = d.b : pts = [pts,d.b]
-    end
-    Fun(x->abs(f[x]),pts)
-end
-
 
 
 
