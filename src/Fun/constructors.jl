@@ -90,7 +90,8 @@ function zerocfsFun(f::Function,d::DomainSpace)
         maxabsc=maximum(absc)
         
         # we allow for transformed coefficients being a different size
-        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  norm(cf[r]-fr)<10tol*maxabsc
+        ##TODO: how to do scaling for unnormalized bases like Jacobi?
+        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  norm(cf[r]-fr)<1E-4  
             return chop!(cf,10eps()*maxabsc)
         end
     end
