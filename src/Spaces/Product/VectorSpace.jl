@@ -92,17 +92,27 @@ function transform{T}(S::PiecewiseSpace,vals::Vector{T})
     n=length(vals)
     K=length(S)
    k=div(n,K)
-    r=n-K*k
-    M=Array(Float64,k+1,K)
+    if k==0
+        ret=Array(T,n)
+        for j=1:n
+            ret[j]=transform(S[j],[vals[j]])[1]
+        end
+        
+        ret
+    else
+        r=n-K*k
+        M=Array(T,k+1,K)
     
-    for j=1:r
-        M[:,j]=transform(S.spaces[j],vals[(j-1)*(k+1)+1:j*(k+1)])
+        for j=1:r
+            M[:,j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])
+        end
+        for j=r+1:length(S)
+            M[1:k,j]=transform(S[j],vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k]) 
+            M[k+1,j]=zero(T)
+        end    
+        
+    vec(M.')        
     end
-    for j=r+1:length(S)
-        M[1:k,j]=transform(S.spaces[j],vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k]) 
-        M[k+1,j]=zero(T)
-    end    
-    vec(M.')
 end
 
 itransform(S::PiecewiseSpace,cfs::Vector)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
