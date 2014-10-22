@@ -75,3 +75,13 @@ f = exp(x)./(1-x.^2).^1
 @test_approx_eq f[.1] exp(.1)./(1-.1^2)
 f = exp(x)./(1-x.^2).^1.0
 @test_approx_eq f[.1] exp(.1)./(1-.1^2)
+
+
+
+## 1/f with poles
+
+x=Fun(identity)
+f=sin(10x)
+g=1/f
+
+@test_approx_eq g[.123] csc(10*.123)

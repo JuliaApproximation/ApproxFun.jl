@@ -53,34 +53,33 @@ function ./(c::Number,f::Fun{ChebyshevSpace})
     r = roots(fc)
     x = Fun(identity)
     
-    tol = 10eps()
+    # if domain f is small then the pts get projected in
+    tol = 50eps()/length(domain(f))  
     
-    @assert length(r) <= 2
     
     if length(r) == 0
         linsolve(Multiplication(f,space(f)),c;tolerance=tol)
-    elseif length(r) == 1
-        if abs(abs(r[1]) - 1.) < tol
-            if sign(r[1]) < 0
-                g = linsolve(Multiplication(x+1,space(fc)),fc;tolerance=10eps())                 
-                Fun(canonicalcoefficients(c./g),JacobiWeightSpace(-1,0,domain(f)))
-            else
-                g = linsolve(Multiplication(1-x,space(fc)),fc;tolerance=10eps())                              
-                Fun(canonicalcoefficients(c./g),JacobiWeightSpace(0,-1,domain(f)))                
-            end 
+    elseif length(r) == 1 && abs(abs(r[1]) - 1.) < tol
+        if sign(r[1]) < 0
+            g = linsolve(Multiplication(x+1,space(fc)),fc;tolerance=10eps())                 
+            Fun(canonicalcoefficients(c./g),JacobiWeightSpace(-1,0,domain(f)))
         else
-            error("need to implement splitting")
-        end
-    else
-        @assert abs(r[1]+1) < tol
-        @assert abs(r[2]-1) < tol                        
+            g = linsolve(Multiplication(1-x,space(fc)),fc;tolerance=10eps())                              
+            Fun(canonicalcoefficients(c./g),JacobiWeightSpace(0,-1,domain(f)))                
+        end 
+    elseif length(r) ==2 && abs(r[1]+1) < tol && abs(r[2]-1) < tol                        
         g = linsolve(Multiplication(1-x.^2,space(fc)),fc;tolerance=10eps()) 
         # divide out singularities, tolerance needs to be chosen since we don't get
         # spectral convergence
         # TODO: switch to dirichlet basis
         Fun(canonicalcoefficients(c./g),JacobiWeightSpace(-1,-1,domain(f)))  
+    else
+        #split at the roots
+        c./splitatroots(f)
     end
 end
+
+./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=devec(map(f->c./f,vec(f)))
 
 
 
