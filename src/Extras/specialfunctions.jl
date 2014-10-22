@@ -1,5 +1,22 @@
 ## abs
 
+
+function splitatroots(f::Fun)
+    d=domain(f)
+
+    pts=roots(f)
+    
+    if isempty(pts)
+        f
+    else    
+        da=first(d)
+        isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
+        db=last(d)
+        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts,db]
+        Fun(x->f[x],pts)
+    end
+end
+
 function Base.abs(f::Fun)
     d=domain(f)
 

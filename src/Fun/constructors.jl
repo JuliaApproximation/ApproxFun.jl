@@ -11,6 +11,8 @@ function Fun(f::Function,d::DomainSpace,n::Integer)
 end
 
 # the following is to avoid ambiguity
+# Fun(f::Fun,d) should be equivalent to Fun(x->f[x],d)
+#TODO: fall back to Fun(x->f[x],d) if conversion not implemented?
 Fun(f::Fun,d::DomainSpace)=Fun(coefficients(f,d),d)
 Fun{T<:DomainSpace}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
 Fun{T<:DomainSpace}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
@@ -22,9 +24,6 @@ Fun{T<:DomainSpace}(f,::Type{T},n::Integer)=Fun(f,T(canonicaldomain(T)),n)
 Fun(f,d::Domain)=Fun(f,Space(d))
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
 
-
-Fun{T<:Number}(f::Fun,d::Vector{T})=Fun(coefficients(f),d)
-#Fun(f::Fun)=Fun(coefficients(f))  ##TODO: should this project to interval?
 
 Fun(c::Number)=Fun([c])
 
