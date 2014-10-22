@@ -238,6 +238,27 @@ function roots(f::Fun{LaurentSpace})
     if length(irts)==0
         Complex{Float64}[]
     else
-        fromcanonical(f,tocanonical(Circle(),irts))
+        rts=fromcanonical(f,tocanonical(Circle(),irts))
+        if isa(domain(f),PeriodicInterval)
+            real(rts)  # Make type safe?
+        else
+            rts
+        end
     end
+end
+
+
+
+function roots{P<:PiecewiseSpace}(f::Fun{P})
+    rts=[map(roots,vec(f))...]
+    k=1
+    while k < length(rts)
+        if isapprox(rts[k],rts[k+1])
+            rts=rts[[1:k,k+2:end]]
+        else
+            k+=1
+        end
+    end
+    
+    rts
 end

@@ -35,7 +35,7 @@ Base.last(d::IntervalDomain)=fromcanonical(d,1.0)
 
 function Base.in(x,d::IntervalDomain)
     y=tocanonical(d,x)
-    isapprox(imag(y),0.) && -1.-2eps()<=real(y)<=1.+2eps()
+    isapprox(imag(y),0.) && -1.0-10eps()<=real(y)<=1.0+10eps()
 end
 
 ###### Periodic domains
@@ -55,6 +55,7 @@ end
 
 
 Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
+Base.last(d::PeriodicDomain)=fromcanonical(d,π)
 
 ## conveninece routines
 
@@ -85,3 +86,11 @@ commondomain(P::Vector,g)=commondomain([P,g])
 
 
 domain(::Number)=AnyDomain()
+
+
+
+
+## rand
+
+Base.rand(d::IntervalDomain)=fromcanonical(d,2rand()-1)
+Base.rand(d::PeriodicDomain)=fromcanonical(d,2π*rand()-π)

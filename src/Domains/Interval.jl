@@ -54,7 +54,7 @@ fromcanonicalD(d::Interval,x)=.5*( d.b- d.a)
 
 
 
-Base.length(d::Interval) = d.b - d.a
+Base.length(d::Interval) = abs(d.b - d.a)
 
 
 

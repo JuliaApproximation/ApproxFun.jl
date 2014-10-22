@@ -1,37 +1,86 @@
-# division by fun 
+## abs
 
-./{a,b}(f::Fun{UltrasphericalSpace{a}},g::Fun{UltrasphericalSpace{b}})=linsolve(Multiplication(g,space(f)),f;tolerance=10eps())
 
-for op in (:./,:/)
-    @eval begin
-        function ($op)(c::Number,f::Fun{ChebyshevSpace})
-            fc = Fun(canonicalcoefficients(f),Interval())
-            r = roots(fc)
-            x = Fun(identity)
-            
-            tol = 10eps()
-            
-            @assert length(r) <= 2
-            
-            if length(r) == 0
-                linsolve(Multiplication(f,space(f)),c;tolerance=tol)
-            elseif length(r) == 1
-                @assert abs(abs(r[1]) - 1.) < tol
-                
-                if sign(r[1]) < 0
-                    Fun(canonicalcoefficients(c./(fc./(x+1))),JacobiWeightSpace(-1,0,domain(f)))
-                else
-                    Fun(canonicalcoefficients(c./(fc./(1-x))),JacobiWeightSpace(0,-1,domain(f)))                
-                end 
-            else
-                @assert abs(r[1]+1) < tol
-                @assert abs(r[2]-1) < tol                        
-                
-                Fun(canonicalcoefficients(c./(fc./(1-x.^2))),JacobiWeightSpace(-1,-1,domain(f)))  
-            end
-        end
+function splitatroots(f::Fun)
+    d=domain(f)
+
+    pts=roots(f)
+    
+    if isempty(pts)
+        f
+    else    
+        da=first(d)
+        isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
+        db=last(d)
+        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts,db]
+        Fun(x->f[x],pts)
     end
 end
+
+function Base.abs(f::Fun)
+    d=domain(f)
+
+    pts=roots(f)
+    
+    if isempty(pts)
+        sign(first(f))*f
+    else    
+        da=first(d)
+        isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
+        db=last(d)
+        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts,db]
+        Fun(x->abs(f[x]),pts)
+    end
+end
+
+
+
+# division by fun 
+
+function ./{S,T,U,V}(c::Fun{S,T},f::Fun{U,V})
+    r=roots(f)
+    tol=10eps()
+    if length(r)==0 || norm(c[r])<tol
+        linsolve(Multiplication(f,space(c)),c;tolerance=tol)
+    else
+        c.*(1./f)
+    end
+end
+
+
+function ./(c::Number,f::Fun{ChebyshevSpace})
+    fc = Fun(canonicalcoefficients(f),Interval())
+    r = roots(fc)
+    x = Fun(identity)
+    
+    # if domain f is small then the pts get projected in
+    tol = 50eps()/length(domain(f))  
+    
+    
+    if length(r) == 0
+        linsolve(Multiplication(f,space(f)),c;tolerance=tol)
+    elseif length(r) == 1 && abs(abs(r[1]) - 1.) < tol
+        if sign(r[1]) < 0
+            g = linsolve(Multiplication(x+1,space(fc)),fc;tolerance=10eps())                 
+            Fun(canonicalcoefficients(c./g),JacobiWeightSpace(-1,0,domain(f)))
+        else
+            g = linsolve(Multiplication(1-x,space(fc)),fc;tolerance=10eps())                              
+            Fun(canonicalcoefficients(c./g),JacobiWeightSpace(0,-1,domain(f)))                
+        end 
+    elseif length(r) ==2 && abs(r[1]+1) < tol && abs(r[2]-1) < tol                        
+        g = linsolve(Multiplication(1-x.^2,space(fc)),fc;tolerance=10eps()) 
+        # divide out singularities, tolerance needs to be chosen since we don't get
+        # spectral convergence
+        # TODO: switch to dirichlet basis
+        Fun(canonicalcoefficients(c./g),JacobiWeightSpace(-1,-1,domain(f)))  
+    else
+        #split at the roots
+        c./splitatroots(f)
+    end
+end
+
+./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=devec(map(f->c./f,vec(f)))
+
 
 
 

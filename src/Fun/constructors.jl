@@ -11,6 +11,8 @@ function Fun(f::Function,d::DomainSpace,n::Integer)
 end
 
 # the following is to avoid ambiguity
+# Fun(f::Fun,d) should be equivalent to Fun(x->f[x],d)
+#TODO: fall back to Fun(x->f[x],d) if conversion not implemented?
 Fun(f::Fun,d::DomainSpace)=Fun(coefficients(f,d),d)
 Fun{T<:DomainSpace}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
 Fun{T<:DomainSpace}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
@@ -22,9 +24,6 @@ Fun{T<:DomainSpace}(f,::Type{T},n::Integer)=Fun(f,T(canonicaldomain(T)),n)
 Fun(f,d::Domain)=Fun(f,Space(d))
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
 
-
-Fun{T<:Number}(f::Fun,d::Vector{T})=Fun(coefficients(f),d)
-#Fun(f::Fun)=Fun(coefficients(f))  ##TODO: should this project to interval?
 
 Fun(c::Number)=Fun([c])
 
@@ -38,6 +37,7 @@ Fun(c::Number,n::Integer)=Fun([c],n)
 
 Fun{T<:Domain}(c::Number,dl::Vector{T})=Fun(c,UnionDomain(dl))
 Fun{T<:Domain}(f,dl::Vector{T})=Fun(f,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::Vector{T},n::Integer)=Fun(f,UnionDomain(dl),n)
 
 ## Adaptive constructors
 
@@ -80,13 +80,18 @@ function zerocfsFun(f::Function,d::DomainSpace)
 
     tol = 200*eps()
 
+    r=rand(d)
+    fr=f(r)
+
     for logn = 4:20
         cf = Fun(f, d, 2^logn + 1)
-        
+        absc=abs(cf.coefficients)
+        maxabsc=maximum(absc)
         
         # we allow for transformed coefficients being a different size
-        if length(cf) > 8 && maximum(abs(cf.coefficients[end-8:end])) < tol*maximum(abs(cf.coefficients[1:8]))
-            return chop!(cf,10eps()*maximum(abs(cf.coefficients)))
+        ##TODO: how to do scaling for unnormalized bases like Jacobi?
+        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  norm(cf[r]-fr)<1E-4  
+            return chop!(cf,10eps()*maxabsc)
         end
     end
     
