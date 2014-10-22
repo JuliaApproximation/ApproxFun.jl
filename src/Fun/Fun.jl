@@ -239,8 +239,8 @@ integrate{D,T}(f::Fun{D,T})=integrate(Fun(f,domain(f)))
 
 *(f::Fun,g::Fun)=f.*g
 ^(f::Fun,k::Integer)=f.^k
-^(f::Fun,k)=f.^k
-/(c,g::Fun)=c./g
+^(f::Fun,k::Union(Number,Fun))=f.^k
+/(c::Union(Number,Fun),g::Fun)=c./g
 
 
 include("constructors.jl")

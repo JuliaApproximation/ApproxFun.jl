@@ -38,6 +38,7 @@ Fun(c::Number,n::Integer)=Fun([c],n)
 
 Fun{T<:Domain}(c::Number,dl::Vector{T})=Fun(c,UnionDomain(dl))
 Fun{T<:Domain}(f,dl::Vector{T})=Fun(f,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::Vector{T},n::Integer)=Fun(f,UnionDomain(dl),n)
 
 ## Adaptive constructors
 
@@ -80,13 +81,17 @@ function zerocfsFun(f::Function,d::DomainSpace)
 
     tol = 200*eps()
 
+    r=fromcanonical(d,0.13452398243690872) #random point in both [-π,π] and [-1,1]
+    fr=f(r)
+
     for logn = 4:20
         cf = Fun(f, d, 2^logn + 1)
-        
+        absc=abs(cf.coefficients)
+        maxabsc=maximum(absc)
         
         # we allow for transformed coefficients being a different size
-        if length(cf) > 8 && maximum(abs(cf.coefficients[end-8:end])) < tol*maximum(abs(cf.coefficients[1:8]))
-            return chop!(cf,10eps()*maximum(abs(cf.coefficients)))
+        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  norm(cf[r]-fr)<10tol*maxabsc
+            return chop!(cf,10eps()*maxabsc)
         end
     end
     
