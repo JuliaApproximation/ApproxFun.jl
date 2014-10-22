@@ -235,5 +235,13 @@ integrate{D,T}(f::Fun{D,T})=integrate(Fun(f,domain(f)))
 
 
 
+## non-vector notation
+
+*(f::Fun,g::Fun)=f.*g
+^(f::Fun,k::Integer)=f.^k
+^(f::Fun,k)=f.^k
+/(c,g::Fun)=c./g
+
+
 include("constructors.jl")
 

@@ -1,6 +1,6 @@
 # division by fun 
 
-./{a,b}(f::Fun{UltrasphericalSpace{a}},g::Fun{UltrasphericalSpace{b}})=linsolve(Multiplication(g,space(f)),f;tolerance=10eps())
+./{S,T,U,V}(f::Fun{S,T},g::Fun{U,V})=f.*(1./g)
 
 for op in (:./,:/)
     @eval begin
@@ -26,8 +26,11 @@ for op in (:./,:/)
             else
                 @assert abs(r[1]+1) < tol
                 @assert abs(r[2]-1) < tol                        
-                
-                Fun(canonicalcoefficients(c./(fc./(1-x.^2))),JacobiWeightSpace(-1,-1,domain(f)))  
+                g = linsolve(Multiplication(1-x.^2,space(fc)),fc;tolerance=10eps()) 
+                # divide out singularities, tolerance needs to be chosen since we don't get
+                # spectral convergence
+                # TODO: switch to dirichlet basis
+                Fun(canonicalcoefficients(c./g),JacobiWeightSpace(-1,-1,domain(f)))  
             end
         end
     end
