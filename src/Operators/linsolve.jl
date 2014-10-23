@@ -80,11 +80,19 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(),ma
         # the ... converts b to a tuple of numbers so that r is a number Vec    
         r=[b...]
     elseif length(b)==size(A,1)
-        r=[b[1:end-1]...,coefficients(b[end],rangespace(A[end]))]
+        if isa(b[end],Fun)
+            r=[b[1:end-1]...,coefficients(b[end],rangespace(A[end]))]
+        else
+            r=[b[1:end-1]...,b[end]...]  #b[end] is probably a vector or a number
+        end
     else 
         # we have list of possible funs, devec
-        #TODO: constants
-        r=[b[1:size(A,1)-1]...,coefficients(devec(b[size(A,1):end]),rangespace(A[end]))]
+        rhs=b[size(A,1):end]
+        if all(f->isa(f,Fun),rhs)
+            r=[b[1:size(A,1)-1]...,coefficients(devec(rhs),rangespace(A[end]))]
+        else
+            r=[b[1:size(A,1)-1]...,interlace(rhs)]
+        end
     end
     
     u=adaptiveqr(A,r,tolerance,maxlength)  ##TODO: depends on ordering of A

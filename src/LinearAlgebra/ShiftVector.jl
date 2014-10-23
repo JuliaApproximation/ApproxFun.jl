@@ -157,6 +157,32 @@ function interlace{T}(v::ShiftVector{T})
     ret
 end
 
+function interlace{T<:Number}(v::Vector{Vector{T}})
+    n=length(v)
+    l=mapreduce(length,max,v)
+    ret=zeros(T,n*l)
+    
+    for k=1:n
+        ret[k:n:k+(length(v[k])-1)*n]=v[k]
+    end
+    ret
+end
+
+function interlace(v::Vector{Any})
+    #determine type
+    T=Float64
+    for vk in v
+        if isa(vk,Vector{Complex{Float64}})
+            T=Complex{Float64}
+        end
+    end
+    b=Array(Vector{T},length(v))
+    for k=1:length(v)
+        b[k]=v[k]
+    end
+    interlace(b)
+end
+
 deinterlace(v::Vector)=ShiftVector(flipud(v[2:2:end]),v[1:2:end])
 
 
