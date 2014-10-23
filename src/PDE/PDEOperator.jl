@@ -145,21 +145,29 @@ function *(c::Number,A::PDEOperator)
 end
 *(A::PDEOperator,c::Number)=c*A
 function *(A::PDEOperator,B::PDEOperator)
-    @assert domain(A)==domain(B)
     # TODO: higher rank operators
     if size(A.ops,1)==size(B.ops,1)==1
         @assert size(A.ops,2)==size(B.ops,2)==2
-        PDEOperator([A.ops[1,1]*B.ops[1,1] A.ops[1,2]*B.ops[1,2]])
+        ops=[A.ops[1,1]*B.ops[1,1] A.ops[1,2]*B.ops[1,2]]
     else
         @assert A==B
         @assert size(A.ops,1)==size(B.ops,1)==2
         @assert size(A.ops,2)==size(B.ops,2)==2 
         
-        PDEOperator([A.ops[1,1]^2 A.ops[1,2]^2;
+        ops=[A.ops[1,1]^2 A.ops[1,2]^2;
                      A.ops[1,1]*A.ops[2,1] A.ops[1,2]*A.ops[2,2];
                      A.ops[2,1]*A.ops[1,1] A.ops[2,2]*A.ops[1,2];                     
                      A.ops[2,1]^2 A.ops[2,2]^2
-                    ],domain(A))                       
+                    ]
+    end
+    
+    if !isa(domain(A),ProductDomain)
+        PDEOperator(ops,domain(A))
+    elseif !isa(domain(B),ProductDomain)
+        PDEOperator(ops,domain(B))
+    else
+        # both are product domains, reconstruct the domain
+        PDEOperator(ops) 
     end
 end
 
