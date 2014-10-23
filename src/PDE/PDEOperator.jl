@@ -10,11 +10,32 @@ type PDEOperator
     # Lx⊗Ly + Mx⊗My
  
     ops::Array{Operator,2}
+    domain::BivariateDomain
+end
+function PDEOperator(LL::Array)
+    j=1;  dx=AnyDomain()
+    for k=1:size(LL,1)
+        d=domain(LL[k,j]) 
+        if d != AnyDomain()
+            dx=d
+            break
+        end
+    end 
+    j=2;  dy=AnyDomain()
+    for k=1:size(LL,1)
+        d=domain(LL[k,j]) 
+        if d != AnyDomain()
+            dy=d
+            break
+        end
+    end   
+    PDEOperator(LL,dx*dy)
 end
 
 
 
-PDEOperator(A,B)=PDEOperator([A B])
+PDEOperator(A::Operator,B::Operator)=PDEOperator([A B])
+PDEOperator(A::Operator,B::Operator,d::BivariateDomain)=PDEOperator([A B],d)
 
 
 domainspace(L::PDEOperator,j::Integer)=findmindomainspace(L.ops[:,j])
@@ -27,20 +48,8 @@ for op in (:domainspace,:rangespace)
 end
 
 
-function domain(LL::PDEOperator,j::Integer)
-    for k=1:size(LL.ops,1)
-        dx=domain(LL.ops[k,j]) 
-        if dx != AnyDomain()
-            return dx
-        end
-    end
-    return AnyDomain()
-end
-
-function domain(LL::PDEOperator)
-    @assert size(LL.ops,2)==2
-    domain(LL,1)⊗domain(LL,2)
-end
+domain(LL::PDEOperator,j::Integer)=domain(LL)[j]
+domain(LL::PDEOperator)=LL.domain
 
 
 Base.transpose(LL::PDEOperator)=PDEOperator(LL.ops[:,end:-1:1])
@@ -55,7 +64,7 @@ function promotedomainspace(P::PDEOperator,S::FunctionSpace,col::Integer)
         ret[k,col]=promotedomainspace(ret[k,col],S)
     end
     
-    PDEOperator(ret)
+    PDEOperator(ret,domain(P))
 end
 promotedomainspace(P::PDEOperator,S::TensorSpace)=promotedomainspace(promotedomainspace(P,S[1],1),S[2],2)
 
@@ -109,10 +118,10 @@ function -(A::PDEOperator)
     PDEOperator(ops)
 end
 
-+(A::UniformScaling,B::PDEOperator)=B+ConstantOperator(1.0A.λ)⊗ConstantOperator(1.0)
-+(B::PDEOperator,A::UniformScaling)=B+ConstantOperator(1.0A.λ)⊗ConstantOperator(1.0)
--(A::UniformScaling,B::PDEOperator)=-B+ConstantOperator(1.0A.λ)⊗ConstantOperator(1.0)
--(B::PDEOperator,A::UniformScaling)=B+ConstantOperator(-1.0A.λ)⊗ConstantOperator(1.0)
++(A::UniformScaling,B::PDEOperator)=B+PDEOperator(ConstantOperator(1.0A.λ),ConstantOperator(1.0),domain(B))
++(B::PDEOperator,A::UniformScaling)=B+PDEOperator(ConstantOperator(1.0A.λ),ConstantOperator(1.0),domain(B))
+-(A::UniformScaling,B::PDEOperator)=-B+PDEOperator(ConstantOperator(1.0A.λ),ConstantOperator(1.0),domain(B))
+-(B::PDEOperator,A::UniformScaling)=B+PDEOperator(ConstantOperator(-1.0A.λ),ConstantOperator(1.0),domain(B))
 
 -(A::PDEOperator,B::PDEOperator)=A+(-B)
 
@@ -121,10 +130,11 @@ function *(c::Number,A::PDEOperator)
     for k=1:size(ops,1)
         ops[k,1]=c*ops[k,1]
     end
-    PDEOperator(ops)
+    PDEOperator(ops,domain(A))
 end
 *(A::PDEOperator,c::Number)=c*A
 function *(A::PDEOperator,B::PDEOperator)
+    @assert domain(A)==domain(B)
     # TODO: higher rank operators
     if size(A.ops,1)==size(B.ops,1)==1
         @assert size(A.ops,2)==size(B.ops,2)==2
@@ -138,7 +148,7 @@ function *(A::PDEOperator,B::PDEOperator)
                      A.ops[1,1]*A.ops[2,1] A.ops[1,2]*A.ops[2,2];
                      A.ops[2,1]*A.ops[1,1] A.ops[2,2]*A.ops[1,2];                     
                      A.ops[2,1]^2 A.ops[2,2]^2
-                    ])                       
+                    ],domain(A))                       
     end
 end
 
@@ -150,7 +160,7 @@ function *(a::Fun,A::PDEOperator)
     for k=1:size(ops,1)
         ops[k,1]=a*ops[k,1]
     end
-    PDEOperator(ops)
+    PDEOperator(ops,domain(A))
 end
 
 Base.diff(d::ProductDomain,k)=k==1?Base.diff(d.domains[1])⊗I:I⊗Base.diff(d.domains[2])  
