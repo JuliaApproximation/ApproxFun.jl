@@ -96,3 +96,20 @@ end
 chop(f::Vector,tol)=chop!(copy(f),tol)
 chop!(f::Vector)=chop!(f,eps())
 
+
+function chop!(A::Array,tol)
+    for k=size(A,1):-1:1
+        if norm(A[k,:])>tol
+            A=A[1:k,:]
+            break
+        end
+    end
+    for k=size(A,2):-1:1
+        if norm(A[:,k])>tol
+            A=A[:,1:k]
+            break
+        end
+    end    
+    return A
+end
+

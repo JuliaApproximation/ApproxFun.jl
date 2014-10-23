@@ -86,6 +86,26 @@ ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Sp
 
 
 
+function ProductFun(f::Function,D)
+    Nmax=400
+    
+    tol=1E-12
+    
+    for N=50:25:Nmax
+        X=coefficients(ProductFun(f,D,N,N))
+        if norm(X[end-3:end,:])<tol && norm(X[:,end-3:end])<tol
+            chop!(X,tol)
+            return ProductFun(X,D)
+        end
+    end
+    error("Maximum grid reached")
+    ProductFun(f,D,Nmax,Nmax)
+end
+    
+
+
+
+
 # For specifying spaces by anonymous function
 ProductFun(f::Function,SF::Function,T::FunctionSpace,N::Integer,M::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:M],T,N)
 
