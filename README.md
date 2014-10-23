@@ -116,7 +116,7 @@ on a disk
     ApproxFun.plot(u)                           # Requires PyPlot
 	
 We can also evolve PDEs.  The following solves advection—diffusion 
-`u_t = Δu - 4u_x -3u_y` on a rectangle
+`u_t = 0.01Δu - 4u_x -3u_y` on a rectangle
 
     d=Interval()^2
     u0   = Fun((x,y)->exp(-40(x-.1)^2-40(y+.2)^2),d)
