@@ -424,7 +424,7 @@ end
 function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
     @assert space(f,2)==space(sp,2)
     
-    n=size(f,2)
+    n=min(size(f,2),length(sp.S))
     F=[coefficients(f.coefficients[k],rangespace(sp.S.Rdiags[k])) for k=1:n]
     m=mapreduce(length,max,F)
     ret=zeros(T,m,n)
