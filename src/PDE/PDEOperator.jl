@@ -88,6 +88,7 @@ promotedomainspace(P::PDEOperator,S::TensorSpace)=promotedomainspace(promotedoma
 
 
 function +(A::PDEOperator,B::PDEOperator)
+
     ret=copy(A.ops)
     for k=1:size(B.ops,1)
         ##TODO: might not be ordered
@@ -99,7 +100,17 @@ function +(A::PDEOperator,B::PDEOperator)
             ret=[ret;B.ops[k,:]]
         end
     end
-    PDEOperator(ret)
+    
+    # the following is so operators know
+    # they are on Disk
+    if !isa(domain(A),ProductDomain)
+        PDEOperator(ret,domain(A))
+    elseif !isa(domain(B),ProductDomain)
+        PDEOperator(ret,domain(B))
+    else
+        # both are product domains, reconstruct the domain
+        PDEOperator(ret) 
+    end
 end
 
 function lap(d::ProductDomain)
@@ -379,6 +390,8 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
     PDEProductOperatorSchur(BxV,Rdiags,sp,indsBx)
 end
 
+PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::BivariateDomain,nt::Integer)=PDEProductOperatorSchur(A,Space(sp),nt)
+
 
 ##TODO: Larger Bx
 bcinds(S::PDEProductOperatorSchur,k)=k==1?S.indsBx:[]
@@ -425,12 +438,14 @@ end
 
 ## Constructuor
 
-Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=PDEOperatorSchur(A,n)
+
+
+Base.schurfact{T<:PDEOperator}(A::Vector{T},S::ProductDomain,n::Integer)=PDEOperatorSchur(A,n)
+Base.schurfact{T<:PDEOperator}(A::Vector{T},S::BivariateDomain,n::Integer)=PDEProductOperatorSchur(A,S,n)
+
+
+Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=schurfact(A,domain(A[end]),n)
 Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
-Base.schurfact{T<:PDEOperator}(A::Vector{T},S::TensorSpace,n::Integer)=schurfact(A,n)
-Base.schurfact{T<:PDEOperator}(A::Vector{T},S::AbstractProductSpace,n::Integer)=PDEProductOperatorSchur(A,S,n)
-
-
 
 function *(A::PDEProductOperatorSchur,F::ProductFun)
     ret=copy(F.coefficients)

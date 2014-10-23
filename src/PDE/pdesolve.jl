@@ -72,8 +72,8 @@ function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
     cont_constrained_lyap(A,fy,fx,F,nx)
 end
 
-pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,nx::Integer,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f,nx)
-pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f)
+pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,nx::Integer,ny::Integer)=pdesolve_mat(schurfact(A,ny),f,nx)
+pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(schurfact(A,ny),f)
 
 
 
@@ -90,15 +90,14 @@ function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,tol::Real)
     end
     error("Maximum number of iterations " * string(maxit) * "reached")
 end
-
+#TODO: Disk()
+pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector)=TensorFun(pdesolve_mat(A,f),domainspace(A[end],2))
 
 
 pdesolve(A::AbstractPDEOperatorSchur,f::Vector,nx...)=Fun(pdesolve_mat(A,f,nx...),domainspace(A))
 pdesolve(A::AbstractPDEOperatorSchur,f::MultivariateFun,nx...)=pdesolve(A,[f],nx...)
-pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector)=TensorFun(pdesolve_mat(A,f),domainspace(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n...)=TensorFun(pdesolve_mat(A,f,n...),domainspace(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f::Fun,n...)=pdesolve(A,[f],n...)
-pdesolve{T<:PDEOperator}(A::Vector{T},f::MultivariateFun,n...)=pdesolve(A,[f],n...)
+pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n,n2...)=pdesolve(schurfact(A,n),f,n2...)
+pdesolve{T<:PDEOperator}(A::Vector{T},f::Union(Fun,MultivariateFun,Number),n...)=pdesolve(A,[f],n...)
 pdesolve(A::PDEOperator,f...)=pdesolve([A],f...)
 
 
