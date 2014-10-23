@@ -11,7 +11,7 @@ g = cumsum(f)
 g = g + f[-1]
 @test norm(f - g)<eps()
 
-@test norm(Fun(exp).*Fun(cos)-Fun(x->exp(x).*cos(x)))<eps()
+@test norm(Fun(exp)*Fun(cos)-Fun(x->exp(x)*cos(x)))<eps()
 @test norm((Fun(exp)+Fun(cos))-Fun(x->exp(x)+cos(x)))<eps()
 
 

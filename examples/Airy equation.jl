@@ -4,7 +4,7 @@ using ApproxFun
 
 	x=Fun(x->x,[-1000.,15.])   # Fun corresponding to multiplication by x, on [-100,15]
     d=domain(x)                # The domain 
-    D2=diff(d,2)               # The second derivative operator
+    D2=Derivative(d,2)         # The second derivative operator
     B=dirichlet(d)             # Dirichlet boundary conditions, [u[-100],u[15]]
     
     
