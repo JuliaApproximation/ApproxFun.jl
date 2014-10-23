@@ -115,6 +115,32 @@ on a disk
     u=[dirichlet(d),lap(d)]\[0.,f]
     ApproxFun.plot(u)                           # Requires PyPlot
 	
+We can also evolve PDEs.  The following solves advection—diffusion 
+`u_t = Δu - 4u_x -3u_y` on a rectangle
+
+    d=Interval()^2
+    u0   = Fun((x,y)->exp(-40(x-.1)^2-40(y+.2)^2),d)
+    B=dirichlet(d)
+    D=Derivative(Interval())
+    L=(0.01D^2-4D)⊗I + I⊗(0.01D^2-3D)
+    h=0.002
+    timeevolution(B,L,u0,h)                    # Requires GLPlot
+
+The following solves beam equation `u_tt + Δ^2u = 0`
+on a disk
+
+
+    d=Disk()
+    u0   = Fun((x,y)->exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5).^2-40(y+.2).^2),d)
+    B= [dirichlet(d) ,neumann(d)]
+    L=-lap(d)^2
+    h    = 0.001
+    timeevolution(2,B,L,u0,h)                 # Requires GLPlot
+
+
+
+
+
 	
 # References
 
