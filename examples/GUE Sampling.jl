@@ -2,8 +2,8 @@ using ApproxFun
 
 #The following samples eigenvalues of an n = 2 Gaussian Unitary Ensemble:
 
-ff=(x,y)->(x.-y).^2.*exp(-x.^2/2.-y.^2/2);
-f=LowRankFun(ff,[-4.,4.],[-4.,4.]);
+ff=(x,y)->(x-y)^2*exp(-x^2/2.-y^2/2)
+f=LowRankFun(ff,[-4.,4.],[-4.,4.])
 r=sample(f,5000)
 
 

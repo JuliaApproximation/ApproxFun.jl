@@ -31,7 +31,7 @@ end
 
  # Semicircle law
 x=Fun(x->x,[-2.,2.])
-w=sqrt(4-x.^2)/(2π)
+w=sqrt(4-x^2)/(2π)
 
 lanczos(w,5)
 
@@ -44,7 +44,7 @@ lmin = (1-sqrt(r))^2
 
 x= Fun(identity,[lmin,lmax])
 
-w=sqrt((lmax-x).*(x-lmin))./(π*x)
+w=sqrt((lmax-x)*(x-lmin))/(π*x)
 
 lanczos(w,5)
 
@@ -60,6 +60,6 @@ lmin = (c-d)^2
 
 x = Fun(identity,[lmin,lmax])
 
-w = (a+b) * sqrt((x-lmin).*(lmax-x))./(2π*x.*(1-x))
+w = (a+b)*sqrt((x-lmin).*(lmax-x))/(2π*x*(1-x))
 
 lanczos(w,5)

@@ -95,11 +95,11 @@ end
 function lap(S::Disk)
     D=Derivative()
     r=Fun(identity,[S.radius,0.])
-    (D^2+(1./r)*D)⊗I+(1./r).^2⊗D^2
+    PDEOperator(((D^2+(1./r)*D)⊗I+(1./r).^2⊗D^2).ops,S)
 end
 
-neumann(S::Disk)=lneumann()⊗I
-dirichlet(S::Disk)=ldirichlet()⊗I
-diffbcs(S::Disk,k::Integer)=ldiffbc(k)⊗I
+neumann(S::Disk)=PDEOperator((lneumann()⊗I).ops,S)
+dirichlet(S::Disk)=PDEOperator((ldirichlet()⊗I).ops,S)
+diffbcs(S::Disk,k::Integer)=PDEOperator((ldiffbc(k)⊗I).ops,S)
 
 

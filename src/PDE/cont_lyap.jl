@@ -138,7 +138,7 @@ function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gyin,Gxin,F::Array,nx
 
     for k=1:n
         op=OS.Rdiags[k]
-        rhs=[Gx[:,k],F[:,k]]::Vector{Complex{Float64}}
+        rhs=[Gx[:,k]+0.0im,F[:,k]]::Vector{Complex{Float64}}
         Y[k]=chop!(linsolve([OS.Bx[k],op],rhs;maxlength=nx),eps())
     end  
     
@@ -194,7 +194,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             A=[blkdiag(OS.Bx,OS.Bx);
                 OS.S.R[k-1:k,k-1:k].*OS.Lx+OS.S.T[k-1:k,k-1:k].*OS.Mx]
             b={Gx[:,k-1]...,Gx[:,k]...,rhs1,rhs2}
-            y=linsolve(A,b;maxlength=nx)
+            y=vec(linsolve(A,b;maxlength=nx))
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
         
             PY[k-1]=OS.Lx*Y[k-1].coefficients; PY[k]=OS.Lx*Y[k].coefficients

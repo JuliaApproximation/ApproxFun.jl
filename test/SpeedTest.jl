@@ -68,3 +68,13 @@ u=S\f
 u=S\f
 @time u=S\f;
 println("Laplace: should be ~0.04, 0.02")
+
+
+
+d=Interval()^2
+S=schurfact([neumann(d),lap(d)+100I],100)
+u=S\ones(4)
+u=S\ones(4)
+@time u=S\ones(4)
+println("Neumann Helmholtz: should be ~0.06")
+

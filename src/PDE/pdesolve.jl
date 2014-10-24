@@ -72,11 +72,11 @@ function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
     cont_constrained_lyap(A,fy,fx,F,nx)
 end
 
-pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,nx::Integer,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f,nx)
-pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(PDEOperatorSchur(A,ny),f)
+pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,nx::Integer,ny::Integer)=pdesolve_mat(schurfact(A,ny),f,nx)
+pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(schurfact(A,ny),f)
 
 
-
+##TODO: Do we need pdesolve_mat adaptive routine?
 pdesolve_mat{T<:PDEOperator}(A::Vector{T},f)=pdesolve_mat(A,f,10000eps())
 function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,tol::Real)
     @assert tol>0
@@ -93,12 +93,25 @@ end
 
 
 
+pdesolve{T<:PDEOperator}(A::Vector{T},f)=pdesolve(A,f,10000eps())
+function pdesolve{T<:PDEOperator}(A::Vector{T},f,tol::Real)
+    @assert tol>0
+    maxit=11
+   
+    for k=5:maxit
+        u=pdesolve(A,f,2^k)
+        if norm(map(f->norm(f.coefficients),u.coefficients[end-2:end]))<tol
+            return u
+        end
+    end
+    error("Maximum number of iterations " * string(maxit) * "reached")
+end
+
+
 pdesolve(A::AbstractPDEOperatorSchur,f::Vector,nx...)=Fun(pdesolve_mat(A,f,nx...),domainspace(A))
 pdesolve(A::AbstractPDEOperatorSchur,f::MultivariateFun,nx...)=pdesolve(A,[f],nx...)
-pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector)=TensorFun(pdesolve_mat(A,f),domainspace(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n...)=TensorFun(pdesolve_mat(A,f,n...),domainspace(A[end],2))
-pdesolve{T<:PDEOperator}(A::Vector{T},f::Fun,n...)=pdesolve(A,[f],n...)
-pdesolve{T<:PDEOperator}(A::Vector{T},f::MultivariateFun,n...)=pdesolve(A,[f],n...)
+pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)
+pdesolve{T<:PDEOperator}(A::Vector{T},f::Union(Fun,MultivariateFun,Number),n...)=pdesolve(A,[f],n...)
 pdesolve(A::PDEOperator,f...)=pdesolve([A],f...)
 
 
@@ -153,7 +166,7 @@ pdesolve(A::PDEOperator,f...)=pdesolve([A],f...)
 
 \{T<:PDEOperator}(A::Vector{T},f::Vector)=pdesolve(A,f)
 \(A::AbstractPDEOperatorSchur,f::Vector)=pdesolve(A,f)
-\{T<:PDEOperator}(A::Vector{T},f::Fun)=pdesolve(A,f)
+\{T<:PDEOperator}(A::Vector{T},f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
 \(A::AbstractPDEOperatorSchur,f::Fun)=pdesolve(A,f)
-\(A::AbstractPDEOperatorSchur,f::MultivariateFun)=pdesolve(A,f)
-\(A::PDEOperator,f::MultivariateFun)=pdesolve(A,f)
+\(A::AbstractPDEOperatorSchur,f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
+\(A::PDEOperator,f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
