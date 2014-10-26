@@ -48,7 +48,7 @@ following code samples 10,000 standard normals:
 
 	f = Fun(x->exp(-x^2),[-10,10])
 	x = ApproxFun.sample(f,10000)
-    ApproxFun.plot(f)             				# 2D plotting requires Gadfly
+    ApproxFun.plot(f)             				# 2D plotting requires Gadfly or PyPlot
 	Gadfly.plot(x=x,Gadfly.Geom.histogram)
 	
 We can apply this to any positive smooth PDF.  
@@ -59,7 +59,7 @@ There is also support for Fourier representations of functions on periodic inter
 Use `FFun` to ensure that the representation is periodic:
 
 	f = FFun(cos)
-	ApproxFun.plot(f)						    # Requires Gadfly
+	ApproxFun.plot(f)						    # Requires Gadfly or PyPlot
 
 The default domain is `[-π,π]`.  
 
@@ -92,7 +92,7 @@ We can solve ODEs, the following solves the Airy equation `u' = x u` as a BVP on
 	D=Derivative(d)
 	u = [dirichlet(d),D^2 - x] \ [airyai(d.a),0.]
 	
-	ApproxFun.plot(u)						    # Requires Gadfly
+	ApproxFun.plot(u)						    # Requires Gadfly or PyPlot
 	
 # Solving partial differential equations
 
@@ -104,7 +104,7 @@ on a square
     
     u=[dirichlet(d),lap(d)+100I]\ones(4)		# First four entries of rhs are 
     											# boundary conditions
-    ApproxFun.contour(u)						# Requires Gadfly
+    ApproxFun.contour(u)						# Requires Gadfly or PyPlot
 
 
 The following solves Poisson `Δu =f` with zero Dirichlet conditions
@@ -113,7 +113,7 @@ on a disk
     d=Disk()
     f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
     u=[dirichlet(d),lap(d)]\[0.,f]
-    ApproxFun.plot(u)                           # Requires PyPlot
+    ApproxFun.plot(u)                           # Requires Gadfly or PyPlot
 	
 We can also evolve PDEs.  The following solves advection—diffusion 
 `u_t = 0.01Δu - 4u_x -3u_y` on a rectangle
