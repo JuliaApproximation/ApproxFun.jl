@@ -131,7 +131,7 @@ on a disk
 
 
     d=Disk()
-    u0   = Fun((x,y)->exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5).^2-40(y+.2).^2),d)
+    u0   = Fun((x,y)->exp(-50x^2-40(y-.1)^2)+.5exp(-30(x+.5)^2-40(y+.2)^2),d)
     B= [dirichlet(d) ,neumann(d)]
     L=-lap(d)^2
     h    = 0.001
