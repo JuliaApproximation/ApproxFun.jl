@@ -211,7 +211,7 @@ function complexroots{T<:Number}(coefficients::ShiftVector{T})
     c=chop(coefficients.vector,10eps())
     n=length(c)-1
     A=zeros(T,n,n)
-    A[:,end]=c[1:end-1]/c[end]
+    A[:,end]=-c[1:end-1]/c[end]
     for k=2:n
         A[k,k-1]=1.
     end
