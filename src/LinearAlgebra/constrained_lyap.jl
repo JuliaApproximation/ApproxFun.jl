@@ -39,9 +39,7 @@ function regularize_bcs(B::Array)
     K = size(B,1)
     
     # we invert the principle block of R
-    # so that the BC leads with the identity
-    R = inv(R[:,1:K])*R
-    
+    # so that the BC leads with the identity    
     Q = inv(R[:,1:K])*Q'    
     R = inv(R[:,1:K])*R    
     
