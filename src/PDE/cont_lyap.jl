@@ -76,7 +76,7 @@ adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 # end
 
 
-function cont_reduce_dofs{T<:Fun}( A::Array,G::Vector{T},M::Operator,F::Array )
+function cont_reduce_dofs{T<:Fun}( A::AbstractArray,G::Vector{T},M::Operator,F::AbstractArray )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
         # MXR'[:,k]*A'[k,:]  from MXA'
@@ -94,7 +94,26 @@ function cont_reduce_dofs{T<:Fun}( A::Array,G::Vector{T},M::Operator,F::Array )
     F
 end
 
-function cont_reduce_dofs{T<:Fun}(S::OperatorSchur,G::Vector{T},L::Operator,M::Operator,F::Array)
+
+function cont_reduce_dofs{T<:Fun}( A::AbstractArray,G::Vector{T},M::AbstractArray,F::AbstractArray )
+        # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
+        # then kill the row by subtracting
+        # MXR'[:,k]*A'[k,:]  from MXA'
+        # i.e., subtacting A[:,k]*R[k,:] from A
+        # and M*G'[:,k]*A'[k,:] from F
+        # i.e. M*G[k]*A[:,k]' from 
+        
+    for k = 1:length(G)
+        MG = M*pad(G[k].coefficients,size(M,2))         # coefficients in the range space of M      
+        MGA = MG*full(A[:,k]).'
+        m=max(size(F,1),size(MGA,1))
+        F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
+    end
+        
+    F
+end
+
+function cont_reduce_dofs{T<:Fun}(S::OperatorSchur,G::Vector{T},L::Operator,M::Operator,F::AbstractArray)
     F=cont_reduce_dofs(S.Lcols,G,L,F)
     cont_reduce_dofs(S.Mcols,G,M,F)    
 end

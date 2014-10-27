@@ -24,7 +24,7 @@ end
 # We also need to update L & M in
 #    LX* + MX* = *
 # to reflect the new ordering of rows of X
-function regularize_bcs(B::Array, G::Array)
+function regularize_bcs(B::Array)
 
     # permute rows of X/columns of B so principle block of B is nonsingular
     P = nonsingular_permute(B)
@@ -40,11 +40,24 @@ function regularize_bcs(B::Array, G::Array)
     
     # we invert the principle block of R
     # so that the BC leads with the identity
-    G = inv(R[:,1:K])*Q'*G
     R = inv(R[:,1:K])*R
+    
+    Q = inv(R[:,1:K])*Q'    
+    R = inv(R[:,1:K])*R    
+    
+    R,Q,P
+end
+
+function regularize_bcs(B::Array, G::Array)
+    R,Q,P=regularize_bcs(B)
+    # we invert the principle block of R
+    # so that the BC leads with the identity
+    G = Q*G
+
     
     R,G,P
 end
+
 
 function regularize_bcs(B::Array, G::Array, L::Array, M::Array)
     if length(B) == 0
@@ -57,6 +70,38 @@ function regularize_bcs(B::Array, G::Array, L::Array, M::Array)
     end
     
     R,G, L, M, P    
+end
+
+# Result satisfies
+#       inv(Q)*R*P' == B
+#       L*P' == L (input)
+#       M*P' == M (input)
+function regularize_bcs(B::Array, L::Array, M::Array)
+    if length(B) == 0
+        R = B
+        P = eye(size(L,2))
+        Q= eye(0)
+    else
+        R,Q,P=regularize_bcs(B)    
+
+        L = L*P
+        M = M*P
+    end
+    
+    R,Q,L,M,P
+end
+
+
+function regularize_bcs(B::Array,Ls::Vector{Any})
+   if length(B) == 0
+        R = B
+        P = eye(size(L,2))
+        Q= eye(0)
+    else
+        R,Q,P=regularize_bcs(B)    
+        Ls=[L*P for L in Ls]
+    end
+    R,Q,Ls,P            
 end
 
 

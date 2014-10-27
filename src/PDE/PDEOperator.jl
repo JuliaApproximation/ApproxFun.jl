@@ -304,8 +304,9 @@ function PDEOperatorSchur(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)
    PDEOperatorSchur(Bx,A.ops[1,1],A.ops[2,1],OperatorSchur(By,A.ops[1,2],A.ops[2,2],ny),indsBx,indsBy)
 end
 
-isxfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,1])<:Functional
-isyfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,2])<:Functional
+isfunctional(B::PDEOperator,k::Integer)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,k])<:Functional
+isxfunctional(B::PDEOperator)=isfunctional(B,1)
+isyfunctional(B::PDEOperator)=isfunctional(B,2)
 ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
 
 
@@ -313,16 +314,19 @@ bcinds(S::PDEOperatorSchur,k)=k==1?S.indsBx:S.indsBy
 numbcs(S::AbstractPDEOperatorSchur,k)=length(bcinds(S,k))
 Base.length(S::PDEOperatorSchur)=size(S.S,1)
 
+function findfunctionals{T<:PDEOperator}(A::Vector{T},k::Integer)
+    indsBx=find(f->isfunctional(f,k),A)
+    indsBx,Functional[(@assert Ai.ops[1,k==1?2:1]==ConstantOperator{Float64}(1.0); Ai.ops[1,k]) for Ai in A[indsBx]]    
+end
+
 
 
 function PDEOperatorSchur{T<:PDEOperator}(A::Vector{T},ny::Integer)
-    indsBx=find(isxfunctional,A)
-    Bx=Functional[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[indsBx]]
-    indsBy=find(isyfunctional,A)
-    By=Functional[(@assert Ai.ops[1,1]==ConstantOperator{Float64}(1.0); Ai.ops[1,2]) for Ai in A[indsBy]]
+    indsBx,Bx=findfunctionals(A,1)
+    indsBy,By=findfunctionals(A,2)    
+
     inds=find(ispdeop,A)
-    @assert length(inds)==1&&inds[1]==length(A)
-    
+    @assert length(inds)==1&&inds[1]==length(A)    
     LL=A[end]
     
     
