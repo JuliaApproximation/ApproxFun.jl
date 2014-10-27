@@ -76,7 +76,7 @@ adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 # end
 
 
-function cont_reduce_dofs{T<:Fun}( A::AbstractArray,G::Vector{T},M::Operator,F::AbstractArray )
+function cont_reduce_dofs{T<:Fun,NT<:Number}( A::AbstractArray{NT},G::Vector{T},M::Operator,F::AbstractArray )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
         # MXR'[:,k]*A'[k,:]  from MXA'
@@ -86,7 +86,7 @@ function cont_reduce_dofs{T<:Fun}( A::AbstractArray,G::Vector{T},M::Operator,F::
         
     for k = 1:length(G)
         MG = M*G[k].coefficients         # coefficients in the range space of M      
-        MGA = MG*A[:,k].'
+        MGA = MG*full(A[:,k]).'
         m=max(size(F,1),size(MGA,1))
         F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
     end
@@ -95,7 +95,7 @@ function cont_reduce_dofs{T<:Fun}( A::AbstractArray,G::Vector{T},M::Operator,F::
 end
 
 
-function cont_reduce_dofs{T<:Fun}( A::AbstractArray,G::Vector{T},M::AbstractArray,F::AbstractArray )
+function cont_reduce_dofs{T<:Fun,NT<:Number}( A::AbstractArray{NT},G::Vector{T},M::AbstractArray,F::AbstractArray )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
         # MXR'[:,k]*A'[k,:]  from MXA'
@@ -120,9 +120,9 @@ end
 
 
 
-function cont_reduce_dofs{T<:Fun}(Ax::Vector,Ay::Vector,G::Vector{T},F::AbstractArray)
+function cont_reduce_dofs{T<:Fun,M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G::Vector{T},F::AbstractArray)
     @assert length(Ax)==length(Ay)
-    for k=1:length(Ax.ops)
+    for k=1:length(Ax)
         F=cont_reduce_dofs(Ax[k],G,Ay[k],F)
     end
     

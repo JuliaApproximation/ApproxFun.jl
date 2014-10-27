@@ -18,7 +18,7 @@ function ReducedDiscreteOperators(Bx,Ls,nx)
     K=length(Bx)
     opcols=SparseMatrixCSC{Float64,Int64}[sparse(L[:,1:K]) for L in LLs]
     R,Q,LLs,P=regularize_bcs(B,LLs)
-    ops=SparseMatrixCSC{Float64,Int64}[sparse(cont_reduce_dofs(B,L)[:,K+1:end]) for L in LLs]
+    ops=SparseMatrixCSC{Float64,Int64}[sparse(cont_reduce_dofs(R,L)[:,K+1:end]) for L in LLs]
     ReducedDiscreteOperators(P,Q,R,ops,opcols,domainspace(Ls[1]),rangespace(Ls[1]))
 end
 
@@ -37,8 +37,8 @@ end
 regularize_bcs(S::ReducedDiscreteOperators,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
 
 
-function cont_reduce_dofs{T<:Fun,OT<:Operator}(Ax::ReducedDiscreteOperators,Ay::Vector{OT},G::Vector{T},F)
+function cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::Vector,G::Vector{T},F)
     G=regularize_bcs(Ax,G)
-    cont_reduce_dofs(Ax.opcols,G,Ay,F)
+    cont_reduce_dofs(Ax.opcols,Ay,G,F)
 end
-cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators,G,F)=cont_reduce_dofs(Ax,Ay.ops,G,F)
+cont_reduce_dofs(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators,G,F)=cont_reduce_dofs(Ax,Ay.ops,G,F)
