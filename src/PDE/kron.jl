@@ -34,10 +34,11 @@ function Base.kron(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators)
 end
 
 
-function cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,G::Vector{T},F::AbstractArray)
-    for k=1:length(Ax.ops)
-        F=cont_reduce_dofs(Ax.opcols[k],G,Ax.ops[k],F)
-    end
-    
-    F
+regularize_bcs(S::ReducedDiscreteOperators,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
+
+
+function cont_reduce_dofs{T<:Fun,OT<:Operator}(Ax::ReducedDiscreteOperators,Ay::Vector{OT},G::Vector{T},F)
+    G=regularize_bcs(Ax,G)
+    cont_reduce_dofs(Ax.opcols,G,Ay,F)
 end
+cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators,G,F)=cont_reduce_dofs(Ax,Ay.ops,G,F)

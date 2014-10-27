@@ -119,6 +119,19 @@ function cont_reduce_dofs{T<:Fun}(S::OperatorSchur,G::Vector{T},L::Operator,M::O
 end
 
 
+
+function cont_reduce_dofs{T<:Fun}(Ax::Vector,Ay::Vector,G::Vector{T},F::AbstractArray)
+    @assert length(Ax)==length(Ay)
+    for k=1:length(Ax.ops)
+        F=cont_reduce_dofs(Ax[k],G,Ay[k],F)
+    end
+    
+    F
+end
+
+
+
+
 regularize_bcs(S::OperatorSchur,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
 
 
