@@ -41,4 +41,7 @@ function cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::Vector,G::Vec
     G=regularize_bcs(Ax,G)
     cont_reduce_dofs(Ax.opcols,Ay,G,F)
 end
-cont_reduce_dofs(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators,G,F)=cont_reduce_dofs(Ax,Ay.ops,G,F)
+function cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators,G::Vector{T},F)
+    G=regularize_bcs(Ax,G)
+    cont_reduce_dofs(Ax.opcols,Ay.ops,coefficients(G)[:,length(Ay.bcs)+1:end],F)
+end
