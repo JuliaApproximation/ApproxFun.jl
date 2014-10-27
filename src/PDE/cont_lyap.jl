@@ -99,9 +99,9 @@ end
 # A is ∞ x K list of opcols
 # M is ∞ x ∞ operator
 function cont_reduce_dofs{NT<:Number,T<:Number}( A::AbstractArray{NT},M::AbstractArray{T},G::Array,F::AbstractArray )
-    MGA=M*G*full(A).'
+    MGA=M*pad(G,size(M,1),size(G,2))*full(A).'
     m=max(size(MGA,1),size(F,1))
-    pad(F,size(F,2))-pad(MGA,m,size(F,2))
+    pad(F,m,size(F,2))-pad(MGA,m,size(F,2))
 end
 
 

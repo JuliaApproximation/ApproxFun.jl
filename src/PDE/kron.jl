@@ -12,6 +12,9 @@ type ReducedDiscreteOperators{BT,MT}
     rangespace::FunctionSpace
 end
 
+numbcs(A::ReducedDiscreteOperators)=size(A.bcs,1)
+Base.size(A::ReducedDiscreteOperators,k...)=size(A.ops,k...)
+
 function ReducedDiscreteOperators(Bx,Ls,nx)
     Ls=promotespaces(Ls)
     B,LLs=pdetoarray(Bx,Ls,nx)
@@ -43,5 +46,5 @@ function cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::Vector,G::Vec
 end
 function cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators,G::Vector{T},F)
     G=regularize_bcs(Ax,G)
-    cont_reduce_dofs(Ax.opcols,Ay.ops,coefficients(G)[:,length(Ay.bcs)+1:end],F)
+    cont_reduce_dofs(Ax.opcols,Ay.ops,coefficients(G)[numbcs(Ay)+1:end,:],F)
 end
