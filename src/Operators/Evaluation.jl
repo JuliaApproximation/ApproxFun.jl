@@ -2,29 +2,42 @@ export Evaluation
 
 ## Evaluation constructors
 
+abstract AbstractEvaluation{T}<:Functional{T}
+
 # M = Bool if endpoint
-type Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Functional{T}
+immutable Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: AbstractEvaluation{T}
     space::S
     x::M
     order::Int
 end
-Evaluation(sp::AnySpace,x::Bool)=Evaluation{AnySpace,Bool,Float64}(sp,x,0)
 Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,Float64}(sp,x,k)
 Evaluation{M,S<:IntervalDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Float64}(sp,x,order)
 Evaluation{M,S<:PeriodicDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Complex{Float64}}(sp,x,order)
 
-
+#Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
 Evaluation(d::IntervalDomain,x::Union(Number,Bool),n...)=Evaluation(ChebyshevSpace(d),x,n...)
 Evaluation(d::PeriodicDomain,x::Number,n...)=Evaluation(LaurentSpace(d),complex(x),n...)
 Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
 Evaluation(x::Union(Number,Bool))=Evaluation(Interval(),x,0)
 
-domainspace(E::Evaluation)=E.space
-domain(E::Evaluation)=domain(E.space)
 
-promotedomainspace(E::Evaluation,sp::FunctionSpace)=Evaluation(sp,E.x,E.order)
 
+## EvaluationWrapper
+
+immutable EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functional,T<:Number} <: AbstractEvaluation{T}
+    space::S
+    x::M
+    order::Int
+    functional::FS
+end
+
+EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functional}(sp::S,x::M,order::Integer,func::FS)=EvaluationWrapper{S,M,FS,Float64}(sp,x,order,func)
+getindex(E::EvaluationWrapper,kr::Range)=getindex(E.functional,kr)
+
+domainspace(E::AbstractEvaluation)=E.space
+domain(E::AbstractEvaluation)=domain(E.space)
+promotedomainspace(E::AbstractEvaluation,sp::FunctionSpace)=Evaluation(sp,E.x,E.order)
 
 ## Convenience routines
 

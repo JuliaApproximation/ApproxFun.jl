@@ -189,31 +189,25 @@ grad(d::ProductDomain)=[Base.diff(d,k) for k=1:length(d.domains)]
 
 
 
-
-function dirichlet(d::ProductDomain)
-    @assert length(d.domains)==2
-    Bx=dirichlet(d.domains[1])
-    By=dirichlet(d.domains[2])
-    [Bx⊗I,I⊗By]
+for op in (:dirichlet,:neumann,:diffbcs)
+    @eval begin
+        function $op(d::Union(ProductDomain,TensorSpace),k...)
+            @assert length(d)==2
+            Bx=$op(d[1],k...)
+            By=$op(d[2],k...)
+            [Bx⊗I,I⊗By]
+        end
+    end
 end
 
-function neumann(d::ProductDomain)
-    @assert length(d.domains)==2
-    Bx=neumann(d.domains[1])
-    By=neumann(d.domains[2])
-    [Bx⊗I,I⊗By]
-end
 
-function timedirichlet(d::ProductDomain)
+function timedirichlet(d::Union(ProductDomain,TensorSpace))
     @assert length(d.domains)==2
     Bx=dirichlet(d.domains[1])
     Bt=dirichlet(d.domains[2])[1]
     [I⊗Bt,Bx⊗I]
 end
 
-for op in (:lap,:neumann,:dirichlet,:diffbcs)
-    @eval $op(d::MultivariateFunctionSpace)=$op(domain(d))
-end
 
 
 function *{S,T}(L::PDEOperator,f::LowRankFun{S,T})
