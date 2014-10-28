@@ -103,17 +103,33 @@ maxspace(a::FunctionSpace,b::AnySpace)=a
 maxspace(b::AnySpace,a::FunctionSpace)=a
 function maxspace(a::FunctionSpace,b::FunctionSpace)
     if a==b    
-        a
-    else
-        cr=conversion_type(a,b)
-        if cr==a
-            b
-        elseif cr ==b
-            a
-        else
-            NoSpace()
+        return a
+    end
+    
+    cr=conversion_type(a,b)
+    if cr==a
+        return b
+    elseif cr ==b
+        return a
+    end
+    
+    # check if its banded through canonicalspace
+    cspa=canonicalspace(a)
+    cspb=canonicalspace(b)
+    if cspa==cspb && cspa != a && cspb !=b
+        #TODO: maybe csp and a have maxspace that
+        #     differs
+        csp=cspa
+        if maxspace(csp,a)==csp
+            return maxspace(b,csp)
+        elseif maxspace(csp,b)==csp
+            return maxspace(a,csp)            
         end
     end
+
+
+    
+    NoSpace()
 end
 
 
