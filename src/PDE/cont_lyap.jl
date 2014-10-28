@@ -75,6 +75,11 @@ adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 #     A, F
 # end
 
+function adaptiveminus(F::Matrix,G::Matrix)
+    m=max(size(F,1),size(G,1))
+    n=max(size(F,2),size(G,2))
+    pad(F,m,n) - pad(G,m,n)    
+end
 
 function cont_reduce_dofs{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,G::Vector{T},F::AbstractArray )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
@@ -87,8 +92,7 @@ function cont_reduce_dofs{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,G
     for k = 1:length(G)
         MG = M*G[k].coefficients         # coefficients in the range space of M      
         MGA = MG*full(A[:,k]).'
-        m=max(size(F,1),size(MGA,1))
-        F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
+        F = adaptiveminus(F,MGA)
     end
         
     F
@@ -100,8 +104,7 @@ end
 # M is ∞ x ∞ operator
 function cont_reduce_dofs{NT<:Number,T<:Number}( A::AbstractArray{NT},M::AbstractArray{T},G::Array,F::AbstractArray )
     MGA=M*pad(G,size(M,1),size(G,2))*full(A).'
-    m=max(size(MGA,1),size(F,1))
-    pad(F,m,size(F,2))-pad(MGA,m,size(F,2))
+    adaptiveminus(F,MGA)
 end
 
 
@@ -116,8 +119,7 @@ function cont_reduce_dofs{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M:
     for k = 1:length(G)
         MG = M*pad(G[k].coefficients,size(M,2))         # coefficients in the range space of M      
         MGA = MG*full(A[:,k]).'
-        m=max(size(F,1),size(MGA,1))
-        F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
+        F=adaptiveminus(F,MGA)
     end
         
     F

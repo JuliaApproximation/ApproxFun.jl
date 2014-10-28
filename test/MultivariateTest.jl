@@ -58,3 +58,31 @@ u=A\f
 
 
 
+
+
+## Kron
+
+dx=dy=Interval()
+d=dx*dy
+x=Fun(identity,dx);y=Fun(identity,dy)
+
+#dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
+
+G=[real(exp(-1+1.im*y)),
+                        real(exp(1+1im*y)),
+                        real(exp(x-1im)),
+                        real(exp(x+1im)),0.];
+
+A=[dirichlet(d),lap(d)]
+
+S=schurfact(A,40)
+
+uex=A\G
+
+nx=ny=40
+K=kron(A,nx,ny)
+
+uex2=K\G
+
+@test (uex-uex2|>coefficients|>norm)<100eps()
+

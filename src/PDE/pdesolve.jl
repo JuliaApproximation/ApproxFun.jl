@@ -57,11 +57,11 @@ function pde_normalize_rhs(A,f)
 
     ff=f[end]
     if isa(ff,Number)
-        F=zeros(1,length(A)-numbcs(A,2)) 
+        F=zeros(typeof(ff),1,1) 
         F[1,1]=ff
     elseif isa(ff,Fun) && domain(ff) == AnyDomain()
         ##TODO: beter method of telling constant fun
-        F=zeros(1,length(A)-numbcs(A,2)) 
+        F=zeros(typeof(ff.coefficients[1]),1,1) 
         F[1,1]=ff.coefficients[1]        
     else # typeof(ff) <:LowRankFun || TensorFun
         F=coefficients(ff,rangespace(A))

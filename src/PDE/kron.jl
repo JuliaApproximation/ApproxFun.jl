@@ -13,7 +13,7 @@ immutable ReducedDiscreteOperators{BT,MT}
 end
 
 numbcs(A::ReducedDiscreteOperators)=size(A.bcs,1)
-Base.size(A::ReducedDiscreteOperators,k...)=size(A.ops,k...)
+Base.size(A::ReducedDiscreteOperators,k...)=size(A.ops[1],k...)
 
 function ReducedDiscreteOperators(Bx,Ls,nx)
     Ls=promotespaces(Ls)
@@ -28,7 +28,7 @@ end
 function Base.kron(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators)
    @assert length(Ax.ops)==length(Ay.ops)
 
-    M=spzeros(Float64,size(Ax.ops[1],1)*size(Ay.ops[1],1),size(Ax.ops[1],2)*size(Ay.ops[1],2))
+    M=spzeros(Float64,size(Ax,1)*size(Ay,1),size(Ax,2)*size(Ay,2))
     for k=1:length(Ax.ops)
         M+=kron(Ax.ops[k],Ay.ops[k])
     end
@@ -51,17 +51,18 @@ end
 
 
 immutable PDEOperatorKron{T}
+    op::PDEOperator #we need to remember the op to reduce DOFs
     opsx::ReducedDiscreteOperators
     opsy::ReducedDiscreteOperators
     indsBx::Vector{Int}
     indsBy::Vector{Int}    
     kron::SparseMatrixCSC{T,Int64}
-    domainspace::BivariateFunctionSpace
-    rangespace::BivariateFunctionSpace    
 end
 
-domainspace(P::PDEOperatorKron,k)=P.domainspace[k]
-rangespace(P::PDEOperatorKron,k)=P.rangespace[k]
+for op in (:domainspace,:rangespace)
+    @eval $op(P::PDEOperatorKron,k...)=$op(P.op,k...)
+end
+
 
 function PDEOperatorKron(A,nx::Integer,ny::Integer)
     L=A[end]
@@ -69,18 +70,52 @@ function PDEOperatorKron(A,nx::Integer,ny::Integer)
     Ax=ReducedDiscreteOperators(Bx,L.ops[:,1],nx)
     indsBy,By=findfunctionals(A,2)
     Ay=ReducedDiscreteOperators(By,L.ops[:,2],ny)
-    PDEOperatorKron(Ax,Ay,indsBx,indsBy,kron(Ax,Ay),domainspace(L),rangespace(L))
+    PDEOperatorKron(L,Ax,Ay,indsBx,indsBy,kron(Ax,Ay))
 end
 
+#TODO: could be confused with size(A.kron)...
+Base.size(A::PDEOperatorKron,k)=k==1?size(A.opsx,1):size(A.opsy,1)
+Base.size(A::PDEOperatorKron)=size(A,1),size(A,2)
 bcinds(A::PDEOperatorKron,k)=k==1?A.indsBx:A.indsBy
 numbcs(A::PDEOperatorKron,k)=numbcs(k==1?A.opsx:A.opsy)
 
 Base.kron{T<:PDEOperator}(A::Vector{T},nx::Integer,ny::Integer)=PDEOperatorKron(A,nx,ny)
 
 
-function pdesolve(A::PDEOperatorKron,f)
-    indsBx=bcinds(A,1);indsBy=bcinds(A,2)    
-    fx,fy,F=pde_normalize_rhs(A,f)    
+
+function pdesolve(K::PDEOperatorKron,G)
+    fx,fy,F=ApproxFun.pde_normalize_rhs(K,G)
+    F=cont_reduce_dofs(K.opsx,K.op.ops[:,2],fx,F.').'
+    F=cont_reduce_dofs(K.opsy,K.opsx,fy,F)
+    
+    
+    
+    X22=reshape(K.kron\vec(pad(F,size(K)...)),size(K)...)
+    Kx,Ky=numbcs(K,1),numbcs(K,2) # doesn't include boundary rows...could be confusing
+    nx,ny=size(K,1)+Kx,size(K,2)+Ky
+    
+    Gx,Gy=toarray(regularize_bcs(K.opsx,fx),ny),toarray(regularize_bcs(K.opsy,fy),nx)
+    Rx,Ry=K.opsx.bcs,K.opsy.bcs
+
+    Px,Py=K.opsx.bcP,K.opsy.bcP
+    
+    # following is copyed from constrained_lyap
+    X12=Gx[:,Ky+1:end]-Rx[:,Kx+1:end]*X22
+    X21=Gy[:,Kx+1:end].'-X22*Ry[:,Ky+1:end].'
+    X11 = Gx[:,1:Ky] - Rx[:,Kx+1:end]*X21
+    X11a= Gy[:,1:Kx].' - X12*Ry[:,Ky+1:end].'
+    
+    tol = 1e-13
+    bcerr = norm(X11 - X11a)
+    
+    if bcerr>tol
+       warn("Boundary conditions differ by " * string(bcerr))
+    end
+    
+    X = [X11 X12; X21 X22]
+    
+    Fun(Px*X*Py.',domainspace(K))
 end
 
 
+\(A::PDEOperatorKron,G)=pdesolve(A,G)
