@@ -464,3 +464,13 @@ function *(A::PDEProductOperatorSchur,F::ProductFun)
 end
 
 
+
+
+## discretize
+
+
+discretize{T<:PDEOperator}(A::Vector{T},S...)=size(A[end].ops,1)==2?schurfact(A,S...):kron(A,S...)
+discretize(A::PDEOperator,n::Integer)=discretize([A],n)
+
+
+    

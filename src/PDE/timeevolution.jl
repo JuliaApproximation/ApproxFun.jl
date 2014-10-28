@@ -6,10 +6,10 @@ function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m::
     setplotter("GLPlot")
     nt=size(uin,2)
     d=domain(uin)
-    SBE   = schurfact([B,I-h*op],d,nt)            # backward euler for first 2 time steps
-    SBDF2 = schurfact([B,I-2.0/3.0*h*op],d,nt)    # BDF formula for subsequent itme steps
-    SBDF3 = schurfact([B,I-6.0/11.0*h*op],d,nt)    # BDF formula for subsequent itme steps    
-    SBDF4 = schurfact([B,I-12.0/25.0*h*op],d,nt)    # BDF formula for subsequent itme steps        
+    SBE   = discretize([B,I-h*op],d,nt)            # backward euler for first 2 time steps
+    SBDF2 = discretize([B,I-2.0/3.0*h*op],d,nt)    # BDF formula for subsequent itme steps
+    SBDF3 = discretize([B,I-6.0/11.0*h*op],d,nt)    # BDF formula for subsequent itme steps    
+    SBDF4 = discretize([B,I-12.0/25.0*h*op],d,nt)    # BDF formula for subsequent itme steps        
     
     u1=uin
     u2=SBE\[bcs,u1]
@@ -42,8 +42,8 @@ function timeevolution2(B::Vector,op,bcs::Vector,uin::(MultivariateFun,Multivari
     require("GLPlot")
     setplotter("GLPlot")
     nt=size(uin[1],2)
-    SBE  = schurfact([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
-    SBDF = schurfact([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
+    SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
+    SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
     
     u1,u2=uin
     u3 =SBE\[bcs,2u2-u1]

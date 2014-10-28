@@ -80,7 +80,8 @@ bcinds(A::PDEOperatorKron,k)=k==1?A.indsBx:A.indsBy
 numbcs(A::PDEOperatorKron,k)=numbcs(k==1?A.opsx:A.opsy)
 
 Base.kron{T<:PDEOperator}(A::Vector{T},nx::Integer,ny::Integer)=PDEOperatorKron(A,nx,ny)
-
+Base.kron{T<:PDEOperator}(A::Vector{T},n::Integer)=kron(A,n,n)
+Base.kron{T<:PDEOperator}(A::Vector{T},S::BivariateDomain,n::Integer)=kron(A,n)
 
 
 function pdesolve(K::PDEOperatorKron,G)
