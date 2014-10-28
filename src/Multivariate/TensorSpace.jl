@@ -10,9 +10,12 @@ immutable ProductDomain{D<:Domain} <:BivariateDomain
     domains::Vector{D} 
 end
 
+
+
 ProductDomain(A,B)=ProductDomain([A,B])
 *(A::Domain,B::Domain)=ProductDomain(A,B)
 
+Base.length(d::ProductDomain)=length(d.domains)
 Base.transpose(d::ProductDomain)=ProductDomain(d[2],d[1])
 Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
 
@@ -40,6 +43,7 @@ TensorSpace(A::ProductDomain)=TensorSpace(Space(A[1]),Space(A[2]))
 domain(f::TensorSpace)=domain(f.spaces[1])*domain(f.spaces[2])
 Space(sp::ProductDomain)=TensorSpace(sp)
 
+Base.length(d::TensorSpace)=length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
 
 

@@ -113,12 +113,14 @@ function +(A::PDEOperator,B::PDEOperator)
     end
 end
 
-function lap(d::ProductDomain)
-    @assert length(d.domains)==2
-    Dx=Derivative(d.domains[1])
-    Dy=Derivative(d.domains[2])    
+
+function lap(d::Union(ProductDomain,TensorSpace))
+    @assert length(d)==2
+    Dx=Derivative(d[1])
+    Dy=Derivative(d[2])    
     Dx^2⊗I+I⊗Dy^2
 end
+
 
 
 function -(A::PDEOperator)

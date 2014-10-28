@@ -281,6 +281,14 @@ bandinds(::Conversion{ChebyshevDirichletSpace{1,1},ChebyshevSpace})=0,2
 
 conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
 
+# return the space that has banded Conversion to the other
+# function conversion_rule(a::ChebyshevDirichletSpace,b::UltrasphericalSpace)
+#     @assert domainscompatible(a,b)
+#     
+#     a
+# end
+
+
 
 
 ## Evaluation Functional

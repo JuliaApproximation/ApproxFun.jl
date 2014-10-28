@@ -13,7 +13,6 @@ domainspace(C::Conversion)=C.domainspace
 rangespace(C::Conversion)=C.rangespace
 
 
-Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=Conversion(B,C)*Conversion(A,B)
 
 #TODO: Periodic
 function Conversion{T,V}(a::DomainSpace{T},b::DomainSpace{V})
@@ -53,3 +52,6 @@ addentries!(D::ConversionWrapper,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds)
     @eval $func(D::ConversionWrapper)=$func(D.op)
 end
+
+
+Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=ConversionWrapper(Conversion(B,C)*Conversion(A,B))
