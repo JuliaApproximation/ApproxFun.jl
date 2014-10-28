@@ -86,3 +86,26 @@ uex2=K\G
 
 @test (uex-uex2|>coefficients|>norm)<100eps()
 
+
+
+# dirichlet bcs
+
+import ApproxFun.ChebyshevDirichletSpace
+
+S=ChebyshevDirichletSpace()⊗ChebyshevDirichletSpace();
+A=[dirichlet(S),lap(S)]
+nx=ny=20;
+KD=kron(A,nx,ny);
+
+
+#dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
+x=Fun(identity);y=Fun(identity);
+G=[Fun(real(exp(-1+1.im*y)),S[2]),
+    Fun(real(exp(1+1im*y)),S[2]),
+    Fun(real(exp(x-1im)),S[1]),
+                        Fun(real(exp(x+1im)),S[1]),0.];
+
+uD=KD\G;
+
+@test_approx_eq uD[.1,.2] real(exp(.1+.2im))
+
