@@ -103,17 +103,33 @@ maxspace(a::FunctionSpace,b::AnySpace)=a
 maxspace(b::AnySpace,a::FunctionSpace)=a
 function maxspace(a::FunctionSpace,b::FunctionSpace)
     if a==b    
-        a
-    else
-        cr=conversion_type(a,b)
-        if cr==a
-            b
-        elseif cr ==b
-            a
-        else
-            NoSpace()
+        return a
+    end
+    
+    cr=conversion_type(a,b)
+    if cr==a
+        return b
+    elseif cr ==b
+        return a
+    end
+    
+    # check if its banded through canonicalspace
+    cspa=canonicalspace(a)
+    cspb=canonicalspace(b)
+    if cspa==cspb && cspa != a && cspb !=b
+        #TODO: maybe csp and a have maxspace that
+        #     differs
+        csp=cspa
+        if maxspace(csp,a)==csp
+            return maxspace(b,csp)
+        elseif maxspace(csp,b)==csp
+            return maxspace(a,csp)            
         end
     end
+
+
+    
+    NoSpace()
 end
 
 
@@ -166,7 +182,10 @@ Base.zero{T<:Number}(::Type{T},S::FunctionSpace)=zeros(T,S)
 Base.zeros{T<:Number}(::Type{T},S::FunctionSpace)=Fun(zeros(T,1),S)
 Base.zeros(S::FunctionSpace)=Fun(zeros(1),S)
 
-
+# catch all
+Base.ones(S::FunctionSpace)=Fun(x->one(),S)
+Base.ones{T<:Number}(::Type{T},S::FunctionSpace)=Fun(x->one(T),S)
+identity_fun(S::FunctionSpace)=Fun(x->x,S)
 
 
 ## Finite dimensional spaces

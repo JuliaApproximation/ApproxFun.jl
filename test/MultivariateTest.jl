@@ -10,6 +10,26 @@ u0   = TensorFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5).
 @test sin(u0)[.1,.2]-sin(u0[.1,.2])|>abs < 10e-6
 
 
+## Rectangle PDE
+
+dx=dy=Interval()
+d=dx*dy
+x=Fun(identity,dx);y=Fun(identity,dy)
+
+#dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
+
+G=[real(exp(-1+1.im*y)),
+                        real(exp(1+1im*y)),
+                        real(exp(x-1im)),
+                        real(exp(x+1im)),0.];
+
+A=[dirichlet(d),lap(d)]
+
+u=A\G
+@test_approx_eq u[.1,.2] real(exp(.1+.2im))
+
+
+
 ## Periodic
 f=LowRankFun((x,y)->cos(x)*sin(y),PeriodicInterval(),PeriodicInterval())
 @test_approx_eq f[.1,.2] cos(.1)*sin(.2)
@@ -35,3 +55,57 @@ u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 10000eps()
 
 @test_approx_eq real(f)[.1,.2] f[.1,.2]
+
+
+
+
+
+## Kron
+
+dx=dy=Interval()
+d=dx*dy
+x=Fun(identity,dx);y=Fun(identity,dy)
+
+#dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
+
+G=[real(exp(-1+1.im*y)),
+                        real(exp(1+1im*y)),
+                        real(exp(x-1im)),
+                        real(exp(x+1im)),0.];
+
+A=[dirichlet(d),lap(d)]
+
+S=schurfact(A,40)
+
+uex=A\G
+
+nx=ny=40
+K=kron(A,nx,ny)
+
+uex2=K\G
+
+@test (uex-uex2|>coefficients|>norm)<100eps()
+
+
+
+# dirichlet bcs
+
+import ApproxFun.ChebyshevDirichletSpace
+
+S=ChebyshevDirichletSpace()⊗ChebyshevDirichletSpace();
+A=[dirichlet(S),lap(S)]
+nx=ny=20;
+KD=kron(A,nx,ny);
+
+
+#dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
+x=Fun(identity);y=Fun(identity);
+G=[Fun(real(exp(-1+1.im*y)),S[2]),
+    Fun(real(exp(1+1im*y)),S[2]),
+    Fun(real(exp(x-1im)),S[1]),
+                        Fun(real(exp(x+1im)),S[1]),0.];
+
+uD=KD\G;
+
+@test_approx_eq uD[.1,.2] real(exp(.1+.2im))
+

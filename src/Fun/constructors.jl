@@ -125,7 +125,7 @@ end
 function Fun(f::Function, d::DomainSpace; method="zerocoefficients")
     if f==identity
         identity_fun(d)
-    elseif f==zero
+    elseif f==zero # zero is always defined
         zeros(Float64,d)
     elseif f==one
         ones(Float64,d)

@@ -239,7 +239,7 @@ function differentiate(f::TensorFun,j::Integer)
     if j==1
         TensorFun(map(diff,f.coefficients),space(f,2))
     else
-        diff(f.',1).'
+        differentiate(f.',1).'
     end
 end
 

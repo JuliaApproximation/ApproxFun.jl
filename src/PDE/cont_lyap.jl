@@ -75,8 +75,13 @@ adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 #     A, F
 # end
 
+function adaptiveminus(F::Matrix,G::Matrix)
+    m=max(size(F,1),size(G,1))
+    n=max(size(F,2),size(G,2))
+    pad(F,m,n) - pad(G,m,n)    
+end
 
-function cont_reduce_dofs{T<:Fun}( A::Array,G::Vector{T},M::Operator,F::Array )
+function cont_reduce_dofs{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,G::Vector{T},F::AbstractArray )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
         # MXR'[:,k]*A'[k,:]  from MXA'
@@ -86,18 +91,57 @@ function cont_reduce_dofs{T<:Fun}( A::Array,G::Vector{T},M::Operator,F::Array )
         
     for k = 1:length(G)
         MG = M*G[k].coefficients         # coefficients in the range space of M      
-        MGA = MG*A[:,k].'
-        m=max(size(F,1),size(MGA,1))
-        F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
+        MGA = MG*full(A[:,k]).'
+        F = adaptiveminus(F,MGA)
     end
         
     F
 end
 
-function cont_reduce_dofs{T<:Fun}(S::OperatorSchur,G::Vector{T},L::Operator,M::Operator,F::Array)
-    F=cont_reduce_dofs(S.Lcols,G,L,F)
-    cont_reduce_dofs(S.Mcols,G,M,F)    
+
+# G is  ∞ x K array
+# A is ∞ x K list of opcols
+# M is ∞ x ∞ operator
+function cont_reduce_dofs{NT<:Number,T<:Number}( A::AbstractArray{NT},M::AbstractArray{T},G::Array,F::AbstractArray )
+    MGA=M*pad(G,size(M,1),size(G,2))*full(A).'
+    adaptiveminus(F,MGA)
 end
+
+
+function cont_reduce_dofs{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M::AbstractArray{MT},G::Vector{T},F::AbstractArray )
+        # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
+        # then kill the row by subtracting
+        # MXR'[:,k]*A'[k,:]  from MXA'
+        # i.e., subtacting A[:,k]*R[k,:] from A
+        # and M*G'[:,k]*A'[k,:] from F
+        # i.e. M*G[k]*A[:,k]' from 
+        
+    for k = 1:length(G)
+        MG = M*pad(G[k].coefficients,size(M,2))         # coefficients in the range space of M      
+        MGA = MG*full(A[:,k]).'
+        F=adaptiveminus(F,MGA)
+    end
+        
+    F
+end
+
+function cont_reduce_dofs{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::Vector{T},F::AbstractArray)
+    F=cont_reduce_dofs(S.Lcols,L,G,F)
+    cont_reduce_dofs(S.Mcols,M,G,F)    
+end
+
+
+
+function cont_reduce_dofs{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::AbstractArray)
+    @assert length(Ax)==length(Ay)
+    for k=1:length(Ax)
+        F=cont_reduce_dofs(Ax[k],Ay[k],G,F)
+    end
+    
+    F
+end
+
+
 
 
 regularize_bcs(S::OperatorSchur,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
@@ -237,7 +281,7 @@ end
 
 function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gyin,Gx,F::Array,nx=100000)    
     Gy=regularize_bcs(OS.S,Gyin)
-    F=cont_reduce_dofs(OS.S,Gy,OS.Lx,OS.Mx,F)  
+    F=cont_reduce_dofs(OS.S,OS.Lx,OS.Mx,Gy,F)  
     
     Q2 = OS.S.Q
     

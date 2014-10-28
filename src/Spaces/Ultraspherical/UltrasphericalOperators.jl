@@ -281,6 +281,14 @@ bandinds(::Conversion{ChebyshevDirichletSpace{1,1},ChebyshevSpace})=0,2
 
 conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
 
+# return the space that has banded Conversion to the other
+# function conversion_rule(a::ChebyshevDirichletSpace,b::UltrasphericalSpace)
+#     @assert domainscompatible(a,b)
+#     
+#     a
+# end
+
+
 
 
 ## Evaluation Functional
@@ -315,6 +323,8 @@ function getindex(B::Evaluation{ChebyshevDirichletSpace{1,1},Bool},kr::Range)
     elseif B.x == true && B.order == 0
         Float64[k<=2?1.0:0.0 for k=kr]
     else
-        getindex(Evaluation(d)*Conversion(domainspace(B)),kr)
+        getindex(Evaluation(d,B.x,B.order)*Conversion(domainspace(B)),kr)
     end
 end
+
+Evaluation(sp::ChebyshevDirichletSpace,x::Real,ord::Integer)=EvaluationWrapper(sp,x,ord,Evaluation(domain(sp),x,ord)*Conversion(sp))

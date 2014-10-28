@@ -113,12 +113,14 @@ function +(A::PDEOperator,B::PDEOperator)
     end
 end
 
-function lap(d::ProductDomain)
-    @assert length(d.domains)==2
-    Dx=Derivative(d.domains[1])
-    Dy=Derivative(d.domains[2])    
+
+function lap(d::Union(ProductDomain,TensorSpace))
+    @assert length(d)==2
+    Dx=Derivative(d[1])
+    Dy=Derivative(d[2])    
     Dx^2⊗I+I⊗Dy^2
 end
+
 
 
 function -(A::PDEOperator)
@@ -187,31 +189,25 @@ grad(d::ProductDomain)=[Base.diff(d,k) for k=1:length(d.domains)]
 
 
 
-
-function dirichlet(d::ProductDomain)
-    @assert length(d.domains)==2
-    Bx=dirichlet(d.domains[1])
-    By=dirichlet(d.domains[2])
-    [Bx⊗I,I⊗By]
+for op in (:dirichlet,:neumann,:diffbcs)
+    @eval begin
+        function $op(d::Union(ProductDomain,TensorSpace),k...)
+            @assert length(d)==2
+            Bx=$op(d[1],k...)
+            By=$op(d[2],k...)
+            [Bx⊗I,I⊗By]
+        end
+    end
 end
 
-function neumann(d::ProductDomain)
-    @assert length(d.domains)==2
-    Bx=neumann(d.domains[1])
-    By=neumann(d.domains[2])
-    [Bx⊗I,I⊗By]
-end
 
-function timedirichlet(d::ProductDomain)
+function timedirichlet(d::Union(ProductDomain,TensorSpace))
     @assert length(d.domains)==2
     Bx=dirichlet(d.domains[1])
     Bt=dirichlet(d.domains[2])[1]
     [I⊗Bt,Bx⊗I]
 end
 
-for op in (:lap,:neumann,:dirichlet,:diffbcs)
-    @eval $op(d::MultivariateFunctionSpace)=$op(domain(d))
-end
 
 
 function *{S,T}(L::PDEOperator,f::LowRankFun{S,T})
@@ -304,8 +300,9 @@ function PDEOperatorSchur(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)
    PDEOperatorSchur(Bx,A.ops[1,1],A.ops[2,1],OperatorSchur(By,A.ops[1,2],A.ops[2,2],ny),indsBx,indsBy)
 end
 
-isxfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,1])<:Functional
-isyfunctional(B::PDEOperator)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,2])<:Functional
+isfunctional(B::PDEOperator,k::Integer)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,k])<:Functional
+isxfunctional(B::PDEOperator)=isfunctional(B,1)
+isyfunctional(B::PDEOperator)=isfunctional(B,2)
 ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
 
 
@@ -313,16 +310,19 @@ bcinds(S::PDEOperatorSchur,k)=k==1?S.indsBx:S.indsBy
 numbcs(S::AbstractPDEOperatorSchur,k)=length(bcinds(S,k))
 Base.length(S::PDEOperatorSchur)=size(S.S,1)
 
+function findfunctionals{T<:PDEOperator}(A::Vector{T},k::Integer)
+    indsBx=find(f->isfunctional(f,k),A)
+    indsBx,Functional[(@assert Ai.ops[1,k==1?2:1]==ConstantOperator{Float64}(1.0); Ai.ops[1,k]) for Ai in A[indsBx]]    
+end
+
 
 
 function PDEOperatorSchur{T<:PDEOperator}(A::Vector{T},ny::Integer)
-    indsBx=find(isxfunctional,A)
-    Bx=Functional[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[indsBx]]
-    indsBy=find(isyfunctional,A)
-    By=Functional[(@assert Ai.ops[1,1]==ConstantOperator{Float64}(1.0); Ai.ops[1,2]) for Ai in A[indsBy]]
+    indsBx,Bx=findfunctionals(A,1)
+    indsBy,By=findfunctionals(A,2)    
+
     inds=find(ispdeop,A)
-    @assert length(inds)==1&&inds[1]==length(A)
-    
+    @assert length(inds)==1&&inds[1]==length(A)    
     LL=A[end]
     
     
@@ -464,3 +464,13 @@ function *(A::PDEProductOperatorSchur,F::ProductFun)
 end
 
 
+
+
+## discretize
+
+
+discretize{T<:PDEOperator}(A::Vector{T},S...)=size(A[end].ops,1)==2?schurfact(A,S...):kron(A,S...)
+discretize(A::PDEOperator,n::Integer)=discretize([A],n)
+
+
+    

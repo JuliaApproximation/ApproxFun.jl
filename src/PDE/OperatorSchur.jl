@@ -55,39 +55,13 @@ function pdetoarray(Byin,Lin,Min,ny::Integer)
     By,Ly,My    
 end
 
-# Result satisfies
-#       inv(Q)*R*P' == B
-#       L*P' == L (input)
-#       M*P' == M (input)
-function regularize_bcs(B::Array, L::Array, M::Array)
-    if length(B) == 0
-        R = B
-        P = eye(size(L,2))
-        Q= eye(0)
-    else
-        # permute rows of X/columns of B so principle block of B is nonsingular
-        P = nonsingular_permute(B)
-        
-        B = B*P
-        
-        L = L*P
-        M = M*P
-        
-        # we apply Q' to upper triangularize B,
-        # avoiding any need to permute rows
-        Q,R = qr(B)
-        Q=Q[:,1:size(B,1)]
-        
-        K = size(B,1)
-        
-        # we invert the principle block of R
-        # so that the BC leads with the identity
-        Q = inv(R[:,1:K])*Q'
-        R = inv(R[:,1:K])*R
-    end
-    
-    R,Q,L,M,P
+function pdetoarray(Byin,L::Vector,ny::Integer)
+    Yop=promotespaces(L)
+    By=toarray(Byin,ny)
+    nbcy=length(Byin)
+    By,[Yk[1:ny-nbcy,1:ny] for Yk in Yop]
 end
+
 
 function cont_reduce_dofs( R,A::Array )
     if length(R) > 0        
