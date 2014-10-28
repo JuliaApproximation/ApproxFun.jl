@@ -37,14 +37,13 @@ function convert2funvec{D}(f::Vector,d::D)
     ret=Array(mytyp,length(f))
     
     for k=1:length(f)
-        ##TODO: Check domains match for Funs
+        #TODO: Check domains match for Funs
         ret[k]=Fun(f[k],d)
     end
     ret
 end
 
-
-function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
+function pde_normalize_rhs(A,f)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
     if length(f) < length(indsBx)+length(indsBy)+1
         f=[f,zeros(length(indsBx)+length(indsBy)+1-length(f))]
@@ -57,18 +56,24 @@ function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
     
 
     ff=f[end]
-    if typeof(ff)<:Number
+    if isa(ff,Number)
         F=zeros(1,length(A)-numbcs(A,2)) 
         F[1,1]=ff
-    elseif typeof(ff)<:Fun && domain(ff) == AnyDomain()
+    elseif isa(ff,Fun) && domain(ff) == AnyDomain()
         ##TODO: beter method of telling constant fun
         F=zeros(1,length(A)-numbcs(A,2)) 
         F[1,1]=ff.coefficients[1]        
     else # typeof(ff) <:LowRankFun || TensorFun
         F=coefficients(ff,rangespace(A))
-    end        
+    end     
     
+    fx,fy,F
+end   
 
+
+function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
+    fx,fy,F=pde_normalize_rhs(A,f)
+    #TODO: swap fy and fx order below
     cont_constrained_lyap(A,fy,fx,F,nx)
 end
 

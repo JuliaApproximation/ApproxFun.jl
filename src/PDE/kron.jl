@@ -1,6 +1,6 @@
 
 ## Represents a list of operators with degrees of freedom reduce
-type ReducedDiscreteOperators{BT,MT}
+immutable ReducedDiscreteOperators{BT,MT}
     bcP::Array{BT,2}  # permute columns of bcs
     bcQ::Array{BT,2}  # bc normalizer
     bcs::Array{BT,2} # normalized bcs
@@ -48,3 +48,39 @@ function cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::ReducedDiscre
     G=regularize_bcs(Ax,G)
     cont_reduce_dofs(Ax.opcols,Ay.ops,coefficients(G)[numbcs(Ay)+1:end,:],F)
 end
+
+
+immutable PDEOperatorKron{T}
+    opsx::ReducedDiscreteOperators
+    opsy::ReducedDiscreteOperators
+    indsBx::Vector{Int}
+    indsBy::Vector{Int}    
+    kron::SparseMatrixCSC{T,Int64}
+    domainspace::BivariateFunctionSpace
+    rangespace::BivariateFunctionSpace    
+end
+
+domainspace(P::PDEOperatorKron,k)=P.domainspace[k]
+rangespace(P::PDEOperatorKron,k)=P.rangespace[k]
+
+function PDEOperatorKron(A,nx::Integer,ny::Integer)
+    L=A[end]
+    indsBx,Bx=findfunctionals(A,1)
+    Ax=ReducedDiscreteOperators(Bx,L.ops[:,1],nx)
+    indsBy,By=findfunctionals(A,2)
+    Ay=ReducedDiscreteOperators(By,L.ops[:,2],ny)
+    PDEOperatorKron(Ax,Ay,indsBx,indsBy,kron(Ax,Ay),domainspace(L),rangespace(L))
+end
+
+bcinds(A::PDEOperatorKron,k)=k==1?A.indsBx:A.indsBy
+numbcs(A::PDEOperatorKron,k)=numbcs(k==1?A.opsx:A.opsy)
+
+Base.kron{T<:PDEOperator}(A::Vector{T},nx::Integer,ny::Integer)=PDEOperatorKron(A,nx,ny)
+
+
+function pdesolve(A::PDEOperatorKron,f)
+    indsBx=bcinds(A,1);indsBy=bcinds(A,2)    
+    fx,fy,F=pde_normalize_rhs(A,f)    
+end
+
+
