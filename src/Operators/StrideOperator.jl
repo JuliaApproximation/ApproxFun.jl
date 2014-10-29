@@ -6,7 +6,7 @@ export StrideOperator,StrideFunctional
 
 #S[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
 #S[k,j] == op[(k-rowindex)/rowstride,(j-colindex)/colstride]
-type StrideOperator{T<:Number,B<:Operator{T}} <: BandedOperator{T}
+type StrideOperator{T<:Number,B<:Operator} <: BandedOperator{T}
     op::B
     rowindex::Int       
     colindex::Int       

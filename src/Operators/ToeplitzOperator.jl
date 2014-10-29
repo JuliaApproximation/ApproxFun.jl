@@ -5,7 +5,7 @@ export ToeplitzOperator, HankelOperator, LaurentOperator
 
 
 
-type ToeplitzOperator{T<:Number,V<:Union(Vector{T},ShiftVector{T})} <: BandedOperator{T}
+type ToeplitzOperator{T<:Number,V<:Union(Vector,ShiftVector)} <: BandedOperator{T}
     coefficients::V
 end
 

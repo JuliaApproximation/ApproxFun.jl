@@ -99,7 +99,7 @@ function integrate(f::Fun{LineSpace})
 
 end
 
-for T in {Float64,Complex{Float64}}
+for T in (Float64,Complex{Float64})
     function Base.sum(f::Fun{LineSpace})
         d=domain(f)
         if d.α==d.β==-.5

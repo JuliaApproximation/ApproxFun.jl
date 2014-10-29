@@ -3,7 +3,7 @@
 export SliceOperator
 
 
-type SliceOperator{T<:Number,B<:Operator{T}} <: BandedOperator{T}
+type SliceOperator{T<:Number,B<:Operator} <: BandedOperator{T}
     op::B
     rowindex::Int       
     colindex::Int       

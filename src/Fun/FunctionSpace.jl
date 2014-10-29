@@ -1,10 +1,10 @@
 
-abstract FunctionSpace
+abstract FunctionSpace{T}
 
 ##TODO: Confusing: two uses of domain
 
  # T tells whether the basis is real (cos/sin) or complex
-abstract DomainSpace{T} <: FunctionSpace
+abstract DomainSpace{T} <: FunctionSpace{T}
 abstract IntervalDomainSpace <: DomainSpace{Float64}     # We assume basis is real
 abstract PeriodicDomainSpace{T} <: DomainSpace{T}       
 
@@ -13,16 +13,16 @@ abstract PeriodicDomainSpace{T} <: DomainSpace{T}
 export FunctionSpace, ChebyshevSpace, domainspace, rangespace, maxspace, minspace,Space
 
 
-immutable ConstantSpace <: FunctionSpace
+immutable ConstantSpace <: FunctionSpace{Float64}
 end
 
 domain(::ConstantSpace)=AnyDomain()
 
 
-immutable AnySpace <: FunctionSpace
+immutable AnySpace <: FunctionSpace{Float64}
 end
 
-immutable NoSpace <: FunctionSpace
+immutable NoSpace <: FunctionSpace{Float64}
 end
 
 domain(::AnySpace)=AnyDomain()
@@ -192,7 +192,7 @@ identity_fun(S::FunctionSpace)=Fun(x->x,S)
 
 
 
-immutable VectorSpace{d} <: FunctionSpace
+immutable VectorSpace{d} <: FunctionSpace{Float64}
 end
 
 typealias ScalarSpace VectorSpace{1}

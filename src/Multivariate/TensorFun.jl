@@ -9,7 +9,7 @@ immutable TensorFun{S<:FunctionSpace,V<:FunctionSpace,T<:Union(Float64,Complex{F
     space::TensorSpace{S,V}
 end
 
-immutable ProductFun{S<:FunctionSpace,V<:FunctionSpace,SS<:AbstractProductSpace{S,V},T<:Union(Float64,Complex{Float64})}<:AbstractProductFun{S,V,T}
+immutable ProductFun{S<:FunctionSpace,V<:FunctionSpace,SS<:AbstractProductSpace,T<:Union(Float64,Complex{Float64})}<:AbstractProductFun{S,V,T}
     coefficients::Vector{Fun{S,T}}     # coefficients are in x
     space::SS
 end

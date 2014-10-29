@@ -3,7 +3,7 @@
 ## SumSpace{T,S,V} encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-immutable PeriodicSumSpace{T<:Number,S<:PeriodicDomainSpace{T},V<:PeriodicDomainSpace{T}} <: PeriodicDomainSpace{T}
+immutable PeriodicSumSpace{T<:Number,S<:PeriodicDomainSpace,V<:PeriodicDomainSpace} <: PeriodicDomainSpace{T}
     spaces::(S,V)
 end
 

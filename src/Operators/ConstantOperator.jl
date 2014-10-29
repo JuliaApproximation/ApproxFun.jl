@@ -5,7 +5,8 @@ type ConstantOperator{T<:Union(Float64,Complex{Float64})} <: BandedOperator{T}
     c::T
 end
 
-ConstantOperator(c::Number)=ConstantOperator(1.0c)
+ConstantOperator(c::Complex)=ConstantOperator{Complex{Float64}}(1.0c)
+ConstantOperator(c::Real)=ConstantOperator{Float64}(1.0c)
 ConstantOperator(L::UniformScaling)=ConstantOperator(L.λ)
 IdentityOperator()=ConstantOperator(1.0)
 

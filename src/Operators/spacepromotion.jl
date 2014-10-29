@@ -1,6 +1,6 @@
 
 
-immutable SpaceFunctional{T<:Number,O<:Functional{T},S<:FunctionSpace} <: Functional{T}
+immutable SpaceFunctional{T<:Number,O<:Functional,S<:FunctionSpace} <: Functional{T}
     op::O
     space::S
 end
@@ -13,7 +13,7 @@ domainspace(S::SpaceFunctional)=S.space
 domain(S::SpaceFunctional)=domain(S.space)
 
 ## Space Operator is used to wrap an AnySpace() operator 
-immutable SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{T}
+immutable SpaceOperator{T<:Number,O<:Operator,S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{T}
     op::O
     domainspace::S
     rangespace::V
@@ -25,7 +25,7 @@ immutable SpaceOperator{T<:Number,O<:Operator{T},S<:FunctionSpace,V<:FunctionSpa
 end
 
 
-SpaceOperator{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(o::Operator{T},s::S,rs::V)=SpaceOperator{T,typeof(o),S,V}(o,s,rs)
+SpaceOperator{T<:Number,ST<:Number,VT<:Number}(o::Operator{T},s::FunctionSpace{ST},rs::FunctionSpace{VT})=SpaceOperator{promote_type(T,ST,VT),typeof(o),typeof(s),typeof(rs)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 
 
