@@ -123,9 +123,11 @@ function Base.sum(f::Fun{JacobiWeightSpace{ChebyshevSpace}})
         n = length(f)
         c = zeros(n)
         c[1] = 2.^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
-        c[2] = c[0+1]*(α-β)/(α+β+2)
-        for i=1:n-2
-            c[i+2] = (2(α-β)*c[i+1]-(α+β-i+2)*c[i])/(α+β+i+2)
+        if n > 1
+            c[2] = c[1]*(α-β)/(α+β+2)
+            for i=1:n-2
+                c[i+2] = (2(α-β)*c[i+1]-(α+β-i+2)*c[i])/(α+β+i+2)
+            end
         end
         return fromcanonicalD(f,0.)*dot(f.coefficients,c)
     end
