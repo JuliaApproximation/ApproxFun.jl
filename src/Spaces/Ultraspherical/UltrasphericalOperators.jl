@@ -118,18 +118,17 @@ bandinds{S<:UltrasphericalSpace}(D::Integral{S})=-D.order,0
 function addentries!{λ}(D::Derivative{UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
     m=D.order
     d=domain(D)
-    μ=λ+m
 
     @assert isa(d,Interval)
 
     if λ == 0
         #TODO: sign of length?
-        C=2.^(m-1).*factorial(μ-1)*(2./length(d)).^m    
+        C=2.^(m-1).*factorial(m-1)*(2./length(d)).^m    
         for k=kr
-            A[k,m] += C*(μ+k-1)
+            A[k,m] += C*(m+k-1)
         end
     else
-        C=2.^m.*factorial(μ-1)./factorial(λ-1)*(2./length(d)).^m        
+        C=2.^m.*factorial(λ+m-1)./factorial(λ-1)*(2./length(d)).^m        
         for k=kr        
             A[k,m] += C
         end
