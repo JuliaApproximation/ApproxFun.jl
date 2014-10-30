@@ -69,8 +69,8 @@ ZeroFunctional()=ZeroFunctional(AnySpace())
 domainspace(Z::ZeroFunctional)=Z.domainspace
 promotedomainspace(Z::ZeroFunctional,sp::FunctionSpace)=ZeroFunctional(sp)
 
-Base.getindex(op::BasisFunctional,k::Integer)=0.
-Base.getindex(op::BasisFunctional,k::Range1)=zeros(length(k))
+Base.getindex(op::ZeroFunctional,k::Integer)=0.
+Base.getindex(op::ZeroFunctional,k::Range1)=zeros(length(k))
 
 
 

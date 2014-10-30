@@ -79,8 +79,16 @@ end
 
 ## Overrideable
 
-
-
+function Base.getindex(D::Derivative,f::Fun)
+    @assert spacescompatible(D.space,f.space)
+    D1 = Derivative(D.space,1)
+    ret = D1*f+f*D1
+    if D.order > 1
+        Dnm1 = Derivative(D.space,D.order-1)
+        ret = Dnm1*ret
+    end
+    return ret
+end
 
 
 
