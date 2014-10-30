@@ -74,9 +74,9 @@ for op in (:ldiffbc,:rdiffbc,:diffbcs)
     @eval $op(k::Integer)=$op(AnySpace(),k)
 end
 
-function dirichlet{T<:IntervalDomain}(d::Vector{T})
+function dirichlet{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
     m=length(d)
-    B=zeros(Operator,2m,m)
+    B=zeros(Functional,2m,m)
     B[1,1]=dirichlet(d[1])[1]
     B[2,end]=dirichlet(d[end])[end]
     for k=1:m-1
@@ -88,9 +88,9 @@ function dirichlet{T<:IntervalDomain}(d::Vector{T})
     B
 end
 
-function periodic{T<:IntervalDomain}(d::Vector{T})
+function periodic{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
     m=length(d)
-    B=zeros(Operator,2m,m)
+    B=zeros(Functional,2m,m)
     B[1,1]=dirichlet(d[1])[1]
     B[1,end]=-dirichlet(d[end])[end]
     B[2,1]=neumann(d[1])[1]

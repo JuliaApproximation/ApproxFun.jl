@@ -123,6 +123,7 @@ function addentries!{λ}(D::Derivative{UltrasphericalSpace{λ}},A::ShiftArray,kr
     @assert isa(d,Interval)
 
     if λ == 0
+        #TODO: sign of length?
         C=2.^(m-1).*factorial(μ-1)*(2./length(d)).^m    
         for k=kr
             A[k,m] += C*(μ+k-1)

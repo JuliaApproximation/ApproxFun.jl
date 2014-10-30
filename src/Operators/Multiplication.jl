@@ -32,11 +32,12 @@ promotedomainspace(D::AbstractMultiplication,sp::FunctionSpace)=Multiplication(D
 Base.diagm(a::Fun)=Multiplication(a)
 
 
-immutable MultiplicationWrapper{O<:BandedOperator,T<:Number} <: AbstractMultiplication{T}
+immutable MultiplicationWrapper{D<:FunctionSpace,O<:BandedOperator,T<:Number} <: AbstractMultiplication{T}
+    f::Fun{D,T}
     op::O
 end
 
-MultiplicationWrapper{T<:Number}(op::BandedOperator{T})=MultiplicationWrapper{typeof(op),T}(op)
+MultiplicationWrapper{D<:FunctionSpace,T<:Number}(f::Fun{D,T},op::BandedOperator{T})=MultiplicationWrapper{D,typeof(op),T}(f,op)
 
 addentries!(D::MultiplicationWrapper,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds,:domain)
