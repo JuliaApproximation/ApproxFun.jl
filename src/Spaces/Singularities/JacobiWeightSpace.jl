@@ -114,24 +114,20 @@ end
 ## Calculus
 
 function Base.sum(f::Fun{JacobiWeightSpace{ChebyshevSpace}})
-    ##TODO: generalize
-    α,β=f.space.α,f.space.β
-    
-    if α==β==.5
-        fromcanonicalD(f,0.)*spaceconversion(f.coefficients,UltrasphericalSpace{1}(domain(f)))[1]*π/2
-    elseif α==β==0.
-        sum(Fun(f.coefficients,domain(f)))
-    elseif α==β==-.5
-        fromcanonicalD(f,0.)*π*f.coefficients[1]
-    elseif α<0. && β<0.
-        #TODO: should be < -1.
-        sum(increase_jacobi_parameter(f))
-    elseif α < 0
-        sum(increase_jacobi_parameter(-1,f))
-    elseif  β < 0
-        sum(increase_jacobi_parameter(+1,f))    
+    α,β=f.space.α,f.space.β    
+    if α <= -1.0 && β <= -1.0
+        fs = Fun(f.coefficients,f.space.space)
+        d = domain(fs)
+        return Inf*fromcanonicalD(f,0.)*(sign(fs[d.a])+sign(fs[d.b]))/2
     else
-        error("sum not implemented for all Jacobi parameters")
+        n = length(f)
+        c = zeros(n)
+        c[1] = 2.^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
+        c[2] = c[0+1]*(α-β)/(α+β+2)
+        for i=1:n-2
+            c[i+2] = (2(α-β)*c[i+1]-(α+β-i+2)*c[i])/(α+β+i+2)
+        end
+        return fromcanonicalD(f,0.)*dot(f.coefficients,c)
     end
 end
 
