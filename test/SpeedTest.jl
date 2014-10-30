@@ -76,5 +76,5 @@ S=schurfact([neumann(d),lap(d)+100I],100)
 u=S\ones(4)
 u=S\ones(4)
 @time u=S\ones(4)
-println("Neumann Helmholtz: should be ~0.06")
+println("Neumann Helmholtz: should be ~0.035")
 
