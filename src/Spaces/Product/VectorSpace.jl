@@ -62,7 +62,7 @@ Base.rand(d::UnionDomain)=rand(d[rand(1:length(d))])
 immutable PiecewiseSpace{S<:DomainSpace,T} <: DomainSpace{T}
     spaces::Vector{S} 
 end
-
+PiecewiseSpace(sp::Vector{Any})=PiecewiseSpace([sp...])
 PiecewiseSpace{S,T}(::DomainSpace{T},spaces::Vector{S})=PiecewiseSpace{S,T}(spaces)
 PiecewiseSpace(spaces)=PiecewiseSpace(first(spaces),spaces)
 Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))
@@ -85,6 +85,7 @@ function spacescompatible{S,T}(A::PiecewiseSpace{S,T},B::PiecewiseSpace{S,T})
         ret
     end
 end
+
 
 
 
@@ -128,7 +129,22 @@ function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
     end
 end
 
+## space promotion
 
+canonicalspace(sp::PiecewiseSpace)=PiecewiseSpace(map(canonicalspace,sp.spaces))
+
+for op in (:maxspace,:minspace)
+    @eval begin
+        function $op(f::PiecewiseSpace,g::PiecewiseSpace)
+            @assert length(f)==length(g)
+            PiecewiseSpace([$op(f[k],g[k]) for k=1:length(f)])
+        end
+    end
+end
+
+for typ in (:PiecewiseSpace,:UnionDomain)
+    @eval ==(a::($typ),b::($typ))=length(a)==length(b)&&all([a[k]==b[k] for k=1:length(a)])
+end
 
 ## devec, asssume if domains the same we are vector
 

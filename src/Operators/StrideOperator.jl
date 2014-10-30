@@ -135,7 +135,7 @@ iszerooperator(A::ConstantOperator)=A.c==0.
 iszerooperator(A)=false
 function isboundaryrow(A,k)
     for j=1:size(A,2)
-        if typeof(A[k,j]) <: Functional
+        if isa(A[k,j],Functional)
             return true
         end
     end
@@ -201,14 +201,18 @@ function interlace{T<:Operator}(A::Array{T,2})
     
     dsp=domainspace(A)
 
-
-    br=m-n #num boundary rows
+    br=0#num boundary rows
+    for k=1:m
+        if isboundaryrow(A,k)
+            br+=1
+        end
+    end
 
     for k=1:br
         @assert isboundaryrow(A,k) 
     end
     
-    S=Array(Operator,br+1)
+    S=Array(Operator,br<m?br+1:br)
     
     for k=1:br, j=1:n
         if !iszerooperator(A[k,j])
@@ -242,9 +246,10 @@ function interlace{T<:Operator}(A::Array{T,2})
         end
     end
     
-    rsp=rangespace(A[br+1:end,1])    
-    
-    S[br+1]=SpaceOperator(S[br+1],dsp,rsp)
+    if br < m
+        rsp=rangespace(A[br+1:end,1])    
+        S[br+1]=SpaceOperator(S[br+1],dsp,rsp)
+    end
     
     if(size(S,1) ==1)
         S[1]

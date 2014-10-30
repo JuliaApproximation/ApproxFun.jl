@@ -149,8 +149,9 @@ include("systems.jl")
 ## Conversion
 
 
-
+Base.zero{T<:Number}(::Type{Functional{T}})=ZeroFunctional(T)
 Base.zero{T<:Number}(::Type{Operator{T}})=ZeroOperator(T)
+Base.zero{O<:Functional}(::Type{O})=ZeroFunctional()
 Base.zero{O<:Operator}(::Type{O})=ZeroOperator()
 
 

@@ -44,7 +44,7 @@ Conversion(A::FunctionSpace)=Conversion(A,canonicalspace(A))
 # the domain and range space
 # but continue to know its a derivative
 
-type ConversionWrapper{S<:BandedOperator} <: AbstractConversion{Float64}
+immutable ConversionWrapper{S<:BandedOperator} <: AbstractConversion{Float64}
     op::S
 end
 

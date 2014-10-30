@@ -1,4 +1,6 @@
-immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number} <: BandedOperator{T}
+abstract AbstractMultiplication{T} <:BandedOperator{T}
+
+immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number} <: AbstractMultiplication{T}
     f::Fun{D,T}
     space::S
 end
@@ -23,8 +25,23 @@ domain(T::Multiplication)=domain(T.f)
 
 
 ##multiplication can always be promoted, range space is allowed to change
-promotedomainspace(D::Multiplication,sp::AnySpace)=D
-promotedomainspace(D::Multiplication,sp::FunctionSpace)=Multiplication(D.f,sp)
+promotedomainspace(D::AbstractMultiplication,sp::AnySpace)=D
+promotedomainspace(D::AbstractMultiplication,sp::FunctionSpace)=Multiplication(D.f,sp)
 
 
 Base.diagm(a::Fun)=Multiplication(a)
+
+
+immutable MultiplicationWrapper{D<:FunctionSpace,O<:BandedOperator,T<:Number} <: AbstractMultiplication{T}
+    f::Fun{D,T}
+    op::O
+end
+
+MultiplicationWrapper{D<:FunctionSpace,T<:Number}(f::Fun{D,T},op::BandedOperator{T})=MultiplicationWrapper{D,typeof(op),T}(f,op)
+
+addentries!(D::MultiplicationWrapper,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
+for func in (:rangespace,:domainspace,:bandinds,:domain)
+    @eval $func(D::MultiplicationWrapper)=$func(D.op)
+end
+
+
