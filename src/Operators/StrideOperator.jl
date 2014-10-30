@@ -29,32 +29,18 @@ function bandinds(S::StrideOperator)
     
     st = abs(S.colstride)
     
-    if S.colstride > 0 && S.rowstride > 0
-        min(st*br[1]-S.rowindex+S.colindex,0),max(st*br[end]-S.rowindex+S.colindex,0)
-    elseif S.colstride > 0
-        min(-(S.colindex+S.rowindex-2+st*br[end]),0),max(S.colindex+S.rowindex-2+st*br[end],0)
-    elseif S.rowstride > 0
-        min(-(S.colindex+S.rowindex-2-st*br[1]),0),max(S.colindex+S.rowindex-2-st*br[1],0)
-    else
-        min(-st*br[end]-S.rowindex+S.colindex,0),max(-st*br[1]-S.rowindex+S.colindex,0)
-    end
+    min(st*br[1]-S.rowindex+S.colindex,0),max(st*br[end]-S.rowindex+S.colindex,0)
 end
 
 # First index above
-firstrw(rs,ri,k::Integer)=rs>0?fld(k-ri+rs-1,rs):fld(k-ri,rs)
+firstrw(rs,ri,k::Integer)=fld(k-ri+rs-1,rs)
 firstrw(S,k::Integer)=firstrw(S.rowstride,S.rowindex,k)
 
 #Last index below
-lastrw(rs,ri,k::Integer)=rs>0?fld(k-ri,rs):fld(k-ri+rs+1,rs)
+lastrw(rs,ri,k::Integer)=fld(k-ri,rs)
 
 
-function divrowrange(rs,ri,r)
-    if rs > 0
-        firstrw(rs,ri,r[1]):lastrw(rs,ri,r[end])
-    else #neg neg
-        lastrw(rs,ri,r[end]):firstrw(rs,ri,r[1])
-    end
-end
+divrowrange(rs,ri,r)=firstrw(rs,ri,r[1]):lastrw(rs,ri,r[end])
 
 for op in (:firstrw,:lastrw,:divrowrange)
     @eval $op(S,k...)=$op(S.rowstride,S.rowindex,k...)
@@ -78,36 +64,7 @@ function stride_pospos_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
     A
 end
 
-function stride_posneg_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
-    r1=divrowrange(S,kr)
-    B1=ShiftArray(S.op,r1)
-    B=BandedArray(A)
-    
-    br=bandrange(S.op)
-    
-    for k=r1, j=br
-        if S.colstride*(j+k) + S.colindex > 0 && S.rowstride*k + S.rowindex > 0
-            B[S.rowstride*k + S.rowindex,S.colstride*(j+k) + S.colindex] += B1[k,j]
-        end
-    end
-
-    
-    A
-end
-
-function addentries!(S::StrideOperator,A,kr)
-    if S.rowstride > 0 && S.colstride > 0
-        stride_pospos_addentries!(S,A,kr)
-    elseif S.rowstride > 0
-        stride_posneg_addentries!(S,A,kr)    
-    elseif S.colstride > 0
-        stride_posneg_addentries!(S,A,kr)            
-    else #neg neg
-        stride_pospos_addentries!(S,A,kr)            
-    end
-end
-
-
+addentries!(S::StrideOperator,A,kr)=stride_pospos_addentries!(S,A,kr)
 domain(S::StrideOperator)=Any ##TODO: tensor product
 
 
@@ -257,15 +214,5 @@ function interlace{T<:Operator}(A::Array{T,2})
         S
     end
 end
-
-# ## only works for BandedShiftOperator
-# function interlace(L::BandedShiftOperator)
-#     SPP=StrideOperator(L,1,1,2,2)
-#     SMM=StrideOperator(L,0,0,-2,-2)
-#     SPM=StrideOperator(L,0,1,-2,2)
-#     SMP=StrideOperator(L,1,0,2,-2)
-#     
-#     SPM+SMP+SPP+SMM
-# end
 
 

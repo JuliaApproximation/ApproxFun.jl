@@ -23,8 +23,23 @@ shiftBandedArray(B::BandedShiftOperator,k::Range1,cs)=BandedArray(shiftShiftArra
 # BandedShiftOperator overrides shiftaddentries!
 
 
+shiftfirstrw(rs,ri,k::Integer)=rs>0?fld(k-ri+rs-1,rs):fld(k-ri,rs)
+shiftfirstrw(S,k::Integer)=firstrw(S.rowstride,S.rowindex,k)
+
+#Last index below
+shiftlastrw(rs,ri,k::Integer)=rs>0?fld(k-ri,rs):fld(k-ri+rs+1,rs)
+
+function shiftdivrowrange(rs,ri,r)
+    if rs > 0
+        shiftfirstrw(rs,ri,r[1]):shiftlastrw(rs,ri,r[end])
+    else #neg neg
+        shiftlastrw(rs,ri,r[end]):shiftfirstrw(rs,ri,r[1])
+    end
+end
+
+
 function shift_stride_pospos_addentries!(ri,ci,rs,cs,S,A::ShiftArray,kr::Range)
-    r1=divrowrange(rs,ri,kr)
+    r1=shiftdivrowrange(rs,ri,kr)
 
     B1=shiftBandedArray(S,r1)
     B=BandedArray(A)
@@ -37,7 +52,7 @@ function shift_stride_pospos_addentries!(ri,ci,rs,cs,S,A::ShiftArray,kr::Range)
 end
 
 function shift_stride_posneg_addentries!(ri,ci,rs,cs,S,A::ShiftArray,kr::Range)
-    r1=divrowrange(rs,ri,kr)
+    r1=shiftdivrowrange(rs,ri,kr)
     B1=shiftShiftArray(S,r1)
     B=BandedArray(A)
     
