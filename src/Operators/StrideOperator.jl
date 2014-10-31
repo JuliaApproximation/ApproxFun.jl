@@ -51,20 +51,23 @@ end
 #S[k,j] == A[k,j-k]
 #A[rowstride*k + rowindex,colstride*j + colindex - k] == op[k,j]
 
-function stride_pospos_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)
-    r1=divrowrange(S,kr)
+function stride_addentries!(op,ri,ci,rs,cs,A::ShiftArray,kr::Range)
+    r1=divrowrange(rs,ri,kr)
 
-    B1=BandedArray(S.op,r1)
+    B1=BandedArray(op,r1)
     B=BandedArray(A)
     
     for k=r1, j=columnrange(B1.data)+k
-        B[S.rowstride*k + S.rowindex,S.colstride*j + S.colindex] += B1.data[k,j-k]
+        B[rs*k + ri,cs*j + ci] += B1.data[k,j-k]
     end
     
-    A
+    A    
 end
 
-addentries!(S::StrideOperator,A,kr)=stride_pospos_addentries!(S,A,kr)
+stride_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)=stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
+
+
+addentries!(S::StrideOperator,A,kr)=stride_addentries!(S,A,kr)
 domain(S::StrideOperator)=Any ##TODO: tensor product
 
 
@@ -151,6 +154,8 @@ function promotespaces{T<:Operator}(A::Array{T,2})
     A
 end
 
+
+
 function interlace{T<:Operator}(A::Array{T,2})
     m,n=size(A)
     
@@ -214,5 +219,33 @@ function interlace{T<:Operator}(A::Array{T,2})
         S
     end
 end
+
+
+
+type DiagonalInterlaceOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+    ops::Vector{B}
+end
+
+DiagonalInterlaceOperator{B<:Operator}(v::Vector{B})=DiagonalInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
+
+
+function bandinds(S::DiagonalInterlaceOperator)
+    binds=map(bandinds,S.ops)
+    bra=mapreduce(first,min,binds)
+    brb=mapreduce(last,max,binds)    
+    n=length(S.ops)
+    n*(bra-1)+1,n*(brb+1)-1
+end
+
+
+function addentries!(D::DiagonalInterlaceOperator,A::ShiftArray,kr::Range)
+    n=length(D.ops)
+    for k=1:n
+        stride_addentries!(D.ops[k],k-n,k-n,n,n,A,kr)
+    end
+    A
+end
+
+
 
 

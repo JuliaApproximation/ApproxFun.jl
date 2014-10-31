@@ -13,11 +13,10 @@ abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
 abstract BandedOperator{T} <: BandedBelowOperator{T}
 
+Base.eltype{T}(::Operator{T})=T
 
 
 
-
-##TODO: Why do we need BandedOperator to check for row>0?
 
 ## We assume operators are T->T
 rangespace(A::Operator)=AnySpace()
@@ -42,11 +41,11 @@ Base.getindex(op::Functional,k::Integer)=op[k:k][1]
 
 function Base.getindex(op::Functional,j::Range1,k::Range1)
   @assert j[1]==1 && j[end]==1
-  op[k]' #TODO conjugate transpose?
+  op[k].'
 end
 function Base.getindex(op::Functional,j::Integer,k::Range1)
   @assert j==1
-  op[k]' #TODO conjugate transpose?
+  op[k].'
 end
 
 
