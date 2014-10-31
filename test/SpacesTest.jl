@@ -31,3 +31,14 @@ f=FFun(x->exp(-10sin((x-.1)/2)^2))
 @test_approx_eq f[.5] Fun(f,FourierSpace)[.5]
 
 
+
+## PiecewiseSPace
+
+x=Fun(identity,[-10.,0.,1.,15.])
+sp=space(x)
+D=Derivative(sp)
+
+u=[dirichlet(sp),
+    D^2-x]\[airyai(-10.)];
+    
+@test_approx_eq u[0.] airyai(0.)

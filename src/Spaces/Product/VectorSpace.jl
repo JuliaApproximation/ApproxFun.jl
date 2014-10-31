@@ -161,6 +161,18 @@ end
 
 devec(v::Vector{Any})=devec([v...])
 
+function devec{S<:FunctionSpace}(spl::Vector{S})
+    if spacescompatible(spl)
+        VectorDomainSpace(first(spl),length(spl))
+    else
+        PiecewiseSpace(spl)
+    end
+end
+
+Base.vec(S::PiecewiseSpace)=S.spaces
+Base.vec{n}(S::VectorDomainSpace{n})=fill(S.space,n)
+
+
 for op in (:differentiate,:integrate)
     @eval $op{V<:Union(VectorDomainSpace,PiecewiseSpace)}(f::Fun{V})=devec(map($op,vec(f)))
 end

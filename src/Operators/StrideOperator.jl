@@ -222,7 +222,7 @@ end
 
 
 
-type DiagonalInterlaceOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+immutable DiagonalInterlaceOperator{T<:Number,B<:Operator} <: BandedOperator{T}
     ops::Vector{B}
 end
 
@@ -247,5 +247,8 @@ function addentries!(D::DiagonalInterlaceOperator,A::ShiftArray,kr::Range)
 end
 
 
+for op in (:domainspace,:rangespace)
+    @eval $op(D::DiagonalInterlaceOperator)=devec(map($op,D.ops))
+end
 
 
