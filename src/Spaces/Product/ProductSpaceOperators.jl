@@ -19,3 +19,17 @@ for op in (:dirichlet,:neumann)
     @eval $op(d::PiecewiseSpace)=interlace($op(d.spaces))
     @eval $op(d::UnionDomain)=interlace($op(d.domains))
 end
+
+
+
+## diag provides a way to convert between DiagonalInterlaceOperator and bacn
+
+Base.diag(A::DiagonalInterlaceOperator)=A.ops
+Base.diag(A::PlusOperator)=mapreduce(diag,+,A.ops)
+Base.diag(A::TimesOperator)=mapreduce(diag,.*,A.ops)
+
+for TYP in (:DerivativeWrapper,:ConversionWrapper)
+    @eval Base.diag{DT<:DiagonalInterlaceOperator}(A::($TYP{DT}))=A.op.ops
+end
+
+Base.diag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
