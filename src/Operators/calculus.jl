@@ -1,7 +1,9 @@
-export Derivative,Integral
+export Derivative,Integral,Hilbert
+
 
 abstract AbstractDerivative{T} <: BandedOperator{T}
 abstract AbstractIntegral{T} <: BandedOperator{T}
+abstract AbstractHilbert{T} <: BandedOperator{T}
 
 immutable Derivative{S<:FunctionSpace,T<:Number} <: AbstractDerivative{T}
     space::S        # the domain space
@@ -13,7 +15,12 @@ immutable Integral{S<:FunctionSpace,T<:Number} <: AbstractIntegral{T}
     order::Int
 end
 
-for TT in (:Derivative,:Integral)
+immutable Hilbert{S<:FunctionSpace,T<:Number} <: AbstractHilbert{T}
+    space::S        # the domain space
+    order::Int
+end
+
+for TT in (:Derivative,:Integral,:Hilbert)
     @eval begin
         $TT{S<:PeriodicDomainSpace}(sp::S,k::Integer)=$TT{S,Complex{Float64}}(sp,k)
         $TT{S<:FunctionSpace}(sp::S,k::Integer)=$TT{S,Float64}(sp,k)
@@ -54,7 +61,7 @@ end
 # the default domain space is higher to avoid negative ultraspherical spaces
 Derivative(d::IntervalDomain,n::Integer)=Derivative(ChebyshevSpace(d),n)
 Integral(d::IntervalDomain,n::Integer)=Integral(UltrasphericalSpace{1}(d),n)
-
+Hilbert(d::IntervalDomain,n::Integer)=Hilbert(ChebyshevSpace(d),n)
 
 #promoting domain space is allowed to change range space
 # for integration, we fall back on existing conversion for now
@@ -62,18 +69,34 @@ promotedomainspace(D::AbstractDerivative,sp::AnySpace)=D
 
 function promotedomainspace{S<:FunctionSpace}(D::AbstractDerivative,sp::S)
     if domain(sp) == AnyDomain()
-         Derivative(S(domain(D)),D.order)
+        Derivative(S(domain(D)),D.order)
     else
         Derivative(sp,D.order)
     end
-end        
+end
+
+promotedomainspace(H::AbstractHilbert,sp::AnySpace)=H
+
+function promotedomainspace{S<:FunctionSpace}(H::AbstractHilbert,sp::S)
+    if domain(sp) == AnyDomain()
+        Hilbert(S(domain(H)),H.order)
+    else
+        Hilbert(sp,H.order)
+    end
+end
 
 
-## simplify higher order derivatives/integration
+## simplify higher order derivatives/integration/Hilbert
 function *(D1::AbstractDerivative,D2::AbstractDerivative)
     @assert domain(D1) == domain(D2)
     
     Derivative(domainspace(D2),D1.order+D2.order)
+end
+
+function *(H1::AbstractHilbert,H2::AbstractHilbert)
+    @assert domain(H1) == domain(H2)
+
+    Hilbert(domainspace(H2),H1.order+H2.order)
 end
 
 
@@ -90,6 +113,21 @@ function Base.getindex(D::Derivative,f::Fun)
     return ret
 end
 
+function Base.getindex(H::Hilbert,f::Fun)
+    @assert spacescompatible(H.space,f.space)
+    return H*Multiplication(f,f.space)
+end
+
+function Base.getindex(H::Hilbert,f::LowRankFun)
+    @assert spacescompatible(H.space,f.A[1].space)
+    @assert spacescompatible(H.space,f.B[1].space)
+
+    ret = f.A[1]*H[f.B[1]]
+    for k=2:rank(f)
+        ret += f.A[k]*H[f.B[k]]
+    end
+    return ret
+end
 
 
 ## Convenience routines
@@ -123,9 +161,4 @@ addentries!(D::DerivativeWrapper,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds)
     @eval $func(D::DerivativeWrapper)=$func(D.op)
 end
-
-
-
-
-
 
