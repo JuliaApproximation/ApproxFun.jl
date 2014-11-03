@@ -1,9 +1,9 @@
 export setplotter
 
 # these defaults are overloaded as packages are loaded
-plotter={:contour=>"Gadfly",
+plotter=@compat Dict(:contour=>"Gadfly",
     :plot=>"Gadfly",
-    :surf=>"PyPlot"}
+    :surf=>"PyPlot")
 
 
 function setplotter(key,val)    

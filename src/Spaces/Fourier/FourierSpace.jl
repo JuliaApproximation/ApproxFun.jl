@@ -19,13 +19,12 @@ end
 
 
 typealias TaylorSpace HardySpace{true}
-typealias PoleSpace HardySpace{false}
 
 transform(::TaylorSpace,vals::Vector)=alternatesign!(fft(vals)/length(vals))
 itransform(::TaylorSpace,cfs::Vector)=ifft(alternatesign!(cfs))*length(cfs)
 
-transform(::PoleSpace,vals::Vector)=-alternatesign!(flipud(fft(vals))/length(vals))
-itransform(::PoleSpace,cfs::Vector)=ifft(flipud(alternatesign!(-cfs)))*length(cfs)
+transform(::HardySpace{false},vals::Vector)=-alternatesign!(flipud(fft(vals))/length(vals))
+itransform(::HardySpace{false},cfs::Vector)=ifft(flipud(alternatesign!(-cfs)))*length(cfs)
 
 function evaluate(f::Fun{TaylorSpace},z)
     d=domain(f)
@@ -36,7 +35,7 @@ function evaluate(f::Fun{TaylorSpace},z)
     end
 end
 
-function evaluate(f::Fun{PoleSpace},z)
+function evaluate(f::Fun{HardySpace{false}},z)
     d=domain(f)
     if isa(d,Circle)
         z=(z-d.center)/d.radius

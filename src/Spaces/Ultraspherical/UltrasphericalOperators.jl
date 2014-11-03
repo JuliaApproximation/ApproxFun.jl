@@ -169,7 +169,29 @@ function addentries!{λ}(D::Integral{UltrasphericalSpace{λ}},A::ShiftArray,kr::
     
     A
 end
- 
+
+## Hilbert
+
+rangespace{λ}(H::Hilbert{UltrasphericalSpace{λ}})=UltrasphericalSpace{λ+H.order}(domain(H))
+bandinds{S<:UltrasphericalSpace}(H::Hilbert{S})=0,H.order
+
+function addentries!{λ}(H::Hilbert{UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+    m=H.order
+    d=domain(H)
+
+    @assert isa(d,Interval)
+
+    if λ == 0
+        C=2.^(m-1)#*(2./(d.b-d.a)).^m    
+        for k=kr
+            A[k,m] += C
+        end
+    else
+        error("Not implemented")
+    end
+    
+    A
+end
 
 
 
