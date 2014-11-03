@@ -29,7 +29,7 @@ evaluate{V<:VectorDomainSpace,T}(f::Fun{V,T},x)=evaluate(vec(f),x)
 
 
 # Base.ones{T<:Number,n}(::Type{T},S::VectorDomainSpace{n})=Fun(ones(T,n),S)
-# Base.ones{O}(S::UltrasphericalSpace{O})=Fun(ones(1),S)    
+
 
 
 
