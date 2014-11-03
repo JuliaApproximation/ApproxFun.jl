@@ -18,11 +18,13 @@ Fun{T<:DomainSpace}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
 Fun{T<:DomainSpace}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
+
 Fun{T<:DomainSpace}(f,::Type{T})=Fun(f,T(canonicaldomain(T)))
 Fun{T<:DomainSpace}(f,::Type{T},n::Integer)=Fun(f,T(canonicaldomain(T)),n)
 
 Fun(f,d::Domain)=Fun(f,Space(d))
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
+Fun{T<:Domain}(f,::Type{T})=Fun(f,T())
 
 
 Fun(c::Number)=Fun([c])
