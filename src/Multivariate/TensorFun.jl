@@ -275,6 +275,11 @@ Base.imag{S,V,T}(u::TensorFun{S,V,T})=real(TensorFun(imag(u.coefficients),space(
 
 
 
+## Call LowRankFun verison
+# TODO: should cumsum and integrate return TensorFun or lowrankfun?
+for op in (:(Base.sum),:(Base.cumsum),:integrate)
+    @eval $op(f::TensorFun,n...)=$op(LowRankFun(f),n...)
+end
 
 
 
