@@ -1,7 +1,6 @@
 ## Plotting
 
 
-export plot
 export complexplot,contour
 
 
