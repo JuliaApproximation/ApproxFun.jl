@@ -1,4 +1,4 @@
-include("Product/Product.jl")
+include("Modifier/Modifier.jl")
 
 include("Ultraspherical/UltrasphericalSpace.jl")
 include("Fourier/FourierSpace.jl")

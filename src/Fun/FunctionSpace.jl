@@ -115,19 +115,14 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
     
     # check if its banded through canonicalspace
     cspa=canonicalspace(a)
-    cspb=canonicalspace(b)
-    if cspa==cspb && cspa != a && cspb !=b
-        #TODO: maybe csp and a have maxspace that
-        #     differs
-        csp=cspa
-        if maxspace(csp,a)==csp
-            return maxspace(b,csp)
-        elseif maxspace(csp,b)==csp
-            return maxspace(a,csp)            
-        end
+    if cspa != a && maxspace(cspa,a)==cspa
+        return maxspace(b,cspa)
     end
-
-
+    
+    cspb=canonicalspace(b)
+    if cspb !=b && maxspace(cspb,b)==cspb
+        return maxspace(a,cspb)            
+    end
     
     NoSpace()
 end
