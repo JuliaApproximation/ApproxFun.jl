@@ -39,13 +39,13 @@ end
 #     D
 # end
 # 
-# ##TODO: general
-# function Base.blkdiag{T<:Operator}(d1::Vector{T},d2::Vector{T})
-#     D=zeros(Operator,length(d1)+length(d2),2)
-#     D[1:length(d1),1]=d1
-#     D[length(d1)+1:end,2]=d2
-#     D
-# end
+ ##TODO: unify with other blkdiag
+ function Base.blkdiag{T<:Operator}(d1::Vector{T},d2::Vector{T})
+     D=zeros(Operator,length(d1)+length(d2),2)
+     D[1:length(d1),1]=d1
+     D[length(d1)+1:end,2]=d2
+     D
+ end
 
 
 ## broadcase
