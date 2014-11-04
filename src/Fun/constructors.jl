@@ -162,6 +162,5 @@ Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
 Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
 Fun(cfs::Vector)=Fun(1.0*cfs,Interval())
 Fun{T<:Number}(cfs::Vector,d::Vector{T})=Fun(1.0*cfs,Interval(d))
-Fun(f::Function)=Fun(f,Interval())
 Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
 
