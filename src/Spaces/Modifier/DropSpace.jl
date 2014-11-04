@@ -34,14 +34,18 @@ canonicalspace(a::DropSpace)=a.space
 
 
 ## transform
-
-function transform{S,n}(sp::DropSpace{S,n},vals)
+# TODO: padding shouldn't be necessary
+function transform{S,n,T}(sp::DropSpace{S,n},vals::Vector{T})
     tol=1e-12
 
     ret=transform(sp.space,vals)
     @assert norm(ret[1:n])<tol
     
-    ret[n+1:end]
+    [ret[n+1:end],zeros(T,n)] # ensure same length by padding with zeros
 end
 
-itransform{S,n,T}(sp::DropSpace{S,n},cfs::Vector{T})=itransform(sp.space,[zeros(T,n),cfs])
+itransform{S,n,T}(sp::DropSpace{S,n},cfs::Vector{T})=itransform(sp.space,[zeros(T,n),cfs[1:end-n]])
+
+
+
+
