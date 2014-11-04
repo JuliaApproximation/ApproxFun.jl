@@ -229,6 +229,8 @@ end
 DiagonalInterlaceOperator{B<:Operator}(v::Vector{B})=DiagonalInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
 DiagonalInterlaceOperator(v::Vector{Any})=DiagonalInterlaceOperator(Operator{mapreduce(eltype,promote_type,v)}[v...])
 
+
+
 function bandinds(S::DiagonalInterlaceOperator)
     binds=map(bandinds,S.ops)
     bra=mapreduce(first,min,binds)

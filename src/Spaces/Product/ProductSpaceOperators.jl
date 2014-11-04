@@ -23,13 +23,15 @@ end
 
 
 ## diag provides a way to convert between DiagonalInterlaceOperator and bacn
+blkdiagm{B<:Operator}(v::Vector{B})=DiagonalInterlaceOperator(v)
 
-Base.diag(A::DiagonalInterlaceOperator)=A.ops
-Base.diag(A::PlusOperator)=mapreduce(diag,+,A.ops)
-Base.diag(A::TimesOperator)=mapreduce(diag,.*,A.ops)
+Base.blkdiag(A::DiagonalInterlaceOperator)=A.ops
+Base.blkdiag(A::PlusOperator)=mapreduce(blkdiag,+,A.ops)
+Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
 
 for TYP in (:DerivativeWrapper,:ConversionWrapper)
-    @eval Base.diag{DT<:DiagonalInterlaceOperator}(A::($TYP{DT}))=A.op.ops
+    @eval Base.blkdiag{DT<:DiagonalInterlaceOperator}(A::($TYP{DT}))=A.op.ops
 end
 
-Base.diag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
+Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
+
