@@ -1,7 +1,5 @@
 ## VectorSpace{T,S} encodes a space that is a Vector, with coefficients interlaced
 
-export ∂
-
 
 immutable VectorDomainSpace{n,S,T} <: DomainSpace{T}
      space::S     
@@ -81,12 +79,6 @@ Base.length(S::PiecewiseSpace)=S.spaces|>length
 Base.getindex(d::PiecewiseSpace,k)=d.spaces[k]
 
 Base.vec{S<:DomainSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=Fun{S,T}[Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j]) for j=1:length(f.space)]
-
-
-function ∂(d::ProductDomain{Interval{Float64}})
-    @assert length(d.domains) ==2
-    UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
-end
 
 
 
@@ -254,3 +246,19 @@ function Fun{T<:Number,n,S,Q}(M::Array{T,2},sp::VectorDomainSpace{n,S,Q})
 end
 
 
+
+
+
+## boundary 
+
+
+function ∂(d::ProductDomain{Interval{Float64}})
+    @assert length(d.domains) ==2
+    UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
+end
+
+#TODO: Implement
+# function ∂(d::TensorSpace{Interval{Float64}})
+#     @assert length(d.spaces) ==2
+#     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
+# end

@@ -340,7 +340,7 @@ end
 
 
 domain(P::PDEOperatorSchur,k::Integer)=k==1?domain(P.Lx):domain(P.S)
-
+domain(P::PDEOperatorSchur)=domain(domainspace(P))
 
 
 

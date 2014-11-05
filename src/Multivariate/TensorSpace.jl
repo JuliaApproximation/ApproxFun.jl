@@ -1,4 +1,7 @@
 
+export ∂
+
+
 abstract MultivariateDomain
 ##TODO: MultivariateDomain{2}
 abstract BivariateDomain <: MultivariateDomain
@@ -145,5 +148,11 @@ function points(d::BivariateFunctionSpace,n,m,k)
     
     Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 end
+
+
+
+
+
+
 
 
