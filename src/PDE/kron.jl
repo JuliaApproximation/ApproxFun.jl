@@ -63,6 +63,7 @@ for op in (:domainspace,:rangespace)
     @eval $op(P::PDEOperatorKron,k...)=$op(P.op,k...)
 end
 
+domain(P::PDEOperatorKron)=domain(domainspace(P))
 
 function PDEOperatorKron(A,nx::Integer,ny::Integer)
     L=A[end]
