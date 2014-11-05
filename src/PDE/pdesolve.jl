@@ -41,7 +41,7 @@ function pde_normalize_rhs(A,f)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
 
     # vec if boundary fun
-    if domain(f[1])==∂(domain(A))
+    if !isempty(f) && isa(f[1],Fun) && domain(f[1])==∂(domain(A))
         @assert length(f)<=2
 
         #TODO: general spaces, will break later though if inconsistent

@@ -13,7 +13,6 @@ end
 
 Interval()=Interval(-1.,1.)
 
-
 function Interval{T<:Number}(d::Vector{T})
     @assert length(d) >1
 

@@ -247,18 +247,3 @@ end
 
 
 
-
-
-## boundary 
-
-
-function ∂(d::ProductDomain{Interval{Float64}})
-    @assert length(d.domains) ==2
-    UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
-end
-
-#TODO: Implement
-# function ∂(d::TensorSpace{Interval{Float64}})
-#     @assert length(d.spaces) ==2
-#     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
-# end
