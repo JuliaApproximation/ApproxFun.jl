@@ -105,6 +105,12 @@ function addentries!(B::BandedOperator,A,kr)
     A
 end
 
+## Default Composition with a Fun
+
+function Base.getindex(B::BandedOperator,f::Fun)
+    @assert spacescompatible(B.space,f.space)
+    return B*Multiplication(f,f.space)
+end
 
 ## Standard Operators and linear algebra
 

@@ -102,22 +102,6 @@ end
 
 ## Overrideable
 
-function Base.getindex(D::Derivative,f::Fun)
-    @assert spacescompatible(D.space,f.space)
-    D1 = Derivative(D.space,1)
-    ret = D1*f+f*D1
-    if D.order > 1
-        Dnm1 = Derivative(D.space,D.order-1)
-        ret = Dnm1*ret
-    end
-    return ret
-end
-
-function Base.getindex(H::Hilbert,f::Fun)
-    @assert spacescompatible(H.space,f.space)
-    return H*Multiplication(f,f.space)
-end
-
 function Base.getindex(H::Hilbert,f::LowRankFun)
     @assert spacescompatible(H.space,f.A[1].space)
     @assert spacescompatible(H.space,f.B[1].space)
@@ -128,6 +112,7 @@ function Base.getindex(H::Hilbert,f::LowRankFun)
     end
     return ret
 end
+Base.getindex(H::Hilbert,f::TensorFun) = H[LowRankFun(f)]
 
 
 ## Convenience routines
