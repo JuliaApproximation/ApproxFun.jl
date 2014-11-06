@@ -21,6 +21,14 @@ Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(
 Evaluation(x::Union(Number,Bool))=Evaluation(Interval(),x,0)
 
 
+## default getindex
+function getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)   
+    # Default is to convert to Canonical and d
+    sp=domainspace(D)
+    csp=canonicalspace(sp)
+    getindex(TimesFunctional(Evaluation(csp,D.x,D.order),Conversion(sp,csp)),kr)
+end
+
 
 ## EvaluationWrapper
 
