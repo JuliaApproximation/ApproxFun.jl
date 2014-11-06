@@ -6,18 +6,18 @@ export LowRankFun
 ## LowRankFun
 
 
-type LowRankFun{T<:Number,S<:DomainSpace,M<:DomainSpace}<:BivariateFun
+type LowRankFun{S<:DomainSpace,M<:DomainSpace,T<:Number,V<:Number}<:BivariateFun
   A::Vector{Fun{S,T}}
-  B::Vector{Fun{M,T}}
+  B::Vector{Fun{M,V}}
   
-  function LowRankFun(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}})
+  function LowRankFun(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})
     @assert length(A) == length(B)
     @assert length(A) > 0
     new(A,B)
   end
 end
 
-LowRankFun{T,S,M}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}})=LowRankFun{T,S,M}(A,B)
+LowRankFun{T,V,S,M}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})=LowRankFun{S,M,T,V}(A,B)
 
 
 LowRankFun{T<:Number}(A::Array{T})=LowRankFun(A,Interval(),Interval())

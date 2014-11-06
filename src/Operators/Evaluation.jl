@@ -66,7 +66,10 @@ diffbcs(d::Union(IntervalDomain,FunctionSpace),k::Integer) = [ldiffbc(d,k),rdiff
 
 
 for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann)
-    @eval $op()=$op(AnySpace())
+    @eval begin
+        $op()=$op(AnySpace())
+        $op(::PeriodicDomain)=[] 
+    end
 end
 
 for op in (:ldiffbc,:rdiffbc,:diffbcs)

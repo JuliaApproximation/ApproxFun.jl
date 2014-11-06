@@ -44,14 +44,14 @@ function pde_normalize_rhs(A,f)
     if !isempty(f) && isa(f[1],Fun) && domain(f[1])==∂(domain(A))
         @assert length(f)<=2
 
-        #TODO: general spaces, will break later though if inconsistent
+        #TODO: More elegent domain conversion
         vf=vec(f[1])
-        for g in vf
-            @assert isa(space(g),ChebyshevSpace) 
-        end
+        ds1=domainspace(A,1);ds2=domainspace(A,2)
         
-        fx=map(g->Fun(g.coefficients,domain(A,2)),vf[indsBx])
-        fy=map(g->Fun(g.coefficients,domain(A,1)),vf[indsBy])   
+        fx=map(g->(@assert isa(space(g),typeof(ds2));
+        Fun(g.coefficients,ds2)),vf[indsBx])
+        fy=map(g->(@assert isa(space(g),typeof(ds1));
+        Fun(g.coefficients,ds1)),vf[indsBy])   
         
         if length(f)<2
             ff=0.0
@@ -59,15 +59,12 @@ function pde_normalize_rhs(A,f)
             ff=f[end]
         end
     else
-        ##TODO: makes more sense as a domain space of the boundary ops once thats set up    
+        f=pad(f,length(indsBx)+length(indsBy)+1)
+        
         fx=isempty(indsBx)?[]:convert2funvec(f[indsBx],domainspace(A,2))
         fy=isempty(indsBy)?[]:convert2funvec(f[indsBy],domainspace(A,1))       
         
-        if length(f) < length(indsBx)+length(indsBy)+1
-            ff=0.0
-        else
-            ff=f[end]
-        end      
+        ff=f[end]
     end
     
 
