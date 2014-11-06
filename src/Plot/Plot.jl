@@ -146,8 +146,13 @@ end
 
 function contour(f::MultivariateFun;opts...)
     f=chop(f,10e-10)
-    #TODO: pad f
-    contour(points(f,1),points(f,2),real(values(f));opts...)
+    f=pad(f,max(size(f,1),20),max(size(f,2),20))
+    vals=values(f)
+    if norm(imag(vals))>10e-9
+        warn("Imaginary part is non-neglible.  Only plotting real part.")
+    end
+    
+    contour(points(f,1),points(f,2),real(vals);opts...)
 end
 
 

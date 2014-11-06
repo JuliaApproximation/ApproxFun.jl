@@ -94,3 +94,12 @@ domain(::Number)=AnyDomain()
 
 Base.rand(d::IntervalDomain)=fromcanonical(d,2rand()-1)
 Base.rand(d::PeriodicDomain)=fromcanonical(d,2π*rand()-π)
+
+
+
+## boundary
+
+
+∂(d::IntervalDomain)=[first(d),last(d)]
+∂(d::PeriodicDomain)=[]
+

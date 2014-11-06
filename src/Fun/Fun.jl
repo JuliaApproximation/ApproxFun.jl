@@ -20,7 +20,10 @@ coefficients(f::Fun,msp::FunctionSpace)=spaceconversion(f.coefficients,space(f),
 coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(AnyDomain()))
 canonicalcoefficients(f::Fun)=coefficients(f,canonicalspace(f.space))  
 coefficients(f::Fun)=f.coefficients
+coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
+
 ##Convert routines
+
 
 
 Base.convert{T<:Number,S<:DomainSpace}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
@@ -36,7 +39,9 @@ for op in (:(Base.zeros),:(Base.ones))
 end
 
 
-coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
+
+Base.eltype{S,T}(::Fun{S,T})=T
+
 
 
 ## domain

@@ -26,13 +26,7 @@ function convert2funvec{T<:Number,D}(f::Vector{T},d::D)
 end
 convert2funvec{T<:Fun,D}(f::Vector{T},d::D)=f
 function convert2funvec{D}(f::Vector,d::D)
-    mytyp=Fun{D,Float64}
-    
-    for fk in f
-        if typeof(fk) <: Fun{D,Complex{Float64}}
-            mytyp=Fun{D,Complex{Float64}}
-        end
-    end
+    mytyp=Fun{D,mapreduce(eltype,promote_type,f)}
     
     ret=Array(mytyp,length(f))
     
@@ -45,17 +39,35 @@ end
 
 function pde_normalize_rhs(A,f)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
-    if length(f) < length(indsBx)+length(indsBy)+1
-        f=[f,zeros(length(indsBx)+length(indsBy)+1-length(f))]
+
+    # vec if boundary fun
+    if !isempty(f) && isa(f[1],Fun) && domain(f[1])==∂(domain(A))
+        @assert length(f)<=2
+
+        #TODO: More elegent domain conversion
+        vf=vec(f[1])
+        ds1=domainspace(A,1);ds2=domainspace(A,2)
+        
+        fx=map(g->(@assert isa(space(g),typeof(ds2));
+        Fun(g.coefficients,ds2)),vf[indsBx])
+        fy=map(g->(@assert isa(space(g),typeof(ds1));
+        Fun(g.coefficients,ds1)),vf[indsBy])   
+        
+        if length(f)<2
+            ff=0.0
+        else
+            ff=f[end]
+        end
+    else
+        f=pad(f,length(indsBx)+length(indsBy)+1)
+        
+        fx=isempty(indsBx)?[]:convert2funvec(f[indsBx],domainspace(A,2))
+        fy=isempty(indsBy)?[]:convert2funvec(f[indsBy],domainspace(A,1))       
+        
+        ff=f[end]
     end
-
-    ##TODO: makes more sense as a domain space of the boundary ops once thats set up
-    
-    fx=isempty(indsBx)?[]:convert2funvec(f[indsBx],domainspace(A,2))
-    fy=isempty(indsBy)?[]:convert2funvec(f[indsBy],domainspace(A,1))
     
 
-    ff=f[end]
     if isa(ff,Number)
         F=zeros(typeof(ff),1,1) 
         F[1,1]=ff
@@ -114,7 +126,7 @@ end
 
 
 pdesolve(A::AbstractPDEOperatorSchur,f::Vector,nx...)=Fun(pdesolve_mat(A,f,nx...),domainspace(A))
-pdesolve(A::AbstractPDEOperatorSchur,f::MultivariateFun,nx...)=pdesolve(A,[f],nx...)
+pdesolve(A::AbstractPDEOperatorSchur,f::Union(Fun,MultivariateFun,Number),nx...)=pdesolve(A,[f],nx...)
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Union(Fun,MultivariateFun,Number),n...)=pdesolve(A,[f],n...)
 pdesolve(A::PDEOperator,f...)=pdesolve([A],f...)

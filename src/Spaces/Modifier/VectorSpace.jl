@@ -1,7 +1,5 @@
 ## VectorSpace{T,S} encodes a space that is a Vector, with coefficients interlaced
 
-export ∂
-
 
 immutable VectorDomainSpace{n,S,T} <: DomainSpace{T}
      space::S     
@@ -83,12 +81,6 @@ Base.getindex(d::PiecewiseSpace,k)=d.spaces[k]
 Base.vec{S<:DomainSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=Fun{S,T}[Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j]) for j=1:length(f.space)]
 
 
-function ∂(d::ProductDomain{Interval{Float64}})
-    @assert length(d.domains) ==2
-    UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
-end
-
-
 
 function spacescompatible{S,T}(A::PiecewiseSpace{S,T},B::PiecewiseSpace{S,T})
     if length(A) != length(B)
@@ -105,12 +97,13 @@ end
 
 
 
-function transform{T}(S::PiecewiseSpace,vals::Vector{T})
+function transform{VV,ST,T}(S::PiecewiseSpace{VV,ST},vals::Vector{T})
     n=length(vals)
     K=length(S)
    k=div(n,K)
+    PT=promote_type(ST,T)
     if k==0
-        ret=Array(T,n)
+        ret=Array(PT,n)
         for j=1:n
             ret[j]=transform(S[j],[vals[j]])[1]
         end
@@ -118,14 +111,14 @@ function transform{T}(S::PiecewiseSpace,vals::Vector{T})
         ret
     else
         r=n-K*k
-        M=Array(T,k+1,K)
+        M=Array(PT,k+1,K)
     
         for j=1:r
             M[:,j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])
         end
         for j=r+1:length(S)
             M[1:k,j]=transform(S[j],vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k]) 
-            M[k+1,j]=zero(T)
+            M[k+1,j]=zero(PT)
         end    
         
     vec(M.')        
@@ -252,5 +245,6 @@ function Fun{T<:Number,n,S,Q}(M::Array{T,2},sp::VectorDomainSpace{n,S,Q})
     end
     ret
 end
+
 
 

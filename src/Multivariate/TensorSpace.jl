@@ -1,4 +1,7 @@
 
+export ∂
+
+
 abstract MultivariateDomain
 ##TODO: MultivariateDomain{2}
 abstract BivariateDomain <: MultivariateDomain
@@ -147,3 +150,31 @@ function points(d::BivariateFunctionSpace,n,m,k)
 end
 
 
+
+
+
+
+
+
+## boundary 
+
+
+function ∂(d::ProductDomain)
+    @assert length(d.domains) ==2
+    
+    if ∂(d[1])==∂(d[2])==[]
+        []
+    elseif ∂(d[1])==[]
+        UnionDomain([d[1]+im*d[2].a,d[1]+im*d[2].b])        
+    elseif ∂(d[2])==[]
+        UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2]])    
+    else    
+        UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
+    end
+end
+
+#TODO: Implement
+# function ∂(d::TensorSpace{Interval{Float64}})
+#     @assert length(d.spaces) ==2
+#     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
+# end
