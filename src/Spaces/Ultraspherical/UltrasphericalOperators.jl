@@ -182,7 +182,7 @@ function addentries!{λ}(H::Hilbert{UltrasphericalSpace{λ}},A::ShiftArray,kr::R
     @assert isa(d,Interval)
 
     if λ == 0
-        C=2.^(m-1)#*(2./(d.b-d.a)).^m    
+        C=2.^(m-1)*(2./(d.b-d.a)).^m    
         for k=kr
             A[k,m] += C
         end
