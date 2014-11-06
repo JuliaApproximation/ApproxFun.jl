@@ -2,6 +2,8 @@
 
 immutable DropSpace{S,n,T}<: DomainSpace{T}
     space::S 
+    DropSpace(sp::S)=new(sp)
+    DropSpace(d::Domain)=new(S(d))
 end
 
 DropSpace{T}(sp::DomainSpace{T},n::Integer)=DropSpace{typeof(sp),n,T}(sp)
