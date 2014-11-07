@@ -178,7 +178,7 @@ Base.zeros{T<:Number}(::Type{T},S::FunctionSpace)=Fun(zeros(T,1),S)
 Base.zeros(S::FunctionSpace)=Fun(zeros(1),S)
 
 # catch all
-Base.ones(S::FunctionSpace)=Fun(x->one(),S)
+Base.ones(S::FunctionSpace)=Fun(x->1.0,S)
 Base.ones{T<:Number}(::Type{T},S::FunctionSpace)=Fun(x->one(T),S)
 identity_fun(S::FunctionSpace)=Fun(x->x,S)
 

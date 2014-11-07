@@ -53,6 +53,8 @@ function TensorFun{F<:Fun}(cfs::Vector{F},d::TensorSpace)
     
     TensorFun(F,d[2])
 end
+
+
 TensorFun(cfs::Array,d::ProductDomain)=TensorFun(cfs,d[1],d[2])
 
 
@@ -60,6 +62,12 @@ TensorFun(f::Function,dy::Domain)=error("This function is only implemented to av
 TensorFun(f,dy::Domain)=TensorFun(f,Space(dy))
 TensorFun(f,dx::Domain,dy::Domain)=TensorFun(f,Space(dx),Space(dy))
 TensorFun(f::LowRankFun)=TensorFun(coefficients(f),space(f,1),space(f,2))
+
+
+TensorFun(f::TensorFun,sp1::FunctionSpace,sp2::FunctionSpace)=TensorFun(coefficients(f,sp1,sp2),sp1,sp2)
+TensorFun(f::TensorFun,sp1::Domain,sp2::Domain)=TensorFun(f,Space(sp1),Space(sp2))
+TensorFun(f::TensorFun,sp::TensorSpace)=TensorFun(f,sp[1],sp[2])
+TensorFun(f::TensorFun,sp::ProductDomain)=TensorFun(f,sp[1],sp[2])
 
 TensorFun(f::Function,d1...)=TensorFun(LowRankFun(f,d1...))
 # function ProductFun{ST<:FunctionSpace}(f::Function,S::Vector{ST},T::FunctionSpace,N::Integer)
@@ -159,11 +167,17 @@ function coefficients{S,V,T<:Number}(f::AbstractProductFun{S,V,T},ox::FunctionSp
     A=[pad!(coefficients(fx,ox),m) for fx in f.coefficients]
     B=hcat(A...)::Array{T,2}
     for k=1:size(B,1)
-        B[k,:]=spaceconversion(vec(B[k,:]),space(f,2),oy)
+        ccfs=spaceconversion(vec(B[k,:]),space(f,2),oy)
+        if length(ccfs)>size(B,2)
+            B=pad(B,size(B,1),length(ccfs))
+        end
+        B[k,:]=ccfs
     end
     
     B
 end
+
+coefficients(f::AbstractProductFun,ox::TensorSpace)=coefficients(f,ox[1],ox[2])
 
 values{S,V,T<:Number}(f::AbstractProductFun{S,V,T})=itransform!(space(f),coefficients(f))
 

@@ -29,10 +29,10 @@ Fun{T<:Domain}(f,::Type{T})=Fun(f,T())
 
 Fun(c::Number)=Fun([c])
 
-
-Fun{T<:DomainSpace}(c::Number,::Type{T})=c*ones(T(AnyDomain()))
-Fun(c::Number,d::Domain)=c*ones(d)
-Fun(c::Number,d::DomainSpace)=c*ones(d)
+# We do zero special since zero exists even when one doesn'
+Fun{T<:DomainSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
+Fun(c::Number,d::Domain)=c==0?zeros(d):c*ones(d)
+Fun(c::Number,d::DomainSpace)=c==0?zeros(d):c*ones(d)
 Fun(c::Number,n::Integer)=Fun([c],n)
 
 ## List constructor
