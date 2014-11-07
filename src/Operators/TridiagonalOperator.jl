@@ -14,8 +14,8 @@ Base.Tridiagonal{T}(J::TridiagonalOperator{T},n::Integer)=Tridiagonal(T[J.γ(k) 
 T[J.α(k) for k=1:n],
 T[J.β(k) for k=1:n-1])
 
-##TODO: is this a good idea to override?
-function Base.SymTridiagonal{T}(J::TridiagonalOperator{T},n::Integer)
+
+function symmetrize{T}(J::TridiagonalOperator{T},n::Integer)
     d=Array(T,n)
     d[1]=1
     for k=2:n
