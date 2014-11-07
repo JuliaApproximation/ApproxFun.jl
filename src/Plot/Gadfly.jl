@@ -23,10 +23,14 @@ function gadflyplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
     r=real(y)
     i=imag(y)
     if axis==-1
-        Main.Gadfly.plot(Main.DataFrames.DataFrame(Any[[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]],Main.DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
+        Main.Gadfly.plot(Main.DataFrames.DataFrame(Any[[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]],Main.DataFrames.Index(
+        @compat Dict(:x=>1,:y=>2,:Function=>3),
+        [:x,:y,:Function])),
         x="x",y="y",color="Function",Main.Gadfly.Geom.path)
     else
-        Main.Gadfly.plot(Main.DataFrames.DataFrame(Any[[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]],Main.DataFrames.Index([:x=>1,:y=>2,:Function=>3],[:x,:y,:Function])),
+        Main.Gadfly.plot(Main.DataFrames.DataFrame(Any[[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]],Main.DataFrames.Index(
+        @compat Dict(:x=>1,:y=>2,:Function=>3),
+        [:x,:y,:Function])),
         x="x",y="y",color="Function",Main.Gadfly.Geom.path, Main.Gadfly.Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))      
     end
 end
