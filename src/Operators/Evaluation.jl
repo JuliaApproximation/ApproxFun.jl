@@ -11,8 +11,7 @@ immutable Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Abstra
     order::Int
 end
 Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,Float64}(sp,x,k)
-Evaluation{M,S<:IntervalDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Float64}(sp,x,order)
-Evaluation{M,S<:PeriodicDomainSpace}(sp::S,x::M,order::Integer)=Evaluation{S,M,Complex{Float64}}(sp,x,order)
+Evaluation{M,T<:Number}(sp::DomainSpace{T},x::M,order::Integer)=Evaluation{typeof(sp),M,T}(sp,x,order)
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
@@ -21,6 +20,14 @@ Evaluation(d::PeriodicDomain,x::Number,n...)=Evaluation(LaurentSpace(d),complex(
 Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
 Evaluation(x::Union(Number,Bool))=Evaluation(Interval(),x,0)
 
+
+## default getindex
+function getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)   
+    # Default is to convert to Canonical and d
+    sp=domainspace(D)
+    csp=canonicalspace(sp)
+    getindex(TimesFunctional(Evaluation(csp,D.x,D.order),Conversion(sp,csp)),kr)
+end
 
 
 ## EvaluationWrapper
@@ -67,7 +74,10 @@ diffbcs(d::Union(IntervalDomain,FunctionSpace),k::Integer) = [ldiffbc(d,k),rdiff
 
 
 for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann)
-    @eval $op()=$op(AnySpace())
+    @eval begin
+        $op()=$op(AnySpace())
+        $op(::PeriodicDomain)=[] 
+    end
 end
 
 for op in (:ldiffbc,:rdiffbc,:diffbcs)
@@ -79,6 +89,20 @@ function dirichlet{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
     B=zeros(Functional,2m,m)
     B[1,1]=dirichlet(d[1])[1]
     B[2,end]=dirichlet(d[end])[end]
+    for k=1:m-1
+        B[k+2,k]=dirichlet(d[k])[2]
+        B[k+2,k+1]=-dirichlet(d[k+1])[1]    
+        B[k+m+1,k]=neumann(d[k])[2]
+        B[k+m+1,k+1]=-neumann(d[k+1])[1]        
+    end
+    B
+end
+
+function neumann{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
+    m=length(d)
+    B=zeros(Functional,2m,m)
+    B[1,1]=neumann(d[1])[1]
+    B[2,end]=neumann(d[end])[end]
     for k=1:m-1
         B[k+2,k]=dirichlet(d[k])[2]
         B[k+2,k+1]=-dirichlet(d[k+1])[1]    

@@ -102,33 +102,29 @@ end
 
 ## Overrideable
 
-function Base.getindex(D::Derivative,f::Fun)
-    @assert spacescompatible(D.space,f.space)
-    D1 = Derivative(D.space,1)
-    ret = D1*f+f*D1
-    if D.order > 1
-        Dnm1 = Derivative(D.space,D.order-1)
-        ret = Dnm1*ret
-    end
-    return ret
-end
-
-function Base.getindex(H::Hilbert,f::Fun)
-    @assert spacescompatible(H.space,f.space)
-    return H*Multiplication(f,f.space)
-end
-
 function Base.getindex(H::Hilbert,f::LowRankFun)
-    @assert spacescompatible(H.space,f.A[1].space)
-    @assert spacescompatible(H.space,f.B[1].space)
+# Are these compatibility checks necessary? It seems like
+# Multiplication and addition already have the checks built
+# in, so there shouldn’t really be a need...
+#    @assert spacescompatible(H.space,f.A[1].space)
+#    @assert spacescompatible(H.space,f.B[1].space)
 
     ret = f.A[1]*H[f.B[1]]
     for k=2:rank(f)
         ret += f.A[k]*H[f.B[k]]
     end
-    return ret
+    ret
 end
+Base.getindex(H::Hilbert,f::TensorFun) = H[LowRankFun(f)]
 
+function Base.getindex(I::Integral,f::LowRankFun)
+    ret = f.A[1]*I[f.B[1]]
+    for k=2:rank(f)
+        ret += f.A[k]*I[f.B[k]]
+    end
+    ret
+end
+Base.getindex(I::Hilbert,f::TensorFun) = I[LowRankFun(f)]
 
 ## Convenience routines
 

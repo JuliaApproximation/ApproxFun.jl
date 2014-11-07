@@ -13,7 +13,6 @@ end
 
 Interval()=Interval(-1.,1.)
 
-
 function Interval{T<:Number}(d::Vector{T})
     @assert length(d) >1
 
@@ -72,3 +71,22 @@ identity_fun(d::Interval)=Fun([.5*(d.b+d.a),.5*(d.b-d.a)],d)
 #     g = IFun([0,1,.5*ones(length(f)-1)].*[0,f.coefficients]+[.5*f.coefficients[2:end],0,0],f.space) #Gives multiplybyx on unit interval
 #     (b-a)/2*g + (b+a)/2
 # end
+
+
+
+## algebra
+
+for op in (:*,:+,:-,:.*,:.+,:.-)
+    @eval begin
+        $op(c::Number,d::Interval)=Interval($op(c,d.a),$op(c,d.b))
+        $op(d::Interval,c::Number)=Interval($op(d.a,c),$op(d.b,c))
+    end
+end
+
+for op in (:/,:./)
+    @eval $op(d::Interval,c::Number)=Interval($op(d.a,c),$op(d.b,c))
+end
+
+
++(d1::Interval,d2::Interval)=Interval(d1.a+d2.a,d1.b+d2.b)
+

@@ -35,6 +35,8 @@ complexroots{D<:IntervalDomainSpace}(f::Fun{D})=fromcanonical(f,complexroots(f.c
 #    end
 #end
 
+roots{S,T}(f::Fun{S,T})=roots(Fun(f,domain(f))) # default is to convert to Chebyshev/Fourier
+
 
 function roots( f::Fun{ChebyshevSpace} )
 # FIND THE ROOTS OF AN IFUN.  
@@ -54,6 +56,8 @@ function roots( f::Fun{ChebyshevSpace} )
     # Map roots from [-1,1] to domain of f: 
     return fromcanonical(d, r)
 end
+
+
 
 
 function ColleagueEigVals( c::Array{Float64,1} )

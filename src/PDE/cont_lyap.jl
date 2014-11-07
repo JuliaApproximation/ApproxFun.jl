@@ -304,6 +304,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gyi
     # This means acting on Y is acting on *columns* of M
     
     X22=OS.S.Z*Y  #think of it as transpose
+    
     X11=convert(typeof(X22),Gy-OS.S.bcs[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
     X=[X11,X22]    
     X=OS.S.bcP*X        # this is equivalent to acting on columns by P'

@@ -4,6 +4,7 @@ include("JacobiSquareSpace.jl")
 
 export Disk
 
+##TODO: make argument 
 immutable Disk <: BivariateDomain
     radius::Float64
     center::(Float64,Float64)
@@ -24,6 +25,9 @@ tocanonical(D::Disk,x,y)=sqrt(x^2+y^2),atan2(y,x)
 #     
 #     Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 # end
+
+
+∂(d::Disk)=Circle(Complex(d.center...),d.radius)
 
 
 # Kind== 0 => Legendre, K==1=>Chebyshev, K==2=>JacobiSquare

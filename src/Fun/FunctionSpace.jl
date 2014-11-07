@@ -115,19 +115,14 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
     
     # check if its banded through canonicalspace
     cspa=canonicalspace(a)
-    cspb=canonicalspace(b)
-    if cspa==cspb && cspa != a && cspb !=b
-        #TODO: maybe csp and a have maxspace that
-        #     differs
-        csp=cspa
-        if maxspace(csp,a)==csp
-            return maxspace(b,csp)
-        elseif maxspace(csp,b)==csp
-            return maxspace(a,csp)            
-        end
+    if cspa != a && maxspace(cspa,a)==cspa
+        return maxspace(b,cspa)
     end
-
-
+    
+    cspb=canonicalspace(b)
+    if cspb !=b && maxspace(cspb,b)==cspb
+        return maxspace(a,cspb)            
+    end
     
     NoSpace()
 end
@@ -183,7 +178,7 @@ Base.zeros{T<:Number}(::Type{T},S::FunctionSpace)=Fun(zeros(T,1),S)
 Base.zeros(S::FunctionSpace)=Fun(zeros(1),S)
 
 # catch all
-Base.ones(S::FunctionSpace)=Fun(x->one(),S)
+Base.ones(S::FunctionSpace)=Fun(x->1.0,S)
 Base.ones{T<:Number}(::Type{T},S::FunctionSpace)=Fun(x->one(T),S)
 identity_fun(S::FunctionSpace)=Fun(x->x,S)
 

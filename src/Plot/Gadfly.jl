@@ -1,8 +1,6 @@
 ## Plotting
 
 
-export plot
-export complexplot,contour
 
 
 ## Vector routines

@@ -18,19 +18,21 @@ Fun{T<:DomainSpace}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
 Fun{T<:DomainSpace}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
+
 Fun{T<:DomainSpace}(f,::Type{T})=Fun(f,T(canonicaldomain(T)))
 Fun{T<:DomainSpace}(f,::Type{T},n::Integer)=Fun(f,T(canonicaldomain(T)),n)
 
 Fun(f,d::Domain)=Fun(f,Space(d))
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
+Fun{T<:Domain}(f,::Type{T})=Fun(f,T())
 
 
 Fun(c::Number)=Fun([c])
 
-
-Fun{T<:DomainSpace}(c::Number,::Type{T})=c*ones(T(AnyDomain()))
-Fun(c::Number,d::Domain)=c*ones(d)
-Fun(c::Number,d::DomainSpace)=c*ones(d)
+# We do zero special since zero exists even when one doesn'
+Fun{T<:DomainSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
+Fun(c::Number,d::Domain)=c==0?zeros(d):c*ones(d)
+Fun(c::Number,d::DomainSpace)=c==0?zeros(d):c*ones(d)
 Fun(c::Number,n::Integer)=Fun([c],n)
 
 ## List constructor
@@ -160,6 +162,5 @@ Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
 Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
 Fun(cfs::Vector)=Fun(1.0*cfs,Interval())
 Fun{T<:Number}(cfs::Vector,d::Vector{T})=Fun(1.0*cfs,Interval(d))
-Fun(f::Function)=Fun(f,Interval())
 Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
 
