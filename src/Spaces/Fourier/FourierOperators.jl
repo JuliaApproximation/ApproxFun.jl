@@ -78,17 +78,20 @@ end
 bandinds{T}(::RealOperator{ReImSpace{TaylorSpace,T}})=0,2
 bandinds{T}(::ImagOperator{ReImSpace{TaylorSpace,T}})=0,1
 
+
+## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
 function addentries!{T}(R::RealOperator{ReImSpace{TaylorSpace,T}},A::ShiftArray,kr::Range)
     for k=kr
-        if isodd(k)
+        if isodd(k)         # real part
             A[k,0]+=1        
-        elseif iseven(k)
+        elseif iseven(k)    # imag part
             A[k,2]+=-1
         end
     end
     A
 end
 
+## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
 function addentries!{T}(R::ImagOperator{ReImSpace{TaylorSpace,T}},A::ShiftArray,kr::Range)
     for k=kr
         A[k,1]+=1
@@ -96,7 +99,36 @@ function addentries!{T}(R::ImagOperator{ReImSpace{TaylorSpace,T}},A::ShiftArray,
     A
 end
 
+# Neg
+
+# spaces lose zeroth coefficient
+for TYP in (:RealOperator,:ImagOperator)
+    @eval begin
+        rangespace{T}(R::$TYP{ReImSpace{HardySpace{false},T}})=DropSpace(FourierSpace(domain(R)),1)
+    end
+end
 
 
+bandinds{T}(::RealOperator{ReImSpace{HardySpace{false},T}})=-1,1
+bandinds{T}(::ImagOperator{ReImSpace{HardySpace{false},T}})=0,0
 
 
+## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
+function addentries!{T}(R::RealOperator{ReImSpace{HardySpace{false},T}},A::ShiftArray,kr::Range)
+    for k=kr
+        if isodd(k)    # imag part
+            A[k,1]+=1            
+        elseif iseven(k)         # real part
+            A[k,-1]+=1        
+        end
+    end
+    A
+end
+
+## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
+function addentries!{T}(R::ImagOperator{ReImSpace{HardySpace{false},T}},A::ShiftArray,kr::Range)
+    for k=kr
+        A[k,0]+=isodd(k)?-1:1
+    end
+    A
+end
