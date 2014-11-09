@@ -192,7 +192,11 @@ end
 
 
 function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::Array,nx::Integer)
-    n = size(OS.S.T,2)
+    n = min(size(OS.S.T,2),max(size(F,2),size(Gx,2)))
+    F=pad(F,size(F,1),n)
+    if !isempty(Gx)
+        Gx=pad(Gx,size(Gx,1),n)
+    end
 
     Y=Array(Fun{typeof(domainspace(OS,1)),N},n)
     PY=Array(Vector{N},n)
@@ -217,7 +221,11 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             end
 
             op=OS.Rdiags[k]
-            Y[k]=chop!(linsolve([OS.Bx,op],[Gx[:,k],rhs];maxlength=nx),eps())
+            if isempty(Gx)
+                Y[k]=chop!(linsolve([OS.Bx,op],rhs;maxlength=nx),eps())            
+            else
+                Y[k]=chop!(linsolve([OS.Bx,op],[Gx[:,k],rhs];maxlength=nx),eps())
+            end
             
             PY[k]=OS.Lx*Y[k].coefficients;SY[k]=OS.Mx*Y[k].coefficients
             m=max(m,length(PY[k]),length(SY[k]))

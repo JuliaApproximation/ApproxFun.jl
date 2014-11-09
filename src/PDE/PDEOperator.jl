@@ -285,10 +285,14 @@ function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Op
         resizedata!(Rdiags[k],ny)
     end
     
-    funcs=Array(SavedFunctional{mapreduce(eltype,promote_type,Bx)},length(Bx))
-    for k=1:length(Bx)
-        funcs[k]=SavedFunctional(Bx[k])
-        resizedata!(funcs[k],ny)
+    if isempty(Bx)
+        funcs=Array(SavedFunctional{Float64},0)
+    else
+        funcs=Array(SavedFunctional{mapreduce(eltype,promote_type,Bx)},length(Bx))
+        for k=1:length(Bx)
+            funcs[k]=SavedFunctional(Bx[k])
+            resizedata!(funcs[k],ny)
+        end
     end
 
     

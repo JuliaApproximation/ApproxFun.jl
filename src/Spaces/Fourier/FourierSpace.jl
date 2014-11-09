@@ -15,7 +15,10 @@ end
 # s == false means anlytic outside and decaying at infinity
 immutable HardySpace{s} <: PeriodicDomainSpace{Complex{Float64}}
     domain::Union(PeriodicDomain,AnyDomain)
+    HardySpace(d)=new(d)
+    HardySpace()=new(Circle())
 end
+
 
 
 typealias TaylorSpace HardySpace{true}
@@ -50,7 +53,7 @@ end
 
 
 ##TODO: fast routine
-function horner{T}(v::Vector{T},z)
+function horner{T}(v::Vector{T},z::Number)
     ret = zero(T)
     ei = z*one(T)
     
@@ -58,6 +61,19 @@ function horner{T}(v::Vector{T},z)
     for vk in v
         ret += vk*p
         p *= ei
+    end
+    
+    ret
+end
+
+function horner{T}(v::Vector{T},z::Vector)
+    ret = zeros(T,length(z))
+    ei = z*one(T)
+    
+    p = ones(T,length(z))
+    for vk in v
+        ret += vk*p
+        p .*= ei
     end
     
     ret

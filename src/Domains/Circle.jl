@@ -17,7 +17,10 @@ Circle()=Circle(1.)
 
 function tocanonical(d::Circle,ζ)
     v=(ζ-d.center)/d.radius - 0.im#Subtract 0.im so branch cut is right
-    @assert isapprox(abs(v),1.0)
+
+    for vk in v
+        @assert isapprox(abs(vk),1.0)
+    end
     
     real(-1.im.*log(v))
 end
