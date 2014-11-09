@@ -16,7 +16,7 @@ Circle()=Circle(1.)
 
 
 function tocanonical(d::Circle,ζ)
-    v=(ζ-d.center)/d.radius - 0.im#Subtract 0.im so branch cut is right
+    v=mappoint(d,Circle(),ζ)- 0.im#Subtract 0.im so branch cut is right
 
     for vk in v
         @assert isapprox(abs(vk),1.0)
@@ -39,6 +39,10 @@ Base.length(d::Circle) = 2π*d.radius
 
 
 
+function mappoint(d1::Circle,d2::Circle,z)
+   v=(z-d1.center)/d1.radius 
+   v*d2.radius+d2.center
+end
 
 
 

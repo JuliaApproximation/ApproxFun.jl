@@ -222,7 +222,7 @@ function complexroots{T<:Number}(coefficients::ShiftVector{T})
     eigvals(A)
 end
 
-complexroots(f::Fun{LaurentSpace})=fromcanonical(f,tocanonical(Circle(),complexroots(deinterlace(f.coefficients))))
+complexroots(f::Fun{LaurentSpace})=mappoint(Circle(),domain(f),complexroots(deinterlace(f.coefficients)))
 
 
 function roots(f::Fun{LaurentSpace})

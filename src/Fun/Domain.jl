@@ -103,3 +103,10 @@ Base.rand(d::PeriodicDomain)=fromcanonical(d,2π*rand()-π)
 ∂(d::IntervalDomain)=[first(d),last(d)]
 ∂(d::PeriodicDomain)=[]
 
+
+
+
+## map domains
+
+
+mappoint(d1::Domain,d2::Domain,x)=fromcanonical(d2,tocanonical(d1,x))

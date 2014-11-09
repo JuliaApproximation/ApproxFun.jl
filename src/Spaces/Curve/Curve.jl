@@ -1,5 +1,5 @@
-immutable Curve{F<:Fun} <:Domain
-    curve::F
+immutable Curve{S<:FunctionSpace} <:Domain
+    curve::Fun{S}
 end
 
 ==(a::Curve,b::Curve)=a.curve==b.curve
@@ -17,9 +17,9 @@ function tocanonical(c::Curve,x)
 end
 
 
-immutable CurveSpace{S,D<:Curve} <:DomainSpace{Complex{Float64}}
+immutable CurveSpace{S<:FunctionSpace,D<:FunctionSpace} <:DomainSpace{Complex{Float64}}
     space::S
-    domain::D    
+    domain::Curve{D}
 end
 
 CurveSpace(c::Fun)=CurveSpace(c.space,Curve(c))
