@@ -4,7 +4,7 @@
 
 
 ## Vector routines
-function gadflyplot(xx::Vector,yy::Vector;axis=-1)
+function gadflyplot{T<:Real}(xx::Vector{T},yy::Vector;axis=-1)
     require("Gadfly")
     if axis==-1
         Main.Gadfly.plot(x=xx, y=yy, Main.Gadfly.Geom.path)
@@ -15,7 +15,10 @@ function gadflyplot(xx::Vector,yy::Vector;axis=-1)
     end    
 end
 
-
+function gadflyplot{T<:Complex}(xx::Vector{T},yy::Vector;opts...)
+    warn("Complex domain, projecting to real axis")
+    gadflyplot(real(xx),yy;opts...)
+end
 
 function gadflyplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
     require("Gadfly")
