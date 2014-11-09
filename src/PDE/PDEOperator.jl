@@ -284,9 +284,15 @@ function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Op
         Rdiags[k]=SavedBandedOperator(getdiagonal(S,k,1)*Lx + getdiagonal(S,k,2)*Mx)
         resizedata!(Rdiags[k],ny)
     end
+    
+    funcs=Array(SavedFunctional{mapreduce(eltype,promote_type,Bx)},length(Bx))
+    for k=1:length(Bx)
+        funcs[k]=SavedFunctional(Bx[k])
+        resizedata!(funcs[k],ny)
+    end
 
     
-    PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy,Rdiags)
+    PDEOperatorSchur(funcs,Lx,Mx,S,indsBx,indsBy,Rdiags)
 end
 
 
