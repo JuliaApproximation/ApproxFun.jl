@@ -60,7 +60,7 @@ function horner{T}(v::Vector{T},z::Number)
     p = one(T)
     for vk in v
         ret += vk*p
-        p *= ei
+        p .*= ei
     end
     
     ret

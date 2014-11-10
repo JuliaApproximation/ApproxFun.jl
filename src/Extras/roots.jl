@@ -213,13 +213,18 @@ end
 
 function complexroots{T<:Number}(coefficients::ShiftVector{T})
     c=chop(coefficients.vector,10eps())
-    n=length(c)-1
-    A=zeros(T,n,n)
-    A[:,end]=-c[1:end-1]/c[end]
-    for k=2:n
-        A[k,k-1]=1.
+    if isdir(Pkg.dir("AMVW"))
+        require("AMVW")
+        return Main.AMVW.rootsAMVW(c)
+    else
+        n=length(c)-1
+        A=zeros(T,n,n)
+        A[:,end]=-c[1:end-1]/c[end]
+        for k=2:n
+            A[k,k-1]=1.
+        end
+        return eigvals(A)
     end
-    eigvals(A)
 end
 
 complexroots(f::Fun{LaurentSpace})=mappoint(Circle(),domain(f),complexroots(deinterlace(f.coefficients)))
@@ -232,7 +237,7 @@ function roots(f::Fun{LaurentSpace})
     else
         rts=fromcanonical(f,tocanonical(Circle(),irts))
         if isa(domain(f),PeriodicInterval)
-            real(rts)  # Make type safe?
+            sort!(real(rts))  # Make type safe?
         else
             rts
         end
