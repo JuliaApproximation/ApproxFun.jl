@@ -13,7 +13,7 @@ function glupdatewindow(obj,window)
         
      ModernGL.glClear(ModernGL.GL_COLOR_BUFFER_BIT | ModernGL.GL_DEPTH_BUFFER_BIT)
     GLAbstraction.render(obj)
-    Main.GLFW.SwapBuffers(window.glfwWindow)     
+#    Main.GLFW.SwapBuffers(window.glfwWindow)     
     Main.GLFW.PollEvents()
     yield()    
     obj,window   
