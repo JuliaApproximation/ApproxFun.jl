@@ -21,7 +21,7 @@ end
 
 
 ## Vector routines
-function glsurf(vals::Matrix,obj,window)##obj should be type RenderObject, window should be type Screen
+function glsurfupdate(vals::Matrix,obj,window)##obj should be type RenderObject, window should be type Screen
     GLAbstraction=Main.GLAbstraction
     
     zvalues = obj.uniforms[:z] 

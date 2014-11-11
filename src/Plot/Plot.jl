@@ -171,12 +171,12 @@ function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
     vals      = evaluate(f,xx,yy)
     vals=[vals[:,1] vals vals[:,end]];
     vals=[vals[1,:]; vals; vals[end,:]]    
-    surf(real(vals),obj,window)    
+    glsurfupdate(real(vals),obj,window)    
 end
 
 
 plot(f::MultivariateFun)=surf(points(f,1),points(f,2),real(values(f)))
-plot(f::MultivariateFun,obj,window)=surf(real(values(f)),obj,window)
+plot(f::MultivariateFun,obj,window)=glsurfupdate(real(values(f)),obj,window)
 
 
 
