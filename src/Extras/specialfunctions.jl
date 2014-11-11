@@ -33,7 +33,22 @@ function Base.abs(f::Fun)
     end
 end
 
+function Base.sign(f::Fun)
+    d=domain(f)
 
+    pts=roots(f)
+    
+    if isempty(pts)
+        Fun([sign(first(f))],f.space)
+    else    
+        da=first(d)
+        isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
+        db=last(d)
+        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts,db]
+        midpts = .5(pts[1:end-1]+pts[2:end])
+        Fun([sign(f[midpts])],pts)
+    end
+end
 
 # division by fun 
 

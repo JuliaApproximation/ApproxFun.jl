@@ -162,9 +162,9 @@ function addentries!{λ}(D::Integral{UltrasphericalSpace{λ}},A::ShiftArray,kr::
     @assert D.order==1   
     
     d=domain(D)
-    
+    C = .5(d.b-d.a)
     for k=max(kr[1],2):kr[end]
-        A[k,-1] += .5length(d)./(k-1)
+        A[k,-1] += C./(k-1)
     end
     
     A
