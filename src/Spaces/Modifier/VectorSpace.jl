@@ -160,7 +160,7 @@ end
 
 
 
-function devec{S,T}(v::Vector{Fun{S,T}})
+function devec{F<:Fun}(v::Vector{F})
     if spacescompatible(map(space,v))
         Fun(vec(coefficients(v).'),VectorDomainSpace(space(first(v)),length(v)))
     else

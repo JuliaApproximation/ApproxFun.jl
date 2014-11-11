@@ -132,3 +132,26 @@ function addentries!{T}(R::ImagOperator{ReImSpace{HardySpace{false},T}},A::Shift
     end
     A
 end
+
+
+# spaces lose zeroth coefficient
+for TYP in (:RealOperator,:ImagOperator)
+    @eval begin
+        rangespace{T}(R::$TYP{ReImSpace{LaurentSpace,T}})=FourierSpace(domain(R))
+    end
+end
+
+bandinds{T}(::RealOperator{ReImSpace{LaurentSpace,T}})=0,2
+function addentries!{T}(R::RealOperator{ReImSpace{LaurentSpace,T}},A::ShiftArray,kr::Range)
+    for k=kr
+        if isodd(k)    # real part
+            A[k,0]+=1
+        elseif iseven(k)         # odd part
+            A[k,2]+=iseven(div(k,2))?-1:1
+        end
+    end
+    A
+end
+
+
+
