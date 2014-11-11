@@ -49,7 +49,7 @@ function glsurf(vals::Matrix)
 end
 
 
-function glsurf(xx::Matrix,yy::Matrix,vals::Matrix)
+function glsurf(xx::Array,yy::Array,vals::Matrix)
     GLAbstraction=Main.GLAbstraction
     ModernGL=Main.ModernGL
     GLPlot=Main.GLPlot
@@ -65,7 +65,7 @@ end
 
 
 
-glsurf(x::Vector,y::Vector,z::Matrix)=glsurf(x*ones(1,length(y)),ones(length(x))*y.',z)
+
 
 
 
