@@ -159,7 +159,6 @@ end
 
 
 ## 3D plotting
-# TODO: Use transform
 function plot(xx::Range,yy::Range,f::MultivariateFun)
     vals      = evaluate(f,xx,yy)
     vals=[vals[:,1] vals vals[:,end]];
@@ -187,6 +186,6 @@ function plot{S<:IntervalDomainSpace,V<:PeriodicDomainSpace}(f::AbstractProductF
 end
 function plot{S<:IntervalDomainSpace,V<:PeriodicDomainSpace}(f::AbstractProductFun{S,V},obj,window)
     vals=real(values(f))
-    surf([vals vals[:,1]],obj,window)
+    glsurfupdate([vals vals[:,1]],obj,window)
 end
 
