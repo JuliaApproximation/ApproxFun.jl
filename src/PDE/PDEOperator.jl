@@ -128,7 +128,7 @@ function -(A::PDEOperator)
     for k=1:size(ops,1)
         ops[k,1]=-ops[k,1]
     end
-    PDEOperator(ops)
+    PDEOperator(ops,domain(A))
 end
 
 +(A::UniformScaling,B::PDEOperator)=B+PDEOperator(ConstantOperator(1.0A.λ),ConstantOperator(1.0),domain(B))
@@ -478,8 +478,8 @@ end
 
 ## discretize
 
-
-discretize{T<:PDEOperator}(A::Vector{T},S...)=size(A[end].ops,1)==2?schurfact(A,S...):kron(A,S...)
+#TODO: don't hard code Disk
+discretize{T<:PDEOperator}(A::Vector{T},S...)=size(A[end].ops,1)==2||domain(A[end])==Disk()?schurfact(A,S...):kron(A,S...)
 discretize(A::PDEOperator,n::Integer)=discretize([A],n)
 
 
