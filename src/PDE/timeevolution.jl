@@ -56,15 +56,44 @@ function timeevolution2(B::Vector,op,bcs::Vector,uin::(MultivariateFun,Multivari
     end    
 end
 
+#u_tt = op*u
+function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::(MultivariateFun,MultivariateFun),h::Real,m::Integer,glp)
+    require("GLPlot")
+    setplotter("GLPlot")
+    nt=size(uin[1],2)
+    SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
+    SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
+    
+    u1,u2=uin
+    u3 =SBE\[bcs,2u2-u1]
+    u4 =2u3 - u2 +h^2*g(u3)
+
+    for k=1:m
+        u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
+        u4,u3,u2,u1  = 2u4 - u3 +h^2*g(u4),u4,u3,u2
+        plot(pad(u4,80,80),glp...)#updates window
+    end    
+end
+
 function timeevolution2(B::Vector,op,uin::(MultivariateFun,MultivariateFun),bcs::Vector,h::Real,m=5000)
     require("GLPlot")
     setplotter("GLPlot")
     timeevolution2(B,op,bcs,uin,h,m,plot(pad(uin[end],80,80)))
 end
 
+function timeevolution2(B::Vector,op,g::Function,uin::(MultivariateFun,MultivariateFun),bcs::Vector,h::Real,m=5000)
+    require("GLPlot")
+    setplotter("GLPlot")
+    timeevolution2(B,op,g,bcs,uin,h,m,plot(pad(uin[end],80,80)))
+end
+
 timeevolution2(B::Vector,op,uin::(MultivariateFun,MultivariateFun),h::Real,dat...)=timeevolution2(B,op,uin,zeros(length(B)),h,dat...)
 timeevolution2(B::Vector,op,uin::MultivariateFun,dat...)=timeevolution2(B,op,(uin,uin),dat...)
 timeevolution2(B::PDEOperator,dat...)=timeevolution2([B],dat...)
 
+timeevolution2(B::Vector,op,g::Function,uin::(MultivariateFun,MultivariateFun),h::Real,dat...)=timeevolution2(B,op,g,uin,zeros(length(B)),h,dat...)
+timeevolution2(B::Vector,op,g::Function,uin::MultivariateFun,dat...)=timeevolution2(B,op,g,(uin,uin),dat...)
+
 
 timeevolution(o::Integer,dat...)=o==2?timeevolution2(dat...):timeevolution(dat...)
+
