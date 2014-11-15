@@ -49,28 +49,20 @@ promotedomainspace(E::AbstractEvaluation,sp::FunctionSpace)=Evaluation(sp,E.x,E.
 ## Convenience routines
 
 
-evaluate(d::IntervalDomain,x)=Evaluation(d,x)
-ldirichlet(d::IntervalDomain)=Evaluation(d,false)
-rdirichlet(d::IntervalDomain)=Evaluation(d,true)
-lneumann(d::IntervalDomain)=Evaluation(d,false,1)
-rneumann(d::IntervalDomain)=Evaluation(d,true,1)
+evaluate(d::Domain,x)=Evaluation(d,x)
+ldirichlet(d)=Evaluation(d,false)
+rdirichlet(d)=Evaluation(d,true)
+lneumann(d)=Evaluation(d,false,1)
+rneumann(d)=Evaluation(d,true,1)
 
 
-ldirichlet(d::FunctionSpace)=Evaluation(d,false)
-rdirichlet(d::FunctionSpace)=Evaluation(d,true)
-lneumann(d::FunctionSpace)=Evaluation(d,false,1)
-rneumann(d::FunctionSpace)=Evaluation(d,true,1)
+ldiffbc(d,k) = Evaluation(d,false,k)
+rdiffbc(d,k) = Evaluation(d,true,k)
 
 
-ldiffbc(d::IntervalDomain,k::Integer) = Evaluation(d,false,k)
-rdiffbc(d::IntervalDomain,k::Integer) = Evaluation(d,true,k)
-ldiffbc(d::FunctionSpace,k::Integer) = Evaluation(d,false,k)
-rdiffbc(d::FunctionSpace,k::Integer) = Evaluation(d,true,k)
-
-
-dirichlet(d::Union(IntervalDomain,FunctionSpace))=[ldirichlet(d),rdirichlet(d)]
-neumann(d::Union(IntervalDomain,FunctionSpace))=[lneumann(d),rneumann(d)]
-diffbcs(d::Union(IntervalDomain,FunctionSpace),k::Integer) = [ldiffbc(d,k),rdiffbc(d,k)]
+dirichlet(d)=[ldirichlet(d),rdirichlet(d)]
+neumann(d)=[lneumann(d),rneumann(d)]
+diffbcs(d,k) = [ldiffbc(d,k),rdiffbc(d,k)]
 
 
 for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann)

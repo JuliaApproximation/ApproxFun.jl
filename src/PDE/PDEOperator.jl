@@ -184,8 +184,9 @@ function *(a::Fun,A::PDEOperator)
     PDEOperator(ops,domain(A))
 end
 
-Base.diff(d::ProductDomain,k)=k==1?Base.diff(d.domains[1])⊗I:I⊗Base.diff(d.domains[2])  
-grad(d::ProductDomain)=[Base.diff(d,k) for k=1:length(d.domains)]
+Derivative(d::Union(ProductDomain,TensorSpace),k::Integer)=k==1?Derivative(d[1])⊗I:I⊗Derivative(d[2])  
+Base.diff(d::Union(ProductDomain,TensorSpace),k::Integer)=Derivative(d,k)
+grad(d::ProductDomain)=[Derivative(d,k) for k=1:length(d.domains)]
 
 
 

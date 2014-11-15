@@ -2,7 +2,7 @@
 
 
 
-function pyplot{N<:Real}(xx::Vector,yy::Vector{N};axis=-1) 
+function pyplot{N<:Real}(xx,yy::Vector{N};axis=-1) 
     require("PyPlot")
     Main.PyPlot.plot(xx,yy)
     if axis!=-1
@@ -14,7 +14,7 @@ function pyplot{N<:Real}(xx::Vector,yy::Vector{N};axis=-1)
     end
 end
 
-function pyplot{N<:Complex}(xx::Vector,yy::Vector{N};axis=-1)      
+function pyplot{N<:Complex}(xx,yy::Vector{N};axis=-1)      
     require("PyPlot")
 
     Main.PyPlot.plot(xx,real(yy))
