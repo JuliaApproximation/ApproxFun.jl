@@ -51,24 +51,8 @@ integrate(f::Fun{UltrasphericalSpace{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coe
 
 
 
-# DirichletSpaces
-
-
-immutable ChebyshevDirichletSpace{left,right} <: IntervalDomainSpace
-    domain::Union(IntervalDomain,AnyDomain)
-    ChebyshevDirichletSpace(d)=new(d)
-    ChebyshevDirichletSpace()=new(Interval())    
-end
-
-ChebyshevDirichletSpace()=ChebyshevDirichletSpace{1,1}()
-
-
-
-canonicalspace(S::ChebyshevDirichletSpace)=ChebyshevSpace(domain(S))
-
-
-
 
 
 
 include("UltrasphericalOperators.jl")
+include("DirichletSpace.jl")

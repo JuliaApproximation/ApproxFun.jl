@@ -49,5 +49,7 @@ end
 itransform{S,n,T}(sp::DropSpace{S,n},cfs::Vector{T})=itransform(sp.space,[zeros(T,n),cfs[1:end-n]])
 
 
+##TODO: spaceconversion
+
 
 

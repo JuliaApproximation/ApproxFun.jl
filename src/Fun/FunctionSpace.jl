@@ -158,10 +158,12 @@ function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
         (Conversion(b,a)\f).coefficients
     else
         csp=canonicalspace(a)
-        if spacescompatible(a,csp)
-            error("Override spaceconversion or implement Conversion from " * string(typeof(csp)) * " to " * string(B))
-        elseif spacescompatible(b,csp)
-            error("Override spaceconversion or implement Conversion from " * string(A) * " to " * string(typeof(csp)))
+        
+        if spacescompatible(a,csp)# a is csp, so try b
+            csp=canonicalspace(b)  
+        end    
+        if spacescompatible(b,csp)# b is csp too, so we are stuck
+            error("Override spaceconversion or implement Conversion between " * string(A) * " and " * string(typeof(csp)))
         else
             spaceconversion(f,a,csp,b)
         end
