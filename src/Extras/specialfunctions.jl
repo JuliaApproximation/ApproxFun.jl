@@ -135,9 +135,9 @@ function .^(f::Fun{ChebyshevSpace},k::Float64)
         @assert isapprox(abs(r[1]),1)
         
         if isapprox(r[1],1.)
-            Fun(canonicalcoefficients((Multiplication(1-x,space(fc))\fc)).^k,JacobiWeightSpace(0.,k,domain(f)))
+            Fun(canonicalcoefficients((Multiplication(1-x,space(fc))\fc).^k),JacobiWeightSpace(0.,k,domain(f)))
         else
-            Fun(canonicalcoefficients((Multiplication(1+x,space(fc))\fc)).^k,JacobiWeightSpace(k,0.,domain(f)))
+            Fun(canonicalcoefficients((Multiplication(1+x,space(fc))\fc).^k),JacobiWeightSpace(k,0.,domain(f)))
         end
     else
         @assert isapprox(r[1],-1)
