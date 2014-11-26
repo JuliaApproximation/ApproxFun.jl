@@ -40,14 +40,21 @@ IntervalSumSpace(A::IntervalDomainSpace,B::IntervalDomainSpace)=IntervalSumSpace
 typealias SumSpace{S,V,T} Union(PeriodicSumSpace{S,V,T},IntervalSumSpace{S,V})
 
 
+Base.getindex(S::SumSpace,k)=S.spaces[k]
+
+domain(A::SumSpace)=domain(A[1])
+evaluate{D<:SumSpace,T}(f::Fun{D,T},x)=evaluate(Fun(f.coefficients[1:2:end],space(f)[1]),x)+evaluate(Fun(f.coefficients[2:2:end],space(f)[2]),x)
 
 
-domain(A::SumSpace)=domain(A.spaces[1])
-evaluate{D<:SumSpace,T}(f::Fun{D,T},x)=evaluate(Fun(f.coefficients[1:2:end],space(f).spaces[1]),x)+evaluate(Fun(f.coefficients[2:2:end],space(f).spaces[2]),x)
-
-
-spacescompatible{S,T}(A::SumSpace{S,T},B::SumSpace{S,T})=spacescompatible(A.spaces[1],B.spaces[1]) && spacescompatible(A.spaces[2],B.spaces[2])
+spacescompatible{S,T}(A::SumSpace{S,T},B::SumSpace{S,T})=spacescompatible(A.spaces[1],B[1]) && spacescompatible(A.spaces[2],B[2])
 
 
 
 
+
+## calculus
+
+# assume first domain has ones
+
+Base.ones{T<:Number}(::Type{T},S::SumSpace)=ones(T,S[1])⊕zeros(T,S[2])
+Base.ones(S::SumSpace)=ones(S[1])⊕zeros(S[2])
