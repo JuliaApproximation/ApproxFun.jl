@@ -1,20 +1,43 @@
-
+export ⊕
 
 ## SumSpace{T,S,V} encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-immutable PeriodicSumSpace{T<:Number,S<:PeriodicDomainSpace,V<:PeriodicDomainSpace} <: PeriodicDomainSpace{T}
+immutable PeriodicSumSpace{S<:PeriodicDomainSpace,V<:PeriodicDomainSpace,T<:Number} <: PeriodicDomainSpace{T}
     spaces::(S,V)
 end
 
+
 function PeriodicSumSpace{T<:Number}(A::(PeriodicDomainSpace{T},PeriodicDomainSpace{T}))
     @assert domain(A[1])==domain(A[2])
-    PeriodicSumSpace{T,typeof(A[1]),typeof(A[2])}(A)
+    PeriodicSumSpace{typeof(A[1]),typeof(A[2]),T}(A)
 end
+
 PeriodicSumSpace(A::PeriodicDomainSpace,B::PeriodicDomainSpace)=PeriodicSumSpace((A,B))
 
-##TODO IntervalSumSpace
-typealias SumSpace PeriodicSumSpace
+
+
+immutable IntervalSumSpace{S<:IntervalDomainSpace,V<:IntervalDomainSpace} <: IntervalDomainSpace
+    spaces::(S,V)
+end
+
+function IntervalSumSpace(A::(IntervalDomainSpace,IntervalDomainSpace))
+    @assert domain(A[1])==domain(A[2])
+    IntervalSumSpace{typeof(A[1]),typeof(A[2])}(A)
+end
+
+IntervalSumSpace(A::IntervalDomainSpace,B::IntervalDomainSpace)=IntervalSumSpace((A,B))
+
+
+
+
+⊕(A::IntervalDomainSpace,B::IntervalDomainSpace)=IntervalSumSpace(A,B)
+⊕(A::PeriodicDomainSpace,B::PeriodicDomainSpace)=PeriodicSumSpace(A,B)
+
+⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
+
+
+typealias SumSpace{S,V,T} Union(PeriodicSumSpace{S,V,T},IntervalSumSpace{S,V})
 
 
 

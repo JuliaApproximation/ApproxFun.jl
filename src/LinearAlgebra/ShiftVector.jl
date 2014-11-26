@@ -183,6 +183,8 @@ function interlace(v::Vector{Any})
     interlace(b)
 end
 
+interlace{T}(a::Vector{T},b::Vector{T})=interlace(Vector{T}[a,b])
+
 deinterlace(v::Vector)=ShiftVector(flipud(v[2:2:end]),v[1:2:end])
 
 

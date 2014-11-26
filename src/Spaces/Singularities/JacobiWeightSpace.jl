@@ -14,6 +14,8 @@ end
 JacobiWeightSpace(a::Number,b::Number,d::IntervalDomainSpace)=JacobiWeightSpace(1.0a,1.0b,d)
 JacobiWeightSpace(a::Number,b::Number,d::Domain)=JacobiWeightSpace(1.0a,1.0b,Space(d))
 JacobiWeightSpace(a,b)=JacobiWeightSpace(a,b,ChebyshevSpace())
+JacobiWeightSpace(a::Number,b::Number,d::Vector)=JacobiWeightSpace(1.0a,1.0b,Interval(d))
+
 
 domain(S::JacobiWeightSpace)=domain(S.space)
 
