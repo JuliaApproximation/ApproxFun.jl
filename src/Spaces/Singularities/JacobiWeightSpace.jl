@@ -26,8 +26,9 @@ jacobiweight(α,β,x)=(1.+x).^α.*(1.-x).^β
 jacobiweight(sp::JacobiWeightSpace,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 
 function evaluate{S,T}(f::Fun{JacobiWeightSpace{S},T},x)
+    tol=1.0E-14
     fv=Fun(f.coefficients,space(f).space)[x]
-    if isa(fv,Number)&&isapprox(fv,0.0)
+    if isa(fv,Number)&&abs(fv)<tol
         zero(T)
     else
         jacobiweight(space(f),x).*fv
