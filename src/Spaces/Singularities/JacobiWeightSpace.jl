@@ -25,7 +25,14 @@ spacescompatible(A::JacobiWeightSpace,B::JacobiWeightSpace)=A.α==B.α && A.β =
 jacobiweight(α,β,x)=(1.+x).^α.*(1.-x).^β
 jacobiweight(sp::JacobiWeightSpace,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 
-evaluate{S}(f::Fun{JacobiWeightSpace{S}},x)=jacobiweight(space(f),x).*Fun(f.coefficients,space(f).space)[x]
+function evaluate{S,T}(f::Fun{JacobiWeightSpace{S},T},x)
+    fv=Fun(f.coefficients,space(f).space)[x]
+    if isa(fv,Number)&&isapprox(fv,0.0)
+        zero(T)
+    else
+        jacobiweight(space(f),x).*fv
+    end
+end
 
 
 ## Use 1st kind points to avoid singularities
