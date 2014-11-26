@@ -1,5 +1,4 @@
 
-export normalizedcumsum,normalizedcumsum!
 export samplecdf
 
 
@@ -11,7 +10,7 @@ bisectioninv{S,T}(f::Fun{S,T},x::Real) = first(bisectioninv(f,[x]))
 
 function bisectioninv{S,T}(f::Fun{S,T},x::Float64)
     d=domain(f)
-@assert isa(d,Interval)
+    @assert isa(d,Interval) 
     a = first(d);b = last(d)
     
     
@@ -83,8 +82,8 @@ function chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64},plan::Clenshaw
     m=.5*(a+b)    
 end
 
-for TYP in (:Vector,:Float64)
-    @eval bisectioninv(cf::Fun{ChebyshevSpace,Float64},x::$TYP)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x))
+for TYP in (:Vector,:Float64), SP in (:ChebyshevSpace,:LineSpace)
+    @eval bisectioninv(cf::Fun{$SP,Float64},x::$TYP)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x))
 end
 
 
@@ -146,7 +145,7 @@ function multiply_oneatright!(f::Array{Float64,2})
     f
 end
 
-function normalizedcumsum!(f::Fun{ChebyshevSpace,Float64})
+function chebnormalizedcumsum!(f)
     ultraconversion!(f)
     ultraint!(f)
     subtract_zeroatleft!(f)
@@ -174,7 +173,7 @@ function sample(f::LowRankFun{ChebyshevSpace,ChebyshevSpace,Float64,Float64},n::
     fA=evaluate(f.A,ry)
     CB=coefficients(f.B)
     AB=CB*fA
-    normalizedcumsum!(AB)
+    chebnormalizedcumsum!(AB)
     rx=chebbisectioninv(AB,rand(n))  
   [fromcanonical(domain(f,1),rx) ry]
 end

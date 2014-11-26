@@ -6,7 +6,7 @@ export UltrasphericalSpace
 
 
 immutable UltrasphericalSpace{O} <: IntervalDomainSpace
-    domain::Union(IntervalDomain,AnyDomain)
+    domain::Union(Interval,AnyDomain)
 end
 
 

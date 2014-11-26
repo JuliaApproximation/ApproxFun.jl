@@ -26,6 +26,8 @@ immutable NoSpace <: FunctionSpace{Float64}
 end
 
 domain(::AnySpace)=AnyDomain()
+
+#TODO: should it default to canonicalspace?
 points(d::DomainSpace,n)=points(domain(d),n)
 
 
@@ -203,3 +205,20 @@ spacescompatible{d}(::VectorSpace{d},::VectorSpace{d})=true
 ## rand
 
 Base.rand(d::DomainSpace)=rand(domain(d))
+
+
+
+
+## default transforms
+
+function itransform{T}(S::FunctionSpace{T},cfs)
+    csp=canonicalspace(S)
+    itransform(csp,spaceconversion(cfs,S,csp))
+end
+
+function transform{T}(S::FunctionSpace{T},vals)
+    csp=canonicalspace(S)
+    spaceconversion(transform(csp,vals),csp,S)
+end
+
+

@@ -5,29 +5,35 @@ type LineSpace <: IntervalDomainSpace
     domain::Line
 end
 
+type RaySpace <: IntervalDomainSpace
+    domain::Ray
+end
+
 
 Space(d::Line)=LineSpace(d)
+Space(d::Ray)=RaySpace(d)
+
+
 canonicaldomain{T<:LineSpace}(::Type{T})=Line()
+canonicaldomain{T<:RaySpace}(::Type{T})=Ray()
 
 
 ## Construction
 
 #domain(S) may be any domain
-for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op){T<:Number}(::Type{T},S::LineSpace)=Fun(($op)(T,1),S)
+for TYP in (:RaySpace,:LineSpace)
+    @eval begin
+        Base.ones{T<:Number}(::Type{T},S::$TYP)=Fun(ones(T,1),S)
+        transform(::$TYP,vals::Vector)=chebyshevtransform(vals)
+        evaluate(f::Fun{$TYP},x)=clenshaw(f.coefficients,tocanonical(f,x))
+    end
+    
+    for op in (:(Base.first),:(Base.last))
+        @eval $op(f::Fun{$TYP})=$op(Fun(f.coefficients))
+    end    
 end
 
 
-## Transform
-
-transform(::LineSpace,vals::Vector)=chebyshevtransform(vals)
-
-## evaluation
-
-for op in (:(Base.first),:(Base.last))
-    @eval $op(f::Fun{LineSpace})=$op(Fun(f.coefficients))
-end
-evaluate(f::Fun{LineSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
 
 
 
@@ -97,6 +103,13 @@ function integrate(f::Fun{LineSpace})
 #             integrate(SingFun(Fun(u),-.5,-.5))
 #     end  
 
+end
+
+function integrate(f::Fun{RaySpace})
+    f=Fun(x->exp(-x^2),[0.,Inf])
+    x=Fun(identity)
+    g=fromcanonicalD(f,x)*Fun(f.coefficients)
+    Fun(integrate(Fun(g,ChebyshevSpace)).coefficients,space(f))
 end
 
 for T in (Float64,Complex{Float64})
