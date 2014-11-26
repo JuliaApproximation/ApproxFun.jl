@@ -157,7 +157,7 @@ end
 
 sample(f::Fun,n::Integer)=samplecdf(normalizedcumsum(f),n)
 
-samplecdf(cf::Fun,n::Integer)=bisectioninv(coefficients(cf),rand(n))
+samplecdf(cf::Fun,n::Integer)=bisectioninv(cf,rand(n))
 
 
 sample(f::Fun)=sample(f,1)[1]

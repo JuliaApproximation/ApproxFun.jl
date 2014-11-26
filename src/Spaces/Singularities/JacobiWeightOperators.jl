@@ -55,12 +55,14 @@ end
 
 function integrate{J<:JacobiWeightSpace}(f::Fun{J})
     S=space(f)
+    # we integrate by solving u'=f
+    D=Derivative(S)
     if S.α==0 || S.β==0 
-        Derivative(S)\f
+        D\f
     else
         s=sum(f)
         if isapprox(s,0.)
-            Derivative(S)\f
+            D\f
         else
             # we normalized so it sums to zero, and so backslash works
             w=Fun(x->exp(-40x^2),81)
@@ -68,7 +70,7 @@ function integrate{J<:JacobiWeightSpace}(f::Fun{J})
             w2=Fun(x->w1[x],domain(w1))
             c=s/sum(w1)
             v=f-w1*c      
-            (c*integrate(w2))⊕(Derivative(S)\v)
+            (c*integrate(w2))⊕(D\v)
         end   
     end
 end
