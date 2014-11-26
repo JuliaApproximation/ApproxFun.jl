@@ -62,12 +62,13 @@ function integrate{J<:JacobiWeightSpace}(f::Fun{J})
         if isapprox(s,0.)
             Derivative(S)\f
         else
+            # we normalized so it sums to zero, and so backslash works
             w=Fun(x->exp(-40x^2),81)
             w1=Fun(coefficients(w),S)
             w2=Fun(x->w1[x],domain(w1))
             c=s/sum(w1)
             v=f-w1*c      
-            (c*integrate(w2))⊕integrate(v)
+            (c*integrate(w2))⊕(Derivative(S)\v)
         end   
     end
 end

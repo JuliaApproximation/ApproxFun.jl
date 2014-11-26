@@ -54,7 +54,21 @@ spacescompatible{S,T}(A::SumSpace{S,T},B::SumSpace{S,T})=spacescompatible(A.spac
 
 ## calculus
 
-# assume first domain has ones
+# assume first domain has 1 as a basis element
 
 Base.ones{T<:Number}(::Type{T},S::SumSpace)=ones(T,S[1])⊕zeros(T,S[2])
 Base.ones(S::SumSpace)=ones(S[1])⊕zeros(S[2])
+
+
+# vec
+
+Base.vec(S::SumSpace)=S.spaces
+Base.vec{S<:SumSpace,T}(f::Fun{S,T})=Fun[Fun(f.coefficients[j:2:end],space(f)[j]) for j=1:2]
+
+
+
+## values
+
+itransform(S::IntervalSumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
+
+
