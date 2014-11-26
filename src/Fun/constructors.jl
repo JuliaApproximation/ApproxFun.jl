@@ -1,4 +1,4 @@
-Fun{T<:Union(Int64,Complex{Int64})}(coefs::Vector{T},d::FunctionSpace)=Fun(1.0*coefs,d)
+Fun{T<:Union(Int64,Complex{Int64})}(coefs::Vector{T},d::FunctionSpace)=Fun(float64(coefs),d)
 
 
 function Fun(f::Function,d::DomainSpace,n::Integer)
@@ -160,7 +160,7 @@ typealias IFun{D,T} Fun{D,T}
 
 Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
 Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
-Fun(cfs::Vector)=Fun(1.0*cfs,Interval())
-Fun{T<:Number}(cfs::Vector,d::Vector{T})=Fun(1.0*cfs,Interval(d))
+Fun(cfs::Vector)=Fun(float64(cfs),Interval())
+Fun{T<:Number}(cfs::Vector,d::Vector{T})=Fun(float64(cfs),Interval(d))
 Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
 
