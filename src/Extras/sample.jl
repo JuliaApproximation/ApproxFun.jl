@@ -180,6 +180,21 @@ end
 
 
 
+sample(f::MultivariateFun,n)=sample(LowRankFun(f),n)
+sample(f::MultivariateFun)=sample(f,1)[1,:]
+
+
+
+
+## Special spaces
+
+
+for TYP in (:LineSpace,:RaySpace)
+    @eval bisectioninv(f::Fun{$TYP,Float64},x::Vector)=fromcanonical(f,bisectioninv(Fun(f.coefficients),x))
+end
+
+
+
 function sample(f::LowRankFun{LineSpace,LineSpace,Float64,Float64},n::Integer)
     cf=normalizedcumsum(sum(f,1))
     CB=coefficients(map(cumsum,f.B))
@@ -194,5 +209,4 @@ function sample(f::LowRankFun{LineSpace,LineSpace,Float64,Float64},n::Integer)
     [rx ry]
 end
 
-sample(f::MultivariateFun,n)=sample(LowRankFun(f),n)
-sample(f::MultivariateFun)=sample(f,1)[1,:]
+
