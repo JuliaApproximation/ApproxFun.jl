@@ -75,13 +75,7 @@ Base.last(d::Line)= Inf
 
 ##multiplybyx
 
-function identity_fun(d::Line)
-    x=Fun(identity)
-    a=1./(1-x).^d.α
-    b=1./(1+x).^d.β
-    sf=x.*a.*b
-    SingFun(Fun(sf.fun,d),sf.α,sf.β)
-end
+
 
 
 # function multiplybyx{T<:Number,D<:LineSpace}(f::Fun{T,D})

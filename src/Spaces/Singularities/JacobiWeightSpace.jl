@@ -37,9 +37,9 @@ end
 
 
 ## Use 1st kind points to avoid singularities
-points(sp::JacobiWeightSpace{ChebyshevSpace},n)=fromcanonical(sp,chebyshevroots(n))
-transform(sp::JacobiWeightSpace{ChebyshevSpace},vals::Vector)=chebyshevrootstransform(vals./jacobiweight(sp,points(sp,length(vals))))
-itransform(sp::JacobiWeightSpace{ChebyshevSpace},cfs::Vector)=ichebyshevrootstransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
+points(sp::JacobiWeightSpace,n)=fromcanonical(sp,chebyshevroots(n))
+transform(sp::JacobiWeightSpace,vals::Vector)=chebyshevrootstransform(vals./jacobiweight(sp,points(sp,length(vals))))
+itransform(sp::JacobiWeightSpace,cfs::Vector)=ichebyshevrootstransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
 
 
 plan_itransform(S::JacobiWeightSpace,n::Integer)=points(S,n)

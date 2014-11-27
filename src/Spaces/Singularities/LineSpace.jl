@@ -123,3 +123,18 @@ for T in (Float64,Complex{Float64})
         end
     end
 end
+
+
+
+
+## identity
+
+function identity_fun(S::LineSpace)
+    x=Fun(identity)
+    d=domain(S)
+    a=(1-x)^d.α
+    b=(1+x)^d.β
+    sf=x*a*b
+    Fun(coefficients(sf),JacobiWeightSpace(sf.space.α,sf.space.β,S))
+end
+
