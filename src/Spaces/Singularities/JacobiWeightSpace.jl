@@ -9,12 +9,16 @@ immutable JacobiWeightSpace{S<:IntervalDomainSpace} <: IntervalDomainSpace
     α::Float64
     β::Float64
     space::S
+    function JacobiWeightSpace(α::Float64,β::Float64,space::S)
+        @assert !isa(space,JacobiWeightSpace)
+        new(α,β,space)
+    end
 end
 
-JacobiWeightSpace(a::Number,b::Number,d::IntervalDomainSpace)=JacobiWeightSpace(1.0a,1.0b,d)
-JacobiWeightSpace(a::Number,b::Number,d::Domain)=JacobiWeightSpace(1.0a,1.0b,Space(d))
+JacobiWeightSpace{S<:IntervalDomainSpace}(a::Number,b::Number,d::S)=JacobiWeightSpace{S}(float64(a),float64(b),d)
+JacobiWeightSpace(a::Number,b::Number,d::Domain)=JacobiWeightSpace(float64(a),float64(b),Space(d))
 JacobiWeightSpace(a,b)=JacobiWeightSpace(a,b,ChebyshevSpace())
-JacobiWeightSpace(a::Number,b::Number,d::Vector)=JacobiWeightSpace(1.0a,1.0b,Interval(d))
+JacobiWeightSpace(a::Number,b::Number,d::Vector)=JacobiWeightSpace(float64(a),float64(b),Interval(d))
 
 
 domain(S::JacobiWeightSpace)=domain(S.space)
@@ -22,7 +26,7 @@ domain(S::JacobiWeightSpace)=domain(S.space)
 spacescompatible(A::JacobiWeightSpace,B::JacobiWeightSpace)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
 
 
-jacobiweight(α,β,x)=(1.+x).^α.*(1.-x).^β
+jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
 jacobiweight(sp::JacobiWeightSpace,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 
 function evaluate{S,T}(f::Fun{JacobiWeightSpace{S},T},x)
@@ -95,6 +99,12 @@ for op in (:/,:./)
     @eval begin
         ($op){S}(c::Number,f::Fun{JacobiWeightSpace{S}})=Fun(($op)(c,Fun(f.coefficients)).coefficients,JacobiWeightSpace(-f.space.α,-f.space.β,space(f).space))        
     end
+end
+
+function .^{J<:JacobiWeightSpace}(f::Fun{J},k::Float64)
+    S=space(f)
+    g=Fun(coefficients(f),S.space).^k
+    Fun(coefficients(g),JacobiWeightSpace(k*S.α,k*S.β,space(g)))
 end
 
 function .*{S,V}(f::Fun{JacobiWeightSpace{S}},g::Fun{JacobiWeightSpace{V}})
