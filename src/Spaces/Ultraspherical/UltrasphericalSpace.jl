@@ -6,7 +6,7 @@ export UltrasphericalSpace
 
 
 immutable UltrasphericalSpace{O} <: IntervalDomainSpace
-    domain::Union(IntervalDomain,AnyDomain)
+    domain::Union(Interval,AnyDomain)
 end
 
 
@@ -32,8 +32,8 @@ Base.ones{O}(S::UltrasphericalSpace{O})=Fun(ones(1),S)
 
 
 #This can be overriden, but the default is to use Chebyshev
-transform(sp::IntervalDomainSpace,vals::Vector)=spaceconversion(chebyshevtransform(vals),ChebyshevSpace(domain(sp)),sp)
-itransform(sp::IntervalDomainSpace,cfs::Vector)=ichebyshevtransform(spaceconversion(cfs,sp,ChebyshevSpace(domain(sp))))
+# transform(sp::IntervalDomainSpace,vals::Vector)=spaceconversion(chebyshevtransform(vals),ChebyshevSpace(domain(sp)),sp)
+# itransform(sp::IntervalDomainSpace,cfs::Vector)=ichebyshevtransform(spaceconversion(cfs,sp,ChebyshevSpace(domain(sp))))
 
 
 
@@ -51,24 +51,8 @@ integrate(f::Fun{UltrasphericalSpace{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coe
 
 
 
-# DirichletSpaces
-
-
-immutable ChebyshevDirichletSpace{left,right} <: IntervalDomainSpace
-    domain::Union(IntervalDomain,AnyDomain)
-    ChebyshevDirichletSpace(d)=new(d)
-    ChebyshevDirichletSpace()=new(Interval())    
-end
-
-ChebyshevDirichletSpace()=ChebyshevDirichletSpace{1,1}()
-
-
-
-canonicalspace(S::ChebyshevDirichletSpace)=ChebyshevSpace(domain(S))
-
-
-
 
 
 
 include("UltrasphericalOperators.jl")
+include("DirichletSpace.jl")

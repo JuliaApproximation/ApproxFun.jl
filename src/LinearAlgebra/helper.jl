@@ -40,6 +40,14 @@ function pad{T}(f::Vector{T},n::Integer)
 	end
 end
 
+function pad(f::Vector{Any},n::Integer)
+	if (n > length(f))
+        {f...,zeros(n - length(f))...}
+	else
+        f[1:n]
+	end
+end
+
 function pad(v::Vector,n::Integer,m::Integer)
     @assert m==1
     pad(v,n)

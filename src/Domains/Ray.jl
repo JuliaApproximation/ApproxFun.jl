@@ -37,10 +37,10 @@ end
 
 
 
-ray_tocanonical(x)=(x==Inf)?1.:(x.-1.)./(1.+x)
-ray_tocanonicalD(x)=(x==Inf)?0.:2./((1.+x).^2)
-ray_fromcanonical(x)=(1.+x)./(1.-x)
-ray_fromcanonicalD(x)=2./((x.-1.).^2)
+ray_tocanonical(x)=(x==Inf)?1.:(x-1.)./(1+x)
+ray_tocanonicalD(x)=(x==Inf)?0.:2*(1./(1+x)).^2
+ray_fromcanonical(x)=(1+x)./(1-x)
+ray_fromcanonicalD(x)=2*(1./(x-1.)).^2
 
 ray_tocanonical(o,x)=(o?1:-1)*ray_tocanonical(x)
 ray_tocanonicalD(o,x)=(o?1:-1)*ray_tocanonical(x)
@@ -57,9 +57,9 @@ function cistyped(a::Real)
     end
 end
 
-tocanonical(d::Ray,x)=ray_tocanonical(d.orientation,cistyped(-d.angle).*(x.-d.centre))
-tocanonicalD(d::Ray,x)=cistyped(-d.angle).*ray_tocanonicalD(d.orientation,cistyped(-d.angle).*(x.-d.centre))
-fromcanonical(d::Ray,x)=cistyped(d.angle)*ray_fromcanonical(d.orientation,x).+d.centre
+tocanonical(d::Ray,x)=ray_tocanonical(d.orientation,cistyped(-d.angle).*(x-d.centre))
+tocanonicalD(d::Ray,x)=cistyped(-d.angle).*ray_tocanonicalD(d.orientation,cistyped(-d.angle).*(x-d.centre))
+fromcanonical(d::Ray,x)=cistyped(d.angle)*ray_fromcanonical(d.orientation,x)+d.centre
 fromcanonicalD(d::Ray,x)=cistyped(d.angle)*ray_fromcanonicalD(d.orientation,x)
 
 

@@ -1,24 +1,40 @@
 
-export normalizedcumsum,normalizedcumsum!
 export samplecdf
 
 
 ##bisection inverse
 
 
-bisectioninv(f::Fun,x::Real) = first(bisectioninv(f,[x]))
+bisectioninv{S,T}(f::Fun{S,T},x::Real) = first(bisectioninv(f,[x]))
 
 
-
-
-function bisectioninv(c::Vector{Float64},x::Float64)
-    a = -1.;
-    b = 1.;
+function bisectioninv{S,T}(f::Fun{S,T},x::Float64)
+    d=domain(f)
+    @assert isa(d,Interval) 
+    a = first(d);b = last(d)
     
     
     for k=1:47  #TODO: decide 47
-        m=.5*(a+b);
-        val = clenshaw(c,m);
+        m=.5*(a+b)
+        val = f[m]
+
+            (val<= x) ? (a = m) : (b = m)
+    end
+    .5*(a+b)    
+end
+
+bisectioninv{S,T}(f::Fun{S,T},x::Vector)=Float64[bisectioninv(f,xx) for xx in x]
+
+
+## Clenshaw bisection
+
+function chebbisectioninv(c::Vector{Float64},x::Float64)
+    a = -1.;b = 1.
+    
+    
+    for k=1:47  #TODO: decide 47
+        m=.5*(a+b)
+        val = clenshaw(c,m)
 
             (val<= x) ? (a = m) : (b = m)
     end
@@ -26,8 +42,8 @@ function bisectioninv(c::Vector{Float64},x::Float64)
 end
 
 
-bisectioninv(c::Vector{Float64},xl::Vector{Float64})=(n=length(xl);bisectioninv(c,xl,ClenshawPlan(Float64,n)))
-function bisectioninv(c::Vector{Float64},xl::Vector{Float64},plan::ClenshawPlan{Float64}) 
+chebbisectioninv(c::Vector{Float64},xl::Vector{Float64})=(n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,n)))
+function chebbisectioninv(c::Vector{Float64},xl::Vector{Float64},plan::ClenshawPlan{Float64}) 
     n = length(xl)
     a = -ones(n)
     b = ones(n)
@@ -46,8 +62,8 @@ end
 
 
 #here, xl is vector w/ length == #cols of c
-bisectioninv(c::Array{Float64,2},xl::Vector{Float64})=(n=length(xl);bisectioninv(c,xl,ClenshawPlan(Float64,n)))
-function bisectioninv(c::Array{Float64,2},xl::Vector{Float64},plan::ClenshawPlan{Float64}) 
+chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64})=(n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,n)))
+function chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64},plan::ClenshawPlan{Float64}) 
     @assert size(c)[2] == length(xl)
 
     n = length(xl)
@@ -66,13 +82,16 @@ function bisectioninv(c::Array{Float64,2},xl::Vector{Float64},plan::ClenshawPlan
     m=.5*(a+b)    
 end
 
+for TYP in (:Vector,:Float64), SP in (:ChebyshevSpace,:LineSpace)
+    @eval bisectioninv(cf::Fun{$SP,Float64},x::$TYP)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x))
+end
 
 
 ##normalized cumsum
 
 function normalizedcumsum(f::Fun)
     cf = cumsum(f)
-    cf = cf/reduce(+,cf.coefficients)
+    cf = cf/last(cf)
     
     cf    
 end
@@ -126,7 +145,7 @@ function multiply_oneatright!(f::Array{Float64,2})
     f
 end
 
-function normalizedcumsum!(f)
+function chebnormalizedcumsum!(f)
     ultraconversion!(f)
     ultraint!(f)
     subtract_zeroatleft!(f)
@@ -137,13 +156,12 @@ end
 
 sample(f::Fun,n::Integer)=samplecdf(normalizedcumsum(f),n)
 
-
-samplecdf(cf::Fun,n::Integer)=fromcanonical(cf,bisectioninv(cf.coefficients,rand(n)))
+samplecdf(cf::Fun,n::Integer)=bisectioninv(cf,rand(n))
 
 
 sample(f::Fun)=sample(f,1)[1]
 samplecdf(f::Fun)=samplecdf(f,1)[1]
-samplecdf(v::Vector)=bisectioninv(v,rand())
+samplecdf(v::Vector)=chebbisectioninv(v,rand())
 
 
 
@@ -155,9 +173,24 @@ function sample(f::LowRankFun{ChebyshevSpace,ChebyshevSpace,Float64,Float64},n::
     fA=evaluate(f.A,ry)
     CB=coefficients(f.B)
     AB=CB*fA
-    normalizedcumsum!(AB)
-    rx=bisectioninv(AB,rand(n))  
+    chebnormalizedcumsum!(AB)
+    rx=chebbisectioninv(AB,rand(n))  
   [fromcanonical(domain(f,1),rx) ry]
+end
+
+
+
+sample(f::MultivariateFun,n)=sample(LowRankFun(f),n)
+sample(f::MultivariateFun)=sample(f,1)[1,:]
+
+
+
+
+## Special spaces
+
+
+for TYP in (:LineSpace,:RaySpace)
+    @eval bisectioninv(f::Fun{$TYP,Float64},x::Vector)=fromcanonical(f,bisectioninv(Fun(f.coefficients),x))
 end
 
 
@@ -171,10 +204,9 @@ function sample(f::LowRankFun{LineSpace,LineSpace,Float64,Float64},n::Integer)
     CBfA=CB*fA  #cumsums at points
     multiply_oneatright!(CBfA)
     
-    rx=fromcanonical(first(f.B),bisectioninv(CBfA,rand(n)))
+    rx=fromcanonical(first(f.B),chebbisectioninv(CBfA,rand(n)))
     
     [rx ry]
 end
 
-sample(f::MultivariateFun,n)=sample(LowRankFun(f),n)
-sample(f::MultivariateFun)=sample(f,1)[1,:]
+

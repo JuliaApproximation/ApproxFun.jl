@@ -158,10 +158,10 @@ TimesFunctional{T<:Number}(A::Functional{T},B::BandedOperator{T})=TimesFunctiona
 
 
 function Base.getindex{T<:Number}(f::TimesFunctional{T},jr::Range)#j is columns
-    bi=ApproxFun.bandinds(f.op)
-    B=BandedArray(f.op,(jr[1]-bi[end]):(jr[end]-bi[1]))
+    bi=bandinds(f.op)
+    B=BandedArray(f.op,max((jr[1]-bi[end]),1):(jr[end]-bi[1]))
     r=zeros(T,length(jr))
-    for j in jr, k=j-bi[end]:j-bi[1]
+    for j in jr, k=max(j-bi[end],1):j-bi[1]
         if k>=1
             r[j-jr[1]+1]+=f.functional[k]*B[k,j]
         end
