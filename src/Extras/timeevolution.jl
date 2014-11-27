@@ -1,4 +1,4 @@
-export timeevolution, BDF2,BDF4
+export timeevolution, BDF2,BDF4,BDF22
 
 
 
@@ -58,9 +58,51 @@ function BDF4(B::Vector,op::PDEOperator,bcs::Vector,uin::MultivariateFun,h::Real
     u4
 end
 
+BDF4(B::Vector,op::PDEOperator,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF4(B,op,zeros(length(B)),uin,h,m,glp)
 
 
+function BDF22(B::Vector,op::PDEOperator,bcs::Vector,uin::(MultivariateFun,MultivariateFun),h::Real,m::Integer,glp)
+    nt=size(uin[1],2)
+    SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
+    SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
+    
+    u1,u2=uin
+    u3 =SBE\[bcs,2u2-u1]
+    push!(glp,pad(u3,80,80))
+    u4 =SBE\[bcs,2u3-u2]
+    push!(glp,pad(u4,80,80))
+    
+    for k=1:m
+        u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
+ 
+        push!(glp,pad(u4,80,80)) #updates window
+    end    
+    u4
+end
 
+function BDF22(B::Vector,op::PDEOperator,g::Function,bcs::Vector,uin::(MultivariateFun,MultivariateFun),h::Real,m::Integer,glp)
+    nt=size(uin[1],2)
+    SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
+    SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
+    
+    u1,u2=uin
+    u3 =SBE\[bcs,2u2-u1]
+    push!(glp,pad(u3,80,80))
+    u4,u3,u2,u1=u3,u2,u1,u1
+    for k=1:m
+        u4,u3,u2,u1 =2u4 - u3 +h^2*g(u4),u4,u3,u2
+        u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2    
+        push!(glp,pad(u4,80,80))
+    end   
+    u4 
+end
+
+
+BDF22(B::Vector,op::PDEOperator,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF22(B,op,zeros(length(B)),(uin,uin),h,m,glp)
+BDF22(B::Vector,op::PDEOperator,g::Function,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF22(B,op,g,zeros(length(B)),(uin,uin),h,m,glp)
+
+
+## GLPlot routines
 
 
 #u_t = op*u
