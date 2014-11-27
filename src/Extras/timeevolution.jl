@@ -1,4 +1,67 @@
-export timeevolution
+export timeevolution, BDF2,BDF4
+
+
+
+## Multivariate 
+
+
+function RK(L,y,h)
+    k1=L(y)
+    k2=L(y+.5h*k1)
+    k3=L(y+.5h*k2)
+    k4=L(y+h*k3)
+    
+    y+h*(k1+2k2+2k3+k4)/6.
+end
+
+function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp)
+    SBE   = [B,I-h*A]
+    SBDF2 = [B,I-2.0/3.0*h*A]
+
+    u1=u0
+    u2=SBE\[bcs,u1]
+    push!(glp,u2)
+
+    for k=1:m
+        u2,u1 = chop(RK(g,u2,h),eps()),u2    
+        u2,u1  = chop(SBDF2\[bcs,1/3.0*(4u2-u1)],eps()),u2
+        push!(glp,u2)
+    end    
+
+    u2
+end
+
+
+
+
+function BDF4(B::Vector,op::PDEOperator,bcs::Vector,uin::MultivariateFun,h::Real,m::Integer,glp)
+    nt=size(uin,2)
+    d=domain(uin)
+    SBE   = discretize([B,I-h*op],d,nt)            # backward euler for first 2 time steps
+    SBDF2 = discretize([B,I-2.0/3.0*h*op],d,nt)    # BDF formula for subsequent itme steps
+    SBDF3 = discretize([B,I-6.0/11.0*h*op],d,nt)    # BDF formula for subsequent itme steps    
+    SBDF4 = discretize([B,I-12.0/25.0*h*op],d,nt)    # BDF formula for subsequent itme steps        
+    
+    u1=uin
+    u2=SBE\[bcs,u1]
+    push!(glp,pad(u2,80,80))
+    u3=SBDF2\[bcs,1/3.0*(4u2-u1)]
+    push!(glp,pad(u3,80,80))#updates window        
+    u4=SBDF3\[bcs,1/11.0*(18u3-9u2+2u1)]
+    push!(glp,pad(u4,80,80))#updates window    
+    
+    for k=1:m
+        u4,u3,u2,u1  = SBDF4\[bcs,1/25.0*(48u4-36u3+16u2-3u1)],u4,u3,u2
+ 
+        push!(glp,pad(u4,80,80))#updates window
+    end    
+    u4
+end
+
+
+
+
+
 
 #u_t = op*u
 function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m::Integer,glp)

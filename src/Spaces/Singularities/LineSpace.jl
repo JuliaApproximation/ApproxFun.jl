@@ -129,12 +129,8 @@ end
 
 ## identity
 
-function identity_fun(S::LineSpace)
-    x=Fun(identity)
-    d=domain(S)
-    a=(1-x)^d.α
-    b=(1+x)^d.β
-    sf=x*a*b
+function identity_fun(S::Union(LineSpace,RaySpace))
+    sf=fromcanonical(S,Fun(identity))
     Fun(coefficients(sf),JacobiWeightSpace(sf.space.α,sf.space.β,S))
 end
 
