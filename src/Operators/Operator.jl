@@ -128,6 +128,7 @@ include("TridiagonalOperator.jl")
 include("Conversion.jl")
 include("Multiplication.jl")
 include("calculus.jl")
+include("SIEops.jl")
 include("Evaluation.jl")
 
 
