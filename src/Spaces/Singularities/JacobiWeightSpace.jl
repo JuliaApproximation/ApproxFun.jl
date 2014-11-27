@@ -10,8 +10,11 @@ immutable JacobiWeightSpace{S<:IntervalDomainSpace} <: IntervalDomainSpace
     β::Float64
     space::S
     function JacobiWeightSpace(α::Float64,β::Float64,space::S)
-        @assert !isa(space,JacobiWeightSpace)
-        new(α,β,space)
+        if isa(space,JacobiWeightSpace)
+            JacobiWeightSpace(α+space.α,β+space.β,space.space)
+        else
+            new(α,β,space)
+        end
     end
 end
 
@@ -103,7 +106,7 @@ end
 
 function .^{J<:JacobiWeightSpace}(f::Fun{J},k::Float64)
     S=space(f)
-    g=Fun(coefficients(f),S.space).^k
+    g=Fun(coefficients(f),S.space)^k
     Fun(coefficients(g),JacobiWeightSpace(k*S.α,k*S.β,space(g)))
 end
 
@@ -112,17 +115,15 @@ function .*{S,V}(f::Fun{JacobiWeightSpace{S}},g::Fun{JacobiWeightSpace{V}})
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β    
     m=(Fun(f.coefficients,space(f).space).*Fun(g.coefficients,space(g).space))
-    Fun(m.coefficients,JacobiWeightSpace(fα+gα,fβ+gβ,space(m)))
+    if isapprox(fα+gα,0)&&isapprox(fβ+gβ,0)
+        m
+    else
+        Fun(m.coefficients,JacobiWeightSpace(fα+gα,fβ+gβ,space(m)))
+    end
 end
 
 
-function ./{T,N}(f::Fun{JacobiWeightSpace{T}},g::Fun{JacobiWeightSpace{N}})
-    @assert domainscompatible(f,g)
-    fα,fβ=f.space.α,f.space.β
-    gα,gβ=g.space.α,g.space.β    
-    m=(Fun(f.coefficients,space(f).space)./Fun(g.coefficients,space(g).space))
-    Fun(m.coefficients,JacobiWeightSpace(fα-gα,fβ-gβ,space(m)))
-end
+./{T,N}(f::Fun{JacobiWeightSpace{T}},g::Fun{JacobiWeightSpace{N}})=f*(1/g)
 
 for op in (:.*,:./)
     ##TODO: Make general 

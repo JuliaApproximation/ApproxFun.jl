@@ -120,8 +120,8 @@ for op in (:(Base.cos),:(Base.sin),:(Base.cospi),:(Base.sinpi),:(Base.sinc))
     end
 end
 
-function .^(f::Fun{ChebyshevSpace},k::Float64)
-    fc = Fun(canonicalcoefficients(f))
+function .^{S<:Union(ChebyshevSpace,RaySpace,LineSpace)}(f::Fun{S},k::Float64)
+    fc = Fun(f.coefficients) #Project to interval
     x=Fun(identity)
 
     r = sort(roots(fc))
@@ -135,19 +135,19 @@ function .^(f::Fun{ChebyshevSpace},k::Float64)
         @assert isapprox(abs(r[1]),1)
         
         if isapprox(r[1],1.)
-            Fun(canonicalcoefficients((Multiplication(1-x,space(fc))\fc).^k),JacobiWeightSpace(0.,k,domain(f)))
+            Fun(coefficients((Multiplication(1-x,space(fc))\fc)^k),JacobiWeightSpace(0.,k,space(f)))
         else
-            Fun(canonicalcoefficients((Multiplication(1+x,space(fc))\fc).^k),JacobiWeightSpace(k,0.,domain(f)))
+            Fun(coefficients((Multiplication(1+x,space(fc))\fc)^k),JacobiWeightSpace(k,0.,space(f)))
         end
     else
         @assert isapprox(r[1],-1)
         @assert isapprox(r[2],1) 
     
-        Fun(canonicalcoefficients(linsolve(Multiplication(1-x.^2,space(fc)),fc;tolerance=eps()).^k),JacobiWeightSpace(k,k,domain(f)))  
+        Fun(coefficients(linsolve(Multiplication(1-x^2,space(fc)),fc;tolerance=eps())^k),JacobiWeightSpace(k,k,space(f)))  
     end
 end
 
-Base.sqrt(f::Fun{ChebyshevSpace})=f.^0.5
+Base.sqrt{S,T}(f::Fun{S,T})=f^0.5
 
 
 

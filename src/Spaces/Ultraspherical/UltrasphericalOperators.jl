@@ -52,14 +52,15 @@ end
 
 ## Multiplication
 
-
-function addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,ChebyshevSpace},A::ShiftArray,kr::Range1)
-    cfs=canonicalcoefficients(M.f)
+function chebmult_addentries!(cfs::Vector,A::ShiftArray,kr::Range)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(.5cfs,A,max(kr[1],2):kr[end])            
 end
 
-function addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,UltrasphericalSpace{1}},A::ShiftArray,kr::Range1)
+
+addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,ChebyshevSpace},A::ShiftArray,kr::Range)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
+
+function addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
     cfs=canonicalcoefficients(M.f)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(-.5cfs[3:end],A,kr)    

@@ -25,6 +25,7 @@ for TYP in (:RaySpace,:LineSpace)
     @eval begin
         Base.ones{T<:Number}(::Type{T},S::$TYP)=Fun(ones(T,1),S)
         transform(::$TYP,vals::Vector)=chebyshevtransform(vals)
+        itransform(::$TYP,cfs::Vector)=ichebyshevtransform(cfs)        
         evaluate(f::Fun{$TYP},x)=clenshaw(f.coefficients,tocanonical(f,x))
     end
     
@@ -133,4 +134,10 @@ function identity_fun(S::Union(LineSpace,RaySpace))
     sf=fromcanonical(S,Fun(identity))
     Fun(coefficients(sf),JacobiWeightSpace(sf.space.α,sf.space.β,S))
 end
+
+
+
+## Operators
+
+addentries!{S<:Union(RaySpace,LineSpace)}(M::Multiplication{S,S},A::ShiftArray,kr::Range)=chebmult_addentries!(coefficients(M.f),A,kr)
 
