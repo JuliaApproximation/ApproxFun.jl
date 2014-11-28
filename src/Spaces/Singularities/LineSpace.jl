@@ -140,6 +140,10 @@ end
 
 ## Operators
 
+Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
+    SpaceOperator(Conversion(S1.space,S2.space),
+        S1,S2))
+
 function addentries!{S1<:MappedSpace,S2<:MappedSpace}(M::Multiplication{S1,S2},A::ShiftArray,kr::Range)
     @assert domain(M.f)==domain(M.space)
     mf=Fun(coefficients(M.f),space(M.f).space)

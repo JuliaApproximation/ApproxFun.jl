@@ -95,6 +95,14 @@ function ./(c::Number,f::Fun{ChebyshevSpace})
 end
 
 ./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=devec(map(f->c./f,vec(f)))
+function ./{S<:MappedSpace}(c::Number,f::Fun{S})
+    g=c./Fun(coefficients(f),space(f).space)
+    if isa(space(g),JacobiWeightSpace)
+        Fun(coefficients(g),JacobiWeightSpace(space(g).α,space(g).β,MappedSpace(domain(f),space(g).space)))
+    else
+        Fun(coefficients(g),MappedSpace(domain(f),space(g)))
+    end
+end
 
 
 
