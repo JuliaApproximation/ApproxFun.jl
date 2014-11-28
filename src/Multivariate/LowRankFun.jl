@@ -87,7 +87,6 @@ function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integ
             return LowRankFun(A,B)
         end
         
-        
         ##Todo negative orientation 
         A=[A,a/sqrt(abs(a[r[1]]))];B=[B,sign(b[r[2]]).*b/sqrt(abs(b[r[2]]))]    
         r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy,gridx,gridy)
@@ -98,21 +97,20 @@ function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integ
         a=Fun(x->f(x,r[2]),dx; method="abszerocoefficients") - dot(conj(Br),A)
         b=Fun(y->f(r[1],y),dy; method="abszerocoefficients")- dot(conj(Ar),B)
         
-        
         ##Remove coefficients that get killed by a/b
         maxb=maximum(abs(b.coefficients))
-        if maxb != 0
+        if maxb > tol
             tol=10*sqrt(abs(a[r[1]]))*eps()/maxb
             a=chop!(a,tol)
         end
         maxa=maximum(abs(a.coefficients))
-        if maxa != 0
+        if maxa > tol
             tol=10*sqrt(abs(b[r[2]]))*eps()/maxa
             b=chop!(b,tol)        
         end
     end
-      
-    error("Maximum rank of " * string(maxrank) * " reached")
+    warn("Maximum rank of " * string(maxrank) * " reached")
+    return LowRankFun(A,B)
 end
 
 LowRankFun(f::Function,d1::Vector,d2::Vector)=LowRankFun(f,Interval(d1),Interval(d2))
