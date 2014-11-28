@@ -3,7 +3,11 @@ abstract AbstractMultiplication{T} <:BandedOperator{T}
 immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number} <: AbstractMultiplication{T}
     f::Fun{D,T}
     space::S
+    
+    Multiplication(f::Fun{D,T},sp::S)=new(f,sp)
 end
+
+Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T}(f,sp)
 
 Multiplication(f::Fun)=Multiplication(f,AnySpace())
 

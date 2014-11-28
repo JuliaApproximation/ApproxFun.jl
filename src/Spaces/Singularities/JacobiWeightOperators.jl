@@ -120,10 +120,29 @@ end
 
 ## Multiplication
 
-addentries!{T,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(M.f,domainspace(M).space),A,kr)
+function Multiplication{D<:JacobiWeightSpace,T}(f::Fun{D,T},S::JacobiWeightSpace)
+    M=Multiplication(Fun(f.coefficients,space(f).space),S.space)
+    MultiplicationWrapper(
+        f,
+        SpaceOperator(M,S,JacobiWeightSpace(space(f).α+S.α,space(f).β+S.β,rangespace(M)))
+    )
+end
 
-addentries!{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S},A::ShiftArray,kr::Range)=addentries!(Multiplication(Fun(M.f.coefficients,space(M.f).space),domainspace(M).space),A,kr)
-rangespace{T<:JacobiWeightSpace,S<:JacobiWeightSpace}(M::Multiplication{T,S})=JacobiWeightSpace(space(M.f).α+M.space.α,space(M.f).β+M.space.β,rangespace(Multiplication(M.f,domainspace(M).space)))
+function Multiplication{D,T}(f::Fun{D,T},S::JacobiWeightSpace)
+    M=Multiplication(f,S.space)
+    MultiplicationWrapper(
+        f,
+        SpaceOperator(M,S,JacobiWeightSpace(S.α,S.β,rangespace(M)))
+    )
+end
+
+function Multiplication{D<:JacobiWeightSpace,T}(f::Fun{D,T},S::IntervalDomainSpace)
+    M=Multiplication(Fun(f.coefficients,space(f).space),S)
+    MultiplicationWrapper(
+        f,
+        SpaceOperator(M,S,JacobiWeightSpace(space(f).α,space(f).β,rangespace(M)))
+    )
+end
 
 
 

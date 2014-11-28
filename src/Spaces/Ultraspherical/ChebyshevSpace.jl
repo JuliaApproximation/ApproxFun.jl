@@ -2,8 +2,6 @@
 
 typealias ChebyshevSpace UltrasphericalSpace{0}
 
-ChebyshevSpace()=ChebyshevSpace(Interval())
-
 
 Space(d::IntervalDomain)=ChebyshevSpace(d)
 canonicalspace(S::UltrasphericalSpace)=ChebyshevSpace(domain(S))
