@@ -80,26 +80,25 @@ end
 
 function Derivative(S::JacobiWeightSpace)
     d=domain(S)
-    @assert isa(d,Interval)
 
     if S.α==S.β==0
         DerivativeWrapper(SpaceOperator(Derivative(S.space),S,JacobiWeightSpace(0.,0.,rangespace(Derivative(S.space)))),1)
     elseif S.α==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        Mp=tocanonicalD(d,d.a)            
-        DD=(-Mp*S.β)*I +(1-M)*Derivative(S.space)
+        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeightSpace but doesn't need to
+        DD=(-Mp*S.β) +(1-M)*Derivative(S.space)
         DerivativeWrapper(SpaceOperator(DD,S,JacobiWeightSpace(0.,S.β-1,rangespace(DD))),1)
     elseif S.β==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        Mp=tocanonicalD(d,d.a)        
-        DD=(Mp*S.α)*I +(1+M)*Derivative(S.space)
+        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeightSpace but doesn't need to
+        DD=(Mp*S.α) +(1+M)*Derivative(S.space)
         DerivativeWrapper(SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,0.,rangespace(DD))),1)
     else 
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        Mp=tocanonicalD(d,d.a)
+        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeightSpace but doesn't need to
         DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
         DerivativeWrapper(SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,S.β-1,rangespace(DD))),1)
     end
