@@ -1,39 +1,37 @@
 ##Line calculus
 
 
-type LineSpace <: IntervalDomainSpace
-    domain::Line
+type MappedSpace{D<:Domain,S<:DomainSpace} <: IntervalDomainSpace
+    domain::D
+    space::S
+    MappedSpace(d::D,sp::S)=new(d,sp)
+    MappedSpace(d::D)=new(d,S())
+    MappedSpace()=new(D(),S())
 end
 
-type RaySpace <: IntervalDomainSpace
-    domain::Ray
-end
+MappedSpace{D<:Domain,S<:DomainSpace}(d::D,s::S)=MappedSpace{D,S}(d,s)
+
+typealias LineSpace MappedSpace{Line,ChebyshevSpace}
+typealias RaySpace MappedSpace{Ray,ChebyshevSpace}
 
 
 Space(d::Line)=LineSpace(d)
 Space(d::Ray)=RaySpace(d)
 
-
-canonicaldomain{T<:LineSpace}(::Type{T})=Line()
-canonicaldomain{T<:RaySpace}(::Type{T})=Ray()
+domain(S::MappedSpace)=S.domain
+canonicaldomain{D<:Domain,S}(::Type{MappedSpace{D,S}})=D()
 
 
 ## Construction
 
-#domain(S) may be any domain
-for TYP in (:RaySpace,:LineSpace)
-    @eval begin
-        Base.ones{T<:Number}(::Type{T},S::$TYP)=Fun(ones(T,1),S)
-        transform(::$TYP,vals::Vector)=chebyshevtransform(vals)
-        evaluate(f::Fun{$TYP},x)=clenshaw(f.coefficients,tocanonical(f,x))
-    end
-    
-    for op in (:(Base.first),:(Base.last))
-        @eval $op(f::Fun{$TYP})=$op(Fun(f.coefficients))
-    end    
-end
+Base.ones{T<:Number}(::Type{T},S::MappedSpace)=Fun(ones(T,S.space).coefficients,S)
+transform(S::MappedSpace,vals::Vector)=transform(S.space,vals)
+itransform(S::MappedSpace,cfs::Vector)=itransform(S.space,cfs)
+evaluate{S<:MappedSpace}(f::Fun{S},x)=evaluate(Fun(coefficients(f),space(f).space),tocanonical(f,x))
 
-
+for op in (:(Base.first),:(Base.last))
+    @eval $op{S<:MappedSpace}(f::Fun{S})=$op(Fun(coefficients(f),space(f).space))
+end    
 
 
 
@@ -106,7 +104,6 @@ function integrate(f::Fun{LineSpace})
 end
 
 function integrate(f::Fun{RaySpace})
-    f=Fun(x->exp(-x^2),[0.,Inf])
     x=Fun(identity)
     g=fromcanonicalD(f,x)*Fun(f.coefficients)
     Fun(integrate(Fun(g,ChebyshevSpace)).coefficients,space(f))
@@ -121,5 +118,67 @@ for T in (Float64,Complex{Float64})
             cf = integrate(f)
             last(cf) - first(cf)
         end
+    end
+end
+
+
+
+
+## identity
+
+function identity_fun(S::MappedSpace)
+    sf=fromcanonical(S,Fun(identity,S.space))
+    if isa(space(sf),JacobiWeightSpace)
+        Fun(coefficients(sf),JacobiWeightSpace(sf.space.α,sf.space.β,S))
+    else
+         @assert isa(space(sf),S.space)
+         Fun(coefficients(sf),S)
+    end
+end
+
+
+
+## Operators
+
+function Evaluation(S1::MappedSpace,x::Bool,order::Integer)
+    @assert order==0
+    EvaluationWrapper(S1,x,order,Evaluation(S1.space,x,order))
+end
+
+Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
+    SpaceOperator(Conversion(S1.space,S2.space),
+        S1,S2))
+        
+
+        
+function conversion_rule(S1::MappedSpace,S2::MappedSpace)
+    cr=conversion_rule(S1.space,S2.space)
+    if cr==S1.space
+        S1
+    elseif cr==S2.space
+        S2
+    else
+        NoSpace()
+    end
+end
+
+function addentries!{S1<:MappedSpace,S2<:MappedSpace}(M::Multiplication{S1,S2},A::ShiftArray,kr::Range)
+    @assert domain(M.f)==domain(M.space)
+    mf=Fun(coefficients(M.f),space(M.f).space)
+    addentries!(Multiplication(mf,M.space.space),A,kr)
+end
+
+
+
+function Derivative(S::MappedSpace,order::Int)
+    x=Fun(identity,S)
+    D1=Derivative(S.space)
+    DS=SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1)))
+    M=Multiplication(Fun(tocanonicalD(S,x),S),DS|>rangespace)
+    D=DerivativeWrapper(M*DS,1)
+    if order==1
+        D
+    else
+        Derivative(rangespace(D),order-1)*D
     end
 end

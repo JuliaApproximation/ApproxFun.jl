@@ -38,12 +38,16 @@ function gadflyplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
     end
 end
 
-function gadflycontour(x::Vector,y::Vector,z::Matrix;levels=-1)
+function gadflycontour(x::Vector,y::Vector,z::Matrix;levels=-1,axis=-1)
     require("Gadfly")
+    if axis==-1
+        axis=[x[1],x[end],y[1],y[end]]
+    end
+    
     if levels==-1
-        Main.Gadfly.plot(x=x,y=y,z=z,Main.Gadfly.Geom.contour)
+        Main.Gadfly.plot(x=x,y=y,z=z,Main.Gadfly.Geom.contour,Main.Gadfly.Scale.x_continuous(minvalue=axis[1],maxvalue=axis[2]),Main.Gadfly.Scale.y_continuous(minvalue=axis[3],maxvalue=axis[4]))
     else
-        Main.Gadfly.plot(x=x,y=y,z=z,Main.Gadfly.Geom.contour(levels=levels))
+        Main.Gadfly.plot(x=x,y=y,z=z,Main.Gadfly.Geom.contour(levels=levels),Main.Gadfly.Scale.x_continuous(minvalue=axis[1],maxvalue=axis[2]),Main.Gadfly.Scale.y_continuous(minvalue=axis[3],maxvalue=axis[4]))
     end
 end
 

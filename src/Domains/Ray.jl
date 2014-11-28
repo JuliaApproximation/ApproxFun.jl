@@ -42,8 +42,9 @@ ray_tocanonicalD(x)=(x==Inf)?0.:2*(1./(1+x)).^2
 ray_fromcanonical(x)=(1+x)./(1-x)
 ray_fromcanonicalD(x)=2*(1./(x-1.)).^2
 
-ray_tocanonical(o,x)=(o?1:-1)*ray_tocanonical(x)
-ray_tocanonicalD(o,x)=(o?1:-1)*ray_tocanonical(x)
+for op in (:ray_tocanonical,:ray_tocanonicalD)
+    @eval $op(o,x)=(o?1:-1)*$op(x)
+end
 ray_fromcanonical(o,x)=ray_fromcanonical((o?1:-1)*x)
 ray_fromcanonicalD(o,x)=(o?1:-1)*ray_fromcanonicalD((o?1:-1)*x)
 

@@ -7,7 +7,10 @@ export UltrasphericalSpace
 
 immutable UltrasphericalSpace{O} <: IntervalDomainSpace
     domain::Union(Interval,AnyDomain)
+    UltrasphericalSpace(d)=new(d)
+    UltrasphericalSpace()=new(Interval())
 end
+
 
 
 #UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,AnyDomain())
