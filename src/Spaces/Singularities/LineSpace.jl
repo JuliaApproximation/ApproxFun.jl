@@ -140,9 +140,27 @@ end
 
 ## Operators
 
+function Evaluation(S1::MappedSpace,x::Bool,order::Integer)
+    @assert order==0
+    EvaluationWrapper(S1,x,order,Evaluation(S1.space,x,order))
+end
+
 Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
     SpaceOperator(Conversion(S1.space,S2.space),
         S1,S2))
+        
+
+        
+function conversion_rule(S1::MappedSpace,S2::MappedSpace)
+    cr=conversion_rule(S1.space,S2.space)
+    if cr==S1.space
+        S1
+    elseif cr==S2.space
+        S2
+    else
+        NoSpace()
+    end
+end
 
 function addentries!{S1<:MappedSpace,S2<:MappedSpace}(M::Multiplication{S1,S2},A::ShiftArray,kr::Range)
     @assert domain(M.f)==domain(M.space)
@@ -150,3 +168,17 @@ function addentries!{S1<:MappedSpace,S2<:MappedSpace}(M::Multiplication{S1,S2},A
     addentries!(Multiplication(mf,M.space.space),A,kr)
 end
 
+
+
+function Derivative(S::MappedSpace,order::Int)
+    x=Fun(identity,S)
+    D1=Derivative(S.space)
+    DS=SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1)))
+    M=Multiplication(Fun(tocanonicalD(S,x),S),DS|>rangespace)
+    D=DerivativeWrapper(M*DS,1)
+    if order==1
+        D
+    else
+        Derivative(rangespace(D),order-1)*D
+    end
+end
