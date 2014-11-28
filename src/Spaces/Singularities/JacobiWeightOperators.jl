@@ -200,13 +200,14 @@ function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
     S=op.space
     @assert op.order<=1
     d=domain(op)
-    @assert isa(d,Interval)
+
     if op.x
         @assert S.β>=0
         if S.β==0
             if op.order==0
                 2^S.α*getindex(Evaluation(S.space,op.x),kr)
             else #op.order ===1
+                @assert isa(d,Interval)            
                 2^S.α*getindex(Evaluation(S.space,op.x,1),kr)+(tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
             end
         else
@@ -219,6 +220,7 @@ function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
             if op.order==0
                 2^S.β*getindex(Evaluation(S.space,op.x),kr)
             else #op.order ===1
+                @assert isa(d,Interval)            
                 2^S.β*getindex(Evaluation(S.space,op.x,1),kr)-(tocanonicalD(d,d.a)*S.β*2^(S.β-1))*getindex(Evaluation(S.space,op.x),kr)
             end
         else
