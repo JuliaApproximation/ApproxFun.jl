@@ -115,8 +115,7 @@ for op = (:+,:-)
             
                 Fun(($op)(f2.coefficients,g2.coefficients),domain(f)!=AnyDomain()?f.space:g.space)
             else 
-                #TODO: is it better to convert to minspace?
-                m=maxspace(f.space,g.space)
+                m=union(f.space,g.space)
                 $op(Fun(f,m),Fun(g,m)) # convert to same space
             end
         end
@@ -221,7 +220,7 @@ end
 
 # When the spaces differ we promote and multiply
 function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
-    sp=minspace(space(f),space(g))
+    sp=union(space(f),space(g))
     if sp==NoSpace() # see if a multiplication operator is implemented
         Multiplication(f,space(g))*g
     else

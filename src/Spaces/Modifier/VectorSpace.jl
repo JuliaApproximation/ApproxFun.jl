@@ -231,6 +231,8 @@ end
 
 
 
+
+
 ## constructor
 
 # columns are coefficients
@@ -245,6 +247,7 @@ function Fun{T<:Number,n,S,Q}(M::Array{T,2},sp::VectorDomainSpace{n,S,Q})
     end
     ret
 end
+
 
 
 

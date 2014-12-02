@@ -130,6 +130,24 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
 end
 
 
+union_rule(a::FunctionSpace,b::FunctionSpace)=NoSpace()
+function Base.union(a::FunctionSpace,b::FunctionSpace)
+    if a==b
+        return a
+    end
+    
+    cr=union_rule(a,b)
+    if cr==NoSpace()
+        cr=union_rule(b,a)
+    end
+    
+    if cr==NoSpace()
+        cr=maxspace(a,b)  #Max or min space?
+    end
+    
+    return cr
+end
+
 
 
 
