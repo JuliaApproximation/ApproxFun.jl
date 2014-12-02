@@ -25,13 +25,12 @@ end
 
 plan_chebyshevtransform(x)=length(x)==1?identity:FFTW.plan_r2r(x, FFTW.REDFT00)
 chebyshevtransform(x)=chebyshevtransform(x,plan_chebyshevtransform(x))
-function chebyshevtransform(x::Vector,plan::Function)
+function chebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},plan::Function)
     if(length(x) == 1)
         x
     else
         ret = plan(x)::typeof(x)
-        ret[1] /= 2
-        ret[end] /= 2   
+        ret[1] /= 2;ret[end] /= 2   
         negateeven!(ret)
         ret*=1./(length(ret)-1)
         
@@ -40,22 +39,20 @@ function chebyshevtransform(x::Vector,plan::Function)
 end
 
 
+
 ichebyshevtransform(x)=ichebyshevtransform(x,plan_chebyshevtransform(x))
-function ichebyshevtransform(x::Vector,plan::Function)
+function ichebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},plan::Function)
     if(length(x) == 1)
         x
     else
         ##TODO: make thread safe
-        x[1] *= 2;
-        x[end] *= 2;
+        x[1] *= 2;x[end] *= 2
         
         ret = chebyshevtransform(x,plan)::typeof(x)
         
-        x[1] /=2;
-        x[end] /=2;
+        x[1] /=2;x[end] /=2
         
-        ret[1] *= 2;
-        ret[end] *= 2;
+        ret[1] *= 2;ret[end] *= 2
         
         negateeven!(ret)
         
@@ -65,6 +62,10 @@ function ichebyshevtransform(x::Vector,plan::Function)
     end
 end
 
+
+for func in (:chebyshevtransform,:ichebyshevtransform)
+    @eval $func{T<:Integer}(x::Vector{T})=$func(float64(x))
+end
 
 
 function chebyshevtransform(A::Matrix)

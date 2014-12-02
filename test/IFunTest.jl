@@ -102,3 +102,11 @@ f=Fun(x->sin(10(x-.1)))
 
 f=Fun(x->cos(50acos(x)))
 @test norm(f.coefficients-eye(length(f))[:,51])<eps(100.)
+
+
+## Int values
+
+@test_approx_eq Fun(x->2,10)[.1] 2
+@test_approx_eq Fun(x->2)[.1] 2
+
+
