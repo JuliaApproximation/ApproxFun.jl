@@ -112,6 +112,7 @@ function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
         end 
     end
 end
+evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f[xk] for xk in x]
 
 ## space promotion
 

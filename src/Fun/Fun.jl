@@ -60,12 +60,19 @@ end
 
 space(f::Fun)=f.space
 spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
-
+canonicalspace(f::Fun)=canonicalspace(space(f))
 
 
 ##Evaluation
 
-evaluate{S,T}(f::Fun{S,T},x)=evaluate(Fun(f,domain(f)),x)  #Default is convert to Chebyshev
+function evaluate{S,T}(f::Fun{S,T},x)
+    csp=canonicalspace(f)
+    if spacescompatible(csp,space(f))
+        error("Override evaluate for " * string(typeof(csp)))
+    else
+        evaluate(Fun(f,domain(f)),x)  
+    end
+end
 Base.getindex(f::Fun,x)=evaluate(f,x)
 
 for op in (:(Base.first),:(Base.last))
@@ -202,29 +209,27 @@ Base.diff(f::Fun,n...)=differentiate(f,n...)
 
 
 
-## Overrideable
-
-
-# multiplying 2 Funs, we assume this can be done by transform
-# the parametrizations are to make it the broadest definition
-
-function .*{T,N,S}(f::Fun{S,T},g::Fun{S,N})
-    @assert domainscompatible(f,g)
-    #TODO Coefficient space version
-    n = length(f) + length(g) - 1
-    f2 = pad(f,n); g2 = pad(g,n)
-    
-    sp=space(f)
-    chop!(Fun(transform(sp,values(f2).*values(g2)),sp),10eps())
-end
-
-# When the spaces differ we promote and multiply
+# Overrideable
+# This should be overriden whenever the multiplication space is different
 function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
-    sp=union(space(f),space(g))
-    if sp==NoSpace() # see if a multiplication operator is implemented
-        Multiplication(f,space(g))*g
+    if spacescompatible(f,g)
+        # multiplying 2 Funs, we assume this can be done by transform
+        # the parametrizations are to make it the broadest definition
+    
+        #TODO: smarter multiplication padding
+        n = length(f) + length(g) - 1
+        f2 = pad(f,n); g2 = pad(g,n)
+        
+        sp=space(f)
+        chop!(Fun(transform(sp,values(f2).*values(g2)),sp),10eps())    
     else
-        Fun(f,sp).*Fun(g,sp)
+        # When the spaces differ we promote and multiply    
+        sp=union(space(f),space(g))
+        if sp==NoSpace() # see if a multiplication operator is implemented
+            Multiplication(f,space(g))*g
+        else
+            Fun(f,sp).*Fun(g,sp)
+        end
     end
 end
 
