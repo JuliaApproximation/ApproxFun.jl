@@ -132,7 +132,7 @@ end
 
 union_rule(a::FunctionSpace,b::FunctionSpace)=NoSpace()
 function Base.union(a::FunctionSpace,b::FunctionSpace)
-    if a==b
+    if spacescompatible(a,b)
         return a
     end
     
@@ -141,9 +141,18 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
         cr=union_rule(b,a)
     end
     
+    
+    if cr==NoSpace()
+        cspa=canonicalspace(a)
+        cspb=canonicalspace(b)
+        if cspa!=a || cspb!=b
+            cr=union(cspa,cspb)  #Max or min space?
+        end
+    end
+    
     if cr==NoSpace()
         cr=maxspace(a,b)  #Max or min space?
-    end
+    end    
     
     return cr
 end
@@ -182,8 +191,8 @@ function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
         if spacescompatible(a,csp)# a is csp, so try b
             csp=canonicalspace(b)  
         end    
-        if spacescompatible(b,csp)# b is csp too, so we are stuck
-            error("Override spaceconversion or implement Conversion between " * string(A) * " and " * string(typeof(csp)))
+        if spacescompatible(b,csp)# b is csp too, so we are stuck, try Fun constructor
+            coefficients(Fun(x->Fun(f,a)[x],b))
         else
             spaceconversion(f,a,csp,b)
         end

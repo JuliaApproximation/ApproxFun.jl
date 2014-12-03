@@ -66,3 +66,17 @@ function ApproxFun.values{T}(f::TensorFun{ChebyshevSpace,ChebyshevSpace,T})
     
     M
 end
+
+
+
+## Piecewise union
+
+# union_rule dictates how to create a space that both spaces can be converted to
+# in this case, it means 
+function union_rule{S<:UltrasphericalSpace}(s1::PiecewiseSpace{S},s2::PiecewiseSpace{S})
+    PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
+end
+
+function union_rule{S<:UltrasphericalSpace}(s1::PiecewiseSpace{S},s2::S)
+    PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
+end

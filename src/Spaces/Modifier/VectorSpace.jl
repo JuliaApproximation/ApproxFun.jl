@@ -33,31 +33,6 @@ evaluate{V<:VectorDomainSpace,T}(f::Fun{V,T},x)=evaluate(vec(f),x)
 
 
 
-## Separate domains
-
-immutable UnionDomain{D<:Domain} <:Domain
-    domains::Vector{D}
-end
-
-∪(d1::UnionDomain,d2::UnionDomain)=UnionDomain([d1.domains,d2.domains])
-∪(d1::Domain,d2::UnionDomain)=UnionDomain([d1,d2.domains])
-∪(d1::UnionDomain,d2::Domain)=UnionDomain([d1.domains,d2])
-∪(d1::Domain,d2::Domain)=UnionDomain([d1,d2])
-Base.length(d::UnionDomain)=d.domains|>length
-Base.getindex(d::UnionDomain,k)=d.domains[k]
-for op in (:(Base.first),:(Base.last))
-    @eval $op(d::UnionDomain)=d.domains|>$op|>$op
-end
-
-function points(d::UnionDomain,n)
-   k=div(n,length(d))
-    r=n-length(d)*k
-
-    [vcat([points(d.domains[j],k+1) for j=1:r]...),
-        vcat([points(d.domains[j],k) for j=r+1:length(d)]...)]
-end
-
-Base.rand(d::UnionDomain)=rand(d[rand(1:length(d))])
 
 
 
@@ -227,8 +202,6 @@ function spaceconversion{n}(f::Vector,a::VectorDomainSpace{n},b::PiecewiseSpace)
     end
     ret
 end
-
-
 
 
 

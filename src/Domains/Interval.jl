@@ -90,3 +90,54 @@ end
 
 +(d1::Interval,d2::Interval)=Interval(d1.a+d2.a,d1.b+d2.b)
 
+
+
+## intersect/union
+
+Base.reverse(d::Interval)=Interval(d.b,d.a)
+
+function Base.intersect(a::Interval{Float64},b::Interval{Float64})
+    if first(a) > last(a)
+        intersect(reverse(a),b)
+    elseif first(b) > last(b)
+        intersect(a,reverse(b))
+    elseif first(a) > first(b)
+        intersect(b,a)
+    elseif last(a) <= first(b)
+        []
+    elseif last(a)>=last(b)
+        b
+    else
+        Interval(first(b),last(a)) 
+    end
+end
+
+
+function Base.setdiff(a::Interval{Float64},b::Interval{Float64})
+    # ensure a/b are well-ordered
+    if first(a) > last(a)
+        intersect(reverse(a),b)
+    elseif first(b) > last(b)
+        intersect(a,reverse(b))
+    elseif first(a)< first(b)
+        if last(a) <= first(b)
+            a
+        else # first(a) ≤ first(b) ≤last(a)
+            #TODO: setdiff in the middle
+            @assert last(a) <= last(b)
+            Interval(first(a),first(b))
+        end 
+    else #first(a)>= first(b)
+        if first(a)>=last(b)
+            a
+        elseif last(a) <= last(b) 
+            []
+        else #first(b) < first(a) < last(b) < last(a)
+            Interval(last(b),last(a))
+        end
+    end
+end
+
+# function Base.sort(d::Vector{Interval{Float64}})
+#     
+# end
