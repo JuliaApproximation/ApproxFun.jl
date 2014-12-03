@@ -54,7 +54,7 @@ fromcanonicalD(d::Interval,x)=.5*( d.b- d.a)
 
 
 Base.length(d::Interval) = abs(d.b - d.a)
-
+Base.angle(d::Interval)=angle(d.b-d.a)
 
 
 ==(d::Interval,m::Interval) = d.a == m.a && d.b == m.b
