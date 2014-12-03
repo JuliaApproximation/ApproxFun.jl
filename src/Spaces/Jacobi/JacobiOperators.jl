@@ -128,10 +128,14 @@ end
 
 # return the space that has banded Conversion to the other
 function conversion_rule(A::JacobiSpace,B::JacobiSpace)
-    if A.a<=B.a || A.b<=B.b
+    if !isapproxinteger(A.a-B.a) || !isapproxinteger(B.a-B.a)
+        NoSpace()
+    elseif A.a<=B.a && A.b<=B.b
         A
-    else
+    elseif A.a>=B.a && A.b>=B.b
         B
+    else # no banded conversion
+        NoSpace()
     end
 end
 
