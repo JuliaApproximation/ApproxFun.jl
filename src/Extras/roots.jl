@@ -152,17 +152,24 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64,clplan::ClenshawPla
 end
 
 
+function extremal_args{S<:PiecewiseSpace}(f::Fun{S})
+    return cat(1,[extremal_args(fp) for fp in vec(f)]...)
+end
+
+function extremal_args(f::Fun)
+    d=domain(f)
+    if length(f) <=2 #TODO this is only relevant for Polynomial bases 
+        pts=[d.a,d.b]
+    else
+        pts=cat(1, d.a, d.b, roots(diff(f)))
+    end
+    return pts
+end 
 
 for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
     @eval begin
         function ($op)(f::Fun)
-            d=domain(f)
-            # the following avoids warning when diff(f)==0
-            if length(f) <=2
-                pts=[d.a,d.b]
-            else
-                pts=[d.a,d.b,roots(diff(f))]
-            end
+            pts = extremal_args(f)
                 
             $op(f[pts])
         end
@@ -170,17 +177,12 @@ for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base
 end
 
 
+
 for op in (:(Base.indmax),:(Base.indmin))
     @eval begin
         function ($op)(f::Fun)
             # the following avoids warning when diff(f)==0
-            d=domain(f)
-            if length(f) <=2
-                pts=[d.a,d.b]
-            else
-                pts=[d.a,d.b,roots(diff(f))]
-            end
-                
+            pts = extremal_args(f)
             pts[$op(f[pts])]
         end
     end
@@ -190,12 +192,7 @@ for op in (:(Base.findmax),:(Base.findmin))
     @eval begin
         function ($op)(f::Fun)
             # the following avoids warning when diff(f)==0
-            d=domain(f)
-            if length(f) <=2
-                pts=[d.a,d.b]
-            else
-                pts=[d.a,d.b,roots(diff(f))]
-            end
+            pts = extremal_args(f)
             ext,ind = $op(f[pts])
 	    ext,pts[ind]
         end
