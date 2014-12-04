@@ -185,7 +185,7 @@ function addentries!{λ}(H::Hilbert{UltrasphericalSpace{λ}},A::ShiftArray,kr::R
     if λ == 0
         if m == 0
             for k=kr
-                k == 1? A[k,0] += -log(2) : A[k,0] += -1./(k-1)
+                k == 1? A[k,0] += sign(d.b-d.a)*log(abs(d.b-d.a)/4.) : A[k,0] += -1./(k-1)
             end
         else
             C=2.^(m-1)*(2./(d.b-d.a)).^m    
@@ -199,6 +199,8 @@ function addentries!{λ}(H::Hilbert{UltrasphericalSpace{λ}},A::ShiftArray,kr::R
     
     A
 end
+
+## Σ
 
 function addentries!(S::Σ{ChebyshevSpace},A::ShiftArray,kr::Range1)
     d=domain(S)

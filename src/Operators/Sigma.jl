@@ -1,4 +1,11 @@
 export Σ
+# The Σ operator is intended to act as the orthogonal summation
+# operator, expressing the operation of integrating a Fun with
+# a bivariate kernel.
+# TODO: This should be domain independent. Since a LowRankFun
+# can be constructed with two distinct spaces and Σ only has
+# one space, it may require rangespace & domainspace assertions.
+# Use at own risk. 
 
 immutable Σ{S<:FunctionSpace,T<:Number} <: BandedOperator{T}
     space::S        # the domain space
