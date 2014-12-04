@@ -73,6 +73,7 @@ function evaluate{S,T}(f::Fun{S,T},x)
         evaluate(Fun(f,domain(f)),x)  
     end
 end
+
 Base.getindex(f::Fun,x)=evaluate(f,x)
 
 for op in (:(Base.first),:(Base.last))

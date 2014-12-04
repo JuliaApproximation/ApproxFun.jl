@@ -16,6 +16,9 @@ function clenshaw(c,x)
     end
 end
 
+clenshaw(c,x::Range)=clenshaw(c,collect(x))
+clenshaw(c,x::Range,plan)=clenshaw(c,collect(x),plan)
+
 function clenshaw(c::Vector,x::Real)
     if isempty(c)
         return zero(x)

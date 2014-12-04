@@ -60,10 +60,14 @@ end
 function arrow(d::Interval)
     require("Compose")
     line=Main.Compose.line
-    arg1=angle(exp(-im*π*0.9)*d)
-    arg2=angle(exp(im*π*0.9)*d)    
-    (line([(real(first(d)), imag(first(d))), (real(last(d)), imag(last(d))) ]),
-    line([(real(last(d))+0.1length(d)*cos(arg1),imag(last(d))+0.1length(d)*sin(arg1)),
+    compose=Main.Compose.compose
+    context=Main.Compose.context
+    polygon=Main.Compose.polygon
+            
+    arg1=angle(exp(-im*π*0.92)*d)
+    arg2=angle(exp(im*π*0.92)*d)    
+    compose(context(),line([(real(first(d)), imag(first(d))), (real(last(d)), imag(last(d))) ]),
+    polygon([(real(last(d))+0.1length(d)*cos(arg1),imag(last(d))+0.1length(d)*sin(arg1)),
         (real(last(d)), imag(last(d))),
                            (real(last(d))+0.1length(d)*cos(arg2),imag(last(d))+0.1length(d)*sin(arg2))]))
 end
@@ -81,7 +85,7 @@ function domainplot(d::Interval)
     compose(context(units=UnitBox(min(real(first(d)),real(last(d)))-0.5,
     max(imag(first(d)),imag(last(d)))+0.5,
                     2length(d),-2length(d))),
-    arrow(d)..., stroke("blue"),linewidth(1.))
+    arrow(d), stroke("blue"),fill("blue"),linewidth(1.))
 end
 
 function domainplot{D<:Interval}(d::Vector{D})
@@ -91,6 +95,7 @@ function domainplot{D<:Interval}(d::Vector{D})
     UnitBox=Main.Compose.UnitBox
     stroke=Main.Compose.stroke
     linewidth=Main.Compose.linewidth
+    fill=Main.Compose.fill    
     
     
     C=context(units=UnitBox(
@@ -98,9 +103,6 @@ function domainplot{D<:Interval}(d::Vector{D})
     mapreduce(dk->max(imag(first(dk)),imag(last(dk))),max,d)+0.5,
                     4,-4))
     
-    for dk in d
-        C=compose(C,arrow(dk)...)
-    end
-    C=compose(C,stroke("blue"),linewidth(1.))
+    compose(C,map(arrow,d)...,stroke("blue"),fill("blue"),linewidth(1.))
 end
 domainplot(d::UnionDomain)=domainplot(d.domains)
