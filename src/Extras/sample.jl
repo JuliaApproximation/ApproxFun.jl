@@ -10,7 +10,6 @@ bisectioninv{S,T}(f::Fun{S,T},x::Real) = first(bisectioninv(f,[x]))
 
 function bisectioninv{S,T}(f::Fun{S,T},x::Float64)
     d=domain(f)
-    @assert isa(d,Interval) 
     a = first(d);b = last(d)
     
     

@@ -235,12 +235,7 @@ function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
 end
 
 
-function Base.sum{S,T}(f::Fun{S,T})
-    cf=integrate(f)
-    last(cf) - first(cf)
-end
-
-
+Base.sum{S,T}(f::Fun{S,T})=last(cumsum(f))
 integrate{D,T}(f::Fun{D,T})=integrate(Fun(f,domain(f)))
 
 
