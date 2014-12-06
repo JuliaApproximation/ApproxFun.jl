@@ -4,6 +4,13 @@ Fun{T<:Union(Int64,Complex{Int64})}(coefs::Vector{T},d::FunctionSpace)=Fun(float
 function Fun(f::Function,d::DomainSpace,n::Integer)
     pts=points(d,n)
     f1=f(pts[1])
+    
+
+    if isa(f1,Vector) && !isa(d,VectorDomainSpace) 
+        return Fun(f,VectorDomainSpace(d,length(f1)),n)
+    end
+    
+        
     T=typeof(f1)
         
     vals=T[f(x) for x in pts]
@@ -76,7 +83,7 @@ function zerocfsFun(f::Function,d::DomainSpace)
     #TODO: reuse function values?
     f0=f(first(domain(d)))
 
-    if !isa(d,VectorDomainSpace) && isa(f0,Vector)       #TODO: is 0. going to always be in canonical?
+    if !isa(d,VectorDomainSpace) && isa(f0,Vector)       
         return zerocfsFun(f,VectorDomainSpace(d,length(f0)))
     end
 
