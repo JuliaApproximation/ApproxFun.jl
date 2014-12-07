@@ -59,21 +59,28 @@ end
 
 
 
-
-function ColleagueEigVals( c::Array{Float64,1} )
+function colleague_matrix{T<:Number}( c::Vector{T} )
 #TODO: This is command isn't typed correctly
 # COMPUTE THE ROOTS OF A LOW DEGREE POLYNOMIAL BY USING THE COLLEAGUE MATRIX: 
     n = length(c) - 1
-    c = -1/2 * c[1:n] / c[n+1]
-    c[n-1] += 0.5
-    oh = 0.5 * ones(n-1)
-    A = diagm(oh, 1) + diagm(oh, -1)
-    A[n-1, n] = 1.0
-    A[:, 1] = flipud(c)
+    A=zeros(T,n,n)
+    
+    for k=1:n-1
+        A[k,k+1]=0.5
+        A[k+1,k]=0.5        
+    end
+    for k=1:n
+        A[end-k+1,1]-=0.5*c[k]/c[end]
+    end
+    A[n-1,n]=one(T)
+    
     # TODO: can we speed things up because A is upper-Hessenberg
     # Standard colleague matrix (See [Good, 1961]):
-    return eigvals( A )
+    A
 end
+
+
+colleague_eigvals( c::Vector )=eigvals(colleague_matrix(c))
 
 function PruneOptions( r, htol::Float64 )
 # ONLY KEEP ROOTS IN THE INTERVAL
@@ -89,13 +96,13 @@ function PruneOptions( r, htol::Float64 )
     return r
 end
 
-rootsunit_coeffs(c::Array{Float64,1}, htol::Float64)=rootsunit_coeffs(c,htol,ClenshawPlan(Float64,length(c)))
-function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64,clplan::ClenshawPlan{Float64})
+rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64)=rootsunit_coeffs(c,htol,ClenshawPlan(T,length(c)))
+function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{Float64})
 # Computes the roots of the polynomial given by the coefficients c on the unit interval.
 
     
     # If recursive subdivision is used, then subdivide [-1,1] into [-1,splitPoint] and [splitPoint,1]. 
-    const splitPoint = -0.004849834917525;
+    const splitPoint = -0.004849834917525
     
     # Simplify the coefficients by chopping off the tail:
     c = chop(c,eps()*norm(c, 1))
@@ -109,7 +116,7 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64,clplan::ClenshawPla
     elseif n == 1
         
         # CONSTANT FUNCTION 
-        r = ( c[1] == 0.0 ) ? [0.0] : Float64[]
+        r = ( c[1] == 0.0 ) ? Float64[0.0] : Float64[]
 
     elseif n == 2
 
@@ -124,7 +131,7 @@ function rootsunit_coeffs(c::Array{Float64,1}, htol::Float64,clplan::ClenshawPla
         # of degree at most 50 and we likely end up here for each piece. 
     
         # Adjust the coefficients for the colleague matrix:
-        r = ColleagueEigVals( c )
+        r = colleague_eigvals( c )
 
         # Prune roots depending on preferences: 
         r = PruneOptions( r, htol )

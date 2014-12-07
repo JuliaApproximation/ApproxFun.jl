@@ -56,36 +56,67 @@ end
 
 ## domainplot
 
+function boundingbox(vals::Vector)
+    minr=minimum(real(vals));maxr=maximum(real(vals))
+    mini=minimum(imag(vals));maxi=maximum(imag(vals))
+    UnitBox(minr,
+    maxi,
+    maxr-minr,mini-maxi)
+end
+boundingbox(d::Interval)=boundingbox([first(d),last(d)])
+boundingbox(d::Circle)=Main.Compose.UnitBox(real(d.center)-d.radius,imag(d.center)+d.radius,2d.radius,-2d.radius)
+
+
+
+
+function arrowhead(d::Interval)
+    compose=Main.Compose.compose
+    context=Main.Compose.context
+    stroke=Main.Compose.stroke    
+
+    arg1=angle(exp(-im*π*0.92)*d)
+    arg2=angle(exp(im*π*0.92)*d)    
+compose(context(),Main.Compose.polygon([(real(last(d))+0.1length(d)*cos(arg1),imag(last(d))+0.1length(d)*sin(arg1)),
+        (real(last(d)), imag(last(d))),
+                           (real(last(d))+0.1length(d)*cos(arg2),imag(last(d))+0.1length(d)*sin(arg2))]),
+                           stroke("blue"),fill("blue"))    
+end
+
+arrowhead(d::Circle)=arrowhead(Interval(d.center-d.radius+im*d.radius,d.center-d.radius))
+
+line(d::Interval)=Main.Compose.line([(real(first(d)), imag(first(d))), (real(last(d)), imag(last(d))) ])
+
 
 function arrow(d::Interval)
     require("Compose")
-    line=Main.Compose.line
     compose=Main.Compose.compose
     context=Main.Compose.context
-    polygon=Main.Compose.polygon
             
-    arg1=angle(exp(-im*π*0.92)*d)
-    arg2=angle(exp(im*π*0.92)*d)    
-    compose(context(),line([(real(first(d)), imag(first(d))), (real(last(d)), imag(last(d))) ]),
-    polygon([(real(last(d))+0.1length(d)*cos(arg1),imag(last(d))+0.1length(d)*sin(arg1)),
-        (real(last(d)), imag(last(d))),
-                           (real(last(d))+0.1length(d)*cos(arg2),imag(last(d))+0.1length(d)*sin(arg2))]))
+    compose(context(units=boundingbox(d)),line(d),arrowhead(d))
 end
 
 
 
-function domainplot(d::Interval)
+circle(d::Circle)=Main.Compose.circle(real(d.center),imag(d.center),d.radius)
+
+function arrow(d::Circle)
     require("Compose")
     compose=Main.Compose.compose
     context=Main.Compose.context
-    UnitBox=Main.Compose.UnitBox
+            
+    compose(context(units=boundingbox(d)),circle(d),arrowhead(d))
+end
+
+
+function domainplot(d::Domain)
+    require("Compose")
+    compose=Main.Compose.compose
+    context=Main.Compose.context
     stroke=Main.Compose.stroke
     linewidth=Main.Compose.linewidth
         
-    compose(context(units=UnitBox(min(real(first(d)),real(last(d)))-0.5,
-    max(imag(first(d)),imag(last(d)))+0.5,
-                    2length(d),-2length(d))),
-    arrow(d), stroke("blue"),fill("blue"),linewidth(1.))
+    compose(
+    arrow(d),linewidth(1.))
 end
 
 function domainplot{D<:Interval}(d::Vector{D})
