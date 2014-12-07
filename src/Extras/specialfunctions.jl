@@ -76,14 +76,14 @@ function ./(c::Number,f::Fun{ChebyshevSpace})
         linsolve(Multiplication(f,space(f)),c;tolerance=tol)
     elseif length(r) == 1 && abs(abs(r[1]) - 1.) < tol
         if sign(r[1]) < 0
-            g = linsolve(Multiplication(x+1,space(fc)),fc;tolerance=10eps())                 
+            g = divide_singularity(-1,fc)  # divide by 1+x
             Fun(canonicalcoefficients(c./g),JacobiWeightSpace(-1,0,domain(f)))
         else
-            g = linsolve(Multiplication(1-x,space(fc)),fc;tolerance=10eps())                              
+            g = divide_singularity(1,fc)  # divide by 1-x
             Fun(canonicalcoefficients(c./g),JacobiWeightSpace(0,-1,domain(f)))                
         end 
     elseif length(r) ==2 && abs(r[1]+1) < tol && abs(r[2]-1) < tol                        
-        g = linsolve(Multiplication(1-x.^2,space(fc)),fc;tolerance=10eps()) 
+        g = divide_singularity(fc) # divide by 1-x^2
         # divide out singularities, tolerance needs to be chosen since we don't get
         # spectral convergence
         # TODO: switch to dirichlet basis
@@ -143,15 +143,15 @@ function .^{S<:MappedChebyshevSpace}(f::Fun{S},k::Float64)
         @assert isapprox(abs(r[1]),1)
         
         if isapprox(r[1],1.)
-            Fun(coefficients((Multiplication(1-x,space(fc))\fc)^k),JacobiWeightSpace(0.,k,space(f)))
+            Fun(coefficients(divide_singularity(+1,fc)^k),JacobiWeightSpace(0.,k,space(f)))
         else
-            Fun(coefficients((Multiplication(1+x,space(fc))\fc)^k),JacobiWeightSpace(k,0.,space(f)))
+            Fun(coefficients(divide_singularity(-1,fc)^k),JacobiWeightSpace(k,0.,space(f)))
         end
     else
         @assert isapprox(r[1],-1)
         @assert isapprox(r[2],1) 
     
-        Fun(coefficients(linsolve(Multiplication(1-x^2,space(fc)),fc;tolerance=eps())^k),JacobiWeightSpace(k,k,space(f)))  
+        Fun(coefficients(divide_singularity(fc)^k),JacobiWeightSpace(k,k,space(f)))  
     end
 end
 

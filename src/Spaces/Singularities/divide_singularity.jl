@@ -62,6 +62,7 @@ end
 divide_singularity(s,v::Vector)=dirichletrange_divide_singularity(s,dirichlet_transform(s,v))
 #divide_singularity(s,v::Vector)=idirichlet_transform(s,dirichlet_transform(s,dirichletrange_divide_singularity(s,dirichlet_transform(s,v))))
 divide_singularity(s,f::Fun)=Fun(divide_singularity(s,f.coefficients),f.space)
+divide_singularity(f::Fun)=Fun(divide_singularity(f.coefficients),f.space)
 
 
 
