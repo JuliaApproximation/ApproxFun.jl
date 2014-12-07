@@ -53,7 +53,9 @@ domain(S::PiecewiseSpace)=UnionDomain(map(domain,S.spaces))
 Base.length(S::PiecewiseSpace)=S.spaces|>length
 Base.getindex(d::PiecewiseSpace,k)=d.spaces[k]
 
-Base.vec{S<:DomainSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=Fun{S,T}[Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j]) for j=1:length(f.space)]
+Base.vec{S<:DomainSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T},j::Integer)=Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j])
+Base.vec{S<:DomainSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=Fun{S,T}[vec(f,j) for j=1:length(f.space)]
+
 
 
 
@@ -105,10 +107,9 @@ itransform(S::PiecewiseSpace,cfs::Vector)=vcat([itransform(S.spaces[j],cfs[j:len
 
 function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
     d=domain(f)
-    vf=vec(f)
     for k=1:length(d)
         if in(x,d[k])
-            return vf[k][x]
+            return vec(f,k)[x]
         end 
     end
 end
