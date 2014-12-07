@@ -128,7 +128,7 @@ for op in (:(Base.cos),:(Base.sin),:(Base.cospi),:(Base.sinpi),:(Base.sinc))
     end
 end
 
-function .^{S<:Union(ChebyshevSpace,RaySpace,LineSpace)}(f::Fun{S},k::Float64)
+function .^{S<:MappedChebyshevSpace}(f::Fun{S},k::Float64)
     fc = Fun(f.coefficients) #Project to interval
     x=Fun(identity)
 

@@ -1,7 +1,7 @@
 ##Line calculus
 
 
-type MappedSpace{D<:Domain,S<:DomainSpace} <: IntervalDomainSpace
+type MappedSpace{S<:DomainSpace,D<:Domain} <: IntervalDomainSpace
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)
@@ -9,17 +9,20 @@ type MappedSpace{D<:Domain,S<:DomainSpace} <: IntervalDomainSpace
     MappedSpace()=new(D(),S())
 end
 
-MappedSpace{D<:Domain,S<:DomainSpace}(d::D,s::S)=MappedSpace{D,S}(d,s)
+MappedSpace{D<:Domain,S<:DomainSpace}(d::D,s::S)=MappedSpace{S,D}(d,s)
 
-typealias LineSpace MappedSpace{Line,ChebyshevSpace}
-typealias RaySpace MappedSpace{Ray,ChebyshevSpace}
+typealias LineSpace MappedSpace{ChebyshevSpace,Line}
+typealias RaySpace MappedSpace{ChebyshevSpace,Ray}
+typealias CurveSpace{S} MappedSpace{S,Curve{S}}
 
 
 Space(d::Line)=LineSpace(d)
 Space(d::Ray)=RaySpace(d)
+Space{S<:FunctionSpace}(d::Curve{S})=CurveSpace{S}(d)
+
 
 domain(S::MappedSpace)=S.domain
-canonicaldomain{D<:Domain,S}(::Type{MappedSpace{D,S}})=D()
+canonicaldomain{D<:Domain,S}(::Type{MappedSpace{S,D}})=D()
 
 
 ## Construction
@@ -27,7 +30,8 @@ canonicaldomain{D<:Domain,S}(::Type{MappedSpace{D,S}})=D()
 Base.ones{T<:Number}(::Type{T},S::MappedSpace)=Fun(ones(T,S.space).coefficients,S)
 transform(S::MappedSpace,vals::Vector)=transform(S.space,vals)
 itransform(S::MappedSpace,cfs::Vector)=itransform(S.space,cfs)
-evaluate{S<:MappedSpace}(f::Fun{S},x)=evaluate(Fun(coefficients(f),space(f).space),tocanonical(f,x))
+evaluate{S<:MappedSpace,T}(f::Fun{S,T},x)=evaluate(Fun(coefficients(f),space(f).space),tocanonical(f,x))
+
 
 for op in (:(Base.first),:(Base.last))
     @eval $op{S<:MappedSpace}(f::Fun{S})=$op(Fun(coefficients(f),space(f).space))
@@ -181,4 +185,15 @@ function Derivative(S::MappedSpace,order::Int)
     else
         Derivative(rangespace(D),order-1)*D
     end
+end
+
+
+
+## CurveSpace
+
+function evaluate{C<:CurveSpace,T}(f::Fun{C,T},x::Number)
+    c=f.space
+    rts=roots(domain(f).curve-x)
+    @assert length(rts)==1
+    evaluate(Fun(f.coefficients,c.space),first(rts))
 end

@@ -4,3 +4,5 @@ include("Ray.jl")
 include("Circle.jl")
 include("Line.jl")
 include("UnionDomain.jl")
+
+include("Curve.jl")
