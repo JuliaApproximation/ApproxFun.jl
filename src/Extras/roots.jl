@@ -1,26 +1,7 @@
 ## Root finding
 
 
-function complexroots(cin::Vector)
-    c=chop(cin,10eps())
-    if c == [] || length(c) == 1
-        return []
-    elseif length(c) == 2
-        return [-c[1]/c[2]]
-    else 
-        n=length(c)-1;
-        
-        I = [ones(Int64,n),2:n-1,2:n];
-        J=[1:n,3:n,1:n-1];
-        V = [-c[end-1]/(2c[end]),.5-c[end-2]/(2c[end]),-c[end-3:-1:1]/(2c[end]),.5*ones(n-2),.5*ones(n-2),1];
-        A=full(sparse(I,J,V));
-        
-        return eigvals(A)
-    end
-end
-
-
-complexroots{D<:IntervalDomainSpace}(f::Fun{D})=fromcanonical(f,complexroots(f.coefficients))
+complexroots{D<:IntervalDomainSpace}(f::Fun{D})=fromcanonical(f,colleague_eigvals(f.coefficients))
 
 #function roots(f::Fun)
 #    irts=map(real,filter!(x->abs(x)<=1.+10eps(),filter!#(isreal,complexroots(f.coefficients))))
