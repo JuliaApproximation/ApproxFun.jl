@@ -30,7 +30,7 @@ canonicaldomain{D<:Domain,S}(::Type{MappedSpace{S,D}})=D()
 Base.ones{T<:Number}(::Type{T},S::MappedSpace)=Fun(ones(T,S.space).coefficients,S)
 transform(S::MappedSpace,vals::Vector)=transform(S.space,vals)
 itransform(S::MappedSpace,cfs::Vector)=itransform(S.space,cfs)
-evaluate{S<:MappedSpace,T}(f::Fun{S,T},x)=evaluate(Fun(coefficients(f),space(f).space),tocanonical(f,x))
+evaluate{SS,DD,T}(f::Fun{MappedSpace{SS,DD},T},x)=evaluate(Fun(coefficients(f),space(f).space),tocanonical(f,x))
 
 
 for op in (:(Base.first),:(Base.last))
@@ -130,7 +130,7 @@ end
 
 ## identity
 
-function identity_fun(S::MappedSpace)
+function identity_fun{SS,DD}(S::MappedSpace{SS,DD})
     sf=fromcanonical(S,Fun(identity,S.space))
     if isa(space(sf),JacobiWeightSpace)
         Fun(coefficients(sf),JacobiWeightSpace(sf.space.α,sf.space.β,S))
@@ -197,3 +197,6 @@ function evaluate{C<:CurveSpace,T}(f::Fun{C,T},x::Number)
     @assert length(rts)==1
     evaluate(Fun(f.coefficients,c.space),first(rts))
 end
+
+
+identity_fun{S}(d::CurveSpace{S})=Fun(d.domain.curve.coefficients,d)
