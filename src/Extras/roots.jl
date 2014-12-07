@@ -97,7 +97,7 @@ function PruneOptions( r, htol::Float64 )
 end
 
 rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64)=rootsunit_coeffs(c,htol,ClenshawPlan(T,length(c)))
-function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{Float64})
+function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{T})
 # Computes the roots of the polynomial given by the coefficients c on the unit interval.
 
     
@@ -121,8 +121,8 @@ function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::Clensha
     elseif n == 2
 
         # LINEAR POLYNOMIAL
-        r = -c[1]/c[2];
-        r = ( (abs(imag(r))>htol) | (abs(real(r))>(1+htol)) ) ? Float64[] : Float64[max(min(real(r),1),-1)]
+        r1 = -c[1]/c[2];
+        r = ( (abs(imag(r1))>htol) | (abs(real(r1))>(1+htol)) ) ? Float64[] : Float64[max(min(real(r1),1),-1)]
         
     elseif n <= 50
 
@@ -130,11 +130,9 @@ function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::Clensha
         # The recursion subdividing below will keep going until we have a piecewise polynomial 
         # of degree at most 50 and we likely end up here for each piece. 
     
-        # Adjust the coefficients for the colleague matrix:
-        r = colleague_eigvals( c )
-
+        # Adjust the coefficients for the colleague matrix
         # Prune roots depending on preferences: 
-        r = PruneOptions( r, htol )
+        r = PruneOptions( colleague_eigvals( c ), htol )::Vector{Float64}
 
     else 
 
