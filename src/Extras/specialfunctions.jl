@@ -109,7 +109,7 @@ end
 
 
 ## We use \ as the Fun constructor might miss isolated features
-function Base.exp(f::Fun)
+function Base.exp{S<:UltrasphericalSpace}(f::Fun{S})
     rf=chop(real(f),eps())
 
     xm=rf.coefficients[1]==[0.]?first(domain(rf)):indmax(rf)    
@@ -122,7 +122,7 @@ function Base.exp(f::Fun)
 end
 
 ## Less accurate than solving differential equation with \
-for op in (:(Base.cos),:(Base.sin),:(Base.cospi),:(Base.sinpi),:(Base.sinc))
+for op in (:(Base.cos),:(Base.sin),:(Base.cospi),:(Base.sinpi),:(Base.sinc),:(Base.exp))
     @eval begin
         $op{S,T}(f::Fun{S,T})=Fun(x->($op)(f[x]),space(f))
     end

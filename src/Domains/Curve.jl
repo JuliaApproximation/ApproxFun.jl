@@ -17,3 +17,5 @@ function tocanonical(c::Curve,x)
 end
 
 
+fromcanonicalD{D<:Interval}(c::Curve{D},x)=diff(c.curve)[fromcanonical(domain(c.curve),x)].*fromcanonicalD(domain(c.curve),0.)
+fromcanonicalD(c::Curve,x)=diff(c.curve)[fromcanonical(domain(c.curve),x)].*fromcanonicalD(domain(c.curve),x)

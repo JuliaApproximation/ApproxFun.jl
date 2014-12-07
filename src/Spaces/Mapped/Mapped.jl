@@ -1,6 +1,6 @@
-##Line calculus
+##Mapped spaces
 
-
+#TODO: Mapped Fourier
 type MappedSpace{S<:DomainSpace,D<:Domain} <: IntervalDomainSpace
     domain::D
     space::S

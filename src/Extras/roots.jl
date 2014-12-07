@@ -143,12 +143,13 @@ function extremal_args{S<:PiecewiseSpace}(f::Fun{S})
     return cat(1,[extremal_args(fp) for fp in vec(f)]...)
 end
 
-function extremal_args(f::Fun)
+function extremal_args{S<:IntervalDomainSpace,T}(f::Fun{S,T})
     d=domain(f)
+    da,db=first(d),last(d)
     if length(f) <=2 #TODO this is only relevant for Polynomial bases 
-        pts=[d.a,d.b]
+        pts=[da,db]
     else
-        pts=cat(1, d.a, d.b, roots(diff(f)))
+        pts=cat(1, da, db, roots(diff(f)))
     end
     return pts
 end 
