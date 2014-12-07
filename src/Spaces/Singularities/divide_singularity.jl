@@ -96,13 +96,18 @@ function dirichletrange_divide_singularity{T<:Number}(v::Vector{T})
     n=length(v)
     w=zeros(T,n-2)
     w[n-2]=-4v[n]
-    w[n-3]=-4v[n-1]
+    if n>3
+        w[n-3]=-4v[n-1]
+    end
     
     for k=n-4:-1:2
         @inbounds w[k]=-4*(v[k+2] - .25w[k+2])
     end
-    
-    w[1]=-2(v[3]-.25w[3])
+
+    w[1]=-2v[3]
+    if n≥5
+        w[1]+=0.5w[3]
+    end
     
     w    
 end

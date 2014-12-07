@@ -138,7 +138,7 @@ function .^{S<:MappedChebyshevSpace}(f::Fun{S},k::Float64)
     @assert length(r) <= 2
     
     if length(r) == 0
-        Fun(x->f[x]^k,domain(f))
+        Fun(Fun(x->fc[x]^k).coefficients,space(f))
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
         
