@@ -37,7 +37,10 @@ function dirichletrange_divide_singularity{T<:Number}(s,v::Vector{T})
         @inbounds w[k]=-2s*(v[k] - .5w[k+1])
     end
     
-    w[1]=-s*(v[1]-.5w[2])
+    w[1]=-s*v[1]
+    if n≥2
+        w[1]+=0.5s*w[2]
+    end
     
     w    
 end
