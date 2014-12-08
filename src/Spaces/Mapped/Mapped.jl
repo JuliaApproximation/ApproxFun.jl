@@ -1,3 +1,5 @@
+export MappedSpace
+
 ##Mapped spaces
 
 #TODO: Mapped Fourier
