@@ -1,4 +1,3 @@
-
 type ClenshawPlan{T}
     bk::Vector{T}
     bk1::Vector{T}
@@ -7,16 +6,7 @@ end
 
 ClenshawPlan{T}(::Type{T},n::Integer)=ClenshawPlan(Array(T,n),Array(T,n),Array(T,n))
 
-
-function clenshaw(c,x)
-    if maximum(abs(imag(x))) < 10*eps()
-        clenshaw(c,real(x))
-    else
-        clenshaw(c,real(x))+im*clenshaw(c,imag(x))    
-    end
-end
-
-function clenshaw(c::Vector,x::Real)
+function clenshaw(c::Vector,x::Number)
     if isempty(c)
         return zero(x)
     end
@@ -31,8 +21,7 @@ function clenshaw(c::Vector,x::Real)
 end
 
 
-
-function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M})
+function clenshaw{T<:Number,M<:Number}(c::Vector{T},x::Vector{M})
     if isempty(c)
         return zeros(x)
     end
@@ -79,15 +68,13 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Vector{T},plan::ClenshawPlan{T})
 end
 
 
-
 #Clenshaw routine for many Funs
 #each fun is a column
-clenshaw{T<:Number}(c::Array{T,2},x::Real)=clenshaw(c,x,ClenshawPlan(T,size(c)[2]))
-function clenshaw{T<:Number}(c::Array{T,2},x::Real,plan::ClenshawPlan{T})
+clenshaw{T<:Number}(c::Array{T,2},x::Number)=clenshaw(c,x,ClenshawPlan(T,size(c)[2]))
+function clenshaw{T<:Number}(c::Array{T,2},x::Number,plan::ClenshawPlan{T})
     bk=plan.bk    
     bk1=plan.bk1
     bk2=plan.bk2
-
 
     n=size(c)[2] #number of funs
     m=size(c)[1] #number of coefficients
@@ -108,7 +95,6 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Real,plan::ClenshawPlan{T})
         bk2, bk1, bk = bk1, bk, bk2
     end
 
-
     for j = 1:n
         ce = c[1,j]
         @inbounds bk[j] = ce + x * bk1[j] - bk2[j]
@@ -120,7 +106,7 @@ end
 
 #Clenshaw routine for many points
 #Note that bk1, bk2, and bk are overwritten
-function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{T})
+function clenshaw{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{T})
     if isempty(c)
         return(zeros(x))
     end
@@ -157,8 +143,8 @@ end
 
 
 # overwrite x
-clenshaw!{T<:Real}(c::Vector{T},x::Vector{T})=clenshaw!(c,x,ClenshawPlan(T,length(x)))
-function clenshaw!{T<:Real}(c::Vector{T},x::Vector{T},plan::ClenshawPlan{T})
+clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M})=clenshaw!(c,x,ClenshawPlan(T,length(x)))
+function clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{T})
     n = length(x)
     
     if isempty(c)
@@ -173,8 +159,6 @@ function clenshaw!{T<:Real}(c::Vector{T},x::Vector{T},plan::ClenshawPlan{T})
     bk2=plan.bk2
 
 #    x=2x
-
-    
     for i = 1:n
         @inbounds bk1[i] = 0.
         @inbounds bk2[i] = 0.
@@ -196,4 +180,5 @@ function clenshaw!{T<:Real}(c::Vector{T},x::Vector{T},plan::ClenshawPlan{T})
     
     x
 end
+
 
