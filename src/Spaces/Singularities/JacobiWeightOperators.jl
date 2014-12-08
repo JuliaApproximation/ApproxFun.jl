@@ -230,3 +230,85 @@ function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
     end
 end
 
+
+
+
+## Hilbert
+
+
+## Hilbert
+
+function Hilbert(S::JacobiWeightSpace{ChebyshevSpace},k::Integer)
+    if S.α==S.β==-0.5
+        Hilbert{JacobiWeightSpace{ChebyshevSpace},Float64}(S,k)
+    elseif S.α==S.β==0.5
+        @assert k==1
+        HilbertWrapper(
+            Hilbert(JacobiWeightSpace(0.5,0.5,UltrasphericalSpace{1}(domain(S))),k)*Conversion(S,JacobiWeightSpace(0.5,0.5,UltrasphericalSpace{1}(domain(S)))),
+            k)
+    else
+        error("Hilbert not implemented")
+    end
+end
+
+function rangespace(H::Hilbert{JacobiWeightSpace{ChebyshevSpace}})
+    @assert domainspace(H).α==domainspace(H).β==-0.5
+    UltrasphericalSpace{H.order}(domain(H))
+end
+function rangespace(H::Hilbert{JacobiWeightSpace{UltrasphericalSpace{1}}})
+    @assert domainspace(H).α==domainspace(H).β==0.5
+    @assert H.order==1
+    ChebyshevSpace(domain(H))
+end
+bandinds(H::Hilbert{JacobiWeightSpace{ChebyshevSpace}})=0,H.order
+bandinds(H::Hilbert{JacobiWeightSpace{UltrasphericalSpace{1}}})=-1,0
+
+function addentries!(H::Hilbert{JacobiWeightSpace{ChebyshevSpace}},A::ShiftArray,kr::Range1)
+    m=H.order
+    d=domain(H)
+
+    @assert isa(d,Interval)
+    @assert domainspace(H).α==domainspace(H).β==-0.5    
+
+    if m == 0
+        for k=kr
+            k == 1? A[k,0] += sign(d.b-d.a)*log(abs(d.b-d.a)/4.) : A[k,0] += -1./(k-1)
+        end
+    else
+        C=2.^(m-1)*(2./(d.b-d.a)).^m    
+        for k=kr
+            A[k,m] += C
+        end
+    end
+    
+    A
+end
+
+function addentries!(H::Hilbert{JacobiWeightSpace{UltrasphericalSpace{1}}},A::ShiftArray,kr::Range1)
+    m=H.order
+    d=domain(H)
+
+    @assert isa(d,Interval)
+    @assert domainspace(H).α==domainspace(H).β==0.5    
+    @assert m==1 
+    for k=max(kr[1],2):kr[end]
+        A[k,-1] -= 1
+    end
+    
+    A
+end
+
+## Σ
+
+function addentries!(S::Σ{JacobiWeightSpace{ChebyshevSpace}},A::ShiftArray,kr::Range1)
+    d=domain(S)
+    @assert isa(d,Interval)
+    @assert domainspace(S).α==domainspace(S).β==-0.5   
+    
+    for k=kr
+        k == 1? A[k,0] += 1.0 : A[k,0] += 0.0
+    end
+    
+    A
+end
+

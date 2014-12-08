@@ -171,47 +171,7 @@ function addentries!{λ}(D::Integral{UltrasphericalSpace{λ}},A::ShiftArray,kr::
     A
 end
 
-## Hilbert
 
-rangespace{λ}(H::Hilbert{UltrasphericalSpace{λ}})=UltrasphericalSpace{λ+H.order}(domain(H))
-bandinds{S<:UltrasphericalSpace}(H::Hilbert{S})=0,H.order
-
-function addentries!{λ}(H::Hilbert{UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
-    m=H.order
-    d=domain(H)
-
-    @assert isa(d,Interval)
-
-    if λ == 0
-        if m == 0
-            for k=kr
-                k == 1? A[k,0] += sign(d.b-d.a)*log(abs(d.b-d.a)/4.) : A[k,0] += -1./(k-1)
-            end
-        else
-            C=2.^(m-1)*(2./(d.b-d.a)).^m    
-            for k=kr
-                A[k,m] += C
-            end
-        end
-    else
-        error("Not implemented")
-    end
-    
-    A
-end
-
-## Σ
-
-function addentries!(S::Σ{ChebyshevSpace},A::ShiftArray,kr::Range1)
-    d=domain(S)
-    @assert isa(d,Interval)
-
-    for k=kr
-        k == 1? A[k,0] += 1.0 : A[k,0] += 0.0
-    end
-    
-    A
-end
 
 ## Conversion Operator
 

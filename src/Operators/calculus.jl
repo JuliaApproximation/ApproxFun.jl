@@ -125,13 +125,24 @@ differentiate(f::Fun)=Derivative(space(f))*f
 # the domain and range space
 # but continue to know its a derivative
 
+
 type DerivativeWrapper{S<:BandedOperator} <: AbstractDerivative{Float64}
     op::S
     order::Int
 end
 
-addentries!(D::DerivativeWrapper,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
-for func in (:rangespace,:domainspace,:bandinds)
-    @eval $func(D::DerivativeWrapper)=$func(D.op)
+
+type HilbertWrapper{S<:BandedOperator} <: AbstractHilbert{Float64}
+    op::S
+    order::Int
 end
+
+
+for TYP in (:DerivativeWrapper,:HilbertWrapper)
+    @eval addentries!(D::$TYP,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
+    for func in (:rangespace,:domainspace,:bandinds)
+        @eval $func(D::$TYP)=$func(D.op)
+    end
+end
+
 
