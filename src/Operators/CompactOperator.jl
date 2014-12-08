@@ -19,4 +19,4 @@ end
 
 addentries!(T::CompactOperator,A::ShiftArray,kr::Range1)=matrix_addentries!(T.matrix,A,kr)
 
-bandinds(T::CompactOperator)=(1-size(T.matrix,2),size(T.matrix,2)-1)
+bandinds(T::CompactOperator)=(1-size(T.matrix,1),size(T.matrix,2)-1)

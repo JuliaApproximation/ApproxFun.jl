@@ -131,3 +131,8 @@ for op in (:.*,:./)
     @eval ($op){S}(f::Fun{JacobiWeightSpace{S}},g::Fun)=$op(f,Fun(g,JacobiWeightSpace(0,0,space(g)))) 
 end
 
+
+
+## Project
+
+project{S}(f::Fun{JacobiWeightSpace{S}})=Fun(f.coefficients,JacobiWeightSpace(space(f).α,space(f).β,canonicaldomain(f)))
