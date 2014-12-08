@@ -25,7 +25,7 @@ Space{S<:FunctionSpace}(d::Curve{S})=CurveSpace{S}(d)
 
 domain(S::MappedSpace)=S.domain
 canonicaldomain{D<:Domain,S}(::Type{MappedSpace{S,D}})=D()
-
+canonicalspace(S::MappedSpace)=MappedSpace(S.domain,canonicalspace(S.space))
 
 ## Construction
 
@@ -202,3 +202,4 @@ end
 
 
 identity_fun{S}(d::CurveSpace{S})=Fun(d.domain.curve.coefficients,d)
+
