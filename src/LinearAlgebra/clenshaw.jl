@@ -8,7 +8,7 @@ end
 ClenshawPlan{T}(::Type{T},n::Integer)=ClenshawPlan(Array(T,n),Array(T,n),Array(T,n))
 
 
-function clenshaw(c,x)
+function clenshaw(c,x::Complex)
     if maximum(abs(imag(x))) < 10*eps()
         clenshaw(c,real(x))
     else
@@ -57,9 +57,9 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Vector{T},plan::ClenshawPlan{T})
     m,n=size(c) # m is # of coefficients, n is # of funs
     
     for i = 1:n
-        @inbounds bk1[i] = 0.
-        @inbounds bk2[i] = 0.
-        @inbounds bk[i] = 0.        
+        @inbounds bk1[i] = zero(T)
+        @inbounds bk2[i] = zero(T)
+        @inbounds bk[i] = zero(T)  
     end
 
     for k=m:-1:2
@@ -96,9 +96,9 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Real,plan::ClenshawPlan{T})
     m=size(c)[1] #number of coefficients
 
     for i = 1:n
-        @inbounds bk1[i] = 0.
-        @inbounds bk2[i] = 0.
-        @inbounds bk[i] = 0.                
+        @inbounds bk1[i] = zero(T)
+        @inbounds bk2[i] = zero(T)
+        @inbounds bk[i] = zero(T)          
     end
 
     for k=m:-1:2
@@ -137,9 +137,9 @@ function clenshaw{T<:Number,M<:Real}(c::Vector{T},x::Vector{M},plan::ClenshawPla
 
     
     for i = 1:n
-        @inbounds bk1[i] = 0.
-        @inbounds bk2[i] = 0.
-        @inbounds bk[i] = 0.                
+        @inbounds bk1[i] = zero(T)
+        @inbounds bk2[i] = zero(T)
+        @inbounds bk[i] = zero(T)          
     end
 
     for k in  length(c):-1:2
@@ -179,9 +179,9 @@ function clenshaw!{T<:Real}(c::Vector{T},x::Vector{T},plan::ClenshawPlan{T})
 
     
     for i = 1:n
-        @inbounds bk1[i] = 0.
-        @inbounds bk2[i] = 0.
-        @inbounds bk[i] = 0.                
+        @inbounds bk1[i] = zero(T)
+        @inbounds bk2[i] = zero(T)
+        @inbounds bk[i] = zero(T)                
     end
 
     for k in  length(c):-1:2
