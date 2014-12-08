@@ -271,9 +271,9 @@ function addentries!(H::Hilbert{JacobiWeightSpace{ChebyshevSpace}},A::ShiftArray
     @assert domainspace(H).α==domainspace(H).β==-0.5    
 
     if m == 0
-        @assert d==Interval() #TODO: get constant right for other intervals
+        C=(d.b-d.a)/2
         for k=kr
-            k == 1? A[k,0] += sign(d.b-d.a)*log(abs(d.b-d.a)/4.) : A[k,0] += -1./(k-1)
+            k == 1? A[k,0] += C*sign(d.b-d.a)*log(abs(d.b-d.a)/4.) : A[k,0] += -C/(k-1)
         end
     else
         C=2.^(m-1)
