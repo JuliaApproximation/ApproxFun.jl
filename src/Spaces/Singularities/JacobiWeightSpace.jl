@@ -1,6 +1,5 @@
 
 
-#Ultraspherical Spaces
 
 export JacobiWeightSpace
 
@@ -45,10 +44,8 @@ end
 
 ## Use 1st kind points to avoid singularities
 points(sp::JacobiWeightSpace,n)=fromcanonical(sp,chebyshevroots(n))
-transform(sp::JacobiWeightSpace,vals::Vector)=chebyshevrootstransform(vals./jacobiweight(sp,points(sp,length(vals))))
-itransform(sp::JacobiWeightSpace,cfs::Vector)=ichebyshevrootstransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
 
-
+# These are meant for JacobiSpace
 plan_itransform(S::JacobiWeightSpace,n::Integer)=points(S,n)
 itransform(S::JacobiWeightSpace,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
 itransform(S::JacobiWeightSpace,cfs::Vector,pts::Vector)=jacobiweight(S,pts).*itransform(S.space,cfs,pts)
@@ -66,21 +63,6 @@ function spaceconversion(f::Vector,sp1::JacobiWeightSpace,sp2::JacobiWeightSpace
 end
 spaceconversion(f::Vector,sp::JacobiWeightSpace,S2::IntervalDomainSpace)=spaceconversion(f,sp,JacobiWeightSpace(0,0,S2))
 spaceconversion(f::Vector,S2::IntervalDomainSpace,sp::JacobiWeightSpace)=spaceconversion(f,JacobiWeightSpace(0,0,S2),sp)
-function spaceconversion(f::Vector,sp1::JacobiWeightSpace{ChebyshevSpace},sp2::JacobiWeightSpace{ChebyshevSpace})
-    α,β=sp1.α,sp1.β
-    c,d=sp2.α,sp2.β
-    if c==α && d==β
-        f
-    elseif c>α && d>β
-        spaceconversion(divide_singularity(f),JacobiWeightSpace(α+1,β+1,sp1.space),sp2)
-    elseif c>α
-        spaceconversion(divide_singularity(-1,f),JacobiWeightSpace(α+1,β,sp1.space),sp2)    
-    elseif d>β
-        spaceconversion(divide_singularity(1,f),JacobiWeightSpace(α,β+1,sp1.space),sp2)        
-    else
-        error("Need to implement decreasing jacobi")
-    end
-end
 
 increase_jacobi_parameter(f)=Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β+1,space(f).space))
 increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β,space(f).space)):Fun(f,JacobiWeightSpace(f.space.α,f.space.β+1,space(f).space))
@@ -136,3 +118,4 @@ end
 ## Project
 
 project{S}(f::Fun{JacobiWeightSpace{S}})=Fun(f.coefficients,JacobiWeightSpace(space(f).α,space(f).β,canonicaldomain(f)))
+
