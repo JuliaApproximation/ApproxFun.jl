@@ -3,7 +3,7 @@ package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPack
 
 
 
-Take your two favourite functions and an interval and create approximations to them as simply as:
+Take your two favourite functions on an interval and create approximations to them as simply as:
 
 ```julia
 using ApproxFun
