@@ -102,6 +102,29 @@ function promotedomainspace{T<:Operator}(ops::Vector{T})
     Operator[promotedomainspace(op,k) for op in ops]
 end
 
+function promotedomainspace{T<:Operator}(ops::Vector{T},S::FunctionSpace)
+    k=minspace(findmindomainspace(ops),S)
+    Operator[promotedomainspace(op,k) for op in ops]
+end
+function promotedomainspace(ops::Vector,b::Fun)
+    A=promotedomainspace(ops)
+    if isa(rangespace(A[end]),AnySpace)
+        # try setting the domain space
+        A=promotedomainspace(ops,space(b))
+    end
+    A,Fun(b,rangespace(A[end]))
+end
+
+
 #It's important that domain space is promoted first as it might impact range space
 promotespaces(ops::Vector)=promoterangespace(promotedomainspace(ops))
+function promotespaces(ops::Vector,b::Fun)
+    A=promotespaces(ops)
+    if isa(rangespace(A),AnySpace)
+        # try setting the domain space
+        A=promoterangespace(promotedomainspace(ops,space(b)))
+    end
+    A,Fun(b,rangespace(A[end]))
+end
+
 
