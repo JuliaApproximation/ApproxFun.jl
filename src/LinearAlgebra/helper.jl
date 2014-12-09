@@ -42,7 +42,7 @@ end
 
 function pad(f::Vector{Any},n::Integer)
 	if (n > length(f))
-        {f...,zeros(n - length(f))...}
+        Any[f...,zeros(n - length(f))...]
 	else
         f[1:n]
 	end

@@ -167,7 +167,17 @@ typealias IFun{D,T} Fun{D,T}
 
 Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
 Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
-Fun(cfs::Vector)=Fun(1.0*cfs,Interval())
-Fun{T<:Number}(cfs::Vector,d::Vector{T})=Fun(1.0*cfs,Interval(d))
+Fun{T<:Number}(cfs::Vector{T})=Fun(1.0*cfs,Interval())
+Fun{T<:Number,M<:Number}(cfs::Vector{M},d::Vector{T})=Fun(1.0*cfs,Interval(d))
 Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
 
+
+
+function Fun(cfs::Vector{Any})
+    @assert isempty(cfs)
+    Fun(Float64[])
+end
+function Fun(cfs::Vector{Any},s::FunctionSpace)
+    @assert isempty(cfs)
+    Fun(Float64[],s)
+end
