@@ -31,21 +31,21 @@ end
 
 ## Construction 
 
-# function Base.diagm{T<:Operator}(d::Vector{T})
-#     D=zeros(Operator,length(d),length(d))
-#     for k=1:length(d)
-#         D[k,k] =d[k]
-#     end
-#     D
-# end
-# 
- ##TODO: unify with other blkdiag
- function Base.blkdiag{T<:Operator}(d1::Vector{T},d2::Vector{T})
-     D=zeros(Operator,length(d1)+length(d2),2)
-     D[1:length(d1),1]=d1
-     D[length(d1)+1:end,2]=d2
-     D
- end
+function Base.diagm{T<:Operator}(d::Vector{T})
+    D=zeros(Operator,length(d),length(d))
+    for k=1:length(d)
+        D[k,k]=d[k]
+    end
+    D
+end
+
+##TODO: unify with other blkdiag
+function Base.blkdiag{T<:Operator}(d1::Vector{T},d2::Vector{T})
+    D=zeros(Operator,length(d1)+length(d2),2)
+    D[1:length(d1),1]=d1
+    D[length(d1)+1:end,2]=d2
+    D
+end
 
 
 ## broadcase

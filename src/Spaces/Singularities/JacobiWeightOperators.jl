@@ -5,7 +5,7 @@
 
 function Base.sum(f::Fun{JacobiWeightSpace{ChebyshevSpace}})
     α,β=f.space.α,f.space.β    
-    if α <= -1.0 && β <= -1.0
+    if α <= -1.0 || β <= -1.0
         fs = Fun(f.coefficients,f.space.space)
         d = domain(fs)
         return Inf*fromcanonicalD(f,0.)*(sign(fs[d.a])+sign(fs[d.b]))/2
@@ -232,10 +232,6 @@ end
 
 
 
-
-## Hilbert
-
-
 ## Hilbert
 
 function Hilbert(S::JacobiWeightSpace{ChebyshevSpace},k::Integer)
@@ -266,17 +262,18 @@ bandinds(H::Hilbert{JacobiWeightSpace{UltrasphericalSpace{1}}})=-1,0
 function addentries!(H::Hilbert{JacobiWeightSpace{ChebyshevSpace}},A::ShiftArray,kr::Range1)
     m=H.order
     d=domain(H)
+    sp=domainspace(H)
 
     @assert isa(d,Interval)
-    @assert domainspace(H).α==domainspace(H).β==-0.5    
+    @assert sp.α==sp.β==-0.5    
 
     if m == 0
-        C=(d.b-d.a)/2
+        C=(d.b-d.a)/2.
         for k=kr
-            k == 1? A[k,0] += C*sign(d.b-d.a)*log(abs(d.b-d.a)/4.) : A[k,0] += -C/(k-1)
+            k == 1? A[k,0] += C*log(.5abs(C)) : A[k,0] += -C/(k-1)
         end
     else
-        C=2.^(m-1)
+        C=(4./(d.b-d.a))^(m-1)
         for k=kr
             A[k,m] += C
         end
@@ -293,7 +290,7 @@ function addentries!(H::Hilbert{JacobiWeightSpace{UltrasphericalSpace{1}}},A::Sh
     @assert domainspace(H).α==domainspace(H).β==0.5    
     @assert m==1 
     for k=max(kr[1],2):kr[end]
-        A[k,-1] -= 1
+        A[k,-1] -= 1.
     end
     
     A

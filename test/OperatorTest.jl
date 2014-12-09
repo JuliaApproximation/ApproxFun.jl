@@ -36,14 +36,24 @@ x=Fun(identity)
 ## Periodic
 
 
-a=FFun(t-> cos(t) + sin(2t),3)
-d=domain(a)
+d=PeriodicInterval([0.,2π])
+a=FFun(t-> 1+sin(cos(10t)),d)
 D=diff(d)
-L=D^2+a
-f=FFun(t->cos(cos(t)))
+L=D+a
+f=FFun(t->exp(sin(t)),d)
 u=L\f
 
-@test norm(diff(u,2)+a.*u-f) < 10eps()
+@test norm(L*u-f) < 10eps()
+
+d=PeriodicInterval([0.,2π])
+a1=FFun(t->sin(cos(t/2)^2),d)
+a0=FFun(t->cos(12sin(t)),d)
+D=diff(d)
+L=D^2+a1*D+a0
+f=FFun(t->exp(cos(2t)),d)
+u=L\f
+
+@test norm(L*u-f) < 10eps()
 
 
 

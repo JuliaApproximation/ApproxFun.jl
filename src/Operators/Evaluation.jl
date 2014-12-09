@@ -63,6 +63,7 @@ rdiffbc(d,k) = Evaluation(d,true,k)
 dirichlet(d)=[ldirichlet(d),rdirichlet(d)]
 neumann(d)=[lneumann(d),rneumann(d)]
 diffbcs(d,k) = [ldiffbc(d,k),rdiffbc(d,k)]
+periodic(d,k) = [Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
 
 
 for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann)
@@ -72,7 +73,7 @@ for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann)
     end
 end
 
-for op in (:ldiffbc,:rdiffbc,:diffbcs)
+for op in (:ldiffbc,:rdiffbc,:diffbcs,:periodic)
     @eval $op(k::Integer)=$op(AnySpace(),k)
 end
 

@@ -61,7 +61,7 @@ end
 # the default domain space is higher to avoid negative ultraspherical spaces
 Derivative(d::IntervalDomain,n::Integer)=Derivative(ChebyshevSpace(d),n)
 Integral(d::IntervalDomain,n::Integer)=Integral(UltrasphericalSpace{1}(d),n)
-Hilbert(d::IntervalDomain,n::Integer)=Hilbert(ChebyshevSpace(d),n)
+Hilbert(d::IntervalDomain,n::Integer)=Hilbert(JacobiWeightSpace(-.5,-.5,ChebyshevSpace(d)),n)
 
 #promoting domain space is allowed to change range space
 # for integration, we fall back on existing conversion for now
