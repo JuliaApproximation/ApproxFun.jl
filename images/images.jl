@@ -50,7 +50,7 @@ uFourier = L\f
 
 length(uFourier)/length(uChebyshev),2/π
 ApproxFun.plot(real(uFourier))						    # Requires Gadfly or PyPlot
-xlabel("\$t\$");ylabel("\$u(t)\$")
+xlim([d.a,d.b]);xlabel("\$t\$");ylabel("\$u(t)\$")
 savefig("periodic.png",dpi=300)
 clf()
 println("Third image done")
