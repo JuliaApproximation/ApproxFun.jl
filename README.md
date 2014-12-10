@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/ApproxFun/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/ApproxFun/ApproxFun.jl) [![Coverage Status](https://img.shields.io/coveralls/ApproxFun/ApproxFun.jl.svg)](https://coveralls.io/r/ApproxFun/ApproxFun.jl?branch=master)
+
 `ApproxFun` is a package for approximating functions. It is heavily influenced by the Matlab 
 package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
 
