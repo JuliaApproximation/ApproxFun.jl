@@ -1,4 +1,4 @@
-export Derivative,Integral,Hilbert
+export Derivative,Integral
 
 
 macro calculus_operator(Op,AbstOp,WrappOp)
@@ -80,18 +80,16 @@ end
 
 @calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
 @calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
-@calculus_operator(Hilbert,AbstractHilbert,HilbertWrapper)
 
 
 
 # the default domain space is higher to avoid negative ultraspherical spaces
 Derivative(d::IntervalDomain,n::Integer)=Derivative(ChebyshevSpace(d),n)
 Integral(d::IntervalDomain,n::Integer)=Integral(UltrasphericalSpace{1}(d),n)
-Hilbert(d::IntervalDomain,n::Integer)=Hilbert(JacobiWeightSpace(-.5,-.5,ChebyshevSpace(d)),n)
 
 
 
-## simplify higher order derivatives/integration/Hilbert
+## simplify higher order derivatives/integration
 function *(D1::AbstractDerivative,D2::AbstractDerivative)
     @assert domain(D1) == domain(D2)
     

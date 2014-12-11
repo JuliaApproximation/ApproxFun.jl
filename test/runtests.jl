@@ -20,8 +20,6 @@ end
 println("Speed tests")
 include("SpeedTest.jl")
 
-println("SIE tests")
-include("SIETest.jl")
 
 println("Example tests")
 if isdir(Pkg.dir("Gadfly"))
