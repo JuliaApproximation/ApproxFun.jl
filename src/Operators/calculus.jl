@@ -1,9 +1,17 @@
 export Derivative,Integral,Hilbert
 
 
-abstract AbstractDerivative{T} <: BandedOperator{T}
-abstract AbstractIntegral{T} <: BandedOperator{T}
-abstract AbstractHilbert{T} <: BandedOperator{T}
+macro calculus_operator(Op,AbstOp,WrappOp)
+    quote
+        abstract $AbstOp{T} <: BandedOperator{T}
+    end
+end
+
+
+@calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
+@calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
+@calculus_operator(Hilbert,AbstractHilbert,HilbertWrapper)
+
 
 immutable Derivative{S<:FunctionSpace,T<:Number} <: AbstractDerivative{T}
     space::S        # the domain space
