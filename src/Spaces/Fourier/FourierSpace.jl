@@ -97,7 +97,7 @@ evaluate{T}(f::Fun{SinSpace,T},t)=sum(T[f.coefficients[k]*sin(k*tocanonical(f,t)
 ## Laurent space
 
 typealias LaurentSpace PeriodicSumSpace{HardySpace{true},HardySpace{false},Complex{Float64}}
-LaurentSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace(HardySpace{true}(d),HardySpace{false}(d))
+LaurentSpace(d::Union(PeriodicDomain,AnyDomain))=SumSpace(HardySpace{true}(d),HardySpace{false}(d))
 LaurentSpace()=LaurentSpace(PeriodicInterval())
 
 Space(d::PeriodicDomain)=LaurentSpace(d)
@@ -117,7 +117,7 @@ Base.ones{T<:Number}(::Type{T},S::LaurentSpace)=Fun(ones(T,1),S)
 ## Fourier space
 
 typealias FourierSpace PeriodicSumSpace{CosSpace,SinSpace,Float64}
-FourierSpace(d::Union(PeriodicDomain,AnyDomain))=PeriodicSumSpace((CosSpace(d),SinSpace(d)))
+FourierSpace(d::Union(PeriodicDomain,AnyDomain))=SumSpace((CosSpace(d),SinSpace(d)))
 FourierSpace()=FourierSpace(PeriodicInterval())
 
 

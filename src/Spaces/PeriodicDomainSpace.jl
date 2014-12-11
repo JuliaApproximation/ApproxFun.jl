@@ -1,4 +1,4 @@
-abstract PeriodicDomainSpace{T} <: DomainSpace{T,PeriodicInterval}       
+typealias PeriodicDomainSpace{T} DomainSpace{T,PeriodicInterval}       
 canonicaldomain{T<:PeriodicDomainSpace}(::Type{T})=PeriodicInterval()
 
 ## Toeplitz
