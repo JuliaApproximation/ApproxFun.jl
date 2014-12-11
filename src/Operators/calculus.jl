@@ -9,6 +9,31 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             order::Int
         end        
         
+        ## Wrapper
+        # this allows for a Derivative implementation to return another operator, use a SpaceOperator containing
+        # the domain and range space
+        # but continue to know its a derivative
+        
+        
+        immutable $WrappOp{S<:BandedOperator} <: $AbstOp{Float64}
+            op::S
+            order::Int
+        end        
+        
+        
+        ## Routines
+    end
+end
+
+
+@calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
+@calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
+@calculus_operator(Hilbert,AbstractHilbert,HilbertWrapper)
+
+
+
+for Op in (:Derivative,:Integral,:Hilbert)
+    @eval begin
         $Op{S<:PeriodicDomainSpace}(sp::S,k::Integer)=$Op{S,Complex{Float64}}(sp,k)
         $Op{S<:FunctionSpace}(sp::S,k::Integer)=$Op{S,Float64}(sp,k)
         
@@ -41,56 +66,36 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         end
         
         rangespace{S,T}(D::$Op{S,T})=rangespace($Op(canonicalspace(domainspace(D)),D.order))
-        rangespace{T}(D::$Op{AnySpace,T})=AnySpace()        
-        
-        #promoting domain space is allowed to change range space
-        # for integration, we fall back on existing conversion for now
-        promotedomainspace(D::$AbstOp,sp::AnySpace)=D
-        
-        function promotedomainspace{S<:FunctionSpace}(D::$AbstOp,sp::S)
-            if domain(sp) == AnyDomain()
-                $Op(S(domain(D)),D.order)
-            else
-                $Op(sp,D.order)
-            end
-        end   
-        
-        ## Wrapper
-        # this allows for a Derivative implementation to return another operator, use a SpaceOperator containing
-        # the domain and range space
-        # but continue to know its a derivative
-        
-        
-        immutable $WrappOp{S<:BandedOperator} <: $AbstOp{Float64}
-            op::S
-            order::Int
-        end        
-        
-        addentries!(D::$WrappOp,A::ShiftArray,k::Range)=addentries!(D.op,A,k)      
-        
-        rangespace(D::$WrappOp)=rangespace(D.op)    
-        domainspace(D::$WrappOp)=domainspace(D.op)        
-        bandinds(D::$WrappOp)=bandinds(D.op)                
+        rangespace{T}(D::$Op{AnySpace,T})=AnySpace()
     end
-#     for func in (:rangespace,:domainspace,:bandinds)
-#         quote $func(D::$WrappOp)=$func(D.op) end
-#     end       
 end
-
-
-@calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
-@calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
-@calculus_operator(Hilbert,AbstractHilbert,HilbertWrapper)
-
-
-
 
 # the default domain space is higher to avoid negative ultraspherical spaces
 Derivative(d::IntervalDomain,n::Integer)=Derivative(ChebyshevSpace(d),n)
 Integral(d::IntervalDomain,n::Integer)=Integral(UltrasphericalSpace{1}(d),n)
 Hilbert(d::IntervalDomain,n::Integer)=Hilbert(JacobiWeightSpace(-.5,-.5,ChebyshevSpace(d)),n)
 
+#promoting domain space is allowed to change range space
+# for integration, we fall back on existing conversion for now
+promotedomainspace(D::AbstractDerivative,sp::AnySpace)=D
 
+function promotedomainspace{S<:FunctionSpace}(D::AbstractDerivative,sp::S)
+    if domain(sp) == AnyDomain()
+        Derivative(S(domain(D)),D.order)
+    else
+        Derivative(sp,D.order)
+    end
+end
+
+promotedomainspace(H::AbstractHilbert,sp::AnySpace)=H
+
+function promotedomainspace{S<:FunctionSpace}(H::AbstractHilbert,sp::S)
+    if domain(sp) == AnyDomain()
+        Hilbert(S(domain(H)),H.order)
+    else
+        Hilbert(sp,H.order)
+    end
+end
 
 
 ## simplify higher order derivatives/integration/Hilbert
@@ -98,6 +103,12 @@ function *(D1::AbstractDerivative,D2::AbstractDerivative)
     @assert domain(D1) == domain(D2)
     
     Derivative(domainspace(D2),D1.order+D2.order)
+end
+
+function *(H1::AbstractHilbert,H2::AbstractHilbert)
+    @assert domain(H1) == domain(H2)
+
+    Hilbert(domainspace(H2),H1.order+H2.order)
 end
 
 
@@ -123,5 +134,11 @@ differentiate(f::Fun)=Derivative(space(f))*f
 
 
 
+for TYP in (:DerivativeWrapper,:HilbertWrapper)
+    @eval addentries!(D::$TYP,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
+    for func in (:rangespace,:domainspace,:bandinds)
+        @eval $func(D::$TYP)=$func(D.op)
+    end
+end
 
 
