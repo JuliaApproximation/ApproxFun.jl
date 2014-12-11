@@ -56,9 +56,8 @@ clf()
 println("Third image done")
 
 
-setplotter("Gadfly")
-f = Fun(x->exp(-x^2),[-10,10])
+f = abs(Fun(sin,[-5,5]))
 x = ApproxFun.sample(f,10000)
-ApproxFun.plot(f)             				# 2D plotting requires Gadfly or PyPlot
-Gadfly.plot(x=x,Gadfly.Geom.histogram)
-draw(PNG("Sample.png", 14inch, 7inch), Gadfly.plot(x=x,Gadfly.Geom.histogram))
+ApproxFun.plot(f/sum(f))                           # Requires Gadfly or PyPlot
+PyPlot.plt.hist(x;normed=true,bins=[-5.:.1:5.])
+savefig("Sample.png",dpi=300)
