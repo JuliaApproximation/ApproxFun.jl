@@ -221,8 +221,9 @@ function interlace{T<:Operator}(A::Array{T,2})
 end
 
 
+abstract AbstractDiagonalInterlaceOperator{T,B}<:BandedOperator{T}
 
-immutable DiagonalInterlaceOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+immutable DiagonalInterlaceOperator{T<:Number,B<:Operator} <: AbstractDiagonalInterlaceOperator{T,B}
     ops::Vector{B}
 end
 
@@ -231,7 +232,7 @@ DiagonalInterlaceOperator(v::Vector{Any})=DiagonalInterlaceOperator(Operator{map
 
 
 
-function bandinds(S::DiagonalInterlaceOperator)
+function bandinds(S::AbstractDiagonalInterlaceOperator)
     binds=map(bandinds,S.ops)
     bra=mapreduce(first,min,binds)
     brb=mapreduce(last,max,binds)    
@@ -240,7 +241,7 @@ function bandinds(S::DiagonalInterlaceOperator)
 end
 
 
-function addentries!(D::DiagonalInterlaceOperator,A::ShiftArray,kr::Range)
+function addentries!(D::AbstractDiagonalInterlaceOperator,A::ShiftArray,kr::Range)
     n=length(D.ops)
     for k=1:n
         stride_addentries!(D.ops[k],k-n,k-n,n,n,A,kr)

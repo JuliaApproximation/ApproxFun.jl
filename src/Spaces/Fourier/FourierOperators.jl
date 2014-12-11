@@ -163,8 +163,8 @@ end
 
 
 bandinds{S<:Union(CosSpace,SinSpace)}(D::Derivative{S})=0,0
-rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?space(D):SinSpace(domain(d))
-rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?space(D):CosSpace(domain(d))
+rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?space(D):SinSpace(domain(D))
+rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?space(D):CosSpace(domain(D))
 
 
 

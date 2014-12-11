@@ -35,3 +35,21 @@ end
 
 Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
 
+
+
+
+## Sum Space
+
+
+immutable SumInterlaceOperator{T<:Number,B<:Operator} <: AbstractDiagonalInterlaceOperator{T,B}
+    ops::Vector{B}
+end
+
+SumInterlaceOperator{B<:Operator}(v::Vector{B})=SumInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
+SumInterlaceOperator(v::Vector{Any})=SumInterlaceOperator(Operator{mapreduce(eltype,promote_type,v)}[v...])
+
+for op in (:domainspace,:rangespace)
+    @eval $op(S::SumInterlaceOperator)=SumSpace($op(S.ops[1]),$op(S.ops[2]))
+end
+
+sumblkdiagm{B<:Operator}(v::Vector{B})=SumInterlaceOperator(v)
