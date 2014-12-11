@@ -1,5 +1,5 @@
 abstract PeriodicDomainSpace{T} <: DomainSpace{T,PeriodicInterval}       
-
+canonicaldomain{T<:PeriodicDomainSpace}(::Type{T})=PeriodicInterval()
 
 ## Toeplitz
 

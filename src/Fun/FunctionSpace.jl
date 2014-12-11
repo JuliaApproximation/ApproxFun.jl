@@ -55,9 +55,6 @@ end
 
 domain(A::DomainSpace)=A.domain # assume it has a field domain
 
-canonicaldomain{D<:Domain,T}(::Type{DomainSpace{D,T}})=D()
-
-
 
 
 for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD)

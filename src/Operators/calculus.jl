@@ -43,8 +43,9 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             csp=canonicalspace(sp)
             bandinds(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)])) 
         end
-        
-#        rangespace{S,T}(D::$Op{S,T})=rangespace($Op(canonicalspace(domainspace(D)),D.order))
+
+        # corresponds to default implementation        
+        rangespace{S,T}(D::$Op{S,T})=rangespace($Op(canonicalspace(domainspace(D)),D.order))
         rangespace{T}(D::$Op{AnySpace,T})=AnySpace()     
         
         #promoting domain space is allowed to change range space

@@ -1,6 +1,6 @@
 
 abstract IntervalDomainSpace <: DomainSpace{Float64,Interval}     # We assume basis is real
-
+canonicaldomain{T<:IntervalDomainSpace}(::Type{T})=Interval()
 
 ## Evaluation
 
