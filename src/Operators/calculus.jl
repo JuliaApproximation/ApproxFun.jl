@@ -1,13 +1,9 @@
 export Derivative,Integral
 
 
-macro calculus_operator1(Op,AbstOp,WrappOp)
-    return esc(quote      
-        abstract $AbstOp{T} <: ApproxFun.BandedOperator{T}                       
-    end)
-end
+abstract CalculusOperator{T}<:BandedOperator{T}
 
-macro calculus_operator2(Op,AbstOp,WrappOp)
+macro calculus_operator(Op,AbstOp,WrappOp)
     return esc(quote        
         immutable $Op{S<:FunctionSpace,T<:Number} <: $AbstOp{T}
             space::S        # the domain space
@@ -79,14 +75,12 @@ end
 
 
 
-@calculus_operator1(Derivative,AbstractDerivative,DerivativeWrapper)
-@calculus_operator1(Integral,AbstractIntegral,IntegralWrapper)
+abstract AbstractDerivative{T} <:CalculusOperator{T}
+abstract AbstractIntegral{T} <:CalculusOperator{T}
+@calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
+@calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
 
       
-@calculus_operator2(Derivative,AbstractDerivative,DerivativeWrapper)
-@calculus_operator2(Integral,AbstractIntegral,IntegralWrapper)
-
-
 # the default domain space is higher to avoid negative ultraspherical spaces
 Derivative(d::IntervalDomain,n::Integer)=Derivative(ChebyshevSpace(d),n)
 Integral(d::IntervalDomain,n::Integer)=Integral(UltrasphericalSpace{1}(d),n)
