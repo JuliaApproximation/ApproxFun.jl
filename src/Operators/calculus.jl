@@ -73,7 +73,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
     end
     for func in (:rangespace,:domainspace,:bandinds)
         # We assume the operator wrapped has the correct spaces
-        @eval $func(D::$WrappOp)=$WrappOp(D.op)
+        @eval $func(D::$WrappOp)=$func(D.op)
     end      
 end
 
