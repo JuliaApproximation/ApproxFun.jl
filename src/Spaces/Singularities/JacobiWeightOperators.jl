@@ -229,3 +229,19 @@ function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
         end    
     end
 end
+
+
+## Σ
+
+function addentries!(S::Σ{JacobiWeightSpace{ChebyshevSpace}},A::ShiftArray,kr::Range1)
+    d=domain(S)
+    @assert isa(d,Interval)
+    @assert domainspace(S).α==domainspace(S).β==-0.5   
+    
+    for k=kr
+        k == 1? A[k,0] += 1.0 : A[k,0] += 0.0
+    end
+    
+    A
+end
+
