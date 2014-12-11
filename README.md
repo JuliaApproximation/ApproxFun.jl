@@ -146,8 +146,6 @@ ApproxFun.plot(f/sum(f))                           # Requires Gadfly or PyPlot
 PyPlot.plt.hist(x;normed=true,bins=[-5.:.1:5.])
 ```
 
-We can apply this to any positive smooth PDF.  
-
 ![Sampling](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/sample.png)
 
 
