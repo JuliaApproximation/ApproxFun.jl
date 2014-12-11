@@ -3,9 +3,7 @@
 ## Derivative
 
 bandinds{S<:Union(LaurentSpace,FourierSpace)}(D::Derivative{S})=0,0
-bandinds{S<:Union(LaurentSpace,FourierSpace)}(D::Integral{S})=0,0   
 rangespace{S<:Union(LaurentSpace,FourierSpace)}(D::Derivative{S})=D.space
-rangespace{S<:Union(LaurentSpace,FourierSpace)}(D::Integral{S})=D.space
 
 
 function addentries!(D::Derivative{LaurentSpace},A::ShiftArray,kr::Range1)
@@ -157,4 +155,40 @@ function addentries!{T}(R::RealOperator{ReImSpace{LaurentSpace,T}},A::ShiftArray
 end
 
 
+
+
+
+
+### Cos/Sine
+
+
+bandinds{S<:Union(CosSpace,SinSpace)}(D::Derivative{S})=0,0
+rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?space(D):SinSpace(domain(d))
+rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?space(D):CosSpace(domain(d))
+
+
+
+function addentries!(D::Derivative{CosSpace},A::ShiftArray,kr::Range)
+    d=domain(D)
+    m=D.order
+    C=2π./(d.b-d.a)
+
+    for k=kr
+        A[k,0] -= (C*k)^m
+    end
+    
+    A
+end
+
+function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
+    d=domain(D)
+    m=D.order
+    C=2π./(d.b-d.a)
+
+    for k=kr
+        A[k,0] += (C*k)^m
+    end
+    
+    A
+end
 
