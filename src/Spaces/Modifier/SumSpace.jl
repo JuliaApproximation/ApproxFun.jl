@@ -58,7 +58,3 @@ Base.vec{S<:SumSpace,T}(f::Fun{S,T})=Fun[Fun(f.coefficients[j:2:end],space(f)[j]
 itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
 
 
-
-## Operators
-
-

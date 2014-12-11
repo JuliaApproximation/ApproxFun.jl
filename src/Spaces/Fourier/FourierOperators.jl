@@ -1,26 +1,5 @@
 
 
-## Derivative
-
-bandinds{S<:LaurentSpace}(D::Derivative{S})=0,0
-rangespace{S<:LaurentSpace}(D::Derivative{S})=D.space
-
-
-function addentries!(D::Derivative{LaurentSpace},A::ShiftArray,kr::Range)
-    d=domain(D)
-    m=D.order
-    C=2π./(d.b-d.a)*im
-
-    for k=kr
-        if isodd(k)
-            A[k,0] += (C*(k-1)/2)^m
-        else
-            A[k,0] += (-C*k/2)^m
-        end
-    end
-    
-    A
-end
 
 
 ## Multiplication 

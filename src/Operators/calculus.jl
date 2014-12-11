@@ -9,10 +9,11 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             space::S        # the domain space
             order::Int
         end                       
-        immutable $WrappOp{S<:BandedOperator} <: $AbstOp{Float64}
+        immutable $WrappOp{S<:BandedOperator,T<:Number} <: $AbstOp{T}
             op::S
             order::Int
         end    
+
             
         ## Constructors        
         $Op{T<:Number,D}(sp::DomainSpace{T,D},k::Integer)=$Op{typeof(sp),T}(sp,k)
@@ -23,6 +24,9 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         
         $Op(d::PeriodicDomain,n::Integer)=$Op(LaurentSpace(d),n)
         $Op(d::Domain)=$Op(d,1)
+        
+        
+        $WrappOp{T<:Number}(op::BandedOperator{T},order::Integer)=$WrappOp{typeof(op),T}(op,order)
         
         
         ## Routines

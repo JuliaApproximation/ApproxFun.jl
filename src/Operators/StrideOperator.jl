@@ -237,7 +237,7 @@ function bandinds(S::AbstractDiagonalInterlaceOperator)
     bra=mapreduce(first,min,binds)
     brb=mapreduce(last,max,binds)    
     n=length(S.ops)
-    n*(bra-1)+1,n*(brb+1)-1
+    n*bra,n*brb
 end
 
 

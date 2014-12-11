@@ -88,3 +88,8 @@ function conversion_type{A,B,T,D}(S1::SumSpace{A,B,T,D},S2::SumSpace{B,A,T,D})
         NoSpace()
     end
 end
+
+
+## Derivative
+
+Derivative(S::SumSpace,k::Integer)=DerivativeWrapper(sumblkdiagm([Derivative(S.spaces[1],k),Derivative(S.spaces[2],k)]),k)
