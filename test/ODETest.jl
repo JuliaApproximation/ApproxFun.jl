@@ -9,7 +9,7 @@ d=Interval(-10.,5.);
 Bm=Evaluation(d,d.a);
 Bp=Evaluation(d,d.b);
 B=[Bm,Bp];
-D2=diff(d,2);
+D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
@@ -22,7 +22,7 @@ d=Interval(-1000.,5.);
 Bm=Evaluation(d,d.a);
 Bp=Evaluation(d,d.b);
 B=[Bm,Bp];
-D2=diff(d,2);
+D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
 u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];

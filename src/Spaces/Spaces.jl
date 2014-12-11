@@ -1,3 +1,8 @@
+
+include("IntervalDomainSpace.jl")
+include("PeriodicDomainSpace.jl")
+
+
 include("Modifier/Modifier.jl")
 
 include("Ultraspherical/UltrasphericalSpace.jl")

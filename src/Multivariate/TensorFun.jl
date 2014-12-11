@@ -264,14 +264,6 @@ Base.transpose(f::TensorFun)=TensorFun(coefficients(f).',space(f,2),space(f,1))
 
 
 
-#TODO: adaptive
-#TODO: assumes Chebyshev
-for op in (:(Base.sin),:(Base.cos))
-    @eval ($op){S<:IntervalDomainSpace,V<:IntervalDomainSpace}(f::TensorFun{S,V})=TensorFun(chebyshevtransform($op(values(f))),domain(f))
-end
-
-
-
 for op in (:(Base.sin),:(Base.cos))
     @eval ($op)(f::ProductFun)=Fun(transform!(space(f),$op(values(pad(f,size(f,1)+20,size(f,2))))),space(f))
 end

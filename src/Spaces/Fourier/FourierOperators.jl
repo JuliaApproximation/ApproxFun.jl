@@ -1,8 +1,11 @@
 
+
 ## Derivative
 
-bandinds(D::Derivative{LaurentSpace})=0,0
-bandinds(D::Integral{LaurentSpace})=0,0   
+bandinds{S<:Union(LaurentSpace,FourierSpace)}(D::Derivative{S})=0,0
+bandinds{S<:Union(LaurentSpace,FourierSpace)}(D::Integral{S})=0,0   
+rangespace{S<:Union(LaurentSpace,FourierSpace)}(D::Derivative{S})=D.space
+rangespace{S<:Union(LaurentSpace,FourierSpace)}(D::Integral{S})=D.space
 
 
 function addentries!(D::Derivative{LaurentSpace},A::ShiftArray,kr::Range1)

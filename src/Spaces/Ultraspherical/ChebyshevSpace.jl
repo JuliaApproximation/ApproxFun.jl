@@ -80,3 +80,14 @@ end
 function union_rule{S<:UltrasphericalSpace}(s1::PiecewiseSpace{S},s2::S)
     PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
 end
+
+
+
+## Multivaraite
+
+
+#TODO: adaptive
+for op in (:(Base.sin),:(Base.cos))
+    @eval ($op){S<:ChebyshevSpace,V<:ChebyshevSpace}(f::TensorFun{S,V})=TensorFun(chebyshevtransform($op(values(f))),domain(f))
+end
+

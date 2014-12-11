@@ -4,9 +4,8 @@ abstract FunctionSpace{T}
 ##TODO: Confusing: two uses of domain
 
  # T tells whether the basis is real (cos/sin) or complex
-abstract DomainSpace{T} <: FunctionSpace{T}
-abstract IntervalDomainSpace <: DomainSpace{Float64}     # We assume basis is real
-abstract PeriodicDomainSpace{T} <: DomainSpace{T}       
+abstract DomainSpace{T,D<:Domain} <: FunctionSpace{T}
+
 
 
 
@@ -56,8 +55,7 @@ end
 
 domain(A::DomainSpace)=A.domain # assume it has a field domain
 
-canonicaldomain{T<:IntervalDomainSpace}(::Type{T})=Interval()
-canonicaldomain{T<:PeriodicDomainSpace}(::Type{T})=PeriodicInterval()
+canonicaldomain{D<:Domain,T}(::Type{DomainSpace{D,T}})=D()
 
 
 

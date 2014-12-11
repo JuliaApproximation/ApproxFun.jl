@@ -15,8 +15,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         end    
             
         ## Constructors        
-        $Op{S<:PeriodicDomainSpace}(sp::S,k::Integer)=$Op{S,Complex{Float64}}(sp,k)
-        $Op{S<:FunctionSpace}(sp::S,k::Integer)=$Op{S,Float64}(sp,k)
+        $Op{T<:Number,D}(sp::DomainSpace{T,D},k::Integer)=$Op{typeof(sp),T}(sp,k)
         
         $Op(sp::FunctionSpace)=$Op(sp,1)
         $Op()=$Op(AnySpace())
@@ -29,7 +28,6 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         ## Routines
         domain(D::$Op)=domain(D.space)       
         domainspace(D::$Op)=D.space
-        rangespace{T,S<:PeriodicDomainSpace}(D::$Op{S,T})=D.space        #assume rangespace is the same
         
         addentries!{T}(::$Op{AnySpace,T},A::ShiftArray,kr::Range)=error("Spaces cannot be inferred for operator")
         
@@ -46,7 +44,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             bandinds(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)])) 
         end
         
-        rangespace{S,T}(D::$Op{S,T})=rangespace($Op(canonicalspace(domainspace(D)),D.order))
+#        rangespace{S,T}(D::$Op{S,T})=rangespace($Op(canonicalspace(domainspace(D)),D.order))
         rangespace{T}(D::$Op{AnySpace,T})=AnySpace()     
         
         #promoting domain space is allowed to change range space
