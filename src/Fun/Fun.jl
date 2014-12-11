@@ -171,7 +171,11 @@ end
 
 
 Base.dot(f::Fun,g::Fun)=sum(conj(f).*g)
-Base.norm(f::Fun)=real(sqrt(dot(f,f)))
+function Base.norm(f::Fun)
+    sp = space(f)
+    f2 = pad(f,2length(f)-1)
+    real(sqrt(sum(Fun(transform(sp,values(conj(f2)).*values(f2)),sp))))
+end
 
 
 
