@@ -2,7 +2,7 @@ export Derivative,Integral,Hilbert
 
 
 macro calculus_operator(Op,AbstOp,WrappOp)
-    quote
+    @eval begin
         abstract $AbstOp{T} <: BandedOperator{T}
         immutable $Op{S<:FunctionSpace,T<:Number} <: $AbstOp{T}
             space::S        # the domain space
@@ -21,19 +21,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         end        
         
         
-        ## Routines
-    end
-end
-
-
-@calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
-@calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
-@calculus_operator(Hilbert,AbstractHilbert,HilbertWrapper)
-
-
-
-for Op in (:Derivative,:Integral,:Hilbert)
-    @eval begin
+        ## Constructors
         $Op{S<:PeriodicDomainSpace}(sp::S,k::Integer)=$Op{S,Complex{Float64}}(sp,k)
         $Op{S<:FunctionSpace}(sp::S,k::Integer)=$Op{S,Float64}(sp,k)
         
@@ -43,10 +31,10 @@ for Op in (:Derivative,:Integral,:Hilbert)
         
         $Op(d::PeriodicDomain,n::Integer)=$Op(LaurentSpace(d),n)
         $Op(d::Domain)=$Op(d,1)
-
         
-        domain(D::$Op)=domain(D.space)
         
+        ## Routines
+        domain(D::$Op)=domain(D.space)       
         domainspace(D::$Op)=D.space
         rangespace{T,S<:PeriodicDomainSpace}(D::$Op{S,T})=D.space        #assume rangespace is the same
         
@@ -66,9 +54,16 @@ for Op in (:Derivative,:Integral,:Hilbert)
         end
         
         rangespace{S,T}(D::$Op{S,T})=rangespace($Op(canonicalspace(domainspace(D)),D.order))
-        rangespace{T}(D::$Op{AnySpace,T})=AnySpace()
+        rangespace{T}(D::$Op{AnySpace,T})=AnySpace()         
     end
 end
+
+
+@calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
+@calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
+@calculus_operator(Hilbert,AbstractHilbert,HilbertWrapper)
+
+
 
 # the default domain space is higher to avoid negative ultraspherical spaces
 Derivative(d::IntervalDomain,n::Integer)=Derivative(ChebyshevSpace(d),n)
