@@ -137,7 +137,7 @@ ApproxFun.plot(real(uFourier))						    # Requires Gadfly or PyPlot
 
 
 Other operations including random number sampling using [Olver & Townsend 2013].  The 
-following code samples 10,000 standard normals:
+following code samples 10,000 from a PDF given as the absolute value of the sine function on `[-5,5]`:
 
 ```julia
 f = abs(Fun(sin,[-5,5]))
