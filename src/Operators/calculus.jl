@@ -2,7 +2,17 @@ export Derivative,Integral
 
 
 macro calculus_operator(Op,AbstOp,WrappOp)
-    @eval begin        
+    return esc(quote      
+        abstract $AbstOp{T} <: BandedOperator{T}  
+        immutable $Op{S<:FunctionSpace,T<:Number} <: $AbstOp{T}
+            space::S        # the domain space
+            order::Int
+        end              
+        immutable $WrappOp{S<:BandedOperator} <: $AbstOp{Float64}
+            op::S
+            order::Int
+        end                
+        
         ## Constructors
         $Op{S<:PeriodicDomainSpace}(sp::S,k::Integer)=$Op{S,Complex{Float64}}(sp,k)
         $Op{S<:FunctionSpace}(sp::S,k::Integer)=$Op{S,Float64}(sp,k)
@@ -52,39 +62,17 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         
         #Wrapper just adds the operator it wraps
         addentries!(D::$WrappOp,A::ShiftArray,k::Range)=addentries!(D.op,A,k)          
-    end
-    for func in (:rangespace,:domainspace,:bandinds)
-        # We assume the operator wrapped has the correct spaces
-        @eval $func(D::$WrappOp)=$func(D.op)
-    end      
+        rangespace(D::$WrappOp)=rangespace(D.op)
+        domainspace(D::$WrappOp)=domainspace(D.op)        
+        bandinds(D::$WrappOp)=bandinds(D.op)        
+    end)
+#     for func in (:rangespace,:domainspace,:bandinds)
+#         # We assume the operator wrapped has the correct spaces
+#         @eval $func(D::$WrappOp)=$func(D.op)
+#     end 
 end
 
-abstract AbstractDerivative{T} <: BandedOperator{T}
-abstract AbstractIntegral{T} <: BandedOperator{T}
-immutable Derivative{S<:FunctionSpace,T<:Number} <: AbstractDerivative{T}
-    space::S        # the domain space
-    order::Int
-end        
-
-immutable Integral{S<:FunctionSpace,T<:Number} <: AbstractIntegral{T}
-    space::S        # the domain space
-    order::Int
-end        
-
-## Wrapper
-# this allows for a Derivative implementation to return another operator, use a SpaceOperator containing
-# the domain and range space
-# but continue to know its a derivative
-
-
-immutable DerivativeWrapper{S<:BandedOperator} <: AbstractDerivative{Float64}
-    op::S
-    order::Int
-end        
-immutable IntegralWrapper{S<:BandedOperator} <: AbstractIntegral{Float64}
-    op::S
-    order::Int
-end        
+      
 @calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
 @calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
 
