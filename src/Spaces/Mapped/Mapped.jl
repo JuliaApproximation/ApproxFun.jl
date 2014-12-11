@@ -3,7 +3,7 @@ export MappedSpace
 ##Mapped spaces
 
 #TODO: Mapped Fourier
-type MappedSpace{S<:DomainSpace,D<:Domain} <: IntervalDomainSpace
+type MappedSpace{S<:DomainSpace,D<:Domain,T<:Number,DS<:Domain} <: DomainSpace{T,DS}
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)
@@ -11,11 +11,14 @@ type MappedSpace{S<:DomainSpace,D<:Domain} <: IntervalDomainSpace
     MappedSpace()=new(D(),S())
 end
 
-MappedSpace{D<:Domain,S<:DomainSpace}(d::D,s::S)=MappedSpace{S,D}(d,s)
+MappedSpace{D<:Domain,T<:Number,DS<:Domain}(d::D,s::DomainSpace{T,DS})=MappedSpace{typeof(s),D,T,DS}(d,s)
 
-typealias LineSpace MappedSpace{ChebyshevSpace,Line}
-typealias RaySpace MappedSpace{ChebyshevSpace,Ray}
-typealias CurveSpace{S} MappedSpace{S,Curve{S}}
+typealias IntervalMappedSpace{S,D} MappedSpace{S,D,Float64,Interval}
+typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
+
+typealias LineSpace IntervalMappedSpace{ChebyshevSpace,Line}
+typealias RaySpace IntervalMappedSpace{ChebyshevSpace,Ray}
+typealias CurveSpace{S,T,DS} MappedSpace{S,Curve{S},T,DS}
 
 
 Space(d::Line)=LineSpace(d)
@@ -24,7 +27,8 @@ Space{S<:FunctionSpace}(d::Curve{S})=CurveSpace{S}(d)
 
 
 domain(S::MappedSpace)=S.domain
-canonicaldomain{D<:Domain,S}(::Type{MappedSpace{S,D}})=D()
+canonicaldomain{D,S}(::Type{IntervalMappedSpace{S,D}})=Interval()
+canonicaldomain{D,S,T,DS}(::Type{MappedSpace{S,D,T,DS}})=D()
 canonicalspace(S::MappedSpace)=MappedSpace(S.domain,canonicalspace(S.space))
 
 ## Construction
@@ -32,7 +36,7 @@ canonicalspace(S::MappedSpace)=MappedSpace(S.domain,canonicalspace(S.space))
 Base.ones{T<:Number}(::Type{T},S::MappedSpace)=Fun(ones(T,S.space).coefficients,S)
 transform(S::MappedSpace,vals::Vector)=transform(S.space,vals)
 itransform(S::MappedSpace,cfs::Vector)=itransform(S.space,cfs)
-evaluate{SS,DD,T}(f::Fun{MappedSpace{SS,DD},T},x)=evaluate(Fun(coefficients(f),space(f).space),tocanonical(f,x))
+evaluate{SS,DD,T,TT,DDS}(f::Fun{MappedSpace{SS,DD,TT,DDS},T},x)=evaluate(Fun(coefficients(f),space(f).space),tocanonical(f,x))
 
 
 for op in (:(Base.first),:(Base.last))
@@ -132,7 +136,7 @@ end
 
 ## identity
 
-function identity_fun{SS,DD}(S::MappedSpace{SS,DD})
+function identity_fun{SS,DD,DDS,DDT}(S::MappedSpace{SS,DD,DDT,DDS})
     sf=fromcanonical(S,Fun(identity,S.space))
     if isa(space(sf),JacobiWeightSpace)
         Fun(coefficients(sf),JacobiWeightSpace(sf.space.α,sf.space.β,S))
