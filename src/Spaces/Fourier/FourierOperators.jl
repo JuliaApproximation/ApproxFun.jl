@@ -6,7 +6,7 @@ bandinds{S<:Union(LaurentSpace,FourierSpace)}(D::Derivative{S})=0,0
 rangespace{S<:Union(LaurentSpace,FourierSpace)}(D::Derivative{S})=D.space
 
 
-function addentries!(D::Derivative{LaurentSpace},A::ShiftArray,kr::Range1)
+function addentries!(D::Derivative{LaurentSpace},A::ShiftArray,kr::Range)
     d=domain(D)
     m=D.order
     C=2π./(d.b-d.a)*im

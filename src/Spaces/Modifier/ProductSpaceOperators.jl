@@ -53,3 +53,38 @@ for op in (:domainspace,:rangespace)
 end
 
 sumblkdiagm{B<:Operator}(v::Vector{B})=SumInterlaceOperator(v)
+
+
+
+## Conversion
+
+immutable BiSwapOperator <: BandedOperator{Float64} end
+bandinds(::BiSwapOperator)=-1,1
+
+function addentries!(::BiSwapOperator,A::ShiftArray,kr::Range)
+    for k=kr
+        if isodd(k)
+            A[k,1] += 1
+        else
+            A[k,-1] += 1
+        end
+    end
+    
+    A
+end
+
+
+
+function Conversion{A,B,T,D}(S1::SumSpace{A,B,T,D},S2::SumSpace{B,A,T,D})
+    @assert S1.spaces[1]==S2.spaces[2] && S1.spaces[2]==S2.spaces[1]
+    ConversionWrapper(SpaceOperator(BiSwapOperator(),S1,S2))
+end
+
+
+function conversion_type{A,B,T,D}(S1::SumSpace{A,B,T,D},S2::SumSpace{B,A,T,D})
+    if S1.spaces[1]==S2.spaces[2] && S1.spaces[2]==S2.spaces[1]
+        S1 #Arbitraty
+    else
+        NoSpace()
+    end
+end
