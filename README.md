@@ -144,7 +144,6 @@ f = abs(Fun(sin,[-5,5]))
 x = ApproxFun.sample(f,10000)
 ApproxFun.plot(f/sum(f))                           # Requires Gadfly or PyPlot
 PyPlot.plt.hist(x;normed=true,bins=[-5.:.1:5.])
-savefig("Sample.png",dpi=300)
 ```
 
 We can apply this to any positive smooth PDF.  
