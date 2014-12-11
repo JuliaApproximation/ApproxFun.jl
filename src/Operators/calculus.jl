@@ -1,19 +1,24 @@
 export Derivative,Integral
 
 
-macro calculus_operator(Op,AbstOp,WrappOp)
+macro calculus_operator1(Op,AbstOp,WrappOp)
     return esc(quote      
-        abstract $AbstOp{T} <: BandedOperator{T}  
+        abstract $AbstOp{T} <: ApproxFun.BandedOperator{T}                       
+    end)
+end
+
+macro calculus_operator2(Op,AbstOp,WrappOp)
+    return esc(quote        
         immutable $Op{S<:FunctionSpace,T<:Number} <: $AbstOp{T}
             space::S        # the domain space
             order::Int
-        end              
+        end                       
         immutable $WrappOp{S<:BandedOperator} <: $AbstOp{Float64}
             op::S
             order::Int
-        end                
-        
-        ## Constructors
+        end    
+            
+        ## Constructors        
         $Op{S<:PeriodicDomainSpace}(sp::S,k::Integer)=$Op{S,Complex{Float64}}(sp,k)
         $Op{S<:FunctionSpace}(sp::S,k::Integer)=$Op{S,Float64}(sp,k)
         
@@ -72,9 +77,14 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 #     end 
 end
 
+
+
+@calculus_operator1(Derivative,AbstractDerivative,DerivativeWrapper)
+@calculus_operator1(Integral,AbstractIntegral,IntegralWrapper)
+
       
-@calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
-@calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
+@calculus_operator2(Derivative,AbstractDerivative,DerivativeWrapper)
+@calculus_operator2(Integral,AbstractIntegral,IntegralWrapper)
 
 
 # the default domain space is higher to avoid negative ultraspherical spaces
