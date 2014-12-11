@@ -5,20 +5,20 @@ f = Fun(exp,[-1,1])
 
 fp = diff(f)		
 
-@test norm(fp-f)<eps()
+@test norm(fp-f)<200eps()
 
 g = cumsum(f)
 g = g + f[-1]
-@test norm(f - g)<eps()
+@test norm(f - g)<20eps()
 
-@test norm(Fun(exp)*Fun(cos)-Fun(x->exp(x)*cos(x)))<eps()
-@test norm((Fun(exp)+Fun(cos))-Fun(x->exp(x)+cos(x)))<eps()
+@test norm(Fun(exp)*Fun(cos)-Fun(x->exp(x)*cos(x)))<10eps()
+@test norm((Fun(exp)+Fun(cos))-Fun(x->exp(x)+cos(x)))<10eps()
 
 
 	
 		f = FFun(cos)
 @test norm(diff(f) + FFun(sin))<eps()
-@test norm(cumsum(f) - FFun(sin))	<eps()
+@test norm(cumsum(f) - FFun(sin))	<10eps()
 
     d=Interval()^2          					# Defines a rectangle
     

@@ -52,7 +52,7 @@ D=diff(domain(f))
 f=Fun(x->-x.^2)
 g=Fun(t->exp(-t.^2))
 
-@test_approx_eq norm(Fun(t->exp(f[t]))-g) 0
+@test norm(Fun(t->exp(f[t]))-g)<= 100eps()
 
 fp=diff(f);
 Bm=Evaluation(domain(f),domain(f).a);
@@ -82,11 +82,11 @@ A=x.^2*D^2+x*D+x.^2
 u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
 
 
-@test norm(A*u)<eps()
+@test norm(A*u)<10eps()
 @test norm(Fun(A.ops[1]*u,d)-x.^2.*diff(u,2))<eps()
 @test norm(Fun(A.ops[2]*u,d)-x.*diff(u)) < eps()
 @test norm(Fun(A.ops[end]*u,d)-x.^2.*u) < eps()
-@test norm(x.^2.*diff(u,2) + x.*diff(u) + x.^2.*u)<eps()
+@test norm(x.^2.*diff(u,2) + x.*diff(u) + x.^2.*u)<10eps()
 @test_approx_eq u[0.1] besselj(0.,0.1)
 
 

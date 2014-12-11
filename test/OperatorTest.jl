@@ -6,7 +6,7 @@ d=domain(f)
 D=diff(d)
 Q=integrate(d)
 
-@test norm((Q+I)*f-(integrate(f)+f)) < eps()
+@test norm((Q+I)*f-(integrate(f)+f)) < 2eps()
 @test norm((Q)*f-(integrate(f))) < eps()
 
 x=Fun(identity)

@@ -42,7 +42,7 @@ u=ProductFun(f,Disk(),50,51)
 
 ## Conversion
 
-@test norm(Fun(Fun(exp),JacobiSpace(-.5,-.5))-Fun(exp,JacobiSpace(-.5,-.5)))<eps()
+@test norm(Fun(Fun(exp),JacobiSpace(-.5,-.5))-Fun(exp,JacobiSpace(-.5,-.5))) < 20eps()
 
 x=Fun(identity)
 ri=0.5./(1-x)
