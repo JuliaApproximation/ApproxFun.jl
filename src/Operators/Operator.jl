@@ -105,9 +105,11 @@ function addentries!(B::BandedOperator,A,kr)
     A
 end
 
-## Default Composition with a Fun
+## Default Composition with a Fun, LowRankFun, and TensorFun
 
 Base.getindex(B::BandedOperator,f::Fun) = B*Multiplication(f,domainspace(B))
+Base.getindex(B::BandedOperator,f::LowRankFun) = PlusOperator(BandedOperator[f.A[i]*B[f.B[i]] for i=1:rank(f)])
+Base.getindex(B::BandedOperator,f::TensorFun) = B[LowRankFun(f)]
 
 ## Standard Operators and linear algebra
 
@@ -126,6 +128,7 @@ include("TridiagonalOperator.jl")
 include("Conversion.jl")
 include("Multiplication.jl")
 include("calculus.jl")
+include("Sigma.jl")
 include("Evaluation.jl")
 
 
