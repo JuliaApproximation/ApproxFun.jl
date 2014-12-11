@@ -14,3 +14,18 @@ f=Fun(exp,Circle());
 
 f=FFun(x->exp(-10sin((x-.1)/2)^2))
 @test_approx_eq real(f)[.1] f[.1]
+
+
+
+## Calculus
+
+f=Fun(t->cos(t),CosSpace)
+D=Derivative(space(f))
+@test_approx_eq (D*f)[.1] -sin(.1)
+@test_approx_eq diff(f)[.1] -sin(.1)
+
+f=Fun(t->sin(t),SinSpace)
+D=Derivative(space(f))
+@test_approx_eq (D*f)[.1] cos(.1)
+@test_approx_eq diff(f)[.1] cos(.1)
+

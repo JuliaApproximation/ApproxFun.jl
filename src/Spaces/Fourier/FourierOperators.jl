@@ -141,7 +141,9 @@ end
 ### Cos/Sine
 
 
-bandinds{S<:Union(CosSpace,SinSpace,HardySpace)}(D::Derivative{S})=0,0
+bandinds{S<:HardySpace}(D::Derivative{S})=0,0
+bandinds(D::Derivative{CosSpace})=iseven(D.order)?(0,0):0,1
+bandinds(D::Derivative{SinSpace})=iseven(D.order)?(0,0):-1,0
 rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
 rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 rangespace{S<:HardySpace}(D::Derivative{S})=D.space
@@ -154,7 +156,11 @@ function addentries!(D::Derivative{CosSpace},A::ShiftArray,kr::Range)
     C=2π./(d.b-d.a)
 
     for k=kr
-        A[k,0] -= (C*k)^m
+        if iseven(m)
+            A[k,0] -= (C*(k-1))^m
+        else
+            A[k,1] -= (C*k)^m
+        end
     end
     
     A
@@ -165,8 +171,12 @@ function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
     m=D.order
     C=2π./(d.b-d.a)
 
-    for k=kr
-        A[k,0] += (C*k)^m
+    for k=max(kr[1],2):kr[end]
+        if iseven(m)
+            A[k,0] += (C*k)^m
+        else
+            A[k,-1] += (C*(k-1))^m
+        end
     end
     
     A
