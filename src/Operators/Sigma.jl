@@ -11,8 +11,8 @@ immutable Σ{S<:FunctionSpace,T<:Number} <: BandedOperator{T}
     space::S        # the domain space
 end
 
-Σ{S<:PeriodicDomainSpace}(sp::S) = Σ{S,Complex{Float64}}(sp)
-Σ{S<:FunctionSpace}(sp::S)=Σ{S,Float64}(sp)
+# We expect the operator to be real/complex if the basis is real/complex
+Σ{T}(sp::FunctionSpace{T}) = Σ{typeof(sp),T}(sp)
 Σ()=Σ(AnySpace())
 
 Σ(d::PeriodicDomain)=Σ(LaurentSpace(d))
