@@ -14,17 +14,17 @@ function RK(L,y,h)
     y+h*(k1+2k2+2k3+k4)/6.
 end
 
-function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp)
-    SBE   = [B,I-h*A]
+function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp,tol=1000eps())
     SBDF2 = [B,I-2.0/3.0*h*A]
 
     u1=u0
-    u2=SBE\[bcs,u1]
+    u2=chop(RK(g,u1,h),tol)
+    u2,u1  = chop(SBDF2\[bcs,1/3.0*(4u2-u1)],tol),u2
     push!(glp,u2)
 
     for k=1:m
-        u2,u1 = chop(RK(g,u2,h),eps()),u2    
-        u2,u1  = chop(SBDF2\[bcs,1/3.0*(4u2-u1)],eps()),u2
+        u2,u1 = chop(RK(g,u2,h),tol),u2    
+        u2,u1  = chop(SBDF2\[bcs,1/3.0*(4u2-u1)],tol),u2
         push!(glp,u2)
     end    
 
