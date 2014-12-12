@@ -142,8 +142,8 @@ end
 
 
 bandinds{S<:HardySpace}(D::Derivative{S})=0,0
-bandinds(D::Derivative{CosSpace})=iseven(D.order)?(0,0):0,1
-bandinds(D::Derivative{SinSpace})=iseven(D.order)?(0,0):-1,0
+bandinds(D::Derivative{CosSpace})=iseven(D.order)?(0,0):(0,1)
+bandinds(D::Derivative{SinSpace})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
 rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 rangespace{S<:HardySpace}(D::Derivative{S})=D.space
@@ -171,10 +171,10 @@ function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
     m=D.order
     C=2π./(d.b-d.a)
 
-    for k=max(kr[1],2):kr[end]
+    for k=kr
         if iseven(m)
             A[k,0] += (C*k)^m
-        else
+        elseif k>1
             A[k,-1] += (C*(k-1))^m
         end
     end

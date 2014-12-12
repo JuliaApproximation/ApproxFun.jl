@@ -29,3 +29,5 @@ D=Derivative(space(f))
 @test_approx_eq (D*f)[.1] cos(.1)
 @test_approx_eq diff(f)[.1] cos(.1)
 
+f=Fun(cos,FourierSpace)
+@test norm((Derivative(space(f))^2)*f+f)<10eps()

@@ -16,7 +16,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 
             
         ## Constructors        
-        $Op{T<:Number,D}(sp::DomainSpace{T,D},k::Integer)=$Op{typeof(sp),T}(sp,k)
+        $Op{T<:Number}(sp::FunctionSpace{T},k::Integer)=$Op{typeof(sp),T}(sp,k)
         
         $Op(sp::FunctionSpace)=$Op(sp,1)
         $Op()=$Op(AnySpace())
