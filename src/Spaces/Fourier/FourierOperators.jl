@@ -5,6 +5,7 @@
 ## Multiplication 
 
 addentries!(M::Multiplication{LaurentSpace,LaurentSpace},A,k)=addentries!(LaurentOperator(M.f),A,k)
+bandinds(M::Multiplication{LaurentSpace,LaurentSpace})=bandinds(LaurentOperator(M.f))
 
 ## Converison
 

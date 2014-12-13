@@ -62,6 +62,12 @@ function ./{S,T,U,V}(c::Fun{S,T},f::Fun{U,V})
     end
 end
 
+function ./{S,T}(c::Number,f::Fun{S,T})
+    r=roots(f)
+    tol=10eps()
+    @assert length(r)==0
+    linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
+end
 
 function ./(c::Number,f::Fun{ChebyshevSpace})
     fc = Fun(canonicalcoefficients(f),Interval())

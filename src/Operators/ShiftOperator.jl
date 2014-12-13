@@ -7,7 +7,7 @@ abstract ShiftFunctional{T} <: Functional{T}
 function bandinds(b::BandedShiftOperator)
     bi=shiftbandinds(b)
     m=max(-bi[1],bi[2])
-    [-2m,2m]
+    -2m,2m
 end
 
 shiftbandrange(b::BandedShiftOperator)=Range1(shiftbandinds(b)...)
