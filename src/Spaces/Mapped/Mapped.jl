@@ -19,7 +19,8 @@ typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
 typealias LineSpace IntervalMappedSpace{ChebyshevSpace,Line}
 typealias RaySpace IntervalMappedSpace{ChebyshevSpace,Ray}
 typealias CurveSpace{S,T,DS} MappedSpace{S,Curve{S},T,DS}
-
+typealias OpenCurveSpace{S} CurveSpace{S,Float64,Interval}
+typealias ClosedCurveSpace{S,T} CurveSpace{S,T,PeriodicInterval}
 
 Space(d::Line)=LineSpace(d)
 Space(d::Ray)=RaySpace(d)

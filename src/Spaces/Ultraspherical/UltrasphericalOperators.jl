@@ -123,7 +123,6 @@ function addentries!{λ}(D::Derivative{UltrasphericalSpace{λ}},A::ShiftArray,kr
     @assert isa(d,Interval)
 
     if λ == 0
-        #TODO: sign of length?
         C=2.^(m-1).*factorial(m-1)*(2./(d.b-d.a)).^m    
         for k=kr
             A[k,m] += C*(m+k-1)
@@ -159,13 +158,21 @@ end
 rangespace{λ}(D::Integral{UltrasphericalSpace{λ}})=UltrasphericalSpace{λ-D.order}(domain(D))
 
 function addentries!{λ}(D::Integral{UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
-    @assert λ==1
-    @assert D.order==1   
-    
+    m=D.order
     d=domain(D)
-    C = .5(d.b-d.a)
-    for k=max(kr[1],2):kr[end]
-        A[k,-1] += C./(k-1)
+    @assert m<=λ
+    @assert isa(d,Interval)
+
+    if λ == 1
+        C = .5(d.b-d.a)
+        for k=max(kr[1],2):kr[end]
+            A[k,-1] += C./(k-1)
+        end
+    else
+        C=factorial(λ-m-1)/factorial(λ-1)/2.^m*(.5(d.b-d.a))^m        
+        for k=kr
+            A[k,-m] += C
+        end
     end
     
     A
