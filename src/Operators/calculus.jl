@@ -1,16 +1,16 @@
 export Derivative,Integral
 
 
-abstract CalculusOperator{T}<:BandedOperator{T}
+abstract CalculusOperator{S,T}<:BandedOperator{T}
 
 macro calculus_operator(Op,AbstOp,WrappOp)
     return esc(quote        
-        immutable $Op{S<:FunctionSpace,T<:Number} <: $AbstOp{T}
+        immutable $Op{S<:FunctionSpace,T<:Number} <: $AbstOp{S,T}
             space::S        # the domain space
             order::Int
         end                       
-        immutable $WrappOp{S<:BandedOperator,T<:Number} <: $AbstOp{T}
-            op::S
+        immutable $WrappOp{BT<:BandedOperator,S<:FunctionSpace,T<:Number} <: $AbstOp{S,T}
+            op::BT
             order::Int
         end    
 
@@ -26,7 +26,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         $Op(d::Domain)=$Op(d,1)
         
         
-        $WrappOp{T<:Number}(op::BandedOperator{T},order::Integer)=$WrappOp{typeof(op),T}(op,order)
+        $WrappOp{T<:Number}(op::BandedOperator{T},order::Integer)=$WrappOp{typeof(op),typeof(domainspace(op)),T}(op,order)
         $WrappOp{T<:Number}(op::BandedOperator{T})=$WrappOp(op,1)        
         
         ## Routines
@@ -78,8 +78,8 @@ end
 
 
 
-abstract AbstractDerivative{T} <:CalculusOperator{T}
-abstract AbstractIntegral{T} <:CalculusOperator{T}
+abstract AbstractDerivative{S,T} <:CalculusOperator{S,T}
+abstract AbstractIntegral{S,T} <:CalculusOperator{S,T}
 @calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
 @calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
 
