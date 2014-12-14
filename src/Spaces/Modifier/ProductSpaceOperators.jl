@@ -1,4 +1,4 @@
-
+export sumblkdiagm
 
 Derivative(sp::PiecewiseSpace)=DerivativeWrapper(DiagonalInterlaceOperator(map(Derivative,sp.spaces)),1)
 Derivative(sp::PiecewiseSpace,k::Integer)=DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),sp.spaces)),k)
@@ -92,4 +92,5 @@ end
 
 ## Derivative
 
+#TODO: do in @calculus_operator?
 Derivative(S::SumSpace,k::Integer)=DerivativeWrapper(sumblkdiagm([Derivative(S.spaces[1],k),Derivative(S.spaces[2],k)]),k)
