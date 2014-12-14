@@ -1,5 +1,6 @@
 ## VectorSpace{T,S} encodes a space that is a Vector, with coefficients interlaced
 
+export devec
 
 immutable VectorDomainSpace{n,S,T} <: DomainSpace{T}
      space::S     
