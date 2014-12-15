@@ -96,6 +96,9 @@ function zerocfsFun(f::Function,d::DomainSpace)
         cf = Fun(f, d, 2^logn + 1)
         absc=abs(cf.coefficients)
         maxabsc=maximum(absc)
+        if maxabsc==0 && fr==0
+            return(zeros(d))
+        end
         
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
