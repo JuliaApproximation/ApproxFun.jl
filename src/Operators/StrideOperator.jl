@@ -144,7 +144,7 @@ function rangespace{T<:Operator}(A::Array{T})
 end
 
 function promotespaces{T<:Operator}(A::Array{T,2})
-    A=copy(A)
+    A=copy(A)#TODO: promote might have different Array type
     for j=1:size(A,2)
         A[:,j]=promotedomainspace(A[:,j])
     end

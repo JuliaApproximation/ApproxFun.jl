@@ -43,8 +43,10 @@ type ZeroOperator{T,S,V} <: BandedOperator{T}
     rangespace::V
 end
 
-ZeroOperator{S,V}(d::S,v::V)=ZeroOperator{Float64,S,V}(d,v)
+ZeroOperator{T<:Number,S,V}(::Type{T},d::S,v::V)=ZeroOperator{T,S,V}(d,v)
+ZeroOperator{S,V}(d::S,v::V)=ZeroOperator(Float64,d,v)
 ZeroOperator()=ZeroOperator(AnySpace(),AnySpace())
+ZeroOperator{T<:Number}(::Type{T})=ZeroOperator(T,AnySpace(),AnySpace())
 
 domainspace(Z::ZeroOperator)=Z.domainspace
 rangespace(Z::ZeroOperator)=Z.rangespace

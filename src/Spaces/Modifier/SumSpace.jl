@@ -5,6 +5,8 @@ export ⊕
 
 immutable SumSpace{S<:DomainSpace,V<:DomainSpace,T<:Number,D<:Domain} <: DomainSpace{T,D}
     spaces::(S,V)
+    SumSpace(::AnyDomain)=new((S(AnyDomain()),V(AnyDomain())))
+    SumSpace(sp::(S,V))=new(sp)
 end
 
 function SumSpace{T<:Number,D}(A::(DomainSpace{T,D},DomainSpace{T,D}))

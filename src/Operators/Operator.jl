@@ -161,8 +161,8 @@ Base.zero{O<:Operator}(::Type{O})=ZeroOperator()
 
 
 # TODO: can convert return different type?
-Base.convert{T<:Operator}(A::Type{T},n::Number)=n==0?ZeroOperator():ConstantOperator(n)
-Base.convert{T<:Operator}(A::Type{T},n::UniformScaling)=n.λ==0?ZeroOperator():ConstantOperator(n)
+Base.convert{T<:Operator}(A::Type{T},n::Number)=n==0?zero(T):ConstantOperator(n)
+Base.convert{T<:Operator}(A::Type{T},n::UniformScaling)=n.λ==0?zero(T):ConstantOperator(n)
 
 
 ## Promotion

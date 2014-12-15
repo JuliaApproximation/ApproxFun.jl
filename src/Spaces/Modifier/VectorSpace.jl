@@ -45,6 +45,8 @@ evaluate{V<:VectorDomainSpace,T}(f::Fun{V,T},x)=evaluate(vec(f),x)
 
 immutable PiecewiseSpace{S<:DomainSpace,T} <: DomainSpace{T}
     spaces::Vector{S} 
+    PiecewiseSpace(::AnyDomain)=new(S[S(AnyDomain())])
+    PiecewiseSpace(sp::Vector{S})=new(sp)
 end
 PiecewiseSpace(sp::Vector{Any})=PiecewiseSpace([sp...])
 PiecewiseSpace{S,T}(::DomainSpace{T},spaces::Vector{S})=PiecewiseSpace{S,T}(spaces)

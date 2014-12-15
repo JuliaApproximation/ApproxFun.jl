@@ -30,7 +30,7 @@ Base.getindex(sl::ShiftVector,k::Integer)=sl.vector[k+sl.index]
 Base.getindex(sl::ShiftVector,r::Range1)=sl.vector[r+sl.index]
 
 
-Base.flipud(sl::ShiftVector)=ShiftVector(flipud(sl[1:end]),flipud(sl[firstindex(sl):0]))
+Base.flipud(sl::ShiftVector)=ShiftVector(flipud(sl.vector),length(sl.vector)-sl.index+1)
 
 ##Assignment
 
