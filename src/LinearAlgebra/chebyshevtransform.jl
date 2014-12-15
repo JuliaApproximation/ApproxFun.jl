@@ -5,7 +5,7 @@ export plan_chebyshevtransform, ichebyshevtransform,chebyshevtransform
 
 function negateeven!(x::Vector)
     for k =2:2:length(x)
-        x[k] *= -1
+        x[k] = -x[k]
     end
     
     x
@@ -23,10 +23,21 @@ function negateeven!(X::Matrix)
     X
 end
 
-plan_chebyshevtransform(x)=length(x)==1?identity:FFTW.plan_r2r(x, FFTW.REDFT00)
+function plan_chebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T})
+#TODO confirm that this can handle T=Complex{Float64} looks like this is a real-to-real transform
+    if length(x)==1
+        return identity
+    else
+        return FFTW.plan_r2r(x, FFTW.REDFT00)
+    end
+end
+
+function plan_chebyshevtransform{T<:Number}(x::Vector{T}) return redft00 end
+
 chebyshevtransform(x)=chebyshevtransform(x,plan_chebyshevtransform(x))
+
 function chebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},plan::Function)
-    if(length(x) == 1)
+    if length(x) == 1
         x
     else
         ret = plan(x)::typeof(x)
@@ -38,10 +49,55 @@ function chebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},pla
     end
 end
 
+function chebyshevtransform{T<:Number}(x::Vector{T},plan::Function)
+    if length(x) == 1
+        x
+    else
+        ret = plan(x)::typeof(x)
+        ret[1] /= 2;ret[end] /= 2   
+        negateeven!(ret)
+        ret*=1./(length(ret)-1)
+        
+        ret
+    end
+end
+
+#=
+chebyshevtransform in terms of ifft, from chebfun
+function chebyshevtransform{T<:Number}(x::Vector{T},plan::Function)
+    n = length(x)
+    if n == 1
+        return x
+    else
+        tmp = cat(1, x[n:-1:2], values[1:n-1]);
+
+        if ( isreal(x) )
+            #real-value case
+            coeffs = ifft(tmp);
+            coeffs = real(coeffs);
+        elseif ( isreal(im*x) )
+            #Imaginary-valued case:
+            coeffs = ifft(imag(tmp));
+            coeffs = im*real(coeffs);
+        else
+            #General case:
+            coeffs = ifft(tmp);
+        end
+
+        #Truncate:
+        coeffs = coeffs[1:n];
+        #Scale the interior coefficients:
+        coeffs[2:n-1,] = 2*coeffs[2:n-1];
+        return coeffs 
+    end
+end
+=#
+
+
 
 
 ichebyshevtransform(x)=ichebyshevtransform(x,plan_chebyshevtransform(x))
-function ichebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},plan::Function)
+function ichebyshevtransform{T<:Number}(x::Vector{T},plan::Function)
     if(length(x) == 1)
         x
     else

@@ -27,13 +27,26 @@ abstract IntervalDomain <: Domain
 ##TODO: Should fromcanonical be fromcanonical!?
 chebyshevroots(n::Integer)=[cos(π*k) for k=-1.+1/(2n):1/n:-1./(2n)]
 chebyshevpoints(n::Integer)= n==1?[0.]:[cos(1.π*k/(n-1)) for k = n-1:-1:0]
-points(d::IntervalDomain,n::Integer) =  n==1?[fromcanonical(d,0.)]:[fromcanonical(d,cos(1.π*k/(n-1))) for k = n-1:-1:0]
+points(d::IntervalDomain,n::Integer) = points(d,n,Float64)
+
+function points(d::IntervalDomain,n::Integer,numbertype::Type) 
+    T = numbertype
+
+    if n==1
+        return [fromcanonical(d,zero(T))]
+    else
+        _π = convert(T,π)
+        return [fromcanonical(d,cos(_π*k/(n-1))) for k = n-1:-1:0]  #TODO should ensure this array is of type T, but causes InexactError in tests
+    end
+end
+
 points(d::Vector,n::Integer)=points(Interval(d),n)
 bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 
 
 Base.first(d::IntervalDomain)=fromcanonical(d,-1.0)
 Base.last(d::IntervalDomain)=fromcanonical(d,1.0)
+
 
 function Base.in(x,d::IntervalDomain)
     y=tocanonical(d,x)
@@ -44,10 +57,11 @@ end
 
 abstract PeriodicDomain <: Domain
 
-points(d::PeriodicDomain,n::Integer) = fromcanonical(d, fourierpoints(n))
+points(d::PeriodicDomain,n::Integer) = points(d,n,Float64) 
+points(d::PeriodicDomain,n::Integer,numbertype::Type) = fromcanonical(d, fourierpoints(n,numbertype))
 
-
-fourierpoints(n::Integer)= 1.π*[-1.:2/n:1. - 2/n]
+fourierpoints(n::Integer) = fourierpoints(n,Float64)
+fourierpoints(n::Integer,numbertype::Type)= convert(numbertype,π)*[-1.:2/n:1. - 2/n]
 
 
 function Base.in(x,d::PeriodicDomain)

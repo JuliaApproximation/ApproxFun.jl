@@ -1,13 +1,12 @@
-Fun{T<:Union(Int64,Complex{Int64})}(coefs::Vector{T},d::FunctionSpace)=Fun(1.0*coefs,d)
+Fun(f::Function,d::DomainSpace,n::Integer) = Fun(f,d,n,Float64)
 
-
-function Fun(f::Function,d::DomainSpace,n::Integer)
-    pts=points(d,n)
+function Fun(f::Function,d::DomainSpace,n::Integer,numbertype::Type)
+    pts=points(d,n,numbertype)
     f1=f(pts[1])
     
 
     if isa(f1,Vector) && !isa(d,VectorDomainSpace) 
-        return Fun(f,VectorDomainSpace(d,length(f1)),n)
+        return Fun(f,VectorDomainSpace(d,length(f1)),n,numbertype)
     end
     
         
@@ -79,7 +78,9 @@ end
 #     Fun(f,d,2^21 + 1)
 # end
 
-function zerocfsFun(f::Function,d::DomainSpace)
+zerocfsFun(f::Function,d::DomainSpace) = zerocfsFun(f, d, Float64)
+
+function zerocfsFun(f::Function,d::DomainSpace,numbertype::Type)
     #TODO: reuse function values?
     f0=f(first(domain(d)))
 
@@ -87,41 +88,42 @@ function zerocfsFun(f::Function,d::DomainSpace)
         return zerocfsFun(f,VectorDomainSpace(d,length(f0)))
     end
 
-    tol = 200*eps()
+    tol = 200*eps(numbertype)
 
     r=rand(d)
     fr=f(r)
 
     for logn = 4:20
-        cf = Fun(f, d, 2^logn + 1)
+        cf = Fun(f, d, 2^logn + 1, numbertype)
         absc=abs(cf.coefficients)
         maxabsc=maximum(absc)
         
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
         if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  norm(cf[r]-fr)<1E-4  
-            return chop!(cf,10eps()*maxabsc)
+            return chop!(cf,10eps(numbertype)*maxabsc)
         end
     end
     
     warn("Maximum length reached")
     
-    Fun(f,d,2^21 + 1)
+    Fun(f,d,2^21 + 1, numbertype)
 end
 
 
 
+abszerocfsFun(f::Function,d::DomainSpace) = abszerocfsFun(f, d, Float64)
 
-function abszerocfsFun(f::Function,d::DomainSpace)
+function abszerocfsFun(f::Function,d::DomainSpace,numbertype::Type)
     #reuse function values
 
-    tol = 200eps();
+    tol = 200eps(numbertype);
 
     for logn = 4:20
-        cf = Fun(f, d, 2^logn + 1)
+        cf = Fun(f, d, 2^logn + 1,numbertype)
         
         if maximum(abs(cf.coefficients[end-8:end])) < tol
-            return chop!(cf,10eps())
+            return chop!(cf,10eps(numbertype))
         end
     end
     
@@ -131,17 +133,17 @@ function abszerocfsFun(f::Function,d::DomainSpace)
 end
 
 
-function Fun(f::Function, d::DomainSpace; method="zerocoefficients")
+function Fun(f::Function, d::DomainSpace; method="zerocoefficients", numbertype=Float64)
     if f==identity
         identity_fun(d)
     elseif f==zero # zero is always defined
-        zeros(Float64,d)
+        zeros(numbertype,d)
     elseif f==one
-        ones(Float64,d)
+        ones(numbertype,d)
     elseif method == "zerocoefficients"
-        zerocfsFun(f,d)
+        zerocfsFun(f,d,numbertype)
     elseif method == "abszerocoefficients"
-        abszerocfsFun(f,d)
+        abszerocfsFun(f,d,numbertype)
     else
         randomFun(f,d)    
     end
