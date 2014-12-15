@@ -1,5 +1,5 @@
 
-export samplecdf
+export samplecdf,normalizedcumsum!
 
 
 ##bisection inverse
@@ -150,6 +150,9 @@ function chebnormalizedcumsum!(f)
     subtract_zeroatleft!(f)
     multiply_oneatright!(f)
 end
+
+# For RandomMatrices compatibility
+normalizedcumsum!(f::Vector{Float64})=chebnormalizedcumsum!(f)
 
 ## Sampling
 
