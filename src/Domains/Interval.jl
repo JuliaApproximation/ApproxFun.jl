@@ -12,7 +12,6 @@ immutable Interval{T<:Number} <: IntervalDomain
 end
 
 Interval()=Interval(-1.,1.)
-Interval(a::Int,b::Int) = Interval(float64(a),float64(b))   #convenience method
 
 function Interval{T<:Number}(d::Vector{T})
     @assert length(d) >1
@@ -46,32 +45,12 @@ Base.last(d::Interval)=d.b
 ## Map interval
 
 
-#TODO dont know why a union type isn't sufficient to collapse these
-tocanonical{T}(d::Interval{T},x::T)=(d.a + d.b - 2x)/(d.a - d.b)
-tocanonicalD{T}(d::Interval{T},x::T)=2/( d.b- d.a)
-fromcanonical{T}(d::Interval{T},x::T)=(d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonicalD{T}(d::Interval{T},x::T)=( d.b- d.a) / 2
 
-tocanonical{T}(d::Interval{T},x::Array{T})=(d.a + d.b - 2x)/(d.a - d.b)
-tocanonicalD{T}(d::Interval{T},x::Array{T})=2/( d.b- d.a)
-fromcanonical{T}(d::Interval{T},x::Array{T})=(d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonicalD{T}(d::Interval{T},x::Array{T})=( d.b- d.a) / 2
+tocanonical(d::Interval,x)=(d.a + d.b - 2x)/(d.a - d.b)
+tocanonicalD(d::Interval,x)=2/( d.b- d.a)
+fromcanonical(d::Interval,x)=.5*(d.a + d.b) + .5*(d.b - d.a)x
+fromcanonicalD(d::Interval,x)=.5*( d.b- d.a)
 
-
-#possibly a bug prevents me from properly dispatching on x (https://groups.google.com/forum/#!topic/julia-users/_paVdB2wy5k)
-for op in (:tocanonical, :tocanonicalD, :fromcanonical, :fromcanonicalD)
-    @eval begin 
-        function $op{T}(d::Interval{T},x)  
-            if typeof(x) <: Array
-                return $op(d,convert(Array{T,},x))
-            elseif typeof(x) <: Number
-                return $op(d,convert(T,x))
-            else
-                error("Don't know what to do with type: $(typeof(x))")
-            end
-        end
-    end
-end
 
 
 Base.length(d::Interval) = abs(d.b - d.a)

@@ -27,8 +27,7 @@ end
 domain(::AnySpace)=AnyDomain()
 
 #TODO: should it default to canonicalspace?
-points(d::DomainSpace,n)=points(d,n,Float64)
-points(d::DomainSpace,n,numbertype::Type)=points(domain(d),n,numbertype)
+points(d::DomainSpace,n)=points(domain(d),n)
 
 
 
