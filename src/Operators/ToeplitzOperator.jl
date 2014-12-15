@@ -91,6 +91,12 @@ type LaurentOperator{T<:Number} <: BandedShiftOperator{T}
 end
 
 
-shiftaddentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)=laurent_addentries!(T.coefficients,A,kr)
-shiftbandinds(T::LaurentOperator)=firstindex(T.coefficients),lastindex(T.coefficients)
+function shiftaddentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)
+    if length(T.coefficients)>0
+        laurent_addentries!(T.coefficients,A,kr)
+    else
+        A
+    end
+end
+shiftbandinds(T::LaurentOperator)=length(T.coefficients)==0?(0,0):(firstindex(T.coefficients),lastindex(T.coefficients))
 
