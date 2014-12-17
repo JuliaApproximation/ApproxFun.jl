@@ -21,7 +21,7 @@ u=L\f
 
 
 #The second test checks the solution of the integro-differential equation
-# u'(x) + x u(x) + \int_{-1}^{+1} sin(y-x) u(y) \sqrt{4-y^2} dy = f
+# u'(x) + x u(x) + \int_{-2}^{+2} sin(y-x) u(y) \sqrt{4-y^2} dy = f
 # on the interval [-2,2], with u(-2) = 1.
 
 x=Fun(identity,[-2.,2.])
