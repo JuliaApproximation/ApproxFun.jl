@@ -208,9 +208,9 @@ end
 # op(K,f) acts as operating in the y variable.
 
 for op = (:*,:.*,:./,:/)
-    @eval ($op)(f::Fun,A::Array{Fun,1})=map(a->($op)(f,a),A)
+    @eval ($op){S,T,U,V}(f::Fun{S,T},A::Vector{Fun{U,V}})=map(a->($op)(f,a),A)
     @eval ($op)(f::Fun,K::LowRankFun) = LowRankFun(($op)(f,K.A),K.B)
-    @eval ($op)(B::Array{Fun,1},f::Fun)=map(b->($op)(b,f),B)
+    @eval ($op){S,T,U,V}(B::Vector{Fun{U,V}},f::Fun{S,T})=map(b->($op)(b,f),B)
     @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op)(K.B,f))
 end
 
