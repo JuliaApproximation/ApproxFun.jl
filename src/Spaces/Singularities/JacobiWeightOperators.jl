@@ -233,15 +233,26 @@ end
 
 ## Σ
 
-function addentries!(S::Σ{JacobiWeightSpace{ChebyshevSpace}},A::ShiftArray,kr::Range1)
-    d=domain(S)
+#function Base.getindex{T,λ}(S::Σ{T,JacobiWeightSpace{UltrasphericalSpace{λ}},UltrasphericalSpace{λ}},f::Fun{JacobiWeightSpace{UltrasphericalSpace{λ}},T})
+#
+#    @assert domain(f) == domain(S)
+#    dsp,rsp = domainspace(S),rangespace(S)
+#    sp = space(f)
+#    newdomainspace = canonicalspace(JacobiWeightSpace(λ-.5-sp.α,λ-.5-sp.β,domain(S)))
+#    
+#    SpaceOperator(S*Multiplication(f,newdomainspace),newdomainspace,rsp)
+#end
+
+function addentries!{T,λ}(S::Σ{T,JacobiWeightSpace{UltrasphericalSpace{λ}},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+    dsp,rsp = domainspace(S),rangespace(S)
+    d = domain(S)
     @assert isa(d,Interval)
-    @assert domainspace(S).α==domainspace(S).β==-0.5   
+    @assert dsp.α==dsp.β==λ-0.5
     
+    C = .5(d.b-d.a)
     for k=kr
-        k == 1? A[k,0] += 1.0 : A[k,0] += 0.0
+        k == 1? A[k,0] += C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : A[k,0] += zero(T)
     end
     
     A
 end
-
