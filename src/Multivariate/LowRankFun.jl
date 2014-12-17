@@ -195,14 +195,24 @@ Base.chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,to
 
 
 
-## Algraba
-
+## Algebra
 
 for op = (:*,:.*,:./,:/)
     @eval ($op){T<:Fun}(A::Array{T,1},c::Number)=map(f->($op)(f,c),A)
     @eval ($op)(f::LowRankFun,c::Number) = LowRankFun(($op)(f.A,c),f.B)
     @eval ($op)(c::Number,f::LowRankFun) = LowRankFun(($op)(c,f.A),f.B)
-end 
+end
+
+# Let K be a LowRankFun and f be a Fun.
+# op(f,K) acts as operating in the x variable, and
+# op(K,f) acts as operating in the y variable.
+
+for op = (:*,:.*,:./,:/)
+    @eval ($op)(f::Fun,A::Array{Fun,1})=map(a->($op)(f,a),A)
+    @eval ($op)(f::Fun,K::LowRankFun) = LowRankFun(($op)(f,K.A),K.B)
+    @eval ($op)(B::Array{Fun,1},f::Fun)=map(b->($op)(b,f),B)
+    @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op)(K.B,f))
+end
 
 +(f::LowRankFun,g::LowRankFun)=LowRankFun([f.A,g.A],[f.B,g.B])
 -(f::LowRankFun)=LowRankFun(-f.A,f.B)
