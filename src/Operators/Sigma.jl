@@ -17,6 +17,7 @@ end
 function Σ(α::Number,β::Number,d::IntervalDomain)
     @assert α == β
     @assert int(α+.5) == α+.5
+    @assert int(α+.5) >= 0
     Σ(JacobiWeightSpace(α,β,UltrasphericalSpace{int(α+.5)}(d)),UltrasphericalSpace{int(α+.5)}(d))
 end
 Σ(α::Number,β::Number) = Σ(α,β,Interval())
