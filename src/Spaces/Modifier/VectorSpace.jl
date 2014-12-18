@@ -125,8 +125,11 @@ canonicalspace(sp::PiecewiseSpace)=PiecewiseSpace(map(canonicalspace,sp.spaces))
 for op in (:maxspace,:minspace)
     @eval begin
         function $op(f::PiecewiseSpace,g::PiecewiseSpace)
-            @assert length(f)==length(g)
-            PiecewiseSpace([$op(f[k],g[k]) for k=1:length(f)])
+            if domain(f)==domain(g)
+                PiecewiseSpace([$op(f[k],g[k]) for k=1:length(f)])
+            else
+                NoSpace()
+            end
         end
     end
 end

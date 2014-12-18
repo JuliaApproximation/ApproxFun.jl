@@ -172,7 +172,7 @@ spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpa
 # end
 
 function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
-    ct=conversion_type(a,b)
+    ct=minspace(a,b)
 
     if spacescompatible(a,b)
         f
@@ -186,7 +186,7 @@ function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
         if spacescompatible(a,csp)# a is csp, so try b
             csp=canonicalspace(b)  
         end    
-        if spacescompatible(b,csp)# b is csp too, so we are stuck, try Fun constructor
+        if spacescompatible(a,csp)||spacescompatible(b,csp)# b is csp too, so we are stuck, try Fun constructor
             coefficients(Fun(x->Fun(f,a)[x],b))
         else
             spaceconversion(f,a,csp,b)

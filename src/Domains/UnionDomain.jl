@@ -14,6 +14,8 @@ for op in (:(Base.first),:(Base.last))
     @eval $op(d::UnionDomain)=d.domains|>$op|>$op
 end
 
+==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
+
 function points(d::UnionDomain,n)
    k=div(n,length(d))
     r=n-length(d)*k

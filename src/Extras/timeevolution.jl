@@ -172,11 +172,13 @@ function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::(MultivariateF
     u1,u2=uin
     u3 =SBE\[bcs,2u2-u1]
     u4 =2u3 - u2 +h^2*g(u3)
+    u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
+    plot(pad(u4,80,80),glp...)#updates window                
 
     for k=1:m
-        u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
-        u4,u3,u2,u1  = 2u4 - u3 +h^2*g(u4),u4,u3,u2
-        plot(pad(u4,80,80),glp...)#updates window
+        u4,u3,u2,u1  = chop(2u4 - u3 +h^2*g(u4),1000eps()),u4,u3,u2    
+        u4,u3,u2,u1  = chop(SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
+        plot(pad(u4,80,80),glp...)#updates window               
     end    
 end
 

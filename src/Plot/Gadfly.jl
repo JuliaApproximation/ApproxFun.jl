@@ -15,6 +15,18 @@ function gadflyplot{T<:Real}(xx::Vector{T},yy::Vector;axis=-1)
     end    
 end
 
+function gadflylayer{T<:Real}(xx::Vector{T},yy::Vector;axis=-1)
+    require("Gadfly")
+    if axis==-1
+        Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path)
+    elseif length(axis)==2
+        Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path, Main.Gadfly.Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))
+    else #length(axis)==4
+        Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path, Main.Gadfly.Scale.x_continuous(minvalue=axis[1],maxvalue=axis[2]),Main.Gadfly.Scale.y_continuous(minvalue=axis[3],maxvalue=axis[4]))    
+    end    
+end
+
+
 function gadflyplot{T<:Complex}(xx::Vector{T},yy::Vector;opts...)
     warn("Complex domain, projecting to real axis")
     gadflyplot(real(xx),yy;opts...)

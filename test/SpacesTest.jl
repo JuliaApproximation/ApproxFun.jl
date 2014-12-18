@@ -42,3 +42,8 @@ u=[dirichlet(sp),
     D^2-x]\[airyai(-10.)];
     
 @test_approx_eq u[0.] airyai(0.)
+
+s=Fun(sin,[-2.,2.])|>abs
+c=Fun(cos,[-2.,2.])|>abs
+@test norm(Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])-(c+s))<100eps()
+
