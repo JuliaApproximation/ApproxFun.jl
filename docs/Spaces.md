@@ -1,12 +1,29 @@
 
-This document specifies what spaces should implement.
 
-For construction:
+
+# Construction:
 
 transform
 points
 
-For convert:
+# Plotting:
 
+itransform
+
+# Evaluation:
+
+evaluate
+
+
+# Conversion:
+
+spacescompatible
+canonicalspace 
 Base.ones
+spaceconversion
 
+
+
+# Calculus
+
+integrate

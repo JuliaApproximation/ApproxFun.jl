@@ -1,4 +1,4 @@
-export Evaluation
+export Evaluation,ivp
 
 ## Evaluation constructors
 
@@ -60,13 +60,15 @@ ldiffbc(d,k) = Evaluation(d,false,k)
 rdiffbc(d,k) = Evaluation(d,true,k)
 
 
+ivp(d)=[ldirichlet(d),lneumann(d)]
 dirichlet(d)=[ldirichlet(d),rdirichlet(d)]
 neumann(d)=[lneumann(d),rneumann(d)]
 diffbcs(d,k) = [ldiffbc(d,k),rdiffbc(d,k)]
 periodic(d,k) = [Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
 
 
-for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann)
+
+for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann,:ivp)
     @eval begin
         $op()=$op(AnySpace())
         $op(::PeriodicDomain)=[] 

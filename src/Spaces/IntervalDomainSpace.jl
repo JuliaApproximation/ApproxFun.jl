@@ -50,3 +50,16 @@ function periodic{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
 end
 
 
+
+function ivp{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
+    m=length(d)
+    B=zeros(Functional,2m,m)
+    B[1:2,1]=ivp(d[1])
+    for k=1:m-1
+        B[k+2,k]=dirichlet(d[k])[2]
+        B[k+2,k+1]=-dirichlet(d[k+1])[1]    
+        B[k+m+1,k]=neumann(d[k])[2]
+        B[k+m+1,k+1]=-neumann(d[k+1])[1]        
+    end
+    B
+end

@@ -15,7 +15,7 @@ function Conversion(f::PiecewiseSpace,g::PiecewiseSpace)
     ConversionWrapper(DiagonalInterlaceOperator(Operator[Conversion(f[k],g[k]) for k=1:length(f)]))
 end
 
-for op in (:dirichlet,:neumann)
+for op in (:dirichlet,:neumann,:ivp)
     @eval $op(d::PiecewiseSpace)=interlace($op(d.spaces))
     @eval $op(d::UnionDomain)=interlace($op(d.domains))
 end
