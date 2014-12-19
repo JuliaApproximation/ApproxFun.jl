@@ -2,7 +2,7 @@
 # represents function of the form r^m g(r^2)
 # as r^m P^{.5+a,b-.5}(r^2)
 
-immutable JacobiSquareSpace <: IntervalDomainSpace
+immutable JacobiSquareSpace <: IntervalSpace
     m::Int
     a::Int
     b::Int

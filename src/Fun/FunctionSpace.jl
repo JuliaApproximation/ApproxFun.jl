@@ -1,33 +1,32 @@
 
-abstract FunctionSpace{T}
-
-##TODO: Confusing: two uses of domain
-
- # T tells whether the basis is real (cos/sin) or complex
-abstract DomainSpace{T,D<:Domain} <: FunctionSpace{T}
-
-
-
 
 export FunctionSpace, ChebyshevSpace, domainspace, rangespace, maxspace, minspace,Space
 
 
-immutable ConstantSpace <: FunctionSpace{Float64}
+# T tells whether the basis is real (cos/sin) or complex
+# D tells what canonical domain is (Interval/PeriodicInterval)
+abstract FunctionSpace{T,D}
+
+
+
+
+domain{T,D<:AnyDomain}(::FunctionSpace{T,D})=AnyDomain()
+immutable ConstantSpace <: FunctionSpace{Float64,AnyDomain}
 end
 
-domain(::ConstantSpace)=AnyDomain()
 
 
-immutable AnySpace <: FunctionSpace{Float64}
+
+immutable AnySpace <: FunctionSpace{Float64,AnyDomain}
 end
 
-immutable NoSpace <: FunctionSpace{Float64}
+immutable NoSpace <: FunctionSpace{Float64,AnyDomain}
 end
 
-domain(::AnySpace)=AnyDomain()
+
 
 #TODO: should it default to canonicalspace?
-points(d::DomainSpace,n)=points(domain(d),n)
+points(d::FunctionSpace,n)=points(domain(d),n)
 
 
 
@@ -36,9 +35,9 @@ points(d::DomainSpace,n)=points(domain(d),n)
 domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() || domain(a) == domain(b)
 
 #Check whether spaces are the same, override when you need to check parameters
-spacescompatible{D<:DomainSpace}(f::D,g::D)=domainscompatible(f,g) 
+spacescompatible{D<:FunctionSpace}(f::D,g::D)=domainscompatible(f,g) 
 spacescompatible(f,g)=false
-==(A::DomainSpace,B::DomainSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
+==(A::FunctionSpace,B::FunctionSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
 
 
 # check a list of spaces for compatibility
@@ -53,12 +52,12 @@ end
 
 
 
-domain(A::DomainSpace)=A.domain # assume it has a field domain
+domain(A::FunctionSpace)=A.domain # assume it has a field domain
 
 
 
 for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD)
-    @eval ($op)(sp::DomainSpace,x)=$op(domain(sp),x)
+    @eval ($op)(sp::FunctionSpace,x)=$op(domain(sp),x)
 end
 
 
@@ -226,7 +225,7 @@ spacescompatible{d}(::VectorSpace{d},::VectorSpace{d})=true
 
 ## rand
 
-Base.rand(d::DomainSpace)=rand(domain(d))
+Base.rand(d::FunctionSpace)=rand(domain(d))
 
 
 

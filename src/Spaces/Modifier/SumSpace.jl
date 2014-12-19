@@ -3,18 +3,18 @@ export ⊕
 ## SumSpace{T,S,V} encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-immutable SumSpace{S<:DomainSpace,V<:DomainSpace,T<:Number,D<:Domain} <: DomainSpace{T,D}
+immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T<:Number,D<:Domain} <: FunctionSpace{T,D}
     spaces::(S,V)
     SumSpace(d::Domain)=new((S(d),V(d)))
     SumSpace(sp::(S,V))=new(sp)
 end
 
-function SumSpace{T<:Number,D}(A::(DomainSpace{T,D},DomainSpace{T,D}))
+function SumSpace{T<:Number,D}(A::(FunctionSpace{T,D},FunctionSpace{T,D}))
     @assert domain(A[1])==domain(A[2])
     SumSpace{typeof(A[1]),typeof(A[2]),T,D}(A)
 end
 
-SumSpace(A::DomainSpace,B::DomainSpace)=SumSpace((A,B))
+SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
 
 
 typealias PeriodicSumSpace{S,V,T} SumSpace{S,V,T,PeriodicInterval}
@@ -23,7 +23,7 @@ typealias IntervalSumSpace{S,V,T} SumSpace{S,V,T,Interval}
 
 
 
-⊕(A::DomainSpace,B::DomainSpace)=SumSpace(A,B)
+⊕(A::FunctionSpace,B::FunctionSpace)=SumSpace(A,B)
 ⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
 
 

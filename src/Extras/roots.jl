@@ -1,7 +1,7 @@
 ## Root finding
 
 
-complexroots{D<:IntervalDomainSpace}(f::Fun{D})=fromcanonical(f,colleague_eigvals(f.coefficients))
+complexroots{D<:IntervalSpace}(f::Fun{D})=fromcanonical(f,colleague_eigvals(f.coefficients))
 
 #function roots(f::Fun)
 #    irts=map(real,filter!(x->abs(x)<=1.+10eps(),filter!#(isreal,complexroots(f.coefficients))))
@@ -143,7 +143,7 @@ function extremal_args{S<:PiecewiseSpace}(f::Fun{S})
     return cat(1,[extremal_args(fp) for fp in vec(f)]...)
 end
 
-function extremal_args{S<:IntervalDomainSpace,T}(f::Fun{S,T})
+function extremal_args{S<:IntervalSpace,T}(f::Fun{S,T})
     d=domain(f)
     da,db=first(d),last(d)
     if length(f) <=2 #TODO this is only relevant for Polynomial bases 

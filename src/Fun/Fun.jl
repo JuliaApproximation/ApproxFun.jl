@@ -26,14 +26,14 @@ coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 
 
 
-Base.convert{T<:Number,S<:DomainSpace}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
+Base.convert{T<:Number,S<:FunctionSpace}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
 Base.convert{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},f::Fun{S,T})=Fun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
 Base.promote_rule{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},::Type{Fun{S,T}})=Fun{S,Complex{Float64}}
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=IF
 
 
-Base.zero{T,S<:DomainSpace}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
-Base.one{T,S<:DomainSpace}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
+Base.zero{T,S<:FunctionSpace}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
+Base.one{T,S<:FunctionSpace}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
 for op in (:(Base.zeros),:(Base.ones))
     @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
 end
@@ -184,7 +184,7 @@ end
 import Base.imag, Base.real, Base.conj
 
 for op = (:real,:imag,:conj) 
-    @eval ($op){T,D<:DomainSpace{Float64}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
+    @eval ($op){T,D<:FunctionSpace{Float64}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 
 Base.abs2{S}(f::Fun{S,Float64})=f.^2

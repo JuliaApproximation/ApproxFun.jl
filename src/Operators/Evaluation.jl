@@ -11,7 +11,7 @@ immutable Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Abstra
     order::Int
 end
 Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,Float64}(sp,x,k)
-Evaluation{M,T<:Number}(sp::DomainSpace{T},x::M,order::Integer)=Evaluation{typeof(sp),M,T}(sp,x,order)
+Evaluation{M,T<:Number}(sp::FunctionSpace{T},x::M,order::Integer)=Evaluation{typeof(sp),M,T}(sp,x,order)
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)

@@ -2,21 +2,21 @@
 
 export devec
 
-immutable VectorDomainSpace{n,S,T} <: DomainSpace{T}
+immutable VectorFunctionSpace{n,S,T,D<:Domain} <: FunctionSpace{T,D}
      space::S     
 #      # for AnyDomain() usage
-    VectorDomainSpace(sp::S)=new(sp)
-    VectorDomainSpace(d::Domain)=new(S(d))
+    VectorFunctionSpace(sp::S)=new(sp)
+    VectorFunctionSpace(d::Domain)=new(S(d))
  end
 
-VectorDomainSpace{T}(S::DomainSpace{T},n)=VectorDomainSpace{n,typeof(S),T}(S)
-Base.length{n}(::VectorDomainSpace{n})=n
+VectorFunctionSpace{T,D}(S::FunctionSpace{T,D},n)=VectorFunctionSpace{n,typeof(S),T,D}(S)
+Base.length{n}(::VectorFunctionSpace{n})=n
 
-domain(S::VectorDomainSpace)=domain(S.space)
-transform(S::VectorDomainSpace,vals::Vector)=transform!(S,hcat(vals...).')
+domain(S::VectorFunctionSpace)=domain(S.space)
+transform(S::VectorFunctionSpace,vals::Vector)=transform!(S,hcat(vals...).')
 
 
-function transform!{n}(S::VectorDomainSpace{n},M::Array)
+function transform!{n}(S::VectorFunctionSpace{n},M::Array)
     @assert size(M,2)==n
     for k=1:size(M,2)
         M[:,k]=transform(S.space,M[:,k])
@@ -24,12 +24,12 @@ function transform!{n}(S::VectorDomainSpace{n},M::Array)
     vec(M.')
 end
 
-Base.vec{n,S<:DomainSpace,V,T}(f::Fun{VectorDomainSpace{n,S,V},T})=Fun{S,T}[Fun(f.coefficients[j:n:end],f.space.space) for j=1:n]
+Base.vec{n,S<:FunctionSpace,V,T,D<:Domain}(f::Fun{VectorFunctionSpace{n,S,V,D},T})=Fun{S,T}[Fun(f.coefficients[j:n:end],f.space.space) for j=1:n]
 
-evaluate{V<:VectorDomainSpace,T}(f::Fun{V,T},x)=evaluate(vec(f),x)
+evaluate{V<:VectorFunctionSpace,T}(f::Fun{V,T},x)=evaluate(vec(f),x)
 
 
-# Base.ones{T<:Number,n}(::Type{T},S::VectorDomainSpace{n})=Fun(ones(T,n),S)
+# Base.ones{T<:Number,n}(::Type{T},S::VectorFunctionSpace{n})=Fun(ones(T,n),S)
 
 
 
@@ -40,7 +40,7 @@ evaluate{V<:VectorDomainSpace,T}(f::Fun{V,T},x)=evaluate(vec(f),x)
 
 function devec{F<:Fun}(v::Vector{F})
     if spacescompatible(map(space,v))
-        Fun(vec(coefficients(v).'),VectorDomainSpace(space(first(v)),length(v)))
+        Fun(vec(coefficients(v).'),VectorFunctionSpace(space(first(v)),length(v)))
     else
         Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
     end
@@ -51,16 +51,16 @@ devec(v::Vector{Any})=devec([v...])
 function devec{S<:FunctionSpace}(spl::Vector{S})
     #TODO: Redesign
     if spacescompatible(spl)
-        VectorDomainSpace(first(spl),length(spl))
+        VectorFunctionSpace(first(spl),length(spl))
     else
         PiecewiseSpace(spl)
     end
 end
 
-Base.vec{n}(S::VectorDomainSpace{n})=fill(S.space,n)
+Base.vec{n}(S::VectorFunctionSpace{n})=fill(S.space,n)
 
 
-Base.cumsum{V<:VectorDomainSpace}(f::Fun{V})=devec(map(cumsum,vec(f)))
+Base.cumsum{V<:VectorFunctionSpace}(f::Fun{V})=devec(map(cumsum,vec(f)))
 
 
 
@@ -71,7 +71,7 @@ Base.cumsum{V<:VectorDomainSpace}(f::Fun{V})=devec(map(cumsum,vec(f)))
 
 
 
-function spaceconversion{n}(f::Vector,a::VectorDomainSpace{n},b::VectorDomainSpace{n})
+function spaceconversion{n}(f::Vector,a::VectorFunctionSpace{n},b::VectorFunctionSpace{n})
     A=a.space;B=b.space
     ret=copy(f)
     for k=1:n
@@ -89,8 +89,8 @@ end
 Fun{T<:Number}(M::Array{T,2},sp::FunctionSpace)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
 
 
-#There's no MatrixDomainSpace Yet
-function Fun{T<:Number,n,S,Q}(M::Array{T,2},sp::VectorDomainSpace{n,S,Q})
+#There's no MatrixFunctionSpace Yet
+function Fun{T<:Number,n,S,Q}(M::Array{T,2},sp::VectorFunctionSpace{n,S,Q})
     ret=Array(Fun{S,promote_type(Q,T)},n,size(M,2))
     for k=1:size(M,2)
         ret[:,k]=vec(Fun(M[:,k],sp))

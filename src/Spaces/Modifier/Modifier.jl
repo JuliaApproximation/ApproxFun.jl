@@ -1,5 +1,6 @@
 include("SumSpace.jl")
 include("VectorSpace.jl")
+include("ArraySpace.jl")
 include("PiecewiseSpace.jl")
 include("ProductSpaceOperators.jl")
 include("ReImSpace.jl")

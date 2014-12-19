@@ -1,6 +1,6 @@
 export JacobiSpace,LegendreSpace
 
-immutable JacobiSpace <: IntervalDomainSpace
+immutable JacobiSpace <: IntervalSpace
     a::Float64
     b::Float64
     domain::Union(IntervalDomain,AnyDomain)

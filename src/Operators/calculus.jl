@@ -103,7 +103,7 @@ end
 
 ## Convenience routines
 
-Base.diff(d::DomainSpace,μ::Integer)=Derivative(d,μ)
+Base.diff(d::FunctionSpace,μ::Integer)=Derivative(d,μ)
 Base.diff(d::Domain,μ::Integer)=Derivative(d,μ)
 Base.diff(d::Domain)=Base.diff(d,1)
 

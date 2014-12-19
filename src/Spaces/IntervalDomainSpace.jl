@@ -1,10 +1,10 @@
 
-typealias IntervalDomainSpace  DomainSpace{Float64,Interval}     # We assume basis is real
-canonicaldomain{T<:IntervalDomainSpace}(::Type{T})=Interval()
+typealias IntervalSpace  FunctionSpace{Float64,Interval}     # We assume basis is real
+canonicaldomain{T<:IntervalSpace}(::Type{T})=Interval()
 
 ## Evaluation
 
-function dirichlet{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
+function dirichlet{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
     m=length(d)
     B=zeros(Functional,2m,m)
     B[1,1]=dirichlet(d[1])[1]
@@ -18,7 +18,7 @@ function dirichlet{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
     B
 end
 
-function neumann{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
+function neumann{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
     m=length(d)
     B=zeros(Functional,2m,m)
     B[1,1]=neumann(d[1])[1]
@@ -32,7 +32,7 @@ function neumann{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
     B
 end
 
-function periodic{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
+function periodic{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
     m=length(d)
     B=zeros(Functional,2m,m)
     B[1,1]=dirichlet(d[1])[1]
@@ -51,7 +51,7 @@ end
 
 
 
-function ivp{T<:Union(IntervalDomain,IntervalDomainSpace)}(d::Vector{T})
+function ivp{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
     m=length(d)
     B=zeros(Functional,2m,m)
     B[1:2,1]=ivp(d[1])

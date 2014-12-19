@@ -186,6 +186,6 @@ Base.sqrt{S,T}(f::Fun{S,T})=f^0.5
 ## The following backslash code works for real arguments but fails for complex Funs.
 
 
-Base.cos{S<:DomainSpace{Float64},T<:Real}(f::Fun{S,T})=real(exp(im*f))
-Base.sin{S<:DomainSpace{Float64},T<:Real}(f::Fun{S,T})=imag(exp(im*f))
+Base.cos{S<:FunctionSpace{Float64},T<:Real}(f::Fun{S,T})=real(exp(im*f))
+Base.sin{S<:FunctionSpace{Float64},T<:Real}(f::Fun{S,T})=imag(exp(im*f))
 

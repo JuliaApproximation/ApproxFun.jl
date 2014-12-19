@@ -135,7 +135,7 @@ function Multiplication{D,T}(f::Fun{D,T},S::JacobiWeightSpace)
     )
 end
 
-function Multiplication{D<:JacobiWeightSpace,T}(f::Fun{D,T},S::IntervalDomainSpace)
+function Multiplication{D<:JacobiWeightSpace,T}(f::Fun{D,T},S::IntervalSpace)
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
     MultiplicationWrapper(
         f,
@@ -149,8 +149,8 @@ end
 
 maxspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
 minspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(max(A.α,B.α),max(A.β,B.β),minspace(A.space,B.space))
-maxspace(A::IntervalDomainSpace,B::JacobiWeightSpace)=maxspace(JacobiWeightSpace(0.,0.,A),B)
-maxspace(A::JacobiWeightSpace,B::IntervalDomainSpace)=maxspace(A,JacobiWeightSpace(0.,0.,B))
+maxspace(A::IntervalSpace,B::JacobiWeightSpace)=maxspace(JacobiWeightSpace(0.,0.,A),B)
+maxspace(A::JacobiWeightSpace,B::IntervalSpace)=maxspace(A,JacobiWeightSpace(0.,0.,B))
 
 isapproxinteger(x)=isapprox(x,int(x))
 

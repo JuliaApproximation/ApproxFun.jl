@@ -2,21 +2,21 @@
 # Piecewise Space
 ############
 
-immutable PiecewiseSpace{S<:DomainSpace,T} <: DomainSpace{T}
+immutable PiecewiseSpace{S<:FunctionSpace,T} <: FunctionSpace{T,UnionDomain}
     spaces::Vector{S} 
     PiecewiseSpace(::AnyDomain)=new(S[S(AnyDomain())])
     PiecewiseSpace(sp::Vector{S})=new(sp)
 end
 PiecewiseSpace(sp::Vector{Any})=PiecewiseSpace([sp...])
-PiecewiseSpace{S,T}(::DomainSpace{T},spaces::Vector{S})=PiecewiseSpace{S,T}(spaces)
+PiecewiseSpace{S,T}(::FunctionSpace{T},spaces::Vector{S})=PiecewiseSpace{S,T}(spaces)
 PiecewiseSpace(spaces)=PiecewiseSpace(first(spaces),spaces)
 Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))
 domain(S::PiecewiseSpace)=UnionDomain(map(domain,S.spaces))
 Base.length(S::PiecewiseSpace)=S.spaces|>length
 Base.getindex(d::PiecewiseSpace,k)=d.spaces[k]
 
-Base.vec{S<:DomainSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T},j::Integer)=Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j])
-Base.vec{S<:DomainSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=Fun{S,T}[vec(f,j) for j=1:length(f.space)]
+Base.vec{S<:FunctionSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T},j::Integer)=Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j])
+Base.vec{S<:FunctionSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=Fun{S,T}[vec(f,j) for j=1:length(f.space)]
 depiece{F<:Fun}(v::Vector{F})=Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
 depiece(v::Vector{Any})=depiece([v...])
 
@@ -113,7 +113,7 @@ Base.vec(S::PiecewiseSpace)=S.spaces
 ## cumsum
 
 for op in (:differentiate,:integrate)
-    @eval $op{V<:Union(VectorDomainSpace,PiecewiseSpace)}(f::Fun{V})=devec(map($op,vec(f)))
+    @eval $op{V<:Union(VectorFunctionSpace,PiecewiseSpace)}(f::Fun{V})=devec(map($op,vec(f)))
 end
 
 function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
@@ -130,7 +130,7 @@ end
 ## Conversion
 
 
-function spaceconversion{n}(f::Vector,a::VectorDomainSpace{n},b::PiecewiseSpace)
+function spaceconversion{n}(f::Vector,a::VectorFunctionSpace{n},b::PiecewiseSpace)
     A=a.space
     @assert n==length(b.spaces)
     ret=copy(f)

@@ -1,7 +1,7 @@
 # DirichletSpaces
 
 
-immutable ChebyshevDirichletSpace{left,right} <: IntervalDomainSpace
+immutable ChebyshevDirichletSpace{left,right} <: IntervalSpace
     domain::Union(IntervalDomain,AnyDomain)
     ChebyshevDirichletSpace(d)=new(d)
     ChebyshevDirichletSpace()=new(Interval())    

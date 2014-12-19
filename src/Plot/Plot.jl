@@ -179,12 +179,12 @@ plot(f::MultivariateFun,obj,window)=glsurfupdate(real(values(f)),obj,window)
 
 
 
-function plot{S<:IntervalDomainSpace,V<:PeriodicDomainSpace}(f::AbstractProductFun{S,V})
+function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::AbstractProductFun{S,V})
     Px,Py=points(f)
     vals=real(values(f))
     surf([Px Px[:,1]], [Py Py[:,1]], [vals vals[:,1]])
 end
-function plot{S<:IntervalDomainSpace,V<:PeriodicDomainSpace}(f::AbstractProductFun{S,V},obj,window)
+function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::AbstractProductFun{S,V},obj,window)
     vals=real(values(f))
     glsurfupdate([vals vals[:,1]],obj,window)
 end

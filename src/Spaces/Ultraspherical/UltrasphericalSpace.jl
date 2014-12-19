@@ -5,7 +5,7 @@ export UltrasphericalSpace
 
 
 
-immutable UltrasphericalSpace{O} <: IntervalDomainSpace
+immutable UltrasphericalSpace{O} <: IntervalSpace
     domain::Union(Interval,AnyDomain)
     UltrasphericalSpace(d)=new(d)
     UltrasphericalSpace()=new(Interval())
@@ -35,8 +35,8 @@ Base.ones{O}(S::UltrasphericalSpace{O})=Fun(ones(1),S)
 
 
 #This can be overriden, but the default is to use Chebyshev
-# transform(sp::IntervalDomainSpace,vals::Vector)=spaceconversion(chebyshevtransform(vals),ChebyshevSpace(domain(sp)),sp)
-# itransform(sp::IntervalDomainSpace,cfs::Vector)=ichebyshevtransform(spaceconversion(cfs,sp,ChebyshevSpace(domain(sp))))
+# transform(sp::IntervalSpace,vals::Vector)=spaceconversion(chebyshevtransform(vals),ChebyshevSpace(domain(sp)),sp)
+# itransform(sp::IntervalSpace,cfs::Vector)=ichebyshevtransform(spaceconversion(cfs,sp,ChebyshevSpace(domain(sp))))
 
 
 

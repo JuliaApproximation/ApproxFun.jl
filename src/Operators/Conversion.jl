@@ -6,8 +6,8 @@ immutable Conversion{S<:FunctionSpace,V<:FunctionSpace,T<:Number} <: AbstractCon
     domainspace::S
     rangespace::V
 end
-# Conversion{S<:PeriodicDomainSpace,V<:PeriodicDomainSpace}(A::S,B::V)=Conversion{S,V,Complex{Float64}}(A,B)
-# Conversion{S<:IntervalDomainSpace,V<:IntervalDomainSpace}(A::S,B::V)=Conversion{S,V,Float64}(A,B)
+# Conversion{S<:PeriodicFunctionSpace,V<:PeriodicFunctionSpace}(A::S,B::V)=Conversion{S,V,Complex{Float64}}(A,B)
+# Conversion{S<:IntervalFunctionSpace,V<:IntervalFunctionSpace}(A::S,B::V)=Conversion{S,V,Float64}(A,B)
 
 domainspace(C::Conversion)=C.domainspace
 rangespace(C::Conversion)=C.rangespace
@@ -15,7 +15,7 @@ rangespace(C::Conversion)=C.rangespace
 
 
 #TODO: Periodic
-function Conversion{T,V}(a::DomainSpace{T},b::DomainSpace{V})
+function Conversion{T,V}(a::FunctionSpace{T},b::FunctionSpace{V})
     if a==b
         IdentityOperator()
     elseif conversion_type(a,b)==NoSpace()

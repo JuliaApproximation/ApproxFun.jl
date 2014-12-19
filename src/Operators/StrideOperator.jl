@@ -126,7 +126,7 @@ function domainspace{T<:Operator}(A::Matrix{T})
     
     spl=map(domainspace,vec(A[1,:]))
     if spacescompatible(spl)
-        VectorDomainSpace(first(spl),length(spl))
+        VectorFunctionSpace(first(spl),length(spl))
     else
         PiecewiseSpace(spl)
     end
@@ -137,7 +137,7 @@ function rangespace{T<:Operator}(A::Array{T})
     
     spl=map(rangespace,A[:,1])
     if spacescompatible(spl)
-        VectorDomainSpace(first(spl),length(spl))
+        VectorFunctionSpace(first(spl),length(spl))
     else
         PiecewiseSpace(spl)
     end

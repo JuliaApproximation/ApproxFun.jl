@@ -78,7 +78,7 @@ TensorFun(f::Function,d1...)=TensorFun(LowRankFun(f,d1...))
 #     ProductFun(transform(S,T,V),S,T)
 # end
 
-function ProductFun{SS<:DomainSpace{Float64},VV<:DomainSpace{Float64}}(f::Function,S::AbstractProductSpace{SS,VV},N::Integer,M::Integer)
+function ProductFun{SS<:FunctionSpace{Float64},VV<:FunctionSpace{Float64}}(f::Function,S::AbstractProductSpace{SS,VV},N::Integer,M::Integer)
     ptsx,ptsy=points(S,N,M)
     V=Float64[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]#TODO:type
     ProductFun(transform!(S,V),S)
@@ -271,8 +271,8 @@ end
 .^(f::ProductFun,k::Integer)=Fun(transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k),space(f))
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj)) 
-#    @eval ($op){S,V<:DomainSpace{Flaot64}}(f::ProductFun{S,V}) = ProductFun(map($op,f.coefficients),space(f,2))
-    @eval ($op){S,V<:DomainSpace{Float64}}(f::TensorFun{S,V}) = TensorFun(map($op,f.coefficients),space(f,2))    
+#    @eval ($op){S,V<:FunctionSpace{Flaot64}}(f::ProductFun{S,V}) = ProductFun(map($op,f.coefficients),space(f,2))
+    @eval ($op){S,V<:FunctionSpace{Float64}}(f::TensorFun{S,V}) = TensorFun(map($op,f.coefficients),space(f,2))    
 end
 
 #For complex bases
@@ -305,7 +305,7 @@ end
 #     end
 #     C
 # end
-# transform{ST<:FunctionSpace,N<:Real}(S::Vector{ST},T::DomainSpace{Float64},V::Matrix{N})=transform(Float64,S,T,V)
+# transform{ST<:FunctionSpace,N<:Real}(S::Vector{ST},T::FunctionSpace{Float64},V::Matrix{N})=transform(Float64,S,T,V)
 # transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Matrix)=transform(Complex{Float64},S,T,V)
 
 

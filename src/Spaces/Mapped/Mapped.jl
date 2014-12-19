@@ -3,7 +3,7 @@ export MappedSpace
 ##Mapped spaces
 
 #TODO: Mapped Fourier
-type MappedSpace{S<:DomainSpace,D<:Domain,T<:Number,DS<:Domain} <: DomainSpace{T,DS}
+type MappedSpace{S<:FunctionSpace,D<:Domain,T<:Number,DS<:Domain} <: FunctionSpace{T,DS}
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)
@@ -11,7 +11,7 @@ type MappedSpace{S<:DomainSpace,D<:Domain,T<:Number,DS<:Domain} <: DomainSpace{T
     MappedSpace()=new(D(),S())
 end
 
-MappedSpace{D<:Domain,T<:Number,DS<:Domain}(d::D,s::DomainSpace{T,DS})=MappedSpace{typeof(s),D,T,DS}(d,s)
+MappedSpace{D<:Domain,T<:Number,DS<:Domain}(d::D,s::FunctionSpace{T,DS})=MappedSpace{typeof(s),D,T,DS}(d,s)
 
 typealias IntervalMappedSpace{S,D} MappedSpace{S,D,Float64,Interval}
 typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}

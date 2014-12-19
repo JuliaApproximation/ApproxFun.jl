@@ -1,13 +1,13 @@
 Fun{T<:Union(Int64,Complex{Int64})}(coefs::Vector{T},d::FunctionSpace)=Fun(1.0*coefs,d)
 
 
-function Fun(f::Function,d::DomainSpace,n::Integer)
+function Fun(f::Function,d::FunctionSpace,n::Integer)
     pts=points(d,n)
     f1=f(pts[1])
     
 
-    if isa(f1,Vector) && !isa(d,VectorDomainSpace) 
-        return Fun(f,VectorDomainSpace(d,length(f1)),n)
+    if isa(f1,Vector) && !isa(d,VectorFunctionSpace) 
+        return Fun(f,VectorFunctionSpace(d,length(f1)),n)
     end
     
         
@@ -20,14 +20,14 @@ end
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f[x],d)
 #TODO: fall back to Fun(x->f[x],d) if conversion not implemented?
-Fun(f::Fun,d::DomainSpace)=Fun(coefficients(f,d),d)
-Fun{T<:DomainSpace}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
-Fun{T<:DomainSpace}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
+Fun(f::Fun,d::FunctionSpace)=Fun(coefficients(f,d),d)
+Fun{T<:FunctionSpace}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
+Fun{T<:FunctionSpace}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
 
-Fun{T<:DomainSpace}(f,::Type{T})=Fun(f,T())
-Fun{T<:DomainSpace}(f,::Type{T},n::Integer)=Fun(f,T(),n)
+Fun{T<:FunctionSpace}(f,::Type{T})=Fun(f,T())
+Fun{T<:FunctionSpace}(f,::Type{T},n::Integer)=Fun(f,T(),n)
 
 Fun(f,d::Domain)=Fun(f,Space(d))
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
@@ -37,9 +37,9 @@ Fun{T<:Domain}(f,::Type{T})=Fun(f,T())
 Fun(c::Number)=Fun([c])
 
 # We do zero special since zero exists even when one doesn'
-Fun{T<:DomainSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
+Fun{T<:FunctionSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
 Fun(c::Number,d::Domain)=c==0?zeros(d):c*ones(d)
-Fun(c::Number,d::DomainSpace)=c==0?zeros(d):c*ones(d)
+Fun(c::Number,d::FunctionSpace)=c==0?zeros(d):c*ones(d)
 Fun(c::Number,n::Integer)=Fun([c],n)
 
 ## List constructor
@@ -79,12 +79,12 @@ end
 #     Fun(f,d,2^21 + 1)
 # end
 
-function zerocfsFun(f::Function,d::DomainSpace)
+function zerocfsFun(f::Function,d::FunctionSpace)
     #TODO: reuse function values?
     f0=f(first(domain(d)))
 
-    if !isa(d,VectorDomainSpace) && isa(f0,Vector)       
-        return zerocfsFun(f,VectorDomainSpace(d,length(f0)))
+    if !isa(d,VectorFunctionSpace) && isa(f0,Vector)       
+        return zerocfsFun(f,VectorFunctionSpace(d,length(f0)))
     end
 
     tol = 200*eps()
@@ -115,7 +115,7 @@ end
 
 
 
-function abszerocfsFun(f::Function,d::DomainSpace)
+function abszerocfsFun(f::Function,d::FunctionSpace)
     #reuse function values
 
     tol = 200eps();
@@ -134,7 +134,7 @@ function abszerocfsFun(f::Function,d::DomainSpace)
 end
 
 
-function Fun(f::Function, d::DomainSpace; method="zerocoefficients")
+function Fun(f::Function, d::FunctionSpace; method="zerocoefficients")
     if f==identity
         identity_fun(d)
     elseif f==zero # zero is always defined

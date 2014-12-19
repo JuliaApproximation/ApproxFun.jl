@@ -1,12 +1,12 @@
 ## Drop space drops the first n entries from a space
 
-immutable DropSpace{S,n,T}<: DomainSpace{T}
+immutable DropSpace{S,n,T}<: FunctionSpace{T}
     space::S 
     DropSpace(sp::S)=new(sp)
     DropSpace(d::Domain)=new(S(d))
 end
 
-DropSpace{T}(sp::DomainSpace{T},n::Integer)=DropSpace{typeof(sp),n,T}(sp)
+DropSpace{T}(sp::FunctionSpace{T},n::Integer)=DropSpace{typeof(sp),n,T}(sp)
 
 domain(DS::DropSpace)=domain(DS.space)
 bandinds{S,n,T}(::Conversion{DropSpace{S,n,T},S})=-n,0

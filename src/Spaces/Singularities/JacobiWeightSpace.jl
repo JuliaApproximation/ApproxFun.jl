@@ -4,7 +4,7 @@
 export JacobiWeightSpace
 
 
-immutable JacobiWeightSpace{S<:IntervalDomainSpace} <: IntervalDomainSpace
+immutable JacobiWeightSpace{S<:IntervalSpace} <: IntervalSpace
     α::Float64
     β::Float64
     space::S
@@ -17,7 +17,7 @@ immutable JacobiWeightSpace{S<:IntervalDomainSpace} <: IntervalDomainSpace
     end
 end
 
-JacobiWeightSpace{S<:IntervalDomainSpace}(a::Number,b::Number,d::S)=JacobiWeightSpace{S}(float64(a),float64(b),d)
+JacobiWeightSpace{S<:IntervalSpace}(a::Number,b::Number,d::S)=JacobiWeightSpace{S}(float64(a),float64(b),d)
 JacobiWeightSpace(a::Number,b::Number,d::Domain)=JacobiWeightSpace(float64(a),float64(b),Space(d))
 JacobiWeightSpace(a,b)=JacobiWeightSpace(a,b,ChebyshevSpace())
 JacobiWeightSpace(a::Number,b::Number,d::Vector)=JacobiWeightSpace(float64(a),float64(b),Interval(d))
@@ -61,8 +61,8 @@ function spaceconversion(f::Vector,sp1::JacobiWeightSpace,sp2::JacobiWeightSpace
         (Conversion(sp1,sp2)*f)
     end
 end
-spaceconversion(f::Vector,sp::JacobiWeightSpace,S2::IntervalDomainSpace)=spaceconversion(f,sp,JacobiWeightSpace(0,0,S2))
-spaceconversion(f::Vector,S2::IntervalDomainSpace,sp::JacobiWeightSpace)=spaceconversion(f,JacobiWeightSpace(0,0,S2),sp)
+spaceconversion(f::Vector,sp::JacobiWeightSpace,S2::IntervalSpace)=spaceconversion(f,sp,JacobiWeightSpace(0,0,S2))
+spaceconversion(f::Vector,S2::IntervalSpace,sp::JacobiWeightSpace)=spaceconversion(f,JacobiWeightSpace(0,0,S2),sp)
 
 increase_jacobi_parameter(f)=Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β+1,space(f).space))
 increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeightSpace(f.space.α+1,f.space.β,space(f).space)):Fun(f,JacobiWeightSpace(f.space.α,f.space.β+1,space(f).space))

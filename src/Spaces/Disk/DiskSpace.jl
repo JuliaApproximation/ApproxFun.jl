@@ -31,7 +31,7 @@ tocanonical(D::Disk,x,y)=sqrt(x^2+y^2),atan2(y,x)
 
 
 # Kind== 0 => Legendre, K==1=>Chebyshev, K==2=>JacobiSquare
-immutable DiskSpace{K,JS<:IntervalDomainSpace,S<:PeriodicDomainSpace} <: AbstractProductSpace{JS,S}
+immutable DiskSpace{K,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpace{JS,S}
     domain::Disk
     spacet::S
 end

@@ -4,7 +4,7 @@ export FourierSpace,TaylorSpace,HardySpace,CosSpace,SinSpace,LaurentSpace
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
-        immutable $T <: PeriodicDomainSpace{Float64}
+        immutable $T <: PeriodicSpace{Float64}
             domain::Union(PeriodicDomain,AnyDomain)
         end
         $T()=$T(PeriodicInterval())
@@ -13,7 +13,7 @@ end
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
-immutable HardySpace{s} <: PeriodicDomainSpace{Complex{Float64}}
+immutable HardySpace{s} <: PeriodicSpace{Complex{Float64}}
     domain::Union(PeriodicDomain,AnyDomain)
     HardySpace(d)=new(d)
     HardySpace()=new(Circle())
@@ -100,7 +100,7 @@ typealias LaurentSpace PeriodicSumSpace{HardySpace{true},HardySpace{false},Compl
 LaurentSpace()=LaurentSpace(PeriodicInterval())
 
 Space(d::PeriodicDomain)=LaurentSpace(d)
-canonicalspace(S::PeriodicDomainSpace)=LaurentSpace(domain(S))
+canonicalspace(S::PeriodicSpace)=LaurentSpace(domain(S))
 
 
 points(sp::LaurentSpace,n)=points(domain(sp),n)
