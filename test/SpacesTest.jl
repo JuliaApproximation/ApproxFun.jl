@@ -1,10 +1,10 @@
 using ApproxFun, Base.Test
 
-import ApproxFun: ChebyshevDirichletSpace,UltrasphericalSpace,space
+import ApproxFun: ChebyshevDirichletSpace,Ultraspherical,space
 
 
 @test_approx_eq Fun(exp,ChebyshevDirichletSpace{1,1})[.1] exp(.1)
-@test_approx_eq Fun(Fun(exp,ChebyshevDirichletSpace{1,1}),UltrasphericalSpace{1})[.1] exp(.1)
+@test_approx_eq Fun(Fun(exp,ChebyshevDirichletSpace{1,1}),Ultraspherical{1})[.1] exp(.1)
 
 d=Interval()
 sp=ChebyshevDirichletSpace{1,1}(d)

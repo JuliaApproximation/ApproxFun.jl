@@ -233,7 +233,7 @@ end
 
 ## Σ
 
-#function Base.getindex{T,λ}(S::Σ{T,JacobiWeightSpace{UltrasphericalSpace{λ}},UltrasphericalSpace{λ}},f::Fun{JacobiWeightSpace{UltrasphericalSpace{λ}},T})
+#function Base.getindex{T,λ}(S::Σ{T,JacobiWeightSpace{Ultraspherical{λ}},Ultraspherical{λ}},f::Fun{JacobiWeightSpace{Ultraspherical{λ}},T})
 #
 #    @assert domain(f) == domain(S)
 #    dsp,rsp = domainspace(S),rangespace(S)
@@ -243,7 +243,7 @@ end
 #    SpaceOperator(S*Multiplication(f,newdomainspace),newdomainspace,rsp)
 #end
 
-function addentries!{T,λ}(S::Σ{T,JacobiWeightSpace{UltrasphericalSpace{λ}},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+function addentries!{T,λ}(S::Σ{T,JacobiWeightSpace{Ultraspherical{λ}},Ultraspherical{λ}},A::ShiftArray,kr::Range1)
     dsp,rsp = domainspace(S),rangespace(S)
     d = domain(S)
     @assert isa(d,Interval)

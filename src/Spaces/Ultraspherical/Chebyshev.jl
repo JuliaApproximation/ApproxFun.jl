@@ -2,11 +2,11 @@
 export Chebyshev
 
 
-typealias Chebyshev UltrasphericalSpace{0}
+typealias Chebyshev Ultraspherical{0}
 
 
 Space(d::IntervalDomain)=Chebyshev(d)
-canonicalspace(S::UltrasphericalSpace)=Chebyshev(domain(S))
+canonicalspace(S::Ultraspherical)=Chebyshev(domain(S))
 
 function spaceconversion(g::Vector,::ConstantSpace,::Chebyshev)
     @assert length(g)==1
@@ -75,11 +75,11 @@ end
 
 # union_rule dictates how to create a space that both spaces can be converted to
 # in this case, it means 
-function union_rule{S<:UltrasphericalSpace}(s1::PiecewiseSpace{S},s2::PiecewiseSpace{S})
+function union_rule{S<:Ultraspherical}(s1::PiecewiseSpace{S},s2::PiecewiseSpace{S})
     PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
 end
 
-function union_rule{S<:UltrasphericalSpace}(s1::PiecewiseSpace{S},s2::S)
+function union_rule{S<:Ultraspherical}(s1::PiecewiseSpace{S},s2::S)
     PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
 end
 

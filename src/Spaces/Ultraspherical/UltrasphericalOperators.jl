@@ -58,9 +58,9 @@ function chebmult_addentries!(cfs::Vector,A::ShiftArray,kr::Range)
 end
 
 
-addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,Chebyshev},A::ShiftArray,kr::Range)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
+addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A::ShiftArray,kr::Range)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
 
-function addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
+function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A::ShiftArray,kr::Range)
     cfs=canonicalcoefficients(M.f)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(-.5cfs[3:end],A,kr)    
@@ -76,7 +76,7 @@ function usjacobi_addentries!(λ::Integer,A::ShiftArray,kr::Range1)
     A
 end
 
-function addentries!{D<:UltrasphericalSpace,λ}(M::Multiplication{D,UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ}},A::ShiftArray,kr::Range)
     a=coefficients(M.f,domainspace(M))
     for k=kr
         A[k,0]=a[1] 
@@ -112,11 +112,11 @@ end
 #Derivative(d::IntervalDomain)=Derivative(1,d)
 
 
-rangespace{λ}(D::Derivative{UltrasphericalSpace{λ}})=UltrasphericalSpace{λ+D.order}(domain(D))
-bandinds{S<:UltrasphericalSpace}(D::Derivative{S})=0,D.order
-bandinds{S<:UltrasphericalSpace}(D::Integral{S})=-D.order,0   
+rangespace{λ}(D::Derivative{Ultraspherical{λ}})=Ultraspherical{λ+D.order}(domain(D))
+bandinds{S<:Ultraspherical}(D::Derivative{S})=0,D.order
+bandinds{S<:Ultraspherical}(D::Integral{S})=-D.order,0   
 
-function addentries!{λ}(D::Derivative{UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+function addentries!{λ}(D::Derivative{Ultraspherical{λ}},A::ShiftArray,kr::Range1)
     m=D.order
     d=domain(D)
 
@@ -155,9 +155,9 @@ end
 ## Integral
 
 
-rangespace{λ}(D::Integral{UltrasphericalSpace{λ}})=UltrasphericalSpace{λ-D.order}(domain(D))
+rangespace{λ}(D::Integral{Ultraspherical{λ}})=Ultraspherical{λ-D.order}(domain(D))
 
-function addentries!{λ}(D::Integral{UltrasphericalSpace{λ}},A::ShiftArray,kr::Range1)
+function addentries!{λ}(D::Integral{Ultraspherical{λ}},A::ShiftArray,kr::Range1)
     m=D.order
     d=domain(D)
     @assert m<=λ
@@ -185,19 +185,19 @@ end
 
 
 
-function Conversion{a,b}(A::UltrasphericalSpace{a},B::UltrasphericalSpace{b})
+function Conversion{a,b}(A::Ultraspherical{a},B::Ultraspherical{b})
     @assert b > a
 
     if b==a+1
-        Conversion{UltrasphericalSpace{a},UltrasphericalSpace{b},Float64}(A,B)
+        Conversion{Ultraspherical{a},Ultraspherical{b},Float64}(A,B)
     else
         d=domain(A)
-        Conversion(UltrasphericalSpace{b-1}(d),B)*Conversion(A,UltrasphericalSpace{b-1}(d))
+        Conversion(Ultraspherical{b-1}(d),B)*Conversion(A,Ultraspherical{b-1}(d))
     end
 end   
 
 
-function addentries!(M::Conversion{Chebyshev,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
+function addentries!(M::Conversion{Chebyshev,Ultraspherical{1}},A::ShiftArray,kr::Range)
     for k=kr
         A[k,0] += (k == 1)? 1. : .5
         A[k,2] += -.5        
@@ -206,7 +206,7 @@ function addentries!(M::Conversion{Chebyshev,UltrasphericalSpace{1}},A::ShiftArr
     A    
 end
 
-function addentries!{m,λ}(M::Conversion{UltrasphericalSpace{m},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+function addentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{λ}},A::ShiftArray,kr::Range)
     @assert λ==m+1
     for k=kr
         A[k,0] += (λ-1.)./(k - 2. + λ)
@@ -216,7 +216,7 @@ function addentries!{m,λ}(M::Conversion{UltrasphericalSpace{m},UltrasphericalSp
     A    
 end
 
-function multiplyentries!(M::Conversion{Chebyshev,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
+function multiplyentries!(M::Conversion{Chebyshev,Ultraspherical{1}},A::ShiftArray,kr::Range)
     cr=columnrange(A)::Range1{Int}
     
     #We assume here that the extra rows are redundant
@@ -230,7 +230,7 @@ function multiplyentries!(M::Conversion{Chebyshev,UltrasphericalSpace{1}},A::Shi
     end 
 end
 
-function multiplyentries!{m,λ}(M::Conversion{UltrasphericalSpace{m},UltrasphericalSpace{λ}},A::ShiftArray,kr::Range)
+function multiplyentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{λ}},A::ShiftArray,kr::Range)
     @assert λ==m+1
     cr=columnrange(A)::Range1{Int64}
     
@@ -247,22 +247,22 @@ function multiplyentries!{m,λ}(M::Conversion{UltrasphericalSpace{m},Ultraspheri
     end 
 end
 
-bandinds{m,λ}(C::Conversion{UltrasphericalSpace{m},UltrasphericalSpace{λ}})=0,2
+bandinds{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=0,2
 
 
 
 ## spaceconversion
 
 # return the space that has banded Conversion to the other
-function conversion_rule{aorder,border}(a::UltrasphericalSpace{aorder},b::UltrasphericalSpace{border})
+function conversion_rule{aorder,border}(a::Ultraspherical{aorder},b::Ultraspherical{border})
     @assert domainscompatible(a,b)
     
     aorder < border?a:b
 end
 
 
-spaceconversion(g::Vector,::UltrasphericalSpace{1},::Chebyshev)=ultraiconversion(g)
-spaceconversion(g::Vector,::Chebyshev,::UltrasphericalSpace{1})=ultraconversion(g)
+spaceconversion(g::Vector,::Ultraspherical{1},::Chebyshev)=ultraiconversion(g)
+spaceconversion(g::Vector,::Chebyshev,::Ultraspherical{1})=ultraconversion(g)
 
 
 

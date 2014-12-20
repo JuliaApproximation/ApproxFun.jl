@@ -32,8 +32,8 @@ D=Derivative(d)
 B=ldirichlet(d)
 S=Σ(.5,.5,d)
 
-@test domainspace(S) == JacobiWeightSpace{UltrasphericalSpace{1}}(.5,.5,UltrasphericalSpace{1}(d))
-@test rangespace(S) == UltrasphericalSpace{1}(d)
+@test domainspace(S) == JacobiWeightSpace{Ultraspherical{1}}(.5,.5,Ultraspherical{1}(d))
+@test rangespace(S) == Ultraspherical{1}(d)
 
 K=LowRankFun((x,y)->sin(y-x)*w[y],rangespace(S),domainspace(S))
 

@@ -115,7 +115,7 @@ end
 
 
 ## We use \ as the Fun constructor might miss isolated features
-function Base.exp{S<:UltrasphericalSpace}(f::Fun{S})
+function Base.exp{S<:Ultraspherical}(f::Fun{S})
     rf=chop(real(f),eps())
 
     xm=rf.coefficients[1]==[0.]?first(domain(rf)):indmax(rf)    

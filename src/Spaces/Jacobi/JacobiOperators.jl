@@ -144,7 +144,7 @@ end
 ## Ultraspherical Conversion
 
 # Assume m is compatible
-bandinds{m}(C::Conversion{UltrasphericalSpace{m},JacobiSpace})=0,0
+bandinds{m}(C::Conversion{Ultraspherical{m},JacobiSpace})=0,0
 
 
 function addentries!(C::Conversion{Chebyshev,JacobiSpace},A::ShiftArray,kr::Range)
@@ -170,18 +170,18 @@ function addentries!(C::Conversion{JacobiSpace,Chebyshev},A::ShiftArray,kr::Rang
     A
 end
 
-function getdiagonalentry{m}(C::Conversion{UltrasphericalSpace{m},JacobiSpace})
+function getdiagonalentry{m}(C::Conversion{Ultraspherical{m},JacobiSpace})
     @assert B.a+.5==m&&B.b+.5==m
     gamma(2m+k)*gamma(m+0.5)/(gamma(2m)*gamma(m+k+0.5))
 end
 
-function getdiagonalentry{m}(C::Conversion{JacobiSpace,UltrasphericalSpace{m}})
+function getdiagonalentry{m}(C::Conversion{JacobiSpace,Ultraspherical{m}})
     @assert B.a+.5==m&&B.b+.5==m
     (gamma(2m)*gamma(m+k+0.5))/(gamma(2m+k)*gamma(m+0.5))
 end
 
 
-function conversion_rule{m}(A::UltrasphericalSpace{m},B::JacobiSpace)
+function conversion_rule{m}(A::Ultraspherical{m},B::JacobiSpace)
     if B.a+.5==m&&B.b+.5==m
         A
     else

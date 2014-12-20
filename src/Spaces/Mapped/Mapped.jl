@@ -105,7 +105,7 @@ function integrate(f::Fun{LineSpace})
     # || d.α==d.β==-.5
     
 #    if domain(f).α==domain(f).β==-1.
-        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f.coefficients),UltrasphericalSpace{1}))),f.space)
+        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f.coefficients),Ultraspherical{1}))),f.space)
 #    end
 #     elseif d.α==d.β==-.5
 #         u=divide_singularity(f)

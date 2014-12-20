@@ -5,7 +5,7 @@ canonicaldomain{T<:IntervalSpace}(::Type{T})=Interval()
 ## Calculus
 
 # the default domain space is higher to avoid negative ultraspherical spaces
-Integral(d::IntervalDomain,n::Integer)=Integral(UltrasphericalSpace{1}(d),n)
+Integral(d::IntervalDomain,n::Integer)=Integral(Ultraspherical{1}(d),n)
 
 ## Sigma
 
@@ -15,7 +15,7 @@ function Σ(α::Number,β::Number,d::IntervalDomain)
     @assert α == β
     @assert int(α+.5) == α+.5
     @assert int(α+.5) >= 0
-    Σ(JacobiWeightSpace(α,β,UltrasphericalSpace{int(α+.5)}(d)),UltrasphericalSpace{int(α+.5)}(d))
+    Σ(JacobiWeightSpace(α,β,Ultraspherical{int(α+.5)}(d)),Ultraspherical{int(α+.5)}(d))
 end
 Σ(α::Number,β::Number) = Σ(α,β,Interval())
 
