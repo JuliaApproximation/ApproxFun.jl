@@ -124,7 +124,7 @@ for T in (Float64,Complex{Float64})
     function Base.sum(f::Fun{LineSpace})
         d=domain(f)
         if d.α==d.β==-.5
-            sum(Fun(divide_singularity(f.coefficients),JacobiWeightSpace(-.5,-.5,Interval())))
+            sum(Fun(divide_singularity(f.coefficients),JacobiWeight(-.5,-.5,Interval())))
         else
             cf = integrate(f)
             last(cf) - first(cf)
@@ -139,8 +139,8 @@ end
 
 function identity_fun{SS,DD,DDS,DDT}(S::MappedSpace{SS,DD,DDT,DDS})
     sf=fromcanonical(S,Fun(identity,S.space))
-    if isa(space(sf),JacobiWeightSpace)
-        Fun(coefficients(sf),JacobiWeightSpace(sf.space.α,sf.space.β,S))
+    if isa(space(sf),JacobiWeight)
+        Fun(coefficients(sf),JacobiWeight(sf.space.α,sf.space.β,S))
     else
          @assert isa(space(sf),S.space)
          Fun(coefficients(sf),S)

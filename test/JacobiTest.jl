@@ -22,12 +22,12 @@ f4=Fun(exp,sp4)
 
 
 m=20
-f=Fun(x->((1-x)/2).^m.*exp(x),JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.)))
+f=Fun(x->((1-x)/2).^m.*exp(x),JacobiWeight(0.,m,JacobiSpace(2m+1,0.)))
 @test abs(f[.1]-(x->((1-x)/2).^m.*exp(x))(.1))<10eps()
 
 
 m=10
-f=Fun(x->besselj(m,m*(1-x)),JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.)))
+f=Fun(x->besselj(m,m*(1-x)),JacobiWeight(0.,m,JacobiSpace(2m+1,0.)))
 @test_approx_eq f[0.] besselj(m,m)
 
 
@@ -46,18 +46,18 @@ u=ProductFun(f,Disk(),50,51)
 
 x=Fun(identity)
 ri=0.5./(1-x)
-@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] (1-.1)./2*exp(.1)
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,JacobiSpace(1.,0.))))[.1] (1-.1)./2*exp(.1)
 
 
-@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] (1-.1)./2*exp(.1)
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,JacobiSpace(1.,0.))))[.1] (1-.1)./2*exp(.1)
 
 
-@test_approx_eq (ri.*Fun(exp,JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.))))[.1] .5/(1-.1)*exp(.1)
+@test_approx_eq (ri.*Fun(exp,JacobiWeight(0.,0.,JacobiSpace(1.,0.))))[.1] .5/(1-.1)*exp(.1)
 
 
 ## Derivative
 
-S=JacobiWeightSpace(0.,0.,JacobiSpace(1.,0.,Interval(1.,0.)))
+S=JacobiWeight(0.,0.,JacobiSpace(1.,0.,Interval(1.,0.)))
 D=Derivative(S)
 f=Fun(exp,domainspace(D))
 @test (D*f-f).coefficients|>norm < eps(100000.)

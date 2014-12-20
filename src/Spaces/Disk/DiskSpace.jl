@@ -37,7 +37,7 @@ immutable DiskSpace{K,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpac
 end
 
 
-DiskSpace{SS}(K::Integer,D::Disk,S::SS)=DiskSpace{K,K==2?JacobiSquareSpace:JacobiWeightSpace{JacobiSpace},SS}(D,S)
+DiskSpace{SS}(K::Integer,D::Disk,S::SS)=DiskSpace{K,K==2?JacobiSquareSpace:JacobiWeight{JacobiSpace},SS}(D,S)
 DiskSpace{SS}(D::Disk,S::SS)=DiskSpace{2,JacobiSquareSpace,SS}(D,S)
 DiskSpace(K::Integer,D::Disk)=DiskSpace(K,D,LaurentSpace())
 DiskSpace(K::Integer)=DiskSpace(K,Disk())
@@ -59,8 +59,8 @@ Space(D::Disk)=DiskSpace(D)
 
 
 
-columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+1,0.,Interval(D.domain.radius,0.))))
-columnspace{SS}(D::DiskSpace{1,SS},k)=(m=1.div(k,2);JacobiWeightSpace(0.,m,JacobiSpace(2m+0.5,-0.5,Interval(D.domain.radius,0.))))
+columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeight(0.,m,JacobiSpace(2m+1,0.,Interval(D.domain.radius,0.))))
+columnspace{SS}(D::DiskSpace{1,SS},k)=(m=1.div(k,2);JacobiWeight(0.,m,JacobiSpace(2m+0.5,-0.5,Interval(D.domain.radius,0.))))
 columnspace{SS}(D::DiskSpace{2,SS},k)=(m=div(k,2);JacobiSquareSpace(m,Interval(D.domain.radius,0.)))
 
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)

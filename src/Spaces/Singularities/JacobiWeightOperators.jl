@@ -3,7 +3,7 @@
 
 ## Calculus
 
-function Base.sum(f::Fun{JacobiWeightSpace{Chebyshev}})
+function Base.sum(f::Fun{JacobiWeight{Chebyshev}})
     α,β=f.space.α,f.space.β    
     if α <= -1.0 || β <= -1.0
         fs = Fun(f.coefficients,f.space.space)
@@ -23,37 +23,37 @@ function Base.sum(f::Fun{JacobiWeightSpace{Chebyshev}})
     end
 end
 
-function differentiate{J<:JacobiWeightSpace}(f::Fun{J})
+function differentiate{J<:JacobiWeight}(f::Fun{J})
     S=f.space
     d=domain(f)    
     ff=Fun(f.coefficients,S.space)    
     if S.α==S.β==0
         u=differentiate(ff)
-        Fun(u.coefficients,JacobiWeightSpace(0.,0.,space(u)))
+        Fun(u.coefficients,JacobiWeight(0.,0.,space(u)))
     elseif S.α==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)  
         u=-Mp*S.β*ff +(1-M).*differentiate(ff)
-        Fun(u.coefficients,JacobiWeightSpace(0.,S.β-1,space(u)))
+        Fun(u.coefficients,JacobiWeight(0.,S.β-1,space(u)))
     elseif S.β==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)  
         u=Mp*S.α*ff +(1+M).*differentiate(ff)
-        Fun(u.coefficients,JacobiWeightSpace(S.α-1,0.,space(u)))        
+        Fun(u.coefficients,JacobiWeight(S.α-1,0.,space(u)))        
     else 
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a) 
         u=(Mp*S.α)*(1-M).*ff- (Mp*S.β)*(1+M).*ff +(1-M.^2).*differentiate(ff)
-        Fun(u.coefficients,JacobiWeightSpace(S.α-1,S.β-1,space(u)))        
+        Fun(u.coefficients,JacobiWeight(S.α-1,S.β-1,space(u)))        
     end
 end
 
 
 
-function integrate{J<:JacobiWeightSpace}(f::Fun{J})
+function integrate{J<:JacobiWeight}(f::Fun{J})
     S=space(f)
     # we integrate by solving u'=f
     D=Derivative(S)
@@ -78,34 +78,34 @@ end
 ## Operators
 
 
-function Derivative(S::JacobiWeightSpace)
+function Derivative(S::JacobiWeight)
     d=domain(S)
 
     if S.α==S.β==0
-        DerivativeWrapper(SpaceOperator(Derivative(S.space),S,JacobiWeightSpace(0.,0.,rangespace(Derivative(S.space)))),1)
+        DerivativeWrapper(SpaceOperator(Derivative(S.space),S,JacobiWeight(0.,0.,rangespace(Derivative(S.space)))),1)
     elseif S.α==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeightSpace but doesn't need to
+        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeight but doesn't need to
         DD=(-Mp*S.β) +(1-M)*Derivative(S.space)
-        DerivativeWrapper(SpaceOperator(DD,S,JacobiWeightSpace(0.,S.β-1,rangespace(DD))),1)
+        DerivativeWrapper(SpaceOperator(DD,S,JacobiWeight(0.,S.β-1,rangespace(DD))),1)
     elseif S.β==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeightSpace but doesn't need to
+        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeight but doesn't need to
         DD=(Mp*S.α) +(1+M)*Derivative(S.space)
-        DerivativeWrapper(SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,0.,rangespace(DD))),1)
+        DerivativeWrapper(SpaceOperator(DD,S,JacobiWeight(S.α-1,0.,rangespace(DD))),1)
     else 
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeightSpace but doesn't need to
+        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeight but doesn't need to
         DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
-        DerivativeWrapper(SpaceOperator(DD,S,JacobiWeightSpace(S.α-1,S.β-1,rangespace(DD))),1)
+        DerivativeWrapper(SpaceOperator(DD,S,JacobiWeight(S.α-1,S.β-1,rangespace(DD))),1)
     end
 
 end
 
-function Derivative(S::JacobiWeightSpace,k::Integer)
+function Derivative(S::JacobiWeight,k::Integer)
     if k==1
         Derivative(S)
     else
@@ -119,27 +119,27 @@ end
 
 ## Multiplication
 
-function Multiplication{D<:JacobiWeightSpace,T}(f::Fun{D,T},S::JacobiWeightSpace)
+function Multiplication{D<:JacobiWeight,T}(f::Fun{D,T},S::JacobiWeight)
     M=Multiplication(Fun(f.coefficients,space(f).space),S.space)
     MultiplicationWrapper(
         f,
-        SpaceOperator(M,S,JacobiWeightSpace(space(f).α+S.α,space(f).β+S.β,rangespace(M)))
+        SpaceOperator(M,S,JacobiWeight(space(f).α+S.α,space(f).β+S.β,rangespace(M)))
     )
 end
 
-function Multiplication{D,T}(f::Fun{D,T},S::JacobiWeightSpace)
+function Multiplication{D,T}(f::Fun{D,T},S::JacobiWeight)
     M=Multiplication(f,S.space)
     MultiplicationWrapper(
         f,
-        SpaceOperator(M,S,JacobiWeightSpace(S.α,S.β,rangespace(M)))
+        SpaceOperator(M,S,JacobiWeight(S.α,S.β,rangespace(M)))
     )
 end
 
-function Multiplication{D<:JacobiWeightSpace,T}(f::Fun{D,T},S::IntervalSpace)
+function Multiplication{D<:JacobiWeight,T}(f::Fun{D,T},S::IntervalSpace)
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
     MultiplicationWrapper(
         f,
-        SpaceOperator(M,S,JacobiWeightSpace(space(f).α,space(f).β,rangespace(M)))
+        SpaceOperator(M,S,JacobiWeight(space(f).α,space(f).β,rangespace(M)))
     )
 end
 
@@ -147,16 +147,16 @@ end
 
 ## Conversion
 
-maxspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
-minspace(A::JacobiWeightSpace,B::JacobiWeightSpace)=JacobiWeightSpace(max(A.α,B.α),max(A.β,B.β),minspace(A.space,B.space))
-maxspace(A::IntervalSpace,B::JacobiWeightSpace)=maxspace(JacobiWeightSpace(0.,0.,A),B)
-maxspace(A::JacobiWeightSpace,B::IntervalSpace)=maxspace(A,JacobiWeightSpace(0.,0.,B))
+maxspace(A::JacobiWeight,B::JacobiWeight)=JacobiWeight(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
+minspace(A::JacobiWeight,B::JacobiWeight)=JacobiWeight(max(A.α,B.α),max(A.β,B.β),minspace(A.space,B.space))
+maxspace(A::IntervalSpace,B::JacobiWeight)=maxspace(JacobiWeight(0.,0.,A),B)
+maxspace(A::JacobiWeight,B::IntervalSpace)=maxspace(A,JacobiWeight(0.,0.,B))
 
 isapproxinteger(x)=isapprox(x,int(x))
 
 
 
-function Conversion(A::JacobiWeightSpace,B::JacobiWeightSpace)
+function Conversion(A::JacobiWeight,B::JacobiWeight)
     @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
     
     if A.space==B.space
@@ -180,7 +180,7 @@ end
 
 isapproxleq(a,b)=(a<=b || isapprox(a,b))
 # return the space that has banded Conversion to the other, or NoSpace
-function conversion_rule(A::JacobiWeightSpace,B::JacobiWeightSpace)
+function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     if isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)    
         ct=conversion_type(A.space,B.space)
         if ct == B.space && isapproxleq(A.α,B.α) && isapproxleq(A.β,B.β)
@@ -196,7 +196,7 @@ end
 
 ## Evaluation
 
-function  Base.getindex{J<:JacobiWeightSpace}(op::Evaluation{J,Bool},kr::Range)
+function  Base.getindex{J<:JacobiWeight}(op::Evaluation{J,Bool},kr::Range)
     S=op.space
     @assert op.order<=1
     d=domain(op)
@@ -233,17 +233,17 @@ end
 
 ## Σ
 
-#function Base.getindex{T,λ}(S::Σ{T,JacobiWeightSpace{Ultraspherical{λ}},Ultraspherical{λ}},f::Fun{JacobiWeightSpace{Ultraspherical{λ}},T})
+#function Base.getindex{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}},Ultraspherical{λ}},f::Fun{JacobiWeight{Ultraspherical{λ}},T})
 #
 #    @assert domain(f) == domain(S)
 #    dsp,rsp = domainspace(S),rangespace(S)
 #    sp = space(f)
-#    newdomainspace = canonicalspace(JacobiWeightSpace(λ-.5-sp.α,λ-.5-sp.β,domain(S)))
+#    newdomainspace = canonicalspace(JacobiWeight(λ-.5-sp.α,λ-.5-sp.β,domain(S)))
 #    
 #    SpaceOperator(S*Multiplication(f,newdomainspace),newdomainspace,rsp)
 #end
 
-function addentries!{T,λ}(S::Σ{T,JacobiWeightSpace{Ultraspherical{λ}},Ultraspherical{λ}},A::ShiftArray,kr::Range1)
+function addentries!{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}},Ultraspherical{λ}},A::ShiftArray,kr::Range1)
     dsp,rsp = domainspace(S),rangespace(S)
     d = domain(S)
     @assert isa(d,Interval)

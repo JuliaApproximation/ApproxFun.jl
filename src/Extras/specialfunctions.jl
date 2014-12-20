@@ -83,17 +83,17 @@ function ./(c::Number,f::Fun{Chebyshev})
     elseif length(r) == 1 && abs(abs(r[1]) - 1.) < tol
         if sign(r[1]) < 0
             g = divide_singularity(-1,fc)  # divide by 1+x
-            Fun(canonicalcoefficients(c./g),JacobiWeightSpace(-1,0,domain(f)))
+            Fun(canonicalcoefficients(c./g),JacobiWeight(-1,0,domain(f)))
         else
             g = divide_singularity(1,fc)  # divide by 1-x
-            Fun(canonicalcoefficients(c./g),JacobiWeightSpace(0,-1,domain(f)))                
+            Fun(canonicalcoefficients(c./g),JacobiWeight(0,-1,domain(f)))                
         end 
     elseif length(r) ==2 && abs(r[1]+1) < tol && abs(r[2]-1) < tol                        
         g = divide_singularity(fc) # divide by 1-x^2
         # divide out singularities, tolerance needs to be chosen since we don't get
         # spectral convergence
         # TODO: switch to dirichlet basis
-        Fun(canonicalcoefficients(c./g),JacobiWeightSpace(-1,-1,domain(f)))  
+        Fun(canonicalcoefficients(c./g),JacobiWeight(-1,-1,domain(f)))  
     else
         #split at the roots
         c./splitatroots(f)
@@ -103,8 +103,8 @@ end
 ./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=devec(map(f->c./f,vec(f)))
 function ./{S<:MappedSpace}(c::Number,f::Fun{S})
     g=c./Fun(coefficients(f),space(f).space)
-    if isa(space(g),JacobiWeightSpace)
-        Fun(coefficients(g),JacobiWeightSpace(space(g).α,space(g).β,MappedSpace(domain(f),space(g).space)))
+    if isa(space(g),JacobiWeight)
+        Fun(coefficients(g),JacobiWeight(space(g).α,space(g).β,MappedSpace(domain(f),space(g).space)))
     else
         Fun(coefficients(g),MappedSpace(domain(f),space(g)))
     end
@@ -149,15 +149,15 @@ function .^{S<:MappedChebyshev}(f::Fun{S},k::Float64)
         @assert isapprox(abs(r[1]),1)
         
         if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(+1,fc)^k),JacobiWeightSpace(0.,k,space(f)))
+            Fun(coefficients(divide_singularity(+1,fc)^k),JacobiWeight(0.,k,space(f)))
         else
-            Fun(coefficients(divide_singularity(-1,fc)^k),JacobiWeightSpace(k,0.,space(f)))
+            Fun(coefficients(divide_singularity(-1,fc)^k),JacobiWeight(k,0.,space(f)))
         end
     else
         @assert isapprox(r[1],-1)
         @assert isapprox(r[2],1) 
     
-        Fun(coefficients(divide_singularity(fc)^k),JacobiWeightSpace(k,k,space(f)))  
+        Fun(coefficients(divide_singularity(fc)^k),JacobiWeight(k,k,space(f)))  
     end
 end
 

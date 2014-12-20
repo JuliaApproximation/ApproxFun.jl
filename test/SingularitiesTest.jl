@@ -13,7 +13,7 @@ u=sqrt(4-x.^2)/(2π)
 
 f=Fun(x->x.*cot(π*x/2))
 x=Fun(identity)
-u=Fun((f./(1-x.^2)).coefficients,JacobiWeightSpace(1.,1.,Interval()))
+u=Fun((f./(1-x.^2)).coefficients,JacobiWeight(1.,1.,Interval()))
 @test_approx_eq 1./(.1.*cot(π*.1/2)) (1./u)[.1]
 
 @test_approx_eq (x./u)[.1] tan(π*.1/2)
@@ -22,12 +22,12 @@ u=Fun((f./(1-x.^2)).coefficients,JacobiWeightSpace(1.,1.,Interval()))
 f=Fun(x->exp(-x.^2),Line(0.,0.,-.5,-.5),400)
 @test_approx_eq sum(f) sqrt(π)
 
-f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeightSpace(-.5,-.5))
+f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeight(-.5,-.5))
 @test_approx_eq f[.1] (x->exp(x)/sqrt(1-x.^2))(.1)
 
 
 
-S=JacobiWeightSpace(-1.,-1.,Chebyshev([0.,1.]))
+S=JacobiWeight(-1.,-1.,Chebyshev([0.,1.]))
 D=Derivative(S)
 
 f=Fun(Fun(exp,[0.,1.]).coefficients,S)
@@ -36,7 +36,7 @@ x=.1
 @test_approx_eq (D*f)[x] -exp(x)*(1+(x-3)*x)/(4*(x-1)^2*x^2)
 
 
-S=JacobiWeightSpace(-1.,0.,Chebyshev([0.,1.]))
+S=JacobiWeight(-1.,0.,Chebyshev([0.,1.]))
 D=Derivative(S)
 
 f=Fun(Fun(exp,[0.,1.]).coefficients,S)
@@ -50,7 +50,7 @@ x=.1
 
 
 for ν in (1.,.123,2.,3.5)
-    S=JacobiWeightSpace(-ν,0.,Chebyshev([0.,1.]))
+    S=JacobiWeight(-ν,0.,Chebyshev([0.,1.]))
     D=Derivative(S)
     x=Fun(identity,domain(S))
     L=(x.^2)*D^2+x*D+(x.^2-ν^2);

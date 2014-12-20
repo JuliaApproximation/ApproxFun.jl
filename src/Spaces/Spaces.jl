@@ -1,6 +1,6 @@
 
-include("IntervalDomainSpace.jl")
-include("PeriodicDomainSpace.jl")
+include("IntervalSpace.jl")
+include("PeriodicSpace.jl")
 
 
 include("Modifier/Modifier.jl")

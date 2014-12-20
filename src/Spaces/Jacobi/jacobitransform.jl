@@ -28,10 +28,10 @@ evaluate(f::Fun{JacobiSpace},x::Number)=dot(jacobip(0:length(f)-1,f.space.a,f.sp
 evaluate(f::Fun{JacobiSpace},x::Vector)=jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x))*f.coefficients
 
 
-## JacobiWeightSpace
+## JacobiWeight
 
 
-function plan_transform(S::JacobiWeightSpace{JacobiSpace},n::Integer)
+function plan_transform(S::JacobiWeight{JacobiSpace},n::Integer)
     m=S.β
     @assert isapproxinteger(m)
     
@@ -44,12 +44,12 @@ function plan_transform(S::JacobiWeightSpace{JacobiSpace},n::Integer)
     end
 end
 
-points(S::JacobiWeightSpace{JacobiSpace},n)=fromcanonical(S,plan_transform(S,n)[1])
+points(S::JacobiWeight{JacobiSpace},n)=fromcanonical(S,plan_transform(S,n)[1])
 
 
-transform(S::JacobiWeightSpace{JacobiSpace},vals::Vector)=transform(S,vals,plan_transform(S,length(vals)))
-function transform(S::JacobiWeightSpace{JacobiSpace},vals::Vector,xw::(Vector,Vector))
-    # JacobiSpace and JacobiWeightSpace have different a/b orders
+transform(S::JacobiWeight{JacobiSpace},vals::Vector)=transform(S,vals,plan_transform(S,length(vals)))
+function transform(S::JacobiWeight{JacobiSpace},vals::Vector,xw::(Vector,Vector))
+    # JacobiSpace and JacobiWeight have different a/b orders
 
     m=S.β
     @assert isapproxinteger(m)
