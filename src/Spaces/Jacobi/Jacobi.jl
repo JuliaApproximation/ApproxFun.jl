@@ -15,7 +15,7 @@ function canonicalspace(S::JacobiSpace)
     if isinteger(S.a) && isinteger(S.b)
         JacobiSpace(0.,0.,domain(S))
     elseif isinteger(S.a+0.5) && isinteger(S.b+0.5)
-        ChebyshevSpace()
+        Chebyshev()
     else
         error("There is no canonical space for Jacobi with a="*string(S.a)*" and b="*string(S.b))
     end

@@ -3,7 +3,7 @@
 
 ## Calculus
 
-function Base.sum(f::Fun{JacobiWeightSpace{ChebyshevSpace}})
+function Base.sum(f::Fun{JacobiWeightSpace{Chebyshev}})
     α,β=f.space.α,f.space.β    
     if α <= -1.0 || β <= -1.0
         fs = Fun(f.coefficients,f.space.space)

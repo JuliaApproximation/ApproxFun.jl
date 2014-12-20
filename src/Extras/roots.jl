@@ -19,7 +19,7 @@ complexroots{D<:IntervalSpace}(f::Fun{D})=fromcanonical(f,colleague_eigvals(f.co
 roots{S,T}(f::Fun{S,T})=roots(Fun(f,domain(f))) # default is to convert to Chebyshev/Fourier
 
 
-function roots( f::Fun{ChebyshevSpace} )
+function roots( f::Fun{Chebyshev} )
 # FIND THE ROOTS OF AN IFUN.  
 
     d = domain(f)

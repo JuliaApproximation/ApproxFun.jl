@@ -1,6 +1,6 @@
 
 
-function spaceconversion(f::Vector,sp1::JacobiWeightSpace{ChebyshevSpace},sp2::JacobiWeightSpace{ChebyshevSpace})
+function spaceconversion(f::Vector,sp1::JacobiWeightSpace{Chebyshev},sp2::JacobiWeightSpace{Chebyshev})
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
     if c==α && d==β
@@ -18,8 +18,8 @@ end
 
 
 
-transform(sp::JacobiWeightSpace{ChebyshevSpace},vals::Vector)=chebyshevrootstransform(vals./jacobiweight(sp,points(sp,length(vals))))
-itransform(sp::JacobiWeightSpace{ChebyshevSpace},cfs::Vector)=ichebyshevrootstransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
+transform(sp::JacobiWeightSpace{Chebyshev},vals::Vector)=chebyshevrootstransform(vals./jacobiweight(sp,points(sp,length(vals))))
+itransform(sp::JacobiWeightSpace{Chebyshev},cfs::Vector)=ichebyshevrootstransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
 
 
 

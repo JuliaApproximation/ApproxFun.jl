@@ -16,4 +16,4 @@ include("Mapped/Mapped.jl")
 include("Disk/DiskSpace.jl")
 
 
-typealias MappedChebyshevSpace Union(ChebyshevSpace,MappedSpace{ChebyshevSpace})
+typealias MappedChebyshev Union(Chebyshev,MappedSpace{Chebyshev})

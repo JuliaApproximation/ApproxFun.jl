@@ -33,7 +33,7 @@ end
 
 ## Multiplication
 
-function addentries!(M::Multiplication{ChebyshevSpace,JacobiSpace},A::ShiftArray,kr::Range1)
+function addentries!(M::Multiplication{Chebyshev,JacobiSpace},A::ShiftArray,kr::Range1)
     for k=kr
         A[k,0]=M.f.coefficients[1] 
     end
@@ -147,7 +147,7 @@ end
 bandinds{m}(C::Conversion{UltrasphericalSpace{m},JacobiSpace})=0,0
 
 
-function addentries!(C::Conversion{ChebyshevSpace,JacobiSpace},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{Chebyshev,JacobiSpace},A::ShiftArray,kr::Range)
     S=rangespace(C)
     @assert S.a==S.b==-0.5
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
@@ -158,7 +158,7 @@ function addentries!(C::Conversion{ChebyshevSpace,JacobiSpace},A::ShiftArray,kr:
     A
 end
 
-function addentries!(C::Conversion{JacobiSpace,ChebyshevSpace},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{JacobiSpace,Chebyshev},A::ShiftArray,kr::Range)
     S=domainspace(C)
     @assert S.a==S.b==0.
 

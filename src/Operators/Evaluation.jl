@@ -15,10 +15,7 @@ Evaluation{M,T<:Number}(sp::FunctionSpace{T},x::M,order::Integer)=Evaluation{typ
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
-Evaluation(d::IntervalDomain,x::Union(Number,Bool),n...)=Evaluation(ChebyshevSpace(d),x,n...)
-Evaluation(d::PeriodicDomain,x::Number,n...)=Evaluation(LaurentSpace(d),complex(x),n...)
-Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
-Evaluation(x::Union(Number,Bool))=Evaluation(Interval(),x,0)
+
 
 
 ## default getindex

@@ -11,21 +11,21 @@ ChebyshevDirichletSpace()=ChebyshevDirichletSpace{1,1}()
 
 
 
-canonicalspace(S::ChebyshevDirichletSpace)=ChebyshevSpace(domain(S))
+canonicalspace(S::ChebyshevDirichletSpace)=Chebyshev(domain(S))
 
 
 ## Dirichlet Conversion
 
-addentries!(C::Conversion{ChebyshevDirichletSpace{1,0},ChebyshevSpace},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
-addentries!(C::Conversion{ChebyshevDirichletSpace{0,1},ChebyshevSpace},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
-function addentries!(C::Conversion{ChebyshevDirichletSpace{1,1},ChebyshevSpace},A::ShiftArray,kr::Range)
+addentries!(C::Conversion{ChebyshevDirichletSpace{1,0},Chebyshev},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
+addentries!(C::Conversion{ChebyshevDirichletSpace{0,1},Chebyshev},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
+function addentries!(C::Conversion{ChebyshevDirichletSpace{1,1},Chebyshev},A::ShiftArray,kr::Range)
     A=toeplitz_addentries!(ShiftVector([1.,0.,-1.],1),A,kr)    
     if kr[1]==1
         A[1,1]+=-1
     end
     A
 end
-function addentries!(C::Conversion{ChebyshevDirichletSpace{2,2},ChebyshevSpace},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{ChebyshevDirichletSpace{2,2},Chebyshev},A::ShiftArray,kr::Range)
     for k=kr
         A[k,0]=1
         A[k,4]=2*(k+1)/k-1
@@ -36,11 +36,11 @@ function addentries!(C::Conversion{ChebyshevDirichletSpace{2,2},ChebyshevSpace},
     
     A
 end
-bandinds(::Conversion{ChebyshevDirichletSpace{1,0},ChebyshevSpace})=0,1
-bandinds(::Conversion{ChebyshevDirichletSpace{0,1},ChebyshevSpace})=0,1
-bandinds(::Conversion{ChebyshevDirichletSpace{1,1},ChebyshevSpace})=0,2
+bandinds(::Conversion{ChebyshevDirichletSpace{1,0},Chebyshev})=0,1
+bandinds(::Conversion{ChebyshevDirichletSpace{0,1},Chebyshev})=0,1
+bandinds(::Conversion{ChebyshevDirichletSpace{1,1},Chebyshev})=0,2
 
-conversion_rule(b::ChebyshevDirichletSpace,a::ChebyshevSpace)=b
+conversion_rule(b::ChebyshevDirichletSpace,a::Chebyshev)=b
 
 # return the space that has banded Conversion to the other
 # function conversion_rule(a::ChebyshevDirichletSpace,b::UltrasphericalSpace)

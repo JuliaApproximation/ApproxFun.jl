@@ -1,17 +1,19 @@
 
+export Chebyshev
 
-typealias ChebyshevSpace UltrasphericalSpace{0}
+
+typealias Chebyshev UltrasphericalSpace{0}
 
 
-Space(d::IntervalDomain)=ChebyshevSpace(d)
-canonicalspace(S::UltrasphericalSpace)=ChebyshevSpace(domain(S))
+Space(d::IntervalDomain)=Chebyshev(d)
+canonicalspace(S::UltrasphericalSpace)=Chebyshev(domain(S))
 
-function spaceconversion(g::Vector,::ConstantSpace,::ChebyshevSpace)
+function spaceconversion(g::Vector,::ConstantSpace,::Chebyshev)
     @assert length(g)==1
     g
 end
 
-function spaceconversion(g::Vector,::ChebyshevSpace,::ConstantSpace)
+function spaceconversion(g::Vector,::Chebyshev,::ConstantSpace)
     @assert length(g)==1
     g
 end
@@ -19,36 +21,36 @@ end
 
 ## Transform
 
-transform(::ChebyshevSpace,vals::Vector)=chebyshevtransform(vals)
-itransform(::ChebyshevSpace,cfs::Vector)=ichebyshevtransform(cfs)
+transform(::Chebyshev,vals::Vector)=chebyshevtransform(vals)
+itransform(::Chebyshev,cfs::Vector)=ichebyshevtransform(cfs)
 
 
 ## Evaluation
 
-evaluate(f::Fun{ChebyshevSpace},x)=clenshaw(f.coefficients,tocanonical(f,x))
+evaluate(f::Fun{Chebyshev},x)=clenshaw(f.coefficients,tocanonical(f,x))
 
 ## Calculus
 
 
 # diff T -> U, then convert U -> T
-integrate(f::Fun{ChebyshevSpace})=Fun(chebyshevintegrate(domain(f),f.coefficients),f.space)
+integrate(f::Fun{Chebyshev})=Fun(chebyshevintegrate(domain(f),f.coefficients),f.space)
 chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint(ultraconversion(cfs))   
 
 
-differentiate(f::Fun{ChebyshevSpace})=Fun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
+differentiate(f::Fun{Chebyshev})=Fun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
 chebyshevdifferentiate(d::Interval,cfs::Vector)=tocanonicalD(d,0)*ultraiconversion(ultradiff(cfs))
 chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(Fun(x->tocanonicalD(d,x),d).*Fun(diff(Fun(cfs)),d)).coefficients
 
 
 ## identity_fun
 
-identity_fun(d::ChebyshevSpace)=identity_fun(domain(d))
+identity_fun(d::Chebyshev)=identity_fun(domain(d))
 
 
 
 ## 2D fast values
 
-function ApproxFun.values{T}(f::TensorFun{ChebyshevSpace,ChebyshevSpace,T})
+function ApproxFun.values{T}(f::TensorFun{Chebyshev,Chebyshev,T})
     n,m=size(f)
     M=Array(T,n,m)
     f1=pad(f.coefficients[1].coefficients,n)
@@ -88,6 +90,6 @@ end
 
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))
-    @eval ($op){S<:ChebyshevSpace,V<:ChebyshevSpace}(f::TensorFun{S,V})=TensorFun(chebyshevtransform($op(values(f))),domain(f))
+    @eval ($op){S<:Chebyshev,V<:Chebyshev}(f::TensorFun{S,V})=TensorFun(chebyshevtransform($op(values(f))),domain(f))
 end
 

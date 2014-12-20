@@ -27,7 +27,7 @@ f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeightSpace(-.5,-.5))
 
 
 
-S=JacobiWeightSpace(-1.,-1.,ChebyshevSpace([0.,1.]))
+S=JacobiWeightSpace(-1.,-1.,Chebyshev([0.,1.]))
 D=Derivative(S)
 
 f=Fun(Fun(exp,[0.,1.]).coefficients,S)
@@ -36,7 +36,7 @@ x=.1
 @test_approx_eq (D*f)[x] -exp(x)*(1+(x-3)*x)/(4*(x-1)^2*x^2)
 
 
-S=JacobiWeightSpace(-1.,0.,ChebyshevSpace([0.,1.]))
+S=JacobiWeightSpace(-1.,0.,Chebyshev([0.,1.]))
 D=Derivative(S)
 
 f=Fun(Fun(exp,[0.,1.]).coefficients,S)
@@ -50,7 +50,7 @@ x=.1
 
 
 for ν in (1.,.123,2.,3.5)
-    S=JacobiWeightSpace(-ν,0.,ChebyshevSpace([0.,1.]))
+    S=JacobiWeightSpace(-ν,0.,Chebyshev([0.,1.]))
     D=Derivative(S)
     x=Fun(identity,domain(S))
     L=(x.^2)*D^2+x*D+(x.^2-ν^2);

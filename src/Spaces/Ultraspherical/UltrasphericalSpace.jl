@@ -14,9 +14,9 @@ end
 
 
 #UltrasphericalSpace(o::Integer)=UltrasphericalSpace(o,AnyDomain())
-#ChebyshevSpace(d::IntervalDomain)=UltrasphericalSpace(0,d)
+#Chebyshev(d::IntervalDomain)=UltrasphericalSpace(0,d)
 
-include("ChebyshevSpace.jl")
+include("Chebyshev.jl")
 
 
 order{o}(::UltrasphericalSpace{o})=o
@@ -35,8 +35,8 @@ Base.ones{O}(S::UltrasphericalSpace{O})=Fun(ones(1),S)
 
 
 #This can be overriden, but the default is to use Chebyshev
-# transform(sp::IntervalSpace,vals::Vector)=spaceconversion(chebyshevtransform(vals),ChebyshevSpace(domain(sp)),sp)
-# itransform(sp::IntervalSpace,cfs::Vector)=ichebyshevtransform(spaceconversion(cfs,sp,ChebyshevSpace(domain(sp))))
+# transform(sp::IntervalSpace,vals::Vector)=spaceconversion(chebyshevtransform(vals),Chebyshev(domain(sp)),sp)
+# itransform(sp::IntervalSpace,cfs::Vector)=ichebyshevtransform(spaceconversion(cfs,sp,Chebyshev(domain(sp))))
 
 
 
@@ -49,7 +49,7 @@ identity_fun{m}(d::UltrasphericalSpace{m})=Fun(identity_fun(domain(d)),d)
 
 ## Calculus
 
-integrate(f::Fun{UltrasphericalSpace{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coefficients),ChebyshevSpace(domain(f)))
+integrate(f::Fun{UltrasphericalSpace{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coefficients),Chebyshev(domain(f)))
 
 
 

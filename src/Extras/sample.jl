@@ -81,7 +81,7 @@ function chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64},plan::Clenshaw
     m=.5*(a+b)    
 end
 
-for TYP in (:Vector,:Float64), SP in (:ChebyshevSpace,:LineSpace)
+for TYP in (:Vector,:Float64), SP in (:Chebyshev,:LineSpace)
     @eval bisectioninv(cf::Fun{$SP,Float64},x::$TYP)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x))
 end
 
@@ -170,7 +170,7 @@ samplecdf(v::Vector)=chebbisectioninv(v,rand())
 
 ##2D sample
 
-function sample(f::LowRankFun{ChebyshevSpace,ChebyshevSpace,Float64,Float64},n::Integer)
+function sample(f::LowRankFun{Chebyshev,Chebyshev,Float64,Float64},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficients(f.B)

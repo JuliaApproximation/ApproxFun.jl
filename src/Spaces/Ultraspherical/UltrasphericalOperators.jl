@@ -21,7 +21,7 @@ end
 
 
 ##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex(op::Evaluation{ChebyshevSpace,Bool},k::Range)
+function Base.getindex(op::Evaluation{Chebyshev,Bool},k::Range)
     x = op.x
     d = domain(op)
     p = op.order
@@ -40,7 +40,7 @@ function Base.getindex(op::Evaluation{ChebyshevSpace,Bool},k::Range)
     return ret*cst
 end
 
-function Base.getindex(op::Evaluation{ChebyshevSpace},k::Range)
+function Base.getindex(op::Evaluation{Chebyshev},k::Range)
     if op.order == 0    
         evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
     else
@@ -58,7 +58,7 @@ function chebmult_addentries!(cfs::Vector,A::ShiftArray,kr::Range)
 end
 
 
-addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,ChebyshevSpace},A::ShiftArray,kr::Range)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
+addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,Chebyshev},A::ShiftArray,kr::Range)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
 
 function addentries!{D<:UltrasphericalSpace}(M::Multiplication{D,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
     cfs=canonicalcoefficients(M.f)
@@ -197,7 +197,7 @@ function Conversion{a,b}(A::UltrasphericalSpace{a},B::UltrasphericalSpace{b})
 end   
 
 
-function addentries!(M::Conversion{ChebyshevSpace,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
+function addentries!(M::Conversion{Chebyshev,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
     for k=kr
         A[k,0] += (k == 1)? 1. : .5
         A[k,2] += -.5        
@@ -216,7 +216,7 @@ function addentries!{m,λ}(M::Conversion{UltrasphericalSpace{m},UltrasphericalSp
     A    
 end
 
-function multiplyentries!(M::Conversion{ChebyshevSpace,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
+function multiplyentries!(M::Conversion{Chebyshev,UltrasphericalSpace{1}},A::ShiftArray,kr::Range)
     cr=columnrange(A)::Range1{Int}
     
     #We assume here that the extra rows are redundant
@@ -261,8 +261,8 @@ function conversion_rule{aorder,border}(a::UltrasphericalSpace{aorder},b::Ultras
 end
 
 
-spaceconversion(g::Vector,::UltrasphericalSpace{1},::ChebyshevSpace)=ultraiconversion(g)
-spaceconversion(g::Vector,::ChebyshevSpace,::UltrasphericalSpace{1})=ultraconversion(g)
+spaceconversion(g::Vector,::UltrasphericalSpace{1},::Chebyshev)=ultraiconversion(g)
+spaceconversion(g::Vector,::Chebyshev,::UltrasphericalSpace{1})=ultraconversion(g)
 
 
 

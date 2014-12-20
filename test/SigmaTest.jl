@@ -10,8 +10,8 @@ d=domain(x)
 
 S=Σ(d)
 
-@test domainspace(S) == JacobiWeightSpace{ChebyshevSpace}(-0.5,-0.5,ChebyshevSpace())
-@test rangespace(S) == ChebyshevSpace()
+@test domainspace(S) == JacobiWeightSpace{Chebyshev}(-0.5,-0.5,Chebyshev())
+@test rangespace(S) == Chebyshev()
 
 L=I+S[exp(x)*w]
 usol=sin(2x)

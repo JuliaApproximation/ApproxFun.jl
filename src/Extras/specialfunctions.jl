@@ -69,7 +69,7 @@ function ./{S,T}(c::Number,f::Fun{S,T})
     linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
 end
 
-function ./(c::Number,f::Fun{ChebyshevSpace})
+function ./(c::Number,f::Fun{Chebyshev})
     fc = Fun(canonicalcoefficients(f),Interval())
     r = roots(fc)
     x = Fun(identity)
@@ -134,7 +134,7 @@ for op in (:(Base.cos),:(Base.sin),:(Base.cospi),:(Base.sinpi),:(Base.sinc),:(Ba
     end
 end
 
-function .^{S<:MappedChebyshevSpace}(f::Fun{S},k::Float64)
+function .^{S<:MappedChebyshev}(f::Fun{S},k::Float64)
     fc = Fun(f.coefficients) #Project to interval
     x=Fun(identity)
 

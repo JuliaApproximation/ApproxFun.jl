@@ -16,8 +16,8 @@ MappedSpace{D<:Domain,T<:Number,DS<:Domain}(d::D,s::FunctionSpace{T,DS})=MappedS
 typealias IntervalMappedSpace{S,D} MappedSpace{S,D,Float64,Interval}
 typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
 
-typealias LineSpace IntervalMappedSpace{ChebyshevSpace,Line}
-typealias RaySpace IntervalMappedSpace{ChebyshevSpace,Ray}
+typealias LineSpace IntervalMappedSpace{Chebyshev,Line}
+typealias RaySpace IntervalMappedSpace{Chebyshev,Ray}
 typealias CurveSpace{S,T,DS} MappedSpace{S,Curve{S},T,DS}
 typealias OpenCurveSpace{S} CurveSpace{S,Float64,Interval}
 typealias ClosedCurveSpace{S,T} CurveSpace{S,T,PeriodicInterval}
@@ -117,7 +117,7 @@ end
 function integrate(f::Fun{RaySpace})
     x=Fun(identity)
     g=fromcanonicalD(f,x)*Fun(f.coefficients)
-    Fun(integrate(Fun(g,ChebyshevSpace)).coefficients,space(f))
+    Fun(integrate(Fun(g,Chebyshev)).coefficients,space(f))
 end
 
 for T in (Float64,Complex{Float64})
