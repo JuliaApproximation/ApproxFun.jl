@@ -1,4 +1,4 @@
 include("divide_singularity.jl")
-include("JacobiWeightSpace.jl")
+include("JacobiWeight.jl")
 include("JacobiWeightOperators.jl")
 include("JacobiWeightChebyshev.jl")

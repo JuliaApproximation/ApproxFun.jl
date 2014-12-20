@@ -10,8 +10,8 @@ d=domain(x)
 
 S=Σ(d)
 
-@test domainspace(S) == JacobiWeightSpace{ChebyshevSpace}(-0.5,-0.5,ChebyshevSpace())
-@test rangespace(S) == ChebyshevSpace()
+@test domainspace(S) == JacobiWeight{Chebyshev}(-0.5,-0.5,Chebyshev())
+@test rangespace(S) == Chebyshev()
 
 L=I+S[exp(x)*w]
 usol=sin(2x)
@@ -32,8 +32,8 @@ D=Derivative(d)
 B=ldirichlet(d)
 S=Σ(.5,.5,d)
 
-@test domainspace(S) == JacobiWeightSpace{UltrasphericalSpace{1}}(.5,.5,UltrasphericalSpace{1}(d))
-@test rangespace(S) == UltrasphericalSpace{1}(d)
+@test domainspace(S) == JacobiWeight{Ultraspherical{1}}(.5,.5,Ultraspherical{1}(d))
+@test rangespace(S) == Ultraspherical{1}(d)
 
 K=LowRankFun((x,y)->sin(y-x)*w[y],rangespace(S),domainspace(S))
 

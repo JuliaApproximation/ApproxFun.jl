@@ -90,9 +90,9 @@ uex2=K\G
 
 # dirichlet bcs
 
-import ApproxFun.ChebyshevDirichletSpace
+import ApproxFun.ChebyshevDirichlet
 
-S=ChebyshevDirichletSpace()⊗ChebyshevDirichletSpace();
+S=ChebyshevDirichlet()⊗ChebyshevDirichlet();
 A=[dirichlet(S),lap(S)]
 nx=ny=20;
 KD=kron(A,nx,ny);

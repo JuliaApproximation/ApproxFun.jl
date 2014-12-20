@@ -22,7 +22,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         $Op()=$Op(AnySpace())
         $Op(k::Integer)=$Op(AnySpace(),k)
         
-        $Op(d::PeriodicDomain,n::Integer)=$Op(LaurentSpace(d),n)
+        $Op(d::Domain,n::Integer)=$Op(Space(d),n)
         $Op(d::Domain)=$Op(d,1)
         
         
@@ -84,9 +84,6 @@ abstract AbstractIntegral{S,T} <:CalculusOperator{S,T}
 @calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
 
       
-# the default domain space is higher to avoid negative ultraspherical spaces
-Derivative(d::IntervalDomain,n::Integer)=Derivative(ChebyshevSpace(d),n)
-Integral(d::IntervalDomain,n::Integer)=Integral(UltrasphericalSpace{1}(d),n)
 
 
 

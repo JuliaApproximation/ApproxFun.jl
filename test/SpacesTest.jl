@@ -1,13 +1,13 @@
 using ApproxFun, Base.Test
 
-import ApproxFun: ChebyshevDirichletSpace,UltrasphericalSpace,space
+import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
 
 
-@test_approx_eq Fun(exp,ChebyshevDirichletSpace{1,1})[.1] exp(.1)
-@test_approx_eq Fun(Fun(exp,ChebyshevDirichletSpace{1,1}),UltrasphericalSpace{1})[.1] exp(.1)
+@test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})[.1] exp(.1)
+@test_approx_eq Fun(Fun(exp,ChebyshevDirichlet{1,1}),Ultraspherical{1})[.1] exp(.1)
 
 d=Interval()
-sp=ChebyshevDirichletSpace{1,1}(d)
+sp=ChebyshevDirichlet{1,1}(d)
 B=dirichlet(sp)
 D=diff(d)
 L=D^2+I
@@ -20,15 +20,15 @@ f=Fun(t->cos(t)+cos(3t),CosSpace)
 
 
 
-f=Fun(exp,TaylorSpace(Circle()))
-g=Fun(z->1./(z-.1),HardySpace{false}(Circle()))
+f=Fun(exp,Taylor(Circle()))
+g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
 @test_approx_eq (f[1.]+g[1.]) (exp(1.) + 1./(1-.1))
 
 
 ## Periodic
 f=FFun(x->exp(-10sin((x-.1)/2)^2))
-@test_approx_eq f[.5] (Conversion(space(f),FourierSpace(domain(f)))*f)[.5]
-@test_approx_eq f[.5] Fun(f,FourierSpace)[.5]
+@test_approx_eq f[.5] (Conversion(space(f),Fourier(domain(f)))*f)[.5]
+@test_approx_eq f[.5] Fun(f,Fourier)[.5]
 
 
 

@@ -2,7 +2,7 @@ using ApproxFun
 
 function lanczos(w,N)
     x = Fun(identity,domain(w))
-    P = Array(IFun,N + 1)
+    P = Array(Fun,N + 1)
     β = Array(Float64,N)
     γ = Array(Float64,N)
 

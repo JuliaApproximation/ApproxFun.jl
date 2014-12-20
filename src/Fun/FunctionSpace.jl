@@ -1,6 +1,6 @@
 
 
-export FunctionSpace, ChebyshevSpace, domainspace, rangespace, maxspace, minspace,Space
+export FunctionSpace, domainspace, rangespace, maxspace, minspace,Space
 
 
 # T tells whether the basis is real (cos/sin) or complex
@@ -163,7 +163,7 @@ spaceconversion(f::Vector,sp::FunctionSpace)=spaceconversion(f,canonicalspace(sp
 spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpace)=spaceconversion(spaceconversion(f,sp1,sp2),sp2,sp3)
 
 
-## spaceconversion defaults to calling Conversion, otherwise it tries to pipe through ChebyshevSpace
+## spaceconversion defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
 # function spaceconversion{A<:FunctionSpace}(f::Vector,a::A,b::A)
 #     if spacescompatible(a,b)

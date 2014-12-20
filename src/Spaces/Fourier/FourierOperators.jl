@@ -4,12 +4,12 @@
 
 ## Multiplication 
 
-addentries!(M::Multiplication{LaurentSpace,LaurentSpace},A,k)=addentries!(LaurentOperator(M.f),A,k)
-bandinds(M::Multiplication{LaurentSpace,LaurentSpace})=bandinds(LaurentOperator(M.f))
+addentries!(M::Multiplication{Laurent,Laurent},A,k)=addentries!(LaurentOperator(M.f),A,k)
+bandinds(M::Multiplication{Laurent,Laurent})=bandinds(LaurentOperator(M.f))
 
 ## Converison
 
-function addentries!(C::Conversion{LaurentSpace,FourierSpace},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{Laurent,Fourier},A::ShiftArray,kr::Range)
     for k=kr
         if k==1
             A[k,0]+=1.
@@ -23,7 +23,7 @@ function addentries!(C::Conversion{LaurentSpace,FourierSpace},A::ShiftArray,kr::
     end
     A
 end
-function addentries!(C::Conversion{FourierSpace,LaurentSpace},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{Fourier,Laurent},A::ShiftArray,kr::Range)
     for k=kr
         if k==1
             A[k,0]+=1.
@@ -38,10 +38,10 @@ function addentries!(C::Conversion{FourierSpace,LaurentSpace},A::ShiftArray,kr::
     A
 end
 
-bandinds(::Conversion{LaurentSpace,FourierSpace})=-1,1
-bandinds(::Conversion{FourierSpace,LaurentSpace})=-1,1
+bandinds(::Conversion{Laurent,Fourier})=-1,1
+bandinds(::Conversion{Fourier,Laurent})=-1,1
 
-function conversion_rule(A::LaurentSpace,B::FourierSpace)
+function conversion_rule(A::Laurent,B::Fourier)
     @assert domainscompatible(A,B)
     B
 end
@@ -52,16 +52,16 @@ end
 
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{TaylorSpace,T}})=FourierSpace(domain(R))
+        rangespace{T}(R::$TYP{ReImSpace{Taylor,T}})=Fourier(domain(R))
     end
 end
 
-bandinds{T}(::RealOperator{ReImSpace{TaylorSpace,T}})=0,2
-bandinds{T}(::ImagOperator{ReImSpace{TaylorSpace,T}})=0,1
+bandinds{T}(::RealOperator{ReImSpace{Taylor,T}})=0,2
+bandinds{T}(::ImagOperator{ReImSpace{Taylor,T}})=0,1
 
 
 ## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{TaylorSpace,T}},A::ShiftArray,kr::Range)
+function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A::ShiftArray,kr::Range)
     for k=kr
         if isodd(k)         # real part
             A[k,0]+=1        
@@ -73,7 +73,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{TaylorSpace,T}},A::ShiftArray,
 end
 
 ## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
-function addentries!{T}(R::ImagOperator{ReImSpace{TaylorSpace,T}},A::ShiftArray,kr::Range)
+function addentries!{T}(R::ImagOperator{ReImSpace{Taylor,T}},A::ShiftArray,kr::Range)
     for k=kr
         A[k,1]+=1
     end
@@ -85,17 +85,17 @@ end
 # spaces lose zeroth coefficient
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{HardySpace{false},T}})=DropSpace(FourierSpace(domain(R)),1)
+        rangespace{T}(R::$TYP{ReImSpace{Hardy{false},T}})=DropSpace(Fourier(domain(R)),1)
     end
 end
 
 
-bandinds{T}(::RealOperator{ReImSpace{HardySpace{false},T}})=-1,1
-bandinds{T}(::ImagOperator{ReImSpace{HardySpace{false},T}})=0,0
+bandinds{T}(::RealOperator{ReImSpace{Hardy{false},T}})=-1,1
+bandinds{T}(::ImagOperator{ReImSpace{Hardy{false},T}})=0,0
 
 
 ## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{HardySpace{false},T}},A::ShiftArray,kr::Range)
+function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A::ShiftArray,kr::Range)
     for k=kr
         if isodd(k)    # imag part
             A[k,1]+=1            
@@ -107,7 +107,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{HardySpace{false},T}},A::Shift
 end
 
 ## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
-function addentries!{T}(R::ImagOperator{ReImSpace{HardySpace{false},T}},A::ShiftArray,kr::Range)
+function addentries!{T}(R::ImagOperator{ReImSpace{Hardy{false},T}},A::ShiftArray,kr::Range)
     for k=kr
         A[k,0]+=isodd(k)?-1:1
     end
@@ -118,12 +118,12 @@ end
 # spaces lose zeroth coefficient
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{LaurentSpace,T}})=FourierSpace(domain(R))
+        rangespace{T}(R::$TYP{ReImSpace{Laurent,T}})=Fourier(domain(R))
     end
 end
 
-bandinds{T}(::RealOperator{ReImSpace{LaurentSpace,T}})=0,2
-function addentries!{T}(R::RealOperator{ReImSpace{LaurentSpace,T}},A::ShiftArray,kr::Range)
+bandinds{T}(::RealOperator{ReImSpace{Laurent,T}})=0,2
+function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A::ShiftArray,kr::Range)
     for k=kr
         if isodd(k)    # real part
             A[k,0]+=1
@@ -142,12 +142,12 @@ end
 ### Cos/Sine
 
 
-bandinds{S<:HardySpace}(D::Derivative{S})=0,0
+bandinds{S<:Hardy}(D::Derivative{S})=0,0
 bandinds(D::Derivative{CosSpace})=iseven(D.order)?(0,0):(0,1)
 bandinds(D::Derivative{SinSpace})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
 rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
-rangespace{S<:HardySpace}(D::Derivative{S})=D.space
+rangespace{S<:Hardy}(D::Derivative{S})=D.space
 
 
 
@@ -183,7 +183,7 @@ function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
     A
 end
 
-function addentries!(D::Derivative{TaylorSpace},A::ShiftArray,kr::Range)
+function addentries!(D::Derivative{Taylor},A::ShiftArray,kr::Range)
     d=domain(D)
     m=D.order
     C=2π./(d.b-d.a)*im
@@ -195,7 +195,7 @@ function addentries!(D::Derivative{TaylorSpace},A::ShiftArray,kr::Range)
     A
 end
 
-function addentries!(D::Derivative{HardySpace{false}},A::ShiftArray,kr::Range)
+function addentries!(D::Derivative{Hardy{false}},A::ShiftArray,kr::Range)
     d=domain(D)
     m=D.order
     C=2π./(d.b-d.a)*im

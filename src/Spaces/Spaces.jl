@@ -1,11 +1,11 @@
 
-include("IntervalDomainSpace.jl")
-include("PeriodicDomainSpace.jl")
+include("IntervalSpace.jl")
+include("PeriodicSpace.jl")
 
 
 include("Modifier/Modifier.jl")
 
-include("Ultraspherical/UltrasphericalSpace.jl")
+include("Ultraspherical/Ultraspherical.jl")
 include("Fourier/FourierSpace.jl")
 include("Singularities/Singularities.jl")
 include("Jacobi/Jacobi.jl")
@@ -16,4 +16,4 @@ include("Mapped/Mapped.jl")
 include("Disk/DiskSpace.jl")
 
 
-typealias MappedChebyshevSpace Union(ChebyshevSpace,MappedSpace{ChebyshevSpace})
+typealias MappedChebyshev Union(Chebyshev,MappedSpace{Chebyshev})

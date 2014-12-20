@@ -1,4 +1,4 @@
-function Base.real(f::Fun{LaurentSpace})
+function Base.real(f::Fun{Laurent})
     n=length(f)
     cfs=f.coefficients
 
@@ -17,11 +17,11 @@ function Base.real(f::Fun{LaurentSpace})
     end
 
     
-    Fun(ret,FourierSpace(domain(f)))
+    Fun(ret,Fourier(domain(f)))
 end
 
 
-function Base.imag(f::Fun{LaurentSpace})
+function Base.imag(f::Fun{Laurent})
     n=length(f)
     cfs=f.coefficients
 
@@ -40,7 +40,7 @@ function Base.imag(f::Fun{LaurentSpace})
     end
  
     
-    Fun(ret,FourierSpace(domain(f)))
+    Fun(ret,Fourier(domain(f)))
 end
 
 

@@ -16,8 +16,8 @@ MappedSpace{D<:Domain,T<:Number,DS<:Domain}(d::D,s::FunctionSpace{T,DS})=MappedS
 typealias IntervalMappedSpace{S,D} MappedSpace{S,D,Float64,Interval}
 typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
 
-typealias LineSpace IntervalMappedSpace{ChebyshevSpace,Line}
-typealias RaySpace IntervalMappedSpace{ChebyshevSpace,Ray}
+typealias LineSpace IntervalMappedSpace{Chebyshev,Line}
+typealias RaySpace IntervalMappedSpace{Chebyshev,Ray}
 typealias CurveSpace{S,T,DS} MappedSpace{S,Curve{S},T,DS}
 typealias OpenCurveSpace{S} CurveSpace{S,Float64,Interval}
 typealias ClosedCurveSpace{S,T} CurveSpace{S,T,PeriodicInterval}
@@ -105,7 +105,7 @@ function integrate(f::Fun{LineSpace})
     # || d.α==d.β==-.5
     
 #    if domain(f).α==domain(f).β==-1.
-        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f.coefficients),UltrasphericalSpace{1}))),f.space)
+        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f.coefficients),Ultraspherical{1}))),f.space)
 #    end
 #     elseif d.α==d.β==-.5
 #         u=divide_singularity(f)
@@ -117,14 +117,14 @@ end
 function integrate(f::Fun{RaySpace})
     x=Fun(identity)
     g=fromcanonicalD(f,x)*Fun(f.coefficients)
-    Fun(integrate(Fun(g,ChebyshevSpace)).coefficients,space(f))
+    Fun(integrate(Fun(g,Chebyshev)).coefficients,space(f))
 end
 
 for T in (Float64,Complex{Float64})
     function Base.sum(f::Fun{LineSpace})
         d=domain(f)
         if d.α==d.β==-.5
-            sum(Fun(divide_singularity(f.coefficients),JacobiWeightSpace(-.5,-.5,Interval())))
+            sum(Fun(divide_singularity(f.coefficients),JacobiWeight(-.5,-.5,Interval())))
         else
             cf = integrate(f)
             last(cf) - first(cf)
@@ -139,8 +139,8 @@ end
 
 function identity_fun{SS,DD,DDS,DDT}(S::MappedSpace{SS,DD,DDT,DDS})
     sf=fromcanonical(S,Fun(identity,S.space))
-    if isa(space(sf),JacobiWeightSpace)
-        Fun(coefficients(sf),JacobiWeightSpace(sf.space.α,sf.space.β,S))
+    if isa(space(sf),JacobiWeight)
+        Fun(coefficients(sf),JacobiWeight(sf.space.α,sf.space.β,S))
     else
          @assert isa(space(sf),S.space)
          Fun(coefficients(sf),S)

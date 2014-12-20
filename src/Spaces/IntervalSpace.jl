@@ -2,7 +2,29 @@
 typealias IntervalSpace  FunctionSpace{Float64,Interval}     # We assume basis is real
 canonicaldomain{T<:IntervalSpace}(::Type{T})=Interval()
 
+## Calculus
+
+# the default domain space is higher to avoid negative ultraspherical spaces
+Integral(d::IntervalDomain,n::Integer)=Integral(Ultraspherical{1}(d),n)
+
+## Sigma
+
+Σ(d::IntervalDomain)=Σ(JacobiWeight(-.5,-.5,Chebyshev(d)),Chebyshev(d))
+
+function Σ(α::Number,β::Number,d::IntervalDomain)
+    @assert α == β
+    @assert int(α+.5) == α+.5
+    @assert int(α+.5) >= 0
+    Σ(JacobiWeight(α,β,Ultraspherical{int(α+.5)}(d)),Ultraspherical{int(α+.5)}(d))
+end
+Σ(α::Number,β::Number) = Σ(α,β,Interval())
+
 ## Evaluation
+
+Evaluation(d::IntervalDomain,x::Union(Number,Bool),n...)=Evaluation(Chebyshev(d),x,n...)
+Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
+Evaluation(x::Union(Number,Bool))=Evaluation(Interval(),x,0)
+
 
 function dirichlet{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
     m=length(d)

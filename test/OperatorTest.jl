@@ -12,14 +12,14 @@ Q=integrate(d)
 x=Fun(identity)
 X=Multiplication(x,space(x))
 
-A=Conversion(ChebyshevSpace(d),UltrasphericalSpace{2}(d))
+A=Conversion(Chebyshev(d),Ultraspherical{2}(d))
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
 
-@test norm((Conversion(ChebyshevSpace(d),UltrasphericalSpace{2}(d))\(D^2*f))-diff(diff(f))) < 100eps()
+@test norm((Conversion(Chebyshev(d),Ultraspherical{2}(d))\(D^2*f))-diff(diff(f))) < 100eps()
 
 @test norm(X*f-(x.*f)) < 100eps()
 
-A=Conversion(ChebyshevSpace(d),UltrasphericalSpace{2}(d))*X
+A=Conversion(Chebyshev(d),Ultraspherical{2}(d))*X
 @test norm(A*f.coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
 
 

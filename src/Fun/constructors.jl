@@ -158,14 +158,13 @@ Fun(f::Function,d::Domain;opts...)=Fun(f,Space(d);opts...)
 ## Aliases
 
 
-FFun(x,d::PeriodicDomain)=Fun(x,LaurentSpace(d))
-FFun(x,d::PeriodicDomain,n...)=Fun(x,LaurentSpace(d),n...)
-FFun{T<:Number}(x,d::Vector{T})=Fun(x,LaurentSpace(d))
-FFun{T<:Number}(x,d::Vector{T},n...)=Fun(x,LaurentSpace(d),n...)
-FFun(f,n::Integer)=Fun(f,LaurentSpace(PeriodicInterval()),n)
-FFun(f)=Fun(f,LaurentSpace(PeriodicInterval()))
+FFun(x,d::PeriodicDomain)=Fun(x,Laurent(d))
+FFun(x,d::PeriodicDomain,n...)=Fun(x,Laurent(d),n...)
+FFun{T<:Number}(x,d::Vector{T})=Fun(x,Laurent(d))
+FFun{T<:Number}(x,d::Vector{T},n...)=Fun(x,Laurent(d),n...)
+FFun(f,n::Integer)=Fun(f,Laurent(PeriodicInterval()),n)
+FFun(f)=Fun(f,Laurent(PeriodicInterval()))
 
-typealias IFun{D,T} Fun{D,T}
 
 
 Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
