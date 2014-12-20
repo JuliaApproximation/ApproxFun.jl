@@ -1,6 +1,6 @@
 
 
-include("JacobiSquareSpace.jl")
+include("JacobiSquare.jl")
 
 export Disk
 
@@ -38,12 +38,12 @@ end
 
 
 DiskSpace{SS}(K::Integer,D::Disk,S::SS)=DiskSpace{K,K==2?JacobiSquareSpace:JacobiWeight{Jacobi},SS}(D,S)
-DiskSpace{SS}(D::Disk,S::SS)=DiskSpace{2,JacobiSquareSpace,SS}(D,S)
-DiskSpace(K::Integer,D::Disk)=DiskSpace(K,D,LaurentSpace())
+DiskSpace{SS}(D::Disk,S::SS)=DiskSpace{2,JacobiSquare,SS}(D,S)
+DiskSpace(K::Integer,D::Disk)=DiskSpace(K,D,Laurent())
 DiskSpace(K::Integer)=DiskSpace(K,Disk())
 
 #TODO: Change to Fourier
-DiskSpace(D::Disk)=DiskSpace(D,LaurentSpace())
+DiskSpace(D::Disk)=DiskSpace(D,Laurent())
 
 domain(d::DiskSpace)=d.domain
 function space(D::DiskSpace,k::Integer)
@@ -61,7 +61,7 @@ Space(D::Disk)=DiskSpace(D)
 
 columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeight(0.,m,Jacobi(2m+1,0.,Interval(D.domain.radius,0.))))
 columnspace{SS}(D::DiskSpace{1,SS},k)=(m=1.div(k,2);JacobiWeight(0.,m,Jacobi(2m+0.5,-0.5,Interval(D.domain.radius,0.))))
-columnspace{SS}(D::DiskSpace{2,SS},k)=(m=div(k,2);JacobiSquareSpace(m,Interval(D.domain.radius,0.)))
+columnspace{SS}(D::DiskSpace{2,SS},k)=(m=div(k,2);JacobiSquare(m,Interval(D.domain.radius,0.)))
 
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
@@ -69,7 +69,7 @@ columnspace{SS}(D::DiskSpace{2,SS},k)=(m=div(k,2);JacobiSquareSpace(m,Interval(D
 diskspacetype{K}(D::DiskSpace{K})=K
 
 
-function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,LaurentSpace,D})
+function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,Laurent,D})
     cfs=f.coefficients
     n=length(cfs)
 
@@ -87,9 +87,9 @@ function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,LaurentSpace,D})
         ret[k-1]-=imag(cfs[k])
     end
 
-    ProductFun(ret,DiskSpace{diskspacetype(space(f)),JS,FourierSpace}(space(f).domain,FourierSpace()))
+    ProductFun(ret,DiskSpace{diskspacetype(space(f)),JS,Fourier}(space(f).domain,Fourier()))
 end
-#Base.imag{S,T}(u::ProductFun{S,LarentSpace,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
+#Base.imag{S,T}(u::ProductFun{S,Larent,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
 
 
 

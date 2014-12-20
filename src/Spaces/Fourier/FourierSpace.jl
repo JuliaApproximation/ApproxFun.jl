@@ -1,6 +1,6 @@
 
 
-export FourierSpace,TaylorSpace,HardySpace,CosSpace,SinSpace,LaurentSpace
+export Fourier,Taylor,Hardy,CosSpace,SinSpace,Laurent
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
@@ -13,23 +13,23 @@ end
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
-immutable HardySpace{s} <: PeriodicSpace{Complex{Float64}}
+immutable Hardy{s} <: PeriodicSpace{Complex{Float64}}
     domain::Union(PeriodicDomain,AnyDomain)
-    HardySpace(d)=new(d)
-    HardySpace()=new(Circle())
+    Hardy(d)=new(d)
+    Hardy()=new(Circle())
 end
 
 
 
-typealias TaylorSpace HardySpace{true}
+typealias Taylor Hardy{true}
 
-transform(::TaylorSpace,vals::Vector)=alternatesign!(fft(vals)/length(vals))
-itransform(::TaylorSpace,cfs::Vector)=ifft(alternatesign!(cfs))*length(cfs)
+transform(::Taylor,vals::Vector)=alternatesign!(fft(vals)/length(vals))
+itransform(::Taylor,cfs::Vector)=ifft(alternatesign!(cfs))*length(cfs)
 
-transform(::HardySpace{false},vals::Vector)=-alternatesign!(flipud(fft(vals))/length(vals))
-itransform(::HardySpace{false},cfs::Vector)=ifft(flipud(alternatesign!(-cfs)))*length(cfs)
+transform(::Hardy{false},vals::Vector)=-alternatesign!(flipud(fft(vals))/length(vals))
+itransform(::Hardy{false},cfs::Vector)=ifft(flipud(alternatesign!(-cfs)))*length(cfs)
 
-function evaluate(f::Fun{TaylorSpace},z)
+function evaluate(f::Fun{Taylor},z)
     d=domain(f)
     if isa(d,Circle)
         horner(f.coefficients,(z-d.center)/d.radius)
@@ -38,7 +38,7 @@ function evaluate(f::Fun{TaylorSpace},z)
     end
 end
 
-function evaluate(f::Fun{HardySpace{false}},z)
+function evaluate(f::Fun{Hardy{false}},z)
     d=domain(f)
     if isa(d,Circle)
         z=(z-d.center)/d.radius
@@ -96,38 +96,38 @@ evaluate{T}(f::Fun{SinSpace,T},t)=sum(T[f.coefficients[k]*sin(k*tocanonical(f,t)
 
 ## Laurent space
 
-typealias LaurentSpace PeriodicSumSpace{HardySpace{true},HardySpace{false},Complex{Float64}}
-LaurentSpace()=LaurentSpace(PeriodicInterval())
+typealias Laurent PeriodicSumSpace{Hardy{true},Hardy{false},Complex{Float64}}
+Laurent()=Laurent(PeriodicInterval())
 
-Space(d::PeriodicDomain)=LaurentSpace(d)
-canonicalspace(S::PeriodicSpace)=LaurentSpace(domain(S))
+Space(d::PeriodicDomain)=Laurent(d)
+canonicalspace(S::PeriodicSpace)=Laurent(domain(S))
 
 
-points(sp::LaurentSpace,n)=points(domain(sp),n)
-transform(::LaurentSpace,vals)=svfft(vals)|>interlace
-itransform(::LaurentSpace,cfs)=isvfft(deinterlace(cfs))
+points(sp::Laurent,n)=points(domain(sp),n)
+transform(::Laurent,vals)=svfft(vals)|>interlace
+itransform(::Laurent,cfs)=isvfft(deinterlace(cfs))
 
 ## Ones and zeros
 
 
-Base.ones{T<:Number}(::Type{T},S::LaurentSpace)=Fun(ones(T,1),S)
+Base.ones{T<:Number}(::Type{T},S::Laurent)=Fun(ones(T,1),S)
 
 
 ## Fourier space
 
-typealias FourierSpace PeriodicSumSpace{CosSpace,SinSpace,Float64}
-FourierSpace()=FourierSpace(PeriodicInterval())
+typealias Fourier PeriodicSumSpace{CosSpace,SinSpace,Float64}
+Fourier()=Fourier(PeriodicInterval())
 
 
 #domain(S) may be any domain
-for sp in (:FourierSpace,:LaurentSpace,:(HardySpace{true}),:CosSpace)
+for sp in (:Fourier,:Laurent,:(Hardy{true}),:CosSpace)
     @eval begin
         Base.ones{T<:Number}(::Type{T},S::$sp)=Fun(ones(T,1),S)
         Base.ones(S::$sp)=Fun(ones(1),S)        
     end
 end
 
-points(sp::FourierSpace,n)=points(domain(sp),n)
+points(sp::Fourier,n)=points(domain(sp),n)
 
 
 function fouriermodalt!(cfs)
@@ -162,7 +162,7 @@ function fouriermodalt!(cfs)
     cfs
 end
 
-function transform{T<:Number}(::FourierSpace,vals::Vector{T})
+function transform{T<:Number}(::Fourier,vals::Vector{T})
     n=length(vals)
     cfs=2FFTW.r2r(vals, FFTW.R2HC )/n
     cfs[1]/=2
@@ -184,7 +184,7 @@ function transform{T<:Number}(::FourierSpace,vals::Vector{T})
 end
 
 
-function itransform{T<:Number}(::FourierSpace,a::Vector{T})
+function itransform{T<:Number}(::Fourier,a::Vector{T})
     n=length(a)
     cfs=[a[1:2:end],flipud(a[2:2:end])]
     fouriermodalt!(cfs)

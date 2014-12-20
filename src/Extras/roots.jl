@@ -212,11 +212,11 @@ function complexroots{T<:Number}(coefficients::ShiftVector{T})
     end
 end
 
-complexroots(f::Fun{LaurentSpace})=mappoint(Circle(),domain(f),complexroots(deinterlace(f.coefficients)))
+complexroots(f::Fun{Laurent})=mappoint(Circle(),domain(f),complexroots(deinterlace(f.coefficients)))
 
 roots{S<:MappedSpace}(f::Fun{S})=fromcanonical(f,roots(Fun(coefficients(f),space(f).space)))
 
-function roots(f::Fun{LaurentSpace})
+function roots(f::Fun{Laurent})
     irts=filter!(x->abs(abs(x)-1)<=100.eps(),complexroots(deinterlace(f.coefficients)))
     if length(irts)==0
         Complex{Float64}[]

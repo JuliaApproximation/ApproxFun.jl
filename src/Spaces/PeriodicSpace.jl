@@ -3,11 +3,11 @@ canonicaldomain{T<:PeriodicSpace}(::Type{T})=PeriodicInterval()
 
 ## Evaluation
 
-Evaluation(d::PeriodicDomain,x::Number,n...)=Evaluation(LaurentSpace(d),complex(x),n...)
+Evaluation(d::PeriodicDomain,x::Number,n...)=Evaluation(Laurent(d),complex(x),n...)
 
 ## Sigma
 
-Σ(d::PeriodicDomain)=Σ(LaurentSpace(d),LaurentSpace(d))
+Σ(d::PeriodicDomain)=Σ(Laurent(d),Laurent(d))
 
 ## Toeplitz
 
