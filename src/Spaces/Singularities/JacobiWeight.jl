@@ -45,7 +45,7 @@ end
 ## Use 1st kind points to avoid singularities
 points(sp::JacobiWeight,n)=fromcanonical(sp,chebyshevroots(n))
 
-# These are meant for JacobiSpace
+# These are meant for Jacobi
 plan_itransform(S::JacobiWeight,n::Integer)=points(S,n)
 itransform(S::JacobiWeight,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
 itransform(S::JacobiWeight,cfs::Vector,pts::Vector)=jacobiweight(S,pts).*itransform(S.space,cfs,pts)

@@ -12,7 +12,7 @@ JacobiSquareSpace(m::Integer,d::Domain)=JacobiSquareSpace(m,m,0,d)
 JacobiSquareSpace(m::Integer)=JacobiSquareSpace(m,Interval(1.,0.))
 
 
-jacobispace(B::JacobiSquareSpace)=JacobiSpace(B.a+.5,B.b-.5,domain(B))
+jacobispace(B::JacobiSquareSpace)=Jacobi(B.a+.5,B.b-.5,domain(B))
 
 
 spacescompatible(A::JacobiSquareSpace,B::JacobiSquareSpace)=A.a==B.a&&A.m==B.m&&A.b==B.b

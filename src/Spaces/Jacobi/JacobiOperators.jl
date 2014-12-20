@@ -1,6 +1,6 @@
 ## Evaluation
 
-function Base.getindex(op::Evaluation{JacobiSpace,Bool},kr::Range)
+function Base.getindex(op::Evaluation{Jacobi,Bool},kr::Range)
     @assert op.order <= 2
     sp=op.space
     a=sp.a;b=sp.b
@@ -26,14 +26,14 @@ function Base.getindex(op::Evaluation{JacobiSpace,Bool},kr::Range)
         Float64[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
-function Base.getindex(op::Evaluation{JacobiSpace,Float64},kr::Range)
+function Base.getindex(op::Evaluation{Jacobi,Float64},kr::Range)
     @assert op.order == 0
     jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))        
 end
 
 ## Multiplication
 
-function addentries!(M::Multiplication{Chebyshev,JacobiSpace},A::ShiftArray,kr::Range1)
+function addentries!(M::Multiplication{Chebyshev,Jacobi},A::ShiftArray,kr::Range1)
     for k=kr
         A[k,0]=M.f.coefficients[1] 
     end
@@ -63,15 +63,15 @@ end
 
 ## Derivative
 
-Derivative(J::JacobiSpace,k::Integer)=k==1?Derivative{JacobiSpace,Float64}(J,1):TimesOperator(Derivative(JacobiSpace(J.a+1,J.b+1,J.domain),k-1),Derivative{JacobiSpace,Float64}(J,1))
+Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Float64}(J,1):TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),Derivative{Jacobi,Float64}(J,1))
 
-rangespace(D::Derivative{JacobiSpace})=JacobiSpace(D.space.a+D.order,D.space.b+D.order,domain(D))
-bandinds(D::Derivative{JacobiSpace})=0,D.order
-bandinds(D::Integral{JacobiSpace})=-D.order,0   
+rangespace(D::Derivative{Jacobi})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
+bandinds(D::Derivative{Jacobi})=0,D.order
+bandinds(D::Integral{Jacobi})=-D.order,0   
 
 
 
-function addentries!(T::Derivative{JacobiSpace},A::ShiftArray,kr::Range)
+function addentries!(T::Derivative{Jacobi},A::ShiftArray,kr::Range)
     d=domain(T)
     for k=kr
         A[k,1]+=(k+1+T.space.a+T.space.b)./(d.b-d.a)
@@ -86,25 +86,25 @@ end
 # We can only increment by a or b by one, so the following
 # multiplies conversion operators to handle otherwise
 
-function Conversion(L::JacobiSpace,M::JacobiSpace)
+function Conversion(L::Jacobi,M::Jacobi)
     @assert (isapprox(M.b,L.b)||M.b>=L.b) && (isapprox(M.a,L.a)||M.a>=L.a)
     dm=domain(M)
     if isapprox(M.a,L.a) && isapprox(M.b,L.b)
         SpaceOperator(IdentityOperator(),L,M)
     elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
-        Conversion{JacobiSpace,JacobiSpace,Float64}(L,M)
+        Conversion{Jacobi,Jacobi,Float64}(L,M)
     elseif M.b > L.b+1
-        Conversion(JacobiSpace(M.a,M.b-1,dm),M)*Conversion(L,JacobiSpace(M.a,M.b-1,dm))    
+        Conversion(Jacobi(M.a,M.b-1,dm),M)*Conversion(L,Jacobi(M.a,M.b-1,dm))    
     else  #if M.a >= L.a+1
-        Conversion(JacobiSpace(M.a-1,M.b,dm),M)*Conversion(L,JacobiSpace(M.a-1,M.b,dm))            
+        Conversion(Jacobi(M.a-1,M.b,dm),M)*Conversion(L,Jacobi(M.a-1,M.b,dm))            
     end
 end   
 
-bandinds(C::Conversion{JacobiSpace,JacobiSpace})=(0,1)
+bandinds(C::Conversion{Jacobi,Jacobi})=(0,1)
 
 
 
-function getdiagonalentry(C::Conversion{JacobiSpace,JacobiSpace},k,j)
+function getdiagonalentry(C::Conversion{Jacobi,Jacobi},k,j)
     L=C.domainspace
     if L.b+1==C.rangespace.b
         if j==0
@@ -127,7 +127,7 @@ end
 
 
 # return the space that has banded Conversion to the other
-function conversion_rule(A::JacobiSpace,B::JacobiSpace)
+function conversion_rule(A::Jacobi,B::Jacobi)
     if !isapproxinteger(A.a-B.a) || !isapproxinteger(B.a-B.a)
         NoSpace()
     elseif A.a<=B.a && A.b<=B.b
@@ -144,10 +144,10 @@ end
 ## Ultraspherical Conversion
 
 # Assume m is compatible
-bandinds{m}(C::Conversion{Ultraspherical{m},JacobiSpace})=0,0
+bandinds{m}(C::Conversion{Ultraspherical{m},Jacobi})=0,0
 
 
-function addentries!(C::Conversion{Chebyshev,JacobiSpace},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{Chebyshev,Jacobi},A::ShiftArray,kr::Range)
     S=rangespace(C)
     @assert S.a==S.b==-0.5
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
@@ -158,7 +158,7 @@ function addentries!(C::Conversion{Chebyshev,JacobiSpace},A::ShiftArray,kr::Rang
     A
 end
 
-function addentries!(C::Conversion{JacobiSpace,Chebyshev},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{Jacobi,Chebyshev},A::ShiftArray,kr::Range)
     S=domainspace(C)
     @assert S.a==S.b==0.
 
@@ -170,18 +170,18 @@ function addentries!(C::Conversion{JacobiSpace,Chebyshev},A::ShiftArray,kr::Rang
     A
 end
 
-function getdiagonalentry{m}(C::Conversion{Ultraspherical{m},JacobiSpace})
+function getdiagonalentry{m}(C::Conversion{Ultraspherical{m},Jacobi})
     @assert B.a+.5==m&&B.b+.5==m
     gamma(2m+k)*gamma(m+0.5)/(gamma(2m)*gamma(m+k+0.5))
 end
 
-function getdiagonalentry{m}(C::Conversion{JacobiSpace,Ultraspherical{m}})
+function getdiagonalentry{m}(C::Conversion{Jacobi,Ultraspherical{m}})
     @assert B.a+.5==m&&B.b+.5==m
     (gamma(2m)*gamma(m+k+0.5))/(gamma(2m+k)*gamma(m+0.5))
 end
 
 
-function conversion_rule{m}(A::Ultraspherical{m},B::JacobiSpace)
+function conversion_rule{m}(A::Ultraspherical{m},B::Jacobi)
     if B.a+.5==m&&B.b+.5==m
         A
     else
