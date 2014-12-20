@@ -1,13 +1,13 @@
 using ApproxFun, Base.Test
 
-import ApproxFun: ChebyshevDirichletSpace,Ultraspherical,space
+import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
 
 
-@test_approx_eq Fun(exp,ChebyshevDirichletSpace{1,1})[.1] exp(.1)
-@test_approx_eq Fun(Fun(exp,ChebyshevDirichletSpace{1,1}),Ultraspherical{1})[.1] exp(.1)
+@test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})[.1] exp(.1)
+@test_approx_eq Fun(Fun(exp,ChebyshevDirichlet{1,1}),Ultraspherical{1})[.1] exp(.1)
 
 d=Interval()
-sp=ChebyshevDirichletSpace{1,1}(d)
+sp=ChebyshevDirichlet{1,1}(d)
 B=dirichlet(sp)
 D=diff(d)
 L=D^2+I

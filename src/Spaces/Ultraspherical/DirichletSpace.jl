@@ -1,31 +1,31 @@
 # DirichletSpaces
 
 
-immutable ChebyshevDirichletSpace{left,right} <: IntervalSpace
+immutable ChebyshevDirichlet{left,right} <: IntervalSpace
     domain::Union(IntervalDomain,AnyDomain)
-    ChebyshevDirichletSpace(d)=new(d)
-    ChebyshevDirichletSpace()=new(Interval())    
+    ChebyshevDirichlet(d)=new(d)
+    ChebyshevDirichlet()=new(Interval())    
 end
 
-ChebyshevDirichletSpace()=ChebyshevDirichletSpace{1,1}()
+ChebyshevDirichlet()=ChebyshevDirichlet{1,1}()
 
 
 
-canonicalspace(S::ChebyshevDirichletSpace)=Chebyshev(domain(S))
+canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
 
 
 ## Dirichlet Conversion
 
-addentries!(C::Conversion{ChebyshevDirichletSpace{1,0},Chebyshev},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
-addentries!(C::Conversion{ChebyshevDirichletSpace{0,1},Chebyshev},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
-function addentries!(C::Conversion{ChebyshevDirichletSpace{1,1},Chebyshev},A::ShiftArray,kr::Range)
+addentries!(C::Conversion{ChebyshevDirichlet{1,0},Chebyshev},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
+addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
+function addentries!(C::Conversion{ChebyshevDirichlet{1,1},Chebyshev},A::ShiftArray,kr::Range)
     A=toeplitz_addentries!(ShiftVector([1.,0.,-1.],1),A,kr)    
     if kr[1]==1
         A[1,1]+=-1
     end
     A
 end
-function addentries!(C::Conversion{ChebyshevDirichletSpace{2,2},Chebyshev},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{ChebyshevDirichlet{2,2},Chebyshev},A::ShiftArray,kr::Range)
     for k=kr
         A[k,0]=1
         A[k,4]=2*(k+1)/k-1
@@ -36,14 +36,14 @@ function addentries!(C::Conversion{ChebyshevDirichletSpace{2,2},Chebyshev},A::Sh
     
     A
 end
-bandinds(::Conversion{ChebyshevDirichletSpace{1,0},Chebyshev})=0,1
-bandinds(::Conversion{ChebyshevDirichletSpace{0,1},Chebyshev})=0,1
-bandinds(::Conversion{ChebyshevDirichletSpace{1,1},Chebyshev})=0,2
+bandinds(::Conversion{ChebyshevDirichlet{1,0},Chebyshev})=0,1
+bandinds(::Conversion{ChebyshevDirichlet{0,1},Chebyshev})=0,1
+bandinds(::Conversion{ChebyshevDirichlet{1,1},Chebyshev})=0,2
 
-conversion_rule(b::ChebyshevDirichletSpace,a::Chebyshev)=b
+conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 
 # return the space that has banded Conversion to the other
-# function conversion_rule(a::ChebyshevDirichletSpace,b::Ultraspherical)
+# function conversion_rule(a::ChebyshevDirichlet,b::Ultraspherical)
 #     @assert domainscompatible(a,b)
 #     
 #     a
@@ -55,7 +55,7 @@ conversion_rule(b::ChebyshevDirichletSpace,a::Chebyshev)=b
 ## Evaluation Functional
 
 
-function getindex(B::Evaluation{ChebyshevDirichletSpace{1,0},Bool},kr::Range)
+function getindex(B::Evaluation{ChebyshevDirichlet{1,0},Bool},kr::Range)
     d = domain(B)
     
     if B.x == false && B.order == 0
@@ -65,7 +65,7 @@ function getindex(B::Evaluation{ChebyshevDirichletSpace{1,0},Bool},kr::Range)
     end
 end
 
-function getindex(B::Evaluation{ChebyshevDirichletSpace{0,1},Bool},kr::Range)
+function getindex(B::Evaluation{ChebyshevDirichlet{0,1},Bool},kr::Range)
     d = domain(B)
     
     if B.x == true && B.order == 0
@@ -75,7 +75,7 @@ function getindex(B::Evaluation{ChebyshevDirichletSpace{0,1},Bool},kr::Range)
     end
 end
 
-function getindex(B::Evaluation{ChebyshevDirichletSpace{1,1},Bool},kr::Range)
+function getindex(B::Evaluation{ChebyshevDirichlet{1,1},Bool},kr::Range)
    tol = 200.*eps()
     d = domain(B)
     
@@ -88,4 +88,4 @@ function getindex(B::Evaluation{ChebyshevDirichletSpace{1,1},Bool},kr::Range)
     end
 end
 
-Evaluation(sp::ChebyshevDirichletSpace,x::Float64,ord::Integer)=EvaluationWrapper(sp,x,ord,Evaluation(domain(sp),x,ord)*Conversion(sp))
+Evaluation(sp::ChebyshevDirichlet,x::Float64,ord::Integer)=EvaluationWrapper(sp,x,ord,Evaluation(domain(sp),x,ord)*Conversion(sp))
