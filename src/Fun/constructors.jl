@@ -6,7 +6,7 @@ function Fun(f::Function,d::FunctionSpace,n::Integer)
     f1=f(pts[1])
     
 
-    if isa(f1,Vector) && !isa(d,VectorFunctionSpace) 
+    if isa(f1,Vector) && !(isa(d,VectorFunctionSpace) || isa(d,ArraySpace))
         return Fun(f,VectorFunctionSpace(d,length(f1)),n)
     end
     

@@ -1,0 +1,49 @@
+
+
+
+immutable ArraySpace{S,n,T,D<:Domain} <: FunctionSpace{T,D}
+     space::S     
+     dimensions::(Int...)
+#      # for AnyDomain() usage
+    ArraySpace(sp::S,dims)=new(sp,dims)
+    ArraySpace(d::Domain,dims)=new(S(d),dims)
+end
+
+
+
+ArraySpace{T,D}(S::FunctionSpace{T,D},n)=ArraySpace{typeof(S),1,T,D}(S,(n,))
+ArraySpace{T,D}(S::FunctionSpace{T,D},n,m)=ArraySpace{typeof(S),2,T,D}(S,(n,m))
+Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
+Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
+Base.size(AS::ArraySpace)=AS.dimensions
+Base.size(AS::ArraySpace,k)=AS.dimensions[k]
+
+domain(AS::ArraySpace)=domain(AS.space)
+
+
+transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}})=transform(AS,hcat(vals...).')
+
+function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
+    n=length(AS)
+
+    @assert size(M,2)==n
+    C=Array(promote_type(T,V),length(M))
+    
+    for k=1:size(M,2)
+        C[k:n:end]=transform(AS.space,M[:,k])
+    end
+    C
+end
+
+# transform of array is same order as vectorizing and then transforming
+transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}})=transform(vec(AS),map(vec,vals))
+
+Base.vec(AS::ArraySpace)=ArraySpace(AS.space,length(AS))
+function Base.vec{S<:FunctionSpace,V,T,D<:Domain}(f::Fun{ArraySpace{S,1,V,D},T})
+    n=length(space(f))
+    Fun{S,T}[Fun(f.coefficients[j:n:end],space(f).space) for j=1:n]
+end
+Base.vec{AS<:ArraySpace,T}(f::Fun{AS,T})=vec(Fun(f.coefficients,vec(space(f))))
+
+mat{AS<:ArraySpace,T}(f::Fun{AS,T})=reshape(vec(f),size(space(f))...)
+
