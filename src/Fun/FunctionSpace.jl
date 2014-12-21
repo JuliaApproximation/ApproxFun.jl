@@ -50,6 +50,8 @@ function spacescompatible{T<:FunctionSpace}(v::Vector{T})
     true
 end
 
+spacescompatible{T<:FunctionSpace}(v::Array{T})=spacescompatible(vec(v))
+
 
 
 domain(A::FunctionSpace)=A.domain # assume it has a field domain

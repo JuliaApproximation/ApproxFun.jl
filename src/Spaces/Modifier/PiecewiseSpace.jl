@@ -1,3 +1,5 @@
+export depiece
+
 ###########
 # Piecewise Space
 ############
