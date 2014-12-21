@@ -6,7 +6,7 @@ Base.null(A::BandedOperator)=null(A,order(rangespace(A)))
 
 
 function applygivens!(Q1,Qk,a,b)
-    for j=1:length(Q1)
+    @simd for j=1:length(Q1)
         @inbounds Q1[j],Qk[j]=a*Q1[j]+b*Qk[j],-b*Q1[j]+a*Qk[j]
     end
 end

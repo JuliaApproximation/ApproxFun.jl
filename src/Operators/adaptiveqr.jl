@@ -51,8 +51,11 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::A
     a,b=givensreduceab!(B,k1,k2,j1)
     
     if b != 0.0
-        for j=1:size(v,2)
-            v[k1,j],v[k2,j] = conj(a)*v[k1,j] + conj(b)*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
+        ca=conj(a)
+        cb=conj(b)
+    
+        @simd for j=1:size(v,2)
+            @inbounds v[k1,j],v[k2,j] = ca*v[k1,j] + cb*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
         end
     end        
 
@@ -84,8 +87,8 @@ function backsubstitution!{T<:Number}(B::MutableAlmostBandedOperator,u::Array{T}
     
         # before we get to filled rows
         for k=n:-1:max(1,n-b)
-            for j=k+1:n
-                u[k,c]-=B[k,j]*u[j,c]
+            @simd for j=k+1:n
+                @inbounds u[k,c]-=B[k,j]*u[j,c]
             end
               
             u[k,c] /= B[k,k]
@@ -93,16 +96,16 @@ function backsubstitution!{T<:Number}(B::MutableAlmostBandedOperator,u::Array{T}
         
        #filled rows
         for k=n-b-1:-1:1
-            for j=1:nbc
-                pk[j] += u[k+b+1,c]*B.bc[j][k+b+1]
+            @simd for j=1:nbc
+                @inbounds pk[j] += u[k+b+1,c]*B.bc[j][k+b+1]
             end
             
-            for j=k+1:k+b
-                u[k,c]-=B[k,j]*u[j,c]
+            @simd for j=k+1:k+b
+                @inbounds u[k,c]-=B[k,j]*u[j,c]
             end
             
-            for j=1:nbc
-                u[k,c] -= getfilldata(B,k,j)*pk[j]
+            @simd for j=1:nbc
+                @inbounds u[k,c] -= getfilldata(B,k,j)*pk[j]
             end
               
             u[k,c] /= B[k,k]
@@ -126,8 +129,10 @@ convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Array{V,2})=convert(Array
 
 function slnorm(u::Array,r::Range)
     ret = 0.0
-    for k=r,j=1:size(u,2)
-        ret=max(abs(u[k,j]),ret)
+   for k=r
+        @simd for j=1:size(u,2)
+            @inbounds ret=max(abs(u[k,j]),ret)
+        end
     end
     ret
 end
