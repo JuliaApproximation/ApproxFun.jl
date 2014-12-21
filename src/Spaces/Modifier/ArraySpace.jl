@@ -47,3 +47,24 @@ Base.vec{AS<:ArraySpace,T}(f::Fun{AS,T})=vec(Fun(f.coefficients,vec(space(f))))
 
 mat{AS<:ArraySpace,T}(f::Fun{AS,T})=reshape(vec(f),size(space(f))...)
 
+
+## routines
+
+evaluate{AS<:ArraySpace,T}(f::Fun{AS,T},x)=evaluate(mat(f),x)
+
+
+## conversion
+
+function spaceconversion{S,V,T}(f::Vector{T},a::ArraySpace{S,1},b::ArraySpace{V,1})
+    n=length(a)
+    @assert n==length(b)
+    A=a.space;B=b.space
+    ret=Array(T,length(f))
+    for k=1:n
+        ret[k:n:end]=spaceconversion(f[k:n:end],A,B)
+    end
+    ret
+end
+
+
+
