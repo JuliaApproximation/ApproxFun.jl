@@ -11,8 +11,8 @@ immutable ArraySpace{S,n,T,D<:Domain} <: FunctionSpace{T,D}
 end
 
 
-
-ArraySpace{T,D}(S::FunctionSpace{T,D},n)=ArraySpace{typeof(S),1,T,D}(S,(n,))
+ArraySpace{T,D}(S::FunctionSpace{T,D},n::(Int...))=ArraySpace{typeof(S),length(n),T,D}(S,n)
+ArraySpace{T,D}(S::FunctionSpace{T,D},n::Integer)=ArraySpace(S,(n,))
 ArraySpace{T,D}(S::FunctionSpace{T,D},n,m)=ArraySpace{typeof(S),2,T,D}(S,(n,m))
 Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
 Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
