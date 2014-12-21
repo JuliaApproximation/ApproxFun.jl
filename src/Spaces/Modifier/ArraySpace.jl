@@ -116,3 +116,13 @@ for op in (:differentiate,:integrate,:(Base.cumsum))
 end
 
 
+
+
+
+
+## Algebra
+
+*{T<:Number,AS<:ArraySpace,V}(A::Matrix{T},f::Fun{AS,V})=demat(A*mat(f))
+
+
+
