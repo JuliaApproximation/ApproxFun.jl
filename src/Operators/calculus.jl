@@ -39,17 +39,30 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             # Default is to convert to Canonical and d
             sp=domainspace(D)
             csp=canonicalspace(sp)
+            if csp==sp
+                error("Override Derivative(::"*string(typeof(sp))*","*string(D.order)*")")
+            end
             addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr)
         end
         
         function bandinds(D::$Op)
             sp=domainspace(D)
             csp=canonicalspace(sp)
+            if csp==sp
+                error("Override Derivative(::"*string(typeof(sp))*","*string(D.order)*")")
+            end     
             bandinds(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)])) 
         end
 
         # corresponds to default implementation        
-        rangespace{S,T}(D::$Op{S,T})=rangespace($Op(canonicalspace(domainspace(D)),D.order))
+        function rangespace{S,T}(D::$Op{S,T})
+            sp=domainspace(D)
+            csp=canonicalspace(sp)
+            if csp==sp
+                error("Override Derivative(::"*string(typeof(sp))*","*string(D.order)*")")
+            end      
+            rangespace($Op(canonicalspace(domainspace(D)),D.order))
+        end
         rangespace{T}(D::$Op{AnySpace,T})=AnySpace()     
         
         #promoting domain space is allowed to change range space

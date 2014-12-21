@@ -31,10 +31,12 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
     n=length(AS)
 
     @assert size(M,2)==n
-    C=Array(promote_type(T,V),length(M))
+    cfs=[transform(AS.space,M[:,k])  for k=1:size(M,2)]    
+    
+    C=zeros(promote_type(T,V),mapreduce(length,max,cfs)*size(M,2))
     
     for k=1:size(M,2)
-        C[k:n:end]=transform(AS.space,M[:,k])
+        C[k:n:end]=cfs[k]
     end
     C
 end
@@ -124,8 +126,18 @@ end
 
 ## Algebra
 
-*{T<:Number,AS<:ArraySpace,V}(A::Matrix{T},f::Fun{AS,V})=demat(A*mat(f))
-*{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V})=demat(mat(A)*mat(f))
-.*{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V})=demat(mat(A).*mat(f))
+for OP in (:*,:.*,:+,:-)
+    @eval begin
+        $OP{T<:Number,AS<:ArraySpace,V}(A::Array{T},f::Fun{AS,V})=demat($OP(A,mat(f)))
+        $OP{T<:Number,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{T})=demat($OP(mat(f),A))   
+        $OP{AS<:ArraySpace,V}(A::UniformScaling,f::Fun{AS,V})=demat($OP(A,mat(f)))
+        $OP{AS<:ArraySpace,V}(f::Fun{AS,V},A::UniformScaling)=demat($OP(mat(f),A))                
+    end
+end
+
+
+for OP in (:*,:.*)
+    @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V})=demat($OP(mat(A),mat(f)))
+end
 
 

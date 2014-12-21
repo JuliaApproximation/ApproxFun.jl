@@ -66,8 +66,8 @@ end
 
 
 #TODO: fix for complex 
-evaluate{T<:Fun}(A::Vector{T},x::Real)=eltype(first(A))[A[k][x] for k=1:length(A)]
-evaluate{T<:Fun}(A::Array{T},x::Real)=eltype(first(A))[A[k,j][x] for k=1:size(A,1),j=1:size(A,2)]
+evaluate{T<:Fun}(A::Vector{T},x::Number)=typeof(first(A)[x])[A[k][x] for k=1:length(A)]
+evaluate{T<:Fun}(A::Array{T},x::Number)=typeof(first(A)[x])[A[k,j][x] for k=1:size(A,1),j=1:size(A,2)]
 
 
 function evaluate{T<:Fun}(A::Vector{T},x::Vector{Float64})
