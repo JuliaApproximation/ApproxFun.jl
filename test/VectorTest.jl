@@ -96,3 +96,18 @@ t=Fun(identity,d)
 f = devec([t^2, sin(t)])
 @test norm(((Derivative(space(f))*f)-Fun(t->[2t,cos(t)])).coefficients)<100eps()
 @test norm((([1 2;3 4]*f)-Fun(t->[t^2+2sin(t),3t^2+4sin(t)])).coefficients)<100eps()
+
+
+
+## Multiplication operator
+
+Γ=Circle()∪Circle(0.5)
+G=Fun(z->in(z,Γ[2])?[1 -z^(-1); 0 1]:
+                   [z 0; 0 z^(-1)],Γ);
+G1=demat(mat(G)[:,1])
+M=Multiplication(G,space(G1))
+u=M*G1
+@test norm(u[exp(.1im)]-[exp(.2im),0])<100eps()
+@test norm(u[.5exp(.1im)]-[1,0])<100eps()
+
+

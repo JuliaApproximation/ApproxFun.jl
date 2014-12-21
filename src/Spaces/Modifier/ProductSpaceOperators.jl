@@ -168,3 +168,13 @@ end
 Derivative(S::SumSpace,k::Integer)=DerivativeWrapper(sumblkdiagm([Derivative(S.spaces[1],k),Derivative(S.spaces[2],k)]),k)
 
 
+
+
+## Multiplcation for Array*Vector
+
+function Multiplication{S,T,D,Q}(f::Fun{ArraySpace{S,2,T,D}},sp::ArraySpace{Q,1})
+    @assert size(space(f),2)==length(sp)
+    m=mat(f)
+    MultiplicationWrapper(f,interlace(Operator[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
+end
+
