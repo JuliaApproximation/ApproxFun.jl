@@ -11,7 +11,7 @@ DiagonalPiecewiseOperator(v::Vector{Any})=DiagonalPiecewiseOperator(Operator{map
 
 
 for op in (:domainspace,:rangespace)
-    @eval $op(D::DiagonalInterlaceOperator)=depiece(map($op,D.ops))
+    @eval $op(D::DiagonalPiecewiseOperator)=PiecewiseSpace(map($op,D.ops))
 end
 
 
