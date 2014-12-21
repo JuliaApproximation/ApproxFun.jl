@@ -49,7 +49,7 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(),ma
             r[size(b,1):size(b,1)+length(be)-1,1]=coefficients(be)
             for k=2:size(b,2)
                 cfs=coefficients(b[end,k],rs)
-                r[size(b,1):size(b,1)+length(cfs)-1]=cfs
+                r[size(b,1):size(b,1)+length(cfs)-1,k]=cfs
             end
         else
             #TODO: matrix

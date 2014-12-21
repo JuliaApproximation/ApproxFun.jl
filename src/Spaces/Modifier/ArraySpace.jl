@@ -54,6 +54,17 @@ Base.vec{AS<:ArraySpace,T}(f::Fun{AS,T})=vec(Fun(f.coefficients,vec(space(f))))
 
 mat{AS<:ArraySpace,T}(f::Fun{AS,T})=reshape(vec(f),size(space(f))...)
 
+# mat(f,1) vectorizes columnwise 
+function mat{S,V,D,T}(f::Fun{ArraySpace{S,2,V,D},T},j::Integer)
+    @assert j==1
+    m=mat(f)
+    r=Array(Fun{ArraySpace{S,1,V,D},T},1,size(m,2))
+    for k=1:size(m,2)
+        r[1,k]=devec(m[:,k]) 
+    end
+    r
+end
+
 
 
 
@@ -162,6 +173,6 @@ function linsolve{S,T,D,Q}(A::BandedOperator,b::Fun{ArraySpace{S,2,T,D},Q};kwds.
     if isa(rs,ArraySpace) && size(rs)==size(space(b))
         linsolve(A,[b];kwds...)
     else
-        linsolve(A,mat(b);kwds...)
+        linsolve(A,mat(b,1);kwds...)
     end
 end
