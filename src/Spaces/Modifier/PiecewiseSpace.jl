@@ -17,6 +17,7 @@ Base.getindex(d::PiecewiseSpace,k)=d.spaces[k]
 
 Base.vec{S<:FunctionSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T},j::Integer)=Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j])
 Base.vec{S<:FunctionSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=Fun{S,T}[vec(f,j) for j=1:length(f.space)]
+pieces{S<:PiecewiseSpace,T}(f::Fun{S,T})=vec(f)
 depiece{F<:Fun}(v::Vector{F})=Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
 depiece(v::Vector{Any})=depiece([v...])
 

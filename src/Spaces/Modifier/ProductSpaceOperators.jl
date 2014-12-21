@@ -1,18 +1,35 @@
 export sumblkdiagm
 
-Derivative(sp::PiecewiseSpace)=DerivativeWrapper(DiagonalInterlaceOperator(map(Derivative,sp.spaces)),1)
-Derivative(sp::PiecewiseSpace,k::Integer)=DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),sp.spaces)),k)
+
+
+immutable DiagonalPiecewiseOperator{T<:Number,B<:Operator} <: AbstractDiagonalInterlaceOperator{T,B}
+    ops::Vector{B}
+end
+
+DiagonalPiecewiseOperator{B<:Operator}(v::Vector{B})=DiagonalPiecewiseOperator{mapreduce(eltype,promote_type,v),B}(v)
+DiagonalPiecewiseOperator(v::Vector{Any})=DiagonalPiecewiseOperator(Operator{mapreduce(eltype,promote_type,v)}[v...])
+
+
+for op in (:domainspace,:rangespace)
+    @eval $op(D::DiagonalInterlaceOperator)=depiece(map($op,D.ops))
+end
+
+
+
+
+Derivative(sp::PiecewiseSpace)=DerivativeWrapper(DiagonalPiecewiseOperator(map(Derivative,sp.spaces)),1)
+Derivative(sp::PiecewiseSpace,k::Integer)=DerivativeWrapper(DiagonalPiecewiseOperator(map(s->Derivative(s,k),sp.spaces)),k)
 
 
 function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     vf=vec(f)
     @assert length(vf)==length(sp)
-    MultiplicationWrapper(f,DiagonalInterlaceOperator([Multiplication(vf[k],sp[k]) for k=1:length(vf)]))
+    MultiplicationWrapper(f,DiagonalPiecewiseOperator([Multiplication(vf[k],sp[k]) for k=1:length(vf)]))
 end
 
 function Conversion(f::PiecewiseSpace,g::PiecewiseSpace)
     @assert length(f)==length(g)
-    ConversionWrapper(DiagonalInterlaceOperator(Operator[Conversion(f[k],g[k]) for k=1:length(f)]))
+    ConversionWrapper(DiagonalPiecewiseOperator(Operator[Conversion(f[k],g[k]) for k=1:length(f)]))
 end
 
 for op in (:dirichlet,:neumann,:ivp)
@@ -23,17 +40,24 @@ end
 
 
 ## diag provides a way to convert between DiagonalInterlaceOperator and bacn
-blkdiagm{B<:Operator}(v::Vector{B})=DiagonalInterlaceOperator(v)
+function blkdiagm{B<:Operator}(v::Vector{B})
+    if spacescompatible(map(domainspace,v)) && spacescompatible(map(rangespace,v))
+        DiagonalInterlaceOperator(v)
+    else
+        DiagonalPiecewiseOperator(v)
+    end
+end
 
-Base.blkdiag(A::DiagonalInterlaceOperator)=A.ops
+Base.blkdiag(A::AbstractDiagonalInterlaceOperator)=A.ops
 Base.blkdiag(A::PlusOperator)=mapreduce(blkdiag,+,A.ops)
 Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
 
+# TODO: general wrappers
 for TYP in (:DerivativeWrapper,:ConversionWrapper)
-    @eval Base.blkdiag{DT<:DiagonalInterlaceOperator}(A::($TYP{DT}))=A.op.ops
+    @eval Base.blkdiag{DT<:AbstractDiagonalInterlaceOperator}(A::($TYP{DT}))=A.op.ops
 end
 
-Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
+Base.blkdiag{FT<:PiecewiseSpace,OT<:AbstractDiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
 
 
 
@@ -57,6 +81,7 @@ sumblkdiagm{B<:Operator}(v::Vector{B})=SumInterlaceOperator(v)
 
 
 ## Conversion
+# swaps sumspace order
 
 immutable BiSwapOperator <: BandedOperator{Float64} end
 bandinds(::BiSwapOperator)=-1,1
@@ -94,3 +119,5 @@ end
 
 #TODO: do in @calculus_operator?
 Derivative(S::SumSpace,k::Integer)=DerivativeWrapper(sumblkdiagm([Derivative(S.spaces[1],k),Derivative(S.spaces[2],k)]),k)
+
+

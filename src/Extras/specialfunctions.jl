@@ -100,7 +100,7 @@ function ./(c::Number,f::Fun{Chebyshev})
     end
 end
 
-./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=devec(map(f->c./f,vec(f)))
+./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=depiece(map(f->c./f,pieces(f)))
 function ./{S<:MappedSpace}(c::Number,f::Fun{S})
     g=c./Fun(coefficients(f),space(f).space)
     if isa(space(g),JacobiWeight)
