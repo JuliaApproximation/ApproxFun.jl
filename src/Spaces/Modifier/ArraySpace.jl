@@ -72,9 +72,19 @@ function devec{S<:FunctionSpace}(spl::Vector{S})
 end
 
 
-function demat{F<:Fun}(v::Array{F})
+function demat{S,T}(v::Array{Fun{S,T}})
     ff=devec(vec(v))  # A vectorized version
     Fun(coefficients(ff),ArraySpace(space(ff).space,size(v)...))
+end
+
+function demat{S,T,D,V}(A::Array{Fun{ArraySpace{S,1,T,D},V},2})
+    @assert size(A,1)==1
+
+    M=Array(Fun{S,V},length(space(A[1])),size(A,2))
+    for k=1:size(A,2)
+        M[:,k]=vec(A[k])
+    end
+    demat(M)
 end
 
 
@@ -142,3 +152,16 @@ for OP in (:*,:.*)
 end
 
 
+
+
+
+## linsolve
+# special implementation to solve column by column
+function linsolve{S,T,D,Q}(A::BandedOperator,b::Fun{ArraySpace{S,2,T,D},Q};kwds...)
+    rs=rangespace(A)
+    if isa(rs,ArraySpace) && size(rs)==size(space(b))
+        linsolve(A,[b];kwds...)
+    else
+        linsolve(A,mat(b);kwds...)
+    end
+end
