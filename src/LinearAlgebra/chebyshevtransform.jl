@@ -63,10 +63,6 @@ function ichebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},pl
 end
 
 
-for func in (:chebyshevtransform,:ichebyshevtransform)
-    @eval $func{T<:Integer}(x::Vector{T})=$func(float64(x))
-end
-
 
 function chebyshevtransform(A::Matrix)
     if(size(A) == (1,1))
@@ -102,9 +98,12 @@ end
 
 ## First kind transform
 
-function chebyshevrootstransform(v::Vector)
-    cfs=negateeven!(FFTW.r2r(v,FFTW.REDFT10)/length(v))
+plan_chebyshevrootstransform(x)=length(x)==1?identity:FFTW.plan_r2r(x, FFTW.REDFT10)
+chebyshevrootstransform(x)=chebyshevrootstransform(x,plan_chebyshevrootstransform(x))
+function chebyshevrootstransform{T<:Union(Float64,Complex{Float64})}(v::Vector{T},plan::Function)
+    cfs=negateeven!(plan(v)::typeof(v))
     cfs[1]/=2
+    cfs/=length(v)
     cfs    
 end
 
@@ -115,3 +114,10 @@ function ichebyshevrootstransform(cfs::Vector)
 end 
 
 
+
+
+
+
+for func in (:chebyshevtransform,:ichebyshevtransform,:chebyshevrootstransform,:ichebyshevrootstransform)
+    @eval $func{T<:Integer}(x::Vector{T})=$func(float64(x))
+end
