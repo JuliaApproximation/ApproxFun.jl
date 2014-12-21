@@ -74,6 +74,10 @@ points(S::JacobiWeight{Jacobi},n)=fromcanonical(S,plan_transform(S,n)[1])
 transform(S::JacobiWeight{Jacobi},vals::Vector)=transform(S,vals,plan_transform(S,length(vals)))
 function transform(S::JacobiWeight{Jacobi},vals::Vector,xw::(Vector,Vector))
     # Jacobi and JacobiWeight have different a/b orders
+    
+    if S.α==0 && S.β==0
+        return transform(S.space,vals,xw)
+    end
 
     m=S.β
     @assert isapproxinteger(m)
