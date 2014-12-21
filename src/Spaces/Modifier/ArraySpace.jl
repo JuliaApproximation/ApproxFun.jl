@@ -22,6 +22,9 @@ Base.size(AS::ArraySpace,k)=AS.dimensions[k]
 domain(AS::ArraySpace)=domain(AS.space)
 
 
+## transforms
+
+
 transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}})=transform(AS,hcat(vals...).')
 
 function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
@@ -68,9 +71,8 @@ end
 
 function demat{F<:Fun}(v::Array{F})
     ff=devec(vec(v))  # A vectorized version
-    Fun(coefficients(vf),ArraySpace(space(ff).space,size(v)...))
+    Fun(coefficients(ff),ArraySpace(space(ff).space,size(v)...))
 end
-
 
 
 
@@ -78,6 +80,7 @@ end
 ## routines
 
 evaluate{AS<:ArraySpace,T}(f::Fun{AS,T},x)=evaluate(mat(f),x)
+Base.transpose{AS<:ArraySpace,T}(f::Fun{AS,T})=demat(mat(f).')
 
 
 ## conversion
@@ -104,7 +107,7 @@ end
 Fun{T<:Number}(M::Array{T,2},sp::FunctionSpace)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
 
 # Automatically change to ArraySpace
-Fun{T<:Number,S}(M::Array{T,2},sp::ArraySpace{S,1})=Fun(vec(M.'),ArraySpace(sp.space,length(sp),size(M,2)))
+Fun{T<:Number,S}(M::Array{T,2},sp::ArraySpace{S,1})=Fun(vec(M.'),ArraySpace(sp.space,length(sp),size(M,2))).'
 
 ## calculus
 
