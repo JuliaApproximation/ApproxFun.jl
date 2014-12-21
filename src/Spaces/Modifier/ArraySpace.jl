@@ -79,6 +79,8 @@ end
 
 ## routines
 
+spacescompatible(AS::ArraySpace,BS::ArraySpace)=size(AS)==size(BS) && spacescompatible(AS.space,BS.space)
+canonicalspace(AS::ArraySpace)=ArraySpace(canonicalspace(AS.space),size(AS))
 evaluate{AS<:ArraySpace,T}(f::Fun{AS,T},x)=evaluate(mat(f),x)
 Base.transpose{AS<:ArraySpace,T}(f::Fun{AS,T})=demat(mat(f).')
 
@@ -123,6 +125,7 @@ end
 ## Algebra
 
 *{T<:Number,AS<:ArraySpace,V}(A::Matrix{T},f::Fun{AS,V})=demat(A*mat(f))
-
+*{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V})=demat(mat(A)*mat(f))
+.*{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V})=demat(mat(A).*mat(f))
 
 

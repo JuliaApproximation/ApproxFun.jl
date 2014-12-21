@@ -96,6 +96,18 @@ end
 
 Derivative(AS::ArraySpace,k::Integer)=DerivativeWrapper(DiagonalArrayOperator(Derivative(AS.space,k),size(AS)),k)
 
+function conversion_rule(AS::ArraySpace,BS::ArraySpace)
+    if size(AS)==size(BS)
+        ArraySpace(conversion_type(AS.space,BS.space),size(AS))
+    else
+        NoSpace()
+    end
+end
+function Conversion(AS::ArraySpace,BS::ArraySpace)
+    @assert size(AS)==size(BS)
+    ConversionWrapper(DiagonalArrayOperator(Conversion(AS.space,BS.space),size(AS)))
+end
+
 
 ## Sum Space
 
