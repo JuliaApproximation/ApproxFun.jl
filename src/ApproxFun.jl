@@ -1,15 +1,12 @@
 module ApproxFun
     using Base, Compat
 
-export Fun,IFun,FFun,Interval,evaluate,values,points,chebyshevtransform
 export pad!,pad,sample,chop!,complexroots,roots,svfft
 export multiplybyx,IntervalDomain,fasttimes
 
 ##Testing
 export bisectioninv, clenshaw
-export coefficients, integrate
 
-export domain,space
 
 import Base.values
 

@@ -1,4 +1,5 @@
-
+export Fun,FFun,evaluate,values,points
+export coefficients,integrate,differentiate,domain,space
 
 include("Domain.jl")
 include("FunctionSpace.jl")

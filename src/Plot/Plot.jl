@@ -41,7 +41,7 @@ if isdir(Pkg.dir("Gadfly"))
 end
 
 
-function plot(x,y::Vector;opts...)
+function plot(x,y::Array;opts...)
     if plotter[:plot]=="Gadfly"
         gadflyplot(x,y;opts...)
     elseif plotter[:plot]=="PyPlot"
@@ -86,6 +86,20 @@ function plot{S,T<:Complex}(f::Fun{S,T};opts...)
     plot(points(f),values(f);opts...)
 end
 
+function plot{F<:Fun}(f::Vector{F};opts...)
+    n=3mapreduce(length,max,f)+50
+    vals=Array(Float64,n,length(f))
+    pts=Array(Float64,n,length(f))
+    for k=1:length(f)
+        pf=pad(f[k],n)
+        vals[:,k]=values(pf)
+        pts[:,k]=points(pf)
+    end
+    plot(pts,vals;opts...)
+end
+
+plot{S<:Union(PiecewiseSpace,ArraySpace),T<:Real}(f::Fun{S,T};opts...)=plot(vec(f);opts...)
+
 
 function plot{S}(r::Range,f::Fun{S,Float64};opts...)
     plot(r,f[[r]];opts...)
@@ -97,48 +111,6 @@ function complexplot{S}(f::Fun{S,Complex{Float64}};opts...)
 
     plot(real(vals),imag(vals);opts...)
 end
-
-
-##FFun
-
-# function plot(f::FFun;opts...) 
-#     f=deepcopy(f)
-#     
-#     m=max(-firstindex(f.coefficients),lastindex(f.coefficients))
-#     
-#     f.coefficients=pad(f.coefficients,-m:m)
-# 
-#     pts = [points(f),fromcanonical(f,π)]
-#     vals =[values(f),first(values(f))]
-# 
-#     plot(pts,vals;opts...)
-# end
-# 
-# 
-# function complexplot(f::FFun{Complex{Float64}};opts...) 
-#     pts = [points(f),fromcanonical(f,π)]
-#     vals =[values(f),first(values(f))]
-# 
-#     plot(real(vals),imag(vals);opts...)
-# end
-
-
-## SingFun
-
-##TODO: reimplement
-# function plot(f::SingFun;opts...) 
-#     pf = pad(f,3length(f)+100)
-#     
-#     if f.α >= 0 && f.β >= 0
-#         plot(points(pf),values(pf);opts...)
-#     elseif f.α >= 0
-#         plot(points(pf)[1:end-1],values(pf)[1:end-1];opts...)    
-#     elseif f.β >= 0    
-#         plot(points(pf)[2:end],values(pf)[2:end];opts...)    
-#     else
-#         plot(points(pf)[2:end-1],values(pf)[2:end-1];opts...)
-#     end
-# end
 
 
 

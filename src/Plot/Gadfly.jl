@@ -37,18 +37,33 @@ function gadflyplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}};axis=-1)
     require("DataFrames")    
     r=real(y)
     i=imag(y)
+    
+    dat=Main.DataFrames.DataFrame(Any[[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]],Main.DataFrames.Index((@compat Dict(:x=>1,:y=>2,:Function=>3)),
+            [:x,:y,:Function]))    
     if axis==-1
-        Main.Gadfly.plot(Main.DataFrames.DataFrame(Any[[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]],Main.DataFrames.Index(
-        @compat Dict(:x=>1,:y=>2,:Function=>3),
-        [:x,:y,:Function])),
-        x="x",y="y",color="Function",Main.Gadfly.Geom.path)
+        Main.Gadfly.plot(dat,x="x",y="y",color="Function",Main.Gadfly.Geom.path)
     else
-        Main.Gadfly.plot(Main.DataFrames.DataFrame(Any[[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]],Main.DataFrames.Index(
-        @compat Dict(:x=>1,:y=>2,:Function=>3),
-        [:x,:y,:Function])),
-        x="x",y="y",color="Function",Main.Gadfly.Geom.path, Main.Gadfly.Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))      
+        Main.Gadfly.plot(dat,x="x",y="y",color="Function",Main.Gadfly.Geom.path, Main.Gadfly.Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))      
     end
 end
+
+#Plot multiple contours
+function gadflyplot{T<:Real,V<:Real}(x::Matrix{T},y::Matrix{V};axis=-1)
+    require("Gadfly")
+    require("DataFrames")    
+
+    dat=Main.DataFrames.DataFrame(Any[vec(x),vec(y),[[fill(string(k),size(x,1)) for k=1:size(y,2)]...]],Main.DataFrames.Index((@compat Dict(:x=>1,:y=>2,:Function=>3)),
+            [:x,:y,:Function]))
+
+    if axis==-1
+        Main.Gadfly.plot(dat,x="x",y="y",color="Function",Main.Gadfly.Geom.path)
+    else
+        Main.Gadfly.plot(dat,x="x",y="y",color="Function",Main.Gadfly.Geom.path, Main.Gadfly.Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))      
+    end
+end
+
+
+
 
 function gadflycontour(x::Vector,y::Vector,z::Matrix;levels=-1,axis=-1)
     require("Gadfly")
