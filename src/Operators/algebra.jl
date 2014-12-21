@@ -26,7 +26,7 @@ typeofdata{T<:Number}(::Operator{T})=T
 
 
 # constructor for either one
-function PlusFunctionalOperator(PF,PF2,ops)
+function PlusFunctionalOperator{B}(PF,::Type{B},ops)
     T = Float64
     
     for op in ops
@@ -36,12 +36,12 @@ function PlusFunctionalOperator(PF,PF2,ops)
     end
     
     pops=promotespaces(ops)
-    PF{T,PF2}(pops)
+    PF{T,B}(pops)
 end
     
 ## TODO: figure out how to do this with for over a tuple
-PlusFunctional{B<:Functional}(ops::Vector{B})=PlusFunctionalOperator(PlusFunctional,Functional,ops)
-PlusOperator{B<:BandedOperator}(ops::Vector{B})=PlusFunctionalOperator(PlusOperator,BandedOperator,ops)
+PlusFunctional{B<:Functional}(ops::Vector{B})=PlusFunctionalOperator(PlusFunctional,B,ops)
+PlusOperator{B<:BandedOperator}(ops::Vector{B})=PlusFunctionalOperator(PlusOperator,B,ops)
 
 
 

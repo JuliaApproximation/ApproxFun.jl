@@ -16,7 +16,7 @@ export MutableAlmostBandedOperator
 ## MutableAlmostBandedOperator
 
 
-type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:SavedFunctional} <: BandedBelowOperator{T}
+type MutableAlmostBandedOperator{T,M,R} <: BandedBelowOperator{T}
     bc::Vector{R}         # The boundary rows
     op::M                 # The underlying op that is modified
     data::ShiftArray{T}   # Shifted to encapsolate bandedness  ##TODO: Change to BandedArray
@@ -32,7 +32,7 @@ type MutableAlmostBandedOperator{T<:Number,M<:BandedOperator,R<:SavedFunctional}
     numbcs::Int            # The length of bc.  We store this for quicker access, but maybe remove
 end
 
-MutableAlmostBandedOperator(bc,ops...)=MutableAlmostBandedOperator(bc,ops...,length(bc))
+MutableAlmostBandedOperator(bc,op,data,filldata,bcdata,bcfilldata,datalength,bandinds)=MutableAlmostBandedOperator(bc,op,data,filldata,bcdata,bcfilldata,datalength,bandinds,length(bc))
 
 domainspace(M::MutableAlmostBandedOperator)=domainspace(M.op)
 rangespace(M::MutableAlmostBandedOperator)=rangespace(M.op)
@@ -54,7 +54,12 @@ function MutableAlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::
     br=((bndinds[1]-nbc),(bndindslength-1))
     ##TODO complex functionals
     ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
-    MutableAlmostBandedOperator(SavedFunctional{Float64}[SavedFunctional(bcc) for bcc in bc],op,data,Array(T,0,nbc),bcdata,bcfilldata,0, br )
+    sfuncs=Array(SavedFunctional{Float64},length(bc))
+    for k=1:length(bc)
+        sfuncs[k]=SavedFunctional(bc[k])
+    end
+    ar0=Array(T,0,nbc)
+    MutableAlmostBandedOperator(sfuncs,op,data,ar0,bcdata,bcfilldata,0, br )
 end
 
 function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
@@ -64,6 +69,8 @@ function MutableAlmostBandedOperator{T<:Operator}(B::Vector{T})
     
     MutableAlmostBandedOperator(bcs,B[end])
 end
+
+MutableAlmostBandedOperator{BO<:BandedOperator}(B::BO)=MutableAlmostBandedOperator(BO[B])
 
 
 index(B::MutableAlmostBandedOperator)=index(B.op)::Int
