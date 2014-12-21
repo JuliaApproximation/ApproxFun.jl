@@ -6,8 +6,8 @@ function Fun(f::Function,d::FunctionSpace,n::Integer)
     f1=f(pts[1])
     
 
-    if isa(f1,Vector) && !(isa(d,VectorFunctionSpace) || isa(d,ArraySpace))
-        return Fun(f,VectorFunctionSpace(d,length(f1)),n)
+    if isa(f1,Array) && !isa(d,ArraySpace)
+        return Fun(f,ArraySpace(d,size(f1)...),n)
     end
     
         
@@ -83,8 +83,8 @@ function zerocfsFun(f::Function,d::FunctionSpace)
     #TODO: reuse function values?
     f0=f(first(domain(d)))
 
-    if !isa(d,VectorFunctionSpace) && isa(f0,Vector)       
-        return zerocfsFun(f,VectorFunctionSpace(d,length(f0)))
+    if !isa(d,ArraySpace) && isa(f0,Array)       
+        return zerocfsFun(f,ArraySpace(d,size(f0)...))
     end
 
     tol = 200*eps()

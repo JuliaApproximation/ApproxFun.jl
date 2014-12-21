@@ -1,3 +1,4 @@
+export devec,demat,mat
 
 
 
@@ -48,6 +49,32 @@ Base.vec{AS<:ArraySpace,T}(f::Fun{AS,T})=vec(Fun(f.coefficients,vec(space(f))))
 mat{AS<:ArraySpace,T}(f::Fun{AS,T})=reshape(vec(f),size(space(f))...)
 
 
+
+
+function devec{F<:Fun}(v::Vector{F})
+    @assert spacescompatible(map(space,v))
+    
+    Fun(vec(coefficients(v).'),ArraySpace(space(first(v)),length(v)))
+end
+
+devec(v::Vector{Any})=devec([v...])
+
+function devec{S<:FunctionSpace}(spl::Vector{S})
+    #TODO: Redesign
+    @assert spacescompatible(spl)
+    ArraySpace(first(spl),length(spl))
+end
+
+
+function demat{F<:Fun}(v::Array{F})
+    ff=devec(vec(v))  # A vectorized version
+    Fun(coefficients(vf),ArraySpace(space(ff).space,size(v)...))
+end
+
+
+
+
+
 ## routines
 
 evaluate{AS<:ArraySpace,T}(f::Fun{AS,T},x)=evaluate(mat(f),x)
@@ -66,5 +93,21 @@ function spaceconversion{S,V,T}(f::Vector{T},a::ArraySpace{S,1},b::ArraySpace{V,
     ret
 end
 
+
+
+
+
+
+## constructor
+
+# columns are coefficients
+Fun{T<:Number}(M::Array{T,2},sp::FunctionSpace)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
+
+
+## calculus
+
+for op in (:differentiate,:integrate,:(Base.cumsum))
+    @eval $op{V<:ArraySpace}(f::Fun{V})=demat(map($op,mat(f)))
+end
 
 

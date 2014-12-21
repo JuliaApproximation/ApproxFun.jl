@@ -113,7 +113,7 @@ Base.vec(S::PiecewiseSpace)=S.spaces
 ## cumsum
 
 for op in (:differentiate,:integrate)
-    @eval $op{V<:Union(VectorFunctionSpace,PiecewiseSpace)}(f::Fun{V})=devec(map($op,vec(f)))
+    @eval $op{V<:PiecewiseSpace}(f::Fun{V})=depiece(map($op,vec(f)))
 end
 
 function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
@@ -123,19 +123,8 @@ function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
         vf[k]=cumsum(vf[k]) + r
         r=last(vf[k])
     end
-    devec(vf)
+    depiece(vf)
 end
 
 
-## Conversion
 
-
-function spaceconversion{n}(f::Vector,a::VectorFunctionSpace{n},b::PiecewiseSpace)
-    A=a.space
-    @assert n==length(b.spaces)
-    ret=copy(f)
-    for k=1:n
-        ret[k:n:end]=spaceconversion(ret[k:n:end],A,b.spaces[k])
-    end
-    ret
-end
