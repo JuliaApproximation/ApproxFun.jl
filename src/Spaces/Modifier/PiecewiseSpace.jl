@@ -128,3 +128,19 @@ end
 
 
 
+
+## Conversion from Vector to Piecewise
+#  Right now if a Vector fun has different spaces in each component we represenent
+#  it by a piecewise fun, so this allows conversion.
+
+
+function spaceconversion{AS}(f::Vector,a::ArraySpace{AS,1},b::PiecewiseSpace)
+    A=a.space
+    n=length(a)
+    @assert n==length(b.spaces)
+    ret=copy(f)
+    for k=1:n
+        ret[k:n:end]=spaceconversion(ret[k:n:end],A,b.spaces[k])
+    end
+    ret
+end

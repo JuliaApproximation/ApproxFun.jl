@@ -126,18 +126,18 @@ function domainspace{T<:Operator}(A::Matrix{T})
     
     spl=map(domainspace,vec(A[1,:]))
     if spacescompatible(spl)
-        VectorFunctionSpace(first(spl),length(spl))
+        ArraySpace(first(spl),length(spl))
     else
         PiecewiseSpace(spl)
     end
 end
 
-function rangespace{T<:Operator}(A::Array{T})
+function rangespace{T<:Operator}(A::Vector{T})
     @assert spacescompatible(A)
     
-    spl=map(rangespace,A[:,1])
+    spl=map(rangespace,A)
     if spacescompatible(spl)
-        VectorFunctionSpace(first(spl),length(spl))
+        ArraySpace(first(spl),length(spl))
     else
         PiecewiseSpace(spl)
     end
@@ -156,7 +156,7 @@ end
 
 
 
-function interlace{T<:Operator}(A::Array{T,2})
+function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
     
     A=promotespaces(A)
