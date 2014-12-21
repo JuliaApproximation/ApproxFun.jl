@@ -210,7 +210,7 @@ function Base.setindex!(B::MutableAlmostBandedOperator,x,k::Integer,j::Integer)
         B.bcdata[k,j] = x
     else
         resizedata!(B,k)      
-        B.data[k-B.numbcs,j-k+B.numbcs] = x
+        @inbounds B.data[k-B.numbcs,j-k+B.numbcs] = x
     end
     x
 end

@@ -5,14 +5,16 @@
 Base.null(A::BandedOperator)=null(A,order(rangespace(A)))
 
 
-function applygivens!(Q,k,a,b)
-    for j=1:length(Q[1])
-        @inbounds Q[1][j],Q[k][j]=a*Q[1][j]+b*Q[k][j],-b*Q[1][j]+a*Q[k][j]
+function applygivens!(Q1,Qk,a,b)
+    for j=1:length(Q1)
+        @inbounds Q1[j],Qk[j]=a*Q1[j]+b*Qk[j],-b*Q1[j]+a*Qk[j]
     end
 end
 
 
+
 #d is number of elements in the kernel
+#TODO: I think to speed this up change Q to a matrix
 function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
     M=MutableAlmostBandedOperator(A')
     m=bandinds(A)[end]
@@ -23,11 +25,11 @@ function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
         Q[j][j]=one(T)
     end
     
-    ret=Q[1]
+    Q1=Q[1]
      
     k=0
     
-    while norm(M.data.data[k+1:k+d,:])>eps()  && k <= maxit
+    while slnorm(M.data.data,k+1:k+d)>eps()  && k <= maxit
         k+=1
         
         if k+m >= n
@@ -39,21 +41,22 @@ function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
             end
         end
         
+        Q1=Q[1]
+                
         for j=1:m-1
-            kj=k+j
-            a,b=givensreduceab!(M,k,kj,k)
-            applygivens!(Q,1+j,a,b )
+            a,b=givensreduceab!(M,k,k+j,k)
+            applygivens!(Q1,Q[1+j],a,b )
         end
-        
-        ret=Q[1]
+
             
         for j=1:m-1
-            Q[j]=Q[j+1]
+            @inbounds Q[j]=Q[j+1]
         end
         
         a,b=givensreduceab!(M,k,k+m,k)   
         
-        Q[m] = -b*ret
+        Q[m] = Q1
+        Q[m] *= -b
         Q[m][k+m] += a
     end
     
@@ -63,18 +66,17 @@ function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
 end
 
 
-function Base.null{T<:BandedOperator}(A::Array{T,2},d)
-    ret = null(interlace(A),d)
-    
-    [Fun(ret[1].coefficients[1:2:end],ret[1].domain) Fun(ret[2].coefficients[1:2:end],ret[1].domain);
-    Fun(ret[1].coefficients[2:2:end],ret[1].domain) Fun(ret[2].coefficients[2:2:end],ret[1].domain)]
-end
+Base.null{T<:BandedOperator}(A::Array{T,2},d)=null(interlace(A),d)
 
 function Base.null{T<:BandedOperator}(A::Array{T,2})
+    # We assume ultraspherical space gives dimension of kernel
     d = 0
+    A=promotespaces(A)
     for k=1:size(A,1)
-        d += max(rangespace(A[k,1]),rangespace(A[k,2]))
+        d += order(rangespace(A[k,1]))
     end
     
     null(A,d)
 end
+
+

@@ -48,6 +48,15 @@ u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
 @time u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
 println("Airy: should be ~0.05")
 
+
+d=Interval(-300.,5.)
+x=Fun(identity,d)
+A=Derivative(d)^2-x
+u=null(A)
+u=null(A)
+@time u=null(A)
+println("Null Airy: should be ~0.075")
+
 ## PDEs
 
 d=Interval()^2
