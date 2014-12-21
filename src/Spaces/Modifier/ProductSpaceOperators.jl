@@ -60,6 +60,42 @@ end
 Base.blkdiag{FT<:PiecewiseSpace,OT<:AbstractDiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
 
 
+## Vector
+
+
+
+immutable DiagonalArrayOperator{B<:BandedOperator,T<:Number} <: BandedOperator{T}
+    op::B
+    dimensions::(Int...)
+end
+
+DiagonalArrayOperator{T}(op::BandedOperator{T},dms::(Int...))=DiagonalArrayOperator{typeof(op),T}(op,dms)
+#DiagonalArrayOperator{T}(op::BandedOperator{T},dms::Int)=DiagonalArrayOperator(op,(dms,))
+Base.size(D::DiagonalArrayOperator)=D.dimensions
+Base.length(D::DiagonalArrayOperator)=*(D.dimensions...)
+
+function bandinds(S::DiagonalArrayOperator)
+    bra,brb=bandinds(S.op)
+    n=length(S)
+    n*bra,n*brb
+end
+
+
+function addentries!(D::DiagonalArrayOperator,A::ShiftArray,kr::Range)
+    n=length(D)
+    for k=1:n
+        stride_addentries!(D.op,k-n,k-n,n,n,A,kr)
+    end
+    A
+end
+
+
+for op in (:domainspace,:rangespace)
+    @eval $op(D::DiagonalArrayOperator)=ArraySpace($op(D.op),size(D))
+end
+
+
+Derivative(AS::ArraySpace,k::Integer)=DerivativeWrapper(DiagonalArrayOperator(Derivative(AS.space,k),size(AS)),k)
 
 
 ## Sum Space
