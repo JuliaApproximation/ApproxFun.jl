@@ -93,6 +93,7 @@ BandedArray(B::Operator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),c
 ## Default addentries!
 # this allows for just overriding getdiagonalentry
 
+getdiagonalentry(B::BandedOperator,k,j)=error("Override either getdiagonalentry or addentries! for "*string(typeof(B)))
 
 function addentries!(B::BandedOperator,A,kr)
         br=bandinds(B)
