@@ -236,11 +236,19 @@ Base.rand(d::FunctionSpace)=rand(domain(d))
 
 function itransform{T}(S::FunctionSpace{T},cfs)
     csp=canonicalspace(S)
+    if S==csp
+        error("Override itransform(::"*string(typeof(S))*",cfs)")
+    end    
+    
     itransform(csp,spaceconversion(cfs,S,csp))
 end
 
 function transform{T}(S::FunctionSpace{T},vals)
     csp=canonicalspace(S)
+    if S==csp
+        error("Override transform(::"*string(typeof(S))*",vals)")
+    end
+    
     spaceconversion(transform(csp,vals),csp,S)
 end
 
