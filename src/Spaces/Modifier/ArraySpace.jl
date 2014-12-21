@@ -103,6 +103,8 @@ end
 # columns are coefficients
 Fun{T<:Number}(M::Array{T,2},sp::FunctionSpace)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
 
+# Automatically change to ArraySpace
+Fun{T<:Number,S}(M::Array{T,2},sp::ArraySpace{S,1})=Fun(vec(M.'),ArraySpace(sp.space,length(sp),size(M,2)))
 
 ## calculus
 

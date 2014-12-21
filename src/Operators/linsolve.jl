@@ -4,9 +4,13 @@
 
 function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps(),maxlength=1000000)
     Ad=promotedomainspace(A)
-    #all rows of Ad should have same domain space
-    ds=domainspace(Ad[end])  
+
     r=adaptiveqr(Ad,b,tolerance,maxlength)
+
+    #all rows of Ad should have same domain space     
+    ds=domainspace(Ad[end])     
+    # If ds is a ArraySpace and r is a matrix, then 
+    # the constructor in ArraySpace converts to matrix
     isa(ds,AnySpace)?r:Fun(r,ds)
 end
 
