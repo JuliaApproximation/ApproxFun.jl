@@ -251,7 +251,7 @@ LowRankFun(f::TensorFun)=LowRankFun(f.coefficients,space(f,2))
 
 function differentiate(f::TensorFun,j::Integer)
     if j==1
-        TensorFun(map(diff,f.coefficients),space(f,2))
+        TensorFun(map(differentiate,f.coefficients),space(f,2))
     else
         differentiate(f.',1).'
     end

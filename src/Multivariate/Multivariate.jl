@@ -9,8 +9,8 @@ domain(f::BivariateFun)=domain(f,1)*domain(f,2)
 
 differentiate(u::BivariateFun,i::Integer,j::Integer)=j==0?u:differentiate(differentiate(u,i),i,j-1)
 Base.diff(u::MultivariateFun,j...)=differentiate(u,j...)
-lap(u::BivariateFun)=diff(u,1,2)+diff(u,2,2)
-grad(u::BivariateFun)=[diff(u,1),diff(u,2)]
+lap(u::BivariateFun)=differentiate(u,1,2)+differentiate(u,2,2)
+grad(u::BivariateFun)=[differentiate(u,1),differentiate(u,2)]
 
 Base.chop(f::MultivariateFun)=chop(f,10eps())
 
