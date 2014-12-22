@@ -88,6 +88,9 @@ function demat{S,T}(v::Array{Fun{S,T}})
     Fun(coefficients(ff),ArraySpace(space(ff).space,size(v)...))
 end
 
+demat(v::Vector{Any})=devec(v)
+
+
 function demat{S,T,D,V}(A::Array{Fun{ArraySpace{S,1,T,D},V},2})
     @assert size(A,1)==1
 
@@ -97,6 +100,7 @@ function demat{S,T,D,V}(A::Array{Fun{ArraySpace{S,1,T,D},V},2})
     end
     demat(M)
 end
+
 
 
 
