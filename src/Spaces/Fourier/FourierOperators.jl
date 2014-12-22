@@ -150,13 +150,12 @@ rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?D.space:SinSpace(domai
 rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 
 
-
-
 function addentries!(D::Derivative{CosSpace},A::ShiftArray,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
     C=2π./(d.b-d.a)
+    @assert m <= 2 # the def is missing the sign change
 
     for k=kr
         if iseven(m)
@@ -176,15 +175,74 @@ function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
     C=2π./(d.b-d.a)
 
     for k=kr
-        if iseven(m)
+        if mod(m,4)==0
             A[k,0] += (C*k)^m
-        elseif k>1
+        elseif mod(m,4)==2
+            A[k,0] += -(C*k)^m        
+        elseif k>1 && mod(m,4)==1
             A[k,-1] += (C*(k-1))^m
+        elseif k>1 && mod(m,4)==3
+            A[k,-1] += -(C*(k-1))^m            
         end
     end
     
     A
 end
+
+bandinds(D::Integral{SinSpace})=iseven(D.order)?(0,0):(-1,0)
+rangespace{S<:CosSpace}(D::Integral{S})=iseven(D.order)?D.space:SinSpace(domain(D))
+rangespace{S<:SinSpace}(D::Integral{S})=iseven(D.order)?D.space:CosSpace(domain(D))
+
+function addentries!(D::Integral{SinSpace},A::ShiftArray,kr::Range)
+    d=domain(D)
+    @assert isa(d,PeriodicInterval)    
+    m=D.order
+    C=2π./(d.b-d.a)
+
+    for k=kr
+        if mod(m,4)==0
+            A[k,0] += (C*k)^(-m)
+        elseif mod(m,4)==2
+            A[k,0] += -(C*k)^(-m)
+        elseif k>1 && mod(m,4)==1
+            A[k,-1] += -(C*(k-1))^(-m)
+        elseif k>1 && mod(m,4)==3
+            A[k,-1] += (C*(k-1))^(-m)
+        end
+    end
+    
+    A
+end
+
+
+function bandinds{T}(D::Integral{DropSpace{CosSpace,1,T}})
+    d=domain(D)
+    @assert isa(d,PeriodicInterval)
+    (0,0)
+end
+rangespace{T}(D::Integral{DropSpace{CosSpace,1,T}})=iseven(D.order)?D.space:SinSpace(domain(D))
+
+function addentries!{T}(D::Integral{DropSpace{CosSpace,1,T}},A::ShiftArray,kr::Range)
+    d=domain(D)
+    @assert isa(d,PeriodicInterval)    
+    m=D.order
+    C=2π./(d.b-d.a)
+
+    for k=kr
+        if mod(m,4)==0
+            A[k,0] += (C*k)^(-m)
+        elseif mod(m,4)==2
+            A[k,0] += -(C*k)^(-m)
+        elseif mod(m,4)==1
+            A[k,0] += (C*k)^(-m)
+        elseif mod(m,4)==3
+            A[k,0] += -(C*k)^(-m)
+        end
+    end
+    
+    A
+end
+
 
 
 ## Hardy space

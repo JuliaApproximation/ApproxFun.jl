@@ -28,10 +28,11 @@ typealias IntervalSumSpace{S,V,T} SumSpace{S,V,T,Interval}
 
 
 
+
 Base.getindex(S::SumSpace,k)=S.spaces[k]
 
 domain(A::SumSpace)=domain(A[1])
-evaluate{D<:SumSpace,T}(f::Fun{D,T},x)=evaluate(Fun(f.coefficients[1:2:end],space(f)[1]),x)+evaluate(Fun(f.coefficients[2:2:end],space(f)[2]),x)
+
 
 
 spacescompatible{S,T}(A::SumSpace{S,T},B::SumSpace{S,T})=spacescompatible(A.spaces[1],B[1]) && spacescompatible(A.spaces[2],B[2])
@@ -40,7 +41,12 @@ spacescompatible{S,T}(A::SumSpace{S,T},B::SumSpace{S,T})=spacescompatible(A.spac
 
 
 
-## calculus
+## routines
+
+evaluate{D<:SumSpace,T}(f::Fun{D,T},x)=evaluate(vec(f,1),x)+evaluate(vec(f,2),x)
+for OP in (:differentiate,:integrate)
+    @eval $OP{D<:SumSpace,T}(f::Fun{D,T})=$OP(vec(f,1))⊕$OP(vec(f,2))
+end
 
 # assume first domain has 1 as a basis element
 
@@ -50,8 +56,9 @@ Base.ones(S::SumSpace)=ones(S[1])⊕zeros(S[2])
 
 # vec
 
+Base.vec{D<:SumSpace,T}(f::Fun{D,T},k)=k==1?Fun(f.coefficients[1:2:end],space(f)[1]):Fun(f.coefficients[2:2:end],space(f)[2])
 Base.vec(S::SumSpace)=S.spaces
-Base.vec{S<:SumSpace,T}(f::Fun{S,T})=Fun[Fun(f.coefficients[j:2:end],space(f)[j]) for j=1:2]
+Base.vec{S<:SumSpace,T}(f::Fun{S,T})=Fun[vec(f,j) for j=1:2]
 
 
 

@@ -121,8 +121,8 @@ integrate(d::Domain)=Integral(d,1)
 
 
 # Default is to use ops
-differentiate(f::Fun)=Derivative(space(f))*f
-integrate(f::Fun)=Integral(space(f))*f
+differentiate{S,T}(f::Fun{S,T})=Derivative(space(f))*f
+integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 
 #^(D1::Derivative,k::Integer)=Derivative(D1.order*k,D1.space)
