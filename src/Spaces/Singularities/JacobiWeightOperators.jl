@@ -119,31 +119,45 @@ end
 
 ## Multiplication
 
+#Left multiplication. Here, S is considered the domainspace and we determine rangespace accordingly.
+
 function Multiplication{D<:JacobiWeight,T}(f::Fun{D,T},S::JacobiWeight)
     M=Multiplication(Fun(f.coefficients,space(f).space),S.space)
-    MultiplicationWrapper(
-        f,
-        SpaceOperator(M,S,JacobiWeight(space(f).α+S.α,space(f).β+S.β,rangespace(M)))
-    )
+    rsp=canonicalspace(JacobiWeight(space(f).α+S.α,space(f).β+S.β,rangespace(M)))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
 function Multiplication{D,T}(f::Fun{D,T},S::JacobiWeight)
     M=Multiplication(f,S.space)
-    MultiplicationWrapper(
-        f,
-        SpaceOperator(M,S,JacobiWeight(S.α,S.β,rangespace(M)))
-    )
+    rsp=JacobiWeight(S.α,S.β,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
 function Multiplication{D<:JacobiWeight,T}(f::Fun{D,T},S::IntervalSpace)
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
-    MultiplicationWrapper(
-        f,
-        SpaceOperator(M,S,JacobiWeight(space(f).α,space(f).β,rangespace(M)))
-    )
+    rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
+#Right multiplication. Here, S is considered the rangespace and we determine domainspace accordingly.
 
+function Multiplication{D<:JacobiWeight,T}(S::JacobiWeight,f::Fun{D,T})
+    M=Multiplication(Fun(f.coefficients,space(f).space),S.space)
+    dsp=canonicalspace(JacobiWeight(S.α-space(f).α,S.β-space(f).β,domain(f)))
+    MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
+end
+
+function Multiplication{D,T}(S::JacobiWeight,f::Fun{D,T})
+    M=Multiplication(f,S.space)
+    dsp=JacobiWeight(S.α,S.β,domain(f))
+    MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
+end
+
+function Multiplication{D<:JacobiWeight,T}(S::IntervalSpace,f::Fun{D,T})
+    M=Multiplication(Fun(f.coefficients,space(f).space),S)
+    dsp=JacobiWeight(-space(f).α,-space(f).β,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
+end
 
 ## Conversion
 
