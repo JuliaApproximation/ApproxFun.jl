@@ -31,3 +31,18 @@ D=Derivative(space(f))
 
 f=Fun(cos,Fourier)
 @test norm((Derivative(space(f))^2)*f+f)<10eps()
+
+
+
+## Taylor
+
+for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
+    S=Taylor(d)
+    D=Derivative(S)
+    ef=Fun(exp,S)
+    @test norm((D*ef-ef).coefficients)<1000eps()
+    @test norm((D^2*ef-ef).coefficients)<100000eps()
+    u=[Evaluation(S,0.),D-I]\[1.]
+    @test norm((u-ef).coefficients)<100eps()
+end
+

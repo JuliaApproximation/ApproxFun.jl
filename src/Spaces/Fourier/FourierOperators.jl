@@ -1,5 +1,7 @@
 
+## Evaluation
 
+getindex(T::Evaluation{Taylor},cols::Range)=mappoint(domain(T),Circle(),T.x).^(cols-1)    
 
 
 ## Multiplication 

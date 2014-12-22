@@ -52,9 +52,8 @@ function MutableAlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::
     bcfilldata = eye(T,nbc)
                 
     br=((bndinds[1]-nbc),(bndindslength-1))
-    ##TODO complex functionals
     ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
-    sfuncs=Array(SavedFunctional{Float64},length(bc))
+    sfuncs=Array(SavedFunctional{isempty(bc)?Float64:mapreduce(eltype,promote_type,bc)},length(bc))
     for k=1:length(bc)
         sfuncs[k]=SavedFunctional(bc[k])
     end
