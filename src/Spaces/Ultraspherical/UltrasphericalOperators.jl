@@ -137,23 +137,12 @@ function addentries!{λ}(D::Derivative{Ultraspherical{λ}},A::ShiftArray,kr::Ran
     A
 end
  
-## TODO: reimplement. This can be removed, right? RMS
 
-# function Derivative(order::Range1,d::IntervalDomain)
-#     @assert order[1] == 0 && order[end] <= 2  ##TODO other orders
-#     
-#     Mp = Fun(x->tocanonicalD(d,x),d)
-#     
-#     if order[end] == 1
-#         Mp*USDerivative(0:1)
-#     elseif order[end] == 2
-#         (Mp.^2)*USDerivative(0:2) + diff(Mp)*USDerivative(0:1)
-#     end
-# end
-
- 
 ## Integral
 
+# TODO: include in addentries! to speed up
+Integral(sp::Chebyshev,m::Integer)=IntegralWrapper(
+    Integral(Ultraspherical{m}(domain(sp)),m)*Conversion(sp,Ultraspherical{m}(domain(sp))),m)
 
 rangespace{λ}(D::Integral{Ultraspherical{λ}})=Ultraspherical{λ-D.order}(domain(D))
 

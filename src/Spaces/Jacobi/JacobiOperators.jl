@@ -65,9 +65,10 @@ end
 
 Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Float64}(J,1):TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),Derivative{Jacobi,Float64}(J,1))
 
+
+
 rangespace(D::Derivative{Jacobi})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
 bandinds(D::Derivative{Jacobi})=0,D.order
-bandinds(D::Integral{Jacobi})=-D.order,0   
 
 
 
@@ -81,6 +82,16 @@ end
 
 
 ## Integral
+#TODO: implement, with special case for Chebyshev
+# function Integral(S::Jacobi,m::Integer)
+#     if isapprox(S.a,-0.5)&&isapprox(S.b,-0.5))
+#          
+#     else
+#     
+#     end
+# end
+# 
+# bandinds(D::Integral{Jacobi})=-D.order,0
 
 ## Conversion
 # We can only increment by a or b by one, so the following
@@ -145,11 +156,12 @@ end
 
 # Assume m is compatible
 bandinds{m}(C::Conversion{Ultraspherical{m},Jacobi})=0,0
+bandinds{m}(C::Conversion{Jacobi,Ultraspherical{m}})=0,0
 
 
 function addentries!(C::Conversion{Chebyshev,Jacobi},A::ShiftArray,kr::Range)
     S=rangespace(C)
-    @assert S.a==S.b==-0.5
+    @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
     for k=kr
         A[k,0]+=1./jp[k]
@@ -160,7 +172,7 @@ end
 
 function addentries!(C::Conversion{Jacobi,Chebyshev},A::ShiftArray,kr::Range)
     S=domainspace(C)
-    @assert S.a==S.b==0.
+    @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
 
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
     for k=kr
@@ -170,15 +182,6 @@ function addentries!(C::Conversion{Jacobi,Chebyshev},A::ShiftArray,kr::Range)
     A
 end
 
-function getdiagonalentry{m}(C::Conversion{Ultraspherical{m},Jacobi})
-    @assert B.a+.5==m&&B.b+.5==m
-    gamma(2m+k)*gamma(m+0.5)/(gamma(2m)*gamma(m+k+0.5))
-end
-
-function getdiagonalentry{m}(C::Conversion{Jacobi,Ultraspherical{m}})
-    @assert B.a+.5==m&&B.b+.5==m
-    (gamma(2m)*gamma(m+k+0.5))/(gamma(2m+k)*gamma(m+0.5))
-end
 
 
 function conversion_rule{m}(A::Ultraspherical{m},B::Jacobi)
