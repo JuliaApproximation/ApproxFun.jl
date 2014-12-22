@@ -6,7 +6,7 @@ include("PeriodicSpace.jl")
 include("Modifier/Modifier.jl")
 
 include("Ultraspherical/Ultraspherical.jl")
-include("Fourier/FourierSpace.jl")
+include("Fourier/Fourier.jl")
 include("Singularities/Singularities.jl")
 include("Jacobi/Jacobi.jl")
 include("Mapped/Mapped.jl")

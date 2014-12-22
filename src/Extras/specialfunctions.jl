@@ -189,3 +189,27 @@ Base.sqrt{S,T}(f::Fun{S,T})=f^0.5
 Base.cos{S<:FunctionSpace{Float64},T<:Real}(f::Fun{S,T})=real(exp(im*f))
 Base.sin{S<:FunctionSpace{Float64},T<:Real}(f::Fun{S,T})=imag(exp(im*f))
 
+function pochhammer{T<:Number}(x::T,n::Integer)
+    ret = one(T)
+    if n>=0
+        for i=0:n-1
+            ret *= x+i
+        end
+    else
+        ret /= pochhammer(x+n,-n)
+    end
+    ret
+end
+function pochhammer{T<:Number}(x::Array{T},n::Integer)
+    ret = ones(T,size(x))
+    if n>=0
+        for i=0:n-1
+            ret .*= x+i
+        end
+    else
+        ret ./= pochhammer(x+n,-n)
+    end
+    ret
+end
+pochhammer{T1<:Number,T2<:Number}(x::T1,n::T2) = gamma(x+n)/gamma(x)
+pochhammer{T1<:Number,T2<:Number}(x::Array{T1},n::T2) = gamma(x+n)./gamma(x)

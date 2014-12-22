@@ -123,12 +123,12 @@ function addentries!{λ}(D::Derivative{Ultraspherical{λ}},A::ShiftArray,kr::Ran
     @assert isa(d,Interval)
 
     if λ == 0
-        C=2.^(m-1).*factorial(m-1)*(2./(d.b-d.a)).^m    
+        C=.5pochhammer(1.,m-1)*(4./(d.b-d.a)).^m
         for k=kr
             A[k,m] += C*(m+k-1)
         end
     else
-        C=2.^m.*factorial(λ+m-1)./factorial(λ-1)*(2./(d.b-d.a)).^m        
+        C=pochhammer(1.λ,m)*(4./(d.b-d.a)).^m
         for k=kr        
             A[k,m] += C
         end
@@ -137,7 +137,7 @@ function addentries!{λ}(D::Derivative{Ultraspherical{λ}},A::ShiftArray,kr::Ran
     A
 end
  
-## TODO: reimplement
+## TODO: reimplement. This can be removed, right? RMS
 
 # function Derivative(order::Range1,d::IntervalDomain)
 #     @assert order[1] == 0 && order[end] <= 2  ##TODO other orders
@@ -168,8 +168,8 @@ function addentries!{λ}(D::Integral{Ultraspherical{λ}},A::ShiftArray,kr::Range
         for k=max(kr[1],2):kr[end]
             A[k,-1] += C./(k-1)
         end
-    else
-        C=factorial(λ-m-1)/factorial(λ-1)/2.^m*(.5(d.b-d.a))^m        
+    elseif λ > 1
+        C=pochhammer(1.λ,-m)*(.25(d.b-d.a))^m
         for k=kr
             A[k,-m] += C
         end

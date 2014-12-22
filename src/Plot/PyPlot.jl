@@ -2,9 +2,9 @@
 
 
 
-function pyplot{N<:Real}(xx,yy::Vector{N};axis=-1) 
+function pyplot{N<:Real}(xx,yy::Array{N};axis=-1) 
     require("PyPlot")
-    Main.PyPlot.plot(xx,yy)
+    Main.PyPlot.plot(xx,yy,color="blue")
     if axis!=-1
         if length(axis) == 4
             Main.PyPlot.axis(axis)
@@ -14,10 +14,10 @@ function pyplot{N<:Real}(xx,yy::Vector{N};axis=-1)
     end
 end
 
-function pyplot{N<:Complex}(xx,yy::Vector{N};axis=-1)      
+function pyplot{N<:Complex}(xx,yy::Array{N};axis=-1)      
     require("PyPlot")
 
-    Main.PyPlot.plot(xx,real(yy))
+    Main.PyPlot.plot(xx,real(yy),color="blue")
     Main.PyPlot.plot(xx,imag(yy),color="red")
     
     if axis!=-1

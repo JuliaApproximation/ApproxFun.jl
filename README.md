@@ -23,8 +23,8 @@ the roots and extrema:
 h = f + g^2
 r = roots(h)
 rp = roots(diff(h))
-ApproxFun.plot(h)               # using PyPlot
-plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
+ApproxFun.plot(h)                      # using PyPlot
+PyPlot.plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
 ```
 
 ![Extrema](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/extrema.png)
@@ -63,8 +63,8 @@ f.space
 g.space
 ```
 
-In this case, `f` is in the `UltrasphericalSpace{0}` on the domain `Interval(-1.0,1.0)`, and
-`g` is in the decorated `JacobiWeightSpace{UltrasphericalSpace{0}}`. The absolute value is 
+In this case, `f` is in the `Ultraspherical{0}` space on the domain `Interval(-1.0,1.0)`, and
+`g` is in the decorated `JacobiWeight{Ultraspherical{0}}` space. The absolute value is 
 another case where space promotion is inferred from the operation:
 
 ```julia
