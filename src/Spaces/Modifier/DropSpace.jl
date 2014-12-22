@@ -31,7 +31,21 @@ function conversion_rule{S<:FunctionSpace,n,T}(a::DropSpace{S,n,T},b::S)
 end
 
 
+
+## Resolve conflict
+function spaceconversion{S1<:FunctionSpace,S2<:FunctionSpace,n,T1,T2,V}(f::Vector{V},a::ReImSpace{S1,T1},b::DropSpace{S2,n,T2})
+     error("Not implemented")
+end
+
+
+function spaceconversion{S<:FunctionSpace,n,U,V}(v::Vector{V},sp::S,dropsp::DropSpace{S,n,U})
+    @assert sp==dropsp.space
+    @assert norm(v[1:n])<100eps()
+    v[n+1:end]
+end
+
 canonicalspace(a::DropSpace)=a.space
+
 
 
 

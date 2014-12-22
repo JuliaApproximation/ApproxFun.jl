@@ -10,14 +10,14 @@ function spaceconversion{S<:FunctionSpace}(f::Vector,a::ReImSpace{S},b::ReImSpac
     f 
 end
 
-function spaceconversion{S<:FunctionSpace}(f::Vector,a::S,b::ReImSpace{S})
+function spaceconversion{S<:FunctionSpace,U,V}(f::Vector{U},a::S,b::ReImSpace{S,V})
     ret=Array(Float64,2length(f))
     ret[1:2:end]=real(f)
     ret[2:2:end]=imag(f)    
     ret
 end
 
-function spaceconversion{S<:FunctionSpace}(f::Vector,a::ReImSpace{S},b::S)
+function spaceconversion{S<:FunctionSpace,U,V}(f::Vector{U},a::ReImSpace{S,V},b::S)
     n=length(f)
     if iseven(n)
         f[1:2:end]+1im*f[2:2:end]
