@@ -3,7 +3,7 @@ f = Fun(exp,[-1,1])
 
 @test_approx_eq f[.1] exp(.1)
 
-fp = diff(f)		
+fp = differentiate(f)		
 
 @test norm(fp-f)<200eps()
 
@@ -17,7 +17,7 @@ g = g + f[-1]
 
 	
 		f = FFun(cos)
-@test norm(diff(f) + FFun(sin))<eps()
+@test norm(differentiate(f) + FFun(sin))<eps()
 @test norm(cumsum(f) - FFun(sin))	<10eps()
 
     d=Interval()^2          					# Defines a rectangle

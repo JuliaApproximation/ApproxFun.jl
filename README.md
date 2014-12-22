@@ -22,7 +22,7 @@ the roots and extrema:
 ```julia
 h = f + g^2
 r = roots(h)
-rp = roots(diff(h))
+rp = roots(differentiate(h))
 ApproxFun.plot(h)                      # using PyPlot
 PyPlot.plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
 ```
@@ -33,13 +33,13 @@ PyPlot.plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
 # Differentiation and integration	
 
 
-Notice from above that to find the extrema, we used the `diff` operator. Several other `Julia`
+Notice from above that to find the extrema, we used the `differentiate` operator. Several other `Julia`
 base functions are overloaded for the purposes of calculus. Because the exponential is its own
 derivative, the `norm` is small:
 
 ```julia
 f = Fun(x->exp(x),[-1.,1.])
-fp = diff(f)
+fp = differentiate(f)
 norm(f-fp)
 ```
 
@@ -103,7 +103,7 @@ The default domain is `[-π,π]`. Use `FFun` to ensure that the representation i
 
 ```julia
 f = FFun(cos)
-norm(diff(f) + FFun(sin))
+norm(differentiate(f) + FFun(sin))
 ```
 
 Due to the periodicity, Fourier representations allow for the asymptotic savings of `2/π` 
@@ -113,7 +113,7 @@ ODEs can also be solved when the solution is periodic:
 ```julia
 d = Interval([-π,π])
 a = Fun(t-> 1+sin(cos(2t)),d)
-D = diff(d)
+D = Derivative(d)
 L = D + a
 f = Fun(t->exp(sin(10t)),d)
 B = periodic(d,0)
@@ -121,7 +121,7 @@ uChebyshev = [B,L]\[0.,f]
 
 d = PeriodicInterval([-π,π])
 a = FFun(t-> 1+sin(cos(2t)),d)
-D = diff(d)
+D = Derivative(d)
 L = D + a
 f = FFun(t->exp(sin(10t)),d)
 uFourier = L\f
