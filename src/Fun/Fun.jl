@@ -241,8 +241,6 @@ end
 
 
 Base.sum{S,T}(f::Fun{S,T})=last(cumsum(f))
-integrate{D,T}(f::Fun{D,T})=integrate(Fun(f,domain(f)))
-
 
 
 ## non-vector notation

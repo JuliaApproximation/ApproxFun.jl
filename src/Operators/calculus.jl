@@ -40,7 +40,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if csp==sp
-                error("Override Derivative(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr)
         end
@@ -49,7 +49,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if csp==sp
-                error("Override Derivative(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end     
             bandinds(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)])) 
         end
@@ -122,6 +122,7 @@ integrate(d::Domain)=Integral(d,1)
 
 # Default is to use ops
 differentiate(f::Fun)=Derivative(space(f))*f
+integrate(f::Fun)=Integral(space(f))*f
 
 
 #^(D1::Derivative,k::Integer)=Derivative(D1.order*k,D1.space)

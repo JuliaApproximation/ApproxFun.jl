@@ -44,5 +44,13 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     @test norm((D^2*ef-ef).coefficients)<100000eps()
     u=[Evaluation(S,0.),D-I]\[1.]
     @test norm((u-ef).coefficients)<100eps()
+    @test norm((Integral(S)*Fun(exp,S)+ef.coefficients[1]-ef).coefficients)<100eps()    
+    
+    
+    f=Fun(z->exp(1/z)-1,Hardy{false}(d))
+    df=Fun(z->-1/z^2*exp(1/z),Hardy{false}(d))
+    @test norm((Derivative()*f-df).coefficients)<1000eps()
+    @test norm((Derivative()^2*f-diff(df)).coefficients)<100000eps()
+    @test norm((diff(f)-df).coefficients)<1000eps()    
 end
 

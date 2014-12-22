@@ -144,21 +144,11 @@ end
 ### Cos/Sine
 
 
-function bandinds{s}(D::Derivative{Hardy{s}})
-    d=domain(D)
-    if isa(d,PeriodicInterval)
-        (0,0)
-    elseif isa(d,Circle)
-        s?(0,D.order):(-D.order,0)
-    else
-        error("Derivative not defined for "*string(typeof(d)))
-    end
-end
 bandinds(D::Derivative{CosSpace})=iseven(D.order)?(0,0):(0,1)
 bandinds(D::Derivative{SinSpace})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
 rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
-rangespace{S<:Hardy}(D::Derivative{S})=D.space
+
 
 
 
@@ -196,6 +186,21 @@ function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
     A
 end
 
+
+## Hardy space
+
+function bandinds{s}(D::Derivative{Hardy{s}})
+    d=domain(D)
+    if isa(d,PeriodicInterval)
+        (0,0)
+    elseif isa(d,Circle)
+        s?(0,D.order):(-D.order,0)
+    else
+        error("Derivative not defined for "*string(typeof(d)))
+    end
+end
+rangespace{S<:Hardy}(D::Derivative{S})=D.space
+
 function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A::ShiftArray,kr::Range)
     C=2π./(d.b-d.a)*im
     for k=kr
@@ -228,7 +233,56 @@ function taylor_derivative_addentries!(d::Circle,m::Integer,A::ShiftArray,kr::Ra
     A
 end
 
+function hardyfalse_derivative_addentries!(d::Circle,m::Integer,A::ShiftArray,kr::Range)
+    C=(-1)^m*d.radius^(-m)
+
+    for k=max(m+1,kr[1]):kr[end]
+        D=k-m
+        for j=k-m+1:k-1
+          D*=j  
+        end
+        A[k,-m] += C*D
+    end
+
+    A
+end
+
 
 addentries!(D::Derivative{Taylor},A::ShiftArray,kr::Range)=taylor_derivative_addentries!(domain(D),D.order,A,kr)
 addentries!(D::Derivative{Hardy{false}},A::ShiftArray,kr::Range)=hardyfalse_derivative_addentries!(domain(D),D.order,A,kr)
+
+
+
+
+## Integral
+
+function bandinds(D::Integral{Taylor})
+    d=domain(D)
+    @assert isa(d,Circle)
+    (-D.order,0)
+end
+rangespace(D::Integral{Taylor})=D.space
+
+
+function addentries!(D::Integral{Taylor},A::ShiftArray,kr::Range)
+    d=domain(D)
+    m=D.order
+    @assert isa(d,Circle)
+    
+    C=d.radius^m
+
+    for k=max(m+1,kr[1]):kr[end]
+        D=k-m
+        for j=k-m+1:k-1
+          D*=j  
+        end
+        A[k,-m] += C/D
+    end
+
+    A    
+end
+
+
+
+
 
