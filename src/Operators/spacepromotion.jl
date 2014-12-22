@@ -76,7 +76,7 @@ promoterangespace(P::Operator,sp::FunctionSpace)=promoterangespace(P,sp,rangespa
 promotedomainspace(P::Operator,sp::FunctionSpace)=promotedomainspace(P,sp,domainspace(P))
         
         
-promoterangespace(P::Functional,::VectorSpace{1},::VectorSpace{1})=P # functionals always map to vector space
+promoterangespace(P::Functional,::ConstantSpace,::ConstantSpace)=P # functionals always map to vector space
 promoterangespace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(Conversion(cursp,sp),P)
 promotedomainspace(P::Functional,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesFunctional(P,Conversion(sp,cursp))
 promotedomainspace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(P,Conversion(sp,cursp))

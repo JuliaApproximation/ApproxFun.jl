@@ -210,17 +210,7 @@ Base.ones{T<:Number}(::Type{T},S::FunctionSpace)=Fun(x->one(T),S)
 identity_fun(S::FunctionSpace)=Fun(x->x,S)
 
 
-## Finite dimensional spaces
 
-
-
-immutable VectorSpace{d} <: FunctionSpace{Float64}
-end
-
-typealias ScalarSpace VectorSpace{1}
-
-=={d}(::VectorSpace{d},::VectorSpace{d})=true
-spacescompatible{d}(::VectorSpace{d},::VectorSpace{d})=true
 
 
 

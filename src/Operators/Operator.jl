@@ -21,7 +21,7 @@ Base.eltype{T}(::Operator{T})=T
 ## We assume operators are T->T
 rangespace(A::Operator)=AnySpace()
 domainspace(A::Operator)=AnySpace()
-rangespace(A::Functional)=ScalarSpace()
+rangespace(A::Functional)=ConstantSpace()
 domain(A::Operator)=domain(domainspace(A))
 
 

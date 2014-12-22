@@ -78,4 +78,4 @@ Base.getindex(op::ZeroFunctional,k::Range1)=zeros(length(k))
 
 
 ## Promotion: Zero operators are the only operators that also make sense as functionals
-promoterangespace(op::ZeroOperator,::ScalarSpace)=ZeroFunctional(domainspace(op))
+promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))
