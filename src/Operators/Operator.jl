@@ -108,7 +108,7 @@ end
 
 ## Default Composition with a Fun, LowRankFun, and TensorFun
 
-Base.getindex(B::BandedOperator,f::Fun) = B*SpaceOperator(Multiplication(f,canonicalspace(rangespace(B))),canonicalspace(rangespace(B)),domainspace(B))
+Base.getindex(B::BandedOperator,f::Fun) = B*Multiplication(domainspace(B),f)
 Base.getindex(B::BandedOperator,f::LowRankFun) = PlusOperator(BandedOperator[f.A[i]*B[f.B[i]] for i=1:rank(f)])
 Base.getindex(B::BandedOperator,f::TensorFun) = B[LowRankFun(f)]
 
