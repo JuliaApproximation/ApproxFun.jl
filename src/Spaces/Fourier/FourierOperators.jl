@@ -234,7 +234,7 @@ function taylor_derivative_addentries!(d::Circle,m::Integer,A::ShiftArray,kr::Ra
 end
 
 function hardyfalse_derivative_addentries!(d::Circle,m::Integer,A::ShiftArray,kr::Range)
-    C=(-1)^m*d.radius^(-m)
+    C=(-d.radius)^(-m)
 
     for k=max(m+1,kr[1]):kr[end]
         D=k-m
@@ -283,7 +283,71 @@ function addentries!(D::Integral{Taylor},A::ShiftArray,kr::Range)
 end
 
 
+function bandinds{n,T}(D::Integral{DropSpace{Hardy{false},n,T}})
+    d=domain(D)
+    @assert isa(d,Circle)
+    @assert D.order==n
+    (0,0)
+end
+rangespace{n,T}(D::Integral{DropSpace{Hardy{false},n,T}})=D.space.space
+
+function addentries!{n,T}(D::Integral{DropSpace{Hardy{false},n,T}},A::ShiftArray,kr::Range)
+    d=domain(D)
+    m=D.order
+    @assert isa(d,Circle)
+    
+    C=(-d.radius)^m
+
+    for k=kr
+        D=k
+        for j=k+1:k+m-1
+          D*=j  
+        end
+        A[k,0] += C/D
+    end
+
+    A    
+end
 
 
 
+function bandinds(D::Integral{Hardy{false}})
+    d=domain(D)
+    @assert isa(d,PeriodicInterval)
+    (0,0)
+end
+rangespace(D::Integral{Taylor})=D.space
 
+
+function addentries!(D::Integral{Hardy{false}},A::ShiftArray,kr::Range)
+    d=domain(D)
+    m=D.order
+    @assert isa(d,PeriodicInterval)
+    
+    C=2π./(d.b-d.a)*im
+    for k=kr
+        A[k,0] += (-C*k)^(-m)
+    end
+    A
+end
+
+
+
+function bandinds{n,T}(D::Integral{DropSpace{Taylor,n,T}})
+    d=domain(D)
+    @assert isa(d,PeriodicInterval)
+    (0,0)
+end
+rangespace{n,T}(D::Integral{DropSpace{Taylor,n,T}})=D.space
+
+function addentries!{n,T}(D::Integral{DropSpace{Taylor,n,T}},A::ShiftArray,kr::Range)
+    d=domain(D)
+    m=D.order
+    @assert isa(d,PeriodicInterval)
+    
+    C=2π./(d.b-d.a)*im
+    for k=kr
+        A[k,0] += (C*(k+n-1))^(-m)
+    end
+    A   
+end

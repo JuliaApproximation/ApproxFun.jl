@@ -3,6 +3,23 @@
 
 #differentiate(f::Fun{Laurent})=Fun(interlace(fourierdiff(domain(f),deinterlace(f.coefficients))),f.space)
 Base.sum(f::Fun{Laurent})=fouriersum(domain(f),deinterlace(f.coefficients))
+function integrate(f::Fun{Hardy{false}})
+    if isa(domain(f),Circle)
+        integrate(Fun(f,DropSpace(space(f),1)))
+    else  # Probably periodic itnerval
+        Integral(space(f))*f
+    end
+end
+
+function integrate(f::Fun{Taylor})
+    if isa(domain(f),Circle)
+        Integral(space(f))*f
+    else  # Probably periodic itnerval
+        integrate(Fun(f,DropSpace(space(f),1)))
+    end
+end
+
+
 # integrate(f::Fun{Laurent})=Fun(interlace(fourierintegrate(domain(f),deinterlace(f.coefficients))),f.space)
 # 
 # 
