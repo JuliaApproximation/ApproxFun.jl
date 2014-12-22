@@ -142,7 +142,16 @@ end
 ### Cos/Sine
 
 
-bandinds{S<:Hardy}(D::Derivative{S})=0,0
+function bandinds{s}(D::Derivative{Hardy{s}})
+    d=domain(D)
+    if isa(d,PeriodicInterval)
+        (0,0)
+    elseif isa(d,Circle)
+        s?(0,D.order):(-D.order,0)
+    else
+        error("Derivative not defined for "*string(typeof(d)))
+    end
+end
 bandinds(D::Derivative{CosSpace})=iseven(D.order)?(0,0):(0,1)
 bandinds(D::Derivative{SinSpace})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
@@ -153,6 +162,7 @@ rangespace{S<:Hardy}(D::Derivative{S})=D.space
 
 function addentries!(D::Derivative{CosSpace},A::ShiftArray,kr::Range)
     d=domain(D)
+    @assert isa(d,PeriodicInterval)
     m=D.order
     C=2π./(d.b-d.a)
 
@@ -169,6 +179,7 @@ end
 
 function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
     d=domain(D)
+    @assert isa(d,PeriodicInterval)    
     m=D.order
     C=2π./(d.b-d.a)
 
@@ -183,27 +194,39 @@ function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
     A
 end
 
-function addentries!(D::Derivative{Taylor},A::ShiftArray,kr::Range)
-    d=domain(D)
-    m=D.order
+function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A::ShiftArray,kr::Range)
     C=2π./(d.b-d.a)*im
-
     for k=kr
         A[k,0] += (C*(k-1))^m
     end
-    
     A
 end
 
-function addentries!(D::Derivative{Hardy{false}},A::ShiftArray,kr::Range)
-    d=domain(D)
-    m=D.order
+function hardyfalse_derivative_addentries!(d::PeriodicInterval,m::Integer,A::ShiftArray,kr::Range)
     C=2π./(d.b-d.a)*im
-
     for k=kr
         A[k,0] += (-C*k)^m
     end
-    
     A
 end
+
+
+
+function taylor_derivative_addentries!(d::Circle,m::Integer,A::ShiftArray,kr::Range)
+    C=d.radius^(-m)
+
+    for k=kr
+        D=k
+        for j=k+1:k+m-1
+          D*=j  
+        end
+        A[k,m] += C*D
+    end
+
+    A
+end
+
+
+addentries!(D::Derivative{Taylor},A::ShiftArray,kr::Range)=taylor_derivative_addentries!(domain(D),D.order,A,kr)
+addentries!(D::Derivative{Hardy{false}},A::ShiftArray,kr::Range)=hardyfalse_derivative_addentries!(domain(D),D.order,A,kr)
 

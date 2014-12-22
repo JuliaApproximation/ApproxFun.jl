@@ -83,7 +83,7 @@ function pde_normalize_rhs(A,f)
 end   
 
 
-function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
+function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Array,nx=100000)
     fx,fy,F=pde_normalize_rhs(A,f)
     #TODO: swap fy and fx order below
     cont_constrained_lyap(A,fy,fx,F,nx)
@@ -125,7 +125,7 @@ function pdesolve{T<:PDEOperator}(A::Vector{T},f,tol::Real)
 end
 
 
-pdesolve(A::AbstractPDEOperatorSchur,f::Vector,nx...)=Fun(pdesolve_mat(A,f,nx...),domainspace(A))
+pdesolve(A::AbstractPDEOperatorSchur,f::Array,nx...)=Fun(pdesolve_mat(A,f,nx...),domainspace(A))
 pdesolve(A::AbstractPDEOperatorSchur,f::Union(Fun,MultivariateFun,Number),nx...)=pdesolve(A,[f],nx...)
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Union(Fun,MultivariateFun,Number),n...)=pdesolve(A,[f],n...)
@@ -181,8 +181,8 @@ pdesolve(A::PDEOperator,f...)=pdesolve([A],f...)
 
 
 
-\{T<:PDEOperator}(A::Vector{T},f::Vector)=pdesolve(A,f)
-\(A::AbstractPDEOperatorSchur,f::Vector)=pdesolve(A,f)
+\{T<:PDEOperator}(A::Vector{T},f::Array)=pdesolve(A,f)
+\(A::AbstractPDEOperatorSchur,f::Array)=pdesolve(A,f)
 \{T<:PDEOperator}(A::Vector{T},f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
 \(A::AbstractPDEOperatorSchur,f::Fun)=pdesolve(A,f)
 \(A::AbstractPDEOperatorSchur,f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)

@@ -154,6 +154,8 @@ function extremal_args{S<:IntervalSpace,T}(f::Fun{S,T})
     return pts
 end 
 
+extremal_args{S<:PeriodicSpace,T}(f::Fun{S,T})=roots(diff(f))
+
 for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
     @eval begin
         function ($op)(f::Fun)
