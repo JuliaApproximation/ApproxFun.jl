@@ -106,8 +106,12 @@ end
 spacescompatible(AS::ArraySpace,BS::ArraySpace)=size(AS)==size(BS) && spacescompatible(AS.space,BS.space)
 canonicalspace(AS::ArraySpace)=ArraySpace(canonicalspace(AS.space),size(AS))
 evaluate{AS<:ArraySpace,T}(f::Fun{AS,T},x)=evaluate(mat(f),x)
-Base.transpose{AS<:ArraySpace,T}(f::Fun{AS,T})=demat(mat(f).')
 
+for OP in (:(Base.transpose),:(Base.ctranspose))
+    @eval $OP{AS<:ArraySpace,T}(f::Fun{AS,T})=demat($OP(mat(f)))
+end
+
+Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...)=demat(diff(mat(f),n...))
 
 ## conversion
 

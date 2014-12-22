@@ -205,7 +205,7 @@ function differentiate(f::Fun,k::Integer)
     (k==0)?f:differentiate(differentiate(f),k-1)
 end
 
-Base.diff(f::Fun,n...)=differentiate(f,n...)
+Base.diff{S,T}(f::Fun{S,T},n...)=differentiate(f,n...)
 
 
 
