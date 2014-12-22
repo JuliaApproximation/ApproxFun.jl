@@ -1,7 +1,6 @@
 using PyCall
 pygui(:tk)
 using PyPlot
-using Gadfly
 
 using ApproxFun
 setplotter("PyPlot")
@@ -14,7 +13,7 @@ r = roots(h)
 rp = roots(diff(h))
 ApproxFun.plot(h)               # using PyPlot
 PyPlot.plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
-xlabel("\$x\$");ylabel("\$h(x)\$")
+xlabel("\$x\$");ylabel("\$h(x)\$");grid(true)
 savefig("extrema.png",dpi=300)
 clf()
 println("First image done")
@@ -56,8 +55,12 @@ clf()
 println("Third image done")
 
 
-f = abs(Fun(sin,[-5,5]))
+f = abs(Fun(sin,[-5.,5.]))
+d = domain(f)
 x = ApproxFun.sample(f,10000)
 ApproxFun.plot(f/sum(f))                           # Requires Gadfly or PyPlot
-PyPlot.plt.hist(x;normed=true,bins=[-5.:.1:5.])
+PyPlot.plt.hist(x;normed=true,bins=[-5.:.1:5.],color="green")
+xlim([first(d),last(d)]);ylim([0.0,0.18]);xlabel("\$x\$");ylabel("Density")
 savefig("Sample.png",dpi=300)
+clf()
+println("Fourth image done")
