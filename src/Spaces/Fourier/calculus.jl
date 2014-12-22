@@ -36,7 +36,10 @@ function integrate(f::Fun{SinSpace})
     end
 end
 
-# integrate(f::Fun{Laurent})=Fun(interlace(fourierintegrate(domain(f),deinterlace(f.coefficients))),f.space)
+#TODO: Hack to make sure Fourier maps to Fourier
+for OP in (:differentiate,:integrate)
+    @eval $OP{T}(f::Fun{Fourier,T})=$OP(vec(f,2))⊕$OP(vec(f,1))
+end
 # 
 # 
 # fourierdiff(d::PeriodicInterval,cfs::ShiftVector)=tocanonicalD(d,0)*ShiftVector(1.im*[firstindex(cfs):-1],1.im*[0:lastindex(cfs)]).*cfs
