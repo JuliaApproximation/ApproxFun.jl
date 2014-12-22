@@ -16,13 +16,13 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 
             
         ## Constructors        
-        $Op{T<:Number}(sp::FunctionSpace{T},k::Integer)=$Op{typeof(sp),T}(sp,k)
+        $Op{T<:Number}(sp::FunctionSpace{T},k)=$Op{typeof(sp),T}(sp,k)
         
         $Op(sp::FunctionSpace)=$Op(sp,1)
         $Op()=$Op(AnySpace())
         $Op(k::Integer)=$Op(AnySpace(),k)
         
-        $Op(d::Domain,n::Integer)=$Op(Space(d),n)
+        $Op(d::Domain,n)=$Op(Space(d),n)
         $Op(d::Domain)=$Op(d,1)
         
         
@@ -59,7 +59,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if csp==sp
-                error("Override Derivative(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override *"string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end      
             rangespace($Op(canonicalspace(domainspace(D)),D.order))
         end

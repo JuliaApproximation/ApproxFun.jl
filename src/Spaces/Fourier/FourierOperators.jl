@@ -189,6 +189,9 @@ function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
     A
 end
 
+Integral(::CosSpace,m)=error("Integral not defined for CosSpace.  Use Integral(DropSpace(CosSpace(),1)) if first coefficient vanishes.")
+
+
 bandinds(D::Integral{SinSpace})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::Integral{S})=iseven(D.order)?D.space:SinSpace(domain(D))
 rangespace{S<:SinSpace}(D::Integral{S})=iseven(D.order)?D.space:CosSpace(domain(D))
@@ -215,14 +218,14 @@ function addentries!(D::Integral{SinSpace},A::ShiftArray,kr::Range)
 end
 
 
-function bandinds{T}(D::Integral{DropSpace{CosSpace,1,T}})
+function bandinds{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}})
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     (0,0)
 end
-rangespace{T}(D::Integral{DropSpace{CosSpace,1,T}})=iseven(D.order)?D.space:SinSpace(domain(D))
+rangespace{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}})=iseven(D.order)?D.space:SinSpace(domain(D))
 
-function addentries!{T}(D::Integral{DropSpace{CosSpace,1,T}},A::ShiftArray,kr::Range)
+function addentries!{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}},A::ShiftArray,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)    
     m=D.order
@@ -314,13 +317,25 @@ addentries!(D::Derivative{Hardy{false}},A::ShiftArray,kr::Range)=hardyfalse_deri
 
 ## Integral
 
+
+
+function Integral(S::Taylor,m)
+    @assert isa(domain(S),Circle)
+    Integral{Taylor,Complex{Float64}}(S,m)
+end
+
+function Integral(S::Hardy{false},m)
+    @assert isa(domain(S),PeriodicInterval)
+    Integral{Hardy{false},Complex{Float64}}(S,m)
+end
+
 function bandinds(D::Integral{Taylor})
     d=domain(D)
     @assert isa(d,Circle)
     (-D.order,0)
 end
 rangespace(D::Integral{Taylor})=D.space
-
+rangespace(Q::Integral{Hardy{false}})=Q.space
 
 function addentries!(D::Integral{Taylor},A::ShiftArray,kr::Range)
     d=domain(D)
@@ -341,15 +356,15 @@ function addentries!(D::Integral{Taylor},A::ShiftArray,kr::Range)
 end
 
 
-function bandinds{n,T}(D::Integral{DropSpace{Hardy{false},n,T}})
+function bandinds{n,T,DD}(D::Integral{DropSpace{Hardy{false},n,T,DD}})
     d=domain(D)
     @assert isa(d,Circle)
     @assert D.order==n
     (0,0)
 end
-rangespace{n,T}(D::Integral{DropSpace{Hardy{false},n,T}})=D.space.space
+rangespace{n,T,DD}(D::Integral{DropSpace{Hardy{false},n,T,DD}})=D.space.space
 
-function addentries!{n,T}(D::Integral{DropSpace{Hardy{false},n,T}},A::ShiftArray,kr::Range)
+function addentries!{n,T,DD}(D::Integral{DropSpace{Hardy{false},n,T,DD}},A::ShiftArray,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,Circle)
@@ -391,14 +406,14 @@ end
 
 
 
-function bandinds{n,T}(D::Integral{DropSpace{Taylor,n,T}})
+function bandinds{n,T,DD}(D::Integral{DropSpace{Taylor,n,T,DD}})
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     (0,0)
 end
-rangespace{n,T}(D::Integral{DropSpace{Taylor,n,T}})=D.space
+rangespace{n,T,DD}(D::Integral{DropSpace{Taylor,n,T,DD}})=D.space
 
-function addentries!{n,T}(D::Integral{DropSpace{Taylor,n,T}},A::ShiftArray,kr::Range)
+function addentries!{n,T,DD}(D::Integral{DropSpace{Taylor,n,T,DD}},A::ShiftArray,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,PeriodicInterval)

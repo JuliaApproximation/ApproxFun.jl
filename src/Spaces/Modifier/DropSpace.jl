@@ -1,31 +1,31 @@
 ## Drop space drops the first n entries from a space
 
-immutable DropSpace{S,n,T}<: FunctionSpace{T}
-    space::S 
-    DropSpace(sp::S)=new(sp)
+immutable DropSpace{DS,n,T,D}<: FunctionSpace{T,D}
+    space::DS 
+    DropSpace(sp::DS)=new(sp)
     DropSpace(d::Domain)=new(S(d))
 end
 
-DropSpace{T}(sp::FunctionSpace{T},n::Integer)=DropSpace{typeof(sp),n,T}(sp)
+DropSpace{T,D}(sp::FunctionSpace{T,D},n::Integer)=DropSpace{typeof(sp),n,T,D}(sp)
 
 domain(DS::DropSpace)=domain(DS.space)
-bandinds{S,n,T}(::Conversion{DropSpace{S,n,T},S})=-n,0
+bandinds{S,n,T,D}(::Conversion{DropSpace{S,n,T,D},S})=-n,0
 
-function addentries!{S,T,n}(C::Conversion{DropSpace{S,n,T},S},A::ShiftArray,kr::Range)
+function addentries!{S,T,n,D}(C::Conversion{DropSpace{S,n,T,D},S},A::ShiftArray,kr::Range)
     for k=max(kr[1],n+1):kr[end]
         A[k,-n]+=1
     end
     A
 end
 
-=={S,n,T}(a::DropSpace{S,n,T},b::DropSpace{S,n,T})=a.space==b.space
+=={S,n,T,D}(a::DropSpace{S,n,T,D},b::DropSpace{S,n,T,D})=a.space==b.space
 
-function conversion_rule{S<:FunctionSpace,n,T}(a::DropSpace{S,n,T},b::DropSpace{S,n,T})
+function conversion_rule{S<:FunctionSpace,n,T,D}(a::DropSpace{S,n,T,D},b::DropSpace{S,n,T,D})
     @assert a==b
     a
 end
 # return the space that has banded Conversion to the other
-function conversion_rule{S<:FunctionSpace,n,T}(a::DropSpace{S,n,T},b::S)
+function conversion_rule{S<:FunctionSpace,n,T,D}(a::DropSpace{S,n,T,D},b::S)
     @assert a.space==b
     a
 end
@@ -33,12 +33,12 @@ end
 
 
 ## Resolve conflict
-function spaceconversion{S1<:FunctionSpace,S2<:FunctionSpace,n,T1,T2,V}(f::Vector{V},a::ReImSpace{S1,T1},b::DropSpace{S2,n,T2})
+function spaceconversion{S1<:FunctionSpace,S2<:FunctionSpace,n,T1,T2,V,D}(f::Vector{V},a::ReImSpace{S1,T1},b::DropSpace{S2,n,T2,D})
      error("Not implemented")
 end
 
 
-function spaceconversion{S<:FunctionSpace,n,U,V}(v::Vector{V},sp::S,dropsp::DropSpace{S,n,U})
+function spaceconversion{S<:FunctionSpace,n,U,V,D}(v::Vector{V},sp::S,dropsp::DropSpace{S,n,U,D})
     @assert sp==dropsp.space
     @assert norm(v[1:n])<100eps()
     v[n+1:end]

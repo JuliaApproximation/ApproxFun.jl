@@ -61,6 +61,7 @@ function spaceconversion(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
         (Conversion(sp1,sp2)*f)
     end
 end
+spaceconversion{S<:JacobiWeight,n}(f::Vector,sp::JacobiWeight,S2::DropSpace{S,n,Float64,Interval})=error("Implement")
 spaceconversion(f::Vector,sp::JacobiWeight,S2::IntervalSpace)=spaceconversion(f,sp,JacobiWeight(0,0,S2))
 spaceconversion(f::Vector,S2::IntervalSpace,sp::JacobiWeight)=spaceconversion(f,JacobiWeight(0,0,S2),sp)
 

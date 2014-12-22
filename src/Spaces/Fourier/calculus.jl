@@ -15,7 +15,7 @@ function integrate(f::Fun{Taylor})
     if isa(domain(f),Circle)
         Integral(space(f))*f
     else  # Probably periodic itnerval  drop constant term if zero
-        integrate(Fun(f,DropSpace(space(f),1)))
+        Fun(integrate(Fun(f,DropSpace(space(f),1))),space(f))
     end
 end
 
@@ -40,6 +40,8 @@ end
 for OP in (:differentiate,:integrate)
     @eval $OP{T}(f::Fun{Fourier,T})=$OP(vec(f,2))⊕$OP(vec(f,1))
 end
+
+
 # 
 # 
 # fourierdiff(d::PeriodicInterval,cfs::ShiftVector)=tocanonicalD(d,0)*ShiftVector(1.im*[firstindex(cfs):-1],1.im*[0:lastindex(cfs)]).*cfs
