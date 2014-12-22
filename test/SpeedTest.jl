@@ -41,6 +41,14 @@ println("Roots: Time should be ~0.18")
 
 ## ODEs
 
+d=Interval(-20000.,20000.)
+x=Fun(identity,d)
+u=[dirichlet(d),diff(d)^2+I]\[1.,0.]
+u=[dirichlet(d),diff(d)^2+I]\[1.,0.]
+@time u=[dirichlet(d),diff(d)^2+I]\[1.,0.]
+println("Cos/Sin: should be ~0.05")
+
+
 d=Interval(-1000.,5.)
 x=Fun(identity,d)
 u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
