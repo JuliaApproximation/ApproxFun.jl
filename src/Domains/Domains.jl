@@ -6,3 +6,5 @@ include("Line.jl")
 include("UnionDomain.jl")
 
 include("Curve.jl")
+
+typealias AffineDomain Union(Interval,PeriodicInterval,Ray,Line)

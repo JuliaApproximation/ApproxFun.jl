@@ -1,5 +1,5 @@
 
-typealias IntervalSpace  FunctionSpace{Float64,Interval}     # We assume basis is real
+typealias IntervalSpace  RealSpace{Interval}     # We assume basis is real
 canonicaldomain{T<:IntervalSpace}(::Type{T})=Interval()
 
 ## Calculus

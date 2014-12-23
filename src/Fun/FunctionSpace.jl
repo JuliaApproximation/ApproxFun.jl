@@ -7,6 +7,8 @@ export FunctionSpace, domainspace, rangespace, maxspace, minspace,Space
 # D tells what canonical domain is (Interval/PeriodicInterval)
 abstract FunctionSpace{T,D}
 
+typealias RealSpace{D} FunctionSpace{Float64,D}
+typealias ComplexSpace{D} FunctionSpace{Complex{Float64},D}
 
 
 

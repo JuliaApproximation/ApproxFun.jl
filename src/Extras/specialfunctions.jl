@@ -17,7 +17,7 @@ function splitatroots(f::Fun)
     end
 end
 
-function Base.abs(f::Fun)
+function Base.abs{S<:RealSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
 
     pts=roots(f)
@@ -25,6 +25,7 @@ function Base.abs(f::Fun)
     if isempty(pts)
         sign(first(f))*f
     else    
+        @assert isa(d,AffineDomain)
         da=first(d)
         isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
         db=last(d)
@@ -33,14 +34,34 @@ function Base.abs(f::Fun)
     end
 end
 
-function Base.sign(f::Fun)
+function Base.abs{S,T}(f::Fun{S,T})
     d=domain(f)
 
     pts=roots(f)
     
     if isempty(pts)
-        Fun([sign(first(f))],f.space)
+        Fun(x->abs(f[x]),space(f))
     else    
+        @assert isa(d,AffineDomain)
+        da=first(d)
+        isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
+        db=last(d)
+        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts,db]
+        Fun(x->abs(f[x]),pts)
+    end
+end
+
+
+
+function Base.sign{S<:RealSpace,T<:Real}(f::Fun{S,T})
+    d=domain(f)
+
+    pts=roots(f)
+    
+    if isempty(pts)
+        sign(first(f))*one(T,f.space)
+    else    
+        @assert isa(d,AffineDomain)    
         da=first(d)
         isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
         db=last(d)
@@ -123,7 +144,7 @@ function Base.exp{S<:Ultraspherical}(f::Fun{S})
 
     B=Evaluation(space(f),xm)
     D=Derivative(space(f))
-    A=[B,D-diff(f)]
+    A=[B,D-differentiate(f)]
     A\[exp(f[xm]),0.]    
 end
 

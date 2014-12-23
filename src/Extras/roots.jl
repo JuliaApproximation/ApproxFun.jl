@@ -149,16 +149,16 @@ function extremal_args{S<:IntervalSpace,T}(f::Fun{S,T})
     if length(f) <=2 #TODO this is only relevant for Polynomial bases 
         pts=[da,db]
     else
-        pts=cat(1, da, db, roots(diff(f)))
+        pts=cat(1, da, db, roots(differentiate(f)))
     end
     return pts
 end 
 
-extremal_args{S<:PeriodicSpace,T}(f::Fun{S,T})=roots(diff(f))
+extremal_args{S<:PeriodicSpace,T}(f::Fun{S,T})=roots(differentiate(f))
 
 for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
     @eval begin
-        function ($op)(f::Fun)
+        function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
             pts = extremal_args(f)
                 
             $op(f[pts])
@@ -166,12 +166,23 @@ for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base
     end
 end
 
+for op in (:(Base.maxabs),:(Base.minabs))
+    @eval begin
+        function $op{S,T}(f::Fun{S,T})
+            # complex spaces/types can have different extrema
+            pts = extremal_args(abs(f))
+                
+            $op(f[pts])
+        end        
+    end
+end
+
 
 
 for op in (:(Base.indmax),:(Base.indmin))
     @eval begin
-        function ($op)(f::Fun)
-            # the following avoids warning when diff(f)==0
+        function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
+            # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             pts[$op(f[pts])]
         end
@@ -180,8 +191,8 @@ end
 
 for op in (:(Base.findmax),:(Base.findmin))
     @eval begin
-        function ($op)(f::Fun)
-            # the following avoids warning when diff(f)==0
+        function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
+            # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             ext,ind = $op(f[pts])
 	    ext,pts[ind]
@@ -219,7 +230,7 @@ complexroots(f::Fun{Laurent})=mappoint(Circle(),domain(f),complexroots(deinterla
 roots{S<:MappedSpace}(f::Fun{S})=fromcanonical(f,roots(Fun(coefficients(f),space(f).space)))
 
 function roots(f::Fun{Laurent})
-    irts=filter!(x->abs(abs(x)-1)<=100.eps(),complexroots(deinterlace(f.coefficients)))
+    irts=filter!(z->abs(abs(z)-1.)/length(f) < 100eps(),complexroots(Fun(f.coefficients,Laurent(Circle()))))
     if length(irts)==0
         Complex{Float64}[]
     else
