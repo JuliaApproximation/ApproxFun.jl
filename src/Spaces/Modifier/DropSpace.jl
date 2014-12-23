@@ -3,7 +3,7 @@
 immutable DropSpace{DS,n,T,D}<: FunctionSpace{T,D}
     space::DS 
     DropSpace(sp::DS)=new(sp)
-    DropSpace(d::Domain)=new(S(d))
+    DropSpace(d::Domain)=new(DS(d))
 end
 
 DropSpace{T,D}(sp::FunctionSpace{T,D},n::Integer)=DropSpace{typeof(sp),n,T,D}(sp)
