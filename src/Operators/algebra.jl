@@ -63,10 +63,15 @@ for SS in (:(PlusFunctional,Functional),:(PlusOperator,BandedOperator))
 
     
         +(A::($SS[1]),B::($SS[1]))=$SS[1]([A.ops,B.ops])
+        +(A::($SS[1]),B::($SS[1]),C::($SS[1]))=$SS[1]([A.ops,B.ops,C.ops])        
         +(A::($SS[1]),B::($SS[2]))=$SS[1]([A.ops,B])
+        +(A::($SS[1]),B::($SS[2]),C::($SS[2]))=$SS[1]([A.ops,B,C])        
         +(A::($SS[2]),B::($SS[1]))=$SS[1]([A,B.ops])
         +{T}(A::($SS[2]{T}),B::($SS[2]{T}))=$SS[1]($SS[2]{T}[A,B])
+        +{T}(A::($SS[2]{T}),B::($SS[2]{T}),C::($SS[2]{T}))=$SS[1]($SS[2]{T}[A,B,C])        
         +(A::($SS[2]),B::($SS[2]))=$SS[1]($SS[2][A,B])        
+        +(A::($SS[2]),B::($SS[2]),C::($SS[2]))=$SS[1]($SS[2][A,B,C])                
+        #TODO: Arbitrary number of summands
     end
 end
 
