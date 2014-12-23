@@ -29,6 +29,7 @@ Space{S<:FunctionSpace}(d::Curve{S})=CurveSpace{S}(d)
 
 domain(S::MappedSpace)=S.domain
 canonicaldomain{D,S}(::Type{IntervalMappedSpace{S,D}})=Interval()
+canonicaldomain{D,S}(::Type{PeriodicMappedSpace{S,D}})=Interval()
 canonicaldomain{D,S,T,DS}(::Type{MappedSpace{S,D,T,DS}})=D()
 canonicalspace(S::MappedSpace)=MappedSpace(S.domain,canonicalspace(S.space))
 
