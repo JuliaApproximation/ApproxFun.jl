@@ -52,7 +52,7 @@ fourierpoints(n::Integer)= 1.π*[-1.:2/n:1. - 2/n]
 
 function Base.in(x,d::PeriodicDomain)
     y=tocanonical(d,x)
-    isapprox(imag(y),0.) && -π-2eps()<=real(y)<=π+2eps()
+    abs(imag(y))<10eps() && -π-2eps()<=real(y)<=π+2eps()
 end
 
 
