@@ -40,7 +40,6 @@ Fun(c::Number)=Fun([c])
 Fun{T<:FunctionSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
 Fun(c::Number,d::Domain)=c==0?zeros(d):c*ones(d)
 Fun(c::Number,d::FunctionSpace)=c==0?zeros(d):c*ones(d)
-Fun(c::Number,n::Integer)=Fun([c],n)
 
 ## List constructor
 

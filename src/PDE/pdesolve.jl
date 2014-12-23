@@ -5,44 +5,37 @@ include("cont_lyap.jl")
 
 
 
-
-# function pdetoarray(Bxin,Byin,Lin,Min,nx::Integer,ny::Integer)
-#     Bx,Gx,Lx,Mx=pdetoarray(Bxin,Lin[1],Min[1],nx)
-#     By,Gy,Ly,My=pdetoarray(Byin,Lin[2],Min[2],ny)    
-#     
-# 
-#     Gx=toarray(Gx,ny);Gy=toarray(Gy,nx)    
-#     
-#     
-#     Bx,Gx,By,Gy,Lx,Ly,Mx,My    
-# end
-
-function convert2funvec{T<:Number,D}(f::Vector{T},d::D)
-    ret=Array(Fun{D,T},length(f))
+# Converts a vector of constants/funs to a vector of Funs
+function convert2fun{T<:Number,S<:FunctionSpace}(f::Vector{T},sp::S)
+    ret=similar(f,Fun{S,T})
     for k=1:length(f)
-        ret[k]=Fun(f[k],d)
+        ret[k]=Fun(f[k],sp)
     end
     ret
 end
-convert2funvec{T<:Fun,D}(f::Vector{T},d::D)=f
-function convert2funvec{D}(f::Vector,d::D)
-    mytyp=Fun{D,mapreduce(eltype,promote_type,f)}
+convert2fun{T<:Fun,D}(f::Vector{T},d::D)=f
+function convert2fun{S<:FunctionSpace}(f::Array,sp::S)
+    mytyp=Fun{S,mapreduce(eltype,promote_type,f)}
     
-    ret=Array(mytyp,length(f))
+    ret=similar(f,mytyp)
     
-    for k=1:length(f)
+    for k=1:size(f,1),j=1:size(f,2)
         #TODO: Check domains match for Funs
-        ret[k]=Fun(f[k],d)
+        ret[k,j]=Fun(f[k,j],sp)
     end
     ret
 end
 
-function pde_normalize_rhs(A,f)
+function pde_normalize_rhs(A,f::Vector)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
 
-    # vec if boundary fun
+    # if the fun lives on the boundary, we need to get rid of
+    # the boundary information
+    # i.e., if it lives on (-1-im,-1+im) we want to convert it to 
+    # living on (-1,1)
     if !isempty(f) && isa(f[1],Fun) && domain(f[1])==∂(domain(A))
         @assert length(f)<=2
+        @assert isa(f,Vector)
 
         #TODO: More elegent domain conversion
         vf=vec(f[1])
@@ -61,8 +54,8 @@ function pde_normalize_rhs(A,f)
     else
         f=pad(f,length(indsBx)+length(indsBy)+1)
         
-        fx=isempty(indsBx)?[]:convert2funvec(f[indsBx],domainspace(A,2))
-        fy=isempty(indsBy)?[]:convert2funvec(f[indsBy],domainspace(A,1))       
+        fx=isempty(indsBx)?[]:convert2fun(f[indsBx],domainspace(A,2))
+        fy=isempty(indsBy)?[]:convert2fun(f[indsBy],domainspace(A,1))       
         
         ff=f[end]
     end
@@ -85,8 +78,7 @@ end
 
 function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Array,nx=100000)
     fx,fy,F=pde_normalize_rhs(A,f)
-    #TODO: swap fy and fx order below
-    cont_constrained_lyap(A,fy,fx,F,nx)
+    cont_constrained_lyap(A,fx,fy,F,nx)
 end
 
 pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,nx::Integer,ny::Integer)=pdesolve_mat(schurfact(A,ny),f,nx)

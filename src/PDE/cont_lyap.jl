@@ -155,7 +155,7 @@ cont_constrained_lyapuptriang{OSS,T,FT}(OS::PDEOperatorSchur{OSS,T},Gx,F::Array{
 #cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)=cont_constrained_lyapuptriang(N,OS,Gx,F,100000)
 
 
-function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gyin,Gxin,F::Array,nx=100000)    
+function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::Array,nx=100000)    
     n = size(OS.S,1)    
     F=pad(F,size(F,1),n)
     Gx=toarray(Gxin,n)    
@@ -172,7 +172,7 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
     Y   
 end
 
-function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gyin,Gxin,F::Array,nx=100000)    
+function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::Array,nx=100000)    
     n = length(OS.Rdiags)
     F=pad(F,size(F,1),n)
     Gx=toarray(Gxin,n)    
@@ -287,7 +287,7 @@ end
 
 
 
-function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gyin,Gx,F::Array,nx=100000)    
+function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx,Gyin,F::Array,nx=100000)    
     Gy=regularize_bcs(OS.S,Gyin)
     F=cont_reduce_dofs(OS.S,OS.Lx,OS.Mx,Gy,F)  
     
