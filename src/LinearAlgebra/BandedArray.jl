@@ -132,7 +132,7 @@ function bamultiply(S::BandedArray,A::BandedArray,B::BandedArray)
           cinds=rowinds(B,j)
           rinds=columninds(A,k)        
         
-          for m=max(rinds[1],cinds[1]):min(rinds[end],cinds[end])
+          @simd for m=max(rinds[1],cinds[1]):min(rinds[end],cinds[end])
                 @inbounds S.data.data[k+ri,j-k+ci] += @bafastget(A,k,m)*@bafastget(B,m,j)
           end
         end
