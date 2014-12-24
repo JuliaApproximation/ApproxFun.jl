@@ -81,13 +81,6 @@ u=linsolve([B,L],rhs;maxlength=Inf)
 @time u=linsolve([B,L],rhs;maxlength=Inf)
 println("Cos: should be ~0.08")
 
-d=Interval(-300.,5.)
-x=Fun(identity,d)
-A=Derivative(d)^2-x
-u=null(A)
-u=null(A)
-@time u=null(A)
-println("Null Airy: should be ~0.075")
 
 ## PDEs
 
@@ -119,3 +112,13 @@ u=S\ones(4)
 @time u=S\ones(4)
 println("Neumann Helmholtz: should be ~0.035")
 
+
+
+
+d=Interval(-300.,5.)
+x=Fun(identity,d)
+A=Derivative(d)^2-x
+u=null(A)
+u=null(A)
+@time u=null(A)
+println("Null Airy: should be ~0.075")

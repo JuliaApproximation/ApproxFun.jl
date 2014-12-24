@@ -248,11 +248,11 @@ type IndexTranspose{S}
     lastrow::Int    
 end
 
-IndexTranspose(mat,fl)=IndexTransopose(mat,fl[1],fl[end])
+IndexTranspose(mat,fl)=IndexTranspose(mat,fl[1],fl[end])
 
 getindex{ST<:ShiftMatrix}(S::IndexTranspose{ST},k,j)=S.matrix[k+j,-j]
 function setindex!{ST<:ShiftMatrix}(S::IndexTranspose{ST},x,k,j)
-    if firstrow≤k+j≤lastrow
+    if S.firstrow≤k+j≤S.lastrow
         S.matrix[k+j,-j]=x
     end
     x
@@ -260,7 +260,12 @@ end
 
 getindex(S::IndexTranspose,k,j)=S.matrix[j,k]
 setindex!(S::IndexTranspose,x,k,j)=(S.matrix[j,k]=x)
-
+function setindex!(S::IndexTranspose,x,k,j)
+    if S.firstrow≤k+j≤S.lastrow
+        S.matrix[j,k]=x
+    end
+    x
+end
 
 ## Matrix*Vector Multiplicaiton
 
@@ -310,6 +315,22 @@ function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer
     C
 end
 
+# Unoptimized version of below
+
+# function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)   
+#     n,m=size(C)
+#     for k=1:n  # ROWS
+#         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
+#             Aj=A[k,l]
+# 
+#             for j=max(1,k-C.l,l-B.l):min(B.u+l,n) # columns of C/B
+#                 C[k,j]+=Aj*B[l,j]
+#             end
+#         end
+#     end 
+#     C
+# end
+
 
 
 # Shift Matrix multiplication differs as it does the entire bands
@@ -345,6 +366,21 @@ function bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)
     C
 end
 
+function bamultiply!(C::IndexTranspose,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)   
+    n=size(A,1);m=basize(B,2)
+    for k=1:n  # rows of C
+        for l=k-A.l:min(k+A.u,basize(A,2)) # columns of A
+            @inbounds Aj=A.data[l-k+A.l+1,k]
+            
+            shA=-l+B.l+1       
+             for j=l-B.l:min(B.u+l,n) # columns of C/B
+                 C[k,j]+=Aj*B.data[l,j+shA]
+             end
+        end
+    end 
+    C
+end
+
 
 
 
@@ -367,4 +403,15 @@ function addentries!(B::ShiftMatrix,c::Number,A,kr::Range)
     A
 end
 
-addentries!(B::BandedMatrix,A,kr::Range)=addentries!(B,1,A,kr)
+
+# function addentries!{ST<:ShiftMatrix}(B::IndexTranpose{ST},c::Number,A,kr::Range)    
+#     for k=kr,j=columnrange(B)
+#         A[k,j] += c*B[k,j]
+#     end
+#     
+#     A
+# end
+
+
+
+addentries!(B::Union(BandedMatrix,ShiftMatrix,IndexTranspose,IndexShift),A,kr::Range)=addentries!(B,1,A,kr)
