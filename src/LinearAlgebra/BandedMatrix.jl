@@ -242,6 +242,24 @@ columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix
 issazeros{T}(::Type{T},rws,bnds...)=IndexShift(sazeros(T,rws[end]-rws[1]+1,bnds...),rws[1]-1)
 issazeros(rws,bnds...)=issazeros(Float64,rws,bnds...)
 
+type IndexTranspose{S}
+    matrix::S
+    firstrow::Int   # These allow us to control which rows are toched
+    lastrow::Int    
+end
+
+IndexTranspose(mat,fl)=IndexTransopose(mat,fl[1],fl[end])
+
+getindex{ST<:ShiftMatrix}(S::IndexTranspose{ST},k,j)=S.matrix[k+j,-j]
+function setindex!{ST<:ShiftMatrix}(S::IndexTranspose{ST},x,k,j)
+    if firstrow≤k+j≤lastrow
+        S.matrix[k+j,-j]=x
+    end
+    x
+end
+
+getindex(S::IndexTranspose,k,j)=S.matrix[j,k]
+setindex!(S::IndexTranspose,x,k,j)=(S.matrix[j,k]=x)
 
 
 ## Matrix*Vector Multiplicaiton

@@ -16,7 +16,7 @@ end
 #d is number of elements in the kernel
 #TODO: I think to speed this up change Q to a matrix
 function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
-    M=MutableAlmostBandedOperator(A')
+    M=AlmostBandedOperator(A')
     m=bandinds(A)[end]
     n=m+100  
     resizedata!(M,n)
