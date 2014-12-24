@@ -51,7 +51,7 @@ end
 
 
 function Base.getindex(B::Operator,k::Range1,j::Range1)
-    BandMatrix(B,k,j)[k,j]
+    BandedMatrix(B,k,j)[k,j]
 end
 
 
@@ -87,7 +87,7 @@ index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of Ban
 
 
 ShiftMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,sazeros(T,n,bandinds(B)),1:n)
-BandedMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,bazeros(T,n,n+bandinds(B,2)),1:n)
+BandedMatrix{T<:Number}(B::Operator{T},n::Integer)=BandedMatrix(ShiftMatrix(B,n))
 
 
 ShiftArray{T<:Number}(B::Operator{T},k::Range,j::Range)=addentries!(B,sazeros(T,k,j),k)
@@ -102,15 +102,20 @@ BandedArray(B::Operator,k::Range,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs
 getdiagonalentry(B::BandedOperator,k,j)=error("Override either getdiagonalentry or addentries! for "*string(typeof(B)))
 
 function addentries!(B::BandedOperator,A,kr)
+    if isa(A,BandedMatrix)
+        A=BandedMatrix(addentries!(B,ShiftMatrix(A),kr))
+    else
         br=bandinds(B)
-    for k=(max(kr[1],1)):(kr[end])
-        for j=max(br[1],1-k):br[end]
-            A[k,j]=getdiagonalentry(B,k,j)
+        for k=(max(kr[1],1)):(kr[end])
+            for j=max(br[1],1-k):br[end]
+                A[k,j]=getdiagonalentry(B,k,j)
+            end
         end
     end
-    
+        
     A
 end
+
 
 ## Default Composition with a Fun, LowRankFun, and TensorFun
 

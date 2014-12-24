@@ -33,9 +33,9 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         domain(D::$Op)=domain(D.space)       
         domainspace(D::$Op)=D.space
         
-        addentries!{T}(::$Op{AnySpace,T},A::ShiftArray,kr::Range)=error("Spaces cannot be inferred for operator")
+        addentries!{T}(::$Op{AnySpace,T},A,kr::Range)=error("Spaces cannot be inferred for operator")
         
-        function addentries!{S,T}(D::$Op{S,T},A::ShiftArray,kr::Range)   
+        function addentries!{S,T}(D::$Op{S,T},A,kr::Range)   
             # Default is to convert to Canonical and d
             sp=domainspace(D)
             csp=canonicalspace(sp)
@@ -78,7 +78,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         end
         
         #Wrapper just adds the operator it wraps
-        addentries!(D::$WrappOp,A::ShiftArray,k::Range)=addentries!(D.op,A,k)          
+        addentries!(D::$WrappOp,A,k::Range)=addentries!(D.op,A,k)          
         rangespace(D::$WrappOp)=rangespace(D.op)
         domainspace(D::$WrappOp)=domainspace(D.op)        
         bandinds(D::$WrappOp)=bandinds(D.op)        

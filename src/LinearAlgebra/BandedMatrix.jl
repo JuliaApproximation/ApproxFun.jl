@@ -21,7 +21,7 @@ immutable BandedMatrix{T}
     u::Int # upper bandwidth ≥0
     function BandedMatrix(data::Matrix{T},m,l,u)
         @assert size(data,1)==l+u+1
-        new(data,l,u,m)
+        new(data,m,l,u)
     end    
 end
 
@@ -156,6 +156,7 @@ end
 for (op,bop) in ((:(Base.rand),:sarand),(:(Base.zeros),:sazeros),(:(Base.ones),:saones))
     @eval begin
         $bop{T}(::Type{T},n::Integer,a::Integer,b::Integer)=ShiftMatrix($op(T,b+a+1,n),a,b)
+        $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,-a[1],a[end])        
         $bop(n::Integer,a::Integer,b::Integer)=$bop(Float64,n,a,b)
         $bop(n::Integer,a)=$bop(Float64,n,-a[1],a[end])        
     end
@@ -166,6 +167,7 @@ end
 Base.size(A::ShiftMatrix,k...)=size(A.data,k...)
 columninds(A::ShiftMatrix)=-A.l,A.u
 columnrange(A::ShiftMatrix)=-A.l:A.u
+columninds(A::ShiftMatrix,k)=columninds(A)[k]
 
 getindex(A::ShiftMatrix,k,j)=A.data[j+A.l+1,k]
 Base.full(A::ShiftMatrix)=A[1:size(A,1),columnrange(A)]
