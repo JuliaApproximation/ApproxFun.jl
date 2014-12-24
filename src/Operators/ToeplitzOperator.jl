@@ -30,7 +30,7 @@ function laurent_addentries!(v::ShiftVector,A,kr::Range1)
     A
 end
 
-function toeplitz_addentries!(v::Vector,A::ShiftArray,kr::Range1)    
+function toeplitz_addentries!(v::Vector,A,kr::Range1)    
     for k=kr,j=max(1-length(v),1-k):length(v)-1
         A[k,j] += (j ==0) ? 2v[1] : v[abs(j)+1]
     end
@@ -38,7 +38,7 @@ function toeplitz_addentries!(v::Vector,A::ShiftArray,kr::Range1)
     A
 end
 
-function toeplitz_addentries!(v::ShiftVector,A::ShiftArray,kr::Range1)    
+function toeplitz_addentries!(v::ShiftVector,A,kr::Range1)    
     for k=kr,j=max(range(v)[1],1-k):range(v)[end]
         A[k,j] += v[j]
     end
@@ -48,7 +48,7 @@ end
 
 
 
-addentries!(T::ToeplitzOperator,A::ShiftArray,kr::Range1)=toeplitz_addentries!(T.coefficients,A,kr)
+addentries!(T::ToeplitzOperator,A,kr::Range1)=toeplitz_addentries!(T.coefficients,A,kr)
 
 
 
@@ -65,7 +65,7 @@ end
 
 HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
-function hankel_addentries!(v::Vector,A::ShiftArray,kr::Range1)
+function hankel_addentries!(v::Vector,A,kr::Range1)
     for j=1:length(v)
         for k=max(kr[1],1):min(kr[end],j)
             if j + 1 >= k+1
@@ -78,7 +78,7 @@ function hankel_addentries!(v::Vector,A::ShiftArray,kr::Range1)
 end
 
 
-addentries!(T::HankelOperator,A::ShiftArray,kr::Range1)=hankel_addentries!(T.coefficients,A,kr)
+addentries!(T::HankelOperator,A,kr::Range1)=hankel_addentries!(T.coefficients,A,kr)
 
 bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
 
@@ -91,7 +91,7 @@ type LaurentOperator{T<:Number} <: BandedShiftOperator{T}
 end
 
 
-function shiftaddentries!(T::LaurentOperator,A::ShiftArray,kr::Range1)
+function shiftaddentries!(T::LaurentOperator,A,kr::Range1)
     if length(T.coefficients)>0
         laurent_addentries!(T.coefficients,A,kr)
     else

@@ -14,7 +14,7 @@ IdentityOperator()=ConstantOperator(1.0)
 
 bandinds(T::ConstantOperator)=0,0
 
-addentries!(C::ConstantOperator,A::ShiftArray,kr::Range1)=laurent_addentries!([.5C.c],A,kr)
+addentries!(C::ConstantOperator,A,kr::Range1)=laurent_addentries!([.5C.c],A,kr)
 
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
@@ -53,7 +53,7 @@ rangespace(Z::ZeroOperator)=Z.rangespace
 
 bandinds(T::ZeroOperator)=0,0
 
-addentries!(C::ZeroOperator,A::ShiftArray,kr::Range1)=A
+addentries!(C::ZeroOperator,A,kr::Range1)=A
 
 promotedomainspace(Z::ZeroOperator,sp::AnySpace)=Z
 promoterangespace(Z::ZeroOperator,sp::AnySpace)=Z

@@ -100,8 +100,7 @@ linsolve{T<:Operator}(A::Array{T,2},b;kwds...)=linsolve(interlace(A),b;kwds...)
 linsolve(A::Operator,b::Array;kwds...)=linsolve([A],b;kwds...)
 
 
-
-\{T<:Operator}(A::Array{T,2},b::Array)=linsolve(A,b)
-\{T<:Operator}(A::Vector{T},b::Array)=linsolve(A,b)
+\{T<:Operator}(A::Matrix{T},b::Union(Vector,Number,Fun))=linsolve(A,b)
+\{T<:Operator}(A::Vector{T},b::Union(Vector,Number,Fun))=linsolve(A,b)
 \(A::Operator,b)=linsolve(A,b)
 
