@@ -11,7 +11,7 @@ bandinds(M::Multiplication{Laurent,Laurent})=bandinds(LaurentOperator(M.f))
 
 ## Converison
 
-function addentries!(C::Conversion{Laurent,Fourier},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{Laurent,Fourier},A,kr::Range)
     for k=kr
         if k==1
             A[k,0]+=1.
@@ -25,7 +25,7 @@ function addentries!(C::Conversion{Laurent,Fourier},A::ShiftArray,kr::Range)
     end
     A
 end
-function addentries!(C::Conversion{Fourier,Laurent},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{Fourier,Laurent},A,kr::Range)
     for k=kr
         if k==1
             A[k,0]+=1.
@@ -63,7 +63,7 @@ bandinds{T}(::ImagOperator{ReImSpace{Taylor,T}})=0,1
 
 
 ## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A::ShiftArray,kr::Range)
+function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A,kr::Range)
     for k=kr
         if isodd(k)         # real part
             A[k,0]+=1        
@@ -75,7 +75,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A::ShiftArray,kr::R
 end
 
 ## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
-function addentries!{T}(R::ImagOperator{ReImSpace{Taylor,T}},A::ShiftArray,kr::Range)
+function addentries!{T}(R::ImagOperator{ReImSpace{Taylor,T}},A,kr::Range)
     for k=kr
         A[k,1]+=1
     end
@@ -97,7 +97,7 @@ bandinds{T}(::ImagOperator{ReImSpace{Hardy{false},T}})=0,0
 
 
 ## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A::ShiftArray,kr::Range)
+function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
     for k=kr
         if isodd(k)    # imag part
             A[k,1]+=1            
@@ -109,7 +109,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A::ShiftArray
 end
 
 ## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
-function addentries!{T}(R::ImagOperator{ReImSpace{Hardy{false},T}},A::ShiftArray,kr::Range)
+function addentries!{T}(R::ImagOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
     for k=kr
         A[k,0]+=isodd(k)?-1:1
     end
@@ -125,7 +125,7 @@ for TYP in (:RealOperator,:ImagOperator)
 end
 
 bandinds{T}(::RealOperator{ReImSpace{Laurent,T}})=0,2
-function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A::ShiftArray,kr::Range)
+function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A,kr::Range)
     for k=kr
         if isodd(k)    # real part
             A[k,0]+=1
@@ -150,7 +150,7 @@ rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?D.space:SinSpace(domai
 rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 
 
-function addentries!(D::Derivative{CosSpace},A::ShiftArray,kr::Range)
+function addentries!(D::Derivative{CosSpace},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
@@ -168,7 +168,7 @@ function addentries!(D::Derivative{CosSpace},A::ShiftArray,kr::Range)
     A
 end
 
-function addentries!(D::Derivative{SinSpace},A::ShiftArray,kr::Range)
+function addentries!(D::Derivative{SinSpace},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)    
     m=D.order
@@ -196,7 +196,7 @@ bandinds(D::Integral{SinSpace})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::Integral{S})=iseven(D.order)?D.space:SinSpace(domain(D))
 rangespace{S<:SinSpace}(D::Integral{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 
-function addentries!(D::Integral{SinSpace},A::ShiftArray,kr::Range)
+function addentries!(D::Integral{SinSpace},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)    
     m=D.order
@@ -225,7 +225,7 @@ function bandinds{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}})
 end
 rangespace{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}})=iseven(D.order)?D.space:SinSpace(domain(D))
 
-function addentries!{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}},A::ShiftArray,kr::Range)
+function addentries!{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)    
     m=D.order
@@ -262,7 +262,7 @@ function bandinds{s}(D::Derivative{Hardy{s}})
 end
 rangespace{S<:Hardy}(D::Derivative{S})=D.space
 
-function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A::ShiftArray,kr::Range)
+function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Range)
     C=2π./(d.b-d.a)*im
     for k=kr
         A[k,0] += (C*(k-1))^m
@@ -270,7 +270,7 @@ function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A::ShiftAr
     A
 end
 
-function hardyfalse_derivative_addentries!(d::PeriodicInterval,m::Integer,A::ShiftArray,kr::Range)
+function hardyfalse_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Range)
     C=2π./(d.b-d.a)*im
     for k=kr
         A[k,0] += (-C*k)^m
@@ -280,7 +280,7 @@ end
 
 
 
-function taylor_derivative_addentries!(d::Circle,m::Integer,A::ShiftArray,kr::Range)
+function taylor_derivative_addentries!(d::Circle,m::Integer,A,kr::Range)
     C=d.radius^(-m)
 
     for k=kr
@@ -294,7 +294,7 @@ function taylor_derivative_addentries!(d::Circle,m::Integer,A::ShiftArray,kr::Ra
     A
 end
 
-function hardyfalse_derivative_addentries!(d::Circle,m::Integer,A::ShiftArray,kr::Range)
+function hardyfalse_derivative_addentries!(d::Circle,m::Integer,A,kr::Range)
     C=(-d.radius)^(-m)
 
     for k=max(m+1,kr[1]):kr[end]
@@ -309,8 +309,8 @@ function hardyfalse_derivative_addentries!(d::Circle,m::Integer,A::ShiftArray,kr
 end
 
 
-addentries!(D::Derivative{Taylor},A::ShiftArray,kr::Range)=taylor_derivative_addentries!(domain(D),D.order,A,kr)
-addentries!(D::Derivative{Hardy{false}},A::ShiftArray,kr::Range)=hardyfalse_derivative_addentries!(domain(D),D.order,A,kr)
+addentries!(D::Derivative{Taylor},A,kr::Range)=taylor_derivative_addentries!(domain(D),D.order,A,kr)
+addentries!(D::Derivative{Hardy{false}},A,kr::Range)=hardyfalse_derivative_addentries!(domain(D),D.order,A,kr)
 
 
 
@@ -337,7 +337,7 @@ end
 rangespace(D::Integral{Taylor})=D.space
 rangespace(Q::Integral{Hardy{false}})=Q.space
 
-function addentries!(D::Integral{Taylor},A::ShiftArray,kr::Range)
+function addentries!(D::Integral{Taylor},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,Circle)
@@ -364,7 +364,7 @@ function bandinds{n,T,DD}(D::Integral{DropSpace{Hardy{false},n,T,DD}})
 end
 rangespace{n,T,DD}(D::Integral{DropSpace{Hardy{false},n,T,DD}})=D.space.space
 
-function addentries!{n,T,DD}(D::Integral{DropSpace{Hardy{false},n,T,DD}},A::ShiftArray,kr::Range)
+function addentries!{n,T,DD}(D::Integral{DropSpace{Hardy{false},n,T,DD}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,Circle)
@@ -392,7 +392,7 @@ end
 rangespace(D::Integral{Taylor})=D.space
 
 
-function addentries!(D::Integral{Hardy{false}},A::ShiftArray,kr::Range)
+function addentries!(D::Integral{Hardy{false}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,PeriodicInterval)
@@ -413,7 +413,7 @@ function bandinds{n,T,DD}(D::Integral{DropSpace{Taylor,n,T,DD}})
 end
 rangespace{n,T,DD}(D::Integral{DropSpace{Taylor,n,T,DD}})=D.space
 
-function addentries!{n,T,DD}(D::Integral{DropSpace{Taylor,n,T,DD}},A::ShiftArray,kr::Range)
+function addentries!{n,T,DD}(D::Integral{DropSpace{Taylor,n,T,DD}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,PeriodicInterval)

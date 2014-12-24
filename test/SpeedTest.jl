@@ -56,6 +56,30 @@ u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
 @time u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
 println("Airy: should be ~0.05")
 
+S=Chebyshev()
+x=Fun(identity,S)
+D=Derivative(S)
+L=D^2+(7+2x+6x^2)
+B=dirichlet(S)
+n=20000
+rhs=ones(n+2)
+u=[B,L]\rhs
+u=[B,L]\rhs
+@time u=[B,L]\rhs
+println("Poly: should be ~0.06")
+
+
+S=Chebyshev()
+x=Fun(identity,S)
+D=Derivative(S)
+L=D^2+cos(x)
+B=dirichlet(S)
+n=2000
+rhs=ones(n+2)
+u=linsolve([B,L],rhs;maxlength=Inf)
+u=linsolve([B,L],rhs;maxlength=Inf)
+@time u=linsolve([B,L],rhs;maxlength=Inf)
+println("Cos: should be ~0.08")
 
 d=Interval(-300.,5.)
 x=Fun(identity,d)

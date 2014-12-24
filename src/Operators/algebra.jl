@@ -164,7 +164,7 @@ TimesFunctional{T<:Number}(A::Functional{T},B::BandedOperator{T})=TimesFunctiona
 
 function Base.getindex{T<:Number}(f::TimesFunctional{T},jr::Range)#j is columns
     bi=bandinds(f.op)
-    B=BandedArray(f.op,max((jr[1]-bi[end]),1):(jr[end]-bi[1]))
+    B=BandedMatrix(f.op,max((jr[1]-bi[end]),1):(jr[end]-bi[1]))
     r=zeros(T,length(jr))
     for j in jr, k=max(j-bi[end],1):j-bi[1]
         if k>=1
@@ -347,7 +347,7 @@ function *{T<:Number}(A::BandedOperator,b::Vector{T})
     
     if n>0
         m=n-bandinds(A)[1]
-        BandedArray(A,1:m,1:n)*b
+        BandedMatrix(A,1:m)*b
     else
         b
     end
