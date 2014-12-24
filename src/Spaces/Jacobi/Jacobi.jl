@@ -31,7 +31,7 @@ jacobirecα(α,β,k)=-jacobirecB(α,β,k-1)/jacobirecA(α,β,k-1)
 jacobirecβ(α,β,k)=1/jacobirecA(α,β,k-1)
 
 
-type JacobiRecurrenceOperator <: TridiagonalOperator{Float64}
+immutable JacobiRecurrenceOperator <: TridiagonalOperator{Float64}
     a::Float64
     b::Float64
 end

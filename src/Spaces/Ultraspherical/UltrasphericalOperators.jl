@@ -1,3 +1,17 @@
+##  Jacobi Operator
+
+immutable UltrasphericalRecurrence{m} <: TridiagonalOperator{Float64} end
+
+function usjacobi_addentries!(λ::Integer,A,kr::Range)
+    for k=kr
+        A[k,-1]=.5(k-1)/(k-2+λ)
+        A[k,1]=.5(k+2λ-1)/(k+λ)
+    end
+    A
+end
+
+addentries!{m}(::UltrasphericalRecurrence{m},A,kr::Range)=usjacobi_addentries!(m,A,kr)
+
 ## Evaluation
 
 function evaluatechebyshev{T<:Number}(n::Integer,x::T)
@@ -68,14 +82,6 @@ end
 
 
 
-function usjacobi_addentries!(λ::Integer,A,kr::Range1)
-    for k=kr
-        A[k,-1]=.5(k-1)/(k-2+λ)
-        A[k,1]=.5(k+2λ-1)/(k+λ)
-    end
-    A
-end
-
 function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ}},A,kr::Range)
     a=coefficients(M.f,domainspace(M))
     for k=kr
@@ -85,18 +91,17 @@ function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ
     if length(a) > 1
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
         ##TODO: simplify shift array and combine with Ultraspherical        
-        J=BandedArray(ShiftArray(zeros(length(jkr),3),1-jkr[1],2),jkr)
-        usjacobi_addentries!(λ,J.data,jkr)
+        J=ShiftMatrix(UltrasphericalRecurrence{λ}(),jkr)
     
         C1=2λ*J
     
-        shiftarray_const_addentries!(C1.data,a[2],A,kr)
+        addentries!(C1,a[2],A,kr)
 
-        C0=BandedArray(ShiftArray(ones(length(jkr),1),1-jkr[1],1),jkr)
+        C0=saeye(n)
     
         for k=1:length(a)-2    
             C1,C0=2(k+λ)./(k+1)*J*C1-(k+2λ-1)./(k+1).*C0,C1
-            shiftarray_const_addentries!(C1.data,a[k+2],A,kr)    
+            addentries!(C1,a[k+2],A,kr)    
         end
     end
     

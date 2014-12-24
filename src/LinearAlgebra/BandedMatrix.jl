@@ -150,10 +150,24 @@ for (op,bop) in ((:(Base.rand),:sarand),(:(Base.zeros),:sazeros),(:(Base.ones),:
     @eval begin
         $bop{T}(::Type{T},n::Integer,a::Integer,b::Integer)=ShiftMatrix($op(T,b+a+1,n),a,b)
         $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,-a[1],a[end])        
+        $bop{T}(::Type{T},n::Integer)=$bop(T,n,0,0)          
         $bop(n::Integer,a::Integer,b::Integer)=$bop(Float64,n,a,b)
         $bop(n::Integer,a)=$bop(Float64,n,-a[1],a[end])        
+        $bop(n::Integer)=$bop(n,0,0)          
     end
 end
+
+function saeye{T}(::Type{T},n::Integer,a...)
+    ret=sazeros(T,n,a...)
+    for k=1:n
+        @inbounds ret[k,0]=one(T)
+    end
+    ret
+end
+saeye(n::Integer,a...)=saeye(Float64,n,a...)
+
+baeye{T}(::Type{T},n::Integer,a...)=BandedArray(saeye(T,n,a...),n)
+baeye(n::Integer,a...)=BandedArray(saeye(n,a...),n)
 
 
 Base.size(A::ShiftMatrix,k)=ifelse(k==1,size(A.data,2),size(A.data,1))
@@ -314,3 +328,25 @@ function bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)
 end
 
 
+
+
+
+## addentries!
+
+function addentries!(B::BandedMatrix,c::Number,A,kr::Range)    
+    for k=kr,j=k+bandrange(B)
+        A[k,j-k] += c*B[k,j]
+    end
+    
+    A
+end
+
+function addentries!(B::ShiftMatrix,c::Number,A,kr::Range)    
+    for k=kr,j=columnrange(B)
+        A[k,j] += c*B[k,j]
+    end
+    
+    A
+end
+
+addentries!(B::BandedMatrix,A,kr::Range)=addentries!(B,1,A,kr)
