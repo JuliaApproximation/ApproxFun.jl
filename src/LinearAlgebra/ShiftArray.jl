@@ -10,8 +10,8 @@ ShiftArray(dat::Array,ind::Integer)=ShiftArray(dat,0,ind)
 ShiftArray(T::DataType,ind::Integer)=ShiftArray(Array(T,0,0),0,ind)
 ShiftArray(ind::Integer)=ShiftArray(Float64,ind)
 
-sazeros{T}(::Type{T},n::Range1,m::Range1)=ShiftArray(zeros(T,length(n),length(m)),1-n[1],1-m[1])
-sazeros(n::Range1,m::Range1)=sazeros(Float64,n,m)
+#sazeros{T}(::Type{T},n::Range1,m::Range1)=ShiftArray(zeros(T,length(n),length(m)),1-n[1],1-m[1])
+#sazeros(n::Range1,m::Range1)=sazeros(Float64,n,m)
 
 
 

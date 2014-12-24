@@ -5,6 +5,8 @@ include("ShiftVector.jl")
 include("ShiftArray.jl")
 include("BandedArray.jl")
 
+include("BandedMatrix.jl")
+
 include("chebyshevtransform.jl")
 
 include("lyap.jl")

@@ -51,13 +51,15 @@ end
 
 
 function Base.getindex(B::Operator,k::Range1,j::Range1)
-    BandedArray(B,k,j)[k,j]
+    BandMatrix(B,k,j)[k,j]
 end
 
 
 
 ## bandrange and indexrange
 
+
+bandinds(A::BandedOperator,k::Integer)=bandinds(A)[k]
 bandrange(b::BandedBelowOperator)=Range1(bandinds(b)...)
 function bandrangelength(B::BandedBelowOperator)
     bndinds=bandinds(B)
@@ -84,10 +86,14 @@ index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of Ban
 ## Construct operators
 
 
-ShiftArray{T<:Number}(B::Operator{T},k::Range1,j::Range1)=addentries!(B,sazeros(T,k,j),k)
-ShiftArray(B::Operator,k::Range1)=ShiftArray(B,k,bandrange(B))
-BandedArray(B::Operator,k::Range1)=BandedArray(B,k,(k[1]+bandinds(B)[1]):(k[end]+bandinds(B)[end]))
-BandedArray(B::Operator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
+ShiftMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,sazeros(T,n,bandinds(B)),1:n)
+BandedMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,bazeros(T,n,n+bandinds(B,2)),1:n)
+
+
+ShiftArray{T<:Number}(B::Operator{T},k::Range,j::Range)=addentries!(B,sazeros(T,k,j),k)
+ShiftArray(B::Operator,k::Range)=ShiftArray(B,k,bandrange(B))
+BandedArray(B::Operator,k::Range)=BandedArray(B,k,(k[1]+bandinds(B)[1]):(k[end]+bandinds(B)[end]))
+BandedArray(B::Operator,k::Range,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
 
 
 ## Default addentries!
