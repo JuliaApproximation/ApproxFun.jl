@@ -95,9 +95,9 @@ function setindex!(A::BandedMatrix,v,k::Integer,jr::Range)
 end
 
 
-
-function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)   
-    n,m=size(C)
+# C can be a BandedMatrix or a ShiftMatrix
+function bamultiply!(C,A::BandedMatrix,B::BandedMatrix)   
+    n,m=size(A,1),size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
@@ -118,8 +118,7 @@ function *{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
     if size(A,2)!=size(B,1)
         throw(DimensionMismatch("*"))
     end
-    n=size(A,1)
-    m=size(B,2)    
+    n,m=size(A,1),size(B,2)    
     bamultiply!(bazeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
@@ -217,3 +216,24 @@ columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix
 
 issazeros{T}(::Type{T},rws,bnds...)=IndexShift(sazeros(T,rws[end]-rws[1]+1,bnds...),rws[1]-1)
 issazeros(rws,bnds...)=issazeros(Float64,rws,bnds...)
+
+
+
+## Allow multiply and shift
+
+function bamultiply!(C,A::BandedMatrix,B::BandedMatrix,rs::Integer)   
+    n=size(A,1);m=size(B,2)
+    for k=1:n  # rows of C
+        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
+            @inbounds Aj=A.data[l-k+A.l+1,k]
+            
+            shA=-l+B.l+1
+            shB=-k+C.l+l-B.l
+            @simd for j=(max(1,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
+                @inbounds C.data[j+shB,k+rs]+=Aj*B.data[j,l]
+            end
+        end
+    end 
+    C
+end
+
