@@ -7,7 +7,7 @@ export Ray
 ## Standard interval
 
 
-immutable Ray <: IntervalDomain
+immutable Ray{T<:Number} <: IntervalDomain{T}
     centre::Float64  
     angle::Float64
     orientation::Bool

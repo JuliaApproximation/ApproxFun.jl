@@ -3,7 +3,7 @@
 export PeriodicInterval
 
 
-immutable PeriodicInterval{T<:Number} <: PeriodicDomain
+immutable PeriodicInterval{T<:Number} <: PeriodicDomain{T}
 	a::T
 	b::T
 end
@@ -14,7 +14,7 @@ PeriodicInterval()=PeriodicInterval(-1.π,1.π)
 Interval(d::PeriodicInterval)=Interval(d.a,d.b)
 PeriodicInterval(d::Interval)=PeriodicInterval(d.a,d.b)
 
-
+Base.convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = PeriodicInterval{T}(d.a,d.b)
 
 function PeriodicInterval{T<:Number}(d::Vector{T})
     @assert length(d) == 2

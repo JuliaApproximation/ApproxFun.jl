@@ -1,19 +1,34 @@
-Fun{T<:Union(Int64,Complex{Int64})}(coefs::Vector{T},d::FunctionSpace)=Fun(1.0*coefs,d)
+Fun(f::Function,d::FunctionSpace,n::Integer) = Fun(f,d,n,Float64)
 
-
-function Fun(f::Function,d::FunctionSpace,n::Integer)
-    pts=points(d,n)
+function Fun{T,D}(f::Function,d::FunctionSpace{T,D},n::Integer)
+    pts=points(d, n)
     f1=f(pts[1])
     
-
     if isa(f1,Array) && !isa(d,ArraySpace)
+        warn("creating ArraySpace")
         return Fun(f,ArraySpace(d,size(f1)...),n)
     end
+        
+    Tout=typeof(f1)
+    if !( Tout<: Number || ( (Tout <: Array) && (Tout.parameters[1] <: Number) ) )
+        error("Function outputs type $(Tout), which is not a Number")
+    end
     
-        
-    T=typeof(f1)
-        
-    vals=T[f(x) for x in pts]
+    Tprom = Tout 
+    if isa(d,IntervalSpace)   #TODO should also work for any space 
+        if Tout <: Number #TODO should also work for array-valued functions
+            Tprom = promote_type(Tout,numbertype(domain(d)))
+            if Tprom != Tout
+                warn("Promoting function output type from $(Tout) to $(Tprom)")
+            elseif Tprom != numbertype(domain(d))
+                warn("FunctionSpace domain number type $(numbertype(d.domain)) doesn't match $(Tprom)")
+                #TODO should construct a new FunctionSpace that contains a domain where the numbers have been promoted
+                #and call constructor with this FunctionSpace.
+            end
+        end
+    end
+
+    vals=Tprom[f(x) for x in pts]
     Fun(transform(d,vals),d)
 end
 
@@ -78,15 +93,21 @@ end
 #     Fun(f,d,2^21 + 1)
 # end
 
-function zerocfsFun(f::Function,d::FunctionSpace)
+
+function zerocfsFun(f::Function, d::FunctionSpace)
     #TODO: reuse function values?
+    T = numbertype(domain(d))
+    if T <: Complex
+        T = T.parameters[1] #get underlying real representation
+    end
+
     f0=f(first(domain(d)))
 
     if !isa(d,ArraySpace) && isa(f0,Array)       
         return zerocfsFun(f,ArraySpace(d,size(f0)...))
     end
 
-    tol = 200*eps()
+    tol = 200*eps(T)
 
     r=rand(d)
     fr=f(r)
@@ -102,7 +123,7 @@ function zerocfsFun(f::Function,d::FunctionSpace)
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
         if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  norm(cf[r]-fr)<1E-4  
-            return chop!(cf,10eps()*maxabsc)
+            return chop!(cf,10eps(T)*maxabsc)
         end
     end
     
@@ -112,18 +133,20 @@ function zerocfsFun(f::Function,d::FunctionSpace)
 end
 
 
-
-
 function abszerocfsFun(f::Function,d::FunctionSpace)
     #reuse function values
+    T = numbertype(domain(d))
+    if T <: Complex
+        T = T.parameters[1] #get underlying real representation
+    end
 
-    tol = 200eps();
+    tol = 200eps(T);
 
     for logn = 4:20
         cf = Fun(f, d, 2^logn + 1)
         
         if maximum(abs(cf.coefficients[end-8:end])) < tol
-            return chop!(cf,10eps())
+            return chop!(cf,10eps(T))
         end
     end
     
@@ -134,12 +157,13 @@ end
 
 
 function Fun(f::Function, d::FunctionSpace; method="zerocoefficients")
+    T = numbertype(domain(d))
     if f==identity
         identity_fun(d)
     elseif f==zero # zero is always defined
-        zeros(Float64,d)
+        zeros(T,d)
     elseif f==one
-        ones(Float64,d)
+        ones(T,d)
     elseif method == "zerocoefficients"
         zerocfsFun(f,d)
     elseif method == "abszerocoefficients"

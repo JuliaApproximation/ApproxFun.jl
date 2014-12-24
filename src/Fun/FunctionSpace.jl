@@ -5,11 +5,10 @@ export FunctionSpace, domainspace, rangespace, maxspace, minspace,Space
 
 # T tells whether the basis is real (cos/sin) or complex
 # D tells what canonical domain is (Interval/PeriodicInterval)
-abstract FunctionSpace{T,D}
+abstract FunctionSpace{T,D} #TODO should be able to write D<:Domain
 
 typealias RealSpace{D} FunctionSpace{Float64,D}
 typealias ComplexSpace{D} FunctionSpace{Complex{Float64},D}
-
 
 
 domain{T,D<:AnyDomain}(::FunctionSpace{T,D})=AnyDomain()
@@ -29,7 +28,6 @@ end
 
 #TODO: should it default to canonicalspace?
 points(d::FunctionSpace,n)=points(domain(d),n)
-
 
 
 ##Check domain compatibility
