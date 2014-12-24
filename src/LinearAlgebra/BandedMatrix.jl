@@ -107,6 +107,15 @@ function *{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
 end
 
 
+function *{T,V}(A::BandedMatrix{T},b::Vector{V})
+    if size(A,2)!=length(b)
+        throw(DimensionMismatch("*"))
+    end
+    n=size(A,1)
+    bamultiply!(zeros(promote_type(T,V),n),A,b)
+end
+
+
 
 
 ## ShiftMatrix
@@ -191,7 +200,7 @@ end
 
 ShiftMatrix(B::BandedMatrix)=ShiftMatrix(B.data,B.l,B.u)
 BandedMatrix(S::ShiftMatrix)=BandedMatrix(S.data,size(S,1)+S.u,S.l,S.u)
-
+BandedMatrix(S::ShiftMatrix,m)=BandedMatrix(S.data,m,S.l,S.u)
 
 
 
@@ -220,12 +229,26 @@ issazeros(rws,bnds...)=issazeros(Float64,rws,bnds...)
 
 
 
-## Multiplication
+## Matrix*Vector Multiplicaiton
+
+function bamultiply!(c::Vector,A::BandedMatrix,b::Vector)
+    for k=1:size(A,1)  # rows of c
+        @simd for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A/rows of b
+            @inbounds c[k]+=A.data[l-k+A.l+1,k]*b[l]
+        end        
+    end
+    c
+end
+
+
+
+
+## Matrix*Matrix Multiplication
 
 function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)   
     n,m=size(A,1),size(B,2)
     for k=1:n  # rows of C
-        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
+        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A/rows of B
             @inbounds Aj=A.data[l-k+A.l+1,k]
             
             shA=-l+B.l+1
