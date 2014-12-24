@@ -51,20 +51,20 @@ end
 #S[k,j] == A[k,j-k]
 #A[rowstride*k + rowindex,colstride*j + colindex - k] == op[k,j]
 
-function stride_addentries!(op,ri,ci,rs,cs,A::ShiftArray,kr::Range)
+function stride_addentries!(op,ri,ci,rs,cs,A,kr::Range)
     r1=divrowrange(rs,ri,kr)
 
-    B1=BandedArray(op,r1)
-    B=BandedArray(A)
+    B1=BandedMatrix(op,r1)
+    B=BandedMatrix(A)
     
-    for k=r1, j=columnrange(B1.data)+k
-        B[rs*k + ri,cs*j + ci] += B1.data[k,j-k]
+    for k=r1, j=bandrange(B1)+k
+        B[rs*k + ri,cs*j + ci] += B1[k,j]
     end
     
     A    
 end
 
-stride_addentries!(S::StrideOperator,A::ShiftArray,kr::Range1)=stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
+stride_addentries!(S::StrideOperator,A,kr::Range1)=stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
 
 
 addentries!(S::StrideOperator,A,kr)=stride_addentries!(S,A,kr)
@@ -241,7 +241,7 @@ function bandinds(S::AbstractDiagonalInterlaceOperator)
 end
 
 
-function addentries!(D::AbstractDiagonalInterlaceOperator,A::ShiftArray,kr::Range)
+function addentries!(D::AbstractDiagonalInterlaceOperator,A,kr::Range)
     n=length(D.ops)
     for k=1:n
         stride_addentries!(D.ops[k],k-n,k-n,n,n,A,kr)

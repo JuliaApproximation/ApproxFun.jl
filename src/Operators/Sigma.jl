@@ -18,6 +18,6 @@ domain(S::Σ)=domain(S.domainspace)
 domainspace(S::Σ)=S.domainspace
 rangespace(S::Σ)=S.rangespace
 
-addentries!{T}(::Σ{T,AnySpace,AnySpace},A::ShiftArray,kr::Range)=error("Spaces cannot be inferred for operator")
+addentries!{T}(::Σ{T,AnySpace,AnySpace},A,kr::Range)=error("Spaces cannot be inferred for operator")
 
 bandinds(S::Σ) = 0,0

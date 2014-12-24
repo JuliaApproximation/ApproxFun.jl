@@ -64,6 +64,7 @@ end
 Base.size(A::BandedMatrix,k)=ifelse(k==1,size(A.data,2),A.m)
 Base.size(A::BandedMatrix)=size(A.data,2),A.m
 bandinds(A::BandedMatrix)=-A.l,A.u
+bandrange(A::BandedMatrix)=-A.l:A.u
 
 usgetindex(A::BandedMatrix,k::Integer,j::Integer)=A.data[j-k+A.l+1,k]
 usgetindex(A::BandedMatrix,k::Integer,jr::Range)=vec(A.data[jr-k+A.l+1,k])

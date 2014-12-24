@@ -54,7 +54,7 @@ end
 
 type SavedBandedOperator{T<:Number,M<:BandedOperator} <: BandedOperator{T}
     op::M
-    data::ShiftArray{T}   #Shifted to encapsolate bandedness
+    data::ShiftMatrix{T}   #Shifted to encapsolate bandedness
     datalength::Int
     bandinds::(Int,Int)
 end
@@ -82,7 +82,8 @@ datalength(B::SavedBandedOperator)=B.datalength
 
 
 
-function addentries!(B::SavedBandedOperator,A::ShiftArray,kr::Range1)       
+function addentries!(B::SavedBandedOperator,A,kr::Range)       
+    error("Redo SavedBanded")
     resizedata!(B,kr[end])
 
 
