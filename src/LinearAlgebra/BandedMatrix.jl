@@ -14,7 +14,7 @@
 ###
 
 
-immutable BandedMatrix{T}
+type BandedMatrix{T}
     data::Matrix{T}  # l+u+1 x n (# of rows)
     m::Int #Number of columns    
     l::Int # lower bandwidth ≥0
@@ -128,7 +128,7 @@ end
 ## ShiftMatrix
 
 
-immutable ShiftMatrix{T}
+type ShiftMatrix{T}
     data::Matrix{T}  # l+u+1 x n (# of rows)
     l::Int # lower bandwidth ≥0
     u::Int # upper bandwidth ≥0
@@ -162,8 +162,8 @@ for (op,bop) in ((:(Base.rand),:sarand),(:(Base.zeros),:sazeros),(:(Base.ones),:
 end
 
 
-
-Base.size(A::ShiftMatrix,k...)=size(A.data,k...)
+Base.size(A::ShiftMatrix,k)=ifelse(k==1,size(A.data,2),size(A.data,1))
+Base.size(A::ShiftMatrix)=size(A,1),size(A,2)
 columninds(A::ShiftMatrix)=-A.l,A.u
 columnrange(A::ShiftMatrix)=-A.l:A.u
 columninds(A::ShiftMatrix,k)=columninds(A)[k]
@@ -186,20 +186,25 @@ setindex!(A::ShiftMatrix,v,k::Range,j::Range)=(A.data[j+A.l+1,k]=v.')
 
 
 
+function pad!(A::ShiftMatrix,n)
+    A.data=pad(A.data,size(A.data,1),n)
+    A
+end
+
 
 
 
 ## Convert
 
 ShiftMatrix(B::BandedMatrix)=ShiftMatrix(B.data,B.l,B.u)
-BandedMatrix(S::ShiftMatrix)=BandedMatrix(S.data,size(S,2)+S.u,S.l,S.u)
+BandedMatrix(S::ShiftMatrix)=BandedMatrix(S.data,size(S,1)+S.u,S.l,S.u)
 
 
 
 
 ## Used to scam addentries! into thinking we are somewhere else
 
-immutable IndexShift{S}
+type IndexShift{S}
     matrix::S
     rowindex::Int
     colindex::Int
