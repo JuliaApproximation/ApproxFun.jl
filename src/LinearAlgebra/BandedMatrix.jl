@@ -36,12 +36,6 @@ BandedMatrix{T}(::Type{T},n::Integer,a)=BandedMatrix(T,n,-a[1],a[end])
 
 Base.eltype{T}(::BandedMatrix{T})=T
 
-for OP in (:*,:.*,:+,:.+,:-,:.-)
-    @eval begin
-        $OP(B::BandedMatrix,x::Number)=BandedMatrix($OP(B.data,x),B.m,B.l,B.u)
-        $OP(x::Number,B::BandedMatrix)=BandedMatrix($OP(x,B.data),B.m,B.l,B.u)    
-    end    
-end
 
 
 
@@ -96,6 +90,46 @@ function setindex!(A::BandedMatrix,v,k::Integer,jr::Range)
 end
 
 
+for OP in (:*,:.*,:+,:.+,:-,:.-)
+    @eval begin
+        $OP(B::BandedMatrix,x::Number)=BandedMatrix($OP(B.data,x),B.m,B.l,B.u)
+        $OP(x::Number,B::BandedMatrix)=BandedMatrix($OP(x,B.data),B.m,B.l,B.u)    
+    end    
+end
+
+function +{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
+    if size(A) != size(B)
+        throw(DimensionMismatch("+"))
+    end
+    n,m=size(A,1),size(A,2)
+    
+    ret = bazeros(promote_type(T,V),n,m,max(A.l,B.l),max(A.u,B.u))
+    for k=1:n,j=max(1,k-A.l):min(m,k+A.l)
+        ibpluseq!(ret,usgetindex(A,k,j),k,j)
+    end
+    for k=1:n,j=max(1,k-B.l):min(m,k+B.l)
+        ibpluseq!(ret,usgetindex(B,k,j),k,j)
+    end
+    
+    ret    
+end
+
+function -{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
+    if size(A) != size(B)
+        throw(DimensionMismatch("+"))
+    end
+    n,m=size(A,1),size(A,2)
+    
+    ret = bazeros(promote_type(T,V),n,m,max(A.l,B.l),max(A.u,B.u))
+    for k=1:n,j=max(1,k-A.l):min(m,k+A.l)
+        ibpluseq!(ret,usgetindex(A,k,j),k,j)
+    end
+    for k=1:n,j=max(1,k-B.l):min(m,k+B.l)
+        ibpluseq!(ret,-usgetindex(B,k,j),k,j)
+    end
+    
+    ret    
+end
 
 
 
@@ -166,8 +200,8 @@ function saeye{T}(::Type{T},n::Integer,a...)
 end
 saeye(n::Integer,a...)=saeye(Float64,n,a...)
 
-baeye{T}(::Type{T},n::Integer,a...)=BandedArray(saeye(T,n,a...),n)
-baeye(n::Integer,a...)=BandedArray(saeye(n,a...),n)
+baeye{T}(::Type{T},n::Integer,a...)=BandedMatrix(saeye(T,n,a...),n)
+baeye(n::Integer,a...)=BandedMatrix(saeye(n,a...),n)
 
 
 Base.size(A::ShiftMatrix,k)=ifelse(k==1,size(A.data,2),size(A.data,1))
@@ -229,19 +263,63 @@ type IndexShift{S}
     u::Int
 end
 IndexShift(S,ri,ci)=IndexShift(S,ri,ci,S.l,S.u)
-
-IndexShift(S,ri)=IndexShift(S,ri,0)
+IndexShift(S::ShiftMatrix,ri)=IndexShift(S,ri,0)
+IndexShift(S::BandedMatrix,ri)=IndexShift(S,ri,ri)
 
 getindex(S::IndexShift,k,j)=S.matrix[k-S.rowindex,j-S.colindex]
 setindex!(S::IndexShift,x,k,j)=(S.matrix[k-S.rowindex,j-S.colindex]=x)
-ibpluseq!{ST<:ShiftMatrix}(S::IndexShift{ST},x,k,j)=ibpluseq!(S.matrix,x,k-S.rowindex,j-S.colindex)
+ibpluseq!(S::IndexShift,x,k,j)=ibpluseq!(S.matrix,x,k-S.rowindex,j-S.colindex)
+
+
 
 columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix,2)+S.colindex)
 
 
 
-issazeros{T}(::Type{T},rws,bnds...)=IndexShift(sazeros(T,rws[end]-rws[1]+1,bnds...),rws[1]-1)
-issazeros(rws,bnds...)=issazeros(Float64,rws,bnds...)
+for (isop,saop) in ((:issazeros,:sazeros),(:issaeye,:saeye))
+    @eval begin
+        $isop{T}(::Type{T},rws,bnds...)=IndexShift($saop(T,rws[end]-rws[1]+1,bnds...),rws[1]-1)
+        $isop(rws,bnds...)=$isop(Float64,rws,bnds...)
+    end
+end
+
+isbaeye(kr::Range)=IndexShift(baeye(length(kr)),first(kr)-1)
+
+
+for OP in (:*,:.*,:+,:.+,:-,:.-)
+    @eval begin
+        $OP(B::IndexShift,x::Number)=IndexShift($OP(B.matrix,x),B.rowindex,B.colindex,B.l,B.u)
+        $OP(x::Number,B::IndexShift)=IndexShift($OP(x,B.matrix),B.rowindex,B.colindex,B.l,B.u)
+        
+
+        function $OP{ST<:ShiftMatrix,SV<:ShiftMatrix}(A::IndexShift{ST},B::IndexShift{SV})
+            # TODO: General implementation
+            @assert A.rowindex==B.rowindex
+            @assert A.colindex==B.colindex==0
+            
+            AB=$OP(A.matrix,B.matrix)
+            IndexShift(AB,A.rowindex)
+        end
+        
+        function $OP{ST<:BandedMatrix,SV<:BandedMatrix}(A::IndexShift{ST},B::IndexShift{SV})
+            # TODO: General implementation
+            @assert A.rowindex==B.rowindex==A.colindex==B.colindex
+            
+            AB=$OP(A.matrix,B.matrix)
+            IndexShift(AB,A.rowindex)
+        end        
+    end    
+end
+
+
+
+
+
+columnrange(S::IndexShift)=columnrange(S.matrix)+S.colindex
+columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix,2)+S.colindex)
+bandrange(S::IndexShift)=bandrange(S.matrix)+S.colindex-S.rowindex
+bandinds(S::IndexShift)=(bandinds(S.matrix,1)+S.colindex-S.rowindex,bandinds(S.matrix,2)+S.colindex-S.rowindex)
+
 
 type IndexTranspose{S}
     matrix::S
@@ -267,6 +345,7 @@ function setindex!(S::IndexTranspose,x,k,j)
     end
     x
 end
+
 
 ## Matrix*Vector Multiplicaiton
 
@@ -399,6 +478,22 @@ end
 function addentries!(B::ShiftMatrix,c::Number,A,kr::Range)    
     for k=kr,j=columnrange(B)
         @inbounds ibpluseq!(A,c*B.data[j+A.l+1,k],k,j)
+    end
+    
+    A
+end
+
+function addentries!{ST<:ShiftMatrix}(B::IndexShift{ST},c::Number,A,kr::Range)    
+    for k=kr,j=columnrange(B)
+        ibpluseq!(A,c*B[k,j],k,j)
+    end
+    
+    A
+end
+
+function addentries!{ST<:BandedMatrix}(B::IndexShift{ST},c::Number,A,kr::Range)    
+    for k=kr,j=bandrange(B)
+        ibpluseq!(A,c*B[k,k+j],k,j)
     end
     
     A

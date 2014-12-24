@@ -53,6 +53,10 @@ end
 Base.getindex(B::BandedOperator,k::Range,j::Range)=BandedMatrix(B,max(k[end],j[end]))[k,j]
 
 
+Base.slice(B::BandedOperator,kr::Range,jr::Range)=IndexShift(BandedMatrix(B,kr,jr),kr[1]-1)
+Base.slice(B::BandedOperator,kr::Range)=IndexShift(BandedMatrix(B,kr),kr[1]-1)
+saslice(B::BandedOperator,kr::Range)=IndexShift(ShiftMatrix(B,kr),kr[1]-1)
+
 
 ## bandrange and indexrange
 
@@ -88,6 +92,10 @@ ShiftMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,sazeros(T,n,band
 ShiftMatrix{T<:Number}(B::Operator{T},rws::Range)=addentries!(B,issazeros(T,rws,bandinds(B)),rws).matrix
 ShiftMatrix{T<:Number}(B::Operator{T},rws::(Int,Int))=addentries!(B,issazeros(T,rws,bandinds(B)),rws[1]:rws[end]).matrix
 BandedMatrix(B::Operator,n)=BandedMatrix(ShiftMatrix(B,n))
+function BandedMatrix(B::Operator,kr::Range,jr::Range)
+    @assert kr[1]==jr[1]
+    BandedMatrix(ShiftMatrix(B,kr),length(jr))
+end
 BandedMatrix(B::Operator,::Colon,col::Integer)=BandedMatrix(ShiftMatrix(B,col-bandinds(B,1)),col)
 
 

@@ -90,15 +90,11 @@ function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ
 
     if length(a) > 1
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
-        ##TODO: simplify shift array and combine with Ultraspherical        
-        J=ShiftMatrix(UltrasphericalRecurrence{λ}(),jkr)
-    
-        C1=2λ*J
-    
-        addentries!(C1,a[2],A,kr)
 
-        C0=saeye(n)
-    
+        J=slice(UltrasphericalRecurrence{λ}(),jkr,jkr)
+        C1=2λ*J
+        addentries!(C1,a[2],A,kr)
+        C0=isbaeye(jkr)
         for k=1:length(a)-2    
             C1,C0=2(k+λ)./(k+1)*J*C1-(k+2λ-1)./(k+1).*C0,C1
             addentries!(C1,a[k+2],A,kr)    
