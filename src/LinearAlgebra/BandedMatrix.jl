@@ -234,6 +234,7 @@ IndexShift(S,ri)=IndexShift(S,ri,0)
 
 getindex(S::IndexShift,k,j)=S.matrix[k-S.rowindex,j-S.colindex]
 setindex!(S::IndexShift,x,k,j)=(S.matrix[k-S.rowindex,j-S.colindex]=x)
+ibpluseq!{ST<:ShiftMatrix}(S::IndexShift{ST},x,k,j)=ibpluseq!(S.matrix,x,k-S.rowindex,j-S.colindex)
 
 columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix,2)+S.colindex)
 
@@ -397,7 +398,7 @@ end
 
 function addentries!(B::ShiftMatrix,c::Number,A,kr::Range)    
     for k=kr,j=columnrange(B)
-        A[k,j] += c*B[k,j]
+        @inbounds ibpluseq!(A,c*B.data[j+A.l+1,k],k,j)
     end
     
     A
