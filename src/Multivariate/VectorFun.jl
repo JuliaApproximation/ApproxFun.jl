@@ -174,3 +174,13 @@ dotu{D,T}(f::Vector{Fun{D,Complex{Float64}}},g::Vector{T})=dot(conj(f),g)
          end                
      end
  end
+
+
+#Allow vecfun + constvec, etc
+#can't just promote constant vector to a vector-valued fun because don't know the domain.
+for op = (:+,:-,:.*,:./)
+    @eval begin
+        ($op){T<:Number}(f::Fun,c::Array{T})=devec($op(vec(f),c))
+        ($op){T<:Number}(c::Array{T},f::Fun)=devec($op(c,vec(f)))
+    end
+end 
