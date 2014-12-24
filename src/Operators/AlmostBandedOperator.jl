@@ -41,7 +41,6 @@ rangespace(M::AlmostBandedOperator)=rangespace(M.op)
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function AlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedOperator{T})
-    data = ShiftMatrix(T,0,bandinds(op))
     bndinds=bandinds(op)
     bndindslength=bndinds[end]-bndinds[1]+1
     nbc = length(bc)
@@ -58,6 +57,8 @@ function AlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedO
         sfuncs[k]=SavedFunctional(bc[k])
     end
     ar0=Array(T,0,nbc)
+    
+    data = ShiftMatrix(T,0,(br[1]+nbc,br[end]+nbc))    
     AlmostBandedOperator(sfuncs,op,data,ar0,bcdata,bcfilldata,0, br )
 end
 
