@@ -104,7 +104,7 @@ function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)
             
             shA=-l+B.l+1
             shB=-k+C.l+l-B.l
-            @simd for j=max(1,k-C.l,l-B.l)+shA:min(B.u+l,n)+shA # columns of C/B
+            @simd for j=(max(1,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
                 @inbounds C.data[j+shB,k]+=Aj*B.data[j,l]
             end
         end
@@ -120,7 +120,7 @@ function *{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
     end
     n=size(A,1)
     m=size(B,2)    
-    bamultiply!(bazeros(promote_type(T,V),A.l+B.l,A.u+B.u,n,m),A,B)
+    bamultiply!(bazeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
 
@@ -194,3 +194,26 @@ setindex!(A::ShiftMatrix,v,k::Range,j::Range)=(A.data[j+A.l+1,k]=v.')
 
 ShiftMatrix(B::BandedMatrix)=ShiftMatrix(B.data,B.l,B.u)
 BandedMatrix(S::ShiftMatrix)=BandedMatrix(S.data,size(S,2)+S.u,S.l,S.u)
+
+
+
+
+## Used to scam addentries! into thinking we are somewhere else
+
+immutable IndexShift{S}
+    matrix::S
+    rowindex::Int
+    colindex::Int
+end
+
+IndexShift(S,ri)=IndexShift(S,ri,0)
+
+getindex(S::IndexShift,k,j)=S.matrix[k-S.rowindex,j-S.colindex]
+setindex!(S::IndexShift,x,k,j)=(S.matrix[k-S.rowindex,j-S.colindex]=x)
+
+columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix,2)+S.colindex)
+
+
+
+issazeros{T}(::Type{T},rws,bnds...)=IndexShift(sazeros(T,rws[end]-rws[1]+1,bnds...),rws[1]-1)
+issazeros(rws,bnds...)=issazeros(Float64,rws,bnds...)

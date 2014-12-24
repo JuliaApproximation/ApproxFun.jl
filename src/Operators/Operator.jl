@@ -35,24 +35,22 @@ Base.size(op::Operator,k::Integer)=size(op)[k]
 ## geteindex
 
 Base.getindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
-Base.getindex(op::Operator,k::Integer,j::Range1)=op[k:k,j][1,:]
-Base.getindex(op::Operator,k::Range1,j::Integer)=op[k,j:j][:,1]
+Base.getindex(op::Operator,k::Integer,j::Range)=op[k:k,j][1,:]
+Base.getindex(op::Operator,k::Range,j::Integer)=op[k,j:j][:,1]
 Base.getindex(op::Functional,k::Integer)=op[k:k][1]
 
-function Base.getindex(op::Functional,j::Range1,k::Range1)
+function Base.getindex(op::Functional,j::Range,k::Range)
   @assert j[1]==1 && j[end]==1
   op[k].'
 end
-function Base.getindex(op::Functional,j::Integer,k::Range1)
+function Base.getindex(op::Functional,j::Integer,k::Range)
   @assert j==1
   op[k].'
 end
 
 
-
-function Base.getindex(B::Operator,k::Range1,j::Range1)
-    BandedMatrix(B,k,j)[k,j]
-end
+#TODO: Speed up by taking only slice
+Base.getindex(B::BandedOperator,k::Range,j::Range)=BandedMatrix(B,max(k[end],j[end]))[k,j]
 
 
 
@@ -87,7 +85,9 @@ index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of Ban
 
 
 ShiftMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,sazeros(T,n,bandinds(B)),1:n)
-BandedMatrix{T<:Number}(B::Operator{T},n::Integer)=BandedMatrix(ShiftMatrix(B,n))
+ShiftMatrix{T<:Number}(B::Operator{T},rws::Range)=addentries!(B,issazeros(T,rws,bandinds(B)),rws).matrix
+ShiftMatrix{T<:Number}(B::Operator{T},rws::(Int,Int))=addentries!(B,issazeros(T,rws,bandinds(B)),rws[1]:rws[end]).matrix
+BandedMatrix{T<:Number}(B::Operator{T},n)=BandedMatrix(ShiftMatrix(B,n))
 
 
 ShiftArray{T<:Number}(B::Operator{T},k::Range,j::Range)=addentries!(B,sazeros(T,k,j),k)

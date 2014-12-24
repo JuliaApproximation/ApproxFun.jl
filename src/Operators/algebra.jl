@@ -329,11 +329,11 @@ end
 
 function addentries!(P::TimesOperator,A,kr::Range1)
     ##TODO: fix hack, and don't reference specific spaces 
-    if all(f->isa(f,Conversion)&&isa(domainspace(f),Ultraspherical)&&isa(rangespace(f),Ultraspherical),P.ops[1:end-1])  
-        old_addentries!(P,A,kr)
-    else
+#     if all(f->isa(f,Conversion)&&isa(domainspace(f),Ultraspherical)&&isa(rangespace(f),Ultraspherical),P.ops[1:end-1])  
+#         old_addentries!(P,A,kr)
+#     else
         new_addentries!(P,A,kr)
-    end
+#    end
 end
 
 
