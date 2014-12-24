@@ -5,7 +5,7 @@ export plan_chebyshevtransform, ichebyshevtransform,chebyshevtransform
 
 function negateeven!(x::Vector)
     for k =2:2:length(x)
-        x[k] *= -1
+        x[k] = -x[k]
     end
     
     x
@@ -23,10 +23,20 @@ function negateeven!(X::Matrix)
     X
 end
 
-plan_chebyshevtransform(x)=length(x)==1?identity:FFTW.plan_r2r(x, FFTW.REDFT00)
-chebyshevtransform(x)=chebyshevtransform(x,plan_chebyshevtransform(x))
-function chebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},plan::Function)
-    if(length(x) == 1)
+function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T})
+#TODO confirm that this can handle T=Complex{Float64} looks like this is a real-to-real transform
+    if length(x)==1
+        return identity
+    else
+        return FFTW.plan_r2r(x, FFTW.REDFT00)
+    end
+end
+
+chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T})=chebyshevtransform(x,plan_chebyshevtransform(x))
+
+#take values at Chebyshev points and produces Chebyshev coefficients
+function chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function)
+    if length(x) == 1
         x
     else
         ret = plan(x)::typeof(x)
@@ -38,10 +48,29 @@ function chebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},pla
     end
 end
 
+#following Chebfun's vals2coeffs.m
+function chebyshevtransform{T<:Number}(x::Vector{T})
+    N = length(x)
+    if N== 1
+        x
+    else
+        #has size 2N-1
+        tmp = cat(1, reverse(x), x[2:end-1])
+        local y
+        if T<:Real
+            y = real(ifft_gen(tmp))
+        else
+            y = ifft_gen(tmp)
+        end
 
+        y = y[1:N]
+        y[2:N-1] *= 2
+        return y
+    end
+end
 
-ichebyshevtransform(x)=ichebyshevtransform(x,plan_chebyshevtransform(x))
-function ichebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},plan::Function)
+ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T})=ichebyshevtransform(x,plan_chebyshevtransform(x))
+function ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function)
     if(length(x) == 1)
         x
     else
@@ -62,9 +91,28 @@ function ichebyshevtransform{T<:Union(Float64,Complex{Float64})}(x::Vector{T},pl
     end
 end
 
+function ichebyshevtransform{T<:Number}(x::Vector{T})
+    if(length(x) == 1)
+        x
+    else
+        ##TODO: make thread safe
+        x[1] *= 2;x[end] *= 2
+        
+        ret = chebyshevtransform(x)::typeof(x)
+        
+        x[1] /=2;x[end] /=2
+        
+        ret[1] *= 2;ret[end] *= 2
+        
+        negateeven!(ret)
+        
+        ret *= .5*(length(x) - 1)
+        
+        flipud(ret)
+    end
+end
 
-
-function chebyshevtransform(A::Matrix)
+function chebyshevtransform{T<:FFTW.fftwNumber}(A::Matrix{T})
     if(size(A) == (1,1))
         A
     else
@@ -78,7 +126,7 @@ function chebyshevtransform(A::Matrix)
     end
 end
 
-function ichebyshevtransform(X::Matrix)
+function ichebyshevtransform{T<:Number}(X::Matrix{T})
     if(size(X) == (1,1))
         X
     else
@@ -93,21 +141,20 @@ function ichebyshevtransform(X::Matrix)
     end
 end
 
-
-
-
 ## First kind transform
 
 plan_chebyshevrootstransform(x)=length(x)==1?identity:FFTW.plan_r2r(x, FFTW.REDFT10)
+
 chebyshevrootstransform(x)=chebyshevrootstransform(x,plan_chebyshevrootstransform(x))
-function chebyshevrootstransform{T<:Union(Float64,Complex{Float64})}(v::Vector{T},plan::Function)
+
+function chebyshevrootstransform{T<:FFTW.fftwNumber}(v::Vector{T},plan::Function)
     cfs=negateeven!(plan(v)::typeof(v))
     cfs[1]/=2
     cfs/=length(v)
     cfs    
 end
 
-function ichebyshevrootstransform(cfs::Vector)
+function ichebyshevrootstransform{T<:FFTW.fftwNumber}(cfs::Vector{T})
     cfs[1]*=2
     negateeven!(cfs)
     FFTW.r2r(cfs,FFTW.REDFT01)/2    

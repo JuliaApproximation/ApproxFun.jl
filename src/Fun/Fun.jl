@@ -4,29 +4,27 @@ export coefficients,integrate,differentiate,domain,space
 include("Domain.jl")
 include("FunctionSpace.jl")
 
-
 ##  Constructors
 
-
-
 ##TODO: No zero length funs
-type Fun{S<:FunctionSpace,T<:Union(Float64,Complex{Float64})} 
+
+type Fun{S<:FunctionSpace,T<:Number} 
     coefficients::Vector{T}
     space::S
 end
 
 ##Coefficient routines
 #TODO: domainscompatible?
+
 coefficients(f::Fun,msp::FunctionSpace)=spaceconversion(f.coefficients,space(f),msp)
 coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(AnyDomain()))
 canonicalcoefficients(f::Fun)=coefficients(f,canonicalspace(f.space))  
 coefficients(f::Fun)=f.coefficients
 coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 
+
 ##Convert routines
-
-
-
+#TODO properly handle other number types
 Base.convert{T<:Number,S<:FunctionSpace}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
 Base.convert{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},f::Fun{S,T})=Fun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
 Base.promote_rule{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},::Type{Fun{S,T}})=Fun{S,Complex{Float64}}
@@ -38,7 +36,6 @@ Base.one{T,S<:FunctionSpace}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
 for op in (:(Base.zeros),:(Base.ones))
     @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
 end
-
 
 
 Base.eltype{S,T}(::Fun{S,T})=T
@@ -64,6 +61,7 @@ spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
 canonicalspace(f::Fun)=canonicalspace(space(f))
 canonicaldomain(f::Fun)=canonicaldomain(domain(f))
 
+
 ##Evaluation
 
 function evaluate{S,T}(f::Fun{S,T},x)
@@ -85,14 +83,13 @@ end
 
 
 ##Data routines
+
 values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...) 
 points(f::Fun)=points(f.space,length(f))
 Base.length(f::Fun)=length(f.coefficients)
 
 
-
 ## Manipulate length
-
 
 pad!(f::Fun,n::Integer)=pad!(f.coefficients,n)
 pad(f::Fun,n::Integer)=Fun(pad(f.coefficients,n),f.space)
@@ -107,13 +104,10 @@ function chop!{S,T}(f::Fun{S,T},tol::Real)
     f
 end
 chop(f::Fun,tol)=chop!(Fun(copy(f.coefficients),f.space),tol)
-chop!(f::Fun)=chop!(f,eps())
+chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
 
 
 ## Addition and multiplication
-
-
-
 
 for op = (:+,:-)
     @eval begin
@@ -139,8 +133,6 @@ end
 fasttimes(f2,g2)=Fun(chebyshevtransform(values(f2).*values(g2)),domain(f2))
 
 
-
-
 for op = (:*,:.*,:./,:/)
     @eval ($op)(f::Fun,c::Number) = Fun(($op)(f.coefficients,c),f.space)
 end 
@@ -154,11 +146,9 @@ for op = (:*,:.*,:+)
 end
 
 
-
-
-function .^(f::Fun,k::Integer)
+function .^{S,T}(f::Fun{S,T},k::Integer)
     if k == 0
-        1.
+        Fun(one(T),domain(f))
     elseif k > 0
         f.*f.^(k-1)
     else
@@ -167,9 +157,7 @@ function .^(f::Fun,k::Integer)
 end
 
 
-
 ## Norm
-
 
 Base.dot(f::Fun,g::Fun)=sum(conj(f).*g)
 function Base.norm(f::Fun)
@@ -177,7 +165,6 @@ function Base.norm(f::Fun)
     f2 = pad(f,2length(f)-1)
     real(sqrt(sum(Fun(transform(sp,values(conj(f2)).*values(f2)),sp))))
 end
-
 
 
 ## Mapped functions
@@ -241,6 +228,7 @@ end
 
 
 Base.sum{S,T}(f::Fun{S,T})=last(cumsum(f))
+integrate{D,T}(f::Fun{D,T})=integrate(Fun(f,domain(f)))
 
 
 ## non-vector notation

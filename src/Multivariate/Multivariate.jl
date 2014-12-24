@@ -29,12 +29,20 @@ Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
 Fun(f,dx::Domain,dy::Domain)=Fun(f,dx*dy)
 Fun(f,dx::Vector,dy::Vector)=Fun(f,Interval(dx),Interval(dx))
 
+
 function Fun(f::Function)
     try
         Fun(f,Interval())
-    catch
-        Fun(f,Interval(),Interval())
+    catch ex #TODO only catch errors for wrong number of arguments
+    	warn("Got $(ex) when assuming 1-arity of $f")
+    	try
+        	Fun(f,Interval(),Interval())
+        catch ex
+        	warn("Got $(ex) when assuming 2-arity of $f")
+        	error("Could not construct function")
+        end
     end
 end
+
 
 coefficients(f::BivariateFun,sp::TensorSpace)=coefficients(f,sp[1],sp[2])

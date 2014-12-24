@@ -3,7 +3,7 @@ include("roots.jl")
 include("sample.jl")
 include("timeevolution.jl")
 include("fftBigFloat.jl")
-
+include("fftGeneric.jl")
 
 
 #
