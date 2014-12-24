@@ -298,8 +298,8 @@ function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Ra
     A
 end
 
-function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
-    krl=Array(Range1,length(P.ops))
+function new_addentries!(P::TimesOperator,A,kr::Range)
+    krl=Array(Range1{Int},length(P.ops))
     
     krl[1]=kr
     
