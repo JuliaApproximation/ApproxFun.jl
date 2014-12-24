@@ -80,7 +80,7 @@ function bandinds(D::DiagonalArrayOperator)
 end
 
 
-function addentries!(D::DiagonalArrayOperator,A::ShiftArray,kr::Range)
+function addentries!(D::DiagonalArrayOperator,A,kr::Range)
     n=*(D.dimensions...)
     for k=1:n
         stride_addentries!(D.op,k-n,k-n,n,n,A,kr)
@@ -133,7 +133,7 @@ sumblkdiagm{B<:Operator}(v::Vector{B})=SumInterlaceOperator(v)
 immutable BiSwapOperator <: BandedOperator{Float64} end
 bandinds(::BiSwapOperator)=-1,1
 
-function addentries!(::BiSwapOperator,A::ShiftArray,kr::Range)
+function addentries!(::BiSwapOperator,A,kr::Range)
     for k=kr
         if isodd(k)
             A[k,1] += 1
