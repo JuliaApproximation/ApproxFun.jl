@@ -284,12 +284,12 @@ function addentries!(P::TimesOperator,A,kr::Range1)
     end
     krl
     
-    BA=BandedMatrix(P.ops[end],krl[end,1]:krl[end,2])
+    BA=ShiftMatrix(P.ops[end],krl[end,1]:krl[end,2])
     for m=(length(P.ops)-1):-1:2
-        BA=BandedMatrix(P.ops[m],krl[m,1]:krl[m,2])*BA
+        BA=ShiftMatrix(P.ops[m],krl[m,1]:krl[m,2])*BA
     end
     
-    bamultiply!(A,BandedMatrix(P.ops[1],krl[1,1]:krl[1,2]),BA,kr[1]-1)
+    bamultiply!(A,ShiftMatrix(P.ops[1],krl[1,1]:krl[1,2]),BA,kr[1]-1)
 end
 
 

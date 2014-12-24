@@ -179,7 +179,7 @@ getindex!(b::AlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,
 function resizedata!{T<:Number,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,R},n::Integer)
     if n > B.datalength    
         nbc=B.numbcs
-        if n > size(B.data,1)
+        if n+20 >= size(B.data,1)
             pad!(B.data,2n)
         end
 

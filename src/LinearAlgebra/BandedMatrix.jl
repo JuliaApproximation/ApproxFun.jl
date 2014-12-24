@@ -95,22 +95,6 @@ function setindex!(A::BandedMatrix,v,k::Integer,jr::Range)
 end
 
 
-# C can be a BandedMatrix or a ShiftMatrix
-function bamultiply!(C,A::BandedMatrix,B::BandedMatrix)   
-    n,m=size(A,1),size(B,2)
-    for k=1:n  # rows of C
-        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
-            @inbounds Aj=A.data[l-k+A.l+1,k]
-            
-            shA=-l+B.l+1
-            shB=-k+C.l+l-B.l
-            @simd for j=(max(1,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
-                @inbounds C.data[j+shB,k]+=Aj*B.data[j,l]
-            end
-        end
-    end 
-    C
-end
 
 
 
@@ -191,6 +175,15 @@ function pad!(A::ShiftMatrix,n)
     A
 end
 
+basize(B,k)=ifelse(k==1,size(B,1),size(B,1)+B.u)
+function *{T,V}(A::ShiftMatrix{T},B::ShiftMatrix{V})
+    if basize(A,2)!=basize(B,1)
+        throw(DimensionMismatch("*"))
+    end
+    n=size(A,1)
+    bamultiply!(sazeros(promote_type(T,V),n,A.l+B.l,A.u+B.u),A,B)
+end
+
 
 
 
@@ -208,7 +201,10 @@ type IndexShift{S}
     matrix::S
     rowindex::Int
     colindex::Int
+    l::Int
+    u::Int
 end
+IndexShift(S,ri,ci)=IndexShift(S,ri,ci,S.l,S.u)
 
 IndexShift(S,ri)=IndexShift(S,ri,0)
 
@@ -224,10 +220,10 @@ issazeros(rws,bnds...)=issazeros(Float64,rws,bnds...)
 
 
 
-## Allow multiply and shift
+## Multiplication
 
-function bamultiply!(C,A::BandedMatrix,B::BandedMatrix,rs::Integer)   
-    n=size(A,1);m=size(B,2)
+function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)   
+    n,m=size(A,1),size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
@@ -235,10 +231,62 @@ function bamultiply!(C,A::BandedMatrix,B::BandedMatrix,rs::Integer)
             shA=-l+B.l+1
             shB=-k+C.l+l-B.l
             @simd for j=(max(1,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
+                @inbounds C.data[j+shB,k]+=Aj*B.data[j,l]
+            end
+        end
+    end 
+    C
+end
+
+function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer)   
+    n=size(A,1);m=size(B,2)
+    for k=1:n  # rows of C
+        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
+            @inbounds Aj=A.data[l-k+A.l+1,k]
+            
+            shA=-l+B.l+1
+            shB=-k+C.l+l-B.l
+            @simd for j=(max(1-shB,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
                 @inbounds C.data[j+shB,k+rs]+=Aj*B.data[j,l]
             end
         end
     end 
     C
 end
+
+
+
+# Shift Matrix multiplication differs as it does the entire bands
+function bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix)   
+    n,m=size(A,1),basize(B,2)
+    for k=1:n  # rows of C
+        for l=k-A.l:min(k+A.u,basize(A,2)) # columns of A
+            @inbounds Aj=A.data[l-k+A.l+1,k]
+            
+            shA=-l+B.l+1
+            shB=-k+C.l+l-B.l
+            @simd for j=(max(k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
+                @inbounds C.data[j+shB,k]+=Aj*B.data[j,l]
+            end
+        end
+    end 
+    C
+end
+
+function bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)   
+    n=size(A,1);m=basize(B,2)
+    for k=1:n  # rows of C
+        for l=k-A.l:min(k+A.u,basize(A,2)) # columns of A
+            @inbounds Aj=A.data[l-k+A.l+1,k]
+            
+            shA=-l+B.l+1
+            shB=-k+C.l+l-B.l
+            @simd for j=(max(k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
+                @inbounds C.data[j+shB,k+rs]+=Aj*B.data[j,l]
+            end
+        end
+    end 
+    C
+end
+
 
