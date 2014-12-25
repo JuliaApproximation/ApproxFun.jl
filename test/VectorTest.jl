@@ -1,6 +1,6 @@
 using ApproxFun,Base.Test
 
-import ApproxFun:interlace
+import ApproxFun:interlace,Multiplication
 
 
 d=Interval()
