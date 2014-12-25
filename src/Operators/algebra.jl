@@ -347,7 +347,7 @@ function *{T<:Number}(A::BandedOperator,b::Vector{T})
     n=length(b)
     
     if n>0
-        BandedMatrix(A,:,n)*b
+        slice(A,:,1:n)*b
     else
         b
     end

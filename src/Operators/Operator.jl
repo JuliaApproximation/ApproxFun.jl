@@ -75,7 +75,7 @@ ShiftMatrix{T<:Number}(B::Operator{T},rws::(Int,Int))=addentries!(B,issazeros(T,
 # Returns all columns in rows kr
 # The first column of the returned BandedMatrix
 # will be the first non-zero column
-function BandedMatrix(B::Operator,kr::Range,::Colon)
+function BandedMatrix(B::Operator,kr::UnitRange,::Colon)
     br=bandrange(B)
     l=max(0,-br[1]-kr[1]+1)
     u=length(br)-l-1
@@ -84,7 +84,7 @@ function BandedMatrix(B::Operator,kr::Range,::Colon)
     BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
 end
 
-function BandedMatrix(B::Operator,::Colon,jr::Range)
+function BandedMatrix(B::Operator,::Colon,jr::UnitRange)
     br=bandrange(B)
     kr=max(1,jr[1]-br[end]):jr[end]-br[1]
     
@@ -123,6 +123,13 @@ Base.getindex(B::BandedOperator,k::Range,j::Range)=BandedMatrix(B,1:max(k[end],j
 # This violates the behaviour of slices though...
 Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
 
+function subview(B::BandedOperator,kr::Range,:)
+     br=bandinds(B)
+     BM=slice(B,kr,:)
+     
+     # This shifts to the correct slice
+     IndexShift(BM,kr[1]-1,max(0,kr[1]-1+br[1]))
+end
 
 # BandedMatrix(B::Operator,::Colon,col::Integer)=BandedMatrix(ShiftMatrix(B,col-bandinds(B,1)),col)
 # 
