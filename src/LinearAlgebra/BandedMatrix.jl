@@ -74,8 +74,8 @@ Base.full(A::BandedMatrix)=A[1:size(A,1),1:size(A,2)]
 #setindex!(A::BandedMatrix,v,kr::Range,j::Integer)=(A.l≤j-kr[end]≤j-kr[1]≤A.u&&kr[end]≤A.n)?ussetindex!(A,v,kr,j):throw(BoundsError())
 
 
-ibsetindex!(A::BandedMatrix,v,k::Integer,j::Integer)=( A.data[j-k+A.l+1,k]=v)
-ibpluseq!(A::BandedMatrix,v,k::Integer,j::Integer)=( A.data[j-k+A.l+1,k]+=v)
+ibsetindex!(A::BandedMatrix,v,k::Integer,j::Integer)=(@inbounds A.data[j-k+A.l+1,k]=v)
+ibpluseq!(A::BandedMatrix,v,k::Integer,j::Integer)=(@inbounds A.data[j-k+A.l+1,k]+=v)
 setindex!(A::BandedMatrix,v,k::Integer,j::Integer)=(A.data[j-k+A.l+1,k]=v)
 
 function setindex!(A::BandedMatrix,v,kr::Range,jr::Range)
@@ -194,7 +194,7 @@ end
 function saeye{T}(::Type{T},n::Integer,a...)
     ret=sazeros(T,n,a...)
     for k=1:n
-         ret[k,0]=one(T)
+         @inbounds ret[k,0]=one(T)
     end
     ret
 end
@@ -219,10 +219,10 @@ Base.full(A::ShiftMatrix)=A[1:size(A,1),columnrange(A)]
 #setindex!(A::ShiftMatrix,v,kr::Range,j::Integer)=(A.l≤j-kr[end]≤j-kr[1]≤A.u&&kr[end]≤A.n)?ussetindex!(A,v,kr,j):throw(BoundsError())
 
 
-ibsetindex!(A::ShiftMatrix,v,k,j)=( A.data[j+A.l+1,k]=v)
-ibsetindex!(A::ShiftMatrix,v,k::Range,j::Range)=( A.data[j+A.l+1,k]=v.')
-ibpluseq!(A::ShiftMatrix,v,k,j)=( A.data[j+A.l+1,k]+=v)
-ibpluseq!(A::ShiftMatrix,v,k::Range,j::Range)=( A.data[j+A.l+1,k]+=v.')
+ibsetindex!(A::ShiftMatrix,v,k,j)=(@inbounds  A.data[j+A.l+1,k]=v)
+ibsetindex!(A::ShiftMatrix,v,k::Range,j::Range)=(@inbounds  A.data[j+A.l+1,k]=v.')
+ibpluseq!(A::ShiftMatrix,v,k,j)=(@inbounds  A.data[j+A.l+1,k]+=v)
+ibpluseq!(A::ShiftMatrix,v,k::Range,j::Range)=(@inbounds  A.data[j+A.l+1,k]+=v.')
 setindex!(A::ShiftMatrix,v,k,j)=(A.data[j+A.l+1,k]=v)
 setindex!(A::ShiftMatrix,v,k::Range,j::Range)=(A.data[j+A.l+1,k]=v.')
 
@@ -353,7 +353,7 @@ ibpluseq!{ST<:ShiftMatrix}(S::IndexTranspose{ST},x,k,j)=S.matrix[k+j,-j]+=x
 function bamultiply!(c::Vector,A::BandedMatrix,b::Vector)
     for k=1:size(A,1)  # rows of c
         @simd for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A/rows of b
-             c[k]+=A.data[l-k+A.l+1,k]*b[l]
+             @inbounds c[k]+=A.data[l-k+A.l+1,k]*b[l]
         end        
     end
     c
@@ -368,12 +368,12 @@ function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)
     n,m=size(A,1),size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A/rows of B
-             Aj=A.data[l-k+A.l+1,k]
+            @inbounds Aj=A.data[l-k+A.l+1,k]
             
             shA=-l+B.l+1
             shB=-k+C.l+l-B.l
             @simd for j=(max(1,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
-                 C.data[j+shB,k]+=Aj*B.data[j,l]
+                 @inbounds C.data[j+shB,k]+=Aj*B.data[j,l]
             end
         end
     end 
@@ -384,12 +384,12 @@ function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
-             Aj=A.data[l-k+A.l+1,k]
+             @inbounds Aj=A.data[l-k+A.l+1,k]
             
             shA=-l+B.l+1
             shB=-k+C.l+l-B.l
             @simd for j=(max(1-shB,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
-                 C.data[j+shB,k+rs]+=Aj*B.data[j,l]
+                 @inbounds C.data[j+shB,k+rs]+=Aj*B.data[j,l]
             end
         end
     end 
@@ -421,16 +421,12 @@ function bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)
     n=size(A,1);m=basize(B,2)
     for k=1:n  # rows of C
         for l=max(k-A.l,1):min(k+A.u,basize(A,2)) # columns of A
-             Aj=A.data[l-k+A.l+1,k]
+            @inbounds Aj=A.data[l-k+A.l+1,k]
             
             shA=-l+B.l+1
             shB=-k+C.l+l-B.l
             @simd for j=(max(k-C.l,l-B.l)+shA):(min(B.u+l,k+C.u,m)+shA) # columns of C/B
-                if j+shB≤0 || j+shB>size(C.data,1) || k+rs≤0 || j≤0 || l ≤0
-                    println(string(j)*" "*string(shB)*" "*string(k)*" "*string(rs)*" "*string(l))
-                end
-            
-                 C.data[j+shB,k+rs]+=Aj*B.data[j,l]
+                 @inbounds C.data[j+shB,k+rs]+=Aj*B.data[j,l]
             end
         end
     end 
@@ -475,7 +471,7 @@ end
 
 function addentries!(B::ShiftMatrix,c::Number,A,kr::Range)    
     for k=kr,j=columnrange(B)
-         ibpluseq!(A,c*B.data[j+A.l+1,k],k,j)
+         @inbounds ibpluseq!(A,c*B.data[j+A.l+1,k],k,j)
     end
     
     A
