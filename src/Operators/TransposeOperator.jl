@@ -23,7 +23,12 @@ bandinds(P::TransposeOperator)=-bandinds(P.op)[end],-bandinds(P.op)[1]
 function addentries!(P::TransposeOperator,A,kr::Range)
     br=bandinds(P.op)
     kr2=max(kr[1]-br[end],1):kr[end]-br[1]
-    addentries!(P.op,IndexTranspose(A,kr),kr2).matrix
+    
+    B=slice(P.op,kr2,kr)
+    for k=kr,j=max(1,k+bandinds(P,1)):k+bandinds(P,2)
+        A[k,j-k]+=B[j,k]
+    end
+    A
 end
 
 

@@ -345,7 +345,8 @@ function setindex!(S::IndexTranspose,x,k,j)
     end
     x
 end
-
+ibpluseq!{ST<:ShiftMatrix}(S::IndexTranspose{ST},x,k,j)=S.matrix[k+j,-j]+=x
+#ibpluseq!(S.matrix,x,k+j,-j)
 
 ## Matrix*Vector Multiplicaiton
 
@@ -446,20 +447,25 @@ function bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)
     C
 end
 
-function bamultiply!(C::IndexTranspose,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)   
-    n=size(A,1);m=basize(B,2)
-    for k=1:n  # rows of C
-        for l=k-A.l:min(k+A.u,basize(A,2)) # columns of A
-            @inbounds Aj=A.data[l-k+A.l+1,k]
-            
-            shA=-l+B.l+1       
-             for j=l-B.l:min(B.u+l,n) # columns of C/B
-                 C[k,j]+=Aj*B.data[l,j+shA]
-             end
-        end
-    end 
+function bamultiply!(C::IndexShift,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)
+    @assert C.colindex==0
+    bamultiply!(C.matrix,A,B,rs-C.rowindex)
     C
 end
+
+# function bamultiply!{ST<:ShiftMatrix}(C::IndexTranspose{ST},A::ShiftMatrix,B::ShiftMatrix,rs::Integer)   
+#     n=size(A,1);m=basize(B,2)
+#     for k=1:n  # rows of C
+#         for l=k-A.l:min(k+A.u,basize(A,2)) # columns of A
+#             Aj=A[k,l]
+#                   
+#              for j=max(1,k-C.matrix.u,l-B.l):min(k+C.matrix.l,B.u+l,n) # columns of C/B
+#                  C[k,j-k]+=Aj*B[l,j]
+#              end
+#         end
+#     end 
+#     C
+# end
 
 
 
@@ -484,7 +490,7 @@ function addentries!(B::ShiftMatrix,c::Number,A,kr::Range)
 end
 
 function addentries!{ST<:ShiftMatrix}(B::IndexShift{ST},c::Number,A,kr::Range)    
-    for k=kr,j=columnrange(B)
+    for k=kr,j=max(1-k,columninds(B,1)):columninds(B,2)
         ibpluseq!(A,c*B[k,j],k,j)
     end
     
