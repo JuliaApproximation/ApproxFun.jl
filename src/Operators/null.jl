@@ -29,12 +29,12 @@ function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=Inf)
      
     k=0
     
-    while slnorm(M.data.data,k+1:k+d)>eps()  && k <= maxit
+    while slnorm(M.data,k+1:k+d)>eps()  && k <= maxit
         k+=1
         
-        if k+m >= n
+        if k+m+d >= n
             n=2n
-            resizedata!(M,2n)
+            resizedata!(M,n)
             
             for j=1:m
                 Q[j]=[Q[j],zeros(T,n)]

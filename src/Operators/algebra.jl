@@ -272,7 +272,7 @@ bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
 
 
 
-function addentries!(P::TimesOperator,A,kr::Range1)
+function addentries!(P::TimesOperator,A,kr::Range)
     krl=Array(Int,length(P.ops),2)
     
     krl[1,1],krl[1,2]=kr[1],kr[end]

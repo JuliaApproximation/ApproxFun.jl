@@ -131,11 +131,22 @@ function slnorm(u::Array,r::Range)
     ret = 0.0
    for k=r
         @simd for j=1:size(u,2)
-            @inbounds ret=max(abs(u[k,j]),ret)
+            ret=max(abs(u[k,j]),ret)
         end
     end
     ret
 end
+
+function slnorm(u::ShiftMatrix,r::Range)
+    ret = 0.0
+   for k=r
+        @simd for j=1:size(u.data,1)
+            ret=max(abs(u.data[j,k]),ret)
+        end
+    end
+    ret
+end
+
 adaptiveqr{V<:Number}(B::Operator,v::Array{V},tol::Float64,N) = adaptiveqr([B],v,tol,N)  #May need to copy v in the future
 adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Array{V},tol::Float64,N) = adaptiveqr!(AlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
 function adaptiveqr!{V<:Number}(B::AlmostBandedOperator,v::Array{V},tol::Float64,N)  
