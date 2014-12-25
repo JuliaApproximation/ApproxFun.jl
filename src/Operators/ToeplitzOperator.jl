@@ -120,7 +120,7 @@ end
 
 function laurent_addentries!(v::ShiftVector,A,kr::Range)    
     negkr,poskr=shiftrowrange(kr)
-    br=length(v)==0?(0,0):(firstindex(v),lastindex(v))
+    br=length(v)==0?(0:0):(firstindex(v):lastindex(v))
 
     for k=poskr,j=br
         if k+j≥0 # && k≥0

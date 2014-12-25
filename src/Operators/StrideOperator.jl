@@ -54,7 +54,7 @@ end
 function stride_addentries!(op,ri,ci,rs,cs,A,kr::Range)
     r1=divrowrange(rs,ri,kr)
 
-    B1=ShiftMatrix(op,r1)
+    B1=saslice(op,r1)
 #    B=BandedMatrix(A)
     
     for k=r1, j=columnrange(B1)
