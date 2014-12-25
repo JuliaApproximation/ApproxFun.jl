@@ -68,7 +68,7 @@ evaluate{T}(f::Fun{JacobiSquare,T},x::Number)=itransform(f.space,f.coefficients,
 ## Operators
 
 
-function addentries!{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T},A::ShiftArray,kr::Range)
+function addentries!{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T},A,kr::Range)
     @assert length(M.f)==1
     @assert M.f.space.α ==0.
     addentries!(ConstantOperator(2.0^M.f.space.β*M.f.coefficients[1]),A,kr)
