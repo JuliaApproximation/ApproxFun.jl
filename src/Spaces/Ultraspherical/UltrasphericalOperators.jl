@@ -72,9 +72,9 @@ function chebmult_addentries!(cfs::Vector,A,kr::Range)
 end
 
 
-addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::Range)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
+addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::UnitRange)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
 
-function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A,kr::Range)
+function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A,kr::UnitRange)
     cfs=canonicalcoefficients(M.f)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(-.5cfs[3:end],A,kr)    
@@ -82,7 +82,7 @@ end
 
 
 
-function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ}},A,kr::Range)
+function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ}},A,kr::UnitRange)
     a=coefficients(M.f,domainspace(M))
     for k=kr
         A[k,0]=a[1] 
@@ -91,7 +91,7 @@ function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ
     if length(a) > 1
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
 
-        J=slice(UltrasphericalRecurrence{λ}(),jkr,jkr)
+        J=subview(UltrasphericalRecurrence{λ}(),jkr,jkr)
         C1=2λ*J
         addentries!(C1,a[2],A,kr)
         C0=isbaeye(jkr)

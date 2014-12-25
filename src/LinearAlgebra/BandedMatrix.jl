@@ -258,7 +258,7 @@ BandedMatrix(S::ShiftMatrix,m)=BandedMatrix(S.data,m,S.l,S.u)
 
 ## Used to scam addentries! into thinking we are somewhere else
 
-type IndexShift{S}
+type IndexShift{S} 
     matrix::S
     rowindex::Int
     colindex::Int
@@ -371,16 +371,28 @@ function bamultiply!(C::Union(BandedMatrix,ShiftMatrix),A::BandedMatrix,B::Bande
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
-            
-             @inbounds Aj=A.data[l-k+A.l+1,k]
+            #@inbounds
+              Aj=A.data[l-k+A.l+1,k]
             
             shA=-l+B.l+1
             shB=-k+C.l+l-B.l+cs-rs
             @simd for j=(max(1-shB,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
-                 @inbounds C.data[j+shB,k+rs]+=Aj*B.data[j,l]
+            #@inbounds            
+                 C.data[j+shB,k+rs]+=Aj*B.data[j,l]
             end
         end
     end 
+    C
+end
+
+function bamultiply!{SM<:ShiftMatrix}(C::IndexShift{SM},A::BandedMatrix,B::BandedMatrix,rs::Integer=0,cs::Integer=0)
+    bamultiply!(C.matrix,A,B,rs-C.rowindex,cs-C.colindex-C.rowindex)
+    C
+end
+
+
+function bamultiply!{SM<:BandedMatrix}(C::IndexShift{SM},A::BandedMatrix,B::BandedMatrix,rs::Integer=0,cs::Integer=0)
+    bamultiply!(C.matrix,A,B,rs-C.rowindex,cs-C.colindex)
     C
 end
 

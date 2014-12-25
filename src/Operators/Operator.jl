@@ -72,28 +72,44 @@ ShiftMatrix{T<:Number}(B::Operator{T},rws::UnitRange)=first(rws)==1?ShiftMatrix(
 ShiftMatrix{T<:Number}(B::Operator{T},rws::(Int,Int))=ShiftMatrix(B,rs[1]:rws[end])
 
 
-# Returns all columns in rows kr
-# The first column of the returned BandedMatrix
-# will be the first non-zero column
-function BandedMatrix(B::Operator,kr::UnitRange,::Colon)
+function BandedMatrix(B::Operator,kr::Range,jr::Range)
     br=bandrange(B)
     l=max(0,-br[1]-kr[1]+1)
     u=length(br)-l-1
     m=length(kr)+length(br)-1-l
     
-    BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
+    shft=kr[1]-jr[1]
+    
+    BandedMatrix(ShiftMatrix(B,kr).data,length(jr),-br[1]-shft,br[end]+shft)
 end
 
-function BandedMatrix(B::Operator,::Colon,jr::UnitRange)
-    br=bandrange(B)
-    kr=max(1,jr[1]-br[end]):jr[end]-br[1]
-    
-    u=max(0,br[end]-jr[1]+1)
-    l=length(br)-u-1
-    m=length(jr)
-    
-    BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
-end
+
+# Returns all columns in rows kr
+# The first column of the returned BandedMatrix
+# will be the first non-zero column
+
+BandedMatrix(B::Operator,kr::UnitRange,::Colon)=BandedMatrix(B,kr,max(1,kr[1]+bandinds(B,1)):kr[end]+bandinds(B,2))
+BandedMatrix(B::Operator,kr::Colon,jr::UnitRange)=BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
+
+# function BandedMatrix(B::Operator,kr::UnitRange,::Colon)
+#     br=bandrange(B)
+#     l=max(0,-br[1]-kr[1]+1)
+#     u=length(br)-l-1
+#     m=length(kr)+length(br)-1-l
+#     
+#     BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
+# end
+# 
+# function BandedMatrix(B::Operator,::Colon,jr::UnitRange)
+#     br=bandrange(B)
+#     kr=max(1,jr[1]-br[end]):jr[end]-br[1]
+#     
+#     u=max(0,br[end]-jr[1]+1)
+#     l=length(br)-u-1
+#     m=length(jr)
+#     
+#     BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
+# end
 
 
 
