@@ -14,7 +14,7 @@
 ###
 
 
-type BandedMatrix{T}
+type BandedMatrix{T} <: AbstractSparseMatrix{T,Int}
     data::Matrix{T}  # l+u+1 x n (# of rows)
     m::Int #Number of columns    
     l::Int # lower bandwidth ≥0
@@ -92,6 +92,8 @@ end
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
+        $OP(B::BandedMatrix{Bool},x::Bool)=BandedMatrix($OP(B.data,x),B.m,B.l,B.u)    
+        $OP(x::Bool,B::BandedMatrix{Bool})=BandedMatrix($OP(x,B.data),B.m,B.l,B.u)            
         $OP(B::BandedMatrix,x::Number)=BandedMatrix($OP(B.data,x),B.m,B.l,B.u)
         $OP(x::Number,B::BandedMatrix)=BandedMatrix($OP(x,B.data),B.m,B.l,B.u)    
     end    
@@ -235,7 +237,7 @@ end
 
 basize(B,k)=ifelse(k==1,size(B,1),size(B,1)+B.u)
 function *{T,V}(A::ShiftMatrix{T},B::ShiftMatrix{V})
-    if basize(A,2)!=basize(B,1)
+    if size(A,1)+size(A,2)-1<size(B,1)
         throw(DimensionMismatch("*"))
     end
     n=size(A,1)
@@ -364,26 +366,12 @@ end
 
 ## Matrix*Matrix Multiplication
 
-function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)   
-    n,m=size(A,1),size(B,2)
-    for k=1:n  # rows of C
-        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A/rows of B
-            @inbounds Aj=A.data[l-k+A.l+1,k]
-            
-            shA=-l+B.l+1
-            shB=-k+C.l+l-B.l
-            @simd for j=(max(1,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
-                 @inbounds C.data[j+shB,k]+=Aj*B.data[j,l]
-            end
-        end
-    end 
-    C
-end
-
 function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer)   
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
-        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
+        for l=k-A.l:min(k+A.u,size(A,2)) # columns of A
+            # If we don't want to multiply padding, change back to l=max(1,k-A.l):min(k+A.u,size(A,2))        
+            
              @inbounds Aj=A.data[l-k+A.l+1,k]
             
             shA=-l+B.l+1
@@ -395,6 +383,9 @@ function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer
     end 
     C
 end
+
+
+bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)=bamultiply!(C,A,B,0)
 
 # Unoptimized version of below
 

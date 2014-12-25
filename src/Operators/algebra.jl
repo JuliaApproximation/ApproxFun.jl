@@ -279,17 +279,18 @@ function addentries!(P::TimesOperator,A,kr::Range)
     
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
-         krl[m+1,1]=max(br[1] + krl[m,1],1)
+        krl[m+1,1]=max(br[1] + krl[m,1],1)
         krl[m+1,2]=br[end] + krl[m,2]
     end
-    krl
     
-    BA=ShiftMatrix(P.ops[end],krl[end,1]:krl[end,2])
+    # The following returns a banded Matrix with all rows 
+    BA=P.ops[end][krl[end,1]:krl[end,2],:]
     for m=(length(P.ops)-1):-1:2
-        BA=ShiftMatrix(P.ops[m],krl[m,1]:krl[m,2])*BA
+        BA=P.ops[m][krl[m,1]:krl[m,2],:]*BA
     end
     
-    bamultiply!(A,ShiftMatrix(P.ops[1],krl[1,1]:krl[1,2]),BA,kr[1]-1)
+    # Right directly to A, shifting by kr[1]-1
+    bamultiply!(A,P.ops[1][krl[1,1]:krl[1,2],:],BA,kr[1]-1)
 end
 
 

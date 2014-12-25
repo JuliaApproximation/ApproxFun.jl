@@ -149,6 +149,6 @@ addentries!(T::LaurentOperator,A,kr::Range)=laurent_addentries!(T.coefficients,A
 shiftbandinds(T::LaurentOperator)=length(T.coefficients)==0?(0,0):(firstindex(T.coefficients),lastindex(T.coefficients))
 function bandinds(T::LaurentOperator)
     sbi=shiftbandinds(T)
-    min(2sbi[1],-2sbi[end]):max(2sbi[end],-2sbi[1])
+    min(2sbi[1],-2sbi[end]),max(2sbi[end],-2sbi[1])
 end
 
