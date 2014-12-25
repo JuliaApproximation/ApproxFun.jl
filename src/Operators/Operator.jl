@@ -135,7 +135,7 @@ Base.getindex(B::BandedOperator,f::TensorFun) = B[LowRankFun(f)]
 ## Standard Operators and linear algebra
 
 
-include("ShiftOperator.jl")
+#include("ShiftOperator.jl")
 include("linsolve.jl")
 
 include("spacepromotion.jl")

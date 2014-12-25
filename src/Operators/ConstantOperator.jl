@@ -14,7 +14,7 @@ IdentityOperator()=ConstantOperator(1.0)
 
 bandinds(T::ConstantOperator)=0,0
 
-addentries!(C::ConstantOperator,A,kr::Range1)=laurent_addentries!([.5C.c],A,kr)
+addentries!(C::ConstantOperator,A,kr::Range1)=toeplitz_addentries!([.5C.c],A,kr)
 
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
