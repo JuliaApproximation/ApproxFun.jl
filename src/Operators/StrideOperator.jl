@@ -54,17 +54,17 @@ end
 function stride_addentries!(op,ri,ci,rs,cs,A,kr::Range)
     r1=divrowrange(rs,ri,kr)
 
-    B1=BandedMatrix(op,r1)
-    B=BandedMatrix(A)
+    B1=ShiftMatrix(op,r1)
+#    B=BandedMatrix(A)
     
-    for k=r1, j=bandrange(B1)+k
-        B[rs*k + ri,cs*j + ci] += B1[k,j]
+    for k=r1, j=columnrange(B1)
+        A[rs*k + ri,cs*(j+k) + ci-(rs*k + ri)] += B1[k,j]
     end
     
     A    
 end
 
-stride_addentries!(S::StrideOperator,A,kr::Range1)=stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
+stride_addentries!(S::StrideOperator,A,kr::Range)=stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
 
 
 addentries!(S::StrideOperator,A,kr)=stride_addentries!(S,A,kr)

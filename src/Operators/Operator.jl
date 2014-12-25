@@ -61,7 +61,7 @@ saslice(B::BandedOperator,kr::Range)=IndexShift(ShiftMatrix(B,kr),kr[1]-1)
 ## bandrange and indexrange
 
 
-bandinds(A::BandedOperator,k::Integer)=bandinds(A)[k]
+bandinds(A,k::Integer)=bandinds(A)[k]
 bandrange(b::BandedBelowOperator)=Range1(bandinds(b)...)
 function bandrangelength(B::BandedBelowOperator)
     bndinds=bandinds(B)
