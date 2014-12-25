@@ -60,6 +60,7 @@ Base.size(A::BandedMatrix)=size(A.data,2),A.m
 bandinds(A::BandedMatrix)=-A.l,A.u
 bandrange(A::BandedMatrix)=-A.l:A.u
 
+
 usgetindex(A::BandedMatrix,k::Integer,j::Integer)=A.data[j-k+A.l+1,k]
 usgetindex(A::BandedMatrix,k::Integer,jr::Range)=vec(A.data[jr-k+A.l+1,k])
 getindex{T}(A::BandedMatrix{T},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zero(T):throw(BoundsError()))
@@ -275,7 +276,7 @@ ibpluseq!(S::IndexShift,x,k,j)=ibpluseq!(S.matrix,x,k-S.rowindex,j-S.colindex)
 
 
 columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix,2)+S.colindex)
-
+columnrange{BM<:BandedMatrix}(A::Union(IndexShift{BM},BandedMatrix),row::Integer)=max(1,row-A.l,row+A.u)
 
 
 for (isop,saop) in ((:issazeros,:sazeros),(:issaeye,:saeye))
@@ -366,16 +367,15 @@ end
 
 ## Matrix*Matrix Multiplication
 
-function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer)   
+function bamultiply!(C::Union(BandedMatrix,ShiftMatrix),A::BandedMatrix,B::BandedMatrix,rs::Integer=0,cs::Integer=0)   
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
-        for l=k-A.l:min(k+A.u,size(A,2)) # columns of A
-            # If we don't want to multiply padding, change back to l=max(1,k-A.l):min(k+A.u,size(A,2))        
+        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             
              @inbounds Aj=A.data[l-k+A.l+1,k]
             
             shA=-l+B.l+1
-            shB=-k+C.l+l-B.l
+            shB=-k+C.l+l-B.l+cs-rs
             @simd for j=(max(1-shB,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
                  @inbounds C.data[j+shB,k+rs]+=Aj*B.data[j,l]
             end
@@ -385,7 +385,7 @@ function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer
 end
 
 
-bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)=bamultiply!(C,A,B,0)
+
 
 # Unoptimized version of below
 
@@ -408,29 +408,31 @@ bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)=bamultiply!(C,A,B,0
 # Shift Matrix multiplication differs as it does the entire bands
 
 
-function bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)   
-    n=size(A,1);m=basize(B,2)
-    for k=1:n  # rows of C
-        for l=max(k-A.l,1):min(k+A.u,basize(A,2)) # columns of A
-            @inbounds Aj=A.data[l-k+A.l+1,k]
-            
-            shA=-l+B.l+1
-            shB=-k+C.l+l-B.l
-            @simd for j=(max(k-C.l,l-B.l)+shA):(min(B.u+l,k+C.u,m)+shA) # columns of C/B
-                 @inbounds C.data[j+shB,k+rs]+=Aj*B.data[j,l]
-            end
-        end
-    end 
-    C
-end
+# function bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix,rs::Integer=0,cs::Integer=0)   
+#     n=size(A,1);m=basize(B,2)
+#     for k=1:n  # rows of C
+#         for l=max(k-A.l,1):min(k+A.u,basize(A,2)) # columns of A
+#             @inbounds Aj=A.data[l-k+A.l+1,k]
+#             
+#             shA=-l+B.l+1
+#             shB=-k+C.l+l-B.l
+#             @simd for j=(max(k-C.l,l-B.l)+shA):(min(B.u+l,k+C.u,m)+shA) # columns of C/B
+#                  @inbounds C.data[j+shB+cs,k+rs]+=Aj*B.data[j,l]
+#             end
+#         end
+#     end 
+#     C
+# end
 
-bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix)=bamultiply!(C,A,B,0)
 
-function bamultiply!(C::IndexShift,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)
-    @assert C.colindex==0
-    bamultiply!(C.matrix,A,B,rs-C.rowindex)
-    C
-end
+
+#bamultiply!(C::ShiftMatrix,A::ShiftMatrix,B::ShiftMatrix)=bamultiply!(C,A,B,0)
+
+# function bamultiply!(C::IndexShift,A::ShiftMatrix,B::ShiftMatrix,rs::Integer)
+#     @assert C.colindex==0
+#     bamultiply!(C.matrix,A,B,rs-C.rowindex)
+#     C
+# end
 
 # function bamultiply!{ST<:ShiftMatrix}(C::IndexTranspose{ST},A::ShiftMatrix,B::ShiftMatrix,rs::Integer)   
 #     n=size(A,1);m=basize(B,2)

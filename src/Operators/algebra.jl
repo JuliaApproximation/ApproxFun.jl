@@ -272,7 +272,7 @@ bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
 
 
 
-function addentries!(P::TimesOperator,A,kr::Range)
+function addentries!(P::TimesOperator,A,kr::UnitRange)
     krl=Array(Int,length(P.ops),2)
     
     krl[1,1],krl[1,2]=kr[1],kr[end]
@@ -283,14 +283,18 @@ function addentries!(P::TimesOperator,A,kr::Range)
         krl[m+1,2]=br[end] + krl[m,2]
     end
     
-    # The following returns a banded Matrix with all rows 
-    BA=P.ops[end][krl[end,1]:krl[end,2],:]
+    # The following returns a banded Matrix with all rows
+    # for large k its upper triangular
+    BA=slice(P.ops[end],krl[end,1]:krl[end,2],:)
     for m=(length(P.ops)-1):-1:2
-        BA=P.ops[m][krl[m,1]:krl[m,2],:]*BA
+        BA=slice(P.ops[m],krl[m,1]:krl[m,2],:)*BA
     end
     
-    # Right directly to A, shifting by kr[1]-1
-    bamultiply!(A,P.ops[1][krl[1,1]:krl[1,2],:],BA,kr[1]-1)
+    # Right directly to A, shifting by rows and columns
+    # See subview in Operator.jl for these definitions
+    rs=kr[1]-1
+    cs= max(0,kr[1]-1+bandinds(P,1))
+    bamultiply!(A,slice(P.ops[1],krl[1,1]:krl[1,2],:),BA,rs,cs)
 end
 
 

@@ -68,8 +68,8 @@ index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of Ban
 
 
 ShiftMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,sazeros(T,n,bandinds(B)),1:n)
-ShiftMatrix{T<:Number}(B::Operator{T},rws::Range)=addentries!(B,issazeros(T,rws,bandinds(B)),rws).matrix
-ShiftMatrix{T<:Number}(B::Operator{T},rws::(Int,Int))=addentries!(B,issazeros(T,rws,bandinds(B)),rws[1]:rws[end]).matrix
+ShiftMatrix{T<:Number}(B::Operator{T},rws::UnitRange)=first(rws)==1?ShiftMatrix(B,last(rws)):addentries!(B,issazeros(T,rws,bandinds(B)),rws).matrix
+ShiftMatrix{T<:Number}(B::Operator{T},rws::(Int,Int))=ShiftMatrix(B,rs[1]:rws[end])
 
 
 # Returns all columns in rows kr
