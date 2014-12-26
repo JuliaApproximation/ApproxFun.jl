@@ -5,8 +5,8 @@ export adaptiveqr!
 function applygivens!(a,b,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
     ca,cb=conj(a),conj(b)
     @simd for j = jr
-        @inbounds B1 = B.data[j-k1+B.l+1,k1]
-        @inbounds B2 = B.data[j-k2+B.l+1,k2]        
+        @inbounds B1 = B.data[j-k1+B.l+1,k1]    #B[k1,j]
+        @inbounds B2 = B.data[j-k2+B.l+1,k2]    #B[k2,j]       
         
         @inbounds B.data[j-k1+B.l+1,k1],B.data[j-k2+B.l+1,k2]= ca*B1 + cb*B2,-b*B1 + a*B2
     end   
@@ -17,7 +17,7 @@ end
 function applygivens!(a,b,F::FillMatrix,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
     for j = jr
         B1 = unsafe_getindex(F,k1,j)
-        @inbounds B2 = B.data[j-k2+B.l+1,k2]        
+        @inbounds B2 = B.data[j-k2+B.l+1,k2]   #B[k2,j]     
         
         @inbounds B.data[j-k2+B.l+1,k2]=a*B2 - b*B1
     end   
@@ -40,9 +40,10 @@ end
 
 function givensreduceab!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
     bnd=B.bandinds
-
-    a=B.data[k1,j1]
-    b=B.data[k2,j1]
+    A=B.data
+    
+    @inbounds a=A.data[j1-k1+A.l+1,k1]  #A[k1,j1]
+    @inbounds b=A.data[j1-k2+A.l+1,k2]  #A[k2,j1] 
     
     if b == 0
         return one(T),zero(T)
