@@ -52,7 +52,7 @@ function unsafe_getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret = zero(T)
     
     @simd for m=1:B.numbcs
-         ret += B.data[k,m]*B.bc[m].data[j]
+         @inbounds ret += B.data[k,m]*B.bc[m].data[j]
     end    
     
     ret
@@ -64,7 +64,7 @@ function resizedata!{T}(B::FillMatrix{T},n)
     if nbc>0  && n > B.datalength
         for bc in B.bc
             #TODO: Why +10?
-            resizedata!(bc,2n+20)         ## do all columns in the row, +1 for the fill
+            resizedata!(bc,2n+B.padbc)         ## do all columns in the row, +1 for the fill
         end
       
         newfilldata=zeros(T,2n,nbc)
@@ -105,7 +105,7 @@ function AlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedO
     data = bazeros(T,nbc+100-br[1],br)        
     
      # do all columns in the row, +1 for the fill
-    fl=FillMatrix(T,bc,bndinds[end]+1) 
+    fl=FillMatrix(T,bc,br[end]+1) 
     
     for k=1:nbc,j=columnrange(data,k)
         data[k,j]=fl.bc[k][j]  # initialize data with the boundary rows
