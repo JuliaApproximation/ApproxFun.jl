@@ -12,12 +12,13 @@ type FillMatrix{T,R}
     bc::Vector{R}         # The boundary rows    
     data::Matrix{T}       # The combination of bcs    
     datalength::Int
-    numbcs::Int            # The length of bc.  We store this for quicker access, but maybe remove    
+    numbcs::Int            # The length of bc.  We store this for quicker access, but maybe remove  
+    padbc::Int             # The bc data needs to padded by this amount to ensure fast backsubstitution,etc.
 end
 
 
 
-function FillMatrix{T}(::Type{T},bc)
+function FillMatrix{T}(::Type{T},bc,pf)
     nbc=length(bc)
 
     ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
@@ -26,10 +27,10 @@ function FillMatrix{T}(::Type{T},bc)
     m=50
     for k=1:nbc
         sfuncs[k]=SavedFunctional(bc[k])
-        resizedata!(sfuncs[k],m+2)
+        resizedata!(sfuncs[k],m+pf)
     end
     ar0=eye(T,m,nbc)  # the first nbc fill in rows are just the bcs
-    FillMatrix(sfuncs,ar0,size(ar0,1),nbc)    
+    FillMatrix(sfuncs,ar0,size(ar0,1),nbc,pf)    
 end
 
 
@@ -51,7 +52,7 @@ function unsafe_getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret = zero(T)
     
     @simd for m=1:B.numbcs
-        @inbounds ret += B.data[k,m]*B.bc[m].data[j]
+         ret += B.data[k,m]*B.bc[m].data[j]
     end    
     
     ret
@@ -103,7 +104,8 @@ function AlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedO
     br=((bndinds[1]-nbc),(bndindslength-1))
     data = bazeros(T,nbc+100-br[1],br)        
     
-    fl=FillMatrix(T,bc)
+     # do all columns in the row, +1 for the fill
+    fl=FillMatrix(T,bc,bndinds[end]+1) 
     
     for k=1:nbc,j=columnrange(data,k)
         data[k,j]=fl.bc[k][j]  # initialize data with the boundary rows
