@@ -166,6 +166,14 @@ function *{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
     bamultiply!(bazeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
+function *{T,V}(A::BandedMatrix{T},B::Matrix{V})
+    if size(A,2)!=size(B,1)
+        throw(DimensionMismatch("*"))
+    end
+    n,m=size(A,1),size(B,2)    
+    bamultiply!(zeros(promote_type(T,V),n,m),A,B)
+end
+
 
 function *{T,V}(A::BandedMatrix{T},b::Vector{V})
     if size(A,2)!=length(b)
@@ -306,8 +314,22 @@ function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer
     C
 end
 
+function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,rs::Integer=0,cs::Integer=0)   
+    n=size(A,1);m=size(B,2)
+    for k=1:n  # rows of C
+        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
+            @inbounds Aj=A.data[l-k+A.l+1,k]
+            
+             @simd for j=1:m # columns of C/B
+                 @inbounds C[k+rs,j+cs]+=Aj*B[l,j]
+             end
+        end
+    end 
+    C
+end
 
-function bamultiply!{SM<:BandedMatrix}(C::IndexShift{SM},A::BandedMatrix,B::BandedMatrix,rs::Integer=0,cs::Integer=0)
+
+function bamultiply!(C::IndexShift,A,B,rs::Integer=0,cs::Integer=0)
     bamultiply!(C.matrix,A,B,rs-C.rowindex,cs-C.colindex)
     C
 end
@@ -348,8 +370,8 @@ end
 
 
 function addentries!{ST<:BandedMatrix}(B::IndexShift{ST},c::Number,A,kr::Range)    
-    for k=kr,j=bandrange(B)
-        ibpluseq!(A,c*B[k,k+j],k,j)
+    for k=kr,j=k+bandrange(B)
+        ibpluseq!(A,c*B[k,j],k,j)
     end
     
     A

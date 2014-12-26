@@ -38,7 +38,7 @@ function addentries!(M::Multiplication{Chebyshev,Jacobi},A,kr::Range)
     a=coefficients(M.f)
 
     for k=kr
-        A[k,0]=a[1] 
+        A[k,k]=a[1] 
     end
     
     if length(M.f) > 1
@@ -78,7 +78,7 @@ bandinds(D::Derivative{Jacobi})=0,D.order
 function addentries!(T::Derivative{Jacobi},A,kr::Range)
     d=domain(T)
     for k=kr
-        A[k,1]+=(k+1+T.space.a+T.space.b)./(d.b-d.a)
+        A[k,k+1]+=(k+1+T.space.a+T.space.b)./(d.b-d.a)
     end
     A
 end
@@ -167,7 +167,7 @@ function addentries!(C::Conversion{Chebyshev,Jacobi},A,kr::Range)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
     for k=kr
-        A[k,0]+=1./jp[k]
+        A[k,k]+=1./jp[k]
     end
     
     A
@@ -179,7 +179,7 @@ function addentries!(C::Conversion{Jacobi,Chebyshev},A,kr::Range)
 
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
     for k=kr
-        A[k,0]+=jp[k]
+        A[k,k]+=jp[k]
     end
     
     A
