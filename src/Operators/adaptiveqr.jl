@@ -3,11 +3,12 @@
 export adaptiveqr!
 
 function applygivens!(a,b,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
-    for j = jr
-        B1 = B[k1,j]
-        B2 = B[k2,j]
+    ca,cb=conj(a),conj(b)
+    @simd for j = jr
+        @inbounds B1 = B.data[j-k1+B.l+1,k1]
+        @inbounds B2 = B.data[j-k2+B.l+1,k2]        
         
-        B[k1,j],B[k2,j]= conj(a)*B1 + conj(b)*B2,-b*B1 + a*B2
+        @inbounds B.data[j-k1+B.l+1,k1],B.data[j-k2+B.l+1,k2]= ca*B1 + cb*B2,-b*B1 + a*B2
     end   
     
     B
@@ -15,21 +16,22 @@ end
 
 function applygivens!(a,b,F::FillMatrix,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
     for j = jr
-        B1 = F[k1,j]
-        B2 = B[k2,j]
+        B1 = unsafe_getindex(F,k1,j)
+        @inbounds B2 = B.data[j-k2+B.l+1,k2]        
         
-        B[k2,j]=a*B2 - b*B1
+        @inbounds B.data[j-k2+B.l+1,k2]=a*B2 - b*B1
     end   
     
     B
 end
 
 function applygivens!(a,b,B::Matrix,k1::Integer,k2::Integer)
+    ca,cb=conj(a),conj(b)
     for j = 1:size(B,2)
-        B1 = B[k1,j]
-        B2 = B[k2,j]
+        @inbounds B1 = B[k1,j]
+        @inbounds B2 = B[k2,j]
         
-        B[k1,j],B[k2,j]= conj(a)*B1 + conj(b)*B2,-b*B1 + a*B2
+        @inbounds B[k1,j],B[k2,j]= ca*B1 + cb*B2,-b*B1 + a*B2
     end   
     
     B

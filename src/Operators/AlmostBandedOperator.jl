@@ -33,22 +33,30 @@ function FillMatrix{T}(::Type{T},bc)
 end
 
 
-##UNSAFE
 function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
-    nbc = B.numbcs
     ret = zero(T)
     
-    for m=1:nbc
+    for m=1:B.numbcs
         @assert j <= B.bc[m].datalength #TODO: temporary for debugging        
-        #@inbounds
+
          bcv = B.bc[m].data[j]
-        #@inbounds 
         fd=B.data[k,m]
         ret += fd*bcv
     end    
     
     ret
 end
+
+function unsafe_getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
+    ret = zero(T)
+    
+    @simd for m=1:B.numbcs
+        @inbounds ret += B.data[k,m]*B.bc[m].data[j]
+    end    
+    
+    ret
+end
+
 
 function resizedata!{T}(B::FillMatrix{T},n)
     nbc=B.numbcs
