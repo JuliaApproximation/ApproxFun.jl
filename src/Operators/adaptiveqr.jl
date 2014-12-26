@@ -2,47 +2,59 @@
 
 export adaptiveqr!
 
+function applygivens!(a,b,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
+    for j = jr
+        B1 = B[k1,j]
+        B2 = B[k2,j]
+        
+        B[k1,j],B[k2,j]= conj(a)*B1 + conj(b)*B2,-b*B1 + a*B2
+    end   
+    
+    B
+end
+
+function applygivens!(a,b,F::FillMatrix,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
+    for j = jr
+        B1 = F[k1,j]
+        B2 = B[k2,j]
+        
+        B[k2,j]=a*B2 - b*B1
+    end   
+    
+    B
+end
+
+function applygivens!(a,b,B::Matrix,k1::Integer,k2::Integer)
+    for j = 1:size(B,2)
+        B1 = B[k1,j]
+        B2 = B[k2,j]
+        
+        B[k1,j],B[k2,j]= conj(a)*B1 + conj(b)*B2,-b*B1 + a*B2
+    end   
+    
+    B
+end
+
 
 function givensreduceab!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
-    a=datagetindex(B,k1,j1)
-    b=datagetindex(B,k2,j1)
+    bnd=B.bandinds
+
+    a=B.data[k1,j1]
+    b=B.data[k2,j1]
     
-    if b == 0.
+    if b == 0
         return one(T),zero(T)
     end    
-    
-
     
     sq=sqrt(abs2(a) + abs2(b))    
     a=a/sq;b=b/sq
     
-    #TODO: Assuming that left rows are already zero
     
-    ir1=indexrange(B,k1)::Range1{Int64}
-    ir2=indexrange(B,k2)::Range1{Int64}    
-    
-    for j = j1:ir1[end]
-        B1 = datagetindex(B,k1,j)
-        B2 = datagetindex(B,k2,j)
-        
-        B[k1,j],B[k2,j]= conj(a)*B1 + conj(b)*B2,-b*B1 + a*B2
-    end
-    
-    for j=ir1[end]+1:ir2[end]
-        B1 = fillgetindex(B,k1,j)
-        B2 = datagetindex(B,k2,j)
-        
-        B[k2,j]=a*B2 - b*B1
-    end
-    
-    for j=1:B.numbcs
-        B1 = getfilldata(B,k1,j)
-        B2 = getfilldata(B,k2,j)
-    
-        setfilldata!(B, conj(a)*B1 + conj(b)*B2,k1,j)
-        setfilldata!(B,-b*B1 + a*B2,k2,j)    
-    end
-    
+    #Assuming that left rows are already zero    
+    applygivens!(a,b,B.data,k1,k2,j1:j1+B.bandinds)
+    applygivens!(a,b,B.fill,B.data,k1,k2,j1+B.bandinds+1:j2+B.bandinds)    
+    applygivens!(a,b,B.fill.data,k1,k2
+
 
     a::T,b::T
 end
@@ -55,7 +67,8 @@ function givensreduce!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},v::Array,k1
         cb=conj(b)
     
         @simd for j=1:size(v,2)
-            @inbounds v[k1,j],v[k2,j] = ca*v[k1,j] + cb*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
+            #@inbounds 
+            v[k1,j],v[k2,j] = ca*v[k1,j] + cb*v[k2,j],-b*v[k1,j] + a*v[k2,j]    
         end
     end        
 
@@ -67,12 +80,11 @@ function givensreduce!(B::AlmostBandedOperator,v::Array,k1::Range1,j1::Integer)
         for k=k1[2]:k1[end]
             givensreduce!(B,v,k1[1],k,j1)
         end
-    else
-        B 
     end
+    B 
 end
 
-givensreduce!(B::AlmostBandedOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)
+givensreduce!(B::AlmostBandedOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandinds(B)[1]),j)
 
 
 function backsubstitution!{T<:Number}(B::AlmostBandedOperator,u::Array{T})
@@ -80,15 +92,16 @@ function backsubstitution!{T<:Number}(B::AlmostBandedOperator,u::Array{T})
     b=B.bandinds[end]
     nbc = B.numbcs
     
-     pk = zeros(T,nbc)
+    pk = zeros(T,nbc)
     
     for c=1:size(u,2)
         fill!(pk,zero(T))
     
         # before we get to filled rows
         for k=n:-1:max(1,n-b)
-            @simd for j=k+1:n
-                @inbounds u[k,c]-=B[k,j]*u[j,c]
+            for j=k+1:n
+            #@inbounds             
+                u[k,c]-=B[k,j]*u[j,c]
             end
               
             u[k,c] /= B[k,k]
@@ -97,15 +110,18 @@ function backsubstitution!{T<:Number}(B::AlmostBandedOperator,u::Array{T})
        #filled rows
         for k=n-b-1:-1:1
             @simd for j=1:nbc
-                @inbounds pk[j] += u[k+b+1,c]*B.bc[j][k+b+1]
+            #@inbounds             
+                pk[j] += u[k+b+1,c]*B.fill.bc[j][k+b+1]
             end
             
             @simd for j=k+1:k+b
-                @inbounds u[k,c]-=B[k,j]*u[j,c]
+            #@inbounds             
+                u[k,c]-=B[k,j]*u[j,c]
             end
             
             @simd for j=1:nbc
-                @inbounds u[k,c] -= getfilldata(B,k,j)*pk[j]
+            #@inbounds             
+                u[k,c] -= B.fill.data[k,j]*pk[j]
             end
               
             u[k,c] /= B[k,k]
@@ -131,7 +147,8 @@ function slnorm(u::Array,r::Range)
     ret = 0.0
    for k=r
         @simd for j=1:size(u,2)
-            @inbounds ret=max(abs(u[k,j]),ret)
+            #@inbounds 
+            ret=max(abs(u[k,j]),ret)
         end
     end
     ret
@@ -141,7 +158,8 @@ function slnorm(u::ShiftMatrix,r::Range)
     ret = 0.0
    for k=r
         @simd for j=1:size(u.data,1)
-            @inbounds ret=max(abs(u.data[j,k]),ret)
+            #@inbounds 
+            ret=max(abs(u.data[j,k]),ret)
         end
     end
     ret

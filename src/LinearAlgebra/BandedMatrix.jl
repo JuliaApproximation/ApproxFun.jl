@@ -236,6 +236,11 @@ function pad!(A::ShiftMatrix,n)
     A
 end
 
+function pad!(A::BandedMatrix,n)
+    A.data=pad(A.data,size(A.data,1),n)
+    A
+end
+
 
 
 ## Convert

@@ -6,30 +6,74 @@ export AlmostBandedOperator
 
 
 
+type FillMatrix{T,R}
+    bc::Vector{R}         # The boundary rows    
+    data::Matrix{T}       # The combination of bcs    
+    datalength::Int
+    numbcs::Int            # The length of bc.  We store this for quicker access, but maybe remove    
+end
 
 
 
+function FillMatrix{T}(::Type{T},bc)
+    nbc=length(bc)
+
+    ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
+    sfuncs=Array(SavedFunctional{isempty(bc)?Float64:mapreduce(eltype,promote_type,bc)},nbc)
+    for k=1:nbc
+        sfuncs[k]=SavedFunctional(bc[k])
+    end
+    ar0=eye(T,50,nbc)  # the first nbc fill in rows are just the bcs
+    FillMatrix(sfuncs,ar0,size(ar0,1),nbc)    
+end
 
 
+##UNSAFE
+function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
+    nbc = B.numbcs
+    ret = zero(T)
+    
+    for m=1:nbc
+        @assert j <= B.bc[m].datalength #TODO: temporary for debugging        
+        #@inbounds
+         bcv = B.bc[m].data[j]
+        #@inbounds 
+        fd=B.filldata[k,m]
+        ret += fd*bcv
+    end    
+    
+    ret
+end
+
+function resizedata!(B::FillMatrix,n)
+    nbc=B.numbcs
+    if nbc>0  && n > B.datalength
+        for bc in B.bc
+            resizedata!(bc,n+20)         ## do all columns in the row, +1 for the fill
+        end
+      
+        newfilldata=zeros(T,2n,nbc)
+        newfilldata[1:B.datalength,:]=B.data[1:B.datalength,:]
+        B.data=newfilldata
+        
+        B.datalength=2n
+    end
+    B
+end
 
 
 ## AlmostBandedOperator
 
 
 type AlmostBandedOperator{T,M,R} <: BandedBelowOperator{T}
-    bc::Vector{R}         # The boundary rows
     op::M                 # The underlying op that is modified
     data::BandedMatrix{T} # Data representing bands
-    filldata::Matrix{T}   # The combination of bcs
+    fill::FillMatrix{T,R}
     
     datalength::Int       # How long data is.  We can't use the array length of data as we double the memory allocation but don't want to fill in
     
     bandinds::(Int,Int)   # Encodes the bandrange
-    
-    numbcs::Int            # The length of bc.  We store this for quicker access, but maybe remove
 end
-
-AlmostBandedOperator(bc,op,data,filldata,datalength,bandinds)=AlmostBandedOperator(bc,op,data,filldata,datalength,bandinds,length(bc))
 
 domainspace(M::AlmostBandedOperator)=domainspace(M.op)
 rangespace(M::AlmostBandedOperator)=rangespace(M.op)
@@ -43,22 +87,16 @@ function AlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedO
     nbc = length(bc)
     
     br=((bndinds[1]-nbc),(bndindslength-1))
-    data = bazeros(T,nbc+40,br)        
+    data = bazeros(T,nbc+100-br[1],br)        
     
-    ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
-    sfuncs=Array(SavedFunctional{isempty(bc)?Float64:mapreduce(eltype,promote_type,bc)},length(bc))
-    for k=1:nbc
-        sfuncs[k]=SavedFunctional(bc[k])
-        for j=columnrange(data,k)
-            data[k,j]=sfuncs[k][j]  # initialize data with the boundary rows
+    fl=FillMatrix(T,bc)
+    
+    for k=1:nbc,j=columnrange(data,k)
+            data[k,j]=fl.bc[j]  # initialize data with the boundary rows
         end
     end
-    datalength=nbc
-    ar0=eye(T,nbc)  # the first nbc fill in rows are just the bcs
     
-
-    
-    AlmostBandedOperator(sfuncs,op,data,ar0,datalength, br,nbc)
+    AlmostBandedOperator(op,data,fl,nbc, br)
 end
 
 function AlmostBandedOperator{T<:Operator}(B::Vector{T})
@@ -74,7 +112,6 @@ AlmostBandedOperator{BO<:BandedOperator}(B::BO)=AlmostBandedOperator(BO[B])
 
 # for bandrange, we save room for changed entries during Givens
 bandinds(B::AlmostBandedOperator)=B.bandinds
-datalength(B::AlmostBandedOperator)=B.datalength
 
 
 function Base.getindex{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},kr::UnitRange,jr::UnitRange)
@@ -82,7 +119,7 @@ function Base.getindex{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},kr::UnitRan
     
     
     for k = kr
-        if k <= datalength(B)
+        if k <= B.datalength
             for j=jr
                 ret[k,j] = B[k,j]
             end
@@ -99,22 +136,7 @@ function Base.getindex{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},kr::UnitRan
 end
 
 
-##UNSAFE
-function fillgetindex{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},k::Integer,j::Integer)
-    nbc = B.numbcs
-    ret = zero(T)
-    
-    for m=1:nbc
-        @assert j <= B.bc[m].datalength #TODO: temporary for debugging        
-        #@inbounds
-         bcv = B.bc[m].data[j]
-        #@inbounds 
-        fd=B.filldata[k,m]
-        ret += fd*bcv
-    end    
-    
-    ret
-end
+
 
 
 
@@ -125,37 +147,27 @@ function Base.getindex(B::AlmostBandedOperator,k::Integer,j::Integer)
     if k <= datalength(B) && j <= ir[end] && ir[1] <= j
         B.data[k,j]
     elseif k <= datalength(B) && j > ir[end]
-        fillgetindex(B,k,j)
+        B.fill[k,j]
     else
-#        warn("Should not access op indices")
         B.op[k,j]##TODO: Slow
     end
 end
 
 
-getindex!(b::AlmostBandedOperator,kr::Range1,jr::Range1)=resizedata!(b,kr[end])[kr,jr]
-getindex!(b::AlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,jr]
+# getindex!(b::AlmostBandedOperator,kr::Range1,jr::Range1)=resizedata!(b,kr[end])[kr,jr]
+# getindex!(b::AlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,jr]
 
 function resizedata!{T<:Number,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,R},n::Integer)
+    resizedata!(B.fill,n)
+
     if n > B.datalength    
         nbc=B.numbcs
 
         if n > size(B.data,1)
             pad!(B.data,2n)
         end
-
-        if nbc>0      
-            for bc in B.bc
-                resizedata!(bc,n+B.bandinds[end]+1)         ## do all columns in the row, +1 for the fill
-            end
-          
-            newfilldata=zeros(T,2n,nbc)
-            newfilldata[1:B.datalength,:]=B.filldata[1:B.datalength,:]
-            B.filldata=newfilldata
-        end
         
         addentries!(B.op,IndexShift(ShiftMatrix(B.data),-nbc,nbc),B.datalength+1-nbc:n-nbc)
-        
         B.datalength = n
     end
     
