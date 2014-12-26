@@ -455,7 +455,7 @@ end
 
 function addentries!(B::ShiftMatrix,c::Number,A,kr::Range)    
     for k=kr,j=columnrange(B)
-         @inbounds ibpluseq!(A,c*B.data[j+A.l+1,k],k,j)
+         @inbounds ibpluseq!(A,c*B.data[j+B.l+1,k],k,j)
     end
     
     A
