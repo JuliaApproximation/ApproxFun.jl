@@ -129,14 +129,12 @@ function Base.getindex(op::Functional,j::Integer,k::Range)
 end
 
 
-#TODO: Speed up by taking only slice
-Base.getindex(B::BandedOperator,k::Range,j::Range)=BandedMatrix(B,1:max(k[end],j[end]),:)[k,j]
-
 
 # we use slice instead of get index because we can't override
 # getindex (::Colon)
 # This violates the behaviour of slices though...
 Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
+Base.getindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
 
 function subview(B::BandedOperator,kr::Range,::Colon)
      br=bandinds(B)
@@ -186,7 +184,7 @@ function addentries!(B::BandedOperator,A,kr)
      br=bandinds(B)
      for k=(max(kr[1],1)):(kr[end])
          for j=max(br[1],1-k):br[end]
-             A[k,j]=getdiagonalentry(B,k,j)
+             A[k,k+j]=getdiagonalentry(B,k,j)
          end
      end
          
