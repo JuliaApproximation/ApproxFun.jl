@@ -72,6 +72,10 @@ ShiftMatrix{T<:Number}(B::Operator{T},rws::UnitRange)=first(rws)==1?ShiftMatrix(
 ShiftMatrix{T<:Number}(B::Operator{T},rws::(Int,Int))=ShiftMatrix(B,rs[1]:rws[end])
 
 
+BandedMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,bazeros(T,n,:,bandinds(B)),1:n)
+BandedMatrix(B::Operator,kr::UnitRange,::Colon)=BandedMatrix(B,kr,max(1,kr[1]+bandinds(B,1)):kr[end]+bandinds(B,2))
+
+
 function BandedMatrix(B::Operator,kr::Range,jr::Range)
     br=bandrange(B)
     l=max(0,-br[1]-kr[1]+1)
@@ -88,7 +92,6 @@ end
 # The first column of the returned BandedMatrix
 # will be the first non-zero column
 
-BandedMatrix(B::Operator,kr::UnitRange,::Colon)=BandedMatrix(B,kr,max(1,kr[1]+bandinds(B,1)):kr[end]+bandinds(B,2))
 BandedMatrix(B::Operator,kr::Colon,jr::UnitRange)=BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
 
 # function BandedMatrix(B::Operator,kr::UnitRange,::Colon)

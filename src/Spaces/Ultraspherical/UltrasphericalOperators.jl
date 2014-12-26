@@ -4,8 +4,8 @@ immutable UltrasphericalRecurrenceT{m} <: TridiagonalOperator{Float64} end
 
 function usjacobi_addentries!(λ::Integer,A,kr::Range)
     for k=kr
-        A[k,-1]=.5(k-1)/(k-2+λ)
-        A[k,1]=.5(k+2λ-1)/(k+λ)
+        A[k,k-1]=.5(k-1)/(k-2+λ)
+        A[k,k+1]=.5(k+2λ-1)/(k+λ)
     end
     A
 end
@@ -85,7 +85,7 @@ end
 function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ}},A,kr::UnitRange)
     a=coefficients(M.f,domainspace(M))
     for k=kr
-        A[k,0]=a[1] 
+        A[k,k]=a[1] 
     end
 
     if length(a) > 1
@@ -117,7 +117,7 @@ rangespace{λ}(D::Derivative{Ultraspherical{λ}})=Ultraspherical{λ+D.order}(dom
 bandinds{S<:Ultraspherical}(D::Derivative{S})=0,D.order
 bandinds{S<:Ultraspherical}(D::Integral{S})=-D.order,0   
 
-function addentries!{λ}(D::Derivative{Ultraspherical{λ}},A,kr::Range1)
+function addentries!{λ}(D::Derivative{Ultraspherical{λ}},A,kr::Range)
     m=D.order
     d=domain(D)
 
@@ -126,12 +126,12 @@ function addentries!{λ}(D::Derivative{Ultraspherical{λ}},A,kr::Range1)
     if λ == 0
         C=.5pochhammer(1.,m-1)*(4./(d.b-d.a)).^m
         for k=kr
-            A[k,m] += C*(m+k-1)
+            A[k,k+m] += C*(m+k-1)
         end
     else
         C=pochhammer(1.λ,m)*(4./(d.b-d.a)).^m
         for k=kr        
-            A[k,m] += C
+            A[k,k+m] += C
         end
     end
     
@@ -156,12 +156,12 @@ function addentries!{λ}(D::Integral{Ultraspherical{λ}},A,kr::Range)
     if λ == 1
         C = .5(d.b-d.a)
         for k=max(kr[1],2):kr[end]
-            A[k,-1] += C./(k-1)
+            A[k,k-1] += C./(k-1)
         end
     elseif λ > 1
         C=pochhammer(1.λ,-m)*(.25(d.b-d.a))^m
         for k=kr
-            A[k,-m] += C
+            A[k,k-m] += C
         end
     end
     
@@ -189,8 +189,8 @@ end
 
 function addentries!(M::Conversion{Chebyshev,Ultraspherical{1}},A,kr::Range)
     for k=kr
-        A[k,0] += (k == 1)? 1. : .5
-        A[k,2] += -.5        
+        A[k,k] += (k == 1)? 1. : .5
+        A[k,k+2] += -.5        
     end
     
     A    
@@ -199,8 +199,8 @@ end
 function addentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{λ}},A,kr::Range)
     @assert λ==m+1
     for k=kr
-        A[k,0] += (λ-1.)./(k - 2. + λ)
-        A[k,2] += -(λ-1.)./(k + λ)
+        A[k,k] += (λ-1.)./(k - 2. + λ)
+        A[k,k+2] += -(λ-1.)./(k + λ)
     end
     
     A    

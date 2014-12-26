@@ -42,13 +42,18 @@ Base.eltype{T}(::BandedMatrix{T})=T
 
 for (op,bop) in ((:(Base.rand),:barand),(:(Base.zeros),:bazeros),(:(Base.ones),:baones))
     @eval begin
-        $bop{T}(::Type{T},n::Integer,m::Integer,a::Integer,b::Integer)=BandedMatrix($op(T,b+a+1,n),m,a,b)
-        $bop{T}(::Type{T},n::Integer,m::Integer,a)=BandedMatrix($op(T,b+a+1,n),m,-a[1],a[end])        
+        $bop{T}(::Type{T},n::Integer,m::Integer,a::Integer,b::Integer)=BandedMatrix($op(T,b+a+1,n),m,a,b)      
         $bop{T}(::Type{T},n::Integer,a::Integer,b::Integer)=$bop(T,n,n,a,b)
-        $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,n,-a[1],a[end])        
+        $bop{T}(::Type{T},n::Integer,::Colon,a::Integer,b::Integer)=$bop(T,n,n+b,a,b)        
+        $bop{T}(::Type{T},::Colon,m::Integer,a::Integer,b::Integer)=$bop(T,m+a,m,a,b)                   
         $bop(n::Integer,m::Integer,a::Integer,b::Integer)=$bop(Float64,n,m,a,b)
-        $bop(n::Integer,m::Integer,a)=$bop(Float64,n,m,-a[1],a[end])        
         $bop(n::Integer,a::Integer,b::Integer)=$bop(n,n,a,b)
+                
+        $bop{T}(::Type{T},n::Integer,m::Integer,a)=$op(T,n,m,-a[1],a[end])                  
+        $bop{T}(::Type{T},n::Number,::Colon,a)=$bop(T,n,:,-a[1],a[end])   
+        $bop{T}(::Type{T},::Colon,m::Integer,a)=$bop(T,:,m,-a[1],a[end])                        
+        $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,-a[1],a[end])             
+        $bop(n::Integer,m::Integer,a)=$bop(Float64,n,m,-a[1],a[end])        
         $bop(n::Integer,a)=$bop(n,-a[1],a[end])        
     end
 end
@@ -281,7 +286,23 @@ for (isop,saop) in ((:issazeros,:sazeros),(:issaeye,:saeye))
     end
 end
 
-isbaeye(kr::Range)=IndexShift(baeye(length(kr)),first(kr)-1)
+
+function isbazeros{T}(::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer)
+    shft=kr[1]-jr[1]
+    IndexShift(bazeros(T,length(kr),length(jr),l-shft,u+shft),kr[1]-1,jr[1]-1)
+end
+
+
+# These view the operation as taking a slice of an infinite dimensional matrix
+isbazeros{T}(::Type{T},kr::UnitRange,::Colon,l::Integer,u::Integer)=isbazeros(T,kr,max(1,kr[1]-l):kr[end]+u,l,u)
+isbazeros{T}(::Type{T},kr::Colon,jr::UnitRange,l::Integer,u::Integer)=isbazeros(T,max(1,jr[1]-u):jr[end]+l,jr,l,u)
+
+isbazeros{T}(::Type{T},rws::UnitRange,cols::UnitRange,bnds)=isbazeros(T,rws,cols,-bnds[1],bnds[end])
+isbazeros{T}(::Type{T},kr::UnitRange,::Colon,bnds)=isbazeros(T,kr,:,-bnds[1],bnds[end])
+isbazeros{T}(::Type{T},kr::Colon,jr::UnitRange,bnds)=isbazeros(T,:,jr,-bnds[1],bnds[end])
+
+isbazeros(rw::Union(UnitRange,Colon),bnds...)=isbazeros(Float64,rw,bnds...)
+
 
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
