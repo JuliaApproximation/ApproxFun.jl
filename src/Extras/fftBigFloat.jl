@@ -1,4 +1,5 @@
-function Base.fft!(data::Vector{BigFloat})
+function fft_pow2!(data::Vector{BigFloat})
+    @assert ispow2(length(data))
     nn=int(length(data)/2)
     bigπ=big(π)
     n=nn << 1
@@ -42,25 +43,27 @@ function Base.fft!(data::Vector{BigFloat})
     return data
 end
 
-function Base.fft(x::Vector{Complex{BigFloat}})
+function fft_pow2(x::Vector{Complex{BigFloat}})
+    @assert ispow2(length(x))
     n=length(x)
     y = Array(BigFloat,2n)
     for i = 1:n
         y[2i-1] = x[i].re
         y[2i] = x[i].im
     end
-    Base.fft!(y)
+    fft_pow2!(y)
     return complex(y[1:2:2n-1],y[2:2:2n])
 end
 Base.fft(x::Vector{BigFloat}) = Base.fft(complex(x)) #TODO: simplify
 
-function Base.ifft(x::Vector{Complex{BigFloat}})
+function ifft_pow2(x::Vector{Complex{BigFloat}})
+    @assert ispow2(length(x))
     n=length(x)
     y = Array(BigFloat,2n)
     for i = 1:n
         y[2i-1] = x[i].re
         y[2i] = -x[i].im
     end
-    Base.fft!(y)
+    fft_pow2!(y)
     x = complex(y[1:2:2n-1],-y[2:2:2n])/n
 end

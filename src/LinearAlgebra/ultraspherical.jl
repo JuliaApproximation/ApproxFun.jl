@@ -3,13 +3,22 @@ export ultraconversion!,ultraint!
 ## Start of support for UFun
 
 # diff from T -> U
-ultradiff(v::Vector)=length(v)==1.?[0.]:([1:length(v)-1].*v[2:end])
+function ultradiff{T<:Number}(v::Vector{T})
+    #polynomial is p(x) = sum ( v[i] * x^(i-1) )
+    if length(v)==1 
+        return zeros(T,1) 
+    else
+        return [1:length(v)-1].*v[2:end] 
+    end
+end 
 
 #int from U ->T
-ultraint(v::Vector)=[0,v./[1:length(v)]]
+function ultraint{T<:Number}(v::Vector{T})
+    cat(1, zero(T), v./[1:length(v)])
+end
 
 #TODO: what about missing truncation?
-function ultraint!(v::Array{Float64,2})
+function ultraint!{T<:Number}(v::Array{T,2})
     for k=size(v,1):-1:2
         for j=1:size(v,2)
             @inbounds v[k,j] = v[k-1,j]/(k-1)
@@ -23,7 +32,7 @@ function ultraint!(v::Array{Float64,2})
     v
 end
 
-function ultraint!(v::Vector{Float64})
+function ultraint!{T<:Number}(v::Vector{T})
     for k=length(v):-1:2
         @inbounds v[k] = v[k-1]/(k-1)
     end
@@ -33,11 +42,10 @@ function ultraint!(v::Vector{Float64})
     v
 end
 
-
 # Convert from U -> T
-function ultraiconversion(v::Vector{Float64})
+function ultraiconversion{T<:Number}(v::Vector{T})
     n = length(v)
-    w = Array(Float64,n)
+    w = Array(T,n)
         
     if n == 1
         w[1] = v[1]
@@ -60,9 +68,9 @@ end
 
 
 # Convert T -> U
-function ultraconversion(v::Vector{Float64})
+function ultraconversion{T<:Number}(v::Vector{T})
     n = length(v);
-    w = Array(Float64,n);
+    w = Array(T,n);
     
     if n == 1
         w[1] = v[1];
@@ -81,7 +89,7 @@ function ultraconversion(v::Vector{Float64})
     w
 end
 
-function ultraconversion!(v::Vector{Float64})
+function ultraconversion!{T<:Number}(v::Vector{T})
     n = length(v) #number of coefficients
 
     if n == 1
@@ -101,7 +109,7 @@ function ultraconversion!(v::Vector{Float64})
     return v
 end
 
-function ultraconversion!(v::Array{Float64,2})
+function ultraconversion!{T<:Number}(v::Array{T,2})
     n = size(v)[1] #number of coefficients
     m = size(v)[2] #number of funs
 
@@ -127,6 +135,11 @@ function ultraconversion!(v::Array{Float64,2})
     return v
 end
 
-ultraiconversion(v::Vector{Complex{Float64}})=ultraiconversion(real(v)) + ultraiconversion(imag(v))*1.im
-ultraconversion(v::Vector{Complex{Float64}})=ultraconversion(real(v)) + ultraconversion(imag(v))*1.im
+
+#ultraiconversion and ultraconversion are linear, so it is possible to define them on Complex numbers as so
+#ultraiconversion(v::Vector{Complex{Float64}})=ultraiconversion(real(v)) + ultraiconversion(imag(v))*1.im
+#ultraconversion(v::Vector{Complex{Float64}})=ultraconversion(real(v)) + ultraconversion(imag(v))*1.im
+
+#using DualNumbers
+#ultraconversion{T<:Number}(v::Vector{Dual{T}})=dual(ultraconversion(real(v)), ultraconversion(epsilon(v)) )
 

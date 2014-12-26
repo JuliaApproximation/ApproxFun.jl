@@ -8,13 +8,14 @@ export Line, PeriodicLine
 ## Standard interval
 
 
-immutable Line <: IntervalDomain
-    centre::Float64  ##TODO Allow complex
-    angle::Float64
-    α::Float64
-    β::Float64    
+immutable Line{T<:Number} <: IntervalDomain{T}
+    centre::T  ##TODO Allow complex
+    angle::T
+    α::T
+    β::T    
     
-    Line(c,a,α,β)=(@assert c==a==0.; @assert α<0; @assert β<0; new(c,a,α,β))
+    #TODO get this inner constructor working again.
+    #Line(c,a,α,β)= begin @assert c==a==0.; @assert α<0; @assert β<0; new(c,a,α,β) end
 end
 
 
