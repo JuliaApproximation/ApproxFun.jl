@@ -19,11 +19,8 @@ export AlmostBandedOperator
 type AlmostBandedOperator{T,M,R} <: BandedBelowOperator{T}
     bc::Vector{R}         # The boundary rows
     op::M                 # The underlying op that is modified
-    data::ShiftMatrix{T}  # Data representing bands
+    data::BandedMatrix{T} # Data representing bands
     filldata::Matrix{T}   # The combination of bcs
-    
-    bcdata::Matrix{T}     # The filled-in data for the boundary rows.  This is a rectangular
-    bcfilldata::Matrix{T}
     
     datalength::Int       # How long data is.  We can't use the array length of data as we double the memory allocation but don't want to fill in
     
@@ -32,7 +29,7 @@ type AlmostBandedOperator{T,M,R} <: BandedBelowOperator{T}
     numbcs::Int            # The length of bc.  We store this for quicker access, but maybe remove
 end
 
-AlmostBandedOperator(bc,op,data,filldata,bcdata,bcfilldata,datalength,bandinds)=AlmostBandedOperator(bc,op,data,filldata,bcdata,bcfilldata,datalength,bandinds,length(bc))
+AlmostBandedOperator(bc,op,data,filldata,datalength,bandinds)=AlmostBandedOperator(bc,op,data,filldata,datalength,bandinds,length(bc))
 
 domainspace(M::AlmostBandedOperator)=domainspace(M.op)
 rangespace(M::AlmostBandedOperator)=rangespace(M.op)
@@ -45,21 +42,23 @@ function AlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedO
     bndindslength=bndinds[end]-bndinds[1]+1
     nbc = length(bc)
     
-    
-    
-    bcdata = T[bc[k][j] for k=1:nbc, j=1:bndindslength+nbc-1]   
-    bcfilldata = eye(T,nbc)
-                
     br=((bndinds[1]-nbc),(bndindslength-1))
+    data = bazeros(T,nbc+40,br)        
+    
     ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
     sfuncs=Array(SavedFunctional{isempty(bc)?Float64:mapreduce(eltype,promote_type,bc)},length(bc))
-    for k=1:length(bc)
+    for k=1:nbc
         sfuncs[k]=SavedFunctional(bc[k])
+        for j=columnrange(data,k)
+            data[k,j]=sfuncs[k][j]  # initialize data with the boundary rows
+        end
     end
-    ar0=Array(T,0,nbc)
+    datalength=nbc
+    ar0=eye(T,nbc)  # the first nbc fill in rows are just the bcs
     
-    data = ShiftMatrix(T,0,(br[1]+nbc,br[end]+nbc))    
-    AlmostBandedOperator(sfuncs,op,data,ar0,bcdata,bcfilldata,0, br )
+
+    
+    AlmostBandedOperator(sfuncs,op,data,ar0,datalength, br,nbc)
 end
 
 function AlmostBandedOperator{T<:Operator}(B::Vector{T})
@@ -73,35 +72,17 @@ end
 AlmostBandedOperator{BO<:BandedOperator}(B::BO)=AlmostBandedOperator(BO[B])
 
 
-index(B::AlmostBandedOperator)=index(B.op)::Int
-
-
 # for bandrange, we save room for changed entries during Givens
 bandinds(B::AlmostBandedOperator)=B.bandinds
 datalength(B::AlmostBandedOperator)=B.datalength
 
 
-function addentries!(B::AlmostBandedOperator,A,kr::Range1)
-    @assert kr[1] > B.numbcs  #can't write infinite rows 
-    
-    # We assume that the operator is not filled-in
-    
-    br=bandrange(B)
-    for k=kr[1]:min(kr[end],B.datalength), j=br
-        A[k,j]+=B.data[k,j]
-    end
-    
-    addentries!(B.op,A,max(B.datalength+1,kr[1]):kr[end])
-end
-
-
-
-function Base.getindex{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},kr::Range1,jr::Range1)
-    ret = spzeros(T,length(kr),length(jr))
+function Base.getindex{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},kr::UnitRange,jr::UnitRange)
+    ret = zeros(T,length(kr),length(jr))
     
     
     for k = kr
-        if k <= datalength(B) || k <= B.numbcs
+        if k <= datalength(B)
             for j=jr
                 ret[k,j] = B[k,j]
             end
@@ -109,7 +90,7 @@ function Base.getindex{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},kr::Range1,
             ir = B.bandinds
             
             for j=max(ir[1]+k,jr[1]):min(ir[end]+k,jr[end])
-                ret[k-kr[1]+1,j-jr[1]+1] = B[k,j]
+                ret[k-kr[1]+1,j-jr[1]+1] = B[k,j]  #TODO: This is probably slow
             end
         end
     end
@@ -123,52 +104,31 @@ function fillgetindex{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},k::Integer,j
     nbc = B.numbcs
     ret = zero(T)
     
-    if k <= nbc
-        for m=1:nbc
-            @assert j <= B.bc[m].datalength #TODO: temporary for debugging
-            @inbounds bcv = B.bc[m].data[j]    
-            @inbounds ret += B.bcfilldata[k,m]*bcv
-        end
-    else
-        for m=1:nbc
-            @assert j <= B.bc[m].datalength #TODO: temporary for debugging        
-            @inbounds bcv = B.bc[m].data[j]
-            @inbounds fd=B.filldata[k-nbc,m]
-            ret += fd*bcv
-        end    
-    end
+    for m=1:nbc
+        @assert j <= B.bc[m].datalength #TODO: temporary for debugging        
+        #@inbounds
+         bcv = B.bc[m].data[j]
+        #@inbounds 
+        fd=B.filldata[k,m]
+        ret += fd*bcv
+    end    
     
     ret
 end
 
-function datagetindex(B::AlmostBandedOperator,k::Integer,j::Integer)  
-    if k <= B.numbcs
-        @inbounds ret=B.bcdata[k,j]
-    else
-        @inbounds ret=B.data[k-B.numbcs,j-k+B.numbcs]
-    end
-    
-    ret
-end
 
 
 function Base.getindex(B::AlmostBandedOperator,k::Integer,j::Integer)  
     ir = columninds(B,k)::(Int,Int)
     nbc = B.numbcs
-    
-    if k <= nbc
-        if j <= ir[end]
-            B.bcdata[k,j] 
-        else
-            fillgetindex(B,k,j)
-        end
-    elseif k-nbc <= datalength(B) && j <= ir[end] && ir[1] <= j
-        B.data[k-nbc,j-k+nbc]
-    elseif k-nbc <= datalength(B) && j > ir[end]
+  
+    if k <= datalength(B) && j <= ir[end] && ir[1] <= j
+        B.data[k,j]
+    elseif k <= datalength(B) && j > ir[end]
         fillgetindex(B,k,j)
     else
 #        warn("Should not access op indices")
-        B.op[k-nbc,j]##TODO: Slow
+        B.op[k,j]##TODO: Slow
     end
 end
 
@@ -179,7 +139,8 @@ getindex!(b::AlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,
 function resizedata!{T<:Number,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,R},n::Integer)
     if n > B.datalength    
         nbc=B.numbcs
-        if n+20 >= size(B.data,1)
+
+        if n > size(B.data,1)
             pad!(B.data,2n)
         end
 
@@ -193,7 +154,7 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,
             B.filldata=newfilldata
         end
         
-        addentries!(B.op,B.data,B.datalength+1:n)
+        addentries!(B.op,IndexShift(ShiftMatrix(B.data),-nbc,nbc),B.datalength+1-nbc:n-nbc)
         
         B.datalength = n
     end
@@ -203,35 +164,22 @@ end
 
 
 function Base.setindex!(B::AlmostBandedOperator,x,k::Integer,j::Integer)
-    if k<=B.numbcs
-        B.bcdata[k,j] = x
-    else
-        resizedata!(B,k)      
-        @inbounds B.data[k-B.numbcs,j-k+B.numbcs] = x
-    end
+    resizedata!(B,k)      
+    #@inbounds 
+    B.data[k,j] = x
     x
 end
 
 
 ##fast assumes we are inbounds and already resized
-function fastsetindex!(B::AlmostBandedOperator,x,k::Integer,j::Integer)
-    if k<=B.numbcs
-        @inbounds B.bcdata[k,j] = x
-    else
-        ibsetindex!(B.data,x,k-B.numbcs,j-k+B.numbcs)
-    end
-    x
-end
-
-function setfilldata!(B::AlmostBandedOperator,x,k::Integer,j::Integer)
-    if k<= B.numbcs
-        B.bcfilldata[k,j] = x
-    else
-        B.filldata[k-B.numbcs,j] = x
-    end
-end
-
-getfilldata(B::AlmostBandedOperator,k::Integer,j::Integer)=(k<=B.numbcs)?B.bcfilldata[k,j]:B.filldata[k-B.numbcs,j]
+# function fastsetindex!(B::AlmostBandedOperator,x,k::Integer,j::Integer)
+#     if k<=B.numbcs
+#         @inbounds B.bcdata[k,j] = x
+#     else
+#         ibsetindex!(B.data,x,k-B.numbcs,j-k+B.numbcs)
+#     end
+#     x
+# end
 
 
 

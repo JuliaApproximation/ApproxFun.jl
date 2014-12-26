@@ -266,7 +266,7 @@ ibpluseq!(S::IndexShift,x,k,j)=ibpluseq!(S.matrix,x,k-S.rowindex,j-S.colindex)
 
 
 columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix,2)+S.colindex)
-columnrange{BM<:BandedMatrix}(A::Union(IndexShift{BM},BandedMatrix),row::Integer)=max(1,row-A.l):row+A.u
+columnrange(A,row::Integer)=max(1,row-A.l):row+A.u
 
 
 for (isop,saop) in ((:issazeros,:sazeros),(:issaeye,:saeye))
