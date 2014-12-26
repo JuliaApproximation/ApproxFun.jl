@@ -18,7 +18,7 @@ ToeplitzOperator{T,D}(f::Fun{D,T})=ToeplitzOperator(f.coefficients)
 
 function toeplitz_addentries!(v::Vector,A,kr::Range)    
     for k=kr,j=max(1-length(v),1-k):length(v)-1
-        A[k,j] += (j ==0) ? 2v[1] : v[abs(j)+1]
+        A[k,k+j] += (j ==0) ? 2v[1] : v[abs(j)+1]
     end
     
     A
@@ -26,7 +26,7 @@ end
 
 function toeplitz_addentries!(v::ShiftVector,A,kr::Range)    
     for k=kr,j=max(range(v)[1],1-k):range(v)[end]
-        A[k,j] += v[j]
+        A[k,k+j] += v[j]
     end
     
     A
@@ -55,7 +55,7 @@ function hankel_addentries!(v::Vector,A,kr::Range)
     for j=1:length(v)
         for k=max(first(kr),1):min(last(kr),j)
             if j + 1 >= k+1
-                A[k,j-2k+1] += v[j]
+                A[k,j-k+1] += v[j]
             end
         end
     end
@@ -124,17 +124,17 @@ function laurent_addentries!(v::ShiftVector,A,kr::Range)
 
     for k=poskr,j=br
         if k+j≥0 # && k≥0
-            A[2k+1,2j] += v[j]
+            A[2k+1,2k+1+2j] += v[j]
         else # k+j<0 && k≥0
-            A[2k+1,-2j-1] += v[j]            
+            A[2k+1,2k-2j] += v[j]            
         end
     end
     
     for k=negkr,j=br
         if k+j<0 # && k <0
-            A[-2k,-2j] += v[j]
+            A[-2k,-2k-2j] += v[j]
         else # +kj<0 && k<0
-            A[-2k,1-2j] += v[j] 
+            A[-2k,1-2k-2j] += v[j] 
         end
     end    
     
