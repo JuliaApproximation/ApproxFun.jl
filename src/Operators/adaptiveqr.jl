@@ -51,9 +51,9 @@ function givensreduceab!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integ
     
     
     #Assuming that left rows are already zero    
-    applygivens!(a,b,B.data,k1,k2,j1:j1+B.bandinds)
-    applygivens!(a,b,B.fill,B.data,k1,k2,j1+B.bandinds+1:j2+B.bandinds)    
-    applygivens!(a,b,B.fill.data,k1,k2
+    applygivens!(a,b,B.data,k1,k2,j1:k1+B.bandinds[end])
+    applygivens!(a,b,B.fill,B.data,k1,k2,k1+B.bandinds[end]+1:k2+B.bandinds[end])    
+    applygivens!(a,b,B.fill.data,k1,k2)
 
 
     a::T,b::T
@@ -90,7 +90,7 @@ givensreduce!(B::AlmostBandedOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(
 function backsubstitution!{T<:Number}(B::AlmostBandedOperator,u::Array{T})
     n=size(u,1)
     b=B.bandinds[end]
-    nbc = B.numbcs
+    nbc = B.fill.numbcs
     
     pk = zeros(T,nbc)
     

@@ -38,18 +38,19 @@ function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
         #@inbounds
          bcv = B.bc[m].data[j]
         #@inbounds 
-        fd=B.filldata[k,m]
+        fd=B.data[k,m]
         ret += fd*bcv
     end    
     
     ret
 end
 
-function resizedata!(B::FillMatrix,n)
+function resizedata!{T}(B::FillMatrix{T},n)
     nbc=B.numbcs
     if nbc>0  && n > B.datalength
         for bc in B.bc
-            resizedata!(bc,n+20)         ## do all columns in the row, +1 for the fill
+            #TODO: Why +10?
+            resizedata!(bc,2n+10)         ## do all columns in the row, +1 for the fill
         end
       
         newfilldata=zeros(T,2n,nbc)
@@ -92,8 +93,7 @@ function AlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedO
     fl=FillMatrix(T,bc)
     
     for k=1:nbc,j=columnrange(data,k)
-            data[k,j]=fl.bc[j]  # initialize data with the boundary rows
-        end
+        data[k,j]=fl.bc[k][j]  # initialize data with the boundary rows
     end
     
     AlmostBandedOperator(op,data,fl,nbc, br)
@@ -142,11 +142,11 @@ end
 
 function Base.getindex(B::AlmostBandedOperator,k::Integer,j::Integer)  
     ir = columninds(B,k)::(Int,Int)
-    nbc = B.numbcs
+    nbc = B.fill.numbcs
   
-    if k <= datalength(B) && j <= ir[end] && ir[1] <= j
+    if k <= B.datalength && j <= ir[end] && ir[1] <= j
         B.data[k,j]
-    elseif k <= datalength(B) && j > ir[end]
+    elseif k <= B.datalength && j > ir[end]
         B.fill[k,j]
     else
         B.op[k,j]##TODO: Slow
@@ -161,7 +161,7 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,
     resizedata!(B.fill,n)
 
     if n > B.datalength    
-        nbc=B.numbcs
+        nbc=B.fill.numbcs
 
         if n > size(B.data,1)
             pad!(B.data,2n)
