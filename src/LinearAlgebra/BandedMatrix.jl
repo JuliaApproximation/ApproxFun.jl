@@ -27,11 +27,15 @@ end
 
 
 BandedMatrix{T}(data::Matrix{T},m::Integer,a::Integer,b::Integer)=BandedMatrix{T}(data,m,a,b)
-BandedMatrix{T}(data::Matrix{T},m::Integer,a)=BandedMatrix(data,m,-a[1],a[end])
 
 BandedMatrix{T}(::Type{T},n::Integer,m::Integer,a::Integer,b::Integer)=BandedMatrix{T}(Array(T,b+a+1,n),m,a,b)
 BandedMatrix{T}(::Type{T},n::Integer,a::Integer,b::Integer)=BandedMatrix(T,n,n,a,b)
+BandedMatrix{T}(::Type{T},n::Integer,::Colon,a::Integer,b::Integer)=BandedMatrix(T,n,n+b,a,b)
+
+
+BandedMatrix{T}(data::Matrix{T},m::Integer,a)=BandedMatrix(data,m,-a[1],a[end])
 BandedMatrix{T}(::Type{T},n::Integer,m::Integer,a)=BandedMatrix(T,n,m,-a[1],a[end])
+BandedMatrix{T}(::Type{T},n::Integer,::Colon,a)=BandedMatrix(T,n,:,-a[1],a[end])
 BandedMatrix{T}(::Type{T},n::Integer,a)=BandedMatrix(T,n,-a[1],a[end])
 
 Base.eltype{T}(::BandedMatrix{T})=T
@@ -180,7 +184,6 @@ immutable IndexShift{S}
     u::Int
 end
 IndexShift(S,ri,ci)=IndexShift(S,ri,ci,S.l+(ri-ci),S.u-(ri-ci))
-IndexShift(S::BandedMatrix,ri)=IndexShift(S,ri,ri)
 
 getindex(S::IndexShift,k,j)=S.matrix[k-S.rowindex,j-S.colindex]
 setindex!(S::IndexShift,x,k,j)=(S.matrix[k-S.rowindex,j-S.colindex]=x)
