@@ -26,7 +26,7 @@ function addentries!(P::TransposeOperator,A,kr::Range)
     # transpose
     kr2=max(kr[1]-br[end],1):kr[end]-br[1]
     
-    B=slice(P.op,kr2,kr2) 
+    B=subview(P.op,:,kr) 
     for k=kr,j=max(1,k+bandinds(P,1)):k+bandinds(P,2)
         A[k,j-k]+=B[j,k]
     end

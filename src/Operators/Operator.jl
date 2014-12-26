@@ -139,13 +139,31 @@ Base.getindex(B::BandedOperator,k::Range,j::Range)=BandedMatrix(B,1:max(k[end],j
 # This violates the behaviour of slices though...
 Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
 
-function subview(B::BandedOperator,kr::Range,:)
+function subview(B::BandedOperator,kr::Range,::Colon)
      br=bandinds(B)
      BM=slice(B,kr,:)
      
      # This shifts to the correct slice
      IndexShift(BM,kr[1]-1,max(0,kr[1]-1+br[1]))
 end
+
+
+function subview(B::BandedOperator,::Colon,jr::Range)
+     br=bandinds(B)
+     BM=slice(B,:,jr)
+     
+     # This shifts to the correct slice
+     IndexShift(BM,max(jr[1]-1-br[end],0),jr[1]-1)
+end
+
+function subview(B::BandedOperator,kr::Range,jr::Range)
+     br=bandinds(B)
+     BM=slice(B,kr,jr)
+     
+     # This shifts to the correct slice
+     IndexShift(BM,kr[1]-1,jr[1]-1)
+end
+
 
 # BandedMatrix(B::Operator,::Colon,col::Integer)=BandedMatrix(ShiftMatrix(B,col-bandinds(B,1)),col)
 # 

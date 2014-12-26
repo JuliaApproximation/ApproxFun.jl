@@ -236,16 +236,6 @@ function pad!(A::ShiftMatrix,n)
     A
 end
 
-basize(B,k)=ifelse(k==1,size(B,1),size(B,1)+B.u)
-function *{T,V}(A::ShiftMatrix{T},B::ShiftMatrix{V})
-    if size(A,1)+size(A,2)-1<size(B,1)
-        throw(DimensionMismatch("*"))
-    end
-    n=size(A,1)
-    bamultiply!(sazeros(promote_type(T,V),n,A.l+B.l,A.u+B.u),A,B)
-end
-
-
 
 
 ## Convert
@@ -276,7 +266,7 @@ ibpluseq!(S::IndexShift,x,k,j)=ibpluseq!(S.matrix,x,k-S.rowindex,j-S.colindex)
 
 
 columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix,2)+S.colindex)
-columnrange{BM<:BandedMatrix}(A::Union(IndexShift{BM},BandedMatrix),row::Integer)=max(1,row-A.l,row+A.u)
+columnrange{BM<:BandedMatrix}(A::Union(IndexShift{BM},BandedMatrix),row::Integer)=max(1,row-A.l):row+A.u
 
 
 for (isop,saop) in ((:issazeros,:sazeros),(:issaeye,:saeye))
@@ -293,23 +283,14 @@ for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
         $OP(B::IndexShift,x::Number)=IndexShift($OP(B.matrix,x),B.rowindex,B.colindex,B.l,B.u)
         $OP(x::Number,B::IndexShift)=IndexShift($OP(x,B.matrix),B.rowindex,B.colindex,B.l,B.u)
-        
 
-        function $OP{ST<:ShiftMatrix,SV<:ShiftMatrix}(A::IndexShift{ST},B::IndexShift{SV})
-            # TODO: General implementation
-            @assert A.rowindex==B.rowindex
-            @assert A.colindex==B.colindex==0
-            
-            AB=$OP(A.matrix,B.matrix)
-            IndexShift(AB,A.rowindex)
-        end
         
         function $OP{ST<:BandedMatrix,SV<:BandedMatrix}(A::IndexShift{ST},B::IndexShift{SV})
             # TODO: General implementation
             @assert A.rowindex==B.rowindex==A.colindex==B.colindex
             
             AB=$OP(A.matrix,B.matrix)
-            IndexShift(AB,A.rowindex)
+            IndexShift(AB,A.rowindex,A.colindex)
         end        
     end    
 end
