@@ -102,7 +102,7 @@ function bandinds(P::PlusOperator)
 end
 
 
-function addentries!(P::PlusOperator,A::ShiftArray,kr::Range1)
+function addentries!(P::PlusOperator,A,kr)
     for op in P.ops
         addentries!(op,A,kr)
     end
@@ -164,7 +164,7 @@ TimesFunctional{T<:Number}(A::Functional{T},B::BandedOperator{T})=TimesFunctiona
 
 function Base.getindex{T<:Number}(f::TimesFunctional{T},jr::Range)#j is columns
     bi=bandinds(f.op)
-    B=BandedArray(f.op,max((jr[1]-bi[end]),1):(jr[end]-bi[1]))
+    B=BandedMatrix(f.op,max((jr[1]-bi[end]),1):(jr[end]-bi[1]))
     r=zeros(T,length(jr))
     for j in jr, k=max(j-bi[end],1):j-bi[1]
         if k>=1
@@ -272,68 +272,29 @@ bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
 
 
 
-
-
-##TODO: We keep this around because its faster
-## need to unify, maybe implement multiplyentries! with option of overriding?
-function old_addentries!{T<:Number,B}(P::TimesOperator{T,B},A::ShiftArray,kr::Range1)
-    cr = columnrange(A)
-    br = bandinds(P)
-
-    kre=kr[1]:(kr[end]+bandindssum(slice(P.ops,1:length(P.ops)-1),2))
-
-    Z = ShiftArray(P.ops[end],kre,Range1(br...))
+function addentries!(P::TimesOperator,A,kr::UnitRange)
+    krl=Array(Int,length(P.ops),2)
     
-    for j=length(P.ops)-1:-1:2
-        krr=kr[1]:(kr[end]+bandindssum(slice(P.ops,1:j-1),2))
-        multiplyentries!(P.ops[j],Z,krr)
-    end
-    
-    multiplyentries!(P.ops[1],Z,kr)    
-    
-    for k=kr,j=max(cr[1],br[1]):min(cr[end],br[end])
-        A[k,j] += Z[k,j]
-    end
-    
-    A
-end
-
-function new_addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
-    krl=Array(Range1,length(P.ops))
-    
-    krl[1]=kr
+    krl[1,1],krl[1,2]=kr[1],kr[end]
     
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
-         krl[m+1]=max(br[1] + krl[m][1],1):(br[end] + krl[m][end])
+        krl[m+1,1]=max(br[1] + krl[m,1],1)
+        krl[m+1,2]=br[end] + krl[m,2]
     end
     
-    BA=BandedArray(P.ops[end],krl[end])
-    
-    for m=(length(P.ops)-1):-1:1
-      BA=BandedArray(P.ops[m],krl[m],krl[m+1])*BA
+    # The following returns a banded Matrix with all rows
+    # for large k its upper triangular
+    BA=slice(P.ops[end],krl[end,1]:krl[end,2],:)
+    for m=(length(P.ops)-1):-1:2
+        BA=slice(P.ops[m],krl[m,1]:krl[m,2],:)*BA
     end
     
-#     for k=kr,j=columnrange(BA.data)
-#         @inbounds a=@safastget(A,k,j)
-#         @inbounds b=@safastget(BA.data,k,j)
-#         @inbounds @safastset!(A,a + b,k,j)
-#     end
-    
-    
-    cr=columnrange(BA.data)
-    @inbounds A.data[kr+A.rowindex,cr+A.colindex]+=BA.data.data
-    
-    A
-end
-
-function addentries!(P::TimesOperator,A::ShiftArray,kr::Range1)
-    ##TODO: fix hack, and don't reference specific spaces 
-    if all(f->isa(f,Conversion)&&isa(domainspace(f),Ultraspherical)&&isa(rangespace(f),Ultraspherical),P.ops[1:end-1])  
-        old_addentries!(P,A,kr)
-    else
-        new_addentries!(P,A,kr)
-    end
+    # Write directly to A, shifting by rows and columns
+    # See subview in Operator.jl for these definitions
+    rs=kr[1]-1
+    cs= max(0,kr[1]-1+bandinds(P,1))
+    bamultiply!(A,slice(P.ops[1],krl[1,1]:krl[1,2],:),BA,rs,cs)
 end
 
 
@@ -390,8 +351,7 @@ function *{T<:Number}(A::BandedOperator,b::Vector{T})
     n=length(b)
     
     if n>0
-        m=n-bandinds(A)[1]
-        BandedArray(A,1:m,1:n)*b
+        slice(A,:,1:n)*b
     else
         b
     end

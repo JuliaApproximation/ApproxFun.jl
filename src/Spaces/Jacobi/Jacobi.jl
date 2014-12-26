@@ -31,12 +31,12 @@ jacobirecα(α,β,k)=-jacobirecB(α,β,k-1)/jacobirecA(α,β,k-1)
 jacobirecβ(α,β,k)=1/jacobirecA(α,β,k-1)
 
 
-type JacobiRecurrenceOperator <: TridiagonalOperator{Float64}
+immutable JacobiRecurrence <: TridiagonalOperator{Float64}
     a::Float64
     b::Float64
 end
 
-function getdiagonalentry(J::JacobiRecurrenceOperator,k,j)
+function getdiagonalentry(J::JacobiRecurrence,k,j)
     if j==-1
         jacobirecγ(J.a,J.b,k)
     elseif j==0

@@ -8,7 +8,7 @@ end
 
 
 
-function matrix_addentries!(M::Array,A::ShiftArray,kr::Range1)
+function matrix_addentries!(M::Array,A,kr::Range1)
     for k=kr[1]:min(size(M,1),kr[end]),j=1:size(M,2)
         A[k,j-k] += M[k,j]
     end
@@ -17,6 +17,6 @@ function matrix_addentries!(M::Array,A::ShiftArray,kr::Range1)
 end
 
 
-addentries!(T::CompactOperator,A::ShiftArray,kr::Range1)=matrix_addentries!(T.matrix,A,kr)
+addentries!(T::CompactOperator,A,kr::Range1)=matrix_addentries!(T.matrix,A,kr)
 
 bandinds(T::CompactOperator)=(1-size(T.matrix,1),size(T.matrix,2)-1)

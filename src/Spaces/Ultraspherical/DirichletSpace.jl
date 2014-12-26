@@ -16,16 +16,16 @@ canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
 
 ## Dirichlet Conversion
 
-addentries!(C::Conversion{ChebyshevDirichlet{1,0},Chebyshev},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
-addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A::ShiftArray,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
-function addentries!(C::Conversion{ChebyshevDirichlet{1,1},Chebyshev},A::ShiftArray,kr::Range)
+addentries!(C::Conversion{ChebyshevDirichlet{1,0},Chebyshev},A,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
+addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
+function addentries!(C::Conversion{ChebyshevDirichlet{1,1},Chebyshev},A,kr::Range)
     A=toeplitz_addentries!(ShiftVector([1.,0.,-1.],1),A,kr)    
     if kr[1]==1
         A[1,1]+=-1
     end
     A
 end
-function addentries!(C::Conversion{ChebyshevDirichlet{2,2},Chebyshev},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{ChebyshevDirichlet{2,2},Chebyshev},A,kr::Range)
     for k=kr
         A[k,0]=1
         A[k,4]=2*(k+1)/k-1

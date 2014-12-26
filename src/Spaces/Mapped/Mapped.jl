@@ -174,7 +174,7 @@ function conversion_rule(S1::MappedSpace,S2::MappedSpace)
     end
 end
 
-function addentries!{S1<:MappedSpace,S2<:MappedSpace}(M::Multiplication{S1,S2},A::ShiftArray,kr::Range)
+function addentries!{S1<:MappedSpace,S2<:MappedSpace}(M::Multiplication{S1,S2},A,kr::Range)
     @assert domain(M.f)==domain(M.space)
     mf=Fun(coefficients(M.f),space(M.f).space)
     addentries!(Multiplication(mf,M.space.space),A,kr)

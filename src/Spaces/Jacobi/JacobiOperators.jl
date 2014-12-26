@@ -33,27 +33,30 @@ end
 
 ## Multiplication
 
-function addentries!(M::Multiplication{Chebyshev,Jacobi},A::ShiftArray,kr::Range1)
+#TODO: Unify with Ultraspherical
+function addentries!(M::Multiplication{Chebyshev,Jacobi},A,kr::Range)
+    a=coefficients(M.f)
+
     for k=kr
-        A[k,0]=M.f.coefficients[1] 
+        A[k,0]=a[1] 
     end
     
     if length(M.f) > 1
         sp=M.space
-        jkr=max(1,kr[1]-length(M.f)+1):kr[end]+length(M.f)-1
-        ##TODO: simplify shift array and combine with Ultraspherical
-        J=BandedArray(ShiftArray(zeros(length(jkr),3),1-jkr[1],2),jkr)
-        addentries!(JacobiRecurrenceOperator(sp.a,sp.b).',J.data,jkr)  #Multiplication is transpose
+        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+
+        J=subview(JacobiRecurrence(sp.a,sp.b).',jkr,jkr)
+        #Multiplication is transpose
     
         C1=J
     
-        shiftarray_const_addentries!(C1.data,M.f.coefficients[2],A,kr)
+        addentries!(C1,a[2],A,kr)
 
-        C0=BandedArray(ShiftArray(ones(length(jkr),1),1-jkr[1],1),jkr)
+        C0=isbaeye(jkr)
     
-        for k=1:length(M.f)-2    
+        for k=1:length(a)-2    
             C1,C0=2J*C1-C0,C1
-            shiftarray_const_addentries!(C1.data,M.f.coefficients[k+2],A,kr)    
+            addentries!(C1,a[k+2],A,kr)    
         end
     end
     
@@ -72,7 +75,7 @@ bandinds(D::Derivative{Jacobi})=0,D.order
 
 
 
-function addentries!(T::Derivative{Jacobi},A::ShiftArray,kr::Range)
+function addentries!(T::Derivative{Jacobi},A,kr::Range)
     d=domain(T)
     for k=kr
         A[k,1]+=(k+1+T.space.a+T.space.b)./(d.b-d.a)
@@ -159,7 +162,7 @@ bandinds{m}(C::Conversion{Ultraspherical{m},Jacobi})=0,0
 bandinds{m}(C::Conversion{Jacobi,Ultraspherical{m}})=0,0
 
 
-function addentries!(C::Conversion{Chebyshev,Jacobi},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{Chebyshev,Jacobi},A,kr::Range)
     S=rangespace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
@@ -170,7 +173,7 @@ function addentries!(C::Conversion{Chebyshev,Jacobi},A::ShiftArray,kr::Range)
     A
 end
 
-function addentries!(C::Conversion{Jacobi,Chebyshev},A::ShiftArray,kr::Range)
+function addentries!(C::Conversion{Jacobi,Chebyshev},A,kr::Range)
     S=domainspace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
 

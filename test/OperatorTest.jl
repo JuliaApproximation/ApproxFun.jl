@@ -53,7 +53,7 @@ L=D^2+a1*D+a0
 f=FFun(t->exp(cos(2t)),d)
 u=L\f
 
-@test norm(L*u-f) < 10eps()
+@test norm(L*u-f) < 100eps()
 
 
 

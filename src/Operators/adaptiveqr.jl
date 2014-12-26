@@ -3,7 +3,7 @@
 export adaptiveqr!
 
 
-function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
+function givensreduceab!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
     a=datagetindex(B,k1,j1)
     b=datagetindex(B,k2,j1)
     
@@ -47,7 +47,7 @@ function givensreduceab!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},k1
     a::T,b::T
 end
 
-function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
+function givensreduce!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
     a,b=givensreduceab!(B,k1,k2,j1)
     
     if b != 0.0
@@ -62,7 +62,7 @@ function givensreduce!{T<:Number,M,R}(B::MutableAlmostBandedOperator{T,M,R},v::A
     B
 end
 
-function givensreduce!(B::MutableAlmostBandedOperator,v::Array,k1::Range1,j1::Integer)
+function givensreduce!(B::AlmostBandedOperator,v::Array,k1::Range1,j1::Integer)
     if length(k1)>1
         for k=k1[2]:k1[end]
             givensreduce!(B,v,k1[1],k,j1)
@@ -72,10 +72,10 @@ function givensreduce!(B::MutableAlmostBandedOperator,v::Array,k1::Range1,j1::In
     end
 end
 
-givensreduce!(B::MutableAlmostBandedOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)
+givensreduce!(B::AlmostBandedOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandrange(B)[1]),j)
 
 
-function backsubstitution!{T<:Number}(B::MutableAlmostBandedOperator,u::Array{T})
+function backsubstitution!{T<:Number}(B::AlmostBandedOperator,u::Array{T})
     n=size(u,1)
     b=B.bandinds[end]
     nbc = B.numbcs
@@ -136,9 +136,20 @@ function slnorm(u::Array,r::Range)
     end
     ret
 end
+
+function slnorm(u::ShiftMatrix,r::Range)
+    ret = 0.0
+   for k=r
+        @simd for j=1:size(u.data,1)
+            @inbounds ret=max(abs(u.data[j,k]),ret)
+        end
+    end
+    ret
+end
+
 adaptiveqr{V<:Number}(B::Operator,v::Array{V},tol::Float64,N) = adaptiveqr([B],v,tol,N)  #May need to copy v in the future
-adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Array{V},tol::Float64,N) = adaptiveqr!(MutableAlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
-function adaptiveqr!{V<:Number}(B::MutableAlmostBandedOperator,v::Array{V},tol::Float64,N)  
+adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Array{V},tol::Float64,N) = adaptiveqr!(AlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
+function adaptiveqr!{V<:Number}(B::AlmostBandedOperator,v::Array{V},tol::Float64,N)  
     b=-B.bandinds[1]
     m=100+b
     

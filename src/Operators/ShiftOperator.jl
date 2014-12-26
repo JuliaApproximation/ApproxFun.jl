@@ -38,7 +38,7 @@ function shiftdivrowrange(rs,ri,r)
 end
 
 
-function shift_stride_pospos_addentries!(ri,ci,rs,cs,S,A::ShiftArray,kr::Range)
+function shift_stride_pospos_addentries!(ri,ci,rs,cs,S,A,kr::Range)
     r1=shiftdivrowrange(rs,ri,kr)
 
     B1=shiftBandedArray(S,r1)
@@ -51,7 +51,7 @@ function shift_stride_pospos_addentries!(ri,ci,rs,cs,S,A::ShiftArray,kr::Range)
     A
 end
 
-function shift_stride_posneg_addentries!(ri,ci,rs,cs,S,A::ShiftArray,kr::Range)
+function shift_stride_posneg_addentries!(ri,ci,rs,cs,S,A,kr::Range)
     r1=shiftdivrowrange(rs,ri,kr)
     B1=shiftShiftArray(S,r1)
     B=BandedArray(A)
@@ -81,7 +81,7 @@ function shift_stride_addentries!(ri,ci,rs,cs,S,A,kr)
 end
 
 
-function addentries!(L::BandedShiftOperator,A::ShiftArray,kr::Range)
+function addentries!(L::BandedShiftOperator,A,kr::Range)
     shift_stride_addentries!(1,1,2,2,L,A,kr)
     shift_stride_addentries!(0,0,-2,-2,L,A,kr)
     shift_stride_addentries!(0,1,-2,2,L,A,kr)

@@ -32,32 +32,15 @@ Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a flo
 Base.size(op::Operator,k::Integer)=size(op)[k]
 
 
-## geteindex
-
-Base.getindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
-Base.getindex(op::Operator,k::Integer,j::Range1)=op[k:k,j][1,:]
-Base.getindex(op::Operator,k::Range1,j::Integer)=op[k,j:j][:,1]
-Base.getindex(op::Functional,k::Integer)=op[k:k][1]
-
-function Base.getindex(op::Functional,j::Range1,k::Range1)
-  @assert j[1]==1 && j[end]==1
-  op[k].'
-end
-function Base.getindex(op::Functional,j::Integer,k::Range1)
-  @assert j==1
-  op[k].'
-end
 
 
-
-function Base.getindex(B::Operator,k::Range1,j::Range1)
-    BandedArray(B,k,j)[k,j]
-end
 
 
 
 ## bandrange and indexrange
 
+
+bandinds(A,k::Integer)=bandinds(A)[k]
 bandrange(b::BandedBelowOperator)=Range1(bandinds(b)...)
 function bandrangelength(B::BandedBelowOperator)
     bndinds=bandinds(B)
@@ -84,27 +67,133 @@ index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of Ban
 ## Construct operators
 
 
-ShiftArray{T<:Number}(B::Operator{T},k::Range1,j::Range1)=addentries!(B,sazeros(T,k,j),k)
-ShiftArray(B::Operator,k::Range1)=ShiftArray(B,k,bandrange(B))
-BandedArray(B::Operator,k::Range1)=BandedArray(B,k,(k[1]+bandinds(B)[1]):(k[end]+bandinds(B)[end]))
-BandedArray(B::Operator,k::Range1,cs)=BandedArray(ShiftArray(B,k,bandrange(B)),cs)
+ShiftMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,sazeros(T,n,bandinds(B)),1:n)
+ShiftMatrix{T<:Number}(B::Operator{T},rws::UnitRange)=first(rws)==1?ShiftMatrix(B,last(rws)):addentries!(B,issazeros(T,rws,bandinds(B)),rws).matrix
+ShiftMatrix{T<:Number}(B::Operator{T},rws::(Int,Int))=ShiftMatrix(B,rs[1]:rws[end])
 
+
+function BandedMatrix(B::Operator,kr::Range,jr::Range)
+    br=bandrange(B)
+    l=max(0,-br[1]-kr[1]+1)
+    u=length(br)-l-1
+    m=length(kr)+length(br)-1-l
+    
+    shft=kr[1]-jr[1]
+    
+    BandedMatrix(ShiftMatrix(B,kr).data,length(jr),-br[1]-shft,br[end]+shft)
+end
+
+
+# Returns all columns in rows kr
+# The first column of the returned BandedMatrix
+# will be the first non-zero column
+
+BandedMatrix(B::Operator,kr::UnitRange,::Colon)=BandedMatrix(B,kr,max(1,kr[1]+bandinds(B,1)):kr[end]+bandinds(B,2))
+BandedMatrix(B::Operator,kr::Colon,jr::UnitRange)=BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
+
+# function BandedMatrix(B::Operator,kr::UnitRange,::Colon)
+#     br=bandrange(B)
+#     l=max(0,-br[1]-kr[1]+1)
+#     u=length(br)-l-1
+#     m=length(kr)+length(br)-1-l
+#     
+#     BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
+# end
+# 
+# function BandedMatrix(B::Operator,::Colon,jr::UnitRange)
+#     br=bandrange(B)
+#     kr=max(1,jr[1]-br[end]):jr[end]-br[1]
+#     
+#     u=max(0,br[end]-jr[1]+1)
+#     l=length(br)-u-1
+#     m=length(jr)
+#     
+#     BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
+# end
+
+
+
+## geteindex
+
+Base.getindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
+Base.getindex(op::Operator,k::Integer,j::Range)=op[k:k,j][1,:]
+Base.getindex(op::Operator,k::Range,j::Integer)=op[k,j:j][:,1]
+Base.getindex(op::Functional,k::Integer)=op[k:k][1]
+
+function Base.getindex(op::Functional,j::Range,k::Range)
+  @assert j[1]==1 && j[end]==1
+  op[k].'
+end
+function Base.getindex(op::Functional,j::Integer,k::Range)
+  @assert j==1
+  op[k].'
+end
+
+
+#TODO: Speed up by taking only slice
+Base.getindex(B::BandedOperator,k::Range,j::Range)=BandedMatrix(B,1:max(k[end],j[end]),:)[k,j]
+
+
+# we use slice instead of get index because we can't override
+# getindex (::Colon)
+# This violates the behaviour of slices though...
+Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
+
+function subview(B::BandedOperator,kr::Range,::Colon)
+     br=bandinds(B)
+     BM=slice(B,kr,:)
+     
+     # This shifts to the correct slice
+     IndexShift(BM,kr[1]-1,max(0,kr[1]-1+br[1]))
+end
+
+
+function subview(B::BandedOperator,::Colon,jr::Range)
+     br=bandinds(B)
+     BM=slice(B,:,jr)
+     
+     # This shifts to the correct slice
+     IndexShift(BM,max(jr[1]-1-br[end],0),jr[1]-1)
+end
+
+function subview(B::BandedOperator,kr::Range,jr::Range)
+     br=bandinds(B)
+     BM=slice(B,kr,jr)
+     
+     # This shifts to the correct slice
+     IndexShift(BM,kr[1]-1,jr[1]-1)
+end
+
+
+# BandedMatrix(B::Operator,::Colon,col::Integer)=BandedMatrix(ShiftMatrix(B,col-bandinds(B,1)),col)
+# 
+# 
+# function Base.slice(L::BandedOperator,kr::Range)
+#     br=bandrange(L)
+#     # this represents the rows as an upper triangular banded matrix
+#     BM=BandedMatrix(ShiftMatrix(L,kr).data,length(kr)+length(br)-1,0,length(br)-1)
+#     # This shifts to the correct slice
+#     IndexShift(BM,kr[1]-1,kr[1]-1+br[1])
+# end
+# 
+# saslice(B::BandedOperator,kr::Range)=IndexShift(ShiftMatrix(B,kr),kr[1]-1)
 
 ## Default addentries!
 # this allows for just overriding getdiagonalentry
 
-getdiagonalentry(B::BandedOperator,k,j)=error("Override either getdiagonalentry or addentries! for "*string(typeof(B)))
-
+getdiagonalentry(B::BandedOperator,k,j)=error("Override getdiagonalentry for "*string(typeof(B)))
+# 
 function addentries!(B::BandedOperator,A,kr)
-        br=bandinds(B)
-    for k=(max(kr[1],1)):(kr[end])
-        for j=max(br[1],1-k):br[end]
-            A[k,j]=getdiagonalentry(B,k,j)
-        end
-    end
-    
-    A
+     br=bandinds(B)
+     for k=(max(kr[1],1)):(kr[end])
+         for j=max(br[1],1-k):br[end]
+             A[k,j]=getdiagonalentry(B,k,j)
+         end
+     end
+         
+     A
 end
+
 
 ## Default Composition with a Fun, LowRankFun, and TensorFun
 
@@ -115,7 +204,7 @@ Base.getindex(B::BandedOperator,f::TensorFun) = B[LowRankFun(f)]
 ## Standard Operators and linear algebra
 
 
-include("ShiftOperator.jl")
+#include("ShiftOperator.jl")
 include("linsolve.jl")
 
 include("spacepromotion.jl")

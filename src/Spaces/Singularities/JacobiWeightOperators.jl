@@ -257,7 +257,7 @@ end
 #    SpaceOperator(S*Multiplication(f,newdomainspace),newdomainspace,rsp)
 #end
 
-function addentries!{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}},Ultraspherical{λ}},A::ShiftArray,kr::Range1)
+function addentries!{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}},Ultraspherical{λ}},A,kr::Range)
     dsp,rsp = domainspace(S),rangespace(S)
     d = domain(S)
     @assert isa(d,Interval)

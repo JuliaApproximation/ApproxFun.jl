@@ -48,7 +48,7 @@ immutable ConversionWrapper{S<:BandedOperator} <: AbstractConversion{Float64}
     op::S
 end
 
-addentries!(D::ConversionWrapper,A::ShiftArray,k::Range)=addentries!(D.op,A,k)
+addentries!(D::ConversionWrapper,A,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds)
     @eval $func(D::ConversionWrapper)=$func(D.op)
 end
