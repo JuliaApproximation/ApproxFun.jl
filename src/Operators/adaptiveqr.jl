@@ -93,6 +93,7 @@ function backsubstitution!{T<:Number}(B::AlmostBandedOperator,u::Array{T})
     n=size(u,1)
     b=B.bandinds[end]
     nbc = B.fill.numbcs
+    A=B.data
     
     pk = zeros(T,nbc)
     
@@ -101,29 +102,28 @@ function backsubstitution!{T<:Number}(B::AlmostBandedOperator,u::Array{T})
     
         # before we get to filled rows
         for k=n:-1:max(1,n-b)
-            for j=k+1:n             
-                u[k,c]-=B.data[k,j]*u[j,c]
+            @simd for j=k+1:n             
+                @inbounds u[k,c]-=A.data[j-k+A.l+1,k]*u[j,c]
             end
               
-            u[k,c] /= B.data[k,k]
+            @inbounds u[k,c] /= A.data[A.l+1,k]
         end
         
        #filled rows
         for k=n-b-1:-1:1
             @simd for j=1:nbc       
-                pk[j] += u[k+b+1,c]*B.fill.bc[j].data[k+b+1]
+                @inbounds pk[j] += u[k+b+1,c]*B.fill.bc[j].data[k+b+1]
             end
             
             @simd for j=k+1:k+b          
-                u[k,c]-=B.data[k,j]*u[j,c]
+                @inbounds u[k,c]-=A.data[j-k+A.l+1,k]*u[j,c]
             end
             
-            @simd for j=1:nbc
-            #@inbounds             
-                u[k,c] -= B.fill.data[k,j]*pk[j]
+            @simd for j=1:nbc        
+                @inbounds u[k,c] -= B.fill.data[k,j]*pk[j]
             end
               
-            u[k,c] /= B.data[k,k]
+            @inbounds u[k,c] /= A.data[A.l+1,k]
         end
     end
     u
