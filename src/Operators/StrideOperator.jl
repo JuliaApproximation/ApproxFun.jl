@@ -57,7 +57,7 @@ function stride_addentries!(op,ri,ci,rs,cs,A,kr::Range)
     B1=subview(op,r1,:)
     
     for k=r1, j=columnrange(B1,k)
-        A[rs*k + ri,cs*j + ci-(rs*k + ri)] += B1[k,j]
+        A[rs*k + ri,cs*j + ci] += B1[k,j]
     end
     
     A    

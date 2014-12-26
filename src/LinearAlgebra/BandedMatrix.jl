@@ -64,6 +64,19 @@ end
 
 
 
+function baeye{T}(::Type{T},n::Integer,a...)
+    ret=bazeros(T,n,a...)
+    for k=1:n
+         ret[k,k]=one(T)
+    end
+    ret
+end
+baeye{T}(::Type{T},n::Integer)=baeye(T,n,0,0)
+baeye(n::Integer)=baeye(n,0,0)
+baeye(n::Integer,a...)=baeye(Float64,n,a...)
+
+
+
 Base.size(A::BandedMatrix,k)=ifelse(k==1,size(A.data,2),A.m)
 Base.size(A::BandedMatrix)=size(A.data,2),A.m
 bandinds(A::BandedMatrix)=-A.l,A.u
@@ -195,13 +208,7 @@ columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix
 columnrange(A,row::Integer)=max(1,row-A.l):row+A.u
 
 
-for (isop,saop) in ((:issazeros,:sazeros),(:issaeye,:saeye))
-    @eval begin
-        $isop{T}(::Type{T},rws,bnds...)=IndexShift($saop(T,rws[end]-rws[1]+1,bnds...),rws[1]-1)
-        $isop(rws,bnds...)=$isop(Float64,rws,bnds...)
-    end
-end
-
+isbaeye(kr::Range)=IndexShift(baeye(length(kr)),first(kr)-1,first(kr)-1)
 
 function isbazeros{T}(::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer)
     shft=kr[1]-jr[1]
