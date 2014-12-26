@@ -33,27 +33,30 @@ end
 
 ## Multiplication
 
+#TODO: Unify with Ultraspherical
 function addentries!(M::Multiplication{Chebyshev,Jacobi},A,kr::Range)
+    a=coefficients(M.f)
+
     for k=kr
-        A[k,0]=M.f.coefficients[1] 
+        A[k,0]=a[1] 
     end
     
     if length(M.f) > 1
         sp=M.space
-        jkr=max(1,kr[1]-length(M.f)+1):kr[end]+length(M.f)-1
-        ##TODO: simplify shift array and combine with Ultraspherical
-        J=BandedArray(ShiftArray(zeros(length(jkr),3),1-jkr[1],2),jkr)
-        addentries!(JacobiRecurrenceOperator(sp.a,sp.b).',J.data,jkr)  #Multiplication is transpose
+        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+
+        J=subview(JacobiRecurrence(sp.a,sp.b).',jkr,jkr)
+        #Multiplication is transpose
     
         C1=J
     
-        shiftarray_const_addentries!(C1.data,M.f.coefficients[2],A,kr)
+        addentries!(C1,a[2],A,kr)
 
-        C0=BandedArray(ShiftArray(ones(length(jkr),1),1-jkr[1],1),jkr)
+        C0=isbaeye(jkr)
     
-        for k=1:length(M.f)-2    
+        for k=1:length(a)-2    
             C1,C0=2J*C1-C0,C1
-            shiftarray_const_addentries!(C1.data,M.f.coefficients[k+2],A,kr)    
+            addentries!(C1,a[k+2],A,kr)    
         end
     end
     
