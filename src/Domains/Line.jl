@@ -94,7 +94,8 @@ Base.last(d::Line)= Inf
 
 ## Periodic line
 
-immutable PeriodicLine <: PeriodicDomain
+#TODO: allow angle to be Bool to represent 0,π
+immutable PeriodicLine <: PeriodicDomain{Float64} 
     centre::Float64  ##TODO Allow complex
     angle::Float64
     L::Float64

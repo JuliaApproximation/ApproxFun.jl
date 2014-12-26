@@ -6,9 +6,9 @@ export Circle
 ##  Circle
 
 
-immutable Circle{T<:Number} <: PeriodicDomain{T}
+immutable Circle{T<:Number,V<:Real} <: PeriodicDomain{T}
 	center::T
-	radius::T 	#TODO don't know what the T here was supposed to be
+	radius::V
 end
 
 Circle(r)=Circle(0.,r)
