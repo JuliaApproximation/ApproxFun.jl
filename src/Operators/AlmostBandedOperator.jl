@@ -4,7 +4,9 @@ export AlmostBandedOperator
 
 
 
-
+###
+# FillMatrix represents the filled-in rows of an almost-bande dmatrix
+###
 
 type FillMatrix{T,R}
     bc::Vector{R}         # The boundary rows    
@@ -20,10 +22,13 @@ function FillMatrix{T}(::Type{T},bc)
 
     ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
     sfuncs=Array(SavedFunctional{isempty(bc)?Float64:mapreduce(eltype,promote_type,bc)},nbc)
+    
+    m=50
     for k=1:nbc
         sfuncs[k]=SavedFunctional(bc[k])
+        resizedata!(sfuncs[k],m+2)
     end
-    ar0=eye(T,50,nbc)  # the first nbc fill in rows are just the bcs
+    ar0=eye(T,m,nbc)  # the first nbc fill in rows are just the bcs
     FillMatrix(sfuncs,ar0,size(ar0,1),nbc)    
 end
 
@@ -50,7 +55,7 @@ function resizedata!{T}(B::FillMatrix{T},n)
     if nbc>0  && n > B.datalength
         for bc in B.bc
             #TODO: Why +10?
-            resizedata!(bc,2n+10)         ## do all columns in the row, +1 for the fill
+            resizedata!(bc,2n+20)         ## do all columns in the row, +1 for the fill
         end
       
         newfilldata=zeros(T,2n,nbc)

@@ -154,7 +154,7 @@ function slnorm(u::Array,r::Range)
     ret
 end
 
-function slnorm(u::ShiftMatrix,r::Range)
+function slnorm(u::BandedMatrix,r::Range)
     ret = 0.0
    for k=r
         @simd for j=1:size(u.data,1)
