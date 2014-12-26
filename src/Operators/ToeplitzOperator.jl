@@ -53,7 +53,7 @@ HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
 function hankel_addentries!(v::Vector,A,kr::Range)
     for j=1:length(v)
-        for k=max(kr[1],1):min(kr[end],j)
+        for k=max(first(kr),1):min(last(kr),j)
             if j + 1 >= k+1
                 A[k,j-2k+1] += v[j]
             end

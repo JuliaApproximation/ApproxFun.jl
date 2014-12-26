@@ -248,14 +248,14 @@ BandedMatrix(S::ShiftMatrix,m)=BandedMatrix(S.data,m,S.l,S.u)
 
 ## Used to scam addentries! into thinking we are somewhere else
 
-type IndexShift{S} 
+immutable IndexShift{S} 
     matrix::S
     rowindex::Int
     colindex::Int
     l::Int
     u::Int
 end
-IndexShift(S,ri,ci)=IndexShift(S,ri,ci,S.l,S.u)
+IndexShift(S,ri,ci)=IndexShift(S,ri,ci,S.l+(ri-ci),S.u-(ri-ci))
 IndexShift(S::ShiftMatrix,ri)=IndexShift(S,ri,0)
 IndexShift(S::BandedMatrix,ri)=IndexShift(S,ri,ri)
 

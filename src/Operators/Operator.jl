@@ -181,22 +181,18 @@ end
 ## Default addentries!
 # this allows for just overriding getdiagonalentry
 
-# getdiagonalentry(B::BandedOperator,k,j)=error("Override either getdiagonalentry or addentries! for "*string(typeof(B)))
+getdiagonalentry(B::BandedOperator,k,j)=error("Override getdiagonalentry for "*string(typeof(B)))
 # 
-# function addentries!(B::BandedOperator,A,kr)
-#     if isa(A,BandedMatrix)
-#         A=BandedMatrix(addentries!(B,ShiftMatrix(A),kr))
-#     else
-#         br=bandinds(B)
-#         for k=(max(kr[1],1)):(kr[end])
-#             for j=max(br[1],1-k):br[end]
-#                 A[k,j]=getdiagonalentry(B,k,j)
-#             end
-#         end
-#     end
-#         
-#     A
-# end
+function addentries!(B::BandedOperator,A,kr)
+     br=bandinds(B)
+     for k=(max(kr[1],1)):(kr[end])
+         for j=max(br[1],1-k):br[end]
+             A[k,j]=getdiagonalentry(B,k,j)
+         end
+     end
+         
+     A
+end
 
 
 ## Default Composition with a Fun, LowRankFun, and TensorFun
