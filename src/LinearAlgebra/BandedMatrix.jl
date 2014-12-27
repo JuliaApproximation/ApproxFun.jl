@@ -296,30 +296,31 @@ end
 
 ## Matrix*Matrix Multiplication
 
-function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0)   
+function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
             
-            shA=-l+B.l+1
-            shB=-k+C.l+l-B.l+ci-ri
-            @simd for j=(max(1-shB,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
-                @inbounds C.data[j+shB,k+ri]+=Aj*B.data[j,l]
+            
+            #  A[k,j] == A.data[j-k+A.l+1,k] 
+            shB=-l+B.l+1                            
+            @simd for j=max(1,l-B.l):min(B.u+l,m) # columns of C/B
+                @inbounds C[rs*k+ri,cs*j+ci]+=Aj*B.data[j+shB,l]
             end
         end
     end 
     C
 end
 
-function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,ri::Integer=0,ci::Integer=0)   
+function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)    
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
             
              @simd for j=1:m # columns of C/B
-                 @inbounds C[k+ri,j+ci]+=Aj*B[l,j]
+                 @inbounds C[rs*k+ri,cs*j+ci]+=Aj*B[l,j]
              end
         end
     end 
@@ -327,8 +328,8 @@ function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,ri::Integer=0,ci::Integ
 end
 
 
-function bamultiply!(C::IndexShift,A,B,ri::Integer=0,ci::Integer=0)
-    bamultiply!(C.matrix,A,B,ri+C.rowindex,ci+C.colindex)
+function bamultiply!(C::IndexShift,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
+    bamultiply!(C.matrix,A,B,ri*C.rowstride+C.rowindex,ci*C.colstride+C.colindex,rs*C.rowstride,cs*C.colstride)
     C
 end
 
@@ -343,8 +344,8 @@ end
 #         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
 #             Aj=A[k,l]
 # 
-#             for j=max(1,k-C.l,l-B.l):min(B.u+l,n) # columns of C/B
-#                 C[k,j]+=Aj*B[l,j]
+#             for j=max(1,l-B.l):min(B.u+l,m) # columns of C/B
+#                 C[rs*k+ri,cs*j+ci]+=Aj*B[l,j]
 #             end
 #         end
 #     end 

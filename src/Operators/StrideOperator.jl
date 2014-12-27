@@ -47,7 +47,9 @@ for op in (:firstrw,:lastrw,:divrowrange)
 end
 
 
-#A[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
+#S[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
+#S[k,j] == A[k,j-k]
+#A[rowstride*k + rowindex,colstride*j + colindex - k] == op[k,j]
 
 function stride_addentries!(op,ri,ci,rs,cs,A,kr::Range)
     r1=divrowrange(rs,ri,kr)
