@@ -18,7 +18,7 @@ y=f[.1]
 y=f[.1]
 
 @time y=f[.1];
-println("Clenshaw large coeffs, 1 point: Time should be ~9e-6")
+println("Clenshaw large coeffs, 1 point: Time should be ~6e-6")
 
 # @time is 8.853e-6 seconds
 
@@ -27,7 +27,7 @@ f=Fun(exp)
 x=sample(f,100000)
 x=sample(f,100000)
 @time x=sample(f,100000)
-println("Sample: Time should be ~0.27")
+println("Sample: Time should be ~0.25")
 # 0.213793292 with unsafe_view
 # 0.268162181 with inbounds
 
@@ -36,7 +36,7 @@ f=Fun(x->cos(1000x),1000)
 roots(f)
 roots(f)
 @time roots(f)
-println("Roots: Time should be ~0.18")
+println("Roots: Time should be ~0.15")
 
 
 ## ODEs
@@ -46,7 +46,7 @@ x=Fun(identity,d)
 u=[dirichlet(d),diff(d)^2+I]\[1.,0.]
 u=[dirichlet(d),diff(d)^2+I]\[1.,0.]
 @time u=[dirichlet(d),diff(d)^2+I]\[1.,0.]
-println("Cos/Sin: should be ~0.05")
+println("Cos/Sin: should be ~0.017")
 
 
 d=Interval(-1000.,5.)
@@ -54,7 +54,7 @@ x=Fun(identity,d)
 u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
 u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
 @time u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
-println("Airy: should be ~0.05")
+println("Airy: should be ~0.013")
 
 S=Chebyshev()
 x=Fun(identity,S)
@@ -66,7 +66,7 @@ rhs=ones(n+2)
 u=[B,L]\rhs
 u=[B,L]\rhs
 @time u=[B,L]\rhs
-println("Poly: should be ~0.06")
+println("Poly: should be ~0.025")
 
 
 S=Chebyshev()
@@ -79,7 +79,19 @@ rhs=ones(n+2)
 u=linsolve([B,L],rhs;maxlength=Inf)
 u=linsolve([B,L],rhs;maxlength=Inf)
 @time u=linsolve([B,L],rhs;maxlength=Inf)
-println("Cos: should be ~0.08")
+println("Cos: should be ~0.02")
+
+S=Chebyshev()
+x=Fun(identity,S)
+D=Derivative(S)
+L=D^2+sin(x)
+B=dirichlet(S)
+n=2000
+rhs=ones(n+2)
+u=linsolve([B,L],rhs;maxlength=Inf)
+u=linsolve([B,L],rhs;maxlength=Inf)
+@time u=linsolve([B,L],rhs;maxlength=Inf)
+println("Sin: should be ~0.02")
 
 
 ## PDEs
@@ -101,7 +113,7 @@ S=schurfact(A,100)
 u=S\f
 u=S\f
 @time u=S\f;
-println("Laplace: should be ~0.04, 0.02")
+println("Laplace: should be ~0.03, 0.011")
 
 
 
@@ -110,7 +122,7 @@ S=schurfact([neumann(d),lap(d)+100I],100)
 u=S\ones(4)
 u=S\ones(4)
 @time u=S\ones(4)
-println("Neumann Helmholtz: should be ~0.035")
+println("Neumann Helmholtz: should be ~0.017")
 
 
 
@@ -121,4 +133,4 @@ A=Derivative(d)^2-x
 u=null(A)
 u=null(A)
 @time u=null(A)
-println("Null Airy: should be ~0.075")
+println("Null Airy: should be ~0.061")
