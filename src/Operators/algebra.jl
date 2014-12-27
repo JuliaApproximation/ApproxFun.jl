@@ -159,17 +159,15 @@ for S in (:ConstantTimesFunctional,:TimesFunctional)
 end
 
 
-TimesFunctional{T<:Number}(A::Functional{T},B::BandedOperator{T})=TimesFunctional{T,typeof(A),typeof(B)}(A,B)
+TimesFunctional{T<:Number,V<:Number}(A::Functional{T},B::BandedOperator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
 
 
 function Base.getindex{T<:Number}(f::TimesFunctional{T},jr::Range)#j is columns
     bi=bandinds(f.op)
-    B=BandedMatrix(f.op,max((jr[1]-bi[end]),1):(jr[end]-bi[1]))
+    B=subview(f.op,:,jr)
     r=zeros(T,length(jr))
     for j in jr, k=max(j-bi[end],1):j-bi[1]
-        if k>=1
-            r[j-jr[1]+1]+=f.functional[k]*B[k,j]
-        end
+        r[j-jr[1]+1]+=f.functional[k]*B[k,j]
     end
     r
 end

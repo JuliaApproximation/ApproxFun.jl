@@ -1,6 +1,6 @@
 ## Evaluation
 
-getindex(T::Evaluation{Taylor},cols::Range)=mappoint(domain(T),Circle(),T.x).^(cols-1)    
+getindex(T::Evaluation{Taylor,Complex{Float64},Complex{Float64}},cols::Range)=mappoint(domain(T),Circle(),T.x).^(cols-1)    
 
 
 ## Multiplication 

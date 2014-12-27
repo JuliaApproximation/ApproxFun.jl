@@ -19,12 +19,17 @@ Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
 
 
 ## default getindex
-function getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)   
-    # Default is to convert to Canonical and d
-    sp=domainspace(D)
-    csp=canonicalspace(sp)
-    getindex(TimesFunctional(Evaluation(csp,D.x,D.order),Conversion(sp,csp)),kr)
+getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)[D.x] for k=kr]
+
+function getindex{S,T}(D::Evaluation{S,Bool,T},kr::Range)
+    if !D.x
+        T[first(differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)) for k=kr]
+    else
+        T[last(differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)) for k=kr]    
+    end
 end
+
+
 
 
 ## EvaluationWrapper
