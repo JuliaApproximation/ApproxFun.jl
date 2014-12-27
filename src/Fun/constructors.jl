@@ -1,5 +1,18 @@
 Fun(f::Function,d::FunctionSpace,n::Integer) = Fun(f,d,n,Float64)
 
+
+valsdomain_type_promote{T<:Complex}(::Type{T},::Type{T})=T,T
+valsdomain_type_promote{T<:Real}(::Type{T},::Type{T})=T,T
+valsdomain_type_promote(::Type{Int},::Type{Int})=Float64,Int
+valsdomain_type_promote{T<:Real,V<:Real}(::Type{T},::Type{Complex{V}})=promote_type(T,V),Complex{promote_type(T,V)}
+valsdomain_type_promote{T<:Real,V<:Real}(::Type{Complex{T}},::Type{V})=Complex{promote_type(T,V)},promote_type(T,V)
+valsdomain_type_promote{T<:Integer}(::Type{T},::Type{Int})=Float64,Int
+valsdomain_type_promote{T<:Real}(::Type{T},::Type{Int})=T,Int
+valsdomain_type_promote{T<:Complex}(::Type{T},::Type{Int})=T,Int
+valsdomain_type_promote{T<:Integer,V<:Real}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
+valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
+valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
+
 function Fun{T,D}(f::Function,d::FunctionSpace{T,D},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])
@@ -17,13 +30,17 @@ function Fun{T,D}(f::Function,d::FunctionSpace{T,D},n::Integer)
     Tprom = Tout 
     if isa(d,IntervalSpace)   #TODO should also work for any space 
         if Tout <: Number #TODO should also work for array-valued functions
-            Tprom = promote_type(Tout,numbertype(domain(d)))
-            if Tprom != Tout
-                warn("Promoting function output type from $(Tout) to $(Tprom)")
-            elseif Tprom != numbertype(domain(d))
-                warn("FunctionSpace domain number type $(numbertype(d.domain)) doesn't match $(Tprom)")
-                #TODO should construct a new FunctionSpace that contains a domain where the numbers have been promoted
-                #and call constructor with this FunctionSpace.
+            Td = numbertype(domain(d))
+            
+            Tprom,Tpromd=valsdomain_type_promote(Tout,Td)
+            
+            if Tout != Int && Tprom != Tout 
+                    warn("Promoting function output type from $(Tout) to $(Tprom)")
+            end
+            if Tpromd != Td
+                    warn("FunctionSpace domain number type $(Td) is not compatible with coefficient type $(Tprom)")
+                    #TODO should construct a new FunctionSpace that contains a domain where the numbers have been promoted
+                    #and call constructor with this FunctionSpace.
             end
         end
     end
