@@ -28,7 +28,7 @@ function addentries!(P::TransposeOperator,A,kr::Range)
     
     B=subview(P.op,:,kr) 
     for k=kr,j=max(1,k+bandinds(P,1)):k+bandinds(P,2)
-        A[k,j-k]+=B[j,k]
+        A[k,j]+=B[j,k]
     end
     A
 end

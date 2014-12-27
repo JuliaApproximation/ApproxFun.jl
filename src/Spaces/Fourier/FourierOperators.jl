@@ -14,13 +14,13 @@ bandinds(M::Multiplication{Laurent,Laurent})=bandinds(LaurentOperator(M.f))
 function addentries!(C::Conversion{Laurent,Fourier},A,kr::Range)
     for k=kr
         if k==1
-            A[k,0]+=1.
+            A[k,k]+=1.
         elseif iseven(k)
-            A[k,0]+=-1.im
-            A[k,1]+=1.im
+            A[k,k]+=-1.im
+            A[k,k+1]+=1.im
         else #isodd(k)
-            A[k,0]+=1
-            A[k,-1]+=1
+            A[k,k]+=1
+            A[k,k-1]+=1
         end
     end
     A
@@ -28,13 +28,13 @@ end
 function addentries!(C::Conversion{Fourier,Laurent},A,kr::Range)
     for k=kr
         if k==1
-            A[k,0]+=1.
+            A[k,k]+=1.
         elseif iseven(k)
-            A[k,0]+=0.5im
-            A[k,1]+=0.5
+            A[k,k]+=0.5im
+            A[k,k+1]+=0.5
         else #isodd(k)
-            A[k,0]+=0.5
-            A[k,-1]+=-0.5im
+            A[k,k]+=0.5
+            A[k,k-1]+=-0.5im
         end
     end
     A
@@ -66,9 +66,9 @@ bandinds{T}(::ImagOperator{ReImSpace{Taylor,T}})=0,1
 function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A,kr::Range)
     for k=kr
         if isodd(k)         # real part
-            A[k,0]+=1        
+            A[k,k]+=1        
         elseif iseven(k)    # imag part
-            A[k,2]+=-1
+            A[k,k+2]+=-1
         end
     end
     A
@@ -77,7 +77,7 @@ end
 ## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
 function addentries!{T}(R::ImagOperator{ReImSpace{Taylor,T}},A,kr::Range)
     for k=kr
-        A[k,1]+=1
+        A[k,k+1]+=1
     end
     A
 end
@@ -100,9 +100,9 @@ bandinds{T}(::ImagOperator{ReImSpace{Hardy{false},T}})=0,0
 function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
     for k=kr
         if isodd(k)    # imag part
-            A[k,1]+=1            
+            A[k,k+1]+=1            
         elseif iseven(k)         # real part
-            A[k,-1]+=1        
+            A[k,k-1]+=1        
         end
     end
     A
@@ -111,7 +111,7 @@ end
 ## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
 function addentries!{T}(R::ImagOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
     for k=kr
-        A[k,0]+=isodd(k)?-1:1
+        A[k,k]+=isodd(k)?-1:1
     end
     A
 end
@@ -128,9 +128,9 @@ bandinds{T}(::RealOperator{ReImSpace{Laurent,T}})=0,2
 function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A,kr::Range)
     for k=kr
         if isodd(k)    # real part
-            A[k,0]+=1
+            A[k,k]+=1
         elseif iseven(k)         # odd part
-            A[k,2]+=iseven(div(k,2))?-1:1
+            A[k,k+2]+=iseven(div(k,2))?-1:1
         end
     end
     A
@@ -159,9 +159,9 @@ function addentries!(D::Derivative{CosSpace},A,kr::Range)
 
     for k=kr
         if iseven(m)
-            A[k,0] -= (C*(k-1))^m
+            A[k,k] -= (C*(k-1))^m
         else
-            A[k,1] -= (C*k)^m
+            A[k,k+1] -= (C*k)^m
         end
     end
     
@@ -176,13 +176,13 @@ function addentries!(D::Derivative{SinSpace},A,kr::Range)
 
     for k=kr
         if mod(m,4)==0
-            A[k,0] += (C*k)^m
+            A[k,k] += (C*k)^m
         elseif mod(m,4)==2
-            A[k,0] += -(C*k)^m        
+            A[k,k] += -(C*k)^m        
         elseif k>1 && mod(m,4)==1
-            A[k,-1] += (C*(k-1))^m
+            A[k,k-1] += (C*(k-1))^m
         elseif k>1 && mod(m,4)==3
-            A[k,-1] += -(C*(k-1))^m            
+            A[k,k-1] += -(C*(k-1))^m            
         end
     end
     
@@ -204,13 +204,13 @@ function addentries!(D::Integral{SinSpace},A,kr::Range)
 
     for k=kr
         if mod(m,4)==0
-            A[k,0] += (C*k)^(-m)
+            A[k,k] += (C*k)^(-m)
         elseif mod(m,4)==2
-            A[k,0] += -(C*k)^(-m)
+            A[k,k] += -(C*k)^(-m)
         elseif k>1 && mod(m,4)==1
-            A[k,-1] += -(C*(k-1))^(-m)
+            A[k,k-1] += -(C*(k-1))^(-m)
         elseif k>1 && mod(m,4)==3
-            A[k,-1] += (C*(k-1))^(-m)
+            A[k,k-1] += (C*(k-1))^(-m)
         end
     end
     
@@ -233,13 +233,13 @@ function addentries!{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}},A,kr::Range)
 
     for k=kr
         if mod(m,4)==0
-            A[k,0] += (C*k)^(-m)
+            A[k,k] += (C*k)^(-m)
         elseif mod(m,4)==2
-            A[k,0] += -(C*k)^(-m)
+            A[k,k] += -(C*k)^(-m)
         elseif mod(m,4)==1
-            A[k,0] += (C*k)^(-m)
+            A[k,k] += (C*k)^(-m)
         elseif mod(m,4)==3
-            A[k,0] += -(C*k)^(-m)
+            A[k,k] += -(C*k)^(-m)
         end
     end
     
@@ -265,7 +265,7 @@ rangespace{S<:Hardy}(D::Derivative{S})=D.space
 function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Range)
     C=2π./(d.b-d.a)*im
     for k=kr
-        A[k,0] += (C*(k-1))^m
+        A[k,k] += (C*(k-1))^m
     end
     A
 end
@@ -273,7 +273,7 @@ end
 function hardyfalse_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Range)
     C=2π./(d.b-d.a)*im
     for k=kr
-        A[k,0] += (-C*k)^m
+        A[k,k] += (-C*k)^m
     end
     A
 end
@@ -288,7 +288,7 @@ function taylor_derivative_addentries!(d::Circle,m::Integer,A,kr::Range)
         for j=k+1:k+m-1
           D*=j  
         end
-        A[k,m] += C*D
+        A[k,k+m] += C*D
     end
 
     A
@@ -302,7 +302,7 @@ function hardyfalse_derivative_addentries!(d::Circle,m::Integer,A,kr::Range)
         for j=k-m+1:k-1
           D*=j  
         end
-        A[k,-m] += C*D
+        A[k,k-m] += C*D
     end
 
     A
@@ -349,7 +349,7 @@ function addentries!(D::Integral{Taylor},A,kr::Range)
         for j=k-m+1:k-1
           D*=j  
         end
-        A[k,-m] += C/D
+        A[k,k-m] += C/D
     end
 
     A    
@@ -376,7 +376,7 @@ function addentries!{n,T,DD}(D::Integral{DropSpace{Hardy{false},n,T,DD}},A,kr::R
         for j=k+1:k+m-1
           D*=j  
         end
-        A[k,0] += C/D
+        A[k,k] += C/D
     end
 
     A    
@@ -399,7 +399,7 @@ function addentries!(D::Integral{Hardy{false}},A,kr::Range)
     
     C=2π./(d.b-d.a)*im
     for k=kr
-        A[k,0] += (-C*k)^(-m)
+        A[k,k] += (-C*k)^(-m)
     end
     A
 end
@@ -420,7 +420,7 @@ function addentries!{n,T,DD}(D::Integral{DropSpace{Taylor,n,T,DD}},A,kr::Range)
     
     C=2π./(d.b-d.a)*im
     for k=kr
-        A[k,0] += (C*(k+n-1))^(-m)
+        A[k,k] += (C*(k+n-1))^(-m)
     end
     A   
 end

@@ -56,7 +56,7 @@ end
 function addentries!{S<:FunctionSpace{Float64},T}(::RealOperator{ReImSpace{S,T}},A,kr::Range)
     for k=kr
         if isodd(k)
-            A[k,0]+=1
+            A[k,k]+=1
         end
     end
     A
@@ -65,7 +65,7 @@ end
 function addentries!{S<:FunctionSpace{Float64},T}(::ImagOperator{ReImSpace{S,T}},A,kr::Range)
     for k=kr
         if iseven(k)
-            A[k,0]+=1
+            A[k,k]+=1
         end
     end
     A

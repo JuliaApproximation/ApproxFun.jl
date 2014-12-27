@@ -54,7 +54,7 @@ end
 
 type SavedBandedOperator{T<:Number,M<:BandedOperator} <: BandedOperator{T}
     op::M
-    data::ShiftMatrix{T}   #Shifted to encapsolate bandedness
+    data::BandedMatrix{T}   #Shifted to encapsolate bandedness
     datalength::Int
     bandinds::(Int,Int)
 end
@@ -66,7 +66,7 @@ end
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function SavedBandedOperator{T<:Number}(op::BandedOperator{T})
-    data = ShiftMatrix(T,0,bandinds(op))   
+    data = BandedMatrix(T,0,:,bandinds(op))   
     SavedBandedOperator(op,data,0,bandinds(op))
 end
 

@@ -49,8 +49,8 @@ function pdetoarray(Byin,Lin,Min,ny::Integer)
     By=toarray(Byin,ny)   
     nbcy=length(Byin)
     
-    Ly=Yop[1][1:ny-nbcy,1:ny]
-    My=Yop[2][1:ny-nbcy,1:ny]    
+    Ly=Yop[1][1:ny-nbcy,1:ny]|>full
+    My=Yop[2][1:ny-nbcy,1:ny]|>full    
     
     By,Ly,My    
 end
@@ -99,7 +99,7 @@ end
 
 function DiagonalOperatorSchur(L::BandedOperator,M::BandedOperator,n::Integer)
     Yop=promotespaces([L,M])    
-    DiagonalOperatorSchur(diag(Yop[1][1:n,1:n]),diag(Yop[2][1:n,1:n]),domainspace(Yop[1]),rangespace(Yop[2]))
+    DiagonalOperatorSchur(diag(Yop[1][1:n,1:n]|>full),diag(Yop[2][1:n,1:n]|>full),domainspace(Yop[1]),rangespace(Yop[2]))
 end
 
 
@@ -125,22 +125,22 @@ numbcs(::DiagonalOperatorSchur)=0
 
 
 type OperatorSchur{BT<:Number,MT<:Number} <:AbstractOperatorSchur{BT,MT}
-    bcP::Array{BT,2}  # permute columns of bcs
-    bcQ::Array{BT,2}  # bc normalizer
+    bcP::Matrix{BT}  # permute columns of bcs
+    bcQ::Matrix{BT}  # bc normalizer
     
-    bcs::Array{BT,2} # normalized bcs
+    bcs::Matrix{BT} # normalized bcs
     
     # C == QRZ',  D == QTZ'
     # where C/D have degrees of freedom removed
-    Q::Array{MT,2}   
-    Z::Array{MT,2}
+    Q::Matrix{MT}   
+    Z::Matrix{MT}
                
-    R::Array{MT,2}
-    T::Array{MT,2}
+    R::Matrix{MT}
+    T::Matrix{MT}
     
     # L[:,1:k] and M[:,1:k]  so we know how the columns are killed
-    Lcols::Array{MT,2}
-    Mcols::Array{MT,2}
+    Lcols::Matrix{MT}
+    Mcols::Matrix{MT}
     
     domainspace::FunctionSpace
     rangespace::FunctionSpace    

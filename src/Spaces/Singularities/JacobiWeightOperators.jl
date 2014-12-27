@@ -265,7 +265,7 @@ function addentries!{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}},Ultraspheric
     
     C = .5(d.b-d.a)
     for k=kr
-        k == 1? A[k,0] += C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : A[k,0] += zero(T)
+        k == 1? A[k,k] += C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : A[k,k] += zero(T)
     end
     
     A

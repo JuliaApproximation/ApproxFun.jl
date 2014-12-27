@@ -27,11 +27,15 @@ end
 
 
 BandedMatrix{T}(data::Matrix{T},m::Integer,a::Integer,b::Integer)=BandedMatrix{T}(data,m,a,b)
-BandedMatrix{T}(data::Matrix{T},m::Integer,a)=BandedMatrix(data,m,-a[1],a[end])
 
 BandedMatrix{T}(::Type{T},n::Integer,m::Integer,a::Integer,b::Integer)=BandedMatrix{T}(Array(T,b+a+1,n),m,a,b)
 BandedMatrix{T}(::Type{T},n::Integer,a::Integer,b::Integer)=BandedMatrix(T,n,n,a,b)
+BandedMatrix{T}(::Type{T},n::Integer,::Colon,a::Integer,b::Integer)=BandedMatrix(T,n,n+b,a,b)
+
+
+BandedMatrix{T}(data::Matrix{T},m::Integer,a)=BandedMatrix(data,m,-a[1],a[end])
 BandedMatrix{T}(::Type{T},n::Integer,m::Integer,a)=BandedMatrix(T,n,m,-a[1],a[end])
+BandedMatrix{T}(::Type{T},n::Integer,::Colon,a)=BandedMatrix(T,n,:,-a[1],a[end])
 BandedMatrix{T}(::Type{T},n::Integer,a)=BandedMatrix(T,n,-a[1],a[end])
 
 Base.eltype{T}(::BandedMatrix{T})=T
@@ -42,16 +46,34 @@ Base.eltype{T}(::BandedMatrix{T})=T
 
 for (op,bop) in ((:(Base.rand),:barand),(:(Base.zeros),:bazeros),(:(Base.ones),:baones))
     @eval begin
-        $bop{T}(::Type{T},n::Integer,m::Integer,a::Integer,b::Integer)=BandedMatrix($op(T,b+a+1,n),m,a,b)
-        $bop{T}(::Type{T},n::Integer,m::Integer,a)=BandedMatrix($op(T,b+a+1,n),m,-a[1],a[end])        
+        $bop{T}(::Type{T},n::Integer,m::Integer,a::Integer,b::Integer)=BandedMatrix($op(T,b+a+1,n),m,a,b)      
         $bop{T}(::Type{T},n::Integer,a::Integer,b::Integer)=$bop(T,n,n,a,b)
-        $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,n,-a[1],a[end])        
+        $bop{T}(::Type{T},n::Integer,::Colon,a::Integer,b::Integer)=$bop(T,n,n+b,a,b)        
+        $bop{T}(::Type{T},::Colon,m::Integer,a::Integer,b::Integer)=$bop(T,m+a,m,a,b)                   
         $bop(n::Integer,m::Integer,a::Integer,b::Integer)=$bop(Float64,n,m,a,b)
-        $bop(n::Integer,m::Integer,a)=$bop(Float64,n,m,-a[1],a[end])        
         $bop(n::Integer,a::Integer,b::Integer)=$bop(n,n,a,b)
+                
+        $bop{T}(::Type{T},n::Integer,m::Integer,a)=$op(T,n,m,-a[1],a[end])                  
+        $bop{T}(::Type{T},n::Number,::Colon,a)=$bop(T,n,:,-a[1],a[end])   
+        $bop{T}(::Type{T},::Colon,m::Integer,a)=$bop(T,:,m,-a[1],a[end])                        
+        $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,-a[1],a[end])             
+        $bop(n::Integer,m::Integer,a)=$bop(Float64,n,m,-a[1],a[end])        
         $bop(n::Integer,a)=$bop(n,-a[1],a[end])        
     end
 end
+
+
+
+function baeye{T}(::Type{T},n::Integer,a...)
+    ret=bazeros(T,n,a...)
+    for k=1:n
+         ret[k,k]=one(T)
+    end
+    ret
+end
+baeye{T}(::Type{T},n::Integer)=baeye(T,n,0,0)
+baeye(n::Integer)=baeye(n,0,0)
+baeye(n::Integer,a...)=baeye(Float64,n,a...)
 
 
 
@@ -144,6 +166,14 @@ function *{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
     bamultiply!(bazeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
+function *{T,V}(A::BandedMatrix{T},B::Matrix{V})
+    if size(A,2)!=size(B,1)
+        throw(DimensionMismatch("*"))
+    end
+    n,m=size(A,1),size(B,2)    
+    bamultiply!(zeros(promote_type(T,V),n,m),A,B)
+end
+
 
 function *{T,V}(A::BandedMatrix{T},b::Vector{V})
     if size(A,2)!=length(b)
@@ -156,98 +186,12 @@ end
 
 
 
-## ShiftMatrix
-
-
-type ShiftMatrix{T}
-    data::Matrix{T}  # l+u+1 x n (# of rows)
-    l::Int # lower bandwidth ≥0
-    u::Int # upper bandwidth ≥0
-    function ShiftMatrix(data::Matrix{T},l,u)
-        @assert size(data,1)==l+u+1
-        new(data,l,u)
-    end    
-end
-
-
-ShiftMatrix{T}(data::Matrix{T},a::Integer,b::Integer)=ShiftMatrix{T}(data,a,b)
-ShiftMatrix{T}(::Type{T},n::Integer,a::Integer,b::Integer)=ShiftMatrix{T}(Array(T,b+a+1,n),a,b)
-ShiftMatrix{T}(::Type{T},n::Integer,a)=ShiftMatrix(T,n,-a[1],a[end])
-
-Base.eltype{T}(::ShiftMatrix{T})=T
-
-for OP in (:*,:.*,:+,:.+,:-,:.-)
-    @eval begin
-        $OP(B::ShiftMatrix,x::Number)=ShiftMatrix($OP(B.data,x),B.l,B.u)
-        $OP(x::Number,B::ShiftMatrix)=ShiftMatrix($OP(x,B.data),B.l,B.u)    
-    end    
-end
-
-for (op,bop) in ((:(Base.rand),:sarand),(:(Base.zeros),:sazeros),(:(Base.ones),:saones))
-    @eval begin
-        $bop{T}(::Type{T},n::Integer,a::Integer,b::Integer)=ShiftMatrix($op(T,b+a+1,n),a,b)
-        $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,-a[1],a[end])        
-        $bop{T}(::Type{T},n::Integer)=$bop(T,n,0,0)          
-        $bop(n::Integer,a::Integer,b::Integer)=$bop(Float64,n,a,b)
-        $bop(n::Integer,a)=$bop(Float64,n,-a[1],a[end])        
-        $bop(n::Integer)=$bop(n,0,0)          
-    end
-end
-
-function saeye{T}(::Type{T},n::Integer,a...)
-    ret=sazeros(T,n,a...)
-    for k=1:n
-         @inbounds ret[k,0]=one(T)
-    end
-    ret
-end
-saeye(n::Integer,a...)=saeye(Float64,n,a...)
-
-baeye{T}(::Type{T},n::Integer,a...)=BandedMatrix(saeye(T,n,a...),n)
-baeye(n::Integer,a...)=BandedMatrix(saeye(n,a...),n)
-
-
-Base.size(A::ShiftMatrix,k)=ifelse(k==1,size(A.data,2),size(A.data,1))
-Base.size(A::ShiftMatrix)=size(A,1),size(A,2)
-columninds(A::ShiftMatrix)=-A.l,A.u
-columnrange(A::ShiftMatrix)=-A.l:A.u
-columninds(A::ShiftMatrix,k)=columninds(A)[k]
-
-getindex(A::ShiftMatrix,k,j)=A.data[j+A.l+1,k]
-Base.full(A::ShiftMatrix)=A[1:size(A,1),columnrange(A)]
-
-
-# We turn off bound checking to allow nicer syntax without branching
-#setindex!(A::ShiftMatrix,v,k::Integer,j::Integer)=((A.l≤j-k≤A.u)&&k≤A.n)?ussetindex!(A,v,k,j):throw(BoundsError())
-#setindex!(A::ShiftMatrix,v,kr::Range,j::Integer)=(A.l≤j-kr[end]≤j-kr[1]≤A.u&&kr[end]≤A.n)?ussetindex!(A,v,kr,j):throw(BoundsError())
-
-
-ibsetindex!(A::ShiftMatrix,v,k,j)=(@inbounds  A.data[j+A.l+1,k]=v)
-ibsetindex!(A::ShiftMatrix,v,k::Range,j::Range)=(@inbounds  A.data[j+A.l+1,k]=v.')
-ibpluseq!(A::ShiftMatrix,v,k,j)=(@inbounds  A.data[j+A.l+1,k]+=v)
-ibpluseq!(A::ShiftMatrix,v,k::Range,j::Range)=(@inbounds  A.data[j+A.l+1,k]+=v.')
-setindex!(A::ShiftMatrix,v,k,j)=(A.data[j+A.l+1,k]=v)
-setindex!(A::ShiftMatrix,v,k::Range,j::Range)=(A.data[j+A.l+1,k]=v.')
-
-
-
-function pad!(A::ShiftMatrix,n)
-    A.data=pad(A.data,size(A.data,1),n)
-    A
-end
 
 function pad!(A::BandedMatrix,n)
     A.data=pad(A.data,size(A.data,1),n)
     A
 end
 
-
-
-## Convert
-
-ShiftMatrix(B::BandedMatrix)=ShiftMatrix(B.data,B.l,B.u)
-BandedMatrix(S::ShiftMatrix)=BandedMatrix(S.data,size(S,1)+S.u,S.l,S.u)
-BandedMatrix(S::ShiftMatrix,m)=BandedMatrix(S.data,m,S.l,S.u)
 
 
 
@@ -261,8 +205,6 @@ immutable IndexShift{S}
     u::Int
 end
 IndexShift(S,ri,ci)=IndexShift(S,ri,ci,S.l+(ri-ci),S.u-(ri-ci))
-IndexShift(S::ShiftMatrix,ri)=IndexShift(S,ri,0)
-IndexShift(S::BandedMatrix,ri)=IndexShift(S,ri,ri)
 
 getindex(S::IndexShift,k,j)=S.matrix[k-S.rowindex,j-S.colindex]
 setindex!(S::IndexShift,x,k,j)=(S.matrix[k-S.rowindex,j-S.colindex]=x)
@@ -274,14 +216,24 @@ columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix
 columnrange(A,row::Integer)=max(1,row-A.l):row+A.u
 
 
-for (isop,saop) in ((:issazeros,:sazeros),(:issaeye,:saeye))
-    @eval begin
-        $isop{T}(::Type{T},rws,bnds...)=IndexShift($saop(T,rws[end]-rws[1]+1,bnds...),rws[1]-1)
-        $isop(rws,bnds...)=$isop(Float64,rws,bnds...)
-    end
+isbaeye(kr::Range)=IndexShift(baeye(length(kr)),first(kr)-1,first(kr)-1)
+
+function isbazeros{T}(::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer)
+    shft=kr[1]-jr[1]
+    IndexShift(bazeros(T,length(kr),length(jr),l-shft,u+shft),kr[1]-1,jr[1]-1)
 end
 
-isbaeye(kr::Range)=IndexShift(baeye(length(kr)),first(kr)-1)
+
+# These view the operation as taking a slice of an infinite dimensional matrix
+isbazeros{T}(::Type{T},kr::UnitRange,::Colon,l::Integer,u::Integer)=isbazeros(T,kr,max(1,kr[1]-l):kr[end]+u,l,u)
+isbazeros{T}(::Type{T},kr::Colon,jr::UnitRange,l::Integer,u::Integer)=isbazeros(T,max(1,jr[1]-u):jr[end]+l,jr,l,u)
+
+isbazeros{T}(::Type{T},rws::UnitRange,cols::UnitRange,bnds)=isbazeros(T,rws,cols,-bnds[1],bnds[end])
+isbazeros{T}(::Type{T},kr::UnitRange,::Colon,bnds)=isbazeros(T,kr,:,-bnds[1],bnds[end])
+isbazeros{T}(::Type{T},kr::Colon,jr::UnitRange,bnds)=isbazeros(T,:,jr,-bnds[1],bnds[end])
+
+isbazeros(rw::Union(UnitRange,Colon),bnds...)=isbazeros(Float64,rw,bnds...)
+
 
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
@@ -318,13 +270,6 @@ end
 
 IndexTranspose(mat,fl)=IndexTranspose(mat,fl[1],fl[end])
 
-getindex{ST<:ShiftMatrix}(S::IndexTranspose{ST},k,j)=S.matrix[k+j,-j]
-function setindex!{ST<:ShiftMatrix}(S::IndexTranspose{ST},x,k,j)
-    if S.firstrow≤k+j≤S.lastrow
-        S.matrix[k+j,-j]=x
-    end
-    x
-end
 
 getindex(S::IndexTranspose,k,j)=S.matrix[j,k]
 setindex!(S::IndexTranspose,x,k,j)=(S.matrix[j,k]=x)
@@ -334,7 +279,7 @@ function setindex!(S::IndexTranspose,x,k,j)
     end
     x
 end
-ibpluseq!{ST<:ShiftMatrix}(S::IndexTranspose{ST},x,k,j)=S.matrix[k+j,-j]+=x
+
 #ibpluseq!(S.matrix,x,k+j,-j)
 
 ## Matrix*Vector Multiplicaiton
@@ -353,7 +298,7 @@ end
 
 ## Matrix*Matrix Multiplication
 
-function bamultiply!(C::Union(BandedMatrix,ShiftMatrix),A::BandedMatrix,B::BandedMatrix,rs::Integer=0,cs::Integer=0)   
+function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer=0,cs::Integer=0)   
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
@@ -369,13 +314,22 @@ function bamultiply!(C::Union(BandedMatrix,ShiftMatrix),A::BandedMatrix,B::Bande
     C
 end
 
-function bamultiply!{SM<:ShiftMatrix}(C::IndexShift{SM},A::BandedMatrix,B::BandedMatrix,rs::Integer=0,cs::Integer=0)
-    bamultiply!(C.matrix,A,B,rs-C.rowindex,cs-C.colindex-C.rowindex)
+function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,rs::Integer=0,cs::Integer=0)   
+    n=size(A,1);m=size(B,2)
+    for k=1:n  # rows of C
+        for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
+            @inbounds Aj=A.data[l-k+A.l+1,k]
+            
+             @simd for j=1:m # columns of C/B
+                 @inbounds C[k+rs,j+cs]+=Aj*B[l,j]
+             end
+        end
+    end 
     C
 end
 
 
-function bamultiply!{SM<:BandedMatrix}(C::IndexShift{SM},A::BandedMatrix,B::BandedMatrix,rs::Integer=0,cs::Integer=0)
+function bamultiply!(C::IndexShift,A,B,rs::Integer=0,cs::Integer=0)
     bamultiply!(C.matrix,A,B,rs-C.rowindex,cs-C.colindex)
     C
 end
@@ -408,45 +362,21 @@ end
 
 function addentries!(B::BandedMatrix,c::Number,A,kr::Range)    
     for k=kr,j=k+bandrange(B)
-        A[k,j-k] += c*B[k,j]
+        A[k,j] += c*B[k,j]
     end
     
     A
 end
 
-function addentries!(B::ShiftMatrix,c::Number,A,kr::Range)    
-    for k=kr,j=columnrange(B)
-         @inbounds ibpluseq!(A,c*B.data[j+B.l+1,k],k,j)
-    end
-    
-    A
-end
 
-function addentries!{ST<:ShiftMatrix}(B::IndexShift{ST},c::Number,A,kr::Range)    
-    for k=kr,j=max(1-k,columninds(B,1)):columninds(B,2)
+function addentries!{ST<:BandedMatrix}(B::IndexShift{ST},c::Number,A,kr::Range)    
+    for k=kr,j=k+bandrange(B)
         ibpluseq!(A,c*B[k,j],k,j)
     end
     
     A
 end
 
-function addentries!{ST<:BandedMatrix}(B::IndexShift{ST},c::Number,A,kr::Range)    
-    for k=kr,j=bandrange(B)
-        ibpluseq!(A,c*B[k,k+j],k,j)
-    end
-    
-    A
-end
 
 
-# function addentries!{ST<:ShiftMatrix}(B::IndexTranpose{ST},c::Number,A,kr::Range)    
-#     for k=kr,j=columnrange(B)
-#         A[k,j] += c*B[k,j]
-#     end
-#     
-#     A
-# end
-
-
-
-addentries!(B::Union(BandedMatrix,ShiftMatrix,IndexTranspose,IndexShift),A,kr::Range)=addentries!(B,1,A,kr)
+addentries!(B::Union(BandedMatrix,IndexTranspose,IndexShift),A,kr::Range)=addentries!(B,1,A,kr)

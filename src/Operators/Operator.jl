@@ -67,20 +67,17 @@ index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of Ban
 ## Construct operators
 
 
-ShiftMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,sazeros(T,n,bandinds(B)),1:n)
-ShiftMatrix{T<:Number}(B::Operator{T},rws::UnitRange)=first(rws)==1?ShiftMatrix(B,last(rws)):addentries!(B,issazeros(T,rws,bandinds(B)),rws).matrix
-ShiftMatrix{T<:Number}(B::Operator{T},rws::(Int,Int))=ShiftMatrix(B,rs[1]:rws[end])
+
+
+BandedMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,bazeros(T,n,:,bandinds(B)),1:n)
+BandedMatrix{T<:Number}(B::Operator{T},rws::UnitRange,::Colon)=first(rws)==1?BandedMatrix(B,last(rws)):addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
 
 
 function BandedMatrix(B::Operator,kr::Range,jr::Range)
     br=bandrange(B)
-    l=max(0,-br[1]-kr[1]+1)
-    u=length(br)-l-1
-    m=length(kr)+length(br)-1-l
-    
     shft=kr[1]-jr[1]
     
-    BandedMatrix(ShiftMatrix(B,kr).data,length(jr),-br[1]-shft,br[end]+shft)
+    BandedMatrix(BandedMatrix(B,kr,:).data,length(jr),-br[1]-shft,br[end]+shft)
 end
 
 
@@ -88,7 +85,6 @@ end
 # The first column of the returned BandedMatrix
 # will be the first non-zero column
 
-BandedMatrix(B::Operator,kr::UnitRange,::Colon)=BandedMatrix(B,kr,max(1,kr[1]+bandinds(B,1)):kr[end]+bandinds(B,2))
 BandedMatrix(B::Operator,kr::Colon,jr::UnitRange)=BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
 
 # function BandedMatrix(B::Operator,kr::UnitRange,::Colon)
@@ -130,14 +126,12 @@ function Base.getindex(op::Functional,j::Integer,k::Range)
 end
 
 
-#TODO: Speed up by taking only slice
-Base.getindex(B::BandedOperator,k::Range,j::Range)=BandedMatrix(B,1:max(k[end],j[end]),:)[k,j]
-
 
 # we use slice instead of get index because we can't override
 # getindex (::Colon)
 # This violates the behaviour of slices though...
 Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
+Base.getindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
 
 function subview(B::BandedOperator,kr::Range,::Colon)
      br=bandinds(B)
@@ -187,7 +181,7 @@ function addentries!(B::BandedOperator,A,kr)
      br=bandinds(B)
      for k=(max(kr[1],1)):(kr[end])
          for j=max(br[1],1-k):br[end]
-             A[k,j]=getdiagonalentry(B,k,j)
+             A[k,k+j]=getdiagonalentry(B,k,j)
          end
      end
          

@@ -21,16 +21,16 @@ addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A,kr::Range1)=toepl
 function addentries!(C::Conversion{ChebyshevDirichlet{1,1},Chebyshev},A,kr::Range)
     A=toeplitz_addentries!(ShiftVector([1.,0.,-1.],1),A,kr)    
     if kr[1]==1
-        A[1,1]+=-1
+        A[1,2]+=-1
     end
     A
 end
 function addentries!(C::Conversion{ChebyshevDirichlet{2,2},Chebyshev},A,kr::Range)
     for k=kr
-        A[k,0]=1
-        A[k,4]=2*(k+1)/k-1
+        A[k,k]=1
+        A[k,k+4]=2*(k+1)/k-1
         if k>= 3
-            A[k,2]=-2*(k-1)/(k-2)
+            A[k,k+2]=-2*(k-1)/(k-2)
         end
     end
     

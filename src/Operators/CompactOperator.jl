@@ -8,9 +8,9 @@ end
 
 
 
-function matrix_addentries!(M::Array,A,kr::Range1)
+function matrix_addentries!(M::Array,A,kr::Range)
     for k=kr[1]:min(size(M,1),kr[end]),j=1:size(M,2)
-        A[k,j-k] += M[k,j]
+        A[k,j] += M[k,j]
     end
     
     A
