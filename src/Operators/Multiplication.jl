@@ -65,3 +65,13 @@ function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
         Fun(f,sp).*Fun(g,sp)
     end
 end
+
+
+function transformtimes(f::Fun,g::Fun,n)
+    @assert spacescompatible(space(f),space(g))
+    f2 = pad(f,n); g2 = pad(g,n)
+    
+    sp=space(f)
+    chop!(Fun(transform(sp,values(f2).*values(g2)),sp),10eps())    
+end
+transformtimes(f::Fun,g::Fun)=transformtimes(f,g,length(f) + length(g) - 1)

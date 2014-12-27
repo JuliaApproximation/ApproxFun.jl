@@ -199,6 +199,10 @@ end
 
 
 
+## 
+
+.*{T,N}(f::Fun{CosSpace,T},g::Fun{CosSpace,N})=transformtimes(f,g)
+
 
 
 
