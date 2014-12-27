@@ -201,20 +201,23 @@ immutable IndexShift{S}
     matrix::S
     rowindex::Int
     colindex::Int
-    l::Int
-    u::Int
     rowstride::Int
     colstride::Int    
 end
-IndexShift(S::BandedMatrix,ri,ci,l,u)=IndexShift(S,ri,ci,l,u,1,1)
-IndexShift(S::BandedMatrix,ri,ci)=IndexShift(S,ri,ci,S.l+(ci-ri),S.u+(ri-ci))
+IndexShift(S,ri,ci)=IndexShift(S,ri,ci,1,1)
 
 getindex(S::IndexShift,k,j)=S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]
 setindex!(S::IndexShift,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]=x)
 ibpluseq!(S::IndexShift,x,k,j)=ibpluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
 
 
-columnrange(A,row::Integer)=max(1,row-A.l):row+A.u
+function bandinds{BM<:BandedMatrix}(A::IndexShift{BM})
+    shft=A.rowindex-A.colindex
+    shft-A.matrix.l,shft+A.matrix.u
+end
+
+
+columnrange(A,row::Integer)=max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
 
 isbaeye(kr::Range)=IndexShift(baeye(length(kr)),1-first(kr),1-first(kr))
@@ -239,8 +242,8 @@ isbazeros(rw::Union(UnitRange,Colon),bnds...)=isbazeros(Float64,rw,bnds...)
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
-        $OP(B::IndexShift,x::Number)=IndexShift($OP(B.matrix,x),B.rowindex,B.colindex,B.l,B.u)
-        $OP(x::Number,B::IndexShift)=IndexShift($OP(x,B.matrix),B.rowindex,B.colindex,B.l,B.u)
+        $OP(B::IndexShift,x::Number)=IndexShift($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
+        $OP(x::Number,B::IndexShift)=IndexShift($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)
 
         
         function $OP{ST<:BandedMatrix,SV<:BandedMatrix}(A::IndexShift{ST},B::IndexShift{SV})
