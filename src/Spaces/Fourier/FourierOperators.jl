@@ -153,6 +153,9 @@ function addentries!{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}},A,kr::Range)
 end
 
 # CosSpace Multiplicaiton is the same as Chebyshev
+
+bandinds{Sp<:CosSpace}(M::Multiplication{Sp,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
+rangespace{Sp<:CosSpace}(M::Multiplication{Sp,Sp})=domainspace(M)
 addentries!{Sp<:CosSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)=chebmult_addentries!(M.f.coefficients,A,kr)
 
 
@@ -188,6 +191,7 @@ function addentries!{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp},A,kr::R
     A
 end
 
+bandinds{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
 rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp})=SinSpace(domain(M))
 
 

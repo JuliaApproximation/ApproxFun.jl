@@ -1,6 +1,6 @@
 export Jacobi,Legendre
 
-immutable Jacobi <: IntervalSpace
+immutable Jacobi <: PolynomialSpace
     a::Float64
     b::Float64
     domain::Union(IntervalDomain,AnyDomain)

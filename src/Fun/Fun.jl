@@ -48,7 +48,6 @@ Base.eltype{S,T}(::Fun{S,T})=T
 ## General routines
 
 domain(f::Fun)=domain(f.space)
-#domain(f::FFun)=f.domain
 domain{T<:Fun}(v::Vector{T})=map(domain,v)
 
 
@@ -161,7 +160,10 @@ Base.dot(f::Fun,g::Fun)=sum(conj(f).*g)
 function Base.norm(f::Fun)
     sp = space(f)
     f2 = pad(f,2length(f)-1)
-    real(sqrt(sum(Fun(transform(sp,values(conj(f2)).*values(f2)),sp))))
+    vals=values(f2)
+    # we take abs first in case the result is slightly negative
+    # or imaginary
+    sqrt(abs(sum(Fun(transform(sp,conj(vals).*vals),sp))))
 end
 
 

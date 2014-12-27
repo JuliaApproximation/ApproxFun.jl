@@ -17,14 +17,44 @@ Multiplication(c::Number)=ConstantOperator(c)
 
 
 domainspace{D,S,T}(M::Multiplication{D,S,T})=M.space
-rangespace{D,S,T}(M::Multiplication{D,S,T})=M.space
-
-
-
-
-
-bandinds(T::Multiplication)=(1-length(T.f.coefficients),length(T.f.coefficients)-1)
 domain(T::Multiplication)=domain(T.f)
+
+
+## Default implementation: try converting to space of M.f
+
+
+
+function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr)   
+    # Default is to convert to space of f
+    sp=domainspace(D)
+    csp=space(D.f)
+    if csp==sp
+        error("Override Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*")")
+    end
+    addentries!(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]),A,kr)
+end
+        
+function bandinds{F,S,T}(D::Multiplication{F,S,T})
+    sp=domainspace(D)
+    csp=space(D.f)
+    if csp==sp
+        error("Override bandinds for Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*")")
+    end     
+    bandinds(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]))
+end
+
+# corresponds to default implementation        
+function rangespace{F,S,T}(D::Multiplication{F,S,T})
+    sp=domainspace(D)
+    csp=space(D.f)
+    if csp==sp
+        error("Override rangespace for Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*")")
+    end      
+    rangespace(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]))
+end
+
+
+
 
 
 

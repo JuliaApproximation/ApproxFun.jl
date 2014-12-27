@@ -99,11 +99,11 @@ ApproxFun.plot(u)						    # Requires Gadfly or PyPlot
 
 
 There is also support for Fourier representations of functions on periodic intervals. 
-The default domain is `[-π,π]`. Use `FFun` to ensure that the representation is periodic:
+Specify the space `Fourier` to ensure that the representation is periodic:
 
 ```julia
-f = FFun(cos)
-norm(differentiate(f) + FFun(sin))
+f = Fun(cos,Fourier(-π,π))
+norm(differentiate(f) + Fun(sin,Fourier(-π,π))
 ```
 
 Due to the periodicity, Fourier representations allow for the asymptotic savings of `2/π` 
@@ -111,19 +111,17 @@ in the number of coefficients that need to be stored compared with a Chebyshev r
 ODEs can also be solved when the solution is periodic:
 
 ```julia
-d = Interval([-π,π])
-a = Fun(t-> 1+sin(cos(2t)),d)
-D = Derivative(d)
-L = D + a
-f = Fun(t->exp(sin(10t)),d)
-B = periodic(d,0)
+s = Chebyshev([-π,π])
+a = Fun(t-> 1+sin(cos(2t)),s)
+L = Derivative() + a
+f = Fun(t->exp(sin(10t)),s)
+B = periodic(s,0)
 uChebyshev = [B,L]\[0.,f]
 
-d = PeriodicInterval([-π,π])
-a = FFun(t-> 1+sin(cos(2t)),d)
-D = Derivative(d)
-L = D + a
-f = FFun(t->exp(sin(10t)),d)
+s = Fourier([-π,π])
+a = Fun(t-> 1+sin(cos(2t)),s)
+L = Derivative() + a
+f = FFun(t->exp(sin(10t)),s)
 uFourier = L\f
 
 length(uFourier)/length(uChebyshev),2/π

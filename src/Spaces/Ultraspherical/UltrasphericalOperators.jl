@@ -66,6 +66,9 @@ end
 
 ## Multiplication
 
+
+
+
 function chebmult_addentries!(cfs::Vector,A,kr::UnitRange)
     toeplitz_addentries!(.5cfs,A,kr)
     hankel_addentries!(.5cfs,A,max(kr[1],2):kr[end])            

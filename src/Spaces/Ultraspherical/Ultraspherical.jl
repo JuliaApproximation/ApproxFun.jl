@@ -5,7 +5,7 @@ export Ultraspherical
 
 
 
-immutable Ultraspherical{O} <: IntervalSpace
+immutable Ultraspherical{O} <: PolynomialSpace
     domain::Union(Interval,AnyDomain)
     Ultraspherical(d)=new(d)
     Ultraspherical()=new(Interval())

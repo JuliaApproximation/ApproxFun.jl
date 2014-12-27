@@ -105,7 +105,7 @@ u=[dirichlet(sp),
 @time u=[dirichlet(sp),
     D^2-x]\[airyai(-10.)];    
 
-println("Piecewise Airy: should be ~0.02")
+println("Piecewise Airy: should be ~0.016")
 
 
 ## Vector 
@@ -124,7 +124,7 @@ A=[B 0;
    
 u=A\Any[0.,0.,0.,f]
 @time u=A\Any[0.,0.,0.,f]
-println("Systems: should be ~0.0013")
+println("Systems: should be ~0.001")
 
 ## PDEs
 
