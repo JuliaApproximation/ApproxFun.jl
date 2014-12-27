@@ -20,7 +20,7 @@ function toeplitz_addentries!(v::Vector,A,kr::UnitRange)
     if !isempty(v)
         v1=v[1]
         for k=kr
-            A[k,k]+=v1
+            A[k,k]+=2v1
         end
     
         for j=2:length(v)
@@ -40,7 +40,7 @@ function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)
     if !isempty(v)
         @inbounds v1=v[1]
         @simd for k=kr
-            @inbounds A.data[A.l+1,k]+=v1
+            @inbounds A.data[A.l+1,k]+=2v1
         end
     
         for j=2:length(v)
