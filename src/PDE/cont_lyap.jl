@@ -150,39 +150,40 @@ regularize_bcs(S::OperatorSchur,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
 # Solve Bx*Y=Gx and P*Y*R' + S*Y*T' = F 
 # where R and T are upper triangular
 
-##TODO: Support complex in second variable
+##TODO: Support complex in boundary conditions
 cont_constrained_lyapuptriang{OSS,T,FT}(OS::PDEOperatorSchur{OSS,T},Gx,F::Array{FT},nx=100000)=cont_constrained_lyapuptriang(promote_type(T,FT),OS,Gx,F,nx)
 #cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)=cont_constrained_lyapuptriang(N,OS,Gx,F,100000)
 
 
-function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::Array,nx=100000)    
+function cont_constrained_lyap{OSS<:DiagonalOperatorSchur,T}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::Matrix{T},nx=100000)    
     n = size(OS.S,1)    
     F=pad(F,size(F,1),n)
     Gx=toarray(Gxin,n)    
     
-    Y=Array(Fun{typeof(domainspace(OS,1)),Complex{Float64}},n)  ##TODO: determine whether float or complex
+    TYP=promote_type(eltype(OS),T)    
+    Y=Array(Fun{typeof(domainspace(OS,1)),TYP},n)
 
 
     for k=1:n
         op=OS.Rdiags[k]
-        rhs=[Gx[:,k],F[:,k]]
+        rhs=T[Gx[:,k]...,F[:,k]...]
         Y[k]=chop!(linsolve([OS.Bx,op],rhs;maxlength=nx),eps())
     end  
     
     Y   
 end
 
-function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::Array,nx=100000)    
+function cont_constrained_lyap{T}(OS::PDEProductOperatorSchur,Gxin,Gyin,F::Matrix{T},nx=100000)    
     n = length(OS.Rdiags)
     F=pad(F,size(F,1),n)
     Gx=toarray(Gxin,n)    
-    
-    Y=Array(Fun{typeof(domainspace(OS.Rdiags[1])),Complex{Float64}},n)  ##TODO: determine whether float or complex
+    TYP=promote_type(eltype(OS),T)
+    Y=Array(Fun{typeof(domainspace(OS.Rdiags[1])),TYP},n) 
 
 
     for k=1:n
         op=OS.Rdiags[k]
-        rhs=[Gx[:,k]+0.0im,F[:,k]]::Vector{Complex{Float64}}
+        rhs=T[Gx[:,k]...,F[:,k]...]
         Y[k]=chop!(linsolve([OS.Bx[k],op],rhs;maxlength=nx),eps())
     end  
     

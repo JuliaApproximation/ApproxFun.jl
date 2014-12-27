@@ -22,6 +22,9 @@ domain(T::Multiplication)=domain(T.f)
 
 ## Default implementation: try converting to space of M.f
 
+rangespace{F,T}(D::Multiplication{F,AnySpace,T})=AnySpace()
+bandinds{F,T}(D::Multiplication{F,AnySpace,T})=error("No range space attached to Multiplication")
+addentries!{F,T}(D::Multiplication{F,AnySpace,T},A,kr)=error("No range space attached to Multiplication")
 
 
 function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr)   

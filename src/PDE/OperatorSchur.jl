@@ -89,6 +89,8 @@ type DiagonalOperatorSchur{MT<:Number} <:AbstractOperatorSchur{MT,MT}
     rangespace::FunctionSpace       
 end
 
+Base.eltype{MT}(::DiagonalOperatorSchur{MT})=MT
+
 function DiagonalOperatorSchur{T1<:Number,T2<:Number}(R::Vector{T1},T::Vector{T2},d,r)
     PT=promote_type(T1,T2)
     A=Array(Vector{PT},2)

@@ -5,8 +5,10 @@ getindex(T::Evaluation{Taylor,Complex{Float64},Complex{Float64}},cols::Range)=ma
 
 ## Multiplication 
 
-addentries!(M::Multiplication{Laurent,Laurent},A,k)=addentries!(LaurentOperator(M.f),A,k)
 bandinds(M::Multiplication{Laurent,Laurent})=bandinds(LaurentOperator(M.f))
+rangespace(M::Multiplication{Laurent,Laurent})=domainspace(M)
+addentries!(M::Multiplication{Laurent,Laurent},A,k)=addentries!(LaurentOperator(M.f),A,k)
+
 
 
 ## Real/Imag
