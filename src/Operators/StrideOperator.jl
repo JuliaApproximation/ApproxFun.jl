@@ -150,6 +150,29 @@ function promotespaces{T<:Operator}(A::Array{T,2})
 end
 
 
+## Interlace operator
+
+immutable InterlaceOperator{T} <: BandedOperator{T}
+    ops::Matrix{BandedOperator{T}} 
+    function InterlaceOperator(os)
+        @assert size(os,1)==size(os,2)
+        new(os)
+    end
+end
+InterlaceOperator{T}(ops::Matrix{BandedOperator{T}})=InterlaceOperator{T}(ops)
+
+bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandinds(m,k),min,M.ops)):(size(M.ops,k)*mapreduce(m->bandinds(m,k),max,M.ops))
+bandinds(M::InterlaceOperator)=bandinds(M,1),bandinds(M,2)
+
+function addentries!(M::InterlaceOperator,A,kr::Range)
+    n=size(M.ops,1)
+    for k=1:n,j=1:n
+        stride_addentries!(M.ops[k,j],k-n,j-n,n,n,A,kr) 
+    end
+    A
+end
+
+
 
 function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)

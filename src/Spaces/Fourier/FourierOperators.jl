@@ -192,5 +192,13 @@ rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp})=SinSpace(domain(
 
 
 
+function Multiplication{T}(a::Fun{Fourier,T},sp::Fourier)
+    d=domain(a)
+    c,s=vec(a,1),vec(a,2)
+    O=BandedOperator{T}[Multiplication(c,CosSpace(d)) Multiplication(s,SinSpace(d));
+                        Multiplication(s,CosSpace(d)) Multiplication(c,SinSpace(d))]
+    M=SpaceOperator(InterlaceOperator(O),space(a),sp)
+end
+
 
 

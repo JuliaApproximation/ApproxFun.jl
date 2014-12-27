@@ -80,3 +80,10 @@ b=Fun(t->(1+cos(t)+cos(3t)),CosSpace)
 
 @test_approx_eq (s*b)[.1] s[.1]*b[.1]
 
+
+
+a=Fun(t->exp(cos(t)+sin(t)),Fourier)
+b=Fun(t->sin(t)+cos(3t)+1,Fourier)
+
+@test_approx_eq (a*b)[.1] a[.1]*b[.1]
+
