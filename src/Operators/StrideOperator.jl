@@ -53,6 +53,8 @@ end
 
 function stride_addentries!(op,ri,ci,rs,cs,A,kr::Range)
     r1=divrowrange(rs,ri,kr)
+    
+
 
     B1=subview(op,r1,:)
     

@@ -138,7 +138,7 @@ function subview(B::BandedOperator,kr::Range,::Colon)
      BM=slice(B,kr,:)
      
      # This shifts to the correct slice
-     IndexShift(BM,kr[1]-1,max(0,kr[1]-1+br[1]))
+     IndexShift(BM,1-kr[1],-max(0,kr[1]-1+br[1]))
 end
 
 
@@ -147,7 +147,7 @@ function subview(B::BandedOperator,::Colon,jr::Range)
      BM=slice(B,:,jr)
      
      # This shifts to the correct slice
-     IndexShift(BM,max(jr[1]-1-br[end],0),jr[1]-1)
+     IndexShift(BM,-max(jr[1]-1-br[end],0),1-jr[1])
 end
 
 function subview(B::BandedOperator,kr::Range,jr::Range)
@@ -155,22 +155,10 @@ function subview(B::BandedOperator,kr::Range,jr::Range)
      BM=slice(B,kr,jr)
      
      # This shifts to the correct slice
-     IndexShift(BM,kr[1]-1,jr[1]-1)
+     IndexShift(BM,1-kr[1],1-jr[1])
 end
 
 
-# BandedMatrix(B::Operator,::Colon,col::Integer)=BandedMatrix(ShiftMatrix(B,col-bandinds(B,1)),col)
-# 
-# 
-# function Base.slice(L::BandedOperator,kr::Range)
-#     br=bandrange(L)
-#     # this represents the rows as an upper triangular banded matrix
-#     BM=BandedMatrix(ShiftMatrix(L,kr).data,length(kr)+length(br)-1,0,length(br)-1)
-#     # This shifts to the correct slice
-#     IndexShift(BM,kr[1]-1,kr[1]-1+br[1])
-# end
-# 
-# saslice(B::BandedOperator,kr::Range)=IndexShift(ShiftMatrix(B,kr),kr[1]-1)
 
 ## Default addentries!
 # this allows for just overriding getdiagonalentry

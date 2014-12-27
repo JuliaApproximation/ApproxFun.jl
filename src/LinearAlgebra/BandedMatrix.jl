@@ -203,24 +203,25 @@ immutable IndexShift{S}
     colindex::Int
     l::Int
     u::Int
+    rowstride::Int
+    colstride::Int    
 end
-IndexShift(S,ri,ci)=IndexShift(S,ri,ci,S.l+(ri-ci),S.u-(ri-ci))
+IndexShift(S::BandedMatrix,ri,ci,l,u)=IndexShift(S,ri,ci,l,u,1,1)
+IndexShift(S::BandedMatrix,ri,ci)=IndexShift(S,ri,ci,S.l+(ci-ri),S.u+(ri-ci))
 
-getindex(S::IndexShift,k,j)=S.matrix[k-S.rowindex,j-S.colindex]
-setindex!(S::IndexShift,x,k,j)=(S.matrix[k-S.rowindex,j-S.colindex]=x)
-ibpluseq!(S::IndexShift,x,k,j)=ibpluseq!(S.matrix,x,k-S.rowindex,j-S.colindex)
+getindex(S::IndexShift,k,j)=S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]
+setindex!(S::IndexShift,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]=x)
+ibpluseq!(S::IndexShift,x,k,j)=ibpluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
 
 
-
-columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix,2)+S.colindex)
 columnrange(A,row::Integer)=max(1,row-A.l):row+A.u
 
 
-isbaeye(kr::Range)=IndexShift(baeye(length(kr)),first(kr)-1,first(kr)-1)
+isbaeye(kr::Range)=IndexShift(baeye(length(kr)),1-first(kr),1-first(kr))
 
 function isbazeros{T}(::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer)
     shft=kr[1]-jr[1]
-    IndexShift(bazeros(T,length(kr),length(jr),l-shft,u+shft),kr[1]-1,jr[1]-1)
+    IndexShift(bazeros(T,length(kr),length(jr),l-shft,u+shft),1-kr[1],1-jr[1])
 end
 
 
@@ -245,6 +246,7 @@ for OP in (:*,:.*,:+,:.+,:-,:.-)
         function $OP{ST<:BandedMatrix,SV<:BandedMatrix}(A::IndexShift{ST},B::IndexShift{SV})
             # TODO: General implementation
             @assert A.rowindex==B.rowindex==A.colindex==B.colindex
+            @assert A.rowstride==B.rowstride==A.colstride==B.colstride==1
             
             AB=$OP(A.matrix,B.matrix)
             IndexShift(AB,A.rowindex,A.colindex)
@@ -256,10 +258,8 @@ end
 
 
 
-columnrange(S::IndexShift)=columnrange(S.matrix)+S.colindex
-columninds(S::IndexShift)=(columninds(S.matrix,1)+S.colindex,columninds(S.matrix,2)+S.colindex)
-bandrange(S::IndexShift)=bandrange(S.matrix)+S.colindex-S.rowindex
-bandinds(S::IndexShift)=(bandinds(S.matrix,1)+S.colindex-S.rowindex,bandinds(S.matrix,2)+S.colindex-S.rowindex)
+bandrange(S::IndexShift)=bandrange(S.matrix)+S.rowindex-S.colindex
+bandinds(S::IndexShift)=(bandinds(S.matrix,1)+S.rowindex-S.colindex,bandinds(S.matrix,2)+S.rowindex-S.colindex)
 
 
 type IndexTranspose{S}
@@ -298,30 +298,30 @@ end
 
 ## Matrix*Matrix Multiplication
 
-function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,rs::Integer=0,cs::Integer=0)   
+function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0)   
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
             
             shA=-l+B.l+1
-            shB=-k+C.l+l-B.l+cs-rs
+            shB=-k+C.l+l-B.l+ci-ri
             @simd for j=(max(1-shB,k-C.l,l-B.l)+shA):(min(B.u+l,m)+shA) # columns of C/B
-                @inbounds C.data[j+shB,k+rs]+=Aj*B.data[j,l]
+                @inbounds C.data[j+shB,k+ri]+=Aj*B.data[j,l]
             end
         end
     end 
     C
 end
 
-function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,rs::Integer=0,cs::Integer=0)   
+function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,ri::Integer=0,ci::Integer=0)   
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
             
              @simd for j=1:m # columns of C/B
-                 @inbounds C[k+rs,j+cs]+=Aj*B[l,j]
+                 @inbounds C[k+ri,j+ci]+=Aj*B[l,j]
              end
         end
     end 
@@ -329,8 +329,8 @@ function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,rs::Integer=0,cs::Integ
 end
 
 
-function bamultiply!(C::IndexShift,A,B,rs::Integer=0,cs::Integer=0)
-    bamultiply!(C.matrix,A,B,rs-C.rowindex,cs-C.colindex)
+function bamultiply!(C::IndexShift,A,B,ri::Integer=0,ci::Integer=0)
+    bamultiply!(C.matrix,A,B,ri+C.rowindex,ci+C.colindex)
     C
 end
 

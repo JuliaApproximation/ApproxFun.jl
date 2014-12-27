@@ -182,7 +182,7 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,
             pad!(B.data,2n)
         end
         
-        addentries!(B.op,IndexShift(B.data,-nbc,0),B.datalength+1-nbc:n-nbc)
+        addentries!(B.op,IndexShift(B.data,nbc,0),B.datalength+1-nbc:n-nbc)
         B.datalength = n
     end
     
