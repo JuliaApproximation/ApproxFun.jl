@@ -136,9 +136,9 @@ bandinds(::BiSwapOperator)=-1,1
 function addentries!(::BiSwapOperator,A,kr::Range)
     for k=kr
         if isodd(k)
-            A[k,1] += 1
+            A[k,k+1] += 1
         else
-            A[k,-1] += 1
+            A[k,k-1] += 1
         end
     end
     

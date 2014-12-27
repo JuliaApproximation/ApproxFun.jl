@@ -13,7 +13,7 @@ bandinds{S,n,T,D}(::Conversion{DropSpace{S,n,T,D},S})=-n,0
 
 function addentries!{S,T,n,D}(C::Conversion{DropSpace{S,n,T,D},S},A,kr::Range)
     for k=max(kr[1],n+1):kr[end]
-        A[k,-n]+=1
+        A[k,k-n]+=1
     end
     A
 end
