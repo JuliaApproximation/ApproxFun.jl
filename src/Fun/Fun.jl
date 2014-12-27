@@ -200,29 +200,6 @@ Base.diff{S,T}(f::Fun{S,T},n...)=differentiate(f,n...)
 
 
 
-# Overrideable
-# This should be overriden whenever the multiplication space is different
-function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
-    if spacescompatible(f,g)
-        # multiplying 2 Funs, we assume this can be done by transform
-        # the parametrizations are to make it the broadest definition
-    
-        #TODO: smarter multiplication padding
-        n = length(f) + length(g) - 1
-        f2 = pad(f,n); g2 = pad(g,n)
-        
-        sp=space(f)
-        chop!(Fun(transform(sp,values(f2).*values(g2)),sp),10eps())    
-    else
-        # When the spaces differ we promote and multiply    
-        sp=union(space(f),space(g))
-        if sp==NoSpace() # see if a multiplication operator is implemented
-            Multiplication(f,space(g))*g
-        else
-            Fun(f,sp).*Fun(g,sp)
-        end
-    end
-end
 
 
 Base.sum{S,T}(f::Fun{S,T})=last(cumsum(f))

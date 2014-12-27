@@ -49,3 +49,19 @@ for func in (:rangespace,:domainspace,:bandinds,:domain)
 end
 
 
+
+
+
+## Multiplication operators allowus to multiply two spaces
+
+# Overrideable
+# This should be overriden whenever the multiplication space is different
+function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
+    # When the spaces differ we promote and multiply   
+    if domainscompatible(space(f),space(g))
+        Multiplication(f,space(g))*g
+    else         
+        sp=union(space(f),space(g))
+        Fun(f,sp).*Fun(g,sp)
+    end
+end
