@@ -47,20 +47,12 @@ for op in (:firstrw,:lastrw,:divrowrange)
 end
 
 
-#S[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
-#S[k,j] == A[k,j-k]
-#A[rowstride*k + rowindex,colstride*j + colindex - k] == op[k,j]
+#A[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
 
 function stride_addentries!(op,ri,ci,rs,cs,A,kr::Range)
     r1=divrowrange(rs,ri,kr)
     
-
-
-    B1=subview(op,r1,:)
-    
-    for k=r1, j=columnrange(B1,k)
-        A[rs*k + ri,cs*j + ci] += B1[k,j]
-    end
+    addentries!(op,IndexShift(A,ri,ci,rs,cs),r1)
     
     A    
 end
