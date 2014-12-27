@@ -94,6 +94,38 @@ u=linsolve([B,L],rhs;maxlength=Inf)
 println("Sin: should be ~0.02")
 
 
+## Piecewise
+
+x=Fun(identity,[-20.,-10.,-5.,0.,1.,15.])
+sp=space(x)
+D=Derivative(sp)
+
+u=[dirichlet(sp),
+    D^2-x]\[airyai(-10.)];
+@time u=[dirichlet(sp),
+    D^2-x]\[airyai(-10.)];    
+
+println("Piecewise Airy: should be ~0.02")
+
+
+## Vector 
+d=Interval()
+D=Derivative(d);
+B=ldirichlet();
+Bn=lneumann();
+
+f=Fun(x->[exp(x),cos(x)],d)
+
+A=[B 0;
+   Bn 0;
+   0 B;
+   D^2-I 2.I;
+   0 D+I];
+   
+u=A\Any[0.,0.,0.,f]
+@time u=A\Any[0.,0.,0.,f]
+println("Systems: should be ~0.0013")
+
 ## PDEs
 
 d=Interval()^2

@@ -211,11 +211,6 @@ setindex!(S::IndexShift,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+
 ibpluseq!(S::IndexShift,x,k,j)=ibpluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
 
 
-function bandinds{BM<:BandedMatrix}(A::IndexShift{BM})
-    shft=A.rowindex-A.colindex
-    shft-A.matrix.l,shft+A.matrix.u
-end
-
 
 columnrange(A,row::Integer)=max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
