@@ -54,3 +54,12 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     @test norm((diff(f)-df).coefficients)<1000eps()    
 end
 
+
+
+## Multiplication
+
+s=Fun(t->(sin(t)+sin(2t))*cos(sin(t)),SinSpace)
+b=Fun(t->(sin(t)+sin(3t)),SinSpace)
+@test_approx_eq (s*s)[.1] s[.1]^2
+@test_approx_eq (s*b)[.1] s[.1]*b[.1]
+

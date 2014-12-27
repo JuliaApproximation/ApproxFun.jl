@@ -161,6 +161,8 @@ function addentries!{Sp<:SinSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)
     A
 end
 
+bandinds{Sp<:SinSpace}(M::Multiplication{Sp,Sp})=-length(M.f)-1,length(M.f)-1
 rangespace{Sp<:SinSpace}(M::Multiplication{Sp,Sp})=CosSpace(domain(M))
+
 
 
