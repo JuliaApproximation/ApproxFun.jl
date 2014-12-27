@@ -130,8 +130,6 @@ end
 
 
 
-fasttimes(f2,g2)=Fun(chebyshevtransform(values(f2).*values(g2)),domain(f2))
-
 
 for op = (:*,:.*,:./,:/)
     @eval ($op)(f::Fun,c::Number) = Fun(($op)(f.coefficients,c),f.space)

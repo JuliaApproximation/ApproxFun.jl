@@ -16,11 +16,43 @@ ToeplitzOperator{T,D}(f::Fun{D,T})=ToeplitzOperator(f.coefficients)
 
 
 
-function toeplitz_addentries!(v::Vector,A,kr::Range)    
-    for k=kr,j=max(1-length(v),1-k):length(v)-1
-        A[k,k+j] += (j ==0) ? 2v[1] : v[abs(j)+1]
-    end
+function toeplitz_addentries!(v::Vector,A,kr::UnitRange)    
+    if !isempty(v)
+        v1=v[1]
+        for k=kr
+            A[k,k]+=v1
+        end
     
+        for j=2:length(v)
+            vj=v[j]
+            for k = kr
+                A[k,k+j-1]+=vj
+            end
+            for k = max(kr[1],j):kr[end]
+                A[k,k-j+1]+=vj
+            end            
+        end    
+    end
+    A
+end
+
+function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)    
+    if !isempty(v)
+        @inbounds v1=v[1]
+        @simd for k=kr
+            @inbounds A.data[A.l+1,k]+=v1
+        end
+    
+        for j=2:length(v)
+            @inbounds vj=v[j]
+            @simd for k = kr
+                @inbounds A.data[j+A.l,k] +=vj
+            end
+            @simd for k = max(kr[1],j):kr[end]
+                @inbounds A.data[2-j+A.l,k]+=vj
+            end            
+        end    
+    end
     A
 end
 

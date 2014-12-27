@@ -208,3 +208,4 @@ end
 include("calculus.jl")
 include("specialfunctions.jl")
 include("FourierOperators.jl")
+include("LaurentOperators.jl")
