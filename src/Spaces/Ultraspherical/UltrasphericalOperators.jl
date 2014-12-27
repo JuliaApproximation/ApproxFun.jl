@@ -68,6 +68,7 @@ end
 
 
 
+Base.stride{U<:Ultraspherical,V<:Ultraspherical}(M::Multiplication{U,V})=stride(M.f)
 
 function chebmult_addentries!(cfs::Vector,A,kr::UnitRange)
     toeplitz_addentries!(.5cfs,A,kr)

@@ -86,6 +86,18 @@ end
 values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...) 
 points(f::Fun)=points(f.space,length(f))
 Base.length(f::Fun)=length(f.coefficients)
+function Base.stride(f::Fun)
+    # Check only for stride 2 at the moment
+    # as higher stride is very rare anyways
+    for k=2:2:length(f)
+        if abs(f.coefficients[k])>50eps()
+            return 1
+        end
+    end
+    
+    2
+end
+
 
 
 ## Manipulate length
