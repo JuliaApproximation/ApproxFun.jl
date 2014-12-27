@@ -77,7 +77,7 @@ end
 MultiplicationWrapper{D<:FunctionSpace,T<:Number}(f::Fun{D,T},op::BandedOperator{T})=MultiplicationWrapper{D,typeof(op),T}(f,op)
 
 addentries!(D::MultiplicationWrapper,A,k::Range)=addentries!(D.op,A,k)
-for func in (:rangespace,:domainspace,:bandinds,:domain)
+for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
     @eval $func(D::MultiplicationWrapper)=$func(D.op)
 end
 

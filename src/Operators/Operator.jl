@@ -62,7 +62,7 @@ end
 # which we represent by a factorial, so that
 # the gcd with any number < 10 is the number
 Base.stride(A::BandedOperator)=bandinds(A)==(0,0)?factorial(10):1
-
+Base.stride(A::Functional)=1
 
 
 

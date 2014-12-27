@@ -47,6 +47,7 @@ getindex(E::EvaluationWrapper,kr::Range)=getindex(E.functional,kr)
 domainspace(E::AbstractEvaluation)=E.space
 domain(E::AbstractEvaluation)=domain(E.space)
 promotedomainspace(E::AbstractEvaluation,sp::FunctionSpace)=Evaluation(sp,E.x,E.order)
+Base.stride(E::EvaluationWrapper)=stride(E.functional)
 
 ## Convenience routines
 
