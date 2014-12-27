@@ -69,3 +69,8 @@ b=Fun(t->(1+cos(t)+cos(3t)),CosSpace)
 @test_approx_eq (s*s)[.1] s[.1]^2
 @test_approx_eq (s*b)[.1] s[.1]*b[.1]
 
+s=Fun(t->(cos(t)+cos(2t))*cos(cos(t)),CosSpace)
+b=Fun(t->(sin(t)+sin(3t)),SinSpace)
+
+@test_approx_eq (s*b)[.1] s[.1]*b[.1]
+

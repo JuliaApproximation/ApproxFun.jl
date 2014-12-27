@@ -152,12 +152,14 @@ function addentries!{T,DD}(D::Integral{DropSpace{CosSpace,1,T,DD}},A,kr::Range)
     A
 end
 
+# CosSpace Multiplicaiton is the same as Chebyshev
+addentries!{Sp<:CosSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)=chebmult_addentries!(M.f.coefficients,A,kr)
 
 
 function addentries!{Sp<:SinSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)
-    a=M.f
-    toeplitz_addentries!(0.5ShiftVector([-flipud(a.coefficients),0.],a.coefficients),A,kr)
-    hankel_addentries!(0.5*a.coefficients,A,max(kr[1],2):kr[end])    
+    a=M.f.coefficients
+    toeplitz_addentries!(0.5ShiftVector([-flipud(a),0.],a),A,kr)
+    hankel_addentries!(0.5*a,A,max(kr[1],2):kr[end])    
     A
 end
 
@@ -165,9 +167,17 @@ bandinds{Sp<:SinSpace}(M::Multiplication{Sp,Sp})=-length(M.f)-1,length(M.f)-1
 rangespace{Sp<:SinSpace}(M::Multiplication{Sp,Sp})=CosSpace(domain(M))
 
 
+function addentries!{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Sp,Cs},A,kr::Range)
+    a=M.f.coefficients
+    toeplitz_addentries!(0.5ShiftVector(flipud(a[2:end]),[a[1],0.,-a]),A,kr)
+    hankel_addentries!(0.5*a,A,kr)
+    A
+end
+
+bandinds{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Sp,Cs})=1-length(M.f),length(M.f)+1
+rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Sp,Cs})=SinSpace(domain(M))
 
 
-# CosSpace Multiplicaiton is the same as Chebyshev
-addentries!{Sp<:CosSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)=chebmult_addentries!(M.f.coefficients,A,kr)
+
 
 
