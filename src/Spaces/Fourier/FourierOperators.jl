@@ -166,3 +166,8 @@ rangespace{Sp<:SinSpace}(M::Multiplication{Sp,Sp})=CosSpace(domain(M))
 
 
 
+
+# CosSpace Multiplicaiton is the same as Chebyshev
+addentries!{Sp<:CosSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)=chebmult_addentries!(M.f.coefficients,A,kr)
+
+
