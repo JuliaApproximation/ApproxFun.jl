@@ -102,6 +102,9 @@ function bandinds(P::PlusOperator)
 end
 
 
+Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
+
+
 function addentries!(P::PlusOperator,A,kr)
     for op in P.ops
         addentries!(op,A,kr)
@@ -267,6 +270,7 @@ function bandindssum(P,k)
 end
 
 bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
+Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 
 

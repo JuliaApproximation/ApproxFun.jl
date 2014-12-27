@@ -54,13 +54,16 @@ function columninds(b::BandedBelowOperator,k::Integer)
     (ret[1]  + k < 1) ? (1,(ret[end] + k)) : (ret[1]+k,ret[2]+k)
 end
 
-##TODO: Change to columnindexrange to match BandedOperator
-indexrange(b::BandedBelowOperator,k::Integer)=Range1(columninds(b,k)...)
+
+## Strides
+# lets us know if operators decouple the entries
+# to split into sub problems
+# A diagonal operator has essentially infinite stride
+# which we represent by a factorial, so that
+# the gcd with any number < 10 is the number
+Base.stride(A::BandedOperator)=bandinds(A)==(0,0)?factorial(10):1
 
 
-
-
-index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of BandedArray.index
 
 
 
@@ -86,26 +89,6 @@ end
 # will be the first non-zero column
 
 BandedMatrix(B::Operator,kr::Colon,jr::UnitRange)=BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
-
-# function BandedMatrix(B::Operator,kr::UnitRange,::Colon)
-#     br=bandrange(B)
-#     l=max(0,-br[1]-kr[1]+1)
-#     u=length(br)-l-1
-#     m=length(kr)+length(br)-1-l
-#     
-#     BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
-# end
-# 
-# function BandedMatrix(B::Operator,::Colon,jr::UnitRange)
-#     br=bandrange(B)
-#     kr=max(1,jr[1]-br[end]):jr[end]-br[1]
-#     
-#     u=max(0,br[end]-jr[1]+1)
-#     l=length(br)-u-1
-#     m=length(jr)
-#     
-#     BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
-# end
 
 
 

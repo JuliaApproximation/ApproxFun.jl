@@ -119,6 +119,7 @@ end
 rangespace{λ}(D::Derivative{Ultraspherical{λ}})=Ultraspherical{λ+D.order}(domain(D))
 bandinds{S<:Ultraspherical}(D::Derivative{S})=0,D.order
 bandinds{S<:Ultraspherical}(D::Integral{S})=-D.order,0   
+Base.stride{S<:Ultraspherical}(D::Derivative{S})=D.order
 
 function addentries!{λ}(D::Derivative{Ultraspherical{λ}},A,kr::Range)
     m=D.order
@@ -185,7 +186,7 @@ function Conversion{a,b}(A::Ultraspherical{a},B::Ultraspherical{b})
         Conversion{Ultraspherical{a},Ultraspherical{b},Float64}(A,B)
     else
         d=domain(A)
-        Conversion(Ultraspherical{b-1}(d),B)*Conversion(A,Ultraspherical{b-1}(d))
+        ConversionWrapper(Conversion(Ultraspherical{b-1}(d),B)*Conversion(A,Ultraspherical{b-1}(d)))
     end
 end   
 
@@ -241,7 +242,7 @@ function multiplyentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{�
 end
 
 bandinds{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=0,2
-
+Base.stride{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=2
 
 
 ## spaceconversion
