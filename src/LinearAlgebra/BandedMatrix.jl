@@ -305,8 +305,10 @@ function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer
             
             #  A[k,j] == A.data[j-k+A.l+1,k] 
             shB=-l+B.l+1                            
+            ks=rs*k+ri
+            shC=ci-ks+C.l+1
             @simd for j=max(1,l-B.l):min(B.u+l,m) # columns of C/B
-                @inbounds C[rs*k+ri,cs*j+ci]+=Aj*B.data[j+shB,l]
+                @inbounds C.data[cs*j+shC,ks]+=Aj*B.data[j+shB,l]
             end
         end
     end 
