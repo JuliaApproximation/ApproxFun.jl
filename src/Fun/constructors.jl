@@ -18,7 +18,6 @@ function Fun{T,D}(f::Function,d::FunctionSpace{T,D},n::Integer)
     f1=f(pts[1])
     
     if isa(f1,Array) && !isa(d,ArraySpace)
-        warn("creating ArraySpace")
         return Fun(f,ArraySpace(d,size(f1)...),n)
     end
         
@@ -144,7 +143,7 @@ function zerocfsFun(f::Function, d::FunctionSpace)
         end
     end
     
-    warn("Maximum length reached")
+    warn("Maximum length "*string(2^20+1)*" reached")
     
     Fun(f,d,2^21 + 1)
 end
@@ -167,7 +166,7 @@ function abszerocfsFun(f::Function,d::FunctionSpace)
         end
     end
     
-    warn("Maximum length reached")
+    warn("Maximum length "*string(2^20+1)*" reached")
     
     Fun(f,d,2^21 + 1)
 end

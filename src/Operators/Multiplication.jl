@@ -59,7 +59,13 @@ end
 function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     # When the spaces differ we promote and multiply   
     if domainscompatible(space(f),space(g))
-        Multiplication(f,space(g))*g
+        # THe bandwidth of Mutliplication is
+        # usually the length of the function
+        if length(f)≤length(g)
+            Multiplication(f,space(g))*g
+        else
+            Multiplication(g,space(f))*f
+        end        
     else         
         sp=union(space(f),space(g))
         Fun(f,sp).*Fun(g,sp)
