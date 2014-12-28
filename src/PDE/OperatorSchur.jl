@@ -163,23 +163,9 @@ getdiagonal(S::OperatorSchur,k,j)=j==1?S.R[k,k]:S.T[k,k]
 
 OperatorSchur{FT<:Functional}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L),M,n)
 OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M),n)
-function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
-    if isempty(B) && bandinds(L)==bandinds(M)==(0,0)
-        DiagonalOperatorSchur(L,M,n)
-    else
-        OperatorSchur(pdetoarray(B,L,M,n)...,findmindomainspace([L,M]),findmaxrangespace([L,M]))
-    end
-end
 
 
-function OperatorSchur{FT<:Functional,O<:Operator}(B::Vector{FT},A::Vector{O},n::Integer)
-    if length(A)==2
-        OperatorSchur(B,A[1],A[2],n)
-    else
-        @assert isempty(B)
-        DiagonalOperatorSchur(A,n)
-    end
-end
+
 
 OperatorSchur(B,L::SparseMatrixCSC,M::SparseMatrixCSC,ds,rs)=OperatorSchur(B,full(L),full(M),ds,rs)
 function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
@@ -200,4 +186,32 @@ function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
     
     OperatorSchur(P,Q,B,Q2,Z2,R,T, Lcols,Mcols,ds,rs)
 end
+
+
+
+
+
+## Decide which data structure
+
+
+function Base.schurfact{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
+    if isempty(B) && bandinds(L)==bandinds(M)==(0,0)
+        DiagonalOperatorSchur(L,M,n)
+    else
+        L,M=promotespaces([L,M])
+        OperatorSchur(pdetoarray(B,L,M,n)...,domainspace(L),rangespace(L))
+    end
+end
+
+
+function Base.schurfact{FT<:Functional,O<:Operator}(B::Vector{FT},A::Vector{O},n::Integer)
+    if length(A)==2
+        OperatorSchur(B,A[1],A[2],n)
+    else
+        @assert isempty(B)
+        DiagonalOperatorSchur(A,n)
+    end
+end
+
+
 
