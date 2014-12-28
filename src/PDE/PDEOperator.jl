@@ -311,7 +311,7 @@ PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::AbstractOperatorS
 
 function PDEOperatorSchur(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)
    @assert size(A.ops)==(2,2)
-   PDEOperatorSchur(Bx,A.ops[1,1],A.ops[2,1],schurfact(By,A.ops[1,2],A.ops[2,2],ny),indsBx,indsBy)
+   PDEOperatorSchur(Bx,A.ops[1,1],A.ops[2,1],schurfact(By,A.ops[:,2],ny),indsBx,indsBy)
 end
 
 isfunctional(B::PDEOperator,k::Integer)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,k])<:Functional

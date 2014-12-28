@@ -2,17 +2,9 @@
 toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 toarray{T<:Number}(B::Array{Fun{T}},n)=T[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n]
 
-iscomplexfunornumber(A)=false
-iscomplexfunornumber(A::Complex{Float64})=true
-iscomplexfunornumber{S}(A::Fun{S,Complex{Float64}})=true
-
 function toarray(B::Array,n)
-    T=Float64
-    for Bk in B
-        if iscomplexfunornumber(Bk)
-            T=Complex{Float64}
-        end
-    end    
+    T=mapreduce(eltype,promote_type,B)
+ 
 
     ret = zeros(T,length(B),n)
     
@@ -110,7 +102,7 @@ function DiagonalOperatorSchur{O<:Operator}(L::Vector{O},n::Integer)
     
     ##TODO: type
     
-    ops=Array(Vector{Complex{Float64}},length(Yop))
+    ops=Array(Vector{mapreduce(eltype,promote_type,L)},length(Yop))
     for k=1:length(L)
         ops[k]=diag(Yop[k][1:n,1:n])
     end
@@ -188,28 +180,24 @@ function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
 end
 
 
+function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
+    L,M=promotespaces([L,M])
+    OperatorSchur(pdetoarray(B,L,M,n)...,domainspace(L),rangespace(L))
+end
+
 
 
 
 ## Decide which data structure
 
 
-function Base.schurfact{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
-    if isempty(B) && bandinds(L)==bandinds(M)==(0,0)
-        DiagonalOperatorSchur(L,M,n)
-    else
-        L,M=promotespaces([L,M])
-        OperatorSchur(pdetoarray(B,L,M,n)...,domainspace(L),rangespace(L))
-    end
-end
-
-
 function Base.schurfact{FT<:Functional,O<:Operator}(B::Vector{FT},A::Vector{O},n::Integer)
-    if length(A)==2
+    if isempty(B) && all(LM->bandinds(LM)==(0,0),A)
+        DiagonalOperatorSchur(A,n)
+    elseif length(A)==2
         OperatorSchur(B,A[1],A[2],n)
     else
-        @assert isempty(B)
-        DiagonalOperatorSchur(A,n)
+        error("Schur factorization unknown for more than 2 non-diagonal operators.")
     end
 end
 
