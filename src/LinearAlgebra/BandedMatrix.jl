@@ -278,9 +278,7 @@ end
 function IndexDestride{S<:BandedMatrix}(mat::S,ri::Int,ci::Int,rs::Int,cs::Int)
     # its no longer banded unless the strides match
     @assert rs==cs
-    # need to work out the bandinds formula
-    # when ri!=ci
-    @assert ri==ci
+    @assert mod(ri-ci,rs)==0
 
     IndexDestride{S}(mat,ri,ci,rs,cs)
 end
@@ -304,7 +302,7 @@ end
 
 
 # the following assume rowindex == colindex
-bandinds(S::IndexDestride)=(div(bandinds(S.matrix,1),S.rowstride),div(bandinds(S.matrix,2),S.rowstride))
+bandinds(S::IndexDestride)=(div(bandinds(S.matrix,1)+S.colindex-S.rowindex,S.rowstride),div(bandinds(S.matrix,2)+S.colindex-S.rowindex,S.rowstride))
 
 ## Transpose indices
 
