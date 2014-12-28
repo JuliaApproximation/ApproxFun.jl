@@ -54,13 +54,16 @@ function columninds(b::BandedBelowOperator,k::Integer)
     (ret[1]  + k < 1) ? (1,(ret[end] + k)) : (ret[1]+k,ret[2]+k)
 end
 
-##TODO: Change to columnindexrange to match BandedOperator
-indexrange(b::BandedBelowOperator,k::Integer)=Range1(columninds(b,k)...)
 
+## Strides
+# lets us know if operators decouple the entries
+# to split into sub problems
+# A diagonal operator has essentially infinite stride
+# which we represent by a factorial, so that
+# the gcd with any number < 10 is the number
+Base.stride(A::BandedOperator)=bandinds(A)==(0,0)?factorial(10):1
+Base.stride(A::Functional)=1
 
-
-
-index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of BandedArray.index
 
 
 
@@ -72,6 +75,25 @@ index(b::BandedBelowOperator)=1-bandinds(b)[1]  # index is the equivalent of Ban
 BandedMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,bazeros(T,n,:,bandinds(B)),1:n)
 BandedMatrix{T<:Number}(B::Operator{T},rws::UnitRange,::Colon)=first(rws)==1?BandedMatrix(B,last(rws)):addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
 
+function BandedMatrix{T<:Number}(B::Operator{T},kr::StepRange,::Colon)
+    stp=step(kr)
+    
+    if stp==1
+        BandedMatrix(B,first(kr):last(kr),:)
+    else    
+        str=stride(B)
+        @assert mod(str,stp)==0
+        # we need the shifting by bandinds to preserve mod
+        @assert mod(bandinds(B,1),stp)==mod(bandinds(B,2),stp)==0  
+        # find column range
+        jr=max(stp-mod(kr[1],stp),kr[1]+bandinds(B,1)):stp:kr[end]+bandinds(B,2)
+        shf=div(first(kr)-first(jr),stp)
+        bi=div(bandinds(B,1),stp)+shf,div(bandinds(B,2),stp)+shf
+        A=bazeros(T,length(kr),length(jr),bi)
+        addentries!(B,IndexDestride(A,first(kr)-stp,first(jr)-stp,stp,stp),kr)
+        A
+    end
+end
 
 function BandedMatrix(B::Operator,kr::Range,jr::Range)
     br=bandrange(B)
@@ -86,26 +108,6 @@ end
 # will be the first non-zero column
 
 BandedMatrix(B::Operator,kr::Colon,jr::UnitRange)=BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
-
-# function BandedMatrix(B::Operator,kr::UnitRange,::Colon)
-#     br=bandrange(B)
-#     l=max(0,-br[1]-kr[1]+1)
-#     u=length(br)-l-1
-#     m=length(kr)+length(br)-1-l
-#     
-#     BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
-# end
-# 
-# function BandedMatrix(B::Operator,::Colon,jr::UnitRange)
-#     br=bandrange(B)
-#     kr=max(1,jr[1]-br[end]):jr[end]-br[1]
-#     
-#     u=max(0,br[end]-jr[1]+1)
-#     l=length(br)-u-1
-#     m=length(jr)
-#     
-#     BandedMatrix(ShiftMatrix(B,kr).data,m,l,u)
-# end
 
 
 
@@ -138,7 +140,7 @@ function subview(B::BandedOperator,kr::Range,::Colon)
      BM=slice(B,kr,:)
      
      # This shifts to the correct slice
-     IndexShift(BM,1-kr[1],-max(0,kr[1]-1+br[1]))
+     IndexStride(BM,1-kr[1],-max(0,kr[1]-1+br[1]))
 end
 
 
@@ -147,7 +149,7 @@ function subview(B::BandedOperator,::Colon,jr::Range)
      BM=slice(B,:,jr)
      
      # This shifts to the correct slice
-     IndexShift(BM,-max(jr[1]-1-br[end],0),1-jr[1])
+     IndexStride(BM,-max(jr[1]-1-br[end],0),1-jr[1])
 end
 
 function subview(B::BandedOperator,kr::Range,jr::Range)
@@ -155,7 +157,7 @@ function subview(B::BandedOperator,kr::Range,jr::Range)
      BM=slice(B,kr,jr)
      
      # This shifts to the correct slice
-     IndexShift(BM,1-kr[1],1-jr[1])
+     IndexStride(BM,1-kr[1],1-jr[1])
 end
 
 

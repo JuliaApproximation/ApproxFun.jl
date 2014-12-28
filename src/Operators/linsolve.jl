@@ -1,11 +1,30 @@
 ## Linear Solve
 
 
+function stridelinsolve(Ad,b,tolerance,maxlength)
+    L=Ad[end]
+    #TODO: general
+    u1=adaptiveqr([FillFunctional(2.),
+        DestrideOperator(L,-1,-1,2,2)],[b[2]+b[1],b[3:2:end]...],tolerance,maxlength)
+    u2=adaptiveqr([FillFunctional(2.),
+        DestrideOperator(L,0,0,2,2)],[b[2]-b[1],b[4:2:end]...],tolerance,maxlength)
+    interlace(u1,u2)
+end
+
 
 function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps(),maxlength=1000000)
     Ad=promotedomainspace(A)
 
-    r=adaptiveqr(Ad,b,tolerance,maxlength)
+    if length(Ad)==3&&
+            isa(Ad[1],Evaluation{Chebyshev,Bool,Float64})&&
+            isa(Ad[2],Evaluation{Chebyshev,Bool,Float64})&&
+            !Ad[1].x && Ad[2].x &&
+            length(bandrange(Ad[end]))≥25&&
+            iseven(stride(Ad[end]))
+        r=stridelinsolve(Ad,b,tolerance,maxlength)   
+    else
+        r=adaptiveqr(Ad,b,tolerance,maxlength)
+    end
 
     #all rows of Ad should have same domain space     
     ds=domainspace(Ad[end])     

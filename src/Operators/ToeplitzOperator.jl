@@ -16,21 +16,26 @@ ToeplitzOperator{T,D}(f::Fun{D,T})=ToeplitzOperator(f.coefficients)
 
 
 
-function toeplitz_addentries!(v::Vector,A,kr::UnitRange)    
+function toeplitz_addentries!(v::Vector,A,kr::Range)    
     if !isempty(v)
         v1=v[1]
-        for k=kr
-            A[k,k]+=2v1
+        M=maxabs(v)
+        if abs(v1) > M*10eps()
+            for k=kr
+                A[k,k]+=2v1
+            end
         end
     
         for j=2:length(v)
             vj=v[j]
-            for k = kr
-                A[k,k+j-1]+=vj
-            end
-            for k = max(kr[1],j):kr[end]
-                A[k,k-j+1]+=vj
-            end            
+            if abs(vj)> M*10eps()
+                for k = kr
+                    A[k,k+j-1]+=vj
+                end
+                for k = intersect(j:kr[end],kr)
+                    A[k,k-j+1]+=vj
+                end      
+            end      
         end    
     end
     A
@@ -84,10 +89,14 @@ end
 HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
 function hankel_addentries!(v::Vector,A,kr::Range)
+    M=maxabs(v)
     for j=1:length(v)
-        for k=max(first(kr),1):min(last(kr),j)
-            if j + 1 >= k+1
-                A[k,j-k+1] += v[j]
+        vj=v[j]
+        if abs(vj)>M*10eps()
+            for k=intersect(kr,1:j)
+                if j + 1 >= k+1
+                    A[k,j-k+1] += vj
+                end
             end
         end
     end

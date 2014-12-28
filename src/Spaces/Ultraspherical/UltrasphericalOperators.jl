@@ -68,19 +68,25 @@ end
 
 
 
+Base.stride{U<:Ultraspherical,V<:Ultraspherical}(M::Multiplication{U,V})=stride(M.f)
 
-function chebmult_addentries!(cfs::Vector,A,kr::UnitRange)
+
+function chebmult_addentries!(cfs::Vector,A,kr::Range)
     toeplitz_addentries!(.5cfs,A,kr)
-    hankel_addentries!(.5cfs,A,max(kr[1],2):kr[end])            
+    hankel_addentries!(.5cfs,A,intersect(2:kr[end],kr))            
 end
 
 
-addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::UnitRange)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
-
-function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A,kr::UnitRange)
-    cfs=canonicalcoefficients(M.f)
-    toeplitz_addentries!(.5cfs,A,kr)
-    hankel_addentries!(-.5cfs[3:end],A,kr)    
+for TYP in (:Range,:UnitRange) # needed to avoid confusion
+    @eval begin
+        addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::$TYP)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
+    
+        function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A,kr::$TYP)
+            cfs=canonicalcoefficients(M.f)
+            toeplitz_addentries!(.5cfs,A,kr)
+            hankel_addentries!(-.5cfs[3:end],A,kr)    
+        end
+    end
 end
 
 
@@ -119,6 +125,7 @@ end
 rangespace{λ}(D::Derivative{Ultraspherical{λ}})=Ultraspherical{λ+D.order}(domain(D))
 bandinds{S<:Ultraspherical}(D::Derivative{S})=0,D.order
 bandinds{S<:Ultraspherical}(D::Integral{S})=-D.order,0   
+Base.stride{S<:Ultraspherical}(D::Derivative{S})=D.order
 
 function addentries!{λ}(D::Derivative{Ultraspherical{λ}},A,kr::Range)
     m=D.order
@@ -241,7 +248,7 @@ function multiplyentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{�
 end
 
 bandinds{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=0,2
-
+Base.stride{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=2
 
 
 ## spaceconversion

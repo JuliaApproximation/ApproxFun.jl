@@ -6,7 +6,8 @@ export StrideOperator,StrideFunctional
 
 #S[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
 #S[k,j] == op[(k-rowindex)/rowstride,(j-colindex)/colstride]
-type StrideOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+
+immutable StrideOperator{T<:Number,B<:Operator} <: BandedOperator{T}
     op::B
     rowindex::Int       
     colindex::Int       
@@ -14,7 +15,7 @@ type StrideOperator{T<:Number,B<:Operator} <: BandedOperator{T}
     colstride::Int
     
     function StrideOperator(o,r,c,rs,cs)
-        @assert abs(rs) == abs(cs)
+        @assert rs == cs
         @assert rs != 0
         
         new(o,r,c,rs,cs)
@@ -31,6 +32,10 @@ function bandinds(S::StrideOperator)
     
     min(st*br[1]-S.rowindex+S.colindex,0),max(st*br[end]-S.rowindex+S.colindex,0)
 end
+
+Base.stride(S::StrideOperator)=mod(S.rowindex,S.rowstride)==mod(S.colindex,S.colstride)==0?S.rowstride:1
+
+
 
 # First index above
 firstrw(rs,ri,k::Integer)=fld(k-ri+rs-1,rs)
@@ -51,19 +56,62 @@ end
 #S[k,j] == A[k,j-k]
 #A[rowstride*k + rowindex,colstride*j + colindex - k] == op[k,j]
 
-function stride_addentries!(op,ri,ci,rs,cs,A,kr::Range)
+function stride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
     r1=divrowrange(rs,ri,kr)
     
-    addentries!(op,IndexShift(A,ri,ci,rs,cs),r1)
+    addentries!(op,IndexStride(A,ri,ci,rs,cs),r1)
     
     A    
 end
+
+
 
 stride_addentries!(S::StrideOperator,A,kr::Range)=stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
 
 
 addentries!(S::StrideOperator,A,kr)=stride_addentries!(S,A,kr)
 domain(S::StrideOperator)=Any ##TODO: tensor product
+
+
+## DestrideOperator
+
+# Some of this is verbatim from IndexDestride
+immutable DestrideOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+    op::B
+    rowindex::Int       
+    colindex::Int       
+    rowstride::Int
+    colstride::Int
+    
+    function DestrideOperator(o,r,c,rs,cs)
+        @assert rs == cs
+        @assert rs != 0
+        @assert mod(r-c,rs)==0        
+        @assert mod(stride(o),rs)==0
+        
+        new(o,r,c,rs,cs)
+    end
+end
+
+DestrideOperator{T<:Number}(B::Operator{T},r,c,rs,cs)=DestrideOperator{T,typeof(B)}(B,r,c,rs,cs)
+DestrideOperator{T<:Number}(B::Operator{T},r,c,rs)=DestrideOperator{T,typeof(B)}(B,r,c,rs,rs)
+
+
+bandinds(S::DestrideOperator)=(div(bandinds(S.op,1)+S.colindex-S.rowindex,S.rowstride),div(bandinds(S.op,2)+S.colindex-S.rowindex,S.rowstride))
+
+function destride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
+    r1=rs*kr[1]+ri:rs:rs*kr[end]+ri
+    
+    addentries!(op,IndexDestride(A,ri,ci,rs,cs),r1)
+    
+    A    
+end
+
+destride_addentries!(S::DestrideOperator,A,kr::Range)=destride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
+
+addentries!(S::DestrideOperator,A,kr)=destride_addentries!(S,A,kr)
+domain(S::DestrideOperator)=Any ##TODO: tensor product
+
 
 
 ## StrideFunctional

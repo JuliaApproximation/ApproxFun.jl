@@ -53,7 +53,7 @@ for (op,bop) in ((:(Base.rand),:barand),(:(Base.zeros),:bazeros),(:(Base.ones),:
         $bop(n::Integer,m::Integer,a::Integer,b::Integer)=$bop(Float64,n,m,a,b)
         $bop(n::Integer,a::Integer,b::Integer)=$bop(n,n,a,b)
                 
-        $bop{T}(::Type{T},n::Integer,m::Integer,a)=$op(T,n,m,-a[1],a[end])                  
+        $bop{T}(::Type{T},n::Integer,m::Integer,a)=$bop(T,n,m,-a[1],a[end])                  
         $bop{T}(::Type{T},n::Number,::Colon,a)=$bop(T,n,:,-a[1],a[end])   
         $bop{T}(::Type{T},::Colon,m::Integer,a)=$bop(T,:,m,-a[1],a[end])                        
         $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,-a[1],a[end])             
@@ -197,29 +197,33 @@ end
 
 ## Used to scam addentries! into thinking we are somewhere else
 
-immutable IndexShift{S} 
+immutable IndexStride{S} 
     matrix::S
     rowindex::Int
     colindex::Int
     rowstride::Int
     colstride::Int    
 end
-IndexShift(S,ri,ci)=IndexShift(S,ri,ci,1,1)
+function IndexStride{S<:BandedMatrix}(mat::S,ri::Int,ci::Int,rs::Int,cs::Int)
+    # its no longer banded unless the strides match
+    @assert rs==cs
+    IndexStride{S}(mat,ri,ci,rs,cs)
+end
+IndexStride(mat,ri,ci)=IndexStride(mat,ri,ci,1,1)
 
-getindex(S::IndexShift,k,j)=S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]
-setindex!(S::IndexShift,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]=x)
-ibpluseq!(S::IndexShift,x,k,j)=ibpluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
+getindex(S::IndexStride,k,j)=S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]
+setindex!(S::IndexStride,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]=x)
+ibpluseq!(S::IndexStride,x,k,j)=ibpluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
 
 
 
-columnrange(A,row::Integer)=max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
 
-isbaeye(kr::Range)=IndexShift(baeye(length(kr)),1-first(kr),1-first(kr))
+isbaeye(kr::Range)=IndexStride(baeye(length(kr)),1-first(kr),1-first(kr))
 
 function isbazeros{T}(::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer)
     shft=kr[1]-jr[1]
-    IndexShift(bazeros(T,length(kr),length(jr),l-shft,u+shft),1-kr[1],1-jr[1])
+    IndexStride(bazeros(T,length(kr),length(jr),l-shft,u+shft),1-kr[1],1-jr[1])
 end
 
 
@@ -237,17 +241,17 @@ isbazeros(rw::Union(UnitRange,Colon),bnds...)=isbazeros(Float64,rw,bnds...)
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
-        $OP(B::IndexShift,x::Number)=IndexShift($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
-        $OP(x::Number,B::IndexShift)=IndexShift($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)
+        $OP(B::IndexStride,x::Number)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
+        $OP(x::Number,B::IndexStride)=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)
 
         
-        function $OP{ST<:BandedMatrix,SV<:BandedMatrix}(A::IndexShift{ST},B::IndexShift{SV})
+        function $OP{ST<:BandedMatrix,SV<:BandedMatrix}(A::IndexStride{ST},B::IndexStride{SV})
             # TODO: General implementation
             @assert A.rowindex==B.rowindex==A.colindex==B.colindex
             @assert A.rowstride==B.rowstride==A.colstride==B.colstride==1
             
             AB=$OP(A.matrix,B.matrix)
-            IndexShift(AB,A.rowindex,A.colindex)
+            IndexStride(AB,A.rowindex,A.colindex)
         end        
     end    
 end
@@ -256,9 +260,51 @@ end
 
 
 
-bandrange(S::IndexShift)=bandrange(S.matrix)+S.rowindex-S.colindex
-bandinds(S::IndexShift)=(bandinds(S.matrix,1)+S.rowindex-S.colindex,bandinds(S.matrix,2)+S.rowindex-S.colindex)
+bandrange(S::IndexStride)=S.rowstride*bandrange(S.matrix)+S.rowindex-S.colindex
+bandinds(S::IndexStride)=(S.rowstride*bandinds(S.matrix,1)+S.rowindex-S.colindex,S.rowstride*bandinds(S.matrix,2)+S.rowindex-S.colindex)
+columnrange(A,row::Integer)=max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
+
+## IndexDestride
+#  divides by stride instead of multiply
+
+immutable IndexDestride{S} 
+    matrix::S
+    rowindex::Int
+    colindex::Int
+    rowstride::Int
+    colstride::Int    
+end
+function IndexDestride{S<:BandedMatrix}(mat::S,ri::Int,ci::Int,rs::Int,cs::Int)
+    # its no longer banded unless the strides match
+    @assert rs==cs
+    @assert mod(ri-ci,rs)==0
+
+    IndexDestride{S}(mat,ri,ci,rs,cs)
+end
+IndexDestride(mat,ri,ci)=IndexStride(mat,ri,ci,1,1)
+
+
+#TODO: what if k and j are not in the stride?
+#       this isn't an issue for now since we are using Destride
+#       to make a small array look larger
+getindex(S::IndexDestride,k,j)=S.matrix[div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride)]
+setindex!(S::IndexDestride,x,k,j)=(S.matrix[div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride)]=x)
+ibpluseq!(S::IndexDestride,x,k,j)=ibpluseq!(S.matrix,x,div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride))
+
+
+for OP in (:*,:.*,:+,:.+,:-,:.-)
+    @eval begin
+        $OP(B::IndexDestride,x::Number)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
+        $OP(x::Number,B::IndexDestride)=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)      
+    end    
+end
+
+
+# the following assume rowindex == colindex
+bandinds(S::IndexDestride)=(div(bandinds(S.matrix,1)+S.colindex-S.rowindex,S.rowstride),div(bandinds(S.matrix,2)+S.colindex-S.rowindex,S.rowstride))
+
+## Transpose indices
 
 type IndexTranspose{S}
     matrix::S
@@ -296,6 +342,9 @@ end
 
 ## Matrix*Matrix Multiplication
 
+
+
+
 function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
@@ -330,8 +379,18 @@ function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,ri::Integer=0,ci::Integ
 end
 
 
-function bamultiply!(C::IndexShift,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
+function bamultiply!(C::IndexStride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
     bamultiply!(C.matrix,A,B,ri*C.rowstride+C.rowindex,ci*C.colstride+C.colindex,rs*C.rowstride,cs*C.colstride)
+    C
+end
+
+
+function bamultiply!(C::IndexDestride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
+    @assert rs==C.rowstride==cs==C.colstride
+    @assert mod(ri-C.rowindex,rs)==mod(ci-C.colindex,cs)==0
+    # div(rs*k+ri -C.rowindex,C.rowstride)
+    # k+div(ri -C.rowindex,C.rowstride)    
+    bamultiply!(C.matrix,A,B,div(ri -C.rowindex,C.rowstride),div(ci -C.colindex,C.colstride))
     C
 end
 
@@ -370,7 +429,7 @@ function addentries!(B::BandedMatrix,c::Number,A,kr::Range)
 end
 
 
-function addentries!{ST<:BandedMatrix}(B::IndexShift{ST},c::Number,A,kr::Range)    
+function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range)    
     for k=kr,j=k+bandrange(B)
         ibpluseq!(A,c*B[k,j],k,j)
     end
@@ -380,4 +439,4 @@ end
 
 
 
-addentries!(B::Union(BandedMatrix,IndexTranspose,IndexShift),A,kr::Range)=addentries!(B,1,A,kr)
+addentries!(B::Union(BandedMatrix,IndexTranspose,IndexStride),A,kr::Range)=addentries!(B,1,A,kr)

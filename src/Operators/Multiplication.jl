@@ -7,7 +7,7 @@ immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number} <: Abstrac
     Multiplication(f::Fun{D,T},sp::S)=new(f,sp)
 end
 
-Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T}(f,sp)
+Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T}(chop(f,maxabs(f.coefficients)*40*eps()),sp)
 
 Multiplication(f::Fun)=Multiplication(f,AnySpace())
 
@@ -32,7 +32,7 @@ function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr)
     sp=domainspace(D)
     csp=space(D.f)
     if csp==sp
-        error("Override Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*")")
+        error("Override addentries! on Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*") for range type"*string(typeof(kr)))
     end
     addentries!(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]),A,kr)
 end
@@ -77,7 +77,7 @@ end
 MultiplicationWrapper{D<:FunctionSpace,T<:Number}(f::Fun{D,T},op::BandedOperator{T})=MultiplicationWrapper{D,typeof(op),T}(f,op)
 
 addentries!(D::MultiplicationWrapper,A,k::Range)=addentries!(D.op,A,k)
-for func in (:rangespace,:domainspace,:bandinds,:domain)
+for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
     @eval $func(D::MultiplicationWrapper)=$func(D.op)
 end
 
