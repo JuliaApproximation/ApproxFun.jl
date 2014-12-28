@@ -32,7 +32,7 @@ function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr)
     sp=domainspace(D)
     csp=space(D.f)
     if csp==sp
-        error("Override Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*")")
+        error("Override addentries! on Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*") for range type"*string(typeof(kr)))
     end
     addentries!(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]),A,kr)
 end

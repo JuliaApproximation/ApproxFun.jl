@@ -70,18 +70,23 @@ end
 
 Base.stride{U<:Ultraspherical,V<:Ultraspherical}(M::Multiplication{U,V})=stride(M.f)
 
-function chebmult_addentries!(cfs::Vector,A,kr::UnitRange)
+
+function chebmult_addentries!(cfs::Vector,A,kr::Range)
     toeplitz_addentries!(.5cfs,A,kr)
-    hankel_addentries!(.5cfs,A,max(kr[1],2):kr[end])            
+    hankel_addentries!(.5cfs,A,intersect(2:kr[end],kr))            
 end
 
 
-addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::UnitRange)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
-
-function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A,kr::UnitRange)
-    cfs=canonicalcoefficients(M.f)
-    toeplitz_addentries!(.5cfs,A,kr)
-    hankel_addentries!(-.5cfs[3:end],A,kr)    
+for TYP in (:Range,:UnitRange) # needed to avoid confusion
+    @eval begin
+        addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::$TYP)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
+    
+        function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A,kr::$TYP)
+            cfs=canonicalcoefficients(M.f)
+            toeplitz_addentries!(.5cfs,A,kr)
+            hankel_addentries!(-.5cfs[3:end],A,kr)    
+        end
+    end
 end
 
 
@@ -187,7 +192,7 @@ function Conversion{a,b}(A::Ultraspherical{a},B::Ultraspherical{b})
         Conversion{Ultraspherical{a},Ultraspherical{b},Float64}(A,B)
     else
         d=domain(A)
-        ConversionWrapper(Conversion(Ultraspherical{b-1}(d),B)*Conversion(A,Ultraspherical{b-1}(d)))
+        Conversion(Ultraspherical{b-1}(d),B)*Conversion(A,Ultraspherical{b-1}(d))
     end
 end   
 
