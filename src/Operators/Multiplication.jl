@@ -7,7 +7,7 @@ immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number} <: Abstrac
     Multiplication(f::Fun{D,T},sp::S)=new(f,sp)
 end
 
-Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T}(f,sp)
+Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T}(chop(f,maxabs(f.coefficients)*40*eps()),sp)
 
 Multiplication(f::Fun)=Multiplication(f,AnySpace())
 

@@ -1,7 +1,7 @@
 export ConstantOperator, BasisFunctional
 
 
-type ConstantOperator{T<:Union(Float64,Complex{Float64})} <: BandedOperator{T}
+immutable ConstantOperator{T<:Union(Float64,Complex{Float64})} <: BandedOperator{T}
     c::T
 end
 
@@ -28,7 +28,7 @@ end
 
 ## Basis Functional
 
-type BasisFunctional <: Functional{Float64}
+immutable BasisFunctional <: Functional{Float64}
     k::Integer
 end
 
@@ -36,9 +36,17 @@ end
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
 Base.getindex(op::BasisFunctional,k::Range1)=convert(Vector{Float64},k.==op.k)
 
+immutable FillFunctional{T<:Number} <: Functional{T}
+    c::T
+end
+
+
+Base.getindex(op::FillFunctional,k::Integer)=op.c
+Base.getindex(op::FillFunctional,k::Range)=fill(op.c,length(k))
+
 ## Zero is a special operator: it makes sense on all spaces, and between all spaces
 
-type ZeroOperator{T,S,V} <: BandedOperator{T}
+immutable ZeroOperator{T,S,V} <: BandedOperator{T}
     domainspace::S
     rangespace::V
 end
@@ -63,7 +71,7 @@ promotedomainspace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(sp,rangespace
 promoterangespace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(domainspace(Z),sp)
 
 
-type ZeroFunctional{S} <: Functional{Float64}
+immutable ZeroFunctional{S} <: Functional{Float64}
     domainspace::S
 end
 ZeroFunctional()=ZeroFunctional(AnySpace())
