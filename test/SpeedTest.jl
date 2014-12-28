@@ -79,7 +79,7 @@ rhs=ones(n+2)
 u=linsolve([B,L],rhs;maxlength=Inf)
 u=linsolve([B,L],rhs;maxlength=Inf)
 @time u=linsolve([B,L],rhs;maxlength=Inf)
-println("Cos: should be ~0.02")
+println("Cos: should be ~0.0075")
 
 S=Chebyshev()
 x=Fun(identity,S)
