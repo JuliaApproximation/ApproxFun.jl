@@ -385,6 +385,16 @@ function bamultiply!(C::IndexStride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=
 end
 
 
+function bamultiply!(C::IndexDestride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
+    @assert rs==C.rowstride==cs==C.colstride
+    @assert mod(ri-C.rowindex,rs)==mod(ci-C.colindex,cs)==0
+    # div(rs*k+ri -C.rowindex,C.rowstride)
+    # k+div(ri -C.rowindex,C.rowstride)    
+    bamultiply!(C.matrix,A,B,div(ri -C.rowindex,C.rowstride),div(ci -C.colindex,C.colstride))
+    C
+end
+
+
 
 
 # Unoptimized but more readible version

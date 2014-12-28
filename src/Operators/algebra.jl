@@ -296,11 +296,11 @@ function addentries!(P::TimesOperator,A,kr::Range)
     
     # Write directly to A, shifting by rows and columns
     # See subview in Operator.jl for these definitions
-    rs=kr[1]-1
-    cs= max(0,kr[1]-1+bandinds(P,1))
     P1=slice(P.ops[1],krl[1,1]:st:krl[1,2],:)
-
-    bamultiply!(A,P1,BA,rs-st+1,cs-st+1,st,st)
+    
+    firstjr=max(st-mod(kr[1],st),kr[1]+bandinds(P,1))
+    ri,ci=first(kr)-st,firstjr-st
+    bamultiply!(A,P1,BA,ri,ci,st,st)
 end
 
 
