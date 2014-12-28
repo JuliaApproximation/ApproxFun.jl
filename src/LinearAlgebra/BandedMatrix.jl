@@ -53,7 +53,7 @@ for (op,bop) in ((:(Base.rand),:barand),(:(Base.zeros),:bazeros),(:(Base.ones),:
         $bop(n::Integer,m::Integer,a::Integer,b::Integer)=$bop(Float64,n,m,a,b)
         $bop(n::Integer,a::Integer,b::Integer)=$bop(n,n,a,b)
                 
-        $bop{T}(::Type{T},n::Integer,m::Integer,a)=$op(T,n,m,-a[1],a[end])                  
+        $bop{T}(::Type{T},n::Integer,m::Integer,a)=$bop(T,n,m,-a[1],a[end])                  
         $bop{T}(::Type{T},n::Number,::Colon,a)=$bop(T,n,:,-a[1],a[end])   
         $bop{T}(::Type{T},::Colon,m::Integer,a)=$bop(T,:,m,-a[1],a[end])                        
         $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,-a[1],a[end])             
@@ -341,6 +341,9 @@ end
 
 
 ## Matrix*Matrix Multiplication
+
+
+
 
 function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
     n=size(A,1);m=size(B,2)

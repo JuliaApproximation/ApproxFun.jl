@@ -75,6 +75,25 @@ Base.stride(A::Functional)=1
 BandedMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,bazeros(T,n,:,bandinds(B)),1:n)
 BandedMatrix{T<:Number}(B::Operator{T},rws::UnitRange,::Colon)=first(rws)==1?BandedMatrix(B,last(rws)):addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
 
+function BandedMatrix{T<:Number}(B::Operator{T},kr::StepRange,::Colon)
+    stp=step(kr)
+    
+    if stp==1
+        BandedMatrix(B,first(kr):last(kr),:)
+    else    
+        str=stride(B)
+        @assert stp==str
+        # we need the shifting by bandinds to preserve mod
+        @assert mod(bandinds(B,1),str)==mod(bandinds(B,2),str)==0  
+        # find column range
+        jr=max(str-mod(kr[1],str),kr[1]+bandinds(B,1)):str:kr[end]+bandinds(B,2)
+        shf=div(first(kr)-first(jr),str)
+        bi=div(bandinds(B,1),str)+shf,div(bandinds(B,2),str)+shf
+        A=bazeros(T,length(kr),length(jr),bi)
+        addentries!(B,IndexDestride(A,first(kr)-str,first(jr)-str,str,str),kr)
+        A
+    end
+end
 
 function BandedMatrix(B::Operator,kr::Range,jr::Range)
     br=bandrange(B)
