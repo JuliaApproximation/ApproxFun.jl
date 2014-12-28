@@ -121,7 +121,7 @@ function subview(B::BandedOperator,kr::Range,::Colon)
      BM=slice(B,kr,:)
      
      # This shifts to the correct slice
-     IndexShift(BM,1-kr[1],-max(0,kr[1]-1+br[1]))
+     IndexStride(BM,1-kr[1],-max(0,kr[1]-1+br[1]))
 end
 
 
@@ -130,7 +130,7 @@ function subview(B::BandedOperator,::Colon,jr::Range)
      BM=slice(B,:,jr)
      
      # This shifts to the correct slice
-     IndexShift(BM,-max(jr[1]-1-br[end],0),1-jr[1])
+     IndexStride(BM,-max(jr[1]-1-br[end],0),1-jr[1])
 end
 
 function subview(B::BandedOperator,kr::Range,jr::Range)
@@ -138,7 +138,7 @@ function subview(B::BandedOperator,kr::Range,jr::Range)
      BM=slice(B,kr,jr)
      
      # This shifts to the correct slice
-     IndexShift(BM,1-kr[1],1-jr[1])
+     IndexStride(BM,1-kr[1],1-jr[1])
 end
 
 

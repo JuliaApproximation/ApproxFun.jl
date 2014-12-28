@@ -54,7 +54,7 @@ end
 function stride_addentries!(op,ri,ci,rs,cs,A,kr::Range)
     r1=divrowrange(rs,ri,kr)
     
-    addentries!(op,IndexShift(A,ri,ci,rs,cs),r1)
+    addentries!(op,IndexStride(A,ri,ci,rs,cs),r1)
     
     A    
 end
