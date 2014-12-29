@@ -117,6 +117,20 @@ function pdesolve{T<:PDEOperator}(A::Vector{T},f,tol::Real)
 end
 
 
+function pdesolve(S::PDEStrideOperatorSchur,f::Vector,nx=100000)
+    @assert length(f)≤5
+
+    f=pad(f,5)
+    uo=pdesolve(S.odd,[f[1],f[2],f[3]+f[4],f[end]],nx) 
+    ue=pdesolve(S.even,[f[1],f[2],f[4]-f[3],f[end]],nx)     
+    
+    ret=Array(typeof(first(uo.coefficients)),length(uo.coefficients)+length(ue.coefficients))
+    ret[1:2:end]=uo.coefficients
+    ret[2:2:end]=ue.coefficients
+    
+    TensorFun(ret,domainspace(S.odd,2).space)
+end
+
 pdesolve(A::AbstractPDEOperatorSchur,f::Array,nx...)=Fun(pdesolve_mat(A,f,nx...),domainspace(A))
 pdesolve(A::AbstractPDEOperatorSchur,f::Union(Fun,MultivariateFun,Number),nx...)=pdesolve(A,[f],nx...)
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)

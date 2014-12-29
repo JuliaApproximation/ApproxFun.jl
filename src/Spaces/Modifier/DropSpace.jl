@@ -9,7 +9,8 @@ end
 
 #typealias DropSpace{n,DS,T,D} StrideSpace{n,1,DS,T,D}
 
-StrideSpace{T,D}(sp::FunctionSpace{T,D},n::Integer)=StrideSpace{n,1,typeof(sp),T,D}(sp)
+StrideSpace{T,D}(sp::FunctionSpace{T,D},n::Integer,st::Integer)=StrideSpace{n,st,typeof(sp),T,D}(sp)
+StrideSpace{T,D}(sp::FunctionSpace{T,D},n::Integer)=StrideSpace(sp,n,1)
 
 domain(DS::StrideSpace)=domain(DS.space)
 bandinds{n,st,S,T,D}(C::Conversion{StrideSpace{n,st,S,T,D},S})=-n,0
