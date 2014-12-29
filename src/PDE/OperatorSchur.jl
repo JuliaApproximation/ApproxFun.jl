@@ -220,15 +220,15 @@ function Base.schurfact{FT<:Functional,O<:Operator}(B::Vector{FT},A::Vector{O},n
         DiagonalOperatorSchur(A,n)
     elseif length(A)==2
         L,M=promotespaces([A[1],A[2]])
-        if length(B)==2 &&
-                     gcd(stride(L),stride(M))==2 &&
-                     isa(B[1],Evaluation{Ultraspherical{0},Bool,Float64}) &&
-                     isa(B[2],Evaluation{Ultraspherical{0},Bool,Float64}) &&
-                     !B[1].x && B[2].x                
-             StrideOperatorSchur(L,M,n)
-        else
+#         if length(B)==2 &&
+#                      gcd(stride(L),stride(M))==2 &&
+#                      isa(B[1],Evaluation{Ultraspherical{0},Bool,Float64}) &&
+#                      isa(B[2],Evaluation{Ultraspherical{0},Bool,Float64}) &&
+#                      !B[1].x && B[2].x                
+#              StrideOperatorSchur(L,M,n)
+#         else
             OperatorSchur(B,L,M,n)
-        end
+#        end
     else
         error("Schur factorization unknown for more than 2 non-diagonal operators.")
     end

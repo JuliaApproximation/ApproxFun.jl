@@ -482,7 +482,7 @@ end
 ## Constructuor
 
 
-Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)=PDEOperatorSchur(Bx,Lx,Mx,S,indesBx,indsBy)
+Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)=PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 Base.schurfact{LT<:Number,MT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::StrideOperatorSchur{ST},indsBx,indsBy)=PDEStrideOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 
 function Base.schurfact(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)
