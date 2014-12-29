@@ -59,8 +59,8 @@ its domain. Let's explore:
 x = Fun(identity)
 f = exp(x)
 g = f/sqrt(1-x^2)
-f.space
-g.space
+space(f)
+space(g)
 ```
 
 In this case, `f` is in the `Ultraspherical{0}` space on the domain `Interval(-1.0,1.0)`, and
@@ -102,8 +102,8 @@ There is also support for Fourier representations of functions on periodic inter
 Specify the space `Fourier` to ensure that the representation is periodic:
 
 ```julia
-f = Fun(cos,Fourier(-π,π))
-norm(differentiate(f) + Fun(sin,Fourier(-π,π))
+f = Fun(cos,Fourier([-π,π]))
+norm(differentiate(f) + Fun(sin,Fourier([-π,π]))
 ```
 
 Due to the periodicity, Fourier representations allow for the asymptotic savings of `2/π` 
@@ -121,11 +121,11 @@ uChebyshev = [B,L]\[0.,f]
 s = Fourier([-π,π])
 a = Fun(t-> 1+sin(cos(2t)),s)
 L = Derivative() + a
-f = FFun(t->exp(sin(10t)),s)
+f = Fun(t->exp(sin(10t)),s)
 uFourier = L\f
 
 length(uFourier)/length(uChebyshev),2/π
-ApproxFun.plot(real(uFourier))						    # Requires Gadfly or PyPlot
+ApproxFun.plot(uFourier)						    # Requires Gadfly or PyPlot
 ```
 
 ![Periodic](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/periodic.png)

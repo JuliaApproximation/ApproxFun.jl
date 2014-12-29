@@ -197,13 +197,6 @@ Fun(f::Function,d::Domain;opts...)=Fun(f,Space(d);opts...)
 ## Aliases
 
 
-FFun(x,d::PeriodicDomain)=Fun(x,Space(d))
-FFun(x,d::PeriodicDomain,n...)=Fun(x,Space(d),n...)
-FFun{T<:Number}(x,d::Vector{T})=Fun(x,Fourier(d))
-FFun{T<:Number}(x,d::Vector{T},n...)=Fun(x,Fourier(d),n...)
-FFun(f,n::Integer)=Fun(f,Fourier(),n)
-FFun(f)=Fun(f,Fourier())
-
 
 
 Fun(f::Function,n::Integer)=Fun(f,Interval(),n)

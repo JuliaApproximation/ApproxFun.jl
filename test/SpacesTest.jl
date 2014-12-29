@@ -26,7 +26,7 @@ g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
 
 
 ## Periodic
-f=FFun(x->exp(-10sin((x-.1)/2)^2))
+f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
 @test_approx_eq f[.5] (Conversion(space(f),Fourier(domain(f)))*f)[.5]
 @test_approx_eq f[.5] Fun(f,Fourier)[.5]
 

@@ -1,8 +1,8 @@
 
 
 println("Fun tests")
-include("IFunTest.jl")
-include("FFunTest.jl")
+include("ChebyshevTest.jl")
+include("FourierTest.jl")
 include("ComplexIFunTest.jl")
 include("NumberTypeTest.jl")
 println("ODE tests")

@@ -37,20 +37,20 @@ x=Fun(identity)
 
 
 d=PeriodicInterval([0.,2π])
-a=FFun(t-> 1+sin(cos(10t)),d)
+a=Fun(t-> 1+sin(cos(10t)),d)
 D=diff(d)
 L=D+a
-f=FFun(t->exp(sin(t)),d)
+f=Fun(t->exp(sin(t)),d)
 u=L\f
 
 @test norm(L*u-f) < 10eps()
 
 d=PeriodicInterval([0.,2π])
-a1=FFun(t->sin(cos(t/2)^2),d)
-a0=FFun(t->cos(12sin(t)),d)
+a1=Fun(t->sin(cos(t/2)^2),d)
+a0=Fun(t->cos(12sin(t)),d)
 D=diff(d)
 L=D^2+a1*D+a0
-f=FFun(t->exp(cos(2t)),d)
+f=Fun(t->exp(cos(2t)),d)
 u=L\f
 
 @test norm(L*u-f) < 100eps()
