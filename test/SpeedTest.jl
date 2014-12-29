@@ -126,6 +126,15 @@ u=A\Any[0.,0.,0.,f]
 @time u=A\Any[0.,0.,0.,f]
 println("Systems: should be ~0.0013")
 
+
+d=Interval(-300.,5.)
+x=Fun(identity,d)
+A=Derivative(d)^2-x
+u=null(A)
+u=null(A)
+@time u=null(A)
+println("Null Airy: should be ~0.061")
+
 ## PDEs
 
 d=Interval()^2
@@ -138,31 +147,29 @@ f=[real(exp(-1+1.im*y)),
                         real(exp(1+1im*y)),
                         real(exp(x-1im)),
                         real(exp(x+1im))]
-u=pdesolve(A,f,100)
-u=pdesolve(A,f,100)
-@time u=pdesolve(A,f,100);
 S=schurfact(A,100)
+@time S=schurfact(A,100)
 u=S\f
 u=S\f
 @time u=S\f;
-println("Laplace: should be ~0.03, 0.011")
+println("Laplace: should be ~0.013, 0.011")
 
 
 
 d=Interval()^2
 S=schurfact([neumann(d),lap(d)+100I],100)
+@time S=schurfact([neumann(d),lap(d)+100I],100)
 u=S\ones(4)
 u=S\ones(4)
 @time u=S\ones(4)
-println("Neumann Helmholtz: should be ~0.017")
+println("Neumann Helmholtz: should be ~0.017, 0.017")
 
 
+d = Disk()
+f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
+S = discretize([dirichlet(d),lap(d)],100);
+@time S = discretize([dirichlet(d),lap(d)],100);
+u=S\[0.,f];
+@time u=S\[0.,f];
 
-
-d=Interval(-300.,5.)
-x=Fun(identity,d)
-A=Derivative(d)^2-x
-u=null(A)
-u=null(A)
-@time u=null(A)
-println("Null Airy: should be ~0.061")
+println("Disk Poisson: should be ~0.17,0.04")
