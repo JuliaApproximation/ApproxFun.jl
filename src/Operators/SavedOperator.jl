@@ -70,13 +70,12 @@ function SavedBandedOperator{T<:Number}(op::BandedOperator{T})
     SavedBandedOperator(op,data,0,bandinds(op))
 end
 
-index(B::SavedBandedOperator)=index(B.op)::Int
-domain(S::SavedBandedOperator)=domain(S.op)
 
 
+for OP in (:domain,:domainspace,:rangespace,:(Base.stride))
+    @eval $OP(S::SavedBandedOperator)=$OP(S.op)
+end
 
-domainspace(M::SavedBandedOperator)=domainspace(M.op)
-rangespace(M::SavedBandedOperator)=rangespace(M.op)
 bandinds(B::SavedBandedOperator)=B.bandinds
 datalength(B::SavedBandedOperator)=B.datalength
 
@@ -101,5 +100,7 @@ function resizedata!(B::SavedBandedOperator,n::Integer)
     
     B
 end
+
+
 
 

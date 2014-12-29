@@ -5,7 +5,7 @@
 Base.sum(f::Fun{Laurent})=fouriersum(domain(f),deinterlace(f.coefficients))
 function integrate(f::Fun{Hardy{false}})
     if isa(domain(f),Circle) # drop -1 term if zero and try again
-        integrate(Fun(f,DropSpace(space(f),1)))
+        integrate(Fun(f,StrideSpace(space(f),1)))
     else  # Probably periodic itnerval
         Integral(space(f))*f
     end
@@ -15,7 +15,7 @@ function integrate(f::Fun{Taylor})
     if isa(domain(f),Circle)
         Integral(space(f))*f
     else  # Probably periodic itnerval  drop constant term if zero
-        Fun(integrate(Fun(f,DropSpace(space(f),1))),space(f))
+        Fun(integrate(Fun(f,StrideSpace(space(f),1))),space(f))
     end
 end
 
@@ -24,13 +24,13 @@ function integrate(f::Fun{CosSpace})
     if isa(domain(f),Circle)
         error("Integrate not implemented for CosSpace on Circle")
     else  # Probably periodic itnerval, drop constant term if zero
-        integrate(Fun(f,DropSpace(space(f),1)))
+        integrate(Fun(f,StrideSpace(space(f),1)))
     end
 end
 
 function integrate(f::Fun{SinSpace})
     if isa(domain(f),Circle) # drop term containing z^(-1)
-        integrate(Fun(f,DropSpace(space(f),1)))
+        integrate(Fun(f,StrideSpace(space(f),1)))
     else  # Probably periodic itnerval\
         Integral(space(f))*f
     end
