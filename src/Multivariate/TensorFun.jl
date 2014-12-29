@@ -171,7 +171,8 @@ function coefficients{S,V,T<:Number}(f::AbstractProductFun{S,V,T},ox::FunctionSp
         if length(ccfs)>size(B,2)
             B=pad(B,size(B,1),length(ccfs))
         end
-        B[k,:]=ccfs
+        B[k,1:length(ccfs)]=ccfs
+        B[k,length(ccfs):1:end]=zero(T)
     end
     
     B

@@ -91,7 +91,7 @@ rhs=ones(n+2)
 u=linsolve([B,L],rhs;maxlength=Inf)
 u=linsolve([B,L],rhs;maxlength=Inf)
 @time u=linsolve([B,L],rhs;maxlength=Inf)
-println("Sin: should be ~0.02")
+println("Sin: should be ~0.015")
 
 
 ## Piecewise
@@ -124,7 +124,7 @@ A=[B 0;
    
 u=A\Any[0.,0.,0.,f]
 @time u=A\Any[0.,0.,0.,f]
-println("Systems: should be ~0.001")
+println("Systems: should be ~0.0013")
 
 ## PDEs
 

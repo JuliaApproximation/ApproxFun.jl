@@ -110,7 +110,10 @@ end
 destride_addentries!(S::DestrideOperator,A,kr::Range)=destride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
 
 addentries!(S::DestrideOperator,A,kr)=destride_addentries!(S,A,kr)
-domain(S::DestrideOperator)=Any ##TODO: tensor product
+domain(S::DestrideOperator)=domain(S.op)
+domainspace(S::DestrideOperator)=StrideSpace(domainspace(S.op),S.colindex,S.colstride)
+rangespace(S::DestrideOperator)=StrideSpace(rangespace(S.op),S.rowindex,S.rowstride)
+
 
 
 

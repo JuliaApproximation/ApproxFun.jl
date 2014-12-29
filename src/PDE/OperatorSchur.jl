@@ -2,17 +2,9 @@
 toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 toarray{T<:Number}(B::Array{Fun{T}},n)=T[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n]
 
-iscomplexfunornumber(A)=false
-iscomplexfunornumber(A::Complex{Float64})=true
-iscomplexfunornumber{S}(A::Fun{S,Complex{Float64}})=true
-
 function toarray(B::Array,n)
-    T=Float64
-    for Bk in B
-        if iscomplexfunornumber(Bk)
-            T=Complex{Float64}
-        end
-    end    
+    T=mapreduce(eltype,promote_type,B)
+ 
 
     ret = zeros(T,length(B),n)
     
@@ -110,7 +102,7 @@ function DiagonalOperatorSchur{O<:Operator}(L::Vector{O},n::Integer)
     
     ##TODO: type
     
-    ops=Array(Vector{Complex{Float64}},length(Yop))
+    ops=Array(Vector{mapreduce(eltype,promote_type,L)},length(Yop))
     for k=1:length(L)
         ops[k]=diag(Yop[k][1:n,1:n])
     end
@@ -163,23 +155,9 @@ getdiagonal(S::OperatorSchur,k,j)=j==1?S.R[k,k]:S.T[k,k]
 
 OperatorSchur{FT<:Functional}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L),M,n)
 OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M),n)
-function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
-    if isempty(B) && bandinds(L)==bandinds(M)==(0,0)
-        DiagonalOperatorSchur(L,M,n)
-    else
-        OperatorSchur(pdetoarray(B,L,M,n)...,findmindomainspace([L,M]),findmaxrangespace([L,M]))
-    end
-end
 
 
-function OperatorSchur{FT<:Functional,O<:Operator}(B::Vector{FT},A::Vector{O},n::Integer)
-    if length(A)==2
-        OperatorSchur(B,A[1],A[2],n)
-    else
-        @assert isempty(B)
-        DiagonalOperatorSchur(A,n)
-    end
-end
+
 
 OperatorSchur(B,L::SparseMatrixCSC,M::SparseMatrixCSC,ds,rs)=OperatorSchur(B,full(L),full(M),ds,rs)
 function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
@@ -200,4 +178,61 @@ function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
     
     OperatorSchur(P,Q,B,Q2,Z2,R,T, Lcols,Mcols,ds,rs)
 end
+
+
+function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
+    L,M=promotespaces([L,M])
+    OperatorSchur(pdetoarray(B,L,M,n)...,domainspace(L),rangespace(L))
+end
+
+
+#####
+# StrideOperatorSchur
+####
+
+immutable StrideOperatorSchur{MT<:Number} <:AbstractOperatorSchur{Float64,MT}
+    odd::OperatorSchur{Float64,MT}
+    even::OperatorSchur{Float64,MT}    
+end
+
+
+function StrideOperatorSchur(L,M,n)
+    L,M=promotespaces([L,M])
+    L1=DestrideOperator(L,-1,-1,2,2);M1=DestrideOperator(M,-1,-1,2,2)
+    L2=DestrideOperator(L,0,0,2,2);M2=DestrideOperator(M,0,0,2,2)
+
+    B=FillFunctional(2.0)
+    O1=OperatorSchur([B],L1,M1,div(n,2))
+    O2=OperatorSchur([B],L2,M2,div(n,2))
+    
+    StrideOperatorSchur(O1,O2)
+end
+
+for OP in (:domainspace,:rangespace)
+    @eval $OP(S::StrideOperatorSchur)=$OP(S.odd)
+end
+
+## Decide which data structure
+
+
+function Base.schurfact{FT<:Functional,O<:Operator}(B::Vector{FT},A::Vector{O},n::Integer)
+    if isempty(B) && all(LM->bandinds(LM)==(0,0),A)
+        DiagonalOperatorSchur(A,n)
+    elseif length(A)==2
+        L,M=promotespaces([A[1],A[2]])
+#         if length(B)==2 &&
+#                      gcd(stride(L),stride(M))==2 &&
+#                      isa(B[1],Evaluation{Ultraspherical{0},Bool,Float64}) &&
+#                      isa(B[2],Evaluation{Ultraspherical{0},Bool,Float64}) &&
+#                      !B[1].x && B[2].x                
+#              StrideOperatorSchur(L,M,n)
+#         else
+            OperatorSchur(B,L,M,n)
+#        end
+    else
+        error("Schur factorization unknown for more than 2 non-diagonal operators.")
+    end
+end
+
+
 

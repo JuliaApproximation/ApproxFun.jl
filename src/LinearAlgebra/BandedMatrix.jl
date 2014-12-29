@@ -195,6 +195,14 @@ end
 
 
 
+function Base.diag{T}(A::BandedMatrix{T})
+    n=size(A,1)
+    @assert n==size(A,2)
+
+    vec(A.data[A.l+1,1:n])
+end
+
+
 ## Used to scam addentries! into thinking we are somewhere else
 
 immutable IndexStride{S} 
