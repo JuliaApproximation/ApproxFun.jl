@@ -17,6 +17,9 @@ jacobispace(B::JacobiSquare)=Jacobi(B.a+.5,B.b-.5,domain(B))
 
 spacescompatible(A::JacobiSquare,B::JacobiSquare)=A.a==B.a&&A.m==B.m&&A.b==B.b
 
+canonicalspace(S::JacobiSquare)=S
+
+
 # We assume domains is [1.,0.]
 
 points(S::JacobiSquare,n)=sqrt(fromcanonical(S.domain,gausschebyshev(n,4)[1]))
@@ -67,6 +70,9 @@ evaluate{T}(f::Fun{JacobiSquare,T},x::Number)=itransform(f.space,f.coefficients,
 
 ## Operators
 
+# Override JacobiWeight default
+Multiplication{T}(f::Fun{JacobiWeight{Chebyshev},T},S::JacobiSquare)=Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T}(f,S)
+bandinds{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T})=0,0
 
 function addentries!{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T},A,kr::Range)
     @assert length(M.f)==1

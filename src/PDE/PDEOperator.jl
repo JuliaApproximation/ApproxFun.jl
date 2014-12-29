@@ -390,6 +390,8 @@ immutable PDEProductOperatorSchur{ST<:Number,FT<:Functional} <: AbstractPDEOpera
     indsBx::Vector{Int}
 end
 
+Base.eltype{ST}(::PDEProductOperatorSchur{ST})=ST
+
 Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
 
 function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProductSpace,nt::Integer)
