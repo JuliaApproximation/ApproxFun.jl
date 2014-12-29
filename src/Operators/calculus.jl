@@ -24,6 +24,8 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         
         $Op(d::Domain,n)=$Op(Space(d),n)
         $Op(d::Domain)=$Op(d,1)
+        $Op(d::Vector)=$Op(Space(d),1)
+        $Op(d::Vector,n)=$Op(Space(d),n)        
         
         
         $WrappOp{T<:Number}(op::BandedOperator{T},order::Integer)=$WrappOp{typeof(op),typeof(domainspace(op)),T}(op,order)

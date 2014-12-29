@@ -2,6 +2,8 @@
 typealias IntervalSpace  RealSpace{Interval}     # We assume basis is real
 canonicaldomain{T<:IntervalSpace}(::Type{T})=Interval()
 
+Space{N<:Number}(d::Vector{N})=Space(Interval(d))
+
 ## Calculus
 
 # the default domain space is higher to avoid negative ultraspherical spaces

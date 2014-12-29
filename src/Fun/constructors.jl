@@ -204,6 +204,7 @@ Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
 Fun{T<:Number}(cfs::Vector{T})=Fun(1.0*cfs,Interval())
 Fun{T<:Number,M<:Number}(cfs::Vector{M},d::Vector{T})=Fun(1.0*cfs,Interval(d))
 Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
+Fun{T<:Number}(f::Number,d::Vector{T})=Fun(f,Interval(d))
 
 
 

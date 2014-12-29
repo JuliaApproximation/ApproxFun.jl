@@ -16,6 +16,9 @@ end
 
 ==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
 
+
+∂(d::UnionDomain)=mapreduce(∂,union,d.domains)
+
 function points(d::UnionDomain,n)
    k=div(n,length(d))
     r=n-length(d)*k
@@ -51,3 +54,12 @@ function Base.merge(d1::UnionDomain,d2::UnionDomain)
     end
     ret
 end
+
+
+for op in (:*,:+,:-,:.*,:.+,:.-)
+    @eval begin
+        $op(c::Number,d::UnionDomain)=UnionDomain(map(a->$op(c,a),d.domains))
+        $op(d::Interval,c::Number)=UnionDomain(map(a->$op(a,c),d.domains))
+    end
+end
+

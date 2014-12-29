@@ -161,15 +161,21 @@ end
 
 function ∂(d::ProductDomain)
     @assert length(d.domains) ==2
-    
-    if ∂(d[1])==∂(d[2])==[]
+    if isa(d[1],Interval) && isa(d[2],Interval)
+        ∂1=∂(d[1])
+        ∂2=∂(d[2])    
+        if ∂1==∂2==[]
+            []
+        elseif ∂1==[]
+            UnionDomain([d[1]+im*d[2].a,d[1]+im*d[2].b])        
+        elseif ∂2==[]
+            UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2]])    
+        else
+            UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
+        end
+    else
+        warn("∂ not implemented for "*string(typeof(d))*".  Returning [].")
         []
-    elseif ∂(d[1])==[]
-        UnionDomain([d[1]+im*d[2].a,d[1]+im*d[2].b])        
-    elseif ∂(d[2])==[]
-        UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2]])    
-    else    
-        UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
     end
 end
 
