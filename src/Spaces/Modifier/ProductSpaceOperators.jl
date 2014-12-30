@@ -33,8 +33,8 @@ function Conversion(f::PiecewiseSpace,g::PiecewiseSpace)
 end
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
-    @eval $op(d::PiecewiseSpace)=interlace($op(d.spaces))
-    @eval $op(d::UnionDomain)=interlace($op(d.domains))
+    @eval $op(d::PiecewiseSpace,k...)=interlace($op(d.spaces,k...))
+    @eval $op(d::UnionDomain,k...)=interlace($op(d.domains,k...))
 end
 
 
