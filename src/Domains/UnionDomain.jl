@@ -59,7 +59,7 @@ end
 for op in (:*,:+,:-,:.*,:.+,:.-)
     @eval begin
         $op(c::Number,d::UnionDomain)=UnionDomain(map(a->$op(c,a),d.domains))
-        $op(d::Interval,c::Number)=UnionDomain(map(a->$op(a,c),d.domains))
+        $op(d::UnionDomain,c::Number)=UnionDomain(map(a->$op(a,c),d.domains))
     end
 end
 
