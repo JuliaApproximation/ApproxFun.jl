@@ -141,7 +141,15 @@ end
 Fun{T<:Number}(M::Array{T,2},sp::FunctionSpace)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
 
 # Automatically change to ArraySpace
-Fun{T<:Number,S}(M::Array{T,2},sp::ArraySpace{S,1})=Fun(vec(M.'),ArraySpace(sp.space,length(sp),size(M,2))).'
+function Fun{T<:Number,S}(M::Array{T,2},sp::ArraySpace{S,1})
+    cfs=Array(T,length(M))
+    n=size(sp,1)
+    m=size(M,2)
+    for k=1:n:size(M,1),j=1:n,l=1:m
+        cfs[m*(k-1)+j+n*(l-1)] =M[k+j-1,l]
+    end
+    Fun(cfs,ArraySpace(sp.space,length(sp),size(M,2)))
+end
 
 ## calculus
 
