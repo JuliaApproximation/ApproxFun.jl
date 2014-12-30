@@ -38,7 +38,7 @@ function pde_normalize_rhs(A,f::Vector)
         @assert isa(f,Vector)
 
         #TODO: More elegent domain conversion
-        vf=vec(f[1])
+        vf=pieces(f[1])
         ds1=domainspace(A,1);ds2=domainspace(A,2)
         
         fx=map(g->(@assert isa(space(g),typeof(ds2));

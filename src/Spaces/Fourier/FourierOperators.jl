@@ -61,13 +61,16 @@ function addentries!(D::Derivative{CosSpace},A,kr::Range)
     @assert isa(d,PeriodicInterval)
     m=D.order
     C=2π./(d.b-d.a)
-    @assert m <= 2 # the def is missing the sign change
 
     for k=kr
-        if iseven(m)
+        if mod(m,4)==0
+            A[k,k] += (C*(k-1))^m
+        elseif mod(m,4)==2
             A[k,k] -= (C*(k-1))^m
-        else
+        elseif mod(m,4)==1
             A[k,k+1] -= (C*k)^m
+        elseif mod(m,4)==3
+            A[k,k+1] += (C*k)^m            
         end
     end
     

@@ -161,7 +161,8 @@ end
 
 function ∂(d::ProductDomain)
     @assert length(d.domains) ==2
-    if isa(d[1],Interval) && isa(d[2],Interval)
+    #TODO: Generalize
+    if (isa(d[1],Interval)||isa(d[1],PeriodicInterval)) && (isa(d[2],Interval)||isa(d[2],PeriodicInterval))
         ∂1=∂(d[1])
         ∂2=∂(d[2])    
         if ∂1==∂2==[]

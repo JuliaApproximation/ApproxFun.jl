@@ -3,6 +3,10 @@ toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1
 toarray{T<:Number}(B::Array{Fun{T}},n)=T[    j<=length(B[k])?B[k].coefficients[j]:0 for  k=1:length(B),j=1:n]
 
 function toarray(B::Array,n)
+    if isempty(B)
+        return []
+    end
+
     T=mapreduce(eltype,promote_type,B)
  
 
