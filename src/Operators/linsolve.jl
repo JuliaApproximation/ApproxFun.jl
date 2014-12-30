@@ -52,20 +52,26 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(),ma
         r=reshape([b...],size(b))
     elseif size(b,1)==size(A,1)
         if isa(b[end,1],Fun)
+            # Convert to a number vector 
+        
             bend=b[end,:]
-            m=mapreduce(length,max,bend)
             typ=mapreduce(eltype,promote_type,bend)
+            A,be=promotedomainspace(A,b[end,1])
+            m=length(be)
+                        
             r=isa(b,Vector)?Array(typ,size(b,1)-1+m):zeros(typ,size(b,1)-1+m,size(b,2))
+            
+            # assign boundary rows
             r[1:size(b,1)-1,:]=b[1:end-1,:]
             
             for k=2:size(b,2)
                 @assert space(b[end,k])==space(b[end,1])
             end
             
-            A,be=promotedomainspace(A,b[end,1])
+
             rs=rangespace(A[end])
             @assert space(be)==rs
-            r[size(b,1):size(b,1)+length(be)-1,1]=coefficients(be)
+            r[size(b,1):size(b,1)+m-1,1]=coefficients(be)
             for k=2:size(b,2)
                 cfs=coefficients(b[end,k],rs)
                 r[size(b,1):size(b,1)+length(cfs)-1,k]=cfs
