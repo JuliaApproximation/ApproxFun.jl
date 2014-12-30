@@ -304,9 +304,13 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx,
     # so we need to discetize it as well
     # and permute columns by P
 
-    Gx=toarray(Gx,ny)*OS.S.bcP  
-    # remove unused DOFs and rearrange columns
-    Gx=Gx[:,Ky+1:end]*OS.S.Z
+    if !isempty(Gx)
+        Gx=toarray(Gx,ny)*OS.S.bcP  
+        # remove unused DOFs and rearrange columns
+        Gx=Gx[:,Ky+1:end]*OS.S.Z
+    else
+        Gx=[]
+    end
     
     Y=cont_constrained_lyapuptriang(OS,Gx,F,nx)
     # Y is a Vector{Fun}, so that Y[k][j] corresponds to matrix element M[k,j]

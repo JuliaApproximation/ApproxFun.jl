@@ -5,7 +5,7 @@ using ApproxFun
 x=Fun(identity)
 d=domain(x)
 B=dirichlet(d)
-D=diff(d)
+D=Derivative(d)
 
 # Solves Lu + g(u)-1==0
 
@@ -18,4 +18,4 @@ for k=1:5
         u=u-[B,L+gp(u)]\[0.,0.,L*u+g(u)-1.];
 end
 
-norm(diff(u,2) + 2(1-x^2)*diff(u) + g(u) -1)  # This equals 0.0
+norm(diff(u,2) + 2(1-x^2)*diff(u) + g(u) -1)  # This equals 0

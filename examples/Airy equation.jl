@@ -4,13 +4,13 @@ using ApproxFun
 
 	x=Fun(x->x,[-1000.,15.])   # Fun corresponding to multiplication by x, on [-100,15]
     d=domain(x)                # The domain 
-    D2=Derivative(d,2)         # The second derivative operator
+    D=Derivative(d)            # The derivative operator
     B=dirichlet(d)             # Dirichlet boundary conditions, [u[-100],u[15]]
     
     
     #Construct operator 
     
-    A=[B;D2-x]                 # This is dirichlet conditions and u'' - x u
+    A=[B;D^2-x]                # This is dirichlet conditions and u'' - x u
     b=[airyai(d.a),0.]         # We want it to equal airyai(-100) at -100, and 0 at 
                                # 10, with 0 rhs
     #Solve ODE
@@ -25,7 +25,7 @@ using ApproxFun
 ## We now solve with Neumann conditions
 
     B=neumann(d)
-    A=[B;D2-x]               
+    A=[B;D^2-x]               
     b=[airyaiprime(d.a),0.,0.]
     
     u=A\b 

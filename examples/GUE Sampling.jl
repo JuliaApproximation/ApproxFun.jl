@@ -16,4 +16,4 @@ ApproxFun.plot(sum(f,1)/sum(f)),PyPlot.plt.hist(vcat(r...),-4.:.1:4.,normed=true
 
 using RandomMatrices
 
-ApproxFun.plot(sum(f,1)/sum(f)),PyPlot.plt.hist(vcat([sqrt(2)eigvalrand(GaussianHermite(2),2) for k=1:10000]...),-4:.1:4,normed=true)
+PyPlot.plt.hist(vcat([sqrt(2)eigvalrand(GaussianHermite(2),2) for k=1:10000]...),-4:.1:4,normed=true),ApproxFun.plot(sum(f,1)/sum(f))

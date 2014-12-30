@@ -212,15 +212,15 @@ TimesOperator(A::Operator,B::Operator)=TimesOperator([A,B])
 
 function promotetimes{B}(opsin::Vector{B})
     ops=copy(opsin)
-    
+    #TODO: Speedup
     for k=length(ops)-1:-1:1
 #         if isa(ops[k],Conversion)
-#             ops=ops[[1:k-1,k+1:end]]  ## remove the op
+#             ops=ops[[1:k-1,k+1:end]]  # remove the op
 #         else        
             op=promotedomainspace(ops[k],rangespace(ops[k+1]))
             # promotedomainspace does not necessarily have correct type
             if op==()
-                ops=ops[[1:k-1,k+1:end]]  ## remove the op
+                ops=ops[[1:k-1,k+1:end]]  # remove the op
             elseif isa(op,TimesOperator)
                 ops=[ops[1:k-1],op.ops,ops[k+1:end]]
             else
