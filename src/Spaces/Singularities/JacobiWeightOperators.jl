@@ -70,7 +70,7 @@ function integrate{J<:JacobiWeight}(f::Fun{J})
             w2=Fun(x->w1[x],domain(w1))
             c=s/sum(w1)
             v=f-w1*c      
-            (c*integrate(w2))⊕(D\v)
+            (c*integrate(w2))⊕linsolve(D,v;tolerance=100eps())
         end   
     end
 end
