@@ -174,7 +174,7 @@ function ∂(d::ProductDomain)
             UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
         end
     else
-        warn("∂ not implemented for "*string(typeof(d))*".  Returning [].")
+#        warn("∂ not implemented for "*string(typeof(d))*".  Returning [].")
         []
     end
 end

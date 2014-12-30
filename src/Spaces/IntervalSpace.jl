@@ -1,3 +1,5 @@
+export continuity
+
 
 typealias IntervalSpace  RealSpace{Interval}     # We assume basis is real
 canonicaldomain{T<:IntervalSpace}(::Type{T})=Interval()
