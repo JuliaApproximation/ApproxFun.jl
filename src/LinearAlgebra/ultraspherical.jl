@@ -20,7 +20,7 @@ end
 #TODO: what about missing truncation?
 function ultraint!{T<:Number}(v::Array{T,2})
     for k=size(v,1):-1:2
-        @simd for j=1:size(v,2)
+        for j=1:size(v,2)
             @inbounds v[k,j] = v[k-1,j]/(k-1)
         end
     end
@@ -33,7 +33,7 @@ function ultraint!{T<:Number}(v::Array{T,2})
 end
 
 function ultraint!{T<:Number}(v::Vector{T})
-    @simd for k=length(v):-1:2
+    for k=length(v):-1:2
         @inbounds v[k] = v[k-1]/(k-1)
     end
     
@@ -56,7 +56,7 @@ function ultraiconversion{T<:Number}(v::Vector{T})
         @inbounds w[end] = 2v[end]
         @inbounds w[end-1] = 2v[end-1]
         
-        @simd for k = n-2:-1:2
+        for k = n-2:-1:2
             @inbounds w[k] = 2*(v[k] + .5w[k+2])
         end
         
@@ -101,7 +101,7 @@ function ultraconversion!{T<:Number}(v::Vector{T})
     else
         @inbounds v[1] -= v[3]/2
     
-        @simd for j=2:n-2
+        for j=2:n-2
             @inbounds v[j] = (v[j] - v[j+2])/2
         end
         @inbounds v[n-1] /= 2
@@ -126,7 +126,7 @@ function ultraconversion!{T<:Number}(v::Array{T,2})
         for k=1:m
             @inbounds v[1,k] -= v[3,k]/2
         
-            @simd for j=2:n-2
+            for j=2:n-2
                 @inbounds v[j,k] = (v[j,k] - v[j+2,k])/2
             end
             @inbounds v[n-1,k] /= 2
