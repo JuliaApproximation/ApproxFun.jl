@@ -33,7 +33,7 @@ function pde_normalize_rhs(A,f::Vector)
     # the boundary information
     # i.e., if it lives on (-1-im,-1+im) we want to convert it to 
     # living on (-1,1)
-    if !isempty(f) && isa(f[1],Fun) && domain(f[1])==∂(domain(A))
+    if isa(A,PDEOperatorSchur) && !isempty(f) && isa(f[1],Fun) && domain(f[1])==∂(domain(A))
         @assert length(f)<=2
         @assert isa(f,Vector)
 

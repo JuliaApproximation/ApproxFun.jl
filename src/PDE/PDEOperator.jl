@@ -252,8 +252,11 @@ end
 
 
 
-## Schur PDEOperator
+#############
+# Schur PDEOperator
 # represent an operator that's been discretized in the Y direction
+#############
+
 
 abstract AbstractPDEOperatorSchur
 
@@ -380,9 +383,11 @@ function PDEStrideOperatorSchur(Bx,Lx::Operator,Mx::Operator,S::StrideOperatorSc
     PDEStrideOperatorSchur(Podd,Peven)
 end
 
-## Product
-
+###############
+# Product
 # Represents an operator on e.g. a Disk
+#############
+
 immutable PDEProductOperatorSchur{ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
     Bx::Vector{Vector{FT}}
     Rdiags::Vector{SavedBandedOperator{ST}}
@@ -393,6 +398,8 @@ end
 Base.eltype{ST}(::PDEProductOperatorSchur{ST})=ST
 
 Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
+
+domain(P::PDEProductOperatorSchur)=domain(domainspace(P))
 
 function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProductSpace,nt::Integer)
     indsBx=find(isxfunctional,A)
