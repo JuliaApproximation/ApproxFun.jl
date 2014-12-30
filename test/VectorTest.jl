@@ -110,4 +110,7 @@ u=M*G1
 @test norm(u[exp(.1im)]-[exp(.2im),0])<100eps()
 @test norm(u[.5exp(.1im)]-[1,0])<100eps()
 
+# Vector operations
+@test_approx_eq (Fun(x->[1., 2.]) + [2, 2])[0.] [3., 4.]
+
 
