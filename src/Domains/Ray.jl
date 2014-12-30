@@ -7,12 +7,15 @@ export Ray
 ## Standard interval
 
 
-immutable Ray{T<:Number} <: IntervalDomain{T}
-    centre::Float64  
+immutable Ray{CT<:Number,T<:Number} <: IntervalDomain{T}
+    centre::CT
     angle::Float64
     orientation::Bool
+    Ray(c,a,o)=new(c,a,o)
 end
 
+
+Ray{T<:Number}(c::T,a::Real,o::Bool)=(a==0||a==π)?Ray{T,T}(c,a,o):Ray{T,promote_type(T,Complex{Float64})}(c,a,o)
 Ray(c,a,o::Int)=Ray(c,a,o==1)
 Ray(c,a)=Ray(c,a,true)
 Ray()=Ray(0.,0.)
