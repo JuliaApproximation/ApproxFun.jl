@@ -75,6 +75,21 @@ function integrate{J<:JacobiWeight}(f::Fun{J})
     end
 end
 
+function Base.cumsum{J<:JacobiWeight}(f::Fun{J})
+    g=integrate(f)
+    
+    S=space(f)
+    
+    if S.α==0 && S.β==0     
+        g-first(g)
+    elseif S.α>-1
+        Fun(-first(g),domain(g))⊕g
+    else
+        warn("Function is not integrable at left endpoint.  Returning a non-normalized indefinite integral.")
+        g
+    end
+end
+
 ## Operators
 
 

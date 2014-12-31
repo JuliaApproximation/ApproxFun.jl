@@ -1,4 +1,4 @@
-export depiece
+export depiece,pieces
 
 ###########
 # Piecewise Space
@@ -14,11 +14,11 @@ PiecewiseSpace{S,T}(::FunctionSpace{T},spaces::Vector{S})=PiecewiseSpace{S,T}(sp
 PiecewiseSpace(spaces)=PiecewiseSpace(first(spaces),spaces)
 Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))
 domain(S::PiecewiseSpace)=UnionDomain(map(domain,S.spaces))
-Base.length(S::PiecewiseSpace)=S.spaces|>length
+Base.length(S::PiecewiseSpace)=length(S.spaces)
 Base.getindex(d::PiecewiseSpace,k)=d.spaces[k]
 
 Base.vec{S<:FunctionSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T},j::Integer)=Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j])
-Base.vec{S<:FunctionSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=Fun{S,T}[vec(f,j) for j=1:length(f.space)]
+Base.vec{S<:FunctionSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=[vec(f,j) for j=1:length(f.space)]
 pieces{S<:PiecewiseSpace,T}(f::Fun{S,T})=vec(f)
 depiece{F<:Fun}(v::Vector{F})=Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
 depiece(v::Vector{Any})=depiece([v...])
@@ -116,11 +116,20 @@ Base.vec(S::PiecewiseSpace)=S.spaces
 ## cumsum
 
 for op in (:differentiate,:integrate)
-    @eval $op{V<:PiecewiseSpace}(f::Fun{V})=depiece(map($op,vec(f)))
+    @eval $op{V<:PiecewiseSpace}(f::Fun{V})=depiece(map($op,pieces(f)))
+end
+
+for op in (:(Base.sign),)
+    @eval $op{V<:PiecewiseSpace,T<:Real}(f::Fun{V,T})=depiece(map($op,pieces(f)))
+end
+
+for op in (:(.^),)
+    @eval $op{V<:PiecewiseSpace}(f::Fun{V},k::Integer)=depiece(map(fk->$op(fk,k),pieces(f)))
+    @eval $op{V<:PiecewiseSpace}(f::Fun{V},k)=depiece(map(fk->$op(fk,k),pieces(f)))
 end
 
 function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
-    vf=vec(f)
+    vf=pieces(f)
     r=zero(T)
     for k=1:length(vf)
         vf[k]=cumsum(vf[k]) + r

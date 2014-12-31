@@ -17,6 +17,15 @@ function splitatroots(f::Fun)
     end
 end
 
+function splitmap(g,d,pts)
+    @assert isa(d,AffineDomain)
+    da=first(d)
+    isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : pts = [da,pts]
+    db=last(d)
+    isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts,db]
+    Fun(g,pts)
+end
+
 function Base.abs{S<:RealSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
 
@@ -25,12 +34,7 @@ function Base.abs{S<:RealSpace,T<:Real}(f::Fun{S,T})
     if isempty(pts)
         sign(first(f))*f
     else    
-        @assert isa(d,AffineDomain)
-        da=first(d)
-        isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
-        db=last(d)
-        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts,db]
-        Fun(x->abs(f[x]),pts)
+        splitmap(x->abs(f[x]),d,pts)
     end
 end
 
@@ -42,12 +46,7 @@ function Base.abs{S,T}(f::Fun{S,T})
     if isempty(pts)
         Fun(x->abs(f[x]),space(f))
     else    
-        @assert isa(d,AffineDomain)
-        da=first(d)
-        isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
-        db=last(d)
-        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts,db]
-        Fun(x->abs(f[x]),pts)
+        splitmap(x->abs(f[x]),d,pts)
     end
 end
 
@@ -61,11 +60,11 @@ function Base.sign{S<:RealSpace,T<:Real}(f::Fun{S,T})
     if isempty(pts)
         sign(first(f))*one(T,f.space)
     else    
-        @assert isa(d,AffineDomain)    
+        @assert isa(d,AffineDomain)
         da=first(d)
-        isapprox(da,pts[1]) ? pts[1] = da : pts = [da,pts]
+        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : pts = [da,pts]
         db=last(d)
-        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts,db]
+        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts,db]    
         midpts = .5(pts[1:end-1]+pts[2:end])
         Fun([sign(f[midpts])],pts)
     end
