@@ -10,7 +10,7 @@ g = cos(x)
 
 h = f + g^2
 r = roots(h)
-rp = roots(diff(h))
+rp = roots(differentiate(h))
 ApproxFun.plot(h)               # using PyPlot
 PyPlot.plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
 xlabel("\$x\$");ylabel("\$h(x)\$");grid(true)
@@ -34,17 +34,17 @@ println("Second image done")
 
 d = Interval([-π,π])
 a = Fun(t-> 1+sin(cos(2t)),d)
-D = diff(d)
+D = Derivative(d)
 L = D + a
 f = Fun(t->exp(sin(10t)),d)
 B = periodic(d,0)
 uChebyshev = [B,L]\[0.,f]
 
 d = PeriodicInterval([-π,π])
-a = FFun(t-> 1+sin(cos(2t)),d)
-D = diff(d)
+a = Fun(t-> 1+sin(cos(2t)),d)
+D = Derivative(d)
 L = D + a
-f = FFun(t->exp(sin(10t)),d)
+f = Fun(t->exp(sin(10t)),d)
 uFourier = L\f
 
 length(uFourier)/length(uChebyshev),2/π
