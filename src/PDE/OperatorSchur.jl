@@ -4,7 +4,7 @@ toarray{T<:Number}(B::Array{Fun{T}},n)=T[    j<=length(B[k])?B[k].coefficients[j
 
 function toarray(B::Array,n)
     if isempty(B)
-        return []
+        return Array(eltype(B),0,n)
     end
 
     T=mapreduce(eltype,promote_type,B)

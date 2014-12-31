@@ -13,12 +13,12 @@ end
 ##May modify either f or g
 function adaptiveplus!(f::Vector,g::Vector)
     if length(f)>length(g)
-        for k=1:length(g)
+        @simd for k=1:length(g)
             @inbounds f[k]+=g[k]
         end
         f
     else
-        for k=1:length(f)
+        @simd for k=1:length(f)
             @inbounds g[k]+=f[k]
         end
         g
@@ -27,15 +27,15 @@ end
 
 function adaptiveminus!(f::Vector,g::Vector)
     if length(f)>length(g)
-        for k=1:length(g)
+        @simd for k=1:length(g)
             @inbounds f[k]-=g[k]
         end
         f
     else
-        for k=1:length(g)
+        @simd for k=1:length(g)
             g[k]*=-1
         end
-        for k=1:length(f)
+        @simd for k=1:length(f)
             @inbounds g[k]+=f[k]
         end
         g
@@ -199,6 +199,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
         Gx=pad(Gx,size(Gx,1),n)
     end
 
+
     Y=Array(Fun{typeof(domainspace(OS,1)),N},n)
     PY=Array(Vector{N},n)
     SY=Array(Vector{N},n)
@@ -246,7 +247,11 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
         
             A=[blkdiag(OS.Bx,OS.Bx);
                 OS.S.R[k-1:k,k-1:k].*OS.Lx+OS.S.T[k-1:k,k-1:k].*OS.Mx]
-            b=Any[Gx[:,k-1]...,Gx[:,k]...,rhs1,rhs2]
+            if isempty(Gx)
+                b=Any[rhs1,rhs2]
+            else
+                b=Any[Gx[:,k-1]...,Gx[:,k]...,rhs1,rhs2]
+            end
             y=vec(linsolve(A,b;maxlength=nx))
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
         

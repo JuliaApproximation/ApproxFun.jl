@@ -109,3 +109,23 @@ uD=KD\G;
 
 @test_approx_eq uD[.1,.2] real(exp(.1+.2im))
 
+
+
+
+## Test periodic x interval
+
+d=PeriodicInterval()*Interval()
+g=Fun(z->real(cos(z)),∂(d))  # boundary data
+u=[dirichlet(d),lap(d)]\g
+
+@test_approx_eq u[.1,.2] real(cos(.1+.2im))
+
+
+
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
+d=dθ*dt
+Dθ=diff(d,1);Dt=diff(d,2)
+u=[I⊗ldirichlet(dt),Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
+
+
+@test_approx_eq u[.1,.2] exp(-20(0.1-0.2)^2)
