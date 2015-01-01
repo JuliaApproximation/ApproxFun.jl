@@ -163,7 +163,11 @@ for op in (:differentiate,:integrate,:(Base.cumsum))
 end
 
 
-
+function Base.det{A<:ArraySpace,V}(f::Fun{A,V})
+    @assert size(space(f))==(2,2)
+    m=mat(f)
+    m[1,1]*m[2,2]-m[1,2]*m[2,1]
+end
 
 
 
@@ -201,3 +205,5 @@ function linsolve{S,T,D,Q}(A::BandedOperator,b::Fun{ArraySpace{S,2,T,D},Q};kwds.
         linsolve(A,mat(b,1);kwds...)
     end
 end
+
+

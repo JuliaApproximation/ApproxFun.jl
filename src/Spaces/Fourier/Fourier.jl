@@ -102,7 +102,7 @@ Laurent{T<:Number}(d::Vector{T}) = Laurent(PeriodicInterval(d))
 
 Space(d::PeriodicDomain)=Fourier(d)
 Space(d::Circle)=Laurent(d)
-canonicalspace(S::PeriodicSpace)=isa(domain(S),Circle)?Laurient(domain(S)):Fourier(domain(S))
+canonicalspace(S::PeriodicSpace)=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
 
 
 points(sp::Laurent,n)=points(domain(sp),n)

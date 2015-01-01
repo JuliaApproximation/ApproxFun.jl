@@ -216,12 +216,17 @@ function complexroots{T<:Number}(coefficients::ShiftVector{T})
         return Main.AMVW.rootsAMVW(c)
     else
         n=length(c)-1
-        A=zeros(T,n,n)
-        A[:,end]=-c[1:end-1]/c[end]
-        for k=2:n
-            A[k,k-1]=1.
+        
+        if n==0
+            T[]
+        else
+            A=zeros(T,n,n)
+            A[:,end]=-c[1:end-1]/c[end]
+            for k=2:n
+                A[k,k-1]=one(T)
+            end
+            return eigvals(A)
         end
-        return eigvals(A)
     end
 end
 
