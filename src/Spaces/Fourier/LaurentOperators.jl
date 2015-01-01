@@ -48,7 +48,7 @@ end
 # spaces lose zeroth coefficient
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Hardy{false},T}})=StrideSpace(Fourier(domain(R)),1)
+        rangespace{T}(R::$TYP{ReImSpace{Hardy{false},T}})=SliceSpace(Fourier(domain(R)),1)
     end
 end
 
@@ -207,15 +207,15 @@ function addentries!(D::Integral{Taylor},A,kr::Range)
 end
 
 
-function bandinds{n,T,DD}(D::Integral{StrideSpace{n,1,Hardy{false},T,DD}})
+function bandinds{n,T,DD}(D::Integral{SliceSpace{n,1,Hardy{false},T,DD}})
     d=domain(D)
     @assert isa(d,Circle)
     @assert D.order==n
     (0,0)
 end
-rangespace{n,T,DD}(D::Integral{StrideSpace{n,1,Hardy{false},T,DD}})=D.space.space
+rangespace{n,T,DD}(D::Integral{SliceSpace{n,1,Hardy{false},T,DD}})=D.space.space
 
-function addentries!{n,T,DD}(D::Integral{StrideSpace{n,1,Hardy{false},T,DD}},A,kr::Range)
+function addentries!{n,T,DD}(D::Integral{SliceSpace{n,1,Hardy{false},T,DD}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,Circle)
@@ -257,14 +257,14 @@ end
 
 
 
-function bandinds{n,T,DD}(D::Integral{StrideSpace{n,1,Taylor,T,DD}})
+function bandinds{n,T,DD}(D::Integral{SliceSpace{n,1,Taylor,T,DD}})
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     (0,0)
 end
-rangespace{n,T,DD}(D::Integral{StrideSpace{n,1,Taylor,T,DD}})=D.space
+rangespace{n,T,DD}(D::Integral{SliceSpace{n,1,Taylor,T,DD}})=D.space
 
-function addentries!{n,T,DD}(D::Integral{StrideSpace{n,1,Taylor,T,DD}},A,kr::Range)
+function addentries!{n,T,DD}(D::Integral{SliceSpace{n,1,Taylor,T,DD}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,PeriodicInterval)

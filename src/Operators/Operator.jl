@@ -90,7 +90,7 @@ function BandedMatrix{T<:Number}(B::Operator{T},kr::StepRange,::Colon)
         shf=div(first(kr)-first(jr),stp)
         bi=div(bandinds(B,1),stp)+shf,div(bandinds(B,2),stp)+shf
         A=bazeros(T,length(kr),length(jr),bi)
-        addentries!(B,IndexDestride(A,first(kr)-stp,first(jr)-stp,stp,stp),kr)
+        addentries!(B,IndexSlice(A,first(kr)-stp,first(jr)-stp,stp,stp),kr)
         A
     end
 end
@@ -216,7 +216,6 @@ include("algebra.jl")
 
 include("TransposeOperator.jl")
 include("StrideOperator.jl")
-include("SliceOperator.jl")
 include("CompactOperator.jl")
 
 

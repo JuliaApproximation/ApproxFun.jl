@@ -98,7 +98,7 @@ function addentries!(D::Derivative{SinSpace},A,kr::Range)
     A
 end
 
-Integral(::CosSpace,m)=error("Integral not defined for CosSpace.  Use Integral(StrideSpace(CosSpace(),1)) if first coefficient vanishes.")
+Integral(::CosSpace,m)=error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
 
 
 bandinds(D::Integral{SinSpace})=iseven(D.order)?(0,0):(-1,0)
@@ -127,14 +127,14 @@ function addentries!(D::Integral{SinSpace},A,kr::Range)
 end
 
 
-function bandinds{T,DD}(D::Integral{StrideSpace{1,1,CosSpace,T,DD}})
+function bandinds{T,DD}(D::Integral{SliceSpace{1,1,CosSpace,T,DD}})
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     (0,0)
 end
-rangespace{T,DD}(D::Integral{StrideSpace{1,1,CosSpace,T,DD}})=iseven(D.order)?D.space:SinSpace(domain(D))
+rangespace{T,DD}(D::Integral{SliceSpace{1,1,CosSpace,T,DD}})=iseven(D.order)?D.space:SinSpace(domain(D))
 
-function addentries!{T,DD}(D::Integral{StrideSpace{1,1,CosSpace,T,DD}},A,kr::Range)
+function addentries!{T,DD}(D::Integral{SliceSpace{1,1,CosSpace,T,DD}},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)    
     m=D.order

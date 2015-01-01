@@ -273,44 +273,44 @@ bandinds(S::IndexStride)=(S.rowstride*bandinds(S.matrix,1)+S.rowindex-S.colindex
 columnrange(A,row::Integer)=max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
 
-## IndexDestride
+## IndexSlice
 #  divides by stride instead of multiply
 
-immutable IndexDestride{S} 
+immutable IndexSlice{S} 
     matrix::S
     rowindex::Int
     colindex::Int
     rowstride::Int
     colstride::Int    
 end
-function IndexDestride{S<:BandedMatrix}(mat::S,ri::Int,ci::Int,rs::Int,cs::Int)
+function IndexSlice{S<:BandedMatrix}(mat::S,ri::Int,ci::Int,rs::Int,cs::Int)
     # its no longer banded unless the strides match
     @assert rs==cs
     @assert mod(ri-ci,rs)==0
 
-    IndexDestride{S}(mat,ri,ci,rs,cs)
+    IndexSlice{S}(mat,ri,ci,rs,cs)
 end
-IndexDestride(mat,ri,ci)=IndexStride(mat,ri,ci,1,1)
+IndexSlice(mat,ri,ci)=IndexStride(mat,ri,ci,1,1)
 
 
 #TODO: what if k and j are not in the stride?
-#       this isn't an issue for now since we are using Destride
+#       this isn't an issue for now since we are using Slice
 #       to make a small array look larger
-getindex(S::IndexDestride,k,j)=S.matrix[div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride)]
-setindex!(S::IndexDestride,x,k,j)=(S.matrix[div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride)]=x)
-ibpluseq!(S::IndexDestride,x,k,j)=ibpluseq!(S.matrix,x,div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride))
+getindex(S::IndexSlice,k,j)=S.matrix[div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride)]
+setindex!(S::IndexSlice,x,k,j)=(S.matrix[div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride)]=x)
+ibpluseq!(S::IndexSlice,x,k,j)=ibpluseq!(S.matrix,x,div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride))
 
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
-        $OP(B::IndexDestride,x::Number)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
-        $OP(x::Number,B::IndexDestride)=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)      
+        $OP(B::IndexSlice,x::Number)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
+        $OP(x::Number,B::IndexSlice)=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)      
     end    
 end
 
 
 # the following assume rowindex == colindex
-bandinds(S::IndexDestride)=(div(bandinds(S.matrix,1)+S.colindex-S.rowindex,S.rowstride),div(bandinds(S.matrix,2)+S.colindex-S.rowindex,S.rowstride))
+bandinds(S::IndexSlice)=(div(bandinds(S.matrix,1)+S.colindex-S.rowindex,S.rowstride),div(bandinds(S.matrix,2)+S.colindex-S.rowindex,S.rowstride))
 
 ## Transpose indices
 
@@ -393,7 +393,7 @@ function bamultiply!(C::IndexStride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=
 end
 
 
-function bamultiply!(C::IndexDestride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
+function bamultiply!(C::IndexSlice,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
     @assert rs==C.rowstride==cs==C.colstride
     @assert mod(ri-C.rowindex,rs)==mod(ci-C.colindex,cs)==0
     # div(rs*k+ri -C.rowindex,C.rowstride)

@@ -5,9 +5,9 @@ function stridelinsolve(Ad,b,tolerance,maxlength)
     L=Ad[end]
     #TODO: general
     u1=adaptiveqr([FillFunctional(2.),
-        DestrideOperator(L,-1,-1,2,2)],[b[2]+b[1],b[3:2:end]...],tolerance,maxlength)
+        SliceOperator(L,-1,-1,2,2)],[b[2]+b[1],b[3:2:end]...],tolerance,maxlength)
     u2=adaptiveqr([FillFunctional(2.),
-        DestrideOperator(L,0,0,2,2)],[b[2]-b[1],b[4:2:end]...],tolerance,maxlength)
+        SliceOperator(L,0,0,2,2)],[b[2]-b[1],b[4:2:end]...],tolerance,maxlength)
     interlace(u1,u2)
 end
 
