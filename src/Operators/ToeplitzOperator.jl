@@ -159,23 +159,30 @@ end
 #     A
 # end
 
+
+
+
 function laurent_addentries!(v::ShiftVector,A,kr::Range)    
     negkr,poskr=shiftrowrange(kr)
     br=length(v)==0?(0:0):(firstindex(v):lastindex(v))
 
     for k=poskr,j=br
         if k+j≥0 # && k≥0
-            A[2k+1,2k+1+2j] += v[j]
+            #A[k,k+j]=v[j]
+            # k->2k+1
+            A[2k+1,2k+2j+1] += v[j]
         else # k+j<0 && k≥0
-            A[2k+1,2k-2j] += v[j]            
+            
+            #A[k,k+j]=v[j]        
+            A[2k+1,-2k-2j] += v[j]            
         end
     end
     
     for k=negkr,j=br
         if k+j<0 # && k <0
             A[-2k,-2k-2j] += v[j]
-        else # +kj<0 && k<0
-            A[-2k,1-2k-2j] += v[j] 
+        else # k+j>0 && k<0
+            A[-2k,2k+2j+1] += v[j] 
         end
     end    
     

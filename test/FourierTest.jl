@@ -18,6 +18,8 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
 
 
 
+@test_approx_eq (Fun(z->sin(z)*cos(1/z),Circle())*Fun(z->exp(z)*airyai(1/z),Circle()))[exp(.1im)] (z->sin(z)*cos(1/z)*exp(z)*airyai(1/z))(exp(.1im))
+
 ## Calculus
 
 f=Fun(t->cos(t),CosSpace)

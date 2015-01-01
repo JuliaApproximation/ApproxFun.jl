@@ -169,7 +169,11 @@ function Base.det{A<:ArraySpace,V}(f::Fun{A,V})
     m[1,1]*m[2,2]-m[1,2]*m[2,1]
 end
 
-
+function Base.inv{A<:ArraySpace,T}(V::Fun{A,T})
+    @assert size(space(V),1)==size(space(V),2)
+    M=Multiplication(V,ArraySpace(space(V).space,size(space(V),1)))
+    M\eye(size(space(V),2))
+end
 
 ## Algebra
 
