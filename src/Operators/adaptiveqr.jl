@@ -45,7 +45,7 @@ function givensreduceab!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integ
     @inbounds a=A.data[j1-k1+A.l+1,k1]  #A[k1,j1]
     @inbounds b=A.data[j1-k2+A.l+1,k2]  #A[k2,j1] 
     
-    if b == 0
+    if abs(b) < 10eps()
         return one(T),zero(T)
     end    
     
@@ -65,7 +65,7 @@ end
 function givensreduce!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
     a,b=givensreduceab!(B,k1,k2,j1)
     
-    if b != 0.0
+    if abs(b) >= 10eps()
         ca=conj(a)
         cb=conj(b)
     
