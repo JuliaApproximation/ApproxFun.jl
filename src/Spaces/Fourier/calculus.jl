@@ -1,8 +1,7 @@
 ##Differentiation and integration
 
 
-#differentiate(f::Fun{Laurent})=Fun(interlace(fourierdiff(domain(f),deinterlace(f.coefficients))),f.space)
-Base.sum(f::Fun{Laurent})=fouriersum(domain(f),deinterlace(f.coefficients))
+Base.sum(f::Fun{Laurent})=fouriersum(domain(f),f.coefficients)
 function integrate(f::Fun{Hardy{false}})
     if isa(domain(f),Circle) # drop -1 term if zero and try again
         integrate(Fun(f,SliceSpace(space(f),1)))
@@ -95,13 +94,11 @@ end
 # 
 
 
-fouriersum(d::PeriodicInterval,cfs::ShiftVector)=cfs[0].*length(d)
+fouriersum(d::PeriodicInterval,cfs)=cfs[1].*length(d)
 
-function fouriersum{T}(d::Circle,cfs::ShiftVector{T})
-    @assert d.radius == 1.
-    @assert d.center == 0   
-    if firstindex(cfs) <= -1
-        cfs[-1]
+function fouriersum{T}(d::Circle,cfs::Vector{T})
+    if length(cfs)≥2
+        cfs[2]*d.radius
     else
         zero(T)
     end
