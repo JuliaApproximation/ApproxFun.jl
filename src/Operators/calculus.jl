@@ -5,6 +5,9 @@ abstract CalculusOperator{S,T}<:BandedOperator{T}
 
 macro calculus_operator(Op,AbstOp,WrappOp)
     return esc(quote        
+        # The SSS, TTT are to work around #9312
+        abstract $AbstOp{SSS,TTT} <: CalculusOperator{SSS,TTT} 
+    
         immutable $Op{S<:FunctionSpace,T<:Number} <: $AbstOp{S,T}
             space::S        # the domain space
             order::Int
@@ -93,8 +96,6 @@ end
 
 
 
-abstract AbstractDerivative{S,T} <:CalculusOperator{S,T}
-abstract AbstractIntegral{S,T} <:CalculusOperator{S,T}
 @calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
 @calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
 
