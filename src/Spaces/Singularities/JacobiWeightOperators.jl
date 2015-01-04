@@ -23,6 +23,8 @@ function Base.sum(f::Fun{JacobiWeight{Chebyshev}})
     end
 end
 
+Base.sum{PS<:PolynomialSpace}(f::Fun{JacobiWeight{PS}})=sum(Fun(f,Chebyshev(domain(f))))
+
 function differentiate{J<:JacobiWeight}(f::Fun{J})
     S=f.space
     d=domain(f)

@@ -20,7 +20,7 @@ end
 JacobiWeight{S<:IntervalSpace}(a::Number,b::Number,d::S)=JacobiWeight{S}(float64(a),float64(b),d)
 JacobiWeight(a::Number,b::Number,d::Domain)=JacobiWeight(float64(a),float64(b),Space(d))
 JacobiWeight(a,b)=JacobiWeight(a,b,Chebyshev())
-JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(float64(a),float64(b),Interval(d))
+JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(float64(a),float64(b),Space(d))
 
 
 domain(S::JacobiWeight)=domain(S.space)
