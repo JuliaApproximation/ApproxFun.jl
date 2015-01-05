@@ -108,6 +108,8 @@ function Conversion(AS::ArraySpace,BS::ArraySpace)
     ConversionWrapper(DiagonalArrayOperator(Conversion(AS.space,BS.space),size(AS)))
 end
 
+ToeplitzOperator{S,T,V}(G::Fun{ArraySpace{S,2,T,PeriodicInterval},V})=interlace(map(ToeplitzOperator,mat(G)))
+ToeplitzOperator{S,T,D,V}(G::Fun{ArraySpace{S,2,T,D},V})=interlace(map(ToeplitzOperator,mat(G)))
 
 ## Sum Space
 
