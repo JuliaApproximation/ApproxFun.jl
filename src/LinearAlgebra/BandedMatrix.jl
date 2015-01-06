@@ -187,10 +187,13 @@ end
 
 
 
-function pad!(A::BandedMatrix,n)
+function pad!(A::BandedMatrix,n,m)
     A.data=pad(A.data,size(A.data,1),n)
+    A.m=m
     A
 end
+
+pad!(A::BandedMatrix,n,::Colon)=pad!(A,n,n+A.u)  # Default is to get all columns
 
 
 
@@ -428,8 +431,8 @@ end
 
 ## addentries!
 
-function addentries!(B::BandedMatrix,c::Number,A,kr::Range)    
-    for k=intersect(kr,1:size(B,1)),j=min(k+bandrange(B),size(B,2))
+function addentries!(B::BandedMatrix,c::Number,A,kr::Range)   
+    for k=intersect(kr,1:size(B,1)),j=intersect(k+bandrange(B),1:size(B,2))
         A[k,j] += c*B[k,j]
     end
     

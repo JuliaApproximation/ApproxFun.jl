@@ -91,7 +91,7 @@ end
 
 function resizedata!(B::SavedBandedOperator,n::Integer)
     if n > B.datalength
-        pad!(B.data,2n)
+        pad!(B.data,2n,:)
 
         addentries!(B.op,B.data,B.datalength+1:n)
         
