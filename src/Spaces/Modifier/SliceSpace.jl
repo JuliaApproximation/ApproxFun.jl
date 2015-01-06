@@ -7,7 +7,9 @@ immutable SliceSpace{index,stride,DS,T,D}<: FunctionSpace{T,D}
     SliceSpace(d::Domain)=new(DS(d))
 end
 
-#typealias DropSpace{n,DS,T,D} SliceSpace{n,1,DS,T,D}
+
+index{n}(::SliceSpace{n})=n
+Base.stride{n,st}(::SliceSpace{n,st})=st
 
 SliceSpace{T,D}(sp::FunctionSpace{T,D},n::Integer,st::Integer)=SliceSpace{n,st,typeof(sp),T,D}(sp)
 SliceSpace{T,D}(sp::FunctionSpace{T,D},n::Integer)=SliceSpace(sp,n,1)
@@ -54,12 +56,15 @@ end
 
 function spaceconversion(v::Vector,sp::FunctionSpace,dropsp::SliceSpace)
     @assert sp==dropsp.space
+    n=index(dropsp)
+    st=stride(dropsp)
     v[st+n:st:end]
 end
 
 function spaceconversion{V}(v::Vector{V},dropsp::SliceSpace,sp::FunctionSpace)
     @assert sp==dropsp.space
-
+    n=index(dropsp)
+    st=stride(dropsp)
     ret=zeros(V,st*length(v)+n)
     ret[st+n:st:end]=v
     ret
