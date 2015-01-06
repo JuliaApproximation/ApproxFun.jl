@@ -90,7 +90,7 @@ evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 points(sp::SinSpace,n)=fromcanonical(domain(sp),(π*[1:n])/(n+1))
 transform(::SinSpace,vals)=FFTW.r2r(vals,FFTW.RODFT00)/(length(vals)+1)
 itransform(::SinSpace,cfs)=FFTW.r2r(cfs,FFTW.RODFT00)/2
-evaluate{T}(f::Fun{SinSpace,T},t)=sum(T[f.coefficients[k]*sin(k*tocanonical(f,t)) for k=1:length(f)])
+evaluate{T,N<:Number}(f::Fun{SinSpace,T},t::N)=sum(promote_type(T,N)[f.coefficients[k]*sin(k*tocanonical(f,t)) for k=1:length(f)])
 
 
 

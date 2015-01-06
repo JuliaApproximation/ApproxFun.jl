@@ -227,6 +227,21 @@ setindex!(S::IndexStride,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j
 ibpluseq!(S::IndexStride,x,k,j)=ibpluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
 
 
+# Odd rows/columns become real part and even become imag part
+# S Should be a Real-valued matrix
+immutable IndexReIm{S} 
+    matrix::S
+end
+
+
+getindex(S::IndexReIm,k,j)=S.matrix[2k-1,2j-1]+im*S.matrix[2k,2j]
+function setindex!(S::IndexReIm,x,k,j)
+    S.matrix[2k-1,2j-1]=real(x)
+    S.matrix[2k,2j]=imag(x)
+    x
+end
+
+
 
 
 
