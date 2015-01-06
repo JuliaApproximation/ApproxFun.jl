@@ -1,28 +1,37 @@
-immutable ReImSpace{S,T}<: FunctionSpace{T}
+immutable ReImSpace{S,T,D}<: FunctionSpace{T,D}
     space::S 
 end
-ReImSpace{T}(sp::FunctionSpace{T})=ReImSpace{typeof(sp),T}(sp)
+ReImSpace{T,D}(sp::FunctionSpace{T,D})=ReImSpace{typeof(sp),T,D}(sp)
 
 domain(sp::ReImSpace)=domain(sp.space)
 
-function spaceconversion{S<:FunctionSpace}(f::Vector,a::ReImSpace{S},b::ReImSpace{S})
+function spaceconversion(f::Vector,a::ReImSpace,b::ReImSpace)
     @assert a.space==b.space
     f 
 end
 
-function spaceconversion{S<:FunctionSpace,U,V}(f::Vector{U},a::S,b::ReImSpace{S,V})
+function spaceconversion(f::Vector,a::FunctionSpace,b::ReImSpace)
+    if a!=b.space
+        cfs=spaceconversion(f,a,b.space)
+    end
     ret=Array(Float64,2length(f))
     ret[1:2:end]=real(f)
     ret[2:2:end]=imag(f)    
     ret
 end
 
-function spaceconversion{S<:FunctionSpace,U,V}(f::Vector{U},a::ReImSpace{S,V},b::S)
+function spaceconversion(f::Vector,a::ReImSpace,b::FunctionSpace)
     n=length(f)
     if iseven(n)
-        f[1:2:end]+1im*f[2:2:end]
+        ret=f[1:2:end]+1im*f[2:2:end]
     else #odd, so real has one more
-        [f[1:2:end-2]+1im*f[2:2:end],f[end]]
+        ret=[f[1:2:end-2]+1im*f[2:2:end],f[end]]
+    end
+    
+    if a.space==b
+        ret
+    else
+        spaceconversion(ret,a.space,b)
     end
 end
 

@@ -145,6 +145,8 @@ end
 
 
 
+
+
 for op = (:*,:.*,:./,:/)
     @eval ($op)(f::Fun,c::Number) = Fun(($op)(f.coefficients,c),f.space)
 end 
@@ -168,6 +170,7 @@ function .^{S,T}(f::Fun{S,T},k::Integer)
     end
 end
 
+Base.inv{S,T}(f::Fun{S,T})=1./f
 
 ## Norm
 

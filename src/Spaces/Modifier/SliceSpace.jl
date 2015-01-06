@@ -40,11 +40,11 @@ end
 
 
 ## Resolve conflict
-spaceconversion{n,st,S1<:FunctionSpace,S2<:FunctionSpace,T1,T2,V,D}(f::Vector{V},a::ReImSpace{S1,T1},b::SliceSpace{n,st,S2,T2,D})=error("Not implemented")
-spaceconversion{n,st,S1<:FunctionSpace,S2<:FunctionSpace,T1,T2,V,D}(f::Vector{V},b::SliceSpace{n,st,S2,T2,D},a::ReImSpace{S1,T1})=error("Not implemented")
+spaceconversion(::Vector,sp::ReImSpace,slp::SliceSpace)=error("spaceconversion not implemented from "*typeof(sp)*" to "*typeof(slp))
+spaceconversion(::Vector,sp::SliceSpace,slp::ReImSpace)=error("spaceconversion not implemented from "*typeof(sp)*" to "*typeof(slp))
+
 # v[k]=v[stride*k+index]
-spaceconversion{n,st,S1<:FunctionSpace,S2<:SliceSpace,U,V,D}(v::Vector{V},sp::SliceSpace{n,st,S1,U,D},dropsp::SliceSpace{n,st,S2,U,D})=error("Not implemented")
-function spaceconversion{n,st,S1<:FunctionSpace,S2<:FunctionSpace,U,V,D}(v::Vector{V},sp::SliceSpace{n,st,S1,U,D},dropsp::SliceSpace{n,st,S2,U,D})
+function spaceconversion(v::Vector,sp::SliceSpace,dropsp::SliceSpace)
     if sp==dropsp
         v
     else
@@ -52,12 +52,12 @@ function spaceconversion{n,st,S1<:FunctionSpace,S2<:FunctionSpace,U,V,D}(v::Vect
     end
 end
 
-function spaceconversion{n,st,S<:FunctionSpace,U,V,D}(v::Vector{V},sp::S,dropsp::SliceSpace{n,st,S,U,D})
+function spaceconversion(v::Vector,sp::FunctionSpace,dropsp::SliceSpace)
     @assert sp==dropsp.space
     v[st+n:st:end]
 end
 
-function spaceconversion{n,st,S<:FunctionSpace,U,V,D}(v::Vector{V},dropsp::SliceSpace{n,st,S,U,D},sp::S)
+function spaceconversion{V}(v::Vector{V},dropsp::SliceSpace,sp::FunctionSpace)
     @assert sp==dropsp.space
 
     ret=zeros(V,st*length(v)+n)

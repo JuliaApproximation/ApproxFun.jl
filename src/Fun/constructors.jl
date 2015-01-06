@@ -1,6 +1,3 @@
-Fun(f::Function,d::FunctionSpace,n::Integer) = Fun(f,d,n,Float64)
-
-
 valsdomain_type_promote{T<:Complex}(::Type{T},::Type{T})=T,T
 valsdomain_type_promote{T<:Real}(::Type{T},::Type{T})=T,T
 valsdomain_type_promote(::Type{Int},::Type{Int})=Float64,Int

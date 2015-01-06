@@ -14,3 +14,5 @@ include("fftGeneric.jl")
 #TODO: conflicts with Base.digits
 digits(n::Integer) = set_bigfloat_precision(int(ceil(n*log2(10))))
 digits() = int(floor(get_bigfloat_precision()*log10(2)))
+
+include("show.jl")
