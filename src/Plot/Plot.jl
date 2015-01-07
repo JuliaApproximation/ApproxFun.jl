@@ -105,7 +105,7 @@ function plot{S}(r::Range,f::Fun{S,Float64};opts...)
     plot(r,f[[r]];opts...)
 end
 
-function complexplot{S}(f::Fun{S,Complex{Float64}};opts...) 
+function complexplot(f::Fun;opts...) 
     f=pad(f,3length(f)+50)
     vals =values(f)
 
