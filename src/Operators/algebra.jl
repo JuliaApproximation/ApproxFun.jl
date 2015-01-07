@@ -45,9 +45,9 @@ PlusOperator{B<:BandedOperator}(ops::Vector{B})=PlusFunctionalOperator(PlusOpera
 
 
 
-for SS in (:(PlusFunctional,Functional),:(PlusOperator,BandedOperator))
+for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOperator,:BandedOperator,:ZeroOperator))
     @eval begin
-        function domainspace(P::($SS[1]))
+        function domainspace(P::$PLUS)
             for op in P.ops
                 sp = domainspace(op)
                 
@@ -59,18 +59,20 @@ for SS in (:(PlusFunctional,Functional),:(PlusOperator,BandedOperator))
             AnySpace()
         end        
         
-        domain(P::($SS[1]))=commondomain(P.ops)
+        domain(P::$PLUS)=commondomain(P.ops)
 
     
-        +(A::($SS[1]),B::($SS[1]))=$SS[1]([A.ops,B.ops])
-        +(A::($SS[1]),B::($SS[1]),C::($SS[1]))=$SS[1]([A.ops,B.ops,C.ops])        
-        +(A::($SS[1]),B::($SS[2]))=$SS[1]([A.ops,B])
-        +(A::($SS[1]),B::($SS[2]),C::($SS[2]))=$SS[1]([A.ops,B,C])        
-        +(A::($SS[2]),B::($SS[1]))=$SS[1]([A,B.ops])
-        +{T}(A::($SS[2]{T}),B::($SS[2]{T}))=$SS[1]($SS[2]{T}[A,B])
-        +{T}(A::($SS[2]{T}),B::($SS[2]{T}),C::($SS[2]{T}))=$SS[1]($SS[2]{T}[A,B,C])        
-        +(A::($SS[2]),B::($SS[2]))=$SS[1]($SS[2][A,B])        
-        +(A::($SS[2]),B::($SS[2]),C::($SS[2]))=$SS[1]($SS[2][A,B,C])                
+        +(A::$PLUS,B::$PLUS)=$PLUS([A.ops,B.ops])
+        +(A::$PLUS,B::$PLUS,C::$PLUS)=$PLUS([A.ops,B.ops,C.ops])        
+        +(A::$PLUS,B::$TYP)=$PLUS([A.ops,B])
+        +(A::$PLUS,B::$ZER)=A
+        +(A::$PLUS,B::$TYP,C::$TYP)=$PLUS([A.ops,B,C])        
+        +(A::$TYP,B::$PLUS)=$PLUS([A,B.ops])
+        +(A::$ZER,B::$PLUS)=B
+        +{T}(A::$TYP{T},B::$TYP{T})=$PLUS($TYP{T}[A,B])
+        +{T}(A::$TYP{T},B::$TYP{T},C::$TYP{T})=$PLUS($TYP{T}[A,B,C])        
+        +(A::$TYP,B::$TYP)=$PLUS($TYP[A,B])        
+        +(A::$TYP,B::$TYP,C::$TYP)=$PLUS($TYP[A,B,C])                
         #TODO: Arbitrary number of summands
     end
 end
@@ -118,7 +120,12 @@ end
 +(f::Fun,A::Operator)=Multiplication(f,domainspace(A))+A
 -(A::Operator,f::Fun)=A+Multiplication(-f,domainspace(A))
 -(f::Fun,A::Operator)=Multiplication(f,domainspace(A))-A
-
++(A::ZeroOperator,::ZeroOperator)=A
++(A::BandedOperator,::ZeroOperator)=A
++(::ZeroOperator,B::BandedOperator)=B
++(A::ZeroFunctional,::ZeroFunctional)=A
++(A::Functional,::ZeroFunctional)=A
++(::ZeroFunctional,B::Functional)=B
 
 
 +(c::UniformScaling,A::Operator)=ConstantOperator(1.0c.λ)+A

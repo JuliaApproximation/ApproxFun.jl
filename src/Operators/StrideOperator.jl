@@ -224,7 +224,34 @@ function addentries!(M::InterlaceOperator,A,kr::Range)
 end
 
 
+function interlace{T<:BandedOperator}(A::Matrix{T})
+    m,n=size(A)
+    A=promotespaces(A)
+    dsp=domainspace(A)  
+    
+    
+    
+    ret=ZeroOperator()
+    
+    for k=1:m
+        Ap=vec(A[k,:])
+        
+        for j=1:n
+            if !iszerooperator(A[k,j])  #not sure what promote does for constant operator
+                op = StrideOperator(Ap[j],k-m,j-n,n)
 
+                ret += op
+            end            
+        end
+    end    
+    
+    rsp=rangespace(A[:,1])    
+    SpaceOperator(ret,dsp,rsp)          
+end
+
+
+# If the matrix is Operators, we assume it may contain 
+# functionals as well
 function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
     
@@ -260,26 +287,11 @@ function interlace{T<:Operator}(A::Matrix{T})
     for k=1:br
         S[k]=promotedomainspace(S[k],dsp)
     end
-
-    for k=br+1:m
-        Ap=vec(A[k,:])
-        
-        for j=1:n
-            if !iszerooperator(A[k,j])  #not sure what promote does for constant operator
-                op = StrideOperator(Ap[j],k-br-n,j-n,n)
-            
-                if !isdefined(S,br+1)
-                    S[br+1] = op
-                else
-                    S[br+1] = S[br+1] + op
-                end
-            end            
-        end
-    end
     
     if br < m
-        rsp=rangespace(A[br+1:end,1])    
-        S[br+1]=SpaceOperator(S[br+1],dsp,rsp)
+        Am=A[br+1:m,:]
+        TT=mapreduce(eltype,promote_type,Am)
+        S[br+1]=interlace(convert(Matrix{BandedOperator{TT}},Am))
     end
     
     if(size(S,1) ==1)
