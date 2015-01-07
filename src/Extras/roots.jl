@@ -16,7 +16,14 @@ complexroots{D<:IntervalSpace}(f::Fun{D})=fromcanonical(f,colleague_eigvals(f.co
 #    end
 #end
 
-roots{S,T}(f::Fun{S,T})=roots(Fun(f,domain(f))) # default is to convert to Chebyshev/Fourier
+function roots{S,T}(f::Fun{S,T})
+    f2=Fun(f,domain(f)) # default is to convert to Chebyshev/Fourier
+    if space(f2)==space(f)
+        error("roots not implemented for "*string(typeof(f)))
+    else
+        roots(f2)
+    end
+end
 
 
 function roots( f::Fun{Chebyshev} )
@@ -234,6 +241,7 @@ else
 end
 
 complexroots(f::Fun{Laurent})=mappoint(Circle(),domain(f),complexroots(deinterlace(f.coefficients)))
+complexroots(f::Fun{Fourier})=complexroots(Fun(f,Laurent))
 
 roots{S<:MappedSpace}(f::Fun{S})=fromcanonical(f,roots(Fun(coefficients(f),space(f).space)))
 
@@ -252,6 +260,7 @@ function roots(f::Fun{Laurent})
 end
 
 
+roots(f::Fun{Fourier})=roots(Fun(f,Laurent))
 
 function roots{P<:PiecewiseSpace}(f::Fun{P})
     rts=[map(roots,vec(f))...]
