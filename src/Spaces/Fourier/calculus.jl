@@ -23,7 +23,14 @@ function integrate(f::Fun{CosSpace})
     if isa(domain(f),Circle)
         error("Integrate not implemented for CosSpace on Circle")
     else  # Probably periodic itnerval, drop constant term if zero
-        integrate(Fun(f,SliceSpace(space(f),1)))
+        if isapprox(f.coefficients[1],0)
+            integrate(Fun(f,SliceSpace(space(f),1)))
+        else
+            d=domain(f)
+            @assert isa(d,PeriodicInterval)
+            x=Fun(identity,[first(d),last(d)])
+            (f.coefficients[1]*x)⊕integrate(Fun(f,SliceSpace(space(f),1)))
+        end
     end
 end
 
