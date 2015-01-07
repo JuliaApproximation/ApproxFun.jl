@@ -25,7 +25,7 @@ tocanonicalD(d::Circle,ζ)=-1.im./(ζ.-d.center)  #TODO: Check formula
 fromcanonical(d::Circle,θ)=d.radius*exp(1.im*θ) .+ d.center
 fromcanonicalD(d::Circle,θ)=d.radius*1.im*exp(1.im*θ)
 
-
+Base.in(z,d::Circle)=isapprox(abs(z-d.center),d.radius)
 
 Base.length(d::Circle) = 2π*d.radius
 

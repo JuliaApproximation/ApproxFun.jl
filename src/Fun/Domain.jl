@@ -79,7 +79,8 @@ fourierpoints(n::Integer,numbertype::Type)= convert(numbertype,π)*[-1.:2/n:1. -
 
 function Base.in(x,d::PeriodicDomain)
     y=tocanonical(d,x)
-    abs(imag(y))<10eps() && -π-2eps()<=real(y)<=π+2eps()
+    l=length(d)
+    abs(imag(y))/l<20eps() && -π-2*l*eps()<=real(y)<=π+2*l*eps()
 end
 
 

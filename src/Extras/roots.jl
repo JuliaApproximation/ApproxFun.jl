@@ -208,13 +208,16 @@ end
 
 
 ## Root finding
-
-function complexroots{T<:Number}(coefficients::ShiftVector{T})
-    c=chop(coefficients.vector,10eps())
-    if isdir(Pkg.dir("AMVW"))
-        require("AMVW")
+if isdir(Pkg.dir("AMVW"))
+    require("AMVW")
+    function complexroots{T<:Number}(coefficients::ShiftVector{T})
+        c=chop(coefficients.vector,10eps())
         return Main.AMVW.rootsAMVW(c)
-    else
+    end
+else
+    function complexroots{T<:Number}(coefficients::ShiftVector{T})
+        c=chop(coefficients.vector,10eps())        
+
         n=length(c)-1
         
         if n==0
