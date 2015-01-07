@@ -212,7 +212,7 @@ immutable InterlaceOperator{T} <: BandedOperator{T}
 end
 InterlaceOperator{T}(ops::Matrix{BandedOperator{T}})=InterlaceOperator{T}(ops)
 
-bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandinds(m,k),min,M.ops)):(size(M.ops,k)*mapreduce(m->bandinds(m,k),max,M.ops))
+bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandinds(m,k)-1,min,M.ops)+1):(size(M.ops,k)*mapreduce(m->bandinds(m,k)+1,max,M.ops)-1)
 bandinds(M::InterlaceOperator)=bandinds(M,1),bandinds(M,2)
 
 function addentries!(M::InterlaceOperator,A,kr::Range)
