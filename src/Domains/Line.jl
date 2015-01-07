@@ -29,6 +29,8 @@ Line()=Line(0.,0.)
 
 ##TODO non-1 alpha,beta
 
+canonicaldomain(::Line)=Interval()
+
 function tocanonical(d::Line,x::Number)
     @assert d.α==d.β==-1. || d.α==d.β==-.5
     
@@ -101,6 +103,7 @@ immutable PeriodicLine <: PeriodicDomain{Float64}
     L::Float64
 end
 
+canonicaldomain(::PeriodicLine)=PeriodicInterval()
 PeriodicLine(c,a)=PeriodicLine(c,a,1.)
 PeriodicLine()=PeriodicLine(0.,0.)
 

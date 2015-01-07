@@ -51,6 +51,16 @@ function plot(x,y::Array;opts...)
     end
 end
 
+function layer(x,y::Array;opts...)
+    if plotter[:plot]=="Gadfly"
+        gadflylayer(x,y;opts...)
+    elseif plotter[:plot]=="PyPlot"
+        pyplot(x,y;opts...)
+    else
+        error("Plotter " * plotter[:plot] * " not supported.")
+    end
+end
+
 function contour(x,y::Vector,z::Array;opts...)
     if plotter[:contour]=="Gadfly"
         gadflycontour(x,y,z;opts...)
@@ -112,6 +122,12 @@ function complexplot(f::Fun;opts...)
     plot(real(vals),imag(vals);opts...)
 end
 
+function complexlayer(f::Fun;opts...) 
+    f=pad(f,3length(f)+50)
+    vals =values(f)
+
+    layer(real(vals),imag(vals);opts...)
+end
 
 
 ## Multivariate

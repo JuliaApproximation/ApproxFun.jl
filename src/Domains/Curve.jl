@@ -1,3 +1,8 @@
+## 
+# Represents a domain defined by the image of a Fun
+###
+
+
 immutable Curve{S<:FunctionSpace} <:Domain
     curve::Fun{S}
 end
@@ -9,15 +14,18 @@ for op in (:(Base.first),:(Base.last),:(Base.rand))
     @eval $op(c::Curve)=c.curve[$op(domain(c.curve))]
 end
 
-fromcanonical(c::Curve,x)=c.curve[fromcanonical(domain(c.curve),x)]
+
+canonicaldomain(c::Curve)=domain(c.curve)
+
+
+fromcanonical(c::Curve,x)=c.curve[x]
 function tocanonical(c::Curve,x)
     rts=roots(c.curve-x)
     @assert length(rts)==1
-    tocanonical(c.curve,first(rts))
+    first(rts)
 end
 
 
-fromcanonicalD{D<:Interval}(c::Curve{D},x)=diff(c.curve)[fromcanonical(domain(c.curve),x)].*fromcanonicalD(domain(c.curve),0.)
-fromcanonicalD(c::Curve,x)=diff(c.curve)[fromcanonical(domain(c.curve),x)].*fromcanonicalD(domain(c.curve),x)
+fromcanonicalD(c::Curve,x)=diff(c.curve)[x]
 
-canonicaldomain(c::Curve)=domain(c.curve)
+

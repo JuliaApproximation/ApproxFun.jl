@@ -7,7 +7,7 @@ type MappedSpace{S<:FunctionSpace,D<:Domain,T<:Number,DS<:Domain} <: FunctionSpa
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)
-    MappedSpace(d::D)=new(d,S())
+    MappedSpace(d::D)=new(d,S(canonicaldomain(d)))
     MappedSpace()=new(D(),S())
 end
 
@@ -24,7 +24,8 @@ typealias ClosedCurveSpace{S,T} CurveSpace{S,T,PeriodicInterval}
 
 Space(d::Line)=LineSpace(d)
 Space(d::Ray)=RaySpace(d)
-Space{S<:FunctionSpace}(d::Curve{S})=CurveSpace{S}(d)
+#TODO: Assuming periodic is complex basis
+Space{S<:PeriodicSpace}(d::Curve{S})=ClosedCurveSpace{S,Complex{Float64}}(d)
 
 
 domain(S::MappedSpace)=S.domain
