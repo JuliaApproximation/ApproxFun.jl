@@ -207,11 +207,11 @@ immutable InterlaceOperator{T} <: BandedOperator{T}
     ops::Matrix{BandedOperator{T}} 
     function InterlaceOperator(os)
         @assert size(os,1)==size(os,2)
-        new(os)
+        new(promotespaces(os))
     end
 end
 InterlaceOperator{T}(ops::Matrix{BandedOperator{T}})=InterlaceOperator{T}(ops)
-
+#TODO: More efficient to save bandinds
 bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandinds(m,k)-1,min,M.ops)+1):(size(M.ops,k)*mapreduce(m->bandinds(m,k)+1,max,M.ops)-1)
 bandinds(M::InterlaceOperator)=bandinds(M,1),bandinds(M,2)
 
@@ -223,31 +223,10 @@ function addentries!(M::InterlaceOperator,A,kr::Range)
     A
 end
 
+domainspace(IO::InterlaceOperator)=domainspace(IO.ops)
+rangespace(IO::InterlaceOperator)=rangespace(IO.ops[:,1])
 
-function interlace{T<:BandedOperator}(A::Matrix{T})
-    m,n=size(A)
-    A=promotespaces(A)
-    dsp=domainspace(A)  
-    
-    
-    
-    ret=ZeroOperator()
-    
-    for k=1:m
-        Ap=vec(A[k,:])
-        
-        for j=1:n
-            if !iszerooperator(A[k,j])  #not sure what promote does for constant operator
-                op = StrideOperator(Ap[j],k-m,j-n,n)
-
-                ret += op
-            end            
-        end
-    end    
-    
-    rsp=rangespace(A[:,1])    
-    SpaceOperator(ret,dsp,rsp)          
-end
+interlace{T<:BandedOperator}(A::Matrix{T})=InterlaceOperator(A)
 
 
 # If the matrix is Operators, we assume it may contain 
