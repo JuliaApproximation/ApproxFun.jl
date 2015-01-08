@@ -32,6 +32,13 @@ end
 ## Spaces
 
 shortname(FS)=string(typeof(FS))
+
+
+shortname(::Line)="\$(-\\infty,\\infty)\$"
+shortname(d::Interval)="\$["*string(d.a)*","*string(d.b)*"]\$"
+
+
+
 shortname(CS::CosSpace)="Cos"
 shortname(CS::SinSpace)="Sin"
 shortname(CS::Chebyshev)="\$T\$"  #*string(first(domain(CS)))*","*string(last(domain(CS)))*"]"
@@ -42,9 +49,11 @@ shortname(::SumSpace)="\$\\oplus\$"
 shortname(::PiecewiseSpace)="\$\\bigcup\$"
 shortname{T}(A::ArraySpace{T,1})="["*string(length(A))*"]"
 shortname{T}(A::ArraySpace{T,2})="["*string(size(A,1))*"\$\\times\$"*string(size(A,2))*"]"
+shortname(J::JacobiWeight)="\$(1+x)\^{"*string(J.α)*"}(1-x)\^{"*string(J.β)*"}\$"
+shortname(M::MappedSpace)=shortname(M.domain)
 
 treecount(S::Union(SumSpace,PiecewiseSpace))=1+mapreduce(treecount,+,S.spaces)
-treecount(S::ArraySpace)=1+treecount(S.space)
+treecount(S::Union(ArraySpace,JacobiWeight,MappedSpace))=1+treecount(S.space)
 treecount(::FunctionSpace)=1
 
 
@@ -54,7 +63,7 @@ for (OP) in (:SumSpace,:PiecewiseSpace)
     @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*shortname(A),A.spaces,nd,M,labels)
 end
 
-for (OP) in (:ArraySpace,)
+for (OP) in (:ArraySpace,:JacobiWeight,:MappedSpace)
     @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*shortname(A),[A.space],nd,M,labels)
 end
 
