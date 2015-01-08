@@ -84,6 +84,8 @@ shortname(A::ConstantOperator)=string(A.c)*"I"
 shortname(C::Conversion)="C:"*domainrangestr(C)
 shortname(A::Multiplication)=space(A.f)==domainspace(A)==rangespace(A)?"M["*shortname(space(A.f))*"]":"M["*shortname(space(A.f))*"]:"domainrangestr(A)
 
+
+shortname(D::DerivativeWrapper)=(D.order==1?"\$(D":"\$(D\^"*string(D.order))*")\$"
 shortname(A::SpaceOperator)="("*domainrangestr(A)*")"
 
 add_edges!(A::BandedOperator,nd,M,labels)=(labels[nd]=string(nd)*":"*shortname(A))
@@ -92,13 +94,13 @@ add_edges!(A::BandedOperator,nd,M,labels)=(labels[nd]=string(nd)*":"*shortname(A
 
 
 
-for (WRAP,STR) in ((:MultiplicationWrapper,:"(M)"),(:DerivativeWrapper,:"(D)"),(:ConversionWrapper,"(C)"),(:DiagonalArrayOperator,:"DiagArray"))
+for (WRAP,STR) in ((:MultiplicationWrapper,:"(M)"),(:ConversionWrapper,"(C)"),(:DiagonalArrayOperator,:"DiagArray"))
     @eval add_edges!(A::$WRAP,nd,M,labels)=treeadd_edges!(string(nd)*":"*$STR,[A.op],nd,M,labels)
 end
 
 
 
-@eval add_edges!(A::SpaceOperator,nd,M,labels)=treeadd_edges!(string(nd)*":"*shortname(A),[A.op],nd,M,labels)
+@eval add_edges!(A::Union(SpaceOperator,DerivativeWrapper),nd,M,labels)=treeadd_edges!(string(nd)*":"*shortname(A),[A.op],nd,M,labels)
 
 
 
