@@ -32,11 +32,21 @@ println("Sample: Time should be ~0.25")
 # 0.268162181 with inbounds
 
 
+f=Fun(x->cos(x),20)
+roots(f)
+roots(f)
+@time for k=1:100
+    roots(f)
+end
+println("Small roots: Time should be ~0.015")
+
+
+
 f=Fun(x->cos(1000x),1000)
 roots(f)
 roots(f)
 @time roots(f)
-println("Roots: Time should be ~0.15")
+println("Roots: Time should be ~0.13")
 
 
 ## ODEs
