@@ -15,15 +15,10 @@ function gadflyplot{T<:Real}(xx::Vector{T},yy::Vector;axis=-1)
     end    
 end
 
-function gadflylayer{T<:Real}(xx::Vector{T},yy::Vector;axis=-1)
+function gadflylayer{T<:Real}(xx::Vector{T},yy::Vector)
     require("Gadfly")
-    if axis==-1
-        Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path)
-    elseif length(axis)==2
-        Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path, Main.Gadfly.Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))
-    else #length(axis)==4
-        Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path, Main.Gadfly.Scale.x_continuous(minvalue=axis[1],maxvalue=axis[2]),Main.Gadfly.Scale.y_continuous(minvalue=axis[3],maxvalue=axis[4]))    
-    end    
+
+    Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path)
 end
 
 
@@ -75,6 +70,17 @@ function gadflycontour(x::Vector,y::Vector,z::Matrix;levels=-1,axis=-1)
         Main.Gadfly.plot(x=x,y=y,z=z,Main.Gadfly.Geom.contour,Main.Gadfly.Scale.x_continuous(minvalue=axis[1],maxvalue=axis[2]),Main.Gadfly.Scale.y_continuous(minvalue=axis[3],maxvalue=axis[4]))
     else
         Main.Gadfly.plot(x=x,y=y,z=z,Main.Gadfly.Geom.contour(levels=levels),Main.Gadfly.Scale.x_continuous(minvalue=axis[1],maxvalue=axis[2]),Main.Gadfly.Scale.y_continuous(minvalue=axis[3],maxvalue=axis[4]))
+    end
+end
+
+function gadflycontourlayer(x::Vector,y::Vector,z::Matrix;levels=-1)
+    require("Gadfly")
+
+    
+    if levels==-1
+        Main.Gadfly.layer(x=x,y=y,z=z,Main.Gadfly.Geom.contour)
+    else
+        Main.Gadfly.layer(x=x,y=y,z=z,Main.Gadfly.Geom.contour(levels=levels))
     end
 end
 
