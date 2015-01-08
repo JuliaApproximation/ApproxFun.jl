@@ -54,21 +54,21 @@ function colleague_matrix{T<:Number}( c::Vector{T} )
     A=zeros(T,n,n)
     
     for k=1:n-1
-        A[k,k+1]=0.5
-        A[k+1,k]=0.5        
+        A[k+1,k]=0.5
+        A[k,k+1]=0.5        
     end
     for k=1:n
-        A[end-k+1,1]-=0.5*c[k]/c[end]
+        A[1,end-k+1]-=0.5*c[k]/c[end]
     end
-    A[n-1,n]=one(T)
+    A[n,n-1]=one(T)
     
-    # TODO: can we speed things up because A is upper-Hessenberg
+    # TODO: can we speed things up because A is lower-Hessenberg
     # Standard colleague matrix (See [Good, 1961]):
     A
 end
 
 
-colleague_eigvals( c::Vector )=eigvals(colleague_matrix(c))
+colleague_eigvals( c::Vector )=hesseneigvals(colleague_matrix(c))
 
 function PruneOptions( r, htol::Float64 )
 # ONLY KEEP ROOTS IN THE INTERVAL
