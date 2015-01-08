@@ -39,7 +39,9 @@ if isdir(Pkg.dir("Gadfly"))
     include("Gadfly.jl")
     setplotter("Gadfly")
 end
-
+if isdir(Pkg.dir("TikzGraphs"))
+    include("introspect.jl")
+end
 
 function plot(x,y::Array;opts...)
     if plotter[:plot]=="Gadfly"
