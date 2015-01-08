@@ -31,40 +31,40 @@ end
 
 ## Spaces
 
-shortname(FS)=string(typeof(FS))
+texname(FS)=string(typeof(FS))
 
 
-shortname(::Line)="\$(-\\infty,\\infty)\$"
-shortname(d::Interval)="\$["*string(d.a)*","*string(d.b)*"]\$"
+texname(::Line)="\$(-\\infty,\\infty)\$"
+texname(d::Interval)="\$["*string(d.a)*","*string(d.b)*"]\$"
 
 
 
-shortname(CS::CosSpace)="Cos"
-shortname(CS::SinSpace)="Sin"
-shortname(CS::Chebyshev)="\$T\$"  #*string(first(domain(CS)))*","*string(last(domain(CS)))*"]"
-shortname{λ}(CS::Ultraspherical{λ})="\$U\^{"*string(λ)*"}\$"
-shortname(CS::Taylor)="\$H\^+\$"
-shortname(CS::Hardy{false})="\$H\^-\$"
-shortname(::SumSpace)="\$\\oplus\$"
-shortname(::PiecewiseSpace)="\$\\bigcup\$"
-shortname{T}(A::ArraySpace{T,1})="["*string(length(A))*"]"
-shortname{T}(A::ArraySpace{T,2})="["*string(size(A,1))*"\$\\times\$"*string(size(A,2))*"]"
-shortname(J::JacobiWeight)="\$(1+x)\^{"*string(J.α)*"}(1-x)\^{"*string(J.β)*"}\$"
-shortname(M::MappedSpace)=shortname(M.domain)
+texname(CS::CosSpace)="Cos"
+texname(CS::SinSpace)="Sin"
+texname(CS::Chebyshev)="\$T\$"  #*string(first(domain(CS)))*","*string(last(domain(CS)))*"]"
+texname{λ}(CS::Ultraspherical{λ})="\$U\^{"*string(λ)*"}\$"
+texname(CS::Taylor)="\$H\^+\$"
+texname(CS::Hardy{false})="\$H\^-\$"
+texname(::SumSpace)="\$\\oplus\$"
+texname(::PiecewiseSpace)="\$\\bigcup\$"
+texname{T}(A::ArraySpace{T,1})="["*string(length(A))*"]"
+texname{T}(A::ArraySpace{T,2})="["*string(size(A,1))*"\$\\times\$"*string(size(A,2))*"]"
+texname(J::JacobiWeight)="\$(1+x)\^{"*string(J.α)*"}(1-x)\^{"*string(J.β)*"}\$"
+texname(M::MappedSpace)=texname(M.domain)
 
 treecount(S::Union(SumSpace,PiecewiseSpace))=1+mapreduce(treecount,+,S.spaces)
 treecount(S::Union(ArraySpace,JacobiWeight,MappedSpace))=1+treecount(S.space)
 treecount(::FunctionSpace)=1
 
 
-add_edges!(FS::FunctionSpace,nd,M,labels)=(labels[nd]=string(nd)*":"*shortname(FS))
+add_edges!(FS::FunctionSpace,nd,M,labels)=(labels[nd]=string(nd)*":"*texname(FS))
 
 for (OP) in (:SumSpace,:PiecewiseSpace)
-    @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*shortname(A),A.spaces,nd,M,labels)
+    @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*texname(A),A.spaces,nd,M,labels)
 end
 
 for (OP) in (:ArraySpace,:JacobiWeight,:MappedSpace)
-    @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*shortname(A),[A.space],nd,M,labels)
+    @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*texname(A),[A.space],nd,M,labels)
 end
 
 
@@ -84,20 +84,20 @@ treecount(::Multiplication)=1
 treecount(M::Union(MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,ConversionWrapper,SpaceOperator,DiagonalArrayOperator))=1+treecount(M.op)
 treecount(A::Union(PlusOperator,TimesOperator,InterlaceOperator,DiagonalPiecewiseOperator,SumInterlaceOperator))=1+mapreduce(treecount,+,A.ops)
 
-domainrangestr(A)=shortname(domainspace(A))*"\$\\rightarrow\$"*shortname(rangespace(A))
+domainrangestr(A)=texname(domainspace(A))*"\$\\rightarrow\$"*texname(rangespace(A))
 
 
-shortname(A::BandedOperator)=string(typeof(A))
-shortname(D::Derivative)=(D.order==1?"\$D":"\$D\^"*string(D.order))*"\$:"*domainrangestr(D)
-shortname(A::ConstantOperator)=string(A.c)*"I"
-shortname(C::Conversion)="C:"*domainrangestr(C)
-shortname(A::Multiplication)=space(A.f)==domainspace(A)==rangespace(A)?"M["*shortname(space(A.f))*"]":"M["*shortname(space(A.f))*"]:"domainrangestr(A)
+texname(A::BandedOperator)=string(typeof(A))
+texname(D::Derivative)=(D.order==1?"\$D":"\$D\^"*string(D.order))*"\$:"*domainrangestr(D)
+texname(A::ConstantOperator)=string(A.c)*"I"
+texname(C::Conversion)="C:"*domainrangestr(C)
+texname(A::Multiplication)=space(A.f)==domainspace(A)==rangespace(A)?"M["*texname(space(A.f))*"]":"M["*texname(space(A.f))*"]:"domainrangestr(A)
 
 
-shortname(D::DerivativeWrapper)=(D.order==1?"\$(D":"\$(D\^"*string(D.order))*")\$"
-shortname(A::SpaceOperator)="("*domainrangestr(A)*")"
+texname(D::DerivativeWrapper)=(D.order==1?"\$(D":"\$(D\^"*string(D.order))*")\$"
+texname(A::SpaceOperator)="("*domainrangestr(A)*")"
 
-add_edges!(A::BandedOperator,nd,M,labels)=(labels[nd]=string(nd)*":"*shortname(A))
+add_edges!(A::BandedOperator,nd,M,labels)=(labels[nd]=string(nd)*":"*texname(A))
 
 
 
@@ -109,7 +109,7 @@ end
 
 
 
-@eval add_edges!(A::Union(SpaceOperator,DerivativeWrapper),nd,M,labels)=treeadd_edges!(string(nd)*":"*shortname(A),[A.op],nd,M,labels)
+@eval add_edges!(A::Union(SpaceOperator,DerivativeWrapper),nd,M,labels)=treeadd_edges!(string(nd)*":"*texname(A),[A.op],nd,M,labels)
 
 
 

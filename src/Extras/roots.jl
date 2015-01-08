@@ -112,7 +112,7 @@ function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::Clensha
         r1 = -c[1]/c[2];
         r = ( (abs(imag(r1))>htol) | (abs(real(r1))>(1+htol)) ) ? Float64[] : Float64[max(min(real(r1),1),-1)]
         
-    elseif n <= 50
+    elseif n <= 70
 
         # COLLEAGUE MATRIX
         # The recursion subdividing below will keep going until we have a piecewise polynomial 
@@ -241,7 +241,7 @@ if isdir(Pkg.dir("AMVW"))
         c=chop(coefficients.vector,10eps())
         
         # Only use special routine for large roots
-        if length(c)≥450 || (isa(eltype(c),Complex) && length(c)≥250)
+        if length(c)≥70
             Main.AMVW.rootsAMVW(c)
         else
             hesseneigvals(companion_matrix(chop(coefficients.vector,10eps())))
