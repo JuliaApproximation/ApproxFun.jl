@@ -215,29 +215,40 @@ end
 
 
 ## Root finding
+
+
+function companion_matrix{T}(c::Vector{T})
+    n=length(c)-1
+    
+    if n==0
+        T[]
+    else
+        A=zeros(T,n,n)
+        for k=1:n
+            A[k,end]=-c[k]/c[end]
+        end
+        for k=2:n
+            A[k,k-1]=one(T)
+        end
+        A
+    end
+end
+
+
 if isdir(Pkg.dir("AMVW"))
     require("AMVW")
     function complexroots{T<:Number}(coefficients::ShiftVector{T})
         c=chop(coefficients.vector,10eps())
-        return Main.AMVW.rootsAMVW(c)
-    end
-else
-    function complexroots{T<:Number}(coefficients::ShiftVector{T})
-        c=chop(coefficients.vector,10eps())        
-
-        n=length(c)-1
         
-        if n==0
-            T[]
+        # Only use special routine for large roots
+        if length(c)≥450 || (isa(eltype(c),Complex) && length(c)≥250)
+            Main.AMVW.rootsAMVW(c)
         else
-            A=zeros(T,n,n)
-            A[:,end]=-c[1:end-1]/c[end]
-            for k=2:n
-                A[k,k-1]=one(T)
-            end
-            return eigvals(A)
+            hesseneigvals(companion_matrix(chop(coefficients.vector,10eps())))
         end
     end
+else
+    complexroots{T<:Number}(coefficients::ShiftVector{T})=hesseneigvals(companion_matrix(chop(coefficients.vector,10eps())))
 end
 
 complexroots(f::Fun{Laurent})=mappoint(Circle(),domain(f),complexroots(deinterlace(f.coefficients)))
