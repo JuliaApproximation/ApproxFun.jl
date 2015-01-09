@@ -1,4 +1,4 @@
-export setplotter
+export setplotter, domainplot
 
 # these defaults are overloaded as packages are loaded
 plotter=@compat Dict(:contour=>"Gadfly",
@@ -43,21 +43,21 @@ if isdir(Pkg.dir("TikzGraphs"))
     include("introspect.jl")
 end
 
-function plot(x,y::Array;opts...)
+function plot(opts...)
     if plotter[:plot]=="Gadfly"
-        gadflyplot(x,y;opts...)
+        gadflyplot(opts...)
     elseif plotter[:plot]=="PyPlot"
-        pyplot(x,y;opts...)
+        pyplot(opts...)
     else
         error("Plotter " * plotter[:plot] * " not supported.")
     end
 end
 
-function layer(x,y::Array;opts...)
+function layer(opts...)
     if plotter[:plot]=="Gadfly"
-        gadflylayer(x,y;opts...)
+        gadflylayer(opts...)
     elseif plotter[:plot]=="PyPlot"
-        pyplot(x,y;opts...)
+        pyplot(opts...)
     else
         error("Plotter " * plotter[:plot] * " not supported.")
     end
@@ -179,3 +179,20 @@ function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::AbstractProductFun{S,V},obj,
     glsurfupdate([vals vals[:,1]],obj,window)
 end
 
+
+
+## domainplot
+
+
+for (plt,cplt) in ((:plot,:complexplot),(:layer,:complexlayer))
+    @eval begin
+        $plt(d::Domain;kwds...)=$cplt(Fun(identity,d);kwds...)  # default is to call complexplot
+        $plt(d::UnionDomain;kwds...)=$plt(d.domains;kwds...)
+        $plt(d::Curve;kwds...)=$cplt(d.curve;kwds...)
+    end
+end
+plot{D<:Domain}(d::Vector{D};kwds...)=plot(map(layer,d)...;kwds...)
+layer{D<:Domain}(d::Vector{D})=map(layer,d)
+        
+domainplot(f::Union(Fun,FunctionSpace);kwds...)=plot(domain(f);kwds...)
+domainlayer(f::Union(Fun,FunctionSpace))=layer(domain(f))
