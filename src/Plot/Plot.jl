@@ -110,7 +110,7 @@ function plot{F<:Fun}(f::Vector{F};opts...)
     plot(pts,vals;opts...)
 end
 
-plot{S<:Union(PiecewiseSpace,ArraySpace),T<:Real}(f::Fun{S,T};opts...)=plot(vec(f);opts...)
+
 
 
 function plot{S}(r::Range,f::Fun{S,Float64};opts...)
@@ -124,11 +124,27 @@ function complexplot(f::Fun;opts...)
     plot(real(vals),imag(vals);opts...)
 end
 
+function complexplot{F<:Fun}(f::Vector{F};opts...)
+    n=3mapreduce(length,max,f)+50
+    vals=Array(Float64,n,length(f))
+    pts=Array(Float64,n,length(f))
+    for k=1:length(f)
+        pf=values(pad(f[k],n))
+        pts[:,k]=real(pf)
+        vals[:,k]=imag(pf)        
+    end
+    plot(pts,vals;opts...)
+end
+
 function complexlayer(f::Fun;opts...) 
     f=pad(f,3length(f)+50)
     vals =values(f)
 
     layer(real(vals),imag(vals);opts...)
+end
+
+for plt in (:plot,:complexplot)
+    @eval $plt{S<:Union(PiecewiseSpace,ArraySpace),T<:Real}(f::Fun{S,T};opts...)=$plt(vec(f);opts...)
 end
 
 
@@ -185,13 +201,9 @@ end
 
 
 for (plt,cplt) in ((:plot,:complexplot),(:layer,:complexlayer))
-    @eval begin
-        $plt(d::Domain;kwds...)=$cplt(Fun(identity,d);kwds...)  # default is to call complexplot
-        $plt(d::UnionDomain;kwds...)=$plt(d.domains;kwds...)
-        $plt(d::Curve;kwds...)=$cplt(d.curve;kwds...)
-    end
+    @eval $plt(d::Domain;kwds...)=$cplt(Fun(identity,d);kwds...)  # default is to call complexplot
 end
-plot{D<:Domain}(d::Vector{D};kwds...)=plot(map(layer,d)...;kwds...)
+plot{D<:Domain}(ds::Vector{D};kwds...)=complexplot(map(d->Fun(identity,d),ds);kwds...)
 layer{D<:Domain}(d::Vector{D})=map(layer,d)
         
 domainplot(f::Union(Fun,FunctionSpace);kwds...)=plot(domain(f);kwds...)
