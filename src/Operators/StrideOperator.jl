@@ -211,7 +211,7 @@ immutable InterlaceOperator{T} <: BandedOperator{T}
     end
 end
 InterlaceOperator{T}(ops::Matrix{BandedOperator{T}})=InterlaceOperator{T}(ops)
-InterlaceOperator{B<:BandedOperator}(ops::Matrix{B})=convert(BandedOperator{mapreduce(eltype,promote_type,ops)},ops)
+InterlaceOperator{B<:BandedOperator}(ops::Matrix{B})=InterlaceOperator(convert(Matrix{BandedOperator{mapreduce(eltype,promote_type,ops)}},ops))
 
 #TODO: More efficient to save bandinds
 bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandinds(m,k)-1,min,M.ops)+1):(size(M.ops,k)*mapreduce(m->bandinds(m,k)+1,max,M.ops)-1)

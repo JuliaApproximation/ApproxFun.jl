@@ -105,7 +105,7 @@ end
 
 
 
-function integrate{LS<:LineSpace}(f::Fun{LS})
+function integrate{LS,T}(f::Fun{LineSpace{LS},T})
     d=domain(f)
     error("Change to new map")
     @assert d.α==d.β==-1.
@@ -121,23 +121,23 @@ function integrate{LS<:LineSpace}(f::Fun{LS})
 
 end
 
-function integrate(f::Fun{RaySpace})
+function integrate{RS<:RaySpace,T}(f::Fun{RS,T})
     x=Fun(identity)
     g=fromcanonicalD(f,x)*Fun(f.coefficients)
     Fun(integrate(Fun(g,Chebyshev)).coefficients,space(f))
 end
 
-for T in (Float64,Complex{Float64})
-    function Base.sum{LS}(f::Fun{LS})
-        d=domain(f)
-        if d.α==d.β==-.5
-            sum(Fun(divide_singularity(f.coefficients),JacobiWeight(-.5,-.5,Interval())))
-        else
-            cf = integrate(f)
-            last(cf) - first(cf)
-        end
+
+function Base.sum{LS,T}(f::Fun{LineSpace{LS},T})
+    d=domain(f)
+    if d.α==d.β==-.5
+        sum(Fun(divide_singularity(f.coefficients),JacobiWeight(-.5,-.5,Interval())))
+    else
+        cf = integrate(f)
+        last(cf) - first(cf)
     end
 end
+
 
 
 
