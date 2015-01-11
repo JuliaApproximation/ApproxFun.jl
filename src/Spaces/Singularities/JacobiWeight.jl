@@ -26,6 +26,8 @@ JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(float64(a),float64(b),S
 domain(S::JacobiWeight)=domain(S.space)
 
 spacescompatible(A::JacobiWeight,B::JacobiWeight)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
+spacescompatible(A::JacobiWeight,B::IntervalSpace)=spacescompatible(A,JacobiWeight(0,0,B))
+spacescompatible(B::IntervalSpace,A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
 
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β

@@ -164,12 +164,13 @@ Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
     SpaceOperator(Conversion(S1.space,S2.space),
         S1,S2))
         
-
-        
-function conversion_rule(S1::MappedSpace,S2::MappedSpace)
-    @assert domain(S1)==domain(S2)
-    cr=conversion_rule(S1.space,S2.space)
-    MappedSpace(domain(S1),cr)
+# Conversion is induced from canonical space
+for OP in (:conversion_rule,:maxspace,:minspace)        
+    @eval function $OP(S1::MappedSpace,S2::MappedSpace)
+        @assert domain(S1)==domain(S2)
+        cr=$OP(S1.space,S2.space)
+        MappedSpace(domain(S1),cr)
+    end
 end
 
 # Multiplication is the same as unmapped space

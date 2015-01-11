@@ -190,21 +190,29 @@ isapproxinteger(x)=isapprox(x,int(x))
 function Conversion(A::JacobiWeight,B::JacobiWeight)
     @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
 
-    if A.space==B.space
+    if isapprox(A.α,B.α) && isapprox(A.β,B.β)
+        SpaceOperator(Conversion(A.space,B.space),A,B)
+    elseif A.space==B.space
+        @assert A.α≥B.α&&A.β≥B.β    
         d=domain(A)
         x=Fun(identity,d)
         M=tocanonical(d,x)
         m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
-        SpaceOperator(Multiplication(m,B.space),A,B)# Wrap the operator with the correct spaces
-    elseif isapprox(A.α,B.α) && isapprox(A.β,B.β)
-        SpaceOperator(Conversion(A.space,B.space),A,B)
+        MC=Multiplication(m,B.space)
+        # The following is just a safety check
+        @assert rangespace(MC) == B.space        
+        SpaceOperator(MC,A,B)# Wrap the operator with the correct spaces
     else
+        @assert A.α≥B.α&&A.β≥B.β
         d=domain(A)
         x=Fun(identity,d)
         M=tocanonical(d,x)
         C=Conversion(A.space,B.space)
         m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
-        SpaceOperator(Multiplication(m,B.space)*C,A,B)
+        MC=Multiplication(m,B.space)*C
+        # The following is just a safety check
+        @assert rangespace(MC) == B.space
+        SpaceOperator(MC,A,B)
     end
 end
 
