@@ -7,6 +7,8 @@ immutable ChebyshevDirichlet{left,right} <: PolynomialSpace
     ChebyshevDirichlet()=new(Interval())    
 end
 
+spacescompatible{l,r}(a::ChebyshevDirichlet{l,r},b::ChebyshevDirichlet{l,r})=domainscompatible(a,b)
+
 ChebyshevDirichlet()=ChebyshevDirichlet{1,1}()
 
 
