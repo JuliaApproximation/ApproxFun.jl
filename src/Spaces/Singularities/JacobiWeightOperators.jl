@@ -208,6 +208,15 @@ function Conversion(A::JacobiWeight,B::JacobiWeight)
     end
 end
 
+Conversion(A::IntervalSpace,B::JacobiWeight)=ConversionWrapper(
+    SpaceOperator(
+        Conversion(JacobiWeight(0,0,A),B),
+        A,B))
+Conversion(A::JacobiWeight,B::IntervalSpace)=ConversionWrapper(
+    SpaceOperator(
+        Conversion(A,JacobiWeight(0,0,B)),
+        A,B))        
+
 
 isapproxleq(a,b)=(a<=b || isapprox(a,b))
 # return the space that has banded Conversion to the other, or NoSpace
@@ -223,6 +232,12 @@ function conversion_rule(A::JacobiWeight,B::JacobiWeight)
 
     return NoSpace()
 end
+
+
+conversion_rule{n,S<:FunctionSpace,IS<:IntervalSpace}(A::SliceSpace{n,1,S,Float64,Interval},B::JacobiWeight{IS})=error("Not implemented")
+conversion_rule(A::IntervalSpace,B::JacobiWeight)=conversion_rule(JacobiWeight(0,0,A),B)
+conversion_rule(A::JacobiWeight,B::IntervalSpace)=conversion_rule(A,JacobiWeight(0,0,B))
+
 
 
 ## Evaluation

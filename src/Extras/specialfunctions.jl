@@ -154,6 +154,10 @@ for op in (:(Base.cos),:(Base.sin),:(Base.cospi),:(Base.sinpi),:(Base.sinc),:(Ba
     end
 end
 
+Base.tan(f::Fun)=sin(f)./cos(f)
+Base.csc(f::Fun)=1./sin(f)
+Base.sec(f::Fun)=1./cos(f)
+
 function .^{S<:MappedChebyshev}(f::Fun{S},k::Float64)
     fc = Fun(f.coefficients) #Project to interval
     x=Fun(identity)

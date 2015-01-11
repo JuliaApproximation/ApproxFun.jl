@@ -2,8 +2,9 @@ export MappedSpace
 
 ##Mapped spaces
 
-#TODO: Mapped Fourier
-type MappedSpace{S<:FunctionSpace,D<:Domain,T<:Number,DS<:Domain} <: FunctionSpace{T,DS}
+#Typing D as Domain was causing issues
+
+type MappedSpace{S<:FunctionSpace,D,T<:Number,DS<:Domain} <: FunctionSpace{T,DS}
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)
@@ -16,14 +17,14 @@ MappedSpace{D<:Domain,T<:Number,DS<:Domain}(d::D,s::FunctionSpace{T,DS})=MappedS
 typealias IntervalMappedSpace{S,D} MappedSpace{S,D,Float64,Interval}
 typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
 
-typealias LineSpace IntervalMappedSpace{Chebyshev,Line}
-typealias RaySpace IntervalMappedSpace{Chebyshev,Ray}
+typealias LineSpace{T} IntervalMappedSpace{Chebyshev,Line{T}}
+typealias RaySpace{T} IntervalMappedSpace{Chebyshev,Ray{T}}
 typealias CurveSpace{S,T,DS} MappedSpace{S,Curve{S},T,DS}
 typealias OpenCurveSpace{S} CurveSpace{S,Float64,Interval}
 typealias ClosedCurveSpace{S,T} CurveSpace{S,T,PeriodicInterval}
 
-Space(d::Line)=LineSpace(d)
-Space(d::Ray)=RaySpace(d)
+Space{T}(d::Line{T})=LineSpace{T}(d)
+Space{T}(d::Ray{T})=RaySpace{T}(d)
 #TODO: Assuming periodic is complex basis
 Space{S<:PeriodicSpace}(d::Curve{S})=ClosedCurveSpace{S,Complex{Float64}}(d)
 
@@ -101,8 +102,9 @@ end
 
 
 
-function integrate(f::Fun{LineSpace})
+function integrate{LS<:LineSpace}(f::Fun{LS})
     d=domain(f)
+    error("Change to new map")
     @assert d.α==d.β==-1.
     # || d.α==d.β==-.5
     
@@ -123,7 +125,7 @@ function integrate(f::Fun{RaySpace})
 end
 
 for T in (Float64,Complex{Float64})
-    function Base.sum(f::Fun{LineSpace})
+    function Base.sum{LS}(f::Fun{LS})
         d=domain(f)
         if d.α==d.β==-.5
             sum(Fun(divide_singularity(f.coefficients),JacobiWeight(-.5,-.5,Interval())))
@@ -142,7 +144,7 @@ end
 function identity_fun{SS,DD,DDS,DDT}(S::MappedSpace{SS,DD,DDT,DDS})
     sf=fromcanonical(S,Fun(identity,S.space))
     if isa(space(sf),JacobiWeight)
-        Fun(coefficients(sf),JacobiWeight(sf.space.α,sf.space.β,S))
+        Fun(coefficients(sf),MappedSpace(S.domain,JacobiWeight(sf.space.α,sf.space.β,S.space)))
     else
          @assert isa(space(sf),S.space)
          Fun(coefficients(sf),S)
@@ -175,14 +177,20 @@ function conversion_rule(S1::MappedSpace,S2::MappedSpace)
     end
 end
 
-function addentries!{S1<:MappedSpace,S2<:MappedSpace}(M::Multiplication{S1,S2},A,kr::Range)
-    @assert domain(M.f)==domain(M.space)
-    mf=Fun(coefficients(M.f),space(M.f).space)
-    addentries!(Multiplication(mf,M.space.space),A,kr)
+# Multiplication is the same as unmapped space
+function Multiplication{MS<:MappedSpace,T}(f::Fun{MS,T},S::MappedSpace)
+    d=domain(f)
+    @assert d==domain(S)
+    mf=Fun(coefficients(f),space(f).space)  # project f   
+    M=Multiplication(mf,S.space)
+    MultiplicationWrapper(f,SpaceOperator(M,
+        MappedSpace(d,domainspace(M)),
+        MappedSpace(d,rangespace(M))
+    ))
 end
 
 
-
+# Use tocanonicalD to find the correct derivative
 function Derivative(S::MappedSpace,order::Int)
     x=Fun(identity,S)
     D1=Derivative(S.space)

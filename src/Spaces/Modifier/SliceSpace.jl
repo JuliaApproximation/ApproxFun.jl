@@ -34,7 +34,7 @@ function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::Sli
      a
 end
 # return the space that has banded Conversion to the other
-function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::S)
+function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::FunctionSpace)
     @assert a.space==b
     a
 end
