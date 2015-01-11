@@ -203,6 +203,29 @@ function Derivative(S::MappedSpace,order::Int)
     end
 end
 
+function Derivative{T}(S::LineSpace{T},order::Int)
+    d=domain(S)
+    @assert d.α==-1&&d.β==-1
+    x=Fun(identity,S)    
+    D1=Derivative(S.space)
+    DS=SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1)))
+
+    M1=Multiplication(Fun(1,d),Space(d))
+    Mx=Multiplication(x^2,Space(d))
+    M1x=M1+Mx
+    u=M1x\(2/π)  #tocanonicalD(S,x)=2/π*(1/(1+x^2))
+
+    M=Multiplication(u,DS|>rangespace)
+
+    D=DerivativeWrapper(M*DS,1)
+    
+    if order==1
+        D
+    else
+        Derivative(rangespace(D),order-1)*D
+    end    
+end
+
 
 
 ## CurveSpace

@@ -119,7 +119,7 @@ end
 
 
 linsolve{S,T}(A::Operator,b::Fun{S,T};kwds...)=linsolve([A],[b];kwds...)
-linsolve(A::Operator,b::Number;kwds...)=linsolve([A],b*ones(rangespace(promotespaces(A)));kwds...)
+linsolve(A::Operator,b::Number;kwds...)=linsolve([A],b*ones(rangespace(A));kwds...)
 linsolve{T<:Operator}(A::Vector{T},b::Number;kwds...)=linsolve(A,[b];kwds...)
 linsolve{S,Q,T<:Operator}(A::Vector{T},b::Fun{S,Q};kwds...)=linsolve(A,[b];kwds...)
 linsolve{T<:Operator}(A::Array{T,2},b;kwds...)=linsolve(interlace(A),b;kwds...)

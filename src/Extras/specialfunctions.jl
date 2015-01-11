@@ -150,7 +150,7 @@ end
 ## Less accurate than solving differential equation with \
 for op in (:(Base.cos),:(Base.sin),:(Base.cospi),:(Base.sinpi),:(Base.sinc),:(Base.exp))
     @eval begin
-        $op{S,T}(f::Fun{S,T})=Fun(x->($op)(f[x]),space(f))
+        $op{S,T}(f::Fun{S,T})=Fun(x->($op)(f[x]),domain(f))  # The space might not be compatible
     end
 end
 
