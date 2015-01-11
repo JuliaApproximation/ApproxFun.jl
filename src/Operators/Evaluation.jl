@@ -16,7 +16,9 @@ Evaluation{M,T<:Number}(sp::FunctionSpace{T},x::M,order::Integer)=Evaluation{typ
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
 
-
+Evaluation(d::Domain,x::Union(Number,Bool),n...)=Evaluation(Space(d),x,n...)
+Evaluation(x::Union(Number,Bool))=Evaluation(AnySpace(),x,0)
+Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
 
 ## default getindex
 getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)[D.x] for k=kr]

@@ -25,9 +25,8 @@ end
 
 ## Evaluation
 
-Evaluation(d::IntervalDomain,x::Union(Number,Bool),n...)=Evaluation(Chebyshev(d),x,n...)
-Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
-Evaluation(x::Union(Number,Bool))=Evaluation(Interval(),x,0)
+
+
 
 
 
