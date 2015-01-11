@@ -35,7 +35,7 @@ points(d::FunctionSpace,n)=points(domain(d),n)
 domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() || domain(a) == domain(b)
 
 #Check whether spaces are the same, override when you need to check parameters
-spacescompatible{D<:FunctionSpace}(f::D,g::D)=domainscompatible(f,g) 
+spacescompatible{D<:FunctionSpace}(f::D,g::D)=error("Override spacescompatible for "*string(D))
 spacescompatible(f,g)=false
 ==(A::FunctionSpace,B::FunctionSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
 

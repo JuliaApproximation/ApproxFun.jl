@@ -12,6 +12,9 @@ type MappedSpace{S<:FunctionSpace,D,T<:Number,DS<:Domain} <: FunctionSpace{T,DS}
     MappedSpace()=new(D(),S())
 end
 
+
+spacescompatible(a::MappedSpace,b::MappedSpace)=spacescompatible(a.space,b.space)&&domainscompatible(a,b)
+
 MappedSpace{D<:Domain,T<:Number,DS<:Domain}(d::D,s::FunctionSpace{T,DS})=MappedSpace{typeof(s),D,T,DS}(d,s)
 
 typealias IntervalMappedSpace{S,D} MappedSpace{S,D,Float64,Interval}

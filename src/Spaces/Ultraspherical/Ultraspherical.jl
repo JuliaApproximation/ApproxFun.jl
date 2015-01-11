@@ -53,6 +53,7 @@ integrate(f::Fun{Ultraspherical{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coeffici
 
 
 
+spacescompatible{O}(a::Ultraspherical{O},b::Ultraspherical{O})=domainscompatible(a,b)
 
 
 
