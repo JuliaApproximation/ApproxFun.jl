@@ -221,7 +221,7 @@ function companion_matrix{T}(c::Vector{T})
     n=length(c)-1
     
     if n==0
-        T[]
+        zeros(T,0,0)
     else
         A=zeros(T,n,n)
         for k=1:n
@@ -244,7 +244,7 @@ if isdir(Pkg.dir("AMVW"))
         if length(c)≥70
             Main.AMVW.rootsAMVW(c)
         else
-            hesseneigvals(companion_matrix(chop(coefficients.vector,10eps())))
+            hesseneigvals(companion_matrix(c))
         end
     end
 else

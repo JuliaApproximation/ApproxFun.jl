@@ -8,6 +8,7 @@ for T in (:CosSpace,:SinSpace)
             domain::Union(PeriodicDomain,AnyDomain)
         end
         $T()=$T(PeriodicInterval())
+        spacescompatible(a::$T,b::$T)=domainscompatible(a,b)
     end
 end
 
@@ -19,6 +20,7 @@ immutable Hardy{s} <: PeriodicSpace{Complex{Float64}}
     Hardy()=new(Circle())
 end
 
+spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
 
 
 typealias Taylor Hardy{true}

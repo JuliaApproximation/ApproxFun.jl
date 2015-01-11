@@ -4,6 +4,9 @@
 import Base.BLAS: blas_int,BlasChar,BlasInt
 for (hseqr,elty) in ((:zhseqr_,:Complex128),)
     @eval function hesseneigvals(M::Matrix{$elty})
+        if isempty(M)
+            return $elty[]
+        end
        A=vec(M)
 
         N=size(M,1)
@@ -30,6 +33,10 @@ end
 
 for (hseqr,elty) in ((:dhseqr_,:Float64),)
     @eval function hesseneigvals(M::Matrix{$elty})
+        if isempty(M)
+            return $elty[]
+        end    
+    
         A=vec(M)
 
         N=size(M,1)

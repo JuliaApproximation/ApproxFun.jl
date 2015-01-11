@@ -166,7 +166,7 @@ function .^{S,T}(f::Fun{S,T},k::Integer)
     elseif k > 0
         f.*f.^(k-1)
     else
-        f./f.^(k+1)
+        1./f.^(-k)
     end
 end
 
