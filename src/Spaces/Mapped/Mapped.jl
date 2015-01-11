@@ -167,14 +167,9 @@ Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
 
         
 function conversion_rule(S1::MappedSpace,S2::MappedSpace)
+    @assert domain(S1)==domain(S2)
     cr=conversion_rule(S1.space,S2.space)
-    if cr==S1.space
-        S1
-    elseif cr==S2.space
-        S2
-    else
-        NoSpace()
-    end
+    MappedSpace(domain(S1),cr)
 end
 
 # Multiplication is the same as unmapped space
