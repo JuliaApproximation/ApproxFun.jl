@@ -183,31 +183,41 @@ end
 Base.log2(f::Fun) = log(f)/log(2)
 Base.log10(f::Fun) = log(f)/log(10)
 
-for op in (:(Base.erf),:(Base.erfc))
+for (op,ODE,RHS,growth) in ((:(Base.erf),"fp*D^2+(2f*fp^2-fpp)*D","0*fp^3",:(real)),
+                        (:(Base.erfc),"fp*D^2+(2f*fp^2-fpp)*D","0*fp^3",:(real)),
+                        (:(Base.airyai),"fp*D^2-fpp*D-f*fp^3","0*fp^3",:(imag)),
+                        (:(Base.airybi),"fp*D^2-fpp*D-f*fp^3","0*fp^3",:(imag)),
+                        (:(Base.airyaiprime),"fp*D^2-fpp*D-f*fp^3","airyai(f)*fp^3",:(imag)),
+                        (:(Base.airybiprime),"fp*D^2-fpp*D-f*fp^3","airybi(f)*fp^3",:(imag)),)
+    parsedODE = parse(ODE)
+    parsedRHS = parse(RHS)
     @eval begin
         function $op{S<:Ultraspherical,T}(f::Fun{S,T})
-            rf=chop(real(f),eps())
-            xmin=rf.coefficients==[0.]?first(domain(rf)):indmin(rf)
-            xmax=rf.coefficients==[0.]?last(domain(rf)):indmax(rf)
+            g=chop($growth(f),eps())
+            xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
+            xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
+            opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
+            opmax = maxabs((opfxmin,opfxmax))
+            while opmax≤10eps()
+                xmin,xmax = rand(domain(f)),rand(domain(f))
+                opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
+                opmax = maxabs((opfxmin,opfxmax))
+            end
             D=Derivative(space(f))
             fp=differentiate(f)
             fpp=differentiate(fp)
-            opfxmin,opfxmax = ($op)(f[xmin]),$(op)(f[xmax])
-            opmax = maxabs((opfxmin,opfxmax))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            ([B,fp*D^2+(2f*fp^2-fpp)*D]\[($op)(f[xmin])/opmax,$(op)(f[xmax])/opmax])*opmax
+            ([B,eval($parsedODE)]\[opfxmin/opmax,opfxmax/opmax,eval($parsedRHS)/opmax])*opmax
         end
     end
 end
-Base.erfi{S<:FunctionSpace{Float64},T<:Real}(f::Fun{S,T}) = imag(erf(im*f))
-Base.erfi(f::Fun) = -im*erf(im*f)
 
 function Base.erfcx{S<:Ultraspherical,T}(f::Fun{S,T})
     rf=chop(real(f),eps())
     xmin=rf.coefficients==[0.]?first(domain(rf)):indmin(rf)
+    opfxmin = erfcx(f[xmin])
     D=Derivative(space(f))
     fp=differentiate(f)
-    opfxmin = erfcx(f[xmin])
     B=Evaluation(space(f),xmin)
     ([B,D-2f*fp]\[1.0,-2fp/sqrt(π)/opfxmin])*opfxmin
 end
@@ -215,12 +225,34 @@ end
 function Base.dawson{S<:Ultraspherical,T}(f::Fun{S,T})
     rf=chop(real(f),eps())
     xmin=rf.coefficients==[0.]?first(domain(rf)):indmin(rf)
+    opfxmin = dawson(f[xmin])
     D=Derivative(space(f))
     fp=differentiate(f)
-    opfxmin = dawson(f[xmin])
     B=Evaluation(space(f),xmin)
     ([B,D+2f*fp]\[1.0,fp/opfxmin])*opfxmin
 end
+
+for (op,ODE) in ((:(Base.hankelh1),"f^2*fp*D^2+(f*fp^2-f^2*fpp)*D+(f^2-ν^2)*fp^3"),
+                 (:(Base.hankelh2),"f^2*fp*D^2+(f*fp^2-f^2*fpp)*D+(f^2-ν^2)*fp^3"),
+                 (:(Base.hankelh1x),"f^2*fp*D^2+((2im*f^2+f)*fp^2-f^2*fpp)*D+(im*f-ν^2)*fp^3"),
+                 (:(Base.hankelh2x),"f^2*fp*D^2+((-2im*f^2+f)*fp^2-f^2*fpp)*D+(-im*f-ν^2)*fp^3"))
+    parsedODE = parse(ODE)
+    @eval begin
+        function $op{S<:Ultraspherical,T}(ν,f::Fun{S,T})
+            imf=chop(imag(f),eps())
+            xmin=imf.coefficients==[0.]?first(domain(imf)):indmin(imf)
+            xmax=imf.coefficients==[0.]?last(domain(imf)):indmax(imf)
+            opfxmin,opfxmax = $op(ν,f[xmin]),$op(ν,f[xmax])
+            opmax = maxabs((opfxmin,opfxmax))
+            D=Derivative(space(f))
+            fp=differentiate(f)
+            fpp=differentiate(fp)
+            B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
+            ([B,eval($parsedODE)]\[opfxmin/opmax,opfxmax/opmax])*opmax
+        end
+    end
+end
+
 
 Base.sin{S<:FunctionSpace{Float64},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
 Base.cos{S<:FunctionSpace{Float64},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
@@ -272,16 +304,59 @@ for (op,opd,opinv,opinvd) in ((:(Base.sin),:(Base.sind),:(Base.asin),:(Base.asin
     end
 end
 
-#Won't get the zeros exactly 0 anyway so at least this way the length(coefficients) is smaller.
+#Won't get the zeros exactly 0 anyway so at least this way the length is smaller.
 Base.sinpi(f::Fun) = sin(π*f)
 Base.cospi(f::Fun) = cos(π*f)
 Base.sinc(f::Fun) = sin(π*f)/(π*f)
 Base.cosc(f::Fun) = cos(π*f)/f - sin(π*f)/(π*f^2)
 
+Base.erfi{S<:FunctionSpace{Float64},T<:Real}(f::Fun{S,T}) = imag(erf(im*f))
+Base.erfi(f::Fun) = -im*erf(im*f)
+
+function Base.airy(k::Number,f::Fun)
+    if k == 0
+        airyai(f)
+    elseif k == 1
+        airyaiprime(f)
+    elseif k == 2
+        airybi(f)
+    elseif k == 3
+        airybiprime(f)
+    else
+        error("invalid argument")
+    end
+end
+
+Base.besselh(ν,k::Integer,f::Fun) = k == 1? hankelh1(ν,f) : k == 2 ? hankelh2(ν,f) : throw(Base.Math.AmosException(1))
+
+Base.besselj{S<:FunctionSpace{Float64},T<:Real}(ν,f::Fun{S,T}) = real(hankelh1(ν,f))
+Base.bessely{S<:FunctionSpace{Float64},T<:Real}(ν,f::Fun{S,T}) = imag(hankelh1(ν,f))
+Base.besselj(ν,f::Fun) = (hankelh1(ν,f)+hankelh2(ν,f))/2
+Base.bessely(ν,f::Fun) = (hankelh1(ν,f)-hankelh2(ν,f))/2im
+
+# TODO: The following definitions are only valid in three-quarters of the complex plane (from -π ≤ arg z ≤ π/2).
+# It seems like it would be difficult to base these definitions completely on the hankel functions.
+Base.besseli{S<:FunctionSpace{Float64},T<:Real}(ν,f::Fun{S,T}) = real(exp(-π*ν*im/2)*(hankelh1(ν,im*f)+hankelh2(ν,im*f))/2)
+Base.besselk{S<:FunctionSpace{Float64},T<:Real}(ν,f::Fun{S,T}) = real(im*π/2*exp(π*ν*im/2)*hankelh1(ν,im*f))
+Base.besselkx{S<:FunctionSpace{Float64},T<:Real}(ν,f::Fun{S,T}) = real(im*π/2*exp(π*ν*im/2)*hankelh1x(ν,im*f))
+Base.besseli(ν,f::Fun) = exp(-π*ν*im/2)*(hankelh1(ν,im*f)+hankelh2(ν,im*f))/2
+Base.besselk(ν,f::Fun) = im*π/2*exp(π*ν*im/2)*hankelh1(ν,im*f)
+Base.besselkx(ν,f::Fun) = im*π/2*exp(π*ν*im/2)*hankelh1x(ν,im*f)
+
+for jy in ("j","y"), ν in (0,1)
+    bjy = symbol(string("bessel",jy))
+    bjynu = parse(string("Base.bessel",jy,ν))
+    @eval begin
+        $bjynu(f::Fun) = $bjy($ν,f)
+    end
+end
+
 ## Miscellaneous
 for op in (:(Base.expm1),:(Base.log1p),:(Base.atan),:(Base.tanh),
-           :(Base.erfinv),:(Base.erfcinv))
+           :(Base.erfinv),:(Base.erfcinv),:(Base.beta),:(Base.lbeta),
+           :(Base.eta),:(Base.zeta),:(Base.polygamma),:(Base.invdigamma),
+           :(Base.digamma),:(Base.trigamma))
     @eval begin
-        $op{S,T}(f::Fun{S,T})=Fun(x->($op)(f[x]),domain(f))
+        $op{S,T}(f::Fun{S,T})=Fun(x->$op(f[x]),domain(f))
     end
 end
