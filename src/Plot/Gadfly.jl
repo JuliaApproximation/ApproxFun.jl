@@ -97,9 +97,9 @@ dotlayer{T<:Real,V<:Real}(x::Vector{T},y::Vector{V})=Main.Gadfly.layer(x=x,y=y,M
 dotlayer{T<:Complex}(x::Vector{T})=dotlayer(real(x),imag(x))
 
 
-function gadflyplot(opts...)
+function gadflyplot(opts...;kwds...)
     require("Gadfly")
-    Main.Gadfly.plot(opts...)
+    Main.Gadfly.plot(opts...;kwds...)
 end
 
 ## domainplot

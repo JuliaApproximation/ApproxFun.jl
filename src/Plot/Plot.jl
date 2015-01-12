@@ -114,7 +114,7 @@ end
 
 
 function plot{S}(r::Range,f::Fun{S,Float64};opts...)
-    plot(r,f[[r]];opts...)
+    plot([r],f[[r]];opts...)
 end
 
 function complexplot(f::Fun;opts...) 

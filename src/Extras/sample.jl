@@ -192,12 +192,12 @@ sample(f::MultivariateFun)=sample(f,1)[1,:]
 
 
 for TYP in (:LineSpace,:RaySpace)
-    @eval bisectioninv(f::Fun{$TYP,Float64},x::Vector)=fromcanonical(f,bisectioninv(Fun(f.coefficients),x))
+    @eval bisectioninv{SS}(f::Fun{$TYP{SS},Float64},x::Vector)=fromcanonical(f,bisectioninv(Fun(f.coefficients),x))
 end
 
 
 
-function sample(f::LowRankFun{LineSpace,LineSpace,Float64,Float64},n::Integer)
+function sample{SS}(f::LowRankFun{LineSpace{SS},LineSpace{SS},Float64,Float64},n::Integer)
     cf=normalizedcumsum(sum(f,1))
     CB=coefficients(map(cumsum,f.B))
     
