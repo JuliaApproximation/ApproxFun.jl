@@ -43,11 +43,11 @@ if isdir(Pkg.dir("TikzGraphs"))
     include("introspect.jl")
 end
 
-function plot(opts...)
+function plot(opts...;kwds...)
     if plotter[:plot]=="Gadfly"
-        gadflyplot(opts...)
+        gadflyplot(opts...;kwds...)
     elseif plotter[:plot]=="PyPlot"
-        pyplot(opts...)
+        pyplot(opts...;kwds...)
     else
         error("Plotter " * plotter[:plot] * " not supported.")
     end

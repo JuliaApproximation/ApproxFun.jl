@@ -101,25 +101,8 @@ end
 
 
 #integration functions
-#integration is done by solving (1-x^2)^2 u' = (1-x^2)^2 M' f, u[-1] == 0
 
-
-
-function integrate{LS,T}(f::Fun{LineSpace{LS},T})
-    d=domain(f)
-    error("Change to new map")
-    @assert d.α==d.β==-1.
-    # || d.α==d.β==-.5
-    
-#    if domain(f).α==domain(f).β==-1.
-        Fun(uneumannrange_xsqd(uneumann_dirichlet_transform(coefficients(Fun([1.5,0.,.5]).*Fun(f.coefficients),Ultraspherical{1}))),f.space)
-#    end
-#     elseif d.α==d.β==-.5
-#         u=divide_singularity(f)
-#             integrate(SingFun(Fun(u),-.5,-.5))
-#     end  
-
-end
+integrate{LS,T}(f::Fun{LineSpace{LS},T})= [ldirichlet(),Derivative()]\Any[0.,f]
 
 function integrate{RS<:RaySpace,T}(f::Fun{RS,T})
     x=Fun(identity)
