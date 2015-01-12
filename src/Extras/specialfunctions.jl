@@ -354,8 +354,8 @@ end
 ## Miscellaneous
 for op in (:(Base.expm1),:(Base.log1p),:(Base.atan),:(Base.tanh),
            :(Base.erfinv),:(Base.erfcinv),:(Base.beta),:(Base.lbeta),
-           :(Base.eta),:(Base.zeta),:(Base.polygamma),:(Base.invdigamma),
-           :(Base.digamma),:(Base.trigamma))
+           :(Base.eta),:(Base.zeta),:(Base.gamma),:(Base.lgamma),
+           :(Base.polygamma),:(Base.invdigamma),:(Base.digamma),:(Base.trigamma))
     @eval begin
         $op{S,T}(f::Fun{S,T})=Fun(x->$op(f[x]),domain(f))
     end
