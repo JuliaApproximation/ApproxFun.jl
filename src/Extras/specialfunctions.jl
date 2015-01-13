@@ -298,8 +298,6 @@ end
 #Won't get the zeros exactly 0 anyway so at least this way the length is smaller.
 Base.sinpi(f::Fun) = sin(π*f)
 Base.cospi(f::Fun) = cos(π*f)
-Base.sinc(f::Fun) = sin(π*f)/(π*f)
-Base.cosc(f::Fun) = cos(π*f)/f - sin(π*f)/(π*f^2)
 
 function Base.airy(k::Number,f::Fun)
     if k == 0
@@ -326,7 +324,7 @@ for jy in ("j","y"), ν in (0,1)
 end
 
 ## Miscellaneous
-for op in (:(Base.expm1),:(Base.log1p),:(Base.lfact),
+for op in (:(Base.expm1),:(Base.log1p),:(Base.lfact),:(Base.sinc),:(Base.cosc),
            :(Base.erfinv),:(Base.erfcinv),:(Base.beta),:(Base.lbeta),
            :(Base.eta),:(Base.zeta),:(Base.gamma),:(Base.lgamma),
            :(Base.polygamma),:(Base.invdigamma),:(Base.digamma),:(Base.trigamma))
