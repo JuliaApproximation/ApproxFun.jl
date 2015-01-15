@@ -141,6 +141,7 @@ end
 Fun{T<:Number}(M::Array{T,2},sp::FunctionSpace)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
 
 # Automatically change to ArraySpace
+# A is interpreted as coefficients
 function Fun{T<:Number,S}(A::Array{T,2},sp::ArraySpace{S,1})
     n=length(sp)
     m=size(A,2)
@@ -155,6 +156,9 @@ function Fun{T<:Number,S}(A::Array{T,2},sp::ArraySpace{S,1})
     end
     Fun(cfs,ArraySpace(sp.space,n,size(A,2)))
 end
+
+Base.ones{T<:Number}(::Type{T},A::ArraySpace)=demat(fill(ones(T,A.space),A.dimensions...))
+Base.ones(A::ArraySpace)=demat(fill(ones(A.space),A.dimensions...))
 
 ## calculus
 
