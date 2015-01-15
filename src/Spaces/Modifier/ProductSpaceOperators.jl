@@ -103,6 +103,18 @@ function conversion_rule(AS::ArraySpace,BS::ArraySpace)
         NoSpace()
     end
 end
+
+for OP in (:maxspace,:minspace)
+    @eval function $OP(AS::ArraySpace,BS::ArraySpace)
+        if size(AS)==size(BS)
+            ArraySpace($OP(AS.space,BS.space),size(AS))
+        else
+            NoSpace()
+        end
+    end
+end
+
+
 function Conversion(AS::ArraySpace,BS::ArraySpace)
     @assert size(AS)==size(BS)
     ConversionWrapper(DiagonalArrayOperator(Conversion(AS.space,BS.space),size(AS)))
