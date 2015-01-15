@@ -7,7 +7,7 @@ f = sin(x^2)
 g = cos(x)
 
 
-@test_approx_eq f[.1] sin(.1^2)
+@test_approx_eq_eps f[.1] sin(.1^2) 1000eps()
 
 h = f + g^2
 r = roots(h)
