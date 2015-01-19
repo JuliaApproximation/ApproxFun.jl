@@ -13,9 +13,6 @@ function ultradiff{T<:Number}(v::Vector{T})
 end 
 
 #int from U ->T
-function ultraint{T<:Number}(v::Vector{T})
-    cat(1, zero(T), v./[1:length(v)])
-end
 
 #TODO: what about missing truncation?
 function ultraint!{T<:Number}(v::Array{T,2})
