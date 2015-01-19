@@ -19,7 +19,8 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 
             
         ## Constructors        
-        $Op{T<:Number}(sp::FunctionSpace{T},k)=$Op{typeof(sp),T}(sp,k)
+        $Op(sp::FunctionSpace{RealBasis},k)=$Op{typeof(sp),Float64}(sp,k)
+        $Op(sp::FunctionSpace{ComplexBasis},k)=$Op{typeof(sp),Complex{Float64}}(sp,k)        
         
         $Op(sp::FunctionSpace)=$Op(sp,1)
         $Op()=$Op(AnySpace())

@@ -242,7 +242,7 @@ function conversion_rule(A::JacobiWeight,B::JacobiWeight)
 end
 
 
-conversion_rule{n,S<:FunctionSpace,IS<:IntervalSpace}(A::SliceSpace{n,1,S,Float64,Interval},B::JacobiWeight{IS})=error("Not implemented")
+conversion_rule{n,S<:FunctionSpace,IS<:IntervalSpace}(A::SliceSpace{n,1,S,RealBasis,Interval},B::JacobiWeight{IS})=error("Not implemented")
 conversion_rule(A::IntervalSpace,B::JacobiWeight)=conversion_rule(JacobiWeight(0,0,A),B)
 conversion_rule(A::JacobiWeight,B::IntervalSpace)=conversion_rule(A,JacobiWeight(0,0,B))
 

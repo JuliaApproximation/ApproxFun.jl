@@ -3,25 +3,38 @@
 export FunctionSpace, domainspace, rangespace, maxspace, minspace,Space
 
 
+immutable RealBasis end
+immutable ComplexBasis end
+immutable AnyBasis end
+
+coefficient_type{T<:Complex}(::Type{ComplexBasis},::Type{T})=T
+coefficient_type{T<:Real}(::Type{ComplexBasis},::Type{T})=Complex{T}
+coefficient_type{T}(::Type{RealBasis},::Type{T})=T
+
+# immutable RealDomain end
+# immutable ComplexDomain end
+
+
+
 # T tells whether the basis is real (cos/sin) or complex
 # D tells what canonical domain is (Interval/PeriodicInterval)
 abstract FunctionSpace{T,D} #TODO should be able to write D<:Domain
 
-typealias RealSpace{D} FunctionSpace{Float64,D}
-typealias ComplexSpace{D} FunctionSpace{Complex{Float64},D}
+typealias RealSpace{D} FunctionSpace{RealBasis,D}
+typealias ComplexSpace{D} FunctionSpace{ComplexBasis,D}
 
 
 domain{T,D<:AnyDomain}(::FunctionSpace{T,D})=AnyDomain()
-immutable ConstantSpace <: FunctionSpace{Float64,AnyDomain}
+immutable ConstantSpace <: FunctionSpace{RealBasis,AnyDomain}
 end
 
 
 
 
-immutable AnySpace <: FunctionSpace{Float64,AnyDomain}
+immutable AnySpace <: FunctionSpace{RealBasis,AnyDomain}
 end
 
-immutable NoSpace <: FunctionSpace{Float64,AnyDomain}
+immutable NoSpace <: FunctionSpace{RealBasis,AnyDomain}
 end
 
 

@@ -10,7 +10,7 @@ valsdomain_type_promote{T<:Integer,V<:Real}(::Type{T},::Type{V})=valsdomain_type
 valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
-function Fun{T,D}(f::Function,d::FunctionSpace{T,D},n::Integer)
+function Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])
     
