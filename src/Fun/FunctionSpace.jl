@@ -34,7 +34,7 @@ typealias RealSpace{D} FunctionSpace{RealBasis,D}
 typealias ComplexSpace{D} FunctionSpace{ComplexBasis,D}
 
 Base.eltype{S}(::FunctionSpace{S})=eltype(S)
-
+coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)
 
 domain{T,D<:AnyDomain}(::FunctionSpace{T,D})=AnyDomain()
 immutable ConstantSpace <: FunctionSpace{RealBasis,AnyDomain}

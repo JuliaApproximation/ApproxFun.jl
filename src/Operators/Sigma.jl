@@ -10,7 +10,7 @@ end
 
 # We expect the operator to be real/complex if the basis is real/complex
 Σ()=Σ(AnySpace(),AnySpace())
-Σ{T1,T2}(dsp::FunctionSpace{T1},rsp::FunctionSpace{T2}) = Σ{promote_type(T1,T2),typeof(dsp),typeof(rsp)}(dsp,rsp)
+Σ(dsp::FunctionSpace,rsp::FunctionSpace) = Σ{promote_type(eltype(dsp),eltype(rsp)),typeof(dsp),typeof(rsp)}(dsp,rsp)
 
 
 

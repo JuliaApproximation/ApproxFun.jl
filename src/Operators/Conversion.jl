@@ -15,7 +15,7 @@ rangespace(C::Conversion)=C.rangespace
 
 
 #TODO: Periodic
-function Conversion{T,V}(a::FunctionSpace{T},b::FunctionSpace{V})
+function Conversion(a::FunctionSpace,b::FunctionSpace)
     if a==b
         IdentityOperator()
     elseif conversion_type(a,b)==NoSpace()
@@ -28,7 +28,7 @@ function Conversion{T,V}(a::FunctionSpace{T},b::FunctionSpace{V})
             Conversion(a,sp,b)
         end
     else
-        Conversion{typeof(a),typeof(b),promote_type(T,V)}(a,b)
+        Conversion{typeof(a),typeof(b),promote_type(eltype(a),eltype(b))}(a,b)
     end
 end
     

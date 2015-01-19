@@ -45,11 +45,11 @@ end
 
 
 
-function transform{VV,ST,T}(S::PiecewiseSpace{VV,ST},vals::Vector{T})
+function transform(S::PiecewiseSpace,vals::Vector)
     n=length(vals)
     K=length(S)
    k=div(n,K)
-    PT=promote_type(ST,T)
+    PT=coefficient_type(S,eltype(vals))
     if k==0
         ret=Array(PT,n)
         for j=1:n
