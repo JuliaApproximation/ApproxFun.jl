@@ -33,11 +33,12 @@ function ultraint!{T<:Number}(v::Array{T,2})
 end
 
 function ultraint!{T<:Number}(v::Vector{T})
-    for k=length(v):-1:2
+    resize!(v,length(v)+1)
+    @simd for k=length(v):-1:2
         @inbounds v[k] = v[k-1]/(k-1)
     end
     
-    @inbounds v[1] = 0.
+    @inbounds v[1] = zero(T)
     
     v
 end

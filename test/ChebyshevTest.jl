@@ -38,8 +38,8 @@ r=2.*rand(100) .- 1
 
 @test norm((ef - diff(ef)).coefficients)<10E-11
 
-@test norm((ef - diff(cumsum(ef))).coefficients) < 10eps()
-@test norm((cf - diff(cumsum(cf))).coefficients) < 10eps()
+@test norm((ef - diff(cumsum(ef))).coefficients) < 20eps()
+@test norm((cf - diff(cumsum(cf))).coefficients) < 20eps()
 
 @test_approx_eq sum(ef)  2.3504023872876028
 
