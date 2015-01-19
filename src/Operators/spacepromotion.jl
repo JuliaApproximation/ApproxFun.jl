@@ -25,7 +25,7 @@ immutable SpaceOperator{T<:Number,O<:Operator,S<:FunctionSpace,V<:FunctionSpace}
 end
 
 
-SpaceOperator{T<:Number,ST<:Number,VT<:Number}(o::Operator{T},s::FunctionSpace{ST},rs::FunctionSpace{VT})=SpaceOperator{promote_type(T,ST,VT),typeof(o),typeof(s),typeof(rs)}(o,s,rs)
+SpaceOperator{T<:Number}(o::Operator{T},s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{promote_type(T,eltype(s),eltype(rs)),typeof(o),typeof(s),typeof(rs)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 
 

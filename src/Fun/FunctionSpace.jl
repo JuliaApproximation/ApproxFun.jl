@@ -11,6 +11,16 @@ coefficient_type{T<:Complex}(::Type{ComplexBasis},::Type{T})=T
 coefficient_type{T<:Real}(::Type{ComplexBasis},::Type{T})=Complex{T}
 coefficient_type{T}(::Type{RealBasis},::Type{T})=T
 
+Base.eltype(::RealBasis)=Float64
+Base.eltype(::ComplexBasis)=Complex{Float64}
+Base.eltype(::AnyBasis)=Number
+
+Base.eltype(::Type{RealBasis})=Float64
+Base.eltype(::Type{ComplexBasis})=Complex{Float64}
+Base.eltype(::Type{AnyBasis})=Number
+
+
+
 # immutable RealDomain end
 # immutable ComplexDomain end
 
@@ -22,6 +32,8 @@ abstract FunctionSpace{T,D} #TODO should be able to write D<:Domain
 
 typealias RealSpace{D} FunctionSpace{RealBasis,D}
 typealias ComplexSpace{D} FunctionSpace{ComplexBasis,D}
+
+Base.eltype{S}(::FunctionSpace{S})=eltype(S)
 
 
 domain{T,D<:AnyDomain}(::FunctionSpace{T,D})=AnyDomain()

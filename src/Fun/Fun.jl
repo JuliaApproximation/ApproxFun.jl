@@ -190,7 +190,7 @@ end
 import Base.imag, Base.real, Base.conj
 
 for op = (:real,:imag,:conj) 
-    @eval ($op){T,D<:FunctionSpace{Float64}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
+    @eval ($op){T,D<:FunctionSpace{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 
 Base.abs2{S}(f::Fun{S,Float64})=f.^2

@@ -10,8 +10,8 @@ immutable Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Abstra
     x::M
     order::Int
 end
-Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,Float64}(sp,x,k)
-Evaluation{M,T<:Number}(sp::FunctionSpace{T},x::M,order::Integer)=Evaluation{typeof(sp),M,T}(sp,x,order)
+Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,Number}(sp,x,k)
+Evaluation(sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),eltype(sp)}(sp,x,order)
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
@@ -43,7 +43,7 @@ immutable EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functiona
     functional::FS
 end
 
-EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functional}(sp::S,x::M,order::Integer,func::FS)=EvaluationWrapper{S,M,FS,Float64}(sp,x,order,func)
+EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functional}(sp::S,x::M,order::Integer,func::FS)=EvaluationWrapper{S,M,FS,eltype(S)}(sp,x,order,func)
 getindex(E::EvaluationWrapper,kr::Range)=getindex(E.functional,kr)
 
 domainspace(E::AbstractEvaluation)=E.space
