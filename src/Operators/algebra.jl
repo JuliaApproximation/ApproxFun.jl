@@ -45,15 +45,13 @@ for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOpera
         domain(P::$PLUS)=commondomain(P.ops)
 
     
-        +(A::$PLUS,B::$PLUS)=promoteplus([A.ops,B.ops])
-        +(A::$PLUS,B::$PLUS,C::$PLUS)=promoteplus([A.ops,B.ops,C.ops])        
-        +(A::$PLUS,B::$TYP)=promoteplus([A.ops,B])
+        +(A::$PLUS,B::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
+        +(A::$PLUS,B::$PLUS,C::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B.ops...,C.ops...])        
+        +(A::$PLUS,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A.ops...,B])
         +(A::$PLUS,B::$ZER)=A
-        +(A::$PLUS,B::$TYP,C::$TYP)=promoteplus([A.ops,B,C])        
-        +(A::$TYP,B::$PLUS)=promoteplus([A,B.ops])
+        +(A::$PLUS,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B,C])        
+        +(A::$TYP,B::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B.ops...])
         +(A::$ZER,B::$PLUS)=B
-        +{T,V}(A::$TYP{T},B::$TYP{V})=promoteplus($TYP{promote_type(T,V)}[A,B])
-        +{T}(A::$TYP{T},B::$TYP{T},C::$TYP{T})=promoteplus($TYP{T}[A,B,C])        
         +(A::$TYP,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B])        
         +(A::$TYP,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A,B,C])                
         #TODO: Arbitrary number of summands
