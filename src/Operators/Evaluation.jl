@@ -43,7 +43,7 @@ immutable EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functiona
     functional::FS
 end
 
-EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functional}(sp::S,x::M,order::Integer,func::FS)=EvaluationWrapper{S,M,FS,eltype(S)}(sp,x,order,func)
+EvaluationWrapper(sp::FunctionSpace,x::Union(Number,Bool),order::Integer,func::Functional)=EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
 getindex(E::EvaluationWrapper,kr::Range)=getindex(E.functional,kr)
 
 domainspace(E::AbstractEvaluation)=E.space

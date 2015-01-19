@@ -273,7 +273,7 @@ end
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj)) 
 #    @eval ($op){S,V<:FunctionSpace{Flaot64}}(f::ProductFun{S,V}) = ProductFun(map($op,f.coefficients),space(f,2))
-    @eval ($op){S,V<:FunctionSpace{Float64}}(f::TensorFun{S,V}) = TensorFun(map($op,f.coefficients),space(f,2))    
+    @eval ($op){S,V<:FunctionSpace{RealBasis}}(f::TensorFun{S,V}) = TensorFun(map($op,f.coefficients),space(f,2))    
 end
 
 #For complex bases

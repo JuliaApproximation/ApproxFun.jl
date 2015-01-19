@@ -35,20 +35,22 @@ end
 
 
 ##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex(op::Evaluation{Chebyshev,Bool},k::Range)
+function Base.getindex{T<:Number}(op::Evaluation{Chebyshev,Bool,T},k::Range)
     x = op.x
     d = domain(op)
     p = op.order
     cst = (2/(d.b-d.a))^p
 
     if x
-        ret = ones(size(k)[1])
+        ret = ones(T,length(k))
     elseif !x
-        ret = (-1.)^(p+1)*(-1.).^k ##TODO: speed up
+        ret = -ones(T,length(k))    
+        ret=(-1)^(p+1)*ret.^k
     end
 
     for m=0:p-1
-        ret .*= ((k-1).^2-m^2)./(2m+1)
+        ret .*= ((k-1).^2-m^2)
+        ret /= 2m+1
     end
 
     return ret*cst
