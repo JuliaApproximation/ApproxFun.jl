@@ -185,7 +185,7 @@ end
 ## Default Composition with a Fun, LowRankFun, and TensorFun
 
 Base.getindex(B::BandedOperator,f::Fun) = B*Multiplication(domainspace(B),f)
-Base.getindex(B::BandedOperator,f::LowRankFun) = PlusOperator(BandedOperator[f.A[i]*B[f.B[i]] for i=1:rank(f)])
+Base.getindex{BT,S,M,T,V}(B::BandedOperator{BT},f::LowRankFun{S,M,T,V}) = PlusOperator(BandedOperator{promote_type(BT,T,V)}[f.A[i]*B[f.B[i]] for i=1:rank(f)])
 Base.getindex(B::BandedOperator,f::TensorFun) = B[LowRankFun(f)]
 
 ## Standard Operators and linear algebra

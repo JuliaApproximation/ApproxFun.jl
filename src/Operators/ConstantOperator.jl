@@ -15,6 +15,8 @@ addentries!(C::ConstantOperator,A,kr::Range)=toeplitz_addentries!([.5C.c],A,kr)
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
 
+Base.convert{T<:Number}(::Type{BandedOperator{T}},C::ConstantOperator)=ConstantOperator{T}(C.c)
+
 ## Algebra
 
 for op in (:+,:-,:*)

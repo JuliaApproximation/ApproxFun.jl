@@ -18,7 +18,9 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         end    
 
             
-        ## Constructors        
+        ## Constructors  
+        $Op{T}(::Type{T},sp::FunctionSpace,k)=$Op{typeof(sp),T}(sp,k)
+              
         $Op(sp::FunctionSpace{RealBasis},k)=$Op{typeof(sp),Float64}(sp,k)
         $Op(sp::FunctionSpace{ComplexBasis},k)=$Op{typeof(sp),Complex{Float64}}(sp,k)        
         
@@ -31,6 +33,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         $Op(d::Vector)=$Op(Space(d),1)
         $Op(d::Vector,n)=$Op(Space(d),n)        
         
+        Base.convert{T}(::Type{BandedOperator{T}},D::$Op)=$Op(T,D.space,D.order)
         
         $WrappOp{T<:Number}(op::BandedOperator{T},order::Integer)=$WrappOp{typeof(op),typeof(domainspace(op)),T}(op,order)
         $WrappOp{T<:Number}(op::BandedOperator{T})=$WrappOp(op,1)        

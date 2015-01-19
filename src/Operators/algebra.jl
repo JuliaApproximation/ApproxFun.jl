@@ -7,8 +7,8 @@ export PlusOperator,TimesOperator
 
 ##PlusFunctional
 
-immutable PlusFunctional{T<:Number,B<:Functional} <: Functional{T} 
-    ops::Vector{B}
+immutable PlusFunctional{T<:Number} <: Functional{T} 
+    ops::Vector{Functional{T}}
 end
 
 
@@ -17,23 +17,14 @@ Base.getindex(op::PlusFunctional,k::Range)=mapreduce(o->o[k],+,op.ops)
 
 
 
-immutable PlusOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T} 
-    ops::Vector{B}
+immutable PlusOperator{T<:Number} <: BandedOperator{T} 
+    ops::Vector{BandedOperator{T}}
 end
 
 
+promoteplus{T<:Number}(ops::Vector{BandedOperator{T}})=PlusOperator{T}(promotespaces(ops))
+promoteplus{T<:Number}(ops::Vector{Functional{T}})=PlusFunctional{T}(promotespaces(ops))
 
-
-# constructor for either one
-function PlusFunctionalOperator{B}(PF,::Type{B},ops)
-    T = mapreduce(eltype,promote_type,ops)
-    pops=promotespaces(ops)
-    PF{T,B}(pops)
-end
-    
-## TODO: figure out how to do this with for over a tuple
-PlusFunctional{B<:Functional}(ops::Vector{B})=PlusFunctionalOperator(PlusFunctional,B,ops)
-PlusOperator{B<:BandedOperator}(ops::Vector{B})=PlusFunctionalOperator(PlusOperator,B,ops)
 
 
 
@@ -54,17 +45,17 @@ for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOpera
         domain(P::$PLUS)=commondomain(P.ops)
 
     
-        +(A::$PLUS,B::$PLUS)=$PLUS([A.ops,B.ops])
-        +(A::$PLUS,B::$PLUS,C::$PLUS)=$PLUS([A.ops,B.ops,C.ops])        
-        +(A::$PLUS,B::$TYP)=$PLUS([A.ops,B])
+        +(A::$PLUS,B::$PLUS)=promoteplus([A.ops,B.ops])
+        +(A::$PLUS,B::$PLUS,C::$PLUS)=promoteplus([A.ops,B.ops,C.ops])        
+        +(A::$PLUS,B::$TYP)=promoteplus([A.ops,B])
         +(A::$PLUS,B::$ZER)=A
-        +(A::$PLUS,B::$TYP,C::$TYP)=$PLUS([A.ops,B,C])        
-        +(A::$TYP,B::$PLUS)=$PLUS([A,B.ops])
+        +(A::$PLUS,B::$TYP,C::$TYP)=promoteplus([A.ops,B,C])        
+        +(A::$TYP,B::$PLUS)=promoteplus([A,B.ops])
         +(A::$ZER,B::$PLUS)=B
-        +{T}(A::$TYP{T},B::$TYP{T})=$PLUS($TYP{T}[A,B])
-        +{T}(A::$TYP{T},B::$TYP{T},C::$TYP{T})=$PLUS($TYP{T}[A,B,C])        
-        +(A::$TYP,B::$TYP)=$PLUS($TYP[A,B])        
-        +(A::$TYP,B::$TYP,C::$TYP)=$PLUS($TYP[A,B,C])                
+        +{T,V}(A::$TYP{T},B::$TYP{V})=promoteplus($TYP{promote_type(T,V)}[A,B])
+        +{T}(A::$TYP{T},B::$TYP{T},C::$TYP{T})=promoteplus($TYP{T}[A,B,C])        
+        +(A::$TYP,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B])        
+        +(A::$TYP,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A,B,C])                
         #TODO: Arbitrary number of summands
     end
 end
