@@ -11,7 +11,7 @@ immutable Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Abstra
     order::Int
 end
 Evaluation{T}(::Type{T},sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
-Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,Number}(sp,x,k)
+Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,UnsetNumber}(sp,x,k)
 Evaluation(sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),eltype(sp)}(sp,x,order)
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
@@ -49,7 +49,7 @@ getindex(E::EvaluationWrapper,kr::Range)=getindex(E.functional,kr)
 
 domainspace(E::AbstractEvaluation)=E.space
 domain(E::AbstractEvaluation)=domain(E.space)
-promotedomainspace{T}(E::AbstractEvaluation{T},sp::FunctionSpace)=Evaluation(T,sp,E.x,E.order)
+promotedomainspace{T}(E::AbstractEvaluation{T},sp::FunctionSpace)=Evaluation(promote_type(T,eltype(sp)),sp,E.x,E.order)
 Base.stride(E::EvaluationWrapper)=stride(E.functional)
 
 ## Convenience routines
