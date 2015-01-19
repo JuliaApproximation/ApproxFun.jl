@@ -2,6 +2,10 @@
 import Base.chop 
 
 
+Base.real{T<:Real}(::Type{T})=T
+Base.real{T<:Real}(::Type{Complex{T}})=T
+
+
 dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
 dotu{N<:Real,T}(f::Vector{N},g::Vector{T})=dot(f,g)

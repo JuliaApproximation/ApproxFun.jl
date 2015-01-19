@@ -22,19 +22,11 @@ immutable PlusOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
 end
 
 
-typeofdata{T<:Number}(::Operator{T})=T
 
 
 # constructor for either one
 function PlusFunctionalOperator{B}(PF,::Type{B},ops)
-    T = Float64
-    
-    for op in ops
-        if typeofdata(op) == Complex{Float64}
-            T = Complex{Float64}
-        end
-    end
-    
+    T = mapreduce(eltype,promote_type,ops)
     pops=promotespaces(ops)
     PF{T,B}(pops)
 end
@@ -128,10 +120,10 @@ end
 +(::ZeroFunctional,B::Functional)=B
 
 
-+(c::UniformScaling,A::Operator)=ConstantOperator(1.0c.λ)+A
-+(A::Operator,c::UniformScaling)=A+ConstantOperator(1.0c.λ)
--(c::UniformScaling,A::Operator)=ConstantOperator(1.0c.λ)-A
--(A::Operator,c::UniformScaling)=A+ConstantOperator(-1.0c.λ)
++(c::UniformScaling,A::Operator)=ConstantOperator(c.λ)+A
++(A::Operator,c::UniformScaling)=A+ConstantOperator(c.λ)
+-(c::UniformScaling,A::Operator)=ConstantOperator(c.λ)-A
+-(A::Operator,c::UniformScaling)=A+ConstantOperator(-c.λ)
 
 
 
@@ -200,14 +192,7 @@ end
 
 
 function TimesOperator{B<:Operator}(ops::Vector{B})
-    T = Float64
-    
-    for op in ops
-        if typeofdata(op) == Complex{Float64}
-            T = Complex{Float64}
-        end
-    end
-    
+    T = mapreduce(eltype,promote_type,ops)
     TimesOperator{T,B}(ops)
 end
 

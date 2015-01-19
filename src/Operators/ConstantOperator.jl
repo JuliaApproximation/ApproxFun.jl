@@ -1,14 +1,10 @@
 export ConstantOperator, BasisFunctional
 
 
-immutable ConstantOperator{T<:Union(Float64,Complex{Float64})} <: BandedOperator{T}
+immutable ConstantOperator{T<:Number} <: BandedOperator{T}
     c::T
 end
 
-ConstantOperator(c::Complex{Float64})=ConstantOperator{Complex{Float64}}(c)
-ConstantOperator(c::Float64)=ConstantOperator{Float64}(c)
-ConstantOperator(c::Complex)=ConstantOperator{Complex{Float64}}(1.0c)
-ConstantOperator(c::Real)=ConstantOperator{Float64}(1.0c)
 ConstantOperator(L::UniformScaling)=ConstantOperator(L.λ)
 IdentityOperator()=ConstantOperator(1.0)
 
