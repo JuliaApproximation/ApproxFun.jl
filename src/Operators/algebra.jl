@@ -12,7 +12,13 @@ immutable PlusFunctional{T<:Number} <: Functional{T}
 end
 
 
-Base.getindex(op::PlusFunctional,k::Range)=mapreduce(o->o[k],+,op.ops)
+function Base.getindex{T}(op::PlusFunctional{T},k::Range)
+    ret = op.ops[1][k]::Vector{T}
+    for j=2:length(ops)
+        ret+=op.ops[j][k]::Vector{T}
+    end
+    ret
+end
 
 
 
