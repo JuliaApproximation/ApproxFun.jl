@@ -33,7 +33,7 @@ alternatesign(v::Vector)=alternatesign!(copy(v))
 
 
 function pad!{T}(f::Vector{T},n::Integer)
-	if (n > length(f))
+	if n > length(f)
 		append!(f,zeros(T,n - length(f)))
 	else
 		resize!(f,n)
@@ -42,15 +42,20 @@ end
 
 
 function pad{T}(f::Vector{T},n::Integer)
-	if (n > length(f))
-        [f,zeros(T,n - length(f))]
+	if n > length(f)
+	   ret=Array(T,n)
+	   ret[1:length(f)]=f
+	   for j=length(f)+1:n
+	       ret[j]=zero(T)
+	   end
+       ret
 	else
         f[1:n]
 	end
 end
 
 function pad(f::Vector{Any},n::Integer)
-	if (n > length(f))
+	if n > length(f)
         Any[f...,zeros(n - length(f))...]
 	else
         f[1:n]
@@ -69,9 +74,13 @@ function pad{T}(A::Array{T,2},n::Integer,m::Integer)
         ret = zeros(T,n,m)
         
         if n <= size(A,1)
-            ret[1:n,1:size(A,2)] = A[1:n,:]
+            for k=1:n,j=1:size(A,2)
+                ret[k,j]=A[k,j]
+            end
         elseif m <= size(A,2)
-            ret[1:size(A,1),1:m] = A[:,1:m]
+            for k=1:size(A,1),j=1:m
+                ret[k,j]=A[k,j]
+            end        
         else
             ret[1:size(A,1),1:size(A,2)]=A
         end
