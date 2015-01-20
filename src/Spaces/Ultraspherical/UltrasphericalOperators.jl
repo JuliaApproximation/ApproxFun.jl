@@ -191,7 +191,7 @@ function Conversion{a,b}(A::Ultraspherical{a},B::Ultraspherical{b})
     @assert b > a
 
     if b==a+1
-        Conversion{Ultraspherical{a},Ultraspherical{b},Float64}(A,B)
+        Conversion{Ultraspherical{a},Ultraspherical{b},promote_type(Float64,real(eltype(domain(A))),real(eltype(domain(B))))}(A,B)
     else
         d=domain(A)
         Conversion(Ultraspherical{b-1}(d),B)*Conversion(A,Ultraspherical{b-1}(d))
@@ -200,6 +200,7 @@ end
 
 
 function addentries!(M::Conversion{Chebyshev,Ultraspherical{1}},A,kr::Range)
+    # this uses that 0.5 is exact, so no need for special bigfloat def
     for k=kr
         A[k,k] += (k == 1)? 1. : .5
         A[k,k+2] += -.5
@@ -208,11 +209,12 @@ function addentries!(M::Conversion{Chebyshev,Ultraspherical{1}},A,kr::Range)
     A
 end
 
-function addentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{λ}},A,kr::Range)
+function addentries!{m,λ,T}(M::Conversion{Ultraspherical{m},Ultraspherical{λ},T},A,kr::Range)
     @assert λ==m+1
+    c=λ-one(T)  # this supports big types
     for k=kr
-        A[k,k] += (λ-1.)./(k - 2. + λ)
-        A[k,k+2] += -(λ-1.)./(k + λ)
+        A[k,k] += c/(k - 2 + λ)
+        A[k,k+2] += -c/(k + λ)
     end
 
     A

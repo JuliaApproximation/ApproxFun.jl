@@ -31,7 +31,7 @@ function Conversion(a::FunctionSpace,b::FunctionSpace)
             Conversion(a,sp,b)
         end
     else
-        Conversion{typeof(a),typeof(b),promote_type(eltype(a),eltype(b))}(a,b)
+        Conversion{typeof(a),typeof(b),promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
     end
 end
     
