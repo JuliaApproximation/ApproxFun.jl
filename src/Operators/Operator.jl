@@ -5,10 +5,6 @@ export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
 
 
-# Used for spaces not defined yet
-immutable UnsetNumber <: Number  end
-Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
-
 
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
 abstract Functional{T} <: Operator{T}

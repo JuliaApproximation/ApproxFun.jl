@@ -1,6 +1,11 @@
 
 import Base.chop 
 
+# Used for spaces not defined yet
+immutable UnsetNumber <: Number  end
+Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
+
+
 
 Base.real{T<:Real}(::Type{T})=T
 Base.real{T<:Real}(::Type{Complex{T}})=T

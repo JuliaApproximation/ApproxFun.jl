@@ -9,9 +9,12 @@ export Interval
 immutable Interval{T<:Number} <: IntervalDomain{T}  #repeat <:Number due to Julia issue #9441
 	a::T
 	b::T
+	Interval()=new(-one(T),one(T))
+	Interval(a,b)=new(a,b)
 end
 
-Interval()=Interval(-1.,1.)
+Interval()=Interval{Float64}()
+Interval{T}(a::T,b::T)=Interval{T}(a,b)
 Interval(a::Int,b::Int) = Interval(float64(a),float64(b))   #convenience method
 
 function Interval{T<:Number}(d::Vector{T})
@@ -33,7 +36,7 @@ end
 
 Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
 Base.convert{D<:Domain}(::Type{D},i::Vector)=Interval(i)
-Interval(a::Number,b::Number) = Interval(promote(a,b)...)
+Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 
 ## Information
