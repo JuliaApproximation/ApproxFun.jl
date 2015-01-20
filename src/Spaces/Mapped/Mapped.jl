@@ -102,7 +102,7 @@ end
 
 #integration functions
 
-integrate{LS,T}(f::Fun{LineSpace{LS},T})= [ldirichlet(),Derivative()]\Any[0.,f]
+integrate{LS,T}(f::Fun{LineSpace{LS},T})=linsolve([ldirichlet(),Derivative()],Any[0.,f];tolerance=length(f)^2*max(1,maximum(f.coefficients))*10E-13)
 
 function integrate{RS<:RaySpace,T}(f::Fun{RS,T})
     x=Fun(identity)
