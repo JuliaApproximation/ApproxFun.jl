@@ -70,7 +70,7 @@ ivp(d)=[ldirichlet(d),lneumann(d)]
 dirichlet(d)=[ldirichlet(d),rdirichlet(d)]
 neumann(d)=[lneumann(d),rneumann(d)]
 diffbcs(d,k) = [ldiffbc(d,k),rdiffbc(d,k)]
-periodic(d,k) = [Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
+periodic(d,k) = Functional{eltype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
 
 
 

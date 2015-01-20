@@ -373,7 +373,7 @@ for T in (:AnySpace,:FunctionSpace)
             if sp==cursp
                 P
             else
-                PlusOperator(BandedOperator{T}[promotedomainspace(op,sp) for op in P.ops])
+                promoteplus(BandedOperator{T}[promotedomainspace(op,sp) for op in P.ops])
             end
         end
     end

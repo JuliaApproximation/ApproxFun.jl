@@ -47,9 +47,15 @@ Conversion(A::FunctionSpace)=Conversion(A,canonicalspace(A))
 # the domain and range space
 # but continue to know its a derivative
 
-immutable ConversionWrapper{S<:BandedOperator} <: AbstractConversion{Float64}
+immutable ConversionWrapper{S<:BandedOperator,T<:Number} <: AbstractConversion{T}
     op::S
 end
+
+ConversionWrapper{T}(B::BandedOperator{T})=ConversionWrapper{typeof(B),T}(B)
+Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=ConversionWrapper(Conversion(B,C)*Conversion(A,B))
+
+
+Base.convert{T}(::Type{BandedOperator{T}},D::ConversionWrapper)=ConversionWrapper(convert(BandedOperator{T},D.op))
 
 addentries!(D::ConversionWrapper,A,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds,:(Base.stride))
@@ -57,4 +63,4 @@ for func in (:rangespace,:domainspace,:bandinds,:(Base.stride))
 end
 
 
-Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=ConversionWrapper(Conversion(B,C)*Conversion(A,B))
+
