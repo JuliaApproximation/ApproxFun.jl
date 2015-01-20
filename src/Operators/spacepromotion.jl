@@ -71,6 +71,7 @@ promotedomainspace(P::Functional,sp::FunctionSpace,::AnySpace)=SpaceFunctional(P
 for op in (:promoterangespace,:promotedomainspace)
     @eval begin
         ($op)(P::BandedOperator,::AnySpace)=P
+        ($op)(P::BandedOperator,::UnsetSpace)=P        
         ($op)(P::BandedOperator,sp::FunctionSpace,::AnySpace)=SpaceOperator(P,sp)
     end
 end
@@ -111,7 +112,7 @@ function promotedomainspace{T<:Operator}(ops::Vector{T},S::FunctionSpace)
 end
 function promotedomainspace(ops::Vector,b::Fun)
     A=promotedomainspace(ops)
-    if isa(rangespace(A[end]),AnySpace)
+    if isa(rangespace(A[end]),AmbiguousSpace) 
         # try setting the domain space
         A=promotedomainspace(ops,space(b))
     end
@@ -123,7 +124,7 @@ end
 promotespaces(ops::Vector)=promoterangespace(promotedomainspace(ops))
 function promotespaces(ops::Vector,b::Fun)
     A=promotespaces(ops)
-    if isa(rangespace(A),AnySpace)
+    if isa(rangespace(A),AmbiguousSpace)
         # try setting the domain space
         A=promoterangespace(promotedomainspace(ops,space(b)))
     end

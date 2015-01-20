@@ -78,7 +78,7 @@ u = A\[0.,f];
 d=Interval()
 D=diff(d)
 x=Fun(identity,d)
-A=x.^2*D^2+x*D+x.^2
+A=x^2*D^2+x*D+x^2
 u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
 
 

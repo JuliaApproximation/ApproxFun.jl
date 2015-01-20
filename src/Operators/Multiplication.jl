@@ -9,7 +9,7 @@ end
 
 Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T,T}(chop(f,maxabs(f.coefficients)*40*eps()),sp)
 
-Multiplication(f::Fun)=Multiplication(f,AnySpace())
+Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
 Multiplication(c::Number)=ConstantOperator(c)
 
 # This covers right multiplication unless otherwise specified.
@@ -24,9 +24,9 @@ domain(T::Multiplication)=domain(T.f)
 
 ## Default implementation: try converting to space of M.f
 
-rangespace{F,T}(D::Multiplication{F,AnySpace,T})=AnySpace()
-bandinds{F,T}(D::Multiplication{F,AnySpace,T})=error("No range space attached to Multiplication")
-addentries!{F,T}(D::Multiplication{F,AnySpace,T},A,kr)=error("No range space attached to Multiplication")
+rangespace{F,T}(D::Multiplication{F,UnsetSpace,T})=UnsetSpace()
+bandinds{F,T}(D::Multiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
+addentries!{F,T}(D::Multiplication{F,UnsetSpace,T},A,kr)=error("No range space attached to Multiplication")
 
 
 function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr)
@@ -64,6 +64,7 @@ end
 
 
 ##multiplication can always be promoted, range space is allowed to change
+promotedomainspace(D::AbstractMultiplication,sp::UnsetSpace)=D
 promotedomainspace(D::AbstractMultiplication,sp::AnySpace)=D
 promotedomainspace(D::AbstractMultiplication,sp::FunctionSpace)=Multiplication(D.f,sp)
 

@@ -42,12 +42,11 @@ end
 
 
 
+abstract AmbiguousSpace <: FunctionSpace{RealBasis,AnyDomain}
 
-immutable AnySpace <: FunctionSpace{RealBasis,AnyDomain}
-end
-
-immutable NoSpace <: FunctionSpace{RealBasis,AnyDomain}
-end
+immutable AnySpace <: AmbiguousSpace end
+immutable UnsetSpace <: AmbiguousSpace end
+immutable NoSpace <: AmbiguousSpace end
 
 
 
@@ -62,6 +61,7 @@ domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() ||
 #Check whether spaces are the same, override when you need to check parameters
 spacescompatible{D<:FunctionSpace}(f::D,g::D)=error("Override spacescompatible for "*string(D))
 spacescompatible(::AnySpace,::AnySpace)=true
+spacescompatible(::UnsetSpace,::UnsetSpace)=true
 spacescompatible(::NoSpace,::NoSpace)=true
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
 spacescompatible(f,g)=false
@@ -102,9 +102,23 @@ function conversion_rule{S<:FunctionSpace}(a::S,b::S)
     end
 end 
 
-conversion_type(a::AnySpace,b::AnySpace)=a
-conversion_type(a::FunctionSpace,b::AnySpace)=a
-conversion_type(b::AnySpace,a::FunctionSpace)=a
+for FUNC in (:conversion_type,:maxspace)
+    @eval begin
+        $FUNC(::AnySpace,::UnsetSpace)=UnsetSpace()
+        $FUNC(::UnsetSpace,::AnySpace)=UnsetSpace()        
+    end
+
+    for TYP in (:AnySpace,:UnsetSpace)
+        @eval begin
+            $FUNC(a::$TYP,b::$TYP)=a
+            $FUNC(a::$TYP,b::FunctionSpace)=a            
+            $FUNC(a::FunctionSpace,b::$TYP)=a
+        end
+    end
+    @eval $FUNC(b::AnySpace,a::FunctionSpace)=a
+end
+
+
 
 function conversion_type(a,b)
     if a==b
@@ -121,10 +135,7 @@ end
 
 
 
-# gives a space c that has a banded conversion operator from a and b
-maxspace(a::AnySpace,b::AnySpace)=a
-maxspace(a::FunctionSpace,b::AnySpace)=a
-maxspace(b::AnySpace,a::FunctionSpace)=a
+# gives a space c that has a banded conversion operator FROM a and b
 function maxspace(a::FunctionSpace,b::FunctionSpace)
     if a==b    
         return a

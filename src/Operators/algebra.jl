@@ -42,7 +42,7 @@ for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOpera
             for op in P.ops
                 sp = domainspace(op)
                 
-                if sp != AnySpace()
+                if !isa(sp,AnySpace)
                     return sp
                 end
             end
@@ -73,7 +73,7 @@ function rangespace(P::PlusOperator)
     for op in P.ops
         sp = rangespace(op)
         
-        if sp != AnySpace()
+        if !isa(sp,AnySpace)
             return sp
         end
     end
@@ -354,7 +354,7 @@ end
  ##TODO: Make * and \ consistent in return type
 function *(A::InfiniteOperator,b::Fun)
     dsp=domainspace(A)
-    if dsp==AnySpace()
+    if isa(dsp,AmbiguousSpace)
         A=promotedomainspace(A,b.space)
         Fun(A*b.coefficients,rangespace(A))
     else

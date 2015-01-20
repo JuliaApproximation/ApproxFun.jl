@@ -63,6 +63,8 @@ addentries!(C::ZeroOperator,A,kr::Range)=A
 
 promotedomainspace(Z::ZeroOperator,sp::AnySpace)=Z
 promoterangespace(Z::ZeroOperator,sp::AnySpace)=Z
+promotedomainspace(Z::ZeroOperator,sp::UnsetSpace)=Z
+promoterangespace(Z::ZeroOperator,sp::UnsetSpace)=Z
 promotedomainspace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(sp,rangespace(Z))
 promoterangespace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(domainspace(Z),sp)
 promotedomainspace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(sp,rangespace(Z))
