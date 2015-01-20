@@ -101,7 +101,7 @@ rhs=ones(n+2)
 u=linsolve([B,L],rhs;maxlength=Inf)
 u=linsolve([B,L],rhs;maxlength=Inf)
 @time u=linsolve([B,L],rhs;maxlength=Inf)
-println("Sin: should be ~0.015")
+println("Sin: should be ~0.011")
 
 
 ## Piecewise
@@ -115,7 +115,7 @@ u=[dirichlet(sp),
 @time u=[dirichlet(sp),
     D^2-x]\[airyai(-10.)];    
 
-println("Piecewise Airy: should be ~0.016")
+println("Piecewise Airy: should be ~0.01")
 
 
 ## Vector 
@@ -134,7 +134,7 @@ A=[B 0;
    
 u=A\Any[0.,0.,0.,f]
 @time u=A\Any[0.,0.,0.,f]
-println("Systems: should be ~0.0013")
+println("Systems: should be ~0.0009")
 
 
 d=Interval(-300.,5.)
@@ -162,7 +162,7 @@ S=schurfact(A,100)
 u=S\f
 u=S\f
 @time u=S\f;
-println("Laplace: should be ~0.013, 0.011")
+println("Laplace: should be ~0.014, 0.01")
 
 
 
@@ -172,7 +172,7 @@ S=schurfact([neumann(d),lap(d)+100I],100)
 u=S\ones(4)
 u=S\ones(4)
 @time u=S\ones(4)
-println("Neumann Helmholtz: should be ~0.017, 0.017")
+println("Neumann Helmholtz: should be ~0.016, 0.016")
 
 
 d = Disk()
@@ -182,4 +182,4 @@ S = discretize([dirichlet(d),lap(d)],100);
 u=S\[0.,f];
 @time u=S\[0.,f];
 
-println("Disk Poisson: should be ~0.17,0.04")
+println("Disk Poisson: should be ~0.16,0.03")

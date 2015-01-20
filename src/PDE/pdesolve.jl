@@ -76,31 +76,6 @@ function pde_normalize_rhs(A,f::Vector)
 end   
 
 
-function pdesolve_mat(A::AbstractPDEOperatorSchur,f::Array,nx=100000)
-    fx,fy,F=pde_normalize_rhs(A,f)
-    cont_constrained_lyap(A,fx,fy,F,nx)
-end
-
-pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,nx::Integer,ny::Integer)=pdesolve_mat(schurfact(A,ny),f,nx)
-pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,ny::Integer)=pdesolve_mat(schurfact(A,ny),f)
-
-
-##TODO: Do we need pdesolve_mat adaptive routine?
-pdesolve_mat{T<:PDEOperator}(A::Vector{T},f)=pdesolve_mat(A,f,10000eps())
-function pdesolve_mat{T<:PDEOperator}(A::Vector{T},f,tol::Real)
-    @assert tol>0
-    maxit=11
-   
-    for k=5:maxit
-        u=pdesolve_mat(A,f,2^k)
-        if norm(map(f->norm(f.coefficients),u[end-2:end]))<tol
-            return u
-        end
-    end
-    error("Maximum number of iterations " * string(maxit) * "reached")
-end
-
-
 
 pdesolve{T<:PDEOperator}(A::Vector{T},f)=pdesolve(A,f,10000eps())
 function pdesolve{T<:PDEOperator}(A::Vector{T},f,tol::Real)
@@ -131,7 +106,12 @@ function pdesolve(S::PDEStrideOperatorSchur,f::Vector,nx=100000)
     TensorFun(ret,domainspace(S.odd,2).space)
 end
 
-pdesolve(A::AbstractPDEOperatorSchur,f::Array,nx...)=Fun(pdesolve_mat(A,f,nx...),domainspace(A))
+
+function pdesolve(A::AbstractPDEOperatorSchur,f::Array,nx=100000)
+    fx,fy,F=pde_normalize_rhs(A,f)
+    Fun(cont_constrained_lyap(A,fx,fy,F,nx),domainspace(A))
+end
+
 pdesolve(A::AbstractPDEOperatorSchur,f::Union(Fun,MultivariateFun,Number),nx...)=pdesolve(A,[f],nx...)
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)
 pdesolve{T<:PDEOperator}(A::Vector{T},f::Union(Fun,MultivariateFun,Number),n...)=pdesolve(A,[f],n...)
