@@ -100,7 +100,7 @@ function ./(c::Number,f::Fun{Chebyshev})
 
     if length(r) == 0
         linsolve(Multiplication(f,space(f)),c;tolerance=tol)
-    elseif length(r) == 1 && abs(abs(r[1]) - 1.) < tol
+    elseif length(r) == 1 && (isapprox(r[1],1.) || isapprox(r[1],-1.))
         if sign(r[1]) < 0
             g = divide_singularity(-1,fc)  # divide by 1+x
             Fun(canonicalcoefficients(c./g),JacobiWeight(-1,0,domain(f)))
@@ -108,7 +108,7 @@ function ./(c::Number,f::Fun{Chebyshev})
             g = divide_singularity(1,fc)  # divide by 1-x
             Fun(canonicalcoefficients(c./g),JacobiWeight(0,-1,domain(f)))
         end
-    elseif length(r) ==2 && abs(r[1]+1) < tol && abs(r[2]-1) < tol
+    elseif length(r) ==2 && ((isapprox(r[1],-1) && isapprox(r[2],1)) || (isapprox(r[2],-1) && isapprox(r[1],1)))
         g = divide_singularity(fc) # divide by 1-x^2
         # divide out singularities, tolerance needs to be chosen since we don't get
         # spectral convergence
@@ -116,6 +116,7 @@ function ./(c::Number,f::Fun{Chebyshev})
         Fun(canonicalcoefficients(c./g),JacobiWeight(-1,-1,domain(f)))
     else
         #split at the roots
+        println("split at roots")
         c./splitatroots(f)
     end
 end
@@ -192,6 +193,14 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0fp",:(real)),
 end
 
 ## Second order functions
+
+
+Base.sin{S<:FunctionSpace{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
+Base.cos{S<:FunctionSpace{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
+Base.sin{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
+Base.cos{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = real(exp(im*f))
+
+
 
 for (op,ODE,RHS,growth) in ((:(Base.erf),"fp*D^2+(2f*fp^2-fpp)*D","0fp^3",:(imag)),
                             (:(Base.erfi),"fp*D^2-(2f*fp^2+fpp)*D","0fp^3",:(real)),
