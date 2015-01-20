@@ -116,7 +116,6 @@ function ./(c::Number,f::Fun{Chebyshev})
         Fun(canonicalcoefficients(c./g),JacobiWeight(-1,-1,domain(f)))
     else
         #split at the roots
-        println("split at roots")
         c./splitatroots(f)
     end
 end

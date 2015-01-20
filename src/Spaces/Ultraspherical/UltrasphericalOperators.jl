@@ -44,12 +44,18 @@ function Base.getindex{T<:Number}(op::Evaluation{Chebyshev,Bool,T},k::Range)
     if x
         ret = ones(T,length(k))
     elseif !x
-        ret = -ones(T,length(k))    
-        ret=(-1)^(p+1)*ret.^k
+        ret = Array(T,length(k))
+        k1=1-first(k)
+        for j=k
+            ret[j+k1]=(-1)^(p+1)*(-one(T))^j
+        end
     end
 
     for m=0:p-1
-        ret .*= ((k-1).^2-m^2)
+        k1=1-first(k)
+        for j=k
+            ret[j+k1] *= (j-1)^2-m^2
+        end
         ret /= 2m+1
     end
 
