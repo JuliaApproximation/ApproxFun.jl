@@ -151,7 +151,7 @@ Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
         S1,S2))
         
 # Conversion is induced from canonical space
-for OP in (:conversion_rule,:maxspace,:minspace)        
+for OP in (:conversion_rule,:maxspace)        
     @eval function $OP(S1::MappedSpace,S2::MappedSpace)
         @assert domain(S1)==domain(S2)
         cr=$OP(S1.space,S2.space)

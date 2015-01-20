@@ -90,7 +90,7 @@ evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f[xk] for xk in x]
 
 canonicalspace(sp::PiecewiseSpace)=PiecewiseSpace(map(canonicalspace,sp.spaces))
 
-for op in (:maxspace,:minspace)
+for op in (:maxspace,:conversion_type)
     @eval begin
         function $op(f::PiecewiseSpace,g::PiecewiseSpace)
             if domain(f)==domain(g)

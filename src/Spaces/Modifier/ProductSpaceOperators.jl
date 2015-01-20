@@ -104,7 +104,7 @@ function conversion_rule(AS::ArraySpace,BS::ArraySpace)
     end
 end
 
-for OP in (:maxspace,:minspace)
+for OP in (:maxspace,:conversion_type)
     @eval function $OP(AS::ArraySpace,BS::ArraySpace)
         if size(AS)==size(BS)
             ArraySpace($OP(AS.space,BS.space),size(AS))

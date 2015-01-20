@@ -47,7 +47,7 @@ function findmindomainspace(ops::Vector)
     sp = AnySpace()
     
     for op in ops
-        sp = minspace(sp,domainspace(op))
+        sp = conversion_type(sp,domainspace(op))
     end
     
     sp
@@ -106,7 +106,7 @@ function promotedomainspace{T<:Operator}(ops::Vector{T})
 end
 
 function promotedomainspace{T<:Operator}(ops::Vector{T},S::FunctionSpace)
-    k=minspace(findmindomainspace(ops),S)
+    k=conversion_type(findmindomainspace(ops),S)
     Operator[promotedomainspace(op,k) for op in ops]
 end
 function promotedomainspace(ops::Vector,b::Fun)

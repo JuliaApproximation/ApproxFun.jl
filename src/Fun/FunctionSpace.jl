@@ -1,6 +1,6 @@
 
 
-export FunctionSpace, domainspace, rangespace, maxspace, minspace,Space
+export FunctionSpace, domainspace, rangespace, maxspace,Space
 
 
 immutable RealBasis end
@@ -102,23 +102,21 @@ function conversion_rule{S<:FunctionSpace}(a::S,b::S)
     end
 end 
 
+conversion_type(a::AnySpace,b::AnySpace)=a
+conversion_type(a::FunctionSpace,b::AnySpace)=a
+conversion_type(b::AnySpace,a::FunctionSpace)=a
+
 function conversion_type(a,b)
-    cr=conversion_rule(a,b)
-    cr==NoSpace()?conversion_rule(b,a):cr
-end
-
-
-# gives a space c that has a banded conversion operator to a and b
-minspace(a::AnySpace,b::AnySpace)=a
-minspace(a::FunctionSpace,b::AnySpace)=a
-minspace(b::AnySpace,a::FunctionSpace)=a
-function minspace(a::FunctionSpace,b::FunctionSpace)
     if a==b
         a
     else
-        conversion_type(a,b)
+        cr=conversion_rule(a,b)
+        cr==NoSpace()?conversion_rule(b,a):cr
     end
 end
+
+
+
 
 
 
@@ -201,12 +199,12 @@ spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpa
 # end
 
 function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
-    ct=minspace(a,b)
+    ct=conversion_type(a,b) # gives a space that has a banded conversion to both a and b
 
     if spacescompatible(a,b)
         f
     elseif spacescompatible(ct,a)
-        Conversion(a,b)*f  ##TODO: Make * and \ consistent in return type
+        Conversion(a,b)*f  #TODO: Make * and \ consistent in return type
     elseif spacescompatible(ct,b)
         (Conversion(b,a)\f).coefficients
     else
