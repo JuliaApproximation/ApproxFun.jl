@@ -37,6 +37,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         
         $WrappOp{T<:Number}(op::BandedOperator{T},order::Integer)=$WrappOp{typeof(op),typeof(domainspace(op)),T}(op,order)
         $WrappOp{T<:Number}(op::BandedOperator{T})=$WrappOp(op,1)        
+        Base.convert{T}(::Type{BandedOperator{T}},D::$WrappOp)=$WrappOp(convert(BandedOperator{T},D.op),D.order)
         
         ## Routines
         domain(D::$Op)=domain(D.space)       

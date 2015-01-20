@@ -71,7 +71,7 @@ evaluate{T}(f::Fun{JacobiSquare,T},x::Number)=itransform(f.space,f.coefficients,
 ## Operators
 
 # Override JacobiWeight default
-Multiplication{T}(f::Fun{JacobiWeight{Chebyshev},T},S::JacobiSquare)=Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T}(f,S)
+Multiplication{T}(f::Fun{JacobiWeight{Chebyshev},T},S::JacobiSquare)=Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T,T}(f,S)
 bandinds{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T})=0,0
 
 function addentries!{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T},A,kr::Range)

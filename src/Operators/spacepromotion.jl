@@ -28,6 +28,7 @@ end
 SpaceOperator{T<:Number}(o::Operator{T},s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{promote_type(T,eltype(s),eltype(rs)),typeof(o),typeof(s),typeof(rs)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 
+Base.convert{T}(::Type{BandedOperator{T}},S::SpaceOperator)=SpaceOperator(convert(BandedOperator{T},S.op),S.domainspace,S.rangespace)
 
 domain(S::SpaceOperator)=domain(domainspace(S))
 

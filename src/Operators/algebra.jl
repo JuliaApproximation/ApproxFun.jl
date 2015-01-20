@@ -22,6 +22,8 @@ immutable PlusOperator{T<:Number} <: BandedOperator{T}
 end
 
 
+Base.convert{T}(::Type{BandedOperator{T}},P::PlusOperator)=PlusOperator{T}(P.ops)
+
 promoteplus{T<:Number}(ops::Vector{BandedOperator{T}})=PlusOperator{T}(promotespaces(ops))
 promoteplus{T<:Number}(ops::Vector{Functional{T}})=PlusFunctional{T}(promotespaces(ops))
 
@@ -167,10 +169,10 @@ end
 
 
 
-type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
-    ops::Vector{B}
+type TimesOperator{T<:Number} <: BandedOperator{T}
+    ops::Vector{BandedOperator{T}}
     
-    function TimesOperator{B}(ops::Vector{B})
+    function TimesOperator(ops::Vector{BandedOperator{T}})
         for k=1:length(ops)-1
             @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() || domainspace(ops[k])==rangespace(ops[k+1])
         end
@@ -179,38 +181,37 @@ type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
     end
 end
 
+TimesOperator{T}(ops::Vector{BandedOperator{T}})=TimesOperator{T}(ops)
 
-function TimesOperator{B<:Operator}(ops::Vector{B})
-    T = mapreduce(eltype,promote_type,ops)
-    TimesOperator{T,B}(ops)
-end
+TimesOperator{T,V}(A::TimesOperator{T},B::TimesOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
+TimesOperator{T,V}(A::TimesOperator{T},B::BandedOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A.ops...,B])
+TimesOperator{T,V}(A::BandedOperator{T},B::TimesOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A,B.ops...])
+TimesOperator{T,V}(A::BandedOperator{T},B::BandedOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A,B])
 
 
-TimesOperator(A::TimesOperator,B::TimesOperator)=TimesOperator([A.ops,B.ops])
-TimesOperator(A::TimesOperator,B::Operator)=TimesOperator([A.ops,B])
-TimesOperator(A::Operator,B::TimesOperator)=TimesOperator([A,B.ops])
-TimesOperator(A::Operator,B::Operator)=TimesOperator([A,B])
+Base.convert{T}(::Type{BandedOperator{T}},P::TimesOperator)=TimesOperator(BandedOperator{T}[P.ops...])
 
-function promotetimes{B}(opsin::Vector{B})
-    ops=copy(opsin)
-    #TODO: Speedup
-    for k=length(ops)-1:-1:1
-#         if isa(ops[k],Conversion)
-#             ops=ops[[1:k-1,k+1:end]]  # remove the op
-#         else        
-            op=promotedomainspace(ops[k],rangespace(ops[k+1]))
-            # promotedomainspace does not necessarily have correct type
-            if op==()
-                ops=ops[[1:k-1,k+1:end]]  # remove the op
-            elseif isa(op,TimesOperator)
-                ops=[ops[1:k-1],op.ops,ops[k+1:end]]
-            else
-                ops=[ops[1:k-1],op,ops[k+1:end]]  
+
+
+function promotetimes{B<:BandedOperator}(opsin::Vector{B})
+    ops=Array(BandedOperator{mapreduce(eltype,promote_type,opsin)},0)
+
+    push!(ops,opsin[end]) 
+    for k=length(opsin)-1:-1:1
+        op=promotedomainspace(opsin[k],rangespace(last(ops)))
+        if op==()
+            # do nothing
+        elseif isa(op,TimesOperator)
+            for j=length(op):-1:1
+                push!(ops,op[j])
             end
+        else
+            push!(ops,op)
+        end
 #        end
     end
     
-    TimesOperator(ops)
+    TimesOperator(reverse!(ops))  # change order in TImesOperator if this is slow
 end    
 
 
@@ -305,11 +306,10 @@ end
 
 -(A::Functional,B::Functional)=PlusFunctional([A,-B])
 
-*(A::TimesOperator,B::TimesOperator)=promotetimes([A.ops,B.ops])
-*(A::TimesOperator,B::BandedOperator)=promotetimes([A.ops,B])
-*(A::BandedOperator,B::TimesOperator)=promotetimes([A,B.ops])
-*{T}(A::BandedOperator{T},B::BandedOperator{T})=promotetimes(BandedOperator{T}[A,B])
-*(A::BandedOperator,B::BandedOperator)=promotetimes(BandedOperator[A,B])
+*{T,V}(A::TimesOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
+*{T,V}(A::TimesOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B])
+*{T,V}(A::BandedOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B.ops...])
+*{T,V}(A::BandedOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B])
 
 
 -(A::Operator)=ConstantOperator(-1.)*A
