@@ -8,6 +8,8 @@ immutable SliceSpace{index,stride,DS,T,D}<: FunctionSpace{T,D}
 end
 
 
+spacescompatible{n,st,DS,T,D}(S1::SliceSpace{n,st,DS,T,D},S2::SliceSpace{n,st,DS,T,D})=spacescompatible(S1.space,S2.space)
+
 index{n}(::SliceSpace{n})=n
 Base.stride{n,st}(::SliceSpace{n,st})=st
 
@@ -48,7 +50,7 @@ end
 
 
 ## Resolve conflict
-spaceconversion(::Vector,sp::ReImSpace,slp::SliceSpace)=error("spaceconversion not implemented from "*typeof(sp)*" to "*typeof(slp))
+spaceconversion(::Vector,sp::ReImSpace,slp::SliceSpace)=error("spaceconversion not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
 spaceconversion(::Vector,sp::SliceSpace,slp::ReImSpace)=error("spaceconversion not implemented from "*typeof(sp)*" to "*typeof(slp))
 
 # v[k]=v[stride*k+index]
@@ -56,24 +58,30 @@ function spaceconversion(v::Vector,sp::SliceSpace,dropsp::SliceSpace)
     if sp==dropsp
         v
     else
-        error("spaceconversion not implemented from "*typeof(sp))
+        spaceconversion(v,sp,canonicalspace(sp),dropsp)
     end
 end
 
 function spaceconversion(v::Vector,sp::FunctionSpace,dropsp::SliceSpace)
-    @assert sp==dropsp.space
-    n=index(dropsp)
-    st=stride(dropsp)
-    v[st+n:st:end]
+    if sp==dropsp.space
+        n=index(dropsp)
+        st=stride(dropsp)
+        v[st+n:st:end]
+    else
+        spaceconversion(v,sp,canonicalspace(dropsp),dropsp)
+    end
 end
 
 function spaceconversion{V}(v::Vector{V},dropsp::SliceSpace,sp::FunctionSpace)
-    @assert sp==dropsp.space
-    n=index(dropsp)
-    st=stride(dropsp)
-    ret=zeros(V,st*length(v)+n)
-    ret[st+n:st:end]=v
-    ret
+    if sp==dropsp.space
+        n=index(dropsp)
+        st=stride(dropsp)
+        ret=zeros(V,st*length(v)+n)
+        ret[st+n:st:end]=v
+        ret
+    else
+        spaceconversion(v,dropsp,canonicalspace(dropsp),sp)        
+    end
 end
 
 canonicalspace(a::SliceSpace)=a.space
