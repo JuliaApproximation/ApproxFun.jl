@@ -3,13 +3,29 @@
 export FunctionSpace, domainspace, rangespace, maxspace,Space
 
 
+## 
+# "enum" types used for whether the basis is
+# Real or Complex.  AnyBasis is used when the answer
+# is unknown.  
+##
+
 immutable RealBasis end
 immutable ComplexBasis end
 immutable AnyBasis end
 
+
+# coefficient_type(basis,valuetype) gives the type for coefficients
+# for basis of type RealBasis/ComplexBasis and valuetype
+# giving the type of function values
 coefficient_type{T<:Complex}(::Type{ComplexBasis},::Type{T})=T
 coefficient_type{T<:Real}(::Type{ComplexBasis},::Type{T})=Complex{T}
 coefficient_type{T}(::Type{RealBasis},::Type{T})=T
+
+
+#
+# eltype for RealBasis/ComplexBasis gives the
+# default type.  Maybe should be defaulteltype?
+#
 
 Base.eltype(::RealBasis)=Float64
 Base.eltype(::ComplexBasis)=Complex{Float64}
@@ -21,12 +37,8 @@ Base.eltype(::Type{AnyBasis})=Number
 
 
 
-# immutable RealDomain end
-# immutable ComplexDomain end
 
-
-
-# T tells whether the basis is real (cos/sin) or complex
+# T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
 # D tells what canonical domain is (Interval/PeriodicInterval)
 abstract FunctionSpace{T,D} #TODO should be able to write D<:Domain
 
@@ -44,6 +56,13 @@ end
 
 abstract AmbiguousSpace <: FunctionSpace{RealBasis,AnyDomain}
 
+
+# AnySpace dictates that an operator can act on any space
+# UnsetSpace dictates that an operator is not defined until 
+#   its domainspace is promoted
+# NoSpace is used to indicate no space exists for, e.g.,
+# conversion_type
+
 immutable AnySpace <: AmbiguousSpace end
 immutable UnsetSpace <: AmbiguousSpace end
 immutable NoSpace <: AmbiguousSpace end
@@ -58,7 +77,8 @@ points(d::FunctionSpace,n)=points(domain(d),n)
 
 domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() || domain(a) == domain(b)
 
-#Check whether spaces are the same, override when you need to check parameters
+# Check whether spaces are the same, override when you need to check parameters
+# This is used in place of == to support AnyDomain
 spacescompatible{D<:FunctionSpace}(f::D,g::D)=error("Override spacescompatible for "*string(D))
 spacescompatible(::AnySpace,::AnySpace)=true
 spacescompatible(::UnsetSpace,::UnsetSpace)=true
