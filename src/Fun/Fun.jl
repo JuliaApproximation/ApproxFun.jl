@@ -68,7 +68,7 @@ function evaluate{S,T}(f::Fun{S,T},x)
     if spacescompatible(csp,space(f))
         error("Override evaluate for " * string(typeof(csp)))
     else
-        evaluate(Fun(f,domain(f)),x)  
+        evaluate(Fun(f,csp),x)  
     end
 end
 
