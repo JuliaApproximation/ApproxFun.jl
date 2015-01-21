@@ -16,38 +16,38 @@ ToeplitzOperator{T,D}(f::Fun{D,T})=ToeplitzOperator(f.coefficients)
 
 
 
-function toeplitz_addentries!(v::Vector,A,kr::Range)    
+function toeplitz_addentries!(v::Vector,A,kr::Range)
     if !isempty(v)
         v1=v[1]
         M=maxabs(v)
-        if abs(v1) > M*10eps()
+        if abs(v1) > M*10eps(eltype(v))
             for k=kr
                 A[k,k]+=2v1
             end
         end
-    
+
         for j=2:length(v)
             vj=v[j]
-            if abs(vj)> M*10eps()
+            if abs(vj)> M*10eps(eltype(v))
                 for k = kr
                     A[k,k+j-1]+=vj
                 end
                 for k = intersect(j:kr[end],kr)
                     A[k,k-j+1]+=vj
-                end      
-            end      
-        end    
+                end
+            end
+        end
     end
     A
 end
 
-function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)    
+function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)
     if !isempty(v)
         @inbounds v1=v[1]
         @simd for k=kr
             @inbounds A.data[A.l+1,k]+=2v1
         end
-    
+
         for j=2:length(v)
             @inbounds vj=v[j]
             @simd for k = kr
@@ -55,17 +55,17 @@ function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)
             end
             @simd for k = max(kr[1],j):kr[end]
                 @inbounds A.data[2-j+A.l,k]+=vj
-            end            
-        end    
+            end
+        end
     end
     A
 end
 
-function toeplitz_addentries!(v::ShiftVector,A,kr::Range)    
+function toeplitz_addentries!(v::ShiftVector,A,kr::Range)
     for k=kr,j=max(range(v)[1],1-k):range(v)[end]
         A[k,k+j] += v[j]
     end
-    
+
     A
 end
 
@@ -92,7 +92,7 @@ function hankel_addentries!(v::Vector,A,kr::Range)
     M=maxabs(v)
     for j=1:length(v)
         vj=v[j]
-        if abs(vj)>M*10eps()
+        if abs(vj)>M*10eps(eltype(v))
             for k=intersect(kr,1:j)
                 if j + 1 >= k+1
                     A[k,j-k+1] += vj
@@ -100,7 +100,7 @@ function hankel_addentries!(v::Vector,A,kr::Range)
             end
         end
     end
-    
+
     A
 end
 
@@ -125,21 +125,21 @@ function shiftrowrange(kr::Range)
         negkr=-div(kr[end]-1,2):-div(kr[1]+1,2)
     elseif isodd(kr[1]) # && iseven(kr[end])
         poskr=div(kr[1]-1,2):div(kr[end],2)-1
-        negkr=-div(kr[end],2):-div(kr[1]+1,2)        
+        negkr=-div(kr[end],2):-div(kr[1]+1,2)
     elseif isodd(kr[end]) # && iseven(kr[1])
         poskr=div(kr[1],2):div(kr[end]-1,2)
-        negkr=-div(kr[end]-1,2):-div(kr[1],2)    
+        negkr=-div(kr[end]-1,2):-div(kr[1],2)
     else # iseven(kr[end]) && iseven(kr[1])
         poskr=div(kr[1],2):div(kr[end],2)-1
-        negkr=-div(kr[end],2):-div(kr[1],2)        
+        negkr=-div(kr[end],2):-div(kr[1],2)
     end
     negkr,poskr
 end
 
-# function laurent_addentries!(v::Vector,A,kr::Range)    
+# function laurent_addentries!(v::Vector,A,kr::Range)
 #     negkr,poskr=shiftrowrange(kr)
 #     br=1-length(v):length(v)-1
-# 
+#
 #     for k=poskr,j=br
 #         if j≥0 # && k≥0
 #             A[2k+1,2j+1] += (j ==0) ? 2v[1] : v[abs(j)+1]
@@ -147,22 +147,22 @@ end
 #             A[2k+1,-2j] += (j ==0) ? 2v[1] : v[abs(j)+1]
 #         end
 #     end
-#     
+#
 #     for k=negkr,j=br
 #         if j≥0 # && k <0
 #             A[-2k,2j+1] += (j ==0) ? 2v[1] : v[abs(j)+1]
 #         else # j<0 && k<0
 #             A[-2k,-2j] += (j ==0) ? 2v[1] : v[abs(j)+1]
 #         end
-#     end    
-#     
+#     end
+#
 #     A
 # end
 
 
 
 
-function laurent_addentries!(v::ShiftVector,A,kr::Range)    
+function laurent_addentries!(v::ShiftVector,A,kr::Range)
     negkr,poskr=shiftrowrange(kr)
     br=length(v)==0?(0:0):(firstindex(v):lastindex(v))
 
@@ -172,20 +172,20 @@ function laurent_addentries!(v::ShiftVector,A,kr::Range)
             # k->2k+1
             A[2k+1,2k+2j+1] += v[j]
         else # k+j<0 && k≥0
-            
-            #A[k,k+j]=v[j]        
-            A[2k+1,-2k-2j] += v[j]            
+
+            #A[k,k+j]=v[j]
+            A[2k+1,-2k-2j] += v[j]
         end
     end
-    
+
     for k=negkr,j=br
         if k+j<0 # && k <0
             A[-2k,-2k-2j] += v[j]
         else # k+j>0 && k<0
-            A[-2k,2k+2j+1] += v[j] 
+            A[-2k,2k+2j+1] += v[j]
         end
-    end    
-    
+    end
+
     A
 end
 
