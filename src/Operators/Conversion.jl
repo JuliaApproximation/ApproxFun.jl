@@ -17,7 +17,6 @@ rangespace(C::Conversion)=C.rangespace
 
 
 
-#TODO: Periodic
 function Conversion(a::FunctionSpace,b::FunctionSpace)
     if a==b
         IdentityOperator()

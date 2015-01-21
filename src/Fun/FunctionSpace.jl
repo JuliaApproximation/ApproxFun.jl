@@ -111,7 +111,7 @@ for FUNC in (:conversion_type,:maxspace)
     for TYP in (:AnySpace,:UnsetSpace)
         @eval begin
             $FUNC(a::$TYP,b::$TYP)=a
-            $FUNC(a::$TYP,b::FunctionSpace)=a            
+            $FUNC(a::$TYP,b::FunctionSpace)=b
             $FUNC(a::FunctionSpace,b::$TYP)=a
         end
     end
