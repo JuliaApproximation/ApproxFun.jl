@@ -448,7 +448,7 @@ end
 
 function addentries!(B::BandedMatrix,c::Number,A,kr::Range)   
     for k=intersect(kr,1:size(B,1)),j=intersect(k+bandrange(B),1:size(B,2))
-        A[k,j] += c*B[k,j]
+        A[k,j] += c*B.data[j-k+B.l+1,k]
     end
     
     A

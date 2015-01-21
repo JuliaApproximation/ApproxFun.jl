@@ -3,13 +3,13 @@ export ⊕
 ## SumSpace{T,S,V} encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T<:Number,D<:Domain} <: FunctionSpace{T,D}
+immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T,D<:Domain} <: FunctionSpace{T,D}
     spaces::(S,V)
     SumSpace(d::Domain)=new((S(d),V(d)))
     SumSpace(sp::(S,V))=new(sp)
 end
 
-function SumSpace{T<:Number,D}(A::(FunctionSpace{T,D},FunctionSpace{T,D}))
+function SumSpace{T,D}(A::(FunctionSpace{T,D},FunctionSpace{T,D}))
     @assert domain(A[1])==domain(A[2])
     SumSpace{typeof(A[1]),typeof(A[2]),T,D}(A)
 end

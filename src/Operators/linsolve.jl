@@ -12,6 +12,8 @@ function stridelinsolve(Ad,b,tolerance,maxlength)
 end
 
 
+
+
 function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps(),maxlength=1000000)
     Ad=promotedomainspace(A)
 

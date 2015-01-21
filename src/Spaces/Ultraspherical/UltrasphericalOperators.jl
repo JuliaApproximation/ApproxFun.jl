@@ -35,20 +35,28 @@ end
 
 
 ##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex(op::Evaluation{Chebyshev,Bool},k::Range)
+function Base.getindex{T<:Number}(op::Evaluation{Chebyshev,Bool,T},k::Range)
     x = op.x
     d = domain(op)
     p = op.order
     cst = (2/(d.b-d.a))^p
 
     if x
-        ret = ones(size(k)[1])
+        ret = ones(T,length(k))
     elseif !x
-        ret = (-1.)^(p+1)*(-1.).^k ##TODO: speed up
+        ret = Array(T,length(k))
+        k1=1-first(k)
+        for j=k
+            ret[j+k1]=(-1)^(p+1)*(-one(T))^j
+        end
     end
 
     for m=0:p-1
-        ret .*= ((k-1).^2-m^2)./(2m+1)
+        k1=1-first(k)
+        for j=k
+            ret[j+k1] *= (j-1)^2-m^2
+        end
+        ret /= 2m+1
     end
 
     return ret*cst
@@ -189,7 +197,7 @@ function Conversion{a,b}(A::Ultraspherical{a},B::Ultraspherical{b})
     @assert b > a
 
     if b==a+1
-        Conversion{Ultraspherical{a},Ultraspherical{b},Float64}(A,B)
+        Conversion{Ultraspherical{a},Ultraspherical{b},promote_type(Float64,real(eltype(domain(A))),real(eltype(domain(B))))}(A,B)
     else
         d=domain(A)
         Conversion(Ultraspherical{b-1}(d),B)*Conversion(A,Ultraspherical{b-1}(d))
@@ -198,6 +206,7 @@ end
 
 
 function addentries!(M::Conversion{Chebyshev,Ultraspherical{1}},A,kr::Range)
+    # this uses that 0.5 is exact, so no need for special bigfloat def
     for k=kr
         A[k,k] += (k == 1)? 1. : .5
         A[k,k+2] += -.5
@@ -206,11 +215,12 @@ function addentries!(M::Conversion{Chebyshev,Ultraspherical{1}},A,kr::Range)
     A
 end
 
-function addentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{λ}},A,kr::Range)
+function addentries!{m,λ,T}(M::Conversion{Ultraspherical{m},Ultraspherical{λ},T},A,kr::Range)
     @assert λ==m+1
+    c=λ-one(T)  # this supports big types
     for k=kr
-        A[k,k] += (λ-1.)./(k - 2. + λ)
-        A[k,k+2] += -(λ-1.)./(k + λ)
+        A[k,k] += c/(k - 2 + λ)
+        A[k,k+2] += -c/(k + λ)
     end
 
     A

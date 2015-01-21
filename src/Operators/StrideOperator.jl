@@ -129,7 +129,7 @@ end
 StrideFunctional{T<:Number}(B::Functional{T},r,rs)=StrideFunctional{T,typeof(B)}(B,r,rs)
 
 
-Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range1)=[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
+Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range1)=T[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
 
 
 
@@ -235,9 +235,10 @@ interlace{T<:BandedOperator}(A::Matrix{T})=InterlaceOperator(A)
 # functionals as well
 function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
-    
+
     A=promotespaces(A)
-    
+    TT=mapreduce(eltype,promote_type,A)    
+        
     dsp=domainspace(A)
 
     br=0#num boundary rows
@@ -251,7 +252,7 @@ function interlace{T<:Operator}(A::Matrix{T})
         @assert isboundaryrow(A,k) 
     end
     
-    S=Array(Operator,br<m?br+1:br)
+    S=Array(Operator{TT},br<m?br+1:br)
     
     for k=1:br, j=1:n
         if !iszerooperator(A[k,j])
@@ -271,7 +272,6 @@ function interlace{T<:Operator}(A::Matrix{T})
     
     if br < m
         Am=A[br+1:m,:]
-        TT=mapreduce(eltype,promote_type,Am)
         S[br+1]=interlace(convert(Matrix{BandedOperator{TT}},Am))
     end
     

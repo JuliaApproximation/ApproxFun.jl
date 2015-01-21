@@ -4,7 +4,7 @@ export MappedSpace
 
 #Typing D as Domain was causing issues
 
-type MappedSpace{S<:FunctionSpace,D,T<:Number,DS<:Domain} <: FunctionSpace{T,DS}
+type MappedSpace{S<:FunctionSpace,D,T,DS<:Domain} <: FunctionSpace{T,DS}
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)
@@ -15,21 +15,21 @@ end
 
 spacescompatible(a::MappedSpace,b::MappedSpace)=spacescompatible(a.space,b.space)&&domainscompatible(a,b)
 
-MappedSpace{D<:Domain,T<:Number,DS<:Domain}(d::D,s::FunctionSpace{T,DS})=MappedSpace{typeof(s),D,T,DS}(d,s)
+MappedSpace{D<:Domain,T,DS<:Domain}(d::D,s::FunctionSpace{T,DS})=MappedSpace{typeof(s),D,T,DS}(d,s)
 
-typealias IntervalMappedSpace{S,D} MappedSpace{S,D,Float64,Interval}
+typealias IntervalMappedSpace{S,D} MappedSpace{S,D,RealBasis,Interval}
 typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
 
 typealias LineSpace{T} IntervalMappedSpace{Chebyshev,Line{T}}
 typealias RaySpace{T} IntervalMappedSpace{Chebyshev,Ray{T}}
 typealias CurveSpace{S,T,DS} MappedSpace{S,Curve{S},T,DS}
-typealias OpenCurveSpace{S} CurveSpace{S,Float64,Interval}
+typealias OpenCurveSpace{S} CurveSpace{S,RealBasis,Interval}
 typealias ClosedCurveSpace{S,T} CurveSpace{S,T,PeriodicInterval}
 
 Space{T}(d::Line{T})=LineSpace{T}(d)
 Space{T}(d::Ray{T})=RaySpace{T}(d)
 #TODO: Assuming periodic is complex basis
-Space{S<:PeriodicSpace}(d::Curve{S})=ClosedCurveSpace{S,Complex{Float64}}(d)
+Space{S<:PeriodicSpace}(d::Curve{S})=ClosedCurveSpace{S,ComplexBasis}(d)
 
 
 domain(S::MappedSpace)=S.domain
@@ -102,7 +102,7 @@ end
 
 #integration functions
 
-integrate{LS,T}(f::Fun{LineSpace{LS},T})= [ldirichlet(),Derivative()]\Any[0.,f]
+integrate{LS,T}(f::Fun{LineSpace{LS},T})=linsolve([ldirichlet(),Derivative()],Any[0.,f];tolerance=length(f)^2*max(1,maximum(f.coefficients))*10E-13)
 
 function integrate{RS<:RaySpace,T}(f::Fun{RS,T})
     x=Fun(identity)
@@ -132,7 +132,7 @@ function identity_fun{SS,DD,DDS,DDT}(S::MappedSpace{SS,DD,DDT,DDS})
     if isa(space(sf),JacobiWeight)
         Fun(coefficients(sf),MappedSpace(S.domain,JacobiWeight(sf.space.α,sf.space.β,S.space)))
     else
-         @assert isa(space(sf),S.space)
+         @assert spacescompatible(space(sf),S.space)
          Fun(coefficients(sf),S)
     end
 end
@@ -151,7 +151,7 @@ Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
         S1,S2))
         
 # Conversion is induced from canonical space
-for OP in (:conversion_rule,:maxspace,:minspace)        
+for OP in (:conversion_rule,:maxspace)        
     @eval function $OP(S1::MappedSpace,S2::MappedSpace)
         @assert domain(S1)==domain(S2)
         cr=$OP(S1.space,S2.space)

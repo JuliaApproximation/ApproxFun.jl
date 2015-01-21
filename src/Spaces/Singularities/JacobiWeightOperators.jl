@@ -179,11 +179,16 @@ end
 ## Conversion
 
 maxspace(A::JacobiWeight,B::JacobiWeight)=JacobiWeight(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
-minspace(A::JacobiWeight,B::JacobiWeight)=JacobiWeight(max(A.α,B.α),max(A.β,B.β),minspace(A.space,B.space))
 maxspace(A::IntervalSpace,B::JacobiWeight)=maxspace(JacobiWeight(0.,0.,A),B)
 maxspace(A::JacobiWeight,B::IntervalSpace)=maxspace(A,JacobiWeight(0.,0.,B))
 
 isapproxinteger(x)=isapprox(x,int(x))
+
+# return the space that has banded Conversion to the other, or NoSpace
+conversion_rule{n,S<:FunctionSpace,IS<:IntervalSpace}(A::SliceSpace{n,1,S,RealBasis,Interval},B::JacobiWeight{IS})=error("Not implemented")
+conversion_rule(A::JacobiWeight,B::JacobiWeight)=JacobiWeight(max(A.α,B.α),max(A.β,B.β),conversion_type(A.space,B.space))
+conversion_rule(A::IntervalSpace,B::JacobiWeight)=conversion_type(JacobiWeight(0,0,A),B)
+conversion_rule(A::JacobiWeight,B::IntervalSpace)=conversion_type(A,JacobiWeight(0,0,B))
 
 
 
@@ -226,25 +231,7 @@ Conversion(A::JacobiWeight,B::IntervalSpace)=ConversionWrapper(
         A,B))        
 
 
-isapproxleq(a,b)=(a<=b || isapprox(a,b))
-# return the space that has banded Conversion to the other, or NoSpace
-function conversion_rule(A::JacobiWeight,B::JacobiWeight)
-    if isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
-        ct=conversion_type(A.space,B.space)
-        if ct == B.space && isapproxleq(A.α,B.α) && isapproxleq(A.β,B.β)
-            return B
-        elseif ct == A.space && isapproxleq(B.α,A.α) && isapproxleq(B.β,A.β)
-            return A
-        end
-    end
 
-    return NoSpace()
-end
-
-
-conversion_rule{n,S<:FunctionSpace,IS<:IntervalSpace}(A::SliceSpace{n,1,S,Float64,Interval},B::JacobiWeight{IS})=error("Not implemented")
-conversion_rule(A::IntervalSpace,B::JacobiWeight)=conversion_rule(JacobiWeight(0,0,A),B)
-conversion_rule(A::JacobiWeight,B::IntervalSpace)=conversion_rule(A,JacobiWeight(0,0,B))
 
 
 

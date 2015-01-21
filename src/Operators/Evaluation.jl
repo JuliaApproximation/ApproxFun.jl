@@ -10,8 +10,9 @@ immutable Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Abstra
     x::M
     order::Int
 end
-Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,Float64}(sp,x,k)
-Evaluation{M,T<:Number}(sp::FunctionSpace{T},x::M,order::Integer)=Evaluation{typeof(sp),M,T}(sp,x,order)
+Evaluation{T}(::Type{T},sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
+Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,UnsetNumber}(sp,x,k)
+Evaluation(sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),promote_type(eltype(sp),eltype(domain(sp)))}(sp,x,order)
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
@@ -43,12 +44,12 @@ immutable EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functiona
     functional::FS
 end
 
-EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functional}(sp::S,x::M,order::Integer,func::FS)=EvaluationWrapper{S,M,FS,Float64}(sp,x,order,func)
+EvaluationWrapper(sp::FunctionSpace,x::Union(Number,Bool),order::Integer,func::Functional)=EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
 getindex(E::EvaluationWrapper,kr::Range)=getindex(E.functional,kr)
 
 domainspace(E::AbstractEvaluation)=E.space
 domain(E::AbstractEvaluation)=domain(E.space)
-promotedomainspace(E::AbstractEvaluation,sp::FunctionSpace)=Evaluation(sp,E.x,E.order)
+promotedomainspace{T}(E::AbstractEvaluation{T},sp::FunctionSpace)=Evaluation(promote_type(T,eltype(sp)),sp,E.x,E.order)
 Base.stride(E::EvaluationWrapper)=stride(E.functional)
 
 ## Convenience routines
@@ -69,7 +70,7 @@ ivp(d)=[ldirichlet(d),lneumann(d)]
 dirichlet(d)=[ldirichlet(d),rdirichlet(d)]
 neumann(d)=[lneumann(d),rneumann(d)]
 diffbcs(d,k) = [ldiffbc(d,k),rdiffbc(d,k)]
-periodic(d,k) = [Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
+periodic(d,k) = Functional{eltype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
 
 
 

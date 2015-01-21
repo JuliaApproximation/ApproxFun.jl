@@ -6,7 +6,6 @@ export ldiffbc,rdiffbc,diffbcs
 
 
 
-
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
 abstract Functional{T} <: Operator{T}
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
@@ -182,7 +181,7 @@ end
 ## Default Composition with a Fun, LowRankFun, and TensorFun
 
 Base.getindex(B::BandedOperator,f::Fun) = B*Multiplication(domainspace(B),f)
-Base.getindex(B::BandedOperator,f::LowRankFun) = PlusOperator(BandedOperator[f.A[i]*B[f.B[i]] for i=1:rank(f)])
+Base.getindex{BT,S,M,T,V}(B::BandedOperator{BT},f::LowRankFun{S,M,T,V}) = PlusOperator(BandedOperator{promote_type(BT,T,V)}[f.A[i]*B[f.B[i]] for i=1:rank(f)])
 Base.getindex(B::BandedOperator,f::TensorFun) = B[LowRankFun(f)]
 
 ## Standard Operators and linear algebra

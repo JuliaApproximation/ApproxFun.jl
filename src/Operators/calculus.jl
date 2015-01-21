@@ -18,27 +18,32 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         end    
 
             
-        ## Constructors        
-        $Op{T<:Number}(sp::FunctionSpace{T},k)=$Op{typeof(sp),T}(sp,k)
+        ## Constructors  
+        $Op{T}(::Type{T},sp::FunctionSpace,k)=$Op{typeof(sp),T}(sp,k)
+              
+        $Op(sp::FunctionSpace{RealBasis},k)=$Op{typeof(sp),promote_type(Float64,eltype(domain(sp)))}(sp,k)
+        $Op(sp::FunctionSpace{ComplexBasis},k)=$Op{typeof(sp),promote_type(Complex{Float64},eltype(domain(sp)))}(sp,k)        
         
         $Op(sp::FunctionSpace)=$Op(sp,1)
-        $Op()=$Op(AnySpace())
-        $Op(k::Integer)=$Op(AnySpace(),k)
+        $Op()=$Op(UnsetSpace())
+        $Op(k::Integer)=$Op(UnsetSpace(),k)
         
         $Op(d::Domain,n)=$Op(Space(d),n)
         $Op(d::Domain)=$Op(d,1)
         $Op(d::Vector)=$Op(Space(d),1)
         $Op(d::Vector,n)=$Op(Space(d),n)        
         
+        Base.convert{T}(::Type{BandedOperator{T}},D::$Op)=$Op(T,D.space,D.order)
         
         $WrappOp{T<:Number}(op::BandedOperator{T},order::Integer)=$WrappOp{typeof(op),typeof(domainspace(op)),T}(op,order)
         $WrappOp{T<:Number}(op::BandedOperator{T})=$WrappOp(op,1)        
+        Base.convert{T}(::Type{BandedOperator{T}},D::$WrappOp)=$WrappOp(convert(BandedOperator{T},D.op),D.order)
         
         ## Routines
         domain(D::$Op)=domain(D.space)       
         domainspace(D::$Op)=D.space
         
-        addentries!{T}(::$Op{AnySpace,T},A,kr::Range)=error("Spaces cannot be inferred for operator")
+        addentries!{T}(::$Op{UnsetSpace,T},A,kr::Range)=error("Spaces cannot be inferred for operator")
         
         function addentries!{S,T}(D::$Op{S,T},A,kr::Range)   
             # Default is to convert to Canonical and d
@@ -68,11 +73,12 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             end      
             rangespace($Op(canonicalspace(domainspace(D)),D.order))
         end
-        rangespace{T}(D::$Op{AnySpace,T})=AnySpace()     
+        rangespace{T}(D::$Op{UnsetSpace,T})=UnsetSpace()     
         
         #promoting domain space is allowed to change range space
         # for integration, we fall back on existing conversion for now
-        promotedomainspace(D::$AbstOp,sp::AnySpace)=D
+        promotedomainspace(D::$AbstOp,sp::UnsetSpace)=D
+        promotedomainspace(D::$AbstOp,sp::AnySpace)=D        
         
         function promotedomainspace{S<:FunctionSpace}(D::$AbstOp,sp::S)
             if domain(sp) == AnyDomain()

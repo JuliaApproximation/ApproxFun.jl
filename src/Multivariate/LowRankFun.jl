@@ -83,11 +83,12 @@ function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integ
     
     
     for k=1:maxrank
-        if norm(a.coefficients) < tol && norm(b.coefficients) < tol
+        if norm(a.coefficients) <tol || norm(b.coefficients) < tol
             return LowRankFun(A,B)
         end
         
-        ##Todo negative orientation 
+        ##TODO: negative orientation 
+        # the turms 
         A=[A,a/sqrt(abs(a[r[1]]))];B=[B,sign(b[r[2]]).*b/sqrt(abs(b[r[2]]))]    
         r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy,gridx,gridy)
         Ar=map(q->q[r[1]],A)

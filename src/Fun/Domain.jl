@@ -8,9 +8,11 @@ abstract Domain{T<:Number}  #type parameter represents what find of numeric repr
 numbertype{T}(d::Domain{T}) = T
 numbertype(d::Any) = Float64 #TODO, temporarily trying to get tests passing and ensure default previous behavior.
 
-immutable AnyDomain <: Domain
+immutable AnyDomain <: Domain{UnsetNumber}
 end
 
+
+Base.eltype{T}(::Domain{T})=T
 
 
 

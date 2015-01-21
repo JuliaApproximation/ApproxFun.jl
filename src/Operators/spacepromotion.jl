@@ -25,9 +25,10 @@ immutable SpaceOperator{T<:Number,O<:Operator,S<:FunctionSpace,V<:FunctionSpace}
 end
 
 
-SpaceOperator{T<:Number,ST<:Number,VT<:Number}(o::Operator{T},s::FunctionSpace{ST},rs::FunctionSpace{VT})=SpaceOperator{promote_type(T,ST,VT),typeof(o),typeof(s),typeof(rs)}(o,s,rs)
+SpaceOperator{T<:Number}(o::Operator{T},s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{promote_type(T,eltype(s),eltype(rs)),typeof(o),typeof(s),typeof(rs)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 
+Base.convert{T}(::Type{BandedOperator{T}},S::SpaceOperator)=SpaceOperator(convert(BandedOperator{T},S.op),S.domainspace,S.rangespace)
 
 domain(S::SpaceOperator)=domain(domainspace(S))
 
@@ -46,7 +47,7 @@ function findmindomainspace(ops::Vector)
     sp = AnySpace()
     
     for op in ops
-        sp = minspace(sp,domainspace(op))
+        sp = conversion_type(sp,domainspace(op))
     end
     
     sp
@@ -70,6 +71,7 @@ promotedomainspace(P::Functional,sp::FunctionSpace,::AnySpace)=SpaceFunctional(P
 for op in (:promoterangespace,:promotedomainspace)
     @eval begin
         ($op)(P::BandedOperator,::AnySpace)=P
+        ($op)(P::BandedOperator,::UnsetSpace)=P        
         ($op)(P::BandedOperator,sp::FunctionSpace,::AnySpace)=SpaceOperator(P,sp)
     end
 end
@@ -105,12 +107,12 @@ function promotedomainspace{T<:Operator}(ops::Vector{T})
 end
 
 function promotedomainspace{T<:Operator}(ops::Vector{T},S::FunctionSpace)
-    k=minspace(findmindomainspace(ops),S)
+    k=conversion_type(findmindomainspace(ops),S)
     Operator[promotedomainspace(op,k) for op in ops]
 end
 function promotedomainspace(ops::Vector,b::Fun)
     A=promotedomainspace(ops)
-    if isa(rangespace(A[end]),AnySpace)
+    if isa(rangespace(A[end]),AmbiguousSpace) 
         # try setting the domain space
         A=promotedomainspace(ops,space(b))
     end
@@ -122,7 +124,7 @@ end
 promotespaces(ops::Vector)=promoterangespace(promotedomainspace(ops))
 function promotespaces(ops::Vector,b::Fun)
     A=promotespaces(ops)
-    if isa(rangespace(A),AnySpace)
+    if isa(rangespace(A),AmbiguousSpace)
         # try setting the domain space
         A=promoterangespace(promotedomainspace(ops,space(b)))
     end

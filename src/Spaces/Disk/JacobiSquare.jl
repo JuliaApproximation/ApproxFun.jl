@@ -71,7 +71,7 @@ evaluate{T}(f::Fun{JacobiSquare,T},x::Number)=itransform(f.space,f.coefficients,
 ## Operators
 
 # Override JacobiWeight default
-Multiplication{T}(f::Fun{JacobiWeight{Chebyshev},T},S::JacobiSquare)=Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T}(f,S)
+Multiplication{T}(f::Fun{JacobiWeight{Chebyshev},T},S::JacobiSquare)=Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T,T}(f,S)
 bandinds{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T})=0,0
 
 function addentries!{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T},A,kr::Range)
@@ -122,16 +122,8 @@ end
 
 
 # return the space that has banded Conversion to the other
-function conversion_rule(A::JacobiSquare,B::JacobiSquare)
-    if A.m>=B.m && A.a<= B.a && A.b<= B.b
-        A
-    else
-        NoSpace()
-    end
-end
-
+conversion_rule(A::JacobiSquare,B::JacobiSquare)=JacobiSquare(max(A.m,B.m),min(A.a,B.a),min(A.b,B.b),domain(A))
 maxspace(A::JacobiSquare,B::JacobiSquare)=JacobiSquare(min(A.m,B.m),max(A.a,B.a),max(A.b,B.b),domain(A))
-minspace(A::JacobiSquare,B::JacobiSquare)=JacobiSquare(max(A.m,B.m),min(A.a,B.a),min(A.b,B.b),domain(A))
 
 
 ##TODO:ConversionWrapper

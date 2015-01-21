@@ -7,41 +7,32 @@ export PlusOperator,TimesOperator
 
 ##PlusFunctional
 
-immutable PlusFunctional{T<:Number,B<:Functional} <: Functional{T} 
-    ops::Vector{B}
+immutable PlusFunctional{T<:Number} <: Functional{T} 
+    ops::Vector{Functional{T}}
 end
 
 
-Base.getindex(op::PlusFunctional,k::Range)=mapreduce(o->o[k],+,op.ops)
-
-
-
-
-immutable PlusOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T} 
-    ops::Vector{B}
-end
-
-
-typeofdata{T<:Number}(::Operator{T})=T
-
-
-# constructor for either one
-function PlusFunctionalOperator{B}(PF,::Type{B},ops)
-    T = Float64
-    
-    for op in ops
-        if typeofdata(op) == Complex{Float64}
-            T = Complex{Float64}
-        end
+function Base.getindex{T}(op::PlusFunctional{T},k::Range)
+    ret = op.ops[1][k]::Vector{T}
+    for j=2:length(op.ops)
+        ret+=op.ops[j][k]::Vector{T}
     end
-    
-    pops=promotespaces(ops)
-    PF{T,B}(pops)
+    ret
 end
-    
-## TODO: figure out how to do this with for over a tuple
-PlusFunctional{B<:Functional}(ops::Vector{B})=PlusFunctionalOperator(PlusFunctional,B,ops)
-PlusOperator{B<:BandedOperator}(ops::Vector{B})=PlusFunctionalOperator(PlusOperator,B,ops)
+
+
+
+
+immutable PlusOperator{T<:Number} <: BandedOperator{T} 
+    ops::Vector{BandedOperator{T}}
+end
+
+
+Base.convert{T}(::Type{BandedOperator{T}},P::PlusOperator)=PlusOperator{T}(P.ops)
+
+promoteplus{T<:Number}(ops::Vector{BandedOperator{T}})=PlusOperator{T}(promotespaces(ops))
+promoteplus{T<:Number}(ops::Vector{Functional{T}})=PlusFunctional{T}(promotespaces(ops))
+
 
 
 
@@ -51,7 +42,7 @@ for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOpera
             for op in P.ops
                 sp = domainspace(op)
                 
-                if sp != AnySpace()
+                if !isa(sp,AnySpace)
                     return sp
                 end
             end
@@ -62,17 +53,15 @@ for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOpera
         domain(P::$PLUS)=commondomain(P.ops)
 
     
-        +(A::$PLUS,B::$PLUS)=$PLUS([A.ops,B.ops])
-        +(A::$PLUS,B::$PLUS,C::$PLUS)=$PLUS([A.ops,B.ops,C.ops])        
-        +(A::$PLUS,B::$TYP)=$PLUS([A.ops,B])
+        +(A::$PLUS,B::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
+        +(A::$PLUS,B::$PLUS,C::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B.ops...,C.ops...])        
+        +(A::$PLUS,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A.ops...,B])
         +(A::$PLUS,B::$ZER)=A
-        +(A::$PLUS,B::$TYP,C::$TYP)=$PLUS([A.ops,B,C])        
-        +(A::$TYP,B::$PLUS)=$PLUS([A,B.ops])
+        +(A::$PLUS,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B,C])        
+        +(A::$TYP,B::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B.ops...])
         +(A::$ZER,B::$PLUS)=B
-        +{T}(A::$TYP{T},B::$TYP{T})=$PLUS($TYP{T}[A,B])
-        +{T}(A::$TYP{T},B::$TYP{T},C::$TYP{T})=$PLUS($TYP{T}[A,B,C])        
-        +(A::$TYP,B::$TYP)=$PLUS($TYP[A,B])        
-        +(A::$TYP,B::$TYP,C::$TYP)=$PLUS($TYP[A,B,C])                
+        +(A::$TYP,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B])        
+        +(A::$TYP,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A,B,C])                
         #TODO: Arbitrary number of summands
     end
 end
@@ -84,7 +73,7 @@ function rangespace(P::PlusOperator)
     for op in P.ops
         sp = rangespace(op)
         
-        if sp != AnySpace()
+        if !isa(sp,AnySpace)
             return sp
         end
     end
@@ -128,10 +117,10 @@ end
 +(::ZeroFunctional,B::Functional)=B
 
 
-+(c::UniformScaling,A::Operator)=ConstantOperator(1.0c.λ)+A
-+(A::Operator,c::UniformScaling)=A+ConstantOperator(1.0c.λ)
--(c::UniformScaling,A::Operator)=ConstantOperator(1.0c.λ)-A
--(A::Operator,c::UniformScaling)=A+ConstantOperator(-1.0c.λ)
++(c::UniformScaling,A::Operator)=ConstantOperator(c.λ)+A
++(A::Operator,c::UniformScaling)=A+ConstantOperator(c.λ)
+-(c::UniformScaling,A::Operator)=ConstantOperator(c.λ)-A
+-(A::Operator,c::UniformScaling)=A+ConstantOperator(-c.λ)
 
 
 
@@ -186,10 +175,10 @@ end
 
 
 
-type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
-    ops::Vector{B}
+type TimesOperator{T<:Number} <: BandedOperator{T}
+    ops::Vector{BandedOperator{T}}
     
-    function TimesOperator{B}(ops::Vector{B})
+    function TimesOperator(ops::Vector{BandedOperator{T}})
         for k=1:length(ops)-1
             @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() || domainspace(ops[k])==rangespace(ops[k+1])
         end
@@ -198,45 +187,37 @@ type TimesOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
     end
 end
 
+TimesOperator{T}(ops::Vector{BandedOperator{T}})=TimesOperator{T}(ops)
 
-function TimesOperator{B<:Operator}(ops::Vector{B})
-    T = Float64
-    
-    for op in ops
-        if typeofdata(op) == Complex{Float64}
-            T = Complex{Float64}
-        end
-    end
-    
-    TimesOperator{T,B}(ops)
-end
+TimesOperator{T,V}(A::TimesOperator{T},B::TimesOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
+TimesOperator{T,V}(A::TimesOperator{T},B::BandedOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A.ops...,B])
+TimesOperator{T,V}(A::BandedOperator{T},B::TimesOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A,B.ops...])
+TimesOperator{T,V}(A::BandedOperator{T},B::BandedOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A,B])
 
 
-TimesOperator(A::TimesOperator,B::TimesOperator)=TimesOperator([A.ops,B.ops])
-TimesOperator(A::TimesOperator,B::Operator)=TimesOperator([A.ops,B])
-TimesOperator(A::Operator,B::TimesOperator)=TimesOperator([A,B.ops])
-TimesOperator(A::Operator,B::Operator)=TimesOperator([A,B])
+Base.convert{T}(::Type{BandedOperator{T}},P::TimesOperator)=TimesOperator(BandedOperator{T}[P.ops...])
 
-function promotetimes{B}(opsin::Vector{B})
-    ops=copy(opsin)
-    #TODO: Speedup
-    for k=length(ops)-1:-1:1
-#         if isa(ops[k],Conversion)
-#             ops=ops[[1:k-1,k+1:end]]  # remove the op
-#         else        
-            op=promotedomainspace(ops[k],rangespace(ops[k+1]))
-            # promotedomainspace does not necessarily have correct type
-            if op==()
-                ops=ops[[1:k-1,k+1:end]]  # remove the op
-            elseif isa(op,TimesOperator)
-                ops=[ops[1:k-1],op.ops,ops[k+1:end]]
-            else
-                ops=[ops[1:k-1],op,ops[k+1:end]]  
+
+
+function promotetimes{B<:BandedOperator}(opsin::Vector{B})
+    ops=Array(BandedOperator{mapreduce(eltype,promote_type,opsin)},0)
+
+    push!(ops,opsin[end]) 
+    for k=length(opsin)-1:-1:1
+        op=promotedomainspace(opsin[k],rangespace(last(ops)))
+        if op==()
+            # do nothing
+        elseif isa(op,TimesOperator)
+            for j=length(op):-1:1
+                push!(ops,op[j])
             end
+        else
+            push!(ops,op)
+        end
 #        end
     end
     
-    TimesOperator(ops)
+    TimesOperator(reverse!(ops))  # change order in TImesOperator if this is slow
 end    
 
 
@@ -331,11 +312,10 @@ end
 
 -(A::Functional,B::Functional)=PlusFunctional([A,-B])
 
-*(A::TimesOperator,B::TimesOperator)=promotetimes([A.ops,B.ops])
-*(A::TimesOperator,B::BandedOperator)=promotetimes([A.ops,B])
-*(A::BandedOperator,B::TimesOperator)=promotetimes([A,B.ops])
-*{T}(A::BandedOperator{T},B::BandedOperator{T})=promotetimes(BandedOperator{T}[A,B])
-*(A::BandedOperator,B::BandedOperator)=promotetimes(BandedOperator[A,B])
+*{T,V}(A::TimesOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
+*{T,V}(A::TimesOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B])
+*{T,V}(A::BandedOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B.ops...])
+*{T,V}(A::BandedOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B])
 
 
 -(A::Operator)=ConstantOperator(-1.)*A
@@ -374,7 +354,7 @@ end
  ##TODO: Make * and \ consistent in return type
 function *(A::InfiniteOperator,b::Fun)
     dsp=domainspace(A)
-    if dsp==AnySpace()
+    if isa(dsp,AmbiguousSpace)
         A=promotedomainspace(A,b.space)
         Fun(A*b.coefficients,rangespace(A))
     else
@@ -399,7 +379,7 @@ for T in (:AnySpace,:FunctionSpace)
             if sp==cursp
                 P
             else
-                PlusOperator(BandedOperator{T}[promotedomainspace(op,sp) for op in P.ops])
+                promoteplus(BandedOperator{T}[promotedomainspace(op,sp) for op in P.ops])
             end
         end
     end

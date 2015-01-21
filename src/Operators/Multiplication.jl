@@ -1,31 +1,32 @@
 abstract AbstractMultiplication{T} <:BandedOperator{T}
 
-immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number} <: AbstractMultiplication{T}
+immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number,V<:Number} <: AbstractMultiplication{V}
     f::Fun{D,T}
     space::S
 
     Multiplication(f::Fun{D,T},sp::S)=new(f,sp)
 end
 
-Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T}(chop(f,maxabs(f.coefficients)*40*eps()),sp)
+Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T,T}(chop(f,maxabs(f.coefficients)*40*eps()),sp)
 
-Multiplication(f::Fun)=Multiplication(f,AnySpace())
-
+Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
 Multiplication(c::Number)=ConstantOperator(c)
 
 # This covers right multiplication unless otherwise specified.
 Multiplication{D,T}(S::FunctionSpace,f::Fun{D,T}) = Multiplication(f,S)
 
 
-domainspace{D,S,T}(M::Multiplication{D,S,T})=M.space
+Base.convert{BT,S,V,T}(::Type{BandedOperator{BT}},C::Multiplication{S,V,T})=Multiplication{S,V,T,BT}(C.f,C.space)
+
+domainspace{D,S,T,V}(M::Multiplication{D,S,T,V})=M.space
 domain(T::Multiplication)=domain(T.f)
 
 
 ## Default implementation: try converting to space of M.f
 
-rangespace{F,T}(D::Multiplication{F,AnySpace,T})=AnySpace()
-bandinds{F,T}(D::Multiplication{F,AnySpace,T})=error("No range space attached to Multiplication")
-addentries!{F,T}(D::Multiplication{F,AnySpace,T},A,kr)=error("No range space attached to Multiplication")
+rangespace{F,T}(D::Multiplication{F,UnsetSpace,T})=UnsetSpace()
+bandinds{F,T}(D::Multiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
+addentries!{F,T}(D::Multiplication{F,UnsetSpace,T},A,kr)=error("No range space attached to Multiplication")
 
 
 function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr)
@@ -63,6 +64,7 @@ end
 
 
 ##multiplication can always be promoted, range space is allowed to change
+promotedomainspace(D::AbstractMultiplication,sp::UnsetSpace)=D
 promotedomainspace(D::AbstractMultiplication,sp::AnySpace)=D
 promotedomainspace(D::AbstractMultiplication,sp::FunctionSpace)=Multiplication(D.f,sp)
 

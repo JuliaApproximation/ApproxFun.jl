@@ -30,13 +30,19 @@ end
 =={n,st,S,T,D}(a::SliceSpace{n,st,S,T,D},b::SliceSpace{n,st,S,T,D})=a.space==b.space
 
 function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::SliceSpace{n,1,S,T,D})
-     @assert a==b
-     a
+     if a==b
+        a
+    else
+        NoSpace()
+    end
 end
 # return the space that has banded Conversion to the other
 function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::FunctionSpace)
-    @assert a.space==b
-    a
+    if a.space==b
+        b  # we can write droping coefficients as a banded operator
+    else
+        NoSpace()
+    end
 end
 
 

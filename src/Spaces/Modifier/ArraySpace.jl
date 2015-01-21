@@ -34,7 +34,7 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
     @assert size(M,2)==n
     cfs=[transform(AS.space,M[:,k])  for k=1:size(M,2)]    
     
-    C=zeros(promote_type(T,V),mapreduce(length,max,cfs)*size(M,2))
+    C=zeros(coefficient_type(T,V),mapreduce(length,max,cfs)*size(M,2))
     
     for k=1:size(M,2)
         C[k:n:end]=cfs[k]

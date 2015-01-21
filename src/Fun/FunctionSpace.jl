@@ -1,28 +1,52 @@
 
 
-export FunctionSpace, domainspace, rangespace, maxspace, minspace,Space
+export FunctionSpace, domainspace, rangespace, maxspace,Space
+
+
+immutable RealBasis end
+immutable ComplexBasis end
+immutable AnyBasis end
+
+coefficient_type{T<:Complex}(::Type{ComplexBasis},::Type{T})=T
+coefficient_type{T<:Real}(::Type{ComplexBasis},::Type{T})=Complex{T}
+coefficient_type{T}(::Type{RealBasis},::Type{T})=T
+
+Base.eltype(::RealBasis)=Float64
+Base.eltype(::ComplexBasis)=Complex{Float64}
+Base.eltype(::AnyBasis)=Number
+
+Base.eltype(::Type{RealBasis})=Float64
+Base.eltype(::Type{ComplexBasis})=Complex{Float64}
+Base.eltype(::Type{AnyBasis})=Number
+
+
+
+# immutable RealDomain end
+# immutable ComplexDomain end
+
 
 
 # T tells whether the basis is real (cos/sin) or complex
 # D tells what canonical domain is (Interval/PeriodicInterval)
 abstract FunctionSpace{T,D} #TODO should be able to write D<:Domain
 
-typealias RealSpace{D} FunctionSpace{Float64,D}
-typealias ComplexSpace{D} FunctionSpace{Complex{Float64},D}
+typealias RealSpace{D} FunctionSpace{RealBasis,D}
+typealias ComplexSpace{D} FunctionSpace{ComplexBasis,D}
 
+Base.eltype{S}(::FunctionSpace{S})=eltype(S)
+coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)
 
 domain{T,D<:AnyDomain}(::FunctionSpace{T,D})=AnyDomain()
-immutable ConstantSpace <: FunctionSpace{Float64,AnyDomain}
+immutable ConstantSpace <: FunctionSpace{RealBasis,AnyDomain}
 end
 
 
 
+abstract AmbiguousSpace <: FunctionSpace{RealBasis,AnyDomain}
 
-immutable AnySpace <: FunctionSpace{Float64,AnyDomain}
-end
-
-immutable NoSpace <: FunctionSpace{Float64,AnyDomain}
-end
+immutable AnySpace <: AmbiguousSpace end
+immutable UnsetSpace <: AmbiguousSpace end
+immutable NoSpace <: AmbiguousSpace end
 
 
 
@@ -37,6 +61,7 @@ domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() ||
 #Check whether spaces are the same, override when you need to check parameters
 spacescompatible{D<:FunctionSpace}(f::D,g::D)=error("Override spacescompatible for "*string(D))
 spacescompatible(::AnySpace,::AnySpace)=true
+spacescompatible(::UnsetSpace,::UnsetSpace)=true
 spacescompatible(::NoSpace,::NoSpace)=true
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
 spacescompatible(f,g)=false
@@ -77,31 +102,40 @@ function conversion_rule{S<:FunctionSpace}(a::S,b::S)
     end
 end 
 
-function conversion_type(a,b)
-    cr=conversion_rule(a,b)
-    cr==NoSpace()?conversion_rule(b,a):cr
+for FUNC in (:conversion_type,:maxspace)
+    @eval begin
+        $FUNC(::AnySpace,::UnsetSpace)=UnsetSpace()
+        $FUNC(::UnsetSpace,::AnySpace)=UnsetSpace()        
+    end
+
+    for TYP in (:AnySpace,:UnsetSpace)
+        @eval begin
+            $FUNC(a::$TYP,b::$TYP)=a
+            $FUNC(a::$TYP,b::FunctionSpace)=b
+            $FUNC(a::FunctionSpace,b::$TYP)=a
+        end
+    end
+    @eval $FUNC(b::AnySpace,a::FunctionSpace)=a
 end
 
 
-# gives a space c that has a banded conversion operator to a and b
-minspace(a::AnySpace,b::AnySpace)=a
-minspace(a::FunctionSpace,b::AnySpace)=a
-minspace(b::AnySpace,a::FunctionSpace)=a
-function minspace(a::FunctionSpace,b::FunctionSpace)
+
+function conversion_type(a,b)
     if a==b
         a
     else
-        conversion_type(a,b)
+        cr=conversion_rule(a,b)
+        cr==NoSpace()?conversion_rule(b,a):cr
     end
 end
 
 
 
 
-# gives a space c that has a banded conversion operator from a and b
-maxspace(a::AnySpace,b::AnySpace)=a
-maxspace(a::FunctionSpace,b::AnySpace)=a
-maxspace(b::AnySpace,a::FunctionSpace)=a
+
+
+
+# gives a space c that has a banded conversion operator FROM a and b
 function maxspace(a::FunctionSpace,b::FunctionSpace)
     if a==b    
         return a
@@ -176,12 +210,12 @@ spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpa
 # end
 
 function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
-    ct=minspace(a,b)
+    ct=conversion_type(a,b) # gives a space that has a banded conversion to both a and b
 
     if spacescompatible(a,b)
         f
     elseif spacescompatible(ct,a)
-        Conversion(a,b)*f  ##TODO: Make * and \ consistent in return type
+        Conversion(a,b)*f  #TODO: Make * and \ consistent in return type
     elseif spacescompatible(ct,b)
         (Conversion(b,a)\f).coefficients
     else

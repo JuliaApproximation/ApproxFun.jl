@@ -45,11 +45,11 @@ end
 
 
 
-function transform{VV,ST,T}(S::PiecewiseSpace{VV,ST},vals::Vector{T})
+function transform(S::PiecewiseSpace,vals::Vector)
     n=length(vals)
     K=length(S)
    k=div(n,K)
-    PT=promote_type(ST,T)
+    PT=coefficient_type(S,eltype(vals))
     if k==0
         ret=Array(PT,n)
         for j=1:n
@@ -90,7 +90,7 @@ evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f[xk] for xk in x]
 
 canonicalspace(sp::PiecewiseSpace)=PiecewiseSpace(map(canonicalspace,sp.spaces))
 
-for op in (:maxspace,:minspace)
+for op in (:maxspace,:conversion_type)
     @eval begin
         function $op(f::PiecewiseSpace,g::PiecewiseSpace)
             if domain(f)==domain(g)

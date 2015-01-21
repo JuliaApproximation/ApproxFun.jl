@@ -165,9 +165,9 @@ function slnorm(u::BandedMatrix,r::Range)
     ret
 end
 
-adaptiveqr{V<:Number}(B::Operator,v::Array{V},tol::Float64,N) = adaptiveqr([B],v,tol,N)  #May need to copy v in the future
-adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Array{V},tol::Float64,N) = adaptiveqr!(AlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
-function adaptiveqr!{V<:Number}(B::AlmostBandedOperator,v::Array{V},tol::Float64,N)  
+adaptiveqr{V<:Number}(B::Operator,v::Array{V},tol::Real,N) = adaptiveqr([B],v,tol,N)  #May need to copy v in the future
+adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Array{V},tol::Real,N) = adaptiveqr!(AlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
+function adaptiveqr!{V<:Number}(B::AlmostBandedOperator,v::Array{V},tol::Real,N)  
     b=-B.bandinds[1]
     m=100+b
     
