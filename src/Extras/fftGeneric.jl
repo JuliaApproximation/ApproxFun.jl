@@ -11,7 +11,7 @@ function dft!(CS::Vector,x::Vector)
     end
 end
 
-#=  
+#=
 function Base.fft{T<:Number}(data::Vector{T})
     N = length(data)
     CS = zeros(T,N)
@@ -43,7 +43,7 @@ function fft_pow2{T<:Number}(x::Vector{T})
     Tpi = convert(type_of_real(T),pi)
 
     Twiddle = exp(-2Tpi*im/N * [0:N-1])
-    
+
     half1 = Even + Odd .* Twiddle[1:(N/2)]
     half2 = Even + Odd .* Twiddle[(N/2+1):N]
     return cat(1,half1,half2)
@@ -59,9 +59,9 @@ function fft_gen{T<:Number}(x::Vector{T})
     else
         error("dunno what to do")
     end
-    
+
     S = promote_type(Complex{Tbase},T) #type of output
-    
+
     y = zeros(S,length(x))
     dft!(y,x)
     =#
@@ -93,11 +93,11 @@ function fft_gen{T<:Number}(x::Vector{T})
 end
 
 function ifft_gen{T<:Number}(x::Vector{T})
-    return (1/length(x)) * conj(fft_gen(conj(x)))
+    return conj(fft_gen(conj(x)))/length(x)
 end
 
 function ifft_gen!{T<:Number}(x::Vector{T})
-    y = (1/length(x)) * conj(fft_gen(conj(x)))
+    y = conj(fft_gen(conj(x)))/length(x)
     x[:] = y
     return x
 end
@@ -142,9 +142,9 @@ function redft00{T<:Number}(x::Vector{T})
         end
     end
     return y
-end 
+end
 
-#= 
+#=
 b = [BigFloat(r) for r in rand(4000,)]
  abs(fft_gen(b) - fft(b))
-=# 
+=#
