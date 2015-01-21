@@ -39,7 +39,7 @@ end
 # return the space that has banded Conversion to the other
 function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::FunctionSpace)
     if a.space==b
-        b  # we can write droping coefficients as a banded operator
+        a  # we can write droping coefficients as a banded operator
     else
         NoSpace()
     end
