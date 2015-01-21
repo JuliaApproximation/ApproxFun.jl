@@ -12,7 +12,7 @@ end
 Σ()=Σ(AnySpace(),AnySpace())
 Σ(dsp::FunctionSpace,rsp::FunctionSpace) = Σ{promote_type(eltype(dsp),eltype(rsp)),typeof(dsp),typeof(rsp)}(dsp,rsp)
 
-
+Base.convert{T}(::Type{BandedOperator{T}},S::Σ)=Σ{T,typeof(S.domainspace),typeof(S.rangespace)}(S.domainspace,S.rangespace)
 
 domain(S::Σ)=domain(S.domainspace)
 domainspace(S::Σ)=S.domainspace

@@ -83,6 +83,7 @@ for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
     @eval $func(D::MultiplicationWrapper)=$func(D.op)
 end
 
+Base.convert{BT,S,V,T}(::Type{BandedOperator{BT}},C::MultiplicationWrapper{S,V,T})=MultiplicationWrapper{S,V,BT}(C.f,C.op)
 
 
 
