@@ -26,7 +26,7 @@ function Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
     Tprom = Tout 
     if isa(d,IntervalSpace)   #TODO should also work for any space 
         if Tout <: Number #TODO should also work for array-valued functions
-            Td = numbertype(domain(d))
+            Td = eltype(domain(d))
             
             Tprom,Tpromd=valsdomain_type_promote(Tout,Td)
             
@@ -109,7 +109,7 @@ end
 
 function zerocfsFun(f::Function, d::FunctionSpace)
     #TODO: reuse function values?
-    T = numbertype(domain(d))
+    T = eltype(domain(d))
     if T <: Complex
         T = T.parameters[1] #get underlying real representation
     end
@@ -120,10 +120,10 @@ function zerocfsFun(f::Function, d::FunctionSpace)
         return zerocfsFun(f,ArraySpace(d,size(f0)...))
     end
 
-    tol = 200*eps(T)
+    tol =T==Any?200eps():200eps(T)
 
-    r=rand(d)
-    fr=f(r)
+    r=checkpoints(d)
+    fr=[f(x) for x=r]
 
     for logn = 4:20
         cf = Fun(f, d, 2^logn + 1)
@@ -135,8 +135,8 @@ function zerocfsFun(f::Function, d::FunctionSpace)
         
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  norm(cf[r]-fr)<1E-4  
-            return chop!(cf,10eps(T)*maxabsc)
+        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  all([norm(cf[r[k]]-fr[k])<1E-4 for k=1:length(r)])
+            return chop!(cf,tol*maxabsc/10)
         end
     end
     
@@ -148,7 +148,7 @@ end
 
 function abszerocfsFun(f::Function,d::FunctionSpace)
     #reuse function values
-    T = numbertype(domain(d))
+    T = eltype(domain(d))
     if T <: Complex
         T = T.parameters[1] #get underlying real representation
     end
@@ -170,7 +170,7 @@ end
 
 
 function Fun(f::Function, d::FunctionSpace; method="zerocoefficients")
-    T = numbertype(domain(d))
+    T = eltype(domain(d))
     if f==identity
         identity_fun(d)
     elseif f==zero # zero is always defined

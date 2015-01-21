@@ -254,8 +254,8 @@ identity_fun(S::FunctionSpace)=Fun(x->x,S)
 
 ## rand
 
-Base.rand(d::FunctionSpace)=rand(domain(d))
-
+Base.rand(d::FunctionSpace,k...)=rand(domain(d),k...)
+checkpoints(d::FunctionSpace)=checkpoints(domain(d))
 
 
 

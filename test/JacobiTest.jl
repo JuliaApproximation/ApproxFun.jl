@@ -18,7 +18,7 @@ sp4=Jacobi(4.124,2.5)
 f4=Fun(exp,sp4)
 @test norm((Fun(f,sp2)-f2).coefficients)<10eps()
 @test norm((Fun(f,sp3)-f3).coefficients)<10eps()
-@test norm((Fun(f,sp4)-f4).coefficients)<10eps()
+@test norm((Fun(f,sp4)-f4).coefficients)<20eps()
 
 
 m=20

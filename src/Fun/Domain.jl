@@ -5,8 +5,6 @@ export chebyshevpoints
 
 
 abstract Domain{T<:Number}  #type parameter represents what find of numeric representation should be used in... TODO explain
-numbertype{T}(d::Domain{T}) = T
-numbertype(d::Any) = Float64 #TODO, temporarily trying to get tests passing and ensure default previous behavior.
 
 immutable AnyDomain <: Domain{UnsetNumber}
 end
@@ -124,10 +122,11 @@ domain(::Number)=AnyDomain()
 
 ## rand
 
-Base.rand(d::IntervalDomain)=fromcanonical(d,2rand()-1)
-Base.rand(d::PeriodicDomain)=fromcanonical(d,2π*rand()-π)
+Base.rand(d::IntervalDomain,k...)=fromcanonical(d,2rand(k...)-1)
+Base.rand(d::PeriodicDomain,k...)=fromcanonical(d,2π*rand(k...)-π)
 
-
+checkpoints(d::IntervalDomain)=fromcanonical(d,[-0.823972,0.3273484])
+checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 
 ## boundary
 

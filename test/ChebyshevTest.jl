@@ -1,6 +1,11 @@
 using ApproxFun, Base.Test
 
 
+ef = Fun(exp,Interval())
+
+
+@test ef == -(-ef)
+@test ef == (ef-1) + 1
 
 ef = Fun(exp)
 
