@@ -1,5 +1,5 @@
 
-import Base.chop 
+import Base.chop
 
 # Used for spaces not defined yet
 immutable UnsetNumber <: Number  end
@@ -9,7 +9,7 @@ Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
 
 Base.real{T<:Real}(::Type{T})=T
 Base.real{T<:Real}(::Type{Complex{T}})=T
-
+Base.eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
 
 dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
@@ -24,7 +24,7 @@ function alternatesign!(v::Vector)
     for k=2:2:n
         v[k]=-v[k]
     end
-    
+
     v
 end
 
@@ -72,7 +72,7 @@ function pad{T}(A::Array{T,2},n::Integer,m::Integer)
         A[1:n,1:m]
 	else
         ret = zeros(T,n,m)
-        
+
         if n <= size(A,1)
             for k=1:n,j=1:size(A,2)
                 ret[k,j]=A[k,j]
@@ -80,11 +80,11 @@ function pad{T}(A::Array{T,2},n::Integer,m::Integer)
         elseif m <= size(A,2)
             for k=1:size(A,1),j=1:m
                 ret[k,j]=A[k,j]
-            end        
+            end
         else
             ret[1:size(A,1),1:size(A,2)]=A
         end
-        
+
         ret
 	end
 end
@@ -114,7 +114,7 @@ function chop!(c::Vector,tol::Real)
             return c
         end
     end
-    
+
     resize!(c,0)
     c
 end
@@ -135,7 +135,7 @@ function chop!(A::Array,tol)
             A=A[:,1:k]
             break
         end
-    end    
+    end
     return A
 end
 
