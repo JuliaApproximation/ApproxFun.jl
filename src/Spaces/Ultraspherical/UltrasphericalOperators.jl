@@ -1,16 +1,16 @@
 ##  Jacobi Operator
 
-immutable UltrasphericalRecurrenceT{m} <: TridiagonalOperator{Float64} end
+immutable UltrasphericalRecurrenceT{m,T} <: TridiagonalOperator{T} end
 
-function usjacobi_addentries!(λ::Integer,A,kr::Range)
+function usjacobi_addentries!{T}(λ::Integer,::Type{T},A,kr::Range)
     for k=kr
-        A[k,k-1]=.5(k-1)/(k-2+λ)
-        A[k,k+1]=.5(k+2λ-1)/(k+λ)
+        A[k,k-1]=.5(k-one(T))/(k-2+λ)
+        A[k,k+1]=.5(k+2λ-one(T))/(k+λ)
     end
     A
 end
 
-addentries!{m}(::UltrasphericalRecurrenceT{m},A,kr::Range)=usjacobi_addentries!(m,A,kr)
+addentries!{m,T}(::UltrasphericalRecurrenceT{m,T},A,kr::Range)=usjacobi_addentries!(m,T,A,kr)
 
 ## Evaluation
 
@@ -99,7 +99,7 @@ end
 
 
 
-function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ}},A,kr::UnitRange)
+function addentries!{D<:Ultraspherical,λ,T}(M::Multiplication{D,Ultraspherical{λ},T},A,kr::UnitRange)
     a=coefficients(M.f,domainspace(M))
     for k=kr
         A[k,k]=a[1]
@@ -108,7 +108,7 @@ function addentries!{D<:Ultraspherical,λ}(M::Multiplication{D,Ultraspherical{λ
     if length(a) > 1
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
 
-        J=subview(UltrasphericalRecurrenceT{λ}(),jkr,jkr)
+        J=subview(UltrasphericalRecurrenceT{λ,T}(),jkr,jkr)
         C1=2λ*J
         addentries!(C1,a[2],A,kr)
         C0=isbaeye(jkr)
@@ -240,15 +240,14 @@ function multiplyentries!(M::Conversion{Chebyshev,Ultraspherical{1}},A,kr::Range
     end
 end
 
-function multiplyentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{λ}},A,kr::Range)
+function multiplyentries!{m,λ,T}(M::Conversion{Ultraspherical{m},Ultraspherical{λ},T},A,kr::Range)
     @assert λ==m+1
     cr=columnrange(A)::Range1{Int64}
 
-    λf = 1.λ
-
+    c = λ-one(T)
     #We assume here that the extra rows are redundant
     for k=max(kr[1],1):kr[end]+2,j=cr
-        A[k,j] *= (λf-1)./(k - 2. + λf)
+        A[k,j] *= c./(k - 2. + λ)
     end
 
     #We assume that A has allocated 2 more bandwidth
