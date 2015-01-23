@@ -77,6 +77,21 @@ end
 
 
 
+
+function pde_normalize_rhs(A,f::Matrix)
+    indsBx=bcinds(A,1);indsBy=bcinds(A,2)
+    @assert length(indsBx)+length(indsBy)==size(f,1)
+
+
+    fx=isempty(indsBx)?[]:f[indsBx,:]
+    fy=isempty(indsBy)?[]:f[indsBy,:]
+    F=fill(zeros(1,1),size(f,2))
+    
+    fx,fy,F
+end
+
+
+
 pdesolve{T<:PDEOperator}(A::Vector{T},f)=pdesolve(A,f,10000eps())
 function pdesolve{T<:PDEOperator}(A::Vector{T},f,tol::Real)
     @assert tol>0

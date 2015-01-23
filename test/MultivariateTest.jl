@@ -130,3 +130,16 @@ u=[I⊗ldirichlet(dt),Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
 
 @test_approx_eq u[.1,.2] exp(-20(0.1-0.2)^2)
+
+
+
+
+## Functional*Fun
+
+d=Interval()
+B=ldirichlet(d)
+f=Fun((x,y)->cos(cos(x)*sin(y)),d^2)
+@test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<100eps()
+@test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<100eps()
+
+

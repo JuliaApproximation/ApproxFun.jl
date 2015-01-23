@@ -19,7 +19,7 @@ Base.chop(f::MultivariateFun)=chop(f,10eps())
 include("VectorFun.jl")
 include("TensorSpace.jl")
 include("LowRankFun.jl")
-include("TensorFun.jl")
+include("ProductFun.jl")
 
 
 Fun(f,S::AbstractProductSpace,n...)=ProductFun(f,S,n...)

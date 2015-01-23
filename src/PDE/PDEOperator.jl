@@ -114,13 +114,6 @@ function +(A::PDEOperator,B::PDEOperator)
 end
 
 
-function lap(d::Union(ProductDomain,TensorSpace))
-    @assert length(d)==2
-    Dx=Derivative(d[1])
-    Dy=Derivative(d[2])    
-    Dx^2⊗I+I⊗Dy^2
-end
-
 
 
 function -(A::PDEOperator)
@@ -183,6 +176,20 @@ function *(a::Fun,A::PDEOperator)
     end
     PDEOperator(ops,domain(A))
 end
+
+*(B::Functional,f::ProductFun)=Fun(map(c->B*c,f.coefficients),space(f,2))
+*(B::BandedOperator,f::ProductFun)=ProductFun(map(c->B*c,f.coefficients),space(f))
+
+*(f::ProductFun,B::Operator)=B*(f.')
+
+
+function lap(d::Union(ProductDomain,TensorSpace))
+    @assert length(d)==2
+    Dx=Derivative(d[1])
+    Dy=Derivative(d[2])    
+    Dx^2⊗I+I⊗Dy^2
+end
+
 
 Derivative(d::Union(ProductDomain,TensorSpace),k::Integer)=k==1?Derivative(d[1])⊗I:I⊗Derivative(d[2])  
 Base.diff(d::Union(ProductDomain,TensorSpace),k::Integer)=Derivative(d,k)

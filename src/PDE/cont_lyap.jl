@@ -293,7 +293,7 @@ end
 
 
 
-function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx,Gyin,F::Array,nx=100000)    
+function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx::Vector,Gyin::Vector,F::Array,nx=100000)    
     Gy=regularize_bcs(OS.S,Gyin)
     F=cont_reduce_dofs(OS.S,OS.Lx,OS.Mx,Gy,F)  
     
