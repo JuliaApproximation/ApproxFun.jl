@@ -70,8 +70,9 @@ function ProductFun(f::Function,S::AbstractProductSpace,N::Integer,M::Integer)
     ptsx,ptsy=points(S,N,M)
     
     f1=f(ptsx[1,1],ptsy[1,1])
-    
-    V=typeof(f1)[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
+    T=coefficient_type(S,typeof(f1))  # type of coefficients
+    # use coefficient type so we can reuse array
+    V=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
     ProductFun(transform!(S,V),S)
 end
 

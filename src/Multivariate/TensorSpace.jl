@@ -44,6 +44,8 @@ immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace} <:AbstractProductSpace{
     spaces::(S,T)
 end
 
+coefficient_type(S::TensorSpace,T)=promote_type(coefficient_type(S.spaces[1],T),coefficient_type(S.spaces[2],T))
+
 TensorSpace(A,B)=TensorSpace((A,B))
 TensorSpace(A::ProductDomain)=TensorSpace(Space(A[1]),Space(A[2]))
 ⊗(A::FunctionSpace,B::FunctionSpace)=TensorSpace(A,B)
@@ -61,6 +63,8 @@ immutable ProductSpace{S<:FunctionSpace,T<:FunctionSpace} <: AbstractProductSpac
     spacesx::Vector{S}
     spacey::T
 end
+
+coefficient_type(S::ProductSpace,T)=promote_type(coefficient_type(S.spacesx[1],T),coefficient_type(S.spacesy,T))
 
 ⊗{S<:FunctionSpace}(A::Vector{S},B::FunctionSpace)=ProductSpace(A,B)
 domain(f::ProductSpace)=domain(f.spacesx[1])*domain(f.spacesy)

@@ -45,6 +45,9 @@ DiskSpace(K::Integer)=DiskSpace(K,Disk())
 #TODO: Change to Fourier
 DiskSpace(D::Disk)=DiskSpace(D,Laurent())
 
+coefficient_type{T<:Complex}(::DiskSpace,::Type{T})=T
+coefficient_type{T<:Real}(::DiskSpace,::Type{T})=Complex{T}
+
 domain(d::DiskSpace)=d.domain
 function space(D::DiskSpace,k::Integer)
     @assert k==2
