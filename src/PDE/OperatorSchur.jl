@@ -1,3 +1,7 @@
+
+
+
+toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 function toarray{T<:Operator}(A::Vector{T},n::Integer,m::Integer)
     ret = zeros(n,m)
     

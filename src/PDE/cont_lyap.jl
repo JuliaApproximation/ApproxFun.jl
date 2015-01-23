@@ -158,7 +158,7 @@ cont_constrained_lyapuptriang{OSS,T,FT}(OS::PDEOperatorSchur{OSS,T},Gx,F::Array{
 function cont_constrained_lyap{OSS<:DiagonalOperatorSchur,T}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::Matrix{T},nx=100000)    
     n = size(OS.S,1)    
     F=pad(F,size(F,1),n)
-    Gx=toarray(Gxin,n)    
+    Gx=pad(coefficients(Gxin).',:,n)
     
     TYP=promote_type(eltype(OS),T)    
     Y=Array(Fun{typeof(domainspace(OS,1)),TYP},n)
@@ -176,7 +176,7 @@ end
 function cont_constrained_lyap{T}(OS::PDEProductOperatorSchur,Gxin,Gyin,F::Matrix{T},nx=100000)    
     n = length(OS.Rdiags)
     F=pad(F,size(F,1),n)
-    Gx=toarray(Gxin,n)    
+    Gx=pad(coefficients(Gxin).',:,n)
     TYP=promote_type(eltype(OS),T)
     Y=Array(Fun{typeof(domainspace(OS.Rdiags[1])),TYP},n) 
 
@@ -310,7 +310,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx:
     # and permute columns by P
 
     if !isempty(Gx)
-        Gx=toarray(Gx,ny)*OS.S.bcP  
+        Gx=pad(coefficients(Gx).',:,ny)*OS.S.bcP  
         # remove unused DOFs and rearrange columns
         Gx=Gx[:,Ky+1:end]*OS.S.Z
     else
@@ -327,42 +327,4 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx:
     X=[X11,X22]    
     X=OS.S.bcP*X        # this is equivalent to acting on columns by P'
 end
-
-
-
-# function cont_constrained_lyap(Bxin,Byin,Lin,Min,F::Array,ny)
-#     Xop=promotespaces([Lin[1],Min[1]])
-#     Lx=SavedBandedOperator(Xop[1]);Mx=SavedBandedOperator(Xop[2])
-# 
-#     #discretize in Y
-#     By,Gy,Ly,My=pdetoarray(Byin,Lin[2],Min[2],ny) 
-#     Ry,Gy,Ly,My,Py=regularize_bcs(By,Gy,full(Ly),full(My)) 
-#     Ly,F = cont_reduce_dofs(Ry,Gy,Ly,Lx,F)     
-#     My,f = cont_reduce_dofs(Ry,Gy,My,Mx,F)     
-# 
-#     Ky = size(By,1)
-#     B=Ly[:,Ky+1:end]
-#     D=My[:,Ky+1:end]
-#     BD=schurfact(full(B),full(D))
-#     Q2=BD[:left];Z2=BD[:right]
-#     R=BD[:S]; T=BD[:T]
-# 
-#     F=pad(F,size(F,1),size(Q2,1))*Q2
-#     
-# 
-#     ## we've discretized, in y, and rhs for Bx is a function of y
-#     # so we need to discetize it as well
-#     Gx=toarray(Bxin[2],ny)
-#     # remove unused DOFs and rearrange columns
-#     Gx=Gx[:,Ky+1:end]*Z2
-# 
-# 
-#     Y=cont_constrained_lyapuptriang(Bxin[1],Gx,Lx,R,Mx,T,F)
-#     
-#     X22=Z2*Y  #think of it as transpose
-#     X11=convert(typeof(X22),Gy-Ry[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
-#     [X11,X22].'
-# 
-# end
-
 

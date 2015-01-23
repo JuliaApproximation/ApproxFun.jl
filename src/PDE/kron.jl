@@ -96,7 +96,8 @@ function pdesolve(K::PDEOperatorKron,G)
     Kx,Ky=numbcs(K,1),numbcs(K,2) # doesn't include boundary rows...could be confusing
     nx,ny=size(K,1)+Kx,size(K,2)+Ky
     
-    Gx,Gy=toarray(regularize_bcs(K.opsx,fx),ny),toarray(regularize_bcs(K.opsy,fy),nx)
+    Gx=pad(coefficients(regularize_bcs(K.opsx,fx)).',:,ny)
+    Gy=pad(coefficients(regularize_bcs(K.opsy,fy)).',:,nx)
     Rx,Ry=K.opsx.bcs,K.opsy.bcs
 
     Px,Py=K.opsx.bcP,K.opsy.bcP

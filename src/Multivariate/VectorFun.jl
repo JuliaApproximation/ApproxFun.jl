@@ -4,6 +4,10 @@
 ## Vector of fun routines
 
 function coefficients{N,F}(::Type{N},f::Vector{F},o...)
+    if isempty(f)
+        return Array(N,0,0)
+    end
+    
     n=mapreduce(length,max,f)
     m=length(f)
     R=zeros(N,n,m)

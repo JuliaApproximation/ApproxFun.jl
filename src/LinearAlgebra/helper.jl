@@ -67,10 +67,12 @@ function pad(v::Vector,n::Integer,m::Integer)
     pad(v,n)
 end
 
-function pad{T}(A::Array{T,2},n::Integer,m::Integer)
+function pad{T}(A::Matrix{T},n::Integer,m::Integer)
 	if n <= size(A,1) && m <= size(A,2)
         A[1:n,1:m]
-	else
+	elseif n==0 || m==0
+	   Array(T,n,m)  #fixes weird julia bug when T==None
+    else   
         ret = zeros(T,n,m)
 
         if n <= size(A,1)
@@ -89,7 +91,8 @@ function pad{T}(A::Array{T,2},n::Integer,m::Integer)
 	end
 end
 
-
+pad(A::Matrix,::Colon,m::Integer)=pad(A,size(A,1),m)
+pad(A::Matrix,n::Integer,::Colon)=pad(A,n,size(A,2))
 
 
 #TODO:padleft!
