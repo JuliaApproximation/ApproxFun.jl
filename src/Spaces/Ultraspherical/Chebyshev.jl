@@ -90,6 +90,6 @@ end
 
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))
-    @eval ($op){S<:Chebyshev,V<:Chebyshev,T}(f::TensorFun{S,V,T})=TensorFun(chebyshevtransform($op(values(f))),space(f))
+    @eval ($op){S<:Chebyshev,V<:Chebyshev,T}(f::TensorFun{S,V,T})=ProductFun(chebyshevtransform($op(values(f))),space(f))
 end
 

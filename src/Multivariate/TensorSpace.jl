@@ -13,6 +13,10 @@ immutable ProductDomain{D<:Domain} <:BivariateDomain
     domains::Vector{D} 
 end
 
+# product domains are their own canonical domain
+for OP in (:fromcanonical,:tocanonical)
+    @eval $OP(::ProductDomain,x,y)=(x,y)
+end
 
 
 ProductDomain(A,B)=ProductDomain([A,B])
@@ -45,6 +49,9 @@ TensorSpace(A::ProductDomain)=TensorSpace(Space(A[1]),Space(A[2]))
 ⊗(A::FunctionSpace,B::FunctionSpace)=TensorSpace(A,B)
 domain(f::TensorSpace)=domain(f.spaces[1])*domain(f.spaces[2])
 Space(sp::ProductDomain)=TensorSpace(sp)
+
+# every column is in the same space for a TensorSpace
+columnspace(S::TensorSpace,::)=S.spaces[1]
 
 Base.length(d::TensorSpace)=length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
