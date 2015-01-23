@@ -1,3 +1,21 @@
+# This is a Cooley-Tukey FFT algorithm for any number type.
+function fft_pow2{T<:Number}(x::Vector{T})
+    n = length(x)
+    @assert ispow2(n)
+    if n==1
+        return x
+    elseif n==2
+        return Complex{real(T)}[x[1]+x[2],x[1]-x[2]]
+    end
+    even,odd = fft_pow2(x[1:2:end-1]),fft_pow2(x[2:2:end])
+    twiddle = exp(-2im*convert(T,π)/n*[0:n-1])
+    half1 = even + odd.*twiddle[1:div(n,2)]
+    half2 = even + odd.*twiddle[div(n,2)+1:n]
+    return vcat(half1,half2)
+end
+ifft_pow2{T<:Number}(x::Vector{T}) = conj(fft_gen(conj(x)))/length(x)
+
+# The following are specialized routines for BigFloat data from Numerical Recipes in C.
 function fft_pow2!(data::Vector{BigFloat})
     @assert ispow2(length(data))
     nn=int(length(data)/2)
@@ -23,8 +41,8 @@ function fft_pow2!(data::Vector{BigFloat})
         wtemp=sin(θ/2)
         wpr = -2wtemp*wtemp
         wpi=sin(θ)
-        wr=BigFloat("1.0")
-        wi=BigFloat("0.0")
+        wr=big(1.0)
+        wi=big(0.0)
         for m=1:2:mmax-1
             for i=m:istep:n
                 j=i+mmax
@@ -46,24 +64,16 @@ end
 function fft_pow2(x::Vector{Complex{BigFloat}})
     @assert ispow2(length(x))
     n=length(x)
-    y = Array(BigFloat,2n)
-    for i = 1:n
-        y[2i-1] = x[i].re
-        y[2i] = x[i].im
-    end
+    y = interlace(real(x),imag(x))
     fft_pow2!(y)
-    return complex(y[1:2:2n-1],y[2:2:2n])
+    return complex(y[1:2:end],y[2:2:end])
 end
-Base.fft(x::Vector{BigFloat}) = Base.fft(complex(x)) #TODO: simplify
+fft_pow2(x::Vector{BigFloat}) = fft_pow2(complex(x))
 
 function ifft_pow2(x::Vector{Complex{BigFloat}})
     @assert ispow2(length(x))
     n=length(x)
-    y = Array(BigFloat,2n)
-    for i = 1:n
-        y[2i-1] = x[i].re
-        y[2i] = -x[i].im
-    end
+    y = interlace(real(x),-imag(x))
     fft_pow2!(y)
     x = complex(y[1:2:2n-1],-y[2:2:2n])/n
 end
