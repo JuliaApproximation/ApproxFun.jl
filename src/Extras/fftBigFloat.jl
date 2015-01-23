@@ -13,67 +13,53 @@ function fft_pow2{T<:Number}(x::Vector{T})
     half2 = even + odd.*twiddle[div(n,2)+1:n]
     return vcat(half1,half2)
 end
-ifft_pow2{T<:Number}(x::Vector{T}) = conj(fft_gen(conj(x)))/length(x)
+ifft_pow2{T<:Number}(x::Vector{T}) = conj(fft_pow2(conj(x)))/length(x)
 
-# The following are specialized routines for BigFloat data from Numerical Recipes in C.
-function fft_pow2!(data::Vector{BigFloat})
-    @assert ispow2(length(data))
-    nn=int(length(data)/2)
-    bigπ=big(π)
-    n=nn << 1
-    j=1
+# This is a Cooley-Tukey FFT algorithm inspired by many widely available algorithms including:
+# c_radix2.c in the GNU Scientific Library and four1 in the Numerical Recipes in C.
+# However, the trigonometric recurrence is improved for greater efficiency.
+# The algorithm starts with bit-reversal, then divides and conquers in-place.
+function fft_pow2!{T<:BigFloat}(x::Vector{T})
+    n=length(x)
+    nn,j=div(n,2),1
     for i=1:2:n-1
         if j>i
-            data[j],data[i]=data[i],data[j]
-            data[j+1],data[i+1]=data[i+1],data[j+1]
+            x[j],x[i]=x[i],x[j]
+            x[j+1],x[i+1]=x[i+1],x[j+1]
         end
         m=nn
         while m >= 2 && j > m
             j -= m
-            m >>= 1
+            m /= 2
         end
         j += m
     end
-    mmax=2
-    while n > mmax
-        istep=mmax << 1
-        θ=-2bigπ/mmax
-        wtemp=sin(θ/2)
-        wpr = -2wtemp*wtemp
-        wpi=sin(θ)
-        wr=big(1.0)
-        wi=big(0.0)
-        for m=1:2:mmax-1
-            for i=m:istep:n
-                j=i+mmax
-                tempr=wr*data[j]-wi*data[j+1]
-                tempi=wr*data[j+1]+wi*data[j]
-                data[j]=data[i]-tempr
-                data[j+1]=data[i+1]-tempi
-                data[i] += tempr
-                data[i+1] += tempi
+    for logn = 2.^[1:int(log2(n))-1]
+        θ=2convert(T,π)/logn
+        wpr,wpi=cos(θ),sin(θ)
+        wr,wi=one(T),zero(T)
+        for m=1:2:logn-1
+            for i=m:2logn:n
+                j=i+logn
+                mixr,mixi=wr*x[j]-wi*x[j+1],wr*x[j+1]+wi*x[j]
+                x[j],x[j+1]=x[i]-mixr,x[i+1]-mixi
+                x[i],x[i+1]=x[i]+mixr,x[i+1]+mixi
             end
-            wr=(wtemp=wr)*wpr-wi*wpi+wr
-            wi=wi*wpr+wtemp*wpi+wi
+            wr,wi=wi*wpi+wr*wpr,wi*wpr-wr*wpi
         end
-        mmax=istep
     end
-    return data
+    return x
 end
 
-function fft_pow2(x::Vector{Complex{BigFloat}})
-    @assert ispow2(length(x))
-    n=length(x)
+function fft_pow2{T<:BigFloat}(x::Vector{Complex{T}})
     y = interlace(real(x),imag(x))
     fft_pow2!(y)
     return complex(y[1:2:end],y[2:2:end])
 end
-fft_pow2(x::Vector{BigFloat}) = fft_pow2(complex(x))
+fft_pow2{T<:BigFloat}(x::Vector{T}) = fft_pow2(complex(x))
 
-function ifft_pow2(x::Vector{Complex{BigFloat}})
-    @assert ispow2(length(x))
-    n=length(x)
+function ifft_pow2{T<:BigFloat}(x::Vector{Complex{T}})
     y = interlace(real(x),-imag(x))
     fft_pow2!(y)
-    x = complex(y[1:2:2n-1],-y[2:2:2n])/n
+    return complex(y[1:2:end],-y[2:2:end])/length(x)
 end

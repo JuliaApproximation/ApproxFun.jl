@@ -28,7 +28,7 @@ function chebyshevtransform{T<:Number}(x::Vector{T})
     if n == 1
         x
     else
-        ret = ifft_gen([reverse(x),x[2:end-1]])[1:n]
+        ret = ifft([reverse(x),x[2:end-1]])[1:n]
         ret = T<:Real ? real(ret) : ret
         ret[2:n-1] *= 2
         ret
@@ -120,7 +120,7 @@ function chebyshevrootstransform{T<:Number}(x::Vector{T})
         x
     else
         w = 2exp(im*convert(T,π)*[0:n-1]/2n)
-        ret = w.*ifft_gen([reverse(x),x])[1:n]
+        ret = w.*ifft([reverse(x),x])[1:n]
         ret = T<:Real ? real(ret) : ret
         ret[1] /= 2
         ret
@@ -134,7 +134,7 @@ function ichebyshevrootstransform{T<:Number}(x::Vector{T})
     else
         w = exp(-im*convert(T,π)*[0:2n-1]/2n)/2
         w[1] *= 2;w[n+1] *= 0;w[n+2:end] *= -1
-        ret = fft_gen(w.*[x,one(T),x[end:-1:2]])[n:-1:1]
+        ret = fft(w.*[x,one(T),x[end:-1:2]])[n:-1:1]
         ret = T<:Real ? real(ret) : ret
     end
 end
