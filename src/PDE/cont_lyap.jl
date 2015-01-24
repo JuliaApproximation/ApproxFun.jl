@@ -201,8 +201,8 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             
             if k < n
                 for j=k+1:n
-                    rhs-=OS.S.R[k,j]*PY[j]
-                    rhs-=OS.S.T[k,j]*SY[j] 
+                    axpy!(-OS.S.R[k,j],PY[j],rhs)
+                    axpy!(-OS.S.T[k,j],SY[j],rhs)
                 end
             end
 
@@ -224,11 +224,11 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
         
             if k < n
                 for j=k+1:n
-                    rhs1-=OS.S.R[k-1,j]*PY[j]
-                    rhs1-=OS.S.T[k-1,j]*SY[j]
-                    
-                    rhs2-=OS.S.R[k,j]*PY[j]
-                    rhs2-=OS.S.T[k,j]*SY[j]
+                    axpy!(-OS.S.R[k-1,j],PY[j],rhs1)
+                    axpy!(-OS.S.T[k-1,j],SY[j],rhs1)         
+
+                    axpy!(-OS.S.R[k,j],PY[j],rhs2)
+                    axpy!(-OS.S.T[k,j],SY[j],rhs2)                                        
                 end
             end
         

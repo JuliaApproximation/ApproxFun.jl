@@ -143,7 +143,25 @@ for op = (:+,:-)
 end 
 
 
-
+function axpy!(a,X::Fun,Y::Fun)
+    n=length(Y); m=length(X)
+    
+    if n≤m
+        resize!(Y.coefficients,m)
+        for k=1:n
+            Y.coefficients[k]+=a*X.coefficients[k]
+        end
+        for k=n+1:length(X)
+            Y.coefficients[k]=a*X.coefficients[k]
+        end
+    else #X is smaller
+        for k=1:m
+            Y.coefficients[k]+=a*X.coefficients[k]
+        end
+    end
+    
+    Y
+end
 
 
 
