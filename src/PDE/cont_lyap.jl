@@ -219,13 +219,16 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             
             k-=1
         else # quasitriangular
-            rhs1=F[:,k-1]
-            rhs2=F[:,k]
+            rhs1 = k-1≤length(F.coefficients)?F.coefficients[k-1]:zeros(rs[1])        
+            rhs2 = k≤length(F.coefficients)?F.coefficients[k]:zeros(rs[1])                    
         
             if k < n
                 for j=k+1:n
-                    rhs1= adaptiveminus!(rhs1,OS.S.R[k-1,j]*PY[j],OS.S.T[k-1,j]*SY[j])
-                    rhs2= adaptiveminus!(rhs2,OS.S.R[k,j]*PY[j],OS.S.T[k,j]*SY[j])        
+                    rhs1-=OS.S.R[k-1,j]*PY[j]
+                    rhs1-=OS.S.T[k-1,j]*SY[j]
+                    
+                    rhs2-=OS.S.R[k,j]*PY[j]
+                    rhs2-=OS.S.T[k,j]*SY[j]
                 end
             end
         
@@ -240,10 +243,8 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             y=vec(linsolve(A,b;maxlength=nx))
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
         
-            PY[k-1]=OS.Lx*Y[k-1].coefficients; PY[k]=OS.Lx*Y[k].coefficients
-            SY[k-1]=OS.Mx*Y[k-1].coefficients; SY[k]=OS.Mx*Y[k].coefficients
-            
-            m=max(m,length(PY[k]),length(SY[k]),length(PY[k-1]),length(SY[k-1]))  
+            PY[k-1]=OS.Lx*Y[k-1]; PY[k]=OS.Lx*Y[k]
+            SY[k-1]=OS.Mx*Y[k-1]; SY[k]=OS.Mx*Y[k]
             
             k-=2
         end
