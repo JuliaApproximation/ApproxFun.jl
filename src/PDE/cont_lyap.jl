@@ -196,7 +196,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
     
     
     while k≥1
-        if OS.S.T[k,k-1] == 0 && OS.S.R[k,k-1] == 0        
+        if k==1 || (OS.S.T[k,k-1] == 0 && OS.S.R[k,k-1] == 0        )  # triangular setting
             rhs = k≤length(F.coefficients)?F.coefficients[k]:zeros(rs[1])
             
             if k < n
@@ -218,7 +218,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             end
             
             k-=1
-        else
+        else # quasitriangular
             rhs1=F[:,k-1]
             rhs2=F[:,k]
         
