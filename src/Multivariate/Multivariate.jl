@@ -22,7 +22,7 @@ include("LowRankFun.jl")
 include("ProductFun.jl")
 
 
-Fun(f,S::AbstractProductSpace,n...)=ProductFun(f,S,n...)
+Fun(f,S::MultivariateFunctionSpace,n...)=ProductFun(f,S,n...)
 Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
 Fun(f,dx::Domain,dy::Domain)=Fun(f,dx*dy)
 Fun(f,dx::Vector,dy::Vector)=Fun(f,Interval(dx),Interval(dx))

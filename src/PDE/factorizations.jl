@@ -125,12 +125,14 @@ end
 # Represents an operator on e.g. a Disk
 #############
 
-immutable PDEProductOperatorSchur{ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
+immutable PDEProductOperatorSchur{ST<:Number,FT<:Functional,DS<:AbstractProductSpace,S<:FunctionSpace,V<:FunctionSpace} <: AbstractPDEOperatorSchur
     Bx::Vector{Vector{FT}}
     Rdiags::Vector{SavedBandedOperator{ST}}
-    domainspace::AbstractProductSpace
+    domainspace::DS
     indsBx::Vector{Int}
 end
+
+PDEProductOperatorSchur{ST,FT,S,V}(Bx::Vector{Vector{FT}},Rdiags::Vector{SavedBandedOperator{ST}},ds::AbstractProductSpace{S,V},indsBx)=PDEProductOperatorSchur{ST,FT,typeof(ds),S,V}(Bx,Rdiags,ds,indsBx)
 
 Base.eltype{ST}(::PDEProductOperatorSchur{ST})=ST
 
@@ -198,10 +200,17 @@ domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
 
 
 
+##
+# ProductRangeSpace avoids computing the column spaces
+##
 
-type ProductRangeSpace <: BivariateFunctionSpace
-    S::PDEProductOperatorSchur
+
+
+type ProductRangeSpace{PDEP<:PDEProductOperatorSchur,SS,VV} <: AbstractProductSpace{SS,VV}
+    S::PDEP
 end
+
+ProductRangeSpace{ST,FT,DS,S,V}(s::PDEProductOperatorSchur{ST,FT,DS,S,V})=ProdcutRangeSpace{typeof(s),S,V}(s)
 
 rangespace(S::PDEProductOperatorSchur)=ProductRangeSpace(S)
 
