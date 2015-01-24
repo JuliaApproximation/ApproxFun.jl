@@ -44,3 +44,7 @@ end
 
 
 coefficients(f::BivariateFun,sp::TensorSpace)=coefficients(f,sp[1],sp[2])
+
+
+Base.zeros(sp::Union(MultivariateFunctionSpace,MultivariateDomain))=Fun(zeros(1,1),sp)
+Base.zeros{T}(::Type{T},sp::Union(MultivariateFunctionSpace,MultivariateDomain))=Fun(zeros(T,1,1),sp)

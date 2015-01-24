@@ -54,34 +54,13 @@ adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 # here G is a vector of Funs
 
 
-# function cont_reduce_dofs{T<:Fun}( R,G::Vector{T}, A::Array, M::Operator, F::Array )
-#     if length(R) > 0
-#         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
-#         # then kill the row by subtracting
-#         # MXR'[:,k]*A'[k,:]  from MXA'
-#         # i.e., subtacting A[:,k]*R[k,:] from A
-#         # and M*G'[:,k]*A'[k,:] from F
-#         # i.e. M*G[k]*A[:,k]' from 
-#         
-#         for k = 1:size(R,1)
-#             MG = M*G[k].coefficients         # coefficients in the range space of M      
-#             MGA = MG*A[:,k].'
-#             m=max(size(F,1),size(MGA,1))
-#             F = pad(F,m,size(F,2)) - pad(MGA,m,size(F,2))
-#             A = A - A[:,k]*R[k,:]
-#         end
-#     end
-#         
-#     A, F
-# end
-
 function adaptiveminus(F::Matrix,G::Matrix)
     m=max(size(F,1),size(G,1))
     n=max(size(F,2),size(G,2))
     pad(F,m,n) - pad(G,m,n)    
 end
 
-function cont_reduce_dofs{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,G::Vector{T},F::AbstractArray )
+function cont_reduce_dofs!{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,G::Vector{T},F::ProductFun )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
         # MXR'[:,k]*A'[k,:]  from MXA'
@@ -90,9 +69,10 @@ function cont_reduce_dofs{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,G
         # i.e. M*G[k]*A[:,k]' from 
         
     for k = 1:length(G)
-        MG = M*G[k].coefficients         # coefficients in the range space of M      
-        MGA = MG*full(A[:,k]).'
-        F = adaptiveminus(F,MGA)
+        MG = M*G[k]         # coefficients in the range space of M      
+        for j=1:length(F.coefficients)
+            F.coefficients[j]-=A[j,k]*MG
+        end
     end
         
     F
@@ -130,6 +110,11 @@ function cont_reduce_dofs{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::Ve
     cont_reduce_dofs(S.Mcols,M,G,F)    
 end
 
+function cont_reduce_dofs!{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::Vector{T},F::ProductFun)
+    F=cont_reduce_dofs!(S.Lcols,L,G,F)
+    cont_reduce_dofs!(S.Mcols,M,G,F)    
+end
+
 
 
 function cont_reduce_dofs{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::AbstractArray)
@@ -151,7 +136,7 @@ regularize_bcs(S::OperatorSchur,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
 # where R and T are upper triangular
 
 ##TODO: Support complex in boundary conditions
-cont_constrained_lyapuptriang{OSS,T,FT}(OS::PDEOperatorSchur{OSS,T},Gx,F::Array{FT},nx=100000)=cont_constrained_lyapuptriang(promote_type(T,FT),OS,Gx,F,nx)
+cont_constrained_lyapuptriang{OSS,T}(OS::PDEOperatorSchur{OSS,T},Gx,F::ProductFun,nx=100000)=cont_constrained_lyapuptriang(promote_type(T,eltype(F)),OS,Gx,F,nx)
 #cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)=cont_constrained_lyapuptriang(N,OS,Gx,F,100000)
 
 
@@ -192,33 +177,32 @@ end
 
 
 
-function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::Array,nx::Integer)
+function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::ProductFun,nx::Integer)
     n = min(size(OS.S.T,2),max(size(F,2),size(Gx,2)))
-    F=pad(F,size(F,1),n)
+
     if !isempty(Gx)
         Gx=pad(Gx,size(Gx,1),n)
     end
 
+    rs=rangespace(OS)
+    @assert space(F)==rs
 
-    Y=Array(Fun{typeof(domainspace(OS,1)),N},n)
-    PY=Array(Vector{N},n)
-    SY=Array(Vector{N},n)
+    Y=Array(Fun{typeof(domainspace(OS,1)),N},n) # the solution
+    PY=Array(Fun{typeof(rs[1]),N},n) # the x-op times the solution
+    SY=Array(Fun{typeof(rs[2]),N},n) # the y-op times the solution
 
     k=n
     m=n  # max length
     
     
-    while k>1
+    while k≥1
         if OS.S.T[k,k-1] == 0 && OS.S.R[k,k-1] == 0        
-            rhs = pad!(F[:,k],m)
+            rhs = k≤length(F.coefficients)?F.coefficients[k]:zeros(rs[1])
+            
             if k < n
                 for j=k+1:n
-                    for s=1:length(PY[j])
-                        rhs[s]-=OS.S.R[k,j]*PY[j][s]
-                    end
-                    for s=1:length(SY[j])
-                        rhs[s]-=OS.S.T[k,j]*SY[j][s]
-                    end                    
+                    rhs-=OS.S.R[k,j]*PY[j]
+                    rhs-=OS.S.T[k,j]*SY[j] 
                 end
             end
 
@@ -229,8 +213,9 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
                 Y[k]=chop!(linsolve([OS.Bx,op],[Gx[:,k],rhs];maxlength=nx),eps())
             end
             
-            PY[k]=OS.Lx*Y[k].coefficients;SY[k]=OS.Mx*Y[k].coefficients
-            m=max(m,length(PY[k]),length(SY[k]))
+            if k > 1
+                PY[k]=OS.Lx*Y[k];SY[k]=OS.Mx*Y[k]
+            end
             
             k-=1
         else
@@ -263,16 +248,6 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             k-=2
         end
     end
-
-    if k == 1
-        rhs = F[:,k]
-
-        for j=2:n
-            rhs= adaptiveminus!(rhs,OS.S.R[k,j]*PY[j],OS.S.T[k,j]*SY[j])
-        end
-
-        Y[k]=chop!([OS.Bx,OS.Rdiags[k]]\[Gx[:,k],rhs],eps())
-    end
     
     Y
 end
@@ -293,13 +268,13 @@ end
 
 
 
-function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx::Vector,Gyin::Vector,F::Array,nx=100000)    
+function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx::Vector,Gyin::Vector,F::ProductFun,nx=100000)    
     Gy=regularize_bcs(OS.S,Gyin)
-    F=cont_reduce_dofs(OS.S,OS.Lx,OS.Mx,Gy,F)  
+    F=cont_reduce_dofs!(OS.S,OS.Lx,OS.Mx,Gy,F)  
     
-    Q2 = OS.S.Q
-    
-    F=pad(F,size(F,1),size(Q2,1))*Q2
+     # Q2 says how to rearrange the columns of F so that the operator is upper triangular
+    Q2 = OS.S.Q 
+    F=ProductFun(Q2[1:length(F.coefficients),:].'*F.coefficients,space(F))
     
     
     ny=size(OS.S,2)
@@ -310,6 +285,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx:
     # and permute columns by P
 
     if !isempty(Gx)
+        # bcP recombines boundary conditions        
         Gx=pad(coefficients(Gx).',:,ny)*OS.S.bcP  
         # remove unused DOFs and rearrange columns
         Gx=Gx[:,Ky+1:end]*OS.S.Z

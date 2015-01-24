@@ -9,7 +9,7 @@ export AlmostBandedOperator
 ###
 
 type FillMatrix{T,R}
-    bc::Vector{R}         # The boundary rows    
+    bc::Vector{R}         # The boundary rows as functionals
     data::Matrix{T}       # The combination of bcs    
     datalength::Int
     numbcs::Int            # The length of bc.  We store this for quicker access, but maybe remove  
@@ -26,7 +26,11 @@ function FillMatrix{T}(::Type{T},bc,pf)
     
     m=50
     for k=1:nbc
-        sfuncs[k]=SavedFunctional(bc[k])
+        if isa(bc[k],SavedFunctional)
+            sfuncs[k]=bc[k]
+        else
+            sfuncs[k]=SavedFunctional(bc[k])
+        end
         resizedata!(sfuncs[k],m+pf)
     end
     ar0=eye(T,m,nbc)  # the first nbc fill in rows are just the bcs

@@ -29,7 +29,7 @@ function Base.getindex(B::SavedFunctional,k::Integer)
 end
 
 function Base.getindex(B::SavedFunctional,k::Range)
-    resizedata!(B,k[end])
+    resizedata!(B,k[end]+50)
     B.data[k] 
 end
 

@@ -103,6 +103,14 @@ end
 # For specifying spaces by anonymous function
 ProductFun(f::Function,SF::Function,T::FunctionSpace,N::Integer,M::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:M],T,N)
 
+
+# convert a constant  to a 2D Fun
+
+ProductFun(c::Number,sp::BivariateFunctionSpace)=ProductFun([Fun(c,columnspace(sp,1))],sp)
+ProductFun(f::Fun,sp::BivariateFunctionSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
+
+
+
 Base.size(f::ProductFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
 Base.size(f::ProductFun)=(size(f,1),size(f,2))
 Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
@@ -211,6 +219,9 @@ end
 
 -(f::ProductFun)=(-1)*f
 -(f::ProductFun,g::ProductFun)=f+(-g)
+
+*(B::Fun,f::ProductFun)=ProductFun(map(c->B*c,f.coefficients),space(f))
+*(f::ProductFun,B::Fun)=(B*f.').'
 
 
 LowRankFun{S,V}(f::TensorFun{S,V})=LowRankFun(f.coefficients,space(f,2))

@@ -40,6 +40,8 @@ tocanonical(d::MultivariateFunctionSpace,x...)=tocanonical(domain(d),x...)
 # This means x are represented as space S and y are represented as space T
 abstract AbstractProductSpace{S,T} <: BivariateFunctionSpace
 
+
+
 immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace} <:AbstractProductSpace{S,T}
     spaces::(S,T)
 end

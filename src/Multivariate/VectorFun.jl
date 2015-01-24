@@ -143,19 +143,11 @@ dotu{D,T}(f::Vector{Fun{D,Complex{Float64}}},g::Vector{T})=dot(conj(f),g)
 
  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
      @eval begin
-         function ($op){T<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,T}})
-             cfs=$op(A,coefficients(p).')
-             ret = Array(Fun{D,T},size(cfs,1))
-             for i = 1:size(A)[1]
-                 ret[i] = Fun(vec(cfs[i,:]),p[i].space)
-             end
-             ret    
-         end
          function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,V}})
              cfs=$op(A,coefficients(p).')
              ret = Array(Fun{D,promote_type(T,V)},size(cfs,1))
-             for i = 1:size(A)[1]
-                 ret[i] = Fun(vec(cfs[i,:]),p[i].space)
+             for i = 1:size(cfs,1)
+                 ret[i] = chop!(Fun(vec(cfs[i,:]),first(p).space),eps())
              end
              ret    
          end      
@@ -163,19 +155,11 @@ dotu{D,T}(f::Vector{Fun{D,Complex{Float64}}},g::Vector{T})=dot(conj(f),g)
          function ($op){T<:Number,D}(p::Vector{Fun{D,T}},A::Array{T,2})
              cfs=$op(A,coefficients(p).')
              ret = Array(Fun{D,T},size(cfs,1))
-             for i = 1:size(A)[1]
-                 ret[i] = Fun(vec(cfs[i,:]),p[i].space)
+             for i = 1:size(cfs,1)
+                 ret[i] = chop!(Fun(vec(cfs[i,:]),first(p).space),eps())
              end
              ret    
-         end
-         function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,V}})
-             cfs=$op(A,coefficients(p).')
-             ret = Array(Fun{D,promote_type(T,V)},size(cfs,1))
-             for i = 1:size(A)[1]
-                 ret[i] = Fun(vec(cfs[i,:]),p[i].space)
-             end
-             ret    
-         end                
+         end       
      end
  end
 

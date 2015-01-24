@@ -29,6 +29,8 @@ end
 function pde_normalize_rhs(A,f::Vector)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
 
+    rs=rangespace(A)
+
     # if the fun lives on the boundary, we need to get rid of
     # the boundary information
     # i.e., if it lives on (-1-im,-1+im) we want to convert it to 
@@ -47,9 +49,9 @@ function pde_normalize_rhs(A,f::Vector)
         Fun(g.coefficients,ds1)),vf[indsBy])   
         
         if length(f)<2
-            ff=0.0
+            F=zeros(rs)
         else
-            ff=f[end]
+            F=Fun(f[end],rs)
         end
     else
         f=pad(f,length(indsBx)+length(indsBy)+1)
@@ -57,20 +59,8 @@ function pde_normalize_rhs(A,f::Vector)
         fx=isempty(indsBx)?[]:convert2fun(f[indsBx],domainspace(A,2))
         fy=isempty(indsBy)?[]:convert2fun(f[indsBy],domainspace(A,1))       
         
-        ff=f[end]
+        F=Fun(f[end],rs)
     end
-    
-
-    if isa(ff,Number)
-        F=zeros(typeof(ff),1,1) 
-        F[1,1]=ff
-    elseif isa(ff,Fun) && domain(ff) == AnyDomain()
-        ##TODO: beter method of telling constant fun
-        F=zeros(typeof(ff.coefficients[1]),1,1) 
-        F[1,1]=ff.coefficients[1]        
-    else # typeof(ff) <:LowRankFun || TensorFun
-        F=coefficients(ff,rangespace(A))
-    end     
     
     fx,fy,F
 end   
@@ -85,7 +75,7 @@ function pde_normalize_rhs(A,f::Matrix)
 
     fx=isempty(indsBx)?[]:f[indsBx,:]
     fy=isempty(indsBy)?[]:f[indsBy,:]
-    F=fill(zeros(1,1),size(f,2))
+    F=fill(zeros(rangespace(A)),size(f,2))
     
     fx,fy,F
 end
