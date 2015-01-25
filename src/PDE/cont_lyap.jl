@@ -1,64 +1,10 @@
-function adaptiveplus(f::Vector,g::Vector)
-    if length(f)>length(g)
-        ret=copy(f)
-        @inbounds ret[1:length(g)]+=g
-    else
-        ret=copy(g)
-        @inbounds ret[1:length(f)]+=f
-    end
-    
-    ret
-end
 
-##May modify either f or g
-function adaptiveplus!(f::Vector,g::Vector)
-    if length(f)>length(g)
-        @simd for k=1:length(g)
-            @inbounds f[k]+=g[k]
-        end
-        f
-    else
-        @simd for k=1:length(f)
-            @inbounds g[k]+=f[k]
-        end
-        g
-    end
-end
-
-function adaptiveminus!(f::Vector,g::Vector)
-    if length(f)>length(g)
-        @simd for k=1:length(g)
-            @inbounds f[k]-=g[k]
-        end
-        f
-    else
-        @simd for k=1:length(g)
-            g[k]*=-1
-        end
-        @simd for k=1:length(f)
-            @inbounds g[k]+=f[k]
-        end
-        g
-    end
-end
-        
-##May modify either f,g or h
-adaptiveplus!(f,g,h)=adaptiveplus!(adaptiveplus!(f,g),h)
-
-#f-g-h
-adaptiveminus!(f,g,h)=adaptiveminus!(adaptiveminus!(f,g),h)
 
 
 #Use XR' = G' = [G1 G2 G3...] to reduce columns of A in
 # MXA' + *X* =F
 # here G is a vector of Funs
 
-
-function adaptiveminus(F::Matrix,G::Matrix)
-    m=max(size(F,1),size(G,1))
-    n=max(size(F,2),size(G,2))
-    pad(F,m,n) - pad(G,m,n)    
-end
 
 function cont_reduce_dofs!{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,G::Vector{T},F::ProductFun )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
