@@ -40,13 +40,13 @@ end
 regularize_bcs(S::ReducedDiscreteOperators,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
 
 
-function cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::Vector,G::Vector{T},F)
+function cont_reduce_dofs!{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::Vector,G::Vector{T},F)
     G=regularize_bcs(Ax,G)
-    cont_reduce_dofs(Ax.opcols,Ay,G,F)
+    cont_reduce_dofs!(Ax.opcols,Ay,G,F)
 end
-function cont_reduce_dofs{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators,G::Vector{T},F)
+function cont_reduce_dofs!{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators,G::Vector{T},F)
     G=regularize_bcs(Ax,G)
-    cont_reduce_dofs(Ax.opcols,Ay.ops,coefficients(G)[numbcs(Ay)+1:end,:],F)
+    cont_reduce_dofs!(Ax.opcols,Ay.ops,coefficients(G)[numbcs(Ay)+1:end,:],F)
 end
 
 
@@ -87,12 +87,12 @@ Base.kron{T<:PDEOperator}(A::Vector{T},S::BivariateDomain,n::Integer)=kron(A,n)
 
 function pdesolve(K::PDEOperatorKron,G)
     fx,fy,F=ApproxFun.pde_normalize_rhs(K,G)
-    F=cont_reduce_dofs(K.opsx,K.op.ops[:,2],fx,F.').'
-    F=cont_reduce_dofs(K.opsy,K.opsx,fy,F)
+    F=cont_reduce_dofs!(K.opsx,K.op.ops[:,2],fx,F.').'
+    F=cont_reduce_dofs!(K.opsy,K.opsx,fy,F)
     
     
     
-    X22=reshape(K.kron\vec(pad(F,size(K)...)),size(K)...)
+    X22=reshape(K.kron\vec(pad(coefficients(F,rangespace(K)),size(K)...)),size(K)...)
     Kx,Ky=numbcs(K,1),numbcs(K,2) # doesn't include boundary rows...could be confusing
     nx,ny=size(K,1)+Kx,size(K,2)+Ky
     

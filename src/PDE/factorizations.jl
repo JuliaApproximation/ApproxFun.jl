@@ -210,7 +210,7 @@ type ProductRangeSpace{PDEP<:PDEProductOperatorSchur,SS,VV} <: AbstractProductSp
     S::PDEP
 end
 
-ProductRangeSpace{ST,FT,DS,S,V}(s::PDEProductOperatorSchur{ST,FT,DS,S,V})=ProdcutRangeSpace{typeof(s),S,V}(s)
+ProductRangeSpace{ST,FT,DS,S,V}(s::PDEProductOperatorSchur{ST,FT,DS,S,V})=ProductRangeSpace{typeof(s),S,V}(s)
 
 rangespace(S::PDEProductOperatorSchur)=ProductRangeSpace(S)
 

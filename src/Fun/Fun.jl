@@ -137,26 +137,27 @@ for op = (:+,:-)
 
         ($op){N<:Number}(f::Fun,c::N)=$op(f,c*ones(f))
         ($op){N<:Number}(c::N,f::Fun)=$op(c*ones(f),f)    
-        ($op){S,T}(f::Fun{S,T},c::UniformScaling)=$op(f,c.λ)
-        ($op){S,T}(c::UniformScaling,f::Fun{S,T})=$op(c.λ,f)    
+        ($op){S,T}(f::Fun{S,T},c::UniformScaling)=$op(f,c.位)
+        ($op){S,T}(c::UniformScaling,f::Fun{S,T})=$op(c.位,f)    
     end
 end 
 
-
-function axpy!(a,X::Fun,Y::Fun)
-    n=length(Y); m=length(X)
+# equivalent to Y+=a*X
+axpy!(a,X::Fun,Y::Fun)=axpy!(a,coefficients(X,space(Y)),Y)
+function axpy!(a,xcfs::Vector,Y::Fun) 
+    n=length(Y); m=length(xcfs)
     
     if n≤m
         resize!(Y.coefficients,m)
         for k=1:n
-            Y.coefficients[k]+=a*X.coefficients[k]
+            @inbounds Y.coefficients[k]+=a*xcfs[k]
         end
-        for k=n+1:length(X)
-            Y.coefficients[k]=a*X.coefficients[k]
+        for k=n+1:m
+            @inbounds Y.coefficients[k]=a*xcfs[k]
         end
     else #X is smaller
         for k=1:m
-            Y.coefficients[k]+=a*X.coefficients[k]
+            @inbounds Y.coefficients[k]+=a*xcfs[k]
         end
     end
     

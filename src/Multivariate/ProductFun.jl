@@ -47,7 +47,7 @@ ProductFun(f,dx::Domain,dy::Domain)=ProductFun(f,Space(dx),Space(dy))
 ProductFun(f::LowRankFun)=ProductFun(coefficients(f),space(f,1),space(f,2))
 
 #Need to templt TensorFun because parameters are in subfields
-ProductFun(f::ProductFun,sp::AbstractProductSpace)=ProductFun(coefficients(f,sp),sp)
+ProductFun(f::ProductFun,sp::AbstractProductSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
 
 ProductFun{S,V}(f::TensorFun{S,V},sp1::Domain,sp2::Domain)=ProductFun(f,Space(sp1),Space(sp2))
 ProductFun{S,V}(f::TensorFun{S,V},sp::ProductDomain)=ProductFun(f,Space(sp))
@@ -136,6 +136,16 @@ function pad{S,V,SS,T}(f::ProductFun{S,V,SS,T},n::Integer,m::Integer)
         ret[k]=zero(T,columnspace(f,k))
     end
     ProductFun{S,V,SS,T}(ret,f.space)
+end
+
+function pad!{S,V,SS,T}(f::ProductFun{S,V,SS,T},::Colon,m::Integer)
+    cm=length(f.coefficients)
+    resize!(f.coefficients,m)
+
+    for k=cm+1:m
+        f.coefficients[k]=zero(T,columnspace(f,k))
+    end
+    f
 end
 
 

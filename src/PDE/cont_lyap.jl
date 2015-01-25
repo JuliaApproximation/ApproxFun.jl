@@ -71,7 +71,7 @@ function cont_reduce_dofs!{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,
     for k = 1:length(G)
         MG = M*G[k]         # coefficients in the range space of M      
         for j=1:length(F.coefficients)
-            F.coefficients[j]-=A[j,k]*MG
+            axpy!(-A[j,k],MG,F.coefficients[j]) # equivalent to X+=a*Y
         end
     end
         
@@ -82,13 +82,17 @@ end
 # G is  ∞ x K array
 # A is ∞ x K list of opcols
 # M is ∞ x ∞ operator
-function cont_reduce_dofs{NT<:Number,T<:Number}( A::AbstractArray{NT},M::AbstractArray{T},G::Array,F::AbstractArray )
+function cont_reduce_dofs!{NT<:Number,T<:Number}( A::AbstractArray{NT},M::AbstractArray{T},G::Array,F::ProductFun )
     MGA=M*pad(G,size(M,1),size(G,2))*full(A).'
-    adaptiveminus(F,MGA)
+    pad!(F,:,max(size(F,2),size(MGA,2)))
+    for j=1:size(MGA,2)
+        axpy!(-1,MGA[:,j],F.coefficients[j])
+    end
+    F
 end
 
 
-function cont_reduce_dofs{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M::AbstractArray{MT},G::Vector{T},F::AbstractArray )
+function cont_reduce_dofs!{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M::AbstractArray{MT},G::Vector{T},F::ProductFun )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
         # MXR'[:,k]*A'[k,:]  from MXA'
@@ -98,17 +102,14 @@ function cont_reduce_dofs{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M:
         
     for k = 1:length(G)
         MG = M*pad(G[k].coefficients,size(M,2))         # coefficients in the range space of M      
-        MGA = MG*full(A[:,k]).'
-        F=adaptiveminus(F,MGA)
+        for j=1:length(F.coefficients)
+            axpy!(-A[j,k],MG,F.coefficients[j]) # equivalent to X+=a*Y
+        end        
     end
         
     F
 end
 
-function cont_reduce_dofs{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::Vector{T},F::AbstractArray)
-    F=cont_reduce_dofs(S.Lcols,L,G,F)
-    cont_reduce_dofs(S.Mcols,M,G,F)    
-end
 
 function cont_reduce_dofs!{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::Vector{T},F::ProductFun)
     F=cont_reduce_dofs!(S.Lcols,L,G,F)
@@ -117,10 +118,10 @@ end
 
 
 
-function cont_reduce_dofs{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::AbstractArray)
+function cont_reduce_dofs!{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::ProductFun)
     @assert length(Ax)==length(Ay)
     for k=1:length(Ax)
-        F=cont_reduce_dofs(Ax[k],Ay[k],G,F)
+        F=cont_reduce_dofs!(Ax[k],Ay[k],G,F)
     end
     
     F
@@ -140,18 +141,18 @@ cont_constrained_lyapuptriang{OSS,T}(OS::PDEOperatorSchur{OSS,T},Gx,F::ProductFu
 #cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)=cont_constrained_lyapuptriang(N,OS,Gx,F,100000)
 
 
-function cont_constrained_lyap{OSS<:DiagonalOperatorSchur,T}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::Matrix{T},nx=100000)    
+function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::ProductFun,nx=100000)    
     n = size(OS.S,1)    
     F=pad(F,size(F,1),n)
     Gx=pad(coefficients(Gxin).',:,n)
     
-    TYP=promote_type(eltype(OS),T)    
+    TYP=promote_type(eltype(OS),eltype(F))    
     Y=Array(Fun{typeof(domainspace(OS,1)),TYP},n)
 
 
     for k=1:n
         op=OS.Rdiags[k]
-        rhs=T[Gx[:,k]...,F[:,k]...]
+        rhs=[Gx[:,k]...,F.coefficients[k]]
         Y[k]=chop!(linsolve([OS.Bx,op],rhs;maxlength=nx),eps())
     end  
     
@@ -201,7 +202,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             
             if k < n
                 for j=k+1:n
-                    axpy!(-OS.S.R[k,j],PY[j],rhs)
+                    axpy!(-OS.S.R[k,j],PY[j],rhs) # equivalent to X+=a*Y
                     axpy!(-OS.S.T[k,j],SY[j],rhs)
                 end
             end
