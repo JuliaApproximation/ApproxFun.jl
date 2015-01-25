@@ -219,6 +219,8 @@ function space(S::ProductRangeSpace,k)
     S.S.domainspace[2]
 end 
 
+columnspace(S::ProductRangeSpace,k)=rangespace(S.S.Rdiags[k])
+
 function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
     @assert space(f,2)==space(sp,2)
     

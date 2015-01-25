@@ -152,24 +152,24 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
 
     for k=1:n
         op=OS.Rdiags[k]
-        rhs=[Gx[:,k]...,F.coefficients[k]]
+        rhs=Any[Gx[:,k]...,F.coefficients[k]]
         Y[k]=chop!(linsolve([OS.Bx,op],rhs;maxlength=nx),eps())
     end  
     
     Y   
 end
 
-function cont_constrained_lyap{T}(OS::PDEProductOperatorSchur,Gxin,Gyin,F::Matrix{T},nx=100000)    
+function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::ProductFun,nx=100000)    
     n = length(OS.Rdiags)
     F=pad(F,size(F,1),n)
     Gx=pad(coefficients(Gxin).',:,n)
-    TYP=promote_type(eltype(OS),T)
+    TYP=promote_type(eltype(OS),eltype(F))
     Y=Array(Fun{typeof(domainspace(OS.Rdiags[1])),TYP},n) 
 
 
     for k=1:n
         op=OS.Rdiags[k]
-        rhs=T[Gx[:,k]...,F[:,k]...]
+        rhs=Any[Gx[:,k]...,F.coefficients[k]]
         Y[k]=chop!(linsolve([OS.Bx[k],op],rhs;maxlength=nx),eps())
     end  
     
