@@ -14,6 +14,8 @@ function cont_reduce_dofs!{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,
         # and M*G'[:,k]*A'[k,:] from F
         # i.e. M*G[k]*A[:,k]' from 
         
+    pad!(F,:,max(size(F,2),size(A,1)))
+        
     for k = 1:length(G)
         MG = M*G[k]         # coefficients in the range space of M      
         for j=1:length(F.coefficients)

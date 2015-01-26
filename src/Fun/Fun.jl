@@ -145,19 +145,21 @@ end
 # equivalent to Y+=a*X
 axpy!(a,X::Fun,Y::Fun)=axpy!(a,coefficients(X,space(Y)),Y)
 function axpy!(a,xcfs::Vector,Y::Fun) 
-    n=length(Y); m=length(xcfs)
-    
-    if n≤m
-        resize!(Y.coefficients,m)
-        for k=1:n
-            @inbounds Y.coefficients[k]+=a*xcfs[k]
-        end
-        for k=n+1:m
-            @inbounds Y.coefficients[k]=a*xcfs[k]
-        end
-    else #X is smaller
-        for k=1:m
-            @inbounds Y.coefficients[k]+=a*xcfs[k]
+    if a!=0
+        n=length(Y); m=length(xcfs)
+        
+        if n≤m
+            resize!(Y.coefficients,m)
+            for k=1:n
+                @inbounds Y.coefficients[k]+=a*xcfs[k]
+            end
+            for k=n+1:m
+                @inbounds Y.coefficients[k]=a*xcfs[k]
+            end
+        else #X is smaller
+            for k=1:m
+                @inbounds Y.coefficients[k]+=a*xcfs[k]
+            end
         end
     end
     
