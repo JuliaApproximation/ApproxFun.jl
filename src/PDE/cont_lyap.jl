@@ -30,6 +30,7 @@ end
 # G is  ∞ x K array
 # A is ∞ x K list of opcols
 # M is ∞ x ∞ operator
+# used by kron
 function cont_reduce_dofs!{NT<:Number,T<:Number}( A::AbstractArray{NT},M::AbstractArray{T},G::Array,F::ProductFun )
     MGA=M*pad(G,size(M,1),size(G,2))*full(A).'
     pad!(F,:,max(size(F,2),size(MGA,2)))
@@ -173,11 +174,11 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
         
             if k < n
                 for j=k+1:n
-                    axpy!(-OS.S.R[k-1,j],PY[j],rhs1)
-                    axpy!(-OS.S.T[k-1,j],SY[j],rhs1)         
+                    axpy!(-OS.S.R[k-1,j],PY[j],rhs1)  # +=
+                    axpy!(-OS.S.T[k-1,j],SY[j],rhs1)  # +=        
 
-                    axpy!(-OS.S.R[k,j],PY[j],rhs2)
-                    axpy!(-OS.S.T[k,j],SY[j],rhs2)                                        
+                    axpy!(-OS.S.R[k,j],PY[j],rhs2)  # +=
+                    axpy!(-OS.S.T[k,j],SY[j],rhs2)  # +=                                        
                 end
             end
         
