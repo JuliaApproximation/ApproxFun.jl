@@ -137,8 +137,8 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
     @assert space(F)==rs
 
     Y=Array(Fun{typeof(domainspace(OS,1)),N},n) # the solution
-    PY=Array(Fun{typeof(rs[1]),N},n) # the x-op times the solution
-    SY=Array(Fun{typeof(rs[2]),N},n) # the y-op times the solution
+    PY=Array(Fun{typeof(rs[1]),N},n) # the first x-op times the solution
+    SY=Array(Fun{typeof(rs[1]),N},n) # the second x-op times the solution
 
     k=n
     m=n  # max length
