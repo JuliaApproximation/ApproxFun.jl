@@ -49,7 +49,7 @@ end
 
 function columninds(b::BandedBelowOperator,k::Integer)
     ret = bandinds(b)
-  
+
     (ret[1]  + k < 1) ? (1,(ret[end] + k)) : (ret[1]+k,ret[2]+k)
 end
 
@@ -76,14 +76,14 @@ BandedMatrix{T<:Number}(B::Operator{T},rws::UnitRange,::Colon)=first(rws)==1?Ban
 
 function BandedMatrix{T<:Number}(B::Operator{T},kr::StepRange,::Colon)
     stp=step(kr)
-    
+
     if stp==1
         BandedMatrix(B,first(kr):last(kr),:)
-    else    
+    else
         str=stride(B)
         @assert mod(str,stp)==0
         # we need the shifting by bandinds to preserve mod
-        @assert mod(bandinds(B,1),stp)==mod(bandinds(B,2),stp)==0  
+        @assert mod(bandinds(B,1),stp)==mod(bandinds(B,2),stp)==0
         # find column range
         jr=max(stp-mod(kr[1],stp),kr[1]+bandinds(B,1)):stp:kr[end]+bandinds(B,2)
         shf=div(first(kr)-first(jr),stp)
@@ -97,7 +97,7 @@ end
 function BandedMatrix(B::Operator,kr::Range,jr::Range)
     br=bandrange(B)
     shft=kr[1]-jr[1]
-    
+
     BandedMatrix(BandedMatrix(B,kr,:).data,length(jr),-br[1]-shft,br[end]+shft)
 end
 
@@ -137,7 +137,7 @@ Base.getindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
 function subview(B::BandedOperator,kr::Range,::Colon)
      br=bandinds(B)
      BM=slice(B,kr,:)
-     
+
      # This shifts to the correct slice
      IndexStride(BM,1-kr[1],-max(0,kr[1]-1+br[1]))
 end
@@ -146,7 +146,7 @@ end
 function subview(B::BandedOperator,::Colon,jr::Range)
      br=bandinds(B)
      BM=slice(B,:,jr)
-     
+
      # This shifts to the correct slice
      IndexStride(BM,-max(jr[1]-1-br[end],0),1-jr[1])
 end
@@ -154,7 +154,7 @@ end
 function subview(B::BandedOperator,kr::Range,jr::Range)
      br=bandinds(B)
      BM=slice(B,kr,jr)
-     
+
      # This shifts to the correct slice
      IndexStride(BM,1-kr[1],1-jr[1])
 end
@@ -165,7 +165,7 @@ end
 # this allows for just overriding getdiagonalentry
 
 getdiagonalentry(B::BandedOperator,k,j)=error("Override getdiagonalentry for "*string(typeof(B)))
-# 
+#
 function addentries!(B::BandedOperator,A,kr)
      br=bandinds(B)
      for k=(max(kr[1],1)):(kr[end])
@@ -173,16 +173,16 @@ function addentries!(B::BandedOperator,A,kr)
              A[k,k+j]=getdiagonalentry(B,k,j)
          end
      end
-         
+
      A
 end
 
 
-## Default Composition with a Fun, LowRankFun, and TensorFun
+## Composition with a Fun, LowRankFun, and ProductFun
 
 Base.getindex(B::BandedOperator,f::Fun) = B*Multiplication(domainspace(B),f)
 Base.getindex{BT,S,M,T,V}(B::BandedOperator{BT},f::LowRankFun{S,M,T,V}) = PlusOperator(BandedOperator{promote_type(BT,T,V)}[f.A[i]*B[f.B[i]] for i=1:rank(f)])
-Base.getindex(B::BandedOperator,f::TensorFun) = B[LowRankFun(f)]
+Base.getindex{BT,S,V,SS,T}(B::BandedOperator{BT},f::ProductFun{S,V,SS,T}) = PlusOperator(BandedOperator{promote_type(BT,T)}[f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1),one(promote_type(BT,T))],f.space.spaces[2])] for i=1:length(f.coefficients)])
 
 ## Standard Operators and linear algebra
 
@@ -243,8 +243,8 @@ Base.convert{T<:BandedOperator}(A::Type{T},f::Fun)=norm(f.coefficients)==0?zero(
 for T in (:Float64,:Int64,:(Complex{Float64})), OP in (:BandedOperator,:Operator)
     @eval begin
         Base.promote_rule{N<:Number,O<:$OP{$T}}(::Type{N},::Type{O})=$OP{promote_type(N,$T)}
-        Base.promote_rule{N<:Number,O<:$OP{$T}}(::Type{UniformScaling{N}},::Type{O})=$OP{promote_type(N,$T)}    
-        Base.promote_rule{S,N<:Number,O<:$OP{$T}}(::Type{Fun{S,N}},::Type{O})=$OP{promote_type(N,$T)}            
+        Base.promote_rule{N<:Number,O<:$OP{$T}}(::Type{UniformScaling{N}},::Type{O})=$OP{promote_type(N,$T)}
+        Base.promote_rule{S,N<:Number,O<:$OP{$T}}(::Type{Fun{S,N}},::Type{O})=$OP{promote_type(N,$T)}
     end
 end
 
