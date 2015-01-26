@@ -2,7 +2,7 @@ export ProductFun
 
 
 
-## 
+##
 # ProductFun represents f(x,y) by Fun(.coefficients[k][x],.space[2])[y]
 # where all coefficients are in the same space
 ##
@@ -24,7 +24,7 @@ ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp
 function ProductFun{S,T}(M::Vector{Fun{S,T}},dy::FunctionSpace)
     Sx=typeof(M[1].space)
     funs=Fun{Sx,T}[Mk for Mk in M]
-    ProductFun{Sx,typeof(dy),ProductSpace{Sx,typeof(dy)},$T}(funs,ProductSpace(Sx[space(fun) for fun in funs],dy))    
+    ProductFun{Sx,typeof(dy),ProductSpace{Sx,typeof(dy)},$T}(funs,ProductSpace(Sx[space(fun) for fun in funs],dy))
 end
 
 ProductFun(M,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(M,TensorSpace(dx,dy))
@@ -69,7 +69,7 @@ end
 
 function ProductFun(f::Function,S::AbstractProductSpace,N::Integer,M::Integer)
     ptsx,ptsy=points(S,N,M)
-    
+
     f1=f(ptsx[1,1],ptsy[1,1])
     T=coefficient_type(S,typeof(f1))  # type of coefficients
     # use coefficient type so we can reuse array
@@ -83,9 +83,9 @@ ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Sp
 
 function ProductFun(f::Function,D)
     Nmax=400
-    
+
     tol=1E-12
-    
+
     for N=50:25:Nmax
         X=coefficients(ProductFun(f,D,N,N))
         if norm(X[end-3:end,:])<tol && norm(X[:,end-3:end])<tol
@@ -96,7 +96,7 @@ function ProductFun(f::Function,D)
     error("Maximum grid reached")
     ProductFun(f,D,Nmax,Nmax)
 end
-    
+
 
 
 
@@ -164,7 +164,7 @@ function coefficients(f::ProductFun,ox::FunctionSpace,oy::FunctionSpace)
         B[k,1:length(ccfs)]=ccfs
         B[k,length(ccfs):1:end]=zero(T)
     end
-    
+
     B
 end
 
@@ -221,7 +221,7 @@ function +{F<:ProductFun}(f::F,g::F)
         for k=1:size(g,2)
             cfs[k]+=g.coefficients[k]
         end
-        
+
         F(cfs,f.space)
     else
         g+f
@@ -259,8 +259,8 @@ end
 
 .^(f::ProductFun,k::Integer)=Fun(transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k),space(f))
 
-for op = (:(Base.real),:(Base.imag),:(Base.conj)) 
-    @eval ($op){S,V<:FunctionSpace{RealBasis}}(f::TensorFun{S,V}) = ProductFun(map($op,f.coefficients),space(f))    
+for op = (:(Base.real),:(Base.imag),:(Base.conj))
+    @eval ($op){S,V<:FunctionSpace{RealBasis}}(f::TensorFun{S,V}) = ProductFun(map($op,f.coefficients),space(f))
 end
 
 #For complex bases
@@ -303,3 +303,4 @@ for op in (:tocanonical,:fromcanonical)
     @eval $op(f::ProductFun,x...)=$op(space(f),x...)
 end
 
+include("ChebyshevAddition.jl")
