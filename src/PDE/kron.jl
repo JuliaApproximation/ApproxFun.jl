@@ -86,7 +86,7 @@ Base.kron{T<:PDEOperator}(A::Vector{T},S::BivariateDomain,n::Integer)=kron(A,n)
 
 
 function pdesolve(K::PDEOperatorKron,G)
-    fx,fy,F=pde_normalize_rhs(K,G)
+    fx,fy,F=pde_standardize_rhs(K,G)
     F=cont_reduce_dofs!(K.opsx,K.op.ops[:,2],fx,F.').'
     F=cont_reduce_dofs!(K.opsy,K.opsx,fy,F)
     

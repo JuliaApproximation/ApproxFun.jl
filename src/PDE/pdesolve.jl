@@ -26,7 +26,13 @@ function convert2fun{S<:FunctionSpace}(f::Array,sp::S)
     ret
 end
 
-function pde_normalize_rhs(A,f::Vector)
+
+
+###
+# pde_standardize_rhs manipulate "non-standard" rhs
+# so it has a standardized form
+###
+function pde_standardize_rhs(A,f::Vector)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
 
     rs=rangespace(A)
@@ -70,7 +76,7 @@ end
 
 
 
-function pde_normalize_rhs(A,f::Matrix)
+function pde_standardize_rhs(A,f::Matrix)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
     @assert length(indsBx)+length(indsBy)==size(f,1)
 
@@ -115,7 +121,7 @@ end
 
 
 function pdesolve(A::AbstractPDEOperatorSchur,f::Array,nx=100000)
-    fx,fy,F=pde_normalize_rhs(A,f)
+    fx,fy,F=pde_standardize_rhs(A,f)
     Fun(cont_constrained_lyap(A,fx,fy,F,nx),domainspace(A))
 end
 

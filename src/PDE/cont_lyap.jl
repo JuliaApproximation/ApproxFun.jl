@@ -160,7 +160,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             if isempty(Gx)
                 Y[k]=chop!(linsolve([OS.Bx,op],rhs;maxlength=nx),eps())            
             else
-                Y[k]=chop!(linsolve([OS.Bx,op],[Gx[:,k],rhs];maxlength=nx),eps())
+                Y[k]=chop!(linsolve([OS.Bx,op],Any[Gx[:,k]...,rhs];maxlength=nx),eps())
             end
             
             if k > 1

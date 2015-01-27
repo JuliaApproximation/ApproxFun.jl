@@ -115,7 +115,7 @@ u=[dirichlet(sp),
 @time u=[dirichlet(sp),
     D^2-x]\[airyai(-10.)];    
 
-println("Piecewise Airy: should be ~0.01")
+println("Piecewise Airy: should be ~0.008")
 
 
 ## Vector 
@@ -134,7 +134,7 @@ A=[B 0;
    
 u=A\Any[0.,0.,0.,f]
 @time u=A\Any[0.,0.,0.,f]
-println("Systems: should be ~0.0009")
+println("Systems: should be ~0.0008")
 
 
 d=Interval(-300.,5.)
@@ -182,4 +182,4 @@ S = discretize([dirichlet(d),lap(d)],100);
 u=S\[0.,f];
 @time u=S\[0.,f];
 
-println("Disk Poisson: should be ~0.16,0.03")
+println("Disk Poisson: should be ~0.16,0.016")
