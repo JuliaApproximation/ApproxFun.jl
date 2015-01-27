@@ -14,8 +14,7 @@ function ProductFun{S,T}(f::Fun{S,T})
     N = length(c)
     if N ≤ 3 N=3;pad!(c,3) end
     un = one(T)
-    C1,C2 = zeros(T,N,N),zeros(T,N,N)
-    T1,X = zeros(T,N,N),zeros(T,N,N)
+    C1,C2,X = zeros(T,N,N),zeros(T,N,N),zeros(T,N,N)
 
     C1[1,1] = un
     cn = c[1]
@@ -40,9 +39,6 @@ function ProductFun{S,T}(f::Fun{S,T})
     X[2,2] += cn*C1[2,2]
     X[1,3] += cn*C1[1,3]
 
-    T1[2,1] = C2[2,1]
-    T1[1,2] = C2[1,2]
-
     @inbounds for n=4:N
         #
         # There are 11 unique recurrence relationships for the coefficients. The main recurrence is:
@@ -55,22 +51,22 @@ function ProductFun{S,T}(f::Fun{S,T})
         # For testing of stability, they should always be equal to:
         # C[1:n,1:n,n] = coefficients(ProductFun((x,y)->cos((n-1)*acos((y-x)/2)))).
         #
-        C2[1,1] = (C1[1,2]-C1[2,1])/2 - T1[1,1]
-        C2[2,1] = (C1[2,2]-C1[3,1])/2 - C1[1,1] - T1[2,1]
+        C2[1,1] = (C1[1,2]-C1[2,1])/2 - C2[1,1]
+        C2[2,1] = (C1[2,2]-C1[3,1])/2 - C1[1,1] - C2[2,1]
         C2[n,1] = C1[n-1,1]/(-2)
-        C2[1,2] = (C1[1,3]-C1[2,2])/2 + C1[1,1] - T1[1,2]
-        C2[2,2] = (C1[2,3]-C1[3,2])/2 + C1[2,1]-C1[1,2] - T1[2,2]
+        C2[1,2] = (C1[1,3]-C1[2,2])/2 + C1[1,1] - C2[1,2]
+        C2[2,2] = (C1[2,3]-C1[3,2])/2 + C1[2,1]-C1[1,2] - C2[2,2]
         C2[1,n] = C1[1,n-1]/2
         for k=n-2:-2:3
-            C2[k,1] = (C1[k,2]-C1[k-1,1]-C1[k+1,1])/2 - T1[k,1]
-            C2[1,k] = (C1[1,k+1]+C1[1,k-1]-C1[2,k])/2 - T1[1,k]
+            C2[k,1] = (C1[k,2]-C1[k-1,1]-C1[k+1,1])/2 - C2[k,1]
+            C2[1,k] = (C1[1,k+1]+C1[1,k-1]-C1[2,k])/2 - C2[1,k]
         end
         for k=n-1:-2:3
-            C2[k,2] = (C1[k,3]-C1[k-1,2]-C1[k+1,2])/2 + C1[k,1] - T1[k,2]
-            C2[2,k] = (C1[2,k+1]+C1[2,k-1]-C1[3,k])/2 - C1[1,k] - T1[2,k]
+            C2[k,2] = (C1[k,3]-C1[k-1,2]-C1[k+1,2])/2 + C1[k,1] - C2[k,2]
+            C2[2,k] = (C1[2,k+1]+C1[2,k-1]-C1[3,k])/2 - C1[1,k] - C2[2,k]
         end
         for j=n:-1:3,i=n-j+1:-2:3
-            C2[i,j] = (C1[i,j+1]+C1[i,j-1]-C1[i+1,j]-C1[i-1,j])/2 - T1[i,j]
+            C2[i,j] = (C1[i,j+1]+C1[i,j-1]-C1[i+1,j]-C1[i-1,j])/2 - C2[i,j]
         end
 
         cn = c[n]
@@ -79,8 +75,7 @@ function ProductFun{S,T}(f::Fun{S,T})
         end
 
         for j=1:n,i=1:n-j+1
-            T1[i,j] = C1[i,j]
-            C1[i,j] = C2[i,j]
+            C1[i,j],C2[i,j] = C2[i,j],C1[i,j]
         end
     end
     V = Ultraspherical{0}()
