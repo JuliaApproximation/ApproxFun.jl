@@ -7,24 +7,43 @@
 # recursively via a Chebyshev addition theorem.
 #
 function ProductFun{S,T}(f::Fun{S,T})
+    ## TODO: Can the complexity be reduced from O(n^3)?
     ## TODO: generalize for more intervals & spaces.
     @assert S == typeof(Ultraspherical{0}(Interval(T[-2,2])))
-
     c = chop(coefficients(f),10eps(T))
     N = length(c)
-    ## TODO: Can the coefficients be stored in only three 2D arrays C_old, C_new, and temp?
-    ## TODO: Can the complexity be reduced from O(n^3), albeit with a low constant?
-    C,X = zeros(T,N,N,N),zeros(T,N,N)
+    if N ≤ 3 N=3;pad!(c,3) end
     un = one(T)
+    C1,C2 = zeros(T,N,N),zeros(T,N,N)
+    T1,X = zeros(T,N,N),zeros(T,N,N)
 
-    C[1,1,1] = un
-    C[2,1,2] = -un/2
-    C[1,2,2] = un/2
-    C[1,1,3] = -un/2
-    C[3,1,3] = un/4
-    C[2,2,3] = -un
-    C[1,3,3] = un/4
-    for n=4:N
+    C1[1,1] = un
+    cn = c[1]
+
+    X[1,1] += cn*C1[1,1]
+
+    C2[2,1] = -un/2
+    C2[1,2] = un/2
+    cn = c[2]
+
+    X[2,1] += cn*C2[2,1]
+    X[1,2] += cn*C2[1,2]
+
+    C1[1,1] = -un/2
+    C1[3,1] = un/4
+    C1[2,2] = -un
+    C1[1,3] = un/4
+    cn = c[3]
+
+    X[1,1] += cn*C1[1,1]
+    X[3,1] += cn*C1[3,1]
+    X[2,2] += cn*C1[2,2]
+    X[1,3] += cn*C1[1,3]
+
+    T1[2,1] = C2[2,1]
+    T1[1,2] = C2[1,2]
+
+    @inbounds for n=4:N
         #
         # There are 11 unique recurrence relationships for the coefficients. The main recurrence is:
         #
@@ -36,31 +55,32 @@ function ProductFun{S,T}(f::Fun{S,T})
         # For testing of stability, they should always be equal to:
         # C[1:n,1:n,n] = coefficients(ProductFun((x,y)->cos((n-1)*acos((y-x)/2)))).
         #
-        C[1,1,n] = (C[1,2,n-1]-C[2,1,n-1])/2 - C[1,1,n-2]
-        C[2,1,n] = (C[2,2,n-1]-C[3,1,n-1])/2 - C[1,1,n-1] - C[2,1,n-2]
-        C[n,1,n] = C[n-1,1,n-1]/(-2)
-        C[1,2,n] = (C[1,3,n-1]-C[2,2,n-1])/2 + C[1,1,n-1] - C[1,2,n-2]
-        C[2,2,n] = (C[2,3,n-1]-C[3,2,n-1])/2 + C[2,1,n-1]-C[1,2,n-1]-C[2,2,n-2]
-        C[1,n,n] = C[1,n-1,n-1]/2
-        for i=3:n-1
-            C[i,1,n] = (C[i,2,n-1]-C[i-1,1,n-1]-C[i+1,1,n-1])/2 - C[i,1,n-2]
-            C[i,2,n] = (C[i,3,n-1]-C[i-1,2,n-1]-C[i+1,2,n-1])/2 + C[i,1,n-1] - C[i,2,n-2]
+        C2[1,1] = (C1[1,2]-C1[2,1])/2 - T1[1,1]
+        C2[2,1] = (C1[2,2]-C1[3,1])/2 - C1[1,1] - T1[2,1]
+        C2[n,1] = C1[n-1,1]/(-2)
+        C2[1,2] = (C1[1,3]-C1[2,2])/2 + C1[1,1] - T1[1,2]
+        C2[2,2] = (C1[2,3]-C1[3,2])/2 + C1[2,1]-C1[1,2] - T1[2,2]
+        C2[1,n] = C1[1,n-1]/2
+        for k=n-2:-2:3
+            C2[k,1] = (C1[k,2]-C1[k-1,1]-C1[k+1,1])/2 - T1[k,1]
+            C2[1,k] = (C1[1,k+1]+C1[1,k-1]-C1[2,k])/2 - T1[1,k]
         end
-        for j=3:n-1
-            C[1,j,n] = (C[1,j+1,n-1]+C[1,j-1,n-1]-C[2,j,n-1])/2 - C[1,j,n-2]
-            C[2,j,n] = (C[2,j+1,n-1]+C[2,j-1,n-1]-C[3,j,n-1])/2 - C[1,j,n-1] - C[2,j,n-2]
+        for k=n-1:-2:3
+            C2[k,2] = (C1[k,3]-C1[k-1,2]-C1[k+1,2])/2 + C1[k,1] - T1[k,2]
+            C2[2,k] = (C1[2,k+1]+C1[2,k-1]-C1[3,k])/2 - C1[1,k] - T1[2,k]
         end
-        for i=3:n
-            for j=3:n-i+1
-                C[i,j,n] = (C[i,j+1,n-1]+C[i,j-1,n-1]-C[i+1,j,n-1]-C[i-1,j,n-1])/2 - C[i,j,n-2]
-            end
+        for j=n:-1:3,i=n-j+1:-2:3
+            C2[i,j] = (C1[i,j+1]+C1[i,j-1]-C1[i+1,j]-C1[i-1,j])/2 - T1[i,j]
         end
-    end
-    for n=1:N
-        for i=1:n
-            for j=1:n-i+1
-                X[i,j] += c[n]*C[i,j,n]
-            end
+
+        cn = c[n]
+        for j=n:-1:1,i=n-j+1:-2:1
+            X[i,j] += cn*C2[i,j]
+        end
+
+        for j=1:n,i=1:n-j+1
+            T1[i,j] = C1[i,j]
+            C1[i,j] = C2[i,j]
         end
     end
     V = Ultraspherical{0}()
