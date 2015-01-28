@@ -94,7 +94,8 @@ for op in (:maxspace,:conversion_type)
     @eval begin
         function $op(f::PiecewiseSpace,g::PiecewiseSpace)
             if domain(f)==domain(g)
-                PiecewiseSpace([$op(f[k],g[k]) for k=1:length(f)])
+                # hack to make sure type is correct
+                PiecewiseSpace([[$op(f[k],g[k]) for k=1:length(f)]...])  
             else
                 NoSpace()
             end
