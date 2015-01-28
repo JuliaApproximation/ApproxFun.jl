@@ -396,6 +396,19 @@ for T in (:AnySpace,:FunctionSpace)
     end
 end
 
+function choosedomainspace(P::PlusOperator,sp)
+    ret=AnySpace()
+    for op in P.ops
+        sp2=choosedomainspace(op,sp)
+        if !isa(sp2,AmbiguousSpace)  # we will ignore this result in hopes another opand
+                                     # tells us a good space
+            ret=conversion_type(ret,sp2)
+        end
+    end
+    ret
+end
+    
+
 
 for T in (:AnySpace,:FunctionSpace)
     @eval begin
@@ -410,3 +423,16 @@ for T in (:AnySpace,:FunctionSpace)
         end
     end
 end
+
+
+
+function choosedomainspace(P::TimesOperator,sp)
+    for op in P.ops
+        sp=choosedomainspace(op,sp)
+    end
+    sp
+end
+    
+    
+    
+

@@ -50,12 +50,15 @@ immutable ImagOperator{S} <: BandedOperator{Float64}
     space::S
 end
 
+
+
 ## When the basis is real, we can automatically define
 # these operators
 
 
 for ST in (:RealOperator,:ImagOperator)
     @eval begin
+        $ST()=$ST(UnsetSpace())
         domainspace(s::$ST)=s.space
         rangespace{S<:RealSpace,T,D}(s::$ST{ReImSpace{S,T,D}})=s.space
         bandinds{S<:RealSpace,T,D}(A::$ST{ReImSpace{S,T,D}})=0,0

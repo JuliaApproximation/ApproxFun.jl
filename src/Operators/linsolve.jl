@@ -15,21 +15,20 @@ end
 
 
 function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps(eltype(A[end])),maxlength=1000000)
-    Ad=promotedomainspace(A)
-
-    if length(Ad)==3&&
-            isa(Ad[1],Evaluation{Chebyshev,Bool,Float64})&&
-            isa(Ad[2],Evaluation{Chebyshev,Bool,Float64})&&
-            !Ad[1].x && Ad[2].x &&
-            length(bandrange(Ad[end]))≥25&&
-            iseven(stride(Ad[end]))
-        r=stridelinsolve(Ad,b,tolerance,maxlength)
+    A=promotedomainspace(A,choosedomainspace(A))
+    if length(A)==3&&
+            isa(A[1],Evaluation{Chebyshev,Bool,Float64})&&
+            isa(A[2],Evaluation{Chebyshev,Bool,Float64})&&
+            !A[1].x && A[2].x &&
+            length(bandrange(A[end]))≥25&&
+            iseven(stride(A[end]))
+        r=stridelinsolve(A,b,tolerance,maxlength)
     else
-        r=adaptiveqr(Ad,b,tolerance,maxlength)
+        r=adaptiveqr(A,b,tolerance,maxlength)
     end
 
     #all rows of Ad should have same domain space
-    ds=domainspace(Ad[end])
+    ds=domainspace(A[end])
     # If ds is a ArraySpace and r is a matrix, then
     # the constructor in ArraySpace converts to matrix
     isa(ds,AnySpace)?r:Fun(r,ds)
@@ -52,13 +51,15 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
     if size(b,1)<size(A,1)
         # the ... converts b to a tuple of numbers so that r is a number Vec
         r=reshape([b...],size(b))
+        A=promotedomainspace(A,choosedomainspace(A))
     elseif size(b,1)==size(A,1)
         if isa(b[end,1],Fun)
             # Convert to a number vector
 
             bend=b[end,:]
             typ=mapreduce(eltype,promote_type,bend)
-            A,be=promotedomainspace(A,b[end,1])
+            ds=choosedomainspace(A,space(b[end,1]))
+            A=promotedomainspace(A,ds)
             m=mapreduce(length,max,bend)  # max length of rhs
             #TODO: this only works if space conversion doesn't increase size
 
@@ -67,15 +68,8 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
             # assign boundary rows
             r[1:size(b,1)-1,:]=b[1:end-1,:]
 
-            for k=2:size(b,2)
-                @assert space(b[end,k])==space(b[end,1])
-            end
-
-
             rs=rangespace(A[end])
-            @assert space(be)==rs
-            r[size(b,1):size(b,1)+length(be)-1,1]=coefficients(be)
-            for k=2:size(b,2)
+            for k=1:size(b,2)
                 cfs=coefficients(b[end,k],rs)
                 r[size(b,1):size(b,1)+length(cfs)-1,k]=cfs
             end
@@ -89,10 +83,11 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
         # we have list of possible funs, devec
         rhs=b[size(A,1):end]
         if all(f->isa(f,Fun),rhs)
-            A,be=promotedomainspace(A,devec(rhs))
-            @assert space(be)==rangespace(A[end])
+            be=devec(rhs)
+            sp=choosedomainspace(A,space(be))
+            A=promotedomainspace(A,sp)
 
-            r=[b[1:size(A,1)-1]...,coefficients(be)]
+            r=[b[1:size(A,1)-1]...,coefficients(be,rangespace(A[end]))]
         else
             #TODO: Don't remember what this case is for
             r=[b[1:size(A,1)-1]...,interlace(rhs)]
