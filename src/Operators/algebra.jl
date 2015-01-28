@@ -332,7 +332,7 @@ end
 
 ## Operations
 
-function *{T<:Number}(A::TimesOperator,b::Vector{T})
+function *{T<:Number}(A::TimesOperator,b::Array{T})
     ret = b
     for k=length(A.ops):-1:1
         ret = A.ops[k]*ret
@@ -342,8 +342,8 @@ function *{T<:Number}(A::TimesOperator,b::Vector{T})
 end
 
 
-function *{T<:Number}(A::BandedOperator,b::Vector{T})
-    n=length(b)
+function *{T<:Number}(A::BandedOperator,b::Array{T})
+    n=size(b,1)
     
     if n>0
         slice(A,:,1:n)*b
@@ -360,6 +360,17 @@ function *(A::InfiniteOperator,b::Fun)
     else
         Fun(A*coefficients(b,dsp),rangespace(A))
     end
+end
+
+function *{F<:Fun}(A::InfiniteOperator,b::Array{F,2})
+    @assert size(b,1)==1
+    C=A*coefficients(vec(b),domainspace(A))
+    rs=rangespace(A)
+    ret=Array(Fun{typeof(rs),eltype(C)},1,size(C,2))
+    for k=1:size(C,2)
+        ret[1,k]=Fun(C[:,k],rs)
+    end
+    ret
 end
 
 

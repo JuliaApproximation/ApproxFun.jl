@@ -253,9 +253,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Ty
         end        
     
         if k > 1
-            for j=1:Fm
-                PY[k,j]=OS.Lx*Y[k,j];SY[k,j]=OS.Mx*Y[k,j]
-            end
+            PY[k,:]=OS.Lx*Y[k,:];SY[k,:]=OS.Mx*Y[k,:]  # L*Array returns an array space op
         end
         k-=1
     end
