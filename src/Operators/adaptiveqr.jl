@@ -171,7 +171,7 @@ function adaptiveqr!{V<:Number}(B::AlmostBandedOperator,v::Array{V},tol::Real,N)
     b=-B.bandinds[1]
     m=100+b
     
-    l = length(v) + m  
+    l = size(v,1) + m  
     
     u=pad(v,l,size(v,2))    
     resizedata!(B,l)

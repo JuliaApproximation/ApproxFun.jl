@@ -65,6 +65,13 @@ function cont_reduce_dofs!{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::V
     cont_reduce_dofs!(S.Mcols,M,G,F)    
 end
 
+function cont_reduce_dofs!{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::Vector{T},F::Array)
+    for Fk in F
+        cont_reduce_dofs!(S,L,M,G,Fk)
+    end
+    F
+end
+
 
 
 function cont_reduce_dofs!{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::ProductFun)
@@ -75,6 +82,7 @@ function cont_reduce_dofs!{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::Produ
     
     F
 end
+
 
 
 
@@ -204,6 +212,56 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
 end
 
 
+# Solve for multiple RHS
+# TODO: Generalize def
+function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::Array{PF,2},nx::Integer)
+    n = min(size(OS.S.T,2),max(mapreduce(Fk->size(Fk,2),max,F),mapreduce(Fk->size(Fk,2),max,Gx)))
+    rs=rangespace(OS)
+    
+    Fm=size(F,2)
+
+    Y=Array(Fun{typeof(domainspace(OS,1)),N},n,Fm) # the solution
+    PY=Array(Fun{typeof(rs[1]),N},n,Fm) # the first x-op times the solution
+    SY=Array(Fun{typeof(rs[1]),N},n,Fm) # the second x-op times the solution
+
+
+    k=n
+    m=n  # max length
+
+
+
+    rhs=Array(Any,size(first(Gx),1)+1,Fm)
+    
+    
+     while k≥1
+        @assert k==1 || (OS.S.T[k,k-1] == 0 && OS.S.R[k,k-1] == 0        )  
+    
+        for j=1:Fm
+            rhs[1:1,j]=Gx[j][:,k]
+            rhs[2,j]=F[j].coefficients[k]
+            if k < n
+                for kk=k+1:n
+                    axpy!(-OS.S.R[k,kk],PY[kk,j],rhs[2,j]) # equivalent to X+=a*Y
+                    axpy!(-OS.S.T[k,kk],SY[kk,j],rhs[2,j])
+                end
+            end            
+        end
+        op=OS.Rdiags[k]
+        Y[k,:]=vec(linsolve([OS.Bx,op],rhs;maxlength=nx))
+        for j=1:Fm
+            chop!(Y[k,j],eps())
+        end        
+    
+        if k > 1
+            for j=1:Fm
+                PY[k,j]=OS.Lx*Y[k,j];SY[k,j]=OS.Mx*Y[k,j]
+            end
+        end
+        k-=1
+    end
+    Y
+end
+
 ## Solve ∞-dimensional lyap equation
 #
 #   Bx*X=[Gx[1](y);Gx[2](y);...]=Gx'
@@ -250,7 +308,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx:
     
     X22=OS.S.Z*Y  #think of it as transpose
     
-    X11=convert(typeof(X22),Gy-OS.S.bcs[:,Ky+1:end]*X22) #temporary bugfix since Gy might have worse type
+    X11=Gy-OS.S.bcs[:,Ky+1:end]*X22 
     X=[X11,X22]    
     X=OS.S.bcP*X        # this is equivalent to acting on columns by P'
 end

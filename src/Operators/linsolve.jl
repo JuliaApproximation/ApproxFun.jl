@@ -59,7 +59,8 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
             bend=b[end,:]
             typ=mapreduce(eltype,promote_type,bend)
             A,be=promotedomainspace(A,b[end,1])
-            m=length(be)
+            m=mapreduce(length,max,bend)  # max length of rhs
+            #TODO: this only works if space conversion doesn't increase size
 
             r=isa(b,Vector)?Array(typ,size(b,1)-1+m):zeros(typ,size(b,1)-1+m,size(b,2))
 
@@ -73,7 +74,7 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
 
             rs=rangespace(A[end])
             @assert space(be)==rs
-            r[size(b,1):size(b,1)+m-1,1]=coefficients(be)
+            r[size(b,1):size(b,1)+length(be)-1,1]=coefficients(be)
             for k=2:size(b,2)
                 cfs=coefficients(b[end,k],rs)
                 r[size(b,1):size(b,1)+length(cfs)-1,k]=cfs

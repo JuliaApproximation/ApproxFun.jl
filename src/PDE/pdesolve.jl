@@ -83,7 +83,7 @@ function pde_standardize_rhs(A,f::Matrix)
 
     fx=isempty(indsBx)?[]:f[indsBx,:]
     fy=isempty(indsBy)?[]:f[indsBy,:]
-    F=fill(zeros(rangespace(A)),size(f,2))
+    F=fill(zeros(rangespace(A)),1,size(f,2))
     
     fx,fy,F
 end
