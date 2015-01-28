@@ -1,24 +1,53 @@
-immutable ReImSpace{S,T,D}<: FunctionSpace{T,D}
-    space::S 
+
+for TYP in (:ReSpace,:ImSpace,:ReImSpace)
+    @eval begin
+        immutable $TYP{S,T,D}<: FunctionSpace{T,D}
+            space::S 
+        end
+        
+        $TYP{T,D}(sp::FunctionSpace{T,D})=$TYP{typeof(sp),T,D}(sp)
+        
+        domain(sp::$TYP)=domain(sp.space)
+        spacescompatible(a::$TYP,b::$TYP)=spacescompatible(a.space,b.space)
+        
+        function spaceconversion(f::Vector,a::$TYP,b::$TYP)
+            @assert spacescompatible(a.space,b.space)
+            f 
+        end
+        
+        transform(S::$TYP,vals::Vector)=spaceconversion(transform(S.space,vals),S.space,S)
+        evaluate{S<:$TYP}(f::Fun{S},x)=evaluate(Fun(f,space(f).space),x)
+        
+        canonicalspace(a::$TYP)=$TYP(canonicalspace(a.space))         
+    end
+    
+    for OP in (:maxspace,:conversion_type)
+        @eval $OP(a::$TYP,b::$TYP)=$TYP($OP(a.space,b.space))
+    end    
 end
-ReImSpace{T,D}(sp::FunctionSpace{T,D})=ReImSpace{typeof(sp),T,D}(sp)
 
-domain(sp::ReImSpace)=domain(sp.space)
 
-function spaceconversion(f::Vector,a::ReImSpace,b::ReImSpace)
-    @assert a.space==b.space
-    f 
-end
-
+spaceconversion(f::Vector,a::ImSpace,b::ReSpace)=zeros(f)
+spaceconversion(f::Vector,a::ReSpace,b::ImSpace)=zeros(f)
+spaceconversion(f::Vector,a::ReSpace,b::ReImSpace)=spaceconversion(f,a,a.space,b)
+spaceconversion(f::Vector,a::ImSpace,b::ReImSpace)=spaceconversion(f,a,a.space,b)
+spaceconversion(f::Vector,a::ReImSpace,b::ReSpace)=spaceconversion(f,a,a.space,b)
+spaceconversion(f::Vector,a::ReImSpace,b::ImSpace)=spaceconversion(f,a,a.space,b)
+spaceconversion(f::Vector,a::FunctionSpace,b::ReSpace)=real(spaceconversion(f,a,b.space))
+spaceconversion(f::Vector,a::FunctionSpace,b::ImSpace)=imag(spaceconversion(f,a,b.space))
+spaceconversion(f::Vector,a::ReSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);spaceconversion(f,a.space,b))
+spaceconversion(f::Vector,a::ImSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);spaceconversion(1im*f,a.space,b)) 
+    
 function spaceconversion(f::Vector,a::FunctionSpace,b::ReImSpace)
     if a!=b.space
-        cfs=spaceconversion(f,a,b.space)
+        f=spaceconversion(f,a,b.space)
     end
     ret=Array(Float64,2length(f))
     ret[1:2:end]=real(f)
     ret[2:2:end]=imag(f)    
     ret
 end
+
 
 function spaceconversion(f::Vector,a::ReImSpace,b::FunctionSpace)
     n=length(f)
@@ -35,10 +64,8 @@ function spaceconversion(f::Vector,a::ReImSpace,b::FunctionSpace)
     end
 end
 
-transform(S::ReImSpace,vals::Vector)=spaceconversion(transform(S.space,vals),S.space,S)
-evaluate{S<:ReImSpace}(f::Fun{S},x)=evaluate(Fun(f,space(f).space),x)
 
-
+union_rule(a::FunctionSpace,b::ReImSpace)=union(a,b.space)
 
 ## Operators
 
@@ -90,11 +117,18 @@ end
 
 
 # Converts an operator to one that applies on the real and imaginary parts
-immutable ReImOperator{O} <: BandedOperator{Float64}
+immutable ReImOperator{O,T} <: BandedOperator{T}
     op::O
 end
 
+ReImOperator(op)=ReImOperator{typeof(op),Float64}(op)
+Base.convert{T}(::Type{BandedOperator{T}},R::ReImOperator)=ReImOperator{typeof(R.op),T}(R.op)
+
 bandinds(RI::ReImOperator)=2bandinds(RI.op,1),2bandinds(RI.op,2)
+
+for OP in (:rangespace,:domainspace)
+    @eval $OP(R::ReImOperator)=ReImSpace($OP(R.op))
+end
 
 # function addentries!(RI::ReImOperator,A,kr::UnitRange)
 #     @assert isodd(kr[1])

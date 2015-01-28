@@ -65,8 +65,13 @@ function spaceconversion(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
 end
 spaceconversion{S,n,st}(f::Vector,sp::JacobiWeight,S2::SliceSpace{n,st,S,RealBasis,Interval})=error("Implement")
 spaceconversion{S,n,st}(f::Vector,S2::SliceSpace{n,st,S,RealBasis,Interval},sp::JacobiWeight)=error("Implement")
-spaceconversion{S}(f::Vector,sp::JacobiWeight,S2::ReImSpace{S,RealBasis,Interval})=error("Implement")
-spaceconversion{S}(f::Vector,S2::ReImSpace{S,RealBasis,Interval},sp::JacobiWeight)=error("Implement")
+
+for TYP in (:ReSpace,:ImSpace,:ReImSpace)
+    @eval begin
+        spaceconversion{S}(f::Vector,sp::JacobiWeight,S2::$TYP{S,RealBasis,Interval})=error("Implement")
+        spaceconversion{S}(f::Vector,S2::$TYP{S,RealBasis,Interval},sp::JacobiWeight)=error("Implement")
+    end
+end
 spaceconversion(f::Vector,sp::JacobiWeight,S2::IntervalSpace)=spaceconversion(f,sp,JacobiWeight(0,0,S2))
 spaceconversion(f::Vector,S2::IntervalSpace,sp::JacobiWeight)=spaceconversion(f,JacobiWeight(0,0,S2),sp)
 

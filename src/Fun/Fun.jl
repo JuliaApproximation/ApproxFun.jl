@@ -131,6 +131,9 @@ for op = (:+,:-)
                 Fun(($op)(f2.coefficients,g2.coefficients),domain(f)!=AnyDomain()?f.space:g.space)
             else 
                 m=union(f.space,g.space)
+                if isa(m,NoSpace)
+                    error("Cannot "*string($op)*" because no space is the union of "*string(typeof(f.space))*" and "*string(typeof(g.space)))
+                end
                 $op(Fun(f,m),Fun(g,m)) # convert to same space
             end
         end

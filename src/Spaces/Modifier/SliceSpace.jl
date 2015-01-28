@@ -54,8 +54,12 @@ end
 
 
 ## Resolve conflict
-spaceconversion(::Vector,sp::ReImSpace,slp::SliceSpace)=error("spaceconversion not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
-spaceconversion(::Vector,sp::SliceSpace,slp::ReImSpace)=error("spaceconversion not implemented from "*typeof(sp)*" to "*typeof(slp))
+for TYP in (:ReImSpace,:ReSpace,:ImSpace)
+    @eval begin
+        spaceconversion(::Vector,sp::$TYP,slp::SliceSpace)=error("spaceconversion not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
+        spaceconversion(::Vector,sp::SliceSpace,slp::$TYP)=error("spaceconversion not implemented from "*typeof(sp)*" to "*typeof(slp))
+    end
+end
 
 # v[k]=v[stride*k+index]
 function spaceconversion(v::Vector,sp::SliceSpace,dropsp::SliceSpace)
