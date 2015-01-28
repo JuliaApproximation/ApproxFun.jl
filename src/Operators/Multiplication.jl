@@ -68,6 +68,9 @@ promotedomainspace(D::AbstractMultiplication,sp::UnsetSpace)=D
 promotedomainspace(D::AbstractMultiplication,sp::AnySpace)=D
 promotedomainspace(D::AbstractMultiplication,sp::FunctionSpace)=Multiplication(D.f,sp)
 
+choosedomainspace{D}(M::Multiplication{D,UnsetSpace},::AnySpace)=space(M.f)
+choosedomainspace{D}(M::Multiplication{D,UnsetSpace},sp)=sp  # we assume multiplication maps spaces to themselves
+
 
 Base.diagm(a::Fun)=Multiplication(a)
 

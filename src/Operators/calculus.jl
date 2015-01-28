@@ -79,6 +79,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         # for integration, we fall back on existing conversion for now
         promotedomainspace(D::$AbstOp,sp::UnsetSpace)=D
         promotedomainspace(D::$AbstOp,sp::AnySpace)=D        
+            
         
         function promotedomainspace{S<:FunctionSpace}(D::$AbstOp,sp::S)
             if domain(sp) == AnyDomain()
@@ -87,6 +88,9 @@ macro calculus_operator(Op,AbstOp,WrappOp)
                 $Op(sp,D.order)
             end
         end
+        
+        choosedomainspace(M::$Op{UnsetSpace},sp)=sp  # we assume 
+        
         
         #Wrapper just adds the operator it wraps
         addentries!(D::$WrappOp,A,k::Range)=addentries!(D.op,A,k)          

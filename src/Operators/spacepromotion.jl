@@ -96,28 +96,44 @@ end
 
 
 function promotedomainspace{T<:Functional}(ops::Vector{T})
-    k=findmindomainspace(ops)
+    k=choosedomainspace(ops)
     Functional[promotedomainspace(op,k) for op in ops]
 end
 
 
 function promotedomainspace{T<:Operator}(ops::Vector{T})
-    k=findmindomainspace(ops)
+    k=choosedomainspace(ops)
     Operator[promotedomainspace(op,k) for op in ops]
 end
 
 function promotedomainspace{T<:Operator}(ops::Vector{T},S::FunctionSpace)
-    k=conversion_type(findmindomainspace(ops),S)
+    k=conversion_type(choosedomainspace(ops),S)
     Operator[promotedomainspace(op,k) for op in ops]
 end
 function promotedomainspace(ops::Vector,b::Fun)
     A=promotedomainspace(ops)
     if isa(rangespace(A[end]),AmbiguousSpace) 
         # try setting the domain space
-        A=promotedomainspace(ops,space(b))
+        
+        sp=choosedomainspace(ops,space(b))
+        A=promotedomainspace(ops,sp)
     end
     A,Fun(b,rangespace(A[end]))
 end
+
+
+choosedomainspace(A::Operator,::)=domainspace(A)
+choosedomainspace(A)=choosedomainspace(A,AnySpace())
+
+function choosedomainspace(ops::Vector,spin)
+    sp = AnySpace()
+    
+    for op in ops
+        sp = conversion_type(sp,choosedomainspace(op,spin))
+    end
+    
+    sp
+end 
 
 
 #It's important that domain space is promoted first as it might impact range space
