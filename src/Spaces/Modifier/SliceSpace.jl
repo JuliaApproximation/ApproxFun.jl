@@ -29,6 +29,10 @@ function addentries!{ind,st,S,T,D}(C::Conversion{SliceSpace{ind,st,S,T,D},S},A,k
     A
 end
 
+
+getindex{ind,DS,T,D}(E::Evaluation{SliceSpace{ind,1,DS,T,D},Bool},kr::Range)=Evaluation(E.space.space,E.x,E.order)[kr+ind]
+getindex{ind,DS,T,D}(E::Evaluation{SliceSpace{ind,1,DS,T,D}},kr::Range)=Evaluation(E.space.space,E.x,E.order)[kr+ind]
+
 =={n,st,S,T,D}(a::SliceSpace{n,st,S,T,D},b::SliceSpace{n,st,S,T,D})=a.space==b.space
 
 function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::SliceSpace{n,1,S,T,D})

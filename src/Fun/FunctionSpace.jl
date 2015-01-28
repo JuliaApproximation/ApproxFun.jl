@@ -141,7 +141,7 @@ end
 
 
 function conversion_type(a,b)
-    if a==b
+    if spacescompatible(a,b)
         a
     else
         cr=conversion_rule(a,b)

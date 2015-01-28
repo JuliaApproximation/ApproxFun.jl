@@ -7,7 +7,8 @@ immutable ChebyshevDirichlet{left,right} <: PolynomialSpace
     ChebyshevDirichlet()=new(Interval())    
 end
 
-spacescompatible{l,r}(a::ChebyshevDirichlet{l,r},b::ChebyshevDirichlet{l,r})=domainscompatible(a,b)
+spacescompatible{l,r}(a::ChebyshevDirichlet{l,r},b::ChebyshevDirichlet{l,r})=true
+#domainscompatible(a,b)
 
 ChebyshevDirichlet()=ChebyshevDirichlet{1,1}()
 
@@ -62,6 +63,8 @@ function getindex(B::Evaluation{ChebyshevDirichlet{1,0},Bool},kr::Range)
     
     if B.x == false && B.order == 0
         Float64[k==1?1.0:0.0 for k=kr]
+    elseif B.x == true && B.order == 0
+        Float64[k==1?1.0:2.0 for k=kr]
     else
         getindex(Evaluation(d,B.x,B.order)*Conversion(domainspace(B)),kr)
     end
@@ -72,6 +75,8 @@ function getindex(B::Evaluation{ChebyshevDirichlet{0,1},Bool},kr::Range)
     
     if B.x == true && B.order == 0
         Float64[k==1?1.0:0.0 for k=kr]
+    elseif B.x == false && B.order == 0
+        Float64[k==1?1.0:-(-1)^k*2.0 for k=kr]        
     else
         getindex(Evaluation(d,B.x,B.order)*Conversion(domainspace(B)),kr)
     end
