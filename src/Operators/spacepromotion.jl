@@ -120,7 +120,10 @@ end
 # it tries to decide a space.
 ###
 
-choosedomainspace(A::Operator,::)=domainspace(A)
+function choosedomainspace(A::Operator,sp)
+    sp2=domainspace(A)
+    isa(sp2,AmbiguousSpace)?sp:sp2
+end
 choosedomainspace(A)=choosedomainspace(A,AnySpace())
 
 function choosedomainspace(ops::Vector,spin)

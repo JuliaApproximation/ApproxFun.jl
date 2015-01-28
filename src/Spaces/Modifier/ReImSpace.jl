@@ -63,6 +63,7 @@ for ST in (:RealOperator,:ImagOperator)
         rangespace{S<:RealSpace,T,D}(s::$ST{ReImSpace{S,T,D}})=s.space
         bandinds{S<:RealSpace,T,D}(A::$ST{ReImSpace{S,T,D}})=0,0
         domain(O::$ST)=domain(O.space)
+        choosedomainspace(s::$ST{UnsetSpace},sp)=ReImSpace(sp)
     end
 end
 
