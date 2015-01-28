@@ -313,3 +313,42 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx:
     X=OS.S.bcP*X        # this is equivalent to acting on columns by P'
 end
 
+function cont_constrained_lyap{OSS<:OperatorSchur,PF<:ProductFun}(OS::PDEOperatorSchur{OSS},Gx::Array,Gyin::Array,F::Array{PF},nx=100000)    
+    @assert size(F,1)==1
+    @assert isempty(Gyin)  #TODO: remove assumption
+    
+    
+    Gy=regularize_bcs(OS.S,Gyin)
+    
+    cont_reduce_dofs!(OS.S,OS.Lx,OS.Mx,Gy,F)  
+        Q2 = OS.S.Q 
+    
+    for k=1:size(F,2)
+        F[1,k]=ProductFun(Q2[1:length(F[1,k].coefficients),:].'*F[1,k].coefficients,space(F[1,k]))
+    end
+    
+        ny=size(OS.S,2)
+        Ky=numbcs(OS.S)
+    
+        if !isempty(Gx)
+            GxM=Array(Matrix{Float64},size(Gx,2))
+        for k=1:size(Gx,2)
+            # bcP recombines boundary conditions        
+            GxM[k]=pad(coefficients(Gx[:,k]).',:,ny)*OS.S.bcP  
+            # remove unused DOFs and rearrange columns
+            GxM[k]=GxM[k][:,Ky+1:end]*OS.S.Z
+        end
+        else
+            GxM=[]
+        end
+    
+    
+     Y=cont_constrained_lyapuptriang(Float64,OS,GxM,F,nx)
+    
+    for j=1:size(Y,2)
+        Y[:,j]=OS.S.bcP*OS.S.Z*Y[:,j]
+    end
+    
+    Y
+end
+
