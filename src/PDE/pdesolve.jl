@@ -60,6 +60,8 @@ function pde_standardize_rhs(A,f::Vector)
             F=Fun(f[end],rs)
         end
     else
+        f=pad(f,max(length(indsBx)+length(indsBy),length(f)))
+    
         fx=isempty(indsBx)?[]:convert2fun(f[indsBx],domainspace(A,2))
         fy=isempty(indsBy)?[]:convert2fun(f[indsBy],domainspace(A,1))       
         
