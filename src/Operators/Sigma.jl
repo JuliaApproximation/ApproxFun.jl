@@ -11,7 +11,7 @@ typealias DefiniteIntegral Σ
 
 # We expect the operator to be real/complex if the basis is real/complex
 Σ()=Σ(UnsetSpace())
-Σ(dsp::FunctionSpace) = Σ{typeof(dsp),promote_type(eltype(dsp))}(dsp)
+Σ(dsp::FunctionSpace) = Σ{typeof(dsp),eltype(dsp)}(dsp)
 promotedomainspace(::Σ,sp::FunctionSpace)=Σ(sp)
 
 Base.convert{T}(::Type{Functional{T}},S::Σ)=Σ{typeof(S.domainspace),T}(S.domainspace)

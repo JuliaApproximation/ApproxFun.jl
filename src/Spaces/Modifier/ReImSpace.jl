@@ -156,3 +156,19 @@ function addentries!(RI::ReImOperator,A,kr::UnitRange)
 end
 
 
+
+Multiplication{D,T}(f::Fun{D,T},sp::ReImSpace)=MultiplicationWrapper(f,ReImOperator(Multiplication(f,sp.space)))
+
+
+
+## Definite Integral
+
+Σ(dsp::ReImSpace) = Σ{typeof(dsp),eltype(Σ(dsp.space))}(dsp)
+datalength{RI<:ReImSpace}(S::Σ{RI})=2datalength(Σ(domainspace(S).space))
+
+function getindex{RI<:ReImSpace,T}(S::Σ{RI,T},kr::Range)
+    kr1=div(kr[1]+1,2):div(kr[end]+1,2)
+    res=Σ(domainspace(S).space)[kr1]
+    T[isodd(k)?res[div(k+1,2)-first(kr1)+1]:im*res[div(k+1,2)-first(kr1)+1] for k=kr]
+end
+

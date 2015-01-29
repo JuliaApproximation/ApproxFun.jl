@@ -291,7 +291,7 @@ end
 *(B::Functional,c::Number)=ConstantTimesFunctional(c,B)
 /(B::Functional,c::Number)=ConstantTimesFunctional(1.0/c,B)
 *(B::Functional,O::TimesOperator)=TimesFunctional(B,O)  # Needed to avoid ambiguity
-*(B::Functional,O::BandedOperator)=TimesFunctional(B,O)
+*(B::Functional,O::BandedOperator)=TimesFunctional(promotedomainspace(B,rangespace(O)),O)
 
 -{T<:Number}(B::Functional{T})=ConstantTimesFunctional(-one(T),B)
 

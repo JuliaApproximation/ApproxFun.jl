@@ -74,19 +74,19 @@ choosedomainspace{D}(M::Multiplication{D,UnsetSpace},sp)=sp  # we assume multipl
 
 Base.diagm(a::Fun)=Multiplication(a)
 
-immutable MultiplicationWrapper{D<:FunctionSpace,O<:BandedOperator,T<:Number} <: AbstractMultiplication{T}
-    f::Fun{D,T}
+immutable MultiplicationWrapper{D<:FunctionSpace,O<:BandedOperator,V<:Number,T<:Number} <: AbstractMultiplication{T}
+    f::Fun{D,V}
     op::O
 end
 
-MultiplicationWrapper{D<:FunctionSpace,T<:Number}(f::Fun{D,T},op::BandedOperator{T})=MultiplicationWrapper{D,typeof(op),T}(f,op)
+MultiplicationWrapper{D<:FunctionSpace,V<:Number,T<:Number}(f::Fun{D,V},op::BandedOperator{T})=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
 
 addentries!(D::MultiplicationWrapper,A,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
     @eval $func(D::MultiplicationWrapper)=$func(D.op)
 end
 
-Base.convert{BT,S,V,T}(::Type{BandedOperator{BT}},C::MultiplicationWrapper{S,V,T})=MultiplicationWrapper{S,V,BT}(C.f,C.op)
+Base.convert{BT,S,V,VV,T}(::Type{BandedOperator{BT}},C::MultiplicationWrapper{S,V,VV,T})=MultiplicationWrapper{S,V,VV,BT}(C.f,C.op)
 
 
 
