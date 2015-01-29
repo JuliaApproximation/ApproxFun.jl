@@ -158,7 +158,7 @@ function contour(f::MultivariateFun;opts...)
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
     
-    contour(points(f,1),points(f,2),real(vals);opts...)
+    contour(vecpoints(f,1),vecpoints(f,2),real(vals);opts...)
 end
 
 
@@ -181,10 +181,12 @@ end
 
 
 plot(f::MultivariateFun)=surf(points(f,1),points(f,2),real(values(f)))
+plot{S,V,T}(f::TensorFun{S,V,T})=surf(vecpoints(f,1),vecpoints(f,2),real(values(f)))
+plot(f::LowRankFun)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f)))
 plot(f::MultivariateFun,obj,window)=glsurfupdate(real(values(f)),obj,window)
 
 
-
+plot{S<:IntervalSpace,V<:PeriodicSpace,T}(f::TensorFun{S,V,T})=surf(vecpoints(f,1),vecpoints(f,2),real(values(f)))
 function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V})
     Px,Py=points(f)
     vals=real(values(f))

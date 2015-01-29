@@ -174,7 +174,7 @@ values{S,V,SS,T}(f::ProductFun{S,V,SS,T})=itransform!(space(f),coefficients(f))
 
 
 points(f::ProductFun,k...)=points(f.space,size(f,1),size(f,2),k...)
-
+vecpoints{S,V,T}(f::TensorFun{S,V,T},k)=points(f.space[k],size(f,k))
 
 space(f::ProductFun)=f.space
 space(f::ProductFun,k)=space(space(f),k)

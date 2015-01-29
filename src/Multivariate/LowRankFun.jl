@@ -157,7 +157,7 @@ function coefficients(f::LowRankFun,n::FunctionSpace,m::FunctionSpace)
     ret
 end
 
-function points(f::LowRankFun,k::Integer)
+function vecpoints(f::LowRankFun,k::Integer)
     if k==1
         xm=mapreduce(length,max,f.A)
         points(space(first(f.A)),xm)

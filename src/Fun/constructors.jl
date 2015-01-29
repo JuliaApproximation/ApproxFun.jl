@@ -153,7 +153,7 @@ function abszerocfsFun(f::Function,d::FunctionSpace)
         T = T.parameters[1] #get underlying real representation
     end
 
-    tol = 200eps(T);
+    tol = 200eps(T)
 
     for logn = 4:20
         cf = Fun(f, d, 2^logn + 1)
