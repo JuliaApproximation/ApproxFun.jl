@@ -21,6 +21,9 @@ Evaluation(d::Domain,x::Union(Number,Bool),n...)=Evaluation(Space(d),x,n...)
 Evaluation(x::Union(Number,Bool))=Evaluation(AnySpace(),x,0)
 Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
 
+
+Base.convert{T}(::Type{Functional{T}},E::Evaluation)=Evaluation(T,E.space,E.x,E.order)
+
 ## default getindex
 getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)[D.x] for k=kr]
 

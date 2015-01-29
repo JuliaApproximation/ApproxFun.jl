@@ -130,6 +130,8 @@ OperatorSchur{M<:Number}(bcP,bcQ,bcs,Q::Array{M,2},Z::Array{M,2},R::Array{M,2},T
 Base.size(S::OperatorSchur)=size(S.bcP)
 Base.size(S::OperatorSchur,k)=size(S.bcP,k)
 
+Base.eltype{BT,MT}(::OperatorSchur{BT,MT})=promote_type(BT,MT)
+
 numbcs(S::OperatorSchur)=size(S.bcQ,1)
 
 getdiagonal(S::OperatorSchur,k,j)=j==1?S.R[k,k]:S.T[k,k]

@@ -20,6 +20,8 @@ function SavedFunctional{T<:Number}(op::Functional{T})
     SavedFunctional(op,data,0)
 end
 
+Base.convert{T}(::Type{Functional{T}},S::SavedFunctional)=SavedFunctional(convert(Functional{T},S.op))
+
 domainspace(F::SavedFunctional)=domainspace(F.op)
 
 
@@ -61,7 +63,8 @@ end
 
 
 
-
+# convert needs to throw away calculated data
+Base.convert{T}(::Type{BandedOperator{T}},S::SavedBandedOperator)=SavedBandedOperator(convert(BandedOperator{T},S.op))
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)

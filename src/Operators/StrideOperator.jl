@@ -130,7 +130,7 @@ StrideFunctional{T<:Number}(B::Functional{T},r,rs)=StrideFunctional{T,typeof(B)}
 
 
 Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range1)=T[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
-
+Base.convert{T}(::Type{Operator{T}},S::StrideFunctional)=StrideFunctional(convert(Functional{T},S.op),S.rowindex,S.stride)
 
 
 ##interlace block operators

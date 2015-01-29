@@ -79,22 +79,23 @@ end
 
 ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Space(D),N,M)
 
-
+ProductFun(f::Function,D::TensorSpace)=ProductFun(LowRankFun(f,D))
+ProductFun(f::Function,D::ProductDomain)=ProductFun(LowRankFun(f,D))
 
 function ProductFun(f::Function,D)
-    Nmax=400
-
-    tol=1E-12
-
-    for N=50:25:Nmax
-        X=coefficients(ProductFun(f,D,N,N))
-        if norm(X[end-3:end,:])<tol && norm(X[:,end-3:end])<tol
-            chop!(X,tol)
-            return ProductFun(X,D)
-        end
-    end
-    error("Maximum grid reached")
-    ProductFun(f,D,Nmax,Nmax)
+     Nmax=400
+ 
+     tol=1E-12
+ 
+     for N=50:25:Nmax
+         X=coefficients(ProductFun(f,D,N,N))
+         if norm(X[end-3:end,:])<tol && norm(X[:,end-3:end])<tol
+             chop!(X,tol)
+             return ProductFun(X,D)
+         end
+     end
+     error("Maximum grid reached")
+     ProductFun(f,D,Nmax,Nmax)
 end
 
 
@@ -173,7 +174,6 @@ coefficients(f::ProductFun,ox::TensorSpace)=coefficients(f,ox[1],ox[2])
 values{S,V,SS,T}(f::ProductFun{S,V,SS,T})=itransform!(space(f),coefficients(f))
 
 
-points(f::ProductFun,k...)=points(f.space,size(f,1),size(f,2),k...)
 vecpoints{S,V,T}(f::TensorFun{S,V,T},k)=points(f.space[k],size(f,k))
 
 space(f::ProductFun)=f.space

@@ -126,6 +126,9 @@ domain(f::LowRankFun,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
 space(f::LowRankFun,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
 
 
+Base.size(f::LowRankFun,k::Integer)=k==1?mapreduce(length,max,f.A):mapreduce(length,max,f.B)
+Base.size(f::LowRankFun)=size(f,1),size(f,2)
+
 function values(f::LowRankFun)
     xm=mapreduce(length,max,f.A)
     ym=mapreduce(length,max,f.B)    
@@ -166,6 +169,7 @@ function vecpoints(f::LowRankFun,k::Integer)
         points(space(first(f.B)),ym)
     end
 end
+
 
 
 

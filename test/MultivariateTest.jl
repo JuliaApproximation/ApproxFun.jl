@@ -36,7 +36,7 @@ f=LowRankFun((x,y)->cos(x)*sin(y),PeriodicInterval(),PeriodicInterval())
 
 f=LowRankFun((x,y)->cos(cos(x)+sin(y)),PeriodicInterval(),PeriodicInterval())
 @test_approx_eq f[.1,.2] cos(cos(.1)+sin(.2))
-@test norm(Float64[cos(cos(x)+sin(y)) for x=points(f,1),y=points(f,2)]-values(f))<10000eps()
+@test norm(Float64[cos(cos(x)+sin(y)) for x=ApproxFun.vecpoints(f,1),y=ApproxFun.vecpoints(f,2)]-values(f))<10000eps()
 
 f=ProductFun((x,y)->cos(cos(x)+sin(y)),PeriodicInterval()^2)
 @test_approx_eq f[.1,.2] cos(cos(.1)+sin(.2))
@@ -142,4 +142,9 @@ f=Fun((x,y)->cos(cos(x)*sin(y)),d^2)
 @test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<100eps()
 @test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<100eps()
 
+
+
+
+
+## Schrodinger
 
