@@ -208,4 +208,17 @@ function Multiplication{T}(a::Fun{Fourier,T},sp::Fourier)
 end
 
 
+## Definite integral
+
+function getindex{T}(S::Σ{Fourier,T},kr::Range)
+    d = domain(S)
+    if isa(d,PeriodicInterval)
+        T[k == 1?  d.b-d.a : zero(T) for k=kr]
+    else
+        @assert isa(d,Circle)
+        T[k == 2?  -π*d.radius : (k==3?π*im*d.radius :zero(T)) for k=kr]        
+    end
+end
+
+datalength(S::Σ{Fourier})=isa(domain(S),PeriodicInterval)?1:3
 

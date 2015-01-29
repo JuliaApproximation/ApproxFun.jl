@@ -277,3 +277,18 @@ function addentries!{n,T,DD}(D::Integral{SliceSpace{n,1,Taylor,T,DD}},A,kr::Rang
 end
 
 
+
+## Definite integral
+
+function getindex{T}(S::Σ{Laurent,T},kr::Range)
+    d = domain(S)
+    if isa(d,PeriodicInterval)
+        T[k == 1?  d.b-d.a : zero(T) for k=kr]
+    else
+        @assert isa(d,Circle)
+        T[k == 2?  2π*im*d.radius :zero(T) for k=kr]        
+    end
+end
+
+datalength(S::Σ{Laurent})=isa(domain(S),PeriodicInterval)?1:2
+

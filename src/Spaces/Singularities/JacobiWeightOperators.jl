@@ -274,17 +274,8 @@ end
 
 ## Σ
 
-#function Base.getindex{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}},Ultraspherical{λ}},f::Fun{JacobiWeight{Ultraspherical{λ}},T})
-#
-#    @assert domain(f) == domain(S)
-#    dsp,rsp = domainspace(S),rangespace(S)
-#    sp = space(f)
-#    newdomainspace = canonicalspace(JacobiWeight(λ-.5-sp.α,λ-.5-sp.β,domain(S)))
-#
-#    SpaceOperator(S*Multiplication(f,newdomainspace),newdomainspace,rsp)
-#end
 
-function getindex{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}}},kr::Range)
+function getindex{λ,T}(S::Σ{JacobiWeight{Ultraspherical{λ}},T},kr::Range)
     dsp = domainspace(S)
     d = domain(S)
     @assert isa(d,Interval)
@@ -295,4 +286,4 @@ function getindex{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}}},kr::Range)
     T[k == 1?  C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
 end
 
-datalength{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}}})=1
+datalength{λ}(S::Σ{JacobiWeight{Ultraspherical{λ}}})=1
