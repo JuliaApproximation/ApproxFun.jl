@@ -49,8 +49,7 @@ Base.eltype{S}(::FunctionSpace{S})=eltype(S)
 coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)
 
 domain{T,D<:AnyDomain}(::FunctionSpace{T,D})=AnyDomain()
-immutable ConstantSpace <: FunctionSpace{RealBasis,AnyDomain}
-end
+
 
 
 
@@ -83,7 +82,6 @@ spacescompatible{D<:FunctionSpace}(f::D,g::D)=error("Override spacescompatible f
 spacescompatible(::AnySpace,::AnySpace)=true
 spacescompatible(::UnsetSpace,::UnsetSpace)=true
 spacescompatible(::NoSpace,::NoSpace)=true
-spacescompatible(::ConstantSpace,::ConstantSpace)=true
 spacescompatible(f,g)=false
 ==(A::FunctionSpace,B::FunctionSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
 
@@ -139,7 +137,7 @@ for FUNC in (:conversion_type,:maxspace)
 end
 
 
-
+# gives a space c that has a banded conversion operator TO a and b
 function conversion_type(a,b)
     if spacescompatible(a,b)
         a

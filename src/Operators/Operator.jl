@@ -29,7 +29,7 @@ domain(A::Operator)=domain(domainspace(A))
 Base.size(::InfiniteOperator)=[Inf,Inf]
 Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
 Base.size(op::Operator,k::Integer)=size(op)[k]
-
+datalength(::Functional)=Inf        # use datalength to indicate a finite length functional
 
 
 

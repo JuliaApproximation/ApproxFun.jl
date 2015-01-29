@@ -1,3 +1,5 @@
+
+include("ConstantSpace.jl")
 include("SumSpace.jl")
 include("ArraySpace.jl")
 include("PiecewiseSpace.jl")

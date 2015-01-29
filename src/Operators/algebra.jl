@@ -222,29 +222,8 @@ end
 
 
 
-function domainspace(P::TimesOperator)
-    for k=length(P.ops):-1:1
-        sp = domainspace(P.ops[k])
-        
-        if sp != AnySpace()
-            return sp
-        end
-    end
-    
-    AnySpace()
-end
-
-function rangespace(P::TimesOperator)
-    for op in P.ops
-        sp = rangespace(op)
-        
-        if sp != AnySpace()
-            return sp
-        end
-    end
-    
-    AnySpace()
-end
+domainspace(P::TimesOperator)=domainspace(last(P.ops))
+rangespace(P::TimesOperator)=rangespace(first(P.ops))
 
 domain(P::TimesOperator)=commondomain(P.ops)
 

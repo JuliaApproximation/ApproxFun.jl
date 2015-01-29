@@ -57,6 +57,10 @@ conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 ## Evaluation Functional
 
 
+datalength(B::Evaluation{ChebyshevDirichlet{1,0},Bool})=B.x?Inf:1
+datalength(B::Evaluation{ChebyshevDirichlet{0,1},Bool})=B.x?1:Inf
+datalength(B::Evaluation{ChebyshevDirichlet{1,1},Bool})=B.x?1:2
+
 function getindex(B::Evaluation{ChebyshevDirichlet{1,0},Bool},kr::Range)
     d = domain(B)
     
