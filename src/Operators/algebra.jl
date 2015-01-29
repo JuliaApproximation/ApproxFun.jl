@@ -144,7 +144,10 @@ end
 immutable ConstantTimesFunctional{T<:Number,B<:Functional} <: Functional{T}
     c::T
     op::B
+    ConstantTimesFunctional(c,op)=new(c,op)
 end
+
+ConstantTimesFunctional(c::Number,op::Functional)=ConstantTimesFunctional{promote_type(typeof(c),eltype(op)),typeof(op)}(c,op)
 
 Base.getindex(op::ConstantTimesFunctional,k::Range1)=op.c*op.op[k]
 datalength(C::ConstantTimesFunctional)=datalength(C.op)
@@ -421,4 +424,55 @@ end
     
     
     
+
+
+
+##### 
+# ReReOperator takes the real part of two operators
+# this allows for well-posed equations
+#####
+
+
+immutable ReReOperator{S,V,T} <: BandedOperator{T}
+    ops::(S,V)
+    function ReReOperator(ops)
+            #TODO: promotion
+        @assert domainspace(ops[1])==domainspace(ops[2])
+        @assert rangespace(ops[1])==rangespace(ops[2])  
+        new(ops)
+    end
+end
+
+
+ReReOperator{S,V}(ops::(S,V))=ReReOperator{S,V,Float64}(ops)
+ReReOperator(ops1,ops2)=ReReOperator((ops1,ops2))
+Base.real(S::BandedOperator,V::BandedOperator)=ReReOperator(S,V)
+
+bandinds(R::ReReOperator)=min(2bandinds(R.ops[1],1)-1,2bandinds(R.ops[2],1)-2),max(2bandinds(R.ops[1],2)+1,2bandinds(R.ops[2],2))
+
+domainspace(R::ReReOperator)=ReImSpace(domainspace(R.ops[1]))
+rangespace(R::ReReOperator)=ArraySpace(rangespace(R.ops[1]),2)
+
+
+function addentries!(R::ReReOperator,A,kr::Range)
+    kr1=div(kr[1],2)+1:(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
+    kr2=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):div(kr[end],2)
+
+    B1=subview(R.ops[1],kr1,:)
+    B2=subview(R.ops[2],kr2,:)
+
+
+    for k=kr1,j=columnrange(R.ops[1],k)
+        A[2k-1,2j-1]+=real(B1[k,j])
+        A[2k-1,2j]+=-imag(B1[k,j])    
+    end
+
+    for k=kr2,j=columnrange(R.ops[2],k)
+        A[2k,2j-1]+=real(B2[k,j])
+        A[2k,2j]+=-imag(B2[k,j])    
+    end
+
+    A 
+end
+
 

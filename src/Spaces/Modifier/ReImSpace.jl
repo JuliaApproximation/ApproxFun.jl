@@ -160,15 +160,46 @@ end
 Multiplication{D,T}(f::Fun{D,T},sp::ReImSpace)=MultiplicationWrapper(f,ReImOperator(Multiplication(f,sp.space)))
 
 
+# ReFunctional/ImFunctional are used
+# to take the real/imag part of a functional
+for TYP in (:ReFunctional,:ImFunctional)
+    @eval begin
+        immutable $TYP{O,T} <: Functional{T}
+            functional::O
+        end
+        
+        $TYP{T}(func::Functional{T})=$TYP{typeof(func),real(T)}(func)
+        
+        domainspace(RF::$TYP)=ReImSpace(domainspace(RF.functional))
+    end
+end
+    
+function getindex{R,T}(S::ReFunctional{R,T},kr::Range)
+     kr1=div(kr[1]+1,2):div(kr[end]+1,2)
+     res=S.functional[kr1]
+     T[isodd(k)?real(res[div(k+1,2)-first(kr1)+1]):-imag(res[div(k+1,2)-first(kr1)+1]) for k=kr]
+end
+
+function getindex{R,T}(S::ImFunctional{R,T},kr::Range)
+     kr1=div(kr[1]+1,2):div(kr[end]+1,2)
+     res=S.functional[kr1]
+     T[isodd(k)?imag(res[div(k+1,2)-first(kr1)+1]):real(res[div(k+1,2)-first(kr1)+1]) for k=kr]
+end
+
+Base.real(F::Functional)=ReFunctional(F)
+Base.imag(F::Functional)=ImFunctional(F)
+
 
 ## Definite Integral
+# disabled since its complex, which would lead to a complex solution to \
+# breaking the point of ReImSpace
 
-Σ(dsp::ReImSpace) = Σ{typeof(dsp),eltype(Σ(dsp.space))}(dsp)
-datalength{RI<:ReImSpace}(S::Σ{RI})=2datalength(Σ(domainspace(S).space))
-
-function getindex{RI<:ReImSpace,T}(S::Σ{RI,T},kr::Range)
-    kr1=div(kr[1]+1,2):div(kr[end]+1,2)
-    res=Σ(domainspace(S).space)[kr1]
-    T[isodd(k)?res[div(k+1,2)-first(kr1)+1]:im*res[div(k+1,2)-first(kr1)+1] for k=kr]
-end
+# Σ(dsp::ReImSpace) = Σ{typeof(dsp),eltype(Σ(dsp.space))}(dsp)
+# datalength{RI<:ReImSpace}(S::Σ{RI})=2datalength(Σ(domainspace(S).space))
+# 
+# function getindex{RI<:ReImSpace,T}(S::Σ{RI,T},kr::Range)
+#     kr1=div(kr[1]+1,2):div(kr[end]+1,2)
+#     res=Σ(domainspace(S).space)[kr1]
+#     T[isodd(k)?res[div(k+1,2)-first(kr1)+1]:im*res[div(k+1,2)-first(kr1)+1] for k=kr]
+# end
 
