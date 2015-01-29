@@ -55,5 +55,9 @@ function addentries!(FO::FunctionalOperator,A,kr::Range)
 end
 
 
-+(A::BandedOperator,B::Functional)=A+FunctionalOperator(B)
-+(A::Functional,B::BandedOperator)=FunctionalOperator(A)+B
+for OP in (:+,:-)
+    @eval $OP(A::BandedOperator,B::Functional)=$OP(A,FunctionalOperator(B))
+    @eval $OP(A::Functional,B::BandedOperator)=$OP(FunctionalOperator(A),B)    
+end
+
+*(A::BandedOperator,B::Functional)=A*FunctionalOperator(B)

@@ -284,16 +284,15 @@ end
 #    SpaceOperator(S*Multiplication(f,newdomainspace),newdomainspace,rsp)
 #end
 
-function addentries!{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}},Ultraspherical{λ}},A,kr::Range)
-    dsp,rsp = domainspace(S),rangespace(S)
+function getindex{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}}},kr::Range)
+    dsp = domainspace(S)
     d = domain(S)
     @assert isa(d,Interval)
     @assert dsp.α==dsp.β==λ-0.5
 
-    C = .5(d.b-d.a)
-    for k=kr
-        k == 1? A[k,k] += C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : A[k,k] += zero(T)
-    end
-
-    A
+    C = (d.b-d.a)/2
+    
+    T[k == 1?  C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
 end
+
+datalength{T,λ}(S::Σ{T,JacobiWeight{Ultraspherical{λ}}})=1

@@ -13,13 +13,13 @@ Integral(d::IntervalDomain,n::Integer)=Integral(Ultraspherical{1}(d),n)
 
 ## Sigma
 
-Σ(d::IntervalDomain)=Σ(JacobiWeight(-.5,-.5,Chebyshev(d)),Chebyshev(d))
+Σ(d::IntervalDomain)=Σ(JacobiWeight(-.5,-.5,Chebyshev(d)))
 
 function Σ(α::Number,β::Number,d::IntervalDomain)
     @assert α == β
     @assert int(α+.5) == α+.5
     @assert int(α+.5) >= 0
-    Σ(JacobiWeight(α,β,Ultraspherical{int(α+.5)}(d)),Ultraspherical{int(α+.5)}(d))
+    Σ(JacobiWeight(α,β,Ultraspherical{int(α+.5)}(d)))
 end
 Σ(α::Number,β::Number) = Σ(α,β,Interval())
 

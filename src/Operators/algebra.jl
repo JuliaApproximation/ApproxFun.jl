@@ -23,7 +23,7 @@ end
 
 datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 
-promotedomainspace(C::PlusFunctional,sp::FunctionSpace)=PlusFunctional(map(c->promotedomainspace(c,sp),C.ops))
+promotedomainspace{T}(C::PlusFunctional{T},sp::FunctionSpace)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
 
 immutable PlusOperator{T<:Number} <: BandedOperator{T} 
     ops::Vector{BandedOperator{T}}
@@ -307,10 +307,10 @@ end
 -(A::Operator)=ConstantOperator(-1.)*A
 -(A::Operator,B::Operator)=A+(-B)
 
-*(f::Fun,A::BandedOperator)=Multiplication(f,rangespace(A))*A
+*(f::Fun,A::Operator)=Multiplication(f)*A
 
-*(c::Number,A::Operator)=ConstantOperator(c)*A
-.*(c::Number,A::Operator)=ConstantOperator(c)*A
+*(c::Number,A::BandedOperator)=ConstantOperator(c)*A
+.*(c::Number,A::BandedOperator)=ConstantOperator(c)*A
 
 
 

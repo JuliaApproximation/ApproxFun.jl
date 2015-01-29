@@ -7,7 +7,7 @@ Evaluation(d::PeriodicDomain,x::Number,n...)=Evaluation(Laurent(d),complex(x),n.
 
 ## Sigma
 
-Σ(d::PeriodicDomain)=Σ(Laurent(d),Laurent(d))
+Σ(d::PeriodicDomain)=Σ(Laurent(d))
 
 ## Toeplitz
 

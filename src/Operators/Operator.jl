@@ -29,7 +29,7 @@ domain(A::Operator)=domain(domainspace(A))
 Base.size(::InfiniteOperator)=[Inf,Inf]
 Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
 Base.size(op::Operator,k::Integer)=size(op)[k]
-datalength(::Functional)=Inf        # use datalength to indicate a finite length functional
+datalength(F::Functional)=error("Override datalength for "*string(typeof(F)))        # use datalength to indicate a finite length functional
 
 
 
@@ -180,9 +180,9 @@ end
 
 ## Composition with a Fun, LowRankFun, and ProductFun
 
-Base.getindex(B::BandedOperator,f::Fun) = B*Multiplication(domainspace(B),f)
-Base.getindex{BT,S,M,T,V}(B::BandedOperator{BT},f::LowRankFun{S,M,T,V}) = PlusOperator(BandedOperator{promote_type(BT,T,V)}[f.A[i]*B[f.B[i]] for i=1:rank(f)])
-Base.getindex{BT,S,V,SS,T}(B::BandedOperator{BT},f::ProductFun{S,V,SS,T}) = PlusOperator(BandedOperator{promote_type(BT,T)}[f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1),one(promote_type(BT,T))],f.space.spaces[2])] for i=1:length(f.coefficients)])
+Base.getindex(B::Operator,f::Fun) = B*Multiplication(domainspace(B),f)
+Base.getindex{BT,S,M,T,V}(B::Operator{BT},f::LowRankFun{S,M,T,V}) = PlusOperator(BandedOperator{promote_type(BT,T,V)}[f.A[i]*B[f.B[i]] for i=1:rank(f)])
+Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = PlusOperator(BandedOperator{promote_type(BT,T)}[f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1),one(promote_type(BT,T))],f.space.spaces[2])] for i=1:length(f.coefficients)])
 
 ## Standard Operators and linear algebra
 
