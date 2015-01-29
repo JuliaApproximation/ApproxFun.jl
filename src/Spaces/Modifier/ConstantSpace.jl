@@ -53,3 +53,7 @@ function addentries!(FO::FunctionalOperator,A,kr::Range)
     end
     A
 end
+
+
++(A::BandedOperator,B::Functional)=A+FunctionalOperator(B)
++(A::Functional,B::BandedOperator)=FunctionalOperator(A)+B

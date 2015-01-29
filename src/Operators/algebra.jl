@@ -21,7 +21,9 @@ function Base.getindex{T}(op::PlusFunctional{T},k::Range)
 end
 
 
+datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 
+promotedomainspace(C::PlusFunctional,sp::FunctionSpace)=PlusFunctional(map(c->promotedomainspace(c,sp),C.ops))
 
 immutable PlusOperator{T<:Number} <: BandedOperator{T} 
     ops::Vector{BandedOperator{T}}
@@ -145,7 +147,8 @@ immutable ConstantTimesFunctional{T<:Number,B<:Functional} <: Functional{T}
 end
 
 Base.getindex(op::ConstantTimesFunctional,k::Range1)=op.c*op.op[k]
-
+datalength(C::ConstantTimesFunctional)=datalength(C.op)
+promotedomainspace(C::ConstantTimesFunctional,sp::FunctionSpace)=ConstantTimesFunctional(C.c,promotedomainspace(C.op,sp))
 
 
 type TimesFunctional{T<:Number,A<:Functional,B<:BandedOperator} <: Functional{T}
@@ -153,9 +156,13 @@ type TimesFunctional{T<:Number,A<:Functional,B<:BandedOperator} <: Functional{T}
     op::B
 end
 
+promotedomainspace(C::TimesFunctional,sp::FunctionSpace)=C.functional*promotedomainspace(C.op,sp)
+
 for S in (:ConstantTimesFunctional,:TimesFunctional)
     @eval domainspace(T::($S))=domainspace(T.op)
 end
+
+datalength(C::TimesFunctional)=datalength(C.functional)+bandinds(C.op,2)
 
 
 TimesFunctional{T<:Number,V<:Number}(A::Functional{T},B::BandedOperator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
