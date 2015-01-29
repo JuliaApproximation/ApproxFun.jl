@@ -210,6 +210,8 @@ end
 
 ## Definite integral
 
+Σ(sp::Fourier)=isa(domain(sp),PeriodicInterval)?Σ{Fourier,Float64}(sp):Σ{Fourier,Complex{Float64}}(sp)
+
 function getindex{T}(S::Σ{Fourier,T},kr::Range)
     d = domain(S)
     if isa(d,PeriodicInterval)

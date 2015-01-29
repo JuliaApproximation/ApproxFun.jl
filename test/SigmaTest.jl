@@ -44,3 +44,20 @@ u=[B,L]\[1.,f]
 
 @test norm(u-usol) ≤ 100eps()
 
+
+
+
+f1=Fun(t->cos(cos(t)),[-π,π])
+f=Fun(t->cos(cos(t)),Laurent([-π,π]))
+
+@test_approx_eq sum(f1) Σ()*f
+
+f1=Fun(t->cos(cos(t))/t,Laurent(Circle()))
+f2=Fun(t->cos(cos(t))/t,Fourier(Circle()))
+@test_approx_eq Σ()*f1 Σ()*f2
+
+f1=Fun(t->cos(cos(t)),Laurent([-π,π]))
+f2=Fun(t->cos(cos(t)),Fourier([-π,π]))
+@test_approx_eq Σ()*f1 Σ()*f2
+
+

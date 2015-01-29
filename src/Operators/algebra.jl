@@ -283,8 +283,8 @@ end
 ## Algebra: assume we promote
 
 ## Operations
-*(A::Functional,b::Vector)=dot(A[1:length(b)],b)
-*(A::Functional,b::Fun)=A*b.coefficients
+*(A::Functional,b::Vector)=dotu(A[1:length(b)],b)
+*(A::Functional,b::Fun)=promotedomainspace(A,space(b))*b.coefficients
 
 
 *(c::Number,B::Functional)=ConstantTimesFunctional(c,B)
