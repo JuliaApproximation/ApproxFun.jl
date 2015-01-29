@@ -99,16 +99,16 @@ function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integ
         b=Fun(y->f(r[1],y),dy; method="abszerocoefficients")- dot(conj(Ar),B)
         
         ##Remove coefficients that get killed by a/b
-        maxb=maximum(abs(b.coefficients))
-        if maxb != 0
-            tol=10*sqrt(abs(a[r[1]]))*eps()/maxb
+#         maxb=maximum(abs(b.coefficients))
+#         maxa=maximum(abs(a.coefficients))        
+#         if maxb != 0 
+#             tol=10*sqrt(abs(a[r[1]]))*sqrt(abs(b[r[2]]))*eps()/maxb
             a=chop!(a,isnan(tol)?0:tol)
-        end
-        maxa=maximum(abs(a.coefficients))
-        if maxa != 0
-            tol=10*sqrt(abs(b[r[2]]))*eps()/maxa
+#         end
+#         if maxa != 0
+#            tol=10*sqrt(abs(a[r[1]]))*sqrt(abs(b[r[2]]))*eps()/maxa
             b=chop!(b,isnan(tol)?0:tol)        
-        end
+#        end
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
     return LowRankFun(A,B)
