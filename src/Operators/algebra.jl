@@ -252,6 +252,11 @@ Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 
 function addentries!(P::TimesOperator,A,kr::Range)
+    @assert length(P.ops)≥2
+    if length(kr)==0
+        return A
+    end
+    
    st=step(kr)
 
     krl=Array(Int,length(P.ops),2)
