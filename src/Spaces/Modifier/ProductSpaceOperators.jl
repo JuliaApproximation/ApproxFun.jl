@@ -133,6 +133,8 @@ end
 SumInterlaceOperator{B<:Operator}(v::Vector{B})=SumInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
 SumInterlaceOperator(v::Vector{Any})=SumInterlaceOperator(Operator{mapreduce(eltype,promote_type,v)}[v...])
 
+Base.convert{T}(::Type{BandedOperator{T}},SI::SumInterlaceOperator)=SumInterlaceOperator(map(op->convert(BandedOperator{T},op),SI.ops))
+
 for op in (:domainspace,:rangespace)
     @eval $op(S::SumInterlaceOperator)=SumSpace($op(S.ops[1]),$op(S.ops[2]))
 end

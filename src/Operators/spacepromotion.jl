@@ -24,8 +24,9 @@ immutable SpaceOperator{T<:Number,O<:Operator,S<:FunctionSpace,V<:FunctionSpace}
 #     end
 end
 
-
-SpaceOperator{T<:Number}(o::Operator{T},s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{T,typeof(o),typeof(s),typeof(rs)}(o,s,rs)
+# The promote_type is needed to fix a bug in promotetimes
+# not sure if its the right long term solution
+SpaceOperator{T<:Number}(o::Operator{T},s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{promote_type(T,eltype(s),eltype(rs)),typeof(o),typeof(s),typeof(rs)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 
 Base.convert{T}(::Type{BandedOperator{T}},S::SpaceOperator)=SpaceOperator(convert(BandedOperator{T},S.op),S.domainspace,S.rangespace)
