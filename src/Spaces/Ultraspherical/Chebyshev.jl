@@ -21,8 +21,10 @@ end
 
 ## Transform
 
-transform(::Chebyshev,vals::Vector)=chebyshevtransform(vals)
-itransform(::Chebyshev,cfs::Vector)=ichebyshevtransform(cfs)
+#transform(::Chebyshev,vals::Vector)=chebyshevtransform(vals)
+#itransform(::Chebyshev,cfs::Vector)=ichebyshevtransform(cfs)
+transform(::Chebyshev,vals::Vector)=chebyshevrootstransform(vals)
+itransform(::Chebyshev,cfs::Vector)=ichebyshevrootstransform(cfs)
 
 
 ## Evaluation
@@ -34,7 +36,7 @@ evaluate(f::Fun{Chebyshev},x)=clenshaw(f.coefficients,tocanonical(f,x))
 
 # diff T -> U, then convert U -> T
 integrate(f::Fun{Chebyshev})=Fun(chebyshevintegrate(domain(f),f.coefficients),f.space)
-chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint!(ultraconversion(cfs))   
+chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint!(ultraconversion(cfs))
 
 
 differentiate(f::Fun{Chebyshev})=Fun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
@@ -54,18 +56,18 @@ function ApproxFun.values{T}(f::TensorFun{Chebyshev,Chebyshev,T})
     n,m=size(f)
     M=Array(T,n,m)
     f1=pad(f.coefficients[1].coefficients,n)
-    planc=plan_chebyshevtransform(f1)
-    M[:,1]=ichebyshevtransform(f1,planc)
+    planc=plan_chebyshevrootstransform(f1)
+    M[:,1]=ichebyshevrootstransform(f1,planc)
     for k=2:m
-        M[:,k]=ichebyshevtransform(pad(f.coefficients[k].coefficients,n),planc)
+        M[:,k]=ichebyshevrootstransform(pad(f.coefficients[k].coefficients,n),planc)
     end
     f2=vec(M[1,:])
-    planr=plan_chebyshevtransform(f2)
-    M[1,:]=ichebyshevtransform(f2,planr)
+    planr=plan_chebyshevrootstransform(f2)
+    M[1,:]=ichebyshevrootstransform(f2,planr)
     for k=2:n
-        M[k,:]=ichebyshevtransform(vec(M[k,:]),planr)
+        M[k,:]=ichebyshevrootstransform(vec(M[k,:]),planr)
     end
-    
+
     M
 end
 
@@ -74,7 +76,7 @@ end
 ## Piecewise union
 
 # union_rule dictates how to create a space that both spaces can be converted to
-# in this case, it means 
+# in this case, it means
 function union_rule{S<:Ultraspherical}(s1::PiecewiseSpace{S},s2::PiecewiseSpace{S})
     PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
 end

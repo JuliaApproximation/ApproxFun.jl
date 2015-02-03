@@ -13,24 +13,24 @@ valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type
 function Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])
-    
+
     if isa(f1,Array) && !isa(d,ArraySpace)
         return Fun(f,ArraySpace(d,size(f1)...),n)
     end
-        
+
     Tout=typeof(f1)
     if !( Tout<: Number || ( (Tout <: Array) && (Tout.parameters[1] <: Number) ) )
         error("Function outputs type $(Tout), which is not a Number")
     end
-    
-    Tprom = Tout 
-    if isa(d,IntervalSpace)   #TODO should also work for any space 
+
+    Tprom = Tout
+    if isa(d,IntervalSpace)   #TODO should also work for any space
         if Tout <: Number #TODO should also work for array-valued functions
             Td = eltype(domain(d))
-            
+
             Tprom,Tpromd=valsdomain_type_promote(Tout,Td)
-            
-            if Tout != Int && Tprom != Tout 
+
+            if Tout != Int && Tprom != Tout
                     warn("Promoting function output type from $(Tout) to $(Tprom)")
             end
             if Tpromd != Td
@@ -81,28 +81,28 @@ function randomFun(f::Function,d::IntervalDomain)
     @assert d == Interval()
 
     #TODO: implement other domains
-    
+
     Fun(chebyshevtransform(randomadaptivebary(f)),d)
 end
 
 
 # function veczerocfsFun(f::Function,d::IntervalDomain)
 #     #reuse function values
-# 
+#
 #     tol = 200*eps()
-# 
+#
 #     for logn = 4:20
 #         cf = Fun(f, d, 2^logn + 1)
 #         cfs=coefficients(cf)  ##TODO: general domain
-#         
+#
 #         if norm(cfs[:,end-8:end],Inf) < tol*norm(cfs[:,1:8],Inf)
 #             nrm=norm(cfs,Inf)
 #             return map!(g->chop!(g,10eps()*nrm),cf)
 #         end
 #     end
-#     
+#
 #     warn("Maximum length reached")
-#     
+#
 #     Fun(f,d,2^21 + 1)
 # end
 
@@ -116,7 +116,7 @@ function zerocfsFun(f::Function, d::FunctionSpace)
 
     f0=f(first(domain(d)))
 
-    if !isa(d,ArraySpace) && isa(f0,Array)       
+    if !isa(d,ArraySpace) && isa(f0,Array)
         return zerocfsFun(f,ArraySpace(d,size(f0)...))
     end
 
@@ -126,23 +126,24 @@ function zerocfsFun(f::Function, d::FunctionSpace)
     fr=[f(x) for x=r]
 
     for logn = 4:20
-        cf = Fun(f, d, 2^logn + 1)
+        #cf = Fun(f, d, 2^logn + 1)
+        cf = Fun(f, d, 2^logn)
         absc=abs(cf.coefficients)
         maxabsc=maximum(absc)
         if maxabsc==0 && fr==0
             return(zeros(d))
         end
-        
+
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
         if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  all([norm(cf[r[k]]-fr[k])<1E-4 for k=1:length(r)])
             return chop!(cf,tol*maxabsc/10)
         end
     end
-    
+
     warn("Maximum length "*string(2^20+1)*" reached")
-    
-    Fun(f,d,2^21 + 1)
+
+    Fun(f,d,2^21)
 end
 
 
@@ -156,16 +157,17 @@ function abszerocfsFun(f::Function,d::FunctionSpace)
     tol = 200eps(T)
 
     for logn = 4:20
-        cf = Fun(f, d, 2^logn + 1)
-        
+        #cf = Fun(f, d, 2^logn + 1)
+        cf = Fun(f, d, 2^logn)
+
         if maximum(abs(cf.coefficients[end-8:end])) < tol
             return chop!(cf,10eps(T))
         end
     end
-    
+
     warn("Maximum length "*string(2^20+1)*" reached")
-    
-    Fun(f,d,2^21 + 1)
+
+    Fun(f,d,2^21)
 end
 
 
@@ -182,7 +184,7 @@ function Fun(f::Function, d::FunctionSpace; method="zerocoefficients")
     elseif method == "abszerocoefficients"
         abszerocfsFun(f,d)
     else
-        randomFun(f,d)    
+        randomFun(f,d)
     end
 end
 Fun(f::Function,d::Domain;opts...)=Fun(f,Space(d);opts...)

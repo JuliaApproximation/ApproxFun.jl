@@ -108,9 +108,10 @@ function chebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function
 end
 
 function ichebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T})
-    x[1]*=2
-    negateeven!(x)
-    FFTW.r2r(x,FFTW.REDFT01)/2
+    ret = deepcopy(x)
+    ret[1] *=2
+    negateeven!(ret)
+    FFTW.r2r(ret,FFTW.REDFT01)/2
 end
 
 #following Chebfun's @Chebtech1/vals2coeffs.m
