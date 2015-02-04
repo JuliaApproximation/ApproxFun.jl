@@ -38,7 +38,7 @@ function chebyshevpoints{T<:Number}(n::Integer,::Type{T};kind::Integer=1)
         end
     end
 end
-chebyshevpoints(n::Integer) = chebyshevpoints(n,Float64)
+chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(n,Float64;kind=kind)
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
