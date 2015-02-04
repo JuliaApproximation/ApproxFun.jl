@@ -20,7 +20,7 @@ Interval(a::Int,b::Int) = Interval(float64(a),float64(b))   #convenience method
 function Interval{T<:Number}(d::Vector{T})
     @assert length(d) >1
 
-    if length(d) == 2    
+    if length(d) == 2
         if abs(d[1]) == Inf && abs(d[2]) == Inf
             Line(d)
         elseif abs(d[2]) == Inf || abs(d[1]) == Inf
@@ -49,38 +49,10 @@ Base.last(d::Interval)=d.b
 ## Map interval
 
 
-#TODO dont know why a union type isn't sufficient to collapse these
-tocanonical{T}(d::Interval{T},x::T)=(d.a + d.b - 2x)/(d.a - d.b)
-tocanonicalD{T}(d::Interval{T},x::T)=2/( d.b- d.a)
-fromcanonical{T}(d::Interval{T},x::T)=(d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonicalD{T}(d::Interval{T},x::T)=( d.b- d.a) / 2
-
-tocanonical{T}(d::Interval{T},x::Array{T})=(d.a + d.b - 2x)/(d.a - d.b)
-tocanonicalD{T}(d::Interval{T},x::Array{T})=2/( d.b- d.a)
-fromcanonical{T}(d::Interval{T},x::Array{T})=(d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonicalD{T}(d::Interval{T},x::Array{T})=( d.b- d.a) / 2
-
-tocanonical{T}(d::Interval{T},x::Fun)=(d.a + d.b - 2x)/(d.a - d.b)
-tocanonicalD{T}(d::Interval{T},x::Fun)=2/( d.b- d.a)
-fromcanonical{T}(d::Interval{T},x::Fun)=(d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonicalD{T}(d::Interval{T},x::Fun)=( d.b- d.a) / 2
-
-#possibly a bug prevents me from properly dispatching on x (https://groups.google.com/forum/#!topic/julia-users/_paVdB2wy5k)
-for op in (:tocanonical, :tocanonicalD, :fromcanonical, :fromcanonicalD)
-    @eval begin 
-        function $op{T}(d::Interval{T},x)  
-            if typeof(x) <: Array
-                return $op(d,convert(Array{T,},x))
-            elseif typeof(x) <: Number
-                return $op(d,convert(T,x))
-            elseif typeof(x) <: Fun
-                return $op(d,x)
-            else
-                error("Don't know what to do with type: $(typeof(x))")
-            end
-        end
-    end
-end
+tocanonical(d::Interval,x)=(d.a + d.b - 2x)/(d.a - d.b)
+tocanonicalD(d::Interval,x)=2/( d.b- d.a)
+fromcanonical(d::Interval,x)=(d.a + d.b)/2 + (d.b - d.a)x/2
+fromcanonicalD(d::Interval,x)=( d.b- d.a) / 2
 
 
 Base.length(d::Interval) = abs(d.b - d.a)
@@ -138,7 +110,7 @@ function Base.intersect(a::Interval{Float64},b::Interval{Float64})
     elseif last(a)>=last(b)
         b
     else
-        Interval(first(b),last(a)) 
+        Interval(first(b),last(a))
     end
 end
 
@@ -156,11 +128,11 @@ function Base.setdiff(a::Interval{Float64},b::Interval{Float64})
             #TODO: setdiff in the middle
             @assert last(a) <= last(b)
             Interval(first(a),first(b))
-        end 
+        end
     else #first(a)>= first(b)
         if first(a)>=last(b)
             a
-        elseif last(a) <= last(b) 
+        elseif last(a) <= last(b)
             []
         else #first(b) < first(a) < last(b) < last(a)
             Interval(last(b),last(a))
@@ -169,5 +141,5 @@ function Base.setdiff(a::Interval{Float64},b::Interval{Float64})
 end
 
 # function Base.sort(d::Vector{Interval{Float64}})
-#     
+#
 # end
