@@ -142,9 +142,9 @@ function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::Clensha
         v2 = isa(c,Vector{Float64})?clenshaw!( c, points([splitPoint,1] ,n),clplan):clenshaw( c, points([splitPoint,1] ,n),clplan)
 
         # Recurse (and map roots back to original interval):
-        p = plan_chebyshevtransform( v1 )
-        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v1,p), 2*htol,clplan) ;
-                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevtransform(v2,p), 2*htol,clplan) ]
+        p = plan_chebyshevrootstransform( v1 )
+        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevrootstransform(v1,p), 2*htol,clplan) ;
+                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevrootstransform(v2,p), 2*htol,clplan) ]
 
     end
 

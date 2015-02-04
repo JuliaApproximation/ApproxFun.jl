@@ -68,37 +68,10 @@ function ichebyshevtransform{T<:Number}(x::Vector{T})
     end
 end
 
-function chebyshevtransform{T<:FFTW.fftwNumber}(A::Matrix{T})
-    if size(A) == (1,1)
-        A
-    else
-        R=FFTW.r2r(A,FFTW.REDFT00)/((size(A,1)-1)*(size(A,2)-1))
-        R[:,1]/=2;R[:,end]/=2
-        R[1,:]/=2;R[end,:]/=2
-        negateeven!(R)
-        R
-    end
-end
-
-function ichebyshevtransform{T<:Number}(X::Matrix{T})
-    if size(X) == (1,1)
-        X
-    else
-        X[1,:]*=2;X[end,:]*=2;X[:,1]*=2;X[:,end]*=2
-        R=chebyshevtransform(X)
-        X[1,:]/=2;X[end,:]/=2;X[:,1]/=2;X[:,end]/=2
-        R[1,:]*=2;R[end,:]*=2;R[:,1]*=2;R[:,end]*=2
-        negateeven!(R)
-        R*=(size(X,1)-1)*(size(X,2)-1)/4
-        flipud(fliplr(R))
-    end
-end
-
 ## First kind transform
 
 
 plan_chebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T})=length(x)==1?identity:FFTW.plan_r2r(x, FFTW.REDFT10)
-
 chebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T})=chebyshevrootstransform(x,plan_chebyshevrootstransform(x))
 
 function chebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function)
@@ -107,11 +80,15 @@ function chebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function
     ret/=length(x)
 end
 
-function ichebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T})
-    ret = deepcopy(x)
-    ret[1] *=2
-    negateeven!(ret)
-    FFTW.r2r(ret,FFTW.REDFT01)/2
+plan_ichebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T})=length(x)==1?identity:FFTW.plan_r2r(x, FFTW.REDFT01)
+ichebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T})=ichebyshevrootstransform(x,plan_ichebyshevrootstransform(x))
+
+function ichebyshevrootstransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function)
+    x[1] *=2
+    ret = plan(negateeven!(x))::typeof(x)/2
+    negateeven!(x)
+    x[1]/=2
+    ret
 end
 
 #following Chebfun's @Chebtech1/vals2coeffs.m
@@ -146,7 +123,60 @@ for func in (:chebyshevtransform,:ichebyshevtransform,:chebyshevrootstransform,:
 end
 
 
+# Matrix inputs
+
+
+function chebyshevtransform{T<:FFTW.fftwNumber}(X::Matrix{T})
+    if size(X) == (1,1)
+        X
+    else
+        R=FFTW.r2r(X,FFTW.REDFT00)/((size(X,1)-1)*(size(X,2)-1))
+        R[:,1]/=2;R[:,end]/=2
+        R[1,:]/=2;R[end,:]/=2
+        negateeven!(R)
+        R
+    end
+end
+
+function ichebyshevtransform{T<:Number}(X::Matrix{T})
+    if size(X) == (1,1)
+        X
+    else
+        X[1,:]*=2;X[end,:]*=2;X[:,1]*=2;X[:,end]*=2
+        R=chebyshevtransform(X)
+        X[1,:]/=2;X[end,:]/=2;X[:,1]/=2;X[:,end]/=2
+        R[1,:]*=2;R[end,:]*=2;R[:,1]*=2;R[:,end]*=2
+        negateeven!(R)
+        R*=(size(X,1)-1)*(size(X,2)-1)/4
+        flipud(fliplr(R))
+    end
+end
+
+function chebyshevrootstransform{T<:FFTW.fftwNumber}(X::Matrix{T})
+    if size(X) == (1,1)
+        X
+    else
+        R=negateeven!(FFTW.r2r(X,FFTW.REDFT10))
+        R[:,1]/=2;R[1,:]/=2;
+        R/=size(X,1)*size(X,2)
+    end
+end
+
+function ichebyshevrootstransform{T<:FFTW.fftwNumber}(X::Matrix{T})
+    if size(X) == (1,1)
+        X
+    else
+        X[1,:]*=2;X[:,1]*=2
+        R = FFTW.r2r(negateeven!(X),FFTW.REDFT01)/4
+        negateeven!(X)
+        X[1,:]/=2;X[:,1]/=2
+        R
+    end
+end
+
+
 # Helper routines
+
 
 function negateeven!(x::Vector)
     for k =2:2:length(x)

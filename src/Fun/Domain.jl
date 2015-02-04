@@ -27,40 +27,29 @@ Base.eltype{T}(::Domain{T})=T
 
 abstract IntervalDomain{T} <: Domain{T}
 
-##TODO: Should fromcanonical be fromcanonical!?
-function chebyshevroots{T<:Number}(n::Integer,::Type{T})
-    _π = convert(T,π)
-    return [cos(_π*(k+.5)/n) for k=-n:-1]
-end
+chebyshevroots{T<:Number}(n::Integer,::Type{T}) = cospi((one(T)/2+[-n:-1])/n)
 
 function chebyshevpoints{T<:Number}(n::Integer,::Type{T})
     if n==1
         return zeros(T,1)
     else
-        _π = convert(T,π)
-        return [cos(_π*k/(n-1)) for k = n-1:-1:0]
+        return cospi([n-1:-1:0]/(n-one(T)))
     end
 end
 
 chebyshevpoints(n::Integer) = chebyshevpoints(n,Float64)
 chebyshevroots(n::Integer) = chebyshevroots(n,Float64)
 
+##TODO: Should fromcanonical be fromcanonical!?
+
 points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevroots(n,T))
-#points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(n,T))
-#    if n==1
-#        return [fromcanonical(d,zero(T))]
-#    else
-#        _π = convert(T,π)
-#        return [fromcanonical(d,cos(_π*k/(n-1))) for k = n-1:-1:0]  #TODO, refactor to use chebyshevpoints
-#    end
-#end
 
 points(d::Vector,n::Integer)=points(Interval(d),n)
 bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 
 #TODO consider moving these
-Base.first(d::IntervalDomain)=fromcanonical(d,-1.0)
-Base.last(d::IntervalDomain)=fromcanonical(d,1.0)
+Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
+Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 
 
 function Base.in(x,d::IntervalDomain)

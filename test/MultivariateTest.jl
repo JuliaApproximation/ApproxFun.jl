@@ -4,10 +4,10 @@ u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5)
 
 
 @test values(u0)-values(u0|>LowRankFun)|>norm < 1000eps()
-@test chebyshevtransform(values(u0))-coefficients(u0)|>norm < 100eps()
+@test chebyshevrootstransform(values(u0))-coefficients(u0)|>norm < 100eps()
 
 ##TODO: need to do adaptive to get better accuracy
-@test sin(u0)[.1,.2]-sin(u0[.1,.2])|>abs < 10e-6
+@test sin(u0)[.1,.2]-sin(u0[.1,.2])|>abs < 10e-4
 
 
 ## Rectangle PDE
