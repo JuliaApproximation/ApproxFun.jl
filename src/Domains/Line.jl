@@ -97,24 +97,20 @@ Base.last(d::Line)= Inf
 
 ## Periodic line
 
-#TODO: allow angle to be Bool to represent 0,π
-immutable PeriodicLine <: PeriodicDomain{Float64} 
+# angle is (false==0) and π (true==1)
+# or ranges from (-1,1]
+immutable PeriodicLine{angle} <: PeriodicDomain{Float64} 
     centre::Float64  ##TODO Allow complex
-    angle::Float64
     L::Float64
 end
 
 canonicaldomain(::PeriodicLine)=PeriodicInterval()
-PeriodicLine(c,a)=PeriodicLine(c,a,1.)
-PeriodicLine()=PeriodicLine(0.,0.)
+PeriodicLine(c,a)=PeriodicLine{a}(c,1.)
+PeriodicLine()=PeriodicLine{false}(0.,1.)
 
 
-
-tocircle(d::PeriodicLine,x)=(d.L*im - exp(-im*d.angle)*(x-d.centre))./(d.L*im + exp(-im*d.angle)*(x-d.centre))
-fromcircle(d::PeriodicLine,ζ)=exp(im*d.angle)*1.im*d.L*(ζ - 1)./(ζ + 1)+d.centre
-
-tocanonical(d::PeriodicLine,x)=tocanonical(Circle(),tocircle(d,x))
-fromcanonical(d::PeriodicLine,θ)=fromcircle(d,fromcanonical(Circle(),θ))
+tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.centre)/d.L)
+fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.centre
 
 
 

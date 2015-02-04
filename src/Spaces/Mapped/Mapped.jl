@@ -21,6 +21,7 @@ typealias IntervalMappedSpace{S,D} MappedSpace{S,D,RealBasis,Interval}
 typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
 
 typealias LineSpace{T} IntervalMappedSpace{Chebyshev,Line{T}}
+typealias PeriodicLineSpace{T} PeriodicMappedSpace{Fourier,PeriodicLine{T},RealBasis}
 typealias RaySpace{T} IntervalMappedSpace{Chebyshev,Ray{T}}
 typealias CurveSpace{S,T,DS} MappedSpace{S,Curve{S},T,DS}
 typealias OpenCurveSpace{S} CurveSpace{S,RealBasis,Interval}
@@ -30,6 +31,7 @@ Space{T}(d::Line{T})=LineSpace{T}(d)
 Space{T}(d::Ray{T})=RaySpace{T}(d)
 #TODO: Assuming periodic is complex basis
 Space{S<:PeriodicSpace}(d::Curve{S})=ClosedCurveSpace{S,ComplexBasis}(d)
+Space{T}(d::PeriodicLine{T})=PeriodicLineSpace{T}(d)
 
 
 domain(S::MappedSpace)=S.domain
@@ -206,6 +208,23 @@ function Derivative{T}(S::LineSpace{T},order::Int)
         D
     else
         Derivative(rangespace(D),order-1)*D
+    end    
+end
+
+
+function Derivative{SS<:FunctionSpace}(S::MappedSpace{SS,PeriodicLine{false}},order::Int)
+    d=domain(S)
+    @assert d.centre==0  && d.L==1.0
+    
+    a=Fun([1.,0,1],PeriodicInterval())
+    M=Multiplication(a,space(a))
+    DS=Derivative(space(a))
+    D=SpaceOperator(M*DS,S,S)
+    
+    if order==1
+        DerivativeWrapper(D,1)
+    else
+        DerivativeWrapper(Derivative(rangespace(D),order-1)*D,order)
     end    
 end
 

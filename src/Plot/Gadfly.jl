@@ -92,9 +92,9 @@ function dotplot{T<:Real,V<:Real}(x::Vector{T},y::Vector{V};axis=-1)
         Main.Gadfly.plot(x=x,y=y,Main.Gadfly.Scale.y_continuous(minvalue=axis[1],maxvalue=axis[2]))
     end
 end
-dotplot{T<:Complex}(x::Vector{T})=dotplot(real(x),imag(x))
+dotplot{T<:Number}(x::Vector{T})=dotplot(real(x),imag(x))
 dotlayer{T<:Real,V<:Real}(x::Vector{T},y::Vector{V})=Main.Gadfly.layer(x=x,y=y,Main.Gadfly.Geom.point)
-dotlayer{T<:Complex}(x::Vector{T})=dotlayer(real(x),imag(x))
+dotlayer{T<:Number}(x::Vector{T})=dotlayer(real(x),imag(x))
 
 
 function gadflyplot(opts...;kwds...)

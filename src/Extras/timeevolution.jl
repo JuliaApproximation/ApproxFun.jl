@@ -129,6 +129,7 @@ function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m::
  
         plot(pad(u4,80,80),glp...)#updates window
     end    
+    u4
 end
 
 function timeevolution(B::Vector,op,uin::MultivariateFun,bcs::Vector,h::Real,m=5000)
@@ -158,7 +159,8 @@ function timeevolution2(B::Vector,op,bcs::Vector,uin::(MultivariateFun,Multivari
         u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
  
         plot(pad(u4,80,80),glp...)#updates window
-    end    
+    end   
+    u4 
 end
 
 #u_tt = op*u
@@ -180,6 +182,7 @@ function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::(MultivariateF
         u4,u3,u2,u1  = chop(SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
         plot(pad(u4,80,80),glp...)#updates window               
     end    
+    u4
 end
 
 function timeevolution2(B::Vector,op,uin::(MultivariateFun,MultivariateFun),bcs::Vector,h::Real,m=5000)

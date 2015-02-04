@@ -218,8 +218,8 @@ function promotetimes{B<:BandedOperator}(opsin::Vector{B})
         if op==()
             # do nothing
         elseif isa(op,TimesOperator)
-            for j=length(op):-1:1
-                push!(ops,op[j])
+            for j=length(op.ops):-1:1
+                push!(ops,op.ops[j])
             end
         else
             push!(ops,op)
