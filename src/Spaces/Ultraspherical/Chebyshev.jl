@@ -21,8 +21,8 @@ end
 
 ## Transform
 
-transform(::Chebyshev,vals::Vector)=chebyshevrootstransform(vals)
-itransform(::Chebyshev,cfs::Vector)=ichebyshevrootstransform(cfs)
+transform(::Chebyshev,vals::Vector)=chebyshevtransform(vals)
+itransform(::Chebyshev,cfs::Vector)=ichebyshevtransform(cfs)
 
 
 ## Evaluation
@@ -54,16 +54,16 @@ function ApproxFun.values{T}(f::TensorFun{Chebyshev,Chebyshev,T})
     n,m=size(f)
     M=Array(T,n,m)
     f1=pad(f.coefficients[1].coefficients,n)
-    planc=plan_ichebyshevrootstransform(f1)
-    M[:,1]=ichebyshevrootstransform(f1,planc)
+    planc=plan_ichebyshevtransform(f1)
+    M[:,1]=ichebyshevtransform(f1,planc)
     for k=2:m
-        M[:,k]=ichebyshevrootstransform(pad(f.coefficients[k].coefficients,n),planc)
+        M[:,k]=ichebyshevtransform(pad(f.coefficients[k].coefficients,n),planc)
     end
     f2=vec(M[1,:])
-    planr=plan_ichebyshevrootstransform(f2)
-    M[1,:]=ichebyshevrootstransform(f2,planr)
+    planr=plan_ichebyshevtransform(f2)
+    M[1,:]=ichebyshevtransform(f2,planr)
     for k=2:n
-        M[k,:]=ichebyshevrootstransform(vec(M[k,:]),planr)
+        M[k,:]=ichebyshevtransform(vec(M[k,:]),planr)
     end
 
     M

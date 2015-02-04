@@ -45,7 +45,7 @@ end
 
 
 ## Use 1st kind points to avoid singularities
-points(sp::JacobiWeight,n)=fromcanonical(sp,chebyshevroots(n))
+points(sp::JacobiWeight,n)=fromcanonical(sp,chebyshevpoints(n))
 
 # These are meant for Jacobi
 plan_itransform(S::JacobiWeight,n::Integer)=points(S,n)
@@ -56,7 +56,7 @@ itransform(S::JacobiWeight,cfs::Vector,pts::Vector)=jacobiweight(S,pts).*itransf
 function spaceconversion(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
-    
+
     if isapprox(c,α) && isapprox(d,β)
         spaceconversion(f,sp1.space,sp2.space)
     else
@@ -93,7 +93,7 @@ end
 
 for op in (:/,:./)
     @eval begin
-        ($op){S}(c::Number,f::Fun{JacobiWeight{S}})=Fun(($op)(c,Fun(f.coefficients)).coefficients,JacobiWeight(-f.space.α,-f.space.β,space(f).space))        
+        ($op){S}(c::Number,f::Fun{JacobiWeight{S}})=Fun(($op)(c,Fun(f.coefficients)).coefficients,JacobiWeight(-f.space.α,-f.space.β,space(f).space))
     end
 end
 
@@ -106,7 +106,7 @@ end
 function .*{S,V}(f::Fun{JacobiWeight{S}},g::Fun{JacobiWeight{V}})
     @assert domainscompatible(f,g)
     fα,fβ=f.space.α,f.space.β
-    gα,gβ=g.space.α,g.space.β    
+    gα,gβ=g.space.α,g.space.β
     m=(Fun(f.coefficients,space(f).space).*Fun(g.coefficients,space(g).space))
     if isapprox(fα+gα,0)&&isapprox(fβ+gβ,0)
         m
@@ -119,9 +119,9 @@ end
 ./{T,N}(f::Fun{JacobiWeight{T}},g::Fun{JacobiWeight{N}})=f*(1/g)
 
 for op in (:.*,:./)
-    ##TODO: Make general 
+    ##TODO: Make general
     @eval ($op){S}(f::Fun,g::Fun{JacobiWeight{S}})=$op(Fun(f,JacobiWeight(0,0,space(f))),g)
-    @eval ($op){S}(f::Fun{JacobiWeight{S}},g::Fun)=$op(f,Fun(g,JacobiWeight(0,0,space(g)))) 
+    @eval ($op){S}(f::Fun{JacobiWeight{S}},g::Fun)=$op(f,Fun(g,JacobiWeight(0,0,space(g))))
 end
 
 

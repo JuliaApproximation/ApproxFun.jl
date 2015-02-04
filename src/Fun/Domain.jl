@@ -27,22 +27,22 @@ Base.eltype{T}(::Domain{T})=T
 
 abstract IntervalDomain{T} <: Domain{T}
 
-chebyshevroots{T<:Number}(n::Integer,::Type{T}) = cospi((one(T)/2+[-n:-1])/n)
-
-function chebyshevpoints{T<:Number}(n::Integer,::Type{T})
-    if n==1
-        return zeros(T,1)
-    else
-        return cospi([n-1:-1:0]/(n-one(T)))
+function chebyshevpoints{T<:Number}(n::Integer,::Type{T};kind::Integer=1)
+    if kind == 1
+        return cospi((one(T)/2+[-n:-1])/n)
+    elseif kind == 2
+        if n==1
+            return zeros(T,1)
+        else
+            return cospi([n-1:-1:0]/(n-one(T)))
+        end
     end
 end
-
 chebyshevpoints(n::Integer) = chebyshevpoints(n,Float64)
-chebyshevroots(n::Integer) = chebyshevroots(n,Float64)
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevroots(n,T))
+points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(n,T))
 
 points(d::Vector,n::Integer)=points(Interval(d),n)
 bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
