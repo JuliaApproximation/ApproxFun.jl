@@ -29,6 +29,7 @@ spacescompatible(A::JacobiWeight,B::JacobiWeight)=A.α==B.α && A.β == B.β && 
 spacescompatible(A::JacobiWeight,B::IntervalSpace)=spacescompatible(A,JacobiWeight(0,0,B))
 spacescompatible(B::IntervalSpace,A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
+## In this package, α and β are opposite the convention. Here, α is the left algebraic singularity and β is the right algebraic singularity.
 
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
 jacobiweight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
