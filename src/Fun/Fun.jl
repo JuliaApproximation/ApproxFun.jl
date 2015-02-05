@@ -140,8 +140,8 @@ for op = (:+,:-)
 
         ($op){N<:Number}(f::Fun,c::N)=$op(f,c*ones(f))
         ($op){N<:Number}(c::N,f::Fun)=$op(c*ones(f),f)
-        ($op){S,T}(f::Fun{S,T},c::UniformScaling)=$op(f,c.位)
-        ($op){S,T}(c::UniformScaling,f::Fun{S,T})=$op(c.位,f)
+        ($op){S,T}(f::Fun{S,T},c::UniformScaling)=$op(f,c.λ)
+        ($op){S,T}(c::UniformScaling,f::Fun{S,T})=$op(c.λ,f)
     end
 end
 
