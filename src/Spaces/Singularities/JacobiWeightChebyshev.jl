@@ -18,8 +18,8 @@ end
 
 
 
-transform(sp::JacobiWeight{Chebyshev},vals::Vector)=chebyshevtransform(vals./jacobiweight(sp,points(sp,length(vals))))
-itransform(sp::JacobiWeight{Chebyshev},cfs::Vector)=ichebyshevtransform(cfs).*jacobiweight(sp,points(sp,length(cfs)))
+transform(sp::JacobiWeight{Chebyshev},vals::Vector)=chebyshevtransform(vals./jacobiweight(sp,points(sp,length(vals)));kind=1)
+itransform(sp::JacobiWeight{Chebyshev},cfs::Vector)=ichebyshevtransform(cfs).*jacobiweight(sp,points(sp,length(cfs));kind=1)
 
 
 

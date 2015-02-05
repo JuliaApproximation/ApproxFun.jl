@@ -45,7 +45,7 @@ end
 
 
 ## Use 1st kind points to avoid singularities
-points(sp::JacobiWeight,n)=fromcanonical(sp,chebyshevpoints(n))
+points(sp::JacobiWeight,n)=fromcanonical(sp,chebyshevpoints(n;kind=1))
 
 # These are meant for Jacobi
 plan_itransform(S::JacobiWeight,n::Integer)=points(S,n)
