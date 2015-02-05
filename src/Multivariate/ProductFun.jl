@@ -30,11 +30,13 @@ end
 ProductFun(M,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(M,TensorSpace(dx,dy))
 
 function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V})
-     ret=Array(Fun{S,T},size(cfs,2))
-     for k=1:size(cfs,2)
-         ret[k]=chop!(Fun(cfs[:,k],columnspace(D,k)),10eps())
-     end
-     ProductFun{S,V,typeof(D),T}(ret,D)
+    # Chopping the matrix first prunes columns as well as rows.
+    cfs=chop!(cfs,maxabs(cfs)*eps(T))
+    ret=Array(Fun{S,T},size(cfs,2))
+    for k=1:size(cfs,2)
+        ret[k]=Fun(cfs[:,k],columnspace(D,k))
+    end
+    ProductFun{S,V,typeof(D),T}(ret,D)
 end
 
 
@@ -313,4 +315,3 @@ for op in (:tocanonical,:fromcanonical)
     @eval $op(f::ProductFun,x...)=$op(space(f),x...)
 end
 
-include("ChebyshevAddition.jl")
