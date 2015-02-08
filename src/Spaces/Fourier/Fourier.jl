@@ -58,34 +58,34 @@ end
 function horner{T}(v::Vector{T},z::Number)
     ret = zero(T)
     ei = z*one(T)
-    
+
     p = one(T)
     for vk in v
         ret += vk*p
         p .*= ei
     end
-    
+
     ret
 end
 
 function horner{T}(v::Vector{T},z::Vector)
     ret = zeros(T,length(z))
     ei = z*one(T)
-    
+
     p = ones(T,length(z))
     for vk in v
         ret += vk*p
         p .*= ei
     end
-    
+
     ret
 end
 
 ## Cos and Sin space
 
 points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
-transform(::CosSpace,vals)=chebyshevtransform(vals)
-itransform(::CosSpace,cfs)=ichebyshevtransform(cfs)
+transform(::CosSpace,vals)=chebyshevtransform(vals;kind=2)
+itransform(::CosSpace,cfs)=ichebyshevtransform(cfs;kind=2)
 evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
@@ -128,7 +128,7 @@ Fourier{T<:Number}(d::Vector{T}) = Fourier(PeriodicInterval(d))
 for sp in (:Fourier,:Laurent,:(Hardy{true}),:CosSpace)
     @eval begin
         Base.ones{T<:Number}(::Type{T},S::$sp)=Fun(ones(T,1),S)
-        Base.ones(S::$sp)=Fun(ones(1),S)        
+        Base.ones(S::$sp)=Fun(ones(1),S)
     end
 end
 
@@ -140,13 +140,13 @@ function fouriermodalt!(cfs)
     if iseven(n)
         for k=2:2:n/2+1
             cfs[k]*=-1
-        end  
+        end
     else
         for k=2:2:(n+1)/2
             cfs[k]*=-1
-        end     
-    end    
-    
+        end
+    end
+
     if mod(n,4)==0
         for k=n/2+3:2:n
             cfs[k]*=-1
@@ -154,15 +154,15 @@ function fouriermodalt!(cfs)
     elseif mod(n,4)==2
         for k=n/2+2:2:n
             cfs[k]*=-1
-        end    
+        end
     elseif mod(n,4)==1
         for k=(n+3)/2:2:n
             cfs[k]*=-1
-        end   
+        end
     else #mod(n,4)==3
         for k=(n+5)/2:2:n
             cfs[k]*=-1
-        end      
+        end
     end
     cfs
 end
@@ -176,7 +176,7 @@ function transform{T<:Number}(::Fourier,vals::Vector{T})
     end
 
     fouriermodalt!(cfs)
-        
+
     ret=Array(T,n)
     if iseven(n)
         ret[1:2:end]=cfs[1:n/2]
@@ -185,7 +185,7 @@ function transform{T<:Number}(::Fourier,vals::Vector{T})
         ret[1:2:end]=cfs[1:(n+1)/2]
         ret[2:2:end]=cfs[end:-1:(n+3)/2]
     end
-    ret    
+    ret
 end
 
 
@@ -195,9 +195,9 @@ function itransform{T<:Number}(::Fourier,a::Vector{T})
     fouriermodalt!(cfs)
     if iseven(n)
         cfs[n/2+1]*=2
-    end        
+    end
     cfs[1]*=2
-    FFTW.r2r(cfs, FFTW.HC2R )/2  
+    FFTW.r2r(cfs, FFTW.HC2R )/2
 end
 
 

@@ -9,7 +9,7 @@ export LowRankFun
 type LowRankFun{S<:FunctionSpace,M<:FunctionSpace,T<:Number,V<:Number}<:BivariateFun
   A::Vector{Fun{S,T}}
   B::Vector{Fun{M,V}}
-  
+
   function LowRankFun(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})
     @assert length(A) == length(B)
     @assert length(A) > 0
@@ -24,7 +24,7 @@ LowRankFun{T<:Number}(A::Array{T})=LowRankFun(A,Interval(),Interval())
 function LowRankFun{T<:Number,S<:FunctionSpace,W<:FunctionSpace}(X::Array{T},dx::S,dy::W)
     U,Σ,V=svd(X)
     m=max(1,count(s->s>10eps(),Σ))
-    
+
 
     A=Fun{S,T}[Fun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
     B=Fun{W,T}[Fun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
@@ -38,13 +38,13 @@ LowRankFun(f,S::TensorSpace,n...)=LowRankFun(f,S[1],S[2],n...)
 # TODO: Vector pads right
 for T in (:Float64,:(Complex{Float64}))
     @eval begin
-        function LowRankFun{S}(X::Vector{Fun{S,$T}},dy::FunctionSpace)            
+        function LowRankFun{S}(X::Vector{Fun{S,$T}},dy::FunctionSpace)
             m=mapreduce(length,max,X)
             M=zeros($T,m,length(X))
             for k=1:length(X)
                 M[1:length(X[k]),k]=X[k].coefficients
             end
-            
+
             LowRankFun(M,space(X[1]),dy)
         end
     end
@@ -56,12 +56,12 @@ function findapproxmax(f::Function,dx::FunctionSpace,dy::FunctionSpace, gridx::I
     ptsx=points(dx,gridx)
     ptsy=points(dy,gridy)
 
-  mpt=[fromcanonical(dx,0.),fromcanonical(dy,0.)]  
+  mpt=[fromcanonical(dx,0.),fromcanonical(dy,0.)]
   maxi=abs(f(mpt[1],mpt[2]))
 
 
     for k = 1:length(ptsx),j=1:length(ptsy)
-      val=abs(f(ptsx[k],ptsy[j])) 
+      val=abs(f(ptsx[k],ptsy[j]))
       if val > maxi
         maxi = val
         mpt[1]=ptsx[k];mpt[2]=ptsy[j]
@@ -75,39 +75,39 @@ LowRankFun(f::Function,dx::Domain,dy::Domain,nx...)=LowRankFun(f,Space(dx),Space
 LowRankFun(f,d::ProductDomain)=LowRankFun(f,d[1],d[2])
 function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integer,gridy::Integer;maxrank=100::Integer)
     tol=1000eps()
-    
+
     r=findapproxmax(f,dx,dy,gridx,gridy)
     a=Fun(x->f(x,r[2]),dx)
     b=Fun(y->f(r[1],y),dy)
     A=typeof(a)[];B=typeof(b)[];
-    
-    
+
+
     for k=1:maxrank
         if norm(a.coefficients) <tol || norm(b.coefficients) < tol
             return LowRankFun(A,B)
         end
-        
-        ##TODO: negative orientation 
-        # the turms 
-        A=[A,a/sqrt(abs(a[r[1]]))];B=[B,sign(b[r[2]]).*b/sqrt(abs(b[r[2]]))]    
+
+        ##TODO: negative orientation
+        # the turms
+        A=[A,a/sqrt(abs(a[r[1]]))];B=[B,sign(b[r[2]]).*b/sqrt(abs(b[r[2]]))]
         r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy,gridx,gridy)
         Ar=map(q->q[r[1]],A)
         Br=map(q->q[r[2]],B)
-        
+
         ##TODO: Should allow FFun
         a=Fun(x->f(x,r[2]),dx; method="abszerocoefficients") - dot(conj(Br),A)
         b=Fun(y->f(r[1],y),dy; method="abszerocoefficients")- dot(conj(Ar),B)
-        
+
         ##Remove coefficients that get killed by a/b
 #         maxb=maximum(abs(b.coefficients))
-#         maxa=maximum(abs(a.coefficients))        
-#         if maxb != 0 
+#         maxa=maximum(abs(a.coefficients))
+#         if maxb != 0
 #             tol=10*sqrt(abs(a[r[1]]))*sqrt(abs(b[r[2]]))*eps()/maxb
             a=chop!(a,isnan(tol)?0:tol)
 #         end
 #         if maxa != 0
 #            tol=10*sqrt(abs(a[r[1]]))*sqrt(abs(b[r[2]]))*eps()/maxa
-            b=chop!(b,isnan(tol)?0:tol)        
+            b=chop!(b,isnan(tol)?0:tol)
 #        end
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
@@ -131,7 +131,7 @@ Base.size(f::LowRankFun)=size(f,1),size(f,2)
 
 function values(f::LowRankFun)
     xm=mapreduce(length,max,f.A)
-    ym=mapreduce(length,max,f.B)    
+    ym=mapreduce(length,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
         ret+=values(pad(f.A[k],xm))*values(pad(f.B[k],ym)).'
@@ -142,7 +142,7 @@ end
 #TODO: this is inconsistent with 1D where it does canonical
 function coefficients(f::LowRankFun)
     xm=mapreduce(length,max,f.A)
-    ym=mapreduce(length,max,f.B)    
+    ym=mapreduce(length,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
         ret+=pad(f.A[k].coefficients,xm)*pad(f.B[k].coefficients,ym).'
@@ -152,7 +152,7 @@ end
 
 function coefficients(f::LowRankFun,n::FunctionSpace,m::FunctionSpace)
     xm=mapreduce(length,max,f.A)
-    ym=mapreduce(length,max,f.B)    
+    ym=mapreduce(length,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
         ret+=pad(coefficients(f.A[k],n),xm)*pad(coefficients(f.B[k],m),ym).'
@@ -179,24 +179,24 @@ function evaluate(f::LowRankFun,::Colon,y::Real)
     m = maximum(map(length,f.A))
     r=rank(f)
     ret = zeros(m)
-    
+
     for k=1:r
         for j=1:length(f.A[k])
             @inbounds ret[j] += f.A[k].coefficients[j]*f.B[k][y]
         end
     end
-    
+
     Fun(ret,first(f.A).space)
 end
 
 
 
 Base.rank(f::LowRankFun)=length(f.A)
-evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x,y)=dotu(evaluate(A,x),evaluate(B,y)) 
+evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x,y)=dotu(evaluate(A,x),evaluate(B,y))
 
 ## Truncate
 #TODO: should reduce rank if needed
-Base.chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,tol),f.B))  
+Base.chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,tol),f.B))
 
 
 
@@ -233,7 +233,7 @@ Base.imag(u::LowRankFun)=LowRankFun([map(real,u.A),map(imag,u.A)],[map(imag,u.B)
 ## Calculus
 
 
-Base.sum(g::LowRankFun)=dotu(map(sum,g.A),map(sum,g.B)) 
+Base.sum(g::LowRankFun)=dotu(map(sum,g.A),map(sum,g.B))
 Base.sum(g::LowRankFun,n::Integer)=(n==1)?dotu(g.B,map(sum,g.A)):dotu(g.A,map(sum,g.B))
 Base.cumsum(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(cumsum,g.A),copy(g.B)):LowRankFun(copy(g.A),map(cumsum,g.B))
 integrate(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(integrate,g.A),copy(g.B)):LowRankFun(copy(g.A),map(integrate,g.B))

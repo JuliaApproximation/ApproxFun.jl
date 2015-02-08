@@ -8,7 +8,7 @@ include("FunctionSpace.jl")
 
 ##TODO: No zero length funs
 
-type Fun{S<:FunctionSpace,T<:Number} 
+type Fun{S<:FunctionSpace,T<:Number}
     coefficients::Vector{T}
     space::S
 end
@@ -18,7 +18,7 @@ end
 
 coefficients(f::Fun,msp::FunctionSpace)=spaceconversion(f.coefficients,space(f),msp)
 coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(AnyDomain()))
-canonicalcoefficients(f::Fun)=coefficients(f,canonicalspace(f.space))  
+canonicalcoefficients(f::Fun)=coefficients(f,canonicalspace(f.space))
 coefficients(f::Fun)=f.coefficients
 coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 
@@ -68,7 +68,7 @@ function evaluate{S,T}(f::Fun{S,T},x)
     if spacescompatible(csp,space(f))
         error("Override evaluate for " * string(typeof(csp)))
     else
-        evaluate(Fun(f,csp),x)  
+        evaluate(Fun(f,csp),x)
     end
 end
 
@@ -83,7 +83,7 @@ end
 
 ##Data routines
 
-values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...) 
+values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...)
 points(f::Fun)=points(f.space,length(f))
 Base.length(f::Fun)=length(f.coefficients)
 function Base.stride(f::Fun)
@@ -95,7 +95,7 @@ function Base.stride(f::Fun)
             return 1
         end
     end
-    
+
     2
 end
 
@@ -112,7 +112,7 @@ function chop!{S,T}(f::Fun{S,T},tol::Real)
     if length(f.coefficients) == 0
         f.coefficients = [zero(T)]
     end
-    
+
     f
 end
 chop(f::Fun,tol)=chop!(Fun(copy(f.coefficients),f.space),tol)
@@ -127,9 +127,9 @@ for op = (:+,:-)
             if spacescompatible(f,g)
                 n = max(length(f),length(g))
                 f2 = pad(f,n); g2 = pad(g,n)
-            
+
                 Fun(($op)(f2.coefficients,g2.coefficients),domain(f)!=AnyDomain()?f.space:g.space)
-            else 
+            else
                 m=union(f.space,g.space)
                 if isa(m,NoSpace)
                     error("Cannot "*string($op)*" because no space is the union of "*string(typeof(f.space))*" and "*string(typeof(g.space)))
@@ -139,18 +139,18 @@ for op = (:+,:-)
         end
 
         ($op){N<:Number}(f::Fun,c::N)=$op(f,c*ones(f))
-        ($op){N<:Number}(c::N,f::Fun)=$op(c*ones(f),f)    
-        ($op){S,T}(f::Fun{S,T},c::UniformScaling)=$op(f,c.位)
-        ($op){S,T}(c::UniformScaling,f::Fun{S,T})=$op(c.位,f)    
+        ($op){N<:Number}(c::N,f::Fun)=$op(c*ones(f),f)
+        ($op){S,T}(f::Fun{S,T},c::UniformScaling)=$op(f,c.λ)
+        ($op){S,T}(c::UniformScaling,f::Fun{S,T})=$op(c.λ,f)
     end
-end 
+end
 
 # equivalent to Y+=a*X
 axpy!(a,X::Fun,Y::Fun)=axpy!(a,coefficients(X,space(Y)),Y)
-function axpy!(a,xcfs::Vector,Y::Fun) 
+function axpy!(a,xcfs::Vector,Y::Fun)
     if a!=0
         n=length(Y); m=length(xcfs)
-        
+
         if n≤m
             resize!(Y.coefficients,m)
             for k=1:n
@@ -165,7 +165,7 @@ function axpy!(a,xcfs::Vector,Y::Fun)
             end
         end
     end
-    
+
     Y
 end
 
@@ -173,7 +173,7 @@ end
 
 for op = (:*,:.*,:./,:/)
     @eval ($op)(f::Fun,c::Number) = Fun(($op)(f.coefficients,c),f.space)
-end 
+end
 
 -(f::Fun)=Fun(-f.coefficients,f.space)
 -(c::Number,f::Fun)=-(f-c)
@@ -213,7 +213,7 @@ end
 
 import Base.imag, Base.real, Base.conj
 
-for op = (:real,:imag,:conj) 
+for op = (:real,:imag,:conj)
     @eval ($op){T,D<:FunctionSpace{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 

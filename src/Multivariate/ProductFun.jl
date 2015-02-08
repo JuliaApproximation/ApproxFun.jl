@@ -30,11 +30,13 @@ end
 ProductFun(M,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(M,TensorSpace(dx,dy))
 
 function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V})
-     ret=Array(Fun{S,T},size(cfs,2))
-     for k=1:size(cfs,2)
-         ret[k]=chop!(Fun(cfs[:,k],columnspace(D,k)),10eps())
-     end
-     ProductFun{S,V,typeof(D),T}(ret,D)
+    # Chopping the matrix first prunes columns as well as rows.
+    cfs=chop!(cfs,maxabs(cfs)*eps(T))
+    ret=Array(Fun{S,T},size(cfs,2))
+    for k=1:size(cfs,2)
+        ret[k]=Fun(cfs[:,k],columnspace(D,k))
+    end
+    ProductFun{S,V,typeof(D),T}(ret,D)
 end
 
 
@@ -84,9 +86,9 @@ ProductFun(f::Function,D::ProductDomain)=ProductFun(LowRankFun(f,D))
 
 function ProductFun(f::Function,D)
      Nmax=400
- 
+
      tol=1E-12
- 
+
      for N=50:25:Nmax
          X=coefficients(ProductFun(f,D,N,N))
          if norm(X[end-3:end,:])<tol && norm(X[:,end-3:end])<tol
@@ -276,8 +278,18 @@ for op in (:(Base.sum),:(Base.cumsum),:integrate)
 end
 
 
+# Let K be a ProductFun and f be a Fun.
+# op(f,K) acts as operating in the x variable, and
+# op(K,f) acts as operating in the y variable.
 
-
+#=
+for op = (:*,:.*,:./,:/)
+    #@eval ($op){S,T,U,V}(f::Fun{S,T},A::Vector{Fun{U,V}})=map(a->($op)(f,a),A)
+    @eval ($op)(f::Fun,K::ProductFun) = ProductFun(($op)(f,K.A),K.B)
+    #@eval ($op){S,T,U,V}(B::Vector{Fun{U,V}},f::Fun{S,T})=map(b->($op)(b,f),B)
+    @eval ($op)(K::ProductFun,f::Fun) = ProductFun(K.A,($op)(K.B,f))
+end
+=#
 
 ## ProductFun transform
 
@@ -303,4 +315,3 @@ for op in (:tocanonical,:fromcanonical)
     @eval $op(f::ProductFun,x...)=$op(space(f),x...)
 end
 
-include("ChebyshevAddition.jl")

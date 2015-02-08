@@ -27,39 +27,29 @@ Base.eltype{T}(::Domain{T})=T
 
 abstract IntervalDomain{T} <: Domain{T}
 
+function chebyshevpoints{T<:Number}(n::Integer,::Type{T};kind::Integer=1)
+    if kind == 1
+        return cospi((one(T)/2+[-n:-1])/n)
+    elseif kind == 2
+        if n==1
+            return zeros(T,1)
+        else
+            return cospi([n-1:-1:0]/(n-one(T)))
+        end
+    end
+end
+chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(n,Float64;kind=kind)
+
 ##TODO: Should fromcanonical be fromcanonical!?
-function chebyshevroots(n::Integer,numbertype::Type)
-    _π = convert(numbertype,π)
-    return [cos(_π*k) for k=-1.+1/(2n):1/n:-1./(2n)]
-end
 
-function chebyshevpoints(n::Integer,numbertype::Type)
-    if n==1
-        return zeros(numbertype,1)
-    else
-        _π = convert(numbertype,π)
-        return [cos(_π*k/(n-1)) for k = n-1:-1:0]
-    end
-end 
-
-chebyshevpoints(n::Integer) = chebyshevpoints(n,Float64)
-chebyshevroots(n::Integer) = chebyshevroots(n,Float64)
-
-function points{T}(d::IntervalDomain{T},n::Integer) 
-    if n==1
-        return [fromcanonical(d,zero(T))]
-    else
-        _π = convert(T,π)
-        return [fromcanonical(d,cos(_π*k/(n-1))) for k = n-1:-1:0]  #TODO, refactor to use chebyshevpoints
-    end
-end
+points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(n,T))
 
 points(d::Vector,n::Integer)=points(Interval(d),n)
 bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 
 #TODO consider moving these
-Base.first(d::IntervalDomain)=fromcanonical(d,-1.0)
-Base.last(d::IntervalDomain)=fromcanonical(d,1.0)
+Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
+Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 
 
 function Base.in(x,d::IntervalDomain)
@@ -74,7 +64,7 @@ abstract PeriodicDomain{T} <: Domain{T}
 points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(n,T))
 
 fourierpoints(n::Integer) = fourierpoints(n,Float64)
-fourierpoints(n::Integer,numbertype::Type)= convert(numbertype,π)*[-1.:2/n:1. - 2/n]
+fourierpoints{T<:Number}(n::Integer,::Type{T})= convert(T,π)*[-n:2:n-2]/n
 
 
 function Base.in(x,d::PeriodicDomain)
@@ -98,16 +88,16 @@ Base.zeros(d::Domain)=zeros(Space(d))
 
 function commondomain(P::Vector)
     ret = AnyDomain()
-    
+
     for op in P
         d = domain(op)
         @assert ret == AnyDomain() || d == AnyDomain() || ret == d
-        
+
         if d != AnyDomain()
             ret = d
         end
     end
-    
+
     ret
 end
 

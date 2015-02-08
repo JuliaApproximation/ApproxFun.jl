@@ -106,7 +106,7 @@ f=Fun(x->sin(10(x-.1)))
 ## ALiasing
 
 f=Fun(x->cos(50acos(x)))
-@test norm(f.coefficients-eye(length(f))[:,51])<eps(100.)
+@test norm(f.coefficients-eye(length(f))[:,51])<100eps()
 
 
 ## Int values
