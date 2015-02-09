@@ -10,8 +10,8 @@ function clenshaw(c::Vector,x::Number)
     if isempty(c)
         return zero(x)
     end
-    
-    x = 2x;
+
+    x = 2x
     bk1 = 0.0;bk2 = 0.0
     for k = length(c):-1:2
         bk2, bk1 = bk1, c[k] + x*bk1 - bk2
@@ -20,12 +20,26 @@ function clenshaw(c::Vector,x::Number)
     c[1] + 0.5x*bk1 - bk2
 end
 
+function sineshaw(c::Vector,θ::Number)
+    if isempty(c)
+        return zero(θ)
+    end
+
+    x = 2cos(θ)
+    bk1 = 0.0;bk2 = 0.0
+    for k = length(c):-1:1
+        bk2, bk1 = bk1, c[k] + x*bk1 - bk2
+    end
+
+    sin(θ)*bk1
+end
+sineshaw(c::Vector,θ::Vector) = promote_type(eltype(c),eltype(θ))[sineshaw(c,θk) for θk in θ]
 
 function clenshaw{T<:Number,M<:Number}(c::Vector{T},x::Vector{M})
     if isempty(c)
         return zeros(x)
     end
-    
+
     n = length(x)
     clenshaw(c,x,ClenshawPlan(T,n))
 end
@@ -35,17 +49,17 @@ end
 #each fun is a column
 clenshaw{T<:Number}(c::Array{T,2},x::Vector{T})=clenshaw(c,x,ClenshawPlan(T,size(c)[2]))
 function clenshaw{T<:Number}(c::Array{T,2},x::Vector{T},plan::ClenshawPlan{T})
-    bk=plan.bk    
+    bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
 
 
     m,n=size(c) # m is # of coefficients, n is # of funs
-    
+
     for i = 1:n
         @inbounds bk1[i] = zero(T)
         @inbounds bk2[i] = zero(T)
-        @inbounds bk[i] = zero(T)  
+        @inbounds bk[i] = zero(T)
     end
 
     for k=m:-1:2
@@ -54,7 +68,7 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Vector{T},plan::ClenshawPlan{T})
 
             @inbounds bk[j] = ck + 2x[j]*bk1[j] - bk2[j]
         end
-        
+
         bk2, bk1, bk = bk1, bk, bk2
     end
 
@@ -63,8 +77,8 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Vector{T},plan::ClenshawPlan{T})
         ce = c[1,j]
         @inbounds bk[j] = ce + x[j]*bk1[j] - bk2[j]
     end
-    
-    bk    
+
+    bk
 end
 
 
@@ -72,7 +86,7 @@ end
 #each fun is a column
 clenshaw{T<:Number}(c::Array{T,2},x::Number)=clenshaw(c,x,ClenshawPlan(T,size(c)[2]))
 function clenshaw{T<:Number}(c::Array{T,2},x::Number,plan::ClenshawPlan{T})
-    bk=plan.bk    
+    bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
 
@@ -82,7 +96,7 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Number,plan::ClenshawPlan{T})
     for i = 1:n
         @inbounds bk1[i] = zero(T)
         @inbounds bk2[i] = zero(T)
-        @inbounds bk[i] = zero(T)          
+        @inbounds bk[i] = zero(T)
     end
 
     for k=m:-1:2
@@ -91,7 +105,7 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Number,plan::ClenshawPlan{T})
 
             @inbounds bk[j] = ck + 2x * bk1[j] - bk2[j]
         end
-        
+
         bk2, bk1, bk = bk1, bk, bk2
     end
 
@@ -99,8 +113,8 @@ function clenshaw{T<:Number}(c::Array{T,2},x::Number,plan::ClenshawPlan{T})
         ce = c[1,j]
         @inbounds bk[j] = ce + x * bk1[j] - bk2[j]
     end
-    
-    bk    
+
+    bk
 end
 
 
@@ -111,18 +125,18 @@ function clenshaw{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawP
         return(zeros(x))
     end
 
-    bk=plan.bk    
+    bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
 
     n = length(x)
 #    x=2x
 
-    
+
     for i = 1:n
         @inbounds bk1[i] = zero(T)
         @inbounds bk2[i] = zero(T)
-        @inbounds bk[i] = zero(T)          
+        @inbounds bk[i] = zero(T)
     end
 
     for k in  length(c):-1:2
@@ -137,7 +151,7 @@ function clenshaw{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawP
     for i in 1:n
         @inbounds  bk[i] = ce + x[i]*bk1[i] - bk2[i]
     end
-    
+
     bk
 end
 
@@ -146,7 +160,7 @@ end
 clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M})=clenshaw!(c,x,ClenshawPlan(T,length(x)))
 function clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{T})
     n = length(x)
-    
+
     if isempty(c)
         for k=1:n
             x[k]=zero(T)
@@ -154,7 +168,7 @@ function clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::Clenshaw
         return x
     end
 
-    bk=plan.bk    
+    bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
 
@@ -162,7 +176,7 @@ function clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::Clenshaw
     for i = 1:n
         @inbounds bk1[i] = zero(T)
         @inbounds bk2[i] = zero(T)
-        @inbounds bk[i] = zero(T)                
+        @inbounds bk[i] = zero(T)
     end
 
     for k in  length(c):-1:2
@@ -177,7 +191,7 @@ function clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::Clenshaw
     for i in 1 : n
         @inbounds  x[i] = ce + x[i] * bk1[i] - bk2[i]
     end
-    
+
     x
 end
 

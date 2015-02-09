@@ -27,7 +27,7 @@ Base.eltype{T}(::Domain{T})=T
 
 abstract IntervalDomain{T} <: Domain{T}
 
-function chebyshevpoints{T<:Number}(n::Integer,::Type{T};kind::Integer=1)
+function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
         return cospi((one(T)/2+[-n:-1])/n)
     elseif kind == 2
@@ -38,11 +38,11 @@ function chebyshevpoints{T<:Number}(n::Integer,::Type{T};kind::Integer=1)
         end
     end
 end
-chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(n,Float64;kind=kind)
+chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kind)
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(n,T))
+points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(T,n))
 
 points(d::Vector,n::Integer)=points(Interval(d),n)
 bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
