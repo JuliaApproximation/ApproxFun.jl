@@ -28,14 +28,15 @@ function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Op
 
     ny=size(S,1)
     nbcs=numbcs(S)
-    Rdiags=Array(SavedBandedOperator{promote_type(LT,MT,BT,ST)},ny)
+    RT=promote_type(LT,MT,BT,ST)
+    Rdiags=Array(SavedBandedOperator{RT},ny)
     
     resizedata!(Lx,ny);resizedata!(Mx,ny)
     
     
     for k=1:ny-nbcs
         ##TODO: Do block case
-        Rdiags[k]=SavedBandedOperator(getdiagonal(S,k,1)*Lx + getdiagonal(S,k,2)*Mx)
+        Rdiags[k]=SavedBandedOperator(PlusOperator(BandedOperator{RT}[getdiagonal(S,k,1)*Lx,getdiagonal(S,k,2)*Mx]))
         resizedata!(Rdiags[k],ny)
     end
     
