@@ -37,7 +37,7 @@ Space{T}(d::PeriodicLine{T})=PeriodicLineSpace{T}(d)
 
 domain(S::MappedSpace)=S.domain
 canonicaldomain{D,S}(::Type{IntervalMappedSpace{S,D}})=Interval()
-canonicaldomain{D,S}(::Type{PeriodicMappedSpace{S,D}})=Interval()
+canonicaldomain{D,S}(::Type{PeriodicMappedSpace{S,D}})=PeriodicInterval()
 canonicaldomain{D,S,T,DS}(::Type{MappedSpace{S,D,T,DS}})=D()
 canonicalspace(S::MappedSpace)=MappedSpace(S.domain,canonicalspace(S.space))
 
@@ -46,7 +46,7 @@ canonicalspace(S::MappedSpace)=MappedSpace(S.domain,canonicalspace(S.space))
 Base.ones{T<:Number}(::Type{T},S::MappedSpace)=Fun(ones(T,S.space).coefficients,S)
 transform(S::MappedSpace,vals::Vector)=transform(S.space,vals)
 itransform(S::MappedSpace,cfs::Vector)=itransform(S.space,cfs)
-evaluate{SS,DD,T,TT,DDS}(f::Fun{MappedSpace{SS,DD,TT,DDS},T},x)=evaluate(Fun(coefficients(f),space(f).space),tocanonical(f,x))
+evaluate{SS,DD,T,TT,DDS}(f::Fun{MappedSpace{SS,DD,TT,DDS},T},x)=evaluate(Fun(coefficients(f),space(f).space),mappoint(domain(f),domain(space(f).space),x))
 
 
 for op in (:(Base.first),:(Base.last))
