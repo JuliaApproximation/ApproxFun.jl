@@ -102,6 +102,9 @@ Base.last(d::Line)= Inf
 immutable PeriodicLine{angle} <: PeriodicDomain{Float64} 
     centre::Float64  ##TODO Allow complex
     L::Float64
+    PeriodicLine(c,L)=new(c,L)    
+    PeriodicLine(c)=new(c,1.)
+    PeriodicLine()=new(0.,1.)
 end
 
 canonicaldomain(::PeriodicLine)=PeriodicInterval()

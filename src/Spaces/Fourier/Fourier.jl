@@ -211,3 +211,5 @@ include("calculus.jl")
 include("specialfunctions.jl")
 include("FourierOperators.jl")
 include("LaurentOperators.jl")
+include("LaurentDirichlet.jl")
+

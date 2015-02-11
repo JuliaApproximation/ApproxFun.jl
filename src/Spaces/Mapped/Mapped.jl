@@ -22,6 +22,7 @@ typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
 
 typealias LineSpace{T} IntervalMappedSpace{Chebyshev,Line{T}}
 typealias PeriodicLineSpace{T} PeriodicMappedSpace{Fourier,PeriodicLine{T},RealBasis}
+typealias PeriodicLineDirichlet{T} PeriodicMappedSpace{LaurentDirichlet,PeriodicLine{T},ComplexBasis}
 typealias RaySpace{T} IntervalMappedSpace{Chebyshev,Ray{T}}
 typealias CurveSpace{S,T,DS} MappedSpace{S,Curve{S},T,DS}
 typealias OpenCurveSpace{S} CurveSpace{S,RealBasis,Interval}

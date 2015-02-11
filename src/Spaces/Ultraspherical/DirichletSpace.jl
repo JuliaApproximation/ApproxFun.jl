@@ -18,8 +18,8 @@ canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
 
 ## Dirichlet Conversion
 
-addentries!(C::Conversion{ChebyshevDirichlet{1,0},Chebyshev},A,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
-addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A,kr::Range1)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
+addentries!(C::Conversion{ChebyshevDirichlet{1,0},Chebyshev},A,kr::Range)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
+addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A,kr::Range)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
 function addentries!(C::Conversion{ChebyshevDirichlet{1,1},Chebyshev},A,kr::Range)
     A=toeplitz_addentries!(ShiftVector([1.,0.,-1.],1),A,kr)    
     if kr[1]==1
