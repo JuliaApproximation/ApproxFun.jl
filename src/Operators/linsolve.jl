@@ -60,18 +60,26 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
             typ=mapreduce(eltype,promote_type,bend)
             ds=choosedomainspace(A,space(b[end,1]))
             A=promotedomainspace(A,ds)
-            m=mapreduce(length,max,bend)  # max length of rhs
+            
+            # coefficients in the rangespace
+            rs=rangespace(A[end])            
+            cfsB=Vector{typ}[coefficients(b[end,k],rs) for k=1:size(b,2)]
+            
+            
+            m=mapreduce(length,max,cfsB)  # max length of rhs
             #TODO: this only works if space conversion doesn't increase size
 
-            r=isa(b,Vector)?Array(typ,size(b,1)-1+m):zeros(typ,size(b,1)-1+m,size(b,2))
+            r=isa(b,Vector)?Array(typ,size(b,1)-1+m):Array(typ,size(b,1)-1+m,size(b,2))
 
             # assign boundary rows
             r[1:size(b,1)-1,:]=b[1:end-1,:]
 
-            rs=rangespace(A[end])
+ 
             for k=1:size(b,2)
-                cfs=coefficients(b[end,k],rs)
-                r[size(b,1):size(b,1)+length(cfs)-1,k]=cfs
+                r[size(b,1):size(b,1)+length(cfsB[k])-1,k]=cfsB[k]
+                for j=size(b,1)+length(cfsB[k]):size(r,2)
+                    r[j,k]=zero(typ)  # fill with zeros
+                end
             end
         else
             #TODO: matrix

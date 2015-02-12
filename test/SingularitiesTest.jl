@@ -98,5 +98,5 @@ f=Fun(x->exp(-x),[0,Inf])
 x=Fun(identity,Ray())
 f=exp(-x)
 u=integrate(f)
-@test_approx_eq (u[1.]-u[0]-1) f[1]
+@test_approx_eq (u[1.]-u[0]-1) -f[1]
 
