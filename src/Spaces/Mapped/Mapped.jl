@@ -108,7 +108,9 @@ end
 integrate{LS,T}(f::Fun{LineSpace{LS},T})=linsolve([ldirichlet(),Derivative()],Any[0.,f];tolerance=length(f)^2*max(1,maximum(f.coefficients))*10E-13)
 integrate{LS,T}(f::Fun{RaySpace{LS},T})=linsolve([BasisFunctional(1),Derivative(space(f))],Any[0.,f];tolerance=length(f)*10E-15)
 function integrate{LS<:JacobiWeight,RR<:Ray,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
-    D=Derivative(MappedSpace(Ray(),JacobiWeight(space(f).space.α+1,space(f).space.β,domain(space(f).space))))
+    # x^k -> x^(k+1)  so +1,-1 to singularities 
+    # if the last entry of f is close to zero wei use the same space
+    D=Derivative(MappedSpace(Ray(),JacobiWeight(space(f).space.α+1,(space(f).space.β==0&&abs(last(f))≤1E-9)?0:(space(f).space.β-1),domain(space(f).space))))
     linsolve(D,f;tolerance=length(f)*1.0E-15)
 end
 
