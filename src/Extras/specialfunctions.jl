@@ -183,13 +183,18 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0",:(real)),
             opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
             opmax = maxabs((opfxmin,opfxmax))
             if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
-            D=Derivative(space(f))
+            # we will assume the result should be smooth on the domain
+            # even if f is not
+            # This supports Line/Rays
+            D=Derivative(domain(f))  
             fp=differentiate(f)
-            B=Evaluation(space(f),xmax)
+            B=Evaluation(domainspace(D),xmax)
             ([B,eval($L)]\Any[opfxmax/opmax,eval($R)/opmax])*opmax
         end
     end
 end
+
+
 
 ## Second order functions
 

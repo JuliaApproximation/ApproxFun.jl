@@ -95,3 +95,8 @@ g=1/f
 f=Fun(x->exp(-x),[0,Inf])
 @test_approx_eq diff(f)[.1] -f[.1]
 
+x=Fun(identity,Ray())
+f=exp(-x)
+u=integrate(f)
+@test_approx_eq (u[1.]-u[0]-1) f[1]
+
