@@ -100,3 +100,8 @@ f=exp(-x)
 u=integrate(f)
 @test_approx_eq (u[1.]-u[0]-1) -f[1]
 
+
+
+x=Fun(identity,Ray())
+f=x^(-0.123)*exp(-x)
+@test_approx_eq diff(integrate(f))[1.] f[1.]

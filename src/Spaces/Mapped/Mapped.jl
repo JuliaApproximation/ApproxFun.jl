@@ -107,6 +107,12 @@ end
 
 integrate{LS,T}(f::Fun{LineSpace{LS},T})=linsolve([ldirichlet(),Derivative()],Any[0.,f];tolerance=length(f)^2*max(1,maximum(f.coefficients))*10E-13)
 integrate{LS,T}(f::Fun{RaySpace{LS},T})=linsolve([BasisFunctional(1),Derivative(space(f))],Any[0.,f];tolerance=length(f)*10E-15)
+function integrate{LS<:JacobiWeight,RR<:Ray,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
+    D=Derivative(MappedSpace(Ray(),JacobiWeight(space(f).space.α+1,space(f).space.β,domain(space(f).space))))
+    linsolve(D,f;tolerance=length(f)*1.0E-15)
+end
+
+Base.cumsum{LS<:JacobiWeight,RR<:Ray,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})=integrate(f) # the choice of space is zero at 0
 
 function integrate{RS<:RaySpace,T}(f::Fun{RS,T})
     x=Fun(identity)
