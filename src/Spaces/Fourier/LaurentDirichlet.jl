@@ -9,7 +9,7 @@ immutable LaurentDirichlet <: PeriodicSpace{ComplexBasis}
     domain::Union(PeriodicDomain,AnyDomain)
 end
 
-LaurentDirichlet()=LaurentDirichlet(Circle())
+LaurentDirichlet()=LaurentDirichlet(PeriodicInterval())
 
 spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet)=domainscompatible(a,b)
 

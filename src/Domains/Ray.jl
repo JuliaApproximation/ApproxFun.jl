@@ -14,6 +14,7 @@ immutable Ray{CT<:Number,T<:Number} <: IntervalDomain{T}
     Ray(c,a,o)=new(c,a,o)
 end
 
+canonicaldomain(::Ray)=Interval()
 
 Ray{T<:Number}(c::T,a::Real,o::Bool)=(a==0||a==π)?Ray{T,T}(c,a,o):Ray{T,promote_type(T,Complex{Float64})}(c,a,o)
 Ray(c,a,o::Int)=Ray(c,a,o==1)

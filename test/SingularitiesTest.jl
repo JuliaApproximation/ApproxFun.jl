@@ -85,3 +85,13 @@ f=sin(10x)
 g=1/f
 
 @test_approx_eq g[.123] csc(10*.123)
+
+
+
+
+
+## Ray
+
+f=Fun(x->exp(-x),[0,Inf])
+@test_approx_eq diff(f)[.1] -f[.1]
+

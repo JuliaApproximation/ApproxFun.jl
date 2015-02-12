@@ -131,13 +131,8 @@ end
 ## identity
 
 function identity_fun{SS,DD,DDS,DDT}(S::MappedSpace{SS,DD,DDT,DDS})
-    sf=fromcanonical(S,Fun(identity,S.space))
-    if isa(space(sf),JacobiWeight)
-        Fun(coefficients(sf),MappedSpace(S.domain,JacobiWeight(sf.space.α,sf.space.β,S.space)))
-    else
-         @assert spacescompatible(space(sf),S.space)
-         Fun(coefficients(sf),S)
-    end
+    sf=fromcanonical(S,Fun(identity,domain(S.space)))
+    Fun(coefficients(sf),MappedSpace(S.domain,space(sf)))
 end
 
 
@@ -189,7 +184,7 @@ function Derivative(S::MappedSpace,order::Int)
     end
 end
 
-function Derivative{T}(S::LineSpace{T},order::Int)
+function Derivative{SS<:FunctionSpace,LD<:Line,T}(S::MappedSpace{SS,LD,T},order::Int)
     d=domain(S)
     @assert d.α==-1&&d.β==-1
     x=Fun(identity,S)    
@@ -211,6 +206,31 @@ function Derivative{T}(S::LineSpace{T},order::Int)
         Derivative(rangespace(D),order-1)*D
     end    
 end
+
+
+function Derivative{SS<:FunctionSpace,RD<:Ray,T}(S::MappedSpace{SS,RD,T},order::Int)
+    d=domain(S)
+    @assert d.centre==0 && d.angle==0 && d.orientation
+# x=Fun(identity,Ray())
+# M=Multiplication(1+2x+x^2,Space(Ray()))
+# u=M\2
+
+    D1=Derivative(S.space)
+    DS=SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1)))
+    
+    u=Fun([0.75,-1.0,0.25],Ray())
+    M=Multiplication(u,DS|>rangespace)
+
+    D=DerivativeWrapper(M*DS,1)
+    
+    if order==1
+        D
+    else
+        Derivative(rangespace(D),order-1)*D
+    end    
+end
+
+
 
 
 function Derivative{SS<:FunctionSpace}(S::MappedSpace{SS,PeriodicLine{false}},order::Int)

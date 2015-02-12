@@ -293,3 +293,19 @@ function roots{P<:PiecewiseSpace}(f::Fun{P})
 
     rts
 end
+
+
+# Add endpoints for JacobiWeight
+# TODO: what about cancellation?
+function roots{S<:JacobiWeight,T}(f::Fun{S,T})
+    sp=space(f)
+    d=domain(sp)
+    rts=roots(Fun(f.coefficients,sp.space))
+    if sp.α > 0
+        rts=[first(d),rts]
+    end
+    if sp.β > 0
+        rts=[rts,last(d)]
+    end
+    rts
+end

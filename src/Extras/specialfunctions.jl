@@ -123,11 +123,11 @@ end
 ./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=depiece(map(f->c./f,pieces(f)))
 function ./{S<:MappedSpace}(c::Number,f::Fun{S})
     g=c./Fun(coefficients(f),space(f).space)
-    if isa(space(g),JacobiWeight)
-        Fun(coefficients(g),JacobiWeight(space(g).α,space(g).β,MappedSpace(domain(f),space(g).space)))
-    else
-        Fun(coefficients(g),MappedSpace(domain(f),space(g)))
-    end
+    Fun(coefficients(g),MappedSpace(domain(f),space(g)))
+end
+function .^{S<:MappedSpace}(f::Fun{S},k::Float64)
+    g=Fun(coefficients(f),space(f).space).^k
+    Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
 
 function .^{S<:MappedChebyshev}(f::Fun{S},k::Float64)
@@ -164,7 +164,7 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 
 ## First order functions
 
-for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0fp",:(real)),
+for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0",:(real)),
                             (:(Base.log),"f*D","fp",:(real)),
                             (:(Base.asin),"sqrt(1-f^2)*D","fp",:(imag)),
                             (:(Base.acos),"sqrt(1-f^2)*D","-fp",:(imag)),
@@ -176,7 +176,7 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0fp",:(real)),
                             (:(Base.dawson),"D+2f*fp","fp",:(real)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
-        function $op{S<:Ultraspherical,T}(f::Fun{S,T})
+        function $op{S,T}(f::Fun{S,T})
             g=chop($growth(f),eps())
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
@@ -186,7 +186,7 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0fp",:(real)),
             D=Derivative(space(f))
             fp=differentiate(f)
             B=Evaluation(space(f),xmax)
-            ([B,eval($L)]\[opfxmax/opmax,eval($R)/opmax])*opmax
+            ([B,eval($L)]\Any[opfxmax/opmax,eval($R)/opmax])*opmax
         end
     end
 end
