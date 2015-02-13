@@ -23,7 +23,7 @@ function Base.show(io::IO,s::JacobiWeight)
     d=domain(s)
     #TODO: Get shift and weights right
     if s.α==s.β
-        print(io,"(1-x^2)^$(s.α)")    
+        print(io,"(1-x^2)^$(s.α)*")    
     else
         print(io,"(1+x)^$(s.α)*(1-x)^$(s.β)*")
     end

@@ -157,6 +157,11 @@ function .^{S<:MappedChebyshev}(f::Fun{S},k::Float64)
     end
 end
 
+# Default is just try constructor for now, don't do roots
+function .^{S,T}(f::Fun{S,T},k)
+    Fun(Fun(x->f[x]^k).coefficients,space(f))
+end
+
 Base.sqrt{S,T}(f::Fun{S,T})=f^0.5
 Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 
