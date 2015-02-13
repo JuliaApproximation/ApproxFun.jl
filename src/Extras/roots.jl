@@ -38,9 +38,9 @@ function roots( f::Fun{Chebyshev} )
         return Float64[]
     end
 
-    hscale = maximum( [first(d), last(d)] )
+    hscale = maximum( [abs(first(d)), abs(last(d))] )
     htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
-    r = rootsunit_coeffs(float64(c./vscale), float64(htol))
+    r = rootsunit_coeffs(c./vscale, float64(htol))
     # Map roots from [-1,1] to domain of f:
     rts = fromcanonical(d,r)
     if eltype(f) == BigFloat || eltype(f) == Complex{BigFloat}

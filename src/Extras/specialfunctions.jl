@@ -157,9 +157,11 @@ function .^{S<:MappedChebyshev}(f::Fun{S},k::Float64)
     end
 end
 
-# Default is just try constructor for now, don't do roots
-function .^{S,T}(f::Fun{S,T},k)
-    Fun(Fun(x->f[x]^k).coefficients,space(f))
+# Default is just try solving ODE
+function .^{S,T}(f::Fun{S,T},β)
+    A=Derivative()-β*differentiate(f)/f
+    B=Evaluation(first(domain(f)))
+    [B,A]\first(f)^β
 end
 
 Base.sqrt{S,T}(f::Fun{S,T})=f^0.5
