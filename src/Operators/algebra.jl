@@ -182,10 +182,47 @@ function Base.getindex{T<:Number}(f::TimesFunctional{T},jr::Range)#j is columns
 end
 
 
+immutable ConstantTimesOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+    c::T
+    op::B
+    ConstantTimesOperator(c,op)=new(c,op)
+end
+function ConstantTimesOperator(c::Number,op::Operator)
+    T=promote_type(typeof(c),eltype(op))
+    B=convert(BandedOperator{T},op)
+    ConstantTimesOperator{T,typeof(B)}(c,B)
+end
+
+for OP in (:domainspace,:rangespace,:bandinds)
+    @eval $OP(C::ConstantTimesOperator)=$OP(C.op)
+end
+bandinds(C::ConstantTimesOperator,k::Integer)=bandinds(C.op,k)
+choosedomainspace(C::ConstantTimesOperator,sp::FunctionSpace)=choosedomainspace(C.op,sp)
+
+
+for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,:FunctionSpace)
+    @eval begin
+        $OP(C::ConstantTimesOperator,k::$SP)=ConstantTimesOperator(C.c,$OP(C.op,k))
+    end
+end
+
+function Base.convert{T}(::Type{BandedOperator{T}},C::ConstantTimesOperator)
+    op=convert(BandedOperator{T},C.op)
+    ConstantTimesOperator{T,typeof(op)}(convert(T,C.c),op)
+end
+
+function addentries!(P::ConstantTimesOperator,A,kr::Range)
+    # Write directly to A, shifting by rows and columns
+    # See subview in Operator.jl for these definitions
+    P1=subview(P.op,kr,:)
+    addentries!(P1,P.c,A,kr)
+end
 
 
 
-type TimesOperator{T<:Number} <: BandedOperator{T}
+
+
+immutable TimesOperator{T<:Number} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
     
     function TimesOperator(ops::Vector{BandedOperator{T}})
@@ -312,13 +349,18 @@ end
 *{T,V}(A::BandedOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B])
 
 
--(A::Operator)=ConstantOperator(-1.)*A
+-{T}(A::Operator{T})=ConstantTimesOperator(-one(T),A)
 -(A::Operator,B::Operator)=A+(-B)
 
 *(f::Fun,A::Operator)=Multiplication(f)*A
 
-*(c::Number,A::BandedOperator)=ConstantOperator(c)*A
-.*(c::Number,A::BandedOperator)=ConstantOperator(c)*A
+for OP in (:*,:.*)
+    @eval begin
+        $OP(c::Number,A::BandedOperator)=ConstantTimesOperator(c,A)
+        $OP(A::BandedOperator,c::Number)=ConstantTimesOperator(c,A)
+    end
+end
+
 
 
 

@@ -195,7 +195,7 @@ function sample{SS<:JacobiWeight,DD<:Ray,TT,DDS}(f::Fun{MappedSpace{SS,DD,TT,DDS
     if space(f).space.β == 0
         samplecdf(normalizedcumsum(f),n)
     else
-        sample(Fun(x->f[x],MappedSpace(domain(f),JacobiWeight(space(f).space.α,0))),n)
+        sample(Fun(x->f[x],MappedSpace(domain(f),JacobiWeight(space(f).space.α,1))),n)
     end
 end
 
