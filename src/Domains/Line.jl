@@ -108,14 +108,15 @@ immutable PeriodicLine{angle} <: PeriodicDomain{Float64}
 end
 
 canonicaldomain(::PeriodicLine)=PeriodicInterval()
-PeriodicLine(c,a)=PeriodicLine{a}(c,1.)
+PeriodicLine(c,a)=PeriodicLine{a/π}(c,1.)
 PeriodicLine()=PeriodicLine{false}(0.,1.)
 
 
 tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.centre)/d.L)
 fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.centre
 
-
+tocanonical{a}(d::PeriodicLine{a},x)=tocanonical(PeriodicLine{false}(0.,d.L),exp(-π*im*a)*(x-d.centre))
+fromcanonical{a}(d::PeriodicLine{a},x)=exp(π*im*a)*fromcanonical(PeriodicLine{false}(0.,d.L),x)+d.centre
 
 
 
