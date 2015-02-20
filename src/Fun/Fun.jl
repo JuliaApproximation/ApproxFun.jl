@@ -63,16 +63,16 @@ canonicaldomain(f::Fun)=canonicaldomain(domain(f))
 
 ##Evaluation
 
-function evaluate{S,T}(f::Fun{S,T},x)
+function evaluate{S,T}(f::Fun{S,T},x...)
     csp=canonicalspace(f)
     if spacescompatible(csp,space(f))
         error("Override evaluate for " * string(typeof(csp)))
     else
-        evaluate(Fun(f,csp),x)
+        evaluate(Fun(f,csp),x...)
     end
 end
 
-Base.getindex(f::Fun,x)=evaluate(f,x)
+Base.getindex(f::Fun,x...)=evaluate(f,x...)
 
 for op in (:(Base.first),:(Base.last))
     @eval $op{S,T}(f::Fun{S,T})=f[$op(domain(f))]

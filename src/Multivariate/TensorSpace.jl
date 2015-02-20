@@ -2,16 +2,18 @@
 export ∂
 
 
-abstract MultivariateDomain
+abstract MultivariateDomain{T} <: Domain{T}
 ##TODO: MultivariateDomain{2}
-abstract BivariateDomain <: MultivariateDomain
+abstract BivariateDomain{T} <: MultivariateDomain{T}
 
 
 
 
-immutable ProductDomain{D<:Domain} <:BivariateDomain
+immutable ProductDomain{D<:Domain,T} <:BivariateDomain{T}
     domains::Vector{D} 
 end
+
+ProductDomain{D<:Domain}(d::Vector{D})=ProductDomain{D,mapreduce(eltype,promote_type,d)}(d)
 
 # product domains are their own canonical domain
 for OP in (:fromcanonical,:tocanonical)
@@ -25,7 +27,17 @@ ProductDomain(A,B)=ProductDomain([A,B])
 Base.length(d::ProductDomain)=length(d.domains)
 Base.transpose(d::ProductDomain)=ProductDomain(d[2],d[1])
 Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
+Base.first(d::ProductDomain)=(first(d[1]),first(d[2]))
 
+function checkpoints(d::ProductDomain)
+    ptsx=checkpoints(d[1])
+    ptsy=checkpoints(d[2])    
+    ret=Array((Float64,Float64),0)
+    for x in ptsx,y in ptsy
+        push!(ret,(x,y))
+    end
+    ret
+end
 
 abstract MultivariateFunctionSpace
 abstract BivariateFunctionSpace <: MultivariateFunctionSpace

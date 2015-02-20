@@ -23,7 +23,10 @@ include("ProductFun.jl")
 
 
 Fun(f,S::MultivariateFunctionSpace,n...)=ProductFun(f,S,n...)
+Fun{T<:Number}(f::Number,S::MultivariateDomain{T})=Fun(f,Space(S))
+Fun{T<:Number}(f::Function,S::MultivariateDomain{T})=Fun(f,Space(S))
 Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
+Fun{T<:Number}(f,dx::MultivariateDomain{T},dy::Domain)=Fun(f,dx*dy)
 Fun(f,dx::Domain,dy::Domain)=Fun(f,dx*dy)
 Fun(f,dx::Vector,dy::Vector)=Fun(f,Interval(dx),Interval(dx))
 

@@ -41,10 +41,9 @@ end
 
 
 
-ProductFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
-ProductFun(f::Function,d::BivariateDomain)=ProductFun(f,Space(d))
+#ProductFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
+ProductFun(f::Function,d::Domain)=ProductFun(f,Space(d))
 ProductFun(f,dy::Domain)=ProductFun(f,Space(dy))
-ProductFun(f,d::BivariateDomain)=ProductFun(f,Space(d))
 ProductFun(f,dx::Domain,dy::Domain)=ProductFun(f,Space(dx),Space(dy))
 ProductFun(f::LowRankFun)=ProductFun(coefficients(f),space(f,1),space(f,2))
 
