@@ -11,7 +11,7 @@ type ShiftVector{T<:Number}
     index::Int
 end
 
-ShiftVector(neg::Vector,nonneg::Vector)=ShiftVector([neg,nonneg],length(neg)+1)
+ShiftVector(neg::Vector,nonneg::Vector)=ShiftVector([neg;nonneg],length(neg)+1)
 
 
 for op = (:(Base.last),:(Base.first),:(Base.norm),:(Base.length))
@@ -122,12 +122,13 @@ function isvfft(sv::ShiftVector)
         @assert n/2 <= ind <= n/2+1
         
         if mod(n,2) == 0
-            v=alternatesign!([sv[0:lastindex(sv)],sv[firstindex(sv):-1]])
+            v=alternatesign!([sv[0:lastindex(sv)];sv[firstindex(sv):-1]])
         elseif mod(n,4)==3
-            v=[alternatesign!(sv[0:lastindex(sv)]),
+            v=[alternatesign!(sv[0:lastindex(sv)]);
                 -alternatesign!(sv[firstindex(sv):-1])]    
         else #mod(length(v),4)==1
-            v=[alternatesign!(sv[0:lastindex(sv)]),alternatesign!(sv[firstindex(sv):-1])]         
+            v=[alternatesign!(sv[0:lastindex(sv)]);
+                    alternatesign!(sv[firstindex(sv):-1])]         
         end
         
         FFTW.ifft(n*v)

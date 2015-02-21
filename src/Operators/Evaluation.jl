@@ -25,7 +25,7 @@ Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(
 Base.convert{T}(::Type{Functional{T}},E::Evaluation)=Evaluation(T,E.space,E.x,E.order)
 
 ## default getindex
-getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)[D.x] for k=kr]
+getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)[D.x] for k=kr]
 
 function getindex{S,T}(D::Evaluation{S,Bool,T},kr::Range)
     if !D.x

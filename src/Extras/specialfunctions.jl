@@ -20,9 +20,9 @@ end
 function splitmap(g,d,pts)
     @assert isa(d,AffineDomain)
     da=first(d)
-    isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : pts = [da,pts]
+    isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : pts = [da;pts]
     db=last(d)
-    isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts,db]
+    isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts;db]
     Fun(g,pts)
 end
 

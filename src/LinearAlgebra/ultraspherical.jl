@@ -6,9 +6,9 @@ export ultraconversion!,ultraint!
 function ultradiff{T<:Number}(v::Vector{T})
     #polynomial is p(x) = sum ( v[i] * x^(i-1) )
     if length(v)==1 
-        return zeros(T,1) 
+        zeros(T,1) 
     else
-        return [1:length(v)-1].*v[2:end] 
+        collect(1:length(v)-1).*v[2:end] 
     end
 end 
 

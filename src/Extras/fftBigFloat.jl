@@ -34,7 +34,7 @@ function fft_pow2!{T<:BigFloat}(x::Vector{T})
         end
         j += m
     end
-    for logn = 2.^[1:int(log2(n))-1]
+    for logn = 2.^collect(1:int(log2(n))-1)
         θ=2convert(T,π)/logn
         wpr,wpi=cos(θ),sin(θ)
         wr,wi=one(T),zero(T)

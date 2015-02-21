@@ -89,7 +89,7 @@ itransform(::CosSpace,cfs)=ichebyshevtransform(cfs;kind=2)
 evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
-points(sp::SinSpace,n)=fromcanonical(domain(sp),(π*[1:n])/(n+1))
+points(sp::SinSpace,n)=Float64[fromcanonical(domain(sp),(π*k)/(n+1)) for k=1:n]
 transform(::SinSpace,vals)=FFTW.r2r(vals,FFTW.RODFT00)/(length(vals)+1)
 itransform(::SinSpace,cfs)=FFTW.r2r(cfs,FFTW.RODFT00)/2
 evaluate(f::Fun{SinSpace},t)=sineshaw(f.coefficients,tocanonical(f,t))
@@ -191,7 +191,8 @@ end
 
 function itransform{T<:Number}(::Fourier,a::Vector{T})
     n=length(a)
-    cfs=[a[1:2:end],flipud(a[2:2:end])]
+    cfs=[a[1:2:end];
+            flipud(a[2:2:end])]
     fouriermodalt!(cfs)
     if iseven(n)
         cfs[n/2+1]*=2

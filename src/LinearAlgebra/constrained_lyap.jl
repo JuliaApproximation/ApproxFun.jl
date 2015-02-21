@@ -12,7 +12,7 @@ function nonsingular_permute(B)
     
     P = eye(size(B,2))
     
-    P = P[:,[k:K+k-1,1:k-1,K+k:end]]
+    P = P[:,[k:K+k-1;1:k-1;K+k:end]]
 end
 
 ## rearrange the rows and columns of bcs so that the principle block 
