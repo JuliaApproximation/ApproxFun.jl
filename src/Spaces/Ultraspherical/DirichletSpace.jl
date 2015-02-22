@@ -16,7 +16,65 @@ ChebyshevDirichlet()=ChebyshevDirichlet{1,1}()
 canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
 
 
-## Dirichlet Conversion
+## spaceconversion
+
+# converts to f_0 T_0 + f_1 (T_1-T_0) +  \sum f_k (T_k - T_{k-2})
+
+function dirichlettransform!(w::Vector)
+    for k=length(w)-2:-1:1
+        @inbounds w[k] += w[k+2] 
+    end
+    
+    if length(w)≥2
+        w[1]+=w[2]
+    end
+    
+    w
+end
+
+function idirichlettransform!(w::Vector)
+    if length(w)≥2
+        w[1]-=w[2]
+    end
+    
+    for k=3:length(w)
+        @inbounds w[k-2]-= w[k] 
+    end
+    
+    w
+end
+
+
+# converts to f_0 T_0 + \sum f_k (T_k ± T_{k-1})
+
+function idirichlettransform!(s::Bool,w::Vector)    
+    for k=2:length(w)
+        @inbounds w[k-1]+= (s?-1:1)*w[k] 
+    end
+    
+    w
+end
+
+
+function dirichlettransform!(s::Bool,w::Vector)    
+    for k=length(w)-1:-1:1
+        @inbounds w[k] += (s?1:-1)*w[k+1] 
+    end
+
+    w
+end
+
+
+
+spaceconversion(v::Vector,::Chebyshev,::ChebyshevDirichlet{1,1})=dirichlettransform!(copy(v))
+spaceconversion(v::Vector,::Chebyshev,::ChebyshevDirichlet{0,1})=dirichlettransform!(true,copy(v))
+spaceconversion(v::Vector,::Chebyshev,::ChebyshevDirichlet{1,0})=dirichlettransform!(false,copy(v))
+
+spaceconversion(v::Vector,::ChebyshevDirichlet{1,1},::Chebyshev)=idirichlettransform!(copy(v))
+spaceconversion(v::Vector,::ChebyshevDirichlet{0,1},::Chebyshev)=idirichlettransform!(true,copy(v))
+spaceconversion(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransform!(false,copy(v))
+
+## Dirichlet Conversion operators
 
 addentries!(C::Conversion{ChebyshevDirichlet{1,0},Chebyshev},A,kr::Range)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
 addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A,kr::Range)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)

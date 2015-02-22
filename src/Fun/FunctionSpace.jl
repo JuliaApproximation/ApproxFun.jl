@@ -220,6 +220,9 @@ end
 spaceconversion(f::Vector,sp::FunctionSpace)=spaceconversion(f,canonicalspace(sp),sp)
 spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpace)=spaceconversion(spaceconversion(f,sp1,sp2),sp2,sp3)
 
+spaceconversion{T1<:FunctionSpace,T2<:FunctionSpace}(f::Vector,::Type{T1},::Type{T2})=spaceconversion(f,T1(),T2())
+spaceconversion{T1<:FunctionSpace}(f::Vector,::Type{T1},sp2::FunctionSpace)=spaceconversion(f,T1(),sp2)
+spaceconversion{T2<:FunctionSpace}(f::Vector,sp1::FunctionSpace,::Type{T2})=spaceconversion(f,sp1,T2())
 
 ## spaceconversion defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
