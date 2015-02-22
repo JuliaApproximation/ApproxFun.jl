@@ -43,7 +43,7 @@ Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 Base.first(d::Interval)=d.a
 Base.last(d::Interval)=d.b
-
+Base.isempty(d::Interval)=isapprox(d.a,d.b)
 
 
 ## Map interval
@@ -60,7 +60,7 @@ Base.angle(d::Interval)=angle(d.b-d.a)
 
 
 ==(d::Interval,m::Interval) = d.a == m.a && d.b == m.b
-
+Base.isapprox(d::Interval,m::Interval)=isapprox(d.a,m.a)&&isapprox(d.b,m.b)
 
 ##Coefficient space operators
 

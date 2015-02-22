@@ -39,17 +39,21 @@ function Base.merge{D}(d1::UnionDomain{D},m::Interval)
 
     for k=length(ret):-1:1
         it=intersect(ret[k],m)
-        if it != []
+        if !isempty(it)
             sa=setdiff(ret[k],it)
-            m=setdiff(m,it)        
-            ret = T[ret[1:k-1]...;sa;it;ret[k+1:end]...]        
-            if m==[]
+            m=setdiff(m,it)  
+            if isempty(sa)      
+                ret = T[ret[1:k-1]...;it;ret[k+1:end]...]        
+            else
+                ret = T[ret[1:k-1]...;sa;it;ret[k+1:end]...]                    
+            end
+            if isempty(m)
                 break
             end
         end
     end
-    @assert m==[]
-    UnionDomain(sort!(T[m;ret...],by=first))
+    @assert isempty(m)
+    UnionDomain(sort!(ret,by=first))
 end
 
 function Base.merge(d1::UnionDomain,d2::UnionDomain)

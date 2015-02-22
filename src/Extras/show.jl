@@ -1,14 +1,14 @@
-Base.show(io::IO,d::Interval)=print(io,"[$(d.a),$(d.b)]")
+Base.show(io::IO,d::Interval)=print(io,"【$(d.a),$(d.b)】")
 function Base.show(io::IO,d::Line)
     if d.centre == d.angle == 0 && d.α == d.β == -1.
-        print(io,"(-Inf,Inf)")
+        print(io,"❪-∞,∞❫")
     elseif  d.α == d.β == -1.
         print(io,"Line($(d.centre),$(d.angle))")
     else
         print(io,"Line($(d.centre),$(d.angle),$(d.α),$(d.β))")
     end        
 end
-Base.show(io::IO,d::PeriodicInterval)=print(io,"[$(d.a),$(d.b))")
+Base.show(io::IO,d::PeriodicInterval)=print(io,"【$(d.a),$(d.b)❫")
 
 for typ in ("Chebyshev","Fourier","Laurent")
     TYP=parse(typ)

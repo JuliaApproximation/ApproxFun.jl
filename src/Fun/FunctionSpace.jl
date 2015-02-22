@@ -74,7 +74,8 @@ points(d::FunctionSpace,n)=points(domain(d),n)
 
 ##Check domain compatibility
 
-domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() || domain(a) == domain(b)
+Base.isapprox(a::Domain,b::Domain)=a==b
+domainscompatible(a,b) = isa(domain(a),AnyDomain) || isa(domain(b),AnyDomain) || isapprox(domain(a),domain(b))
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain

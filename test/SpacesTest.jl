@@ -45,7 +45,8 @@ u=[dirichlet(sp);
 
 s=Fun(sin,[-2.,2.])|>abs
 c=Fun(cos,[-2.,2.])|>abs
-@test norm(Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])-(c+s))<100eps()
+sc=Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])
+@test norm(sc-(c+s))<100eps()
 
 
 
