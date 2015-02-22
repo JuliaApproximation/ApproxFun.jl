@@ -109,8 +109,8 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
 
     for k=1:n
         op=OS.Rdiags[k]
-        rhs=Any[Gx[:,k]...,F.coefficients[k]]
-        Y[k]=chop!(linsolve([OS.Bx,op],rhs;maxlength=nx),eps())
+        rhs=Any[Gx[:,k]...;F.coefficients[k]]
+        Y[k]=chop!(linsolve([OS.Bx;op],rhs;maxlength=nx),eps())
     end  
     
     Y   
@@ -126,8 +126,8 @@ function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::ProductF
 
     for k=1:n
         op=OS.Rdiags[k]
-        rhs=Any[Gx[:,k]...,F.coefficients[k]]
-        Y[k]=chop!(linsolve([OS.Bx[k],op],rhs;maxlength=nx),eps())
+        rhs=Any[Gx[:,k]...;F.coefficients[k]]
+        Y[k]=chop!(linsolve([OS.Bx[k];op],rhs;maxlength=nx),eps())
     end  
     
     Y   
@@ -166,9 +166,9 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
 
             op=OS.Rdiags[k]
             if isempty(Gx)
-                Y[k]=chop!(linsolve([OS.Bx,op],rhs;maxlength=nx),eps())            
+                Y[k]=chop!(linsolve([OS.Bx;op],rhs;maxlength=nx),eps())            
             else
-                Y[k]=chop!(linsolve([OS.Bx,op],Any[Gx[:,k]...,rhs];maxlength=nx),eps())
+                Y[k]=chop!(linsolve([OS.Bx;op],Any[Gx[:,k]...;rhs];maxlength=nx),eps())
             end
             
             if k > 1
@@ -307,7 +307,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx:
     X22=OS.S.Z*Y  #think of it as transpose
     
     X11=Gy-OS.S.bcs[:,Ky+1:end]*X22 
-    X=[X11,X22]    
+    X=[X11;X22]    
     X=OS.S.bcP*X        # this is equivalent to acting on columns by P'
 end
 

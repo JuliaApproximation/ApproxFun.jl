@@ -18,12 +18,12 @@ x=Fun(identity,dx);y=Fun(identity,dy)
 
 #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
 
-G=[real(exp(-1+1.im*y)),
-                        real(exp(1+1im*y)),
-                        real(exp(x-1im)),
-                        real(exp(x+1im)),0.];
+G=[real(exp(-1+1.im*y));
+                        real(exp(1+1im*y));
+                        real(exp(x-1im));
+                        real(exp(x+1im));0.];
 
-A=[dirichlet(d),lap(d)]
+A=[dirichlet(d);lap(d)]
 
 u=A\G
 @test_approx_eq u[.1,.2] real(exp(.1+.2im))
@@ -69,12 +69,12 @@ x=Fun(identity,dx);y=Fun(identity,dy)
 
 #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
 
-G=[real(exp(-1+1.im*y)),
-                        real(exp(1+1im*y)),
-                        real(exp(x-1im)),
-                        real(exp(x+1im)),0.];
+G=[real(exp(-1+1.im*y));
+                        real(exp(1+1im*y));
+                        real(exp(x-1im));
+                        real(exp(x+1im));0.];
 
-A=[dirichlet(d),lap(d)]
+A=[dirichlet(d);lap(d)]
 
 S=schurfact(A,40)
 
@@ -94,17 +94,17 @@ uex2=K\G
 import ApproxFun.ChebyshevDirichlet
 
 S=ChebyshevDirichlet()⊗ChebyshevDirichlet();
-A=[dirichlet(S),lap(S)]
+A=[dirichlet(S);lap(S)]
 nx=ny=20;
 KD=kron(A,nx,ny);
 
 
 #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
 x=Fun(identity);y=Fun(identity);
-G=[Fun(real(exp(-1+1.im*y)),S[2]),
-    Fun(real(exp(1+1im*y)),S[2]),
-    Fun(real(exp(x-1im)),S[1]),
-                        Fun(real(exp(x+1im)),S[1]),0.];
+G=[Fun(real(exp(-1+1.im*y)),S[2]);
+    Fun(real(exp(1+1im*y)),S[2]);
+    Fun(real(exp(x-1im)),S[1]);
+                        Fun(real(exp(x+1im)),S[1]);0.];
 
 uD=KD\G;
 
@@ -117,7 +117,7 @@ uD=KD\G;
 
 d=PeriodicInterval()*Interval()
 g=Fun(z->real(cos(z)),∂(d))  # boundary data
-u=[dirichlet(d),lap(d)]\g
+u=[dirichlet(d);lap(d)]\g
 
 @test_approx_eq u[.1,.2] real(cos(.1+.2im))
 
@@ -126,7 +126,7 @@ u=[dirichlet(d),lap(d)]\g
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dθ*dt
 Dθ=diff(d,1);Dt=diff(d,2)
-u=[I⊗ldirichlet(dt),Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
+u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
 
 @test_approx_eq u[.1,.2] exp(-20(0.1-0.2)^2)

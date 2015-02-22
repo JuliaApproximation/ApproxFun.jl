@@ -29,7 +29,7 @@ function Interval{T<:Number}(d::Vector{T})
             Interval(d[1],d[2])
         end
     else
-        [Interval(d[1:2]),Interval(d[2:end])]   #TODO ensure all Intervals are of the same type
+        [Interval(d[1:2]);Interval(d[2:end])]   #TODO ensure all Intervals are of the same type
     end
 end
 

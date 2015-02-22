@@ -39,7 +39,7 @@ K=LowRankFun((x,y)->sin(y-x)*w[y],Ultraspherical{1}(d),domainspace(S))
 L=D+x+S[K]
 usol=cospi(20x)
 f=L*usol
-u=[B,L]\[1.,f]
+u=[B;L]\[1.;f]
 
 
 @test norm(u-usol) ≤ 100eps()

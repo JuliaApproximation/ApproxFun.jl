@@ -156,7 +156,7 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
     
     
     L=promotedomainspace(L,sp[2],2)
-    S=schurfact([],L.ops[:,2],nt)
+    S=schurfact(Functional[],L.ops[:,2],nt)
     @assert(isa(S,DiagonalOperatorSchur))
 
     #TODO: Space Type

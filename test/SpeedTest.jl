@@ -53,17 +53,17 @@ println("Roots: Time should be ~0.13")
 
 d=Interval(-20000.,20000.)
 x=Fun(identity,d)
-u=[dirichlet(d),diff(d)^2+I]\[1.,0.]
-u=[dirichlet(d),diff(d)^2+I]\[1.,0.]
-@time u=[dirichlet(d),diff(d)^2+I]\[1.,0.]
+u=[dirichlet(d);diff(d)^2+I]\[1.,0.]
+u=[dirichlet(d);diff(d)^2+I]\[1.,0.]
+@time u=[dirichlet(d);diff(d)^2+I]\[1.,0.]
 println("Cos/Sin: should be ~0.017")
 
 
 d=Interval(-1000.,5.)
 x=Fun(identity,d)
-u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
-u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
-@time u=[dirichlet(d),diff(d)^2-x]\[1.,0.]
+u=[dirichlet(d);diff(d)^2-x]\[1.,0.]
+u=[dirichlet(d);diff(d)^2-x]\[1.,0.]
+@time u=[dirichlet(d);diff(d)^2-x]\[1.,0.]
 println("Airy: should be ~0.013")
 
 S=Chebyshev()
@@ -73,9 +73,9 @@ L=D^2+(7+2x+6x^2)
 B=dirichlet(S)
 n=20000
 rhs=ones(n+2)
-u=[B,L]\rhs
-u=[B,L]\rhs
-@time u=[B,L]\rhs
+u=[B;L]\rhs
+u=[B;L]\rhs
+@time u=[B;L]\rhs
 println("Poly: should be ~0.025")
 
 
@@ -86,9 +86,9 @@ L=D^2+cos(x)
 B=dirichlet(S)
 n=2000
 rhs=ones(n+2)
-u=linsolve([B,L],rhs;maxlength=Inf)
-u=linsolve([B,L],rhs;maxlength=Inf)
-@time u=linsolve([B,L],rhs;maxlength=Inf)
+u=linsolve([B;L],rhs;maxlength=Inf)
+u=linsolve([B;L],rhs;maxlength=Inf)
+@time u=linsolve([B;L],rhs;maxlength=Inf)
 println("Cos: should be ~0.0075")
 
 S=Chebyshev()
@@ -98,9 +98,9 @@ L=D^2+sin(x)
 B=dirichlet(S)
 n=2000
 rhs=ones(n+2)
-u=linsolve([B,L],rhs;maxlength=Inf)
-u=linsolve([B,L],rhs;maxlength=Inf)
-@time u=linsolve([B,L],rhs;maxlength=Inf)
+u=linsolve([B;L],rhs;maxlength=Inf)
+u=linsolve([B;L],rhs;maxlength=Inf)
+@time u=linsolve([B;L],rhs;maxlength=Inf)
 println("Sin: should be ~0.011")
 
 
@@ -110,9 +110,9 @@ x=Fun(identity,[-20.,-10.,-5.,0.,1.,15.])
 sp=space(x)
 D=Derivative(sp)
 
-u=[dirichlet(sp),
+u=[dirichlet(sp);
     D^2-x]\[airyai(-10.)];
-@time u=[dirichlet(sp),
+@time u=[dirichlet(sp);
     D^2-x]\[airyai(-10.)];    
 
 println("Piecewise Airy: should be ~0.008")
@@ -152,10 +152,10 @@ d=Interval()^2
 x=Fun(identity,d[1]);y=Fun(identity,d[2])
 
 #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
-A=[dirichlet(d),lap(d)]
-f=[real(exp(-1+1.im*y)),
-                        real(exp(1+1im*y)),
-                        real(exp(x-1im)),
+A=[dirichlet(d);lap(d)]
+f=[real(exp(-1+1.im*y));
+                        real(exp(1+1im*y));
+                        real(exp(x-1im));
                         real(exp(x+1im))]
 S=schurfact(A,100)
 @time S=schurfact(A,100)
@@ -167,8 +167,8 @@ println("Laplace: should be ~0.014, 0.01")
 
 
 d=Interval()^2
-S=schurfact([neumann(d),lap(d)+100I],100)
-@time S=schurfact([neumann(d),lap(d)+100I],100)
+S=schurfact([neumann(d);lap(d)+100I],100)
+@time S=schurfact([neumann(d);lap(d)+100I],100)
 u=S\ones(4)
 u=S\ones(4)
 @time u=S\ones(4)
@@ -177,10 +177,10 @@ println("Neumann Helmholtz: should be ~0.016, 0.016")
 
 d = Disk()
 f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
-S = discretize([dirichlet(d),lap(d)],100);
-@time S = discretize([dirichlet(d),lap(d)],100);
-u=S\[0.,f];
-@time u=S\[0.,f];
+S = discretize([dirichlet(d);lap(d)],100);
+@time S = discretize([dirichlet(d);lap(d)],100);
+u=S\[0.;f];
+@time u=S\[0.;f];
 
 println("Disk Poisson: should be ~0.16,0.016")
 
@@ -199,8 +199,8 @@ Dt=diff(d,2);Dx=diff(d,1)
     u0=Fun(x->exp(-25*(x-.5)^2)*exp(-1.im/(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
     L=1im*ϵ*Dt+(.5*ϵ^2*Dx^2-V⊗I)
 
-PO=discretize([timedirichlet(d),L],50)
-@time PO=discretize([timedirichlet(d),L],50)
+PO=discretize([timedirichlet(d);L],50)
+@time PO=discretize([timedirichlet(d);L],50)
     u=PO\u0
 @time    u=PO\u0    
 

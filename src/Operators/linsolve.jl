@@ -84,7 +84,7 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
         else
             #TODO: matrix
             @assert size(b,2)==1
-            r=[b[1:end-1]...,b[end]...]  #b[end] is probably a vector or a number
+            r=[b[1:end-1]...;b[end]...]  #b[end] is probably a vector or a number
         end
     else
         @assert size(b,2)==1
@@ -95,10 +95,10 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
             sp=choosedomainspace(A,space(be))
             A=promotedomainspace(A,sp)
 
-            r=[b[1:size(A,1)-1]...,coefficients(be,rangespace(A[end]))]
+            r=[b[1:size(A,1)-1]...;coefficients(be,rangespace(A[end]))]
         else
             #TODO: Don't remember what this case is for
-            r=[b[1:size(A,1)-1]...,interlace(rhs)]
+            r=[b[1:size(A,1)-1]...;interlace(rhs)]
         end
     end
 
