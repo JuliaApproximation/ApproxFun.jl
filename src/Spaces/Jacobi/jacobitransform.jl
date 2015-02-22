@@ -3,7 +3,35 @@ if isdir(Pkg.dir("FastGaussQuadrature"))
     
     gaussjacobi(n,a,b)=Main.FastGaussQuadrature.gaussjacobi(n,a,b) 
 else
-    gaussjacobi(n...)=error("Currently require FastGaussQuadrature.jl")    
+    ## From FastGaussQuarture.jl
+    # Only the ±0.5,±0.5 are used
+    function gaussjacobi(n::Int64, a, b)
+    #GAUSS-JACOBI QUADRATURE NODES AND WEIGHTS
+    
+        if ( a == 0 && b == 0 )
+            x = gausslegendre(n)
+        elseif ( a == -0.5 && b == -0.5 )
+            x = gausschebyshev(n,1)
+        elseif ( a == 0.5 && b == 0.5)
+            x = gausschebyshev(n,2)
+        elseif ( a == -0.5 && b == 0.5)
+            x = gausschebyshev(n,3)
+        elseif ( a == 0.5 && b == -0.5 )
+            x = gausschebyshev(n,4)
+        elseif ( n == 0 )
+            x = (Float64[],Float64[])
+        elseif ( n == 1 )
+            x = ([(b-a)/(a+b+2)], [2^(a+b+1)*beta(a+1, b+1)])
+        elseif ( n <= 100 )
+            x = JacobiRec(n, a, b)
+        elseif ( n > 100 )
+            x = JacobiAsy(n, a, b)
+        else 
+            error("1st argument must be a positive integer.")
+        end
+        return x
+    end
+
 end
 
 
