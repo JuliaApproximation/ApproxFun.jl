@@ -56,31 +56,31 @@ end
 ## Resolve conflict
 for TYP in (:ReImSpace,:ReSpace,:ImSpace)
     @eval begin
-        spaceconversion(::Vector,sp::$TYP,slp::SliceSpace)=error("spaceconversion not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
-        spaceconversion(::Vector,sp::SliceSpace,slp::$TYP)=error("spaceconversion not implemented from "*typeof(sp)*" to "*typeof(slp))
+        coefficients(::Vector,sp::$TYP,slp::SliceSpace)=error("coefficients not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
+        coefficients(::Vector,sp::SliceSpace,slp::$TYP)=error("coefficients not implemented from "*typeof(sp)*" to "*typeof(slp))
     end
 end
 
 # v[k]=v[stride*k+index]
-function spaceconversion(v::Vector,sp::SliceSpace,dropsp::SliceSpace)
+function coefficients(v::Vector,sp::SliceSpace,dropsp::SliceSpace)
     if sp==dropsp
         v
     else
-        spaceconversion(v,sp,canonicalspace(sp),dropsp)
+        coefficients(v,sp,canonicalspace(sp),dropsp)
     end
 end
 
-function spaceconversion(v::Vector,sp::FunctionSpace,dropsp::SliceSpace)
+function coefficients(v::Vector,sp::FunctionSpace,dropsp::SliceSpace)
     if sp==dropsp.space
         n=index(dropsp)
         st=stride(dropsp)
         v[st+n:st:end]
     else
-        spaceconversion(v,sp,canonicalspace(dropsp),dropsp)
+        coefficients(v,sp,canonicalspace(dropsp),dropsp)
     end
 end
 
-function spaceconversion{V}(v::Vector{V},dropsp::SliceSpace,sp::FunctionSpace)
+function coefficients{V}(v::Vector{V},dropsp::SliceSpace,sp::FunctionSpace)
     if sp==dropsp.space
         n=index(dropsp)
         st=stride(dropsp)
@@ -88,7 +88,7 @@ function spaceconversion{V}(v::Vector{V},dropsp::SliceSpace,sp::FunctionSpace)
         ret[st+n:st:end]=v
         ret
     else
-        spaceconversion(v,dropsp,canonicalspace(dropsp),sp)        
+        coefficients(v,dropsp,canonicalspace(dropsp),sp)        
     end
 end
 
@@ -105,9 +105,9 @@ function transform{n,st,S,T}(sp::SliceSpace{n,st,S},vals::Vector{T})
     [ret[st+n:st:end],zeros(T,n)] # ensure same length by padding with zeros
 end
 
-itransform{n,st,S,T}(sp::SliceSpace{n,st,S},cfs::Vector{T})=itransform(sp.space,spaceconversion(cfs,sp,sp.space))
+itransform{n,st,S,T}(sp::SliceSpace{n,st,S},cfs::Vector{T})=itransform(sp.space,coefficients(cfs,sp,sp.space))
 
-##TODO: spaceconversion
+##TODO: coefficients
 
 
 

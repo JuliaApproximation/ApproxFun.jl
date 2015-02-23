@@ -31,14 +31,6 @@ Base.ones{T<:Number,O}(::Type{T},S::Ultraspherical{O})=Fun(ones(T,1),S)
 Base.ones{O}(S::Ultraspherical{O})=Fun(ones(1),S)    
 
 
-## Transform
-
-
-#This can be overriden, but the default is to use Chebyshev
-# transform(sp::IntervalSpace,vals::Vector)=spaceconversion(chebyshevtransform(vals),Chebyshev(domain(sp)),sp)
-# itransform(sp::IntervalSpace,cfs::Vector)=ichebyshevtransform(spaceconversion(cfs,sp,Chebyshev(domain(sp))))
-
-
 
 ## Fast evaluation
 

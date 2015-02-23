@@ -260,7 +260,7 @@ bandinds{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=0,2
 Base.stride{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=2
 
 
-## spaceconversion
+## coefficients
 
 # return the space that has banded Conversion to the other
 function conversion_rule{aorder,border}(a::Ultraspherical{aorder},b::Ultraspherical{border})
@@ -270,8 +270,8 @@ function conversion_rule{aorder,border}(a::Ultraspherical{aorder},b::Ultraspheri
 end
 
 
-spaceconversion(g::Vector,::Ultraspherical{1},::Chebyshev)=ultraiconversion(g)
-spaceconversion(g::Vector,::Chebyshev,::Ultraspherical{1})=ultraconversion(g)
+coefficients(g::Vector,::Ultraspherical{1},::Chebyshev)=ultraiconversion(g)
+coefficients(g::Vector,::Chebyshev,::Ultraspherical{1})=ultraconversion(g)
 
 
 

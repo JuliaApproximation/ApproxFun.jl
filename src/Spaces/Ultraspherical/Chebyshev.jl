@@ -8,12 +8,12 @@ typealias Chebyshev Ultraspherical{0}
 Space(d::IntervalDomain)=Chebyshev(d)
 canonicalspace(S::Ultraspherical)=Chebyshev(domain(S))
 
-function spaceconversion(g::Vector,::ConstantSpace,::Chebyshev)
+function coefficients(g::Vector,::ConstantSpace,::Chebyshev)
     @assert length(g)==1
     g
 end
 
-function spaceconversion(g::Vector,::Chebyshev,::ConstantSpace)
+function coefficients(g::Vector,::Chebyshev,::ConstantSpace)
     @assert length(g)==1
     g
 end

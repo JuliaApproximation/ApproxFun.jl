@@ -16,7 +16,7 @@ ChebyshevDirichlet()=ChebyshevDirichlet{1,1}()
 canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
 
 
-## spaceconversion
+## coefficients
 
 # converts to f_0 T_0 + f_1 (T_1-T_0) +  \sum f_k (T_k - T_{k-2})
 
@@ -66,13 +66,13 @@ end
 
 
 
-spaceconversion(v::Vector,::Chebyshev,::ChebyshevDirichlet{1,1})=dirichlettransform!(copy(v))
-spaceconversion(v::Vector,::Chebyshev,::ChebyshevDirichlet{0,1})=dirichlettransform!(true,copy(v))
-spaceconversion(v::Vector,::Chebyshev,::ChebyshevDirichlet{1,0})=dirichlettransform!(false,copy(v))
+coefficients(v::Vector,::Chebyshev,::ChebyshevDirichlet{1,1})=dirichlettransform!(copy(v))
+coefficients(v::Vector,::Chebyshev,::ChebyshevDirichlet{0,1})=dirichlettransform!(true,copy(v))
+coefficients(v::Vector,::Chebyshev,::ChebyshevDirichlet{1,0})=dirichlettransform!(false,copy(v))
 
-spaceconversion(v::Vector,::ChebyshevDirichlet{1,1},::Chebyshev)=idirichlettransform!(copy(v))
-spaceconversion(v::Vector,::ChebyshevDirichlet{0,1},::Chebyshev)=idirichlettransform!(true,copy(v))
-spaceconversion(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransform!(false,copy(v))
+coefficients(v::Vector,::ChebyshevDirichlet{1,1},::Chebyshev)=idirichlettransform!(copy(v))
+coefficients(v::Vector,::ChebyshevDirichlet{0,1},::Chebyshev)=idirichlettransform!(true,copy(v))
+coefficients(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransform!(false,copy(v))
 
 ## Dirichlet Conversion operators
 
