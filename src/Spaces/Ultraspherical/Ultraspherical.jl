@@ -34,8 +34,8 @@ Base.ones{O}(S::Ultraspherical{O})=Fun(ones(1),S)
 
 ## Fast evaluation
 
-Base.first{O}(f::Fun{Ultraspherical{O}})=foldr(-,canonicalcoefficients(f))
-Base.last{O}(f::Fun{Ultraspherical{O}})=reduce(+,canonicalcoefficients(f))
+Base.first{O}(f::Fun{Ultraspherical{O}})=foldr(-,coefficients(f,Chebyshev))
+Base.last{O}(f::Fun{Ultraspherical{O}})=reduce(+,coefficients(f,Chebyshev))
 identity_fun{m}(d::Ultraspherical{m})=Fun(identity_fun(domain(d)),d)
 
 

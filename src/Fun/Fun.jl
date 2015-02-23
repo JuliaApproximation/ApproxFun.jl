@@ -18,7 +18,6 @@ end
 
 coefficients(f::Fun,msp::FunctionSpace)=coefficients(f.coefficients,space(f),msp)
 coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(AnyDomain()))
-canonicalcoefficients(f::Fun)=coefficients(f,canonicalspace(f.space))
 coefficients(f::Fun)=f.coefficients
 coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 

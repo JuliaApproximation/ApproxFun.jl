@@ -90,7 +90,7 @@ function ./{S,T}(c::Number,f::Fun{S,T})
 end
 
 function ./(c::Number,f::Fun{Chebyshev})
-    fc = Fun(canonicalcoefficients(f),Interval())
+    fc = Fun(coefficients(f),Interval())
     r = roots(fc)
     x = Fun(identity)
 
@@ -103,17 +103,17 @@ function ./(c::Number,f::Fun{Chebyshev})
     elseif length(r) == 1 && (isapprox(r[1],1.) || isapprox(r[1],-1.))
         if sign(r[1]) < 0
             g = divide_singularity(-1,fc)  # divide by 1+x
-            Fun(canonicalcoefficients(c./g),JacobiWeight(-1,0,domain(f)))
+            Fun(coefficients(c./g,Chebyshev),JacobiWeight(-1,0,domain(f)))
         else
             g = divide_singularity(1,fc)  # divide by 1-x
-            Fun(canonicalcoefficients(c./g),JacobiWeight(0,-1,domain(f)))
+            Fun(coefficients(c./g,Chebyshev),JacobiWeight(0,-1,domain(f)))
         end
     elseif length(r) ==2 && ((isapprox(r[1],-1) && isapprox(r[2],1)) || (isapprox(r[2],-1) && isapprox(r[1],1)))
         g = divide_singularity(fc) # divide by 1-x^2
         # divide out singularities, tolerance needs to be chosen since we don't get
         # spectral convergence
         # TODO: switch to dirichlet basis
-        Fun(canonicalcoefficients(c./g),JacobiWeight(-1,-1,domain(f)))
+        Fun(coefficients(c./g,Chebyshev),JacobiWeight(-1,-1,domain(f)))
     else
         #split at the roots
         c./splitatroots(f)

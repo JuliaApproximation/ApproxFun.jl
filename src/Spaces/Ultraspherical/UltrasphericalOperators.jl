@@ -87,10 +87,10 @@ end
 
 for TYP in (:Range,:UnitRange) # needed to avoid confusion
     @eval begin
-        addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::$TYP)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
+        addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::$TYP)=chebmult_addentries!(coefficients(M.f,Chebyshev),A,kr)
 
         function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A,kr::$TYP)
-            cfs=canonicalcoefficients(M.f)
+            cfs=coefficients(M.f,Chebyshev)
             toeplitz_addentries!(.5cfs,A,kr)
             hankel_addentries!(-.5cfs[3:end],A,kr)
         end
