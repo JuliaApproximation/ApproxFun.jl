@@ -22,7 +22,7 @@ include("LowRankFun.jl")
 include("ProductFun.jl")
 
 
-# Fun(f,S::MultivariateFunctionSpace,n...)=ProductFun(f,S,n...)
+# Fun(f,S::MultivariateSpace,n...)=ProductFun(f,S,n...)
 # Fun{T<:Number}(f::Number,S::MultivariateDomain{T})=Fun(f,Space(S))
 # Fun{T<:Number}(f::Function,S::MultivariateDomain{T})=Fun(f,Space(S))
 # Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
@@ -38,7 +38,6 @@ function Fun(f::Function)
     catch ex #TODO only catch errors for wrong number of arguments
 #    	warn("Got $(ex) when assuming 1-arity of $f")
     	try
-    	   g=x->f(x[1],x[2])
          	Fun(g,Interval()^2)
          catch ex
 #        	warn("Got $(ex) when assuming 2-arity of $f")
@@ -47,12 +46,23 @@ function Fun(f::Function)
      end
 end
 
+Fun(f::ProductFun)=Fun(fromtensor(coefficients(f)),space(f))
+function Fun(f::Function,S::BivariateSpace)
+    try
+        pt=checkpoints(S)[1]
+        f(pt[1],pt[2])   # check if we can evaluate or need to dethread
+        Fun(ProductFun(f,S))
+    catch
+        # assume it needs a tuple
+        Fun(ProductFun((x,y)->f((x,y)),S))
+    end 
+end
 
 coefficients(f::BivariateFun,sp::TensorSpace)=coefficients(f,sp[1],sp[2])
 
 
-Base.zeros(sp::Union(MultivariateFunctionSpace,MultivariateDomain))=Fun(zeros(1,1),sp)
-Base.zeros{T<:Number}(::Type{T},sp::Union(MultivariateFunctionSpace,MultivariateDomain))=Fun(zeros(T,1,1),sp)
+Base.zeros(sp::Union(MultivariateSpace,MultivariateDomain))=Fun(zeros(1,1),sp)
+Base.zeros{T<:Number}(::Type{T},sp::Union(MultivariateSpace,MultivariateDomain))=Fun(zeros(T,1,1),sp)
 
 
 

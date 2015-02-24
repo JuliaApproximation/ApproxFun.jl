@@ -39,24 +39,26 @@ function checkpoints(d::ProductDomain)
     ret
 end
 
-abstract MultivariateFunctionSpace{T,D} <: FunctionSpace{T,D}
-abstract BivariateFunctionSpace{T,D} <: MultivariateFunctionSpace{T,D}
+abstract MultivariateSpace{T,D} <: FunctionSpace{T,D}
+abstract BivariateSpace{T,D} <: MultivariateSpace{T,D}
 
 
 fromcanonical(d::MultivariateDomain,x::Tuple)=fromcanonical(d,x...)
 tocanonical(d::MultivariateDomain,x::Tuple)=tocanonical(d,x...)
-fromcanonical(d::MultivariateFunctionSpace,x...)=fromcanonical(domain(d),x...)
-tocanonical(d::MultivariateFunctionSpace,x...)=tocanonical(domain(d),x...)
+fromcanonical(d::MultivariateSpace,x...)=fromcanonical(domain(d),x...)
+tocanonical(d::MultivariateSpace,x...)=tocanonical(domain(d),x...)
 
 
 # This means x are represented as space S and y are represented as space T
-abstract AbstractProductSpace{S,V,T,D} <: BivariateFunctionSpace{T,D}
+abstract AbstractProductSpace{S,V,T,D} <: BivariateSpace{T,D}
 
 
 
 immutable TensorSpace{S,V,T,D} <:AbstractProductSpace{S,V,T,D}
     spaces::(S,V)
 end
+
+spacescompatible(A::TensorSpace,B::TensorSpace)=spacescompatible(A.spaces[1],B.spaces[1])&&spacescompatible(A.spaces[2],B.spaces[2])
 
 TensorSpace{B1,B2,T1,T2}(sp::(FunctionSpace{B1,T1},FunctionSpace{B2,T2}))=TensorSpace{typeof(sp[1]),typeof(sp[2]),promote_type(B1,B2),promote_type(T1,T2)}(sp)
 
@@ -168,9 +170,9 @@ end
 
 ## points
 
-points(d::Union(BivariateDomain,BivariateFunctionSpace),n,m)=points(d,n,m,1),points(d,n,m,2)
+points(d::Union(BivariateDomain,BivariateSpace),n,m)=points(d,n,m,1),points(d,n,m,2)
 
-function points(d::BivariateFunctionSpace,n,m,k)
+function points(d::BivariateSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
     ptst=points(space(d,2),m)
     

@@ -109,8 +109,8 @@ ProductFun(f::Function,SF::Function,T::FunctionSpace,N::Integer,M::Integer)=Prod
 
 # convert a constant  to a 2D Fun
 
-ProductFun(c::Number,sp::BivariateFunctionSpace)=ProductFun([Fun(c,columnspace(sp,1))],sp)
-ProductFun(f::Fun,sp::BivariateFunctionSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
+ProductFun(c::Number,sp::BivariateSpace)=ProductFun([Fun(c,columnspace(sp,1))],sp)
+ProductFun(f::Fun,sp::BivariateSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
 
 
 
