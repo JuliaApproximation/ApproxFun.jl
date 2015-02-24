@@ -441,6 +441,36 @@ end
 
 
 
+## Matrix.*Matrix
+
+function .*(A::BandedMatrix,B::BandedMatrix)
+    @assert size(A,1)==size(B,1)&&size(A,2)==size(B,2)
+    
+    l=min(A.l,B.l);u=min(A.u,B.u)
+    ret=BandedMatrix(promote_type(eltype(A),eltype(B)),size(A,1),size(A,2),l,u)
+    
+    for k=1:size(A,1),j=max(1,k-l):min(size(A,2),k+u)
+        @inbounds ret[k,j]=A[k,j]*B[k,j]
+    end
+    ret
+end
+
+
+#implements fliplr(flipud(A))
+function fliplrud(A::BandedMatrix)
+    n,m=size(A)
+    l=A.u+n-m
+    u=A.l+m-n
+    ret=BandedMatrix(eltype(A),n,m,l,u)
+    for k=1:n,j=max(1,k-l):min(m,k+u)
+        @inbounds ret[k,j]=A[n-k+1,m-j+1]
+    end
+    ret
+end
+
+
+
+
 
 
 
