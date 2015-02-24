@@ -39,8 +39,8 @@ function checkpoints(d::ProductDomain)
     ret
 end
 
-abstract MultivariateFunctionSpace
-abstract BivariateFunctionSpace <: MultivariateFunctionSpace
+abstract MultivariateFunctionSpace{T,D} <: FunctionSpace{T,D}
+abstract BivariateFunctionSpace{T,D} <: MultivariateFunctionSpace{T,D}
 
 
 fromcanonical(d::MultivariateDomain,x::Tuple)=fromcanonical(d,x...)
@@ -50,13 +50,16 @@ tocanonical(d::MultivariateFunctionSpace,x...)=tocanonical(domain(d),x...)
 
 
 # This means x are represented as space S and y are represented as space T
-abstract AbstractProductSpace{S,T} <: BivariateFunctionSpace
+abstract AbstractProductSpace{S,V,T,D} <: BivariateFunctionSpace{T,D}
 
 
 
-immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace} <:AbstractProductSpace{S,T}
-    spaces::(S,T)
+immutable TensorSpace{S,V,T,D} <:AbstractProductSpace{S,V,T,D}
+    spaces::(S,V)
 end
+
+TensorSpace{B1,B2,T1,T2}(sp::(FunctionSpace{B1,T1},FunctionSpace{B2,T2}))=TensorSpace{typeof(sp[1]),typeof(sp[2]),promote_type(B1,B2),promote_type(T1,T2)}(sp)
+
 
 coefficient_type(S::TensorSpace,T)=promote_type(coefficient_type(S.spaces[1],T),coefficient_type(S.spaces[2],T))
 
@@ -174,6 +177,78 @@ function points(d::BivariateFunctionSpace,n,m,k)
     Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 end
 
+
+
+
+##  Fun routines
+
+function coefficientmatrix{S<:TensorSpace,T}(f::Fun{S,T})
+    cfs=coefficients(f)
+    M=reshape(vals,m,m)
+end
+
+function fromtensorind(k,j)
+    n=k+j-2
+    div(n*(n+1),2)+j
+end
+
+function totensorind(n)
+   m=ifloor(sqrt(2n) + 1/2)
+    p=fromtensorind(m,1)
+    j=1+n-p
+    m-j+1,j 
+end
+
+
+function fromtensor{T}(M::Matrix{T})
+    ret=zeros(T,fromtensorind(size(M,1),size(M,2)))
+
+    for k=1:size(M,1),j=1:size(M,2)
+        ret[fromtensorind(k,j)]=M[k,j]
+    end
+    ret
+end
+
+function totensor{T}(M::Vector{T})
+    inds=totensorind(length(M))
+    m=inds[1]+inds[2]-1
+    ret=zeros(T,m,m)
+    for k=1:length(M)
+        ret[totensorind(k)...]=M[k]
+    end
+    ret
+end
+    
+function points(sp::TensorSpace,n) 
+    pts=Array((Float64,Float64),0)
+    for x in points(sp[1],n), y in points(sp[2],n)
+        push!(pts,(x,y))
+    end
+    pts
+end
+
+function transform!(S::TensorSpace,M::Matrix)
+    n=size(M,1)
+
+    for k=1:size(M,2)
+        M[:,k]=transform(space(S,1),M[:,k])
+    end
+
+    for k=1:n
+        M[k,:]=transform(space(S,2),vec(M[k,:]))
+    end 
+    M      
+end
+
+function transform(sp::TensorSpace,vals)
+    m=int(sqrt(length(vals)))
+    M=reshape(vals,m,m)
+
+    fromtensor(transform!(sp,M))
+end
+
+evaluate{S<:TensorSpace}(f::Fun{S},x)=ProductFun(totensor(coefficients(f)),space(f))[x...]
+evaluate{S<:TensorSpace}(f::Fun{S},x,y)=ProductFun(totensor(coefficients(f)),space(f))[x,y]
 
 
 

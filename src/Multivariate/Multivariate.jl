@@ -22,27 +22,29 @@ include("LowRankFun.jl")
 include("ProductFun.jl")
 
 
-Fun(f,S::MultivariateFunctionSpace,n...)=ProductFun(f,S,n...)
-Fun{T<:Number}(f::Number,S::MultivariateDomain{T})=Fun(f,Space(S))
-Fun{T<:Number}(f::Function,S::MultivariateDomain{T})=Fun(f,Space(S))
-Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
-Fun{T<:Number}(f,dx::MultivariateDomain{T},dy::Domain)=Fun(f,dx*dy)
-Fun(f,dx::Domain,dy::Domain)=Fun(f,dx*dy)
-Fun(f,dx::Vector,dy::Vector)=Fun(f,Interval(dx),Interval(dx))
+# Fun(f,S::MultivariateFunctionSpace,n...)=ProductFun(f,S,n...)
+# Fun{T<:Number}(f::Number,S::MultivariateDomain{T})=Fun(f,Space(S))
+# Fun{T<:Number}(f::Function,S::MultivariateDomain{T})=Fun(f,Space(S))
+# Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
+# Fun{T<:Number}(f,dx::MultivariateDomain{T},dy::Domain)=Fun(f,dx*dy)
+# Fun(f,dx::Domain,dy::Domain)=Fun(f,dx*dy)
+# Fun(f,dx::Vector,dy::Vector)=Fun(f,Interval(dx),Interval(dx))
 
 
 function Fun(f::Function)
     try
+        f(0.)
         Fun(f,Interval())
     catch ex #TODO only catch errors for wrong number of arguments
 #    	warn("Got $(ex) when assuming 1-arity of $f")
-#    	try
-        	Fun(f,Interval(),Interval())
-#         catch ex
+    	try
+    	   g=x->f(x[1],x[2])
+         	Fun(g,Interval()^2)
+         catch ex
 #        	warn("Got $(ex) when assuming 2-arity of $f")
-#         	error("Could not construct function")
-#         end
-    end
+         	error("Could not construct function")
+         end
+     end
 end
 
 
