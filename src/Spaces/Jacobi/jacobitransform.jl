@@ -3,33 +3,59 @@ if isdir(Pkg.dir("FastGaussQuadrature"))
     
     gaussjacobi(n,a,b)=Main.FastGaussQuadrature.gaussjacobi(n,a,b) 
 else
-    gaussjacobi(n...)=error("Currently require FastGaussQuadrature.jl")    
+    ## From FastGaussQuarture.jl
+    # Only the ±0.5,±0.5 are used
+    function gaussjacobi(n::Int64, a, b)
+    #GAUSS-JACOBI QUADRATURE NODES AND WEIGHTS
+    
+        if ( a == 0 && b == 0 )
+            x = gausslegendre(n)
+        elseif ( a == -0.5 && b == -0.5 )
+            x = gausschebyshev(n,1)
+        elseif ( a == 0.5 && b == 0.5)
+            x = gausschebyshev(n,2)
+        elseif ( a == -0.5 && b == 0.5)
+            x = gausschebyshev(n,3)
+        elseif ( a == 0.5 && b == -0.5 )
+            x = gausschebyshev(n,4)
+        elseif ( n == 0 )
+            x = (Float64[],Float64[])
+        elseif ( n == 1 )
+            x = ([(b-a)/(a+b+2)], [2^(a+b+1)*beta(a+1, b+1)])
+        elseif ( n <= 100 )
+            x = JacobiRec(n, a, b)
+        elseif ( n > 100 )
+            x = JacobiAsy(n, a, b)
+        else 
+            error("1st argument must be a positive integer.")
+        end
+        return x
+    end
+
 end
 
 
 
 ## From FastGaussQuadrature.jl
 function gausschebyshev( n::Int64, kind::Int64=1 )
-# GAUSS-CHEBYSHEV NODES AND WEIGHTS. 
-
-x = (Array(Float64,n), Array(Float64,n))
-# Use known explicit formulas. Complexity O(n).
-if kind == 1 
-    # Gauss-ChebyshevT quadrature, i.e., w(x) = 1/sqrt(1-x^2)
-    x = (cos((2*[n:-1:1]-1)*pi/2n), pi./n*ones(n))
-elseif kind == 2 
-    # Gauss-ChebyshevU quadrature, i.e., w(x) = sqrt(1-x^2)
-    x = (cos([n:-1:1]*pi./(n+1)), pi/(n+1)*sin([n:-1:1]./(n+1)*pi).^2 )
-elseif kind == 3 
-    # Gauss-ChebyshevV quadrature, i.e., w(x) = sqrt((1+x)/(1-x))
-    x = (cos(([n:-1:1]-.5)*pi/(n+.5)), 2*pi/(n+.5)*cos(([n:-1:1]-.5)*pi/(2(n+.5))).^2)
-elseif kind == 4 
-    # Gauss-ChebyshevW quadrature, i.e., w(x) = sqrt((1-x)/(1+x))
-    x = (cos([n:-1:1]*pi/(n+.5)), 2*pi/(n+.5)*sin([n:-1:1]*pi/(2(n+.5))).^2)
-else 
-   throw(ArgumentError("Chebyshev kind should be 1, 2, 3, or 4")) 
-end
-return x 
+    # GAUSS-CHEBYSHEV NODES AND WEIGHTS. 
+    
+    # Use known explicit formulas. Complexity O(n).
+    if kind == 1 
+        # Gauss-ChebyshevT quadrature, i.e., w(x) = 1/sqrt(1-x^2)
+        ([cos((2*k-1)*pi/2n) for k=n:-1:1], fill(pi./n,n))
+    elseif kind == 2 
+        # Gauss-ChebyshevU quadrature, i.e., w(x) = sqrt(1-x^2)
+        ([cos(k*pi./(n+1)) for k=n:-1:1], [pi/(n+1)*sin(k./(n+1)*pi).^2 for k=n:-1:1])
+    elseif kind == 3 
+        # Gauss-ChebyshevV quadrature, i.e., w(x) = sqrt((1+x)/(1-x))
+        ([cos((k-.5)*pi/(n+.5)) for k=n:-1:1], [2*pi/(n+.5)*cos((k-.5)*pi/(2(n+.5))).^2 for k=n:-1:1])
+    elseif kind == 4 
+        # Gauss-ChebyshevW quadrature, i.e., w(x) = sqrt((1-x)/(1+x))
+        ([cos(k*pi/(n+.5)) for k=n:-1:1], [2*pi/(n+.5)*sin(k*pi/(2(n+.5))).^2 for k=n:-1:1])
+    else 
+       throw(ArgumentError("Chebyshev kind should be 1, 2, 3, or 4")) 
+    end
 end
 
 

@@ -74,7 +74,8 @@ points(d::FunctionSpace,n)=points(domain(d),n)
 
 ##Check domain compatibility
 
-domainscompatible(a,b) = domain(a) == AnyDomain() || domain(b) == AnyDomain() || domain(a) == domain(b)
+Base.isapprox(a::Domain,b::Domain)=a==b
+domainscompatible(a,b) = isa(domain(a),AnyDomain) || isa(domain(b),AnyDomain) || isapprox(domain(a),domain(b))
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
@@ -212,22 +213,23 @@ end
 
 
 ## Conversion routines
+#       coefficients(v::Vector,a,b) 
+# converts from space a to space b
+#       coefficients(v::Fun,a)
+# is equivalent to coefficients(v.coefficients,v.space,a)
+#       coefficients(v::Vector,a,b,c)
+# uses an intermediate space b
+
+coefficients(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpace)=coefficients(coefficients(f,sp1,sp2),sp2,sp3)
+
+coefficients{T1<:FunctionSpace,T2<:FunctionSpace}(f::Vector,::Type{T1},::Type{T2})=coefficients(f,T1(),T2())
+coefficients{T1<:FunctionSpace}(f::Vector,::Type{T1},sp2::FunctionSpace)=coefficients(f,T1(),sp2)
+coefficients{T2<:FunctionSpace}(f::Vector,sp1::FunctionSpace,::Type{T2})=coefficients(f,sp1,T2())
+
+## coefficients defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
 
-## Space conversion default is through canonicalspace
-
-spaceconversion(f::Vector,sp::FunctionSpace)=spaceconversion(f,canonicalspace(sp),sp)
-spaceconversion(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpace)=spaceconversion(spaceconversion(f,sp1,sp2),sp2,sp3)
-
-
-## spaceconversion defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
-
-# function spaceconversion{A<:FunctionSpace}(f::Vector,a::A,b::A)
-#     if spacescompatible(a,b)
-#         f
-# end
-
-function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
+function coefficients{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
     ct=conversion_type(a,b) # gives a space that has a banded conversion to both a and b
 
     if spacescompatible(a,b)
@@ -245,7 +247,7 @@ function spaceconversion{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
         if spacescompatible(a,csp)||spacescompatible(b,csp)# b is csp too, so we are stuck, try Fun constructor
             coefficients(Fun(x->Fun(f,a)[x],b))
         else
-            spaceconversion(f,a,csp,b)
+            coefficients(f,a,csp,b)
         end
     end
 end
@@ -285,7 +287,7 @@ function itransform{T}(S::FunctionSpace{T},cfs)
         error("Override itransform(::"*string(typeof(S))*",cfs)")
     end    
     
-    itransform(csp,spaceconversion(cfs,S,csp))
+    itransform(csp,coefficients(cfs,S,csp))
 end
 
 function transform{T}(S::FunctionSpace{T},vals)
@@ -294,7 +296,7 @@ function transform{T}(S::FunctionSpace{T},vals)
         error("Override transform(::"*string(typeof(S))*",vals)")
     end
     
-    spaceconversion(transform(csp,vals),csp,S)
+    coefficients(transform(csp,vals),csp,S)
 end
 
 

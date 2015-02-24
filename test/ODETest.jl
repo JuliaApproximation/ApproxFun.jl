@@ -8,11 +8,11 @@ import ApproxFun.Multiplication
 d=Interval(-10.,5.);
 Bm=Evaluation(d,d.a);
 Bp=Evaluation(d,d.b);
-B=[Bm,Bp];
+B=[Bm;Bp];
 D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
-u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
+u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
 
 @test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
 
@@ -21,11 +21,11 @@ u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
 d=Interval(-1000.,5.);
 Bm=Evaluation(d,d.a);
 Bp=Evaluation(d,d.b);
-B=[Bm,Bp];
+B=[Bm;Bp];
 D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
-u=[B,D2-X]\[airyai(d.a),airyai(d.b),0.];
+u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
 @test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
 
 
@@ -67,7 +67,7 @@ f=Fun(exp);
 D=diff(domain(f));
 w=10.;
 B=BasisFunctional(floor(w));
-A=[B,D+1im*w*I];
+A=[B;D+1im*w*I];
 u = A\[0.,f];
 @test_approx_eq (u[1.]exp(1im*w)-u[-1.]exp(-1im*w)) (-0.18575766879136255 + 0.17863980562549928im )
 
@@ -79,7 +79,7 @@ d=Interval()
 D=diff(d)
 x=Fun(identity,d)
 A=x^2*D^2+x*D+x^2
-u=[dirichlet(d)[1],A]\[besselj(0,d.a),0.];
+u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 
 
 @test norm(A*u)<10eps()

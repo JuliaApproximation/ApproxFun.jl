@@ -54,27 +54,27 @@ itransform(S::JacobiWeight,cfs::Vector)=itransform(S,cfs,plan_itransform(S,lengt
 itransform(S::JacobiWeight,cfs::Vector,pts::Vector)=jacobiweight(S,pts).*itransform(S.space,cfs,pts)
 
 ##TODO: paradigm for same space
-function spaceconversion(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
+function coefficients(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
 
     if isapprox(c,α) && isapprox(d,β)
-        spaceconversion(f,sp1.space,sp2.space)
+        coefficients(f,sp1.space,sp2.space)
     else
         (Conversion(sp1,sp2)*f)
     end
 end
-spaceconversion{S,n,st}(f::Vector,sp::JacobiWeight,S2::SliceSpace{n,st,S,RealBasis,Interval})=error("Implement")
-spaceconversion{S,n,st}(f::Vector,S2::SliceSpace{n,st,S,RealBasis,Interval},sp::JacobiWeight)=error("Implement")
+coefficients{S,n,st}(f::Vector,sp::JacobiWeight,S2::SliceSpace{n,st,S,RealBasis,Interval})=error("Implement")
+coefficients{S,n,st}(f::Vector,S2::SliceSpace{n,st,S,RealBasis,Interval},sp::JacobiWeight)=error("Implement")
 
 for TYP in (:ReSpace,:ImSpace,:ReImSpace)
     @eval begin
-        spaceconversion{S}(f::Vector,sp::JacobiWeight,S2::$TYP{S,RealBasis,Interval})=error("Implement")
-        spaceconversion{S}(f::Vector,S2::$TYP{S,RealBasis,Interval},sp::JacobiWeight)=error("Implement")
+        coefficients{S}(f::Vector,sp::JacobiWeight,S2::$TYP{S,RealBasis,Interval})=error("Implement")
+        coefficients{S}(f::Vector,S2::$TYP{S,RealBasis,Interval},sp::JacobiWeight)=error("Implement")
     end
 end
-spaceconversion(f::Vector,sp::JacobiWeight,S2::IntervalSpace)=spaceconversion(f,sp,JacobiWeight(0,0,S2))
-spaceconversion(f::Vector,S2::IntervalSpace,sp::JacobiWeight)=spaceconversion(f,JacobiWeight(0,0,S2),sp)
+coefficients(f::Vector,sp::JacobiWeight,S2::IntervalSpace)=coefficients(f,sp,JacobiWeight(0,0,S2))
+coefficients(f::Vector,S2::IntervalSpace,sp::JacobiWeight)=coefficients(f,JacobiWeight(0,0,S2),sp)
 
 increase_jacobi_parameter(f)=Fun(f,JacobiWeight(f.space.α+1,f.space.β+1,space(f).space))
 increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeight(f.space.α+1,f.space.β,space(f).space)):Fun(f,JacobiWeight(f.space.α,f.space.β+1,space(f).space))

@@ -54,7 +54,7 @@ for ν in (1.,.123,2.,3.5)
     D=Derivative(S)
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
-    u=[rdirichlet(S),rneumann(S),L]\[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.))]
+    u=[rdirichlet(S);rneumann(S);L]\[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.))]
     @test_approx_eq_eps u[.1] bessely(ν,.1) eps(1000.)*max(abs(u[.1]),1)
     u=[rdirichlet(S),rneumann(S),L]\[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.))]
     @test_approx_eq_eps u[.1] besselj(ν,.1) eps(1000.)*max(abs(u[.1]),1)

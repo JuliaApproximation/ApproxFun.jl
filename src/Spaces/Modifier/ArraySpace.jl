@@ -119,13 +119,13 @@ Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...)=demat(diff(mat(f),n...))
 
 ## conversion
 
-function spaceconversion{S,V,T}(f::Vector{T},a::ArraySpace{S,1},b::ArraySpace{V,1})
+function coefficients{S,V,T}(f::Vector{T},a::ArraySpace{S,1},b::ArraySpace{V,1})
     n=length(a)
     @assert n==length(b)
     A=a.space;B=b.space
     ret=Array(T,length(f))
     for k=1:n
-        ret[k:n:end]=spaceconversion(f[k:n:end],A,B)
+        ret[k:n:end]=coefficients(f[k:n:end],A,B)
     end
     ret
 end

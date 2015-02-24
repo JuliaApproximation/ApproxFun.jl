@@ -26,7 +26,7 @@ scalarorfuntype{F<:Fun}(b::Vector{F})=promote_type(map(scalarorfuntype,b)...)
  
 
 coefficients{F<:Fun}(Q::Vector{F},o...)=coefficients(scalarorfuntype(Q),Q,o...)
-
+coefficients(Q::Vector{Any})=(@assert isempty(Q); zeros(0,0))
 
 # function coefficients{T<:FFun}(B::Vector{T})
 #     m=mapreduce(length,max,B)

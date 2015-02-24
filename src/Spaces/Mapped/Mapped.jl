@@ -134,7 +134,10 @@ end
 function Base.sum{LS,T}(f::Fun{LineSpace{LS},T})
     d=domain(f)
     if d.α==d.β==-.5
-        sum(Fun(divide_singularity(f.coefficients),JacobiWeight(-.5,-.5,Interval())))
+        p=Fun(f.coefficients,f.space.space)  # project to [-1,1]
+        q=divide_singularity(p)              # divide by (1-x^2), result is in Chebyshev
+        r=Fun(q.coefficients,JacobiWeight(-.5,-.5,Interval()))  # multiply by jacobi weight
+        sum(r)
     else
         cf = integrate(f)
         last(cf) - first(cf)

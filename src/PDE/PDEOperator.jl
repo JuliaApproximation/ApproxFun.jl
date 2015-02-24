@@ -80,10 +80,10 @@ promotedomainspace(P::PDEOperator,S::TensorSpace)=promotedomainspace(promotedoma
 ⊗(A,B::Fun)=A⊗Multiplication(B)
 ⊗(A::Fun,B)=Multiplication(A)⊗B
 
-⊗{T<:Operator}(A::Vector{T},B::Operator)=PDEOperator[PDEOperator(Ai,B) for Ai in A]
-⊗{T<:Operator}(A::Operator,B::Vector{T})=PDEOperator[PDEOperator(A,Bi) for Bi in B]
-⊗{T<:Operator}(A::Vector{T},B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
-⊗{T<:Operator}(A::UniformScaling,B::Vector{T})=ConstantOperator(1.0A.λ)⊗B
+⊗(A::Vector,B::Operator)=PDEOperator[PDEOperator(Ai,B) for Ai in A]
+⊗(A::Operator,B::Vector)=PDEOperator[PDEOperator(A,Bi) for Bi in B]
+⊗(A::Vector,B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
+⊗(A::UniformScaling,B::Vector)=ConstantOperator(1.0A.λ)⊗B
 
 
 
@@ -203,7 +203,7 @@ for op in (:dirichlet,:neumann,:diffbcs)
             @assert length(d)==2
             Bx=$op(d[1],k...)
             By=$op(d[2],k...)
-            [Bx⊗I,I⊗By]
+            [Bx⊗I;I⊗By]
         end
     end
 end
@@ -213,7 +213,7 @@ function timedirichlet(d::Union(ProductDomain,TensorSpace))
     @assert length(d.domains)==2
     Bx=dirichlet(d.domains[1])
     Bt=dirichlet(d.domains[2])[1]
-    [I⊗Bt,Bx⊗I]
+    [I⊗Bt;Bx⊗I]
 end
 
 

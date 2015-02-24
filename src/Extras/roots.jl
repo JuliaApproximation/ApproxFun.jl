@@ -100,7 +100,9 @@ function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::Clensha
     const splitPoint = -0.004849834917525
 
     # Simplify the coefficients by chopping off the tail:
-    c = chop(c,eps()*norm(c, 1))
+    nrmc=norm(c, 1)
+    @assert nrmc > 0  # There's an error if we make it this far
+    c = chop(c,eps()*nrmc)
     n = length(c)
 
     if n == 0

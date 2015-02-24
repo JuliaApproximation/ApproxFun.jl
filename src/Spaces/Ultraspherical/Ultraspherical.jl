@@ -31,19 +31,11 @@ Base.ones{T<:Number,O}(::Type{T},S::Ultraspherical{O})=Fun(ones(T,1),S)
 Base.ones{O}(S::Ultraspherical{O})=Fun(ones(1),S)    
 
 
-## Transform
-
-
-#This can be overriden, but the default is to use Chebyshev
-# transform(sp::IntervalSpace,vals::Vector)=spaceconversion(chebyshevtransform(vals),Chebyshev(domain(sp)),sp)
-# itransform(sp::IntervalSpace,cfs::Vector)=ichebyshevtransform(spaceconversion(cfs,sp,Chebyshev(domain(sp))))
-
-
 
 ## Fast evaluation
 
-Base.first{O}(f::Fun{Ultraspherical{O}})=foldr(-,canonicalcoefficients(f))
-Base.last{O}(f::Fun{Ultraspherical{O}})=reduce(+,canonicalcoefficients(f))
+Base.first{O}(f::Fun{Ultraspherical{O}})=foldr(-,coefficients(f,Chebyshev))
+Base.last{O}(f::Fun{Ultraspherical{O}})=reduce(+,coefficients(f,Chebyshev))
 identity_fun{m}(d::Ultraspherical{m})=Fun(identity_fun(domain(d)),d)
 
 

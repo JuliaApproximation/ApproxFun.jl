@@ -87,10 +87,10 @@ end
 
 for TYP in (:Range,:UnitRange) # needed to avoid confusion
     @eval begin
-        addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::$TYP)=chebmult_addentries!(canonicalcoefficients(M.f),A,kr)
+        addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::$TYP)=chebmult_addentries!(coefficients(M.f,Chebyshev),A,kr)
 
         function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A,kr::$TYP)
-            cfs=canonicalcoefficients(M.f)
+            cfs=coefficients(M.f,Chebyshev)
             toeplitz_addentries!(.5cfs,A,kr)
             hankel_addentries!(-.5cfs[3:end],A,kr)
         end
@@ -260,7 +260,7 @@ bandinds{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=0,2
 Base.stride{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=2
 
 
-## spaceconversion
+## coefficients
 
 # return the space that has banded Conversion to the other
 function conversion_rule{aorder,border}(a::Ultraspherical{aorder},b::Ultraspherical{border})
@@ -270,8 +270,8 @@ function conversion_rule{aorder,border}(a::Ultraspherical{aorder},b::Ultraspheri
 end
 
 
-spaceconversion(g::Vector,::Ultraspherical{1},::Chebyshev)=ultraiconversion(g)
-spaceconversion(g::Vector,::Chebyshev,::Ultraspherical{1})=ultraconversion(g)
+coefficients(g::Vector,::Ultraspherical{1},::Chebyshev)=ultraiconversion(g)
+coefficients(g::Vector,::Chebyshev,::Ultraspherical{1})=ultraconversion(g)
 
 
 

@@ -1,7 +1,7 @@
 
 
 
-import Base.BLAS: blas_int,BlasChar,BlasInt
+import Base.BLAS: blas_int,BlasInt
 for (hseqr,elty) in ((:zhseqr_,:Complex128),)
     @eval function hesseneigvals(M::Matrix{$elty})
         if isempty(M)
@@ -22,7 +22,7 @@ for (hseqr,elty) in ((:zhseqr_,:Complex128),)
         Nc='N'
         ccall(($(BLAS.blasfunc(hseqr)),LAPACK.liblapack),
             Void,
-            (Ptr{BlasChar},Ptr{BlasChar},
+            (Ptr{UInt8},Ptr{UInt8},
         Ptr{BlasInt},Ptr{BlasInt},Ptr{BlasInt},Ptr{$elty}, #A
         Ptr{BlasInt},Ptr{$elty},Ptr{$elty}, #z
         Ptr{BlasInt},Ptr{$elty},Ptr{BlasInt},Ptr{BlasInt}),
@@ -56,7 +56,7 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
         for i=1:2
             ccall(($(BLAS.blasfunc(hseqr)),LAPACK.liblapack),
                 Void,
-                (Ptr{BlasChar},Ptr{BlasChar},
+                (Ptr{UInt8},Ptr{UInt8},
             Ptr{BlasInt},Ptr{BlasInt},Ptr{BlasInt},Ptr{$elty}, #A
             Ptr{BlasInt},Ptr{$elty},Ptr{$elty},Ptr{$elty}, #z
             Ptr{BlasInt},Ptr{$elty},Ptr{BlasInt},Ptr{BlasInt}),

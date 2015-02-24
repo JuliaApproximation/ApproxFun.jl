@@ -159,7 +159,7 @@ function coefficients(f::ProductFun,ox::FunctionSpace,oy::FunctionSpace)
     A=[pad!(coefficients(fx,ox),m) for fx in f.coefficients]
     B=hcat(A...)::Array{T,2}
     for k=1:size(B,1)
-        ccfs=spaceconversion(vec(B[k,:]),space(f,2),oy)
+        ccfs=coefficients(vec(B[k,:]),space(f,2),oy)
         if length(ccfs)>size(B,2)
             B=pad(B,size(B,1),length(ccfs))
         end

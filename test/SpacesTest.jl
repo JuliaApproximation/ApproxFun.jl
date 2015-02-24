@@ -12,7 +12,7 @@ B=dirichlet(sp)
 D=diff(d)
 L=D^2+I
 
-@test norm(([B,L]\[1.])-([dirichlet(d),L]\[1.])) <eps()
+@test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <eps()
 
 f=Fun(t->cos(t)+cos(3t),CosSpace)
 
@@ -38,14 +38,15 @@ x=Fun(identity,[-10.,0.,1.,15.])
 sp=space(x)
 D=Derivative(sp)
 
-u=[dirichlet(sp),
+u=[dirichlet(sp);
     D^2-x]\[airyai(-10.)];
     
 @test_approx_eq u[0.] airyai(0.)
 
 s=Fun(sin,[-2.,2.])|>abs
 c=Fun(cos,[-2.,2.])|>abs
-@test norm(Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])-(c+s))<100eps()
+sc=Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])
+@test norm(sc-(c+s))<100eps()
 
 
 

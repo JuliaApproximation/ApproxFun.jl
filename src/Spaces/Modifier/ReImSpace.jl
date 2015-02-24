@@ -10,12 +10,12 @@ for TYP in (:ReSpace,:ImSpace,:ReImSpace)
         domain(sp::$TYP)=domain(sp.space)
         spacescompatible(a::$TYP,b::$TYP)=spacescompatible(a.space,b.space)
         
-        function spaceconversion(f::Vector,a::$TYP,b::$TYP)
+        function coefficients(f::Vector,a::$TYP,b::$TYP)
             @assert spacescompatible(a.space,b.space)
             f 
         end
         
-        transform(S::$TYP,vals::Vector)=spaceconversion(transform(S.space,vals),S.space,S)
+        transform(S::$TYP,vals::Vector)=coefficients(transform(S.space,vals),S.space,S)
         evaluate{S<:$TYP}(f::Fun{S},x)=evaluate(Fun(f,space(f).space),x)
         
         canonicalspace(a::$TYP)=$TYP(canonicalspace(a.space))         
@@ -27,20 +27,20 @@ for TYP in (:ReSpace,:ImSpace,:ReImSpace)
 end
 
 
-spaceconversion(f::Vector,a::ImSpace,b::ReSpace)=zeros(f)
-spaceconversion(f::Vector,a::ReSpace,b::ImSpace)=zeros(f)
-spaceconversion(f::Vector,a::ReSpace,b::ReImSpace)=spaceconversion(f,a,a.space,b)
-spaceconversion(f::Vector,a::ImSpace,b::ReImSpace)=spaceconversion(f,a,a.space,b)
-spaceconversion(f::Vector,a::ReImSpace,b::ReSpace)=spaceconversion(f,a,a.space,b)
-spaceconversion(f::Vector,a::ReImSpace,b::ImSpace)=spaceconversion(f,a,a.space,b)
-spaceconversion(f::Vector,a::FunctionSpace,b::ReSpace)=real(spaceconversion(f,a,b.space))
-spaceconversion(f::Vector,a::FunctionSpace,b::ImSpace)=imag(spaceconversion(f,a,b.space))
-spaceconversion(f::Vector,a::ReSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);spaceconversion(f,a.space,b))
-spaceconversion(f::Vector,a::ImSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);spaceconversion(1im*f,a.space,b)) 
+coefficients(f::Vector,a::ImSpace,b::ReSpace)=zeros(f)
+coefficients(f::Vector,a::ReSpace,b::ImSpace)=zeros(f)
+coefficients(f::Vector,a::ReSpace,b::ReImSpace)=coefficients(f,a,a.space,b)
+coefficients(f::Vector,a::ImSpace,b::ReImSpace)=coefficients(f,a,a.space,b)
+coefficients(f::Vector,a::ReImSpace,b::ReSpace)=coefficients(f,a,a.space,b)
+coefficients(f::Vector,a::ReImSpace,b::ImSpace)=coefficients(f,a,a.space,b)
+coefficients(f::Vector,a::FunctionSpace,b::ReSpace)=real(coefficients(f,a,b.space))
+coefficients(f::Vector,a::FunctionSpace,b::ImSpace)=imag(coefficients(f,a,b.space))
+coefficients(f::Vector,a::ReSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);coefficients(f,a.space,b))
+coefficients(f::Vector,a::ImSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);coefficients(1im*f,a.space,b)) 
     
-function spaceconversion(f::Vector,a::FunctionSpace,b::ReImSpace)
+function coefficients(f::Vector,a::FunctionSpace,b::ReImSpace)
     if a!=b.space
-        f=spaceconversion(f,a,b.space)
+        f=coefficients(f,a,b.space)
     end
     ret=Array(Float64,2length(f))
     ret[1:2:end]=real(f)
@@ -49,7 +49,7 @@ function spaceconversion(f::Vector,a::FunctionSpace,b::ReImSpace)
 end
 
 
-function spaceconversion(f::Vector,a::ReImSpace,b::FunctionSpace)
+function coefficients(f::Vector,a::ReImSpace,b::FunctionSpace)
     n=length(f)
     if iseven(n)
         ret=f[1:2:end]+1im*f[2:2:end]
@@ -60,7 +60,7 @@ function spaceconversion(f::Vector,a::ReImSpace,b::FunctionSpace)
     if a.space==b
         ret
     else
-        spaceconversion(ret,a.space,b)
+        coefficients(ret,a.space,b)
     end
 end
 

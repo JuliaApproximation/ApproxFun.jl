@@ -37,7 +37,7 @@ function Base.null{T<:Number}(A::BandedOperator{T},d,maxit=100000)
             resizedata!(M,n)
             
             for j=1:m
-                Q[j]=[Q[j],zeros(T,n)]
+                Q[j]=[Q[j];zeros(T,n)]
             end
         end
         

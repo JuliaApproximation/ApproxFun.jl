@@ -37,8 +37,8 @@ function chebyshevtransform{T<:Number}(x::Vector{T};kind::Integer=1)
         if n == 1
             x
         else
-            w = 2exp(im*convert(T,π)*[0:n-1]/2n)
-            ret = w.*ifft([reverse(x),x])[1:n]
+            w = [2exp(im*convert(T,π)*k/2n) for k=0:n-1]
+            ret = w.*ifft([reverse(x);x])[1:n]
             ret = T<:Real ? real(ret) : ret
             ret[1] /= 2
             ret

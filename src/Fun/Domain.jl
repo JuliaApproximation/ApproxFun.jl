@@ -29,12 +29,12 @@ abstract IntervalDomain{T} <: Domain{T}
 
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
-        return cospi((one(T)/2+[-n:-1])/n)
+        T[cospi((one(T)/2+k)/n) for k=-n:-1]
     elseif kind == 2
         if n==1
-            return zeros(T,1)
+            zeros(T,1)
         else
-            return cospi([n-1:-1:0]/(n-one(T)))
+            T[cospi(k/(n-one(T))) for k=n-1:-1:0]
         end
     end
 end
@@ -64,7 +64,7 @@ abstract PeriodicDomain{T} <: Domain{T}
 points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(n,T))
 
 fourierpoints(n::Integer) = fourierpoints(n,Float64)
-fourierpoints{T<:Number}(n::Integer,::Type{T})= convert(T,π)*[-n:2:n-2]/n
+fourierpoints{T<:Number}(n::Integer,::Type{T})= convert(T,π)*collect(-n:2:n-2)/n
 
 
 function Base.in(x,d::PeriodicDomain)
