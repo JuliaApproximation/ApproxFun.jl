@@ -191,14 +191,14 @@ end
 
 function fromtensorind(k,j)
     n=k+j-2
-    div(n*(n+1),2)+j
+    div(n*(n+1),2)+k
 end
 
 function totensorind(n)
    m=ifloor(sqrt(2n) + 1/2)
     p=fromtensorind(m,1)
     j=1+n-p
-    m-j+1,j 
+    j,m-j+1 
 end
 
 

@@ -1,3 +1,5 @@
+## Domains
+
 Base.show(io::IO,d::Interval)=print(io,"【$(d.a),$(d.b)】")
 function Base.show(io::IO,d::Line)
     if d.centre == d.angle == 0 && d.α == d.β == -1.
@@ -10,6 +12,10 @@ function Base.show(io::IO,d::Line)
 end
 Base.show(io::IO,d::PeriodicInterval)=print(io,"【$(d.a),$(d.b)❫")
 
+
+## Spaces
+
+
 for typ in ("Chebyshev","Fourier","Laurent")
     TYP=parse(typ)
     @eval function Base.show(io::IO,S::$TYP)
@@ -18,6 +24,8 @@ for typ in ("Chebyshev","Fourier","Laurent")
         print(io,")")
     end
 end
+
+
 
 function Base.show(io::IO,s::JacobiWeight)
     d=domain(s)
@@ -41,6 +49,17 @@ function Base.show{S}(io::IO,s::ArraySpace{S,1})
     show(io,s.dimensions[1])
     show(io,s.space)
 end
+
+function Base.show(io::IO,s::TensorSpace)
+    show(io,s.spaces[1])
+    print(io,"⊗")
+    show(io,s.spaces[2])
+end
+
+
+
+## Fun
+
 
 function Base.show(io::IO,f::Fun)
     print(io,"Fun(")
