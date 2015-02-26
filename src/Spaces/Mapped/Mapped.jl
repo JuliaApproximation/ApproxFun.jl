@@ -29,12 +29,6 @@ typealias ClosedCurveSpace{S,T} CurveSpace{S,T,PeriodicInterval}
 
 
 Space(d::Domain)=MappedSpace(d,Space(canonicaldomain(d)))
-# Space{T}(d::Line{T})=LineSpace{T}(d)
-# Space{T}(d::Ray{T})=RaySpace{T}(d)
-# #TODO: Assuming periodic is complex basis
-# Space{S<:PeriodicSpace}(d::Curve{S})=ClosedCurveSpace{S,ComplexBasis}(d)
-# Space{T}(d::PeriodicLine{T})=PeriodicLineSpace{T}(d)
-# Space(a::Arc)=MappedSpace(a,Chebyshev())
 
 
 domain(S::MappedSpace)=S.domain

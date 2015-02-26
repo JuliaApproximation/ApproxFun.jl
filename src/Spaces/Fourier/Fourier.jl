@@ -102,7 +102,7 @@ typealias Laurent PeriodicSumSpace{Hardy{true},Hardy{false},ComplexBasis}
 Laurent()=Laurent(PeriodicInterval())
 Laurent{T<:Number}(d::Vector{T}) = Laurent(PeriodicInterval(d))
 
-Space(d::PeriodicDomain)=Fourier(d)
+Space(d::PeriodicInterval)=Fourier(d)
 Space(d::Circle)=Laurent(d)
 canonicalspace(S::PeriodicSpace)=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
 
