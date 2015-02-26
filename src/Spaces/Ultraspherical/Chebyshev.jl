@@ -5,7 +5,7 @@ export Chebyshev
 typealias Chebyshev Ultraspherical{0}
 
 
-Space(d::IntervalDomain)=Chebyshev(d)
+Space(d::Interval)=Chebyshev(d)
 canonicalspace(S::Ultraspherical)=Chebyshev(domain(S))
 
 function coefficients(g::Vector,::ConstantSpace,::Chebyshev)

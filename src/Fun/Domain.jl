@@ -42,7 +42,7 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(T,n))
+points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(T),n))
 
 points(d::Vector,n::Integer)=points(Interval(d),n)
 bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))

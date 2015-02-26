@@ -23,16 +23,18 @@ typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
 typealias LineSpace{T} IntervalMappedSpace{Chebyshev,Line{T}}
 typealias PeriodicLineSpace{T} PeriodicMappedSpace{Fourier,PeriodicLine{T},RealBasis}
 typealias PeriodicLineDirichlet{T} PeriodicMappedSpace{LaurentDirichlet,PeriodicLine{T},ComplexBasis}
-typealias RaySpace{T} IntervalMappedSpace{Chebyshev,Ray{T}}
 typealias CurveSpace{S,T,DS} MappedSpace{S,Curve{S},T,DS}
 typealias OpenCurveSpace{S} CurveSpace{S,RealBasis,Interval}
 typealias ClosedCurveSpace{S,T} CurveSpace{S,T,PeriodicInterval}
 
-Space{T}(d::Line{T})=LineSpace{T}(d)
-Space{T}(d::Ray{T})=RaySpace{T}(d)
-#TODO: Assuming periodic is complex basis
-Space{S<:PeriodicSpace}(d::Curve{S})=ClosedCurveSpace{S,ComplexBasis}(d)
-Space{T}(d::PeriodicLine{T})=PeriodicLineSpace{T}(d)
+
+Space(d::Domain)=MappedSpace(d,Space(canonicaldomain(d)))
+# Space{T}(d::Line{T})=LineSpace{T}(d)
+# Space{T}(d::Ray{T})=RaySpace{T}(d)
+# #TODO: Assuming periodic is complex basis
+# Space{S<:PeriodicSpace}(d::Curve{S})=ClosedCurveSpace{S,ComplexBasis}(d)
+# Space{T}(d::PeriodicLine{T})=PeriodicLineSpace{T}(d)
+# Space(a::Arc)=MappedSpace(a,Chebyshev())
 
 
 domain(S::MappedSpace)=S.domain
@@ -106,7 +108,7 @@ end
 #integration functions
 
 integrate{LS,T}(f::Fun{LineSpace{LS},T})=linsolve([ldirichlet(),Derivative()],Any[0.,f];tolerance=length(f)^2*max(1,maximum(f.coefficients))*10E-13)
-integrate{LS,T}(f::Fun{RaySpace{LS},T})=linsolve([BasisFunctional(1),Derivative(space(f))],Any[0.,f];tolerance=length(f)*10E-15)
+integrate{LS,RR<:Ray,TT,DS,T}(f::Fun{MappedSpace{LS,RR,TT,DS},T})=linsolve([BasisFunctional(1),Derivative(space(f))],Any[0.,f];tolerance=length(f)*10E-15)
 function integrate{LS<:JacobiWeight,RR<:Ray,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
     # x^k -> x^(k+1)  so +1,-1 to singularities 
     # if the last entry of f is close to zero wei use the same space
@@ -124,11 +126,11 @@ end
 
 Base.cumsum{LS<:JacobiWeight,RR<:Ray,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})=integrate(f) # the choice of space is zero at 0
 
-function integrate{RS<:RaySpace,T}(f::Fun{RS,T})
-    x=Fun(identity)
-    g=fromcanonicalD(f,x)*Fun(f.coefficients)
-    Fun(integrate(Fun(g,Chebyshev)).coefficients,space(f))
-end
+# function integrate{LS,RR<:Ray,TT,DS,T}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
+#     x=Fun(identity)
+#     g=fromcanonicalD(f,x)*Fun(f.coefficients)
+#     Fun(integrate(Fun(g,Chebyshev)).coefficients,space(f))
+# end
 
 
 function Base.sum{LS,T}(f::Fun{LineSpace{LS},T})
