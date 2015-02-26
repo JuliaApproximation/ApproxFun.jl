@@ -19,3 +19,12 @@ Recurrence(sp)=Recurrence{typeof(sp),Float64}(sp)
 
 Base.convert{T,S}(::Type{BandedOperator{T}},J::Recurrence{S})=Recurrence{S,T}(J.space)
 
+
+function addentries!{S,T}(R::Recurrence{S,T},A,kr::Range)
+    for k=kr
+        A[k,k-1]=recβ(T,R.space,k-1)
+        A[k,k]  =recα(T,R.space,k)        
+        A[k,k+1]=recγ(T,R.space,k+1)        
+    end
+    A
+end

@@ -103,13 +103,23 @@ bandinds(S::SliceOperator)=(div(bandinds(S.op,1)+S.rowindex-S.colindex,S.rowstri
 
 function destride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
     r1=rs*kr[1]+ri:rs:rs*kr[end]+ri
-    
     addentries!(op,IndexSlice(A,ri,ci,rs,cs),r1)
-    
     A    
 end
 
-destride_addentries!(S::SliceOperator,A,kr::Range)=destride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
+function destride_addentries!(op,ri,ci,A,kr::UnitRange)
+    r1=kr[1]+ri:kr[end]+ri
+    addentries!(op,IndexSlice(A,ri,ci,1,1),r1)
+    A    
+end
+
+function destride_addentries!(S::SliceOperator,A,kr::Range)
+    if S.rowstride==S.colstride==1
+        destride_addentries!(S.op,S.rowindex,S.colindex,A,kr)    
+    else
+        destride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
+    end
+end
 
 addentries!(S::SliceOperator,A,kr)=destride_addentries!(S,A,kr)
 domain(S::SliceOperator)=domain(S.op)

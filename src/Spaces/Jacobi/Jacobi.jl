@@ -30,17 +30,8 @@ jacobirecγ(α,β,k)=jacobirecC(α,β,k-1)/jacobirecA(α,β,k-1)
 jacobirecα(α,β,k)=-jacobirecB(α,β,k-1)/jacobirecA(α,β,k-1)
 jacobirecβ(α,β,k)=1/jacobirecA(α,β,k-1)
 
-
-# we transpose the jacoi recurrence
-function getdiagonalentry(J::Recurrence{Jacobi},k,j)
-    sp = J.space
-    if j==-1
-        jacobirecβ(sp.a,sp.b,k-1)
-    elseif j==0
-        jacobirecα(sp.a,sp.b,k)
-    else #j==1
-        jacobirecγ(sp.a,sp.b,k+1)
-    end
+for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ))
+    @eval $REC(::Type,sp::Jacobi,k)=$JREC(sp.a,sp.b,k)  #TODO: implement typing
 end
 
 

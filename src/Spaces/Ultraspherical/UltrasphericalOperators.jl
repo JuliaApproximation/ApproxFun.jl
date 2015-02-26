@@ -1,16 +1,26 @@
 ##  Jacobi Operator
 
+# x p_k 
+recα{T}(::Type{T},::Ultraspherical,::)=zero(T)
+
+recβ{T}(::Type{T},::Chebyshev,k)=ifelse(k==1,one(T),one(T)/2)   # one(T) ensures we get correct type,ifelse ensures inlining
+recγ{T}(::Type{T},::Chebyshev,k)=one(T)/2   # one(T) ensures we get correct type
 
 
-function usjacobi_addentries!{T}(λ::Integer,::Type{T},A,kr::Range)
-    for k=kr
-        A[k,k-1]=.5(k-one(T))/(k-2+λ)
-        A[k,k+1]=.5(k+2λ-one(T))/(k+λ)
-    end
-    A
-end
+recβ{T,λ}(::Type{T},::Ultraspherical{λ},k)=k/(2*(k-one(T)+λ))   # one(T) ensures we get correct type
+recγ{T,λ}(::Type{T},::Ultraspherical{λ},k)=(k-2+2λ)/(2*(k-one(T)+λ))   # one(T) ensures we get correct type
 
-addentries!{m,T}(::Recurrence{Ultraspherical{m},T},A,kr::Range)=usjacobi_addentries!(m,T,A,kr)
+
+
+# function usjacobi_addentries!{T}(λ::Integer,::Type{T},A,kr::Range)
+#     for k=kr
+#         A[k,k-1]=.5(k-one(T))/(k-2+λ)
+#         A[k,k+1]=.5(k+2λ-one(T))/(k+λ)
+#     end
+#     A
+# end
+# 
+# addentries!{m,T}(::Recurrence{Ultraspherical{m},T},A,kr::Range)=usjacobi_addentries!(m,T,A,kr)
 
 ## Evaluation
 

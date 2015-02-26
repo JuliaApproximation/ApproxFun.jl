@@ -11,6 +11,7 @@ end
 
 TransposeOperator{T<:Number}(B::BandedOperator{T})=TransposeOperator{T,typeof(B)}(B)
 
+Base.convert{T}(::Type{BandedOperator{T}},A::TransposeOperator)=TransposeOperator(convert(BandedOperator{T},A.op))
 
 domainspace(P::TransposeOperator)=rangespace(P.op)
 rangespace(P::TransposeOperator)=domainspace(P.op)
