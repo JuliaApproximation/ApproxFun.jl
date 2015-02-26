@@ -4,6 +4,10 @@ mobius(a,b,c,d,z)=(a*z+b)./(c*z+d)
 mobius(a,b,c,d,z::Number)=isinf(z)?a/c:(a*z+b)./(c*z+d)
 mobiusinv(a,b,c,d,z)=mobius(d,-b,-c,a,z)
 
+
+mobiusD(a,b,c,d,z)=(a*d-b*c)./(d+c*z).^2
+mobiusinvD(a,b,c,d,z)=mobiusD(d,-b,-c,a,z)
+
 immutable Arc{T<:Number,V<:Real} <: IntervalDomain{Complex{Float64}}
     center::T
     radius::V
@@ -24,13 +28,15 @@ end
 
 mobiuspars(a::Arc)=mobiuspars(a.center,a.radius,a.angles...)
 
-for OP in (:mobius,:mobiusinv)
+for OP in (:mobius,:mobiusinv,:mobiusD,:mobiusinvD)
     @eval $OP(a::Arc,z)=$OP(mobiuspars(a)...,z)
 end
 
 
 tocanonical(a::Arc,x)=mobius(a,x)
+tocanonicalD(a::Arc,x)=mobiusD(a,x)
 fromcanonical(a::Arc,x)=mobiusinv(a,x)
+fromcanonicalD(a::Arc,x)=mobiusinvD(a,x)
 
 
 
