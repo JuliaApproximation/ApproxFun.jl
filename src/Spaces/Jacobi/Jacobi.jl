@@ -53,7 +53,7 @@ function jacobip(r::Range,α,β,x::Number)
         if n<=2
             v=[1.,.5*(α-β+(2+α+β)*x)]
         else    
-            v=Array(Float64,n)
+            v=Array(promote_type(Float64,typeof(x)),n)  # x may be complex
             v[1]=1.
             v[2]=.5*(α-β+(2+α+β)*x)
             

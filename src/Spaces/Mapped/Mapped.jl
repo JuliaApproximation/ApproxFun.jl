@@ -37,6 +37,8 @@ canonicaldomain{D,S}(::Type{PeriodicMappedSpace{S,D}})=PeriodicInterval()
 canonicaldomain{D,S,T,DS}(::Type{MappedSpace{S,D,T,DS}})=D()
 canonicalspace(S::MappedSpace)=MappedSpace(S.domain,canonicalspace(S.space))
 
+points(d::MappedSpace,n)=fromcanonical(d,points(d.space,n))
+
 ## Construction
 
 Base.ones{T<:Number}(::Type{T},S::MappedSpace)=Fun(ones(T,S.space).coefficients,S)
