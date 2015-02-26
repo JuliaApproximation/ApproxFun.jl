@@ -165,7 +165,7 @@ function coefficients(f::ProductFun,ox::FunctionSpace,oy::FunctionSpace)
             B=pad(B,size(B,1),length(ccfs))
         end
         B[k,1:length(ccfs)]=ccfs
-        B[k,length(ccfs):1:end]=zero(T)
+        #B[k,length(ccfs):1:end]=zero(T)
     end
 
     B
