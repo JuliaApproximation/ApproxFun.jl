@@ -90,12 +90,4 @@ function periodic{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
     continuity(d,0:1)]
 end
 
-
-
-## Orthogonal polynomials
-
-abstract PolynomialSpace <: IntervalSpace
-
-bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
-rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=domainspace(M)
-
+include("PolynomialSpace.jl")

@@ -1,6 +1,6 @@
 ##  Jacobi Operator
 
-immutable UltrasphericalRecurrenceT{m,T} <: TridiagonalOperator{T} end
+
 
 function usjacobi_addentries!{T}(λ::Integer,::Type{T},A,kr::Range)
     for k=kr
@@ -10,7 +10,7 @@ function usjacobi_addentries!{T}(λ::Integer,::Type{T},A,kr::Range)
     A
 end
 
-addentries!{m,T}(::UltrasphericalRecurrenceT{m,T},A,kr::Range)=usjacobi_addentries!(m,T,A,kr)
+addentries!{m,T}(::Recurrence{Ultraspherical{m},T},A,kr::Range)=usjacobi_addentries!(m,T,A,kr)
 
 ## Evaluation
 
@@ -87,10 +87,10 @@ end
 
 for TYP in (:Range,:UnitRange) # needed to avoid confusion
     @eval begin
-        addentries!{D<:Ultraspherical}(M::Multiplication{D,Chebyshev},A,kr::$TYP)=chebmult_addentries!(coefficients(M.f,Chebyshev),A,kr)
+        addentries!(M::Multiplication{Chebyshev,Chebyshev},A,kr::$TYP)=chebmult_addentries!(coefficients(M.f),A,kr)
 
-        function addentries!{D<:Ultraspherical}(M::Multiplication{D,Ultraspherical{1}},A,kr::$TYP)
-            cfs=coefficients(M.f,Chebyshev)
+        function addentries!(M::Multiplication{Chebyshev,Ultraspherical{1}},A,kr::$TYP)
+            cfs=coefficients(M.f)
             toeplitz_addentries!(.5cfs,A,kr)
             hankel_addentries!(-.5cfs[3:end],A,kr)
         end
@@ -99,7 +99,7 @@ end
 
 
 
-function addentries!{D<:Ultraspherical,λ,T}(M::Multiplication{D,Ultraspherical{λ},T},A,kr::UnitRange)
+function addentries!{D<:Ultraspherical,PS<:PolynomialSpace,T}(M::Multiplication{D,PS,T},A,kr::UnitRange)
     a=coefficients(M.f,domainspace(M))
     for k=kr
         A[k,k]=a[1]
@@ -108,10 +108,11 @@ function addentries!{D<:Ultraspherical,λ,T}(M::Multiplication{D,Ultraspherical{
     if length(a) > 1
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
 
-        J=subview(UltrasphericalRecurrenceT{λ,T}(),jkr,jkr)
+        J=subview(Recurrence(sp),jkr,jkr)
         C1=2λ*J
         addentries!(C1,a[2],A,kr)
         C0=isbaeye(jkr)
+        
         for k=1:length(a)-2
             C1,C0=2(k+λ)/(k+1)*J*C1-(k+2λ-1)/(k+1)*C0,C1
             addentries!(C1,a[k+2],A,kr)
@@ -120,6 +121,34 @@ function addentries!{D<:Ultraspherical,λ,T}(M::Multiplication{D,Ultraspherical{
 
     A
 end
+
+function addentries!{PS<:PolynomialSpace}(M::Multiplication{Chebyshev,PS},A,kr::UnitRange)
+    a=coefficients(M.f)
+
+    for k=kr
+        A[k,k]=a[1] 
+    end
+    
+    if length(M.f) > 1
+        sp=M.space
+        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+
+        #Multiplication is transpose
+        J=subview(Recurrence(sp),jkr,jkr)
+        C1=J
+        addentries!(C1,a[2],A,kr)
+        C0=isbaeye(jkr)
+    
+        for k=1:length(a)-2    
+            C1,C0=2J*C1-C0,C1
+            addentries!(C1,a[k+2],A,kr)    
+        end
+    end
+    
+    A
+end
+
+
 
 
 

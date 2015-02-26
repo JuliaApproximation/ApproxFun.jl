@@ -31,38 +31,6 @@ function Base.getindex(op::Evaluation{Jacobi,Float64},kr::Range)
     jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))        
 end
 
-## Multiplication
-
-#TODO: Unify with Ultraspherical
-function addentries!(M::Multiplication{Chebyshev,Jacobi},A,kr::Range)
-    a=coefficients(M.f)
-
-    for k=kr
-        A[k,k]=a[1] 
-    end
-    
-    if length(M.f) > 1
-        sp=M.space
-        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
-
-        J=subview(JacobiRecurrence(sp.a,sp.b).',jkr,jkr)
-        #Multiplication is transpose
-    
-        C1=J
-    
-        addentries!(C1,a[2],A,kr)
-
-        C0=isbaeye(jkr)
-    
-        for k=1:length(a)-2    
-            C1,C0=2J*C1-C0,C1
-            addentries!(C1,a[k+2],A,kr)    
-        end
-    end
-    
-    A
-end
-
 
 ## Derivative
 
