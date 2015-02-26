@@ -261,7 +261,19 @@ function Derivative{SS<:FunctionSpace}(S::MappedSpace{SS,PeriodicLine{false}},or
     end    
 end
 
-
+function Integral(sp::MappedSpace,k::Integer)
+    if k > 1
+        Q=Integral(sp,1)
+        IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
+    else # k==1
+        csp=sp.space
+        
+        x=Fun(identity,csp)
+        M=Multiplication(fromcanonicalD(sp,x),csp)
+        Q=Integral(rangespace(M))*M
+        IntegralWrapper(SpaceOperator(Q,sp,MappedSpace(sp.domain,rangespace(Q))),1)
+    end
+end
 
 ## CurveSpace
 

@@ -96,3 +96,9 @@ f=Fun(exp,Jacobi(0.213,0.590))
 ## Jacobi integrate and sum
 
 @test_approx_eq sum(Fun(exp,Legendre([0,2]))) sum(Fun(exp,[0,2]))
+
+a=Arc(0.,.1,0.,π/2)
+g=Fun(exp,MappedSpace(a,Legendre()))
+
+@test_approx_eq sum(g) sum(Fun(exp,a))
+

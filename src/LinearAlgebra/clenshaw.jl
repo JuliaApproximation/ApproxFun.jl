@@ -41,7 +41,7 @@ function clenshaw{T<:Number,M<:Number}(c::Vector{T},x::Vector{M})
     end
 
     n = length(x)
-    clenshaw(c,x,ClenshawPlan(T,n))
+    clenshaw(c,x,ClenshawPlan(promote_type(T,M),n))
 end
 
 
@@ -84,7 +84,7 @@ end
 
 #Clenshaw routine for many Funs
 #each fun is a column
-clenshaw{T<:Number}(c::Array{T,2},x::Number)=clenshaw(c,x,ClenshawPlan(T,size(c)[2]))
+clenshaw{T<:Number}(c::Array{T,2},x::Number)=clenshaw(c,x,ClenshawPlan(promote_type(T,typeof(x)),size(c)[2]))
 function clenshaw{T<:Number}(c::Array{T,2},x::Number,plan::ClenshawPlan{T})
     bk=plan.bk
     bk1=plan.bk1
@@ -120,7 +120,7 @@ end
 
 #Clenshaw routine for many points
 #Note that bk1, bk2, and bk are overwritten
-function clenshaw{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{T})
+function clenshaw{T<:Number,M<:Number,Q<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{Q})
     if isempty(c)
         return(zeros(x))
     end
@@ -134,9 +134,9 @@ function clenshaw{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawP
 
 
     for i = 1:n
-        @inbounds bk1[i] = zero(T)
-        @inbounds bk2[i] = zero(T)
-        @inbounds bk[i] = zero(T)
+        @inbounds bk1[i] = zero(Q)
+        @inbounds bk2[i] = zero(Q)
+        @inbounds bk[i] = zero(Q)
     end
 
     for k in  length(c):-1:2
@@ -157,8 +157,8 @@ end
 
 
 # overwrite x
-clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M})=clenshaw!(c,x,ClenshawPlan(T,length(x)))
-function clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{T})
+clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M})=clenshaw!(c,x,ClenshawPlan(promote_type(T,M),length(x)))
+function clenshaw!{T<:Number,M<:Number,Q<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{Q})
     n = length(x)
 
     if isempty(c)
@@ -174,9 +174,9 @@ function clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M},plan::Clenshaw
 
 #    x=2x
     for i = 1:n
-        @inbounds bk1[i] = zero(T)
-        @inbounds bk2[i] = zero(T)
-        @inbounds bk[i] = zero(T)
+        @inbounds bk1[i] = zero(Q)
+        @inbounds bk2[i] = zero(Q)
+        @inbounds bk[i] = zero(Q)
     end
 
     for k in  length(c):-1:2
