@@ -58,7 +58,10 @@ immutable TensorSpace{S,V,T,D} <:AbstractProductSpace{S,V,T,D}
     spaces::(S,V)
 end
 
-spacescompatible(A::TensorSpace,B::TensorSpace)=spacescompatible(A.spaces[1],B.spaces[1])&&spacescompatible(A.spaces[2],B.spaces[2])
+for OP in (:spacescompatible,:(==))
+    @eval $OP(A::TensorSpace,B::TensorSpace)=$OP(A.spaces[1],B.spaces[1])&&$OP(A.spaces[2],B.spaces[2])
+end
+
 
 TensorSpace{B1,B2,T1,T2}(sp::(FunctionSpace{B1,T1},FunctionSpace{B2,T2}))=TensorSpace{typeof(sp[1]),typeof(sp[2]),promote_type(B1,B2),promote_type(T1,T2)}(sp)
 
@@ -194,9 +197,15 @@ function fromtensorind(k,j)
     div(n*(n+1),2)+k
 end
 
+# which block of the tensor
+# equivalent to sum of indices -1
+totensorblock(n)=ifloor(sqrt(2n) + 1/2)
+#gives the range corresponding to the block
+fromtensorblock(j)=div(j*(j-1),2)+(1:j)
+
 function totensorind(n)
-   m=ifloor(sqrt(2n) + 1/2)
-    p=fromtensorind(m,1)
+    m=totensorblock(n)
+    p=fromtensorind(1,m)
     j=1+n-p
     j,m-j+1 
 end

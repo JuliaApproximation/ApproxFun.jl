@@ -1,3 +1,5 @@
+export Multiplication
+
 abstract AbstractMultiplication{T} <:BandedOperator{T}
 
 immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number,V<:Number} <: AbstractMultiplication{V}

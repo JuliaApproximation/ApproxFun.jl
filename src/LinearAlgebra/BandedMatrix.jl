@@ -85,7 +85,7 @@ bandrange(A::BandedMatrix)=-A.l:A.u
 
 usgetindex(A::BandedMatrix,k::Integer,j::Integer)=A.data[j-k+A.l+1,k]
 usgetindex(A::BandedMatrix,k::Integer,jr::Range)=vec(A.data[jr-k+A.l+1,k])
-getindex{T}(A::BandedMatrix{T},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zero(T):throw(BoundsError()))
+getindex(A::BandedMatrix,k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zero(eltype(A)):throw(BoundsError()))
 getindex(A::BandedMatrix,k::Integer,jr::Range)=-A.l≤jr[1]-k≤jr[end]-k≤A.u?usgetindex(A,k,jr):[A[k,j] for j=jr].'
 getindex(A::BandedMatrix,k::Range,j::Integer)=[A[k,j] for j=jr]
 getindex(A::BandedMatrix,kr::Range,jr::Range)=[A[k,j] for k=kr,j=jr]
