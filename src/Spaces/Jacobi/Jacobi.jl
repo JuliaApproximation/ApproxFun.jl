@@ -21,10 +21,18 @@ function canonicalspace(S::Jacobi)
     end
 end
 
-
+#####
+# jacobirecA/B/C is from dlmf:
+# p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
+#####
 jacobirecA(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+1:(2k+α+β+1)*(2k+α+β+2)/(2*(k+1)*(k+α+β+1))
 jacobirecB(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(β-α):(α^2-β^2)*(2k+α+β+1)/(2*(k+1)*(k+α+β+1)*(2k+α+β))
 jacobirecC(α,β,k)=(k+α)*(k+β)*(2k+α+β+2)/((k+1)*(k+α+β+1)*(2k+α+β))
+
+#####
+# jacobirecA/B/C is from dlmf:
+# x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n   
+#####
 
 jacobirecγ(α,β,k)=jacobirecC(α,β,k-1)/jacobirecA(α,β,k-1)
 jacobirecα(α,β,k)=-jacobirecB(α,β,k-1)/jacobirecA(α,β,k-1)
