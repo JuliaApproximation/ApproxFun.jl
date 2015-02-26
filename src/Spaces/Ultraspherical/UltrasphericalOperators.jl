@@ -107,6 +107,29 @@ for TYP in (:UnitRange,:Range) # needed to avoid confusion
     end
 end
 
+function addentries!{λ,PS<:PolynomialSpace,T}(M::Multiplication{Ultraspherical{λ},PS,T},A,kr::UnitRange)
+    a=coefficients(M.f)
+    for k=kr
+        A[k,k]=a[1]
+    end
+
+    if length(a) > 1
+        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+
+        J=subview(Recurrence(domainspace(M)),jkr,jkr)
+        C1=2λ*J
+        addentries!(C1,a[2],A,kr)
+        C0=isbaeye(jkr)
+        
+        for k=1:length(a)-2
+            C1,C0=2(k+λ)/(k+1)*J*C1-(k+2λ-1)/(k+1)*C0,C1
+            addentries!(C1,a[k+2],A,kr)
+        end
+    end
+
+    A
+end
+
 
 function addentries!{PS<:PolynomialSpace}(M::Multiplication{Chebyshev,PS},A,kr::UnitRange)
     a=coefficients(M.f)
