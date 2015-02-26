@@ -76,7 +76,7 @@ domain(S::StrideOperator)=Any ##TODO: tensor product
 ## SliceOperator
 
 # Some of this is verbatim from IndexSlice
-immutable SliceOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+immutable SliceOperator{T,B} <: BandedOperator{T}
     op::B
     rowindex::Int       
     colindex::Int       
@@ -97,7 +97,9 @@ SliceOperator{T<:Number}(B::Operator{T},r,c,rs,cs)=SliceOperator{T,typeof(B)}(B,
 SliceOperator{T<:Number}(B::Operator{T},r,c,rs)=SliceOperator{T,typeof(B)}(B,r,c,rs,rs)
 
 
-bandinds(S::SliceOperator)=(div(bandinds(S.op,1)+S.colindex-S.rowindex,S.rowstride),div(bandinds(S.op,2)+S.colindex-S.rowindex,S.rowstride))
+Base.convert{T}(::Type{BandedOperator{T}},S::SliceOperator)=SliceOperator(convert(BandedOperator{T},S.op),S.rowindex,S.colindex,S.rowstride,S.colstride)
+
+bandinds(S::SliceOperator)=(div(bandinds(S.op,1)+S.rowindex-S.colindex,S.rowstride),div(bandinds(S.op,2)+S.rowindex-S.colindex,S.rowstride))
 
 function destride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
     r1=rs*kr[1]+ri:rs:rs*kr[end]+ri
@@ -111,8 +113,8 @@ destride_addentries!(S::SliceOperator,A,kr::Range)=destride_addentries!(S.op,S.r
 
 addentries!(S::SliceOperator,A,kr)=destride_addentries!(S,A,kr)
 domain(S::SliceOperator)=domain(S.op)
-domainspace(S::SliceOperator)=StrideSpace(domainspace(S.op),S.colindex,S.colstride)
-rangespace(S::SliceOperator)=StrideSpace(rangespace(S.op),S.rowindex,S.rowstride)
+domainspace(S::SliceOperator)=S.colindex==0&&S.colstride==1?domainspace(S.op):SliceSpace(domainspace(S.op),S.colindex,S.colstride)
+rangespace(S::SliceOperator)=SliceSpace(rangespace(S.op),S.rowindex,S.rowstride)
 
 
 

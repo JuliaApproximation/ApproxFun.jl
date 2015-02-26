@@ -1,6 +1,7 @@
 export Arc
 
-mobius(a,b,c,d,z)=(a*z+b)./(c*z+d)
+mobius(a,b,c,d,z::Vector)=(a*z+b)./(c*z+d)
+mobius(a,b,c,d,z::Number)=isinf(z)?a/c:(a*z+b)./(c*z+d)
 mobiusinv(a,b,c,d,z)=mobius(d,-b,-c,a,z)
 
 immutable Arc{T<:Number,V<:Real} <: IntervalDomain{Complex{Float64}}
