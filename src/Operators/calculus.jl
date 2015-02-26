@@ -46,10 +46,10 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         addentries!{T}(::$Op{UnsetSpace,T},A,kr::Range)=error("Spaces cannot be inferred for operator")
         
         function addentries!{S,T}(D::$Op{S,T},A,kr::Range)   
-            # Default is to convert to Canonical and d
+            # Default is to convert to Canonical and apply operator there
             sp=domainspace(D)
             csp=canonicalspace(sp)
-            if csp==sp
+            if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
                 error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr)
@@ -58,7 +58,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         function bandinds(D::$Op)
             sp=domainspace(D)
             csp=canonicalspace(sp)
-            if csp==sp
+            if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
                 error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end     
             bandinds(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)])) 
@@ -68,7 +68,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         function rangespace{S,T}(D::$Op{S,T})
             sp=domainspace(D)
             csp=canonicalspace(sp)
-            if csp==sp
+            if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
                 error("Override *"string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end      
             rangespace($Op(canonicalspace(domainspace(D)),D.order))

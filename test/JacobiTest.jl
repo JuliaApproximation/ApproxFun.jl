@@ -91,3 +91,8 @@ g=Fun(cos,Jacobi(0.123,12.324))
 f=Fun(exp,Jacobi(0.213,0.590))
 
 @test_approx_eq (g*f)[.1] cos(.1)*exp(.1)
+
+
+## Jacobi integrate and sum
+
+@test_approx_eq sum(Fun(exp,Legendre([0,2]))) sum(Fun(exp,[0,2]))

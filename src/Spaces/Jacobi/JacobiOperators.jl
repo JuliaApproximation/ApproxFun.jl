@@ -34,14 +34,12 @@ end
 
 ## Derivative
 
-Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Float64}(J,1):TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),Derivative{Jacobi,Float64}(J,1))
+Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Float64}(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),Derivative{Jacobi,Float64}(J,1)),k)
 
 
 
 rangespace(D::Derivative{Jacobi})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
 bandinds(D::Derivative{Jacobi})=0,D.order
-
-
 
 function addentries!(T::Derivative{Jacobi},A,kr::Range)
     d=domain(T)
@@ -53,16 +51,34 @@ end
 
 
 ## Integral
-#TODO: implement, with special case for Chebyshev
-# function Integral(S::Jacobi,m::Integer)
-#     if isapprox(S.a,-0.5)&&isapprox(S.b,-0.5))
-#          
-#     else
-#     
-#     end
-# end
-# 
-# bandinds(D::Integral{Jacobi})=-D.order,0
+
+function Integral(J::Jacobi,k::Integer)
+    if k > 1 
+        Q=Integral(J,1)
+        IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
+    elseif J.a > 0 && J.b > 0   # we have a simple definition
+        Integral{Jacobi,Float64}(J,1)
+    else   # convert and then integrate
+        sp=Jacobi(J.a+1,J.b+1,domain(J))
+        C=Conversion(J,sp)
+        Q=Integral(sp,1)
+        IntegralWrapper(TimesOperator(Q,C),1)
+    end
+end
+
+
+rangespace(D::Integral{Jacobi})=Jacobi(D.space.a-D.order,D.space.b-D.order,domain(D))
+bandinds(D::Integral{Jacobi})=-D.order,0
+
+function addentries!(T::Integral{Jacobi},A,kr::Range)
+    @assert T.order==1
+    d=domain(T)
+    for k=intersect(2:kr[end],kr)
+        A[k,k-1]+=(d.b-d.a)./(k+T.space.a+T.space.b-2)
+    end
+    A
+end
+
 
 ## Conversion
 # We can only increment by a or b by one, so the following
