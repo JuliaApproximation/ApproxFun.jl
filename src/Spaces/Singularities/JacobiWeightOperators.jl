@@ -11,7 +11,7 @@ function Base.sum(f::Fun{JacobiWeight{Chebyshev}})
         return Inf*fromcanonicalD(f,0.)*(sign(fs[d.a])+sign(fs[d.b]))/2
     else
         n = length(f)
-        c = zeros(n)
+        c = zeros(eltype(f),n)
         c[1] = 2.^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
         if n > 1
             c[2] = c[1]*(α-β)/(α+β+2)
@@ -19,7 +19,7 @@ function Base.sum(f::Fun{JacobiWeight{Chebyshev}})
                 c[i+2] = (2(α-β)*c[i+1]-(α+β-i+2)*c[i])/(α+β+i+2)
             end
         end
-        return fromcanonicalD(f,0.)*dot(f.coefficients,c)
+        return fromcanonicalD(f,0.)*sum(f.coefficients.*c)
     end
 end
 
@@ -79,10 +79,10 @@ end
 
 function Base.cumsum{J<:JacobiWeight}(f::Fun{J})
     g=integrate(f)
-    
+
     S=space(f)
-    
-    if S.α==0 && S.β==0     
+
+    if S.α==0 && S.β==0
         g-first(g)
     elseif S.α>-1
         Fun(-first(g),domain(g))⊕g
@@ -200,14 +200,14 @@ function Conversion(A::JacobiWeight,B::JacobiWeight)
     if isapprox(A.α,B.α) && isapprox(A.β,B.β)
         SpaceOperator(Conversion(A.space,B.space),A,B)
     elseif A.space==B.space
-        @assert A.α≥B.α&&A.β≥B.β    
+        @assert A.α≥B.α&&A.β≥B.β
         d=domain(A)
         x=Fun(identity,d)
         M=tocanonical(d,x)
         m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
         MC=Multiplication(m,B.space)
         # The following is just a safety check
-        @assert rangespace(MC) == B.space        
+        @assert rangespace(MC) == B.space
         SpaceOperator(MC,A,B)# Wrap the operator with the correct spaces
     else
         @assert A.α≥B.α&&A.β≥B.β
@@ -230,7 +230,7 @@ Conversion(A::IntervalSpace,B::JacobiWeight)=ConversionWrapper(
 Conversion(A::JacobiWeight,B::IntervalSpace)=ConversionWrapper(
     SpaceOperator(
         Conversion(A,JacobiWeight(0,0,B)),
-        A,B))        
+        A,B))
 
 
 
@@ -284,7 +284,7 @@ function getindex{λ,T}(S::Σ{JacobiWeight{Ultraspherical{λ}},T},kr::Range)
     @assert dsp.α==dsp.β==λ-0.5
 
     C = (d.b-d.a)/2
-    
+
     T[k == 1?  C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
 end
 
