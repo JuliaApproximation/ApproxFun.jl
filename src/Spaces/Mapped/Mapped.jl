@@ -126,12 +126,6 @@ end
 
 Base.cumsum{LS<:JacobiWeight,RR<:Ray,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})=integrate(f) # the choice of space is zero at 0
 
-# function integrate{LS,RR<:Ray,TT,DS,T}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
-#     x=Fun(identity)
-#     g=fromcanonicalD(f,x)*Fun(f.coefficients)
-#     Fun(integrate(Fun(g,Chebyshev)).coefficients,space(f))
-# end
-
 
 function Base.sum{LS,T}(f::Fun{LineSpace{LS},T})
     d=domain(f)

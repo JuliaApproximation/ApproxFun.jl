@@ -27,6 +27,8 @@ Base.eltype{T}(::Domain{T})=T
 
 abstract IntervalDomain{T} <: Domain{T}
 
+canonicaldomain(::IntervalDomain)=Interval()
+
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
         T[cospi((one(T)/2+k)/n) for k=-n:-1]

@@ -29,7 +29,6 @@ Line()=Line(0.,0.)
 
 ##TODO non-1 alpha,beta
 
-canonicaldomain(::Line)=Interval()
 
 function tocanonical(d::Line,x)
     @assert d.α==d.β==-1. || d.α==d.β==-.5
