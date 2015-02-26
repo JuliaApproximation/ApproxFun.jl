@@ -99,8 +99,8 @@ end
 
 
 
-function addentries!{D<:Ultraspherical,PS<:PolynomialSpace,T}(M::Multiplication{D,PS,T},A,kr::UnitRange)
-    a=coefficients(M.f,domainspace(M))
+function addentries!{λ,PS<:PolynomialSpace,T}(M::Multiplication{Ultraspherical{λ},PS,T},A,kr::UnitRange)
+    a=coefficients(M.f)
     for k=kr
         A[k,k]=a[1]
     end
@@ -108,7 +108,7 @@ function addentries!{D<:Ultraspherical,PS<:PolynomialSpace,T}(M::Multiplication{
     if length(a) > 1
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
 
-        J=subview(Recurrence(sp),jkr,jkr)
+        J=subview(Recurrence(domainspace(M)),jkr,jkr)
         C1=2λ*J
         addentries!(C1,a[2],A,kr)
         C0=isbaeye(jkr)
