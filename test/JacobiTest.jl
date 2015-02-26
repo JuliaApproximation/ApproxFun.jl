@@ -65,3 +65,29 @@ f=Fun(exp,domainspace(D))
 @test (D^2*f-f).coefficients|>norm < eps(100000000.)
 @test (D*(D*f)-f).coefficients|>norm < eps(100000000.)
 
+
+
+
+
+### Jacobi multiplication
+
+x=Fun(identity,Jacobi(0.,0.))
+f=Fun(exp,Jacobi(0.,0.))
+
+@test_approx_eq (x*f)[.1] .1exp(.1)
+
+x=Fun(identity,Jacobi(0.123,12.324))
+f=Fun(exp,Jacobi(0.,0.))
+
+@test_approx_eq (x*f)[.1] .1exp(.1)
+
+
+x=Fun(identity,Jacobi(0.123,12.324))
+f=Fun(exp,Jacobi(0.213,0.590))
+
+@test_approx_eq (x*f)[.1] .1exp(.1)
+
+g=Fun(cos,Jacobi(0.123,12.324))
+f=Fun(exp,Jacobi(0.213,0.590))
+
+@test_approx_eq (g*f)[.1] cos(.1)*exp(.1)

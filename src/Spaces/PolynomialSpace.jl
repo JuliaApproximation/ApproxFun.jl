@@ -48,7 +48,7 @@ end
 #####
 
 
-function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T<:Number}(M::Multiplication{US,PS,T},A,kr::UnitRange)
+function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::Multiplication{US,PS,T},A,kr::UnitRange)
     a=coefficients(M.f)
     fsp=space(M.f)
     for k=kr

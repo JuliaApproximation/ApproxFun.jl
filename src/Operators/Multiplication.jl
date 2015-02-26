@@ -1,6 +1,6 @@
 abstract AbstractMultiplication{T} <:BandedOperator{T}
 
-immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T<:Number,V<:Number} <: AbstractMultiplication{V}
+immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T,V} <: AbstractMultiplication{V}
     f::Fun{D,T}
     space::S
 

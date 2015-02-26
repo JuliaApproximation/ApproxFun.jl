@@ -97,9 +97,9 @@ end
 
 for TYP in (:UnitRange,:Range) # needed to avoid confusion
     @eval begin
-        addentries!(M::Multiplication{Chebyshev,Chebyshev},A,kr::$TYP)=chebmult_addentries!(coefficients(M.f),A,kr)
+        addentries!{T}(M::Multiplication{Chebyshev,Chebyshev,T},A,kr::$TYP)=chebmult_addentries!(coefficients(M.f),A,kr)
 
-        function addentries!(M::Multiplication{Chebyshev,Ultraspherical{1}},A,kr::$TYP)
+        function addentries!{T}(M::Multiplication{Chebyshev,Ultraspherical{1},T},A,kr::$TYP)
             cfs=coefficients(M.f)
             toeplitz_addentries!(.5cfs,A,kr)
             hankel_addentries!(-.5cfs[3:end],A,kr)
@@ -131,7 +131,7 @@ function addentries!{λ,PS<:PolynomialSpace,T}(M::Multiplication{Ultraspherical{
 end
 
 
-function addentries!{PS<:PolynomialSpace}(M::Multiplication{Chebyshev,PS},A,kr::UnitRange)
+function addentries!{PS<:PolynomialSpace,T}(M::Multiplication{Chebyshev,PS,T},A,kr::UnitRange)
     a=coefficients(M.f)
 
     for k=kr
