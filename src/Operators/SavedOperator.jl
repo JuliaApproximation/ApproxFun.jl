@@ -14,11 +14,8 @@ type SavedFunctional{T<:Number,M<:Functional} <: Functional{T}
     datalength::Int
 end
 
-function SavedFunctional{T<:Number}(op::Functional{T})
-    data = Array(T,0)
-    
-    SavedFunctional(op,data,0)
-end
+SavedFunctional(op::Functional,data)=SavedFunctional(op,data,length(data))
+SavedFunctional{T<:Number}(op::Functional{T})=SavedFunctional(op,Array(T,0),0)
 
 Base.convert{T}(::Type{Functional{T}},S::SavedFunctional)=SavedFunctional(convert(Functional{T},S.op))
 
