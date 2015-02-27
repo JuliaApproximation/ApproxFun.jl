@@ -20,7 +20,7 @@ SavedFunctional{T<:Number}(op::Functional{T})=SavedFunctional(op,Array(T,0),0)
 Base.convert{T}(::Type{Functional{T}},S::SavedFunctional)=SavedFunctional(convert(Functional{T},S.op))
 
 domainspace(F::SavedFunctional)=domainspace(F.op)
-
+datalength(S::SavedFunctional)=datalength(S.op)
 
 function Base.getindex(B::SavedFunctional,k::Integer)
     resizedata!(B,k)
