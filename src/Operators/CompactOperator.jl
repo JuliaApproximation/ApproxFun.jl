@@ -33,5 +33,5 @@ domainspace(S::CompactFunctional)=S.domainspace
 datalength(S::CompactFunctional)=length(S.data)
 
 
-Base.getindex(B::CompactFunctional,k::Integer)=k≤datalength(B)?B.data[k]:B.data
+Base.getindex{S,T}(B::CompactFunctional{S,T},k::Integer)=k≤datalength(B)?B.data[k]:zero(T)
 Base.getindex{S,T}(B::CompactFunctional{S,T},kr::Range)=T[B[k] for k=kr]
