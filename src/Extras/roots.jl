@@ -31,7 +31,7 @@ function roots( f::Fun{Chebyshev} )
 
     d = domain(f)
     c = f.coefficients
-    vscale = maxabs( values( f ) )
+    vscale = maxabs(values(f))
     if vscale == 0
         warn("Tried to take roots of a zero function.  Returning [].")
         ##TODO: could be complex domain, in which case type should be Complex{Float64}
@@ -75,7 +75,25 @@ function colleague_matrix{T<:Number}( c::Vector{T} )
 end
 
 
-colleague_eigvals( c::Vector )=hesseneigvals(colleague_matrix(c))
+function colleague_balance!(M)
+    n=size(M,1)
+    if n<2
+        return M
+    end
+    
+    d=1+abs(M[1,2])
+    M[1,2]/=d;M[2,1]*=d
+    
+    for k=3:n
+        M[k-1,k]*=d;M[k,k-1]/=d        
+        d+=abs(M[1,k])
+        M[1,k]/=d;M[k-1,k]/=d;M[k,k-1]*=d
+    end
+    M
+end
+
+
+colleague_eigvals( c::Vector )=hesseneigvals(colleague_balance!(colleague_matrix(c)))
 
 function PruneOptions( r, htol::Float64 )
 # ONLY KEEP ROOTS IN THE INTERVAL
@@ -129,7 +147,7 @@ function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::Clensha
 
         # Adjust the coefficients for the colleague matrix
         # Prune roots depending on preferences:
-        r = PruneOptions( colleague_eigvals( c ), htol )::Vector{Float64}
+        r = PruneOptions( colleague_eigvals(c), htol )::Vector{Float64}
 
     else
 

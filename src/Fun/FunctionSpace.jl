@@ -1,6 +1,6 @@
 
 
-export FunctionSpace, domainspace, rangespace, maxspace,Space
+export FunctionSpace, domainspace, rangespace, maxspace,Space,conversion_type
 
 
 ## 

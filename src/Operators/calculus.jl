@@ -3,6 +3,11 @@ export Derivative,Integral
 
 abstract CalculusOperator{S,T}<:BandedOperator{T}
 
+
+## Note that all functions called in calculus_operator must be exported
+
+
+
 macro calculus_operator(Op,AbstOp,WrappOp)
     return esc(quote        
         # The SSS, TTT are to work around #9312

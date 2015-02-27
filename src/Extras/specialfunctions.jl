@@ -17,13 +17,22 @@ function splitatroots(f::Fun)
     end
 end
 
-function splitmap(g,d,pts)
-    @assert isa(d,AffineDomain)
+function splitmap(g,d::AffineDomain,pts)
     da=first(d)
     isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : pts = [da;pts]
     db=last(d)
     isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts;db]
     Fun(g,pts)
+end
+
+function splitmap(g,d::IntervalDomain,pts)
+    if length(pts)==1 && (first(pts)==first(d) || last(pts)==last(d))
+        Fun(g,d)
+    elseif length(pts)==2 && first(pts)==first(d) && last(pts)==last(d)
+        Fun(g,d)
+    else
+        error("implement splitmap for"*typeof(d))
+    end
 end
 
 function Base.abs{S<:RealSpace,T<:Real}(f::Fun{S,T})
