@@ -22,6 +22,8 @@ JacobiWeight(a::Number,b::Number,d::Domain)=JacobiWeight(float64(a),float64(b),S
 JacobiWeight(a,b)=JacobiWeight(a,b,Chebyshev())
 JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(float64(a),float64(b),Space(d))
 
+identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x->x,S):Fun(identity,domain(S))
+
 
 domain(S::JacobiWeight)=domain(S.space)
 

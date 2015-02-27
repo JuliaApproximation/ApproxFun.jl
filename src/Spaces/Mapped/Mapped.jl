@@ -119,6 +119,22 @@ function integrate{LS<:JacobiWeight,RR<:Line,T,TT,DS}(f::Fun{MappedSpace{LS,RR,T
     linsolve([Evaluation(domainspace(D),0.),D],Any[0.,f];tolerance=length(f)*1.0E-15)
 end
 
+function integrate{LS,RR,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
+    fc=Fun(f.coefficients,space(f).space)
+    x=Fun(identity,domain(fc))
+    Mp=fromcanonicalD(f,x)
+    g=integrate(fc*Mp)
+    Fun(g.coefficients,MappedSpace(domain(f),space(g)))
+end
+
+
+function Base.sum{LS,RR,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
+    fc=Fun(f.coefficients,space(f).space)
+    x=Fun(identity,domain(fc))
+    Mp=fromcanonicalD(f,x)
+    sum(fc*Mp)
+end
+
 
 Base.cumsum{LS<:JacobiWeight,RR<:Ray,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})=integrate(f) # the choice of space is zero at 0
 
