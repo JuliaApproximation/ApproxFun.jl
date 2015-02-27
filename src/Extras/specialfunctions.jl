@@ -26,12 +26,12 @@ function splitmap(g,d::AffineDomain,pts)
 end
 
 function splitmap(g,d::IntervalDomain,pts)
-    if length(pts)==1 && (first(pts)==first(d) || last(pts)==last(d))
+    if length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
         Fun(g,d)
-    elseif length(pts)==2 && first(pts)==first(d) && last(pts)==last(d)
+    elseif length(pts)==2 && isapprox(first(pts),first(d)) && isapprox(last(pts),last(d))
         Fun(g,d)
     else
-        error("implement splitmap for"*typeof(d))
+        error("implement splitmap for "*string(typeof(d)))
     end
 end
 
@@ -134,35 +134,35 @@ function ./{S<:MappedSpace}(c::Number,f::Fun{S})
     g=c./Fun(coefficients(f),space(f).space)
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
-function .^{S<:MappedSpace}(f::Fun{S},k::Float64)
+function .^{S<:FunctionSpace,D,T,DS}(f::Fun{MappedSpace{S,D,T,DS}},k::Float64)
     g=Fun(coefficients(f),space(f).space).^k
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
 
-function .^{S<:MappedChebyshev}(f::Fun{S},k::Float64)
+function .^{S<:PolynomialSpace,D,T,DS}(f::Fun{MappedSpace{S,D,T,DS}},k::Float64)
     fc = Fun(f.coefficients) #Project to interval
     x=Fun(identity)
 
     r = sort(roots(fc))
 
-
+    sp=space(f)
     @assert length(r) <= 2
 
     if length(r) == 0
-        Fun(Fun(x->fc[x]^k).coefficients,space(f))
+        Fun(Fun(x->fc[x]^k).coefficients,sp)
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(+1,fc)^k),JacobiWeight(0.,k,space(f)))
+            Fun(coefficients(divide_singularity(+1,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
         else
-            Fun(coefficients(divide_singularity(-1,fc)^k),JacobiWeight(k,0.,space(f)))
+            Fun(coefficients(divide_singularity(-1,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
         end
     else
         @assert isapprox(r[1],-1)
         @assert isapprox(r[2],1)
 
-        Fun(coefficients(divide_singularity(fc)^k),JacobiWeight(k,k,space(f)))
+        Fun(coefficients(divide_singularity(fc)^k),MappedSpace(sp.domain,JacobiWeight(k,k,sp.space)))
     end
 end
 
