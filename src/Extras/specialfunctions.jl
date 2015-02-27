@@ -139,13 +139,15 @@ function .^{S<:FunctionSpace,D,T,DS}(f::Fun{MappedSpace{S,D,T,DS}},k::Float64)
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
 
-function .^{S<:PolynomialSpace,D,T,DS}(f::Fun{MappedSpace{S,D,T,DS}},k::Float64)
-    fc = Fun(f.coefficients) #Project to interval
-    x=Fun(identity)
+
+#TODO: Unify following
+function .^{S<:Chebyshev,D,T,DS}(f::Fun{MappedSpace{S,D,T,DS}},k::Float64)
+    sp=space(f)
+    # Need to think what to do if this is ever not the case..
+    @assert isapprox(domain(sp.space),Interval())  
+    fc = Fun(f.coefficients,sp.space) #Project to interval
 
     r = sort(roots(fc))
-
-    sp=space(f)
     @assert length(r) <= 2
 
     if length(r) == 0
@@ -163,6 +165,32 @@ function .^{S<:PolynomialSpace,D,T,DS}(f::Fun{MappedSpace{S,D,T,DS}},k::Float64)
         @assert isapprox(r[2],1)
 
         Fun(coefficients(divide_singularity(fc)^k),MappedSpace(sp.domain,JacobiWeight(k,k,sp.space)))
+    end
+end
+
+function .^(f::Fun{Chebyshev},k::Float64)
+    # Need to think what to do if this is ever not the case..
+    sp = space(f)
+    fc = Fun(f.coefficients) #Project to interval
+
+    r = sort(roots(fc))
+    @assert length(r) <= 2
+
+    if length(r) == 0
+        Fun(Fun(x->fc[x]^k).coefficients,sp)
+    elseif length(r) == 1
+        @assert isapprox(abs(r[1]),1)
+
+        if isapprox(r[1],1.)
+            Fun(coefficients(divide_singularity(+1,fc)^k),JacobiWeight(0.,k,sp))
+        else
+            Fun(coefficients(divide_singularity(-1,fc)^k),JacobiWeight(k,0.,sp))
+        end
+    else
+        @assert isapprox(r[1],-1)
+        @assert isapprox(r[2],1)
+
+        Fun(coefficients(divide_singularity(fc)^k),JacobiWeight(k,k,sp))
     end
 end
 
