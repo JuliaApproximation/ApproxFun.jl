@@ -19,7 +19,7 @@ function Base.sum(f::Fun{JacobiWeight{Chebyshev}})
                 c[i+2] = (2(α-β)*c[i+1]-(α+β-i+2)*c[i])/(α+β+i+2)
             end
         end
-        return fromcanonicalD(f,0.)*sum(f.coefficients.*c)
+        return fromcanonicalD(f,0.)*dotu(f.coefficients,c)
     end
 end
 
