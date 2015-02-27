@@ -43,6 +43,14 @@ function Base.show{S}(io::IO,s::ArraySpace{S,1})
     show(io,s.space)
 end
 
+
+function Base.show(io::IO,s::SumSpace)
+    show(io,s.spaces[1])
+    print(io,"⊕")
+    show(io,s.spaces[2])
+end
+
+
 function Base.show(io::IO,f::Fun)
     print(io,"Fun(")
     show(io,f.coefficients)
