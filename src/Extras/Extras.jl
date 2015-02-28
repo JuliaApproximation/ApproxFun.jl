@@ -38,3 +38,5 @@ pochhammer{T1<:Number,T2<:Number}(x::T1,n::T2) = gamma(x+n)/gamma(x)
 pochhammer{T1<:Number,T2<:Number}(x::Array{T1},n::T2) = gamma(x+n)./gamma(x)
 
 include("show.jl")
+include("poetry.jl")
+

@@ -192,7 +192,7 @@ end
 
 
 Derivative(d::Union(ProductDomain,TensorSpace),k::Integer)=k==1?Derivative(d[1])⊗I:I⊗Derivative(d[2])  
-Base.diff(d::Union(ProductDomain,TensorSpace),k::Integer)=Derivative(d,k)
+
 grad(d::ProductDomain)=[Derivative(d,k) for k=1:length(d.domains)]
 
 
