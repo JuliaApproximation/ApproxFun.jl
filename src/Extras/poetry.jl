@@ -5,6 +5,15 @@
 
 export ∫,⨜,⨍
 
+## Constructors
+
+Fun()=Fun(identity)
+Fun(d::Domain)=Fun(identity,d)
+Fun(d::FunctionSpace)=Fun(identity,d)
+
+## diff
+
+
 # diff(::Fun{ArraySpace}) is left as array diff
 
 Base.diff{S,T}(f::Fun{S,T},n...)=differentiate(f,n...)
