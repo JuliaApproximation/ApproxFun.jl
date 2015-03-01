@@ -19,6 +19,7 @@ Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
 
 Evaluation(d::Domain,x::Union(Number,Bool),n...)=Evaluation(Space(d),x,n...)
 Evaluation(x::Union(Number,Bool))=Evaluation(AnySpace(),x,0)
+Evaluation(x::Union(Number,Bool),k::Integer)=Evaluation(AnySpace(),x,k)
 Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
 
 

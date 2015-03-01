@@ -9,7 +9,7 @@ immutable PeriodicInterval{T<:Number} <: PeriodicDomain{T}
 end
 
 PeriodicInterval()=PeriodicInterval(-1.π,1.π)
-
+PeriodicInterval(a::Int,b::Int) = PeriodicInterval(float64(a),float64(b))   #convenience method
 
 Interval(d::PeriodicInterval)=Interval(d.a,d.b)
 PeriodicInterval(d::Interval)=PeriodicInterval(d.a,d.b)
