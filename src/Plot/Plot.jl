@@ -35,8 +35,10 @@ if isdir(Pkg.dir("PyPlot"))
     include("PyPlot.jl")
     setplotter("PyPlot")    
 end
+
+include("Gadfly.jl")
+
 if isdir(Pkg.dir("Gadfly"))
-    include("Gadfly.jl")
     setplotter("Gadfly")
 end
 if isdir(Pkg.dir("TikzGraphs"))
