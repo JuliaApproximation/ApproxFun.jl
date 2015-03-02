@@ -1,13 +1,13 @@
-typealias PeriodicSpace{T} FunctionSpace{T,PeriodicInterval}       
+typealias PeriodicSpace{T} FunctionSpace{T,PeriodicInterval}
 canonicaldomain{T<:PeriodicSpace}(::Type{T})=PeriodicInterval()
 
 ## Evaluation
 
 Evaluation(d::PeriodicDomain,x::Number,n...)=Evaluation(Laurent(d),complex(x),n...)
 
-## Sigma
+## Definite Integral
 
-Σ(d::PeriodicDomain)=Σ(Laurent(d))
+DefiniteIntegral(d::PeriodicDomain)=DefiniteIntegral(Laurent(d))
 
 ## Toeplitz
 

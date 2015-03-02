@@ -201,7 +201,7 @@ include("TridiagonalOperator.jl")
 include("Conversion.jl")
 include("Multiplication.jl")
 include("calculus.jl")
-include("Sigma.jl")
+include("DefiniteIntegral.jl")
 include("Evaluation.jl")
 
 

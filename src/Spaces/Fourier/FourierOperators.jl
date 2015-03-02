@@ -70,16 +70,16 @@ function addentries!(D::Derivative{CosSpace},A,kr::Range)
         elseif mod(m,4)==1
             A[k,k+1] -= (C*k)^m
         elseif mod(m,4)==3
-            A[k,k+1] += (C*k)^m            
+            A[k,k+1] += (C*k)^m
         end
     end
-    
+
     A
 end
 
 function addentries!(D::Derivative{SinSpace},A,kr::Range)
     d=domain(D)
-    @assert isa(d,PeriodicInterval)    
+    @assert isa(d,PeriodicInterval)
     m=D.order
     C=2π./(d.b-d.a)
 
@@ -87,14 +87,14 @@ function addentries!(D::Derivative{SinSpace},A,kr::Range)
         if mod(m,4)==0
             A[k,k] += (C*k)^m
         elseif mod(m,4)==2
-            A[k,k] += -(C*k)^m        
+            A[k,k] += -(C*k)^m
         elseif k>1 && mod(m,4)==1
             A[k,k-1] += (C*(k-1))^m
         elseif k>1 && mod(m,4)==3
-            A[k,k-1] += -(C*(k-1))^m            
+            A[k,k-1] += -(C*(k-1))^m
         end
     end
-    
+
     A
 end
 
@@ -107,7 +107,7 @@ rangespace{S<:SinSpace}(D::Integral{S})=iseven(D.order)?D.space:CosSpace(domain(
 
 function addentries!(D::Integral{SinSpace},A,kr::Range)
     d=domain(D)
-    @assert isa(d,PeriodicInterval)    
+    @assert isa(d,PeriodicInterval)
     m=D.order
     C=2π./(d.b-d.a)
 
@@ -122,7 +122,7 @@ function addentries!(D::Integral{SinSpace},A,kr::Range)
             A[k,k-1] += (C*(k-1))^(-m)
         end
     end
-    
+
     A
 end
 
@@ -136,7 +136,7 @@ rangespace{T,DD}(D::Integral{SliceSpace{1,1,CosSpace,T,DD}})=iseven(D.order)?D.s
 
 function addentries!{T,DD}(D::Integral{SliceSpace{1,1,CosSpace,T,DD}},A,kr::Range)
     d=domain(D)
-    @assert isa(d,PeriodicInterval)    
+    @assert isa(d,PeriodicInterval)
     m=D.order
     C=2π./(d.b-d.a)
 
@@ -151,7 +151,7 @@ function addentries!{T,DD}(D::Integral{SliceSpace{1,1,CosSpace,T,DD}},A,kr::Rang
             A[k,k] += -(C*k)^(-m)
         end
     end
-    
+
     A
 end
 
@@ -165,7 +165,7 @@ addentries!{Sp<:CosSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)=chebmult_add
 function addentries!{Sp<:SinSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)
     a=M.f.coefficients
     toeplitz_addentries!(0.5ShiftVector([-flipud(a);0.],a),A,kr)
-    hankel_addentries!(0.5a,A,max(kr[1],2):kr[end])    
+    hankel_addentries!(0.5a,A,max(kr[1],2):kr[end])
     A
 end
 
@@ -210,17 +210,17 @@ end
 
 ## Definite integral
 
-Σ(sp::Fourier)=isa(domain(sp),PeriodicInterval)?Σ{Fourier,Float64}(sp):Σ{Fourier,Complex{Float64}}(sp)
+DefiniteIntegral(sp::Fourier)=isa(domain(sp),PeriodicInterval)?DefiniteIntegral{Fourier,Float64}(sp):DefiniteIntegral{Fourier,Complex{Float64}}(sp)
 
-function getindex{T}(S::Σ{Fourier,T},kr::Range)
-    d = domain(S)
+function getindex{T}(Σ::DefiniteIntegral{Fourier,T},kr::Range)
+    d = domain(Σ)
     if isa(d,PeriodicInterval)
         T[k == 1?  d.b-d.a : zero(T) for k=kr]
     else
         @assert isa(d,Circle)
-        T[k == 2?  -π*d.radius : (k==3?π*im*d.radius :zero(T)) for k=kr]        
+        T[k == 2?  -π*d.radius : (k==3?π*im*d.radius :zero(T)) for k=kr]
     end
 end
 
-datalength(S::Σ{Fourier})=isa(domain(S),PeriodicInterval)?1:3
+datalength(Σ::DefiniteIntegral{Fourier})=isa(domain(Σ),PeriodicInterval)?1:3
 

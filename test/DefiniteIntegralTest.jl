@@ -8,11 +8,11 @@ x=Fun(identity)
 w=1/sqrt(1-x^2)
 d=domain(x)
 
-S=Σ(d)
+Σ=DefiniteIntegral(d)
 
-@test domainspace(S) == JacobiWeight{Chebyshev}(-0.5,-0.5,Chebyshev())
+@test domainspace(Σ) == JacobiWeight{Chebyshev}(-0.5,-0.5,Chebyshev())
 
-L=I+S[exp(x)*w]
+L=I+Σ[exp(x)*w]
 usol=sin(2x)
 f=L*usol
 u=L\f
@@ -29,14 +29,14 @@ d=domain(x)
 
 D=Derivative(d)
 B=ldirichlet(d)
-S=Σ(.5,.5,d)
+Σ=DefiniteIntegral(.5,.5,d)
 
-@test domainspace(S) == JacobiWeight{Ultraspherical{1}}(.5,.5,Ultraspherical{1}(d))
+@test domainspace(Σ) == JacobiWeight{Ultraspherical{1}}(.5,.5,Ultraspherical{1}(d))
 
-K=LowRankFun((x,y)->sin(y-x)*w[y],Ultraspherical{1}(d),domainspace(S))
+K=LowRankFun((x,y)->sin(y-x)*w[y],Ultraspherical{1}(d),domainspace(Σ))
 
 
-L=D+x+S[K]
+L=D+x+Σ[K]
 usol=cospi(20x)
 f=L*usol
 u=[B;L]\[1.;f]
@@ -45,19 +45,19 @@ u=[B;L]\[1.;f]
 @test norm(u-usol) ≤ 100eps()
 
 
-
+Σ = DefiniteIntegral()
 
 f1=Fun(t->cos(cos(t)),[-π,π])
 f=Fun(t->cos(cos(t)),Laurent([-π,π]))
 
-@test_approx_eq sum(f1) Σ()*f
+@test_approx_eq sum(f1) Σ*f
 
 f1=Fun(t->cos(cos(t))/t,Laurent(Circle()))
 f2=Fun(t->cos(cos(t))/t,Fourier(Circle()))
-@test_approx_eq Σ()*f1 Σ()*f2
+@test_approx_eq Σ*f1 Σ*f2
 
 f1=Fun(t->cos(cos(t)),Laurent([-π,π]))
 f2=Fun(t->cos(cos(t)),Fourier([-π,π]))
-@test_approx_eq Σ()*f1 Σ()*f2
+@test_approx_eq Σ*f1 Σ*f2
 
 

@@ -274,12 +274,12 @@ function  Base.getindex{J<:JacobiWeight}(op::Evaluation{J,Bool},kr::Range)
 end
 
 
-## Σ
+## Definite Integral
 
 
-function getindex{λ,T}(S::Σ{JacobiWeight{Ultraspherical{λ}},T},kr::Range)
-    dsp = domainspace(S)
-    d = domain(S)
+function getindex{λ,T}(Σ::DefiniteIntegral{JacobiWeight{Ultraspherical{λ}},T},kr::Range)
+    dsp = domainspace(Σ)
+    d = domain(Σ)
     @assert isa(d,Interval)
     @assert dsp.α==dsp.β==λ-0.5
 
@@ -288,4 +288,4 @@ function getindex{λ,T}(S::Σ{JacobiWeight{Ultraspherical{λ}},T},kr::Range)
     T[k == 1?  C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
 end
 
-datalength{λ}(S::Σ{JacobiWeight{Ultraspherical{λ}}})=1
+datalength{λ}(Σ::DefiniteIntegral{JacobiWeight{Ultraspherical{λ}}})=1
