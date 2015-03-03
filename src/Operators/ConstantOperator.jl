@@ -26,10 +26,12 @@ end
 
 ## Basis Functional
 
-immutable BasisFunctional <: Functional{Float64}
+immutable BasisFunctional{T} <: Functional{T}
     k::Integer
 end
+BasisFunctional(k)=BasisFunctional{Float64}(k)
 
+Base.convert{T}(::Type{Operator{T}},B::BasisFunctional)=BasisFunctional{T}(B.k)
 
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
 Base.getindex(op::BasisFunctional,k::Range1)=convert(Vector{Float64},k.==op.k)
