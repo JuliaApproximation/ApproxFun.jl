@@ -188,7 +188,13 @@ function extremal_args{S<:IntervalSpace,T}(f::Fun{S,T})
     return pts
 end
 
-extremal_args{S<:PeriodicSpace,T}(f::Fun{S,T})=roots(differentiate(f))
+function extremal_args{S<:PeriodicSpace,T}(f::Fun{S,T})
+    if isa(domain(f),PeriodicInterval)
+        roots(differentiate(f))
+    else  # avoid complex domains
+        fromcanonical(f,extremal_args(Fun(f.coefficients,S(canonicaldomain(f)))))
+    end
+end
 
 for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
     @eval begin

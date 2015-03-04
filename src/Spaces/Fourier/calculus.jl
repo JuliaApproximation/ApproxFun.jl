@@ -42,63 +42,64 @@ function integrate(f::Fun{SinSpace})
     end
 end
 
-#TODO: Hack to make sure Fourier maps to Fourier
+#TODO: This is a hack to make sure Fourier maps to Fourier
+# we don't have banded differentiate from CosSpace/SinSpace on a circle
 for OP in (:differentiate,:integrate)
-    @eval $OP{T}(f::Fun{Fourier,T})=$OP(vec(f,2))⊕$OP(vec(f,1))
+    @eval $OP{T}(f::Fun{Fourier,T})=isa(domain(f),PeriodicInterval)?($OP(vec(f,2))⊕$OP(vec(f,1))):$OP(Fun(f,Laurent))
 end
 
 
-# 
-# 
+#
+#
 # fourierdiff(d::PeriodicInterval,cfs::ShiftVector)=tocanonicalD(d,0)*ShiftVector(1.im*[firstindex(cfs):-1],1.im*[0:lastindex(cfs)]).*cfs
-# 
-# 
-# 
-# 
+#
+#
+#
+#
 # function fourierintegrate(d::PeriodicInterval,cfs::ShiftVector)
 #     tol = 10eps()
 #     @assert abs(cfs[0]) < tol
-#     
+#
 #     ##TODO: mapped domains
-#     
+#
 #     @assert d.a ==-π
-#     @assert d.b ==π        
+#     @assert d.b ==π
 #     ShiftVector(-1im*cfs[firstindex(cfs):-1]./[firstindex(cfs):-1],
 #                 [0,(-1im*cfs[1:lastindex(cfs)]./[1:lastindex(cfs)])])
 # end
-# 
+#
 
-# 
-# 
-# 
+#
+#
+#
 # function fourierdiff(d::Circle,cfs::ShiftVector)
 #         ##TODO: general radii
 #         @assert d.radius == 1.
 #         @assert d.center == 0
-# 
+#
 #         # Now shift everything by one
 #         ShiftVector(
 #                         [cfs[firstindex(cfs):-1].*[firstindex(cfs):-1],0],
 #                         cfs[1:lastindex(cfs)].*[1:lastindex(cfs)]
 #                         )
 # end
-# 
-# 
-# 
+#
+#
+#
 # function fourierintegrate(d::Circle,cfs::ShiftVector)
 #     tol = 10eps()
-#     @assert abs(cfs[-1]) < tol        
-#     ##TODO: general radii        
+#     @assert abs(cfs[-1]) < tol
+#     ##TODO: general radii
 #     @assert d.radius == 1.
-#     @assert d.center == 0        
-#     
+#     @assert d.center == 0
+#
 #     # Now shift everything by one
 #     ShiftVector(
 #                     [cfs[firstindex(cfs):-1]./[firstindex(cfs):-1]],
 #                     [0,(cfs[0:lastindex(cfs)]./[1:lastindex(cfs)+1])]
 #                     )
 # end
-# 
+#
 
 
 fouriersum(d::PeriodicInterval,cfs)=cfs[1].*length(d)
