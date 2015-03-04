@@ -17,19 +17,19 @@ end
 SavedFunctional(op::Functional,data)=SavedFunctional(op,data,length(data))
 SavedFunctional{T<:Number}(op::Functional{T})=SavedFunctional(op,Array(T,0),0)
 
-Base.convert{T}(::Type{Functional{T}},S::SavedFunctional)=SavedFunctional(convert(Functional{T},S.op))
+Base.convert{BT<:Operator}(::Type{BT},S::SavedFunctional)=SavedFunctional(convert(Functional{eltype(BT)},S.op))
 
 domainspace(F::SavedFunctional)=domainspace(F.op)
 datalength(S::SavedFunctional)=datalength(S.op)
 
 function Base.getindex(B::SavedFunctional,k::Integer)
     resizedata!(B,k)
-    B.data[k] 
+    B.data[k]
 end
 
 function Base.getindex(B::SavedFunctional,k::Range)
     resizedata!(B,k[end]+50)
-    B.data[k] 
+    B.data[k]
 end
 
 
@@ -39,10 +39,10 @@ function resizedata!(B::SavedFunctional,n::Integer)
         resize!(B.data,2n)
 
         B.data[B.datalength+1:n]=B.op[B.datalength+1:n]
-        
+
         B.datalength = n
     end
-    
+
     B
 end
 
@@ -61,12 +61,12 @@ end
 
 
 # convert needs to throw away calculated data
-Base.convert{T}(::Type{BandedOperator{T}},S::SavedBandedOperator)=SavedBandedOperator(convert(BandedOperator{T},S.op))
+Base.convert{BT<:Operator}(::Type{BT},S::SavedBandedOperator)=SavedBandedOperator(convert(BandedOperator{eltype(BT)},S.op))
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function SavedBandedOperator{T<:Number}(op::BandedOperator{T})
-    data = BandedMatrix(T,0,:,bandinds(op))   
+    data = BandedMatrix(T,0,:,bandinds(op))
     SavedBandedOperator(op,data,0,bandinds(op))
 end
 
@@ -81,11 +81,11 @@ datalength(B::SavedBandedOperator)=B.datalength
 
 
 
-function addentries!(B::SavedBandedOperator,A,kr::Range)       
+function addentries!(B::SavedBandedOperator,A,kr::Range)
     resizedata!(B,kr[end])
-    
+
     addentries!(B.data,A,kr)
-    
+
     A
 end
 
@@ -94,10 +94,10 @@ function resizedata!(B::SavedBandedOperator,n::Integer)
         pad!(B.data,2n,:)
 
         addentries!(B.op,B.data,B.datalength+1:n)
-        
+
         B.datalength = n
     end
-    
+
     B
 end
 

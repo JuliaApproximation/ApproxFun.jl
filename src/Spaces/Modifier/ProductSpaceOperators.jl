@@ -29,7 +29,7 @@ end
 
 function Conversion(f::PiecewiseSpace,g::PiecewiseSpace)
     @assert length(f)==length(g)
-    ConversionWrapper(DiagonalPiecewiseOperator(Operator[Conversion(f[k],g[k]) for k=1:length(f)]))
+    ConversionWrapper(DiagonalPiecewiseOperator([Conversion(f[k],g[k]) for k=1:length(f)]))
 end
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
@@ -133,7 +133,7 @@ end
 SumInterlaceOperator{B<:Operator}(v::Vector{B})=SumInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
 SumInterlaceOperator(v::Vector{Any})=SumInterlaceOperator(Operator{mapreduce(eltype,promote_type,v)}[v...])
 
-Base.convert{T}(::Type{BandedOperator{T}},SI::SumInterlaceOperator)=SumInterlaceOperator(map(op->convert(BandedOperator{T},op),SI.ops))
+Base.convert{BT<:Operator}(::Type{BT},SI::SumInterlaceOperator)=SumInterlaceOperator(BandedOperator{eltype(BT)}[SI.ops...])
 
 for op in (:domainspace,:rangespace)
     @eval $op(S::SumInterlaceOperator)=SumSpace($op(S.ops[1]),$op(S.ops[2]))
@@ -157,7 +157,7 @@ function addentries!(::BiSwapOperator,A,kr::Range)
             A[k,k-1] += 1
         end
     end
-    
+
     A
 end
 
