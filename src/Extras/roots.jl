@@ -80,12 +80,12 @@ function colleague_balance!(M)
     if n<2
         return M
     end
-    
+
     d=1+abs(M[1,2])
     M[1,2]/=d;M[2,1]*=d
-    
+
     for k=3:n
-        M[k-1,k]*=d;M[k,k-1]/=d        
+        M[k-1,k]*=d;M[k,k-1]/=d
         d+=abs(M[1,k])
         M[1,k]/=d;M[k-1,k]/=d;M[k,k-1]*=d
     end
@@ -219,6 +219,14 @@ for op in (:(Base.indmax),:(Base.indmin))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             pts[$op(f[pts])]
+        end
+
+        function $op{S,T}(f::Fun{S,T})
+            # the following avoids warning when differentiate(f)==0
+            pts = extremal_args(f)
+            fp=f[pts]
+            @assert norm(imag(fp))<100eps()
+            pts[$op(real(fp))]
         end
     end
 end
