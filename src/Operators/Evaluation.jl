@@ -22,9 +22,9 @@ Evaluation(x::Union(Number,Bool))=Evaluation(AnySpace(),x,0)
 Evaluation(x::Union(Number,Bool),k::Integer)=Evaluation(AnySpace(),x,k)
 Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
 
-for TYP in (:Functional,:Operator)
-  @eval Base.convert{T}(::Type{$TYP{T}},E::Evaluation)=Evaluation(T,E.space,E.x,E.order)
-end
+
+Base.convert{BT<:Operator}(::Type{BT},E::Evaluation)=Evaluation(eltype(BT),E.space,E.x,E.order)
+
 
 ## default getindex
 getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)[D.x] for k=kr]

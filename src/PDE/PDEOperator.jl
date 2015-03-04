@@ -14,14 +14,16 @@ type PDEOperator{T}
 end
 
 Base.eltype{T}(::PDEOperator{T})=T
+Base.eltype{T}(::Type{PDEOperator{T}})=T
 
 
 function PDEOperator{BO<:BandedOperator}(A::Matrix{BO},d)
-  ops=Array(Operator{eltype(BO)},size(A,1),size(A,2))
+  T=eltype(BO)
+  ops=Array(Operator{T},size(A,1),size(A,2))
   for k=1:size(A,1),j=1:size(A,2)
     ops[k,j]=A[k,j]
   end
-  PDEOperator(ops,d)
+  PDEOperator(ops,d)::PDEOperator{T}
 end
 
 function PDEOperator(LL::Array)
@@ -41,7 +43,8 @@ function PDEOperator(LL::Array)
             break
         end
     end
-    PDEOperator(LL,dx*dy)
+    dd=(dx*dy)::BivariateDomain
+    PDEOperator(LL,dd)
 end
 
 
@@ -92,8 +95,8 @@ promotedomainspace(P::PDEOperator,S::TensorSpace)=promotedomainspace(promotedoma
 ⊗(A,B::Fun)=A⊗Multiplication(B)
 ⊗(A::Fun,B)=Multiplication(A)⊗B
 
-⊗(A::Vector,B::Operator)=PDEOperator[PDEOperator(Ai,B) for Ai in A]
-⊗(A::Operator,B::Vector)=PDEOperator[PDEOperator(A,Bi) for Bi in B]
+⊗(A::Vector,B::Operator)=PDEOperator{promote_type(eltype(eltype(A)),eltype(B))}[PDEOperator(Ai,B) for Ai in A]
+⊗(A::Operator,B::Vector)=PDEOperator{promote_type(eltype(A),eltype(eltype(B)))}[PDEOperator(A,Bi) for Bi in B]
 ⊗(A::Vector,B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
 ⊗(A::UniformScaling,B::Vector)=ConstantOperator(1.0A.λ)⊗B
 
@@ -269,7 +272,7 @@ function *(A::PDEOperator,F::ProductFun)
 end
 
 
-isfunctional(B::PDEOperator,k::Integer)=size(B.ops,1)==1&&size(B.ops,2)==2&&typeof(B.ops[1,k])<:Functional
+isfunctional(B::PDEOperator,k::Integer)=size(B.ops,1)==1&&size(B.ops,2)==2&&isa(B.ops[1,k],Functional)
 isxfunctional(B::PDEOperator)=isfunctional(B,1)
 isyfunctional(B::PDEOperator)=isfunctional(B,2)
 ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
@@ -277,7 +280,7 @@ ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
 
 function findfunctionals{T<:PDEOperator}(A::Vector{T},k::Integer)
     indsBx=find(f->isfunctional(f,k),A)
-    indsBx,Functional[(@assert Ai.ops[1,k==1?2:1]==ConstantOperator{Float64}(1.0); Ai.ops[1,k]) for Ai in A[indsBx]]
+    indsBx,Functional{eltype(T)}[(@assert Ai.ops[1,k==1?2:1]==ConstantOperator{Float64}(1.0); Ai.ops[1,k]) for Ai in A[indsBx]]
 end
 
 
