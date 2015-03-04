@@ -24,7 +24,7 @@ Derivative(sp::PiecewiseSpace,k::Integer)=DerivativeWrapper(DiagonalPiecewiseOpe
 function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     vf=vec(f)
     @assert length(vf)==length(sp)
-    MultiplicationWrapper(f,DiagonalPiecewiseOperator([Multiplication(vf[k],sp[k]) for k=1:length(vf)]))
+    MultiplicationWrapper(f,DiagonalPiecewiseOperator(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(vf[k],sp[k]) for k=1:length(vf)]))
 end
 
 function Conversion(f::PiecewiseSpace,g::PiecewiseSpace)
@@ -192,6 +192,6 @@ Integral(S::SumSpace,k::Integer)=IntegralWrapper(sumblkdiagm([Integral(S.spaces[
 function Multiplication{S,T,D,Q}(f::Fun{ArraySpace{S,2,T,D}},sp::ArraySpace{Q,1})
     @assert size(space(f),2)==length(sp)
     m=mat(f)
-    MultiplicationWrapper(f,interlace(Operator[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
+    MultiplicationWrapper(f,interlace(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
 end
 
