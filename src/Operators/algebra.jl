@@ -7,7 +7,7 @@ export PlusOperator,TimesOperator
 
 ##PlusFunctional
 
-immutable PlusFunctional{T<:Number} <: Functional{T} 
+immutable PlusFunctional{T<:Number} <: Functional{T}
     ops::Vector{Functional{T}}
 end
 
@@ -25,12 +25,12 @@ datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 
 promotedomainspace{T}(C::PlusFunctional{T},sp::FunctionSpace)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
 
-immutable PlusOperator{T<:Number} <: BandedOperator{T} 
+immutable PlusOperator{T<:Number} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
 end
 
 
-Base.convert{T}(::Type{BandedOperator{T}},P::PlusOperator)=PlusOperator{T}(P.ops)
+Base.convert{OT<:Operator}(::Type{OT},P::PlusOperator)=PlusOperator{eltype(OT)}(P.ops)
 
 promoteplus{T<:Number}(ops::Vector{BandedOperator{T}})=PlusOperator{T}(promotespaces(ops))
 promoteplus{T<:Number}(ops::Vector{Functional{T}})=PlusFunctional{T}(promotespaces(ops))
@@ -43,27 +43,27 @@ for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOpera
         function domainspace(P::$PLUS)
             for op in P.ops
                 sp = domainspace(op)
-                
+
                 if !isa(sp,AnySpace)
                     return sp
                 end
             end
-            
+
             AnySpace()
-        end        
-        
+        end
+
         domain(P::$PLUS)=commondomain(P.ops)
 
-    
+
         +(A::$PLUS,B::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
-        +(A::$PLUS,B::$PLUS,C::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B.ops...,C.ops...])        
+        +(A::$PLUS,B::$PLUS,C::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B.ops...,C.ops...])
         +(A::$PLUS,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A.ops...,B])
         +(A::$PLUS,B::$ZER)=A
-        +(A::$PLUS,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B,C])        
+        +(A::$PLUS,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B,C])
         +(A::$TYP,B::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B.ops...])
         +(A::$ZER,B::$PLUS)=B
-        +(A::$TYP,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B])        
-        +(A::$TYP,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A,B,C])                
+        +(A::$TYP,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B])
+        +(A::$TYP,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A,B,C])
         #TODO: Arbitrary number of summands
     end
 end
@@ -74,12 +74,12 @@ end
 function rangespace(P::PlusOperator)
     for op in P.ops
         sp = rangespace(op)
-        
+
         if !isa(sp,AnySpace)
             return sp
         end
     end
-    
+
     AnySpace()
 end
 
@@ -102,7 +102,7 @@ function addentries!(P::PlusOperator,A,kr)
     for op in P.ops
         addentries!(op,A,kr)
     end
-    
+
     A
 end
 
@@ -206,7 +206,8 @@ for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,
     end
 end
 
-function Base.convert{T}(::Type{BandedOperator{T}},C::ConstantTimesOperator)
+function Base.convert{OT<:Operator}(::Type{OT},C::ConstantTimesOperator)
+    T=eltype(OT)
     op=convert(BandedOperator{T},C.op)
     ConstantTimesOperator{T,typeof(op)}(convert(T,C.c),op)
 end
@@ -224,12 +225,12 @@ end
 
 immutable TimesOperator{T<:Number} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
-    
+
     function TimesOperator(ops::Vector{BandedOperator{T}})
         for k=1:length(ops)-1
             @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() || domainspace(ops[k])==rangespace(ops[k+1])
         end
-        
+
         new(ops)
     end
 end
@@ -242,14 +243,14 @@ TimesOperator{T,V}(A::BandedOperator{T},B::TimesOperator{V})=TimesOperator(Bande
 TimesOperator{T,V}(A::BandedOperator{T},B::BandedOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A,B])
 
 
-Base.convert{T}(::Type{BandedOperator{T}},P::TimesOperator)=TimesOperator(BandedOperator{T}[P.ops...])
+Base.convert{OT<:Operator}(::Type{OT},P::TimesOperator)=TimesOperator(BandedOperator{eltype(OT)}[P.ops...])
 
 
 
 function promotetimes{B<:BandedOperator}(opsin::Vector{B})
     ops=Array(BandedOperator{mapreduce(eltype,promote_type,opsin)},0)
 
-    push!(ops,opsin[end]) 
+    push!(ops,opsin[end])
     for k=length(opsin)-1:-1:1
         op=promotedomainspace(opsin[k],rangespace(last(ops)))
         if op==()
@@ -263,9 +264,9 @@ function promotetimes{B<:BandedOperator}(opsin::Vector{B})
         end
 #        end
     end
-    
+
     TimesOperator(reverse!(ops))  # change order in TImesOperator if this is slow
-end    
+end
 
 
 
@@ -293,30 +294,30 @@ function addentries!(P::TimesOperator,A,kr::Range)
     if length(kr)==0
         return A
     end
-    
+
    st=step(kr)
 
     krl=Array(Int,length(P.ops),2)
-    
+
     krl[1,1],krl[1,2]=kr[1],kr[end]
-    
+
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
-        krl[m+1,1]=max(st-mod(kr[1],st),br[1] + krl[m,1])  # no negative 
+        krl[m+1,1]=max(st-mod(kr[1],st),br[1] + krl[m,1])  # no negative
         krl[m+1,2]=br[end] + krl[m,2]
     end
-    
+
     # The following returns a banded Matrix with all rows
     # for large k its upper triangular
     BA=slice(P.ops[end],krl[end,1]:st:krl[end,2],:)
     for m=(length(P.ops)-1):-1:2
         BA=slice(P.ops[m],krl[m,1]:st:krl[m,2],:)*BA
     end
-    
+
     # Write directly to A, shifting by rows and columns
     # See subview in Operator.jl for these definitions
     P1=slice(P.ops[1],krl[1,1]:st:krl[1,2],:)
-    
+
     firstjr=max(st-mod(kr[1],st),kr[1]+bandinds(P,1))
     ri,ci=first(kr)-st,firstjr-st
     bamultiply!(A,P1,BA,ri,ci,st,st)
@@ -373,14 +374,14 @@ function *{T<:Number}(A::TimesOperator,b::Array{T})
     for k=length(A.ops):-1:1
         ret = A.ops[k]*ret
     end
-    
+
     ret
 end
 
 
 function *{T<:Number}(A::BandedOperator,b::Array{T})
     n=size(b,1)
-    
+
     if n>0
         slice(A,:,1:n)*b
     else
@@ -443,7 +444,7 @@ function choosedomainspace(P::PlusOperator,sp)
     end
     ret
 end
-    
+
 
 
 for T in (:AnySpace,:FunctionSpace)
@@ -468,13 +469,13 @@ function choosedomainspace(P::TimesOperator,sp)
     end
     sp
 end
-    
-    
-    
 
 
 
-##### 
+
+
+
+#####
 # ReReOperator takes the real part of two operators
 # this allows for well-posed equations
 #####
@@ -485,7 +486,7 @@ immutable ReReOperator{S,V,T} <: BandedOperator{T}
     function ReReOperator(ops)
             #TODO: promotion
         @assert domainspace(ops[1])==domainspace(ops[2])
-        @assert rangespace(ops[1])==rangespace(ops[2])  
+        @assert rangespace(ops[1])==rangespace(ops[2])
         new(ops)
     end
 end
@@ -511,15 +512,15 @@ function addentries!(R::ReReOperator,A,kr::Range)
 
     for k=kr1,j=columnrange(R.ops[1],k)
         A[2k-1,2j-1]+=real(B1[k,j])
-        A[2k-1,2j]+=-imag(B1[k,j])    
+        A[2k-1,2j]+=-imag(B1[k,j])
     end
 
     for k=kr2,j=columnrange(R.ops[2],k)
         A[2k,2j-1]+=real(B2[k,j])
-        A[2k,2j]+=-imag(B2[k,j])    
+        A[2k,2j]+=-imag(B2[k,j])
     end
 
-    A 
+    A
 end
 
 

@@ -24,12 +24,12 @@ Derivative(sp::PiecewiseSpace,k::Integer)=DerivativeWrapper(DiagonalPiecewiseOpe
 function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     vf=vec(f)
     @assert length(vf)==length(sp)
-    MultiplicationWrapper(f,DiagonalPiecewiseOperator([Multiplication(vf[k],sp[k]) for k=1:length(vf)]))
+    MultiplicationWrapper(f,DiagonalPiecewiseOperator(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(vf[k],sp[k]) for k=1:length(vf)]))
 end
 
 function Conversion(f::PiecewiseSpace,g::PiecewiseSpace)
     @assert length(f)==length(g)
-    ConversionWrapper(DiagonalPiecewiseOperator(Operator[Conversion(f[k],g[k]) for k=1:length(f)]))
+    ConversionWrapper(DiagonalPiecewiseOperator([Conversion(f[k],g[k]) for k=1:length(f)]))
 end
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
@@ -133,7 +133,7 @@ end
 SumInterlaceOperator{B<:Operator}(v::Vector{B})=SumInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
 SumInterlaceOperator(v::Vector{Any})=SumInterlaceOperator(Operator{mapreduce(eltype,promote_type,v)}[v...])
 
-Base.convert{T}(::Type{BandedOperator{T}},SI::SumInterlaceOperator)=SumInterlaceOperator(map(op->convert(BandedOperator{T},op),SI.ops))
+Base.convert{BT<:Operator}(::Type{BT},SI::SumInterlaceOperator)=SumInterlaceOperator(BandedOperator{eltype(BT)}[SI.ops...])
 
 for op in (:domainspace,:rangespace)
     @eval $op(S::SumInterlaceOperator)=SumSpace($op(S.ops[1]),$op(S.ops[2]))
@@ -157,7 +157,7 @@ function addentries!(::BiSwapOperator,A,kr::Range)
             A[k,k-1] += 1
         end
     end
-    
+
     A
 end
 
@@ -192,6 +192,6 @@ Integral(S::SumSpace,k::Integer)=IntegralWrapper(sumblkdiagm([Integral(S.spaces[
 function Multiplication{S,T,D,Q}(f::Fun{ArraySpace{S,2,T,D}},sp::ArraySpace{Q,1})
     @assert size(space(f),2)==length(sp)
     m=mat(f)
-    MultiplicationWrapper(f,interlace(Operator[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
+    MultiplicationWrapper(f,interlace(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
 end
 

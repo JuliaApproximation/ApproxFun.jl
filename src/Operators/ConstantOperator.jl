@@ -3,8 +3,11 @@ export ConstantOperator, BasisFunctional
 
 immutable ConstantOperator{T<:Number} <: BandedOperator{T}
     c::T
+    ConstantOperator(c::Number)=new(c)
+    ConstantOperator(L::UniformScaling)=new(L.λ)
 end
 
+ConstantOperator(c::Number)=ConstantOperator{typeof(c)}(c)
 ConstantOperator(L::UniformScaling)=ConstantOperator(L.λ)
 IdentityOperator()=ConstantOperator(1.0)
 
@@ -15,7 +18,7 @@ addentries!(C::ConstantOperator,A,kr::Range)=toeplitz_addentries!([.5C.c],A,kr)
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
 
-Base.convert{T<:Number}(::Type{BandedOperator{T}},C::ConstantOperator)=ConstantOperator{T}(C.c)
+Base.convert{BT<:Operator}(::Type{BT},C::ConstantOperator)=ConstantOperator{eltype(BT)}(C.c)
 
 ## Algebra
 
@@ -26,10 +29,12 @@ end
 
 ## Basis Functional
 
-immutable BasisFunctional <: Functional{Float64}
+immutable BasisFunctional{T} <: Functional{T}
     k::Integer
 end
+BasisFunctional(k)=BasisFunctional{Float64}(k)
 
+Base.convert{BT<:Operator}(::Type{BT},B::BasisFunctional)=BasisFunctional{eltype(BT)}(B.k)
 
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
 Base.getindex(op::BasisFunctional,k::Range1)=convert(Vector{Float64},k.==op.k)
@@ -53,6 +58,9 @@ ZeroOperator{T<:Number,S,V}(::Type{T},d::S,v::V)=ZeroOperator{T,S,V}(d,v)
 ZeroOperator{S,V}(d::S,v::V)=ZeroOperator(Float64,d,v)
 ZeroOperator()=ZeroOperator(AnySpace(),AnySpace())
 ZeroOperator{T<:Number}(::Type{T})=ZeroOperator(T,AnySpace(),AnySpace())
+
+Base.convert{BT<:Operator}(::Type{BT},Z::ZeroOperator)=ZeroOperator(eltype(BT),Z.domainspace,Z.rangespace)
+
 
 domainspace(Z::ZeroOperator)=Z.domainspace
 rangespace(Z::ZeroOperator)=Z.rangespace
@@ -79,7 +87,7 @@ ZeroFunctional{T<:Number}(::Type{T},sp::FunctionSpace)=ZeroFunctional{typeof(sp)
 ZeroFunctional{T<:Number}(::Type{T})=ZeroFunctional(T,AnySpace())
 ZeroFunctional()=ZeroFunctional(AnySpace())
 
-Base.convert{T}(::Type{Functional{T}},Z::ZeroFunctional)=ZeroFunctional(T,Z.domainspace)
+Base.convert{BT<:Operator}(::Type{BT},Z::ZeroFunctional)=ZeroFunctional(eltype(BT),Z.domainspace)
 
 domainspace(Z::ZeroFunctional)=Z.domainspace
 promotedomainspace(Z::ZeroFunctional,sp::FunctionSpace)=ZeroFunctional(sp)

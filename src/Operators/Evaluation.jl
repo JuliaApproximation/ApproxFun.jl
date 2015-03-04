@@ -23,7 +23,8 @@ Evaluation(x::Union(Number,Bool),k::Integer)=Evaluation(AnySpace(),x,k)
 Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
 
 
-Base.convert{T}(::Type{Functional{T}},E::Evaluation)=Evaluation(T,E.space,E.x,E.order)
+Base.convert{BT<:Operator}(::Type{BT},E::Evaluation)=Evaluation(eltype(BT),E.space,E.x,E.order)
+
 
 ## default getindex
 getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)[D.x] for k=kr]
@@ -32,7 +33,7 @@ function getindex{S,T}(D::Evaluation{S,Bool,T},kr::Range)
     if !D.x
         T[first(differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)) for k=kr]
     else
-        T[last(differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)) for k=kr]    
+        T[last(differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)) for k=kr]
     end
 end
 
@@ -81,7 +82,7 @@ periodic(d,k) = Functional{eltype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i)
 for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann,:ivp)
     @eval begin
         $op()=$op(AnySpace())
-        $op(::PeriodicDomain)=[] 
+        $op(::PeriodicDomain)=[]
     end
 end
 

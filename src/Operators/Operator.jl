@@ -13,6 +13,8 @@ abstract BandedBelowOperator{T} <: InfiniteOperator{T}
 abstract BandedOperator{T} <: BandedBelowOperator{T}
 
 Base.eltype{T}(::Operator{T})=T
+Base.eltype{T}(::Type{Operator{T}})=T
+Base.eltype{OT<:Operator}(::Type{OT})=eltype(super(OT))
 
 
 
@@ -201,7 +203,7 @@ include("TridiagonalOperator.jl")
 include("Conversion.jl")
 include("Multiplication.jl")
 include("calculus.jl")
-include("Sigma.jl")
+include("DefiniteIntegral.jl")
 include("Evaluation.jl")
 
 
@@ -233,24 +235,38 @@ Base.zero{O<:Operator}(::Type{O})=ZeroOperator()
 
 
 # TODO: can convert return different type?
-Base.convert{T<:Operator}(A::Type{T},n::Number)=n==0?zero(T):ConstantOperator(n)
-Base.convert{T<:Operator}(A::Type{T},n::UniformScaling)=n.λ==0?zero(T):ConstantOperator(n)
-Base.convert{T<:BandedOperator}(A::Type{T},f::Fun)=norm(f.coefficients)==0?zero(T):Multiplication(f)
+
+for TYP in (:Operator,:BandedOperator)
+  @eval begin
+    Base.convert{T}(A::Type{$TYP{T}},n::Number)=n==0?zero(A):ConstantOperator{T}(n)
+    Base.convert{T}(A::Type{$TYP{T}},n::UniformScaling)=n.λ==0?zero(A):ConstantOperator{T}(n)
+    Base.convert{T}(A::Type{$TYP{T}},f::Fun)=norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
+  end
+end
+
 
 
 ## Promotion
 
-for T in (:Float64,:Int64,:(Complex{Float64})), OP in (:BandedOperator,:Operator)
-    @eval begin
-        Base.promote_rule{N<:Number,O<:$OP{$T}}(::Type{N},::Type{O})=$OP{promote_type(N,$T)}
-        Base.promote_rule{N<:Number,O<:$OP{$T}}(::Type{UniformScaling{N}},::Type{O})=$OP{promote_type(N,$T)}
-        Base.promote_rule{S,N<:Number,O<:$OP{$T}}(::Type{Fun{S,N}},::Type{O})=$OP{promote_type(N,$T)}
-    end
+for OP in (:BandedOperator,:Operator)
+  @eval begin
+      Base.promote_rule{N<:Number,O<:$OP}(::Type{N},::Type{O})=$OP{promote_type(N,eltype(O))}
+      Base.promote_rule{N<:Number,O<:$OP}(::Type{UniformScaling{N}},::Type{O})=$OP{promote_type(N,eltype(O))}
+      Base.promote_rule{S,N<:Number,O<:$OP}(::Type{Fun{S,N}},::Type{O})=$OP{promote_type(N,eltype(O))}
+  end
 end
 
-Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O})=Operator
-Base.promote_rule{N<:UniformScaling,O<:Operator}(::Type{N},::Type{O})=Operator
-Base.promote_rule{N<:Fun,O<:Operator}(::Type{N},::Type{O})=Operator
+for OP in (:BandedOperator,:Functional,:Operator)
+  @eval Base.promote_rule{BO1<:$OP,BO2<:$OP}(::Type{BO1},::Type{BO2})=$OP{promote_type(eltype(BO1),eltype(BO2))}
+end
 
 
 
+#TODO: remove
+
+# for T in (:Float64,:Int64,:(Complex{Float64}))
+#   @eval begin
+#       Base.promote_rule{N<:Number}(::Type{UniformScaling{$T}},::Type{N})=UniformScaling{promote_type{$T,N}}
+#       Base.convert{US<:UniformScaling}(::Type{US},x::Number)=US(x)
+#   end
+# end

@@ -7,17 +7,19 @@ end
 
 SpaceFunctional{T<:Number,S<:FunctionSpace}(o::Functional{T},s::S)=SpaceFunctional{T,typeof(o),S}(o,s)
 
+Base.convert{T}(::Type{Operator{T}},S::SpaceFunctional)=SpaceFunctional(convert(Operator{T},S.op),S.space)
+
 getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
 
 domainspace(S::SpaceFunctional)=S.space
 domain(S::SpaceFunctional)=domain(S.space)
 
-## Space Operator is used to wrap an AnySpace() operator 
+## Space Operator is used to wrap an AnySpace() operator
 immutable SpaceOperator{T<:Number,O<:Operator,S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{T}
     op::O
     domainspace::S
     rangespace::V
-#     
+#
 #     function SpaceOperator{T,O,S}(o::O,s::S)
 #         @assert domainspace(o)==rangespace(o)==AnySpace()
 #         new(o,s)
@@ -46,21 +48,21 @@ end
 ##TODO: Do we need both max and min?
 function findmindomainspace(ops::Vector)
     sp = AnySpace()
-    
+
     for op in ops
         sp = conversion_type(sp,domainspace(op))
     end
-    
+
     sp
 end
 
 function findmaxrangespace(ops::Vector)
     sp = AnySpace()
-    
+
     for op in ops
         sp = maxspace(sp,rangespace(op))
     end
-    
+
     sp
 end
 
@@ -72,15 +74,15 @@ promotedomainspace(P::Functional,sp::FunctionSpace,::AnySpace)=SpaceFunctional(P
 for op in (:promoterangespace,:promotedomainspace)
     @eval begin
         ($op)(P::BandedOperator,::AnySpace)=P
-        ($op)(P::BandedOperator,::UnsetSpace)=P        
+        ($op)(P::BandedOperator,::UnsetSpace)=P
         ($op)(P::BandedOperator,sp::FunctionSpace,::AnySpace)=SpaceOperator(P,sp)
     end
 end
 
 promoterangespace(P::Operator,sp::FunctionSpace)=promoterangespace(P,sp,rangespace(P))
 promotedomainspace(P::Operator,sp::FunctionSpace)=promotedomainspace(P,sp,domainspace(P))
-        
-        
+
+
 promoterangespace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(Conversion(cursp,sp),P)
 promotedomainspace(P::Functional,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesFunctional(P,Conversion(sp,cursp))
 promotedomainspace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp==cursp)?P:TimesOperator(P,Conversion(sp,cursp))
@@ -88,29 +90,25 @@ promotedomainspace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp
 
 
 
-
-function promoterangespace{T<:Operator}(ops::Vector{T})
-    k=findmaxrangespace(ops)
-    Operator[promoterangespace(op,k) for op in ops]
+for TYP in (:Operator,:BandedOperator,:Functional)
+  @eval begin
+    function promoterangespace{O<:$TYP}(ops::Vector{O})
+      k=findmaxrangespace(ops)
+      T=mapreduce(eltype,promote_type,ops)
+      $TYP{T}[promoterangespace(op,k) for op in ops]
+    end
+    function promotedomainspace{O<:$TYP}(ops::Vector{O})
+      k=findmindomainspace(ops)
+      T=mapreduce(eltype,promote_type,ops)
+      $TYP{T}[promotedomainspace(op,k) for op in ops]
+    end
+    function promotedomainspace{O<:$TYP}(ops::Vector{O},S::FunctionSpace)
+        k=conversion_type(findmindomainspace(ops),S)
+        T=mapreduce(eltype,promote_type,ops)
+        $TYP{T}[promotedomainspace(op,k) for op in ops]
+    end
+  end
 end
-
-
-function promotedomainspace{T<:Functional}(ops::Vector{T})
-    k=findmindomainspace(ops)
-    Functional[promotedomainspace(op,k) for op in ops]
-end
-
-
-function promotedomainspace{T<:Operator}(ops::Vector{T})
-    k=findmindomainspace(ops)
-    Operator[promotedomainspace(op,k) for op in ops]
-end
-
-function promotedomainspace{T<:Operator}(ops::Vector{T},S::FunctionSpace)
-    k=conversion_type(findmindomainspace(ops),S)
-    Operator[promotedomainspace(op,k) for op in ops]
-end
-
 
 
 ####
@@ -128,13 +126,13 @@ choosedomainspace(A)=choosedomainspace(A,AnySpace())
 
 function choosedomainspace(ops::Vector,spin)
     sp = AnySpace()
-    
+
     for op in ops
         sp = conversion_type(sp,choosedomainspace(op,spin))
     end
-    
+
     sp
-end 
+end
 
 
 #It's important that domain space is promoted first as it might impact range space

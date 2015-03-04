@@ -1,9 +1,9 @@
 ## Evaluation
 
-getindex(T::Evaluation{Taylor,Complex{Float64},Complex{Float64}},cols::Range)=mappoint(domain(T),Circle(),T.x).^(cols-1)    
+getindex(T::Evaluation{Taylor,Complex{Float64},Complex{Float64}},cols::Range)=mappoint(domain(T),Circle(),T.x).^(cols-1)
 
 
-## Multiplication 
+## Multiplication
 
 bandinds(M::Multiplication{Laurent,Laurent})=bandinds(LaurentOperator(M.f))
 rangespace(M::Multiplication{Laurent,Laurent})=domainspace(M)
@@ -27,7 +27,7 @@ bandinds{T}(::ImagOperator{ReImSpace{Taylor,T,PeriodicInterval}})=0,1
 function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T,PeriodicInterval}},A,kr::Range)
     for k=kr
         if isodd(k)         # real part
-            A[k,k]+=1        
+            A[k,k]+=1
         elseif iseven(k)    # imag part
             A[k,k+2]+=-1
         end
@@ -61,9 +61,9 @@ bandinds{T}(::ImagOperator{ReImSpace{Hardy{false},T,PeriodicInterval}})=0,0
 function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T,PeriodicInterval}},A,kr::Range)
     for k=kr
         if isodd(k)    # imag part
-            A[k,k+1]+=1            
+            A[k,k+1]+=1
         elseif iseven(k)         # real part
-            A[k,k-1]+=1        
+            A[k,k-1]+=1
         end
     end
     A
@@ -137,7 +137,7 @@ function taylor_derivative_addentries!(d::Circle,m::Integer,A,kr::Range)
     for k=kr
         D=k
         for j=k+1:k+m-1
-          D*=j  
+          D*=j
         end
         A[k,k+m] += C*D
     end
@@ -151,7 +151,7 @@ function hardyfalse_derivative_addentries!(d::Circle,m::Integer,A,kr::Range)
     for k=max(m+1,kr[1]):kr[end]
         D=k-m
         for j=k-m+1:k-1
-          D*=j  
+          D*=j
         end
         A[k,k-m] += C*D
     end
@@ -192,18 +192,18 @@ function addentries!(D::Integral{Taylor},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,Circle)
-    
+
     C=d.radius^m
 
     for k=max(m+1,kr[1]):kr[end]
         D=k-m
         for j=k-m+1:k-1
-          D*=j  
+          D*=j
         end
         A[k,k-m] += C/D
     end
 
-    A    
+    A
 end
 
 
@@ -219,18 +219,18 @@ function addentries!{n,T,DD}(D::Integral{SliceSpace{n,1,Hardy{false},T,DD}},A,kr
     d=domain(D)
     m=D.order
     @assert isa(d,Circle)
-    
+
     C=(-d.radius)^m
 
     for k=kr
         D=k
         for j=k+1:k+m-1
-          D*=j  
+          D*=j
         end
         A[k,k] += C/D
     end
 
-    A    
+    A
 end
 
 
@@ -247,7 +247,7 @@ function addentries!(D::Integral{Hardy{false}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,PeriodicInterval)
-    
+
     C=2π./(d.b-d.a)*im
     for k=kr
         A[k,k] += (-C*k)^(-m)
@@ -268,27 +268,27 @@ function addentries!{n,T,DD}(D::Integral{SliceSpace{n,1,Taylor,T,DD}},A,kr::Rang
     d=domain(D)
     m=D.order
     @assert isa(d,PeriodicInterval)
-    
+
     C=2π./(d.b-d.a)*im
     for k=kr
         A[k,k] += (C*(k+n-1))^(-m)
     end
-    A   
+    A
 end
 
 
 
 ## Definite integral
 
-function getindex{T}(S::Σ{Laurent,T},kr::Range)
-    d = domain(S)
+function getindex{T}(Σ::DefiniteIntegral{Laurent,T},kr::Range)
+    d = domain(Σ)
     if isa(d,PeriodicInterval)
         T[k == 1?  d.b-d.a : zero(T) for k=kr]
     else
         @assert isa(d,Circle)
-        T[k == 2?  2π*im*d.radius :zero(T) for k=kr]        
+        T[k == 2?  2π*im*d.radius :zero(T) for k=kr]
     end
 end
 
-datalength(S::Σ{Laurent})=isa(domain(S),PeriodicInterval)?1:2
+datalength(Σ::DefiniteIntegral{Laurent})=isa(domain(Σ),PeriodicInterval)?1:2
 

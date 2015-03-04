@@ -11,17 +11,15 @@ Space{N<:Number}(d::Vector{N})=Space(Interval(d))
 # the default domain space is higher to avoid negative ultraspherical spaces
 Integral(d::IntervalDomain,n::Integer)=Integral(Ultraspherical{1}(d),n)
 
-## Sigma
+DefiniteIntegral(d::IntervalDomain)=DefiniteIntegral(JacobiWeight(-.5,-.5,Chebyshev(d)))
 
-Σ(d::IntervalDomain)=Σ(JacobiWeight(-.5,-.5,Chebyshev(d)))
-
-function Σ(α::Number,β::Number,d::IntervalDomain)
+function DefiniteIntegral(α::Number,β::Number,d::IntervalDomain)
     @assert α == β
     @assert int(α+.5) == α+.5
     @assert int(α+.5) >= 0
-    Σ(JacobiWeight(α,β,Ultraspherical{int(α+.5)}(d)))
+    DefiniteIntegral(JacobiWeight(α,β,Ultraspherical{int(α+.5)}(d)))
 end
-Σ(α::Number,β::Number) = Σ(α,β,Interval())
+DefiniteIntegral(α::Number,β::Number) = DefiniteIntegral(α,β,Interval())
 
 ## Evaluation
 
@@ -36,7 +34,7 @@ function continuity{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T},order::
 
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},m-1,m)
-    
+
     for k=1:m-1
         B[k,k]=Evaluation(d[k],true,order)
         B[k,k+1]=-Evaluation(d[k+1],false,order)
@@ -77,7 +75,7 @@ function periodic{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
     B[1,1]=ldirichlet(d[1]);B[1,end]=-rdirichlet(d[end])
-    B[2,1]=lneumann(d[1]);B[2,end]=-rneumann(d[end])    
+    B[2,1]=lneumann(d[1]);B[2,end]=-rneumann(d[end])
     [B;
     continuity(d,0:1)]
 end

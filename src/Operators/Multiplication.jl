@@ -16,7 +16,7 @@ Multiplication(c::Number)=ConstantOperator(c)
 Multiplication{D,T}(S::FunctionSpace,f::Fun{D,T}) = Multiplication(f,S)
 
 
-Base.convert{BT,S,V,T}(::Type{BandedOperator{BT}},C::Multiplication{S,V,T})=Multiplication{S,V,T,BT}(C.f,C.space)
+Base.convert{BT<:Operator,S,V,T}(::Type{BT},C::Multiplication{S,V,T})=Multiplication{S,V,T,eltype(BT)}(C.f,C.space)
 
 domainspace{D,S,T,V}(M::Multiplication{D,S,T,V})=M.space
 domain(T::Multiplication)=domain(T.f)
@@ -86,7 +86,7 @@ for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
     @eval $func(D::MultiplicationWrapper)=$func(D.op)
 end
 
-Base.convert{BT,S,V,VV,T}(::Type{BandedOperator{BT}},C::MultiplicationWrapper{S,V,VV,T})=MultiplicationWrapper{S,V,VV,BT}(C.f,C.op)
+Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper{S,V,VV,T})=MultiplicationWrapper{S,V,VV,eltype(BT)}(C.f,C.op)
 
 
 
