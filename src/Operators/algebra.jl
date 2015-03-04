@@ -209,7 +209,7 @@ end
 function Base.convert{OT<:Operator}(::Type{OT},C::ConstantTimesOperator)
     T=eltype(OT)
     op=convert(BandedOperator{T},C.op)
-    ConstantTimesOperator{eltype(OT),typeof(op)}(convert(T,C.c),op)
+    ConstantTimesOperator{T,typeof(op)}(convert(T,C.c),op)
 end
 
 function addentries!(P::ConstantTimesOperator,A,kr::Range)

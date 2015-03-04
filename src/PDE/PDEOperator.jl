@@ -53,6 +53,16 @@ PDEOperator(A::Operator,B::Operator)=PDEOperator([A B])
 PDEOperator(A::Operator,B::Operator,d::BivariateDomain)=PDEOperator([A B],d)
 
 
+Base.promote_rule{T,V}(::Type{PDEOperator{T}},::Type{PDEOperator{V}})=PDEOperator{promote_type(T,V)}
+
+function Base.convert{T}(::Type{PDEOperator{T}},P::PDEOperator)
+  M=Array(Operator{T},size(P.ops)...)
+  for k=1:size(P.ops,1),j=1:size(P.ops,2)
+    M[k,j]=P.ops[k,j]
+  end
+  PDEOperator(M,P.domain)
+end
+
 domainspace(L::PDEOperator,j::Integer)=findmindomainspace(L.ops[:,j])
 rangespace(L::PDEOperator,j::Integer)=findmaxrangespace(L.ops[:,j])
 
@@ -147,9 +157,12 @@ end
 -(A::PDEOperator,B::PDEOperator)=A+(-B)
 
 function *(c::Number,A::PDEOperator)
-    ops=copy(A.ops)
+    ops=Array(Operator{promote_type(typeof(c),eltype(A))},size(A.ops)...)
     for k=1:size(ops,1)
-        ops[k,1]=c*ops[k,1]
+        ops[k,1]=c*A.ops[k,1]
+        for j=2:size(ops,2)
+           ops[k,j]=A.ops[k,j]
+         end
     end
     PDEOperator(ops,domain(A))
 end
