@@ -224,7 +224,8 @@ for op in (:(Base.indmax),:(Base.indmin))
         function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
-            pts[$op(f[pts])]
+            # the extra real avoids issues with complex round-off
+            pts[$op(real(f[pts]))]
         end
 
         function $op{S,T}(f::Fun{S,T})
@@ -298,7 +299,7 @@ complexroots(f::Fun{Fourier})=complexroots(Fun(f,Laurent))
 roots{S<:MappedSpace}(f::Fun{S})=fromcanonical(f,roots(Fun(coefficients(f),space(f).space)))
 
 function roots(f::Fun{Laurent})
-    irts=filter!(z->abs(abs(z)-1.)/length(f) < 100eps(),complexroots(Fun(f.coefficients,Laurent(Circle()))))
+    irts=filter!(z->in(z,Circle()),complexroots(Fun(f.coefficients,Laurent(Circle()))))
     if length(irts)==0
         Complex{Float64}[]
     else
