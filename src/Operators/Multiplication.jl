@@ -7,7 +7,7 @@ immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T,V} <: AbstractMulti
     Multiplication(f::Fun{D,T},sp::S)=new(f,sp)
 end
 
-Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T,T}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+Multiplication{D,T,S}(f::Fun{D,T},sp::S)=Multiplication{D,S,T,promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 
 Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
 Multiplication(c::Number)=ConstantOperator(c)

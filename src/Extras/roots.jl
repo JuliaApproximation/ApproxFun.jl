@@ -80,12 +80,12 @@ function colleague_balance!(M)
     if n<2
         return M
     end
-    
+
     d=1+abs(M[1,2])
     M[1,2]/=d;M[2,1]*=d
-    
+
     for k=3:n
-        M[k-1,k]*=d;M[k,k-1]/=d        
+        M[k-1,k]*=d;M[k,k-1]/=d
         d+=abs(M[1,k])
         M[1,k]/=d;M[k-1,k]/=d;M[k,k-1]*=d
     end
@@ -188,7 +188,13 @@ function extremal_args{S<:IntervalSpace,T}(f::Fun{S,T})
     return pts
 end
 
-extremal_args{S<:PeriodicSpace,T}(f::Fun{S,T})=roots(differentiate(f))
+function extremal_args{S<:PeriodicSpace,T}(f::Fun{S,T})
+    if isa(domain(f),PeriodicInterval)
+        roots(differentiate(f))
+    else  # avoid complex domains
+        fromcanonical(f,extremal_args(Fun(f.coefficients,S(canonicaldomain(f)))))
+    end
+end
 
 for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
     @eval begin
@@ -218,7 +224,16 @@ for op in (:(Base.indmax),:(Base.indmin))
         function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
-            pts[$op(f[pts])]
+            # the extra real avoids issues with complex round-off
+            pts[$op(real(f[pts]))]
+        end
+
+        function $op{S,T}(f::Fun{S,T})
+            # the following avoids warning when differentiate(f)==0
+            pts = extremal_args(f)
+            fp=f[pts]
+            @assert norm(imag(fp))<100eps()
+            pts[$op(real(fp))]
         end
     end
 end
@@ -284,7 +299,7 @@ complexroots(f::Fun{Fourier})=complexroots(Fun(f,Laurent))
 roots{S<:MappedSpace}(f::Fun{S})=fromcanonical(f,roots(Fun(coefficients(f),space(f).space)))
 
 function roots(f::Fun{Laurent})
-    irts=filter!(z->abs(abs(z)-1.)/length(f) < 100eps(),complexroots(Fun(f.coefficients,Laurent(Circle()))))
+    irts=filter!(z->in(z,Circle()),complexroots(Fun(f.coefficients,Laurent(Circle()))))
     if length(irts)==0
         Complex{Float64}[]
     else

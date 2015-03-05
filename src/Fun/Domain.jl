@@ -11,6 +11,8 @@ end
 
 
 Base.eltype{T}(::Domain{T})=T
+Base.isreal{T<:Real}(::Domain{T})=true
+Base.isreal{T}(::Domain{T})=false
 
 
 

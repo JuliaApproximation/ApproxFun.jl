@@ -53,7 +53,8 @@ function Base.abs{S,T}(f::Fun{S,T})
     pts=roots(f)
 
     if isempty(pts)
-        Fun(x->abs(f[x]),space(f))
+        # This makes sure Laurent returns real type
+        real(Fun(x->abs(f[x]),space(f)))
     else
         splitmap(x->abs(f[x]),d,pts)
     end
@@ -144,7 +145,7 @@ end
 function .^{S<:Chebyshev,D,T,DS}(f::Fun{MappedSpace{S,D,T,DS}},k::Float64)
     sp=space(f)
     # Need to think what to do if this is ever not the case..
-    @assert isapprox(domain(sp.space),Interval())  
+    @assert isapprox(domain(sp.space),Interval())
     fc = Fun(f.coefficients,sp.space) #Project to interval
 
     r = sort(roots(fc))
@@ -208,8 +209,22 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 
 ## First order functions
 
+
+Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
+function Base.log{T<:Real}(f::Fun{Fourier,T})
+    if isreal(domain(f))
+        cumsum(differentiate(f)/f)+log(first(f))
+    else
+        # this makes sure differentiate doesn't
+        # make the function complex
+        g=log(Fun(f.coefficients,Fourier()))
+        @assert isa(space(g),Fourier)
+        Fun(g.coefficients,space(f))
+    end
+end
+
+
 for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0",:(real)),
-                            (:(Base.log),"f*D","fp",:(real)),
                             (:(Base.asin),"sqrt(1-f^2)*D","fp",:(imag)),
                             (:(Base.acos),"sqrt(1-f^2)*D","-fp",:(imag)),
                             (:(Base.atan),"(1+f^2)*D","fp",:(imag)),
@@ -230,10 +245,10 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0",:(real)),
             # we will assume the result should be smooth on the domain
             # even if f is not
             # This supports Line/Rays
-            D=Derivative(domain(f))  
+            D=Derivative(domain(f))
             fp=differentiate(f)
             B=Evaluation(domainspace(D),xmax)
-            ([B,eval($L)]\Any[opfxmax/opmax,eval($R)/opmax])*opmax
+            linsolve([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=100eps())*opmax
         end
     end
 end
