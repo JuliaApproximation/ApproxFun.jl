@@ -4,10 +4,10 @@ immutable ReducedDiscreteOperators{BT,MT}
     bcP::Array{BT,2}  # permute columns of bcs
     bcQ::Array{BT,2}  # bc normalizer
     bcs::Array{BT,2} # normalized bcs
-    
+
     ops::Vector{SparseMatrixCSC{MT,Int64}}
     opcols::Vector{SparseMatrixCSC{MT,Int64}}
-    
+
     domainspace::FunctionSpace
     rangespace::FunctionSpace
 end
@@ -33,7 +33,7 @@ function Base.kron(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators)
         M+=kron(Ax.ops[k],Ay.ops[k])
     end
 
-    M 
+    M
 end
 
 
@@ -55,9 +55,11 @@ immutable PDEOperatorKron{T}
     opsx::ReducedDiscreteOperators
     opsy::ReducedDiscreteOperators
     indsBx::Vector{Int}
-    indsBy::Vector{Int}    
+    indsBy::Vector{Int}
     kron::SparseMatrixCSC{T,Int64}
 end
+
+Base.eltype{T}(::PDEOperatorKron{T})=T
 
 for op in (:domainspace,:rangespace)
     @eval $op(P::PDEOperatorKron,k...)=$op(P.op,k...)
@@ -89,34 +91,34 @@ function pdesolve(K::PDEOperatorKron,G)
     fx,fy,F=pde_standardize_rhs(K,G)
     F=cont_reduce_dofs!(K.opsx,K.op.ops[:,2],fx,F.').'
     F=cont_reduce_dofs!(K.opsy,K.opsx,fy,F)
-    
-    
-    
+
+
+
     X22=reshape(K.kron\vec(pad(coefficients(F,rangespace(K)),size(K)...)),size(K)...)
     Kx,Ky=numbcs(K,1),numbcs(K,2) # doesn't include boundary rows...could be confusing
     nx,ny=size(K,1)+Kx,size(K,2)+Ky
-    
+
     Gx=pad(coefficients(regularize_bcs(K.opsx,fx)).',:,ny)
     Gy=pad(coefficients(regularize_bcs(K.opsy,fy)).',:,nx)
     Rx,Ry=K.opsx.bcs,K.opsy.bcs
 
     Px,Py=K.opsx.bcP,K.opsy.bcP
-    
+
     # following is copyed from constrained_lyap
     X12=Gx[:,Ky+1:end]-Rx[:,Kx+1:end]*X22
     X21=Gy[:,Kx+1:end].'-X22*Ry[:,Ky+1:end].'
     X11 = Gx[:,1:Ky] - Rx[:,Kx+1:end]*X21
     X11a= Gy[:,1:Kx].' - X12*Ry[:,Ky+1:end].'
-    
+
     tol = 1e-13
     bcerr = norm(X11 - X11a)
-    
+
     if bcerr>tol
        warn("Boundary conditions differ by " * string(bcerr))
     end
-    
+
     X = [X11 X12; X21 X22]
-    
+
     Fun(Px*X*Py.',domainspace(K))
 end
 

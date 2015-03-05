@@ -10,7 +10,7 @@ abstract BivariateDomain <: MultivariateDomain
 
 
 immutable ProductDomain{D<:Domain} <:BivariateDomain
-    domains::Vector{D} 
+    domains::Vector{D}
 end
 
 # product domains are their own canonical domain
@@ -59,7 +59,7 @@ columnspace(S::TensorSpace,::)=S.spaces[1]
 
 Base.length(d::TensorSpace)=length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
-
+=={S,V}(a::TensorSpace{S,V},b::TensorSpace{S,V})=(a.spaces[1]==b.spaces[1])&&(a.spaces[2]==b.spaces[2])
 
 immutable ProductSpace{S<:FunctionSpace,T<:FunctionSpace} <: AbstractProductSpace{S,T}
     spacesx::Vector{S}
@@ -93,13 +93,13 @@ function itransform!(S::TensorSpace,M::Matrix)
 
     for k=1:n
         M[k,:]=itransform(space(S,2),vec(M[k,:]))
-    end 
-    M      
+    end
+    M
 end
 
 function itransform!(S::AbstractProductSpace,M::Matrix)
     n=size(M,1)
-    
+
     ## The order matters
     pln=plan_itransform(columnspace(S,1),n)
     for k=1:size(M,2)
@@ -108,8 +108,8 @@ function itransform!(S::AbstractProductSpace,M::Matrix)
 
     for k=1:n
         M[k,:]=itransform(space(S,2),vec(M[k,:]))
-    end 
-    M      
+    end
+    M
 end
 
 function transform!(S::TensorSpace,M::Matrix)
@@ -121,20 +121,20 @@ function transform!(S::TensorSpace,M::Matrix)
 
     for k=1:n
         M[k,:]=transform(space(S,2),vec(M[k,:]))
-    end 
-    M      
+    end
+    M
 end
 
 function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
     n=size(M,1)
-    
+
     ## The order matters!!
     # For Disk Space, this is due to requiring decay
     # in function
     for k=1:n
         M[k,:]=transform(space(S,2),vec(M[k,:]))
-    end     
-    
+    end
+
     pln=plan_transform(columnspace(S,1),n)
     for k=1:size(M,2)
         # col may not be full length
@@ -144,9 +144,9 @@ function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
             M[j,k]=zero(T) # fill rest with zeros
         end
     end
-    
 
-    M      
+
+    M
 end
 
 
@@ -158,7 +158,7 @@ points(d::Union(BivariateDomain,BivariateFunctionSpace),n,m)=points(d,n,m,1),poi
 function points(d::BivariateFunctionSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
     ptst=points(space(d,2),m)
-    
+
     Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 end
 
@@ -169,7 +169,7 @@ end
 
 
 
-## boundary 
+## boundary
 
 
 function ∂(d::ProductDomain)
@@ -177,13 +177,13 @@ function ∂(d::ProductDomain)
     #TODO: Generalize
     if (isa(d[1],Interval)||isa(d[1],PeriodicInterval)) && (isa(d[2],Interval)||isa(d[2],PeriodicInterval))
         ∂1=∂(d[1])
-        ∂2=∂(d[2])    
+        ∂2=∂(d[2])
         if ∂1==∂2==[]
             []
         elseif ∂1==[]
-            UnionDomain([d[1]+im*d[2].a,d[1]+im*d[2].b])        
+            UnionDomain([d[1]+im*d[2].a,d[1]+im*d[2].b])
         elseif ∂2==[]
-            UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2]])    
+            UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2]])
         else
             UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
         end
