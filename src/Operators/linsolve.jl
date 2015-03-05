@@ -57,15 +57,17 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
             # Convert to a number vector
 
             bend=b[end,:]
-            typ=mapreduce(eltype,promote_type,bend)
+
             ds=choosedomainspace(A,space(b[end,1]))
             A=promotedomainspace(A,ds)
-            
+
             # coefficients in the rangespace
-            rs=rangespace(A[end])            
+            rs=rangespace(A[end])
+            typ=promote_type(mapreduce(eltype,promote_type,bend),eltype(rs))
+
             cfsB=Vector{typ}[coefficients(b[end,k],rs) for k=1:size(b,2)]
-            
-            
+
+
             m=mapreduce(length,max,cfsB)  # max length of rhs
             #TODO: this only works if space conversion doesn't increase size
 
@@ -74,7 +76,7 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps(elty
             # assign boundary rows
             r[1:size(b,1)-1,:]=b[1:end-1,:]
 
- 
+
             for k=1:size(b,2)
                 r[size(b,1):size(b,1)+length(cfsB[k])-1,k]=cfsB[k]
                 for j=size(b,1)+length(cfsB[k]):size(r,2)
