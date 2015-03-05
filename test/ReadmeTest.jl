@@ -15,7 +15,7 @@ rp = roots(differentiate(h))
 
 @test norm(h[r])<1000eps()
 
-@test norm(diff(h)[rp])<10000eps()
+@test norm(diff(h)[rp])<100000eps()
 
 
 
