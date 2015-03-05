@@ -210,7 +210,18 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 ## First order functions
 
 
-Base.log(f::Fun)=integrate(differentiate(f)/f)
+Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
+function Base.log{T<:Real}(f::Fun{Fourier,T})
+    if isreal(domain(f))
+        cumsum(differentiate(f)/f)+log(first(f))
+    else
+        # this makes sure differentiate doesn't
+        # make the function complex
+        g=log(Fun(f.coefficients,Fourier()))
+        @assert isa(space(g),Fourier)
+        Fun(g.coefficients,space(f))
+    end
+end
 
 
 for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0",:(real)),
