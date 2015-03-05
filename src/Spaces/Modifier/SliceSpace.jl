@@ -113,7 +113,9 @@ points{n,S,T}(f::Fun{SliceSpace{n,1,S,T}})=points(space(f),length(f)+n)
 
 ## ProductFUn
 
+values{S<:SliceSpace,V<:SliceSpace}(f::ProductFun{S,V})=values(ProductFun(f,space(f,1).space,space(f,2).space))
 values{S<:SliceSpace}(f::ProductFun{S})=values(ProductFun(f,space(f,1).space,space(f,2)))
+
 
 function coefficients{n,DS,TT,D}(f::ProductFun{SliceSpace{n,1,DS,TT,D}},ox::FunctionSpace,oy::FunctionSpace)
     T=eltype(f)

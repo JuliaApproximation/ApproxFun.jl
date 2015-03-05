@@ -21,7 +21,7 @@ function ReducedDiscreteOperators(Bx,Ls,nx)
     K=length(Bx)
     opcols=SparseMatrixCSC{Float64,Int64}[sparse(L[:,1:K]) for L in LLs]
     R,Q,LLs,P=regularize_bcs(B,LLs)
-    ops=SparseMatrixCSC{Float64,Int64}[sparse(cont_reduce_dofs(R,L)[:,K+1:end]) for L in LLs]
+    ops=SparseMatrixCSC{Float64,Int64}[sparse(cont_reduce_dofs(R,full(L))[:,K+1:end]) for L in LLs]
     ReducedDiscreteOperators(P,Q,R,ops,opcols,domainspace(Ls[1]),rangespace(Ls[1]))
 end
 
@@ -111,10 +111,12 @@ function pdesolve(K::PDEOperatorKron,G)
     X11a= Gy[:,1:Kx].' - X12*Ry[:,Ky+1:end].'
 
     tol = 1e-13
-    bcerr = norm(X11 - X11a)
+    if !isempty(X11)
+        bcerr = norm(X11 - X11a)
 
-    if bcerr>tol
-       warn("Boundary conditions differ by " * string(bcerr))
+        if bcerr>tol
+           warn("Boundary conditions differ by " * string(bcerr))
+        end
     end
 
     X = [X11 X12; X21 X22]
