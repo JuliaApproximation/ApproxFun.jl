@@ -1,8 +1,8 @@
 ## Drop space drops the first n entries from a space
 
 immutable SliceSpace{index,stride,DS,T,D}<: FunctionSpace{T,D}
-    space::DS 
-    
+    space::DS
+
     SliceSpace(sp::DS)=new(sp)
     SliceSpace(d::Domain)=new(DS(d))
 end
@@ -88,13 +88,13 @@ function coefficients{V}(v::Vector{V},dropsp::SliceSpace,sp::FunctionSpace)
         ret[st+n:st:end]=v
         ret
     else
-        coefficients(v,dropsp,canonicalspace(dropsp),sp)        
+        coefficients(v,dropsp,canonicalspace(dropsp),sp)
     end
 end
 
 canonicalspace(a::SliceSpace)=a.space
 
-
+## points
 
 
 ## transform
@@ -109,5 +109,25 @@ itransform{n,st,S,T}(sp::SliceSpace{n,st,S},cfs::Vector{T})=itransform(sp.space,
 
 ##TODO: coefficients
 
+points{n,S,T}(f::Fun{SliceSpace{n,1,S,T}})=points(space(f),length(f)+n)
 
+## ProductFUn
 
+values{S<:SliceSpace}(f::ProductFun{S})=values(ProductFun(f,space(f,1).space,space(f,2)))
+
+function coefficients{n,DS,TT,D}(f::ProductFun{SliceSpace{n,1,DS,TT,D}},ox::FunctionSpace,oy::FunctionSpace)
+    T=eltype(f)
+    m=size(f,1)
+    A=[pad!(coefficients(fx,ox),m+n) for fx in f.coefficients]
+    B=hcat(A...)::Array{T,2}
+    for k=1:size(B,1)
+        ccfs=coefficients(vec(B[k,:]),space(f,2),oy)
+        if length(ccfs)>size(B,2)
+            B=pad(B,size(B,1),length(ccfs))
+        end
+        B[k,1:length(ccfs)]=ccfs
+        #B[k,length(ccfs):1:end]=zero(T)
+    end
+
+    B
+end

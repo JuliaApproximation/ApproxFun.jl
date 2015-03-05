@@ -5,7 +5,7 @@ export depiece,pieces
 ############
 
 immutable PiecewiseSpace{S<:FunctionSpace,T} <: FunctionSpace{T,UnionDomain}
-    spaces::Vector{S} 
+    spaces::Vector{S}
     PiecewiseSpace(::AnyDomain)=new(S[S(AnyDomain())])
     PiecewiseSpace(sp::Vector{S})=new(sp)
 end
@@ -55,21 +55,21 @@ function transform(S::PiecewiseSpace,vals::Vector)
         for j=1:n
             ret[j]=transform(S[j],[vals[j]])[1]
         end
-        
+
         ret
     else
         r=n-K*k
         M=Array(PT,k+1,K)
-    
+
         for j=1:r
             M[:,j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])
         end
         for j=r+1:length(S)
-            M[1:k,j]=transform(S[j],vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k]) 
+            M[1:k,j]=transform(S[j],vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
             M[k+1,j]=zero(PT)
-        end    
-        
-    vec(M.')        
+        end
+
+    vec(M.')
     end
 end
 
@@ -81,7 +81,7 @@ function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
     for k=1:length(d)
         if in(x,d[k])
             return vec(f,k)[x]
-        end 
+        end
     end
 end
 evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f[xk] for xk in x]
@@ -95,7 +95,7 @@ for op in (:maxspace,:conversion_type)
         function $op(f::PiecewiseSpace,g::PiecewiseSpace)
             if domain(f)==domain(g)
                 # hack to make sure type is correct
-                PiecewiseSpace([[$op(f[k],g[k]) for k=1:length(f)]...])  
+                PiecewiseSpace([[$op(f[k],g[k]) for k=1:length(f)]...])
             else
                 NoSpace()
             end
@@ -157,3 +157,18 @@ function coefficients{AS}(f::Vector,a::ArraySpace{AS,1},b::PiecewiseSpace)
     end
     ret
 end
+
+
+
+## ProductFun
+
+##  Piecewise
+
+function pieces{PS<:PiecewiseSpace}(U::ProductFun{PS})
+    ps=space(U,1)
+    sp2=space(U,2)
+    m=length(ps)
+    C=coefficients(U)
+    [ProductFun(C[k:m:end,:],ps[k],sp2) for k=1:m]
+end
+

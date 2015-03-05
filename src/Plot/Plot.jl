@@ -6,7 +6,7 @@ plotter=@compat Dict(:contour=>"Gadfly",
     :surf=>"PyPlot")
 
 
-function setplotter(key,val)    
+function setplotter(key,val)
     global plotter
     @assert val=="PyPlot" || val =="Gadfly" || val =="GLPlot"
     plotter[key]=val
@@ -19,7 +19,7 @@ function setplotter(str)
         setplotter(:plot,str)
         setplotter(:surf,str)
     elseif str == "GLPlot"
-        setplotter(:surf,str)        
+        setplotter(:surf,str)
     else
         setplotter(:contour,str)
         setplotter(:plot,str)
@@ -29,11 +29,11 @@ end
 
 if isdir(Pkg.dir("GLPlot"))
     include("GLPlot.jl")
-    setplotter("GLPlot")    
+    setplotter("GLPlot")
 end
 if isdir(Pkg.dir("PyPlot"))
     include("PyPlot.jl")
-    setplotter("PyPlot")    
+    setplotter("PyPlot")
 end
 
 include("Gadfly.jl")
@@ -119,7 +119,7 @@ function plot{S}(r::Range,f::Fun{S,Float64};opts...)
     plot([r],f[[r]];opts...)
 end
 
-function complexplot(f::Fun;opts...) 
+function complexplot(f::Fun;opts...)
     f=pad(f,3length(f)+50)
     vals =values(f)
 
@@ -133,12 +133,12 @@ function complexplot{F<:Fun}(f::Vector{F};opts...)
     for k=1:length(f)
         pf=values(pad(f[k],n))
         pts[:,k]=real(pf)
-        vals[:,k]=imag(pf)        
+        vals[:,k]=imag(pf)
     end
     plot(pts,vals;opts...)
 end
 
-function complexlayer(f::Fun;opts...) 
+function complexlayer(f::Fun;opts...)
     f=pad(f,3length(f)+50)
     vals =values(f)
 
@@ -159,8 +159,8 @@ function contour(f::MultivariateFun;opts...)
     if norm(imag(vals))>10e-9
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
-    
-    contour(vecpoints(f,1),vecpoints(f,2),real(vals);opts...)
+
+    contour(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);opts...)
 end
 
 
@@ -170,15 +170,15 @@ end
 function plot(xx::Range,yy::Range,f::MultivariateFun)
     vals      = evaluate(f,xx,yy)
     vals=[vals[:,1] vals vals[:,end]];
-    vals=[vals[1,:]; vals; vals[end,:]]    
-    surf(real(vals))    
+    vals=[vals[1,:]; vals; vals[end,:]]
+    surf(real(vals))
 end
 
 function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
     vals      = evaluate(f,xx,yy)
     vals=[vals[:,1] vals vals[:,end]];
-    vals=[vals[1,:]; vals; vals[end,:]]    
-    glsurfupdate(real(vals),obj,window)    
+    vals=[vals[1,:]; vals; vals[end,:]]
+    glsurfupdate(real(vals),obj,window)
 end
 
 
@@ -209,6 +209,6 @@ for (plt,cplt) in ((:plot,:complexplot),(:layer,:complexlayer))
 end
 plot{D<:Domain}(ds::Vector{D};kwds...)=complexplot(map(d->Fun(identity,d),ds);kwds...)
 layer{D<:Domain}(d::Vector{D})=map(layer,d)
-        
+
 domainplot(f::Union(Fun,FunctionSpace);kwds...)=plot(domain(f);kwds...)
 domainlayer(f::Union(Fun,FunctionSpace))=layer(domain(f))

@@ -10,8 +10,8 @@ end
 spacescompatible{l,r}(a::ChebyshevDirichlet{l,r},b::ChebyshevDirichlet{l,r})=domainscompatible(a,b)
 
 ChebyshevDirichlet()=ChebyshevDirichlet{1,1}()
-
-
+ZeroChebyshevDirichlet(d)=SliceSpace(ChebyshevDirichlet{1,1}(d),2)
+ZeroChebyshevDirichlet()=SliceSpace(ChebyshevDirichlet{1,1}(),2)
 
 canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
 

@@ -315,3 +315,5 @@ for op in (:tocanonical,:fromcanonical)
     @eval $op(f::ProductFun,x...)=$op(space(f),x...)
 end
 
+
+

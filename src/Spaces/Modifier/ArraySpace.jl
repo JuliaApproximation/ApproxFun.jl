@@ -3,7 +3,7 @@ export devec,demat,mat
 
 
 immutable ArraySpace{S,n,T,D<:Domain} <: FunctionSpace{T,D}
-     space::S     
+     space::S
      dimensions::(Int...)
 #      # for AnyDomain() usage
     ArraySpace(sp::S,dims)=new(sp,dims)
@@ -32,10 +32,10 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
     n=length(AS)
 
     @assert size(M,2)==n
-    cfs=[transform(AS.space,M[:,k])  for k=1:size(M,2)]    
-    
+    cfs=[transform(AS.space,M[:,k])  for k=1:size(M,2)]
+
     C=zeros(coefficient_type(T,V),mapreduce(length,max,cfs)*size(M,2))
-    
+
     for k=1:size(M,2)
         C[k:n:end]=cfs[k]
     end
@@ -54,13 +54,13 @@ Base.vec{AS<:ArraySpace,T}(f::Fun{AS,T})=vec(Fun(f.coefficients,vec(space(f))))
 
 mat{AS<:ArraySpace,T}(f::Fun{AS,T})=reshape(vec(f),size(space(f))...)
 
-# mat(f,1) vectorizes columnwise 
+# mat(f,1) vectorizes columnwise
 function mat{S,V,D,T}(f::Fun{ArraySpace{S,2,V,D},T},j::Integer)
     @assert j==1
     m=mat(f)
     r=Array(Fun{ArraySpace{S,1,V,D},T},1,size(m,2))
     for k=1:size(m,2)
-        r[1,k]=devec(m[:,k]) 
+        r[1,k]=devec(m[:,k])
     end
     r
 end
@@ -69,9 +69,12 @@ end
 
 
 function devec{F<:Fun}(v::Vector{F})
-    @assert spacescompatible(map(space,v))
-    
-    Fun(vec(coefficients(v).'),ArraySpace(space(first(v)),length(v)))
+    sps=map(space,v)
+    if spacescompatible(sps)
+        Fun(vec(coefficients(v).'),ArraySpace(first(sps),length(v)))
+    else
+        Fun(vec(coefficients(v).'),PiecewiseSpace(sps))
+    end
 end
 
 devec(v::Vector{Any})=devec([v...])
@@ -152,7 +155,7 @@ function Fun{T<:Number,S}(A::Array{T,2},sp::ArraySpace{S,1})
     end
     # pad with zeros
     for k=size(A,1)+1:n*(div(size(A,1),n)+1),j=1:m
-        cfs[m*n*div(k-1,n)+mod(k-1,n)+(j-1)*n+1]=zero(T)    
+        cfs[m*n*div(k-1,n)+mod(k-1,n)+(j-1)*n+1]=zero(T)
     end
     Fun(cfs,ArraySpace(sp.space,n,size(A,2)))
 end
@@ -186,11 +189,11 @@ for OP in (:*,:.*,:+,:-)
         $OP{T<:Number,AS<:ArraySpace,V}(A::Array{T},f::Fun{AS,V})=demat($OP(A,mat(f)))
         $OP{T<:Number,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{T})=demat($OP(mat(f),A))
         $OP{T,S,AS<:ArraySpace,V}(A::Vector{Fun{S,T}},f::Fun{AS,V})=demat($OP(A,mat(f)))
-        $OP{T,S,AS<:ArraySpace,V}(f::Fun{AS,V},A::Vector{Fun{S,T}})=demat($OP(mat(f),A))           
+        $OP{T,S,AS<:ArraySpace,V}(f::Fun{AS,V},A::Vector{Fun{S,T}})=demat($OP(mat(f),A))
         $OP{T,S,AS<:ArraySpace,V}(A::Array{Fun{S,T}},f::Fun{AS,V})=demat($OP(A,mat(f)))
-        $OP{T,S,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{Fun{S,T}})=demat($OP(mat(f),A))              
+        $OP{T,S,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{Fun{S,T}})=demat($OP(mat(f),A))
         $OP{AS<:ArraySpace,V}(A::UniformScaling,f::Fun{AS,V})=demat($OP(A,mat(f)))
-        $OP{AS<:ArraySpace,V}(f::Fun{AS,V},A::UniformScaling)=demat($OP(mat(f),A))                
+        $OP{AS<:ArraySpace,V}(f::Fun{AS,V},A::UniformScaling)=demat($OP(mat(f),A))
     end
 end
 
