@@ -53,7 +53,8 @@ function Base.abs{S,T}(f::Fun{S,T})
     pts=roots(f)
 
     if isempty(pts)
-        Fun(x->abs(f[x]),space(f))
+        # This makes sure Laurent returns real type
+        real(Fun(x->abs(f[x]),space(f)))
     else
         splitmap(x->abs(f[x]),d,pts)
     end

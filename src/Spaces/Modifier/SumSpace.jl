@@ -9,10 +9,7 @@ immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T,D<:Domain} <: FunctionSpa
     SumSpace(sp::(S,V))=new(sp)
 end
 
-function SumSpace{T,D}(A::(FunctionSpace{T,D},FunctionSpace{T,D}))
-    @assert domain(A[1])==domain(A[2])
-    SumSpace{typeof(A[1]),typeof(A[2]),T,D}(A)
-end
+SumSpace{T1,D1,T2,D2}(A::(FunctionSpace{T1,D1},FunctionSpace{T2,D2}))=SumSpace{typeof(A[1]),typeof(A[2]),promote_type(T1,T2),D1}(A)
 
 SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
 
