@@ -1,14 +1,14 @@
 
 
-## 
+##
 # Represent a banded matrix
-# [ a_11 a_12 
+# [ a_11 a_12
 #   a_21 a_22 a_23
 #   a_31 a_32 a_33 a_34
 #        a_42 a_43 a_44  ]
 # ordering the data like
 #       [ *     *       a_31    a_42
-#         *      a_21   a_32    a_43 
+#         *      a_21   a_32    a_43
 #         a_11   a_22   a_33    A_44
 #         a_12   a_23   a_44    *       ]
 ###
@@ -16,13 +16,13 @@
 
 type BandedMatrix{T} <: AbstractSparseMatrix{T,Int}
     data::Matrix{T}  # l+u+1 x n (# of rows)
-    m::Int #Number of columns    
+    m::Int #Number of columns
     l::Int # lower bandwidth ≥0
     u::Int # upper bandwidth ≥0
     function BandedMatrix(data::Matrix{T},m,l,u)
         @assert size(data,1)==l+u+1
         new(data,m,l,u)
-    end    
+    end
 end
 
 
@@ -46,19 +46,19 @@ Base.eltype{T}(::BandedMatrix{T})=T
 
 for (op,bop) in ((:(Base.rand),:barand),(:(Base.zeros),:bazeros),(:(Base.ones),:baones))
     @eval begin
-        $bop{T}(::Type{T},n::Integer,m::Integer,a::Integer,b::Integer)=BandedMatrix($op(T,b+a+1,n),m,a,b)      
+        $bop{T}(::Type{T},n::Integer,m::Integer,a::Integer,b::Integer)=BandedMatrix($op(T,b+a+1,n),m,a,b)
         $bop{T}(::Type{T},n::Integer,a::Integer,b::Integer)=$bop(T,n,n,a,b)
-        $bop{T}(::Type{T},n::Integer,::Colon,a::Integer,b::Integer)=$bop(T,n,n+b,a,b)        
-        $bop{T}(::Type{T},::Colon,m::Integer,a::Integer,b::Integer)=$bop(T,m+a,m,a,b)                   
+        $bop{T}(::Type{T},n::Integer,::Colon,a::Integer,b::Integer)=$bop(T,n,n+b,a,b)
+        $bop{T}(::Type{T},::Colon,m::Integer,a::Integer,b::Integer)=$bop(T,m+a,m,a,b)
         $bop(n::Integer,m::Integer,a::Integer,b::Integer)=$bop(Float64,n,m,a,b)
         $bop(n::Integer,a::Integer,b::Integer)=$bop(n,n,a,b)
-                
-        $bop{T}(::Type{T},n::Integer,m::Integer,a)=$bop(T,n,m,-a[1],a[end])                  
-        $bop{T}(::Type{T},n::Number,::Colon,a)=$bop(T,n,:,-a[1],a[end])   
-        $bop{T}(::Type{T},::Colon,m::Integer,a)=$bop(T,:,m,-a[1],a[end])                        
-        $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,-a[1],a[end])             
-        $bop(n::Integer,m::Integer,a)=$bop(Float64,n,m,-a[1],a[end])        
-        $bop(n::Integer,a)=$bop(n,-a[1],a[end])        
+
+        $bop{T}(::Type{T},n::Integer,m::Integer,a)=$bop(T,n,m,-a[1],a[end])
+        $bop{T}(::Type{T},n::Number,::Colon,a)=$bop(T,n,:,-a[1],a[end])
+        $bop{T}(::Type{T},::Colon,m::Integer,a)=$bop(T,:,m,-a[1],a[end])
+        $bop{T}(::Type{T},n::Integer,a)=$bop(T,n,-a[1],a[end])
+        $bop(n::Integer,m::Integer,a)=$bop(Float64,n,m,-a[1],a[end])
+        $bop(n::Integer,a)=$bop(n,-a[1],a[end])
     end
 end
 
@@ -92,6 +92,23 @@ getindex(A::BandedMatrix,kr::Range,jr::Range)=[A[k,j] for k=kr,j=jr]
 Base.full(A::BandedMatrix)=A[1:size(A,1),1:size(A,2)]
 
 
+function Base.sparse(B::BandedMatrix)
+    i=Array(Int,length(B.data));j=Array(Int,length(B.data))
+    n,m=size(B.data)
+    Bm=size(B,2)
+    vb=copy(vec(B.data))
+    for k=1:n,ℓ=1:m
+        i[k+n*(ℓ-1)]=ℓ
+        jj=k+ℓ-B.l-1
+        if jj <1 || jj > Bm
+            vb[k+n*(ℓ-1)] = 0
+        end
+        j[k+n*(ℓ-1)]=min(max(jj,1),Bm)
+    end
+    sparse(i,j,vb)
+end
+
+
 # We turn off bound checking to allow nicer syntax without branching
 #setindex!(A::BandedMatrix,v,k::Integer,j::Integer)=((A.l≤j-k≤A.u)&&k≤A.n)?ussetindex!(A,v,k,j):throw(BoundsError())
 #setindex!(A::BandedMatrix,v,kr::Range,j::Integer)=(A.l≤j-kr[end]≤j-kr[1]≤A.u&&kr[end]≤A.n)?ussetindex!(A,v,kr,j):throw(BoundsError())
@@ -115,11 +132,11 @@ end
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
-        $OP(B::BandedMatrix{Bool},x::Bool)=BandedMatrix($OP(B.data,x),B.m,B.l,B.u)    
-        $OP(x::Bool,B::BandedMatrix{Bool})=BandedMatrix($OP(x,B.data),B.m,B.l,B.u)            
+        $OP(B::BandedMatrix{Bool},x::Bool)=BandedMatrix($OP(B.data,x),B.m,B.l,B.u)
+        $OP(x::Bool,B::BandedMatrix{Bool})=BandedMatrix($OP(x,B.data),B.m,B.l,B.u)
         $OP(B::BandedMatrix,x::Number)=BandedMatrix($OP(B.data,x),B.m,B.l,B.u)
-        $OP(x::Number,B::BandedMatrix)=BandedMatrix($OP(x,B.data),B.m,B.l,B.u)    
-    end    
+        $OP(x::Number,B::BandedMatrix)=BandedMatrix($OP(x,B.data),B.m,B.l,B.u)
+    end
 end
 
 function +{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
@@ -127,7 +144,7 @@ function +{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
         throw(DimensionMismatch("+"))
     end
     n,m=size(A,1),size(A,2)
-    
+
     ret = bazeros(promote_type(T,V),n,m,max(A.l,B.l),max(A.u,B.u))
     for k=1:n,j=max(1,k-A.l):min(m,k+A.l)
         ibpluseq!(ret,usgetindex(A,k,j),k,j)
@@ -135,8 +152,8 @@ function +{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
     for k=1:n,j=max(1,k-B.l):min(m,k+B.l)
         ibpluseq!(ret,usgetindex(B,k,j),k,j)
     end
-    
-    ret    
+
+    ret
 end
 
 function -{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
@@ -144,7 +161,7 @@ function -{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
         throw(DimensionMismatch("+"))
     end
     n,m=size(A,1),size(A,2)
-    
+
     ret = bazeros(promote_type(T,V),n,m,max(A.l,B.l),max(A.u,B.u))
     for k=1:n,j=max(1,k-A.l):min(m,k+A.l)
         ibpluseq!(ret,usgetindex(A,k,j),k,j)
@@ -152,8 +169,8 @@ function -{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
     for k=1:n,j=max(1,k-B.l):min(m,k+B.l)
         ibpluseq!(ret,-usgetindex(B,k,j),k,j)
     end
-    
-    ret    
+
+    ret
 end
 
 
@@ -162,7 +179,7 @@ function *{T,V}(A::BandedMatrix{T},B::BandedMatrix{V})
     if size(A,2)!=size(B,1)
         throw(DimensionMismatch("*"))
     end
-    n,m=size(A,1),size(B,2)    
+    n,m=size(A,1),size(B,2)
     bamultiply!(bazeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
@@ -170,7 +187,7 @@ function *{T,V}(A::BandedMatrix{T},B::Matrix{V})
     if size(A,2)!=size(B,1)
         throw(DimensionMismatch("*"))
     end
-    n,m=size(A,1),size(B,2)    
+    n,m=size(A,1),size(B,2)
     bamultiply!(zeros(promote_type(T,V),n,m),A,B)
 end
 
@@ -208,12 +225,12 @@ end
 
 ## Used to scam addentries! into thinking we are somewhere else
 
-immutable IndexStride{S} 
+immutable IndexStride{S}
     matrix::S
     rowindex::Int
     colindex::Int
     rowstride::Int
-    colstride::Int    
+    colstride::Int
 end
 function IndexStride{S<:BandedMatrix}(mat::S,ri::Int,ci::Int,rs::Int,cs::Int)
     # its no longer banded unless the strides match
@@ -229,7 +246,7 @@ ibpluseq!(S::IndexStride,x,k,j)=ibpluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.
 
 # Odd rows/columns become real part and even become imag part
 # S Should be a Real-valued matrix
-immutable IndexReIm{S} 
+immutable IndexReIm{S}
     matrix::S
 end
 
@@ -270,16 +287,16 @@ for OP in (:*,:.*,:+,:.+,:-,:.-)
         $OP(B::IndexStride,x::Number)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
         $OP(x::Number,B::IndexStride)=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)
 
-        
+
         function $OP{ST<:BandedMatrix,SV<:BandedMatrix}(A::IndexStride{ST},B::IndexStride{SV})
             # TODO: General implementation
             @assert A.rowindex==B.rowindex==A.colindex==B.colindex
             @assert A.rowstride==B.rowstride==A.colstride==B.colstride==1
-            
+
             AB=$OP(A.matrix,B.matrix)
             IndexStride(AB,A.rowindex,A.colindex)
-        end        
-    end    
+        end
+    end
 end
 
 
@@ -294,12 +311,12 @@ columnrange(A,row::Integer)=max(1,row+bandinds(A,1)):row+bandinds(A,2)
 ## IndexSlice
 #  divides by stride instead of multiply
 
-immutable IndexSlice{S} 
+immutable IndexSlice{S}
     matrix::S
     rowindex::Int
     colindex::Int
     rowstride::Int
-    colstride::Int    
+    colstride::Int
 end
 function IndexSlice{S<:BandedMatrix}(mat::S,ri::Int,ci::Int,rs::Int,cs::Int)
     # its no longer banded unless the strides match
@@ -322,8 +339,8 @@ ibpluseq!(S::IndexSlice,x,k,j)=ibpluseq!(S.matrix,x,div(k-S.rowindex,S.rowstride
 for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
         $OP(B::IndexSlice,x::Number)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
-        $OP(x::Number,B::IndexSlice)=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)      
-    end    
+        $OP(x::Number,B::IndexSlice)=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)
+    end
 end
 
 
@@ -335,7 +352,7 @@ bandinds(S::IndexSlice)=(div(bandinds(S.matrix,1)+S.colindex-S.rowindex,S.rowstr
 type IndexTranspose{S}
     matrix::S
     firstrow::Int   # These allow us to control which rows are toched
-    lastrow::Int    
+    lastrow::Int
 end
 
 IndexTranspose(mat,fl)=IndexTranspose(mat,fl[1],fl[end])
@@ -358,7 +375,7 @@ function bamultiply!(c::Vector,A::BandedMatrix,b::Vector)
     for k=1:size(A,1)  # rows of c
         @simd for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A/rows of b
              @inbounds c[k]+=A.data[l-k+A.l+1,k]*b[l]
-        end        
+        end
     end
     c
 end
@@ -371,51 +388,51 @@ end
 
 
 
-function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
+function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
-            
-            
-            #  A[k,j] == A.data[j-k+A.l+1,k] 
-            shB=-l+B.l+1                            
+
+
+            #  A[k,j] == A.data[j-k+A.l+1,k]
+            shB=-l+B.l+1
             ks=rs*k+ri
             shC=ci-ks+C.l+1
             @simd for j=max(1,l-B.l):min(B.u+l,m) # columns of C/B
                 @inbounds C.data[cs*j+shC,ks]+=Aj*B.data[j+shB,l]
             end
         end
-    end 
+    end
     C
 end
 
-function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)    
+function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
     n=size(A,1);m=size(B,2)
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
-            
+
              @simd for j=1:m # columns of C/B
                  @inbounds C[rs*k+ri,cs*j+ci]+=Aj*B[l,j]
              end
         end
-    end 
+    end
     C
 end
 
 
-function bamultiply!(C::IndexStride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
+function bamultiply!(C::IndexStride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
     bamultiply!(C.matrix,A,B,ri*C.rowstride+C.rowindex,ci*C.colstride+C.colindex,rs*C.rowstride,cs*C.colstride)
     C
 end
 
 
-function bamultiply!(C::IndexSlice,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)   
+function bamultiply!(C::IndexSlice,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
     @assert rs==C.rowstride==cs==C.colstride
     @assert mod(ri-C.rowindex,rs)==mod(ci-C.colindex,cs)==0
     # div(rs*k+ri -C.rowindex,C.rowstride)
-    # k+div(ri -C.rowindex,C.rowstride)    
+    # k+div(ri -C.rowindex,C.rowstride)
     bamultiply!(C.matrix,A,B,div(ri -C.rowindex,C.rowstride),div(ci -C.colindex,C.colstride))
     C
 end
@@ -425,17 +442,17 @@ end
 
 # Unoptimized but more readible version
 
-# function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)   
+# function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)
 #     n,m=size(C)
 #     for k=1:n  # ROWS
 #         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
 #             Aj=A[k,l]
-# 
+#
 #             for j=max(1,l-B.l):min(B.u+l,m) # columns of C/B
 #                 C[rs*k+ri,cs*j+ci]+=Aj*B[l,j]
 #             end
 #         end
-#     end 
+#     end
 #     C
 # end
 
@@ -446,20 +463,20 @@ end
 
 ## addentries!
 
-function addentries!(B::BandedMatrix,c::Number,A,kr::Range)   
+function addentries!(B::BandedMatrix,c::Number,A,kr::Range)
     for k=intersect(kr,1:size(B,1)),j=intersect(k+bandrange(B),1:size(B,2))
         A[k,j] += c*B.data[j-k+B.l+1,k]
     end
-    
+
     A
 end
 
 
-function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range)    
+function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range)
     for k=kr,j=k+bandrange(B)
         ibpluseq!(A,c*B[k,j],k,j)
     end
-    
+
     A
 end
 

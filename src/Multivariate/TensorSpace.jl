@@ -54,6 +54,9 @@ TensorSpace(A::ProductDomain)=TensorSpace(Space(A[1]),Space(A[2]))
 domain(f::TensorSpace)=domain(f.spaces[1])*domain(f.spaces[2])
 Space(sp::ProductDomain)=TensorSpace(sp)
 
+*(A::FunctionSpace,B::FunctionSpace)=A⊗B
+
+
 # every column is in the same space for a TensorSpace
 columnspace(S::TensorSpace,::)=S.spaces[1]
 
