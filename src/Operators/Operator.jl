@@ -110,7 +110,10 @@ end
 
 BandedMatrix(B::Operator,kr::Colon,jr::UnitRange)=BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
 
-
+Base.sparse(B::Operator,n::Integer)=sparse(BandedMatrix(B,n))
+Base.sparse(B::Operator,n::Range,m::Range)=sparse(BandedMatrix(B,n,m))
+Base.sparse(B::Operator,n::Colon,m::Range)=sparse(BandedMatrix(B,n,m))
+Base.sparse(B::Operator,n::Range,m::Colon)=sparse(BandedMatrix(B,n,m))
 
 ## geteindex
 
