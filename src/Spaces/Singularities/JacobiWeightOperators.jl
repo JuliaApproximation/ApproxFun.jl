@@ -285,9 +285,7 @@ function getindex{λ,T}(Σ::DefiniteIntegral{JacobiWeight{Ultraspherical{λ}},T}
 
     C = (d.b-d.a)/2
 
-    for k=kr
-        return k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T)
-    end
+    promote_type(T,typeof(C))[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
 end
 
 datalength{λ}(Σ::DefiniteIntegral{JacobiWeight{Ultraspherical{λ}}})=1
