@@ -1,6 +1,6 @@
 ##  Jacobi Operator
 
-# x p_k 
+# x p_k
 recα{T}(::Type{T},::Ultraspherical,::)=zero(T)
 
 recβ{T}(::Type{T},::Chebyshev,k)=ifelse(k==1,one(T),one(T)/2)   # one(T) ensures we get correct type,ifelse ensures inlining
@@ -19,7 +19,7 @@ recγ{T,λ}(::Type{T},::Ultraspherical{λ},k)=(k-2+2λ)/(2*(k-one(T)+λ))   # on
 #     end
 #     A
 # end
-# 
+#
 # addentries!{m,T}(::Recurrence{Ultraspherical{m},T},A,kr::Range)=usjacobi_addentries!(m,T,A,kr)
 
 ## Evaluation
@@ -120,7 +120,7 @@ function addentries!{λ,PS<:PolynomialSpace,T}(M::Multiplication{Ultraspherical{
         C1=2λ*J
         addentries!(C1,a[2],A,kr)
         C0=isbaeye(jkr)
-        
+
         for k=1:length(a)-2
             C1,C0=2(k+λ)/(k+1)*J*C1-(k+2λ-1)/(k+1)*C0,C1
             addentries!(C1,a[k+2],A,kr)
@@ -135,9 +135,9 @@ function addentries!{PS<:PolynomialSpace,T}(M::Multiplication{Chebyshev,PS,T},A,
     a=coefficients(M.f)
 
     for k=kr
-        A[k,k]=a[1] 
+        A[k,k]=a[1]
     end
-    
+
     if length(M.f) > 1
         sp=M.space
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
@@ -147,13 +147,13 @@ function addentries!{PS<:PolynomialSpace,T}(M::Multiplication{Chebyshev,PS,T},A,
         C1=J
         addentries!(C1,a[2],A,kr)
         C0=isbaeye(jkr)
-    
-        for k=1:length(a)-2    
+
+        for k=1:length(a)-2
             C1,C0=2J*C1-C0,C1
-            addentries!(C1,a[k+2],A,kr)    
+            addentries!(C1,a[k+2],A,kr)
         end
     end
-    
+
     A
 end
 
@@ -196,6 +196,14 @@ end
 
 
 ## Integral
+
+function linesum{S<:Ultraspherical}(f::Fun{S})
+    d=domain(f)
+    @assert isa(d,Interval)
+    sum(Fun(f.coefficients,S()))*abs(d.b-d.a)/2
+end
+
+
 
 # TODO: include in addentries! to speed up
 Integral(sp::Chebyshev,m::Integer)=IntegralWrapper(

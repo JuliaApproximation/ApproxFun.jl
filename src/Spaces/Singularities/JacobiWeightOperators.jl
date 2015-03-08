@@ -92,6 +92,14 @@ function Base.cumsum{J<:JacobiWeight}(f::Fun{J})
     end
 end
 
+
+function linesum{S<:JacobiWeight}(f::Fun{S})
+    d=domain(f)
+    @assert isa(d,Interval)
+    s=space(f)
+    sum(Fun(f.coefficients,JacobiWeight(s.α,s.β,typeof(s.space)())))*abs(d.b-d.a)/2
+end
+
 ## Operators
 
 

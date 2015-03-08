@@ -211,6 +211,22 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 
 
 Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
+
+# project first to [-1,1] to avoid issues with
+# complex derivative
+function Base.log{US<:Ultraspherical,T<:Real}(f::Fun{US,T})
+    if isreal(domain(f))
+        cumsum(differentiate(f)/f)+log(first(f))
+    else
+        # this makes sure differentiate doesn't
+        # make the function complex
+        g=log(Fun(f.coefficients,US()))
+        @assert isa(space(g),US)
+        Fun(g.coefficients,space(f))
+    end
+end
+
+
 function Base.log{T<:Real}(f::Fun{Fourier,T})
     if isreal(domain(f))
         cumsum(differentiate(f)/f)+log(first(f))

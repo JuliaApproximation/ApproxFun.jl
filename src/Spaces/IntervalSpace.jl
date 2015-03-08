@@ -8,6 +8,8 @@ Space{N<:Number}(d::Vector{N})=Space(Interval(d))
 
 ## Calculus
 
+
+
 # the default domain space is higher to avoid negative ultraspherical spaces
 Integral(d::IntervalDomain,n::Integer)=Integral(Ultraspherical{1}(d),n)
 
