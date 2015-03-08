@@ -1,5 +1,6 @@
 # DirichletSpaces
 
+export ChebyshevDirichlet
 
 immutable ChebyshevDirichlet{left,right} <: PolynomialSpace
     domain::Union(IntervalDomain,AnyDomain)
