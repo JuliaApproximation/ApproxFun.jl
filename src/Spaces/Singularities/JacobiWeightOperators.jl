@@ -284,16 +284,20 @@ end
 
 ## Definite Integral
 
+for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:length))
+    @eval begin
 
-function getindex{λ,T}(Σ::DefiniteIntegral{JacobiWeight{Ultraspherical{λ}},T},kr::Range)
-    dsp = domainspace(Σ)
-    d = domain(Σ)
-    @assert isa(d,Interval)
-    @assert dsp.α==dsp.β==λ-0.5
+        function getindex{λ,T}(Σ::$Func{JacobiWeight{Ultraspherical{λ}},T},kr::Range)
+            dsp = domainspace(Σ)
+            d = domain(Σ)
+            @assert isa(d,Interval)
+            @assert dsp.α==dsp.β==λ-0.5
 
-    C = (d.b-d.a)/2
+            C = $Len(d)/2
 
-    promote_type(T,typeof(C))[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
+            promote_type(T,typeof(C))[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
+        end
+
+        datalength{λ}(Σ::$Func{JacobiWeight{Ultraspherical{λ}}})=1
+    end
 end
-
-datalength{λ}(Σ::DefiniteIntegral{JacobiWeight{Ultraspherical{λ}}})=1

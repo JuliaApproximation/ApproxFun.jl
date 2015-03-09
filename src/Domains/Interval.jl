@@ -61,6 +61,7 @@ fromcanonicalD(d::Interval,x)=( d.b- d.a) / 2
 
 Base.length(d::Interval) = abs(d.b - d.a)
 Base.angle(d::Interval)=angle(d.b-d.a)
+complexlength(d::Interval)=d.b-d.a
 
 
 ==(d::Interval,m::Interval) = d.a == m.a && d.b == m.b

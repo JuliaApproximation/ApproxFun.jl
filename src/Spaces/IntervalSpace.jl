@@ -13,15 +13,20 @@ Space{N<:Number}(d::Vector{N})=Space(Interval(d))
 # the default domain space is higher to avoid negative ultraspherical spaces
 Integral(d::IntervalDomain,n::Integer)=Integral(Ultraspherical{1}(d),n)
 
-DefiniteIntegral(d::IntervalDomain)=DefiniteIntegral(JacobiWeight(-.5,-.5,Chebyshev(d)))
-
-function DefiniteIntegral(α::Number,β::Number,d::IntervalDomain)
-    @assert α == β
-    @assert int(α+.5) == α+.5
-    @assert int(α+.5) >= 0
-    DefiniteIntegral(JacobiWeight(α,β,Ultraspherical{int(α+.5)}(d)))
+for Func in (:DefiniteIntegral,:DefiniteLineIntegral)
+    @eval begin
+        $Func(d::IntervalDomain)=$Func(JacobiWeight(-.5,-.5,Chebyshev(d)))
+        function $Func(α::Number,β::Number,d::IntervalDomain)
+            @assert α == β
+            @assert int(α+.5) == α+.5
+            @assert int(α+.5) >= 0
+            $Func(JacobiWeight(α,β,Ultraspherical{int(α+.5)}(d)))
+        end
+        $Func(α::Number,β::Number) = $Func(α,β,Interval())
+    end
 end
-DefiniteIntegral(α::Number,β::Number) = DefiniteIntegral(α,β,Interval())
+
+
 
 ## Evaluation
 
