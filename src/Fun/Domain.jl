@@ -58,7 +58,7 @@ Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 
 function Base.in{T}(x,d::IntervalDomain{T})
     y=tocanonical(d,x)
-    abs(imag(y))<10eps(T) && -one(T)-10eps(T)/length(d)<real(y)<one(T)+10eps(T)/length(d)
+    abs(imag(y))<10eps(T) && -one(real(T))-10eps(T)/length(d)<real(y)<one(real(T))+10eps(T)/length(d)
 end
 
 ###### Periodic domains
