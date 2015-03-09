@@ -56,25 +56,25 @@ Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
 Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 
 
-function Base.in(x,d::IntervalDomain)
+function Base.in{T}(x,d::IntervalDomain{T})
     y=tocanonical(d,x)
-    abs(imag(y))<10eps() && -1.0-10eps()/length(d)<real(y)<1.0+10eps()/length(d)
+    abs(imag(y))<10eps(T) && -one(T)-10eps(T)/length(d)<real(y)<one(T)+10eps(T)/length(d)
 end
 
 ###### Periodic domains
 
 abstract PeriodicDomain{T} <: Domain{T}
 
-points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(n,T))
+points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(T,n))
 
-fourierpoints(n::Integer) = fourierpoints(n,Float64)
-fourierpoints{T<:Number}(n::Integer,::Type{T})= convert(T,π)*collect(-n:2:n-2)/n
+fourierpoints(n::Integer) = fourierpoints(Float64,n)
+fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/n
 
 
-function Base.in(x,d::PeriodicDomain)
+function Base.in{T}(x,d::PeriodicDomain{T})
     y=tocanonical(d,x)
     l=length(d)
-    abs(imag(y))/l<20eps() && -π-2*l*eps()<=real(y)<=π+2*l*eps()
+    abs(imag(y))/l<20eps(T) && -π-2l*eps(T)<real(y)<π+2l*eps(T)
 end
 
 
