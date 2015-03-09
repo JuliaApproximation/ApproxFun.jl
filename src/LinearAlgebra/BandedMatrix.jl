@@ -39,6 +39,7 @@ BandedMatrix{T}(::Type{T},n::Integer,::Colon,a)=BandedMatrix(T,n,:,-a[1],a[end])
 BandedMatrix{T}(::Type{T},n::Integer,a)=BandedMatrix(T,n,-a[1],a[end])
 
 Base.eltype{T}(::BandedMatrix{T})=T
+Base.convert{T<:Real}(::Type{BandedMatrix{Complex{T}}},M::BandedMatrix{T}) = BandedMatrix{Complex{T}}(convert(Matrix{Complex{T}},M.data),M.m,M.l,M.u)
 
 
 

@@ -1,4 +1,4 @@
-export depiece,pieces
+export PiecewiseSpace,depiece,pieces
 
 ###########
 # Piecewise Space
