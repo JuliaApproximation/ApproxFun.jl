@@ -14,6 +14,10 @@ immutable ComplexBasis end
 immutable AnyBasis end
 
 
+promote_rule(::Type{RealBasis},::Type{ComplexBasis})=ComplexBasis
+promote_rule(::Type{ComplexBasis},::Type{AnyBasis})=AnyBasis
+promote_rule(::Type{RealBasis},::Type{AnyBasis})=AnyBasis
+
 # coefficient_type(basis,valuetype) gives the type for coefficients
 # for basis of type RealBasis/ComplexBasis and valuetype
 # giving the type of function values
@@ -44,6 +48,7 @@ abstract FunctionSpace{T,D} #TODO should be able to write D<:Domain
 
 typealias RealSpace{D} FunctionSpace{RealBasis,D}
 typealias ComplexSpace{D} FunctionSpace{ComplexBasis,D}
+
 
 Base.eltype{S}(::FunctionSpace{S})=eltype(S)
 coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)

@@ -41,10 +41,9 @@ end
 
 
 
-ProductFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
-ProductFun(f::Function,d::BivariateDomain)=ProductFun(f,Space(d))
+#ProductFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
+ProductFun(f::Function,d::Domain)=ProductFun(f,Space(d))
 ProductFun(f,dy::Domain)=ProductFun(f,Space(dy))
-ProductFun(f,d::BivariateDomain)=ProductFun(f,Space(d))
 ProductFun(f,dx::Domain,dy::Domain)=ProductFun(f,Space(dx),Space(dy))
 ProductFun(f::LowRankFun)=ProductFun(coefficients(f),space(f,1),space(f,2))
 
@@ -110,8 +109,8 @@ ProductFun(f::Function,SF::Function,T::FunctionSpace,N::Integer,M::Integer)=Prod
 
 # convert a constant  to a 2D Fun
 
-ProductFun(c::Number,sp::BivariateFunctionSpace)=ProductFun([Fun(c,columnspace(sp,1))],sp)
-ProductFun(f::Fun,sp::BivariateFunctionSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
+ProductFun(c::Number,sp::BivariateSpace)=ProductFun([Fun(c,columnspace(sp,1))],sp)
+ProductFun(f::Fun,sp::BivariateSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
 
 
 

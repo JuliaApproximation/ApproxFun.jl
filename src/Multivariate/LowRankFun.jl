@@ -32,12 +32,15 @@ function LowRankFun{T<:Number,S<:FunctionSpace,W<:FunctionSpace}(X::Array{T},dx:
     LowRankFun(A,B)
 end
 
-LowRankFun(f,S::TensorSpace,n...)=LowRankFun(f,S[1],S[2],n...)
+LowRankFun(f,S::TensorSpace)=LowRankFun(f,S[1],S[2])
+LowRankFun(f,S::TensorSpace,n::Integer)=LowRankFun(f,S[1],S[2],n)
+LowRankFun(f,S::TensorSpace,n::Integer,m::Integer)=LowRankFun(f,S[1],S[2],n,m)
 
 ## We take the convention that row vector pads down
 # TODO: Vector pads right
 for T in (:Float64,:(Complex{Float64}))
     @eval begin
+        LowRankFun{S}(X::Vector{Fun{S,$T}},d::TensorSpace)=LowRankFun(X,d[1],d[2])    
         function LowRankFun{S}(X::Vector{Fun{S,$T}},dy::FunctionSpace)
             m=mapreduce(length,max,X)
             M=zeros($T,m,length(X))
