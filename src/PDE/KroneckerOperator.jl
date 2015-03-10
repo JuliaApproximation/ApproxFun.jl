@@ -5,14 +5,14 @@ export KroneckerOperator
 # the bandwidths are assumed to be constant
 
 function blockbandzeros(T,n,m::Integer,Al,Au,Bl,Bu)
-    l=Al+Bl;u=Au+Bu    
+    l=Al+Bl;u=Au+Bu
     ret=BandedMatrix(BandedMatrix{T},n,m,l,u)
-    
+
     for k=1:n,j=max(1,k-l):min(m,k+u)
         nl=min(Al,Bu+k-j);nu=min(Au,Bl+j-k)
         ret[k,j]=bazeros(T,k,j,nl,nu)
-    end 
-    
+    end
+
     ret
 end
 
@@ -35,18 +35,18 @@ function Base.convert{T,V<:Number}(::Type{Matrix{T}},K::BandedMatrix{BandedMatri
         for κ=1:k,ξ=max(1,κ-K[k,j].l):min(j,κ+K[k,j].u)
             ret[div((k-1)*k,2)+κ,div((j-1)*j,2)+ξ]=K[k,j][κ,ξ]
         end
-    end 
+    end
     ret
 end
 
 
 ##############
-# BivariateOperator represents a block banded operator 
+# BivariateOperator represents a block banded operator
 # the (i,j) block is a i x j BandedMatrix
 ##############
 
 
-abstract BivariateOperator{T} <: BandedOperator{BandedMatrix{T}}
+typealias BivariateOperator{T} BandedOperator{BandedMatrix{T}}
 
 
 ##########
@@ -54,7 +54,7 @@ abstract BivariateOperator{T} <: BandedOperator{BandedMatrix{T}}
 #########
 
 immutable KroneckerOperator{S,V,DS,RS,T}<: BivariateOperator{T}
-    ops::(S,V) 
+    ops::(S,V)
     domainspace::DS
     rangespace::RS
 end
@@ -63,8 +63,19 @@ KroneckerOperator(A,B,ds,rs)=KroneckerOperator{typeof(A),typeof(B),typeof(ds),ty
 KroneckerOperator(A,B)=KroneckerOperator(A,B,domainspace(A)⊗domainspace(B),rangespace(A)⊗rangespace(B))
 
 
+for OP in (:promotedomainspace,:promoterangespace)
+    @eval $OP(K::KroneckerOperator,ds::TensorSpace)=KroneckerOperator($OP(K.ops[1],ds[1]),
+                                                                      $OP(K.ops[2],ds[2]))
+end
+
+
 
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
+blockbandinds(K::KroneckerOperator)=bandinds(K.ops[1]),bandinds(K.ops[2])
+blockbandinds{T}(K::PlusOperator{BandedMatrix{T}})=(mapreduce(v->blockbandinds(v)[1][1],min,K.ops),mapreduce(v->blockbandinds(v)[1][2],max,K.ops)),
+                                                    (mapreduce(v->blockbandinds(v)[2][1],min,K.ops),mapreduce(v->blockbandinds(v)[2][2],max,K.ops))
+
+
 domainspace(K::KroneckerOperator)=K.domainspace
 rangespace(K::KroneckerOperator)=K.rangespace
 
@@ -84,18 +95,15 @@ end
 addentries!(K::KroneckerOperator,A,kr::Range)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
 
 
-BandedMatrix(K::KroneckerOperator,n::Integer)=addentries!(K,blockbandzeros(Float64,n,:,bandinds(K.ops[1]),bandinds(K.ops[2])),1:n)
-function BandedMatrix(K::KroneckerOperator,kr::UnitRange,::Colon)
+BandedMatrix{T}(K::BivariateOperator{T},n::Integer)=addentries!(K,blockbandzeros(Float64,n,:,blockbandinds(K)...),1:n)
+function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
     @assert first(kr)==1
     BandedMatrix(K,last(kr))
 end
 
 
-
-
-
 ##########
-# Multiply a block banded matrix by a vector, where the vector is assumed to 
+# Multiply a block banded matrix by a vector, where the vector is assumed to
 # decompose into blocks
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
@@ -103,7 +111,6 @@ end
 function *{T,V<:Number}(M::BandedMatrix{BandedMatrix{T}},v::Vector{V})
     n,m=size(M)
     r=zeros(promote_type(T,V),div(n*(n+1),2))
-
     for j=1:m-1
         vj=v[fromtensorblock(j)]
 
@@ -121,11 +128,11 @@ function *{T,V<:Number}(M::BandedMatrix{BandedMatrix{T}},v::Vector{V})
     r
 end
 
-function *{T<:Number}(A::BivariateOperator,b::Vector{T})
+function *{M,T<:Number}(A::BivariateOperator{M},b::Vector{T})
     n=size(b,1)
-    
+
     if n>0
-        slice(A,:,1:totensorblock(n))*b
+        slice(A,:,1:totensorblock(n))*pad(b,fromtensorblock(totensorblock(n))[end])
     else
         b
     end
