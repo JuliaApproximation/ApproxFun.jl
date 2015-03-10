@@ -153,7 +153,8 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
     m=n  # max length
 
     rhs=Array(Any,size(Gx,1)+1)
-    ops=Array(Operator{promote_type(eltype(OS),mapreduce(eltype,promote_type,OS.Bx))},length(OS.Bx)+1)
+    TT=isempty(OS.Bx)?eltype(OS):promote_type(eltype(OS),mapreduce(eltype,promote_type,OS.Bx))
+    ops=Array(Operator{TT},length(OS.Bx)+1)
     ops[1:length(OS.Bx)]=OS.Bx
 
     while k≥1
