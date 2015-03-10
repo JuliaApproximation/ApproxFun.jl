@@ -48,7 +48,7 @@ function regularize_bcs(B::Array)
     R,Q,P
 end
 
-function regularize_bcs(B::Array, G::Array)
+function regularize_bcs{T<:Number}(B::Array, G::Matrix{T})
     R,Q,P=regularize_bcs(B)
     # we invert the principle block of R
     # so that the BC leads with the identity
@@ -92,7 +92,7 @@ function regularize_bcs(B::Array, L::Array, M::Array)
 end
 
 
-function regularize_bcs(B::Array,Ls::Vector{Any})
+function regularize_bcs(B::Array,Ls::Vector)
    if length(B) == 0
         R = B
         P = eye(size(B,2))
