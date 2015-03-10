@@ -11,7 +11,7 @@ abstract BivariateDomain{T} <: MultivariateDomain{T}
 
 
 immutable ProductDomain{D<:Domain,T} <:BivariateDomain{T}
-    domains::Vector{D} 
+    domains::Vector{D}
 end
 
 ProductDomain{D<:Domain}(d::Vector{D})=ProductDomain{D,mapreduce(eltype,promote_type,d)}(d)
@@ -32,7 +32,7 @@ Base.first(d::ProductDomain)=(first(d[1]),first(d[2]))
 
 function checkpoints(d::ProductDomain)
     ptsx=checkpoints(d[1])
-    ptsy=checkpoints(d[2])    
+    ptsy=checkpoints(d[2])
     ret=Array((Float64,Float64),0)
     for x in ptsx,y in ptsy
         push!(ret,(x,y))
@@ -191,10 +191,6 @@ end
 
 ##  Fun routines
 
-function coefficientmatrix{S<:TensorSpace,T}(f::Fun{S,T})
-    cfs=coefficients(f)
-    M=reshape(vals,m,m)
-end
 
 function fromtensorind(k,j)
     n=k+j-2
@@ -211,7 +207,7 @@ function totensorind(n)
     m=totensorblock(n)
     p=fromtensorind(1,m)
     j=1+n-p
-    j,m-j+1 
+    j,m-j+1
 end
 
 
@@ -233,8 +229,8 @@ function totensor{T}(M::Vector{T})
     end
     ret
 end
-    
-function points(sp::TensorSpace,n) 
+
+function points(sp::TensorSpace,n)
     pts=Array((Float64,Float64),0)
     for x in points(sp[1],n), y in points(sp[2],n)
         push!(pts,(x,y))
@@ -251,8 +247,8 @@ function transform!(S::TensorSpace,M::Matrix)
 
     for k=1:n
         M[k,:]=transform(space(S,2),vec(M[k,:]))
-    end 
-    M      
+    end
+    M
 end
 
 function transform(sp::TensorSpace,vals)
@@ -267,7 +263,7 @@ evaluate{S<:TensorSpace}(f::Fun{S},x,y)=ProductFun(totensor(coefficients(f)),spa
 
 
 
-
+coefficientmatrix{S<:TensorSpace}(f::Fun{S})=totensor(f.coefficients)
 
 
 

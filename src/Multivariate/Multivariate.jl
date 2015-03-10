@@ -54,7 +54,7 @@ function Fun(f::Function,S::BivariateSpace)
     catch
         # assume it needs a tuple
         Fun(ProductFun((x,y)->f((x,y)),S))
-    end 
+    end
 end
 
 coefficients(f::BivariateFun,sp::TensorSpace)=coefficients(f,sp[1],sp[2])
@@ -66,3 +66,11 @@ Base.zeros{T<:Number}(::Type{T},sp::Union(MultivariateSpace,MultivariateDomain))
 
 
 points(f::BivariateFun,k...)=points(space(f),size(f,1),size(f,2),k...)
+
+
+for OP in (:+,:-)
+    @eval begin
+        $OP(f::Fun,g::MultivariateFun)=$OP(ProductFun(f),g)
+        $OP(f::MultivariateFun,g::Fun)=$OP(f,ProductFun(g))
+    end
+end

@@ -16,7 +16,14 @@ end
 ##Coefficient routines
 #TODO: domainscompatible?
 
-coefficients(f::Fun,msp::FunctionSpace)=coefficients(f.coefficients,space(f),msp)
+function coefficients(f::Fun,msp::FunctionSpace)
+    #zero can always be converted
+    if length(f)==1 && f.coefficients[1]==0
+        f.coefficients
+    else
+        coefficients(f.coefficients,space(f),msp)
+    end
+end
 coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(AnyDomain()))
 coefficients(f::Fun)=f.coefficients
 coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients

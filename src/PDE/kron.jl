@@ -121,7 +121,7 @@ function pdesolve(K::PDEOperatorKron,G)
 
     X = [X11 X12; X21 X22]
 
-    Fun(Px*X*Py.',domainspace(K))
+    ProductFun(Px*X*Py.',domainspace(K))
 end
 
 
