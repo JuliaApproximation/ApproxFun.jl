@@ -65,7 +65,10 @@ complexlength(d::Interval)=d.b-d.a
 
 
 ==(d::Interval,m::Interval) = d.a == m.a && d.b == m.b
-Base.isapprox(d::Interval,m::Interval)=isapprox(d.a,m.a)&&isapprox(d.b,m.b)
+function Base.isapprox(d::Interval,m::Interval)
+    tol=10E-12
+    abs(d.a-m.a)<tol&&abs(d.b-m.b)<tol
+end
 
 ##Coefficient space operators
 

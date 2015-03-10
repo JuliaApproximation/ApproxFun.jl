@@ -61,7 +61,14 @@ end
 
 
 # convert needs to throw away calculated data
-Base.convert{BT<:Operator}(::Type{BT},S::SavedBandedOperator)=SavedBandedOperator(convert(BandedOperator{eltype(BT)},S.op))
+function Base.convert{BT<:Operator}(::Type{BT},S::SavedBandedOperator)
+    if isa(S,BT)
+        S
+    else
+        warn("Converting type of SavedBanded Operator. This changes the operator.")
+        SavedBandedOperator(convert(BandedOperator{eltype(BT)},S.op))
+    end
+end
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)

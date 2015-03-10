@@ -152,24 +152,30 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
     k=n
     m=n  # max length
 
+    rhs=Array(Any,size(Gx,1)+1)
+    ops=Array(Operator{promote_type(eltype(OS),mapreduce(eltype,promote_type,OS.Bx))},length(OS.Bx)+1)
+    ops[1:length(OS.Bx)]=OS.Bx
 
     while k≥1
         if k==1 || (OS.S.T[k,k-1] == 0 && OS.S.R[k,k-1] == 0        )  # triangular setting
-            rhs = k≤length(F.coefficients)?F.coefficients[k]:zeros(rs[1])
+            rhs[end] = k≤length(F.coefficients)?F.coefficients[k]:zeros(rs[1])
 
             if k < n
                 for j=k+1:n
-                    axpy!(-OS.S.R[k,j],PY[j],rhs) # equivalent to X+=a*Y
-                    axpy!(-OS.S.T[k,j],SY[j],rhs)
+                    axpy!(-OS.S.R[k,j],PY[j],rhs[end]) # equivalent to X+=a*Y
+                    axpy!(-OS.S.T[k,j],SY[j],rhs[end])
                 end
             end
 
-            op=OS.Rdiags[k]
-            if isempty(Gx)
-                Y[k]=chop!(linsolve([OS.Bx;op],rhs;maxlength=nx),eps())
-            else
-                Y[k]=chop!(linsolve([OS.Bx;op],Any[Gx[:,k]...;rhs];maxlength=nx),eps())
+
+
+            for j=1:size(Gx,1)
+                rhs[j]=Gx[j,k]
             end
+
+            ops[end]=OS.Rdiags[k]
+            chop!(rhs[end],eps())
+            Y[k]=chop!(linsolve(ops,rhs;maxlength=nx),eps())
 
             if k > 1
                 PY[k]=OS.Lx*Y[k];SY[k]=OS.Mx*Y[k]
