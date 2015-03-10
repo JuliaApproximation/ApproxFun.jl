@@ -25,7 +25,7 @@ ProductDomain(A,B)=ProductDomain([A,B])
 Base.length(d::ProductDomain)=length(d.domains)
 Base.transpose(d::ProductDomain)=ProductDomain(d[2],d[1])
 Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
-
+==(d1::ProductDomain,d2::ProductDomain)=d1.domains==d2.domains
 
 abstract MultivariateFunctionSpace
 abstract BivariateFunctionSpace <: MultivariateFunctionSpace
