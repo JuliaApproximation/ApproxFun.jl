@@ -88,7 +88,7 @@ usgetindex(A::BandedMatrix,k::Integer,j::Integer)=A.data[j-k+A.l+1,k]
 usgetindex(A::BandedMatrix,k::Integer,jr::Range)=vec(A.data[jr-k+A.l+1,k])
 getindex(A::BandedMatrix,k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zero(eltype(A)):throw(BoundsError()))
 getindex(A::BandedMatrix,k::Integer,jr::Range)=-A.l≤jr[1]-k≤jr[end]-k≤A.u?usgetindex(A,k,jr):[A[k,j] for j=jr].'
-getindex(A::BandedMatrix,k::Range,j::Integer)=[A[k,j] for j=jr]
+getindex(A::BandedMatrix,kr::Range,j::Integer)=[A[k,j] for k=kr]
 getindex(A::BandedMatrix,kr::Range,jr::Range)=[A[k,j] for k=kr,j=jr]
 Base.full(A::BandedMatrix)=A[1:size(A,1),1:size(A,2)]
 
@@ -463,10 +463,10 @@ end
 
 function .*(A::BandedMatrix,B::BandedMatrix)
     @assert size(A,1)==size(B,1)&&size(A,2)==size(B,2)
-    
+
     l=min(A.l,B.l);u=min(A.u,B.u)
     ret=BandedMatrix(promote_type(eltype(A),eltype(B)),size(A,1),size(A,2),l,u)
-    
+
     for k=1:size(A,1),j=max(1,k-l):min(size(A,2),k+u)
         @inbounds ret[k,j]=A[k,j]*B[k,j]
     end

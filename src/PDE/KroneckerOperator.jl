@@ -4,20 +4,23 @@ export KroneckerOperator
 # gives zero block banded matrix, where the blocks are increasing size
 # the bandwidths are assumed to be constant
 
-function blockbandzeros(T,n,m::Integer,Al,Au,Bl,Bu)
-    l=Al+Bl;u=Au+Bu
-    ret=BandedMatrix(BandedMatrix{T},n,m,l,u)
+function blockbandzeros{T}(zer::Function,::Type{T},n,m::Integer,l,u,Bl,Bu)
+#    l=Al+Bl;u=Au+Bu
+    ret=BandedMatrix(T,n,m,l,u)
 
     for k=1:n,j=max(1,k-l):min(m,k+u)
-        nl=min(Al,Bu+k-j);nu=min(Au,Bl+j-k)
-        ret[k,j]=bazeros(T,k,j,nl,nu)
+#        nl=min(Al,Bu+k-j);nu=min(Au,Bl+j-k)
+        ret[k,j]=zer(eltype(T),k,j,Bl,Bu)
     end
 
     ret
 end
 
-blockbandzeros(T,n,m::Colon,Al,Au,Bl,Bu)=blockbandzeros(T,n,n+Au+Bu,Al,Au,Bl,Bu)
-blockbandzeros(T,n,m,Alu,Blu)=blockbandzeros(T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
+blockbandzeros{T}(::Type{T},n,m::Integer,l,u,Bl,Bu)=blockbandzeros(bazeros,BandedMatrix{T},n,m,l,u,Bl,Bu)
+
+blockbandzeros{T}(::Type{T},n,m::Colon,Al,Au,Bl,Bu)=blockbandzeros(T,n,n+Au,Al,Au,Bl,Bu)
+blockbandzeros{T}(::Type{T},n,m,Alu,Blu)=blockbandzeros(T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
+blockbandzeros{T}(zer::Function,::Type{T},n,m,Alu,Blu)=blockbandzeros(zer,T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
 
 
 ##########
@@ -61,7 +64,9 @@ end
 
 KroneckerOperator(A,B,ds,rs)=KroneckerOperator{typeof(A),typeof(B),typeof(ds),typeof(rs),promote_type(eltype(A),eltype(B))}((A,B),ds,rs)
 KroneckerOperator(A,B)=KroneckerOperator(A,B,domainspace(A)⊗domainspace(B),rangespace(A)⊗rangespace(B))
-
+KroneckerOperator(A::UniformScaling,B::UniformScaling)=KroneckerOperator(ConstantOperator(A.λ),ConstantOperator(B.λ))
+KroneckerOperator(A,B::UniformScaling)=KroneckerOperator(A,ConstantOperator(B.λ))
+KroneckerOperator(A::UniformScaling,B)=KroneckerOperator(ConstantOperator(A.λ),B)
 
 for OP in (:promotedomainspace,:promoterangespace)
     @eval $OP(K::KroneckerOperator,ds::TensorSpace)=KroneckerOperator($OP(K.ops[1],ds[1]),
@@ -71,9 +76,10 @@ end
 
 
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
-blockbandinds(K::KroneckerOperator)=bandinds(K.ops[1]),bandinds(K.ops[2])
-blockbandinds{T}(K::PlusOperator{BandedMatrix{T}})=(mapreduce(v->blockbandinds(v)[1][1],min,K.ops),mapreduce(v->blockbandinds(v)[1][2],max,K.ops)),
-                                                    (mapreduce(v->blockbandinds(v)[2][1],min,K.ops),mapreduce(v->blockbandinds(v)[2][2],max,K.ops))
+blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
+
+blockbandinds{T}(K::PlusOperator{BandedMatrix{T}},k::Integer)=mapreduce(v->blockbandinds(v,k),k==1?min:max,K.ops)
+blockbandinds{T}(K::BandedOperator{BandedMatrix{T}})=blockbandinds(K,1),blockbandinds(K,2)
 
 
 domainspace(K::KroneckerOperator)=K.domainspace
@@ -95,11 +101,11 @@ end
 addentries!(K::KroneckerOperator,A,kr::Range)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
 
 
-BandedMatrix{T}(K::BivariateOperator{T},n::Integer)=addentries!(K,blockbandzeros(Float64,n,:,blockbandinds(K)...),1:n)
-function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
-    @assert first(kr)==1
-    BandedMatrix(K,last(kr))
-end
+bazeros{T}(K::BivariateOperator{T},n::Integer,::Colon)=blockbandzeros(T,n,:,bandinds(K),blockbandinds(K))
+# function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
+#     @assert first(kr)==1
+#     BandedMatrix(K,last(kr))
+# end
 
 
 ##########
