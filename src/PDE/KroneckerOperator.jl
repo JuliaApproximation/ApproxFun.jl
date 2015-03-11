@@ -95,8 +95,10 @@ function kronaddentries!(A,B,M,kr::Range)
 
     for k=kr,j=max(1,k-l):k+u
         nl=min(A.l,B.u+k-j);nu=min(A.u,B.l+j-k)
+        @inbounds Mkj=M[k,j]
         for κ=1:k,ξ=max(1,κ-nl):min(j,κ+nu)
-            M[k,j][κ,ξ]+=A[κ,ξ]*B[k-κ+1,j-ξ+1]
+            #Mkj[κ,ξ]+=A[κ,ξ]*B[k-κ+1,j-ξ+1]
+            @inbounds Mkj[κ,ξ]+=A.data[ξ-κ+A.l+1,κ]*B.data[j-k+κ-ξ+B.l+1,k-κ+1]
         end
     end
     M
