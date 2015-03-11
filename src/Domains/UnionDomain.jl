@@ -1,11 +1,14 @@
 ## A domain representing a union of subdomains
 
+export UnionDomain
+
 immutable UnionDomain{D<:Domain} <:Domain
     domains::Vector{D}
 end
 
 
 
+∪{D<:Domain}(d::Vector{D}) = UnionDomain(d)
 ∪(d1::UnionDomain,d2::UnionDomain)=UnionDomain([d1.domains,d2.domains])
 ∪(d1::Domain,d2::UnionDomain)=UnionDomain([d1,d2.domains])
 ∪(d1::UnionDomain,d2::Domain)=UnionDomain([d1.domains,d2])
@@ -41,11 +44,11 @@ function Base.merge{D}(d1::UnionDomain{D},m::Interval)
         it=intersect(ret[k],m)
         if !isempty(it)
             sa=setdiff(ret[k],it)
-            m=setdiff(m,it)  
-            if isempty(sa)      
-                ret = T[ret[1:k-1]...;it;ret[k+1:end]...]        
+            m=setdiff(m,it)
+            if isempty(sa)
+                ret = T[ret[1:k-1]...;it;ret[k+1:end]...]
             else
-                ret = T[ret[1:k-1]...;sa;it;ret[k+1:end]...]                    
+                ret = T[ret[1:k-1]...;sa;it;ret[k+1:end]...]
             end
             if isempty(m)
                 break
@@ -59,7 +62,7 @@ end
 function Base.merge(d1::UnionDomain,d2::UnionDomain)
     ret=d1
     for m in d2.domains
-        ret=merge(ret,m) 
+        ret=merge(ret,m)
     end
     ret
 end

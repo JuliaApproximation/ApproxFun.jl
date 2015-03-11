@@ -33,6 +33,14 @@ function Interval{T<:Number}(d::Vector{T})
     end
 end
 
+function Interval{T<:Number}(a::Vector{T},b::Vector{T})
+    @assert length(a) == length(b)
+    if length(a) == 1
+        Interval(a[1],b[1])
+    else
+        [Interval(a[1],b[1]);Interval(a[2:end],b[2:end])]
+    end
+end
 
 Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
 
