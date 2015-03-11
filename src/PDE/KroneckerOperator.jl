@@ -266,3 +266,41 @@ function backsubstitution!{T<:Vector}(B::AlmostBandedOperator,u::Array{T})
     end
     u
 end
+
+
+
+function applygivens!(ca::Matrix,cb,mb,a,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
+    @simd for j = jr
+        @inbounds B1 = B.data[j-k1+B.l+1,k1]    #B[k1,j]
+        @inbounds B2 = B.data[j-k2+B.l+1,k2]    #B[k2,j]
+
+        @inbounds B.data[j-k1+B.l+1,k1]=ca*B1
+        @inbounds B.data[j-k2+B.l+1,k2]=a*B2
+        BLAS.gemm!('N','N',1.0,cb,B2,1.0,B.data[j-k1+B.l+1,k1])
+        BLAS.gemm!('N','N',1.0,mb,B1,1.0,B.data[j-k2+B.l+1,k2])
+    end
+
+    B
+end
+
+function applygivens!(ca::Matrix,cb,mb,a,F::FillMatrix,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
+    for j = jr
+        B1 = unsafe_getindex(F,k1,j)
+        @inbounds B2 = B.data[j-k2+B.l+1,k2]   #B[k2,j]
+
+        @inbounds B.data[j-k2+B.l+1,k2]=mb*B1 + a*B2
+    end
+
+    B
+end
+
+function applygivens!(ca::Matrix,cb,mb,a,B::Matrix,k1::Integer,k2::Integer)
+    for j = 1:size(B,2)
+        @inbounds B1 = B[k1,j]
+        @inbounds B2 = B[k2,j]
+
+        @inbounds B[k1,j],B[k2,j]= ca*B1 + cb*B2,mb*B1 + a*B2
+    end
+
+    B
+end
