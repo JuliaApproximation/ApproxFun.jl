@@ -279,8 +279,8 @@ end
 
 if isdir(Pkg.dir("AMVW"))
     require("AMVW")
-    function complexroots{T<:Number}(coefficients::ShiftVector{T})
-        c=chop(coefficients.vector,10eps())
+    function complexroots(coefficients::Vector)
+        c=chop(coefficients,10eps())
 
         # Only use special routine for large roots
         if length(c)≥70
@@ -290,11 +290,13 @@ if isdir(Pkg.dir("AMVW"))
         end
     end
 else
-    complexroots{T<:Number}(coefficients::ShiftVector{T})=hesseneigvals(companion_matrix(chop(coefficients.vector,10eps())))
+    complexroots(coefficients::Vector)=hesseneigvals(companion_matrix(chop(coefficients,10eps())))
 end
 
+complexroots(coefficients::ShiftVector)=complexroots(coefficients.vector)
 complexroots(f::Fun{Laurent})=mappoint(Circle(),domain(f),complexroots(deinterlace(f.coefficients)))
-complexroots(f::Fun{Fourier})=complexroots(Fun(f,Laurent))
+complexroots(f::Fun{Taylor})=mappoint(Circle(),domain(f),complexroots(f.coefficients))
+
 
 roots{S<:MappedSpace}(f::Fun{S})=fromcanonical(f,roots(Fun(coefficients(f),space(f).space)))
 
