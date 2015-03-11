@@ -207,9 +207,8 @@ function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,
 end
 
 function givensmatrix(a::Matrix,b::Matrix)
-    q,r=qr([a;b])
-    N=null(q')
-    q[1:size(a,1),:],N[1:size(a,1),:],q[size(a,1)+1:end,:],N[size(a,1)+1:end,:]
+    q,r=qr([a;b];thin=false)
+    q[1:size(a,1),1:size(a,2)],q[1:size(a,1),size(a,1)+1:end],q[size(a,1)+1:end,1:size(a,2)],q[size(a,1)+1:end,size(a,2)+1:end]
 end
 
 
@@ -285,10 +284,8 @@ end
 
 function applygivens!(ca::Matrix,cb,mb,a,F::FillMatrix,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
     for j = jr
-        B1 = unsafe_getindex(F,k1,j)
         @inbounds B2 = B.data[j-k2+B.l+1,k2]   #B[k2,j]
-
-        @inbounds B.data[j-k2+B.l+1,k2]=mb*B1 + a*B2
+        @inbounds B.data[j-k2+B.l+1,k2]=a*B2
     end
 
     B
