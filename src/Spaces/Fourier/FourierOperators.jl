@@ -224,3 +224,16 @@ end
 
 datalength(Σ::DefiniteIntegral{Fourier})=isa(domain(Σ),PeriodicInterval)?1:3
 
+DefiniteLineIntegral(sp::Fourier)=DefiniteLineIntegral{Fourier,Float64}(sp)
+
+function getindex{T}(Σ::DefiniteLineIntegral{Fourier,T},kr::Range)
+    d = domain(Σ)
+    if isa(d,PeriodicInterval)
+        T[k == 1?  d.b-d.a : zero(T) for k=kr]
+    else
+        @assert isa(d,Circle)
+        T[k == 1?  2d.radius*π : zero(T) for k=kr]
+    end
+end
+
+datalength(Σ::DefiniteLineIntegral{Fourier})=1
