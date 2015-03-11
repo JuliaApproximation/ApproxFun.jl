@@ -47,7 +47,7 @@ function givensmatrix(a::Number,b::Number)
 end
 
 
-function givensreduceab!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
+function givensreduceab!{T,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
     bnd=B.bandinds
     A=B.data
 
@@ -66,10 +66,10 @@ function givensreduceab!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integ
     ca,cb,mb,a
 end
 
-function givensreduce!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
+function givensreduce!{T,M,R}(B::AlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
     ca,cb,mb,a=givensreduceab!(B,k1,k2,j1)
 
-    if abs(cb) >= 10eps()
+    if norm(cb) >= 10eps()
         @simd for j=1:size(v,2)
             #@inbounds
             v[k1,j],v[k2,j] = ca*v[k1,j] + cb*v[k2,j],mb*v[k1,j] + a*v[k2,j]
@@ -91,12 +91,12 @@ end
 givensreduce!(B::AlmostBandedOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandinds(B)[1]),j)
 
 
-function backsubstitution!{T<:Number}(B::AlmostBandedOperator,u::Array{T})
+function backsubstitution!(B::AlmostBandedOperator,u::Array)
     n=size(u,1)
     b=B.bandinds[end]
     nbc = B.fill.numbcs
     A=B.data
-
+    T=eltype(u)
     pk = zeros(T,nbc)
 
     for c=1:size(u,2)
@@ -141,15 +141,16 @@ adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
 
 
-convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Vector{V})=convert(Vector{promote_type(T,V)},v)
-convertvec{T<:Number,V<:Number}(::BandedOperator{T},v::Array{V,2})=convert(Array{promote_type(T,V),2},v)
+convertvec{T<:Number,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{promote_type(T,V),k},v)
+convertvec{T<:AbstractMatrix,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{promote_type(eltype(T),V),k},v)
+convertvec{T<:AbstractMatrix,V<:AbstractMatrix,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{V(promote_type(eltype(T),eltype(V))),k},v)
 
 function slnorm(u::Array,r::Range)
     ret = 0.0
    for k=r
         @simd for j=1:size(u,2)
             #@inbounds
-            ret=max(abs(u[k,j]),ret)
+            ret=max(norm(u[k,j]),ret)
         end
     end
     ret
@@ -166,9 +167,9 @@ function slnorm(u::BandedMatrix,r::Range)
     ret
 end
 
-adaptiveqr{V<:Number}(B::Operator,v::Array{V},tol::Real,N) = adaptiveqr([B],v,tol,N)  #May need to copy v in the future
-adaptiveqr{T<:Operator,V<:Number}(B::Vector{T},v::Array{V},tol::Real,N) = adaptiveqr!(AlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
-function adaptiveqr!{V<:Number}(B::AlmostBandedOperator,v::Array{V},tol::Real,N)
+adaptiveqr(B::Operator,v::Array,tol::Real,N) = adaptiveqr([B],v,tol,N)  #May need to copy v in the future
+adaptiveqr{T<:Operator}(B::Vector{T},v::Array,tol::Real,N) = adaptiveqr!(AlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
+function adaptiveqr!(B::AlmostBandedOperator,v::Array,tol::Real,N)
     b=-B.bandinds[1]
     m=100+b
 

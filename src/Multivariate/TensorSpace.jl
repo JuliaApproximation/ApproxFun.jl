@@ -67,10 +67,6 @@ end
 TensorSpace{B1,B2,T1,T2}(sp::(FunctionSpace{B1,T1},FunctionSpace{B2,T2}))=TensorSpace{typeof(sp[1]),typeof(sp[2]),promote_type(B1,B2),promote_type(T1,T2)}(sp)
 
 
-
-conversion_rule(a::TensorSpace,b::TensorSpace)=conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
-maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
-
 coefficient_type(S::TensorSpace,T)=promote_type(coefficient_type(S.spaces[1],T),coefficient_type(S.spaces[2],T))
 
 TensorSpace(A,B)=TensorSpace((A,B))
@@ -232,6 +228,17 @@ function totensor{T}(M::Vector{T})
         ret[totensorind(k)...]=M[k]
     end
     ret
+end
+
+
+function totree(v::Vector)
+   m=totensorblock(length(v))
+    r=Array(Vector{eltype(v)},m)
+    for k=1:m-1
+        r[k]=v[fromtensorblock(k)]
+    end
+    r[m]=pad!(v[fromtensorblock(m)[1]:end],m)
+    r
 end
 
 function points(sp::TensorSpace,n)

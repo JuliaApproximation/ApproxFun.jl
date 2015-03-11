@@ -10,13 +10,14 @@ function blockbandzeros{T}(zer::Function,::Type{T},n,m::Integer,l,u,Bl,Bu)
 
     for k=1:n,j=max(1,k-l):min(m,k+u)
 #        nl=min(Al,Bu+k-j);nu=min(Au,Bl+j-k)
-        ret[k,j]=zer(eltype(T),k,j,Bl,Bu)
+#        ret[k,j]=zer(eltype(T),k,j,Bl,Bu)
+        ret[k,j]=zer(eltype(T),k,j)
     end
 
     ret
 end
 
-blockbandzeros{T}(::Type{T},n,m::Integer,l,u,Bl,Bu)=blockbandzeros(bazeros,BandedMatrix{T},n,m,l,u,Bl,Bu)
+blockbandzeros{T}(::Type{T},n,m::Integer,l,u,Bl,Bu)=blockbandzeros(zeros,Matrix{T},n,m,l,u,Bl,Bu)
 
 blockbandzeros{T}(::Type{T},n,m::Colon,Al,Au,Bl,Bu)=blockbandzeros(T,n,n+Au,Al,Au,Bl,Bu)
 blockbandzeros{T}(::Type{T},n,m,Alu,Blu)=blockbandzeros(T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
@@ -78,7 +79,10 @@ end
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
 
-blockbandinds{T}(K::PlusOperator{BandedMatrix{T}},k::Integer)=mapreduce(v->blockbandinds(v,k),k==1?min:max,K.ops)
+blockbandinds(K::PlusOperator,k::Integer)=mapreduce(v->blockbandinds(v,k),k==1?min:max,K.ops)
+blockbandinds(K::ConversionWrapper,k::Integer)=blockbandinds(K.op,k)
+
+
 blockbandinds{T}(K::BandedOperator{BandedMatrix{T}})=blockbandinds(K,1),blockbandinds(K,2)
 
 
@@ -102,6 +106,8 @@ addentries!(K::KroneckerOperator,A,kr::Range)=kronaddentries!(slice(K.ops[1],1:l
 
 
 bazeros{T}(K::BivariateOperator{T},n::Integer,::Colon)=blockbandzeros(T,n,:,bandinds(K),blockbandinds(K))
+bazeros{T}(K::BivariateOperator{T},n::Integer,br::(Int,Int))=blockbandzeros(T,n,:,br,blockbandinds(K))
+
 # function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
 #     @assert first(kr)==1
 #     BandedMatrix(K,last(kr))
@@ -114,9 +120,9 @@ bazeros{T}(K::BivariateOperator{T},n::Integer,::Colon)=blockbandzeros(T,n,:,band
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
 
-function *{T,V<:Number}(M::BandedMatrix{BandedMatrix{T}},v::Vector{V})
+function *{BM<:AbstractArray,V<:Number}(M::BandedMatrix{BM},v::Vector{V})
     n,m=size(M)
-    r=zeros(promote_type(T,V),div(n*(n+1),2))
+    r=zeros(promote_type(eltype(BM),V),div(n*(n+1),2))
     for j=1:m-1
         vj=v[fromtensorblock(j)]
 
@@ -142,4 +148,121 @@ function *{M,T<:Number}(A::BivariateOperator{M},b::Vector{T})
     else
         b
     end
+end
+
+
+*(A::KroneckerOperator,B::KroneckerOperator)=KroneckerOperator(A.ops[1]*B.ops[1],A.ops[2]*B.ops[2])
+
+
+
+## Shorthand
+
+
+⊗(A,B)=KroneckerOperator(A,B)
+
+Base.kron(A::Operator,B::Operator)=KroneckerOperator(A,B)
+Base.kron(A::Operator,B)=KroneckerOperator(A,B)
+Base.kron(A,B::Operator)=KroneckerOperator(A,B)
+
+# ⊗{O<:Operator,V<:Operator}(A::Matrix{O},B::Matrix{V})=interlace(A)⊗interlace(B)
+# ⊗{O<:Operator}(A::Matrix{O},B::Fun)=interlace(A)⊗B
+# ⊗{O<:Operator}(A::Matrix{O},B)=interlace(A)⊗B
+# ⊗{O<:Operator}(B::Fun,A::Matrix{O})=A⊗interlace(B)
+# ⊗{O<:Operator}(B,A::Matrix{O})=A⊗interlace(B)
+
+
+## Conversion
+
+conversion_rule(a::TensorSpace,b::TensorSpace)=conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
+maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
+
+Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
+
+
+
+
+
+## AlmostBandedOperator
+
+function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,R},n::Integer)
+    resizedata!(B.fill,n)
+
+    if n > B.datalength
+        nbc=B.fill.numbcs
+
+        if n > size(B.data,1)
+            newdata=blockbandzeros(eltype(T),n,:,bandinds(B.data),blockbandinds(B.op))
+
+            for k=1:B.datalength,j=max(1,k+bandinds(B.data,1)):k+bandinds(B.data,2)
+                newdata.data[k,j]=B.data.data[k,j]
+            end
+            B.data=newdata
+        end
+
+        addentries!(B.op,IndexStride(B.data,nbc,0),B.datalength+1-nbc:n-nbc)
+        B.datalength = n
+    end
+
+    B
+end
+
+function givensmatrix(a::Matrix,b::Matrix)
+    q,r=qr([a;b])
+    N=null(q')
+    q[1:size(a,1),:],N[1:size(a,1),:],q[size(a,1)+1:end,:],N[size(a,1)+1:end,:]
+end
+
+
+#TOD: Bcs
+function unsafe_getindex{T<:Matrix,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
+    zeros(eltype(T),k,j)
+end
+
+
+#TODO: Fix hack override
+function pad{T<:Vector}(f::Vector{T},n::Integer)
+	if n > length(f)
+	   ret=Array(T,n)
+	   ret[1:length(f)]=f
+	   for j=length(f)+1:n
+	       ret[j]=zeros(eltype(T),j)
+	   end
+       ret
+	else
+        f[1:n]
+	end
+end
+
+
+
+
+function backsubstitution!{T<:Vector}(B::AlmostBandedOperator,u::Array{T})
+    n=size(u,1)
+    b=B.bandinds[end]
+    nbc = B.fill.numbcs
+    A=B.data
+
+    @assert nbc==0
+
+    for c=1:size(u,2)
+
+        # before we get to filled rows
+        for k=n:-1:max(1,n-b)
+            @simd for j=k+1:n
+                @inbounds u[k,c]-=A.data[j-k+A.l+1,k]*u[j,c]
+            end
+
+            @inbounds u[k,c] = A.data[A.l+1,k]\u[k,c]
+        end
+
+       #filled rows
+        for k=n-b-1:-1:1
+            @simd for j=k+1:k+b
+                @inbounds u[k,c]-=A.data[j-k+A.l+1,k]*u[j,c]
+            end
+
+            @inbounds u[k,c] = A.data[A.l+1,k]\u[k,c]
+        end
+    end
+    u
 end

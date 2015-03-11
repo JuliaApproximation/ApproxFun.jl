@@ -72,7 +72,7 @@ function pad{T}(A::Matrix{T},n::Integer,m::Integer)
         A[1:n,1:m]
 	elseif n==0 || m==0
 	   Array(T,n,m)  #fixes weird julia bug when T==None
-    else   
+    else
         ret = zeros(T,n,m)
 
         if n <= size(A,1)

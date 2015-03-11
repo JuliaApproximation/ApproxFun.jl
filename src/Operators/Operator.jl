@@ -72,9 +72,13 @@ Base.stride(A::Functional)=1
 
 
 
-bazeros{T<:Number}(B::Operator{T},n,::Colon)=bazeros(T,n,:,bandinds(B))
+bazeros{T<:Number}(B::Operator{T},n::Integer,m::Integer)=bazeros(T,n,m,bandinds(B))
+bazeros{T<:Number}(B::Operator{T},n::Integer,m::Colon)=bazeros(T,n,m,bandinds(B))
+bazeros{T<:Number}(B::Operator{T},n::Integer,br::(Int,Int))=bazeros(T,n,br)
+
+
 BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n)
-BandedMatrix{T<:Number}(B::Operator{T},rws::UnitRange,::Colon)=first(rws)==1?BandedMatrix(B,last(rws)):addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
+BandedMatrix{T}(B::Operator{T},rws::UnitRange,::Colon)=first(rws)==1?BandedMatrix(B,last(rws)):addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
 
 function BandedMatrix{T<:Number}(B::Operator{T},kr::StepRange,::Colon)
     stp=step(kr)
