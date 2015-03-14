@@ -99,7 +99,7 @@ Base.getindex(d::ProductSpace,k::Integer)=k==1?d.spacesx:d.spacey
 
 
 space(d::AbstractProductSpace,k)=d[k]
-
+isambiguous(A::TensorSpace)=isambiguous(A[1])||isambiguous(A[2])
 
 for TT in (:ProductDomain,:TensorSpace)
     @eval Base.transpose(d::$TT)=$TT(d[2],d[1])
@@ -241,6 +241,8 @@ function totree(v::Vector)
     r
 end
 
+fromtree{T}(v::Vector{Vector{T}})=vcat(v...)
+
 function points(sp::TensorSpace,n)
     pts=Array((Float64,Float64),0)
     for x in points(sp[1],n), y in points(sp[2],n)
@@ -276,7 +278,7 @@ evaluate{S<:TensorSpace}(f::Fun{S},x,y)=ProductFun(totensor(coefficients(f)),spa
 
 coefficientmatrix{S<:TensorSpace}(f::Fun{S})=totensor(f.coefficients)
 
-
+Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace)=Fun(fromtree(v),S)
 
 ## boundary
 

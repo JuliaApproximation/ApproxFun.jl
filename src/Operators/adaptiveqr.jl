@@ -142,8 +142,8 @@ adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
 
 convertvec{T<:Number,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{promote_type(T,V),k},v)
-convertvec{T<:AbstractMatrix,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{promote_type(eltype(T),V),k},v)
-convertvec{T<:AbstractMatrix,V<:AbstractMatrix,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{V(promote_type(eltype(T),eltype(V))),k},v)
+convertvec{T<:AbstractMatrix,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=totree(v)
+convertvec{T<:AbstractMatrix,V<:AbstractArray,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{V(promote_type(eltype(T),eltype(V))),k},v)
 
 function slnorm(u::Array,r::Range)
     ret = 0.0
@@ -171,7 +171,7 @@ adaptiveqr(B::Operator,v::Array,tol::Real,N) = adaptiveqr([B],v,tol,N)  #May nee
 adaptiveqr{T<:Operator}(B::Vector{T},v::Array,tol::Real,N) = adaptiveqr!(AlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
 function adaptiveqr!(B::AlmostBandedOperator,v::Array,tol::Real,N)
     b=-B.bandinds[1]
-    m=100+b
+    m=3+b
 
     l = size(v,1) + m
 

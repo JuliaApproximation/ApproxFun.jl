@@ -163,6 +163,7 @@ function contour(f::MultivariateFun;opts...)
     contour(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);opts...)
 end
 
+contour(f::Fun)=contour(ProductFun(u))
 
 
 

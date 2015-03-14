@@ -3,10 +3,10 @@
 export FunctionSpace, domainspace, rangespace, maxspace,Space,conversion_type
 
 
-## 
+##
 # "enum" types used for whether the basis is
 # Real or Complex.  AnyBasis is used when the answer
-# is unknown.  
+# is unknown.
 ##
 
 immutable RealBasis end
@@ -62,7 +62,7 @@ abstract AmbiguousSpace <: FunctionSpace{RealBasis,AnyDomain}
 
 
 # AnySpace dictates that an operator can act on any space
-# UnsetSpace dictates that an operator is not defined until 
+# UnsetSpace dictates that an operator is not defined until
 #   its domainspace is promoted
 # NoSpace is used to indicate no space exists for, e.g.,
 # conversion_type
@@ -72,6 +72,8 @@ immutable UnsetSpace <: AmbiguousSpace end
 immutable NoSpace <: AmbiguousSpace end
 
 
+isambiguous(::FunctionSpace)=false
+isambiguous(::AmbiguousSpace)=true
 
 #TODO: should it default to canonicalspace?
 points(d::FunctionSpace,n)=points(domain(d),n)
@@ -94,7 +96,7 @@ spacescompatible(f,g)=false
 
 # check a list of spaces for compatibility
 function spacescompatible{T<:FunctionSpace}(v::Vector{T})
-    for k=1:length(v)-1 
+    for k=1:length(v)-1
         if !spacescompatible(v[k],v[k+1])
             return false
         end
@@ -124,12 +126,12 @@ function conversion_rule{S<:FunctionSpace}(a::S,b::S)
     else
         NoSpace()
     end
-end 
+end
 
 for FUNC in (:conversion_type,:maxspace)
     @eval begin
         $FUNC(::AnySpace,::UnsetSpace)=UnsetSpace()
-        $FUNC(::UnsetSpace,::AnySpace)=UnsetSpace()        
+        $FUNC(::UnsetSpace,::AnySpace)=UnsetSpace()
     end
 
     for TYP in (:AnySpace,:UnsetSpace)
@@ -161,28 +163,28 @@ end
 
 # gives a space c that has a banded conversion operator FROM a and b
 function maxspace(a::FunctionSpace,b::FunctionSpace)
-    if a==b    
+    if a==b
         return a
     end
-    
+
     cr=conversion_type(a,b)
     if cr==a
         return b
     elseif cr ==b
         return a
     end
-    
+
     # check if its banded through canonicalspace
     cspa=canonicalspace(a)
     if cspa != a && maxspace(cspa,a)==cspa
         return maxspace(b,cspa)
     end
-    
+
     cspb=canonicalspace(b)
     if cspb !=b && maxspace(cspb,b)==cspb
-        return maxspace(a,cspb)            
+        return maxspace(a,cspb)
     end
-    
+
     NoSpace()
 end
 
@@ -192,13 +194,13 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
     if spacescompatible(a,b)
         return a
     end
-    
+
     cr=union_rule(a,b)
     if cr==NoSpace()
         cr=union_rule(b,a)
     end
-    
-    
+
+
     if cr==NoSpace()
         cspa=canonicalspace(a)
         cspb=canonicalspace(b)
@@ -206,11 +208,11 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
             cr=union(cspa,cspb)  #Max or min space?
         end
     end
-    
+
     if cr==NoSpace()
         cr=maxspace(a,b)  #Max or min space?
-    end    
-    
+    end
+
     return cr
 end
 
@@ -218,7 +220,7 @@ end
 
 
 ## Conversion routines
-#       coefficients(v::Vector,a,b) 
+#       coefficients(v::Vector,a,b)
 # converts from space a to space b
 #       coefficients(v::Fun,a)
 # is equivalent to coefficients(v.coefficients,v.space,a)
@@ -245,10 +247,10 @@ function coefficients{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
         (Conversion(b,a)\f).coefficients
     else
         csp=canonicalspace(a)
-        
+
         if spacescompatible(a,csp)# a is csp, so try b
-            csp=canonicalspace(b)  
-        end    
+            csp=canonicalspace(b)
+        end
         if spacescompatible(a,csp)||spacescompatible(b,csp)# b is csp too, so we are stuck, try Fun constructor
             coefficients(Fun(x->Fun(f,a)[x],b))
         else
@@ -261,7 +263,7 @@ end
 
 
 ## TODO: remove zeros
-Base.zero(S::FunctionSpace)=zeros(S)  
+Base.zero(S::FunctionSpace)=zeros(S)
 Base.zero{T<:Number}(::Type{T},S::FunctionSpace)=zeros(T,S)
 Base.zeros{T<:Number}(::Type{T},S::FunctionSpace)=Fun(zeros(T,1),S)
 Base.zeros(S::FunctionSpace)=Fun(zeros(1),S)
@@ -290,8 +292,8 @@ function itransform{T}(S::FunctionSpace{T},cfs)
     csp=canonicalspace(S)
     if S==csp
         error("Override itransform(::"*string(typeof(S))*",cfs)")
-    end    
-    
+    end
+
     itransform(csp,coefficients(cfs,S,csp))
 end
 
@@ -300,7 +302,7 @@ function transform{T}(S::FunctionSpace{T},vals)
     if S==csp
         error("Override transform(::"*string(typeof(S))*",vals)")
     end
-    
+
     coefficients(transform(csp,vals),csp,S)
 end
 
