@@ -39,9 +39,9 @@ BandedMatrix{T}(::Type{T},n::Integer,::Colon,a)=BandedMatrix(T,n,:,-a[1],a[end])
 BandedMatrix{T}(::Type{T},n::Integer,a)=BandedMatrix(T,n,-a[1],a[end])
 
 Base.eltype{T}(::BandedMatrix{T})=T
-Base.convert{T<:Real}(::Type{BandedMatrix{Complex{T}}},M::BandedMatrix{T}) = BandedMatrix{Complex{T}}(convert(Matrix{Complex{T}},M.data),M.m,M.l,M.u)
+Base.convert{V}(::Type{BandedMatrix{V}},M::BandedMatrix) = BandedMatrix{V}(convert(Matrix{V},M.data),M.m,M.l,M.u)
 
-
+Base.promote_rule{T,V}(::Type{BandedMatrix{T}},::Type{BandedMatrix{V}})=BandedMatrix{promote_type(T,V)}
 
 
 

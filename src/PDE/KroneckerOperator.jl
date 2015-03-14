@@ -75,6 +75,11 @@ for OP in (:promotedomainspace,:promoterangespace)
 end
 
 
+Base.convert{BO<:Operator}(::Type{BO},K::KroneckerOperator)=KroneckerOperator(convert(BandedOperator{eltype(eltype(BO))},K.ops[1]),
+                                                                                convert(BandedOperator{eltype(eltype(BO))},K.ops[2]),
+                                                                              K.domainspace,
+                                                                              K.rangespace)
+
 
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
