@@ -156,6 +156,13 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
     TT=isempty(OS.Bx)?eltype(OS):promote_type(eltype(OS),mapreduce(eltype,promote_type,OS.Bx))
     ops=Array(Operator{TT},length(OS.Bx)+1)
     ops[1:length(OS.Bx)]=OS.Bx
+    
+    blkops=Array(Operator{TT},2length(OS.Bx)+2,2)
+    if !isempty(OS.Bx)
+        blkops[1:2length(OS.Bx),:]=blkdiag(OS.Bx,OS.Bx)
+    end
+    blkrhs=Array(Any,2size(Gx,1)+2)
+    
 
     while k≥1
         if k==1 || (OS.S.T[k,k-1] == 0 && OS.S.R[k,k-1] == 0        )  # triangular setting
@@ -197,18 +204,16 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
                 end
             end
 
-            if isempty(OS.Bx)
-              A=[OS.S.R[k-1:k,k-1:k].*OS.Lx+OS.S.T[k-1:k,k-1:k].*OS.Mx]
-            else
-              A=[blkdiag(OS.Bx,OS.Bx);
-                  OS.S.R[k-1:k,k-1:k].*OS.Lx+OS.S.T[k-1:k,k-1:k].*OS.Mx]
+            blkops[end-1:end,:]=OS.S.R[k-1:k,k-1:k].*OS.Lx+OS.S.T[k-1:k,k-1:k].*OS.Mx
+            
+            for j=1:size(Gx,1)
+                blkrhs[j]=Gx[j,k-1]
+                blkrhs[j+size(Gx,1)]=Gx[j,k]
             end
-            if isempty(Gx)
-                b=Any[rhs1;rhs2]
-            else
-                b=Any[Gx[:,k-1]...;Gx[:,k]...;rhs1;rhs2]
-            end
-            y=vec(linsolve(A,b;maxlength=nx))
+            blkrhs[end-1]=rhs1;blkrhs[end]=rhs2
+
+            
+            y=vec(linsolve(blkops,blkrhs;maxlength=nx))
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
 
             PY[k-1]=OS.Lx*Y[k-1]; PY[k]=OS.Lx*Y[k]
