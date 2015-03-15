@@ -17,10 +17,14 @@ immutable JacobiWeight{S<:IntervalSpace} <: IntervalSpace
     end
 end
 
-JacobiWeight{S<:IntervalSpace}(a::Number,b::Number,d::S)=JacobiWeight{S}(float64(a),float64(b),d)
-JacobiWeight(a::Number,b::Number,d::Domain)=JacobiWeight(float64(a),float64(b),Space(d))
+JacobiWeight{S<:IntervalSpace}(a::Number,b::Number,d::S)=JacobiWeight{S}(@compat(Float64(a)),@compat(Float64(b)),d)
+JacobiWeight(a::Number,b::Number,d::Domain)=JacobiWeight(@compat(Float64(a)),
+                                                         @compat(Float64(b)),
+                                                         Space(d))
 JacobiWeight(a,b)=JacobiWeight(a,b,Chebyshev())
-JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(float64(a),float64(b),Space(d))
+JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(@compat(Float64(a)),
+                                                         @compat(Float64(b)),
+                                                         Space(d))
 
 identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x->x,S):Fun(identity,domain(S))
 

@@ -46,7 +46,7 @@ function transform(S::JacobiSquare,vals::Vector,xw::(Vector,Vector))
     
         w2=(1-x).^(m/2)
         mw=w2.*w
-        V=jacobip(0:n-int(m/2)-1,m+0.5,-0.5,x)'  
+        V=jacobip(0:n-div(m,2)-1,m+0.5,-0.5,x)'  
         nrm=(V.^2)*(w2.*mw)    
         (V*(mw.*vals))./nrm*2^(m/2)    
     else
@@ -84,7 +84,7 @@ function rangespace{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T}
     @assert M.f.space.α ==0.
     @assert isinteger(M.f.space.β)
     ds=domainspace(M)
-    JacobiSquare(ds.m+int(M.f.space.β),ds.a,ds.b,domain(M))
+    JacobiSquare(ds.m+round(Int,M.f.space.β),ds.a,ds.b,domain(M))
 end
 
 
