@@ -7,7 +7,7 @@ immutable DiagonalPiecewiseOperator{T<:Number,B<:Operator} <: AbstractDiagonalIn
 end
 
 DiagonalPiecewiseOperator{B<:Operator}(v::Vector{B})=DiagonalPiecewiseOperator{mapreduce(eltype,promote_type,v),B}(v)
-DiagonalPiecewiseOperator(v::Vector{Any})=DiagonalPiecewiseOperator(Operator{mapreduce(eltype,promote_type,v)}[v...])
+DiagonalPiecewiseOperator(v::Vector{Any})=DiagonalPiecewiseOperator(Operator{mapreduce(eltype,promote_type,v)}[v...;])
 
 
 for op in (:domainspace,:rangespace)

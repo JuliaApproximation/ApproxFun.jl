@@ -18,9 +18,9 @@ for Func in (:DefiniteIntegral,:DefiniteLineIntegral)
         $Func(d::IntervalDomain)=$Func(JacobiWeight(-.5,-.5,Chebyshev(d)))
         function $Func(α::Number,β::Number,d::IntervalDomain)
             @assert α == β
-            @assert int(α+.5) == α+.5
-            @assert int(α+.5) >= 0
-            $Func(JacobiWeight(α,β,Ultraspherical{int(α+.5)}(d)))
+            @assert round(Int,α+.5) == α+.5
+            @assert round(Int,α+.5) >= 0
+            $Func(JacobiWeight(α,β,Ultraspherical{round(Int,α+.5)}(d)))
         end
         $Func(α::Number,β::Number) = $Func(α,β,Interval())
     end

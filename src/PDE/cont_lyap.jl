@@ -204,9 +204,9 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
                   OS.S.R[k-1:k,k-1:k].*OS.Lx+OS.S.T[k-1:k,k-1:k].*OS.Mx]
             end
             if isempty(Gx)
-                b=Any[rhs1,rhs2]
+                b=Any[rhs1;rhs2]
             else
-                b=Any[Gx[:,k-1]...,Gx[:,k]...,rhs1,rhs2]
+                b=Any[Gx[:,k-1]...;Gx[:,k]...;rhs1;rhs2]
             end
             y=vec(linsolve(A,b;maxlength=nx))
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())

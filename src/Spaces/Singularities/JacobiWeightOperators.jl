@@ -212,7 +212,7 @@ function Conversion(A::JacobiWeight,B::JacobiWeight)
         d=domain(A)
         x=Fun(identity,d)
         M=tocanonical(d,x)
-        m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
+        m=(1+M).^round(Int,A.α-B.α).*(1-M).^round(Int,A.β-B.β)
         MC=Multiplication(m,B.space)
         # The following is just a safety check
         @assert rangespace(MC) == B.space
@@ -223,7 +223,7 @@ function Conversion(A::JacobiWeight,B::JacobiWeight)
         x=Fun(identity,d)
         M=tocanonical(d,x)
         C=Conversion(A.space,B.space)
-        m=(1+M).^int(A.α-B.α).*(1-M).^int(A.β-B.β)
+        m=(1+M).^round(Int,A.α-B.α).*(1-M).^round(Int,A.β-B.β)
         MC=Multiplication(m,B.space)*C
         # The following is just a safety check
         @assert rangespace(MC) == B.space

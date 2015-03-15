@@ -28,8 +28,8 @@ typealias Taylor Hardy{true}
 transform(::Taylor,vals::Vector)=alternatesign!(fft(vals)/length(vals))
 itransform(::Taylor,cfs::Vector)=ifft(alternatesign!(cfs))*length(cfs)
 
-transform(::Hardy{false},vals::Vector)=-alternatesign!(flipud(fft(vals))/length(vals))
-itransform(::Hardy{false},cfs::Vector)=ifft(flipud(alternatesign!(-cfs)))*length(cfs)
+transform(::Hardy{false},vals::Vector)=-alternatesign!(flipdim(fft(vals),1)/length(vals))
+itransform(::Hardy{false},cfs::Vector)=ifft(flipdim(alternatesign!(-cfs),1))*length(cfs)
 
 function evaluate(f::Fun{Taylor},z)
     d=domain(f)

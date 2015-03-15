@@ -30,11 +30,11 @@ function fft_pow2!{T<:BigFloat}(x::Vector{T})
         m=nn
         while m >= 2 && j > m
             j -= m
-            m /= 2
+            m=div(m,2)
         end
         j += m
     end
-    for logn = 2.^collect(1:int(log2(n))-1)
+    for logn = 2.^collect(1:round(Int,log2(n))-1)
         θ=2convert(T,π)/logn
         wpr,wpi=cos(θ),sin(θ)
         wr,wi=one(T),zero(T)
