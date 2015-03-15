@@ -55,7 +55,7 @@ PDEOperator(A::Operator,B::Operator,d::BivariateDomain)=PDEOperator([A B],d)
 
 Base.promote_rule{T,V}(::Type{PDEOperator{T}},::Type{PDEOperator{V}})=PDEOperator{promote_type(T,V)}
 
-function Base.convert{T}(::Type{PDEOperator{T}},P::PDEOperator)
+function Base.convert{T<:Number}(::Type{PDEOperator{T}},P::PDEOperator)
   M=Array(Operator{T},size(P.ops)...)
   for k=1:size(P.ops,1),j=1:size(P.ops,2)
     M[k,j]=P.ops[k,j]
@@ -235,7 +235,13 @@ for op in (:dirichlet,:neumann,:diffbcs)
             @assert length(d)==2
             Bx=$op(d[1],k...)
             By=$op(d[2],k...)
-            [Bx⊗I;I⊗By]
+            if isempty(Bx)
+                I⊗By
+            elseif isempty(By)
+                Bx⊗I
+            else
+                [Bx⊗I;I⊗By]
+            end
         end
     end
 end

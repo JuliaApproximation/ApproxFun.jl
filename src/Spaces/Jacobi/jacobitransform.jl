@@ -119,7 +119,7 @@ function transform(S::JacobiWeight{Jacobi},vals::Vector,xw::(Vector,Vector))
         w2=(1-x).^m
         mw=w2.*w
         
-        V=jacobip(0:n-int(m)-1,S.space,x)'   
+        V=jacobip(0:n-round(Int,m)-1,S.space,x)'   
           # only first m coefficients are accurate
           # since Gauss quad is accurate up to polys of degree 2n-1
           # we get one more coefficient because we normalize, so the

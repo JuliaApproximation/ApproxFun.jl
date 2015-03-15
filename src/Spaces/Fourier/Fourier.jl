@@ -138,29 +138,29 @@ points(sp::Fourier,n)=points(domain(sp),n)
 function fouriermodalt!(cfs)
     n=length(cfs)
     if iseven(n)
-        for k=2:2:n/2+1
+        for k=2:2:div(n,2)+1
             cfs[k]*=-1
         end
     else
-        for k=2:2:(n+1)/2
+        for k=2:2:div(n+1,2)
             cfs[k]*=-1
         end
     end
 
     if mod(n,4)==0
-        for k=n/2+3:2:n
+        for k=div(n,2)+3:2:n
             cfs[k]*=-1
         end
     elseif mod(n,4)==2
-        for k=n/2+2:2:n
+        for k=div(n,2)+2:2:n
             cfs[k]*=-1
         end
     elseif mod(n,4)==1
-        for k=(n+3)/2:2:n
+        for k=div(n+3,2):2:n
             cfs[k]*=-1
         end
     else #mod(n,4)==3
-        for k=(n+5)/2:2:n
+        for k=div(n+5,2):2:n
             cfs[k]*=-1
         end
     end
@@ -172,18 +172,18 @@ function transform{T<:Number}(::Fourier,vals::Vector{T})
     cfs=2FFTW.r2r(vals, FFTW.R2HC )/n
     cfs[1]/=2
     if iseven(n)
-        cfs[n/2+1]/=2
+        cfs[div(n,2)+1]/=2
     end
 
     fouriermodalt!(cfs)
 
     ret=Array(T,n)
     if iseven(n)
-        ret[1:2:end]=cfs[1:n/2]
-        ret[2:2:end]=cfs[end:-1:n/2+1]
+        ret[1:2:end]=cfs[1:div(n,2)]
+        ret[2:2:end]=cfs[end:-1:div(n,2)+1]
     else
-        ret[1:2:end]=cfs[1:(n+1)/2]
-        ret[2:2:end]=cfs[end:-1:(n+3)/2]
+        ret[1:2:end]=cfs[1:div(n+1,2)]
+        ret[2:2:end]=cfs[end:-1:div(n+3,2)]
     end
     ret
 end
@@ -192,10 +192,10 @@ end
 function itransform{T<:Number}(::Fourier,a::Vector{T})
     n=length(a)
     cfs=[a[1:2:end];
-            flipud(a[2:2:end])]
+            flipdim(a[2:2:end],1)]
     fouriermodalt!(cfs)
     if iseven(n)
-        cfs[n/2+1]*=2
+        cfs[div(n,2)+1]*=2
     end
     cfs[1]*=2
     FFTW.r2r(cfs, FFTW.HC2R )/2
