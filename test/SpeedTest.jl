@@ -174,16 +174,16 @@ u=S\ones(4)
 @time u=S\ones(4)
 println("Neumann Helmholtz: should be ~0.016, 0.016")
 
-
-d = Disk()
-f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
-S = discretize([dirichlet(d);lap(d)],100);
-@time S = discretize([dirichlet(d);lap(d)],100);
-u=S\[0.;f];
-@time u=S\[0.;f];
-
-println("Disk Poisson: should be ~0.16,0.016")
-
+if OS_NAME == :Darwin
+    d = Disk()
+    f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
+    S = discretize([dirichlet(d);lap(d)],100);
+    @time S = discretize([dirichlet(d);lap(d)],100);
+    u=S\[0.;f];
+    @time u=S\[0.;f];
+    
+    println("Disk Poisson: should be ~0.16,0.016")
+end
 
 
 
