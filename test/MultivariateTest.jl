@@ -60,7 +60,7 @@ u=A\f
 
 
 
-if false #TODO: enable when not on Travis
+if OS_NAME==:Darwin
     ## Kron
     
     dx=dy=Interval()
