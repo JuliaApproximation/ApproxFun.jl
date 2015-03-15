@@ -40,7 +40,7 @@ function roots( f::Fun{Chebyshev} )
 
     hscale = maximum( [abs(first(d)), abs(last(d))] )
     htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
-    r = rootsunit_coeffs(c./vscale, float64(htol))
+    r = rootsunit_coeffs(c./vscale, @compat Float64(htol))
     # Map roots from [-1,1] to domain of f:
     rts = fromcanonical(d,r)
     if eltype(f) == BigFloat || eltype(f) == Complex{BigFloat}

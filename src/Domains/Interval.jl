@@ -15,7 +15,7 @@ end
 
 Interval()=Interval{Float64}()
 Interval{T}(a::T,b::T)=Interval{T}(a,b)
-Interval(a::Int,b::Int) = Interval(float64(a),float64(b))   #convenience method
+Interval(a::Int,b::Int) = Interval(@compat(Float64(a)),@compat(Float64(b)))   #convenience method
 
 function Interval{T<:Number}(d::Vector{T})
     @assert length(d) >1
