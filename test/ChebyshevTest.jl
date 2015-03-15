@@ -100,7 +100,7 @@ x=1.5
 ##Roots
 
 f=Fun(x->sin(10(x-.1)))
-@test norm(f[roots(f)])< 100eps()
+@test norm(f[roots(f)])< 1000eps()
 
 
 ## ALiasing
