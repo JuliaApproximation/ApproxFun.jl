@@ -2,9 +2,9 @@
 
 
 
-function pyplot{N<:Real}(xx,yy::Array{N};axis=-1) 
+function pyplot{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
     require("PyPlot")
-    Main.PyPlot.plot(xx,yy,color="blue")
+    Main.PyPlot.plot(xx,yy,color="blue";opts...)
     if axis!=-1
         if length(axis) == 4
             Main.PyPlot.axis(axis)
@@ -14,64 +14,64 @@ function pyplot{N<:Real}(xx,yy::Array{N};axis=-1)
     end
 end
 
-function pyplot{N<:Complex}(xx,yy::Array{N};axis=-1)      
+function pyplot{N<:Complex}(xx,yy::Array{N};axis=-1,opts...)
     require("PyPlot")
 
-    Main.PyPlot.plot(xx,real(yy),color="blue")
-    Main.PyPlot.plot(xx,imag(yy),color="red")
-    
+    Main.PyPlot.plot(xx,real(yy),color="blue";opts...)
+    Main.PyPlot.plot(xx,imag(yy),color="red";opts...)
+
     if axis!=-1
         if length(axis) == 4
             Main.PyPlot.axis(axis)
         else
             Main.PyPlot.axis([xx[1],xx[end],axis])
         end
-    end    
+    end
 end
 
-# function complexplot(f::IFun{Complex{Float64}}) 
+# function complexplot(f::IFun{Complex{Float64}})
 #     pf = pad(f,4length(f))
 #     vals =values(pf)
-# 
+#
 #     PyPlot.plot(real(vals),imag(vals))
-#     PyPlot.arrow(real(vals[end-1]),imag(vals[end-1]),real(vals[end]-vals[end-1]),imag(vals[end]-vals[end-1]),width=.01,edgecolor="white")    
+#     PyPlot.arrow(real(vals[end-1]),imag(vals[end-1]),real(vals[end]-vals[end-1]),imag(vals[end]-vals[end-1]),width=.01,edgecolor="white")
 # end
-# 
-# function complexplot(f::FFun{Complex{Float64}}) 
+#
+# function complexplot(f::FFun{Complex{Float64}})
 #     pts = [points(f),fromcanonical(f,π)]
 #     vals =[values(f),first(values(f))]
-# 
+#
 #     PyPlot.plot(real(vals),imag(vals))
-#     PyPlot.arrow(real(vals[end-1]),imag(vals[end-1]),real(vals[end]-vals[end-1]),imag(vals[end]-vals[end-1]),width=.01,edgecolor="white")    
+#     PyPlot.arrow(real(vals[end-1]),imag(vals[end-1]),real(vals[end]-vals[end-1]),imag(vals[end]-vals[end-1]),width=.01,edgecolor="white")
 # end
 
 
 ##Plotting
 
 #TODO: Pad
-# 
-# function PyPlot.plot(f::FFun;axis=-1) 
+#
+# function PyPlot.plot(f::FFun;axis=-1)
 #     f=deepcopy(f)
-#     
+#
 #     m=max(-firstindex(f.coefficients),lastindex(f.coefficients))
-#     
+#
 #     f.coefficients=pad(f.coefficients,-m:m)
-# 
+#
 #     pts = [points(f),fromcanonical(f,π)]
 #     vals =[values(f),first(values(f))]
-# 
+#
 #     PyPlot.plot(pts,real(vals))
 #     PyPlot.plot(pts,imag(vals),color="red")
-#     
+#
 #     if axis!=-1
 #         if length(axis) == 4
 #             PyPlot.axis(axis)
 #         else
 #             PyPlot.axis([f.domain.a,f.domain.b,axis])
 #         end
-#     end    
+#     end
 # end
-# 
+#
 
 
 ##2D
@@ -101,15 +101,15 @@ end
 
 ## SingFun
 
-# function PyPlot.plot(f::SingFun) 
+# function PyPlot.plot(f::SingFun)
 #     pf = pad(f,3length(f)+100)
-#     
+#
 #     if f.α >= 0 && f.β >= 0
 #         PyPlot.plot(points(pf),values(pf))
 #     elseif f.α >= 0
-#         PyPlot.plot(points(pf)[1:end-1],values(pf)[1:end-1])    
-#     elseif f.β >= 0    
-#         PyPlot.plot(points(pf)[2:end],values(pf)[2:end])    
+#         PyPlot.plot(points(pf)[1:end-1],values(pf)[1:end-1])
+#     elseif f.β >= 0
+#         PyPlot.plot(points(pf)[2:end],values(pf)[2:end])
 #     else
 #         PyPlot.plot(points(pf)[2:end-1],values(pf)[2:end-1])
 #     end

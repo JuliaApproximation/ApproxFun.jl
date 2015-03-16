@@ -145,8 +145,8 @@ function complexlayer(f::Fun;opts...)
     layer(real(vals),imag(vals);opts...)
 end
 
-for plt in (:plot,:complexplot)
-    @eval $plt{S<:Union(PiecewiseSpace,ArraySpace),T<:Real}(f::Fun{S,T};opts...)=$plt(vec(f);opts...)
+for (plt,TYP) in ((:plot,:Real),(:complexplot,:Complex))
+    @eval $plt{S<:Union(PiecewiseSpace,ArraySpace),T<:$TYP}(f::Fun{S,T};opts...)=$plt(vec(f);opts...)
 end
 
 
