@@ -162,7 +162,7 @@ function points(d::BivariateFunctionSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
     ptst=points(space(d,2),m)
 
-    Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
+    promote_type(eltype(ptsx),eltype(ptst))[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 end
 
 
