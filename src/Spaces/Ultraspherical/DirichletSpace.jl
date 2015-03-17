@@ -69,10 +69,10 @@ coefficients(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransfor
 
 ## Dirichlet Conversion operators
 
-addentries!(C::Conversion{ChebyshevDirichlet{1,0},Chebyshev},A,kr::Range)=toeplitz_addentries!(ShiftVector([1.,1.],1),A,kr)
-addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A,kr::Range)=toeplitz_addentries!(ShiftVector([1.,-1.],1),A,kr)
+addentries!(C::Conversion{ChebyshevDirichlet{1,0},Chebyshev},A,kr::Range)=toeplitz_addentries!([],[1.,1.],A,kr)
+addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A,kr::Range)=toeplitz_addentries!([],[1.,-1.],A,kr)
 function addentries!(C::Conversion{ChebyshevDirichlet{1,1},Chebyshev},A,kr::Range)
-    A=toeplitz_addentries!(ShiftVector([1.,0.,-1.],1),A,kr)
+    A=toeplitz_addentries!([],[1.,0.,-1.],A,kr)
 
     A
 end

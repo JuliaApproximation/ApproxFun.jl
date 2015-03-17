@@ -164,8 +164,8 @@ addentries!{Sp<:CosSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)=chebmult_add
 
 function addentries!{Sp<:SinSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange)
     a=M.f.coefficients
-    toeplitz_addentries!(0.5ShiftVector([-flipdim(a,1);0.],a),A,kr)
-    hankel_addentries!(0.5a,A,max(kr[1],2):kr[end])
+    toeplitz_addentries!(0.5,[0.;-a],a,A,kr)
+    hankel_addentries!(0.5,a,A,max(kr[1],2):kr[end])
     A
 end
 
@@ -175,8 +175,8 @@ rangespace{Sp<:SinSpace}(M::Multiplication{Sp,Sp})=CosSpace(domain(M))
 
 function addentries!{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Sp,Cs},A,kr::Range)
     a=M.f.coefficients
-    toeplitz_addentries!(0.5ShiftVector(flipdim(a[2:end],1),[a[1];0.;-a]),A,kr)
-    hankel_addentries!(0.5a,A,kr)
+    toeplitz_addentries!(0.5,a[2:end],[a[1];0.;-a],A,kr)
+    hankel_addentries!(0.5,a,A,kr)
     A
 end
 
@@ -189,7 +189,7 @@ function addentries!{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp},A,kr::R
     a=M.f.coefficients
     toeplitz_addentries!(0.5a,A,kr)
     if length(a)>=3
-        hankel_addentries!(-0.5a[3:end],A,kr)
+        hankel_addentries!(-0.5,a[3:end],A,kr)
     end
     A
 end

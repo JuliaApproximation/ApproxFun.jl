@@ -5,13 +5,19 @@ export ToeplitzOperator, HankelOperator, LaurentOperator
 
 
 
-type ToeplitzOperator{T<:Number,V<:Union(Vector,ShiftVector)} <: BandedOperator{T}
-    coefficients::V
+type ToeplitzOperator{T<:Number,V} <: BandedOperator{T}
+    negative::V
+    nonnegative::V
 end
 
-ToeplitzOperator{T<:Number}(V::Vector{T})=ToeplitzOperator{T,typeof(V)}(V)
-ToeplitzOperator{T<:Number}(V::ShiftVector{T})=ToeplitzOperator{T,typeof(V)}(V)
-ToeplitzOperator{T,D}(f::Fun{D,T})=ToeplitzOperator(f.coefficients)
+ToeplitzOperator{T<:Number,Q<:Number}(V::Vector{T},W::Vector{Q})=ToeplitzOperator{T,Vector{promote_type(T,Q)}}(V,W)
+function ToeplitzOperator{T<:Number}(V::Vector{T})
+    W=V[2:end]
+    V=copy(V)
+    V[1]*=2
+    ToeplitzOperator{T,typeof(V)}(W,V)
+end
+
 
 
 
@@ -61,22 +67,23 @@ function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)
     A
 end
 
-function toeplitz_addentries!(v::ShiftVector,A,kr::Range)
-    for k=kr,j=max(range(v)[1],1-k):range(v)[end]
-        A[k,k+j] += v[j]
+function toeplitz_addentries!(c::Number,neg::Vector,pos::Vector,A,kr::Range)
+    for k=kr,j=1:min(length(neg),k-1)
+        A[k,k-j] += c*neg[j]
+    end
+    for k=kr,j=1:length(pos)
+        A[k,k+j-1] += c*pos[j]
     end
 
     A
 end
 
-
-
-addentries!(T::ToeplitzOperator,A,kr::Range)=toeplitz_addentries!(T.coefficients,A,kr)
+toeplitz_addentries!(neg::Vector,pos::Vector,A,kr::Range)=toeplitz_addentries!(1,neg,pos,A,kr)
 
 
 
-bandinds{N<:Number,M<:Vector}(T::ToeplitzOperator{N,M})=(1-length(T.coefficients),length(T.coefficients)-1)
-bandinds{N<:Number,M<:ShiftVector}(T::ToeplitzOperator{N,M})=firstindex(T.coefficients),lastindex(T.coefficients)
+addentries!(T::ToeplitzOperator,A,kr::Range)=toeplitz_addentries!(1,T.negative,T.nonnegative,A,kr)
+bandinds{N<:Number,M<:Vector}(T::ToeplitzOperator{N,M})=(length(T.negative),length(T.nonnegative)-1)
 
 
 ## Hankel Operator
@@ -88,10 +95,10 @@ end
 
 HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
-function hankel_addentries!(v::Vector,A,kr::Range)
+function hankel_addentries!(c::Number,v::Vector,A,kr::Range)
     M=maxabs(v)
     for j=1:length(v)
-        vj=v[j]
+        vj=c*v[j]
         if abs(vj)>M*10eps(eltype(v))
             for k=intersect(kr,1:j)
                 if j + 1 >= k+1
@@ -103,6 +110,8 @@ function hankel_addentries!(v::Vector,A,kr::Range)
 
     A
 end
+
+hankel_addentries!(v::Vector,A,kr::Range)=hankel_addentries!(1,v,A,kr)
 
 
 addentries!(T::HankelOperator,A,kr::Range1)=hankel_addentries!(T.coefficients,A,kr)
