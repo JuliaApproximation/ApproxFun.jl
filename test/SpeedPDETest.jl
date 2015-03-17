@@ -61,5 +61,5 @@ PO=discretize([timedirichlet(d);L],50)
     u=PO\u0
 @time    u=PO\u0    
 
-println("Schrodinger: should be ~0.013,0.076")
+println("Schrodinger: should be ~0.013,0.015")
 
