@@ -11,6 +11,6 @@ DefiniteIntegral(d::PeriodicDomain)=DefiniteIntegral(Laurent(d))
 
 ## Toeplitz
 
-ToeplitzOperator{T,D<:PeriodicSpace}(f::Fun{D,T})=ToeplitzOperator(f.coefficients|>deinterlace)
-LaurentOperator{T,D<:PeriodicSpace}(f::Fun{D,T})=LaurentOperator(flipud(f.coefficients|>deinterlace))
+ToeplitzOperator{T,D<:PeriodicSpace}(f::Fun{D,T})=ToeplitzOperator(f.coefficients[2:2:end],f.coefficients[1:2:end])
+LaurentOperator{T,D<:PeriodicSpace}(f::Fun{D,T})=LaurentOperator(f.coefficients[3:2:end],f.coefficients[[1;2:2:end]])
 

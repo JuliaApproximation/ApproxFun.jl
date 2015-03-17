@@ -5,17 +5,17 @@ export ToeplitzOperator, HankelOperator, LaurentOperator
 
 
 
-type ToeplitzOperator{T<:Number,V} <: BandedOperator{T}
-    negative::V
-    nonnegative::V
+type ToeplitzOperator{T<:Number} <: BandedOperator{T}
+    negative::Vector{T}
+    nonnegative::Vector{T}
 end
 
-ToeplitzOperator{T<:Number,Q<:Number}(V::Vector{T},W::Vector{Q})=ToeplitzOperator{T,Vector{promote_type(T,Q)}}(V,W)
-function ToeplitzOperator{T<:Number}(V::Vector{T})
+ToeplitzOperator{T<:Number,Q<:Number}(V::Vector{T},W::Vector{Q})=ToeplitzOperator{promote_type(T,Q)}(V,W)
+function ToeplitzOperator(V::Vector)
     W=V[2:end]
     V=copy(V)
     V[1]*=2
-    ToeplitzOperator{T,typeof(V)}(W,V)
+    ToeplitzOperator(W,V)
 end
 
 
@@ -83,7 +83,7 @@ toeplitz_addentries!(neg::Vector,pos::Vector,A,kr::Range)=toeplitz_addentries!(1
 
 
 addentries!(T::ToeplitzOperator,A,kr::Range)=toeplitz_addentries!(1,T.negative,T.nonnegative,A,kr)
-bandinds{N<:Number,M<:Vector}(T::ToeplitzOperator{N,M})=(length(T.negative),length(T.nonnegative)-1)
+bandinds(T::ToeplitzOperator)=(length(T.negative),length(T.nonnegative)-1)
 
 
 ## Hankel Operator
@@ -123,7 +123,8 @@ bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
 ## Laurent Operator
 
 type LaurentOperator{T<:Number} <: BandedOperator{T}
-    coefficients::ShiftVector{T}
+    negative::Vector{T}
+    nonnegative::Vector{T}
 end
 
 
@@ -171,27 +172,48 @@ end
 
 
 
-function laurent_addentries!(v::ShiftVector,A,kr::Range)
+function laurent_addentries!(neg::Vector,pos::Vector,A,kr::Range)
     negkr,poskr=shiftrowrange(kr)
-    br=length(v)==0?(0:0):(firstindex(v):lastindex(v))
 
-    for k=poskr,j=br
-        if k+j≥0 # && k≥0
-            #A[k,k+j]=v[j]
-            # k->2k+1
-            A[2k+1,2k+2j+1] += v[j]
-        else # k+j<0 && k≥0
+    for k=poskr
+        for j=1:length(neg)
+            if k-j≥0 # && k≥0
+                #A[k,k+j]=v[j]
+                # k->2k+1
+                A[2k+1,2k-2j+1] += neg[j]
+            else # k+j<0 && k≥0
 
-            #A[k,k+j]=v[j]
-            A[2k+1,-2k-2j] += v[j]
+                #A[k,k+j]=v[j]
+                A[2k+1,-2k+2j] += neg[j]
+            end
+        end
+        for j=0:length(pos)-1
+            if k+j≥0 # && k≥0
+                #A[k,k+j]=v[j]
+                # k->2k+1
+                A[2k+1,2k+2j+1] += pos[j+1]
+            else # k+j<0 && k≥0
+
+                #A[k,k+j]=v[j]
+                A[2k+1,-2k-2j] += pos[j+1]
+            end
         end
     end
 
-    for k=negkr,j=br
-        if k+j<0 # && k <0
-            A[-2k,-2k-2j] += v[j]
-        else # k+j>0 && k<0
-            A[-2k,2k+2j+1] += v[j]
+    for k=negkr
+        for j=1:length(neg)
+            if k-j<0 # && k <0
+                A[-2k,-2k+2j] += neg[j]
+            else # k+j>0 && k<0
+                A[-2k,2k-2j+1] += neg[j]
+            end
+        end
+        for j=0:length(pos)-1
+            if k+j<0 # && k <0
+                A[-2k,-2k-2j] += pos[j+1]
+            else # k+j>0 && k<0
+                A[-2k,2k+2j+1] += pos[j+1]
+            end
         end
     end
 
@@ -201,9 +223,9 @@ end
 
 
 
-addentries!(T::LaurentOperator,A,kr::Range)=laurent_addentries!(T.coefficients,A,kr)
+addentries!(T::LaurentOperator,A,kr::Range)=laurent_addentries!(T.negative,T.nonnegative,A,kr)
 
-shiftbandinds(T::LaurentOperator)=length(T.coefficients)==0?(0,0):(firstindex(T.coefficients),lastindex(T.coefficients))
+shiftbandinds(T::LaurentOperator)=-length(T.negative),length(T.nonnegative)-1
 function bandinds(T::LaurentOperator)
     sbi=shiftbandinds(T)
     min(2sbi[1],-2sbi[end]),max(2sbi[end],-2sbi[1])
