@@ -108,8 +108,8 @@ canonicalspace(S::PeriodicSpace)=isa(domain(S),Circle)?Laurent(domain(S)):Fourie
 
 
 points(sp::Laurent,n)=points(domain(sp),n)
-transform(::Laurent,vals)=svfft(vals)|>interlace
-itransform(::Laurent,cfs)=isvfft(deinterlace(cfs))
+transform(::Laurent,vals)=svfft(vals)
+itransform(::Laurent,cfs)=isvfft(cfs)
 
 ## Ones and zeros
 

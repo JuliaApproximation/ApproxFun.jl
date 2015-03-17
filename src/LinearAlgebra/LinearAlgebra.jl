@@ -1,5 +1,5 @@
 include("helper.jl")
-include("ShiftVector.jl")
+#include("ShiftVector.jl")
 
 include("BandedMatrix.jl")
 

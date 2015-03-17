@@ -90,50 +90,6 @@ pad(f::ShiftVector,r::Range1)=ShiftVector(
 
 
 
-##FFT That returns ShiftVector
-function svfft(v::Vector)
-        n=length(v)
-        v=FFTW.fft(v)./n
-        if mod(n,2) == 0
-            ind=convert(Integer,n/2)
-            v=alternatesign!(v)
-            ShiftVector(v[ind+1:end],
-                        v[1:ind])
-        elseif mod(n,4)==3
-            ind=convert(Integer,(n+1)/2)
-            ShiftVector(-alternatesign!(v[ind+1:end]),
-                        alternatesign!(v[1:ind]))
-        else #mod(length(v),4)==1
-            ind=convert(Integer,(n+1)/2)
-            ShiftVector(alternatesign!(v[ind+1:end]),
-                        alternatesign!(v[1:ind]))
-        end
-end
-
-
-
-
-
-function isvfft(sv::ShiftVector)
-        n=length(sv)
-        ind = sv.index
-
-        #TODO: non normalized index ranges
-        @assert n/2 <= ind <= n/2+1
-
-        if mod(n,2) == 0
-            v=alternatesign!([sv[0:lastindex(sv)];sv[firstindex(sv):-1]])
-        elseif mod(n,4)==3
-            v=[alternatesign!(sv[0:lastindex(sv)]);
-                -alternatesign!(sv[firstindex(sv):-1])]
-        else #mod(length(v),4)==1
-            v=[alternatesign!(sv[0:lastindex(sv)]);
-                    alternatesign!(sv[firstindex(sv):-1])]
-        end
-
-        FFTW.ifft(n*v)
-end
-
 
 
 ##interlace pos and neg coefficients
