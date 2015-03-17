@@ -174,7 +174,22 @@ function interlace(v::Vector{Any})
     interlace(b)
 end
 
-interlace{T}(a::Vector{T},b::Vector{T})=interlace(Vector{T}[a,b])
+function interlace{T}(a::Vector{T},b::Vector{T})
+    na=length(a);nb=length(b)
+   if nb≥na
+        ret=zeros(T,2nb)
+        ret[1:2:1+2*(na-1)]=a
+        ret[2:2:end]=b
+        ret
+    else
+        ret=zeros(T,2na-1)
+        ret[1:2:end]=a
+        if !isempty(b)
+            ret[2:2:2+2*(nb-1)]=b
+        end
+        ret
+    end
+end
 
 
 
