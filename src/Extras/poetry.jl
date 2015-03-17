@@ -3,7 +3,7 @@
 #####
 
 
-export ∫,⨜,⨍
+export ∫,⨜,⨍,chebyshevt,chebyshevu
 
 ## Constructors
 
@@ -11,8 +11,20 @@ Fun()=Fun(identity)
 Fun(d::Domain)=Fun(identity,d)
 Fun(d::FunctionSpace)=Fun(identity,d)
 
-## diff
+## Chebyshev polynomials
 
+chebyshevt{T<:Number}(::Type{T},n::Int,a::T,b::T) = Fun([zeros(T,n),one(T)],Chebyshev([a,b]))
+chebyshevu{T<:Number}(::Type{T},n::Int,a::T,b::T) = mod(n,2) == 1 ? Fun(interlace(zeros(T,div(n+2,2)),2ones(T,div(n+2,2))),Chebyshev([a,b])) : Fun(interlace(2ones(T,div(n+2,2)),zeros(T,div(n+2,2)))[1:n+1]-[one(T),zeros(T,n)],Chebyshev([a,b]))
+
+for poly in (:chebyshevt,:chebyshevu)
+    @eval begin
+        $poly{T<:Number}(n::Int,a::T,b::T) = $poly(Float64,n,@compat(Float64(a)),@compat(Float64(b)))
+        $poly{T<:Number}(::Type{T},n::Int) = $poly(T,n,-one(T),one(T))
+        $poly(n::Int) = $poly(Float64,n)
+    end
+end
+
+## diff
 
 # diff(::Fun{ArraySpace}) is left as array diff
 
