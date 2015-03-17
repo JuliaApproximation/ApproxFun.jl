@@ -26,6 +26,9 @@ JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(@compat(Float64(a)),
                                                          @compat(Float64(b)),
                                                          Space(d))
 
+JacobiWeight{S<:IntervalSpace}(a::Number,b::Number,s::Vector{S}) = map(s->JacobiWeight(a,b,s),s)
+JacobiWeight{S<:IntervalSpace,T}(a::Number,b::Number,s::PiecewiseSpace{S,T}) = PiecewiseSpace(JacobiWeight(a,b,vec(s)))
+
 identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x->x,S):Fun(identity,domain(S))
 
 
