@@ -40,7 +40,7 @@ Base.setindex!(sv::ShiftVector,x::Number,k::Integer)=sv.vector[k+sv.index]=x
 
 for op = (:*,:.*,:./,:/)
     @eval ($op)(f::ShiftVector,c::Number) = ShiftVector(($op)(f.vector,c),f.index)
-end 
+end
 
 -(f::ShiftVector)=ShiftVector(-f.vector,f.index)
 -(c::Number,f::ShiftVector)=-(f-c)
@@ -58,11 +58,11 @@ for op = (:+,:-,:.*,:./)
         function ($op)(f::ShiftVector,g::ShiftVector)
             @assert range(f) == range(g)
             @assert f.index == g.index
-            
+
             ShiftVector(($op)(f.vector,g.vector),f.index)
         end
     end
-end 
+end
 
 
 
@@ -74,7 +74,7 @@ function Base.print(sl::ShiftVector)
     print("_",sl[0],"_")
     for k = 1:lastindex(sl)
         print(",",sl[k])
-    end    
+    end
     print("]")
 end
 
@@ -97,16 +97,16 @@ function svfft(v::Vector)
         if mod(n,2) == 0
             ind=convert(Integer,n/2)
             v=alternatesign!(v)
-            ShiftVector(v[ind+1:end],            
-                        v[1:ind])            
+            ShiftVector(v[ind+1:end],
+                        v[1:ind])
         elseif mod(n,4)==3
             ind=convert(Integer,(n+1)/2)
-            ShiftVector(-alternatesign!(v[ind+1:end]),     
-                        alternatesign!(v[1:ind]))             
+            ShiftVector(-alternatesign!(v[ind+1:end]),
+                        alternatesign!(v[1:ind]))
         else #mod(length(v),4)==1
             ind=convert(Integer,(n+1)/2)
-            ShiftVector(alternatesign!(v[ind+1:end]),        
-                        alternatesign!(v[1:ind]))             
+            ShiftVector(alternatesign!(v[ind+1:end]),
+                        alternatesign!(v[1:ind]))
         end
 end
 
@@ -116,21 +116,21 @@ end
 
 function isvfft(sv::ShiftVector)
         n=length(sv)
-        ind = sv.index        
-        
+        ind = sv.index
+
         #TODO: non normalized index ranges
         @assert n/2 <= ind <= n/2+1
-        
+
         if mod(n,2) == 0
             v=alternatesign!([sv[0:lastindex(sv)];sv[firstindex(sv):-1]])
         elseif mod(n,4)==3
             v=[alternatesign!(sv[0:lastindex(sv)]);
-                -alternatesign!(sv[firstindex(sv):-1])]    
+                -alternatesign!(sv[firstindex(sv):-1])]
         else #mod(length(v),4)==1
             v=[alternatesign!(sv[0:lastindex(sv)]);
-                    alternatesign!(sv[firstindex(sv):-1])]         
+                    alternatesign!(sv[firstindex(sv):-1])]
         end
-        
+
         FFTW.ifft(n*v)
 end
 
@@ -141,50 +141,24 @@ function interlace{T}(v::ShiftVector{T})
     fi=firstindex(v);li=lastindex(v)
 
     ret=zeros(T,(-fi>li)?-2*fi:2*li+1)
-        
-    
+
+
     j=1
     for k=0:li
         ret[j]=v[k]
         j+=2
     end
-    
+
     j=2
     for k=-1:-1:fi
         ret[j]=v[k]
         j+=2
     end
-    
+
     ret
 end
 
-function interlace{T<:Number}(v::Vector{Vector{T}})
-    n=length(v)
-    l=mapreduce(length,max,v)
-    ret=zeros(T,n*l)
-    
-    for k=1:n
-        ret[k:n:k+(length(v[k])-1)*n]=v[k]
-    end
-    ret
-end
 
-function interlace(v::Vector{Any})
-    #determine type
-    T=Float64
-    for vk in v
-        if isa(vk,Vector{Complex{Float64}})
-            T=Complex{Float64}
-        end
-    end
-    b=Array(Vector{T},length(v))
-    for k=1:length(v)
-        b[k]=v[k]
-    end
-    interlace(b)
-end
-
-interlace{T}(a::Vector{T},b::Vector{T})=interlace(Vector{T}[a,b])
 
 deinterlace(v::Vector)=ShiftVector(flipdim(v[2:2:end],1),v[1:2:end])
 
@@ -193,10 +167,10 @@ deinterlace(v::Vector)=ShiftVector(flipdim(v[2:2:end],1),v[1:2:end])
 function Base.resize!(c::ShiftVector,k::Range1)
    fi=firstindex(c)
 
-   splice!(c.vector,last(k)+c.index+1:length(c.vector)) 
+   splice!(c.vector,last(k)+c.index+1:length(c.vector))
    splice!(c.vector,1:first(k)+c.index-1)
-   c.index += fi - first(k) 
-   
+   c.index += fi - first(k)
+
    c
 end
 
@@ -212,14 +186,14 @@ function chop!(c::ShiftVector,tol::Real)
             break
         end
     end
-    
+
     for k=lastindex(c):-1:firstindex(c)
         if abs(c[k]) > tol
             resize!(c,firstindex(c):k)
             break
         end
-    end    
-    
+    end
+
     c
 end
 

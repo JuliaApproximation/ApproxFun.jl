@@ -293,8 +293,8 @@ else
     complexroots(coefficients::Vector)=hesseneigvals(companion_matrix(chop(coefficients,10eps())))
 end
 
-complexroots(coefficients::ShiftVector)=complexroots(coefficients.vector)
-complexroots(f::Fun{Laurent})=mappoint(Circle(),domain(f),complexroots(deinterlace(f.coefficients)))
+complexroots(neg::Vector,pos::Vector)=complexroots([flipdim(chop(neg,10eps()),1);pos])
+complexroots(f::Fun{Laurent})=mappoint(Circle(),domain(f),complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
 complexroots(f::Fun{Taylor})=mappoint(Circle(),domain(f),complexroots(f.coefficients))
 
 

@@ -72,7 +72,7 @@ function pad{T}(A::Matrix{T},n::Integer,m::Integer)
         A[1:n,1:m]
 	elseif n==0 || m==0
 	   Array(T,n,m)  #fixes weird julia bug when T==None
-    else   
+    else
         ret = zeros(T,n,m)
 
         if n <= size(A,1)
@@ -141,4 +141,38 @@ function chop!(A::Array,tol)
     end
     return A
 end
+
+
+
+
+## interlace
+
+
+function interlace{T<:Number}(v::Vector{Vector{T}})
+    n=length(v)
+    l=mapreduce(length,max,v)
+    ret=zeros(T,n*l)
+
+    for k=1:n
+        ret[k:n:k+(length(v[k])-1)*n]=v[k]
+    end
+    ret
+end
+
+function interlace(v::Vector{Any})
+    #determine type
+    T=Float64
+    for vk in v
+        if isa(vk,Vector{Complex{Float64}})
+            T=Complex{Float64}
+        end
+    end
+    b=Array(Vector{T},length(v))
+    for k=1:length(v)
+        b[k]=v[k]
+    end
+    interlace(b)
+end
+
+interlace{T}(a::Vector{T},b::Vector{T})=interlace(Vector{T}[a,b])
 
