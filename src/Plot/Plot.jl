@@ -182,20 +182,43 @@ function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
 end
 
 
-plot(f::MultivariateFun)=surf(points(f,1),points(f,2),real(values(f)))
-plot{S,V,T}(f::TensorFun{S,V,T})=surf(vecpoints(f,1),vecpoints(f,2),real(values(f)))
-plot(f::LowRankFun)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f)))
-plot(f::MultivariateFun,obj,window)=glsurfupdate(real(values(f)),obj,window)
+function plot(f::MultivariateFun)
+    s = size(f)
+    g = pad(f,3s[1]+50,3s[2]+50)
+    surf(points(g,1),points(g,2),real(values(g)))
+end
+function plot{S,V,T}(f::TensorFun{S,V,T})
+    s = size(f)
+    g = pad(f,3s[1]+50,3s[2]+50)
+    surf(vecpoints(g,1),vecpoints(g,2),real(values(g)))
+end
+function plot(f::LowRankFun)
+    s = size(f)
+    g = pad(f,3s[1]+50,3s[2]+50)
+    surf(vecpoints(g,1),vecpoints(g,2),real(values(g)))
+end
+function plot(f::MultivariateFun,obj,window)
+    s = size(f)
+    g = pad(f,3s[1]+50,3s[2]+50)
+    glsurfupdate(real(values(g)),obj,window)
+end
 
-
-plot{S<:IntervalSpace,V<:PeriodicSpace,T}(f::TensorFun{S,V,T})=surf(vecpoints(f,1),vecpoints(f,2),real(values(f)))
+function plot{S<:IntervalSpace,V<:PeriodicSpace,T}(f::TensorFun{S,V,T})
+    s = size(f)
+    g = pad(f,3s[1]+50,3s[2]+50)
+    surf(vecpoints(g,1),vecpoints(g,2),real(values(g)))
+end
 function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V})
-    Px,Py=points(f)
-    vals=real(values(f))
+    s = size(f)
+    g = pad(f,3s[1]+50,3s[2]+50)
+    Px,Py=points(g)
+    vals=real(values(g))
     surf([Px Px[:,1]], [Py Py[:,1]], [vals vals[:,1]])
 end
 function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V},obj,window)
-    vals=real(values(f))
+    s = size(f)
+    g = pad(f,3s[1]+50,3s[2]+50)
+    vals=real(values(g))
     glsurfupdate([vals vals[:,1]],obj,window)
 end
 
