@@ -3,12 +3,26 @@
 
 #export surf
 
+function colorf(ext;colormap::Symbol=:hottocold)
+    if colormap == :hottocold
+        hottocold(ext[2],ext[1])
+    elseif colormap == :cubehelix
+        cubehelix(ext[2],ext[1])
+    end
+end
+
 #
 # This colormap is based on the CubeHelix colormap described in
 # D. A. Green, "A colour scheme for the display of astronomical intensity images," Bull. Astr. Soc. India (2011) 39, 289–295.
 # "This – unlike many currently available schemes – is designed to be monotonically increasing in terms of its perceived brightness."
 #
-colorf(ma,mi) = "vec4(   (xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*"))*( 1.0+(1.0-(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))/2.0*(-0.14861*cos(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )+1.78277*sin(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )) )   ,    (xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*"))*( 1.0+(1.0-(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))/2.0*(-0.29227*cos(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )-0.90649*sin(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )) )       ,   (xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*"))*( 1.0+(1.0-(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))/2.0*(1.97294*cos(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )+0.0*sin(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )) )    ,0.45 +0.0*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")));"
+cubehelix(ma,mi) = "vec4(   (xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*"))*( 1.0+(1.0-(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))/2.0*(-0.14861*cos(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )+1.78277*sin(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )) )   ,    (xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*"))*( 1.0+(1.0-(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))/2.0*(-0.29227*cos(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )-0.90649*sin(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )) )       ,   (xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*"))*( 1.0+(1.0-(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))/2.0*(1.97294*cos(  6.28*(0.5/3.0+1.0-1.5*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")))  )) )    ,0.5 );"
+
+#
+# This hot-to-cold colormap is described in
+# http://paulbourke.net/texture_colour/colourspace/
+#
+hottocold(ma,mi) = "xyz.z > (("*string(mi)*")+0.75*(("*string(ma)*")-("*string(mi)*"))) ? vec4(1.0, 1.0 + 4.0*(("*string(mi)*")+0.75*(("*string(ma)*")-("*string(mi)*")) - xyz.z)/(("*string(ma)*")-("*string(mi)*"))  ,0.0,0.5) :  xyz.z > (("*string(mi)*")+0.5*(("*string(ma)*")-("*string(mi)*"))) ? vec4( 4.0*(xyz.z-("*string(mi)*")-0.5*(("*string(ma)*")-("*string(mi)*")))/(("*string(ma)*")-("*string(mi)*")) ,1.0,0.0,0.5) : xyz.z > (("*string(mi)*")+0.25*(("*string(ma)*")-("*string(mi)*"))) ? vec4(0.0,1.0,1.0 + 4.0*(("*string(mi)*")+0.25*(("*string(ma)*")-("*string(mi)*"))-xyz.z)/(("*string(ma)*")-("*string(mi)*")),0.5) : vec4(0.0,4.0*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")),1.0,0.5);"
 
 function glupdatewindow(obj,window)
     require("GLPlot")
@@ -39,32 +53,30 @@ function glsurfupdate(vals::Matrix,obj,window)##obj should be type RenderObject,
     glupdatewindow(obj,window)
 end
 
-function glsurf(vals::Matrix)
+function glsurf(vals::Matrix;colormap::Symbol=:hottocold)
     require("GLPlot")
     GLAbstraction=Main.GLAbstraction
     ModernGL=Main.ModernGL
     GLPlot=Main.GLPlot
 
     window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.),async=true)
-    mi,ma=extrema(vals)
     ModernGL.glClearColor(1,1,1,0)
-    obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , primitive=GLPlot.SURFACE(), color=colorf(ma,mi))
+    obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , primitive=GLPlot.SURFACE(), color=colorf(extrema(vals);colormap=colormap))
 
 
     glupdatewindow(obj,window)
 end
 
 
-function glsurf(xx::Array,yy::Array,vals::Matrix)
+function glsurf(xx::Array,yy::Array,vals::Matrix;colormap::Symbol=:hottocold)
     require("GLPlot")
     GLAbstraction=Main.GLAbstraction
     ModernGL=Main.ModernGL
     GLPlot=Main.GLPlot
 
     window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.),async=true)
-    mi,ma=extrema(vals)
     ModernGL.glClearColor(1,1,1,0)
-    obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , xrange=float32(xx),yrange=float32(yy),primitive=GLPlot.SURFACE(), color=colorf(ma,mi))
+    obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , xrange=float32(xx),yrange=float32(yy),primitive=GLPlot.SURFACE(), color=colorf(extrema(vals);colormap=colormap))
 
 
     glupdatewindow(obj,window)
