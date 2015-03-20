@@ -172,7 +172,7 @@ function plot(xx::Range,yy::Range,f::MultivariateFun;opts...)
     vals      = evaluate(f,xx,yy)
     #vals=[vals[:,1] vals vals[:,end]];
     #vals=[vals[1,:]; vals; vals[end,:]]
-    surf(xx,yy,real(vals);opts...)
+    surf([xx],[yy],real(vals);opts...)
 end
 
 function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
