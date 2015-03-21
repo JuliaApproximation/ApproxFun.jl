@@ -158,7 +158,12 @@ function coefficients{AS}(f::Vector,a::ArraySpace{AS,1},b::PiecewiseSpace)
     ret
 end
 
+## Definite Integral
 
+# This makes sure that the defaults from a given Domain are respected for the UnionDomain.
+
+DefiniteIntegral(d::UnionDomain) = DefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
+DefiniteLineIntegral(d::UnionDomain) = DefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
 
 ## ProductFun
 
