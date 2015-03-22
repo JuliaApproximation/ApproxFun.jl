@@ -292,3 +292,15 @@ end
 
 datalength(Σ::DefiniteIntegral{Laurent})=isa(domain(Σ),PeriodicInterval)?1:2
 
+function getindex{T}(Σ::DefiniteLineIntegral{Laurent,T},kr::Range)
+    d = domain(Σ)
+    if isa(d,PeriodicInterval)
+        T[k == 1?  d.b-d.a : zero(T) for k=kr]
+    else
+        @assert isa(d,Circle)
+        T[k == 1?  2d.radius*π : zero(T) for k=kr]
+    end
+end
+
+datalength(Σ::DefiniteLineIntegral{Laurent})=1
+

@@ -101,15 +101,9 @@ function plot{S,T<:Complex}(f::Fun{S,T};opts...)
 end
 
 function plot{F<:Fun}(f::Vector{F};opts...)
-    n=3mapreduce(length,max,f)+50
-    vals=Array(Float64,n,length(f))
-    pts=Array(Float64,n,length(f))
     for k=1:length(f)
-        pf=pad(f[k],n)
-        vals[:,k]=values(pf)
-        pts[:,k]=points(pf)
+        plot(f[k];opts...)
     end
-    plot(pts,vals;opts...)
 end
 
 
@@ -119,23 +113,28 @@ function plot{S}(r::Range,f::Fun{S,Float64};opts...)
     plot([r],f[[r]];opts...)
 end
 
-function complexplot(f::Fun;opts...)
+function complexplot{S,T}(f::Fun{S,T};opts...)
     f=pad(f,3length(f)+50)
     vals =values(f)
 
     plot(real(vals),imag(vals);opts...)
 end
 
-function complexplot{F<:Fun}(f::Vector{F};opts...)
-    n=3mapreduce(length,max,f)+50
-    vals=Array(Float64,n,length(f))
-    pts=Array(Float64,n,length(f))
-    for k=1:length(f)
-        pf=values(pad(f[k],n))
-        pts[:,k]=real(pf)
-        vals[:,k]=imag(pf)
+function complexplot{S<:PeriodicSpace,T}(f::Fun{S,T};opts...)
+    f=pad(f,3length(f)+50)
+    vals =values(f)
+    d = domain(f)
+    if isa(d,Circle)
+        plot(real([vals,vals[1]]),imag([vals,vals[1]]);opts...)
+    elseif isa(d,PeriodicInterval)
+        plot(real(vals),imag(vals);opts...)
     end
-    plot(pts,vals;opts...)
+end
+
+function complexplot{F<:Fun}(f::Vector{F};opts...)
+    for k=1:length(f)
+        complexplot(f[k];opts...)
+    end
 end
 
 function complexlayer(f::Fun;opts...)
@@ -167,7 +166,7 @@ end
 
 
 ## 3D plotting
-# TODO: The extra vals should only be added for periodicity.
+# TODO: The extra vals should only be added for periodicity?
 function plot(xx::Range,yy::Range,f::MultivariateFun;opts...)
     vals      = evaluate(f,xx,yy)
     #vals=[vals[:,1] vals vals[:,end]];

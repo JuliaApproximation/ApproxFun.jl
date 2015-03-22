@@ -9,6 +9,7 @@ macro calculus_functional(Func)
         # We expect the operator to be real/complex if the basis is real/complex
         $Func()=$Func(UnsetSpace())
         $Func(dsp::FunctionSpace) = $Func{typeof(dsp),eltype(dsp)}(dsp)
+        $Func(d::Domain) = $Func(Space(d))
 
         promotedomainspace(::$Func,sp::FunctionSpace)=$Func(sp)
 
