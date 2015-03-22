@@ -18,7 +18,7 @@ function cont_reduce_dofs!{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,
 
     for k = 1:length(G)
         MG = M*G[k]         # coefficients in the range space of M
-        for j=1:length(F.coefficients)
+        for j=1:min(length(F.coefficients),size(A,1))
             axpy!(-A[j,k],MG,F.coefficients[j]) # equivalent to X+=a*Y
         end
     end
@@ -156,13 +156,13 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
     TT=isempty(OS.Bx)?eltype(OS):promote_type(eltype(OS),mapreduce(eltype,promote_type,OS.Bx))
     ops=Array(Operator{TT},length(OS.Bx)+1)
     ops[1:length(OS.Bx)]=OS.Bx
-    
+
     blkops=Array(Operator{TT},2length(OS.Bx)+2,2)
     if !isempty(OS.Bx)
         blkops[1:2length(OS.Bx),:]=blkdiag(OS.Bx,OS.Bx)
     end
     blkrhs=Array(Any,2size(Gx,1)+2)
-    
+
 
     while k≥1
         if k==1 || (OS.S.T[k,k-1] == 0 && OS.S.R[k,k-1] == 0        )  # triangular setting
@@ -205,14 +205,14 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             end
 
             blkops[end-1:end,:]=OS.S.R[k-1:k,k-1:k].*OS.Lx+OS.S.T[k-1:k,k-1:k].*OS.Mx
-            
+
             for j=1:size(Gx,1)
                 blkrhs[j]=Gx[j,k-1]
                 blkrhs[j+size(Gx,1)]=Gx[j,k]
             end
             blkrhs[end-1]=rhs1;blkrhs[end]=rhs2
 
-            
+
             y=vec(linsolve(blkops,blkrhs;maxlength=nx))
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
 
@@ -292,6 +292,8 @@ end
 
 function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx::Vector,Gyin::Vector,F::ProductFun,nx=100000)
     Gy=regularize_bcs(OS.S,Gyin)
+    F=pad!(F,:,min(size(OS.S.Q,1),size(F,2)))
+
     F=cont_reduce_dofs!(OS.S,OS.Lx,OS.Mx,Gy,F)
 
      # Q2 says how to rearrange the columns of F so that the operator is upper triangular
