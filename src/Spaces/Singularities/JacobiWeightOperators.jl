@@ -3,27 +3,37 @@
 
 ## Calculus
 
-function Base.sum(f::Fun{JacobiWeight{Chebyshev}})
-    α,β=f.space.α,f.space.β
-    if α <= -1.0 || β <= -1.0
-        fs = Fun(f.coefficients,f.space.space)
-        d = domain(fs)
-        return Inf*fromcanonicalD(f,0.)*(sign(fs[d.a])+sign(fs[d.b]))/2
-    else
-        n = length(f)
-        c = zeros(eltype(f),n)
-        c[1] = 2.^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
-        if n > 1
-            c[2] = c[1]*(α-β)/(α+β+2)
-            for i=1:n-2
-                c[i+2] = (2(α-β)*c[i+1]-(α+β-i+2)*c[i])/(α+β+i+2)
+for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
+    @eval begin
+        function $Func(f::Fun{JacobiWeight{Chebyshev}})
+            d,α,β,n=domain(f),f.space.α,f.space.β,length(f)
+            if α ≤ -1.0 || β ≤ -1.0
+                fs = Fun(f.coefficients,f.space.space)
+                return Inf*0.5*$Len(d)*(sign(fs[d.a])+sign(fs[d.b]))/2
+            elseif α == β == -0.5
+                return 0.5*$Len(d)*f.coefficients[1]*π
+            elseif α == β == 0.5
+                return 0.5*$Len(d)*(n ≤ 2 ? f.coefficients[1]/2 : f.coefficients[1]/2 - f.coefficients[3]/4)*π
+            elseif α == 0.5 && β == -0.5
+                return 0.5*$Len(d)*(n == 1 ? f.coefficients[1] : f.coefficients[1] + f.coefficients[2]/2)*π
+            elseif α == -0.5 && β == 0.5
+                return 0.5*$Len(d)*(n == 1 ? f.coefficients[1] : f.coefficients[1] - f.coefficients[2]/2)*π
+            else
+                c = zeros(eltype(f),n)
+                c[1] = 2.^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
+                if n > 1
+                    c[2] = c[1]*(α-β)/(α+β+2)
+                    for i=1:n-2
+                        c[i+2] = (2(α-β)*c[i+1]-(α+β-i+2)*c[i])/(α+β+i+2)
+                    end
+                end
+                return 0.5*$Len(d)*dotu(f.coefficients,c)
             end
         end
-        return fromcanonicalD(f,0.)*dotu(f.coefficients,c)
+        $Func{PS<:PolynomialSpace}(f::Fun{JacobiWeight{PS}})=$Func(Fun(f,Chebyshev(domain(f))))
     end
 end
 
-Base.sum{PS<:PolynomialSpace}(f::Fun{JacobiWeight{PS}})=sum(Fun(f,Chebyshev(domain(f))))
 
 function differentiate{J<:JacobiWeight}(f::Fun{J})
     S=f.space
@@ -92,13 +102,6 @@ function Base.cumsum{J<:JacobiWeight}(f::Fun{J})
     end
 end
 
-
-function linesum{S<:JacobiWeight}(f::Fun{S})
-    d=domain(f)
-    @assert isa(d,Interval)
-    s=space(f)
-    sum(Fun(f.coefficients,JacobiWeight(s.α,s.β,typeof(s.space)())))*abs(d.b-d.a)/2
-end
 
 ## Operators
 
