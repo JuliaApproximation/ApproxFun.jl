@@ -2,17 +2,19 @@
 
 export UnionDomain
 
-immutable UnionDomain{D<:Domain} <:Domain
+immutable UnionDomain{D<:Domain,T<:Number} <:Domain{T}
     domains::Vector{D}
 end
+
+UnionDomain{D<:Domain}(d::Vector{D})=UnionDomain{D,mapreduce(eltype,promote_type,d)}(d)
 
 
 
 ∪{D<:Domain}(d::Vector{D}) = UnionDomain(d)
-∪(d1::UnionDomain,d2::UnionDomain)=UnionDomain([d1.domains,d2.domains])
-∪(d1::Domain,d2::UnionDomain)=UnionDomain([d1,d2.domains])
-∪(d1::UnionDomain,d2::Domain)=UnionDomain([d1.domains,d2])
-∪(d1::Domain,d2::Domain)=UnionDomain([d1,d2])
+∪{D1,D2,T1,T2}(d1::UnionDomain{D1,T1},d2::UnionDomain{D2,T2})=UnionDomain([d1.domains,d2.domains])
+∪{T1,D2,T2}(d1::Domain{T1},d2::UnionDomain{D2,T2})=UnionDomain([d1,d2.domains])
+∪{D1,T1,T2}(d1::UnionDomain{D1,T1},d2::Domain{T2})=UnionDomain([d1.domains,d2])
+∪{T1,T2}(d1::Domain{T1},d2::Domain{T2})=UnionDomain([d1,d2])
 Base.length(d::UnionDomain)=d.domains|>length
 Base.getindex(d::UnionDomain,k)=d.domains[k]
 for op in (:(Base.first),:(Base.last))
