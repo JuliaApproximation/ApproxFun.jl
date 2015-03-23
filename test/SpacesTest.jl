@@ -40,7 +40,7 @@ D=Derivative(sp)
 
 u=[dirichlet(sp);
     D^2-x]\[airyai(-10.)];
-    
+
 @test_approx_eq u[0.] airyai(0.)
 
 s=Fun(sin,[-2.,2.])|>abs
@@ -59,3 +59,17 @@ sc=Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])
 @test norm(Fun(cos,Chebyshev)-Fun(cos,JacobiWeight(0,0,Jacobi(-0.5,-0.5))))<100eps()
 @test norm(Fun(cos,Jacobi(-0.5,-0.5))-Fun(cos,JacobiWeight(0,0,Jacobi(-0.5,-0.5))))<100eps()
 
+
+
+## ContinuousSpace
+
+import ApproxFun: PiecewiseInterval,ContinuousSpace
+
+d=PiecewiseInterval(1.,2.,3.,4.)
+S=ContinuousSpace(d)
+D=Derivative(S)
+u=[ldirichlet(S),D-I]\[exp(1.)]
+
+@test_approx_eq u[1.1] exp(1.1)
+@test_approx_eq u[3.4] exp(3.4)
+@test_approx_eq last(u) exp(4)

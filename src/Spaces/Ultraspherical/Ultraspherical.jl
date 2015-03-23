@@ -28,7 +28,7 @@ order{o}(::Ultraspherical{o})=o
 #domain(S) may be any domain
 
 Base.ones{T<:Number,O}(::Type{T},S::Ultraspherical{O})=Fun(ones(T,1),S)
-Base.ones{O}(S::Ultraspherical{O})=Fun(ones(1),S)    
+Base.ones{O}(S::Ultraspherical{O})=Fun(ones(1),S)
 
 
 
@@ -52,3 +52,4 @@ spacescompatible{O}(a::Ultraspherical{O},b::Ultraspherical{O})=domainscompatible
 
 include("UltrasphericalOperators.jl")
 include("DirichletSpace.jl")
+include("ContinuousSpace.jl")
