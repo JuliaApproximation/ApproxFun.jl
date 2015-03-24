@@ -83,7 +83,7 @@ toeplitz_addentries!(neg::Vector,pos::Vector,A,kr::Range)=toeplitz_addentries!(1
 
 
 addentries!(T::ToeplitzOperator,A,kr::Range)=toeplitz_addentries!(1,T.negative,T.nonnegative,A,kr)
-bandinds(T::ToeplitzOperator)=(length(T.negative),length(T.nonnegative)-1)
+bandinds(T::ToeplitzOperator)=(-length(T.negative),length(T.nonnegative)-1)
 
 
 ## Hankel Operator
