@@ -73,3 +73,8 @@ u=[ldirichlet(S),D-I]\[exp(1.)]
 @test_approx_eq u[1.1] exp(1.1)
 @test_approx_eq u[3.4] exp(3.4)
 @test_approx_eq last(u) exp(4)
+
+
+d=PiecewiseInterval(0,1.,1.+im,im,0.)
+@test_approx_eq Fun(exp,d)[.1] exp(.1)
+

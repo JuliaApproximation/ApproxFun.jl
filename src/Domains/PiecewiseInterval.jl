@@ -7,6 +7,8 @@ PiecewiseInterval(d::Number...)=PiecewiseInterval([d...])
 
 Base.length(d::PiecewiseInterval)=length(d.points)-1
 Base.getindex(d::PiecewiseInterval,j::Integer)=Interval(d.points[j],d.points[j+1])
+isperiodic(d::PiecewiseInterval)=first(d.points)==last(d.points)
+
 
 function points(d::PiecewiseInterval,n)
    k=div(n,length(d))
