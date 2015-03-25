@@ -93,3 +93,6 @@ for op in (:(Base.sin),:(Base.cos))
     @eval ($op){S<:Chebyshev,V<:Chebyshev,T}(f::TensorFun{S,V,T})=ProductFun(chebyshevtransform($op(values(f))),space(f))
 end
 
+
+
+reverseorientation(f::Fun{Chebyshev})=Fun(alternatesign!(copy(f.coefficients)),Chebyshev(reverse(domain(f))))

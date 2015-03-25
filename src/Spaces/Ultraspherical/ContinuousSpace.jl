@@ -79,6 +79,11 @@ end
 canonicalspace(S::ContinuousSpace)=PiecewiseSpace(map(ChebyshevDirichlet{1,1},pieces(domain(S))))
 
 
+## pieces
+
+Base.vec{T}(f::Fun{ContinuousSpace,T},j::Integer)=vec(Fun(f,canonicalspace(f)),j)
+Base.vec{T}(f::Fun{ContinuousSpace,T})=vec(Fun(f,canonicalspace(space(f))))
+pieces{T}(f::Fun{ContinuousSpace,T})=vec(f)
 
 
 ## Conversion

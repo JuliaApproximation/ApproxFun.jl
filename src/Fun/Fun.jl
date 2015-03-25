@@ -248,6 +248,17 @@ Base.sum{S,T}(f::Fun{S,T})=last(cumsum(f))
 integrate{D,T}(f::Fun{D,T})=integrate(Fun(f,domain(f)))
 
 
+
+function reverseorientation(f::Fun)
+    csp=canonicalspace(f)
+    if spacescompatible(csp,space(f))
+        error("Implement reverseorientation for $(typeof(f))")
+    else
+        reverseorientation(Fun(f,csp))
+    end
+end
+
+
 ## non-vector notation
 
 *{S,T,U,V}(f::Fun{S,T},g::Fun{U,V})=f.*g

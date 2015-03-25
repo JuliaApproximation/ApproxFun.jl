@@ -28,3 +28,4 @@ for OP in (:(Base.first),:(Base.last))
     @eval $OP(d::PiecewiseInterval)=$OP(d.points)
 end
 
+Base.reverse(d::PeriodicInterval)=PeriodicInterval(d.b,d.a)

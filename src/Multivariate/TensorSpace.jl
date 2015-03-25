@@ -178,18 +178,12 @@ end
 function ∂(d::ProductDomain)
     @assert length(d.domains) ==2
     #TODO: Generalize
-    if (isa(d[1],Interval)||isa(d[1],PeriodicInterval)) && (isa(d[2],Interval)||isa(d[2],PeriodicInterval))
-        ∂1=∂(d[1])
-        ∂2=∂(d[2])
-        if ∂1==∂2==[]
-            []
-        elseif ∂1==[]
-            UnionDomain([d[1]+im*d[2].a,d[1]+im*d[2].b])
-        elseif ∂2==[]
-            UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2]])
-        else
-            UnionDomain([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
-        end
+    if isa(d[1],Interval)&&isa(d[2],Interval)
+        PiecewiseInterval(d[1].a+im*d[2].a,d[1].b+im*d[2].a,d[1].b+im*d[2].b,d[1].a+im*d[2].b,d[1].a+im*d[2].a)
+    elseif isa(d[1],Interval)&&isa(d[2],PeriodicInterval)
+        UnionDomain([d[1].b+im*d[2],d[1].a+im*reverse(d[2])])
+    elseif isa(d[1],PeriodicInterval)&&isa(d[2],Interval)
+        UnionDomain([d[1]+im*d[2].a,reverse(d[1])+im*d[2].b])
     else
 #        warn("∂ not implemented for "*string(typeof(d))*".  Returning [].")
         []

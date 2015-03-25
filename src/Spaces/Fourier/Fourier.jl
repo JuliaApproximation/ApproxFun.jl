@@ -205,6 +205,8 @@ end
 
 
 
+reverseorientation(f::Fun{Fourier})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
+
 
 
 
@@ -213,4 +215,7 @@ include("specialfunctions.jl")
 include("FourierOperators.jl")
 include("LaurentOperators.jl")
 include("LaurentDirichlet.jl")
+
+
+
 

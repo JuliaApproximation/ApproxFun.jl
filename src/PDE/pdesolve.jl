@@ -16,9 +16,9 @@ end
 convert2fun{T<:Fun}(f::Array{T},d::FunctionSpace)=f
 function convert2fun{S<:FunctionSpace}(f::Array,sp::S)
     mytyp=Fun{S,mapreduce(eltype,promote_type,f)}
-    
+
     ret=similar(f,mytyp)
-    
+
     for k=1:size(f,1),j=1:size(f,2)
         #TODO: Check domains match for Funs
         ret[k,j]=Fun(f[k,j],sp)
@@ -32,6 +32,12 @@ end
 # pde_standardize_rhs manipulate "non-standard" rhs
 # so it has a standardized form
 ###
+
+function setdomain{S}(f::Fun{S},d::Domain)
+    @assert length(S.names)==1
+    Fun(f.coefficients,S(d))
+end
+
 function pde_standardize_rhs(A,f::Vector)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
 
@@ -39,7 +45,7 @@ function pde_standardize_rhs(A,f::Vector)
 
     # if the fun lives on the boundary, we need to get rid of
     # the boundary information
-    # i.e., if it lives on (-1-im,-1+im) we want to convert it to 
+    # i.e., if it lives on (-1-im,-1+im) we want to convert it to
     # living on (-1,1)
     if isa(A,PDEOperatorSchur) && !isempty(f) && isa(f[1],Fun) && domain(f[1])==∂(domain(A))
         @assert length(f)<=2
@@ -48,32 +54,42 @@ function pde_standardize_rhs(A,f::Vector)
         #TODO: More elegent domain conversion
         vf=pieces(f[1])
         ds1=domainspace(A,1);ds2=domainspace(A,2)
-        
-        fx=map(g->(@assert isa(space(g),typeof(ds2));
-        Fun(g.coefficients,ds2)),vf[indsBx])
-        fy=map(g->(@assert isa(space(g),typeof(ds1));
-        Fun(g.coefficients,ds1)),vf[indsBy])   
-        
-        if length(f)<2
-            F=zeros(rs)
+        dd1=domain(ds1);dd2=domain(ds2)
+
+        if length(vf)==4
+            # assume we are in boudnary
+            # boundary has positive orientation
+            vf=[setdomain(vf[2],dd2),setdomain(reverseorientation(vf[4]),dd2),setdomain(reverseorientation(vf[1]),dd1),setdomain(vf[3],dd1)]
         else
-            F=Fun(f[end],rs)
+            @assert length(vf)==2
+            if isa(ds1,PeriodicSpace)
+                vf=[setdomain(vf[1],dd1),setdomain(reverseorientation(vf[2]),dd1)]
+            elseif isa(ds2,PeriodicSpace)
+                vf=[setdomain(vf[1],dd2),setdomain(reverseorientation(vf[2]),dd2)]
+            end
+        end
+
+        if length(f)==1
+            f=vf
+        else
+            @assert length(f)==2
+            f=[vf;f[end]]
         end
     else
         f=pad(f,max(length(indsBx)+length(indsBy),length(f)))
-    
-        fx=isempty(indsBx)?[]:convert2fun(f[indsBx],domainspace(A,2))
-        fy=isempty(indsBy)?[]:convert2fun(f[indsBy],domainspace(A,1))       
-        
-        if length(f)==length(indsBx)+length(indsBy)+1
-            F=Fun(f[end],rs)
-        else
-            F=zeros(eltype(A),rs)
-        end
     end
-    
+
+    fx=isempty(indsBx)?[]:convert2fun(f[indsBx],domainspace(A,2))
+    fy=isempty(indsBy)?[]:convert2fun(f[indsBy],domainspace(A,1))
+
+    if length(f)==length(indsBx)+length(indsBy)+1
+        F=Fun(f[end],rs)
+    else
+        F=zeros(eltype(A),rs)
+    end
+
     fx,fy,F
-end   
+end
 
 
 
@@ -86,7 +102,7 @@ function pde_standardize_rhs(A,f::Matrix)
     fx=isempty(indsBx)?[]:f[indsBx,:]
     fy=isempty(indsBy)?[]:f[indsBy,:]
     F=fill(zeros(rangespace(A)),1,size(f,2))
-    
+
     fx,fy,F
 end
 
@@ -96,7 +112,7 @@ pdesolve{T<:PDEOperator}(A::Vector{T},f)=pdesolve(A,f,10000eps())
 function pdesolve{T<:PDEOperator}(A::Vector{T},f,tol::Real)
     @assert tol>0
     maxit=11
-   
+
     for k=5:maxit
         u=pdesolve(A,f,2^k)
         if norm(map(f->norm(f.coefficients),u.coefficients[end-2:end]))<tol
@@ -111,13 +127,13 @@ function pdesolve(S::PDEStrideOperatorSchur,f::Vector,nx=100000)
     @assert length(f)≤5
 
     f=pad(f,5)
-    uo=pdesolve(S.odd,[f[1],f[2],f[3]+f[4],f[end]],nx) 
-    ue=pdesolve(S.even,[f[1],f[2],f[4]-f[3],f[end]],nx)     
-    
+    uo=pdesolve(S.odd,[f[1],f[2],f[3]+f[4],f[end]],nx)
+    ue=pdesolve(S.even,[f[1],f[2],f[4]-f[3],f[end]],nx)
+
     ret=Array(typeof(first(uo.coefficients)),length(uo.coefficients)+length(ue.coefficients))
     ret[1:2:end]=uo.coefficients
     ret[2:2:end]=ue.coefficients
-    
+
     TensorFun(ret,domainspace(S.odd,2).space)
 end
 
