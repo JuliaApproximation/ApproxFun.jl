@@ -38,6 +38,25 @@ function setdomain{S}(f::Fun{S},d::Domain)
     Fun(f.coefficients,S(d))
 end
 
+function depiecereorient(f,d)
+    vf=pieces(f)
+    dd1=d[1];dd2=d[2]
+
+    if length(vf)==4
+        # assume we are in boudnary
+        # boundary has positive orientation
+        vf=Any[setdomain(vf[2],dd2),setdomain(reverseorientation(vf[4]),dd2),setdomain(reverseorientation(vf[1]),dd1),setdomain(vf[3],dd1)]
+    else
+        @assert length(vf)==2
+        if isa(dd1,PeriodicDomain)
+            vf=Any[setdomain(vf[1],dd1),setdomain(reverseorientation(vf[2]),dd1)]
+        elseif isa(dd2,PeriodicDomain)
+            vf=Any[setdomain(vf[1],dd2),setdomain(reverseorientation(vf[2]),dd2)]
+        end
+    end
+    vf
+end
+
 function pde_standardize_rhs(A,f::Vector)
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
 
@@ -52,22 +71,7 @@ function pde_standardize_rhs(A,f::Vector)
         @assert isa(f,Vector)
 
         #TODO: More elegent domain conversion
-        vf=pieces(f[1])
-        ds1=domainspace(A,1);ds2=domainspace(A,2)
-        dd1=domain(ds1);dd2=domain(ds2)
-
-        if length(vf)==4
-            # assume we are in boudnary
-            # boundary has positive orientation
-            vf=Any[setdomain(vf[2],dd2),setdomain(reverseorientation(vf[4]),dd2),setdomain(reverseorientation(vf[1]),dd1),setdomain(vf[3],dd1)]
-        else
-            @assert length(vf)==2
-            if isa(ds1,PeriodicSpace)
-                vf=Any[setdomain(vf[1],dd1),setdomain(reverseorientation(vf[2]),dd1)]
-            elseif isa(ds2,PeriodicSpace)
-                vf=Any[setdomain(vf[1],dd2),setdomain(reverseorientation(vf[2]),dd2)]
-            end
-        end
+        vf=depiecereorient(f[1],domain(A))
 
         if length(f)==1
             f=vf
