@@ -59,13 +59,13 @@ function pde_standardize_rhs(A,f::Vector)
         if length(vf)==4
             # assume we are in boudnary
             # boundary has positive orientation
-            vf=[setdomain(vf[2],dd2),setdomain(reverseorientation(vf[4]),dd2),setdomain(reverseorientation(vf[1]),dd1),setdomain(vf[3],dd1)]
+            vf=Any[setdomain(vf[2],dd2),setdomain(reverseorientation(vf[4]),dd2),setdomain(reverseorientation(vf[1]),dd1),setdomain(vf[3],dd1)]
         else
             @assert length(vf)==2
             if isa(ds1,PeriodicSpace)
-                vf=[setdomain(vf[1],dd1),setdomain(reverseorientation(vf[2]),dd1)]
+                vf=Any[setdomain(vf[1],dd1),setdomain(reverseorientation(vf[2]),dd1)]
             elseif isa(ds2,PeriodicSpace)
-                vf=[setdomain(vf[1],dd2),setdomain(reverseorientation(vf[2]),dd2)]
+                vf=Any[setdomain(vf[1],dd2),setdomain(reverseorientation(vf[2]),dd2)]
             end
         end
 
@@ -73,11 +73,10 @@ function pde_standardize_rhs(A,f::Vector)
             f=vf
         else
             @assert length(f)==2
-            f=[vf;f[end]]
+            f=Any[vf...;f[end]]
         end
-    else
-        f=pad(f,max(length(indsBx)+length(indsBy),length(f)))
     end
+    f=pad(f,max(length(indsBx)+length(indsBy),length(f)))
 
     fx=isempty(indsBx)?[]:convert2fun(f[indsBx],domainspace(A,2))
     fy=isempty(indsBy)?[]:convert2fun(f[indsBy],domainspace(A,1))
