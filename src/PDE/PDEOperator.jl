@@ -278,16 +278,5 @@ function *(A::PDEOperator,F::ProductFun)
 end
 
 
-isfunctional(B::PDEOperator,k::Integer)=size(B.ops,1)==1&&size(B.ops,2)==2&&isa(B.ops[1,k],Functional)
-isxfunctional(B::PDEOperator)=isfunctional(B,1)
-isyfunctional(B::PDEOperator)=isfunctional(B,2)
-ispdeop(B::PDEOperator)=!isxfunctional(B)&&!isyfunctional(B)
-
-
-function findfunctionals{T<:PDEOperator}(A::Vector{T},k::Integer)
-    indsBx=find(f->isfunctional(f,k),A)
-    indsBx,Functional{eltype(T)}[(@assert Ai.ops[1,k==1?2:1]==ConstantOperator{Float64}(1.0); Ai.ops[1,k]) for Ai in A[indsBx]]
-end
-
 
 

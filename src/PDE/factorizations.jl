@@ -62,9 +62,11 @@ PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::AbstractOperatorS
 PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,ConstantOperator(Lx.λ),Mx,S)
 
 
-function PDEOperatorSchur(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)
-   @assert size(A.ops)==(2,2)
-   PDEOperatorSchur(Bx,A.ops[1,1],A.ops[2,1],schurfact(By,A.ops[:,2],ny),indsBx,indsBy)
+function PDEOperatorSchur(Bx,By,A::PlusOperator,ny::Integer,indsBx,indsBy)
+    @assert all(g->isa(g,KroneckerOperator),A.ops)
+    @assert length(A.ops)==2
+
+    PDEOperatorSchur(Bx,A.ops[1].ops[1],A.ops[2].ops[1],schurfact(By,[A.ops[1].ops[2],A.ops[2].ops[2]],ny),indsBx,indsBy)
 end
 
 
@@ -75,12 +77,10 @@ numbcs(S::AbstractPDEOperatorSchur,k)=length(bcinds(S,k))
 Base.length(S::PDEOperatorSchur)=size(S.S,1)
 
 
-function PDEOperatorSchur{T<:PDEOperator}(A::Vector{T},ny::Integer)
+function PDEOperatorSchur(A::Vector,ny::Integer)
     indsBx,Bx=findfunctionals(A,1)
     indsBy,By=findfunctionals(A,2)
 
-    inds=find(ispdeop,A)
-    @assert length(inds)==1&&inds[1]==length(A)
     LL=A[end]
 
 
