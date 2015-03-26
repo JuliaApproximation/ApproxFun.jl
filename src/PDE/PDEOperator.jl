@@ -97,23 +97,6 @@ promotedomainspace(P::PDEOperator,S::TensorSpace)=promotedomainspace(promotedoma
 
 ## Algebra
 
-⊗(A::Operator,B::Operator)=PDEOperator(A,B)
-⊗(A::Operator,B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
-⊗(A::UniformScaling,B::Operator)=ConstantOperator(1.0A.λ)⊗B
-
-⊗(A::Fun,B::Fun)=Multiplication(A)⊗Multiplication(B)
-⊗(A,B::Fun)=A⊗Multiplication(B)
-⊗(A::Fun,B)=Multiplication(A)⊗B
-
-⊗(A::Vector,B::Operator)=PDEOperator{promote_type(eltype(eltype(A)),eltype(B))}[PDEOperator(Ai,B) for Ai in A]
-⊗(A::Operator,B::Vector)=PDEOperator{promote_type(eltype(A),eltype(eltype(B)))}[PDEOperator(A,Bi) for Bi in B]
-⊗(A::Vector,B::UniformScaling)=A⊗ConstantOperator(1.0B.λ)
-⊗(A::UniformScaling,B::Vector)=ConstantOperator(1.0A.λ)⊗B
-⊗{O<:Operator,V<:Operator}(A::Matrix{O},B::Matrix{V})=interlace(A)⊗interlace(B)
-⊗{O<:Operator}(A::Matrix{O},B::Fun)=interlace(A)⊗B
-⊗{O<:Operator}(A::Matrix{O},B)=interlace(A)⊗B
-⊗{O<:Operator}(B::Fun,A::Matrix{O})=A⊗interlace(B)
-⊗{O<:Operator}(B,A::Matrix{O})=A⊗interlace(B)
 
 
 function +(A::PDEOperator,B::PDEOperator)

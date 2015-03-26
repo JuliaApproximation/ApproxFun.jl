@@ -120,7 +120,7 @@ end
 
 function choosedomainspace(A::Operator,sp)
     sp2=domainspace(A)
-    isa(sp2,AmbiguousSpace)?sp:sp2
+    isambiguous(sp2)?sp:sp2
 end
 choosedomainspace(A)=choosedomainspace(A,AnySpace())
 

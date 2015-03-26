@@ -7,7 +7,7 @@ export PlusOperator,TimesOperator
 
 ##PlusFunctional
 
-immutable PlusFunctional{T<:Number} <: Functional{T}
+immutable PlusFunctional{T} <: Functional{T}
     ops::Vector{Functional{T}}
 end
 
@@ -25,15 +25,15 @@ datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 
 promotedomainspace{T}(C::PlusFunctional{T},sp::FunctionSpace)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
 
-immutable PlusOperator{T<:Number} <: BandedOperator{T}
+immutable PlusOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
 end
 
 
 Base.convert{OT<:Operator}(::Type{OT},P::PlusOperator)=PlusOperator{eltype(OT)}(P.ops)
 
-promoteplus{T<:Number}(ops::Vector{BandedOperator{T}})=PlusOperator{T}(promotespaces(ops))
-promoteplus{T<:Number}(ops::Vector{Functional{T}})=PlusFunctional{T}(promotespaces(ops))
+promoteplus{T}(ops::Vector{BandedOperator{T}})=PlusOperator{T}(promotespaces(ops))
+promoteplus{T}(ops::Vector{Functional{T}})=PlusFunctional{T}(promotespaces(ops))
 
 
 
@@ -141,7 +141,7 @@ end
 
 ## Times Operator
 
-immutable ConstantTimesFunctional{T<:Number,B<:Functional} <: Functional{T}
+immutable ConstantTimesFunctional{T,B<:Functional} <: Functional{T}
     c::T
     op::B
     ConstantTimesFunctional(c,op)=new(c,op)
@@ -154,7 +154,7 @@ datalength(C::ConstantTimesFunctional)=datalength(C.op)
 promotedomainspace(C::ConstantTimesFunctional,sp::FunctionSpace)=ConstantTimesFunctional(C.c,promotedomainspace(C.op,sp))
 
 
-type TimesFunctional{T<:Number,A<:Functional,B<:BandedOperator} <: Functional{T}
+type TimesFunctional{T,A<:Functional,B<:BandedOperator} <: Functional{T}
     functional::A
     op::B
 end
@@ -168,10 +168,10 @@ end
 datalength(C::TimesFunctional)=datalength(C.functional)+bandinds(C.op,2)
 
 
-TimesFunctional{T<:Number,V<:Number}(A::Functional{T},B::BandedOperator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
+TimesFunctional{T,V}(A::Functional{T},B::BandedOperator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
 
 
-function Base.getindex{T<:Number}(f::TimesFunctional{T},jr::Range)#j is columns
+function Base.getindex{T}(f::TimesFunctional{T},jr::Range)#j is columns
     bi=bandinds(f.op)
     B=subview(f.op,:,jr)
     r=zeros(T,length(jr))
@@ -182,7 +182,7 @@ function Base.getindex{T<:Number}(f::TimesFunctional{T},jr::Range)#j is columns
 end
 
 
-immutable ConstantTimesOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+immutable ConstantTimesOperator{T,B<:Operator} <: BandedOperator{T}
     c::T
     op::B
     ConstantTimesOperator(c,op)=new(c,op)
@@ -223,7 +223,7 @@ end
 
 
 
-immutable TimesOperator{T<:Number} <: BandedOperator{T}
+immutable TimesOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
 
     function TimesOperator(ops::Vector{BandedOperator{T}})
@@ -339,7 +339,7 @@ end
 *(B::Functional,O::TimesOperator)=TimesFunctional(B,O)  # Needed to avoid ambiguity
 *(B::Functional,O::BandedOperator)=TimesFunctional(promotedomainspace(B,rangespace(O)),O)
 
--{T<:Number}(B::Functional{T})=ConstantTimesFunctional(-one(T),B)
+-{T}(B::Functional{T})=ConstantTimesFunctional(-one(T),B)
 
 
 -(A::Functional,B::Functional)=PlusFunctional([A,-B])
@@ -369,7 +369,7 @@ end
 
 ## Operations
 
-function *{T<:Number}(A::TimesOperator,b::Array{T})
+function *{V<:Number,T<:Number}(A::TimesOperator{V},b::Array{T})
     ret = b
     for k=length(A.ops):-1:1
         ret = A.ops[k]*ret
@@ -390,13 +390,9 @@ function *{T<:Number}(A::BandedOperator,b::Array{T})
 end
  ##TODO: Make * and \ consistent in return type
 function *(A::InfiniteOperator,b::Fun)
-    dsp=domainspace(A)
-    if isa(dsp,AmbiguousSpace)
-        A=promotedomainspace(A,b.space)
-        Fun(A*b.coefficients,rangespace(A))
-    else
-        Fun(A*coefficients(b,dsp),rangespace(A))
-    end
+    dsp=conversion_type(domainspace(A),space(b))
+    A=promotedomainspace(A,dsp)
+    Fun(A*coefficients(b,dsp),rangespace(A))
 end
 
 function *{F<:Fun}(A::InfiniteOperator,b::Array{F,2})

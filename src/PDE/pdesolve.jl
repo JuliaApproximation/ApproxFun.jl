@@ -143,7 +143,7 @@ end
 
 function pdesolve(A::AbstractPDEOperatorSchur,f::Array,nx=100000)
     fx,fy,F=pde_standardize_rhs(A,f)
-    Fun(cont_constrained_lyap(A,fx,fy,F,nx),domainspace(A))
+    ProductFun(cont_constrained_lyap(A,fx,fy,F,nx),domainspace(A))
 end
 
 pdesolve(A::AbstractPDEOperatorSchur,f::Union(Fun,MultivariateFun,Number),nx...)=pdesolve(A,[f],nx...)

@@ -16,7 +16,14 @@ end
 ##Coefficient routines
 #TODO: domainscompatible?
 
-coefficients(f::Fun,msp::FunctionSpace)=coefficients(f.coefficients,space(f),msp)
+function coefficients(f::Fun,msp::FunctionSpace)
+    #zero can always be converted
+    if length(f)==1 && f.coefficients[1]==0
+        f.coefficients
+    else
+        coefficients(f.coefficients,space(f),msp)
+    end
+end
 coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(AnyDomain()))
 coefficients(f::Fun)=f.coefficients
 coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
@@ -62,16 +69,16 @@ canonicaldomain(f::Fun)=canonicaldomain(domain(f))
 
 ##Evaluation
 
-function evaluate{S,T}(f::Fun{S,T},x)
+function evaluate{S,T}(f::Fun{S,T},x...)
     csp=canonicalspace(f)
     if spacescompatible(csp,space(f))
         error("Override evaluate for " * string(typeof(csp)))
     else
-        evaluate(Fun(f,csp),x)
+        evaluate(Fun(f,csp),x...)
     end
 end
 
-Base.getindex(f::Fun,x)=evaluate(f,x)
+Base.getindex(f::Fun,x...)=evaluate(f,x...)
 
 for op in (:(Base.first),:(Base.last))
     @eval $op{S,T}(f::Fun{S,T})=f[$op(domain(f))]

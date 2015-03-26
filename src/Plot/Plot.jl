@@ -162,6 +162,7 @@ function contour(f::MultivariateFun;opts...)
     contour(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);opts...)
 end
 
+contour(f::Fun)=contour(ProductFun(f))
 
 
 
@@ -182,12 +183,13 @@ function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
 end
 
 
-plot(f::MultivariateFun;opts...) = surf(points(f,1),points(f,2),real(values(f));opts...)
-plot{S,V,T}(f::TensorFun{S,V,T};opts...) = surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
-plot(f::LowRankFun;opts...) = surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
-plot(f::MultivariateFun,obj,window) = glsurfupdate(real(values(f)),obj,window)
+plot(f::MultivariateFun;opts...)=surf(points(f,1),points(f,2),real(values(f));opts...)
+plot{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
+plot(f::LowRankFun;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
+plot(f::MultivariateFun,obj,window)=glsurfupdate(real(values(f)),obj,window)
 
-plot{S<:IntervalSpace,V<:PeriodicSpace,T}(f::TensorFun{S,V,T};opts...) = surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
+
+plot{S<:IntervalSpace,V<:PeriodicSpace,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
 function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V};opts...)
     Px,Py=points(f)
     vals=real(values(f))

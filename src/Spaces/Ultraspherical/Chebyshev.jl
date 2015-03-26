@@ -50,7 +50,7 @@ identity_fun(d::Chebyshev)=identity_fun(domain(d))
 
 ## 2D fast values
 
-function ApproxFun.values{T}(f::TensorFun{Chebyshev,Chebyshev,T})
+function ApproxFun.values{SS<:TensorSpace,T}(f::ProductFun{Chebyshev,Chebyshev,SS,T})
     n,m=size(f)
     M=Array(T,n,m)
     f1=pad(f.coefficients[1].coefficients,n)
@@ -90,7 +90,7 @@ end
 
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))
-    @eval ($op){S<:Chebyshev,V<:Chebyshev,T}(f::TensorFun{S,V,T})=ProductFun(chebyshevtransform($op(values(f))),space(f))
+    @eval ($op){S<:Chebyshev,V<:Chebyshev}(f::ProductFun{S,V})=ProductFun(chebyshevtransform($op(values(f))),space(f))
 end
 
 

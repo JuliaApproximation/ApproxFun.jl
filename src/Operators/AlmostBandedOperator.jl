@@ -17,6 +17,11 @@ type FillMatrix{T,R}
 end
 
 
+function eye2{BT<:Array}(::Type{BT},n::Integer,m::Integer)
+    @assert n==0 || m==0
+    Array(BT,n,m)
+end
+eye2{T}(::Type{T},n::Integer,m::Integer)=eye(T,n,m)
 
 function FillMatrix{T}(::Type{T},bc,pf)
     nbc=length(bc)
@@ -33,7 +38,7 @@ function FillMatrix{T}(::Type{T},bc,pf)
         end
         resizedata!(sfuncs[k],m+pf)
     end
-    ar0=eye(T,m,nbc)  # the first nbc fill in rows are just the bcs
+    ar0=eye2(T,m,nbc)  # the first nbc fill in rows are just the bcs
     FillMatrix(sfuncs,ar0,size(ar0,1),nbc,pf)
 end
 
@@ -52,7 +57,7 @@ function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret
 end
 
-function unsafe_getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
+function unsafe_getindex{T,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret = zero(T)
 
     @simd for m=1:B.numbcs
@@ -100,16 +105,16 @@ rangespace(M::AlmostBandedOperator)=rangespace(M.op)
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
-function AlmostBandedOperator{T<:Number,R<:Functional}(bc::Vector{R},op::BandedOperator{T})
+function AlmostBandedOperator{R<:Functional}(bc::Vector{R},op::BandedOperator)
     bndinds=bandinds(op)
     bndindslength=bndinds[end]-bndinds[1]+1
     nbc = length(bc)
 
     br=((bndinds[1]-nbc),(bndindslength-1))
-    data = bazeros(T,nbc+100-br[1],br)
+    data = bazeros(op,nbc+100-br[1],br)
 
      # do all columns in the row, +1 for the fill
-    fl=FillMatrix(T,bc,br[end]+1)
+    fl=FillMatrix(eltype(data),bc,br[end]+1)
 
     for k=1:nbc,j=columnrange(data,k)
         data[k,j]=fl.bc[k][j]  # initialize data with the boundary rows
@@ -192,6 +197,8 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,
 
     B
 end
+
+
 
 
 function Base.setindex!(B::AlmostBandedOperator,x,k::Integer,j::Integer)
