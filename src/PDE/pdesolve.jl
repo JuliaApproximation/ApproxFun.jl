@@ -111,8 +111,8 @@ end
 
 
 
-pdesolve{T<:PDEOperator}(A::Vector{T},f)=pdesolve(A,f,10000eps())
-function pdesolve{T<:PDEOperator}(A::Vector{T},f,tol::Real)
+pdesolve{T<:Operator}(A::Vector{T},f)=pdesolve(A,f,10000eps())
+function pdesolve{T<:Operator}(A::Vector{T},f,tol::Real)
     @assert tol>0
     maxit=11
 
@@ -147,16 +147,16 @@ function pdesolve(A::AbstractPDEOperatorSchur,f::Array,nx=100000)
 end
 
 pdesolve(A::AbstractPDEOperatorSchur,f::Union(Fun,MultivariateFun,Number),nx...)=pdesolve(A,[f],nx...)
-pdesolve{T<:PDEOperator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)
-pdesolve{T<:PDEOperator}(A::Vector{T},f::Union(Fun,MultivariateFun,Number),n...)=pdesolve(A,[f],n...)
-pdesolve(A::PDEOperator,f...)=pdesolve([A],f...)
+pdesolve{T<:Operator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)
+pdesolve{T<:Operator}(A::Vector{T},f::Union(Fun,MultivariateFun,Number),n...)=pdesolve(A,[f],n...)
+pdesolve(A::Operator,f...)=pdesolve([A],f...)
 
 
 
 
-\{T<:PDEOperator}(A::Vector{T},f::Array)=pdesolve(A,f)
+\{T}(A::Vector{BandedOperator{BandedMatrix{T}}},f::Array)=pdesolve(A,f)
 \(A::AbstractPDEOperatorSchur,f::Array)=pdesolve(A,f)
-\{T<:PDEOperator}(A::Vector{T},f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
+\{T}(A::Vector{BandedOperator{BandedMatrix{T}}},f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
 \(A::AbstractPDEOperatorSchur,f::Fun)=pdesolve(A,f)
 \(A::AbstractPDEOperatorSchur,f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
-\(A::PDEOperator,f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
+\{T}(A::BandedOperator{BandedMatrix{T}},f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
