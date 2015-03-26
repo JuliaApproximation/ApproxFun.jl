@@ -8,7 +8,7 @@ function Base.show(io::IO,d::Line)
         print(io,"Line($(d.centre),$(d.angle))")
     else
         print(io,"Line($(d.centre),$(d.angle),$(d.α),$(d.β))")
-    end        
+    end
 end
 Base.show(io::IO,d::PeriodicInterval)=print(io,"【$(d.a),$(d.b)❫")
 
@@ -31,11 +31,11 @@ function Base.show(io::IO,s::JacobiWeight)
     d=domain(s)
     #TODO: Get shift and weights right
     if s.α==s.β
-        print(io,"(1-x^2)^$(s.α)[")    
+        print(io,"(1-x^2)^$(s.α)[")
     else
         print(io,"(1+x)^$(s.α)*(1-x)^$(s.β)[")
     end
-    
+
     show(io,s.space)
     print(io,"]")
 end

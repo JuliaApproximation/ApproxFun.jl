@@ -74,9 +74,15 @@ for OP in (:promotedomainspace,:promoterangespace)
                                                                       $OP(K.ops[2],ds[2]))
 end
 
+Base.convert{S,V,DS,RS,T}(::Type{KroneckerOperator{S,V,DS,RS,T}},K::KroneckerOperator)=KroneckerOperator{S,V,DS,RS,T}((convert(S,K.ops[1]),
+                                                                                convert(V,K.ops[2])),
+                                                                              K.domainspace,
+                                                                              K.rangespace)
 
-Base.convert{BO<:Operator}(::Type{BO},K::KroneckerOperator)=KroneckerOperator(convert(BandedOperator{eltype(eltype(BO))},K.ops[1]),
-                                                                                convert(BandedOperator{eltype(eltype(BO))},K.ops[2]),
+
+
+Base.convert{BO<:Operator}(::Type{BO},K::KroneckerOperator)=KroneckerOperator(convert(Operator{eltype(eltype(BO))},K.ops[1]),
+                                                                                convert(Operator{eltype(eltype(BO))},K.ops[2]),
                                                                               K.domainspace,
                                                                               K.rangespace)
 
@@ -166,10 +172,18 @@ end
 
 
 ⊗(A,B)=KroneckerOperator(A,B)
+⊗(A::Vector,B::Vector)=error("Not implemented")
+⊗(A::Vector,B)=map(a->a⊗B,A)
+⊗(A,B::Vector)=map(b->A⊗b,B)
 
 Base.kron(A::Operator,B::Operator)=KroneckerOperator(A,B)
 Base.kron(A::Operator,B)=KroneckerOperator(A,B)
 Base.kron(A,B::Operator)=KroneckerOperator(A,B)
+Base.kron{T<:Operator,V<:Operator}(A::Vector{T},B::Vector{V})=map(a->kron(a,B),A)
+Base.kron{T<:Operator}(A::Vector{T},B::Operator)=map(a->kron(a,B),A)
+Base.kron{T<:Operator}(A::Operator,B::Vector{T})=map(b->kron(A,b),B)
+Base.kron{T<:Operator}(A::Vector{T},B::UniformScaling)=map(a->kron(a,B),A)
+Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=map(b->kron(A,b),B)
 
 # ⊗{O<:Operator,V<:Operator}(A::Matrix{O},B::Matrix{V})=interlace(A)⊗interlace(B)
 # ⊗{O<:Operator}(A::Matrix{O},B::Fun)=interlace(A)⊗B
