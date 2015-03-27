@@ -243,6 +243,8 @@ TimesOperator{T,V}(A::BandedOperator{T},B::TimesOperator{V})=TimesOperator(Bande
 TimesOperator{T,V}(A::BandedOperator{T},B::BandedOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A,B])
 
 
+==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
+
 Base.convert{OT<:Operator}(::Type{OT},P::TimesOperator)=TimesOperator(BandedOperator{eltype(OT)}[P.ops...])
 
 
