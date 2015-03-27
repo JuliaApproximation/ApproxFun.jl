@@ -46,6 +46,7 @@ function Fun(f::Function)
 end
 
 Fun(f::ProductFun)=Fun(fromtensor(coefficients(f)),space(f))
+Fun(f::ProductFun,sp::TensorSpace)=Fun(ProductFun(f,sp))
 function Fun(f::Function,S::BivariateSpace)
     try
         pt=checkpoints(S)[1]

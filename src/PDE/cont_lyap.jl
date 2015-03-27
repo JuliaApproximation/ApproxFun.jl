@@ -97,7 +97,7 @@ regularize_bcs(S::OperatorSchur,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
 cont_constrained_lyapuptriang{OSS,T}(OS::PDEOperatorSchur{OSS,T},Gx,F::ProductFun,nx=100000)=cont_constrained_lyapuptriang(promote_type(T,eltype(F)),OS,Gx,F,nx)
 #cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)=cont_constrained_lyapuptriang(N,OS,Gx,F,100000)
 
-
+cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::Fun,nx=100000)=cont_constrained_lyap(OS,Gxin,Gyin,ProductFun(F),nx)
 function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::ProductFun,nx=100000)
     n = size(OS.S,1)
     F=pad(F,size(F,1),n)
