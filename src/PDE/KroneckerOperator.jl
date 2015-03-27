@@ -169,7 +169,79 @@ end
 
 *(A::KroneckerOperator,B::KroneckerOperator)=KroneckerOperator(A.ops[1]*B.ops[1],A.ops[2]*B.ops[2])
 
+function promoteplus{T}(ops::Vector{BandedOperator{BandedMatrix{T}}})
+    ops=promotespaces(ops)
 
+    for k=1:length(ops)-1
+        a,b=ops[k].ops
+        for j=k+1:length(ops)
+           if ops[j].ops[1]==a
+                ops[k]=KroneckerOperator(a,b+ops[j].ops[2])
+                deleteat!(ops,j)
+                if length(ops)==1
+                    return ops[k]
+                else
+                    return promoteplus(ops)
+                end
+            elseif ops[j].ops[2]==b
+                ops[k]=KroneckerOperator(a+ops[j].ops[1],b)
+                deleteat!(ops,j)
+                if length(ops)==1
+                    return ops[k]
+                else
+                    return promoteplus(ops)
+                end
+            end
+        end
+    end
+
+    PlusOperator{BandedMatrix{T}}(ops)
+end
+
+# function +(A::KroneckerOperator,B::KroneckerOperator)
+#     if A.ops[1]==B.ops[1]
+#         KroneckerOperator(A.ops[1],A.ops[2]+B.ops[2])
+#     elseif A.ops[2]==B.ops[2]
+#         KroneckerOperator(A.ops[1]+B.ops[1],A.ops[2])
+#     else
+#         promoteplus([A,B])
+#     end
+# end
+
+# function +{T}(A::PlusOperator{BandedMatrix{T}},B::KroneckerOperator)
+#     if all(op->isa(op,KroneckerOperator),A.ops)
+#         if length(A.ops)==2
+#             if A.ops[1].ops[1]==B.ops[1]
+#                 A.ops[2]+KroneckerOperator(B.ops[1],A.ops[1].ops[2]+B.ops[2])
+#             elseif A.ops[1].ops[2]==B.ops[2]
+#                 A.ops[2]+KroneckerOperator(A.ops[1].ops[1]+B.ops[1],B.ops[2])
+#             elseif A.ops[2].ops[1]==B.ops[1]
+#                 A.ops[1]+KroneckerOperator(B.ops[1],A.ops[2].ops[2]+B.ops[2])
+#             elseif A.ops[2].ops[2]==B.ops[2]
+#                 A.ops[1]+KroneckerOperator(A.ops[2].ops[1]+B.ops[1],B.ops[2])
+#             else
+#                 promoteplus([A.ops...,B])
+#             end
+#         else
+#             for k=1:length(A.ops)
+#                 if A.ops[k].ops[1]==B.ops[1]
+#                     PlusOperator(A.ops[[1:k-1,k+1:end]])+KroneckerOperator(B.ops[1],A.ops[k].ops[2]+B.ops[2])
+#                 elseif A.ops[k].ops[2]==B.ops[2]
+#                     PlusOperator(A.ops[[1:k-1,k+1:end]])+KroneckerOperator(A.ops[k].ops[1]+B.ops[1],B.ops[2])
+#                 else
+#                     promoteplus([A.ops...,B])
+#                 end
+#             end
+#         end
+#     else
+#         promoteplus([A.ops...,B])
+#     end
+# end
+
++{T}(c::UniformScaling,A::BivariateOperator{T})=ConstantOperator(c.λ)⊗I+A
++{T}(A::BivariateOperator{T},c::UniformScaling)=A+ConstantOperator(c.λ)⊗I
+-{T}(c::UniformScaling,A::BivariateOperator{T})=ConstantOperator(c.λ)⊗I-A
+-{T}(A::BivariateOperator{T},c::UniformScaling)=A+ConstantOperator(-c.λ)⊗I
 
 ## Shorthand
 
@@ -195,13 +267,12 @@ Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=map(b->kron(A,b),B)
 # ⊗{O<:Operator}(B,A::Matrix{O})=A⊗interlace(B)
 
 
+
+
 ## Conversion
 
 
-+{T}(c::UniformScaling,A::BivariateOperator{T})=ConstantOperator(c.λ)⊗I+A
-+{T}(A::BivariateOperator{T},c::UniformScaling)=A+ConstantOperator(c.λ)⊗I
--{T}(c::UniformScaling,A::BivariateOperator{T})=ConstantOperator(c.λ)⊗I-A
--{T}(A::BivariateOperator{T},c::UniformScaling)=A+ConstantOperator(-c.λ)⊗I
+
 
 Base.promote_rule{BT<:ConstantOperator,C<:ConstantOperator}(::Type{C},::Type{BT})=ConstantOperator{promote_type(eltype(BT),eltype(C))}
 function Base.promote_rule{BT<:BandedOperator,C<:ConstantOperator}(::Type{BT},::Type{C})
