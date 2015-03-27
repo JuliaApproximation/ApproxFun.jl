@@ -252,7 +252,7 @@ end
 
 
 
-function Base.schurfact{T}(A::Vector{BivariateOperator{T}},S::ProductDomain,ny::Integer)
+function Base.schurfact{BT<:BandedOperator}(A::Vector{BT},S::ProductDomain,ny::Integer)
     indsBx,Bx=findfunctionals(A,1)
     indsBy,By=findfunctionals(A,2)
 
@@ -266,10 +266,10 @@ end
 
 
 
-Base.schurfact{T}(A::Vector{BivariateOperator{T}},S::BivariateDomain,n::Integer)=PDEProductOperatorSchur(A,S,n)
+Base.schurfact{BT<:BandedOperator}(A::Vector{BT},S::BivariateDomain,n::Integer)=PDEProductOperatorSchur(A,S,n)
 
 
-Base.schurfact{T}(A::Vector{BivariateOperator{T}},n::Integer)=schurfact(A,domain(A[end]),n)
+Base.schurfact{BT<:BandedOperator}(A::Vector{BT},n::Integer)=schurfact(A,domain(A[end]),n)
 Base.schurfact{T}(A::BivariateOperator{T},n::Integer)=schurfact([A],n)
 
 function *(A::PDEProductOperatorSchur,F::ProductFun)

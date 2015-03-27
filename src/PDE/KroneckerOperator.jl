@@ -127,6 +127,9 @@ bazeros{T}(K::BivariateOperator{T},n::Integer,br::(Int,Int))=blockbandzeros(T,n,
 # end
 
 
+
+
+
 ##########
 # Multiply a block banded matrix by a vector, where the vector is assumed to
 # decompose into blocks
@@ -193,6 +196,27 @@ Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=map(b->kron(A,b),B)
 
 
 ## Conversion
+
+
++{T}(c::UniformScaling,A::BivariateOperator{T})=ConstantOperator(c.λ)⊗I+A
++{T}(A::BivariateOperator{T},c::UniformScaling)=A+ConstantOperator(c.λ)⊗I
+-{T}(c::UniformScaling,A::BivariateOperator{T})=ConstantOperator(c.λ)⊗I-A
+-{T}(A::BivariateOperator{T},c::UniformScaling)=A+ConstantOperator(-c.λ)⊗I
+
+Base.promote_rule{BT<:ConstantOperator,C<:ConstantOperator}(::Type{C},::Type{BT})=ConstantOperator{promote_type(eltype(BT),eltype(C))}
+function Base.promote_rule{BT<:BandedOperator,C<:ConstantOperator}(::Type{BT},::Type{C})
+    if eltype(BT)<:BandedMatrix
+        BivariateOperator{promote_type(eltype(eltype(BT)),eltype(C))}
+    else
+        BandedMatrix{promote_type(eltype(BT),eltype(C))}
+    end
+end
+
+Base.promote_rule{BT<:BandedOperator,C<:ConstantOperator}(::Type{C},::Type{BT})=Base.promote_rule(BT,C)
+
+Base.convert{BT<:BivariateOperator}(::Type{BT},C::ConstantOperator)=kron(ConstantOperator(convert(eltype(eltype(BT)),C.λ)),I)
+
+
 
 conversion_rule(a::TensorSpace,b::TensorSpace)=conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
