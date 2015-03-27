@@ -97,6 +97,9 @@ blockbandinds(K::ConversionWrapper,k::Integer)=blockbandinds(K.op,k)
 blockbandinds{T}(K::BandedOperator{BandedMatrix{T}})=blockbandinds(K,1),blockbandinds(K,2)
 
 
+for OP in (:domainspace,:rangespace)
+    @eval $OP{T}(K::BivariateOperator{T},k::Integer)=$OP(K)[k]
+end
 domainspace(K::KroneckerOperator)=K.domainspace
 rangespace(K::KroneckerOperator)=K.rangespace
 

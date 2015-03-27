@@ -5,7 +5,7 @@
 # MXA' + *X* =F
 # here G is a vector of Funs
 
-
+cont_reduce_dofs!{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,G::Vector{T},F::Fun )=cont_reduce_dofs!( A,M,G,ProductFun(F))
 function cont_reduce_dofs!{T<:Fun,NT<:Number}( A::AbstractArray{NT},M::Operator,G::Vector{T},F::ProductFun )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
@@ -31,6 +31,7 @@ end
 # A is ∞ x K list of opcols
 # M is ∞ x ∞ operator
 # used by kron
+cont_reduce_dofs!{NT<:Number,T<:Number}( A::AbstractArray{NT},M::AbstractArray{T},G::Array,F::Fun )=cont_reduce_dofs!( A,M,G,ProductFun(F) )
 function cont_reduce_dofs!{NT<:Number,T<:Number}( A::AbstractArray{NT},M::AbstractArray{T},G::Array,F::ProductFun )
     MGA=M*pad(G,size(M,1),size(G,2))*full(A).'
     pad!(F,:,max(size(F,2),size(MGA,2)))
@@ -40,7 +41,7 @@ function cont_reduce_dofs!{NT<:Number,T<:Number}( A::AbstractArray{NT},M::Abstra
     F
 end
 
-
+cont_reduce_dofs!{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M::AbstractArray{MT},G::Vector{T},F::Fun )=cont_reduce_dofs!{T<:Fun,NT<:Number,MT<:Number}(A,M,G,ProductFun(F))
 function cont_reduce_dofs!{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M::AbstractArray{MT},G::Vector{T},F::ProductFun )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
@@ -73,7 +74,7 @@ function cont_reduce_dofs!{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::V
 end
 
 
-
+cont_reduce_dofs!{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::Fun)=cont_reduce_dofs!(Ax,Ay,G,ProductFun(F))
 function cont_reduce_dofs!{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::ProductFun)
     @assert length(Ax)==length(Ay)
     for k=1:length(Ax)
