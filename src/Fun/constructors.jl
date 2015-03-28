@@ -113,8 +113,8 @@ function zerocfsFun(f::Function, d::FunctionSpace)
     if T <: Complex
         T = T.parameters[1] #get underlying real representation
     end
-
-    f0=f(first(domain(d)))
+    r=checkpoints(d)
+    f0=f(first(r))
 
     if !isa(d,ArraySpace) && isa(f0,Array)
         return zerocfsFun(f,ArraySpace(d,size(f0)...))
@@ -122,7 +122,7 @@ function zerocfsFun(f::Function, d::FunctionSpace)
 
     tol =T==Any?200eps():200eps(T)
 
-    r=checkpoints(d)
+
     fr=[f(x) for x=r]
 
     for logn = 4:20
