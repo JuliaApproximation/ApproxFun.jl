@@ -31,18 +31,12 @@ checkpoints(d::Disk)=[fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3)
 
 
 # Kind== 0 => Legendre, K==1=>Chebyshev, K==2=>JacobiSquare
-immutable DiskSpace{K,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpace{JS,S}
+immutable DiskSpace{a,b,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpace{JS,S}
     domain::Disk
     spacet::S
 end
 
-
-DiskSpace{SS}(K::Integer,D::Disk,S::SS)=DiskSpace{K,K==2?JacobiSquareSpace:JacobiWeight{Jacobi},SS}(D,S)
-DiskSpace{SS}(D::Disk,S::SS)=DiskSpace{2,JacobiSquare,SS}(D,S)
-DiskSpace(K::Integer,D::Disk)=DiskSpace(K,D,Laurent())
-DiskSpace(K::Integer)=DiskSpace(K,Disk())
-
-#TODO: Change to Fourier
+DiskSpace{SS}(D::Disk,S::SS)=DiskSpace{0,0,JacobiSquare,SS}(D,S)
 DiskSpace(D::Disk)=DiskSpace(D,Laurent())
 
 coefficient_type{T<:Complex}(::DiskSpace,::Type{T})=T
@@ -59,17 +53,9 @@ Base.getindex(D::DiskSpace,k::Integer)=space(D,k)
 Space(D::Disk)=DiskSpace(D)
 
 
-
-
-
-columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeight(0.,m,Jacobi(2m+1,0.,Interval(D.domain.radius,0.))))
-columnspace{SS}(D::DiskSpace{1,SS},k)=(m=1.div(k,2);JacobiWeight(0.,m,Jacobi(2m+0.5,-0.5,Interval(D.domain.radius,0.))))
-columnspace{SS}(D::DiskSpace{2,SS},k)=(m=div(k,2);JacobiSquare(m,Interval(D.domain.radius,0.)))
+columnspace{a,b,SS}(D::DiskSpace{a,b,SS},k)=(m=div(k,2);JacobiSquare(m,a+m,b,Interval(D.domain.radius,0.)))
 
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
-
-
-diskspacetype{K}(D::DiskSpace{K})=K
 
 
 function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,Laurent,D})
@@ -90,7 +76,7 @@ function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,Laurent,D})
         ret[k-1]-=imag(cfs[k])
     end
 
-    ProductFun(ret,DiskSpace{diskspacetype(space(f)),JS,Fourier}(space(f).domain,Fourier()))
+    ProductFun(ret,DiskSpace{0,0,JS,Fourier}(space(f).domain,Fourier()))
 end
 #Base.imag{S,T}(u::ProductFun{S,Larent,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
 
