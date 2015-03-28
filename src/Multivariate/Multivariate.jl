@@ -34,14 +34,12 @@ function Fun(f::Function)
     try
         f(0.)
         Fun(f,Interval())
-    catch ex #TODO only catch errors for wrong number of arguments
-#    	warn("Got $(ex) when assuming 1-arity of $f")
-    	try
-         	Fun(f,Interval()^2)
-         catch ex2
-#        	warn("Got $(ex) when assuming 2-arity of $f")
-         	error("Could not construct function")
-         end
+    catch ex
+        if isa(ex,MethodError) || (isa(ex,ErrorException)&&ex.msg=="wrong number of arguments")
+            Fun(f,Interval()^2)
+        else
+            throw(ex)
+        end
      end
 end
 
