@@ -4,8 +4,8 @@ include("JacobiSquare.jl")
 
 export Disk
 
-##TODO: make argument 
-immutable Disk <: BivariateDomain
+##TODO: make argument
+immutable Disk <: BivariateDomain{Float64}
     radius::Float64
     center::(Float64,Float64)
 end
@@ -17,12 +17,12 @@ Disk()=Disk(1.)
 # we assume radius and centre are zero for now
 fromcanonical(D::Disk,x,t)=x*cos(t),x*sin(t)
 tocanonical(D::Disk,x,y)=sqrt(x^2+y^2),atan2(y,x)
-
+checkpoints(d::Disk)=[fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3))]
 
 # function points(d::Disk,n,m,k)
 #     ptsx=0.5*(1-gaussjacobi(n,1.,0.)[1])
 #     ptst=points(PeriodicInterval(),m)
-#     
+#
 #     Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 # end
 
@@ -78,12 +78,12 @@ function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,Laurent,D})
 
     ret=Array(Fun{JS,Float64},iseven(n)?n+1:n)
     ret[1]=real(cfs[1])
-    
+
     for k=2:2:n
         # exp(1im(k-1)/2*x)=cos((k-1)/2 x) +i sin((k-1)/2 x)
         ret[k]=imag(cfs[k])
         ret[k+1]=real(cfs[k])
-    end        
+    end
     for k=3:2:n
         # exp(1im(k-1)/2*x)=cos((k-1)/2 x) +i sin((k-1)/2 x)
         ret[k]+=real(cfs[k])
