@@ -52,7 +52,7 @@ typealias ComplexSpace{D} FunctionSpace{ComplexBasis,D}
 
 Base.eltype{S}(::FunctionSpace{S})=eltype(S)
 coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)
-
+domaintype{S,D}(::FunctionSpace{S,D})=D
 domain{T,D<:AnyDomain}(::FunctionSpace{T,D})=AnyDomain()
 
 

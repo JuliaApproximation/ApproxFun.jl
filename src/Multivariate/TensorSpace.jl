@@ -66,7 +66,9 @@ for OP in (:spacescompatible,:(==))
 end
 
 
-TensorSpace{B1,B2,T1,T2}(sp::(FunctionSpace{B1,T1},FunctionSpace{B2,T2}))=TensorSpace{typeof(sp[1]),typeof(sp[2]),promote_type(B1,B2),promote_type(T1,T2)}(sp)
+TensorSpace(sp::Tuple)=TensorSpace{typeof(sp[1]),typeof(sp[2]),
+                                                promote_type(eltype(sp[1]),eltype(sp[2])),
+                                                promote_type(domaintype(sp[1]),domaintype(sp[2]))}(sp)
 
 
 coefficient_type(S::TensorSpace,T)=promote_type(coefficient_type(S.spaces[1],T),coefficient_type(S.spaces[2],T))

@@ -45,7 +45,7 @@ end
 
 Fun(f::ProductFun)=Fun(fromtensor(coefficients(f)),space(f))
 Fun(f::ProductFun,sp::TensorSpace)=Fun(ProductFun(f,sp))
-function Fun(f::Function,S::BivariateSpace)
+function Fun(f::Function,S::TensorSpace)
     try
         pt=checkpoints(S)[1]
         f(pt[1],pt[2])   # check if we can evaluate or need to dethread
