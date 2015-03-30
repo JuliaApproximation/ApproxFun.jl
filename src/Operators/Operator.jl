@@ -267,13 +267,3 @@ for OP in (:BandedOperator,:Functional,:Operator)
   @eval Base.promote_rule{BO1<:$OP,BO2<:$OP}(::Type{BO1},::Type{BO2})=$OP{promote_type(eltype(BO1),eltype(BO2))}
 end
 
-
-
-#TODO: remove
-
-# for T in (:Float64,:Int64,:(Complex{Float64}))
-#   @eval begin
-#       Base.promote_rule{N<:Number}(::Type{UniformScaling{$T}},::Type{N})=UniformScaling{promote_type{$T,N}}
-#       Base.convert{US<:UniformScaling}(::Type{US},x::Number)=US(x)
-#   end
-# end

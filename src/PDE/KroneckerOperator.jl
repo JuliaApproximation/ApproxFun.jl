@@ -64,7 +64,11 @@ immutable KroneckerOperator{S,V,DS,RS,T}<: BivariateOperator{T}
 end
 
 KroneckerOperator(A,B,ds,rs)=KroneckerOperator{typeof(A),typeof(B),typeof(ds),typeof(rs),promote_type(eltype(A),eltype(B))}((A,B),ds,rs)
-KroneckerOperator(A,B)=KroneckerOperator(A,B,domainspace(A)⊗domainspace(B),rangespace(A)⊗rangespace(B))
+function KroneckerOperator(A,B)
+    ds=domainspace(A)⊗domainspace(B)
+    rs=rangespace(A)⊗rangespace(B)
+    KroneckerOperator{typeof(A),typeof(B),typeof(ds),typeof(rs),promote_type(eltype(A),eltype(B))}((A,B),ds,rs)
+end
 KroneckerOperator(A::UniformScaling,B::UniformScaling)=KroneckerOperator(ConstantOperator(A.λ),ConstantOperator(B.λ))
 KroneckerOperator(A,B::UniformScaling)=KroneckerOperator(A,ConstantOperator(B.λ))
 KroneckerOperator(A::UniformScaling,B)=KroneckerOperator(ConstantOperator(A.λ),B)
@@ -274,21 +278,21 @@ Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=map(b->kron(A,b),B)
 
 ## Conversion
 
+#Base.promote_type{K1<:KroneckerOperator}(::Type{K1},::Type{K1})=BandedOperator{eltype(K1)}
 
 
+# Base.promote_rule{BT<:ConstantOperator,C<:ConstantOperator}(::Type{C},::Type{BT})=ConstantOperator{promote_type(eltype(BT),eltype(C))}
+# function Base.promote_rule{BT<:BandedOperator,C<:ConstantOperator}(::Type{BT},::Type{C})
+#     if eltype(BT)<:BandedMatrix
+#         BivariateOperator{promote_type(eltype(eltype(BT)),eltype(C))}
+#     else
+#         BandedMatrix{promote_type(eltype(BT),eltype(C))}
+#     end
+# end
 
-Base.promote_rule{BT<:ConstantOperator,C<:ConstantOperator}(::Type{C},::Type{BT})=ConstantOperator{promote_type(eltype(BT),eltype(C))}
-function Base.promote_rule{BT<:BandedOperator,C<:ConstantOperator}(::Type{BT},::Type{C})
-    if eltype(BT)<:BandedMatrix
-        BivariateOperator{promote_type(eltype(eltype(BT)),eltype(C))}
-    else
-        BandedMatrix{promote_type(eltype(BT),eltype(C))}
-    end
-end
+# Base.promote_rule{BT<:BandedOperator,C<:ConstantOperator}(::Type{C},::Type{BT})=Base.promote_rule(BT,C)
 
-Base.promote_rule{BT<:BandedOperator,C<:ConstantOperator}(::Type{C},::Type{BT})=Base.promote_rule(BT,C)
-
-Base.convert{BT<:BivariateOperator}(::Type{BT},C::ConstantOperator)=kron(ConstantOperator(convert(eltype(eltype(BT)),C.λ)),I)
+# Base.convert{BT<:BivariateOperator}(::Type{BT},C::ConstantOperator)=kron(ConstantOperator(convert(eltype(eltype(BT)),C.λ)),I)
 
 
 
