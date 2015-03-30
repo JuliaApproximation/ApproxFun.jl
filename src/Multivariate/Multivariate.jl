@@ -29,32 +29,53 @@ include("ProductFun.jl")
 # Fun(f,dx::Domain,dy::Domain)=Fun(f,dx*dy)
 # Fun(f,dx::Vector,dy::Vector)=Fun(f,Interval(dx),Interval(dx))
 
+arglength(f)=length(Base.uncompressed_ast(f.code.def).args[1])
+
+function Fun(f::Function,d::BivariateSpace)
+    if f==zero
+        zeros(d)
+    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+        Fun(LowRankFun(f,d))
+    else
+        Fun(LowRankFun((x,y)->f((x,y)),d))
+    end
+end
+
+
+function Fun(f::Function,d::BivariateSpace,n::Integer)
+    if (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+        defaultFun(x->f(x...),d,n)
+    else
+        defaultFun(f,d,n)
+    end
+end
 
 function Fun(f::Function)
-    try
-        f(0.)
-        Fun(f,Interval())
-    catch ex
-        if isa(ex,MethodError) || (isa(ex,ErrorException)&&ex.msg=="wrong number of arguments")
-            Fun(f,Interval()^2)
-        else
-            throw(ex)
+    if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
+        # check for tuple
+        try
+            f(0)
+        catch ex
+            if isa(ex,BoundsError)
+                # assume its a tuple
+                return Fun(f,Interval()^2)
+            else
+                throw(ex)
+            end
         end
-     end
+
+        Fun(f,Interval())
+    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+            Fun(f,Interval()^2)
+    else
+        error("Function not defined on interval or square")
+    end
 end
 
 Fun(f::ProductFun)=Fun(fromtensor(coefficients(f)),space(f))
 Fun(f::ProductFun,sp::TensorSpace)=Fun(ProductFun(f,sp))
-function Fun(f::Function,S::TensorSpace)
-    try
-        pt=checkpoints(S)[1]
-        f(pt[1],pt[2])   # check if we can evaluate or need to dethread
-        Fun(ProductFun(f,S))
-    catch
-        # assume it needs a tuple
-        Fun(ProductFun((x,y)->f((x,y)),S))
-    end
-end
+Fun(f::LowRankFun)=Fun(ProductFun(f))
+Fun(f::LowRankFun,sp::TensorSpace)=Fun(ProductFun(f),sp)
 
 coefficients(f::BivariateFun,sp::TensorSpace)=coefficients(f,sp[1],sp[2])
 

@@ -1,5 +1,31 @@
 using ApproxFun, Base.Test
 
+
+
+## Try constructor variants
+
+ff=(x,y)->exp(-10(x+.2)^2-20(y-.1)^2)*cos(x*y)
+gg=x->exp(-10(x[1]+.2)^2-20(x[1]-.1)^2)*cos(x[1]*x[2])
+f=Fun(ff,Interval()^2,10000)
+@test_approx_eq f[0.,0.] ff(0.,0.)
+
+f=Fun(gg,Interval()^2,10000)
+@test_approx_eq f[0.,0.] ff(0.,0.)
+
+f=Fun(ff,Interval()^2)
+@test_approx_eq f[0.,0.] ff(0.,0.)
+f=Fun(gg,Interval()^2)
+@test_approx_eq f[0.,0.] ff(0.,0.)
+
+
+f=Fun(ff)
+@test_approx_eq f[0.,0.] ff(0.,0.)
+f=Fun(gg)
+@test_approx_eq f[0.,0.] ff(0.,0.)
+
+
+
+## ProductFun
 u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5).^2-40(y+.2).^2))
 
 

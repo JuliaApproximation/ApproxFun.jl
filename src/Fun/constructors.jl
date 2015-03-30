@@ -10,7 +10,7 @@ valsdomain_type_promote{T<:Integer,V<:Real}(::Type{T},::Type{V})=valsdomain_type
 valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
-function Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
+function defaultFun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])
 
@@ -44,6 +44,8 @@ function Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
     vals=Tprom[f(x) for x in pts]
     Fun(transform(d,vals),d)
 end
+
+Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)=defaultFun(f,d,n)
 
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f[x],d)
@@ -127,7 +129,7 @@ function zerocfsFun(f::Function, d::FunctionSpace)
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
-        cf = Fun(f, d, 2^logn)
+        cf = defaultFun(f, d, 2^logn)
         absc=abs(cf.coefficients)
         maxabsc=maximum(absc)
         if maxabsc==0 && fr==0

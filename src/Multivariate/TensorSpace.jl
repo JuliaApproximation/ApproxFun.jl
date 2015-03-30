@@ -249,7 +249,7 @@ fromtree{T}(v::Vector{Vector{T}})=vcat(v...)
 
 function points(sp::TensorSpace,n)
     pts=Array((Float64,Float64),0)
-    for x in points(sp[1],n), y in points(sp[2],n)
+    for x in points(sp[1],round(Int,sqrt(n))), y in points(sp[2],round(Int,sqrt(n)))
         push!(pts,(x,y))
     end
     pts
