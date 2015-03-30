@@ -35,9 +35,9 @@ function Fun(f::Function,d::BivariateSpace)
     if f==zero
         zeros(d)
     elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
-        Fun(LowRankFun(f,d))
+        Fun(ProductFun(f,d))
     else
-        Fun(LowRankFun((x,y)->f((x,y)),d))
+        Fun(ProductFun((x,y)->f((x,y)),d))
     end
 end
 
