@@ -186,23 +186,25 @@ function promoteplus{T}(ops::Vector{BandedOperator{BandedMatrix{T}}})
     ops=promotespaces(ops)
 
     for k=1:length(ops)-1
-        a,b=ops[k].ops
-        for j=k+1:length(ops)
-           if ops[j].ops[1]==a
-                ops[k]=KroneckerOperator(a,b+ops[j].ops[2])
-                deleteat!(ops,j)
-                if length(ops)==1
-                    return ops[k]
-                else
-                    return promoteplus(ops)
-                end
-            elseif ops[j].ops[2]==b
-                ops[k]=KroneckerOperator(a+ops[j].ops[1],b)
-                deleteat!(ops,j)
-                if length(ops)==1
-                    return ops[k]
-                else
-                    return promoteplus(ops)
+        if isa(ops[k],KroneckerOperator)
+            a,b=ops[k].ops
+            for j=k+1:length(ops)
+               if ops[j].ops[1]==a
+                    ops[k]=KroneckerOperator(a,b+ops[j].ops[2])
+                    deleteat!(ops,j)
+                    if length(ops)==1
+                        return ops[k]
+                    else
+                        return promoteplus(ops)
+                    end
+                elseif ops[j].ops[2]==b
+                    ops[k]=KroneckerOperator(a+ops[j].ops[1],b)
+                    deleteat!(ops,j)
+                    if length(ops)==1
+                        return ops[k]
+                    else
+                        return promoteplus(ops)
+                    end
                 end
             end
         end
@@ -308,6 +310,25 @@ conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::FunctionSpace)=a
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
 Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
+
+
+function Conversion(a::MultivariateSpace,b::MultivariateSpace)
+    if a==b
+        error("Don't call conversion to itself")
+    elseif conversion_type(a,b)==NoSpace()
+        sp=canonicalspace(a)
+        if typeof(sp) == typeof(a)
+            error("implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
+        elseif typeof(sp) == typeof(b)
+            error("implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
+        else
+            Conversion(a,sp,b)
+        end
+    else
+        Conversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
+    end
+end
+
 
 
 # from algebra
