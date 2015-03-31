@@ -1,6 +1,6 @@
 
 
-immutable SpaceFunctional{T<:Number,O<:Functional,S<:FunctionSpace} <: Functional{T}
+immutable SpaceFunctional{T,O<:Functional,S<:FunctionSpace} <: Functional{T}
     op::O
     space::S
 end
@@ -15,7 +15,7 @@ domainspace(S::SpaceFunctional)=S.space
 domain(S::SpaceFunctional)=domain(S.space)
 
 ## Space Operator is used to wrap an AnySpace() operator
-immutable SpaceOperator{T<:Number,O<:Operator,S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{T}
+immutable SpaceOperator{T,O<:Operator,S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{T}
     op::O
     domainspace::S
     rangespace::V
@@ -28,10 +28,13 @@ end
 
 # The promote_type is needed to fix a bug in promotetimes
 # not sure if its the right long term solution
-SpaceOperator{T<:Number}(o::Operator{T},s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{promote_type(T,eltype(s),eltype(rs)),typeof(o),typeof(s),typeof(rs)}(o,s,rs)
+SpaceOperator(o::Operator,s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{eltype(o),
+                                                                            typeof(o),
+                                                                            typeof(s),
+                                                                            typeof(rs)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 
-Base.convert{T}(::Type{BandedOperator{T}},S::SpaceOperator)=SpaceOperator(convert(BandedOperator{T},S.op),S.domainspace,S.rangespace)
+Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)=SpaceOperator(convert(OT,S.op),S.domainspace,S.rangespace)
 
 domain(S::SpaceOperator)=domain(domainspace(S))
 

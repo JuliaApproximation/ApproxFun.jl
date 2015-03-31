@@ -72,6 +72,12 @@ end
 KroneckerOperator(A::UniformScaling,B::UniformScaling)=KroneckerOperator(ConstantOperator(A.λ),ConstantOperator(B.λ))
 KroneckerOperator(A,B::UniformScaling)=KroneckerOperator(A,ConstantOperator(B.λ))
 KroneckerOperator(A::UniformScaling,B)=KroneckerOperator(ConstantOperator(A.λ),B)
+KroneckerOperator(A::Fun,B::Fun)=KroneckerOperator(Multiplication(A),Multiplication(B))
+KroneckerOperator(A::UniformScaling,B::Fun)=KroneckerOperator(ConstantOperator(A.λ),Multiplication(B))
+KroneckerOperator(A::Fun,B::UniformScaling)=KroneckerOperator(Multiplication(A),ConstantOperator(B.λ))
+KroneckerOperator(A,B::Fun)=KroneckerOperator(A,Multiplication(B))
+KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
+
 
 for OP in (:promotedomainspace,:promoterangespace)
     @eval $OP(K::KroneckerOperator,ds::TensorSpace)=KroneckerOperator($OP(K.ops[1],ds[1]),
@@ -297,11 +303,35 @@ Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=map(b->kron(A,b),B)
 
 
 conversion_rule(a::TensorSpace,b::TensorSpace)=conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
+conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::TensorSpace)=a
+conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::FunctionSpace)=a
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
 Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
 
 
+# from algebra
+function promotedomainspace{T,T2,D}(P::PlusOperator{T},sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T2,D})
+    if sp==cursp
+        P
+    else
+        promoteplus(BandedOperator{T}[promotedomainspace(op,sp) for op in P.ops])
+    end
+end
+
+function promotedomainspace{T,D}(P::TimesOperator,sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T,D})
+    if sp==cursp
+        P
+    elseif length(P.ops)==2
+        P.ops[1]*promotedomainspace(P.ops[end],sp)
+    else
+        TimesOperator(P.ops[1:end-1])*promotedomainspace(P.ops[end],sp)
+    end
+end
+
+for op in (:promotedomainspace,:promoterangespace)
+    @eval $op(P::BandedOperator,sp::FunctionSpace,::TensorSpace{AnySpace,AnySpace})=SpaceOperator(P,sp)
+end
 
 
 ## PDE Factorization

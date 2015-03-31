@@ -2,7 +2,7 @@ export Conversion
 
 abstract AbstractConversion{T}<:BandedOperator{T}
 
-immutable Conversion{S<:FunctionSpace,V<:FunctionSpace,T<:Number} <: AbstractConversion{T}
+immutable Conversion{S<:FunctionSpace,V<:FunctionSpace,T} <: AbstractConversion{T}
     domainspace::S
     rangespace::V
 end

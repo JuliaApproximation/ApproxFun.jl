@@ -31,13 +31,17 @@ checkpoints(d::Disk)=[fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3)
 
 
 # Kind== 0 => Legendre, K==1=>Chebyshev, K==2=>JacobiSquare
-immutable DiskSpace{a,b,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpace{JS,S}
+immutable DiskSpace{m,a,b,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpace{JS,S,Complex128,Disk}
     domain::Disk
     spacet::S
 end
 
-DiskSpace{SS}(D::Disk,S::SS)=DiskSpace{0,0,JacobiSquare,SS}(D,S)
+
+DiskSpace(m,a,b,D::Disk,S::PeriodicSpace)=DiskSpace{m,a,b,JacobiSquare,typeof(S)}(D,S)
+DiskSpace(D::Disk,S::PeriodicSpace)=DiskSpace(0,0,0,D,S)
 DiskSpace(D::Disk)=DiskSpace(D,Laurent())
+
+spacescompatible{m,a,b,JS,S}(A::DiskSpace{m,a,b,JS,S},B::DiskSpace{m,a,b,JS,S})=true
 
 coefficient_type{T<:Complex}(::DiskSpace,::Type{T})=T
 coefficient_type{T<:Real}(::DiskSpace,::Type{T})=Complex{T}
@@ -53,12 +57,12 @@ Base.getindex(D::DiskSpace,k::Integer)=space(D,k)
 Space(D::Disk)=DiskSpace(D)
 
 
-columnspace{a,b,SS}(D::DiskSpace{a,b,SS},k)=(m=div(k,2);JacobiSquare(m,a+m,b,Interval(D.domain.radius,0.)))
+columnspace{M,a,b,SS}(D::DiskSpace{M,a,b,SS},k)=(m=div(k,2);JacobiSquare(M+m,a+m,b,Interval(D.domain.radius,0.)))
 
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
 
-function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,Laurent,D})
+function Base.real{JS}(f::ProductFun{JS,Laurent,DiskSpace{0,0,0,JS,Laurent}})
     cfs=f.coefficients
     n=length(cfs)
 
@@ -76,11 +80,16 @@ function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,Laurent,D})
         ret[k-1]-=imag(cfs[k])
     end
 
-    ProductFun(ret,DiskSpace{0,0,JS,Fourier}(space(f).domain,Fourier()))
+    ProductFun(ret,DiskSpace{0,0,0,JS,Fourier}(space(f).domain,Fourier()))
 end
 #Base.imag{S,T}(u::ProductFun{S,Larent,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
 
 
+
+## Conversion
+# These are placeholders for future
+
+conversion_rule{m,a,b,m2,a2,b2,JS,FS}(A::DiskSpace{m,a,b,JS,FS},B::DiskSpace{m2,a2,b2,JS,FS})=DiskSpace(max(m,m2),min(a,a2),min(b,b2),A.domain,B.spacet)
 
 
 ## Operators
