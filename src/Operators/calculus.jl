@@ -28,8 +28,8 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         $Op(::Type{Any},sp::FunctionSpace,k)=$Op(sp,k)
 
 
-        $Op(sp::FunctionSpace{ComplexBasis},k)=$Op{typeof(sp),typeof(k),promote_type(Complex{Float64},eltype(domain(sp)))}(sp,k)
-        $Op(sp::FunctionSpace,k)=$Op{typeof(sp),typeof(k),promote_type(Float64,eltype(domain(sp)))}(sp,k)
+        $Op(sp::FunctionSpace{ComplexBasis},k)=$Op{typeof(sp),typeof(k),Complex{real(eltype(domain(sp)))}}(sp,k)
+        $Op(sp::FunctionSpace,k)=$Op{typeof(sp),typeof(k),eltype(domain(sp))}(sp,k)
 
         $Op(sp::FunctionSpace)=$Op(sp,1)
         $Op()=$Op(UnsetSpace())
