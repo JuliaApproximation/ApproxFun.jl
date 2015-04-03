@@ -66,10 +66,10 @@ Fun{T<:Domain}(f,::Type{T})=Fun(f,T())
 
 Fun(c::Number)=Fun([c])
 
-# We do zero special since zero exists even when one doesn'
+# We do zero special since zero exists even when one doesn't
 Fun{T<:FunctionSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
-Fun(c::Number,d::Domain)=c==0?zeros(d):c*ones(d)
-Fun(c::Number,d::FunctionSpace)=c==0?zeros(d):c*ones(d)
+Fun(c::Number,d::Domain)=c==0?c*zeros(d):c*ones(d)
+Fun(c::Number,d::FunctionSpace)=c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 
 ## List constructor
 
@@ -202,7 +202,7 @@ Fun(f::Function,d::Domain;opts...)=Fun(f,Space(d);opts...)
 
 Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
 Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
-Fun{T<:Number}(cfs::Vector{T})=Fun(1.0*cfs,Interval())
+Fun{T<:Number}(cfs::Vector{T})=Fun(1.0*cfs,Interval{promote_type(T,Int)}())
 Fun{T<:Number,M<:Number}(cfs::Vector{M},d::Vector{T})=Fun(1.0*cfs,Interval(d))
 Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
 Fun{T<:Number}(f::Number,d::Vector{T})=Fun(f,Interval(d))

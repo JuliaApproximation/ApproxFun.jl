@@ -12,12 +12,12 @@ function clenshaw(c::Vector,x::Number)
     end
 
     x = 2x
-    bk1 = 0.0;bk2 = 0.0
+    bk1,bk2 = zero(x),zero(x)
     for k = length(c):-1:2
         bk2, bk1 = bk1, c[k] + x*bk1 - bk2
     end
 
-    c[1] + 0.5x*bk1 - bk2
+    c[1] + x/2*bk1 - bk2
 end
 
 function sineshaw(c::Vector,θ::Number)
@@ -26,14 +26,14 @@ function sineshaw(c::Vector,θ::Number)
     end
 
     x = 2cos(θ)
-    bk1 = 0.0;bk2 = 0.0
+    bk1,bk2 = zero(x),zero(x)
     for k = length(c):-1:1
         bk2, bk1 = bk1, c[k] + x*bk1 - bk2
     end
 
     sin(θ)*bk1
 end
-sineshaw(c::Vector,θ::Vector) = promote_type(eltype(c),eltype(θ))[sineshaw(c,θk) for θk in θ]
+sineshaw(c::Vector,θ::Vector) = map(θ->sineshaw(c,θ),θ)
 
 function clenshaw{T<:Number,M<:Number}(c::Vector{T},x::Vector{M})
     if isempty(c)

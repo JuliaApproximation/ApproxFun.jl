@@ -27,14 +27,14 @@ end
 
 ProductFun(M,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(M,TensorSpace(dx,dy))
 
-function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V})
-    # Chopping the matrix first prunes columns as well as rows.
-    cfs=chop!(cfs,norm(cfs,Inf)*eps(T))
-    ret=Array(Fun{S,T},size(cfs,2))
+function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol::T=eps(T))
+    ncfs=norm(cfs,Inf)
+    ret,retempty=Array(Fun{S,T},size(cfs,2)),Array(Bool,size(cfs,2))
     for k=1:size(cfs,2)
-        ret[k]=Fun(cfs[:,k],columnspace(D,k))
+        v=chop(cfs[:,k],ncfs*tol)
+        ret[k],retempty[k]=Fun(v,columnspace(D,k)),isempty(v)
     end
-    ProductFun{S,V,typeof(D),T}(ret,D)
+    ProductFun{S,V,typeof(D),T}(ret[1:end-findfirst(reverse(retempty),false)+1],D)
 end
 
 
@@ -83,19 +83,18 @@ ProductFun(f::Function,D::TensorSpace)=ProductFun(LowRankFun(f,D))
 ProductFun(f::Function,D::ProductDomain)=ProductFun(LowRankFun(f,D))
 
 function ProductFun(f::Function,D)
-     Nmax=400
-
-     tol=1E-12
-
-     for N=50:25:Nmax
-         X=coefficients(ProductFun(f,D,N,N))
-         if norm(X[end-3:end,:])<tol && norm(X[:,end-3:end])<tol
-             chop!(X,tol)
-             return ProductFun(X,D)
-         end
-     end
-     error("Maximum grid reached")
-     ProductFun(f,D,Nmax,Nmax)
+    tol=1e3eps()#tol should be typed .. maybe by a checkpoints?
+    for logn = 4:10
+        X = coefficients(ProductFun(f,D,2^logn,2^logn))
+        m,n = size(X)
+        Xmax = maxabs(X)
+        if norm(X[max(m-8,1):m,:])<tol*Xmax && norm(X[:,max(n-8,1):n])<tol*Xmax
+            X = chop(X,tol*Xmax)
+            return ProductFun(X,D)
+        end
+    end
+    warn("Maximum grid size of ("*string(2^11)*","*string(2^11)*") reached")
+    ProductFun(f,D,2^11,2^11)
 end
 
 

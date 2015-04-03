@@ -80,7 +80,7 @@ end
 
 ##Coefficient space operators
 
-identity_fun(d::Interval)=Fun([.5*(d.b+d.a),.5*(d.b-d.a)],d)
+identity_fun(d::Interval)=Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],d)
 
 
 # function multiplybyx{T<:Number,D<:Interval}(f::IFun{T,UltrasphericalSpace{D}})

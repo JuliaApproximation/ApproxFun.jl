@@ -83,8 +83,8 @@ Base.last(d::PeriodicDomain)=fromcanonical(d,π)
 
 ## conveninece routines
 
-Base.ones(d::Domain)=ones(Space(d))
-Base.zeros(d::Domain)=zeros(Space(d))
+Base.ones(d::Domain)=ones(eltype(d),Space(d))
+Base.zeros(d::Domain)=zeros(eltype(d),Space(d))
 
 
 
