@@ -141,7 +141,7 @@ function chop!(A::Array,tol)
     end
     return A
 end
-
+chop(A::Array,tol)=chop!(A,tol)#replace by chop!(copy(A),tol) when chop! is actually in-place.
 
 
 
