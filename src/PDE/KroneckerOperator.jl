@@ -79,6 +79,19 @@ KroneckerOperator(A,B::Fun)=KroneckerOperator(A,Multiplication(B))
 KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 
 
+# productop is a product of two operator
+
+isproductop(::)=false
+isproductop(::KroneckerOperator)=true
+isproductop(sp::SpaceOperator)=isproductop(sp.op)
+
+#dekron gives the operators that make up a productop
+
+dekron(K::KroneckerOperator,k)=K.ops[k]
+dekron(S::SpaceOperator,k)=dekron(S.op,k)
+
+
+
 for OP in (:promotedomainspace,:promoterangespace)
     @eval $OP(K::KroneckerOperator,ds::TensorSpace)=KroneckerOperator($OP(K.ops[1],ds[1]),
                                                                       $OP(K.ops[2],ds[2]))

@@ -63,10 +63,10 @@ PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::AbstractOperatorS
 
 
 function PDEOperatorSchur(Bx,By,A::PlusOperator,ny::Integer,indsBx,indsBy)
-    @assert all(g->isa(g,KroneckerOperator),A.ops)
+    @assert all(isproductop,A.ops)
     @assert length(A.ops)==2
 
-    PDEOperatorSchur(Bx,A.ops[1].ops[1],A.ops[2].ops[1],schurfact(By,[A.ops[1].ops[2],A.ops[2].ops[2]],ny),indsBx,indsBy)
+    PDEOperatorSchur(Bx,dekron(A.ops[1],1),dekron(A.ops[2],1),schurfact(By,[dekron(A.ops[1],2),dekron(A.ops[2],2)],ny),indsBx,indsBy)
 end
 
 
