@@ -39,7 +39,7 @@ function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},
     ProductFun{S,V,typeof(D),T}(ret[1:end-dropcount],D)
 end
 
-ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol::Real=eps(T))=ProductFun(cfs,D,tol)
+ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol::Real=100eps(T))=ProductFun(cfs,D,tol)
 
 
 #ProductFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
@@ -85,19 +85,18 @@ ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Sp
 ProductFun(f::Function,D::TensorSpace)=ProductFun(LowRankFun(f,D))
 ProductFun(f::Function,D::ProductDomain)=ProductFun(LowRankFun(f,D))
 
-function ProductFun(f::Function,D)
-    tol=1e3eps()#tol should be typed .. maybe by a checkpoints?
-    for logn = 4:10
-        X = coefficients(ProductFun(f,D,2^logn,2^logn))
-        m,n = size(X)
+function ProductFun(f::Function,D;tol=1e3eps())
+    #tol should be typed .. maybe by a checkpoints?
+    for n = 50:100:5000
+        X = coefficients(ProductFun(f,D,n,n;tol=tol))
         Xmax = maxabs(X)
-        if norm(X[max(m-8,1):m,:])<tol*Xmax && norm(X[:,max(n-8,1):n])<tol*Xmax
+        if size(X,1)<n && size(X,2)<n
             X = chop(X,tol*Xmax)
-            return ProductFun(X,D)
+            return ProductFun(X,D;tol=tol)
         end
     end
     warn("Maximum grid size of ("*string(2^11)*","*string(2^11)*") reached")
-    ProductFun(f,D,2^11,2^11)
+    ProductFun(f,D,5000,5000)
 end
 
 
