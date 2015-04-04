@@ -27,14 +27,12 @@ end
 
 ProductFun(M,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(M,TensorSpace(dx,dy))
 
-function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V},tol::Number)
+function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol::Real=eps(T))
     ncfs,kend=norm(cfs,Inf),size(cfs,2)
     while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end
     ret=map(k->Fun(chop(cfs[:,k],ncfs*tol),columnspace(D,k)),1:kend)
     ProductFun{S,V,typeof(D),T}(ret,D)
 end
-
-ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol=eps(T))=ProductFun(cfs,D,tol)
 
 
 
@@ -66,14 +64,14 @@ function ProductFun{SS<:FunctionSpace{Float64},VV<:FunctionSpace{Float64}}(f::Fu
     ProductFun(transform!(S,V),S)
 end
 
-function ProductFun(f::Function,S::AbstractProductSpace,N::Integer,M::Integer)
+function ProductFun(f::Function,S::AbstractProductSpace,N::Integer,M::Integer;tol=eps())
     ptsx,ptsy=points(S,N,M)
 
     f1=f(ptsx[1,1],ptsy[1,1])
     T=coefficient_type(S,typeof(f1))  # type of coefficients
     # use coefficient type so we can reuse array
     V=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
-    ProductFun(transform!(S,V),S)
+    ProductFun(transform!(S,V),S;tol=tol)
 end
 
 ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Space(D),N,M)
