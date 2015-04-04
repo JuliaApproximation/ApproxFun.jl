@@ -27,7 +27,8 @@ end
 
 ProductFun(M,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(M,TensorSpace(dx,dy))
 
-function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V},tol::Number)
+
+function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V},tol::Real)
     ncfs=norm(cfs,Inf)
     ret,retempty=Array(Fun{S,T},size(cfs,2)),Array(Bool,size(cfs,2))
     for k=1:size(cfs,2)
@@ -38,8 +39,7 @@ function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},
     ProductFun{S,V,typeof(D),T}(ret[1:end-dropcount],D)
 end
 
-ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol=eps(T))=ProductFun(cfs,D,tol)
-
+ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol::Real=eps(T))=ProductFun(cfs,D,tol)
 
 
 #ProductFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
@@ -70,14 +70,14 @@ function ProductFun{SS<:FunctionSpace{Float64},VV<:FunctionSpace{Float64}}(f::Fu
     ProductFun(transform!(S,V),S)
 end
 
-function ProductFun(f::Function,S::AbstractProductSpace,N::Integer,M::Integer)
+function ProductFun(f::Function,S::AbstractProductSpace,N::Integer,M::Integer;tol=eps())
     ptsx,ptsy=points(S,N,M)
 
     f1=f(ptsx[1,1],ptsy[1,1])
     T=coefficient_type(S,typeof(f1))  # type of coefficients
     # use coefficient type so we can reuse array
     V=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
-    ProductFun(transform!(S,V),S)
+    ProductFun(transform!(S,V),S;tol=tol)
 end
 
 ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Space(D),N,M)
