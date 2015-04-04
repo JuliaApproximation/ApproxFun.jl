@@ -189,9 +189,9 @@ end
 
 ## Composition with a Fun, LowRankFun, and ProductFun
 
-Base.getindex(B::Operator,f::Fun) = B*Multiplication(domainspace(B),f)
-Base.getindex{BT,S,M,T,V}(B::Operator{BT},f::LowRankFun{S,M,T,V}) = PlusOperator(BandedOperator{promote_type(BT,T,V)}[f.A[i]*B[f.B[i]] for i=1:rank(f)])
-Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = PlusOperator(BandedOperator{promote_type(BT,T)}[f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1),one(promote_type(BT,T))],f.space.spaces[2])] for i=1:length(f.coefficients)])
+Base.getindex{BT,S,T}(B::Operator{BT},f::Fun{S,T}) = B*Multiplication(domainspace(B),f)
+Base.getindex{BT,S,M,T,V}(B::Operator{BT},f::LowRankFun{S,M,T,V}) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
+Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1),one(promote_type(BT,T))],f.space[2])],+,1:length(f.coefficients))
 
 ## Standard Operators and linear algebra
 
