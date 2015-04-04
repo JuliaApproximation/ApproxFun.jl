@@ -81,7 +81,7 @@ x,y=points(f)
 
 d=PeriodicInterval()^2
 f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
-@test (f.'-f|>coefficients|>norm)< 10eps()
+@test (f.'-f|>coefficients|>norm)< 100eps()
 
 
 
@@ -89,7 +89,7 @@ d=PeriodicInterval()^2
 f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 A=lap(d)+.1I
 u=A\f
-@test (lap(u)+.1u-f)|>coefficients|>norm < 10000eps()
+@test (lap(u)+.1u-f)|>coefficients|>norm < 100000eps()
 
 @test_approx_eq real(f)[.1,.2] f[.1,.2]
 
@@ -175,8 +175,8 @@ u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 d=Interval()
 B=ldirichlet(d)
 f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
-@test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<2000eps()
-@test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<2000eps()
+@test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<20000eps()
+@test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<20000eps()
 
 
 
