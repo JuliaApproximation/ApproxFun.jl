@@ -27,7 +27,7 @@ end
 
 ProductFun(M,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(M,TensorSpace(dx,dy))
 
-function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol::T=eps(T))
+function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V},tol::Number)
     ncfs=norm(cfs,Inf)
     ret,retempty=Array(Fun{S,T},size(cfs,2)),Array(Bool,size(cfs,2))
     for k=1:size(cfs,2)
@@ -36,6 +36,8 @@ function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},
     end
     ProductFun{S,V,typeof(D),T}(ret[1:end-findfirst(reverse(retempty),false)+1],D)
 end
+
+ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol=eps(T))=ProductFun(cfs,D,tol)
 
 
 

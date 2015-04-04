@@ -31,7 +31,7 @@ jacobirecC(α,β,k)=(k+α)*(k+β)*(2k+α+β+2)/((k+1)*(k+α+β+1)*(2k+α+β))
 
 #####
 # jacobirecA/B/C is from dlmf:
-# x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n   
+# x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
 jacobirecγ(α,β,k)=jacobirecC(α,β,k-1)/jacobirecA(α,β,k-1)
@@ -52,11 +52,11 @@ function jacobip(r::Range,α,β,x::Number)
         n=r[end]+1
         if n<=2
             v=[1.,.5*(α-β+(2+α+β)*x)]
-        else    
+        else
             v=Array(promote_type(Float64,typeof(x)),n)  # x may be complex
             v[1]=1.
             v[2]=.5*(α-β+(2+α+β)*x)
-            
+
             for k=2:n-1
                 v[k+1]=((x-jacobirecα(α,β,k))*v[k] - jacobirecγ(α,β,k)*v[k-1])/jacobirecβ(α,β,k)
             end
@@ -65,7 +65,7 @@ function jacobip(r::Range,α,β,x::Number)
     end
 end
 jacobip(n::Integer,α,β,v::Number)=jacobip(n:n,α,β,v)[1]
-jacobip(n::Range1,α,β,v::Vector)=hcat(map(x->jacobip(n,α,β,x),v)...).'
+jacobip(n::Range,α,β,v::Vector)=hcat(map(x->jacobip(n,α,β,x),v)...).'
 jacobip(n::Integer,α,β,v::Vector)=map(x->jacobip(n,α,β,x),v)
 jacobip(n,S::Jacobi,v)=jacobip(n,S.a,S.b,v)
 
@@ -80,7 +80,7 @@ include("JacobiOperators.jl")
 
 for op in (:(Base.ones),:(Base.zeros))
     @eval ($op){T<:Number}(::Type{T},S::Jacobi)=Fun(($op)(T,1),S)
-    @eval ($op)(S::Jacobi)=Fun(($op)(1),S)    
+    @eval ($op)(S::Jacobi)=Fun(($op)(1),S)
 end
 
 function identity_fun(J::Jacobi)

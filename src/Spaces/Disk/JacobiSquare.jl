@@ -62,7 +62,7 @@ end
 plan_itransform(S::JacobiSquare,n)=points(S,n)
 #TODO: general domain
 itransform(S::JacobiSquare,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
-itransform(S::JacobiSquare,cfs::Vector,x)=x.^S.m.*jacobip(0:length(cfs)-1,S.a+0.5,S.b-0.5,tocanonical(S,x.^2))*cfs
+itransform(S::JacobiSquare,cfs::Vector,x)=isempty(cfs)?zeros(x):x.^S.m.*jacobip(0:length(cfs)-1,S.a+0.5,S.b-0.5,tocanonical(S,x.^2))*cfs
 evaluate{T}(f::Fun{JacobiSquare,T},x::Vector)=itransform(f.space,f.coefficients,x)
 evaluate{T}(f::Fun{JacobiSquare,T},x::Number)=itransform(f.space,f.coefficients,[x])[1]
 
