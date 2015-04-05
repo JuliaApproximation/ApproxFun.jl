@@ -13,11 +13,11 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         # The SSS, TTT are to work around #9312
         abstract $AbstOp{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 
-        immutable $Op{S<:FunctionSpace,OT,T<:Number} <: $AbstOp{S,OT,T}
+        immutable $Op{S<:FunctionSpace,OT,T} <: $AbstOp{S,OT,T}
             space::S        # the domain space
             order::OT
         end
-        immutable $WrappOp{BT<:BandedOperator,S<:FunctionSpace,OT,T<:Number} <: $AbstOp{S,OT,T}
+        immutable $WrappOp{BT<:BandedOperator,S<:FunctionSpace,OT,T} <: $AbstOp{S,OT,T}
             op::BT
             order::OT
         end
@@ -104,6 +104,14 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         rangespace(D::$WrappOp)=rangespace(D.op)
         domainspace(D::$WrappOp)=domainspace(D.op)
         bandinds(D::$WrappOp)=bandinds(D.op)
+
+
+        ## simplify higher order derivatives/integration
+        function *(D1::$AbstOp,D2::$AbstOp)
+            @assert domain(D1) == domain(D2)
+
+            $Op(domainspace(D2),D1.order+D2.order)
+        end
     end)
 #     for func in (:rangespace,:domainspace,:bandinds)
 #         # We assume the operator wrapped has the correct spaces
@@ -120,12 +128,7 @@ end
 
 
 
-## simplify higher order derivatives/integration
-function *(D1::AbstractDerivative,D2::AbstractDerivative)
-    @assert domain(D1) == domain(D2)
 
-    Derivative(domainspace(D2),D1.order+D2.order)
-end
 
 
 ## Overrideable

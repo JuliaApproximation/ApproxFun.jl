@@ -85,7 +85,7 @@ ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Sp
 ProductFun(f::Function,D::TensorSpace)=ProductFun(LowRankFun(f,D))
 ProductFun(f::Function,D::ProductDomain)=ProductFun(LowRankFun(f,D))
 
-function ProductFun(f::Function,D;tol=1e3eps())
+function ProductFun(f::Function,D;tol=1e2eps())
     #tol should be typed .. maybe by a checkpoints?
     for n = 50:100:5000
         X = coefficients(ProductFun(f,D,n,n;tol=tol))
@@ -95,7 +95,7 @@ function ProductFun(f::Function,D;tol=1e3eps())
             return ProductFun(X,D;tol=tol)
         end
     end
-    warn("Maximum grid size of ("*string(2^11)*","*string(2^11)*") reached")
+    warn("Maximum grid size of ("*string(5000)*","*string(5000)*") reached")
     ProductFun(f,D,5000,5000)
 end
 

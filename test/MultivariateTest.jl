@@ -81,7 +81,7 @@ x,y=points(f)
 
 d=PeriodicInterval()^2
 f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
-@test (f.'-f|>coefficients|>norm)< 100eps()
+@test (f.'-f|>coefficients|>norm)< 1000eps()
 
 
 
@@ -89,7 +89,7 @@ d=PeriodicInterval()^2
 f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 A=lap(d)+.1I
 u=A\f
-@test (lap(u)+.1u-f)|>coefficients|>norm < 100000eps()
+@test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
 @test_approx_eq real(f)[.1,.2] f[.1,.2]
 
@@ -121,7 +121,7 @@ if OS_NAME==:Darwin
 
     uex2=K\G
 
-    @test (uex-uex2|>coefficients|>norm)<100eps()
+    @test (uex-uex2|>coefficients|>norm)<10000eps()
 
 
 
