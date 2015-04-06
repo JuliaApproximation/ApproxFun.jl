@@ -141,33 +141,23 @@ Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
 
 domain(P::PDEProductOperatorSchur)=domain(domainspace(P))
 
-function PDEProductOperatorSchur{T}(A::Vector{BivariateOperator{T}},sp::AbstractProductSpace,nt::Integer)
-    indsBx=find(isxfunctional,A)
-    Bx=Functional{eltype(T)}[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[indsBx]]
-
-
-    indsBy=find(isyfunctional,A)
-    @assert length(indsBy)==0
-    inds=find(ispdeop,A)
-    @assert length(inds)==1&&inds[1]==length(A)
-
+function PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::AbstractProductSpace,nt::Integer)
+    indsBx,Bx=findfunctionals(A,1)
+    @assert isempty(findfunctionals(A,2)[1])
     L=A[end]
-
-
-
-    L=promotedomainspace(L,sp[2],2)
-    S=schurfact(Functional{eltype(T)}[],L.ops[:,2],nt)
+    S=schurfact(Functional{eltype(eltype(L))}[],dekron(L,2,:),nt)
     @assert(isa(S,DiagonalOperatorSchur))
 
     #TODO: Space Type
     BxV=Array(Vector{SavedFunctional{Float64}},nt)
     Rdiags=Array(SavedBandedOperator{Complex{Float64}},nt)
+    rops=dekron(L,1,:)
     for k=1:nt
-        op=getdiagonal(S,k,1)*L.ops[1,1]
-        for j=2:size(L.ops,1)
+        op=getdiagonal(S,k,1)*rops[1]
+        for j=2:length(L)
             Skj=getdiagonal(S,k,j)
             if Skj!=0   # don't add unnecessary ops
-                op+=Skj*L.ops[j,1]
+                op+=Skj*rops[j]
             end
         end
 
@@ -182,7 +172,7 @@ function PDEProductOperatorSchur{T}(A::Vector{BivariateOperator{T}},sp::Abstract
     PDEProductOperatorSchur(BxV,Rdiags,sp,indsBx)
 end
 
-PDEProductOperatorSchur{T}(A::Vector{BivariateOperator{T}},sp::BivariateDomain,nt::Integer)=PDEProductOperatorSchur(A,Space(sp),nt)
+PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::BivariateDomain,nt::Integer)=PDEProductOperatorSchur(A,Space(sp),nt)
 
 
 ##TODO: Larger Bx
@@ -286,7 +276,7 @@ end
 ## discretize
 
 #TODO: don't hard code Disk
-discretize{T}(A::Vector{BivariateOperator{T}},S...)=(isa(A[end],PlusOperator)&&length(A[end].ops)==2)||domain(A[end])==Disk()?schurfact(A,S...):kron(A,S...)
+discretize{OT<:Operator}(A::Vector{OT},S...)=(isa(A[end],PlusOperator)&&length(A[end].ops)==2)||domain(A[end])==Disk()?schurfact(A,S...):kron(A,S...)
 discretize{T}(A::BivariateOperator{T},n::Integer)=discretize([A],n)
 
 

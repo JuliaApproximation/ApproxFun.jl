@@ -152,3 +152,12 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 
 
+# Multivariate
+
+
+
+
+@calculus_operator(Laplacian,AbstractLaplacian,LaplacianWrapper)
+
+Laplacian(S::FunctionSpace,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
+Laplacian(S)=Laplacian(S,1)

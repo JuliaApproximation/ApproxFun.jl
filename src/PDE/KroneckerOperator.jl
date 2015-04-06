@@ -370,7 +370,7 @@ end
 
 ## PDE Factorization
 
-
+isfunctional(::,k)=false
 isfunctional(B::KroneckerOperator,k::Integer)=isa(B.ops[k],Functional)
 isfunctional(B::PlusOperator,k::Integer)=isfunctional(first(B.ops),k)
 
@@ -382,10 +382,10 @@ function findfunctionals(A::Vector,k::Integer)
     T=eltype(eltype(eltype(A)))
     indsBx=find(f->isfunctional(f,k),A)
     if k==1
-        indsBx,Functional{T}[(@assert Ai.ops[2]==ConstantOperator{Float64}(1.0); Ai.ops[1]) for Ai in A[indsBx]]
+        indsBx,Functional{T}[(@assert dekron(Ai,2)==ConstantOperator{Float64}(1.0); dekron(Ai,1)) for Ai in A[indsBx]]
     else
         @assert k==2
-        indsBx,Functional{T}[(@assert Ai.ops[1]==ConstantOperator{Float64}(1.0); Ai.ops[2]) for Ai in A[indsBx]]
+        indsBx,Functional{T}[(@assert dekron(Ai,1)==ConstantOperator{Float64}(1.0); dekron(Ai,2)) for Ai in A[indsBx]]
     end
 end
 

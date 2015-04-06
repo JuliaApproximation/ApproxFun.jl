@@ -94,14 +94,26 @@ conversion_rule{m,a,b,m2,a2,b2,JS,FS}(A::DiskSpace{m,a,b,JS,FS},B::DiskSpace{m2,
 
 ## Operators
 
-# function lap(S::Disk)
-#     D=Derivative()
-#     r=Fun(identity,[S.radius,0.])
-#     PDEOperator(((D^2+(1./r)*D)⊗I+(1./r).^2⊗D^2).ops,S)
-# end
+isfunctional{DS<:DiskSpace}(::Dirichlet{DS},k)=k==1
+dekron{DS<:DiskSpace}(::Dirichlet{DS},k)=k==1?ldirichlet():ConstantOperator(1.0)
 
-# neumann(S::Disk)=PDEOperator((lneumann()⊗I).ops,S)
-# dirichlet(S::Disk)=PDEOperator((ldirichlet()⊗I).ops,S)
-# diffbcs(S::Disk,k::Integer)=PDEOperator((ldiffbc(k)⊗I).ops,S)
+
+Base.length{DS<:DiskSpace}(::Laplacian{DS})=2
+function dekron{DS<:DiskSpace}(L::Laplacian{DS},k,::Colon)
+    if k==1
+        r=Fun(identity,[domain(L).radius,0.])
+        D=Derivative()
+        [(D^2+(1./r)*D),Multiplication((1./r).^2)]
+    elseif k==2
+        D=Derivative(domainspace(L)[2])
+        [ConstantOperator(1.0),D^2]
+    end
+end
+
+dekron(L,k::Integer,j::Integer)=dekron(L,k,:)[j]
+
+lap(d::Disk)=Laplacian(Space(d))
+dirichlet(d::Disk)=Dirichlet(Space(d))
+
 
 

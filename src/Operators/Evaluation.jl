@@ -91,3 +91,15 @@ for op in (:ldiffbc,:rdiffbc,:diffbcs,:periodic)
     @eval $op(k::Integer)=$op(AnySpace(),k)
 end
 
+
+
+
+immutable Dirichlet{S,T} <: Operator{T}
+    space::S
+end
+Dirichlet(sp::FunctionSpace)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp)
+Dirichlet(d::Domain)=Dirichlet(Space(d))
+
+domainspace(S::Dirichlet)=S.space
+rangespace(B::Dirichlet)=Space(∂(domain(B)))
+
