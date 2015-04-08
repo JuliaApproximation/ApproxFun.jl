@@ -155,6 +155,7 @@ pdesolve(A::Operator,f...)=pdesolve([A],f...)
 
 
 \{T}(A::Vector{BandedOperator{BandedMatrix{T}}},f::Array)=pdesolve(A,f)
+\{T}(A::Vector{Operator{BandedMatrix{T}}},f::Array)=pdesolve(A,f)
 \(A::AbstractPDEOperatorSchur,f::Array)=pdesolve(A,f)
 \{T}(A::Vector{BandedOperator{BandedMatrix{T}}},f::Union(MultivariateFun,Number,Fun))=pdesolve(A,f)
 \(A::AbstractPDEOperatorSchur,f::Fun)=pdesolve(A,f)
