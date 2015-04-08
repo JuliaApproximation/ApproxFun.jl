@@ -95,6 +95,7 @@ promotedomainspace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp
 
 for TYP in (:Operator,:BandedOperator,:Functional)
   @eval begin
+    #TODO: better way of deciding type
     function promoterangespace{O<:$TYP}(ops::Vector{O})
       k=findmaxrangespace(ops)
       T=mapreduce(eltype,promote_type,ops)
@@ -107,7 +108,7 @@ for TYP in (:Operator,:BandedOperator,:Functional)
     end
     function promotedomainspace{O<:$TYP}(ops::Vector{O},S::FunctionSpace)
         k=conversion_type(findmindomainspace(ops),S)
-        T=mapreduce(eltype,promote_type,ops)
+        T=promote_type(mapreduce(eltype,promote_type,ops),eltype(S))
         $TYP{T}[promotedomainspace(op,k) for op in ops]
     end
   end
