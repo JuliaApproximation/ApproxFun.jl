@@ -116,19 +116,33 @@ end
 
 ## Operators
 
-isfunctional{DS<:DiskSpace}(::Dirichlet{DS},k)=k==1
-dekron{DS<:DiskSpace}(::Dirichlet{DS},k)=k==1?ldirichlet():ConstantOperator(1.0)
+isfunctional{DS<:DiskSpace}(D::Dirichlet{DS},k)=k==1
+dekron{DS<:DiskSpace}(D::Dirichlet{DS},k)=k==1?Evaluation(false,D.order):ConstantOperator(1.0)
 
 
 Base.length{DS<:DiskSpace}(::Laplacian{DS})=2
 function dekron{DS<:DiskSpace}(L::Laplacian{DS},k,::Colon)
-    if k==1
-        r=Fun(identity,[domain(L).radius,0.])
-        D=Derivative()
-        [(D^2+(1./r)*D),Multiplication((1./r).^2)]
-    elseif k==2
-        D=Derivative(domainspace(L)[2])
-        [ConstantOperator(1.0),D^2]
+    if L.order==1
+        if k==1
+            r=Fun(identity,[domain(L).radius,0.])
+            D=Derivative()
+            [(D^2+(1./r)*D),Multiplication((1./r).^2)]
+        elseif k==2
+            D=Derivative(domainspace(L)[2])
+            [ConstantOperator(1.0),D^2]
+        end
+    elseif L.order==2
+        Δ=Laplacian(domainspace(L))
+        rops=dekron(Δ,1,:)
+        if k==1
+            [rops[1]^2,rops[1]*rops[2],rops[2]*rops[1],rops[2]^2]
+        elseif k==2
+            D=Derivative(domainspace(L)[2])
+            C=ConstantOperator(1.0)
+            [C,D^2,D^2,D^4]
+        end
+    else
+        error("Higher order Laplacian not yet implemented")
     end
 end
 
@@ -136,6 +150,7 @@ dekron(L,k::Integer,j::Integer)=dekron(L,k,:)[j]
 
 lap(d::Disk)=Laplacian(Space(d))
 dirichlet(d::Disk)=Dirichlet(Space(d))
+neumann(d::Disk)=Neumann(Space(d))
 
 
 

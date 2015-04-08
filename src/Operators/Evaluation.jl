@@ -96,9 +96,13 @@ end
 
 immutable Dirichlet{S,T} <: Operator{T}
     space::S
+    order::Int
 end
-Dirichlet(sp::FunctionSpace)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp)
+Dirichlet(sp::FunctionSpace)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,0)
 Dirichlet(d::Domain)=Dirichlet(Space(d))
+Neumann(sp::FunctionSpace)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,1)
+Neumann(d::Domain)=Dirichlet(Space(d))
+
 
 domainspace(S::Dirichlet)=S.space
 rangespace(B::Dirichlet)=Space(∂(domain(B)))
