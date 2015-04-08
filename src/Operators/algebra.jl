@@ -182,7 +182,7 @@ function Base.getindex{T}(f::TimesFunctional{T},jr::Range)#j is columns
 end
 
 
-immutable ConstantTimesOperator{T,B<:Operator} <: BandedOperator{T}
+immutable ConstantTimesOperator{T,B,BT} <: BandedOperator{BT}
     c::T
     op::B
     ConstantTimesOperator(c,op)=new(c,op)
@@ -190,8 +190,14 @@ end
 function ConstantTimesOperator(c::Number,op::Operator)
     T=promote_type(typeof(c),eltype(op))
     B=convert(BandedOperator{T},op)
-    ConstantTimesOperator{T,typeof(B)}(c,B)
+    ConstantTimesOperator{T,typeof(B),T}(c,B)
 end
+function ConstantTimesOperator{BT}(c::Number,op::Operator{BandedMatrix{BT}})
+    T=promote_type(typeof(c),BT)
+    B=convert(BandedOperator{BandedMatrix{T}},op)
+    ConstantTimesOperator{T,typeof(B),BandedMatrix{T}}(c,B)
+end
+
 
 for OP in (:domainspace,:rangespace,:bandinds)
     @eval $OP(C::ConstantTimesOperator)=$OP(C.op)
@@ -209,7 +215,13 @@ end
 function Base.convert{OT<:Operator}(::Type{OT},C::ConstantTimesOperator)
     T=eltype(OT)
     op=convert(BandedOperator{T},C.op)
-    ConstantTimesOperator{T,typeof(op)}(convert(T,C.c),op)
+    ConstantTimesOperator{T,typeof(op),T}(convert(T,C.c),op)
+end
+
+function Base.convert{CT,BB,BT,OT<:Operator}(::Type{OT},C::ConstantTimesOperator{CT,BB,BandedMatrix{BT}})
+    T=eltype(OT)
+    op=convert(BandedOperator{T},C.op)
+    ConstantTimesOperator{eltype(T),typeof(op),T}(convert(eltype(T),C.c),op)
 end
 
 function addentries!(P::ConstantTimesOperator,A,kr::Range)
@@ -341,7 +353,7 @@ end
 *(B::Functional,O::TimesOperator)=TimesFunctional(B,O)  # Needed to avoid ambiguity
 *(B::Functional,O::BandedOperator)=TimesFunctional(promotedomainspace(B,rangespace(O)),O)
 
--{T}(B::Functional{T})=ConstantTimesFunctional(-one(T),B)
+-(B::Functional)=ConstantTimesFunctional(-1,B)
 
 
 -(A::Functional,B::Functional)=PlusFunctional([A,-B])
@@ -352,7 +364,7 @@ end
 *{T,V}(A::BandedOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B])
 
 
--{T}(A::Operator{T})=ConstantTimesOperator(-one(T),A)
+-(A::Operator)=ConstantTimesOperator(-1,A)
 -(A::Operator,B::Operator)=A+(-B)
 
 *(f::Fun,A::Operator)=Multiplication(f)*A

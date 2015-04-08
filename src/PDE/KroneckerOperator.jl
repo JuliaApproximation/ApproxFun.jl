@@ -84,12 +84,16 @@ KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 isproductop(::)=false
 isproductop(::KroneckerOperator)=true
 isproductop(sp::SpaceOperator)=isproductop(sp.op)
+isproductop(sp::ConstantTimesOperator)=isproductop(sp.op)
 
 #dekron gives the operators that make up a productop
 
 dekron(K::KroneckerOperator,k)=K.ops[k]
 dekron(S::SpaceOperator,k)=dekron(S.op,k)
+#TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
+dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)
 
+dekron(K)=dekron(K,1),dekron(K,2)
 
 
 for OP in (:promotedomainspace,:promoterangespace)
@@ -199,24 +203,26 @@ function promoteplus{T}(ops::Vector{BandedOperator{BandedMatrix{T}}})
     ops=promotespaces(ops)
 
     for k=1:length(ops)-1
-        if isa(ops[k],KroneckerOperator)
-            a,b=ops[k].ops
+        if isproductop(ops[k])
+            a,b=dekron(ops[k])
             for j=k+1:length(ops)
-               if ops[j].ops[1]==a
-                    ops[k]=KroneckerOperator(a,b+ops[j].ops[2])
-                    deleteat!(ops,j)
-                    if length(ops)==1
-                        return ops[k]
-                    else
-                        return promoteplus(ops)
-                    end
-                elseif ops[j].ops[2]==b
-                    ops[k]=KroneckerOperator(a+ops[j].ops[1],b)
-                    deleteat!(ops,j)
-                    if length(ops)==1
-                        return ops[k]
-                    else
-                        return promoteplus(ops)
+                if isproductop(ops[j])
+                    if dekron(ops[j],1)==a
+                        ops[k]=KroneckerOperator(a,b+dekron(ops[j],2))
+                        deleteat!(ops,j)
+                        if length(ops)==1
+                            return ops[k]
+                        else
+                            return promoteplus(ops)
+                        end
+                    elseif dekron(ops[j],2)==b
+                        ops[k]=KroneckerOperator(a+dekron(ops[j],1),b)
+                        deleteat!(ops,j)
+                        if length(ops)==1
+                            return ops[k]
+                        else
+                            return promoteplus(ops)
+                        end
                     end
                 end
             end

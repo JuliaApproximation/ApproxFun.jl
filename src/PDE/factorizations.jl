@@ -243,10 +243,13 @@ Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},
 Base.schurfact{LT<:Number,MT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::StrideOperatorSchur{ST},indsBx,indsBy)=PDEStrideOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 
 function Base.schurfact{T}(Bx,By,A::PlusOperator{BandedMatrix{T}},ny::Integer,indsBx,indsBy)
-    @assert all(g->isa(g,KroneckerOperator),A.ops)
+    @assert all(isproductop,A.ops)
     @assert length(A.ops)==2
 
-    schurfact(Bx,A.ops[1].ops[1],A.ops[2].ops[1],schurfact(By,[A.ops[1].ops[2],A.ops[2].ops[2]],ny),indsBx,indsBy)
+    schurfact(Bx,
+              dekron(A.ops[1],1),dekron(A.ops[2],1),
+              schurfact(By,[dekron(A.ops[1],2),dekron(A.ops[2],2)],ny),
+              indsBx,indsBy)
 end
 
 
