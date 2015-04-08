@@ -134,6 +134,8 @@ function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::ProductF
     Y
 end
 
+cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::Fun,nx=100000)=cont_constrained_lyap(OS,Gxin,Gyin,ProductFun(F),nx)
+
 
 
 function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::ProductFun,nx::Integer)

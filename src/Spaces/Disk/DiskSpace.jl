@@ -94,8 +94,8 @@ conversion_rule{m,a,b,m2,a2,b2,JS,FS}(A::DiskSpace{m,a,b,JS,FS},
 function coefficients{m,a,b,m2,a2,b2,JS,FS}(cfs::Vector,
                                             A::DiskSpace{m,a,b,JS,FS},
                                           B::DiskSpace{m2,a2,b2,JS,FS})
-    g=ProductFun(Fun(f,A))
-    rcfs=Fun{typeof(columnspace(B,1)),eltype(f)}[Fun(g.coefficients[k],columnspace(B,k)) for k=1:length(g.coefficients)]
+    g=ProductFun(Fun(cfs,A))
+    rcfs=Fun{typeof(columnspace(B,1)),eltype(cfs)}[Fun(g.coefficients[k],columnspace(B,k)) for k=1:length(g.coefficients)]
     Fun(ProductFun(rcfs,B)).coefficients
 end
 
