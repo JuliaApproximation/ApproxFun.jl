@@ -282,7 +282,7 @@ evaluate{S<:TensorSpace}(f::Fun{S},x,y)=ProductFun(totensor(coefficients(f)),spa
 
 
 
-coefficientmatrix{S<:TensorSpace}(f::Fun{S})=totensor(f.coefficients)
+coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S})=totensor(f.coefficients)
 
 Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace)=Fun(fromtree(v),S)
 

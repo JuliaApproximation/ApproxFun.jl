@@ -47,7 +47,7 @@ ProductFun(f::Function,d::Domain)=ProductFun(f,Space(d))
 ProductFun(f,dy::Domain)=ProductFun(f,Space(dy))
 ProductFun(f,dx::Domain,dy::Domain)=ProductFun(f,Space(dx),Space(dy))
 ProductFun(f::LowRankFun)=ProductFun(coefficients(f),space(f,1),space(f,2))
-ProductFun{S<:TensorSpace}(f::Fun{S})=ProductFun(coefficientmatrix(f),space(f))
+ProductFun{S<:AbstractProductSpace}(f::Fun{S})=ProductFun(coefficientmatrix(f),space(f))
 
 #Need to templt TensorFun because parameters are in subfields
 ProductFun(f::ProductFun,sp::AbstractProductSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)

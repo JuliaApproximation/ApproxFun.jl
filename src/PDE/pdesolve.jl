@@ -15,7 +15,7 @@ function convert2fun{T<:Number,S<:FunctionSpace}(f::Array{T},sp::S)
 end
 convert2fun{T<:Fun}(f::Array{T},d::FunctionSpace)=f
 function convert2fun{S<:FunctionSpace}(f::Array,sp::S)
-    mytyp=Fun{S,mapreduce(eltype,promote_type,f)}
+    mytyp=Fun{S,promote_type(mapreduce(eltype,promote_type,f),eltype(sp))}
 
     ret=similar(f,mytyp)
 

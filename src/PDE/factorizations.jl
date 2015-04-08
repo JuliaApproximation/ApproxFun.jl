@@ -126,14 +126,22 @@ end
 # Represents an operator on e.g. a Disk
 #############
 
-immutable PDEProductOperatorSchur{ST<:Number,FT<:Functional,DS<:AbstractProductSpace,S<:FunctionSpace,V<:FunctionSpace} <: AbstractPDEOperatorSchur
+immutable PDEProductOperatorSchur{ST<:Number,
+                                  FT<:Functional,
+                                  DS<:AbstractProductSpace,
+                                  RS<:AbstractProductSpace,
+                                  S<:FunctionSpace,
+                                  V<:FunctionSpace} <: AbstractPDEOperatorSchur
     Bx::Vector{Vector{FT}}
     Rdiags::Vector{SavedBandedOperator{ST}}
     domainspace::DS
+    rangespace::RS
     indsBx::Vector{Int}
 end
 
-PDEProductOperatorSchur{ST,FT,S,V}(Bx::Vector{Vector{FT}},Rdiags::Vector{SavedBandedOperator{ST}},ds::AbstractProductSpace{S,V},indsBx)=PDEProductOperatorSchur{ST,FT,typeof(ds),S,V}(Bx,Rdiags,ds,indsBx)
+PDEProductOperatorSchur{ST,FT,S,V}(Bx::Vector{Vector{FT}},
+                                   Rdiags::Vector{SavedBandedOperator{ST}},
+                                   ds::AbstractProductSpace{S,V},rs,indsBx)=PDEProductOperatorSchur{ST,FT,typeof(ds),typeof(rs),S,V}(Bx,Rdiags,ds,rs,indsBx)
 
 Base.eltype{ST}(::PDEProductOperatorSchur{ST})=ST
 
@@ -169,7 +177,7 @@ function PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::AbstractProduct
             resizedata!(Bxx,2nt+100)
         end
     end
-    PDEProductOperatorSchur(BxV,Rdiags,sp,indsBx)
+    PDEProductOperatorSchur(BxV,Rdiags,sp,rangespace(L),indsBx)
 end
 
 PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::BivariateDomain,nt::Integer)=PDEProductOperatorSchur(A,Space(sp),nt)
@@ -179,6 +187,7 @@ PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::BivariateDomain,nt::Inte
 bcinds(S::PDEProductOperatorSchur,k)=k==1?S.indsBx:[]
 domainspace(S::PDEProductOperatorSchur)=S.domainspace
 domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
+rangespace(S::PDEProductOperatorSchur)=S.rangespace
 
 # for op in (:domainspace,:rangespace)
 #     @eval begin
@@ -197,33 +206,33 @@ domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
 
 
 
-type ProductRangeSpace{PDEP<:PDEProductOperatorSchur,SS,VV} <: AbstractProductSpace{SS,VV}
-    S::PDEP
-end
+# type ProductRangeSpace{PDEP<:PDEProductOperatorSchur,SS,VV} <: AbstractProductSpace{SS,VV}
+#     S::PDEP
+# end
 
-ProductRangeSpace{ST,FT,DS,S,V}(s::PDEProductOperatorSchur{ST,FT,DS,S,V})=ProductRangeSpace{typeof(s),S,V}(s)
+# ProductRangeSpace{ST,FT,DS,S,V}(s::PDEProductOperatorSchur{ST,FT,DS,S,V})=ProductRangeSpace{typeof(s),S,V}(s)
 
-rangespace(S::PDEProductOperatorSchur)=ProductRangeSpace(S)
 
-function space(S::ProductRangeSpace,k)
-    @assert k==2
-    S.S.domainspace[2]
-end
 
-columnspace(S::ProductRangeSpace,k)=rangespace(S.S.Rdiags[k])
+# function space(S::ProductRangeSpace,k)
+#     @assert k==2
+#     S.S.domainspace[2]
+# end
 
-function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
-    @assert space(f,2)==space(sp,2)
+# columnspace(S::ProductRangeSpace,k)=rangespace(S.S.Rdiags[k])
 
-    n=min(size(f,2),length(sp.S))
-    F=[coefficients(f.coefficients[k],rangespace(sp.S.Rdiags[k])) for k=1:n]
-    m=mapreduce(length,max,F)
-    ret=zeros(T,m,n)
-    for k=1:n
-        ret[1:length(F[k]),k]=F[k]
-    end
-    ret
-end
+# function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
+#     @assert space(f,2)==space(sp,2)
+
+#     n=min(size(f,2),length(sp.S))
+#     F=[coefficients(f.coefficients[k],rangespace(sp.S.Rdiags[k])) for k=1:n]
+#     m=mapreduce(length,max,F)
+#     ret=zeros(T,m,n)
+#     for k=1:n
+#         ret[1:length(F[k]),k]=F[k]
+#     end
+#     ret
+# end
 
 
 

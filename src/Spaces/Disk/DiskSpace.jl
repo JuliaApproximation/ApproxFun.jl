@@ -30,7 +30,6 @@ checkpoints(d::Disk)=[fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3)
 ∂(d::Disk)=Circle(Complex(d.center...),d.radius)
 
 
-# Kind== 0 => Legendre, K==1=>Chebyshev, K==2=>JacobiSquare
 immutable DiskSpace{m,a,b,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpace{JS,S,Complex128,Disk}
     domain::Disk
     spacet::S
@@ -89,7 +88,30 @@ end
 ## Conversion
 # These are placeholders for future
 
-conversion_rule{m,a,b,m2,a2,b2,JS,FS}(A::DiskSpace{m,a,b,JS,FS},B::DiskSpace{m2,a2,b2,JS,FS})=DiskSpace(max(m,m2),min(a,a2),min(b,b2),A.domain,B.spacet)
+conversion_rule{m,a,b,m2,a2,b2,JS,FS}(A::DiskSpace{m,a,b,JS,FS},
+                                      B::DiskSpace{m2,a2,b2,JS,FS})=DiskSpace(max(m,m2),min(a,a2),min(b,b2),A.domain,B.spacet)
+
+function coefficients{m,a,b,m2,a2,b2,JS,FS}(cfs::Vector,
+                                            A::DiskSpace{m,a,b,JS,FS},
+                                          B::DiskSpace{m2,a2,b2,JS,FS})
+    g=ProductFun(Fun(f,A))
+    rcfs=Fun{typeof(columnspace(B,1)),eltype(f)}[Fun(g.coefficients[k],columnspace(B,k)) for k=1:length(g.coefficients)]
+    Fun(ProductFun(rcfs,B)).coefficients
+end
+
+
+# function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
+#     @assert space(f,2)==space(sp,2)
+
+#     n=min(size(f,2),length(sp.S))
+#     F=[coefficients(f.coefficients[k],rangespace(sp.S.Rdiags[k])) for k=1:n]
+#     m=mapreduce(length,max,F)
+#     ret=zeros(T,m,n)
+#     for k=1:n
+#         ret[1:length(F[k]),k]=F[k]
+#     end
+#     ret
+# end
 
 
 ## Operators
@@ -117,3 +139,8 @@ dirichlet(d::Disk)=Dirichlet(Space(d))
 
 
 
+function rangespace{JS,S}(L::Laplacian{DiskSpace{0,0,0,JS,S}})
+    @assert L.order==1
+    sp=domainspace(L)
+    DiskSpace(-2,2,2,sp.domain,sp.spacet)
+end
