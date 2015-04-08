@@ -49,7 +49,7 @@ function Base.convert{T,V<:Number}(::Type{Matrix{T}},K::BandedMatrix{Matrix{V}})
 
     ret=zeros(T,div(n*(n+1),2),div(m*(m+1),2))
 
-    for k=1:n,j=1:m
+    for k=1:n,j=max(1,k-K.l):min(m,k+K.u)
         for κ=1:k,ξ=1:j
             ret[div((k-1)*k,2)+κ,div((j-1)*j,2)+ξ]=K[k,j][κ,ξ]
         end
