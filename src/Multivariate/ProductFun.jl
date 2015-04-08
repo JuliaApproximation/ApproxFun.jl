@@ -35,7 +35,7 @@ function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},
         v=chop(cfs[:,k],ncfs*tol)
         ret[k],retempty[k]=Fun(v,columnspace(D,k)),isempty(v)
     end
-    dropcount=min(findfirst(reverse(retempty),false),length(ret)-1)  # we want at least one col
+    dropcount=max(min(findfirst(reverse(retempty),false)-1,length(ret)-1),0)  # we want at least one col
     ProductFun{S,V,typeof(D),T}(ret[1:end-dropcount],D)
 end
 
