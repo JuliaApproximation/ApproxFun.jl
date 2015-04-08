@@ -77,6 +77,9 @@ Fun(f::ProductFun,sp::TensorSpace)=Fun(ProductFun(f,sp))
 Fun(f::LowRankFun)=Fun(ProductFun(f))
 Fun(f::LowRankFun,sp::TensorSpace)=Fun(ProductFun(f),sp)
 
+Fun(f::Function,d1::Domain,d2::Domain)=Fun(f,d1*d2)
+Fun{T<:Number,V<:Number}(f::Function,d1::Vector{T},d2::Vector{V})=Fun(f,Interval(d1),Interval(d2))
+
 coefficients(f::BivariateFun,sp::TensorSpace)=coefficients(f,sp[1],sp[2])
 
 
@@ -91,5 +94,8 @@ for OP in (:+,:-)
     end
 end
 
+
+Base.sum{TS<:TensorSpace}(f::Fun{TS},k::Integer)=sum(ProductFun(f),k)
+Base.sum{TS<:TensorSpace}(f::Fun{TS})=sum(ProductFun(f))
 
 
