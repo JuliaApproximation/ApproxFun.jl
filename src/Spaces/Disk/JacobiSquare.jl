@@ -32,10 +32,10 @@ transform(S::JacobiSquare,vals::Vector)=transform(S,vals,plan_transform(S,length
 function transform(S::JacobiSquare,vals::Vector,xw::(Vector,Vector))
     m=S.m;a=S.a;b=S.b
     x,w=xw
-        
+
     n=length(vals)
-    
-        
+
+
     if m==a==b==0
 
         V=jacobip(0:n-1,0.5,-0.5,x)'
@@ -43,12 +43,12 @@ function transform(S::JacobiSquare,vals::Vector,xw::(Vector,Vector))
         (V*(w.*vals))./nrm
     elseif m==a && b==0
         ## Same as jacobitransform.jl
-    
+
         w2=(1-x).^(m/2)
         mw=w2.*w
-        V=jacobip(0:n-div(m,2)-1,m+0.5,-0.5,x)'  
-        nrm=(V.^2)*(w2.*mw)    
-        (V*(mw.*vals))./nrm*2^(m/2)    
+        V=jacobip(0:n-div(m,2)-1,m+0.5,-0.5,x)'
+        nrm=(V.^2)*(w2.*mw)
+        (V*(mw.*vals))./nrm*2^(m/2)
     else
         error("transform only implemented for first case")
     end
@@ -62,7 +62,7 @@ end
 plan_itransform(S::JacobiSquare,n)=points(S,n)
 #TODO: general domain
 itransform(S::JacobiSquare,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
-itransform(S::JacobiSquare,cfs::Vector,x)=x.^S.m.*jacobip(0:length(cfs)-1,S.a+0.5,S.b-0.5,tocanonical(S,x.^2))*cfs
+itransform(S::JacobiSquare,cfs::Vector,x)=isempty(cfs)?zeros(x):x.^S.m.*jacobip(0:length(cfs)-1,S.a+0.5,S.b-0.5,tocanonical(S,x.^2))*cfs
 evaluate{T}(f::Fun{JacobiSquare,T},x::Vector)=itransform(f.space,f.coefficients,x)
 evaluate{T}(f::Fun{JacobiSquare,T},x::Number)=itransform(f.space,f.coefficients,[x])[1]
 
@@ -95,20 +95,20 @@ function Derivative(S::JacobiSquare)
      a=S.a;b=S.b;m=S.m
      d=domain(S)
      @assert d==Interval(1.,0.)
-     
+
      JS=jacobispace(S)
      D=Derivative(JS)
-     
+     M=Multiplication(2Fun(identity,d),rangespace(D))
+
       if m==0
-      # we have D[ f(r^2)] = 2r f'(r^2)
-         DerivativeWrapper(SpaceOperator(2*D,S,JacobiSquare(1,a+1,b+1,d)),1)     
+      # we have D[ f(r^2)] = 2r f'(r^2) = 2 r^(-1)*r^2 f'(r^2)
+         DerivativeWrapper(SpaceOperator(M*D,S,JacobiSquare(-1,a+1,b+1,d)),1)
       else
-     # we have D[r^m f(r^2)] = r^{m-1} (m f(r^2) + 2r^2 f'(r^2))     
-        M=Multiplication(Fun(identity,d),rangespace(D))
-        DerivativeWrapper(SpaceOperator(m+2*M*D,S,JacobiSquare(m-1,a+1,b+1,d)),1)
+     # we have D[r^m f(r^2)] = r^{m-1} (m f(r^2) + 2r^2 f'(r^2))
+        DerivativeWrapper(SpaceOperator(m+M*D,S,JacobiSquare(m-1,a+1,b+1,d)),1)
     end
 end
-     
+
 
 function Derivative(S::JacobiSquare,k::Integer)
      if k==1
@@ -135,7 +135,7 @@ function Conversion(A::JacobiSquare,B::JacobiSquare)
         @assert A.m > B.m && iseven(A.m-B.m)
         r=Fun(identity,domain(B))
         M=Multiplication(r.^div(A.m-B.m,2),jacobispace(B)) #this is multiplication by r^(2*p)
-        ConversionWrapper(SpaceOperator(M*Conversion(jacobispace(A),jacobispace(B)),A,B))        
+        ConversionWrapper(SpaceOperator(M*Conversion(jacobispace(A),jacobispace(B)),A,B))
     end
 end
 

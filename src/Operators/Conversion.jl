@@ -2,7 +2,7 @@ export Conversion
 
 abstract AbstractConversion{T}<:BandedOperator{T}
 
-immutable Conversion{S<:FunctionSpace,V<:FunctionSpace,T<:Number} <: AbstractConversion{T}
+immutable Conversion{S<:FunctionSpace,V<:FunctionSpace,T} <: AbstractConversion{T}
     domainspace::S
     rangespace::V
 end
@@ -26,14 +26,14 @@ function Conversion(a::FunctionSpace,b::FunctionSpace)
             error("implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
         elseif typeof(sp) == typeof(b)
             error("implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
-        else        
+        else
             Conversion(a,sp,b)
         end
     else
         Conversion{typeof(a),typeof(b),promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
     end
 end
-    
+
 
 
 ## convert TO canonical
@@ -46,7 +46,7 @@ Conversion(A::FunctionSpace)=Conversion(A,canonicalspace(A))
 # the domain and range space
 # but continue to know its a derivative
 
-immutable ConversionWrapper{S<:BandedOperator,T<:Number} <: AbstractConversion{T}
+immutable ConversionWrapper{S<:BandedOperator,T} <: AbstractConversion{T}
     op::S
 end
 

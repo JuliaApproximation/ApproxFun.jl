@@ -1,6 +1,6 @@
 
 
-immutable SpaceFunctional{T<:Number,O<:Functional,S<:FunctionSpace} <: Functional{T}
+immutable SpaceFunctional{T,O<:Functional,S<:FunctionSpace} <: Functional{T}
     op::O
     space::S
 end
@@ -15,7 +15,7 @@ domainspace(S::SpaceFunctional)=S.space
 domain(S::SpaceFunctional)=domain(S.space)
 
 ## Space Operator is used to wrap an AnySpace() operator
-immutable SpaceOperator{T<:Number,O<:Operator,S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{T}
+immutable SpaceOperator{T,O<:Operator,S<:FunctionSpace,V<:FunctionSpace} <: BandedOperator{T}
     op::O
     domainspace::S
     rangespace::V
@@ -28,7 +28,10 @@ end
 
 # The promote_type is needed to fix a bug in promotetimes
 # not sure if its the right long term solution
-SpaceOperator{T<:Number}(o::Operator{T},s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{promote_type(T,eltype(s),eltype(rs)),typeof(o),typeof(s),typeof(rs)}(o,s,rs)
+SpaceOperator(o::Operator,s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{eltype(o),
+                                                                            typeof(o),
+                                                                            typeof(s),
+                                                                            typeof(rs)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 
 Base.convert{T}(::Type{BandedOperator{T}},S::SpaceOperator)=SpaceOperator(convert(BandedOperator{T},S.op),S.domainspace,S.rangespace)
@@ -92,6 +95,7 @@ promotedomainspace(P::BandedOperator,sp::FunctionSpace,cursp::FunctionSpace)=(sp
 
 for TYP in (:Operator,:BandedOperator,:Functional)
   @eval begin
+    #TODO: better way of deciding type
     function promoterangespace{O<:$TYP}(ops::Vector{O})
       k=findmaxrangespace(ops)
       T=mapreduce(eltype,promote_type,ops)
@@ -104,7 +108,7 @@ for TYP in (:Operator,:BandedOperator,:Functional)
     end
     function promotedomainspace{O<:$TYP}(ops::Vector{O},S::FunctionSpace)
         k=conversion_type(findmindomainspace(ops),S)
-        T=mapreduce(eltype,promote_type,ops)
+        T=promote_type(mapreduce(eltype,promote_type,ops),eltype(S))
         $TYP{T}[promotedomainspace(op,k) for op in ops]
     end
   end
@@ -120,7 +124,7 @@ end
 
 function choosedomainspace(A::Operator,sp)
     sp2=domainspace(A)
-    isa(sp2,AmbiguousSpace)?sp:sp2
+    isambiguous(sp2)?sp:sp2
 end
 choosedomainspace(A)=choosedomainspace(A,AnySpace())
 

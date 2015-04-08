@@ -5,10 +5,10 @@ function Base.getindex(op::Evaluation{Jacobi,Bool},kr::Range)
     sp=op.space
     a=sp.a;b=sp.b
     x=op.x
-    
+
     if op.order == 0
         jacobip(kr-1,a,b,x?1.0:-1.0)
-    elseif op.order == 1&& !x && b==0 
+    elseif op.order == 1&& !x && b==0
         d=domain(op)
         @assert isa(d,Interval)
         Float64[tocanonicalD(d,d.a)*.5*(a+k)*(k-1)*(-1)^k for k=kr]
@@ -21,20 +21,20 @@ function Base.getindex(op::Evaluation{Jacobi,Bool},kr::Range)
             0.5*tocanonicalD(d,d.a)*(a+b+kr).*jacobip(kr-1,1+a,1+b,x?1.:-1.)
         end
     elseif op.order == 2
-        @assert !x && b==0     
-        @assert domain(op)==Interval()        
+        @assert !x && b==0
+        @assert domain(op)==Interval()
         Float64[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
 function Base.getindex(op::Evaluation{Jacobi,Float64},kr::Range)
     @assert op.order == 0
-    jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))        
+    jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
 end
 
 
 ## Derivative
 
-Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Float64}(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),Derivative{Jacobi,Float64}(J,1)),k)
+Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Int,Float64}(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),Derivative{Jacobi,Int,Float64}(J,1)),k)
 
 
 
@@ -53,11 +53,11 @@ end
 ## Integral
 
 function Integral(J::Jacobi,k::Integer)
-    if k > 1 
+    if k > 1
         Q=Integral(J,1)
         IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
     elseif J.a > 0 && J.b > 0   # we have a simple definition
-        Integral{Jacobi,Float64}(J,1)
+        Integral{Jacobi,Int,Float64}(J,1)
     else   # convert and then integrate
         sp=Jacobi(J.a+1,J.b+1,domain(J))
         C=Conversion(J,sp)
@@ -92,11 +92,11 @@ function Conversion(L::Jacobi,M::Jacobi)
     elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
         Conversion{Jacobi,Jacobi,Float64}(L,M)
     elseif M.b > L.b+1
-        Conversion(Jacobi(M.a,M.b-1,dm),M)*Conversion(L,Jacobi(M.a,M.b-1,dm))    
+        Conversion(Jacobi(M.a,M.b-1,dm),M)*Conversion(L,Jacobi(M.a,M.b-1,dm))
     else  #if M.a >= L.a+1
-        Conversion(Jacobi(M.a-1,M.b,dm),M)*Conversion(L,Jacobi(M.a-1,M.b,dm))            
+        Conversion(Jacobi(M.a-1,M.b,dm),M)*Conversion(L,Jacobi(M.a-1,M.b,dm))
     end
-end   
+end
 
 bandinds(C::Conversion{Jacobi,Jacobi})=(0,1)
 
@@ -109,15 +109,15 @@ function getdiagonalentry(C::Conversion{Jacobi,Jacobi},k,j)
             k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
         else
             (L.a+k)./(L.a+L.b+2k+1)
-        end    
+        end
     elseif L.a+1==C.rangespace.a
         if j==0
             k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
         else
             -(L.b+k)./(L.a+L.b+2k+1)
-        end  
+        end
     else
-        error("Not implemented")  
+        error("Not implemented")
     end
 end
 
@@ -153,7 +153,7 @@ function addentries!(C::Conversion{Chebyshev,Jacobi},A,kr::Range)
     for k=kr
         A[k,k]+=1./jp[k]
     end
-    
+
     A
 end
 
@@ -165,7 +165,7 @@ function addentries!(C::Conversion{Jacobi,Chebyshev},A,kr::Range)
     for k=kr
         A[k,k]+=jp[k]
     end
-    
+
     A
 end
 

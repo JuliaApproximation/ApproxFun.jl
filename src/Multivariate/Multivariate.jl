@@ -21,33 +21,81 @@ include("LowRankFun.jl")
 include("ProductFun.jl")
 
 
-Fun(f,S::MultivariateFunctionSpace,n...)=ProductFun(f,S,n...)
-Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
-Fun(f,dx::Domain,dy::Domain)=Fun(f,dx*dy)
-Fun(f,dx::Vector,dy::Vector)=Fun(f,Interval(dx),Interval(dx))
+# Fun(f,S::MultivariateSpace,n...)=ProductFun(f,S,n...)
+# Fun{T<:Number}(f::Number,S::MultivariateDomain{T})=Fun(f,Space(S))
+# Fun{T<:Number}(f::Function,S::MultivariateDomain{T})=Fun(f,Space(S))
+# Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
+# Fun{T<:Number}(f,dx::MultivariateDomain{T},dy::Domain)=Fun(f,dx*dy)
+# Fun(f,dx::Domain,dy::Domain)=Fun(f,dx*dy)
+# Fun(f,dx::Vector,dy::Vector)=Fun(f,Interval(dx),Interval(dx))
 
+arglength(f)=length(Base.uncompressed_ast(f.code.def).args[1])
 
-function Fun(f::Function)
-    try
-        Fun(f,Interval())
-    catch ex #TODO only catch errors for wrong number of arguments
-#    	warn("Got $(ex) when assuming 1-arity of $f")
-#    	try
-        	Fun(f,Interval(),Interval())
-#         catch ex
-#        	warn("Got $(ex) when assuming 2-arity of $f")
-#         	error("Could not construct function")
-#         end
+function Fun(f::Function,d::BivariateSpace)
+    if f==zero
+        zeros(d)
+    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+        Fun(ProductFun(f,d))
+    else
+        Fun(ProductFun((x,y)->f((x,y)),d))
     end
 end
 
 
+function Fun(f::Function,d::BivariateSpace,n::Integer)
+    if (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+        defaultFun(x->f(x...),d,n)
+    else
+        defaultFun(f,d,n)
+    end
+end
+
+function Fun(f::Function)
+    if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
+        # check for tuple
+        try
+            f(0)
+        catch ex
+            if isa(ex,BoundsError)
+                # assume its a tuple
+                return Fun(f,Interval()^2)
+            else
+                throw(ex)
+            end
+        end
+
+        Fun(f,Interval())
+    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+            Fun(f,Interval()^2)
+    else
+        error("Function not defined on interval or square")
+    end
+end
+
+Fun(f::ProductFun)=Fun(fromtensor(coefficients(f)),space(f))
+Fun(f::ProductFun,sp::TensorSpace)=Fun(ProductFun(f,sp))
+Fun(f::LowRankFun)=Fun(ProductFun(f))
+Fun(f::LowRankFun,sp::TensorSpace)=Fun(ProductFun(f),sp)
+
+Fun(f::Function,d1::Domain,d2::Domain)=Fun(f,d1*d2)
+Fun{T<:Number,V<:Number}(f::Function,d1::Vector{T},d2::Vector{V})=Fun(f,Interval(d1),Interval(d2))
+
 coefficients(f::BivariateFun,sp::TensorSpace)=coefficients(f,sp[1],sp[2])
-
-
-Base.zeros(sp::Union(MultivariateFunctionSpace,MultivariateDomain))=Fun(zeros(1,1),sp)
-Base.zeros{T<:Number}(::Type{T},sp::Union(MultivariateFunctionSpace,MultivariateDomain))=Fun(zeros(T,1,1),sp)
 
 
 
 points(f::BivariateFun,k...)=points(space(f),size(f,1),size(f,2),k...)
+
+
+for OP in (:+,:-)
+    @eval begin
+        $OP(f::Fun,g::MultivariateFun)=$OP(ProductFun(f),g)
+        $OP(f::MultivariateFun,g::Fun)=$OP(f,ProductFun(g))
+    end
+end
+
+
+Base.sum{TS<:TensorSpace}(f::Fun{TS},k::Integer)=sum(ProductFun(f),k)
+Base.sum{TS<:TensorSpace}(f::Fun{TS})=sum(ProductFun(f))
+
+

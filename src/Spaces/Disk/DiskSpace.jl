@@ -4,8 +4,8 @@ include("JacobiSquare.jl")
 
 export Disk
 
-##TODO: make argument 
-immutable Disk <: BivariateDomain
+##TODO: make argument
+immutable Disk <: BivariateDomain{Float64}
     radius::Float64
     center::(Float64,Float64)
 end
@@ -17,12 +17,12 @@ Disk()=Disk(1.)
 # we assume radius and centre are zero for now
 fromcanonical(D::Disk,x,t)=x*cos(t),x*sin(t)
 tocanonical(D::Disk,x,y)=sqrt(x^2+y^2),atan2(y,x)
-
+checkpoints(d::Disk)=[fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3))]
 
 # function points(d::Disk,n,m,k)
 #     ptsx=0.5*(1-gaussjacobi(n,1.,0.)[1])
 #     ptst=points(PeriodicInterval(),m)
-#     
+#
 #     Float64[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 # end
 
@@ -30,20 +30,17 @@ tocanonical(D::Disk,x,y)=sqrt(x^2+y^2),atan2(y,x)
 ∂(d::Disk)=Circle(Complex(d.center...),d.radius)
 
 
-# Kind== 0 => Legendre, K==1=>Chebyshev, K==2=>JacobiSquare
-immutable DiskSpace{K,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpace{JS,S}
+immutable DiskSpace{m,a,b,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpace{JS,S,Complex128,Disk}
     domain::Disk
     spacet::S
 end
 
 
-DiskSpace{SS}(K::Integer,D::Disk,S::SS)=DiskSpace{K,K==2?JacobiSquareSpace:JacobiWeight{Jacobi},SS}(D,S)
-DiskSpace{SS}(D::Disk,S::SS)=DiskSpace{2,JacobiSquare,SS}(D,S)
-DiskSpace(K::Integer,D::Disk)=DiskSpace(K,D,Laurent())
-DiskSpace(K::Integer)=DiskSpace(K,Disk())
-
-#TODO: Change to Fourier
+DiskSpace(m,a,b,D::Disk,S::PeriodicSpace)=DiskSpace{m,a,b,JacobiSquare,typeof(S)}(D,S)
+DiskSpace(D::Disk,S::PeriodicSpace)=DiskSpace(0,0,0,D,S)
 DiskSpace(D::Disk)=DiskSpace(D,Laurent())
+
+spacescompatible{m,a,b,JS,S}(A::DiskSpace{m,a,b,JS,S},B::DiskSpace{m,a,b,JS,S})=true
 
 coefficient_type{T<:Complex}(::DiskSpace,::Type{T})=T
 coefficient_type{T<:Real}(::DiskSpace,::Type{T})=Complex{T}
@@ -59,54 +56,106 @@ Base.getindex(D::DiskSpace,k::Integer)=space(D,k)
 Space(D::Disk)=DiskSpace(D)
 
 
-
-
-
-columnspace{SS}(D::DiskSpace{0,SS},k)=(m=1.div(k,2);JacobiWeight(0.,m,Jacobi(2m+1,0.,Interval(D.domain.radius,0.))))
-columnspace{SS}(D::DiskSpace{1,SS},k)=(m=1.div(k,2);JacobiWeight(0.,m,Jacobi(2m+0.5,-0.5,Interval(D.domain.radius,0.))))
-columnspace{SS}(D::DiskSpace{2,SS},k)=(m=div(k,2);JacobiSquare(m,Interval(D.domain.radius,0.)))
+columnspace{M,a,b,SS}(D::DiskSpace{M,a,b,SS},k)=(m=div(k,2);JacobiSquare(M+m,a+m,b,Interval(D.domain.radius,0.)))
 
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
 
-diskspacetype{K}(D::DiskSpace{K})=K
-
-
-function Base.real{JS,D<:DiskSpace}(f::ProductFun{JS,Laurent,D})
+function Base.real{JS}(f::ProductFun{JS,Laurent,DiskSpace{0,0,0,JS,Laurent}})
     cfs=f.coefficients
     n=length(cfs)
 
     ret=Array(Fun{JS,Float64},iseven(n)?n+1:n)
     ret[1]=real(cfs[1])
-    
+
     for k=2:2:n
         # exp(1im(k-1)/2*x)=cos((k-1)/2 x) +i sin((k-1)/2 x)
         ret[k]=imag(cfs[k])
         ret[k+1]=real(cfs[k])
-    end        
+    end
     for k=3:2:n
         # exp(1im(k-1)/2*x)=cos((k-1)/2 x) +i sin((k-1)/2 x)
         ret[k]+=real(cfs[k])
         ret[k-1]-=imag(cfs[k])
     end
 
-    ProductFun(ret,DiskSpace{diskspacetype(space(f)),JS,Fourier}(space(f).domain,Fourier()))
+    ProductFun(ret,DiskSpace{0,0,0,JS,Fourier}(space(f).domain,Fourier()))
 end
 #Base.imag{S,T}(u::ProductFun{S,Larent,T})=real(TensorFun(imag(u.coefficients),space(u,2)).').'+imag(TensorFun(real(u.coefficients),space(u,2)).').'
 
 
 
+## Conversion
+# These are placeholders for future
+
+conversion_rule{m,a,b,m2,a2,b2,JS,FS}(A::DiskSpace{m,a,b,JS,FS},
+                                      B::DiskSpace{m2,a2,b2,JS,FS})=DiskSpace(max(m,m2),min(a,a2),min(b,b2),A.domain,B.spacet)
+
+function coefficients{m,a,b,m2,a2,b2,JS,FS}(cfs::Vector,
+                                            A::DiskSpace{m,a,b,JS,FS},
+                                          B::DiskSpace{m2,a2,b2,JS,FS})
+    g=ProductFun(Fun(cfs,A))
+    rcfs=Fun{typeof(columnspace(B,1)),eltype(cfs)}[Fun(g.coefficients[k],columnspace(B,k)) for k=1:length(g.coefficients)]
+    Fun(ProductFun(rcfs,B)).coefficients
+end
+
+
+# function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
+#     @assert space(f,2)==space(sp,2)
+
+#     n=min(size(f,2),length(sp.S))
+#     F=[coefficients(f.coefficients[k],rangespace(sp.S.Rdiags[k])) for k=1:n]
+#     m=mapreduce(length,max,F)
+#     ret=zeros(T,m,n)
+#     for k=1:n
+#         ret[1:length(F[k]),k]=F[k]
+#     end
+#     ret
+# end
+
 
 ## Operators
 
-function lap(S::Disk)
-    D=Derivative()
-    r=Fun(identity,[S.radius,0.])
-    PDEOperator(((D^2+(1./r)*D)⊗I+(1./r).^2⊗D^2).ops,S)
+isfunctional{DS<:DiskSpace}(D::Dirichlet{DS},k)=k==1
+dekron{DS<:DiskSpace}(D::Dirichlet{DS},k)=k==1?Evaluation(false,D.order):ConstantOperator(1.0)
+
+
+Base.length{DS<:DiskSpace}(::Laplacian{DS})=2
+function dekron{DS<:DiskSpace}(L::Laplacian{DS},k,::Colon)
+    if L.order==1
+        if k==1
+            r=Fun(identity,[domain(L).radius,0.])
+            D=Derivative()
+            [(D^2+(1./r)*D),Multiplication((1./r).^2)]
+        elseif k==2
+            D=Derivative(domainspace(L)[2])
+            [ConstantOperator(1.0),D^2]
+        end
+    elseif L.order==2
+        Δ=Laplacian(domainspace(L))
+        rops=dekron(Δ,1,:)
+        if k==1
+            [rops[1]^2,rops[1]*rops[2],rops[2]*rops[1],rops[2]^2]
+        elseif k==2
+            D=Derivative(domainspace(L)[2])
+            C=ConstantOperator(1.0)
+            [C,D^2,D^2,D^4]
+        end
+    else
+        error("Higher order Laplacian not yet implemented")
+    end
 end
 
-neumann(S::Disk)=PDEOperator((lneumann()⊗I).ops,S)
-dirichlet(S::Disk)=PDEOperator((ldirichlet()⊗I).ops,S)
-diffbcs(S::Disk,k::Integer)=PDEOperator((ldiffbc(k)⊗I).ops,S)
+dekron(L,k::Integer,j::Integer)=dekron(L,k,:)[j]
+
+lap(d::Disk)=Laplacian(Space(d))
+dirichlet(d::Disk)=Dirichlet(Space(d))
+neumann(d::Disk)=Neumann(Space(d))
 
 
+
+function rangespace{JS,S}(L::Laplacian{DiskSpace{0,0,0,JS,S}})
+    @assert L.order==1
+    sp=domainspace(L)
+    DiskSpace(-2,2,2,sp.domain,sp.spacet)
+end

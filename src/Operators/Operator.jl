@@ -72,9 +72,13 @@ Base.stride(A::Functional)=1
 
 
 
+bazeros{T<:Number}(B::Operator{T},n::Integer,m::Integer)=bazeros(T,n,m,bandinds(B))
+bazeros{T<:Number}(B::Operator{T},n::Integer,m::Colon)=bazeros(T,n,m,bandinds(B))
+bazeros{T<:Number}(B::Operator{T},n::Integer,br::(Int,Int))=bazeros(T,n,br)
 
-BandedMatrix{T<:Number}(B::Operator{T},n::Integer)=addentries!(B,bazeros(T,n,:,bandinds(B)),1:n)
-BandedMatrix{T<:Number}(B::Operator{T},rws::UnitRange,::Colon)=first(rws)==1?BandedMatrix(B,last(rws)):addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
+
+BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n)
+BandedMatrix{T}(B::Operator{T},rws::UnitRange,::Colon)=first(rws)==1?BandedMatrix(B,last(rws)):addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
 
 function BandedMatrix{T<:Number}(B::Operator{T},kr::StepRange,::Colon)
     stp=step(kr)
@@ -185,9 +189,9 @@ end
 
 ## Composition with a Fun, LowRankFun, and ProductFun
 
-Base.getindex(B::Operator,f::Fun) = B*Multiplication(domainspace(B),f)
-Base.getindex{BT,S,M,T,V}(B::Operator{BT},f::LowRankFun{S,M,T,V}) = PlusOperator(BandedOperator{promote_type(BT,T,V)}[f.A[i]*B[f.B[i]] for i=1:rank(f)])
-Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = PlusOperator(BandedOperator{promote_type(BT,T)}[f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1),one(promote_type(BT,T))],f.space.spaces[2])] for i=1:length(f.coefficients)])
+Base.getindex{BT,S,T}(B::Operator{BT},f::Fun{S,T}) = B*Multiplication(domainspace(B),f)
+Base.getindex{BT,S,M,T,V}(B::Operator{BT},f::LowRankFun{S,M,T,V}) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
+Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1),one(promote_type(BT,T))],f.space[2])],+,1:length(f.coefficients))
 
 ## Standard Operators and linear algebra
 
@@ -263,13 +267,3 @@ for OP in (:BandedOperator,:Functional,:Operator)
   @eval Base.promote_rule{BO1<:$OP,BO2<:$OP}(::Type{BO1},::Type{BO2})=$OP{promote_type(eltype(BO1),eltype(BO2))}
 end
 
-
-
-#TODO: remove
-
-# for T in (:Float64,:Int64,:(Complex{Float64}))
-#   @eval begin
-#       Base.promote_rule{N<:Number}(::Type{UniformScaling{$T}},::Type{N})=UniformScaling{promote_type{$T,N}}
-#       Base.convert{US<:UniformScaling}(::Type{US},x::Number)=US(x)
-#   end
-# end

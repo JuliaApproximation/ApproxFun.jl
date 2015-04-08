@@ -12,7 +12,8 @@ immutable Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Abstra
 end
 Evaluation{T}(::Type{T},sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
 Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,UnsetNumber}(sp,x,k)
-Evaluation(sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),promote_type(eltype(sp),eltype(domain(sp)))}(sp,x,order)
+Evaluation(sp::FunctionSpace{ComplexBasis},x,order::Integer)=Evaluation{typeof(sp),typeof(x),Complex{real(eltype(domain(sp)))}}(sp,x,order)
+Evaluation(sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),eltype(domain(sp))}(sp,x,order)
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
@@ -89,4 +90,20 @@ end
 for op in (:ldiffbc,:rdiffbc,:diffbcs,:periodic)
     @eval $op(k::Integer)=$op(AnySpace(),k)
 end
+
+
+
+
+immutable Dirichlet{S,T} <: Operator{T}
+    space::S
+    order::Int
+end
+Dirichlet(sp::FunctionSpace)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,0)
+Dirichlet(d::Domain)=Dirichlet(Space(d))
+Neumann(sp::FunctionSpace)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,1)
+Neumann(d::Domain)=Dirichlet(Space(d))
+
+
+domainspace(S::Dirichlet)=S.space
+rangespace(B::Dirichlet)=Space(∂(domain(B)))
 

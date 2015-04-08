@@ -62,9 +62,11 @@ PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::AbstractOperatorS
 PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,ConstantOperator(Lx.λ),Mx,S)
 
 
-function PDEOperatorSchur(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)
-   @assert size(A.ops)==(2,2)
-   PDEOperatorSchur(Bx,A.ops[1,1],A.ops[2,1],schurfact(By,A.ops[:,2],ny),indsBx,indsBy)
+function PDEOperatorSchur(Bx,By,A::PlusOperator,ny::Integer,indsBx,indsBy)
+    @assert all(isproductop,A.ops)
+    @assert length(A.ops)==2
+
+    PDEOperatorSchur(Bx,dekron(A.ops[1],1),dekron(A.ops[2],1),schurfact(By,[dekron(A.ops[1],2),dekron(A.ops[2],2)],ny),indsBx,indsBy)
 end
 
 
@@ -75,12 +77,10 @@ numbcs(S::AbstractPDEOperatorSchur,k)=length(bcinds(S,k))
 Base.length(S::PDEOperatorSchur)=size(S.S,1)
 
 
-function PDEOperatorSchur{T<:PDEOperator}(A::Vector{T},ny::Integer)
+function PDEOperatorSchur(A::Vector,ny::Integer)
     indsBx,Bx=findfunctionals(A,1)
     indsBy,By=findfunctionals(A,2)
 
-    inds=find(ispdeop,A)
-    @assert length(inds)==1&&inds[1]==length(A)
     LL=A[end]
 
 
@@ -126,14 +126,22 @@ end
 # Represents an operator on e.g. a Disk
 #############
 
-immutable PDEProductOperatorSchur{ST<:Number,FT<:Functional,DS<:AbstractProductSpace,S<:FunctionSpace,V<:FunctionSpace} <: AbstractPDEOperatorSchur
+immutable PDEProductOperatorSchur{ST<:Number,
+                                  FT<:Functional,
+                                  DS<:AbstractProductSpace,
+                                  RS<:AbstractProductSpace,
+                                  S<:FunctionSpace,
+                                  V<:FunctionSpace} <: AbstractPDEOperatorSchur
     Bx::Vector{Vector{FT}}
     Rdiags::Vector{SavedBandedOperator{ST}}
     domainspace::DS
+    rangespace::RS
     indsBx::Vector{Int}
 end
 
-PDEProductOperatorSchur{ST,FT,S,V}(Bx::Vector{Vector{FT}},Rdiags::Vector{SavedBandedOperator{ST}},ds::AbstractProductSpace{S,V},indsBx)=PDEProductOperatorSchur{ST,FT,typeof(ds),S,V}(Bx,Rdiags,ds,indsBx)
+PDEProductOperatorSchur{ST,FT,S,V}(Bx::Vector{Vector{FT}},
+                                   Rdiags::Vector{SavedBandedOperator{ST}},
+                                   ds::AbstractProductSpace{S,V},rs,indsBx)=PDEProductOperatorSchur{ST,FT,typeof(ds),typeof(rs),S,V}(Bx,Rdiags,ds,rs,indsBx)
 
 Base.eltype{ST}(::PDEProductOperatorSchur{ST})=ST
 
@@ -141,33 +149,23 @@ Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
 
 domain(P::PDEProductOperatorSchur)=domain(domainspace(P))
 
-function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProductSpace,nt::Integer)
-    indsBx=find(isxfunctional,A)
-    Bx=Functional{eltype(T)}[(@assert Ai.ops[1,2]==ConstantOperator{Float64}(1.0); Ai.ops[1,1]) for Ai in A[indsBx]]
-
-
-    indsBy=find(isyfunctional,A)
-    @assert length(indsBy)==0
-    inds=find(ispdeop,A)
-    @assert length(inds)==1&&inds[1]==length(A)
-
+function PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::AbstractProductSpace,nt::Integer)
+    indsBx,Bx=findfunctionals(A,1)
+    @assert isempty(findfunctionals(A,2)[1])
     L=A[end]
-
-
-
-    L=promotedomainspace(L,sp[2],2)
-    S=schurfact(Functional{eltype(T)}[],L.ops[:,2],nt)
+    S=schurfact(Functional{eltype(eltype(L))}[],dekron(L,2,:),nt)
     @assert(isa(S,DiagonalOperatorSchur))
 
     #TODO: Space Type
     BxV=Array(Vector{SavedFunctional{Float64}},nt)
     Rdiags=Array(SavedBandedOperator{Complex{Float64}},nt)
+    rops=dekron(L,1,:)
     for k=1:nt
-        op=getdiagonal(S,k,1)*L.ops[1,1]
-        for j=2:size(L.ops,1)
+        op=getdiagonal(S,k,1)*rops[1]
+        for j=2:length(L)
             Skj=getdiagonal(S,k,j)
             if Skj!=0   # don't add unnecessary ops
-                op+=Skj*L.ops[j,1]
+                op+=Skj*rops[j]
             end
         end
 
@@ -179,16 +177,17 @@ function PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::AbstractProduc
             resizedata!(Bxx,2nt+100)
         end
     end
-    PDEProductOperatorSchur(BxV,Rdiags,sp,indsBx)
+    PDEProductOperatorSchur(BxV,Rdiags,sp,rangespace(L),indsBx)
 end
 
-PDEProductOperatorSchur{T<:PDEOperator}(A::Vector{T},sp::BivariateDomain,nt::Integer)=PDEProductOperatorSchur(A,Space(sp),nt)
+PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::BivariateDomain,nt::Integer)=PDEProductOperatorSchur(A,Space(sp),nt)
 
 
 ##TODO: Larger Bx
 bcinds(S::PDEProductOperatorSchur,k)=k==1?S.indsBx:[]
 domainspace(S::PDEProductOperatorSchur)=S.domainspace
 domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
+rangespace(S::PDEProductOperatorSchur)=S.rangespace
 
 # for op in (:domainspace,:rangespace)
 #     @eval begin
@@ -207,33 +206,33 @@ domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
 
 
 
-type ProductRangeSpace{PDEP<:PDEProductOperatorSchur,SS,VV} <: AbstractProductSpace{SS,VV}
-    S::PDEP
-end
+# type ProductRangeSpace{PDEP<:PDEProductOperatorSchur,SS,VV} <: AbstractProductSpace{SS,VV}
+#     S::PDEP
+# end
 
-ProductRangeSpace{ST,FT,DS,S,V}(s::PDEProductOperatorSchur{ST,FT,DS,S,V})=ProductRangeSpace{typeof(s),S,V}(s)
+# ProductRangeSpace{ST,FT,DS,S,V}(s::PDEProductOperatorSchur{ST,FT,DS,S,V})=ProductRangeSpace{typeof(s),S,V}(s)
 
-rangespace(S::PDEProductOperatorSchur)=ProductRangeSpace(S)
 
-function space(S::ProductRangeSpace,k)
-    @assert k==2
-    S.S.domainspace[2]
-end
 
-columnspace(S::ProductRangeSpace,k)=rangespace(S.S.Rdiags[k])
+# function space(S::ProductRangeSpace,k)
+#     @assert k==2
+#     S.S.domainspace[2]
+# end
 
-function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
-    @assert space(f,2)==space(sp,2)
+# columnspace(S::ProductRangeSpace,k)=rangespace(S.S.Rdiags[k])
 
-    n=min(size(f,2),length(sp.S))
-    F=[coefficients(f.coefficients[k],rangespace(sp.S.Rdiags[k])) for k=1:n]
-    m=mapreduce(length,max,F)
-    ret=zeros(T,m,n)
-    for k=1:n
-        ret[1:length(F[k]),k]=F[k]
-    end
-    ret
-end
+# function coefficients{S,V,SS,T}(f::ProductFun{S,V,SS,T},sp::ProductRangeSpace)
+#     @assert space(f,2)==space(sp,2)
+
+#     n=min(size(f,2),length(sp.S))
+#     F=[coefficients(f.coefficients[k],rangespace(sp.S.Rdiags[k])) for k=1:n]
+#     m=mapreduce(length,max,F)
+#     ret=zeros(T,m,n)
+#     for k=1:n
+#         ret[1:length(F[k]),k]=F[k]
+#     end
+#     ret
+# end
 
 
 
@@ -243,19 +242,22 @@ end
 Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)=PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 Base.schurfact{LT<:Number,MT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::StrideOperatorSchur{ST},indsBx,indsBy)=PDEStrideOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 
-function Base.schurfact(Bx,By,A::PDEOperator,ny::Integer,indsBx,indsBy)
-   @assert size(A.ops)==(2,2)
-   schurfact(Bx,A.ops[1,1],A.ops[2,1],schurfact(By,A.ops[:,2],ny),indsBx,indsBy)
+function Base.schurfact{T}(Bx,By,A::PlusOperator{BandedMatrix{T}},ny::Integer,indsBx,indsBy)
+    @assert all(isproductop,A.ops)
+    @assert length(A.ops)==2
+
+    schurfact(Bx,
+              dekron(A.ops[1],1),dekron(A.ops[2],1),
+              schurfact(By,[dekron(A.ops[1],2),dekron(A.ops[2],2)],ny),
+              indsBx,indsBy)
 end
 
 
 
-function Base.schurfact{T<:PDEOperator}(A::Vector{T},S::ProductDomain,ny::Integer)
+function Base.schurfact{BT<:BandedOperator}(A::Vector{BT},S::ProductDomain,ny::Integer)
     indsBx,Bx=findfunctionals(A,1)
     indsBy,By=findfunctionals(A,2)
 
-    inds=find(ispdeop,A)
-    @assert length(inds)==1&&inds[1]==length(A)
     LL=A[end]
 
 
@@ -266,11 +268,11 @@ end
 
 
 
-Base.schurfact{T<:PDEOperator}(A::Vector{T},S::BivariateDomain,n::Integer)=PDEProductOperatorSchur(A,S,n)
+Base.schurfact{BT<:Operator}(A::Vector{BT},S::BivariateDomain,n::Integer)=PDEProductOperatorSchur(A,S,n)
 
 
-Base.schurfact{T<:PDEOperator}(A::Vector{T},n::Integer)=schurfact(A,domain(A[end]),n)
-Base.schurfact(A::PDEOperator,n::Integer)=schurfact([A],n)
+Base.schurfact{BT<:Operator}(A::Vector{BT},n::Integer)=schurfact(A,domain(A[end]),n)
+Base.schurfact{T}(A::BivariateOperator{T},n::Integer)=schurfact([A],n)
 
 function *(A::PDEProductOperatorSchur,F::ProductFun)
     ret=copy(F.coefficients)
@@ -286,7 +288,7 @@ end
 ## discretize
 
 #TODO: don't hard code Disk
-discretize{T<:PDEOperator}(A::Vector{T},S...)=size(A[end].ops,1)==2||domain(A[end])==Disk()?schurfact(A,S...):kron(A,S...)
-discretize(A::PDEOperator,n::Integer)=discretize([A],n)
+discretize{OT<:Operator}(A::Vector{OT},S...)=(isa(A[end],PlusOperator)&&length(A[end].ops)==2)||domain(A[end])==Disk()?schurfact(A,S...):kron(A,S...)
+discretize{T}(A::BivariateOperator{T},n::Integer)=discretize([A],n)
 
 

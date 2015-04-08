@@ -51,7 +51,7 @@ end
 
 
 immutable PDEOperatorKron{T}
-    op::PDEOperator #we need to remember the op to reduce DOFs
+    op::BivariateOperator{T} #we need to remember the op to reduce DOFs
     opsx::ReducedDiscreteOperators
     opsy::ReducedDiscreteOperators
     indsBx::Vector{Int}
@@ -70,9 +70,9 @@ domain(P::PDEOperatorKron)=domain(domainspace(P))
 function PDEOperatorKron(A,nx::Integer,ny::Integer)
     L=A[end]
     indsBx,Bx=findfunctionals(A,1)
-    Ax=ReducedDiscreteOperators(Bx,L.ops[:,1],nx)
+    Ax=ReducedDiscreteOperators(Bx,map(op->op.ops[1],L.ops),nx)
     indsBy,By=findfunctionals(A,2)
-    Ay=ReducedDiscreteOperators(By,L.ops[:,2],ny)
+    Ay=ReducedDiscreteOperators(By,map(op->op.ops[2],L.ops),ny)
     PDEOperatorKron(L,Ax,Ay,indsBx,indsBy,kron(Ax,Ay))
 end
 
@@ -82,14 +82,14 @@ Base.size(A::PDEOperatorKron)=size(A,1),size(A,2)
 bcinds(A::PDEOperatorKron,k)=k==1?A.indsBx:A.indsBy
 numbcs(A::PDEOperatorKron,k)=numbcs(k==1?A.opsx:A.opsy)
 
-Base.kron{T<:PDEOperator}(A::Vector{T},nx::Integer,ny::Integer)=PDEOperatorKron(A,nx,ny)
-Base.kron{T<:PDEOperator}(A::Vector{T},n::Integer)=kron(A,n,n)
-Base.kron{T<:PDEOperator}(A::Vector{T},S::BivariateDomain,n::Integer)=kron(A,n)
+Base.kron{T}(A::Vector{BivariateOperator{T}},nx::Integer,ny::Integer)=PDEOperatorKron(A,nx,ny)
+Base.kron{T}(A::Vector{BivariateOperator{T}},n::Integer)=kron(A,n,n)
+Base.kron{T}(A::Vector{BivariateOperator{T}},S::BivariateDomain,n::Integer)=kron(A,n)
 
 
 function pdesolve(K::PDEOperatorKron,G)
     fx,fy,F=pde_standardize_rhs(K,G)
-    F=cont_reduce_dofs!(K.opsx,K.op.ops[:,2],fx,F.').'
+    F=cont_reduce_dofs!(K.opsx,map(op->op.ops[2],K.op.ops),fx,F.').'
     F=cont_reduce_dofs!(K.opsy,K.opsx,fy,F)
 
 
@@ -121,7 +121,7 @@ function pdesolve(K::PDEOperatorKron,G)
 
     X = [X11 X12; X21 X22]
 
-    Fun(Px*X*Py.',domainspace(K))
+    ProductFun(Px*X*Py.',domainspace(K))
 end
 
 

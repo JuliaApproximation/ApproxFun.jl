@@ -240,19 +240,19 @@ function Base.log{T<:Real}(f::Fun{Fourier,T})
 end
 
 
-for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0",:(real)),
-                            (:(Base.asin),"sqrt(1-f^2)*D","fp",:(imag)),
-                            (:(Base.acos),"sqrt(1-f^2)*D","-fp",:(imag)),
-                            (:(Base.atan),"(1+f^2)*D","fp",:(imag)),
-                            (:(Base.asinh),"sqrt(f^2+1)*D","fp",:(real)),
-                            (:(Base.acosh),"sqrt(f^2-1)*D","fp",:(real)),
-                            (:(Base.atanh),"(1-f^2)*D","fp",:(real)),
-                            (:(Base.erfcx),"D-2f*fp","-2fp/sqrt(π)",:(real)),
-                            (:(Base.dawson),"D+2f*fp","fp",:(real)))
+for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
+                            (:(Base.asin),"sqrt(1-f^2)*D","f'",:(imag)),
+                            (:(Base.acos),"sqrt(1-f^2)*D","-f'",:(imag)),
+                            (:(Base.atan),"(1+f^2)*D","f'",:(imag)),
+                            (:(Base.asinh),"sqrt(f^2+1)*D","f'",:(real)),
+                            (:(Base.acosh),"sqrt(f^2-1)*D","f'",:(real)),
+                            (:(Base.atanh),"(1-f^2)*D","f'",:(real)),
+                            (:(Base.erfcx),"D-2f*f'","-2f'/sqrt(π)",:(real)),
+                            (:(Base.dawson),"D+2f*f'","f'",:(real)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
         function $op{S,T}(f::Fun{S,T})
-            g=chop($growth(f),eps())
+            g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
             opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
@@ -262,9 +262,9 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-fp","0",:(real)),
             # even if f is not
             # This supports Line/Rays
             D=Derivative(domain(f))
-            fp=differentiate(f)
             B=Evaluation(domainspace(D),xmax)
-            linsolve([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=100eps())*opmax
+            #([B,eval($L)]\[opfxmax/opmax,eval($R)/opmax])*opmax
+            linsolve([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
         end
     end
 end
@@ -281,33 +281,31 @@ Base.cos{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 
 
 
-for (op,ODE,RHS,growth) in ((:(Base.erf),"fp*D^2+(2f*fp^2-fpp)*D","0fp^3",:(imag)),
-                            (:(Base.erfi),"fp*D^2-(2f*fp^2+fpp)*D","0fp^3",:(real)),
-                            (:(Base.erfc),"fp*D^2+(2f*fp^2-fpp)*D","0fp^3",:(real)),
-                            (:(Base.sin),"fp*D^2-fpp*D+fp^3","0fp^3",:(imag)),
-                            (:(Base.cos),"fp*D^2-fpp*D+fp^3","0fp^3",:(imag)),
-                            (:(Base.sinh),"fp*D^2-fpp*D-fp^3","0fp^3",:(real)),
-                            (:(Base.cosh),"fp*D^2-fpp*D-fp^3","0fp^3",:(real)),
-                            (:(Base.airyai),"fp*D^2-fpp*D-f*fp^3","0fp^3",:(imag)),
-                            (:(Base.airybi),"fp*D^2-fpp*D-f*fp^3","0fp^3",:(imag)),
-                            (:(Base.airyaiprime),"fp*D^2-fpp*D-f*fp^3","airyai(f)*fp^3",:(imag)),
-                            (:(Base.airybiprime),"fp*D^2-fpp*D-f*fp^3","airybi(f)*fp^3",:(imag)))
+for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0f'^3",:(imag)),
+                            (:(Base.erfi),"f'*D^2-(2f*f'^2+f'')*D","0f'^3",:(real)),
+                            (:(Base.erfc),"f'*D^2+(2f*f'^2-f'')*D","0f'^3",:(real)),
+                            (:(Base.sin),"f'*D^2-f''*D+f'^3","0f'^3",:(imag)),
+                            (:(Base.cos),"f'*D^2-f''*D+f'^3","0f'^3",:(imag)),
+                            (:(Base.sinh),"f'*D^2-f''*D-f'^3","0f'^3",:(real)),
+                            (:(Base.cosh),"f'*D^2-f''*D-f'^3","0f'^3",:(real)),
+                            (:(Base.airyai),"f'*D^2-f''*D-f*f'^3","0f'^3",:(imag)),
+                            (:(Base.airybi),"f'*D^2-f''*D-f*f'^3","0f'^3",:(imag)),
+                            (:(Base.airyaiprime),"f'*D^2-f''*D-f*f'^3","airyai(f)*f'^3",:(imag)),
+                            (:(Base.airybiprime),"f'*D^2-f''*D-f*f'^3","airybi(f)*f'^3",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
         function $op{S<:Ultraspherical,T}(f::Fun{S,T})
-            g=chop($growth(f),eps())
+            g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
             opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
             opmax = maxabs((opfxmin,opfxmax))
-            while opmax≤10eps() || abs(f[xmin]-f[xmax])≤10eps()
+            while opmax≤10eps(T) || abs(f[xmin]-f[xmax])≤10eps(T)
                 xmin,xmax = rand(domain(f)),rand(domain(f))
                 opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
                 opmax = maxabs((opfxmin,opfxmax))
             end
             D=Derivative(space(f))
-            fp=differentiate(f)
-            fpp=differentiate(fp)
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
             ([B,eval($L)]\[opfxmin/opmax,opfxmax/opmax,eval($R)/opmax])*opmax
         end
@@ -316,31 +314,29 @@ end
 
 ## Second order functions with parameter ν
 
-for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*fp*D^2+(f*fp^2-f^2*fpp)*D+(f^2-ν^2)*fp^3","0fp^3",:(imag)),
-                            (:(Base.hankelh2),"f^2*fp*D^2+(f*fp^2-f^2*fpp)*D+(f^2-ν^2)*fp^3","0fp^3",:(imag)),
-                            (:(Base.besselj),"f^2*fp*D^2+(f*fp^2-f^2*fpp)*D+(f^2-ν^2)*fp^3","0fp^3",:(imag)),
-                            (:(Base.bessely),"f^2*fp*D^2+(f*fp^2-f^2*fpp)*D+(f^2-ν^2)*fp^3","0fp^3",:(imag)),
-                            (:(Base.besseli),"f^2*fp*D^2+(f*fp^2-f^2*fpp)*D-(f^2+ν^2)*fp^3","0fp^3",:(real)),
-                            (:(Base.besselk),"f^2*fp*D^2+(f*fp^2-f^2*fpp)*D-(f^2+ν^2)*fp^3","0fp^3",:(real)),
-                            (:(Base.besselkx),"f^2*fp*D^2+((-2f^2+f)*fp^2-f^2*fpp)*D-(f+ν^2)*fp^3","0fp^3",:(real)),
-                            (:(Base.hankelh1x),"f^2*fp*D^2+((2im*f^2+f)*fp^2-f^2*fpp)*D+(im*f-ν^2)*fp^3","0fp^3",:(imag)),
-                            (:(Base.hankelh2x),"f^2*fp*D^2+((-2im*f^2+f)*fp^2-f^2*fpp)*D+(-im*f-ν^2)*fp^3","0fp^3",:(imag)))
+for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
+                            (:(Base.hankelh2),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
+                            (:(Base.besselj),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
+                            (:(Base.bessely),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
+                            (:(Base.besseli),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0f'^3",:(real)),
+                            (:(Base.besselk),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0f'^3",:(real)),
+                            (:(Base.besselkx),"f^2*f'*D^2+((-2f^2+f)*f'^2-f^2*f'')*D-(f+ν^2)*f'^3","0f'^3",:(real)),
+                            (:(Base.hankelh1x),"f^2*f'*D^2+((2im*f^2+f)*f'^2-f^2*f'')*D+(im*f-ν^2)*f'^3","0f'^3",:(imag)),
+                            (:(Base.hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0f'^3",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
         function $op{S<:Ultraspherical,T}(ν,f::Fun{S,T})
-            g=chop($growth(f),eps())
+            g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
             opfxmin,opfxmax = $op(ν,f[xmin]),$op(ν,f[xmax])
             opmax = maxabs((opfxmin,opfxmax))
-            while opmax≤10eps() || abs(f[xmin]-f[xmax])≤10eps()
+            while opmax≤10eps(T) || abs(f[xmin]-f[xmax])≤10eps(T)
                 xmin,xmax = rand(domain(f)),rand(domain(f))
                 opfxmin,opfxmax = $op(ν,f[xmin]),$op(ν,f[xmax])
                 opmax = maxabs((opfxmin,opfxmax))
             end
             D=Derivative(space(f))
-            fp=differentiate(f)
-            fpp=differentiate(fp)
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
             ([B,eval($L)]\[opfxmin/opmax,opfxmax/opmax,eval($R)/opmax])*opmax
         end

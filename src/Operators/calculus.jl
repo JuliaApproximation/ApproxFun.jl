@@ -1,7 +1,7 @@
 export Derivative,Integral
 
 
-abstract CalculusOperator{S,T}<:BandedOperator{T}
+abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 
 
 ## Note that all functions called in calculus_operator must be exported
@@ -11,24 +11,25 @@ abstract CalculusOperator{S,T}<:BandedOperator{T}
 macro calculus_operator(Op,AbstOp,WrappOp)
     return esc(quote
         # The SSS, TTT are to work around #9312
-        abstract $AbstOp{SSS,TTT} <: CalculusOperator{SSS,TTT}
+        abstract $AbstOp{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 
-        immutable $Op{S<:FunctionSpace,T<:Number} <: $AbstOp{S,T}
+        immutable $Op{S<:FunctionSpace,OT,T} <: $AbstOp{S,OT,T}
             space::S        # the domain space
-            order::Int
+            order::OT
         end
-        immutable $WrappOp{BT<:BandedOperator,S<:FunctionSpace,T<:Number} <: $AbstOp{S,T}
+        immutable $WrappOp{BT<:BandedOperator,S<:FunctionSpace,OT,T} <: $AbstOp{S,OT,T}
             op::BT
-            order::Int
+            order::OT
         end
 
 
         ## Constructors
-        $Op{T}(::Type{T},sp::FunctionSpace,k)=$Op{typeof(sp),T}(sp,k)
+        $Op{T}(::Type{T},sp::FunctionSpace,k)=$Op{typeof(sp),typeof(k),T}(sp,k)
         $Op(::Type{Any},sp::FunctionSpace,k)=$Op(sp,k)
 
-        $Op(sp::FunctionSpace{RealBasis},k)=$Op{typeof(sp),promote_type(Float64,eltype(domain(sp)))}(sp,k)
-        $Op(sp::FunctionSpace{ComplexBasis},k)=$Op{typeof(sp),promote_type(Complex{Float64},eltype(domain(sp)))}(sp,k)
+
+        $Op(sp::FunctionSpace{ComplexBasis},k)=$Op{typeof(sp),typeof(k),Complex{real(eltype(domain(sp)))}}(sp,k)
+        $Op(sp::FunctionSpace,k)=$Op{typeof(sp),typeof(k),eltype(domain(sp))}(sp,k)
 
         $Op(sp::FunctionSpace)=$Op(sp,1)
         $Op()=$Op(UnsetSpace())
@@ -41,7 +42,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 
         Base.convert{BT<:Operator}(::Type{BT},D::$Op)=$Op(eltype(BT),D.space,D.order)
 
-        $WrappOp{T<:Number}(op::BandedOperator{T},order::Integer)=$WrappOp{typeof(op),typeof(domainspace(op)),T}(op,order)
+        $WrappOp{T<:Number}(op::BandedOperator{T},order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),T}(op,order)
         $WrappOp{T<:Number}(op::BandedOperator{T})=$WrappOp(op,1)
         Base.convert{BT<:Operator}(::Type{BT},D::$WrappOp)=$WrappOp(convert(BandedOperator{eltype(BT)},D.op),D.order)
 
@@ -49,9 +50,9 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         domain(D::$Op)=domain(D.space)
         domainspace(D::$Op)=D.space
 
-        addentries!{T}(::$Op{UnsetSpace,T},A,kr::Range)=error("Spaces cannot be inferred for operator")
+        addentries!{OT,T}(::$Op{UnsetSpace,OT,T},A,kr::Range)=error("Spaces cannot be inferred for operator")
 
-        function addentries!{S,T}(D::$Op{S,T},A,kr::Range)
+        function addentries!{S,OT,T}(D::$Op{S,OT,T},A,kr::Range)
             # Default is to convert to Canonical and apply operator there
             sp=domainspace(D)
             csp=canonicalspace(sp)
@@ -103,6 +104,14 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         rangespace(D::$WrappOp)=rangespace(D.op)
         domainspace(D::$WrappOp)=domainspace(D.op)
         bandinds(D::$WrappOp)=bandinds(D.op)
+
+
+        ## simplify higher order derivatives/integration
+        function *(D1::$AbstOp,D2::$AbstOp)
+            @assert domain(D1) == domain(D2)
+
+            $Op(domainspace(D2),D1.order+D2.order)
+        end
     end)
 #     for func in (:rangespace,:domainspace,:bandinds)
 #         # We assume the operator wrapped has the correct spaces
@@ -119,12 +128,7 @@ end
 
 
 
-## simplify higher order derivatives/integration
-function *(D1::AbstractDerivative,D2::AbstractDerivative)
-    @assert domain(D1) == domain(D2)
 
-    Derivative(domainspace(D2),D1.order+D2.order)
-end
 
 
 ## Overrideable
@@ -148,3 +152,12 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 
 
+# Multivariate
+
+
+
+
+@calculus_operator(Laplacian,AbstractLaplacian,LaplacianWrapper)
+
+Laplacian(S::FunctionSpace,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
+Laplacian(S)=Laplacian(S,1)

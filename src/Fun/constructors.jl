@@ -10,7 +10,7 @@ valsdomain_type_promote{T<:Integer,V<:Real}(::Type{T},::Type{V})=valsdomain_type
 valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
-function Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
+function defaultFun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])
 
@@ -45,6 +45,8 @@ function Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
     Fun(transform(d,vals),d)
 end
 
+Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)=defaultFun(f,d,n)
+
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f[x],d)
 #TODO: fall back to Fun(x->f[x],d) if conversion not implemented?
@@ -64,10 +66,10 @@ Fun{T<:Domain}(f,::Type{T})=Fun(f,T())
 
 Fun(c::Number)=Fun([c])
 
-# We do zero special since zero exists even when one doesn'
+# We do zero special since zero exists even when one doesn't
 Fun{T<:FunctionSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
-Fun(c::Number,d::Domain)=c==0?zeros(d):c*ones(d)
-Fun(c::Number,d::FunctionSpace)=c==0?zeros(d):c*ones(d)
+Fun(c::Number,d::Domain)=c==0?c*zeros(d):c*ones(d)
+Fun(c::Number,d::FunctionSpace)=c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 
 ## List constructor
 
@@ -113,8 +115,8 @@ function zerocfsFun(f::Function, d::FunctionSpace)
     if T <: Complex
         T = T.parameters[1] #get underlying real representation
     end
-
-    f0=f(first(domain(d)))
+    r=checkpoints(d)
+    f0=f(first(r))
 
     if !isa(d,ArraySpace) && isa(f0,Array)
         return zerocfsFun(f,ArraySpace(d,size(f0)...))
@@ -122,12 +124,12 @@ function zerocfsFun(f::Function, d::FunctionSpace)
 
     tol =T==Any?200eps():200eps(T)
 
-    r=checkpoints(d)
+
     fr=[f(x) for x=r]
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
-        cf = Fun(f, d, 2^logn)
+        cf = defaultFun(f, d, 2^logn)
         absc=abs(cf.coefficients)
         maxabsc=maximum(absc)
         if maxabsc==0 && fr==0
@@ -200,7 +202,7 @@ Fun(f::Function,d::Domain;opts...)=Fun(f,Space(d);opts...)
 
 Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
 Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
-Fun{T<:Number}(cfs::Vector{T})=Fun(1.0*cfs,Interval())
+Fun{T<:Number}(cfs::Vector{T})=Fun(1.0*cfs,Interval{promote_type(T,Int)}())
 Fun{T<:Number,M<:Number}(cfs::Vector{M},d::Vector{T})=Fun(1.0*cfs,Interval(d))
 Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
 Fun{T<:Number}(f::Number,d::Vector{T})=Fun(f,Interval(d))

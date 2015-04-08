@@ -172,12 +172,12 @@ addentries!(D::Derivative{Hardy{false}},A,kr::Range)=hardyfalse_derivative_adden
 
 function Integral(S::Taylor,m)
     @assert isa(domain(S),Circle)
-    Integral{Taylor,Complex{Float64}}(S,m)
+    Integral{Taylor,typeof(m),Complex{Float64}}(S,m)
 end
 
 function Integral(S::Hardy{false},m)
     @assert isa(domain(S),PeriodicInterval)
-    Integral{Hardy{false},Complex{Float64}}(S,m)
+    Integral{Hardy{false},typeof(m),Complex{Float64}}(S,m)
 end
 
 function bandinds(D::Integral{Taylor})

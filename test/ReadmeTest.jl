@@ -97,7 +97,7 @@ u = [dirichlet(d),lap(d)+100I]\ones(4)      # First four entries of rhs are
 
 d = Disk()
 f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
-u = [dirichlet(d),lap(d)]\[0.,f]
+u = [dirichlet(d),lap(d)]\Any[0.,f]
 
 
 

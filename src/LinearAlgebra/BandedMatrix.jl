@@ -10,7 +10,7 @@
 #       [ *     *       a_31    a_42
 #         *      a_21   a_32    a_43
 #         a_11   a_22   a_33    A_44
-#         a_12   a_23   a_44    *       ]
+#         a_12   a_23   a_34    *       ]
 ###
 
 
@@ -39,9 +39,9 @@ BandedMatrix{T}(::Type{T},n::Integer,::Colon,a)=BandedMatrix(T,n,:,-a[1],a[end])
 BandedMatrix{T}(::Type{T},n::Integer,a)=BandedMatrix(T,n,-a[1],a[end])
 
 Base.eltype{T}(::BandedMatrix{T})=T
-Base.convert{T<:Real}(::Type{BandedMatrix{Complex{T}}},M::BandedMatrix{T}) = BandedMatrix{Complex{T}}(convert(Matrix{Complex{T}},M.data),M.m,M.l,M.u)
+Base.convert{V}(::Type{BandedMatrix{V}},M::BandedMatrix) = BandedMatrix{V}(convert(Matrix{V},M.data),M.m,M.l,M.u)
 
-
+Base.promote_rule{T,V}(::Type{BandedMatrix{T}},::Type{BandedMatrix{V}})=BandedMatrix{promote_type(T,V)}
 
 
 
@@ -86,9 +86,9 @@ bandrange(A::BandedMatrix)=-A.l:A.u
 
 usgetindex(A::BandedMatrix,k::Integer,j::Integer)=A.data[j-k+A.l+1,k]
 usgetindex(A::BandedMatrix,k::Integer,jr::Range)=vec(A.data[jr-k+A.l+1,k])
-getindex{T}(A::BandedMatrix{T},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zero(T):throw(BoundsError()))
+getindex(A::BandedMatrix,k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zero(eltype(A)):throw(BoundsError()))
 getindex(A::BandedMatrix,k::Integer,jr::Range)=-A.l≤jr[1]-k≤jr[end]-k≤A.u?usgetindex(A,k,jr):[A[k,j] for j=jr].'
-getindex(A::BandedMatrix,k::Range,j::Integer)=[A[k,j] for j=jr]
+getindex(A::BandedMatrix,kr::Range,j::Integer)=[A[k,j] for k=kr]
 getindex(A::BandedMatrix,kr::Range,jr::Range)=[A[k,j] for k=kr,j=jr]
 Base.full(A::BandedMatrix)=A[1:size(A,1),1:size(A,2)]
 
@@ -456,6 +456,36 @@ end
 #     end
 #     C
 # end
+
+
+
+## Matrix.*Matrix
+
+function .*(A::BandedMatrix,B::BandedMatrix)
+    @assert size(A,1)==size(B,1)&&size(A,2)==size(B,2)
+
+    l=min(A.l,B.l);u=min(A.u,B.u)
+    ret=BandedMatrix(promote_type(eltype(A),eltype(B)),size(A,1),size(A,2),l,u)
+
+    for k=1:size(A,1),j=max(1,k-l):min(size(A,2),k+u)
+        @inbounds ret[k,j]=A[k,j]*B[k,j]
+    end
+    ret
+end
+
+
+#implements fliplr(flipud(A))
+function fliplrud(A::BandedMatrix)
+    n,m=size(A)
+    l=A.u+n-m
+    u=A.l+m-n
+    ret=BandedMatrix(eltype(A),n,m,l,u)
+    for k=1:n,j=max(1,k-l):min(m,k+u)
+        @inbounds ret[k,j]=A[n-k+1,m-j+1]
+    end
+    ret
+end
+
 
 
 
