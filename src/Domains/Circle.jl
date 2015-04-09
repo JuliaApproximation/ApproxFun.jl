@@ -14,6 +14,15 @@ end
 Circle(r)=Circle(0.,r)
 Circle()=Circle(1.)
 
+function Circle{T<:Number,V<:Real}(c::Vector{T},r::Vector{V})
+    @assert length(c) == length(r)
+    if length(c) == 1
+        Circle(c[1],r[1])
+    else
+        [Circle(c[1],r[1]);Circle(c[2:end],r[2:end])]
+    end
+end
+Circle{T<:Number,V<:Real}(c::Vector{T},r::V) = Circle(c,ones(V,length(c))r)
 
 function tocanonical(d::Circle,ζ)
     v=mappoint(d,Circle(),ζ)- 0.im#Subtract 0.im so branch cut is right
