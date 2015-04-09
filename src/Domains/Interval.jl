@@ -33,7 +33,7 @@ function Interval{T<:Number}(d::Vector{T})
     end
 end
 
-function Interval{T<:Number}(a::Vector{T},b::Vector{T})
+function Interval{T1<:Number,T2<:Number}(a::Vector{T1},b::Vector{T2})
     @assert length(a) == length(b)
     if length(a) == 1
         Interval(a[1],b[1])
