@@ -205,7 +205,7 @@ end
 
 # which block of the tensor
 # equivalent to sum of indices -1
-totensorblock(n)=ifloor(sqrt(2n) + 1/2)
+totensorblock(n)=floor(Integer,sqrt(2n) + 1/2)
 #gives the range corresponding to the block
 fromtensorblock(j)=div(j*(j-1),2)+(1:j)
 
@@ -271,7 +271,7 @@ function transform!(S::TensorSpace,M::Matrix)
 end
 
 function transform(sp::TensorSpace,vals)
-    m=int(sqrt(length(vals)))
+    m=round(Int,sqrt(length(vals)))
     M=reshape(vals,m,m)
 
     fromtensor(transform!(sp,M))

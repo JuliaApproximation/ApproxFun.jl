@@ -59,8 +59,8 @@ u=A\G
 
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2))  #default is [-1,1]^2
 d=domain(f)
-OS=S=schurfact([dirichlet(d),lap(d)],10)
-u=OS\[zeros(∂(d)),f]
+OS=S=schurfact([dirichlet(d);lap(d)],10)
+u=OS\[zeros(∂(d));f]
 @test_approx_eq u[.1,.2] -0.042393137972085826
 
 

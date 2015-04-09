@@ -32,9 +32,9 @@ getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1
 
 function getindex{S,T}(D::Evaluation{S,Bool,T},kr::Range)
     if !D.x
-        T[first(differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)) for k=kr]
+        T[first(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)) for k=kr]
     else
-        T[last(differentiate(Fun([zeros(T,k-1),one(T)],D.space),D.order)) for k=kr]
+        T[last(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)) for k=kr]
     end
 end
 
