@@ -11,7 +11,6 @@ abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 macro calculus_operator(Op,AbstOp,WrappOp)
     return esc(quote
         # The SSS, TTT are to work around #9312
-        abstract $AbstOp{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 
         immutable $Op{S<:FunctionSpace,OT,T} <: $AbstOp{S,OT,T}
             space::S        # the domain space
@@ -104,14 +103,6 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         rangespace(D::$WrappOp)=rangespace(D.op)
         domainspace(D::$WrappOp)=domainspace(D.op)
         bandinds(D::$WrappOp)=bandinds(D.op)
-
-
-        ## simplify higher order derivatives/integration
-        function *(D1::$AbstOp,D2::$AbstOp)
-            @assert domain(D1) == domain(D2)
-
-            $Op(domainspace(D2),D1.order+D2.order)
-        end
     end)
 #     for func in (:rangespace,:domainspace,:bandinds)
 #         # We assume the operator wrapped has the correct spaces
@@ -120,11 +111,17 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 end
 
 
-
+abstract AbstractDerivative{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 @calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
+abstract AbstractIntegral{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 @calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
 
 
+function *(D1::AbstractDerivative,D2::AbstractDerivative)
+    @assert domain(D1) == domain(D2)
+
+    Derivative(domainspace(D2),D1.order+D2.order)
+end
 
 
 
@@ -156,7 +153,7 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 
 
-
+abstract AbstractLaplacian{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 @calculus_operator(Laplacian,AbstractLaplacian,LaplacianWrapper)
 
 Laplacian(S::FunctionSpace,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
