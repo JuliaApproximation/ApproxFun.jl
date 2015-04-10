@@ -53,72 +53,10 @@ for T in (:Float64,:(Complex{Float64}))
     end
 end
 
-
-findapproxmax(f::Function,dx::FunctionSpace,dy::FunctionSpace)=findapproxmax(f,dx,dy, 40, 40)
-function findapproxmax(f::Function,dx::FunctionSpace,dy::FunctionSpace, gridx::Integer, gridy::Integer)
-    ptsx=points(dx,gridx)
-    ptsy=points(dy,gridy)
-
-  mpt=[fromcanonical(dx,0.),fromcanonical(dy,0.)]
-  maxi=abs(f(mpt[1],mpt[2]))
-
-
-    for k = 1:length(ptsx),j=1:length(ptsy)
-      val=abs(f(ptsx[k],ptsy[j]))
-      if val > maxi
-        maxi = val
-        mpt[1]=ptsx[k];mpt[2]=ptsy[j]
-      end
-    end
-    mpt
-end
-LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace)=LowRankFun(f,dx,dy,40,40)
-
 LowRankFun(f::Function,dx::Domain,dy::Domain,nx...)=LowRankFun(f,Space(dx),Space(dy),nx...)
 LowRankFun(f,d::ProductDomain)=LowRankFun(f,d[1],d[2])
-function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integer,gridy::Integer;maxrank=100::Integer)
-    tol=1000eps()
 
-    r=findapproxmax(f,dx,dy,gridx,gridy)
-    a=Fun(x->f(x,r[2]),dx)
-    b=Fun(y->f(r[1],y),dy)
-    A=typeof(a)[];B=typeof(b)[];
-
-
-    for k=1:maxrank
-        if norm(a.coefficients) <tol || norm(b.coefficients) < tol
-            return LowRankFun(A,B)
-        end
-
-        ##TODO: negative orientation
-        # the turms
-        A=[A;a/sqrt(abs(a[r[1]]))];B=[B;sign(b[r[2]]).*b/sqrt(abs(b[r[2]]))]
-        r=findapproxmax((x,y)->f(x,y) - evaluate(A,B,x,y),dx,dy,gridx,gridy)
-        Ar=map(q->q[r[1]],A)
-        Br=map(q->q[r[2]],B)
-
-        ##TODO: Should allow FFun
-        a=Fun(x->f(x,r[2]),dx; method="abszerocoefficients") - dot(conj(Br),A)
-        b=Fun(y->f(r[1],y),dy; method="abszerocoefficients")- dot(conj(Ar),B)
-
-        ##Remove coefficients that get killed by a/b
-#         maxb=maximum(abs(b.coefficients))
-#         maxa=maximum(abs(a.coefficients))
-#         if maxb != 0
-#             tol=10*sqrt(abs(a[r[1]]))*sqrt(abs(b[r[2]]))*eps()/maxb
-            a=chop!(a,isnan(tol)?0:tol)
-#         end
-#         if maxa != 0
-#            tol=10*sqrt(abs(a[r[1]]))*sqrt(abs(b[r[2]]))*eps()/maxa
-            b=chop!(b,isnan(tol)?0:tol)
-#        end
-    end
-    warn("Maximum rank of " * string(maxrank) * " reached")
-    return LowRankFun(A,B)
-end
-
-
-function test_findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
+function findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
     @inbounds for j=1:gridy,k=1:gridx
         X[k,j]+=f(ptsx[k],ptsy[j])
     end
@@ -127,25 +65,34 @@ function test_findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gri
     maxabsf,[ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
-function test_LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+
+    # We start by sampling on the given grid, find the approximate maximum and create the first rank-one approximation.
     ptsx,ptsy=points(dx,gridx),points(dy,gridy)
     X = zeros(typeof(f(ptsx[1],ptsy[1])),gridx,gridy)
-
-    maxabsf,r=test_findapproxmax!(f,X,ptsx,ptsy,gridx,gridy)
-    tol = 100maxabsf*eps()
-
+    maxabsf,r=findapproxmax!(f,X,ptsx,ptsy,gridx,gridy)
     a,b=Fun(x->f(x,r[2]),dx),Fun(y->f(r[1],y),dy)
-    A,B=typeof(a)[],typeof(b)[]
+
+    # We resize the grid to be at least as large as the lengths of the first row and column Funs.
+    gridx,gridy = max(gridx,length(a)),max(gridy,length(b))
+
+    # If necessary, we recompute the values of X.
+    if gridx == length(a) || gridy == length(b)
+        ptsx,ptsy=points(dx,gridx),points(dy,gridy)
+        X = zeros(typeof(f(ptsx[1],ptsy[1])),gridx,gridy)
+        maxabsf,r=findapproxmax!(f,X,ptsx,ptsy,gridx,gridy)
+        a,b=Fun(x->f(x,r[2]),dx),Fun(y->f(r[1],y),dy)
+    end
+
+    A,B,tol=typeof(a)[],typeof(b)[],100maxabsf*eps()
 
     for k=1:maxrank
 
-        if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol
-            return LowRankFun(A,B)
-        end
+        if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B) end
 
         A,B=[A;a/sqrt(abs(a[r[1]]))],[B;sign(b[r[2]]).*b/sqrt(abs(b[r[2]]))]
 
-        maxabsf,r=test_findapproxmax!((x,y)-> - evaluate(A[end],x)*evaluate(B[end],y),X,ptsx,ptsy,gridx,gridy)
+        maxabsf,r=findapproxmax!((x,y)-> - evaluate(A[end],x)*evaluate(B[end],y),X,ptsx,ptsy,gridx,gridy)
 
         Ar,Br=map(q->q[r[1]],A),map(q->q[r[2]],B)
 
