@@ -40,7 +40,7 @@ LowRankFun(f,S::TensorSpace,n::Integer,m::Integer)=LowRankFun(f,S[1],S[2],n,m)
 # TODO: Vector pads right
 for T in (:Float64,:(Complex{Float64}))
     @eval begin
-        LowRankFun{S}(X::Vector{Fun{S,$T}},d::TensorSpace)=LowRankFun(X,d[1],d[2])    
+        LowRankFun{S}(X::Vector{Fun{S,$T}},d::TensorSpace)=LowRankFun(X,d[1],d[2])
         function LowRankFun{S}(X::Vector{Fun{S,$T}},dy::FunctionSpace)
             m=mapreduce(length,max,X)
             M=zeros($T,m,length(X))
@@ -116,6 +116,49 @@ function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace,gridx::Integ
     warn("Maximum rank of " * string(maxrank) * " reached")
     return LowRankFun(A,B)
 end
+
+
+function test_findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
+    @inbounds for j=1:gridy,k=1:gridx
+        X[k,j]+=f(ptsx[k],ptsy[j])
+    end
+    maxabsf,impt = findmax(abs(X))
+    imptple = ind2sub((gridx,gridy),impt)
+    maxabsf,[ptsx[imptple[1]],ptsy[imptple[2]]]
+end
+
+function test_LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+    ptsx,ptsy=points(dx,gridx),points(dy,gridy)
+    X = zeros(typeof(f(ptsx[1],ptsy[1])),gridx,gridy)
+
+    maxabsf,r=test_findapproxmax!(f,X,ptsx,ptsy,gridx,gridy)
+    tol = 100maxabsf*eps()
+
+    a,b=Fun(x->f(x,r[2]),dx),Fun(y->f(r[1],y),dy)
+    A,B=typeof(a)[],typeof(b)[]
+
+    for k=1:maxrank
+
+        if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol
+            return LowRankFun(A,B)
+        end
+
+        A,B=[A;a/sqrt(abs(a[r[1]]))],[B;sign(b[r[2]]).*b/sqrt(abs(b[r[2]]))]
+
+        maxabsf,r=test_findapproxmax!((x,y)-> - evaluate(A[end],x)*evaluate(B[end],y),X,ptsx,ptsy,gridx,gridy)
+
+        Ar,Br=map(q->q[r[1]],A),map(q->q[r[2]],B)
+
+        a,b=Fun(x->f(x,r[2]),dx,gridx) - dotu(Br,A),Fun(y->f(r[1],y),dy,gridy) - dotu(Ar,B)
+
+        chop!(a,tol),chop!(b,tol)
+
+    end
+    warn("Maximum rank of " * string(maxrank) * " reached")
+    return LowRankFun(A,B)
+end
+
+
 
 LowRankFun(f::Function,d1::Vector,d2::Vector)=LowRankFun(f,Interval(d1),Interval(d2))
 LowRankFun(f::Function)=LowRankFun(f,Interval(),Interval())
