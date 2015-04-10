@@ -73,7 +73,7 @@ function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,
     maxabsf,[ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
-function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integer=32,gridy::Integer=32,maxrank::Integer=100)
+function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
 
     # We start by sampling on the given grid, find the approximate maximum and create the first rank-one approximation.
     ptsx,ptsy=points(dx,gridx),points(dy,gridy)
