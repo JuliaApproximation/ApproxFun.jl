@@ -14,9 +14,14 @@ end
 
 function chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function;kind::Integer=1)
     if kind == 1
-        ret=negateeven!(plan(x))
-        ret[1]/=2
-        ret/=length(x)
+        n = length(x)
+        if n == 1
+            x
+        else
+            ret=negateeven!(plan(x))
+            ret[1]/=2
+            ret/=n
+        end
     elseif kind == 2
         n = length(x)
         if n == 1
