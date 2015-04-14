@@ -66,7 +66,7 @@ function findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gr
 end
 
 function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
-    dX = A[ptsx]*conj(B[ptsy])'
+    dX = A[ptsx]*transpose(B[ptsy])
     X[:] -= dX[:]
     maxabsf,impt = findmax(abs(X))
     imptple = ind2sub((gridx,gridy),impt)
@@ -92,21 +92,22 @@ function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integ
     end
 
     A,B,tol=typeof(a)[],typeof(b)[],100maxabsf*eps()
+    tol10 = tol/10
 
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
 
         if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B) end
 
-        A,B=[A;a/sqrt(abs(a[r[1]]))],[B;sign(b[r[2]]).*b/sqrt(abs(b[r[2]]))]
+        A,B=[A;a/sqrt(abs(a[r[1]]))],[B;b/(sqrt(abs(b[r[2]]))*sign(b[r[2]]))]
 
         maxabsf,r=findapproxmax!(A[k],B[k],X,ptsx,ptsy,gridx,gridy)
 
         Ar,Br=map(q->q[r[1]],A),map(q->q[r[2]],B)
 
-        a,b=Fun(x->f(x,r[2]),dx,gridx) - dotu(Br,A),Fun(y->f(r[1],y),dy,gridy) - dotu(Ar,B)
+        a,b=Fun(x->f(x,r[2]),dx,gridx) - dot(conj(Br),A),Fun(y->f(r[1],y),dy,gridy) - dot(conj(Ar),B)
 
-        chop!(a,tol),chop!(b,tol)
+        chop!(a,tol10),chop!(b,tol10)
 
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
@@ -174,9 +175,10 @@ end
 
 
 
-evaluate(f::LowRankFun,x::Real,y::Real)=evaluate(f.A,f.B,x,y)
-evaluate(f::LowRankFun,x::Real,::Colon)=f.B*evaluate(f.A,x)
-function evaluate(f::LowRankFun,::Colon,y::Real)
+evaluate(f::LowRankFun,x,y)=evaluate(f.A,f.B,x,y)
+evaluate(f::LowRankFun,::Colon,::Colon)=f
+evaluate(f::LowRankFun,x,::Colon)=f.B*evaluate(f.A,x)
+function evaluate(f::LowRankFun,::Colon,y)
     m = maximum(map(length,f.A))
     r=rank(f)
     ret = zeros(m)
