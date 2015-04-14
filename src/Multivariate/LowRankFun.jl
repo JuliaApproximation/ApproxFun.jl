@@ -75,9 +75,13 @@ end
 
 function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
 
+    Td = promote_type(eltype(domain(dx)),eltype(domain(dy)))
+
     # We start by sampling on the given grid, find the approximate maximum and create the first rank-one approximation.
     ptsx,ptsy=points(dx,gridx),points(dy,gridy)
-    X = zeros(typeof(f(ptsx[1],ptsy[1])),gridx,gridy)
+    Tf = typeof(f(ptsx[1],ptsy[2]))
+    T = promote_type(Tf,Td)
+    X = zeros(T,gridx,gridy)
     maxabsf,r=findapproxmax!(f,X,ptsx,ptsy,gridx,gridy)
     a,b=Fun(x->f(x,r[2]),dx),Fun(y->f(r[1],y),dy)
 
@@ -86,12 +90,12 @@ function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integ
     if gridx < length(a) || gridy < length(b)
         gridx,gridy = max(gridx,length(a)),max(gridy,length(b))
         ptsx,ptsy=points(dx,gridx),points(dy,gridy)
-        X = zeros(typeof(f(ptsx[1],ptsy[1])),gridx,gridy)
+        X = zeros(T,gridx,gridy)
         maxabsf,r=findapproxmax!(f,X,ptsx,ptsy,gridx,gridy)
         a,b=Fun(x->f(x,r[2]),dx),Fun(y->f(r[1],y),dy)
     end
 
-    A,B,tol=typeof(a)[],typeof(b)[],100maxabsf*eps()
+    A,B,tol=typeof(a)[],typeof(b)[],100maxabsf*eps(T)
     tol10 = tol/10
 
     # Eat, drink, subtract rank-one, repeat.
