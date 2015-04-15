@@ -24,6 +24,13 @@ end
 transform(::Chebyshev,vals::Vector)=chebyshevtransform(vals)
 itransform(::Chebyshev,cfs::Vector)=ichebyshevtransform(cfs)
 
+function transform!{T<:FFTW.fftwNumber}(S::TensorSpace{Chebyshev,Chebyshev},X::Matrix{T})
+    X[:] = chebyshevtransform(X)
+end
+
+function itransform!{T<:FFTW.fftwNumber}(S::TensorSpace{Chebyshev,Chebyshev},X::Matrix{T})
+    X[:] = ichebyshevtransform(X)
+end
 
 ## Evaluation
 

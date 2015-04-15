@@ -139,7 +139,7 @@ end
 
 function chebyshevtransform{T<:FFTW.fftwNumber}(X::Matrix{T};kind::Integer=1)
     if kind == 1
-            if size(X) == (1,1)
+        if size(X) == (1,1)
             X
         else
             R=negateeven!(FFTW.r2r(X,FFTW.REDFT10))
@@ -158,7 +158,7 @@ function chebyshevtransform{T<:FFTW.fftwNumber}(X::Matrix{T};kind::Integer=1)
     end
 end
 
-function ichebyshevtransform{T<:Number}(X::Matrix{T};kind::Integer=1)
+function ichebyshevtransform{T<:FFTW.fftwNumber}(X::Matrix{T};kind::Integer=1)
     if kind == 1
         if size(X) == (1,1)
             X
