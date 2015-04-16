@@ -49,7 +49,7 @@ end
 
 function ProductFun(f::Function,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
     xy = checkpoints(S)
-    T = eltype(map(x->f(x...),xy))
+    T = promote_type(eltype(map(x->f(x...),xy)),eltype(S))
     ptsx,ptsy=points(S,M,N)
     vals=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
     ProductFun(transform!(S,vals),S;tol=tol)
