@@ -144,6 +144,7 @@ PDEProductOperatorSchur{ST,FT,S,V}(Bx::Vector{Vector{FT}},
                                    ds::AbstractProductSpace{(S,V)},rs,indsBx)=PDEProductOperatorSchur{ST,FT,
                                                                                                     typeof(ds),typeof(rs),
                                                                                                     S,V}(Bx,Rdiags,ds,rs,indsBx)
+
 Base.eltype{ST}(::PDEProductOperatorSchur{ST})=ST
 
 Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
