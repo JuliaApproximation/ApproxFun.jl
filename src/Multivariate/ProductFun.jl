@@ -14,7 +14,7 @@ immutable ProductFun{S<:FunctionSpace,V<:FunctionSpace,SS<:AbstractProductSpace,
 end
 
 
-ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{S,V})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
+ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{(S,V)})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
 
 
 
@@ -28,7 +28,7 @@ end
 ProductFun(M,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(M,TensorSpace(dx,dy))
 
 
-function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V},tol::Real)
+function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{(S,V)},tol::Real)
     ncfs=norm(cfs,Inf)
     ret,retempty=Array(Fun{S,T},size(cfs,2)),Array(Bool,size(cfs,2))
     for k=1:size(cfs,2)
@@ -39,7 +39,7 @@ function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},
     ProductFun{S,V,typeof(D),T}(ret[1:end-dropcount],D)
 end
 
-ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{S,V};tol::Real=100eps(T))=ProductFun(cfs,D,tol)
+ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{(S,V)};tol::Real=100eps(T))=ProductFun(cfs,D,tol)
 
 
 #ProductFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
@@ -64,7 +64,7 @@ ProductFun(f::Function,d1...)=ProductFun(LowRankFun(f,d1...))
 #     ProductFun(transform(S,T,V),S,T)
 # end
 
-function ProductFun{SS<:FunctionSpace{Float64},VV<:FunctionSpace{Float64}}(f::Function,S::AbstractProductSpace{SS,VV},N::Integer,M::Integer)
+function ProductFun{SS<:FunctionSpace{Float64},VV<:FunctionSpace{Float64}}(f::Function,S::AbstractProductSpace{(SS,VV)},N::Integer,M::Integer)
     ptsx,ptsy=points(S,N,M)
     V=Float64[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]#TODO:type
     ProductFun(transform!(S,V),S)

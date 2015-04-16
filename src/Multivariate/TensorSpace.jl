@@ -51,46 +51,51 @@ fromcanonical(d::BivariateSpace,x...)=fromcanonical(domain(d),x...)
 tocanonical(d::BivariateSpace,x...)=tocanonical(domain(d),x...)
 
 
-# This means x are represented as space S and y are represented as space T
-abstract AbstractProductSpace{S,V,T} <: BivariateSpace{T}
+#  SV is a tuple of d spaces
+abstract AbstractProductSpace{SV,T,d} <: FunctionSpace{T,d}
 
 
 
-immutable TensorSpace{S,V,T} <:AbstractProductSpace{S,V,T}
-    spaces::(S,V)
+
+immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
+    spaces::SV
 end
 
 for OP in (:spacescompatible,:(==))
-    @eval $OP(A::TensorSpace,B::TensorSpace)=$OP(A.spaces[1],B.spaces[1])&&$OP(A.spaces[2],B.spaces[2])
+    @eval $OP{SV,T,d}(A::TensorSpace{SV,T,d},B::TensorSpace{SV,T,d})=length(A.spaces)==all([$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
 end
 
 
-TensorSpace(sp::Tuple)=TensorSpace{typeof(sp[1]),typeof(sp[2]),
-                                                promote_type(basistype(sp[1]),basistype(sp[2]))}(sp)
+TensorSpace(sp::Tuple)=TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),length(sp)}(sp)
 
 
-coefficient_type(S::TensorSpace,T)=promote_type(coefficient_type(S.spaces[1],T),coefficient_type(S.spaces[2],T))
+coefficient_type(S::TensorSpace,T)=mapreduce(sp->coefficient_type(sp,T),promote_type,S.spaces)
 
-TensorSpace(A,B)=TensorSpace((A,B))
-TensorSpace(A::ProductDomain)=TensorSpace(Space(A[1]),Space(A[2]))
-⊗(A::FunctionSpace,B::FunctionSpace)=TensorSpace(A,B)
-domain(f::TensorSpace)=domain(f.spaces[1])*domain(f.spaces[2])
+TensorSpace(A...)=TensorSpace(tuple(A...))
+TensorSpace(A::ProductDomain)=TensorSpace(tuple(map(Space,A)...))
+⊗{T,V}(A::FunctionSpace{T,1},B::FunctionSpace{V,1})=TensorSpace(A,B)
+domain(f::TensorSpace)=mapreduce(domain,*,f.spaces)
 Space(sp::ProductDomain)=TensorSpace(sp)
 
 *(A::FunctionSpace,B::FunctionSpace)=A⊗B
 
 
 # every column is in the same space for a TensorSpace
+#TODO: remove
 columnspace(S::TensorSpace,::)=S.spaces[1]
 
 Base.length(d::TensorSpace)=length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
-=={S,V}(a::TensorSpace{S,V},b::TensorSpace{S,V})=(a.spaces[1]==b.spaces[1])&&(a.spaces[2]==b.spaces[2])
 
-immutable ProductSpace{S<:FunctionSpace,T<:FunctionSpace} <: AbstractProductSpace{S,T}
+
+immutable ProductSpace{S<:FunctionSpace,V<:FunctionSpace,T} <: AbstractProductSpace{(S,V),T,2}
     spacesx::Vector{S}
-    spacey::T
+    spacey::V
 end
+
+ProductSpace(spacesx::Vector,spacey)=ProductSpace{eltype(spacesx),
+                                                  typeof(spacey),
+                                                  promote_type(basistype(first(spacesx)),basistype(spacey))}(spacesx,spacey)
 
 coefficient_type(S::ProductSpace,T)=promote_type(coefficient_type(S.spacesx[1],T),coefficient_type(S.spacesy,T))
 
