@@ -62,7 +62,7 @@ immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
 end
 
 for OP in (:spacescompatible,:(==))
-    @eval $OP{SV,T,d}(A::TensorSpace{SV,T,d},B::TensorSpace{SV,T,d})=length(A.spaces)==all([$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
+    @eval $OP{SV,T,d}(A::TensorSpace{SV,T,d},B::TensorSpace{SV,T,d})=all(Bool[$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
 end
 
 
@@ -72,7 +72,7 @@ TensorSpace(sp::Tuple)=TensorSpace{typeof(sp),mapreduce(basistype,promote_type,s
 coefficient_type(S::TensorSpace,T)=mapreduce(sp->coefficient_type(sp,T),promote_type,S.spaces)
 
 TensorSpace(A...)=TensorSpace(tuple(A...))
-TensorSpace(A::ProductDomain)=TensorSpace(tuple(map(Space,A)...))
+TensorSpace(A::ProductDomain)=TensorSpace(tuple(map(Space,A.domains)...))
 ⊗{T,V}(A::FunctionSpace{T,1},B::FunctionSpace{V,1})=TensorSpace(A,B)
 domain(f::TensorSpace)=mapreduce(domain,*,f.spaces)
 Space(sp::ProductDomain)=TensorSpace(sp)
