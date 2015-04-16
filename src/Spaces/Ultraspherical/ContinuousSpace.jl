@@ -1,6 +1,6 @@
 
 
-immutable ContinuousSpace <: FunctionSpace{RealBasis,UnionDomain}
+immutable ContinuousSpace <: FunctionSpace{RealBasis}
     domain::PiecewiseInterval
 end
 

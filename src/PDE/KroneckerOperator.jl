@@ -366,7 +366,7 @@ end
 
 
 # from algebra
-function promotedomainspace{T,T2,D}(P::PlusOperator{T},sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T2,D})
+function promotedomainspace{T,T2}(P::PlusOperator{T},sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T2})
     if sp==cursp
         P
     else
@@ -374,7 +374,7 @@ function promotedomainspace{T,T2,D}(P::PlusOperator{T},sp::FunctionSpace,cursp::
     end
 end
 
-function promotedomainspace{T,D}(P::TimesOperator,sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T,D})
+function promotedomainspace{T}(P::TimesOperator,sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T})
     if sp==cursp
         P
     elseif length(P.ops)==2

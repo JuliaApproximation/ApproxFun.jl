@@ -1,4 +1,5 @@
-immutable ConstantSpace <: FunctionSpace{RealBasis,AnyDomain} end
+immutable ConstantSpace <: FunctionSpace{RealBasis} end
+domain(::ConstantSpace)=AnyDomain()
 canonicalspace(C::ConstantSpace)=C
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
 
@@ -23,7 +24,7 @@ function addentries!{S<:FunctionSpace}(C::Conversion{ConstantSpace,S},A,kr::Rang
     A
 end
 
-### 
+###
 # FunctionalOperator treats a functional like an operator
 ###
 
@@ -57,7 +58,7 @@ end
 
 for OP in (:+,:-)
     @eval $OP(A::BandedOperator,B::Functional)=$OP(A,FunctionalOperator(B))
-    @eval $OP(A::Functional,B::BandedOperator)=$OP(FunctionalOperator(A),B)    
+    @eval $OP(A::Functional,B::BandedOperator)=$OP(FunctionalOperator(A),B)
 end
 
 *(A::BandedOperator,B::Functional)=A*FunctionalOperator(B)

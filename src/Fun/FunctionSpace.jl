@@ -44,21 +44,19 @@ Base.eltype(::Type{AnyBasis})=Number
 
 # T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
 # D tells what canonical domain is (Interval/PeriodicInterval)
-abstract FunctionSpace{T,D} #TODO should be able to write D<:Domain
+abstract FunctionSpace{T} #TODO should be able to write D<:Domain
 
-typealias RealSpace{D} FunctionSpace{RealBasis,D}
-typealias ComplexSpace{D} FunctionSpace{ComplexBasis,D}
+typealias RealSpace FunctionSpace{RealBasis}
+typealias ComplexSpace FunctionSpace{ComplexBasis}
 
 
 Base.eltype{S}(::FunctionSpace{S})=eltype(S)
 coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)
-domaintype{S,D}(::FunctionSpace{S,D})=D
-domain{T,D<:AnyDomain}(::FunctionSpace{T,D})=AnyDomain()
 
 
 
 
-abstract AmbiguousSpace <: FunctionSpace{RealBasis,AnyDomain}
+abstract AmbiguousSpace <: FunctionSpace{RealBasis}
 
 
 # AnySpace dictates that an operator can act on any space

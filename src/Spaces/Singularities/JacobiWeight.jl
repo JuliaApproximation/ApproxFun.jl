@@ -73,13 +73,13 @@ function coefficients(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
         (Conversion(sp1,sp2)*f)
     end
 end
-coefficients{S,n,st}(f::Vector,sp::JacobiWeight,S2::SliceSpace{n,st,S,RealBasis,Interval})=error("Implement")
-coefficients{S,n,st}(f::Vector,S2::SliceSpace{n,st,S,RealBasis,Interval},sp::JacobiWeight)=error("Implement")
+coefficients{S,n,st}(f::Vector,sp::JacobiWeight,S2::SliceSpace{n,st,S,RealBasis})=error("Implement")
+coefficients{S,n,st}(f::Vector,S2::SliceSpace{n,st,S,RealBasis},sp::JacobiWeight)=error("Implement")
 
 for TYP in (:ReSpace,:ImSpace,:ReImSpace)
     @eval begin
-        coefficients{S}(f::Vector,sp::JacobiWeight,S2::$TYP{S,RealBasis,Interval})=error("Implement")
-        coefficients{S}(f::Vector,S2::$TYP{S,RealBasis,Interval},sp::JacobiWeight)=error("Implement")
+        coefficients{S}(f::Vector,sp::JacobiWeight,S2::$TYP{S,RealBasis})=error("Implement")
+        coefficients{S}(f::Vector,S2::$TYP{S,RealBasis},sp::JacobiWeight)=error("Implement")
     end
 end
 coefficients(f::Vector,sp::JacobiWeight,S2::IntervalSpace)=coefficients(f,sp,JacobiWeight(0,0,S2))

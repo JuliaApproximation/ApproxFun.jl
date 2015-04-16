@@ -135,14 +135,14 @@ function ./{S<:MappedSpace}(c::Number,f::Fun{S})
     g=c./Fun(coefficients(f),space(f).space)
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
-function .^{S<:FunctionSpace,D,T,DS}(f::Fun{MappedSpace{S,D,T,DS}},k::Float64)
+function .^{S<:FunctionSpace,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
     g=Fun(coefficients(f),space(f).space).^k
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
 
 
 #TODO: Unify following
-function .^{S<:Chebyshev,D,T,DS}(f::Fun{MappedSpace{S,D,T,DS}},k::Float64)
+function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
     sp=space(f)
     # Need to think what to do if this is ever not the case..
     @assert isapprox(domain(sp.space),Interval())

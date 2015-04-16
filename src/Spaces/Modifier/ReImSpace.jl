@@ -1,11 +1,11 @@
 
 for TYP in (:ReSpace,:ImSpace,:ReImSpace)
     @eval begin
-        immutable $TYP{S,T,D}<: FunctionSpace{T,D}
+        immutable $TYP{S,T}<: FunctionSpace{T}
             space::S
         end
 
-        $TYP{T,D}(sp::FunctionSpace{T,D})=$TYP{typeof(sp),T,D}(sp)
+        $TYP{T}(sp::FunctionSpace{T})=$TYP{typeof(sp),T}(sp)
 
         domain(sp::$TYP)=domain(sp.space)
         spacescompatible(a::$TYP,b::$TYP)=spacescompatible(a.space,b.space)
@@ -87,8 +87,8 @@ for ST in (:RealOperator,:ImagOperator)
     @eval begin
         $ST()=$ST(UnsetSpace())
         domainspace(s::$ST)=s.space
-        rangespace{S<:RealSpace,T,D}(s::$ST{ReImSpace{S,T,D}})=s.space
-        bandinds{S<:RealSpace,T,D}(A::$ST{ReImSpace{S,T,D}})=0,0
+        rangespace{S<:RealSpace,T}(s::$ST{ReImSpace{S,T}})=s.space
+        bandinds{S<:RealSpace,T}(A::$ST{ReImSpace{S,T}})=0,0
         domain(O::$ST)=domain(O.space)
         choosedomainspace(s::$ST{UnsetSpace},sp)=ReImSpace(sp)
     end
@@ -96,7 +96,7 @@ end
 
 
 
-function addentries!{S<:RealSpace,T,D}(::RealOperator{ReImSpace{S,T,D}},A,kr::Range)
+function addentries!{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},A,kr::Range)
     for k=kr
         if isodd(k)
             A[k,k]+=1
@@ -105,7 +105,7 @@ function addentries!{S<:RealSpace,T,D}(::RealOperator{ReImSpace{S,T,D}},A,kr::Ra
     A
 end
 
-function addentries!{S<:RealSpace,T,D}(::ImagOperator{ReImSpace{S,T,D}},A,kr::Range)
+function addentries!{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},A,kr::Range)
     for k=kr
         if iseven(k)
             A[k,k]+=1

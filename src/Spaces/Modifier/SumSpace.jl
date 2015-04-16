@@ -3,19 +3,17 @@ export ⊕
 ## SumSpace{T,S,V} encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T,D<:Domain} <: FunctionSpace{T,D}
+immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T} <: FunctionSpace{T}
     spaces::(S,V)
     SumSpace(d::Domain)=new((S(d),V(d)))
     SumSpace(sp::(S,V))=new(sp)
 end
 
-SumSpace{T1,D1,T2,D2}(A::(FunctionSpace{T1,D1},FunctionSpace{T2,D2}))=SumSpace{typeof(A[1]),typeof(A[2]),promote_type(T1,T2),D1}(A)
+SumSpace{T1,T2}(A::(FunctionSpace{T1},FunctionSpace{T2}))=SumSpace{typeof(A[1]),typeof(A[2]),promote_type(T1,T2)}(A)
 
 SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
 
 
-typealias PeriodicSumSpace{S,V,T} SumSpace{S,V,T,PeriodicInterval}
-typealias IntervalSumSpace{S,V,T} SumSpace{S,V,T,Interval}
 
 
 

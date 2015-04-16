@@ -120,8 +120,8 @@ function Conversion(AS::ArraySpace,BS::ArraySpace)
     ConversionWrapper(DiagonalArrayOperator(Conversion(AS.space,BS.space),size(AS)))
 end
 
-ToeplitzOperator{S,T,V}(G::Fun{ArraySpace{S,2,T,PeriodicInterval},V})=interlace(map(ToeplitzOperator,mat(G)))
-ToeplitzOperator{S,T,D,V}(G::Fun{ArraySpace{S,2,T,D},V})=interlace(map(ToeplitzOperator,mat(G)))
+ToeplitzOperator{S,T,V}(G::Fun{ArraySpace{S,2,T},V})=interlace(map(ToeplitzOperator,mat(G)))
+ToeplitzOperator{S,T,V}(G::Fun{ArraySpace{S,2,T},V})=interlace(map(ToeplitzOperator,mat(G)))
 
 ## Sum Space
 
@@ -163,13 +163,13 @@ end
 
 
 
-function Conversion{A,B,T,D}(S1::SumSpace{A,B,T,D},S2::SumSpace{B,A,T,D})
+function Conversion{A,B,T}(S1::SumSpace{A,B,T},S2::SumSpace{B,A,T})
     @assert S1.spaces[1]==S2.spaces[2] && S1.spaces[2]==S2.spaces[1]
     ConversionWrapper(SpaceOperator(BiSwapOperator(),S1,S2))
 end
 
 
-function conversion_type{A,B,T,D}(S1::SumSpace{A,B,T,D},S2::SumSpace{B,A,T,D})
+function conversion_type{A,B,T}(S1::SumSpace{A,B,T},S2::SumSpace{B,A,T})
     if S1.spaces[1]==S2.spaces[2] && S1.spaces[2]==S2.spaces[1]
         S1 #Arbitraty
     else
@@ -189,7 +189,7 @@ Integral(S::SumSpace,k::Integer)=IntegralWrapper(sumblkdiagm([Integral(S.spaces[
 
 ## Multiplcation for Array*Vector
 
-function Multiplication{S,T,D,Q}(f::Fun{ArraySpace{S,2,T,D}},sp::ArraySpace{Q,1})
+function Multiplication{S,T,Q}(f::Fun{ArraySpace{S,2,T}},sp::ArraySpace{Q,1})
     @assert size(space(f),2)==length(sp)
     m=mat(f)
     MultiplicationWrapper(f,interlace(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))

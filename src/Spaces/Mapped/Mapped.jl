@@ -4,7 +4,7 @@ export MappedSpace
 
 #Typing D as Domain was causing issues
 
-type MappedSpace{S<:FunctionSpace,D,T,DS<:Domain} <: FunctionSpace{T,DS}
+type MappedSpace{S<:FunctionSpace,D,T} <: FunctionSpace{T}
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)
@@ -15,10 +15,8 @@ end
 
 spacescompatible(a::MappedSpace,b::MappedSpace)=spacescompatible(a.space,b.space)&&domainscompatible(a,b)
 
-MappedSpace{D<:Domain,T,DS<:Domain}(d::D,s::FunctionSpace{T,DS})=MappedSpace{typeof(s),D,T,DS}(d,s)
+MappedSpace{D<:Domain,T}(d::D,s::FunctionSpace{T})=MappedSpace{typeof(s),D,T}(d,s)
 
-typealias IntervalMappedSpace{S,D} MappedSpace{S,D,RealBasis,Interval}
-typealias PeriodicMappedSpace{S,D,T} MappedSpace{S,D,T,PeriodicInterval}
 
 
 
@@ -26,9 +24,6 @@ Space(d::Domain)=MappedSpace(d,Space(canonicaldomain(d)))
 
 
 domain(S::MappedSpace)=S.domain
-canonicaldomain{D,S}(::Type{IntervalMappedSpace{S,D}})=Interval()
-canonicaldomain{D,S}(::Type{PeriodicMappedSpace{S,D}})=PeriodicInterval()
-canonicaldomain{D,S,T,DS}(::Type{MappedSpace{S,D,T,DS}})=D()
 canonicalspace(S::MappedSpace)=MappedSpace(S.domain,canonicalspace(S.space))
 
 points(d::MappedSpace,n)=fromcanonical(d,points(d.space,n))
@@ -38,18 +33,18 @@ points(d::MappedSpace,n)=fromcanonical(d,points(d.space,n))
 Base.ones{T<:Number}(::Type{T},S::MappedSpace)=Fun(ones(T,S.space).coefficients,S)
 transform(S::MappedSpace,vals::Vector)=transform(S.space,vals)
 itransform(S::MappedSpace,cfs::Vector)=itransform(S.space,cfs)
-evaluate{SS,DD,T,TT,DDS}(f::Fun{MappedSpace{SS,DD,TT,DDS},T},x)=evaluate(Fun(coefficients(f),space(f).space),mappoint(domain(f),domain(space(f).space),x))
+evaluate{SS,DD,T,TT}(f::Fun{MappedSpace{SS,DD,TT},T},x)=evaluate(Fun(coefficients(f),space(f).space),mappoint(domain(f),domain(space(f).space),x))
 
 
 for op in (:(Base.first),:(Base.last))
     @eval $op{S<:MappedSpace}(f::Fun{S})=$op(Fun(coefficients(f),space(f).space))
-end    
+end
 
 
 ## Integration
 
 
-function integrate{LS,RR,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
+function integrate{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
     fc=Fun(f.coefficients,space(f).space)
     x=Fun(identity,domain(fc))
     Mp=fromcanonicalD(f,x)
@@ -58,7 +53,7 @@ function integrate{LS,RR,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
 end
 
 
-function Base.sum{LS,RR,T,TT,DS}(f::Fun{MappedSpace{LS,RR,TT,DS},T})
+function Base.sum{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
     fc=Fun(f.coefficients,space(f).space)
     x=Fun(identity,domain(fc))
     Mp=fromcanonicalD(f,x)
@@ -69,7 +64,7 @@ end
 
 ## identity
 
-function identity_fun{SS,DD,DDS,DDT}(S::MappedSpace{SS,DD,DDT,DDS})
+function identity_fun{SS,DD,DDT}(S::MappedSpace{SS,DD,DDT})
     sf=fromcanonical(S,Fun(identity,domain(S.space)))
     Fun(coefficients(sf),MappedSpace(S.domain,space(sf)))
 end
@@ -86,9 +81,9 @@ end
 Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
     SpaceOperator(Conversion(S1.space,S2.space),
         S1,S2))
-        
+
 # Conversion is induced from canonical space
-for OP in (:conversion_rule,:maxspace)        
+for OP in (:conversion_rule,:maxspace)
     @eval function $OP(S1::MappedSpace,S2::MappedSpace)
         @assert domain(S1)==domain(S2)
         cr=$OP(S1.space,S2.space)
@@ -100,7 +95,7 @@ end
 function Multiplication{MS<:MappedSpace,T}(f::Fun{MS,T},S::MappedSpace)
     d=domain(f)
     @assert d==domain(S)
-    mf=Fun(coefficients(f),space(f).space)  # project f   
+    mf=Fun(coefficients(f),space(f).space)  # project f
     M=Multiplication(mf,S.space)
     MultiplicationWrapper(f,SpaceOperator(M,
         MappedSpace(d,domainspace(M)),
@@ -130,7 +125,7 @@ function Integral(sp::MappedSpace,k::Integer)
         IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
     else # k==1
         csp=sp.space
-        
+
         x=Fun(identity,csp)
         M=Multiplication(fromcanonicalD(sp,x),csp)
         Q=Integral(rangespace(M))*M

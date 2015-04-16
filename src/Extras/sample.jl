@@ -193,7 +193,7 @@ sample(f::MultivariateFun)=sample(f,1)[1,:]
 ## Special spaces
 
 # Rays may be schwartz at right endpoint so we project
-function sample{SS<:JacobiWeight,DD<:Ray,TT,DDS}(f::Fun{MappedSpace{SS,DD,TT,DDS},Float64},n::Integer)
+function sample{SS<:JacobiWeight,DD<:Ray,TT}(f::Fun{MappedSpace{SS,DD,TT},Float64},n::Integer)
     if space(f).space.β == 0
         samplecdf(normalizedcumsum(f),n)
     else
@@ -203,7 +203,7 @@ end
 
 # Line/Ray have unbounded endpoints so we map
 for TYP in (:Line,:Ray)
-    @eval bisectioninv{SS,DD<:$TYP,TT,DDS}(f::Fun{MappedSpace{SS,DD,TT,DDS},Float64},x::Vector)=fromcanonical(f,bisectioninv(Fun(f.coefficients,space(f).space),x))
+    @eval bisectioninv{SS,DD<:$TYP,TT}(f::Fun{MappedSpace{SS,DD,TT},Float64},x::Vector)=fromcanonical(f,bisectioninv(Fun(f.coefficients,space(f).space),x))
 end
 
 

@@ -4,7 +4,7 @@ export PiecewiseSpace,depiece,pieces
 # Piecewise Space
 ############
 
-immutable PiecewiseSpace{S<:FunctionSpace,T} <: FunctionSpace{T,UnionDomain}
+immutable PiecewiseSpace{S<:FunctionSpace,T} <: FunctionSpace{T}
     spaces::Vector{S}
     PiecewiseSpace(::AnyDomain)=new(S[S(AnyDomain())])
     PiecewiseSpace(sp::Vector{S})=new(sp)

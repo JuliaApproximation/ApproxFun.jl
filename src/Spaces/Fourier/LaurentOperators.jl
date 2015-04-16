@@ -1,3 +1,12 @@
+
+ToeplitzOperator(f::Fun{Laurent})=ToeplitzOperator(f.coefficients[2:2:end],
+                                                    f.coefficients[1:2:end])
+LaurentOperator(f::Fun{Laurent})=LaurentOperator(f.coefficients[3:2:end],
+                                                    f.coefficients[[1;2:2:end]])
+
+
+
+
 ## Evaluation
 
 getindex(T::Evaluation{Taylor,Complex{Float64},Complex{Float64}},cols::Range)=mappoint(domain(T),Circle(),T.x).^(cols-1)
@@ -15,16 +24,16 @@ addentries!(M::Multiplication{Laurent,Laurent},A,k)=addentries!(LaurentOperator(
 
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Taylor,T,PeriodicInterval}})=Fourier(domain(R))
+        rangespace{T}(R::$TYP{ReImSpace{Taylor,T}})=Fourier(domain(R))
     end
 end
 
-bandinds{T}(::RealOperator{ReImSpace{Taylor,T,PeriodicInterval}})=0,2
-bandinds{T}(::ImagOperator{ReImSpace{Taylor,T,PeriodicInterval}})=0,1
+bandinds{T}(::RealOperator{ReImSpace{Taylor,T}})=0,2
+bandinds{T}(::ImagOperator{ReImSpace{Taylor,T}})=0,1
 
 
 ## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T,PeriodicInterval}},A,kr::Range)
+function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A,kr::Range)
     for k=kr
         if isodd(k)         # real part
             A[k,k]+=1
@@ -36,7 +45,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T,PeriodicInterval}},A,
 end
 
 ## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
-function addentries!{T}(R::ImagOperator{ReImSpace{Taylor,T,PeriodicInterval}},A,kr::Range)
+function addentries!{T}(R::ImagOperator{ReImSpace{Taylor,T}},A,kr::Range)
     for k=kr
         A[k,k+1]+=1
     end
@@ -48,17 +57,17 @@ end
 # spaces lose zeroth coefficient
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Hardy{false},T,PeriodicInterval}})=SliceSpace(Fourier(domain(R)),1)
+        rangespace{T}(R::$TYP{ReImSpace{Hardy{false},T}})=SliceSpace(Fourier(domain(R)),1)
     end
 end
 
 
-bandinds{T}(::RealOperator{ReImSpace{Hardy{false},T,PeriodicInterval}})=-1,1
-bandinds{T}(::ImagOperator{ReImSpace{Hardy{false},T,PeriodicInterval}})=0,0
+bandinds{T}(::RealOperator{ReImSpace{Hardy{false},T}})=-1,1
+bandinds{T}(::ImagOperator{ReImSpace{Hardy{false},T}})=0,0
 
 
 ## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T,PeriodicInterval}},A,kr::Range)
+function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
     for k=kr
         if isodd(k)    # imag part
             A[k,k+1]+=1
@@ -70,7 +79,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T,PeriodicInterva
 end
 
 ## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
-function addentries!{T}(R::ImagOperator{ReImSpace{Hardy{false},T,PeriodicInterval}},A,kr::Range)
+function addentries!{T}(R::ImagOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
     for k=kr
         A[k,k]+=isodd(k)?-1:1
     end
@@ -81,12 +90,12 @@ end
 # spaces lose zeroth coefficient
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Laurent,T,PeriodicInterval}})=Fourier(domain(R))
+        rangespace{T}(R::$TYP{ReImSpace{Laurent,T}})=Fourier(domain(R))
     end
 end
 
-bandinds{T}(::RealOperator{ReImSpace{Laurent,T,PeriodicInterval}})=0,2
-function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T,PeriodicInterval}},A,kr::Range)
+bandinds{T}(::RealOperator{ReImSpace{Laurent,T}})=0,2
+function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A,kr::Range)
     for k=kr
         if isodd(k)    # real part
             A[k,k]+=1
@@ -207,15 +216,15 @@ function addentries!(D::Integral{Taylor},A,kr::Range)
 end
 
 
-function bandinds{n,T,DD}(D::Integral{SliceSpace{n,1,Hardy{false},T,DD}})
+function bandinds{n,T}(D::Integral{SliceSpace{n,1,Hardy{false},T}})
     d=domain(D)
     @assert isa(d,Circle)
     @assert D.order==n
     (0,0)
 end
-rangespace{n,T,DD}(D::Integral{SliceSpace{n,1,Hardy{false},T,DD}})=D.space.space
+rangespace{n,T}(D::Integral{SliceSpace{n,1,Hardy{false},T}})=D.space.space
 
-function addentries!{n,T,DD}(D::Integral{SliceSpace{n,1,Hardy{false},T,DD}},A,kr::Range)
+function addentries!{n,T}(D::Integral{SliceSpace{n,1,Hardy{false},T}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,Circle)
@@ -257,14 +266,14 @@ end
 
 
 
-function bandinds{n,T,DD}(D::Integral{SliceSpace{n,1,Taylor,T,DD}})
+function bandinds{n,T}(D::Integral{SliceSpace{n,1,Taylor,T}})
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     (0,0)
 end
-rangespace{n,T,DD}(D::Integral{SliceSpace{n,1,Taylor,T,DD}})=D.space
+rangespace{n,T}(D::Integral{SliceSpace{n,1,Taylor,T}})=D.space
 
-function addentries!{n,T,DD}(D::Integral{SliceSpace{n,1,Taylor,T,DD}},A,kr::Range)
+function addentries!{n,T}(D::Integral{SliceSpace{n,1,Taylor,T}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,PeriodicInterval)

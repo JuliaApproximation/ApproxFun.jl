@@ -10,7 +10,7 @@ valsdomain_type_promote{T<:Integer,V<:Real}(::Type{T},::Type{V})=valsdomain_type
 valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
-function defaultFun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
+function defaultFun{ReComp}(f::Function,d::FunctionSpace{ReComp},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])
 
@@ -45,7 +45,7 @@ function defaultFun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)
     Fun(transform(d,vals),d)
 end
 
-Fun{ReComp,D}(f::Function,d::FunctionSpace{ReComp,D},n::Integer)=defaultFun(f,d,n)
+Fun{ReComp}(f::Function,d::FunctionSpace{ReComp},n::Integer)=defaultFun(f,d,n)
 
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f[x],d)

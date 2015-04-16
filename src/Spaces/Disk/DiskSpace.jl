@@ -30,7 +30,7 @@ checkpoints(d::Disk)=[fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3)
 ∂(d::Disk)=Circle(Complex(d.center...),d.radius)
 
 
-immutable DiskSpace{m,a,b,JS<:IntervalSpace,S<:PeriodicSpace} <: AbstractProductSpace{JS,S,Complex128,Disk}
+immutable DiskSpace{m,a,b,JS,S} <: AbstractProductSpace{JS,S,Complex128}
     domain::Disk
     spacet::S
 end

@@ -1,6 +1,6 @@
 ## Drop space drops the first n entries from a space
 
-immutable SliceSpace{index,stride,DS,T,D}<: FunctionSpace{T,D}
+immutable SliceSpace{index,stride,DS,T}<: FunctionSpace{T}
     space::DS
 
     SliceSpace(sp::DS)=new(sp)
@@ -8,18 +8,18 @@ immutable SliceSpace{index,stride,DS,T,D}<: FunctionSpace{T,D}
 end
 
 
-spacescompatible{n,st,DS,T,D}(S1::SliceSpace{n,st,DS,T,D},S2::SliceSpace{n,st,DS,T,D})=spacescompatible(S1.space,S2.space)
+spacescompatible{n,st,DS,T}(S1::SliceSpace{n,st,DS,T},S2::SliceSpace{n,st,DS,T})=spacescompatible(S1.space,S2.space)
 
 index{n}(::SliceSpace{n})=n
 Base.stride{n,st}(::SliceSpace{n,st})=st
 
-SliceSpace{T,D}(sp::FunctionSpace{T,D},n::Integer,st::Integer)=SliceSpace{n,st,typeof(sp),T,D}(sp)
-SliceSpace{T,D}(sp::FunctionSpace{T,D},n::Integer)=SliceSpace(sp,n,1)
+SliceSpace{T}(sp::FunctionSpace{T},n::Integer,st::Integer)=SliceSpace{n,st,typeof(sp),T}(sp)
+SliceSpace{T}(sp::FunctionSpace{T},n::Integer)=SliceSpace(sp,n,1)
 
 domain(DS::SliceSpace)=domain(DS.space)
-bandinds{n,st,S,T,D}(C::Conversion{SliceSpace{n,st,S,T,D},S})=-n,0
+bandinds{n,st,S,T}(C::Conversion{SliceSpace{n,st,S,T},S})=-n,0
 
-function addentries!{ind,st,S,T,D}(C::Conversion{SliceSpace{ind,st,S,T,D},S},A,kr::Range)
+function addentries!{ind,st,S,T}(C::Conversion{SliceSpace{ind,st,S,T},S},A,kr::Range)
     ds =domainspace(C)
     @assert st==1
 
@@ -30,12 +30,12 @@ function addentries!{ind,st,S,T,D}(C::Conversion{SliceSpace{ind,st,S,T,D},S},A,k
 end
 
 
-getindex{ind,DS,T,D}(E::Evaluation{SliceSpace{ind,1,DS,T,D},Bool},kr::Range)=Evaluation(E.space.space,E.x,E.order)[kr+ind]
-getindex{ind,DS,T,D}(E::Evaluation{SliceSpace{ind,1,DS,T,D}},kr::Range)=Evaluation(E.space.space,E.x,E.order)[kr+ind]
+getindex{ind,DS,T}(E::Evaluation{SliceSpace{ind,1,DS,T},Bool},kr::Range)=Evaluation(E.space.space,E.x,E.order)[kr+ind]
+getindex{ind,DS,T}(E::Evaluation{SliceSpace{ind,1,DS,T}},kr::Range)=Evaluation(E.space.space,E.x,E.order)[kr+ind]
 
-=={n,st,S,T,D}(a::SliceSpace{n,st,S,T,D},b::SliceSpace{n,st,S,T,D})=a.space==b.space
+=={n,st,S,T}(a::SliceSpace{n,st,S,T},b::SliceSpace{n,st,S,T})=a.space==b.space
 
-function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::SliceSpace{n,1,S,T,D})
+function conversion_rule{n,S<:FunctionSpace,T}(a::SliceSpace{n,1,S,T},b::SliceSpace{n,1,S,T})
      if a==b
         a
     else
@@ -43,7 +43,7 @@ function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::Sli
     end
 end
 # return the space that has banded Conversion to the other
-function conversion_rule{n,S<:FunctionSpace,T,D}(a::SliceSpace{n,1,S,T,D},b::FunctionSpace)
+function conversion_rule{n,S<:FunctionSpace,T}(a::SliceSpace{n,1,S,T},b::FunctionSpace)
     if a.space==b
         a  # we can write droping coefficients as a banded operator
     else
@@ -117,7 +117,7 @@ values{S<:SliceSpace,V<:SliceSpace}(f::ProductFun{S,V})=values(ProductFun(f,spac
 values{S<:SliceSpace}(f::ProductFun{S})=values(ProductFun(f,space(f,1).space,space(f,2)))
 
 
-function coefficients{n,DS,TT,D}(f::ProductFun{SliceSpace{n,1,DS,TT,D}},ox::FunctionSpace,oy::FunctionSpace)
+function coefficients{n,DS,TT}(f::ProductFun{SliceSpace{n,1,DS,TT}},ox::FunctionSpace,oy::FunctionSpace)
     T=eltype(f)
     m=size(f,1)
     A=[pad!(coefficients(fx,ox),m+n) for fx in f.coefficients]
