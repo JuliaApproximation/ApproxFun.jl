@@ -1,4 +1,4 @@
-immutable PiecewiseInterval{T<:Number} <:Domain{T}
+immutable PiecewiseInterval{T<:Number} <: UnivariateDomain{T}
     points::Vector{T}
 end
 
@@ -27,5 +27,3 @@ checkpoints{T}(d::PiecewiseInterval{T})=mapreduce(checkpoints,union,pieces(d))
 for OP in (:(Base.first),:(Base.last))
     @eval $OP(d::PiecewiseInterval)=$OP(d.points)
 end
-
-Base.reverse(d::PeriodicInterval)=PeriodicInterval(d.b,d.a)

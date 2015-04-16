@@ -1,9 +1,10 @@
-## 
+##
 # Represents a domain defined by the image of a Fun
 ###
 
+export Curve
 
-immutable Curve{S<:FunctionSpace} <:Domain
+immutable Curve{S<:FunctionSpace} <: Domain
     curve::Fun{S}
 end
 

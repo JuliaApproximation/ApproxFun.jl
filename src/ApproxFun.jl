@@ -2,7 +2,7 @@ module ApproxFun
     using Base, Compat
 
 export pad!,pad,sample,chop!,complexroots,roots,svfft
-export multiplybyx,IntervalDomain,fasttimes
+export multiplybyx,fasttimes
 
 ##Testing
 export bisectioninv, clenshaw

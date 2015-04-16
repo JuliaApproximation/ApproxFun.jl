@@ -1,5 +1,5 @@
 abstract MultivariateFun
-abstract BivariateFun <:MultivariateFun
+abstract BivariateFun <: MultivariateFun
 
 
 #implements coefficients/values/evaluate
@@ -16,6 +16,7 @@ Base.chop(f::MultivariateFun)=chop(f,10eps())
 
 
 include("VectorFun.jl")
+include("ProductDomain.jl")
 include("TensorSpace.jl")
 include("LowRankFun.jl")
 include("ProductFun.jl")

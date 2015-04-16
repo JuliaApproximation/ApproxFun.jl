@@ -2,7 +2,7 @@
 
 export UnionDomain
 
-immutable UnionDomain{D<:Domain,T<:Number} <:Domain{T}
+immutable UnionDomain{D<:Domain,T<:Number} <: Domain{T}
     domains::Vector{D}
 end
 

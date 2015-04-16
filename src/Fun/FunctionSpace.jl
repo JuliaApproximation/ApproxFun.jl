@@ -52,7 +52,10 @@ abstract FunctionSpace{T,d}
 typealias RealSpace{d} FunctionSpace{RealBasis,d}
 typealias ComplexSpace{d} FunctionSpace{ComplexBasis,d}
 typealias UnivariateSpace{T} FunctionSpace{T,1}
+typealias BivariateSpace{T} FunctionSpace{T,2}
 typealias RealUnivariateSpace RealSpace{1}
+
+
 
 
 Base.eltype{S}(::FunctionSpace{S})=eltype(S)
@@ -123,6 +126,7 @@ domain(A::FunctionSpace)=A.domain # assume it has a field domain
 
 for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD)
     @eval ($op)(sp::FunctionSpace,x)=$op(domain(sp),x)
+    @eval ($op)(sp::BivariateSpace,x...)=$op(domain(sp),x...)
 end
 
 

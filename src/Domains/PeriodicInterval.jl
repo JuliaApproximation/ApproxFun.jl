@@ -4,8 +4,8 @@ export PeriodicInterval
 
 
 immutable PeriodicInterval{T<:Number} <: PeriodicDomain{T}
-	a::T
-	b::T
+    a::T
+    b::T
 end
 
 PeriodicInterval()=PeriodicInterval(-1.π,1.π)
@@ -18,7 +18,7 @@ Base.convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = Peri
 
 function PeriodicInterval{T<:Number}(d::Vector{T})
     @assert length(d) == 2
-    
+
     if abs(d[1]) ==Inf
         PeriodicLine(d)
     else
@@ -46,6 +46,7 @@ fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Interval(d),θ/π)/π
 
 Base.length(d::PeriodicInterval) = abs(d.b - d.a)
 Base.angle(d::PeriodicInterval) = angle(d.b - d.a)
+Base.reverse(d::PeriodicInterval)=PeriodicInterval(d.b,d.a)
 
 
 
