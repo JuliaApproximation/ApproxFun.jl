@@ -1,7 +1,7 @@
 export continuity
 
 
-abstract IntervalSpace <:  RealSpace     # We assume basis is real
+abstract IntervalSpace <:  RealUnivariateSpace     # We assume basis is real
 
 Space{N<:Number}(d::Vector{N})=Space(Interval(d))
 

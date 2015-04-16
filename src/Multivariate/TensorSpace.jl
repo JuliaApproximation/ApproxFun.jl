@@ -42,14 +42,13 @@ function checkpoints(d::ProductDomain)
     ret
 end
 
-abstract MultivariateSpace{T} <: FunctionSpace{T}
-abstract BivariateSpace{T} <: MultivariateSpace{T}
+typealias BivariateSpace{T} FunctionSpace{T,2}
 
 
 fromcanonical(d::MultivariateDomain,x::Tuple)=fromcanonical(d,x...)
 tocanonical(d::MultivariateDomain,x::Tuple)=tocanonical(d,x...)
-fromcanonical(d::MultivariateSpace,x...)=fromcanonical(domain(d),x...)
-tocanonical(d::MultivariateSpace,x...)=tocanonical(domain(d),x...)
+fromcanonical(d::BivariateSpace,x...)=fromcanonical(domain(d),x...)
+tocanonical(d::BivariateSpace,x...)=tocanonical(domain(d),x...)
 
 
 # This means x are represented as space S and y are represented as space T

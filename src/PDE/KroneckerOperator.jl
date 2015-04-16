@@ -346,7 +346,7 @@ maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2]
 Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
 
 
-function Conversion(a::MultivariateSpace,b::MultivariateSpace)
+function Conversion(a::BivariateSpace,b::BivariateSpace)
     if a==b
         error("Don't call conversion to itself")
     elseif conversion_type(a,b)==NoSpace()

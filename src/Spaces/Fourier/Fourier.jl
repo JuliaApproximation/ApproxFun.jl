@@ -4,7 +4,7 @@ export Fourier,Taylor,Hardy,CosSpace,SinSpace,Laurent
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
-        immutable $T <: RealSpace
+        immutable $T <: RealUnivariateSpace
             domain::Union(PeriodicDomain,AnyDomain)
         end
         $T()=$T(PeriodicInterval())
@@ -14,7 +14,7 @@ end
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
-immutable Hardy{s} <: FunctionSpace{ComplexBasis}
+immutable Hardy{s} <: UnivariateSpace{ComplexBasis}
     domain::Union(PeriodicDomain,AnyDomain)
     Hardy(d)=new(d)
     Hardy()=new(Circle())
