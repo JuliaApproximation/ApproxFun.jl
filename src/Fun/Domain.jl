@@ -1,10 +1,15 @@
 
 
-export Domain,tocanonical,fromcanonical,Circle,PeriodicInterval,Interval
-export chebyshevpoints
+export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,∂
+export chebyshevpoints,fourierpoints
 
 
-abstract Domain{T<:Number}  #type parameter represents what find of numeric representation should be used in... TODO explain
+# T is the numeric type used to represent the domain
+# d is the dimension
+abstract Domain{T<:Number,d}
+typealias UnivariateDomain{T} Domain{T,1}
+typealias BivariateDomain{T} Domain{T,2}
+
 
 immutable AnyDomain <: Domain{UnsetNumber} end
 
@@ -30,7 +35,7 @@ Base.length(::AnyDomain)=NaN
 
 ## Interval Domains
 
-abstract IntervalDomain{T} <: Domain{T}
+abstract IntervalDomain{T} <: UnivariateDomain{T}
 
 canonicaldomain(::IntervalDomain)=Interval()
 
@@ -66,7 +71,7 @@ end
 
 ###### Periodic domains
 
-abstract PeriodicDomain{T} <: Domain{T}
+abstract PeriodicDomain{T} <: UnivariateDomain{T}
 
 points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(T,n))
 

@@ -6,7 +6,7 @@ export Circle
 ##  Circle
 
 
-immutable Circle{T<:Number,V<:Real} <: PeriodicDomain{Complex{Float64}}
+immutable Circle{T<:Number,V<:Real} <: PeriodicDomain{Complex}
 	center::T
 	radius::V
 end

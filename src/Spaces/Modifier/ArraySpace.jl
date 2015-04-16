@@ -14,7 +14,7 @@ end
 ArraySpace{T,d}(S::FunctionSpace{T,d},n::(Int...))=ArraySpace{typeof(S),length(n),T,d}(S,n)
 ArraySpace(S::FunctionSpace,n::Integer)=ArraySpace(S,(n,))
 ArraySpace{T,d}(S::FunctionSpace{T,d},n,m)=ArraySpace{typeof(S),2,T,d}(S,(n,m))
-ArraySpace(S::Domain,n...)=ArraySpace(Space(S),n...)
+ArraySpace(d::Domain,n...)=ArraySpace(Space(d),n...)
 Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
 Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
 Base.size(AS::ArraySpace)=AS.dimensions

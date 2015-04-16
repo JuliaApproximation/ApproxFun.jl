@@ -18,13 +18,9 @@ immutable JacobiWeight{S<:IntervalSpace} <: IntervalSpace
 end
 
 JacobiWeight{S<:IntervalSpace}(a::Number,b::Number,d::S)=JacobiWeight{S}(@compat(Float64(a)),@compat(Float64(b)),d)
-JacobiWeight(a::Number,b::Number,d::Domain)=JacobiWeight(@compat(Float64(a)),
-                                                         @compat(Float64(b)),
-                                                         Space(d))
-JacobiWeight(a,b)=JacobiWeight(a,b,Chebyshev())
-JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(@compat(Float64(a)),
-                                                         @compat(Float64(b)),
-                                                         Space(d))
+JacobiWeight(a::Number,b::Number,d::IntervalDomain)=JacobiWeight(@compat(Float64(a)),@compat(Float64(b)),Space(d))
+JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(@compat(Float64(a)),@compat(Float64(b)),Space(d))
+JacobiWeight(a::Number,b::Number)=JacobiWeight(a,b,Chebyshev())
 
 JacobiWeight{S<:IntervalSpace}(a::Number,b::Number,s::Vector{S}) = map(s->JacobiWeight(a,b,s),s)
 JacobiWeight{S<:IntervalSpace,T}(a::Number,b::Number,s::PiecewiseSpace{S,T}) = PiecewiseSpace(JacobiWeight(a,b,vec(s)))

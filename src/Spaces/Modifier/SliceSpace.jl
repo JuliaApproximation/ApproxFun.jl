@@ -4,7 +4,7 @@ immutable SliceSpace{index,stride,DS,T,dim}<: FunctionSpace{T,dim}
     space::DS
 
     SliceSpace(sp::DS)=new(sp)
-    SliceSpace(d::Domain)=new(DS(d))
+    SliceSpace(d::Domain{T,dim})=new(DS(d))
 end
 
 
