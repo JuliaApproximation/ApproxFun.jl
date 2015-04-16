@@ -120,8 +120,8 @@ function Conversion(AS::ArraySpace,BS::ArraySpace)
     ConversionWrapper(DiagonalArrayOperator(Conversion(AS.space,BS.space),size(AS)))
 end
 
-ToeplitzOperator{S,T,V}(G::Fun{ArraySpace{S,2,T},V})=interlace(map(ToeplitzOperator,mat(G)))
-ToeplitzOperator{S,T,V}(G::Fun{ArraySpace{S,2,T},V})=interlace(map(ToeplitzOperator,mat(G)))
+ToeplitzOperator{S,T,V}(G::Fun{ArraySpace{S,2,T,1},V})=interlace(map(ToeplitzOperator,mat(G)))
+ToeplitzOperator{S,T,V}(G::Fun{ArraySpace{S,2,T,1},V})=interlace(map(ToeplitzOperator,mat(G)))
 
 ## Sum Space
 
@@ -189,7 +189,7 @@ Integral(S::SumSpace,k::Integer)=IntegralWrapper(sumblkdiagm([Integral(S.spaces[
 
 ## Multiplcation for Array*Vector
 
-function Multiplication{S,T,Q}(f::Fun{ArraySpace{S,2,T}},sp::ArraySpace{Q,1})
+function Multiplication{S,T,Q}(f::Fun{ArraySpace{S,2,T,1}},sp::ArraySpace{Q,1})
     @assert size(space(f),2)==length(sp)
     m=mat(f)
     MultiplicationWrapper(f,interlace(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))

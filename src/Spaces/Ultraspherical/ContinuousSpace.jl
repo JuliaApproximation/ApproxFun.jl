@@ -88,9 +88,9 @@ pieces{T}(f::Fun{ContinuousSpace,T})=vec(f)
 
 ## Conversion
 
-bandinds(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis},ContinuousSpace})=-1,length(domain(rangespace(C)))
+bandinds(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1},ContinuousSpace})=-1,length(domain(rangespace(C)))
 
-function addentries!{T}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis},ContinuousSpace,T},A,kr::Range)
+function addentries!{T}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1},ContinuousSpace,T},A,kr::Range)
     d=domain(rangespace(C))
     K=length(d)
     if isperiodic(d)
@@ -121,8 +121,8 @@ function addentries!{T}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},Rea
     A
 end
 
-bandinds(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis}})=isperiodic(domainspace(C))?(1-2length(domain(rangespace(C))),1):(-length(domain(rangespace(C))),1)
-function addentries!{T}(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis},T},A,kr::Range)
+bandinds(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1}})=isperiodic(domainspace(C))?(1-2length(domain(rangespace(C))),1):(-length(domain(rangespace(C))),1)
+function addentries!{T}(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1},T},A,kr::Range)
     d=domain(domainspace(C))
     K=length(d)
     if isperiodic(d)

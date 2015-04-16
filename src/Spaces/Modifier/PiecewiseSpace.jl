@@ -10,15 +10,15 @@ immutable PiecewiseSpace{S<:FunctionSpace,T,d} <: FunctionSpace{T,d}
     PiecewiseSpace(sp::Vector{S})=new(sp)
 end
 PiecewiseSpace(sp::Vector{Any})=PiecewiseSpace([sp...])
-PiecewiseSpace{S,T,d}(::FunctionSpace{T,d},spaces::Vector{S})=PiecewiseSpace{S,T}(spaces)
+PiecewiseSpace{S,T,d}(::FunctionSpace{T,d},spaces::Vector{S})=PiecewiseSpace{S,T,d}(spaces)
 PiecewiseSpace(spaces)=PiecewiseSpace(first(spaces),spaces)
 Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))
 domain(S::PiecewiseSpace)=UnionDomain(map(domain,S.spaces))
 Base.length(S::PiecewiseSpace)=length(S.spaces)
 Base.getindex(d::PiecewiseSpace,k)=d.spaces[k]
 
-Base.vec{S<:FunctionSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T},j::Integer)=Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j])
-Base.vec{S<:FunctionSpace,V,T}(f::Fun{PiecewiseSpace{S,V},T})=[vec(f,j) for j=1:length(f.space)]
+Base.vec{S<:FunctionSpace,V,T,d}(f::Fun{PiecewiseSpace{S,V,d},T},j::Integer)=Fun(f.coefficients[j:length(f.space):end],f.space.spaces[j])
+Base.vec{S<:FunctionSpace,V,T,d}(f::Fun{PiecewiseSpace{S,V,d},T})=[vec(f,j) for j=1:length(f.space)]
 pieces{S<:PiecewiseSpace,T}(f::Fun{S,T})=vec(f)
 depiece{F<:Fun}(v::Vector{F})=Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
 depiece(v::Vector{Any})=depiece([v...])
