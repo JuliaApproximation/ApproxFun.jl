@@ -216,15 +216,15 @@ function addentries!(D::Integral{Taylor},A,kr::Range)
 end
 
 
-function bandinds{n,T}(D::Integral{SliceSpace{n,1,Hardy{false},T}})
+function bandinds{n,T}(D::Integral{SliceSpace{n,1,Hardy{false},T,1}})
     d=domain(D)
     @assert isa(d,Circle)
     @assert D.order==n
     (0,0)
 end
-rangespace{n,T}(D::Integral{SliceSpace{n,1,Hardy{false},T}})=D.space.space
+rangespace{n,T}(D::Integral{SliceSpace{n,1,Hardy{false},T,1}})=D.space.space
 
-function addentries!{n,T}(D::Integral{SliceSpace{n,1,Hardy{false},T}},A,kr::Range)
+function addentries!{n,T}(D::Integral{SliceSpace{n,1,Hardy{false},T,1}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,Circle)
@@ -266,14 +266,14 @@ end
 
 
 
-function bandinds{n,T}(D::Integral{SliceSpace{n,1,Taylor,T}})
+function bandinds{n,T}(D::Integral{SliceSpace{n,1,Taylor,T,1}})
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     (0,0)
 end
-rangespace{n,T}(D::Integral{SliceSpace{n,1,Taylor,T}})=D.space
+rangespace{n,T}(D::Integral{SliceSpace{n,1,Taylor,T,1}})=D.space
 
-function addentries!{n,T}(D::Integral{SliceSpace{n,1,Taylor,T}},A,kr::Range)
+function addentries!{n,T}(D::Integral{SliceSpace{n,1,Taylor,T,1}},A,kr::Range)
     d=domain(D)
     m=D.order
     @assert isa(d,PeriodicInterval)

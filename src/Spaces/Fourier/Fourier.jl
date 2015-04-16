@@ -98,7 +98,8 @@ evaluate(f::Fun{SinSpace},t)=sineshaw(f.coefficients,tocanonical(f,t))
 
 ## Laurent space
 
-typealias Laurent SumSpace{Hardy{true},Hardy{false},ComplexBasis}
+typealias Laurent SumSpace{Hardy{true},Hardy{false},ComplexBasis,1}
+
 Laurent()=Laurent(PeriodicInterval())
 Laurent{T<:Number}(d::Vector{T}) = Laurent(PeriodicInterval(d))
 
@@ -116,7 +117,7 @@ Base.ones{T<:Number}(::Type{T},S::Laurent)=Fun(ones(T,1),S)
 
 ## Fourier space
 
-typealias Fourier SumSpace{CosSpace,SinSpace,RealBasis}
+typealias Fourier SumSpace{CosSpace,SinSpace,RealBasis,1}
 Fourier()=Fourier(PeriodicInterval())
 Fourier{T<:Number}(d::Vector{T}) = Fourier(PeriodicInterval(d))
 

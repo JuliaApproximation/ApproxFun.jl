@@ -3,13 +3,13 @@ export ⊕
 ## SumSpace{T,S,V} encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T} <: FunctionSpace{T}
+immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T,d} <: FunctionSpace{T,d}
     spaces::(S,V)
-    SumSpace(d::Domain)=new((S(d),V(d)))
+    SumSpace(dom::Domain)=new((S(dom),V(dom)))
     SumSpace(sp::(S,V))=new(sp)
 end
 
-SumSpace{T1,T2}(A::(FunctionSpace{T1},FunctionSpace{T2}))=SumSpace{typeof(A[1]),typeof(A[2]),promote_type(T1,T2)}(A)
+SumSpace{T1,T2,d}(A::(FunctionSpace{T1,d},FunctionSpace{T2,d}))=SumSpace{typeof(A[1]),typeof(A[2]),promote_type(T1,T2),d}(A)
 
 SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
 
@@ -30,7 +30,7 @@ domain(A::SumSpace)=domain(A[1])
 
 
 
-spacescompatible{S,T}(A::SumSpace{S,T},B::SumSpace{S,T})=spacescompatible(A.spaces[1],B[1]) && spacescompatible(A.spaces[2],B[2])
+spacescompatible{S,T,d}(A::SumSpace{S,T,d},B::SumSpace{S,T,d})=spacescompatible(A.spaces[1],B[1]) && spacescompatible(A.spaces[2],B[2])
 
 
 

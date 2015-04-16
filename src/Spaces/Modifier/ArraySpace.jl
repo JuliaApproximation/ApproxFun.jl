@@ -2,7 +2,7 @@ export devec,demat,mat
 
 
 
-immutable ArraySpace{S,n,T} <: FunctionSpace{T}
+immutable ArraySpace{S,n,T,dim} <: FunctionSpace{T,dim}
      space::S
      dimensions::(Int...)
 #      # for AnyDomain() usage
@@ -11,9 +11,9 @@ immutable ArraySpace{S,n,T} <: FunctionSpace{T}
 end
 
 
-ArraySpace{T}(S::FunctionSpace{T},n::(Int...))=ArraySpace{typeof(S),length(n),T}(S,n)
-ArraySpace{T}(S::FunctionSpace{T},n::Integer)=ArraySpace(S,(n,))
-ArraySpace{T}(S::FunctionSpace{T},n,m)=ArraySpace{typeof(S),2,T}(S,(n,m))
+ArraySpace{T,d}(S::FunctionSpace{T,d},n::(Int...))=ArraySpace{typeof(S),length(n),T,d}(S,n)
+ArraySpace(S::FunctionSpace,n::Integer)=ArraySpace(S,(n,))
+ArraySpace{T,d}(S::FunctionSpace{T,d},n,m)=ArraySpace{typeof(S),2,T,d}(S,(n,m))
 ArraySpace(S::Domain,n...)=ArraySpace(Space(S),n...)
 Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
 Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
@@ -46,7 +46,7 @@ end
 transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}})=transform(vec(AS),map(vec,vals))
 
 Base.vec(AS::ArraySpace)=ArraySpace(AS.space,length(AS))
-function Base.vec{S<:FunctionSpace,V,T}(f::Fun{ArraySpace{S,1,V},T})
+function Base.vec{S<:FunctionSpace,V,T,d}(f::Fun{ArraySpace{S,1,V,d},T})
     n=length(space(f))
     Fun{S,T}[Fun(f.coefficients[j:n:end],space(f).space) for j=1:n]
 end
@@ -55,10 +55,10 @@ Base.vec{AS<:ArraySpace,T}(f::Fun{AS,T})=vec(Fun(f.coefficients,vec(space(f))))
 mat{AS<:ArraySpace,T}(f::Fun{AS,T})=reshape(vec(f),size(space(f))...)
 
 # mat(f,1) vectorizes columnwise
-function mat{S,V,T}(f::Fun{ArraySpace{S,2,V},T},j::Integer)
+function mat{S,V,T,d}(f::Fun{ArraySpace{S,2,V,d},T},j::Integer)
     @assert j==1
     m=mat(f)
-    r=Array(Fun{ArraySpace{S,1,V},T},1,size(m,2))
+    r=Array(Fun{ArraySpace{S,1,V,d},T},1,size(m,2))
     for k=1:size(m,2)
         r[1,k]=devec(m[:,k])
     end
@@ -208,7 +208,7 @@ end
 
 ## linsolve
 # special implementation to solve column by column
-function linsolve{S,T,Q}(A::BandedOperator,b::Fun{ArraySpace{S,2,T},Q};kwds...)
+function linsolve{S,T,Q}(A::BandedOperator,b::Fun{ArraySpace{S,2,T,1},Q};kwds...)
     rs=rangespace(A)
     if isa(rs,ArraySpace) && size(rs)==size(space(b))
         linsolve(A,[b];kwds...)

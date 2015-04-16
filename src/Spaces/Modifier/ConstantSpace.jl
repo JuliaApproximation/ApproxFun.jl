@@ -1,4 +1,4 @@
-immutable ConstantSpace <: FunctionSpace{RealBasis} end
+immutable ConstantSpace <: UnivariateSpace{RealBasis} end
 domain(::ConstantSpace)=AnyDomain()
 canonicalspace(C::ConstantSpace)=C
 spacescompatible(::ConstantSpace,::ConstantSpace)=true

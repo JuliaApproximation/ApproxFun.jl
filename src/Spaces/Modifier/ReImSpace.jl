@@ -1,11 +1,11 @@
 
 for TYP in (:ReSpace,:ImSpace,:ReImSpace)
     @eval begin
-        immutable $TYP{S,T}<: FunctionSpace{T}
+        immutable $TYP{S,T,d}<: FunctionSpace{T,d}
             space::S
         end
 
-        $TYP{T}(sp::FunctionSpace{T})=$TYP{typeof(sp),T}(sp)
+        $TYP{T,d}(sp::FunctionSpace{T,d})=$TYP{typeof(sp),T,d}(sp)
 
         domain(sp::$TYP)=domain(sp.space)
         spacescompatible(a::$TYP,b::$TYP)=spacescompatible(a.space,b.space)
