@@ -23,6 +23,7 @@ Base.isreal{T}(::Domain{T})=false
 complexlength(::AnyDomain)=NaN
 Base.length(::AnyDomain)=NaN
 
+Base.ndims{T,d}(::Domain{T,d})=d
 
 ##General routines
 

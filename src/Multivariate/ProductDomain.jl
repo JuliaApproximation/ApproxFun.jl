@@ -1,13 +1,12 @@
 
 export ProductDomain
 
-## TODO Should be a MultivariateDomain (i.e. Domain{T,d}). Suppose domains = [::BivariateDomain, ::UnivariateDomain], then the ProductDomain is of dimension 3.
 
-immutable ProductDomain{D<:Domain,T} <: BivariateDomain{T}
+immutable ProductDomain{D<:Domain,T,dim} <: Domain{T,dim}
     domains::Vector{D}
 end
 
-ProductDomain{D<:Domain}(d::Vector{D})=ProductDomain{D,mapreduce(eltype,promote_type,d)}(d)
+ProductDomain{D<:Domain}(d::Vector{D})=ProductDomain{D,mapreduce(eltype,promote_type,d),mapreduce(ndims,+,d)}(d)
 
 fromcanonical(d::BivariateDomain,x::Tuple)=fromcanonical(d,x...)
 tocanonical(d::BivariateDomain,x::Tuple)=tocanonical(d,x...)
