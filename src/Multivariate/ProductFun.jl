@@ -61,9 +61,8 @@ ProductFun(f,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(f,TensorSpace(dx,dy
 ## Domains promoted to FunctionSpaces
 
 ProductFun(f::Function,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
-ProductFun(f::Function,d::Domain)=ProductFun(f,Space(d))
-ProductFun(f,dy::Domain)=ProductFun(f,Space(dy))
-ProductFun(f,dx::Domain,dy::Domain)=ProductFun(f,Space(dx),Space(dy))
+ProductFun(f,d::Domain)=ProductFun(f,Space(d))
+ProductFun(f,dx::UnivariateDomain,dy::UnivariateDomain)=ProductFun(f,Space(dx),Space(dy))
 ProductFun(f::Function) = ProductFun(f,Interval(),Interval())
 
 ## Conversion from other 2D Funs
