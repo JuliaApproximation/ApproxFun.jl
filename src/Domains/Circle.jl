@@ -6,12 +6,16 @@ export Circle
 ##  Circle
 
 
-immutable Circle{T<:Number,V<:Real} <: PeriodicDomain{Complex}
+immutable Circle{T<:Number,V<:Real} <: PeriodicDomain{Complex{V}}
 	center::T
 	radius::V
 end
 
-Circle(r)=Circle(0.,r)
+Circle{T1<:Number,T2<:Number,V<:Real}(::Type{T1},c::T2,r::V) = Circle(convert(promote_type(T1,T2,V),c),convert(promote_type(real(T1),real(T2),V),r))
+Circle{V<:Real}(r::V) = Circle(zero(V),r)
+Circle(r::Int)=Circle(Float64,0.,r)
+
+Circle{V<:Real}(::Type{V}) = Circle(one(V))
 Circle()=Circle(1.)
 
 function Circle{T<:Number,V<:Real}(c::Vector{T},r::Vector{V})

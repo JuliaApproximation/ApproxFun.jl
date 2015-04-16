@@ -2,21 +2,19 @@
 
 export UnionDomain
 
-## TODO: A UnionDomain should be a Union of Domains of any dimension
-
-immutable UnionDomain{D<:UnivariateDomain,T<:Number} <: UnivariateDomain{T}
+immutable UnionDomain{D<:Domain,T<:Number} <: Domain{T}
     domains::Vector{D}
 end
 
 UnionDomain{D<:Domain}(d::Vector{D})=UnionDomain{D,mapreduce(eltype,promote_type,d)}(d)
 
 
-∪(d::UnivariateDomain) = d
-∪{D<:UnivariateDomain}(d::Vector{D}) = UnionDomain(d)
+∪(d::Domain) = d
+∪{D<:Domain}(d::Vector{D}) = UnionDomain(d)
 ∪{D1,D2,T1,T2}(d1::UnionDomain{D1,T1},d2::UnionDomain{D2,T2})=UnionDomain([d1.domains,d2.domains])
-∪{T1,D2,T2}(d1::UnivariateDomain{T1},d2::UnionDomain{D2,T2})=UnionDomain([d1,d2.domains])
-∪{D1,T1,T2}(d1::UnionDomain{D1,T1},d2::UnivariateDomain{T2})=UnionDomain([d1.domains,d2])
-∪{T1,T2}(d1::UnivariateDomain{T1},d2::UnivariateDomain{T2})=UnionDomain([d1,d2])
+∪{T1,D2,T2}(d1::Domain{T1},d2::UnionDomain{D2,T2})=UnionDomain([d1,d2.domains])
+∪{D1,T1,T2}(d1::UnionDomain{D1,T1},d2::Domain{T2})=UnionDomain([d1.domains,d2])
+∪{T1,T2}(d1::Domain{T1},d2::Domain{T2})=UnionDomain([d1,d2])
 Base.length(d::UnionDomain)=d.domains|>length
 Base.getindex(d::UnionDomain,k)=d.domains[k]
 for op in (:(Base.first),:(Base.last))

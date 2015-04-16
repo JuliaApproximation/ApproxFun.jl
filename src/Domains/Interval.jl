@@ -45,9 +45,10 @@ end
 Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
 
 # These are needed for spaces to auto-convert [a,b] to Interval
-Base.convert(::Type{IntervalDomain},i::Vector)=Interval(i)
-Base.convert(::Type{Union(AnyDomain,IntervalDomain)},i::Vector)=Interval(i)
-Base.convert{D<:UnivariateDomain}(::Type{D},i::Vector)=Interval(i)
+Base.convert(::Type{AnyDomain},i::Vector)=Interval(i)
+Base.convert{D<:IntervalDomain}(::Type{D},i::Vector)=Interval(i)
+Base.convert(::Type{Union(IntervalDomain,AnyDomain)},i::Vector)=Interval(i)
+Base.convert(::Type{Union(Interval,AnyDomain)},i::Vector)=Interval(i)
 Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 

@@ -122,7 +122,7 @@ domain(A::FunctionSpace)=A.domain # assume it has a field domain
 
 for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD)
     @eval ($op)(sp::FunctionSpace,x)=$op(domain(sp),x)
-    @eval ($op)(sp::FunctionSpace,x)=$op(domain(sp),x...)
+    @eval ($op)(sp::BivariateSpace,x...)=$op(domain(sp),x...)
 end
 
 
