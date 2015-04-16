@@ -44,6 +44,15 @@ end
 
 
 
+function points(d::PiecewiseSpace,n)
+   k=div(n,length(d))
+    r=n-length(d)*k
+
+    [vcat([points(d.spaces[j],k+1) for j=1:r]...);
+        vcat([points(d.spaces[j],k) for j=r+1:length(d)]...)]
+end
+
+
 
 function transform(S::PiecewiseSpace,vals::Vector)
     n=length(vals)
