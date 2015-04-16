@@ -20,7 +20,7 @@ Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
 
 function ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Matrix{T},sp::AbstractProductSpace{(S,V)};tol::Real=100eps(T))
     ncfs,kend=norm(cfs,Inf),size(cfs,2)
-    while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end
+    if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
     ret=map(k->Fun(chop(cfs[:,k],ncfs*tol),columnspace(sp,k)),1:max(kend,1))
     ProductFun{S,V,typeof(sp),T}(ret,sp)
 end
@@ -49,11 +49,12 @@ end
 
 function ProductFun(f::Function,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
     xy = checkpoints(S)
-    T = promote_type(eltype(map(x->f(x...),xy)),eltype(S))
+    T = promote_type(eltype(f(first(xy)...)),eltype(S))
     ptsx,ptsy=points(S,M,N)
     vals=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
     ProductFun(transform!(S,vals),S;tol=tol)
 end
+ProductFun(f::Function,S::TensorSpace) = ProductFun(LowRankFun(f,S))
 
 ProductFun(f,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(f,TensorSpace(dx,dy))
 
