@@ -42,6 +42,7 @@ Base.eltype(::Type{AnyBasis})=Number
 
 
 
+
 # T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
 # d is the dimension
 abstract FunctionSpace{T,d}
@@ -55,6 +56,9 @@ typealias RealUnivariateSpace RealSpace{1}
 
 
 Base.eltype{S}(::FunctionSpace{S})=eltype(S)
+basistype{T}(::FunctionSpace{T})=T
+
+
 coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)
 
 Base.ndims{S,d}(::FunctionSpace{S,d})=d

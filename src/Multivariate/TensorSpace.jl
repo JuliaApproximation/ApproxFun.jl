@@ -66,7 +66,7 @@ end
 
 
 TensorSpace(sp::Tuple)=TensorSpace{typeof(sp[1]),typeof(sp[2]),
-                                                promote_type(eltype(sp[1]),eltype(sp[2]))}(sp)
+                                                promote_type(basistype(sp[1]),basistype(sp[2]))}(sp)
 
 
 coefficient_type(S::TensorSpace,T)=promote_type(coefficient_type(S.spaces[1],T),coefficient_type(S.spaces[2],T))
