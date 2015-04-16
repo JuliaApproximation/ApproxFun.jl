@@ -1,5 +1,3 @@
-abstract PeriodicSpace{T} <: FunctionSpace{T}
-canonicaldomain{T<:PeriodicSpace}(::Type{T})=PeriodicInterval()
 
 ## Evaluation
 

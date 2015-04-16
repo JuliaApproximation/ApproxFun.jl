@@ -5,7 +5,7 @@
 ##
 
 
-immutable LaurentDirichlet <: PeriodicSpace{ComplexBasis}
+immutable LaurentDirichlet <: FunctionSpace{ComplexBasis}
     domain::Union(PeriodicDomain,AnyDomain)
 end
 

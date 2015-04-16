@@ -113,20 +113,13 @@ function plot{S}(r::Range,f::Fun{S,Float64};opts...)
     plot([r],f[[r]];opts...)
 end
 
-function complexplot{S,T}(f::Fun{S,T};opts...)
-    f=pad(f,3length(f)+50)
-    vals =values(f)
-
-    plot(real(vals),imag(vals);opts...)
-end
-
-function complexplot{S<:PeriodicSpace,T}(f::Fun{S,T};opts...)
+function complexplot(f::Fun;opts...)
     f=pad(f,3length(f)+50)
     vals =values(f)
     d = domain(f)
     if isa(d,Circle)
         plot(real([vals,vals[1]]),imag([vals,vals[1]]);opts...)
-    elseif isa(d,PeriodicInterval)
+    else
         plot(real(vals),imag(vals);opts...)
     end
 end
@@ -189,16 +182,16 @@ plot(f::LowRankFun;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));o
 plot(f::MultivariateFun,obj,window)=glsurfupdate(real(values(f)),obj,window)
 
 
-plot{S<:IntervalSpace,V<:PeriodicSpace,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
-function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V};opts...)
-    Px,Py=points(f)
-    vals=real(values(f))
-    surf([Px Px[:,1]], [Py Py[:,1]], [vals vals[:,1]];opts...)
-end
-function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V},obj,window)
-    vals=real(values(f))
-    glsurfupdate([vals vals[:,1]],obj,window)
-end
+# plot{S<:IntervalSpace,V<:PeriodicSpace,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
+# function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V};opts...)
+#     Px,Py=points(f)
+#     vals=real(values(f))
+#     surf([Px Px[:,1]], [Py Py[:,1]], [vals vals[:,1]];opts...)
+# end
+# function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V},obj,window)
+#     vals=real(values(f))
+#     glsurfupdate([vals vals[:,1]],obj,window)
+# end
 
 
 

@@ -2,7 +2,6 @@ export continuity
 
 
 abstract IntervalSpace <:  RealSpace     # We assume basis is real
-canonicaldomain{T<:IntervalSpace}(::Type{T})=Interval()
 
 Space{N<:Number}(d::Vector{N})=Space(Interval(d))
 

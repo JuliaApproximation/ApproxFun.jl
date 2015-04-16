@@ -4,7 +4,7 @@ export linesum
 
 
 Base.sum(f::Fun{Laurent})=fouriersum(domain(f),f.coefficients)
-function linesum{S<:PeriodicSpace}(f::Fun{S})
+function linesum{S<:Union(Laurent,Fourier)}(f::Fun{S})
     d=domain(f)
     if isa(d,Circle)
         sum(Fun(f.coefficients,S(canonicaldomain(f))))*d.radius

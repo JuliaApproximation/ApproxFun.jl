@@ -36,8 +36,8 @@ immutable DiskSpace{m,a,b,JS,S} <: AbstractProductSpace{JS,S,Complex128}
 end
 
 
-DiskSpace(m,a,b,D::Disk,S::PeriodicSpace)=DiskSpace{m,a,b,JacobiSquare,typeof(S)}(D,S)
-DiskSpace(D::Disk,S::PeriodicSpace)=DiskSpace(0,0,0,D,S)
+DiskSpace(m,a,b,D::Disk,S::FunctionSpace)=DiskSpace{m,a,b,JacobiSquare,typeof(S)}(D,S)
+DiskSpace(D::Disk,S::FunctionSpace)=DiskSpace(0,0,0,D,S)
 DiskSpace(D::Disk)=DiskSpace(D,Laurent())
 
 spacescompatible{m,a,b,JS,S}(A::DiskSpace{m,a,b,JS,S},B::DiskSpace{m,a,b,JS,S})=true
