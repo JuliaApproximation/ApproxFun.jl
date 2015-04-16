@@ -177,22 +177,19 @@ function extremal_args{S<:PiecewiseSpace}(f::Fun{S})
     return cat(1,[extremal_args(fp) for fp in vec(f)]...)
 end
 
-function extremal_args{S<:IntervalSpace,T}(f::Fun{S,T})
+function extremal_args(f::Fun)
     d=domain(f)
-    da,db=first(d),last(d)
-    if length(f) <=2 #TODO this is only relevant for Polynomial bases
-        pts=[da,db]
-    else
-        pts=cat(1, da, db, roots(differentiate(f)))
-    end
-    return pts
-end
-
-function extremal_args{S<:PeriodicSpace,T}(f::Fun{S,T})
-    if isa(domain(f),PeriodicInterval)
+    if isa(d,PeriodicInterval)
         roots(differentiate(f))
-    else  # avoid complex domains
+    elseif isa(d,PeriodicDomain)  # avoid complex domains
         fromcanonical(f,extremal_args(Fun(f.coefficients,S(canonicaldomain(f)))))
+    else
+        dab=∂(domain(f))
+        if length(f) <=2 #TODO this is only relevant for Polynomial bases
+            dab
+        else
+            [dab;roots(differentiate(f))]
+        end
     end
 end
 

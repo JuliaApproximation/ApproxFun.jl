@@ -56,7 +56,10 @@ coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)
 
 
 
+
 abstract AmbiguousSpace <: FunctionSpace{RealBasis}
+
+domain(::AmbiguousSpace)=AnyDomain()
 
 
 # AnySpace dictates that an operator can act on any space
