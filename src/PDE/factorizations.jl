@@ -141,7 +141,9 @@ end
 
 PDEProductOperatorSchur{ST,FT,S,V}(Bx::Vector{Vector{FT}},
                                    Rdiags::Vector{SavedBandedOperator{ST}},
-                                   ds::AbstractProductSpace{S,V},rs,indsBx)=PDEProductOperatorSchur{ST,FT,typeof(ds),typeof(rs),S,V}(Bx,Rdiags,ds,rs,indsBx)
+                                   ds::AbstractProductSpace{(S,V)},rs,indsBx)=PDEProductOperatorSchur{ST,FT,
+                                                                                                    typeof(ds),typeof(rs),
+                                                                                                    S,V}(Bx,Rdiags,ds,rs,indsBx)
 
 Base.eltype{ST}(::PDEProductOperatorSchur{ST})=ST
 
