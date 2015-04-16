@@ -6,14 +6,17 @@ export chebyshevpoints
 
 abstract Domain{T<:Number}  #type parameter represents what find of numeric representation should be used in... TODO explain
 
-immutable AnyDomain <: Domain{UnsetNumber}
-end
+immutable AnyDomain <: Domain{UnsetNumber} end
+
+
 
 
 Base.eltype{T}(::Domain{T})=T
 Base.isreal{T<:Real}(::Domain{T})=true
 Base.isreal{T}(::Domain{T})=false
 
+complexlength(::AnyDomain)=NaN
+Base.length(::AnyDomain)=NaN
 
 
 ##General routines
