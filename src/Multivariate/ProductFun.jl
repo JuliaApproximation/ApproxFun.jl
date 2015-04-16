@@ -1,122 +1,96 @@
-export ProductFun
-
-
-
 ##
 # ProductFun represents f(x,y) by Fun(.coefficients[k][x],.space[2])[y]
 # where all coefficients are in the same space
 ##
 
+export ProductFun
 
 immutable ProductFun{S<:FunctionSpace,V<:FunctionSpace,SS<:AbstractProductSpace,T}<:BivariateFun
     coefficients::Vector{Fun{S,T}}     # coefficients are in x
     space::SS
 end
 
-
 ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{(S,V)})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
 
+Base.size(f::ProductFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
+Base.size(f::ProductFun)=(size(f,1),size(f,2))
+Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
 
+## Construction in an AbstractProductSpace via a Matrix of coefficients
 
-
-function ProductFun{S,T}(M::Vector{Fun{S,T}},dy::FunctionSpace)
-    Sx=typeof(M[1].space)
-    funs=Fun{Sx,T}[Mk for Mk in M]
-    ProductFun{Sx,typeof(dy),ProductSpace{Sx,typeof(dy)},$T}(funs,ProductSpace(Sx[space(fun) for fun in funs],dy))
+function ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Matrix{T},sp::AbstractProductSpace{(S,V)};tol::Real=100eps(T))
+    ncfs,kend=norm(cfs,Inf),size(cfs,2)
+    while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end
+    ret=map(k->Fun(chop(cfs[:,k],ncfs*tol),columnspace(sp,k)),1:max(kend,1))
+    ProductFun{S,V,typeof(sp),T}(ret,sp)
 end
 
-ProductFun(M,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(M,TensorSpace(dx,dy))
+## Construction in a ProductSpace via a Vector of Funs
 
-
-function ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{(S,V)},tol::Real)
-    ncfs=norm(cfs,Inf)
-    ret,retempty=Array(Fun{S,T},size(cfs,2)),Array(Bool,size(cfs,2))
-    for k=1:size(cfs,2)
-        v=chop(cfs[:,k],ncfs*tol)
-        ret[k],retempty[k]=Fun(v,columnspace(D,k)),isempty(v)
-    end
-    dropcount=max(min(findfirst(reverse(retempty),false)-1,length(ret)-1),0)  # we want at least one col
-    ProductFun{S,V,typeof(D),T}(ret[1:end-dropcount],D)
+function ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(M::Vector{Fun{S,T}},dy::V)
+    funs=Fun{S,T}[Mk for Mk in M]
+    ProductFun{S,V,ProductSpace{S,V},T}(funs,ProductSpace(typeof(S)[space(fun) for fun in funs],dy))
 end
 
-ProductFun{T<:Number,S<:FunctionSpace,V<:FunctionSpace}(cfs::Matrix{T},D::AbstractProductSpace{(S,V)};tol::Real=100eps(T))=ProductFun(cfs,D,tol)
+## Adaptive Construction
 
-
-#ProductFun(f::Function,dy::Domain)=error("This function is only implemented to avoid ambiguity, do not call.")
-ProductFun(f::Function,d::Domain)=ProductFun(f,Space(d))
-ProductFun(f,dy::Domain)=ProductFun(f,Space(dy))
-ProductFun(f,dx::Domain,dy::Domain)=ProductFun(f,Space(dx),Space(dy))
-ProductFun(f::LowRankFun)=ProductFun(coefficients(f),space(f,1),space(f,2))
-ProductFun{S<:AbstractProductSpace}(f::Fun{S})=ProductFun(coefficientmatrix(f),space(f))
-
-#Need to templt TensorFun because parameters are in subfields
-ProductFun(f::ProductFun,sp::AbstractProductSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
-
-ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp1::Domain,sp2::Domain)=ProductFun(f,Space(sp1),Space(sp2))
-ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp::ProductDomain)=ProductFun(f,Space(sp))
-
-ProductFun(f::Function,d1...)=ProductFun(LowRankFun(f,d1...))
-# function ProductFun{ST<:FunctionSpace}(f::Function,S::Vector{ST},T::FunctionSpace,N::Integer)
-#     M=length(S)     # We assume the list of spaces is the same length
-#     xx=points(S[1],N)
-#     tt=points(T,M)
-#     V=Float64[f(x,t) for x=xx, t=tt] #TODO:type
-#     ProductFun(transform(S,T,V),S,T)
-# end
-
-function ProductFun{SS<:FunctionSpace{Float64},VV<:FunctionSpace{Float64}}(f::Function,S::AbstractProductSpace{(SS,VV)},N::Integer,M::Integer)
-    ptsx,ptsy=points(S,N,M)
-    V=Float64[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]#TODO:type
-    ProductFun(transform!(S,V),S)
-end
-
-function ProductFun(f::Function,S::AbstractProductSpace,N::Integer,M::Integer;tol=eps())
-    ptsx,ptsy=points(S,N,M)
-
-    f1=f(ptsx[1,1],ptsy[1,1])
-    T=coefficient_type(S,typeof(f1))  # type of coefficients
-    # use coefficient type so we can reuse array
-    V=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
-    ProductFun(transform!(S,V),S;tol=tol)
-end
-
-ProductFun(f::Function,D::BivariateDomain,N::Integer,M::Integer)=ProductFun(f,Space(D),N,M)
-
-ProductFun(f::Function,D::TensorSpace)=ProductFun(LowRankFun(f,D))
-ProductFun(f::Function,D::ProductDomain)=ProductFun(LowRankFun(f,D))
-
-function ProductFun(f::Function,D;tol=1e2eps())
-    #tol should be typed .. maybe by a checkpoints?
+function ProductFun{S<:FunctionSpace,V<:FunctionSpace}(f::Function,sp::AbstractProductSpace{(S,V)};tol=100eps())
     for n = 50:100:5000
-        X = coefficients(ProductFun(f,D,n,n;tol=tol))
-        Xmax = maxabs(X)
+        X = coefficients(ProductFun(f,sp,n,n;tol=tol))
         if size(X,1)<n && size(X,2)<n
-            X = chop(X,tol*Xmax)
-            return ProductFun(X,D;tol=tol)
+            return ProductFun(X,sp;tol=tol)
         end
     end
     warn("Maximum grid size of ("*string(5000)*","*string(5000)*") reached")
-    ProductFun(f,D,5000,5000)
+    ProductFun(f,sp,5000,5000;tol=tol)
 end
 
+## ProductFun values to coefficients
+
+function ProductFun(f::Function,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
+    xy = checkpoints(S)
+    T = eltype(map(x->f(x...),xy))
+    ptsx,ptsy=points(S,M,N)
+    vals=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
+    ProductFun(transform!(S,vals),S;tol=tol)
+end
+
+ProductFun(f,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(f,TensorSpace(dx,dy))
 
 
+## Domains promoted to FunctionSpaces
 
+ProductFun(f::Function,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
+ProductFun(f::Function,d::Domain)=ProductFun(f,Space(d))
+ProductFun(f,dy::Domain)=ProductFun(f,Space(dy))
+ProductFun(f,dx::Domain,dy::Domain)=ProductFun(f,Space(dx),Space(dy))
+ProductFun(f::Function) = ProductFun(f,Interval(),Interval())
 
-# For specifying spaces by anonymous function
-ProductFun(f::Function,SF::Function,T::FunctionSpace,N::Integer,M::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:M],T,N)
+## Conversion from other 2D Funs
 
+ProductFun(f::LowRankFun)=ProductFun(coefficients(f),space(f,1),space(f,2))
+ProductFun{S<:AbstractProductSpace}(f::Fun{S})=ProductFun(coefficientmatrix(f),space(f))
 
-# convert a constant  to a 2D Fun
+## Conversion to other ProductSpaces with the same coefficients
+
+ProductFun(f::ProductFun,sp::AbstractProductSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
+ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp1::Domain,sp2::Domain)=ProductFun(f,Space(sp1),Space(sp2))
+ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp::ProductDomain)=ProductFun(f,Space(sp))
+
+## For specifying spaces by anonymous function
+
+ProductFun(f::Function,SF::Function,T::FunctionSpace,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
+
+## Conversion of a constant to a ProductFun
 
 ProductFun(c::Number,sp::BivariateSpace)=ProductFun([Fun(c,columnspace(sp,1))],sp)
 ProductFun(f::Fun,sp::BivariateSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
 
 
 
-Base.size(f::ProductFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
-Base.size(f::ProductFun)=(size(f,1),size(f,2))
-Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
+## Utilities
+
+
 
 function funlist2coefficients{S,T}(f::Vector{Fun{S,T}})
     A=zeros(T,mapreduce(length,max,f),length(f))
@@ -272,25 +246,12 @@ Base.imag{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS})=real(ProductFun(imag(u.coe
 
 
 
-## Call LowRankFun verison
+## Call LowRankFun version
 # TODO: should cumsum and integrate return TensorFun or lowrankfun?
 for op in (:(Base.sum),:(Base.cumsum),:integrate)
     @eval $op{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},n...)=$op(LowRankFun(f),n...)
 end
 
-
-# Let K be a ProductFun and f be a Fun.
-# op(f,K) acts as operating in the x variable, and
-# op(K,f) acts as operating in the y variable.
-
-#=
-for op = (:*,:.*,:./,:/)
-    #@eval ($op){S,T,U,V}(f::Fun{S,T},A::Vector{Fun{U,V}})=map(a->($op)(f,a),A)
-    @eval ($op)(f::Fun,K::ProductFun) = ProductFun(($op)(f,K.A),K.B)
-    #@eval ($op){S,T,U,V}(B::Vector{Fun{U,V}},f::Fun{S,T})=map(b->($op)(b,f),B)
-    @eval ($op)(K::ProductFun,f::Fun) = ProductFun(K.A,($op)(K.B,f))
-end
-=#
 
 ## ProductFun transform
 
