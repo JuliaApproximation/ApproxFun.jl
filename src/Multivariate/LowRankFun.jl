@@ -134,7 +134,7 @@ function CholeskyLowRankFun(f::Function,dx::FunctionSpace;grid::Integer=64,maxra
 
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
-        if norm(a.coefficients,Inf) < tol || maxabsf < eps(zero(T))/eps(T) return LowRankFun(A,B) end
+        if norm(a.coefficients,Inf) < tol return LowRankFun(A,B) end
         A,B=[A;a/sqrt(abs(a[r]))],[B;a/(sqrt(abs(a[r]))*sign(a[r]))]
         maxabsf,r=findcholeskyapproxmax!(A[k],B[k],X,pts,grid)
         Br=map(q->q[r],B)
