@@ -16,6 +16,11 @@ PeriodicInterval(d::Interval)=PeriodicInterval(d.a,d.b)
 
 Base.convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = PeriodicInterval{T}(d.a,d.b)
 
+isambiguous(d::PeriodicInterval)=isnan(d.a) && isnan(d.b)
+Base.convert{T<:Number}(::Type{PeriodicInterval{T}},::AnyDomain)=PeriodicInterval{T}(NaN,NaN)
+Base.convert{IT<:PeriodicInterval}(::Type{IT},::AnyDomain)=PeriodicInterval(NaN,NaN)
+
+
 function PeriodicInterval{T<:Number}(d::Vector{T})
     @assert length(d) == 2
 

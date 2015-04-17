@@ -28,6 +28,13 @@ function Circle{T<:Number,V<:Real}(c::Vector{T},r::Vector{V})
 end
 Circle{T<:Number,V<:Real}(c::Vector{T},r::V) = Circle(c,ones(V,length(c))r)
 
+
+
+isambiguous(d::Circle)=isnan(d.center) && isnan(d.radius)
+Base.convert{T<:Number,V<:Number}(::Type{Circle{T,V}},::AnyDomain)=Circle{T,V}(NaN,NaN)
+Base.convert{IT<:Circle}(::Type{IT},::AnyDomain)=Circle(NaN,NaN)
+
+
 function tocanonical(d::Circle,ζ)
     v=mappoint(d,Circle(),ζ)- 0.im#Subtract 0.im so branch cut is right
 

@@ -12,8 +12,8 @@ immutable Line{T<:Number} <: IntervalDomain{T}
     centre::T  ##TODO Allow complex
     angle::T
     α::T
-    β::T    
-    
+    β::T
+
     #TODO get this inner constructor working again.
     #Line(c,a,α,β)= begin @assert c==a==0.; @assert α<0; @assert β<0; new(c,a,α,β) end
 end
@@ -24,6 +24,10 @@ Line(c,a)=Line(c,a,-1.,-1.)
 Line()=Line(0.,0.)
 
 
+isambiguous(d::Line)=isnan(d.centre) && isnan(d.angle)
+Base.convert{T<:Number}(::Type{Line{T}},::AnyDomain)=Line{T}(NaN,NaN,-1.,-1.)
+Base.convert{IT<:Line}(::Type{IT},::AnyDomain)=Line(NaN,NaN)
+
 ## Map interval
 
 
@@ -32,7 +36,7 @@ Line()=Line(0.,0.)
 
 function tocanonical(d::Line,x)
     @assert d.α==d.β==-1. || d.α==d.β==-.5
-    
+
     if d.α==d.β==-1.
         2/π*atan(x)
     elseif d.α==d.β==-.5
@@ -42,18 +46,18 @@ end
 
 function tocanonicalD(d::Line,x)
     @assert d.α==d.β==-1. || d.α==d.β==-.5
-    
+
     if d.α==d.β==-1.
         2./(π*(1+x.^2))
     elseif d.α==d.β==-.5
         (1 + x.^2).^(-3/2)
-    end    
+    end
 end
 function fromcanonical(d::Line,x)
     #TODO: why is this consistent?
     if d.α==d.β==-1.
         tan(π/2*x)
-    else    
+    else
         x.*(1 + x).^d.α.*(1 - x).^d.β
     end
 end
@@ -98,10 +102,10 @@ Base.last(d::Line)= Inf
 
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1]
-immutable PeriodicLine{angle} <: PeriodicDomain{Float64} 
+immutable PeriodicLine{angle} <: PeriodicDomain{Float64}
     centre::Float64  ##TODO Allow complex
     L::Float64
-    PeriodicLine(c,L)=new(c,L)    
+    PeriodicLine(c,L)=new(c,L)
     PeriodicLine(c)=new(c,1.)
     PeriodicLine()=new(0.,1.)
 end
@@ -109,6 +113,10 @@ end
 canonicaldomain(::PeriodicLine)=PeriodicInterval()
 PeriodicLine(c,a)=PeriodicLine{a/π}(c,1.)
 PeriodicLine()=PeriodicLine{false}(0.,1.)
+
+isambiguous(d::PeriodicLine)=isnan(d.centre) && isnan(d.angle)
+Base.convert{T<:Number}(::Type{PeriodicLine{T}},::AnyDomain)=PeriodicLine{T}(NaN,NaN)
+Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain)=PeriodicLine(NaN,NaN)
 
 
 tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.centre)/d.L)
@@ -125,21 +133,21 @@ for typ in (:Line,:PeriodicLine)
     @eval function ($typ)(d::Vector)
         @assert length(d) ==2
         @assert abs(d[1]) == abs(d[2]) == Inf
-        
-        if abs(real(d[1])) < Inf 
+
+        if abs(real(d[1])) < Inf
             @assert real(d[1])==real(d[2])
             @assert sign(imag(d[1]))==-sign(imag(d[2]))
-            
+
             $typ(real(d[2]),angle(d[2]))
-            
+
         elseif abs(imag(d[1])) < Inf
-            @assert imag(d[1])==imag(d[2])        
+            @assert imag(d[1])==imag(d[2])
             @assert sign(real(d[1]))==-sign(real(d[2]))
-            
+
             $typ(imag(d[2]),angle(d[2]))
         else
             @assert angle(d[2]) == -angle(d[1])
-            
+
             $typ(0.,angle(d[2]))
         end
     end

@@ -9,6 +9,10 @@ Base.length(d::PiecewiseInterval)=length(d.points)-1
 Base.getindex(d::PiecewiseInterval,j::Integer)=Interval(d.points[j],d.points[j+1])
 isperiodic(d::PiecewiseInterval)=first(d.points)==last(d.points)
 
+isambiguous(d::PiecewiseInterval)=isempty(d.points)
+Base.convert{T<:Number}(::Type{PiecewiseInterval{T}},::AnyDomain)=PiecewiseInterval{T}([])
+Base.convert{IT<:PiecewiseInterval}(::Type{IT},::AnyDomain)=PiecewiseInterval(Float64[])
+
 
 function points(d::PiecewiseInterval,n)
    k=div(n,length(d))

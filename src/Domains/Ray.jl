@@ -25,13 +25,18 @@ Ray()=Ray(0.,0.)
 function Ray(d::Vector)
     @assert length(d)==2
     @assert abs(d[1])==Inf|| abs(d[2])==Inf
-    
+
     if abs(d[2])==Inf
         Ray(d[1],angle(d[2]),true)
     else #d[1]==Inf
         Ray(d[2],angle(d[1]),false)
     end
 end
+
+
+isambiguous(d::Ray)=isnan(d.centre) && isnan(d.angle)
+Base.convert{CT<:Number,T<:Number}(::Type{Ray{CT,T}},::AnyDomain)=Ray{CT,T}(NaN,NaN,true)
+Base.convert{IT<:Ray}(::Type{IT},::AnyDomain)=Ray(NaN,NaN)
 
 
 

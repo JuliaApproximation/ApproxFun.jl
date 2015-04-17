@@ -19,9 +19,15 @@ Arc(c,r,t)=Arc{typeof(c),typeof(r)}(c,r,t)
 Arc(c,r,t0,t1)=Arc(c,r,(t0,t1))
 
 
+isambiguous(d::Arc)=isnan(d.center) && isnan(d.radius) && isnan(d.angles[1]) && isnan(d.angles[2])
+Base.convert{T<:Number,V<:Number}(::Type{Arc{T,V}},::AnyDomain)=Arc{T,V}(NaN,NaN,(NaN,NaN))
+Base.convert{IT<:Arc}(::Type{IT},::AnyDomain)=Arc(NaN,NaN,(NaN,NaN))
+
+
+
 function mobiuspars(z0,r,t0,t1)
     c=exp(im*t0/2)+exp(im*t1/2)
-    f=exp(im*t0/2)-exp(im*t1/2)   
+    f=exp(im*t0/2)-exp(im*t1/2)
     d=exp(im*t0/2+im*t1/2)*r
     -c,c*(z0+d),f,f*(d-z0)
 end
