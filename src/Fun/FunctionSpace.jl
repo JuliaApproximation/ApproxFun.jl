@@ -14,9 +14,9 @@ immutable ComplexBasis end
 immutable AnyBasis end
 
 
-promote_rule(::Type{RealBasis},::Type{ComplexBasis})=ComplexBasis
-promote_rule(::Type{ComplexBasis},::Type{AnyBasis})=AnyBasis
-promote_rule(::Type{RealBasis},::Type{AnyBasis})=AnyBasis
+Base.promote_rule(::Type{RealBasis},::Type{ComplexBasis})=ComplexBasis
+Base.promote_rule(::Type{ComplexBasis},::Type{AnyBasis})=AnyBasis
+Base.promote_rule(::Type{RealBasis},::Type{AnyBasis})=AnyBasis
 
 # coefficient_type(basis,valuetype) gives the type for coefficients
 # for basis of type RealBasis/ComplexBasis and valuetype

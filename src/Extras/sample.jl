@@ -172,7 +172,7 @@ samplecdf(v::Vector)=chebbisectioninv(v,rand())
 
 sample{TS<:AbstractProductSpace}(f::Fun{TS},k::Integer)=sample(ProductFun(f),k)
 
-function sample(f::LowRankFun{Chebyshev,Chebyshev,Float64,Float64},n::Integer)
+function sample(f::LowRankFun{Chebyshev,Chebyshev,AbstractProductSpace{(Chebyshev,Chebyshev),Float64,2},Float64,Float64},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficients(f.B)
@@ -208,7 +208,7 @@ end
 
 
 
-function sample{SS}(f::LowRankFun{LineSpace{SS},LineSpace{SS},Float64,Float64},n::Integer)
+function sample{SS}(f::LowRankFun{LineSpace{SS},LineSpace{SS},AbstractProductSpace{(LineSpace{SS},LineSpace{SS}),Float64,2},Float64,Float64},n::Integer)
     cf=normalizedcumsum(sum(f,1))
     CB=coefficients(map(cumsum,f.B))
 
