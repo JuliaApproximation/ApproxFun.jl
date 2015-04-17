@@ -30,7 +30,7 @@ Base.first(d::ProductDomain)=(first(d[1]),first(d[2]))
 function checkpoints(d::ProductDomain)
     ptsx=checkpoints(d[1])
     ptsy=checkpoints(d[2])
-    ret=Array((Float64,Float64),0)
+    ret=Array((eltype(d[1]),eltype(d[2])),0)
     for x in ptsx,y in ptsy
         push!(ret,(x,y))
     end

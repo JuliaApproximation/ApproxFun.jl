@@ -3,7 +3,7 @@
 export ChebyshevDirichlet
 
 immutable ChebyshevDirichlet{left,right} <: PolynomialSpace
-    domain::Union(IntervalDomain,AnyDomain)
+    domain::Interval
     ChebyshevDirichlet(d)=new(d)
     ChebyshevDirichlet()=new(Interval())
 end
