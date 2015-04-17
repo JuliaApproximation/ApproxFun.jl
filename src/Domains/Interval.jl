@@ -17,6 +17,7 @@ Interval()=Interval{Float64}()
 Interval{T}(a::T,b::T)=Interval{T}(a,b)
 Interval(a::Int,b::Int) = Interval(@compat(Float64(a)),@compat(Float64(b)))   #convenience method
 
+#TODO: in 0.4 change to Domain(d::Vector{T})
 function Interval{T<:Number}(d::Vector{T})
     @assert length(d) >1
 
@@ -50,6 +51,12 @@ Base.convert{D<:IntervalDomain}(::Type{D},i::Vector)=Interval(i)
 Base.convert(::Type{Union(IntervalDomain,AnyDomain)},i::Vector)=Interval(i)
 Base.convert(::Type{Union(Interval,AnyDomain)},i::Vector)=Interval(i)
 Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
+
+AnyInterval{T}(::Type{T})=Interval{T}(NaN,NaN)
+AnyInterval()=AnyInterval(Float64)
+isambiguous(d::Interval)=isnan(d.a) && isnan(d.b)
+Base.convert{T<:Number}(::Type{Interval{T}},::AnyDomain)=AnyInterval(T)
+Base.convert{IT<:Interval}(::Type{IT},::AnyDomain)=AnyInterval()
 
 
 ## Information

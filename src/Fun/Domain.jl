@@ -13,6 +13,7 @@ typealias BivariateDomain{T} Domain{T,2}
 
 immutable AnyDomain <: Domain{UnsetNumber} end
 
+isambiguous(::AnyDomain)=true
 
 
 

@@ -84,7 +84,7 @@ immutable UnsetSpace <: AmbiguousSpace end
 immutable NoSpace <: AmbiguousSpace end
 
 
-isambiguous(::FunctionSpace)=false
+isambiguous(::)=false
 isambiguous(::AmbiguousSpace)=true
 
 #TODO: should it default to canonicalspace?
@@ -94,7 +94,7 @@ points(d::FunctionSpace,n)=points(domain(d),n)
 ##Check domain compatibility
 
 Base.isapprox(a::Domain,b::Domain)=a==b
-domainscompatible(a,b) = isa(domain(a),AnyDomain) || isa(domain(b),AnyDomain) || isapprox(domain(a),domain(b))
+domainscompatible(a,b) = isambiguous(domain(a)) || isambiguous(domain(b)) || isapprox(domain(a),domain(b))
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain

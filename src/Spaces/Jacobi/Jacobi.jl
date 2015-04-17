@@ -3,7 +3,7 @@ export Jacobi,Legendre
 immutable Jacobi <: PolynomialSpace
     a::Float64
     b::Float64
-    domain::Union(IntervalDomain,AnyDomain)
+    domain::Interval
 end
 Legendre(domain)=Jacobi(0.,0.,domain)
 Legendre()=Legendre(Interval())
