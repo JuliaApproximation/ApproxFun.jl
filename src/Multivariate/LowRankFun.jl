@@ -4,23 +4,25 @@
 
 export LowRankFun
 
-type LowRankFun{S<:FunctionSpace,M<:FunctionSpace,T<:Number,V<:Number}<:BivariateFun
+type LowRankFun{S<:FunctionSpace,M<:FunctionSpace,SS<:AbstractProductSpace,T<:Number,V<:Number} <: BivariateFun
     A::Vector{Fun{S,T}}
     B::Vector{Fun{M,V}}
+    space::SS
 
-    function LowRankFun(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})
+    function LowRankFun(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}},space::SS)
         @assert length(A) == length(B)
         @assert length(A) > 0
-        new(A,B)
+        new(A,B,space)
     end
 end
 
-LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})=LowRankFun{S,M,T,V}(A,B)
+LowRankFun{S,M,SS,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}},space::SS)=LowRankFun{S,M,SS,T,V}(A,B,space)
+LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})=LowRankFun(A,B,space(first(A))⊗space(first(B)))
 
 Base.rank(f::LowRankFun)=length(f.A)
 Base.size(f::LowRankFun,k::Integer)=k==1?mapreduce(length,max,f.A):mapreduce(length,max,f.B)
 Base.size(f::LowRankFun)=size(f,1),size(f,2)
-Base.eltype{S,M,T,V}(::LowRankFun{S,M,T,V})=promote_type(T,V)
+Base.eltype{S,M,SS,T,V}(::LowRankFun{S,M,SS,T,V})=promote_type(T,V)
 
 ## Construction via a Matrix of coefficients
 
@@ -71,7 +73,7 @@ end
 
 function standardLowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dy)
-    T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(dy))
+    T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)),eltype(dy),eltype(domain(dy)))
 
     # We start by sampling on the given grid, find the approximate maximum and create the first rank-one approximation.
     ptsx,ptsy=points(dx,gridx),points(dy,gridy)
@@ -110,7 +112,7 @@ end
 
 function CholeskyLowRankFun(f::Function,dx::FunctionSpace;grid::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dx)
-    T = promote_type(eltype(f(first(xy)...)),eltype(dx))
+    T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)))
 
     # We start by sampling on the given grid, find the approximate maximum and create the first rank-one approximation.
     pts=points(dx,grid)
@@ -204,6 +206,7 @@ end
 
 domain(f::LowRankFun,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
 space(f::LowRankFun,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
+space(f::LowRankFun)=f.space
 
 
 function values(f::LowRankFun)
