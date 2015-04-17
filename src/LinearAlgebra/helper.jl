@@ -10,6 +10,7 @@ Base.real(::Type{UnsetNumber})=UnsetNumber
 Base.real{T<:Real}(::Type{T})=T
 Base.real{T<:Real}(::Type{Complex{T}})=T
 Base.eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
+Base.eps{T<:Real}(z::Complex{T})=eps(abs(z))
 
 dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
