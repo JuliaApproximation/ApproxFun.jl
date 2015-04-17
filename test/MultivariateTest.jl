@@ -41,6 +41,10 @@ F = LowRankFun((x,y)->besselj0(10(y-x)),Chebyshev(),Chebyshev())
 
 @test_approx_eq F[.123,.456] besselj0(10(.456-.123))
 
+G = LowRankFun((x,y)->besselj0(10(y-x));method=:Cholesky)
+
+@test_approx_eq G[.357,.246] besselj0(10(.246-.357))
+
 F = LowRankFun((x,y)->hankelh1(0,10abs(y-x)),Chebyshev([1.0,2.0]),Chebyshev([1.0im,2.0im]))
 
 @test_approx_eq F[1.5,1.5im] hankelh1(0,10abs(1.5im-1.5))
