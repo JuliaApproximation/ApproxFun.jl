@@ -5,8 +5,6 @@ export TensorSpace,ProductSpace
 abstract AbstractProductSpace{SV,T,d} <: FunctionSpace{T,d}
 
 
-
-
 immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
     spaces::SV
 end
@@ -16,14 +14,18 @@ for OP in (:spacescompatible,:(==))
 end
 
 
-TensorSpace(sp::Tuple)=TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),length(sp)}(sp)
+TensorSpace(sp::Tuple)=TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),mapreduce(ndims,+,sp)}(sp)
 
 
 coefficient_type(S::TensorSpace,T)=mapreduce(sp->coefficient_type(sp,T),promote_type,S.spaces)
 
 TensorSpace(A...)=TensorSpace(tuple(A...))
 TensorSpace(A::ProductDomain)=TensorSpace(tuple(map(Space,A.domains)...))
-⊗{T,V}(A::FunctionSpace{T,1},B::FunctionSpace{V,1})=TensorSpace(A,B)
+⊗{SV1,T1,SV2,T2,d1,d2}(A::TensorSpace{SV1,T1,d1},B::TensorSpace{SV2,T2,d2})=TensorSpace(A.spaces...,B.spaces...)
+⊗{SV,T,V,d1,d2}(A::TensorSpace{SV,T,d1},B::FunctionSpace{V,d2})=TensorSpace(A.spaces...,B)
+⊗{SV,T,V,d1,d2}(A::FunctionSpace{V,d2},B::TensorSpace{SV,T,d1})=TensorSpace(A,B.spaces...)
+⊗{T,V,d1,d2}(A::FunctionSpace{T,d1},B::FunctionSpace{V,d2})=TensorSpace(A,B)
+
 domain(f::TensorSpace)=mapreduce(domain,*,f.spaces)
 Space(sp::ProductDomain)=TensorSpace(sp)
 

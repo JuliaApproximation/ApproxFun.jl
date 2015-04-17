@@ -58,10 +58,12 @@ function Base.show(io::IO,s::SumSpace)
     show(io,s.spaces[2])
 end
 
-function Base.show(io::IO,s::TensorSpace)
-    show(io,s.spaces[1])
-    print(io,"⊗")
-    show(io,s.spaces[2])
+function Base.show{SV,T,d}(io::IO,s::TensorSpace{SV,T,d})
+    for i=1:d-1
+        show(io,s.spaces[i])
+        print(io,"⊗")
+    end
+    show(io,s.spaces[d])
 end
 
 
