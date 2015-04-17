@@ -32,7 +32,7 @@ function ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(M::Vector{Fun{S
     ProductFun{S,V,ProductSpace{S,V},T}(funs,ProductSpace(typeof(S)[space(fun) for fun in funs],dy))
 end
 
-## Adaptive Construction
+## Adaptive construction
 
 function ProductFun{S<:FunctionSpace,V<:FunctionSpace}(f::Function,sp::AbstractProductSpace{(S,V)};tol=100eps())
     for n = 50:100:5000
