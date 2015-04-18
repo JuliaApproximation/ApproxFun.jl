@@ -3,6 +3,26 @@ immutable PiecewiseInterval{T<:Number} <: UnivariateDomain{T}
 end
 
 PiecewiseInterval(d::Number...)=PiecewiseInterval([d...])
+
+function PiecewiseInterval{IT<:Interval}(pcsin::Vector{IT})
+    pcs=copy(pcsin)
+    p=∂(pop!(pcs))
+    successful=true
+    while successful
+        successful=false
+        for k=1:length(pcs)
+            if first(pcs[k])==last(p)
+                push!(p,last(pcs[k]))
+                deleteat!(pcs,k)
+                successful=true
+                break
+            end
+        end
+    end
+    @assert isempty(pcs)
+    PiecewiseInterval(p)
+end
+
 ==(a::PiecewiseInterval,b::PiecewiseInterval)=a.points==b.points
 
 Base.length(d::PiecewiseInterval)=length(d.points)-1
