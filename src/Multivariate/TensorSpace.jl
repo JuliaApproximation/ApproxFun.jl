@@ -40,7 +40,7 @@ Base.length(d::TensorSpace)=length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
 
 
-immutable ProductSpace{S<:FunctionSpace,V<:FunctionSpace,T} <: AbstractProductSpace{(S,V),T,2}
+immutable ProductSpace{S<:FunctionSpace,V<:FunctionSpace,T} <: AbstractProductSpace{@compat(Tuple{S,V}),T,2}
     spacesx::Vector{S}
     spacey::V
 end

@@ -7,7 +7,7 @@ export Disk
 ##TODO: make argument
 immutable Disk <: BivariateDomain{Float64}
     radius::Float64
-    center::(Float64,Float64)
+    center::@compat(Tuple{Float64,Float64})
 end
 
 Disk(r)=Disk(r,(0.,0.))
@@ -30,7 +30,7 @@ checkpoints(d::Disk)=[fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3)
 ∂(d::Disk)=Circle(Complex(d.center...),d.radius)
 
 
-immutable DiskSpace{m,a,b,JS,S} <: AbstractProductSpace{(JS,S),Complex128,2}
+immutable DiskSpace{m,a,b,JS,S} <: AbstractProductSpace{@compat(Tuple{JS,S}),Complex128,2}
     domain::Disk
     spacet::S
 end

@@ -29,7 +29,7 @@ plan_transform(S::JacobiSquare,n)=gausschebyshev(n,4)
 transform(S::JacobiSquare,vals::Vector)=transform(S,vals,plan_transform(S,length(vals)))
 
 
-function transform(S::JacobiSquare,vals::Vector,xw::(Vector,Vector))
+function transform(S::JacobiSquare,vals::Vector,xw::@compat(Tuple{Vector,Vector}))
     m=S.m;a=S.a;b=S.b
     x,w=xw
 

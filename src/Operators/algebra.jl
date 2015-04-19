@@ -502,7 +502,7 @@ immutable ReReOperator{S,V,T} <: BandedOperator{T}
 end
 
 
-ReReOperator{S,V}(ops::(S,V))=ReReOperator{S,V,Float64}(ops)
+ReReOperator{S,V}(ops::@compat(Tuple{S,V}))=ReReOperator{S,V,Float64}(ops)
 ReReOperator(ops1,ops2)=ReReOperator((ops1,ops2))
 Base.real(S::BandedOperator,V::BandedOperator)=ReReOperator(S,V)
 

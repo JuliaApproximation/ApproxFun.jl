@@ -164,7 +164,7 @@ addentries!(K::KroneckerOperator,A,kr::Range)=kronaddentries!(slice(K.ops[1],1:l
 
 
 bazeros{T}(K::BivariateOperator{T},n::Integer,::Colon)=blockbandzeros(T,n,:,bandinds(K),blockbandinds(K))
-bazeros{T}(K::BivariateOperator{T},n::Integer,br::(Int,Int))=blockbandzeros(T,n,:,br,blockbandinds(K))
+bazeros{T}(K::BivariateOperator{T},n::Integer,br::@compat(Tuple{Int,Int}))=blockbandzeros(T,n,:,br,blockbandinds(K))
 
 # function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
 #     @assert first(kr)==1

@@ -4,12 +4,12 @@ export ⊕
 
 
 immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T,d} <: FunctionSpace{T,d}
-    spaces::(S,V)
+    spaces::@compat(Tuple{S,V})
     SumSpace(dom::Domain)=new((S(dom),V(dom)))
-    SumSpace(sp::(S,V))=new(sp)
+    SumSpace(sp::@compat(Tuple{S,V}))=new(sp)
 end
 
-SumSpace{T1,T2,d}(A::(FunctionSpace{T1,d},FunctionSpace{T2,d}))=SumSpace{typeof(A[1]),typeof(A[2]),promote_type(T1,T2),d}(A)
+SumSpace{T1,T2,d}(A::@compat(Tuple{FunctionSpace{T1,d},FunctionSpace{T2,d}}))=SumSpace{typeof(A[1]),typeof(A[2]),promote_type(T1,T2),d}(A)
 
 SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
 

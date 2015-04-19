@@ -74,7 +74,7 @@ Base.stride(A::Functional)=1
 
 bazeros{T<:Number}(B::Operator{T},n::Integer,m::Integer)=bazeros(T,n,m,bandinds(B))
 bazeros{T<:Number}(B::Operator{T},n::Integer,m::Colon)=bazeros(T,n,m,bandinds(B))
-bazeros{T<:Number}(B::Operator{T},n::Integer,br::(Int,Int))=bazeros(T,n,br)
+bazeros{T<:Number}(B::Operator{T},n::Integer,br::@compat(Tuple{Int,Int}))=bazeros(T,n,br)
 
 
 BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n)

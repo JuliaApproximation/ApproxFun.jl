@@ -10,7 +10,7 @@ immutable ProductFun{S<:FunctionSpace,V<:FunctionSpace,SS<:AbstractProductSpace,
     space::SS
 end
 
-ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{(S,V)})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
+ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{S,V})})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
 
 Base.size(f::ProductFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
 Base.size(f::ProductFun)=(size(f,1),size(f,2))
@@ -18,7 +18,7 @@ Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
-function ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Matrix{T},sp::AbstractProductSpace{(S,V)};tol::Real=100eps(T))
+function ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Matrix{T},sp::AbstractProductSpace{@compat(Tuple{S,V})};tol::Real=100eps(T))
     ncfs,kend=norm(cfs,Inf),size(cfs,2)
     if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
     ret=map(k->Fun(chop(cfs[:,k],ncfs*tol),columnspace(sp,k)),1:max(kend,1))
@@ -34,7 +34,7 @@ end
 
 ## Adaptive construction
 
-function ProductFun{S<:FunctionSpace,V<:FunctionSpace}(f::Function,sp::AbstractProductSpace{(S,V)};tol=100eps())
+function ProductFun{S<:FunctionSpace,V<:FunctionSpace}(f::Function,sp::AbstractProductSpace{@compat(Tuple{S,V})};tol=100eps())
     for n = 50:100:5000
         X = coefficients(ProductFun(f,sp,n,n;tol=tol))
         if size(X,1)<n && size(X,2)<n

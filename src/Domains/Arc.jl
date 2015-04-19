@@ -11,7 +11,7 @@ mobiusinvD(a,b,c,d,z)=mobiusD(d,-b,-c,a,z)
 immutable Arc{T<:Number,V<:Real} <: IntervalDomain{Complex{Float64}}
     center::T
     radius::V
-    angles::(V,V)
+    angles::@compat(Tuple{V,V})
 end
 
 

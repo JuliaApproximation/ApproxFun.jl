@@ -60,7 +60,7 @@ end
 
 
 points(S::Jacobi,n)=fromcanonical(S,gaussjacobi(n,S.a,S.b)[1])
-function transform(S::Jacobi,v::Vector,xw::(Vector,Vector))
+function transform(S::Jacobi,v::Vector,xw::@compat(Tuple{Vector,Vector}))
     x,w=xw
     V=jacobip(0:length(v)-1,S.a,S.b,x)'
     nrm=(V.^2)*w
@@ -98,7 +98,7 @@ points(S::JacobiWeight{Jacobi},n)=fromcanonical(S,plan_transform(S,n)[1])
 
 
 transform(S::JacobiWeight{Jacobi},vals::Vector)=transform(S,vals,plan_transform(S,length(vals)))
-function transform(S::JacobiWeight{Jacobi},vals::Vector,xw::(Vector,Vector))
+function transform(S::JacobiWeight{Jacobi},vals::Vector,xw::@compat(Tuple{Vector,Vector}))
     # Jacobi and JacobiWeight have different a/b orders
     
     if S.α==0 && S.β==0
