@@ -172,7 +172,7 @@ samplecdf(v::Vector)=chebbisectioninv(v,rand())
 
 sample{TS<:AbstractProductSpace}(f::Fun{TS},k::Integer)=sample(ProductFun(f),k)
 
-function sample(f::LowRankFun{Chebyshev,Chebyshev,AbstractProductSpace{@compat(Tuple{Chebyshev,Chebyshev}),Float64,2},Float64,Float64},n::Integer)
+function sample(f::LowRankFun{Chebyshev,Chebyshev,TensorSpace{@compat(Tuple{Chebyshev,Chebyshev}),RealBasis,2},Float64,Float64},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficients(f.B)
@@ -184,7 +184,7 @@ end
 
 
 
-sample(f::MultivariateFun,n)=sample(LowRankFun(f),n)
+sample(f::ProductFun,n)=sample(LowRankFun(f),n)
 sample(f::MultivariateFun)=sample(f,1)[1,:]
 
 
@@ -208,7 +208,7 @@ end
 
 
 
-function sample{SS}(f::LowRankFun{LineSpace{SS},LineSpace{SS},AbstractProductSpace{@compat(Tuple{LineSpace{SS},LineSpace{SS}}),Float64,2},Float64,Float64},n::Integer)
+function sample{SS}(f::LowRankFun{LineSpace{SS},LineSpace{SS},TensorSpace{@compat(Tuple{LineSpace{SS},LineSpace{SS}}),RealBasis,2},Float64,Float64},n::Integer)
     cf=normalizedcumsum(sum(f,1))
     CB=coefficients(map(cumsum,f.B))
 
