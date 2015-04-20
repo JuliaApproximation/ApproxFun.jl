@@ -174,6 +174,11 @@ end
 DefiniteIntegral(d::UnionDomain) = DefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
 DefiniteLineIntegral(d::UnionDomain) = DefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
 
+## TensorSpace of two PiecewiseSpaces
+
+Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{@compat(Tuple{PWS1,PWS2})},i::Integer,j::Integer)=d[1][i]⊗d[2][j]
+#Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{(PWS1,PWS2)},i::Integer,j::Integer)=d[1][i]⊗d[2][j]
+
 ## ProductFun
 
 ##  Piecewise

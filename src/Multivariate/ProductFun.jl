@@ -223,8 +223,8 @@ function differentiate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},j::Integer)
     end
 end
 
-
-Base.transpose{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS})=ProductFun(coefficients(f).',space(f,2),space(f,1))
+# If the transpose of the space exists, then the transpose of the ProductFun exists
+Base.transpose{S,V,SS,T}(f::ProductFun{S,V,SS,T})=ProductFun(transpose(coefficients(f)),transpose(space(f)))
 
 
 

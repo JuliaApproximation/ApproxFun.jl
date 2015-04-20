@@ -208,6 +208,7 @@ domain(f::LowRankFun,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
 space(f::LowRankFun,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
 space(f::LowRankFun)=f.space
 
+Base.transpose{S,M,SS,T,V}(f::LowRankFun{S,M,SS,T,V})=LowRankFun(f.B,f.A,transpose(space(f)))
 
 function values(f::LowRankFun)
     xm=mapreduce(length,max,f.A)
