@@ -201,11 +201,12 @@ Fun(f::Function,d::Domain;opts...)=Fun(f,Space(d);opts...)
 
 
 Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
-Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,Interval(d),n)
 Fun{T<:Number}(cfs::Vector{T})=Fun(1.0*cfs,Interval{promote_type(T,Int)}())
-Fun{T<:Number,M<:Number}(cfs::Vector{M},d::Vector{T})=Fun(1.0*cfs,Interval(d))
-Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,Interval(d))
-Fun{T<:Number}(f::Number,d::Vector{T})=Fun(f,Interval(d))
+
+Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,convert(Domain,d),n)
+Fun{T<:Number,M<:Number}(cfs::Vector{M},d::Vector{T})=Fun(1.0*cfs,convert(Domain,d))
+Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,convert(Domain,d))
+Fun{T<:Number}(f::Number,d::Vector{T})=Fun(f,convert(Domain,d))
 
 
 

@@ -17,39 +17,9 @@ Interval()=Interval{Float64}()
 Interval{T}(a::T,b::T)=Interval{T}(a,b)
 Interval(a::Int,b::Int) = Interval(@compat(Float64(a)),@compat(Float64(b)))   #convenience method
 
-#TODO: in 0.4 change to Domain(d::Vector{T})
-function Interval{T<:Number}(d::Vector{T})
-    @assert length(d) >1
 
-    if length(d) == 2
-        if abs(d[1]) == Inf && abs(d[2]) == Inf
-            Line(d)
-        elseif abs(d[2]) == Inf || abs(d[1]) == Inf
-            Ray(d)
-        else
-            Interval(d[1],d[2])
-        end
-    else
-        [Interval(d[1:2]);Interval(d[2:end])]   #TODO ensure all Intervals are of the same type
-    end
-end
-
-function Interval{T1<:Number,T2<:Number}(a::Vector{T1},b::Vector{T2})
-    @assert length(a) == length(b)
-    if length(a) == 1
-        Interval(a[1],b[1])
-    else
-        [Interval(a[1],b[1]);Interval(a[2:end],b[2:end])]
-    end
-end
 
 Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
-
-# These are needed for spaces to auto-convert [a,b] to Interval
-Base.convert(::Type{AnyDomain},i::Vector)=Interval(i)
-Base.convert{D<:IntervalDomain}(::Type{D},i::Vector)=Interval(i)
-Base.convert(::Type{Union(IntervalDomain,AnyDomain)},i::Vector)=Interval(i)
-Base.convert(::Type{Union(Interval,AnyDomain)},i::Vector)=Interval(i)
 Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 AnyInterval{T}(::Type{T})=Interval{T}(NaN,NaN)
