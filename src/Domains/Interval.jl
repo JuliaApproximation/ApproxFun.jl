@@ -6,7 +6,7 @@ export Interval
 
 ## Standard interval
 
-immutable Interval{T<:Number} <: IntervalDomain{T}  #repeat <:Number due to Julia issue #9441
+immutable Interval{T} <: IntervalDomain{T}  #repeat <:Number due to Julia issue #9441
 	a::T
 	b::T
 	Interval()=new(-one(T),one(T))

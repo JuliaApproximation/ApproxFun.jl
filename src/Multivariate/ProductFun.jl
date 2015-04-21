@@ -74,7 +74,6 @@ ProductFun{S<:AbstractProductSpace}(f::Fun{S})=ProductFun(coefficientmatrix(f),s
 ## Conversion to other ProductSpaces with the same coefficients
 
 ProductFun(f::ProductFun,sp::AbstractProductSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
-ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp1::Domain,sp2::Domain)=ProductFun(f,Space(sp1),Space(sp2))
 ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp::ProductDomain)=ProductFun(f,Space(sp))
 
 ## For specifying spaces by anonymous function

@@ -6,7 +6,7 @@ export chebyshevpoints,fourierpoints
 
 # T is the numeric type used to represent the domain
 # d is the dimension
-abstract Domain{T<:Number,d}
+abstract Domain{T,d}
 typealias UnivariateDomain{T} Domain{T,1}
 typealias BivariateDomain{T} Domain{T,2}
 
