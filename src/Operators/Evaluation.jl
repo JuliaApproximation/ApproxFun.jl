@@ -10,10 +10,21 @@ immutable Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: Abstra
     x::M
     order::Int
 end
-Evaluation{T}(::Type{T},sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
+Evaluation{T}(::Type{T},sp::FunctionSpace,x::Bool,order::Integer)=Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
+function Evaluation{T}(::Type{T},sp::FunctionSpace,x::Number,order::Integer)
+    d=domain(sp)
+    if isapprox(first(d),x)
+        Evaluation(T,sp,false,order)
+    elseif isa(d,IntervalDomain) && isapprox(last(d),x)
+        Evaluation(T,sp,true,order)
+    else
+        Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
+    end
+end
+
 Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,UnsetNumber}(sp,x,k)
-Evaluation(sp::FunctionSpace{ComplexBasis},x,order::Integer)=Evaluation{typeof(sp),typeof(x),Complex{real(eltype(domain(sp)))}}(sp,x,order)
-Evaluation(sp::FunctionSpace,x,order::Integer)=Evaluation{typeof(sp),typeof(x),eltype(domain(sp))}(sp,x,order)
+Evaluation(sp::FunctionSpace{ComplexBasis},x,order::Integer)=Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
+Evaluation(sp::FunctionSpace,x,order::Integer)=Evaluation(eltype(domain(sp)),sp,x,order)
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
