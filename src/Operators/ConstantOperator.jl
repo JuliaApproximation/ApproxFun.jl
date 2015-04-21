@@ -56,8 +56,8 @@ end
 
 ZeroOperator{T<:Number,S,V}(::Type{T},d::S,v::V)=ZeroOperator{T,S,V}(d,v)
 ZeroOperator{S,V}(d::S,v::V)=ZeroOperator(Float64,d,v)
-ZeroOperator()=ZeroOperator(AnySpace(),AnySpace())
-ZeroOperator{T<:Number}(::Type{T})=ZeroOperator(T,AnySpace(),AnySpace())
+ZeroOperator()=ZeroOperator(AnySpace(),ZeroSpace())
+ZeroOperator{T<:Number}(::Type{T})=ZeroOperator(T,AnySpace(),ZeroSpace())
 
 Base.convert{BT<:Operator}(::Type{BT},Z::ZeroOperator)=ZeroOperator(eltype(BT),Z.domainspace,Z.rangespace)
 

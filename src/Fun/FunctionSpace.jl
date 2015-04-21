@@ -82,7 +82,7 @@ domain(::AmbiguousSpace)=AnyDomain()
 immutable AnySpace <: AmbiguousSpace end
 immutable UnsetSpace <: AmbiguousSpace end
 immutable NoSpace <: AmbiguousSpace end
-
+immutable ZeroSpace <: AmbiguousSpace end   # ZeroSpace is compatible with all spaces
 
 isambiguous(::)=false
 isambiguous(::AmbiguousSpace)=true
@@ -102,6 +102,9 @@ spacescompatible{D<:FunctionSpace}(f::D,g::D)=error("Override spacescompatible f
 spacescompatible(::AnySpace,::AnySpace)=true
 spacescompatible(::UnsetSpace,::UnsetSpace)=true
 spacescompatible(::NoSpace,::NoSpace)=true
+spacescompatible(::ZeroSpace,::ZeroSpace)=true
+spacescompatible(::ZeroSpace,::FunctionSpace)=true
+spacescompatible(::FunctionSpace,::ZeroSpace)=true
 spacescompatible(f,g)=false
 ==(A::FunctionSpace,B::FunctionSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
 
@@ -145,16 +148,19 @@ for FUNC in (:conversion_type,:maxspace)
     @eval begin
         $FUNC(::AnySpace,::UnsetSpace)=UnsetSpace()
         $FUNC(::UnsetSpace,::AnySpace)=UnsetSpace()
+        $FUNC(::ZeroSpace,::UnsetSpace)=UnsetSpace()
+        $FUNC(::UnsetSpace,::ZeroSpace)=UnsetSpace()
+        $FUNC(::AnySpace,::ZeroSpace)=AnySpace()
+        $FUNC(::ZeroSpace,::AnySpace)=AnySpace()
     end
 
-    for TYP in (:AnySpace,:UnsetSpace)
+    for TYP in (:AnySpace,:UnsetSpace,:ZeroSpace)
         @eval begin
             $FUNC(a::$TYP,b::$TYP)=a
             $FUNC(a::$TYP,b::FunctionSpace)=b
             $FUNC(a::FunctionSpace,b::$TYP)=a
         end
     end
-    @eval $FUNC(b::AnySpace,a::FunctionSpace)=a
 end
 
 

@@ -73,6 +73,7 @@ end
 
 
 promotedomainspace(P::Functional,sp::FunctionSpace,::AnySpace)=SpaceFunctional(P,sp)
+promotedomainspace(P::Functional,sp::FunctionSpace,::ZeroSpace)=SpaceFunctional(P,sp)
 
 for op in (:promoterangespace,:promotedomainspace)
     @eval begin

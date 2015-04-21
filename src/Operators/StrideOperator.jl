@@ -210,6 +210,12 @@ function promotespaces{T<:Operator}(A::Array{T,2})
     for k=1:size(A,1)
         A[k,:]=promoterangespace(vec(A[k,:]))
     end
+
+    # do a second loop as spaces might have been inferred
+    # during range space
+    for j=1:size(A,2)
+        A[:,j]=promotedomainspace(A[:,j])
+    end
     A
 end
 
