@@ -2,7 +2,7 @@ export DefiniteIntegral,DefiniteLineIntegral
 
 macro calculus_functional(Func)
     return esc(quote
-        immutable $Func{S<:FunctionSpace,T<:Number} <: Functional{T}
+        immutable $Func{S,T} <: Functional{T}
             domainspace::S
         end
 
