@@ -25,3 +25,12 @@ end
 
 @calculus_functional(DefiniteIntegral)
 @calculus_functional(DefiniteLineIntegral)
+
+
+#default implementation
+function getindex(B::DefiniteIntegral,kr::Range)
+    S=domainspace(B)
+    Q=Integral(S)
+    A=(Evaluation(S,true)-Evaluation(S,false))*Q
+    A[kr]
+end
