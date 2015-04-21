@@ -26,7 +26,7 @@ for b in (b1,b2)
     u1=vec(u)[1];u2=vec(u)[2];
 
     @test norm(diff(u1)-u1+2.u2-f1)<10eps()
-    @test norm(diff(u2)+u2-f2)<10eps()    
+    @test norm(diff(u2)+u2-f2)<10eps()
 
     Ai=interlace(A)
     u=Ai\b
@@ -45,8 +45,8 @@ A=[B 0;
    0 B;
    D^2-I 2.I;
    0 D+I];
-   
-   
+
+
 b1=Any[0.,0.,0.,f]
 f1=vec(f)[1];f2=vec(f)[2];
 b2=Any[0.,0.,0.,f1,f2]
@@ -60,7 +60,7 @@ for b in (b1,b2)
 
     @test norm(diff(u1,2)-u1+2.u2-f1)<2eps()
     @test norm(diff(u2)+u2-f2)<2eps()
-    
+
     Ai=interlace(A)
     u=Ai\b
     u1=vec(u)[1];u2=vec(u)[2];
@@ -122,4 +122,12 @@ u=M*G1
 # Vector operations
 @test_approx_eq (Fun(x->[1., 2.]) + [2, 2])[0.] [3., 4.]
 
+
+
+
+## Check conversion
+
+f=Fun(t->[cos(t) 0;sin(t) 1],[-π,π])
+g=Fun(f,Space(PeriodicInterval([-π,π])))
+@test_approx_eq g[.1] f[.1]
 

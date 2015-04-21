@@ -138,7 +138,13 @@ end
 
 
 
+
+
 ## constructor
+
+# change to ArraySpace
+Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace)=Fun(coefficients(f,d),d)
+Fun{AS<:ArraySpace}(f::Fun{AS},d::FunctionSpace)=Fun(f,ArraySpace(d,space(f).dimensions))
 
 # columns are coefficients
 Fun{T<:Number}(M::Array{T,2},sp::FunctionSpace)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
