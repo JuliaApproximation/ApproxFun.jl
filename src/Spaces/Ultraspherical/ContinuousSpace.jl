@@ -17,13 +17,13 @@ function transform(S::ContinuousSpace,vals::Vector)
     n=length(vals)
     d=domain(S)
     K=length(d)
-   k=div(n,K)
+    k=div(n,K)
 
     PT=promote_type(eltype(d),eltype(vals))
     if k==0
         vals
     elseif isperiodic(d)
-        ret=Array(PT,n-K)
+        ret=Array(PT,max(K,n-K))
         r=n-K*k
 
         for j=1:r
@@ -39,7 +39,9 @@ function transform(S::ContinuousSpace,vals::Vector)
 
         for j=r+1:K
             cfs=transform(ChebyshevDirichlet{1,1}(d[j]),vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
-            if j==1
+            if length(cfs)==1 && j <K
+                ret[j+1]=cfs[1]
+            elseif j==1
                 ret[1]=cfs[1]-cfs[2]
                 ret[2]=cfs[1]+cfs[2]
             elseif j < K
