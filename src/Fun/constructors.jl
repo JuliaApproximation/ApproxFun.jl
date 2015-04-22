@@ -8,6 +8,7 @@ valsdomain_type_promote{T<:Real}(::Type{T},::Type{Int})=T,Int
 valsdomain_type_promote{T<:Complex}(::Type{T},::Type{Int})=T,Int
 valsdomain_type_promote{T<:Integer,V<:Real}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
 valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_type_promote(Float64,V)
+valsdomain_type_promote{T<:Real}(::Type{T},::Type{Vector{T}})=T,Vector{T}
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
 function defaultFun{ReComp}(f::Function,d::FunctionSpace{ReComp},n::Integer)

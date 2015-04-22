@@ -145,3 +145,10 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 
 
 mappoint(d1::Domain,d2::Domain,x)=fromcanonical(d2,tocanonical(d1,x))
+
+
+
+
+## domains in higher dimensions
+
+points{T<:Array}(d::IntervalDomain{T},n::Integer) = T[fromcanonical(d,x) for x in chebyshevpoints(real(eltype(T)),n)]

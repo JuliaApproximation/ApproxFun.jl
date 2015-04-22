@@ -11,10 +11,13 @@ real(x...)=Base.real(x...)
 real(::Type{UnsetNumber})=UnsetNumber
 real{T<:Real}(::Type{T})=T
 real{T<:Real}(::Type{Complex{T}})=T
+real{T<:Real,n}(::Type{Array{T,n}})=Array{T,n}
+real{T<:Complex,n}(::Type{Array{T,n}})=Array{real(T),n}
 
 eps(x...)=Base.eps(x...)
 eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
 eps{T<:Real}(z::Complex{T})=eps(abs(z))
+eps{T<:Number}(z::Type{Vector{T}})=eps(T)
 
 dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)

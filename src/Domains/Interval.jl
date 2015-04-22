@@ -137,3 +137,11 @@ end
 # function Base.sort(d::Vector{Interval{Float64}})
 #
 # end
+
+
+
+
+## Multivariate
+
+tocanonical{V<:Vector}(d::Interval{V},x)=first(d.a + d.b - 2x)/first(d.a - d.b)
+fromcanonical{V<:Vector}(d::Interval{V},p::Vector)=V[fromcanonical(d,x) for x in p]
