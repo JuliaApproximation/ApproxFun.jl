@@ -80,7 +80,7 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps2(elt
 
             for k=1:size(b,2)
                 r[size(b,1):size(b,1)+length(cfsB[k])-1,k]=cfsB[k]
-                for j=size(b,1)+length(cfsB[k]):size(r,2)
+                for j=size(b,1)+length(cfsB[k]):size(r,1)
                     r[j,k]=zero(typ)  # fill with zeros
                 end
             end
