@@ -13,7 +13,7 @@ end
 Evaluation{T}(::Type{T},sp::FunctionSpace,x::Bool,order::Integer)=Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
 function Evaluation{T}(::Type{T},sp::FunctionSpace,x::Number,order::Integer)
     d=domain(sp)
-    if isapprox(first(d),x)
+    if isa(d,IntervalDomain) && isapprox(first(d),x)
         Evaluation(T,sp,false,order)
     elseif isa(d,IntervalDomain) && isapprox(last(d),x)
         Evaluation(T,sp,true,order)
