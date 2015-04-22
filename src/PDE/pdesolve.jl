@@ -66,7 +66,10 @@ function pde_standardize_rhs(A,f::Vector)
     # the boundary information
     # i.e., if it lives on (-1-im,-1+im) we want to convert it to
     # living on (-1,1)
-    if isa(A,PDEOperatorSchur) && !isempty(f) && isa(f[1],Fun) && domain(f[1])==∂(domain(A))
+    if isa(A,PDEOperatorSchur) &&
+            !isempty(f) &&
+            isa(f[1],Fun) &&
+            domain(f[1])==∂(domain(A))
         @assert length(f)<=2
         @assert isa(f,Vector)
 
@@ -98,7 +101,21 @@ end
 
 
 function pde_standardize_rhs(A,f::Matrix)
+    ∂A=∂(domain(A))
     indsBx=bcinds(A,1);indsBy=bcinds(A,2)
+
+    if isa(A,PDEOperatorSchur) &&
+                !isempty(f) &&
+                all(g->isa(g,Fun)&&domain(g)==∂A,f[1,:])
+        @assert size(f,1)==1
+        d=domain(A)
+        f2=Array(Any,length(indsBx)+length(indsBy),size(f,2))
+        for k=1:size(f,2)
+            f2[:,k]=depiecereorient(f[1,k],d)
+        end
+        f=f2
+    end
+
     @assert length(indsBx)+length(indsBy)==size(f,1)
 
 
