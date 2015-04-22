@@ -5,15 +5,16 @@ import Base.chop
 immutable UnsetNumber <: Number  end
 Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
 
-
+# This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
+# which we override for default julia types
 real(x...)=Base.real(x...)
 real(::Type{UnsetNumber})=UnsetNumber
 real{T<:Real}(::Type{T})=T
 real{T<:Real}(::Type{Complex{T}})=T
 
-
-Base.eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
-Base.eps{T<:Real}(z::Complex{T})=eps(abs(z))
+eps(x...)=Base.eps(x...)
+eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
+eps{T<:Real}(z::Complex{T})=eps(abs(z))
 
 dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
