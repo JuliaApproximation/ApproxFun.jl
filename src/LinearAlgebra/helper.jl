@@ -6,9 +6,12 @@ immutable UnsetNumber <: Number  end
 Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
 
 
-Base.real(::Type{UnsetNumber})=UnsetNumber
-Base.real{T<:Real}(::Type{T})=T
-Base.real{T<:Real}(::Type{Complex{T}})=T
+real(x...)=Base.real(x...)
+real(::Type{UnsetNumber})=UnsetNumber
+real{T<:Real}(::Type{T})=T
+real{T<:Real}(::Type{Complex{T}})=T
+
+
 Base.eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
 Base.eps{T<:Real}(z::Complex{T})=eps(abs(z))
 

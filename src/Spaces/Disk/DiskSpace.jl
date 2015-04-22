@@ -61,7 +61,7 @@ columnspace{M,a,b,SS}(D::DiskSpace{M,a,b,SS},k)=(m=div(k,2);JacobiSquare(M+m,a+m
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
 
 
-function Base.real{JS}(f::ProductFun{JS,Laurent,DiskSpace{0,0,0,JS,Laurent}})
+function real{JS}(f::ProductFun{JS,Laurent,DiskSpace{0,0,0,JS,Laurent}})
     cfs=f.coefficients
     n=length(cfs)
 

@@ -217,9 +217,8 @@ end
 
 ## Mapped functions
 
-import Base.imag, Base.real, Base.conj
 
-for op = (:real,:imag,:conj)
+for op = (:(Base.real),:(Base.imag),:(Base.conj))
     @eval ($op){T,D<:FunctionSpace{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 
