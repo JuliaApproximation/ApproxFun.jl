@@ -73,6 +73,17 @@ function cont_reduce_dofs!{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::V
     F
 end
 
+function cont_reduce_dofs!{T<:Fun}(S::OperatorSchur,L::Operator,M::Operator,G::Matrix{T},F::Matrix)
+    @assert size(G,2)==size(F,2)
+    @assert size(F,1)==1
+
+
+    for k=1:size(G,2)
+        cont_reduce_dofs!(S,L,M,G[:,k],F[1,k])
+    end
+    F
+end
+
 
 cont_reduce_dofs!{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::Fun)=cont_reduce_dofs!(Ax,Ay,G,ProductFun(F))
 function cont_reduce_dofs!{M<:AbstractArray}(Ax::Vector{M},Ay::Vector,G,F::ProductFun)
@@ -232,7 +243,11 @@ end
 
 # Solve for multiple RHS
 # TODO: Generalize def
-function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::Array{PF,2},nx::Integer)
+function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Type{N},
+                                                                            OS::PDEOperatorSchur{OSS},
+                                                                            Gx,
+                                                                            F::Array{PF,2},
+                                                                            nx::Integer)
     n = min(size(OS.S.T,2),max(mapreduce(Fk->size(Fk,2),max,F),mapreduce(Fk->size(Fk,2),max,Gx)))
     rs=rangespace(OS)
 
@@ -248,24 +263,31 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Ty
 
 
 
-    rhs=Array(Any,size(first(Gx),1)+1,Fm)
+    nbcs=size(first(Gx),1)
+    rhs=Array(Any,nbcs+1,Fm)
+
+    TT=isempty(OS.Bx)?eltype(OS):promote_type(eltype(OS),mapreduce(eltype,promote_type,OS.Bx))
+
+    ops=Array(Operator{TT},length(OS.Bx)+1)
+    ops[1:length(OS.Bx)]=OS.Bx
+
 
 
      while k≥1
         @assert k==1 || (OS.S.T[k,k-1] == 0 && OS.S.R[k,k-1] == 0        )
 
         for j=1:Fm
-            rhs[1:1,j]=Gx[j][:,k]
-            rhs[2,j]=F[j].coefficients[k]
+            rhs[1:nbcs,j]=Gx[j][:,k]
+            rhs[end,j]=F[j].coefficients[k]
             if k < n
                 for kk=k+1:n
-                    axpy!(-OS.S.R[k,kk],PY[kk,j],rhs[2,j]) # equivalent to X+=a*Y
-                    axpy!(-OS.S.T[k,kk],SY[kk,j],rhs[2,j])
+                    axpy!(-OS.S.R[k,kk],PY[kk,j],rhs[end,j]) # equivalent to X+=a*Y
+                    axpy!(-OS.S.T[k,kk],SY[kk,j],rhs[end,j])
                 end
             end
         end
-        op=OS.Rdiags[k]
-        Y[k,:]=vec(linsolve([OS.Bx,op],rhs;maxlength=nx))
+        ops[end]=OS.Rdiags[k]
+        Y[k,:]=vec(linsolve(ops,rhs;maxlength=nx))
         for j=1:Fm
             chop!(Y[k,j],eps())
         end
@@ -292,8 +314,14 @@ end
 
 
 
-cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx::Vector,Gyin::Vector,F::Fun,nx=100000)=cont_constrained_lyap(OS,Gx,Gyin,ProductFun(F),nx)
-function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx::Vector,Gyin::Vector,F::ProductFun,nx=100000)
+cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},
+                                          Gx::Vector,
+                                          Gyin::Vector,
+                                          F::Fun,nx=100000)=cont_constrained_lyap(OS,Gx,Gyin,ProductFun(F),nx)
+function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},
+                                                   Gx::Vector,
+                                                   Gyin::Vector,
+                                                   F::ProductFun,nx=100000)
     Gy=regularize_bcs(OS.S,Gyin)
     F=pad!(F,:,min(size(OS.S.Q,1),size(F,2)))
 
@@ -331,42 +359,47 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},Gx:
     X=OS.S.bcP*X        # this is equivalent to acting on columns by P'
 end
 
-function cont_constrained_lyap{OSS<:OperatorSchur,PF<:ProductFun}(OS::PDEOperatorSchur{OSS},Gx::Array,Gyin::Array,F::Array{PF},nx=100000)
+function cont_constrained_lyap{OSS<:OperatorSchur,PF<:ProductFun}(OS::PDEOperatorSchur{OSS},
+                                                                  Gx::Array,
+                                                                  Gyin::Array,
+                                                                  F::Array{PF},nx=100000)
     @assert size(F,1)==1
-    @assert isempty(Gyin)  #TODO: remove assumption
-
 
     Gy=regularize_bcs(OS.S,Gyin)
-
     cont_reduce_dofs!(OS.S,OS.Lx,OS.Mx,Gy,F)
-        Q2 = OS.S.Q
-
+    Q2 = OS.S.Q
     for k=1:size(F,2)
         F[1,k]=ProductFun(Q2[1:length(F[1,k].coefficients),:].'*F[1,k].coefficients,space(F[1,k]))
     end
+    ny=size(OS.S,2)
+    Ky=numbcs(OS.S)
 
-        ny=size(OS.S,2)
-        Ky=numbcs(OS.S)
-
-        if !isempty(Gx)
-            GxM=Array(Matrix{Float64},size(Gx,2))
+    if !isempty(Gx)
+        GxM=Array(Matrix{Float64},size(Gx,2))
         for k=1:size(Gx,2)
             # bcP recombines boundary conditions
             GxM[k]=pad(coefficients(Gx[:,k]).',:,ny)*OS.S.bcP
             # remove unused DOFs and rearrange columns
             GxM[k]=GxM[k][:,Ky+1:end]*OS.S.Z
         end
-        else
-            GxM=[]
-        end
-
-
-     Y=cont_constrained_lyapuptriang(Float64,OS,GxM,F,nx)
-
-    for j=1:size(Y,2)
-        Y[:,j]=OS.S.bcP*OS.S.Z*Y[:,j]
+    else
+        GxM=[]
+    end
+    nx=10000
+    Y=cont_constrained_lyapuptriang(Float64,OS,GxM,F,nx)
+    #TODO: Ky or Kx?
+    X=Array(eltype(Y),size(Y,1)+Ky,size(Y,2))
+    for k=1:size(Y,2)
+        X[Ky+1:end,k]=OS.S.Z*Y[:,k]
+        X[1:Ky,k]=Gy[:,k]-OS.S.bcs[:,Ky+1:end]*X[Ky+1:end,k]
+        X[:,k]=OS.S.bcP*X[:,k]
     end
 
-    Y
+    X
 end
 
+
+cont_constrained_lyap{OSS<:OperatorSchur,PF<:Fun}(OS::PDEOperatorSchur{OSS},
+                                      Gx::Array,
+                                      Gyin::Array,
+                                      F::Array{PF},nx=100000)=cont_constrained_lyap(OS,Gx,Gyin,map(ProductFun,F),nx)

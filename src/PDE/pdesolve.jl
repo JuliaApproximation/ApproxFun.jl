@@ -102,8 +102,8 @@ function pde_standardize_rhs(A,f::Matrix)
     @assert length(indsBx)+length(indsBy)==size(f,1)
 
 
-    fx=isempty(indsBx)?[]:f[indsBx,:]
-    fy=isempty(indsBy)?[]:f[indsBy,:]
+    fx=isempty(indsBx)?[]:convert2fun(f[indsBx,:],domainspace(A,2))
+    fy=isempty(indsBy)?[]:convert2fun(f[indsBy,:],domainspace(A,1))
     F=fill(zeros(rangespace(A)),1,size(f,2))
 
     fx,fy,F
@@ -141,9 +141,21 @@ function pdesolve(S::PDEStrideOperatorSchur,f::Vector,nx=100000)
 end
 
 
-function pdesolve(A::AbstractPDEOperatorSchur,f::Array,nx=100000)
+function pdesolve(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
     fx,fy,F=pde_standardize_rhs(A,f)
     ProductFun(cont_constrained_lyap(A,fx,fy,F,nx),domainspace(A))
+end
+
+
+function pdesolve(A::AbstractPDEOperatorSchur,f::Matrix,nx=100000)
+    fx,fy,F=pde_standardize_rhs(A,f)
+    X=cont_constrained_lyap(A,fx,fy,F,nx)
+    ds=domainspace(A)
+    #TODO: Change Float64
+    ProductFun{typeof(ds[1]),
+               typeof(ds[2]),
+               typeof(ds),
+               Float64}[ProductFun(X[:,k],ds) for k=1:size(X,2)]
 end
 
 pdesolve(A::AbstractPDEOperatorSchur,f::Union(Fun,MultivariateFun,Number),nx...)=pdesolve(A,[f],nx...)
