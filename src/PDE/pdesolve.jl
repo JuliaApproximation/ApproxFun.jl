@@ -45,7 +45,10 @@ function depiecereorient(f,d)
     if length(vf)==4
         # assume we are in boudnary
         # boundary has positive orientation
-        vf=Any[setdomain(vf[2],dd2),setdomain(reverseorientation(vf[4]),dd2),setdomain(reverseorientation(vf[1]),dd1),setdomain(vf[3],dd1)]
+        vf=Any[setdomain(reverseorientation(vf[4]),dd2),
+               setdomain(vf[2],dd2),
+               setdomain(vf[1],dd1),
+               setdomain(reverseorientation(vf[3]),dd1)]
     else
         @assert length(vf)==2
         if isa(dd1,PeriodicDomain)
