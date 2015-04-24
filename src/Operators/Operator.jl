@@ -251,12 +251,18 @@ for TYP in (:Operator,:BandedOperator)
   end
 end
 
+Base.convert{T}(::Type{Functional{T}},f::Fun)=DefiniteIntegral()[f]
+Base.convert(::Type{Functional},f::Fun)=DefiniteIntegral()[f]
+
 
 
 ## Promotion
 
 for OP in (:BandedOperator,:Operator)
   @eval begin
+      Base.promote_rule{N<:Number}(::Type{N},::Type{$OP})=$OP{N}
+      Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{$OP})=$OP{N}
+      Base.promote_rule{S,N<:Number}(::Type{Fun{S,N}},::Type{$OP})=$OP{N}
       Base.promote_rule{N<:Number,O<:$OP}(::Type{N},::Type{O})=$OP{promote_type(N,eltype(O))}
       Base.promote_rule{N<:Number,O<:$OP}(::Type{UniformScaling{N}},::Type{O})=$OP{promote_type(N,eltype(O))}
       Base.promote_rule{S,N<:Number,O<:$OP}(::Type{Fun{S,N}},::Type{O})=$OP{promote_type(N,eltype(O))}
