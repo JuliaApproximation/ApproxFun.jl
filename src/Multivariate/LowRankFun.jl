@@ -55,23 +55,24 @@ end
 
 ## Adaptive constructor selector
 
-function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;method::Symbol=:standard,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;method::Symbol=:standard,tolerance::Union(Symbol,(Symbol,Number))=:relative,retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     if method == :standard
-        standardLowRankFun(f,dx,dy;gridx=gridx,gridy=gridy,maxrank=maxrank)
+        F,maxabsf=standardLowRankFun(f,dx,dy;tolerance=tolerance,gridx=gridx,gridy=gridy,maxrank=maxrank)
     elseif method == :Cholesky
         @assert domain(dx) == domain(dy)
         if dx == dy
-            CholeskyLowRankFun(f,dx;grid=max(gridx,gridy),maxrank=maxrank)
+            F,maxabsf=CholeskyLowRankFun(f,dx;tolerance=tolerance,grid=max(gridx,gridy),maxrank=maxrank)
         else
-            F = CholeskyLowRankFun(f,dx;grid=max(gridx,gridy),maxrank=maxrank)
-            LowRankFun(F.A,map(b->Fun(b,dy),F.B))
+            G,maxabsf=CholeskyLowRankFun(f,dx;tolerance=tolerance,grid=max(gridx,gridy),maxrank=maxrank)
+            F=LowRankFun(copy(G.A),map(b->Fun(b,dy),G.B))
         end
     end
+    retmax ? (F,maxabsf) : F
 end
 
 ## Standard adaptive construction
 
-function standardLowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function standardLowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;tolerance::Union(Symbol,(Symbol,Number))=:relative,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dy)
     T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)),eltype(dy),eltype(domain(dy)))
 
@@ -79,7 +80,7 @@ function standardLowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;grid
     ptsx,ptsy=points(dx,gridx),points(dy,gridy)
     X = zeros(T,gridx,gridy)
     maxabsf,r=findapproxmax!(f,X,ptsx,ptsy,gridx,gridy)
-    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun([zero(T)],dx)],[Fun([zero(T)],dy)]) end
+    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun([zero(T)],dx)],[Fun([zero(T)],dy)]),maxabsf end
     a,b=Fun(x->f(x,r[2]),dx),Fun(y->f(r[1],y),dy)
 
     # If necessary, we resize the grid to be at least as large as the
@@ -92,25 +93,30 @@ function standardLowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;grid
         a,b=Fun(x->f(x,r[2]),dx),Fun(y->f(r[1],y),dy)
     end
 
-    A,B,tol=typeof(a)[],typeof(b)[],100maxabsf*eps(T)
+    A,B=typeof(a)[],typeof(b)[]
+    if tolerance == :relative
+        tol = 100maxabsf*eps(T)
+    elseif tolerance[1] == :absolute
+        tol = 100*tolerance[2]*eps(T)
+    end
     tol10 = tol/10
 
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
-        if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B) end
+        if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
         A,B=[A;a/sqrt(abs(a[r[1]]))],[B;b/(sqrt(abs(b[r[2]]))*sign(b[r[2]]))]
-        maxabsf,r=findapproxmax!(A[k],B[k],X,ptsx,ptsy,gridx,gridy)
+        r=findapproxmax!(A[k],B[k],X,ptsx,ptsy,gridx,gridy)
         Ar,Br=map(q->q[r[1]],A),map(q->q[r[2]],B)
         a,b=Fun(x->f(x,r[2]),dx,gridx) - dot(conj(Br),A),Fun(y->f(r[1],y),dy,gridy) - dot(conj(Ar),B)
         chop!(a,tol10),chop!(b,tol10)
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
-    return LowRankFun(A,B)
+    return LowRankFun(A,B),maxabsf
 end
 
 ## Adaptive Cholesky decomposition, when f is Hermitian positive (negative) definite
 
-function CholeskyLowRankFun(f::Function,dx::FunctionSpace;grid::Integer=64,maxrank::Integer=100)
+function CholeskyLowRankFun(f::Function,dx::FunctionSpace;tolerance::Union(Symbol,(Symbol,Number))=:relative,grid::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dx)
     T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)))
 
@@ -118,7 +124,7 @@ function CholeskyLowRankFun(f::Function,dx::FunctionSpace;grid::Integer=64,maxra
     pts=points(dx,grid)
     X = zeros(T,grid)
     maxabsf,r=findcholeskyapproxmax!(f,X,pts,grid)
-    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun([zero(T)],dx)],[Fun([zero(T)],dy)]) end
+    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun([zero(T)],dx)],[Fun([zero(T)],dy)]),maxabsf end
     a=Fun(x->f(x,r),dx)
 
     # If necessary, we resize the grid to be at least as large as the
@@ -131,20 +137,25 @@ function CholeskyLowRankFun(f::Function,dx::FunctionSpace;grid::Integer=64,maxra
         a=Fun(x->f(x,r),dx)
     end
 
-    A,B,tol=typeof(a)[],typeof(a)[],100maxabsf*eps(T)
+    A,B=typeof(a)[],typeof(a)[]
+    if tolerance == :relative
+        tol = 100maxabsf*eps(T)
+    elseif tolerance[1] == :absolute
+        tol = 100*tolerance[2]*eps(T)
+    end
     tol10 = tol/10
 
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
-        if norm(a.coefficients,Inf) < tol return LowRankFun(A,B) end
+        if norm(a.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
         A,B=[A;a/sqrt(abs(a[r]))],[B;a/(sqrt(abs(a[r]))*sign(a[r]))]
-        maxabsf,r=findcholeskyapproxmax!(A[k],B[k],X,pts,grid)
+        r=findcholeskyapproxmax!(A[k],B[k],X,pts,grid)
         Br=map(q->q[r],B)
         a=Fun(x->f(x,r),dx,grid) - dot(conj(Br),A)
         chop!(a,tol10)
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
-    return LowRankFun(A,B)
+    return LowRankFun(A,B),maxabsf
 end
 
 
@@ -185,7 +196,7 @@ function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,
     X[:] -= dX[:]
     maxabsf,impt = findmax(abs(X))
     imptple = ind2sub((gridx,gridy),impt)
-    maxabsf,[ptsx[imptple[1]],ptsy[imptple[2]]]
+    [ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
 function findcholeskyapproxmax!(f::Function,X::Vector,pts::Vector,grid)
@@ -200,7 +211,7 @@ function findcholeskyapproxmax!(A::Fun,B::Fun,X::Vector,pts::Vector,grid)
     dX = A[pts].*B[pts]
     X[:] -= dX[:]
     maxabsf,impt = findmax(abs(X))
-    maxabsf,pts[impt]
+    pts[impt]
 end
 
 
