@@ -1,6 +1,7 @@
 abstract MultivariateFun
 abstract BivariateFun <: MultivariateFun
 
+export grad,lap,curl
 
 #implements coefficients/values/evaluate
 Base.getindex(f::BivariateFun,x,y)=evaluate(f,x,y)
@@ -8,8 +9,10 @@ space(f::BivariateFun)=space(f,1)⊗space(f,2)
 domain(f::BivariateFun)=domain(f,1)*domain(f,2)
 
 differentiate(u::BivariateFun,i::Integer,j::Integer)=j==0?u:differentiate(differentiate(u,i),i,j-1)
-lap(u::BivariateFun)=differentiate(u,1,2)+differentiate(u,2,2)
 grad(u::BivariateFun)=[differentiate(u,1),differentiate(u,2)]
+lap(u::BivariateFun)=differentiate(u,1,2)+differentiate(u,2,2)
+Base.div{B<:BivariateFun}(u::Vector{B})=differentiate(u[1],1)+differentiate(u[2],2)
+curl{B<:BivariateFun}(u::Vector{B})=differentiate(u[2],1)-differentiate(u[1],2)
 
 Base.chop(f::MultivariateFun)=chop(f,10eps())
 

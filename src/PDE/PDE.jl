@@ -1,4 +1,4 @@
-export discretize,grad,lap,timedirichlet, ⊗
+export discretize,timedirichlet
 
 include("OperatorSchur.jl")
 include("KroneckerOperator.jl")

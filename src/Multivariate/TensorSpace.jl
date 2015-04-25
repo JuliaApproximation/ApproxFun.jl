@@ -1,5 +1,5 @@
 
-export TensorSpace,ProductSpace
+export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
 abstract AbstractProductSpace{SV,T,d} <: FunctionSpace{T,d}

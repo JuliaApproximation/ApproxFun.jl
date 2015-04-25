@@ -3,7 +3,7 @@
 #####
 
 
-export ∫,⨜,⨍,chebyshevt,chebyshevu
+export chebyshevt,chebyshevu,∫,⨜,⨍,∇,Δ
 
 ## Constructors
 
@@ -47,3 +47,8 @@ Base.ctranspose(f::Fun)=differentiate(f)
 for OP in (:Σ,:∮,:⨍,:⨎)
     @eval $OP(f::Fun)=sum(f)
 end
+
+∇(F::MultivariateFun) = grad(F)
+Δ(F::MultivariateFun) = lap(F)
+Base.dot{M<:MultivariateFun}(∇::Function,F::Vector{M}) = div(F)
+Base.cross{M<:MultivariateFun}(∇::Function,F::Vector{M}) = curl(F)
