@@ -2,7 +2,7 @@
 
 export UnionDomain
 
-immutable UnionDomain{D<:Domain,T<:Number} <: Domain{T}
+immutable UnionDomain{D<:Domain,T} <: Domain{T}
     domains::Vector{D}
 end
 
@@ -10,13 +10,21 @@ UnionDomain{D<:Domain}(d::Vector{D})=UnionDomain{D,mapreduce(eltype,promote_type
 
 
 isambiguous(d::UnionDomain)=isempty(d.domains)
-Base.convert{D<:Domain,T<:Number}(::Type{UnionDomain{D,T}},::AnyDomain)=UnionDomain{D,T}([])
+Base.convert{D<:Domain,T}(::Type{UnionDomain{D,T}},::AnyDomain)=UnionDomain{D,T}([])
 Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain)=UnionDomain([])
 
 
 
 ∪(d::Domain) = d
 ∪{D<:Domain}(d::Vector{D}) = UnionDomain(d)
+function ∪{D<:Domain}(::Type{D},x)
+    out = map(D,x)
+    length(out) > 1 ? ∪(out) : out[1]
+end
+function ∪{D<:Domain}(::Type{D},x,y)
+    out = map(D,x,y)
+    length(out) > 1 ? ∪(out) : out[1]
+end
 ∪{D1,D2,T1,T2}(d1::UnionDomain{D1,T1},d2::UnionDomain{D2,T2})=UnionDomain([d1.domains,d2.domains])
 ∪{T1,D2,T2}(d1::Domain{T1},d2::UnionDomain{D2,T2})=UnionDomain([d1,d2.domains])
 ∪{D1,T1,T2}(d1::UnionDomain{D1,T1},d2::Domain{T2})=UnionDomain([d1.domains,d2])

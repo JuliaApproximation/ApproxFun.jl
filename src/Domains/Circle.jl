@@ -18,16 +18,6 @@ Circle(r::Int)=Circle(Float64,0.,r)
 Circle{V<:Real}(::Type{V}) = Circle(one(V))
 Circle()=Circle(1.)
 
-function Circle{T<:Number,V<:Real}(c::Vector{T},r::Vector{V})
-    @assert length(c) == length(r)
-    if length(c) == 1
-        Circle(c[1],r[1])
-    else
-        [Circle(c[1],r[1]);Circle(c[2:end],r[2:end])]
-    end
-end
-Circle{T<:Number,V<:Real}(c::Vector{T},r::V) = Circle(c,ones(V,length(c))r)
-
 
 
 isambiguous(d::Circle)=isnan(d.center) && isnan(d.radius)
