@@ -1,10 +1,19 @@
 
+
+
 ToeplitzOperator(f::Fun{Laurent})=ToeplitzOperator(f.coefficients[2:2:end],
                                                     f.coefficients[1:2:end])
 LaurentOperator(f::Fun{Laurent})=LaurentOperator(f.coefficients[3:2:end],
                                                     f.coefficients[[1;2:2:end]])
 
 
+
+##Taylor
+
+
+bandinds(M::Multiplication{Taylor,Taylor})=1-length(M.f),0
+rangespace(M::Multiplication{Taylor,Taylor})=domainspace(M)
+addentries!(M::Multiplication{Taylor,Taylor},A,k)=addentries!(ToeplitzOperator(M.f.coefficients[2:end],[M.f.coefficients[1]]),A,k)
 
 
 ## Evaluation

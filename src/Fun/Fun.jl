@@ -192,8 +192,10 @@ end
 
 function .^{S,T}(f::Fun{S,T},k::Integer)
     if k == 0
-        Fun(one(T),domain(f))
-    elseif k > 0
+        ones(space(f))
+    elseif k==1
+        f
+    elseif k > 1
         f.*f.^(k-1)
     else
         1./f.^(-k)
