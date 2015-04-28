@@ -22,6 +22,9 @@ end
 
 Line(c,a)=Line(c,a,-1.,-1.)
 Line()=Line(0.,0.)
+# true is negative orientation, false is positive orientation
+# this is because false==0 and we take angle=0
+Line(b::Bool)=b?Line(0.,π):Line()
 
 
 isambiguous(d::Line)=isnan(d.centre) && isnan(d.angle)
@@ -113,6 +116,7 @@ end
 canonicaldomain(::PeriodicLine)=PeriodicInterval()
 PeriodicLine(c,a)=PeriodicLine{a/π}(c,1.)
 PeriodicLine()=PeriodicLine{false}(0.,1.)
+PeriodicLine(b::Bool)=PeriodicLine{b}()
 
 isambiguous(d::PeriodicLine)=isnan(d.centre) && isnan(d.angle)
 Base.convert{T<:Number}(::Type{PeriodicLine{T}},::AnyDomain)=PeriodicLine{T}(NaN,NaN)
@@ -134,7 +138,15 @@ for typ in (:Line,:PeriodicLine)
         @assert length(d) ==2
         @assert abs(d[1]) == abs(d[2]) == Inf
 
-        if abs(real(d[1])) < Inf
+        if isa(d[1],Real) && isa(d[2],Real)
+            if d[1]==Inf 
+                @assert d[2]==-Inf
+                $typ(true)
+            else
+                @assert d[1]==-Inf&&d[2]==Inf
+                $typ(false)
+            end
+        elseif abs(real(d[1])) < Inf
             @assert real(d[1])==real(d[2])
             @assert sign(imag(d[1]))==-sign(imag(d[2]))
 

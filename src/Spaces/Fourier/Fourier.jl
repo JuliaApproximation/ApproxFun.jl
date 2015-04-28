@@ -101,7 +101,7 @@ evaluate(f::Fun{SinSpace},t)=sineshaw(f.coefficients,tocanonical(f,t))
 typealias Laurent SumSpace{Hardy{true},Hardy{false},ComplexBasis,1}
 
 Laurent()=Laurent(PeriodicInterval())
-Laurent{T<:Number}(d::Vector{T}) = Laurent(PeriodicInterval(d))
+Laurent{T<:Number}(d::Vector{T}) = Laurent(convert(PeriodicDomain,d))
 
 
 

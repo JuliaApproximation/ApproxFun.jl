@@ -36,7 +36,7 @@ x=Fun(identity)
 ## Periodic
 
 
-d=PeriodicInterval([0.,2π])
+d=PeriodicInterval(0.,2π)
 a=Fun(t-> 1+sin(cos(10t)),d)
 D=diff(d)
 L=D+a
@@ -45,7 +45,7 @@ u=L\f
 
 @test norm(L*u-f) < 10eps()
 
-d=PeriodicInterval([0.,2π])
+d=PeriodicInterval(0.,2π)
 a1=Fun(t->sin(cos(t/2)^2),d)
 a0=Fun(t->cos(12sin(t)),d)
 D=diff(d)

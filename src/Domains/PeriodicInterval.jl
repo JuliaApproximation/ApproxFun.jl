@@ -9,7 +9,14 @@ immutable PeriodicInterval{T<:Number} <: PeriodicDomain{T}
 end
 
 PeriodicInterval()=PeriodicInterval(-1.π,1.π)
-PeriodicInterval(a::Int,b::Int) = PeriodicInterval(float64(a),float64(b))   #convenience method
+PeriodicInterval(a::Int,b::Int) = PeriodicInterval(float64(a),float64(b))   
+PeriodicInterval(a::Number,b::Number) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)#convenience method
+
+function PeriodicInterval{T<:Number}(d::Vector{T})
+    @assert length(d)==2
+    @assert isfinite(d[1]) && isfinite(d[2])
+    PeriodicInterval(d...)
+end
 
 Interval(d::PeriodicInterval)=Interval(d.a,d.b)
 PeriodicInterval(d::Interval)=PeriodicInterval(d.a,d.b)
@@ -20,16 +27,6 @@ isambiguous(d::PeriodicInterval)=isnan(d.a) && isnan(d.b)
 Base.convert{T<:Number}(::Type{PeriodicInterval{T}},::AnyDomain)=PeriodicInterval{T}(NaN,NaN)
 Base.convert{IT<:PeriodicInterval}(::Type{IT},::AnyDomain)=PeriodicInterval(NaN,NaN)
 
-
-function PeriodicInterval{T<:Number}(d::Vector{T})
-    @assert length(d) == 2
-
-    if abs(d[1]) ==Inf
-        PeriodicLine(d)
-    else
-        PeriodicInterval(d[1],d[2])
-    end
-end
 
 ## Information
 

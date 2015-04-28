@@ -128,6 +128,6 @@ u=M*G1
 ## Check conversion
 
 f=Fun(t->[cos(t) 0;sin(t) 1],[-π,π])
-g=Fun(f,Space(PeriodicInterval([-π,π])))
+g=Fun(f,Space(PeriodicInterval(-π,π)))
 @test_approx_eq g[.1] f[.1]
 

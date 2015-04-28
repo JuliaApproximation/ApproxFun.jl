@@ -34,4 +34,16 @@ function Base.convert{D<:Domain,T<:Number}(::Type{D},d::Vector{T})
     end
 end
 
-Base.promote_rule{D<:Domain,T<:Number}(::Type{D},::Type{Vector{T}})=Domain{T,1}
+function Base.convert{D<:PeriodicDomain,T<:Number}(::Type{D},d::Vector{T})
+    @assert length(d) == 2
+
+    if abs(d[1]) ==Inf
+        PeriodicLine(d)
+    else
+        PeriodicInterval(d[1],d[2])
+    end
+end
+
+
+Base.promote_rule{D<:Domain,T<:Number}(::Type{D},::Type{Vector{T}})=UnivariateDomain{T}
+Base.promote_rule{D<:PeriodicDomain,T<:Number}(::Type{D},::Type{Vector{T}})=PeriodicDomain{T}
