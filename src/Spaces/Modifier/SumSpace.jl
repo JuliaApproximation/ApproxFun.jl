@@ -3,7 +3,7 @@ export ⊕
 ## SumSpace{T,S,V} encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T,d} <: FunctionSpace{T,d}
+immutable SumSpace{S,V,T,d} <: FunctionSpace{T,d}
     spaces::@compat(Tuple{S,V})
     SumSpace(dom::Domain)=new((S(dom),V(dom)))
     SumSpace(sp::@compat(Tuple{S,V}))=new(sp)
@@ -62,3 +62,10 @@ Base.vec{S<:SumSpace,T}(f::Fun{S,T})=Fun[vec(f,j) for j=1:2]
 itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
 
 
+## SumSpace{ConstantSpace}
+# this space is special
+
+
+conversion_rule{V<:FunctionSpace}(SS::SumSpace{ConstantSpace,V},::V)=SS
+Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T},k)=k==1?f.coefficients[1]:Fun(f.coefficients[2:end],space(f)[2])
+Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T})=Any[vec(f,1),vec(f,2)]

@@ -135,8 +135,8 @@ end
 
 
 
-conversion_rule(a::FunctionSpace,b::FunctionSpace)=NoSpace()
-function conversion_rule{S<:FunctionSpace}(a::S,b::S)
+conversion_rule(a,b)=NoSpace()
+function conversion_rule{S}(a::S,b::S)
     if spacescompatible(a,b)
         a
     else

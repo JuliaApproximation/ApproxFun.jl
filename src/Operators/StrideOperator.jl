@@ -346,3 +346,50 @@ for op in (:domainspace,:rangespace)
 end
 
 
+
+
+
+## PrependColumnsOperator
+
+immutable PrependColumnsOperator{O,T} <: BandedOperator{T}
+    cols::Matrix{T}
+    op::O
+end
+
+PrependColumnsOperator(cols::Matrix,
+                       B::BandedOperator)=PrependColumnsOperator{typeof(B),
+                                                                 promote_type(eltype(cols),
+                                                                              eltype(B))}(cols,B)
+PrependColumnsOperator(cols::Vector,B)=PrependColumnsOperator(reshape(cols,length(cols),1),B)
+
+
+function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
+    @assert size(A,1)==1 && size(A,2)==2
+    M=A[1,1]
+    B=A[1,2]
+    if isa(M,Multiplication)
+        ds=domainspace(M)
+        @assert isa(ds,UnsetSpace) || isa(ds,ConstantSpace)
+        PrependColumnsOperator(coefficients(M.f,rangespace(B)),B)
+    elseif isa(M,ConstantOperator)
+        PrependColumnsOperator(M.c*ones(rangespace(B)).coefficients,B)
+    else
+        error("Not implemented")
+    end
+end
+
+rangespace(B::PrependColumnsOperator)=rangespace(B.op)
+domainspace(B::PrependColumnsOperator)=SumSpace(ConstantSpace(),domainspace(B.op))
+bandinds(B::PrependColumnsOperator)=min(1-size(B.cols,1),bandinds(B.op,1)+size(B.cols,2)),
+                                        bandinds(B.op,2)+size(B.cols,2)
+
+function addentries!(B::PrependColumnsOperator,A,kr::Range)
+    addentries!(B.op,IndexStride(A,0,size(B.cols,2)),kr)
+    for k=intersect(kr,1:size(B.cols,1)),j=1:size(B.cols,2)
+        A[k,j]+=B.cols[k,j]
+    end
+    A
+end
+
+
+

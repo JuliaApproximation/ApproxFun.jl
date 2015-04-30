@@ -78,7 +78,13 @@ bazeros{T<:Number}(B::Operator{T},n::Integer,br::@compat(Tuple{Int,Int}))=bazero
 
 
 BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n)
-BandedMatrix{T}(B::Operator{T},rws::UnitRange,::Colon)=first(rws)==1?BandedMatrix(B,last(rws)):addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
+function BandedMatrix{T}(B::Operator{T},rws::UnitRange,::Colon)
+    if first(rws)==1
+        BandedMatrix(B,last(rws))
+    else
+        addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
+    end
+end
 
 function BandedMatrix{T<:Number}(B::Operator{T},kr::StepRange,::Colon)
     stp=step(kr)
