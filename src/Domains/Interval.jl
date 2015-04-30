@@ -17,6 +17,12 @@ Interval()=Interval{Float64}()
 Interval{T}(a::T,b::T)=Interval{T}(a,b)
 Interval(a::Int,b::Int) = Interval(@compat(Float64(a)),@compat(Float64(b)))   #convenience method
 
+function Interval{T<:Number}(d::Vector{T})
+    @assert length(d)==2
+    @assert isfinite(d[1]) && isfinite(d[2])
+    Interval(d...)
+end
+
 
 
 Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
