@@ -39,6 +39,12 @@ function bandinds{HS<:HeavisideSpace}(D::Derivative{HS})
     bandinds(StrideOperator(Derivative(csp),n-2,0,1,1))
 end
 
+function rangespace{HS<:HeavisideSpace}(D::Derivative{HS})
+    csp=canonicalspace(domainspace(D))
+    d=domain(D)
+    DiracSpace(rangespace(Derivative(csp)),d.points[2:end-1])
+end
+
 function addentries!{HS<:HeavisideSpace}(D::Derivative{HS},A,kr::Range)
    n=length(domain(D).points)
     csp=canonicalspace(domainspace(D))

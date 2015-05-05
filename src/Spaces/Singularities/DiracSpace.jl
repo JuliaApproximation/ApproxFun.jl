@@ -1,4 +1,4 @@
-immutable DiracSpace{T<:FunctionSpace}<:FunctionSpace
+immutable DiracSpace{T<:FunctionSpace}<:RealUnivariateSpace
   space::T
   points
 end
@@ -10,8 +10,10 @@ DiracSpace(points) = DiracSpace{Chebyshev}(Chebyshev(),sort(points))
 domain(DS::DiracSpace)=domain(DS.space)
 
 spacescompatible(a::DiracSpace,b::DiracSpace)=spacescompatible(a.space,b.space) && a.points==b.points
+canonicalspace(a::DiracSpace)=a
 
-function evaluate(f::Fun{DiracSpace},x::Number)
+
+function evaluate{DS<:DiracSpace}(f::Fun{DS},x::Number)
   n = length(f.space.points)
   if x in f.space.points
     error("You cannot evaluate a Dirac delta at its center.")
@@ -22,7 +24,7 @@ end
 
 evaluate(S::DiracSpace,coeffs::Vector,x::Number)=evaluate(Fun(coeffs,S),x)
 
-function union(a::DiracSpace,b::DiracSpace)
+function union_rule(a::DiracSpace,b::DiracSpace)
   DiracSpace(union(a.space,b.space),sort(union(a.points,b.points)))
 end
 function union_rule(a::DiracSpace,b::FunctionSpace)
@@ -64,19 +66,19 @@ function coefficients(cfs,fromspace::DiracSpace,tospace::DiracSpace)
   end
 end
 
-for TYP in (:ReSpace,:FunctionSpace)
-  @eval begin
-    function coefficients(cfs::Vector,fromspace::$TYP,tospace::DiracSpace)
-      [0*tospace.points;coefficients(cfs,fromspace,tospace.space)]
-    end
-  end
-end
+# for TYP in (:ReSpace,:FunctionSpace)
+#   @eval begin
+#     function coefficients(cfs::Vector,fromspace::$TYP,tospace::DiracSpace)
+#       [0*tospace.points;coefficients(cfs,fromspace,tospace.space)]
+#     end
+#   end
+# end
 
-function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::FunctionSpace)
-  n = length(fromspace.points)
-  if n == 0 || cfs(1:n) == 0*cfs(1:n)
-      coefficients(fromspace.space,tospace)
-  else
-    error("The space you are converting from has Dirac deltas that cannot be represented in the space you are converting to.")
-  end
-end
+# function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::FunctionSpace)
+#   n = length(fromspace.points)
+#   if n == 0 || cfs[1:n] == 0*cfs[1:n]
+#       coefficients(fromspace.space,tospace)
+#   else
+#     error("The space you are converting from has Dirac deltas that cannot be represented in the space you are converting to.")
+#   end
+# end
