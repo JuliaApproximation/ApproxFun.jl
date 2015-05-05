@@ -90,27 +90,28 @@ end
 ## Fun routines
 
 
-function plot{S,T<:Real}(f::Fun{S,T};opts...)
-    f=pad(f,3length(f)+50)
-    plot(points(f),values(f);opts...)
-end
+for OP in (:plot,:layer)
+    @eval begin
+        function $OP{S,T<:Real}(f::Fun{S,T};opts...)
+            f=pad(f,3length(f)+50)
+            $OP(points(f),values(f);opts...)
+        end
 
-function plot{S,T<:Complex}(f::Fun{S,T};opts...)
-    f=pad(f,3length(f)+50)
-    plot(points(f),values(f);opts...)
-end
+        function $OP{S,T<:Complex}(f::Fun{S,T};opts...)
+            f=pad(f,3length(f)+50)
+            $OP(points(f),values(f);opts...)
+        end
 
-function plot{F<:Fun}(f::Vector{F};opts...)
-    for k=1:length(f)
-        plot(f[k];opts...)
+        function $OP{F<:Fun}(f::Vector{F};opts...)
+            for k=1:length(f)
+                $OP(f[k];opts...)
+            end
+        end
+
+        function $OP{S}(r::Range,f::Fun{S,Float64};opts...)
+            $OP([r],f[[r]];opts...)
+        end
     end
-end
-
-
-
-
-function plot{S}(r::Range,f::Fun{S,Float64};opts...)
-    plot([r],f[[r]];opts...)
 end
 
 function complexplot(f::Fun;opts...)
@@ -137,9 +138,6 @@ function complexlayer(f::Fun;opts...)
     layer(real(vals),imag(vals);opts...)
 end
 
-for (plt,TYP) in ((:plot,:Real),(:complexplot,:Complex))
-    @eval $plt{S<:Union(PiecewiseSpace,ArraySpace),T<:$TYP}(f::Fun{S,T};opts...)=$plt(vec(f);opts...)
-end
 
 
 ## Multivariate
@@ -194,6 +192,11 @@ plot(f::MultivariateFun,obj,window)=glsurfupdate(real(values(f)),obj,window)
 # end
 
 
+function plot{DS<:DiracSpace,T<:Real}(f::Fun{DS,T})
+    n=length(space(f).points)
+    plot(layer(Fun(f.coefficients[n+1:end],space(f).space)),
+               map(gadflydeltalayer,space(f).points,f.coefficients[1:n])...)
+end
 
 ## domainplot
 
@@ -206,3 +209,7 @@ layer{D<:Domain}(d::Vector{D})=map(layer,d)
 
 domainplot(f::Union(Fun,FunctionSpace);kwds...)=plot(domain(f);kwds...)
 domainlayer(f::Union(Fun,FunctionSpace))=layer(domain(f))
+
+
+
+

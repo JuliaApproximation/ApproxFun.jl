@@ -116,13 +116,14 @@ end
 
 
 ## Functional
-gadflydeltaplot(c::Number,x0::Number)=Main.Gadfly.plot(x=ones(2)*x0,y=linspace(0.,1.,2),
+gadflydeltaplot(x0::Number,c::Number)=Main.Gadfly.plot(x=ones(2)*x0,y=linspace(0.,c,2),
                                                          Main.Gadfly.Geom.line)
 
-gadflydeltalayer(c::Number,x0::Number)=Main.Gadfly.layer(x=ones(2)*x0,y=linspace(0.,1.,2),
+gadflydeltalayer(x0::Number,c::Number)=Main.Gadfly.layer(x=ones(2)*x0,y=linspace(0.,c,2),
                                                          Main.Gadfly.Geom.line)
 
-gadflydeltaplot(c::Vector,x0::Vector)=Main.Gadfly.plot(map(gadflydeltalayer,c,x0)...)
+gadflydeltaplot(x0::Vector,c::Vector)=Main.Gadfly.plot(map(gadflydeltalayer,x0,c)...)
+
 
 
 
