@@ -65,7 +65,7 @@ function coefficients(f::Vector,a::ReImSpace,b::FunctionSpace)
 end
 
 
-union_rule(a::FunctionSpace,b::ReImSpace)=union(a,b.space)
+#union_rule(a::FunctionSpace,b::ReImSpace)=union(a,b.space)
 
 ## Operators
 

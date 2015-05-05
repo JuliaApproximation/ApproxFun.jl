@@ -31,7 +31,7 @@ function union_rule(a::DiracSpace,b::FunctionSpace)
   DiracSpace(union(a.space,b),a.points)
 end
 
-function coefficients(cfs,fromspace::DiracSpace,tospace::DiracSpace)
+function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::DiracSpace)
   if length(cfs) < length(tospace.points)
     error("You have given fewer coefficients than Dirac points for the space you are converting to.")
   end
