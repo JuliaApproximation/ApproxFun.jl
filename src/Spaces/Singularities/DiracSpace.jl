@@ -1,5 +1,3 @@
-using ApproxFun
-
 immutable DiracSpace{T<:FunctionSpace}<:FunctionSpace
   space::T
   points
