@@ -98,12 +98,46 @@ a,b=[2.,0.],[1.]
     J=jacobioperator(a,b)
     T,K=tkoperators(a,b)
 
+
+#####
+# QL Decomposition of J around λ[1] = 2.5
+
 λ=joukowsky(complexroots(Fun(T)))|>real
 n=20;    A=J[1:n,1:n]|>full
     L=A-λ[1]*I|>qlgivens!
     Q=(A-λ[1]*I)*inv(L)
     Q*Q'
 L*A*inv(L)|>chopm
+
+L=ToeplitzOperator([-2.,0.5],[2.])
+T=ToeplitzOperator([1],[-λ[1],1.])
+
+
+(T*inv(L))
+ q
+cfs=(T*inv(L))[1:148,2]
+
+
+q=Fun([cfs[2:end]],Taylor())⊕Fun([cfs[1]],Hardy{false}())
+qb=Fun(z->q[1/z],space(q))
+space(q)
+
+q*qb
+
+
+ToeplitzOperator(q)[1:10,1:10]
+
+cfs[1]
+
+q.coefficients
+
+Fun(T)
+
+Fun(inv(L)).coefficients
+
+(J-λ[1]*I)[1:10,1:10]
+
+L
 
 w=spectralmeasure([0.5,0.],[1.])
 
