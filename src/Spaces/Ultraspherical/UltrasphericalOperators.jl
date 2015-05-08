@@ -217,7 +217,7 @@ function addentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{λ}},A
 end
 
 function multiplyentries!(M::Conversion{Chebyshev,Ultraspherical{1}},A,kr::Range)
-    cr=columnrange(A)::Range1{Int}
+    cr=columnrange(A)::UnitRange{Int}
 
     #We assume here that the extra rows are redundant
     for k=max(2,kr[1]):kr[end]+2,j=cr
@@ -232,7 +232,7 @@ end
 
 function multiplyentries!{m,λ}(M::Conversion{Ultraspherical{m},Ultraspherical{λ}},A,kr::Range)
     @assert λ==m+1
-    cr=columnrange(A)::Range1{Int64}
+    cr=columnrange(A)::UnitRange{Int64}
 
     λf = 1.λ
 

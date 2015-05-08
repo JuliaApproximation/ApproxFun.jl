@@ -26,8 +26,7 @@ lastindex(sl::ShiftVector)=length(sl)-sl.index
 
 range(sv::ShiftVector)=firstindex(sv):lastindex(sv)
 
-Base.getindex(sl::ShiftVector,k::Integer)=sl.vector[k+sl.index]
-Base.getindex(sl::ShiftVector,r::Range1)=sl.vector[r+sl.index]
+Base.getindex(sl::ShiftVector,r)=sl.vector[r+sl.index]
 
 
 Base.flipud(sl::ShiftVector)=ShiftVector(flipud(sl.vector),length(sl.vector)-sl.index+1)
@@ -81,7 +80,7 @@ end
 
 #TODO f[0:end]
 
-pad(f::ShiftVector,r::Range1)=ShiftVector(
+pad(f::ShiftVector,r::UnitRange)=ShiftVector(
     padleft(f[firstindex(f):-1],-first(r)),
     pad(f[0:lastindex(f)],last(r)+1))
 
@@ -189,7 +188,7 @@ deinterlace(v::Vector)=ShiftVector(flipud(v[2:2:end]),v[1:2:end])
 
 
 
-function Base.resize!(c::ShiftVector,k::Range1)
+function Base.resize!(c::ShiftVector,k::UnitRange)
    fi=firstindex(c)
 
    splice!(c.vector,last(k)+c.index+1:length(c.vector)) 

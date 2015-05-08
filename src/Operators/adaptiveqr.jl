@@ -78,7 +78,7 @@ function givensreduce!{T<:Number,M,R}(B::AlmostBandedOperator{T,M,R},v::Array,k1
     B
 end
 
-function givensreduce!(B::AlmostBandedOperator,v::Array,k1::Range1,j1::Integer)
+function givensreduce!(B::AlmostBandedOperator,v::Array,k1::UnitRange,j1::Integer)
     if length(k1)>1
         for k=k1[2]:k1[end]
             givensreduce!(B,v,k1[1],k,j1)

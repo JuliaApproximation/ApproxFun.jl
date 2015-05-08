@@ -4,14 +4,14 @@ export devec,demat,mat
 
 immutable ArraySpace{S,n,T,D<:Domain} <: FunctionSpace{T,D}
      space::S     
-     dimensions::(Int...)
+     dimensions::@compat(Tuple{Vararg{Int}})
 #      # for AnyDomain() usage
     ArraySpace(sp::S,dims)=new(sp,dims)
     ArraySpace(d::Domain,dims)=new(S(d),dims)
 end
 
 
-ArraySpace{T,D}(S::FunctionSpace{T,D},n::(Int...))=ArraySpace{typeof(S),length(n),T,D}(S,n)
+ArraySpace{T,D}(S::FunctionSpace{T,D},n::@compat(Tuple{Vararg{Int}}))=ArraySpace{typeof(S),length(n),T,D}(S,n)
 ArraySpace{T,D}(S::FunctionSpace{T,D},n::Integer)=ArraySpace(S,(n,))
 ArraySpace{T,D}(S::FunctionSpace{T,D},n,m)=ArraySpace{typeof(S),2,T,D}(S,(n,m))
 ArraySpace(S::Domain,n...)=ArraySpace(Space(S),n...)

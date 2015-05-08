@@ -66,10 +66,10 @@ Base.blkdiag{FT<:PiecewiseSpace,OT<:AbstractDiagonalInterlaceOperator}(A::Multip
 
 immutable DiagonalArrayOperator{B<:BandedOperator,T<:Number} <: BandedOperator{T}
     op::B
-    dimensions::(Int...)
+    dimensions::@compat(Tuple{Vararg{Int}})
 end
 
-DiagonalArrayOperator{T}(op::BandedOperator{T},dms::(Int...))=DiagonalArrayOperator{typeof(op),T}(op,dms)
+DiagonalArrayOperator{T}(op::BandedOperator{T},dms::@compat(Tuple{Vararg{Int}}))=DiagonalArrayOperator{typeof(op),T}(op,dms)
 #DiagonalArrayOperator{T}(op::BandedOperator{T},dms::Int)=DiagonalArrayOperator(op,(dms,))
 
 

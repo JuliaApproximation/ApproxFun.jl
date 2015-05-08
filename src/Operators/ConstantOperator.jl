@@ -34,7 +34,7 @@ end
 
 
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
-Base.getindex(op::BasisFunctional,k::Range1)=convert(Vector{Float64},k.==op.k)
+Base.getindex(op::BasisFunctional,k::UnitRange)=convert(Vector{Float64},k.==op.k)
 
 immutable FillFunctional{T<:Number} <: Functional{T}
     c::T
@@ -80,7 +80,7 @@ domainspace(Z::ZeroFunctional)=Z.domainspace
 promotedomainspace(Z::ZeroFunctional,sp::FunctionSpace)=ZeroFunctional(sp)
 
 Base.getindex(op::ZeroFunctional,k::Integer)=0.
-Base.getindex(op::ZeroFunctional,k::Range1)=zeros(length(k))
+Base.getindex(op::ZeroFunctional,k::UnitRange)=zeros(length(k))
 
 
 

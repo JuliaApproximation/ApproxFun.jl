@@ -129,7 +129,7 @@ end
 StrideFunctional{T<:Number}(B::Functional{T},r,rs)=StrideFunctional{T,typeof(B)}(B,r,rs)
 
 
-Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range1)=[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
+Base.getindex{T<:Number}(op::StrideFunctional{T},kr::UnitRange)=[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
 
 
 

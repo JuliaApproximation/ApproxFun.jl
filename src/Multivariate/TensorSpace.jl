@@ -37,7 +37,7 @@ tocanonical(d::MultivariateFunctionSpace,x...)=tocanonical(domain(d),x...)
 abstract AbstractProductSpace{S,T} <: BivariateFunctionSpace
 
 immutable TensorSpace{S<:FunctionSpace,T<:FunctionSpace} <:AbstractProductSpace{S,T}
-    spaces::(S,T)
+    spaces::@compat(Tuple{S,T})
 end
 
 TensorSpace(A,B)=TensorSpace((A,B))

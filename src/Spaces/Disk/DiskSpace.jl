@@ -7,7 +7,7 @@ export Disk
 ##TODO: make argument 
 immutable Disk <: BivariateDomain
     radius::Float64
-    center::(Float64,Float64)
+    center::@compat(Tuple{Float64,Float64})
 end
 
 Disk(r)=Disk(r,(0.,0.))

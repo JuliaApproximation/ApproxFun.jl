@@ -87,7 +87,7 @@ type AlmostBandedOperator{T,M,R} <: BandedBelowOperator{T}
     
     datalength::Int       # How long data is.  We can't use the array length of data as we double the memory allocation but don't want to fill in
     
-    bandinds::(Int,Int)   # Encodes the bandrange
+    bandinds::@compat(Tuple{Int,Int})   # Encodes the bandrange
 end
 
 domainspace(M::AlmostBandedOperator)=domainspace(M.op)
@@ -169,7 +169,7 @@ function Base.getindex(B::AlmostBandedOperator,k::Integer,j::Integer)
 end
 
 
-# getindex!(b::AlmostBandedOperator,kr::Range1,jr::Range1)=resizedata!(b,kr[end])[kr,jr]
+# getindex!(b::AlmostBandedOperator,kr::UnitRange,jr::UnitRange)=resizedata!(b,kr[end])[kr,jr]
 # getindex!(b::AlmostBandedOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,jr]
 
 function resizedata!{T<:Number,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,R},n::Integer)

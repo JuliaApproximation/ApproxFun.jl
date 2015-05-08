@@ -41,7 +41,7 @@ Base.size(op::Operator,k::Integer)=size(op)[k]
 
 
 bandinds(A,k::Integer)=bandinds(A)[k]
-bandrange(b::BandedBelowOperator)=Range1(bandinds(b)...)
+bandrange(b::BandedBelowOperator)=UnitRange(bandinds(b)...)
 function bandrangelength(B::BandedBelowOperator)
     bndinds=bandinds(B)
     bndinds[end]-bndinds[1]+1

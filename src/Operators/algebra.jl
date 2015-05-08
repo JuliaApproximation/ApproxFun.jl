@@ -148,7 +148,7 @@ immutable ConstantTimesFunctional{T<:Number,B<:Functional} <: Functional{T}
     op::B
 end
 
-Base.getindex(op::ConstantTimesFunctional,k::Range1)=op.c*op.op[k]
+Base.getindex(op::ConstantTimesFunctional,k::UnitRange)=op.c*op.op[k]
 
 
 

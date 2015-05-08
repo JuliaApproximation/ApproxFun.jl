@@ -4,12 +4,12 @@ export ⊕
 
 
 immutable SumSpace{S<:FunctionSpace,V<:FunctionSpace,T<:Number,D<:Domain} <: FunctionSpace{T,D}
-    spaces::(S,V)
+    spaces::@compat(Tuple{S,V})
     SumSpace(d::Domain)=new((S(d),V(d)))
-    SumSpace(sp::(S,V))=new(sp)
+    SumSpace(sp::@compat(Tuple{S,V}))=new(sp)
 end
 
-function SumSpace{T<:Number,D}(A::(FunctionSpace{T,D},FunctionSpace{T,D}))
+function SumSpace{T<:Number,D}(A::@compat(Tuple{FunctionSpace{T,D},FunctionSpace{T,D}}))
     @assert domain(A[1])==domain(A[2])
     SumSpace{typeof(A[1]),typeof(A[2]),T,D}(A)
 end
