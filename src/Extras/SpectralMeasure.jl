@@ -1,6 +1,4 @@
 using ApproxFun
-#TODO: Add unit test for points/values of JacobiWeight
-
 
 function Jacobi(a,b,N)
     J = zeros(N,N)
