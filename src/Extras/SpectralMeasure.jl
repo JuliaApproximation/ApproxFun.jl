@@ -103,9 +103,29 @@ function ql(T::ToeplitzOperator)
   L = ToeplitzOperator(Ltranspose.nonnegative[2:end],[Ltranspose.nonnegative[1]])
 
   # Now we need to work backwards. Plan:
-  # Find compact K1 such that Q+K1 is compact. Then (Q+K1)T = L + K2.
+  # Find compact K1 such that Q+K1 is orthogonal. Then (Q+K1)T = L + K2.
   # Then we just need to do finite dimensional QL on the border of L+K2
 
-  Q =
+  Q,L
 
 end
+
+
+T=ToeplitzOperator(Fun([2.7,1.,1.],Laurent(Circle())))
+
+Q,L=ql(T)
+
+using SO
+QM=full(Q[1:10,2:10]).'
+QM*QM'
+svdvals(Q[1:100,1:100]|>full)
+
+(Q*Q')[1:10,1:10]|>chopm
+
+(Q*L)[1:10,1:10]|>chopm
+
+Q[1:10,1:10]|>chopm
+
+
+
+T[1:10,1:10]
