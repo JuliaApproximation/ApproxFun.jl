@@ -23,7 +23,6 @@ function tkoperators(a,b)
             K[i,j] = L[i,j]-T[i,j]
         end
     end
-
     K = CompactOperator(K)
     T,K
 end
@@ -96,14 +95,17 @@ function ql(T::ToeplitzOperator)
   v=Fun(ApproxFun.interlace([0.;-la.coefficients[2:2:end]],la.coefficients[2:2:end]),Laurent(Circle()))
   q=exp(v)
   Qtranspose = ToeplitzOperator(q)
-  ToeplitzOperator(Qtranspose.nonnegative[2:end],[Qtranspose.nonnegative[1];Qtranspose.negative])
+  Q = ToeplitzOperator(Qtranspose.nonnegative[2:end],[Qtranspose.nonnegative[1];Qtranspose.negative])
 
   ϕ=la-v
   l=exp(ϕ)
   Ltranspose = ToeplitzOperator(l)
-  ToeplitzOperator(Ltranspose.nonnegative[2:end],[Ltranspose.nonnegative[1]])
+  L = ToeplitzOperator(Ltranspose.nonnegative[2:end],[Ltranspose.nonnegative[1]])
 
-  # Now we need to work backwards and find finite operators K1,K2 such that
-  # Q+K1 is orthogonal, L+K2 is lower triangular, and T = (Q+K1)(L+K2)
+  # Now we need to work backwards. Plan:
+  # Find compact K1 such that Q+K1 is compact. Then (Q+K1)T = L + K2.
+  # Then we just need to do finite dimensional QL on the border of L+K2
+
+  Q =
 
 end
