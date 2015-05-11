@@ -19,10 +19,10 @@ function symmetrize{T}(J::TridiagonalOperator{T},n::Integer)
     d=Array(T,n)
     d[1]=1
     for k=2:n
-        d[k]=sqrt(getdiagonalentry(J,k,-1)/getdiagonalentry(J,k-1,1))*d[k-1]
+        d[k]=sqrt(J[k,k-1]/J[k-1,k])*d[k-1]
     end
-    
+
    SymTridiagonal(
-    T[getdiagonalentry(J,k,0) for k=1:n],
-    T[getdiagonalentry(J,k,1)*d[k+1]/d[k] for k=1:n-1]) 
+    T[J[k,k] for k=1:n],
+    T[J[k,k+1]*d[k+1]/d[k] for k=1:n-1])
 end

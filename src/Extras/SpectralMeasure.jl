@@ -80,10 +80,53 @@ function jacobimatrix(a,b,N)
     J
 end
 
+[20. 50.;50. 10.]|>eigvals
+
+α,β=[20.,50.,75.],[1.,1.]
+    T,K=tkoperators(α,β)
+    λ=eigvals(ApproxFun.companion_matrix(a.coefficients))
+    filter!(l->abs(l)≤1.,λ)
+    λ=joukowsky(λ)
+
+using AMVW
+
+AMVW.rootsAMVW
+Pkg.build("AMVW")
+α,β=[20.,50.,75.],[1.,1.]
+    T,K=tkoperators(α,β)
+    λ=AMVW.rootsAMVW(a.coefficients)
+    filter!(l->abs(l)≤1.,λ)
+    λ=joukowsky(λ)|>real
+
+sort(λ)
+(sort(λ)-λs)./sort(λ)
+
+λ-reverse(λs)
+
+λ
+
+λ=real(joukowsky(complexroots(Fun(T))))
+
+α,β=[20.,50.,75.],[1.,1.]
+    T,K=tkoperators(α,β)
+    a=Fun(T)
+    complexroots(a)
+
+
+Pkg.add("AMVW")
+
+complexroots(a)
+joukowsky(eigvals(ApproxFun.companion_matrix(a.coefficients)))-joukowsky(complexroots(a))
+
+λ[[1,2,3]]-reverse(λs)
+T.
+
+
+reverse(λs)
 
 T,K=tkoperators([0.,0.],[2.])
 joukowsky(z)=z+1./z
-λ=real(joukowsky(complexroots(Fun(T))))
+
 
 λ[1]
 
@@ -183,3 +226,59 @@ lanczos(w,3)
 lanczos(w,3)[2]-[b;1]
 
 
+
+
+
+
+######
+# QL For Toeplitz
+######
+
+using ApproxFun
+
+a=Fun(ζ->ζ+1/ζ+2.7,Laurent(Circle()))
+
+ToeplitzOperator(a)[1:10,1:10]
+
+la=log(a)
+
+ζ=exp(.1im);la[ζ]+la[1/ζ]
+
+v=Fun(2im*la.coefficients[2:2:end],SinSpace(Circle()))
+
+v=Fun(ApproxFun.interlace([0.;-la.coefficients[2:2:end]],la.coefficients[2:2:end]),
+        Laurent(Circle()))
+v[ζ]+v[1/ζ]
+
+φ=la-v
+l=exp(φ)
+q=exp(v)
+
+q*Φ-a|>norm
+
+q[ζ]*q[1/ζ]
+
+
+
+
+A=ToeplitzOperator(a)'
+Q=ToeplitzOperator(q)'
+L=ToeplitzOperator(l)'
+
+using SO
+L[1:10,1:10]|>chopm
+
+q[ζ]*q[1/ζ]
+
+(Q*(Q'))[1:30,1:30]|>chopm
+
+QM[:,5]|>chopm
+
+QM=Q[1:50,1:50]
+QM*QM'|>chopm
+
+(A-Q*L)[1:10,1:10]|>chopm
+
+(ToeplitzOperator(q)*ToeplitzOperator(l)
+
+Φ.coefficients
