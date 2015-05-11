@@ -231,3 +231,27 @@ function bandinds(T::LaurentOperator)
     min(2sbi[1],-2sbi[end]),max(2sbi[end],-2sbi[1])
 end
 
+
+
+
+## inv
+
+function Base.inv(T::ToeplitzOperator)
+    @assert length(T.nonnegative)==1
+    ai=linsolve(T,[1.0];maxlength=100000)
+    ToeplitzOperator(ai[2:end],ai[1:1])
+end
+
+function Fun(T::ToeplitzOperator)
+   if length(T.nonnegative)==1
+      Fun([T.nonnegative;T.negative],Taylor())
+    elseif length(T.negative)==0
+        Fun(T.nonnegative,Hardy{false}())
+    else
+        Fun(interlace(T.nonnegative,T.negative),Laurent(Circle()))
+    end
+end
+
+
+
+

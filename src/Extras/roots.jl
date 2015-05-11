@@ -182,6 +182,7 @@ function extremal_args(f::Fun)
     if isa(d,PeriodicInterval)
         roots(differentiate(f))
     elseif isa(d,PeriodicDomain)  # avoid complex domains
+        S=typeof(space(f))
         fromcanonical(f,extremal_args(Fun(f.coefficients,S(canonicaldomain(f)))))
     else
         dab=∂(domain(f))

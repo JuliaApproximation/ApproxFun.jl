@@ -10,6 +10,8 @@ u=sqrt(4-x.^2)/(2π)
 @test_approx_eq u[.1] sqrt(4-.1^2)/(2π)
 @test_approx_eq sum(u) 1
 
+values(u)
+
 
 f=Fun(x->x.*cot(π*x/2))
 x=Fun(identity)
