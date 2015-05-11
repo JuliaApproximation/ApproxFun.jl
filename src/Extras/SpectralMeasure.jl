@@ -1,8 +1,73 @@
 using ApproxFun
-#TODO: Add unit test for points/values of JacobiWeight
+
+#This now outputs a [-1,1] Chebyshev Fun f such that dmu(s) = f(s)(1-s^2)^{-1/2}
+function spectralmeasure(a,b)
+  T,K=tkoperators(a,b)
+
+  L = T+K
+  Ti=inv(T)
+  m=size(K.matrix,1)
+  IKin=CompactOperator(inv(full((I+K*Ti)[1:m,1:m]))-eye(m))+I
+  Lin=Ti*IKin
+
+  Fun(Lin*[1],Chebyshev)
+end
+
+function tkoperators(a,b)
+    assert(length(a)-length(b)==1)
+    n = length(a)
+    L = Lmatrix(a,b,2n)
+
+    T=ToeplitzOperator(vec(L[2*n,2*n-1:-1:1]),[L[n,n]])
+    K = zeros(2*n,2*n)
+    for i = 1:2*n
+        for j = 1:i
+            K[i,j] = L[i,j]-T[i,j]
+        end
+    end
+
+    K = CompactOperator(K)
+    T,K
+end
 
 
-function Jacobi(a,b,N)
+# Finds L such that L(\Delta+Jacobi(a,b-.5))L^{-1} = \Delta, where \Delta = Toeplitz([0,.5])
+function Lmatrix(a,b,N)
+  # initial values
+  L = zeros(N,N)
+  L[1,1] = 1
+  L[2,1] = -a[1]/b[1]
+  L[2,2] = 1/b[1]
+
+  n = length(a)
+  # the generic case.
+  for i = 3:n
+      L[i,1] = (L[i-1,2]/2-a[i-1]*L[i-1,1]-b[i-2]*L[i-2,1])/b[i-1]
+      for j = 2:i
+          L[i,j] = (L[i-1,j+1]/2-a[i-1]*L[i-1,j]+L[i-1,j-1]/2-b[i-2]*L[i-2,j])/b[i-1]
+      end
+  end
+  # this special case happens because b[n] = 1/2 but a[n] != 0
+  L[n+1,1] = L[n,2]-2*a[n]*L[n,1]-2*b[n-1]*L[n-1,1]
+  for j = 2:n+1
+      L[n+1,j] = L[n,j+1]-2*a[n]*L[n,j]+L[n,j-1]-2*b[n-1]*L[n-1,j]
+  end
+  # this case is where b[m],b[m-1],b[m-2] = 1/2, and a[m],a[m-1] = 0, like Chebyshev
+  for m = n+2:N
+      L[m,1] = L[m-1,2]-L[m-2,1]
+      for j = 2:m-1
+        L[m,j] = L[m-1,j+1]-L[m-2,j]+L[m-1,j-1]
+      end
+      L[m,m] = -L[m-2,m] + L[m-1,m-1]
+  end
+  L
+end
+
+a = [.2,.3,-.4,.2]
+b = [1,1.2,1.3]
+T,K = tkoperators(a,b)
+
+function jacobimatrix(a,b,N)
     J = zeros(N,N)
     J[1,1]=a[1]
     n=length(a)
@@ -18,141 +83,48 @@ function Jacobi(a,b,N)
     J
 end
 
-function Lmatrix(a,b,N)
-  # initial values
-  L = zeros(N,N)
-  L[1,1] = 1
-  L[2,1] = -a[1]/b[1]
-  L[2,2] = 1/b[1]
-  # the generic case.
-  for i = 3:n
-      L[i,1] = (L[i-1,2]-a[i-1]*L[i-1,1]-b[i-2]*L[i-2,1])/b[i-1]
-      for j = 2:i
-          L[i,j] = (L[i-1,j+1]-a[i-1]*L[i-1,j]+L[i-1,j-1]-b[i-2]*L[i-2,j])/b[i-1]
-      end
-  end
-  # this special case happens because b[n] = 1 but a[n] != 0
-  L[n+1,1] = L[n,2]-a[n]*L[n,1]-b[n-1]*L[n-1,1]
-  for j = 2:n+1
-      L[n+1,j] = L[n,j+1]-a[n]*L[n,j]+L[n,j-1]-b[n-1]*L[n-1,j]
-  end
-  # this case is where b[m],b[m-1],b[m-2] = 1, and a[m],a[m-1] = 0, like Chebyshev
-  for m = n+2:N
-      L[m,1] = L[m-1,2]-L[m-2,1]
-      for j = 2:m-1
-        L[m,j] = L[m-1,j+1]-L[m-2,j]+L[m-1,j-1]
-      end
-      L[m,m] = -L[m-2,m] + L[m-1,m-1]
-  end
-  L
+function jacobioperator(a,b)
+    Δ=ToeplitzOperator([.5],[0.,.5])
+    B=jacobimatrix(a,b-.5,length(a))
+    Δ+CompactOperator(B)
 end
 
-function Lop(a,b)
-    n=length(a)
-    L = Lmatrix(a,b,2*n)
+joukowsky(z)=.5*(z+1./z)
 
-    T=ToeplitzOperator(vec(L[2*n,2*n-1:-1:1]),[L[n,n]])
-    K = zeros(2*n,2*n)
-    for i = 1:2*n
-      for j = 1:i
-        K[i,j] = L[i,j]-T[i,j]
-      end
-    end
-    K = CompactOperator(K)
-    T+K
+function ql(T::ToeplitzOperator)
+  # a(z) = q(z)l(z), where q(z)q(z*) = 1, l is analytic
+  # to compute this, take logs: log a(z) = v(z) + ϕ(z), where v(z) + v(z*) = 0, ϕ is analytic
+  # then take q = exp(v), l = exp(ϕ)
+
+  # This function is the wrong way around to usual because we want lower triangulars to give analytic symbols
+  # In future if T is symmetric then we should be using CosSpace
+  a = Fun(ApproxFun.interlace([T.nonnegative[1];T.negative],T.nonnegative[2:end]),Laurent(Circle()))
+  la=log(a)
+
+  # The ideal implementation uses SinSpace:
+  # v=Fun(2im*la.coefficients[2:2:end],SinSpace(Circle()))
+
+  v=Fun(ApproxFun.interlace([0.;-la.coefficients[2:2:end]],la.coefficients[2:2:end]),Laurent(Circle()))
+  q=exp(v)
+
+  Qtranspose = ToeplitzOperator(q)
+  ToeplitzOperator(Qtranspose.nonnegative[2:end],[Qtranspose.nonnegative[1];Qtranspose.negative])
+
+  ϕ=la-v
+  l=exp(ϕ)
+  Ltranspose = ToeplitzOperator(l)
+  ToeplitzOperator(Ltranspose.nonnegative[2:end],[Ltranspose.nonnegative[1]])
+
 end
 
+T = ToeplitzOperator([2.,.5])
+T[1:10,1:10]
+a = Fun(ApproxFun.interlace([T.nonnegative[1];T.negative],T.nonnegative[2:end]),Laurent(Circle()))
+  la=log(a)
+v=Fun(ApproxFun.interlace([0.;-la.coefficients[2:2:end]],la.coefficients[2:2:end]),Laurent(Circle()))
+  q=exp(v)
+Qtranspose = ToeplitzOperator(q)
+  Q = ToeplitzOperator(Qtranspose.nonnegative[2:end],[Qtranspose.nonnegative[1];Qtranspose.negative])
 
-
-
-function Base.inv(T::ToeplitzOperator)
-    @assert length(T.nonnegative)==1
-    ai=T\[1.0]
-    ToeplitzOperator(ai[2:end],ai[1:1])
-end
-
-
-    n=3
-    a = 0.1rand(n)
-    b = 1+0.01rand(n-1)
-    J = Jacobi(a,b,4n)
-    L=Lop(a,b)
-    T=L.ops[1]
-    T,K=L.ops
-    Ti=inv(T)
-    m=size(K.matrix,1)
-    IKin=CompactOperator(inv(full((I+K*Ti)[1:m,1:m]))-eye(m))+I
-    Lin=Ti*IKin
-
-(Lin*L)[1:10,1:10]|>chopm
-
-x=Fun(identity,[-2,2])
-    wΔ=sqrt(4-x^2);wΔ=wΔ/sum(wΔ)
-    w=Fun(Fun(Lin*[1],Ultraspherical{1}([-2,2])),Chebyshev)*wΔ
-    ApproxFun.plot(w)
-
-a
-
-lanczos(w,3)[1]-a
-lanczos(w,3)[2]-[b;1]
-
-
-b
-
-ApproxFun.plot(w)
-
-S=space(w);weight(S,pts).*itransform(S.space,cfs)
-points(w)
-values(w)
-
-
-ApproxFun.plot(w)
-
-
-
-sqrt(4-x^2)
-
-
-I
-
-inv(T)
-
-ai
-(T\[1.0])-ai.coefficients
-
-Multiplication(a,space(a))[1:10,1:10]
-
-
-a
-ai=Multiplication(a,space(a))\1
-
-
-inv(T)
-
-
-Li[1:10,1:10]*T[1:10,1:10]
-
-
-
-complexroots(a)
-
-ToeplitzOperator(a)
-
-
-
-
-
-inv(L)
-
-
-
-
-
-
-
-[1:4n,1:4n]|>full
-    inv(L)*J*L
-
-
-
-eigvals(J)
+(Qtranspose*Q-I)[2:20,2:20]|>full|>norm
+(Q*Qtranspose-I)[9:100,9:100]|>full|>norm
