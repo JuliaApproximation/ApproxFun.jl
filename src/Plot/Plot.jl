@@ -133,11 +133,19 @@ end
 function complexlayer(f::Fun;opts...)
     f=pad(f,3length(f)+50)
     vals =values(f)
-
-    layer(real(vals),imag(vals);opts...)
+    d = domain(f)
+    if isa(d,Circle)
+        layer(real([vals,vals[1]]),imag([vals,vals[1]]);opts...)
+    else
+        layer(real(vals),imag(vals);opts...)
+    end
 end
 
-for (plt,TYP) in ((:plot,:Real),(:complexplot,:Complex))
+function complexlayer{F<:Fun}(f::Vector{F};opts...)
+    typeof(complexlayer(f[1];opts...)[1])[complexlayer(f[k];opts...)[1] for k=1:length(f)]
+end
+
+for (plt,TYP) in ((:plot,:Real),(:complexplot,:Complex),(:layer,:Real),(:complexlayer,:Complex))
     @eval $plt{S<:Union(PiecewiseSpace,ArraySpace),T<:$TYP}(f::Fun{S,T};opts...)=$plt(vec(f);opts...)
 end
 
