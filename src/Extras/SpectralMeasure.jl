@@ -1,6 +1,6 @@
 using ApproxFun
 
-#This now outputs a [-1,1] Chebyshev Fun f such that dmu(s) = f(s)(1-s^2)^{-1/2}
+#This now outputs a [-1,1] Chebyshev Fun f that is weighted by (1-x^2)^{-.5} such that dmu(s) = f(s)
 function spectralmeasure(a,b)
   T,K=tkoperators(a,b)
   L = T+K
@@ -8,7 +8,7 @@ function spectralmeasure(a,b)
   m=size(K.matrix,1)
   IKin=CompactOperator(inv(full((I+K*Ti)[1:m,1:m]))-eye(m))+I
   Lin=Ti*IKin
-  Fun(Lin*[1/π],JacobiWeight(-0.5,-0.5,Chebyshev()))
+  Fun(Lin,JacobiWeight(-0.5,-0.5,Chebyshev()))
 end
 
 
@@ -85,95 +85,81 @@ end
 
 joukowsky(z)=.5*(z+1./z)
 
-function ql(T::ToeplitzOperator)
-  # a(z) = q(z)l(z), where q(z)q(z*) = 1, l is analytic
-  # to compute this, take logs: log a(z) = v(z) + ϕ(z), where v(z) + v(z*) = 0, ϕ is analytic
-  # then take q = exp(v), l = exp(ϕ)
+function ql(a,b,t0,t1,N)
+  assert(t0^2>=4t1^2)
+  # The Givens rotations coming from infinity (with parameters c∞ and s∞) leave us with the almost triangular
+  # a[n-1]  b[n-1]   0    0    0
+  # b[n-1]   a[n]   t1    0    0
+  #   0       α      β    0    0
+  #   0      l2     l1   l0    0
+  #   0       0     l2   l1   l0
 
-  a = Fun(ApproxFun.interlace([T.nonnegative[1];T.negative],T.nonnegative[2:end]),Laurent(Circle()))
-  la=log(a)
+  s∞ = (t0 - sqrt(t0^2-4t1^2))/(2t1)
+  c∞ = -sqrt(1-s∞^2)
+  α = t1*c∞
+  β = c∞*t0 - s∞*α
+  l0 = (t0 + sqrt(t0^2-4t1^2))/(2t1)
+  l1 = 2t1
+  l2 = t1*s∞
 
-  v=Fun(ApproxFun.interlace([0.;-la.coefficients[2:2:end]],la.coefficients[2:2:end]),Laurent(Circle()))
-  q=exp(v)
-  Qtranspose = ToeplitzOperator(q)
-  Q = ToeplitzOperator(Qtranspose.nonnegative[2:end],[Qtranspose.nonnegative[1];Qtranspose.negative])
-
-  ϕ=la-v
-  l=exp(ϕ)
-  Ltranspose = ToeplitzOperator(l)
-  L = ToeplitzOperator(Ltranspose.nonnegative[2:end],[Ltranspose.nonnegative[1]])
-
-  # Now we need to work backwards. Plan:
-  # Find compact K1 such that Q+K1 is orthogonal. Then (Q+K1)T = L + K2.
-  # Then we just need to do finite dimensional QL on the border of L+K2
-
-  Q,L
-
-end
-
-
-k=3;sum(Fun([zeros(k-1);1.],Chebyshev())^2/sqrt(1-x^2))
-k=21;norm(Fun(Fun([zeros(k-1);1.],Ultraspherical{1}()),Chebyshev())*sqrt(1-x^2))
-
-Fun(x->(1-x^2))
-
-cfs
-
-r=0.5;a=[0.,0.];b=[r];
-    w=spectralmeasure(a,b)
-    cfs=w.coefficients
-    Fun(cfs,Chebyshev())|>ApproxFun.plot
-
-
-
-
-T=ToeplitzOperator(Fun([-8.0,1.,1.],Laurent(Circle())))
-  a = Fun(ApproxFun.interlace([T.nonnegative[1];T.negative],T.nonnegative[2:end]),Laurent(Circle()))
-
-a.coefficients
-
-log(a)
-
-Q,L=ql(T)
-
-
-n=100;k=1;
-function Giv(s,k,n)
-    c=sqrt(1-s^2)
-    G=eye(n)
-    G[k:k+1,k:k+1]=[c -s; s c]
-    G
-end
-n=21;s=Q[1,2]|>real
-    ret=eye(n)
-    for j=n-1:-1:1
-        ret=Giv(s,j,n)*ret
+  # Here we construct this matrix as L
+  n = length(a)
+  assert(N>n+4)
+  L = jacobimatrix(a,b,N)
+  L[n,n+1] = t1
+  L[n+1,n+2] = 0
+  L[n+1,n+1]=β
+  L[n+1,n]=α
+  for i=n+2:N
+    if i<N
+      L[i,i+1] = 0
     end
-    ret,ret*full(T[1:n,1:n])
+    L[i,i] = l0
+    L[i,i-1]=l1
+    L[i,i-2]=l2
+  end
+  # Now we do QL for the compact part in the top left
+  Qt = eye(N)
+  for i = n+1:-1:2
+    c = L[i,i]/sqrt(L[i-1,i]^2+L[i,i]^2)
+    s = L[i-1,i]/sqrt(L[i-1,i]^2+L[i,i]^2)
+    if i > 2
+      L[i-1:i,i-2:i] = [c -s; s c]*L[i-1:i,i-2:i]
+      L[i-1,i]=0
+    else
+      L[i-1:i,i-1:i] = [c -s; s c]*L[i-1:i,i-1:i]
+      L[i-1,i]=0
+    end
+    G=eye(N)
+    G[i-1:i,i-1:i]=[c -s; s c]
+    Qt = G*Qt
+  end
+  # Now we add the Givens rotations at infinity to Qt
+  for i = n+2:N
+    G=eye(N)
+    G[i-1:i,i-1:i]=[c∞ -s∞; s∞ c∞]
+    Qt = Qt*G
+  end
+  Q = Qt'
+  Q,L
+end
 
-Gl=eye(n)
-Gl[1:2,1:2]=[β -1; 1 β]/sqrt(1+β^2)
-
-
-c,s
-
-Gl
-
-c=sqrt(1-s^2);b=1.;a=-8.;
-    α=c*b
-    β=c*a-s*α
-
-using SO
-QM=full(Q[1:10,1:10]);QM'|>chopm
-QM*QM'
-svdvals(Q[1:100,1:100]|>full)
-
-(Q*Q')[1:10,1:10]|>chopm
-
-(Q*L)[1:10,1:10]|>chopm
-
-Q[1:10,1:10]|>chopm
-
-
-
-T[1:10,1:10]
+# function ql(T::ToeplitzOperator)
+#  # a(z) = q(z)l(z), where q(z)q(z*) = 1, l is analytic
+#  # to compute this, take logs: log a(z) = v(z) + ϕ(z), where v(z) + v(z*) = 0, ϕ is analytic
+#  # then take q = exp(v), l = exp(ϕ)
+#
+#  a = Fun(ApproxFun.interlace([T.nonnegative[1];T.negative],T.nonnegative[2:end]),Laurent(Circle()))
+#  la=log(a)
+#
+#  v=Fun(ApproxFun.interlace([0.;-la.coefficients[2:2:end]],la.coefficients[2:2:end]),Laurent(Circle()))
+#  q=exp(v)
+#  Qtranspose = ToeplitzOperator(q)
+#  Q = ToeplitzOperator(Qtranspose.nonnegative[2:end],[Qtranspose.nonnegative[1];Qtranspose.negative])
+#
+#  ϕ=la-v
+#  l=exp(ϕ)
+#  Ltranspose = ToeplitzOperator(l)
+#  L = ToeplitzOperator(Ltranspose.nonnegative[2:end],[Ltranspose.nonnegative[1]])
+#  Q,L
+# end
