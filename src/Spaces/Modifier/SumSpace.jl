@@ -16,10 +16,9 @@ SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
 
 
 
-
-
 ⊕(A::FunctionSpace,B::FunctionSpace)=SumSpace(A,B)
 ⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
+
 
 
 
@@ -32,6 +31,25 @@ domain(A::SumSpace)=domain(A[1])
 
 spacescompatible{S,T,d}(A::SumSpace{S,T,d},B::SumSpace{S,T,d})=spacescompatible(A.spaces[1],B[1]) && spacescompatible(A.spaces[2],B[2])
 
+
+union_rule{S}(A::SumSpace{S,S},::S)=A
+union_rule{S,V}(A::SumSpace{S,V},::S)=A
+union_rule{S,V}(A::SumSpace{S,V},::V)=A
+
+
+coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=defaultcoefficients(cfs,A,B)
+
+
+
+function coefficients(cfs::Vector,A::FunctionSpace,B::SumSpace)
+    if spacescompatible(A,B.spaces[1])
+        interlace(cfs,[0.])
+    elseif spacescompatible(A,B.spaces[2])
+        interlace([0.],cfs)
+    else
+        defaultcoefficients(cfs,A,B)
+    end
+end
 
 
 
