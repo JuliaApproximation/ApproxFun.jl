@@ -1,17 +1,32 @@
 using ApproxFun
     import ApproxFun:BandedOperator,ToeplitzOperator,tridql!,bandinds
 
-
-
-#This now outputs a [-1,1] Chebyshev Fun f that is weighted by (1-x^2)^{-.5} such that dmu(s) = f(s)
 function spectralmeasure(a,b)
-  T,K=tkoperators(a,b)
-  L = T+K
-  Ti=inv(T)
-  m=size(K.matrix,1)
-  IKin=CompactOperator(inv(full((I+K*Ti)[1:m,1:m]))-eye(m))+I
-  Lin=Ti*IKin
-  Fun(Lin,JacobiWeight(-0.5,-0.5,Chebyshev()))
+    T,K=tkoperators(a,b)
+    L = T+K
+    Tfun = Fun([T[1,1];T.negative])
+    #eigs = []
+    #for z in complexroots(Tfun)
+    #    if abs(z)<1
+    #     eigs[end] = joukowsky(z)
+    #    end
+    #end
+    #α = copy(a)
+    #β = copy(b)
+    #for eig in eigs
+    #    Q,L=ql(α-eig,β,-eig,.5)
+    #    LQ=L*Q
+    #end
+    Tinv=inv(T)
+    m=size(K.matrix,1)
+    IKinv=CompactOperator(inv(full((I+K*Tinv)[1:m,1:m]))-eye(m))+I
+    Linv=Tinv*IKinv
+    # How about simply using L\[1] rather than Linv*[1]?
+    # Experiments suggest that Lin*[1] is SLIGHTLY more accurate
+    coeffs = sqrt(2)*(L\[1])
+    coeffs[1] = coeffs[1]/sqrt(2)
+    f = Fun(coeffs,JacobiWeight(-.5,-.5,Chebyshev()))
+    #f = Fun(coeffs,Chebyshev())
 end
 
 
@@ -20,7 +35,7 @@ function tkoperators(a,b)
     n = length(a)
     L = Lmatrix(a,b,2n)
 
-    T=ToeplitzOperator(vec(L[2*n,2*n-1:-1:1]),[L[n,n]])
+    T=ToeplitzOperator(vec(L[2*n,2*n-1:-1:1]),[L[2*n,2*n]])
     K = zeros(2*n,2*n)
     for i = 1:2*n
         for j = 1:i
@@ -31,31 +46,38 @@ function tkoperators(a,b)
     T,K
 end
 
-# Finds L such that L(\Delta+Jacobi(a,b-.5))L^{-1} = \Delta, where \Delta = Toeplitz([0,.5])
+a = [0.,0.,0.]
+b = [1.,1.]
+L = Lmatrix(a,b,10)
+J = jacobimatrix(a,b,10)
+L\J*L
+
+
 function Lmatrix(a,b,N)
-  # initial values
+  n = length(a)
+  @assert n-length(b)==1
+  bext = [b; .5]
   L = zeros(N,N)
   L[1,1] = 1
-  L[2,1] = -a[1]/b[1]
-  L[2,2] = 1/b[1]
-
-  n = length(a)
+  L[2,1] = -a[1]/bext[1]
+  L[2,2] = 1/(sqrt(2)*bext[1]) # L[2,2] = 1/bext[1]
   # the generic case.
-  for i = 3:n
-      L[i,1] = (L[i-1,2]/2-a[i-1]*L[i-1,1]-b[i-2]*L[i-2,1])/b[i-1]
-      for j = 2:i
-          L[i,j] = (L[i-1,j+1]/2-a[i-1]*L[i-1,j]+L[i-1,j-1]/2-b[i-2]*L[i-2,j])/b[i-1]
+  for i = 3:n+1
+      L[i,1] = (L[i-1,2]/sqrt(2)-a[i-1]*L[i-1,1]-bext[i-2]*L[i-2,1])/bext[i-1]
+      # L[i,1] = (L[i-1,2]/2-a[i-1]*L[i-1,1]-bext[i-2]*L[i-2,1])/bext[i-1]
+      L[i,2] = (L[i-1,3]/2+L[i-1,1]/sqrt(2)-a[i-1]*L[i-1,2]-bext[i-2]*L[i-2,2])/bext[i-1]
+      # for chebyshev U comment L[i,2] out and go from j = 2:i
+      for j = 3:i
+          L[i,j] = (L[i-1,j+1]/2+L[i-1,j-1]/2-a[i-1]*L[i-1,j]-bext[i-2]*L[i-2,j])/bext[i-1]
       end
-  end
-  # this special case happens because b[n] = 1/2 but a[n] != 0
-  L[n+1,1] = L[n,2]-2*a[n]*L[n,1]-2*b[n-1]*L[n-1,1]
-  for j = 2:n+1
-      L[n+1,j] = L[n,j+1]-2*a[n]*L[n,j]+L[n,j-1]-2*b[n-1]*L[n-1,j]
   end
   # this case is where b[m],b[m-1],b[m-2] = 1/2, and a[m],a[m-1] = 0, like Chebyshev
   for m = n+2:N
-      L[m,1] = L[m-1,2]-L[m-2,1]
-      for j = 2:m-1
+      L[m,1] = L[m-1,2]*sqrt(2)-L[m-2,1]
+      # L[m,1] = L[m-1,2]-L[m-2,1]
+      L[m,2] = L[m-1,3]+L[m-1,1]*sqrt(2)-L[m-2,2]
+      # for chebyshev U comment L[i,2] out and go from j = 2:m-1
+      for j = 3:m-1
         L[m,j] = L[m-1,j+1]-L[m-2,j]+L[m-1,j-1]
       end
       L[m,m] = -L[m-2,m] + L[m-1,m-1]
