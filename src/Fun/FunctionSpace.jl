@@ -255,7 +255,7 @@ coefficients{T2<:FunctionSpace}(f::Vector,sp1::FunctionSpace,::Type{T2})=coeffic
 ## coefficients defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
 
-function coefficients(f,a,b)
+function defaultcoefficients(f,a,b)
     ct=conversion_type(a,b) # gives a space that has a banded conversion to both a and b
 
     if spacescompatible(a,b)
@@ -277,6 +277,8 @@ function coefficients(f,a,b)
         end
     end
 end
+
+coefficients(f,a,b)=defaultcoefficients(f,a,b)
 
 
 

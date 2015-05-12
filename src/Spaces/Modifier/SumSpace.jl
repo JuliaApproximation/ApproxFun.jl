@@ -37,13 +37,17 @@ union_rule{S,V}(A::SumSpace{S,V},::S)=A
 union_rule{S,V}(A::SumSpace{S,V},::V)=A
 
 
+coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=defaultcoefficients(cfs,A,B)
+
+
+
 function coefficients(cfs::Vector,A::FunctionSpace,B::SumSpace)
     if spacescompatible(A,B.spaces[1])
         interlace(cfs,[0.])
     elseif spacescompatible(A,B.spaces[2])
         interlace([0.],cfs)
     else
-       coefficients(coefficients(cfs,A,B.spaces[1]),B)
+        defaultcoefficients(cfs,A,B)
     end
 end
 
