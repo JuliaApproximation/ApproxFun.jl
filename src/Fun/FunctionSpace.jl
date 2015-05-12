@@ -208,7 +208,7 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
 end
 
 
-union_rule(a::FunctionSpace,b::FunctionSpace)=NoSpace()
+union_rule(a,b)=NoSpace()
 function Base.union(a::FunctionSpace,b::FunctionSpace)
     if spacescompatible(a,b)
         return a
