@@ -136,10 +136,35 @@ log(a)
 
 Q,L=ql(T)
 
-L[1:10,1:10]
+
+n=100;k=1;
+function Giv(s,k,n)
+    c=sqrt(1-s^2)
+    G=eye(n)
+    G[k:k+1,k:k+1]=[c -s; s c]
+    G
+end
+n=21;s=Q[1,2]|>real
+    ret=eye(n)
+    for j=n-1:-1:1
+        ret=Giv(s,j,n)*ret
+    end
+    ret,ret*full(T[1:n,1:n])
+
+Gl=eye(n)
+Gl[1:2,1:2]=[β -1; 1 β]/sqrt(1+β^2)
+
+
+c,s
+
+Gl
+
+c=sqrt(1-s^2);b=1.;a=-8.;
+    α=c*b
+    β=c*a-s*α
 
 using SO
-QM=full(Q[1:10,2:10])
+QM=full(Q[1:10,1:10]);QM'|>chopm
 QM*QM'
 svdvals(Q[1:100,1:100]|>full)
 
