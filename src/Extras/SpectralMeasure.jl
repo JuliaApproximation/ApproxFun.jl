@@ -208,6 +208,35 @@ t1=0.5; a,b=[-2.,0.],[0.5];
 
 
 
+x=Fun((x,y)->x,Chebyshev()⊗Chebyshev())
+y=Fun((x,y)->y,Chebyshev()⊗Chebyshev())
+
+
+J=jacobioperator([0.,0.],[0.5],0.,0.5)
+    Jx=J⊗I
+    Jy=I⊗J
+
+bandinds(Jx)
+Jx[1:10,1:10][10,10]
+
+
+convert(Matrix{Float64},(Jx^2+Jy^2)[1:10,1:10])
+
+convert(Matrix{Float64},Jx[1:10,1:10])|>eigvals
+
+convert(Matrix{Float64},Jy[1:10,1:10])|>eigvals
+
+convert(Matrix{Float64},Jx[1:5,1:5])
+
+Jx[1:5,1:5]
+
+
+Jx=Multiplication(x,space(x))
+
+
+Jx[1:10,1:10]
+
+
 jacobioperator(a,b,0.,t1)[1:10,1:10]
 
 
