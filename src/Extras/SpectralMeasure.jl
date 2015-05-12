@@ -8,8 +8,9 @@ function spectralmeasure(a,b)
   m=size(K.matrix,1)
   IKin=CompactOperator(inv(full((I+K*Ti)[1:m,1:m]))-eye(m))+I
   Lin=Ti*IKin
-  Fun(Lin*[1],Chebyshev)
+  Fun(Lin*[1/π],JacobiWeight(-0.5,-0.5,Chebyshev()))
 end
+
 
 function tkoperators(a,b)
     assert(length(a)-length(b)==1)
@@ -111,12 +112,34 @@ function ql(T::ToeplitzOperator)
 end
 
 
-T=ToeplitzOperator(Fun([2.7,1.,1.],Laurent(Circle())))
+k=3;sum(Fun([zeros(k-1);1.],Chebyshev())^2/sqrt(1-x^2))
+k=21;norm(Fun(Fun([zeros(k-1);1.],Ultraspherical{1}()),Chebyshev())*sqrt(1-x^2))
+
+Fun(x->(1-x^2))
+
+cfs
+
+r=0.5;a=[0.,0.];b=[r];
+    w=spectralmeasure(a,b)
+    cfs=w.coefficients
+    Fun(cfs,Chebyshev())|>ApproxFun.plot
+
+
+
+
+T=ToeplitzOperator(Fun([-8.0,1.,1.],Laurent(Circle())))
+  a = Fun(ApproxFun.interlace([T.nonnegative[1];T.negative],T.nonnegative[2:end]),Laurent(Circle()))
+
+a.coefficients
+
+log(a)
 
 Q,L=ql(T)
 
+L[1:10,1:10]
+
 using SO
-QM=full(Q[1:10,2:10]).'
+QM=full(Q[1:10,2:10])
 QM*QM'
 svdvals(Q[1:100,1:100]|>full)
 
