@@ -1,5 +1,5 @@
 using ApproxFun
-import ApproxFun:BandedOperator,ToeplitzOperator
+    import ApproxFun:BandedOperator,ToeplitzOperator,tridql!,bandinds
 
 
 
@@ -80,9 +80,9 @@ function jacobimatrix(a,b,N)
 end
 
 
-function jacobioperator(a,b)
-    Δ=ToeplitzOperator([.5],[0.,.5])
-    B=jacobimatrix(a,b-.5,length(a))
+function jacobioperator(a,b,t0,t1)
+    Δ=ToeplitzOperator([t1],[t0,t1])
+    B=jacobimatrix(a-t0,b-t1,length(a))
     Δ+CompactOperator(B)
 end
 
@@ -101,14 +101,14 @@ function givenstail(t0,t1)
     c∞ = -sqrt(1-s∞^2)
     α = t1*c∞
     β = c∞*t0 - s∞*α
-    l0 = (t0 + sqrt(t0^2-4t1^2))/(2t1)
+    l0 = (t0 + sqrt(t0^2-4t1^2))/2
     l1 = 2t1
     l2 = t1*s∞
     ToeplitzGivens(c∞,s∞),ToeplitzOperator([l1,l2],[l0]),α,β
 end
 
 #bandinds(T::ToeplitzGivens)=-ceil(Int,(-36-2log(abs(c)))/log(abs(s))),1
-bandinds(T::ToeplitzGivens)=floor(Int,36/log(abs(s))),1
+bandinds(T::ToeplitzGivens)=floor(Int,36/log(abs(T.s))),1
 
 function ToeplitzOperator(T::ToeplitzGivens)
     c,s=T.c,T.s
@@ -127,10 +127,6 @@ function ToeplitzOperator(T::ToeplitzGivens)
 end
 
 addentries!(T::ToeplitzGivens,A,kr::Range)=addentries!(ToeplitzOperator(T),A,kr)
-
-
-t0=2.;t1=0.5;
-s,c,α,β,TL=givenstail(t0,t1)
 
 
 function partialgivens(TG::ToeplitzGivens,m)
@@ -158,23 +154,8 @@ function partialgivens(TG::ToeplitzGivens,m)
     T+CompactOperator(K)
 end
 
-c,-s*c,s^2*c
 
-QM=partialgivens(ToeplitzGivens(c,s),5)[1:100,1:100]|>full
-QM*QM'
-s,c^2,-s*c^2
-QM'*QM
-
-ToeplitzGivens(c,s)[1:10,1:10]
-
-QM
-
-QM*QM'
-
-
-
-
-function ql(a,b,t0,t1,N)
+function ql(a,b,t0,t1)
     @assert t0^2>=4t1^2
     # The Givens rotations coming from infinity (with parameters c∞ and s∞) leave us with the almost triangular
     # a[n-1]  b[n-1]   0    0    0
@@ -195,21 +176,72 @@ function ql(a,b,t0,t1,N)
 
     Q,L=tridql!(L)
 
-    Q2=eye(N)
-    Q2[1:n+1,1:n+1]=Q
-    Q=Q2
-
-
-    # Now we add the Givens rotations at infinity to Qt
-    for i = n+2:N
-        G=eye(N)
-        G[i-1:i,i-1:i]=[c∞ s∞; -s∞ c∞]
-        Q = G*Q
+    for k=1:size(Q,1)
+        Q[k,k]-=1
     end
-    Q,L
+    for j=1:n+1
+         L[j,j]-=TL.nonnegative[1]
+         if j ≤ n
+             L[j+1,j]-=TL.negative[1]
+             if j ≤ n-1
+                 L[j+2,j]-=TL.negative[2]
+            end
+        end
+    end
+
+    partialgivens(TQ,n+1)*(I+CompactOperator(Q)),TL+CompactOperator(L)
 end
 
-ql([1.,2.,3.],[5.,2.,1.],2.,0.5,10)
+t0=4.;t1=1.0; TQ,TL,α,β=givenstail(t0,t1)
+    Q,L=ql([1.,2.,3.],[5.,2.,1.],t0,t1)
+    J=jacobioperator([1.,2.,3.],[5.,2.,1.],t0,t1)
+
+t0=4.;t1=0.5; TQ,TL,α,β=givenstail(t0,t1)
+    Q,L=ql([1.,2.,3.],[5.,2.,1.],t0,t1)
+    J=jacobioperator([1.,2.,3.],[5.,2.,1.],t0,t1)
+
+
+TL[1:10,1:10]
+using SO
+(Q*L-J)[1:10,1:10]|>chopm
+
+
+
+(L*Q)[1:10,1:10]|>chopm
+
+J[1:10,1:10]
+
+(Q*L-J)[1:10,1:10]|>chopm
+
+L[1:10,1:10]
+
+
+full(TL[1:10,1:10])
+
+full(TQ[1:10,1:10])*full(TL[1:10,1:10])
+
+
+
+
+
+
+Q[1:n,1:n]*L[1:n,1:n]|>chopm
+
+J=jacobioperator([1.,2.,3.],[5.,2.,1.],2.,0.5)
+
+(Q'Q-I)[1:10,1:10]|>full|>norm
+
+full(Q[1:10,1:10])'*full(J[1:10,1:10])
+
+L.ops[1][1:10,1:10]
+(Q'*J)[1:10,1:10]|>chopm
+
+TL[500,500]/2
+
+J[1:10,1:10]
+
+QM*QM'-eye(n)|>chopm
+QM=Q[1:n,1:n]|>full
 
 
 
