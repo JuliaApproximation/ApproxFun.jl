@@ -85,64 +85,128 @@ end
 
 joukowsky(z)=.5*(z+1./z)
 
-function ql(a,b,t0,t1,N)
-  assert(t0^2>=4t1^2)
-  # The Givens rotations coming from infinity (with parameters c∞ and s∞) leave us with the almost triangular
-  # a[n-1]  b[n-1]   0    0    0
-  # b[n-1]   a[n]   t1    0    0
-  #   0       α      β    0    0
-  #   0      l2     l1   l0    0
-  #   0       0     l2   l1   l0
 
-  s∞ = (t0 - sqrt(t0^2-4t1^2))/(2t1)
-  c∞ = -sqrt(1-s∞^2)
-  α = t1*c∞
-  β = c∞*t0 - s∞*α
-  l0 = (t0 + sqrt(t0^2-4t1^2))/(2t1)
-  l1 = 2t1
-  l2 = t1*s∞
-
-  # Here we construct this matrix as L
-  n = length(a)
-  assert(N>n+4)
-  L = jacobimatrix(a,b,N)
-  L[n,n+1] = t1
-  L[n+1,n+2] = 0
-  L[n+1,n+1]=β
-  L[n+1,n]=α
-  for i=n+2:N
-    if i<N
-      L[i,i+1] = 0
-    end
-    L[i,i] = l0
-    L[i,i-1]=l1
-    L[i,i-2]=l2
-  end
-  # Now we do QL for the compact part in the top left
-  Qt = eye(N)
-  for i = n+1:-1:2
-    c = L[i,i]/sqrt(L[i-1,i]^2+L[i,i]^2)
-    s = L[i-1,i]/sqrt(L[i-1,i]^2+L[i,i]^2)
-    if i > 2
-      L[i-1:i,i-2:i] = [c -s; s c]*L[i-1:i,i-2:i]
-      L[i-1,i]=0
-    else
-      L[i-1:i,i-1:i] = [c -s; s c]*L[i-1:i,i-1:i]
-      L[i-1,i]=0
-    end
-    G=eye(N)
-    G[i-1:i,i-1:i]=[c -s; s c]
-    Qt = G*Qt
-  end
-  # Now we add the Givens rotations at infinity to Qt
-  for i = n+2:N
-    G=eye(N)
-    G[i-1:i,i-1:i]=[c∞ -s∞; s∞ c∞]
-    Qt = Qt*G
-  end
-  Q = Qt'
-  Q,L
+function givenstail(t0,t1)
+    s∞ = (t0 - sqrt(t0^2-4t1^2))/(2t1)
+    c∞ = -sqrt(1-s∞^2)
+    α = t1*c∞
+    β = c∞*t0 - s∞*α
+    l0 = (t0 + sqrt(t0^2-4t1^2))/(2t1)
+    l1 = 2t1
+    l2 = t1*s∞
+    s∞,c∞,α,β,ToeplitzOperator([l1,l2],[l0])
 end
+
+
+function tridql!(L::Matrix)
+    n=size(L,1)
+
+  # Now we do QL for the compact part in the top left
+    Q = eye(eltype(L),n)
+    for i = n:-1:2
+        nrm=sqrt(L[i-1,i]^2+L[i,i]^2)
+        c,s = L[i,i]/nrm, L[i-1,i]/nrm
+        if i > 2
+            L[i-1:i,i-2:i] = [c -s; s c]*L[i-1:i,i-2:i]
+            L[i-1,i]=0
+        else
+            L[i-1:i,i-1:i] = [c -s; s c]*L[i-1:i,i-1:i]
+            L[i-1,i]=0
+        end
+        G=eye(eltype(L),n)
+        G[i-1:i,i-1:i]=[c s; -s c]
+        Q = Q*G
+    end
+    Q,L
+end
+
+import ApproxFun:BandedOperator,ToeplitzOperator
+
+immutable ToeplitzGivens <: BandedOperator{Float64}
+    c::Float64
+    s::Float64
+end
+s
+bandinds(T::ToeplitzGivens)=-ceil(Int,(-36-2log(abs(c)))/log(abs(s))),1
+
+function ToeplitzOperator(T::ToeplitzGivens)
+    c,s=T.c,T.s
+    nonneg=[c^2,s]
+    m=-bandinds(T,1)
+    if m ≥ 1
+        neg=Array(Float64,m)
+        neg[1]=-s*nonneg[1]
+        for k=2:m
+           neg[k]=-s*neg[k-1]
+        end
+    else
+        neg=[]
+    end
+    ToeplitzOperator(neg,nonneg)
+end
+
+
+t0=2.;t1=0.5;
+s,c,α,β,TL=givenstail(t0,t1)
+
+c,s
+
+c^2
+s,c^2,-s*c^2,s^2*c^2,(-s)^3*c^2
+
+*s^k ≤ ε/c^2
+k*log(s) ≤ log(ε)-2log(c)
+k ≥  (log(ε)-2log(abs(c)))/log(abs(s))
+
+k=ceil(Int,(-36-2log(abs(c)))/log(abs(s)))
+
+c
+
+s^k
+
+log(eps())
+
+
+
+function ql(a,b,t0,t1,N)
+    @assert t0^2>=4t1^2
+    # The Givens rotations coming from infinity (with parameters c∞ and s∞) leave us with the almost triangular
+    # a[n-1]  b[n-1]   0    0    0
+    # b[n-1]   a[n]   t1    0    0
+    #   0       α      β    0    0
+    #   0      l2     l1   l0    0
+    #   0       0     l2   l1   l0
+
+    s∞,c∞,α,β,TL=givenstail(t0,t1)
+
+    # Here we construct this matrix as L
+    n = length(a)
+    L = jacobimatrix(a,b,n+1)
+    L[n,n+1] = t1
+#    L[n+1,n+2] = 0
+    L[n+1,n+1]=β
+    L[n+1,n]=α
+
+    Q,L=tridql!(L)
+
+    Q2=eye(N)
+    Q2[1:n+1,1:n+1]=Q
+    Q=Q2
+
+
+    # Now we add the Givens rotations at infinity to Qt
+    for i = n+2:N
+        G=eye(N)
+        G[i-1:i,i-1:i]=[c∞ s∞; -s∞ c∞]
+        Q = G*Q
+    end
+    Q,L
+end
+
+ql([1.,2.,3.],[5.,2.,1.],2.,0.5,10)
+
+
+
 
 # function ql(T::ToeplitzOperator)
 #  # a(z) = q(z)l(z), where q(z)q(z*) = 1, l is analytic
