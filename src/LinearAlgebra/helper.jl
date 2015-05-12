@@ -243,3 +243,32 @@ function isvfft(sv::Vector)
 
         FFTW.ifft(n*v)
 end
+
+
+
+
+
+## tridiagonal ql
+
+function tridql!(L::Matrix)
+    n=size(L,1)
+
+  # Now we do QL for the compact part in the top left
+    Q = eye(eltype(L),n)
+    for i = n:-1:2
+        nrm=sqrt(L[i-1,i]^2+L[i,i]^2)
+        c,s = L[i,i]/nrm, L[i-1,i]/nrm
+        if i > 2
+            L[i-1:i,i-2:i] = [c -s; s c]*L[i-1:i,i-2:i]
+            L[i-1,i]=0
+        else
+            L[i-1:i,i-1:i] = [c -s; s c]*L[i-1:i,i-1:i]
+            L[i-1,i]=0
+        end
+        G=eye(eltype(L),n)
+        G[i-1:i,i-1:i]=[c s; -s c]
+        Q = Q*G
+    end
+    Q,L
+end
+

@@ -1,4 +1,7 @@
 using ApproxFun
+import ApproxFun:BandedOperator,ToeplitzOperator
+
+
 
 #This now outputs a [-1,1] Chebyshev Fun f that is weighted by (1-x^2)^{-.5} such that dmu(s) = f(s)
 function spectralmeasure(a,b)
@@ -86,6 +89,13 @@ end
 joukowsky(z)=.5*(z+1./z)
 
 
+
+immutable ToeplitzGivens <: BandedOperator{Float64}
+    c::Float64
+    s::Float64
+end
+
+
 function givenstail(t0,t1)
     s∞ = (t0 - sqrt(t0^2-4t1^2))/(2t1)
     c∞ = -sqrt(1-s∞^2)
@@ -94,40 +104,11 @@ function givenstail(t0,t1)
     l0 = (t0 + sqrt(t0^2-4t1^2))/(2t1)
     l1 = 2t1
     l2 = t1*s∞
-    s∞,c∞,α,β,ToeplitzOperator([l1,l2],[l0])
+    ToeplitzGivens(c∞,s∞),ToeplitzOperator([l1,l2],[l0]),α,β
 end
 
-
-function tridql!(L::Matrix)
-    n=size(L,1)
-
-  # Now we do QL for the compact part in the top left
-    Q = eye(eltype(L),n)
-    for i = n:-1:2
-        nrm=sqrt(L[i-1,i]^2+L[i,i]^2)
-        c,s = L[i,i]/nrm, L[i-1,i]/nrm
-        if i > 2
-            L[i-1:i,i-2:i] = [c -s; s c]*L[i-1:i,i-2:i]
-            L[i-1,i]=0
-        else
-            L[i-1:i,i-1:i] = [c -s; s c]*L[i-1:i,i-1:i]
-            L[i-1,i]=0
-        end
-        G=eye(eltype(L),n)
-        G[i-1:i,i-1:i]=[c s; -s c]
-        Q = Q*G
-    end
-    Q,L
-end
-
-import ApproxFun:BandedOperator,ToeplitzOperator
-
-immutable ToeplitzGivens <: BandedOperator{Float64}
-    c::Float64
-    s::Float64
-end
-s
-bandinds(T::ToeplitzGivens)=-ceil(Int,(-36-2log(abs(c)))/log(abs(s))),1
+#bandinds(T::ToeplitzGivens)=-ceil(Int,(-36-2log(abs(c)))/log(abs(s))),1
+bandinds(T::ToeplitzGivens)=floor(Int,36/log(abs(s))),1
 
 function ToeplitzOperator(T::ToeplitzGivens)
     c,s=T.c,T.s
@@ -145,26 +126,51 @@ function ToeplitzOperator(T::ToeplitzGivens)
     ToeplitzOperator(neg,nonneg)
 end
 
+addentries!(T::ToeplitzGivens,A,kr::Range)=addentries!(ToeplitzOperator(T),A,kr)
+
 
 t0=2.;t1=0.5;
 s,c,α,β,TL=givenstail(t0,t1)
 
-c,s
 
-c^2
-s,c^2,-s*c^2,s^2*c^2,(-s)^3*c^2
+function partialgivens(TG::ToeplitzGivens,m)
+    T=ToeplitzOperator(TG)
+    K=zeros(Float64,m-bandinds(T,1),m)
+    neg,nonneg=T.negative,T.nonnegative
+    for j=1:m-1
+        if j > 1
+            K[j-1,j]-=nonneg[2]
+        end
+        K[j,j]+=1-nonneg[1]
+        for k=1:length(neg)
+            K[k+j,j]-=neg[k]
+        end
+    end
 
-*s^k ≤ ε/c^2
-k*log(s) ≤ log(ε)-2log(c)
-k ≥  (log(ε)-2log(abs(c)))/log(abs(s))
+    K[m-1,m]-=nonneg[2]
+    c,s=TG.c,TG.s
+    ret=c
+    K[m,m]=c-nonneg[1]
+    for k=1:length(neg)
+        ret*=-s
+        K[k+m,m]=ret-neg[k]
+    end
+    T+CompactOperator(K)
+end
 
-k=ceil(Int,(-36-2log(abs(c)))/log(abs(s)))
+c,-s*c,s^2*c
 
-c
+QM=partialgivens(ToeplitzGivens(c,s),5)[1:100,1:100]|>full
+QM*QM'
+s,c^2,-s*c^2
+QM'*QM
 
-s^k
+ToeplitzGivens(c,s)[1:10,1:10]
 
-log(eps())
+QM
+
+QM*QM'
+
 
 
 
@@ -177,7 +183,7 @@ function ql(a,b,t0,t1,N)
     #   0      l2     l1   l0    0
     #   0       0     l2   l1   l0
 
-    s∞,c∞,α,β,TL=givenstail(t0,t1)
+    TQ,TL,α,β=givenstail(t0,t1)
 
     # Here we construct this matrix as L
     n = length(a)
