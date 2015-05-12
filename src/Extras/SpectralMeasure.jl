@@ -196,18 +196,48 @@ t0=4.;t1=1.0; TQ,TL,α,β=givenstail(t0,t1)
     Q,L=ql([1.,2.,3.],[5.,2.,1.],t0,t1)
     J=jacobioperator([1.,2.,3.],[5.,2.,1.],t0,t1)
 
-t0=4.;t1=0.5; TQ,TL,α,β=givenstail(t0,t1)
-    Q,L=ql([1.,2.,3.],[5.,2.,1.],t0,t1)
-    J=jacobioperator([1.,2.,3.],[5.,2.,1.],t0,t1)
+t1=0.5; a,b=[-2.,0.],[0.5];
+    J=jacobioperator(a,b,t0,t1)
+    for k=1:3
+    μ=eigvals([a[1] b[1]; b[1] a[2]])[1]
+    Q,L=ql(a-μ,b,-μ,t1)
+    LQ=L*Q
+    a,b=Float64[LQ[k,k] for k=1:length(a)+1]+μ,  Float64[LQ[k,k+1] for k=1:length(a)]
+    end
+    a,b
+
+
+
+jacobioperator(a,b,0.,t1)[1:10,1:10]
+
+
+
+μ
+J2[1:10,1:10]|>chopm
+
+J[1:10,1:10]|>full|>eigvals
+
+LQ[1:10,1:10]|>chopm
+
+J2[1:10,1:10]|>chopm
+
+J=jacobioperator(a,b,t0,t1)
+
+
+LQ=L*Q
+    α=Float64[LQ[k,k] for k=1:
+
 
 
 TL[1:10,1:10]
 using SO
 (Q*L-J)[1:10,1:10]|>chopm
 
+L*Q|>ApproxFun.introspect
 
+J[1:10,1:10]
 
-(L*Q)[1:10,1:10]|>chopm
+(L*Q)[5,5]
 
 J[1:10,1:10]
 
