@@ -12,6 +12,10 @@ domain(DS::DiracSpace)=domain(DS.space)
 spacescompatible(a::DiracSpace,b::DiracSpace)=spacescompatible(a.space,b.space) && a.points==b.points
 canonicalspace(a::DiracSpace)=a
 
+function Base.sum{DS<:DiracSpace}(f::Fun{DS})
+    n = length(DS.points)
+    sum(f.coefficients[1:n])+sum(Fun(f.coefficients[n+1:end],DS.space))
+end
 
 function evaluate{DS<:DiracSpace}(f::Fun{DS},x::Number)
   n = length(f.space.points)
