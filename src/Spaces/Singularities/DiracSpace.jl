@@ -13,8 +13,8 @@ spacescompatible(a::DiracSpace,b::DiracSpace)=spacescompatible(a.space,b.space) 
 canonicalspace(a::DiracSpace)=a
 
 function Base.sum{DS<:DiracSpace}(f::Fun{DS})
-    n = length(DS.points)
-    sum(f.coefficients[1:n])+sum(Fun(f.coefficients[n+1:end],DS.space))
+    n = length(space(f).points)
+    sum(f.coefficients[1:n])+sum(Fun(f.coefficients[n+1:end],space(f).space))
 end
 
 function evaluate{DS<:DiracSpace}(f::Fun{DS},x::Number)

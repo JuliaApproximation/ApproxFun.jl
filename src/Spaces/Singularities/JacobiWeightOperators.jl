@@ -31,8 +31,8 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
             end
         end
         $Func{PS<:PolynomialSpace}(f::Fun{JacobiWeight{PS}})=$Func(Fun(f,
-                                                                       JacobiWeight(space(f).a,
-                                                                                    space(f).b,
+                                                                       JacobiWeight(space(f).α,
+                                                                                    space(f).β,
                                                                                     Chebyshev(domain(f)))))
     end
 end

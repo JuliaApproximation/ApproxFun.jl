@@ -1,32 +1,42 @@
 using ApproxFun
     import ApproxFun:BandedOperator,ToeplitzOperator,tridql!,bandinds,DiracSpace, plot
-    using Gadfly
 
 joukowsky(z)=.5*(z+1./z)
 
 function spectralmeasure(a,b)
     T,K=tkoperators(a,b)
     Tfun = Fun([T[1,1];T.negative],Taylor)
-    eigs=real(map!(joukowsky,filter!(z->abs(z)<1,complexroots(Tfun))))
-    @assert length(eigs) ≤ 1 #TODO: fix
+    eigs=sort!(real(map!(joukowsky,filter!(z->abs(z)<1,complexroots(Tfun)))))
+
     if isempty(eigs)
         L=T+K
         coeffs = L\[1]
-        L,Fun(coeffs,JacobiWeight(.5,.5,Ultraspherical{1}()))
+        Fun(coeffs,JacobiWeight(.5,.5,Ultraspherical{1}()))
     else
-        t1,t0=0.5,maximum(eigs)
+        Q=Array(BandedOperator{Float64},0)
 
-        Q,L1=ql(a-t0,b,-t0,t1)
-        LQ=L1*Q
-        acont=Float64[LQ[k,k] for k=1:length(a)+1]-t0;
-        bcont=Float64[LQ[k,k+1] for k=1:length(a)];
-        L2=contspectraltransform(acont[2:end],bcont[2:end])
+        for k=1:length(eigs)
+            t1,t0=0.5,eigs[k]
 
-        q0=Q'*[1]
-        coeffs=L2\q0[2:end]
-        μ1=Fun(coeffs,JacobiWeight(0.5,0.5,Ultraspherical{1}()))
-        c=q0[2]
-        Fun([q0[1]^2;(2c/π)*coeffs],DiracSpace(JacobiWeight(0.5,0.5,Ultraspherical{1}()),[-t0]))
+            Q1,L1=ql(a-t0,b,-t0,t1)
+            push!(Q,Q1)
+
+            LQ=L1*Q1
+            a=Float64[LQ[k,k] for k=2:length(a)+1]+t0;
+            b=Float64[LQ[k,k+1] for k=2:length(a)];
+            eigs[k]=LQ[1,1]+t0
+        end
+
+        L2=contspectraltransform(a,b)
+
+        q0=[1.0]
+        m=length(Q) #number of discrete
+        for k=1:m
+            q0=[q0[1:k-1];Q[k]'*q0[k:end]]
+        end
+        coeffs=L2\q0[m+1:end]
+        c=q0[m+1]
+        Fun([q0[1:m].^2;(2c/π)*coeffs],DiracSpace(JacobiWeight(0.5,0.5,Ultraspherical{1}()),eigs))
     end
 end
 
@@ -41,16 +51,8 @@ function contspectralmeasure(a,b)
     Fun(coeffs,JacobiWeight(.5,.5,Ultraspherical{1}())),L
 end
 
-
-α=0;β=.5;a=[0.,0.];b=[β];
-    L,μ=spectralmeasure(a,b)
-μ
-T,K = tkoperators(a,b)
-T[1:10,1:10]
-K[1:10,1:10]
-
 function tkoperators(a,b)
-    assert(length(a)-length(b)==1)
+    @assert length(a)-length(b)==1
     n = length(a)
     L = Lmatrix(a,b,2n)
 
@@ -71,7 +73,7 @@ function Lmatrix(a,b,N)
     @assert n-length(b)==1
     bext = [b; .5]
     L = zeros(N,N)
-    L[1,1] = 0
+    L[1,1] = 1
     L[2,1] = -a[1]/bext[1]
     L[2,2] = 0.5/bext[1]
 
@@ -249,3 +251,38 @@ function Lmatrix2(a,b,N)
     end
     L
 end
+
+sum(μ)
+
+μ.coefficients[1:4]
+
+n=16;a=0.2rand(n);b=rand(n-1)+1
+    μ=spectralmeasure(a,b)
+    ApproxFun.plot(μ)
+
+
+
+
+n=14;a=(rand(n)-0.5);b=fill(0.5,n-1)
+    μ=spectralmeasure(a,b)
+    ApproxFun.plot(μ)
+
+
+
+n=20;a=0.5cos([1:n]);b=fill(0.5,n-1)
+    μ=spectralmeasure(a,b)
+    ApproxFun.plot(μ)
+
+
+α=44;β=44;a=[α/50+0.02145238,0.];b=[β/20+0.012412];
+    μ=spectralmeasure(a,b)
+    ApproxFun.plot(μ)
+
+values(μ)
+
+ApproxFun.plot(μ)
+μ
+T,K = tkoperators(a,b)
+T[1:10,1:10]
+K[1:10,1:10]
+
