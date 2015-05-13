@@ -35,6 +35,7 @@ spacescompatible{S,T,d}(A::SumSpace{S,T,d},B::SumSpace{S,T,d})=spacescompatible(
 union_rule{S}(A::SumSpace{S,S},::S)=A
 union_rule{S,V}(A::SumSpace{S,V},::S)=A
 union_rule{S,V}(A::SumSpace{S,V},::V)=A
+union_rule{S,V}(A::SumSpace{S,V},B::SumSpace{V,S})=A
 
 
 coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=defaultcoefficients(cfs,A,B)
