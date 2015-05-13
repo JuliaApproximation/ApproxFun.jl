@@ -41,7 +41,8 @@ identity_fun{m}(d::Ultraspherical{m})=Fun(identity_fun(domain(d)),d)
 
 ## Calculus
 
-integrate(f::Fun{Ultraspherical{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coefficients),Chebyshev(domain(f)))
+#integrate(f::Fun{Ultraspherical{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coefficients),
+#                                        Chebyshev(domain(f)))
 
 
 
