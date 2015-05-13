@@ -6,7 +6,7 @@ joukowsky(z)=.5*(z+1./z)
 function spectralmeasure(a,b)
     T,K=tkoperators(a,b)
     Tfun = Fun([T[1,1];T.negative],Taylor)
-    eigs=sort!(real(map!(joukowsky,filter!(z->abs(z)<1,complexroots(Tfun)))))
+    eigs=sort!(real(map!(joukowsky,filter!(z->abs(z)<1 && isreal(z),complexroots(Tfun)))))
 
     if isempty(eigs)
         L=T+K
@@ -24,6 +24,7 @@ function spectralmeasure(a,b)
             LQ=L1*Q1
             a=Float64[LQ[k,k] for k=2:length(a)+1]+t0;
             b=Float64[LQ[k,k+1] for k=2:length(a)];
+            @assert abs(LQ[1,2]) ≤ 10eps()
             eigs[k]=LQ[1,1]+t0
         end
 
@@ -261,13 +262,13 @@ n=20;a=zeros(n);b=sqrt(1:(n-1))/sqrt(n)*0.5
     ApproxFun.plot(μ)
 
 
-n=8;a=1/([1:n;]*sqrt(n));b=sqrt(1:(n-1))/sqrt(n)*0.5
+n=5;a=1./([1:n;]);b=sqrt(1:(n-1))/sqrt(n)*0.5
     μ=spectralmeasure(a,b)
     ApproxFun.plot(μ)
 
 
 
-n=20;a=zeros(n);b=sqrt(1:(n-1))/sqrt(n)*0.5
+n=51;a=zeros(n);b=sqrt(1:(n-1))/sqrt(n)*0.5
     μ=spectralmeasure(a,b)
     ApproxFun.plot(μ)
 
