@@ -256,7 +256,23 @@ sum(μ)
 
 μ.coefficients[1:4]
 
-n=16;a=0.2rand(n);b=rand(n-1)+1
+n=20;a=zeros(n);b=sqrt(1:(n-1))/sqrt(n)*0.5
+    μ=spectralmeasure(a,b)
+    ApproxFun.plot(μ)
+
+
+n=8;a=1/([1:n;]*sqrt(n));b=sqrt(1:(n-1))/sqrt(n)*0.5
+    μ=spectralmeasure(a,b)
+    ApproxFun.plot(μ)
+
+
+
+n=20;a=zeros(n);b=sqrt(1:(n-1))/sqrt(n)*0.5
+    μ=spectralmeasure(a,b)
+    ApproxFun.plot(μ)
+
+
+n=11;a=0.2rand(n);b=rand(n-1)
     μ=spectralmeasure(a,b)
     ApproxFun.plot(μ)
 
