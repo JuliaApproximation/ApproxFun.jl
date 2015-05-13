@@ -41,13 +41,23 @@ function contspectralmeasure(a,b)
 end
 
 
-
-α=2.91;a=[-.032145643-α,0.1];b=[0.5];
+α=1.01;β=.2;a=[-.032145643-α,0.1];b=[β];
     μ=spectralmeasure(a,b)
+    ApproxFun.plot(μ)
+
+
+1./sqrt(2)
+
+α=2.91;β=.9;a=[-.032145643-α,0.1,0.,0.];b=[β,0.3,0.5];
+    μ=spectralmeasure(a,b)
+    ApproxFun.plot(μ)
+
+lancz
 
 μ.coefficients[1]
 
-2/π*Fun(Fun(μ.coefficients[2:end],space(μ).space),JacobiWeight(0.5,0.5,Chebyshev()))|>sum
+
+Fun(Fun(μ.coefficients[2:end],space(μ).space),JacobiWeight(0.5,0.5,Chebyshev()))|>sum
 
 sum(μ)
 
