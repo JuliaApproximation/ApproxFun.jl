@@ -25,7 +25,7 @@ function spectralmeasure(a,b)
         coeffs=L2\q0[2:end]
         μ1=Fun(coeffs,JacobiWeight(0.5,0.5,Ultraspherical{1}()))
         c=q0[2]
-        Fun([q0[1]^2;coeffs],DiracSpace(JacobiWeight(0.5,0.5,Ultraspherical{1}()),[-t0]))
+        Fun([q0[1]^2;(2c/π)*coeffs],DiracSpace(JacobiWeight(0.5,0.5,Ultraspherical{1}()),[-t0]))
     end
 end
 
@@ -42,8 +42,16 @@ end
 
 
 
-α=1.91;a=[-.032145643-α,0.1];b=[0.5];
-    spectralmeasure(a,b)|>ApproxFun.plot
+α=2.91;a=[-.032145643-α,0.1];b=[0.5];
+    μ=spectralmeasure(a,b)
+
+μ.coefficients[1]
+
+2/π*Fun(Fun(μ.coefficients[2:end],space(μ).space),JacobiWeight(0.5,0.5,Chebyshev()))|>sum
+
+sum(μ)
+
+|>ApproxFun.plot
 
 
 
