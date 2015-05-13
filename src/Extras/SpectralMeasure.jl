@@ -3,30 +3,23 @@ using ApproxFun
 
 function spectralmeasure(a,b)
     T,K=tkoperators(a,b)
-    L = T+K
     Tfun = Fun([T[1,1];T.negative])
-    #eigs = []
-    #for z in complexroots(Tfun)
-    #    if abs(z)<1
-    #     eigs[end] = joukowsky(z)
-    #    end
-    #end
-    #α = copy(a)
-    #β = copy(b)
-    #for eig in eigs
-    #    Q,L=ql(α-eig,β,-eig,.5)
-    #    LQ=L*Q
-    #end
-    Tinv=inv(T)
-    m=size(K.matrix,1)
-    IKinv=CompactOperator(inv(full((I+K*Tinv)[1:m,1:m]))-eye(m))+I
-    Linv=Tinv*IKinv
+    eigs = []
+    for z in complexroots(Tfun)
+        if abs(z)<1
+           eigs[end] = joukowsky(z)
+        end
+    end
+    acont,bcont,Qd,Ld,diracpts,diraccoeffs = qliteration(a,b,eigs,.5)
+    T,K=tkoperators(acont,bcont)
     # How about simply using L\[1] rather than Linv*[1]?
-    # Experiments suggest that Lin*[1] is SLIGHTLY more accurate
-    coeffs = sqrt(2)*(L\[1])
-    coeffs[1] = coeffs[1]/sqrt(2)
-    f = Fun(coeffs,JacobiWeight(-.5,-.5,Chebyshev()))
-    #f = Fun(coeffs,Chebyshev())
+    # Tinv=inv(T)
+    # m=size(K.matrix,1)
+    # IKinv=CompactOperator(inv(full((I+K*Tinv)[1:m,1:m]))-eye(m))+I
+    # Linv=Tinv*IKinv
+    coeffs = (T+K)\[1]
+    f = Fun(coeffs,JacobiWeight(.5,.5,Ultraspherical{1}()))
+    Fun([diraccoeffs;coeffs],DiracSpace(JacobiWeight(.5,.5,Ultraspherical{1}(),diracpts)))
 end
 
 
@@ -47,9 +40,11 @@ function tkoperators(a,b)
 end
 
 a = [0.,0.,0.]
-b = [1.,1.]
-L = Lmatrix(a,b,10)
-J = jacobimatrix(a,b,10)
+b = [.6,.65]
+L = Lmatrix(a,b,100)
+
+inv(L)
+J = jacobimatrix(a,b,100)
 L\J*L
 
 
@@ -60,24 +55,28 @@ function Lmatrix(a,b,N)
   L = zeros(N,N)
   L[1,1] = 1
   L[2,1] = -a[1]/bext[1]
-  L[2,2] = 1/(sqrt(2)*bext[1]) # L[2,2] = 1/bext[1]
+  L[2,2] = 1/bext[1]
+  # for Chebyshev T, use L[2,2] = 1/(sqrt(2)*bext[1])
+
   # the generic case.
   for i = 3:n+1
-      L[i,1] = (L[i-1,2]/sqrt(2)-a[i-1]*L[i-1,1]-bext[i-2]*L[i-2,1])/bext[i-1]
-      # L[i,1] = (L[i-1,2]/2-a[i-1]*L[i-1,1]-bext[i-2]*L[i-2,1])/bext[i-1]
-      L[i,2] = (L[i-1,3]/2+L[i-1,1]/sqrt(2)-a[i-1]*L[i-1,2]-bext[i-2]*L[i-2,2])/bext[i-1]
-      # for chebyshev U comment L[i,2] out and go from j = 2:i
-      for j = 3:i
+      L[i,1] = (L[i-1,2]/2-a[i-1]*L[i-1,1]-bext[i-2]*L[i-2,1])/bext[i-1]
+      # for Chebyshev T, use
+      # L[i,1] = (L[i-1,2]/sqrt(2)-a[i-1]*L[i-1,1]-bext[i-2]*L[i-2,1])/bext[i-1]
+      # L[i,2] = (L[i-1,3]/2+L[i-1,1]/sqrt(2)-a[i-1]*L[i-1,2]-bext[i-2]*L[i-2,2])/bext[i-1]
+      # and go from j=3:i
+      for j = 2:i
           L[i,j] = (L[i-1,j+1]/2+L[i-1,j-1]/2-a[i-1]*L[i-1,j]-bext[i-2]*L[i-2,j])/bext[i-1]
       end
   end
   # this case is where b[m],b[m-1],b[m-2] = 1/2, and a[m],a[m-1] = 0, like Chebyshev
   for m = n+2:N
-      L[m,1] = L[m-1,2]*sqrt(2)-L[m-2,1]
-      # L[m,1] = L[m-1,2]-L[m-2,1]
-      L[m,2] = L[m-1,3]+L[m-1,1]*sqrt(2)-L[m-2,2]
-      # for chebyshev U comment L[i,2] out and go from j = 2:m-1
-      for j = 3:m-1
+      L[m,1] = L[m-1,2]-L[m-2,1]
+      # for Chebyshev T, use
+      # L[m,1] = L[m-1,2]*sqrt(2)-L[m-2,1]
+      # L[m,2] = L[m-1,3]+L[m-1,1]*sqrt(2)-L[m-2,2]
+      # and go from j=3:m-1
+      for j = 2:m-1
         L[m,j] = L[m-1,j+1]-L[m-2,j]+L[m-1,j-1]
       end
       L[m,m] = -L[m-2,m] + L[m-1,m-1]
