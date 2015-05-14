@@ -89,12 +89,3 @@ conversion_rule{V<:FunctionSpace}(SS::SumSpace{ConstantSpace,V},::V)=SS
 Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T},k)=k==1?f.coefficients[1]:Fun(f.coefficients[2:end],space(f)[2])
 Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T})=Any[vec(f,1),vec(f,2)]
 
-
-## Multiply pieces
-function Multiplication{S,T}(c::Fun{S,T},sp::SumSpace)
-    a,b=vec(sp)
-    Ma=Multiplication(c,a)
-    Mb=Multiplication(c,b)
-
-    SpaceOperator(DiagonalInterlaceOperator([Ma,Mb]),sp,rangespace(Ma)⊕rangespace(Mb))
-end

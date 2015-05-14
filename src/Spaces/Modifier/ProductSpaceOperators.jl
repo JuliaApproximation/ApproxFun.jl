@@ -195,3 +195,28 @@ function Multiplication{S,T,Q}(f::Fun{ArraySpace{S,2,T,1}},sp::ArraySpace{Q,1})
     MultiplicationWrapper(f,interlace(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
 end
 
+
+
+## Multiply pieces
+
+function bandinds{S,SS<:SumSpace}(M::Multiplication{S,SS})
+    a,b=vec(domainspace(M))
+    Ma=Multiplication(M.f,a)
+    Mb=Multiplication(M.f,b)
+
+    bandinds(DiagonalInterlaceOperator([Ma,Mb]))
+end
+function rangespace{S,SS<:SumSpace}(M::Multiplication{S,SS})
+    a,b=vec(domainspace(M))
+    Ma=Multiplication(M.f,a)
+    Mb=Multiplication(M.f,b)
+
+    rangespace(Ma)⊕rangespace(Mb)
+end
+function addentries!{S,SS<:SumSpace}(M::Multiplication{S,SS},A,k)
+    a,b=vec(domainspace(M))
+    Ma=Multiplication(M.f,a)
+    Mb=Multiplication(M.f,b)
+
+    addentries!(DiagonalInterlaceOperator([Ma,Mb]),A,k)
+end
