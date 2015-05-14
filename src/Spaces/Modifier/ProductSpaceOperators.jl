@@ -199,6 +199,25 @@ end
 
 ## Multiply pieces
 
+function bandinds{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS})
+    a,b=vec(M.f)
+    sp=domainspace(M)
+    bandinds(Multiplication(a,sp)+Multiplication(b,sp))
+end
+function rangespace{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS})
+    a,b=vec(M.f)
+    sp=domainspace(M)
+    rangespace(Multiplication(a,sp)+Multiplication(b,sp))
+end
+function addentries!{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS},A,k)
+    a,b=vec(M.f)
+    sp=domainspace(M)
+    addentries!(Multiplication(a,sp)+Multiplication(b,sp),A,k)
+end
+
+
+
+
 function bandinds{S,SS<:SumSpace}(M::Multiplication{S,SS})
     a,b=vec(domainspace(M))
     Ma=Multiplication(M.f,a)
