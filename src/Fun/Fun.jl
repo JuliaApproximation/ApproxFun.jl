@@ -6,12 +6,14 @@ include("FunctionSpace.jl")
 
 ##  Constructors
 
-##TODO: No zero length funs
 
-type Fun{S<:FunctionSpace,T<:Number}
+type Fun{S,T}
     coefficients::Vector{T}
     space::S
+    Fun(coeff::Vector{T},sp::S)=new(coeff,sp)
 end
+
+Fun{T<:Number}(coeff::Vector{T},sp::FunctionSpace)=Fun{typeof(sp),T}(coeff,sp)
 
 ##Coefficient routines
 #TODO: domainscompatible?

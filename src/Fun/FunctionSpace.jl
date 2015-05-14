@@ -208,7 +208,7 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
 end
 
 
-union_rule(a::FunctionSpace,b::FunctionSpace)=NoSpace()
+union_rule(a,b)=NoSpace()
 function Base.union(a::FunctionSpace,b::FunctionSpace)
     if spacescompatible(a,b)
         return a
@@ -246,7 +246,7 @@ end
 #       coefficients(v::Vector,a,b,c)
 # uses an intermediate space b
 
-coefficients(f::Vector,sp1::FunctionSpace,sp2::FunctionSpace,sp3::FunctionSpace)=coefficients(coefficients(f,sp1,sp2),sp2,sp3)
+coefficients(f,sp1,sp2,sp3)=coefficients(coefficients(f,sp1,sp2),sp2,sp3)
 
 coefficients{T1<:FunctionSpace,T2<:FunctionSpace}(f::Vector,::Type{T1},::Type{T2})=coefficients(f,T1(),T2())
 coefficients{T1<:FunctionSpace}(f::Vector,::Type{T1},sp2::FunctionSpace)=coefficients(f,T1(),sp2)
@@ -255,7 +255,7 @@ coefficients{T2<:FunctionSpace}(f::Vector,sp1::FunctionSpace,::Type{T2})=coeffic
 ## coefficients defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
 
-function coefficients{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
+function defaultcoefficients(f,a,b)
     ct=conversion_type(a,b) # gives a space that has a banded conversion to both a and b
 
     if spacescompatible(a,b)
@@ -277,6 +277,8 @@ function coefficients{A<:FunctionSpace,B<:FunctionSpace}(f::Vector,a::A,b::B)
         end
     end
 end
+
+coefficients(f,a,b)=defaultcoefficients(f,a,b)
 
 
 

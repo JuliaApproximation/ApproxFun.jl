@@ -23,7 +23,7 @@ function lanczos(w,N)
         γ[k] = sqrt(sum(w.*v.^2))
         P[k+1] = v/γ[k]
     end
-    
+
     β,γ
 end
 

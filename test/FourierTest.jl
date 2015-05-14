@@ -90,3 +90,17 @@ b=Fun(t->sin(t)+cos(3t)+1,Fourier)
 
 @test_approx_eq (a*b)[.1] a[.1]*b[.1]
 
+a=Fun(t->exp(cos(t)),CosSpace)
+b=Fun(t->sin(t)+cos(3t)+1,Fourier)
+
+@test_approx_eq (a*b)[.1] a[.1]*b[.1]
+
+a=Fun(t->sin(sin(t)),SinSpace)
+b=Fun(t->sin(t)+cos(3t)+1,Fourier)
+
+@test_approx_eq (a*b)[.1] a[.1]*b[.1]
+
+
+
+
+

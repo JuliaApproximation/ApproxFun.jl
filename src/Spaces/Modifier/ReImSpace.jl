@@ -26,6 +26,10 @@ for TYP in (:ReSpace,:ImSpace,:ReImSpace)
     end
 end
 
+## compat
+coefficients(f::Vector,a::ReSpace,b::SumSpace)=error("Implement")
+coefficients(f::Vector,a::ImSpace,b::SumSpace)=error("Implement")
+coefficients(f::Vector,a::ReImSpace,b::SumSpace)=error("Implement")
 
 coefficients(f::Vector,a::ImSpace,b::ReSpace)=zeros(f)
 coefficients(f::Vector,a::ReSpace,b::ImSpace)=zeros(f)
@@ -65,7 +69,7 @@ function coefficients(f::Vector,a::ReImSpace,b::FunctionSpace)
 end
 
 
-union_rule(a::FunctionSpace,b::ReImSpace)=union(a,b.space)
+#union_rule(a::FunctionSpace,b::ReImSpace)=union(a,b.space)
 
 ## Operators
 

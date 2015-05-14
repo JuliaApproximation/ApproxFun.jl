@@ -9,6 +9,7 @@ for T in (:CosSpace,:SinSpace)
         end
         $T()=$T(PeriodicInterval())
         spacescompatible(a::$T,b::$T)=domainscompatible(a,b)
+        canonicalspace(S::$T)=Fourier(domain(S))
     end
 end
 

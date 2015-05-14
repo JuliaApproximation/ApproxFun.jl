@@ -3,8 +3,33 @@
 
 export JacobiWeight
 
+abstract WeightSpace <: IntervalSpace  #TODO: Why Interval?
 
-immutable JacobiWeight{S<:IntervalSpace} <: IntervalSpace
+
+domain(S::WeightSpace)=domain(S.space)
+
+transform(sp::WeightSpace,vals::Vector)=transform(sp.space,vals./weight(sp,points(sp,length(vals))))
+itransform(sp::WeightSpace,cfs::Vector)=itransform(sp.space,cfs).*weight(sp,points(sp,length(cfs)))
+points(sp::WeightSpace,n)=points(sp.space,n)
+
+
+function evaluate{WS<:WeightSpace,T}(f::Fun{WS,T},x)
+    tol=1.0E-14
+    fv=Fun(f.coefficients,space(f).space)[x]
+    if isa(fv,Number)&&abs(fv)<tol
+        #TODO: Why this special case??
+        zero(T)
+    else
+        weight(space(f),x).*fv
+    end
+end
+
+
+## JacobiWeight
+
+
+
+immutable JacobiWeight{S<:IntervalSpace} <: WeightSpace
     α::Float64
     β::Float64
     space::S
@@ -28,7 +53,6 @@ JacobiWeight{S<:IntervalSpace,T}(a::Number,b::Number,s::PiecewiseSpace{S,T}) = P
 identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x->x,S):Fun(identity,domain(S))
 
 
-domain(S::JacobiWeight)=domain(S.space)
 
 spacescompatible(A::JacobiWeight,B::JacobiWeight)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
 spacescompatible(A::JacobiWeight,B::IntervalSpace)=spacescompatible(A,JacobiWeight(0,0,B))
@@ -37,17 +61,7 @@ spacescompatible(B::IntervalSpace,A::JacobiWeight)=spacescompatible(A,JacobiWeig
 ## In this package, α and β are opposite the convention. Here, α is the left algebraic singularity and β is the right algebraic singularity.
 
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
-jacobiweight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
-
-function evaluate{S,T}(f::Fun{JacobiWeight{S},T},x)
-    tol=1.0E-14
-    fv=Fun(f.coefficients,space(f).space)[x]
-    if isa(fv,Number)&&abs(fv)<tol
-        zero(T)
-    else
-        jacobiweight(space(f),x).*fv
-    end
-end
+weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 
 
 ## Use 1st kind points to avoid singularities
@@ -56,7 +70,7 @@ points(sp::JacobiWeight,n)=fromcanonical(sp,chebyshevpoints(n;kind=1))
 # These are meant for Jacobi
 plan_itransform(S::JacobiWeight,n::Integer)=points(S,n)
 itransform(S::JacobiWeight,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
-itransform(S::JacobiWeight,cfs::Vector,pts::Vector)=jacobiweight(S,pts).*itransform(S.space,cfs,pts)
+itransform(S::JacobiWeight,cfs::Vector,pts::Vector)=weight(S,pts).*itransform(S.space,cfs)
 
 ##TODO: paradigm for same space
 function coefficients(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
@@ -124,15 +138,8 @@ end
 
 ./{T,N}(f::Fun{JacobiWeight{T}},g::Fun{JacobiWeight{N}})=f*(1/g)
 
-for op in (:.*,:./)
-    ##TODO: Make general
-    @eval ($op){S}(f::Fun,g::Fun{JacobiWeight{S}})=$op(Fun(f,JacobiWeight(0,0,space(f))),g)
-    @eval ($op){S}(f::Fun{JacobiWeight{S}},g::Fun)=$op(f,Fun(g,JacobiWeight(0,0,space(g))))
-end
-
-
 
 ## Project
-
+#TODO: Where is this used?
 project{S}(f::Fun{JacobiWeight{S}})=Fun(f.coefficients,JacobiWeight(space(f).α,space(f).β,canonicaldomain(f)))
 

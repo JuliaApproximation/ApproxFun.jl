@@ -114,10 +114,23 @@ function gadflyplot(opts...;kwds...)
     Main.Gadfly.plot(opts...;kwds...)
 end
 
-## Functional
 
-gadflyplot{S}(B::Evaluation{S,Float64})=Main.Gadfly.plot(x=ones(6)*B.x,y=[0.:5.],Main.Gadfly.Geom.line)
-gadflyplot{S}(B::Evaluation{S,Bool})=Main.Gadfly.plot(x=ones(6)*(B.x?first(domain(B)):last(domain(B))),y=[0.:5.],Main.Gadfly.Geom.line)
+## Functional
+gadflydeltaplot(x0::Number,c::Number)=Main.Gadfly.plot(x=ones(2)*x0,y=linspace(0.,c,2),
+                                                         Main.Gadfly.Geom.line)
+
+gadflydeltalayer(x0::Number,c::Number)=Main.Gadfly.layer(x=ones(2)*x0,y=linspace(0.,c,2),
+                                                         Main.Gadfly.Geom.line)
+
+gadflydeltaplot(x0::Vector,c::Vector)=Main.Gadfly.plot(map(gadflydeltalayer,x0,c)...)
+
+
+
+
+gadflyplot{S}(B::Evaluation{S,Float64})=gadflydeltaplot(1,B.x)
+gadflyplot{S}(B::Evaluation{S,Bool})=gadflydeltaplot(1,B.x?first(domain(B)):last(domain(B)))
 gadflyplot{T<:Real,E<:Evaluation}(B::ConstantTimesFunctional{T,E})=gadflyplot(B.op)
+
+
 
 

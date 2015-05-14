@@ -57,12 +57,15 @@ Fun{T<:FunctionSpace}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
 
-Fun{T<:FunctionSpace}(f,::Type{T})=Fun(f,T())
-Fun{T<:FunctionSpace}(f,::Type{T},n::Integer)=Fun(f,T(),n)
+Fun(f::Vector,T::Type)=Fun(f,T())
+
+Fun(f,T::Type)=Fun(f,T())
+Fun(f,T::Type,n::Integer)=Fun(f,T(),n)
+
+Fun(f::Vector,d::Domain)=Fun(f,Space(d))
 
 Fun(f,d::Domain)=Fun(f,Space(d))
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
-Fun{T<:Domain}(f,::Type{T})=Fun(f,T())
 
 
 Fun(c::Number)=Fun([c])

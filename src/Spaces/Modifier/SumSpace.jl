@@ -16,10 +16,9 @@ SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
 
 
 
-
-
 ⊕(A::FunctionSpace,B::FunctionSpace)=SumSpace(A,B)
 ⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
+
 
 
 
@@ -32,6 +31,26 @@ domain(A::SumSpace)=domain(A[1])
 
 spacescompatible{S,T,d}(A::SumSpace{S,T,d},B::SumSpace{S,T,d})=spacescompatible(A.spaces[1],B[1]) && spacescompatible(A.spaces[2],B[2])
 
+
+union_rule{S}(A::SumSpace{S,S},::S)=A
+union_rule{S,V}(A::SumSpace{S,V},::S)=A
+union_rule{S,V}(A::SumSpace{S,V},::V)=A
+union_rule{S,V}(A::SumSpace{S,V},B::SumSpace{V,S})=A
+
+
+coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=defaultcoefficients(cfs,A,B)
+
+
+
+function coefficients(cfs::Vector,A::FunctionSpace,B::SumSpace)
+    if spacescompatible(A,B.spaces[1])
+        interlace(cfs,[0.])
+    elseif spacescompatible(A,B.spaces[2])
+        interlace([0.],cfs)
+    else
+        defaultcoefficients(cfs,A,B)
+    end
+end
 
 
 
@@ -69,3 +88,4 @@ itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
 conversion_rule{V<:FunctionSpace}(SS::SumSpace{ConstantSpace,V},::V)=SS
 Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T},k)=k==1?f.coefficients[1]:Fun(f.coefficients[2:end],space(f)[2])
 Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T})=Any[vec(f,1),vec(f,2)]
+
