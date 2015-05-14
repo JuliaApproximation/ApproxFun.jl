@@ -13,9 +13,9 @@ end
 
 
 function Base.getindex{T}(op::PlusFunctional{T},k::Range)
-    ret = op.ops[1][k]::Vector{T}
+    ret = convert(Vector{T},op.ops[1][k])
     for j=2:length(op.ops)
-        ret+=op.ops[j][k]::Vector{T}
+        ret+=convert(Vector{T},op.ops[j][k])
     end
     ret
 end

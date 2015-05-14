@@ -393,3 +393,19 @@ end
 
 
 
+## PrependColumnsFunctional
+
+immutable PrependColumnsFunctional{T<:Number,B<:Functional} <: Functional{T}
+    cols::Vector{T}
+    op::B
+end
+
+PrependColumnsFunctional{T<:Number}(cols::Vector{T},op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
+PrependColumnsFunctional{T<:Number}(col::T,op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
+
+function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range1)
+    lcols = length(P.cols)
+    opr = intersect(kr,length(P.cols)+1:kr[end])
+    [P.cols[intersect(kr,1:length(P.cols))],P.op[opr[1]-lcols:opr[end]-lcols]]
+end
+Base.convert{BT<:Operator}(::Type{BT},P::PrependColumnsFunctional)=PrependColumnsFunctional(convert(Vector{eltype(BT)},P.cols),convert(Functional{eltype(BT)},P.op))
