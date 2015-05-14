@@ -244,17 +244,17 @@ datalength(Σ::DefiniteLineIntegral{Fourier})=1
 
 ## Split Multiplication in 2 to lower bandwidths
 
-function .*{T,N,S<:Fourier,V<:Fourier}(f::Fun{S,T},g::Fun{V,N})
+function .*(f::Fun{Fourier},g::Fun{Fourier})
     a,b=vec(f)
     a.*g+b.*g
 end
 
-function .*{T,N,S<:Fourier,V}(f::Fun{S,T},g::Fun{V,N})
+function .*(f::Fun{Fourier},g::Fun)
     a,b=vec(f)
     a.*g+b.*g
 end
 
-function .*{T,N,S,V<:Fourier}(f::Fun{S,T},g::Fun{V,N})
+function .*(f::Fun,g::Fun{Fourier})
     a,b=vec(g)
     f.*a+f.*b
 end
