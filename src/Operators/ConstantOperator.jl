@@ -37,7 +37,7 @@ BasisFunctional(k)=BasisFunctional{Float64}(k)
 Base.convert{BT<:Operator}(::Type{BT},B::BasisFunctional)=BasisFunctional{eltype(BT)}(B.k)
 
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
-Base.getindex(op::BasisFunctional,k::Range1)=convert(Vector{Float64},k.==op.k)
+Base.getindex(op::BasisFunctional,k::Range)=convert(Vector{Float64},k.==op.k)
 
 immutable FillFunctional{T<:Number} <: Functional{T}
     c::T
@@ -93,7 +93,7 @@ domainspace(Z::ZeroFunctional)=Z.domainspace
 promotedomainspace(Z::ZeroFunctional,sp::FunctionSpace)=ZeroFunctional(sp)
 
 Base.getindex{T}(op::ZeroFunctional{T},k::Integer)=zero(T)
-Base.getindex{T}(op::ZeroFunctional{T},k::Range1)=zeros(T,length(k))
+Base.getindex{T}(op::ZeroFunctional{T},k::Range)=zeros(T,length(k))
 
 
 

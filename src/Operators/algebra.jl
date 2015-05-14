@@ -149,7 +149,7 @@ end
 
 ConstantTimesFunctional(c::Number,op::Functional)=ConstantTimesFunctional{promote_type(typeof(c),eltype(op)),typeof(op)}(c,op)
 
-Base.getindex(op::ConstantTimesFunctional,k::Range1)=op.c*op.op[k]
+Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.op[k]
 datalength(C::ConstantTimesFunctional)=datalength(C.op)
 promotedomainspace(C::ConstantTimesFunctional,sp::FunctionSpace)=ConstantTimesFunctional(C.c,promotedomainspace(C.op,sp))
 

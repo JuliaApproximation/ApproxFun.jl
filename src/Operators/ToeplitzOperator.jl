@@ -114,7 +114,7 @@ end
 hankel_addentries!(v::Vector,A,kr::Range)=hankel_addentries!(1,v,A,kr)
 
 
-addentries!(T::HankelOperator,A,kr::Range1)=hankel_addentries!(T.coefficients,A,kr)
+addentries!(T::HankelOperator,A,kr::Range)=hankel_addentries!(T.coefficients,A,kr)
 
 bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
 

@@ -142,7 +142,7 @@ end
 StrideFunctional{T<:Number}(B::Functional{T},r,rs)=StrideFunctional{T,typeof(B)}(B,r,rs)
 
 
-Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range1)=T[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
+Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range)=T[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
 Base.convert{BT<:Operator}(::Type{BT},S::StrideFunctional)=StrideFunctional(convert(Functional{eltype(BT)},S.op),S.rowindex,S.stride)
 
 
@@ -403,7 +403,7 @@ end
 PrependColumnsFunctional{T<:Number}(cols::Vector{T},op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
 PrependColumnsFunctional{T<:Number}(col::T,op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
 
-function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range1)
+function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range)
     lcols = length(P.cols)
     opr = intersect(kr,length(P.cols)+1:kr[end])
     [P.cols[intersect(kr,1:length(P.cols))],P.op[opr[1]-lcols:opr[end]-lcols]]
