@@ -138,13 +138,6 @@ end
 
 ./{T,N}(f::Fun{JacobiWeight{T}},g::Fun{JacobiWeight{N}})=f*(1/g)
 
-for op in (:.*,:./)
-    ##TODO: Make general
-    @eval ($op){S}(f::Fun,g::Fun{JacobiWeight{S}})=$op(Fun(f,JacobiWeight(0,0,space(f))),g)
-    @eval ($op){S}(f::Fun{JacobiWeight{S}},g::Fun)=$op(f,Fun(g,JacobiWeight(0,0,space(g))))
-end
-
-
 
 ## Project
 #TODO: Where is this used?

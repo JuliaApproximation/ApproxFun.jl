@@ -239,3 +239,6 @@ function addentries!{S,SS<:SumSpace}(M::Multiplication{S,SS},A,k)
 
     addentries!(DiagonalInterlaceOperator([Ma,Mb]),A,k)
 end
+
+
+
