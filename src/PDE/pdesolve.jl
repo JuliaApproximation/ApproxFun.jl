@@ -34,7 +34,7 @@ end
 ###
 
 function setdomain{S}(f::Fun{S},d::Domain)
-    @assert length(S.names)==1
+    @assert length(@compat(fieldnames(S)))==1
     Fun(f.coefficients,S(d))
 end
 
