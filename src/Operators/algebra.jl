@@ -207,14 +207,9 @@ end
 function Base.convert{OT<:Operator}(::Type{OT},C::ConstantTimesOperator)
     T=eltype(OT)
     op=convert(BandedOperator{T},C.op)
-    ConstantTimesOperator{T,typeof(op),T}(convert(T,C.c),op)
+    ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)
 end
 
-function Base.convert{CT,BB,BT,OT<:Operator}(::Type{OT},C::ConstantTimesOperator{CT,BB,BandedMatrix{BT}})
-    T=eltype(OT)
-    op=convert(BandedOperator{T},C.op)
-    ConstantTimesOperator{eltype(T),typeof(op),T}(convert(eltype(T),C.c),op)
-end
 
 function addentries!(P::ConstantTimesOperator,A,kr::Range)
     # Write directly to A, shifting by rows and columns
