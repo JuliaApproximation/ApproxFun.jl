@@ -73,7 +73,7 @@ typealias BivariateOperator{T} BandedOperator{BandedMatrix{T}}
 #########
 
 immutable KroneckerOperator{S,V,DS,RS,T}<: BivariateOperator{T}
-    ops::(S,V)
+    ops::@compat(Tuple{S,V})
     domainspace::DS
     rangespace::RS
 end
