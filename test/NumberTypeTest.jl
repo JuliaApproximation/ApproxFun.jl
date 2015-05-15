@@ -1,8 +1,8 @@
-using ApproxFun, Base.Test
+using ApproxFun, Base.Test, Compat
 
 single_sin = Fun(sin,Interval(0.f0,1.f0))
 double_sin = Fun(sin,Interval(0.,1.))
-big_sin = Fun(sin,Interval(parse(BigFloat,"0.0"), parse(BigFloat,"1.0")))
+big_sin = Fun(sin,Interval(@compat(parse(BigFloat,"0.0")), @compat(parse(BigFloat,"1.0"))))
 
 @test length(single_sin) <= length(double_sin)
 @test length(double_sin) <= length(big_sin)
