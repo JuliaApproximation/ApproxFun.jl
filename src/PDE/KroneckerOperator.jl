@@ -100,13 +100,15 @@ isproductop(::)=false
 isproductop(::KroneckerOperator)=true
 isproductop(sp::SpaceOperator)=isproductop(sp.op)
 isproductop(sp::ConstantTimesOperator)=isproductop(sp.op)
+isproductop{V,T<:AbstractArray}(::ConstantOperator{V,T})=true
 
 #dekron gives the operators that make up a productop
 
 dekron(K::KroneckerOperator,k)=K.ops[k]
-dekron(S::SpaceOperator,k)=dekron(S.op,k)
+dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 #TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)
+dekron{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=k==1?ConstantOperator(one(C.c)):ConstantOperator(C.c)
 
 dekron(K)=dekron(K,1),dekron(K,2)
 
@@ -287,10 +289,7 @@ end
 #     end
 # end
 
-+{T}(c::UniformScaling,A::BivariateOperator{T})=ConstantOperator(c.λ)⊗I+A
-+{T}(A::BivariateOperator{T},c::UniformScaling)=A+ConstantOperator(c.λ)⊗I
--{T}(c::UniformScaling,A::BivariateOperator{T})=ConstantOperator(c.λ)⊗I-A
--{T}(A::BivariateOperator{T},c::UniformScaling)=A+ConstantOperator(-c.λ)⊗I
+
 
 ## Shorthand
 
@@ -403,10 +402,10 @@ function findfunctionals(A::Vector,k::Integer)
     T=eltype(eltype(eltype(A)))
     indsBx=find(f->isfunctional(f,k),A)
     if k==1
-        indsBx,Functional{T}[(@assert dekron(Ai,2)==ConstantOperator{Float64}(1.0); dekron(Ai,1)) for Ai in A[indsBx]]
+        indsBx,Functional{T}[(@assert dekron(Ai,2)==ConstantOperator(Float64,1.0); dekron(Ai,1)) for Ai in A[indsBx]]
     else
         @assert k==2
-        indsBx,Functional{T}[(@assert dekron(Ai,1)==ConstantOperator{Float64}(1.0); dekron(Ai,2)) for Ai in A[indsBx]]
+        indsBx,Functional{T}[(@assert dekron(Ai,1)==ConstantOperator(Float64,1.0); dekron(Ai,2)) for Ai in A[indsBx]]
     end
 end
 

@@ -119,23 +119,13 @@ end
 +(::ZeroFunctional,B::Functional)=B
 
 
-+(c::UniformScaling,A::Operator)=ConstantOperator(c.λ)+A
-+(A::Operator,c::UniformScaling)=A+ConstantOperator(c.λ)
--(c::UniformScaling,A::Operator)=ConstantOperator(c.λ)-A
--(A::Operator,c::UniformScaling)=A+ConstantOperator(-c.λ)
 
-
-
-## We need this to support Op + Matrix
-+(c::Number,A::Operator)=ConstantOperator(c)+A
-+(A::Operator,c::Number)=A+ConstantOperator(c)
--(c::Number,A::Operator)=ConstantOperator(c)-A
--(A::Operator,c::Number)=A-ConstantOperator(c)
-
-.+(c::Number,A::Operator)=ConstantOperator(c)+A
-.+(A::Operator,c::Number)=A+ConstantOperator(c)
-.-(c::Number,A::Operator)=ConstantOperator(c)-A
-.-(A::Operator,c::Number)=A-ConstantOperator(c)
+for OP in (:+,:-,:(.+),:(.-))
+    @eval begin
+        $OP(c::UniformScaling,A::Operator)=$OP(convert(Operator{eltype(A)},c),A)
+        $OP(A::Operator,c::UniformScaling)=$OP(A,convert(Operator{eltype(A)},c))    
+    end
+end
 
 
 

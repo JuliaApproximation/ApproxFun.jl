@@ -1,13 +1,16 @@
 export ConstantOperator, BasisFunctional
 
-
-immutable ConstantOperator{T<:Number} <: BandedOperator{T}
+##TODO: c->λ
+##TODO: ConstantOperator->UniformScalingOperator?
+immutable ConstantOperator{T,V} <: BandedOperator{V}
     c::T
     ConstantOperator(c::Number)=new(c)
     ConstantOperator(L::UniformScaling)=new(L.λ)
 end
 
-ConstantOperator(c::Number)=ConstantOperator{typeof(c)}(c)
+
+ConstantOperator(T::Type,c)=ConstantOperator{eltype(T),T}(c)
+ConstantOperator(c::Number)=ConstantOperator(typeof(c),c)
 ConstantOperator(L::UniformScaling)=ConstantOperator(L.λ)
 IdentityOperator()=ConstantOperator(1.0)
 
@@ -18,7 +21,7 @@ addentries!(C::ConstantOperator,A,kr::Range)=toeplitz_addentries!([.5C.c],A,kr)
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
 
-Base.convert{BT<:Operator}(::Type{BT},C::ConstantOperator)=ConstantOperator{eltype(BT)}(C.c)
+Base.convert{BT<:Operator}(::Type{BT},C::ConstantOperator)=ConstantOperator(eltype(BT),C.c)
 
 ## Algebra
 
@@ -39,7 +42,7 @@ Base.convert{BT<:Operator}(::Type{BT},B::BasisFunctional)=BasisFunctional{eltype
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
 Base.getindex(op::BasisFunctional,k::Range)=convert(Vector{Float64},k.==op.k)
 
-immutable FillFunctional{T<:Number} <: Functional{T}
+immutable FillFunctional{T} <: Functional{T}
     c::T
 end
 

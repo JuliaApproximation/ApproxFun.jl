@@ -249,33 +249,46 @@ Base.zero{O<:Operator}(::Type{O})=ZeroOperator()
 
 # TODO: can convert return different type?
 
-for TYP in (:Operator,:BandedOperator)
-  @eval begin
-    Base.convert{T}(A::Type{$TYP{T}},n::Number)=n==0?zero(A):ConstantOperator{T}(n)
-    Base.convert{T}(A::Type{$TYP{T}},n::UniformScaling)=n.λ==0?zero(A):ConstantOperator{T}(n)
-    Base.convert{T}(A::Type{$TYP{T}},f::Fun)=norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
-  end
-end
 
-Base.convert{T}(::Type{Functional{T}},f::Fun)=DefiniteIntegral()[f]
-Base.convert(::Type{Functional},f::Fun)=DefiniteIntegral()[f]
+Base.convert{T<:Functional}(::Type{T},f::Fun)=DefiniteIntegral()[f]
+
+
+
+Base.convert{T<:Operator}(A::Type{T},n::Number)=n==0?zero(A):ConstantOperator(eltype(T),n)
+Base.convert{T<:Operator}(A::Type{T},n::UniformScaling)=n.λ==0?zero(A):ConstantOperator(eltype(T),n)
+Base.convert{T<:Operator}(A::Type{T},f::Fun)=norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
+
+
 
 
 
 ## Promotion
+
+
+mat_promote_type(A,B)=promote_type(A,B)
+mat_promote_type{T,B,n}(::Type{Array{T,n}},::Type{Array{B,n}})=Array{promote_type(T,B),n}
+mat_promote_type{T,B<:Number,n}(::Type{Array{T,n}},::Type{B})=Array{promote_type(T,B),n}
+mat_promote_type{T,B<:Number,n}(::Type{B},::Type{Array{T,n}})=Array{promote_type(T,B),n}
+
+mat_promote_type{T,B}(::Type{BandedMatrix{T}},::Type{BandedMatrix{B}})=BandedMatrix{promote_type(T,B)}
+mat_promote_type{T,B<:Number}(::Type{BandedMatrix{T}},::Type{B})=BandedMatrix{promote_type(T,B)}
+mat_promote_type{T,B<:Number}(::Type{B},::Type{BandedMatrix{T}})=BandedMatrix{promote_type(T,B)}
+
+
+
 
 for OP in (:BandedOperator,:Operator)
   @eval begin
       Base.promote_rule{N<:Number}(::Type{N},::Type{$OP})=$OP{N}
       Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{$OP})=$OP{N}
       Base.promote_rule{S,N<:Number}(::Type{Fun{S,N}},::Type{$OP})=$OP{N}
-      Base.promote_rule{N<:Number,O<:$OP}(::Type{N},::Type{O})=$OP{promote_type(N,eltype(O))}
-      Base.promote_rule{N<:Number,O<:$OP}(::Type{UniformScaling{N}},::Type{O})=$OP{promote_type(N,eltype(O))}
-      Base.promote_rule{S,N<:Number,O<:$OP}(::Type{Fun{S,N}},::Type{O})=$OP{promote_type(N,eltype(O))}
+      Base.promote_rule{N<:Number,O<:$OP}(::Type{N},::Type{O})=$OP{mat_promote_type(N,eltype(O))}
+      Base.promote_rule{N<:Number,O<:$OP}(::Type{UniformScaling{N}},::Type{O})=$OP{mat_promote_type(N,eltype(O))}
+      Base.promote_rule{S,N<:Number,O<:$OP}(::Type{Fun{S,N}},::Type{O})=$OP{mat_promote_type(N,eltype(O))}
   end
 end
 
 for OP in (:BandedOperator,:Functional,:Operator)
-  @eval Base.promote_rule{BO1<:$OP,BO2<:$OP}(::Type{BO1},::Type{BO2})=$OP{promote_type(eltype(BO1),eltype(BO2))}
+  @eval Base.promote_rule{BO1<:$OP,BO2<:$OP}(::Type{BO1},::Type{BO2})=$OP{mat_promote_type(eltype(BO1),eltype(BO2))}
 end
 
