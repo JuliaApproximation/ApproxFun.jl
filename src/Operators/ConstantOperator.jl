@@ -4,8 +4,8 @@ export ConstantOperator, BasisFunctional
 ##TODO: ConstantOperator->UniformScalingOperator?
 immutable ConstantOperator{T,V} <: BandedOperator{V}
     c::T
-    ConstantOperator(c::Number)=new(c)
-    ConstantOperator(L::UniformScaling)=new(L.λ)
+    ConstantOperator(c::Number)=new(convert(T,c))
+    ConstantOperator(L::UniformScaling)=new(convert(T,L.λ))
 end
 
 
