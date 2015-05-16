@@ -32,10 +32,12 @@ coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 
 
 ##Convert routines
-#TODO properly handle other number types
-Base.convert{T<:Number,S<:FunctionSpace}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
-Base.convert{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},f::Fun{S,T})=Fun(convert(Vector{Complex{Float64}},f.coefficients),f.space)
-Base.promote_rule{T<:Number,S<:FunctionSpace}(::Type{Fun{S,Complex{Float64}}},::Type{Fun{S,T}})=Fun{S,Complex{Float64}}
+
+
+Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(convert(Vector{T},f.coefficients),f.space)
+
+Base.convert{T,S}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
+Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_rule(T,V)}
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=IF
 
 

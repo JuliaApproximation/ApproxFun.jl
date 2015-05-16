@@ -12,6 +12,12 @@ end
 
 Disk(r)=Disk(r,(0.,0.))
 Disk()=Disk(1.)
+Disk(::AnyDomain)=Disk(NaN,(NaN,NaN))
+
+
+isambiguous(d::Disk)=isnan(d.radius) && all(isnan,d.center)
+Base.convert(::Type{Disk},::AnyDomain)=Disk(AnyDomain())
+
 
 #canonical is rectangle [r,0]x[-π,π]
 # we assume radius and centre are zero for now
@@ -33,12 +39,15 @@ checkpoints(d::Disk)=[fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3)
 immutable DiskSpace{m,a,b,JS,S} <: AbstractProductSpace{@compat(Tuple{JS,S}),Complex128,2}
     domain::Disk
     spacet::S
+    DiskSpace(d,sp)=new(d,sp)
+    DiskSpace(d::AnyDomain)=new(Disk(d),S())
 end
 
 
 DiskSpace(m,a,b,D::Disk,S::FunctionSpace)=DiskSpace{m,a,b,JacobiSquare,typeof(S)}(D,S)
 DiskSpace(D::Disk,S::FunctionSpace)=DiskSpace(0,0,0,D,S)
 DiskSpace(D::Disk)=DiskSpace(D,Laurent())
+DiskSpace(d::AnyDomain)=DiskSpace(Disk(d))
 
 spacescompatible{m,a,b,JS,S}(A::DiskSpace{m,a,b,JS,S},B::DiskSpace{m,a,b,JS,S})=true
 
@@ -117,36 +126,34 @@ end
 ## Operators
 
 isfunctional{DS<:DiskSpace}(D::Dirichlet{DS},k)=k==1
-dekron{DS<:DiskSpace}(D::Dirichlet{DS},k)=k==1?Evaluation(false,D.order):ConstantOperator(1.0)
+
+diagop(A::PlusOperator,col)=mapreduce(op->diagop(op,col),+,A.ops)
+diagop(A::TimesOperator,col)=mapreduce(op->diagop(op,col),*,A.ops)
+diagop(A::SpaceOperator,col)=diagop(A.op,col)
+diagop(A::ConstantOperator,col)=ConstantOperator(A.c)
+diagop(A::ConstantTimesOperator,col)=A.c*diagop(A.op,col)
+
+diagop{DS<:DiskSpace}(D::Dirichlet{DS},col)=Evaluation(columnspace(domainspace(D),col),false,D.order)
+
+function diagop{DS<:DiskSpace}(L::Laplacian{DS},col)
+    csp=columnspace(domainspace(L),col)
+    rsp=columnspace(rangespace(L),col)
+    Dt=Derivative(space(domainspace(L),2))
+    c=Dt[col,col]
 
 
-Base.length{DS<:DiskSpace}(::Laplacian{DS})=2
-function dekron{DS<:DiskSpace}(L::Laplacian{DS},k,::Colon)
-    if L.order==1
-        if k==1
-            r=Fun(identity,[domain(L).radius,0.])
-            D=Derivative()
-            [(D^2+(1./r)*D),Multiplication((1./r).^2)]
-        elseif k==2
-            D=Derivative(domainspace(L)[2])
-            [ConstantOperator(1.0),D^2]
-        end
-    elseif L.order==2
-        Δ=Laplacian(domainspace(L))
-        rops=dekron(Δ,1,:)
-        if k==1
-            [rops[1]^2,rops[1]*rops[2],rops[2]*rops[1],rops[2]^2]
-        elseif k==2
-            D=Derivative(domainspace(L)[2])
-            C=ConstantOperator(1.0)
-            [C,D^2,D^2,D^4]
-        end
-    else
-        error("Higher order Laplacian not yet implemented")
-    end
+    r=Fun(identity,[domain(L).radius,0.])
+    D=Derivative(csp)
+    Δ=D^2+(1/r)*D+Multiplication((c/r)^2,csp)
+
+    Δ^L.order
 end
 
-dekron(L,k::Integer,j::Integer)=dekron(L,k,:)[j]
+isproductop{DS1<:DiskSpace,DS2<:DiskSpace}(C::Conversion{DS1,DS2})=true
+diagop{DS1<:DiskSpace,DS2<:DiskSpace}(C::Conversion{DS1,DS2},col)=Conversion(columnspace(domainspace(C),col),
+                                                                               columnspace(rangespace(C),col))
+#deprod{DS1<:DiskSpace,DS2<:DiskSpace}(C::Conversion{DS1,DS2},k,::Colon)=ConstantOperator(1.0)
+
 
 lap(d::Disk)=Laplacian(Space(d))
 dirichlet(d::Disk)=Dirichlet(Space(d))

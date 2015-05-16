@@ -152,34 +152,23 @@ Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
 domain(P::PDEProductOperatorSchur)=domain(domainspace(P))
 
 function PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::AbstractProductSpace,nt::Integer)
-    indsBx,Bx=findfunctionals(A,1)
-    @assert isempty(findfunctionals(A,2)[1])
+    Bx=A[1:end-1]
     L=A[end]
-    S=schurfact(Functional{eltype(eltype(L))}[],dekron(L,2,:),nt)
-    @assert(isa(S,DiagonalOperatorSchur))
 
-    #TODO: Space Type
     BxV=Array(Vector{SavedFunctional{Float64}},nt)
     Rdiags=Array(SavedBandedOperator{Complex{Float64}},nt)
-    rops=dekron(L,1,:)
     for k=1:nt
-        op=getdiagonal(S,k,1)*rops[1]
-        for j=2:length(L)
-            Skj=getdiagonal(S,k,j)
-            if Skj!=0   # don't add unnecessary ops
-                op+=Skj*rops[j]
-            end
-        end
-
+        op=diagop(L,k)
         csp=columnspace(sp,k)
-        Rdiags[k]=SavedBandedOperator(promotedomainspace(op,csp))
-        BxV[k]=SavedFunctional{Float64}[SavedFunctional(promotedomainspace(Bxx,csp)) for Bxx in Bx]
+        Rdiags[k]=SavedBandedOperator(op)
+        #TODO: Type
+        BxV[k]=SavedFunctional{Float64}[SavedFunctional(diagop(Bxx,k)) for Bxx in Bx]
         resizedata!(Rdiags[k],2nt+100)
         for Bxx in BxV[k]
             resizedata!(Bxx,2nt+100)
         end
     end
-    PDEProductOperatorSchur(BxV,Rdiags,sp,rangespace(L),indsBx)
+    PDEProductOperatorSchur(BxV,Rdiags,sp,rangespace(L),1:length(Bx))
 end
 
 PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::BivariateDomain,nt::Integer)=PDEProductOperatorSchur(A,Space(sp),nt)

@@ -16,7 +16,8 @@ Base.eltype{T}(::Operator{T})=T
 Base.eltype{T}(::Type{Operator{T}})=T
 Base.eltype{OT<:Operator}(::Type{OT})=eltype(super(OT))
 
-
+ #Operators are immutable
+Base.copy(A::Operator)=A
 
 
 ## We assume operators are T->T

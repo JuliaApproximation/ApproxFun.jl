@@ -96,12 +96,15 @@ KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 
 # productop is a product of two operator
 
-isproductop(::)=false
-isproductop(::KroneckerOperator)=true
+isproductop(a)=iskronop(a)  # all kron ops are product ops
 
-isproductop(A::Union(SpaceOperator,ConstantTimesOperator,ConversionWrapper))=isproductop(A.op)
-isproductop(A::TimesOperator)=all(isproductop,A.ops)
-isproductop{V,T<:AbstractArray}(::ConstantOperator{V,T})=true
+
+iskronop(::)=false
+iskronop(::KroneckerOperator)=true
+
+iskronop(A::Union(SpaceOperator,ConstantTimesOperator,ConversionWrapper))=iskronop(A.op)
+iskronop(A::TimesOperator)=all(iskronop,A.ops)
+iskronop{V,T<:AbstractArray}(::ConstantOperator{V,T})=true
 
 #dekron gives the operators that make up a productop
 
@@ -115,6 +118,24 @@ dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)
 dekron{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=k==1?ConstantOperator(one(C.c)):ConstantOperator(C.c)
 
 dekron(K)=dekron(K,1),dekron(K,2)
+function dekron(A,k,::Colon)
+    @assert isproductop(A)
+    dekron(A,k)
+end
+function dekron(A::PlusOperator,k,::Colon)
+    ret=Array(BandedOperator{eltype(eltype(A))},0)
+    for op in A.ops
+        da=dekron(op,k,:)
+        if isa(da,AbstractArray)
+            for a in da
+                push!(ret,a)
+            end
+        else
+            push!(ret,da)
+        end
+    end
+    ret
+end
 
 
 for OP in (:promotedomainspace,:promoterangespace)
@@ -224,10 +245,10 @@ function promoteplus{T}(ops::Vector{BandedOperator{BandedMatrix{T}}})
     ops=promotespaces(ops)
 
     for k=1:length(ops)-1
-        if isproductop(ops[k])
+        if iskronop(ops[k])
             a,b=dekron(ops[k])
             for j=k+1:length(ops)
-                if isproductop(ops[j])
+                if iskronop(ops[j])
                     if dekron(ops[j],1)==a
                         ops[k]=KroneckerOperator(a,b+dekron(ops[j],2))
                         deleteat!(ops,j)
