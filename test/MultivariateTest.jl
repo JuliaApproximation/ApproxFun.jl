@@ -78,7 +78,6 @@ u=OS\[zeros(∂(d));f]
 
 
 
-
 ## Periodic
 f=LowRankFun((x,y)->cos(x)*sin(y),PeriodicInterval(),PeriodicInterval())
 @test_approx_eq f[.1,.2] cos(.1)*sin(.2)
@@ -204,5 +203,4 @@ d=Interval(0,1)^2
     f=[Fun([zeros(k-1);1.0],∂d) for k=1:80].'
     U=A\f
     @test_approx_eq dot(real(g.coefficients),U[1:length(g)])[.1,.2] real(exp(.1+.2im))
-    
-    
+
