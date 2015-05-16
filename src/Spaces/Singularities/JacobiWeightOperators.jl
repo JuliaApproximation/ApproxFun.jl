@@ -230,7 +230,7 @@ function Conversion(A::JacobiWeight,B::JacobiWeight)
         M=tocanonical(d,x)
         C=Conversion(A.space,B.space)
         m=(1+M).^round(Int,A.α-B.α).*(1-M).^round(Int,A.β-B.β)
-        MC=Multiplication(m,B.space)*C
+        MC=TimesOperator(Multiplication(m,B.space),C)
         # The following is just a safety check
         @assert rangespace(MC) == B.space
         SpaceOperator(MC,A,B)

@@ -88,7 +88,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 
 
         function promotedomainspace{S<:FunctionSpace}(D::$AbstOp,sp::S)
-            if domain(sp) == AnyDomain()
+            if isambiguous(domain(sp))
                 $Op(S(domain(D)),D.order)
             else
                 $Op(sp,D.order)
@@ -116,11 +116,14 @@ abstract AbstractDerivative{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 abstract AbstractIntegral{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 @calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
 
+for (ATYP,TYP) in ((:AbstractDerivative,:Derivative),(:AbstractIntegral,:Integral))
+    @eval begin
+        function *(D1::$ATYP,D2::$ATYP)
+            @assert domain(D1) == domain(D2)
 
-function *(D1::AbstractDerivative,D2::AbstractDerivative)
-    @assert domain(D1) == domain(D2)
-
-    Derivative(domainspace(D2),D1.order+D2.order)
+            Derivative(domainspace(D2),D1.order+D2.order)
+        end
+    end
 end
 
 

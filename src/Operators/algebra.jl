@@ -363,7 +363,8 @@ end
 -(A::Operator)=ConstantTimesOperator(-1,A)
 -(A::Operator,B::Operator)=A+(-B)
 
-*(f::Fun,A::Operator)=Multiplication(f)*A
+*(f::Fun,A::BandedOperator)=TimesOperator(Multiplication(f,rangespace(A)),A)
+*(f::Fun,A::Functional)=TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
 
 for OP in (:*,:.*)
     @eval begin

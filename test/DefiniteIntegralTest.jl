@@ -35,7 +35,6 @@ B=ldirichlet(d)
 
 K=LowRankFun((x,y)->sin(y-x)*w[y],Ultraspherical{1}(d),domainspace(Σ))
 
-
 L=D+x+Σ[K]
 usol=cospi(20x)
 f=L*usol

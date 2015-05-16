@@ -207,7 +207,7 @@ end
 
 # TODO: include in addentries! to speed up
 Integral(sp::Chebyshev,m::Integer)=IntegralWrapper(
-    Integral(Ultraspherical{m}(domain(sp)),m)*Conversion(sp,Ultraspherical{m}(domain(sp))),m)
+    TimesOperator([Integral(Ultraspherical{m}(domain(sp)),m),Conversion(sp,Ultraspherical{m}(domain(sp)))]),m)
 
 rangespace{λ}(D::Integral{Ultraspherical{λ}})=Ultraspherical{λ-D.order}(domain(D))
 
