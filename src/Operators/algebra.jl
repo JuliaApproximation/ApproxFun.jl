@@ -248,35 +248,35 @@ Base.convert{OT<:Operator}(::Type{OT},P::TimesOperator)=TimesOperator(BandedOper
 
 
 
-function promotetimes{B<:BandedOperator}(opsin::Vector{B})
+function promotetimes{B<:BandedOperator}(opsin::Vector{B},dsp)
     ops=Array(BandedOperator{mapreduce(eltype,promote_type,opsin)},0)
 
     for k=length(opsin):-1:1
         if !isa(opsin[k],AbstractConversion)
-            if isempty(ops)
-                op=opsin[k]
-            else
-                op=promotedomainspace(opsin[k],rangespace(last(ops)))
-            end
+            op=promotedomainspace(opsin[k],dsp)
             if op==()
                 # do nothing
             elseif isa(op,TimesOperator)
                 for j=length(op.ops):-1:1
                     push!(ops,op.ops[j])
                 end
+                dsp=rangespace(op)
             else
                 push!(ops,op)
+                dsp=rangespace(op)
             end
         end
     end
     if isempty(ops)
-        ConstantOperator(1.0)
+        SpaceOperator(ConstantOperator(1.0),dsp,dsp)
     elseif length(ops)==1
         first(ops)
     else
         TimesOperator(reverse!(ops))  # change order in TImesOperator if this is slow
     end
 end
+
+promotetimes{B<:BandedOperator}(opsin::Vector{B})=promotetimes(opsin,domainspace(last(opsin)))
 
 
 

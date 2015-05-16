@@ -63,4 +63,5 @@ for func in (:rangespace,:domainspace,:bandinds,:(Base.stride))
 end
 
 
-
+#TODO: decide
+#promotedomainspace(P::Conversion,sp::FunctionSpace)=SpaceOperator(ConstantOperator(one(eltype(P))),sp,sp)

@@ -2,7 +2,7 @@ using ApproxFun,Base.Test
 import ApproxFun.Multiplication
 
 
-##Airy equation 
+##Airy equation
 
 
 d=Interval(-10.,5.);
@@ -31,10 +31,10 @@ u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
 
 
 B=neumann(d);
-A=[B;D2-X];                
-b=[airyaiprime(d.a),airyaiprime(d.b),0.];   
-    
-u=A\b;                     
+A=[B;D2-X];
+b=[airyaiprime(d.a),airyaiprime(d.b),0.];
+
+u=A\b;
 
 @test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
 
