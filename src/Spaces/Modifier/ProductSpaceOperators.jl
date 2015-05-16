@@ -29,7 +29,7 @@ end
 
 function Conversion(f::PiecewiseSpace,g::PiecewiseSpace)
     @assert length(f)==length(g)
-    ConversionWrapper(DiagonalPiecewiseOperator([Conversion(f[k],g[k]) for k=1:length(f)]))
+    ConversionWrapper(DiagonalPiecewiseOperator(BandedOperator{Float64}[Conversion(f[k],g[k]) for k=1:length(f)]))
 end
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)

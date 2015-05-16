@@ -52,7 +52,7 @@ end
 
 ConversionWrapper(T::Type,B::BandedOperator)=ConversionWrapper{typeof(B),T}(B)
 ConversionWrapper(B::BandedOperator)=ConversionWrapper(eltype(B),B)
-Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=ConversionWrapper(Conversion(B,C)*Conversion(A,B))
+Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=ConversionWrapper(TimesOperator(Conversion(B,C),Conversion(A,B)))
 
 Base.convert{S,T}(::Type{ConversionWrapper{S,T}},D::ConversionWrapper)=ConversionWrapper{S,T}(convert(S,D.op))
 Base.convert{BT<:Operator}(::Type{BT},D::ConversionWrapper)=ConversionWrapper(eltype(BT),convert(BandedOperator{eltype(BT)},D.op))

@@ -70,6 +70,7 @@ S=ContinuousSpace(d)
 D=Derivative(S)
 u=[ldirichlet(S),D-I]\[exp(1.)]
 
+
 @test_approx_eq u[1.1] exp(1.1)
 @test_approx_eq u[3.4] exp(3.4)
 @test_approx_eq last(u) exp(4)
