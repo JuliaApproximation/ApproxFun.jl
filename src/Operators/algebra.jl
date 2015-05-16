@@ -125,7 +125,7 @@ end
 for OP in (:+,:-,:(.+),:(.-))
     @eval begin
         $OP(c::Union(UniformScaling,Number),A::Operator)=$OP(convert(Operator{mat_promote_type(eltype(A),eltype(c))},c),A)
-        $OP(A::Operator,c::Union(UniformScaling,Number))=$OP(A,convert(Operator{mat_promote_type(eltype(A),eltype(c))},c))          
+        $OP(A::Operator,c::Union(UniformScaling,Number))=$OP(A,convert(Operator{mat_promote_type(eltype(A),eltype(c))},c))
     end
 end
 
@@ -251,22 +251,31 @@ Base.convert{OT<:Operator}(::Type{OT},P::TimesOperator)=TimesOperator(BandedOper
 function promotetimes{B<:BandedOperator}(opsin::Vector{B})
     ops=Array(BandedOperator{mapreduce(eltype,promote_type,opsin)},0)
 
-    push!(ops,opsin[end])
-    for k=length(opsin)-1:-1:1
-        op=promotedomainspace(opsin[k],rangespace(last(ops)))
-        if op==()
-            # do nothing
-        elseif isa(op,TimesOperator)
-            for j=length(op.ops):-1:1
-                push!(ops,op.ops[j])
+    for k=length(opsin):-1:1
+        if !isa(opsin[k],AbstractConversion)
+            if isempty(ops)
+                op=opsin[k]
+            else
+                op=promotedomainspace(opsin[k],rangespace(last(ops)))
             end
-        else
-            push!(ops,op)
+            if op==()
+                # do nothing
+            elseif isa(op,TimesOperator)
+                for j=length(op.ops):-1:1
+                    push!(ops,op.ops[j])
+                end
+            else
+                push!(ops,op)
+            end
         end
-#        end
     end
-
-    TimesOperator(reverse!(ops))  # change order in TImesOperator if this is slow
+    if isempty(ops)
+        ConstantOperator(1.0)
+    elseif length(ops)==1
+        first(ops)
+    else
+        TimesOperator(reverse!(ops))  # change order in TImesOperator if this is slow
+    end
 end
 
 
@@ -452,7 +461,7 @@ for T in (:AnySpace,:FunctionSpace)
             elseif length(P.ops)==2
                 P.ops[1]*promotedomainspace(P.ops[end],sp)
             else
-                TimesOperator(P.ops[1:end-1])*promotedomainspace(P.ops[end],sp)
+                promotetimes([P.ops[1:end-1];promotedomainspace(P.ops[end],sp)])
             end
         end
     end

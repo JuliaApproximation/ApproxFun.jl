@@ -91,6 +91,12 @@ end
 Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
 Base.last(d::PeriodicDomain)=fromcanonical(d,π)
 
+
+immutable AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
+isambiguous(::AnyPeriodicDomain)=true
+
+Base.convert{D<:PeriodicDomain}(::Type{D},::AnyDomain)=AnyPeriodicDomain()
+
 ## conveninece routines
 
 Base.ones(d::Domain)=ones(eltype(d),Space(d))

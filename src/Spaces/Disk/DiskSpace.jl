@@ -161,8 +161,7 @@ neumann(d::Disk)=Neumann(Space(d))
 
 
 
-function rangespace{JS,S}(L::Laplacian{DiskSpace{0,0,0,JS,S}})
-    @assert L.order==1
+function rangespace{m,a,b,JS,S}(L::Laplacian{DiskSpace{m,a,b,JS,S}})
     sp=domainspace(L)
-    DiskSpace(-2,2,2,sp.domain,sp.spacet)
+    DiskSpace(m-2L.order,a+2L.order,b+2L.order,sp.domain,sp.spacet)
 end
