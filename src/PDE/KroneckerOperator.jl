@@ -111,7 +111,7 @@ iskronop{V,T<:AbstractArray}(::ConstantOperator{V,T})=true
 dekron(K::KroneckerOperator,k)=K.ops[k]
 
 dekron(S::ConversionWrapper,k)=dekron(S.op,k)
-dekron(S::TimesOperator,k)=*(map(op->dekron(op,k),S.ops)...)
+dekron(S::TimesOperator,k)=TimesOperator(map(op->dekron(op,k),S.ops))
 dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 #TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)

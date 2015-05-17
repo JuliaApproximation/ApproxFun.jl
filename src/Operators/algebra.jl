@@ -226,9 +226,26 @@ immutable TimesOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
 
     function TimesOperator(ops::Vector{BandedOperator{T}})
+        hastimes=false
         for k=1:length(ops)-1
             @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() || domainspace(ops[k])==rangespace(ops[k+1])
+            hastimes=hastimes||isa(ops[k],TimesOperator)
         end
+
+        if hastimes
+            newops=Array(BandedOperator{T},0)
+            for op in ops
+               if isa(op,TimesOperator)
+                    for op2 in op.ops
+                        push!(newops,op2)
+                    end
+                else
+                    push!(newops,op)
+                end
+            end
+            ops=newops
+        end
+
 
         new(ops)
     end
