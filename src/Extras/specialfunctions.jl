@@ -172,7 +172,7 @@ end
 function .^(f::Fun{Chebyshev},k::Float64)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
-    fc = Fun(f.coefficients) #Project to interval
+    fc = Fun(f.coefficients,Chebyshev()) #Project to interval
 
     r = sort(roots(fc))
     @assert length(r) <= 2

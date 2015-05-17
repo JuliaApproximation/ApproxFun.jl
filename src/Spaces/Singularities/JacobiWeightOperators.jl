@@ -152,8 +152,6 @@ end
 
 #Left multiplication. Here, S is considered the domainspace and we determine rangespace accordingly.
 
-Multiplication{D<:JacobiWeight,T,SS}(f::Fun{D,T},S::ReImSpace{SS,RealBasis})=error("Implement")
-
 function Multiplication{D<:JacobiWeight,T}(f::Fun{D,T},S::JacobiWeight)
     M=Multiplication(Fun(f.coefficients,space(f).space),S.space)
     rsp=canonicalspace(JacobiWeight(space(f).α+S.α,space(f).β+S.β,rangespace(M)))

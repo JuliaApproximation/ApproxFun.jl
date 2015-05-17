@@ -4,7 +4,7 @@ gc_disable()
 
 c = rand(1000)
 x=rand(10000)
-f=Fun(c)
+f=Fun(c,Chebyshev)
 y=f[x]
 y=f[x]
 

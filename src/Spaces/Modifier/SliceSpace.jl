@@ -54,12 +54,9 @@ end
 
 
 ## Resolve conflict
-for TYP in (:ReImSpace,:ReSpace,:ImSpace,:SumSpace)
-    @eval begin
-        coefficients(::Vector,sp::$TYP,slp::SliceSpace)=error("coefficients not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
-        coefficients(::Vector,sp::SliceSpace,slp::$TYP)=error("coefficients not implemented from "*typeof(sp)*" to "*typeof(slp))
-    end
-end
+
+coefficients(::Vector,sp::SumSpace,slp::SliceSpace)=error("coefficients not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
+coefficients(::Vector,sp::SliceSpace,slp::SumSpace)=error("coefficients not implemented from "*typeof(sp)*" to "*typeof(slp))
 
 # v[k]=v[stride*k+index]
 function coefficients(v::Vector,sp::SliceSpace,dropsp::SliceSpace)

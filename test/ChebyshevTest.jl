@@ -115,6 +115,6 @@ f=Fun(x->cos(50acos(x)))
 @test_approx_eq Fun(x->2)[.1] 2
 
 
-@test_approx_eq Fun(Float64[])[[0.,1.]] [0.,0.]
-@test_approx_eq Fun([])[0.] 0.
+@test_approx_eq Fun(Float64[],Chebyshev)[[0.,1.]] [0.,0.]
+@test_approx_eq Fun([],Chebyshev)[0.] 0.
 @test_approx_eq Fun(x->[1.,0.])[0.] [1.,0.]

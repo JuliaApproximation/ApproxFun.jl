@@ -1,4 +1,7 @@
 
+## Splits real and imaginary parts
+
+
 for TYP in (:ReSpace,:ImSpace,:ReImSpace)
     @eval begin
         immutable $TYP{S,T,d}<: FunctionSpace{T,d}
@@ -27,9 +30,15 @@ for TYP in (:ReSpace,:ImSpace,:ReImSpace)
 end
 
 ## compat
-coefficients(f::Vector,a::ReSpace,b::SumSpace)=error("Implement")
-coefficients(f::Vector,a::ImSpace,b::SumSpace)=error("Implement")
-coefficients(f::Vector,a::ReImSpace,b::SumSpace)=error("Implement")
+
+## Resolve conflict
+for TYP in (:ReImSpace,:ReSpace,:ImSpace)
+    for V in (:SliceSpace,:SumSpace)
+        @eval coefficients(::Vector,sp::$TYP,slp::$V)=error("coefficients not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
+    end
+    @eval coefficients(::Vector,sp::SliceSpace,slp::$TYP)=error("coefficients not implemented from "*typeof(sp)*" to "*typeof(slp))
+end
+
 
 coefficients(f::Vector,a::ImSpace,b::ReSpace)=zeros(f)
 coefficients(f::Vector,a::ReSpace,b::ImSpace)=zeros(f)
@@ -160,7 +169,7 @@ function addentries!(RI::ReImOperator,A,kr::UnitRange)
 end
 
 
-
+Multiplication{D<:UnivariateSpace,T,S,V}(f::Fun{D,T},sp::ReImSpace{S,V,2})=MultiplicationWrapper(f,ReImOperator(Multiplication(f,sp.space)))
 Multiplication{D,T}(f::Fun{D,T},sp::ReImSpace)=MultiplicationWrapper(f,ReImOperator(Multiplication(f,sp.space)))
 
 
@@ -207,3 +216,94 @@ Base.imag(F::Functional)=ImFunctional(F)
 #     T[isodd(k)?res[div(k+1,2)-first(kr1)+1]:im*res[div(k+1,2)-first(kr1)+1] for k=kr]
 # end
 
+
+
+
+
+## LaurentOperator
+
+## Real/Imag
+
+for TYP in (:RealOperator,:ImagOperator)
+    @eval begin
+        rangespace{T}(R::$TYP{ReImSpace{Taylor,T}})=Fourier(domain(R))
+    end
+end
+
+bandinds{T}(::RealOperator{ReImSpace{Taylor,T}})=0,2
+bandinds{T}(::ImagOperator{ReImSpace{Taylor,T}})=0,1
+
+
+## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
+function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A,kr::Range)
+    for k=kr
+        if isodd(k)         # real part
+            A[k,k]+=1
+        elseif iseven(k)    # imag part
+            A[k,k+2]+=-1
+        end
+    end
+    A
+end
+
+## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
+function addentries!{T}(R::ImagOperator{ReImSpace{Taylor,T}},A,kr::Range)
+    for k=kr
+        A[k,k+1]+=1
+    end
+    A
+end
+
+# Neg
+
+# spaces lose zeroth coefficient
+for TYP in (:RealOperator,:ImagOperator)
+    @eval begin
+        rangespace{T}(R::$TYP{ReImSpace{Hardy{false},T}})=SliceSpace(Fourier(domain(R)),1)
+    end
+end
+
+
+bandinds{T}(::RealOperator{ReImSpace{Hardy{false},T}})=-1,1
+bandinds{T}(::ImagOperator{ReImSpace{Hardy{false},T}})=0,0
+
+
+## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
+function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
+    for k=kr
+        if isodd(k)    # imag part
+            A[k,k+1]+=1
+        elseif iseven(k)         # real part
+            A[k,k-1]+=1
+        end
+    end
+    A
+end
+
+## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
+function addentries!{T}(R::ImagOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
+    for k=kr
+        A[k,k]+=isodd(k)?-1:1
+    end
+    A
+end
+
+
+# spaces lose zeroth coefficient
+for TYP in (:RealOperator,:ImagOperator)
+    @eval begin
+        rangespace{T}(R::$TYP{ReImSpace{Laurent,T}})=Fourier(domain(R))
+    end
+end
+
+bandinds{T}(::RealOperator{ReImSpace{Laurent,T}})=0,2
+function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A,kr::Range)
+    for k=kr
+        if isodd(k)    # real part
+            A[k,k]+=1
+        elseif iseven(k)         # odd part
+            A[k,k+2]+=iseven(div(k,2))?-1:1
+        end
+    end
+    A
+end
