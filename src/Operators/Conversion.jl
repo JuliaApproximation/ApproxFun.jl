@@ -19,7 +19,7 @@ rangespace(C::Conversion)=C.rangespace
 
 function Conversion(a::FunctionSpace,b::FunctionSpace)
     if a==b
-        IdentityOperator()
+        eye(a)
     elseif conversion_type(a,b)==NoSpace()
         sp=canonicalspace(a)
         if typeof(sp) == typeof(a)

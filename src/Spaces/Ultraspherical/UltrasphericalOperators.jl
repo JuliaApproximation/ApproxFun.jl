@@ -240,9 +240,11 @@ end
 
 
 function Conversion{a,b}(A::Ultraspherical{a},B::Ultraspherical{b})
-    @assert b > a
+    @assert b >= a
 
-    if b==a+1
+    if b==a
+        eye(A)
+    elseif b==a+1
         Conversion{Ultraspherical{a},Ultraspherical{b},promote_type(Float64,real(eltype(domain(A))),real(eltype(domain(B))))}(A,B)
     else
         d=domain(A)

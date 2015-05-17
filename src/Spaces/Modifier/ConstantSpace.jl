@@ -6,7 +6,7 @@ domain(::ConstantSpace)=AnyDomain()
 canonicalspace(C::ConstantSpace)=C
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
 
-
+Base.ones(S::ConstantSpace)=Fun(ones(1),S)
 evaluate(f::Fun{ConstantSpace},x...)=f.coefficients[1]
 
 
