@@ -70,9 +70,9 @@ domain(P::PDEOperatorKron)=domain(domainspace(P))
 function PDEOperatorKron(A,nx::Integer,ny::Integer)
     L=A[end]
     indsBx,Bx=findfunctionals(A,1)
-    Ax=ReducedDiscreteOperators(Bx,map(op->op.ops[1],L.ops),nx)
+    Ax=ReducedDiscreteOperators(Bx,map(op->dekron(op,1),L.ops),nx)
     indsBy,By=findfunctionals(A,2)
-    Ay=ReducedDiscreteOperators(By,map(op->op.ops[2],L.ops),ny)
+    Ay=ReducedDiscreteOperators(By,map(op->dekron(op,2),L.ops),ny)
     PDEOperatorKron(L,Ax,Ay,indsBx,indsBy,kron(Ax,Ay))
 end
 

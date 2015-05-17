@@ -34,7 +34,7 @@ SpaceOperator(o::Operator,s::FunctionSpace,rs::FunctionSpace)=SpaceOperator{elty
                                                                             typeof(rs)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 
-Base.convert{T}(::Type{BandedOperator{T}},S::SpaceOperator)=SpaceOperator(convert(BandedOperator{T},S.op),S.domainspace,S.rangespace)
+Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)=SpaceOperator(convert(BandedOperator{eltype(OT)},S.op),S.domainspace,S.rangespace)
 
 domain(S::SpaceOperator)=domain(domainspace(S))
 

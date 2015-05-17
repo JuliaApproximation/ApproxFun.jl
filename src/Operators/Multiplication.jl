@@ -77,12 +77,12 @@ choosedomainspace{D}(M::Multiplication{D,UnsetSpace},sp)=sp  # we assume multipl
 
 Base.diagm(a::Fun)=Multiplication(a)
 
-immutable MultiplicationWrapper{D<:FunctionSpace,O<:BandedOperator,V<:Number,T<:Number} <: AbstractMultiplication{T}
+immutable MultiplicationWrapper{D<:FunctionSpace,O<:BandedOperator,V,T} <: AbstractMultiplication{T}
     f::Fun{D,V}
     op::O
 end
 
-MultiplicationWrapper{D<:FunctionSpace,V<:Number,T<:Number}(f::Fun{D,V},op::BandedOperator{T})=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
+MultiplicationWrapper{D<:FunctionSpace,V,T}(f::Fun{D,V},op::BandedOperator{T})=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
 
 addentries!(D::MultiplicationWrapper,A,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))

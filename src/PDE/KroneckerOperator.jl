@@ -94,8 +94,6 @@ KroneckerOperator(A,B::Fun)=KroneckerOperator(A,Multiplication(B))
 KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 
 
-Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
-
 # productop is a product of two operator
 
 isproductop(a)=iskronop(a)  # all kron ops are product ops
@@ -321,7 +319,7 @@ end
 ## Shorthand
 
 
-⊗(A,B)=KroneckerOperator(A,B)
+⊗(A,B)=kron(A,B)
 ⊗(A::Vector,B::Vector)=error("Not implemented")
 ⊗(A::Vector,B)=map(a->a⊗B,A)
 ⊗(A,B::Vector)=map(b->A⊗b,B)
@@ -388,6 +386,19 @@ function Conversion(a::BivariateSpace,b::BivariateSpace)
         Conversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
     end
 end
+
+
+
+Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{ConstantSpace,V}),T,d}},sp::TensorSpace)
+    a=Fun(totensor(cfs)[1,:],space(f)[2])
+    MultiplicationWrapper(f,eye(sp[1])⊗Multiplication(a,sp[2]))
+end
+function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{V,ConstantSpace}),T,d}},sp::TensorSpace)
+    a=Fun(totensor(cfs)[:,1],space(f)[1])
+    MultiplicationWrapper(f,Multiplication(a,sp[1])⊗eye(sp[2]))
+end
+Multiplication{D<:UnivariateSpace,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication(f⊗1,sp)
 
 
 

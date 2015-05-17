@@ -2,6 +2,8 @@ immutable ConstantSpace <: UnivariateSpace{RealBasis} end
 
 ConstantSpace(::AnyDomain)=ConstantSpace()
 
+Fun(c::Number)=Fun([c],ConstantSpace())
+
 domain(::ConstantSpace)=AnyDomain()
 canonicalspace(C::ConstantSpace)=C
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
