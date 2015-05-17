@@ -103,8 +103,19 @@ for OP in (:plot,:layer)
         end
 
         function $OP{F<:Fun}(f::Vector{F};opts...)
-            for k=1:length(f)
-                $OP(f[k];opts...)
+            if plotter[:plot]=="PyPlot"
+                for k=1:length(f)
+                    $OP(f[k];opts...)
+                end
+            else
+                n=3mapreduce(length,max,f)+50
+                m=length(f)
+                X,Y=Array(Float64,n,m),Array(Float64,n,m)
+                for k=1:length(f)
+                    X[:,k]=points(space(f[k]),n)
+                    Y[:,k]=values(pad(f[k],n))
+                end
+                plot(X,Y;opts...)
             end
         end
 

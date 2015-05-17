@@ -138,7 +138,7 @@ for op = (:+,:-)
                 n = max(length(f),length(g))
                 f2 = pad(f,n); g2 = pad(g,n)
 
-                Fun(($op)(f2.coefficients,g2.coefficients),domain(f)!=AnyDomain()?f.space:g.space)
+                Fun(($op)(f2.coefficients,g2.coefficients),isambiguous(domain(f))?g.space:f.space)
             else
                 m=union(f.space,g.space)
                 if isa(m,NoSpace)
