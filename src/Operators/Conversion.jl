@@ -9,7 +9,7 @@ end
 # Conversion{S<:PeriodicFunctionSpace,V<:PeriodicFunctionSpace}(A::S,B::V)=Conversion{S,V,Complex{Float64}}(A,B)
 # Conversion{S<:IntervalFunctionSpace,V<:IntervalFunctionSpace}(A::S,B::V)=Conversion{S,V,Float64}(A,B)
 
-Base.convert{T,S,V}(::Type{BandedOperator{T}},C::Conversion{S,V})=Conversion{S,V,T}(C.domainspace,C.rangespace)
+Base.convert{OT<:Operator,S,V}(::Type{OT},C::Conversion{S,V})=Conversion{S,V,eltype(OT)}(C.domainspace,C.rangespace)
 
 domainspace(C::Conversion)=C.domainspace
 rangespace(C::Conversion)=C.rangespace

@@ -102,7 +102,8 @@ isproductop(a)=iskronop(a)  # all kron ops are product ops
 iskronop(::)=false
 iskronop(::KroneckerOperator)=true
 
-iskronop(A::Union(SpaceOperator,ConstantTimesOperator,ConversionWrapper))=iskronop(A.op)
+iskronop(A::Union(SpaceOperator,ConstantTimesOperator,ConversionWrapper,
+                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper))=iskronop(A.op)
 iskronop(A::TimesOperator)=all(iskronop,A.ops)
 iskronop{V,T<:AbstractArray}(::ConstantOperator{V,T})=true
 
@@ -110,7 +111,7 @@ iskronop{V,T<:AbstractArray}(::ConstantOperator{V,T})=true
 
 dekron(K::KroneckerOperator,k)=K.ops[k]
 
-dekron(S::ConversionWrapper,k)=dekron(S.op,k)
+dekron(S::Union(ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper),k)=dekron(S.op,k)
 dekron(S::TimesOperator,k)=TimesOperator(map(op->dekron(op,k),S.ops))
 dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 #TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
