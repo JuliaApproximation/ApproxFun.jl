@@ -197,12 +197,12 @@ f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
 
 
 d=Interval(0,1)^2
-    A=discretize([dirichlet(d);lap(d)],20)
-    ∂d=∂(d)
-    g=Fun(z->real(exp(z)),∂d)
-    f=[Fun([zeros(k-1);1.0],∂d) for k=1:80].'
-    U=A\f
-    @test_approx_eq dot(real(g.coefficients),U[1:length(g)])[.1,.2] real(exp(.1+.2im))
+A=discretize([dirichlet(d);lap(d)],20)
+∂d=∂(d)
+g=Fun(z->real(exp(z)),∂d)
+f=[Fun([zeros(k-1);1.0],∂d) for k=1:80].'
+U=A\f
+@test_approx_eq dot(real(g.coefficients),U[1:length(g)])[.1,.2] real(exp(.1+.2im))
 
 
 
@@ -233,6 +233,10 @@ if OS_NAME == :Darwin
     # Screened Poisson
     u=[neumann(d),lap(d)-100.0I]\1.0
     @test_approx_eq u[.1,.9] 0.04313812031635443
+
+    # Lap^2
+    u=[dirichlet(d),neumann(d),lap(d)^2]\Fun(z->real(exp(z)),Circle())
+    @test_approx_eq u[.1,.2] 1.1137317420521624
 end
 
 
