@@ -1,7 +1,7 @@
 
 
 export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,∂
-export chebyshevpoints,fourierpoints
+export chebyshevpoints,fourierpoints,isambiguous
 
 
 # T is the numeric type used to represent the domain
