@@ -38,6 +38,7 @@ end
 
 function givensmatrix(a::Number,b::Number)
     if abs(b) < 10eps()
+        #Warning: This is inconsistent for the case where a is negative
         return one(a),zero(b),zero(b),one(a)
     end
 
@@ -69,11 +70,9 @@ end
 function givensreduce!{T,M,R}(B::AlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
     ca,cb,mb,a=givensreduceab!(B,k1,k2,j1)
 
-    if norm(cb,Inf) >= 10eps()
-        @simd for j=1:size(v,2)
-            #@inbounds
-            v[k1,j],v[k2,j] = ca*v[k1,j] + cb*v[k2,j],mb*v[k1,j] + a*v[k2,j]
-        end
+    @simd for j=1:size(v,2)
+        #@inbounds
+        v[k1,j],v[k2,j] = ca*v[k1,j] + cb*v[k2,j],mb*v[k1,j] + a*v[k2,j]
     end
 
     B

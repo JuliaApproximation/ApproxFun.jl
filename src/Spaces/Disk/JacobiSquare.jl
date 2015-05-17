@@ -102,10 +102,10 @@ function Derivative(S::JacobiSquare)
 
       if m==0
       # we have D[ f(r^2)] = 2r f'(r^2) = 2 r^(-1)*r^2 f'(r^2)
-         DerivativeWrapper(SpaceOperator(M*D,S,JacobiSquare(-1,a+1,b+1,d)),1)
+         DerivativeWrapper(SpaceOperator(TimesOperator(M,D),S,JacobiSquare(-1,a+1,b+1,d)),1)
       else
      # we have D[r^m f(r^2)] = r^{m-1} (m f(r^2) + 2r^2 f'(r^2))
-        DerivativeWrapper(SpaceOperator(m+M*D,S,JacobiSquare(m-1,a+1,b+1,d)),1)
+        DerivativeWrapper(SpaceOperator(m+TimesOperator(M,D),S,JacobiSquare(m-1,a+1,b+1,d)),1)
     end
 end
 
@@ -135,7 +135,7 @@ function Conversion(A::JacobiSquare,B::JacobiSquare)
         @assert A.m > B.m && iseven(A.m-B.m)
         r=Fun(identity,domain(B))
         M=Multiplication(r.^div(A.m-B.m,2),jacobispace(B)) #this is multiplication by r^(2*p)
-        ConversionWrapper(SpaceOperator(M*Conversion(jacobispace(A),jacobispace(B)),A,B))
+        ConversionWrapper(SpaceOperator(TimesOperator(M,Conversion(jacobispace(A),jacobispace(B))),A,B))
     end
 end
 

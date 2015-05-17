@@ -173,7 +173,7 @@ function Base.getindex(B::AlmostBandedOperator,k::Integer,j::Integer)
     elseif k <= B.datalength && j > ir[end]
         B.fill[k,j]
     else
-        B.op[k,j]##TODO: Slow
+        B.op[k-nbc,j]##TODO: Slow
     end
 end
 

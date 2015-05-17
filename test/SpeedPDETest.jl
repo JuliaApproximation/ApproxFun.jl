@@ -31,6 +31,8 @@ u=S\ones(4)
 @time u=S\ones(4)
 println("Neumann Helmholtz: should be ~0.016, 0.016")
 
+
+# This disables this test since it depends on some lib
 if OS_NAME == :Darwin
     d = Disk()
     f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d)

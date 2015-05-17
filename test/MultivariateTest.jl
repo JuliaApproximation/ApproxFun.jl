@@ -204,3 +204,35 @@ d=Interval(0,1)^2
     U=A\f
     @test_approx_eq dot(real(g.coefficients),U[1:length(g)])[.1,.2] real(exp(.1+.2im))
 
+
+
+
+## Disk
+
+# This disables this test since it depends on some lib
+if OS_NAME == :Darwin
+    # Laplace
+    d=Disk()
+    u=[dirichlet(d),lap(d)]\Fun(z->real(exp(z)),Circle())
+    @test_approx_eq u[.1,.2] real(exp(.1+.2im))
+
+    # remaining numbers determined numerically, may be
+    # inaccurate
+
+    # Poisson
+    f=Fun((x,y)->exp(-10(x+.2).^2-20(y-.1).^2),d)
+    u=[dirichlet(d),lap(d)]\[0.,f]
+    @test_approx_eq u[.1,.2] -0.039860694986014196
+
+    #Helmholtz
+    u=[dirichlet(d),lap(d)+100I]\1.0
+    @test_approx_eq u[.1,.2] -0.3675973169667076
+    u=[neumann(d),lap(d)+100I]\1.0
+    @test_approx_eq u[.1,.2] -0.20795862954551195
+
+    # Screened Poisson
+    u=[neumann(d),lap(d)-100.0I]\1.0
+    @test_approx_eq u[.1,.9] 0.04313812031635443
+end
+
+
