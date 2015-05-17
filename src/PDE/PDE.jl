@@ -16,7 +16,7 @@ function lap(d::Union(ProductDomain,TensorSpace))
     Dx^2⊗I+I⊗Dy^2
 end
 
-Derivative(d::Union(ProductDomain,TensorSpace),k::Integer)=k==1?Derivative(d[1])⊗I:I⊗Derivative(d[2])
+Derivative(d::Union(ProductDomain,TensorSpace),k::Integer)=k==1?Derivative(d[1])⊗eye(d[2]):eye(d[1])⊗Derivative(d[2])
 
 grad(d::ProductDomain)=[Derivative(d,k) for k=1:length(d.domains)]
 

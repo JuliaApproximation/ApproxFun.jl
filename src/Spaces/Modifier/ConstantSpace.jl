@@ -1,7 +1,15 @@
 immutable ConstantSpace <: UnivariateSpace{RealBasis} end
+
+ConstantSpace(::AnyDomain)=ConstantSpace()
+
 domain(::ConstantSpace)=AnyDomain()
 canonicalspace(C::ConstantSpace)=C
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
+
+
+evaluate(f::Fun{ConstantSpace},x...)=f.coefficients[1]
+
+
 
 promoterangespace(P::Functional,::ConstantSpace,::ConstantSpace)=P # functionals always map to vector space
 

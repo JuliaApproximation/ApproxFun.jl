@@ -103,3 +103,7 @@ Base.sum{TS<:TensorSpace}(f::Fun{TS},k::Integer)=sum(ProductFun(f),k)
 Base.sum{TS<:TensorSpace}(f::Fun{TS})=sum(ProductFun(f))
 
 
+## kron
+
+Base.kron(f::Fun,g::Fun)=Fun(LowRankFun([f],[g]))
+⊗(f::Fun,g::Fun)=kron(f,g)

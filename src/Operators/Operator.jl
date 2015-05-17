@@ -248,6 +248,10 @@ Base.zero{O<:Functional}(::Type{O})=ZeroFunctional()
 Base.zero{O<:Operator}(::Type{O})=ZeroOperator()
 
 
+Base.eye(S::FunctionSpace)=SpaceOperator(ConstantOperator(1.0),S,S)
+Base.eye(S::Domain)=eye(Space(S))
+
+
 # TODO: can convert return different type?
 
 

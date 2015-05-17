@@ -94,6 +94,8 @@ KroneckerOperator(A,B::Fun)=KroneckerOperator(A,Multiplication(B))
 KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 
 
+Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+
 # productop is a product of two operator
 
 isproductop(a)=iskronop(a)  # all kron ops are product ops

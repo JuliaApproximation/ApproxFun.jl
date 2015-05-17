@@ -9,12 +9,15 @@ immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
     spaces::SV
 end
 
+TensorSpace(sp::Tuple)=TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),mapreduce(ndims,+,sp)}(sp)
+
 for OP in (:spacescompatible,:(==))
     @eval $OP{SV,T,d}(A::TensorSpace{SV,T,d},B::TensorSpace{SV,T,d})=all(Bool[$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
 end
 
+canonicalspace(T::TensorSpace)=TensorSpace(map(canonicalspace,T.spaces))
 
-TensorSpace(sp::Tuple)=TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),mapreduce(ndims,+,sp)}(sp)
+
 
 
 coefficient_type(S::TensorSpace,T)=mapreduce(sp->coefficient_type(sp,T),promote_type,S.spaces)

@@ -68,6 +68,8 @@ Base.ndims{S,d}(::FunctionSpace{S,d})=d
 
 
 
+
+
 abstract AmbiguousSpace <: FunctionSpace{RealBasis,1}
 
 domain(::AmbiguousSpace)=AnyDomain()
@@ -89,6 +91,10 @@ isambiguous(::AmbiguousSpace)=true
 
 #TODO: should it default to canonicalspace?
 points(d::FunctionSpace,n)=points(domain(d),n)
+
+
+
+canonicalspace(T::Union(AnySpace,UnsetSpace,NoSpace,ZeroSpace))=T
 
 
 ##Check domain compatibility

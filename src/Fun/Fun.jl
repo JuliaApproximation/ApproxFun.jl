@@ -73,7 +73,7 @@ canonicaldomain(f::Fun)=canonicaldomain(domain(f))
 
 ##Evaluation
 
-function evaluate{S,T}(f::Fun{S,T},x...)
+function evaluate(f::Fun,x...)
     csp=canonicalspace(f)
     if spacescompatible(csp,space(f))
         error("Override evaluate for " * string(typeof(csp)))
@@ -81,6 +81,7 @@ function evaluate{S,T}(f::Fun{S,T},x...)
         evaluate(Fun(f,csp),x...)
     end
 end
+
 
 Base.getindex(f::Fun,x...)=evaluate(f,x...)
 
