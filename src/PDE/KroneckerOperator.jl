@@ -396,7 +396,11 @@ function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{ConstantSpace,V}),
     MultiplicationWrapper(f,eye(sp[1])⊗Multiplication(a,sp[2]))
 end
 function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{V,ConstantSpace}),T,2}},sp::TensorSpace)
-    a=Fun(totensor(f.coefficients)[:,1],space(f)[1])
+    if isempty(f.coefficients)
+        a=Fun(zeros(eltype(f),1),space(f)[1])
+    else
+        a=Fun(totensor(f.coefficients)[:,1],space(f)[1])
+    end
     MultiplicationWrapper(f,Multiplication(a,sp[1])⊗eye(sp[2]))
 end
 Multiplication{D<:UnivariateSpace,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication(f⊗1,sp)
