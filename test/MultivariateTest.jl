@@ -240,3 +240,26 @@ if OS_NAME == :Darwin
 end
 
 
+
+
+## Small diffusoion
+
+dx=Interval();dt=Interval(0,1.)
+d=dx*dt
+Dx=diff(d,1);Dt=diff(d,2)
+x=Fun(identity,dx)
+B=0.0
+C=0.0
+V=B+C*x
+ε=0.001
+f=Fun(x->exp(-20x^2),dx)
+u=[timedirichlet(d),Dt-(ε*Dx^2+V*Dx)]\f
+
+@test_approx_eq u[.1,.2] 0.8148207991358946
+B=0.1
+C=0.2
+V=B+C*x
+u=[timedirichlet(d),Dt-(ε*Dx^2+V*Dx)]\f
+@test_approx_eq u[.1,.2] 0.7311625132209619
+
+

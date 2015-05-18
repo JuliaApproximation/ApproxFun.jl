@@ -5,12 +5,16 @@
 
 export ProductFun
 
-immutable ProductFun{S<:FunctionSpace,V<:FunctionSpace,SS<:AbstractProductSpace,T}<:BivariateFun
+immutable ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T}<:BivariateFun
     coefficients::Vector{Fun{S,T}}     # coefficients are in x
     space::SS
 end
 
-ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{S,V})})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
+ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{S,V})})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
+                    W<:UnivariateSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{W,V})})
+   ProductFun(map(f->Fun(f,sp[1]),cfs),sp)
+end
 
 Base.size(f::ProductFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
 Base.size(f::ProductFun)=(size(f,1),size(f,2))
@@ -18,7 +22,7 @@ Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
-function ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(cfs::Matrix{T},sp::AbstractProductSpace{@compat(Tuple{S,V})};tol::Real=100eps(T))
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number}(cfs::Matrix{T},sp::AbstractProductSpace{@compat(Tuple{S,V})};tol::Real=100eps(T))
     ncfs,kend=norm(cfs,Inf),size(cfs,2)
     if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
     ret=map(k->Fun(chop(cfs[:,k],ncfs*tol),columnspace(sp,k)),1:max(kend,1))
@@ -27,14 +31,14 @@ end
 
 ## Construction in a ProductSpace via a Vector of Funs
 
-function ProductFun{S<:FunctionSpace,V<:FunctionSpace,T<:Number}(M::Vector{Fun{S,T}},dy::V)
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number}(M::Vector{Fun{S,T}},dy::V)
     funs=Fun{S,T}[Mk for Mk in M]
-    ProductFun{S,V,ProductSpace{S,V},T}(funs,ProductSpace(typeof(S)[space(fun) for fun in funs],dy))
+    ProductFun{S,V,ProductSpace{S,V},T}(funs,ProductSpace(S[space(fun) for fun in funs],dy))
 end
 
 ## Adaptive construction
 
-function ProductFun{S<:FunctionSpace,V<:FunctionSpace}(f::Function,sp::AbstractProductSpace{@compat(Tuple{S,V})};tol=100eps())
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace}(f::Function,sp::AbstractProductSpace{@compat(Tuple{S,V})};tol=100eps())
     for n = 50:100:5000
         X = coefficients(ProductFun(f,sp,n,n;tol=tol))
         if size(X,1)<n && size(X,2)<n

@@ -114,7 +114,7 @@ values{S<:SliceSpace,V<:SliceSpace}(f::ProductFun{S,V})=values(ProductFun(f,spac
 values{S<:SliceSpace}(f::ProductFun{S})=values(ProductFun(f,space(f,1).space,space(f,2)))
 
 
-function coefficients{n,DS,TT}(f::ProductFun{SliceSpace{n,1,DS,TT}},ox::FunctionSpace,oy::FunctionSpace)
+function coefficients{n,DS,TT}(f::ProductFun{SliceSpace{n,1,DS,TT,1}},ox::FunctionSpace,oy::FunctionSpace)
     T=eltype(f)
     m=size(f,1)
     A=[pad!(coefficients(fx,ox),m+n) for fx in f.coefficients]
