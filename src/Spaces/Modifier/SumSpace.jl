@@ -2,7 +2,7 @@ export ⊕
 
 ## SumSpace{T,S,V} encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
-
+#TODO: Make it SumSpace{Tuple{S...},T,d}
 immutable SumSpace{S,V,T,d} <: FunctionSpace{T,d}
     spaces::@compat(Tuple{S,V})
     SumSpace(dom::Domain)=new((S(dom),V(dom)))
@@ -29,13 +29,26 @@ domain(A::SumSpace)=domain(A[1])
 
 
 
-spacescompatible{S,T,d}(A::SumSpace{S,T,d},B::SumSpace{S,T,d})=spacescompatible(A.spaces[1],B[1]) && spacescompatible(A.spaces[2],B[2])
+spacescompatible(A::SumSpace,B::SumSpace)=all(map(spacescompatible,A.spaces,B.spaces))
 
 
-union_rule{S}(A::SumSpace{S,S},::S)=A
-union_rule{S,V}(A::SumSpace{S,V},::S)=A
-union_rule{S,V}(A::SumSpace{S,V},::V)=A
-union_rule{S,V}(A::SumSpace{S,V},B::SumSpace{V,S})=A
+function union_rule(A::SumSpace,B::FunctionSpace)
+    if B in A.spaces
+        A
+    else
+        error("Implement")
+    end
+end
+function union_rule(A::SumSpace,B::SumSpace)
+    @assert length(A.spaces)==2
+    if spacescompatible(A,B)
+        A
+    elseif spacescompatible(A[1],B[2]) && spacescompatible(B[1],A[2])
+        A
+    else
+        error("Implement")
+    end
+end
 
 
 coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=defaultcoefficients(cfs,A,B)
