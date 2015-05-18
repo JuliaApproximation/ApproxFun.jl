@@ -10,9 +10,9 @@ immutable ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSp
     space::SS
 end
 
-ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{S,V})})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
+ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
 function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
-                    W<:UnivariateSpace,T<:Number}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{W,V})})
+                    W<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{W,V}),P,2})
    ProductFun(map(f->Fun(f,sp[1]),cfs),sp)
 end
 
@@ -22,7 +22,7 @@ Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number}(cfs::Matrix{T},sp::AbstractProductSpace{@compat(Tuple{S,V})};tol::Real=100eps(T))
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Matrix{T},sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2};tol::Real=100eps(T))
     ncfs,kend=norm(cfs,Inf),size(cfs,2)
     if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
     ret=map(k->Fun(chop(cfs[:,k],ncfs*tol),columnspace(sp,k)),1:max(kend,1))
