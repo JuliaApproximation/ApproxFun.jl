@@ -329,7 +329,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},
 
      # Q2 says how to rearrange the columns of F so that the operator is upper triangular
     Q2 = OS.S.Q
-    F=ProductFun(Q2[1:length(F.coefficients),:].'*F.coefficients,space(F))
+    F=ProductFun(Q2[1:length(F.coefficients),:]'*F.coefficients,space(F))
 
 
     ny=size(OS.S,2)

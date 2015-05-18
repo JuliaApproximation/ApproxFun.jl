@@ -263,3 +263,17 @@ u=[timedirichlet(d),Dt-(ε*Dx^2+V*Dx)]\f
 @test_approx_eq u[.1,.2] 0.7311625132209619
 
 
+## Schrodinger
+
+dx=Interval(0.,1.);dt=Interval(0.0,.1)
+d=dx*dt
+
+V=Fun(x->x^2,dx)
+
+Dt=diff(d,2);Dx=diff(d,1)
+
+ϵ=1.
+u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
+L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
+ny=200;u=pdesolve([timedirichlet(d),L],u0,ny)
+@test_approx_eq_eps u[.2,.1] (0.2937741918470843 + 0.22130344715160255im )  0.000001
