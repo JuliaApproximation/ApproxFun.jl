@@ -247,10 +247,10 @@ function promoteplus{T}(ops::Vector{BandedOperator{BandedMatrix{T}}})
 
     for k=1:length(ops)-1
         if iskronop(ops[k])
-            a,b=dekron(ops[k])
+            a,b=map(simplify,dekron(ops[k]))
             for j=k+1:length(ops)
                 if iskronop(ops[j])
-                    if dekron(ops[j],1)==a
+                    if simplify(dekron(ops[j],1))==a
                         ops[k]=KroneckerOperator(a,b+dekron(ops[j],2))
                         deleteat!(ops,j)
                         if length(ops)==1
@@ -258,7 +258,7 @@ function promoteplus{T}(ops::Vector{BandedOperator{BandedMatrix{T}}})
                         else
                             return promoteplus(ops)
                         end
-                    elseif dekron(ops[j],2)==b
+                    elseif simplify(dekron(ops[j],2))==b
                         ops[k]=KroneckerOperator(a+dekron(ops[j],1),b)
                         deleteat!(ops,j)
                         if length(ops)==1

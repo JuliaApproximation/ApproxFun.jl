@@ -45,3 +45,5 @@ include("poetry.jl")
 
 
 include("ReImSpace.jl")
+include("simplify.jl")
+
