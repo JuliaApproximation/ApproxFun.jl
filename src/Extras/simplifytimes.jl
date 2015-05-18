@@ -1,0 +1,18 @@
+
+##
+# These routines simplify the multiplication of two operators
+# they are currently used for dekron of PDEs to make sure equivalent operators are
+# recognized as the same
+# I put this in Extras as it's currently a "hack"
+#
+# In the future, product rule/etc. could be implemented, and some sort of ordering
+# to recognize M[f,C^(1)] Conversion(T,C^(1))==Conversion(T,C^(1))M[f,T]
+##
+
+
+simplifytimes(A,B)=TimesOperator(A,B)
+simplifytimes(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c*Β.c)
+function simplifytimes(A::SpaceOperator,B::SpaceOperator)
+   @assert domainspace(A)==rangespace(B)
+    SpaceOperator(simplifytimes(A.op,B.op),domainspace(B),ranges(A))
+end
