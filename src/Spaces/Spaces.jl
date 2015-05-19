@@ -11,6 +11,7 @@ include("Ultraspherical/Ultraspherical.jl")
 include("Fourier/Fourier.jl")
 include("Singularities/Singularities.jl")
 include("Jacobi/Jacobi.jl")
+include("Hermite.jl")
 include("Mapped/Mapped.jl")
 
 ## 2D
