@@ -318,7 +318,7 @@ Dθ=Derivative(d,1);Dt=Derivative(d,2);
 B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
 u=pdesolve([B,Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)
 
-@test_approx_eq u[.1,.01] -0.2479768394633227  #empirical
+@test_approx_eq_eps u[.1,.01] -0.2479768394633227  1E-8 #empirical
 
 
 
