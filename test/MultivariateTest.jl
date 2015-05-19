@@ -277,3 +277,47 @@ u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
 L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
 ny=200;u=pdesolve([timedirichlet(d),L],u0,ny)
 @test_approx_eq_eps u[.2,.1] (0.2937741918470843 + 0.22130344715160255im )  0.000001
+
+
+
+## Periodic
+
+d=PeriodicInterval()^2
+f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
+A=lap(d)+.1I
+u=A\f
+@test_approx_eq u[.1,.2] u[.2,.1]
+
+
+d=PeriodicInterval()*Interval()
+g=Fun(z->real(cos(z)),∂(d))  # boundary data
+u=[dirichlet(d),lap(d)]\g
+@test_approx_eq u[.1,.2] real(cos(.1+.2im))
+
+
+
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
+d=dθ*dt
+Dθ=Derivative(d,1);Dt=Derivative(d,2)
+u=[I⊗ldirichlet(dt),Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
+
+A=[ldirichlet(dt)⊗I,(Dt+Dθ).']
+f=Fun(θ->exp(-20θ^2),dθ)
+ut=A\f
+
+@test_approx_eq u[.1,.2] ut[.2,.1]
+
+
+
+
+# Beam
+
+dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.03)
+d=dθ*dt
+Dθ=Derivative(d,1);Dt=Derivative(d,2);
+
+B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
+u=pdesolve([B,Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)
+
+@test_approx_eq u[.1,.01] -0.2479768394633227  #empirical
+

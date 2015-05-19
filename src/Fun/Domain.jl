@@ -10,21 +10,25 @@ abstract Domain{T,d}
 typealias UnivariateDomain{T} Domain{T,1}
 typealias BivariateDomain{T} Domain{T,2}
 
-#TODO: bivariate AnyDomain
-immutable AnyDomain <: Domain{UnsetNumber} end
 
-isambiguous(::AnyDomain)=true
-
-
-Base.ndims(::AnyDomain)=1
 Base.eltype{T}(::Domain{T})=T
 Base.isreal{T<:Real}(::Domain{T})=true
 Base.isreal{T}(::Domain{T})=false
+Base.ndims{T,d}(::Domain{T,d})=d
+
+
+
+#TODO: bivariate AnyDomain
+immutable AnyDomain <: Domain{UnsetNumber} end
+immutable EmptyDomain <: Domain{UnsetNumber} end
+
+isambiguous(::AnyDomain)=true
+Base.ndims(::AnyDomain)=1
 
 complexlength(::AnyDomain)=NaN
 Base.length(::AnyDomain)=NaN
 
-Base.ndims{T,d}(::Domain{T,d})=d
+
 
 ##General routines
 

@@ -5,7 +5,7 @@ export TransposeOperator
 
 
 
-type TransposeOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T} 
+type TransposeOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
     op::B
 end
 
@@ -26,8 +26,8 @@ function addentries!(P::TransposeOperator,A,kr::Range)
     # the number of rows we need increases when we
     # transpose
     kr2=max(kr[1]-br[end],1):kr[end]-br[1]
-    
-    B=subview(P.op,:,kr) 
+
+    B=subview(P.op,:,kr)
     for k=kr,j=max(1,k+bandinds(P,1)):k+bandinds(P,2)
         A[k,j]+=B[j,k]
     end
@@ -35,8 +35,8 @@ function addentries!(P::TransposeOperator,A,kr::Range)
 end
 
 
-transpose(A::BandedOperator)=TransposeOperator(A)
-ctranspose{T<:Real}(A::BandedOperator{T})=TransposeOperator(A)
+Base.transpose(A::BandedOperator)=TransposeOperator(A)
+Base.ctranspose{T<:Real}(A::BandedOperator{T})=TransposeOperator(A)
 
 
 

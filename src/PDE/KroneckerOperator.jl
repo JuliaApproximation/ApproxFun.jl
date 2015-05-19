@@ -581,3 +581,24 @@ end
 
 
 
+
+
+## transpose
+
+function transpose{T}(A::PlusOperator{BandedMatrix{T}})
+    @assert all(map(iskronop,A.ops))
+    PlusOperator(BandedOperator{BandedMatrix{Float64}}[op.' for op in A.ops])
+end
+
+
+Base.transpose(K::KroneckerOperator)=KroneckerOperator(K.ops[2],K.ops[1])
+
+for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper)
+    @eval Base.transpose(S::$TYP)=$TYP(transpose(S.op))
+end
+
+Base.transpose(S::TimesOperator)=TimesOperator(reverse!(map(transpose,S.ops)))
+
+Base.transpose(S::SpaceOperator)=SpaceOperator(transpose(S.op),domainspace(S).',rangespace(S).')
+Base.transpose(S::ConstantTimesOperator)=sp.c*S.op.'
+Base.transpose{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=C
