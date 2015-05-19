@@ -116,7 +116,7 @@ dekron(S::TimesOperator,k)=TimesOperator(map(op->dekron(op,k),S.ops))
 dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 #TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)
-dekron{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=k==1?ConstantOperator(one(C.c)):ConstantOperator(C.c)
+dekron{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=k==1?ConstantOperator(C.c):ConstantOperator(one(C.c))
 
 dekron(K)=dekron(K,1),dekron(K,2)
 function dekron(A,k,::Colon)
@@ -321,26 +321,14 @@ end
 
 
 ⊗(A,B)=kron(A,B)
-⊗(A::Vector,B::Vector)=error("Not implemented")
-⊗(A::Vector,B)=map(a->a⊗B,A)
-⊗(A,B::Vector)=map(b->A⊗b,B)
 
 Base.kron(A::Operator,B::Operator)=KroneckerOperator(A,B)
 Base.kron(A::Operator,B)=KroneckerOperator(A,B)
 Base.kron(A,B::Operator)=KroneckerOperator(A,B)
-Base.kron{T<:Operator,V<:Operator}(A::Vector{T},B::Vector{V})=map(a->kron(a,B),A)
-Base.kron{T<:Operator}(A::Vector{T},B::Operator)=map(a->kron(a,B),A)
-Base.kron{T<:Operator}(A::Operator,B::Vector{T})=map(b->kron(A,b),B)
-Base.kron{T<:Operator}(A::Vector{T},B::UniformScaling)=map(a->kron(a,B),A)
-Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=map(b->kron(A,b),B)
-
-# ⊗{O<:Operator,V<:Operator}(A::Matrix{O},B::Matrix{V})=interlace(A)⊗interlace(B)
-# ⊗{O<:Operator}(A::Matrix{O},B::Fun)=interlace(A)⊗B
-# ⊗{O<:Operator}(A::Matrix{O},B)=interlace(A)⊗B
-# ⊗{O<:Operator}(B::Fun,A::Matrix{O})=A⊗interlace(B)
-# ⊗{O<:Operator}(B,A::Matrix{O})=A⊗interlace(B)
-
-
+Base.kron{T<:Operator}(A::Vector{T},B::Operator)=Operator{BandedMatrix{promote_type(eltype(T),eltype(B))}}[kron(a,B) for a in A]
+Base.kron{T<:Operator}(A::Operator,B::Vector{T})=Operator{BandedMatrix{promote_type(eltype(T),eltype(A))}}[kron(A,b) for b in B]
+Base.kron{T<:Operator}(A::Vector{T},B::UniformScaling)=Operator{BandedMatrix{promote_type(eltype(T),eltype(B))}}[kron(a,1.0B) for a in A]
+Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=Operator{BandedMatrix{promote_type(eltype(T),eltype(A))}}[kron(1.0A,b) for b in B]
 
 
 ## Conversion

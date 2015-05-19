@@ -7,6 +7,7 @@
 ∂{A<:PeriodicInterval,B<:PeriodicInterval}(d::ProductDomain{@compat(Tuple{A,B})})=EmptyDomain()
 
 
+
 ## Union
 
 

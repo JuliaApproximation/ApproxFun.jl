@@ -1,3 +1,5 @@
+export kronfact
+
 
 ## Represents a list of operators with degrees of freedom reduce
 immutable ReducedDiscreteOperators{BT,MT}
@@ -82,9 +84,9 @@ Base.size(A::PDEOperatorKron)=size(A,1),size(A,2)
 bcinds(A::PDEOperatorKron,k)=k==1?A.indsBx:A.indsBy
 numbcs(A::PDEOperatorKron,k)=numbcs(k==1?A.opsx:A.opsy)
 
-Base.kron{T}(A::Vector{BivariateOperator{T}},nx::Integer,ny::Integer)=PDEOperatorKron(A,nx,ny)
-Base.kron{T}(A::Vector{BivariateOperator{T}},n::Integer)=kron(A,n,n)
-Base.kron{T}(A::Vector{BivariateOperator{T}},S::BivariateDomain,n::Integer)=kron(A,n)
+kronfact(A::Vector,nx::Integer,ny::Integer)=PDEOperatorKron(A,nx,ny)
+kronfact(A::Vector,n::Integer)=kronfact(A,n,n)
+kronfact(A::Vector,S::BivariateDomain,n::Integer)=kronfact(A,n)
 
 
 function pdesolve(K::PDEOperatorKron,G)

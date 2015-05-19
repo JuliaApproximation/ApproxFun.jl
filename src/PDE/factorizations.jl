@@ -245,7 +245,7 @@ end
 
 
 
-function Base.schurfact{BT<:BandedOperator}(A::Vector{BT},S::ProductDomain,ny::Integer)
+function Base.schurfact{BT<:Operator}(A::Vector{BT},S::ProductDomain,ny::Integer)
     indsBx,Bx=findfunctionals(A,1)
     indsBy,By=findfunctionals(A,2)
 
@@ -279,7 +279,7 @@ end
 ## discretize
 
 #TODO: don't hard code Disk
-discretize{OT<:Operator}(A::Vector{OT},S...)=(isa(A[end],PlusOperator)&&length(A[end].ops)==2)||domain(A[end])==Disk()?schurfact(A,S...):kron(A,S...)
+discretize{OT<:Operator}(A::Vector{OT},S...)=(isa(A[end],PlusOperator)&&length(A[end].ops)==2)||domain(A[end])==Disk()?schurfact(A,S...):kronfact(A,S...)
 discretize{T}(A::BivariateOperator{T},n::Integer)=discretize([A],n)
 
 

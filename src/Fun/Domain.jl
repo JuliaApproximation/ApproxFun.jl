@@ -15,7 +15,8 @@ Base.eltype{T}(::Domain{T})=T
 Base.isreal{T<:Real}(::Domain{T})=true
 Base.isreal{T}(::Domain{T})=false
 Base.ndims{T,d}(::Domain{T,d})=d
-
+Base.ndims{T,d}(::Type{Domain{T,d}})=d
+Base.ndims{DT<:Domain}(::Type{DT})=ndims(super(DT))
 
 
 #TODO: bivariate AnyDomain
@@ -144,9 +145,9 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 
 ## boundary
 
-
-∂(d::IntervalDomain)=[first(d),last(d)]
-∂(d::PeriodicDomain)=[]
+∂(d::Domain)=EmptyDomain()   # This is meant to be overriden
+∂(d::IntervalDomain)=[first(d),last(d)] #TODO: Points domain
+∂(d::PeriodicDomain)=EmptyDomain()
 
 
 

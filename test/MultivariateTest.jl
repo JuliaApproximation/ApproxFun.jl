@@ -63,7 +63,6 @@ G=[real(exp(-1+1.im*y));
                         real(exp(x+1im));0.];
 
 A=[dirichlet(d);lap(d)]
-
 u=A\G
 @test_approx_eq u[.1,.2] real(exp(.1+.2im))
 
@@ -129,7 +128,7 @@ if OS_NAME==:Darwin
     uex=A\G
 
     nx=ny=40
-    K=kron(A,nx,ny)
+    K=kronfact(A,nx,ny)
 
     uex2=K\G
 
@@ -144,7 +143,7 @@ if OS_NAME==:Darwin
     S=ChebyshevDirichlet()⊗ChebyshevDirichlet();
     A=[dirichlet(S);lap(S)]
     nx=ny=20;
-    KD=kron(A,nx,ny);
+    KD=kronfact(A,nx,ny);
 
 
     #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
@@ -320,4 +319,25 @@ B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
 u=pdesolve([B,Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)
 
 @test_approx_eq u[.1,.01] -0.2479768394633227  #empirical
+
+
+
+## Rectangle PDEs
+
+# Screened Poisson
+
+d=Interval()^2
+u=[neumann(d),lap(d)-100.0I]\ones(∂(d))
+@test_approx_eq u[.1,.9] 0.03679861429138079
+
+# PiecewisePDE
+
+a=Fun([1,0.5,1],[-1.,0.,0.5,1.])
+s=space(a)
+dt=Interval(0,2.)
+Dx=Derivative(s);Dt=Derivative(dt)
+Bx=[ldirichlet(s);continuity(s,0)]
+u=pdesolve([I⊗ldirichlet(dt),Bx⊗I,I⊗Dt+(a*Dx)⊗I],{Fun(x->exp(-20(x+0.5)^2),s)},200)
+       #.'
+@test_approx_eq_eps u[-.1,.2] exp(-20(-.2-.1+0.5)^2) 0.00001
 
