@@ -32,8 +32,8 @@ end
 
 Base.convert{OT<:Operator}(::Type{OT},P::PlusOperator)=PlusOperator{eltype(OT)}(P.ops)
 
-promoteplus{T}(ops::Vector{BandedOperator{T}})=PlusOperator{T}(promotespaces(ops))
-promoteplus{T}(ops::Vector{Functional{T}})=PlusFunctional{T}(promotespaces(ops))
+promoteplus{T}(ops::Vector{BandedOperator{T}})=PlusOperator(promotespaces(ops))
+promoteplus{T}(ops::Vector{Functional{T}})=PlusFunctional(promotespaces(ops))
 
 
 
