@@ -252,7 +252,7 @@ immutable TimesOperator{T} <: BandedOperator{T}
 end
 
 TimesOperator{T}(ops::Vector{BandedOperator{T}})=TimesOperator{T}(ops)
-TimesOperator{OT<:Operator}(ops::Vector{OT})=TimesOperator{eltype(OT)}(convert(Vector{BandedOperator{eltype(OT)}},ops))
+TimesOperator{OT<:Operator}(ops::Vector{OT})=TimesOperator(convert(Vector{BandedOperator{eltype(OT)}},ops))
 
 TimesOperator{T,V}(A::TimesOperator{T},B::TimesOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
 TimesOperator{T,V}(A::TimesOperator{T},B::BandedOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A.ops...,B])
