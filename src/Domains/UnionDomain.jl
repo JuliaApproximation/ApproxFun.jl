@@ -90,4 +90,4 @@ for op in (:*,:+,:-,:.*,:.+,:.-)
         $op(d::UnionDomain,c::Number)=UnionDomain(map(a->$op(a,c),d.domains))
     end
 end
-
+/(d::UnionDomain,c::Number) = UnionDomain(map(a->a/c,d.domains))
