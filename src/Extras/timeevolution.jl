@@ -132,15 +132,20 @@ function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m::
     u4
 end
 
-function timeevolution(B::Vector,op,uin::MultivariateFun,bcs::Vector,h::Real,m=5000)
+function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m=5000)
     require("GLPlot")
     setplotter("GLPlot")
     timeevolution(B,op,bcs,uin,h,m,plot(pad(uin,80,80)))
 end
 
-timeevolution(B::Vector,op,uin::MultivariateFun,h::Real,dat...)=timeevolution(B,op,uin,zeros(length(B)),h,dat...)
+timeevolution(B::Vector,op,uin::MultivariateFun,h::Real,dat...)=timeevolution(B,op,zeros(length(B)),uin,h,dat...)
 timeevolution(B::BandedOperator,dat...)=timeevolution([B],dat...)
 
+
+timeevolution(B::Vector,op,bcs::Vector,uin::Fun,dat...)=timeevolution(B,op,bcs,ProductFun(uin),dat...)
+timeevolution(B::Vector,op,uin::Fun,dat...)=timeevolution(B,op,ProductFun(uin),dat...)
+
+timeevolution(B::Operator,dat...)=timeevolution([B],dat...)
 
 
 #u_tt = op*u
@@ -199,11 +204,15 @@ end
 
 timeevolution2(B::Vector,op,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,dat...)=timeevolution2(B,op,uin,zeros(length(B)),h,dat...)
 timeevolution2(B::Vector,op,uin::MultivariateFun,dat...)=timeevolution2(B,op,(uin,uin),dat...)
-timeevolution2(B::BandedOperator,dat...)=timeevolution2([B],dat...)
+timeevolution2(B::Operator,dat...)=timeevolution2([B],dat...)
 
 timeevolution2(B::Vector,op,g::Function,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,dat...)=timeevolution2(B,op,g,uin,zeros(length(B)),h,dat...)
 timeevolution2(B::Vector,op,g::Function,uin::MultivariateFun,dat...)=timeevolution2(B,op,g,(uin,uin),dat...)
 
+
+timeevolution2(B::Vector,op,g::Function,uin::@compat(Tuple{Fun,Fun}),dat...)=timeevolution2(B,op,g,(ProductFun(uin[1]),ProductFun(uin[2])),dat...)
+timeevolution2(B::Vector,op,g::Function,uin::Fun,dat...)=timeevolution2(B,op,g,ProductFun(uin),dat...)
+timeevolution2(B::Vector,op,uin::Fun,dat...)=timeevolution2(B,op,ProductFun(uin),dat...)
 
 timeevolution(o::Integer,dat...)=o==2?timeevolution2(dat...):timeevolution(dat...)
 

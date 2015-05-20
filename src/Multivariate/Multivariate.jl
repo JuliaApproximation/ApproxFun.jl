@@ -76,10 +76,14 @@ function Fun(f::Function)
     end
 end
 
+
+## Convert between Fun and MultivariateFun
 Fun(f::ProductFun)=Fun(fromtensor(coefficients(f)),space(f))
 Fun(f::ProductFun,sp::TensorSpace)=Fun(ProductFun(f,sp))
 Fun(f::LowRankFun)=Fun(ProductFun(f))
-Fun(f::LowRankFun,sp::TensorSpace)=Fun(ProductFun(f),sp)
+
+
+Fun(f::MultivariateFun,sp::FunctionSpace)=Fun(Fun(f),sp)
 
 Fun(f::Function,d1::Domain,d2::Domain)=Fun(f,d1*d2)
 Fun{T<:Number,V<:Number}(f::Function,d1::Vector{T},d2::Vector{V})=Fun(f,convert(Domain,d1),convert(Domain,d2))
