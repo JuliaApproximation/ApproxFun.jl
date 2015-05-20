@@ -2,6 +2,7 @@ export discretize,timedirichlet
 
 include("OperatorSchur.jl")
 include("KroneckerOperator.jl")
+include("dekron.jl")
 
 include("factorizations.jl")
 include("pdesolve.jl")

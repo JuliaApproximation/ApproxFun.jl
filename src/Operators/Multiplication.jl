@@ -10,7 +10,7 @@ immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T,V} <: AbstractMulti
 end
 
 Multiplication{D,T}(f::Fun{D,T},sp::FunctionSpace)=Multiplication{D,typeof(sp),
-                                                                  T,promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+                                                                  T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 
 Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
 Multiplication(c::Number)=ConstantOperator(c)
@@ -82,7 +82,8 @@ immutable MultiplicationWrapper{D<:FunctionSpace,O<:BandedOperator,V,T} <: Abstr
     op::O
 end
 
-MultiplicationWrapper{D<:FunctionSpace,V,T}(f::Fun{D,V},op::BandedOperator{T})=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
+MultiplicationWrapper{D<:FunctionSpace,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
+MultiplicationWrapper{D<:FunctionSpace,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
 
 addentries!(D::MultiplicationWrapper,A,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))

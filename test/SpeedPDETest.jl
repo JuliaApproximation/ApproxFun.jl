@@ -56,9 +56,9 @@ Dt=diff(d,2);Dx=diff(d,1)
 ϵ=0.1
 
     u0=Fun(x->exp(-25*(x-.5)^2)*exp(-1.im/(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
-    L=1im*ϵ*Dt+(.5*ϵ^2*Dx^2-V⊗1)
+    L=1im*ϵ*Dt+.5*ϵ^2*Dx^2-V⊗1
 
-PO=discretize([timedirichlet(d);L],50)
+PO=discretize(A,50)
 @time PO=discretize([timedirichlet(d);L],50)
     u=PO\u0
 @time    u=PO\u0

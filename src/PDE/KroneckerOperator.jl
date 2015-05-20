@@ -94,49 +94,6 @@ KroneckerOperator(A,B::Fun)=KroneckerOperator(A,Multiplication(B))
 KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 
 
-# productop is a product of two operator
-
-isproductop(a)=iskronop(a)  # all kron ops are product ops
-
-
-iskronop(::)=false
-iskronop(::KroneckerOperator)=true
-
-iskronop(A::Union(SpaceOperator,ConstantTimesOperator,ConversionWrapper,
-                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper))=iskronop(A.op)
-iskronop(A::TimesOperator)=all(iskronop,A.ops)
-iskronop{V,T<:AbstractArray}(::ConstantOperator{V,T})=true
-
-#dekron gives the operators that make up a productop
-
-dekron(K::KroneckerOperator,k)=K.ops[k]
-
-dekron(S::Union(ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper),k)=dekron(S.op,k)
-dekron(S::TimesOperator,k)=TimesOperator(BandedOperator{eltype(eltype(S))}[dekron(op,k) for op in S.ops])
-dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
-#TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
-dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)
-dekron{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=k==1?ConstantOperator(C.c):ConstantOperator(one(C.c))
-
-dekron(K)=dekron(K,1),dekron(K,2)
-function dekron(A,k,::Colon)
-    @assert isproductop(A)
-    dekron(A,k)
-end
-function dekron(A::PlusOperator,k,::Colon)
-    ret=Array(BandedOperator{eltype(eltype(A))},0)
-    for op in A.ops
-        da=dekron(op,k,:)
-        if isa(da,AbstractArray)
-            for a in da
-                push!(ret,a)
-            end
-        else
-            push!(ret,da)
-        end
-    end
-    ret
-end
 
 
 for OP in (:promotedomainspace,:promoterangespace)
@@ -242,79 +199,6 @@ end
 
 *(A::KroneckerOperator,B::KroneckerOperator)=KroneckerOperator(A.ops[1]*B.ops[1],A.ops[2]*B.ops[2])
 
-function promoteplus{T}(ops::Vector{BandedOperator{BandedMatrix{T}}})
-    ops=promotespaces(ops)
-
-    for k=1:length(ops)-1
-        if iskronop(ops[k])
-            a,b=map(simplify,dekron(ops[k]))
-            for j=k+1:length(ops)
-                if iskronop(ops[j])
-                    if simplify(dekron(ops[j],1))==a
-                        ops[k]=KroneckerOperator(a,b+dekron(ops[j],2))
-                        deleteat!(ops,j)
-                        if length(ops)==1
-                            return ops[k]
-                        else
-                            return promoteplus(ops)
-                        end
-                    elseif simplify(dekron(ops[j],2))==b
-                        ops[k]=KroneckerOperator(a+dekron(ops[j],1),b)
-                        deleteat!(ops,j)
-                        if length(ops)==1
-                            return ops[k]
-                        else
-                            return promoteplus(ops)
-                        end
-                    end
-                end
-            end
-        end
-    end
-
-    PlusOperator{BandedMatrix{T}}(ops)
-end
-
-# function +(A::KroneckerOperator,B::KroneckerOperator)
-#     if A.ops[1]==B.ops[1]
-#         KroneckerOperator(A.ops[1],A.ops[2]+B.ops[2])
-#     elseif A.ops[2]==B.ops[2]
-#         KroneckerOperator(A.ops[1]+B.ops[1],A.ops[2])
-#     else
-#         promoteplus([A,B])
-#     end
-# end
-
-# function +{T}(A::PlusOperator{BandedMatrix{T}},B::KroneckerOperator)
-#     if all(op->isa(op,KroneckerOperator),A.ops)
-#         if length(A.ops)==2
-#             if A.ops[1].ops[1]==B.ops[1]
-#                 A.ops[2]+KroneckerOperator(B.ops[1],A.ops[1].ops[2]+B.ops[2])
-#             elseif A.ops[1].ops[2]==B.ops[2]
-#                 A.ops[2]+KroneckerOperator(A.ops[1].ops[1]+B.ops[1],B.ops[2])
-#             elseif A.ops[2].ops[1]==B.ops[1]
-#                 A.ops[1]+KroneckerOperator(B.ops[1],A.ops[2].ops[2]+B.ops[2])
-#             elseif A.ops[2].ops[2]==B.ops[2]
-#                 A.ops[1]+KroneckerOperator(A.ops[2].ops[1]+B.ops[1],B.ops[2])
-#             else
-#                 promoteplus([A.ops...,B])
-#             end
-#         else
-#             for k=1:length(A.ops)
-#                 if A.ops[k].ops[1]==B.ops[1]
-#                     PlusOperator(A.ops[[1:k-1,k+1:end]])+KroneckerOperator(B.ops[1],A.ops[k].ops[2]+B.ops[2])
-#                 elseif A.ops[k].ops[2]==B.ops[2]
-#                     PlusOperator(A.ops[[1:k-1,k+1:end]])+KroneckerOperator(A.ops[k].ops[1]+B.ops[1],B.ops[2])
-#                 else
-#                     promoteplus([A.ops...,B])
-#                 end
-#             end
-#         end
-#     else
-#         promoteplus([A.ops...,B])
-#     end
-# end
-
 
 
 ## Shorthand
@@ -333,21 +217,6 @@ Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=Operator{BandedMatrix{pro
 
 ## Conversion
 
-#Base.promote_type{K1<:KroneckerOperator}(::Type{K1},::Type{K1})=BandedOperator{eltype(K1)}
-
-
-# Base.promote_rule{BT<:ConstantOperator,C<:ConstantOperator}(::Type{C},::Type{BT})=ConstantOperator{promote_type(eltype(BT),eltype(C))}
-# function Base.promote_rule{BT<:BandedOperator,C<:ConstantOperator}(::Type{BT},::Type{C})
-#     if eltype(BT)<:BandedMatrix
-#         BivariateOperator{promote_type(eltype(eltype(BT)),eltype(C))}
-#     else
-#         BandedMatrix{promote_type(eltype(BT),eltype(C))}
-#     end
-# end
-
-# Base.promote_rule{BT<:BandedOperator,C<:ConstantOperator}(::Type{C},::Type{BT})=Base.promote_rule(BT,C)
-
-# Base.convert{BT<:BivariateOperator}(::Type{BT},C::ConstantOperator)=kron(ConstantOperator(convert(eltype(eltype(BT)),C.λ)),I)
 
 
 
@@ -381,7 +250,8 @@ end
 Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{ConstantSpace,V}),T,2}},sp::TensorSpace)
     a=Fun(totensor(f.coefficients)[1,:],space(f)[2])
-    MultiplicationWrapper(f,eye(sp[1])⊗Multiplication(a,sp[2]))
+    #Hack to avoid auto-typing bug.  TODO: incorporate basis
+    MultiplicationWrapper(BandedMatrix{eltype(f)},f,eye(sp[1])⊗Multiplication(a,sp[2]))
 end
 function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{V,ConstantSpace}),T,2}},sp::TensorSpace)
     if isempty(f.coefficients)
@@ -389,7 +259,7 @@ function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{V,ConstantSpace}),
     else
         a=Fun(totensor(f.coefficients)[:,1],space(f)[1])
     end
-    MultiplicationWrapper(f,Multiplication(a,sp[1])⊗eye(sp[2]))
+    MultiplicationWrapper(BandedMatrix{eltype(f)},f,Multiplication(a,sp[1])⊗eye(sp[2]))
 end
 Multiplication{D<:UnivariateSpace,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication(f⊗1,sp)
 
@@ -575,7 +445,7 @@ end
 
 function transpose{T}(A::PlusOperator{BandedMatrix{T}})
     @assert all(map(iskronop,A.ops))
-    PlusOperator(BandedOperator{BandedMatrix{Float64}}[op.' for op in A.ops])
+    PlusOperator(BandedOperator{BandedMatrix{eltype(eltype(A))}}[op.' for op in A.ops])
 end
 
 

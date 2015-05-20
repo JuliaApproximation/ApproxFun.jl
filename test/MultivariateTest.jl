@@ -106,7 +106,6 @@ u=A\f
 
 
 
-
 if OS_NAME==:Darwin
     ## Kron
 
@@ -252,13 +251,14 @@ C=0.0
 V=B+C*x
 ε=0.001
 f=Fun(x->exp(-20x^2),dx)
-u=[timedirichlet(d),Dt-(ε*Dx^2+V*Dx)]\f
+u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
+
 
 @test_approx_eq u[.1,.2] 0.8148207991358946
 B=0.1
 C=0.2
 V=B+C*x
-u=[timedirichlet(d),Dt-(ε*Dx^2+V*Dx)]\f
+u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
 @test_approx_eq u[.1,.2] 0.7311625132209619
 
 
@@ -274,7 +274,7 @@ Dt=diff(d,2);Dx=diff(d,1)
 ϵ=1.
 u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
 L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
-ny=200;u=pdesolve([timedirichlet(d),L],u0,ny)
+ny=200;u=pdesolve([timedirichlet(d);L],u0,ny)
 @test_approx_eq_eps u[.2,.1] (0.2937741918470843 + 0.22130344715160255im )  0.000001
 
 
