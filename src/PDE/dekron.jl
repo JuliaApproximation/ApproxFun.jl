@@ -81,7 +81,7 @@ function simplifydekron(A)
     opsx,opsy=dekron(A,:,:)
     map!(simplify,opsx);map!(simplify,opsy)
     reducekronsum!(opsy,opsx)
-    reducekronsum!(opsx,opsy)::(Vector{BandedOperator{T}},Vector{BandedOperator{T}})
+    reducekronsum!(opsx,opsy)
 end
 
 

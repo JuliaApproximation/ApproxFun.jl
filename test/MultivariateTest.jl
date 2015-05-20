@@ -290,7 +290,7 @@ u=A\f
 
 d=PeriodicInterval()*Interval()
 g=Fun(z->real(cos(z)),∂(d))  # boundary data
-u=[dirichlet(d),lap(d)]\g
+u=[dirichlet(d);lap(d)]\g
 @test_approx_eq u[.1,.2] real(cos(.1+.2im))
 
 
@@ -298,9 +298,9 @@ u=[dirichlet(d),lap(d)]\g
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dθ*dt
 Dθ=Derivative(d,1);Dt=Derivative(d,2)
-u=[I⊗ldirichlet(dt),Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
+u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
-A=[ldirichlet(dt)⊗I,(Dt+Dθ).']
+A=[ldirichlet(dt)⊗I;(Dt+Dθ).']
 f=Fun(θ->exp(-20θ^2),dθ)
 ut=A\f
 
@@ -316,7 +316,7 @@ d=dθ*dt
 Dθ=Derivative(d,1);Dt=Derivative(d,2);
 
 B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
-u=pdesolve([B,Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)
+u=pdesolve([B;Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)
 
 @test_approx_eq_eps u[.1,.01] -0.2479768394633227  1E-8 #empirical
 
@@ -327,7 +327,7 @@ u=pdesolve([B,Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)
 # Screened Poisson
 
 d=Interval()^2
-u=[neumann(d),lap(d)-100.0I]\ones(∂(d))
+u=[neumann(d);lap(d)-100.0I]\ones(∂(d))
 @test_approx_eq u[.1,.9] 0.03679861429138079
 
 # PiecewisePDE
@@ -337,7 +337,7 @@ s=space(a)
 dt=Interval(0,2.)
 Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
-u=pdesolve([I⊗ldirichlet(dt),Bx⊗I,I⊗Dt+(a*Dx)⊗I],{Fun(x->exp(-20(x+0.5)^2),s)},200)
+u=pdesolve([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],{Fun(x->exp(-20(x+0.5)^2),s)},200)
        #.'
 @test_approx_eq_eps u[-.1,.2] exp(-20(-.2-.1+0.5)^2) 0.00001
 

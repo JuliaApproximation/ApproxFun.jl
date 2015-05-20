@@ -44,8 +44,7 @@ immutable DiskSpace{m,a,b,JS,S} <: AbstractProductSpace{@compat(Tuple{JS,S}),Com
 end
 
 
-DiskSpace(m,a,b,D::Disk,S::FunctionSpace)=DiskSpace{m,a,b,JacobiSquare,typeof(S)}(D,S)
-DiskSpace(D::Disk,S::FunctionSpace)=DiskSpace(0,0,0,D,S)
+DiskSpace(D::Disk,S::FunctionSpace)=DiskSpace{0,0,0,JacobiSquare,typeof(S)}(D,S)
 DiskSpace(D::Disk)=DiskSpace(D,Laurent())
 DiskSpace(d::AnyDomain)=DiskSpace(Disk(d))
 
@@ -98,7 +97,7 @@ end
 # These are placeholders for future
 
 conversion_rule{m,a,b,m2,a2,b2,JS,FS}(A::DiskSpace{m,a,b,JS,FS},
-                                      B::DiskSpace{m2,a2,b2,JS,FS})=DiskSpace(max(m,m2),min(a,a2),min(b,b2),A.domain,B.spacet)
+                                      B::DiskSpace{m2,a2,b2,JS,FS})=DiskSpace{max(m,m2),min(a,a2),min(b,b2),JS,FS}(A.domain,B.spacet)
 
 function coefficients{m,a,b,m2,a2,b2,JS,FS}(cfs::Vector,
                                             A::DiskSpace{m,a,b,JS,FS},
@@ -163,5 +162,5 @@ neumann(d::Disk)=Neumann(Space(d))
 
 function rangespace{m,a,b,JS,S}(L::Laplacian{DiskSpace{m,a,b,JS,S}})
     sp=domainspace(L)
-    DiskSpace(m-2L.order,a+2L.order,b+2L.order,sp.domain,sp.spacet)
+    DiskSpace{m-2L.order,a+2L.order,b+2L.order,JS,S}(sp.domain,sp.spacet)
 end

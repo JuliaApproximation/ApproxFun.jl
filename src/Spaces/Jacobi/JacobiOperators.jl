@@ -16,7 +16,7 @@ function Base.getindex(op::Evaluation{Jacobi,Bool},kr::Range)
         d=domain(op)
         @assert isa(d,Interval)
         if kr[1]==1
-            0.5*tocanonicalD(d,d.a)*(a+b+kr).*[0.,jacobip(0:kr[end]-2,1+a,1+b,x?1.:-1.)]
+            0.5*tocanonicalD(d,d.a)*(a+b+kr).*[0.;jacobip(0:kr[end]-2,1+a,1+b,x?1.:-1.)]
         else
             0.5*tocanonicalD(d,d.a)*(a+b+kr).*jacobip(kr-1,1+a,1+b,x?1.:-1.)
         end
