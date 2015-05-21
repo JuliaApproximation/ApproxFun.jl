@@ -52,7 +52,7 @@ norm(f-g)
 
 `Fun`s in `ApproxFun` are instances of `Julia` types with one field to store coefficients and another
 to describe the function space. Similarly, each function space has one field describing 
-its domain. Let's explore:
+its domain, or another function space. Let's explore:
 
 ```julia
 x = Fun(identity)
@@ -63,7 +63,7 @@ space(g)
 ```
 
 In this case, `f` is in the `Ultraspherical{0}` space on the domain `Interval(-1.0,1.0)`, and
-`g` is in the decorated `JacobiWeight{Ultraspherical{0}}` space. The absolute value is 
+`g` is in the enriched `JacobiWeight{Ultraspherical{0}}` space. The absolute value is 
 another case where space promotion is inferred from the operation:
 
 ```julia
@@ -73,7 +73,14 @@ space(f)
 space(g)
 ```
 
-Algebraic and differential operations are also implemented where possible.
+Algebraic and differential operations are also implemented where possible, and most of Julia's built-in functions are overridden to accept `Fun`s:
+
+```julia
+x = Fun()
+f = erf(x)
+g = besselj(3,exp(f))
+h = airyai(10asin(f)+2g)
+```
 
 
 # Solving ordinary differential equations
