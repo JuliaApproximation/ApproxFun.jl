@@ -220,7 +220,7 @@ if OS_NAME == :Darwin
     # Poisson
     f=Fun((x,y)->exp(-10(x+.2).^2-20(y-.1).^2),d)
     u=[dirichlet(d),lap(d)]\[0.,f]
-    @test_approx_eq u[.1,.2] -0.039860694986014196
+    @test_approx_eq u[.1,.2] -0.039860694987858845
 
     #Helmholtz
     u=[dirichlet(d),lap(d)+100I]\1.0
