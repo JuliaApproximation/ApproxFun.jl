@@ -202,6 +202,19 @@ h = 0.001
 timeevolution(2,B,L,u0,h)                 # Requires GLPlot
 ```
 
+# High precision
+
+Solving differential equations with high precision types is avaiable.  The following calculates `e` to 300 digits by solving the ODE `u' = u`:
+
+```julia
+with_bigfloat_precision(1000) do
+    d=Interval{BigFloat}(0,1)
+    D=Derivative(d)
+    u=[ldirichlet();D-I]\[1]
+    u[1]
+end
+```
+
 
 
 	
