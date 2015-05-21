@@ -15,7 +15,7 @@ g=u->u^2;gp=u->2u
 u=0.x   #initial guess is zero
 
 for k=1:5
-        u=u-[B,L+gp(u)]\[0.,0.,L*u+g(u)-1.];
+        u=u-[B;L+gp(u)]\[0.;0.;L*u+g(u)-1.];
 end
 
 norm(diff(u,2) + 2(1-x^2)*diff(u) + g(u) -1)  # This equals 0
