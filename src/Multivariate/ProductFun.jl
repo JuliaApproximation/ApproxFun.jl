@@ -13,7 +13,7 @@ end
 ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
 function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
                     W<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{W,V}),P,2})
-   ProductFun(map(f->Fun(f,sp[1]),cfs),sp)
+   ProductFun{W,V,typeof(sp),T}(Fun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 end
 
 Base.size(f::ProductFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
@@ -22,11 +22,16 @@ Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Matrix{T},sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2};tol::Real=100eps(T))
-    ncfs,kend=norm(cfs,Inf),size(cfs,2)
-    if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
-    ret=map(k->Fun(chop(cfs[:,k],ncfs*tol),columnspace(sp,k)),1:max(kend,1))
-    ProductFun{S,V,typeof(sp),T}(ret,sp)
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Matrix{T},sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2};tol::Real=100eps(T),chopping::Bool=false)
+    if chopping
+        ncfs,kend=norm(cfs,Inf),size(cfs,2)
+        if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
+        ret=Fun{S,T}[Fun(chop(cfs[:,k],ncfs*tol),columnspace(sp,k)) for k=1:max(kend,1)]
+        ProductFun{S,V,typeof(sp),T}(ret,sp)
+    else
+        ret=Fun{S,T}[Fun(cfs[:,k],columnspace(sp,k)) for k=1:size(cfs,2)]
+        ProductFun{S,V,typeof(sp),T}(ret,sp)
+    end
 end
 
 ## Construction in a ProductSpace via a Vector of Funs
@@ -46,7 +51,7 @@ function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace}(f::Function,sp::Abstr
         end
     end
     warn("Maximum grid size of ("*string(5000)*","*string(5000)*") reached")
-    ProductFun(f,sp,5000,5000;tol=tol)
+    ProductFun(f,sp,5000,5000;tol=tol,chopping=true)
 end
 
 ## ProductFun values to coefficients
@@ -56,7 +61,7 @@ function ProductFun(f::Function,S::AbstractProductSpace,M::Integer,N::Integer;to
     T = promote_type(eltype(f(first(xy)...)),eltype(S))
     ptsx,ptsy=points(S,M,N)
     vals=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
-    ProductFun(transform!(S,vals),S;tol=tol)
+    ProductFun(transform!(S,vals),S;tol=tol,chopping=true)
 end
 ProductFun(f::Function,S::TensorSpace) = ProductFun(LowRankFun(f,S))
 
@@ -179,8 +184,14 @@ evaluate(f::ProductFun,x::Range,y::Range)=evaluate(f,[x],[y])
 *(f::ProductFun,c::Number)=c*f
 
 
+#.'
+function chop{S}(f::ProductFun{S},es...)
+    kend=size(f,2)
+    if kend > 1 while isempty(chop(f.coefficients[kend].coefficients,es...)) kend-=1 end end
+    ret=Fun{S,eltype(f)}[Fun(chop(f.coefficients[k].coefficients,es...),space(f.coefficients[k])) for k=1:max(kend,1)]
 
-chop{F<:ProductFun}(f::F,es...)=F(map(g->chop(g,es...),f.coefficients),f.space)
+    typeof(f)(ret,f.space)
+end
 
 
 ##TODO: following assumes f is never changed....maybe should be deepcopy?

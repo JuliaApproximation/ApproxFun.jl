@@ -116,16 +116,16 @@ function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m::
     SBDF3 = discretize([B,I-6.0/11.0*h*op],d,nt)    # BDF formula for subsequent itme steps
     SBDF4 = discretize([B,I-12.0/25.0*h*op],d,nt)    # BDF formula for subsequent itme steps
 
-    u1=uin
-    u2=SBE\[bcs,u1]
+    u1=chop(uin,1000eps())
+    u2=chop(SBE\[bcs,u1],1000eps())
     plot(pad(u2,80,80),glp...)#updates window
-    u3=SBDF2\[bcs,1/3.0*(4u2-u1)]
+    u3=chop(SBDF2\[bcs,1/3.0*(4u2-u1)],1000eps())
     plot(pad(u3,80,80),glp...)#updates window
-    u4=SBDF3\[bcs,1/11.0*(18u3-9u2+2u1)]
+    u4=chop(SBDF3\[bcs,1/11.0*(18u3-9u2+2u1)],1000eps())
     plot(pad(u4,80,80),glp...)#updates window
 
     for k=1:m
-        u4,u3,u2,u1  = SBDF4\[bcs,1/25.0*(48u4-36u3+16u2-3u1)],u4,u3,u2
+        u4,u3,u2,u1  = chop(SBDF4\[bcs,1/25.0*(48u4-36u3+16u2-3u1)],1000eps()),u4,u3,u2
 
         plot(pad(u4,80,80),glp...)#updates window
     end
@@ -156,12 +156,12 @@ function timeevolution2(B::Vector,op,bcs::Vector,uin::@compat(Tuple{Multivariate
     SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
     SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
 
-    u1,u2=uin
-    u3 =SBE\[bcs,2u2-u1]
-    u4 =SBE\[bcs,2u3-u2]
+    u1,u2=chop(uin[1],1000eps()),chop(uin[2],1000eps())
+    u3 =chop(SBE\[bcs,2u2-u1],1000eps())
+    u4 =chop(SBE\[bcs,2u3-u2],1000eps())
 
     for k=1:m
-        u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
+        u4,u3,u2,u1  = chop(SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
 
         plot(pad(u4,80,80),glp...)#updates window
     end
@@ -176,10 +176,10 @@ function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::@compat(Tuple{
     SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
     SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
 
-    u1,u2=uin
-    u3 =SBE\[bcs,2u2-u1]
-    u4 =2u3 - u2 +h^2*g(u3)
-    u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
+    u1,u2=chop(uin[1],1000eps()),chop(uin[2],1000eps())
+    u3 =chop(SBE\[bcs,2u2-u1],1000eps())
+    u4 =chop(2u3 - u2 +h^2*g(u3),1000eps())
+    u4,u3,u2,u1  = chop(SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
     plot(pad(u4,80,80),glp...)#updates window
 
     for k=1:m
