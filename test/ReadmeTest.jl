@@ -53,7 +53,7 @@ d = domain(x)
 D = Derivative(d)
 B = dirichlet(d)
 L = D^2 - x
-u = [B,L] \ [airyai(d.a),airyai(d.b)]
+u = [B;L] \ [airyai(d.a);airyai(d.b)]
 
 @test_approx_eq u[0.] airyai(0.)
 
@@ -71,7 +71,7 @@ a = Fun(t-> 1+sin(cos(2t)),s)
 L = Derivative() + a
 f = Fun(t->exp(sin(10t)),s)
 B = periodic(s,0)
-uChebyshev = [B,L]\[0.,f]
+uChebyshev = [B;L]\[0.,f]
 
 s = Fourier([-π,π])
 a = Fun(t-> 1+sin(cos(2t)),s)
@@ -93,11 +93,11 @@ x = ApproxFun.sample(f,10000)
 
 d = Interval()^2                            # Defines a rectangle
 
-u = [dirichlet(d),lap(d)+100I]\ones(4)      # First four entries of rhs are 
+u = [dirichlet(d);lap(d)+100I]\ones(4)      # First four entries of rhs are 
 
 d = Disk()
 f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
-u = [dirichlet(d),lap(d)]\Any[0.,f]
+u = [dirichlet(d);lap(d)]\Any[0.,f]
 
 
 
@@ -115,13 +115,13 @@ h = 0.002
 
 d = Disk()
 u0 = Fun((x,y)->exp(-50x^2-40(y-.1)^2)+.5exp(-30(x+.5)^2-40(y+.2)^2),d)
-B= [dirichlet(d),neumann(d)]
+B= [dirichlet(d);neumann(d)]
 L = -lap(d)^2
 h = 0.001
 
 
 d = Disk()
 u0 = Fun((x,y)->exp(-50x^2-40(y-.1)^2)+.5exp(-30(x+.5)^2-40(y+.2)^2),d)
-B= [dirichlet(d),neumann(d)]
+B= [dirichlet(d);neumann(d)]
 L = -lap(d)^2
 h = 0.001

@@ -88,7 +88,7 @@ d = domain(x)
 D = Derivative(d)
 B = dirichlet(d)
 L = D^2 - x
-u = [B,L] \ [airyai(d.a),airyai(d.b)]
+u = [B;L] \ [airyai(d.a);airyai(d.b)]
 ApproxFun.plot(u)						    # Requires Gadfly or PyPlot
 ```
 
@@ -116,7 +116,7 @@ a = Fun(t-> 1+sin(cos(2t)),s)
 L = Derivative() + a
 f = Fun(t->exp(sin(10t)),s)
 B = periodic(s,0)
-uChebyshev = [B,L]\[0.,f]
+uChebyshev = [B;L]\[0.;f]
 
 s = Fourier([-π,π])
 a = Fun(t-> 1+sin(cos(2t)),s)
@@ -156,7 +156,7 @@ on a square
 ```julia
 d = Interval()^2          					# Defines a rectangle
 
-u = [dirichlet(d),lap(d)+100I]\ones(4)		# First four entries of rhs are 
+u = [dirichlet(d);lap(d)+100I]\ones(4)		# First four entries of rhs are 
     											# boundary conditions
 ApproxFun.contour(u)						# Requires Gadfly or PyPlot
 ```
@@ -167,7 +167,7 @@ on a disk
 ```julia
 d = Disk()
 f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
-u = [dirichlet(d),lap(d)]\Any[0.,f]
+u = [dirichlet(d);lap(d)]\Any[0.,f]
 ApproxFun.plot(u)                           # Requires Gadfly or PyPlot
 ```
 
