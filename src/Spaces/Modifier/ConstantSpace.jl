@@ -34,6 +34,19 @@ function addentries!{S<:FunctionSpace}(C::Conversion{ConstantSpace,S},A,kr::Rang
     A
 end
 
+bandinds{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T}) = 1-length(D.f),0
+function addentries!{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T},A,kr)
+    Op = Multiplication(D.f,space(D.f))
+    for k=kr
+        if k≤length(D.f)
+            A[k,1]+=Op[k,1]
+        end
+    end
+    A
+end
+rangespace{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T}) = rangespace(Multiplication(D.f,space(D.f)))
+
+
 ###
 # FunctionalOperator treats a functional like an operator
 ###
