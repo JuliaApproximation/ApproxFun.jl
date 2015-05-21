@@ -22,7 +22,7 @@ the roots and extrema:
 ```julia
 h = f + g^2
 r = roots(h)
-rp = roots(differentiate(h))
+rp = roots(h')
 ApproxFun.plot(h)                      # using PyPlot
 PyPlot.plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
 ```
@@ -33,14 +33,13 @@ PyPlot.plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
 # Differentiation and integration	
 
 
-Notice from above that to find the extrema, we used the `differentiate` operator. Several other `Julia`
-base functions are overloaded for the purposes of calculus. Because the exponential is its own
+Notice from above that to find the extrema, we used `'` overridden for the `differentiate` function. Several other `Julia`
+base functions are overridden for the purposes of calculus. Because the exponential is its own
 derivative, the `norm` is small:
 
 ```julia
 f = Fun(x->exp(x),[-1.,1.])
-fp = differentiate(f)
-norm(f-fp)
+norm(f-f')
 ```
 
 Similarly, `cumsum` defines an indefinite integration operator:
@@ -103,7 +102,7 @@ Specify the space `Fourier` to ensure that the representation is periodic:
 
 ```julia
 f = Fun(cos,Fourier([-π,π]))
-norm(differentiate(f) + Fun(sin,Fourier([-π,π]))
+norm(f' + Fun(sin,Fourier([-π,π]))
 ```
 
 Due to the periodicity, Fourier representations allow for the asymptotic savings of `2/π` 
