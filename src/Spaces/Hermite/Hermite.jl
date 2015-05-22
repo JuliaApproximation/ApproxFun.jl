@@ -1,13 +1,13 @@
-export Hermite
+export Hermite,GaussWeight
 
 immutable Hermite{T} <: PolynomialSpace
     L::T
 end
-
-spacescompatible(::Hermite,::Hermite)=true #TODO:L
+Hermite()=Hermite(1.0)
 
 domain(::Hermite)=Line()
-Hermite()=Hermite(1.0)
+canonicalspace(H::Hermite)=Hermite()
+spacescompatible(::Hermite,::Hermite)=true #TODO:L
 
 
 
@@ -29,6 +29,27 @@ function addentries!{H<:Hermite}(D::Derivative{H},A,kr::Range)
     end
     A
 end
+
+function hermitep(r::Range,x::Number)
+    n=r[end]+1
+    T = typeof(x)
+    H = Hermite()
+    if n≤2
+        v=[1.,2x]
+    else
+        v=Array(promote_type(Float64,typeof(x)),n)  # x may be complex
+        v[1]=1.
+        v[2]=2x
+
+        for k=2:n-1
+            v[k+1]=((x-recα(T,H,k))*v[k] - recγ(T,H,k)*v[k-1])/recβ(T,H,k)
+        end
+    end
+    v[r+1]
+end
+hermitep(n::Integer,v::Number)=hermitep(n:n,v)[1]
+hermitep(n::Range,v::Vector)=transpose(hcat(map(x->hermitep(n,x),v)...))
+hermitep(n::Integer,v::Vector)=map(x->hermitep(n,x),v)
 
 
 identity_fun(sp::Hermite)=Fun([0.,0.5],sp)
@@ -55,5 +76,4 @@ end
 
 weight(H::GaussWeight,x)=exp(-H.L*x.^2)
 
-#Derivative(GaussWeight(Hermite(),0.5),1)[1:10,1:10]
-
+include("hermitetransform.jl")
