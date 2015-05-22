@@ -13,7 +13,8 @@ type Fun{S,T}
     Fun(coeff::Vector{T},sp::S)=new(coeff,sp)
 end
 
-Fun{T<:Number}(coeff::Vector{T},sp::FunctionSpace)=Fun{typeof(sp),T}(coeff,sp)
+Fun(coeff::Vector,sp::FunctionSpace)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
+Fun{T<:Integer}(coeff::Vector{T},sp::FunctionSpace)=Fun(1.0coeff,sp)
 
 ##Coefficient routines
 #TODO: domainscompatible?
