@@ -15,6 +15,11 @@ end
 
 Fun(coeff::Vector,sp::FunctionSpace)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
 Fun{T<:Integer}(coeff::Vector{T},sp::FunctionSpace)=Fun(1.0coeff,sp)
+Fun(::Vector{None},sp::FunctionSpace)=Fun(Float64[],sp)
+function Fun(v::Vector{Any},sp::FunctionSpace)
+    @assert isempty(v)
+    Fun(Float64[],sp)
+end
 
 ##Coefficient routines
 #TODO: domainscompatible?
