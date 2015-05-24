@@ -41,7 +41,7 @@ function tocanonical(d::Line,x)
     @assert d.α==d.β==-1. || d.α==d.β==-.5
 
     if d.α==d.β==-1.
-        2/π*atan(x)
+        2x./(1+sqrt(1+4x.^2))
     elseif d.α==d.β==-.5
         x./sqrt(1 + x.^2)
     end
@@ -51,7 +51,7 @@ function tocanonicalD(d::Line,x)
     @assert d.α==d.β==-1. || d.α==d.β==-.5
 
     if d.α==d.β==-1.
-        2./(π*(1+x.^2))
+        2./(1+4x.^2+sqrt(1+4x.^2))
     elseif d.α==d.β==-.5
         (1 + x.^2).^(-3/2)
     end
@@ -59,16 +59,24 @@ end
 function fromcanonical(d::Line,x)
     #TODO: why is this consistent?
     if d.α==d.β==-1.
-        tan(π/2*x)
+        x./(1-x.^2)
     else
         x.*(1 + x).^d.α.*(1 - x).^d.β
     end
 end
 function fromcanonicalD(d::Line,x)
     if d.α==d.β==-1.
-        π/2*sec(π/2*x).^2
+        (1+x.^2)./(1-x.^2).^2
     else
         (1 - (d.β-d.α)x - (d.β+d.α+1)x.^2).*(1+x).^(d.α-1).*(1-x).^(d.β-1)
+    end
+end
+
+function invfromcanonicalD(d::Line,x)
+    if d.α==d.β==-1.
+        (1-x.^2).^2./(1+x.^2)
+    else
+        1./(1 - (d.β-d.α)x - (d.β+d.α+1)x.^2).*(1+x).^(1-d.α).*(1-x).^(1-d.β)
     end
 end
 
@@ -80,22 +88,6 @@ Base.last(d::Line)= Inf
 
 
 ==(d::Line,m::Line) = d.centre == m.centre && d.angle == m.angle && d.β == m.β &&d.α == m.α
-
-
-
-##multiplybyx
-
-
-
-
-# function multiplybyx{T<:Number,D<:LineSpace}(f::Fun{T,D})
-#     ct=Fun(x->x.*cot(π*x/2),28)
-#     x=Fun(identity)
-#     u=SingFun(ct./(1-x.^2),1.,1.)
-#     Fun((x.*Fun(f)./u).fun./(1-x.^2),domain(f))
-# end
-
-
 
 
 
@@ -139,7 +131,7 @@ for typ in (:Line,:PeriodicLine)
         @assert abs(d[1]) == abs(d[2]) == Inf
 
         if isa(d[1],Real) && isa(d[2],Real)
-            if d[1]==Inf 
+            if d[1]==Inf
                 @assert d[2]==-Inf
                 $typ(true)
             else

@@ -71,6 +71,8 @@ for op = (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD)
     @eval ($op)(f::Fun,x)=($op)(domain(f),x)
 end
 
+invfromcanonicalD(d::Domain)=invfromcanonicalD(d,Fun(identity,canonicaldomain(d)))
+
 space(f::Fun)=f.space
 spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
 canonicalspace(f::Fun)=canonicalspace(space(f))

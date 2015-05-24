@@ -98,21 +98,8 @@ end
 ## Derivative
 
 function Derivative{SS<:FunctionSpace,LD<:Line,T}(S::MappedSpace{SS,LD,T},order::Int)
-    d=domain(S)
-    @assert d.α==-1&&d.β==-1
-    x=Fun(identity,S)
-    D1=Derivative(S.space)
-    DS=SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1)))
-
-    M1=Multiplication(Fun(1,d),Space(d))
-    Mx=Multiplication(x^2,Space(d))
-    M1x=M1+Mx
-    u=M1x\(2/π)  #tocanonicalD(S,x)=2/π*(1/(1+x^2))
-
-    M=Multiplication(u,DS|>rangespace)
-
-    D=DerivativeWrapper(M*DS,1)
-
+    D1=invfromcanonicalD(S)*Derivative(S.space)
+    D=DerivativeWrapper(SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1))),1)
     if order==1
         D
     else

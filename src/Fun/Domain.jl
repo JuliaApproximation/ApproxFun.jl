@@ -155,8 +155,8 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 ## map domains
 
 
-mappoint(d1::Domain,d2::Domain,x)=fromcanonical(d2,tocanonical(d1,x))
-
+mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
+invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
 
 
 

@@ -61,7 +61,7 @@ for ν in (1.,.123,2.,3.5)
     u=[rdirichlet(S),rneumann(S),L]\[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.))]
     @test_approx_eq_eps u[.1] besselj(ν,.1) eps(10000.)*max(abs(u[.1]),1)
 end
-    
+
 
 
 
@@ -110,3 +110,12 @@ f=x^(-0.123)*exp(-x)
 
 
 @test_approx_eq_eps sum(Fun(sech,[0,Inf])) sum(Fun(sech,[0,40.])) 100000eps()
+
+
+
+## Line
+
+f=Fun(x->exp(-x^2),Line())
+
+@test_approx_eq f'[0.1] -2*0.1exp(-0.1^2)
+@test_approx_eq (Derivative()*f)[0.1] -2*0.1exp(-0.1^2)
