@@ -119,3 +119,4 @@ f=Fun(x->exp(-x^2),Line())
 
 @test_approx_eq f'[0.1] -2*0.1exp(-0.1^2)
 @test_approx_eq (Derivative()*f)[0.1] -2*0.1exp(-0.1^2)
+
