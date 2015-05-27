@@ -244,17 +244,19 @@ datalength(Σ::DefiniteLineIntegral{Fourier})=1
 
 ## Split Multiplication in 2 to lower bandwidths
 
-function .*(f::Fun{Fourier},g::Fun{Fourier})
+function coefficienttimes(f::Fun{Fourier},g::Fun{Fourier})
     a,b=vec(f)
-    a.*g+b.*g
+    coefficienttimes(a,g)+coefficienttimes(b,g)
 end
+function coefficienttimes(f::Fun,g::Fun{Fourier})
+    c,d=vec(g)
+    coefficienttimes(f,c)+coefficienttimes(f,d)
+end
+coefficienttimes(f::Fun{Fourier},g::Fun) = coefficienttimes(g,f)
 
-function .*(f::Fun{Fourier},g::Fun)
-    a,b=vec(f)
-    a.*g+b.*g
-end
-
-function .*(f::Fun,g::Fun{Fourier})
-    a,b=vec(g)
-    f.*a+f.*b
-end
+transformtimes(f::Fun{CosSpace},g::Fun{Fourier}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),g)
+transformtimes(f::Fun{SinSpace},g::Fun{Fourier}) = transformtimes(Fun(interlace(zeros(eltype(f),length(f)+1),f.coefficients),Fourier(domain(f))),g)
+transformtimes(f::Fun{CosSpace},g::Fun{SinSpace}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),Fun(interlace(zeros(eltype(g),length(g)+1),g.coefficients),Fourier(domain(g))))
+transformtimes(f::Fun{Fourier},g::Fun{CosSpace}) = transformtimes(g,f)
+transformtimes(f::Fun{Fourier},g::Fun{SinSpace}) = transformtimes(g,f)
+transformtimes(f::Fun{SinSpace},g::Fun{CosSpace}) = transformtimes(g,f)
