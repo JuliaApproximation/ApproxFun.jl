@@ -34,7 +34,7 @@ end
 
 ## Derivative
 
-Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Int,Float64}(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),Derivative{Jacobi,Int,Float64}(J,1)),k)
+Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Int,eltype(domain(J))}(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),Derivative{Jacobi,Int,eltype(domain(J))}(J,1)),k)
 
 
 

@@ -195,6 +195,9 @@ function .^(f::Fun{Chebyshev},k::Float64)
     end
 end
 
+#TODO: implement
+.^(f::Fun{Jacobi},k::Float64)=Fun(f,Chebyshev).^k
+
 # Default is just try solving ODE
 function .^{S,T}(f::Fun{S,T},β)
     A=Derivative()-β*differentiate(f)/f

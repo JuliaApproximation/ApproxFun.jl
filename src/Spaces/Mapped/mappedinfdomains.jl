@@ -97,7 +97,7 @@ end
 
 ## Derivative
 
-function Derivative{SS<:FunctionSpace,LD<:Line,T}(S::MappedSpace{SS,LD,T},order::Int)
+function Derivative{SS<:FunctionSpace,LD<:Union(Line,Ray),T}(S::MappedSpace{SS,LD,T},order::Int)
     D1=invfromcanonicalD(S)*Derivative(S.space)
     D=DerivativeWrapper(SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1))),1)
     if order==1
@@ -106,30 +106,6 @@ function Derivative{SS<:FunctionSpace,LD<:Line,T}(S::MappedSpace{SS,LD,T},order:
         Derivative(rangespace(D),order-1)*D
     end
 end
-
-
-function Derivative{SS<:FunctionSpace,RD<:Ray,T}(S::MappedSpace{SS,RD,T},order::Int)
-    d=domain(S)
-    @assert d.centre==0 && d.angle==0 && d.orientation
-# x=Fun(identity,Ray())
-# M=Multiplication(1+2x+x^2,Space(Ray()))
-# u=M\2
-
-    D1=Derivative(S.space)
-    DS=SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1)))
-
-    u=Fun([0.75,-1.0,0.25],Ray())
-    M=Multiplication(u,DS|>rangespace)
-
-    D=DerivativeWrapper(M*DS,1)
-
-    if order==1
-        D
-    else
-        Derivative(rangespace(D),order-1)*D
-    end
-end
-
 
 
 

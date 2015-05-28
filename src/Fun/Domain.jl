@@ -38,8 +38,6 @@ Base.length(::AnyDomain)=NaN
 
 
 
-
-
 ## Interval Domains
 
 abstract IntervalDomain{T} <: UnivariateDomain{T}

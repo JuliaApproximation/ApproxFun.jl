@@ -74,6 +74,12 @@ abstract AmbiguousSpace <: FunctionSpace{RealBasis,1}
 
 domain(::AmbiguousSpace)=AnyDomain()
 
+function setdomain(sp::FunctionSpace,d::Domain)
+    S=typeof(sp)
+    @assert length(@compat(fieldnames(S)))==1
+    S(d)
+end
+
 
 # AnySpace dictates that an operator can act on any space
 # UnsetSpace dictates that an operator is not defined until

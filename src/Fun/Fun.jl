@@ -67,6 +67,8 @@ domain(f::Fun)=domain(f.space)
 domain{T<:Fun}(v::Vector{T})=map(domain,v)
 
 
+setdomain(f::Fun,d::Domain)=Fun(f.coefficients,setdomain(space(f),d))
+
 for op = (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD)
     @eval ($op)(f::Fun,x)=($op)(domain(f),x)
 end

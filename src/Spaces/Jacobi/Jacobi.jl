@@ -84,6 +84,13 @@ for op in (:(Base.ones),:(Base.zeros))
 end
 
 function identity_fun(J::Jacobi)
-    @assert domain(J)==Interval()
-    Fun([(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)],J)
+    if domain(J)==Interval()
+        Fun([(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)],J)
+    else
+        d=domain(J)
+        complexlength(d)/2*(Fun([(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)],J)+1.)+first(d)
+    end
 end
+
+
+setdomain(S::Jacobi,d::Domain)=Jacobi(S.a,S.b,d)
