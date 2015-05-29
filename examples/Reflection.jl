@@ -18,6 +18,12 @@ end
 
 f=Fun(exp)
 R=Reflection(space(f))
+x=Fun();M=Multiplication(x,space(x))
+C=Conversion(Chebyshev(),Ultraspherical{1}())
+D=Derivative(space(f))
+inv(full(C[1:10,1:10]))*full(D[1:10,1:10])+inv(M[1:10,1:10]|>full)*full((R-I)[1:10,1:10])
+
+inv(full(C[1:10,1:10]))*full(D[1:10,1:10])
 
 (R*f)[.1]
 f[-.1]
