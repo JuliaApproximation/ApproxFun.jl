@@ -12,6 +12,8 @@ function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=
     end
 end
 
+plan_chebyshevtransform{T<:Number}(x::Vector{T};kwds...) = identity
+
 function chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function;kind::Integer=1)
     if kind == 1
         n = length(x)
@@ -36,7 +38,7 @@ end
 chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)=chebyshevtransform(x,plan_chebyshevtransform(x;kind=kind);kind=kind)
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function chebyshevtransform{T<:Number}(x::Vector{T};kind::Integer=1)
+function chebyshevtransform{T<:Number}(x::Vector{T},plan::Function;kind::Integer=1)
     if kind == 1
         n = length(x)
         if n == 1
@@ -73,6 +75,8 @@ function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer
     end
 end
 
+plan_ichebyshevtransform{T<:Number}(x::Vector{T};kwds...) = identity
+
 function ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function;kind::Integer=1)
     if kind == 1
         x[1] *=2
@@ -99,7 +103,7 @@ end
 ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)=ichebyshevtransform(x,plan_ichebyshevtransform(x;kind=kind);kind=kind)
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function ichebyshevtransform{T<:Number}(x::Vector{T};kind::Integer=1)
+function ichebyshevtransform{T<:Number}(x::Vector{T},plan::Function;kind::Integer=1)
     if kind == 1
         n = length(x)
         if n == 1

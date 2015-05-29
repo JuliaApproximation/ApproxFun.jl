@@ -320,22 +320,43 @@ checkpoints(d::FunctionSpace)=checkpoints(domain(d))
 
 ## default transforms
 
-function itransform{T}(S::FunctionSpace{T},cfs)
-    csp=canonicalspace(S)
-    if S==csp
-        error("Override itransform(::"*string(typeof(S))*",cfs)")
-    end
+transform{T}(S::FunctionSpace{T},vals)=transform(S,vals,plan_transform(S,vals))
+itransform{T}(S::FunctionSpace{T},cfs)=itransform(S,cfs,plan_itransform(S,cfs))
 
-    itransform(csp,coefficients(cfs,S,csp))
-end
-
-function transform{T}(S::FunctionSpace{T},vals)
+function transform{T}(S::FunctionSpace{T},vals,plan::Function)
     csp=canonicalspace(S)
     if S==csp
         error("Override transform(::"*string(typeof(S))*",vals)")
     end
 
-    coefficients(transform(csp,vals),csp,S)
+    coefficients(transform(csp,vals,plan),csp,S)
+end
+
+function itransform{T}(S::FunctionSpace{T},cfs,plan::Function)
+    csp=canonicalspace(S)
+    if S==csp
+        error("Override itransform(::"*string(typeof(S))*",cfs)")
+    end
+
+    itransform(csp,coefficients(cfs,S,csp),plan)
+end
+
+function plan_transform{T}(S::FunctionSpace{T},vals)
+    csp=canonicalspace(S)
+    if S==csp
+        error("Override transform(::"*string(typeof(S))*",vals)")
+    end
+
+    plan_transform(csp,vals)
+end
+
+function plan_itransform{T}(S::FunctionSpace{T},cfs)
+    csp=canonicalspace(S)
+    if S==csp
+        error("Override itransform(::"*string(typeof(S))*",cfs)")
+    end
+
+    plan_itransform(csp,cfs)
 end
 
 
