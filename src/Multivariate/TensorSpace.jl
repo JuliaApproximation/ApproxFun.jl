@@ -75,12 +75,15 @@ end
 
 function itransform!(S::TensorSpace,M::Matrix)
     n=size(M,1)
+
+    planc=plan_itransform(space(S,1),M[:,1])
     for k=1:size(M,2)
-        M[:,k]=itransform(space(S,1),M[:,k])
+        M[:,k]=itransform(space(S,1),M[:,k],planc)
     end
 
+    planr=plan_itransform(space(S,2),vec(M[1,:]))
     for k=1:n
-        M[k,:]=itransform(space(S,2),vec(M[k,:]))
+        M[k,:]=itransform(space(S,2),vec(M[k,:]),planr)
     end
     M
 end
@@ -103,12 +106,14 @@ end
 function transform!(S::TensorSpace,M::Matrix)
     n=size(M,1)
 
+    planc=plan_transform(space(S,1),M[:,1])
     for k=1:size(M,2)
-        M[:,k]=transform(space(S,1),M[:,k])
+        M[:,k]=transform(space(S,1),M[:,k],planc)
     end
 
+    planr=plan_transform(space(S,2),vec(M[1,:]))
     for k=1:n
-        M[k,:]=transform(space(S,2),vec(M[k,:]))
+        M[k,:]=transform(space(S,2),vec(M[k,:]),planr)
     end
     M
 end
@@ -213,19 +218,6 @@ function points(sp::TensorSpace,n)
         push!(pts,(x,y))
     end
     pts
-end
-
-function transform!(S::TensorSpace,M::Matrix)
-    n=size(M,1)
-
-    for k=1:size(M,2)
-        M[:,k]=transform(space(S,1),M[:,k])
-    end
-
-    for k=1:n
-        M[k,:]=transform(space(S,2),vec(M[k,:]))
-    end
-    M
 end
 
 function transform(sp::TensorSpace,vals)

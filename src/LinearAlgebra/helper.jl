@@ -205,9 +205,12 @@ end
 ## svfft
 
 ##FFT That interlaces coefficients
-function svfft(v::Vector)
+plan_svfft(x::Vector) = plan_fft(x)
+plan_isvfft(x::Vector) = plan_ifft(x)
+
+function svfft(v::Vector,plan::Function)
         n=length(v)
-        v=FFTW.fft(v)./n
+        v=plan(v)./n
         if mod(n,2) == 0
             ind=div(n,2)
             v=alternatesign!(v)
@@ -224,11 +227,7 @@ function svfft(v::Vector)
         end
 end
 
-
-
-
-
-function isvfft(sv::Vector)
+function isvfft(sv::Vector,plan::Function)
         n=length(sv)
 
         if mod(n,2) == 0
@@ -241,7 +240,7 @@ function isvfft(sv::Vector)
                     alternatesign!(flipdim(sv[2:2:end],1))]
         end
 
-        FFTW.ifft(n*v)
+        plan(n*v)
 end
 
 
