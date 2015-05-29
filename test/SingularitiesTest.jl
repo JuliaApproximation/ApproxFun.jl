@@ -120,3 +120,15 @@ f=Fun(x->exp(-x^2),Line())
 @test_approx_eq f'[0.1] -2*0.1exp(-0.1^2)
 @test_approx_eq (Derivative()*f)[0.1] -2*0.1exp(-0.1^2)
 
+
+
+
+## PeriodicLine
+
+d=PeriodicLine()
+D=Derivative(d)
+f=Fun(x->sech(x-.1),d)
+
+
+@test_approx_eq_eps (D*f)[.2] -0.0991717226583897  100000eps()
+@test_approx_eq_eps (D^2*f)[.2] -0.9752522555114987  100000eps()

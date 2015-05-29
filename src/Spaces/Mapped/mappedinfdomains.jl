@@ -97,32 +97,24 @@ end
 
 ## Derivative
 
-function Derivative{SS<:FunctionSpace,LD<:Union(Line,Ray),T}(S::MappedSpace{SS,LD,T},order::Int)
+function invfromcanonicalD(d::PeriodicLine{false})
+    @assert d.centre==0  && d.L==1.0
+    a=Fun([1.,0,1],PeriodicInterval())
+end
+
+function invfromcanonicalD{LL<:Union(Laurent,LaurentDirichlet)}(S::MappedSpace{LL,PeriodicLine{false}})
+    d=domain(S)
+    @assert d.centre==0  && d.L==1.0
+    a=Fun([1.,.5,.5],Laurent())
+end
+
+
+function Derivative{SS<:FunctionSpace,LD<:Union(Line,Ray,PeriodicLine),T}(S::MappedSpace{SS,LD,T},order::Int)
     D1=invfromcanonicalD(S)*Derivative(S.space)
     D=DerivativeWrapper(SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1))),1)
     if order==1
         D
     else
-        Derivative(rangespace(D),order-1)*D
+        DerivativeWrapper(TimesOperator(Derivative(rangespace(D),order-1),D),order)
     end
 end
-
-
-
-function Derivative{SS<:FunctionSpace}(S::MappedSpace{SS,PeriodicLine{false}},order::Int)
-    d=domain(S)
-    @assert d.centre==0  && d.L==1.0
-
-    a=Fun([1.,0,1],PeriodicInterval())
-    M=Multiplication(a,space(a))
-    DS=Derivative(space(a))
-    D=SpaceOperator(M*DS,S,S)
-
-    if order==1
-        DerivativeWrapper(D,1)
-    else
-        DerivativeWrapper(Derivative(rangespace(D),order-1)*D,order)
-    end
-end
-
-
