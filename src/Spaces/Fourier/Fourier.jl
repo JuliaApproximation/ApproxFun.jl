@@ -97,7 +97,7 @@ itransform(::CosSpace,cfs,plan::Function)=ichebyshevtransform(cfs,plan;kind=2)
 evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
-points(sp::SinSpace,n)=points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
+points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
 plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
 plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
 transform(::SinSpace,vals,plan::Function)=plan(vals)/(length(vals)+1)
