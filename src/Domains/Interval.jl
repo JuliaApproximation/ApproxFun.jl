@@ -14,8 +14,8 @@ immutable Interval{T} <: IntervalDomain{T}  #repeat <:Number due to Julia issue 
 end
 
 Interval()=Interval{Float64}()
-Interval{T}(a::T,b::T)=Interval{T}(a,b)
-Interval(a::Int,b::Int) = Interval(@compat(Float64(a)),@compat(Float64(b)))   #convenience method
+Interval(a::Int,b::Int) = Interval(@compat(Float64(a)),@compat(Float64(b))) #convenience method
+Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 function Interval{T<:Number}(d::Vector{T})
     @assert length(d)==2
@@ -26,7 +26,6 @@ end
 
 
 Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
-Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 AnyInterval{T}(::Type{T})=Interval{T}(NaN,NaN)
 AnyInterval()=AnyInterval(Float64)
