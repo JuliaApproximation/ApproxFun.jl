@@ -86,21 +86,20 @@ function horner{T}(v::Vector{T},z::Vector)
     ret
 end
 
+
 ## Cos and Sin space
 
 points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
-plan_transform{T<:Number}(::CosSpace,x::Vector{T})=plan_chebyshevtransform(x;kind=2)
-plan_itransform{T<:Number}(::CosSpace,x::Vector{T})=plan_ichebyshevtransform(x;kind=2)
+plan_transform(::CosSpace,x::Vector)=plan_chebyshevtransform(x;kind=2)
+plan_itransform(::CosSpace,x::Vector)=plan_ichebyshevtransform(x;kind=2)
 transform(::CosSpace,vals,plan::Function)=chebyshevtransform(vals,plan;kind=2)
 itransform(::CosSpace,cfs,plan::Function)=ichebyshevtransform(cfs,plan;kind=2)
 evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
-points(sp::SinSpace,n)=Float64[fromcanonical(domain(sp),(π*k)/(n+1)) for k=1:n]
-
-
-plan_transform{T<:Number}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
-plan_itransform{T<:Number}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+points(sp::SinSpace,n)=points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]#Float64[fromcanonical(domain(sp),(π*k)/(n+1)) for k=1:n]
+plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
 transform(::SinSpace,vals,plan::Function)=plan(vals)/(length(vals)+1)
 itransform(::SinSpace,cfs,plan::Function)=plan(cfs)/2
 evaluate(f::Fun{SinSpace},t)=sineshaw(f.coefficients,tocanonical(f,t))
@@ -115,17 +114,11 @@ Laurent()=Laurent(PeriodicInterval())
 Laurent{T<:Number}(d::Vector{T}) = Laurent(convert(PeriodicDomain,d))
 
 
-
 points(sp::Laurent,n)=points(domain(sp),n)
 plan_transform(::Laurent,x::Vector)=plan_svfft(x)
 plan_itransform(::Laurent,x::Vector)=plan_isvfft(x)
 transform(::Laurent,vals,plan::Function)=svfft(vals,plan)
 itransform(::Laurent,cfs,plan::Function)=isvfft(cfs,plan)
-
-## Ones and zeros
-
-
-Base.ones{T<:Number}(::Type{T},S::Laurent)=Fun(ones(T,1),S)
 
 
 ## Fourier space
@@ -135,56 +128,9 @@ Fourier()=Fourier(PeriodicInterval())
 Fourier{T<:Number}(d::Vector{T}) = Fourier(PeriodicInterval(d))
 
 
-Space(d::PeriodicInterval)=Fourier(d)
-Space(d::Circle)=Laurent(d)
-canonicalspace(S::Union(Laurent,Fourier))=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
-
-
-#domain(S) may be any domain
-for sp in (:Fourier,:Laurent,:(Hardy{true}),:CosSpace)
-    @eval begin
-        Base.ones{T<:Number}(::Type{T},S::$sp)=Fun(ones(T,1),S)
-        Base.ones(S::$sp)=Fun(ones(1),S)
-    end
-end
-
 points(sp::Fourier,n)=points(domain(sp),n)
-
-
-function fouriermodalt!(cfs)
-    n=length(cfs)
-    if iseven(n)
-        for k=2:2:div(n,2)+1
-            cfs[k]*=-1
-        end
-    else
-        for k=2:2:div(n+1,2)
-            cfs[k]*=-1
-        end
-    end
-
-    if mod(n,4)==0
-        for k=div(n,2)+3:2:n
-            cfs[k]*=-1
-        end
-    elseif mod(n,4)==2
-        for k=div(n,2)+2:2:n
-            cfs[k]*=-1
-        end
-    elseif mod(n,4)==1
-        for k=div(n+3,2):2:n
-            cfs[k]*=-1
-        end
-    else #mod(n,4)==3
-        for k=div(n+5,2):2:n
-            cfs[k]*=-1
-        end
-    end
-    cfs
-end
-
-plan_transform{T<:Number}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.R2HC)
-plan_itransform{T<:Number}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.HC2R)
+plan_transform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.R2HC)
+plan_itransform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.HC2R)
 
 function transform{T<:Number}(::Fourier,vals::Vector{T},plan::Function)
     n=length(vals)
@@ -219,14 +165,53 @@ function itransform{T<:Number}(::Fourier,a::Vector{T},plan::Function)
     plan(cfs)/2
 end
 
+function fouriermodalt!(cfs)
+    n=length(cfs)
+    if iseven(n)
+        for k=2:2:div(n,2)+1
+            cfs[k]*=-1
+        end
+    else
+        for k=2:2:div(n+1,2)
+            cfs[k]*=-1
+        end
+    end
+
+    if mod(n,4)==0
+        for k=div(n,2)+3:2:n
+            cfs[k]*=-1
+        end
+    elseif mod(n,4)==2
+        for k=div(n,2)+2:2:n
+            cfs[k]*=-1
+        end
+    elseif mod(n,4)==1
+        for k=div(n+3,2):2:n
+            cfs[k]*=-1
+        end
+    else #mod(n,4)==3
+        for k=div(n+5,2):2:n
+            cfs[k]*=-1
+        end
+    end
+    cfs
+end
 
 
+Space(d::PeriodicInterval)=Fourier(d)
+Space(d::Circle)=Laurent(d)
+canonicalspace(S::Union(Laurent,Fourier))=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
 
+## Ones and zeros
+
+for sp in (:Fourier,:Laurent,:Taylor,:CosSpace)
+    @eval begin
+        Base.ones{T<:Number}(::Type{T},S::$sp)=Fun(ones(T,1),S)
+        Base.ones(S::$sp)=Fun(ones(1),S)
+    end
+end
 
 reverseorientation(f::Fun{Fourier})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
-
-
-
 
 include("calculus.jl")
 include("specialfunctions.jl")

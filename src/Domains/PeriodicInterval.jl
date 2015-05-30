@@ -6,11 +6,13 @@ export PeriodicInterval
 immutable PeriodicInterval{T<:Number} <: PeriodicDomain{T}
     a::T
     b::T
+    PeriodicInterval()=new(-convert(T,π),convert(T,π))
+    PeriodicInterval(a,b)=new(a,b)
 end
 
-PeriodicInterval()=PeriodicInterval(-1.π,1.π)
-PeriodicInterval(a::Int,b::Int) = PeriodicInterval(float64(a),float64(b))   
-PeriodicInterval(a::Number,b::Number) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)#convenience method
+PeriodicInterval()=PeriodicInterval{Float64}()
+PeriodicInterval(a::Int,b::Int) = PeriodicInterval(@compat(Float64(a)),@compat(Float64(b))) #convenience method
+PeriodicInterval(a::Number,b::Number) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)
 
 function PeriodicInterval{T<:Number}(d::Vector{T})
     @assert length(d)==2
@@ -39,8 +41,8 @@ Base.first(d::PeriodicInterval)=d.a
 ## Map periodic interval
 
 
-tocanonical(d::PeriodicInterval,x)=1.π.*tocanonical(Interval(d),x)
-tocanonicalD(d::PeriodicInterval,x)=1.π.*tocanonicalD(Interval(d),x)
+tocanonical{T}(d::PeriodicInterval{T},x)=convert(T,π).*tocanonical(Interval(d),x)
+tocanonicalD{T}(d::PeriodicInterval{T},x)=convert(T,π).*tocanonicalD(Interval(d),x)
 fromcanonical(d::PeriodicInterval,θ)=fromcanonical(Interval(d),θ/π)
 fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Interval(d),θ/π)/π
 
