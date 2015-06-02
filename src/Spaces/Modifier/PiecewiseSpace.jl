@@ -82,7 +82,7 @@ function transform(S::PiecewiseSpace,vals::Vector)
     end
 end
 
-itransform(S::PiecewiseSpace,cfs::Vector)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
+itransform(S::PiecewiseSpace,cfs::Vector,plan...)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
 
 
 function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
