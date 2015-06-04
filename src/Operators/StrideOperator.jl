@@ -403,6 +403,8 @@ end
 PrependColumnsFunctional{T<:Number}(cols::Vector{T},op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
 PrependColumnsFunctional{T<:Number}(col::T,op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
 
+domainspace(P::PrependColumnsFunctional)=SumSpace(ConstantSpace(),domainspace(P.op))
+
 function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range)
     lcols = length(P.cols)
     opr = intersect(kr,length(P.cols)+1:kr[end])

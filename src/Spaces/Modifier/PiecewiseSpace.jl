@@ -174,6 +174,15 @@ end
 DefiniteIntegral(d::UnionDomain) = DefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
 DefiniteLineIntegral(d::UnionDomain) = DefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
 
+####### This is a hack to get the Faraday Cage working.
+function getindex{PWS<:PiecewiseSpace,T}(Σ::DefiniteLineIntegral{PWS,T},kr::Range)
+    d = domain(Σ)
+    n = length(d)
+    promote_type(T,eltype(d))[k ≤ n? one(T) : zero(T) for k=kr]
+end
+datalength{PWS<:PiecewiseSpace,T}(Σ::DefiniteLineIntegral{PWS,T})=length(domain(Σ))
+####### This is a hack to get the Faraday Cage working.
+
 ## TensorSpace of two PiecewiseSpaces
 
 Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{@compat(Tuple{PWS1,PWS2})},i::Integer,j::Integer)=d[1][i]⊗d[2][j]
