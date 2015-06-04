@@ -18,6 +18,8 @@ function ToeplitzOperator(V::Vector)
     ToeplitzOperator(W,V)
 end
 
+Base.convert{BT<:Operator}(::Type{BT},T::ToeplitzOperator)=ToeplitzOperator(convert(Vector{eltype(BT)},T.negative),
+                                                                            convert(Vector{eltype(BT)},T.nonnegative))
 
 
 

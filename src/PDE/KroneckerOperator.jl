@@ -29,6 +29,9 @@ blockbandzeros{T}(zer::Function,::Type{T},n,m,Alu,Blu)=blockbandzeros(zer,T,n,m,
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
 
+getindex{T}(A::BandedMatrix{Matrix{T}},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
+getindex{T}(A::BandedMatrix{BandedMatrix{T}},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?bazeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
+
 function Base.convert{T,V<:Number}(::Type{Matrix{T}},K::BandedMatrix{BandedMatrix{V}})
     n=size(K,1)
     m=size(K,2)
