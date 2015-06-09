@@ -5,15 +5,15 @@ export samplecdf,normalizedcumsum!
 ##bisection inverse
 
 
-bisectioninv{S,T}(f::Fun{S,T},x::Real) = first(bisectioninv(f,[x]))
+bisectioninv{S,T}(f::Fun{S,T},x::Real;opts...) = first(bisectioninv(f,[x];opts...))
 
 
-function bisectioninv{S,T}(f::Fun{S,T},x::Float64)
+function bisectioninv{S,T}(f::Fun{S,T},x::Float64;numits::Int=47)
     d=domain(f)
     a = first(d);b = last(d)
 
 
-    for k=1:47  #TODO: decide 47
+    for k=1:numits  #TODO: decide 47
         m=.5*(a+b)
         val = f[m]
 
@@ -22,16 +22,16 @@ function bisectioninv{S,T}(f::Fun{S,T},x::Float64)
     .5*(a+b)
 end
 
-bisectioninv{S,T}(f::Fun{S,T},x::Vector)=Float64[bisectioninv(f,xx) for xx in x]
+bisectioninv{S,T}(f::Fun{S,T},x::Vector;opts...)=Float64[bisectioninv(f,xx;opts...) for xx in x]
 
 
 ## Clenshaw bisection
 
-function chebbisectioninv(c::Vector{Float64},x::Float64)
+function chebbisectioninv(c::Vector{Float64},x::Float64;numits::Int=47)
     a = -1.;b = 1.
 
 
-    for k=1:47  #TODO: decide 47
+    for k=1:numits  #TODO: decide 47
         m=.5*(a+b)
         val = clenshaw(c,m)
 
@@ -82,7 +82,7 @@ function chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64},plan::Clenshaw
 end
 
 for TYP in (:Vector,:Float64), SP in (:Chebyshev,:LineSpace)
-    @eval bisectioninv(cf::Fun{$SP,Float64},x::$TYP)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x))
+    @eval bisectioninv(cf::Fun{$SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
 end
 
 
