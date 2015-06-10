@@ -30,7 +30,7 @@ immutable PlusOperator{T} <: BandedOperator{T}
 end
 
 
-Base.convert{OT<:Operator}(::Type{OT},P::PlusOperator)=PlusOperator{eltype(OT)}(P.ops)
+Base.convert{OT<:Operator}(::Type{OT},P::PlusOperator)=PlusOperator{eltype(OT)}(P.ops)::OT
 
 promoteplus{T}(ops::Vector{BandedOperator{T}})=PlusOperator(promotespaces(ops))
 promoteplus{T}(ops::Vector{Functional{T}})=PlusFunctional(promotespaces(ops))
@@ -207,7 +207,7 @@ end
 function Base.convert{OT<:Operator}(::Type{OT},C::ConstantTimesOperator)
     T=eltype(OT)
     op=convert(BandedOperator{T},C.op)
-    ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)
+    ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)::OT
 end
 
 
@@ -262,7 +262,7 @@ TimesOperator{T,V}(A::BandedOperator{T},B::BandedOperator{V})=TimesOperator(Band
 
 ==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
 
-Base.convert{OT<:Operator}(::Type{OT},P::TimesOperator)=TimesOperator(BandedOperator{eltype(OT)}[P.ops...])
+Base.convert{OT<:Operator}(::Type{OT},P::TimesOperator)=TimesOperator(BandedOperator{eltype(OT)}[P.ops...])::OT
 
 
 

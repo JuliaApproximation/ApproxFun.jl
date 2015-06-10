@@ -114,7 +114,7 @@ Base.convert{S,V,DS,RS,T}(::Type{KroneckerOperator{S,V,DS,RS,T}},K::KroneckerOpe
 Base.convert{BO<:Operator}(::Type{BO},K::KroneckerOperator)=KroneckerOperator(convert(Operator{eltype(eltype(BO))},K.ops[1]),
                                                                                 convert(Operator{eltype(eltype(BO))},K.ops[2]),
                                                                               K.domainspace,
-                                                                              K.rangespace)
+                                                                              K.rangespace)::BO
 
 
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
