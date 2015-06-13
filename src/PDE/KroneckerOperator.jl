@@ -119,10 +119,23 @@ Base.convert{BO<:Operator}(::Type{BO},K::KroneckerOperator)=KroneckerOperator(co
 
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
+blockbandinds(::ConstantOperator,::Integer)=0
+blockbandinds(K::Union(ConversionWrapper,MultiplicationWrapper,SpaceOperator,ConstantTimesOperator),k::Integer)=blockbandinds(K.op,k)
+
+
 
 blockbandinds(K::PlusOperator,k::Integer)=mapreduce(v->blockbandinds(v,k),k==1?min:max,K.ops)
-blockbandinds(K::ConversionWrapper,k::Integer)=blockbandinds(K.op,k)
 
+
+function blockbandindssum(P,k)
+    ret=0
+    for op in P
+        ret+=blockbandinds(op,k)::Int
+    end
+    ret
+end
+
+blockbandinds(P::TimesOperator,k)=blockbandindssum(P.ops,1)
 
 blockbandinds{T}(K::BandedOperator{BandedMatrix{T}})=blockbandinds(K,1),blockbandinds(K,2)
 
@@ -168,6 +181,16 @@ bazeros{T}(K::BivariateOperator{T},n::Integer,br::@compat(Tuple{Int,Int}))=block
 # decompose into blocks
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
+
+
+function *{T<:BandedMatrix,V<:BandedMatrix}(A::BandedMatrix{T},B::BandedMatrix{V})
+    if size(A,2)!=size(B,1)
+        throw(DimensionMismatch("*"))
+    end
+    n,m=size(A,1),size(B,2)
+    error("Implement")
+    bamultiply!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
+end
 
 function *{BM<:AbstractArray,V<:Number}(M::BandedMatrix{BM},v::Vector{V})
     n,m=size(M)
@@ -252,7 +275,7 @@ end
 
 Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{ConstantSpace,V}),T,2}},sp::TensorSpace)
-    a=Fun(totensor(f.coefficients)[1,:],space(f)[2])
+    a=Fun(vec(totensor(f.coefficients)[1,:]),space(f)[2])
     #Hack to avoid auto-typing bug.  TODO: incorporate basis
     MultiplicationWrapper(BandedMatrix{eltype(f)},f,eye(sp[1])⊗Multiplication(a,sp[2]))
 end
@@ -312,134 +335,6 @@ function findfunctionals(A::Vector,k::Integer)
         indsBx,Functional{T}[(@assert dekron(Ai,1)==ConstantOperator(Float64,1.0); dekron(Ai,2)) for Ai in A[indsBx]]
     end
 end
-
-
-
-
-
-
-
-## AlmostBandedOperator
-
-function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,R},n::Integer)
-    resizedata!(B.fill,n)
-
-    if n > B.datalength
-        nbc=B.fill.numbcs
-
-        if n > size(B.data,1)
-            newdata=blockbandzeros(eltype(T),n,:,bandinds(B.data),blockbandinds(B.op))
-
-            for k=1:B.datalength,j=max(1,k+bandinds(B.data,1)):k+bandinds(B.data,2)
-                newdata.data[k,j]=B.data.data[k,j]
-            end
-            B.data=newdata
-        end
-
-        addentries!(B.op,IndexStride(B.data,nbc,0),B.datalength+1-nbc:n-nbc)
-        B.datalength = n
-    end
-
-    B
-end
-
-function givensmatrix(a::Matrix,b::Matrix)
-    q,r=qr([a;b];thin=false)
-    q[1:size(a,1),1:size(a,2)],q[1:size(a,1),size(a,1)+1:end],q[size(a,1)+1:end,1:size(a,2)],q[size(a,1)+1:end,size(a,2)+1:end]
-end
-
-
-#TOD: Bcs
-function unsafe_getindex{T<:Matrix,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
-    zeros(eltype(T),k,j)
-end
-
-
-#TODO: Fix hack override
-function pad{T<:Vector}(f::Vector{T},n::Integer)
-	if n > length(f)
-	   ret=Array(T,n)
-	   ret[1:length(f)]=f
-	   for j=length(f)+1:n
-	       ret[j]=zeros(eltype(T),j)
-	   end
-       ret
-	else
-        f[1:n]
-	end
-end
-
-
-
-
-function backsubstitution!{T<:Vector}(B::AlmostBandedOperator,u::Array{T})
-    n=size(u,1)
-    b=B.bandinds[end]
-    nbc = B.fill.numbcs
-    A=B.data
-
-    @assert nbc==0
-
-    for c=1:size(u,2)
-
-        # before we get to filled rows
-        for k=n:-1:max(1,n-b)
-            @simd for j=k+1:n
-                @inbounds u[k,c]-=A.data[j-k+A.l+1,k]*u[j,c]
-            end
-
-            @inbounds u[k,c] = A.data[A.l+1,k]\u[k,c]
-        end
-
-       #filled rows
-        for k=n-b-1:-1:1
-            @simd for j=k+1:k+b
-                @inbounds u[k,c]-=A.data[j-k+A.l+1,k]*u[j,c]
-            end
-
-            @inbounds u[k,c] = A.data[A.l+1,k]\u[k,c]
-        end
-    end
-    u
-end
-
-
-
-function applygivens!(ca::Matrix,cb,mb,a,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
-    @simd for j = jr
-        @inbounds B1 = B.data[j-k1+B.l+1,k1]    #B[k1,j]
-        @inbounds B2 = B.data[j-k2+B.l+1,k2]    #B[k2,j]
-
-        @inbounds B.data[j-k1+B.l+1,k1]=ca*B1
-        @inbounds B.data[j-k2+B.l+1,k2]=a*B2
-        BLAS.gemm!('N','N',1.0,cb,B2,1.0,B.data[j-k1+B.l+1,k1])
-        BLAS.gemm!('N','N',1.0,mb,B1,1.0,B.data[j-k2+B.l+1,k2])
-    end
-
-    B
-end
-
-function applygivens!(ca::Matrix,cb,mb,a,F::FillMatrix,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
-    for j = jr
-        @inbounds B2 = B.data[j-k2+B.l+1,k2]   #B[k2,j]
-        @inbounds B.data[j-k2+B.l+1,k2]=a*B2
-    end
-
-    B
-end
-
-function applygivens!(ca::Matrix,cb,mb,a,B::Matrix,k1::Integer,k2::Integer)
-    for j = 1:size(B,2)
-        @inbounds B1 = B[k1,j]
-        @inbounds B2 = B[k2,j]
-
-        @inbounds B[k1,j],B[k2,j]= ca*B1 + cb*B2,mb*B1 + a*B2
-    end
-
-    B
-end
-
-
 
 
 

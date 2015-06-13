@@ -201,6 +201,7 @@ plot(f::MultivariateFun;opts...)=surf(points(f,1),points(f,2),real(values(f));op
 plot{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
 plot(f::LowRankFun;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
 plot(f::MultivariateFun,obj,window)=glsurfupdate(real(values(f)),obj,window)
+plot{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};opts...)=plot(ProductFun(f))
 
 
 # plot{S<:IntervalSpace,V<:PeriodicSpace,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
