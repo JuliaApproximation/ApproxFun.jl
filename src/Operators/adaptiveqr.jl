@@ -144,9 +144,9 @@ convertvec{T<:Number,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=convert(Arr
 convertvec{T<:AbstractMatrix,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=totree(v)
 convertvec{T<:AbstractMatrix,V<:AbstractArray,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{V(promote_type(eltype(T),eltype(V))),k},v)
 
-function slnorm(u::Array,r::Range)
-    ret = 0.0
-   for k=r
+function slnorm{T}(u::Array{T},r::Range)
+    ret = zero(real(T))
+    for k=r
         @simd for j=1:size(u,2)
             #@inbounds
             ret=max(norm(u[k,j]),ret)
@@ -155,9 +155,9 @@ function slnorm(u::Array,r::Range)
     ret
 end
 
-function slnorm(u::BandedMatrix,r::Range)
-    ret = 0.0
-   for k=r
+function slnorm{T}(u::BandedMatrix{T},r::Range)
+    ret = zero(real(T))
+    for k=r
         @simd for j=1:size(u.data,1)
             #@inbounds
             ret=max(abs(u.data[j,k]),ret)
