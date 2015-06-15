@@ -100,19 +100,13 @@ function ichebyshevtransform{T<:BigFloats}(x::Vector{T},plan::Function;kind::Int
     end
 end
 
-# Fourier space plans for BigFloats
+# Fourier space plans for BigFloat
 
 function plan_transform{T<:BigFloat}(::Fourier,x::Vector{T})
     function plan(x)
         v = fft(x)
         n = div(length(x),2)+1
         [real(v[1:n]);imag(v[n-1:-1:2])]
-    end
-    plan
-end
-function plan_transform{T<:Complex{BigFloat}}(::Fourier,x::Vector{T})
-    function plan(x)
-        complex(plan_transform(Fourier(),real(x)),plan_transform(Fourier(),imag(x)))
     end
     plan
 end
@@ -125,14 +119,32 @@ function plan_itransform{T<:BigFloat}(::Fourier,x::Vector{T})
     end
     plan
 end
-function plan_itransform{T<:Complex{BigFloat}}(::Fourier,x::Vector{T})
+
+# SinSpace plans for BigFloat
+
+function plan_transform{T<:BigFloat}(::SinSpace,x::Vector{T})
     function plan(x)
-        complex(plan_itransform(Fourier(),real(x)),plan_itransform(Fourier(),imag(x)))
+        imag(fft([zero(T),-x,zero(T),reverse(x)]))[2:length(x)+1]
     end
     plan
 end
 
-# SinSpace plans for BigFloats
+function plan_itransform{T<:BigFloat}(::SinSpace,x::Vector{T})
+    function plan(x)
+        imag(fft([zero(T),-x,zero(T),reverse(x)]))[2:length(x)+1]
+    end
+    plan
+end
 
-#plan_transform{T<:BigFloats}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
-#plan_itransform{T<:BigFloats}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+# Fourier space & SinSpace plans for Complex{BigFloat}
+
+for SP in (:Fourier,:SinSpace), pl in (:plan_transform,:plan_itransform)
+    @eval begin
+        function $pl{T<:Complex{BigFloat}}(::$SP,x::Vector{T})
+            function plan(x)
+                complex($pl($SP(),real(x))(real(x)),$pl($SP(),imag(x))(imag(x)))
+            end
+            plan
+        end
+    end
+end
