@@ -26,13 +26,14 @@ domain(AS::ArraySpace)=domain(AS.space)
 ## transforms
 
 
-transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}})=transform(AS,hcat(vals...).')
+transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}})=transform(AS,transpose(hcat(vals...)))
 
 function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
     n=length(AS)
 
     @assert size(M,2)==n
-    cfs=Vector{V}[transform(AS.space,M[:,k])  for k=1:size(M,2)]
+    plan = plan_transform(AS.space,M[:,1])
+    cfs=Vector{V}[transform(AS.space,M[:,k],plan)  for k=1:size(M,2)]
 
     C=zeros(coefficient_type(T,V),mapreduce(length,max,cfs)*size(M,2))
 
