@@ -507,7 +507,7 @@ end
 
 
 immutable ReReOperator{S,V,T} <: BandedOperator{T}
-    ops::(S,V)
+    ops::@compat(Tuple{S,V})
     function ReReOperator(ops)
             #TODO: promotion
         @assert domainspace(ops[1])==domainspace(ops[2])
