@@ -3,6 +3,11 @@
 
 export JacobiWeight
 
+
+##
+# WeightSpace represents a space that weights another space
+##
+
 abstract WeightSpace <: IntervalSpace  #TODO: Why Interval?
 
 
@@ -26,8 +31,12 @@ function evaluate{WS<:WeightSpace,T}(f::Fun{WS,T},x)
 end
 
 
-## JacobiWeight
-
+##
+# JacobiWeight
+# represents a function on [-1,1] weighted by (1+x)^α*(1-x)^β
+# note the inconsistency of the parameters with Jacobi
+# when the domain is [a,b] the weight is inferred by mapping to [-1,1]
+##
 
 
 immutable JacobiWeight{S<:IntervalSpace} <: WeightSpace
@@ -63,7 +72,8 @@ transformtimes{S,V}(f::Fun{JacobiWeight{S}},g::Fun{JacobiWeight{V}}) = Fun(coeff
 transformtimes{S}(f::Fun{JacobiWeight{S}},g::Fun) = Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),g)),f.space)
 transformtimes{S}(f::Fun,g::Fun{JacobiWeight{S}}) = Fun(coefficients(transformtimes(Fun(g.coefficients,g.space.space),f)),g.space)
 
-## In this package, α and β are opposite the convention. Here, α is the left algebraic singularity and β is the right algebraic singularity.
+##  α and β are opposite the convention for Jacobi polynomials
+# Here, α is the left algebraic singularity and β is the right algebraic singularity.
 
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
 weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
@@ -192,10 +202,4 @@ function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{JacobiWeig
     end
 end
 
-
-
-
-## Project
-#TODO: Where is this used?
-project{S}(f::Fun{JacobiWeight{S}})=Fun(f.coefficients,JacobiWeight(space(f).α,space(f).β,canonicaldomain(f)))
 

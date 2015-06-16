@@ -54,7 +54,7 @@ end
 
 
 
-function transform(S::PiecewiseSpace,vals::Vector)
+function transform(S::PiecewiseSpace,vals::Vector,plan...)
     n=length(vals)
     K=length(S)
     k=div(n,K)
