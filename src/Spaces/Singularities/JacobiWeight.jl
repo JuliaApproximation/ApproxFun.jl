@@ -132,6 +132,36 @@ end
 
 ./{T,N}(f::Fun{JacobiWeight{T}},g::Fun{JacobiWeight{N}})=f*(1/g)
 
+function Base.dot(f::Fun{JacobiWeight{Chebyshev}},g::Fun{Chebyshev})
+    @assert domain(f) == domain(g)
+    if f.space.α == f.space.β == -0.5
+        mn = min(length(f),length(g))
+        return complexlength(domain(f))*(conj(f.coefficients[1])*g.coefficients[1]+dot(f.coefficients[1:mn],g.coefficients[1:mn]))*π/4
+    else
+        return generaldot(f,g)
+    end
+end
+
+function Base.dot(f::Fun{Chebyshev},g::Fun{JacobiWeight{Chebyshev}})
+    @assert domain(f) == domain(g)
+    if g.space.α == g.space.β == -0.5
+        mn = min(length(f),length(g))
+        return complexlength(domain(f))*(conj(f.coefficients[1])*g.coefficients[1]+dot(f.coefficients[1:mn],g.coefficients[1:mn]))*π/4
+    else
+        return generaldot(f,g)
+    end
+end
+
+function Base.dot(f::Fun{JacobiWeight{Chebyshev}},g::Fun{JacobiWeight{Chebyshev}})
+    @assert domain(f) == domain(g)
+    if f.space.α+g.space.α == f.space.β+g.space.β == -0.5
+        mn = min(length(f),length(g))
+        return complexlength(domain(f))*(conj(f.coefficients[1])*g.coefficients[1]+dot(f.coefficients[1:mn],g.coefficients[1:mn]))*π/4
+    else
+        return generaldot(f,g)
+    end
+end
+
 
 ## Project
 #TODO: Where is this used?
