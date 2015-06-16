@@ -8,6 +8,7 @@ abstract WeightSpace <: IntervalSpace  #TODO: Why Interval?
 
 domain(S::WeightSpace)=domain(S.space)
 
+
 transform(sp::WeightSpace,vals::Vector)=transform(sp.space,vals./weight(sp,points(sp,length(vals))))
 itransform(sp::WeightSpace,cfs::Vector)=itransform(sp.space,cfs).*weight(sp,points(sp,length(cfs)))
 points(sp::WeightSpace,n)=points(sp.space,n)
@@ -62,6 +63,11 @@ spacescompatible(B::IntervalSpace,A::JacobiWeight)=spacescompatible(A,JacobiWeig
 
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
 weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
+
+
+
+setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.space,d))
+
 
 
 ## Use 1st kind points to avoid singularities
