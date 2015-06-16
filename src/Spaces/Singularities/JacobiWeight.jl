@@ -140,11 +140,11 @@ end
 
 function innerprod{λ,S,V}(::Type{Ultraspherical{λ}},u::Vector{S},v::Vector{V})
     T,mn = promote_type(S,V),min(length(u),length(v))
-    ##TODO: use recurrence for w's.
-    w = 2.0^(1-2λ)*convert(T,π)/gamma(λ)^2*gamma([zero(T):mn-1]+2λ)./([zero(T):mn-1]+λ)./gamma([one(T):mn])
-    ret = zero(T)
-    for i=1:mn
-      ret += conj(u[i])*w[i]*v[i]
+    wi = sqrt(π)*gamma(λ+1/2)/gamma(λ+1)
+    ret = conj(u[1])*wi*v[1]
+    for i=2:mn
+      wi *= (i-2+2λ)/(i-1+λ)*(i-2+λ)/(i-1)
+      ret += conj(u[i])*wi*v[i]
     end
     ret
 end
