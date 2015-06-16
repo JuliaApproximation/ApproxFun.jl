@@ -58,6 +58,10 @@ spacescompatible(A::JacobiWeight,B::JacobiWeight)=A.α==B.α && A.β == B.β && 
 spacescompatible(A::JacobiWeight,B::IntervalSpace)=spacescompatible(A,JacobiWeight(0,0,B))
 spacescompatible(B::IntervalSpace,A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
+transformtimes{S,V}(f::Fun{JacobiWeight{S}},g::Fun{JacobiWeight{V}}) = Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),Fun(g.coefficients,g.space.space))),JacobiWeight(f.space.α+g.space.α,f.space.β+g.space.β,f.space.space))
+transformtimes{S}(f::Fun{JacobiWeight{S}},g::Fun) = Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),g)),f.space)
+transformtimes{S}(f::Fun,g::Fun{JacobiWeight{S}}) = Fun(coefficients(transformtimes(Fun(g.coefficients,g.space.space),f)),g.space)
+
 ## In this package, α and β are opposite the convention. Here, α is the left algebraic singularity and β is the right algebraic singularity.
 
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
