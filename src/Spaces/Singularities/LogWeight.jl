@@ -1,5 +1,3 @@
-using ApproxFun,SIE
-    import ApproxFun: IntervalSpace,WeightSpace,spacescompatible,weight
 ##
 # LogWeight
 # represents a function on [-1,1] weighted by log((1+x)^α*(1-x)^β)
@@ -30,22 +28,4 @@ function coefficients(f::Vector,sp1::LogWeight,sp2::LogWeight)
         (Conversion(sp1,sp2)*f)
     end
 end
-
-
-
-
-x=Fun()
-
-w=exp(x)*sqrt(1-x)
-
-z=1.0+im;cauchy(w,z)
-
-sum(w/(x-z))/(2π*im)
-
-
-
-x=Fun(identity,[-1.,0.,1.])
-w=sqrt(1-x^2)
-
-
 

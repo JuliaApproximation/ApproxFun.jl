@@ -26,7 +26,7 @@ SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
 Base.getindex(S::SumSpace,k)=S.spaces[k]
 
 domain(A::SumSpace)=domain(A[1])
-
+setdomain(A::SumSpace,d::Domain)=SumSpace(setdomain(A.spaces[1],d),setdomain(A.spaces[2],d))
 
 
 spacescompatible(A::SumSpace,B::SumSpace)=all(map(spacescompatible,A.spaces,B.spaces))

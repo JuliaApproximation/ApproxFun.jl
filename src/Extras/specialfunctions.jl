@@ -175,6 +175,7 @@ function .^(f::Fun{Chebyshev},k::Float64)
     fc = Fun(f.coefficients,Chebyshev()) #Project to interval
 
     r = sort(roots(fc))
+    #TODO divideatroots
     @assert length(r) <= 2
 
     if length(r) == 0
@@ -218,14 +219,50 @@ Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
 # project first to [-1,1] to avoid issues with
 # complex derivative
 function Base.log{US<:Ultraspherical,T<:Real}(f::Fun{US,T})
-    if isreal(domain(f))
-        cumsum(differentiate(f)/f)+log(first(f))
+    if domain(f)==Interval()
+        r = sort(roots(f))
+        #TODO divideatroots
+        @assert length(r) <= 2
+
+        if length(r) == 0
+            cumsum(differentiate(f)/f)+log(first(f))
+        elseif length(r) == 1
+            @assert isapprox(abs(r[1]),1)
+
+            if isapprox(r[1],1.)
+                g=divide_singularity(+1,f)
+                lg=Fun([1.],LogWeight(0.,1.,Chebyshev()))
+                if isapprox(g,1.)  # this means log(g)~0
+                    lg
+                else # log((1-x)) + log(g)
+                    lg⊕log(g)
+                end
+            else
+                g=divide_singularity(-1,f)
+                lg=Fun([1.],LogWeight(1.,0.,Chebyshev()))
+                if isapprox(g,1.)  # this means log(g)~0
+                    lg
+                else # log((1+x)) + log(g)
+                    lg⊕log(g)
+                end
+           end
+        else
+            @assert isapprox(r[1],-1)
+            @assert isapprox(r[2],1)
+
+            g=divide_singularity(f)
+            lg=Fun([1.],LogWeight(1.,1.,Chebyshev()))
+            if isapprox(g,1.)  # this means log(g)~0
+                lg
+            else # log((1+x)) + log(g)
+                lg⊕log(g)
+            end
+        end
     else
         # this makes sure differentiate doesn't
         # make the function complex
-        g=log(Fun(f.coefficients,US()))
-        @assert isa(space(g),US)
-        Fun(g.coefficients,space(f))
+        g=log(setdomain(f,Interval()))
+        setdomain(g,domain(f))
     end
 end
 
@@ -236,9 +273,8 @@ function Base.log{T<:Real}(f::Fun{Fourier,T})
     else
         # this makes sure differentiate doesn't
         # make the function complex
-        g=log(Fun(f.coefficients,Fourier()))
-        @assert isa(space(g),Fourier)
-        Fun(g.coefficients,space(f))
+        g=log(setdomain(f,PeriodicInterval()))
+        setdomain(g,domain(f))
     end
 end
 

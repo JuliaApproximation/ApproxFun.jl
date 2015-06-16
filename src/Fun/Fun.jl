@@ -261,9 +261,40 @@ end
 
 
 ==(f::Fun,g::Fun) =  (f.coefficients == g.coefficients && f.space == g.space)
+function Base.isapprox(f::Fun,g::Fun)
+    if spacescompatible(f,g)
+        m=min(length(f),length(g))
+        tol=100eps()  # TODO: normalize by norm of f/g
 
+        for k=1:m
+            if !isapprox(f.coefficients[k],g.coefficients[k])
+                return false
+            end
+        end
+        for k=m+1:length(f)
+            if abs(f.coefficients[k])>tol
+                return false
+            end
+        end
+        for k=m+1:length(g)
+            if abs(g.coefficients[k])>tol
+                return false
+            end
+        end
 
+        true
+    else
+        sp=union(f.space,g.space)
+        if isa(sp,NoSpace)
+            false
+        else
+            isapprox(Fun(f,sp),Fun(g,sp))
+        end
+    end
+end
 
+Base.isapprox(f::Fun,g::Number)=isapprox(f,g*ones(space(f)))
+Base.isapprox(g::Number,f::Fun)=isapprox(g*ones(space(f)),f)
 
 
 
