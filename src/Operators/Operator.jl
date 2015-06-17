@@ -244,8 +244,8 @@ include("systems.jl")
 
 Base.zero{T<:Number}(::Type{Functional{T}})=ZeroFunctional(T)
 Base.zero{T<:Number}(::Type{Operator{T}})=ZeroOperator(T)
-Base.zero{O<:Functional}(::Type{O})=ZeroFunctional()
-Base.zero{O<:Operator}(::Type{O})=ZeroOperator()
+Base.zero{O<:Functional}(::Type{O})=ZeroFunctional(eltype(O))
+Base.zero{O<:Operator}(::Type{O})=ZeroOperator(eltype(O))
 
 
 Base.eye(S::FunctionSpace)=SpaceOperator(ConstantOperator(1.0),S,S)
