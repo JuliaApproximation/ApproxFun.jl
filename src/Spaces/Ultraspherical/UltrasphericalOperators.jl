@@ -122,7 +122,7 @@ function addentries!{λ,PS<:PolynomialSpace,T}(M::Multiplication{Ultraspherical{
         C0=isbaeye(jkr)
 
         for k=1:length(a)-2
-            C1,C0=2(k+λ)/(k+1)*J*C1-(k+2λ-1)/(k+1)*C0,C1
+            C1,C0=2(k+λ)/(k+one(T))*J*C1-(k+2λ-one(T))/(k+one(T))*C0,C1
             addentries!(C1,a[k+2],A,kr)
         end
     end
