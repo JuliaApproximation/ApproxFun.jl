@@ -24,6 +24,11 @@ for poly in (:chebyshevt,:chebyshevu)
     end
 end
 
+# shorthand for second order
+
+ivp(d) = ivp(d,2)
+bvp(d) = bvp(d,2)
+
 ## diff
 
 # diff(::Fun{ArraySpace}) is left as array diff
