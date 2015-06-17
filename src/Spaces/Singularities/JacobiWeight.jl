@@ -156,7 +156,7 @@ end
 
 function innerprod{λ,S,V}(::Type{Ultraspherical{λ}},u::Vector{S},v::Vector{V})
     T,mn = promote_type(S,V),min(length(u),length(v))
-    wi = sqrt(conver(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
+    wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
     ret = conj(u[1])*wi*v[1]
     for i=2:mn
       wi *= (i-2one(T)+2λ)/(i-one(T)+λ)*(i-2one(T)+λ)/(i-one(T))
