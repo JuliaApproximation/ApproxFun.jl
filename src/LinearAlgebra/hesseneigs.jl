@@ -10,9 +10,9 @@ for (hseqr,elty) in ((:zhseqr_,:Complex128),)
        A=vec(M)
 
         N=size(M,1)
-        info  =@compat(BlasInt(0))
+        info  =0
 
-        ilo = @compat(BlasInt(1)); ihi = @compat(BlasInt(N)); ldh=@compat(BlasInt(N));ldz=@compat(BlasInt(N));lwork = @compat(BlasInt(N))
+        ilo = 1; ihi = N; ldh=N;ldz=N;lwork = N
 
         z=zero($elty)
         work  = Array($elty, N*N)
@@ -40,11 +40,11 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
         A=vec(M)
 
         N=size(M,1)
-        info  =@compat(BlasInt(0))
+        info  =0
 
-        ilo = @compat(BlasInt(1)); ihi = @compat(BlasInt(N)); ldh=@compat(BlasInt(N));ldz=@compat(BlasInt(N));
+        ilo = 1; ihi = N; ldh=N;ldz=N;
 
-        lwork = @compat(BlasInt(-1))
+        lwork = -1
 
         z=zero($elty)
         work  = Array($elty, 1)
@@ -63,7 +63,7 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
             &Ec,&Nc,&N , &ilo, &ihi, A, &ldh, wr,wi, &z, &ldz, work, &lwork, &info) 
 
             if lwork < 0
-                lwork=@compat(BlasInt(real(work[1])))
+                lwork=@compat(Int(real(work[1])))
                 work=Array($elty,lwork)
             end
         end
