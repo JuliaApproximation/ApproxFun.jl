@@ -221,8 +221,8 @@ Base.inv{S,T}(f::Fun{S,T})=1./f
 
 ## Norm
 
-generaldot(f::Fun,g::Fun)=sum(conj(f).*g)
-Base.dot(f::Fun,g::Fun)=generaldot(f,g)
+defaultdot(f::Fun,g::Fun)=sum(conj(f).*g)
+Base.dot(f::Fun,g::Fun)=defaultdot(f,g)
 Base.dot(c::Number,g::Fun)=sum(conj(c)*g)
 Base.dot(g::Fun,c::Number)=sum(conj(g)*c)
 
