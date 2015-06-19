@@ -142,7 +142,7 @@ end
 StrideFunctional{T<:Number}(B::Functional{T},r,rs)=StrideFunctional{T,typeof(B)}(B,r,rs)
 
 
-Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range)=T[((k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
+Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range)=T[((k-op.rowindex)≥1 &&(k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
 Base.convert{BT<:Operator}(::Type{BT},S::StrideFunctional)=StrideFunctional(convert(Functional{eltype(BT)},S.op),S.rowindex,S.stride)
 
 
