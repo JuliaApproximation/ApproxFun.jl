@@ -180,7 +180,7 @@ function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{Ultraspher
     if f.space.α == f.space.β == λ-0.5
         return complexlength(domain(f))/2*innerprod(Ultraspherical{λ},f.coefficients,g.coefficients)
     else
-        return generaldot(f,g)
+        return defaultdot(f,g)
     end
 end
 
@@ -189,7 +189,7 @@ function Base.dot{λ}(f::Fun{Ultraspherical{λ}},g::Fun{JacobiWeight{Ultraspheri
     if g.space.α == g.space.β == λ-0.5
         return complexlength(domain(f))/2*innerprod(Ultraspherical{λ},f.coefficients,g.coefficients)
     else
-        return generaldot(f,g)
+        return defaultdot(f,g)
     end
 end
 
@@ -198,7 +198,7 @@ function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{JacobiWeig
     if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
         return complexlength(domain(f))/2*innerprod(Ultraspherical{λ},f.coefficients,g.coefficients)
     else
-        return generaldot(f,g)
+        return defaultdot(f,g)
     end
 end
 

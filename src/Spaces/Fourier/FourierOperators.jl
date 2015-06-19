@@ -60,7 +60,7 @@ function addentries!(D::Derivative{CosSpace},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=2π./(d.b-d.a)
+    C=2/(d.b-d.a)*π
 
     for k=kr
         if mod(m,4)==0
@@ -81,7 +81,7 @@ function addentries!(D::Derivative{SinSpace},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=2π./(d.b-d.a)
+    C=2/(d.b-d.a)*π
 
     for k=kr
         if mod(m,4)==0
@@ -109,7 +109,7 @@ function addentries!(D::Integral{SinSpace},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=2π./(d.b-d.a)
+    C=2/(d.b-d.a)*π
 
     for k=kr
         if mod(m,4)==0
@@ -138,7 +138,7 @@ function addentries!{T}(D::Integral{SliceSpace{1,1,CosSpace,T,1}},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=2π./(d.b-d.a)
+    C=2/(d.b-d.a)*π
 
     for k=kr
         if mod(m,4)==0
@@ -218,7 +218,7 @@ function getindex{T}(Σ::DefiniteIntegral{Fourier,T},kr::Range)
         T[k == 1?  d.b-d.a : zero(T) for k=kr]
     else
         @assert isa(d,Circle)
-        T[k == 2?  -π*d.radius : (k==3?π*im*d.radius :zero(T)) for k=kr]
+        T[k == 2?  -d.radius*π : (k==3?d.radius*π*im :zero(T)) for k=kr]
     end
 end
 
