@@ -167,7 +167,7 @@ end
 
 function innerprod(::Type{Chebyshev},u::Vector,v::Vector)
   mn = min(length(u),length(v))
-  (2conj(u[1])*v[1]+dot(u[2:end],v[2:end]))*π/2
+  (2conj(u[1])*v[1]+dot(u[2:mn],v[2:mn]))*π/2
 end
 
 function innerprod(::Type{Ultraspherical{1}},u::Vector,v::Vector)
