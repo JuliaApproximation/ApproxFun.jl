@@ -32,7 +32,7 @@ function coefficients(f::Fun,msp::FunctionSpace)
         coefficients(f.coefficients,space(f),msp)
     end
 end
-coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(AnyDomain()))
+coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(domain(f)))
 coefficients(f::Fun)=f.coefficients
 coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 

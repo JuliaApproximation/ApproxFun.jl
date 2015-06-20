@@ -228,7 +228,7 @@ immutable TimesOperator{T} <: BandedOperator{T}
     function TimesOperator(ops::Vector{BandedOperator{T}})
         hastimes=false
         for k=1:length(ops)-1
-            @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() || domainspace(ops[k])==rangespace(ops[k+1])
+            @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() || spacescompatible(domainspace(ops[k]),rangespace(ops[k+1]))
             hastimes=hastimes||isa(ops[k],TimesOperator)
         end
 
