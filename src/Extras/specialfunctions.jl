@@ -218,7 +218,7 @@ Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
-function Base.log{US<:Ultraspherical,T<:Real}(f::Fun{US,T})
+function Base.log{US<:Ultraspherical}(f::Fun{US})
     if domain(f)==Interval()
         r = sort(roots(f))
         #TODO divideatroots

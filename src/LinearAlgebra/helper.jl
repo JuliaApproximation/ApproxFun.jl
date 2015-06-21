@@ -182,9 +182,10 @@ function interlace(v::Vector{Any})
     interlace(b)
 end
 
-function interlace{T}(a::Vector{T},b::Vector{T})
+function interlace(a::Vector,b::Vector)
     na=length(a);nb=length(b)
-   if nb≥na
+    T=promote_type(eltype(a),eltype(b))
+    if nb≥na
         ret=zeros(T,2nb)
         ret[1:2:1+2*(na-1)]=a
         ret[2:2:end]=b
