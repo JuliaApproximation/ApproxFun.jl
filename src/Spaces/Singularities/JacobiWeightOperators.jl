@@ -72,12 +72,28 @@ function integrate{J<:JacobiWeight}(f::Fun{J})
     S=space(f)
     # we integrate by solving u'=f
     D=Derivative(S)
-    if S.α==0 || S.β==0
-        D\f
+    if isapprox(S.α,-1) && isapprox(S.β,-1)
+        error("Implement")
+    elseif isapprox(S.α,-1)
+        @assert isapprox(S.β,0)  # TODO: implement general case
+        p=first(Fun(f.coefficients,S.space))  # last value without weight
+        fp = Fun(f-Fun([p],S),S.space)  # Subtract out right value and divide singularity via conversion
+        d=domain(f)
+        Mp=tocanonicalD(d,d.a)
+        integrate(fp)⊕Fun([p/Mp],LogWeight(1.,0.,S.space))
+    elseif isapprox(S.β,-1)
+        @assert isapprox(S.α,0)  # TODO: implement general case
+        p=last(Fun(f.coefficients,S.space))  # last value without weight
+        fp = Fun(f-Fun([p],S),S.space)  # Subtract out right value and divide singularity via conversion
+        d=domain(f)
+        Mp=tocanonicalD(d,d.a)
+        integrate(fp)⊕Fun([-p/Mp],LogWeight(0.,1.,S.space))
+    elseif isapprox(S.α,0) || isapprox(S.β,0)
+        D\f   # this happens to pick out a smooth solution
     else
         s=sum(f)
         if isapprox(s,0.)
-            D\f
+            D\f  # if the sum is 0 we don't get step-like behaviour
         else
             # we normalized so it sums to zero, and so backslash works
             w=Fun(x->exp(-40x^2),81)

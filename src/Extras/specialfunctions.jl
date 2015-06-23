@@ -455,3 +455,30 @@ for op in (:(Base.expm1),:(Base.log1p),:(Base.lfact),:(Base.sinc),:(Base.cosc),
         $op{S,T}(f::Fun{S,T})=Fun(x->$op(f[x]),domain(f))
     end
 end
+
+
+## <,≤,>,≥
+
+for op in (:<,:>)
+    @eval begin
+        function $op(f::Fun,c::Number)
+            if length(roots(f-c))==0
+                $op(first(f),c)
+            else
+                false
+            end
+        end
+        function $op(c::Number,f::Fun)
+            if length(roots(f-c))==0
+                $op(c,first(f))
+            else
+                false
+            end
+        end
+    end
+end
+
+
+
+
+#TODO ≤,≥

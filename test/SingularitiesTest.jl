@@ -145,3 +145,19 @@ f=exp(x+1)-1
 x=Fun(identity,[0.,1.])
 f=exp(x)-1
 @test_approx_eq log(f)[0.1] log(f[0.1])
+
+
+## Test divide sing
+
+x=Fun(identity,[0,1])
+@test_approx_eq Fun(exp(x)/x-1/x,Chebyshev)[0.1] (exp(0.1)-1)/0.1
+
+x=Fun(identity,[0,1])
+f=1/x
+p=integrate(f)
+@test_approx_eq (p-p[1.])[0.5] log(0.5)
+
+f=1/(1-x)
+p=integrate(f)
+@test_approx_eq (p-p[0.])[0.5] -log(1-0.5)
+
