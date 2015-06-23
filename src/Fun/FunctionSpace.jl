@@ -226,24 +226,30 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
     end
 
     cr=union_rule(a,b)
-    if cr==NoSpace()
-        cr=union_rule(b,a)
+    if cr!=NoSpace()
+        return cr
     end
 
-
-    if cr==NoSpace()
-        cspa=canonicalspace(a)
-        cspb=canonicalspace(b)
-        if cspa!=a || cspb!=b
-            cr=union(cspa,cspb)  #Max or min space?
-        end
+    cr=union_rule(b,a)
+    if cr!=NoSpace()
+        return cr
     end
 
-    if cr==NoSpace()
-        cr=maxspace(a,b)  #Max or min space?
+    cspa=canonicalspace(a)
+    cspb=canonicalspace(b)
+    if cspa!=a || cspb!=b
+        cr=union(cspa,cspb)  #Max or min space?
+    end
+    if cr!=NoSpace()
+        return cr
     end
 
-    return a⊕b
+    cr=maxspace(a,b)  #Max or min space?
+    if cr!=NoSpace()
+        return cr
+    end
+
+    a⊕b
 end
 
 
