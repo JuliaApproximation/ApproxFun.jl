@@ -159,8 +159,8 @@ for op = (:+,:-)
             end
         end
 
-        ($op){N<:Number}(f::Fun,c::N)=$op(f,c*ones(f))
-        ($op){N<:Number}(c::N,f::Fun)=$op(c*ones(f),f)
+        ($op){N<:Number}(f::Fun,c::N)=$op(f,Fun(c))
+        ($op){N<:Number}(c::N,f::Fun)=$op(Fun(c),f)
         ($op){S,T}(f::Fun{S,T},c::UniformScaling)=$op(f,c.λ)
         ($op){S,T}(c::UniformScaling,f::Fun{S,T})=$op(c.λ,f)
     end

@@ -3,6 +3,7 @@ immutable ConstantSpace <: UnivariateSpace{RealBasis} end
 ConstantSpace(::AnyDomain)=ConstantSpace()
 
 Fun(c::Number)=Fun([c],ConstantSpace())
+Fun(c::Number,d::ConstantSpace)=Fun([c],d)
 
 domain(::ConstantSpace)=AnyDomain()
 canonicalspace(C::ConstantSpace)=C

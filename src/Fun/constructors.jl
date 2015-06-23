@@ -73,6 +73,7 @@ Fun{T<:FunctionSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(A
 Fun(c::Number,d::Domain)=c==0?c*zeros(d):c*ones(d)
 Fun(c::Number,d::FunctionSpace)=c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 
+
 ## List constructor
 
 Fun{T<:Domain}(c::Number,dl::Vector{T})=Fun(c,UnionDomain(dl))

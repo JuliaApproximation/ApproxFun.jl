@@ -11,6 +11,7 @@ immutable LogWeight{S<:IntervalSpace} <: WeightSpace
 end
 
 spacescompatible(A::LogWeight,B::LogWeight)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
+canonicalspace(A::LogWeight)=A
 
 logweight(α,β,x)=log((1+x).^α.*(1-x).^β)
 weight(sp::LogWeight,x)=logweight(sp.α,sp.β,tocanonical(sp,x))
