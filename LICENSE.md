@@ -1,4 +1,4 @@
-Copyright (c) 2014: Sheehan Olver, Gustavo Goretkin, Richard Mikael Slevinsky, Alex Townsend, and other contributors:
+Copyright (c) 2013-2015: Sheehan Olver, Gustavo Goretkin, Richard Mikael Slevinsky, Alex Townsend, and other contributors:
 
 https://github.com/ApproxFun/ApproxFun.jl/graphs/contributors
 
