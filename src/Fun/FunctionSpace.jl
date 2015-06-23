@@ -243,7 +243,7 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
         cr=maxspace(a,b)  #Max or min space?
     end
 
-    return cr
+    return a⊕b
 end
 
 
