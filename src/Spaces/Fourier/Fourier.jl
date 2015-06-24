@@ -202,6 +202,8 @@ Space(d::PeriodicInterval)=Fourier(d)
 Space(d::Circle)=Laurent(d)
 canonicalspace(S::Union(Laurent,Fourier))=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
 
+union_rule(A::ConstantSpace,B::Union(CosSpace,Taylor))=B
+
 ## Ones and zeros
 
 for sp in (:Fourier,:Laurent,:Taylor,:CosSpace)

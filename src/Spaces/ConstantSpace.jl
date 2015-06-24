@@ -20,9 +20,9 @@ promoterangespace(P::Functional,::ConstantSpace,::ConstantSpace)=P # functionals
 promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))
 
 
-# We assume we can always convert a constant to the functionspace
-# this is only true if 1 is an element
-conversion_rule(A::ConstantSpace,B::FunctionSpace)=A
+# When the union of A and B is a ConstantSpace, then it contains a one
+conversion_rule(A::ConstantSpace,B::FunctionSpace)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
+
 
 bandinds{S<:FunctionSpace}(C::Conversion{ConstantSpace,S})=1-length(ones(rangespace(C))),0
 function addentries!{S<:FunctionSpace}(C::Conversion{ConstantSpace,S},A,kr::Range)

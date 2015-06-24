@@ -32,6 +32,8 @@ setdomain(A::SumSpace,d::Domain)=SumSpace(setdomain(A.spaces[1],d),setdomain(A.s
 spacescompatible(A::SumSpace,B::SumSpace)=all(map(spacescompatible,A.spaces,B.spaces))
 
 
+
+
 function union_rule(A::SumSpace,B::FunctionSpace)
     if B in A.spaces
         A
@@ -48,6 +50,17 @@ function union_rule(A::SumSpace,B::SumSpace)
     else
         error("Implement")
     end
+end
+
+
+function union_rule(B::SumSpace,A::ConstantSpace)
+    for sp in B.spaces
+        if union(A,sp)==sp
+            return B
+        end
+    end
+
+    NoSpace()
 end
 
 

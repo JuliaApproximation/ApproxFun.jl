@@ -1,5 +1,5 @@
 
-
+include("ConstantSpace.jl")
 
 include("IntervalSpace.jl")
 include("PeriodicSpace.jl")

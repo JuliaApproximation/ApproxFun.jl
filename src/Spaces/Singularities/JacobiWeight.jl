@@ -114,13 +114,25 @@ increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeight(f.space.α+1,f.space.β,
 
 
 function canonicalspace(S::JacobiWeight)
-    if S.α==0 && S.β==0
+    if isapprox(S.α,0) && isapprox(S.β,0)
         canonicalspace(S.space)
     else
         #TODO: promote singularities?
         JacobiWeight(S.α,S.β,canonicalspace(S.space))
     end
 end
+
+function union_rule{P<:PolynomialSpace}(A::ConstantSpace,B::JacobiWeight{P})
+    # we can convert to a space that contains contants provided
+    # that the parameters are integers
+    # when the parameters are -1 we keep them
+    if isapproxinteger(B.α) && isapproxinteger(B.β)
+        JacobiWeight(min(B.α,0.),min(B.β,0.),B.space)
+    else
+        NoSpace()
+    end
+end
+
 
 ## Algebra
 

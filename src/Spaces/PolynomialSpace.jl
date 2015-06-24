@@ -7,6 +7,9 @@ bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=(1-lengt
 rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=domainspace(M)
 
 
+# All polynomials contain constant
+union_rule(A::ConstantSpace,B::PolynomialSpace)=B
+
 ######
 # Recurrence encodes the recurrence coefficients
 # or equivalentally multiplication by x
