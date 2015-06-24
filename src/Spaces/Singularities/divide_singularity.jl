@@ -6,25 +6,25 @@
 function dirichlet_divide_singularity{T<:Number}(b::Bool,v::Vector{T})
     n=length(v)
     w=zeros(T,n-1)
-    s=b?1:-1    
-    
+    s=b?1:-1
+
     if n==1
         return w
     elseif n==2
-        w[1]=-s*v[2]    
+        w[1]=-s*v[2]
         return w
     end
-    
+
     w[n-1]=-2s*v[n]
-    
+
     for k=n-2:-1:2
         @inbounds w[k]=-2s*(v[k+1] - .5w[k+1])
     end
-    
-    @inbounds w[1]=-s*(v[2] - .5w[2])    
-    
-    
-    w    
+
+    @inbounds w[1]=-s*(v[2] - .5w[2])
+
+
+    w
 end
 
 
@@ -39,12 +39,19 @@ end
 
 function dirichlet_divide_singularity{T<:Number}(v::Vector{T})
     n=length(v)
+    if n ≤ 2    # assumes v[1]==v[2]==0 which is deleted
+        return zeros(T,1)
+    end
+
     w=zeros(T,n-2)
+
+
+
     w[n-2]=-4v[n]
     if n>3
         w[n-3]=-4v[n-1]
     end
-    
+
     for k=n-4:-1:2
         @inbounds w[k]=-4*(v[k+2] - .25w[k+2])
     end
@@ -53,8 +60,8 @@ function dirichlet_divide_singularity{T<:Number}(v::Vector{T})
     if n≥5
         w[1]+=0.5w[3]
     end
-    
-    w    
+
+    w
 end
 
 
