@@ -60,6 +60,8 @@ typealias RealUnivariateSpace RealSpace{1}
 
 Base.eltype{S}(::FunctionSpace{S})=eltype(S)
 basistype{T}(::FunctionSpace{T})=T
+basistype{T,d}(::Type{FunctionSpace{T,d}})=T
+basistype{FT<:FunctionSpace}(::Type{FT})=basistype(super(FT))
 
 
 coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)

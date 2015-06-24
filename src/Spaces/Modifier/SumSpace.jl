@@ -90,8 +90,21 @@ end
 
 # assume first domain has 1 as a basis element
 
-Base.ones{T<:Number}(::Type{T},S::SumSpace)=ones(T,S[1])⊕zeros(T,S[2])
-Base.ones(S::SumSpace)=ones(S[1])⊕zeros(S[2])
+function Base.ones(S::SumSpace)
+    if union(ConstantSpace(),S.spaces[1])==S.spaces[1]
+        ones(S[1])⊕zeros(S[2])
+    else
+        zeros(S[1])⊕ones(S[2])
+    end
+end
+
+function Base.ones{T<:Number}(::Type{T},S::SumSpace)
+    if union(ConstantSpace(),S.spaces[1])==S.spaces[1]
+        ones(T,S[1])⊕zeros(T,S[2])
+    else
+        zeros(T,S[1])⊕ones(T,S[2])
+    end
+end
 
 
 # vec
