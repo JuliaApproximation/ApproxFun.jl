@@ -125,6 +125,6 @@ itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
 
 
 conversion_rule{V<:FunctionSpace}(SS::SumSpace{ConstantSpace,V},::V)=SS
-Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T},k)=k==1?f.coefficients[1]:Fun(f.coefficients[2:end],space(f)[2])
+Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
 Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T})=Any[vec(f,1),vec(f,2)]
 
