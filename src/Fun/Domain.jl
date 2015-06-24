@@ -38,8 +38,6 @@ Base.length(::AnyDomain)=NaN
 
 
 
-
-
 ## Interval Domains
 
 abstract IntervalDomain{T} <: UnivariateDomain{T}
@@ -140,8 +138,8 @@ domain(::Number)=AnyDomain()
 Base.rand(d::IntervalDomain,k...)=fromcanonical(d,2rand(k...)-1)
 Base.rand(d::PeriodicDomain,k...)=fromcanonical(d,2π*rand(k...)-π)
 
-checkpoints(d::IntervalDomain)=fromcanonical(d,[-0.823972,0.3273484])
-checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
+checkpoints(d::IntervalDomain)=fromcanonical(d,eltype(d)[-0.823972,0.3273484])
+checkpoints(d::PeriodicDomain)=fromcanonical(d,eltype(d)[1.223972,-2.83273484])
 
 ## boundary
 
@@ -155,8 +153,8 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 ## map domains
 
 
-mappoint(d1::Domain,d2::Domain,x)=fromcanonical(d2,tocanonical(d1,x))
-
+mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
+invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
 
 
 

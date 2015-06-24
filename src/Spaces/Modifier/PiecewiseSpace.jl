@@ -54,10 +54,10 @@ end
 
 
 
-function transform(S::PiecewiseSpace,vals::Vector)
+function transform(S::PiecewiseSpace,vals::Vector,plan...)
     n=length(vals)
     K=length(S)
-   k=div(n,K)
+    k=div(n,K)
     PT=coefficient_type(S,eltype(vals))
     if k==0
         ret=Array(PT,n)
@@ -82,7 +82,7 @@ function transform(S::PiecewiseSpace,vals::Vector)
     end
 end
 
-itransform(S::PiecewiseSpace,cfs::Vector)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
+itransform(S::PiecewiseSpace,cfs::Vector,plan...)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
 
 
 function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
@@ -173,6 +173,15 @@ end
 
 DefiniteIntegral(d::UnionDomain) = DefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
 DefiniteLineIntegral(d::UnionDomain) = DefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
+
+####### This is a hack to get the Faraday Cage working.
+function getindex{PWS<:PiecewiseSpace,T}(Σ::DefiniteLineIntegral{PWS,T},kr::Range)
+    d = domain(Σ)
+    n = length(d)
+    promote_type(T,eltype(d))[k ≤ n? one(T) : zero(T) for k=kr]
+end
+datalength{PWS<:PiecewiseSpace,T}(Σ::DefiniteLineIntegral{PWS,T})=length(domain(Σ))
+####### This is a hack to get the Faraday Cage working.
 
 ## TensorSpace of two PiecewiseSpaces
 

@@ -33,10 +33,6 @@ end
 # so it has a standardized form
 ###
 
-function setdomain{S}(f::Fun{S},d::Domain)
-    @assert length(@compat(fieldnames(S)))==1
-    Fun(f.coefficients,S(d))
-end
 
 function depiecereorient(f,d)
     vf=pieces(f)

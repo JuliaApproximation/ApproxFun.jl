@@ -97,69 +97,24 @@ end
 
 ## Derivative
 
-function Derivative{SS<:FunctionSpace,LD<:Line,T}(S::MappedSpace{SS,LD,T},order::Int)
-    d=domain(S)
-    @assert d.α==-1&&d.β==-1
-    x=Fun(identity,S)
-    D1=Derivative(S.space)
-    DS=SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1)))
-
-    M1=Multiplication(Fun(1,d),Space(d))
-    Mx=Multiplication(x^2,Space(d))
-    M1x=M1+Mx
-    u=M1x\(2/π)  #tocanonicalD(S,x)=2/π*(1/(1+x^2))
-
-    M=Multiplication(u,DS|>rangespace)
-
-    D=DerivativeWrapper(M*DS,1)
-
-    if order==1
-        D
-    else
-        Derivative(rangespace(D),order-1)*D
-    end
+function invfromcanonicalD(d::PeriodicLine{false})
+    @assert d.centre==0  && d.L==1.0
+    a=Fun([1.,0,1],PeriodicInterval())
 end
 
-
-function Derivative{SS<:FunctionSpace,RD<:Ray,T}(S::MappedSpace{SS,RD,T},order::Int)
-    d=domain(S)
-    @assert d.centre==0 && d.angle==0 && d.orientation
-# x=Fun(identity,Ray())
-# M=Multiplication(1+2x+x^2,Space(Ray()))
-# u=M\2
-
-    D1=Derivative(S.space)
-    DS=SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1)))
-
-    u=Fun([0.75,-1.0,0.25],Ray())
-    M=Multiplication(u,DS|>rangespace)
-
-    D=DerivativeWrapper(M*DS,1)
-
-    if order==1
-        D
-    else
-        Derivative(rangespace(D),order-1)*D
-    end
-end
-
-
-
-
-function Derivative{SS<:FunctionSpace}(S::MappedSpace{SS,PeriodicLine{false}},order::Int)
+function invfromcanonicalD{LL<:Union(Laurent,LaurentDirichlet)}(S::MappedSpace{LL,PeriodicLine{false}})
     d=domain(S)
     @assert d.centre==0  && d.L==1.0
-
-    a=Fun([1.,0,1],PeriodicInterval())
-    M=Multiplication(a,space(a))
-    DS=Derivative(space(a))
-    D=SpaceOperator(M*DS,S,S)
-
-    if order==1
-        DerivativeWrapper(D,1)
-    else
-        DerivativeWrapper(Derivative(rangespace(D),order-1)*D,order)
-    end
+    a=Fun([1.,.5,.5],Laurent())
 end
 
 
+function Derivative{SS<:FunctionSpace,LD<:Union(Line,Ray,PeriodicLine),T}(S::MappedSpace{SS,LD,T},order::Int)
+    D1=invfromcanonicalD(S)*Derivative(S.space)
+    D=DerivativeWrapper(SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1))),1)
+    if order==1
+        D
+    else
+        DerivativeWrapper(TimesOperator(Derivative(rangespace(D),order-1),D),order)
+    end
+end

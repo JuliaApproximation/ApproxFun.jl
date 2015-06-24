@@ -26,11 +26,15 @@ spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
 
 typealias Taylor Hardy{true}
 
-transform(::Taylor,vals::Vector)=alternatesign!(fft(vals)/length(vals))
-itransform(::Taylor,cfs::Vector)=ifft(alternatesign!(cfs))*length(cfs)
+plan_transform(::Taylor,x::Vector)=plan_fft(x)
+plan_itransform(::Taylor,x::Vector)=plan_ifft(x)
+transform(::Taylor,vals::Vector,plan::Function)=alternatesign!(plan(vals)/length(vals))
+itransform(::Taylor,cfs::Vector,plan::Function)=plan(alternatesign!(cfs))*length(cfs)
 
-transform(::Hardy{false},vals::Vector)=-alternatesign!(flipdim(fft(vals),1)/length(vals))
-itransform(::Hardy{false},cfs::Vector)=ifft(flipdim(alternatesign!(-cfs),1))*length(cfs)
+plan_transform(::Hardy{false},x::Vector)=plan_fft(x)
+plan_itransform(::Hardy{false},x::Vector)=plan_ifft(x)
+transform(::Hardy{false},vals::Vector,plan::Function)=-alternatesign!(flipdim(plan(vals),1)/length(vals))
+itransform(::Hardy{false},cfs::Vector,plan::Function)=plan(flipdim(alternatesign!(-cfs),1))*length(cfs)
 
 function evaluate(f::Fun{Taylor},z)
     d=domain(f)
@@ -82,17 +86,22 @@ function horner{T}(v::Vector{T},z::Vector)
     ret
 end
 
+
 ## Cos and Sin space
 
 points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
-transform(::CosSpace,vals)=chebyshevtransform(vals;kind=2)
-itransform(::CosSpace,cfs)=ichebyshevtransform(cfs;kind=2)
+plan_transform(::CosSpace,x::Vector)=plan_chebyshevtransform(x;kind=2)
+plan_itransform(::CosSpace,x::Vector)=plan_ichebyshevtransform(x;kind=2)
+transform(::CosSpace,vals,plan::Function)=chebyshevtransform(vals,plan;kind=2)
+itransform(::CosSpace,cfs,plan::Function)=ichebyshevtransform(cfs,plan;kind=2)
 evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
-points(sp::SinSpace,n)=Float64[fromcanonical(domain(sp),(π*k)/(n+1)) for k=1:n]
-transform(::SinSpace,vals)=FFTW.r2r(vals,FFTW.RODFT00)/(length(vals)+1)
-itransform(::SinSpace,cfs)=FFTW.r2r(cfs,FFTW.RODFT00)/2
+points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
+plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+transform(::SinSpace,vals,plan::Function)=plan(vals)/(length(vals)+1)
+itransform(::SinSpace,cfs,plan::Function)=plan(cfs)/2
 evaluate(f::Fun{SinSpace},t)=sineshaw(f.coefficients,tocanonical(f,t))
 
 
@@ -105,15 +114,11 @@ Laurent()=Laurent(PeriodicInterval())
 Laurent{T<:Number}(d::Vector{T}) = Laurent(convert(PeriodicDomain,d))
 
 
-
 points(sp::Laurent,n)=points(domain(sp),n)
-transform(::Laurent,vals)=svfft(vals)
-itransform(::Laurent,cfs)=isvfft(cfs)
-
-## Ones and zeros
-
-
-Base.ones{T<:Number}(::Type{T},S::Laurent)=Fun(ones(T,1),S)
+plan_transform(::Laurent,x::Vector)=plan_svfft(x)
+plan_itransform(::Laurent,x::Vector)=plan_isvfft(x)
+transform(::Laurent,vals,plan::Function)=svfft(vals,plan)
+itransform(::Laurent,cfs,plan::Function)=isvfft(cfs,plan)
 
 
 ## Fourier space
@@ -123,21 +128,42 @@ Fourier()=Fourier(PeriodicInterval())
 Fourier{T<:Number}(d::Vector{T}) = Fourier(PeriodicInterval(d))
 
 
-Space(d::PeriodicInterval)=Fourier(d)
-Space(d::Circle)=Laurent(d)
-canonicalspace(S::Union(Laurent,Fourier))=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
+points(sp::Fourier,n)=points(domain(sp),n)
+plan_transform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.R2HC)
+plan_itransform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.HC2R)
 
-
-#domain(S) may be any domain
-for sp in (:Fourier,:Laurent,:(Hardy{true}),:CosSpace)
-    @eval begin
-        Base.ones{T<:Number}(::Type{T},S::$sp)=Fun(ones(T,1),S)
-        Base.ones(S::$sp)=Fun(ones(1),S)
+function transform{T<:Number}(::Fourier,vals::Vector{T},plan::Function)
+    n=length(vals)
+    cfs=2plan(vals)/n
+    cfs[1]/=2
+    if iseven(n)
+        cfs[div(n,2)+1]/=2
     end
+
+    fouriermodalt!(cfs)
+
+    ret=Array(T,n)
+    if iseven(n)
+        ret[1:2:end]=cfs[1:div(n,2)]
+        ret[2:2:end]=cfs[end:-1:div(n,2)+1]
+    else
+        ret[1:2:end]=cfs[1:div(n+1,2)]
+        ret[2:2:end]=cfs[end:-1:div(n+3,2)]
+    end
+    ret
 end
 
-points(sp::Fourier,n)=points(domain(sp),n)
-
+function itransform{T<:Number}(::Fourier,a::Vector{T},plan::Function)
+    n=length(a)
+    cfs=[a[1:2:end];
+            flipdim(a[2:2:end],1)]
+    fouriermodalt!(cfs)
+    if iseven(n)
+        cfs[div(n,2)+1]*=2
+    end
+    cfs[1]*=2
+    plan(cfs)/2
+end
 
 function fouriermodalt!(cfs)
     n=length(cfs)
@@ -171,48 +197,23 @@ function fouriermodalt!(cfs)
     cfs
 end
 
-function transform{T<:Number}(::Fourier,vals::Vector{T})
-    n=length(vals)
-    cfs=2FFTW.r2r(vals, FFTW.R2HC )/n
-    cfs[1]/=2
-    if iseven(n)
-        cfs[div(n,2)+1]/=2
-    end
 
-    fouriermodalt!(cfs)
+Space(d::PeriodicInterval)=Fourier(d)
+Space(d::Circle)=Laurent(d)
+canonicalspace(S::Union(Laurent,Fourier))=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
 
-    ret=Array(T,n)
-    if iseven(n)
-        ret[1:2:end]=cfs[1:div(n,2)]
-        ret[2:2:end]=cfs[end:-1:div(n,2)+1]
-    else
-        ret[1:2:end]=cfs[1:div(n+1,2)]
-        ret[2:2:end]=cfs[end:-1:div(n+3,2)]
+union_rule(A::ConstantSpace,B::Union(CosSpace,Taylor))=B
+
+## Ones and zeros
+
+for sp in (:Fourier,:Laurent,:Taylor,:CosSpace)
+    @eval begin
+        Base.ones{T<:Number}(::Type{T},S::$sp)=Fun(ones(T,1),S)
+        Base.ones(S::$sp)=Fun(ones(1),S)
     end
-    ret
 end
-
-
-function itransform{T<:Number}(::Fourier,a::Vector{T})
-    n=length(a)
-    cfs=[a[1:2:end];
-            flipdim(a[2:2:end],1)]
-    fouriermodalt!(cfs)
-    if iseven(n)
-        cfs[div(n,2)+1]*=2
-    end
-    cfs[1]*=2
-    FFTW.r2r(cfs, FFTW.HC2R )/2
-end
-
-
-
-
 
 reverseorientation(f::Fun{Fourier})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
-
-
-
 
 include("calculus.jl")
 include("specialfunctions.jl")

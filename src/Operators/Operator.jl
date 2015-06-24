@@ -79,15 +79,15 @@ bazeros{T<:Number}(B::Operator{T},n::Integer,br::@compat(Tuple{Int,Int}))=bazero
 
 
 BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n)
-function BandedMatrix{T}(B::Operator{T},rws::UnitRange,::Colon)
+function BandedMatrix(B::Operator,rws::UnitRange,::Colon)
     if first(rws)==1
         BandedMatrix(B,last(rws))
     else
-        addentries!(B,isbazeros(T,rws,:,bandinds(B)),rws).matrix
+        addentries!(B,isbazeros(eltype(B),rws,:,bandinds(B)),rws).matrix
     end
 end
 
-function BandedMatrix{T<:Number}(B::Operator{T},kr::StepRange,::Colon)
+function BandedMatrix(B::Operator,kr::StepRange,::Colon)
     stp=step(kr)
 
     if stp==1
@@ -101,7 +101,7 @@ function BandedMatrix{T<:Number}(B::Operator{T},kr::StepRange,::Colon)
         jr=max(stp-mod(kr[1],stp),kr[1]+bandinds(B,1)):stp:kr[end]+bandinds(B,2)
         shf=div(first(kr)-first(jr),stp)
         bi=div(bandinds(B,1),stp)+shf,div(bandinds(B,2),stp)+shf
-        A=bazeros(T,length(kr),length(jr),bi)
+        A=bazeros(eltype(B),length(kr),length(jr),bi)
         addentries!(B,IndexSlice(A,first(kr)-stp,first(jr)-stp,stp,stp),kr)
         A
     end
@@ -244,8 +244,8 @@ include("systems.jl")
 
 Base.zero{T<:Number}(::Type{Functional{T}})=ZeroFunctional(T)
 Base.zero{T<:Number}(::Type{Operator{T}})=ZeroOperator(T)
-Base.zero{O<:Functional}(::Type{O})=ZeroFunctional()
-Base.zero{O<:Operator}(::Type{O})=ZeroOperator()
+Base.zero{O<:Functional}(::Type{O})=ZeroFunctional(eltype(O))
+Base.zero{O<:Operator}(::Type{O})=ZeroOperator(eltype(O))
 
 
 Base.eye(S::FunctionSpace)=SpaceOperator(ConstantOperator(1.0),S,S)

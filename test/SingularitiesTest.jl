@@ -61,7 +61,7 @@ for ν in (1.,.123,2.,3.5)
     u=[rdirichlet(S),rneumann(S),L]\[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.))]
     @test_approx_eq_eps u[.1] besselj(ν,.1) eps(10000.)*max(abs(u[.1]),1)
 end
-    
+
 
 
 
@@ -110,3 +110,54 @@ f=x^(-0.123)*exp(-x)
 
 
 @test_approx_eq_eps sum(Fun(sech,[0,Inf])) sum(Fun(sech,[0,40.])) 100000eps()
+
+
+
+## Line
+
+f=Fun(x->exp(-x^2),Line())
+
+@test_approx_eq f'[0.1] -2*0.1exp(-0.1^2)
+@test_approx_eq (Derivative()*f)[0.1] -2*0.1exp(-0.1^2)
+
+
+
+
+## PeriodicLine
+
+d=PeriodicLine()
+D=Derivative(d)
+f=Fun(x->sech(x-.1),d)
+
+
+@test_approx_eq_eps (D*f)[.2] -0.0991717226583897  100000eps()
+@test_approx_eq_eps (D^2*f)[.2] -0.9752522555114987  1000000eps()
+
+
+
+## LogWeight
+
+x=Fun(identity,[-1.,1.])
+f=exp(x+1)-1
+@test_approx_eq log(f)[0.1] log(f[0.1])
+
+
+x=Fun(identity,[0.,1.])
+f=exp(x)-1
+@test_approx_eq log(f)[0.1] log(f[0.1])
+
+
+## Test divide sing
+
+x=Fun(identity,[0,1])
+@test_approx_eq Fun(exp(x)/x-1/x,Chebyshev)[0.1] (exp(0.1)-1)/0.1
+
+x=Fun(identity,[0,1])
+f=1/x
+p=integrate(f)
+@test_approx_eq (p-p[1.])[0.5] log(0.5)
+
+f=1/(1-x)
+p=integrate(f)
+@test_approx_eq (p-p[0.])[0.5] -log(1-0.5)
+

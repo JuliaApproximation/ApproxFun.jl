@@ -73,6 +73,7 @@ Fun{T<:FunctionSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(A
 Fun(c::Number,d::Domain)=c==0?c*zeros(d):c*ones(d)
 Fun(c::Number,d::FunctionSpace)=c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 
+
 ## List constructor
 
 Fun{T<:Domain}(c::Number,dl::Vector{T})=Fun(c,UnionDomain(dl))
@@ -140,7 +141,7 @@ function zerocfsFun(f::Function, d::FunctionSpace)
 
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  all([norm(cf[r[k]]-fr[k])<1E-4 for k=1:length(r)])
+        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  all([norm(cf[r[k]]-fr[k],1)<1E-4 for k=1:length(r)])
             return chop!(cf,tol*maxabsc/10)
         end
     end

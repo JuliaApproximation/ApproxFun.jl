@@ -17,7 +17,10 @@ function lap(d::Union(ProductDomain,TensorSpace))
     Dx^2⊗I+I⊗Dy^2
 end
 
-Derivative(d::Union(ProductDomain,TensorSpace),k::Integer)=k==1?Derivative(d[1])⊗eye(d[2]):eye(d[1])⊗Derivative(d[2])
+
+for TYP in (:Derivative,:Integral)
+    @eval $TYP(d::Union(ProductDomain,TensorSpace),k::Integer)=k==1?$TYP(d[1])⊗eye(d[2]):eye(d[1])⊗$TYP(d[2])
+end
 
 grad(d::ProductDomain)=[Derivative(d,k) for k=1:length(d.domains)]
 

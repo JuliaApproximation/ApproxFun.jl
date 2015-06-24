@@ -60,7 +60,7 @@ function addentries!(D::Derivative{CosSpace},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=2π./(d.b-d.a)
+    C=2/(d.b-d.a)*π
 
     for k=kr
         if mod(m,4)==0
@@ -81,7 +81,7 @@ function addentries!(D::Derivative{SinSpace},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=2π./(d.b-d.a)
+    C=2/(d.b-d.a)*π
 
     for k=kr
         if mod(m,4)==0
@@ -109,7 +109,7 @@ function addentries!(D::Integral{SinSpace},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=2π./(d.b-d.a)
+    C=2/(d.b-d.a)*π
 
     for k=kr
         if mod(m,4)==0
@@ -138,7 +138,7 @@ function addentries!{T}(D::Integral{SliceSpace{1,1,CosSpace,T,1}},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
-    C=2π./(d.b-d.a)
+    C=2/(d.b-d.a)*π
 
     for k=kr
         if mod(m,4)==0
@@ -218,7 +218,7 @@ function getindex{T}(Σ::DefiniteIntegral{Fourier,T},kr::Range)
         T[k == 1?  d.b-d.a : zero(T) for k=kr]
     else
         @assert isa(d,Circle)
-        T[k == 2?  -π*d.radius : (k==3?π*im*d.radius :zero(T)) for k=kr]
+        T[k == 2?  -d.radius*π : (k==3?d.radius*π*im :zero(T)) for k=kr]
     end
 end
 
@@ -244,17 +244,19 @@ datalength(Σ::DefiniteLineIntegral{Fourier})=1
 
 ## Split Multiplication in 2 to lower bandwidths
 
-function .*(f::Fun{Fourier},g::Fun{Fourier})
+function coefficienttimes(f::Fun{Fourier},g::Fun{Fourier})
     a,b=vec(f)
-    a.*g+b.*g
+    coefficienttimes(a,g)+coefficienttimes(b,g)
 end
+function coefficienttimes(f::Fun,g::Fun{Fourier})
+    c,d=vec(g)
+    coefficienttimes(f,c)+coefficienttimes(f,d)
+end
+coefficienttimes(f::Fun{Fourier},g::Fun) = coefficienttimes(g,f)
 
-function .*(f::Fun{Fourier},g::Fun)
-    a,b=vec(f)
-    a.*g+b.*g
-end
-
-function .*(f::Fun,g::Fun{Fourier})
-    a,b=vec(g)
-    f.*a+f.*b
-end
+transformtimes(f::Fun{CosSpace},g::Fun{Fourier}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),g)
+transformtimes(f::Fun{SinSpace},g::Fun{Fourier}) = transformtimes(Fun(interlace(zeros(eltype(f),length(f)+1),f.coefficients),Fourier(domain(f))),g)
+transformtimes(f::Fun{CosSpace},g::Fun{SinSpace}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),Fun(interlace(zeros(eltype(g),length(g)+1),g.coefficients),Fourier(domain(g))))
+transformtimes(f::Fun{Fourier},g::Fun{CosSpace}) = transformtimes(g,f)
+transformtimes(f::Fun{Fourier},g::Fun{SinSpace}) = transformtimes(g,f)
+transformtimes(f::Fun{SinSpace},g::Fun{CosSpace}) = transformtimes(g,f)

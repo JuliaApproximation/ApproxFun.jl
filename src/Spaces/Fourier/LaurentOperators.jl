@@ -46,7 +46,7 @@ end
 rangespace{S<:Hardy}(D::Derivative{S})=D.space
 
 function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Range)
-    C=2π./(d.b-d.a)*im
+    C=2/(d.b-d.a)*π*im
     for k=kr
         A[k,k] += (C*(k-1))^m
     end
@@ -54,7 +54,7 @@ function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Rang
 end
 
 function hardyfalse_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Range)
-    C=2π./(d.b-d.a)*im
+    C=2/(d.b-d.a)*π*im
     for k=kr
         A[k,k] += (-C*k)^m
     end
@@ -180,7 +180,7 @@ function addentries!(D::Integral{Hardy{false}},A,kr::Range)
     m=D.order
     @assert isa(d,PeriodicInterval)
 
-    C=2π./(d.b-d.a)*im
+    C=2/(d.b-d.a)*π*im
     for k=kr
         A[k,k] += (-C*k)^(-m)
     end
@@ -201,7 +201,7 @@ function addentries!{n,T}(D::Integral{SliceSpace{n,1,Taylor,T,1}},A,kr::Range)
     m=D.order
     @assert isa(d,PeriodicInterval)
 
-    C=2π./(d.b-d.a)*im
+    C=2/(d.b-d.a)*π*im
     for k=kr
         A[k,k] += (C*(k+n-1))^(-m)
     end
@@ -218,7 +218,7 @@ function getindex{T}(Σ::DefiniteIntegral{Laurent,T},kr::Range)
         T[k == 1?  d.b-d.a : zero(T) for k=kr]
     else
         @assert isa(d,Circle)
-        T[k == 2?  2π*im*d.radius :zero(T) for k=kr]
+        T[k == 2?  2d.radius*π*im :zero(T) for k=kr]
     end
 end
 

@@ -3,10 +3,16 @@
 
 export JacobiWeight
 
+
+##
+# WeightSpace represents a space that weights another space
+##
+
 abstract WeightSpace <: IntervalSpace  #TODO: Why Interval?
 
 
 domain(S::WeightSpace)=domain(S.space)
+
 
 transform(sp::WeightSpace,vals::Vector)=transform(sp.space,vals./weight(sp,points(sp,length(vals))))
 itransform(sp::WeightSpace,cfs::Vector)=itransform(sp.space,cfs).*weight(sp,points(sp,length(cfs)))
@@ -25,8 +31,12 @@ function evaluate{WS<:WeightSpace,T}(f::Fun{WS,T},x)
 end
 
 
-## JacobiWeight
-
+##
+# JacobiWeight
+# represents a function on [-1,1] weighted by (1+x)^α*(1-x)^β
+# note the inconsistency of the parameters with Jacobi
+# when the domain is [a,b] the weight is inferred by mapping to [-1,1]
+##
 
 
 immutable JacobiWeight{S<:IntervalSpace} <: WeightSpace
@@ -58,10 +68,20 @@ spacescompatible(A::JacobiWeight,B::JacobiWeight)=A.α==B.α && A.β == B.β && 
 spacescompatible(A::JacobiWeight,B::IntervalSpace)=spacescompatible(A,JacobiWeight(0,0,B))
 spacescompatible(B::IntervalSpace,A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
-## In this package, α and β are opposite the convention. Here, α is the left algebraic singularity and β is the right algebraic singularity.
+transformtimes{S,V}(f::Fun{JacobiWeight{S}},g::Fun{JacobiWeight{V}}) = Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),Fun(g.coefficients,g.space.space))),JacobiWeight(f.space.α+g.space.α,f.space.β+g.space.β,f.space.space))
+transformtimes{S}(f::Fun{JacobiWeight{S}},g::Fun) = Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),g)),f.space)
+transformtimes{S}(f::Fun,g::Fun{JacobiWeight{S}}) = Fun(coefficients(transformtimes(Fun(g.coefficients,g.space.space),f)),g.space)
+
+##  α and β are opposite the convention for Jacobi polynomials
+# Here, α is the left algebraic singularity and β is the right algebraic singularity.
 
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
 weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
+
+
+
+setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.space,d))
+
 
 
 ## Use 1st kind points to avoid singularities
@@ -94,13 +114,25 @@ increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeight(f.space.α+1,f.space.β,
 
 
 function canonicalspace(S::JacobiWeight)
-    if S.α==0 && S.β==0
+    if isapprox(S.α,0) && isapprox(S.β,0)
         canonicalspace(S.space)
     else
         #TODO: promote singularities?
         JacobiWeight(S.α,S.β,canonicalspace(S.space))
     end
 end
+
+function union_rule{P<:PolynomialSpace}(A::ConstantSpace,B::JacobiWeight{P})
+    # we can convert to a space that contains contants provided
+    # that the parameters are integers
+    # when the parameters are -1 we keep them
+    if isapproxinteger(B.α) && isapproxinteger(B.β)
+        JacobiWeight(min(B.α,0.),min(B.β,0.),B.space)
+    else
+        NoSpace()
+    end
+end
+
 
 ## Algebra
 
@@ -132,8 +164,54 @@ end
 
 ./{T,N}(f::Fun{JacobiWeight{T}},g::Fun{JacobiWeight{N}})=f*(1/g)
 
+# O(min(m,n)) Ultraspherical inner product
 
-## Project
-#TODO: Where is this used?
-project{S}(f::Fun{JacobiWeight{S}})=Fun(f.coefficients,JacobiWeight(space(f).α,space(f).β,canonicaldomain(f)))
+function innerprod{λ,S,V}(::Type{Ultraspherical{λ}},u::Vector{S},v::Vector{V})
+    T,mn = promote_type(S,V),min(length(u),length(v))
+    wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
+    ret = conj(u[1])*wi*v[1]
+    for i=2:mn
+      wi *= (i-2one(T)+2λ)/(i-one(T)+λ)*(i-2one(T)+λ)/(i-one(T))
+      ret += conj(u[i])*wi*v[i]
+    end
+    ret
+end
+
+function innerprod(::Type{Chebyshev},u::Vector,v::Vector)
+  mn = min(length(u),length(v))
+  (2conj(u[1])*v[1]+dot(u[2:mn],v[2:mn]))*π/2
+end
+
+function innerprod(::Type{Ultraspherical{1}},u::Vector,v::Vector)
+  mn = min(length(u),length(v))
+  dot(u[1:mn],v[1:mn])*π/2
+end
+
+function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{Ultraspherical{λ}})
+    @assert domain(f) == domain(g)
+    if f.space.α == f.space.β == λ-0.5
+        return complexlength(domain(f))/2*innerprod(Ultraspherical{λ},f.coefficients,g.coefficients)
+    else
+        return defaultdot(f,g)
+    end
+end
+
+function Base.dot{λ}(f::Fun{Ultraspherical{λ}},g::Fun{JacobiWeight{Ultraspherical{λ}}})
+    @assert domain(f) == domain(g)
+    if g.space.α == g.space.β == λ-0.5
+        return complexlength(domain(f))/2*innerprod(Ultraspherical{λ},f.coefficients,g.coefficients)
+    else
+        return defaultdot(f,g)
+    end
+end
+
+function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{JacobiWeight{Ultraspherical{λ}}})
+    @assert domain(f) == domain(g)
+    if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
+        return complexlength(domain(f))/2*innerprod(Ultraspherical{λ},f.coefficients,g.coefficients)
+    else
+        return defaultdot(f,g)
+    end
+end
+
 

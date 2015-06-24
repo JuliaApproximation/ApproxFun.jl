@@ -1,7 +1,7 @@
 
 
 
-import Base.BLAS: blas_int,BlasInt
+import Base.BLAS: BlasInt
 for (hseqr,elty) in ((:zhseqr_,:Complex128),)
     @eval function hesseneigvals(M::Matrix{$elty})
         if isempty(M)
@@ -10,9 +10,9 @@ for (hseqr,elty) in ((:zhseqr_,:Complex128),)
        A=vec(M)
 
         N=size(M,1)
-        info  =blas_int(0)
+        info  =0
 
-        ilo = blas_int(1); ihi = blas_int(N); ldh=blas_int(N);ldz=blas_int(N);lwork = blas_int(N)
+        ilo = 1; ihi = N; ldh=N;ldz=N;lwork = N
 
         z=zero($elty)
         work  = Array($elty, N*N)
@@ -40,11 +40,11 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
         A=vec(M)
 
         N=size(M,1)
-        info  =blas_int(0)
+        info  =0
 
-        ilo = blas_int(1); ihi = blas_int(N); ldh=blas_int(N);ldz=blas_int(N);
+        ilo = 1; ihi = N; ldh=N;ldz=N;
 
-        lwork = blas_int(-1)
+        lwork = -1
 
         z=zero($elty)
         work  = Array($elty, 1)
@@ -63,7 +63,7 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
             &Ec,&Nc,&N , &ilo, &ihi, A, &ldh, wr,wi, &z, &ldz, work, &lwork, &info) 
 
             if lwork < 0
-                lwork=blas_int(real(work[1]))
+                lwork=@compat(Int(real(work[1])))
                 work=Array($elty,lwork)
             end
         end

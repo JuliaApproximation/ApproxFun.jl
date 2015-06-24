@@ -21,16 +21,10 @@ end
 
 ## Transform
 
-transform(::Chebyshev,vals::Vector)=chebyshevtransform(vals)
-itransform(::Chebyshev,cfs::Vector)=ichebyshevtransform(cfs)
-
-function transform!{T<:FFTW.fftwNumber}(S::TensorSpace{Chebyshev,Chebyshev},X::Matrix{T})
-    X[:] = chebyshevtransform(X)
-end
-
-function itransform!{T<:FFTW.fftwNumber}(S::TensorSpace{Chebyshev,Chebyshev},X::Matrix{T})
-    X[:] = ichebyshevtransform(X)
-end
+transform(::Chebyshev,vals::Vector,plan::Function)=chebyshevtransform(vals,plan)
+itransform(::Chebyshev,cfs::Vector,plan::Function)=ichebyshevtransform(cfs,plan)
+plan_transform(::Chebyshev,vals::Vector)=plan_chebyshevtransform(vals)
+plan_itransform(::Chebyshev,cfs::Vector)=plan_ichebyshevtransform(cfs)
 
 ## Evaluation
 
@@ -54,30 +48,6 @@ chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(Fun(x->tocanonicalD(d,x),
 identity_fun(d::Chebyshev)=identity_fun(domain(d))
 
 
-
-## 2D fast values
-
-function ApproxFun.values{SS<:TensorSpace,T}(f::ProductFun{Chebyshev,Chebyshev,SS,T})
-    n,m=size(f)
-    M=Array(T,n,m)
-    f1=pad(f.coefficients[1].coefficients,n)
-    planc=plan_ichebyshevtransform(f1)
-    M[:,1]=ichebyshevtransform(f1,planc)
-    for k=2:m
-        M[:,k]=ichebyshevtransform(pad(f.coefficients[k].coefficients,n),planc)
-    end
-    f2=vec(M[1,:])
-    planr=plan_ichebyshevtransform(f2)
-    M[1,:]=ichebyshevtransform(f2,planr)
-    for k=2:n
-        M[k,:]=ichebyshevtransform(vec(M[k,:]),planr)
-    end
-
-    M
-end
-
-
-
 ## Piecewise union
 
 # union_rule dictates how to create a space that both spaces can be converted to
@@ -92,7 +62,7 @@ end
 
 
 
-## Multivaraite
+## Multivariate
 
 
 #TODO: adaptive

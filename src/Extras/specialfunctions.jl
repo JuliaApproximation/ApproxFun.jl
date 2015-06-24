@@ -175,6 +175,7 @@ function .^(f::Fun{Chebyshev},k::Float64)
     fc = Fun(f.coefficients,Chebyshev()) #Project to interval
 
     r = sort(roots(fc))
+    #TODO divideatroots
     @assert length(r) <= 2
 
     if length(r) == 0
@@ -195,6 +196,9 @@ function .^(f::Fun{Chebyshev},k::Float64)
     end
 end
 
+#TODO: implement
+.^(f::Fun{Jacobi},k::Float64)=Fun(f,Chebyshev).^k
+
 # Default is just try solving ODE
 function .^{S,T}(f::Fun{S,T},β)
     A=Derivative()-β*differentiate(f)/f
@@ -214,15 +218,51 @@ Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
-function Base.log{US<:Ultraspherical,T<:Real}(f::Fun{US,T})
-    if isreal(domain(f))
-        cumsum(differentiate(f)/f)+log(first(f))
+function Base.log{US<:Ultraspherical}(f::Fun{US})
+    if domain(f)==Interval()
+        r = sort(roots(f))
+        #TODO divideatroots
+        @assert length(r) <= 2
+
+        if length(r) == 0
+            cumsum(differentiate(f)/f)+log(first(f))
+        elseif length(r) == 1
+            @assert isapprox(abs(r[1]),1)
+
+            if isapprox(r[1],1.)
+                g=divide_singularity(+1,f)
+                lg=Fun([1.],LogWeight(0.,1.,Chebyshev()))
+                if isapprox(g,1.)  # this means log(g)~0
+                    lg
+                else # log((1-x)) + log(g)
+                    lg⊕log(g)
+                end
+            else
+                g=divide_singularity(-1,f)
+                lg=Fun([1.],LogWeight(1.,0.,Chebyshev()))
+                if isapprox(g,1.)  # this means log(g)~0
+                    lg
+                else # log((1+x)) + log(g)
+                    lg⊕log(g)
+                end
+           end
+        else
+            @assert isapprox(r[1],-1)
+            @assert isapprox(r[2],1)
+
+            g=divide_singularity(f)
+            lg=Fun([1.],LogWeight(1.,1.,Chebyshev()))
+            if isapprox(g,1.)  # this means log(g)~0
+                lg
+            else # log((1+x)) + log(g)
+                lg⊕log(g)
+            end
+        end
     else
         # this makes sure differentiate doesn't
         # make the function complex
-        g=log(Fun(f.coefficients,US()))
-        @assert isa(space(g),US)
-        Fun(g.coefficients,space(f))
+        g=log(setdomain(f,Interval()))
+        setdomain(g,domain(f))
     end
 end
 
@@ -233,17 +273,17 @@ function Base.log{T<:Real}(f::Fun{Fourier,T})
     else
         # this makes sure differentiate doesn't
         # make the function complex
-        g=log(Fun(f.coefficients,Fourier()))
-        @assert isa(space(g),Fourier)
-        Fun(g.coefficients,space(f))
+        g=log(setdomain(f,PeriodicInterval()))
+        setdomain(g,domain(f))
     end
 end
 
 
+Base.atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
+
 for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
                             (:(Base.asin),"sqrt(1-f^2)*D","f'",:(imag)),
                             (:(Base.acos),"sqrt(1-f^2)*D","-f'",:(imag)),
-                            (:(Base.atan),"(1+f^2)*D","f'",:(imag)),
                             (:(Base.asinh),"sqrt(f^2+1)*D","f'",:(real)),
                             (:(Base.acosh),"sqrt(f^2-1)*D","f'",:(real)),
                             (:(Base.atanh),"(1-f^2)*D","f'",:(real)),
@@ -416,3 +456,30 @@ for op in (:(Base.expm1),:(Base.log1p),:(Base.lfact),:(Base.sinc),:(Base.cosc),
         $op{S,T}(f::Fun{S,T})=Fun(x->$op(f[x]),domain(f))
     end
 end
+
+
+## <,≤,>,≥
+
+for op in (:<,:>)
+    @eval begin
+        function $op(f::Fun,c::Number)
+            if length(roots(f-c))==0
+                $op(first(f),c)
+            else
+                false
+            end
+        end
+        function $op(c::Number,f::Fun)
+            if length(roots(f-c))==0
+                $op(c,first(f))
+            else
+                false
+            end
+        end
+    end
+end
+
+
+
+
+#TODO ≤,≥

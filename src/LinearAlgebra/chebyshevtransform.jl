@@ -35,33 +35,6 @@ function chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function;kind
 end
 chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)=chebyshevtransform(x,plan_chebyshevtransform(x;kind=kind);kind=kind)
 
-#following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function chebyshevtransform{T<:Number}(x::Vector{T};kind::Integer=1)
-    if kind == 1
-        n = length(x)
-        if n == 1
-            x
-        else
-            w = [2exp(im*convert(T,π)*k/2n) for k=0:n-1]
-            ret = w.*ifft([reverse(x);x])[1:n]
-            ret = T<:Real ? real(ret) : ret
-            ret[1] /= 2
-            ret
-        end
-    elseif kind == 2
-        n = length(x)
-        if n == 1
-            x
-        else
-            ret = ifft([reverse(x),x[2:end-1]])[1:n]
-            ret = T<:Real ? real(ret) : ret
-            ret[2:n-1] *= 2
-            ret
-        end
-    end
-end
-
-
 ## Inverse transforms take Chebyshev coefficients and produce values at Chebyshev points of the first and second kinds
 
 
@@ -97,35 +70,6 @@ function ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function;kin
     end
 end
 ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)=ichebyshevtransform(x,plan_ichebyshevtransform(x;kind=kind);kind=kind)
-
-#following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function ichebyshevtransform{T<:Number}(x::Vector{T};kind::Integer=1)
-    if kind == 1
-        n = length(x)
-        if n == 1
-            x
-        else
-            w = exp(-im*convert(T,π)*[0:2n-1]/2n)/2
-            w[1] *= 2;w[n+1] *= 0;w[n+2:end] *= -1
-            ret = fft(w.*[x,one(T),x[end:-1:2]])[n:-1:1]
-            ret = T<:Real ? real(ret) : ret
-        end
-    elseif kind == 2
-        n = length(x)
-        if n == 1
-            x
-        else
-            ##TODO: make thread safe
-            x[1] *= 2;x[end] *= 2
-            ret = chebyshevtransform(x;kind=kind)
-            x[1] /=2;x[end] /=2
-            ret[1] *= 2;ret[end] *= 2
-            negateeven!(ret)
-            ret *= .5*(n-1)
-            reverse!(ret)
-        end
-    end
-end
 
 ## Code generation for integer inputs
 

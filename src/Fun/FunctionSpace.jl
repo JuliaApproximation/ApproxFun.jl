@@ -74,6 +74,12 @@ abstract AmbiguousSpace <: FunctionSpace{RealBasis,1}
 
 domain(::AmbiguousSpace)=AnyDomain()
 
+function setdomain(sp::FunctionSpace,d::Domain)
+    S=typeof(sp)
+    @assert length(@compat(fieldnames(S)))==1
+    S(d)
+end
+
 
 # AnySpace dictates that an operator can act on any space
 # UnsetSpace dictates that an operator is not defined until
@@ -133,9 +139,8 @@ domain(A::FunctionSpace)=A.domain # assume it has a field domain
 
 
 
-for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD)
-    @eval ($op)(sp::FunctionSpace,x)=$op(domain(sp),x)
-    @eval ($op)(sp::BivariateSpace,x...)=$op(domain(sp),x...)
+for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD,:invfromcanonicalD)
+    @eval ($op)(sp::FunctionSpace,x...)=$op(domain(sp),x...)
 end
 
 
@@ -221,24 +226,30 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
     end
 
     cr=union_rule(a,b)
-    if cr==NoSpace()
-        cr=union_rule(b,a)
+    if cr!=NoSpace()
+        return cr
     end
 
-
-    if cr==NoSpace()
-        cspa=canonicalspace(a)
-        cspb=canonicalspace(b)
-        if cspa!=a || cspb!=b
-            cr=union(cspa,cspb)  #Max or min space?
-        end
+    cr=union_rule(b,a)
+    if cr!=NoSpace()
+        return cr
     end
 
-    if cr==NoSpace()
-        cr=maxspace(a,b)  #Max or min space?
+    cspa=canonicalspace(a)
+    cspb=canonicalspace(b)
+    if cspa!=a || cspb!=b
+        cr=union(cspa,cspb)  #Max or min space?
+    end
+    if cr!=NoSpace()
+        return cr
     end
 
-    return cr
+    cr=maxspace(a,b)  #Max or min space?
+    if cr!=NoSpace()
+        return cr
+    end
+
+    a⊕b
 end
 
 
@@ -315,22 +326,43 @@ checkpoints(d::FunctionSpace)=checkpoints(domain(d))
 
 ## default transforms
 
-function itransform{T}(S::FunctionSpace{T},cfs)
-    csp=canonicalspace(S)
-    if S==csp
-        error("Override itransform(::"*string(typeof(S))*",cfs)")
-    end
+transform(S::FunctionSpace,vals)=transform(S,vals,plan_transform(S,vals))
+itransform(S::FunctionSpace,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
 
-    itransform(csp,coefficients(cfs,S,csp))
-end
-
-function transform{T}(S::FunctionSpace{T},vals)
+function transform(S::FunctionSpace,vals,plan...)
     csp=canonicalspace(S)
     if S==csp
         error("Override transform(::"*string(typeof(S))*",vals)")
     end
 
-    coefficients(transform(csp,vals),csp,S)
+    coefficients(transform(csp,vals,plan...),csp,S)
+end
+
+function itransform(S::FunctionSpace,cfs,plan...)
+    csp=canonicalspace(S)
+    if S==csp
+        error("Override itransform(::"*string(typeof(S))*",cfs)")
+    end
+
+    itransform(csp,coefficients(cfs,S,csp),plan...)
+end
+
+function plan_transform(S::FunctionSpace,vals)
+    csp=canonicalspace(S)
+    if S==csp
+        identity
+    else
+        plan_transform(csp,vals)
+    end
+end
+
+function plan_itransform(S::FunctionSpace,cfs)
+    csp=canonicalspace(S)
+    if S==csp
+        identity
+    else
+        plan_itransform(csp,cfs)
+    end
 end
 
 

@@ -1,4 +1,4 @@
-export Evaluation,ivp
+export Evaluation,ivp,bvp
 
 ## Evaluation constructors
 
@@ -73,32 +73,33 @@ Base.stride(E::EvaluationWrapper)=stride(E.functional)
 
 
 evaluate(d::Domain,x)=Evaluation(d,x)
-ldirichlet(d)=Evaluation(d,false)
-rdirichlet(d)=Evaluation(d,true)
-lneumann(d)=Evaluation(d,false,1)
-rneumann(d)=Evaluation(d,true,1)
-
-
 ldiffbc(d,k) = Evaluation(d,false,k)
 rdiffbc(d,k) = Evaluation(d,true,k)
-
-
-ivp(d)=[ldirichlet(d),lneumann(d)]
-dirichlet(d)=[ldirichlet(d),rdirichlet(d)]
-neumann(d)=[lneumann(d),rneumann(d)]
 diffbcs(d,k) = [ldiffbc(d,k),rdiffbc(d,k)]
+
+ldirichlet(d)=ldiffbc(d,0)
+rdirichlet(d)=rdiffbc(d,0)
+lneumann(d)=ldiffbc(d,1)
+rneumann(d)=rdiffbc(d,1)
+
+dirichlet(d)=diffbcs(d,0)
+neumann(d)=diffbcs(d,1)
+
+ivp(d,k) = Functional{eltype(d)}[ldiffbc(d,i) for i=0:k-1]
+bvp(d,k) = vcat(Functional{eltype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],Functional{eltype(d)}[rdiffbc(d,i) for i=0:div(k,2)-1])
+
 periodic(d,k) = Functional{eltype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
 
 
 
-for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann,:ivp)
+for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann,:ivp,:bvp)
     @eval begin
         $op()=$op(AnySpace())
         $op(::PeriodicDomain)=[]
     end
 end
 
-for op in (:ldiffbc,:rdiffbc,:diffbcs,:periodic)
+for op in (:ldiffbc,:rdiffbc,:diffbcs,:ivp,:bvp,:periodic)
     @eval $op(k::Integer)=$op(AnySpace(),k)
 end
 

@@ -1,12 +1,16 @@
 ## This makes implementing operators simpler
 # but overrided addentries! directly is likely to be faster
 
-abstract BidiagonalOperator{T} <: BandedOperator{T}
+
 abstract TridiagonalOperator{T} <: BandedOperator{T}
+abstract SymTridiagonalOperator{T} <: TridiagonalOperator{T}
+abstract BidiagonalOperator{T} <: TridiagonalOperator{T}
+abstract DiagonalOperator{T} <: BidiagonalOperator{T}
 # override getdiagonalentry
 
-bandinds(::BidiagonalOperator)=0,1
 bandinds(::TridiagonalOperator)=-1,1
+bandinds(::BidiagonalOperator)=0,1
+bandinds(::DiagonalOperator)=0,0
 
 
 

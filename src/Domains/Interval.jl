@@ -14,8 +14,8 @@ immutable Interval{T} <: IntervalDomain{T}  #repeat <:Number due to Julia issue 
 end
 
 Interval()=Interval{Float64}()
-Interval{T}(a::T,b::T)=Interval{T}(a,b)
-Interval(a::Int,b::Int) = Interval(@compat(Float64(a)),@compat(Float64(b)))   #convenience method
+Interval(a::Int,b::Int) = Interval(@compat(Float64(a)),@compat(Float64(b))) #convenience method
+Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 function Interval{T<:Number}(d::Vector{T})
     @assert length(d)==2
@@ -26,7 +26,6 @@ end
 
 
 Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
-Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 AnyInterval{T}(::Type{T})=Interval{T}(NaN,NaN)
 AnyInterval()=AnyInterval(Float64)
@@ -78,7 +77,7 @@ identity_fun(d::Interval)=Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],d)
 
 ## algebra
 
-for op in (:*,:+,:-,:.*,:.+,:.-)
+for op in (:*,:+,:-,:.*,:.+,:.-,:.^)
     @eval begin
         $op(c::Number,d::Interval)=Interval($op(c,d.a),$op(c,d.b))
         $op(d::Interval,c::Number)=Interval($op(d.a,c),$op(d.b,c))
@@ -89,6 +88,7 @@ for op in (:/,:./)
     @eval $op(d::Interval,c::Number)=Interval($op(d.a,c),$op(d.b,c))
 end
 
+Base.sqrt(d::Interval)=Interval(sqrt(d.a),sqrt(d.b))
 
 +(d1::Interval,d2::Interval)=Interval(d1.a+d2.a,d1.b+d2.b)
 

@@ -88,6 +88,15 @@ Base.vec{T}(f::Fun{ContinuousSpace,T})=vec(Fun(f,canonicalspace(space(f))))
 pieces{T}(f::Fun{ContinuousSpace,T})=vec(f)
 
 
+function points(f::Fun{ContinuousSpace})
+    n=length(f)
+    d=domain(f)
+    K=length(d)
+
+    m=isperiodic(d)?max(K,n+2length(d)-1):n+length(d)
+    points(f.space,m)
+end
+
 ## Conversion
 
 bandinds(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1},ContinuousSpace})=-1,length(domain(rangespace(C)))

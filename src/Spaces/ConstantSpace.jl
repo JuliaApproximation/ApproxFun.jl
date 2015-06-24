@@ -3,6 +3,7 @@ immutable ConstantSpace <: UnivariateSpace{RealBasis} end
 ConstantSpace(::AnyDomain)=ConstantSpace()
 
 Fun(c::Number)=Fun([c],ConstantSpace())
+Fun(c::Number,d::ConstantSpace)=Fun([c],d)
 
 domain(::ConstantSpace)=AnyDomain()
 canonicalspace(C::ConstantSpace)=C
@@ -19,9 +20,9 @@ promoterangespace(P::Functional,::ConstantSpace,::ConstantSpace)=P # functionals
 promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))
 
 
-# We assume we can always convert a constant to the functionspace
-# this is only true if 1 is an element
-conversion_rule(A::ConstantSpace,B::FunctionSpace)=A
+# When the union of A and B is a ConstantSpace, then it contains a one
+conversion_rule(A::ConstantSpace,B::FunctionSpace)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
+
 
 bandinds{S<:FunctionSpace}(C::Conversion{ConstantSpace,S})=1-length(ones(rangespace(C))),0
 function addentries!{S<:FunctionSpace}(C::Conversion{ConstantSpace,S},A,kr::Range)
@@ -33,6 +34,19 @@ function addentries!{S<:FunctionSpace}(C::Conversion{ConstantSpace,S},A,kr::Rang
     end
     A
 end
+
+bandinds{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T}) = 1-length(D.f),0
+function addentries!{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T},A,kr)
+    Op = Multiplication(D.f,space(D.f))
+    for k=kr
+        if k≤length(D.f)
+            A[k,1]+=Op[k,1]
+        end
+    end
+    A
+end
+rangespace{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T}) = rangespace(Multiplication(D.f,space(D.f)))
+
 
 ###
 # FunctionalOperator treats a functional like an operator

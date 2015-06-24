@@ -13,7 +13,13 @@ type Fun{S,T}
     Fun(coeff::Vector{T},sp::S)=new(coeff,sp)
 end
 
-Fun{T<:Number}(coeff::Vector{T},sp::FunctionSpace)=Fun{typeof(sp),T}(coeff,sp)
+Fun(coeff::Vector,sp::FunctionSpace)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
+Fun{T<:Integer}(coeff::Vector{T},sp::FunctionSpace)=Fun(1.0coeff,sp)
+Fun(::Vector{None},sp::FunctionSpace)=Fun(Float64[],sp)
+function Fun(v::Vector{Any},sp::FunctionSpace)
+    @assert isempty(v)
+    Fun(Float64[],sp)
+end
 
 ##Coefficient routines
 #TODO: domainscompatible?
@@ -26,7 +32,7 @@ function coefficients(f::Fun,msp::FunctionSpace)
         coefficients(f.coefficients,space(f),msp)
     end
 end
-coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(AnyDomain()))
+coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(domain(f)))
 coefficients(f::Fun)=f.coefficients
 coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 
@@ -61,9 +67,13 @@ domain(f::Fun)=domain(f.space)
 domain{T<:Fun}(v::Vector{T})=map(domain,v)
 
 
+setdomain(f::Fun,d::Domain)=Fun(f.coefficients,setdomain(space(f),d))
+
 for op = (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD)
     @eval ($op)(f::Fun,x)=($op)(domain(f),x)
 end
+
+invfromcanonicalD(d::Domain)=invfromcanonicalD(d,Fun(identity,canonicaldomain(d)))
 
 space(f::Fun)=f.space
 spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
@@ -149,8 +159,8 @@ for op = (:+,:-)
             end
         end
 
-        ($op){N<:Number}(f::Fun,c::N)=$op(f,c*ones(f))
-        ($op){N<:Number}(c::N,f::Fun)=$op(c*ones(f),f)
+        ($op){N<:Number}(f::Fun,c::N)=$op(f,Fun(c))
+        ($op){N<:Number}(c::N,f::Fun)=$op(Fun(c),f)
         ($op){S,T}(f::Fun{S,T},c::UniformScaling)=$op(f,c.λ)
         ($op){S,T}(c::UniformScaling,f::Fun{S,T})=$op(c.λ,f)
     end
@@ -211,7 +221,11 @@ Base.inv{S,T}(f::Fun{S,T})=1./f
 
 ## Norm
 
-Base.dot(f::Fun,g::Fun)=sum(conj(f).*g)
+defaultdot(f::Fun,g::Fun)=sum(conj(f).*g)
+Base.dot(f::Fun,g::Fun)=defaultdot(f,g)
+Base.dot(c::Number,g::Fun)=sum(conj(c)*g)
+Base.dot(g::Fun,c::Number)=sum(conj(g)*c)
+
 function Base.norm(f::Fun)
     sp = space(f)
     f2 = pad(f,2length(f)-1)
@@ -250,9 +264,40 @@ end
 
 
 ==(f::Fun,g::Fun) =  (f.coefficients == g.coefficients && f.space == g.space)
+function Base.isapprox(f::Fun,g::Fun)
+    if spacescompatible(f,g)
+        m=min(length(f),length(g))
+        tol=100eps()  # TODO: normalize by norm of f/g
 
+        for k=1:m
+            if !isapprox(f.coefficients[k],g.coefficients[k])
+                return false
+            end
+        end
+        for k=m+1:length(f)
+            if abs(f.coefficients[k])>tol
+                return false
+            end
+        end
+        for k=m+1:length(g)
+            if abs(g.coefficients[k])>tol
+                return false
+            end
+        end
 
+        true
+    else
+        sp=union(f.space,g.space)
+        if isa(sp,NoSpace)
+            false
+        else
+            isapprox(Fun(f,sp),Fun(g,sp))
+        end
+    end
+end
 
+Base.isapprox(f::Fun,g::Number)=isapprox(f,g*ones(space(f)))
+Base.isapprox(g::Number,f::Fun)=isapprox(g*ones(space(f)),f)
 
 
 

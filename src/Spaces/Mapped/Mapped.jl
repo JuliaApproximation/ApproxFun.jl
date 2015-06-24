@@ -69,7 +69,7 @@ function identity_fun{SS,DD,DDT}(S::MappedSpace{SS,DD,DDT})
     Fun(coefficients(sf),MappedSpace(S.domain,space(sf)))
 end
 
-
+union_rule(A::ConstantSpace,B::MappedSpace)=MappedSpace(domain(B),union(A,B.space))
 
 ## Operators
 

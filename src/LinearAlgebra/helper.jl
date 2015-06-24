@@ -182,9 +182,10 @@ function interlace(v::Vector{Any})
     interlace(b)
 end
 
-function interlace{T}(a::Vector{T},b::Vector{T})
+function interlace(a::Vector,b::Vector)
     na=length(a);nb=length(b)
-   if nb≥na
+    T=promote_type(eltype(a),eltype(b))
+    if nb≥na
         ret=zeros(T,2nb)
         ret[1:2:1+2*(na-1)]=a
         ret[2:2:end]=b
@@ -205,43 +206,43 @@ end
 ## svfft
 
 ##FFT That interlaces coefficients
-function svfft(v::Vector)
-        n=length(v)
-        v=FFTW.fft(v)./n
-        if mod(n,2) == 0
-            ind=div(n,2)
-            v=alternatesign!(v)
-            interlace(v[1:ind],
-                      flipdim(v[ind+1:end],1))
-        elseif mod(n,4)==3
-            ind=div(n+1,2)
-            interlace(alternatesign!(v[1:ind]),
-                      -flipdim(alternatesign!(v[ind+1:end]),1))
-        else #mod(length(v),4)==1
-            ind=div(n+1,2)
-            interlace(alternatesign!(v[1:ind]),
-                      flipdim(alternatesign!(v[ind+1:end]),1))
-        end
+
+plan_svfft(x::Vector) = plan_fft(x)
+plan_isvfft(x::Vector) = plan_ifft(x)
+
+function svfft(v::Vector,plan::Function)
+    n=length(v)
+    v=plan(v)/n
+    if mod(n,2) == 0
+        ind=div(n,2)
+        v=alternatesign!(v)
+        interlace(v[1:ind],
+                  flipdim(v[ind+1:end],1))
+    elseif mod(n,4)==3
+        ind=div(n+1,2)
+        interlace(alternatesign!(v[1:ind]),
+                  -flipdim(alternatesign!(v[ind+1:end]),1))
+    else #mod(length(v),4)==1
+        ind=div(n+1,2)
+        interlace(alternatesign!(v[1:ind]),
+                  flipdim(alternatesign!(v[ind+1:end]),1))
+    end
 end
 
+function isvfft(sv::Vector,plan::Function)
+    n=length(sv)
 
+    if mod(n,2) == 0
+        v=alternatesign!([sv[1:2:end];flipdim(sv[2:2:end],1)])
+    elseif mod(n,4)==3
+        v=[alternatesign!(sv[1:2:end]);
+           -alternatesign!(flipdim(sv[2:2:end],1))]
+    else #mod(length(v),4)==1
+        v=[alternatesign!(sv[1:2:end]);
+           alternatesign!(flipdim(sv[2:2:end],1))]
+    end
 
-
-
-function isvfft(sv::Vector)
-        n=length(sv)
-
-        if mod(n,2) == 0
-            v=alternatesign!([sv[1:2:end];flipdim(sv[2:2:end],1)])
-        elseif mod(n,4)==3
-            v=[alternatesign!(sv[1:2:end]);
-                -alternatesign!(flipdim(sv[2:2:end],1))]
-        else #mod(length(v),4)==1
-            v=[alternatesign!(sv[1:2:end]);
-                    alternatesign!(flipdim(sv[2:2:end],1))]
-        end
-
-        FFTW.ifft(n*v)
+    plan(n*v)
 end
 
 

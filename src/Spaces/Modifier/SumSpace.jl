@@ -26,10 +26,12 @@ SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
 Base.getindex(S::SumSpace,k)=S.spaces[k]
 
 domain(A::SumSpace)=domain(A[1])
-
+setdomain(A::SumSpace,d::Domain)=SumSpace(setdomain(A.spaces[1],d),setdomain(A.spaces[2],d))
 
 
 spacescompatible(A::SumSpace,B::SumSpace)=all(map(spacescompatible,A.spaces,B.spaces))
+
+
 
 
 function union_rule(A::SumSpace,B::FunctionSpace)
@@ -51,15 +53,26 @@ function union_rule(A::SumSpace,B::SumSpace)
 end
 
 
+function union_rule(B::SumSpace,A::ConstantSpace)
+    for sp in B.spaces
+        if union(A,sp)==sp
+            return B
+        end
+    end
+
+    NoSpace()
+end
+
+
 coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=defaultcoefficients(cfs,A,B)
 
 
 
 function coefficients(cfs::Vector,A::FunctionSpace,B::SumSpace)
     if spacescompatible(A,B.spaces[1])
-        interlace(cfs,[0.])
+        interlace(cfs,[zero(eltype(cfs))])
     elseif spacescompatible(A,B.spaces[2])
-        interlace([0.],cfs)
+        interlace([zero(eltype(cfs))],cfs)
     else
         defaultcoefficients(cfs,A,B)
     end

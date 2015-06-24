@@ -97,17 +97,18 @@ Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper{S,V,VV,T
 
 ## Multiplication operators allow us to multiply two spaces
 
-# Overrideable
 # This should be overriden whenever the multiplication space is different
 function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     # When the spaces differ we promote and multiply
     if domainscompatible(space(f),space(g))
-        # THe bandwidth of Mutliplication is
-        # usually the length of the function
-        if length(f)≤length(g)
-            Multiplication(f,space(g))*g
+        m,n = length(f),length(g)
+        # Heuristic division of parameter space between value-space and coefficient-space multiplication.
+        if log10(m)*log10(n)>4
+            transformtimes(f,g)
+        elseif m≤n
+            coefficienttimes(f,g)
         else
-            Multiplication(g,space(f))*f
+            coefficienttimes(g,f)
         end
     else
         sp=union(space(f),space(g))
@@ -115,12 +116,12 @@ function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     end
 end
 
+coefficienttimes(f::Fun,g::Fun) = Multiplication(f,space(g))*g
 
 function transformtimes(f::Fun,g::Fun,n)
     @assert spacescompatible(space(f),space(g))
-    f2 = pad(f,n); g2 = pad(g,n)
-
-    sp=space(f)
-    chop!(Fun(transform(sp,values(f2).*values(g2)),sp),10eps())
+    f2,g2,sp = pad(f,n),pad(g,n),space(f)
+    hc = transform(sp,values(f2).*values(g2))
+    chop!(Fun(hc,sp),10norm(hc,Inf)*eps(eltype(hc)))
 end
 transformtimes(f::Fun,g::Fun)=transformtimes(f,g,length(f) + length(g) - 1)

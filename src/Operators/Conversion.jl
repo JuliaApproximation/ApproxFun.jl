@@ -50,12 +50,15 @@ immutable ConversionWrapper{S<:BandedOperator,T} <: AbstractConversion{T}
     op::S
 end
 
-ConversionWrapper(T::Type,B::BandedOperator)=ConversionWrapper{typeof(B),T}(B)
-ConversionWrapper(B::BandedOperator)=ConversionWrapper(eltype(B),B)
+
+ConversionWrapper(B::BandedOperator)=ConversionWrapper{typeof(B),eltype(B)}(B)
 Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=ConversionWrapper(TimesOperator(Conversion(B,C),Conversion(A,B)))
 
 Base.convert{S,T}(::Type{ConversionWrapper{S,T}},D::ConversionWrapper)=ConversionWrapper{S,T}(convert(S,D.op))
-Base.convert{BT<:Operator}(::Type{BT},D::ConversionWrapper)=ConversionWrapper(eltype(BT),convert(BandedOperator{eltype(BT)},D.op))
+function Base.convert{BT<:Operator}(::Type{BT},D::ConversionWrapper)
+    BO=convert(BandedOperator{eltype(BT)},D.op)
+    ConversionWrapper{typeof(BO),eltype(BT)}(BO)::BT
+end
 
 addentries!(D::ConversionWrapper,A,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds,:(Base.stride))
