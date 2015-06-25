@@ -1,3 +1,49 @@
+## Constructors that involve MultivariateFun
+
+function Fun(f::Function,d::BivariateSpace)
+    if f==zero
+        zeros(d)
+    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+        Fun(ProductFun(f,d))
+    else
+        Fun(ProductFun((x,y)->f((x,y)),d))
+    end
+end
+
+
+function Fun(f::Function,d::BivariateSpace,n::Integer)
+    if (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+        defaultFun(x->f(x...),d,n)
+    else
+        defaultFun(f,d,n)
+    end
+end
+
+function Fun(f::Function)
+    if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
+        # check for tuple
+        try
+            f(0)
+        catch ex
+            if isa(ex,BoundsError)
+                # assume its a tuple
+                return Fun(f,Interval()^2)
+            else
+                throw(ex)
+            end
+        end
+
+        Fun(f,Interval())
+    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+            Fun(f,Interval()^2)
+    else
+        error("Function not defined on interval or square")
+    end
+end
+
+
+
+
 
 
 ## ConstatnOPerators can always be promoted
@@ -130,3 +176,13 @@ function applygivens!(ca::Matrix,cb,mb,a,B::Matrix,k1::Integer,k2::Integer)
 end
 
 
+## dot for vector{Number} * Vector{Fun}
+
+function Base.dot{T<:Number,F<:Union(Fun,MultivariateFun)}(c::Vector{T},f::Vector{F})
+    @assert length(c)==length(f)
+    ret=conj(first(c))*first(f)
+    for k=2:length(c)
+        ret+=conj(c[k])*f[k]
+    end
+    ret
+end

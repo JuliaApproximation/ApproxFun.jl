@@ -25,56 +25,8 @@ include("LowRankFun.jl")
 include("ProductFun.jl")
 
 
-# Fun(f,S::MultivariateSpace,n...)=ProductFun(f,S,n...)
-# Fun{T<:Number}(f::Number,S::MultivariateDomain{T})=Fun(f,Space(S))
-# Fun{T<:Number}(f::Function,S::MultivariateDomain{T})=Fun(f,Space(S))
-# Fun(f,S::MultivariateDomain,n...)=Fun(f,Space(S),n...)
-# Fun{T<:Number}(f,dx::MultivariateDomain{T},dy::Domain)=Fun(f,dx*dy)
-# Fun(f,dx::Domain,dy::Domain)=Fun(f,dx*dy)
-# Fun(f,dx::Vector,dy::Vector)=Fun(f,Interval(dx),Interval(dx))
-
 arglength(f)=length(Base.uncompressed_ast(f.code.def).args[1])
 
-function Fun(f::Function,d::BivariateSpace)
-    if f==zero
-        zeros(d)
-    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
-        Fun(ProductFun(f,d))
-    else
-        Fun(ProductFun((x,y)->f((x,y)),d))
-    end
-end
-
-
-function Fun(f::Function,d::BivariateSpace,n::Integer)
-    if (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
-        defaultFun(x->f(x...),d,n)
-    else
-        defaultFun(f,d,n)
-    end
-end
-
-function Fun(f::Function)
-    if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
-        # check for tuple
-        try
-            f(0)
-        catch ex
-            if isa(ex,BoundsError)
-                # assume its a tuple
-                return Fun(f,Interval()^2)
-            else
-                throw(ex)
-            end
-        end
-
-        Fun(f,Interval())
-    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
-            Fun(f,Interval()^2)
-    else
-        error("Function not defined on interval or square")
-    end
-end
 
 
 ## Convert between Fun and MultivariateFun
@@ -112,4 +64,5 @@ Base.sum{TS<:TensorSpace}(f::Fun{TS})=sum(ProductFun(f))
 Base.kron(f::Fun,g::Fun)=Fun(LowRankFun([f],[g]))
 Base.kron(f::Fun,g::Number)=kron(f,Fun(g))
 Base.kron(f::Number,g::Fun)=kron(Fun(f),g)
+
 
