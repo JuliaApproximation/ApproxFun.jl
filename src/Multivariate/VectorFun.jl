@@ -138,8 +138,6 @@ end
 # ##TODO: A may not be same type as p
 
 
-dotu{N<:Real,D,T}(f::Vector{Fun{D,N}},g::Vector{T})=dot(f,g)
-dotu{D,T}(f::Vector{Fun{D,Complex{Float64}}},g::Vector{T})=dot(conj(f),g)
 
  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
      @eval begin

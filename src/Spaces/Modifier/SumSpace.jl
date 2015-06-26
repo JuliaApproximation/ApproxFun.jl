@@ -90,8 +90,21 @@ end
 
 # assume first domain has 1 as a basis element
 
-Base.ones{T<:Number}(::Type{T},S::SumSpace)=ones(T,S[1])⊕zeros(T,S[2])
-Base.ones(S::SumSpace)=ones(S[1])⊕zeros(S[2])
+function Base.ones(S::SumSpace)
+    if union(ConstantSpace(),S.spaces[1])==S.spaces[1]
+        ones(S[1])⊕zeros(S[2])
+    else
+        zeros(S[1])⊕ones(S[2])
+    end
+end
+
+function Base.ones{T<:Number}(::Type{T},S::SumSpace)
+    if union(ConstantSpace(),S.spaces[1])==S.spaces[1]
+        ones(T,S[1])⊕zeros(T,S[2])
+    else
+        zeros(T,S[1])⊕ones(T,S[2])
+    end
+end
 
 
 # vec
@@ -112,6 +125,6 @@ itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
 
 
 conversion_rule{V<:FunctionSpace}(SS::SumSpace{ConstantSpace,V},::V)=SS
-Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T},k)=k==1?f.coefficients[1]:Fun(f.coefficients[2:end],space(f)[2])
+Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
 Base.vec{V,TT,d,T}(f::Fun{SumSpace{ConstantSpace,V,TT,d},T})=Any[vec(f,1),vec(f,2)]
 

@@ -138,15 +138,23 @@ coefficients(f::ProductFun)=funlist2coefficients(f.coefficients)
 function coefficients(f::ProductFun,ox::FunctionSpace,oy::FunctionSpace)
     T=eltype(f)
     m=size(f,1)
-    A=[pad!(coefficients(fx,ox),m) for fx in f.coefficients]
-    B=hcat(A...)::Array{T,2}
+    B=Array(T,m,length(f.coefficients))
+    # convert in x direction
+    #TODO: adaptively grow in x?
+    for k=1:length(f.coefficients)
+        B[:,k]=pad!(coefficients(f.coefficients[k],ox),m)
+    end
+    
+    # convert in y direction
     for k=1:size(B,1)
         ccfs=coefficients(vec(B[k,:]),space(f,2),oy)
         if length(ccfs)>size(B,2)
             B=pad(B,size(B,1),length(ccfs))
         end
         B[k,1:length(ccfs)]=ccfs
-        #B[k,length(ccfs):1:end]=zero(T)
+        for j=length(ccfs)+1:size(B,2)
+            B[k,j]=zero(T)
+        end
     end
 
     B

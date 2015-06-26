@@ -107,16 +107,7 @@ end
 
 
 
-##
 
-function Base.dot{T<:Number,F<:Fun}(c::Vector{T},f::Vector{F})
-    @assert length(c)==length(f)
-    ret=conj(first(c))*first(f)
-    for k=2:length(c)
-        ret+=conj(c[k])*f[k]
-    end
-    ret
-end
 
 
 ## routines

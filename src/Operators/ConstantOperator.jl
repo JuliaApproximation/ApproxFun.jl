@@ -20,7 +20,7 @@ addentries!(C::ConstantOperator,A,kr::Range)=toeplitz_addentries!([.5C.c],A,kr)
 
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
-
+Base.convert{BT<:ConstantOperator}(::Type{BT},C::ConstantOperator)=C
 Base.convert{BT<:Operator}(::Type{BT},C::ConstantOperator)=ConstantOperator(eltype(BT),C.c)
 
 ## Algebra
@@ -57,10 +57,10 @@ immutable ZeroOperator{T,S,V} <: BandedOperator{T}
     rangespace::V
 end
 
-ZeroOperator{T<:Number,S,V}(::Type{T},d::S,v::V)=ZeroOperator{T,S,V}(d,v)
+ZeroOperator{T,S,V}(::Type{T},d::S,v::V)=ZeroOperator{T,S,V}(d,v)
 ZeroOperator{S,V}(d::S,v::V)=ZeroOperator(Float64,d,v)
 ZeroOperator()=ZeroOperator(AnySpace(),ZeroSpace())
-ZeroOperator{T<:Number}(::Type{T})=ZeroOperator(T,AnySpace(),ZeroSpace())
+ZeroOperator{T}(::Type{T})=ZeroOperator(T,AnySpace(),ZeroSpace())
 
 Base.convert{BT<:Operator}(::Type{BT},Z::ZeroOperator)=ZeroOperator(eltype(BT),Z.domainspace,Z.rangespace)
 

@@ -190,6 +190,9 @@ function ConstantTimesOperator{BT}(c::Number,op::Operator{BandedMatrix{BT}})
     ConstantTimesOperator{T,typeof(B),BandedMatrix{T}}(c,B)
 end
 
+ConstantTimesOperator{T,B,BT}(c::Number,op::ConstantTimesOperator{T,B,BandedMatrix{BT}})=ConstantTimesOperator(c*op.c,op.op)
+ConstantTimesOperator(c::Number,op::ConstantTimesOperator)=ConstantTimesOperator(c*op.c,op.op)
+
 
 for OP in (:domainspace,:rangespace,:bandinds)
     @eval $OP(C::ConstantTimesOperator)=$OP(C.op)
@@ -204,10 +207,13 @@ for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,
     end
 end
 
+Base.convert{OT<:ConstantTimesOperator}(::Type{OT},C::OT)=C
 function Base.convert{OT<:Operator}(::Type{OT},C::ConstantTimesOperator)
     T=eltype(OT)
     op=convert(BandedOperator{T},C.op)
-    ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)::OT
+    ret=ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)
+    @assert isa(ret,OT)
+    ret
 end
 
 
@@ -262,6 +268,8 @@ TimesOperator{T,V}(A::BandedOperator{T},B::BandedOperator{V})=TimesOperator(Band
 
 ==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
 
+
+Base.convert{OT<:TimesOperator}(::Type{OT},P::OT)=P
 Base.convert{OT<:Operator}(::Type{OT},P::TimesOperator)=TimesOperator(BandedOperator{eltype(OT)}[P.ops...])::OT
 
 

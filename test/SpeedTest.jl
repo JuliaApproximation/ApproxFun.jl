@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat, Base.Test
 
 gc_disable()
 

@@ -481,5 +481,52 @@ end
 
 
 
+for op in (:(<=),:(>=))
+    @eval begin
+        function $op(f::Fun,c::Number)
+            rts=roots(f-c)
+            if length(rts)==0
+                $op(first(f),c)
+            elseif length(rts)==1
+                if isapprox(rts[1],first(domain(f))) || isapprox(rts[1],last(domain(f)))
+                    $op(f[fromcanonical(f,0.)],c)
+                else
+                    error("Implement for mid roots")
+                end
+            elseif length(rts)==2
+                if isapprox(rts[1],first(domain(f))) && isapprox(rts[2],last(domain(f)))
+                    $op(f[fromcanonical(f,0.)],c)
+                else
+                    error("Implement for mid roots")
+                end
+            else
+                error("Implement for mid roots")
+            end
+        end
+        function $op(c::Number,f::Fun)
+            rts=sort(roots(f-c))
+            if length(rts)==0
+                $op(c,first(f))
+            elseif length(rts)==1
+                if isapprox(rts[1],first(domain(f))) || isapprox(rts[1],first(domain(f)))
+                    $op(c,f[fromcanonical(f,0.)])
+                else
+                    error("Implement for mid roots")
+                end
+            elseif length(rts)==2
+                if isapprox(rts[1],first(domain(f))) && isapprox(rts[2],first(domain(f)))
+                    $op(c,f[fromcanonical(f,0.)])
+                else
+                    error("Implement for mid roots")
+                end
+            else
+                error("Implement for mid roots")
+            end
+        end
+    end
+end
+
+
+
 
 #TODO ≤,≥

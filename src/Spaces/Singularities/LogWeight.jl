@@ -30,3 +30,24 @@ function coefficients(f::Vector,sp1::LogWeight,sp2::LogWeight)
     end
 end
 
+
+
+
+
+# Same as JacobiWeight
+
+# avoid redundency
+function Multiplication{D<:JacobiWeight,T}(f::Fun{D,T},S::LogWeight)
+    M=Multiplication(Fun(f.coefficients,space(f).space),S)
+    rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+end
+
+
+function Multiplication(f::Fun,S::LogWeight)
+    M=Multiplication(f,S.space)
+    rsp=LogWeight(S.α,S.β,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+end
+
+

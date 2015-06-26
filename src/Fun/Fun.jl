@@ -300,6 +300,9 @@ Base.isapprox(f::Fun,g::Number)=isapprox(f,g*ones(space(f)))
 Base.isapprox(g::Number,f::Fun)=isapprox(g*ones(space(f)),f)
 
 
+Base.isreal{S,T<:Real}(f::Fun{S,T})=basistype(S)<:RealBasis
+Base.isreal(f::Fun)=false
+
 
 
 Base.sum{S,T}(f::Fun{S,T})=last(cumsum(f))
