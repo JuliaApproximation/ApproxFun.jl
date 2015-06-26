@@ -104,6 +104,9 @@ for OP in (:promotedomainspace,:promoterangespace)
                                                                       $OP(K.ops[2],ds[2]))
 end
 
+
+Base.convert{KO<:KroneckerOperator}(::Type{KO},K::KO)=K
+
 Base.convert{S,V,DS,RS,T}(::Type{KroneckerOperator{S,V,DS,RS,T}},K::KroneckerOperator)=KroneckerOperator{S,V,DS,RS,T}((convert(S,K.ops[1]),
                                                                                 convert(V,K.ops[2])),
                                                                               K.domainspace,

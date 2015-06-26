@@ -20,7 +20,7 @@ addentries!(C::ConstantOperator,A,kr::Range)=toeplitz_addentries!([.5C.c],A,kr)
 
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
-
+Base.convert{BT<:ConstantOperator}(::Type{BT},C::ConstantOperator)=C
 Base.convert{BT<:Operator}(::Type{BT},C::ConstantOperator)=ConstantOperator(eltype(BT),C.c)
 
 ## Algebra
