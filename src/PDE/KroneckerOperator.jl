@@ -122,7 +122,7 @@ Base.convert{BO<:Operator}(::Type{BO},K::KroneckerOperator)=KroneckerOperator(co
 
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
-blockbandinds(::ConstantOperator,::Integer)=0
+blockbandinds(::Union(ConstantOperator,ZeroOperator),::Integer)=0
 blockbandinds(K::Union(ConversionWrapper,MultiplicationWrapper,SpaceOperator,ConstantTimesOperator),k::Integer)=blockbandinds(K.op,k)
 
 
@@ -361,3 +361,4 @@ Base.transpose(S::TimesOperator)=TimesOperator(reverse!(map(transpose,S.ops)))
 Base.transpose(S::SpaceOperator)=SpaceOperator(transpose(S.op),domainspace(S).',rangespace(S).')
 Base.transpose(S::ConstantTimesOperator)=sp.c*S.op.'
 Base.transpose{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=C
+ Base.transpose{V,T<:AbstractArray}(C::ZeroOperator{V,T},k)=C
