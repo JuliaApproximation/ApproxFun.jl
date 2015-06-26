@@ -178,7 +178,7 @@ end
 
 ## dot for vector{Number} * Vector{Fun}
 
-function Base.dot{T<:Number,F<:Union(Fun,MultivariateFun)}(c::Vector{T},f::Vector{F})
+function Base.dot{T<:Union(Number,Fun,MultivariateFun),F<:Union(Fun,MultivariateFun)}(c::Vector{T},f::Vector{F})
     @assert length(c)==length(f)
     ret=conj(first(c))*first(f)
     for k=2:length(c)
@@ -186,3 +186,28 @@ function Base.dot{T<:Number,F<:Union(Fun,MultivariateFun)}(c::Vector{T},f::Vecto
     end
     ret
 end
+
+
+# for TYP in (:Real,:Number)
+#     @eval begin 
+#         function dotu{T<:$TYP,F<:Union(Fun,MultivariateFun)}(c::Vector{T},f::Vector{F})
+#             @assert length(c)==length(f)
+#             ret=first(c)*first(f)
+#             for k=2:length(c)
+#                 ret+=c[k]*f[k]
+#             end
+#             ret
+#         end
+#     end
+# end
+
+function dotu{T<:Union(Fun,MultivariateFun,Number),F<:Union(Fun,MultivariateFun,Number)}(c::Vector{T},f::Vector{F})
+    @assert length(c)==length(f)
+    ret=first(c)*first(f)
+    for k=2:length(c)
+        ret+=c[k]*f[k]
+    end
+    ret
+end
+
+
