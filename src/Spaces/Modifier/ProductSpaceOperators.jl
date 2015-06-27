@@ -163,13 +163,13 @@ end
 
 Base.convert{BT<:Operator}(::Type{BT},Bi::BiSwapOperator)=BiSwapOperator{eltype(BT)}()
 
-function Conversion{A,B,T}(S1::SumSpace{A,B,T},S2::SumSpace{B,A,T})
+function Conversion{A,B,T}(S1::SumSpace{@compat(Tuple{A,B}),T},S2::SumSpace{@compat(Tuple{B,A}),T})
     @assert S1.spaces[1]==S2.spaces[2] && S1.spaces[2]==S2.spaces[1]
     ConversionWrapper(SpaceOperator(BiSwapOperator{promote_type(eltype(domain(S1)),eltype(domain(S2)))}(),S1,S2))
 end
 
 
-function conversion_type{A,B,T}(S1::SumSpace{A,B,T},S2::SumSpace{B,A,T})
+function conversion_type{A,B,T}(S1::SumSpace{@compat(Tuple{A,B}),T},S2::SumSpace{@compat(Tuple{B,A}),T})
     if S1.spaces[1]==S2.spaces[2] && S1.spaces[2]==S2.spaces[1]
         S1 #Arbitraty
     else
