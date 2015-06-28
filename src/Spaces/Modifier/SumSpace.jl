@@ -80,7 +80,7 @@ end
 
 function union_rule(B::SumSpace,A::ConstantSpace)
     for sp in B.spaces
-        if union(A,sp)==sp
+        if isconvertible(A,sp)
             return B
         end
     end
@@ -93,19 +93,20 @@ coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=defaultcoefficients(cfs,A,B)
 
 
 
-function coefficients(cfs::Vector,A::FunctionSpace,B::SumSpace)
+function coefficients(cfsin::Vector,A::FunctionSpace,B::SumSpace)
     m=length(B.spaces)
     #TODO: What if we can convert?  FOr example, A could be Ultraspherical{1}
     # and B could contain Chebyshev
     for k=1:m
-        if spacescompatible(A,B.spaces[k])
+        if isconvertible(A,B.spaces[k])
+            cfs=coefficients(cfsin,A,B.spaces[k])
             ret=zeros(eltype(cfs),m*(length(cfs)-1)+k)
             ret[k:m:end]=cfs
             return ret
         end
     end
 
-    defaultcoefficients(cfs,A,B)
+    defaultcoefficients(cfsin,A,B)
 end
 
 

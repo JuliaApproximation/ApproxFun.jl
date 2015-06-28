@@ -222,6 +222,10 @@ end
 
 
 union_rule(a,b)=NoSpace()
+
+# union combines two spaces
+# this is used primarily for addition of two funs
+# that may be incompatible
 function Base.union(a::FunctionSpace,b::FunctionSpace)
     if spacescompatible(a,b)
         return a
@@ -254,6 +258,8 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
     a⊕b
 end
 
+# tests whether a can be converted to b
+isconvertible(a,b)=union(a,b)==b
 
 
 
