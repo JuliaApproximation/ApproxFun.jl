@@ -5,7 +5,7 @@ export ⊕
 if VERSION≥v"0.4.0-dev"
     immutable SumSpace{SV,T,d} <: FunctionSpace{T,d}
         spaces::SV
-        SumSpace(dom::Domain)=new(map(typ->typ(dom),SV.parameters))
+        SumSpace(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
         SumSpace(sp::Tuple)=new(sp)
     end
 else
@@ -22,9 +22,9 @@ SumSpace(A::SumSpace,B::SumSpace)=SumSpace((A.spaces...,B.spaces...))
 SumSpace(A::FunctionSpace,B::SumSpace)=SumSpace((A.spaces...,B.spaces...))
 SumSpace(A::SumSpace,B::FunctionSpace)=SumSpace((A.spaces...,B))
 SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
+SumSpace(sp::Array)=SumSpace(tuple(sp...))
 
-
-
+canonicalspace(A::SumSpace)=SumSpace(sort([A.spaces...]))
 
 ⊕(A::FunctionSpace,B::FunctionSpace)=SumSpace(A,B)
 ⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))

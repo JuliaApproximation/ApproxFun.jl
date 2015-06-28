@@ -368,3 +368,9 @@ function plan_itransform(S::FunctionSpace,cfs)
 end
 
 
+## sorting
+
+
+for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
+    @eval $OP(a::FunctionSpace,b::FunctionSpace)=$OP(string(a),string(b))
+end
