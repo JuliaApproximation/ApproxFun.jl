@@ -35,8 +35,8 @@ canonicalspace(A::SumSpace)=SumSpace(sort([A.spaces...]))
 
 Base.getindex(S::SumSpace,k)=S.spaces[k]
 
-domain(A::SumSpace)=domain(A[1])
-setdomain(A::SumSpace,d::Domain)=SumSpace(setdomain(A.spaces[1],d),setdomain(A.spaces[2],d))
+domain(A::SumSpace)=domain(A[1])  # TODO: this assumes all spaces have the same domain
+setdomain(A::SumSpace,d::Domain)=SumSpace(map(sp->setdomain(sp,d),A.spaces))
 
 
 spacescompatible(A::SumSpace,B::SumSpace)=all(map(spacescompatible,A.spaces,B.spaces))

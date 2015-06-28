@@ -210,7 +210,7 @@ include("spacepromotion.jl")
 include("ToeplitzOperator.jl")
 include("ConstantOperator.jl")
 include("TridiagonalOperator.jl")
-
+include("PermutationOperator.jl")
 
 ## Operators overrided for spaces
 

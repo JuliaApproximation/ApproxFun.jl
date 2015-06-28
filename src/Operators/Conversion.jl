@@ -17,7 +17,7 @@ rangespace(C::Conversion)=C.rangespace
 
 
 
-function Conversion(a::FunctionSpace,b::FunctionSpace)
+function defaultconversion(a::FunctionSpace,b::FunctionSpace)
     if a==b
         eye(a)
     elseif conversion_type(a,b)==NoSpace()
@@ -33,6 +33,8 @@ function Conversion(a::FunctionSpace,b::FunctionSpace)
         Conversion{typeof(a),typeof(b),promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
     end
 end
+
+Conversion(a::FunctionSpace,b::FunctionSpace)=defaultconversion(a,b)
 
 
 
