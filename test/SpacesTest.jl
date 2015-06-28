@@ -79,3 +79,14 @@ u=[ldirichlet(S),D-I]\[exp(1.)]
 d=PiecewiseInterval(0,1.,1.+im,im,0.)
 @test_approx_eq Fun(exp,d)[.1] exp(.1)
 
+
+
+
+
+## Triple SumSpace
+
+x=Fun()
+w=log(1-x)+sqrt(1-x^2)
+f=w+x
+@test_approx_eq f[0.1] (w[0.1]+0.1)
+

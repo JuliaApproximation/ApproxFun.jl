@@ -94,14 +94,18 @@ coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=defaultcoefficients(cfs,A,B)
 
 
 function coefficients(cfs::Vector,A::FunctionSpace,B::SumSpace)
-    @assert length(B.spaces)==2
-    if spacescompatible(A,B.spaces[1])
-        interlace(cfs,[zero(eltype(cfs))])
-    elseif spacescompatible(A,B.spaces[2])
-        interlace([zero(eltype(cfs))],cfs)
-    else
-        defaultcoefficients(cfs,A,B)
+    m=length(B.spaces)
+    #TODO: What if we can convert?  FOr example, A could be Ultraspherical{1}
+    # and B could contain Chebyshev
+    for k=1:m
+        if spacescompatible(A,B.spaces[k])
+            ret=zeros(eltype(cfs),m*(length(cfs)-1)+k)
+            ret[k:m:end]=cfs
+            return ret
+        end
     end
+
+    defaultcoefficients(cfs,A,B)
 end
 
 
