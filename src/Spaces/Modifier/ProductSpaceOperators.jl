@@ -146,22 +146,6 @@ sumblkdiagm{B<:Operator}(v::Vector{B})=SumInterlaceOperator(v)
 ## Conversion
 # swaps sumspace order
 
-immutable BiSwapOperator{T} <: BandedOperator{T} end
-bandinds(::BiSwapOperator)=-1,1
-
-function addentries!(::BiSwapOperator,A,kr::Range)
-    for k=kr
-        if isodd(k)
-            A[k,k+1] += 1
-        else
-            A[k,k-1] += 1
-        end
-    end
-
-    A
-end
-
-Base.convert{BT<:Operator}(::Type{BT},Bi::BiSwapOperator)=BiSwapOperator{eltype(BT)}()
 
 function Conversion(S1::SumSpace,S2::SumSpace)
     if sort([S1.spaces...])==sort([S2.spaces...])
