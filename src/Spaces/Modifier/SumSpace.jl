@@ -39,7 +39,7 @@ domain(A::SumSpace)=domain(A[1])  # TODO: this assumes all spaces have the same 
 setdomain(A::SumSpace,d::Domain)=SumSpace(map(sp->setdomain(sp,d),A.spaces))
 
 
-spacescompatible(A::SumSpace,B::SumSpace)=all(map(spacescompatible,A.spaces,B.spaces))
+spacescompatible(A::SumSpace,B::SumSpace)=length(A.spaces)==length(B.spaces)&&all(map(spacescompatible,A.spaces,B.spaces))
 
 function spacescompatible(A::Tuple,B::Tuple)
     if length(A) != length(B)
@@ -89,7 +89,8 @@ function union_rule(B::SumSpace,A::ConstantSpace)
 end
 
 
-coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=defaultcoefficients(cfs,A,B)
+#split the cfs into component spaces
+coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=mapreduce(f->Fun(f,B),+,vec(Fun(cfs,A))).coefficients
 
 
 

@@ -21,6 +21,8 @@ immutable Hardy{s} <: UnivariateSpace{ComplexBasis}
     Hardy()=new(Circle())
 end
 
+canonicalspace(S::Hardy)=S
+
 spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
 
 

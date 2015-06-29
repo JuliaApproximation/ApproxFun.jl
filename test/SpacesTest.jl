@@ -89,4 +89,9 @@ x=Fun()
 w=log(1-x)+sqrt(1-x^2)
 f=w+x
 @test_approx_eq f[0.1] (w[0.1]+0.1)
+@test_approx_eq (w+1)[0.1] (w[0.1]+1)
+@test_approx_eq (w+x+1)[0.1] (w[0.1]+1.1)
+@test_approx_eq ((w+x)+1)[0.1] (w[0.1]+1.1)
+
+
 

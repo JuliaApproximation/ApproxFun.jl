@@ -2,6 +2,10 @@
 
 ## Converison
 
+#ensure that COnversion is called
+coefficients(cfs::Vector,A::Fourier,B::Laurent)=Conversion(A,B)*cfs
+coefficients(cfs::Vector,A::Laurent,B::Fourier)=Conversion(A,B)*cfs
+
 function addentries!(C::Conversion{Laurent,Fourier},A,kr::Range)
     for k=kr
         if k==1
