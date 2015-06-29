@@ -340,7 +340,7 @@ itransform(S::FunctionSpace,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
 function transform(S::FunctionSpace,vals,plan...)
     csp=canonicalspace(S)
     if S==csp
-        error("Override transform(::"*string(typeof(S))*",vals)")
+        error("Override transform(::"*string(typeof(S))*",vals,plan...)")
     end
 
     coefficients(transform(csp,vals,plan...),csp,S)
@@ -349,7 +349,7 @@ end
 function itransform(S::FunctionSpace,cfs,plan...)
     csp=canonicalspace(S)
     if S==csp
-        error("Override itransform(::"*string(typeof(S))*",cfs)")
+        error("Override itransform(::"*string(typeof(S))*",cfs,plan...)")
     end
 
     itransform(csp,coefficients(cfs,S,csp),plan...)
