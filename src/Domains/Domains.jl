@@ -9,7 +9,10 @@ include("UnionDomain.jl")
 include("PiecewiseInterval.jl")
 include("Curve.jl")
 
+include("Point.jl")
+
 include("multivariate.jl")
+
 
 typealias AffineDomain Union(Interval,PeriodicInterval,Ray,Line)
 

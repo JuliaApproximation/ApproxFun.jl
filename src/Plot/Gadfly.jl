@@ -33,7 +33,10 @@ function gadflyplot{T<:Real}(xx::Vector{T},yy::Vector;opts...)
     Main.Gadfly.plot(x=xx, y=yy,gadflyopts(opts...)...)
 end
 
-gadflylayer{T<:Real}(xx::Vector{T},yy::Vector)=Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path)
+function gadflylayer{T<:Real}(xx::Vector{T},yy::Vector)
+    require("Gadfly")
+    Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path)
+end
 
 
 function gadflyplot{T<:Complex}(xx::Vector{T},yy::Vector;opts...)
