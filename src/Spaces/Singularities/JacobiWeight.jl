@@ -14,8 +14,13 @@ abstract WeightSpace <: IntervalSpace  #TODO: Why Interval?
 domain(S::WeightSpace)=domain(S.space)
 
 
-transform(sp::WeightSpace,vals::Vector)=transform(sp.space,vals./weight(sp,points(sp,length(vals))))
-itransform(sp::WeightSpace,cfs::Vector)=itransform(sp.space,cfs).*weight(sp,points(sp,length(cfs)))
+transform(sp::WeightSpace,vals::Vector)=transform(sp,vals,plan_transform(sp,vals))
+itransform(sp::WeightSpace,vals::Vector)=itransform(sp,vals,plan_itransform(sp,vals))
+
+
+transform(sp::WeightSpace,vals::Vector,plan...)=transform(sp.space,vals./weight(sp,points(sp,length(vals))))
+itransform(sp::WeightSpace,cfs::Vector,plan...)=itransform(sp.space,cfs).*weight(sp,points(sp,length(cfs)))
+
 points(sp::WeightSpace,n)=points(sp.space,n)
 
 
