@@ -154,6 +154,7 @@ Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
 function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
     st=step(kr)
     @assert step(jr)==st
+    @assert last(kr)==last(jr)==Inf
     SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
 end
 Base.getindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
