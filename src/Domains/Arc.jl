@@ -8,14 +8,14 @@ mobiusinv(a,b,c,d,z)=mobius(d,-b,-c,a,z)
 mobiusD(a,b,c,d,z)=(a*d-b*c)./(d+c*z).^2
 mobiusinvD(a,b,c,d,z)=mobiusD(d,-b,-c,a,z)
 
-immutable Arc{T<:Number,V<:Real} <: IntervalDomain{Complex{Float64}}
+immutable Arc{T<:Number,V<:Real} <: IntervalDomain{Complex{V}}
     center::T
     radius::V
     angles::@compat(Tuple{V,V})
 end
 
 
-Arc(c,r,t)=Arc{typeof(c),typeof(r)}(c,r,t)
+Arc{T<:Number,V<:Real,V1<:Real,V2<:Real}(c::T,r::V,t::@compat(Tuple{V1,V2}))=Arc{promote_type(T,V,V1,V2),promote_type(real(T),V,V1,V2)}(c,r,t)
 Arc(c,r,t0,t1)=Arc(c,r,(t0,t1))
 
 
@@ -23,6 +23,7 @@ isambiguous(d::Arc)=isnan(d.center) && isnan(d.radius) && isnan(d.angles[1]) && 
 Base.convert{T<:Number,V<:Number}(::Type{Arc{T,V}},::AnyDomain)=Arc{T,V}(NaN,NaN,(NaN,NaN))
 Base.convert{IT<:Arc}(::Type{IT},::AnyDomain)=Arc(NaN,NaN,(NaN,NaN))
 
+Base.length(d::Arc) = d.radius*(d.angles[2]-d.angles[1])
 
 
 function mobiuspars(z0,r,t0,t1)
