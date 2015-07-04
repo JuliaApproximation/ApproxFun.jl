@@ -148,6 +148,15 @@ end
 # getindex (::Colon)
 # This violates the behaviour of slices though...
 Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
+# Float-valued ranges are implemented to support 1:Inf to take a slice
+# TODO: right now non-integer steps are only supported when the operator itself
+# has compatible stride
+function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
+    st=step(kr)
+    @assert step(jr)==st
+    @assert last(kr)==last(jr)==Inf
+    SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
+end
 Base.getindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
 
 function subview(B::BandedOperator,kr::Range,::Colon)

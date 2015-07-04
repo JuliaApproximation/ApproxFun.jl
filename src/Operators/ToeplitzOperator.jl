@@ -88,6 +88,21 @@ addentries!(T::ToeplitzOperator,A,kr::Range)=toeplitz_addentries!(1,T.negative,T
 bandinds(T::ToeplitzOperator)=(-length(T.negative),length(T.nonnegative)-1)
 
 
+# slice of a ToeplitzOPerator is a ToeplitzOperator
+
+function Base.slice(T::ToeplitzOperator,kr::FloatRange,jr::FloatRange)
+    @assert last(kr)==last(jr)==Inf
+    sh=first(jr)-first(kr)
+    st=step(jr)
+    @assert st==step(kr)
+    if sh ≥0
+        ToeplitzOperator([reverse!(T.nonnegative[1:sh]);T.negative],T.nonnegative[sh+1:st:end])
+    else
+        ToeplitzOperator(T.negative[-sh+1:st:end],[reverse!(T.negative[1:-sh]);T.nonnegative])
+    end
+end
+
+
 ## Hankel Operator
 
 
