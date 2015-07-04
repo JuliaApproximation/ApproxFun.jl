@@ -33,8 +33,8 @@ points(d::MappedSpace,n)=fromcanonical(d,points(d.space,n))
 Base.ones{T<:Number}(::Type{T},S::MappedSpace)=Fun(ones(T,S.space).coefficients,S)
 plan_transform(S::MappedSpace,vals::Vector)=plan_transform(S.space,vals)
 plan_itransform(S::MappedSpace,cfs::Vector)=plan_itransform(S.space,cfs)
-transform(S::MappedSpace,vals::Vector,plan::Function)=transform(S.space,vals,plan)
-itransform(S::MappedSpace,cfs::Vector,plan::Function)=itransform(S.space,cfs,plan)
+transform(S::MappedSpace,vals::Vector,plan...)=transform(S.space,vals,plan...)
+itransform(S::MappedSpace,cfs::Vector,plan...)=itransform(S.space,cfs,plan...)
 evaluate{SS,DD,T,TT}(f::Fun{MappedSpace{SS,DD,TT},T},x)=evaluate(Fun(coefficients(f),space(f).space),mappoint(domain(f),domain(space(f).space),x))
 
 
