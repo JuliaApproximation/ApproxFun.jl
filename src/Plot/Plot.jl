@@ -197,11 +197,11 @@ function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
 end
 
 
-plot(f::MultivariateFun,v...;opts...)=surf(points(f,1),points(f,2),real(values(f)),v...;opts...)
-plot{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},v...;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f)),v...;opts...)
-plot(f::LowRankFun,v...;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f)),v...;opts...)
-plot(f::MultivariateFun,obj,window)=glsurfupdate(real(values(f)),obj,window)
-plot{TS<:TensorSpace,T<:Real}(f::Fun{TS,T},v...;opts...)=plot(ProductFun(f),v...;ops...)
+plot(f::MultivariateFun;opts...)=surf(points(f,1),points(f,2),real(values(f));opts...)
+plot{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
+plot(f::LowRankFun;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
+plot(f::MultivariateFun,obj,window;opts...)=glsurfupdate(real(values(f)),obj,window;opts...)
+plot{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};opts...)=plot(ProductFun(f);ops...)
 
 
 # plot{S<:IntervalSpace,V<:PeriodicSpace,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
