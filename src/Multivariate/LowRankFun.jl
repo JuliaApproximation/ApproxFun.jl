@@ -106,8 +106,8 @@ function standardLowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;tole
         if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
         A,B=[A;a/sqrt(abs(a[r[1]]))],[B;b/(sqrt(abs(b[r[2]]))*sign(b[r[2]]))]
         r=findapproxmax!(A[k],B[k],X,ptsx,ptsy,gridx,gridy)
-        Ar,Br=map(q->q[r[1]],A),map(q->q[r[2]],B)
-        a,b=Fun(x->f(x,r[2]),dx,gridx) - dot(conj(Br),A),Fun(y->f(r[1],y),dy,gridy) - dot(conj(Ar),B)
+        Ar,Br=evaluate(A,r[1]),evaluate(B,r[2])
+        a,b=Fun(x->f(x,r[2]),dx,gridx) - dotu(Br,A),Fun(y->f(r[1],y),dy,gridy) - dotu(Ar,B)
         chop!(a,tol10),chop!(b,tol10)
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
@@ -150,8 +150,8 @@ function CholeskyLowRankFun(f::Function,dx::FunctionSpace;tolerance::Union(Symbo
         if norm(a.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
         A,B=[A;a/sqrt(abs(a[r]))],[B;a/(sqrt(abs(a[r]))*sign(a[r]))]
         r=findcholeskyapproxmax!(A[k],B[k],X,pts,grid)
-        Br=map(q->q[r],B)
-        a=Fun(x->f(x,r),dx,grid) - dot(conj(Br),A)
+        Br=evaluate(B,r)
+        a=Fun(x->f(x,r),dx,grid) - dotu(Br,A)
         chop!(a,tol10)
     end
     warn("Maximum rank of " * string(maxrank) * " reached")

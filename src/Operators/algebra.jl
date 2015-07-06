@@ -29,7 +29,7 @@ immutable PlusOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
 end
 
-
+Base.convert{OT<:PlusOperator}(::Type{OT},P::OT)=P
 Base.convert{OT<:Operator}(::Type{OT},P::PlusOperator)=PlusOperator{eltype(OT)}(P.ops)::OT
 
 promoteplus{T}(ops::Vector{BandedOperator{T}})=PlusOperator(promotespaces(ops))

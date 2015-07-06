@@ -22,7 +22,7 @@ addentries!(C::ConstantOperator,A,kr::Range)=toeplitz_addentries!([.5C.c],A,kr)
 
 Base.convert{BT<:ConstantOperator}(::Type{BT},C::ConstantOperator)=C
 Base.convert{BT<:Operator}(::Type{BT},C::ConstantOperator)=ConstantOperator(eltype(BT),C.c)
-
+Base.convert{N<:Number}(::Type{N},C::ConstantOperator)=convert(N,C.c)
 ## Algebra
 
 for op in (:+,:-,:*)
@@ -63,7 +63,7 @@ ZeroOperator()=ZeroOperator(AnySpace(),ZeroSpace())
 ZeroOperator{T}(::Type{T})=ZeroOperator(T,AnySpace(),ZeroSpace())
 
 Base.convert{BT<:Operator}(::Type{BT},Z::ZeroOperator)=ZeroOperator(eltype(BT),Z.domainspace,Z.rangespace)
-
+Base.convert{N<:Number}(::Type{N},::ZeroOperator)=zero(N)
 
 domainspace(Z::ZeroOperator)=Z.domainspace
 rangespace(Z::ZeroOperator)=Z.rangespace
@@ -99,4 +99,7 @@ Base.getindex{T}(op::ZeroFunctional{T},k::Integer)=zero(T)
 Base.getindex{T}(op::ZeroFunctional{T},k::Range)=zeros(T,length(k))
 
 
+
+isconstop(::Union(ZeroOperator,ConstantOperator))=true
+isconstop(::)=false
 

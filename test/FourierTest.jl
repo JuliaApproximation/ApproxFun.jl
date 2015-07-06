@@ -1,5 +1,6 @@
 using ApproxFun, Base.Test
 
+@test norm(Fun(x->Fun(cos,Fourier,20)[x],20)-Fun(cos,20)) <100eps()
 @test norm(Fun(x->Fun(cos,Fourier)[x])-Fun(cos)) <100eps()
 @test norm(diff(Fun(cos,Fourier))+Fun(sin,Fourier)) < 100eps()
 @test norm(Fun(x->Fun(cos,Laurent)[x])-Fun(cos)) <100eps()

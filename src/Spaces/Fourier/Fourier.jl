@@ -21,6 +21,8 @@ immutable Hardy{s} <: UnivariateSpace{ComplexBasis}
     Hardy()=new(Circle())
 end
 
+canonicalspace(S::Hardy)=S
+
 spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
 
 
@@ -108,7 +110,7 @@ evaluate(f::Fun{SinSpace},t)=sineshaw(f.coefficients,tocanonical(f,t))
 
 ## Laurent space
 
-typealias Laurent SumSpace{Hardy{true},Hardy{false},ComplexBasis,1}
+typealias Laurent SumSpace{@compat(Tuple{Hardy{true},Hardy{false}}),ComplexBasis,1}
 
 Laurent()=Laurent(PeriodicInterval())
 Laurent{T<:Number}(d::Vector{T}) = Laurent(convert(PeriodicDomain,d))
@@ -123,7 +125,7 @@ itransform(::Laurent,cfs,plan::Function)=isvfft(cfs,plan)
 
 ## Fourier space
 
-typealias Fourier SumSpace{CosSpace,SinSpace,RealBasis,1}
+typealias Fourier SumSpace{@compat(Tuple{CosSpace,SinSpace}),RealBasis,1}
 Fourier()=Fourier(PeriodicInterval())
 Fourier{T<:Number}(d::Vector{T}) = Fourier(PeriodicInterval(d))
 

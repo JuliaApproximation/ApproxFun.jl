@@ -1,4 +1,4 @@
-
+versioninfo()
 
 println("Fun tests")
 include("ChebyshevTest.jl")

@@ -6,7 +6,7 @@ immutable UnionDomain{D<:Domain,T,d} <: Domain{T,d}
     domains::Vector{D}
 end
 
-UnionDomain{D<:Domain}(d::Vector{D})=UnionDomain{D,mapreduce(eltype,promote_type,d),ndims(D)}(d)
+UnionDomain{D<:Domain}(d::Vector{D})=UnionDomain{D,mapreduce(eltype,promote_type,d),mapreduce(ndims,max,d)}(d)
 
 
 isambiguous(d::UnionDomain)=isempty(d.domains)

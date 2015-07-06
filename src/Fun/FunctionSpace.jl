@@ -222,6 +222,10 @@ end
 
 
 union_rule(a,b)=NoSpace()
+
+# union combines two spaces
+# this is used primarily for addition of two funs
+# that may be incompatible
 function Base.union(a::FunctionSpace,b::FunctionSpace)
     if spacescompatible(a,b)
         return a
@@ -254,6 +258,8 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
     a⊕b
 end
 
+# tests whether a can be converted to b
+isconvertible(a,b)=union(a,b)==b
 
 
 
@@ -334,7 +340,7 @@ itransform(S::FunctionSpace,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
 function transform(S::FunctionSpace,vals,plan...)
     csp=canonicalspace(S)
     if S==csp
-        error("Override transform(::"*string(typeof(S))*",vals)")
+        error("Override transform(::"*string(typeof(S))*",vals,plan...)")
     end
 
     coefficients(transform(csp,vals,plan...),csp,S)
@@ -343,7 +349,7 @@ end
 function itransform(S::FunctionSpace,cfs,plan...)
     csp=canonicalspace(S)
     if S==csp
-        error("Override itransform(::"*string(typeof(S))*",cfs)")
+        error("Override itransform(::"*string(typeof(S))*",cfs,plan...)")
     end
 
     itransform(csp,coefficients(cfs,S,csp),plan...)
@@ -368,3 +374,9 @@ function plan_itransform(S::FunctionSpace,cfs)
 end
 
 
+## sorting
+
+
+for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
+    @eval $OP(a::FunctionSpace,b::FunctionSpace)=$OP(string(a),string(b))
+end

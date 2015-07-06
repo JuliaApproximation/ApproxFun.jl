@@ -1,13 +1,14 @@
 immutable DiracSpace{T<:FunctionSpace}<:RealUnivariateSpace
   space::T
-  points
+  points::Vector{Float64}
 end
 
-DiracSpace() = DiracSpace{Chebyshev}(Chebyshev(),[0])
+DiracSpace() = DiracSpace{Chebyshev}(Chebyshev(),[])
 DiracSpace(points) = DiracSpace{Chebyshev}(Chebyshev(),sort(points))
 
 #to be extended to include dirac points
-domain(DS::DiracSpace)=domain(DS.space)
+domain(DS::DiracSpace)=domain(DS.space)∪mapreduce(Point,union,DS.points)
+setdomain(DS::DiracSpace,d::UnionDomain)=DiracSpace(setdomain(DS.space,first(d.domains)),map(d->d.x,d.domains[2:end]))
 
 spacescompatible(a::DiracSpace,b::DiracSpace)=spacescompatible(a.space,b.space) && a.points==b.points
 canonicalspace(a::DiracSpace)=a

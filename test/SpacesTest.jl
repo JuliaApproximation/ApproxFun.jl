@@ -79,3 +79,27 @@ u=[ldirichlet(S),D-I]\[exp(1.)]
 d=PiecewiseInterval(0,1.,1.+im,im,0.)
 @test_approx_eq Fun(exp,d)[.1] exp(.1)
 
+
+
+
+
+## Triple SumSpace
+
+x=Fun()
+w=log(1-x)+sqrt(1-x^2)
+f=w+x
+@test_approx_eq f[0.1] (w[0.1]+0.1)
+@test_approx_eq (w+1)[0.1] (w[0.1]+1)
+@test_approx_eq (w+x+1)[0.1] (w[0.1]+1.1)
+@test_approx_eq ((w+x)+1)[0.1] (w[0.1]+1.1)
+
+
+
+
+
+
+## Piecewise + Cosntant
+
+Γ=Circle()∪Circle(0.0,0.4)
+G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)   # Before the 80 wasn’t specified causing inconsistency
+@test_approx_eq (G-I)[1.] (G[1.]-I)

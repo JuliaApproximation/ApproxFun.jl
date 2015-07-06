@@ -146,32 +146,23 @@ sumblkdiagm{B<:Operator}(v::Vector{B})=SumInterlaceOperator(v)
 ## Conversion
 # swaps sumspace order
 
-immutable BiSwapOperator{T} <: BandedOperator{T} end
-bandinds(::BiSwapOperator)=-1,1
 
-function addentries!(::BiSwapOperator,A,kr::Range)
-    for k=kr
-        if isodd(k)
-            A[k,k+1] += 1
-        else
-            A[k,k-1] += 1
-        end
+function Conversion(S1::SumSpace,S2::SumSpace)
+    if sort([S1.spaces...])==sort([S2.spaces...])
+        ConversionWrapper(SpaceOperator(
+        PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),S1.spaces,S2.spaces),
+                      S1,S2))
+    else
+        # we don't know how to convert so go to default
+        defaultconversion(S1,S2)
     end
-
-    A
-end
-
-Base.convert{BT<:Operator}(::Type{BT},Bi::BiSwapOperator)=BiSwapOperator{eltype(BT)}()
-
-function Conversion{A,B,T}(S1::SumSpace{A,B,T},S2::SumSpace{B,A,T})
-    @assert S1.spaces[1]==S2.spaces[2] && S1.spaces[2]==S2.spaces[1]
-    ConversionWrapper(SpaceOperator(BiSwapOperator{promote_type(eltype(domain(S1)),eltype(domain(S2)))}(),S1,S2))
 end
 
 
-function conversion_type{A,B,T}(S1::SumSpace{A,B,T},S2::SumSpace{B,A,T})
-    if S1.spaces[1]==S2.spaces[2] && S1.spaces[2]==S2.spaces[1]
-        S1 #Arbitraty
+
+function conversion_type(S1::SumSpace,S2::SumSpace)
+    if canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
+        S1 ≤ S2?S1:S2  # choose smallest space by sorting
     else
         NoSpace()
     end

@@ -167,6 +167,10 @@ function coefficients{AS}(f::Vector,a::ArraySpace{AS,1},b::PiecewiseSpace)
     ret
 end
 
+
+union_rule(P::PiecewiseSpace,C::ConstantSpace)=PiecewiseSpace(map(sp->union(sp,C),P.spaces))
+
+
 ## Definite Integral
 
 # This makes sure that the defaults from a given Domain are respected for the UnionDomain.

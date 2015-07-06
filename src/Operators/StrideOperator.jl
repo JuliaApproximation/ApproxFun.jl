@@ -265,6 +265,14 @@ interlace{T<:BandedOperator}(A::Matrix{T})=InterlaceOperator(A)
 function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
 
+    # Hack to use PrependColumnsOperator
+    if m==n==2 && isconstop(A[1,1]) && isconstop(A[2,1]) &&
+                isa(A[1,2],Functional) && isa(A[2,2],BandedOperator)
+        return [PrependColumnsFunctional(convert(Number,A[1,1]),A[1,2]);
+                PrependColumnsOperator(A[2,:])]
+    end
+
+
     A=promotespaces(A)
     TT=mapreduce(eltype,promote_type,A)
 
