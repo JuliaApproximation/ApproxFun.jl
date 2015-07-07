@@ -46,7 +46,7 @@ canonicaldomain(::IntervalDomain)=Interval()
 
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
-        T[cospi((one(T)/2+k)/n) for k=-n:-1]
+        T[sinpi((n-2k-one(T))/2n) for k=n-1:-1:0]
     elseif kind == 2
         if n==1
             zeros(T,1)
