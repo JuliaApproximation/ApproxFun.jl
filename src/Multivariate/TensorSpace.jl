@@ -4,6 +4,14 @@ export TensorSpace,⊗,ProductSpace
 #  SV is a tuple of d spaces
 abstract AbstractProductSpace{SV,T,d} <: FunctionSpace{T,d}
 
+if VERSION≥v"0.4.0-dev"
+    spacetype{SV}(::AbstractProductSpace{SV},k)=SV.parameters[k]
+else
+    spacetype{SV}(::AbstractProductSpace{SV},k)=SV[k]
+end
+
+
+
 
 immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
     spaces::SV
