@@ -65,7 +65,7 @@ function jacobip(r::Range,α,β,x::Number)
     end
 end
 jacobip(n::Integer,α,β,v::Number)=jacobip(n:n,α,β,v)[1]
-jacobip(n::Range,α,β,v::Vector)=hcat(map(x->jacobip(n,α,β,x),v)...).'
+jacobip(n::Range,α,β,v::Vector)=transpose(hcat(map(x->jacobip(n,α,β,x),v)...))
 jacobip(n::Integer,α,β,v::Vector)=map(x->jacobip(n,α,β,x),v)
 jacobip(n,S::Jacobi,v)=jacobip(n,S.a,S.b,v)
 
@@ -94,3 +94,55 @@ end
 
 
 setdomain(S::Jacobi,d::Domain)=Jacobi(S.a,S.b,d)
+
+
+# O(min(m,n)) Jacobi inner product
+
+function innerprod{S,V}(sp::Jacobi,u::Vector{S},v::Vector{V})
+    T,mn = promote_type(S,V),min(length(u),length(v))
+    α,β = sp.a,sp.b
+    wi = 2^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
+    ret = conj(u[1])*wi*v[1]
+    for i=2:mn
+      wi *= (α+i-1)*(β+i-1)/(i-1)/(i-1+α+β)*(2i+α+β-3)/(2i+α+β-1)
+      ret += conj(u[i])*wi*v[i]
+    end
+    ret
+end
+
+function Base.dot(f::Fun{Jacobi},g::Fun{Jacobi})
+    @assert domain(f) == domain(g)
+    if f.space.a == g.space.a == 0. && f.space.b == g.space.b == 0.
+        return complexlength(domain(f))/2*innerprod(g.space,f.coefficients,g.coefficients)
+    else
+        return defaultdot(f,g)
+    end
+end
+
+function Base.dot(f::Fun{JacobiWeight{Jacobi}},g::Fun{Jacobi})
+    @assert domain(f) == domain(g)
+    if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
+        return complexlength(domain(f))/2*innerprod(g.space,f.coefficients,g.coefficients)
+    else
+        return defaultdot(f,g)
+    end
+end
+
+function Base.dot(f::Fun{Jacobi},g::Fun{JacobiWeight{Jacobi}})
+    @assert domain(f) == domain(g)
+    if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
+        return complexlength(domain(f))/2*innerprod(f.space,f.coefficients,g.coefficients)
+    else
+        return defaultdot(f,g)
+    end
+end
+
+function Base.dot(f::Fun{JacobiWeight{Jacobi}},g::Fun{JacobiWeight{Jacobi}})
+    @assert domain(f) == domain(g)
+    if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
+        return complexlength(domain(f))/2*innerprod(f.space.space,f.coefficients,g.coefficients)
+    else
+        return defaultdot(f,g)
+    end
+end
+
