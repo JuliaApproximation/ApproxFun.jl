@@ -1,6 +1,6 @@
 using ApproxFun, Compat, Base.Test
 
-@compat(gc_enable(false))
+gc_enable(false)
 
 c = rand(1000)
 x=rand(10000)
