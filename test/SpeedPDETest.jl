@@ -1,6 +1,8 @@
 using ApproxFun, Base.Test
 
-gc_disable()
+using Compat
+
+gc_enable(false)
 
 ## PDEs
 
