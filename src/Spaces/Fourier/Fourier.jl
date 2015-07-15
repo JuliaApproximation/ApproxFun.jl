@@ -30,13 +30,13 @@ typealias Taylor Hardy{true}
 
 plan_transform(::Taylor,x::Vector)=plan_fft(x)
 plan_itransform(::Taylor,x::Vector)=plan_ifft(x)
-transform(::Taylor,vals::Vector,plan::Function)=alternatesign!(plan(vals)/length(vals))
-itransform(::Taylor,cfs::Vector,plan::Function)=plan(alternatesign!(cfs))*length(cfs)
+transform(::Taylor,vals::Vector,plan)=alternatesign!(plan(vals)/length(vals))
+itransform(::Taylor,cfs::Vector,plan)=plan(alternatesign!(cfs))*length(cfs)
 
 plan_transform(::Hardy{false},x::Vector)=plan_fft(x)
 plan_itransform(::Hardy{false},x::Vector)=plan_ifft(x)
-transform(::Hardy{false},vals::Vector,plan::Function)=-alternatesign!(flipdim(plan(vals),1)/length(vals))
-itransform(::Hardy{false},cfs::Vector,plan::Function)=plan(flipdim(alternatesign!(-cfs),1))*length(cfs)
+transform(::Hardy{false},vals::Vector,plan)=-alternatesign!(flipdim(plan(vals),1)/length(vals))
+itransform(::Hardy{false},cfs::Vector,plan)=plan(flipdim(alternatesign!(-cfs),1))*length(cfs)
 
 function evaluate(f::Fun{Taylor},z)
     d=domain(f)
@@ -94,16 +94,16 @@ end
 points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
 plan_transform(::CosSpace,x::Vector)=plan_chebyshevtransform(x;kind=2)
 plan_itransform(::CosSpace,x::Vector)=plan_ichebyshevtransform(x;kind=2)
-transform(::CosSpace,vals,plan::Function)=chebyshevtransform(vals,plan;kind=2)
-itransform(::CosSpace,cfs,plan::Function)=ichebyshevtransform(cfs,plan;kind=2)
+transform(::CosSpace,vals,plan)=chebyshevtransform(vals,plan;kind=2)
+itransform(::CosSpace,cfs,plan)=ichebyshevtransform(cfs,plan;kind=2)
 evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
 plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
 plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
-transform(::SinSpace,vals,plan::Function)=plan(vals)/(length(vals)+1)
-itransform(::SinSpace,cfs,plan::Function)=plan(cfs)/2
+transform(::SinSpace,vals,plan)=plan(vals)/(length(vals)+1)
+itransform(::SinSpace,cfs,plan)=plan(cfs)/2
 evaluate(f::Fun{SinSpace},t)=sineshaw(f.coefficients,tocanonical(f,t))
 
 
@@ -119,8 +119,8 @@ Laurent{T<:Number}(d::Vector{T}) = Laurent(convert(PeriodicDomain,d))
 points(sp::Laurent,n)=points(domain(sp),n)
 plan_transform(::Laurent,x::Vector)=plan_svfft(x)
 plan_itransform(::Laurent,x::Vector)=plan_isvfft(x)
-transform(::Laurent,vals,plan::Function)=svfft(vals,plan)
-itransform(::Laurent,cfs,plan::Function)=isvfft(cfs,plan)
+transform(::Laurent,vals,plan)=svfft(vals,plan)
+itransform(::Laurent,cfs,plan)=isvfft(cfs,plan)
 
 
 ## Fourier space
@@ -134,7 +134,7 @@ points(sp::Fourier,n)=points(domain(sp),n)
 plan_transform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.R2HC)
 plan_itransform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.HC2R)
 
-function transform{T<:Number}(::Fourier,vals::Vector{T},plan::Function)
+function transform{T<:Number}(::Fourier,vals::Vector{T},plan)
     n=length(vals)
     cfs=2plan(vals)/n
     cfs[1]/=2
@@ -155,7 +155,7 @@ function transform{T<:Number}(::Fourier,vals::Vector{T},plan::Function)
     ret
 end
 
-function itransform{T<:Number}(::Fourier,a::Vector{T},plan::Function)
+function itransform{T<:Number}(::Fourier,a::Vector{T},plan)
     n=length(a)
     cfs=[a[1:2:end];
             flipdim(a[2:2:end],1)]
