@@ -11,16 +11,8 @@ immutable ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSp
 end
 
 ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2})=ProductFun{S,V,typeof(sp),T}(cfs,sp)
-ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::TensorSpace{@compat(Tuple{S,V}),P,2})=ProductFun{S,V,typeof(sp),T}(cfs,sp)  #for ambiguity
-
 function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
                     W<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{@compat(Tuple{W,V}),P,2})
-   ProductFun{W,V,typeof(sp),T}(Fun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
-end
-
-#for ambiguity
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
-                    W<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::TensorSpace{@compat(Tuple{W,V}),P,2})
    ProductFun{W,V,typeof(sp),T}(Fun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 end
 
@@ -30,23 +22,7 @@ Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Matrix{T},sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2};
-                                                                        tol::Real=100eps(T),chopping::Bool=false)
-    if chopping
-        ncfs,kend=norm(cfs,Inf),size(cfs,2)
-        if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
-        ret=Fun{S,T}[Fun(chop(cfs[:,k],ncfs*tol),columnspace(sp,k)) for k=1:max(kend,1)]
-        ProductFun{S,V,typeof(sp),T}(ret,sp)
-    else
-        ret=Fun{S,T}[Fun(cfs[:,k],columnspace(sp,k)) for k=1:size(cfs,2)]
-        ProductFun{S,V,typeof(sp),T}(ret,sp)
-    end
-end
-
-
-#repeated for ambiguity
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Matrix{T},sp::TensorSpace{@compat(Tuple{S,V}),P,2};
-                                                                        tol::Real=100eps(T),chopping::Bool=false)
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Matrix{T},sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2};tol::Real=100eps(T),chopping::Bool=false)
     if chopping
         ncfs,kend=norm(cfs,Inf),size(cfs,2)
         if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
@@ -67,7 +43,7 @@ end
 
 ## Adaptive construction
 
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T}(f,sp::AbstractProductSpace{@compat(Tuple{S,V}),T,2};tol=100eps())
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace}(f::Function,sp::AbstractProductSpace{@compat(Tuple{S,V})};tol=100eps())
     for n = 50:100:5000
         X = coefficients(ProductFun(f,sp,n,n;tol=tol))
         if size(X,1)<n && size(X,2)<n
@@ -80,23 +56,24 @@ end
 
 ## ProductFun values to coefficients
 
-function ProductFun(f,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
+function ProductFun(f::Function,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
     xy = checkpoints(S)
     T = promote_type(eltype(f(first(xy)...)),eltype(S))
     ptsx,ptsy=points(S,M,N)
     vals=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
     ProductFun(transform!(S,vals),S;tol=tol,chopping=true)
 end
-ProductFun{SS<:UnivariateSpace,V<:UnivariateSpace,P}(f,S::TensorSpace{@compat(Tuple{SS,V}),P,2}) = ProductFun(LowRankFun(f,S))
+ProductFun(f::Function,S::TensorSpace) = ProductFun(LowRankFun(f,S))
+
 ProductFun(f,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(f,TensorSpace(dx,dy))
 
 
 ## Domains promoted to FunctionSpaces
 
-ProductFun(f,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
+ProductFun(f::Function,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
 ProductFun(f,d::Domain)=ProductFun(f,Space(d))
 ProductFun(f,dx::UnivariateDomain,dy::UnivariateDomain)=ProductFun(f,Space(dx),Space(dy))
-ProductFun(f) = ProductFun(f,Interval(),Interval())
+ProductFun(f::Function) = ProductFun(f,Interval(),Interval())
 
 ## Conversion from other 2D Funs
 
@@ -105,20 +82,17 @@ ProductFun{S<:AbstractProductSpace}(f::Fun{S})=ProductFun(coefficientmatrix(f),s
 
 ## Conversion to other ProductSpaces with the same coefficients
 
-ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,P}(f::ProductFun,sp::TensorSpace{@compat(Tuple{S,V}),P,2})=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
-ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,P}(f::ProductFun,sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2})=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
+ProductFun(f::ProductFun,sp::AbstractProductSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
 ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp::ProductDomain)=ProductFun(f,Space(sp))
 
 ## For specifying spaces by anonymous function
 
-ProductFun(f,SF,T::FunctionSpace,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
+ProductFun(f::Function,SF::Function,T::FunctionSpace,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
 
 ## Conversion of a constant to a ProductFun
 
-ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,P}(c::Union(Fun,Number),sp::TensorSpace{@compat(Tuple{S,V}),P,2})=ProductFun([Fun(c,columnspace(sp,1))],sp)  # for ambiguity
-ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,P}(c::Union(Fun,Number),sp::AbstractProductSpace{@compat(Tuple{S,V}),P,2})=ProductFun([Fun(c,columnspace(sp,1))],sp)  # for ambiguity
-ProductFun(c::Union(Fun,Number),sp::BivariateSpace)=ProductFun([Fun(c,columnspace(sp,1))],sp)
-
+ProductFun(c::Number,sp::BivariateSpace)=ProductFun([Fun(c,columnspace(sp,1))],sp)
+ProductFun(f::Fun,sp::BivariateSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
 
 
 

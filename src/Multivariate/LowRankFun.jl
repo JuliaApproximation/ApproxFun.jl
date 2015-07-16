@@ -16,7 +16,7 @@ type LowRankFun{S<:FunctionSpace,M<:FunctionSpace,SS<:AbstractProductSpace,T<:Nu
     end
 end
 
-LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}},space::FunctionSpace)=LowRankFun{S,M,typeof(space),T,V}(A,B,space)
+LowRankFun{S,M,SS,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}},space::SS)=LowRankFun{S,M,SS,T,V}(A,B,space)
 LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})=LowRankFun(A,B,space(first(A))⊗space(first(B)))
 
 Base.rank(f::LowRankFun)=length(f.A)
@@ -43,7 +43,7 @@ function LowRankFun{S,T,SV}(X::Vector{Fun{S,T}},d::TensorSpace{SV,T,2})
     LowRankFun(X,d[2])
 end
 
-function LowRankFun{S,T}(X::Vector{Fun{S,T}},dy::UnivariateSpace)
+function LowRankFun{S,T}(X::Vector{Fun{S,T}},dy::FunctionSpace)
     m=mapreduce(length,max,X)
     M=zeros(T,m,length(X))
     for k=1:length(X)
@@ -55,7 +55,7 @@ end
 
 ## Adaptive constructor selector
 
-function LowRankFun(f,dx::FunctionSpace,dy::FunctionSpace;method::Symbol=:standard,tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;method::Symbol=:standard,tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     if method == :standard
         F,maxabsf=standardLowRankFun(f,dx,dy;tolerance=tolerance,gridx=gridx,gridy=gridy,maxrank=maxrank)
     elseif method == :Cholesky
@@ -72,7 +72,7 @@ end
 
 ## Standard adaptive construction
 
-function standardLowRankFun(f,dx::FunctionSpace,dy::FunctionSpace;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function standardLowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dy)
     T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)),eltype(dy),eltype(domain(dy)))
 
@@ -116,7 +116,7 @@ end
 
 ## Adaptive Cholesky decomposition, when f is Hermitian positive (negative) definite
 
-function CholeskyLowRankFun(f,dx::FunctionSpace;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,grid::Integer=64,maxrank::Integer=100)
+function CholeskyLowRankFun(f::Function,dx::FunctionSpace;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,grid::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dx)
     T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)))
 
@@ -161,19 +161,16 @@ end
 
 ## Construction via TensorSpaces and ProductDomains
 
-LowRankFun{SV,T}(f,S::TensorSpace{SV,T,2};kwds...)=LowRankFun(f,S[1],S[2];kwds...)
-LowRankFun(f,dx::Domain,dy::Domain;kwds...)=LowRankFun(f,Space(dx),Space(dy);kwds...)
-LowRankFun{D,T}(f,d::ProductDomain{D,T,2};kwds...)=LowRankFun(f,d[1],d[2];kwds...)
+LowRankFun{SV,T}(f::Function,S::TensorSpace{SV,T,2};kwds...)=LowRankFun(f,S[1],S[2];kwds...)
+LowRankFun(f::Function,dx::Domain,dy::Domain;kwds...)=LowRankFun(f,Space(dx),Space(dy);kwds...)
+LowRankFun{D,T}(f::Function,d::ProductDomain{D,T,2};kwds...)=LowRankFun(f,d[1],d[2];kwds...)
 
-LowRankFun(f,d1::Vector,d2::Vector;kwds...)=LowRankFun(f,Interval(d1),Interval(d2);kwds...)
-LowRankFun(f;kwds...)=LowRankFun(f,Interval(),Interval();kwds...)
+LowRankFun(f::Function,d1::Vector,d2::Vector;kwds...)=LowRankFun(f,Interval(d1),Interval(d2);kwds...)
+LowRankFun(f::Function;kwds...)=LowRankFun(f,Interval(),Interval();kwds...)
 
 ## Construction from values
 
 LowRankFun{T<:Number}(A::Array{T})=LowRankFun(A,Interval{T}(),Interval{T}())
-
-LowRankFun{SV,T}(c::Number,sp::TensorSpace{SV,T,2})=LowRankFun((x,y)->c,sp)  #ambiguity fix
-LowRankFun{SV,T}(c::Number,sp::ProductDomain{SV,T,2})=LowRankFun((x,y)->c,sp)  #ambiguity fix
 LowRankFun(c::Number,etc...)=LowRankFun((x,y)->c,etc...)
 
 ## Construction from other LowRankFuns
@@ -185,7 +182,7 @@ LowRankFun(f::LowRankFun)=LowRankFun(f,Interval(),Interval())
 
 ## Utilities
 
-function findapproxmax!(f,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
+function findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
     @inbounds for j=1:gridy,k=1:gridx
         X[k,j]+=f(ptsx[k],ptsy[j])
     end
@@ -202,7 +199,7 @@ function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,
     [ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
-function findcholeskyapproxmax!(f,X::Vector,pts::Vector,grid)
+function findcholeskyapproxmax!(f::Function,X::Vector,pts::Vector,grid)
     @inbounds for k=1:grid
         X[k]+=f(pts[k],pts[k])
     end
