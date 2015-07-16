@@ -11,7 +11,7 @@ valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_t
 valsdomain_type_promote{T<:Real}(::Type{T},::Type{Vector{T}})=T,Vector{T}
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
-function defaultFun{ReComp}(f::Function,d::FunctionSpace{ReComp},n::Integer)
+function defaultFun{ReComp}(f,d::FunctionSpace{ReComp},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])
 
@@ -46,7 +46,7 @@ function defaultFun{ReComp}(f::Function,d::FunctionSpace{ReComp},n::Integer)
     Fun(transform(d,vals),d)
 end
 
-Fun{ReComp}(f::Function,d::FunctionSpace{ReComp},n::Integer)=defaultFun(f,d,n)
+Fun{ReComp}(f,d::FunctionSpace{ReComp},n::Integer)=defaultFun(f,d,n)
 
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f[x],d)
@@ -82,7 +82,7 @@ Fun{T<:Domain}(f,dl::Vector{T},n::Integer)=Fun(f,UnionDomain(dl),n)
 
 ## Adaptive constructors
 
-function randomFun(f::Function,d::IntervalDomain)
+function randomFun(f,d::IntervalDomain)
     @assert d == Interval()
 
     #TODO: implement other domains
@@ -91,7 +91,7 @@ function randomFun(f::Function,d::IntervalDomain)
 end
 
 
-# function veczerocfsFun(f::Function,d::IntervalDomain)
+# function veczerocfsFun(f,d::IntervalDomain)
 #     #reuse function values
 #
 #     tol = 200*eps()
@@ -112,7 +112,7 @@ end
 # end
 
 
-function zerocfsFun(f::Function, d::FunctionSpace)
+function zerocfsFun(f, d::FunctionSpace)
     #TODO: reuse function values?
     T = eltype(domain(d))
     if T <: Complex
@@ -152,7 +152,7 @@ function zerocfsFun(f::Function, d::FunctionSpace)
 end
 
 
-function abszerocfsFun(f::Function,d::FunctionSpace)
+function abszerocfsFun(f,d::FunctionSpace)
     #reuse function values
     T = eltype(domain(d))
     if T <: Complex
@@ -176,7 +176,7 @@ function abszerocfsFun(f::Function,d::FunctionSpace)
 end
 
 
-function Fun(f::Function, d::FunctionSpace; method="zerocoefficients")
+function Fun(f, d::FunctionSpace; method="zerocoefficients")
     T = eltype(domain(d))
     if f==identity
         identity_fun(d)
@@ -192,7 +192,7 @@ function Fun(f::Function, d::FunctionSpace; method="zerocoefficients")
         randomFun(f,d)
     end
 end
-Fun(f::Function,d::Domain;opts...)=Fun(f,Space(d);opts...)
+Fun(f,d::Domain;opts...)=Fun(f,Space(d);opts...)
 
 
 
@@ -203,10 +203,10 @@ Fun(f::Function,d::Domain;opts...)=Fun(f,Space(d);opts...)
 
 
 
-Fun(f::Function,n::Integer)=Fun(f,Interval(),n)
-Fun{T<:Number}(f::Function,d::Vector{T},n::Integer)=Fun(f,convert(Domain,d),n)
+Fun(f,n::Integer)=Fun(f,Interval(),n)
+Fun{T<:Number}(f,d::Vector{T},n::Integer)=Fun(f,convert(Domain,d),n)
 Fun{T<:Number,M<:Number}(cfs::Vector{M},d::Vector{T})=Fun(1.0*cfs,convert(Domain,d))
-Fun{T<:Number}(f::Function,d::Vector{T})=Fun(f,convert(Domain,d))
+Fun{T<:Number}(f,d::Vector{T})=Fun(f,convert(Domain,d))
 Fun{T<:Number}(f::Number,d::Vector{T})=Fun(f,convert(Domain,d))
 
 
