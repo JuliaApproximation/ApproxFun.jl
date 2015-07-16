@@ -85,8 +85,8 @@ function pde_standardize_rhs(A,f::Vector)
     f=pad(f,max(length(indsBx)+length(indsBy),length(f)))
 
     ds=domainspace(A)
-    fx=isempty(indsBx)?Fun{typeof(spacetype(ds,2)),eltype(A)}[]:convert2fun(f[indsBx],ds[2])
-    fy=isempty(indsBy)?Fun{typeof(spacetype(ds,1)),eltype(A)}[]:convert2fun(f[indsBy],ds[1])
+    fx=isempty(indsBx)?Fun{spacetype(ds,2),eltype(A)}[]:convert2fun(f[indsBx],ds[2])
+    fy=isempty(indsBy)?Fun{spacetype(ds,1),eltype(A)}[]:convert2fun(f[indsBy],ds[1])
 
     if length(f)==length(indsBx)+length(indsBy)+1
         F=Fun(f[end],rs)
