@@ -12,7 +12,7 @@ function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=
     end
 end
 
-function chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function;kind::Integer=1)
+function chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan;kind::Integer=1)
     if kind == 1
         n = length(x)
         if n == 1
@@ -46,7 +46,7 @@ function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer
     end
 end
 
-function ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan::Function;kind::Integer=1)
+function ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan;kind::Integer=1)
     if kind == 1
         x[1] *=2
         ret = plan(negateeven!(x))/2

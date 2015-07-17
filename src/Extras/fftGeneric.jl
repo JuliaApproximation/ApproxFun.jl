@@ -46,7 +46,7 @@ plan_chebyshevtransform{T<:BigFloats}(x::Vector{T};kwds...) = identity
 plan_ichebyshevtransform{T<:BigFloats}(x::Vector{T};kwds...) = identity
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function chebyshevtransform{T<:BigFloats}(x::Vector{T},plan::Function;kind::Integer=1)
+function chebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
     if kind == 1
         n = length(x)
         if n == 1
@@ -72,7 +72,7 @@ function chebyshevtransform{T<:BigFloats}(x::Vector{T},plan::Function;kind::Inte
 end
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function ichebyshevtransform{T<:BigFloats}(x::Vector{T},plan::Function;kind::Integer=1)
+function ichebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
     if kind == 1
         n = length(x)
         if n == 1
