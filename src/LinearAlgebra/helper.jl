@@ -207,8 +207,8 @@ end
 
 ##FFT That interlaces coefficients
 
-plan_svfft(x::Vector) = plan_fft(x)
-plan_isvfft(x::Vector) = plan_ifft(x)
+plan_svfft(x::Vector) = wrap_fft_plan(plan_fft(x))
+plan_isvfft(x::Vector) = wrap_fft_plan(plan_ifft(x))
 
 function svfft(v::Vector,plan)
     n=length(v)

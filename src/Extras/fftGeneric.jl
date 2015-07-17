@@ -1,5 +1,19 @@
 typealias BigFloats Union(BigFloat,Complex{BigFloat})
 
+if VERSION >= v"0.4-dev"
+    # old DFT API: p(x) # deprecated
+    wrap_fft_plan(x::Function) = x
+    # new DFT API
+    immutable FFTPlanWrapper{P}
+        p::P
+    end
+    call(p::FFTPlanWrapper, arg) = p.p * arg
+    wrap_fft_plan(x) = FFTPlanWrapper(x)
+else
+    # 0.3 (old) DFT API
+    wrap_fft_plan(x) = x
+end
+
 # The following implements Bluestein's algorithm, following http://www.dsprelated.com/dspbooks/mdft/Bluestein_s_FFT_Algorithm.html
 # To add more types, add them in the union of the function's signature.
 function Base.fft{T<:BigFloats}(x::Vector{T})
