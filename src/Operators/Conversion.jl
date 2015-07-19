@@ -59,8 +59,13 @@ Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=ConversionWrapper
 # Base.convert{S,T}(::Type{ConversionWrapper{S,T}},D::ConversionWrapper)=ConversionWrapper{S,T}(convert(S,D.op))
 Base.convert{CW<:ConversionWrapper}(::Type{CW},D::CW)=D
 function Base.convert{BT<:Operator}(::Type{BT},D::ConversionWrapper)
-    BO=convert(BandedOperator{eltype(BT)},D.op)
-    ConversionWrapper{typeof(BO),eltype(BT)}(BO)::BT
+    T=eltype(BT)
+    if T==eltype(D)
+        D
+    else
+        BO=convert(BandedOperator{T},D.op)
+        ConversionWrapper{typeof(BO),T}(BO)
+    end
 end
 
 addentries!(D::ConversionWrapper,A,k::Range)=addentries!(D.op,A,k)

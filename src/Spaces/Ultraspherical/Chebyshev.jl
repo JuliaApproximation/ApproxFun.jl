@@ -21,8 +21,8 @@ end
 
 ## Transform
 
-transform(::Chebyshev,vals::Vector,plan::Function)=chebyshevtransform(vals,plan)
-itransform(::Chebyshev,cfs::Vector,plan::Function)=ichebyshevtransform(cfs,plan)
+transform(::Chebyshev,vals::Vector,plan)=chebyshevtransform(vals,plan)
+itransform(::Chebyshev,cfs::Vector,plan)=ichebyshevtransform(cfs,plan)
 plan_transform(::Chebyshev,vals::Vector)=plan_chebyshevtransform(vals)
 plan_itransform(::Chebyshev,cfs::Vector)=plan_ichebyshevtransform(cfs)
 

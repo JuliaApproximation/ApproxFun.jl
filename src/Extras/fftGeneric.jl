@@ -1,5 +1,19 @@
 typealias BigFloats Union(BigFloat,Complex{BigFloat})
 
+if VERSION >= v"0.4-dev"
+    # old DFT API: p(x) # deprecated
+    wrap_fft_plan(x::Function) = x
+    # new DFT API
+    immutable FFTPlanWrapper{P}
+        p::P
+    end
+    call(p::FFTPlanWrapper, arg) = p.p * arg
+    wrap_fft_plan(x) = FFTPlanWrapper(x)
+else
+    # 0.3 (old) DFT API
+    wrap_fft_plan(x) = x
+end
+
 # The following implements Bluestein's algorithm, following http://www.dsprelated.com/dspbooks/mdft/Bluestein_s_FFT_Algorithm.html
 # To add more types, add them in the union of the function's signature.
 function Base.fft{T<:BigFloats}(x::Vector{T})
@@ -46,7 +60,7 @@ plan_chebyshevtransform{T<:BigFloats}(x::Vector{T};kwds...) = identity
 plan_ichebyshevtransform{T<:BigFloats}(x::Vector{T};kwds...) = identity
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function chebyshevtransform{T<:BigFloats}(x::Vector{T},plan::Function;kind::Integer=1)
+function chebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
     if kind == 1
         n = length(x)
         if n == 1
@@ -72,7 +86,7 @@ function chebyshevtransform{T<:BigFloats}(x::Vector{T},plan::Function;kind::Inte
 end
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function ichebyshevtransform{T<:BigFloats}(x::Vector{T},plan::Function;kind::Integer=1)
+function ichebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
     if kind == 1
         n = length(x)
         if n == 1
