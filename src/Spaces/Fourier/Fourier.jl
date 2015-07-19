@@ -28,13 +28,13 @@ spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
 
 typealias Taylor Hardy{true}
 
-plan_transform(::Taylor,x::Vector)=plan_fft(x)
-plan_itransform(::Taylor,x::Vector)=plan_ifft(x)
+plan_transform(::Taylor,x::Vector)=wrap_fft_plan(plan_fft(x))
+plan_itransform(::Taylor,x::Vector)=wrap_fft_plan(plan_ifft(x))
 transform(::Taylor,vals::Vector,plan)=alternatesign!(plan(vals)/length(vals))
 itransform(::Taylor,cfs::Vector,plan)=plan(alternatesign!(cfs))*length(cfs)
 
-plan_transform(::Hardy{false},x::Vector)=plan_fft(x)
-plan_itransform(::Hardy{false},x::Vector)=plan_ifft(x)
+plan_transform(::Hardy{false},x::Vector)=wrap_fft_plan(plan_fft(x))
+plan_itransform(::Hardy{false},x::Vector)=wrap_fft_plan(plan_ifft(x))
 transform(::Hardy{false},vals::Vector,plan)=-alternatesign!(flipdim(plan(vals),1)/length(vals))
 itransform(::Hardy{false},cfs::Vector,plan)=plan(flipdim(alternatesign!(-cfs),1))*length(cfs)
 
@@ -100,8 +100,8 @@ evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
-plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
-plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.plan_r2r(x,FFTW.RODFT00))
+plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.plan_r2r(x,FFTW.RODFT00))
 transform(::SinSpace,vals,plan)=plan(vals)/(length(vals)+1)
 itransform(::SinSpace,cfs,plan)=plan(cfs)/2
 evaluate(f::Fun{SinSpace},t)=sineshaw(f.coefficients,tocanonical(f,t))
@@ -131,8 +131,8 @@ Fourier{T<:Number}(d::Vector{T}) = Fourier(PeriodicInterval(d))
 
 
 points(sp::Fourier,n)=points(domain(sp),n)
-plan_transform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.R2HC)
-plan_itransform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = FFTW.plan_r2r(x, FFTW.HC2R)
+plan_transform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.R2HC))
+plan_itransform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.HC2R))
 
 function transform{T<:Number}(::Fourier,vals::Vector{T},plan)
     n=length(vals)

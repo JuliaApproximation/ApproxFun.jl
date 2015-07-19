@@ -207,10 +207,10 @@ end
 
 ##FFT That interlaces coefficients
 
-plan_svfft(x::Vector) = plan_fft(x)
-plan_isvfft(x::Vector) = plan_ifft(x)
+plan_svfft(x::Vector) = wrap_fft_plan(plan_fft(x))
+plan_isvfft(x::Vector) = wrap_fft_plan(plan_ifft(x))
 
-function svfft(v::Vector,plan::Function)
+function svfft(v::Vector,plan)
     n=length(v)
     v=plan(v)/n
     if mod(n,2) == 0
@@ -229,7 +229,7 @@ function svfft(v::Vector,plan::Function)
     end
 end
 
-function isvfft(sv::Vector,plan::Function)
+function isvfft(sv::Vector,plan)
     n=length(sv)
 
     if mod(n,2) == 0
