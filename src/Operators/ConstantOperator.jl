@@ -95,8 +95,8 @@ Base.convert{BT<:Operator}(::Type{BT},Z::ZeroFunctional)=ZeroFunctional(eltype(B
 domainspace(Z::ZeroFunctional)=Z.domainspace
 promotedomainspace(Z::ZeroFunctional,sp::FunctionSpace)=ZeroFunctional(sp)
 
-Base.getindex{T}(op::ZeroFunctional{T},k::Integer)=zero(T)
-Base.getindex{T}(op::ZeroFunctional{T},k::Range)=zeros(T,length(k))
+Base.getindex{S,T}(op::ZeroFunctional{S,T},k::Integer)=zero(T)
+Base.getindex{S,T}(op::ZeroFunctional{S,T},k::Range)=zeros(T,length(k))
 
 
 

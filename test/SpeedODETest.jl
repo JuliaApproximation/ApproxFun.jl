@@ -2,7 +2,10 @@ using ApproxFun, Base.Test
 
 using Compat
 
-gc_enable(false)
+# This avoids getting killed on Travis.cl
+if OS_NAME == :Darwin
+    gc_enable(false)
+end
 
 ## ODEs
 
@@ -99,3 +102,8 @@ u=null(A)
 u=null(A)
 @time u=null(A)
 println("Null Airy: should be ~0.061")
+
+
+if OS_NAME == :Darwin
+    gc_enable(true)
+end

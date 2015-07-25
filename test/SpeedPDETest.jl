@@ -2,7 +2,10 @@ using ApproxFun, Base.Test
 
 using Compat
 
-gc_enable(false)
+# This avoids getting killed on Travis.cl
+if OS_NAME == :Darwin
+    gc_enable(false)
+end
 
 ## PDEs
 
@@ -67,3 +70,7 @@ u=PO\u0
 
 println("Schrodinger: should be ~0.013,0.015")
 
+
+if OS_NAME == :Darwin
+    gc_enable(true)
+end

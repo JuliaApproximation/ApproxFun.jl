@@ -19,7 +19,13 @@ Multiplication(c::Number)=ConstantOperator(c)
 Multiplication{D,T}(S::FunctionSpace,f::Fun{D,T}) = Multiplication(f,S)
 
 Base.convert{BT<:Multiplication}(::Type{BT},C::BT)=C
-Base.convert{BT<:Operator,S,V,T}(::Type{BT},C::Multiplication{S,V,T})=Multiplication{S,V,T,eltype(BT)}(C.f,C.space)
+function Base.convert{BT<:Operator,S,V,T}(::Type{BT},C::Multiplication{S,V,T})
+    if eltype(BT)==eltype(C)
+        C
+    else
+        Multiplication{S,V,T,eltype(BT)}(C.f,C.space)
+    end
+end
 
 domainspace{D,S,T,V}(M::Multiplication{D,S,T,V})=M.space
 domain(T::Multiplication)=domain(T.f)
@@ -91,7 +97,13 @@ for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
 end
 
 Base.convert{BT<:MultiplicationWrapper}(::Type{BT},C::BT)=C
-Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper{S,V,VV,T})=MultiplicationWrapper{S,V,VV,eltype(BT)}(C.f,C.op)
+function Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper{S,V,VV,T})
+    if eltype(BT)==eltype(C)
+        C
+    else
+        MultiplicationWrapper{S,V,VV,eltype(BT)}(C.f,C.op)
+    end
+end
 
 
 

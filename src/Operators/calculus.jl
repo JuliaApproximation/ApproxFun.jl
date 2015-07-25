@@ -39,14 +39,26 @@ macro calculus_operator(Op,AbstOp,WrappOp)
         $Op(d::Vector)=$Op(Space(d),1)
         $Op(d::Vector,n)=$Op(Space(d),n)
 
-        Base.convert{BT<:$Op}(::Type{BT},D::$Op)=D
-        Base.convert{BT<:Operator}(::Type{BT},D::$Op)=$Op(eltype(BT),D.space,D.order)
+        Base.convert{BT<:$Op}(::Type{BT},D::BT)=D
+        function Base.convert{BT<:Operator}(::Type{BT},D::$Op)
+            if eltype(BT)==eltype(D)
+                D
+            else
+                $Op{typeof(D.space),typeof(D.order),eltype(BT)}(D.space,D.order)
+            end
+        end
 
         $WrappOp{T<:Number}(op::BandedOperator{T},order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),T}(op,order)
         $WrappOp{T<:Number}(op::BandedOperator{T})=$WrappOp(op,1)
         
-        Base.convert{BT<:$WrappOp}(::Type{BT},D::$WrappOp)=D        
-        Base.convert{BT<:Operator}(::Type{BT},D::$WrappOp)=$WrappOp(convert(BandedOperator{eltype(BT)},D.op),D.order)
+        Base.convert{BT<:$WrappOp}(::Type{BT},D::BT)=D        
+        function Base.convert{BT<:Operator}(::Type{BT},D::$WrappOp)
+            if eltype(BT)==eltype(D)
+                D
+            else
+                $WrappOp(convert(BandedOperator{eltype(BT)},D.op),D.order)
+            end
+        end
 
         ## Routines
         domain(D::$Op)=domain(D.space)
