@@ -1,6 +1,9 @@
 using ApproxFun, Compat, Base.Test
 
-gc_enable(false)
+# This avoids getting killed on Travis.cl
+if OS_NAME == :Darwin
+    gc_enable(false)
+end
 
 c = rand(1000)
 x=rand(10000)
@@ -48,3 +51,6 @@ roots(f)
 @time roots(f)
 println("Roots: Time should be ~0.13")
 
+if OS_NAME == :Darwin
+    gc_enable(true)
+end
