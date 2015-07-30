@@ -9,6 +9,7 @@ for T in (:CosSpace,:SinSpace)
         end
         $T()=$T(PeriodicInterval())
         spacescompatible(a::$T,b::$T)=domainscompatible(a,b)
+        hasfasttransform(::$T)=true
         canonicalspace(S::$T)=Fourier(domain(S))
     end
 end
@@ -24,7 +25,7 @@ end
 canonicalspace(S::Hardy)=S
 
 spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
-
+hasfasttransform(::Hardy)=true
 
 typealias Taylor Hardy{true}
 
@@ -123,11 +124,16 @@ transform(::Laurent,vals,plan)=svfft(vals,plan)
 itransform(::Laurent,cfs,plan)=isvfft(cfs,plan)
 
 
+hasfasttransform(::Laurent)=true
+
+
 ## Fourier space
 
 typealias Fourier SumSpace{@compat(Tuple{CosSpace,SinSpace}),RealBasis,1}
 Fourier()=Fourier(PeriodicInterval())
 Fourier{T<:Number}(d::Vector{T}) = Fourier(PeriodicInterval(d))
+
+hasfasttransform(::Fourier)=true
 
 
 points(sp::Fourier,n)=points(domain(sp),n)

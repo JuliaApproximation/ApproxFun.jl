@@ -216,6 +216,11 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 
 Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
 
+function Base.log{MS<:MappedSpace}(f::Fun{MS})
+    g=log(Fun(f.coefficients,space(f).space))
+    Fun(g.coefficients,MappedSpace(domain(f),space(g)))
+end
+
 # project first to [-1,1] to avoid issues with
 # complex derivative
 function Base.log{US<:Ultraspherical}(f::Fun{US})
