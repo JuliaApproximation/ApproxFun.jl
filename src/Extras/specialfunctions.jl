@@ -287,8 +287,6 @@ end
 Base.atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 
 for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
-                            (:(Base.asin),"sqrt(1-f^2)*D","f'",:(imag)),
-                            (:(Base.acos),"sqrt(1-f^2)*D","-f'",:(imag)),
                             (:(Base.asinh),"sqrt(f^2+1)*D","f'",:(real)),
                             (:(Base.acosh),"sqrt(f^2-1)*D","f'",:(real)),
                             (:(Base.atanh),"(1-f^2)*D","f'",:(real)),
@@ -313,6 +311,9 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
         end
     end
 end
+
+Base.acos(f::Fun)=cumsum(-f'/sqrt(1-f^2))+acos(first(f))
+Base.asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
 
 
 
