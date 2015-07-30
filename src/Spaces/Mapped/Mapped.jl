@@ -54,13 +54,12 @@ function integrate{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
     Fun(g.coefficients,MappedSpace(domain(f),space(g)))
 end
 
-
-# function Base.sum{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
-#     fc=Fun(f.coefficients,space(f).space)
-#     x=Fun(identity,domain(fc))
-#     Mp=fromcanonicalD(f,x)
-#     sum(fc*Mp)
-# end
+function Base.sum{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
+    fc=Fun(f.coefficients,space(f).space)
+    x=Fun(identity,domain(fc))
+    Mp=fromcanonicalD(f,x)
+    sum(fc*Mp)
+end
 
 
 

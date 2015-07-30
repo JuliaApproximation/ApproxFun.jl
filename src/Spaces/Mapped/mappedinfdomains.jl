@@ -1,7 +1,7 @@
 typealias LineSpace{T} MappedSpace{Chebyshev,Line{T},RealBasis}
 typealias PeriodicLineSpace{T} MappedSpace{Fourier,PeriodicLine{T},RealBasis}
 typealias PeriodicLineDirichlet{T} MappedSpace{LaurentDirichlet,PeriodicLine{T},ComplexBasis}
-typealias CurveSpace{S,T} MappedSpace{S,Curve{S},T}
+
 
 
 # Transform form chebyshev U series to dirichlet-neumann U series

@@ -53,6 +53,8 @@ for op in (:(Base.zeros),:(Base.ones))
     @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
 end
 
+Base.zero(f::Fun)=zeros(f)
+Base.one(f::Fun)=ones(f)
 
 Base.eltype{S,T}(::Fun{S,T})=T
 

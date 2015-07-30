@@ -6,8 +6,14 @@
 for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
     @eval begin
         function $Func(f::Fun{JacobiWeight{Chebyshev}})
+            tol=1e-10
             d,α,β,n=domain(f),f.space.α,f.space.β,length(f)
-            if α ≤ -1.0 || β ≤ -1.0
+            g=Fun(f.coefficients,space(f).space)
+            if α ≤ -1.0 && abs(first(g))≤tol
+                $Func(increase_jacobi_parameter(-1,f))
+            elseif β ≤ -1.0 && abs(last(g))≤tol
+                $Func(increase_jacobi_parameter(+1,f))
+            elseif α ≤ -1.0 || β ≤ -1.0
                 fs = Fun(f.coefficients,f.space.space)
                 return Inf*0.5*$Len(d)*(sign(fs[d.a])+sign(fs[d.b]))/2
             elseif α == β == -0.5

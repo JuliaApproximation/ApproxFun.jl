@@ -6,7 +6,7 @@ end
 
 ClenshawPlan{T}(::Type{T},n::Integer)=ClenshawPlan(Array(T,n),Array(T,n),Array(T,n))
 
-function clenshaw(c::Vector,x::Number)
+function clenshaw(c::Vector,x)
     if isempty(c)
         return zero(x)
     end
