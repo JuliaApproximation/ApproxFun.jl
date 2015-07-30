@@ -109,7 +109,7 @@ f=x^(-0.123)*exp(-x)
 @test_approx_eq diff(integrate(f))[1.] f[1.]
 
 
-@test_approx_eq_eps sum(Fun(sech,[0,Inf])) sum(Fun(sech,[0,40.])) 100000eps()
+@test_approx_eq_eps sum(Fun(sech,[0,Inf])) sum(Fun(sech,[0,40.])) 1000000eps()
 
 
 
