@@ -167,3 +167,5 @@ y=Fun(Ray())
 @test_approx_eq (y^2)[10.] y[10.]^2
 @test_approx_eq 1/y[10.] (1/y)[10.]
 @test_approx_eq (1/y^2)[10.] 1/y[10.]^2
+@test_approx_eq (-1/y^2)'[10.] 2/(y[10.]^3)
+@test_approx_eq exp(-1/y^2)[5.] exp(-1/y[5.]^2)

@@ -51,6 +51,12 @@ ray_fromcanonical(x)=(1+x)./(1-x)
 ray_fromcanonicalD(x)=2*(1./(x-1.)).^2
 ray_invfromcanonicalD(x)=(x-1.).^2/2
 
+# atomatically vectorize over vector arg
+@vectorize_1arg Number ray_tocanonical
+@vectorize_1arg Number ray_tocanonicalD
+@vectorize_1arg Number ray_fromcanonical
+@vectorize_1arg Number ray_fromcanonicalD
+
 
 for op in (:ray_tocanonical,:ray_tocanonicalD)
     @eval $op(o,x)=(o?1:-1)*$op(x)
