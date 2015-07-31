@@ -165,7 +165,7 @@ LowRankFun{SV,T}(f::Function,S::TensorSpace{SV,T,2};kwds...)=LowRankFun(f,S[1],S
 LowRankFun(f::Function,dx::Domain,dy::Domain;kwds...)=LowRankFun(f,Space(dx),Space(dy);kwds...)
 LowRankFun{D,T}(f::Function,d::ProductDomain{D,T,2};kwds...)=LowRankFun(f,d[1],d[2];kwds...)
 
-LowRankFun(f::Function,d1::Vector,d2::Vector;kwds...)=LowRankFun(f,Interval(d1),Interval(d2);kwds...)
+LowRankFun(f::Function,d1::Vector,d2::Vector;kwds...)=LowRankFun(f,convert(Domain,d1),convert(Domain,d2);kwds...)
 LowRankFun(f::Function;kwds...)=LowRankFun(f,Interval(),Interval();kwds...)
 
 ## Construction from values

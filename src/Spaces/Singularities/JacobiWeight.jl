@@ -143,8 +143,10 @@ end
 
 for op in (:/,:./)
     @eval begin
-        ($op){S}(c::Number,f::Fun{JacobiWeight{S}})=Fun(($op)(c,Fun(f.coefficients,space(f).space)).coefficients,
-                                                        JacobiWeight(-f.space.α,-f.space.β,space(f).space))
+        function ($op){S}(c::Number,f::Fun{JacobiWeight{S}})
+            g=($op)(c,Fun(f.coefficients,space(f).space))
+            Fun(g.coefficients,JacobiWeight(-f.space.α,-f.space.β,space(g)))
+        end
     end
 end
 
