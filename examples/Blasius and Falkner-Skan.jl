@@ -1,11 +1,11 @@
 using ApproxFun
 # The Blasius boundary layer problem (https://en.wikipedia.org/wiki/Blasius_boundary_layer)
-# describes the boundary layer on a semi-infinite plane with a steady fluid flow.
-# When properly non-dimensionalized, it presents itself as a relatively simple nonlinear ODE.
+# describes the boundary layer on a semi-infinite plane with a head-on steady fluid flow.
+# When properly non-dimensionalized, it presents itself as a relatively simple nonlinear BVP.
 # The Falkner-Skan problem generalizes the Blasius boundary layer by considering a wedge at an
 # angle to the steady flow.
-# In both cases, no-slip conditions are in-place at the wall (u[0.]=0,) and the boundary layer
-# asymptotically grows linearly (u'(∞)→1).
+# In both cases, no-slip conditions are in place at the wall and the boundary layer
+# grows linearly (u'(∞)→1) in the far-field.
 # There are more variants which include different nonlinearities which arise in magneto-
 # hydrodynamics, for example.
 
