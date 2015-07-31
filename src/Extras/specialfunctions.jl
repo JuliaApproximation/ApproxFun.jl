@@ -2,6 +2,7 @@
 
 
 function splitatroots(f::Fun)
+    #TODO: treat multiplicities
     d=domain(f)
 
     pts=roots(f)
@@ -110,20 +111,21 @@ function ./(c::Number,f::Fun{Chebyshev})
 
     if length(r) == 0
         linsolve(Multiplication(f,space(f)),c;tolerance=tol)
-    elseif length(r) == 1 && (isapprox(r[1],1.) || isapprox(r[1],-1.))
-        if sign(r[1]) < 0
-            g = divide_singularity(-1,fc)  # divide by 1+x
-            Fun(coefficients(c./g,Chebyshev),JacobiWeight(-1,0,domain(f)))
-        else
-            g = divide_singularity(1,fc)  # divide by 1-x
-            Fun(coefficients(c./g,Chebyshev),JacobiWeight(0,-1,domain(f)))
+    elseif all(r->isapprox(abs(r),1.),r)  # all roots are on the boundary
+        # cound number of left and right roots
+        leftr=0
+        rightr=0
+        for rt in r
+            if isapprox(rt,-1.)
+                leftr+=1
+            else
+                rightr+=1
+            end
         end
-    elseif length(r) ==2 && ((isapprox(r[1],-1) && isapprox(r[2],1)) || (isapprox(r[2],-1) && isapprox(r[1],1)))
-        g = divide_singularity(fc) # divide by 1-x^2
-        # divide out singularities, tolerance needs to be chosen since we don't get
-        # spectral convergence
-        # TODO: switch to dirichlet basis
-        Fun(coefficients(c./g,Chebyshev),JacobiWeight(-1,-1,domain(f)))
+
+        g = divide_singularity((leftr,rightr),fc)  # divide by (1+x)^leftr(1-x)^rightr
+        p = c./g
+        Fun(p.coefficients,JacobiWeight(-leftr,-rightr,setdomain(space(p),domain(f))))
     else
         #split at the roots
         c./splitatroots(f)
@@ -157,9 +159,9 @@ function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(+1,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
+            Fun(coefficients(divide_singularity(true,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
         else
-            Fun(coefficients(divide_singularity(-1,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
+            Fun(coefficients(divide_singularity(false,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
         end
     else
         @assert isapprox(r[1],-1)
@@ -184,9 +186,9 @@ function .^(f::Fun{Chebyshev},k::Float64)
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(+1,fc)^k),JacobiWeight(0.,k,sp))
+            Fun(coefficients(divide_singularity(true,fc)^k),JacobiWeight(0.,k,sp))
         else
-            Fun(coefficients(divide_singularity(-1,fc)^k),JacobiWeight(k,0.,sp))
+            Fun(coefficients(divide_singularity(false,fc)^k),JacobiWeight(k,0.,sp))
         end
     else
         @assert isapprox(r[1],-1)
@@ -235,7 +237,7 @@ function Base.log{US<:Ultraspherical}(f::Fun{US})
             @assert isapprox(abs(r[1]),1)
 
             if isapprox(r[1],1.)
-                g=divide_singularity(+1,f)
+                g=divide_singularity(true,f)
                 lg=Fun([1.],LogWeight(0.,1.,Chebyshev()))
                 if isapprox(g,1.)  # this means log(g)~0
                     lg
@@ -243,7 +245,7 @@ function Base.log{US<:Ultraspherical}(f::Fun{US})
                     lg⊕log(g)
                 end
             else
-                g=divide_singularity(-1,f)
+                g=divide_singularity(false,f)
                 lg=Fun([1.],LogWeight(1.,0.,Chebyshev()))
                 if isapprox(g,1.)  # this means log(g)~0
                     lg

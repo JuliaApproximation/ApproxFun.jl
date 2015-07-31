@@ -161,3 +161,9 @@ f=1/(1-x)
 p=integrate(f)
 @test_approx_eq (p-p[0.])[0.5] -log(1-0.5)
 
+
+
+y=Fun(Ray())
+@test_approx_eq (y^2)[10.] y[10.]^2
+@test_approx_eq 1/y[10.] (1/y)[10.]
+@test_approx_eq (1/y^2)[10.] 1/y[10.]^2
