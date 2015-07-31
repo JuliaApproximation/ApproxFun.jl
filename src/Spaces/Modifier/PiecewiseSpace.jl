@@ -138,6 +138,8 @@ for op in (:(.^),)
     @eval $op{V<:PiecewiseSpace}(f::Fun{V},k)=depiece(map(fk->$op(fk,k),pieces(f)))
 end
 
+Base.dot{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(dot,pieces(f),pieces(g)))
+
 function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
     vf=pieces(f)
     r=zero(T)

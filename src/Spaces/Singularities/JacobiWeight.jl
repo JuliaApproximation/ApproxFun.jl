@@ -173,7 +173,7 @@ end
 
 # O(min(m,n)) Ultraspherical inner product
 
-function innerprod{λ,S,V}(::Type{Ultraspherical{λ}},u::Vector{S},v::Vector{V})
+function innerproduct{λ,S,V}(::Type{Ultraspherical{λ}},u::Vector{S},v::Vector{V})
     T,mn = promote_type(S,V),min(length(u),length(v))
     wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
     ret = conj(u[1])*wi*v[1]
@@ -184,12 +184,12 @@ function innerprod{λ,S,V}(::Type{Ultraspherical{λ}},u::Vector{S},v::Vector{V})
     ret
 end
 
-function innerprod(::Type{Chebyshev},u::Vector,v::Vector)
+function innerproduct(::Type{Chebyshev},u::Vector,v::Vector)
   mn = min(length(u),length(v))
   (2conj(u[1])*v[1]+dot(u[2:mn],v[2:mn]))*π/2
 end
 
-function innerprod(::Type{Ultraspherical{1}},u::Vector,v::Vector)
+function innerproduct(::Type{Ultraspherical{1}},u::Vector,v::Vector)
   mn = min(length(u),length(v))
   dot(u[1:mn],v[1:mn])*π/2
 end
@@ -197,7 +197,7 @@ end
 function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{Ultraspherical{λ}})
     @assert domain(f) == domain(g)
     if f.space.α == f.space.β == λ-0.5
-        return complexlength(domain(f))/2*innerprod(Ultraspherical{λ},f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ},f.coefficients,g.coefficients)
     else
         return defaultdot(f,g)
     end
@@ -206,7 +206,7 @@ end
 function Base.dot{λ}(f::Fun{Ultraspherical{λ}},g::Fun{JacobiWeight{Ultraspherical{λ}}})
     @assert domain(f) == domain(g)
     if g.space.α == g.space.β == λ-0.5
-        return complexlength(domain(f))/2*innerprod(Ultraspherical{λ},f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ},f.coefficients,g.coefficients)
     else
         return defaultdot(f,g)
     end
@@ -215,7 +215,7 @@ end
 function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{JacobiWeight{Ultraspherical{λ}}})
     @assert domain(f) == domain(g)
     if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
-        return complexlength(domain(f))/2*innerprod(Ultraspherical{λ},f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ},f.coefficients,g.coefficients)
     else
         return defaultdot(f,g)
     end
