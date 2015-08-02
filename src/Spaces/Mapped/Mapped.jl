@@ -62,6 +62,14 @@ function Base.sum{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
 end
 
 
+function linesum{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
+    fc=Fun(f.coefficients,space(f).space)
+    x=Fun(identity,domain(fc))
+    Mp=fromcanonicalD(f,x)
+    linesum(fc*abs(Mp))
+end
+
+
 
 ## identity
 

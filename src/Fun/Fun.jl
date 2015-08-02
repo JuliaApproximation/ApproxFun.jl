@@ -307,8 +307,8 @@ Base.isreal(f::Fun)=false
 
 
 
-Base.sum{S,T}(f::Fun{S,T})=last(cumsum(f))
-integrate{D,T}(f::Fun{D,T})=integrate(Fun(f,domain(f)))
+Base.sum(f::Fun)=last(cumsum(f))
+integrate(f::Fun)=integrate(Fun(f,domain(f)))
 
 
 
