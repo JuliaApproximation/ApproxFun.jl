@@ -143,5 +143,18 @@ function Integral(sp::MappedSpace,k::Integer)
 end
 
 
+function DefiniteIntegral(sp::MappedSpace)
+    x=Fun(domain(sp.space))
+    M=Multiplication(fromcanonicalD(sp,x),sp.space)
+    DefiniteIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
+end
+
+function DefiniteLineIntegral(sp::MappedSpace)
+    x=Fun(domain(sp.space))
+    M=Multiplication(abs(fromcanonicalD(sp,x)),sp.space)
+    DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
+end
+
+
 include("mappedinfdomains.jl")
 include("CurveSpace.jl")

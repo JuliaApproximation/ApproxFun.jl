@@ -30,7 +30,7 @@ macro calculus_functional(Func)
 
         getindex(::$Func{UnsetSpace},kr::Range)=error("Spaces cannot be inferred for operator")
 
-        $WrappOp(op::Functional)=$WrappOp{eltype(op),typeof(domainspace(op)),T}(op)
+        $WrappOp(op::Functional)=$WrappOp{typeof(op),typeof(domainspace(op)),eltype(op)}(op)
 
         Base.convert{OT<:$WrappOp}(::Type{OT},Σ::OT)=Σ
         Base.convert{OT<:Operator}(::Type{OT},Σ::$WrappOp)=$WrappOp(convert(Operator{eltype(OT)},Σ.func))::OT
