@@ -1,6 +1,6 @@
 
 
-export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,∂
+export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,fromcanonicalD,∂
 export chebyshevpoints,fourierpoints,isambiguous
 
 

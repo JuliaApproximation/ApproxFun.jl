@@ -1,6 +1,6 @@
 export DefiniteIntegral,DefiniteLineIntegral
 
-macro calculus_functional(Func)
+macro calculus_functional(Func,AbstFunc,WrappFun)
     return esc(quote
         immutable $Func{S,T} <: Functional{T}
             domainspace::S
@@ -13,7 +13,7 @@ macro calculus_functional(Func)
 
         promotedomainspace(::$Func,sp::FunctionSpace)=$Func(sp)
 
-       Base.convert{OT<:$Func}(::Type{OT},Σ::OT)=Σ
+        Base.convert{OT<:$Func}(::Type{OT},Σ::OT)=Σ
         Base.convert{OT<:Operator}(::Type{OT},Σ::$Func)=$Func{typeof(Σ.domainspace),eltype(OT)}(Σ.domainspace)::OT
 
         domain(Σ::$Func)=domain(Σ.domainspace)
@@ -24,8 +24,8 @@ macro calculus_functional(Func)
     end)
 end
 
-@calculus_functional(DefiniteIntegral)
-@calculus_functional(DefiniteLineIntegral)
+@calculus_functional(DefiniteIntegral,AbstractDefiniteIntegral,DefiniteIntegralWrapper)
+@calculus_functional(DefiniteLineIntegral,AbstractDefiniteLineIntegral,DefiniteLineIntegralWrapper)
 
 
 #default implementation
