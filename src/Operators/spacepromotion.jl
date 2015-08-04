@@ -7,6 +7,8 @@ end
 
 SpaceFunctional{T<:Number,S<:FunctionSpace}(o::Functional{T},s::S)=SpaceFunctional{T,typeof(o),S}(o,s)
 
+datalength(S::SpaceFunctional)=datalength(S.op)
+
 Base.convert{T}(::Type{Operator{T}},S::SpaceFunctional)=SpaceFunctional(convert(Operator{T},S.op),S.space)
 
 getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
