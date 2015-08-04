@@ -113,7 +113,7 @@ for op in (:maxspace,:conversion_type)
 end
 
 for typ in (:PiecewiseSpace,:UnionDomain)
-    @eval ==(a::($typ),b::($typ))=length(a)==length(b)&&all([a[k]==b[k] for k=1:length(a)])
+    @eval ==(a::($typ),b::($typ))=length(a)==length(b)&&all(k->a[k]==b[k],1:length(a))
 end
 
 
