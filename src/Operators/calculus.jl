@@ -11,6 +11,7 @@ abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 macro calculus_operator(Op,AbstOp,WrappOp)
     return esc(quote
         # The SSS, TTT are to work around #9312
+        abstract $AbstOp{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 
         immutable $Op{S<:FunctionSpace,OT,T} <: $AbstOp{S,OT,T}
             space::S        # the domain space
@@ -126,9 +127,8 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 end
 
 
-abstract AbstractDerivative{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
+
 @calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
-abstract AbstractIntegral{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 @calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
 
 for (ATYP,TYP) in ((:AbstractDerivative,:Derivative),(:AbstractIntegral,:Integral))
@@ -171,7 +171,6 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 
 
-abstract AbstractLaplacian{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 @calculus_operator(Laplacian,AbstractLaplacian,LaplacianWrapper)
 
 Laplacian(S::FunctionSpace,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)

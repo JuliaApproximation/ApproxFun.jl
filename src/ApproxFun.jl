@@ -1,5 +1,10 @@
 module ApproxFun
     using Base, Compat
+    
+    
+import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
+                >=,./,/,.^,^,\,∪,transpose
+    
 
 export pad!,pad,sample,chop!,complexroots,roots,svfft
 export multiplybyx,fasttimes
@@ -8,7 +13,6 @@ export multiplybyx,fasttimes
 export bisectioninv, clenshaw
 
 
-import Base.values
 
 
 
