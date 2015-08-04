@@ -8,7 +8,9 @@ abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 
 
 
-macro calculus_operator(Op,AbstOp,WrappOp)
+macro calculus_operator(Op)
+    AbstOp=parse("Abstract"*string(Op)) 
+    WrappOp=parse(string(Op)*"Wrapper")
     return esc(quote
         # The SSS, TTT are to work around #9312
         abstract $AbstOp{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
@@ -128,8 +130,8 @@ end
 
 
 
-@calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
-@calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
+@calculus_operator(Derivative)
+@calculus_operator(Integral)
 
 for (ATYP,TYP) in ((:AbstractDerivative,:Derivative),(:AbstractIntegral,:Integral))
     @eval begin
@@ -171,7 +173,7 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 
 
-@calculus_operator(Laplacian,AbstractLaplacian,LaplacianWrapper)
+@calculus_operator(Laplacian)
 
 Laplacian(S::FunctionSpace,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
 Laplacian(S)=Laplacian(S,1)
