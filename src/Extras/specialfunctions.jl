@@ -344,6 +344,10 @@ function Base.exp{JW<:JacobiWeight}(f::Fun{JW})
         exp(Fun(f,JacobiWeight(S.α+1,S.β,S.space)))
     elseif S.β < 0 && isapprox(last(q),0.)
         exp(Fun(f,JacobiWeight(S.α,S.β+1,S.space)))
+    elseif S.α > 0 && isapproxinteger(S.α)
+        exp(Fun(f,JacobiWeight(0.,S.β,S.space)))
+    elseif S.β > 0 && isapproxinteger(S.β)
+        exp(Fun(f,JacobiWeight(S.α,0.,S.space)))
     else
         #find normalization point
         xmax,opfxmax,opmax=specialfunctionnormalizationpoint(exp,real,f)
@@ -359,7 +363,7 @@ function Base.exp{JW<:JacobiWeight}(f::Fun{JW})
             @assert last(q) < 0
             s=JacobiWeight(0.,2.,domain(f))
         else
-            error("exponential has exponential growth, not implemented")
+            error("exponential of fractional power, not implemented")
         end
 
         D=Derivative(s)
