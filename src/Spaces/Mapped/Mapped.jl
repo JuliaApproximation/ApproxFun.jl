@@ -91,12 +91,26 @@ Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
     SpaceOperator(Conversion(S1.space,S2.space),
         S1,S2))
 
+Conversion(S1::ConstantSpace,S2::MappedSpace)=ConversionWrapper(
+    SpaceOperator(Conversion(S1,S2.space),
+        S1,S2))
+
 # Conversion is induced from canonical space
 for OP in (:conversion_rule,:maxspace)
-    @eval function $OP(S1::MappedSpace,S2::MappedSpace)
-        @assert domain(S1)==domain(S2)
-        cr=$OP(S1.space,S2.space)
-        MappedSpace(domain(S1),cr)
+    @eval begin
+        function $OP(S1::MappedSpace,S2::MappedSpace)
+            @assert domain(S1)==domain(S2)
+            cr=$OP(S1.space,S2.space)
+            MappedSpace(domain(S1),cr)
+        end
+        function $OP(S1::ConstantSpace,S2::MappedSpace)
+            cr=$OP(S1,S2.space)
+            if isa(cr,ConstantSpace)
+                cr
+            else
+                MappedSpace(domain(S2),cr)
+            end
+        end
     end
 end
 

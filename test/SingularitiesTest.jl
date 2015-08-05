@@ -112,6 +112,13 @@ f=x^(-0.123)*exp(-x)
 @test_approx_eq_eps sum(Fun(sech,[0,Inf])) sum(Fun(sech,[0,40.])) 1000000eps()
 
 
+#Ei (Exp Integral)
+
+y=Fun(Ray())
+q=integrate(exp(-y)/y)
+@test_approx_eq (q-last(q))[2.] (-0.04890051070806113)
+
+
 
 ## Line
 

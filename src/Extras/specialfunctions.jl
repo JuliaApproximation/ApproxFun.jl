@@ -288,6 +288,24 @@ end
 
 Base.atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 
+
+# this is used to find a point in which to impose a boundary
+# condition in calculating secial functions
+function specialfunctionnormalizationpoint(op,growth,f)
+    g=chop(growth(f),eps(eltype(f)))
+    xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
+    xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
+    opfxmin,opfxmax = op(f[xmin]),op(f[xmax])
+    opmax = maxabs((opfxmin,opfxmax))
+    if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
+    xmax,opfxmax,opmax
+end
+
+
+
+# ODE gives the first order ODE a special function op satisfies,
+# RHS is the right hand side
+# growth says what to use to choose a good point to impose an initial condition
 for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
                             (:(Base.asinh),"sqrt(f^2+1)*D","f'",:(real)),
                             (:(Base.acosh),"sqrt(f^2-1)*D","f'",:(real)),
@@ -296,13 +314,13 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
                             (:(Base.dawson),"D+2f*f'","f'",:(real)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
+        # We remove the MappedSpace
+        function $op{MS<:MappedSpace}(f::Fun{MS})
+            g=exp(Fun(f.coefficients,space(f).space))
+            Fun(g.coefficients,MappedSpace(domain(f),space(g)))
+        end
         function $op{S,T}(f::Fun{S,T})
-            g=chop($growth(f),eps(T))
-            xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
-            xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
-            opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
-            opmax = maxabs((opfxmin,opfxmax))
-            if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
+            xmax,opfxmax,opmax=specialfunctionnormalizationpoint($op,$growth,f)
             # we will assume the result should be smooth on the domain
             # even if f is not
             # This supports Line/Rays
@@ -313,6 +331,49 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
         end
     end
 end
+
+# JacobiWeight explodes, we want to ensure the solution incorporates the fact
+# that exp decays rapidly
+function Base.exp{JW<:JacobiWeight}(f::Fun{JW})
+    S=space(f)
+    q=Fun(f.coefficients,S.space)
+    if isapprox(S.α,0.) && isapprox(S.β,0.)
+        exp(q)
+    elseif S.α < 0 && isapprox(first(q),0.)
+        # this case can remove the exponential decay
+        exp(Fun(f,JacobiWeight(S.α+1,S.β,S.space)))
+    elseif S.β < 0 && isapprox(last(q),0.)
+        exp(Fun(f,JacobiWeight(S.α,S.β+1,S.space)))
+    else
+        #find normalization point
+        xmax,opfxmax,opmax=specialfunctionnormalizationpoint(exp,real,f)
+
+        if S.α < 0 && S.β < 0
+            # provided both are negative, we get exponential decay on both ends
+            @assert first(q) < 0 && last(q) < 0
+            s=JacobiWeight(2.,2.,domain(f))
+        elseif S.α < 0 && isapprox(S.β,0.)
+            @assert first(q) < 0
+            s=JacobiWeight(2.,0.,domain(f))
+        elseif S.β < 0 && isapprox(S.α,0.)
+            @assert last(q) < 0
+            s=JacobiWeight(0.,2.,domain(f))
+        else
+            error("exponential has exponential growth, not implemented")
+        end
+
+        D=Derivative(s)
+        B=Evaluation(s,xmax)
+
+        linsolve([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
+    end
+end
+
+
+
+
+
+
 
 Base.acos(f::Fun)=cumsum(-f'/sqrt(1-f^2))+acos(first(f))
 Base.asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
