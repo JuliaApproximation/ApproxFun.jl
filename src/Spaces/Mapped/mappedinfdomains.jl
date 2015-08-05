@@ -54,33 +54,33 @@ end
 
 #integration functions
 
-integrate{LS,T}(f::Fun{LineSpace{LS},T})=linsolve([ldirichlet(),Derivative()],Any[0.,f];tolerance=length(f)^2*max(1,maximum(f.coefficients))*10E-13)
-function integrate{LS<:JacobiWeight,RR<:Line,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
-    # x^k -> x^(k+1)  so +1,-1 to singularities
-    # if the last entry of f is close to zero wei use the same space
-    D=Derivative(MappedSpace(space(f).domain,
-                             JacobiWeight(space(f).space.α-1,
-                                          space(f).space.β-1,
-                                          domain(space(f).space))))
-    linsolve([Evaluation(domainspace(D),0.),D],Any[0.,f];tolerance=length(f)*1.0E-15)
-end
+# integrate{LS,T}(f::Fun{LineSpace{LS},T})=linsolve([ldirichlet(),Derivative()],Any[0.,f];tolerance=length(f)^2*max(1,maximum(f.coefficients))*10E-13)
+# function integrate{LS<:JacobiWeight,RR<:Line,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
+#     # x^k -> x^(k+1)  so +1,-1 to singularities
+#     # if the last entry of f is close to zero wei use the same space
+#     D=Derivative(MappedSpace(space(f).domain,
+#                              JacobiWeight(space(f).space.α-1,
+#                                           space(f).space.β-1,
+#                                           domain(space(f).space))))
+#     linsolve([Evaluation(domainspace(D),0.),D],Any[0.,f];tolerance=length(f)*1.0E-15)
+# end
 
 
-Base.cumsum{LS<:JacobiWeight,RR<:Ray,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})=integrate(f) # the choice of space is zero at 0
+#Base.cumsum{LS<:JacobiWeight,RR<:Ray,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})=integrate(f) # the choice of space is zero at 0
 
 
-function Base.sum{LS,T}(f::Fun{LineSpace{LS},T})
-    d=domain(f)
-    if d.α==d.β==-.5
-        p=Fun(f.coefficients,f.space.space)  # project to [-1,1]
-        q=divide_singularity(p)              # divide by (1-x^2), result is in Chebyshev
-        r=Fun(q.coefficients,JacobiWeight(-.5,-.5,Interval()))  # multiply by jacobi weight
-        sum(r)
-    else
-        cf = integrate(f)
-        last(cf) - first(cf)
-    end
-end
+# function Base.sum{LS,T}(f::Fun{LineSpace{LS},T})
+#     d=domain(f)
+#     if d.α==d.β==-.5
+#         p=Fun(f.coefficients,f.space.space)  # project to [-1,1]
+#         q=divide_singularity(p)              # divide by (1-x^2), result is in Chebyshev
+#         r=Fun(q.coefficients,JacobiWeight(-.5,-.5,Interval()))  # multiply by jacobi weight
+#         sum(r)
+#     else
+#         cf = integrate(f)
+#         last(cf) - first(cf)
+#     end
+# end
 
 
 
