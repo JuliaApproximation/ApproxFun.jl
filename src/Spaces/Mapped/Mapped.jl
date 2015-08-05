@@ -78,14 +78,15 @@ function identity_fun{SS,DD,DDT}(S::MappedSpace{SS,DD,DDT})
     Fun(coefficients(sf),MappedSpace(S.domain,space(sf)))
 end
 
-union_rule(A::ConstantSpace,B::MappedSpace)=MappedSpace(domain(B),union(A,B.space))
-
 ## Operators
 
 function Evaluation(S1::MappedSpace,x::Bool,order::Integer)
     @assert order==0
     EvaluationWrapper(S1,x,order,Evaluation(S1.space,x,order))
 end
+
+coefficients(f::Vector,S1::MappedSpace,S2::MappedSpace)=coefficients(f,S1.space,S2.space)
+coefficients(f::Vector,S1::ConstantSpace,S2::MappedSpace)=coefficients(f,S1,S2.space)
 
 Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
     SpaceOperator(Conversion(S1.space,S2.space),
@@ -96,16 +97,20 @@ Conversion(S1::ConstantSpace,S2::MappedSpace)=ConversionWrapper(
         S1,S2))
 
 # Conversion is induced from canonical space
-for OP in (:conversion_rule,:maxspace)
+for OP in (:union_rule,:conversion_rule,:maxspace)
     @eval begin
         function $OP(S1::MappedSpace,S2::MappedSpace)
             @assert domain(S1)==domain(S2)
             cr=$OP(S1.space,S2.space)
-            MappedSpace(domain(S1),cr)
+            if isa(cr,NoSpace)
+                cr
+            else
+                MappedSpace(domain(S1),cr)
+            end
         end
         function $OP(S1::ConstantSpace,S2::MappedSpace)
             cr=$OP(S1,S2.space)
-            if isa(cr,ConstantSpace)
+            if isa(cr,ConstantSpace)||isa(cr,NoSpace)
                 cr
             else
                 MappedSpace(domain(S2),cr)
