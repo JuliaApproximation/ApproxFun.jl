@@ -307,3 +307,38 @@ function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A,kr::Range)
     end
     A
 end
+
+
+
+
+
+
+## just takes realpart of operator
+immutable ReOperator{O,T} <: BandedOperator{T}
+    op::O
+end
+
+ReOperator(op)=ReOperator{typeof(op),Float64}(op)
+Base.convert{BT<:Operator}(::Type{BT},R::ReOperator)=ReOperator{typeof(R.op),eltype(BT)}(R.op)
+
+for OP in (:rangespace,:domainspace,:bandinds)
+    @eval $OP(R::ReOperator)=$OP(R.op)
+end
+
+
+
+function addentries!(RI::ReOperator,A,kr::UnitRange)
+    if isa(eltype(RI.op),Real)
+        addentries!(RI.op,A,kr)
+    else
+        B=subview(RI.op,kr,:)
+        for k=kr,j=columnrange(RI,k)
+           A[k,j]+=real(B[k,j])
+        end
+        A
+    end
+end
+
+
+Base.real{T<:Real}(op::BandedOperator{T})=op
+Base.real(op::BandedOperator)=ReOperator(op)
