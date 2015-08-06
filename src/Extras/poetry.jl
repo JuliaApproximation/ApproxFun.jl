@@ -3,7 +3,7 @@
 #####
 
 
-export chebyshevt,chebyshevu,legendre,∫,⨜,⨍,∇,Δ
+export chebyshevt,chebyshevu,legendre,∫,⨜,⨍,∇,Δ,ChebyshevWeight
 
 ## Constructors
 
@@ -25,6 +25,11 @@ for poly in (:chebyshevt,:chebyshevu,:legendre)
         $poly{T<:Number}(n::Range,d::Interval{T}) = map(i->$poly(i,d),n)
     end
 end
+
+ChebyshevWeight(d::Domain,k)=k==0?JacobiWeight(-0.5,-0.5,d):JacobiWeight(0.5,0.5,d)
+ChebyshevWeight(d::Domain)=ChebyshevWeight(d,0)
+ChebyshevWeight(k::Integer)=ChebyshevWeight(Interval(),k)
+ChebyshevWeight()=ChebyshevWeight(0)
 
 # shorthand for second order
 

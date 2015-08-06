@@ -137,6 +137,8 @@ function choosedomainspace(A::Operator,sp)
     sp2=domainspace(A)
     isambiguous(sp2)?sp:sp2
 end
+choosedomainspace(A::Functional,sp)=domainspace(A)
+
 choosedomainspace(A)=choosedomainspace(A,AnySpace())
 
 function choosedomainspace(ops::Vector,spin)
