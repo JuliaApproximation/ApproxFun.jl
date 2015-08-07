@@ -339,6 +339,17 @@ function addentries!(RI::ReOperator,A,kr::UnitRange)
     end
 end
 
+choosedomainspace(R::ReOperator,sp)=choosedomainspace(R.op,sp)
+for OP in (:promotedomainspace,:promoterangespace)
+    @eval begin
+        $OP(R::ReOperator,sp::UnsetSpace)=ReOperator($OP(R.op,sp))
+        $OP(R::ReOperator,sp::AnySpace)=ReOperator($OP(R.op,sp))
+        $OP(R::ReOperator,sp::FunctionSpace)=ReOperator($OP(R.op,sp))
+    end
+end
 
-Base.real{T<:Real}(op::BandedOperator{T})=op
+
+
+# TODO: can't do this because UnsetSpace might change type
+#Base.real{T<:Real}(op::BandedOperator{T})=op
 Base.real(op::BandedOperator)=ReOperator(op)

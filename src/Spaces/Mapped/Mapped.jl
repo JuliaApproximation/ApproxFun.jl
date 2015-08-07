@@ -10,6 +10,7 @@ type MappedSpace{S<:FunctionSpace,D,T} <: FunctionSpace{T,1}
     MappedSpace(d::D,sp::S)=new(d,sp)
     MappedSpace(d::D)=new(d,S(canonicaldomain(d)))
     MappedSpace()=new(D(),S())
+    MappedSpace(d::AnyDomain)=new(convert(D,d),S(d))
 end
 
 
