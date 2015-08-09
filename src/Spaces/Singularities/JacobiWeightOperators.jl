@@ -80,7 +80,9 @@ function integrate{J<:JacobiWeight}(f::Fun{J})
     D=Derivative(S)
     tol=1e-10
     g=Fun(f.coefficients,S.space)
-    if S.α ≤ -1.0 && abs(first(g))≤tol
+    if isapprox(S.α,0.) && isapprox(S.β,0.)
+        integrate(g)
+    elseif S.α ≤ -1.0 && abs(first(g))≤tol
         integrate(increase_jacobi_parameter(-1,f))
     elseif S.β ≤ -1.0 && abs(last(g))≤tol
         integrate(increase_jacobi_parameter(+1,f))
