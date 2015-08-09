@@ -137,8 +137,12 @@ function complexplot(f::Fun,v...;opts...)
 end
 
 function complexplot{F<:Fun}(f::Vector{F},v...;opts...)
-    for k=1:length(f)
-        complexplot(f[k],v...;opts...)
+    if plotter[:plot]=="PyPlot"
+        for k=1:length(f)
+            complexplot(f[k],v...;opts...)
+        end
+    else
+        plot(mapreduce(complexlayer,vcat,f),v...;opts...)
     end
 end
 
@@ -228,8 +232,22 @@ end
 for (plt,cplt) in ((:plot,:complexplot),(:layer,:complexlayer))
     @eval $plt(d::Domain,v...;kwds...)=$cplt(Fun(identity,d),v...;kwds...)  # default is to call complexplot
 end
-plot{D<:Domain}(ds::Vector{D},v...;kwds...)=complexplot(map(d->Fun(identity,d),ds),v...;kwds...)
-layer{D<:Domain}(d::Vector{D})=map(layer,d)
+function plot{D<:Domain}(f::Vector{D},v...;opts...)
+    if plotter[:plot]=="PyPlot"
+        for k=1:length(f)
+            plot(f[k],v...;opts...)
+        end
+    else
+        plot(layer(f),v...;opts...)
+    end
+end
+
+layer{D<:Domain}(d::Vector{D})=mapreduce(layer,vcat,d)
+
+for OP in (:plot,:layer)
+    @eval $OP(d::UnionDomain)=$OP(d.domains)
+end
+
 
 domainplot(f::Union(Fun,FunctionSpace),v...;kwds...)=plot(domain(f),v...;kwds...)
 domainlayer(f::Union(Fun,FunctionSpace))=layer(domain(f))

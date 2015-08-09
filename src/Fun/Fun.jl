@@ -41,6 +41,7 @@ coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 
 
 Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(convert(Vector{T},f.coefficients),f.space)
+Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))
 
 Base.convert{T,S}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
 Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
