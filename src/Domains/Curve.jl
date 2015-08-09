@@ -4,7 +4,7 @@
 
 export Curve
 
-immutable Curve{S<:FunctionSpace,T} <: Domain{T}
+immutable Curve{S<:FunctionSpace,T} <: UnivariateDomain{T}
     curve::Fun{S,T}
 end
 
@@ -32,3 +32,4 @@ end
 fromcanonicalD(c::Curve,x)=differentiate(c.curve)[x]
 
 
+Base.in(x,d::Curve)=in(tocanonical(d,x),canonicaldomain(d))

@@ -86,11 +86,6 @@ end
 
 ## Derivative
 
-function invfromcanonicalD(d::PeriodicLine{false})
-    @assert d.centre==0  && d.L==1.0
-    a=Fun([1.,0,1],PeriodicInterval())
-end
-
 function invfromcanonicalD{LL<:Union(Laurent,LaurentDirichlet)}(S::MappedSpace{LL,PeriodicLine{false}})
     d=domain(S)
     @assert d.centre==0  && d.L==1.0
@@ -98,7 +93,7 @@ function invfromcanonicalD{LL<:Union(Laurent,LaurentDirichlet)}(S::MappedSpace{L
 end
 
 
-function Derivative{SS<:FunctionSpace,LD<:Union(Line,Ray,PeriodicLine),T}(S::MappedSpace{SS,LD,T},order::Int)
+function Derivative{SS<:FunctionSpace,LD<:Union(Line,Ray,PeriodicLine,Curve),T}(S::MappedSpace{SS,LD,T},order::Int)
     D1=invfromcanonicalD(S)*Derivative(S.space)
     D=DerivativeWrapper(SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1))),1)
     if order==1

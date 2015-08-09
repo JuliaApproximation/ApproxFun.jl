@@ -124,6 +124,11 @@ tocanonical{a}(d::PeriodicLine{a},x)=tocanonical(PeriodicLine{false}(0.,d.L),exp
 fromcanonical{a}(d::PeriodicLine{a},x)=exp(π*im*a)*fromcanonical(PeriodicLine{false}(0.,d.L),x)+d.centre
 
 
+function invfromcanonicalD(d::PeriodicLine{false})
+    @assert d.centre==0  && d.L==1.0
+    a=Fun([1.,0,1],PeriodicInterval())
+end
+
 mappoint(a::PeriodicLine{false},b::Circle,x)=b.radius*((a.L*im-(x-a.centre))./(a.L*im+(x-a.centre)))+b.center
 function mappoint(b::Circle,a::PeriodicLine{false},x)
     y=(x-b.center)./b.radius
