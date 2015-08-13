@@ -37,49 +37,57 @@ Base.convert{IT<:Line}(::Type{IT},::AnyDomain)=Line(NaN,NaN)
 ##TODO non-1 alpha,beta
 
 
-function tocanonical(d::Line,x)
-    @assert d.α==d.β==-1. || d.α==d.β==-.5
+function line_tocanonical(α,β,x)
 
-    if d.α==d.β==-1.
+
+    @assert α==β==-1. || α==β==-.5
+
+    if α==β==-1.
         2x./(1+sqrt(1+4x.^2))
-    elseif d.α==d.β==-.5
+    elseif α==β==-.5
         x./sqrt(1 + x.^2)
     end
 end
 
-function tocanonicalD(d::Line,x)
-    @assert d.α==d.β==-1. || d.α==d.β==-.5
+function line_tocanonicalD(α,β,x)
+    @assert α==β==-1. || α==β==-.5
 
-    if d.α==d.β==-1.
+    if α==β==-1.
         2./(1+4x.^2+sqrt(1+4x.^2))
-    elseif d.α==d.β==-.5
+    elseif α==β==-.5
         (1 + x.^2).^(-3/2)
     end
 end
-function fromcanonical(d::Line,x)
+function line_fromcanonical(α,β,x)
     #TODO: why is this consistent?
-    if d.α==d.β==-1.
+    if α==β==-1.
         x./(1-x.^2)
     else
-        x.*(1 + x).^d.α.*(1 - x).^d.β
+        x.*(1 + x).^α.*(1 - x).^β
     end
 end
-function fromcanonicalD(d::Line,x)
-    if d.α==d.β==-1.
+function line_fromcanonicalD(α,β,x)
+    if α==β==-1.
         (1+x.^2)./(1-x.^2).^2
     else
-        (1 - (d.β-d.α)x - (d.β+d.α+1)x.^2).*(1+x).^(d.α-1).*(1-x).^(d.β-1)
+        (1 - (β-α)x - (β+α+1)x.^2).*(1+x).^(α-1).*(1-x).^(β-1)
     end
 end
 
-function invfromcanonicalD(d::Line,x)
-    if d.α==d.β==-1.
+function line_invfromcanonicalD(α,β,x)
+    if α==β==-1.
         (1-x.^2).^2./(1+x.^2)
     else
-        1./(1 - (d.β-d.α)x - (d.β+d.α+1)x.^2).*(1+x).^(1-d.α).*(1-x).^(1-d.β)
+        1./(1 - (β-α)x - (β+α+1)x.^2).*(1+x).^(1-α).*(1-x).^(1-β)
     end
 end
 
+
+tocanonical(d::Line,x)=line_tocanonical(d.α,d.β,cistyped(-d.angle).*(x-d.centre))
+tocanonicalD(d::Line,x)=cistyped(-d.angle).*line_tocanonicalD(d.α,d.β,cistyped(-d.angle).*(x-d.centre))
+fromcanonical(d::Line,x)=cistyped(d.angle)*line_fromcanonical(d.α,d.β,x)+d.centre
+fromcanonicalD(d::Line,x)=cistyped(d.angle)*line_fromcanonicalD(d.α,d.β,x)
+invfromcanonicalD(d::Line,x)=cistyped(-d.angle)*line_invfromcanonicalD(d.α,d.β,x)
 
 
 
@@ -92,6 +100,10 @@ Base.last(d::Line)= Inf
 ==(d::Line,m::Line) = d.centre == m.centre && d.angle == m.angle && d.β == m.β &&d.α == m.α
 
 
+
+# algebra
+*(c::Number,d::Line)=Line(isapprox(d.centre,0)?d.centre:c*d.centre,d.angle+angle(c),d.α,d.β)
++(c::Number,d::Line)=Line(c+d.centre,d.angle,d.α,d.β)
 
 
 
@@ -116,6 +128,7 @@ isambiguous(d::PeriodicLine)=isnan(d.centre) && isnan(d.angle)
 Base.convert{T<:Number}(::Type{PeriodicLine{T}},::AnyDomain)=PeriodicLine{T}(NaN,NaN)
 Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain)=PeriodicLine(NaN,NaN)
 
+Base.angle{a}(d::PeriodicLine{a})=a*π
 
 tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.centre)/d.L)
 fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.centre
@@ -134,6 +147,11 @@ function mappoint(b::Circle,a::PeriodicLine{false},x)
     y=(x-b.center)./b.radius
     a.centre+a.L*im*(1-y)./(y+1)
 end
+
+
+# algebra
+*(c::Number,d::PeriodicLine)=PeriodicLine(isapprox(d.centre,0)?d.centre:c*d.centre,angle(d)+angle(c))
++{a}(c::Number,d::PeriodicLine{a})=PeriodicLine{a}(c+d.centre,d.L)
 
 ## vectorized
 
@@ -155,7 +173,12 @@ for typ in (:Line,:PeriodicLine)
             @assert sign(imag(d[1]))==-sign(imag(d[2]))
 
             $typ(real(d[2]),angle(d[2]))
-
+        elseif isnan(real(d[1])) && isnan(real(d[2]))  # hack for -im*Inf
+            $typ([imag(d[1])*im,imag(d[2])*im])
+        elseif isnan(real(d[1]))  # hack for -im*Inf
+            $typ([real(d[2])+imag(d[1])*im,d[2]])
+        elseif isnan(real(d[2]))  # hack for -im*Inf
+            $typ([d[1],real(d[1])+imag(d[2])*im])
         elseif abs(imag(d[1])) < Inf
             @assert imag(d[1])==imag(d[2])
             @assert sign(real(d[1]))==-sign(real(d[2]))

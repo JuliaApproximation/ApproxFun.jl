@@ -354,13 +354,13 @@ function Base.exp{JW<:JacobiWeight}(f::Fun{JW})
 
         if S.α < 0 && S.β < 0
             # provided both are negative, we get exponential decay on both ends
-            @assert first(q) < 0 && last(q) < 0
+            @assert real(first(q)) < 0 && real(last(q)) < 0
             s=JacobiWeight(2.,2.,domain(f))
         elseif S.α < 0 && isapprox(S.β,0.)
-            @assert first(q) < 0
+            @assert real(first(q)) < 0
             s=JacobiWeight(2.,0.,domain(f))
         elseif S.β < 0 && isapprox(S.α,0.)
-            @assert last(q) < 0
+            @assert real(last(q)) < 0
             s=JacobiWeight(0.,2.,domain(f))
         else
             error("exponential of fractional power, not implemented")
