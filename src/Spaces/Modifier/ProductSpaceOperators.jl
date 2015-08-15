@@ -152,6 +152,9 @@ function Conversion(S1::SumSpace,S2::SumSpace)
         ConversionWrapper(SpaceOperator(
         PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),S1.spaces,S2.spaces),
                       S1,S2))
+    elseif all(map((a,b)->conversion_type(a,b)==a,S1.spaces,S2.spaces))
+        # we can blocmk convert
+        ConversionWrapper(sumblkdiagm([map(Conversion,S1.spaces,S2.spaces)...]))
     else
         # we don't know how to convert so go to default
         defaultconversion(S1,S2)

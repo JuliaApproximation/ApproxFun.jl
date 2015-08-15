@@ -53,10 +53,6 @@ end
 
 
 
-## Resolve conflict
-
-coefficients(::Vector,sp::SumSpace,slp::SliceSpace)=error("coefficients not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
-coefficients(::Vector,sp::SliceSpace,slp::SumSpace)=error("coefficients not implemented from "*typeof(sp)*" to "*typeof(slp))
 
 # v[k]=v[stride*k+index]
 function coefficients(v::Vector,sp::SliceSpace,dropsp::SliceSpace)
@@ -67,25 +63,29 @@ function coefficients(v::Vector,sp::SliceSpace,dropsp::SliceSpace)
     end
 end
 
-function coefficients(v::Vector,sp::FunctionSpace,dropsp::SliceSpace)
-    if sp==dropsp.space
-        n=index(dropsp)
-        st=stride(dropsp)
-        v[st+n:st:end]
-    else
-        coefficients(v,sp,canonicalspace(dropsp),dropsp)
-    end
-end
+for TYP in (:SumSpace,:FunctionSpace) # Resolve conflict
+    @eval begin
+        function coefficients(v::Vector,sp::$TYP,dropsp::SliceSpace)
+            if sp==dropsp.space
+                n=index(dropsp)
+                st=stride(dropsp)
+                v[st+n:st:end]
+            else
+                coefficients(v,sp,canonicalspace(dropsp),dropsp)
+            end
+        end
 
-function coefficients{V}(v::Vector{V},dropsp::SliceSpace,sp::FunctionSpace)
-    if sp==dropsp.space
-        n=index(dropsp)
-        st=stride(dropsp)
-        ret=zeros(V,st*length(v)+n)
-        ret[st+n:st:end]=v
-        ret
-    else
-        coefficients(v,dropsp,canonicalspace(dropsp),sp)
+        function coefficients{V}(v::Vector{V},dropsp::SliceSpace,sp::$TYP)
+            if sp==dropsp.space
+                n=index(dropsp)
+                st=stride(dropsp)
+                ret=zeros(V,st*length(v)+n)
+                ret[st+n:st:end]=v
+                ret
+            else
+                coefficients(v,dropsp,canonicalspace(dropsp),sp)
+            end
+        end
     end
 end
 

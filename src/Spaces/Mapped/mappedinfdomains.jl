@@ -1,6 +1,6 @@
 typealias LineSpace{T} MappedSpace{Chebyshev,Line{T},RealBasis}
-typealias PeriodicLineSpace{T} MappedSpace{Fourier,PeriodicLine{T},RealBasis}
-typealias PeriodicLineDirichlet{T} MappedSpace{LaurentDirichlet,PeriodicLine{T},ComplexBasis}
+typealias PeriodicLineSpace{T,TT} MappedSpace{Fourier,PeriodicLine{T,TT},RealBasis}
+typealias PeriodicLineDirichlet{T,TT} MappedSpace{LaurentDirichlet,PeriodicLine{T,TT},ComplexBasis}
 
 
 

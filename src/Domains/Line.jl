@@ -103,7 +103,13 @@ Base.last(d::Line)= Inf
 
 # algebra
 *(c::Number,d::Line)=Line(isapprox(d.centre,0)?d.centre:c*d.centre,d.angle+angle(c),d.α,d.β)
-+(c::Number,d::Line)=Line(c+d.centre,d.angle,d.α,d.β)
+*(d::Line,c::Number)=c*d
+for OP in (:+,:-)
+    @eval begin
+        $OP(c::Number,d::Line)=Line($OP(c,d.centre),d.angle,d.α,d.β)
+        $OP(d::Line,c::Number)=Line($OP(d.centre,c),d.angle,d.α,d.β)
+    end
+end
 
 
 
@@ -111,8 +117,8 @@ Base.last(d::Line)= Inf
 
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1]
-immutable PeriodicLine{angle} <: PeriodicDomain{Float64}
-    centre::Float64  ##TODO Allow complex
+immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
+    centre::T
     L::Float64
     PeriodicLine(c,L)=new(c,L)
     PeriodicLine(c)=new(c,1.)
@@ -120,12 +126,12 @@ immutable PeriodicLine{angle} <: PeriodicDomain{Float64}
 end
 
 canonicaldomain(::PeriodicLine)=PeriodicInterval()
-PeriodicLine(c,a)=PeriodicLine{a/π}(c,1.)
-PeriodicLine()=PeriodicLine{false}(0.,1.)
-PeriodicLine(b::Bool)=PeriodicLine{b}()
+PeriodicLine(c,a)=PeriodicLine{a/π,eltype(c)}(c,1.)
+PeriodicLine()=PeriodicLine{false,Float64}(0.,1.)
+PeriodicLine(b::Bool)=PeriodicLine{b,Float64}()
 
 isambiguous(d::PeriodicLine)=isnan(d.centre) && isnan(d.angle)
-Base.convert{T<:Number}(::Type{PeriodicLine{T}},::AnyDomain)=PeriodicLine{T}(NaN,NaN)
+Base.convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain)=PeriodicLine{T,TT}(NaN,NaN)
 Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain)=PeriodicLine(NaN,NaN)
 
 Base.angle{a}(d::PeriodicLine{a})=a*π
@@ -151,7 +157,13 @@ end
 
 # algebra
 *(c::Number,d::PeriodicLine)=PeriodicLine(isapprox(d.centre,0)?d.centre:c*d.centre,angle(d)+angle(c))
-+{a}(c::Number,d::PeriodicLine{a})=PeriodicLine{a}(c+d.centre,d.L)
+*(d::PeriodicLine,c::Number)=c*d
+for OP in (:+,:-)
+    @eval begin
+        $OP{a,T}(c::Number,d::PeriodicLine{a,T})=PeriodicLine{a,promote_type(eltype(c),T)}($OP(c,d.centre),d.L)
+        $OP{a,T}(d::PeriodicLine{a,T},c::Number)=PeriodicLine{a,promote_type(eltype(c),T)}($OP(d.centre,c),d.L)
+    end
+end
 
 ## vectorized
 
