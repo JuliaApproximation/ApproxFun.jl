@@ -389,7 +389,8 @@ function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
 end
 
 rangespace(B::PrependColumnsOperator)=rangespace(B.op)
-domainspace(B::PrependColumnsOperator)=SumSpace(ConstantSpace(),domainspace(B.op))
+domainspace(B::PrependColumnsOperator)=size(B.cols,2)==1?SumSpace(ConstantSpace(),domainspace(B.op)):
+                                                         SumSpace(ArraySpace(ConstantSpace(),size(B.cols,2)),domainspace(B.op))
 bandinds(B::PrependColumnsOperator)=min(1-size(B.cols,1),bandinds(B.op,1)+size(B.cols,2)),
                                         bandinds(B.op,2)+size(B.cols,2)
 
@@ -417,7 +418,11 @@ domainspace(P::PrependColumnsFunctional)=SumSpace(ConstantSpace(),domainspace(P.
 
 function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range)
     lcols = length(P.cols)
-    opr = intersect(kr,length(P.cols)+1:kr[end])
-    [P.cols[intersect(kr,1:length(P.cols))],P.op[opr[1]-lcols:opr[end]-lcols]]
+    if kr[end]≤lcols
+        P.cols[kr]
+    else
+        opr = intersect(kr,length(P.cols)+1:kr[end])
+        [P.cols[intersect(kr,1:length(P.cols))],P.op[opr[1]-lcols:opr[end]-lcols]]
+    end
 end
 Base.convert{BT<:Operator}(::Type{BT},P::PrependColumnsFunctional)=PrependColumnsFunctional(convert(Vector{eltype(BT)},P.cols),convert(Functional{eltype(BT)},P.op))

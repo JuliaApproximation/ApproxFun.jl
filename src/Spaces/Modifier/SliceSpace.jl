@@ -63,32 +63,6 @@ function coefficients(v::Vector,sp::SliceSpace,dropsp::SliceSpace)
     end
 end
 
-for TYP in (:SumSpace,:FunctionSpace) # Resolve conflict
-    @eval begin
-        function coefficients(v::Vector,sp::$TYP,dropsp::SliceSpace)
-            if sp==dropsp.space
-                n=index(dropsp)
-                st=stride(dropsp)
-                v[st+n:st:end]
-            else
-                coefficients(v,sp,canonicalspace(dropsp),dropsp)
-            end
-        end
-
-        function coefficients{V}(v::Vector{V},dropsp::SliceSpace,sp::$TYP)
-            if sp==dropsp.space
-                n=index(dropsp)
-                st=stride(dropsp)
-                ret=zeros(V,st*length(v)+n)
-                ret[st+n:st:end]=v
-                ret
-            else
-                coefficients(v,dropsp,canonicalspace(dropsp),sp)
-            end
-        end
-    end
-end
-
 canonicalspace(a::SliceSpace)=a.space
 
 ## points

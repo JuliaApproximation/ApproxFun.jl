@@ -33,7 +33,7 @@ end
 
 ## Resolve conflict
 for TYP in (:ReImSpace,:ReSpace,:ImSpace)
-    for V in (:SliceSpace,:SumSpace)
+    for V in (:SliceSpace,:SumSpace,:PiecewiseSpace)
         @eval coefficients(::Vector,sp::$TYP,slp::$V)=error("coefficients not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
     end
     @eval coefficients(::Vector,sp::SliceSpace,slp::$TYP)=error("coefficients not implemented from "*typeof(sp)*" to "*typeof(slp))

@@ -92,9 +92,6 @@ invfromcanonicalD(d::Line,x)=cistyped(-d.angle)*line_invfromcanonicalD(d.α,d.β
 
 
 
-Base.length(d::Line) = Inf
-Base.first(d::Line)= -Inf
-Base.last(d::Line)= Inf
 
 
 ==(d::Line,m::Line) = d.centre == m.centre && d.angle == m.angle && d.β == m.β &&d.α == m.α
@@ -164,6 +161,12 @@ for OP in (:+,:-)
         $OP{a,T}(d::PeriodicLine{a,T},c::Number)=PeriodicLine{a,promote_type(eltype(c),T)}($OP(d.centre,c),d.L)
     end
 end
+
+
+Base.length(d::Union(Line,PeriodicLine)) = Inf
+Base.first(d::Union(Line,PeriodicLine))= -Inf
+Base.last(d::Union(Line,PeriodicLine))= Inf
+complexlength(d::Union(Line,PeriodicLine))=Inf
 
 ## vectorized
 

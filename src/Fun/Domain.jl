@@ -87,8 +87,14 @@ fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/
 function Base.in{T}(x,d::PeriodicDomain{T})
     y=tocanonical(d,x)
     l=length(d)
-    abs(imag(y))/l<20eps(T) && -π-2l*eps(T)<real(y)<π+2l*eps(T)
+    if isinf(l)
+        abs(imag(y))<20eps(T) && -π-2eps(T)<real(y)<π+2eps(T)
+    else
+        abs(imag(y))/l<20eps(T) && -π-2l*eps(T)<real(y)<π+2l*eps(T)
+    end
 end
+
+Base.issubset(a::Domain,b::Domain)=a==b
 
 
 Base.first(d::PeriodicDomain)=fromcanonical(d,-π)

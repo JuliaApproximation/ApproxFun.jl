@@ -296,7 +296,11 @@ function defaultcoefficients(f,a,b)
             csp=canonicalspace(b)
         end
         if spacescompatible(a,csp)||spacescompatible(b,csp)# b is csp too, so we are stuck, try Fun constructor
-            coefficients(Fun(x->Fun(f,a)[x],b))
+            if domain(b)⊆domain(a)
+                coefficients(Fun(x->Fun(f,a)[x],b))
+            else
+                error("Domains not compatible.   Cannot convert coefficients from "*string(a)*" to "*string(b))
+            end
         else
             coefficients(f,a,csp,b)
         end

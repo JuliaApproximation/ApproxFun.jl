@@ -89,28 +89,6 @@ function union_rule(B::SumSpace,A::ConstantSpace)
 end
 
 
-#split the cfs into component spaces
-coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=mapreduce(f->Fun(f,B),+,vec(Fun(cfs,A))).coefficients
-
-
-
-function coefficients(cfsin::Vector,A::FunctionSpace,B::SumSpace)
-    m=length(B.spaces)
-    #TODO: What if we can convert?  FOr example, A could be Ultraspherical{1}
-    # and B could contain Chebyshev
-    for k=1:m
-        if isconvertible(A,B.spaces[k])
-            cfs=coefficients(cfsin,A,B.spaces[k])
-            ret=zeros(eltype(cfs),m*(length(cfs)-1)+k)
-            ret[k:m:end]=cfs
-            return ret
-        end
-    end
-
-    defaultcoefficients(cfsin,A,B)
-end
-
-
 
 
 ## routines
@@ -157,7 +135,16 @@ itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
 # this space is special
 
 
-conversion_rule{V<:FunctionSpace}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},::V)=SS
+conversion_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::FunctionSpace)=SumSpace(SS.spaces[1],conversion_type(SS.spaces[2],W))
+conversion_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::SumSpace)=SumSpace(SS.spaces[1],conversion_type(SS.spaces[2],W))
+conversion_rule{V,W}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},
+                     PP::SumSpace{@compat(Tuple{ConstantSpace,W})})=SumSpace(SS.spaces[1],
+                                                                             conversion_type(SS.spaces[2],PP.spaces[2]))
 Base.vec{V,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantSpace,V}),TT,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
 Base.vec{V,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantSpace,V}),TT,d},T})=Any[vec(f,1),vec(f,2)]
 
+
+#support tuple set
+Base.start{SS<:SumSpace}(f::Fun{SS})=start(vec(f))
+Base.done{SS<:SumSpace}(f::Fun{SS},k)=done(vec(f),k)
+Base.next{SS<:SumSpace}(f::Fun{SS},k)=next(vec(f),k)

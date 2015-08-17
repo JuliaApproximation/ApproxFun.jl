@@ -226,3 +226,22 @@ function linsolve{S,T,Q}(A::BandedOperator,b::Fun{ArraySpace{S,2,T,1},Q};kwds...
 end
 
 
+
+
+## ConstantVectorSpace
+
+
+typealias ConstantVectorSpace ArraySpace{ConstantSpace,1,RealBasis,1}
+
+
+function Base.vec{V,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantVectorSpace,V}),TT,d},T},k)
+    m=length(space(f)[1])
+    if k≤m
+        Fun(f.coefficients[k],ConstantSpace())
+    else
+        Fun(f.coefficients[m+1:end],space(f)[2])
+    end
+end
+
+
+Base.vec{V,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantVectorSpace,V}),TT,d},T})=Any[vec(f,k) for k=1:length(space(f)[1])+1]

@@ -40,6 +40,9 @@ Base.first(d::Interval)=d.a
 Base.last(d::Interval)=d.b
 Base.isempty(d::Interval)=isapprox(d.a,d.b)
 
+Base.issubset(a::Interval,b::Interval)=first(a)∈b && last(a)∈b
+
+
 
 ## Map interval
 

@@ -163,7 +163,7 @@ end
 
 
 
-function conversion_type(S1::SumSpace,S2::SumSpace)
+function conversion_rule(S1::SumSpace,S2::SumSpace)
     if canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
         S1 ≤ S2?S1:S2  # choose smallest space by sorting
     else

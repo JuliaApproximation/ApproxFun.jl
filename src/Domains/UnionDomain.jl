@@ -38,6 +38,11 @@ end
 ==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
 
 
+Base.issubset(a::UnionDomain,d::UnionDomain)=all(x->x⊆d,a.domains)
+Base.issubset(a::Domain,d::UnionDomain)=any(x->a⊆x,d.domains)
+
+
+
 ∂(d::UnionDomain)=mapreduce(∂,union,d.domains)
 
 function points(d::UnionDomain,n)
