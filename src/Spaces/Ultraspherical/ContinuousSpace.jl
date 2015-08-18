@@ -99,6 +99,7 @@ end
 
 ## Conversion
 
+coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace)=defaultcoefficients(cfsin,A,B)
 bandinds(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1},ContinuousSpace})=-1,length(domain(rangespace(C)))
 
 function addentries!{T}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1},ContinuousSpace,T},A,kr::Range)

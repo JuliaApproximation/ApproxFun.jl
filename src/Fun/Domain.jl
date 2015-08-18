@@ -35,7 +35,9 @@ Base.length(::AnyDomain)=NaN
 
 
 Base.isempty(::EmptyDomain)=true
-
+Base.intersect(::EmptyDomain,::EmptyDomain)=EmptyDomain()
+Base.intersect(::Domain,::EmptyDomain)=EmptyDomain()
+Base.intersect(::EmptyDomain,::Domain)=EmptyDomain()
 
 
 ## Interval Domains
