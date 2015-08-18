@@ -50,3 +50,9 @@ end
 
 Base.promote_rule{D<:Domain,T<:Number}(::Type{D},::Type{Vector{T}})=UnivariateDomain{T}
 Base.promote_rule{D<:PeriodicDomain,T<:Number}(::Type{D},::Type{Vector{T}})=PeriodicDomain{T}
+
+
+
+Base.issubset(a::PeriodicInterval,b::Interval)=Interval(a.a,a.b)⊆b
+Base.issubset(a::Interval,b::PeriodicInterval)=a⊆PeriodicInterval(b.a,b.b)
+Base.issubset{T<:Real}(a::Interval{T},b::PiecewiseInterval{T})=a⊆Interval(first(b.points),last(b.points))

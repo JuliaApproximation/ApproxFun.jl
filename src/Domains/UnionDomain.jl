@@ -38,8 +38,12 @@ end
 ==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
 
 
-Base.issubset(a::UnionDomain,d::UnionDomain)=all(x->x⊆d,a.domains)
-Base.issubset(a::Domain,d::UnionDomain)=any(x->a⊆x,d.domains)
+Base.in(x,d::UnionDomain)=any(a->x∈a,d.domains)
+
+
+Base.issubset(a::Domain,d::UnionDomain)=(a∪d)==d
+
+
 
 
 

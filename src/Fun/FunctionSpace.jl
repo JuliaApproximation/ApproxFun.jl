@@ -295,11 +295,14 @@ function defaultcoefficients(f,a,b)
         if spacescompatible(a,csp)# a is csp, so try b
             csp=canonicalspace(b)
         end
-        if spacescompatible(a,csp)||spacescompatible(b,csp)# b is csp too, so we are stuck, try Fun constructor
+        if spacescompatible(a,csp)||spacescompatible(b,csp)
+            # b is csp too, so we are stuck, try Fun constructor
             if domain(b)⊆domain(a)
                 coefficients(Fun(x->Fun(f,a)[x],b))
             else
-                error("Domains not compatible.   Cannot convert coefficients from "*string(a)*" to "*string(b))
+                # we set the value to be zero off the domain of definition
+                d=domain(a)
+                coefficients(Fun(x->x∈d?Fun(f,a)[x]:zero(Fun(f,a)[x]),b))
             end
         else
             coefficients(f,a,csp,b)

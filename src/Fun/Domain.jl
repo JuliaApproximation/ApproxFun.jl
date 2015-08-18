@@ -34,7 +34,7 @@ Base.length(::AnyDomain)=NaN
 ##General routines
 
 
-
+Base.isempty(::EmptyDomain)=true
 
 
 
