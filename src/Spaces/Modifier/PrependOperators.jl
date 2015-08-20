@@ -47,8 +47,16 @@ function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
 end
 
 rangespace(B::PrependColumnsOperator)=rangespace(B.op)
-domainspace(B::PrependColumnsOperator)=size(B.cols,2)==1?SumSpace(ConstantSpace(),domainspace(B.op)):
-                                                         SumSpace(ArraySpace(ConstantSpace(),size(B.cols,2)),domainspace(B.op))
+function domainspace(B::PrependColumnsOperator)
+    ds=domainspace(B.op)
+    if isa(ds,UnsetSpace)
+        ds # avoids SumSpace⊕UnsetSpace
+    elseif  size(B.cols,2)==1
+        SumSpace(ConstantSpace(),domainspace(B.op))
+    else
+        SumSpace(ArraySpace(ConstantSpace(),size(B.cols,2)),domainspace(B.op))
+    end
+end
 bandinds(B::PrependColumnsOperator)=min(1-size(B.cols,1),bandinds(B.op,1)+size(B.cols,2)),
                                         bandinds(B.op,2)+size(B.cols,2)
 
@@ -64,8 +72,11 @@ end
 choosedomainspace(B::PrependColumnsOperator,f)=size(B.cols,2)==1?SumSpace(ConstantSpace(),choosedomainspace(B.op,f)):
                                                          SumSpace(ArraySpace(ConstantSpace(),size(B.cols,2)),choosedomainspace(B.op,f))
 
-function promotedomainspace{V}(P::PrependColumnsOperator,S::SumSpace{@compat(Tuple{ConstantSpace,V})})
-    op=promotedomainspace(P.op,S.spaces[2])
+function promotedomainspace(P::PrependColumnsOperator,S::SumSpace)
+    @assert isa(S.spaces[1],ConstantSpace)
+    sp=length(S.spaces)==2?S.spaces[2]:SumSpace(S.spaces[2:end])
+
+    op=promotedomainspace(P.op,sp)
     if size(P.cols,1)==1 && isa(rangespace(P),UnsetSpace)
         # this is to allow unset space,
         # so we pass to the standard constructor
@@ -93,8 +104,15 @@ PrependColumnsFunctional{T<:Number}(col::T,op::Functional) = PrependColumnsFunct
 
 domainspace(P::PrependColumnsFunctional)=SumSpace(ConstantSpace(),domainspace(P.op))
 
-promotedomainspace{V}(P::PrependColumnsFunctional,S::SumSpace{@compat(Tuple{ConstantSpace,V})})=PrependColumnsFunctional(P.cols,
-                                                                                                                         promotedomainspace(P.op,S.spaces[2]))
+
+function promotedomainspace(P::PrependColumnsFunctional,S::SumSpace)
+    @assert isa(S.spaces[1],ConstantSpace)
+    sp=length(S.spaces)==2?S.spaces[2]:SumSpace(S.spaces[2:end])
+
+    op=promotedomainspace(P.op,sp)
+
+    PrependColumnsFunctional(P.cols,op)
+end
 
 function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range)
     lcols = length(P.cols)

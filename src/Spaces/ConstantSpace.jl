@@ -23,6 +23,7 @@ promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(o
 
 
 # When the union of A and B is a ConstantSpace, then it contains a one
+conversion_rule(A::ConstantSpace,B::UnsetSpace)=NoSpace()
 conversion_rule(A::ConstantSpace,B::FunctionSpace)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
 
 
