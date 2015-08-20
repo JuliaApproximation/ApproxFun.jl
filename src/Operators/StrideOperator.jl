@@ -257,6 +257,10 @@ end
 domainspace(IO::InterlaceOperator)=domainspace(IO.ops)
 rangespace(IO::InterlaceOperator)=rangespace(IO.ops[:,1])
 
+#tests whether an operator can be made into a column
+iscolop(op)=isconstop(op)
+iscolop(::AbstractMultiplication)=true
+
 interlace{T<:BandedOperator}(A::Matrix{T})=InterlaceOperator(A)
 
 
@@ -266,7 +270,7 @@ function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
 
     # Hack to use PrependColumnsOperator
-    if m==n==2 && isconstop(A[1,1]) && isconstop(A[2,1]) &&
+    if m==n==2 && isconstop(A[1,1]) && iscolop(A[2,1]) &&
                 isa(A[1,2],Functional) && isa(A[2,2],BandedOperator)
         return [PrependColumnsFunctional(convert(Number,A[1,1]),A[1,2]);
                 PrependColumnsOperator(A[2,:])]
@@ -374,18 +378,32 @@ PrependColumnsOperator(cols::Vector,B)=PrependColumnsOperator(reshape(cols,lengt
 
 
 function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
-    @assert size(A,1)==1 && size(A,2)==2
-    M=A[1,1]
-    B=A[1,2]
-    if isa(M,Multiplication)
-        ds=domainspace(M)
-        @assert isa(ds,UnsetSpace) || isa(ds,ConstantSpace)
-        PrependColumnsOperator(coefficients(M.f,rangespace(B)),B)
-    elseif isa(M,ConstantOperator)
-        PrependColumnsOperator(M.c*ones(rangespace(B)).coefficients,B)
-    else
-        error("Not implemented")
+    @assert size(A,1)==1
+    M=vec(A[1,1:end-1])
+    B=A[1,end]
+
+    T=mapreduce(eltype,promote_type,M)
+    colsv=Array(Vector{T},length(M))
+    for k=1:length(M)
+        if isa(M[k],AbstractMultiplication)
+            ds=domainspace(M[k])
+            @assert isa(ds,UnsetSpace) || isa(ds,ConstantSpace)
+            colsv[k]=coefficients(M[k].f,rangespace(B))
+        elseif isa(M[k],ConstantOperator)
+            colsv[k]=M[k].c*ones(rangespace(B)).coefficients
+        else
+            error("Not implemented")
+        end
     end
+
+    m=mapreduce(length,max,colsv)
+    cols=zeros(T,m,length(M))
+    for k=1:length(M)
+        cols[1:length(colsv[k]),k]=colsv[k]
+    end
+
+
+    PrependColumnsOperator(cols,B)
 end
 
 rangespace(B::PrependColumnsOperator)=rangespace(B.op)

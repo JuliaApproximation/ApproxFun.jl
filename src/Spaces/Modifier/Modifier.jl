@@ -33,11 +33,11 @@ for TYP in (:SumSpace,:PiecewiseSpace,:FunctionSpace) # Resolve conflict
     end
 end
 
+#split the cfs into component spaces
+coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=mapreduce(f->Fun(f,B),+,vec(Fun(cfs,A))).coefficients
+
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval begin
-#split the cfs into component spaces
-        coefficients(cfs::Vector,A::$TYP,B::$TYP)=mapreduce(f->Fun(f,B),+,vec(Fun(cfs,A))).coefficients
-
         function coefficients(cfsin::Vector,A::FunctionSpace,B::$TYP)
             m=length(B.spaces)
             #TODO: What if we can convert?  FOr example, A could be Ultraspherical{1}
