@@ -261,7 +261,14 @@ rangespace(IO::InterlaceOperator)=rangespace(IO.ops[:,1])
 iscolop(op)=isconstop(op)
 iscolop(::AbstractMultiplication)=true
 
-interlace{T<:BandedOperator}(A::Matrix{T})=InterlaceOperator(A)
+function interlace{T<:BandedOperator}(A::Matrix{T})
+    # Hack to use PrependColumnsOperator when appropriate
+    if size(A,1)==1 && all(iscolop,A[1,1:end-1])
+        PrependColumnsOperator(A)
+    else
+        InterlaceOperator(A)
+    end
+end
 
 
 # If the matrix is Operators, we assume it may contain
@@ -362,85 +369,3 @@ end
 
 
 
-
-## PrependColumnsOperator
-
-immutable PrependColumnsOperator{O,T} <: BandedOperator{T}
-    cols::Matrix{T}
-    op::O
-end
-
-PrependColumnsOperator(cols::Matrix,
-                       B::BandedOperator)=PrependColumnsOperator{typeof(B),
-                                                                 promote_type(eltype(cols),
-                                                                              eltype(B))}(cols,B)
-PrependColumnsOperator(cols::Vector,B)=PrependColumnsOperator(reshape(cols,length(cols),1),B)
-
-
-function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
-    @assert size(A,1)==1
-    M=vec(A[1,1:end-1])
-    B=A[1,end]
-
-    T=mapreduce(eltype,promote_type,M)
-    colsv=Array(Vector{T},length(M))
-    for k=1:length(M)
-        if isa(M[k],AbstractMultiplication)
-            ds=domainspace(M[k])
-            @assert isa(ds,UnsetSpace) || isa(ds,ConstantSpace)
-            colsv[k]=coefficients(M[k].f,rangespace(B))
-        elseif isa(M[k],ConstantOperator)
-            colsv[k]=M[k].c*ones(rangespace(B)).coefficients
-        else
-            error("Not implemented")
-        end
-    end
-
-    m=mapreduce(length,max,colsv)
-    cols=zeros(T,m,length(M))
-    for k=1:length(M)
-        cols[1:length(colsv[k]),k]=colsv[k]
-    end
-
-
-    PrependColumnsOperator(cols,B)
-end
-
-rangespace(B::PrependColumnsOperator)=rangespace(B.op)
-domainspace(B::PrependColumnsOperator)=size(B.cols,2)==1?SumSpace(ConstantSpace(),domainspace(B.op)):
-                                                         SumSpace(ArraySpace(ConstantSpace(),size(B.cols,2)),domainspace(B.op))
-bandinds(B::PrependColumnsOperator)=min(1-size(B.cols,1),bandinds(B.op,1)+size(B.cols,2)),
-                                        bandinds(B.op,2)+size(B.cols,2)
-
-function addentries!(B::PrependColumnsOperator,A,kr::Range)
-    addentries!(B.op,IndexStride(A,0,size(B.cols,2)),kr)
-    for k=intersect(kr,1:size(B.cols,1)),j=1:size(B.cols,2)
-        A[k,j]+=B.cols[k,j]
-    end
-    A
-end
-
-
-
-## PrependColumnsFunctional
-
-immutable PrependColumnsFunctional{T<:Number,B<:Functional} <: Functional{T}
-    cols::Vector{T}
-    op::B
-end
-
-PrependColumnsFunctional{T<:Number}(cols::Vector{T},op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
-PrependColumnsFunctional{T<:Number}(col::T,op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
-
-domainspace(P::PrependColumnsFunctional)=SumSpace(ConstantSpace(),domainspace(P.op))
-
-function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range)
-    lcols = length(P.cols)
-    if kr[end]≤lcols
-        P.cols[kr]
-    else
-        opr = intersect(kr,length(P.cols)+1:kr[end])
-        [P.cols[intersect(kr,1:length(P.cols))],P.op[opr[1]-lcols:opr[end]-lcols]]
-    end
-end
-Base.convert{BT<:Operator}(::Type{BT},P::PrependColumnsFunctional)=PrependColumnsFunctional(convert(Vector{eltype(BT)},P.cols),convert(Functional{eltype(BT)},P.op))

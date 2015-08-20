@@ -10,6 +10,8 @@ canonicalspace(C::ConstantSpace)=C
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
 
 Base.ones(S::ConstantSpace)=Fun(ones(1),S)
+Base.ones(S::Union(AnyDomain,AnySpace,UnsetSpace))=ones(ConstantSpace())
+Base.zeros(S::Union(AnyDomain,AnySpace,UnsetSpace))=zeros(ConstantSpace())
 evaluate(f::Fun{ConstantSpace},x...)=f.coefficients[1]
 
 
