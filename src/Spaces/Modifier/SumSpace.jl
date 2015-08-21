@@ -33,6 +33,8 @@ for TYP in (:SumSpace,:TupleSpace)
         canonicalspace(A::$TYP)=$TYP(sort([A.spaces...]))
 
         spacescompatible(A::$TYP,B::$TYP)=length(A.spaces)==length(B.spaces)&&all(map(spacescompatible,A.spaces,B.spaces))
+
+        setdomain(A::$TYP,d::Domain)=$TYP(map(sp->setdomain(sp,d),A.spaces))
     end
 end
 
@@ -47,7 +49,7 @@ Base.getindex(S::DirectSumSpace,k)=S.spaces[k]
 
 domain(A::DirectSumSpace)=domain(A.spaces[end])  # TODO: this assumes all spaces have the same domain
                                            #        we use end to avoid ConstantSpace
-setdomain(A::DirectSumSpace,d::Domain)=DirectSumSpace(map(sp->setdomain(sp,d),A.spaces))
+
 
 
 
