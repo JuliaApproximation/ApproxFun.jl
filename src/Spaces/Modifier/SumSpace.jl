@@ -2,29 +2,39 @@ export ⊕
 
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
-if VERSION≥v"0.4.0-dev"
-    immutable SumSpace{SV,T,d} <: FunctionSpace{T,d}
-        spaces::SV
-        SumSpace(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
-        SumSpace(sp::Tuple)=new(sp)
-    end
-else
-    immutable SumSpace{SV,T,d} <: FunctionSpace{T,d}
-        spaces::SV
-        SumSpace(dom::Domain)=new(map(typ->typ(dom),SV))
-        SumSpace(sp::Tuple)=new(sp)
+
+abstract DirectSumSpace{SV,T,d} <: FunctionSpace{T,d}
+
+
+for TYP in (:SumSpace,:TupleSpace)
+    @eval begin
+        if VERSION≥v"0.4.0-dev"
+            immutable $TYP{SV,T,d} <: DirectSumSpace{SV,T,d}
+                spaces::SV
+                $TYP(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
+                $TYP(sp::Tuple)=new(sp)
+            end
+        else
+            immutable $TYP{SV,T,d} <: DirectSumSpace{SV,T,d}
+                spaces::SV
+                $TYP(dom::Domain)=new(map(typ->typ(dom),SV))
+                $TYP(sp::Tuple)=new(sp)
+            end
+        end
+
+        $TYP(sp::Tuple)=$TYP{typeof(sp),mapreduce(basistype,promote_type,sp),ndims(first(sp))}(sp)
+        $TYP(A::$TYP,B::$TYP)=$TYP(tuple(A.spaces...,B.spaces...))
+
+        $TYP(A::FunctionSpace,B::$TYP)=$TYP(tuple(A,B.spaces...))
+        $TYP(A::$TYP,B::FunctionSpace)=$TYP(tuple(A.spaces...,B))
+        $TYP(A::FunctionSpace,B::FunctionSpace)=$TYP((A,B))
+        $TYP(sp::Array)=$TYP(tuple(sp...))
+
+        canonicalspace(A::$TYP)=$TYP(sort([A.spaces...]))
+
+        spacescompatible(A::$TYP,B::$TYP)=length(A.spaces)==length(B.spaces)&&all(map(spacescompatible,A.spaces,B.spaces))
     end
 end
-
-
-SumSpace(sp::Tuple)=SumSpace{typeof(sp),mapreduce(basistype,promote_type,sp),ndims(first(sp))}(sp)
-SumSpace(A::SumSpace,B::SumSpace)=SumSpace(tuple(A.spaces...,B.spaces...))
-SumSpace(A::FunctionSpace,B::SumSpace)=SumSpace(tuple(A,B.spaces...))
-SumSpace(A::SumSpace,B::FunctionSpace)=SumSpace(tuple(A.spaces...,B))
-SumSpace(A::FunctionSpace,B::FunctionSpace)=SumSpace((A,B))
-SumSpace(sp::Array)=SumSpace(tuple(sp...))
-
-canonicalspace(A::SumSpace)=SumSpace(sort([A.spaces...]))
 
 ⊕(A::FunctionSpace,B::FunctionSpace)=SumSpace(A,B)
 ⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
@@ -33,14 +43,14 @@ canonicalspace(A::SumSpace)=SumSpace(sort([A.spaces...]))
 
 
 
-Base.getindex(S::SumSpace,k)=S.spaces[k]
+Base.getindex(S::DirectSumSpace,k)=S.spaces[k]
 
-domain(A::SumSpace)=domain(A.spaces[end])  # TODO: this assumes all spaces have the same domain
+domain(A::DirectSumSpace)=domain(A.spaces[end])  # TODO: this assumes all spaces have the same domain
                                            #        we use end to avoid ConstantSpace
-setdomain(A::SumSpace,d::Domain)=SumSpace(map(sp->setdomain(sp,d),A.spaces))
+setdomain(A::DirectSumSpace,d::Domain)=DirectSumSpace(map(sp->setdomain(sp,d),A.spaces))
 
 
-spacescompatible(A::SumSpace,B::SumSpace)=length(A.spaces)==length(B.spaces)&&all(map(spacescompatible,A.spaces,B.spaces))
+
 
 function spacescompatible(A::Tuple,B::Tuple)
     if length(A) != length(B)
@@ -96,7 +106,7 @@ end
 
 evaluate{D<:SumSpace,T}(f::Fun{D,T},x)=mapreduce(vf->evaluate(vf,x),+,vec(f))
 for OP in (:differentiate,:integrate)
-    @eval $OP{D<:SumSpace,T}(f::Fun{D,T})=$OP(vec(f,1))⊕$OP(vec(f,2))
+    @eval $OP{D<:SumSpace,T}(f::Fun{D,T})=⊕(map($OP,vec(f))...)
 end
 
 # assume first domain has 1 as a basis element
@@ -121,9 +131,9 @@ end
 
 # vec
 
-Base.vec{D<:SumSpace,T}(f::Fun{D,T},k)=Fun(f.coefficients[k:length(space(f).spaces):end],space(f)[k])
-Base.vec(S::SumSpace)=S.spaces
-Base.vec{S<:SumSpace,T}(f::Fun{S,T})=Fun[vec(f,j) for j=1:length(space(f).spaces)]
+Base.vec{D<:DirectSumSpace,T}(f::Fun{D,T},k)=Fun(f.coefficients[k:length(space(f).spaces):end],space(f)[k])
+Base.vec(S::DirectSumSpace)=S.spaces
+Base.vec{S<:DirectSumSpace,T}(f::Fun{S,T})=Fun[vec(f,j) for j=1:length(space(f).spaces)]
 
 
 
@@ -135,33 +145,38 @@ itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
 ## SumSpace{ConstantSpace}
 # this space is special
 
+for TYP in (:SumSpace,:TupleSpace)
+    @eval begin
+        conversion_rule{V}(SS::$TYP{@compat(Tuple{ConstantSpace,V})},
+                           W::FunctionSpace)=$TYP(SS.spaces[1],conversion_type(SS.spaces[2],W))
+        function conversion_rule{V}(SS::$TYP{@compat(Tuple{ConstantSpace,V})},W::$TYP)
+            a=length(SS.spaces)==2?SS.spaces[2]:$TYP(SS.spaces[2:end])
+            if isa(W.spaces[1],ConstantSpace)
+                b=length(W.spaces)==2?W.spaces[2]:$TYP(W.spaces[2:end])
+                $TYP(SS.spaces[1],conversion_type(a,b))
+            else
+                $TYP(SS.spaces[1],conversion_type(SS.spaces[2],W))
+            end
+        end
 
-conversion_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::FunctionSpace)=SumSpace(SS.spaces[1],conversion_type(SS.spaces[2],W))
-function conversion_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::SumSpace)
-    a=length(SS.spaces)==2?SS.spaces[2]:SumSpace(SS.spaces[2:end])
-    if isa(W.spaces[1],ConstantSpace)
-        b=length(W.spaces)==2?W.spaces[2]:SumSpace(W.spaces[2:end])
-        SumSpace(SS.spaces[1],conversion_type(a,b))
-    else
-        SumSpace(SS.spaces[1],conversion_type(SS.spaces[2],W))
+        Base.vec{V,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V}),TT,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
+        Base.vec{V,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V}),TT,d},T})=Any[vec(f,1),vec(f,2)]
+
+        #TODO: fix
+        function Base.vec{V,W,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V,W}),TT,d},T},k)
+            if k==1
+                Fun(f.coefficients[1],space(f)[1])
+            else
+                Fun(f.coefficients[k:2:end],space(f)[k])
+            end
+        end
+        Base.vec{V,W,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V,W}),TT,d},T})=Any[vec(f,1),vec(f,2),vec(f,3)]
     end
 end
 
-Base.vec{V,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantSpace,V}),TT,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
-Base.vec{V,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantSpace,V}),TT,d},T})=Any[vec(f,1),vec(f,2)]
-
-#TODO: fix
-function Base.vec{V,W,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantSpace,V,W}),TT,d},T},k)
-    if k==1
-        Fun(f.coefficients[1],space(f)[1])
-    else
-        Fun(f.coefficients[k:2:end],space(f)[k])
-    end
-end
-Base.vec{V,W,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantSpace,V,W}),TT,d},T})=Any[vec(f,1),vec(f,2),vec(f,3)]
 
 
 #support tuple set
-Base.start{SS<:SumSpace}(f::Fun{SS})=start(vec(f))
-Base.done{SS<:SumSpace}(f::Fun{SS},k)=done(vec(f),k)
-Base.next{SS<:SumSpace}(f::Fun{SS},k)=next(vec(f),k)
+Base.start{SS<:DirectSumSpace}(f::Fun{SS})=start(vec(f))
+Base.done{SS<:DirectSumSpace}(f::Fun{SS},k)=done(vec(f),k)
+Base.next{SS<:DirectSumSpace}(f::Fun{SS},k)=next(vec(f),k)

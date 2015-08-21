@@ -50,13 +50,14 @@ rangespace(B::PrependColumnsOperator)=rangespace(B.op)
 function domainspace(B::PrependColumnsOperator)
     ds=domainspace(B.op)
     if isa(ds,UnsetSpace)
-        ds # avoids SumSpace⊕UnsetSpace
+        ds # avoids TupleSpace⊕UnsetSpace
     elseif  size(B.cols,2)==1
-        SumSpace(ConstantSpace(),domainspace(B.op))
+        TupleSpace(ConstantSpace(),domainspace(B.op))
     else
-        SumSpace(ArraySpace(ConstantSpace(),size(B.cols,2)),domainspace(B.op))
+        TupleSpace(fill(ConstantSpace(),size(B.cols,2))...,domainspace(B.op))
     end
 end
+
 bandinds(B::PrependColumnsOperator)=min(1-size(B.cols,1),bandinds(B.op,1)+size(B.cols,2)),
                                         bandinds(B.op,2)+size(B.cols,2)
 
@@ -69,12 +70,12 @@ function addentries!(B::PrependColumnsOperator,A,kr::Range)
 end
 
 
-choosedomainspace(B::PrependColumnsOperator,f)=size(B.cols,2)==1?SumSpace(ConstantSpace(),choosedomainspace(B.op,f)):
-                                                         SumSpace(ArraySpace(ConstantSpace(),size(B.cols,2)),choosedomainspace(B.op,f))
+choosedomainspace(B::PrependColumnsOperator,f)=size(B.cols,2)==1?TupleSpace(ConstantSpace(),choosedomainspace(B.op,f)):
+                                                         TupleSpace(fill(ConstantSpace(),size(B.cols,2))...,choosedomainspace(B.op,f))
 
-function promotedomainspace(P::PrependColumnsOperator,S::SumSpace)
+function promotedomainspace(P::PrependColumnsOperator,S::TupleSpace)
     @assert isa(S.spaces[1],ConstantSpace)
-    sp=length(S.spaces)==2?S.spaces[2]:SumSpace(S.spaces[2:end])
+    sp=length(S.spaces)==2?S.spaces[2]:TupleSpace(S.spaces[2:end])
 
     op=promotedomainspace(P.op,sp)
     if size(P.cols,1)==1 && isa(rangespace(P),UnsetSpace)
@@ -102,12 +103,12 @@ end
 PrependColumnsFunctional{T<:Number}(cols::Vector{T},op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
 PrependColumnsFunctional{T<:Number}(col::T,op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
 
-domainspace(P::PrependColumnsFunctional)=SumSpace(ConstantSpace(),domainspace(P.op))
+domainspace(P::PrependColumnsFunctional)=TupleSpace(ConstantSpace(),domainspace(P.op))
 
 
-function promotedomainspace(P::PrependColumnsFunctional,S::SumSpace)
+function promotedomainspace(P::PrependColumnsFunctional,S::TupleSpace)
     @assert isa(S.spaces[1],ConstantSpace)
-    sp=length(S.spaces)==2?S.spaces[2]:SumSpace(S.spaces[2:end])
+    sp=length(S.spaces)==2?S.spaces[2]:TupleSpace(S.spaces[2:end])
 
     op=promotedomainspace(P.op,sp)
 
