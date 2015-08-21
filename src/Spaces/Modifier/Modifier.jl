@@ -35,7 +35,20 @@ for TYP in (:SumSpace,:PiecewiseSpace,:FunctionSpace) # Resolve conflict
 end
 
 #split the cfs into component spaces
-coefficients(cfs::Vector,A::SumSpace,B::SumSpace)=mapreduce(f->Fun(f,B),+,vec(Fun(cfs,A))).coefficients
+function coefficients(cfs::Vector,A::SumSpace,B::SumSpace)
+    if spacescompatible(A,B)
+        cfs
+    else
+        mapreduce(f->Fun(f,B),+,vec(Fun(cfs,A))).coefficients
+    end
+end
+function coefficients(cfs::Vector,A::PiecewiseSpace,B::PiecewiseSpace)
+    if spacescompatible(A,B)
+        cfs
+    else
+        mapreduce(f->Fun(f,B),+,pieces(Fun(cfs,A))).coefficients
+    end
+end
 
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval begin
