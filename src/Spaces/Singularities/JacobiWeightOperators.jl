@@ -239,7 +239,10 @@ maxspace(A::JacobiWeight,B::IntervalSpace)=maxspace(A,JacobiWeight(0.,0.,B))
 
 # return the space that has banded Conversion to the other, or NoSpace
 conversion_rule{n,S<:FunctionSpace,IS<:IntervalSpace}(A::SliceSpace{n,1,S,RealBasis},B::JacobiWeight{IS})=error("Not implemented")
-conversion_rule(A::JacobiWeight,B::JacobiWeight)=JacobiWeight(max(A.α,B.α),max(A.β,B.β),conversion_type(A.space,B.space))
+function conversion_rule(A::JacobiWeight,B::JacobiWeight)
+    ct=conversion_type(A.space,B.space)
+    ct==NoSpace()?ct:JacobiWeight(max(A.α,B.α),max(A.β,B.β),ct)
+end
 #conversion_rule(A::IntervalSpace,B::JacobiWeight)=conversion_type(JacobiWeight(0,0,A),B)
 conversion_rule(A::JacobiWeight,B::IntervalSpace)=conversion_type(A,JacobiWeight(0,0,B))
 

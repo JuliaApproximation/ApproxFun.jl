@@ -93,7 +93,7 @@ macro calculus_operator(Op)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override *"string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             rangespace($Op(canonicalspace(domainspace(D)),D.order))
         end

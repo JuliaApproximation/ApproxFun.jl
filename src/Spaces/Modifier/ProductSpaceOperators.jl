@@ -144,25 +144,26 @@ sumblkdiagm{B<:Operator}(v::Vector{B})=SumInterlaceOperator(v)
 
 
 ## Conversion
-# swaps sumspace order
+
 
 
 function Conversion(S1::SumSpace,S2::SumSpace)
     if sort([S1.spaces...])==sort([S2.spaces...])
+        # swaps sumspace order
         ConversionWrapper(SpaceOperator(
         PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),S1.spaces,S2.spaces),
                       S1,S2))
-    elseif all(map((a,b)->conversion_type(a,b)==a,S1.spaces,S2.spaces))
+    elseif all(map((a,b)->conversion_type(a,b)==a,S1.spaces,S2.spaces)) ||
+            map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
         # we can blocmk convert
         ConversionWrapper(sumblkdiagm([map(Conversion,S1.spaces,S2.spaces)...]))
-    elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
-        defaultconversion(S1,S2)
     elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
+        # we can block convert after permuting
         P=PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),
-                              map(canonicalspace,ds.spaces),
-                              map(canonicalspace,rs.spaces))
-        ds2=SumSpace(ds.spaces[P.perm])
-        ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,ds,ds2)))
+                              map(canonicalspace,S1.spaces),
+                              map(canonicalspace,S2.spaces))
+        ds2=SumSpace(S1.spaces[P.perm])
+        ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
     else
         # we don't know how to convert so go to default
         defaultconversion(S1,S2)
@@ -194,8 +195,8 @@ end
 ## Derivative
 
 #TODO: do in @calculus_operator?
-Derivative(S::SumSpace,k::Integer)=DerivativeWrapper(sumblkdiagm([Derivative(S.spaces[1],k),Derivative(S.spaces[2],k)]),k)
-Integral(S::SumSpace,k::Integer)=IntegralWrapper(sumblkdiagm([Integral(S.spaces[1],k),Integral(S.spaces[2],k)]),k)
+Derivative(S::SumSpace,k)=DerivativeWrapper(sumblkdiagm([Derivative(S.spaces[1],k),Derivative(S.spaces[2],k)]),k)
+Integral(S::SumSpace,k)=IntegralWrapper(sumblkdiagm([Integral(S.spaces[1],k),Integral(S.spaces[2],k)]),k)
 
 
 

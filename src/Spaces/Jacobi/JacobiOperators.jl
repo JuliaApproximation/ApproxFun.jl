@@ -141,7 +141,7 @@ end
 
 function Conversion(A::Chebyshev,B::Jacobi)
     if isapprox(B.a,-0.5)&&isapprox(B.b,-0.5)
-        Conversion{Chebyshev,Jacobi,Float64}(L,M)
+        Conversion{Chebyshev,Jacobi,Float64}(A,B)
     else
         J=Jacobi(-0.5,-0.5,domain(A))
         TimesOperator(Conversion(J,B),Conversion(A,J))
