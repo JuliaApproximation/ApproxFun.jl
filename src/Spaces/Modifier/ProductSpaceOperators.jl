@@ -155,6 +155,14 @@ function Conversion(S1::SumSpace,S2::SumSpace)
     elseif all(map((a,b)->conversion_type(a,b)==a,S1.spaces,S2.spaces))
         # we can blocmk convert
         ConversionWrapper(sumblkdiagm([map(Conversion,S1.spaces,S2.spaces)...]))
+    elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
+        defaultconversion(S1,S2)
+    elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
+        P=PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),
+                              map(canonicalspace,ds.spaces),
+                              map(canonicalspace,rs.spaces))
+        ds2=SumSpace(ds.spaces[P.perm])
+        ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,ds,ds2)))
     else
         # we don't know how to convert so go to default
         defaultconversion(S1,S2)
@@ -163,14 +171,25 @@ end
 
 
 
-function conversion_rule(S1::SumSpace,S2::SumSpace)
-    if canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
-        S1 ≤ S2?S1:S2  # choose smallest space by sorting
-    else
-        NoSpace()
+
+for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
+    @eval begin
+        function $OPrule(S1::SumSpace,S2::SumSpace)
+            cs1,cs2=map(canonicalspace,S1.spaces),map(canonicalspace,S2.spaces)
+            if canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
+                S1 ≤ S2?S1:S2  # choose smallest space by sorting
+            elseif cs1==cs2
+                SumSpace(map($OP,S1.spaces,S2.spaces))
+            elseif sort([cs1...])== sort([cs2...])
+                # sort S1
+                p=perm(cs1,cs2)
+                $OP(SumSpace(S1.spaces[p]),S2)
+            else
+                NoSpace()
+            end
+        end
     end
 end
-
 
 ## Derivative
 

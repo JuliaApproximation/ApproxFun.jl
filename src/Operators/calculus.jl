@@ -9,7 +9,7 @@ abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 
 
 macro calculus_operator(Op)
-    AbstOp=parse("Abstract"*string(Op)) 
+    AbstOp=parse("Abstract"*string(Op))
     WrappOp=parse(string(Op)*"Wrapper")
     return esc(quote
         # The SSS, TTT are to work around #9312
@@ -53,8 +53,8 @@ macro calculus_operator(Op)
 
         $WrappOp{T<:Number}(op::BandedOperator{T},order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),T}(op,order)
         $WrappOp{T<:Number}(op::BandedOperator{T})=$WrappOp(op,1)
-        
-        Base.convert{BT<:$WrappOp}(::Type{BT},D::BT)=D        
+
+        Base.convert{BT<:$WrappOp}(::Type{BT},D::BT)=D
         function Base.convert{BT<:Operator}(::Type{BT},D::$WrappOp)
             if eltype(BT)==eltype(D)
                 D
@@ -138,7 +138,7 @@ for (ATYP,TYP) in ((:AbstractDerivative,:Derivative),(:AbstractIntegral,:Integra
         function *(D1::$ATYP,D2::$ATYP)
             @assert domain(D1) == domain(D2)
 
-            Derivative(domainspace(D2),D1.order+D2.order)
+            $TYP(domainspace(D2),D1.order+D2.order)
         end
     end
 end

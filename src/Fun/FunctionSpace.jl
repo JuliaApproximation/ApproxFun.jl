@@ -147,15 +147,19 @@ end
 
 
 
-
-conversion_rule(a,b)=NoSpace()
-function conversion_rule{S}(a::S,b::S)
-    if spacescompatible(a,b)
-        a
-    else
-        NoSpace()
+for FUNC in (:conversion_rule,:maxspace_rule,:union_rule)
+    @eval begin
+        $FUNC(a,b)=NoSpace()
+        function $FUNC{S}(a::S,b::S)
+            if spacescompatible(a,b)
+                a
+            else
+                NoSpace()
+            end
+        end
     end
 end
+
 
 for FUNC in (:conversion_type,:maxspace)
     @eval begin
@@ -195,8 +199,18 @@ end
 
 # gives a space c that has a banded conversion operator FROM a and b
 function maxspace(a::FunctionSpace,b::FunctionSpace)
-    if a==b
+    if spacescompatible(a,b)
         return a
+    end
+
+    cr=maxspace_rule(a,b)
+    if cr!=NoSpace()
+        return cr
+    end
+
+    cr=maxspace_rule(b,a)
+    if cr!=NoSpace()
+        return cr
     end
 
     cr=conversion_type(a,b)
@@ -208,11 +222,20 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
 
     # check if its banded through canonicalspace
     cspa=canonicalspace(a)
+    if spacescompatible(cspa,b)
+        # we can't call maxspace(cspa,a)
+        # maxspace/conversion_type should be implemented for canonicalspace
+        error("Override conversion_type or maxspace for "*string(a)*" and "*string(b))
+    end
     if cspa != a && maxspace(cspa,a)==cspa
         return maxspace(b,cspa)
     end
 
     cspb=canonicalspace(b)
+    if spacescompatible(cspb,a)
+        # we can't call maxspace(cspb,b)
+        error("Override conversion_type or maxspace for "*string(a)*" and "*string(b))
+    end
     if cspb !=b && maxspace(cspb,b)==cspb
         return maxspace(a,cspb)
     end
@@ -220,8 +243,6 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
     NoSpace()
 end
 
-
-union_rule(a,b)=NoSpace()
 
 # union combines two spaces
 # this is used primarily for addition of two funs

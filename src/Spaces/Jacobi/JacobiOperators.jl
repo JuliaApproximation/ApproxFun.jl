@@ -128,12 +128,8 @@ end
 function conversion_rule(A::Jacobi,B::Jacobi)
     if !isapproxinteger(A.a-B.a) || !isapproxinteger(B.a-B.a)
         NoSpace()
-    elseif A.a<=B.a && A.b<=B.b
-        A
-    elseif A.a>=B.a && A.b>=B.b
-        B
-    else # no banded conversion
-        NoSpace()
+    else
+        Jacobi(min(A.a,B.a),min(A.b,B.b),domain(A))
     end
 end
 
@@ -142,6 +138,16 @@ end
 ## Ultraspherical Conversion
 
 # Assume m is compatible
+
+function Conversion(A::Chebyshev,B::Jacobi)
+    if isapprox(B.a,-0.5)&&isapprox(B.b,-0.5)
+        Conversion{Chebyshev,Jacobi,Float64}(L,M)
+    else
+        J=Jacobi(-0.5,-0.5,domain(A))
+        TimesOperator(Conversion(J,B),Conversion(A,J))
+    end
+end
+
 bandinds{m}(C::Conversion{Ultraspherical{m},Jacobi})=0,0
 bandinds{m}(C::Conversion{Jacobi,Ultraspherical{m}})=0,0
 
@@ -173,10 +179,20 @@ end
 
 function conversion_rule{m}(A::Ultraspherical{m},B::Jacobi)
     if B.a+.5==m&&B.b+.5==m
+        # the spaces are the same
         A
     else
-        NoSpace()
+        conversion_type(Jacobi(m-0.5,m-0.5,domain(A)),B)
     end
 end
 
+function maxspace{m}(A::Ultraspherical{m},B::Jacobi)
+    if B.a+.5==m&&B.b+.5==m
+        # the spaces are the same
+        A
+    else
+        maxspace(Jacobi(m-0.5,m-0.5,domain(A)),B)
+    end
+end
 
+maxspace(A::Jacobi,B::Ultraspherical)=maxspace(B,A)
