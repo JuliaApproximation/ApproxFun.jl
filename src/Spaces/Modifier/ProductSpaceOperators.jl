@@ -153,8 +153,7 @@ function Conversion(S1::SumSpace,S2::SumSpace)
         ConversionWrapper(SpaceOperator(
         PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),S1.spaces,S2.spaces),
                       S1,S2))
-    elseif all(map((a,b)->conversion_type(a,b)==a,S1.spaces,S2.spaces)) ||
-            map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
+    elseif all(map(hasconversion,S1.spaces,S2.spaces))
         # we can blocmk convert
         ConversionWrapper(sumblkdiagm([map(Conversion,S1.spaces,S2.spaces)...]))
     elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
@@ -164,6 +163,11 @@ function Conversion(S1::SumSpace,S2::SumSpace)
                               map(canonicalspace,S2.spaces))
         ds2=SumSpace(S1.spaces[P.perm])
         ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
+    elseif all(map(hasconversion,sort([map(canonicalspace,S1.spaces)...]),sort([map(canonicalspace,S2.spaces)...])))
+        #TODO: general case
+        @assert length(S1.spaces)==2
+        ds2=SumSpace(S1.spaces[[2,1]])
+        TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2))
     else
         # we don't know how to convert so go to default
         defaultconversion(S1,S2)

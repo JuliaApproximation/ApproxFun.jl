@@ -225,15 +225,18 @@ end
 
 isapproxinteger(x)=isapprox(x,round(Int,x))
 
-function maxspace(A::JacobiWeight,B::JacobiWeight)
+function maxspace_rule(A::JacobiWeight,B::JacobiWeight)
     if isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
-        JacobiWeight(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
+        if min(A.α,B.α)==0.&&min(A.β,B.β)==0.
+            maxspace(A.space,B.space)
+        else
+            JacobiWeight(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
+        end
     else
         NoSpace()
     end
 end
-maxspace(A::IntervalSpace,B::JacobiWeight)=maxspace(JacobiWeight(0.,0.,A),B)
-maxspace(A::JacobiWeight,B::IntervalSpace)=maxspace(A,JacobiWeight(0.,0.,B))
+maxspace_rule(A::JacobiWeight,B::IntervalSpace)=maxspace(A,JacobiWeight(0.,0.,B))
 
 
 

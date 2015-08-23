@@ -135,6 +135,13 @@ Fourier{T<:Number}(d::Vector{T}) = Fourier(PeriodicInterval(d))
 
 hasfasttransform(::Fourier)=true
 
+for T in (:CosSpace,:SinSpace)
+    @eval begin
+        # override default as canonicalspace must be implemented
+        maxspace(::$T,::Fourier)=NoSpace()
+        maxspace(::Fourier,::$T)=NoSpace()
+    end
+end
 
 points(sp::Fourier,n)=points(domain(sp),n)
 plan_transform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.R2HC))
