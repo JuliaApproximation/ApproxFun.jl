@@ -147,19 +147,25 @@ itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
 ## SumSpace{ConstantSpace}
 # this space is special
 
+union_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::ConstantSpace)=SS
+function union_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::SumSpace)
+    a=length(SS.spaces)==2?SS.spaces[2]:$TYP(SS.spaces[2:end])
+    if isa(W.spaces[1],ConstantSpace)
+        b=length(W.spaces)==2?W.spaces[2]:$TYP(W.spaces[2:end])
+        $TYP(SS.spaces[1],union(a,b))
+    else
+        $TYP(SS.spaces[1],union(SS.spaces[2],W))
+    end
+end
+union_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},
+                   W::FunctionSpace)=SumSpace(SS.spaces[1],union(SS.spaces[2],W))
+
 for TYP in (:SumSpace,:TupleSpace)
     @eval begin
-        conversion_rule{V}(SS::$TYP{@compat(Tuple{ConstantSpace,V})},
-                           W::FunctionSpace)=$TYP(SS.spaces[1],conversion_type(SS.spaces[2],W))
-        function conversion_rule{V}(SS::$TYP{@compat(Tuple{ConstantSpace,V})},W::$TYP)
-            a=length(SS.spaces)==2?SS.spaces[2]:$TYP(SS.spaces[2:end])
-            if isa(W.spaces[1],ConstantSpace)
-                b=length(W.spaces)==2?W.spaces[2]:$TYP(W.spaces[2:end])
-                $TYP(SS.spaces[1],conversion_type(a,b))
-            else
-                $TYP(SS.spaces[1],conversion_type(SS.spaces[2],W))
-            end
-        end
+        conversion_rule{V,W}(SS::$TYP{@compat(Tuple{ConstantSpace,V})},
+                             TT::$TYP{@compat(Tuple{ConstantSpace,W})})=$TYP(SS.spaces[1],
+                                                                             conversion_type(SS.spaces[2],TT.spaces[2]))
+
 
         Base.vec{V,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V}),TT,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
         Base.vec{V,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V}),TT,d},T})=Any[vec(f,1),vec(f,2)]

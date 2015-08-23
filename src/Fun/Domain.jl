@@ -70,7 +70,7 @@ bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
 Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 
-
+Base.in(x,::AnyDomain)=true
 function Base.in{T}(x,d::IntervalDomain{T})
     y=tocanonical(d,x)
     abs(imag(y))<100eps(T)/length(d) && -one(real(T))-100eps(T)/length(d)<real(y)<one(real(T))+100eps(T)/length(d)

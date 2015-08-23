@@ -149,8 +149,7 @@ end
 
 for FUNC in (:conversion_rule,:maxspace_rule,:union_rule)
     @eval begin
-        $FUNC(a,b)=NoSpace()
-        function $FUNC{S}(a::S,b::S)
+        function $FUNC(a,b)
             if spacescompatible(a,b)
                 a
             else
