@@ -279,11 +279,13 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
     a⊕b
 end
 
-# tests whether a coefficients can be converted to b
-isconvertible(a,b)=union(a,b)==b
+
 # tests whether a Conversion operator exists
 hasconversion(a,b)=maxspace(a,b)==b
 
+
+# tests whether a coefficients can be converted to b
+isconvertible(a,b)=hasconversion(union(a,b),b)
 
 ## Conversion routines
 #       coefficients(v::Vector,a,b)

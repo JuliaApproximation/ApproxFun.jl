@@ -35,7 +35,7 @@ macro calculus_operator(Op)
 
         $Op(sp::FunctionSpace)=$Op(sp,1)
         $Op()=$Op(UnsetSpace())
-        $Op(k::Integer)=$Op(UnsetSpace(),k)
+        $Op(k::Number)=$Op(UnsetSpace(),k)
 
         $Op(d::Domain,n)=$Op(Space(d),n)
         $Op(d::Domain)=$Op(d,1)
@@ -113,7 +113,7 @@ macro calculus_operator(Op)
             end
         end
 
-        choosedomainspace(M::$Op{UnsetSpace},sp)=sp  # we assume
+        choosedomainspace(M::$Op{UnsetSpace},sp)=sp  # we assume the space itself will work
 
 
         #Wrapper just adds the operator it wraps
@@ -161,8 +161,6 @@ integrate(d::Domain)=Integral(d,1)
 differentiate{S,T}(f::Fun{S,T})=Derivative(space(f))*f
 integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
-
-#^(D1::Derivative,k::Integer)=Derivative(D1.order*k,D1.space)
 
 
 

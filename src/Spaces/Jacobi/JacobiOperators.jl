@@ -177,22 +177,16 @@ end
 
 
 
-function conversion_rule{m}(A::Ultraspherical{m},B::Jacobi)
-    if B.a+.5==m&&B.b+.5==m
-        # the spaces are the same
-        A
-    else
-        conversion_type(Jacobi(m-0.5,m-0.5,domain(A)),B)
+
+for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),(:union_rule,:(Base.union)))
+    @eval begin
+        function $OPrule{m}(A::Ultraspherical{m},B::Jacobi)
+            if B.a+.5==m&&B.b+.5==m
+                # the spaces are the same
+                A
+            else
+                $OP(Jacobi(m-0.5,m-0.5,domain(A)),B)
+            end
+        end
     end
 end
-
-function maxspace{m}(A::Ultraspherical{m},B::Jacobi)
-    if B.a+.5==m&&B.b+.5==m
-        # the spaces are the same
-        A
-    else
-        maxspace(Jacobi(m-0.5,m-0.5,domain(A)),B)
-    end
-end
-
-maxspace(A::Jacobi,B::Ultraspherical)=maxspace(B,A)

@@ -181,14 +181,24 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
     @eval begin
         function $OPrule(S1::SumSpace,S2::SumSpace)
             cs1,cs2=map(canonicalspace,S1.spaces),map(canonicalspace,S2.spaces)
-            if canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
+            if length(S1.spaces)!=length(S2.spaces)
+                NoSpace()
+            elseif canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
                 S1 ≤ S2?S1:S2  # choose smallest space by sorting
-            elseif cs1==cs2
+            elseif cs1==cs2 ||
+                    all(map((a,b)->$OP(a,b)!=NoSpace(),S1.spaces,S2.spaces))
+                # we can just map down
                 SumSpace(map($OP,S1.spaces,S2.spaces))
             elseif sort([cs1...])== sort([cs2...])
                 # sort S1
                 p=perm(cs1,cs2)
                 $OP(SumSpace(S1.spaces[p]),S2)
+            elseif length(S1.spaces)==length(S2.spaces)==2  &&
+                    $OP(S1.spaces[1],S2.spaces[2])!=NoSpace() &&
+                    $OP(S1.spaces[2],S2.spaces[1])!=NoSpace()
+                #TODO: general length
+                SumSpace($OP(S1.spaces[1],S2.spaces[2]),
+                         $OP(S1.spaces[2],S2.spaces[1]))
             else
                 NoSpace()
             end
