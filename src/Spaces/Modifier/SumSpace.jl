@@ -27,7 +27,7 @@ for TYP in (:SumSpace,:TupleSpace)
 
         $TYP(A::FunctionSpace,B::$TYP)=$TYP(tuple(A,B.spaces...))
         $TYP(A::$TYP,B::FunctionSpace)=$TYP(tuple(A.spaces...,B))
-        $TYP(A::FunctionSpace,B::FunctionSpace)=$TYP((A,B))
+        $TYP(A::FunctionSpace...)=$TYP(A)
         $TYP(sp::Array)=$TYP(tuple(sp...))
 
         canonicalspace(A::$TYP)=$TYP(sort([A.spaces...]))
