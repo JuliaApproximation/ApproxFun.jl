@@ -139,11 +139,11 @@ end
 
 # Assume m is compatible
 
-function Conversion(A::Chebyshev,B::Jacobi)
-    if isapprox(B.a,-0.5)&&isapprox(B.b,-0.5)
-        Conversion{Chebyshev,Jacobi,Float64}(A,B)
+function Conversion{m}(A::Ultraspherical{m},B::Jacobi)
+    if isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
+        Conversion{Ultraspherical{m},Jacobi,Float64}(A,B)
     else
-        J=Jacobi(-0.5,-0.5,domain(A))
+        J=Jacobi(m-0.5,m-0.5,domain(A))
         TimesOperator(Conversion(J,B),Conversion(A,J))
     end
 end
@@ -174,6 +174,33 @@ function addentries!(C::Conversion{Jacobi,Chebyshev},A,kr::Range)
 
     A
 end
+
+function addentries!{m}(C::Conversion{Ultraspherical{m},Jacobi},A,kr::Range)
+    S=rangespace(C)
+    @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
+    jp=jacobip(0:kr[end],S.a,S.b,1.0)
+    um=Evaluation(Ultraspherical{m}(),1.)[1:kr[end]]
+    for k=kr
+        A[k,k]+=um[k]./jp[k]
+    end
+
+    A
+end
+
+function addentries!{m}(C::Conversion{Jacobi,Ultraspherical{m}},A,kr::Range)
+    S=domainspace(C)
+    @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
+
+    jp=jacobip(0:kr[end],S.a,S.b,1.0)
+    um=Evaluation(Ultraspherical{m}(),1.)[1:kr[end]]
+    for k=kr
+        A[k,k]+=jp[k]./um[k]
+    end
+
+    A
+end
+
+
 
 
 
