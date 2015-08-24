@@ -36,7 +36,8 @@ function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01
     isa(ds,AnySpace)?r:Fun(r,ds)
 end
 
-function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps2(eltype(A[end])),maxlength=1000000)
+function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};
+                               tolerance=0.01eps2(eltype(A[end])),maxlength=1000000)
  #TODO: depends on ordering of A
     for k=1:length(A)-1
         @assert isa(A[k],Functional)
@@ -53,15 +54,30 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps2(elt
     if size(b,1)<size(A,1)
         # the ... converts b to a tuple of numbers so that r is a number Vec
         r=reshape([b...],size(b))
-        A=promotedomainspace(A,choosedomainspace(A))
+#        A=promotedomainspace(A,choosedomainspace(A))
     elseif size(b,1)==size(A,1)
         if isa(b[end,1],Fun)
             # Convert to a number vector
 
             bend=b[end,:]
 
-            ds=choosedomainspace(A,space(b[end,1]))
-            A=promotedomainspace(A,ds)
+            # check if space is already compatible
+            # TODO: this should be in promotedomainspace/choosedomainspace
+            isbendspace=true
+            rs=rangespace(A[end])
+            for bs in bend
+                @assert isa(bs,Fun)
+                if !spacescompatible(rs,space(bs))
+                    isbendspace=false
+                    break
+                end
+            end
+
+
+            if !isbendspace
+                ds=choosedomainspace(A,space(b[end,1]))
+                A=promotedomainspace(A,ds)
+            end
 
             # coefficients in the rangespace
             rs=rangespace(A[end])
@@ -96,8 +112,10 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};tolerance=0.01eps2(elt
         rhs=b[size(A,1):end]
         if all(f->isa(f,Fun),rhs)
             be=devec(rhs)
-            sp=choosedomainspace(A,space(be))
-            A=promotedomainspace(A,sp)
+            if !spacescompatible(rangespace(A[end]),be)
+                sp=choosedomainspace(A,space(be))
+                A=promotedomainspace(A,sp)
+            end
 
             r=[b[1:size(A,1)-1]...;coefficients(be,rangespace(A[end]))]
         else
