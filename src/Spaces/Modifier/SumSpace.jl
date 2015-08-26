@@ -171,6 +171,15 @@ for TYP in (:SumSpace,:TupleSpace)
         Base.vec{V,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V}),TT,d},T})=Any[vec(f,1),vec(f,2)]
 
         #TODO: fix
+        function Base.vec{W,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,ConstantSpace,W}),TT,d},T},k)
+            if k≤2
+                Fun(f.coefficients[k],space(f)[k])
+            else
+                @assert k==3
+                Fun(f.coefficients[k:end],space(f)[k])
+            end
+        end
+
         function Base.vec{V,W,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V,W}),TT,d},T},k)
             if k==1
                 Fun(f.coefficients[1],space(f)[1])
@@ -178,6 +187,8 @@ for TYP in (:SumSpace,:TupleSpace)
                 Fun(f.coefficients[k:2:end],space(f)[k])
             end
         end
+
+
         Base.vec{V,W,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V,W}),TT,d},T})=Any[vec(f,1),vec(f,2),vec(f,3)]
     end
 end

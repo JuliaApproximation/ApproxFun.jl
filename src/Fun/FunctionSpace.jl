@@ -197,6 +197,7 @@ end
 
 
 # gives a space c that has a banded conversion operator FROM a and b
+maxspace(a,b)=NoSpace()  # TODO: this fixes weird bug with Nothing
 function maxspace(a::FunctionSpace,b::FunctionSpace)
     if spacescompatible(a,b)
         return a
