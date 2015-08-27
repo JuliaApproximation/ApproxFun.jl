@@ -8,6 +8,7 @@ end
 Legendre(domain)=Jacobi(0.,0.,domain)
 Legendre()=Legendre(Interval())
 Jacobi(a,b)=Jacobi(a,b,Interval())
+Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
 
 spacescompatible(a::Jacobi,b::Jacobi)=a.a==b.a && a.b==b.b
 

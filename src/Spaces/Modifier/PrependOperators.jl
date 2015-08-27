@@ -20,13 +20,31 @@ function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
 
     rs=rangespace(B)
 
+    if isa(rs,UnsetSpace)
+        rs=AnySpace()  # for the case of all constants
+
+        for k=1:size(A,2)-1
+            if isa(A[1,k],AbstractMultiplication)
+                # cols are going to be constantspace, so rangespace is just space of f
+                rs=union(rs,space(A[1,k].f))
+            end
+        end
+
+        @assert !isambiguous(rs)
+        B=promotedomainspace(B,choosedomainspace(B,rs))
+        rs=rangespace(B)
+    end
+
+
+
+
     T=mapreduce(eltype,promote_type,M)
     colsv=Array(Vector{T},length(M))
     for k=1:length(M)
         if isa(M[k],AbstractMultiplication)
             ds=domainspace(M[k])
             @assert isa(ds,UnsetSpace) || isa(ds,ConstantSpace)
-            @assert !isambiguous(rs)  #TODO: what to do if isambiguous?
+            @assert !isambiguous(rs)
             colsv[k]=coefficients(M[k].f,rs)
         elseif isa(M[k],ConstantOperator)
             # if rs is UnsetSpace this just generates constantspace
@@ -74,8 +92,10 @@ choosedomainspace(B::PrependColumnsOperator,f)=size(B.cols,2)==1?TupleSpace(Cons
                                                          TupleSpace(fill(ConstantSpace(),size(B.cols,2))...,choosedomainspace(B.op,f))
 
 function promotedomainspace(P::PrependColumnsOperator,S::TupleSpace)
-    @assert isa(S.spaces[1],ConstantSpace)
-    sp=length(S.spaces)==2?S.spaces[2]:TupleSpace(S.spaces[2:end])
+    m=size(P.cols,2)
+    @assert length(S.spaces)==m+1  #TODO: extra tuple?
+    @assert all(sp->isa(sp,ConstantSpace),S.spaces[1:m])
+    sp=S.spaces[end]
 
     op=promotedomainspace(P.op,sp)
     if size(P.cols,1)==1 && isa(rangespace(P),UnsetSpace)

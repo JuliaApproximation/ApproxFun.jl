@@ -156,6 +156,8 @@ function Conversion(S1::SumSpace,S2::SumSpace)
     elseif all(map(hasconversion,S1.spaces,S2.spaces))
         # we can blocmk convert
         ConversionWrapper(sumblkdiagm([map(Conversion,S1.spaces,S2.spaces)...]))
+    elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
+        error("Not implemented")
     elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
         # we can block convert after permuting
         P=PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),

@@ -12,6 +12,7 @@ end
 PiecewiseSpace(sp::Vector{Any})=PiecewiseSpace([sp...])
 PiecewiseSpace{S,T,d}(::FunctionSpace{T,d},spaces::Vector{S})=PiecewiseSpace{S,T,d}(spaces)
 PiecewiseSpace(spaces)=PiecewiseSpace(first(spaces),spaces)
+PiecewiseSpace(a::FunctionSpace,b::FunctionSpace)=PiecewiseSpace([a,b])
 Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))
 domain(S::PiecewiseSpace)=UnionDomain(map(domain,S.spaces))
 Base.length(S::PiecewiseSpace)=length(S.spaces)

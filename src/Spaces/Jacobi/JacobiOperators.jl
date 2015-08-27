@@ -126,7 +126,7 @@ end
 
 # return the space that has banded Conversion to the other
 function conversion_rule(A::Jacobi,B::Jacobi)
-    if !isapproxinteger(A.a-B.a) || !isapproxinteger(B.a-B.a)
+    if !isapproxinteger(A.a-B.a) || !isapproxinteger(A.b-B.b)
         NoSpace()
     else
         Jacobi(min(A.a,B.a),min(A.b,B.b),domain(A))
@@ -203,17 +203,30 @@ end
 
 
 
+union_rule(A::Jacobi,B::Jacobi)=conversion_type(A,B)
+function maxspace_rule(A::Jacobi,B::Jacobi)
+    if !isapproxinteger(A.a-B.a) || !isapproxinteger(A.b-B.b)
+        NoSpace()
+    else
+        Jacobi(max(A.a,B.a),max(A.b,B.b),domain(A))
+    end
+end
 
 
 for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),(:union_rule,:(Base.union)))
     @eval begin
         function $OPrule{m}(A::Ultraspherical{m},B::Jacobi)
-            if B.a+.5==m&&B.b+.5==m
+            if !isapproxinteger(m-0.5-B.a) || !isapproxinteger(m-0.5-B.b)
+                NoSpace()
+            elseif isapprox(B.a+.5,m)&&isapprox(B.b+.5,m)
                 # the spaces are the same
                 A
             else
-                $OP(Jacobi(m-0.5,m-0.5,domain(A)),B)
+                $OP(Jacobi(A),B)
             end
         end
     end
 end
+
+hasconversion(a::Jacobi,b::Ultraspherical)=hasconversion(a,Jacobi(b))
+hasconversion(a::Ultraspherical,b::Jacobi)=hasconversion(Jacobi(a),b)

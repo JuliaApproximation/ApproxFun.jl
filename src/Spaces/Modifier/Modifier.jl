@@ -7,6 +7,10 @@ include("PrependOperators.jl")
 include("SliceSpace.jl")
 
 
+⊕(A::FunctionSpace,B::FunctionSpace)=domainscompatible(A,B)?SumSpace(A,B):PiecewiseSpace(A,B)
+⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
+
+
 
 for TYP in (:SumSpace,:PiecewiseSpace,:FunctionSpace) # Resolve conflict
     @eval begin

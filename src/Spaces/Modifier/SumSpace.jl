@@ -38,8 +38,6 @@ for TYP in (:SumSpace,:TupleSpace)
     end
 end
 
-⊕(A::FunctionSpace,B::FunctionSpace)=SumSpace(A,B)
-⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
 
 
 

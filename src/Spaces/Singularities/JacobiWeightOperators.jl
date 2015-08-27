@@ -239,6 +239,10 @@ end
 maxspace_rule(A::JacobiWeight,B::IntervalSpace)=maxspace(A,JacobiWeight(0.,0.,B))
 
 
+hasconversion(A::JacobiWeight,B::JacobiWeight)=isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β) &&
+    A.α ≥ B.α && A.β ≥ B.β && hasconversion(A.space,B.space)
+
+
 
 # return the space that has banded Conversion to the other, or NoSpace
 conversion_rule{n,S<:FunctionSpace,IS<:IntervalSpace}(A::SliceSpace{n,1,S,RealBasis},B::JacobiWeight{IS})=error("Not implemented")
