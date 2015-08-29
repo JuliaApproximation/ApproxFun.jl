@@ -247,7 +247,7 @@ function coefficients(f::LowRankFun,n::FunctionSpace,m::FunctionSpace)
     ym=mapreduce(length,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
-        ret+=pad(coefficients(f.A[k],n),xm)*pad(coefficients(f.B[k],m),ym).'
+        ret+=pad(coefficients(f.A[k],n),xm)*pad(coefficients(f.B[k],m),ym).'#'
     end
     ret
 end
@@ -313,6 +313,14 @@ end
 -(f::LowRankFun)=LowRankFun(-f.A,f.B)
 -(f::LowRankFun,g::LowRankFun)=f+(-g)
 
+## QR factorization of a LowRankFun
+
+function Base.qr(f::LowRankFun)
+    sp,r = space(f),rank(f)
+    Q,R = qr(coefficients(f.A))
+    BR = coefficients(f.B)*R.'#'
+    LowRankFun(map(i->Fun(Q[:,i],sp[1]),1:r),map(i->Fun(BR[:,i],sp[2]),1:r),sp)
+end
 
 ## Special functions
 
