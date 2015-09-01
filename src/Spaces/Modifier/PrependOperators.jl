@@ -30,9 +30,12 @@ function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
             end
         end
 
-        @assert !isambiguous(rs)
-        B=promotedomainspace(B,choosedomainspace(B,rs))
-        rs=rangespace(B)
+        if !isambiguous(rs)
+            B=promotedomainspace(B,choosedomainspace(B,rs))
+            rs=rangespace(B)
+        else
+            rs=UnsetSpace()
+        end
     end
 
 
