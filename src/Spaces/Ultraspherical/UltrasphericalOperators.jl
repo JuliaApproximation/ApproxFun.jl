@@ -53,7 +53,7 @@ function Base.getindex{T<:Number}(op::Evaluation{Chebyshev,Bool,T},k::Range)
 
     if x
         ret = ones(T,length(k))
-    elseif !x
+    else
         ret = Array(T,length(k))
         k1=1-first(k)
         for j=k
@@ -322,6 +322,3 @@ end
 
 coefficients(g::Vector,::Ultraspherical{1},::Chebyshev)=ultraiconversion(g)
 coefficients(g::Vector,::Chebyshev,::Ultraspherical{1})=ultraconversion(g)
-
-
-
