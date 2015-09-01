@@ -75,7 +75,7 @@ typealias BivariateOperator{T} BandedOperator{BandedMatrix{T}}
 # KroneckerOperator gives the kronecker product of two 1D operators
 #########
 
-immutable KroneckerOperator{S,V,DS,RS,T}<: BivariateOperator{T}
+immutable KroneckerOperator{S,V,DS,RS,T<:Number}<: BivariateOperator{T}
     ops::@compat(Tuple{S,V})
     domainspace::DS
     rangespace::RS
