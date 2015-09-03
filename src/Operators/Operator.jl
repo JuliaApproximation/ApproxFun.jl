@@ -1,9 +1,9 @@
 export Operator,Functional,InfiniteOperator
-export bandrange, linsolve, periodic
+export bandinds, bandrange, linsolve, periodic
 export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
-
+export domainspace,rangespace
 
 
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}

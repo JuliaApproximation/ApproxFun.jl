@@ -230,3 +230,90 @@ end
 
 hasconversion(a::Jacobi,b::Ultraspherical)=hasconversion(a,Jacobi(b))
 hasconversion(a::Ultraspherical,b::Jacobi)=hasconversion(Jacobi(a),b)
+
+
+
+
+## Special Multiplication
+# special multiplication operators exist when multiplying by
+# (1+x) or (1-x) by _decreasing_ the parameter.  Thus the
+
+
+function Multiplication(f::Fun{JacobiWeight{Chebyshev}},S::Jacobi)
+    # this implements (1+x)*P and (1-x)*P special case
+    # see DLMF (18.9.6)
+    if length(f)==1 && ((space(f).α==1 && space(f).β==0 && S.b >0) ||
+                        (space(f).α==0 && space(f).β==1 && S.a >0))
+        Multiplication{typeof(space(f)),typeof(S),eltype(f),eltype(f)}(f,S)
+    else
+# default JacobiWeight
+        M=Multiplication(Fun(f.coefficients,space(f).space),S)
+        rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
+        MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+    end
+end
+
+function rangespace(M::Multiplication{JacobiWeight{Chebyshev},Jacobi})
+    S=domainspace(M)
+    if space(M.f).α==1
+        # multiply by (1+x)
+        Jacobi(S.a,S.b-1,domain(S))
+    elseif space(M.f).β == 1
+        # multiply by (1-x)
+        Jacobi(S.a-1,S.b,domain(S))
+    else
+        error("Not implemented")
+    end
+end
+
+bandinds(::Multiplication{JacobiWeight{Chebyshev},Jacobi})=-1,0
+
+function addentries!(M::Multiplication{JacobiWeight{Chebyshev},Jacobi},A,kr::Range)
+    @assert length(M.f)==1
+    a,b=domainspace(M).a,domainspace(M).b
+    if space(M.f).α==1
+        @assert space(M.f).β==0
+        # multiply by (1+x)
+        for k=kr
+            A[k,k]+=2(k+b-1)/(2k+a+b-1)
+            if k > 1
+                A[k,k-1]+=(2k-2)/(2k+a+b-3)
+            end
+        end
+        A
+    elseif space(M.f).β == 1
+        @assert space(M.f).α==0
+        # multiply by (1-x)
+        for k=kr
+            A[k,k]+=2(k+a-1)/(2k+a+b-1)
+            if k > 1
+                A[k,k-1]-=(2k-2)/(2k+a+b-3)
+            end
+        end
+        A
+    else
+        error("Not implemented")
+    end
+end
+
+
+
+
+# represents [b+(1+z)*d/dz] (false) or [a+(1-z)*d/dz] (true)
+immutable JacobiSD{lr} <:BandedOperator{Float64}
+    S::Jacobi
+end
+
+domain(op::JacobiSD)=domain(op.S)
+domainspace(op::JacobiSD)=op.S
+rangespace(op::JacobiSD{false})=Jacobi(op.S.a+1,op.S.b-1,domain(op.S))
+rangespace(op::JacobiSD{true})=Jacobi(op.S.a-1,op.S.b+1,domain(op.S))
+bandinds(::JacobiSD)=0,0
+
+function addentries!{lr}(op::JacobiSD{lr},A,kr::Range)
+    m=lr?op.S.a:op.S.b
+    for k=kr
+        A[k,k]+=k+m-1
+    end
+    A
+end

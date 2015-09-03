@@ -1,6 +1,7 @@
 
 # represents function of the form r^m g(r^2)
-# as r^m P^{.5+a,b-.5}(r^2)
+# as r^m P_k^{.5+a,b-.5}(1-2r^2)
+# when domain is Interval(1,0)
 
 immutable JacobiSquare <: IntervalSpace
     m::Int
