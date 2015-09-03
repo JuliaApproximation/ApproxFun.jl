@@ -102,13 +102,20 @@ setdomain(S::Jacobi,d::Domain)=Jacobi(S.a,S.b,d)
 function innerproduct{S,V}(sp::Jacobi,u::Vector{S},v::Vector{V})
     T,mn = promote_type(S,V),min(length(u),length(v))
     α,β = sp.a,sp.b
-    wi = 2^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
-    ret = conj(u[1])*wi*v[1]
-    for i=2:mn
-        wi *= (α+i-1)*(β+i-1)/(i-1)/(i-1+α+β)*(2i+α+β-3)/(2i+α+β-1)
-        ret += conj(u[i])*wi*v[i]
+    if mn > 1
+        wi = 2^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
+        ret = conj(u[1])*wi*v[1]
+        for i=2:mn
+            wi *= (α+i-1)*(β+i-1)/(i-1)/(i-1+α+β)*(2i+α+β-3)/(2i+α+β-1)
+            ret += conj(u[i])*wi*v[i]
+        end
+        return ret
+    elseif mn > 0
+        wi = 2^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
+        return conj(u[1])*wi*v[1]
+    else
+        return zero(promote_type(eltype(u),eltype(v)))
     end
-    ret
 end
 
 function Base.dot(f::Fun{Jacobi},g::Fun{Jacobi})

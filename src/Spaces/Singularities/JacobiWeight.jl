@@ -175,23 +175,40 @@ end
 
 function innerproduct{λ,S,V}(::Type{Ultraspherical{λ}},u::Vector{S},v::Vector{V})
     T,mn = promote_type(S,V),min(length(u),length(v))
-    wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
-    ret = conj(u[1])*wi*v[1]
-    for i=2:mn
-      wi *= (i-2one(T)+2λ)/(i-one(T)+λ)*(i-2one(T)+λ)/(i-one(T))
-      ret += conj(u[i])*wi*v[i]
+    if mn > 1
+        wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
+        ret = conj(u[1])*wi*v[1]
+        for i=2:mn
+          wi *= (i-2one(T)+2λ)/(i-one(T)+λ)*(i-2one(T)+λ)/(i-one(T))
+          ret += conj(u[i])*wi*v[i]
+        end
+        return ret
+    elseif mn > 0
+        wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
+        return conj(u[1])*wi*v[1]
+    else
+        return zero(promote_type(eltype(u),eltype(v)))
     end
-    ret
 end
 
 function innerproduct(::Type{Chebyshev},u::Vector,v::Vector)
-  mn = min(length(u),length(v))
-  (2conj(u[1])*v[1]+dot(u[2:mn],v[2:mn]))*π/2
+    mn = min(length(u),length(v))
+    if mn > 1
+        return (2conj(u[1])*v[1]+dot(u[2:mn],v[2:mn]))*π/2
+    elseif mn > 0
+        return conj(u[1])*v[1]*π
+    else
+        return zero(promote_type(eltype(u),eltype(v)))
+    end
 end
 
 function innerproduct(::Type{Ultraspherical{1}},u::Vector,v::Vector)
-  mn = min(length(u),length(v))
-  dot(u[1:mn],v[1:mn])*π/2
+    mn = min(length(u),length(v))
+    if m > 0
+        return dot(u[1:mn],v[1:mn])*π/2
+    else
+        return zero(promote_type(eltype(u),eltype(v)))
+    end
 end
 
 function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{Ultraspherical{λ}})
