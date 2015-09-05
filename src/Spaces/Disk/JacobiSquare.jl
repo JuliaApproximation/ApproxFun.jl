@@ -1,117 +1,101 @@
-
-# represents function of the form r^m g(r^2)
-# as r^m P_k^{.5+a,b-.5}(1-2r^2)
+# represents function of the form r^m g(r^2)T
+# as r^m P_k^{a,b}(1-2r^2)
 # when domain is Interval(1,0)
 
-immutable JacobiSquare <: IntervalSpace
-    m::Int
-    a::Int
-    b::Int
-    domain::Union(Interval,AnyDomain)
+immutable WeightedSquare{S} <: IntervalSpace
+    m::Float64
+    space::S
 end
-JacobiSquare(m::Integer,d::Domain)=JacobiSquare(m,m,0,d)
-JacobiSquare(m::Integer)=JacobiSquare(m,Interval(1.,0.))
+WeightedSquare(m::Number,S::FunctionSpace)=WeightedSquare{typeof(S)}(m,S)
+
+typealias JacobiSquare WeightedSquare{Jacobi}
 
 
-jacobispace(B::JacobiSquare)=Jacobi(B.a+.5,B.b-.5,domain(B))
+JacobiSquare(m,d::Domain)=WeightedSquare(m,Jacobi(m,0,d))
+JacobiSquare(m,a::Number,b::Number,d::Domain)=WeightedSquare(m,Jacobi(a,b,d))
+JacobiSquare(m,a::Number,b::Number)=WeightedSquare(m,Jacobi(a,b,Interval(1.,0.)))
+JacobiSquare(m)=JacobiSquare(m,Interval(1.,0.))
 
 
-spacescompatible(A::JacobiSquare,B::JacobiSquare)=A.a==B.a&&A.m==B.m&&A.b==B.b
+domain(A::WeightedSquare)=domain(A.space)
 
-canonicalspace(S::JacobiSquare)=S
+
+spacescompatible(A::WeightedSquare,B::WeightedSquare)=A.m==B.m && spacescompatible(A.space,B.space)
+
+canonicalspace(S::WeightedSquare)=S
 
 
 # We assume domains is [1.,0.]
 
-points(S::JacobiSquare,n)=sqrt(fromcanonical(S.domain,gausschebyshev(n,4)[1]))
+points(S::WeightedSquare,n)=sqrt(points(S.space,n))
+checkpoints(S::WeightedSquare)=sqrt(checkpoints(S.space))
 
-plan_transform(S::JacobiSquare,n)=gausschebyshev(n,4)
+# include the space as the transform sometimes starts with S[1]==1
+plan_transform(S::WeightedSquare,vals)=(S,points(S,length(vals)),plan_transform(S.space,vals))
 
-transform(S::JacobiSquare,vals::Vector)=transform(S,vals,plan_transform(S,length(vals)))
-
-
-function transform(S::JacobiSquare,vals::Vector,xw::@compat(Tuple{Vector,Vector}))
-    m=S.m;a=S.a;b=S.b
-    x,w=xw
-
-    n=length(vals)
-
-
-    if m==a==b==0
-
-        V=jacobip(0:n-1,0.5,-0.5,x)'
-        nrm=(V.^2)*w
-        (V*(w.*vals))./nrm
-    elseif m==a && b==0
-        ## Same as jacobitransform.jl
-
-        w2=(1-x).^(m/2)
-        mw=w2.*w
-        V=jacobip(0:n-div(m,2)-1,m+0.5,-0.5,x)'
-        nrm=(V.^2)*(w2.*mw)
-        (V*(mw.*vals))./nrm*2^(m/2)
+function transform(S::WeightedSquare,vals::Vector,plan)
+    @assert plan[1]==S
+    if S.m ==0
+        transform(S.space,vals,plan[3])
     else
-        error("transform only implemented for first case")
+        transform(S.space,plan[2].^(-S.m).*vals)
     end
 end
 
 
-#evaluate{m,order}(f::Fun{JacobiSquare{m,order}},x::Number)=x^m*dot(jacobip(0:length(f)-1,m+0.5+order,order-0.5,tocanonical(f,x^2)),f.coefficients)*2^(m/2)
 
 
+plan_itransform(S::WeightedSquare,vals)=(points(S,length(vals)),plan_itransform(S.space,vals))
+itransform(S::WeightedSquare,cfs::Vector,plan)=isempty(cfs)?cfs:plan[1].^S.m.*itransform(S.space,cfs,plan[2])
 
-plan_itransform(S::JacobiSquare,n)=points(S,n)
-#TODO: general domain
-itransform(S::JacobiSquare,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
-itransform(S::JacobiSquare,cfs::Vector,x)=isempty(cfs)?zeros(x):x.^S.m.*jacobip(0:length(cfs)-1,S.a+0.5,S.b-0.5,tocanonical(S,x.^2))*cfs
-evaluate{T}(f::Fun{JacobiSquare,T},x::Vector)=itransform(f.space,f.coefficients,x)
-evaluate{T}(f::Fun{JacobiSquare,T},x::Number)=itransform(f.space,f.coefficients,[x])[1]
-
+evaluate{WS<:WeightedSquare}(f::Fun{WS},x)=x.^space(f).m.*Fun(f.coefficients,space(f).space)[x.^2]
 
 
 ## Operators
 
 # Override JacobiWeight default
-Multiplication{T}(f::Fun{JacobiWeight{Chebyshev},T},S::JacobiSquare)=Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T,T}(f,S)
-bandinds{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T})=0,0
+Multiplication(f::Fun{JacobiWeight{Chebyshev}},S::WeightedSquare)=Multiplication{JacobiWeight{Chebyshev},typeof(S),
+                                                                             eltype(f),eltype(f)}(f,S)
+bandinds{WS<:WeightedSquare}(M::Multiplication{JacobiWeight{Chebyshev},WS})=0,0
 
-function addentries!{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T},A,kr::Range)
+function addentries!{WS<:WeightedSquare}(M::Multiplication{JacobiWeight{Chebyshev},WS},A,kr::Range)
     @assert length(M.f)==1
     @assert M.f.space.α ==0.
     addentries!(ConstantOperator(2.0^M.f.space.β*M.f.coefficients[1]),A,kr)
 end
-function rangespace{T}(M::Multiplication{JacobiWeight{Chebyshev},JacobiSquare,T})
+function rangespace{WS<:WeightedSquare}(M::Multiplication{JacobiWeight{Chebyshev},WS})
     @assert length(M.f)==1
     @assert M.f.space.α ==0.
     @assert isinteger(M.f.space.β)
     ds=domainspace(M)
-    JacobiSquare(ds.m+round(Int,M.f.space.β),ds.a,ds.b,domain(M))
+    WeightedSquare(ds.m+round(Int,M.f.space.β),ds.space)
 end
 
 
 
 
-function Derivative(S::JacobiSquare)
+function Derivative(S::WeightedSquare)
 
-     a=S.a;b=S.b;m=S.m
+     m=S.m
      d=domain(S)
      @assert d==Interval(1.,0.)
 
-     JS=jacobispace(S)
+     JS=S.space
      D=Derivative(JS)
      M=Multiplication(2Fun(identity,d),rangespace(D))
-
-      if m==0
+     op=TimesOperator(M,D)
+     if m==0
       # we have D[ f(r^2)] = 2r f'(r^2) = 2 r^(-1)*r^2 f'(r^2)
-         DerivativeWrapper(SpaceOperator(TimesOperator(M,D),S,JacobiSquare(-1,a+1,b+1,d)),1)
-      else
+         DerivativeWrapper(SpaceOperator(op,S,WeightedSquare(-1,rangespace(op))),1)
+     else
      # we have D[r^m f(r^2)] = r^{m-1} (m f(r^2) + 2r^2 f'(r^2))
-        DerivativeWrapper(SpaceOperator(m+TimesOperator(M,D),S,JacobiSquare(m-1,a+1,b+1,d)),1)
+        op=m+TimesOperator(M,D)
+        DerivativeWrapper(SpaceOperator(op,S,WeightedSquare(m-1,rangespace(op))),1)
     end
 end
 
 
-function Derivative(S::JacobiSquare,k::Integer)
+function Derivative(S::WeightedSquare,k::Integer)
      if k==1
          Derivative(S)
      else
@@ -123,35 +107,90 @@ end
 
 
 # return the space that has banded Conversion to the other
-conversion_rule(A::JacobiSquare,B::JacobiSquare)=JacobiSquare(max(A.m,B.m),min(A.a,B.a),min(A.b,B.b),domain(A))
-maxspace(A::JacobiSquare,B::JacobiSquare)=JacobiSquare(min(A.m,B.m),max(A.a,B.a),max(A.b,B.b),domain(A))
+conversion_rule(A::WeightedSquare,B::WeightedSquare)=WeightedSquare(max(A.m,B.m),conversion_type(A.space,B.space))
+maxspace_rule(A::WeightedSquare,B::WeightedSquare)=WeightedSquare(min(A.m,B.m),maxspace(A.space,B.space))
 
 
 ##TODO:ConversionWrapper
 
-function Conversion(A::JacobiSquare,B::JacobiSquare)
+function Conversion(A::WeightedSquare,B::WeightedSquare)
     if A.m==B.m
-        ConversionWrapper(SpaceOperator(Conversion(jacobispace(A),jacobispace(B)),A,B))
+        ConversionWrapper(SpaceOperator(Conversion(A.space,B.space),A,B))
     else
         @assert A.m > B.m && iseven(A.m-B.m)
         r=Fun(identity,domain(B))
-        M=Multiplication(r.^div(A.m-B.m,2),jacobispace(B)) #this is multiplication by r^(2*p)
-        ConversionWrapper(SpaceOperator(TimesOperator(M,Conversion(jacobispace(A),jacobispace(B))),A,B))
+        M=Multiplication(r.^div(A.m-B.m,2),B.space) #this is multiplication by r^(2*p)
+        ConversionWrapper(SpaceOperator(TimesOperator(M,Conversion(A.space,B.space)),A,B))
     end
 end
 
 
 
 
-function Base.getindex(op::Evaluation{JacobiSquare,Bool},kr::Range)
+function Base.getindex{WS<:WeightedSquare}(op::Evaluation{WS,Bool},kr::Range)
     @assert !op.x && op.order <= 1
     m=op.space.m
-    js=jacobispace(op.space)
+    js=op.space.space
     if op.order ==0
         getindex(Evaluation(js,false,0),kr)
     elseif m==0
         2getindex(Evaluation(js,false,1),kr)
     else
         2getindex(Evaluation(js,false,1),kr)+m*getindex(Evaluation(js,false,0),kr)
+    end
+end
+
+
+
+
+
+# represents
+# D^+ = (D -m/r)/sqrt(2)
+function DDp(S)
+    m=S.m
+    D=Derivative(setdomain(S.space,Interval()))
+    rs=JacobiSquare(m+1,S.space.a+1,S.space.b+1)
+    SpaceOperator(-4/sqrt(2)*D,S,rs)
+end
+
+# represents
+# D^- = (D -m/r)/sqrt(2)
+function DDm(S)
+    m=S.m
+    @assert S.space.a==m
+    SD=JacobiSD{true}(setdomain(S.space,Interval()))
+    rs=JacobiSquare(m-1,S.space.a-1,S.space.b+1)
+    SpaceOperator(2/sqrt(2)*SD,S,rs)
+end
+
+
+
+
+## jacobi square special
+
+
+function transform(S::JacobiSquare,vals::Vector,sxw)
+    @assert isapproxinteger(S.m)
+    m=round(Int,S.m);a=S.space.a;b=S.space.b
+    s,x,xw=sxw
+    x,w=xw
+
+    n=length(vals)
+
+
+    if m==s.m==0
+        V=jacobip(0:n-1,a,b,x)'
+        nrm=(V.^2)*w
+        (V*(w.*vals))./nrm
+    elseif m==a && b==0
+        ## Same as jacobitransform.jl
+
+        w2=(1-x).^(m/2)
+        mw=w2.*w
+        V=jacobip(0:n-div(m,2)-1,a,b,x)'
+        nrm=(V.^2)*(w2.*mw)
+        (V*(mw.*vals))./nrm*2^(m/2)
+    else
+        error("transform only implemented for first case")
     end
 end

@@ -299,7 +299,7 @@ end
 
 
 
-# represents [b+(1+z)*d/dz] (false) or [a+(1-z)*d/dz] (true)
+# represents [b+(1+z)*d/dz] (false) or [a-(1-z)*d/dz] (true)
 immutable JacobiSD{lr} <:BandedOperator{Float64}
     S::Jacobi
 end

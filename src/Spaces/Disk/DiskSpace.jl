@@ -47,6 +47,7 @@ end
 DiskSpace(D::Disk,S::FunctionSpace)=DiskSpace{0,0,0,JacobiSquare,typeof(S)}(D,S)
 DiskSpace(D::Disk)=DiskSpace(D,Laurent())
 DiskSpace(d::AnyDomain)=DiskSpace(Disk(d))
+DiskSpace()=DiskSpace(Disk())
 
 spacescompatible{m,a,b,JS,S}(A::DiskSpace{m,a,b,JS,S},B::DiskSpace{m,a,b,JS,S})=true
 
@@ -148,6 +149,8 @@ function diagop{DS<:DiskSpace}(L::Laplacian{DS},col)
     Δ^L.order
 end
 
+
+
 isproductop{DS1<:DiskSpace,DS2<:DiskSpace}(C::Conversion{DS1,DS2})=true
 diagop{DS1<:DiskSpace,DS2<:DiskSpace}(C::Conversion{DS1,DS2},col)=Conversion(columnspace(domainspace(C),col),
                                                                                columnspace(rangespace(C),col))
@@ -160,7 +163,24 @@ neumann(d::Disk)=Neumann(Space(d))
 
 
 
-function rangespace{m,a,b,JS,S}(L::Laplacian{DiskSpace{m,a,b,JS,S}})
+function rangespace{m,a,b,JS,S}(L::Laplacian{DiskSpace{m,0,0,JacobiSquare,Laurent}})
     sp=domainspace(L)
     DiskSpace{m-2L.order,a+2L.order,b+2L.order,JS,S}(sp.domain,sp.spacet)
+end
+
+
+
+# special case of integer modes
+function diagop{b}(L::Laplacian{DiskSpace{0,0,b,JacobiSquare,Laurent}},col)
+    S=columnspace(domainspace(L),col)
+    Dp=DDp(S)
+    Dm=DDm(rangespace(Dp))
+    2Dm*Dp
+end
+
+
+
+function rangespace{b,JS,S}(L::Laplacian{DiskSpace{0,0,b,JS,S}})
+    sp=domainspace(L)
+    DiskSpace{0,0,b+2,JS,S}(sp.domain,sp.spacet)
 end

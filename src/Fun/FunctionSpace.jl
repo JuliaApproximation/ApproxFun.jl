@@ -357,7 +357,8 @@ identity_fun(S::FunctionSpace)=Fun(x->x,S)
 
 
 ## rand
-
+# checkpoints is used to give a list of points to double check
+# the expansion
 Base.rand(d::FunctionSpace,k...)=rand(domain(d),k...)
 checkpoints(d::FunctionSpace)=checkpoints(domain(d))
 
@@ -365,31 +366,41 @@ checkpoints(d::FunctionSpace)=checkpoints(domain(d))
 
 ## default transforms
 
+# transform converts from values at points(S,n) to coefficients
+# itransform converts from coefficients to values at points(S,n)
+
 transform(S::FunctionSpace,vals)=transform(S,vals,plan_transform(S,vals))
 itransform(S::FunctionSpace,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
 
-function transform(S::FunctionSpace,vals,plan...)
+function transform(S::FunctionSpace,vals,plan)
     csp=canonicalspace(S)
     if S==csp
-        error("Override transform(::"*string(typeof(S))*",vals,plan...)")
+        error("Override transform(::"*string(typeof(S))*",vals,plan)")
     end
 
-    coefficients(transform(csp,vals,plan...),csp,S)
+    coefficients(transform(csp,vals,plan),csp,S)
 end
 
-function itransform(S::FunctionSpace,cfs,plan...)
+function itransform(S::FunctionSpace,cfs,plan)
     csp=canonicalspace(S)
     if S==csp
-        error("Override itransform(::"*string(typeof(S))*",cfs,plan...)")
+        error("Override itransform(::"*string(typeof(S))*",cfs,plan)")
     end
 
-    itransform(csp,coefficients(cfs,S,csp),plan...)
+    itransform(csp,coefficients(cfs,S,csp),plan)
+end
+
+
+for OP in (:plan_transform,:plan_itransform)
+    # plan transform expects a vector
+    # this passes an empty Float64 array
+    @eval $OP(S::FunctionSpace,n::Integer)=$OP(S,Array(Float64,n))
 end
 
 function plan_transform(S::FunctionSpace,vals)
     csp=canonicalspace(S)
     if S==csp
-        identity
+        identity #TODO: why identity?
     else
         plan_transform(csp,vals)
     end
@@ -398,7 +409,7 @@ end
 function plan_itransform(S::FunctionSpace,cfs)
     csp=canonicalspace(S)
     if S==csp
-        identity
+        identity #TODO: why identity?
     else
         plan_itransform(csp,cfs)
     end
@@ -406,7 +417,7 @@ end
 
 
 ## sorting
-
+# we sort spaces lexigraphically by default
 
 for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
     @eval $OP(a::FunctionSpace,b::FunctionSpace)=$OP(string(a),string(b))
