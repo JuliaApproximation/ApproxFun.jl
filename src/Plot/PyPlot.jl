@@ -1,9 +1,21 @@
 ## Plotting
 
 
+function pysemilogy{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
+    @eval import PyPlot
+    Main.PyPlot.semilogy(xx,yy,color="blue";opts...)
+    if axis!=-1
+        if length(axis) == 4
+            Main.PyPlot.axis(axis)
+        else
+            Main.PyPlot.axis([xx[1],xx[end],axis])
+        end
+    end
+end
+
 
 function pyplot{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
-    require("PyPlot")
+    @eval import PyPlot
     Main.PyPlot.plot(xx,yy,color="blue";opts...)
     if axis!=-1
         if length(axis) == 4
@@ -15,7 +27,7 @@ function pyplot{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
 end
 
 function pyplot{N<:Complex}(xx,yy::Array{N};axis=-1,opts...)
-    require("PyPlot")
+    @eval import PyPlot
 
     Main.PyPlot.plot(xx,real(yy),color="blue";opts...)
     Main.PyPlot.plot(xx,imag(yy),color="red";opts...)

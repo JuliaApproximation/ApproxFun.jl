@@ -45,35 +45,26 @@ if isdir(Pkg.dir("TikzGraphs"))
     include("introspect.jl")
 end
 
-function plot(opts...;kwds...)
-    if plotter[:plot]=="Gadfly"
-        gadflyplot(opts...;kwds...)
-    elseif plotter[:plot]=="PyPlot"
-        pyplot(opts...;kwds...)
-    else
-        error("Plotter " * plotter[:plot] * " not supported.")
+
+
+for (plt,gfplt,pyplt) in ((:plot,:gadflyplot,:pyplot),
+                          (:layer,:gadflylayer,:pyplot),
+                          (:contour,:gadflycontour,:pycontour),
+                          (:semilogy,:gadflysemilogy,:pysemilogy))
+    @eval begin
+        function $plt(opts...;kwds...)
+            if plotter[:plot]=="Gadfly"
+                $gfplt(opts...;kwds...)
+            elseif plotter[:plot]=="PyPlot"
+                $pyplt(opts...;kwds...)
+            else
+                error("Plotter " * plotter[:plot] * " not supported.")
+            end
+        end
     end
 end
 
-function layer(opts...)
-    if plotter[:plot]=="Gadfly"
-        gadflylayer(opts...)
-    elseif plotter[:plot]=="PyPlot"
-        pyplot(opts...)
-    else
-        error("Plotter " * plotter[:plot] * " not supported.")
-    end
-end
 
-function contour(x,y::Vector,z::Array,v...;opts...)
-    if plotter[:contour]=="Gadfly"
-        gadflycontour(x,y,z,v...;opts...)
-    elseif plotter[:contour]=="PyPlot"
-        pycontour(x,y,z,v...;opts...)
-    else
-        error("Plotter " * plotter[:contour] * " not supported.")
-    end
-end
 
 function surf(x...;opts...)
     if plotter[:surf]=="GLPlot"
@@ -90,7 +81,7 @@ end
 ## Fun routines
 
 
-for OP in (:plot,:layer)
+for OP in (:plot,:layer,:semilogy)
     @eval begin
         function $OP{S,T<:Real}(f::Fun{S,T},v...;opts...)
             f=pad(f,3length(f)+50)
