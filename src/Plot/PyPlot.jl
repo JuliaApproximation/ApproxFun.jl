@@ -1,9 +1,21 @@
 ## Plotting
 
 
+function pysemilogy{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
+    @eval import PyPlot
+    Main.PyPlot.semilogy(xx,yy,color="blue";opts...)
+    if axis!=-1
+        if length(axis) == 4
+            Main.PyPlot.axis(axis)
+        else
+            Main.PyPlot.axis([xx[1],xx[end],axis])
+        end
+    end
+end
+
 
 function pyplot{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
-    require("PyPlot")
+    @eval import PyPlot
     Main.PyPlot.plot(xx,yy,color="blue";opts...)
     if axis!=-1
         if length(axis) == 4
@@ -15,7 +27,7 @@ function pyplot{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
 end
 
 function pyplot{N<:Complex}(xx,yy::Array{N};axis=-1,opts...)
-    require("PyPlot")
+    @eval import PyPlot
 
     Main.PyPlot.plot(xx,real(yy),color="blue";opts...)
     Main.PyPlot.plot(xx,imag(yy),color="red";opts...)
@@ -77,23 +89,23 @@ end
 ##2D
 
 function pysurf(x::Vector,y::Vector,z; rstride=2,cstride=2,kwds...)
-    require("PyPlot")
+    @eval import PyPlot
     Main.PyPlot.surf(x,y,z.';linewidth=0,rstride=rstride,cstride=cstride,kwds...)
 end
 
 function pycontour(x::Vector,y::Vector,z,kwds...)
-    require("PyPlot")
+    @eval import PyPlot
     Main.PyPlot.contour(x,y,z.',kwds...)
 end
 
 
 function pysurf(x::Matrix,y::Matrix,z; rstride=2,cstride=2,kwds...)
-    require("PyPlot")
+    @eval import PyPlot
     Main.PyPlot.surf(x,y,z;linewidth=0,rstride=rstride,cstride=cstride,kwds...)
 end
 
 function pycontour(x::Matrix,y::Matrix,z,kwds...)
-    require("PyPlot")
+    @eval import PyPlot
     Main.PyPlot.contour(x,y,z,kwds...)
 end
 
@@ -126,5 +138,3 @@ end
 #         plot(f)
 #     end
 # end
-
-

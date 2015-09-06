@@ -211,39 +211,6 @@ Rectangle(a,b,c,d)=Interval(a,b)*Interval(c,d)
 Γ=Rectangle(0,1,0,1)∪Rectangle(1,2,0,1)
 Fun(identity,∂(Γ))|>values
 
-## Disk
-
-# This disables this test since it depends on some lib
-if OS_NAME == :Darwin
-    # Laplace
-    d=Disk()
-    u=[dirichlet(d),lap(d)]\Fun(z->real(exp(z)),Circle())
-    @test_approx_eq u[.1,.2] real(exp(.1+.2im))
-
-    # remaining numbers determined numerically, may be
-    # inaccurate
-
-    # Poisson
-    f=Fun((x,y)->exp(-10(x+.2).^2-20(y-.1).^2),d)
-    u=[dirichlet(d),lap(d)]\[0.,f]
-    @test_approx_eq u[.1,.2] -0.039860694987858845
-
-    #Helmholtz
-    u=[dirichlet(d),lap(d)+100I]\1.0
-    @test_approx_eq u[.1,.2] -0.3675973169667076
-    u=[neumann(d),lap(d)+100I]\1.0
-    @test_approx_eq u[.1,.2] -0.20795862954551195
-
-    # Screened Poisson
-    u=[neumann(d),lap(d)-100.0I]\1.0
-    @test_approx_eq u[.1,.9] 0.04313812031635443
-
-    # Lap^2
-    u=[dirichlet(d),neumann(d),lap(d)^2]\Fun(z->real(exp(z)),Circle())
-    @test_approx_eq u[.1,.2] 1.1137317420521624
-end
-
-
 
 
 ## Small diffusoion

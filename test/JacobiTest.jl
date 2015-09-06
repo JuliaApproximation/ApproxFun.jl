@@ -32,11 +32,6 @@ f=Fun(x->besselj(m,m*(1-x)),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
 
 
 
-## Disk
-
-f=(x,y)->exp(x.*sin(y))
-u=ProductFun(f,Disk(),50,51)
-@test_approx_eq u[.1,.1] f(.1,.1)
 
 
 

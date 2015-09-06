@@ -36,7 +36,9 @@ function integrate(f::Fun{CosSpace})
     if isa(domain(f),Circle)
         error("Integrate not implemented for CosSpace on Circle")
     else  # Probably periodic itnerval, drop constant term if zero
-        if isapprox(f.coefficients[1],0)
+        tol=1E-14 #TODO: smart tolerance.  Here relative is a bit tricky
+                  # since this is called by Fourier integrate
+        if abs(f.coefficients[1])<tol
             integrate(Fun(f,SliceSpace(space(f),1)))
         else
             d=domain(f)

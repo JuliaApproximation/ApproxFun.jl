@@ -12,6 +12,7 @@ end
 PiecewiseSpace(sp::Vector{Any})=PiecewiseSpace([sp...])
 PiecewiseSpace{S,T,d}(::FunctionSpace{T,d},spaces::Vector{S})=PiecewiseSpace{S,T,d}(spaces)
 PiecewiseSpace(spaces)=PiecewiseSpace(first(spaces),spaces)
+PiecewiseSpace(a::FunctionSpace,b::FunctionSpace)=PiecewiseSpace([a,b])
 Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))
 domain(S::PiecewiseSpace)=UnionDomain(map(domain,S.spaces))
 Base.length(S::PiecewiseSpace)=length(S.spaces)
@@ -113,7 +114,7 @@ for op in (:maxspace,:conversion_type)
 end
 
 for typ in (:PiecewiseSpace,:UnionDomain)
-    @eval ==(a::($typ),b::($typ))=length(a)==length(b)&&all([a[k]==b[k] for k=1:length(a)])
+    @eval ==(a::($typ),b::($typ))=length(a)==length(b)&&all(k->a[k]==b[k],1:length(a))
 end
 
 
@@ -137,6 +138,8 @@ for op in (:(.^),)
     @eval $op{V<:PiecewiseSpace}(f::Fun{V},k::Integer)=depiece(map(fk->$op(fk,k),pieces(f)))
     @eval $op{V<:PiecewiseSpace}(f::Fun{V},k)=depiece(map(fk->$op(fk,k),pieces(f)))
 end
+
+Base.dot{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(dot,pieces(f),pieces(g)))
 
 function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
     vf=pieces(f)

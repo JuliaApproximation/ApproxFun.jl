@@ -7,6 +7,8 @@ end
 
 SpaceFunctional{T<:Number,S<:FunctionSpace}(o::Functional{T},s::S)=SpaceFunctional{T,typeof(o),S}(o,s)
 
+datalength(S::SpaceFunctional)=datalength(S.op)
+
 Base.convert{T}(::Type{Operator{T}},S::SpaceFunctional)=SpaceFunctional(convert(Operator{T},S.op),S.space)
 
 getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
@@ -107,16 +109,19 @@ for TYP in (:Operator,:BandedOperator,:Functional)
     #TODO: better way of deciding type
     function promoterangespace{O<:$TYP}(ops::Vector{O})
       k=findmaxrangespace(ops)
+      #TODO: T might be incorrect
       T=mapreduce(eltype,promote_type,ops)
       $TYP{T}[promoterangespace(op,k) for op in ops]
     end
     function promotedomainspace{O<:$TYP}(ops::Vector{O})
       k=findmindomainspace(ops)
+      #TODO: T might be incorrect
       T=mapreduce(eltype,promote_type,ops)
       $TYP{T}[promotedomainspace(op,k) for op in ops]
     end
     function promotedomainspace{O<:$TYP}(ops::Vector{O},S::FunctionSpace)
         k=conversion_type(findmindomainspace(ops),S)
+        #TODO: T might be incorrect
         T=promote_type(mapreduce(eltype,promote_type,ops),eltype(S))
         $TYP{T}[promotedomainspace(op,k) for op in ops]
     end
@@ -135,6 +140,8 @@ function choosedomainspace(A::Operator,sp)
     sp2=domainspace(A)
     isambiguous(sp2)?sp:sp2
 end
+choosedomainspace(A::Functional,sp)=domainspace(A)
+
 choosedomainspace(A)=choosedomainspace(A,AnySpace())
 
 function choosedomainspace(ops::Vector,spin)

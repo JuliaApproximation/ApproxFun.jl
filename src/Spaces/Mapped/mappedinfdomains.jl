@@ -1,7 +1,7 @@
 typealias LineSpace{T} MappedSpace{Chebyshev,Line{T},RealBasis}
-typealias PeriodicLineSpace{T} MappedSpace{Fourier,PeriodicLine{T},RealBasis}
-typealias PeriodicLineDirichlet{T} MappedSpace{LaurentDirichlet,PeriodicLine{T},ComplexBasis}
-typealias CurveSpace{S,T} MappedSpace{S,Curve{S},T}
+typealias PeriodicLineSpace{T,TT} MappedSpace{Fourier,PeriodicLine{T,TT},RealBasis}
+typealias PeriodicLineDirichlet{T,TT} MappedSpace{LaurentDirichlet,PeriodicLine{T,TT},ComplexBasis}
+
 
 
 # Transform form chebyshev U series to dirichlet-neumann U series
@@ -54,53 +54,37 @@ end
 
 #integration functions
 
-integrate{LS,T}(f::Fun{LineSpace{LS},T})=linsolve([ldirichlet(),Derivative()],Any[0.,f];tolerance=length(f)^2*max(1,maximum(f.coefficients))*10E-13)
-integrate{LS,RR<:Ray,TT,T}(f::Fun{MappedSpace{LS,RR,TT},T})=linsolve([BasisFunctional(1),Derivative(space(f))],Any[0.,f];tolerance=length(f)*10E-15)
-function integrate{LS<:JacobiWeight,RR<:Ray,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
-    # x^k -> x^(k+1)  so +1,-1 to singularities
-    # if the last entry of f is close to zero wei use the same space
-    D=Derivative(MappedSpace(space(f).domain,
-                            JacobiWeight(space(f).space.α+1,
-                                         (space(f).space.β==0&&abs(last(f))≤1E-9)?0:(space(f).space.β-1),
-                                         domain(space(f).space))))
-    linsolve(D,f;tolerance=length(f)*1.0E-15)
-end
-
-function integrate{LS<:JacobiWeight,RR<:Line,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
-    # x^k -> x^(k+1)  so +1,-1 to singularities
-    # if the last entry of f is close to zero wei use the same space
-    D=Derivative(MappedSpace(space(f).domain,
-                             JacobiWeight(space(f).space.α-1,
-                                          space(f).space.β-1,
-                                          domain(space(f).space))))
-    linsolve([Evaluation(domainspace(D),0.),D],Any[0.,f];tolerance=length(f)*1.0E-15)
-end
+# integrate{LS,T}(f::Fun{LineSpace{LS},T})=linsolve([ldirichlet(),Derivative()],Any[0.,f];tolerance=length(f)^2*max(1,maximum(f.coefficients))*10E-13)
+# function integrate{LS<:JacobiWeight,RR<:Line,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
+#     # x^k -> x^(k+1)  so +1,-1 to singularities
+#     # if the last entry of f is close to zero wei use the same space
+#     D=Derivative(MappedSpace(space(f).domain,
+#                              JacobiWeight(space(f).space.α-1,
+#                                           space(f).space.β-1,
+#                                           domain(space(f).space))))
+#     linsolve([Evaluation(domainspace(D),0.),D],Any[0.,f];tolerance=length(f)*1.0E-15)
+# end
 
 
-Base.cumsum{LS<:JacobiWeight,RR<:Ray,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})=integrate(f) # the choice of space is zero at 0
+#Base.cumsum{LS<:JacobiWeight,RR<:Ray,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})=integrate(f) # the choice of space is zero at 0
 
 
-function Base.sum{LS,T}(f::Fun{LineSpace{LS},T})
-    d=domain(f)
-    if d.α==d.β==-.5
-        p=Fun(f.coefficients,f.space.space)  # project to [-1,1]
-        q=divide_singularity(p)              # divide by (1-x^2), result is in Chebyshev
-        r=Fun(q.coefficients,JacobiWeight(-.5,-.5,Interval()))  # multiply by jacobi weight
-        sum(r)
-    else
-        cf = integrate(f)
-        last(cf) - first(cf)
-    end
-end
+# function Base.sum{LS,T}(f::Fun{LineSpace{LS},T})
+#     d=domain(f)
+#     if d.α==d.β==-.5
+#         p=Fun(f.coefficients,f.space.space)  # project to [-1,1]
+#         q=divide_singularity(p)              # divide by (1-x^2), result is in Chebyshev
+#         r=Fun(q.coefficients,JacobiWeight(-.5,-.5,Interval()))  # multiply by jacobi weight
+#         sum(r)
+#     else
+#         cf = integrate(f)
+#         last(cf) - first(cf)
+#     end
+# end
 
 
 
 ## Derivative
-
-function invfromcanonicalD(d::PeriodicLine{false})
-    @assert d.centre==0  && d.L==1.0
-    a=Fun([1.,0,1],PeriodicInterval())
-end
 
 function invfromcanonicalD{LL<:Union(Laurent,LaurentDirichlet)}(S::MappedSpace{LL,PeriodicLine{false}})
     d=domain(S)
@@ -109,7 +93,7 @@ function invfromcanonicalD{LL<:Union(Laurent,LaurentDirichlet)}(S::MappedSpace{L
 end
 
 
-function Derivative{SS<:FunctionSpace,LD<:Union(Line,Ray,PeriodicLine),T}(S::MappedSpace{SS,LD,T},order::Int)
+function Derivative{SS<:FunctionSpace,LD<:Union(Line,Ray,PeriodicLine,Curve),T}(S::MappedSpace{SS,LD,T},order::Int)
     D1=invfromcanonicalD(S)*Derivative(S.space)
     D=DerivativeWrapper(SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1))),1)
     if order==1

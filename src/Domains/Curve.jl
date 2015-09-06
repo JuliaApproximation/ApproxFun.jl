@@ -4,13 +4,15 @@
 
 export Curve
 
-immutable Curve{S<:FunctionSpace} <: Domain
-    curve::Fun{S}
+immutable Curve{S<:FunctionSpace,T} <: UnivariateDomain{T}
+    curve::Fun{S,T}
 end
 
 ==(a::Curve,b::Curve)=a.curve==b.curve
 
 points(c::Curve,n)=c.curve[points(domain(c.curve),n)]
+checkpoints(d::Curve)=fromcanonical(d,checkpoints(domain(d.curve)))
+
 for op in (:(Base.first),:(Base.last),:(Base.rand))
     @eval $op(c::Curve)=c.curve[$op(domain(c.curve))]
 end
@@ -27,6 +29,7 @@ function tocanonical(c::Curve,x)
 end
 
 
-fromcanonicalD(c::Curve,x)=diff(c.curve)[x]
+fromcanonicalD(c::Curve,x)=differentiate(c.curve)[x]
 
 
+Base.in(x,d::Curve)=in(tocanonical(d,x),canonicaldomain(d))

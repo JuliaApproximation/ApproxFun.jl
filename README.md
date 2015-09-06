@@ -167,15 +167,6 @@ u = [dirichlet(d);lap(d)+100I]\ones(4)		# First four entries of rhs are
 ApproxFun.contour(u)						# Requires Gadfly or PyPlot
 ```
 
-The following solves Poisson `Δu =f` with zero Dirichlet conditions
-on a disk
-
-```julia
-d = Disk()
-f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
-u = [dirichlet(d);lap(d)]\Any[0.,f]
-ApproxFun.plot(u)                           # Requires Gadfly or PyPlot
-```
 
 We can also evolve PDEs.  The following solves advection—diffusion 
 `u_t = 0.01Δu - 4u_x -3u_y` on a rectangle
@@ -190,17 +181,6 @@ h = 0.002
 timeevolution(B,L,u0,h)                    # Requires GLPlot
 ```
 
-The following solves beam equation `u_tt + Δ^2u = 0`
-on a disk
-
-```julia
-d = Disk()
-u0 = Fun((x,y)->exp(-50x^2-40(y-.1)^2)+.5exp(-30(x+.5)^2-40(y+.2)^2),d)
-B= [dirichlet(d),neumann(d)]
-L = -lap(d)^2
-h = 0.001
-timeevolution(2,B,L,u0,h)                 # Requires GLPlot
-```
 
 # High precision
 

@@ -53,7 +53,7 @@ function Base.getindex{T<:Number}(op::Evaluation{Chebyshev,Bool,T},k::Range)
 
     if x
         ret = ones(T,length(k))
-    elseif !x
+    else
         ret = Array(T,length(k))
         k1=1-first(k)
         for j=k
@@ -312,14 +312,13 @@ Base.stride{m,λ}(C::Conversion{Ultraspherical{m},Ultraspherical{λ}})=2
 
 # return the space that has banded Conversion to the other
 function conversion_rule{aorder,border}(a::Ultraspherical{aorder},b::Ultraspherical{border})
-    @assert domainscompatible(a,b)
-
-    aorder < border?a:b
+    if domainscompatible(a,b)
+        aorder < border?a:b
+    else
+        NoSpace()
+    end
 end
 
 
 coefficients(g::Vector,::Ultraspherical{1},::Chebyshev)=ultraiconversion(g)
 coefficients(g::Vector,::Chebyshev,::Ultraspherical{1})=ultraconversion(g)
-
-
-

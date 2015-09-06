@@ -49,3 +49,5 @@ include("simplify.jl")
 
 include("eigs.jl")
 include("hacks.jl")
+
+include("autodifferentiation.jl")

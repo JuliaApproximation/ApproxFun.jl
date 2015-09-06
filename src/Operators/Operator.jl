@@ -1,9 +1,9 @@
 export Operator,Functional,InfiniteOperator
-export bandrange, linsolve, periodic
+export bandinds, bandrange, linsolve, periodic
 export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
-
+export domainspace,rangespace
 
 
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
@@ -306,3 +306,10 @@ for OP in (:BandedOperator,:Functional,:Operator)
   @eval Base.promote_rule{BO1<:$OP,BO2<:$OP}(::Type{BO1},::Type{BO2})=$OP{mat_promote_type(eltype(BO1),eltype(BO2))}
 end
 
+
+
+## Wrapper
+
+#TODO: Should cases that modify be included?
+typealias WrapperOperator Union(SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
+                                    ConversionWrapper,ConstantTimesOperator,ConstantTimesFunctional,TransposeOperator)

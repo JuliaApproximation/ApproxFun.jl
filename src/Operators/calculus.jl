@@ -8,9 +8,12 @@ abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 
 
 
-macro calculus_operator(Op,AbstOp,WrappOp)
+macro calculus_operator(Op)
+    AbstOp=parse("Abstract"*string(Op))
+    WrappOp=parse(string(Op)*"Wrapper")
     return esc(quote
         # The SSS, TTT are to work around #9312
+        abstract $AbstOp{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 
         immutable $Op{S<:FunctionSpace,OT,T} <: $AbstOp{S,OT,T}
             space::S        # the domain space
@@ -32,7 +35,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 
         $Op(sp::FunctionSpace)=$Op(sp,1)
         $Op()=$Op(UnsetSpace())
-        $Op(k::Integer)=$Op(UnsetSpace(),k)
+        $Op(k::Number)=$Op(UnsetSpace(),k)
 
         $Op(d::Domain,n)=$Op(Space(d),n)
         $Op(d::Domain)=$Op(d,1)
@@ -50,8 +53,8 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 
         $WrappOp{T<:Number}(op::BandedOperator{T},order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),T}(op,order)
         $WrappOp{T<:Number}(op::BandedOperator{T})=$WrappOp(op,1)
-        
-        Base.convert{BT<:$WrappOp}(::Type{BT},D::BT)=D        
+
+        Base.convert{BT<:$WrappOp}(::Type{BT},D::BT)=D
         function Base.convert{BT<:Operator}(::Type{BT},D::$WrappOp)
             if eltype(BT)==eltype(D)
                 D
@@ -71,7 +74,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override addentries! for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr)
         end
@@ -80,7 +83,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override bandinds for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             bandinds(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]))
         end
@@ -90,7 +93,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override *"string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override rangespace for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             rangespace($Op(canonicalspace(domainspace(D)),D.order))
         end
@@ -110,7 +113,7 @@ macro calculus_operator(Op,AbstOp,WrappOp)
             end
         end
 
-        choosedomainspace(M::$Op{UnsetSpace},sp)=sp  # we assume
+        choosedomainspace(M::$Op{UnsetSpace},sp)=sp  # we assume the space itself will work
 
 
         #Wrapper just adds the operator it wraps
@@ -126,17 +129,16 @@ macro calculus_operator(Op,AbstOp,WrappOp)
 end
 
 
-abstract AbstractDerivative{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
-@calculus_operator(Derivative,AbstractDerivative,DerivativeWrapper)
-abstract AbstractIntegral{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
-@calculus_operator(Integral,AbstractIntegral,IntegralWrapper)
+
+@calculus_operator(Derivative)
+@calculus_operator(Integral)
 
 for (ATYP,TYP) in ((:AbstractDerivative,:Derivative),(:AbstractIntegral,:Integral))
     @eval begin
         function *(D1::$ATYP,D2::$ATYP)
             @assert domain(D1) == domain(D2)
 
-            Derivative(domainspace(D2),D1.order+D2.order)
+            $TYP(domainspace(D2),D1.order+D2.order)
         end
     end
 end
@@ -160,8 +162,6 @@ differentiate{S,T}(f::Fun{S,T})=Derivative(space(f))*f
 integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 
-#^(D1::Derivative,k::Integer)=Derivative(D1.order*k,D1.space)
-
 
 
 
@@ -171,8 +171,7 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 
 
-abstract AbstractLaplacian{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
-@calculus_operator(Laplacian,AbstractLaplacian,LaplacianWrapper)
+@calculus_operator(Laplacian)
 
 Laplacian(S::FunctionSpace,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
 Laplacian(S)=Laplacian(S,1)

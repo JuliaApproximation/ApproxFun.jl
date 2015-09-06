@@ -6,8 +6,14 @@
 for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
     @eval begin
         function $Func(f::Fun{JacobiWeight{Chebyshev}})
+            tol=1e-10
             d,α,β,n=domain(f),f.space.α,f.space.β,length(f)
-            if α ≤ -1.0 || β ≤ -1.0
+            g=Fun(f.coefficients,space(f).space)
+            if α ≤ -1.0 && abs(first(g))≤tol
+                $Func(increase_jacobi_parameter(-1,f))
+            elseif β ≤ -1.0 && abs(last(g))≤tol
+                $Func(increase_jacobi_parameter(+1,f))
+            elseif α ≤ -1.0 || β ≤ -1.0
                 fs = Fun(f.coefficients,f.space.space)
                 return Inf*0.5*$Len(d)*(sign(fs[d.a])+sign(fs[d.b]))/2
             elseif α == β == -0.5
@@ -72,28 +78,40 @@ function integrate{J<:JacobiWeight}(f::Fun{J})
     S=space(f)
     # we integrate by solving u'=f
     D=Derivative(S)
-    if isapprox(S.α,-1) && isapprox(S.β,-1)
+    tol=1e-10
+    g=Fun(f.coefficients,S.space)
+    if isapprox(S.α,0.) && isapprox(S.β,0.)
+        integrate(g)
+    elseif S.α ≤ -1.0 && abs(first(g))≤tol
+        integrate(increase_jacobi_parameter(-1,f))
+    elseif S.β ≤ -1.0 && abs(last(g))≤tol
+        integrate(increase_jacobi_parameter(+1,f))
+    elseif isapprox(S.α,-1) && isapprox(S.β,-1)
         error("Implement")
-    elseif isapprox(S.α,-1)
-        @assert isapprox(S.β,0)  # TODO: implement general case
-        p=first(Fun(f.coefficients,S.space))  # last value without weight
+    elseif isapprox(S.α,-1) && isapprox(S.β,0)
+        p=first(g)  # first value without weight
         fp = Fun(f-Fun([p],S),S.space)  # Subtract out right value and divide singularity via conversion
         d=domain(f)
         Mp=tocanonicalD(d,d.a)
         integrate(fp)⊕Fun([p/Mp],LogWeight(1.,0.,S.space))
-    elseif isapprox(S.β,-1)
-        @assert isapprox(S.α,0)  # TODO: implement general case
-        p=last(Fun(f.coefficients,S.space))  # last value without weight
+    elseif isapprox(S.α,-1) && S.β > 0 && isapproxinteger(S.β)
+        # convert to zero case and integrate
+        integrate(Fun(f,JacobiWeight(S.α,0.,S.space)))
+    elseif isapprox(S.β,-1) && isapprox(S.α,0.)
+        p=last(g)  # last value without weight
         fp = Fun(f-Fun([p],S),S.space)  # Subtract out right value and divide singularity via conversion
         d=domain(f)
         Mp=tocanonicalD(d,d.a)
         integrate(fp)⊕Fun([-p/Mp],LogWeight(0.,1.,S.space))
+    elseif isapprox(S.β,-1) && S.α > 0 && isapproxinteger(S.α)
+        # convert to zero case and integrate
+        integrate(Fun(f,JacobiWeight(0.,S.β,S.space)))
     elseif isapprox(S.α,0) || isapprox(S.β,0)
         D\f   # this happens to pick out a smooth solution
     else
         s=sum(f)
-        if isapprox(s,0.)
-            D\f  # if the sum is 0 we don't get step-like behaviour
+        if abs(s)<1E-14
+            linsolve(D,f;tolerance=1E-14)  # if the sum is 0 we don't get step-like behaviour
         else
             # we normalized so it sums to zero, and so backslash works
             w=Fun(x->exp(-40x^2),81)
@@ -207,21 +225,35 @@ end
 
 isapproxinteger(x)=isapprox(x,round(Int,x))
 
-function maxspace(A::JacobiWeight,B::JacobiWeight)
+function maxspace_rule(A::JacobiWeight,B::JacobiWeight)
     if isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
-        JacobiWeight(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
-    else
-        NoSpace()
+        ms=maxspace(A.space,B.space)
+        if min(A.α,B.α)==0.&&min(A.β,B.β)==0.
+            return ms
+        elseif isa(ms,IntervalSpace)
+            return JacobiWeight(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
+        end
     end
+    NoSpace()
 end
-maxspace(A::IntervalSpace,B::JacobiWeight)=maxspace(JacobiWeight(0.,0.,A),B)
-maxspace(A::JacobiWeight,B::IntervalSpace)=maxspace(A,JacobiWeight(0.,0.,B))
+maxspace_rule(A::JacobiWeight,B::IntervalSpace)=maxspace(A,JacobiWeight(0.,0.,B))
+
+
+hasconversion(A::JacobiWeight,B::JacobiWeight)=isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β) &&
+    A.α ≥ B.α && A.β ≥ B.β && hasconversion(A.space,B.space)
 
 
 
 # return the space that has banded Conversion to the other, or NoSpace
 conversion_rule{n,S<:FunctionSpace,IS<:IntervalSpace}(A::SliceSpace{n,1,S,RealBasis},B::JacobiWeight{IS})=error("Not implemented")
-conversion_rule(A::JacobiWeight,B::JacobiWeight)=JacobiWeight(max(A.α,B.α),max(A.β,B.β),conversion_type(A.space,B.space))
+function conversion_rule(A::JacobiWeight,B::JacobiWeight)
+    if isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
+        ct=conversion_type(A.space,B.space)
+        ct==NoSpace()?NoSpace():JacobiWeight(max(A.α,B.α),max(A.β,B.β),ct)
+    else
+        NoSpace()
+    end
+end
 #conversion_rule(A::IntervalSpace,B::JacobiWeight)=conversion_type(JacobiWeight(0,0,A),B)
 conversion_rule(A::JacobiWeight,B::IntervalSpace)=conversion_type(A,JacobiWeight(0,0,B))
 

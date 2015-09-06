@@ -1,7 +1,18 @@
 ## Root finding
 
 
-complexroots{D<:IntervalSpace}(f::Fun{D})=fromcanonical(f,colleague_eigvals(f.coefficients))
+function complexroots(f::Fun{Chebyshev})
+    if length(f)==0 || (length(f)==1 && isapprox(f.coefficients[1],0))
+        warn("Tried to take roots of a zero function.  Returning [].")
+        Complex128[]
+    elseif length(f)==1
+        Complex128[]
+    elseif length(f)==2
+        Complex128[-f.coefficients[1]/f.coefficients[2]]
+    else
+        fromcanonical(f,colleague_eigvals(f.coefficients))
+    end
+end
 
 #function roots(f::Fun)
 #    irts=map(real,filter!(x->abs(x)<=1.+10eps(),filter!#(isreal,complexroots(f.coefficients))))

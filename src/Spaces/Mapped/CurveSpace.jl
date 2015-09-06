@@ -1,6 +1,6 @@
 ## CurveSpace
 
-function evaluate{C<:CurveSpace,T}(f::Fun{C,T},x::Number)
+function evaluate{C<:Curve,S,V,T}(f::Fun{MappedSpace{S,C,V},T},x::Number)
     c=f.space
     rts=roots(domain(f).curve-x)
     @assert length(rts)==1
@@ -8,6 +8,6 @@ function evaluate{C<:CurveSpace,T}(f::Fun{C,T},x::Number)
 end
 
 
-identity_fun{S}(d::CurveSpace{S})=Fun(d.domain.curve.coefficients,d)
+identity_fun{C<:Curve,S,V}(d::MappedSpace{S,C,V})=Fun(d.domain.curve.coefficients,d)
 
 

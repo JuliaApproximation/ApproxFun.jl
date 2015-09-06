@@ -38,7 +38,10 @@ Base.convert{IT<:Interval}(::Type{IT},::AnyDomain)=AnyInterval()
 
 Base.first(d::Interval)=d.a
 Base.last(d::Interval)=d.b
-Base.isempty(d::Interval)=isapprox(d.a,d.b)
+Base.isempty(d::Interval)=isapprox(d.a,d.b;atol=200eps(eltype(d)))
+
+Base.issubset(a::Interval,b::Interval)=first(a)∈b && last(a)∈b
+
 
 
 ## Map interval
@@ -98,7 +101,7 @@ Base.sqrt(d::Interval)=Interval(sqrt(d.a),sqrt(d.b))
 
 Base.reverse(d::Interval)=Interval(d.b,d.a)
 
-function Base.intersect(a::Interval{Float64},b::Interval{Float64})
+function Base.intersect{T<:Real,V<:Real}(a::Interval{T},b::Interval{V})
     if first(a) > last(a)
         intersect(reverse(a),b)
     elseif first(b) > last(b)
@@ -106,16 +109,18 @@ function Base.intersect(a::Interval{Float64},b::Interval{Float64})
     elseif first(a) > first(b)
         intersect(b,a)
     elseif last(a) <= first(b)
-        []
+        EmptyDomain()
     elseif last(a)>=last(b)
         b
+    elseif isapprox(first(b),last(a);atol=100eps(promote_type(T,V))/max(length(a),length(b)))
+        EmptyDomain()
     else
         Interval(first(b),last(a))
     end
 end
 
 
-function Base.setdiff(a::Interval{Float64},b::Interval{Float64})
+function Base.setdiff{T<:Real,V<:Real}(a::Interval{T},b::Interval{V})
     # ensure a/b are well-ordered
     if first(a) > last(a)
         intersect(reverse(a),b)
@@ -133,7 +138,7 @@ function Base.setdiff(a::Interval{Float64},b::Interval{Float64})
         if first(a)>=last(b)
             a
         elseif last(a) <= last(b)
-            []
+            EmptyDomain()
         else #first(b) < first(a) < last(b) < last(a)
             Interval(last(b),last(a))
         end

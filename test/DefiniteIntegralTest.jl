@@ -60,3 +60,12 @@ f2=Fun(t->cos(cos(t)),Fourier([-π,π]))
 @test_approx_eq Σ*f1 Σ*f2
 
 
+## test over arcs
+
+
+d=exp(im*Interval(0.1,0.2))
+x=Fun(d)
+w=1/(sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x)))
+
+@test_approx_eq linesum(w) DefiniteLineIntegral()*w
+
