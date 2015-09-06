@@ -1,5 +1,5 @@
 if isdir(Pkg.dir("FastGaussQuadrature"))
-    require("FastGaussQuadrature")
+    import FastGaussQuadrature
 
     gaussjacobi(n,a,b)=Main.FastGaussQuadrature.gaussjacobi(n,a,b)
 else
@@ -130,6 +130,3 @@ function transform(S::JacobiWeight{Jacobi},vals::Vector,plan::@compat(Tuple{Vect
     end
 
 end
-
-
-

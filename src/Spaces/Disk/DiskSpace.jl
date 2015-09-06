@@ -173,7 +173,7 @@ neumann(d::DiskSpace)=Neumann(d)
 
 
 
-function rangespace{m,a,b,JS,S}(L::Laplacian{DiskSpace{m,0,0,JacobiSquare,Laurent}})
+function rangespace{m,a,b,JS,S}(L::Laplacian{DiskSpace{m,a,b,JS,S}})
     sp=domainspace(L)
     DiskSpace{m-2L.order,a+2L.order,b+2L.order,JS,S}(sp.domain,sp.spacet)
 end

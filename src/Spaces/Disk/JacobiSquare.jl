@@ -6,7 +6,7 @@ immutable WeightedSquare{S} <: IntervalSpace
     m::Float64
     space::S
 end
-WeightedSquare(m::Number,S::FunctionSpace)=WeightedSquare{typeof(S)}(m,S)
+WeightedSquare(m::Number,S)=WeightedSquare{typeof(S)}(m,S)
 
 typealias JacobiSquare WeightedSquare{Jacobi}
 
@@ -31,7 +31,7 @@ points(S::WeightedSquare,n)=sqrt(points(S.space,n))
 checkpoints(S::WeightedSquare)=sqrt(checkpoints(S.space))
 
 # include the space as the transform sometimes starts with S[1]==1
-plan_transform(S::WeightedSquare,vals)=(S,points(S,length(vals)),plan_transform(S.space,vals))
+plan_transform(S::WeightedSquare,vals::Vector)=(S,points(S,length(vals)),plan_transform(S.space,vals))
 
 function transform(S::WeightedSquare,vals::Vector,plan)
     @assert plan[1]==S
@@ -45,7 +45,7 @@ end
 
 
 
-plan_itransform(S::WeightedSquare,vals)=(points(S,length(vals)),plan_itransform(S.space,vals))
+plan_itransform(S::WeightedSquare,vals::Vector)=(points(S,length(vals)),plan_itransform(S.space,vals))
 itransform(S::WeightedSquare,cfs::Vector,plan)=isempty(cfs)?cfs:plan[1].^S.m.*itransform(S.space,cfs,plan[2])
 
 evaluate{WS<:WeightedSquare}(f::Fun{WS},x)=x.^space(f).m.*Fun(f.coefficients,space(f).space)[x.^2]
@@ -158,7 +158,7 @@ end
 function DDm(S)
     m=S.m
     @assert S.space.a==m
-    SD=JacobiSD{true}(setdomain(S.space,Interval()))
+    SD=JacobiSD(true,setdomain(S.space,Interval()))
     rs=JacobiSquare(m-1,S.space.a-1,S.space.b+1)
     SpaceOperator(2/sqrt(2)*SD,S,rs)
 end
