@@ -74,7 +74,7 @@ macro calculus_operator(Op)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override addentries! for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr)
         end
@@ -83,7 +83,7 @@ macro calculus_operator(Op)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override bandinds for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             bandinds(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]))
         end
@@ -93,7 +93,7 @@ macro calculus_operator(Op)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override rangespace for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             rangespace($Op(canonicalspace(domainspace(D)),D.order))
         end

@@ -49,6 +49,8 @@ DiskSpace(D::Disk)=DiskSpace(D,Laurent())
 DiskSpace(d::AnyDomain)=DiskSpace(Disk(d))
 DiskSpace()=DiskSpace(Disk())
 
+canonicalspace(D::DiskSpace)=D
+
 spacescompatible{m,a,b,JS,S}(A::DiskSpace{m,a,b,JS,S},B::DiskSpace{m,a,b,JS,S})=true
 
 coefficient_type{T<:Complex}(::DiskSpace,::Type{T})=T
@@ -68,6 +70,10 @@ Space(D::Disk)=DiskSpace(D)
 columnspace{M,a,b,SS}(D::DiskSpace{M,a,b,SS},k)=(m=div(k,2);JacobiSquare(M+m,a+m,b,Interval(D.domain.radius,0.)))
 
 #transform(S::DiskSpace,V::Matrix)=transform([columnspace(S,k) for k=1:size(V,2)],S.spacet,V)
+
+
+evaluate{DS<:DiskSpace}(f::Fun{DS},x,y)=ProductFun(f)[x,y]
+
 
 
 function Base.real{JS}(f::ProductFun{JS,Laurent,DiskSpace{0,0,0,JS,Laurent}})
@@ -160,6 +166,10 @@ diagop{DS1<:DiskSpace,DS2<:DiskSpace}(C::Conversion{DS1,DS2},col)=Conversion(col
 lap(d::Disk)=Laplacian(Space(d))
 dirichlet(d::Disk)=Dirichlet(Space(d))
 neumann(d::Disk)=Neumann(Space(d))
+
+lap(d::DiskSpace)=Laplacian(d)
+dirichlet(d::DiskSpace)=Dirichlet(d)
+neumann(d::DiskSpace)=Neumann(d)
 
 
 

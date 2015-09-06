@@ -300,9 +300,11 @@ end
 
 
 # represents [b+(1+z)*d/dz] (false) or [a-(1-z)*d/dz] (true)
-immutable JacobiSD{lr} <:BandedOperator{Float64}
+immutable JacobiSD{lr,T} <:BandedOperator{T}
     S::Jacobi
 end
+
+Base.convert{lr,BO<:Operator}(::Type{BO},SD::JacobiSD{lr})=JacobiSD{lr,eltype(BO)}(SD.S)
 
 domain(op::JacobiSD)=domain(op.S)
 domainspace(op::JacobiSD)=op.S
