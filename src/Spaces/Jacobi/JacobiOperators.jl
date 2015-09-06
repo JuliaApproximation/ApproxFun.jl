@@ -126,10 +126,14 @@ end
 
 # return the space that has banded Conversion to the other
 function conversion_rule(A::Jacobi,B::Jacobi)
-    if !isapproxinteger(A.a-B.a) || !isapproxinteger(A.b-B.b)
+    if !isapproxinteger(A.a-B.a) || !isapproxinteger(B.a-B.a)
         NoSpace()
-    else
-        Jacobi(min(A.a,B.a),min(A.b,B.b),domain(A))
+    elseif A.a<=B.a && A.b<=B.b
+        A
+    elseif A.a>=B.a && A.b>=B.b
+        B
+    else # no banded conversion
+        NoSpace()
     end
 end
 
@@ -138,16 +142,6 @@ end
 ## Ultraspherical Conversion
 
 # Assume m is compatible
-
-function Conversion{m}(A::Ultraspherical{m},B::Jacobi)
-    if isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
-        Conversion{Ultraspherical{m},Jacobi,Float64}(A,B)
-    else
-        J=Jacobi(m-0.5,m-0.5,domain(A))
-        TimesOperator(Conversion(J,B),Conversion(A,J))
-    end
-end
-
 bandinds{m}(C::Conversion{Ultraspherical{m},Jacobi})=0,0
 bandinds{m}(C::Conversion{Jacobi,Ultraspherical{m}})=0,0
 
@@ -175,149 +169,14 @@ function addentries!(C::Conversion{Jacobi,Chebyshev},A,kr::Range)
     A
 end
 
-function addentries!{m}(C::Conversion{Ultraspherical{m},Jacobi},A,kr::Range)
-    S=rangespace(C)
-    @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
-    jp=jacobip(0:kr[end],S.a,S.b,1.0)
-    um=Evaluation(Ultraspherical{m}(),1.)[1:kr[end]]
-    for k=kr
-        A[k,k]+=um[k]./jp[k]
-    end
-
-    A
-end
-
-function addentries!{m}(C::Conversion{Jacobi,Ultraspherical{m}},A,kr::Range)
-    S=domainspace(C)
-    @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
-
-    jp=jacobip(0:kr[end],S.a,S.b,1.0)
-    um=Evaluation(Ultraspherical{m}(),1.)[1:kr[end]]
-    for k=kr
-        A[k,k]+=jp[k]./um[k]
-    end
-
-    A
-end
 
 
-
-
-union_rule(A::Jacobi,B::Jacobi)=conversion_type(A,B)
-function maxspace_rule(A::Jacobi,B::Jacobi)
-    if !isapproxinteger(A.a-B.a) || !isapproxinteger(A.b-B.b)
+function conversion_rule{m}(A::Ultraspherical{m},B::Jacobi)
+    if B.a+.5==m&&B.b+.5==m
+        A
+    else
         NoSpace()
-    else
-        Jacobi(max(A.a,B.a),max(A.b,B.b),domain(A))
     end
 end
 
 
-for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),(:union_rule,:(Base.union)))
-    @eval begin
-        function $OPrule{m}(A::Ultraspherical{m},B::Jacobi)
-            if !isapproxinteger(m-0.5-B.a) || !isapproxinteger(m-0.5-B.b)
-                NoSpace()
-            elseif isapprox(B.a+.5,m)&&isapprox(B.b+.5,m)
-                # the spaces are the same
-                A
-            else
-                $OP(Jacobi(A),B)
-            end
-        end
-    end
-end
-
-hasconversion(a::Jacobi,b::Ultraspherical)=hasconversion(a,Jacobi(b))
-hasconversion(a::Ultraspherical,b::Jacobi)=hasconversion(Jacobi(a),b)
-
-
-
-
-## Special Multiplication
-# special multiplication operators exist when multiplying by
-# (1+x) or (1-x) by _decreasing_ the parameter.  Thus the
-
-
-function Multiplication(f::Fun{JacobiWeight{Chebyshev}},S::Jacobi)
-    # this implements (1+x)*P and (1-x)*P special case
-    # see DLMF (18.9.6)
-    if length(f)==1 && ((space(f).α==1 && space(f).β==0 && S.b >0) ||
-                        (space(f).α==0 && space(f).β==1 && S.a >0))
-        Multiplication{typeof(space(f)),typeof(S),eltype(f),eltype(f)}(f,S)
-    else
-# default JacobiWeight
-        M=Multiplication(Fun(f.coefficients,space(f).space),S)
-        rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
-        MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
-    end
-end
-
-function rangespace(M::Multiplication{JacobiWeight{Chebyshev},Jacobi})
-    S=domainspace(M)
-    if space(M.f).α==1
-        # multiply by (1+x)
-        Jacobi(S.a,S.b-1,domain(S))
-    elseif space(M.f).β == 1
-        # multiply by (1-x)
-        Jacobi(S.a-1,S.b,domain(S))
-    else
-        error("Not implemented")
-    end
-end
-
-bandinds(::Multiplication{JacobiWeight{Chebyshev},Jacobi})=-1,0
-
-function addentries!(M::Multiplication{JacobiWeight{Chebyshev},Jacobi},A,kr::Range)
-    @assert length(M.f)==1
-    a,b=domainspace(M).a,domainspace(M).b
-    if space(M.f).α==1
-        @assert space(M.f).β==0
-        # multiply by (1+x)
-        for k=kr
-            A[k,k]+=2(k+b-1)/(2k+a+b-1)
-            if k > 1
-                A[k,k-1]+=(2k-2)/(2k+a+b-3)
-            end
-        end
-        A
-    elseif space(M.f).β == 1
-        @assert space(M.f).α==0
-        # multiply by (1-x)
-        for k=kr
-            A[k,k]+=2(k+a-1)/(2k+a+b-1)
-            if k > 1
-                A[k,k-1]-=(2k-2)/(2k+a+b-3)
-            end
-        end
-        A
-    else
-        error("Not implemented")
-    end
-end
-
-
-
-
-# represents [b+(1+z)*d/dz] (false) or [a-(1-z)*d/dz] (true)
-immutable JacobiSD{T} <:BandedOperator{T}
-    lr::Bool
-    S::Jacobi
-end
-
-JacobiSD(lr,S)=JacobiSD{Float64}(lr,S)
-
-Base.convert{BO<:Operator}(::Type{BO},SD::JacobiSD)=JacobiSD{eltype(BO)}(SD.lr,SD.S)
-
-domain(op::JacobiSD)=domain(op.S)
-domainspace(op::JacobiSD)=op.S
-rangespace(op::JacobiSD)=op.lr?Jacobi(op.S.a-1,op.S.b+1,domain(op.S)):Jacobi(op.S.a+1,op.S.b-1,domain(op.S))
-bandinds(::JacobiSD)=0,0
-
-function addentries!(op::JacobiSD,A,kr::Range)
-    m=op.lr?op.S.a:op.S.b
-    for k=kr
-        A[k,k]+=k+m-1
-    end
-    A
-end

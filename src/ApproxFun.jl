@@ -1,12 +1,5 @@
-VERSION >= v"0.4.0-dev+6641" && __precompile__()
-
 module ApproxFun
     using Base, Compat
-
-
-import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
-                >=,./,/,.^,^,\,∪,transpose
-
 
 export pad!,pad,sample,chop!,complexroots,roots,svfft
 export multiplybyx,fasttimes
@@ -15,6 +8,7 @@ export multiplybyx,fasttimes
 export bisectioninv, clenshaw
 
 
+import Base.values
 
 
 
@@ -47,3 +41,5 @@ include("Extras/Extras.jl")
 
 
 end #module
+
+

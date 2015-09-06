@@ -257,18 +257,7 @@ end
 domainspace(IO::InterlaceOperator)=domainspace(IO.ops)
 rangespace(IO::InterlaceOperator)=rangespace(IO.ops[:,1])
 
-#tests whether an operator can be made into a column
-iscolop(op)=isconstop(op)
-iscolop(::AbstractMultiplication)=true
-
-function interlace{T<:BandedOperator}(A::Matrix{T})
-    # Hack to use PrependColumnsOperator when appropriate
-    if size(A,1)==1 && all(iscolop,A[1,1:end-1])
-        PrependColumnsOperator(A)
-    else
-        InterlaceOperator(A)
-    end
-end
+interlace{T<:BandedOperator}(A::Matrix{T})=InterlaceOperator(A)
 
 
 # If the matrix is Operators, we assume it may contain
@@ -277,7 +266,7 @@ function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
 
     # Hack to use PrependColumnsOperator
-    if m==n==2 && isconstop(A[1,1]) && iscolop(A[2,1]) &&
+    if m==n==2 && isconstop(A[1,1]) && isconstop(A[2,1]) &&
                 isa(A[1,2],Functional) && isa(A[2,2],BandedOperator)
         return [PrependColumnsFunctional(convert(Number,A[1,1]),A[1,2]);
                 PrependColumnsOperator(A[2,:])]
@@ -340,8 +329,6 @@ end
 DiagonalInterlaceOperator{B<:Operator}(v::Vector{B})=DiagonalInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
 DiagonalInterlaceOperator(v::Vector{Any})=DiagonalInterlaceOperator(Operator{mapreduce(eltype,promote_type,v)}[v...;])
 
-Base.convert{T<:BandedOperator}(::Type{T},op::DiagonalInterlaceOperator)=DiagonalInterlaceOperator{eltype(T),
-                                                                                                   BandedOperator{eltype(T)}}(op.ops)
 
 
 function bandinds(S::AbstractDiagonalInterlaceOperator)
@@ -369,3 +356,66 @@ end
 
 
 
+
+## PrependColumnsOperator
+
+immutable PrependColumnsOperator{O,T} <: BandedOperator{T}
+    cols::Matrix{T}
+    op::O
+end
+
+PrependColumnsOperator(cols::Matrix,
+                       B::BandedOperator)=PrependColumnsOperator{typeof(B),
+                                                                 promote_type(eltype(cols),
+                                                                              eltype(B))}(cols,B)
+PrependColumnsOperator(cols::Vector,B)=PrependColumnsOperator(reshape(cols,length(cols),1),B)
+
+
+function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
+    @assert size(A,1)==1 && size(A,2)==2
+    M=A[1,1]
+    B=A[1,2]
+    if isa(M,Multiplication)
+        ds=domainspace(M)
+        @assert isa(ds,UnsetSpace) || isa(ds,ConstantSpace)
+        PrependColumnsOperator(coefficients(M.f,rangespace(B)),B)
+    elseif isa(M,ConstantOperator)
+        PrependColumnsOperator(M.c*ones(rangespace(B)).coefficients,B)
+    else
+        error("Not implemented")
+    end
+end
+
+rangespace(B::PrependColumnsOperator)=rangespace(B.op)
+domainspace(B::PrependColumnsOperator)=SumSpace(ConstantSpace(),domainspace(B.op))
+bandinds(B::PrependColumnsOperator)=min(1-size(B.cols,1),bandinds(B.op,1)+size(B.cols,2)),
+                                        bandinds(B.op,2)+size(B.cols,2)
+
+function addentries!(B::PrependColumnsOperator,A,kr::Range)
+    addentries!(B.op,IndexStride(A,0,size(B.cols,2)),kr)
+    for k=intersect(kr,1:size(B.cols,1)),j=1:size(B.cols,2)
+        A[k,j]+=B.cols[k,j]
+    end
+    A
+end
+
+
+
+## PrependColumnsFunctional
+
+immutable PrependColumnsFunctional{T<:Number,B<:Functional} <: Functional{T}
+    cols::Vector{T}
+    op::B
+end
+
+PrependColumnsFunctional{T<:Number}(cols::Vector{T},op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
+PrependColumnsFunctional{T<:Number}(col::T,op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
+
+domainspace(P::PrependColumnsFunctional)=SumSpace(ConstantSpace(),domainspace(P.op))
+
+function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range)
+    lcols = length(P.cols)
+    opr = intersect(kr,length(P.cols)+1:kr[end])
+    [P.cols[intersect(kr,1:length(P.cols))],P.op[opr[1]-lcols:opr[end]-lcols]]
+end
+Base.convert{BT<:Operator}(::Type{BT},P::PrependColumnsFunctional)=PrependColumnsFunctional(convert(Vector{eltype(BT)},P.cols),convert(Functional{eltype(BT)},P.op))

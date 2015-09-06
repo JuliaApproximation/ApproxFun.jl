@@ -62,13 +62,11 @@ end
 
 # convert needs to throw away calculated data
 function Base.convert{BT<:Operator}(::Type{BT},S::SavedBandedOperator)
-    T=eltype(BT)
     if isa(S,BT)
         S
     else
-        SavedBandedOperator(convert(BandedOperator{T},S.op),
-                            convert(BandedMatrix{T},S.data),
-                            S.datalength,S.bandinds)
+        warn("Converting type of SavedBanded Operator. This changes the operator.")
+        SavedBandedOperator(convert(BandedOperator{eltype(BT)},S.op))
     end
 end
 
@@ -109,3 +107,7 @@ function resizedata!(B::SavedBandedOperator,n::Integer)
 
     B
 end
+
+
+
+

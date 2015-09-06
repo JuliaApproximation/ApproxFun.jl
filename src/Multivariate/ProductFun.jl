@@ -82,18 +82,8 @@ ProductFun{S<:AbstractProductSpace}(f::Fun{S})=ProductFun(coefficientmatrix(f),s
 
 ## Conversion to other ProductSpaces with the same coefficients
 
-ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
+ProductFun(f::ProductFun,sp::AbstractProductSpace)=space(f)==sp?f:ProductFun(coefficients(f,sp),sp)
 ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp::ProductDomain)=ProductFun(f,Space(sp))
-
-function ProductFun(f::ProductFun,sp::AbstractProductSpace)
-    u=Array(Fun{typeof(columnspace(sp,1)),eltype(f)},length(f.coefficients))
-
-    for k=1:length(f.coefficients)
-        u[k]=Fun(f.coefficients[k],columnspace(sp,k))
-    end
-    
-    ProductFun(u,sp)
-end
 
 ## For specifying spaces by anonymous function
 
@@ -154,7 +144,7 @@ function coefficients(f::ProductFun,ox::FunctionSpace,oy::FunctionSpace)
     for k=1:length(f.coefficients)
         B[:,k]=pad!(coefficients(f.coefficients[k],ox),m)
     end
-
+    
     # convert in y direction
     for k=1:size(B,1)
         ccfs=coefficients(vec(B[k,:]),space(f,2),oy)
@@ -171,9 +161,6 @@ function coefficients(f::ProductFun,ox::FunctionSpace,oy::FunctionSpace)
 end
 
 coefficients(f::ProductFun,ox::TensorSpace)=coefficients(f,ox[1],ox[2])
-
-
-
 
 values{S,V,SS,T}(f::ProductFun{S,V,SS,T})=itransform!(space(f),coefficients(f))
 
@@ -311,3 +298,6 @@ end
 for op in (:tocanonical,:fromcanonical)
     @eval $op(f::ProductFun,x...)=$op(space(f),x...)
 end
+
+
+

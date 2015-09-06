@@ -37,7 +37,7 @@ dekron(K)=dekron(K,1),dekron(K,2)
 
 sumops(A)=A.ops
 sumops(A::Union(SpaceOperator,ConversionWrapper,
-                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper))=sumops(A.op)
+                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper))=sumops(A.ops)
 sumops(A::ConstantTimesOperator)=BandedOperator{eltype(A)}[A.c*op for op in sumops(A.op)]
 function dekron(T::Type,A,k,::Colon)
     ret=Array(BandedOperator{T},0)

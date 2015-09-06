@@ -37,6 +37,18 @@ u=S\ones(4)
 println("Neumann Helmholtz: should be ~0.016, 0.016")
 
 
+# This disables this test since it depends on some lib
+if OS_NAME == :Darwin
+    d = Disk()
+    f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d)
+    S = discretize([dirichlet(d);lap(d)],100);
+    @time S = discretize([dirichlet(d);lap(d)],100);
+    u=S\Any[0.;f];
+    @time u=S\Any[0.;f];
+
+    println("Disk Poisson: should be ~0.16,0.016")
+end
+
 
 
 dx=Interval(0.,1.);dt=Interval(0.0,0.54)

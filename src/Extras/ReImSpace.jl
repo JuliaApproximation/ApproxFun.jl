@@ -33,7 +33,7 @@ end
 
 ## Resolve conflict
 for TYP in (:ReImSpace,:ReSpace,:ImSpace)
-    for V in (:SliceSpace,:SumSpace,:PiecewiseSpace)
+    for V in (:SliceSpace,:SumSpace)
         @eval coefficients(::Vector,sp::$TYP,slp::$V)=error("coefficients not implemented from "*string(typeof(sp))*" to "*string(typeof(slp)))
     end
     @eval coefficients(::Vector,sp::SliceSpace,slp::$TYP)=error("coefficients not implemented from "*typeof(sp)*" to "*typeof(slp))
@@ -307,49 +307,3 @@ function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A,kr::Range)
     end
     A
 end
-
-
-
-
-
-
-## just takes realpart of operator
-immutable ReOperator{O,T} <: BandedOperator{T}
-    op::O
-end
-
-ReOperator(op)=ReOperator{typeof(op),Float64}(op)
-Base.convert{BT<:Operator}(::Type{BT},R::ReOperator)=ReOperator{typeof(R.op),eltype(BT)}(R.op)
-
-for OP in (:rangespace,:domainspace,:bandinds)
-    @eval $OP(R::ReOperator)=$OP(R.op)
-end
-
-
-
-function addentries!(RI::ReOperator,A,kr::UnitRange)
-    if isa(eltype(RI.op),Real)
-        addentries!(RI.op,A,kr)
-    else
-        B=subview(RI.op,kr,:)
-        for k=kr,j=columnrange(RI,k)
-           A[k,j]+=real(B[k,j])
-        end
-        A
-    end
-end
-
-choosedomainspace(R::ReOperator,sp)=choosedomainspace(R.op,sp)
-for OP in (:promotedomainspace,:promoterangespace)
-    @eval begin
-        $OP(R::ReOperator,sp::UnsetSpace)=ReOperator($OP(R.op,sp))
-        $OP(R::ReOperator,sp::AnySpace)=ReOperator($OP(R.op,sp))
-        $OP(R::ReOperator,sp::FunctionSpace)=ReOperator($OP(R.op,sp))
-    end
-end
-
-
-
-# TODO: can't do this because UnsetSpace might change type
-#Base.real{T<:Real}(op::BandedOperator{T})=op
-Base.real(op::BandedOperator)=ReOperator(op)

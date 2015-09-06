@@ -40,7 +40,7 @@ canonicaldomain(d::Circle)=PeriodicInterval()
 Base.in(z,d::Circle)=isapprox(abs(z-d.center),d.radius)
 
 Base.length(d::Circle) = 2π*d.radius
-complexlength(d::Circle)=im*length(d)  #TODO: why?
+
 
 
 ==(d::Circle,m::Circle) = d.center == m.center && d.radius == m.radius

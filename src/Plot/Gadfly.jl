@@ -6,7 +6,7 @@ export domainplot
 ## Vector routines
 
 function gadflyopts(;axis=-1,title=-1)
-    @eval import Gadfly
+    require("Gadfly")
 
     opts=Any[Main.Gadfly.Geom.path]
 
@@ -29,18 +29,12 @@ end
 gadflyopts(opts...)=gadflyopts(;opts...)
 
 function gadflyplot{T<:Real}(xx::Vector{T},yy::Vector,v...;opts...)
-    @eval import Gadfly
+    require("Gadfly")
     Main.Gadfly.plot(x=xx, y=yy,v...,gadflyopts(opts...)...)
 end
 
-
-function gadflysemilogy{T<:Real}(xx::Vector{T},yy::Vector,v...;opts...)
-    @eval import Gadfly
-    Main.Gadfly.plot(x=xx, y=yy,v...,Main.Gadfly.Scale.y_log10,gadflyopts(opts...)...)
-end
-
 function gadflylayer{T<:Real}(xx::Vector{T},yy::Vector)
-    @eval import Gadfly
+    require("Gadfly")
     Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path)
 end
 
@@ -51,8 +45,8 @@ function gadflyplot{T<:Complex}(xx::Vector{T},yy::Vector,v...;opts...)
 end
 
 function gadflyplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}},v...;opts...)
-    @eval import Gadfly
-    @eval import DataFrames
+    require("Gadfly")
+    require("DataFrames")
     r=real(y)
     i=imag(y)
 
@@ -65,10 +59,10 @@ end
 #Plot multiple contours
 # columns are plots
 function gadflyplot{T<:Real,V<:Real}(x::Matrix{T},y::Matrix{V},v...;opts...)
-    @eval import Gadfly
-    @eval import DataFrames
+    require("Gadfly")
+    require("DataFrames")
 
-    dat=Main.DataFrames.DataFrame(Any[vec(x);vec(y);[[fill(string(k),size(x,1)) for k=1:size(y,2)]...]],
+    dat=Main.DataFrames.DataFrame(Any[vec(x),vec(y),[[fill(string(k),size(x,1)) for k=1:size(y,2)]...]],
                                   Main.DataFrames.Index((@compat Dict(:x=>1,:y=>2,:Function=>3)),
             [:x,:y,:Function]))
 
@@ -79,7 +73,7 @@ end
 
 
 function gadflycontour(x::Vector,y::Vector,z::Matrix,v...;levels=-1,axis=-1)
-    @eval import Gadfly
+    require("Gadfly")
     if axis==-1
         axis=[x[1],x[end],y[1],y[end]]
     end
@@ -97,7 +91,7 @@ function gadflycontour(x::Vector,y::Vector,z::Matrix,v...;levels=-1,axis=-1)
 end
 
 function gadflycontourlayer(x::Vector,y::Vector,z::Matrix;levels=-1)
-    @eval import Gadfly
+    require("Gadfly")
 
 
     if levels==-1
@@ -108,7 +102,7 @@ function gadflycontourlayer(x::Vector,y::Vector,z::Matrix;levels=-1)
 end
 
 function dotplot{T<:Real,V<:Real}(x::Vector{T},y::Vector{V},v...;axis=-1)
-    @eval import Gadfly
+    require("Gadfly")
     if axis==-1
         Main.Gadfly.plot(x=x,y=y,v...)
     else
@@ -121,7 +115,7 @@ dotlayer{T<:Number}(x::Vector{T})=dotlayer(real(x),imag(x))
 
 
 function gadflyplot(opts...;kwds...)
-    @eval import Gadfly
+    require("Gadfly")
     Main.Gadfly.plot(opts...;kwds...)
 end
 
@@ -141,3 +135,5 @@ gadflydeltaplot(x0::Vector,c::Vector)=Main.Gadfly.plot(map(gadflydeltalayer,x0,c
 gadflyplot{S}(B::Evaluation{S,Float64})=gadflydeltaplot(1,B.x)
 gadflyplot{S}(B::Evaluation{S,Bool})=gadflydeltaplot(1,B.x?first(domain(B)):last(domain(B)))
 gadflyplot{T<:Real,E<:Evaluation}(B::ConstantTimesFunctional{T,E})=gadflyplot(B.op)
+
+

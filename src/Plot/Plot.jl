@@ -45,26 +45,35 @@ if isdir(Pkg.dir("TikzGraphs"))
     include("introspect.jl")
 end
 
-
-
-for (plt,gfplt,pyplt) in ((:plot,:gadflyplot,:pyplot),
-                          (:layer,:gadflylayer,:pyplot),
-                          (:contour,:gadflycontour,:pycontour),
-                          (:semilogy,:gadflysemilogy,:pysemilogy))
-    @eval begin
-        function $plt(opts...;kwds...)
-            if plotter[:plot]=="Gadfly"
-                $gfplt(opts...;kwds...)
-            elseif plotter[:plot]=="PyPlot"
-                $pyplt(opts...;kwds...)
-            else
-                error("Plotter " * plotter[:plot] * " not supported.")
-            end
-        end
+function plot(opts...;kwds...)
+    if plotter[:plot]=="Gadfly"
+        gadflyplot(opts...;kwds...)
+    elseif plotter[:plot]=="PyPlot"
+        pyplot(opts...;kwds...)
+    else
+        error("Plotter " * plotter[:plot] * " not supported.")
     end
 end
 
+function layer(opts...)
+    if plotter[:plot]=="Gadfly"
+        gadflylayer(opts...)
+    elseif plotter[:plot]=="PyPlot"
+        pyplot(opts...)
+    else
+        error("Plotter " * plotter[:plot] * " not supported.")
+    end
+end
 
+function contour(x,y::Vector,z::Array,v...;opts...)
+    if plotter[:contour]=="Gadfly"
+        gadflycontour(x,y,z,v...;opts...)
+    elseif plotter[:contour]=="PyPlot"
+        pycontour(x,y,z,v...;opts...)
+    else
+        error("Plotter " * plotter[:contour] * " not supported.")
+    end
+end
 
 function surf(x...;opts...)
     if plotter[:surf]=="GLPlot"
@@ -81,7 +90,7 @@ end
 ## Fun routines
 
 
-for OP in (:plot,:layer,:semilogy)
+for OP in (:plot,:layer)
     @eval begin
         function $OP{S,T<:Real}(f::Fun{S,T},v...;opts...)
             f=pad(f,3length(f)+50)
@@ -128,12 +137,8 @@ function complexplot(f::Fun,v...;opts...)
 end
 
 function complexplot{F<:Fun}(f::Vector{F},v...;opts...)
-    if plotter[:plot]=="PyPlot"
-        for k=1:length(f)
-            complexplot(f[k],v...;opts...)
-        end
-    else
-        plot(mapreduce(complexlayer,vcat,f),v...;opts...)
+    for k=1:length(f)
+        complexplot(f[k],v...;opts...)
     end
 end
 
@@ -223,25 +228,12 @@ end
 for (plt,cplt) in ((:plot,:complexplot),(:layer,:complexlayer))
     @eval $plt(d::Domain,v...;kwds...)=$cplt(Fun(identity,d),v...;kwds...)  # default is to call complexplot
 end
-function plot{D<:Domain}(f::Vector{D},v...;opts...)
-    if plotter[:plot]=="PyPlot"
-        for k=1:length(f)
-            plot(f[k],v...;opts...)
-        end
-    else
-        plot(layer(f),v...;opts...)
-    end
-end
-
-layer{D<:Domain}(d::Vector{D})=mapreduce(layer,vcat,d)
-
-for OP in (:plot,:layer)
-    @eval $OP(d::UnionDomain)=$OP(d.domains)
-end
-
+plot{D<:Domain}(ds::Vector{D},v...;kwds...)=complexplot(map(d->Fun(identity,d),ds),v...;kwds...)
+layer{D<:Domain}(d::Vector{D})=map(layer,d)
 
 domainplot(f::Union(Fun,FunctionSpace),v...;kwds...)=plot(domain(f),v...;kwds...)
 domainlayer(f::Union(Fun,FunctionSpace))=layer(domain(f))
+
 
 
 

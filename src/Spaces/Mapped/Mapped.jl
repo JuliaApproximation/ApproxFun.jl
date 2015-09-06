@@ -10,7 +10,6 @@ type MappedSpace{S<:FunctionSpace,D,T} <: FunctionSpace{T,1}
     MappedSpace(d::D,sp::S)=new(d,sp)
     MappedSpace(d::D)=new(d,S(canonicaldomain(d)))
     MappedSpace()=new(D(),S())
-    MappedSpace(d::AnyDomain)=new(convert(D,d),S(d))
 end
 
 
@@ -55,20 +54,13 @@ function integrate{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
     Fun(g.coefficients,MappedSpace(domain(f),space(g)))
 end
 
-function Base.sum{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
-    fc=Fun(f.coefficients,space(f).space)
-    x=Fun(identity,domain(fc))
-    Mp=fromcanonicalD(f,x)
-    sum(fc*Mp)
-end
 
-
-function linesum{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
-    fc=Fun(f.coefficients,space(f).space)
-    x=Fun(identity,domain(fc))
-    Mp=fromcanonicalD(f,x)
-    linesum(fc*abs(Mp))
-end
+# function Base.sum{LS,RR,T,TT}(f::Fun{MappedSpace{LS,RR,TT},T})
+#     fc=Fun(f.coefficients,space(f).space)
+#     x=Fun(identity,domain(fc))
+#     Mp=fromcanonicalD(f,x)
+#     sum(fc*Mp)
+# end
 
 
 
@@ -79,6 +71,8 @@ function identity_fun{SS,DD,DDT}(S::MappedSpace{SS,DD,DDT})
     Fun(coefficients(sf),MappedSpace(S.domain,space(sf)))
 end
 
+union_rule(A::ConstantSpace,B::MappedSpace)=MappedSpace(domain(B),union(A,B.space))
+
 ## Operators
 
 function Evaluation(S1::MappedSpace,x::Bool,order::Integer)
@@ -86,37 +80,16 @@ function Evaluation(S1::MappedSpace,x::Bool,order::Integer)
     EvaluationWrapper(S1,x,order,Evaluation(S1.space,x,order))
 end
 
-coefficients(f::Vector,S1::MappedSpace,S2::MappedSpace)=coefficients(f,S1.space,S2.space)
-coefficients(f::Vector,S1::ConstantSpace,S2::MappedSpace)=coefficients(f,S1,S2.space)
-
 Conversion(S1::MappedSpace,S2::MappedSpace)=ConversionWrapper(
     SpaceOperator(Conversion(S1.space,S2.space),
         S1,S2))
 
-Conversion(S1::ConstantSpace,S2::MappedSpace)=ConversionWrapper(
-    SpaceOperator(Conversion(S1,S2.space),
-        S1,S2))
-
 # Conversion is induced from canonical space
-for OP in (:union_rule,:conversion_rule,:maxspace)
-    @eval begin
-        function $OP(S1::MappedSpace,S2::MappedSpace)
-            @assert domain(S1)==domain(S2)
-            cr=$OP(S1.space,S2.space)
-            if isa(cr,NoSpace)
-                cr
-            else
-                MappedSpace(domain(S1),cr)
-            end
-        end
-        function $OP(S1::ConstantSpace,S2::MappedSpace)
-            cr=$OP(S1,S2.space)
-            if isa(cr,ConstantSpace)||isa(cr,NoSpace)
-                cr
-            else
-                MappedSpace(domain(S2),cr)
-            end
-        end
+for OP in (:conversion_rule,:maxspace)
+    @eval function $OP(S1::MappedSpace,S2::MappedSpace)
+        @assert domain(S1)==domain(S2)
+        cr=$OP(S1.space,S2.space)
+        MappedSpace(domain(S1),cr)
     end
 end
 
@@ -160,19 +133,6 @@ function Integral(sp::MappedSpace,k::Integer)
         Q=Integral(rangespace(M))*M
         IntegralWrapper(SpaceOperator(Q,sp,MappedSpace(sp.domain,rangespace(Q))),1)
     end
-end
-
-
-function DefiniteIntegral(sp::MappedSpace)
-    x=Fun(domain(sp.space))
-    M=Multiplication(fromcanonicalD(sp,x),sp.space)
-    DefiniteIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
-end
-
-function DefiniteLineIntegral(sp::MappedSpace)
-    x=Fun(domain(sp.space))
-    M=Multiplication(abs(fromcanonicalD(sp,x)),sp.space)
-    DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
 end
 
 
