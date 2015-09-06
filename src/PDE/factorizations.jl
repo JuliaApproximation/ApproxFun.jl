@@ -153,6 +153,8 @@ domain(P::PDEProductOperatorSchur)=domain(domainspace(P))
 function PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::AbstractProductSpace,nt::Integer)
     Bx=A[1:end-1]
     L=A[end]
+    
+    @assert isdiagop(L,2)
 
     BxV=Array(Vector{SavedFunctional{Float64}},nt)
     Rdiags=Array(SavedBandedOperator{Complex{Float64}},nt)
@@ -228,14 +230,13 @@ end
 
 
 
-
 ## discretize
 
-#TODO: don't hard code Disk
+
 function discretize{OT<:Operator}(A::Vector{OT},S...)
     if iskronsumop(A[end])&&length(simplifydekron(A[end])[1])==2
         schurfact(A,S...)
-    elseif domain(A[end])==Disk() #TODO should be diagonal
+    elseif isdiagop(A[end],2)
         schurfact(A,S...)
     else
         kronfact(A,S...)

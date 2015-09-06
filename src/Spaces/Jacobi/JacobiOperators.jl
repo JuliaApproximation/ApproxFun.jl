@@ -299,19 +299,23 @@ end
 
 
 
-# represents [b+(1+z)*d/dz] (false) or [a+(1-z)*d/dz] (true)
-immutable JacobiSD{lr} <:BandedOperator{Float64}
+# represents [b+(1+z)*d/dz] (false) or [a-(1-z)*d/dz] (true)
+immutable JacobiSD{T} <:BandedOperator{T}
+    lr::Bool
     S::Jacobi
 end
 
+JacobiSD(lr,S)=JacobiSD{Float64}(lr,S)
+
+Base.convert{BO<:Operator}(::Type{BO},SD::JacobiSD)=JacobiSD{eltype(BO)}(SD.lr,SD.S)
+
 domain(op::JacobiSD)=domain(op.S)
 domainspace(op::JacobiSD)=op.S
-rangespace(op::JacobiSD{false})=Jacobi(op.S.a+1,op.S.b-1,domain(op.S))
-rangespace(op::JacobiSD{true})=Jacobi(op.S.a-1,op.S.b+1,domain(op.S))
+rangespace(op::JacobiSD)=op.lr?Jacobi(op.S.a-1,op.S.b+1,domain(op.S)):Jacobi(op.S.a+1,op.S.b-1,domain(op.S))
 bandinds(::JacobiSD)=0,0
 
-function addentries!{lr}(op::JacobiSD{lr},A,kr::Range)
-    m=lr?op.S.a:op.S.b
+function addentries!(op::JacobiSD,A,kr::Range)
+    m=op.lr?op.S.a:op.S.b
     for k=kr
         A[k,k]+=k+m-1
     end

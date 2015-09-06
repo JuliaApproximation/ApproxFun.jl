@@ -68,7 +68,7 @@ function gadflyplot{T<:Real,V<:Real}(x::Matrix{T},y::Matrix{V},v...;opts...)
     @eval import Gadfly
     @eval import DataFrames
 
-    dat=Main.DataFrames.DataFrame(Any[vec(x),vec(y),[[fill(string(k),size(x,1)) for k=1:size(y,2)]...]],
+    dat=Main.DataFrames.DataFrame(Any[vec(x);vec(y);[[fill(string(k),size(x,1)) for k=1:size(y,2)]...]],
                                   Main.DataFrames.Index((@compat Dict(:x=>1,:y=>2,:Function=>3)),
             [:x,:y,:Function]))
 

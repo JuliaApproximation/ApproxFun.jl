@@ -245,4 +245,3 @@ domainlayer(f::Union(Fun,FunctionSpace))=layer(domain(f))
 
 
 
-

@@ -199,5 +199,3 @@ function adaptiveqr!(B::AlmostBandedOperator,v::Array,tol::Real,N)
     ##TODO: why max original length?
     backsubstitution!(B,isa(u,Vector)?u[1:max(j-1,length(v))]:u[1:max(j-1,size(v,1)),:])
 end
-
-
