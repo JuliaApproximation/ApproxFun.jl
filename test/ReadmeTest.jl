@@ -95,12 +95,6 @@ d = Interval()^2                            # Defines a rectangle
 
 u = [dirichlet(d);lap(d)+100I]\ones(4)      # First four entries of rhs are 
 
-d = Disk()
-f = Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),d) 
-u = [dirichlet(d);lap(d)]\Any[0.,f]
-
-
-
 
 
 
@@ -111,17 +105,3 @@ B = dirichlet(d)
 D = Derivative(Interval())
 L = (0.01D^2-4D)⊗I + I⊗(0.01D^2-3D)
 h = 0.002
-
-
-d = Disk()
-u0 = Fun((x,y)->exp(-50x^2-40(y-.1)^2)+.5exp(-30(x+.5)^2-40(y+.2)^2),d)
-B= [dirichlet(d);neumann(d)]
-L = -lap(d)^2
-h = 0.001
-
-
-d = Disk()
-u0 = Fun((x,y)->exp(-50x^2-40(y-.1)^2)+.5exp(-30(x+.5)^2-40(y+.2)^2),d)
-B= [dirichlet(d);neumann(d)]
-L = -lap(d)^2
-h = 0.001

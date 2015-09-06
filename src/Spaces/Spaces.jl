@@ -14,9 +14,6 @@ include("Jacobi/Jacobi.jl")
 include("Hermite/Hermite.jl")
 include("Mapped/Mapped.jl")
 
-## 2D
-
-include("Disk/DiskSpace.jl")
 
 
 typealias MappedChebyshev Union(Chebyshev,MappedSpace{Chebyshev})
