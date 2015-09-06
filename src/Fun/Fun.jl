@@ -41,7 +41,6 @@ coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
 
 
 Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(convert(Vector{T},f.coefficients),f.space)
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))
 
 Base.convert{T,S}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
 Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
@@ -54,8 +53,6 @@ for op in (:(Base.zeros),:(Base.ones))
     @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
 end
 
-Base.zero(f::Fun)=zeros(f)
-Base.one(f::Fun)=ones(f)
 
 Base.eltype{S,T}(::Fun{S,T})=T
 
@@ -308,8 +305,8 @@ Base.isreal(f::Fun)=false
 
 
 
-Base.sum(f::Fun)=last(cumsum(f))
-integrate(f::Fun)=integrate(Fun(f,domain(f)))
+Base.sum{S,T}(f::Fun{S,T})=last(cumsum(f))
+integrate{D,T}(f::Fun{D,T})=integrate(Fun(f,domain(f)))
 
 
 

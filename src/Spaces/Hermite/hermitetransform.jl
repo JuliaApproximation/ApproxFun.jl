@@ -1,5 +1,5 @@
 if isdir(Pkg.dir("FastGaussQuadrature"))
-    import FastGaussQuadrature
+    require("FastGaussQuadrature")
     gausshermite(n)=Main.FastGaussQuadrature.gausshermite(n)
 end
 

@@ -110,20 +110,13 @@ end
 
 ## Multiplication operators allow us to multiply two spaces
 
-
-
-hasfasttransform(::)=false
-hasfasttransform(f::Fun)=hasfasttransform(space(f))
-hasfasttransformtimes(f,g)=spacescompatible(f,g) && hasfasttransform(f) && hasfasttransform(g)
-
-
 # This should be overriden whenever the multiplication space is different
 function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     # When the spaces differ we promote and multiply
     if domainscompatible(space(f),space(g))
         m,n = length(f),length(g)
         # Heuristic division of parameter space between value-space and coefficient-space multiplication.
-        if hasfasttransformtimes(f,g) && log10(m)*log10(n)>4
+        if log10(m)*log10(n)>4
             transformtimes(f,g)
         elseif m≤n
             coefficienttimes(f,g)

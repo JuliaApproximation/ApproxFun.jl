@@ -1,5 +1,5 @@
 if isdir(Pkg.dir("FastGaussQuadrature"))
-    import FastGaussQuadrature
+    require("FastGaussQuadrature")
 
     gaussjacobi(n,a,b)=Main.FastGaussQuadrature.gaussjacobi(n,a,b)
 else
@@ -72,7 +72,7 @@ function transform(S::Jacobi,vals,plan::@compat(Tuple{Vector,Vector}))
 end
 itransform(S::Jacobi,cfs,plan::Vector) = jacobip(0:length(cfs)-1,S.a,S.b,tocanonical(S,plan))*cfs
 
-evaluate(f::Fun{Jacobi},x::Number)=length(f)==0?zero(x):dot(jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x)),f.coefficients)
+evaluate(f::Fun{Jacobi},x::Number)=dot(jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x)),f.coefficients)
 evaluate(f::Fun{Jacobi},x::Vector)=jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x))*f.coefficients
 
 
@@ -130,3 +130,6 @@ function transform(S::JacobiWeight{Jacobi},vals::Vector,plan::@compat(Tuple{Vect
     end
 
 end
+
+
+

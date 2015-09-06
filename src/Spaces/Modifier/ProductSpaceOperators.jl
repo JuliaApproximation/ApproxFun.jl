@@ -144,32 +144,14 @@ sumblkdiagm{B<:Operator}(v::Vector{B})=SumInterlaceOperator(v)
 
 
 ## Conversion
-
+# swaps sumspace order
 
 
 function Conversion(S1::SumSpace,S2::SumSpace)
     if sort([S1.spaces...])==sort([S2.spaces...])
-        # swaps sumspace order
         ConversionWrapper(SpaceOperator(
         PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),S1.spaces,S2.spaces),
                       S1,S2))
-    elseif all(map(hasconversion,S1.spaces,S2.spaces))
-        # we can blocmk convert
-        ConversionWrapper(sumblkdiagm([map(Conversion,S1.spaces,S2.spaces)...]))
-    elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
-        error("Not implemented")
-    elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
-        # we can block convert after permuting
-        P=PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),
-                              map(canonicalspace,S1.spaces),
-                              map(canonicalspace,S2.spaces))
-        ds2=SumSpace(S1.spaces[P.perm])
-        ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
-    elseif all(map(hasconversion,sort([map(canonicalspace,S1.spaces)...]),sort([map(canonicalspace,S2.spaces)...])))
-        #TODO: general case
-        @assert length(S1.spaces)==2
-        ds2=SumSpace(S1.spaces[[2,1]])
-        TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2))
     else
         # we don't know how to convert so go to default
         defaultconversion(S1,S2)
@@ -178,41 +160,20 @@ end
 
 
 
-
-for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
-    @eval begin
-        function $OPrule(S1::SumSpace,S2::SumSpace)
-            cs1,cs2=map(canonicalspace,S1.spaces),map(canonicalspace,S2.spaces)
-            if length(S1.spaces)!=length(S2.spaces)
-                NoSpace()
-            elseif canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
-                S1 ≤ S2?S1:S2  # choose smallest space by sorting
-            elseif cs1==cs2 ||
-                    all(map((a,b)->$OP(a,b)!=NoSpace(),S1.spaces,S2.spaces))
-                # we can just map down
-                SumSpace(map($OP,S1.spaces,S2.spaces))
-            elseif sort([cs1...])== sort([cs2...])
-                # sort S1
-                p=perm(cs1,cs2)
-                $OP(SumSpace(S1.spaces[p]),S2)
-            elseif length(S1.spaces)==length(S2.spaces)==2  &&
-                    $OP(S1.spaces[1],S2.spaces[2])!=NoSpace() &&
-                    $OP(S1.spaces[2],S2.spaces[1])!=NoSpace()
-                #TODO: general length
-                SumSpace($OP(S1.spaces[1],S2.spaces[2]),
-                         $OP(S1.spaces[2],S2.spaces[1]))
-            else
-                NoSpace()
-            end
-        end
+function conversion_type(S1::SumSpace,S2::SumSpace)
+    if canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
+        S1 ≤ S2?S1:S2  # choose smallest space by sorting
+    else
+        NoSpace()
     end
 end
+
 
 ## Derivative
 
 #TODO: do in @calculus_operator?
-Derivative(S::SumSpace,k)=DerivativeWrapper(sumblkdiagm([Derivative(S.spaces[1],k),Derivative(S.spaces[2],k)]),k)
-Integral(S::SumSpace,k)=IntegralWrapper(sumblkdiagm([Integral(S.spaces[1],k),Integral(S.spaces[2],k)]),k)
+Derivative(S::SumSpace,k::Integer)=DerivativeWrapper(sumblkdiagm([Derivative(S.spaces[1],k),Derivative(S.spaces[2],k)]),k)
+Integral(S::SumSpace,k::Integer)=IntegralWrapper(sumblkdiagm([Integral(S.spaces[1],k),Integral(S.spaces[2],k)]),k)
 
 
 

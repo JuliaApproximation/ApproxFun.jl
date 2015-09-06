@@ -23,12 +23,11 @@ end
 
 
 multiplyperm(b,a)=Int[a[bk] for bk in b]
-perm(a::Vector,b::Vector)=multiplyperm(invperm(sortperm(b)),sortperm(a))
-perm(a::Tuple,b::Tuple)=perm([a...],[b...])
+
 
 # the operator that rearranges a to be b
 function PermutationOperator{T}(::Type{T},a::Vector,b::Vector)
     @assert sort(a)==sort(b)
-    PermutationOperator{T}(perm(a,b))
+    PermutationOperator{T}(multiplyperm(invperm(sortperm(b)),sortperm(a)))
 end
 PermutationOperator{T}(::Type{T},a::Tuple,b::Tuple)=PermutationOperator(T,[a...],[b...])

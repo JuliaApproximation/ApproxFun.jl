@@ -34,8 +34,6 @@ Base.convert{IT<:PeriodicInterval}(::Type{IT},::AnyDomain)=PeriodicInterval(NaN,
 
 Base.first(d::PeriodicInterval)=d.a
 
-Base.issubset(a::PeriodicInterval,b::PeriodicInterval)=first(a)∈b && last(a)∈b
-
 # we disable last since the domain is "periodic"
 #Base.last(d::Interval)=d.b
 

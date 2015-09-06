@@ -2,7 +2,6 @@
 
 
 function splitatroots(f::Fun)
-    #TODO: treat multiplicities
     d=domain(f)
 
     pts=roots(f)
@@ -26,7 +25,7 @@ function splitmap(g,d::AffineDomain,pts)
     Fun(g,pts)
 end
 
-function splitmap(g,d::Union(IntervalDomain,Curve),pts)
+function splitmap(g,d::IntervalDomain,pts)
     if length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
         Fun(g,d)
     elseif length(pts)==2 && isapprox(first(pts),first(d)) && isapprox(last(pts),last(d))
@@ -111,21 +110,20 @@ function ./(c::Number,f::Fun{Chebyshev})
 
     if length(r) == 0
         linsolve(Multiplication(f,space(f)),c;tolerance=tol)
-    elseif all(r->isapprox(abs(r),1.),r)  # all roots are on the boundary
-        # cound number of left and right roots
-        leftr=0
-        rightr=0
-        for rt in r
-            if isapprox(rt,-1.)
-                leftr+=1
-            else
-                rightr+=1
-            end
+    elseif length(r) == 1 && (isapprox(r[1],1.) || isapprox(r[1],-1.))
+        if sign(r[1]) < 0
+            g = divide_singularity(-1,fc)  # divide by 1+x
+            Fun(coefficients(c./g,Chebyshev),JacobiWeight(-1,0,domain(f)))
+        else
+            g = divide_singularity(1,fc)  # divide by 1-x
+            Fun(coefficients(c./g,Chebyshev),JacobiWeight(0,-1,domain(f)))
         end
-
-        g = divide_singularity((leftr,rightr),fc)  # divide by (1+x)^leftr(1-x)^rightr
-        p = c./g
-        Fun(p.coefficients,JacobiWeight(-leftr,-rightr,setdomain(space(p),domain(f))))
+    elseif length(r) ==2 && ((isapprox(r[1],-1) && isapprox(r[2],1)) || (isapprox(r[2],-1) && isapprox(r[1],1)))
+        g = divide_singularity(fc) # divide by 1-x^2
+        # divide out singularities, tolerance needs to be chosen since we don't get
+        # spectral convergence
+        # TODO: switch to dirichlet basis
+        Fun(coefficients(c./g,Chebyshev),JacobiWeight(-1,-1,domain(f)))
     else
         #split at the roots
         c./splitatroots(f)
@@ -159,9 +157,9 @@ function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(true,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
+            Fun(coefficients(divide_singularity(+1,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
         else
-            Fun(coefficients(divide_singularity(false,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
+            Fun(coefficients(divide_singularity(-1,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
         end
     else
         @assert isapprox(r[1],-1)
@@ -186,9 +184,9 @@ function .^(f::Fun{Chebyshev},k::Float64)
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(true,fc)^k),JacobiWeight(0.,k,sp))
+            Fun(coefficients(divide_singularity(+1,fc)^k),JacobiWeight(0.,k,sp))
         else
-            Fun(coefficients(divide_singularity(false,fc)^k),JacobiWeight(k,0.,sp))
+            Fun(coefficients(divide_singularity(-1,fc)^k),JacobiWeight(k,0.,sp))
         end
     else
         @assert isapprox(r[1],-1)
@@ -218,11 +216,6 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 
 Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
 
-function Base.log{MS<:MappedSpace}(f::Fun{MS})
-    g=log(Fun(f.coefficients,space(f).space))
-    Fun(g.coefficients,MappedSpace(domain(f),space(g)))
-end
-
 # project first to [-1,1] to avoid issues with
 # complex derivative
 function Base.log{US<:Ultraspherical}(f::Fun{US})
@@ -237,7 +230,7 @@ function Base.log{US<:Ultraspherical}(f::Fun{US})
             @assert isapprox(abs(r[1]),1)
 
             if isapprox(r[1],1.)
-                g=divide_singularity(true,f)
+                g=divide_singularity(+1,f)
                 lg=Fun([1.],LogWeight(0.,1.,Chebyshev()))
                 if isapprox(g,1.)  # this means log(g)~0
                     lg
@@ -245,7 +238,7 @@ function Base.log{US<:Ultraspherical}(f::Fun{US})
                     lg⊕log(g)
                 end
             else
-                g=divide_singularity(false,f)
+                g=divide_singularity(-1,f)
                 lg=Fun([1.],LogWeight(1.,0.,Chebyshev()))
                 if isapprox(g,1.)  # this means log(g)~0
                     lg
@@ -288,25 +281,9 @@ end
 
 Base.atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 
-
-# this is used to find a point in which to impose a boundary
-# condition in calculating secial functions
-function specialfunctionnormalizationpoint(op,growth,f)
-    g=chop(growth(f),eps(eltype(f)))
-    xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
-    xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
-    opfxmin,opfxmax = op(f[xmin]),op(f[xmax])
-    opmax = maxabs((opfxmin,opfxmax))
-    if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
-    xmax,opfxmax,opmax
-end
-
-
-
-# ODE gives the first order ODE a special function op satisfies,
-# RHS is the right hand side
-# growth says what to use to choose a good point to impose an initial condition
 for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
+                            (:(Base.asin),"sqrt(1-f^2)*D","f'",:(imag)),
+                            (:(Base.acos),"sqrt(1-f^2)*D","-f'",:(imag)),
                             (:(Base.asinh),"sqrt(f^2+1)*D","f'",:(real)),
                             (:(Base.acosh),"sqrt(f^2-1)*D","f'",:(real)),
                             (:(Base.atanh),"(1-f^2)*D","f'",:(real)),
@@ -314,13 +291,13 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
                             (:(Base.dawson),"D+2f*f'","f'",:(real)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
-        # We remove the MappedSpace
-        function $op{MS<:MappedSpace}(f::Fun{MS})
-            g=exp(Fun(f.coefficients,space(f).space))
-            Fun(g.coefficients,MappedSpace(domain(f),space(g)))
-        end
         function $op{S,T}(f::Fun{S,T})
-            xmax,opfxmax,opmax=specialfunctionnormalizationpoint($op,$growth,f)
+            g=chop($growth(f),eps(T))
+            xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
+            xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
+            opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
+            opmax = maxabs((opfxmin,opfxmax))
+            if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
             # we will assume the result should be smooth on the domain
             # even if f is not
             # This supports Line/Rays
@@ -331,56 +308,6 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
         end
     end
 end
-
-# JacobiWeight explodes, we want to ensure the solution incorporates the fact
-# that exp decays rapidly
-function Base.exp{JW<:JacobiWeight}(f::Fun{JW})
-    S=space(f)
-    q=Fun(f.coefficients,S.space)
-    if isapprox(S.α,0.) && isapprox(S.β,0.)
-        exp(q)
-    elseif S.α < 0 && isapprox(first(q),0.)
-        # this case can remove the exponential decay
-        exp(Fun(f,JacobiWeight(S.α+1,S.β,S.space)))
-    elseif S.β < 0 && isapprox(last(q),0.)
-        exp(Fun(f,JacobiWeight(S.α,S.β+1,S.space)))
-    elseif S.α > 0 && isapproxinteger(S.α)
-        exp(Fun(f,JacobiWeight(0.,S.β,S.space)))
-    elseif S.β > 0 && isapproxinteger(S.β)
-        exp(Fun(f,JacobiWeight(S.α,0.,S.space)))
-    else
-        #find normalization point
-        xmax,opfxmax,opmax=specialfunctionnormalizationpoint(exp,real,f)
-
-        if S.α < 0 && S.β < 0
-            # provided both are negative, we get exponential decay on both ends
-            @assert real(first(q)) < 0 && real(last(q)) < 0
-            s=JacobiWeight(2.,2.,domain(f))
-        elseif S.α < 0 && isapprox(S.β,0.)
-            @assert real(first(q)) < 0
-            s=JacobiWeight(2.,0.,domain(f))
-        elseif S.β < 0 && isapprox(S.α,0.)
-            @assert real(last(q)) < 0
-            s=JacobiWeight(0.,2.,domain(f))
-        else
-            error("exponential of fractional power, not implemented")
-        end
-
-        D=Derivative(s)
-        B=Evaluation(s,xmax)
-
-        linsolve([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
-    end
-end
-
-
-
-
-
-
-
-Base.acos(f::Fun)=cumsum(-f'/sqrt(1-f^2))+acos(first(f))
-Base.asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
 
 
 

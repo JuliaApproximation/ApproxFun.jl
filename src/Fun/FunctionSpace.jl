@@ -147,18 +147,15 @@ end
 
 
 
-for FUNC in (:conversion_rule,:maxspace_rule,:union_rule)
-    @eval begin
-        function $FUNC(a,b)
-            if spacescompatible(a,b)
-                a
-            else
-                NoSpace()
-            end
-        end
+
+conversion_rule(a,b)=NoSpace()
+function conversion_rule{S}(a::S,b::S)
+    if spacescompatible(a,b)
+        a
+    else
+        NoSpace()
     end
 end
-
 
 for FUNC in (:conversion_type,:maxspace)
     @eval begin
@@ -197,20 +194,9 @@ end
 
 
 # gives a space c that has a banded conversion operator FROM a and b
-maxspace(a,b)=NoSpace()  # TODO: this fixes weird bug with Nothing
 function maxspace(a::FunctionSpace,b::FunctionSpace)
-    if spacescompatible(a,b)
+    if a==b
         return a
-    end
-
-    cr=maxspace_rule(a,b)
-    if cr!=NoSpace()
-        return cr
-    end
-
-    cr=maxspace_rule(b,a)
-    if cr!=NoSpace()
-        return cr
     end
 
     cr=conversion_type(a,b)
@@ -222,20 +208,11 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
 
     # check if its banded through canonicalspace
     cspa=canonicalspace(a)
-    if spacescompatible(cspa,b)
-        # we can't call maxspace(cspa,a)
-        # maxspace/conversion_type should be implemented for canonicalspace
-        error("Override conversion_type or maxspace for "*string(a)*" and "*string(b))
-    end
     if cspa != a && maxspace(cspa,a)==cspa
         return maxspace(b,cspa)
     end
 
     cspb=canonicalspace(b)
-    if spacescompatible(cspb,a)
-        # we can't call maxspace(cspb,b)
-        error("Override conversion_type or maxspace for "*string(a)*" and "*string(b))
-    end
     if cspb !=b && maxspace(cspb,b)==cspb
         return maxspace(a,cspb)
     end
@@ -243,6 +220,8 @@ function maxspace(a::FunctionSpace,b::FunctionSpace)
     NoSpace()
 end
 
+
+union_rule(a,b)=NoSpace()
 
 # union combines two spaces
 # this is used primarily for addition of two funs
@@ -279,13 +258,10 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
     a⊕b
 end
 
+# tests whether a can be converted to b
+isconvertible(a,b)=union(a,b)==b
 
-# tests whether a Conversion operator exists
-hasconversion(a,b)=maxspace(a,b)==b
 
-
-# tests whether a coefficients can be converted to b
-isconvertible(a,b)=hasconversion(union(a,b),b)
 
 ## Conversion routines
 #       coefficients(v::Vector,a,b)
@@ -319,15 +295,8 @@ function defaultcoefficients(f,a,b)
         if spacescompatible(a,csp)# a is csp, so try b
             csp=canonicalspace(b)
         end
-        if spacescompatible(a,csp)||spacescompatible(b,csp)
-            # b is csp too, so we are stuck, try Fun constructor
-            if domain(b)⊆domain(a)
-                coefficients(Fun(x->Fun(f,a)[x],b))
-            else
-                # we set the value to be zero off the domain of definition
-                d=domain(a)
-                coefficients(Fun(x->x∈d?Fun(f,a)[x]:zero(Fun(f,a)[x]),b))
-            end
+        if spacescompatible(a,csp)||spacescompatible(b,csp)# b is csp too, so we are stuck, try Fun constructor
+            coefficients(Fun(x->Fun(f,a)[x],b))
         else
             coefficients(f,a,csp,b)
         end
@@ -357,8 +326,7 @@ identity_fun(S::FunctionSpace)=Fun(x->x,S)
 
 
 ## rand
-# checkpoints is used to give a list of points to double check
-# the expansion
+
 Base.rand(d::FunctionSpace,k...)=rand(domain(d),k...)
 checkpoints(d::FunctionSpace)=checkpoints(domain(d))
 
@@ -366,41 +334,31 @@ checkpoints(d::FunctionSpace)=checkpoints(domain(d))
 
 ## default transforms
 
-# transform converts from values at points(S,n) to coefficients
-# itransform converts from coefficients to values at points(S,n)
-
 transform(S::FunctionSpace,vals)=transform(S,vals,plan_transform(S,vals))
 itransform(S::FunctionSpace,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
 
-function transform(S::FunctionSpace,vals,plan)
+function transform(S::FunctionSpace,vals,plan...)
     csp=canonicalspace(S)
     if S==csp
-        error("Override transform(::"*string(typeof(S))*",vals,plan)")
+        error("Override transform(::"*string(typeof(S))*",vals,plan...)")
     end
 
-    coefficients(transform(csp,vals,plan),csp,S)
+    coefficients(transform(csp,vals,plan...),csp,S)
 end
 
-function itransform(S::FunctionSpace,cfs,plan)
+function itransform(S::FunctionSpace,cfs,plan...)
     csp=canonicalspace(S)
     if S==csp
-        error("Override itransform(::"*string(typeof(S))*",cfs,plan)")
+        error("Override itransform(::"*string(typeof(S))*",cfs,plan...)")
     end
 
-    itransform(csp,coefficients(cfs,S,csp),plan)
-end
-
-
-for OP in (:plan_transform,:plan_itransform)
-    # plan transform expects a vector
-    # this passes an empty Float64 array
-    @eval $OP(S::FunctionSpace,n::Integer)=$OP(S,Array(Float64,n))
+    itransform(csp,coefficients(cfs,S,csp),plan...)
 end
 
 function plan_transform(S::FunctionSpace,vals)
     csp=canonicalspace(S)
     if S==csp
-        identity #TODO: why identity?
+        identity
     else
         plan_transform(csp,vals)
     end
@@ -409,7 +367,7 @@ end
 function plan_itransform(S::FunctionSpace,cfs)
     csp=canonicalspace(S)
     if S==csp
-        identity #TODO: why identity?
+        identity
     else
         plan_itransform(csp,cfs)
     end
@@ -417,7 +375,7 @@ end
 
 
 ## sorting
-# we sort spaces lexigraphically by default
+
 
 for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
     @eval $OP(a::FunctionSpace,b::FunctionSpace)=$OP(string(a),string(b))

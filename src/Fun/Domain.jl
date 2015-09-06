@@ -1,6 +1,6 @@
 
 
-export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,fromcanonicalD,∂
+export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,∂
 export chebyshevpoints,fourierpoints,isambiguous
 
 
@@ -34,10 +34,8 @@ Base.length(::AnyDomain)=NaN
 ##General routines
 
 
-Base.isempty(::EmptyDomain)=true
-Base.intersect(::EmptyDomain,::EmptyDomain)=EmptyDomain()
-Base.intersect(::Domain,::EmptyDomain)=EmptyDomain()
-Base.intersect(::EmptyDomain,::Domain)=EmptyDomain()
+
+
 
 
 ## Interval Domains
@@ -70,7 +68,7 @@ bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
 Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 
-Base.in(x,::AnyDomain)=true
+
 function Base.in{T}(x,d::IntervalDomain{T})
     y=tocanonical(d,x)
     abs(imag(y))<100eps(T)/length(d) && -one(real(T))-100eps(T)/length(d)<real(y)<one(real(T))+100eps(T)/length(d)
@@ -89,14 +87,8 @@ fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/
 function Base.in{T}(x,d::PeriodicDomain{T})
     y=tocanonical(d,x)
     l=length(d)
-    if isinf(l)
-        abs(imag(y))<20eps(T) && -π-2eps(T)<real(y)<π+2eps(T)
-    else
-        abs(imag(y))/l<20eps(T) && -π-2l*eps(T)<real(y)<π+2l*eps(T)
-    end
+    abs(imag(y))/l<20eps(T) && -π-2l*eps(T)<real(y)<π+2l*eps(T)
 end
-
-Base.issubset(a::Domain,b::Domain)=a==b
 
 
 Base.first(d::PeriodicDomain)=fromcanonical(d,-π)

@@ -47,7 +47,7 @@ identity_fun{m}(d::Ultraspherical{m})=Fun(identity_fun(domain(d)),d)
 
 
 spacescompatible{O}(a::Ultraspherical{O},b::Ultraspherical{O})=domainscompatible(a,b)
-hasfasttransform(::Ultraspherical)=true
+
 
 
 

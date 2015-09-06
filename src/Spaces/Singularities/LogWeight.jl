@@ -30,21 +30,6 @@ function coefficients(f::Vector,sp1::LogWeight,sp2::LogWeight)
     end
 end
 
-function maxspace_rule(A::LogWeight,B::LogWeight)
-    if isapprox(A.α,B.α) && isapprox(A.β,B.β)
-        LogWeight(A.α,A.β,maxspace(A.space,B.space))
-    else
-        NoSpace()
-    end
-end
-
-# there are no other comatible spaces
-# this is mostly to overcome typing bug
-# in spacestes
-maxspace_rule(::LogWeight,::JacobiWeight)=NoSpace()
-maxspace_rule(::JacobiWeight,::LogWeight)=NoSpace()
-
-
 
 
 
