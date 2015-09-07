@@ -48,7 +48,7 @@ function Base.abs{S<:RealSpace,T<:Real}(f::Fun{S,T})
     end
 end
 
-function Base.abs{S,T}(f::Fun{S,T})
+function Base.abs{S}(f::Fun{S})
     d=domain(f)
 
     pts=roots(f)
@@ -79,6 +79,10 @@ function Base.sign{S<:RealSpace,T<:Real}(f::Fun{S,T})
         midpts = .5(pts[1:end-1]+pts[2:end])
         Fun([sign(f[midpts])],pts)
     end
+end
+
+for OP in (:(Base.abs),:(Base.sign))
+    @eval $OP{PW<:PiecewiseSpace}(f::Fun{PW})=depiece(mapreduce($OP,vcat,pieces(f)))
 end
 
 # division by fun
