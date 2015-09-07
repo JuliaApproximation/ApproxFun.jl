@@ -269,10 +269,10 @@ end
 TimesOperator{T}(ops::Vector{BandedOperator{T}})=TimesOperator{T}(ops)
 TimesOperator{OT<:Operator}(ops::Vector{OT})=TimesOperator(convert(Vector{BandedOperator{eltype(OT)}},ops))
 
-TimesOperator{T,V}(A::TimesOperator{T},B::TimesOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
-TimesOperator{T,V}(A::TimesOperator{T},B::BandedOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A.ops...,B])
-TimesOperator{T,V}(A::BandedOperator{T},B::TimesOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A,B.ops...])
-TimesOperator{T,V}(A::BandedOperator{T},B::BandedOperator{V})=TimesOperator(BandedOperator{promote_type(T,V)}[A,B])
+TimesOperator(A::TimesOperator,B::TimesOperator)=TimesOperator(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
+TimesOperator(A::TimesOperator,B::BandedOperator)=TimesOperator(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
+TimesOperator(A::BandedOperator,B::TimesOperator)=TimesOperator(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
+TimesOperator(A::BandedOperator,B::BandedOperator)=TimesOperator(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B])
 
 
 ==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
@@ -570,5 +570,3 @@ function addentries!(R::ReReOperator,A,kr::Range)
 
     A
 end
-
-

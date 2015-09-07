@@ -9,7 +9,17 @@ SpaceFunctional{T<:Number,S<:FunctionSpace}(o::Functional{T},s::S)=SpaceFunction
 
 datalength(S::SpaceFunctional)=datalength(S.op)
 
-Base.convert{T}(::Type{Operator{T}},S::SpaceFunctional)=SpaceFunctional(convert(Operator{T},S.op),S.space)
+
+Base.convert{OT<:SpaceFunctional}(::Type{OT},S::OT)=S  # Added to fix 0.4 bug
+function Base.convert{OT<:Operator}(::Type{OT},S::SpaceFunctional)
+    T=eltype(OT)
+    if T==eltype(S)
+        S
+    else
+        op=convert(Operator{T},S.op)
+        SpaceFunctional{T,typeof(op),typeof(S.domainspace)}(op,S.domainspace,S.rangespace)
+    end
+end
 
 getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
 
@@ -165,6 +175,3 @@ function promotespaces(ops::Vector,b::Fun)
     end
     A,Fun(b,rangespace(A[end]))
 end
-
-
-

@@ -59,9 +59,15 @@ immutable FunctionalOperator{FT,T} <: BandedOperator{T}
     func::FT
 end
 
-FunctionalOperator{T}(func::Functional{T})=FunctionalOperator{typeof(func),T}(func)
+FunctionalOperator(func::Functional)=FunctionalOperator{typeof(func),eltype(func)}(func)
 
-Base.convert{T}(::Type{BandedOperator{T}},FO::FunctionalOperator)=FunctionalOperator{typeof(FO.func),T}(FO.func)
+function Base.convert{O<:Operator}(::Type{O},FO::FunctionalOperator)
+    if eltype(O)==eltype(FO)
+        FO::O
+    else
+        FunctionalOperator{typeof(FO.func),eltype(O)}(FO.func)
+    end
+end
 
 bandinds(FO::FunctionalOperator)=0,datalength(FO.func)-1
 domainspace(FO::FunctionalOperator)=domainspace(FO.func)

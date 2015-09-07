@@ -23,7 +23,13 @@ macro calculus_functional(Func)
         promotedomainspace(::$AbstOp,sp::FunctionSpace)=$Func(sp)
 
         Base.convert{OT<:$Func}(::Type{OT},Σ::OT)=Σ
-        Base.convert{OT<:Operator}(::Type{OT},Σ::$Func)=$Func{typeof(Σ.domainspace),eltype(OT)}(Σ.domainspace)::OT
+        function Base.convert{OT<:Operator}(::Type{OT},Σ::$Func)
+            if eltype(OT)==eltype(Σ)
+                D
+            else
+                $Func{typeof(Σ.domainspace),eltype(OT)}(Σ.domainspace)
+            end
+        end
 
         domain(Σ::$Func)=domain(Σ.domainspace)
         domainspace(Σ::$Func)=Σ.domainspace
