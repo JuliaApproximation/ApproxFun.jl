@@ -63,7 +63,7 @@ end
 
 
 
-function Base.sign{S<:RealSpace,T<:Real}(f::Fun{S,T})
+function Base.sign{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
 
     pts=roots(f)
@@ -78,13 +78,6 @@ function Base.sign{S<:RealSpace,T<:Real}(f::Fun{S,T})
         isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts,db]
         midpts = .5(pts[1:end-1]+pts[2:end])
         Fun([sign(f[midpts])],pts)
-    end
-end
-
-for OP in (:(Base.abs),:(Base.sign))
-    @eval begin
-        $OP{S<:FunctionSpace,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,1},T})=depiece(mapreduce($OP,vcat,pieces(f)))
-        $OP{PW<:PiecewiseSpace}(f::Fun{PW})=depiece(mapreduce($OP,vcat,pieces(f)))
     end
 end
 
@@ -139,12 +132,6 @@ function ./(c::Number,f::Fun{Chebyshev})
     end
 end
 
-
-## PIecewiseSpace
-# map over pieces
-
-./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=depiece(map(f->c./f,pieces(f)))
-.^{S<:PiecewiseSpace}(f::Fun{S},c::Number)=depiece(map(f->f.^c,pieces(f)))
 
 
 
@@ -621,3 +608,26 @@ end
 
 
 #TODO ≤,≥
+
+
+
+
+## Piecewise Space
+
+## PIecewiseSpace
+# map over pieces
+
+./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=depiece(mapreduce(f->c./f,vcat,pieces(f)))
+.^{S<:PiecewiseSpace}(f::Fun{S},c::Integer)=depiece(mapreduce(f->f.^c,vcat,pieces(f)))
+.^{S<:PiecewiseSpace}(f::Fun{S},c::Number)=depiece(mapreduce(f->f.^c,vcat,pieces(f)))
+
+
+
+for OP in (:(Base.abs),:(Base.sign))
+    @eval begin
+        $OP{S,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,1},T})=depiece(mapreduce($OP,vcat,pieces(f)))
+        $OP{S,B}(f::Fun{PiecewiseSpace{S,B,1}})=depiece(mapreduce($OP,vcat,pieces(f)))
+    end
+end
+
+

@@ -144,7 +144,8 @@ function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range)
         P.cols[kr]
     else
         opr = intersect(kr,length(P.cols)+1:kr[end])
-        [P.cols[intersect(kr,1:length(P.cols))],P.op[opr[1]-lcols:opr[end]-lcols]]
+        [P.cols[intersect(kr,1:length(P.cols))];
+         P.op[opr[1]-lcols:opr[end]-lcols]]
     end
 end
 Base.convert{BT<:Operator}(::Type{BT},P::PrependColumnsFunctional)=PrependColumnsFunctional(convert(Vector{eltype(BT)},P.cols),convert(Functional{eltype(BT)},P.op))

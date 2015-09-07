@@ -4,7 +4,7 @@ export PiecewiseSpace,depiece,pieces
 # Piecewise Space
 ############
 
-immutable PiecewiseSpace{S<:FunctionSpace,T,d} <: FunctionSpace{T,d}
+immutable PiecewiseSpace{S,T,d} <: FunctionSpace{T,d}
     spaces::Vector{S}
     PiecewiseSpace(::AnyDomain)=new(S[S(AnyDomain())])
     PiecewiseSpace(sp::Vector{S})=new(sp)
@@ -130,14 +130,7 @@ for op in (:differentiate,:integrate)
     @eval $op{V<:PiecewiseSpace}(f::Fun{V})=depiece(map($op,pieces(f)))
 end
 
-for op in (:(Base.sign),)
-    @eval $op{V<:PiecewiseSpace,T<:Real}(f::Fun{V,T})=depiece(map($op,pieces(f)))
-end
 
-for op in (:(.^),)
-    @eval $op{V<:PiecewiseSpace}(f::Fun{V},k::Integer)=depiece(map(fk->$op(fk,k),pieces(f)))
-    @eval $op{V<:PiecewiseSpace}(f::Fun{V},k)=depiece(map(fk->$op(fk,k),pieces(f)))
-end
 
 Base.dot{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(dot,pieces(f),pieces(g)))
 

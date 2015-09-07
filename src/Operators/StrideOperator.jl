@@ -275,17 +275,16 @@ end
 # functionals as well
 function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
-
-    # Hack to use PrependColumnsOperator
+    TT=mapreduce(eltype,promote_type,A)
+    # Use PrependColumnsOperator whenever the first columns are all constants
     if n==2 &&all(isconstop,A[1:end-1,1]) &&iscolop(A[end,1]) &&
             all(a->isa(a,Functional),A[1:end-1,2]) && isa(A[end,2],BandedOperator)
-        return [[PrependColumnsFunctional(convert(Number,A[k,1]),A[k,2]) for k=1:m-1]...;
-         PrependColumnsOperator(A[end,:])]
+        return [Functional{TT}[PrependColumnsFunctional(convert(Number,A[k,1]),A[k,2]) for k=1:m-1]...;
+                    PrependColumnsOperator(A[end,:])]
     end
 
 
     A=promotespaces(A)
-    TT=mapreduce(eltype,promote_type,A)
 
     dsp=domainspace(A)
 
