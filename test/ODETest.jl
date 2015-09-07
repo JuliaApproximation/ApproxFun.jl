@@ -102,3 +102,30 @@ c=[evaluate(u,d.a)'; evaluate(u,d.b)']\[airyai(d.a),airyai(d.b)]
 @test norm(dot(c,u)-Fun(airyai,d))<eps(1000.)
 
 
+
+
+
+
+## constant forcing
+
+
+d = Interval(0.,50.)
+D = Derivative(d)
+t = Fun(identity,d)
+
+F = D^2 +.5D + 1
+BC = [ldirichlet(d), lneumann(d)]
+BC0 = [1.0, 0.0]
+x = [BC, F]\[BC0, 0.0] #evolution of undriven equation x'' + .5x' + x = 0, works beautifully
+
+
+A= [0  ldirichlet(d);
+    0    lneumann(d);
+    0    rdirichlet(d);
+    -1    F; ]
+
+
+u,x=A\[1.,0.,2.,0.]
+
+@test norm(F*x-u)<1000eps()
+

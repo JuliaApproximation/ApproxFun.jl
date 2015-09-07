@@ -36,7 +36,7 @@ function splitmap(g,d::Union(IntervalDomain,Curve),pts)
     end
 end
 
-function Base.abs{S<:RealSpace,T<:Real}(f::Fun{S,T})
+function Base.abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
 
     pts=roots(f)
@@ -48,7 +48,7 @@ function Base.abs{S<:RealSpace,T<:Real}(f::Fun{S,T})
     end
 end
 
-function Base.abs{S}(f::Fun{S})
+function Base.abs(f::Fun)
     d=domain(f)
 
     pts=roots(f)
@@ -82,7 +82,10 @@ function Base.sign{S<:RealSpace,T<:Real}(f::Fun{S,T})
 end
 
 for OP in (:(Base.abs),:(Base.sign))
-    @eval $OP{PW<:PiecewiseSpace}(f::Fun{PW})=depiece(mapreduce($OP,vcat,pieces(f)))
+    @eval begin
+        $OP{S<:FunctionSpace,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,1},T})=depiece(mapreduce($OP,vcat,pieces(f)))
+        $OP{PW<:PiecewiseSpace}(f::Fun{PW})=depiece(mapreduce($OP,vcat,pieces(f)))
+    end
 end
 
 # division by fun
