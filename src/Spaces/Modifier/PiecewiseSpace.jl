@@ -152,6 +152,8 @@ function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
 end
 
 
+Base.sum{V<:PiecewiseSpace,T}(f::Fun{V,T})=mapreduce(sum,+,pieces(f))
+
 
 
 ## Conversion from Vector to Piecewise

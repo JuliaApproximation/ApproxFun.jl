@@ -2,11 +2,14 @@ using ApproxFun
 
 function lanczos(w,N)
     x = Fun(identity,domain(w))
-    P = Array(Fun,N + 1)
-    β = Array(Float64,N)
-    γ = Array(Float64,N)
 
-    P[1] = Fun([1./sqrt(sum(w))],domain(x))
+    f1=Fun(1./sqrt(sum(w)),domain(x))
+
+    P = Array(typeof(f1),N + 1)
+    β = Array(eltype(w),N)
+    γ = Array(eltype(w),N)
+
+    P[1] = f1
 
     v = x.*P[1]
     β[1] = sum(w.*v.*P[1])
@@ -24,7 +27,7 @@ function lanczos(w,N)
         P[k+1] = v/γ[k]
     end
 
-    β,γ
+    P,β,γ
 end
 
 
