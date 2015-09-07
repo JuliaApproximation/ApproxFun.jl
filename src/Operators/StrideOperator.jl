@@ -277,10 +277,10 @@ function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
 
     # Hack to use PrependColumnsOperator
-    if m==n==2 && isconstop(A[1,1]) && iscolop(A[2,1]) &&
-                isa(A[1,2],Functional) && isa(A[2,2],BandedOperator)
-        return [PrependColumnsFunctional(convert(Number,A[1,1]),A[1,2]);
-                PrependColumnsOperator(A[2,:])]
+    if n==2 &&all(isconstop,A[1:end-1,1]) &&iscolop(A[end,1]) &&
+            all(a->isa(a,Functional),A[1:end-1,2]) && isa(A[end,2],BandedOperator)
+        return [[PrependColumnsFunctional(convert(Number,A[k,1]),A[k,2]) for k=1:m-1]...;
+         PrependColumnsOperator(A[end,:])]
     end
 
 
