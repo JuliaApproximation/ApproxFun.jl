@@ -1,4 +1,4 @@
-export Derivative,Integral
+export Derivative,Integral,Laplacian
 
 
 abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
