@@ -49,7 +49,13 @@ sc=Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])
 @test norm(sc-(c+s))<100eps()
 
 
+x=Fun(identity,[im,0.,1.])
+@test_approx_eq sqrt(1-x)[0.2im] sqrt(1-0.2im)
+@test_approx_eq sqrt(1-x)[0.2] sqrt(1-0.2)
 
+w=2/(sqrt(1-x)*sqrt(1+im*x))
+@test_approx_eq w[0.2im] 2/(sqrt(1-0.2im)*sqrt(1+im*(0.2im)))
+@test_approx_eq w[0.2] 2/(sqrt(1-0.2)*sqrt(1+im*(0.2)))
 
 ## Equivalent spaces
 

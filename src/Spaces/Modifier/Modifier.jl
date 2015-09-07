@@ -54,6 +54,24 @@ function coefficients(cfs::Vector,A::PiecewiseSpace,B::PiecewiseSpace)
     end
 end
 
+
+# add constant to each piece
+function coefficients(cfsin::Vector,A::ConstantSpace,B::PiecewiseSpace)
+    m=length(B.spaces)
+
+    #assume first that  each space needs 1 coefficient to rep constant
+    ret=zeros(eltype(cfsin),m)
+
+    for k=1:m
+        cfs=coefficients(cfsin,A,B.spaces[k])
+        mm=m*(length(cfs)-1)+k  # max ret, should normally be k
+        ret=pad!(ret,max(length(ret),mm))
+        ret[k:m:mm]=cfs
+    end
+
+    ret
+end
+
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval begin
         function coefficients(cfsin::Vector,A::FunctionSpace,B::$TYP)

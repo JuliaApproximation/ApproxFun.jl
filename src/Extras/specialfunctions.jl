@@ -132,7 +132,15 @@ function ./(c::Number,f::Fun{Chebyshev})
     end
 end
 
+
+## PIecewiseSpace
+# map over pieces
+
 ./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=depiece(map(f->c./f,pieces(f)))
+.^{S<:PiecewiseSpace}(f::Fun{S},c::Number)=depiece(map(f->f.^c,pieces(f)))
+
+
+
 function ./{S<:MappedSpace}(c::Number,f::Fun{S})
     g=c./Fun(coefficients(f),space(f).space)
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
@@ -174,7 +182,7 @@ end
 function .^(f::Fun{Chebyshev},k::Float64)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
-    fc = Fun(f.coefficients,Chebyshev()) #Project to interval
+    fc = setdomain(f,Interval()) #Project to interval
 
     r = sort(roots(fc))
     #TODO divideatroots
@@ -314,6 +322,9 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
                             (:(Base.dawson),"D+2f*f'","f'",:(real)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
+        # depice before doing op
+        $op{PW<:PiecewiseSpace}(f::Fun{PW})=depiece(map(f->$op(f),pieces(f)))
+
         # We remove the MappedSpace
         function $op{MS<:MappedSpace}(f::Fun{MS})
             g=exp(Fun(f.coefficients,space(f).space))
