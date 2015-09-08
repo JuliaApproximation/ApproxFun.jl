@@ -1,5 +1,5 @@
-abstract MultivariateFun
-abstract BivariateFun <: MultivariateFun
+abstract MultivariateFun{T}
+abstract BivariateFun{T} <: MultivariateFun{T}
 
 export grad,lap,curl
 
@@ -15,7 +15,9 @@ Base.div{B<:BivariateFun}(u::Vector{B})=differentiate(u[1],1)+differentiate(u[2]
 curl{B<:BivariateFun}(u::Vector{B})=differentiate(u[2],1)-differentiate(u[1],2)
 
 Base.chop(f::MultivariateFun)=chop(f,10eps())
-
+Base.eltype{T}(::MultivariateFun{T})=T
+Base.eltype{T}(::Type{MultivariateFun{T}})=T
+Base.eltype{MF<:MultivariateFun}(::Type{MF})=eltype(super(MF))
 
 
 include("VectorFun.jl")

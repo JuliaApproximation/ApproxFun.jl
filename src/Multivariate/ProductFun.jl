@@ -5,7 +5,7 @@
 
 export ProductFun
 
-immutable ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T}<:BivariateFun
+immutable ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T}<:BivariateFun{T}
     coefficients::Vector{Fun{S,T}}     # coefficients are in x
     space::SS
 end
@@ -18,7 +18,6 @@ end
 
 Base.size(f::ProductFun,k::Integer)=k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
 Base.size(f::ProductFun)=(size(f,1),size(f,2))
-Base.eltype{S,V,SS,T}(::ProductFun{S,V,SS,T})=T
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
@@ -91,7 +90,7 @@ function ProductFun(f::ProductFun,sp::AbstractProductSpace)
     for k=1:length(f.coefficients)
         u[k]=Fun(f.coefficients[k],columnspace(sp,k))
     end
-    
+
     ProductFun(u,sp)
 end
 

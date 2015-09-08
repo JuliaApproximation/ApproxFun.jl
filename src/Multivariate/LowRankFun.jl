@@ -4,25 +4,25 @@
 
 export LowRankFun
 
-type LowRankFun{S<:FunctionSpace,M<:FunctionSpace,SS<:AbstractProductSpace,T<:Number,V<:Number} <: BivariateFun
+type LowRankFun{S<:FunctionSpace,M<:FunctionSpace,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
     A::Vector{Fun{S,T}}
-    B::Vector{Fun{M,V}}
+    B::Vector{Fun{M,T}}
     space::SS
 
-    function LowRankFun(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}},space::SS)
+    function LowRankFun(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS)
         @assert length(A) == length(B)
         @assert length(A) > 0
         new(A,B,space)
     end
 end
 
-LowRankFun{S,M,SS,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}},space::SS)=LowRankFun{S,M,SS,T,V}(A,B,space)
-LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})=LowRankFun(A,B,space(first(A))⊗space(first(B)))
+LowRankFun{S,M,SS,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS)=LowRankFun{S,M,SS,T}(A,B,space)
+LowRankFun{S,M,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}})=LowRankFun(A,B,space(first(A))⊗space(first(B)))
+LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})=LowRankFun(convert(Vector{Fun{S,promote_type(T,V)}},A),convert(Vector{Fun{M,promote_type(T,V)}},B),space(first(A))⊗space(first(B)))
 
 Base.rank(f::LowRankFun)=length(f.A)
 Base.size(f::LowRankFun,k::Integer)=k==1?mapreduce(length,max,f.A):mapreduce(length,max,f.B)
 Base.size(f::LowRankFun)=size(f,1),size(f,2)
-Base.eltype{S,M,SS,T,V}(::LowRankFun{S,M,SS,T,V})=promote_type(T,V)
 
 ## Construction via a Matrix of coefficients
 
@@ -219,7 +219,7 @@ domain(f::LowRankFun,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
 space(f::LowRankFun,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
 space(f::LowRankFun)=f.space
 
-Base.transpose{S,M,SS,T,V}(f::LowRankFun{S,M,SS,T,V})=LowRankFun(f.B,f.A,transpose(space(f)))
+Base.transpose{S,M,SS,T}(f::LowRankFun{S,M,SS,T})=LowRankFun(f.B,f.A,transpose(space(f)))
 
 function values(f::LowRankFun)
     xm=mapreduce(length,max,f.A)
