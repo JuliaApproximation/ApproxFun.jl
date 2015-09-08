@@ -229,6 +229,25 @@ Base.dot(f::Fun,g::Fun)=defaultdot(f,g)
 Base.dot(c::Number,g::Fun)=sum(conj(c)*g)
 Base.dot(g::Fun,c::Number)=sum(conj(g)*c)
 
+function Base.norm(f::Fun,p::Number)
+    if p < 1
+        return error("p should be 1 ≤ p ≤ ∞")
+    elseif 1 ≤ p < Inf
+        return abs(sum(abs2(f)^(p/2)))^(1/p)
+    else
+        return maxabs(f)
+    end
+end
+
+function Base.norm(f::Fun,p::Int)
+    if 1 ≤ p < Inf
+        return iseven(p) ? abs(sum(abs2(f)^div(p,2)))^(1/p) : abs(sum(abs2(f)^(p/2)))^(1/p)
+    else
+        return error("p should be 1 ≤ p ≤ ∞")
+    end
+end
+
+# TODO: This definition of 2-norm is bad. Doesn't promote spaces so it's wrong for f::Fun{JacobiWeight}
 function Base.norm(f::Fun)
     sp = space(f)
     f2 = pad(f,2length(f)-1)
@@ -246,8 +265,8 @@ for op = (:(Base.real),:(Base.imag),:(Base.conj))
     @eval ($op){T,D<:FunctionSpace{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 
-Base.abs2{S}(f::Fun{S,Float64})=f.^2
-Base.abs2{S}(f::Fun{S,Complex{Float64}})=real(f).^2+imag(f).^2
+Base.abs2{S,T<:Real}(f::Fun{S,T})=f.^2
+Base.abs2{S,T<:Complex}(f::Fun{S,T})=real(f).^2+imag(f).^2
 
 ##  integration
 
