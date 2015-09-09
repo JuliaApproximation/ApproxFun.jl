@@ -51,3 +51,4 @@ include("eigs.jl")
 include("hacks.jl")
 
 include("autodifferentiation.jl")
+include("fractional.jl")
