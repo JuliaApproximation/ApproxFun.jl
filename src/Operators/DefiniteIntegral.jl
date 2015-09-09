@@ -25,7 +25,7 @@ macro calculus_functional(Func)
         Base.convert{OT<:$Func}(::Type{OT},Σ::OT)=Σ
         function Base.convert{OT<:Operator}(::Type{OT},Σ::$Func)
             if eltype(OT)==eltype(Σ)
-                D
+                Σ
             else
                 $Func{typeof(Σ.domainspace),eltype(OT)}(Σ.domainspace)
             end
