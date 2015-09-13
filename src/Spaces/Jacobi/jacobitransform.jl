@@ -79,18 +79,7 @@ evaluate(f::Fun{Jacobi},x::Vector)=jacobip(0:length(f)-1,f.space.a,f.space.b,toc
 ## JacobiWeight
 
 
-function plan_transform(S::JacobiWeight{Jacobi},v::Vector)
-    m=S.β
-    @assert isapproxinteger(m)
-
-    if S.α==S.space.b==0 && S.space.a==2m+1
-        gaussjacobi(length(v),1.,0.)
-    elseif S.α==0 && S.space.b ==-0.5 && S.space.a==2m+0.5
-        gausschebyshev(length(v),4) # a=0.5,b==-0.5
-    elseif S.α==0 && S.space.b ==-0.5 && S.space.a==2m-0.5
-        gausschebyshev(length(v)) # a=-0.5,b==-0.5
-    end
-end
+plan_transform(S::JacobiWeight{Jacobi},v::Vector)=gaussjacobi(length(v),S.β,S.α)
 
 points(S::JacobiWeight{Jacobi},n)=fromcanonical(S,plan_transform(S,ones(n))[1])
 
