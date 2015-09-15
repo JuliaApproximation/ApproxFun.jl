@@ -32,7 +32,7 @@ blockbandzeros{T}(zer::Function,::Type{T},n,m,Alu,Blu)=blockbandzeros(zer,T,n,m,
 getindex{T}(A::BandedMatrix{Matrix{T}},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
 getindex{T}(A::BandedMatrix{BandedMatrix{T}},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?bazeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
 
-function Base.convert{T,V<:Number}(::Type{Matrix{T}},K::BandedMatrix{BandedMatrix{V}})
+function Base.convert{T,V}(::Type{Matrix{T}},K::BandedMatrix{BandedMatrix{V}})
     n=size(K,1)
     m=size(K,2)
 
@@ -46,7 +46,7 @@ function Base.convert{T,V<:Number}(::Type{Matrix{T}},K::BandedMatrix{BandedMatri
     ret
 end
 
-function Base.convert{T,V<:Number}(::Type{Matrix{T}},K::BandedMatrix{Matrix{V}})
+function Base.convert{T,V}(::Type{Matrix{T}},K::BandedMatrix{Matrix{V}})
     n=size(K,1)
     m=size(K,2)
 
@@ -152,7 +152,7 @@ end
 
 blockbandinds(P::TimesOperator,k)=blockbandindssum(P.ops,1)
 
-blockbandinds{T}(K::BandedOperator{BandedMatrix{T}})=blockbandinds(K,1),blockbandinds(K,2)
+blockbandinds{BT<:BandedMatrix}(K::BandedOperator{BT})=blockbandinds(K,1),blockbandinds(K,2)
 
 
 for OP in (:domainspace,:rangespace)
@@ -179,8 +179,11 @@ end
 addentries!(K::KroneckerOperator,A,kr::Range)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
 
 
-bazeros{T}(K::BivariateOperator{T},n::Integer,::Colon)=blockbandzeros(T,n,:,bandinds(K),blockbandinds(K))
-bazeros{T}(K::BivariateOperator{T},n::Integer,br::@compat(Tuple{Int,Int}))=blockbandzeros(T,n,:,br,blockbandinds(K))
+bazeros{BT<:BandedMatrix}(K::Operator{BT},
+                          n::Integer,
+                          ::Colon)=blockbandzeros(eltype(BT),n,:,bandinds(K),blockbandinds(K))
+bazeros{BT<:BandedMatrix}(K::Operator{BT},n::Integer,
+                          br::@compat(Tuple{Int,Int}))=blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
 
 # function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
 #     @assert first(kr)==1
