@@ -297,6 +297,37 @@ function addentries!(M::Multiplication{JacobiWeight{Chebyshev},Jacobi},A,kr::Ran
 end
 
 
+# We can exploit the special multiplication to construct a Conversion
+# that decrements parameters
+
+
+#TODO: general integer decrements
+function Conversion(A::JacobiWeight{Jacobi},B::Jacobi)
+    if A.α==1.0 && A.β==0.0
+        M=Multiplication(Fun([1.],JacobiWeight(1.,0.,domain(A))),A.space)        # multply by (1+x)
+        S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        ConversionWrapper(promoterangespace(S,B))
+    elseif A.α==0.0 && A.β==1.0
+        M=Multiplication(Fun([1.],JacobiWeight(0.,1.,domain(A))),A.space)        # multply by (1-x)
+        S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        ConversionWrapper(promoterangespace(S,B))
+    else
+        error("Not implemented")
+    end
+end
+
+function maxspace_rule(A::JacobiWeight{Jacobi},B::Jacobi)
+    if A.α==1.0 && A.β==0.0 && A.space.b>0
+        maxspace(Jacobi(A.space.a,A.space.b-1),B)
+    elseif A.α==0.0 && A.β==1.0 && A.space.a>0
+        maxspace(Jacobi(A.space.b-1,A.space.a),B)
+    else
+        maxspace(A,JacobiWeight(0.,0.,B))
+    end
+end
+
+
+
 
 
 # represents [b+(1+z)*d/dz] (false) or [a-(1-z)*d/dz] (true)

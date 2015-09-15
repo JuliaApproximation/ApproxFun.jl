@@ -1,10 +1,10 @@
 function rangespace(Q::Integral{Jacobi,Float64})
-if Q.order==0.5
-    @assert domainspace(Q)==Legendre()
-    JacobiWeight(-0.5,0,Chebyshev(domain(Q)))
-else
-    error("Not implemented")
-end
+    if Q.order==0.5
+        @assert domainspace(Q)==Legendre()
+        JacobiWeight(-0.5,0,Chebyshev(domain(Q)))
+    else
+        error("Not implemented")
+    end
 end
 
 function bandinds(Q::Integral{Jacobi,Float64})

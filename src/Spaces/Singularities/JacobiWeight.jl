@@ -14,14 +14,14 @@ abstract WeightSpace <: IntervalSpace  #TODO: Why Interval?
 domain(S::WeightSpace)=domain(S.space)
 
 
-transform(sp::WeightSpace,vals::Vector)=transform(sp,vals,plan_transform(sp,vals))
-itransform(sp::WeightSpace,vals::Vector)=itransform(sp,vals,plan_itransform(sp,vals))
-
-
-transform(sp::WeightSpace,vals::Vector,plan...)=transform(sp.space,vals./weight(sp,points(sp,length(vals))))
-itransform(sp::WeightSpace,cfs::Vector,plan...)=itransform(sp.space,cfs).*weight(sp,points(sp,length(cfs)))
-
 points(sp::WeightSpace,n)=points(sp.space,n)
+plan_transform(S::WeightSpace,vals::Vector)=1./weight(S,points(S,length(vals))),plan_transform(S.space,vals)
+plan_itransform(S::WeightSpace,vals::Vector)=weight(S,points(S,length(vals))),plan_itransform(S.space,vals)
+
+
+transform(sp::WeightSpace,vals::Vector,plan)=transform(sp.space,vals.*plan[1],plan[2])
+itransform(sp::WeightSpace,cfs::Vector,plan)=itransform(sp.space,cfs,plan[2]).*plan[1]
+
 
 
 function evaluate{WS<:WeightSpace,T}(f::Fun{WS,T},x)
@@ -87,15 +87,8 @@ weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 
 setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.space,d))
 
+# we assume that points avoids singularities
 
-
-## Use 1st kind points to avoid singularities
-points(sp::JacobiWeight,n)=fromcanonical(sp,chebyshevpoints(n;kind=1))
-
-# These are meant for Jacobi
-plan_itransform(S::JacobiWeight,n::Integer)=points(S,n)
-itransform(S::JacobiWeight,cfs::Vector)=itransform(S,cfs,plan_itransform(S,length(cfs)))
-itransform(S::JacobiWeight,cfs::Vector,pts::Vector)=weight(S,pts).*itransform(S.space,cfs)
 
 ##TODO: paradigm for same space
 function coefficients(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
@@ -237,5 +230,3 @@ function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{JacobiWeig
         return defaultdot(f,g)
     end
 end
-
-

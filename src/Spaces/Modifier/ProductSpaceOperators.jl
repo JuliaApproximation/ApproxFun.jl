@@ -133,6 +133,8 @@ end
 SumInterlaceOperator{B<:Operator}(v::Vector{B})=SumInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
 SumInterlaceOperator(v::Vector{Any})=SumInterlaceOperator(Operator{mapreduce(eltype,promote_type,v)}[v...])
 
+
+Base.convert{BT<:SumInterlaceOperator}(::Type{BT},SI::BT)=SI
 Base.convert{BT<:Operator}(::Type{BT},SI::SumInterlaceOperator)=SumInterlaceOperator(BandedOperator{eltype(BT)}[SI.ops...])
 
 for op in (:domainspace,:rangespace)
@@ -269,6 +271,3 @@ function addentries!{S,SS<:SumSpace}(M::Multiplication{S,SS},A,k)
 
     addentries!(DiagonalInterlaceOperator([Ma,Mb]),A,k)
 end
-
-
-
