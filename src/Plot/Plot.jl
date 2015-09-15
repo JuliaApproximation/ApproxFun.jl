@@ -1,4 +1,4 @@
-export setplotter, domainplot
+export setplotter, domainplot, coefficientplot
 
 # these defaults are overloaded as packages are loaded
 plotter=@compat Dict(:contour=>"Gadfly",
@@ -245,3 +245,6 @@ domainlayer(f::Union(Fun,FunctionSpace))=layer(domain(f))
 
 
 
+## coefficientplot
+
+coefficientplot(f::Fun,v...;opts...)=semilogy(abs(f.coefficients),v...;opts...)

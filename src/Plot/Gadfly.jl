@@ -39,6 +39,8 @@ function gadflysemilogy{T<:Real}(xx::Vector{T},yy::Vector,v...;opts...)
     Main.Gadfly.plot(x=xx, y=yy,v...,Main.Gadfly.Scale.y_log10,gadflyopts(opts...)...)
 end
 
+gadflysemilogy(yy::Vector,v...;opts...)=gadflysemilogy(collect(1:length(yy)),yy,v...;opts...)
+
 function gadflylayer{T<:Real}(xx::Vector{T},yy::Vector)
     @eval import Gadfly
     Main.Gadfly.layer(x=xx, y=yy, Main.Gadfly.Geom.path)
