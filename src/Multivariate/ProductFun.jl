@@ -225,17 +225,22 @@ end
 -(c::Number,f::ProductFun)=c+(-f)
 
 
-function +{F<:ProductFun}(f::F,g::F)
-    if size(f,2) >= size(g,2)
-        @assert f.space==g.space
-        cfs = copy(f.coefficients)
-        for k=1:size(g,2)
-            cfs[k]+=g.coefficients[k]
-        end
+function +(f::ProductFun,g::ProductFun)
+    if f.space == g.space
+        if size(f,2) >= size(g,2)
+            @assert f.space==g.space
+            cfs = copy(f.coefficients)
+            for k=1:size(g,2)
+                cfs[k]+=g.coefficients[k]
+            end
 
-        F(cfs,f.space)
+            ProductFun(cfs,f.space)
+        else
+            g+f
+        end
     else
-        g+f
+        s=conversion_type(f.space,g.space)
+        ProductFun(f,s)+ProductFun(g,s)
     end
 end
 

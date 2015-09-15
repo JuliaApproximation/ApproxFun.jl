@@ -100,12 +100,16 @@ KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 
 
 
-for OP in (:promotedomainspace,:promoterangespace)
-    @eval function $OP(K::KroneckerOperator,ds::TensorSpace)
-                A=$OP(K.ops[1],ds[1])
-                B=$OP(K.ops[2],ds[2])
-                KroneckerOperator(A,B,ds,rangespace(A)⊗rangespace(B))
-            end
+function promotedomainspace(K::KroneckerOperator,ds::TensorSpace)
+    A=promotedomainspace(K.ops[1],ds[1])
+    B=promotedomainspace(K.ops[2],ds[2])
+    KroneckerOperator(A,B,ds,rangespace(A)⊗rangespace(B))
+end
+
+function promoterangespace(K::KroneckerOperator,rs::TensorSpace)
+    A=promoterangespace(K.ops[1],rs[1])
+    B=promoterangespace(K.ops[2],rs[2])
+    KroneckerOperator(A,B,domainspace(K),rs)
 end
 
 
@@ -125,12 +129,12 @@ end
 
 for TYP in (:Operator,:BandedOperator)
     @eval begin
-        function Base.convert{T<:Number}(::Type{$TYP{T}},K::KroneckerOperator)
-            if T==eltype(K)
+        function Base.convert{T<:Number}(::Type{$TYP{BandedMatrix{T}}},K::KroneckerOperator)
+            if T==eltype(eltype(K))
                 K
             else
-                KroneckerOperator(convert(Operator{eltype(T)},K.ops[1]),
-                        convert(Operator{eltype(T)},K.ops[2]),
+                KroneckerOperator(convert(Operator{T},K.ops[1]),
+                        convert(Operator{T},K.ops[2]),
                       K.domainspace,
                       K.rangespace)
             end

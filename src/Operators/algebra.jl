@@ -187,7 +187,7 @@ immutable ConstantTimesOperator{T,B,BT} <: BandedOperator{BT}
     op::B
     ConstantTimesOperator(c,op)=new(c,op)
 end
-function ConstantTimesOperator(c::Number,op::Operator)
+function ConstantTimesOperator{TT<:Number}(c::Number,op::Operator{TT})
     T=promote_type(typeof(c),eltype(op))
     B=convert(BandedOperator{T},op)
     ConstantTimesOperator{T,typeof(B),T}(c,B)
@@ -195,7 +195,7 @@ end
 function ConstantTimesOperator{BM<:BandedMatrix}(c::Number,op::Operator{BM})
     BT=eltype(BM)
     T=promote_type(typeof(c),BT)
-    
+
     B=convert(BandedOperator{BandedMatrix{T}},op)
     ConstantTimesOperator{T,typeof(B),BandedMatrix{T}}(c,B)
 end
@@ -212,8 +212,10 @@ choosedomainspace(C::ConstantTimesOperator,sp::FunctionSpace)=choosedomainspace(
 
 
 for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,:FunctionSpace)
-    @eval begin
-        $OP(C::ConstantTimesOperator,k::$SP)=ConstantTimesOperator(C.c,$OP(C.op,k))
+    @eval function $OP(C::ConstantTimesOperator,k::$SP)
+            op=$OP(C.op,k)
+            # TODO: This assumes chnanging domainspace can't change the type
+            ConstantTimesOperator{eltype(C.c),typeof(op),eltype(C)}(C.c,op)
     end
 end
 
