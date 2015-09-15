@@ -126,7 +126,7 @@ ToeplitzOperator{S,T,V}(G::Fun{ArraySpace{S,2,T,1},V})=interlace(map(ToeplitzOpe
 ## Sum Space
 
 
-immutable SumInterlaceOperator{T<:Number,B<:Operator} <: AbstractDiagonalInterlaceOperator{T,B}
+immutable SumInterlaceOperator{T,B<:Operator} <: AbstractDiagonalInterlaceOperator{T,B}
     ops::Vector{B}
 end
 

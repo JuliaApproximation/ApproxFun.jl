@@ -58,8 +58,9 @@ function gadflyplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}},v...;opts.
     r=real(y)
     i=imag(y)
 
-    dat=Main.DataFrames.DataFrame(Any[[x,x],[r,i],[fill("Re",length(x)),fill("Im",length(x))]],Main.DataFrames.Index((@compat Dict(:x=>1,:y=>2,:Function=>3)),
-            [:x,:y,:Function]))
+    dat=Main.DataFrames.DataFrame(x=[x,x],
+                                  y=[r,i],
+                                  Function=[fill("Re",length(x));fill("Im",length(x))])
 
     Main.Gadfly.plot(dat,x="x",y="y",color="Function",v...,gadflyopts(opts...)...)
 end
@@ -70,9 +71,9 @@ function gadflyplot{T<:Real,V<:Real}(x::Matrix{T},y::Matrix{V},v...;opts...)
     @eval import Gadfly
     @eval import DataFrames
 
-    dat=Main.DataFrames.DataFrame(Any[vec(x);vec(y);[[fill(string(k),size(x,1)) for k=1:size(y,2)]...]],
-                                  Main.DataFrames.Index((@compat Dict(:x=>1,:y=>2,:Function=>3)),
-            [:x,:y,:Function]))
+    dat=Main.DataFrames.DataFrame(x=vec(x),
+                                  y=vec(y),
+                                  Function=reduce(vcat,[fill(string(k),size(x,1)) for k=1:size(y,2)]))
 
     Main.Gadfly.plot(dat,x="x",y="y",color="Function",v...,gadflyopts(opts...)...)
 end

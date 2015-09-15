@@ -75,7 +75,7 @@ typealias BivariateOperator{T} BandedOperator{BandedMatrix{T}}
 # KroneckerOperator gives the kronecker product of two 1D operators
 #########
 
-immutable KroneckerOperator{S,V,DS,RS,T<:Number}<: BivariateOperator{T}
+immutable KroneckerOperator{S,V,DS,RS,T}<: BivariateOperator{T}
     ops::@compat(Tuple{S,V})
     domainspace::DS
     rangespace::RS
@@ -107,17 +107,29 @@ end
 
 Base.convert{KO<:KroneckerOperator}(::Type{KO},K::KO)=K
 
-Base.convert{S,V,DS,RS,T}(::Type{KroneckerOperator{S,V,DS,RS,T}},K::KroneckerOperator)=KroneckerOperator{S,V,DS,RS,T}((convert(S,K.ops[1]),
-                                                                                convert(V,K.ops[2])),
-                                                                              K.domainspace,
-                                                                              K.rangespace)
+function Base.convert{S,V,DS,RS,T}(::Type{KroneckerOperator{S,V,DS,RS,T}},K::KroneckerOperator)
+    if eltype(S)==eltype(K.ops[1]) && eltype(V)==eltype(K.ops[2])
+        K
+    else
+        KroneckerOperator{S,V,DS,RS,T}((convert(S,K.ops[1]),
+                                        convert(V,K.ops[2])),
+                                      K.domainspace,
+                                      K.rangespace)
+    end
+end
 
 
 
-Base.convert{BO<:Operator}(::Type{BO},K::KroneckerOperator)=KroneckerOperator(convert(Operator{eltype(eltype(BO))},K.ops[1]),
-                                                                                convert(Operator{eltype(eltype(BO))},K.ops[2]),
-                                                                              K.domainspace,
-                                                                              K.rangespace)::BO
+function Base.convert{BO<:Operator}(::Type{BO},K::KroneckerOperator)
+    if eltype(BO)==eltype(K)
+        K
+    else
+        KroneckerOperator(convert(Operator{eltype(eltype(BO))},K.ops[1]),
+                convert(Operator{eltype(eltype(BO))},K.ops[2]),
+              K.domainspace,
+              K.rangespace)
+    end
+end
 
 
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)

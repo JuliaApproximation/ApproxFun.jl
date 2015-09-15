@@ -51,8 +51,8 @@ macro calculus_operator(Op)
             end
         end
 
-        $WrappOp{T<:Number}(op::BandedOperator{T},order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),T}(op,order)
-        $WrappOp{T<:Number}(op::BandedOperator{T})=$WrappOp(op,1)
+        $WrappOp(op::BandedOperator,order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),eltype(op)}(op,order)
+        $WrappOp(op::BandedOperator)=$WrappOp(op,1)
 
         Base.convert{BT<:$WrappOp}(::Type{BT},D::BT)=D
         function Base.convert{BT<:Operator}(::Type{BT},D::$WrappOp)
