@@ -76,3 +76,10 @@ function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::Multiplicatio
 
     A
 end
+
+
+
+
+## All polynomial spaces can be converted provided spaces match
+
+isconvertible(a::PolynomialSpace,b::PolynomialSpace)=domain(a)==domain(b)
