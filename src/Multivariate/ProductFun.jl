@@ -204,7 +204,6 @@ evaluate(f::ProductFun,x::Range,y::Range)=evaluate(f,[x],[y])
 *(f::ProductFun,c::Number)=c*f
 
 
-#.'
 function chop{S}(f::ProductFun{S},es...)
     kend=size(f,2)
     if kend > 1 while isempty(chop(f.coefficients[kend].coefficients,es...)) kend-=1 end end
