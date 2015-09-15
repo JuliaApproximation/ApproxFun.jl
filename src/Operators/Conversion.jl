@@ -9,11 +9,15 @@ end
 # Conversion{S<:PeriodicFunctionSpace,V<:PeriodicFunctionSpace}(A::S,B::V)=Conversion{S,V,Complex{Float64}}(A,B)
 # Conversion{S<:IntervalFunctionSpace,V<:IntervalFunctionSpace}(A::S,B::V)=Conversion{S,V,Float64}(A,B)
 
-function Base.convert{OT<:Operator,S,V}(::Type{OT},C::Conversion{S,V})
-    if eltype(OT)==eltype(C)
-        C
-    else
-        Conversion{S,V,eltype(OT)}(C.domainspace,C.rangespace)
+for TYP in (:Operator,:BandedOperator)
+    @eval begin
+        function Base.convert{T,S,V}(::Type{$TYP{T}},C::Conversion{S,V})
+            if T==eltype(C)
+                C
+            else
+                Conversion{S,V,T}(C.domainspace,C.rangespace)
+            end
+        end
     end
 end
 
@@ -63,14 +67,17 @@ ConversionWrapper(B::BandedOperator)=ConversionWrapper{typeof(B),eltype(B)}(B)
 Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=ConversionWrapper(TimesOperator(Conversion(B,C),Conversion(A,B)))
 
 # Base.convert{S,T}(::Type{ConversionWrapper{S,T}},D::ConversionWrapper)=ConversionWrapper{S,T}(convert(S,D.op))
-Base.convert{CW<:ConversionWrapper}(::Type{CW},D::CW)=D
-function Base.convert{BT<:Operator}(::Type{BT},D::ConversionWrapper)
-    T=eltype(BT)
-    if T==eltype(D)
-        D
-    else
-        BO=convert(BandedOperator{T},D.op)
-        ConversionWrapper{typeof(BO),T}(BO)
+# Base.convert{CW<:ConversionWrapper}(::Type{CW},D::CW)=D
+for TYP in (:Operator,:BandedOperator)
+    @eval begin
+        function Base.convert{T}(::Type{$TYP{T}},D::ConversionWrapper)
+            if T==eltype(D)
+                D
+            else
+                BO=convert(BandedOperator{T},D.op)
+                ConversionWrapper{typeof(BO),T}(BO)
+            end
+        end
     end
 end
 

@@ -2,6 +2,16 @@ using ApproxFun, Base.Test
 
 
 
+## Poisson
+
+f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2))  #default is [-1,1]^2
+d=domain(f)
+OS=S=schurfact([dirichlet(d);lap(d)],10)
+u=OS\[zeros(∂(d));f]
+@test_approx_eq u[.1,.2] -0.042393137972085826
+
+
+
 ## Try constructor variants
 
 ff=(x,y)->exp(-10(x+.2)^2-20(y-.1)^2)*cos(x*y)
@@ -71,13 +81,6 @@ A=[dirichlet(d);lap(d)+0.0I]
 u=A\G
 @test_approx_eq u[.1,.2] real(exp(.1+.2im))
 
-## Poisson
-
-f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2))  #default is [-1,1]^2
-d=domain(f)
-OS=S=schurfact([dirichlet(d);lap(d)],10)
-u=OS\[zeros(∂(d));f]
-@test_approx_eq u[.1,.2] -0.042393137972085826
 
 
 
@@ -313,6 +316,3 @@ Bx=[ldirichlet(s);continuity(s,0)]
 u=pdesolve([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],Any[Fun(x->exp(-20(x+0.5)^2),s)],200)
        #.'
 @test_approx_eq_eps u[-.1,.2] exp(-20(-.2-.1+0.5)^2) 0.00001
-
-
-

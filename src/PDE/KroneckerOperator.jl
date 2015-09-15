@@ -11,7 +11,7 @@ function blockbandzeros{T}(zer::Function,::Type{T},n,m::Integer,l,u,Bl,Bu)
     for k=1:n,j=max(1,k-l):min(m,k+u)
 #        nl=min(Al,Bu+k-j);nu=min(Au,Bl+j-k)
 #        ret[k,j]=zer(eltype(T),k,j,Bl,Bu)
-        ret[k,j]=zer(eltype(T),k,j)
+        ret[k,j]=zer(eltype(T),k,j)  #The ::Number works around an 0.4 bug
     end
 
     ret
@@ -29,13 +29,13 @@ blockbandzeros{T}(zer::Function,::Type{T},n,m,Alu,Blu)=blockbandzeros(zer,T,n,m,
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
 
-getindex{T}(A::BandedMatrix{Matrix{T}},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
-getindex{T}(A::BandedMatrix{BandedMatrix{T}},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?bazeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
+getindex{MT<:Matrix}(A::BandedMatrix{MT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
+getindex{BT<:BandedMatrix}(A::BandedMatrix{BT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?bazeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
 
-function Base.convert{T,V}(::Type{Matrix{T}},K::BandedMatrix{BandedMatrix{V}})
+function Base.convert{MT<:Matrix,BM<:BandedMatrix}(::Type{MT},K::BandedMatrix{BM})
     n=size(K,1)
     m=size(K,2)
-
+    T=eltype(MT)
     ret=zeros(T,div(n*(n+1),2),div(m*(m+1),2))
 
     for k=1:n,j=max(1,k-K.l):min(m,k+K.u)
@@ -75,17 +75,18 @@ typealias BivariateOperator{T} BandedOperator{BandedMatrix{T}}
 # KroneckerOperator gives the kronecker product of two 1D operators
 #########
 
-immutable KroneckerOperator{S,V,DS,RS,T}<: BivariateOperator{T}
+immutable KroneckerOperator{S,V,DS,RS,T<:Number}<: BivariateOperator{T}
     ops::@compat(Tuple{S,V})
     domainspace::DS
     rangespace::RS
 end
 
+
 KroneckerOperator(A,B,ds,rs)=KroneckerOperator{typeof(A),typeof(B),typeof(ds),typeof(rs),promote_type(eltype(A),eltype(B))}((A,B),ds,rs)
 function KroneckerOperator(A,B)
     ds=domainspace(A)⊗domainspace(B)
     rs=rangespace(A)⊗rangespace(B)
-    KroneckerOperator{typeof(A),typeof(B),typeof(ds),typeof(rs),promote_type(eltype(A),eltype(B))}((A,B),ds,rs)
+    KroneckerOperator(A,B,ds,rs)
 end
 KroneckerOperator(A::UniformScaling,B::UniformScaling)=KroneckerOperator(ConstantOperator(A.λ),ConstantOperator(B.λ))
 KroneckerOperator(A,B::UniformScaling)=KroneckerOperator(A,ConstantOperator(B.λ))
@@ -100,34 +101,40 @@ KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 
 
 for OP in (:promotedomainspace,:promoterangespace)
-    @eval $OP(K::KroneckerOperator,ds::TensorSpace)=KroneckerOperator($OP(K.ops[1],ds[1]),
-                                                                      $OP(K.ops[2],ds[2]))
+    @eval function $OP(K::KroneckerOperator,ds::TensorSpace)
+                A=$OP(K.ops[1],ds[1])
+                B=$OP(K.ops[2],ds[2])
+                KroneckerOperator(A,B,ds,rangespace(A)⊗rangespace(B))
+            end
 end
 
 
-Base.convert{KO<:KroneckerOperator}(::Type{KO},K::KO)=K
+# Base.convert{KO<:KroneckerOperator}(::Type{KO},K::KO)=K
 
-function Base.convert{S,V,DS,RS,T}(::Type{KroneckerOperator{S,V,DS,RS,T}},K::KroneckerOperator)
-    if eltype(S)==eltype(K.ops[1]) && eltype(V)==eltype(K.ops[2])
-        K
-    else
-        KroneckerOperator{S,V,DS,RS,T}((convert(S,K.ops[1]),
-                                        convert(V,K.ops[2])),
-                                      K.domainspace,
-                                      K.rangespace)
-    end
-end
+# function Base.convert{S,V,DS,RS,T}(::Type{KroneckerOperator{S,V,DS,RS,T}},K::KroneckerOperator)
+#     if eltype(S)==eltype(K.ops[1]) && eltype(V)==eltype(K.ops[2])
+#         K
+#     else
+#         KroneckerOperator{S,V,DS,RS,T}((convert(S,K.ops[1]),
+#                                         convert(V,K.ops[2])),
+#                                       K.domainspace,
+#                                       K.rangespace)
+#     end
+# end
 
 
-
-function Base.convert{BO<:Operator}(::Type{BO},K::KroneckerOperator)
-    if eltype(BO)==eltype(K)
-        K
-    else
-        KroneckerOperator(convert(Operator{eltype(eltype(BO))},K.ops[1]),
-                convert(Operator{eltype(eltype(BO))},K.ops[2]),
-              K.domainspace,
-              K.rangespace)
+for TYP in (:Operator,:BandedOperator)
+    @eval begin
+        function Base.convert{T<:Number}(::Type{$TYP{T}},K::KroneckerOperator)
+            if T==eltype(K)
+                K
+            else
+                KroneckerOperator(convert(Operator{eltype(T)},K.ops[1]),
+                        convert(Operator{eltype(T)},K.ops[2]),
+                      K.domainspace,
+                      K.rangespace)
+            end
+        end
     end
 end
 
@@ -156,7 +163,7 @@ blockbandinds{BT<:BandedMatrix}(K::BandedOperator{BT})=blockbandinds(K,1),blockb
 
 
 for OP in (:domainspace,:rangespace)
-    @eval $OP{T}(K::BivariateOperator{T},k::Integer)=$OP(K)[k]
+    @eval $OP{BT<:BandedMatrix}(K::BandedOperator{BT},k::Integer)=$OP(K)[k]
 end
 domainspace(K::KroneckerOperator)=K.domainspace
 rangespace(K::KroneckerOperator)=K.rangespace
@@ -210,9 +217,9 @@ function *{T<:BandedMatrix,V<:BandedMatrix}(A::BandedMatrix{T},B::BandedMatrix{V
     bamultiply!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
-function *{BM<:AbstractArray,V<:Number}(M::BandedMatrix{BM},v::Vector{V})
+function *{BM<:AbstractArray}(M::BandedMatrix{BM},v::Vector)
     n,m=size(M)
-    r=zeros(promote_type(eltype(BM),V),div(n*(n+1),2))
+    r=zeros(promote_type(eltype(BM),eltype(v)),div(n*(n+1),2))
     for j=1:m-1
         vj=v[fromtensorblock(j)]
 
@@ -230,7 +237,7 @@ function *{BM<:AbstractArray,V<:Number}(M::BandedMatrix{BM},v::Vector{V})
     r
 end
 
-function *{M,T<:Number}(A::BivariateOperator{M},b::Vector{T})
+function *{BM<:BandedMatrix}(A::BandedOperator{BM},b::Vector)
     n=size(b,1)
 
     if n>0

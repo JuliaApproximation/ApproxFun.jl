@@ -29,12 +29,14 @@ immutable PlusOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
 end
 
-Base.convert{OT<:PlusOperator}(::Type{OT},P::OT)=P
-function Base.convert{OT<:Operator}(::Type{OT},P::PlusOperator)
-    if eltype(OT)==eltype(P)
-        P
-    else
-        PlusOperator{eltype(OT)}(P.ops)::OT
+#Base.convert{OT<:PlusOperator}(::Type{OT},P::OT)=P
+for TYP in (:Operator,:BandedOperator)
+    @eval function Base.convert{T}(::Type{$TYP{T}},P::PlusOperator)
+        if T==eltype(P)
+            P
+        else
+            PlusOperator{T}(P.ops)
+        end
     end
 end
 
@@ -190,8 +192,10 @@ function ConstantTimesOperator(c::Number,op::Operator)
     B=convert(BandedOperator{T},op)
     ConstantTimesOperator{T,typeof(B),T}(c,B)
 end
-function ConstantTimesOperator{BT}(c::Number,op::Operator{BandedMatrix{BT}})
+function ConstantTimesOperator{BM<:BandedMatrix}(c::Number,op::Operator{BM})
+    BT=eltype(BM)
     T=promote_type(typeof(c),BT)
+    
     B=convert(BandedOperator{BandedMatrix{T}},op)
     ConstantTimesOperator{T,typeof(B),BandedMatrix{T}}(c,B)
 end
@@ -213,15 +217,15 @@ for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,
     end
 end
 
-Base.convert{OT<:ConstantTimesOperator}(::Type{OT},C::OT)=C
-function Base.convert{OT<:Operator}(::Type{OT},C::ConstantTimesOperator)
-    T=eltype(OT)
-    if T==eltype(C)
-        C
-    else
-        op=convert(BandedOperator{T},C.op)
-        ret=ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)
-        ret
+for TYP in (:Operator,:BandedOperator)
+    @eval function Base.convert{T}(::Type{$TYP{T}},C::ConstantTimesOperator)
+        if T==eltype(C)
+            C
+        else
+            op=convert(BandedOperator{T},C.op)
+            ret=ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)
+            ret
+        end
     end
 end
 
@@ -278,12 +282,16 @@ TimesOperator(A::BandedOperator,B::BandedOperator)=TimesOperator(BandedOperator{
 ==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
 
 
-Base.convert{OT<:TimesOperator}(::Type{OT},P::OT)=P
-function Base.convert{OT<:Operator}(::Type{OT},P::TimesOperator)
-    if eltype(OT)==eltype(P)
-        P
-    else
-        TimesOperator(BandedOperator{eltype(OT)}[P.ops...])::OT
+# Base.convert{OT<:TimesOperator}(::Type{OT},P::OT)=P
+for TYP in (:Operator,:BandedOperator)
+    @eval begin
+        function Base.convert{T}(::Type{$TYP{T}},P::TimesOperator)
+            if T==eltype(P)
+                P
+            else
+                TimesOperator(BandedOperator{T}[P.ops...])
+            end
+        end
     end
 end
 
@@ -421,23 +429,27 @@ end
 
 ## Operations
 
-function *{V<:Number,T<:Number}(A::TimesOperator{V},b::Array{T})
-    ret = b
-    for k=length(A.ops):-1:1
-        ret = A.ops[k]*ret
-    end
+for TYP in (:Vector,:Matrix)
+    @eval begin
+        function *(A::TimesOperator,b::$TYP)
+            ret = b
+            for k=length(A.ops):-1:1
+                ret = A.ops[k]*ret
+            end
 
-    ret
-end
+            ret
+        end
 
 
-function *{T<:Number}(A::BandedOperator,b::Array{T})
-    n=size(b,1)
+        function *(A::BandedOperator,b::$TYP)
+            n=size(b,1)
 
-    if n>0
-        slice(A,:,1:n)*b
-    else
-        b
+            if n>0
+                slice(A,:,1:n)*b
+            else
+                b
+            end
+        end
     end
 end
  ##TODO: Make * and \ consistent in return type
@@ -447,17 +459,18 @@ function *(A::InfiniteOperator,b::Fun)
     Fun(A*coefficients(b,dsp),rangespace(A))
 end
 
-function *{F<:Fun}(A::InfiniteOperator,b::Array{F,2})
-    @assert size(b,1)==1
-    C=A*coefficients(vec(b),domainspace(A))
-    rs=rangespace(A)
-    ret=Array(Fun{typeof(rs),eltype(C)},1,size(C,2))
-    for k=1:size(C,2)
-        ret[1,k]=Fun(C[:,k],rs)
+for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
+    @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
+        @assert size(b,1)==1
+        C=A*coefficients(vec(b),domainspace(A))
+        rs=rangespace(A)
+        ret=Array(Fun{typeof(rs),eltype(C)},1,size(C,2))
+        for k=1:size(C,2)
+            ret[1,k]=Fun(C[:,k],rs)
+        end
+        ret
     end
-    ret
 end
-
 
 *{T<:Operator}(A::Vector{T},b::Fun)=map(a->a*b,convert(Array{Any,1},A))
 
