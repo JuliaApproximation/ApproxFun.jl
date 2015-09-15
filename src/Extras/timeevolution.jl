@@ -15,16 +15,16 @@ function RK(L,y,h)
 end
 
 function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp,tol=1000eps())
-    SBDF2 = [B,I-2.0/3.0*h*A]
+    SBDF2 = [B;I-2.0/3.0*h*A]
 
     u1=u0
     u2=chop(RK(g,u1,h),tol)
-    u2,u1  = chop(SBDF2\[bcs,1/3.0*(4u2-u1)],tol),u2
+    u2,u1  = chop(SBDF2\[bcs;1/3.0*(4u2-u1)],tol),u2
     push!(glp,u2)
 
     for k=1:m
         u2,u1 = chop(RK(g,u2,h),tol),u2
-        u2,u1  = chop(SBDF2\[bcs,1/3.0*(4u2-u1)],tol),u2
+        u2,u1  = chop(SBDF2\[bcs;1/3.0*(4u2-u1)],tol),u2
         push!(glp,u2)
     end
 
@@ -37,21 +37,21 @@ end
 function BDF4(B::Vector,op::BandedOperator,bcs::Vector,uin::MultivariateFun,h::Real,m::Integer,glp)
     nt=size(uin,2)
     d=domain(uin)
-    SBE   = discretize([B,I-h*op],d,nt)            # backward euler for first 2 time steps
-    SBDF2 = discretize([B,I-2.0/3.0*h*op],d,nt)    # BDF formula for subsequent itme steps
-    SBDF3 = discretize([B,I-6.0/11.0*h*op],d,nt)    # BDF formula for subsequent itme steps
-    SBDF4 = discretize([B,I-12.0/25.0*h*op],d,nt)    # BDF formula for subsequent itme steps
+    SBE   = discretize([B;I-h*op],d,nt)            # backward euler for first 2 time steps
+    SBDF2 = discretize([B;I-2.0/3.0*h*op],d,nt)    # BDF formula for subsequent itme steps
+    SBDF3 = discretize([B;I-6.0/11.0*h*op],d,nt)    # BDF formula for subsequent itme steps
+    SBDF4 = discretize([B;I-12.0/25.0*h*op],d,nt)    # BDF formula for subsequent itme steps
 
     u1=uin
-    u2=SBE\[bcs,u1]
+    u2=SBE\[bcs;u1]
     push!(glp,pad(u2,80,80))
-    u3=SBDF2\[bcs,1/3.0*(4u2-u1)]
+    u3=SBDF2\[bcs;1/3.0*(4u2-u1)]
     push!(glp,pad(u3,80,80))#updates window
-    u4=SBDF3\[bcs,1/11.0*(18u3-9u2+2u1)]
+    u4=SBDF3\[bcs;1/11.0*(18u3-9u2+2u1)]
     push!(glp,pad(u4,80,80))#updates window
 
     for k=1:m
-        u4,u3,u2,u1  = SBDF4\[bcs,1/25.0*(48u4-36u3+16u2-3u1)],u4,u3,u2
+        u4,u3,u2,u1  = SBDF4\[bcs;1/25.0*(48u4-36u3+16u2-3u1)],u4,u3,u2
 
         push!(glp,pad(u4,80,80))#updates window
     end
@@ -63,17 +63,17 @@ BDF4(B::Vector,op::BandedOperator,uin::MultivariateFun,h::Real,m::Integer,glp)=B
 
 function BDF22(B::Vector,op::BandedOperator,bcs::Vector,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,m::Integer,glp)
     nt=size(uin[1],2)
-    SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
-    SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
+    SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
+    SBDF = discretize([B;I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
 
     u1,u2=uin
-    u3 =SBE\[bcs,2u2-u1]
+    u3 =SBE\[bcs;2u2-u1]
     push!(glp,pad(u3,80,80))
-    u4 =SBE\[bcs,2u3-u2]
+    u4 =SBE\[bcs;2u3-u2]
     push!(glp,pad(u4,80,80))
 
     for k=1:m
-        u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
+        u4,u3,u2,u1  = SBDF\[bcs;1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
 
         push!(glp,pad(u4,80,80)) #updates window
     end
@@ -82,16 +82,16 @@ end
 
 function BDF22(B::Vector,op::BandedOperator,g::Function,bcs::Vector,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,m::Integer,glp)
     nt=size(uin[1],2)
-    SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
-    SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
+    SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
+    SBDF = discretize([B;I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
 
     u1,u2=uin
-    u3 =SBE\[bcs,2u2-u1]
+    u3 =SBE\[bcs;2u2-u1]
     push!(glp,pad(u3,80,80))
     u4,u3,u2,u1=u3,u2,u1,u1
     for k=1:m
         u4,u3,u2,u1 =2u4 - u3 +h^2*g(u4),u4,u3,u2
-        u4,u3,u2,u1  = SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
+        u4,u3,u2,u1  = SBDF\[bcs;1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
         push!(glp,pad(u4,80,80))
     end
     u4
@@ -111,21 +111,21 @@ function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m::
     setplotter("GLPlot")
     nt=size(uin,2)
     d=domain(uin)
-    SBE   = discretize([B,I-h*op],d,nt)            # backward euler for first 2 time steps
-    SBDF2 = discretize([B,I-2.0/3.0*h*op],d,nt)    # BDF formula for subsequent itme steps
-    SBDF3 = discretize([B,I-6.0/11.0*h*op],d,nt)    # BDF formula for subsequent itme steps
-    SBDF4 = discretize([B,I-12.0/25.0*h*op],d,nt)    # BDF formula for subsequent itme steps
+    SBE   = discretize([B;I-h*op],d,nt)            # backward euler for first 2 time steps
+    SBDF2 = discretize([B;I-2.0/3.0*h*op],d,nt)    # BDF formula for subsequent itme steps
+    SBDF3 = discretize([B;I-6.0/11.0*h*op],d,nt)    # BDF formula for subsequent itme steps
+    SBDF4 = discretize([B;I-12.0/25.0*h*op],d,nt)    # BDF formula for subsequent itme steps
 
     u1=chop(uin,1000eps())
-    u2=chop(SBE\[bcs,u1],1000eps())
+    u2=chop(SBE\[bcs;u1],1000eps())
     plot(pad(u2,80,80),glp...)#updates window
-    u3=chop(SBDF2\[bcs,1/3.0*(4u2-u1)],1000eps())
+    u3=chop(SBDF2\[bcs;1/3.0*(4u2-u1)],1000eps())
     plot(pad(u3,80,80),glp...)#updates window
-    u4=chop(SBDF3\[bcs,1/11.0*(18u3-9u2+2u1)],1000eps())
+    u4=chop(SBDF3\[bcs;1/11.0*(18u3-9u2+2u1)],1000eps())
     plot(pad(u4,80,80),glp...)#updates window
 
     for k=1:m
-        u4,u3,u2,u1  = chop(SBDF4\[bcs,1/25.0*(48u4-36u3+16u2-3u1)],1000eps()),u4,u3,u2
+        u4,u3,u2,u1  = chop(SBDF4\[bcs;1/25.0*(48u4-36u3+16u2-3u1)],1000eps()),u4,u3,u2
 
         plot(pad(u4,80,80),glp...)#updates window
     end
@@ -153,15 +153,15 @@ function timeevolution2(B::Vector,op,bcs::Vector,uin::@compat(Tuple{Multivariate
     require("GLPlot")
     setplotter("GLPlot")
     nt=size(uin[1],2)
-    SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
-    SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
+    SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
+    SBDF = discretize([B;I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
 
     u1,u2=chop(uin[1],1000eps()),chop(uin[2],1000eps())
-    u3 =chop(SBE\[bcs,2u2-u1],1000eps())
-    u4 =chop(SBE\[bcs,2u3-u2],1000eps())
+    u3 =chop(SBE\[bcs;2u2-u1],1000eps())
+    u4 =chop(SBE\[bcs;2u3-u2],1000eps())
 
     for k=1:m
-        u4,u3,u2,u1  = chop(SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
+        u4,u3,u2,u1  = chop(SBDF\[bcs;1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
 
         plot(pad(u4,80,80),glp...)#updates window
     end
@@ -173,18 +173,18 @@ function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::@compat(Tuple{
     require("GLPlot")
     setplotter("GLPlot")
     nt=size(uin[1],2)
-    SBE  = discretize([B,I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
-    SBDF = discretize([B,I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
+    SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
+    SBDF = discretize([B;I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
 
     u1,u2=chop(uin[1],1000eps()),chop(uin[2],1000eps())
-    u3 =chop(SBE\[bcs,2u2-u1],1000eps())
+    u3 =chop(SBE\[bcs;2u2-u1],1000eps())
     u4 =chop(2u3 - u2 +h^2*g(u3),1000eps())
-    u4,u3,u2,u1  = chop(SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
+    u4,u3,u2,u1  = chop(SBDF\[bcs;1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
     plot(pad(u4,80,80),glp...)#updates window
 
     for k=1:m
         u4,u3,u2,u1  = chop(2u4 - u3 +h^2*g(u4),1000eps()),u4,u3,u2
-        u4,u3,u2,u1  = chop(SBDF\[bcs,1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
+        u4,u3,u2,u1  = chop(SBDF\[bcs;1/9.0*(24u4-22u3+8u2-u1)],1000eps()),u4,u3,u2
         plot(pad(u4,80,80),glp...)#updates window
     end
     u4
@@ -215,4 +215,3 @@ timeevolution2(B::Vector,op,g::Function,uin::Fun,dat...)=timeevolution2(B,op,g,P
 timeevolution2(B::Vector,op,uin::Fun,dat...)=timeevolution2(B,op,ProductFun(uin),dat...)
 
 timeevolution(o::Integer,dat...)=o==2?timeevolution2(dat...):timeevolution(dat...)
-
