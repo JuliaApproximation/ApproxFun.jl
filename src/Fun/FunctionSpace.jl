@@ -102,7 +102,7 @@ points(d::FunctionSpace,n)=points(domain(d),n)
 
 
 
-canonicalspace(T::Union(AnySpace,UnsetSpace,NoSpace,ZeroSpace))=T
+canonicalspace(T)=T
 
 
 ##Check domain compatibility
