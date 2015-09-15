@@ -76,6 +76,16 @@ function surf(x...;opts...)
     end
 end
 
+function hist(x...;opts...)
+    if plotter[:plot]=="Gadfly"
+        gadflyhist(x...;opts...)
+    elseif plotter[:plot]=="PyPlot"
+        pyhist(x...;opts...)
+    else
+        error("Plotter " * plotter[:plot] * " not supported.")
+    end
+end
+
 
 
 ## Fun routines
@@ -111,7 +121,7 @@ for OP in (:plot,:layer,:semilogy)
         end
 
         function $OP{S}(r::Range,f::Fun{S,Float64},v...;opts...)
-            $OP([r],f[[r]],v...;opts...)
+            $OP(collect(r),f[collect(r)],v...;opts...)
         end
     end
 end
@@ -181,7 +191,7 @@ function plot(xx::Range,yy::Range,f::MultivariateFun,v...;opts...)
     vals      = evaluate(f,xx,yy)
     #vals=[vals[:,1] vals vals[:,end]];
     #vals=[vals[1,:]; vals; vals[end,:]]
-    surf([xx],[yy],real(vals),v...;opts...)
+    surf(collect(xx),collect(yy),real(vals),v...;opts...)
 end
 
 function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)

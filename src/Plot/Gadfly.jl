@@ -144,3 +144,7 @@ gadflydeltaplot(x0::Vector,c::Vector)=Main.Gadfly.plot(map(gadflydeltalayer,x0,c
 gadflyplot{S}(B::Evaluation{S,Float64})=gadflydeltaplot(1,B.x)
 gadflyplot{S}(B::Evaluation{S,Bool})=gadflydeltaplot(1,B.x?first(domain(B)):last(domain(B)))
 gadflyplot{T<:Real,E<:Evaluation}(B::ConstantTimesFunctional{T,E})=gadflyplot(B.op)
+
+
+## hist
+gadflyhist(r::Vector;kwds...)=Main.Gadfly.plot(x=r,Main.Gadfly.Geom.histogram(kwds...))

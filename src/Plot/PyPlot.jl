@@ -8,7 +8,7 @@ function pysemilogy{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
         if length(axis) == 4
             Main.PyPlot.axis(axis)
         else
-            Main.PyPlot.axis([xx[1],xx[end],axis])
+            Main.PyPlot.axis([xx[1];xx[end];axis])
         end
     end
 end
@@ -21,7 +21,7 @@ function pyplot{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
         if length(axis) == 4
             Main.PyPlot.axis(axis)
         else
-            Main.PyPlot.axis([xx[1],xx[end],axis])
+            Main.PyPlot.axis([xx[1];xx[end];axis])
         end
     end
 end
@@ -36,7 +36,7 @@ function pyplot{N<:Complex}(xx,yy::Array{N};axis=-1,opts...)
         if length(axis) == 4
             Main.PyPlot.axis(axis)
         else
-            Main.PyPlot.axis([xx[1],xx[end],axis])
+            Main.PyPlot.axis([xx[1];xx[end];axis])
         end
     end
 end
@@ -107,6 +107,13 @@ end
 function pycontour(x::Matrix,y::Matrix,z,kwds...)
     @eval import PyPlot
     Main.PyPlot.contour(x,y,z,kwds...)
+end
+
+
+
+function pyhist(a...;kwds...)
+    @eval import PyPlot
+    Main.PyPlot.plt[:hist](a...;kwds...)
 end
 
 
