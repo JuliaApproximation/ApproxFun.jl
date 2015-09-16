@@ -58,6 +58,15 @@ u = [B;L] \ [airyai(d.a);airyai(d.b)]
 @test_approx_eq u[0.] airyai(0.)
 
 
+## Nonlinear BVPs
+x=Fun()
+u0=0.x
+
+N=u->[u[-1.]-1.,u[1.]+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
+u=newton(N,u0)
+
+@test norm(N(u)[end]) ≤ 1000eps()
+
 ## Periodic Functions
 
 f = Fun(cos,Fourier([-π,π]))
@@ -93,7 +102,7 @@ x = ApproxFun.sample(f,10000)
 
 d = Interval()^2                            # Defines a rectangle
 
-u = [dirichlet(d);lap(d)+100I]\ones(4)      # First four entries of rhs are 
+u = [dirichlet(d);lap(d)+100I]\ones(4)      # First four entries of rhs are
 
 
 

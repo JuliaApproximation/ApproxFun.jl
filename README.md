@@ -1,6 +1,6 @@
 [![Build Status](https://travis-ci.org/ApproxFun/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/ApproxFun/ApproxFun.jl) [![Coverage Status](https://img.shields.io/coveralls/ApproxFun/ApproxFun.jl.svg)](https://coveralls.io/r/ApproxFun/ApproxFun.jl?branch=master)
 
-`ApproxFun` is a package for approximating functions. It is heavily influenced by the Matlab 
+`ApproxFun` is a package for approximating functions. It is heavily influenced by the Matlab
 package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
 
 
@@ -15,8 +15,8 @@ g = cos(x)
 ```
 
 To evaluate functions at a point, we use the vector notation, and `f[.1]` will return a high
-accuracy approximation to `sin(0.01)`. All the algebraic manipulations of functions 
-are supported and more.  For example, we can add `f` and `g^2` together and compute 
+accuracy approximation to `sin(0.01)`. All the algebraic manipulations of functions
+are supported and more.  For example, we can add `f` and `g^2` together and compute
 the roots and extrema:
 
 ```julia
@@ -30,7 +30,7 @@ PyPlot.plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
 ![Extrema](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/extrema.png)
 
 
-# Differentiation and integration	
+# Differentiation and integration
 
 
 Notice from above that to find the extrema, we used `'` overridden for the `differentiate` function. Several other `Julia`
@@ -51,7 +51,7 @@ norm(f-g)
 ```
 
 `Fun`s in `ApproxFun` are instances of `Julia` types with one field to store coefficients and another
-to describe the function space. Similarly, each function space has one field describing 
+to describe the function space. Similarly, each function space has one field describing
 its domain, or another function space. Let's explore:
 
 ```julia
@@ -63,7 +63,7 @@ space(g)
 ```
 
 In this case, `f` is in the `Ultraspherical{0}` space on the domain `Interval(-1.0,1.0)`, and
-`g` is in the enriched `JacobiWeight{Ultraspherical{0}}` space. The absolute value is 
+`g` is in the enriched `JacobiWeight{Ultraspherical{0}}` space. The absolute value is
 another case where space promotion is inferred from the operation:
 
 ```julia
@@ -86,7 +86,7 @@ h = airyai(10asin(f)+2g)
 # Solving ordinary differential equations
 
 
-The following solves the Airy ODE `u'' - x u = 0` as a BVP on `[-1000,200]`:
+Solve the Airy ODE `u'' - x u = 0` as a BVP on `[-1000,200]`:
 
 ```julia
 x = Fun(identity,[-1000.,200.])
@@ -101,10 +101,25 @@ ApproxFun.plot(u)						    # Requires Gadfly or PyPlot
 ![Airy](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/airy.png)
 
 
+# Nonlinear Boundary Value problems
+
+Solve a nonlinear boundary value problem satisfying the ODE `0.001u'' + 6*(1-x^2)*u' + u^2 = 1` with boundary conditions `u[-1]==1`, `u[1]==-0.5` on `[-1,1]`:
+
+```julia
+x=Fun()
+u0=0.x
+
+N=u->[u[-1.]-1.,u[1.]+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
+u=newton(N,u0)
+ApproxFun.plot(u)
+```
+![BVP](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/nbvp.png)
+
+
 # Periodic functions
 
 
-There is also support for Fourier representations of functions on periodic intervals. 
+There is also support for Fourier representations of functions on periodic intervals.
 Specify the space `Fourier` to ensure that the representation is periodic:
 
 ```julia
@@ -112,8 +127,8 @@ f = Fun(cos,Fourier([-π,π]))
 norm(f' + Fun(sin,Fourier([-π,π]))
 ```
 
-Due to the periodicity, Fourier representations allow for the asymptotic savings of `2/π` 
-in the number of coefficients that need to be stored compared with a Chebyshev representation. 
+Due to the periodicity, Fourier representations allow for the asymptotic savings of `2/π`
+in the number of coefficients that need to be stored compared with a Chebyshev representation.
 ODEs can also be solved when the solution is periodic:
 
 ```julia
@@ -137,10 +152,10 @@ ApproxFun.plot(uFourier)						    # Requires Gadfly or PyPlot
 ![Periodic](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/periodic.png)
 
 
-# Sampling	
+# Sampling
 
 
-Other operations including random number sampling using [Olver & Townsend 2013].  The 
+Other operations including random number sampling using [Olver & Townsend 2013].  The
 following code samples 10,000 from a PDF given as the absolute value of the sine function on `[-5,5]`:
 
 ```julia
@@ -162,13 +177,13 @@ on a square
 ```julia
 d = Interval()^2          					# Defines a rectangle
 
-u = [dirichlet(d);lap(d)+100I]\ones(4)		# First four entries of rhs are 
+u = [dirichlet(d);lap(d)+100I]\ones(4)		# First four entries of rhs are
     											# boundary conditions
 ApproxFun.contour(u)						# Requires Gadfly or PyPlot
 ```
 
 
-We can also evolve PDEs.  The following solves advection—diffusion 
+We can also evolve PDEs.  The following solves advection—diffusion
 `u_t = 0.01Δu - 4u_x -3u_y` on a rectangle
 
 ```julia
@@ -197,7 +212,7 @@ end
 
 
 
-	
+
 # References
 
 S. Olver & A. Townsend (2014), A practical framework for infinite-dimensional linear algebra, arXiv:1409.5529, to appear in HPTCDL 2014
@@ -207,4 +222,3 @@ A. Townsend & S. Olver (2014), The automatic solution of partial differential eq
 S. Olver & A. Townsend (2013), Fast inverse transform sampling in one and two dimensions, arXiv:1307.1223
 
 S. Olver & A. Townsend (2013), A fast and well-conditioned spectral method, SIAM Review, 55:462–489
-	
