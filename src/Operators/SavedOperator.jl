@@ -98,6 +98,11 @@ function addentries!(B::SavedBandedOperator,A,kr::Range)
     A
 end
 
+function Base.getindex(B::SavedBandedOperator,k::Integer,j::Integer)
+    resizedata!(B,k)
+    B.data[k,j]
+end
+
 function resizedata!(B::SavedBandedOperator,n::Integer)
     if n > B.datalength
         pad!(B.data,2n,:)
