@@ -88,6 +88,12 @@ function pad(A::Matrix,n::Integer,m::Integer)
         for k=1:minn,j=1:minm
             @inbounds ret[k,j]=A[k,j]
         end
+        for k=minn+1:n,j=1:minm
+            @inbounds ret[k,j]=zero(T)
+        end        
+        for k=1:n,j=minm+1:m
+            @inbounds ret[k,j]=zero(T)
+        end                
         for k=minn+1:n,j=minm+1:m
             @inbounds ret[k,j]=zero(T)
         end
