@@ -175,7 +175,7 @@ function Derivative(S::JacobiWeight,k::Integer)
         Derivative(S)
     else
         D=Derivative(S)
-        DerivativeWrapper(TimesOperator(Derivative(rangespace(D),k-1).op,D.op),k)
+        DerivativeWrapper(TimesOperator(Derivative(rangespace(D),k-1),D),k)
     end
 end
 
