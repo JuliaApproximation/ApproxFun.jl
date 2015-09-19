@@ -1,6 +1,7 @@
 export Jacobi,Legendre
 
-immutable Jacobi <: PolynomialSpace
+#TODO Type
+immutable Jacobi <: PolynomialSpace{Interval{Float64}}
     a::Float64
     b::Float64
     domain::Interval
@@ -153,4 +154,3 @@ function Base.dot(f::Fun{JacobiWeight{Jacobi}},g::Fun{JacobiWeight{Jacobi}})
         return defaultdot(f,g)
     end
 end
-

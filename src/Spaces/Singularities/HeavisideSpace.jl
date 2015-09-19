@@ -1,4 +1,4 @@
-immutable HeavisideSpace{V} <: RealUnivariateSpace
+immutable HeavisideSpace{V} <: RealUnivariateSpace{AnyDomain}
     domain::V
     HeavisideSpace(d::V)=new(d)
 end

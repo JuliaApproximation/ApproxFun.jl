@@ -4,7 +4,7 @@
 ##
 
 
-immutable LogWeight{S<:IntervalSpace} <: WeightSpace
+immutable LogWeight{S} <: WeightSpace
     α::Float64
     β::Float64
     space::S
@@ -64,5 +64,3 @@ function Multiplication(f::Fun,S::LogWeight)
     rsp=LogWeight(S.α,S.β,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
-
-

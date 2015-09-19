@@ -2,6 +2,7 @@
 include("ConstantSpace.jl")
 
 include("IntervalSpace.jl")
+include("PolynomialSpace.jl")
 include("PeriodicSpace.jl")
 
 

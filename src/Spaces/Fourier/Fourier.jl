@@ -4,7 +4,7 @@ export Fourier,Taylor,Hardy,CosSpace,SinSpace,Laurent
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
-        immutable $T <: RealUnivariateSpace
+        immutable $T <: RealUnivariateSpace{AnyDomain}
             domain::PeriodicDomain
         end
         $T()=$T(PeriodicInterval())

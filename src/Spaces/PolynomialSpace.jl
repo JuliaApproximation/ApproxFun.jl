@@ -1,7 +1,7 @@
 
 ## Orthogonal polynomials
 
-abstract PolynomialSpace <: IntervalSpace
+abstract PolynomialSpace{D} <: RealUnivariateSpace{D}
 
 bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
 rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=domainspace(M)

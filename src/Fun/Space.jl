@@ -50,11 +50,11 @@ abstract Space{T,D,d}
 
 
 
-typealias RealSpace{d} Space{RealBasis,AnyDomain,d}
-typealias ComplexSpace{d} Space{ComplexBasis,AnyDomain,d}
+typealias RealSpace{D,d} Space{RealBasis,D,d}
+typealias ComplexSpace{D,d} Space{ComplexBasis,D,d}
 typealias UnivariateSpace{T,D} Space{T,D,1}
 typealias BivariateSpace{T} Space{T,AnyDomain,2}
-typealias RealUnivariateSpace RealSpace{1}
+typealias RealUnivariateSpace{D} RealSpace{D,1}
 
 
 

@@ -6,8 +6,6 @@ immutable Conversion{S<:Space,V<:Space,T} <: AbstractConversion{T}
     domainspace::S
     rangespace::V
 end
-# Conversion{S<:PeriodicSpace,V<:PeriodicSpace}(A::S,B::V)=Conversion{S,V,Complex{Float64}}(A,B)
-# Conversion{S<:IntervalSpace,V<:IntervalSpace}(A::S,B::V)=Conversion{S,V,Float64}(A,B)
 
 for TYP in (:Operator,:BandedOperator)
     @eval begin

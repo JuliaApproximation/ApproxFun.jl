@@ -33,7 +33,7 @@ conversion_rule(b::LaurentDirichlet,a::Laurent)=b
 #
 
 
-immutable CosDirichlet <: RealUnivariateSpace
+immutable CosDirichlet <: RealUnivariateSpace{AnyDomain}
     domain::PeriodicDomain
 end
 

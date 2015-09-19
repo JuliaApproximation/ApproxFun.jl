@@ -25,22 +25,22 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
     end
 
     Tprom = Tout
-    if isa(d,IntervalSpace)   #TODO should also work for any space
-        if Tout <: Number #TODO should also work for array-valued functions
-            Td = eltype(domain(d))
 
-            Tprom,Tpromd=valsdomain_type_promote(Tout,Td)
+    if Tout <: Number #TODO should also work for array-valued functions
+        Td = eltype(domain(d))
 
-            if Tout != Int && Tprom != Tout
-                    warn("Promoting function output type from $(Tout) to $(Tprom)")
-            end
-            if Tpromd != Td
-                    warn("Space domain number type $(Td) is not compatible with coefficient type $(Tprom)")
-                    #TODO should construct a new Space that contains a domain where the numbers have been promoted
-                    #and call constructor with this Space.
-            end
+        Tprom,Tpromd=valsdomain_type_promote(Tout,Td)
+
+        if Tout != Int && Tprom != Tout
+                warn("Promoting function output type from $(Tout) to $(Tprom)")
+        end
+        if Tpromd != Td
+                warn("Space domain number type $(Td) is not compatible with coefficient type $(Tprom)")
+                #TODO should construct a new Space that contains a domain where the numbers have been promoted
+                #and call constructor with this Space.
         end
     end
+
 
     vals=Tprom[f(x) for x in pts]
     Fun(transform(d,vals),d)
@@ -141,7 +141,7 @@ function zerocfsFun(f, d::Space)
 
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  
+        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&
                 all(k->norm(cf[r[k]]-fr[k],1)<1E-4,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end

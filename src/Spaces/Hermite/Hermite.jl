@@ -1,6 +1,7 @@
 export Hermite,GaussWeight
 
-immutable Hermite{T} <: PolynomialSpace
+#TODO: Add general lines
+immutable Hermite{T} <: PolynomialSpace{Line{T}}
     L::T
 end
 Hermite()=Hermite(1.0)

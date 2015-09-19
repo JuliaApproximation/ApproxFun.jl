@@ -198,7 +198,7 @@ function Multiplication{D,T}(f::Fun{D,T},S::JacobiWeight)
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
-function Multiplication{D<:JacobiWeight,T}(f::Fun{D,T},S::IntervalSpace)
+function Multiplication{D<:JacobiWeight,T,V,ID<:Interval}(f::Fun{D,T},S::Space{V,ID})
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
     rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
@@ -218,7 +218,7 @@ function Multiplication{D,T}(S::JacobiWeight,f::Fun{D,T})
     MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
 end
 
-function Multiplication{D<:JacobiWeight,T}(S::IntervalSpace,f::Fun{D,T})
+function Multiplication{D<:JacobiWeight,T,V,ID<:Interval}(S::Space{V,D},f::Fun{ID,T})
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
     dsp=JacobiWeight(-space(f).α,-space(f).β,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
@@ -233,13 +233,13 @@ function maxspace_rule(A::JacobiWeight,B::JacobiWeight)
         ms=maxspace(A.space,B.space)
         if min(A.α,B.α)==0.&&min(A.β,B.β)==0.
             return ms
-        elseif isa(ms,IntervalSpace)
+        elseif isa(domain(ms),Interval)
             return JacobiWeight(min(A.α,B.α),min(A.β,B.β),maxspace(A.space,B.space))
         end
     end
     NoSpace()
 end
-maxspace_rule(A::JacobiWeight,B::IntervalSpace)=maxspace(A,JacobiWeight(0.,0.,B))
+maxspace_rule{T,D<:Interval}(A::JacobiWeight,B::Space{T,D})=maxspace(A,JacobiWeight(0.,0.,B))
 
 
 hasconversion(A::JacobiWeight,B::JacobiWeight)=isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β) &&
@@ -248,7 +248,7 @@ hasconversion(A::JacobiWeight,B::JacobiWeight)=isapproxinteger(A.α-B.α) && isa
 
 
 # return the space that has banded Conversion to the other, or NoSpace
-conversion_rule{n,S<:Space,IS<:IntervalSpace}(A::SliceSpace{n,1,S,RealBasis},B::JacobiWeight{IS})=error("Not implemented")
+conversion_rule{n,S<:Space}(A::SliceSpace{n,1,S,RealBasis},B::JacobiWeight)=error("Not implemented")
 function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     if isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
         ct=conversion_type(A.space,B.space)
@@ -257,8 +257,8 @@ function conversion_rule(A::JacobiWeight,B::JacobiWeight)
         NoSpace()
     end
 end
-#conversion_rule(A::IntervalSpace,B::JacobiWeight)=conversion_type(JacobiWeight(0,0,A),B)
-conversion_rule(A::JacobiWeight,B::IntervalSpace)=conversion_type(A,JacobiWeight(0,0,B))
+
+conversion_rule{T,D<:Interval}(A::JacobiWeight,B::Space{T,D})=conversion_type(A,JacobiWeight(0,0,B))
 
 
 
@@ -291,11 +291,11 @@ function Conversion(A::JacobiWeight,B::JacobiWeight)
     end
 end
 
-Conversion(A::IntervalSpace,B::JacobiWeight)=ConversionWrapper(
+Conversion{T,D<:Interval}(A::Space{T,D},B::JacobiWeight)=ConversionWrapper(
     SpaceOperator(
         Conversion(JacobiWeight(0,0,A),B),
         A,B))
-Conversion(A::JacobiWeight,B::IntervalSpace)=ConversionWrapper(
+Conversion{T,D<:Interval}(A::JacobiWeight,B::Space{T,D})=ConversionWrapper(
     SpaceOperator(
         Conversion(A,JacobiWeight(0,0,B)),
         A,B))

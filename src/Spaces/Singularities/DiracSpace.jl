@@ -1,4 +1,4 @@
-immutable DiracSpace{T<:Space}<:RealUnivariateSpace
+immutable DiracSpace{T<:Space}<:RealUnivariateSpace{AnyDomain}
   space::T
   points::Vector{Float64}
 end

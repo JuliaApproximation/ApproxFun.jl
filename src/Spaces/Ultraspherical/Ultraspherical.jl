@@ -5,7 +5,8 @@ export Ultraspherical
 
 
 
-immutable Ultraspherical{O} <: PolynomialSpace
+#TODO: TYpe
+immutable Ultraspherical{O} <: PolynomialSpace{Interval{Float64}}
     domain::Interval
     Ultraspherical(d)=new(d)
     Ultraspherical()=new(Interval())

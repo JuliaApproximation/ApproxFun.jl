@@ -2,7 +2,8 @@
 
 export ChebyshevDirichlet
 
-immutable ChebyshevDirichlet{left,right} <: PolynomialSpace
+#TODO: Type of Interval
+immutable ChebyshevDirichlet{left,right} <: PolynomialSpace{Interval{Float64}}
     domain::Interval
     ChebyshevDirichlet(d)=new(d)
     ChebyshevDirichlet()=new(Interval())
