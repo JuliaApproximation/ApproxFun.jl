@@ -2,7 +2,7 @@
 export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
-abstract AbstractProductSpace{SV,T,d} <: FunctionSpace{T,d}
+abstract AbstractProductSpace{SV,T,d} <: Space{T,d}
 
 if VERSION≥v"0.4.0-dev"
     spacetype{SV}(::AbstractProductSpace{SV},k)=SV.parameters[k]
@@ -33,14 +33,14 @@ coefficient_type(S::TensorSpace,T)=mapreduce(sp->coefficient_type(sp,T),promote_
 TensorSpace(A...)=TensorSpace(tuple(A...))
 TensorSpace(A::ProductDomain)=TensorSpace(tuple(map(Space,A.domains)...))
 ⊗{SV1,T1,SV2,T2,d1,d2}(A::TensorSpace{SV1,T1,d1},B::TensorSpace{SV2,T2,d2})=TensorSpace(A.spaces...,B.spaces...)
-⊗{SV,T,V,d1,d2}(A::TensorSpace{SV,T,d1},B::FunctionSpace{V,d2})=TensorSpace(A.spaces...,B)
-⊗{SV,T,V,d1,d2}(A::FunctionSpace{V,d2},B::TensorSpace{SV,T,d1})=TensorSpace(A,B.spaces...)
-⊗{T,V,d1,d2}(A::FunctionSpace{T,d1},B::FunctionSpace{V,d2})=TensorSpace(A,B)
+⊗{SV,T,V,d1,d2}(A::TensorSpace{SV,T,d1},B::Space{V,d2})=TensorSpace(A.spaces...,B)
+⊗{SV,T,V,d1,d2}(A::Space{V,d2},B::TensorSpace{SV,T,d1})=TensorSpace(A,B.spaces...)
+⊗{T,V,d1,d2}(A::Space{T,d1},B::Space{V,d2})=TensorSpace(A,B)
 
 domain(f::TensorSpace)=mapreduce(domain,*,f.spaces)
 Space(sp::ProductDomain)=TensorSpace(sp)
 
-*(A::FunctionSpace,B::FunctionSpace)=A⊗B
+*(A::Space,B::Space)=A⊗B
 
 
 # every column is in the same space for a TensorSpace
@@ -51,7 +51,7 @@ Base.length(d::TensorSpace)=length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
 
 
-immutable ProductSpace{S<:FunctionSpace,V<:FunctionSpace,T} <: AbstractProductSpace{@compat(Tuple{S,V}),T,2}
+immutable ProductSpace{S<:Space,V<:Space,T} <: AbstractProductSpace{@compat(Tuple{S,V}),T,2}
     spacesx::Vector{S}
     spacey::V
 end
@@ -62,7 +62,7 @@ ProductSpace(spacesx::Vector,spacey)=ProductSpace{eltype(spacesx),
 
 coefficient_type(S::ProductSpace,T)=promote_type(coefficient_type(S.spacesx[1],T),coefficient_type(S.spacesy,T))
 
-⊗{S<:FunctionSpace}(A::Vector{S},B::FunctionSpace)=ProductSpace(A,B)
+⊗{S<:Space}(A::Vector{S},B::Space)=ProductSpace(A,B)
 domain(f::ProductSpace)=domain(f.spacesx[1])*domain(f.spacesy)
 
 Base.getindex(d::ProductSpace,k::Integer)=k==1?d.spacesx:d.spacey

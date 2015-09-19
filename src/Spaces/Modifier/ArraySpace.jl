@@ -2,7 +2,7 @@ export devec,demat,mat
 
 
 
-immutable ArraySpace{S,n,T,dim} <: FunctionSpace{T,dim}
+immutable ArraySpace{S,n,T,dim} <: Space{T,dim}
      space::S
      dimensions::@compat(Tuple{Vararg{Int}})
 #      # for AnyDomain() usage
@@ -11,9 +11,9 @@ immutable ArraySpace{S,n,T,dim} <: FunctionSpace{T,dim}
 end
 
 
-ArraySpace{T,d}(S::FunctionSpace{T,d},n::@compat(Tuple{Vararg{Int}}))=ArraySpace{typeof(S),length(n),T,d}(S,n)
-ArraySpace(S::FunctionSpace,n::Integer)=ArraySpace(S,(n,))
-ArraySpace{T,d}(S::FunctionSpace{T,d},n,m)=ArraySpace{typeof(S),2,T,d}(S,(n,m))
+ArraySpace{T,d}(S::Space{T,d},n::@compat(Tuple{Vararg{Int}}))=ArraySpace{typeof(S),length(n),T,d}(S,n)
+ArraySpace(S::Space,n::Integer)=ArraySpace(S,(n,))
+ArraySpace{T,d}(S::Space{T,d},n,m)=ArraySpace{typeof(S),2,T,d}(S,(n,m))
 ArraySpace(d::Domain,n...)=ArraySpace(Space(d),n...)
 Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
 Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
@@ -47,7 +47,7 @@ end
 transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}})=transform(vec(AS),map(vec,vals))
 
 Base.vec(AS::ArraySpace)=ArraySpace(AS.space,length(AS))
-function Base.vec{S<:FunctionSpace,V,T,d}(f::Fun{ArraySpace{S,1,V,d},T})
+function Base.vec{S<:Space,V,T,d}(f::Fun{ArraySpace{S,1,V,d},T})
     n=length(space(f))
     Fun{S,T}[Fun(f.coefficients[j:n:end],space(f).space) for j=1:n]
 end
@@ -80,7 +80,7 @@ end
 
 devec(v::Vector{Any})=devec([v...])
 
-function devec{S<:FunctionSpace}(spl::Vector{S})
+function devec{S<:Space}(spl::Vector{S})
     #TODO: Redesign
     @assert spacescompatible(spl)
     ArraySpace(first(spl),length(spl))
@@ -146,10 +146,10 @@ end
 
 # change to ArraySpace
 Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace)=Fun(coefficients(f,d),d)
-Fun{AS<:ArraySpace}(f::Fun{AS},d::FunctionSpace)=Fun(f,ArraySpace(d,space(f).dimensions))
+Fun{AS<:ArraySpace}(f::Fun{AS},d::Space)=Fun(f,ArraySpace(d,space(f).dimensions))
 
 # columns are coefficients
-Fun{T<:Number}(M::Array{T,2},sp::FunctionSpace)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
+Fun{T<:Number}(M::Array{T,2},sp::Space)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
 
 # Automatically change to ArraySpace
 # A is interpreted as coefficients

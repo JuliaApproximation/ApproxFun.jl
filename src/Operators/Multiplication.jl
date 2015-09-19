@@ -2,21 +2,21 @@ export Multiplication
 
 abstract AbstractMultiplication{T} <:BandedOperator{T}
 
-immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T,V} <: AbstractMultiplication{V}
+immutable Multiplication{D<:Space,S<:Space,T,V} <: AbstractMultiplication{V}
     f::Fun{D,T}
     space::S
 
     Multiplication(f::Fun{D,T},sp::S)=new(f,sp)
 end
 
-Multiplication{D,T}(f::Fun{D,T},sp::FunctionSpace)=Multiplication{D,typeof(sp),
+Multiplication{D,T}(f::Fun{D,T},sp::Space)=Multiplication{D,typeof(sp),
                                                                   T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 
 Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
 Multiplication(c::Number)=ConstantOperator(c)
 
 # This covers right multiplication unless otherwise specified.
-Multiplication{D,T}(S::FunctionSpace,f::Fun{D,T}) = Multiplication(f,S)
+Multiplication{D,T}(S::Space,f::Fun{D,T}) = Multiplication(f,S)
 
 Base.convert{BT<:Multiplication}(::Type{BT},C::BT)=C
 function Base.convert{BT<:Operator,S,V,T}(::Type{BT},C::Multiplication{S,V,T})
@@ -75,7 +75,7 @@ end
 ##multiplication can always be promoted, range space is allowed to change
 promotedomainspace(D::AbstractMultiplication,sp::UnsetSpace)=D
 promotedomainspace(D::AbstractMultiplication,sp::AnySpace)=D
-promotedomainspace(D::AbstractMultiplication,sp::FunctionSpace)=Multiplication(D.f,sp)
+promotedomainspace(D::AbstractMultiplication,sp::Space)=Multiplication(D.f,sp)
 
 choosedomainspace{D}(M::Multiplication{D,UnsetSpace},::AnySpace)=space(M.f)
 choosedomainspace{D}(M::Multiplication{D,UnsetSpace},sp)=sp  # we assume multiplication maps spaces to themselves
@@ -83,13 +83,13 @@ choosedomainspace{D}(M::Multiplication{D,UnsetSpace},sp)=sp  # we assume multipl
 
 Base.diagm(a::Fun)=Multiplication(a)
 
-immutable MultiplicationWrapper{D<:FunctionSpace,O<:BandedOperator,V,T} <: AbstractMultiplication{T}
+immutable MultiplicationWrapper{D<:Space,O<:BandedOperator,V,T} <: AbstractMultiplication{T}
     f::Fun{D,V}
     op::O
 end
 
-MultiplicationWrapper{D<:FunctionSpace,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
-MultiplicationWrapper{D<:FunctionSpace,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
+MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
+MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
 
 addentries!(D::MultiplicationWrapper,A,k::Range)=addentries!(D.op,A,k)
 for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))

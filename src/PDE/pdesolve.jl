@@ -6,15 +6,15 @@ include("cont_lyap.jl")
 
 
 # Converts a vector of constants/funs to a vector of Funs
-function convert2fun{T<:Number,S<:FunctionSpace}(f::Array{T},sp::S)
+function convert2fun{T<:Number,S<:Space}(f::Array{T},sp::S)
     ret=similar(f,Fun{S,T})
     for k=1:size(f,1),j=1:size(f,2)
         ret[k,j]=Fun(f[k,j],sp)
     end
     ret
 end
-convert2fun{T<:Fun}(f::Array{T},d::FunctionSpace)=f
-function convert2fun{S<:FunctionSpace}(f::Array,sp::S)
+convert2fun{T<:Fun}(f::Array{T},d::Space)=f
+function convert2fun{S<:Space}(f::Array,sp::S)
     mytyp=Fun{S,promote_type(mapreduce(eltype,promote_type,f),eltype(sp))}
 
     ret=similar(f,mytyp)

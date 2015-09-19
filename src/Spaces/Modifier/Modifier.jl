@@ -7,12 +7,12 @@ include("PrependOperators.jl")
 include("SliceSpace.jl")
 
 
-⊕(A::FunctionSpace,B::FunctionSpace)=domainscompatible(A,B)?SumSpace(A,B):PiecewiseSpace(A,B)
+⊕(A::Space,B::Space)=domainscompatible(A,B)?SumSpace(A,B):PiecewiseSpace(A,B)
 ⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
 
 
 
-for TYP in (:SumSpace,:PiecewiseSpace,:FunctionSpace) # Resolve conflict
+for TYP in (:SumSpace,:PiecewiseSpace,:Space) # Resolve conflict
     @eval begin
         function coefficients(v::Vector,sp::$TYP,dropsp::SliceSpace)
             if sp==dropsp.space
@@ -74,7 +74,7 @@ end
 
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval begin
-        function coefficients(cfsin::Vector,A::FunctionSpace,B::$TYP)
+        function coefficients(cfsin::Vector,A::Space,B::$TYP)
             m=length(B.spaces)
             #TODO: What if we can convert?  FOr example, A could be Ultraspherical{1}
             # and B could contain Chebyshev

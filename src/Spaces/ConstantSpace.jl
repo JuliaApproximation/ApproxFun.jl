@@ -24,11 +24,11 @@ promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(o
 
 # When the union of A and B is a ConstantSpace, then it contains a one
 conversion_rule(A::ConstantSpace,B::UnsetSpace)=NoSpace()
-conversion_rule(A::ConstantSpace,B::FunctionSpace)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
+conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
 
 
-bandinds{S<:FunctionSpace}(C::Conversion{ConstantSpace,S})=1-length(ones(rangespace(C))),0
-function addentries!{S<:FunctionSpace}(C::Conversion{ConstantSpace,S},A,kr::Range)
+bandinds{S<:Space}(C::Conversion{ConstantSpace,S})=1-length(ones(rangespace(C))),0
+function addentries!{S<:Space}(C::Conversion{ConstantSpace,S},A,kr::Range)
     on=ones(rangespace(C))
     for k=kr
         if k≤length(on)
@@ -38,8 +38,8 @@ function addentries!{S<:FunctionSpace}(C::Conversion{ConstantSpace,S},A,kr::Rang
     A
 end
 
-bandinds{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T}) = 1-length(D.f),0
-function addentries!{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T},A,kr)
+bandinds{F<:Space,T}(D::Multiplication{F,ConstantSpace,T}) = 1-length(D.f),0
+function addentries!{F<:Space,T}(D::Multiplication{F,ConstantSpace,T},A,kr)
     Op = Multiplication(D.f,space(D.f))
     for k=kr
         if k≤length(D.f)
@@ -48,7 +48,7 @@ function addentries!{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T},A,
     end
     A
 end
-rangespace{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T}) = rangespace(Multiplication(D.f,space(D.f)))
+rangespace{F<:Space,T}(D::Multiplication{F,ConstantSpace,T}) = rangespace(Multiplication(D.f,space(D.f)))
 
 
 ###
@@ -73,7 +73,7 @@ bandinds(FO::FunctionalOperator)=0,datalength(FO.func)-1
 domainspace(FO::FunctionalOperator)=domainspace(FO.func)
 rangespace(FO::FunctionalOperator)=ConstantSpace()
 
-for TYP in (:AnySpace,:UnsetSpace,:FunctionSpace)
+for TYP in (:AnySpace,:UnsetSpace,:Space)
     @eval promotedomainspace(FT::FunctionalOperator,sp::$TYP)=FunctionalOperator(promotedomainspace(FT.func,sp))
 end
 

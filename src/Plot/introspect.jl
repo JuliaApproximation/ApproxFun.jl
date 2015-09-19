@@ -14,7 +14,7 @@ function treeadd_edges!(str,ops,node,M,labels)
 end
 
 
-function introspect(A::Union(BandedOperator,Functional,FunctionSpace))
+function introspect(A::Union(BandedOperator,Functional,Space))
     require("TikzGraphs")
     m=treecount(A)
 
@@ -54,10 +54,10 @@ texname(M::MappedSpace)=texname(M.domain)
 
 treecount(S::Union(SumSpace,PiecewiseSpace))=1+mapreduce(treecount,+,S.spaces)
 treecount(S::Union(ArraySpace,JacobiWeight,MappedSpace))=1+treecount(S.space)
-treecount(::FunctionSpace)=1
+treecount(::Space)=1
 
 
-add_edges!(FS::FunctionSpace,nd,M,labels)=(labels[nd]=string(nd)*":"*texname(FS))
+add_edges!(FS::Space,nd,M,labels)=(labels[nd]=string(nd)*":"*texname(FS))
 
 for (OP) in (:SumSpace,:PiecewiseSpace)
     @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*texname(A),A.spaces,nd,M,labels)

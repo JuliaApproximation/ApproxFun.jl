@@ -139,7 +139,7 @@ function ./{S<:MappedSpace}(c::Number,f::Fun{S})
     g=c./Fun(coefficients(f),space(f).space)
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
-function .^{S<:FunctionSpace,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
+function .^{S<:Space,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
     g=Fun(coefficients(f),space(f).space).^k
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
@@ -392,8 +392,8 @@ Base.asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
 ## Second order functions
 
 
-Base.sin{S<:FunctionSpace{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
-Base.cos{S<:FunctionSpace{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
+Base.sin{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
+Base.cos{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 Base.sin{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
 Base.cos{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 

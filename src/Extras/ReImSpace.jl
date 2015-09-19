@@ -4,11 +4,11 @@
 
 for TYP in (:ReSpace,:ImSpace,:ReImSpace)
     @eval begin
-        immutable $TYP{S,T,d}<: FunctionSpace{T,d}
+        immutable $TYP{S,T,d}<: Space{T,d}
             space::S
         end
 
-        $TYP{T,d}(sp::FunctionSpace{T,d})=$TYP{typeof(sp),T,d}(sp)
+        $TYP{T,d}(sp::Space{T,d})=$TYP{typeof(sp),T,d}(sp)
 
         domain(sp::$TYP)=domain(sp.space)
         spacescompatible(a::$TYP,b::$TYP)=spacescompatible(a.space,b.space)
@@ -46,12 +46,12 @@ coefficients(f::Vector,a::ReSpace,b::ReImSpace)=coefficients(f,a,a.space,b)
 coefficients(f::Vector,a::ImSpace,b::ReImSpace)=coefficients(f,a,a.space,b)
 coefficients(f::Vector,a::ReImSpace,b::ReSpace)=coefficients(f,a,a.space,b)
 coefficients(f::Vector,a::ReImSpace,b::ImSpace)=coefficients(f,a,a.space,b)
-coefficients(f::Vector,a::FunctionSpace,b::ReSpace)=real(coefficients(f,a,b.space))
-coefficients(f::Vector,a::FunctionSpace,b::ImSpace)=imag(coefficients(f,a,b.space))
-coefficients(f::Vector,a::ReSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);coefficients(f,a.space,b))
-coefficients(f::Vector,a::ImSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);coefficients(1im*f,a.space,b))
+coefficients(f::Vector,a::Space,b::ReSpace)=real(coefficients(f,a,b.space))
+coefficients(f::Vector,a::Space,b::ImSpace)=imag(coefficients(f,a,b.space))
+coefficients(f::Vector,a::ReSpace,b::Space)=(@assert isa(eltype(f),Real);coefficients(f,a.space,b))
+coefficients(f::Vector,a::ImSpace,b::Space)=(@assert isa(eltype(f),Real);coefficients(1im*f,a.space,b))
 
-function coefficients(f::Vector,a::FunctionSpace,b::ReImSpace)
+function coefficients(f::Vector,a::Space,b::ReImSpace)
     if a!=b.space
         f=coefficients(f,a,b.space)
     end
@@ -62,7 +62,7 @@ function coefficients(f::Vector,a::FunctionSpace,b::ReImSpace)
 end
 
 
-function coefficients(f::Vector,a::ReImSpace,b::FunctionSpace)
+function coefficients(f::Vector,a::ReImSpace,b::Space)
     n=length(f)
     if iseven(n)
         ret=f[1:2:end]+1im*f[2:2:end]
@@ -78,7 +78,7 @@ function coefficients(f::Vector,a::ReImSpace,b::FunctionSpace)
 end
 
 
-#union_rule(a::FunctionSpace,b::ReImSpace)=union(a,b.space)
+#union_rule(a::Space,b::ReImSpace)=union(a,b.space)
 
 ## Operators
 
@@ -344,7 +344,7 @@ for OP in (:promotedomainspace,:promoterangespace)
     @eval begin
         $OP(R::ReOperator,sp::UnsetSpace)=ReOperator($OP(R.op,sp))
         $OP(R::ReOperator,sp::AnySpace)=ReOperator($OP(R.op,sp))
-        $OP(R::ReOperator,sp::FunctionSpace)=ReOperator($OP(R.op,sp))
+        $OP(R::ReOperator,sp::Space)=ReOperator($OP(R.op,sp))
     end
 end
 

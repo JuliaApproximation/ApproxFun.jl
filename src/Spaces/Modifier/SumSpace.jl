@@ -3,7 +3,7 @@ export ⊕
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-abstract DirectSumSpace{SV,T,d} <: FunctionSpace{T,d}
+abstract DirectSumSpace{SV,T,d} <: Space{T,d}
 
 
 for TYP in (:SumSpace,:TupleSpace)
@@ -25,9 +25,9 @@ for TYP in (:SumSpace,:TupleSpace)
         $TYP(sp::Tuple)=$TYP{typeof(sp),mapreduce(basistype,promote_type,sp),ndims(first(sp))}(sp)
         $TYP(A::$TYP,B::$TYP)=$TYP(tuple(A.spaces...,B.spaces...))
 
-        $TYP(A::FunctionSpace,B::$TYP)=$TYP(tuple(A,B.spaces...))
-        $TYP(A::$TYP,B::FunctionSpace)=$TYP(tuple(A.spaces...,B))
-        $TYP(A::FunctionSpace...)=$TYP(A)
+        $TYP(A::Space,B::$TYP)=$TYP(tuple(A,B.spaces...))
+        $TYP(A::$TYP,B::Space)=$TYP(tuple(A.spaces...,B))
+        $TYP(A::Space...)=$TYP(A)
         $TYP(sp::Array)=$TYP(tuple(sp...))
 
         canonicalspace(A::$TYP)=$TYP(sort([A.spaces...]))
@@ -80,7 +80,7 @@ function union_rule(A::SumSpace,B::SumSpace)
     end
 end
 
-function union_rule(A::SumSpace,B::FunctionSpace)
+function union_rule(A::SumSpace,B::Space)
     if B in A.spaces
         A
     else
@@ -156,7 +156,7 @@ function union_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::SumSpace
     end
 end
 union_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},
-                   W::FunctionSpace)=SumSpace(SS.spaces[1],union(SS.spaces[2],W))
+                   W::Space)=SumSpace(SS.spaces[1],union(SS.spaces[2],W))
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval begin

@@ -4,7 +4,7 @@
 
 export LowRankFun
 
-type LowRankFun{S<:FunctionSpace,M<:FunctionSpace,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
+type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
     A::Vector{Fun{S,T}}
     B::Vector{Fun{M,T}}
     space::SS
@@ -26,7 +26,7 @@ Base.size(f::LowRankFun)=size(f,1),size(f,2)
 
 ## Construction via a Matrix of coefficients
 
-function LowRankFun{S<:FunctionSpace,M<:FunctionSpace,T<:Number}(X::Array{T},dx::S,dy::M)
+function LowRankFun{S<:Space,M<:Space,T<:Number}(X::Array{T},dx::S,dy::M)
     U,Σ,V=svd(X)
     m=max(1,count(s->s>10eps(T),Σ))
 
@@ -43,7 +43,7 @@ function LowRankFun{S,T,SV}(X::Vector{Fun{S,T}},d::TensorSpace{SV,T,2})
     LowRankFun(X,d[2])
 end
 
-function LowRankFun{S,T}(X::Vector{Fun{S,T}},dy::FunctionSpace)
+function LowRankFun{S,T}(X::Vector{Fun{S,T}},dy::Space)
     m=mapreduce(length,max,X)
     M=zeros(T,m,length(X))
     for k=1:length(X)
@@ -55,7 +55,7 @@ end
 
 ## Adaptive constructor selector
 
-function LowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;method::Symbol=:standard,tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function LowRankFun(f::Function,dx::Space,dy::Space;method::Symbol=:standard,tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     if method == :standard
         F,maxabsf=standardLowRankFun(f,dx,dy;tolerance=tolerance,gridx=gridx,gridy=gridy,maxrank=maxrank)
     elseif method == :Cholesky
@@ -72,7 +72,7 @@ end
 
 ## Standard adaptive construction
 
-function standardLowRankFun(f::Function,dx::FunctionSpace,dy::FunctionSpace;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dy)
     T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)),eltype(dy),eltype(domain(dy)))
 
@@ -116,7 +116,7 @@ end
 
 ## Adaptive Cholesky decomposition, when f is Hermitian positive (negative) definite
 
-function CholeskyLowRankFun(f::Function,dx::FunctionSpace;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,grid::Integer=64,maxrank::Integer=100)
+function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,grid::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dx)
     T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)))
 
@@ -242,7 +242,7 @@ function coefficients(f::LowRankFun)
     ret
 end
 
-function coefficients(f::LowRankFun,n::FunctionSpace,m::FunctionSpace)
+function coefficients(f::LowRankFun,n::Space,m::Space)
     xm=mapreduce(length,max,f.A)
     ym=mapreduce(length,max,f.B)
     ret=zeros(xm,ym)

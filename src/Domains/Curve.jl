@@ -4,7 +4,7 @@
 
 export Curve
 
-immutable Curve{S<:FunctionSpace,T} <: UnivariateDomain{T}
+immutable Curve{S<:Space,T} <: UnivariateDomain{T}
     curve::Fun{S,T}
 end
 

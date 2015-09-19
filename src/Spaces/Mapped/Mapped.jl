@@ -4,7 +4,7 @@ export MappedSpace
 
 #Typing D as Domain was causing issues
 
-type MappedSpace{S<:FunctionSpace,D,T} <: FunctionSpace{T,1}
+type MappedSpace{S<:Space,D,T} <: Space{T,1}
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)
@@ -16,7 +16,7 @@ end
 
 spacescompatible(a::MappedSpace,b::MappedSpace)=spacescompatible(a.space,b.space)&&domainscompatible(a,b)
 
-MappedSpace{D<:Domain,T}(d::D,s::FunctionSpace{T})=MappedSpace{typeof(s),D,T}(d,s)
+MappedSpace{D<:Domain,T}(d::D,s::Space{T})=MappedSpace{typeof(s),D,T}(d,s)
 
 
 

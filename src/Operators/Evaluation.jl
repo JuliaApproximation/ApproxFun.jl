@@ -5,13 +5,13 @@ export Evaluation,ivp,bvp
 abstract AbstractEvaluation{T}<:Functional{T}
 
 # M = Bool if endpoint
-immutable Evaluation{S<:FunctionSpace,M<:Union(Number,Bool),T<:Number} <: AbstractEvaluation{T}
+immutable Evaluation{S<:Space,M<:Union(Number,Bool),T<:Number} <: AbstractEvaluation{T}
     space::S
     x::M
     order::Int
 end
-Evaluation{T}(::Type{T},sp::FunctionSpace,x::Bool,order::Integer)=Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
-function Evaluation{T}(::Type{T},sp::FunctionSpace,x::Number,order::Integer)
+Evaluation{T}(::Type{T},sp::Space,x::Bool,order::Integer)=Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
+function Evaluation{T}(::Type{T},sp::Space,x::Number,order::Integer)
     d=domain(sp)
     if isa(d,IntervalDomain) && isapprox(first(d),x)
         Evaluation(T,sp,false,order)
@@ -23,11 +23,11 @@ function Evaluation{T}(::Type{T},sp::FunctionSpace,x::Number,order::Integer)
 end
 
 Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,UnsetNumber}(sp,x,k)
-Evaluation(sp::FunctionSpace{ComplexBasis},x,order::Integer)=Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
-Evaluation(sp::FunctionSpace,x,order::Integer)=Evaluation(eltype(domain(sp)),sp,x,order)
+Evaluation(sp::Space{ComplexBasis},x,order::Integer)=Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
+Evaluation(sp::Space,x,order::Integer)=Evaluation(eltype(domain(sp)),sp,x,order)
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
-Evaluation(d::FunctionSpace,x::Union(Number,Bool))=Evaluation(d,x,0)
+Evaluation(d::Space,x::Union(Number,Bool))=Evaluation(d,x,0)
 
 Evaluation(d::Domain,x::Union(Number,Bool),n...)=Evaluation(Space(d),x,n...)
 Evaluation(x::Union(Number,Bool))=Evaluation(AnySpace(),x,0)
@@ -54,19 +54,19 @@ end
 
 ## EvaluationWrapper
 
-immutable EvaluationWrapper{S<:FunctionSpace,M<:Union(Number,Bool),FS<:Functional,T<:Number} <: AbstractEvaluation{T}
+immutable EvaluationWrapper{S<:Space,M<:Union(Number,Bool),FS<:Functional,T<:Number} <: AbstractEvaluation{T}
     space::S
     x::M
     order::Int
     functional::FS
 end
 
-EvaluationWrapper(sp::FunctionSpace,x::Union(Number,Bool),order::Integer,func::Functional)=EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
+EvaluationWrapper(sp::Space,x::Union(Number,Bool),order::Integer,func::Functional)=EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
 getindex(E::EvaluationWrapper,kr::Range)=getindex(E.functional,kr)
 
 domainspace(E::AbstractEvaluation)=E.space
 domain(E::AbstractEvaluation)=domain(E.space)
-promotedomainspace{T}(E::AbstractEvaluation{T},sp::FunctionSpace)=Evaluation(promote_type(T,eltype(sp)),sp,E.x,E.order)
+promotedomainspace{T}(E::AbstractEvaluation{T},sp::Space)=Evaluation(promote_type(T,eltype(sp)),sp,E.x,E.order)
 Base.stride(E::EvaluationWrapper)=stride(E.functional)
 
 ## Convenience routines
@@ -110,9 +110,9 @@ immutable Dirichlet{S,T} <: Operator{T}
     space::S
     order::Int
 end
-Dirichlet(sp::FunctionSpace)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,0)
+Dirichlet(sp::Space)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,0)
 Dirichlet(d::Domain)=Dirichlet(Space(d))
-Neumann(sp::FunctionSpace)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,1)
+Neumann(sp::Space)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,1)
 Neumann(d::Domain)=Dirichlet(Space(d))
 
 

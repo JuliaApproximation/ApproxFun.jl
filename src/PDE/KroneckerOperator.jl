@@ -277,7 +277,7 @@ Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=Operator{BandedMatrix{pro
 
 conversion_rule(a::TensorSpace,b::TensorSpace)=conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
 conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::TensorSpace)=a
-conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::FunctionSpace)=a
+conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::Space)=a
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
 Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
@@ -321,7 +321,7 @@ Multiplication{D<:UnivariateSpace,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplicat
 
 
 # from algebra
-function promotedomainspace{T,T2}(P::PlusOperator{T},sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T2})
+function promotedomainspace{T,T2}(P::PlusOperator{T},sp::Space,cursp::TensorSpace{AnySpace,AnySpace,T2})
     if sp==cursp
         P
     else
@@ -329,7 +329,7 @@ function promotedomainspace{T,T2}(P::PlusOperator{T},sp::FunctionSpace,cursp::Te
     end
 end
 
-function promotedomainspace{T}(P::TimesOperator,sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T})
+function promotedomainspace{T}(P::TimesOperator,sp::Space,cursp::TensorSpace{AnySpace,AnySpace,T})
     if sp==cursp
         P
     elseif length(P.ops)==2
@@ -340,7 +340,7 @@ function promotedomainspace{T}(P::TimesOperator,sp::FunctionSpace,cursp::TensorS
 end
 
 for op in (:promotedomainspace,:promoterangespace)
-    @eval $op(P::BandedOperator,sp::FunctionSpace,::TensorSpace{AnySpace,AnySpace})=SpaceOperator(P,sp)
+    @eval $op(P::BandedOperator,sp::Space,::TensorSpace{AnySpace,AnySpace})=SpaceOperator(P,sp)
 end
 
 

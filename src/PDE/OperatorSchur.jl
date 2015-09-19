@@ -60,8 +60,8 @@ type DiagonalOperatorSchur{MT<:Number} <:AbstractOperatorSchur{MT,MT}
     ops::Vector{Vector{MT}}
 
     
-    domainspace::FunctionSpace
-    rangespace::FunctionSpace       
+    domainspace::Space
+    rangespace::Space       
 end
 
 Base.eltype{MT}(::DiagonalOperatorSchur{MT})=MT
@@ -119,8 +119,8 @@ type OperatorSchur{BT<:Number,MT<:Number} <:AbstractOperatorSchur{BT,MT}
     Lcols::Matrix{MT}
     Mcols::Matrix{MT}
     
-    domainspace::FunctionSpace
-    rangespace::FunctionSpace    
+    domainspace::Space
+    rangespace::Space    
 end
 
 #make sure cols are same type as ops

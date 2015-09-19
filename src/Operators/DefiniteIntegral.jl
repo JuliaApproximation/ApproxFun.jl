@@ -10,17 +10,17 @@ macro calculus_functional(Func)
         immutable $Func{S,T} <: $AbstOp{S,T}
             domainspace::S
         end
-        immutable $WrappOp{BT<:Functional,S<:FunctionSpace,T} <: $AbstOp{S,T}
+        immutable $WrappOp{BT<:Functional,S<:Space,T} <: $AbstOp{S,T}
             func::BT
         end
 
 
         # We expect the operator to be real/complex if the basis is real/complex
         $Func()=$Func(UnsetSpace())
-        $Func(dsp::FunctionSpace) = $Func{typeof(dsp),eltype(dsp)}(dsp)
+        $Func(dsp::Space) = $Func{typeof(dsp),eltype(dsp)}(dsp)
         $Func(d::Domain) = $Func(Space(d))
 
-        promotedomainspace(::$AbstOp,sp::FunctionSpace)=$Func(sp)
+        promotedomainspace(::$AbstOp,sp::Space)=$Func(sp)
 
         Base.convert{OT<:$Func}(::Type{OT},Σ::OT)=Σ
         function Base.convert{OT<:Operator}(::Type{OT},Σ::$Func)

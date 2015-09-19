@@ -23,7 +23,7 @@ end
 
 datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 
-promotedomainspace{T}(C::PlusFunctional{T},sp::FunctionSpace)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
+promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
 
 immutable PlusOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
@@ -151,7 +151,7 @@ ConstantTimesFunctional(c::Number,op::Functional)=ConstantTimesFunctional{promot
 
 Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.op[k]
 datalength(C::ConstantTimesFunctional)=datalength(C.op)
-promotedomainspace(C::ConstantTimesFunctional,sp::FunctionSpace)=ConstantTimesFunctional(C.c,promotedomainspace(C.op,sp))
+promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.op,sp))
 
 
 type TimesFunctional{T,A<:Functional,B<:BandedOperator} <: Functional{T}
@@ -159,7 +159,7 @@ type TimesFunctional{T,A<:Functional,B<:BandedOperator} <: Functional{T}
     op::B
 end
 
-promotedomainspace(C::TimesFunctional,sp::FunctionSpace)=C.functional*promotedomainspace(C.op,sp)
+promotedomainspace(C::TimesFunctional,sp::Space)=C.functional*promotedomainspace(C.op,sp)
 
 for S in (:ConstantTimesFunctional,:TimesFunctional)
     @eval domainspace(T::($S))=domainspace(T.op)
@@ -208,10 +208,10 @@ for OP in (:domainspace,:rangespace,:bandinds)
     @eval $OP(C::ConstantTimesOperator)=$OP(C.op)
 end
 bandinds(C::ConstantTimesOperator,k::Integer)=bandinds(C.op,k)
-choosedomainspace(C::ConstantTimesOperator,sp::FunctionSpace)=choosedomainspace(C.op,sp)
+choosedomainspace(C::ConstantTimesOperator,sp::Space)=choosedomainspace(C.op,sp)
 
 
-for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,:FunctionSpace)
+for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,:Space)
     @eval function $OP(C::ConstantTimesOperator,k::$SP)
             op=$OP(C.op,k)
             # TODO: This assumes chnanging domainspace can't change the type
@@ -484,9 +484,9 @@ end
 
 ## promotedomain
 
-for T in (:AnySpace,:FunctionSpace)
+for T in (:AnySpace,:Space)
     @eval begin
-        function promotedomainspace{T}(P::PlusOperator{T},sp::FunctionSpace,cursp::$T)
+        function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::$T)
             if sp==cursp
                 P
             else
@@ -510,9 +510,9 @@ end
 
 
 
-for T in (:AnySpace,:FunctionSpace)
+for T in (:AnySpace,:Space)
     @eval begin
-        function promotedomainspace(P::TimesOperator,sp::FunctionSpace,cursp::$T)
+        function promotedomainspace(P::TimesOperator,sp::Space,cursp::$T)
             if sp==cursp
                 P
             elseif length(P.ops)==2

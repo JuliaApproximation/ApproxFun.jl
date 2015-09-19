@@ -1,6 +1,6 @@
 
 
-export FunctionSpace, domainspace, rangespace, maxspace,Space,conversion_type
+export Space, domainspace, rangespace, maxspace,Space,conversion_type
 
 
 ##
@@ -45,38 +45,38 @@ Base.eltype(::Type{AnyBasis})=Number
 
 # T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
 # d is the dimension
-abstract FunctionSpace{T,d}
+abstract Space{T,d}
 
 
 
-typealias RealSpace{d} FunctionSpace{RealBasis,d}
-typealias ComplexSpace{d} FunctionSpace{ComplexBasis,d}
-typealias UnivariateSpace{T} FunctionSpace{T,1}
-typealias BivariateSpace{T} FunctionSpace{T,2}
+typealias RealSpace{d} Space{RealBasis,d}
+typealias ComplexSpace{d} Space{ComplexBasis,d}
+typealias UnivariateSpace{T} Space{T,1}
+typealias BivariateSpace{T} Space{T,2}
 typealias RealUnivariateSpace RealSpace{1}
 
 
 
 
-Base.eltype{S}(::FunctionSpace{S})=eltype(S)
-basistype{T}(::FunctionSpace{T})=T
-basistype{T,d}(::Type{FunctionSpace{T,d}})=T
-basistype{FT<:FunctionSpace}(::Type{FT})=basistype(super(FT))
+Base.eltype{S}(::Space{S})=eltype(S)
+basistype{T}(::Space{T})=T
+basistype{T,d}(::Type{Space{T,d}})=T
+basistype{FT<:Space}(::Type{FT})=basistype(super(FT))
 
 
-coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)
+coefficient_type{S}(::Space{S},T)=coefficient_type(S,T)
 
-Base.ndims{S,d}(::FunctionSpace{S,d})=d
-
-
+Base.ndims{S,d}(::Space{S,d})=d
 
 
+Space{D<:Number}(d::Vector{D})=Space(convert(Domain,d))
 
-abstract AmbiguousSpace <: FunctionSpace{RealBasis,1}
+
+abstract AmbiguousSpace <: Space{RealBasis,1}
 
 domain(::AmbiguousSpace)=AnyDomain()
 
-function setdomain(sp::FunctionSpace,d::Domain)
+function setdomain(sp::Space,d::Domain)
     S=typeof(sp)
     @assert length(@compat(fieldnames(S)))==1
     S(d)
@@ -98,7 +98,7 @@ isambiguous(::)=false
 isambiguous(::AmbiguousSpace)=true
 
 #TODO: should it default to canonicalspace?
-points(d::FunctionSpace,n)=points(domain(d),n)
+points(d::Space,n)=points(domain(d),n)
 
 
 
@@ -112,19 +112,19 @@ domainscompatible(a,b) = isambiguous(domain(a)) || isambiguous(domain(b)) || isa
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
-spacescompatible{D<:FunctionSpace}(f::D,g::D)=error("Override spacescompatible for "*string(D))
+spacescompatible{D<:Space}(f::D,g::D)=error("Override spacescompatible for "*string(D))
 spacescompatible(::AnySpace,::AnySpace)=true
 spacescompatible(::UnsetSpace,::UnsetSpace)=true
 spacescompatible(::NoSpace,::NoSpace)=true
 spacescompatible(::ZeroSpace,::ZeroSpace)=true
-spacescompatible(::ZeroSpace,::FunctionSpace)=true
-spacescompatible(::FunctionSpace,::ZeroSpace)=true
+spacescompatible(::ZeroSpace,::Space)=true
+spacescompatible(::Space,::ZeroSpace)=true
 spacescompatible(f,g)=false
-==(A::FunctionSpace,B::FunctionSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
+==(A::Space,B::Space)=spacescompatible(A,B)&&domain(A)==domain(B)
 
 
 # check a list of spaces for compatibility
-function spacescompatible{T<:FunctionSpace}(v::Vector{T})
+function spacescompatible{T<:Space}(v::Vector{T})
     for k=1:length(v)-1
         if !spacescompatible(v[k],v[k+1])
             return false
@@ -133,16 +133,16 @@ function spacescompatible{T<:FunctionSpace}(v::Vector{T})
     true
 end
 
-spacescompatible{T<:FunctionSpace}(v::Array{T})=spacescompatible(vec(v))
+spacescompatible{T<:Space}(v::Array{T})=spacescompatible(vec(v))
 
 
 
-domain(A::FunctionSpace)=A.domain # assume it has a field domain
+domain(A::Space)=A.domain # assume it has a field domain
 
 
 
 for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD,:invfromcanonicalD)
-    @eval ($op)(sp::FunctionSpace,x...)=$op(domain(sp),x...)
+    @eval ($op)(sp::Space,x...)=$op(domain(sp),x...)
 end
 
 
@@ -173,8 +173,8 @@ for FUNC in (:conversion_type,:maxspace)
     for TYP in (:AnySpace,:UnsetSpace,:ZeroSpace)
         @eval begin
             $FUNC(a::$TYP,b::$TYP)=a
-            $FUNC(a::$TYP,b::FunctionSpace)=b
-            $FUNC(a::FunctionSpace,b::$TYP)=a
+            $FUNC(a::$TYP,b::Space)=b
+            $FUNC(a::Space,b::$TYP)=a
         end
     end
 end
@@ -198,7 +198,7 @@ end
 
 # gives a space c that has a banded conversion operator FROM a and b
 maxspace(a,b)=NoSpace()  # TODO: this fixes weird bug with Nothing
-function maxspace(a::FunctionSpace,b::FunctionSpace)
+function maxspace(a::Space,b::Space)
     if spacescompatible(a,b)
         return a
     end
@@ -247,7 +247,7 @@ end
 # union combines two spaces
 # this is used primarily for addition of two funs
 # that may be incompatible
-function Base.union(a::FunctionSpace,b::FunctionSpace)
+function Base.union(a::Space,b::Space)
     if spacescompatible(a,b)
         return a
     end
@@ -297,9 +297,9 @@ isconvertible(a,b)=hasconversion(union(a,b),b)
 
 coefficients(f,sp1,sp2,sp3)=coefficients(coefficients(f,sp1,sp2),sp2,sp3)
 
-coefficients{T1<:FunctionSpace,T2<:FunctionSpace}(f::Vector,::Type{T1},::Type{T2})=coefficients(f,T1(),T2())
-coefficients{T1<:FunctionSpace}(f::Vector,::Type{T1},sp2::FunctionSpace)=coefficients(f,T1(),sp2)
-coefficients{T2<:FunctionSpace}(f::Vector,sp1::FunctionSpace,::Type{T2})=coefficients(f,sp1,T2())
+coefficients{T1<:Space,T2<:Space}(f::Vector,::Type{T1},::Type{T2})=coefficients(f,T1(),T2())
+coefficients{T1<:Space}(f::Vector,::Type{T1},sp2::Space)=coefficients(f,T1(),sp2)
+coefficients{T2<:Space}(f::Vector,sp1::Space,::Type{T2})=coefficients(f,sp1,T2())
 
 ## coefficients defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
@@ -340,15 +340,15 @@ coefficients(f,a,b)=defaultcoefficients(f,a,b)
 
 
 ## TODO: remove zeros
-Base.zero(S::FunctionSpace)=zeros(S)
-Base.zero{T<:Number}(::Type{T},S::FunctionSpace)=zeros(T,S)
-Base.zeros{T<:Number}(::Type{T},S::FunctionSpace)=Fun(zeros(T,1),S)
-Base.zeros(S::FunctionSpace)=Fun(zeros(1),S)
+Base.zero(S::Space)=zeros(S)
+Base.zero{T<:Number}(::Type{T},S::Space)=zeros(T,S)
+Base.zeros{T<:Number}(::Type{T},S::Space)=Fun(zeros(T,1),S)
+Base.zeros(S::Space)=Fun(zeros(1),S)
 
 # catch all
-Base.ones(S::FunctionSpace)=Fun(x->1.0,S)
-Base.ones{T<:Number}(::Type{T},S::FunctionSpace)=Fun(x->one(T),S)
-identity_fun(S::FunctionSpace)=Fun(x->x,S)
+Base.ones(S::Space)=Fun(x->1.0,S)
+Base.ones{T<:Number}(::Type{T},S::Space)=Fun(x->one(T),S)
+identity_fun(S::Space)=Fun(x->x,S)
 
 
 
@@ -359,8 +359,8 @@ identity_fun(S::FunctionSpace)=Fun(x->x,S)
 ## rand
 # checkpoints is used to give a list of points to double check
 # the expansion
-Base.rand(d::FunctionSpace,k...)=rand(domain(d),k...)
-checkpoints(d::FunctionSpace)=checkpoints(domain(d))
+Base.rand(d::Space,k...)=rand(domain(d),k...)
+checkpoints(d::Space)=checkpoints(domain(d))
 
 
 
@@ -369,10 +369,10 @@ checkpoints(d::FunctionSpace)=checkpoints(domain(d))
 # transform converts from values at points(S,n) to coefficients
 # itransform converts from coefficients to values at points(S,n)
 
-transform(S::FunctionSpace,vals)=transform(S,vals,plan_transform(S,vals))
-itransform(S::FunctionSpace,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
+transform(S::Space,vals)=transform(S,vals,plan_transform(S,vals))
+itransform(S::Space,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
 
-function transform(S::FunctionSpace,vals,plan)
+function transform(S::Space,vals,plan)
     csp=canonicalspace(S)
     if S==csp
         error("Override transform(::"*string(typeof(S))*",vals,plan)")
@@ -381,7 +381,7 @@ function transform(S::FunctionSpace,vals,plan)
     coefficients(transform(csp,vals,plan),csp,S)
 end
 
-function itransform(S::FunctionSpace,cfs,plan)
+function itransform(S::Space,cfs,plan)
     csp=canonicalspace(S)
     if S==csp
         error("Override itransform(::"*string(typeof(S))*",cfs,plan)")
@@ -394,10 +394,10 @@ end
 for OP in (:plan_transform,:plan_itransform)
     # plan transform expects a vector
     # this passes an empty Float64 array
-    @eval $OP(S::FunctionSpace,n::Integer)=$OP(S,Array(Float64,n))
+    @eval $OP(S::Space,n::Integer)=$OP(S,Array(Float64,n))
 end
 
-function plan_transform(S::FunctionSpace,vals)
+function plan_transform(S::Space,vals)
     csp=canonicalspace(S)
     if S==csp
         identity #TODO: why identity?
@@ -406,7 +406,7 @@ function plan_transform(S::FunctionSpace,vals)
     end
 end
 
-function plan_itransform(S::FunctionSpace,cfs)
+function plan_itransform(S::Space,cfs)
     csp=canonicalspace(S)
     if S==csp
         identity #TODO: why identity?
@@ -420,5 +420,5 @@ end
 # we sort spaces lexigraphically by default
 
 for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
-    @eval $OP(a::FunctionSpace,b::FunctionSpace)=$OP(string(a),string(b))
+    @eval $OP(a::Space,b::Space)=$OP(string(a),string(b))
 end

@@ -76,24 +76,24 @@ promotedomainspace(Z::ZeroOperator,sp::AnySpace)=Z
 promoterangespace(Z::ZeroOperator,sp::AnySpace)=Z
 promotedomainspace(Z::ZeroOperator,sp::UnsetSpace)=Z
 promoterangespace(Z::ZeroOperator,sp::UnsetSpace)=Z
-promotedomainspace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(sp,rangespace(Z))
-promoterangespace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(domainspace(Z),sp)
-promotedomainspace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(sp,rangespace(Z))
-promoterangespace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(domainspace(Z),sp)
+promotedomainspace(Z::ZeroOperator,sp::Space)=ZeroOperator(sp,rangespace(Z))
+promoterangespace(Z::ZeroOperator,sp::Space)=ZeroOperator(domainspace(Z),sp)
+promotedomainspace(Z::ZeroOperator,sp::Space)=ZeroOperator(sp,rangespace(Z))
+promoterangespace(Z::ZeroOperator,sp::Space)=ZeroOperator(domainspace(Z),sp)
 
 
-immutable ZeroFunctional{S<:FunctionSpace,T<:Number} <: Functional{T}
+immutable ZeroFunctional{S<:Space,T<:Number} <: Functional{T}
     domainspace::S
 end
-ZeroFunctional(sp::FunctionSpace)=ZeroFunctional{typeof(sp),Float64}(sp)
-ZeroFunctional{T<:Number}(::Type{T},sp::FunctionSpace)=ZeroFunctional{typeof(sp),T}(sp)
+ZeroFunctional(sp::Space)=ZeroFunctional{typeof(sp),Float64}(sp)
+ZeroFunctional{T<:Number}(::Type{T},sp::Space)=ZeroFunctional{typeof(sp),T}(sp)
 ZeroFunctional{T<:Number}(::Type{T})=ZeroFunctional(T,AnySpace())
 ZeroFunctional()=ZeroFunctional(AnySpace())
 
 Base.convert{BT<:Operator}(::Type{BT},Z::ZeroFunctional)=ZeroFunctional(eltype(BT),Z.domainspace)
 
 domainspace(Z::ZeroFunctional)=Z.domainspace
-promotedomainspace(Z::ZeroFunctional,sp::FunctionSpace)=ZeroFunctional(sp)
+promotedomainspace(Z::ZeroFunctional,sp::Space)=ZeroFunctional(sp)
 
 Base.getindex{S,T}(op::ZeroFunctional{S,T},k::Integer)=zero(T)
 Base.getindex{S,T}(op::ZeroFunctional{S,T},k::Range)=zeros(T,length(k))

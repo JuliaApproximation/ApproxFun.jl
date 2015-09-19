@@ -250,8 +250,8 @@ for OP in (:plot,:layer)
 end
 
 
-domainplot(f::Union(Fun,FunctionSpace),v...;kwds...)=plot(domain(f),v...;kwds...)
-domainlayer(f::Union(Fun,FunctionSpace))=layer(domain(f))
+domainplot(f::Union(Fun,Space),v...;kwds...)=plot(domain(f),v...;kwds...)
+domainlayer(f::Union(Fun,Space))=layer(domain(f))
 
 
 

@@ -37,7 +37,7 @@ Fun(f::ProductFun,sp::TensorSpace)=Fun(ProductFun(f,sp))
 Fun(f::LowRankFun)=Fun(ProductFun(f))
 
 
-Fun(f::MultivariateFun,sp::FunctionSpace)=Fun(Fun(f),sp)
+Fun(f::MultivariateFun,sp::Space)=Fun(Fun(f),sp)
 
 Fun(f,d1::Domain,d2::Domain)=Fun(f,d1*d2)
 Fun{T<:Number,V<:Number}(f,d1::Vector{T},d2::Vector{V})=Fun(f,convert(Domain,d1),convert(Domain,d2))

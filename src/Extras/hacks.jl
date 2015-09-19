@@ -49,7 +49,7 @@ end
 ## ConstatnOPerators can always be promoted
 promotedomainspace{T,CO<:ConstantOperator}(S::SpaceOperator{T,CO},sp::AnySpace)=S
 promotedomainspace{T,CO<:ConstantOperator}(S::SpaceOperator{T,CO},sp::UnsetSpace)=S
-promotedomainspace{T,CO<:ConstantOperator}(S::SpaceOperator{T,CO},sp::FunctionSpace)=SpaceOperator(S.op,sp,sp)
+promotedomainspace{T,CO<:ConstantOperator}(S::SpaceOperator{T,CO},sp::Space)=SpaceOperator(S.op,sp,sp)
 
 
 

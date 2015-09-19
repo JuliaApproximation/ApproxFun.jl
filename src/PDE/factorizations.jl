@@ -129,8 +129,8 @@ immutable PDEProductOperatorSchur{ST<:Number,
                                   FT<:Functional,
                                   DS<:AbstractProductSpace,
                                   RS<:AbstractProductSpace,
-                                  S<:FunctionSpace,
-                                  V<:FunctionSpace} <: AbstractPDEOperatorSchur
+                                  S<:Space,
+                                  V<:Space} <: AbstractPDEOperatorSchur
     Bx::Vector{Vector{FT}}
     Rdiags::Vector{SavedBandedOperator{ST}}
     domainspace::DS

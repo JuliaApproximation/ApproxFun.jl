@@ -257,7 +257,7 @@ Base.zero{O<:Functional}(::Type{O})=ZeroFunctional(eltype(O))
 Base.zero{O<:Operator}(::Type{O})=ZeroOperator(eltype(O))
 
 
-Base.eye(S::FunctionSpace)=SpaceOperator(ConstantOperator(1.0),S,S)
+Base.eye(S::Space)=SpaceOperator(ConstantOperator(1.0),S,S)
 Base.eye(S::Domain)=eye(Space(S))
 
 

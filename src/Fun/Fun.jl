@@ -2,7 +2,7 @@ export Fun,evaluate,values,points
 export coefficients,integrate,differentiate,domain,space
 
 include("Domain.jl")
-include("FunctionSpace.jl")
+include("Space.jl")
 
 ##  Constructors
 
@@ -13,10 +13,10 @@ type Fun{S,T}
     Fun(coeff::Vector{T},sp::S)=new(coeff,sp)
 end
 
-Fun(coeff::Vector,sp::FunctionSpace)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
-Fun{T<:Integer}(coeff::Vector{T},sp::FunctionSpace)=Fun(1.0coeff,sp)
-Fun(::Vector{None},sp::FunctionSpace)=Fun(Float64[],sp)
-function Fun(v::Vector{Any},sp::FunctionSpace)
+Fun(coeff::Vector,sp::Space)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
+Fun{T<:Integer}(coeff::Vector{T},sp::Space)=Fun(1.0coeff,sp)
+Fun(::Vector{None},sp::Space)=Fun(Float64[],sp)
+function Fun(v::Vector{Any},sp::Space)
     @assert isempty(v)
     Fun(Float64[],sp)
 end
@@ -24,7 +24,7 @@ end
 ##Coefficient routines
 #TODO: domainscompatible?
 
-function coefficients(f::Fun,msp::FunctionSpace)
+function coefficients(f::Fun,msp::Space)
     #zero can always be converted
     if length(f)==1 && f.coefficients[1]==0
         f.coefficients
@@ -32,9 +32,9 @@ function coefficients(f::Fun,msp::FunctionSpace)
         coefficients(f.coefficients,space(f),msp)
     end
 end
-coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(domain(f)))
+coefficients{T<:Space}(f::Fun,::Type{T})=coefficients(f,T(domain(f)))
 coefficients(f::Fun)=f.coefficients
-coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
+coefficients(c::Number,sp::Space)=Fun(c,sp).coefficients
 
 
 ##Convert routines
@@ -48,8 +48,8 @@ Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=IF
 
 Base.zero(::Type{Fun})=Fun(0.)
-Base.zero{T,S<:FunctionSpace}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
-Base.one{T,S<:FunctionSpace}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
+Base.zero{T,S<:Space}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
+Base.one{T,S<:Space}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
 for op in (:(Base.zeros),:(Base.ones))
     @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
 end
@@ -262,7 +262,7 @@ end
 
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op){T,D<:FunctionSpace{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
+    @eval ($op){T,D<:Space{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 
 Base.abs2{S,T<:Real}(f::Fun{S,T})=f.^2

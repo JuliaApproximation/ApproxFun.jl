@@ -248,7 +248,7 @@ hasconversion(A::JacobiWeight,B::JacobiWeight)=isapproxinteger(A.α-B.α) && isa
 
 
 # return the space that has banded Conversion to the other, or NoSpace
-conversion_rule{n,S<:FunctionSpace,IS<:IntervalSpace}(A::SliceSpace{n,1,S,RealBasis},B::JacobiWeight{IS})=error("Not implemented")
+conversion_rule{n,S<:Space,IS<:IntervalSpace}(A::SliceSpace{n,1,S,RealBasis},B::JacobiWeight{IS})=error("Not implemented")
 function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     if isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
         ct=conversion_type(A.space,B.space)

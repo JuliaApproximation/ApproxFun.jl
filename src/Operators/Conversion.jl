@@ -2,12 +2,12 @@ export Conversion
 
 abstract AbstractConversion{T}<:BandedOperator{T}
 
-immutable Conversion{S<:FunctionSpace,V<:FunctionSpace,T} <: AbstractConversion{T}
+immutable Conversion{S<:Space,V<:Space,T} <: AbstractConversion{T}
     domainspace::S
     rangespace::V
 end
-# Conversion{S<:PeriodicFunctionSpace,V<:PeriodicFunctionSpace}(A::S,B::V)=Conversion{S,V,Complex{Float64}}(A,B)
-# Conversion{S<:IntervalFunctionSpace,V<:IntervalFunctionSpace}(A::S,B::V)=Conversion{S,V,Float64}(A,B)
+# Conversion{S<:PeriodicSpace,V<:PeriodicSpace}(A::S,B::V)=Conversion{S,V,Complex{Float64}}(A,B)
+# Conversion{S<:IntervalSpace,V<:IntervalSpace}(A::S,B::V)=Conversion{S,V,Float64}(A,B)
 
 for TYP in (:Operator,:BandedOperator)
     @eval begin
@@ -27,7 +27,7 @@ rangespace(C::Conversion)=C.rangespace
 
 
 
-function defaultconversion(a::FunctionSpace,b::FunctionSpace)
+function defaultconversion(a::Space,b::Space)
     if a==b
         eye(a)
     elseif conversion_type(a,b)==NoSpace()
@@ -44,12 +44,12 @@ function defaultconversion(a::FunctionSpace,b::FunctionSpace)
     end
 end
 
-Conversion(a::FunctionSpace,b::FunctionSpace)=defaultconversion(a,b)
+Conversion(a::Space,b::Space)=defaultconversion(a,b)
 
 
 
 ## convert TO canonical
-Conversion(A::FunctionSpace)=Conversion(A,canonicalspace(A))
+Conversion(A::Space)=Conversion(A,canonicalspace(A))
 
 
 
@@ -64,7 +64,7 @@ end
 
 
 ConversionWrapper(B::BandedOperator)=ConversionWrapper{typeof(B),eltype(B)}(B)
-Conversion(A::FunctionSpace,B::FunctionSpace,C::FunctionSpace)=ConversionWrapper(TimesOperator(Conversion(B,C),Conversion(A,B)))
+Conversion(A::Space,B::Space,C::Space)=ConversionWrapper(TimesOperator(Conversion(B,C),Conversion(A,B)))
 
 # Base.convert{S,T}(::Type{ConversionWrapper{S,T}},D::ConversionWrapper)=ConversionWrapper{S,T}(convert(S,D.op))
 # Base.convert{CW<:ConversionWrapper}(::Type{CW},D::CW)=D
@@ -88,4 +88,4 @@ end
 
 
 #TODO: decide
-#promotedomainspace(P::Conversion,sp::FunctionSpace)=SpaceOperator(ConstantOperator(one(eltype(P))),sp,sp)
+#promotedomainspace(P::Conversion,sp::Space)=SpaceOperator(ConstantOperator(one(eltype(P))),sp,sp)

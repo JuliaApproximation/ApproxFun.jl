@@ -64,10 +64,10 @@ function ProductFun(f::Function,S::AbstractProductSpace,M::Integer,N::Integer;to
 end
 ProductFun(f::Function,S::TensorSpace) = ProductFun(LowRankFun(f,S))
 
-ProductFun(f,dx::FunctionSpace,dy::FunctionSpace)=ProductFun(f,TensorSpace(dx,dy))
+ProductFun(f,dx::Space,dy::Space)=ProductFun(f,TensorSpace(dx,dy))
 
 
-## Domains promoted to FunctionSpaces
+## Domains promoted to Spaces
 
 ProductFun(f::Function,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
 ProductFun(f,d::Domain)=ProductFun(f,Space(d))
@@ -96,7 +96,7 @@ end
 
 ## For specifying spaces by anonymous function
 
-ProductFun(f::Function,SF::Function,T::FunctionSpace,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
+ProductFun(f::Function,SF::Function,T::Space,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
 
 ## Conversion of a constant to a ProductFun
 
@@ -144,7 +144,7 @@ end
 
 coefficients(f::ProductFun)=funlist2coefficients(f.coefficients)
 
-function coefficients(f::ProductFun,ox::FunctionSpace,oy::FunctionSpace)
+function coefficients(f::ProductFun,ox::Space,oy::Space)
     T=eltype(f)
     m=size(f,1)
     B=Array(T,m,length(f.coefficients))
@@ -275,7 +275,7 @@ end
 .^(f::ProductFun,k::Integer)=Fun(transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k),space(f))
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op){S,V<:FunctionSpace{RealBasis},SS<:TensorSpace}(f::ProductFun{S,V,SS}) = ProductFun(map($op,f.coefficients),space(f))
+    @eval ($op){S,V<:Space{RealBasis},SS<:TensorSpace}(f::ProductFun{S,V,SS}) = ProductFun(map($op,f.coefficients),space(f))
 end
 
 #For complex bases
@@ -293,7 +293,7 @@ end
 
 ## ProductFun transform
 
-# function transform{ST<:FunctionSpace,N<:Number}(::Type{N},S::Vector{ST},T::FunctionSpace,V::Matrix)
+# function transform{ST<:Space,N<:Number}(::Type{N},S::Vector{ST},T::Space,V::Matrix)
 #     @assert length(S)==size(V,2)
 #     # We assume all S spaces have same domain/points
 #     C=Array(N,size(V)...)
@@ -305,8 +305,8 @@ end
 #     end
 #     C
 # end
-# transform{ST<:FunctionSpace,N<:Real}(S::Vector{ST},T::FunctionSpace{Float64},V::Matrix{N})=transform(Float64,S,T,V)
-# transform{ST<:FunctionSpace}(S::Vector{ST},T::FunctionSpace,V::Matrix)=transform(Complex{Float64},S,T,V)
+# transform{ST<:Space,N<:Real}(S::Vector{ST},T::Space{Float64},V::Matrix{N})=transform(Float64,S,T,V)
+# transform{ST<:Space}(S::Vector{ST},T::Space,V::Matrix)=transform(Complex{Float64},S,T,V)
 
 
 
