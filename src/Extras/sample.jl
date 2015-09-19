@@ -81,8 +81,11 @@ function chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64},plan::Clenshaw
     m=.5*(a+b)
 end
 
-for TYP in (:Vector,:Float64), SP in (:Chebyshev,:LineSpace)
-    @eval bisectioninv(cf::Fun{$SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
+for TYP in (:Vector,:Float64)
+    @eval begin
+        bisectioninv{SP<:Chebyshev}(cf::Fun{SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
+        bisectioninv{SP<:LineSpace}(cf::Fun{SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
+    end
 end
 
 
@@ -172,7 +175,7 @@ samplecdf(v::Vector)=chebbisectioninv(v,rand())
 
 sample{TS<:AbstractProductSpace}(f::Fun{TS},k::Integer)=sample(ProductFun(f),k)
 
-function sample(f::LowRankFun{Chebyshev,Chebyshev,TensorSpace{@compat(Tuple{Chebyshev,Chebyshev}),RealBasis,2},Float64},n::Integer)
+function sample{C<:Chebyshev}(f::LowRankFun{C,C,TensorSpace{@compat(Tuple{C,C}),RealBasis,2},Float64},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficients(f.B)
@@ -221,5 +224,3 @@ function sample{SS}(f::LowRankFun{LineSpace{SS},LineSpace{SS},TensorSpace{@compa
 
     [rx ry]
 end
-
-

@@ -5,7 +5,7 @@
 
 for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
     @eval begin
-        function $Func(f::Fun{JacobiWeight{Chebyshev}})
+        function $Func{C<:Chebyshev}(f::Fun{JacobiWeight{C}})
             tol=1e-10
             d,α,β,n=domain(f),f.space.α,f.space.β,length(f)
             g=Fun(f.coefficients,space(f).space)
@@ -347,7 +347,7 @@ end
 for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:length))
     @eval begin
 
-        function getindex{λ,T}(Σ::$Func{JacobiWeight{Ultraspherical{λ}},T},kr::Range)
+        function getindex{λ,D,T}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D}},T},kr::Range)
             dsp = domainspace(Σ)
             d = domain(Σ)
             @assert isa(d,Interval)
@@ -358,6 +358,6 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:le
             promote_type(T,typeof(C))[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
         end
 
-        datalength{λ}(Σ::$Func{JacobiWeight{Ultraspherical{λ}}})=1
+        datalength{λ,D}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D}}})=1
     end
 end

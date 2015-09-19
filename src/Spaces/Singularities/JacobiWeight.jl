@@ -166,7 +166,7 @@ end
 
 # O(min(m,n)) Ultraspherical inner product
 
-function innerproduct{λ,S,V}(::Type{Ultraspherical{λ}},u::Vector{S},v::Vector{V})
+function innerproduct{λ,D,S,V}(::Type{Ultraspherical{λ,D}},u::Vector{S},v::Vector{V})
     T,mn = promote_type(S,V),min(length(u),length(v))
     if mn > 1
         wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
@@ -184,7 +184,7 @@ function innerproduct{λ,S,V}(::Type{Ultraspherical{λ}},u::Vector{S},v::Vector{
     end
 end
 
-function innerproduct(::Type{Chebyshev},u::Vector,v::Vector)
+function innerproduct{C<:Chebyshev}(::Type{C},u::Vector,v::Vector)
     mn = min(length(u),length(v))
     if mn > 1
         return (2conj(u[1])*v[1]+dot(u[2:mn],v[2:mn]))*π/2
@@ -195,7 +195,7 @@ function innerproduct(::Type{Chebyshev},u::Vector,v::Vector)
     end
 end
 
-function innerproduct(::Type{Ultraspherical{1}},u::Vector,v::Vector)
+function innerproduct{D}(::Type{Ultraspherical{1,D}},u::Vector,v::Vector)
     mn = min(length(u),length(v))
     if m > 0
         return dot(u[1:mn],v[1:mn])*π/2
@@ -204,28 +204,28 @@ function innerproduct(::Type{Ultraspherical{1}},u::Vector,v::Vector)
     end
 end
 
-function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{Ultraspherical{λ}})
+function Base.dot{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D}}},g::Fun{Ultraspherical{λ,D}})
     @assert domain(f) == domain(g)
     if f.space.α == f.space.β == λ-0.5
-        return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ},f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
         return defaultdot(f,g)
     end
 end
 
-function Base.dot{λ}(f::Fun{Ultraspherical{λ}},g::Fun{JacobiWeight{Ultraspherical{λ}}})
+function Base.dot{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D}}})
     @assert domain(f) == domain(g)
     if g.space.α == g.space.β == λ-0.5
-        return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ},f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
         return defaultdot(f,g)
     end
 end
 
-function Base.dot{λ}(f::Fun{JacobiWeight{Ultraspherical{λ}}},g::Fun{JacobiWeight{Ultraspherical{λ}}})
+function Base.dot{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D}}},g::Fun{JacobiWeight{Ultraspherical{λ,D}}})
     @assert domain(f) == domain(g)
     if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
-        return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ},f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
         return defaultdot(f,g)
     end

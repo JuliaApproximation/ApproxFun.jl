@@ -19,8 +19,9 @@ eps2{T<:Integer}(::Type{T})=eps2(Float64)
 function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps2(eltype(A[end])),maxlength=1000000)
     A=promotedomainspace(A,choosedomainspace(A))
     if length(A)==3&&
-            isa(A[1],Evaluation{Chebyshev,Bool,Float64})&&
-            isa(A[2],Evaluation{Chebyshev,Bool,Float64})&&
+            isa(A[1],Evaluation)&&
+            isa(A[2],Evaluation)&&
+            isa(domainspace(A[1]),Chebyshev) &&
             !A[1].x && A[2].x &&
             length(bandrange(A[end]))≥25&&
             iseven(stride(A[end]))
@@ -157,4 +158,3 @@ linsolve(A::Operator,b::Array;kwds...)=linsolve([A],b;kwds...)
 \{T<:Operator}(A::Matrix{T},b::Union(Array,Number,Fun))=linsolve(A,b)
 \{T<:Operator}(A::Vector{T},b::Union(Array,Number,Fun))=linsolve(A,b)
 \(A::Operator,b)=linsolve(A,b)
-

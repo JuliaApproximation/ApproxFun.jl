@@ -3,8 +3,8 @@ immutable DiracSpace{T<:Space}<:RealUnivariateSpace{AnyDomain}
   points::Vector{Float64}
 end
 
-DiracSpace() = DiracSpace{Chebyshev}(Chebyshev(),[])
-DiracSpace(points) = DiracSpace{Chebyshev}(Chebyshev(),sort(points))
+DiracSpace() = DiracSpace(Chebyshev(),Float64[])
+DiracSpace(points) = DiracSpace(Chebyshev(),sort(points))
 
 #to be extended to include dirac points
 domain(DS::DiracSpace)=domain(DS.space)∪mapreduce(Point,union,DS.points)

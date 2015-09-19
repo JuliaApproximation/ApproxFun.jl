@@ -87,10 +87,11 @@ end
 function Conversion(L::Jacobi,M::Jacobi)
     @assert (isapprox(M.b,L.b)||M.b>=L.b) && (isapprox(M.a,L.a)||M.a>=L.a)
     dm=domain(M)
+    D=typeof(dm)
     if isapprox(M.a,L.a) && isapprox(M.b,L.b)
         SpaceOperator(IdentityOperator(),L,M)
     elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
-        Conversion{Jacobi,Jacobi,Float64}(L,M)
+        Conversion{Jacobi{D},Jacobi{D},Float64}(L,M)
     elseif M.b > L.b+1
         TimesOperator(Conversion(Jacobi(M.a,M.b-1,dm),M),Conversion(L,Jacobi(M.a,M.b-1,dm)))
     else  #if M.a >= L.a+1
@@ -148,11 +149,11 @@ function Conversion{m}(A::Ultraspherical{m},B::Jacobi)
     end
 end
 
-bandinds{m,J<:Jacobi}(C::Conversion{Ultraspherical{m},J})=0,0
-bandinds{m,J<:Jacobi}(C::Conversion{J,Ultraspherical{m}})=0,0
+bandinds{US<:Ultraspherical,J<:Jacobi}(C::Conversion{US,J})=0,0
+bandinds{US<:Ultraspherical,J<:Jacobi}(C::Conversion{J,US})=0,0
 
 
-function addentries!{J<:Jacobi}(C::Conversion{Chebyshev,J},A,kr::Range)
+function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{CC,J},A,kr::Range)
     S=rangespace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
@@ -163,7 +164,7 @@ function addentries!{J<:Jacobi}(C::Conversion{Chebyshev,J},A,kr::Range)
     A
 end
 
-function addentries!{J<:Jacobi}(C::Conversion{J,Chebyshev},A,kr::Range)
+function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{J,CC},A,kr::Range)
     S=domainspace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
 
@@ -175,11 +176,12 @@ function addentries!{J<:Jacobi}(C::Conversion{J,Chebyshev},A,kr::Range)
     A
 end
 
-function addentries!{m,J<:Jacobi}(C::Conversion{Ultraspherical{m},J},A,kr::Range)
+function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{US,J},A,kr::Range)
     S=rangespace(C)
+    m=order(US)
     @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
     jp=jacobip(0:kr[end],S.a,S.b,1.0)
-    um=Evaluation(Ultraspherical{m}(),1.)[1:kr[end]]
+    um=Evaluation(US(),1.)[1:kr[end]]
     for k=kr
         A[k,k]+=um[k]./jp[k]
     end
@@ -187,7 +189,8 @@ function addentries!{m,J<:Jacobi}(C::Conversion{Ultraspherical{m},J},A,kr::Range
     A
 end
 
-function addentries!{m,J<:Jacobi}(C::Conversion{J,Ultraspherical{m}},A,kr::Range)
+function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{J,US},A,kr::Range)
+    m=order(US)
     S=domainspace(C)
     @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
 
@@ -239,7 +242,7 @@ hasconversion(a::Ultraspherical,b::Jacobi)=hasconversion(Jacobi(a),b)
 # (1+x) or (1-x) by _decreasing_ the parameter.  Thus the
 
 
-function Multiplication(f::Fun{JacobiWeight{Chebyshev}},S::Jacobi)
+function Multiplication{C<:Chebyshev}(f::Fun{JacobiWeight{C}},S::Jacobi)
     # this implements (1+x)*P and (1-x)*P special case
     # see DLMF (18.9.6)
     if length(f)==1 && ((space(f).α==1 && space(f).β==0 && S.b >0) ||
@@ -253,7 +256,7 @@ function Multiplication(f::Fun{JacobiWeight{Chebyshev}},S::Jacobi)
     end
 end
 
-function rangespace{J<:Jacobi}(M::Multiplication{JacobiWeight{Chebyshev},J})
+function rangespace{J<:Jacobi,C<:Chebyshev}(M::Multiplication{JacobiWeight{C},J})
     S=domainspace(M)
     if space(M.f).α==1
         # multiply by (1+x)
@@ -266,9 +269,9 @@ function rangespace{J<:Jacobi}(M::Multiplication{JacobiWeight{Chebyshev},J})
     end
 end
 
-bandinds{J<:Jacobi}(::Multiplication{JacobiWeight{Chebyshev},J})=-1,0
+bandinds{J<:Jacobi,C<:Chebyshev}(::Multiplication{JacobiWeight{C},J})=-1,0
 
-function addentries!{J<:Jacobi}(M::Multiplication{JacobiWeight{Chebyshev},J},A,kr::Range)
+function addentries!{J<:Jacobi,C<:Chebyshev}(M::Multiplication{JacobiWeight{C},J},A,kr::Range)
     @assert length(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     if space(M.f).α==1

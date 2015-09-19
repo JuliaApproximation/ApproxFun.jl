@@ -1,7 +1,7 @@
 ## Root finding
 
 
-function complexroots(f::Fun{Chebyshev})
+function complexroots{C<:Chebyshev}(f::Fun{C})
     if length(f)==0 || (length(f)==1 && isapprox(f.coefficients[1],0))
         warn("Tried to take roots of a zero function.  Returning [].")
         Complex128[]
@@ -37,7 +37,7 @@ function roots{S,T}(f::Fun{S,T})
 end
 
 
-function roots( f::Fun{Chebyshev} )
+function roots{C<:Chebyshev}( f::Fun{C} )
 # FIND THE ROOTS OF AN IFUN.
 
     d = domain(f)

@@ -100,7 +100,7 @@ function ./{S,T}(c::Number,f::Fun{S,T})
     linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
 end
 
-function ./(c::Number,f::Fun{Chebyshev})
+function ./{C<:Chebyshev}(c::Number,f::Fun{C})
     fc = Fun(coefficients(f),Interval())
     r = roots(fc)
     x = Fun(identity)
@@ -173,7 +173,7 @@ function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
     end
 end
 
-function .^(f::Fun{Chebyshev},k::Float64)
+function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
     fc = setdomain(f,Interval()) #Project to interval
@@ -629,5 +629,3 @@ for OP in (:(Base.abs),:(Base.sign))
         $OP{S,B}(f::Fun{PiecewiseSpace{S,B,1}})=depiece(mapreduce($OP,vcat,pieces(f)))
     end
 end
-
-

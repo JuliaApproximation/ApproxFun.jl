@@ -17,4 +17,4 @@ include("Mapped/Mapped.jl")
 
 
 
-typealias MappedChebyshev Union(Chebyshev,MappedSpace{Chebyshev})
+typealias MappedChebyshev Union{Chebyshev{Interval{Float64}},MappedSpace{Chebyshev{Interval{Float64}}}}

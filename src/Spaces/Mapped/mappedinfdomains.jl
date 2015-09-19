@@ -1,4 +1,4 @@
-typealias LineSpace{T} MappedSpace{Chebyshev,Line{T},RealBasis}
+typealias LineSpace{T} MappedSpace{Chebyshev{Interval{Float64}},Line{T},RealBasis}
 typealias PeriodicLineSpace{T,TT} MappedSpace{Fourier,PeriodicLine{T,TT},RealBasis}
 typealias PeriodicLineDirichlet{T,TT} MappedSpace{LaurentDirichlet,PeriodicLine{T,TT},ComplexBasis}
 

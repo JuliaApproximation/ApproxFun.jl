@@ -69,14 +69,6 @@ end
 identity_fun(d::Interval)=Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],d)
 
 
-# function multiplybyx{T<:Number,D<:Interval}(f::IFun{T,UltrasphericalSpace{D}})
-#     a = domain(f).a
-#     b = domain(f).b
-#     g = IFun([0,1,.5*ones(length(f)-1)].*[0,f.coefficients]+[.5*f.coefficients[2:end],0,0],f.space) #Gives multiplybyx on unit interval
-#     (b-a)/2*g + (b+a)/2
-# end
-
-
 
 ## algebra
 
