@@ -65,7 +65,9 @@ function dirichlet_divide_singularity{T<:Number}(v::Vector{T})
 end
 
 
-divide_singularity(s::Bool,f::Fun)=Fun(dirichlet_divide_singularity(s,Fun(f,s?ChebyshevDirichlet{0,1}:ChebyshevDirichlet{1,0}).coefficients),Chebyshev(domain(f)))
+divide_singularity(s::Bool,f::Fun)=Fun(dirichlet_divide_singularity(s,Fun(f,s?ChebyshevDirichlet{0,1}:ChebyshevDirichlet{1,0}).coefficients),
+                                                                    Chebyshev(domain(f)))
+
 divide_singularity(f::Fun)=Fun(dirichlet_divide_singularity(Fun(f,ChebyshevDirichlet{1,1}).coefficients),Chebyshev(domain(f)))
 
 function divide_singularity(s::@compat(Tuple{Int,Int}),f::Fun)
@@ -80,5 +82,3 @@ function divide_singularity(s::@compat(Tuple{Int,Int}),f::Fun)
         f
     end
 end
-
-
