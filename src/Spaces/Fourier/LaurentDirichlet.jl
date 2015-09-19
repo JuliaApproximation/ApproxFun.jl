@@ -7,7 +7,7 @@
 
 
 
-immutable LaurentDirichlet <: UnivariateSpace{ComplexBasis}
+immutable LaurentDirichlet <: UnivariateSpace{ComplexBasis,AnyDomain}
     domain::PeriodicDomain
 end
 
@@ -48,4 +48,3 @@ addentries!(C::Conversion{CosDirichlet,CosSpace},A,kr::Range)=toeplitz_addentrie
 
 
 conversion_rule(b::CosDirichlet,a::CosSpace)=b
-

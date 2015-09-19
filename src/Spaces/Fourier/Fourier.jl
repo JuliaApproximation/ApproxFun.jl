@@ -16,7 +16,7 @@ end
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
-immutable Hardy{s} <: UnivariateSpace{ComplexBasis}
+immutable Hardy{s} <: UnivariateSpace{ComplexBasis,AnyDomain}
     domain::PeriodicDomain
     Hardy(d)=new(d)
     Hardy()=new(Circle())
@@ -235,7 +235,3 @@ include("specialfunctions.jl")
 include("FourierOperators.jl")
 include("LaurentOperators.jl")
 include("LaurentDirichlet.jl")
-
-
-
-

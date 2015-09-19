@@ -52,7 +52,7 @@ abstract Space{T,D,d}
 
 typealias RealSpace{d} Space{RealBasis,AnyDomain,d}
 typealias ComplexSpace{d} Space{ComplexBasis,AnyDomain,d}
-typealias UnivariateSpace{T} Space{T,AnyDomain,1}
+typealias UnivariateSpace{T,D} Space{T,D,1}
 typealias BivariateSpace{T} Space{T,AnyDomain,2}
 typealias RealUnivariateSpace RealSpace{1}
 

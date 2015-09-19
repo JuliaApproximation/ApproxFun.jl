@@ -10,7 +10,7 @@ immutable PiecewiseSpace{S,T,d} <: Space{T,AnyDomain,d}
     PiecewiseSpace(sp::Vector{S})=new(sp)
 end
 PiecewiseSpace(sp::Vector{Any})=PiecewiseSpace([sp...])
-PiecewiseSpace{S,T,d}(::Space{T,d},spaces::Vector{S})=PiecewiseSpace{S,T,d}(spaces)
+PiecewiseSpace(S::Space,spaces::Vector)=PiecewiseSpace{eltype(spaces),basistype(S),ndims(S)}(spaces)
 PiecewiseSpace(spaces)=PiecewiseSpace(first(spaces),spaces)
 PiecewiseSpace(a::Space,b::Space)=PiecewiseSpace([a,b])
 Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))

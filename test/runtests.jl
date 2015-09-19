@@ -25,6 +25,8 @@ end
 
 println("Multivariate tests")
 include("MultivariateTest.jl")
+println("PDE tests")
+include("PDETest.jl")
 println("Speed tests")
 include("SpeedTest.jl")
 include("SpeedODETest.jl")

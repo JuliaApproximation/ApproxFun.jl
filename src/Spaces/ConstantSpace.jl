@@ -1,4 +1,4 @@
-immutable ConstantSpace <: UnivariateSpace{RealBasis} end
+immutable ConstantSpace <: UnivariateSpace{RealBasis,AnyDomain} end
 
 ConstantSpace(::AnyDomain)=ConstantSpace()
 
