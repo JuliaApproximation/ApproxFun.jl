@@ -3,7 +3,7 @@ export ⊕
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-abstract DirectSumSpace{SV,T,d} <: Space{T,d}
+abstract DirectSumSpace{SV,T,d} <: Space{T,AnyDomain,d}
 
 
 for TYP in (:SumSpace,:TupleSpace)

@@ -1,6 +1,6 @@
 
 
-immutable ContinuousSpace <: Space{RealBasis,1}
+immutable ContinuousSpace <: Space{RealBasis,PiecewiseInterval,1}
     domain::PiecewiseInterval
 end
 
@@ -170,4 +170,3 @@ function addentries!{T}(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDi
     end
     A
 end
-

@@ -1,6 +1,6 @@
 ## Drop space drops the first n entries from a space
 
-immutable SliceSpace{index,stride,DS,T,dim}<: Space{T,dim}
+immutable SliceSpace{index,stride,DS,T,dim}<: Space{T,AnyDomain,dim}
     space::DS
 
     SliceSpace(sp::DS)=new(sp)
@@ -13,7 +13,7 @@ spacescompatible{n,st,DS,T,d}(S1::SliceSpace{n,st,DS,T,d},S2::SliceSpace{n,st,DS
 index{n}(::SliceSpace{n})=n
 Base.stride{n,st}(::SliceSpace{n,st})=st
 
-SliceSpace{T,d}(sp::Space{T,d},n::Integer,st::Integer)=SliceSpace{n,st,typeof(sp),T,d}(sp)
+SliceSpace(sp::Space,n::Integer,st::Integer)=SliceSpace{n,st,typeof(sp),basistype(sp),ndims(sp)}(sp)
 SliceSpace(sp,n::Integer)=SliceSpace(sp,n,1)
 
 domain(DS::SliceSpace)=domain(DS.space)

@@ -44,15 +44,16 @@ Base.eltype(::Type{AnyBasis})=Number
 
 
 # T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
+# D is the domain
 # d is the dimension
-abstract Space{T,d}
+abstract Space{T,D,d}
 
 
 
-typealias RealSpace{d} Space{RealBasis,d}
-typealias ComplexSpace{d} Space{ComplexBasis,d}
-typealias UnivariateSpace{T} Space{T,1}
-typealias BivariateSpace{T} Space{T,2}
+typealias RealSpace{d} Space{RealBasis,AnyDomain,d}
+typealias ComplexSpace{d} Space{ComplexBasis,AnyDomain,d}
+typealias UnivariateSpace{T} Space{T,AnyDomain,1}
+typealias BivariateSpace{T} Space{T,AnyDomain,2}
 typealias RealUnivariateSpace RealSpace{1}
 
 
@@ -60,19 +61,19 @@ typealias RealUnivariateSpace RealSpace{1}
 
 Base.eltype{S}(::Space{S})=eltype(S)
 basistype{T}(::Space{T})=T
-basistype{T,d}(::Type{Space{T,d}})=T
+basistype{T,D,d}(::Type{Space{T,D,d}})=T
 basistype{FT<:Space}(::Type{FT})=basistype(super(FT))
 
 
 coefficient_type{S}(::Space{S},T)=coefficient_type(S,T)
 
-Base.ndims{S,d}(::Space{S,d})=d
+Base.ndims{S,D,d}(::Space{S,D,d})=d
 
 
 Space{D<:Number}(d::Vector{D})=Space(convert(Domain,d))
 
 
-abstract AmbiguousSpace <: Space{RealBasis,1}
+abstract AmbiguousSpace <: Space{RealBasis,AnyDomain,1}
 
 domain(::AmbiguousSpace)=AnyDomain()
 

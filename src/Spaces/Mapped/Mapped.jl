@@ -4,7 +4,7 @@ export MappedSpace
 
 #Typing D as Domain was causing issues
 
-type MappedSpace{S<:Space,D,T} <: Space{T,1}
+type MappedSpace{S<:Space,D,T} <: Space{T,D,1}
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)

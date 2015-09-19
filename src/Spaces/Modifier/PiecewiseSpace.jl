@@ -4,7 +4,7 @@ export PiecewiseSpace,depiece,pieces
 # Piecewise Space
 ############
 
-immutable PiecewiseSpace{S,T,d} <: Space{T,d}
+immutable PiecewiseSpace{S,T,d} <: Space{T,AnyDomain,d}
     spaces::Vector{S}
     PiecewiseSpace(::AnyDomain)=new(S[S(AnyDomain())])
     PiecewiseSpace(sp::Vector{S})=new(sp)
@@ -201,4 +201,3 @@ function pieces{PS<:PiecewiseSpace}(U::ProductFun{PS})
     C=coefficients(U)
     [ProductFun(C[k:m:end,:],ps[k],sp2) for k=1:m]
 end
-

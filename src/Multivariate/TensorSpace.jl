@@ -2,7 +2,7 @@
 export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
-abstract AbstractProductSpace{SV,T,d} <: Space{T,d}
+abstract AbstractProductSpace{SV,T,d} <: Space{T,AnyDomain,d}
 
 if VERSION≥v"0.4.0-dev"
     spacetype{SV}(::AbstractProductSpace{SV},k)=SV.parameters[k]
@@ -32,10 +32,10 @@ coefficient_type(S::TensorSpace,T)=mapreduce(sp->coefficient_type(sp,T),promote_
 
 TensorSpace(A...)=TensorSpace(tuple(A...))
 TensorSpace(A::ProductDomain)=TensorSpace(tuple(map(Space,A.domains)...))
-⊗{SV1,T1,SV2,T2,d1,d2}(A::TensorSpace{SV1,T1,d1},B::TensorSpace{SV2,T2,d2})=TensorSpace(A.spaces...,B.spaces...)
-⊗{SV,T,V,d1,d2}(A::TensorSpace{SV,T,d1},B::Space{V,d2})=TensorSpace(A.spaces...,B)
-⊗{SV,T,V,d1,d2}(A::Space{V,d2},B::TensorSpace{SV,T,d1})=TensorSpace(A,B.spaces...)
-⊗{T,V,d1,d2}(A::Space{T,d1},B::Space{V,d2})=TensorSpace(A,B)
+⊗(A::TensorSpace,B::TensorSpace)=TensorSpace(A.spaces...,B.spaces...)
+⊗(A::TensorSpace,B::Space)=TensorSpace(A.spaces...,B)
+⊗(A::Space,B::TensorSpace)=TensorSpace(A,B.spaces...)
+⊗(A::Space,B::Space)=TensorSpace(A,B)
 
 domain(f::TensorSpace)=mapreduce(domain,*,f.spaces)
 Space(sp::ProductDomain)=TensorSpace(sp)

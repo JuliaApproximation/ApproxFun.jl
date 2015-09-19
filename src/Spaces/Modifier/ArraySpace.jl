@@ -2,7 +2,7 @@ export devec,demat,mat
 
 
 
-immutable ArraySpace{S,n,T,dim} <: Space{T,dim}
+immutable ArraySpace{S,n,T,dim} <: Space{T,AnyDomain,dim}
      space::S
      dimensions::@compat(Tuple{Vararg{Int}})
 #      # for AnyDomain() usage
@@ -11,9 +11,9 @@ immutable ArraySpace{S,n,T,dim} <: Space{T,dim}
 end
 
 
-ArraySpace{T,d}(S::Space{T,d},n::@compat(Tuple{Vararg{Int}}))=ArraySpace{typeof(S),length(n),T,d}(S,n)
+ArraySpace(S::Space,n::@compat(Tuple{Vararg{Int}}))=ArraySpace{typeof(S),length(n),basistype(S),ndims(S)}(S,n)
 ArraySpace(S::Space,n::Integer)=ArraySpace(S,(n,))
-ArraySpace{T,d}(S::Space{T,d},n,m)=ArraySpace{typeof(S),2,T,d}(S,(n,m))
+ArraySpace(S::Space,n,m)=ArraySpace{typeof(S),2,eltype(S),ndims(S)}(S,(n,m))
 ArraySpace(d::Domain,n...)=ArraySpace(Space(d),n...)
 Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
 Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
