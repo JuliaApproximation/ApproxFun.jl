@@ -158,12 +158,12 @@ end
 #Derivative(d::IntervalDomain)=Derivative(1,d)
 
 
-rangespace{λ,DD}(D::Derivative{Ultraspherical{λ,DD}})=Ultraspherical{λ+D.order}(domain(D))
-bandinds{S<:Ultraspherical}(D::Derivative{S})=0,D.order
-bandinds{S<:Ultraspherical}(D::Integral{S})=-D.order,0
-Base.stride{S<:Ultraspherical}(D::Derivative{S})=D.order
+rangespace{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}})=Ultraspherical{λ+D.order}(domain(D))
+bandinds{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}})=0,D.order
+bandinds{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}})=-D.order,0
+Base.stride{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}})=D.order
 
-function addentries!{λ,DD}(D::Derivative{Ultraspherical{λ,DD}},A,kr::Range)
+function addentries!{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}},A,kr::Range)
     m=D.order
     d=domain(D)
 
@@ -187,7 +187,7 @@ end
 
 ## Integral
 
-function linesum{S<:Ultraspherical}(f::Fun{S})
+function linesum{λ,DD<:Interval}(f::Fun{Ultraspherical{λ,DD}})
     d=domain(f)
     @assert isa(d,Interval)
     sum(Fun(f.coefficients,S()))*abs(d.b-d.a)/2
@@ -196,12 +196,12 @@ end
 
 
 # TODO: include in addentries! to speed up
-Integral(sp::Chebyshev,m::Integer)=IntegralWrapper(
+Integral{DD<:Interval}(sp::Chebyshev{DD},m::Integer)=IntegralWrapper(
     TimesOperator([Integral(Ultraspherical{m}(domain(sp)),m),Conversion(sp,Ultraspherical{m}(domain(sp)))]),m)
 
-rangespace{λ,DD}(D::Integral{Ultraspherical{λ,DD}})=Ultraspherical{λ-D.order}(domain(D))
+rangespace{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}})=Ultraspherical{λ-D.order}(domain(D))
 
-function addentries!{λ,DD}(D::Integral{Ultraspherical{λ,DD}},A,kr::Range)
+function addentries!{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}},A,kr::Range)
     m=D.order
     d=domain(D)
     @assert m<=λ
