@@ -72,5 +72,5 @@ function transform(S::Jacobi,vals,plan::@compat(Tuple{Vector,Vector}))
 end
 itransform(S::Jacobi,cfs,plan::Vector) = jacobip(0:length(cfs)-1,S.a,S.b,tocanonical(S,plan))*cfs
 
-evaluate(f::Fun{Jacobi},x::Number)=length(f)==0?zero(x):dot(jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x)),f.coefficients)
-evaluate(f::Fun{Jacobi},x::Vector)=jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x))*f.coefficients
+evaluate{J<:Jacobi}(f::Fun{J},x::Number)=length(f)==0?zero(x):dot(jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x)),f.coefficients)
+evaluate{J<:Jacobi}(f::Fun{J},x::Vector)=jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x))*f.coefficients

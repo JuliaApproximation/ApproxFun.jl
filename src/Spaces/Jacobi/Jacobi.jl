@@ -1,13 +1,15 @@
 export Jacobi,Legendre
 
 #TODO Type
-immutable Jacobi <: PolynomialSpace{Interval{Float64}}
+immutable Jacobi{D<:Domain} <: PolynomialSpace{D}
     a::Float64
     b::Float64
-    domain::Interval
+    domain::D
 end
 Legendre(domain)=Jacobi(0.,0.,domain)
 Legendre()=Legendre(Interval())
+Jacobi(a,b,d::Domain)=Jacobi{typeof(d)}(a,b,d)
+Jacobi(a,b,d)=Jacobi(a,b,Domain(d))
 Jacobi(a,b)=Jacobi(a,b,Interval())
 Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
 
@@ -119,7 +121,7 @@ function innerproduct{S,V}(sp::Jacobi,u::Vector{S},v::Vector{V})
     end
 end
 
-function Base.dot(f::Fun{Jacobi},g::Fun{Jacobi})
+function Base.dot{J<:Jacobi}(f::Fun{J},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.a == g.space.a == 0. && f.space.b == g.space.b == 0.
         return complexlength(domain(f))/2*innerproduct(g.space,f.coefficients,g.coefficients)
@@ -128,7 +130,7 @@ function Base.dot(f::Fun{Jacobi},g::Fun{Jacobi})
     end
 end
 
-function Base.dot(f::Fun{JacobiWeight{Jacobi}},g::Fun{Jacobi})
+function Base.dot{J<:Jacobi}(f::Fun{JacobiWeight{J}},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return complexlength(domain(f))/2*innerproduct(g.space,f.coefficients,g.coefficients)
@@ -137,7 +139,7 @@ function Base.dot(f::Fun{JacobiWeight{Jacobi}},g::Fun{Jacobi})
     end
 end
 
-function Base.dot(f::Fun{Jacobi},g::Fun{JacobiWeight{Jacobi}})
+function Base.dot{J<:Jacobi}(f::Fun{J},g::Fun{JacobiWeight{J}})
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return complexlength(domain(f))/2*innerproduct(f.space,f.coefficients,g.coefficients)
@@ -146,7 +148,7 @@ function Base.dot(f::Fun{Jacobi},g::Fun{JacobiWeight{Jacobi}})
     end
 end
 
-function Base.dot(f::Fun{JacobiWeight{Jacobi}},g::Fun{JacobiWeight{Jacobi}})
+function Base.dot{J<:Jacobi}(f::Fun{JacobiWeight{J}},g::Fun{JacobiWeight{J}})
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return complexlength(domain(f))/2*innerproduct(f.space.space,f.coefficients,g.coefficients)

@@ -1,6 +1,6 @@
 ## Evaluation
 
-function Base.getindex(op::Evaluation{Jacobi,Bool},kr::Range)
+function Base.getindex{J<:Jacobi}(op::Evaluation{J,Bool},kr::Range)
     @assert op.order <= 2
     sp=op.space
     a=sp.a;b=sp.b
@@ -26,7 +26,7 @@ function Base.getindex(op::Evaluation{Jacobi,Bool},kr::Range)
         Float64[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
-function Base.getindex(op::Evaluation{Jacobi,Float64},kr::Range)
+function Base.getindex{J<:Jacobi}(op::Evaluation{J,Float64},kr::Range)
     @assert op.order == 0
     jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
 end
@@ -38,10 +38,10 @@ Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Int,eltype(domain(J))}(J
 
 
 
-rangespace(D::Derivative{Jacobi})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
-bandinds(D::Derivative{Jacobi})=0,D.order
+rangespace{J<:Jacobi}(D::Derivative{J})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
+bandinds{J<:Jacobi}(D::Derivative{J})=0,D.order
 
-function addentries!(T::Derivative{Jacobi},A,kr::Range)
+function addentries!{J<:Jacobi}(T::Derivative{J},A,kr::Range)
     d=domain(T)
     for k=kr
         A[k,k+1]+=(k+1+T.space.a+T.space.b)./(d.b-d.a)
@@ -67,10 +67,10 @@ function Integral(J::Jacobi,k::Integer)
 end
 
 
-rangespace(D::Integral{Jacobi})=Jacobi(D.space.a-D.order,D.space.b-D.order,domain(D))
-bandinds(D::Integral{Jacobi})=-D.order,0
+rangespace{J<:Jacobi}(D::Integral{J})=Jacobi(D.space.a-D.order,D.space.b-D.order,domain(D))
+bandinds{J<:Jacobi}(D::Integral{J})=-D.order,0
 
-function addentries!(T::Integral{Jacobi},A,kr::Range)
+function addentries!{J<:Jacobi}(T::Integral{J},A,kr::Range)
     @assert T.order==1
     d=domain(T)
     for k=intersect(2:kr[end],kr)
@@ -98,11 +98,11 @@ function Conversion(L::Jacobi,M::Jacobi)
     end
 end
 
-bandinds(C::Conversion{Jacobi,Jacobi})=(0,1)
+bandinds{J<:Jacobi}(C::Conversion{J,J})=(0,1)
 
 
 
-function getdiagonalentry(C::Conversion{Jacobi,Jacobi},k,j)
+function getdiagonalentry{J<:Jacobi}(C::Conversion{J,J},k,j)
     L=C.domainspace
     if L.b+1==C.rangespace.b
         if j==0
@@ -148,11 +148,11 @@ function Conversion{m}(A::Ultraspherical{m},B::Jacobi)
     end
 end
 
-bandinds{m}(C::Conversion{Ultraspherical{m},Jacobi})=0,0
-bandinds{m}(C::Conversion{Jacobi,Ultraspherical{m}})=0,0
+bandinds{m,J<:Jacobi}(C::Conversion{Ultraspherical{m},J})=0,0
+bandinds{m,J<:Jacobi}(C::Conversion{J,Ultraspherical{m}})=0,0
 
 
-function addentries!(C::Conversion{Chebyshev,Jacobi},A,kr::Range)
+function addentries!{J<:Jacobi}(C::Conversion{Chebyshev,J},A,kr::Range)
     S=rangespace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
@@ -163,7 +163,7 @@ function addentries!(C::Conversion{Chebyshev,Jacobi},A,kr::Range)
     A
 end
 
-function addentries!(C::Conversion{Jacobi,Chebyshev},A,kr::Range)
+function addentries!{J<:Jacobi}(C::Conversion{J,Chebyshev},A,kr::Range)
     S=domainspace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
 
@@ -175,7 +175,7 @@ function addentries!(C::Conversion{Jacobi,Chebyshev},A,kr::Range)
     A
 end
 
-function addentries!{m}(C::Conversion{Ultraspherical{m},Jacobi},A,kr::Range)
+function addentries!{m,J<:Jacobi}(C::Conversion{Ultraspherical{m},J},A,kr::Range)
     S=rangespace(C)
     @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
     jp=jacobip(0:kr[end],S.a,S.b,1.0)
@@ -187,7 +187,7 @@ function addentries!{m}(C::Conversion{Ultraspherical{m},Jacobi},A,kr::Range)
     A
 end
 
-function addentries!{m}(C::Conversion{Jacobi,Ultraspherical{m}},A,kr::Range)
+function addentries!{m,J<:Jacobi}(C::Conversion{J,Ultraspherical{m}},A,kr::Range)
     S=domainspace(C)
     @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
 
@@ -253,7 +253,7 @@ function Multiplication(f::Fun{JacobiWeight{Chebyshev}},S::Jacobi)
     end
 end
 
-function rangespace(M::Multiplication{JacobiWeight{Chebyshev},Jacobi})
+function rangespace{J<:Jacobi}(M::Multiplication{JacobiWeight{Chebyshev},J})
     S=domainspace(M)
     if space(M.f).α==1
         # multiply by (1+x)
@@ -266,9 +266,9 @@ function rangespace(M::Multiplication{JacobiWeight{Chebyshev},Jacobi})
     end
 end
 
-bandinds(::Multiplication{JacobiWeight{Chebyshev},Jacobi})=-1,0
+bandinds{J<:Jacobi}(::Multiplication{JacobiWeight{Chebyshev},J})=-1,0
 
-function addentries!(M::Multiplication{JacobiWeight{Chebyshev},Jacobi},A,kr::Range)
+function addentries!{J<:Jacobi}(M::Multiplication{JacobiWeight{Chebyshev},J},A,kr::Range)
     @assert length(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     if space(M.f).α==1
@@ -302,7 +302,7 @@ end
 
 
 #TODO: general integer decrements
-function Conversion(A::JacobiWeight{Jacobi},B::Jacobi)
+function Conversion{J<:Jacobi}(A::JacobiWeight{J},B::Jacobi)
     if A.α==1.0 && A.β==0.0
         M=Multiplication(Fun([1.],JacobiWeight(1.,0.,domain(A))),A.space)        # multply by (1+x)
         S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
@@ -316,7 +316,7 @@ function Conversion(A::JacobiWeight{Jacobi},B::Jacobi)
     end
 end
 
-function maxspace_rule(A::JacobiWeight{Jacobi},B::Jacobi)
+function maxspace_rule{J<:Jacobi}(A::JacobiWeight{J},B::Jacobi)
     if A.α==1.0 && A.β==0.0 && A.space.b>0
         maxspace(Jacobi(A.space.a,A.space.b-1),B)
     elseif A.α==0.0 && A.β==1.0 && A.space.a>0
