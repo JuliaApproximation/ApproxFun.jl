@@ -2,18 +2,21 @@ export devec,demat,mat
 
 
 
-immutable ArraySpace{S,n,T,dim} <: Space{T,AnyDomain,dim}
+immutable ArraySpace{S,n,T,DD,dim} <: Space{T,DD,dim}
      space::S
-     dimensions::@compat(Tuple{Vararg{Int}})
+     dimensions::Tuple{Vararg{Int}}
 #      # for AnyDomain() usage
     ArraySpace(sp::S,dims)=new(sp,dims)
     ArraySpace(d::Domain,dims)=new(S(d),dims)
 end
 
+typealias VectorSpace{S,T,DD,dim} ArraySpace{S,1,T,DD,dim}
+typealias MatrixSpace{S,T,DD,dim} ArraySpace{S,2,T,DD,dim}
 
-ArraySpace(S::Space,n::@compat(Tuple{Vararg{Int}}))=ArraySpace{typeof(S),length(n),basistype(S),ndims(S)}(S,n)
+
+ArraySpace(S::Space,n::Tuple{Vararg{Int}})=ArraySpace{typeof(S),length(n),basistype(S),domaintype(S),ndims(S)}(S,n)
 ArraySpace(S::Space,n::Integer)=ArraySpace(S,(n,))
-ArraySpace(S::Space,n,m)=ArraySpace{typeof(S),2,eltype(S),ndims(S)}(S,(n,m))
+ArraySpace(S::Space,n,m)=ArraySpace{typeof(S),2,eltype(S),domaintype(S),ndims(S)}(S,(n,m))
 ArraySpace(d::Domain,n...)=ArraySpace(Space(d),n...)
 Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
 Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
@@ -47,7 +50,7 @@ end
 transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}})=transform(vec(AS),map(vec,vals))
 
 Base.vec(AS::ArraySpace)=ArraySpace(AS.space,length(AS))
-function Base.vec{S<:Space,V,T,d}(f::Fun{ArraySpace{S,1,V,d},T})
+function Base.vec{S<:Space,V,T,DD,d}(f::Fun{VectorSpace{S,V,DD,d},T})
     n=length(space(f))
     Fun{S,T}[Fun(f.coefficients[j:n:end],space(f).space) for j=1:n]
 end
@@ -56,10 +59,10 @@ Base.vec{AS<:ArraySpace,T}(f::Fun{AS,T})=vec(Fun(f.coefficients,vec(space(f))))
 mat{AS<:ArraySpace,T}(f::Fun{AS,T})=reshape(vec(f),size(space(f))...)
 
 # mat(f,1) vectorizes columnwise
-function mat{S,V,T,d}(f::Fun{ArraySpace{S,2,V,d},T},j::Integer)
+function mat{S,V,T,DD,d}(f::Fun{MatrixSpace{S,V,DD,d},T},j::Integer)
     @assert j==1
     m=mat(f)
-    r=Array(Fun{ArraySpace{S,1,V,d},T},1,size(m,2))
+    r=Array(Fun{VectorSpace{S,V,DD,d},T},1,size(m,2))
     for k=1:size(m,2)
         r[1,k]=devec(m[:,k])
     end
@@ -95,7 +98,7 @@ end
 demat(v::Vector{Any})=devec(v)
 
 
-function demat{S,T,V}(A::Array{Fun{ArraySpace{S,1,T},V},2})
+function demat{S,T,V,DD,d}(A::Array{Fun{VectorSpace{S,T,DD,d},V},2})
     @assert size(A,1)==1
 
     M=Array(Fun{S,V},length(space(A[1])),size(A,2))
@@ -124,11 +127,11 @@ Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...)=demat(diff(mat(f),n...))
 
 ## conversion
 
-function coefficients{S,V,T}(f::Vector{T},a::ArraySpace{S,1},b::ArraySpace{V,1})
+function coefficients(f::Vector,a::VectorSpace,b::VectorSpace)
     n=length(a)
     @assert n==length(b)
     A=a.space;B=b.space
-    ret=Array(T,length(f))
+    ret=Array(eltype(f),length(f))
     for k=1:n
         ret[k:n:end]=coefficients(f[k:n:end],A,B)
     end
@@ -153,7 +156,7 @@ Fun{T<:Number}(M::Array{T,2},sp::Space)=devec([Fun(M[:,k],sp) for k=1:size(M,2)]
 
 # Automatically change to ArraySpace
 # A is interpreted as coefficients
-function Fun{T<:Number,S}(A::Array{T,2},sp::ArraySpace{S,1})
+function Fun{T<:Number}(A::Array{T,2},sp::VectorSpace)
     n=length(sp)
     m=size(A,2)
 
@@ -216,7 +219,7 @@ end
 
 ## linsolve
 # special implementation to solve column by column
-function linsolve{S,T,Q}(A::BandedOperator,b::Fun{ArraySpace{S,2,T,1},Q};kwds...)
+function linsolve{S,T,DD,Q}(A::BandedOperator,b::Fun{MatrixSpace{S,T,DD,1},Q};kwds...)
     rs=rangespace(A)
     if isa(rs,ArraySpace) && size(rs)==size(space(b))
         linsolve(A,[b];kwds...)
@@ -231,7 +234,7 @@ end
 ## ConstantVectorSpace
 
 
-typealias ConstantVectorSpace ArraySpace{ConstantSpace,1,RealBasis,1}
+typealias ConstantVectorSpace VectorSpace{ConstantSpace,RealBasis,AnyDomain,1}
 
 
 function Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantVectorSpace,V}),TT,DD,d},T},k)

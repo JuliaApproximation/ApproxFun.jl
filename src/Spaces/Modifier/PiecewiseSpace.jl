@@ -154,7 +154,7 @@ Base.sum{V<:PiecewiseSpace,T}(f::Fun{V,T})=mapreduce(sum,+,pieces(f))
 #  it by a piecewise fun, so this allows conversion.
 
 
-function coefficients{AS}(f::Vector,a::ArraySpace{AS,1},b::PiecewiseSpace)
+function coefficients(f::Vector,a::VectorSpace,b::PiecewiseSpace)
     A=a.space
     n=length(a)
     @assert n==length(b.spaces)

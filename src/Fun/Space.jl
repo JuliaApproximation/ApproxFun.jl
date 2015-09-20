@@ -64,6 +64,9 @@ basistype{T}(::Space{T})=T
 basistype{T,D,d}(::Type{Space{T,D,d}})=T
 basistype{FT<:Space}(::Type{FT})=basistype(super(FT))
 
+domaintype{T,D}(::Space{T,D})=D
+domaintype{T,D,d}(::Type{Space{T,D,d}})=D
+domaintype{FT<:Space}(::Type{FT})=domaintype(super(FT))
 
 coefficient_type{S}(::Space{S},T)=coefficient_type(S,T)
 
