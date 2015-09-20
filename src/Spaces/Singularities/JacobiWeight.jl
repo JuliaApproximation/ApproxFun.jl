@@ -103,8 +103,10 @@ function coefficients(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
 end
 coefficients{S,n,st}(f::Vector,sp::JacobiWeight,S2::SliceSpace{n,st,S,RealBasis})=error("Implement")
 coefficients{S,n,st}(f::Vector,S2::SliceSpace{n,st,S,RealBasis},sp::JacobiWeight)=error("Implement")
-coefficients{T,D<:Interval}(f::Vector,sp::JacobiWeight,S2::Space{T,D})=coefficients(f,sp,JacobiWeight(0,0,S2))
-coefficients{T,D<:Interval}(f::Vector,S2::Space{T,D},sp::JacobiWeight)=coefficients(f,JacobiWeight(0,0,S2),sp)
+#TODO: it could be possible that we want to JacobiWeight a SumSpace....
+coefficients{SV,T,D<:Interval}(f::Vector,sp::JacobiWeight,S2::SumSpace{SV,T,D,1})=sumspacecoefficients(f,sp,S2)
+coefficients{T,D<:Interval}(f::Vector,sp::JacobiWeight,S2::Space{T,D,1})=coefficients(f,sp,JacobiWeight(0,0,S2))
+coefficients{T,D<:Interval}(f::Vector,S2::Space{T,D,1},sp::JacobiWeight)=coefficients(f,JacobiWeight(0,0,S2),sp)
 
 increase_jacobi_parameter(f)=Fun(f,JacobiWeight(f.space.α+1,f.space.β+1,space(f).space))
 increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeight(f.space.α+1,f.space.β,space(f).space)):Fun(f,JacobiWeight(f.space.α,f.space.β+1,space(f).space))

@@ -74,7 +74,8 @@ end
 
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval begin
-        function coefficients(cfsin::Vector,A::Space,B::$TYP)
+        # we need to be able to call this to avoid confusion
+        function sumspacecoefficients(cfsin::Vector,A::Space,B::$TYP)
             m=length(B.spaces)
             #TODO: What if we can convert?  FOr example, A could be Ultraspherical{1}
             # and B could contain Chebyshev
@@ -89,5 +90,6 @@ for TYP in (:SumSpace,:PiecewiseSpace)
 
             defaultcoefficients(cfsin,A,B)
         end
+        coefficients(cfsin::Vector,A::Space,B::$TYP)=sumspacecoefficients(cfsin,A,B)
     end
 end

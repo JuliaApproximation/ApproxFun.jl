@@ -234,7 +234,7 @@ end
 typealias ConstantVectorSpace ArraySpace{ConstantSpace,1,RealBasis,1}
 
 
-function Base.vec{V,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantVectorSpace,V}),TT,d},T},k)
+function Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantVectorSpace,V}),TT,DD,d},T},k)
     m=length(space(f)[1])
     if k≤m
         Fun(f.coefficients[k],ConstantSpace())
@@ -244,4 +244,4 @@ function Base.vec{V,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantVectorSpace,V}
 end
 
 
-Base.vec{V,TT,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantVectorSpace,V}),TT,d},T})=Any[vec(f,k) for k=1:length(space(f)[1])+1]
+Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{@compat(Tuple{ConstantVectorSpace,V}),TT,DD,d},T})=Any[vec(f,k) for k=1:length(space(f)[1])+1]

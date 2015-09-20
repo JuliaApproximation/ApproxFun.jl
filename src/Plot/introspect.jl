@@ -52,14 +52,14 @@ texname{T}(A::ArraySpace{T,2})="["*string(size(A,1))*"\$\\times\$"*string(size(A
 texname(J::JacobiWeight)="\$(1+x)\^{"*string(J.α)*"}(1-x)\^{"*string(J.β)*"}\$"
 texname(M::MappedSpace)=texname(M.domain)
 
-treecount(S::Union(SumSpace,PiecewiseSpace))=1+mapreduce(treecount,+,S.spaces)
+treecount(S::Union(DirectSumSpace,PiecewiseSpace))=1+mapreduce(treecount,+,S.spaces)
 treecount(S::Union(ArraySpace,JacobiWeight,MappedSpace))=1+treecount(S.space)
 treecount(::Space)=1
 
 
 add_edges!(FS::Space,nd,M,labels)=(labels[nd]=string(nd)*":"*texname(FS))
 
-for (OP) in (:SumSpace,:PiecewiseSpace)
+for (OP) in (:DirectSumSpace,:PiecewiseSpace)
     @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*texname(A),A.spaces,nd,M,labels)
 end
 

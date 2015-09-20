@@ -3,26 +3,27 @@ export ⊕
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-abstract DirectSumSpace{SV,T,d} <: Space{T,AnyDomain,d}
+abstract DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d}
+
+immutable SumSpace{SV,T,DD,d} <: DirectSumSpace{SV,T,DD,d}
+    spaces::SV
+    SumSpace(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
+    SumSpace(sp::Tuple)=new(sp)
+end
+
+SumSpace(sp::Tuple)=SumSpace{typeof(sp),mapreduce(basistype,promote_type,sp),typeof(domain(first(sp))),ndims(first(sp))}(sp)
+
+immutable TupleSpace{SV,T,d} <: DirectSumSpace{SV,T,AnyDomain,d}
+    spaces::SV
+    TupleSpace(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
+    TupleSpace(sp::Tuple)=new(sp)
+end
+
+TupleSpace(sp::Tuple)=TupleSpace{typeof(sp),mapreduce(basistype,promote_type,sp),ndims(first(sp))}(sp)
 
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval begin
-        if VERSION≥v"0.4.0-dev"
-            immutable $TYP{SV,T,d} <: DirectSumSpace{SV,T,d}
-                spaces::SV
-                $TYP(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
-                $TYP(sp::Tuple)=new(sp)
-            end
-        else
-            immutable $TYP{SV,T,d} <: DirectSumSpace{SV,T,d}
-                spaces::SV
-                $TYP(dom::Domain)=new(map(typ->typ(dom),SV))
-                $TYP(sp::Tuple)=new(sp)
-            end
-        end
-
-        $TYP(sp::Tuple)=$TYP{typeof(sp),mapreduce(basistype,promote_type,sp),ndims(first(sp))}(sp)
         $TYP(A::$TYP,B::$TYP)=$TYP(tuple(A.spaces...,B.spaces...))
 
         $TYP(A::Space,B::$TYP)=$TYP(tuple(A,B.spaces...))
@@ -145,8 +146,8 @@ itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
 ## SumSpace{ConstantSpace}
 # this space is special
 
-union_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::ConstantSpace)=SS
-function union_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::SumSpace)
+union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},W::ConstantSpace)=SS
+function union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},W::SumSpace)
     a=length(SS.spaces)==2?SS.spaces[2]:$TYP(SS.spaces[2:end])
     if isa(W.spaces[1],ConstantSpace)
         b=length(W.spaces)==2?W.spaces[2]:$TYP(W.spaces[2:end])
@@ -155,7 +156,7 @@ function union_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},W::SumSpace
         $TYP(SS.spaces[1],union(SS.spaces[2],W))
     end
 end
-union_rule{V}(SS::SumSpace{@compat(Tuple{ConstantSpace,V})},
+union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},
                    W::Space)=SumSpace(SS.spaces[1],union(SS.spaces[2],W))
 
 for TYP in (:SumSpace,:TupleSpace)
