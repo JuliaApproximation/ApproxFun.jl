@@ -17,14 +17,14 @@ spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet)=domainscompatible(a,b)
 
 canonicalspace(S::LaurentDirichlet)=Laurent(domain(S))
 
-bandinds(::Conversion{LaurentDirichlet,Laurent})=0,2
-function addentries!(C::Conversion{LaurentDirichlet,Laurent},A,kr::Range)
+bandinds{DD}(::Conversion{LaurentDirichlet,Laurent{DD}})=0,2
+function addentries!{DD}(C::Conversion{LaurentDirichlet,Laurent{DD}},A,kr::Range)
     A[1,2]+=1
     toeplitz_addentries!([],[1.,0.,1.],A,kr)
 end
 
 
-conversion_rule(b::LaurentDirichlet,a::Laurent)=b
+conversion_rule{DD}(b::LaurentDirichlet,a::Laurent{DD})=b
 
 
 ##

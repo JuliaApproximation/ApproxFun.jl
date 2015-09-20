@@ -3,10 +3,10 @@
 ## Converison
 
 #ensure that COnversion is called
-coefficients{D}(cfs::Vector,A::Fourier{D},B::Laurent)=Conversion(A,B)*cfs
-coefficients{D}(cfs::Vector,A::Laurent,B::Fourier{D})=Conversion(A,B)*cfs
+coefficients{DD}(cfs::Vector,A::Fourier{DD},B::Laurent{DD})=Conversion(A,B)*cfs
+coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD})=Conversion(A,B)*cfs
 
-function addentries!{D}(C::Conversion{Laurent,Fourier{D}},A,kr::Range)
+function addentries!{DD}(C::Conversion{Laurent{DD},Fourier{DD}},A,kr::Range)
     for k=kr
         if k==1
             A[k,k]+=1.
@@ -20,7 +20,7 @@ function addentries!{D}(C::Conversion{Laurent,Fourier{D}},A,kr::Range)
     end
     A
 end
-function addentries!{D}(C::Conversion{Fourier{D},Laurent},A,kr::Range)
+function addentries!{DD}(C::Conversion{Fourier{DD},Laurent{DD}},A,kr::Range)
     for k=kr
         if k==1
             A[k,k]+=1.
@@ -35,10 +35,10 @@ function addentries!{D}(C::Conversion{Fourier{D},Laurent},A,kr::Range)
     A
 end
 
-bandinds{D}(::Conversion{Laurent,Fourier{D}})=-1,1
-bandinds{D}(::Conversion{Fourier{D},Laurent})=-1,1
+bandinds{DD}(::Conversion{Laurent{DD},Fourier{DD}})=-1,1
+bandinds{DD}(::Conversion{Fourier{DD},Laurent{DD}})=-1,1
 
-function conversion_rule{D}(A::Laurent,B::Fourier{D})
+function conversion_rule{DD}(A::Laurent{DD},B::Fourier{DD})
     @assert domainscompatible(A,B)
     B
 end

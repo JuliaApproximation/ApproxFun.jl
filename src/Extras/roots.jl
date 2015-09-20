@@ -316,13 +316,13 @@ else
 end
 
 complexroots(neg::Vector,pos::Vector)=complexroots([flipdim(chop(neg,10eps()),1);pos])
-complexroots(f::Fun{Laurent})=mappoint(Circle(),domain(f),complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
-complexroots(f::Fun{Taylor})=mappoint(Circle(),domain(f),complexroots(f.coefficients))
+complexroots{DD}(f::Fun{Laurent{DD}})=mappoint(Circle(),domain(f),complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
+complexroots{DD}(f::Fun{Taylor{DD}})=mappoint(Circle(),domain(f),complexroots(f.coefficients))
 
 
 roots{S<:MappedSpace}(f::Fun{S})=fromcanonical(f,roots(Fun(coefficients(f),space(f).space)))
 
-function roots(f::Fun{Laurent})
+function roots{DD}(f::Fun{Laurent{DD}})
     irts=filter!(z->in(z,Circle()),complexroots(Fun(f.coefficients,Laurent(Circle()))))
     if length(irts)==0
         Complex{Float64}[]

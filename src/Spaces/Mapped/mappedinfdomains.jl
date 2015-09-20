@@ -86,7 +86,13 @@ end
 
 ## Derivative
 
-function invfromcanonicalD{LL<:Union(Laurent,LaurentDirichlet)}(S::MappedSpace{LL,PeriodicLine{false}})
+function invfromcanonicalD{DD}(S::MappedSpace{Laurent{DD},PeriodicLine{false}})
+    d=domain(S)
+    @assert d.centre==0  && d.L==1.0
+    a=Fun([1.,.5,.5],Laurent())
+end
+
+function invfromcanonicalD{LL<:LaurentDirichlet}(S::MappedSpace{LL,PeriodicLine{false}})
     d=domain(S)
     @assert d.centre==0  && d.L==1.0
     a=Fun([1.,.5,.5],Laurent())

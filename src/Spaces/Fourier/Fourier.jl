@@ -16,18 +16,22 @@ end
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
-immutable Hardy{s} <: UnivariateSpace{ComplexBasis,AnyDomain}
-    domain::PeriodicDomain
+immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
+    domain::D
     Hardy(d)=new(d)
-    Hardy()=new(Circle())
+    Hardy()=new(D())
 end
+
+Base.call{s}(H::Type{Hardy{s}},d::Domain)=Hardy{s,typeof(d)}(d)
+Base.call{s}(H::Type{Hardy{s}})=Hardy{s}(Circle())
 
 canonicalspace(S::Hardy)=S
 
 spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
 hasfasttransform(::Hardy)=true
 
-typealias Taylor Hardy{true}
+# The <: Domain is crucial for matching Base.call overrides
+typealias Taylor{D<:Domain} Hardy{true,D}
 
 plan_transform(::Taylor,x::Vector)=wrap_fft_plan(plan_fft(x))
 plan_itransform(::Taylor,x::Vector)=wrap_fft_plan(plan_ifft(x))
@@ -39,7 +43,7 @@ plan_itransform(::Hardy{false},x::Vector)=wrap_fft_plan(plan_ifft(x))
 transform(::Hardy{false},vals::Vector,plan)=-alternatesign!(flipdim(plan(vals),1)/length(vals))
 itransform(::Hardy{false},cfs::Vector,plan)=plan(flipdim(alternatesign!(-cfs),1))*length(cfs)
 
-function evaluate(f::Fun{Taylor},z)
+function evaluate{D}(f::Fun{Taylor{D}},z)
     d=domain(f)
     if isa(d,Circle)
         horner(f.coefficients,(z-d.center)/d.radius)
@@ -48,7 +52,7 @@ function evaluate(f::Fun{Taylor},z)
     end
 end
 
-function evaluate(f::Fun{Hardy{false}},z)
+function evaluate{D}(f::Fun{Hardy{false,D}},z)
     d=domain(f)
     if isa(d,Circle)
         z=(z-d.center)/d.radius
@@ -111,30 +115,29 @@ evaluate{SS<:SinSpace}(f::Fun{SS},t)=sineshaw(f.coefficients,tocanonical(f,t))
 
 ## Laurent space
 
-typealias Laurent SumSpace{@compat(Tuple{Hardy{true},Hardy{false}}),ComplexBasis,1}
-
-Laurent()=Laurent(PeriodicInterval())
-Laurent{T<:Number}(d::Vector{T}) = Laurent(convert(PeriodicDomain,d))
+typealias Laurent{DD} SumSpace{@compat(Tuple{Hardy{true,DD},Hardy{false,DD}}),ComplexBasis,1}
 
 
-points(sp::Laurent,n)=points(domain(sp),n)
-plan_transform(::Laurent,x::Vector)=plan_svfft(x)
-plan_itransform(::Laurent,x::Vector)=plan_isvfft(x)
-transform(::Laurent,vals,plan)=svfft(vals,plan)
-itransform(::Laurent,cfs,plan)=isvfft(cfs,plan)
+plan_transform{DD}(::Laurent{DD},x::Vector)=plan_svfft(x)
+plan_itransform{DD}(::Laurent{DD},x::Vector)=plan_isvfft(x)
+transform{DD}(::Laurent{DD},vals,plan)=svfft(vals,plan)
+itransform{DD}(::Laurent{DD},cfs,plan)=isvfft(cfs,plan)
 
-
-hasfasttransform(::Laurent)=true
 
 
 ## Fourier space
 
-typealias Fourier{D} SumSpace{@compat(Tuple{CosSpace{D},SinSpace{D}}),RealBasis,1}
-Base.call(::Type{Fourier},d::Domain)=Fourier{typeof(d)}(d)
-Base.call(::Type{Fourier})=Fourier(PeriodicInterval())
-Base.call{T<:Number}(::Type{Fourier},d::Vector{T})=Fourier(PeriodicInterval(d))
+typealias Fourier{DD} SumSpace{@compat(Tuple{CosSpace{DD},SinSpace{DD}}),RealBasis,1}
 
-hasfasttransform{D}(::Fourier{D})=true
+for TYP in (:Laurent,:Fourier)
+    @eval begin
+        Base.call(::Type{$TYP},d::Domain)=$TYP{typeof(d)}(d)
+        Base.call(::Type{$TYP})=$TYP(PeriodicInterval())
+        Base.call{T<:Number}(::Type{$TYP},d::Vector{T})=Fourier(PeriodicInterval(d))
+
+        hasfasttransform{D}(::$TYP{D})=true
+    end
+end
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
@@ -219,8 +222,8 @@ Space(d::Circle)=Laurent(d)
 
 
 
-canonicalspace(S::Laurent)=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
-canonicalspace{D<:Circle}(S::Fourier{D})=Laurent(domain(S))
+canonicalspace{DD<:PeriodicInterval}(S::Laurent{DD})=Fourier(domain(S))
+canonicalspace{DD<:Circle}(S::Fourier{DD})=Laurent(domain(S))
 
 for TYP in (:CosSpace,:Taylor)
     @eval union_rule(A::ConstantSpace,B::$TYP)=B
@@ -228,19 +231,13 @@ end
 
 ## Ones and zeros
 
-for sp in (:Fourier,:CosSpace)
+for sp in (:Fourier,:CosSpace,:Laurent,:Taylor)
     @eval begin
         Base.ones{T<:Number,D}(::Type{T},S::$sp{D})=Fun(ones(T,1),S)
         Base.ones{D}(S::$sp{D})=Fun(ones(1),S)
     end
 end
 
-for sp in (:Laurent,:Taylor)
-    @eval begin
-        Base.ones{T<:Number}(::Type{T},S::$sp)=Fun(ones(T,1),S)
-        Base.ones(S::$sp)=Fun(ones(1),S)
-    end
-end
 
 reverseorientation{D}(f::Fun{Fourier{D}})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
 

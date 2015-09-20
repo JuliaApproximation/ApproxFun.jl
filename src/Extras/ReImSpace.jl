@@ -226,16 +226,16 @@ Base.imag(F::Functional)=ImFunctional(F)
 
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Taylor,T}})=Fourier(domain(R))
+        rangespace{T,DD}(R::$TYP{ReImSpace{Taylor{DD},T}})=Fourier(domain(R))
     end
 end
 
-bandinds{T}(::RealOperator{ReImSpace{Taylor,T}})=0,2
-bandinds{T}(::ImagOperator{ReImSpace{Taylor,T}})=0,1
+bandinds{T,DD}(::RealOperator{ReImSpace{Taylor{DD},T}})=0,2
+bandinds{T,DD}(::ImagOperator{ReImSpace{Taylor{DD},T}})=0,1
 
 
 ## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A,kr::Range)
+function addentries!{T,DD}(R::RealOperator{ReImSpace{Taylor{DD},T}},A,kr::Range)
     for k=kr
         if isodd(k)         # real part
             A[k,k]+=1
@@ -247,7 +247,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A,kr::Range)
 end
 
 ## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
-function addentries!{T}(R::ImagOperator{ReImSpace{Taylor,T}},A,kr::Range)
+function addentries!{T,DD}(R::ImagOperator{ReImSpace{Taylor{DD},T}},A,kr::Range)
     for k=kr
         A[k,k+1]+=1
     end
@@ -259,17 +259,17 @@ end
 # spaces lose zeroth coefficient
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Hardy{false},T}})=SliceSpace(Fourier(domain(R)),1)
+        rangespace{T,DD}(R::$TYP{ReImSpace{Hardy{false,DD},T}})=SliceSpace(Fourier(domain(R)),1)
     end
 end
 
 
-bandinds{T}(::RealOperator{ReImSpace{Hardy{false},T}})=-1,1
-bandinds{T}(::ImagOperator{ReImSpace{Hardy{false},T}})=0,0
+bandinds{T,D}(::RealOperator{ReImSpace{Hardy{false,D},T}})=-1,1
+bandinds{T,D}(::ImagOperator{ReImSpace{Hardy{false,D},T}})=0,0
 
 
 ## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
+function addentries!{T,D}(R::RealOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range)
     for k=kr
         if isodd(k)    # imag part
             A[k,k+1]+=1
@@ -281,7 +281,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
 end
 
 ## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
-function addentries!{T}(R::ImagOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
+function addentries!{T,D}(R::ImagOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range)
     for k=kr
         A[k,k]+=isodd(k)?-1:1
     end
@@ -292,12 +292,12 @@ end
 # spaces lose zeroth coefficient
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Laurent,T}})=Fourier(domain(R))
+        rangespace{T,DD}(R::$TYP{ReImSpace{Laurent{DD},T}})=Fourier(domain(R))
     end
 end
 
-bandinds{T}(::RealOperator{ReImSpace{Laurent,T}})=0,2
-function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A,kr::Range)
+bandinds{T,DD}(::RealOperator{ReImSpace{Laurent{DD},T}})=0,2
+function addentries!{T,DD}(R::RealOperator{ReImSpace{Laurent{DD},T}},A,kr::Range)
     for k=kr
         if isodd(k)    # real part
             A[k,k]+=1

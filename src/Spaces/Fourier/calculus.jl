@@ -3,9 +3,9 @@
 export linesum
 
 
-Base.sum(f::Fun{Laurent})=fouriersum(domain(f),f.coefficients)
+Base.sum{DD}(f::Fun{Laurent{DD}})=fouriersum(domain(f),f.coefficients)
 
-function linesum{S<:Laurent}(f::Fun{S})
+function linesum{DD}(f::Fun{Laurent{DD}})
     d=domain(f)
     if isa(d,Circle)
         sum(Fun(f.coefficients,S(canonicaldomain(f))))*d.radius
@@ -14,12 +14,12 @@ function linesum{S<:Laurent}(f::Fun{S})
     end
 end
 
-linesum{D<:Circle}(f::Fun{Fourier{D}})=sum(Fun(f.coefficients,Fourier(canonicaldomain(f))))*d.radius
-linesum{D<:PeriodicInterval}(f::Fun{Fourier{D}})=sum(f) #TODO: Complex periodic interval
+linesum{DD<:Circle}(f::Fun{Fourier{DD}})=sum(Fun(f.coefficients,Fourier(canonicaldomain(f))))*d.radius
+linesum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}})=sum(f) #TODO: Complex periodic interval
 
 
 
-function integrate(f::Fun{Hardy{false}})
+function integrate{D}(f::Fun{Hardy{false,D}})
     if isa(domain(f),Circle) # drop -1 term if zero and try again
         @assert length(f)==0 || abs(f.coefficients[1])<100eps()
         integrate(Fun(f,SliceSpace(space(f),1)))
@@ -28,7 +28,7 @@ function integrate(f::Fun{Hardy{false}})
     end
 end
 
-function integrate(f::Fun{Taylor})
+function integrate{D}(f::Fun{Taylor{D}})
     if isa(domain(f),Circle)
         Integral(space(f))*f
     else  # Probably periodic itnerval  drop constant term if zero
