@@ -1,3 +1,5 @@
+using ApproxFun, Base.Test
+
 ## Rectangle PDE
 
 dx=dy=Interval()

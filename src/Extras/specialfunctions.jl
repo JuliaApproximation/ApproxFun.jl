@@ -276,7 +276,7 @@ function Base.log{US<:Ultraspherical}(f::Fun{US})
 end
 
 
-function Base.log{T<:Real}(f::Fun{Fourier,T})
+function Base.log{T<:Real,D}(f::Fun{Fourier{D},T})
     if isreal(domain(f))
         cumsum(differentiate(f)/f)+log(first(f))
     else

@@ -43,8 +43,8 @@ spacescompatible(a::CosDirichlet,b::CosDirichlet)=domainscompatible(a,b)
 
 canonicalspace(S::CosDirichlet)=CosSpace(domain(S))
 
-bandinds(::Conversion{CosDirichlet,CosSpace})=0,1
-addentries!(C::Conversion{CosDirichlet,CosSpace},A,kr::Range)=toeplitz_addentries!([],[1.,1.],A,kr)
+bandinds{CS<:CosSpace}(::Conversion{CosDirichlet,CS})=0,1
+addentries!{CS<:CosSpace}(C::Conversion{CosDirichlet,CS},A,kr::Range)=toeplitz_addentries!([],[1.,1.],A,kr)
 
 
 conversion_rule(b::CosDirichlet,a::CosSpace)=b

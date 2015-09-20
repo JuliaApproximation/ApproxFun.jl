@@ -3,10 +3,10 @@
 ## Converison
 
 #ensure that COnversion is called
-coefficients(cfs::Vector,A::Fourier,B::Laurent)=Conversion(A,B)*cfs
-coefficients(cfs::Vector,A::Laurent,B::Fourier)=Conversion(A,B)*cfs
+coefficients{D}(cfs::Vector,A::Fourier{D},B::Laurent)=Conversion(A,B)*cfs
+coefficients{D}(cfs::Vector,A::Laurent,B::Fourier{D})=Conversion(A,B)*cfs
 
-function addentries!(C::Conversion{Laurent,Fourier},A,kr::Range)
+function addentries!{D}(C::Conversion{Laurent,Fourier{D}},A,kr::Range)
     for k=kr
         if k==1
             A[k,k]+=1.
@@ -20,7 +20,7 @@ function addentries!(C::Conversion{Laurent,Fourier},A,kr::Range)
     end
     A
 end
-function addentries!(C::Conversion{Fourier,Laurent},A,kr::Range)
+function addentries!{D}(C::Conversion{Fourier{D},Laurent},A,kr::Range)
     for k=kr
         if k==1
             A[k,k]+=1.
@@ -35,10 +35,10 @@ function addentries!(C::Conversion{Fourier,Laurent},A,kr::Range)
     A
 end
 
-bandinds(::Conversion{Laurent,Fourier})=-1,1
-bandinds(::Conversion{Fourier,Laurent})=-1,1
+bandinds{D}(::Conversion{Laurent,Fourier{D}})=-1,1
+bandinds{D}(::Conversion{Fourier{D},Laurent})=-1,1
 
-function conversion_rule(A::Laurent,B::Fourier)
+function conversion_rule{D}(A::Laurent,B::Fourier{D})
     @assert domainscompatible(A,B)
     B
 end
@@ -54,13 +54,13 @@ end
 ### Cos/Sine
 
 
-bandinds(D::Derivative{CosSpace})=iseven(D.order)?(0,0):(0,1)
-bandinds(D::Derivative{SinSpace})=iseven(D.order)?(0,0):(-1,0)
+bandinds{CS<:CosSpace}(D::Derivative{CS})=iseven(D.order)?(0,0):(0,1)
+bandinds{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
 rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 
 
-function addentries!(D::Derivative{CosSpace},A,kr::Range)
+function addentries!{CS<:CosSpace}(D::Derivative{CS},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
@@ -81,7 +81,7 @@ function addentries!(D::Derivative{CosSpace},A,kr::Range)
     A
 end
 
-function addentries!(D::Derivative{SinSpace},A,kr::Range)
+function addentries!{CS<:SinSpace}(D::Derivative{CS},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
@@ -105,11 +105,11 @@ end
 Integral(::CosSpace,m)=error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
 
 
-bandinds(D::Integral{SinSpace})=iseven(D.order)?(0,0):(-1,0)
+bandinds{CS<:SinSpace}(D::Integral{CS})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::Integral{S})=iseven(D.order)?D.space:SinSpace(domain(D))
 rangespace{S<:SinSpace}(D::Integral{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 
-function addentries!(D::Integral{SinSpace},A,kr::Range)
+function addentries!{CS<:SinSpace}(D::Integral{CS},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
@@ -131,14 +131,14 @@ function addentries!(D::Integral{SinSpace},A,kr::Range)
 end
 
 
-function bandinds{T}(D::Integral{SliceSpace{1,1,CosSpace,T,1}})
+function bandinds{T,CS<:CosSpace}(D::Integral{SliceSpace{1,1,CS,T,1}})
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     (0,0)
 end
-rangespace{T}(D::Integral{SliceSpace{1,1,CosSpace,T,1}})=iseven(D.order)?D.space:SinSpace(domain(D))
+rangespace{T,CS<:CosSpace}(D::Integral{SliceSpace{1,1,CS,T,1}})=iseven(D.order)?D.space:SinSpace(domain(D))
 
-function addentries!{T}(D::Integral{SliceSpace{1,1,CosSpace,T,1}},A,kr::Range)
+function addentries!{T,CS<:CosSpace}(D::Integral{SliceSpace{1,1,CS,T,1}},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
@@ -203,7 +203,7 @@ rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp})=SinSpace(domain(
 
 
 
-function Multiplication{T}(a::Fun{Fourier,T},sp::Fourier)
+function Multiplication{T,D}(a::Fun{Fourier{D},T},sp::Fourier{D})
     d=domain(a)
     c,s=vec(a,1),vec(a,2)
     O=BandedOperator{T}[Multiplication(c,CosSpace(d)) Multiplication(s,SinSpace(d));
@@ -214,9 +214,10 @@ end
 
 ## Definite integral
 
-DefiniteIntegral(sp::Fourier)=isa(domain(sp),PeriodicInterval)?DefiniteIntegral{Fourier,Float64}(sp):DefiniteIntegral{Fourier,Complex{Float64}}(sp)
+DefiniteIntegral{D<:PeriodicInterval}(sp::Fourier{D})=DefiniteIntegral{typeof(sp),Float64}(sp)
+DefiniteIntegral{D<:Circle}(sp::Fourier{D})=DefiniteIntegral{typeof(sp),Complex{Float64}}(sp)
 
-function getindex{T}(Σ::DefiniteIntegral{Fourier,T},kr::Range)
+function getindex{T,D}(Σ::DefiniteIntegral{Fourier{D},T},kr::Range)
     d = domain(Σ)
     if isa(d,PeriodicInterval)
         T[k == 1?  d.b-d.a : zero(T) for k=kr]
@@ -226,11 +227,11 @@ function getindex{T}(Σ::DefiniteIntegral{Fourier,T},kr::Range)
     end
 end
 
-datalength(Σ::DefiniteIntegral{Fourier})=isa(domain(Σ),PeriodicInterval)?1:3
+datalength{D}(Σ::DefiniteIntegral{Fourier{D}})=isa(domain(Σ),PeriodicInterval)?1:3
 
-DefiniteLineIntegral(sp::Fourier)=DefiniteLineIntegral{Fourier,Float64}(sp)
+DefiniteLineIntegral{D}(sp::Fourier{D})=DefiniteLineIntegral{typeof(sp),Float64}(sp)
 
-function getindex{T}(Σ::DefiniteLineIntegral{Fourier,T},kr::Range)
+function getindex{T,D}(Σ::DefiniteLineIntegral{Fourier{D},T},kr::Range)
     d = domain(Σ)
     if isa(d,PeriodicInterval)
         T[k == 1?  d.b-d.a : zero(T) for k=kr]
@@ -240,7 +241,7 @@ function getindex{T}(Σ::DefiniteLineIntegral{Fourier,T},kr::Range)
     end
 end
 
-datalength(Σ::DefiniteLineIntegral{Fourier})=1
+datalength{D}(Σ::DefiniteLineIntegral{Fourier{D}})=1
 
 
 
@@ -248,19 +249,19 @@ datalength(Σ::DefiniteLineIntegral{Fourier})=1
 
 ## Split Multiplication in 2 to lower bandwidths
 
-function coefficienttimes(f::Fun{Fourier},g::Fun{Fourier})
+function coefficienttimes{D1,D2}(f::Fun{Fourier{D1}},g::Fun{Fourier{D2}})
     a,b=vec(f)
     coefficienttimes(a,g)+coefficienttimes(b,g)
 end
-function coefficienttimes(f::Fun,g::Fun{Fourier})
+function coefficienttimes{D}(f::Fun,g::Fun{Fourier{D}})
     c,d=vec(g)
     coefficienttimes(f,c)+coefficienttimes(f,d)
 end
-coefficienttimes(f::Fun{Fourier},g::Fun) = coefficienttimes(g,f)
+coefficienttimes{D}(f::Fun{Fourier{D}},g::Fun) = coefficienttimes(g,f)
 
-transformtimes(f::Fun{CosSpace},g::Fun{Fourier}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),g)
-transformtimes(f::Fun{SinSpace},g::Fun{Fourier}) = transformtimes(Fun(interlace(zeros(eltype(f),length(f)+1),f.coefficients),Fourier(domain(f))),g)
-transformtimes(f::Fun{CosSpace},g::Fun{SinSpace}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),Fun(interlace(zeros(eltype(g),length(g)+1),g.coefficients),Fourier(domain(g))))
-transformtimes(f::Fun{Fourier},g::Fun{CosSpace}) = transformtimes(g,f)
-transformtimes(f::Fun{Fourier},g::Fun{SinSpace}) = transformtimes(g,f)
-transformtimes(f::Fun{SinSpace},g::Fun{CosSpace}) = transformtimes(g,f)
+transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),g)
+transformtimes{SS<:SinSpace,D}(f::Fun{SS},g::Fun{Fourier{D}}) = transformtimes(Fun(interlace(zeros(eltype(f),length(f)+1),f.coefficients),Fourier(domain(f))),g)
+transformtimes{CS<:CosSpace,SS<:SinSpace}(f::Fun{CS},g::Fun{SS}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),Fun(interlace(zeros(eltype(g),length(g)+1),g.coefficients),Fourier(domain(g))))
+transformtimes{CS<:CosSpace,D}(f::Fun{Fourier{D}},g::Fun{CS}) = transformtimes(g,f)
+transformtimes{SS<:SinSpace,D}(f::Fun{Fourier{D}},g::Fun{SS}) = transformtimes(g,f)
+transformtimes{SS<:SinSpace,CS<:CosSpace}(f::Fun{SS},g::Fun{CS}) = transformtimes(g,f)

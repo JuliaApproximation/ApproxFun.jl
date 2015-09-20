@@ -337,7 +337,7 @@ function roots(f::Fun{Laurent})
 end
 
 
-roots(f::Fun{Fourier})=roots(Fun(f,Laurent))
+roots{D}(f::Fun{Fourier{D}})=roots(Fun(f,Laurent))
 
 function roots{P<:PiecewiseSpace}(f::Fun{P})
     rts=[map(roots,vec(f))...]

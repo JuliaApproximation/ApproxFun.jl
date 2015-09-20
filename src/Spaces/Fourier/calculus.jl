@@ -4,7 +4,8 @@ export linesum
 
 
 Base.sum(f::Fun{Laurent})=fouriersum(domain(f),f.coefficients)
-function linesum{S<:Union(Laurent,Fourier)}(f::Fun{S})
+
+function linesum{S<:Laurent}(f::Fun{S})
     d=domain(f)
     if isa(d,Circle)
         sum(Fun(f.coefficients,S(canonicaldomain(f))))*d.radius
@@ -12,6 +13,11 @@ function linesum{S<:Union(Laurent,Fourier)}(f::Fun{S})
         sum(f)
     end
 end
+
+linesum{D<:Circle}(f::Fun{Fourier{D}})=sum(Fun(f.coefficients,Fourier(canonicaldomain(f))))*d.radius
+linesum{D<:PeriodicInterval}(f::Fun{Fourier{D}})=sum(f) #TODO: Complex periodic interval
+
+
 
 function integrate(f::Fun{Hardy{false}})
     if isa(domain(f),Circle) # drop -1 term if zero and try again
@@ -32,7 +38,7 @@ function integrate(f::Fun{Taylor})
 end
 
 
-function integrate(f::Fun{CosSpace})
+function integrate{CS<:CosSpace}(f::Fun{CS})
     if isa(domain(f),Circle)
         error("Integrate not implemented for CosSpace on Circle")
     else  # Probably periodic itnerval, drop constant term if zero
@@ -49,7 +55,7 @@ function integrate(f::Fun{CosSpace})
     end
 end
 
-function integrate(f::Fun{SinSpace})
+function integrate{SS<:SinSpace}(f::Fun{SS})
     if isa(domain(f),Circle) # drop term containing z^(-1)
         integrate(Fun(f,SliceSpace(space(f),1)))
     else  # Probably periodic itnerval\
@@ -60,7 +66,10 @@ end
 #TODO: This is a hack to make sure Fourier maps to Fourier
 # we don't have banded differentiate from CosSpace/SinSpace on a circle
 for OP in (:differentiate,:integrate)
-    @eval $OP{T}(f::Fun{Fourier,T})=isa(domain(f),PeriodicInterval)?($OP(vec(f,2))⊕$OP(vec(f,1))):$OP(Fun(f,Laurent))
+    @eval begin
+        $OP{T,D<:PeriodicInterval}(f::Fun{Fourier{D},T})=$OP(vec(f,2))⊕$OP(vec(f,1))
+        $OP{T,D<:Circle}(f::Fun{Fourier{D},T})=$OP(Fun(f,Laurent))
+    end
 end
 
 
@@ -75,4 +84,3 @@ function fouriersum{T}(d::Circle,cfs::Vector{T})
         im*zero(T)
     end
 end
-

@@ -4,8 +4,8 @@ export Fourier,Taylor,Hardy,CosSpace,SinSpace,Laurent
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
-        immutable $T <: RealUnivariateSpace{AnyDomain}
-            domain::PeriodicDomain
+        immutable $T{D<:Domain} <: RealUnivariateSpace{D}
+            domain::D
         end
         $T()=$T(PeriodicInterval())
         spacescompatible(a::$T,b::$T)=domainscompatible(a,b)
@@ -97,7 +97,7 @@ plan_transform(::CosSpace,x::Vector)=plan_chebyshevtransform(x;kind=2)
 plan_itransform(::CosSpace,x::Vector)=plan_ichebyshevtransform(x;kind=2)
 transform(::CosSpace,vals,plan)=chebyshevtransform(vals,plan;kind=2)
 itransform(::CosSpace,cfs,plan)=ichebyshevtransform(cfs,plan;kind=2)
-evaluate(f::Fun{CosSpace},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
+evaluate{CS<:CosSpace}(f::Fun{CS},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
@@ -105,7 +105,7 @@ plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.p
 plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.plan_r2r(x,FFTW.RODFT00))
 transform(::SinSpace,vals,plan)=plan(vals)/(length(vals)+1)
 itransform(::SinSpace,cfs,plan)=plan(cfs)/2
-evaluate(f::Fun{SinSpace},t)=sineshaw(f.coefficients,tocanonical(f,t))
+evaluate{SS<:SinSpace}(f::Fun{SS},t)=sineshaw(f.coefficients,tocanonical(f,t))
 
 
 
@@ -129,25 +129,26 @@ hasfasttransform(::Laurent)=true
 
 ## Fourier space
 
-typealias Fourier SumSpace{@compat(Tuple{CosSpace,SinSpace}),RealBasis,1}
-Fourier()=Fourier(PeriodicInterval())
-Fourier{T<:Number}(d::Vector{T}) = Fourier(PeriodicInterval(d))
+typealias Fourier{D} SumSpace{@compat(Tuple{CosSpace{D},SinSpace{D}}),RealBasis,1}
+Base.call(::Type{Fourier},d::Domain)=Fourier{typeof(d)}(d)
+Base.call(::Type{Fourier})=Fourier(PeriodicInterval())
+Base.call{T<:Number}(::Type{Fourier},d::Vector{T})=Fourier(PeriodicInterval(d))
 
-hasfasttransform(::Fourier)=true
+hasfasttransform{D}(::Fourier{D})=true
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
         # override default as canonicalspace must be implemented
-        maxspace(::$T,::Fourier)=NoSpace()
-        maxspace(::Fourier,::$T)=NoSpace()
+        maxspace{D}(::$T,::Fourier{D})=NoSpace()
+        maxspace{D}(::Fourier{D},::$T)=NoSpace()
     end
 end
 
-points(sp::Fourier,n)=points(domain(sp),n)
-plan_transform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.R2HC))
-plan_itransform{T<:FFTW.fftwNumber}(::Fourier,x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.HC2R))
+points{D}(sp::Fourier{D},n)=points(domain(sp),n)
+plan_transform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.R2HC))
+plan_itransform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.HC2R))
 
-function transform{T<:Number}(::Fourier,vals::Vector{T},plan)
+function transform{T<:Number,D}(::Fourier{D},vals::Vector{T},plan)
     n=length(vals)
     cfs=2plan(vals)/n
     cfs[1]/=2
@@ -168,7 +169,7 @@ function transform{T<:Number}(::Fourier,vals::Vector{T},plan)
     ret
 end
 
-function itransform{T<:Number}(::Fourier,a::Vector{T},plan)
+function itransform{T<:Number,D}(::Fourier{D},a::Vector{T},plan)
     n=length(a)
     cfs=[a[1:2:end];
             flipdim(a[2:2:end],1)]
@@ -215,20 +216,33 @@ end
 
 Space(d::PeriodicInterval)=Fourier(d)
 Space(d::Circle)=Laurent(d)
-canonicalspace(S::Union(Laurent,Fourier))=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
 
-union_rule(A::ConstantSpace,B::Union(CosSpace,Taylor))=B
+
+
+canonicalspace(S::Laurent)=isa(domain(S),Circle)?Laurent(domain(S)):Fourier(domain(S))
+canonicalspace{D<:Circle}(S::Fourier{D})=Laurent(domain(S))
+
+for TYP in (:CosSpace,:Taylor)
+    @eval union_rule(A::ConstantSpace,B::$TYP)=B
+end
 
 ## Ones and zeros
 
-for sp in (:Fourier,:Laurent,:Taylor,:CosSpace)
+for sp in (:Fourier,:CosSpace)
+    @eval begin
+        Base.ones{T<:Number,D}(::Type{T},S::$sp{D})=Fun(ones(T,1),S)
+        Base.ones{D}(S::$sp{D})=Fun(ones(1),S)
+    end
+end
+
+for sp in (:Laurent,:Taylor)
     @eval begin
         Base.ones{T<:Number}(::Type{T},S::$sp)=Fun(ones(T,1),S)
         Base.ones(S::$sp)=Fun(ones(1),S)
     end
 end
 
-reverseorientation(f::Fun{Fourier})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
+reverseorientation{D}(f::Fun{Fourier{D}})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
 
 include("calculus.jl")
 include("specialfunctions.jl")
