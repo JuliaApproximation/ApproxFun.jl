@@ -37,7 +37,7 @@ include("PDE/PDE.jl")
 include("Plot/Plot.jl")
 include("Extras/Extras.jl")
 
-
+include("docs.jl")
 
 
 

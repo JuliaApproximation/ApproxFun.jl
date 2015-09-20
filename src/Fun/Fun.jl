@@ -76,19 +76,11 @@ Base.eltype{S,T}(::Fun{S,T})=T
 
 ## General routines
 
-"""
-    domain(fun)
 
-returns the domain that a function is defined on
-"""
 domain(f::Fun)=domain(f.space)
 domain{T<:Fun}(v::Vector{T})=map(domain,v)
 
-"""
-    setdomain(fun,domain)
 
-returns fun projected onto a different domain
-"""
 setdomain(f::Fun,d::Domain)=Fun(f.coefficients,setdomain(space(f),d))
 
 for op = (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD)
@@ -97,11 +89,7 @@ end
 
 invfromcanonicalD(d::Domain)=invfromcanonicalD(d,Fun(identity,canonicaldomain(d)))
 
-"""
-    space(fun)
 
-returns the space of a fun
-"""
 space(f::Fun)=f.space
 spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
 canonicalspace(f::Fun)=canonicalspace(space(f))
@@ -131,34 +119,12 @@ end
 
 ##Data routines
 
-"""
-    values(fun)
 
-returns fun evaluated at points(fun)
-"""
 values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...)
-
-"""
-    points(fun)
-
-returns a grid of points that the fun can be transformed into values
-and back
-"""
 points(f::Fun)=points(f.space,length(f))
-
-"""
-    length(fun)
-
-returns the number of coefficients of a fun
-"""
 Base.length(f::Fun)=length(f.coefficients)
 
-"""
-    stride(fun)
 
-returns the stride of the coefficients, checked
-numerically
-"""
 function Base.stride(f::Fun)
     # Check only for stride 2 at the moment
     # as higher stride is very rare anyways
@@ -380,11 +346,6 @@ Base.sum(f::Fun)=last(cumsum(f))
 integrate(f::Fun)=integrate(Fun(f,domain(f)))
 
 
-"""
-    reverseorientation(f)
-
-return f on a reversed orientated contour
-"""
 function reverseorientation(f::Fun)
     csp=canonicalspace(f)
     if spacescompatible(csp,space(f))
