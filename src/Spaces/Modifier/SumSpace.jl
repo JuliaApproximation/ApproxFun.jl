@@ -5,25 +5,19 @@ export ⊕
 
 abstract DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d}
 
-immutable SumSpace{SV,T,DD,d} <: DirectSumSpace{SV,T,DD,d}
-    spaces::SV
-    SumSpace(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
-    SumSpace(sp::Tuple)=new(sp)
-end
 
-SumSpace(sp::Tuple)=SumSpace{typeof(sp),mapreduce(basistype,promote_type,sp),typeof(domain(first(sp))),ndims(first(sp))}(sp)
-
-immutable TupleSpace{SV,T,d} <: DirectSumSpace{SV,T,AnyDomain,d}
-    spaces::SV
-    TupleSpace(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
-    TupleSpace(sp::Tuple)=new(sp)
-end
-
-TupleSpace(sp::Tuple)=TupleSpace{typeof(sp),mapreduce(basistype,promote_type,sp),ndims(first(sp))}(sp)
 
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval begin
+        immutable $TYP{SV,T,DD,d} <: DirectSumSpace{SV,T,DD,d}
+            spaces::SV
+            $TYP(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
+            $TYP(sp::Tuple)=new(sp)
+        end
+
+        $TYP(sp::Tuple)=$TYP{typeof(sp),mapreduce(basistype,promote_type,sp),typeof(domain(first(sp))),ndims(first(sp))}(sp)
+
         $TYP(A::$TYP,B::$TYP)=$TYP(tuple(A.spaces...,B.spaces...))
 
         $TYP(A::Space,B::$TYP)=$TYP(tuple(A,B.spaces...))
@@ -161,16 +155,16 @@ union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval begin
-        conversion_rule{V,W}(SS::$TYP{@compat(Tuple{ConstantSpace,V})},
-                             TT::$TYP{@compat(Tuple{ConstantSpace,W})})=$TYP(SS.spaces[1],
+        conversion_rule{V,W}(SS::$TYP{Tuple{ConstantSpace,V}},
+                             TT::$TYP{Tuple{ConstantSpace,W}})=$TYP(SS.spaces[1],
                                                                              conversion_type(SS.spaces[2],TT.spaces[2]))
 
 
-        Base.vec{V,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V}),TT,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
-        Base.vec{V,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V}),TT,d},T})=Any[vec(f,1),vec(f,2)]
+        Base.vec{V,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V},TT,DD,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
+        Base.vec{V,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V},TT,DD,d},T})=Any[vec(f,1),vec(f,2)]
 
         #TODO: fix
-        function Base.vec{W,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,ConstantSpace,W}),TT,d},T},k)
+        function Base.vec{W,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,ConstantSpace,W},TT,DD,d},T},k)
             if k≤2
                 Fun(f.coefficients[k],space(f)[k])
             else
@@ -179,7 +173,7 @@ for TYP in (:SumSpace,:TupleSpace)
             end
         end
 
-        function Base.vec{V,W,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V,W}),TT,d},T},k)
+        function Base.vec{V,W,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V,W},TT,DD,d},T},k)
             if k==1
                 Fun(f.coefficients[1],space(f)[1])
             else
@@ -188,7 +182,7 @@ for TYP in (:SumSpace,:TupleSpace)
         end
 
 
-        Base.vec{V,W,TT,d,T}(f::Fun{$TYP{@compat(Tuple{ConstantSpace,V,W}),TT,d},T})=Any[vec(f,1),vec(f,2),vec(f,3)]
+        Base.vec{V,W,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V,W},TT,DD,d},T})=Any[vec(f,1),vec(f,2),vec(f,3)]
     end
 end
 

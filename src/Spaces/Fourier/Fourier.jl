@@ -4,6 +4,10 @@ export Fourier,Taylor,Hardy,CosSpace,SinSpace,Laurent
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
+        doc"""
+            `CosSpace` is the basis `[1,cos θ,cos 2θ,...]`
+            `SinSpace` is the basis `[sin θ,sin 2θ,...]`
+        """
         immutable $T{D<:Domain} <: RealUnivariateSpace{D}
             domain::D
         end
@@ -16,6 +20,11 @@ end
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
+
+doc"""
+    `Hardy{true}` is the basis `[1,z,z^2,...]`
+    `Hardy{false}` is the basis `[1/z,1/z^2,...]`
+"""
 immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
     domain::D
     Hardy(d)=new(d)

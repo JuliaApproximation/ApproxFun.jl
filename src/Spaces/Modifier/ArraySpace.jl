@@ -1,7 +1,10 @@
 export devec,demat,mat
 
 
-
+doc"""
+`ArraySpace` used to represent array-valued expansions in `space`.  The
+coefficients are of each entry are interlaced.
+"""
 immutable ArraySpace{S,n,T,DD,dim} <: Space{T,DD,dim}
      space::S
      dimensions::Tuple{Vararg{Int}}
