@@ -57,16 +57,16 @@ function roots{C<:Chebyshev}( f::Fun{C} )
         # Map roots from [-1,1] to domain of f:
         rts = fromcanonical(d,r)
         fp = differentiate(f)
-        while norm(f[rts]) > 1000eps(eltype(f))
-            rts .-=f[rts]./fp[rts]
+        while norm(f(rts)) > 1000eps(eltype(f))
+            rts .-=f(rts)./fp(rts)
         end
     elseif eltype(f) == Complex{BigFloat}
         r = rootsunit_coeffs(convert(Vector{Complex{Float64}},c./vscale), @compat Float64(htol))
         # Map roots from [-1,1] to domain of f:
         rts = fromcanonical(d,r)
         fp = differentiate(f)
-        while norm(f[rts]) > 1000eps(eltype(f))
-            rts .-=f[rts]./fp[rts]
+        while norm(f(rts)) > 1000eps(eltype(f))
+            rts .-=f(rts)./fp(rts)
         end
     else
         r = rootsunit_coeffs(c./vscale, @compat Float64(htol))
@@ -223,7 +223,7 @@ for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base
         function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
             pts = extremal_args(f)
 
-            $op(f[pts])
+            $op(f(pts))
         end
     end
 end
@@ -234,7 +234,7 @@ for op in (:(Base.maxabs),:(Base.minabs))
             # complex spaces/types can have different extrema
             pts = extremal_args(abs(f))
 
-            $op(f[pts])
+            $op(f(pts))
         end
     end
 end
@@ -247,13 +247,13 @@ for op in (:(Base.indmax),:(Base.indmin))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             # the extra real avoids issues with complex round-off
-            pts[$op(real(f[pts]))]
+            pts[$op(real(f(pts)))]
         end
 
         function $op{S,T}(f::Fun{S,T})
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
-            fp=f[pts]
+            fp=f(pts)
             @assert norm(imag(fp))<100eps()
             pts[$op(real(fp))]
         end
@@ -265,7 +265,7 @@ for op in (:(Base.findmax),:(Base.findmin))
         function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
-            ext,ind = $op(f[pts])
+            ext,ind = $op(f(pts))
 	    ext,pts[ind]
         end
     end

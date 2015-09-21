@@ -4,6 +4,9 @@
 
 export LowRankFun
 
+"""
+`LowRankFun` gives an approximation to a bivariate function in low rank form.
+"""
 type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
     A::Vector{Fun{S,T}}
     B::Vector{Fun{M,T}}
@@ -104,7 +107,7 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union(Sym
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
         if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
-        A,B=[A;a/sqrt(abs(a[r[1]]))],[B;b/(sqrt(abs(b[r[2]]))*sign(b[r[2]]))]
+        A,B=[A;a/sqrt(abs(a(r[1])))],[B;b/(sqrt(abs(b(r[2])))*sign(b(r[2])))]
         r=findapproxmax!(A[k],B[k],X,ptsx,ptsy,gridx,gridy)
         Ar,Br=evaluate(A,r[1]),evaluate(B,r[2])
         a,b=Fun(x->f(x,r[2]),dx,gridx) - dotu(Br,A),Fun(y->f(r[1],y),dy,gridy) - dotu(Ar,B)
@@ -148,7 +151,7 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union(Symbol,@compa
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
         if norm(a.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
-        A,B=[A;a/sqrt(abs(a[r]))],[B;a/(sqrt(abs(a[r]))*sign(a[r]))]
+        A,B=[A;a/sqrt(abs(a(r)))],[B;a/(sqrt(abs(a(r)))*sign(a(r)))]
         r=findcholeskyapproxmax!(A[k],B[k],X,pts,grid)
         Br=evaluate(B,r)
         a=Fun(x->f(x,r),dx,grid) - dotu(Br,A)
@@ -192,7 +195,7 @@ function findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gr
 end
 
 function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
-    dX = A[ptsx]*transpose(B[ptsy])
+    dX = A(ptsx)*transpose(B(ptsy))
     X[:] -= dX[:]
     maxabsf,impt = findmax(abs(X))
     imptple = ind2sub((gridx,gridy),impt)
@@ -208,7 +211,7 @@ function findcholeskyapproxmax!(f::Function,X::Vector,pts::Vector,grid)
 end
 
 function findcholeskyapproxmax!(A::Fun,B::Fun,X::Vector,pts::Vector,grid)
-    dX = A[pts].*B[pts]
+    dX = A(pts).*B(pts)
     X[:] -= dX[:]
     maxabsf,impt = findmax(abs(X))
     pts[impt]
@@ -276,7 +279,7 @@ function evaluate(f::LowRankFun,::Colon,y)
 
     for k=1:r
         for j=1:length(f.A[k])
-            @inbounds ret[j] += f.A[k].coefficients[j]*f.B[k][y]
+            @inbounds ret[j] += f.A[k].coefficients[j]*f.B[k](y)
         end
     end
 
@@ -336,5 +339,3 @@ Base.sum(g::LowRankFun,n::Integer)=(n==1)?dotu(g.B,map(sum,g.A)):dotu(g.A,map(su
 Base.cumsum(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(cumsum,g.A),copy(g.B)):LowRankFun(copy(g.A),map(cumsum,g.B))
 differentiate(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(differentiate,g.A),copy(g.B)):LowRankFun(copy(g.A),map(differentiate,g.B))
 integrate(g::LowRankFun,n::Integer)=(n==1)?LowRankFun(map(integrate,g.A),copy(g.B)):LowRankFun(copy(g.A),map(integrate,g.B))
-
-

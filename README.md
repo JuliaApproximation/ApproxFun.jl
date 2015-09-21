@@ -14,7 +14,7 @@ f = sin(x^2)
 g = cos(x)
 ```
 
-To evaluate functions at a point, we use the vector notation, and `f[.1]` will return a high
+Evaluating `f(.1)` will return a high
 accuracy approximation to `sin(0.01)`. All the algebraic manipulations of functions
 are supported and more.  For example, we can add `f` and `g^2` together and compute
 the roots and extrema:
@@ -24,7 +24,7 @@ h = f + g^2
 r = roots(h)
 rp = roots(h')
 ApproxFun.plot(h)                      # using PyPlot
-PyPlot.plot(r,h[r],"og",rp,h[rp],"or") # using PyPlot
+PyPlot.plot(r,h(r),"og",rp,h(rp),"or") # using PyPlot
 ```
 
 ![Extrema](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/extrema.png)
@@ -46,7 +46,7 @@ Similarly, `cumsum` defines an indefinite integration operator:
 
 ```julia
 g = cumsum(f)
-g = g + f[-1]
+g = g + f(-1)
 norm(f-g)
 ```
 
@@ -103,13 +103,13 @@ ApproxFun.plot(u)						    # Requires Gadfly or PyPlot
 
 # Nonlinear Boundary Value problems
 
-Solve a nonlinear boundary value problem satisfying the ODE `0.001u'' + 6*(1-x^2)*u' + u^2 = 1` with boundary conditions `u[-1]==1`, `u[1]==-0.5` on `[-1,1]`:
+Solve a nonlinear boundary value problem satisfying the ODE `0.001u'' + 6*(1-x^2)*u' + u^2 = 1` with boundary conditions `u(-1)==1`, `u(1)==-0.5` on `[-1,1]`:
 
 ```julia
 x=Fun()
 u0=0.x
 
-N=u->[u[-1.]-1.,u[1.]+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
+N=u->[u(-1.)-1.,u(1.)+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
 u=newton(N,u0)
 ApproxFun.plot(u)
 ```
@@ -206,7 +206,7 @@ with_bigfloat_precision(1000) do
     d=Interval{BigFloat}(0,1)
     D=Derivative(d)
     u=[ldirichlet();D-I]\[1]
-    u[1]
+    u(1)
 end
 ```
 

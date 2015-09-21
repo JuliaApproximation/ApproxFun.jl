@@ -108,10 +108,10 @@ function evaluate(f::Fun,x...)
 end
 
 
-Base.getindex(f::Fun,x...)=evaluate(f,x...)
+Base.call(f::Fun,x...)=evaluate(f,x...)
 
 for op in (:(Base.first),:(Base.last))
-    @eval $op{S,T}(f::Fun{S,T})=f[$op(domain(f))]
+    @eval $op{S,T}(f::Fun{S,T})=f($op(domain(f)))
 end
 
 

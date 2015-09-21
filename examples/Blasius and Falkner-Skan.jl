@@ -10,12 +10,12 @@ using ApproxFun
 # hydrodynamics, for example.
 
 # We begin with Blasius:
-#   solves 2u''' + uu'' = 0 ,  u[0.] = u'[0.] = 0, u'[∞] = 1
+#   solves 2u''' + uu'' = 0 ,  u(0.) = u'(0.) = 0, u'[∞] = 1
 x=Fun(identity,[0.,4π])
 d=domain(x)
 B=[ldirichlet(d),lneumann(d),rneumann(d)]
 D=Derivative(d)
-κ = 0.33205733621519630     # This is diff(u,2)[0.], due to Boyd.
+κ = 0.33205733621519630     # This is diff(u,2)(0.), due to Boyd.
 u0 = (1//2) * κ * x.^2      # First-order approximation
 u = 0.5x^2                  # Other initial solutions may fail to converge
 
@@ -25,13 +25,13 @@ df = (u)->(2.0*D^3 + u*D^2 + D^2*u)
 ApproxFun.plot([u,u0])      # Initial estimate and first-order approximation
 
 for k=1:10
-  u  -= [B; df(u)]\[u[0.];diff(u,1)[0.];diff(u,1)[d.b]-1.;f(u)]
+  u  -= [B; df(u)]\[u(0.);diff(u,1)(0.);diff(u,1)(d.b)-1.;f(u)]
 end
 norm(f(u))             # should be zero
-abs(diff(u,2)[0.]-κ)   # should also be zero
+abs(diff(u,2)(0.)-κ)   # should also be zero
 ApproxFun.plot([u,u0]) # Solution and First-order approximation
 # Now for Falkner-Skan:
-#     solves 2u''' + uu'' - β(1 - (u')^2) = 0 ,  u[0.] = u'[0.] = 0, u'[∞] = 1
+#     solves 2u''' + uu'' - β(1 - (u')^2) = 0 ,  u(0.) = u'(0.) = 0, u'[∞] = 1
 m = 0.11                # m ∈ [-0.0905, 2]
 β = 2m/(1+m)
 F = (u)->(2.0*D^3*u + u*D^2*u - β*(1.0 - (D*u)*(D*u)))
@@ -40,9 +40,8 @@ v=u
 norm(F(v))               # should be non-zero, as we've perturbed the Blasius equation
 
 for k=1:10
-  v  -= [B; dF(v)]\[v[0.];diff(v,1)[0.];diff(v,1)[d.b]-1.;F(v)]
+  v  -= [B; dF(v)]\[v(0.);diff(v,1)(0.);diff(v,1)(d.b)-1.;F(v)]
 end
 norm(F(v))               # should be zero
 
 ApproxFun.plot([u,v])    # Blasius and Falkner-Skan solutions
-

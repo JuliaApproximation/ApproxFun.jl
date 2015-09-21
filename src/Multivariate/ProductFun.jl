@@ -1,5 +1,5 @@
 ##
-# ProductFun represents f(x,y) by Fun(.coefficients[k][x],.space[2])[y]
+# ProductFun represents f(x,y) by Fun(.coefficients[k](x),.space[2])(y)
 # where all coefficients are in the same space
 ##
 
@@ -189,11 +189,11 @@ domain(f::ProductFun)=domain(f.space)
 
 
 
-canonicalevaluate{S,V,SS,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon)=Fun(T[fc[x] for fc in f.coefficients],space(f,2))
-canonicalevaluate(f::ProductFun,x::Number,y::Number)=canonicalevaluate(f,x,:)[y]
+canonicalevaluate{S,V,SS,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon)=Fun(T[fc(x) for fc in f.coefficients],space(f,2))
+canonicalevaluate(f::ProductFun,x::Number,y::Number)=canonicalevaluate(f,x,:)(y)
 canonicalevaluate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},x::Colon,y::Number)=evaluate(f.',y,:)  # doesn't make sense For general product fon without specifying space
 
-canonicalevaluate(f::ProductFun,xx::Vector,yy::Vector)=hcat([evaluate(f,x,:)[[yy]] for x in xx]...).'
+canonicalevaluate(f::ProductFun,xx::Vector,yy::Vector)=hcat([evaluate(f,x,:)([yy]) for x in xx]...).'
 
 
 evaluate(f::ProductFun,x,y)=canonicalevaluate(f,tocanonical(f,x,y)...)

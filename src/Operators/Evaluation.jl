@@ -39,7 +39,7 @@ Base.convert{BT<:Operator}(::Type{BT},E::Evaluation)=Evaluation(eltype(BT),E.spa
 
 
 ## default getindex
-getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)[D.x] for k=kr]
+getindex{S,M,T}(D::Evaluation{S,M,T},kr::Range)=T[differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)(D.x) for k=kr]
 
 function getindex{S,T}(D::Evaluation{S,Bool,T},kr::Range)
     if !D.x
@@ -118,4 +118,3 @@ Neumann(d::Domain)=Dirichlet(Space(d))
 
 domainspace(S::Dirichlet)=S.space
 rangespace(B::Dirichlet)=Space(∂(domain(B)))
-

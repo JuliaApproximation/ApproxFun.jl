@@ -14,7 +14,7 @@ X=Multiplication(Fun(x->x,d));
 
 u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
 
-@test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
+@test_approx_eq_eps u(0.) airyai(0.) 10length(u)*eps()
 
 
 
@@ -26,7 +26,7 @@ D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
 u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
-@test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
+@test_approx_eq_eps u(0.) airyai(0.) 10length(u)*eps()
 
 
 
@@ -36,7 +36,7 @@ b=[airyaiprime(d.a),airyaiprime(d.b),0.];
 
 u=A\b;
 
-@test_approx_eq_eps u[0.] airyai(0.) 10length(u)*eps()
+@test_approx_eq_eps u(0.) airyai(0.) 10length(u)*eps()
 
 ## Neumann condition
 
@@ -52,11 +52,11 @@ D=diff(domain(f))
 f=Fun(x->-x.^2)
 g=Fun(t->exp(-t.^2))
 
-@test norm(Fun(t->exp(f[t]))-g)<= 100eps()
+@test norm(Fun(t->exp(f(t)))-g)<= 100eps()
 
 fp=diff(f);
 Bm=Evaluation(domain(f),domain(f).a);
-u=[Bm,diff(domain(f)) - fp]\[exp(f[domain(f).a]),0.];
+u=[Bm,diff(domain(f)) - fp]\[exp(f(domain(f).a)),0.];
 @test norm(u-g)<100eps()
 
 
@@ -69,7 +69,7 @@ w=10.;
 B=BasisFunctional(floor(w));
 A=[B;D+1im*w*I];
 u = A\[0.,f];
-@test_approx_eq (u[1.]exp(1im*w)-u[-1.]exp(-1im*w)) (-0.18575766879136255 + 0.17863980562549928im )
+@test_approx_eq (u(1.)exp(1im*w)-u(-1.)exp(-1im*w)) (-0.18575766879136255 + 0.17863980562549928im )
 
 
 
@@ -87,7 +87,7 @@ u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 @test norm(Fun(A.ops[2]*u,d)-x.*diff(u)) < eps()
 @test norm(Fun(A.ops[end]*u,d)-x.^2.*u) < eps()
 @test norm(x.^2.*diff(u,2) + x.*diff(u) + x.^2.*u)<10eps()
-@test_approx_eq u[0.1] besselj(0.,0.1)
+@test_approx_eq u(0.1) besselj(0.,0.1)
 
 
 
@@ -124,4 +124,3 @@ A= [0  ldirichlet(d);
 u,x=A\[1.,0.,2.,0.]
 
 @test norm(F*x-u)<1000eps()
-

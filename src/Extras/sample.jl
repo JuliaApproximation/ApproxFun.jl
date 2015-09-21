@@ -15,7 +15,7 @@ function bisectioninv{S,T}(f::Fun{S,T},x::Float64;numits::Int=47)
 
     for k=1:numits  #TODO: decide 47
         m=.5*(a+b)
-        val = f[m]
+        val = f(m)
 
             (val<= x) ? (a = m) : (b = m)
     end
@@ -200,7 +200,7 @@ function sample{SS<:JacobiWeight,DD<:Ray,TT}(f::Fun{MappedSpace{SS,DD,TT},Float6
     if space(f).space.β == 0
         samplecdf(normalizedcumsum(f),n)
     else
-        sample(Fun(x->f[x],MappedSpace(domain(f),JacobiWeight(space(f).space.α,1))),n)
+        sample(Fun(x->f(x),MappedSpace(domain(f),JacobiWeight(space(f).space.α,1))),n)
     end
 end
 

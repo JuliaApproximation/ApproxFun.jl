@@ -26,7 +26,7 @@ itransform(sp::WeightSpace,cfs::Vector,plan)=itransform(sp.space,cfs,plan[2]).*p
 
 function evaluate{WS<:WeightSpace,T}(f::Fun{WS,T},x)
     tol=1.0E-14
-    fv=Fun(f.coefficients,space(f).space)[x]
+    fv=Fun(f.coefficients,space(f).space)(x)
     if isa(fv,Number)&&abs(fv)<tol
         #TODO: Why this special case??
         zero(T)
@@ -36,14 +36,12 @@ function evaluate{WS<:WeightSpace,T}(f::Fun{WS,T},x)
 end
 
 
-##
-# JacobiWeight
-# represents a function on [-1,1] weighted by (1+x)^α*(1-x)^β
-# note the inconsistency of the parameters with Jacobi
-# when the domain is [a,b] the weight is inferred by mapping to [-1,1]
-##
-
-
+"""
+`JacobiWeight`
+weights a basis on `[-1,1]` weighted by `(1+x)^α*(1-x)^β`.
+Note the inconsistency of the parameters with `Jacobi`.
+when the domain is `[a,b]` the weight is inferred by mapping to `[-1,1]`
+"""
 immutable JacobiWeight{S} <: WeightSpace
     α::Float64
     β::Float64

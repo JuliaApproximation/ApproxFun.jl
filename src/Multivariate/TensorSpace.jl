@@ -235,8 +235,8 @@ function transform(sp::TensorSpace,vals)
     fromtensor(transform!(sp,M))
 end
 
-evaluate{S<:TensorSpace}(f::Fun{S},x)=ProductFun(totensor(coefficients(f)),space(f))[x...]
-evaluate{S<:TensorSpace}(f::Fun{S},x,y)=ProductFun(totensor(coefficients(f)),space(f))[x,y]
+evaluate{S<:TensorSpace}(f::Fun{S},x)=ProductFun(totensor(coefficients(f)),space(f))(x...)
+evaluate{S<:TensorSpace}(f::Fun{S},x,y)=ProductFun(totensor(coefficients(f)),space(f))(x,y)
 
 
 

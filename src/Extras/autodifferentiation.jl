@@ -21,7 +21,7 @@ end
 *(f::Fun,d::DualFun)=DualFun(f*d.f,f*d.J)
 *(a::DualFun,b::DualFun)=DualFun(a.f*b.f,a.f*b.J+b.f*a.J)
 
-Base.getindex(d::DualFun,x)=DualFun(d.f[x],Evaluation(rangespace(d.J),x)*d.J)
+Base.call(d::DualFun,x)=DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
 
 jacobian(d::DualFun)=d.J
 

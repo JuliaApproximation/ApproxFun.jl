@@ -15,7 +15,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
                 $Func(increase_jacobi_parameter(+1,f))
             elseif α ≤ -1.0 || β ≤ -1.0
                 fs = Fun(f.coefficients,f.space.space)
-                return Inf*0.5*$Len(d)*(sign(fs[d.a])+sign(fs[d.b]))/2
+                return Inf*0.5*$Len(d)*(sign(fs(d.a))+sign(fs(d.b)))/2
             elseif α == β == -0.5
                 return 0.5*$Len(d)*f.coefficients[1]*π
             elseif α == β == 0.5
@@ -116,7 +116,7 @@ function integrate{J<:JacobiWeight}(f::Fun{J})
             # we normalized so it sums to zero, and so backslash works
             w=Fun(x->exp(-40x^2),81)
             w1=Fun(coefficients(w),S)
-            w2=Fun(x->w1[x],domain(w1))
+            w2=Fun(x->w1(x),domain(w1))
             c=s/sum(w1)
             v=f-w1*c
             (c*integrate(w2))⊕linsolve(D,v;tolerance=100eps())

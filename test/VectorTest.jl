@@ -116,11 +116,11 @@ G=Fun(z->in(z,Γ[2])?[1 -z^(-1); 0 1]:
 G1=demat(mat(G)[:,1])
 M=Multiplication(G,space(G1))
 u=M*G1
-@test norm(u[exp(.1im)]-[exp(.2im),0])<100eps()
-@test norm(u[.5exp(.1im)]-[1,0])<100eps()
+@test norm(u(exp(.1im))-[exp(.2im),0])<100eps()
+@test norm(u(.5exp(.1im))-[1,0])<100eps()
 
 # Vector operations
-@test_approx_eq (Fun(x->[1., 2.]) + [2, 2])[0.] [3., 4.]
+@test_approx_eq (Fun(x->[1., 2.]) + [2, 2])(0.) [3., 4.]
 
 
 
@@ -129,5 +129,4 @@ u=M*G1
 
 f=Fun(t->[cos(t) 0;sin(t) 1],[-π,π])
 g=Fun(f,Space(PeriodicInterval(-π,π)))
-@test_approx_eq g[.1] f[.1]
-
+@test_approx_eq g(.1) f(.1)

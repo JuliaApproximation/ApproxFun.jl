@@ -8,19 +8,19 @@ end
 c = rand(1000)
 x=rand(10000)
 f=Fun(c,Chebyshev)
-y=f[x]
-y=f[x]
+y=f(x)
+y=f(x)
 
-@time y=f[x]
+@time y=f(x)
 println("Clenshaw large coeffs, many points: Time should be ~0.024")
 # 0.012482274  with unsafe_view
 # 0.024306262 with inbounds
 
-y=f[.1]
-y=f[.1]
-y=f[.1]
+y=f(.1)
+y=f(.1)
+y=f(.1)
 
-@time y=f[.1];
+@time y=f(.1);
 println("Clenshaw large coeffs, 1 point: Time should be ~6e-6")
 
 # @time is 8.853e-6 seconds

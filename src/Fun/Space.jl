@@ -326,11 +326,11 @@ function defaultcoefficients(f,a,b)
         if spacescompatible(a,csp)||spacescompatible(b,csp)
             # b is csp too, so we are stuck, try Fun constructor
             if domain(b)⊆domain(a)
-                coefficients(Fun(x->Fun(f,a)[x],b))
+                coefficients(Fun(x->Fun(f,a)(x),b))
             else
                 # we set the value to be zero off the domain of definition
                 d=domain(a)
-                coefficients(Fun(x->x∈d?Fun(f,a)[x]:zero(Fun(f,a)[x]),b))
+                coefficients(Fun(x->x∈d?Fun(f,a)(x):zero(Fun(f,a)(x)),b))
             end
         else
             coefficients(f,a,csp,b)

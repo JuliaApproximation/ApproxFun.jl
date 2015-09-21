@@ -134,7 +134,7 @@ Base.vec{S<:DirectSumSpace,T}(f::Fun{S,T})=Fun[vec(f,j) for j=1:length(space(f).
 
 ## values
 
-itransform(S::SumSpace,cfs)=Fun(cfs,S)[points(S,length(cfs))]
+itransform(S::SumSpace,cfs)=Fun(cfs,S)(points(S,length(cfs)))
 
 
 ## SumSpace{ConstantSpace}

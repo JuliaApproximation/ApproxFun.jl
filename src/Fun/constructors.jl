@@ -49,8 +49,8 @@ end
 Fun{ReComp}(f,d::Space{ReComp},n::Integer)=defaultFun(f,d,n)
 
 # the following is to avoid ambiguity
-# Fun(f::Fun,d) should be equivalent to Fun(x->f[x],d)
-#TODO: fall back to Fun(x->f[x],d) if conversion not implemented?
+# Fun(f::Fun,d) should be equivalent to Fun(x->f(x),d)
+#TODO: fall back to Fun(x->f(x),d) if conversion not implemented?
 Fun(f::Fun,d::Space)=Fun(coefficients(f,d),d)
 Fun{T<:Space}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
 Fun{T<:Space}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
@@ -142,7 +142,7 @@ function zerocfsFun(f, d::Space)
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
         if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&
-                all(k->norm(cf[r[k]]-fr[k],1)<1E-4,1:length(r))
+                all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end
     end

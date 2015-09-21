@@ -90,11 +90,11 @@ function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
     d=domain(f)
     for k=1:length(d)
         if in(x,d[k])
-            return vec(f,k)[x]
+            return vec(f,k)(x)
         end
     end
 end
-evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f[xk] for xk in x]
+evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f(xk) for xk in x]
 
 ## space promotion
 

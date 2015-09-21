@@ -4,7 +4,7 @@ abstract BivariateFun{T} <: MultivariateFun{T}
 export grad,lap,curl
 
 #implements coefficients/values/evaluate
-Base.getindex(f::BivariateFun,x,y)=evaluate(f,x,y)
+Base.call(f::BivariateFun,x,y)=evaluate(f,x,y)
 space(f::BivariateFun)=space(f,1)⊗space(f,2)
 domain(f::BivariateFun)=domain(f,1)*domain(f,2)
 
@@ -66,5 +66,3 @@ Base.sum{TS<:TensorSpace}(f::Fun{TS})=sum(ProductFun(f))
 Base.kron(f::Fun,g::Fun)=Fun(LowRankFun([f],[g]))
 Base.kron(f::Fun,g::Number)=kron(f,Fun(g))
 Base.kron(f::Number,g::Fun)=kron(Fun(f),g)
-
-
