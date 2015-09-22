@@ -182,7 +182,7 @@ end
 
 
 
-for TYP in (:SumSpace,:PiecewiseSpace), (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
+for TYP in (:SumSpace,:PiecewiseSpace),  (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
     @eval begin
         function $OPrule(S1::$TYP,S2::$TYP)
             cs1,cs2=map(canonicalspace,S1.spaces),map(canonicalspace,S2.spaces)
@@ -190,10 +190,16 @@ for TYP in (:SumSpace,:PiecewiseSpace), (OPrule,OP) in ((:conversion_rule,:conve
                 NoSpace()
             elseif canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
                 S1 ≤ S2?S1:S2  # choose smallest space by sorting
-            elseif cs1==cs2 ||
-                    all(map((a,b)->$OP(a,b)!=NoSpace(),S1.spaces,S2.spaces))
+            elseif cs1==cs2
                 # we can just map down
-                $TYP(map($OP,S1.spaces,S2.spaces))
+                # $TYP(map($OP,S1.spaces,S2.spaces))
+                # this is commented out due to Issue #13261
+                newspaces=[$OP(S1.spaces[k],S2.spaces[k]) for k=1:length(S1.spaces)]
+                if any(b->b==NoSpace(),newspaces)
+                    NoSpace()
+                else
+                    $TYP(newspaces)
+                end
             elseif sort([cs1...])== sort([cs2...])
                 # sort S1
                 p=perm(cs1,cs2)
