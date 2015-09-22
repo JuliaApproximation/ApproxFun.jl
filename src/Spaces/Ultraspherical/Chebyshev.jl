@@ -52,12 +52,13 @@ identity_fun(d::Chebyshev)=identity_fun(domain(d))
 
 # union_rule dictates how to create a space that both spaces can be converted to
 # in this case, it means
-function union_rule{S<:Ultraspherical}(s1::PiecewiseSpace{S},s2::PiecewiseSpace{S})
-    PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
+function union_rule{S1<:Tuple{Vararg{Ultraspherical}},
+                    S2<:Tuple{Vararg{Ultraspherical}}}(s1::PiecewiseSpace{S1},s2::PiecewiseSpace{S2})
+    PiecewiseSpace(map(Chebyshev,merge(domain(s1),domain(s2)).domains))
 end
 
-function union_rule{S<:Ultraspherical}(s1::PiecewiseSpace{S},s2::S)
-    PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
+function union_rule{S1<:Tuple{Vararg{Ultraspherical}}}(s1::PiecewiseSpace{S1},s2::Ultraspherical)
+    PiecewiseSpace(map(Chebyshev,merge(domain(s1),domain(s2)).domains))
 end
 
 
