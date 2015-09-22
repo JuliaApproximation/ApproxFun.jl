@@ -1,7 +1,6 @@
 
 include("SumSpace.jl")
 include("ArraySpace.jl")
-include("PiecewiseSpace.jl")
 include("ProductSpaceOperators.jl")
 include("PrependOperators.jl")
 include("SliceSpace.jl")
@@ -9,6 +8,26 @@ include("SliceSpace.jl")
 
 ⊕(A::Space,B::Space)=domainscompatible(A,B)?SumSpace(A,B):PiecewiseSpace(A,B)
 ⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
+
+
+
+# Conversion from Vector to Tuple
+# If a Vector fun has different spaces in each component we represenent
+#  it by a Tuple fun, so this allows conversion.
+
+
+function coefficients(f::Vector,a::VectorSpace,b::TupleSpace)
+    A=a.space
+    n=length(a)
+    @assert n==length(b.spaces)
+    ret=copy(f)
+    for k=1:n
+        ret[k:n:end]=coefficients(ret[k:n:end],A,b.spaces[k])
+    end
+    ret
+end
+
+
 
 
 

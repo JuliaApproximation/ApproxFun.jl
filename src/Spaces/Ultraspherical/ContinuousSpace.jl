@@ -100,9 +100,9 @@ end
 ## Conversion
 
 coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace)=defaultcoefficients(cfsin,A,B)
-bandinds{D}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,1},ContinuousSpace})=-1,length(domain(rangespace(C)))
+bandinds{DD,D}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},ContinuousSpace})=-1,length(domain(rangespace(C)))
 
-function addentries!{T,D}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,1},ContinuousSpace,T},A,kr::Range)
+function addentries!{T,DD,D}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},ContinuousSpace,T},A,kr::Range)
     d=domain(rangespace(C))
     K=length(d)
     if isperiodic(d)
@@ -133,8 +133,8 @@ function addentries!{T,D}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D}
     A
 end
 
-bandinds{D}(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,1}})=isperiodic(domainspace(C))?(1-2length(domain(rangespace(C))),1):(-length(domain(rangespace(C))),1)
-function addentries!{T,D}(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,1},T},A,kr::Range)
+bandinds{D,DD}(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1}})=isperiodic(domainspace(C))?(1-2length(domain(rangespace(C))),1):(-length(domain(rangespace(C))),1)
+function addentries!{T,D,DD}(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},T},A,kr::Range)
     d=domain(domainspace(C))
     K=length(d)
     if isperiodic(d)

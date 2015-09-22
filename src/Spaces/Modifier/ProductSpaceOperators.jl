@@ -7,7 +7,8 @@ immutable DiagonalPiecewiseOperator{T<:Number,B<:Operator} <: AbstractDiagonalIn
 end
 
 DiagonalPiecewiseOperator{B<:Operator}(v::Vector{B})=DiagonalPiecewiseOperator{mapreduce(eltype,promote_type,v),B}(v)
-DiagonalPiecewiseOperator(v::Vector{Any})=DiagonalPiecewiseOperator(Operator{mapreduce(eltype,promote_type,v)}[v...;])
+DiagonalPiecewiseOperator{TT<:Tuple}(v::Union{Vector{Any},TT})=DiagonalPiecewiseOperator(Operator{mapreduce(eltype,promote_type,v)}[v...;])
+
 
 
 for op in (:domainspace,:rangespace)
@@ -181,9 +182,9 @@ end
 
 
 
-for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
+for TYP in (:SumSpace,:PiecewiseSpace), (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
     @eval begin
-        function $OPrule(S1::SumSpace,S2::SumSpace)
+        function $OPrule(S1::$TYP,S2::$TYP)
             cs1,cs2=map(canonicalspace,S1.spaces),map(canonicalspace,S2.spaces)
             if length(S1.spaces)!=length(S2.spaces)
                 NoSpace()
@@ -192,23 +193,25 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
             elseif cs1==cs2 ||
                     all(map((a,b)->$OP(a,b)!=NoSpace(),S1.spaces,S2.spaces))
                 # we can just map down
-                SumSpace(map($OP,S1.spaces,S2.spaces))
+                $TYP(map($OP,S1.spaces,S2.spaces))
             elseif sort([cs1...])== sort([cs2...])
                 # sort S1
                 p=perm(cs1,cs2)
-                $OP(SumSpace(S1.spaces[p]),S2)
+                $OP($TYP(S1.spaces[p]),S2)
             elseif length(S1.spaces)==length(S2.spaces)==2  &&
                     $OP(S1.spaces[1],S2.spaces[2])!=NoSpace() &&
                     $OP(S1.spaces[2],S2.spaces[1])!=NoSpace()
                 #TODO: general length
-                SumSpace($OP(S1.spaces[1],S2.spaces[2]),
-                         $OP(S1.spaces[2],S2.spaces[1]))
+                $TYP($OP(S1.spaces[1],S2.spaces[2]),
+                     $OP(S1.spaces[2],S2.spaces[1]))
             else
                 NoSpace()
             end
         end
     end
 end
+
+
 
 ## Derivative
 
@@ -270,4 +273,40 @@ function addentries!{S,SS<:SumSpace}(M::Multiplication{S,SS},A,k)
     Mb=Multiplication(M.f,b)
 
     addentries!(DiagonalInterlaceOperator([Ma,Mb]),A,k)
+end
+
+
+
+
+## Definite Integral
+
+# This makes sure that the defaults from a given Domain are respected for the UnionDomain.
+
+DefiniteIntegral(d::UnionDomain) = DefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
+DefiniteLineIntegral(d::UnionDomain) = DefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
+
+####### This is a hack to get the Faraday Cage working.
+function getindex{PWS<:PiecewiseSpace,T}(Σ::DefiniteLineIntegral{PWS,T},kr::Range)
+    d = domain(Σ)
+    n = length(d)
+    promote_type(T,eltype(d))[k ≤ n? one(T) : zero(T) for k=kr]
+end
+datalength{PWS<:PiecewiseSpace,T}(Σ::DefiniteLineIntegral{PWS,T})=length(domain(Σ))
+####### This is a hack to get the Faraday Cage working.
+
+## TensorSpace of two PiecewiseSpaces
+
+Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{@compat(Tuple{PWS1,PWS2})},i::Integer,j::Integer)=d[1][i]⊗d[2][j]
+Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{@compat(Tuple{PWS1,PWS2})},i::Range,j::Range)=PiecewiseSpace(d[1][i])⊗PiecewiseSpace(d[2][j])
+
+## ProductFun
+
+##  Piecewise
+
+function pieces{PS<:PiecewiseSpace}(U::ProductFun{PS})
+    ps=space(U,1)
+    sp2=space(U,2)
+    m=length(ps)
+    C=coefficients(U)
+    [ProductFun(C[k:m:end,:],ps[k],sp2) for k=1:m]
 end

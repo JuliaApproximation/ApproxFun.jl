@@ -33,7 +33,7 @@ end
 
 
 
-function continuity(d::Vector,order::Integer)
+function continuity(d::Union(Vector,Tuple),order::Integer)
 
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},m-1,m)
@@ -45,7 +45,7 @@ function continuity(d::Vector,order::Integer)
     B
 end
 
-function continuity(d::Vector,kr::UnitRange)
+function continuity(d::Union(Vector,Tuple),kr::UnitRange)
     @assert first(kr)==0
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},length(kr)*(m-1),m)
@@ -57,7 +57,7 @@ end
 
 
 
-function dirichlet{T<:Union(IntervalDomain,Space)}(d::Vector{T})
+function dirichlet{T<:Union(IntervalDomain,Space)}(d::Union(Vector{T},Tuple{Vararg{T}}))
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
     B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
@@ -65,7 +65,7 @@ function dirichlet{T<:Union(IntervalDomain,Space)}(d::Vector{T})
     continuity(d,0:1)]
 end
 
-function neumann{T<:Union(IntervalDomain,Space)}(d::Vector{T})
+function neumann{T<:Union(IntervalDomain,Space)}(d::Union(Vector{T},Tuple{Vararg{T}}))
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
     B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
@@ -74,7 +74,7 @@ function neumann{T<:Union(IntervalDomain,Space)}(d::Vector{T})
 end
 
 
-function periodic{T<:Union(IntervalDomain,Space)}(d::Vector{T})
+function periodic{T<:Union(IntervalDomain,Space)}(d::Union(Vector{T},Tuple{Vararg{T}}))
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
     B[1,1]=ldirichlet(d[1]);B[1,end]=-rdirichlet(d[end])
@@ -83,7 +83,7 @@ function periodic{T<:Union(IntervalDomain,Space)}(d::Vector{T})
     continuity(d,0:1)]
 end
 
-function periodic{T<:Union(IntervalDomain,Space)}(d::Vector{T})
+function periodic{T<:Union(IntervalDomain,Space)}(d::Union(Vector{T},Tuple{Vararg{T}}))
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
     B[1:2,1]=ivp(d[1])

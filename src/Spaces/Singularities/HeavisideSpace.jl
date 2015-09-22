@@ -15,16 +15,16 @@ canonicalspace(sp::HeavisideSpace)=PiecewiseSpace(map(ChebyshevDirichlet{1,1},pi
 
 conversion_rule{D}(sp::HeavisideSpace,sp2::PiecewiseSpace{ChebyshevDirichlet{1,1,D}})=sp
 
-bandinds{HS<:HeavisideSpace,D}(::Conversion{HS,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,1}})=0,0
-bandinds{HS<:HeavisideSpace,D}(::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,1},HS})=0,0
-function addentries!{HS<:HeavisideSpace,D}(C::Conversion{HS,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,1}},A,kr::Range)
+bandinds{HS<:HeavisideSpace,DD,D}(::Conversion{HS,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1}})=0,0
+bandinds{HS<:HeavisideSpace,DD,D}(::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},HS})=0,0
+function addentries!{HS<:HeavisideSpace,DD,D}(C::Conversion{HS,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1}},A,kr::Range)
    for k=kr
         A[k,k]+=1
     end
     A
 end
 
-function addentries!{HS<:HeavisideSpace,D}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,1},HS},A,kr::Range)
+function addentries!{HS<:HeavisideSpace,DD,D}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},HS},A,kr::Range)
    for k=kr
         A[k,k]+=1
     end

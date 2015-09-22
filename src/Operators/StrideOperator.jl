@@ -164,6 +164,8 @@ end
 
 
 
+domainscompatible{T<:Operator}(A::Matrix{T})=domainscompatible(map(domainspace,A))
+
 function spacescompatible{T<:Operator}(A::Matrix{T})
     for k=1:size(A,1)
         if !spacescompatible(map(rangespace,vec(A[k,:])))
@@ -186,6 +188,8 @@ function domainspace{T<:Operator}(A::Matrix{T})
     spl=map(domainspace,vec(A[1,:]))
     if spacescompatible(spl)
         ArraySpace(first(spl),length(spl))
+    elseif domainscompatible(spl)
+        TupleSpace(spl)
     else
         PiecewiseSpace(spl)
     end
@@ -197,6 +201,8 @@ function rangespace{T<:Operator}(A::Vector{T})
     spl=map(rangespace,A)
     if spacescompatible(spl)
         ArraySpace(first(spl),length(spl))
+    elseif domainscompatible(spl)
+        TupleSpace(spl)
     else
         PiecewiseSpace(spl)
     end
@@ -364,7 +370,3 @@ end
 for op in (:domainspace,:rangespace)
     @eval $op(D::DiagonalInterlaceOperator)=devec(map($op,D.ops))
 end
-
-
-
-

@@ -128,16 +128,20 @@ spacescompatible(f,g)=false
 
 
 # check a list of spaces for compatibility
-function spacescompatible{T<:Space}(v::Vector{T})
-    for k=1:length(v)-1
-        if !spacescompatible(v[k],v[k+1])
-            return false
+for OP in (:spacescompatible,:domainscompatible)
+    @eval begin
+        function $OP{T<:Space}(v::Vector{T})
+            for k=1:length(v)-1
+                if !$OP(v[k],v[k+1])
+                    return false
+                end
+            end
+            true
         end
-    end
-    true
-end
 
-spacescompatible{T<:Space}(v::Array{T})=spacescompatible(vec(v))
+        $OP{T<:Space}(v::Array{T})=$OP(vec(v))
+    end
+end
 
 
 

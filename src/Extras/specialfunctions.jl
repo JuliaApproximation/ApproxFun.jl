@@ -625,7 +625,7 @@ end
 
 for OP in (:(Base.abs),:(Base.sign))
     @eval begin
-        $OP{S,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,1},T})=depiece(mapreduce($OP,vcat,pieces(f)))
-        $OP{S,B}(f::Fun{PiecewiseSpace{S,B,1}})=depiece(mapreduce($OP,vcat,pieces(f)))
+        $OP{S,DD,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,DD,1},T})=depiece(mapreduce($OP,vcat,pieces(f)))
+        $OP{S,DD,B}(f::Fun{PiecewiseSpace{S,B,DD,1}})=depiece(mapreduce($OP,vcat,pieces(f)))
     end
 end
