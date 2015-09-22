@@ -310,7 +310,7 @@ isbazeros{T}(::Type{T},rws::UnitRange,cols::UnitRange,bnds)=isbazeros(T,rws,cols
 isbazeros{T}(::Type{T},kr::UnitRange,::Colon,bnds)=isbazeros(T,kr,:,-bnds[1],bnds[end])
 isbazeros{T}(::Type{T},kr::Colon,jr::UnitRange,bnds)=isbazeros(T,:,jr,-bnds[1],bnds[end])
 
-isbazeros(rw::Union(UnitRange,Colon),bnds...)=isbazeros(Float64,rw,bnds...)
+isbazeros(rw::Union{UnitRange,Colon},bnds...)=isbazeros(Float64,rw,bnds...)
 
 
 
@@ -544,4 +544,4 @@ end
 
 
 
-addentries!(B::Union(BandedMatrix,IndexTranspose,IndexStride),A,kr::Range)=addentries!(B,1,A,kr)
+addentries!(B::Union{BandedMatrix,IndexTranspose,IndexStride},A,kr::Range)=addentries!(B,1,A,kr)

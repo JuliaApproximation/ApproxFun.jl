@@ -10,22 +10,22 @@ isproductop(a)=iskronop(a)  # all kron ops are product ops
 iskronop(::)=false
 iskronop(::KroneckerOperator)=true
 
-iskronop(A::Union(SpaceOperator,ConstantTimesOperator,ConversionWrapper,
-                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper))=iskronop(A.op)
+iskronop(A::Union{SpaceOperator,ConstantTimesOperator,ConversionWrapper,
+                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper})=iskronop(A.op)
 iskronop(A::TimesOperator)=all(iskronop,A.ops)
 iskronop{V,T<:AbstractArray}(::ConstantOperator{V,T})=true
 
 
 iskronsumop(::)=false
 iskronsumop(A::PlusOperator)=all(a->iskronop(a)||iskronsumop(a),A.ops)
-iskronsumop(A::Union(SpaceOperator,ConstantTimesOperator,ConversionWrapper,
-                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper))=iskronsumop(A.op)
+iskronsumop(A::Union{SpaceOperator,ConstantTimesOperator,ConversionWrapper,
+                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper})=iskronsumop(A.op)
 
 #dekron gives the operators that make up a productop
 
 dekron(K::KroneckerOperator,k)=K.ops[k]
 
-dekron(S::Union(ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper),k)=dekron(S.op,k)
+dekron(S::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper},k)=dekron(S.op,k)
 dekron(S::TimesOperator,k)=TimesOperator(BandedOperator{eltype(eltype(S))}[dekron(op,k) for op in S.ops])
 dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 #TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
@@ -36,8 +36,8 @@ dekron(K)=dekron(K,1),dekron(K,2)
 
 
 sumops(A)=A.ops
-sumops(A::Union(SpaceOperator,ConversionWrapper,
-                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper))=sumops(A.op)
+sumops(A::Union{SpaceOperator,ConversionWrapper,
+                  MultiplicationWrapper,DerivativeWrapper,IntegralWrapper})=sumops(A.op)
 sumops(A::ConstantTimesOperator)=BandedOperator{eltype(A)}[A.c*op for op in sumops(A.op)]
 function dekron(T::Type,A,k,::Colon)
     ret=Array(BandedOperator{T},0)
@@ -83,5 +83,3 @@ function simplifydekron(A)
     reducekronsum!(opsy,opsx)
     reducekronsum!(opsx,opsy)
 end
-
-

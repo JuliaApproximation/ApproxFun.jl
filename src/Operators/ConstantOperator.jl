@@ -100,6 +100,5 @@ Base.getindex{S,T}(op::ZeroFunctional{S,T},k::Range)=zeros(T,length(k))
 
 
 
-isconstop(::Union(ZeroOperator,ConstantOperator))=true
+isconstop(::Union{ZeroOperator,ConstantOperator})=true
 isconstop(::)=false
-

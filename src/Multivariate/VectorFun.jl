@@ -116,28 +116,6 @@ end
 
 ## scalar fun times vector
 
-# *{T<:Union(Number,Fun)}(f::Fun,v::Vector{T})=typeof(f)[f.*v[k] for k=1:length(v)]
-# *{T<:Union(Number,Fun)}(v::Vector{T},f::Fun)=typeof(f)[v[k].*f for k=1:length(v)]
-# *(f::Fun,v::Vector{Any})=typeof(f)[f.*v[k] for k=1:length(v)]
-# *(v::Vector{Any},f::Fun)=typeof(f)[v[k].*f for k=1:length(v)]
-#
-
-#*{T<:Fun}(v::Vector{T},a::Vector)=Fun(coefficients(v)*a,first(v).space)
-
-#
-# function *{T<:FFun}(v::Vector{T},a::Vector)
-#     fi=mapreduce(f->firstindex(f.coefficients),min,v)
-#     FFun(ShiftVector(coefficients(v)*a,1-fi),first(v).domain)
-# end
-
-# *{T<:Fun}(v::Vector{T},a::Vector)=Fun(coefficients(v)*a,first(v).space)
-# *{T<:Fun}(v::Vector{T},a::Number)=T[vk*a for vk in v]
-# *{T<:Fun}(a::Number,v::Vector{T})=T[vk*a for vk in v]
-#
-# ## Need to catch A*p, A'*p, A.'*p
-# ##TODO: A may not be same type as p
-
-
 
  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
      @eval begin

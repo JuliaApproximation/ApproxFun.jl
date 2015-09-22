@@ -5,7 +5,7 @@ export Evaluation,ivp,bvp
 abstract AbstractEvaluation{T}<:Functional{T}
 
 # M = Bool if endpoint
-immutable Evaluation{S<:Space,M<:Union(Number,Bool),T<:Number} <: AbstractEvaluation{T}
+immutable Evaluation{S<:Space,M<:Union{Number,Bool},T<:Number} <: AbstractEvaluation{T}
     space::S
     x::M
     order::Int
@@ -27,12 +27,12 @@ Evaluation(sp::Space{ComplexBasis},x,order::Integer)=Evaluation(Complex{real(elt
 Evaluation(sp::Space,x,order::Integer)=Evaluation(eltype(domain(sp)),sp,x,order)
 
 #Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
-Evaluation(d::Space,x::Union(Number,Bool))=Evaluation(d,x,0)
+Evaluation(d::Space,x::Union{Number,Bool})=Evaluation(d,x,0)
 
-Evaluation(d::Domain,x::Union(Number,Bool),n...)=Evaluation(Space(d),x,n...)
-Evaluation(x::Union(Number,Bool))=Evaluation(AnySpace(),x,0)
-Evaluation(x::Union(Number,Bool),k::Integer)=Evaluation(AnySpace(),x,k)
-Evaluation{T<:Number}(d::Vector{T},x::Union(Number,Bool),o::Integer)=Evaluation(Interval(d),x,o)
+Evaluation(d::Domain,x::Union{Number,Bool},n...)=Evaluation(Space(d),x,n...)
+Evaluation(x::Union{Number,Bool})=Evaluation(AnySpace(),x,0)
+Evaluation(x::Union{Number,Bool},k::Integer)=Evaluation(AnySpace(),x,k)
+Evaluation{T<:Number}(d::Vector{T},x::Union{Number,Bool},o::Integer)=Evaluation(Interval(d),x,o)
 
 
 Base.convert{BT<:Operator}(::Type{BT},E::Evaluation)=Evaluation(eltype(BT),E.space,E.x,E.order)
@@ -54,14 +54,14 @@ end
 
 ## EvaluationWrapper
 
-immutable EvaluationWrapper{S<:Space,M<:Union(Number,Bool),FS<:Functional,T<:Number} <: AbstractEvaluation{T}
+immutable EvaluationWrapper{S<:Space,M<:Union{Number,Bool},FS<:Functional,T<:Number} <: AbstractEvaluation{T}
     space::S
     x::M
     order::Int
     functional::FS
 end
 
-EvaluationWrapper(sp::Space,x::Union(Number,Bool),order::Integer,func::Functional)=EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
+EvaluationWrapper(sp::Space,x::Union{Number,Bool},order::Integer,func::Functional)=EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
 getindex(E::EvaluationWrapper,kr::Range)=getindex(E.functional,kr)
 
 domainspace(E::AbstractEvaluation)=E.space

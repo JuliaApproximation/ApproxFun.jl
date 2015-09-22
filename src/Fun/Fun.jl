@@ -20,7 +20,7 @@ returns a Fun with coefficients in the space
 """
 Fun(coeff::Vector,sp::Space)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
 Fun{T<:Integer}(coeff::Vector{T},sp::Space)=Fun(1.0coeff,sp)
-Fun(::Vector{None},sp::Space)=Fun(Float64[],sp)
+
 function Fun(v::Vector{Any},sp::Space)
     @assert isempty(v)
     Fun(Float64[],sp)
@@ -360,8 +360,8 @@ end
 
 *{S,T,U,V}(f::Fun{S,T},g::Fun{U,V})=f.*g
 ^(f::Fun,k::Integer)=f.^k
-^(f::Fun,k::Union(Number,Fun))=f.^k
-/(c::Union(Number,Fun),g::Fun)=c./g
+^(f::Fun,k::Union{Number,Fun})=f.^k
+/(c::Union{Number,Fun},g::Fun)=c./g
 
 
 include("constructors.jl")

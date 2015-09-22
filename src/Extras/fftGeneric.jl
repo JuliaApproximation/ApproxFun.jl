@@ -1,4 +1,4 @@
-typealias BigFloats Union(BigFloat,Complex{BigFloat})
+typealias BigFloats Union{BigFloat,Complex{BigFloat}}
 
 if VERSION >= v"0.4-dev"
     # old DFT API: p(x) # deprecated

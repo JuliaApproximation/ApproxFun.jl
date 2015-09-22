@@ -11,7 +11,7 @@ include("kron.jl")
 
 ## PDE
 
-function lap(d::Union(ProductDomain,TensorSpace))
+function lap(d::Union{ProductDomain,TensorSpace})
     @assert length(d)==2
     Dx=Derivative(d[1])
     Dy=Derivative(d[2])
@@ -20,7 +20,7 @@ end
 
 
 for TYP in (:Derivative,:Integral)
-    @eval $TYP(d::Union(ProductDomain,TensorSpace),k::Integer)=k==1?$TYP(d[1])⊗eye(d[2]):eye(d[1])⊗$TYP(d[2])
+    @eval $TYP(d::Union{ProductDomain,TensorSpace},k::Integer)=k==1?$TYP(d[1])⊗eye(d[2]):eye(d[1])⊗$TYP(d[2])
 end
 
 grad(d::ProductDomain)=[Derivative(d,k) for k=1:length(d.domains)]
@@ -29,7 +29,7 @@ grad(d::ProductDomain)=[Derivative(d,k) for k=1:length(d.domains)]
 
 for op in (:dirichlet,:neumann,:diffbcs)
     @eval begin
-        function $op(d::Union(ProductDomain,TensorSpace),k...)
+        function $op(d::Union{ProductDomain,TensorSpace},k...)
             @assert length(d)==2
             Bx=$op(d[1],k...)
             By=$op(d[2],k...)
@@ -45,7 +45,7 @@ for op in (:dirichlet,:neumann,:diffbcs)
 end
 
 
-function timedirichlet(d::Union(ProductDomain,TensorSpace))
+function timedirichlet(d::Union{ProductDomain,TensorSpace})
     @assert length(d.domains)==2
     Bx=dirichlet(d.domains[1])
     Bt=dirichlet(d.domains[2])[1]

@@ -132,8 +132,8 @@ end
 # We need to support A+1 in addition to A+I primarily for matrix case: A+eye(2)
 for OP in (:+,:-,:(.+),:(.-))
     @eval begin
-        $OP(c::Union(UniformScaling,Number),A::Operator)=$OP(convert(Operator{mat_promote_type(eltype(A),eltype(c))},c),A)
-        $OP(A::Operator,c::Union(UniformScaling,Number))=$OP(A,convert(Operator{mat_promote_type(eltype(A),eltype(c))},c))
+        $OP(c::Union{UniformScaling,Number},A::Operator)=$OP(convert(Operator{mat_promote_type(eltype(A),eltype(c))},c),A)
+        $OP(A::Operator,c::Union{UniformScaling,Number})=$OP(A,convert(Operator{mat_promote_type(eltype(A),eltype(c))},c))
     end
 end
 

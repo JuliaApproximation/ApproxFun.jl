@@ -11,7 +11,7 @@ isdiagop{T<:Number}(B::BandedOperator{T})=bandinds(B)==(0,0)
 isdiagop{T<:BandedMatrix}(K::BandedOperator{T},k)=iskronop(K)?isdiagop(dekron(K,k)):false
 isdiagop(K::KroneckerOperator,k)=isdiagop(K.ops[k])
 isdiagop(S::WrapperOperator,k)=isdiagop(S.op,k)
-isdiagop(A::Union(PlusOperator,TimesOperator),k)=all(op->isdiagop(op,k),A.ops)
+isdiagop(A::Union{PlusOperator,TimesOperator},k)=all(op->isdiagop(op,k),A.ops)
 
 
 # diagop gets out the op corresponding to the k-th column

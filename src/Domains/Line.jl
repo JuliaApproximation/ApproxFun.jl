@@ -163,10 +163,10 @@ for OP in (:+,:-)
 end
 
 
-Base.length(d::Union(Line,PeriodicLine)) = Inf
-Base.first(d::Union(Line,PeriodicLine))= -Inf
-Base.last(d::Union(Line,PeriodicLine))= Inf
-complexlength(d::Union(Line,PeriodicLine))=Inf
+Base.length(d::Union{Line,PeriodicLine}) = Inf
+Base.first(d::Union{Line,PeriodicLine})= -Inf
+Base.last(d::Union{Line,PeriodicLine})= Inf
+complexlength(d::Union{Line,PeriodicLine})=Inf
 
 ## vectorized
 
@@ -206,7 +206,3 @@ for typ in (:Line,:PeriodicLine)
         end
     end
 end
-
-
-
-

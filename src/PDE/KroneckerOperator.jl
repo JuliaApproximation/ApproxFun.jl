@@ -145,8 +145,8 @@ end
 
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
-blockbandinds(::Union(ConstantOperator,ZeroOperator),::Integer)=0
-blockbandinds(K::Union(ConversionWrapper,MultiplicationWrapper,SpaceOperator,ConstantTimesOperator),k::Integer)=blockbandinds(K.op,k)
+blockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer)=0
+blockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,SpaceOperator,ConstantTimesOperator},k::Integer)=blockbandinds(K.op,k)
 
 
 

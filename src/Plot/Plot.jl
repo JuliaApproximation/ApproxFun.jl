@@ -163,7 +163,7 @@ function complexlayer{F<:Fun}(f::Vector{F},v...;opts...)
 end
 
 for (plt,TYP) in ((:plot,:Real),(:complexplot,:Complex),(:layer,:Real),(:complexlayer,:Complex))
-    @eval $plt{S<:Union(PiecewiseSpace,ArraySpace),T<:$TYP}(f::Fun{S,T},v...;opts...)=$plt(vec(f),v...;opts...)
+    @eval $plt{S<:Union{PiecewiseSpace,ArraySpace},T<:$TYP}(f::Fun{S,T},v...;opts...)=$plt(vec(f),v...;opts...)
 end
 
 
@@ -239,8 +239,8 @@ for OP in (:plot,:layer)
 end
 
 
-domainplot(f::Union(Fun,Space),v...;kwds...)=plot(domain(f),v...;kwds...)
-domainlayer(f::Union(Fun,Space))=layer(domain(f))
+domainplot(f::Union{Fun,Space},v...;kwds...)=plot(domain(f),v...;kwds...)
+domainlayer(f::Union{Fun,Space})=layer(domain(f))
 
 
 

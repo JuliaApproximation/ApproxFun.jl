@@ -311,5 +311,5 @@ end
 ## Wrapper
 
 #TODO: Should cases that modify be included?
-typealias WrapperOperator Union(SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
-                                    ConversionWrapper,ConstantTimesOperator,ConstantTimesFunctional,TransposeOperator)
+typealias WrapperOperator Union{SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
+                                    ConversionWrapper,ConstantTimesOperator,ConstantTimesFunctional,TransposeOperator}

@@ -58,7 +58,7 @@ end
 
 ## Adaptive constructor selector
 
-function LowRankFun(f::Function,dx::Space,dy::Space;method::Symbol=:standard,tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function LowRankFun(f::Function,dx::Space,dy::Space;method::Symbol=:standard,tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     if method == :standard
         F,maxabsf=standardLowRankFun(f,dx,dy;tolerance=tolerance,gridx=gridx,gridy=gridy,maxrank=maxrank)
     elseif method == :Cholesky
@@ -75,7 +75,7 @@ end
 
 ## Standard adaptive construction
 
-function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dy)
     T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)),eltype(dy),eltype(domain(dy)))
 
@@ -119,7 +119,7 @@ end
 
 ## Adaptive Cholesky decomposition, when f is Hermitian positive (negative) definite
 
-function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union(Symbol,@compat(Tuple{Symbol,Number}))=:relative,grid::Integer=64,maxrank::Integer=100)
+function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,grid::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dx)
     T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)))
 

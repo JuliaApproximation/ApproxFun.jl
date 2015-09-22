@@ -99,7 +99,7 @@ function invfromcanonicalD{LL<:LaurentDirichlet}(S::MappedSpace{LL,PeriodicLine{
 end
 
 
-function Derivative{SS<:Space,LD<:Union(Line,Ray,PeriodicLine,Curve),T}(S::MappedSpace{SS,LD,T},order::Int)
+function Derivative{SS<:Space,LD<:Union{Line,Ray,PeriodicLine,Curve},T}(S::MappedSpace{SS,LD,T},order::Int)
     D1=invfromcanonicalD(S)*Derivative(S.space)
     D=DerivativeWrapper(SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1))),1)
     if order==1

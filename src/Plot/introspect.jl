@@ -14,7 +14,7 @@ function treeadd_edges!(str,ops,node,M,labels)
 end
 
 
-function introspect(A::Union(BandedOperator,Functional,Space))
+function introspect(A::Union{BandedOperator,Functional,Space})
     require("TikzGraphs")
     m=treecount(A)
 
@@ -52,8 +52,8 @@ texname{T}(A::ArraySpace{T,2})="["*string(size(A,1))*"\$\\times\$"*string(size(A
 texname(J::JacobiWeight)="\$(1+x)\^{"*string(J.α)*"}(1-x)\^{"*string(J.β)*"}\$"
 texname(M::MappedSpace)=texname(M.domain)
 
-treecount(S::Union(DirectSumSpace,PiecewiseSpace))=1+mapreduce(treecount,+,S.spaces)
-treecount(S::Union(ArraySpace,JacobiWeight,MappedSpace))=1+treecount(S.space)
+treecount(S::Union{DirectSumSpace,PiecewiseSpace})=1+mapreduce(treecount,+,S.spaces)
+treecount(S::Union{ArraySpace,JacobiWeight,MappedSpace})=1+treecount(S.space)
 treecount(::Space)=1
 
 
@@ -81,11 +81,11 @@ treecount(::Conversion)=1
 treecount(::Multiplication)=1
 
 
-treecount(M::Union(MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
-                   ConversionWrapper,SpaceOperator,DiagonalArrayOperator,ConstantTimesOperator))=1+treecount(M.op)
-treecount(A::Union(PlusOperator,TimesOperator,InterlaceOperator,
+treecount(M::Union{MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
+                   ConversionWrapper,SpaceOperator,DiagonalArrayOperator,ConstantTimesOperator})=1+treecount(M.op)
+treecount(A::Union{PlusOperator,TimesOperator,InterlaceOperator,
                    DiagonalPiecewiseOperator,SumInterlaceOperator,
-                   KroneckerOperator))=1+mapreduce(treecount,+,A.ops)
+                   KroneckerOperator})=1+mapreduce(treecount,+,A.ops)
 
 domainrangestr(A)=texname(domainspace(A))*"\$\\rightarrow\$"*texname(rangespace(A))
 
@@ -113,7 +113,7 @@ end
 
 
 
-@eval add_edges!(A::Union(SpaceOperator,DerivativeWrapper),nd,M,labels)=treeadd_edges!(string(nd)*":"*texname(A),[A.op],nd,M,labels)
+@eval add_edges!(A::Union{SpaceOperator,DerivativeWrapper},nd,M,labels)=treeadd_edges!(string(nd)*":"*texname(A),[A.op],nd,M,labels)
 
 
 

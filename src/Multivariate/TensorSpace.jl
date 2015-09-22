@@ -154,7 +154,7 @@ end
 
 ## points
 
-points(d::Union(BivariateDomain,BivariateSpace),n,m)=points(d,n,m,1),points(d,n,m,2)
+points(d::Union{BivariateDomain,BivariateSpace},n,m)=points(d,n,m,1),points(d,n,m,2)
 
 function points(d::BivariateSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)

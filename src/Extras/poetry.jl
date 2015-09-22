@@ -47,7 +47,7 @@ Base.diff(d::Space,μ::Integer)=Derivative(d,μ)
 Base.diff(d::Domain,μ::Integer)=Derivative(d,μ)
 Base.diff(d::Domain)=Base.diff(d,1)
 
-Base.diff(d::Union(ProductDomain,TensorSpace),k::Integer)=Derivative(d,k)
+Base.diff(d::Union{ProductDomain,TensorSpace},k::Integer)=Derivative(d,k)
 
 # use conj(f.') for ArraySpace
 Base.ctranspose(f::Fun)=differentiate(f)

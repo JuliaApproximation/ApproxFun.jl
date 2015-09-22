@@ -175,16 +175,16 @@ function pdesolve(A::AbstractPDEOperatorSchur,f::Matrix,nx=100000)
                Float64}[ProductFun(X[:,k],ds) for k=1:size(X,2)]
 end
 
-pdesolve(A::AbstractPDEOperatorSchur,f::Union(Fun,MultivariateFun,Number),nx...)=pdesolve(A,[f],nx...)
+pdesolve(A::AbstractPDEOperatorSchur,f::Union{Fun,MultivariateFun,Number},nx...)=pdesolve(A,[f],nx...)
 pdesolve{T<:Operator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)
-pdesolve{T<:Operator}(A::Vector{T},f::Union(Fun,MultivariateFun,Number),n...)=pdesolve(A,[f],n...)
+pdesolve{T<:Operator}(A::Vector{T},f::Union{Fun,MultivariateFun,Number},n...)=pdesolve(A,[f],n...)
 pdesolve(A::Operator,f...)=pdesolve([A],f...)
 
 
 
 
-\{BM<:BandedMatrix}(A::Vector{BandedOperator{BM}},f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
-\{BM<:BandedMatrix}(A::Vector{Operator{BM}},f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
-\(A::AbstractPDEOperatorSchur,f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
-\{BM<:BandedMatrix}(A::BandedOperator{BM},f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
-\{BM<:BandedMatrix}(A::Operator{BM},f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
+\{BM<:BandedMatrix}(A::Vector{BandedOperator{BM}},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
+\{BM<:BandedMatrix}(A::Vector{Operator{BM}},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
+\(A::AbstractPDEOperatorSchur,f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
+\{BM<:BandedMatrix}(A::BandedOperator{BM},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
+\{BM<:BandedMatrix}(A::Operator{BM},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
