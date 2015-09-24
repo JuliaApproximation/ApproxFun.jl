@@ -105,8 +105,8 @@ function Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper
     end
 end
 
-
-
+Base.conj{D<:Space,S<:Space,V,T<:Complex}(M::Multiplication{D,S,V,T}) = Multiplication(conj(M.f),M.space)
+Base.conj{D<:Space,O<:BandedOperator,V,T<:Complex}(M::MultiplicationWrapper{D,O,V,T}) = MultiplicationWrapper(conj(M.f),conj(M.op))
 
 ## Multiplication operators allow us to multiply two spaces
 

@@ -181,6 +181,8 @@ function Base.getindex{T}(f::TimesFunctional{T},jr::Range)#j is columns
     r
 end
 
+Base.conj{T<:Complex}(C::TimesFunctional{T}) = TimesFunctional(C.functional,conj(C.op))
+
 
 immutable ConstantTimesOperator{T,B,BT} <: BandedOperator{BT}
     c::T

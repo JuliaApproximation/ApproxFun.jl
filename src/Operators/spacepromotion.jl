@@ -66,6 +66,7 @@ for op in (:bandinds,:(Base.stride))
     @eval $op(S::SpaceOperator)=$op(S.op)
 end
 
+Base.conj{T<:Complex}(S::SpaceOperator{T}) = SpaceOperator(conj(S.op),S.domainspace,S.rangespace)
 
 
 ##TODO: Do we need both max and min?
