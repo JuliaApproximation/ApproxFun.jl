@@ -129,13 +129,13 @@ function addentries!{DD<:Circle}(D::Integral{Taylor{DD}},A,kr::Range)
 end
 
 
-function bandinds{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,1}})
+function bandinds{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})
     @assert D.order==n
     (0,0)
 end
-rangespace{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,1}})=D.space.space
+rangespace{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})=D.space.space
 
-function addentries!{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,1}},A,kr::Range)
+function addentries!{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}},A,kr::Range)
     d=domain(D)
     m=D.order
 
@@ -171,10 +171,10 @@ end
 
 
 
-bandinds{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,1}})=(0,0)
-rangespace{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,1}})=D.space
+bandinds{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=(0,0)
+rangespace{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=D.space
 
-function addentries!{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,1}},A,kr::Range)
+function addentries!{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,DD,1}},A,kr::Range)
     d=domain(D)
     m=D.order
 

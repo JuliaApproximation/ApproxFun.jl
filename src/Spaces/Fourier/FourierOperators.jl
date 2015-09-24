@@ -131,14 +131,10 @@ function addentries!{CS<:SinSpace}(D::Integral{CS},A,kr::Range)
 end
 
 
-function bandinds{T,CS<:CosSpace}(D::Integral{SliceSpace{1,1,CS,T,1}})
-    d=domain(D)
-    @assert isa(d,PeriodicInterval)
-    (0,0)
-end
-rangespace{T,CS<:CosSpace}(D::Integral{SliceSpace{1,1,CS,T,1}})=iseven(D.order)?D.space:SinSpace(domain(D))
+bandinds{T,CS<:CosSpace,DD<:PeriodicInterval}(D::Integral{SliceSpace{1,1,CS,T,DD,1}})=(0,0)
+rangespace{T,CS<:CosSpace,DD<:PeriodicInterval}(D::Integral{SliceSpace{1,1,CS,T,DD,1}})=iseven(D.order)?D.space:SinSpace(domain(D))
 
-function addentries!{T,CS<:CosSpace}(D::Integral{SliceSpace{1,1,CS,T,1}},A,kr::Range)
+function addentries!{T,CS<:CosSpace,DD<:PeriodicInterval}(D::Integral{SliceSpace{1,1,CS,T,DD,1}},A,kr::Range)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order

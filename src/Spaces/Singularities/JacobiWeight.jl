@@ -99,8 +99,8 @@ function coefficients(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
         (Conversion(sp1,sp2)*f)
     end
 end
-coefficients{S,n,st}(f::Vector,sp::JacobiWeight,S2::SliceSpace{n,st,S,RealBasis})=error("Implement")
-coefficients{S,n,st}(f::Vector,S2::SliceSpace{n,st,S,RealBasis},sp::JacobiWeight)=error("Implement")
+coefficients{S,n,st,T,DD<:Interval}(f::Vector,sp::JacobiWeight,S2::SliceSpace{n,st,S,T,DD,1})=error("Implement")
+coefficients{S,n,st,T,DD<:Interval}(f::Vector,S2::SliceSpace{n,st,S,T,DD,1},sp::JacobiWeight)=error("Implement")
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
 coefficients{SV,T,D<:Interval}(f::Vector,sp::JacobiWeight,S2::SumSpace{SV,T,D,1})=sumspacecoefficients(f,sp,S2)
 coefficients{T,D<:Interval}(f::Vector,sp::JacobiWeight,S2::Space{T,D,1})=coefficients(f,sp,JacobiWeight(0,0,S2))
