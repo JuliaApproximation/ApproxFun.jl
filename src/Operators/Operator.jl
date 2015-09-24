@@ -5,12 +5,37 @@ export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
 export domainspace,rangespace
 
-
+"""
+    `Operator{T}` represents a general infinite Operators
+"""
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
+
+"""
+    `Functional{T}` represents a row operator
+"""
 abstract Functional{T} <: Operator{T}
+
+"""
+    `InfiniteOperator{T}` represents an operator with an infinite number of rows
+"""
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
+
+"""
+    `BandedBelowOperator{T}` represents an operator banded banded below. The band
+    width can be found with bandinds(op,1)
+"""
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
-abstract BandedOperator{T} <: BandedBelowOperator{T}
+
+"""
+    `BandedBelowOperator{T}` represents an operator that is banded apart from
+    a finite number of dense rows. The bandwidth can be found with bandinds(op).
+"""
+abstract AlmostBandedOperator{T} <: BandedBelowOperator{T}
+
+"""
+    `BandedOperator{T}` represents a banded operator. The bandwidth can be found with bandinds(op).
+"""
+abstract BandedOperator{T} <: AlmostBandedOperator{T}
 
 Base.eltype{T}(::Operator{T})=T
 Base.eltype{T}(::Type{Operator{T}})=T
@@ -240,7 +265,7 @@ include("Evaluation.jl")
 
 
 include("SavedOperator.jl")
-include("AlmostBandedOperator.jl")
+include("MutableOperator.jl")
 include("adaptiveqr.jl")
 
 

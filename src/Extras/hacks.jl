@@ -55,9 +55,9 @@ promotedomainspace{T,CO<:ConstantOperator}(S::SpaceOperator{T,CO},sp::Space)=Spa
 
 
 
-## AlmostBandedOperator bor BandedMatrix
+## MutableOperator bor BandedMatrix
 
-function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,R},n::Integer)
+function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::MutableOperator{T,M,R},n::Integer)
     resizedata!(B.fill,n)
 
     if n > B.datalength
@@ -108,7 +108,7 @@ end
 
 
 
-function backsubstitution!{T<:Vector}(B::AlmostBandedOperator,u::Array{T})
+function backsubstitution!{T<:Vector}(B::MutableOperator,u::Array{T})
     n=size(u,1)
     b=B.bandinds[end]
     nbc = B.fill.numbcs
