@@ -2,11 +2,11 @@ export Multiplication
 
 abstract AbstractMultiplication{T} <:BandedOperator{T}
 
-immutable Multiplication{D<:Space,S<:Space,T,V} <: AbstractMultiplication{V}
-    f::Fun{D,T}
+immutable Multiplication{D<:Space,S<:Space,V,T} <: AbstractMultiplication{T}
+    f::Fun{D,V}
     space::S
 
-    Multiplication(f::Fun{D,T},sp::S)=new(f,sp)
+    Multiplication(f::Fun{D,V},sp::S)=new(f,sp)
 end
 
 Multiplication{D,T}(f::Fun{D,T},sp::Space)=Multiplication{D,typeof(sp),

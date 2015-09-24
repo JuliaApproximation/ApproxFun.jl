@@ -179,7 +179,8 @@ end
 
 
 
-Base.dot{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(dot,pieces(f),pieces(g)))
+dotu{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(dotu,pieces(f),pieces(g)))
+linedotu{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(linedotu,pieces(f),pieces(g)))
 
 # assume first domain has 1 as a basis element
 

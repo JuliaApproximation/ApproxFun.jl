@@ -167,8 +167,6 @@ function addentries!{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}},A,kr:
     m=D.order
     d=domain(D)
 
-    @assert isa(d,Interval)
-
     if λ == 0
         C=.5pochhammer(1.,m-1)*(4./(d.b-d.a)).^m
         for k=kr
@@ -189,8 +187,7 @@ end
 
 function linesum{λ,DD<:Interval}(f::Fun{Ultraspherical{λ,DD}})
     d=domain(f)
-    @assert isa(d,Interval)
-    sum(Fun(f.coefficients,S()))*abs(d.b-d.a)/2
+    sum(Fun(f.coefficients,Ultraspherical{λ}()))*length(d)/2
 end
 
 
@@ -205,7 +202,6 @@ function addentries!{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}},A,kr::R
     m=D.order
     d=domain(D)
     @assert m<=λ
-    @assert isa(d,Interval)
 
     if λ == 1
         C = .5(d.b-d.a)

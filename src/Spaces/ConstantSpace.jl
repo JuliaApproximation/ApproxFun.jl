@@ -95,3 +95,5 @@ for OP in (:+,:-)
 end
 
 *(A::BandedOperator,B::Functional)=A*FunctionalOperator(B)
+
+*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:AbstractMultiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)

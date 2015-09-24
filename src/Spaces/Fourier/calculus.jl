@@ -1,8 +1,5 @@
 ##Differentiation and integration
 
-export linesum
-
-
 Base.sum{DD}(f::Fun{Laurent{DD}})=fouriersum(domain(f),f.coefficients)
 
 function linesum{DD}(f::Fun{Laurent{DD}})

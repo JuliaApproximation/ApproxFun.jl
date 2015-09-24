@@ -1,5 +1,5 @@
 export Fun,evaluate,values,points
-export coefficients,integrate,differentiate,domain,space
+export coefficients,integrate,differentiate,domain,space,linesum
 
 include("Domain.jl")
 include("Space.jl")
@@ -237,12 +237,34 @@ end
 
 Base.inv{S,T}(f::Fun{S,T})=1./f
 
-## Norm
+# Integrals over two Funs, which are fast with the orthogonal weight.
 
-defaultdot(f::Fun,g::Fun)=sum(conj(f).*g)
-Base.dot(f::Fun,g::Fun)=defaultdot(f,g)
-Base.dot(c::Number,g::Fun)=sum(conj(c)*g)
-Base.dot(g::Fun,c::Number)=sum(conj(g)*c)
+export dotu, linedotu, linedot
+
+dotu(f::Fun,g::Fun)=defaultdotu(f,g)
+dotu(c::Number,g::Fun)=sum(c*g)
+dotu(g::Fun,c::Number)=sum(g*c)
+
+linedotu(f::Fun,g::Fun)=defaultlinedotu(f,g)
+linedotu(c::Number,g::Fun)=linesum(c*g)
+linedotu(g::Fun,c::Number)=linesum(g*c)
+
+# Having fallbacks allow for the fast implementations.
+
+defaultdotu(f::Fun,g::Fun)=sum(f.*g)
+defaultlinedotu(f::Fun,g::Fun)=linesum(f.*g)
+
+# Conjuations
+
+Base.dot(f::Fun,g::Fun)=dotu(conj(f),g)
+Base.dot(c::Number,g::Fun)=dotu(conj(c),g)
+Base.dot(g::Fun,c::Number)=dotu(conj(g),c)
+
+linedot(f::Fun,g::Fun)=linedotu(conj(f),g)
+linedot(c::Number,g::Fun)=linedotu(conj(c),g)
+linedot(g::Fun,c::Number)=linedotu(conj(g),c)
+
+## Norm
 
 function Base.norm(f::Fun,p::Number)
     if p < 1
@@ -260,16 +282,6 @@ function Base.norm(f::Fun,p::Int)
     else
         return error("p should be 1 ≤ p ≤ ∞")
     end
-end
-
-# TODO: This definition of 2-norm is bad. Doesn't promote spaces so it's wrong for f::Fun{JacobiWeight}
-function Base.norm(f::Fun)
-    sp = space(f)
-    f2 = pad(f,2length(f)-1)
-    vals=values(f2)
-    # we take abs first in case the result is slightly negative
-    # or imaginary
-    sqrt(abs(sum(Fun(transform(sp,conj(vals).*vals),sp))))
 end
 
 

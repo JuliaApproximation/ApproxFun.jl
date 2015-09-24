@@ -6,7 +6,7 @@ export ldiffbc,rdiffbc,diffbcs
 export domainspace,rangespace
 
 """
-    `Operator{T}` represents a general infinite Operators
+    `Operator{T}` represents a general infinite operator
 """
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
 
@@ -21,8 +21,8 @@ abstract Functional{T} <: Operator{T}
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
 
 """
-    `BandedBelowOperator{T}` represents an operator banded banded below. The band
-    width can be found with bandinds(op,1)
+    `BandedBelowOperator{T}` represents an operator banded banded below.
+    The bandwidth can be found with bandinds(op,1).
 """
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
 
@@ -260,8 +260,8 @@ include("PermutationOperator.jl")
 
 include("Conversion.jl")
 include("Multiplication.jl")
-include("calculus.jl")
-include("DefiniteIntegral.jl")
+include("CalculusOperator.jl")
+include("CalculusFunctional.jl")
 include("Evaluation.jl")
 
 
@@ -275,7 +275,7 @@ include("algebra.jl")
 
 include("TransposeOperator.jl")
 include("StrideOperator.jl")
-include("CompactOperator.jl")
+include("FiniteOperator.jl")
 
 
 include("null.jl")

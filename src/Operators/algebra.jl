@@ -393,6 +393,9 @@ end
 *(A::Functional,b::Vector)=dotu(A[1:length(b)],b)
 *(A::Functional,b::Fun)=promotedomainspace(A,space(b))*b.coefficients
 
+*{T,D<:DefiniteIntegral,M<:AbstractMultiplication}(A::TimesFunctional{T,D,M},b::Fun) = dotu(A.op.f,b)
+*{T,D<:DefiniteLineIntegral,M<:AbstractMultiplication}(A::TimesFunctional{T,D,M},b::Fun) = linedotu(A.op.f,b)
+
 
 *(c::Number,B::Functional)=ConstantTimesFunctional(c,B)
 *(B::Functional,c::Number)=ConstantTimesFunctional(c,B)
@@ -459,6 +462,26 @@ function *(A::InfiniteOperator,b::Fun)
     dsp=conversion_type(domainspace(A),space(b))
     A=promotedomainspace(A,dsp)
     Fun(A*coefficients(b,dsp),rangespace(A))
+end
+
+function *(A::TimesOperator,b::Fun)
+    dsp=conversion_type(domainspace(A),space(b))
+    A=promotedomainspace(A,dsp)
+    ret = b
+    for k=length(A.ops):-1:1
+        ret = A.ops[k]*ret
+    end
+    Fun(coefficients(ret),rangespace(A))
+end
+
+function *(A::PlusOperator,b::Fun)
+    dsp=conversion_type(domainspace(A),space(b))
+    A=promotedomainspace(A,dsp)
+    ret = A.ops[1]*b
+    for k=2:length(A.ops)
+        ret += A.ops[k]*b
+    end
+    Fun(coefficients(ret),rangespace(A))
 end
 
 for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
