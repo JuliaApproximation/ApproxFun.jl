@@ -266,6 +266,8 @@ linedot(g::Fun,c::Number)=linedotu(conj(g),c)
 
 ## Norm
 
+Base.norm(f::Fun) = norm(f,2)
+
 function Base.norm(f::Fun,p::Number)
     if p < 1
         return error("p should be 1 ≤ p ≤ ∞")
