@@ -17,14 +17,14 @@ conversion_rule{D}(sp::HeavisideSpace,sp2::PiecewiseSpace{ChebyshevDirichlet{1,1
 
 bandinds{HS<:HeavisideSpace,DD,D}(::Conversion{HS,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1}})=0,0
 bandinds{HS<:HeavisideSpace,DD,D}(::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},HS})=0,0
-function addentries!{HS<:HeavisideSpace,DD,D}(C::Conversion{HS,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1}},A,kr::Range)
+function addentries!{HS<:HeavisideSpace,DD,D}(C::Conversion{HS,PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1}},A,kr::Range,::Colon)
    for k=kr
         A[k,k]+=1
     end
     A
 end
 
-function addentries!{HS<:HeavisideSpace,DD,D}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},HS},A,kr::Range)
+function addentries!{HS<:HeavisideSpace,DD,D}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},HS},A,kr::Range,::Colon)
    for k=kr
         A[k,k]+=1
     end
@@ -45,7 +45,7 @@ function rangespace{HS<:HeavisideSpace}(D::Derivative{HS})
     DiracSpace(rangespace(Derivative(csp)),d.points[2:end-1])
 end
 
-function addentries!{HS<:HeavisideSpace}(D::Derivative{HS},A,kr::Range)
+function addentries!{HS<:HeavisideSpace}(D::Derivative{HS},A,kr::Range,::Colon)
    n=length(domain(D).points)
     csp=canonicalspace(domainspace(D))
 
@@ -57,5 +57,5 @@ function addentries!{HS<:HeavisideSpace}(D::Derivative{HS},A,kr::Range)
     end
 
 
-    addentries!(StrideOperator(Derivative(csp),n-2,0,1,1),A,kr)
+    addentries!(StrideOperator(Derivative(csp),n-2,0,1,1),A,kr,:)
 end

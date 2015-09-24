@@ -72,7 +72,7 @@ function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,
             B.data=newdata
         end
 
-        addentries!(B.op,IndexStride(B.data,nbc,0),B.datalength+1-nbc:n-nbc)
+        addentries!(B.op,IndexStride(B.data,nbc,0),B.datalength+1-nbc:n-nbc,:)
         B.datalength = n
     end
 

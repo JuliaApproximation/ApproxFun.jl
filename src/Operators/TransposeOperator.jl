@@ -21,7 +21,7 @@ domain(P::TransposeOperator)=domain(P.op)
 bandinds(P::TransposeOperator)=-bandinds(P.op)[end],-bandinds(P.op)[1]
 
 
-function addentries!(P::TransposeOperator,A,kr::Range)
+function addentries!(P::TransposeOperator,A,kr::Range,::Colon)
     br=bandinds(P.op)
     # the number of rows we need increases when we
     # transpose
@@ -37,6 +37,3 @@ end
 
 Base.transpose(A::BandedOperator)=TransposeOperator(A)
 Base.ctranspose{T<:Real}(A::BandedOperator{T})=TransposeOperator(A)
-
-
-

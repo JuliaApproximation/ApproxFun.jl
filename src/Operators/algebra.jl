@@ -106,9 +106,9 @@ end
 Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 
-function addentries!(P::PlusOperator,A,kr)
+function addentries!(P::PlusOperator,A,kr,::Colon)
     for op in P.ops
-        addentries!(op,A,kr)
+        addentries!(op,A,kr,:)
     end
 
     A
@@ -232,11 +232,11 @@ for TYP in (:Operator,:BandedOperator)
 end
 
 
-function addentries!(P::ConstantTimesOperator,A,kr::Range)
+function addentries!(P::ConstantTimesOperator,A,kr::Range,::Colon)
     # Write directly to A, shifting by rows and columns
     # See subview in Operator.jl for these definitions
     P1=subview(P.op,kr,:)
-    addentries!(P1,P.c,A,kr)
+    addentries!(P1,P.c,A,kr,:)
 end
 
 
@@ -350,7 +350,7 @@ Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 
 
-function addentries!(P::TimesOperator,A,kr::Range)
+function addentries!(P::TimesOperator,A,kr::Range,::Colon)
     @assert length(P.ops)≥2
     if length(kr)==0
         return A
@@ -565,7 +565,7 @@ domainspace(R::ReReOperator)=ReImSpace(domainspace(R.ops[1]))
 rangespace(R::ReReOperator)=ArraySpace(rangespace(R.ops[1]),2)
 
 
-function addentries!(R::ReReOperator,A,kr::Range)
+function addentries!(R::ReReOperator,A,kr::Range,::Colon)
     kr1=div(kr[1],2)+1:(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
     kr2=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):div(kr[end],2)
 

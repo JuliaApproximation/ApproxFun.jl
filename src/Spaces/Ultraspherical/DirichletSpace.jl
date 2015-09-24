@@ -74,14 +74,14 @@ coefficients(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransfor
 
 ## Dirichlet Conversion operators
 
-addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{1,0,D},CC},A,kr::Range)=toeplitz_addentries!([],[1.,1.],A,kr)
-addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{0,1,D},CC},A,kr::Range)=toeplitz_addentries!([],[1.,-1.],A,kr)
-function addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{1,1,D},CC},A,kr::Range)
+addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{1,0,D},CC},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,1.],A,kr)
+addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{0,1,D},CC},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,-1.],A,kr)
+function addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{1,1,D},CC},A,kr::Range,::Colon)
     A=toeplitz_addentries!([],[1.,0.,-1.],A,kr)
 
     A
 end
-function addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{2,2,D},CC},A,kr::Range)
+function addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{2,2,D},CC},A,kr::Range,::Colon)
     for k=kr
         A[k,k]=1
         A[k,k+4]=2*(k+1)/k-1

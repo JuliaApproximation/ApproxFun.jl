@@ -79,7 +79,7 @@ for TYP in (:Operator,:BandedOperator)
     end
 end
 
-addentries!(D::ConversionWrapper,A,k::Range)=addentries!(D.op,A,k)
+addentries!(D::ConversionWrapper,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
 for func in (:rangespace,:domainspace,:bandinds,:(Base.stride))
     @eval $func(D::ConversionWrapper)=$func(D.op)
 end

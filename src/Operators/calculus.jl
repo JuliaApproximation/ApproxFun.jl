@@ -80,16 +80,16 @@ macro calculus_operator(Op)
         domain(D::$Op)=domain(D.space)
         domainspace(D::$Op)=D.space
 
-        addentries!{OT,T}(::$Op{UnsetSpace,OT,T},A,kr::Range)=error("Spaces cannot be inferred for operator")
+        addentries!{OT,T}(::$Op{UnsetSpace,OT,T},A,kr::Range,::Colon)=error("Spaces cannot be inferred for operator")
 
-        function addentries!{S,OT,T}(D::$Op{S,OT,T},A,kr::Range)
+        function addentries!{S,OT,T}(D::$Op{S,OT,T},A,kr::Range,::Colon)
             # Default is to convert to Canonical and apply operator there
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
                 error("Override addentries! for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
-            addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr)
+            addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr,:)
         end
 
         function bandinds(D::$Op)
@@ -130,7 +130,7 @@ macro calculus_operator(Op)
 
 
         #Wrapper just adds the operator it wraps
-        addentries!(D::$WrappOp,A,k::Range)=addentries!(D.op,A,k)
+        addentries!(D::$WrappOp,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
         rangespace(D::$WrappOp)=rangespace(D.op)
         domainspace(D::$WrappOp)=domainspace(D.op)
         bandinds(D::$WrappOp)=bandinds(D.op)

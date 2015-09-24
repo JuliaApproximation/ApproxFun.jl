@@ -82,8 +82,8 @@ end
 bandinds(B::PrependColumnsOperator)=min(1-size(B.cols,1),bandinds(B.op,1)+size(B.cols,2)),
                                         bandinds(B.op,2)+size(B.cols,2)
 
-function addentries!(B::PrependColumnsOperator,A,kr::Range)
-    addentries!(B.op,IndexStride(A,0,size(B.cols,2)),kr)
+function addentries!(B::PrependColumnsOperator,A,kr::Range,::Colon)
+    addentries!(B.op,IndexStride(A,0,size(B.cols,2)),kr,:)
     for k=intersect(kr,1:size(B.cols,1)),j=1:size(B.cols,2)
         A[k,j]+=B.cols[k,j]
     end

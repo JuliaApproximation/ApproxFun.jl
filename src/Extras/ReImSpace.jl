@@ -109,7 +109,7 @@ end
 
 
 
-function addentries!{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},A,kr::Range)
+function addentries!{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},A,kr::Range,::Colon)
     for k=kr
         if isodd(k)
             A[k,k]+=1
@@ -118,7 +118,7 @@ function addentries!{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},A,kr::Range)
     A
 end
 
-function addentries!{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},A,kr::Range)
+function addentries!{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},A,kr::Range,::Colon)
     for k=kr
         if iseven(k)
             A[k,k]+=1
@@ -143,7 +143,7 @@ for OP in (:rangespace,:domainspace)
     @eval $OP(R::ReImOperator)=ReImSpace($OP(R.op))
 end
 
-# function addentries!(RI::ReImOperator,A,kr::UnitRange)
+# function addentries!(RI::ReImOperator,A,kr::UnitRange,::Colon)
 #     @assert isodd(kr[1])
 #     @assert iseven(kr[end])
 #     addentries!(RI.op,IndexReIm(A),div(kr[1],2)+1:div(kr[end],2))
@@ -151,7 +151,7 @@ end
 # end
 
 
-function addentries!(RI::ReImOperator,A,kr::UnitRange)
+function addentries!(RI::ReImOperator,A,kr::UnitRange,::Colon)
     divr=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
     B=subview(RI.op,divr,:)
     for k=kr,j=columnrange(RI,k)
@@ -235,7 +235,7 @@ bandinds{T,DD}(::ImagOperator{ReImSpace{Taylor{DD},T}})=0,1
 
 
 ## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
-function addentries!{T,DD}(R::RealOperator{ReImSpace{Taylor{DD},T}},A,kr::Range)
+function addentries!{T,DD}(R::RealOperator{ReImSpace{Taylor{DD},T}},A,kr::Range,::Colon)
     for k=kr
         if isodd(k)         # real part
             A[k,k]+=1
@@ -247,7 +247,7 @@ function addentries!{T,DD}(R::RealOperator{ReImSpace{Taylor{DD},T}},A,kr::Range)
 end
 
 ## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
-function addentries!{T,DD}(R::ImagOperator{ReImSpace{Taylor{DD},T}},A,kr::Range)
+function addentries!{T,DD}(R::ImagOperator{ReImSpace{Taylor{DD},T}},A,kr::Range,::Colon)
     for k=kr
         A[k,k+1]+=1
     end
@@ -269,7 +269,7 @@ bandinds{T,D}(::ImagOperator{ReImSpace{Hardy{false,D},T}})=0,0
 
 
 ## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
-function addentries!{T,D}(R::RealOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range)
+function addentries!{T,D}(R::RealOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range,::Colon)
     for k=kr
         if isodd(k)    # imag part
             A[k,k+1]+=1
@@ -281,7 +281,7 @@ function addentries!{T,D}(R::RealOperator{ReImSpace{Hardy{false,D},T}},A,kr::Ran
 end
 
 ## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
-function addentries!{T,D}(R::ImagOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range)
+function addentries!{T,D}(R::ImagOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range,::Colon)
     for k=kr
         A[k,k]+=isodd(k)?-1:1
     end
@@ -297,7 +297,7 @@ for TYP in (:RealOperator,:ImagOperator)
 end
 
 bandinds{T,DD}(::RealOperator{ReImSpace{Laurent{DD},T}})=0,2
-function addentries!{T,DD}(R::RealOperator{ReImSpace{Laurent{DD},T}},A,kr::Range)
+function addentries!{T,DD}(R::RealOperator{ReImSpace{Laurent{DD},T}},A,kr::Range,::Colon)
     for k=kr
         if isodd(k)    # real part
             A[k,k]+=1
@@ -327,9 +327,9 @@ end
 
 
 
-function addentries!(RI::ReOperator,A,kr::UnitRange)
+function addentries!(RI::ReOperator,A,kr::UnitRange,::Colon)
     if isa(eltype(RI.op),Real)
-        addentries!(RI.op,A,kr)
+        addentries!(RI.op,A,kr,:)
     else
         B=subview(RI.op,kr,:)
         for k=kr,j=columnrange(RI,k)

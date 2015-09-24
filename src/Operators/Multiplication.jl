@@ -35,17 +35,17 @@ domain(T::Multiplication)=domain(T.f)
 
 rangespace{F,T}(D::Multiplication{F,UnsetSpace,T})=UnsetSpace()
 bandinds{F,T}(D::Multiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
-addentries!{F,T}(D::Multiplication{F,UnsetSpace,T},A,kr)=error("No range space attached to Multiplication")
+addentries!{F,T}(D::Multiplication{F,UnsetSpace,T},A,kr,::Colon)=error("No range space attached to Multiplication")
 
 
-function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr)
+function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr,::Colon)
     # Default is to convert to space of f
     sp=domainspace(D)
     csp=space(D.f)
     if csp==sp
         error("Override addentries! on Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*") for range type"*string(typeof(kr)))
     end
-    addentries!(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]),A,kr)
+    addentries!(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]),A,kr,:)
 end
 
 function bandinds{F,S,T}(D::Multiplication{F,S,T})
@@ -91,7 +91,7 @@ end
 MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
 MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
 
-addentries!(D::MultiplicationWrapper,A,k::Range)=addentries!(D.op,A,k)
+addentries!(D::MultiplicationWrapper,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
 for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
     @eval $func(D::MultiplicationWrapper)=$func(D.op)
 end

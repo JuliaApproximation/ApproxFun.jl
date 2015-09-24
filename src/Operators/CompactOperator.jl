@@ -17,7 +17,7 @@ function matrix_addentries!(M::Array,A,kr::Range)
 end
 
 
-addentries!(T::CompactOperator,A,kr::Range)=matrix_addentries!(T.matrix,A,kr)
+addentries!(T::CompactOperator,A,kr::Range,::Colon)=matrix_addentries!(T.matrix,A,kr)
 
 bandinds(T::CompactOperator)=(1-size(T.matrix,1),size(T.matrix,2)-1)
 
@@ -45,6 +45,3 @@ datalength(S::CompactFunctional)=length(S.data)
 
 Base.getindex{S,T}(B::CompactFunctional{S,T},k::Integer)=k≤datalength(B)?B.data[k]:zero(T)
 Base.getindex{S,T}(B::CompactFunctional{S,T},kr::Range)=T[B[k] for k=kr]
-
-
-

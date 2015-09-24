@@ -19,7 +19,7 @@ SliceSpace(sp,n::Integer)=SliceSpace(sp,n,1)
 domain(DS::SliceSpace)=domain(DS.space)
 bandinds{n,st,S,T,DD,d}(C::Conversion{SliceSpace{n,st,S,T,DD,d},S})=-n,0
 
-function addentries!{ind,st,S,T,DD,d}(C::Conversion{SliceSpace{ind,st,S,T,DD,d},S},A,kr::Range)
+function addentries!{ind,st,S,T,DD,d}(C::Conversion{SliceSpace{ind,st,S,T,DD,d},S},A,kr::Range,::Colon)
     ds =domainspace(C)
     @assert st==1
 

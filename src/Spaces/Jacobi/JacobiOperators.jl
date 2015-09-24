@@ -41,7 +41,7 @@ Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Int,eltype(domain(J))}(J
 rangespace{J<:Jacobi}(D::Derivative{J})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
 bandinds{J<:Jacobi}(D::Derivative{J})=0,D.order
 
-function addentries!{J<:Jacobi}(T::Derivative{J},A,kr::Range)
+function addentries!{J<:Jacobi}(T::Derivative{J},A,kr::Range,::Colon)
     d=domain(T)
     for k=kr
         A[k,k+1]+=(k+1+T.space.a+T.space.b)./(d.b-d.a)
@@ -70,7 +70,7 @@ end
 rangespace{J<:Jacobi}(D::Integral{J})=Jacobi(D.space.a-D.order,D.space.b-D.order,domain(D))
 bandinds{J<:Jacobi}(D::Integral{J})=-D.order,0
 
-function addentries!{J<:Jacobi}(T::Integral{J},A,kr::Range)
+function addentries!{J<:Jacobi}(T::Integral{J},A,kr::Range,::Colon)
     @assert T.order==1
     d=domain(T)
     for k=intersect(2:kr[end],kr)
@@ -153,7 +153,7 @@ bandinds{US<:Ultraspherical,J<:Jacobi}(C::Conversion{US,J})=0,0
 bandinds{US<:Ultraspherical,J<:Jacobi}(C::Conversion{J,US})=0,0
 
 
-function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{CC,J},A,kr::Range)
+function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{CC,J},A,kr::Range,::Colon)
     S=rangespace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
@@ -164,7 +164,7 @@ function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{CC,J},A,kr::Range)
     A
 end
 
-function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{J,CC},A,kr::Range)
+function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{J,CC},A,kr::Range,::Colon)
     S=domainspace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
 
@@ -176,7 +176,7 @@ function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{J,CC},A,kr::Range)
     A
 end
 
-function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{US,J},A,kr::Range)
+function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{US,J},A,kr::Range,::Colon)
     S=rangespace(C)
     m=order(US)
     @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
@@ -189,7 +189,7 @@ function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{US,J},A,kr::Ran
     A
 end
 
-function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{J,US},A,kr::Range)
+function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{J,US},A,kr::Range,::Colon)
     m=order(US)
     S=domainspace(C)
     @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
@@ -271,7 +271,7 @@ end
 
 bandinds{J<:Jacobi,C<:Chebyshev,DD<:Interval}(::Multiplication{JacobiWeight{C,DD},J})=-1,0
 
-function addentries!{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::Multiplication{JacobiWeight{C,DD},J},A,kr::Range)
+function addentries!{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::Multiplication{JacobiWeight{C,DD},J},A,kr::Range,::Colon)
     @assert length(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     if space(M.f).α==1
@@ -348,7 +348,7 @@ domainspace(op::JacobiSD)=op.S
 rangespace(op::JacobiSD)=op.lr?Jacobi(op.S.a-1,op.S.b+1,domain(op.S)):Jacobi(op.S.a+1,op.S.b-1,domain(op.S))
 bandinds(::JacobiSD)=0,0
 
-function addentries!(op::JacobiSD,A,kr::Range)
+function addentries!(op::JacobiSD,A,kr::Range,::Colon)
     m=op.lr?op.S.a:op.S.b
     for k=kr
         A[k,k]+=k+m-1

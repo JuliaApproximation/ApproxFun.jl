@@ -60,7 +60,7 @@ domain(S::SpaceOperator)=domain(domainspace(S))
 
 domainspace(S::SpaceOperator)=S.domainspace
 rangespace(S::SpaceOperator)=S.rangespace
-addentries!(S::SpaceOperator,A,kr)=addentries!(S.op,A,kr)
+addentries!(S::SpaceOperator,A,kr,::Colon)=addentries!(S.op,A,kr,:)
 
 for op in (:bandinds,:(Base.stride))
     @eval $op(S::SpaceOperator)=$op(S.op)

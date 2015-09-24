@@ -84,7 +84,7 @@ toeplitz_addentries!(neg::Vector,pos::Vector,A,kr::Range)=toeplitz_addentries!(1
 
 
 
-addentries!(T::ToeplitzOperator,A,kr::Range)=toeplitz_addentries!(1,T.negative,T.nonnegative,A,kr)
+addentries!(T::ToeplitzOperator,A,kr::Range,::Colon)=toeplitz_addentries!(1,T.negative,T.nonnegative,A,kr)
 bandinds(T::ToeplitzOperator)=(-length(T.negative),length(T.nonnegative)-1)
 
 
@@ -131,7 +131,7 @@ end
 hankel_addentries!(v::Vector,A,kr::Range)=hankel_addentries!(1,v,A,kr)
 
 
-addentries!(T::HankelOperator,A,kr::Range)=hankel_addentries!(T.coefficients,A,kr)
+addentries!(T::HankelOperator,A,kr::Range,::Colon)=hankel_addentries!(T.coefficients,A,kr)
 
 bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
 
@@ -240,7 +240,7 @@ end
 
 
 
-addentries!(T::LaurentOperator,A,kr::Range)=laurent_addentries!(T.negative,T.nonnegative,A,kr)
+addentries!(T::LaurentOperator,A,kr::Range,::Colon)=laurent_addentries!(T.negative,T.nonnegative,A,kr)
 
 shiftbandinds(T::LaurentOperator)=-length(T.negative),length(T.nonnegative)-1
 function bandinds(T::LaurentOperator)
@@ -268,7 +268,3 @@ function Fun(T::ToeplitzOperator)
         Fun(interlace(T.nonnegative,T.negative),Laurent(Circle()))
     end
 end
-
-
-
-

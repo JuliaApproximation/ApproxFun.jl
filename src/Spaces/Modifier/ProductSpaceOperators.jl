@@ -81,7 +81,7 @@ function bandinds(D::DiagonalArrayOperator)
 end
 
 
-function addentries!(D::DiagonalArrayOperator,A,kr::Range)
+function addentries!(D::DiagonalArrayOperator,A,kr::Range,::Colon)
     n=*(D.dimensions...)
     for k=1:n
         stride_addentries!(D.op,k-n,k-n,n,n,A,kr)
@@ -250,10 +250,10 @@ function rangespace{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS})
     sp=domainspace(M)
     rangespace(Multiplication(a,sp)+Multiplication(b,sp))
 end
-function addentries!{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS},A,k)
+function addentries!{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS},A,k,::Colon)
     a,b=vec(M.f)
     sp=domainspace(M)
-    addentries!(Multiplication(a,sp)+Multiplication(b,sp),A,k)
+    addentries!(Multiplication(a,sp)+Multiplication(b,sp),A,k,:)
 end
 
 
@@ -273,12 +273,12 @@ function rangespace{S,SS<:SumSpace}(M::Multiplication{S,SS})
 
     rangespace(Ma)⊕rangespace(Mb)
 end
-function addentries!{S,SS<:SumSpace}(M::Multiplication{S,SS},A,k)
+function addentries!{S,SS<:SumSpace}(M::Multiplication{S,SS},A,k,::Colon)
     a,b=vec(domainspace(M))
     Ma=Multiplication(M.f,a)
     Mb=Multiplication(M.f,b)
 
-    addentries!(DiagonalInterlaceOperator([Ma,Mb]),A,k)
+    addentries!(DiagonalInterlaceOperator([Ma,Mb]),A,k,:)
 end
 
 

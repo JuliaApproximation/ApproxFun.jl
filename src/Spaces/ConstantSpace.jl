@@ -28,7 +28,7 @@ conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)=
 
 
 bandinds{S<:Space}(C::Conversion{ConstantSpace,S})=1-length(ones(rangespace(C))),0
-function addentries!{S<:Space}(C::Conversion{ConstantSpace,S},A,kr::Range)
+function addentries!{S<:Space}(C::Conversion{ConstantSpace,S},A,kr::Range,::Colon)
     on=ones(rangespace(C))
     for k=kr
         if k≤length(on)
@@ -39,7 +39,7 @@ function addentries!{S<:Space}(C::Conversion{ConstantSpace,S},A,kr::Range)
 end
 
 bandinds{F<:Space,T}(D::Multiplication{F,ConstantSpace,T}) = 1-length(D.f),0
-function addentries!{F<:Space,T}(D::Multiplication{F,ConstantSpace,T},A,kr)
+function addentries!{F<:Space,T}(D::Multiplication{F,ConstantSpace,T},A,kr,::Colon)
     Op = Multiplication(D.f,space(D.f))
     for k=kr
         if k≤length(D.f)
@@ -78,7 +78,7 @@ for TYP in (:AnySpace,:UnsetSpace,:Space)
 end
 
 
-function addentries!(FO::FunctionalOperator,A,kr::Range)
+function addentries!(FO::FunctionalOperator,A,kr::Range,::Colon)
     if in(1,kr)
         dat=FO.func[1:datalength(FO.func)]
         for j=1:length(dat)

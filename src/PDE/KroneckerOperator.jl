@@ -187,7 +187,7 @@ function kronaddentries!(A,B,M,kr::Range)
     M
 end
 
-addentries!(K::KroneckerOperator,A,kr::Range)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
+addentries!(K::KroneckerOperator,A,kr::Range,::Colon)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
 
 
 bazeros{BT<:BandedMatrix}(K::Operator{BT},

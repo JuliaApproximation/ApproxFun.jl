@@ -78,12 +78,12 @@ bazeros(B::Operator,n::Integer,m::Colon)=bazeros(eltype(B),n,m,bandinds(B))
 bazeros(B::Operator,n::Integer,br::@compat(Tuple{Int,Int}))=bazeros(eltype(B),n,br)
 
 
-BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n)
+BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n,:)
 function BandedMatrix(B::Operator,rws::UnitRange,::Colon)
     if first(rws)==1
         BandedMatrix(B,last(rws))
     else
-        addentries!(B,isbazeros(eltype(B),rws,:,bandinds(B)),rws).matrix
+        addentries!(B,isbazeros(eltype(B),rws,:,bandinds(B)),rws,:).matrix
     end
 end
 
@@ -102,7 +102,7 @@ function BandedMatrix(B::Operator,kr::StepRange,::Colon)
         shf=div(first(kr)-first(jr),stp)
         bi=div(bandinds(B,1),stp)+shf,div(bandinds(B,2),stp)+shf
         A=bazeros(eltype(B),length(kr),length(jr),bi)
-        addentries!(B,IndexSlice(A,first(kr)-stp,first(jr)-stp,stp,stp),kr)
+        addentries!(B,IndexSlice(A,first(kr)-stp,first(jr)-stp,stp,stp),kr,:)
         A
     end
 end
@@ -197,7 +197,7 @@ end
 #  an infinite loop.
 
 
-function defaultaddentries!(B::BandedOperator,A,kr)
+function defaultaddentries!(B::BandedOperator,A,kr,::Colon)
      br=bandinds(B)
      for k=(max(kr[1],1)):(kr[end])
          for j=max(br[1],1-k):br[end]
@@ -208,7 +208,7 @@ function defaultaddentries!(B::BandedOperator,A,kr)
      A
 end
 
-addentries!(B,A,kr)=defaultaddentries!(B,A,kr)
+addentries!(B,A,kr,::Colon)=defaultaddentries!(B,A,kr,:)
 
 
 ## Composition with a Fun, LowRankFun, and ProductFun

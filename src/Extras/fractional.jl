@@ -24,7 +24,7 @@ function jacobi_frac_addentries!(α,μ,A,kr::UnitRange)
 end
 
 
-function addentries!{DD<:Interval}(Q::Integral{Jacobi{DD},Float64},A,kr::UnitRange)
+function addentries!{DD<:Interval}(Q::Integral{Jacobi{DD},Float64},A,kr::UnitRange,::Colon)
     μ=Q.order
     S=domainspace(Q)
     @assert S==Legendre()
@@ -47,7 +47,7 @@ end
 
 bandinds{DD<:Interval}(Q::Integral{JacobiWeight{Jacobi{DD},DD},Float64})=(0,0)
 
-function addentries!{DD<:Interval}(Q::Integral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange)
+function addentries!{DD<:Interval}(Q::Integral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange,::Colon)
     @assert domain(Q)==Interval()
     μ=Q.order
     S=domainspace(Q)

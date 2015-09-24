@@ -59,7 +59,7 @@ end
 function stride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
     r1=divrowrange(rs,ri,kr)
 
-    addentries!(op,IndexStride(A,ri,ci,rs,cs),r1)
+    addentries!(op,IndexStride(A,ri,ci,rs,cs),r1,:)
 
     A
 end
@@ -69,7 +69,7 @@ end
 stride_addentries!(S::StrideOperator,A,kr::Range)=stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
 
 
-addentries!(S::StrideOperator,A,kr)=stride_addentries!(S,A,kr)
+addentries!(S::StrideOperator,A,kr,::Colon)=stride_addentries!(S,A,kr)
 domain(S::StrideOperator)=Any ##TODO: tensor product
 
 
@@ -104,13 +104,13 @@ bandinds(S::SliceOperator)=(div(bandinds(S.op,1)+S.rowindex-S.colindex,S.rowstri
 
 function destride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
     r1=rs*kr[1]+ri:rs:rs*kr[end]+ri
-    addentries!(op,IndexSlice(A,ri,ci,rs,cs),r1)
+    addentries!(op,IndexSlice(A,ri,ci,rs,cs),r1,:)
     A
 end
 
 function destride_addentries!(op,ri,ci,A,kr::UnitRange)
     r1=kr[1]+ri:kr[end]+ri
-    addentries!(op,IndexSlice(A,ri,ci,1,1),r1)
+    addentries!(op,IndexSlice(A,ri,ci,1,1),r1,:)
     A
 end
 
@@ -122,7 +122,7 @@ function destride_addentries!(S::SliceOperator,A,kr::Range)
     end
 end
 
-addentries!(S::SliceOperator,A,kr)=destride_addentries!(S,A,kr)
+addentries!(S::SliceOperator,A,kr,::Colon)=destride_addentries!(S,A,kr)
 domain(S::SliceOperator)=domain(S.op)
 domainspace(S::SliceOperator)=S.colindex==0&&S.colstride==1?domainspace(S.op):SliceSpace(domainspace(S.op),S.colindex,S.colstride)
 rangespace(S::SliceOperator)=SliceSpace(rangespace(S.op),S.rowindex,S.rowstride)
@@ -252,7 +252,7 @@ end
 bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandinds(m,k)-1,min,M.ops)+1):(size(M.ops,k)*mapreduce(m->bandinds(m,k)+1,max,M.ops)-1)
 bandinds(M::InterlaceOperator)=bandinds(M,1),bandinds(M,2)
 
-function addentries!(M::InterlaceOperator,A,kr::Range)
+function addentries!(M::InterlaceOperator,A,kr::Range,::Colon)
     n=size(M.ops,1)
     for k=1:n,j=1:n
         stride_addentries!(M.ops[k,j],k-n,j-n,n,n,A,kr)
@@ -358,7 +358,7 @@ function bandinds(S::AbstractDiagonalInterlaceOperator)
 end
 
 
-function addentries!(D::AbstractDiagonalInterlaceOperator,A,kr::Range)
+function addentries!(D::AbstractDiagonalInterlaceOperator,A,kr::Range,::Colon)
     n=length(D.ops)
     for k=1:n
         stride_addentries!(D.ops[k],k-n,k-n,n,n,A,kr)

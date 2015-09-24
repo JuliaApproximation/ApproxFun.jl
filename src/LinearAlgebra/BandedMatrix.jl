@@ -525,7 +525,7 @@ end
 
 ## addentries!
 
-function addentries!(B::BandedMatrix,c::Number,A,kr::Range)
+function addentries!(B::BandedMatrix,c::Number,A,kr::Range,::Colon)
     for k=intersect(kr,1:size(B,1)),j=intersect(k+bandrange(B),1:size(B,2))
         A[k,j] += c*B.data[j-k+B.l+1,k]
     end
@@ -534,7 +534,7 @@ function addentries!(B::BandedMatrix,c::Number,A,kr::Range)
 end
 
 
-function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range)
+function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range,::Colon)
     for k=kr,j=k+bandrange(B)
         ibpluseq!(A,c*B[k,j],k,j)
     end
@@ -544,4 +544,4 @@ end
 
 
 
-addentries!(B::Union{BandedMatrix,IndexTranspose,IndexStride},A,kr::Range)=addentries!(B,1,A,kr)
+addentries!(B::Union{BandedMatrix,IndexTranspose,IndexStride},A,kr::Range,::Colon)=addentries!(B,1,A,kr,:)

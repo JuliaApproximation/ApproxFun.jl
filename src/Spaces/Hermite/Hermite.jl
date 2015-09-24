@@ -22,7 +22,7 @@ recα(::Type,::Hermite,k)=0;recβ(::Type,::Hermite,k)=0.5;recγ(::Type,::Hermite
 
 bandinds{H<:Hermite}(D::Derivative{H})=0,D.order
 rangespace{H<:Hermite}(D::Derivative{H})=domainspace(D)
-function addentries!{H<:Hermite}(D::Derivative{H},A,kr::Range)
+function addentries!{H<:Hermite}(D::Derivative{H},A,kr::Range,::Colon)
     m = D.order
     C = 2^m
     for k=kr

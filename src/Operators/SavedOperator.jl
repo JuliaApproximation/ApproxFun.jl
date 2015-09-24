@@ -90,10 +90,10 @@ datalength(B::SavedBandedOperator)=B.datalength
 
 
 
-function addentries!(B::SavedBandedOperator,A,kr::Range)
+function addentries!(B::SavedBandedOperator,A,kr::Range,::Colon)
     resizedata!(B,kr[end])
 
-    addentries!(B.data,A,kr)
+    addentries!(B.data,A,kr,:)
 
     A
 end
@@ -107,7 +107,7 @@ function resizedata!(B::SavedBandedOperator,n::Integer)
     if n > B.datalength
         pad!(B.data,2n,:)
 
-        addentries!(B.op,B.data,B.datalength+1:n)
+        addentries!(B.op,B.data,B.datalength+1:n,:)
 
         B.datalength = n
     end

@@ -87,9 +87,9 @@ end
 
 for TYP in (:UnitRange,:Range) # needed to avoid confusion
     @eval begin
-        addentries!{T,C<:Chebyshev}(M::Multiplication{C,C,T},A,kr::$TYP)=chebmult_addentries!(coefficients(M.f),A,kr)
+        addentries!{T,C<:Chebyshev}(M::Multiplication{C,C,T},A,kr::$TYP,::Colon)=chebmult_addentries!(coefficients(M.f),A,kr)
 
-        function addentries!{D,T,C<:Chebyshev}(M::Multiplication{C,Ultraspherical{1,D},T},A,kr::$TYP)
+        function addentries!{D,T,C<:Chebyshev}(M::Multiplication{C,Ultraspherical{1,D},T},A,kr::$TYP,::Colon)
             cfs=coefficients(M.f)
             toeplitz_addentries!(.5cfs,A,kr)
             hankel_addentries!(-.5cfs[3:end],A,kr)
@@ -97,7 +97,7 @@ for TYP in (:UnitRange,:Range) # needed to avoid confusion
     end
 end
 
-function addentries!{λ,PS<:PolynomialSpace,D,T}(M::Multiplication{Ultraspherical{λ,D},PS,T},A,kr::UnitRange)
+function addentries!{λ,PS<:PolynomialSpace,D,T}(M::Multiplication{Ultraspherical{λ,D},PS,T},A,kr::UnitRange,::Colon)
     a=coefficients(M.f)
     for k=kr
         A[k,k]=a[1]
@@ -108,12 +108,12 @@ function addentries!{λ,PS<:PolynomialSpace,D,T}(M::Multiplication{Ultraspherica
 
         J=subview(Recurrence(domainspace(M)),jkr,jkr)
         C1=2λ*J
-        addentries!(C1,a[2],A,kr)
+        addentries!(C1,a[2],A,kr,:)
         C0=isbaeye(jkr)
 
         for k=1:length(a)-2
             C1,C0=2(k+λ)/(k+one(T))*J*C1-(k+2λ-one(T))/(k+one(T))*C0,C1
-            addentries!(C1,a[k+2],A,kr)
+            addentries!(C1,a[k+2],A,kr,:)
         end
     end
 
@@ -121,7 +121,7 @@ function addentries!{λ,PS<:PolynomialSpace,D,T}(M::Multiplication{Ultraspherica
 end
 
 
-function addentries!{PS<:PolynomialSpace,T,C<:Chebyshev}(M::Multiplication{C,PS,T},A,kr::UnitRange)
+function addentries!{PS<:PolynomialSpace,T,C<:Chebyshev}(M::Multiplication{C,PS,T},A,kr::UnitRange,::Colon)
     a=coefficients(M.f)
 
     for k=kr
@@ -135,12 +135,12 @@ function addentries!{PS<:PolynomialSpace,T,C<:Chebyshev}(M::Multiplication{C,PS,
         #Multiplication is transpose
         J=subview(Recurrence(sp),jkr,jkr)
         C1=J
-        addentries!(C1,a[2],A,kr)
+        addentries!(C1,a[2],A,kr,:)
         C0=isbaeye(jkr)
 
         for k=1:length(a)-2
             C1,C0=2J*C1-C0,C1
-            addentries!(C1,a[k+2],A,kr)
+            addentries!(C1,a[k+2],A,kr,:)
         end
     end
 
@@ -163,7 +163,7 @@ bandinds{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}})=0,D.order
 bandinds{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}})=-D.order,0
 Base.stride{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}})=D.order
 
-function addentries!{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}},A,kr::Range)
+function addentries!{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}},A,kr::Range,::Colon)
     m=D.order
     d=domain(D)
 
@@ -201,7 +201,7 @@ Integral{DD<:Interval}(sp::Chebyshev{DD},m::Integer)=IntegralWrapper(
 
 rangespace{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}})=Ultraspherical{λ-D.order}(domain(D))
 
-function addentries!{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}},A,kr::Range)
+function addentries!{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}},A,kr::Range,::Colon)
     m=D.order
     d=domain(D)
     @assert m<=λ
@@ -243,7 +243,7 @@ function Conversion{a,b,DD}(A::Ultraspherical{a,DD},B::Ultraspherical{b,DD})
 end
 
 
-function addentries!{DD,C<:Chebyshev}(M::Conversion{C,Ultraspherical{1,DD}},A,kr::Range)
+function addentries!{DD,C<:Chebyshev}(M::Conversion{C,Ultraspherical{1,DD}},A,kr::Range,::Colon)
     # this uses that 0.5 is exact, so no need for special bigfloat def
     for k=kr
         A[k,k] += (k == 1)? 1. : .5
@@ -253,7 +253,7 @@ function addentries!{DD,C<:Chebyshev}(M::Conversion{C,Ultraspherical{1,DD}},A,kr
     A
 end
 
-function addentries!{m,λ,DD,T}(M::Conversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},A,kr::Range)
+function addentries!{m,λ,DD,T}(M::Conversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},A,kr::Range,::Colon)
     @assert λ==m+1
     c=λ-one(T)  # this supports big types
     for k=kr
