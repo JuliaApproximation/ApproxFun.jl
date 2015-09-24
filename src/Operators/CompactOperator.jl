@@ -1,8 +1,9 @@
-export CompactOperator
+export FiniteOperator
 
 
 
-immutable CompactOperator{T<:Number} <: BandedOperator{T}
+
+immutable FiniteOperator{T<:Number} <: BandedOperator{T}
     matrix::Array{T,2}
 end
 
@@ -17,18 +18,18 @@ function matrix_addentries!(M::Array,A,kr::Range)
 end
 
 
-addentries!(T::CompactOperator,A,kr::Range,::Colon)=matrix_addentries!(T.matrix,A,kr)
+addentries!(T::FiniteOperator,A,kr::Range,::Colon)=matrix_addentries!(T.matrix,A,kr)
 
-bandinds(T::CompactOperator)=(1-size(T.matrix,1),size(T.matrix,2)-1)
+bandinds(T::FiniteOperator)=(1-size(T.matrix,1),size(T.matrix,2)-1)
 
 
-# An infinite slice of a CompactOperator is also a CompactOperator
+# An infinite slice of a FiniteOperator is also a FiniteOperator
 
-function Base.slice(K::CompactOperator,kr::FloatRange,jr::FloatRange)
+function Base.slice(K::FiniteOperator,kr::FloatRange,jr::FloatRange)
     st=step(kr)
     @assert step(jr)==st
     @assert last(kr)==last(jr)==Inf
-    CompactOperator(K.matrix[first(kr):st:end,first(jr):st:end])
+    FiniteOperator(K.matrix[first(kr):st:end,first(jr):st:end])
 end
 
 
