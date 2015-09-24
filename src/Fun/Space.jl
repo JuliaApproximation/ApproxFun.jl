@@ -83,7 +83,7 @@ domain(::AmbiguousSpace)=AnyDomain()
 function setdomain(sp::Space,d::Domain)
     S=typeof(sp)
     @assert length(@compat(fieldnames(S)))==1
-    S(d)
+    eval(parse(string(S.name)))(d)
 end
 
 

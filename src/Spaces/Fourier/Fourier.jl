@@ -31,10 +31,14 @@ immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
     Hardy()=new(D())
 end
 
+
+
 Base.call{s}(H::Type{Hardy{s}},d::Domain)=Hardy{s,typeof(d)}(d)
 Base.call{s}(H::Type{Hardy{s}})=Hardy{s}(Circle())
 
 canonicalspace(S::Hardy)=S
+setdomain{s}(S::Hardy{s},d::Domain)=Hardy{s}(d)
+
 
 spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
 hasfasttransform(::Hardy)=true

@@ -17,6 +17,8 @@ Base.convert{m}(::Type{Ultraspherical{m}},d::Domain)=Ultraspherical{m,typeof(d)}
 Base.convert{m}(::Type{Ultraspherical{m}},d::Vector)=Ultraspherical{m}(Domain(d))
 
 
+setdomain{s}(S::Ultraspherical{s},d::Domain)=Ultraspherical{s}(d)
+
 
 include("Chebyshev.jl")
 
