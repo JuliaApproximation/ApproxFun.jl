@@ -1,9 +1,3 @@
-if isdir(Pkg.dir("FastGaussQuadrature"))
-    import FastGaussQuadrature
-    gausshermite(n)=Main.FastGaussQuadrature.gausshermite(n)
-end
-
-
 points(H::Hermite,n)=gausshermite(n)[1]
 
 plan_transform(H::Hermite,v::Vector) = gausshermite(length(v))

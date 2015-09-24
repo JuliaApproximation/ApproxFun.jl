@@ -17,11 +17,7 @@ println("Definite Integral tests")
 include("DefiniteIntegralTest.jl")
 println("Spaces tests")
 include("SpacesTest.jl")
-if isdir(Pkg.dir("FastGaussQuadrature"))
-    include("JacobiTest.jl")
-else
-    warn("Unable to do JacobiTest.jl since FastGaussQuadrature.jl is not installed")
-end
+include("JacobiTest.jl")
 
 println("Multivariate tests")
 include("MultivariateTest.jl")
