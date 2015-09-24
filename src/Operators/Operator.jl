@@ -128,7 +128,6 @@ Base.sparse(B::Operator,n::Range,m::Colon)=sparse(BandedMatrix(B,n,m))
 
 ## geteindex
 
-Base.getindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
 Base.getindex(op::Operator,k::Integer,j::Range)=op[k:k,j][1,:]
 Base.getindex(op::Operator,k::Range,j::Integer)=op[k,j:j][:,1]
 Base.getindex(op::Functional,k::Integer)=op[k:k][1]
@@ -141,6 +140,13 @@ function Base.getindex(op::Functional,j::Integer,k::Range)
   @assert j==1
   op[k].'
 end
+
+
+
+## override getindex or addentries!.  Each defaults
+
+defaultgetindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
+Base.getindex(op::Operator,k::Integer,j::Integer)=defaultgetindex(op,k,j)
 
 
 
@@ -187,20 +193,22 @@ end
 
 
 ## Default addentries!
-# this allows for just overriding getdiagonalentry
+#  override either addentries! or getindex, otherwise there will be
+#  an infinite loop.
 
-getdiagonalentry(B::BandedOperator,k,j)=error("Override getdiagonalentry for "*string(typeof(B)))
-#
-function addentries!(B::BandedOperator,A,kr)
+
+function defaultaddentries!(B::BandedOperator,A,kr)
      br=bandinds(B)
      for k=(max(kr[1],1)):(kr[end])
          for j=max(br[1],1-k):br[end]
-             A[k,k+j]=getdiagonalentry(B,k,j)
+             A[k,k+j]=B[k,k+j]
          end
      end
 
      A
 end
+
+addentries!(B,A,kr)=defaultaddentries!(B,A,kr)
 
 
 ## Composition with a Fun, LowRankFun, and ProductFun

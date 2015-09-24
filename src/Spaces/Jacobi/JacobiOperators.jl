@@ -103,16 +103,16 @@ bandinds{J<:Jacobi}(C::Conversion{J,J})=(0,1)
 
 
 
-function getdiagonalentry{J<:Jacobi}(C::Conversion{J,J},k,j)
+function Base.getindex{J<:Jacobi}(C::Conversion{J,J},k::Integer,j::Integer)
     L=C.domainspace
     if L.b+1==C.rangespace.b
-        if j==0
+        if j==k
             k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
         else
             (L.a+k)./(L.a+L.b+2k+1)
         end
     elseif L.a+1==C.rangespace.a
-        if j==0
+        if j==k
             k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
         else
             -(L.b+k)./(L.a+L.b+2k+1)
