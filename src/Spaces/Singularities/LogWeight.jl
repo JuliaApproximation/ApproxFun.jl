@@ -1,14 +1,13 @@
-##
-# LogWeight
-# represents a function on [-1,1] weighted by log((1+x)^α*(1-x)^β)
-##
-
-
-immutable LogWeight{S} <: WeightSpace
+"""
+ LogWeight
+ represents a function on [-1,1] weighted by log((1+x)^α*(1-x)^β)
+"""
+immutable LogWeight{S,DD} <: WeightSpace{RealBasis,DD,1}
     α::Float64
     β::Float64
     space::S
 end
+LogWeight(α,β,space)=LogWeight{typeof(space),typeof(domain(space))}(α,β,space)
 
 spacescompatible(A::LogWeight,B::LogWeight)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
 canonicalspace(A::LogWeight)=A
@@ -52,7 +51,7 @@ maxspace_rule(::JacobiWeight,::LogWeight)=NoSpace()
 # Same as JacobiWeight
 
 # avoid redundency
-function Multiplication{D<:JacobiWeight,T}(f::Fun{D,T},S::LogWeight)
+function Multiplication{SS,LWS,DD<:Interval,T}(f::Fun{JacobiWeight{SS,DD},T},S::LogWeight{LWS,DD})
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
     rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))

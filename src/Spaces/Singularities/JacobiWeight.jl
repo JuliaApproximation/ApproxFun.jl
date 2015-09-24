@@ -4,37 +4,6 @@
 export JacobiWeight
 
 
-##
-# WeightSpace represents a space that weights another space
-##
-
-abstract WeightSpace <: RealUnivariateSpace{Interval{Float64}}  #TODO: Why Interval?
-
-
-domain(S::WeightSpace)=domain(S.space)
-
-
-points(sp::WeightSpace,n)=points(sp.space,n)
-plan_transform(S::WeightSpace,vals::Vector)=1./weight(S,points(S,length(vals))),plan_transform(S.space,vals)
-plan_itransform(S::WeightSpace,vals::Vector)=weight(S,points(S,length(vals))),plan_itransform(S.space,vals)
-
-
-transform(sp::WeightSpace,vals::Vector,plan)=transform(sp.space,vals.*plan[1],plan[2])
-itransform(sp::WeightSpace,cfs::Vector,plan)=itransform(sp.space,cfs,plan[2]).*plan[1]
-
-
-
-function evaluate{WS<:WeightSpace,T}(f::Fun{WS,T},x)
-    tol=1.0E-14
-    fv=Fun(f.coefficients,space(f).space)(x)
-    if isa(fv,Number)&&abs(fv)<tol
-        #TODO: Why this special case??
-        zero(T)
-    else
-        weight(space(f),x).*fv
-    end
-end
-
 
 """
 `JacobiWeight`
@@ -42,7 +11,7 @@ weights a basis on `[-1,1]` weighted by `(1+x)^α*(1-x)^β`.
 Note the inconsistency of the parameters with `Jacobi`.
 when the domain is `[a,b]` the weight is inferred by mapping to `[-1,1]`
 """
-immutable JacobiWeight{S} <: WeightSpace
+immutable JacobiWeight{S,DD} <: WeightSpace{RealBasis,DD,1}
     α::Float64
     β::Float64
     space::S
@@ -55,9 +24,9 @@ immutable JacobiWeight{S} <: WeightSpace
     end
 end
 
-JacobiWeight(a::Number,b::Number,d::Space)=JacobiWeight{typeof(d)}(@compat(Float64(a)),@compat(Float64(b)),d)
-JacobiWeight(a::Number,b::Number,d::IntervalDomain)=JacobiWeight(@compat(Float64(a)),@compat(Float64(b)),Space(d))
-JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(@compat(Float64(a)),@compat(Float64(b)),Space(d))
+JacobiWeight(a::Number,b::Number,d::RealUnivariateSpace)=JacobiWeight{typeof(d),typeof(domain(d))}(Float64(a),Float64(b),d)
+JacobiWeight(a::Number,b::Number,d::IntervalDomain)=JacobiWeight(Float64(a),Float64(b),Space(d))
+JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(Float64(a),Float64(b),Space(d))
 JacobiWeight(a::Number,b::Number)=JacobiWeight(a,b,Chebyshev())
 
 JacobiWeight(a::Number,b::Number,s::Vector) = map(s->JacobiWeight(a,b,s),s)
@@ -68,12 +37,15 @@ identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x
 
 
 spacescompatible(A::JacobiWeight,B::JacobiWeight)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
-spacescompatible{T,D<:Interval}(A::JacobiWeight,B::Space{T,D})=spacescompatible(A,JacobiWeight(0,0,B))
-spacescompatible{T,D<:Interval}(B::Space{T,D},A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
+spacescompatible{DD<:Interval}(A::JacobiWeight,B::RealUnivariateSpace{DD})=spacescompatible(A,JacobiWeight(0,0,B))
+spacescompatible{DD<:Interval}(B::RealUnivariateSpace{DD},A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
-transformtimes{S,V}(f::Fun{JacobiWeight{S}},g::Fun{JacobiWeight{V}}) = Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),Fun(g.coefficients,g.space.space))),JacobiWeight(f.space.α+g.space.α,f.space.β+g.space.β,f.space.space))
-transformtimes{S}(f::Fun{JacobiWeight{S}},g::Fun) = Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),g)),f.space)
-transformtimes{S}(f::Fun,g::Fun{JacobiWeight{S}}) = Fun(coefficients(transformtimes(Fun(g.coefficients,g.space.space),f)),g.space)
+transformtimes{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})=
+            Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),
+                                            Fun(g.coefficients,g.space.space))),
+                             JacobiWeight(f.space.α+g.space.α,f.space.β+g.space.β,f.space.space))
+transformtimes{JW<:JacobiWeight}(f::Fun{JW},g::Fun) = Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),g)),f.space)
+transformtimes{JW<:JacobiWeight}(f::Fun,g::Fun{JW}) = Fun(coefficients(transformtimes(Fun(g.coefficients,g.space.space),f)),g.space)
 
 ##  α and β are opposite the convention for Jacobi polynomials
 # Here, α is the left algebraic singularity and β is the right algebraic singularity.
@@ -89,7 +61,7 @@ setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.spac
 
 
 ##TODO: paradigm for same space
-function coefficients(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
+function coefficients{SJ1,SJ2,DD<:Interval}(f::Vector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD})
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
 
@@ -99,15 +71,23 @@ function coefficients(f::Vector,sp1::JacobiWeight,sp2::JacobiWeight)
         (Conversion(sp1,sp2)*f)
     end
 end
-coefficients{S,n,st,T,DD<:Interval}(f::Vector,sp::JacobiWeight,S2::SliceSpace{n,st,S,T,DD,1})=error("Implement")
-coefficients{S,n,st,T,DD<:Interval}(f::Vector,S2::SliceSpace{n,st,S,T,DD,1},sp::JacobiWeight)=error("Implement")
+coefficients{SJ,S,n,st,DD<:Interval}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SliceSpace{n,st,S,RealBasis,DD,1})=error("Implement")
+coefficients{SJ,S,n,st,DD<:Interval}(f::Vector,S2::SliceSpace{n,st,S,RealBasis,DD,1},sp::JacobiWeight{SJ,DD})=error("Implement")
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
-coefficients{SV,T,D<:Interval}(f::Vector,sp::JacobiWeight,S2::SumSpace{SV,T,D,1})=sumspacecoefficients(f,sp,S2)
-coefficients{T,D<:Interval}(f::Vector,sp::JacobiWeight,S2::Space{T,D,1})=coefficients(f,sp,JacobiWeight(0,0,S2))
-coefficients{T,D<:Interval}(f::Vector,S2::Space{T,D,1},sp::JacobiWeight)=coefficients(f,JacobiWeight(0,0,S2),sp)
+coefficients{SJ,SV,DD<:Interval}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1})=sumspacecoefficients(f,sp,S2)
+coefficients{SJ,DD<:Interval}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD})=coefficients(f,sp,JacobiWeight(0,0,S2))
+coefficients{SJ,DD<:Interval}(f::Vector,S2::RealUnivariateSpace{DD},sp::JacobiWeight{SJ,DD})=coefficients(f,JacobiWeight(0,0,S2),sp)
 
+
+"""
+`increase_jacobi_parameter(f)` multiplies by `1-x^2` on the unit interval.
+`increase_jacobi_parameter(-1,f)` multiplies by `1+x` on the unit interval.
+`increase_jacobi_parameter(+1,f)` multiplies by `1-x` on the unit interval.
+On other domains this is accomplished by mapping to the unit interval.
+"""
 increase_jacobi_parameter(f)=Fun(f,JacobiWeight(f.space.α+1,f.space.β+1,space(f).space))
-increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeight(f.space.α+1,f.space.β,space(f).space)):Fun(f,JacobiWeight(f.space.α,f.space.β+1,space(f).space))
+increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeight(f.space.α+1,f.space.β,space(f).space)):
+                                     Fun(f,JacobiWeight(f.space.α,f.space.β+1,space(f).space))
 
 
 
@@ -136,20 +116,20 @@ end
 
 for op in (:/,:./)
     @eval begin
-        function ($op){S}(c::Number,f::Fun{JacobiWeight{S}})
+        function ($op){JW<:JacobiWeight}(c::Number,f::Fun{JW})
             g=($op)(c,Fun(f.coefficients,space(f).space))
             Fun(g.coefficients,JacobiWeight(-f.space.α,-f.space.β,space(g)))
         end
     end
 end
 
-function .^{J<:JacobiWeight}(f::Fun{J},k::Float64)
+function .^{JW<:JacobiWeight}(f::Fun{JW},k::Float64)
     S=space(f)
     g=Fun(coefficients(f),S.space)^k
     Fun(coefficients(g),JacobiWeight(k*S.α,k*S.β,space(g)))
 end
 
-function .*{S,V}(f::Fun{JacobiWeight{S}},g::Fun{JacobiWeight{V}})
+function .*{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})
     @assert domainscompatible(f,g)
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β
@@ -162,7 +142,7 @@ function .*{S,V}(f::Fun{JacobiWeight{S}},g::Fun{JacobiWeight{V}})
 end
 
 
-./{T,N}(f::Fun{JacobiWeight{T}},g::Fun{JacobiWeight{N}})=f*(1/g)
+./{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})=f*(1/g)
 
 # O(min(m,n)) Ultraspherical inner product
 
@@ -204,7 +184,7 @@ function innerproduct{D}(::Type{Ultraspherical{1,D}},u::Vector,v::Vector)
     end
 end
 
-function Base.dot{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D}}},g::Fun{Ultraspherical{λ,D}})
+function Base.dot{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
     @assert domain(f) == domain(g)
     if f.space.α == f.space.β == λ-0.5
         return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
@@ -213,7 +193,7 @@ function Base.dot{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D}}},g::Fun{Ultras
     end
 end
 
-function Base.dot{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D}}})
+function Base.dot{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if g.space.α == g.space.β == λ-0.5
         return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
@@ -222,7 +202,7 @@ function Base.dot{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultrasp
     end
 end
 
-function Base.dot{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D}}},g::Fun{JacobiWeight{Ultraspherical{λ,D}}})
+function Base.dot{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
         return complexlength(domain(f))/2*innerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)

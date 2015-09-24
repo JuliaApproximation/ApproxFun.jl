@@ -1,4 +1,4 @@
-function rangespace(Q::Integral{Jacobi,Float64})
+function rangespace{DD<:Interval}(Q::Integral{Jacobi{DD},Float64})
     if Q.order==0.5
         @assert domainspace(Q)==Legendre()
         JacobiWeight(0.5,0.,Jacobi(-0.5,0.5))
@@ -7,7 +7,7 @@ function rangespace(Q::Integral{Jacobi,Float64})
     end
 end
 
-bandinds(Q::Integral{Jacobi,Float64})=(0,0)
+bandinds{DD<:Interval}(Q::Integral{Jacobi{DD},Float64})=(0,0)
 
 function jacobi_frac_addentries!(α,μ,A,kr::UnitRange)
     γ=gamma(α+1)/gamma(α+1+μ)
@@ -24,7 +24,7 @@ function jacobi_frac_addentries!(α,μ,A,kr::UnitRange)
 end
 
 
-function addentries!(Q::Integral{Jacobi,Float64},A,kr::UnitRange)
+function addentries!{DD<:Interval}(Q::Integral{Jacobi{DD},Float64},A,kr::UnitRange)
     μ=Q.order
     S=domainspace(Q)
     @assert S==Legendre()
@@ -32,7 +32,7 @@ function addentries!(Q::Integral{Jacobi,Float64},A,kr::UnitRange)
     jacobi_frac_addentries!(0.,μ,A,kr)
 end
 
-function rangespace(Q::Integral{JacobiWeight{Jacobi},Float64})
+function rangespace{DD<:Interval}(Q::Integral{JacobiWeight{Jacobi{DD},DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -45,9 +45,9 @@ function rangespace(Q::Integral{JacobiWeight{Jacobi},Float64})
     end
 end
 
-bandinds(Q::Integral{JacobiWeight{Jacobi},Float64})=(0,0)
+bandinds{DD<:Interval}(Q::Integral{JacobiWeight{Jacobi{DD},DD},Float64})=(0,0)
 
-function addentries!(Q::Integral{JacobiWeight{Jacobi},Float64},A,kr::UnitRange)
+function addentries!{DD<:Interval}(Q::Integral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange)
     @assert domain(Q)==Interval()
     μ=Q.order
     S=domainspace(Q)

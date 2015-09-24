@@ -242,7 +242,7 @@ hasconversion(a::Ultraspherical,b::Jacobi)=hasconversion(Jacobi(a),b)
 # (1+x) or (1-x) by _decreasing_ the parameter.  Thus the
 
 
-function Multiplication{C<:Chebyshev}(f::Fun{JacobiWeight{C}},S::Jacobi)
+function Multiplication{C<:Chebyshev,DD<:Interval}(f::Fun{JacobiWeight{C,DD}},S::Jacobi)
     # this implements (1+x)*P and (1-x)*P special case
     # see DLMF (18.9.6)
     if length(f)==1 && ((space(f).α==1 && space(f).β==0 && S.b >0) ||
@@ -256,7 +256,7 @@ function Multiplication{C<:Chebyshev}(f::Fun{JacobiWeight{C}},S::Jacobi)
     end
 end
 
-function rangespace{J<:Jacobi,C<:Chebyshev}(M::Multiplication{JacobiWeight{C},J})
+function rangespace{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::Multiplication{JacobiWeight{C,DD},J})
     S=domainspace(M)
     if space(M.f).α==1
         # multiply by (1+x)
@@ -269,9 +269,9 @@ function rangespace{J<:Jacobi,C<:Chebyshev}(M::Multiplication{JacobiWeight{C},J}
     end
 end
 
-bandinds{J<:Jacobi,C<:Chebyshev}(::Multiplication{JacobiWeight{C},J})=-1,0
+bandinds{J<:Jacobi,C<:Chebyshev,DD<:Interval}(::Multiplication{JacobiWeight{C,DD},J})=-1,0
 
-function addentries!{J<:Jacobi,C<:Chebyshev}(M::Multiplication{JacobiWeight{C},J},A,kr::Range)
+function addentries!{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::Multiplication{JacobiWeight{C,DD},J},A,kr::Range)
     @assert length(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     if space(M.f).α==1
@@ -305,7 +305,7 @@ end
 
 
 #TODO: general integer decrements
-function Conversion{J<:Jacobi}(A::JacobiWeight{J},B::Jacobi)
+function Conversion{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
     if A.α==1.0 && A.β==0.0
         M=Multiplication(Fun([1.],JacobiWeight(1.,0.,domain(A))),A.space)        # multply by (1+x)
         S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
@@ -319,7 +319,7 @@ function Conversion{J<:Jacobi}(A::JacobiWeight{J},B::Jacobi)
     end
 end
 
-function maxspace_rule{J<:Jacobi}(A::JacobiWeight{J},B::Jacobi)
+function maxspace_rule{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
     if A.α==1.0 && A.β==0.0 && A.space.b>0
         maxspace(Jacobi(A.space.a,A.space.b-1),B)
     elseif A.α==0.0 && A.β==1.0 && A.space.a>0

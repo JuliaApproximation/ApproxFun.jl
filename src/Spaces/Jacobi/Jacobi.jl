@@ -130,7 +130,7 @@ function Base.dot{J<:Jacobi}(f::Fun{J},g::Fun{J})
     end
 end
 
-function Base.dot{J<:Jacobi}(f::Fun{JacobiWeight{J}},g::Fun{J})
+function Base.dot{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return complexlength(domain(f))/2*innerproduct(g.space,f.coefficients,g.coefficients)
@@ -139,7 +139,7 @@ function Base.dot{J<:Jacobi}(f::Fun{JacobiWeight{J}},g::Fun{J})
     end
 end
 
-function Base.dot{J<:Jacobi}(f::Fun{J},g::Fun{JacobiWeight{J}})
+function Base.dot{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return complexlength(domain(f))/2*innerproduct(f.space,f.coefficients,g.coefficients)
@@ -148,7 +148,7 @@ function Base.dot{J<:Jacobi}(f::Fun{J},g::Fun{JacobiWeight{J}})
     end
 end
 
-function Base.dot{J<:Jacobi}(f::Fun{JacobiWeight{J}},g::Fun{JacobiWeight{J}})
+function Base.dot{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return complexlength(domain(f))/2*innerproduct(f.space.space,f.coefficients,g.coefficients)
