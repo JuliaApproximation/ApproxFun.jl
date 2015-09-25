@@ -228,7 +228,7 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
             if any(b->b==NoSpace(),newspaces)
                 NoSpace()
             else
-                TupleSpace(tuple(S1[1:K]...,newspaces))
+                TupleSpace(tuple(S1[1:K]...,newspaces...))
             end
         else
             NoSpace()

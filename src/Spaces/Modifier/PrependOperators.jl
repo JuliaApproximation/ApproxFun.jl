@@ -1,19 +1,30 @@
 
-## PrependColumnsOperator
+# BlockOperator supports adding rows and columns.
 
-immutable PrependColumnsOperator{O,T} <: BandedOperator{T}
-    cols::Matrix{T}
+immutable BlockOperator{O,T} <: BandedOperator{T}
+    mat11::Matrix{T}
+    mat12::Matrix{T}
+    mat21::Matrix{T}
     op::O
+
+    function BlockOperator(mat11::Matrix{T},mat12::Matrix{T},mat21::Matrix{T},op::O)
+        @assert size(mat11,1)==size(mat12,1)
+        @assert size(mat11,2)==size(mat21,2)
+        new(mat11,mat12,mat21,op)
+    end
 end
 
-PrependColumnsOperator(cols::Matrix,
-                       B::BandedOperator)=PrependColumnsOperator{typeof(B),
-                                                                 promote_type(eltype(cols),
-                                                                              eltype(B))}(cols,B)
-PrependColumnsOperator(cols::Vector,B)=PrependColumnsOperator(reshape(cols,length(cols),1),B)
+BlockOperator(cols::Matrix,B::BandedOperator)=BlockOperator{typeof(B),
+                                         promote_type(eltype(cols),
+                                                      eltype(B))}(Array(Float64,0,size(cols,2)),Array(Float64,0,0),cols,B)
+
+BlockOperator(mat11::Matrix,mat12::Matrix,mat21::Matrix,B::BandedOperator)=BlockOperator{typeof(B),
+                                                               promote_type(eltype(mat11),eltype(mat12),eltype(mat21),
+                                                                            eltype(B))}(mat11,mat12,mat21,B)
+BlockOperator(cols::Vector,B)=BlockOperator(reshape(cols,length(cols),1),B)
 
 
-function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
+function BlockOperator{BO<:Operator}(A::Matrix{BO})
     @assert size(A,1)==1
     M=vec(A[1,1:end-1])
     B=A[1,end]
@@ -64,81 +75,116 @@ function PrependColumnsOperator{BO<:Operator}(A::Matrix{BO})
     end
 
 
-    PrependColumnsOperator(cols,B)
+    BlockOperator(cols,B)
 end
 
-rangespace(B::PrependColumnsOperator)=rangespace(B.op)
-function domainspace(B::PrependColumnsOperator)
-    ds=domainspace(B.op)
-    if isa(ds,UnsetSpace)
-        ds # avoids TupleSpace⊕UnsetSpace
-    elseif  size(B.cols,2)==1
-        TupleSpace(ConstantSpace(),domainspace(B.op))
+function rangespace(B::BlockOperator)
+    rs=rangespace(B.op)
+    if isa(rs,UnsetSpace) || size(B.mat11,1)==0
+        rs # avoids TupleSpace⊕UnsetSpace
     else
-        TupleSpace(fill(ConstantSpace(),size(B.cols,2))...,domainspace(B.op))
+        TupleSpace(fill(ConstantSpace(),size(B.mat11,1))...,rs)
     end
 end
 
-bandinds(B::PrependColumnsOperator)=min(1-size(B.cols,1),bandinds(B.op,1)+size(B.cols,2)),
-                                        bandinds(B.op,2)+size(B.cols,2)
+function domainspace(B::BlockOperator)
+    ds=domainspace(B.op)
+    if isa(ds,UnsetSpace) || size(B.mat11,2)==0
+        ds # avoids TupleSpace⊕UnsetSpace
+    else
+        TupleSpace(fill(ConstantSpace(),size(B.mat11,2))...,ds)
+    end
+end
 
-function addentries!(B::PrependColumnsOperator,A,kr::Range,::Colon)
-    addentries!(B.op,IndexStride(A,0,size(B.cols,2)),kr,:)
-    for k=intersect(kr,1:size(B.cols,1)),j=1:size(B.cols,2)
-        A[k,j]+=B.cols[k,j]
+bandinds(B::BlockOperator)=min(1-size(B.mat21,1)-size(B.mat11,1),
+                               bandinds(B.op,1)+size(B.mat11,2)-size(B.mat11,1)),
+                           max(size(B.mat11,2)+size(B.mat12,2)-1,
+                               bandinds(B.op,2)+size(B.mat11,2)-size(B.mat11,1))
+
+
+function addentries!(B::BlockOperator,A,kr::Range,::Colon)
+    addentries!(B.op,IndexStride(A,size(B.mat11,1),size(B.mat11,2)),kr,:)
+    n,m=size(B.mat11)
+    for k=intersect(kr,1:n),j=1:m
+        A[k,j]+=B.mat11[k,j]
+    end
+    for k=intersect(kr,1:n),j=m+1:m+size(B.mat12,2)
+        A[k,j]+=B.mat12[k,j-m]
+    end
+    for k=intersect(kr,n+1:n+size(B.mat21,1)),j=1:m
+        A[k,j]+=B.mat21[k-n,j]
     end
     A
 end
 
 
-choosedomainspace(B::PrependColumnsOperator,f)=size(B.cols,2)==1?TupleSpace(ConstantSpace(),choosedomainspace(B.op,f)):
-                                                         TupleSpace(fill(ConstantSpace(),size(B.cols,2))...,choosedomainspace(B.op,f))
+choosedomainspace(B::BlockOperator,f)=TupleSpace(fill(ConstantSpace(),size(B.mat11,2))...,choosedomainspace(B.op,f))
 
-function promotedomainspace(P::PrependColumnsOperator,S::TupleSpace)
-    m=size(P.cols,2)
+function promotedomainspace(P::BlockOperator,S::TupleSpace)
+    m=size(P.mat11,2)
     @assert length(S.spaces)==m+1  #TODO: extra tuple?
     @assert all(sp->isa(sp,ConstantSpace),S.spaces[1:m])
     sp=S.spaces[end]
 
     op=promotedomainspace(P.op,sp)
-    if size(P.cols,1)==1 && isa(rangespace(P),UnsetSpace)
+    if size(P.mat11,1)==0 && size(P.mat21,1)==1 && isa(rangespace(P),UnsetSpace)
         # this is to allow unset space,
         # so we pass to the standard constructor
-        PrependColumnsOperator([P.cols op])
+        BlockOperator([P.mat21 op])
     else
         # we don't know how to change the rangespace
         # TODO: convert coefficients from old rangespace to
         # new rangespace
         @assert rangespace(op)==rangespace(P)
-        PrependColumnsOperator(P.cols,op)
+        BlockOperator(P.mat11,P.mat12,P.mat21,op)
     end
 end
 
+# function promoterangespace(P::BlockOperator,S::TupleSpace)
+#     m=size(P.mat11,1)
+#     @assert length(S.spaces)==m+1  #TODO: extra tuple?
+#     @assert all(sp->isa(sp,ConstantSpace),S.spaces[1:m])
+#     sp=S.spaces[end]
+#
+#     op=promotedomainspace(P.op,sp)
+#     if size(P.mat11,1)==0 && size(P.mat21,1)==1 && isa(rangespace(P),UnsetSpace)
+#         # this is to allow unset space,
+#         # so we pass to the standard constructor
+#         BlockOperator([P.mat21 op])
+#     else
+#         # we don't know how to change the rangespace
+#         # TODO: convert coefficients from old rangespace to
+#         # new rangespace
+#         @assert rangespace(op)==rangespace(P)
+#         BlockOperator(P.mat11,P.mat12,P.mat21,op)
+#     end
+# end
 
 
-## PrependColumnsFunctional
 
-immutable PrependColumnsFunctional{T<:Number,B<:Functional} <: Functional{T}
+## BlockFunctional
+
+immutable BlockFunctional{T<:Number,B<:Functional} <: Functional{T}
     cols::Vector{T}
     op::B
 end
 
-PrependColumnsFunctional{T<:Number}(cols::Vector{T},op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
-PrependColumnsFunctional{T<:Number}(col::T,op::Functional) = PrependColumnsFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
+BlockFunctional{T<:Number}(cols::Vector{T},op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
+BlockFunctional{T<:Number}(col::T,op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
 
-domainspace(P::PrependColumnsFunctional)=TupleSpace(ConstantSpace(),domainspace(P.op))
+domainspace(P::BlockFunctional)=TupleSpace(ConstantSpace(),domainspace(P.op))
 
 
-function promotedomainspace(P::PrependColumnsFunctional,S::TupleSpace)
+function promotedomainspace(P::BlockFunctional,S::TupleSpace)
     @assert isa(S.spaces[1],ConstantSpace)
     sp=length(S.spaces)==2?S.spaces[2]:TupleSpace(S.spaces[2:end])
 
     op=promotedomainspace(P.op,sp)
 
-    PrependColumnsFunctional(P.cols,op)
+    BlockFunctional(P.cols,op)
 end
 
-function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range)
+function Base.getindex{T<:Number}(P::BlockFunctional{T},kr::Range)
     lcols = length(P.cols)
     if kr[end]≤lcols
         P.cols[kr]
@@ -148,4 +194,4 @@ function Base.getindex{T<:Number}(P::PrependColumnsFunctional{T},kr::Range)
          P.op[opr[1]-lcols:opr[end]-lcols]]
     end
 end
-Base.convert{BT<:Operator}(::Type{BT},P::PrependColumnsFunctional)=PrependColumnsFunctional(convert(Vector{eltype(BT)},P.cols),convert(Functional{eltype(BT)},P.op))
+Base.convert{BT<:Operator}(::Type{BT},P::BlockFunctional)=BlockFunctional(convert(Vector{eltype(BT)},P.cols),convert(Functional{eltype(BT)},P.op))
