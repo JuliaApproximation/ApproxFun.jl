@@ -15,6 +15,13 @@ Base.zeros(S::Union{AnyDomain,AnySpace,UnsetSpace})=zeros(ConstantSpace())
 evaluate(f::Fun{ConstantSpace},x...)=f.coefficients[1]
 
 
+# promoting numbers to Fun
+# override promote_rule if the space type can represent constants
+Base.promote_rule{T<:Number}(::Type{Fun{ConstantSpace}},::Type{T})=Fun{ConstantSpace,T}
+Base.promote_rule{T<:Number,V}(::Type{Fun{ConstantSpace,V}},::Type{T})=Fun{ConstantSpace,promote_type(T,V)}
+Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
+
+
 
 promoterangespace(P::Functional,::ConstantSpace,::ConstantSpace)=P # functionals always map to vector space
 

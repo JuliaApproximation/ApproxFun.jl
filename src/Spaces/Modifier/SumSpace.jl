@@ -64,12 +64,48 @@ function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
     end
 end
 
+function Base.promote_rule{SV,B,DD,d,V,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d},V}},::Type{T})
+    for k=1:length(SV.parameters)
+        pt=promote_type(Fun{SV.parameters[k],V},T)
+        if pt != Fun
+            return Fun{SumSpace{Tuple{SV.parameters[1:k-1]...,pt.parameters[1],SV.parameters[k+1:end]...},
+                       B,DD,d},promote_type(V,T)}
+        end
+    end
+    Fun
+end
+
+Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{SumSpace{SV,B,DD,d},Float64},T)
+
+function Base.promote_rule{SV,B,DD,d,V,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d},V}},::Type{T})
+    # if any doesn't support promoting, just leave unpromoted
+
+    newfsp=map(s->promote_type(Fun{s,V},T),SV.parameters)
+    if any(s->s==Fun,newfsp)
+        Fun
+    else
+        newsp=map(s->s.parameters[1],newfsp)
+        Fun{PiecewiseSpace{Tuple{newsp...},B,DD,d},promote_type(V,T)}
+    end
+end
+
+Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{PiecewiseSpace{SV,B,DD,d},Float64},T)
 
 
+for OP in (:(Base.getindex),:(Base.length),:(Base.next))
+    @eval $OP(S::DirectSumSpace,k...)=$OP(S.spaces,k...)
+end
 
+#support tuple set
+for OP in (:(Base.start),:(Base.done),:(Base.endof))
+    @eval begin
+        $OP(S::DirectSumSpace,k...)=$OP(S.spaces,k...)
+        $OP{SS<:DirectSumSpace}(f::Fun{SS},k...)=$OP(space(f),k...)
+    end
+end
 
-Base.getindex(S::DirectSumSpace,k)=S.spaces[k]
-Base.length(S::DirectSumSpace)=length(S.spaces)
+Base.next{SS<:DirectSumSpace}(f::Fun{SS},k)=f[k],k+1
+
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval domain(A::$TYP)=domain(A.spaces[end])      # TODO: this assumes all spaces have the same domain
@@ -304,17 +340,3 @@ function union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},W::SumSpace)
 end
 union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},
                    W::Space)=SumSpace(SS.spaces[1],union(SS.spaces[2],W))
-
-
-
-
-
-
-#support tuple set
-Base.start(f::DirectSumSpace)=start(vec(f))
-Base.done(f::DirectSumSpace,k)=done(vec(f),k)
-Base.next(f::DirectSumSpace,k)=next(vec(f),k)
-
-Base.start{SS<:DirectSumSpace}(f::Fun{SS})=start(vec(f))
-Base.done{SS<:DirectSumSpace}(f::Fun{SS},k)=done(vec(f),k)
-Base.next{SS<:DirectSumSpace}(f::Fun{SS},k)=next(vec(f),k)

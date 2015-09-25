@@ -61,9 +61,29 @@ end
 
 
 function Base.show(io::IO,s::SumSpace)
-    show(io,s.spaces[1])
-    print(io,"⊕")
-    show(io,s.spaces[2])
+    show(io,s[1])
+    for sp in s[2:end]
+        print(io,"⊕")
+        show(io,sp)
+    end
+end
+
+function Base.show(io::IO,s::TupleSpace)
+    print(io,"(")
+    show(io,s[1])
+    for sp in s[2:end]
+        print(io,",")
+        show(io,sp)
+    end
+    print(io,")")
+end
+
+function Base.show(io::IO,s::PiecewiseSpace)
+    show(io,s[1])
+    for sp in s[2:end]
+        print(io,"⨄")
+        show(io,sp)
+    end
 end
 
 function Base.show(io::IO,s::TensorSpace)

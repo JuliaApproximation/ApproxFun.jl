@@ -17,7 +17,6 @@ for T in (:CosSpace,:SinSpace)
         canonicalspace(S::$T)=Fourier(domain(S))
     end
 end
-
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
 
@@ -32,6 +31,8 @@ immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
 end
 
 
+Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},::Type{T})=Fun{S,promote_type(V,T)}
+Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace}}(::Type{Fun{S}},::Type{T})=Fun{S,T}
 
 Base.call{s}(H::Type{Hardy{s}},d::Domain)=Hardy{s,typeof(d)}(d)
 Base.call{s}(H::Type{Hardy{s}})=Hardy{s}(Circle())

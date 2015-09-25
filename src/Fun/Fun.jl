@@ -54,8 +54,10 @@ Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(convert(Vector{T},f.coefficien
 Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))
 
 Base.convert{T,S}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
+Base.convert{S}(::Type{Fun{S}},x::Number)=x==0?zeros(S(AnyDomain())):x*ones(S(AnyDomain()))
+Base.convert{IF<:Fun}(::Type{IF},x::Number)=Fun(x)
 Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
-Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=IF
+
 
 Base.zero(::Type{Fun})=Fun(0.)
 Base.zero{T,S<:Space}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
