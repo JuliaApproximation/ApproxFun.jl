@@ -1,7 +1,7 @@
 export setplotter, domainplot, coefficientplot
 
 # these defaults are overloaded as packages are loaded
-plotter=@compat Dict(:contour=>"Gadfly",
+plotter=Dict(:contour=>"Gadfly",
     :plot=>"Gadfly",
     :surf=>"PyPlot")
 

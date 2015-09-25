@@ -53,7 +53,7 @@ function roots{C<:Chebyshev}( f::Fun{C} )
     htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
     if eltype(f) == BigFloat
-        r = rootsunit_coeffs(convert(Vector{Float64},c./vscale), @compat Float64(htol))
+        r = rootsunit_coeffs(convert(Vector{Float64},c./vscale), Float64(htol))
         # Map roots from [-1,1] to domain of f:
         rts = fromcanonical(d,r)
         fp = differentiate(f)
@@ -61,7 +61,7 @@ function roots{C<:Chebyshev}( f::Fun{C} )
             rts .-=f(rts)./fp(rts)
         end
     elseif eltype(f) == Complex{BigFloat}
-        r = rootsunit_coeffs(convert(Vector{Complex{Float64}},c./vscale), @compat Float64(htol))
+        r = rootsunit_coeffs(convert(Vector{Complex{Float64}},c./vscale), Float64(htol))
         # Map roots from [-1,1] to domain of f:
         rts = fromcanonical(d,r)
         fp = differentiate(f)
@@ -69,7 +69,7 @@ function roots{C<:Chebyshev}( f::Fun{C} )
             rts .-=f(rts)./fp(rts)
         end
     else
-        r = rootsunit_coeffs(c./vscale, @compat Float64(htol))
+        r = rootsunit_coeffs(c./vscale, Float64(htol))
         # Map roots from [-1,1] to domain of f:
         rts = fromcanonical(d,r)
     end

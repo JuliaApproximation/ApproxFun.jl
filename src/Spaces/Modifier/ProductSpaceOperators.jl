@@ -67,10 +67,10 @@ Base.blkdiag{FT<:PiecewiseSpace,OT<:AbstractDiagonalInterlaceOperator}(A::Multip
 
 immutable DiagonalArrayOperator{B<:BandedOperator,T<:Number} <: BandedOperator{T}
     op::B
-    dimensions::@compat(Tuple{Vararg{Int}})
+    dimensions::Tuple{Vararg{Int}}
 end
 
-DiagonalArrayOperator{T}(op::BandedOperator{T},dms::@compat(Tuple{Vararg{Int}}))=DiagonalArrayOperator{typeof(op),T}(op,dms)
+DiagonalArrayOperator{T}(op::BandedOperator{T},dms::Tuple{Vararg{Int}})=DiagonalArrayOperator{typeof(op),T}(op,dms)
 #DiagonalArrayOperator{T}(op::BandedOperator{T},dms::Int)=DiagonalArrayOperator(op,(dms,))
 
 
@@ -302,8 +302,8 @@ datalength{PWS<:PiecewiseSpace,T}(Σ::DefiniteLineIntegral{PWS,T})=length(domain
 
 ## TensorSpace of two PiecewiseSpaces
 
-Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{@compat(Tuple{PWS1,PWS2})},i::Integer,j::Integer)=d[1][i]⊗d[2][j]
-Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{@compat(Tuple{PWS1,PWS2})},i::Range,j::Range)=PiecewiseSpace(d[1][i])⊗PiecewiseSpace(d[2][j])
+Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{Tuple{PWS1,PWS2}},i::Integer,j::Integer)=d[1][i]⊗d[2][j]
+Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{Tuple{PWS1,PWS2}},i::Range,j::Range)=PiecewiseSpace(d[1][i])⊗PiecewiseSpace(d[2][j])
 
 ## ProductFun
 

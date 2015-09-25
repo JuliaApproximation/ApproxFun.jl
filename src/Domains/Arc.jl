@@ -11,11 +11,11 @@ mobiusinvD(a,b,c,d,z)=mobiusD(d,-b,-c,a,z)
 immutable Arc{T<:Number,V<:Real} <: IntervalDomain{Complex{V}}
     center::T
     radius::V
-    angles::@compat(Tuple{V,V})
+    angles::Tuple{V,V}
 end
 
 
-Arc{T<:Number,V<:Real,V1<:Real,V2<:Real}(c::T,r::V,t::@compat(Tuple{V1,V2}))=Arc{promote_type(T,V,V1,V2),promote_type(real(T),V,V1,V2)}(c,r,t)
+Arc{T<:Number,V<:Real,V1<:Real,V2<:Real}(c::T,r::V,t::Tuple{V1,V2})=Arc{promote_type(T,V,V1,V2),promote_type(real(T),V,V1,V2)}(c,r,t)
 Arc(c,r,t0,t1)=Arc(c,r,(t0,t1))
 
 

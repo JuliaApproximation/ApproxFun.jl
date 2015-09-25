@@ -21,6 +21,8 @@ ZeroChebyshevDirichlet()=SliceSpace(ChebyshevDirichlet{1,1,Interval{Float64}}(),
 
 canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
 
+setdomain{l,r}(S::ChebyshevDirichlet{l,r},d::Domain)=ChebyshevDirichlet{l,r}(d)
+
 
 ## coefficients
 

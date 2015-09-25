@@ -76,7 +76,7 @@ typealias BivariateOperator{T} BandedOperator{BandedMatrix{T}}
 #########
 
 immutable KroneckerOperator{S,V,DS,RS,T<:Number}<: BivariateOperator{T}
-    ops::@compat(Tuple{S,V})
+    ops::Tuple{S,V}
     domainspace::DS
     rangespace::RS
 end
@@ -194,7 +194,7 @@ bazeros{BT<:BandedMatrix}(K::Operator{BT},
                           n::Integer,
                           ::Colon)=blockbandzeros(eltype(BT),n,:,bandinds(K),blockbandinds(K))
 bazeros{BT<:BandedMatrix}(K::Operator{BT},n::Integer,
-                          br::@compat(Tuple{Int,Int}))=blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
+                          br::Tuple{Int,Int})=blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
 
 # function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
 #     @assert first(kr)==1
@@ -303,12 +303,12 @@ end
 
 
 Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
-function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{ConstantSpace,V}),T,2}},sp::TensorSpace)
+function Multiplication{T,V}(f::Fun{TensorSpace{Tuple{ConstantSpace,V},T,2}},sp::TensorSpace)
     a=Fun(vec(totensor(f.coefficients)[1,:]),space(f)[2])
     #Hack to avoid auto-typing bug.  TODO: incorporate basis
     MultiplicationWrapper(BandedMatrix{eltype(f)},f,eye(sp[1])⊗Multiplication(a,sp[2]))
 end
-function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{V,ConstantSpace}),T,2}},sp::TensorSpace)
+function Multiplication{T,V}(f::Fun{TensorSpace{Tuple{V,ConstantSpace},T,2}},sp::TensorSpace)
     if isempty(f.coefficients)
         a=Fun(zeros(eltype(f),1),space(f)[1])
     else

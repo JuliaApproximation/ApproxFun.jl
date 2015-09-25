@@ -2,7 +2,7 @@ using ApproxFun, Base.Test, Compat
 
 single_sin = Fun(sin,Interval(0.f0,1.f0))
 double_sin = Fun(sin,Interval(0.,1.))
-big_sin = Fun(sin,Interval(@compat(parse(BigFloat,"0.0")), @compat(parse(BigFloat,"1.0"))))
+big_sin = Fun(sin,Interval(parse(BigFloat,"0.0"), parse(BigFloat,"1.0")))
 
 @test length(single_sin) <= length(double_sin)
 @test length(double_sin) <= length(big_sin)
@@ -17,6 +17,3 @@ single_double_err = coefficients(single_sin-double_sin)[1:length(single_sin)]
 
 single_double_err = coefficients(double_sin-big_sin)[1:length(double_sin)]
 @test norm(single_double_err) < 10eps(Float64)
-
-
-

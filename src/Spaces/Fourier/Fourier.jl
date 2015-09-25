@@ -128,7 +128,7 @@ evaluate{SS<:SinSpace}(f::Fun{SS},t)=sineshaw(f.coefficients,tocanonical(f,t))
 
 ## Laurent space
 
-typealias Laurent{DD} SumSpace{@compat(Tuple{Hardy{true,DD},Hardy{false,DD}}),ComplexBasis,DD,1}
+typealias Laurent{DD} SumSpace{Tuple{Hardy{true,DD},Hardy{false,DD}},ComplexBasis,DD,1}
 
 
 plan_transform{DD}(::Laurent{DD},x::Vector)=plan_svfft(x)
@@ -140,7 +140,7 @@ itransform{DD}(::Laurent{DD},cfs,plan)=isvfft(cfs,plan)
 
 ## Fourier space
 
-typealias Fourier{DD} SumSpace{@compat(Tuple{CosSpace{DD},SinSpace{DD}}),RealBasis,DD,1}
+typealias Fourier{DD} SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
 
 for TYP in (:Laurent,:Fourier)
     @eval begin

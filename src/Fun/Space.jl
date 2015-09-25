@@ -80,9 +80,19 @@ abstract AmbiguousSpace <: Space{RealBasis,AnyDomain,1}
 
 domain(::AmbiguousSpace)=AnyDomain()
 
+
+function setdomain{T,D<:Domain}(sp::Space{T,D},d::D)
+    S=typeof(sp)
+    @assert length(fieldnames(S))==1
+    S(d)
+end
+
 function setdomain(sp::Space,d::Domain)
     S=typeof(sp)
-    @assert length(@compat(fieldnames(S)))==1
+    @assert length(fieldnames(S))==1
+    # the domain is not compatible, but maybe we c
+    # can drop the space depence.  For example,
+    # CosSpace{Circle{Float64}} -> CosSpace
     eval(parse(string(S.name)))(d)
 end
 

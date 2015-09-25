@@ -96,7 +96,7 @@ type MutableOperator{T,M,R} <: BandedBelowOperator{T}
 
     datalength::Int       # How long data is.  We can't use the array length of data as we double the memory allocation but don't want to fill in
 
-    bandinds::@compat(Tuple{Int,Int})   # Encodes the bandrange
+    bandinds::Tuple{Int,Int}   # Encodes the bandrange
 end
 
 domainspace(M::MutableOperator)=domainspace(M.op)

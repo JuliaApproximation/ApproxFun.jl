@@ -14,7 +14,7 @@ immutable Interval{T} <: IntervalDomain{T}  #repeat <:Number due to Julia issue 
 end
 
 Interval()=Interval{Float64}()
-Interval(a::Int,b::Int) = Interval(@compat(Float64(a)),@compat(Float64(b))) #convenience method
+Interval(a::Int,b::Int) = Interval(Float64(a),Float64(b)) #convenience method
 Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 function Interval{T<:Number}(d::Vector{T})
