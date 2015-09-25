@@ -77,7 +77,7 @@ reverseorientation(f::Fun)
 ## Operator.jl docs
 
 doc"""
-    `Operator{T}` represents a general infinite Operators
+    `Operator{T}` represents a general infinite operator
 """
 Operator
 
@@ -92,8 +92,8 @@ doc"""
 InfiniteOperator
 
 doc"""
-    `BandedBelowOperator{T}` represents an operator banded banded below. The band
-    width can be found with bandinds(op,1)
+    `BandedBelowOperator{T}` represents an operator banded banded below.
+    The bandwidth can be found with bandinds(op,1).
 """
 BandedBelowOperator
 
