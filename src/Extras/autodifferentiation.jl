@@ -25,6 +25,24 @@ Base.call(d::DualFun,x)=DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
 
 jacobian(d::DualFun)=d.J
 
+
+
+
+function Operator(f,ds::Space)
+    if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
+        f(DualFun(Fun(ds))).J
+    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+        f(Fun(ds),DualFun(Fun(ds))).J
+    else
+        error("Not implemented")
+    end
+end
+
+Operator(f,d)=Operator(f,Space(d))
+Operator(f)=Operator(f,Chebyshev())  #TODO: UnsetSpace
+
+
+
 # full operator should be
 # N=u->[B*u-bcs;...]
 function newton(N,u0;maxiterations=100,tolerance=1E-15)
