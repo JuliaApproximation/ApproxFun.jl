@@ -5,36 +5,11 @@ export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
 export domainspace,rangespace
 
-"""
-    `Operator{T}` represents a general infinite operator
-"""
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
-
-"""
-    `Functional{T}` represents a row operator
-"""
 abstract Functional{T} <: Operator{T}
-
-"""
-    `InfiniteOperator{T}` represents an operator with an infinite number of rows
-"""
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
-
-"""
-    `BandedBelowOperator{T}` represents an operator banded banded below.
-    The bandwidth can be found with bandinds(op,1).
-"""
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
-
-"""
-    `BandedBelowOperator{T}` represents an operator that is banded apart from
-    a finite number of dense rows. The bandwidth can be found with bandinds(op).
-"""
 abstract AlmostBandedOperator{T} <: BandedBelowOperator{T}
-
-"""
-    `BandedOperator{T}` represents a banded operator. The bandwidth can be found with bandinds(op).
-"""
 abstract BandedOperator{T} <: AlmostBandedOperator{T}
 
 Base.eltype{T}(::Operator{T})=T
@@ -59,7 +34,7 @@ Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a flo
 Base.size(op::Operator,k::Integer)=size(op)[k]
 
 
-datalength(F::Functional)=error("Override datalength for "*string(typeof(F)))        # use datalength to indicate a finite length functional
+datalength(F::Functional)=∞        # use datalength to indicate a finite length functional
 
 
 

@@ -13,9 +13,12 @@ differentiate(d::DualFun)=DualFun(d.f',Derivative()*d.J)
 Base.transpose(d::DualFun)=differentiate(d)
 
 ^(d::DualFun,k::Integer)=DualFun(d.f^k,k*d.f^(k-1)*d.J)
-+(a::DualFun,b::DualFun)=DualFun(a.f+b.f,a.J+b.J)
+
 for OP in (:+,:-)
-    @eval $OP(a::DualFun,b::Number)=DualFun($OP(a.f,b),a.J)
+    @eval begin
+        $OP(a::DualFun,b::Number)=DualFun($OP(a.f,b),a.J)
+        $OP(a::DualFun,b::DualFun)=DualFun($OP(a.f,b.f),$OP(a.J,b.J))
+    end
 end
 *(f::Number,d::DualFun)=DualFun(f*d.f,f*d.J)
 *(f::Fun,d::DualFun)=DualFun(f*d.f,f*d.J)
@@ -24,6 +27,31 @@ end
 Base.call(d::DualFun,x)=DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
 
 jacobian(d::DualFun)=d.J
+
+
+
+
+function Operator(f,ds::Space)
+    if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
+        df=f(DualFun(Fun(ds)))
+    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+        df=f(Fun(ds),DualFun(Fun(ds)))
+        map(u->u.J,df)
+    else
+        error("Not implemented")
+    end
+
+    if isa(df,Array)
+        map(u->u.J,df)
+    else
+        df.J
+    end
+end
+
+Operator(f,d)=Operator(f,Space(d))
+Operator(f)=Operator(f,Chebyshev())  #TODO: UnsetSpace
+
+
 
 # full operator should be
 # N=u->[B*u-bcs;...]
