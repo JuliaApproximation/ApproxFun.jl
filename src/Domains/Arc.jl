@@ -48,7 +48,7 @@ fromcanonicalD(a::Arc,x)=mobiusinvD(a,x)
 
 ## information
 
-Base.issubset(a::Arc,b::Arc)=a.centre==b.centre && a.radius==b.radius && (b.angles[1]≤a.angles[1]≤a.angles[2]≤b.angles[2] ||
+Base.issubset(a::Arc,b::Arc)=a.center==b.center && a.radius==b.radius && (b.angles[1]≤a.angles[1]≤a.angles[2]≤b.angles[2] ||
                                                                              b.angles[1]≥a.angles[1]≥a.angles[2]≥b.angles[2])
 
 
