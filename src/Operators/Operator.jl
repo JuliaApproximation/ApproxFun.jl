@@ -5,6 +5,7 @@ export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
 export domainspace,rangespace
 
+
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
 abstract Functional{T} <: Operator{T}
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
