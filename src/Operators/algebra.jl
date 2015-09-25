@@ -424,6 +424,8 @@ for OP in (:*,:.*)
     end
 end
 
+/(B::BandedOperator,c::Number)=ConstantTimesOperator(1.0/c,B)
+
 
 
 
