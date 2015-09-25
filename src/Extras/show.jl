@@ -26,6 +26,12 @@ for typ in ("Chebyshev","Fourier","Laurent")
     end
 end
 
+function Base.show{λ,D}(io::IO,S::Ultraspherical{λ,D})
+    print(io,"Ultraspherical{$λ}(")
+    show(io,domain(S))
+    print(io,")")
+end
+
 
 
 function Base.show(io::IO,s::JacobiWeight)
@@ -69,13 +75,13 @@ function Base.show(io::IO,s::SumSpace)
 end
 
 function Base.show(io::IO,s::TupleSpace)
-    print(io,"(")
+    print(io,"⟨")
     show(io,s[1])
     for sp in s[2:end]
         print(io,",")
         show(io,sp)
     end
-    print(io,")")
+    print(io,"⟩")
 end
 
 function Base.show(io::IO,s::PiecewiseSpace)
