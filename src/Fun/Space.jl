@@ -80,9 +80,19 @@ abstract AmbiguousSpace <: Space{RealBasis,AnyDomain,1}
 
 domain(::AmbiguousSpace)=AnyDomain()
 
+
+function setdomain{T,D<:Domain}(sp::Space{T,D},d::D)
+    S=typeof(sp)
+    @assert length(fieldnames(S))==1
+    S(d)
+end
+
 function setdomain(sp::Space,d::Domain)
     S=typeof(sp)
-    @assert length(@compat(fieldnames(S)))==1
+    @assert length(fieldnames(S))==1
+    # the domain is not compatible, but maybe we c
+    # can drop the space depence.  For example,
+    # CosSpace{Circle{Float64}} -> CosSpace
     eval(parse(string(S.name)))(d)
 end
 
@@ -121,8 +131,8 @@ spacescompatible(::AnySpace,::AnySpace)=true
 spacescompatible(::UnsetSpace,::UnsetSpace)=true
 spacescompatible(::NoSpace,::NoSpace)=true
 spacescompatible(::ZeroSpace,::ZeroSpace)=true
-spacescompatible(::ZeroSpace,::Space)=true
-spacescompatible(::Space,::ZeroSpace)=true
+#spacescompatible(::ZeroSpace,::Space)=true
+#spacescompatible(::Space,::ZeroSpace)=true
 spacescompatible(f,g)=false
 ==(A::Space,B::Space)=spacescompatible(A,B)&&domain(A)==domain(B)
 
@@ -178,7 +188,7 @@ for FUNC in (:conversion_type,:maxspace)
         $FUNC(::ZeroSpace,::AnySpace)=AnySpace()
     end
 
-    for TYP in (:AnySpace,:UnsetSpace,:ZeroSpace)
+    for TYP in (:AnySpace,:UnsetSpace)
         @eval begin
             $FUNC(a::$TYP,b::$TYP)=a
             $FUNC(a::$TYP,b::Space)=b

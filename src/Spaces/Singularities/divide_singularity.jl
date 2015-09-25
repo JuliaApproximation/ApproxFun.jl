@@ -70,7 +70,7 @@ divide_singularity(s::Bool,f::Fun)=Fun(dirichlet_divide_singularity(s,Fun(f,s?Ch
 
 divide_singularity(f::Fun)=Fun(dirichlet_divide_singularity(Fun(f,ChebyshevDirichlet{1,1}).coefficients),Chebyshev(domain(f)))
 
-function divide_singularity(s::@compat(Tuple{Int,Int}),f::Fun)
+function divide_singularity(s::Tuple{Int,Int},f::Fun)
     if s[1]>0 && s[2]>0
         divide_singularity((s[1]-1,s[2]-1),divide_singularity(f))
     elseif s[1]>0

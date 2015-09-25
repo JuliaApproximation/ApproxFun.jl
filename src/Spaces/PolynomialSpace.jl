@@ -9,6 +9,9 @@ rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=domain
 
 # All polynomials contain constant
 union_rule(A::ConstantSpace,B::PolynomialSpace)=B
+Base.promote_rule{T<:Number,S<:PolynomialSpace,V}(::Type{Fun{S,V}},::Type{T})=Fun{S,promote_type(V,T)}
+Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T})=Fun{S,T}
+
 
 ######
 # Recurrence encodes the recurrence coefficients

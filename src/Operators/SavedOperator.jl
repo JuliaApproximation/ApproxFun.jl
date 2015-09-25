@@ -55,7 +55,7 @@ type SavedBandedOperator{T<:Number,M<:BandedOperator} <: BandedOperator{T}
     op::M
     data::BandedMatrix{T}   #Shifted to encapsolate bandedness
     datalength::Int
-    bandinds::@compat(Tuple{Int,Int})
+    bandinds::Tuple{Int,Int}
 end
 
 

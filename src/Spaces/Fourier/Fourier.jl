@@ -17,7 +17,6 @@ for T in (:CosSpace,:SinSpace)
         canonicalspace(S::$T)=Fourier(domain(S))
     end
 end
-
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
 
@@ -32,6 +31,8 @@ immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
 end
 
 
+Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},::Type{T})=Fun{S,promote_type(V,T)}
+Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace}}(::Type{Fun{S}},::Type{T})=Fun{S,T}
 
 Base.call{s}(H::Type{Hardy{s}},d::Domain)=Hardy{s,typeof(d)}(d)
 Base.call{s}(H::Type{Hardy{s}})=Hardy{s}(Circle())
@@ -128,7 +129,7 @@ evaluate{SS<:SinSpace}(f::Fun{SS},t)=sineshaw(f.coefficients,tocanonical(f,t))
 
 ## Laurent space
 
-typealias Laurent{DD} SumSpace{@compat(Tuple{Hardy{true,DD},Hardy{false,DD}}),ComplexBasis,DD,1}
+typealias Laurent{DD} SumSpace{Tuple{Hardy{true,DD},Hardy{false,DD}},ComplexBasis,DD,1}
 
 
 plan_transform{DD}(::Laurent{DD},x::Vector)=plan_svfft(x)
@@ -140,7 +141,7 @@ itransform{DD}(::Laurent{DD},cfs,plan)=isvfft(cfs,plan)
 
 ## Fourier space
 
-typealias Fourier{DD} SumSpace{@compat(Tuple{CosSpace{DD},SinSpace{DD}}),RealBasis,DD,1}
+typealias Fourier{DD} SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
 
 for TYP in (:Laurent,:Fourier)
     @eval begin

@@ -102,7 +102,7 @@ Base.stride(A::Functional)=1
 
 bazeros(B::Operator,n::Integer,m::Integer)=bazeros(eltype(B),n,m,bandinds(B))
 bazeros(B::Operator,n::Integer,m::Colon)=bazeros(eltype(B),n,m,bandinds(B))
-bazeros(B::Operator,n::Integer,br::@compat(Tuple{Int,Int}))=bazeros(eltype(B),n,br)
+bazeros(B::Operator,n::Integer,br::Tuple{Int,Int})=bazeros(eltype(B),n,br)
 
 
 BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n,:)
@@ -173,7 +173,25 @@ end
 ## override getindex or addentries!.  Each defaults
 
 defaultgetindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
-Base.getindex(op::Operator,k::Integer,j::Integer)=defaultgetindex(op,k,j)
+
+defaultgetindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
+
+# the defualt is to use getindex
+
+function defaultgetindex(op::Operator,kr::Range,jr::Range)
+    ret=Array(eltype(op),length(kr),length(jr))
+    kk,jj=1,1
+    for j=jr
+        for k=kr
+            ret[kk,jj]=op[k,j]
+            kk+=1
+        end
+        kk=1
+        jj+=1
+    end
+    ret
+end
+Base.getindex(B::Operator,k,j)=defaultgetindex(B,k,j)
 
 
 
@@ -190,7 +208,6 @@ function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
     @assert last(kr)==last(jr)==Inf
     SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
 end
-Base.getindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
 
 function subview(B::BandedOperator,kr::Range,::Colon)
      br=bandinds(B)

@@ -1,4 +1,4 @@
-export ⊕
+export ⊕,depiece,pieces,PiecewiseSpace
 
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
@@ -64,12 +64,48 @@ function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
     end
 end
 
+function Base.promote_rule{SV,B,DD,d,V,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d},V}},::Type{T})
+    for k=1:length(SV.parameters)
+        pt=promote_type(Fun{SV.parameters[k],V},T)
+        if pt != Fun
+            return Fun{SumSpace{Tuple{SV.parameters[1:k-1]...,pt.parameters[1],SV.parameters[k+1:end]...},
+                       B,DD,d},promote_type(V,T)}
+        end
+    end
+    Fun
+end
+
+Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{SumSpace{SV,B,DD,d},Float64},T)
+
+function Base.promote_rule{SV,B,DD,d,V,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d},V}},::Type{T})
+    # if any doesn't support promoting, just leave unpromoted
+
+    newfsp=map(s->promote_type(Fun{s,V},T),SV.parameters)
+    if any(s->s==Fun,newfsp)
+        Fun
+    else
+        newsp=map(s->s.parameters[1],newfsp)
+        Fun{PiecewiseSpace{Tuple{newsp...},B,DD,d},promote_type(V,T)}
+    end
+end
+
+Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{PiecewiseSpace{SV,B,DD,d},Float64},T)
 
 
+for OP in (:(Base.getindex),:(Base.length),:(Base.next))
+    @eval $OP(S::DirectSumSpace,k...)=$OP(S.spaces,k...)
+end
 
+#support tuple set
+for OP in (:(Base.start),:(Base.done),:(Base.endof))
+    @eval begin
+        $OP(S::DirectSumSpace,k...)=$OP(S.spaces,k...)
+        $OP{SS<:DirectSumSpace}(f::Fun{SS},k...)=$OP(space(f),k...)
+    end
+end
 
-Base.getindex(S::DirectSumSpace,k)=S.spaces[k]
-Base.length(S::DirectSumSpace)=length(S.spaces)
+Base.next{SS<:DirectSumSpace}(f::Fun{SS},k)=f[k],k+1
+
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval domain(A::$TYP)=domain(A.spaces[end])      # TODO: this assumes all spaces have the same domain
@@ -140,11 +176,13 @@ function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
     d=domain(f)
     for k=1:length(d)
         if in(x,d[k])
-            return vec(f,k)(x)
+            return f[k](x)
         end
     end
 end
 evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f(xk) for xk in x]
+
+evaluate{S<:TupleSpace}(f::Fun{S},x...)=eltype(f)[f[k](x...) for k=1:length(f.space)]
 
 
 ## calculus
@@ -201,19 +239,42 @@ function Base.ones{T<:Number}(::Type{T},S::SumSpace)
     end
 end
 
-Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V})=depiece(Fun{SS,T}[ones(Sk) for Sk in S.spaces])
+Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V})=depiece(map(ones,S.spaces))
 Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 
 
 # vec
 
-Base.vec{D<:DirectSumSpace,T}(f::Fun{D,T},k)=Fun(f.coefficients[k:length(space(f).spaces):end],space(f)[k])
-Base.vec(S::DirectSumSpace)=S.spaces
-Base.vec{S<:DirectSumSpace,T}(f::Fun{S,T})=Fun[vec(f,j) for j=1:length(space(f).spaces)]
 
-pieces{S<:PiecewiseSpace,T}(f::Fun{S,T})=vec(f)
+function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k)
+    sp=f.space
+    m=length(sp)
+
+    spk=sp[k]
+    if k>length(f.coefficients)
+        zero(spk)   # we infer that the coefficients are zero
+    elseif isa(spk,ConstantSpace)
+        Fun(f.coefficients[k:k],spk)
+    else
+        # there first m entries are the first constant
+        # after that, we interlace the non-ConstantSpace
+        # coefficients
+
+        @assert k≤m
+        K=count(s->isa(s,ConstantSpace),sp)
+        K2=count(s->isa(s,ConstantSpace),sp[1:k-1])
+        Fun(f.coefficients[[k;m+k-K2:m-K:end]],sp[k])
+    end
+end
+
+
+Base.vec(S::DirectSumSpace)=S.spaces
+Base.vec{S<:DirectSumSpace}(f::Fun{S})=Fun[f[j] for j=1:length(space(f).spaces)]
+
+pieces{S<:PiecewiseSpace}(f::Fun{S})=vec(f)
 depiece{F<:Fun}(v::Vector{F})=Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
 depiece(v::Vector{Any})=depiece([v...])
+depiece(v::Tuple)=Fun(interlace(map(coefficients,v)),PiecewiseSpace(map(space,v)))
 
 
 
@@ -282,45 +343,3 @@ function union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},W::SumSpace)
 end
 union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},
                    W::Space)=SumSpace(SS.spaces[1],union(SS.spaces[2],W))
-
-for TYP in (:SumSpace,:TupleSpace)
-    @eval begin
-        conversion_rule{V,W}(SS::$TYP{Tuple{ConstantSpace,V}},
-                             TT::$TYP{Tuple{ConstantSpace,W}})=$TYP(SS.spaces[1],
-                                                                             conversion_type(SS.spaces[2],TT.spaces[2]))
-
-
-        Base.vec{V,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V},TT,DD,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
-        Base.vec{V,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V},TT,DD,d},T})=Any[vec(f,1),vec(f,2)]
-
-        #TODO: fix
-        function Base.vec{W,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,ConstantSpace,W},TT,DD,d},T},k)
-            if k≤2
-                Fun(f.coefficients[k],space(f)[k])
-            else
-                @assert k==3
-                Fun(f.coefficients[k:end],space(f)[k])
-            end
-        end
-
-        function Base.vec{V,W,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V,W},TT,DD,d},T},k)
-            if k==1
-                Fun(f.coefficients[1],space(f)[1])
-            else
-                Fun(f.coefficients[k:2:end],space(f)[k])
-            end
-        end
-
-
-        Base.vec{V,W,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V,W},TT,DD,d},T})=Any[vec(f,1),vec(f,2),vec(f,3)]
-    end
-end
-
-
-
-
-
-#support tuple set
-Base.start{SS<:DirectSumSpace}(f::Fun{SS})=start(vec(f))
-Base.done{SS<:DirectSumSpace}(f::Fun{SS},k)=done(vec(f),k)
-Base.next{SS<:DirectSumSpace}(f::Fun{SS},k)=next(vec(f),k)

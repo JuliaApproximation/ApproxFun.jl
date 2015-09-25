@@ -90,10 +90,10 @@ function pad(A::Matrix,n::Integer,m::Integer)
         end
         for k=minn+1:n,j=1:minm
             @inbounds ret[k,j]=zero(T)
-        end        
+        end
         for k=1:n,j=minm+1:m
             @inbounds ret[k,j]=zero(T)
-        end                
+        end
         for k=minn+1:n,j=minm+1:m
             @inbounds ret[k,j]=zero(T)
         end
@@ -170,7 +170,7 @@ function interlace{T<:Number}(v::Vector{Vector{T}})
     ret
 end
 
-function interlace(v::Vector{Any})
+function interlace(v::Union{Vector{Any},Tuple})
     #determine type
     T=Float64
     for vk in v
@@ -275,4 +275,3 @@ function tridql!(L::Matrix)
     end
     Q,L
 end
-

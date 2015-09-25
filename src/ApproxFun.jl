@@ -1,7 +1,7 @@
 __precompile__()
 
 module ApproxFun
-    using Base, Compat, FastGaussQuadrature
+    using Base, FastGaussQuadrature
 
 
 import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
