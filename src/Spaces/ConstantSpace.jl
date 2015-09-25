@@ -1,3 +1,10 @@
+
+
+"""
+`ConstantSpace` Represents a single number.  The remaining
+coefficients are ignored.
+"""
+
 immutable ConstantSpace <: UnivariateSpace{RealBasis,AnyDomain} end
 
 ConstantSpace(::AnyDomain)=ConstantSpace()
@@ -13,6 +20,10 @@ Base.ones(S::ConstantSpace)=Fun(ones(1),S)
 Base.ones(S::Union{AnyDomain,AnySpace,UnsetSpace})=ones(ConstantSpace())
 Base.zeros(S::Union{AnyDomain,AnySpace,UnsetSpace})=zeros(ConstantSpace())
 evaluate(f::Fun{ConstantSpace},x...)=f.coefficients[1]
+evaluate(f::Fun{ConstantSpace},x::Array)=f.coefficients[1]*ones(x)
+
+evaluate(f::Fun{ZeroSpace},x...)=zero(eltype(f))
+evaluate(f::Fun{ZeroSpace},x::Array)=zeros(x)
 
 
 # promoting numbers to Fun
@@ -32,6 +43,10 @@ promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(o
 # When the union of A and B is a ConstantSpace, then it contains a one
 conversion_rule(A::ConstantSpace,B::UnsetSpace)=NoSpace()
 conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
+
+conversion_rule(A::ZeroSpace,B::Space)=A
+maxspace_rule(A::ZeroSpace,B::Space)=B
+Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(SpaceOperator(ZeroOperator(),A,B))
 
 
 bandinds{S<:Space}(C::Conversion{ConstantSpace,S})=1-length(ones(rangespace(C))),0

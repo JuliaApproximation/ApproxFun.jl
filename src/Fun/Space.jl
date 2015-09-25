@@ -131,8 +131,8 @@ spacescompatible(::AnySpace,::AnySpace)=true
 spacescompatible(::UnsetSpace,::UnsetSpace)=true
 spacescompatible(::NoSpace,::NoSpace)=true
 spacescompatible(::ZeroSpace,::ZeroSpace)=true
-spacescompatible(::ZeroSpace,::Space)=true
-spacescompatible(::Space,::ZeroSpace)=true
+#spacescompatible(::ZeroSpace,::Space)=true
+#spacescompatible(::Space,::ZeroSpace)=true
 spacescompatible(f,g)=false
 ==(A::Space,B::Space)=spacescompatible(A,B)&&domain(A)==domain(B)
 
@@ -188,7 +188,7 @@ for FUNC in (:conversion_type,:maxspace)
         $FUNC(::ZeroSpace,::AnySpace)=AnySpace()
     end
 
-    for TYP in (:AnySpace,:UnsetSpace,:ZeroSpace)
+    for TYP in (:AnySpace,:UnsetSpace)
         @eval begin
             $FUNC(a::$TYP,b::$TYP)=a
             $FUNC(a::$TYP,b::Space)=b

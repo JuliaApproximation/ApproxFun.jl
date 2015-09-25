@@ -182,6 +182,8 @@ function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
 end
 evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f(xk) for xk in x]
 
+evaluate{S<:TupleSpace}(f::Fun{S},x...)=eltype(f)[f[k](x...) for k=1:length(f.space)]
+
 
 ## calculus
 for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace), OP in (:differentiate,:integrate)
