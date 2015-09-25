@@ -182,9 +182,9 @@ end
 
 
 
-for TYP in (:SumSpace,:PiecewiseSpace),  (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
-    @eval begin
-        function $OPrule(S1::$TYP,S2::$TYP)
+for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
+    for TYP in (:SumSpace,:PiecewiseSpace)
+        @eval function $OPrule(S1::$TYP,S2::$TYP)
             cs1,cs2=map(canonicalspace,S1.spaces),map(canonicalspace,S2.spaces)
             if length(S1.spaces)!=length(S2.spaces)
                 NoSpace()
@@ -194,7 +194,7 @@ for TYP in (:SumSpace,:PiecewiseSpace),  (OPrule,OP) in ((:conversion_rule,:conv
                 # we can just map down
                 # $TYP(map($OP,S1.spaces,S2.spaces))
                 # this is commented out due to Issue #13261
-                newspaces=[$OP(S1.spaces[k],S2.spaces[k]) for k=1:length(S1.spaces)]
+                newspaces=[$OP(S1[k],S2[k]) for k=1:length(S1.spaces)]
                 if any(b->b==NoSpace(),newspaces)
                     NoSpace()
                 else
@@ -204,18 +204,39 @@ for TYP in (:SumSpace,:PiecewiseSpace),  (OPrule,OP) in ((:conversion_rule,:conv
                 # sort S1
                 p=perm(cs1,cs2)
                 $OP($TYP(S1.spaces[p]),S2)
-            elseif length(S1.spaces)==length(S2.spaces)==2  &&
-                    $OP(S1.spaces[1],S2.spaces[2])!=NoSpace() &&
-                    $OP(S1.spaces[2],S2.spaces[1])!=NoSpace()
+            elseif length(S1)==length(S2)==2  &&
+                    $OP(S1[1],S2[2])!=NoSpace() &&
+                    $OP(S1[2],S2[1])!=NoSpace()
                 #TODO: general length
-                $TYP($OP(S1.spaces[1],S2.spaces[2]),
-                     $OP(S1.spaces[2],S2.spaces[1]))
+                $TYP($OP(S1[1],S2[2]),
+                     $OP(S1[2],S2[1]))
             else
                 NoSpace()
             end
         end
     end
+
+    # TupleSpace doesn't allow reordering
+    @eval function $OPrule(S1::TupleSpace,S2::TupleSpace)
+        K=findfirst(s->!isa(s,ConstantSpace),S1)-1
+
+        if length(S1)==length(S2)  &&
+                all(s->isa(s,ConstantSpace),S2[1:K]) &&
+                all(s->!isa(s,ConstantSpace),S2[K+1:end])
+            newspaces=[$OP(S1[k],S2[k]) for k=K+1:length(S1)]
+
+            if any(b->b==NoSpace(),newspaces)
+                NoSpace()
+            else
+                TupleSpace(tuple(S1[1:K]...,newspaces))
+            end
+        else
+            NoSpace()
+        end
+    end
+
 end
+
 
 
 

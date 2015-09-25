@@ -140,7 +140,7 @@ function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
     d=domain(f)
     for k=1:length(d)
         if in(x,d[k])
-            return vec(f,k)(x)
+            return f[k](x)
         end
     end
 end
@@ -206,11 +206,33 @@ Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 
 # vec
 
-Base.vec{D<:DirectSumSpace,T}(f::Fun{D,T},k)=Fun(f.coefficients[k:length(space(f).spaces):end],space(f)[k])
-Base.vec(S::DirectSumSpace)=S.spaces
-Base.vec{S<:DirectSumSpace,T}(f::Fun{S,T})=Fun[vec(f,j) for j=1:length(space(f).spaces)]
 
-pieces{S<:PiecewiseSpace,T}(f::Fun{S,T})=vec(f)
+function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k)
+    sp=f.space
+    m=length(sp)
+
+    spk=sp[k]
+    if k>length(f.coefficients)
+        zero(spk)   # we infer that the coefficients are zero
+    elseif isa(spk,ConstantSpace)
+        Fun(f.coefficients[k:k],spk)
+    else
+        # there first m entries are the first constant
+        # after that, we interlace the non-ConstantSpace
+        # coefficients
+
+        @assert k≤m
+        K=count(s->isa(s,ConstantSpace),sp)
+        K2=count(s->isa(s,ConstantSpace),sp[1:k-1])
+        Fun(f.coefficients[[k;m+k-K2:m-K:end]],sp[k])
+    end
+end
+
+
+Base.vec(S::DirectSumSpace)=S.spaces
+Base.vec{S<:DirectSumSpace}(f::Fun{S})=Fun[f[j] for j=1:length(space(f).spaces)]
+
+pieces{S<:PiecewiseSpace}(f::Fun{S})=vec(f)
 depiece{F<:Fun}(v::Vector{F})=Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
 depiece(v::Vector{Any})=depiece([v...])
 depiece(v::Tuple)=Fun(interlace(map(coefficients,v)),PiecewiseSpace(map(space,v)))
@@ -283,44 +305,16 @@ end
 union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},
                    W::Space)=SumSpace(SS.spaces[1],union(SS.spaces[2],W))
 
-for TYP in (:SumSpace,:TupleSpace)
-    @eval begin
-        conversion_rule{V,W}(SS::$TYP{Tuple{ConstantSpace,V}},
-                             TT::$TYP{Tuple{ConstantSpace,W}})=$TYP(SS.spaces[1],
-                                                                             conversion_type(SS.spaces[2],TT.spaces[2]))
-
-
-        Base.vec{V,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V},TT,DD,d},T},k)=k==1?Fun(f.coefficients[1],space(f)[1]):Fun(f.coefficients[2:end],space(f)[2])
-        Base.vec{V,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V},TT,DD,d},T})=Any[vec(f,1),vec(f,2)]
-
-        #TODO: fix
-        function Base.vec{W,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,ConstantSpace,W},TT,DD,d},T},k)
-            if k≤2
-                Fun(f.coefficients[k],space(f)[k])
-            else
-                @assert k==3
-                Fun(f.coefficients[k:end],space(f)[k])
-            end
-        end
-
-        function Base.vec{V,W,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V,W},TT,DD,d},T},k)
-            if k==1
-                Fun(f.coefficients[1],space(f)[1])
-            else
-                Fun(f.coefficients[k:2:end],space(f)[k])
-            end
-        end
-
-
-        Base.vec{V,W,TT,DD,d,T}(f::Fun{$TYP{Tuple{ConstantSpace,V,W},TT,DD,d},T})=Any[vec(f,1),vec(f,2),vec(f,3)]
-    end
-end
 
 
 
 
 
 #support tuple set
+Base.start(f::DirectSumSpace)=start(vec(f))
+Base.done(f::DirectSumSpace,k)=done(vec(f),k)
+Base.next(f::DirectSumSpace,k)=next(vec(f),k)
+
 Base.start{SS<:DirectSumSpace}(f::Fun{SS})=start(vec(f))
 Base.done{SS<:DirectSumSpace}(f::Fun{SS},k)=done(vec(f),k)
 Base.next{SS<:DirectSumSpace}(f::Fun{SS},k)=next(vec(f),k)
