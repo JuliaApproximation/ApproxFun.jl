@@ -14,9 +14,10 @@ immutable BlockOperator{O,T} <: BandedOperator{T}
     end
 end
 
-BlockOperator(cols::Matrix,B::BandedOperator)=BlockOperator{typeof(B),
-                                         promote_type(eltype(cols),
-                                                      eltype(B))}(Array(Float64,0,size(cols,2)),Array(Float64,0,0),cols,B)
+function BlockOperator{S,V}(cols::Matrix{S},B::BandedOperator{V})
+    T = promote_type(S,V)
+    BlockOperator{typeof(B),T}(Array(T,0,size(cols,2)),Array(T,0,0),cols,B)
+end
 
 BlockOperator(mat11::Matrix,mat12::Matrix,mat21::Matrix,B::BandedOperator)=BlockOperator{typeof(B),
                                                                promote_type(eltype(mat11),eltype(mat12),eltype(mat21),
