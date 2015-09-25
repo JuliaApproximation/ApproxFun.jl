@@ -1,4 +1,4 @@
-export ⊕,depiece,pieces
+export ⊕,depiece,pieces,PiecewiseSpace
 
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
