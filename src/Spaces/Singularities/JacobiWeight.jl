@@ -177,7 +177,7 @@ end
 
 function conjugatedinnerproduct{D}(::Type{Ultraspherical{1,D}},u::Vector,v::Vector)
     mn = min(length(u),length(v))
-    if m > 0
+    if mn > 0
         return dotu(u[1:mn],v[1:mn])*π/2
     else
         return zero(promote_type(eltype(u),eltype(v)))

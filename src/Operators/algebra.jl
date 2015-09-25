@@ -466,6 +466,7 @@ function *(A::InfiniteOperator,b::Fun)
     Fun(A*coefficients(b,dsp),rangespace(A))
 end
 
+#=
 function *(A::TimesOperator,b::Fun)
     dsp=conversion_type(domainspace(A),space(b))
     A=promotedomainspace(A,dsp)
@@ -485,6 +486,7 @@ function *(A::PlusOperator,b::Fun)
     end
     Fun(coefficients(ret),rangespace(A))
 end
+=#
 
 for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
