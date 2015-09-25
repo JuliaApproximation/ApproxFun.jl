@@ -9,7 +9,6 @@ import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
 
 
 export pad!,pad,sample,chop!,complexroots,roots,svfft
-export multiplybyx,fasttimes
 
 ##Testing
 export bisectioninv, clenshaw

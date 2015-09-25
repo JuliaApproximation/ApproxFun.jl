@@ -253,8 +253,8 @@ include("PermutationOperator.jl")
 
 include("Conversion.jl")
 include("Multiplication.jl")
-include("calculus.jl")
-include("DefiniteIntegral.jl")
+include("CalculusOperator.jl")
+include("CalculusFunctional.jl")
 include("Evaluation.jl")
 
 
@@ -268,7 +268,7 @@ include("algebra.jl")
 
 include("TransposeOperator.jl")
 include("StrideOperator.jl")
-include("CompactOperator.jl")
+include("FiniteOperator.jl")
 
 
 include("null.jl")
