@@ -1,4 +1,4 @@
-export ⊕
+export ⊕,depiece,pieces
 
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
@@ -200,7 +200,7 @@ function Base.ones{T<:Number}(::Type{T},S::SumSpace)
     end
 end
 
-Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V})=depiece(Fun{SS,T}[ones(Sk) for Sk in S.spaces])
+Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V})=depiece(map(ones,S.spaces))
 Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 
 
@@ -213,6 +213,7 @@ Base.vec{S<:DirectSumSpace,T}(f::Fun{S,T})=Fun[vec(f,j) for j=1:length(space(f).
 pieces{S<:PiecewiseSpace,T}(f::Fun{S,T})=vec(f)
 depiece{F<:Fun}(v::Vector{F})=Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
 depiece(v::Vector{Any})=depiece([v...])
+depiece(v::Tuple)=Fun(interlace(map(coefficients,v)),PiecewiseSpace(map(space,v)))
 
 
 
