@@ -1,6 +1,5 @@
 using ApproxFun, Base.Test
 
-using Compat
 
 # This avoids getting killed on Travis.cl
 if OS_NAME == :Darwin
@@ -71,12 +70,12 @@ D=Derivative(sp)
 u=[dirichlet(sp);
     D^2-x]\[airyai(-10.)];
 @time u=[dirichlet(sp);
-    D^2-x]\[airyai(-10.)];    
+    D^2-x]\[airyai(-10.)];
 
 println("Piecewise Airy: should be ~0.008")
 
 
-## Vector 
+## Vector
 d=Interval()
 D=Derivative(d);
 B=ldirichlet();
@@ -89,7 +88,7 @@ A=[B 0;
    0 B;
    D^2-I 2.I;
    0 D+I];
-   
+
 u=A\Any[0.,0.,0.,f]
 @time u=A\Any[0.,0.,0.,f]
 println("Systems: should be ~0.0008")

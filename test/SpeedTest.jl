@@ -1,4 +1,4 @@
-using ApproxFun, Compat, Base.Test
+using ApproxFun, Base.Test
 
 # This avoids getting killed on Travis.cl
 if OS_NAME == :Darwin

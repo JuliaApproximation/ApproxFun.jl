@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test, Compat
+using ApproxFun, Base.Test
 
 single_sin = Fun(sin,Interval(0.f0,1.f0))
 double_sin = Fun(sin,Interval(0.,1.))
