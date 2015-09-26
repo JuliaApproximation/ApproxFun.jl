@@ -12,6 +12,8 @@ ConstantSpace(::AnyDomain)=ConstantSpace()
 Fun(c::Number)=Fun([c],ConstantSpace())
 Fun(c::Number,d::ConstantSpace)=Fun([c],d)
 
+dimension(::ConstantSpace)=1
+
 domain(::ConstantSpace)=AnyDomain()
 canonicalspace(C::ConstantSpace)=C
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
@@ -119,3 +121,4 @@ end
 *(A::BandedOperator,B::Functional)=A*FunctionalOperator(B)
 
 *{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:AbstractMultiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)
+*{D,V,T,S}(A::Multiplication{D,ConstantSpace,V,T},b::Fun{ConstantSpace,S}) = A.f*b.coefficients[1]
