@@ -105,6 +105,11 @@ function Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper
     end
 end
 
+# The wrapper has pre-determined domain and range spaces
+promotedomainspace(D::MultiplicationWrapper,sp::UnsetSpace)=D
+promotedomainspace(D::MultiplicationWrapper,sp::AnySpace)=D
+promotedomainspace(D::MultiplicationWrapper,sp::Space)=D
+
 
 ## Multiplication operators allow us to multiply two spaces
 
