@@ -10,7 +10,10 @@ include("Space.jl")
 type Fun{S,T}
     coefficients::Vector{T}
     space::S
-    Fun(coeff::Vector{T},sp::S)=new(coeff,sp)
+    function Fun(coeff::Vector{T},sp::S)
+        @assert length(coeff)≤dimension(sp)
+        new(coeff,sp)
+    end
 end
 
 """

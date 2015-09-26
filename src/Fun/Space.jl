@@ -71,6 +71,7 @@ domaintype{FT<:Space}(::Type{FT})=domaintype(super(FT))
 coefficient_type{S}(::Space{S},T)=coefficient_type(S,T)
 
 Base.ndims{S,D,d}(::Space{S,D,d})=d
+dimension(::Space)=Inf  # We assume infinite-dimensional spaces
 
 
 Space{D<:Number}(d::Vector{D})=Space(convert(Domain,d))
@@ -107,6 +108,10 @@ immutable AnySpace <: AmbiguousSpace end
 immutable UnsetSpace <: AmbiguousSpace end
 immutable NoSpace <: AmbiguousSpace end
 immutable ZeroSpace <: AmbiguousSpace end   # ZeroSpace is compatible with all spaces
+
+
+dimension(::ZeroSpace)=0
+
 
 isambiguous(::)=false
 isambiguous(::AmbiguousSpace)=true
