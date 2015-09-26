@@ -395,8 +395,8 @@ end
 
 *{T,D<:DefiniteIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = dotu(A.op.f,b)
 *{T,D<:DefiniteLineIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = linedotu(A.op.f,b)
-*{T,D<:DefiniteIntegral,M<:MultiplicationWrapper}(A::TimesFunctional{T,D,M},b::Fun) = dotu(A.op.f,Fun(coefficients(b),rangespace(A.op.op.op)))
-*{T,D<:DefiniteLineIntegral,M<:MultiplicationWrapper}(A::TimesFunctional{T,D,M},b::Fun) = linedotu(A.op.f,Fun(coefficients(b),rangespace(A.op.op.op)))
+*{T,D<:DefiniteIntegral,M<:MultiplicationWrapper}(A::TimesFunctional{T,D,M},b::Fun) = dotu(A.op.op.op.f,Fun(coefficients(b),rangespace(A.op)))
+*{T,D<:DefiniteLineIntegral,M<:MultiplicationWrapper}(A::TimesFunctional{T,D,M},b::Fun) = linedotu(A.op.op.op.f,Fun(coefficients(b),rangespace(A.op)))
 
 
 *(c::Number,B::Functional)=ConstantTimesFunctional(c,B)
