@@ -389,6 +389,30 @@ end
 
 ## Algebra: assume we promote
 
+<<<<<<< HEAD:src/Operators/banded/algebra.jl
+=======
+## Operations
+*(A::Functional,b::Vector)=dotu(A[1:length(b)],b)
+*(A::Functional,b::Fun)=promotedomainspace(A,space(b))*b.coefficients
+
+*{T,D<:DefiniteIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = dotu(A.op.f,b)
+*{T,D<:DefiniteLineIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = linedotu(A.op.f,b)
+*{T,D<:DefiniteIntegral,M<:MultiplicationWrapper}(A::TimesFunctional{T,D,M},b::Fun) = dotu(A.op.op.op.f,Fun(coefficients(b),rangespace(A.op)))
+*{T,D<:DefiniteLineIntegral,M<:MultiplicationWrapper}(A::TimesFunctional{T,D,M},b::Fun) = linedotu(A.op.op.op.f,Fun(coefficients(b),rangespace(A.op)))
+
+
+*(c::Number,B::Functional)=ConstantTimesFunctional(c,B)
+*(B::Functional,c::Number)=ConstantTimesFunctional(c,B)
+/(B::Functional,c::Number)=ConstantTimesFunctional(1.0/c,B)
+*(B::Functional,O::TimesOperator)=TimesFunctional(B,O)  # Needed to avoid ambiguity
+*(B::Functional,O::BandedOperator)=TimesFunctional(promotedomainspace(B,rangespace(O)),O)
+
+-(B::Functional)=ConstantTimesFunctional(-1,B)
+
+
+-(A::Functional,B::Functional)=PlusFunctional([A,-B])
+
+>>>>>>> fix spaces in *TimesFunctional override:src/Operators/algebra.jl
 *{T,V}(A::TimesOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
 *{T,V}(A::TimesOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B])
 *{T,V}(A::BandedOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B.ops...])
