@@ -146,24 +146,13 @@ function union_rule(A::SumSpace,B::SumSpace)
 end
 
 function union_rule(A::SumSpace,B::Space)
-    if B in A.spaces
-        A
-    else
-        A⊕B
-    end
-end
-
-
-function union_rule(B::SumSpace,A::ConstantSpace)
-    for sp in B.spaces
-        if isconvertible(A,sp)
-            return B
+    for sp in A.spaces
+        if isconvertible(B,sp)
+            return A
         end
     end
-
-    NoSpace()
+    A⊕B
 end
-
 
 
 
@@ -222,22 +211,18 @@ linedotu{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(lin
 
 # assume first domain has 1 as a basis element
 
-function Base.ones(S::SumSpace)
-    if union(ConstantSpace(),S.spaces[1])==S.spaces[1]
-        ones(S[1])⊕zeros(S[2])
-    else
-        zeros(S[1])⊕ones(S[2])
-    end
-end
+
 
 function Base.ones{T<:Number}(::Type{T},S::SumSpace)
     @assert length(S.spaces)==2
-    if union(ConstantSpace(),S.spaces[1])==S.spaces[1]
+    if isconvertible(ConstantSpace(),S.spaces[1])
         ones(T,S[1])⊕zeros(T,S[2])
     else
         zeros(T,S[1])⊕ones(T,S[2])
     end
 end
+
+Base.ones(S::SumSpace)=ones(Float64,S)
 
 Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V})=depiece(map(ones,S.spaces))
 Base.ones(S::PiecewiseSpace)=ones(Float64,S)
@@ -246,23 +231,23 @@ Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 # vec
 
 
-function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k)
+function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
     sp=f.space
     m=length(sp)
 
     spk=sp[k]
     if k>length(f.coefficients)
         zero(spk)   # we infer that the coefficients are zero
-    elseif isa(spk,ConstantSpace)
+    elseif dimension(spk)==1
         Fun(f.coefficients[k:k],spk)
     else
         # there first m entries are the first constant
         # after that, we interlace the non-ConstantSpace
         # coefficients
-
+        @assert dimension(spk)==Inf
         @assert k≤m
-        K=count(s->isa(s,ConstantSpace),sp)
-        K2=count(s->isa(s,ConstantSpace),sp[1:k-1])
+        K=count(s->dimension(s)==1,sp)
+        K2=count(s->dimension(s)==1,sp[1:k-1])
         Fun(f.coefficients[[k;m+k-K2:m-K:end]],sp[k])
     end
 end
@@ -329,17 +314,3 @@ itransform(S::SumSpace,cfs)=Fun(cfs,S)(points(S,length(cfs)))
 # this space is special
 
 union_rule(P::PiecewiseSpace,C::ConstantSpace)=PiecewiseSpace(map(sp->union(sp,C),P.spaces))
-
-
-union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},W::ConstantSpace)=SS
-function union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},W::SumSpace)
-    a=length(SS.spaces)==2?SS.spaces[2]:$TYP(SS.spaces[2:end])
-    if isa(W.spaces[1],ConstantSpace)
-        b=length(W.spaces)==2?W.spaces[2]:$TYP(W.spaces[2:end])
-        $TYP(SS.spaces[1],union(a,b))
-    else
-        $TYP(SS.spaces[1],union(SS.spaces[2],W))
-    end
-end
-union_rule{V}(SS::SumSpace{Tuple{ConstantSpace,V}},
-                   W::Space)=SumSpace(SS.spaces[1],union(SS.spaces[2],W))
