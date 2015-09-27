@@ -17,14 +17,18 @@ type FillMatrix{T,R}
 end
 
 
+
+
 function eye2{BT<:Array}(::Type{BT},n::Integer,m::Integer)
     @assert n==0 || m==0
     Array(BT,n,m)
 end
 eye2{T}(::Type{T},n::Integer,m::Integer)=eye(T,n,m)
+eye2{T}(::Type{T},n::Integer)=eye(T,n,n)
 
-function FillMatrix{T}(::Type{T},bc,pf)
+function FillMatrix(bc::Vector,data::Matrix,pf)
     nbc=length(bc)
+    data=pad(data,size(data,1)+50,:)  # pad now by 50 to save computational cost later
 
     ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
     sfuncs=Array(SavedFunctional{isempty(bc)?Float64:mapreduce(eltype,promote_type,bc)},nbc)
@@ -38,9 +42,10 @@ function FillMatrix{T}(::Type{T},bc,pf)
         end
         resizedata!(sfuncs[k],m+pf)
     end
-    ar0=eye2(T,m,nbc)  # the first nbc fill in rows are just the bcs
-    FillMatrix(sfuncs,ar0,size(ar0,1),nbc,pf)
+    FillMatrix(sfuncs,data,size(data,1),nbc,pf)
 end
+
+FillMatrix{T}(::Type{T},bc,pf)=FillMatrix(bc,eye2(T,length(bc)),pf)
 
 
 function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)

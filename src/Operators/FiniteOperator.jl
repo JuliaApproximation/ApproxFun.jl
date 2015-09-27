@@ -33,16 +33,16 @@ function Base.slice(K::FiniteOperator,kr::FloatRange,jr::FloatRange)
 end
 
 
-immutable CompactFunctional{S,T} <: Functional{T}
+immutable FiniteFunctional{S,T} <: Functional{T}
     data::Vector{T}
     domainspace::S
 end
 
-Base.convert{T}(::Type{Functional{T}},S::CompactFunctional)=CompactFunctional(convert(Vector{T},S.data),S.domainspace)
+Base.convert{T}(::Type{Functional{T}},S::FiniteFunctional)=FiniteFunctional(convert(Vector{T},S.data),S.domainspace)
 
-domainspace(S::CompactFunctional)=S.domainspace
-datalength(S::CompactFunctional)=length(S.data)
+domainspace(S::FiniteFunctional)=S.domainspace
+datalength(S::FiniteFunctional)=length(S.data)
 
 
-Base.getindex{S,T}(B::CompactFunctional{S,T},k::Integer)=k≤datalength(B)?B.data[k]:zero(T)
-Base.getindex{S,T}(B::CompactFunctional{S,T},kr::Range)=T[B[k] for k=kr]
+Base.getindex{S,T}(B::FiniteFunctional{S,T},k::Integer)=k≤datalength(B)?B.data[k]:zero(T)
+Base.getindex{S,T}(B::FiniteFunctional{S,T},kr::Range)=T[B[k] for k=kr]

@@ -34,8 +34,8 @@ Base.size(::InfiniteOperator)=[Inf,Inf]
 Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
 Base.size(op::Operator,k::Integer)=size(op)[k]
 
-
-datalength(F::Functional)=∞        # use datalength to indicate a finite length functional
+Base.ndims(::Operator)=2
+datalength(F::Functional)=Inf        # use datalength to indicate a finite length functional
 
 
 
@@ -149,7 +149,6 @@ end
 ## override getindex or addentries!.  Each defaults
 
 defaultgetindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
-
 defaultgetindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
 
 # the defualt is to use getindex
@@ -167,6 +166,9 @@ function defaultgetindex(op::Operator,kr::Range,jr::Range)
     end
     ret
 end
+
+
+defaultgetindex(A::BandedOperator,k::Integer,::Colon)=FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
 Base.getindex(B::Operator,k,j)=defaultgetindex(B,k,j)
 
 

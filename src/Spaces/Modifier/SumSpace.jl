@@ -109,7 +109,7 @@ Base.next{SS<:DirectSumSpace}(f::Fun{SS},k)=f[k],k+1
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval domain(A::$TYP)=domain(A.spaces[end])      # TODO: this assumes all spaces have the same domain
-                                           #        we use end to avoid ConstantSpace
+                                                     #        we use end to avoid ConstantSpace
 end
 
 Space(d::UnionDomain)=PiecewiseSpace(map(Space,d.domains))
