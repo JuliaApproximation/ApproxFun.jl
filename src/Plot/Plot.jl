@@ -131,7 +131,7 @@ function complexplot(f::Fun,v...;opts...)
     vals =values(f)
     d = domain(f)
     if isa(d,Circle)
-        plot(real([vals,vals[1]]),imag([vals,vals[1]]),v...;opts...)
+        plot(real([vals;vals[1]]),imag([vals;vals[1]]),v...;opts...)
     else
         plot(real(vals),imag(vals),v...;opts...)
     end
