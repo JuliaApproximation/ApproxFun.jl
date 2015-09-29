@@ -9,6 +9,9 @@ DualFun(f::Fun)=DualFun(f,
                               space(f),
                               space(f)))
 
+
+domain(df::DualFun)=domain(df.f)
+
 differentiate(d::DualFun)=DualFun(d.f',Derivative()*d.J)
 Base.transpose(d::DualFun)=differentiate(d)
 
@@ -25,6 +28,8 @@ end
 *(a::DualFun,b::DualFun)=DualFun(a.f*b.f,a.f*b.J+b.f*a.J)
 
 Base.call(d::DualFun,x)=DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
+Base.first(d::DualFun)=DualFun(first(d.f),Evaluation(rangespace(d.J),false)*d.J)
+Base.last(d::DualFun)=DualFun(last(d.f),Evaluation(rangespace(d.J),true)*d.J)
 
 jacobian(d::DualFun)=d.J
 

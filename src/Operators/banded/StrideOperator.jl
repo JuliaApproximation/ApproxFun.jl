@@ -24,6 +24,7 @@ end
 
 StrideOperator{T<:Number}(B::Operator{T},r,c,rs,cs)=StrideOperator{T,typeof(B)}(B,r,c,rs,cs)
 StrideOperator{T<:Number}(B::Operator{T},r,c,rs)=StrideOperator{T,typeof(B)}(B,r,c,rs,rs)
+StrideOperator{T<:Number}(B::Operator{T},r,c)=StrideOperator{T,typeof(B)}(B,r,c,1,1)
 
 function bandinds(S::StrideOperator)
     br=bandinds(S.op)
@@ -45,7 +46,7 @@ firstrw(S,k::Integer)=firstrw(S.rowstride,S.rowindex,k)
 lastrw(rs,ri,k::Integer)=fld(k-ri,rs)
 
 
-divrowrange(rs,ri,r)=firstrw(rs,ri,r[1]):lastrw(rs,ri,r[end])
+divrowrange(rs,ri,r)=max(1,firstrw(rs,ri,r[1])):max(1,lastrw(rs,ri,r[end]))
 
 for op in (:firstrw,:lastrw,:divrowrange)
     @eval $op(S,k...)=$op(S.rowstride,S.rowindex,k...)

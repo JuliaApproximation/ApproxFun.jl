@@ -43,6 +43,10 @@ end
 ## diag provides a way to convert between DiagonalInterlaceOperator and bacn
 function blkdiagm{B<:Operator}(v::Vector{B})
     if spacescompatible(map(domainspace,v)) && spacescompatible(map(rangespace,v))
+        # arrayspace
+        DiagonalInterlaceOperator(v)
+    elseif domainscompatible(map(domainspace,v)) && domainscompatible(map(rangespace,v))
+        # tuplespace
         DiagonalInterlaceOperator(v)
     else
         DiagonalPiecewiseOperator(v)
