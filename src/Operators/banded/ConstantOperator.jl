@@ -37,7 +37,10 @@ immutable BasisFunctional{T} <: Functional{T}
 end
 BasisFunctional(k)=BasisFunctional{Float64}(k)
 
-Base.convert{BT<:Operator}(::Type{BT},B::BasisFunctional)=BasisFunctional{eltype(BT)}(B.k)
+
+for TYP in (:Functional,:Operator)
+    @eval Base.convert{T}(::Type{$TYP{T}},B::BasisFunctional)=BasisFunctional{T}(B.k)
+end
 
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
 Base.getindex(op::BasisFunctional,k::Range)=convert(Vector{Float64},k.==op.k)
@@ -90,7 +93,11 @@ ZeroFunctional{T<:Number}(::Type{T},sp::Space)=ZeroFunctional{typeof(sp),T}(sp)
 ZeroFunctional{T<:Number}(::Type{T})=ZeroFunctional(T,AnySpace())
 ZeroFunctional()=ZeroFunctional(AnySpace())
 
-Base.convert{BT<:Operator}(::Type{BT},Z::ZeroFunctional)=ZeroFunctional(eltype(BT),Z.domainspace)
+
+for TYP in (:Functional,:Operator)
+    @eval Base.convert{T}(::Type{$TYP{T}},Z::ZeroFunctional)=ZeroFunctional(T,Z.domainspace)
+end
+
 
 domainspace(Z::ZeroFunctional)=Z.domainspace
 promotedomainspace(Z::ZeroFunctional,sp::Space)=ZeroFunctional(sp)

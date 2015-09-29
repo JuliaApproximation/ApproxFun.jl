@@ -95,6 +95,7 @@ end
 
 SliceOperator{T<:Number}(B::Operator{T},r,c,rs,cs)=SliceOperator{T,typeof(B)}(B,r,c,rs,cs)
 SliceOperator{T<:Number}(B::Operator{T},r,c,rs)=SliceOperator{T,typeof(B)}(B,r,c,rs,rs)
+SliceOperator{T<:Number}(B::Operator{T},r,c)=SliceOperator{T,typeof(B)}(B,r,c,1,1)
 
 
 Base.convert{BT<:Operator}(::Type{BT},S::SliceOperator)=SliceOperator(convert(BandedOperator{eltype(BT)},S.op),
@@ -143,7 +144,10 @@ StrideFunctional{T<:Number}(B::Functional{T},r,rs)=StrideFunctional{T,typeof(B)}
 
 
 Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range)=T[((k-op.rowindex)≥1 &&(k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
-Base.convert{BT<:Operator}(::Type{BT},S::StrideFunctional)=StrideFunctional(convert(Functional{eltype(BT)},S.op),S.rowindex,S.stride)
+
+for TYP in (:Operator,:Functional)
+    @eval Base.convert{T}(::Type{$TYP{T}},S::StrideFunctional)=StrideFunctional(convert(Functional{T},S.op),S.rowindex,S.stride)
+end
 
 
 ##interlace block operators
@@ -208,7 +212,7 @@ function rangespace{T<:Operator}(A::Vector{T})
     end
 end
 
-function promotespaces{T<:Operator}(A::Array{T,2})
+function promotespaces{T<:Operator}(A::Matrix{T})
     A=copy(A)#TODO: promote might have different Array type
     for j=1:size(A,2)
         A[:,j]=promotedomainspace(A[:,j])

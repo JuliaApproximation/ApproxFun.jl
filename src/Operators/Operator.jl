@@ -135,6 +135,8 @@ Base.getindex(op::Operator,k::Integer,j::Range)=op[k:k,j][1,:]
 Base.getindex(op::Operator,k::Range,j::Integer)=op[k,j:j][:,1]
 Base.getindex(op::Functional,k::Integer)=op[k:k][1]
 
+Base.getindex(L::BandedOperator,kr::Range,::Colon)=Functional{eltype(L)}[L[k,:] for k=kr]
+
 function Base.getindex(op::Functional,j::Range,k::Range)
   @assert j[1]==1 && j[end]==1
   op[k].'
