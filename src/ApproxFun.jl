@@ -49,5 +49,11 @@ precompile(\,(Vector{Operator{Float64}},Vector{Float64}))
 precompile(adaptiveqr,(Vector{Operator{Float64}},Vector{Float64},Float64,Int))
 precompile(MutableOperator,(Vector{Operator{Float64}},))
 precompile(adaptiveqr!,(MutableOperator,Vector{Float64},Float64,Int))
+precompile(+,(Int,Fun{Chebyshev{Interval{Float64}},Float64}))
+precompile(+,(Fun{Chebyshev{Interval{Float64}},Float64},Fun{Chebyshev{Interval{Float64}},Float64}))
+precompile(+,(Fun{ConstantSpace,Float64},Fun{Chebyshev{Interval{Float64}},Float64}))
+precompile(union,(ConstantSpace,Chebyshev{Interval{Float64}}))
+precompile(union,(Chebyshev{Interval{Float64}},ConstantSpace))
+precompile(Fun,(Fun{ConstantSpace,Float64},Chebyshev{Interval{Float64}}))
 
 end #module
