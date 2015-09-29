@@ -1,7 +1,5 @@
 using ApproxFun, Base.Test
 
-using Compat
-
 # This avoids getting killed on Travis.cl
 if OS_NAME == :Darwin
     gc_enable(false)

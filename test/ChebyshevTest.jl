@@ -19,13 +19,13 @@ cf = Fun(cos)
 ecf = Fun(x->cos(x).*exp(x))
 eocf = Fun(x->cos(x)./exp(x))
 
-@test_approx_eq ef[.5] exp(.5)
-@test_approx_eq ecf[.123456] cos(.123456).*exp(.123456)
+@test_approx_eq ef(.5) exp(.5)
+@test_approx_eq ecf(.123456) cos(.123456).*exp(.123456)
 
 r=2.*rand(100) .- 1
 
-@test maximum(abs(ef[r]-exp(r)))<100eps()
-@test maximum(abs(ecf[r]-cos(r).*exp(r)))<100eps()
+@test maximum(abs(ef(r)-exp(r)))<100eps()
+@test maximum(abs(ecf(r)-cos(r).*exp(r)))<100eps()
 
 
 @test norm((ecf-cf.*ef).coefficients)<100eps()
@@ -67,12 +67,12 @@ x=1.5
 
 
 
-@test_approx_eq ef[x] exp(x)
+@test_approx_eq ef(x) exp(x)
 
 
 
-@test maximum(abs(ef[r]-exp(r)))<100eps()
-@test maximum(abs(ecf[r]-cos(r).*exp(r)))<100eps()
+@test maximum(abs(ef(r)-exp(r)))<100eps()
+@test maximum(abs(ecf(r)-cos(r).*exp(r)))<100eps()
 
 
 @test norm((ecf-cf.*ef).coefficients)<100eps()
@@ -100,7 +100,7 @@ x=1.5
 ##Roots
 
 f=Fun(x->sin(10(x-.1)))
-@test norm(f[roots(f)])< 1000eps()
+@test norm(f(roots(f)))< 1000eps()
 
 
 ## ALiasing
@@ -111,10 +111,10 @@ f=Fun(x->cos(50acos(x)))
 
 ## Int values
 
-@test_approx_eq Fun(x->2,10)[.1] 2
-@test_approx_eq Fun(x->2)[.1] 2
+@test_approx_eq Fun(x->2,10)(.1) 2
+@test_approx_eq Fun(x->2)(.1) 2
 
 
-@test_approx_eq Fun(Float64[],Chebyshev)[[0.,1.]] [0.,0.]
-@test_approx_eq Fun([],Chebyshev)[0.] 0.
-@test_approx_eq Fun(x->[1.,0.])[0.] [1.,0.]
+@test_approx_eq Fun(Float64[],Chebyshev)([0.,1.]) [0.,0.]
+@test_approx_eq Fun([],Chebyshev)(0.) 0.
+@test_approx_eq Fun(x->[1.,0.])(0.) [1.,0.]

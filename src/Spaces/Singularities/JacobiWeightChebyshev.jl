@@ -1,6 +1,6 @@
 
 
-function coefficients(f::Vector,sp1::JacobiWeight{Chebyshev},sp2::JacobiWeight{Chebyshev})
+function coefficients{C<:Chebyshev,DD<:Interval}(f::Vector,sp1::JacobiWeight{C,DD},sp2::JacobiWeight{C,DD})
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
     tol=10E-5  #TODO:tol choice
@@ -32,10 +32,3 @@ function coefficients(f::Vector,sp1::JacobiWeight{Chebyshev},sp2::JacobiWeight{C
         error("Something has gone wrong")
     end
 end
-
-
-
-
-
-
-

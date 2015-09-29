@@ -2,19 +2,26 @@
 
 export ChebyshevDirichlet
 
-immutable ChebyshevDirichlet{left,right} <: PolynomialSpace
-    domain::Interval
+#TODO: Type of Interval
+immutable ChebyshevDirichlet{left,right,D} <: PolynomialSpace{D}
+    domain::D
     ChebyshevDirichlet(d)=new(d)
-    ChebyshevDirichlet()=new(Interval())
+    ChebyshevDirichlet()=new(D())
 end
 
-spacescompatible{l,r}(a::ChebyshevDirichlet{l,r},b::ChebyshevDirichlet{l,r})=domainscompatible(a,b)
 
-ChebyshevDirichlet()=ChebyshevDirichlet{1,1}()
-ZeroChebyshevDirichlet(d)=SliceSpace(ChebyshevDirichlet{1,1}(d),2)
-ZeroChebyshevDirichlet()=SliceSpace(ChebyshevDirichlet{1,1}(),2)
+Base.convert{l,r}(::Type{ChebyshevDirichlet{l,r}})=ChebyshevDirichlet{l,r,Interval{Float64}}()
+Base.convert{l,r}(::Type{ChebyshevDirichlet{l,r}},d::Domain)=ChebyshevDirichlet{l,r,typeof(d)}(d)
+
+spacescompatible{l,r,D}(a::ChebyshevDirichlet{l,r,D},b::ChebyshevDirichlet{l,r,D})=domainscompatible(a,b)
+
+ChebyshevDirichlet()=ChebyshevDirichlet{1,1,Interval{Float64}}()
+ZeroChebyshevDirichlet(d)=SliceSpace(ChebyshevDirichlet{1,1,Interval{Float64}}(d),2)
+ZeroChebyshevDirichlet()=SliceSpace(ChebyshevDirichlet{1,1,Interval{Float64}}(),2)
 
 canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
+
+setdomain{l,r}(S::ChebyshevDirichlet{l,r},d::Domain)=ChebyshevDirichlet{l,r}(d)
 
 
 ## coefficients
@@ -69,14 +76,14 @@ coefficients(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransfor
 
 ## Dirichlet Conversion operators
 
-addentries!(C::Conversion{ChebyshevDirichlet{1,0},Chebyshev},A,kr::Range)=toeplitz_addentries!([],[1.,1.],A,kr)
-addentries!(C::Conversion{ChebyshevDirichlet{0,1},Chebyshev},A,kr::Range)=toeplitz_addentries!([],[1.,-1.],A,kr)
-function addentries!(C::Conversion{ChebyshevDirichlet{1,1},Chebyshev},A,kr::Range)
+addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{1,0,D},CC},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,1.],A,kr)
+addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{0,1,D},CC},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,-1.],A,kr)
+function addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{1,1,D},CC},A,kr::Range,::Colon)
     A=toeplitz_addentries!([],[1.,0.,-1.],A,kr)
 
     A
 end
-function addentries!(C::Conversion{ChebyshevDirichlet{2,2},Chebyshev},A,kr::Range)
+function addentries!{D,CC<:Chebyshev}(C::Conversion{ChebyshevDirichlet{2,2,D},CC},A,kr::Range,::Colon)
     for k=kr
         A[k,k]=1
         A[k,k+4]=2*(k+1)/k-1
@@ -87,9 +94,9 @@ function addentries!(C::Conversion{ChebyshevDirichlet{2,2},Chebyshev},A,kr::Rang
 
     A
 end
-bandinds(::Conversion{ChebyshevDirichlet{1,0},Chebyshev})=0,1
-bandinds(::Conversion{ChebyshevDirichlet{0,1},Chebyshev})=0,1
-bandinds(::Conversion{ChebyshevDirichlet{1,1},Chebyshev})=0,2
+bandinds{D,C<:Chebyshev}(::Conversion{ChebyshevDirichlet{1,0,D},C})=0,1
+bandinds{D,C<:Chebyshev}(::Conversion{ChebyshevDirichlet{0,1,D},C})=0,1
+bandinds{D,C<:Chebyshev}(::Conversion{ChebyshevDirichlet{1,1,D},C})=0,2
 
 conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 
@@ -106,11 +113,11 @@ conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 ## Evaluation Functional
 
 
-datalength(B::Evaluation{ChebyshevDirichlet{1,0},Bool})=B.x?Inf:1
-datalength(B::Evaluation{ChebyshevDirichlet{0,1},Bool})=B.x?1:Inf
-datalength(B::Evaluation{ChebyshevDirichlet{1,1},Bool})=B.x?1:2
+datalength{D}(B::Evaluation{ChebyshevDirichlet{1,0,D},Bool})=B.x?Inf:1
+datalength{D}(B::Evaluation{ChebyshevDirichlet{0,1,D},Bool})=B.x?1:Inf
+datalength{D}(B::Evaluation{ChebyshevDirichlet{1,1,D},Bool})=B.x?1:2
 
-function getindex(B::Evaluation{ChebyshevDirichlet{1,0},Bool},kr::Range)
+function getindex{D}(B::Evaluation{ChebyshevDirichlet{1,0,D},Bool},kr::Range)
     d = domain(B)
 
     if B.x == false && B.order == 0
@@ -122,7 +129,7 @@ function getindex(B::Evaluation{ChebyshevDirichlet{1,0},Bool},kr::Range)
     end
 end
 
-function getindex(B::Evaluation{ChebyshevDirichlet{0,1},Bool},kr::Range)
+function getindex{D}(B::Evaluation{ChebyshevDirichlet{0,1,D},Bool},kr::Range)
     d = domain(B)
 
     if B.x == true && B.order == 0
@@ -134,7 +141,7 @@ function getindex(B::Evaluation{ChebyshevDirichlet{0,1},Bool},kr::Range)
     end
 end
 
-function getindex(B::Evaluation{ChebyshevDirichlet{1,1},Bool},kr::Range)
+function getindex{D}(B::Evaluation{ChebyshevDirichlet{1,1,D},Bool},kr::Range)
     d = domain(B)
 
     if B.x == false && B.order == 0

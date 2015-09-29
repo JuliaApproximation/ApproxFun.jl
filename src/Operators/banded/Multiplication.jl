@@ -2,21 +2,21 @@ export Multiplication
 
 abstract AbstractMultiplication{T} <:BandedOperator{T}
 
-immutable Multiplication{D<:FunctionSpace,S<:FunctionSpace,T,V} <: AbstractMultiplication{V}
-    f::Fun{D,T}
+immutable Multiplication{D<:Space,S<:Space,V,T} <: AbstractMultiplication{T}
+    f::Fun{D,V}
     space::S
 
-    Multiplication(f::Fun{D,T},sp::S)=new(f,sp)
+    Multiplication(f::Fun{D,V},sp::S)=new(f,sp)
 end
 
-Multiplication{D,T}(f::Fun{D,T},sp::FunctionSpace)=Multiplication{D,typeof(sp),
+Multiplication{D,T}(f::Fun{D,T},sp::Space)=Multiplication{D,typeof(sp),
                                                                   T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 
 Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
 Multiplication(c::Number)=ConstantOperator(c)
 
 # This covers right multiplication unless otherwise specified.
-Multiplication{D,T}(S::FunctionSpace,f::Fun{D,T}) = Multiplication(f,S)
+Multiplication{D,T}(S::Space,f::Fun{D,T}) = Multiplication(f,S)
 
 Base.convert{BT<:Multiplication}(::Type{BT},C::BT)=C
 function Base.convert{BT<:Operator,S,V,T}(::Type{BT},C::Multiplication{S,V,T})
@@ -35,17 +35,17 @@ domain(T::Multiplication)=domain(T.f)
 
 rangespace{F,T}(D::Multiplication{F,UnsetSpace,T})=UnsetSpace()
 bandinds{F,T}(D::Multiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
-addentries!{F,T}(D::Multiplication{F,UnsetSpace,T},A,kr)=error("No range space attached to Multiplication")
+addentries!{F,T}(D::Multiplication{F,UnsetSpace,T},A,kr,::Colon)=error("No range space attached to Multiplication")
 
 
-function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr)
+function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr,::Colon)
     # Default is to convert to space of f
     sp=domainspace(D)
     csp=space(D.f)
     if csp==sp
         error("Override addentries! on Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*") for range type"*string(typeof(kr)))
     end
-    addentries!(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]),A,kr)
+    addentries!(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]),A,kr,:)
 end
 
 function bandinds{F,S,T}(D::Multiplication{F,S,T})
@@ -75,7 +75,7 @@ end
 ##multiplication can always be promoted, range space is allowed to change
 promotedomainspace(D::AbstractMultiplication,sp::UnsetSpace)=D
 promotedomainspace(D::AbstractMultiplication,sp::AnySpace)=D
-promotedomainspace(D::AbstractMultiplication,sp::FunctionSpace)=Multiplication(D.f,sp)
+promotedomainspace(D::AbstractMultiplication,sp::Space)=Multiplication(D.f,sp)
 
 choosedomainspace{D}(M::Multiplication{D,UnsetSpace},::AnySpace)=space(M.f)
 choosedomainspace{D}(M::Multiplication{D,UnsetSpace},sp)=sp  # we assume multiplication maps spaces to themselves
@@ -83,15 +83,15 @@ choosedomainspace{D}(M::Multiplication{D,UnsetSpace},sp)=sp  # we assume multipl
 
 Base.diagm(a::Fun)=Multiplication(a)
 
-immutable MultiplicationWrapper{D<:FunctionSpace,O<:BandedOperator,V,T} <: AbstractMultiplication{T}
+immutable MultiplicationWrapper{D<:Space,O<:BandedOperator,V,T} <: AbstractMultiplication{T}
     f::Fun{D,V}
     op::O
 end
 
-MultiplicationWrapper{D<:FunctionSpace,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
-MultiplicationWrapper{D<:FunctionSpace,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
+MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
+MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
 
-addentries!(D::MultiplicationWrapper,A,k::Range)=addentries!(D.op,A,k)
+addentries!(D::MultiplicationWrapper,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
 for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
     @eval $func(D::MultiplicationWrapper)=$func(D.op)
 end
@@ -104,8 +104,6 @@ function Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper
         MultiplicationWrapper{S,V,VV,eltype(BT)}(C.f,C.op)
     end
 end
-
-
 
 
 ## Multiplication operators allow us to multiply two spaces

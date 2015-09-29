@@ -2,7 +2,7 @@
 export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
-abstract AbstractProductSpace{SV,T,d} <: FunctionSpace{T,d}
+abstract AbstractProductSpace{SV,T,d} <: Space{T,AnyDomain,d}
 
 if VERSION≥v"0.4.0-dev"
     spacetype{SV}(::AbstractProductSpace{SV},k)=SV.parameters[k]
@@ -32,15 +32,15 @@ coefficient_type(S::TensorSpace,T)=mapreduce(sp->coefficient_type(sp,T),promote_
 
 TensorSpace(A...)=TensorSpace(tuple(A...))
 TensorSpace(A::ProductDomain)=TensorSpace(tuple(map(Space,A.domains)...))
-⊗{SV1,T1,SV2,T2,d1,d2}(A::TensorSpace{SV1,T1,d1},B::TensorSpace{SV2,T2,d2})=TensorSpace(A.spaces...,B.spaces...)
-⊗{SV,T,V,d1,d2}(A::TensorSpace{SV,T,d1},B::FunctionSpace{V,d2})=TensorSpace(A.spaces...,B)
-⊗{SV,T,V,d1,d2}(A::FunctionSpace{V,d2},B::TensorSpace{SV,T,d1})=TensorSpace(A,B.spaces...)
-⊗{T,V,d1,d2}(A::FunctionSpace{T,d1},B::FunctionSpace{V,d2})=TensorSpace(A,B)
+⊗(A::TensorSpace,B::TensorSpace)=TensorSpace(A.spaces...,B.spaces...)
+⊗(A::TensorSpace,B::Space)=TensorSpace(A.spaces...,B)
+⊗(A::Space,B::TensorSpace)=TensorSpace(A,B.spaces...)
+⊗(A::Space,B::Space)=TensorSpace(A,B)
 
 domain(f::TensorSpace)=mapreduce(domain,*,f.spaces)
 Space(sp::ProductDomain)=TensorSpace(sp)
 
-*(A::FunctionSpace,B::FunctionSpace)=A⊗B
+*(A::Space,B::Space)=A⊗B
 
 
 # every column is in the same space for a TensorSpace
@@ -51,7 +51,7 @@ Base.length(d::TensorSpace)=length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer)=d.spaces[k]
 
 
-immutable ProductSpace{S<:FunctionSpace,V<:FunctionSpace,T} <: AbstractProductSpace{@compat(Tuple{S,V}),T,2}
+immutable ProductSpace{S<:Space,V<:Space,T} <: AbstractProductSpace{Tuple{S,V},T,2}
     spacesx::Vector{S}
     spacey::V
 end
@@ -62,7 +62,7 @@ ProductSpace(spacesx::Vector,spacey)=ProductSpace{eltype(spacesx),
 
 coefficient_type(S::ProductSpace,T)=promote_type(coefficient_type(S.spacesx[1],T),coefficient_type(S.spacesy,T))
 
-⊗{S<:FunctionSpace}(A::Vector{S},B::FunctionSpace)=ProductSpace(A,B)
+⊗{S<:Space}(A::Vector{S},B::Space)=ProductSpace(A,B)
 domain(f::ProductSpace)=domain(f.spacesx[1])*domain(f.spacesy)
 
 Base.getindex(d::ProductSpace,k::Integer)=k==1?d.spacesx:d.spacey
@@ -154,7 +154,7 @@ end
 
 ## points
 
-points(d::Union(BivariateDomain,BivariateSpace),n,m)=points(d,n,m,1),points(d,n,m,2)
+points(d::Union{BivariateDomain,BivariateSpace},n,m)=points(d,n,m,1),points(d,n,m,2)
 
 function points(d::BivariateSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
@@ -221,7 +221,7 @@ end
 fromtree{T}(v::Vector{Vector{T}})=vcat(v...)
 
 function points(sp::TensorSpace,n)
-    pts=Array(@compat(Tuple{Float64,Float64}),0)
+    pts=Array(Tuple{Float64,Float64},0)
     for x in points(sp[1],round(Int,sqrt(n))), y in points(sp[2],round(Int,sqrt(n)))
         push!(pts,(x,y))
     end
@@ -235,8 +235,8 @@ function transform(sp::TensorSpace,vals)
     fromtensor(transform!(sp,M))
 end
 
-evaluate{S<:TensorSpace}(f::Fun{S},x)=ProductFun(totensor(coefficients(f)),space(f))[x...]
-evaluate{S<:TensorSpace}(f::Fun{S},x,y)=ProductFun(totensor(coefficients(f)),space(f))[x,y]
+evaluate{S<:TensorSpace}(f::Fun{S},x)=ProductFun(totensor(coefficients(f)),space(f))(x...)
+evaluate{S<:TensorSpace}(f::Fun{S},x,y)=ProductFun(totensor(coefficients(f)),space(f))(x,y)
 
 
 

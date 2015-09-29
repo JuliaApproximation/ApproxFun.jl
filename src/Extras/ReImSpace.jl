@@ -4,11 +4,11 @@
 
 for TYP in (:ReSpace,:ImSpace,:ReImSpace)
     @eval begin
-        immutable $TYP{S,T,d}<: FunctionSpace{T,d}
+        immutable $TYP{S,T,d}<: Space{T,AnyDomain,d}
             space::S
         end
 
-        $TYP{T,d}(sp::FunctionSpace{T,d})=$TYP{typeof(sp),T,d}(sp)
+        $TYP{T,D,d}(sp::Space{T,D,d})=$TYP{typeof(sp),T,d}(sp)
 
         domain(sp::$TYP)=domain(sp.space)
         spacescompatible(a::$TYP,b::$TYP)=spacescompatible(a.space,b.space)
@@ -46,12 +46,12 @@ coefficients(f::Vector,a::ReSpace,b::ReImSpace)=coefficients(f,a,a.space,b)
 coefficients(f::Vector,a::ImSpace,b::ReImSpace)=coefficients(f,a,a.space,b)
 coefficients(f::Vector,a::ReImSpace,b::ReSpace)=coefficients(f,a,a.space,b)
 coefficients(f::Vector,a::ReImSpace,b::ImSpace)=coefficients(f,a,a.space,b)
-coefficients(f::Vector,a::FunctionSpace,b::ReSpace)=real(coefficients(f,a,b.space))
-coefficients(f::Vector,a::FunctionSpace,b::ImSpace)=imag(coefficients(f,a,b.space))
-coefficients(f::Vector,a::ReSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);coefficients(f,a.space,b))
-coefficients(f::Vector,a::ImSpace,b::FunctionSpace)=(@assert isa(eltype(f),Real);coefficients(1im*f,a.space,b))
+coefficients(f::Vector,a::Space,b::ReSpace)=real(coefficients(f,a,b.space))
+coefficients(f::Vector,a::Space,b::ImSpace)=imag(coefficients(f,a,b.space))
+coefficients(f::Vector,a::ReSpace,b::Space)=(@assert isa(eltype(f),Real);coefficients(f,a.space,b))
+coefficients(f::Vector,a::ImSpace,b::Space)=(@assert isa(eltype(f),Real);coefficients(1im*f,a.space,b))
 
-function coefficients(f::Vector,a::FunctionSpace,b::ReImSpace)
+function coefficients(f::Vector,a::Space,b::ReImSpace)
     if a!=b.space
         f=coefficients(f,a,b.space)
     end
@@ -62,7 +62,7 @@ function coefficients(f::Vector,a::FunctionSpace,b::ReImSpace)
 end
 
 
-function coefficients(f::Vector,a::ReImSpace,b::FunctionSpace)
+function coefficients(f::Vector,a::ReImSpace,b::Space)
     n=length(f)
     if iseven(n)
         ret=f[1:2:end]+1im*f[2:2:end]
@@ -78,7 +78,7 @@ function coefficients(f::Vector,a::ReImSpace,b::FunctionSpace)
 end
 
 
-#union_rule(a::FunctionSpace,b::ReImSpace)=union(a,b.space)
+#union_rule(a::Space,b::ReImSpace)=union(a,b.space)
 
 ## Operators
 
@@ -109,7 +109,7 @@ end
 
 
 
-function addentries!{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},A,kr::Range)
+function addentries!{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},A,kr::Range,::Colon)
     for k=kr
         if isodd(k)
             A[k,k]+=1
@@ -118,7 +118,7 @@ function addentries!{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},A,kr::Range)
     A
 end
 
-function addentries!{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},A,kr::Range)
+function addentries!{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},A,kr::Range,::Colon)
     for k=kr
         if iseven(k)
             A[k,k]+=1
@@ -143,7 +143,7 @@ for OP in (:rangespace,:domainspace)
     @eval $OP(R::ReImOperator)=ReImSpace($OP(R.op))
 end
 
-# function addentries!(RI::ReImOperator,A,kr::UnitRange)
+# function addentries!(RI::ReImOperator,A,kr::UnitRange,::Colon)
 #     @assert isodd(kr[1])
 #     @assert iseven(kr[end])
 #     addentries!(RI.op,IndexReIm(A),div(kr[1],2)+1:div(kr[end],2))
@@ -151,7 +151,7 @@ end
 # end
 
 
-function addentries!(RI::ReImOperator,A,kr::UnitRange)
+function addentries!(RI::ReImOperator,A,kr::UnitRange,::Colon)
     divr=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
     B=subview(RI.op,divr,:)
     for k=kr,j=columnrange(RI,k)
@@ -226,16 +226,16 @@ Base.imag(F::Functional)=ImFunctional(F)
 
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Taylor,T}})=Fourier(domain(R))
+        rangespace{T,DD}(R::$TYP{ReImSpace{Taylor{DD},T}})=Fourier(domain(R))
     end
 end
 
-bandinds{T}(::RealOperator{ReImSpace{Taylor,T}})=0,2
-bandinds{T}(::ImagOperator{ReImSpace{Taylor,T}})=0,1
+bandinds{T,DD}(::RealOperator{ReImSpace{Taylor{DD},T}})=0,2
+bandinds{T,DD}(::ImagOperator{ReImSpace{Taylor{DD},T}})=0,1
 
 
 ## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A,kr::Range)
+function addentries!{T,DD}(R::RealOperator{ReImSpace{Taylor{DD},T}},A,kr::Range,::Colon)
     for k=kr
         if isodd(k)         # real part
             A[k,k]+=1
@@ -247,7 +247,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{Taylor,T}},A,kr::Range)
 end
 
 ## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
-function addentries!{T}(R::ImagOperator{ReImSpace{Taylor,T}},A,kr::Range)
+function addentries!{T,DD}(R::ImagOperator{ReImSpace{Taylor{DD},T}},A,kr::Range,::Colon)
     for k=kr
         A[k,k+1]+=1
     end
@@ -259,17 +259,17 @@ end
 # spaces lose zeroth coefficient
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Hardy{false},T}})=SliceSpace(Fourier(domain(R)),1)
+        rangespace{T,DD}(R::$TYP{ReImSpace{Hardy{false,DD},T}})=SliceSpace(Fourier(domain(R)),1)
     end
 end
 
 
-bandinds{T}(::RealOperator{ReImSpace{Hardy{false},T}})=-1,1
-bandinds{T}(::ImagOperator{ReImSpace{Hardy{false},T}})=0,0
+bandinds{T,D}(::RealOperator{ReImSpace{Hardy{false,D},T}})=-1,1
+bandinds{T,D}(::ImagOperator{ReImSpace{Hardy{false,D},T}})=0,0
 
 
 ## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
-function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
+function addentries!{T,D}(R::RealOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range,::Colon)
     for k=kr
         if isodd(k)    # imag part
             A[k,k+1]+=1
@@ -281,7 +281,7 @@ function addentries!{T}(R::RealOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
 end
 
 ## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
-function addentries!{T}(R::ImagOperator{ReImSpace{Hardy{false},T}},A,kr::Range)
+function addentries!{T,D}(R::ImagOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range,::Colon)
     for k=kr
         A[k,k]+=isodd(k)?-1:1
     end
@@ -292,12 +292,12 @@ end
 # spaces lose zeroth coefficient
 for TYP in (:RealOperator,:ImagOperator)
     @eval begin
-        rangespace{T}(R::$TYP{ReImSpace{Laurent,T}})=Fourier(domain(R))
+        rangespace{T,DD}(R::$TYP{ReImSpace{Laurent{DD},T}})=Fourier(domain(R))
     end
 end
 
-bandinds{T}(::RealOperator{ReImSpace{Laurent,T}})=0,2
-function addentries!{T}(R::RealOperator{ReImSpace{Laurent,T}},A,kr::Range)
+bandinds{T,DD}(::RealOperator{ReImSpace{Laurent{DD},T}})=0,2
+function addentries!{T,DD}(R::RealOperator{ReImSpace{Laurent{DD},T}},A,kr::Range,::Colon)
     for k=kr
         if isodd(k)    # real part
             A[k,k]+=1
@@ -327,9 +327,9 @@ end
 
 
 
-function addentries!(RI::ReOperator,A,kr::UnitRange)
+function addentries!(RI::ReOperator,A,kr::UnitRange,::Colon)
     if isa(eltype(RI.op),Real)
-        addentries!(RI.op,A,kr)
+        addentries!(RI.op,A,kr,:)
     else
         B=subview(RI.op,kr,:)
         for k=kr,j=columnrange(RI,k)
@@ -344,7 +344,7 @@ for OP in (:promotedomainspace,:promoterangespace)
     @eval begin
         $OP(R::ReOperator,sp::UnsetSpace)=ReOperator($OP(R.op,sp))
         $OP(R::ReOperator,sp::AnySpace)=ReOperator($OP(R.op,sp))
-        $OP(R::ReOperator,sp::FunctionSpace)=ReOperator($OP(R.op,sp))
+        $OP(R::ReOperator,sp::Space)=ReOperator($OP(R.op,sp))
     end
 end
 

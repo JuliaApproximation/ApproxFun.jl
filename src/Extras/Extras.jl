@@ -9,8 +9,8 @@ include("fftGeneric.jl")
 #
 # This function provides a convenient way to query or specify the BigFloat precision.
 #
-digits(n::Integer) = set_bigfloat_precision(int(ceil(n*log2(10))))
-digits() = int(floor(get_bigfloat_precision()*log10(2)))
+digits(n::Int) = set_bigfloat_precision(round(Int,ceil(n*log2(10))))
+digits() = round(Int,floor(get_bigfloat_precision()*log10(2)))
 
 function pochhammer{T<:Number}(x::T,n::Integer)
     ret = one(T)

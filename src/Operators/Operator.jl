@@ -10,7 +10,8 @@ abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
 abstract Functional{T} <: Operator{T}
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
-abstract BandedOperator{T} <: BandedBelowOperator{T}
+abstract AlmostBandedOperator{T} <: BandedBelowOperator{T}
+abstract BandedOperator{T} <: AlmostBandedOperator{T}
 
 Base.eltype{T}(::Operator{T})=T
 Base.eltype{T}(::Type{Operator{T}})=T
@@ -32,7 +33,9 @@ domain(A::Operator)=domain(domainspace(A))
 Base.size(::InfiniteOperator)=[Inf,Inf]
 Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
 Base.size(op::Operator,k::Integer)=size(op)[k]
-datalength(F::Functional)=error("Override datalength for "*string(typeof(F)))        # use datalength to indicate a finite length functional
+
+Base.ndims(::Operator)=2
+datalength(F::Functional)=Inf        # use datalength to indicate a finite length functional
 
 
 
@@ -75,15 +78,15 @@ Base.stride(A::Functional)=1
 
 bazeros(B::Operator,n::Integer,m::Integer)=bazeros(eltype(B),n,m,bandinds(B))
 bazeros(B::Operator,n::Integer,m::Colon)=bazeros(eltype(B),n,m,bandinds(B))
-bazeros(B::Operator,n::Integer,br::@compat(Tuple{Int,Int}))=bazeros(eltype(B),n,br)
+bazeros(B::Operator,n::Integer,br::Tuple{Int,Int})=bazeros(eltype(B),n,br)
 
 
-BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n)
+BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n,:)
 function BandedMatrix(B::Operator,rws::UnitRange,::Colon)
     if first(rws)==1
         BandedMatrix(B,last(rws))
     else
-        addentries!(B,isbazeros(eltype(B),rws,:,bandinds(B)),rws).matrix
+        addentries!(B,isbazeros(eltype(B),rws,:,bandinds(B)),rws,:).matrix
     end
 end
 
@@ -102,7 +105,7 @@ function BandedMatrix(B::Operator,kr::StepRange,::Colon)
         shf=div(first(kr)-first(jr),stp)
         bi=div(bandinds(B,1),stp)+shf,div(bandinds(B,2),stp)+shf
         A=bazeros(eltype(B),length(kr),length(jr),bi)
-        addentries!(B,IndexSlice(A,first(kr)-stp,first(jr)-stp,stp,stp),kr)
+        addentries!(B,IndexSlice(A,first(kr)-stp,first(jr)-stp,stp,stp),kr,:)
         A
     end
 end
@@ -128,10 +131,11 @@ Base.sparse(B::Operator,n::Range,m::Colon)=sparse(BandedMatrix(B,n,m))
 
 ## geteindex
 
-Base.getindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
 Base.getindex(op::Operator,k::Integer,j::Range)=op[k:k,j][1,:]
 Base.getindex(op::Operator,k::Range,j::Integer)=op[k,j:j][:,1]
 Base.getindex(op::Functional,k::Integer)=op[k:k][1]
+
+Base.getindex(L::BandedOperator,kr::Range,::Colon)=Functional{eltype(L)}[L[k,:] for k=kr]
 
 function Base.getindex(op::Functional,j::Range,k::Range)
   @assert j[1]==1 && j[end]==1
@@ -141,6 +145,33 @@ function Base.getindex(op::Functional,j::Integer,k::Range)
   @assert j==1
   op[k].'
 end
+
+
+
+## override getindex or addentries!.  Each defaults
+
+defaultgetindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
+defaultgetindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
+
+# the defualt is to use getindex
+
+function defaultgetindex(op::Operator,kr::Range,jr::Range)
+    ret=Array(eltype(op),length(kr),length(jr))
+    kk,jj=1,1
+    for j=jr
+        for k=kr
+            ret[kk,jj]=op[k,j]
+            kk+=1
+        end
+        kk=1
+        jj+=1
+    end
+    ret
+end
+
+
+defaultgetindex(A::BandedOperator,k::Integer,::Colon)=FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
+Base.getindex(B::Operator,k,j)=defaultgetindex(B,k,j)
 
 
 
@@ -157,7 +188,6 @@ function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
     @assert last(kr)==last(jr)==Inf
     SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
 end
-Base.getindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
 
 function subview(B::BandedOperator,kr::Range,::Colon)
      br=bandinds(B)
@@ -187,20 +217,22 @@ end
 
 
 ## Default addentries!
-# this allows for just overriding getdiagonalentry
+#  override either addentries! or getindex, otherwise there will be
+#  an infinite loop.
 
-getdiagonalentry(B::BandedOperator,k,j)=error("Override getdiagonalentry for "*string(typeof(B)))
-#
-function addentries!(B::BandedOperator,A,kr)
+
+function defaultaddentries!(B::BandedOperator,A,kr,::Colon)
      br=bandinds(B)
      for k=(max(kr[1],1)):(kr[end])
          for j=max(br[1],1-k):br[end]
-             A[k,k+j]=getdiagonalentry(B,k,j)
+             A[k,k+j]=B[k,k+j]
          end
      end
 
      A
 end
+
+addentries!(B,A,kr,::Colon)=defaultaddentries!(B,A,kr,:)
 
 
 ## Composition with a Fun, LowRankFun, and ProductFun
@@ -212,39 +244,18 @@ Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = mapreduce(
 ## Standard Operators and linear algebra
 
 
-#include("ShiftOperator.jl")
 include("linsolve.jl")
 
 include("spacepromotion.jl")
-include("ToeplitzOperator.jl")
-include("ConstantOperator.jl")
-include("TridiagonalOperator.jl")
-include("PermutationOperator.jl")
+include("banded/banded.jl")
+include("functionals/functionals.jl")
+include("almostbanded/almostbanded.jl")
 
-## Operators overrided for spaces
-
-include("Conversion.jl")
-include("Multiplication.jl")
-include("calculus.jl")
-include("DefiniteIntegral.jl")
-include("Evaluation.jl")
-
-
-
-include("SavedOperator.jl")
-include("AlmostBandedOperator.jl")
-include("adaptiveqr.jl")
-
-
-include("algebra.jl")
-
-include("TransposeOperator.jl")
-include("StrideOperator.jl")
-include("CompactOperator.jl")
-
-
-include("null.jl")
 include("systems.jl")
+
+include("adaptiveqr.jl")
+include("null.jl")
+
 
 
 
@@ -257,7 +268,7 @@ Base.zero{O<:Functional}(::Type{O})=ZeroFunctional(eltype(O))
 Base.zero{O<:Operator}(::Type{O})=ZeroOperator(eltype(O))
 
 
-Base.eye(S::FunctionSpace)=SpaceOperator(ConstantOperator(1.0),S,S)
+Base.eye(S::Space)=SpaceOperator(ConstantOperator(1.0),S,S)
 Base.eye(S::Domain)=eye(Space(S))
 
 
@@ -311,5 +322,5 @@ end
 ## Wrapper
 
 #TODO: Should cases that modify be included?
-typealias WrapperOperator Union(SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
-                                    ConversionWrapper,ConstantTimesOperator,ConstantTimesFunctional,TransposeOperator)
+typealias WrapperOperator Union{SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
+                                    ConversionWrapper,ConstantTimesOperator,ConstantTimesFunctional,TransposeOperator}

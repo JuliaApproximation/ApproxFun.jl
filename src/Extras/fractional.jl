@@ -1,38 +1,38 @@
-function rangespace(Q::Integral{Jacobi,Float64})
+function rangespace{DD<:Interval}(Q::Integral{Jacobi{DD},Float64})
     if Q.order==0.5
         @assert domainspace(Q)==Legendre()
-        JacobiWeight(-0.5,0,Chebyshev(domain(Q)))
+        JacobiWeight(0.5,0.,Jacobi(-0.5,0.5))
     else
         error("Not implemented")
     end
 end
 
-function bandinds(Q::Integral{Jacobi,Float64})
-   if Q.order==0.5
-        (-1,0)
-    else
-        error("Not implemented")
-    end
-end
+bandinds{DD<:Interval}(Q::Integral{Jacobi{DD},Float64})=(0,0)
 
-function addentries!(Q::Integral{Jacobi,Float64},A,kr::Range)
-    @assert domain(Q)==Interval()
-    if Q.order==0.5
-        for k=kr
-            if k==1
-                A[1,1]+=2/sqrt(π)
-            else
-                A[k,k-1]+=2/((2(k-2)+1)*sqrt(π))
-                A[k,k]+=2/((2(k-1)+1)*sqrt(π))
-            end
-        end
-    else
-        error("Not implemented")
+function jacobi_frac_addentries!(α,μ,A,kr::UnitRange)
+    γ=gamma(α+1)/gamma(α+1+μ)
+    for k=1:first(kr)-1
+        γ*=(α+k)/(α+μ+k)
+    end
+    for k=kr
+       A[k,k]+=γ
+       γ*=(α+k)/(α+μ+k)
+        #should be gamma(S.α+k)/gamma(S.α+μ+k)=
+        #(S.α+k-1)/(S.α+μ+k-1)*gamma(S.α+k-1)/gamma(S.α+μ+k-1)
     end
     A
 end
 
-function rangespace(Q::Integral{JacobiWeight{Jacobi},Float64})
+
+function addentries!{DD<:Interval}(Q::Integral{Jacobi{DD},Float64},A,kr::UnitRange,::Colon)
+    μ=Q.order
+    S=domainspace(Q)
+    @assert S==Legendre()
+
+    jacobi_frac_addentries!(0.,μ,A,kr)
+end
+
+function rangespace{DD<:Interval}(Q::Integral{JacobiWeight{Jacobi{DD},DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -45,9 +45,9 @@ function rangespace(Q::Integral{JacobiWeight{Jacobi},Float64})
     end
 end
 
-bandinds(Q::Integral{JacobiWeight{Jacobi},Float64})=(0,0)
+bandinds{DD<:Interval}(Q::Integral{JacobiWeight{Jacobi{DD},DD},Float64})=(0,0)
 
-function addentries!(Q::Integral{JacobiWeight{Jacobi},Float64},A,kr::UnitRange)
+function addentries!{DD<:Interval}(Q::Integral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange,::Colon)
     @assert domain(Q)==Interval()
     μ=Q.order
     S=domainspace(Q)
@@ -55,18 +55,7 @@ function addentries!(Q::Integral{JacobiWeight{Jacobi},Float64},A,kr::UnitRange)
     @assert S.β==0
     @assert S.α==J.b
 
-
-    γ=gamma(S.α)/gamma(S.α+μ)
-    for k=1:first(kr)-1
-        γ*=(S.α+k-1)/(S.α+μ+k-1)
-    end
-    for k=kr
-       γ*=(S.α+k-1)/(S.α+μ+k-1)
-       A[k,k]+=γ
-        #should be gamma(S.α+k)/gamma(S.α+μ+k)=
-        #(S.α+k-1)/(S.α+μ+k-1)*gamma(S.α+k-1)/gamma(S.α+μ+k-1)
-    end
-    A
+    jacobi_frac_addentries!(S.α,μ,A,kr)
 end
 
 function choosedomainspace{T<:Float64}(Q::Integral{UnsetSpace,T},sp::JacobiWeight)

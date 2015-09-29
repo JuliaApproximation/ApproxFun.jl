@@ -129,8 +129,8 @@ immutable PDEProductOperatorSchur{ST<:Number,
                                   FT<:Functional,
                                   DS<:AbstractProductSpace,
                                   RS<:AbstractProductSpace,
-                                  S<:FunctionSpace,
-                                  V<:FunctionSpace} <: AbstractPDEOperatorSchur
+                                  S<:Space,
+                                  V<:Space} <: AbstractPDEOperatorSchur
     Bx::Vector{Vector{FT}}
     Rdiags::Vector{SavedBandedOperator{ST}}
     domainspace::DS
@@ -140,7 +140,7 @@ end
 
 PDEProductOperatorSchur{ST,FT,S,V}(Bx::Vector{Vector{FT}},
                                    Rdiags::Vector{SavedBandedOperator{ST}},
-                                   ds::AbstractProductSpace{@compat(Tuple{S,V})},rs,indsBx)=PDEProductOperatorSchur{ST,FT,
+                                   ds::AbstractProductSpace{Tuple{S,V}},rs,indsBx)=PDEProductOperatorSchur{ST,FT,
                                                                                                     typeof(ds),typeof(rs),
                                                                                                     S,V}(Bx,Rdiags,ds,rs,indsBx)
 

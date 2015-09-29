@@ -1,12 +1,15 @@
 export Jacobi,Legendre
 
-immutable Jacobi <: PolynomialSpace
+#TODO Type
+immutable Jacobi{D<:Domain} <: PolynomialSpace{D}
     a::Float64
     b::Float64
-    domain::Interval
+    domain::D
 end
 Legendre(domain)=Jacobi(0.,0.,domain)
 Legendre()=Legendre(Interval())
+Jacobi(a,b,d::Domain)=Jacobi{typeof(d)}(a,b,d)
+Jacobi(a,b,d)=Jacobi(a,b,Domain(d))
 Jacobi(a,b)=Jacobi(a,b,Interval())
 Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
 
@@ -97,60 +100,95 @@ end
 setdomain(S::Jacobi,d::Domain)=Jacobi(S.a,S.b,d)
 
 
-# O(min(m,n)) Jacobi inner product
+# O(min(m,n)) Jacobi conjugated inner product
 
-function innerproduct{S,V}(sp::Jacobi,u::Vector{S},v::Vector{V})
+function conjugatedinnerproduct{S,V}(sp::Jacobi,u::Vector{S},v::Vector{V})
     T,mn = promote_type(S,V),min(length(u),length(v))
     α,β = sp.a,sp.b
     if mn > 1
         wi = 2^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
-        ret = conj(u[1])*wi*v[1]
+        ret = u[1]*wi*v[1]
         for i=2:mn
             wi *= (α+i-1)*(β+i-1)/(i-1)/(i-1+α+β)*(2i+α+β-3)/(2i+α+β-1)
-            ret += conj(u[i])*wi*v[i]
+            ret += u[i]*wi*v[i]
         end
         return ret
     elseif mn > 0
         wi = 2^(α+β+1)*gamma(α+1)*gamma(β+1)/gamma(α+β+2)
-        return conj(u[1])*wi*v[1]
+        return u[1]*wi*v[1]
     else
         return zero(promote_type(eltype(u),eltype(v)))
     end
 end
 
-function Base.dot(f::Fun{Jacobi},g::Fun{Jacobi})
+function dotu{J<:Jacobi}(f::Fun{J},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.a == g.space.a == 0. && f.space.b == g.space.b == 0.
-        return complexlength(domain(f))/2*innerproduct(g.space,f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
     else
-        return defaultdot(f,g)
+        return defaultdotu(f,g)
     end
 end
 
-function Base.dot(f::Fun{JacobiWeight{Jacobi}},g::Fun{Jacobi})
+function dotu{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
-        return complexlength(domain(f))/2*innerproduct(g.space,f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
     else
-        return defaultdot(f,g)
+        return defaultdotu(f,g)
     end
 end
 
-function Base.dot(f::Fun{Jacobi},g::Fun{JacobiWeight{Jacobi}})
+function dotu{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
-        return complexlength(domain(f))/2*innerproduct(f.space,f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
     else
-        return defaultdot(f,g)
+        return defaultdotu(f,g)
     end
 end
 
-function Base.dot(f::Fun{JacobiWeight{Jacobi}},g::Fun{JacobiWeight{Jacobi}})
+function dotu{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
-        return complexlength(domain(f))/2*innerproduct(f.space.space,f.coefficients,g.coefficients)
+        return complexlength(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)
     else
-        return defaultdot(f,g)
+        return defaultdotu(f,g)
     end
 end
 
+function linedotu{J<:Jacobi}(f::Fun{J},g::Fun{J})
+    @assert domain(f) == domain(g)
+    if f.space.a == g.space.a == 0. && f.space.b == g.space.b == 0.
+        return length(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
+    else
+        return defaultlinedotu(f,g)
+    end
+end
+
+function linedotu{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
+    @assert domain(f) == domain(g)
+    if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
+        return length(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
+    else
+        return defaultlinedotu(f,g)
+    end
+end
+
+function linedotu{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
+    @assert domain(f) == domain(g)
+    if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
+        return length(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
+    else
+        return defaultlinedotu(f,g)
+    end
+end
+
+function linedotu{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
+    @assert domain(f) == domain(g)
+    if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
+        return length(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)
+    else
+        return defaultlinedotu(f,g)
+    end
+end

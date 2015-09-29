@@ -23,7 +23,7 @@ end
 
 datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 
-promotedomainspace{T}(C::PlusFunctional{T},sp::FunctionSpace)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
+promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
 
 immutable PlusOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
@@ -106,9 +106,9 @@ end
 Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 
-function addentries!(P::PlusOperator,A,kr)
+function addentries!(P::PlusOperator,A,kr,::Colon)
     for op in P.ops
-        addentries!(op,A,kr)
+        addentries!(op,A,kr,:)
     end
 
     A
@@ -132,8 +132,8 @@ end
 # We need to support A+1 in addition to A+I primarily for matrix case: A+eye(2)
 for OP in (:+,:-,:(.+),:(.-))
     @eval begin
-        $OP(c::Union(UniformScaling,Number),A::Operator)=$OP(convert(Operator{mat_promote_type(eltype(A),eltype(c))},c),A)
-        $OP(A::Operator,c::Union(UniformScaling,Number))=$OP(A,convert(Operator{mat_promote_type(eltype(A),eltype(c))},c))
+        $OP(c::Union{UniformScaling,Number},A::Operator)=$OP(convert(Operator{mat_promote_type(eltype(A),eltype(c))},c),A)
+        $OP(A::Operator,c::Union{UniformScaling,Number})=$OP(A,convert(Operator{mat_promote_type(eltype(A),eltype(c))},c))
     end
 end
 
@@ -151,7 +151,7 @@ ConstantTimesFunctional(c::Number,op::Functional)=ConstantTimesFunctional{promot
 
 Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.op[k]
 datalength(C::ConstantTimesFunctional)=datalength(C.op)
-promotedomainspace(C::ConstantTimesFunctional,sp::FunctionSpace)=ConstantTimesFunctional(C.c,promotedomainspace(C.op,sp))
+promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.op,sp))
 
 
 type TimesFunctional{T,A<:Functional,B<:BandedOperator} <: Functional{T}
@@ -159,7 +159,7 @@ type TimesFunctional{T,A<:Functional,B<:BandedOperator} <: Functional{T}
     op::B
 end
 
-promotedomainspace(C::TimesFunctional,sp::FunctionSpace)=C.functional*promotedomainspace(C.op,sp)
+promotedomainspace(C::TimesFunctional,sp::Space)=C.functional*promotedomainspace(C.op,sp)
 
 for S in (:ConstantTimesFunctional,:TimesFunctional)
     @eval domainspace(T::($S))=domainspace(T.op)
@@ -208,10 +208,10 @@ for OP in (:domainspace,:rangespace,:bandinds)
     @eval $OP(C::ConstantTimesOperator)=$OP(C.op)
 end
 bandinds(C::ConstantTimesOperator,k::Integer)=bandinds(C.op,k)
-choosedomainspace(C::ConstantTimesOperator,sp::FunctionSpace)=choosedomainspace(C.op,sp)
+choosedomainspace(C::ConstantTimesOperator,sp::Space)=choosedomainspace(C.op,sp)
 
 
-for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,:FunctionSpace)
+for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,:Space)
     @eval function $OP(C::ConstantTimesOperator,k::$SP)
             op=$OP(C.op,k)
             # TODO: This assumes chnanging domainspace can't change the type
@@ -232,11 +232,11 @@ for TYP in (:Operator,:BandedOperator)
 end
 
 
-function addentries!(P::ConstantTimesOperator,A,kr::Range)
+function addentries!(P::ConstantTimesOperator,A,kr::Range,::Colon)
     # Write directly to A, shifting by rows and columns
     # See subview in Operator.jl for these definitions
     P1=subview(P.op,kr,:)
-    addentries!(P1,P.c,A,kr)
+    addentries!(P1,P.c,A,kr,:)
 end
 
 
@@ -350,7 +350,7 @@ Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 
 
-function addentries!(P::TimesOperator,A,kr::Range)
+function addentries!(P::TimesOperator,A,kr::Range,::Colon)
     @assert length(P.ops)≥2
     if length(kr)==0
         return A
@@ -389,21 +389,6 @@ end
 
 ## Algebra: assume we promote
 
-## Operations
-*(A::Functional,b::Vector)=dotu(A[1:length(b)],b)
-*(A::Functional,b::Fun)=promotedomainspace(A,space(b))*b.coefficients
-
-
-*(c::Number,B::Functional)=ConstantTimesFunctional(c,B)
-*(B::Functional,c::Number)=ConstantTimesFunctional(c,B)
-/(B::Functional,c::Number)=ConstantTimesFunctional(1.0/c,B)
-*(B::Functional,O::TimesOperator)=TimesFunctional(B,O)  # Needed to avoid ambiguity
-*(B::Functional,O::BandedOperator)=TimesFunctional(promotedomainspace(B,rangespace(O)),O)
-
--(B::Functional)=ConstantTimesFunctional(-1,B)
-
-
--(A::Functional,B::Functional)=PlusFunctional([A,-B])
 
 *{T,V}(A::TimesOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
 *{T,V}(A::TimesOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B])
@@ -415,7 +400,6 @@ end
 -(A::Operator,B::Operator)=A+(-B)
 
 *(f::Fun,A::BandedOperator)=TimesOperator(Multiplication(f,rangespace(A)),A)
-*(f::Fun,A::Functional)=TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
 
 for OP in (:*,:.*)
     @eval begin
@@ -423,6 +407,8 @@ for OP in (:*,:.*)
         $OP(A::BandedOperator,c::Number)=ConstantTimesOperator(c,A)
     end
 end
+
+/(B::BandedOperator,c::Number)=ConstantTimesOperator(1.0/c,B)
 
 
 
@@ -461,6 +447,28 @@ function *(A::InfiniteOperator,b::Fun)
     Fun(A*coefficients(b,dsp),rangespace(A))
 end
 
+#=
+function *(A::TimesOperator,b::Fun)
+    dsp=conversion_type(domainspace(A),space(b))
+    A=promotedomainspace(A,dsp)
+    ret = b
+    for k=length(A.ops):-1:1
+        ret = A.ops[k]*ret
+    end
+    Fun(coefficients(ret),rangespace(A))
+end
+
+function *(A::PlusOperator,b::Fun)
+    dsp=conversion_type(domainspace(A),space(b))
+    A=promotedomainspace(A,dsp)
+    ret = A.ops[1]*b
+    for k=2:length(A.ops)
+        ret += A.ops[k]*b
+    end
+    Fun(coefficients(ret),rangespace(A))
+end
+=#
+
 for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
         @assert size(b,1)==1
@@ -484,9 +492,9 @@ end
 
 ## promotedomain
 
-for T in (:AnySpace,:FunctionSpace)
+for T in (:AnySpace,:Space)
     @eval begin
-        function promotedomainspace{T}(P::PlusOperator{T},sp::FunctionSpace,cursp::$T)
+        function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::$T)
             if sp==cursp
                 P
             else
@@ -510,9 +518,9 @@ end
 
 
 
-for T in (:AnySpace,:FunctionSpace)
+for T in (:AnySpace,:Space)
     @eval begin
-        function promotedomainspace(P::TimesOperator,sp::FunctionSpace,cursp::$T)
+        function promotedomainspace(P::TimesOperator,sp::Space,cursp::$T)
             if sp==cursp
                 P
             elseif length(P.ops)==2
@@ -545,7 +553,7 @@ end
 
 
 immutable ReReOperator{S,V,T} <: BandedOperator{T}
-    ops::@compat(Tuple{S,V})
+    ops::Tuple{S,V}
     function ReReOperator(ops)
             #TODO: promotion
         @assert domainspace(ops[1])==domainspace(ops[2])
@@ -555,7 +563,7 @@ immutable ReReOperator{S,V,T} <: BandedOperator{T}
 end
 
 
-ReReOperator{S,V}(ops::@compat(Tuple{S,V}))=ReReOperator{S,V,Float64}(ops)
+ReReOperator{S,V}(ops::Tuple{S,V})=ReReOperator{S,V,Float64}(ops)
 ReReOperator(ops1,ops2)=ReReOperator((ops1,ops2))
 Base.real(S::BandedOperator,V::BandedOperator)=ReReOperator(S,V)
 
@@ -565,7 +573,7 @@ domainspace(R::ReReOperator)=ReImSpace(domainspace(R.ops[1]))
 rangespace(R::ReReOperator)=ArraySpace(rangespace(R.ops[1]),2)
 
 
-function addentries!(R::ReReOperator,A,kr::Range)
+function addentries!(R::ReReOperator,A,kr::Range,::Colon)
     kr1=div(kr[1],2)+1:(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
     kr2=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):div(kr[end],2)
 

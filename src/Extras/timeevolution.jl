@@ -61,7 +61,7 @@ end
 BDF4(B::Vector,op::BandedOperator,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF4(B,op,zeros(length(B)),uin,h,m,glp)
 
 
-function BDF22(B::Vector,op::BandedOperator,bcs::Vector,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,m::Integer,glp)
+function BDF22(B::Vector,op::BandedOperator,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
     nt=size(uin[1],2)
     SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
     SBDF = discretize([B;I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
@@ -80,7 +80,7 @@ function BDF22(B::Vector,op::BandedOperator,bcs::Vector,uin::@compat(Tuple{Multi
     u4
 end
 
-function BDF22(B::Vector,op::BandedOperator,g::Function,bcs::Vector,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,m::Integer,glp)
+function BDF22(B::Vector,op::BandedOperator,g::Function,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
     nt=size(uin[1],2)
     SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
     SBDF = discretize([B;I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
@@ -149,7 +149,7 @@ timeevolution(B::Operator,dat...)=timeevolution([B],dat...)
 
 
 #u_tt = op*u
-function timeevolution2(B::Vector,op,bcs::Vector,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,m::Integer,glp)
+function timeevolution2(B::Vector,op,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
     require("GLPlot")
     setplotter("GLPlot")
     nt=size(uin[1],2)
@@ -169,7 +169,7 @@ function timeevolution2(B::Vector,op,bcs::Vector,uin::@compat(Tuple{Multivariate
 end
 
 #u_tt = op*u
-function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,m::Integer,glp)
+function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
     require("GLPlot")
     setplotter("GLPlot")
     nt=size(uin[1],2)
@@ -190,27 +190,27 @@ function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::@compat(Tuple{
     u4
 end
 
-function timeevolution2(B::Vector,op,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),bcs::Vector,h::Real,m=5000)
+function timeevolution2(B::Vector,op,uin::Tuple{MultivariateFun,MultivariateFun},bcs::Vector,h::Real,m=5000)
     require("GLPlot")
     setplotter("GLPlot")
     timeevolution2(B,op,bcs,uin,h,m,plot(pad(uin[end],80,80)))
 end
 
-function timeevolution2(B::Vector,op,g::Function,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),bcs::Vector,h::Real,m=5000)
+function timeevolution2(B::Vector,op,g::Function,uin::Tuple{MultivariateFun,MultivariateFun},bcs::Vector,h::Real,m=5000)
     require("GLPlot")
     setplotter("GLPlot")
     timeevolution2(B,op,g,bcs,uin,h,m,plot(pad(uin[end],80,80)))
 end
 
-timeevolution2(B::Vector,op,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,dat...)=timeevolution2(B,op,uin,zeros(length(B)),h,dat...)
+timeevolution2(B::Vector,op,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,dat...)=timeevolution2(B,op,uin,zeros(length(B)),h,dat...)
 timeevolution2(B::Vector,op,uin::MultivariateFun,dat...)=timeevolution2(B,op,(uin,uin),dat...)
 timeevolution2(B::Operator,dat...)=timeevolution2([B],dat...)
 
-timeevolution2(B::Vector,op,g::Function,uin::@compat(Tuple{MultivariateFun,MultivariateFun}),h::Real,dat...)=timeevolution2(B,op,g,uin,zeros(length(B)),h,dat...)
+timeevolution2(B::Vector,op,g::Function,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,dat...)=timeevolution2(B,op,g,uin,zeros(length(B)),h,dat...)
 timeevolution2(B::Vector,op,g::Function,uin::MultivariateFun,dat...)=timeevolution2(B,op,g,(uin,uin),dat...)
 
 
-timeevolution2(B::Vector,op,g::Function,uin::@compat(Tuple{Fun,Fun}),dat...)=timeevolution2(B,op,g,(ProductFun(uin[1]),ProductFun(uin[2])),dat...)
+timeevolution2(B::Vector,op,g::Function,uin::Tuple{Fun,Fun},dat...)=timeevolution2(B,op,g,(ProductFun(uin[1]),ProductFun(uin[2])),dat...)
 timeevolution2(B::Vector,op,g::Function,uin::Fun,dat...)=timeevolution2(B,op,g,ProductFun(uin),dat...)
 timeevolution2(B::Vector,op,uin::Fun,dat...)=timeevolution2(B,op,ProductFun(uin),dat...)
 

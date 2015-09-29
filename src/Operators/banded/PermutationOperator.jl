@@ -12,7 +12,7 @@ function bandinds(P::PermutationOperator)
     minimum(dfs),maximum(dfs)
 end
 
-function addentries!(P::PermutationOperator,A,kr::Range)
+function addentries!(P::PermutationOperator,A,kr::Range,::Colon)
     n=length(P.perm)
     for k=kr
         m=mod(k-1,n)+1

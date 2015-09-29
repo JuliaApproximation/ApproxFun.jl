@@ -11,7 +11,7 @@ valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_t
 valsdomain_type_promote{T<:Real}(::Type{T},::Type{Vector{T}})=T,Vector{T}
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
-function defaultFun{ReComp}(f,d::FunctionSpace{ReComp},n::Integer)
+function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])
 
@@ -25,35 +25,35 @@ function defaultFun{ReComp}(f,d::FunctionSpace{ReComp},n::Integer)
     end
 
     Tprom = Tout
-    if isa(d,IntervalSpace)   #TODO should also work for any space
-        if Tout <: Number #TODO should also work for array-valued functions
-            Td = eltype(domain(d))
 
-            Tprom,Tpromd=valsdomain_type_promote(Tout,Td)
+    if Tout <: Number #TODO should also work for array-valued functions
+        Td = eltype(domain(d))
 
-            if Tout != Int && Tprom != Tout
-                    warn("Promoting function output type from $(Tout) to $(Tprom)")
-            end
-            if Tpromd != Td
-                    warn("FunctionSpace domain number type $(Td) is not compatible with coefficient type $(Tprom)")
-                    #TODO should construct a new FunctionSpace that contains a domain where the numbers have been promoted
-                    #and call constructor with this FunctionSpace.
-            end
+        Tprom,Tpromd=valsdomain_type_promote(Tout,Td)
+
+        if Tout != Int && Tprom != Tout
+                warn("Promoting function output type from $(Tout) to $(Tprom)")
+        end
+        if Tpromd != Td
+                warn("Space domain number type $(Td) is not compatible with coefficient type $(Tprom)")
+                #TODO should construct a new Space that contains a domain where the numbers have been promoted
+                #and call constructor with this Space.
         end
     end
+
 
     vals=Tprom[f(x) for x in pts]
     Fun(transform(d,vals),d)
 end
 
-Fun{ReComp}(f,d::FunctionSpace{ReComp},n::Integer)=defaultFun(f,d,n)
+Fun{ReComp}(f,d::Space{ReComp},n::Integer)=defaultFun(f,d,n)
 
 # the following is to avoid ambiguity
-# Fun(f::Fun,d) should be equivalent to Fun(x->f[x],d)
-#TODO: fall back to Fun(x->f[x],d) if conversion not implemented?
-Fun(f::Fun,d::FunctionSpace)=Fun(coefficients(f,d),d)
-Fun{T<:FunctionSpace}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
-Fun{T<:FunctionSpace}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
+# Fun(f::Fun,d) should be equivalent to Fun(x->f(x),d)
+#TODO: fall back to Fun(x->f(x),d) if conversion not implemented?
+Fun(f::Fun,d::Space)=Fun(coefficients(f,d),d)
+Fun{T<:Space}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
+Fun{T<:Space}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
 
@@ -69,9 +69,9 @@ Fun(f,d::Domain,n)=Fun(f,Space(d),n)
 
 
 # We do zero special since zero exists even when one doesn't
-Fun{T<:FunctionSpace}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
+Fun{T<:Space}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
 Fun(c::Number,d::Domain)=c==0?c*zeros(d):c*ones(d)
-Fun(c::Number,d::FunctionSpace)=c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
+Fun(c::Number,d::Space)=c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 
 
 ## List constructor
@@ -112,7 +112,7 @@ end
 # end
 
 
-function zerocfsFun(f, d::FunctionSpace)
+function zerocfsFun(f, d::Space)
     #TODO: reuse function values?
     T = eltype(domain(d))
     if T <: Complex
@@ -141,8 +141,8 @@ function zerocfsFun(f, d::FunctionSpace)
 
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&  
-                all(k->norm(cf[r[k]]-fr[k],1)<1E-4,1:length(r))
+        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&
+                all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end
     end
@@ -153,7 +153,7 @@ function zerocfsFun(f, d::FunctionSpace)
 end
 
 
-function abszerocfsFun(f,d::FunctionSpace)
+function abszerocfsFun(f,d::Space)
     #reuse function values
     T = eltype(domain(d))
     if T <: Complex
@@ -177,7 +177,7 @@ function abszerocfsFun(f,d::FunctionSpace)
 end
 
 
-function Fun(f, d::FunctionSpace; method="zerocoefficients")
+function Fun(f, d::Space; method="zerocoefficients")
     T = eltype(domain(d))
     if f==identity
         identity_fun(d)
@@ -212,7 +212,7 @@ Fun{T<:Number}(f::Number,d::Vector{T})=Fun(f,convert(Domain,d))
 
 
 
-function Fun(cfs::Vector{Any},s::FunctionSpace)
+function Fun(cfs::Vector{Any},s::Space)
     @assert isempty(cfs)
     Fun(Float64[],s)
 end

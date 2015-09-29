@@ -59,7 +59,7 @@ end
 function stride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
     r1=divrowrange(rs,ri,kr)
 
-    addentries!(op,IndexStride(A,ri,ci,rs,cs),r1)
+    addentries!(op,IndexStride(A,ri,ci,rs,cs),r1,:)
 
     A
 end
@@ -69,7 +69,7 @@ end
 stride_addentries!(S::StrideOperator,A,kr::Range)=stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
 
 
-addentries!(S::StrideOperator,A,kr)=stride_addentries!(S,A,kr)
+addentries!(S::StrideOperator,A,kr,::Colon)=stride_addentries!(S,A,kr)
 domain(S::StrideOperator)=Any ##TODO: tensor product
 
 
@@ -95,6 +95,7 @@ end
 
 SliceOperator{T<:Number}(B::Operator{T},r,c,rs,cs)=SliceOperator{T,typeof(B)}(B,r,c,rs,cs)
 SliceOperator{T<:Number}(B::Operator{T},r,c,rs)=SliceOperator{T,typeof(B)}(B,r,c,rs,rs)
+SliceOperator{T<:Number}(B::Operator{T},r,c)=SliceOperator{T,typeof(B)}(B,r,c,1,1)
 
 
 Base.convert{BT<:Operator}(::Type{BT},S::SliceOperator)=SliceOperator(convert(BandedOperator{eltype(BT)},S.op),
@@ -104,13 +105,13 @@ bandinds(S::SliceOperator)=(div(bandinds(S.op,1)+S.rowindex-S.colindex,S.rowstri
 
 function destride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
     r1=rs*kr[1]+ri:rs:rs*kr[end]+ri
-    addentries!(op,IndexSlice(A,ri,ci,rs,cs),r1)
+    addentries!(op,IndexSlice(A,ri,ci,rs,cs),r1,:)
     A
 end
 
 function destride_addentries!(op,ri,ci,A,kr::UnitRange)
     r1=kr[1]+ri:kr[end]+ri
-    addentries!(op,IndexSlice(A,ri,ci,1,1),r1)
+    addentries!(op,IndexSlice(A,ri,ci,1,1),r1,:)
     A
 end
 
@@ -122,7 +123,7 @@ function destride_addentries!(S::SliceOperator,A,kr::Range)
     end
 end
 
-addentries!(S::SliceOperator,A,kr)=destride_addentries!(S,A,kr)
+addentries!(S::SliceOperator,A,kr,::Colon)=destride_addentries!(S,A,kr)
 domain(S::SliceOperator)=domain(S.op)
 domainspace(S::SliceOperator)=S.colindex==0&&S.colstride==1?domainspace(S.op):SliceSpace(domainspace(S.op),S.colindex,S.colstride)
 rangespace(S::SliceOperator)=SliceSpace(rangespace(S.op),S.rowindex,S.rowstride)
@@ -143,7 +144,10 @@ StrideFunctional{T<:Number}(B::Functional{T},r,rs)=StrideFunctional{T,typeof(B)}
 
 
 Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range)=T[((k-op.rowindex)≥1 &&(k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
-Base.convert{BT<:Operator}(::Type{BT},S::StrideFunctional)=StrideFunctional(convert(Functional{eltype(BT)},S.op),S.rowindex,S.stride)
+
+for TYP in (:Operator,:Functional)
+    @eval Base.convert{T}(::Type{$TYP{T}},S::StrideFunctional)=StrideFunctional(convert(Functional{T},S.op),S.rowindex,S.stride)
+end
 
 
 ##interlace block operators
@@ -163,6 +167,8 @@ function isboundaryrow(A,k)
 end
 
 
+
+domainscompatible{T<:Operator}(A::Matrix{T})=domainscompatible(map(domainspace,A))
 
 function spacescompatible{T<:Operator}(A::Matrix{T})
     for k=1:size(A,1)
@@ -186,6 +192,8 @@ function domainspace{T<:Operator}(A::Matrix{T})
     spl=map(domainspace,vec(A[1,:]))
     if spacescompatible(spl)
         ArraySpace(first(spl),length(spl))
+    elseif domainscompatible(spl)
+        TupleSpace(spl)
     else
         PiecewiseSpace(spl)
     end
@@ -197,12 +205,14 @@ function rangespace{T<:Operator}(A::Vector{T})
     spl=map(rangespace,A)
     if spacescompatible(spl)
         ArraySpace(first(spl),length(spl))
+    elseif domainscompatible(spl)
+        TupleSpace(spl)
     else
         PiecewiseSpace(spl)
     end
 end
 
-function promotespaces{T<:Operator}(A::Array{T,2})
+function promotespaces{T<:Operator}(A::Matrix{T})
     A=copy(A)#TODO: promote might have different Array type
     for j=1:size(A,2)
         A[:,j]=promotedomainspace(A[:,j])
@@ -246,7 +256,7 @@ end
 bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandinds(m,k)-1,min,M.ops)+1):(size(M.ops,k)*mapreduce(m->bandinds(m,k)+1,max,M.ops)-1)
 bandinds(M::InterlaceOperator)=bandinds(M,1),bandinds(M,2)
 
-function addentries!(M::InterlaceOperator,A,kr::Range)
+function addentries!(M::InterlaceOperator,A,kr::Range,::Colon)
     n=size(M.ops,1)
     for k=1:n,j=1:n
         stride_addentries!(M.ops[k,j],k-n,j-n,n,n,A,kr)
@@ -262,9 +272,9 @@ iscolop(op)=isconstop(op)
 iscolop(::AbstractMultiplication)=true
 
 function interlace{T<:BandedOperator}(A::Matrix{T})
-    # Hack to use PrependColumnsOperator when appropriate
+    # Hack to use BlockOperator when appropriate
     if size(A,1)==1 && all(iscolop,A[1,1:end-1])
-        PrependColumnsOperator(A)
+        BlockOperator(A)
     else
         InterlaceOperator(A)
     end
@@ -276,11 +286,11 @@ end
 function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
     TT=mapreduce(eltype,promote_type,A)
-    # Use PrependColumnsOperator whenever the first columns are all constants
+    # Use BlockOperator whenever the first columns are all constants
     if n==2 &&all(isconstop,A[1:end-1,1]) &&iscolop(A[end,1]) &&
             all(a->isa(a,Functional),A[1:end-1,2]) && isa(A[end,2],BandedOperator)
-        return [Functional{TT}[PrependColumnsFunctional(convert(Number,A[k,1]),A[k,2]) for k=1:m-1]...;
-                    PrependColumnsOperator(A[end,:])]
+        return [Functional{TT}[BlockFunctional(convert(Number,A[k,1]),A[k,2]) for k=1:m-1]...;
+                    BlockOperator(A[end,:])]
     end
 
 
@@ -352,7 +362,7 @@ function bandinds(S::AbstractDiagonalInterlaceOperator)
 end
 
 
-function addentries!(D::AbstractDiagonalInterlaceOperator,A,kr::Range)
+function addentries!(D::AbstractDiagonalInterlaceOperator,A,kr::Range,::Colon)
     n=length(D.ops)
     for k=1:n
         stride_addentries!(D.ops[k],k-n,k-n,n,n,A,kr)
@@ -364,7 +374,3 @@ end
 for op in (:domainspace,:rangespace)
     @eval $op(D::DiagonalInterlaceOperator)=devec(map($op,D.ops))
 end
-
-
-
-

@@ -16,7 +16,7 @@ IdentityOperator()=ConstantOperator(1.0)
 
 bandinds(T::ConstantOperator)=0,0
 
-addentries!(C::ConstantOperator,A,kr::Range)=toeplitz_addentries!([.5C.c],A,kr)
+addentries!(C::ConstantOperator,A,kr::Range,::Colon)=toeplitz_addentries!([.5C.c],A,kr)
 
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
@@ -37,7 +37,10 @@ immutable BasisFunctional{T} <: Functional{T}
 end
 BasisFunctional(k)=BasisFunctional{Float64}(k)
 
-Base.convert{BT<:Operator}(::Type{BT},B::BasisFunctional)=BasisFunctional{eltype(BT)}(B.k)
+
+for TYP in (:Functional,:Operator)
+    @eval Base.convert{T}(::Type{$TYP{T}},B::BasisFunctional)=BasisFunctional{T}(B.k)
+end
 
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
 Base.getindex(op::BasisFunctional,k::Range)=convert(Vector{Float64},k.==op.k)
@@ -70,36 +73,39 @@ rangespace(Z::ZeroOperator)=Z.rangespace
 
 bandinds(T::ZeroOperator)=0,0
 
-addentries!(C::ZeroOperator,A,kr::Range)=A
+addentries!(C::ZeroOperator,A,kr::Range,::Colon)=A
 
 promotedomainspace(Z::ZeroOperator,sp::AnySpace)=Z
 promoterangespace(Z::ZeroOperator,sp::AnySpace)=Z
 promotedomainspace(Z::ZeroOperator,sp::UnsetSpace)=Z
 promoterangespace(Z::ZeroOperator,sp::UnsetSpace)=Z
-promotedomainspace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(sp,rangespace(Z))
-promoterangespace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(domainspace(Z),sp)
-promotedomainspace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(sp,rangespace(Z))
-promoterangespace(Z::ZeroOperator,sp::FunctionSpace)=ZeroOperator(domainspace(Z),sp)
+promotedomainspace(Z::ZeroOperator,sp::Space)=ZeroOperator(sp,rangespace(Z))
+promoterangespace(Z::ZeroOperator,sp::Space)=ZeroOperator(domainspace(Z),sp)
+promotedomainspace(Z::ZeroOperator,sp::Space)=ZeroOperator(sp,rangespace(Z))
+promoterangespace(Z::ZeroOperator,sp::Space)=ZeroOperator(domainspace(Z),sp)
 
 
-immutable ZeroFunctional{S<:FunctionSpace,T<:Number} <: Functional{T}
+immutable ZeroFunctional{S<:Space,T<:Number} <: Functional{T}
     domainspace::S
 end
-ZeroFunctional(sp::FunctionSpace)=ZeroFunctional{typeof(sp),Float64}(sp)
-ZeroFunctional{T<:Number}(::Type{T},sp::FunctionSpace)=ZeroFunctional{typeof(sp),T}(sp)
+ZeroFunctional(sp::Space)=ZeroFunctional{typeof(sp),Float64}(sp)
+ZeroFunctional{T<:Number}(::Type{T},sp::Space)=ZeroFunctional{typeof(sp),T}(sp)
 ZeroFunctional{T<:Number}(::Type{T})=ZeroFunctional(T,AnySpace())
 ZeroFunctional()=ZeroFunctional(AnySpace())
 
-Base.convert{BT<:Operator}(::Type{BT},Z::ZeroFunctional)=ZeroFunctional(eltype(BT),Z.domainspace)
+
+for TYP in (:Functional,:Operator)
+    @eval Base.convert{T}(::Type{$TYP{T}},Z::ZeroFunctional)=ZeroFunctional(T,Z.domainspace)
+end
+
 
 domainspace(Z::ZeroFunctional)=Z.domainspace
-promotedomainspace(Z::ZeroFunctional,sp::FunctionSpace)=ZeroFunctional(sp)
+promotedomainspace(Z::ZeroFunctional,sp::Space)=ZeroFunctional(sp)
 
 Base.getindex{S,T}(op::ZeroFunctional{S,T},k::Integer)=zero(T)
 Base.getindex{S,T}(op::ZeroFunctional{S,T},k::Range)=zeros(T,length(k))
 
 
 
-isconstop(::Union(ZeroOperator,ConstantOperator))=true
+isconstop(::Union{ZeroOperator,ConstantOperator})=true
 isconstop(::)=false
-

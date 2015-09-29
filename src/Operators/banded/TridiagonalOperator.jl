@@ -6,7 +6,7 @@ abstract TridiagonalOperator{T} <: BandedOperator{T}
 abstract SymTridiagonalOperator{T} <: TridiagonalOperator{T}
 abstract BidiagonalOperator{T} <: TridiagonalOperator{T}
 abstract DiagonalOperator{T} <: BidiagonalOperator{T}
-# override getdiagonalentry
+# override getindex
 
 bandinds(::TridiagonalOperator)=-1,1
 bandinds(::BidiagonalOperator)=0,1

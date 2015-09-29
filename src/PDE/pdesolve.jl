@@ -6,15 +6,15 @@ include("cont_lyap.jl")
 
 
 # Converts a vector of constants/funs to a vector of Funs
-function convert2fun{T<:Number,S<:FunctionSpace}(f::Array{T},sp::S)
+function convert2fun{T<:Number,S<:Space}(f::Array{T},sp::S)
     ret=similar(f,Fun{S,T})
     for k=1:size(f,1),j=1:size(f,2)
         ret[k,j]=Fun(f[k,j],sp)
     end
     ret
 end
-convert2fun{T<:Fun}(f::Array{T},d::FunctionSpace)=f
-function convert2fun{S<:FunctionSpace}(f::Array,sp::S)
+convert2fun{T<:Fun}(f::Array{T},d::Space)=f
+function convert2fun{S<:Space}(f::Array,sp::S)
     mytyp=Fun{S,promote_type(mapreduce(eltype,promote_type,f),eltype(sp))}
 
     ret=similar(f,mytyp)
@@ -175,16 +175,16 @@ function pdesolve(A::AbstractPDEOperatorSchur,f::Matrix,nx=100000)
                Float64}[ProductFun(X[:,k],ds) for k=1:size(X,2)]
 end
 
-pdesolve(A::AbstractPDEOperatorSchur,f::Union(Fun,MultivariateFun,Number),nx...)=pdesolve(A,[f],nx...)
+pdesolve(A::AbstractPDEOperatorSchur,f::Union{Fun,MultivariateFun,Number},nx...)=pdesolve(A,[f],nx...)
 pdesolve{T<:Operator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)
-pdesolve{T<:Operator}(A::Vector{T},f::Union(Fun,MultivariateFun,Number),n...)=pdesolve(A,[f],n...)
+pdesolve{T<:Operator}(A::Vector{T},f::Union{Fun,MultivariateFun,Number},n...)=pdesolve(A,[f],n...)
 pdesolve(A::Operator,f...)=pdesolve([A],f...)
 
 
 
 
-\{BM<:BandedMatrix}(A::Vector{BandedOperator{BM}},f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
-\{BM<:BandedMatrix}(A::Vector{Operator{BM}},f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
-\(A::AbstractPDEOperatorSchur,f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
-\{BM<:BandedMatrix}(A::BandedOperator{BM},f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
-\{BM<:BandedMatrix}(A::Operator{BM},f::Union(MultivariateFun,Number,Fun,Array))=pdesolve(A,f)
+\{BM<:BandedMatrix}(A::Vector{BandedOperator{BM}},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
+\{BM<:BandedMatrix}(A::Vector{Operator{BM}},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
+\(A::AbstractPDEOperatorSchur,f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
+\{BM<:BandedMatrix}(A::BandedOperator{BM},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
+\{BM<:BandedMatrix}(A::Operator{BM},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)

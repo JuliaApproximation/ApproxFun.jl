@@ -2,6 +2,7 @@
 include("ConstantSpace.jl")
 
 include("IntervalSpace.jl")
+include("PolynomialSpace.jl")
 include("PeriodicSpace.jl")
 
 
@@ -16,4 +17,4 @@ include("Mapped/Mapped.jl")
 
 
 
-typealias MappedChebyshev Union(Chebyshev,MappedSpace{Chebyshev})
+typealias MappedChebyshev Union{Chebyshev{Interval{Float64}},MappedSpace{Chebyshev{Interval{Float64}}}}

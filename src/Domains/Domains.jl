@@ -14,7 +14,7 @@ include("Point.jl")
 include("multivariate.jl")
 
 
-typealias AffineDomain Union(Interval,PeriodicInterval,Ray,Line)
+typealias AffineDomain Union{Interval,PeriodicInterval,Ray,Line}
 
 
 

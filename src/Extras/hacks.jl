@@ -49,15 +49,15 @@ end
 ## ConstatnOPerators can always be promoted
 promotedomainspace{T,CO<:ConstantOperator}(S::SpaceOperator{T,CO},sp::AnySpace)=S
 promotedomainspace{T,CO<:ConstantOperator}(S::SpaceOperator{T,CO},sp::UnsetSpace)=S
-promotedomainspace{T,CO<:ConstantOperator}(S::SpaceOperator{T,CO},sp::FunctionSpace)=SpaceOperator(S.op,sp,sp)
+promotedomainspace{T,CO<:ConstantOperator}(S::SpaceOperator{T,CO},sp::Space)=SpaceOperator(S.op,sp,sp)
 
 
 
 
 
-## AlmostBandedOperator bor BandedMatrix
+## MutableOperator bor BandedMatrix
 
-function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,R},n::Integer)
+function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::MutableOperator{T,M,R},n::Integer)
     resizedata!(B.fill,n)
 
     if n > B.datalength
@@ -72,7 +72,7 @@ function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::AlmostBandedOperator{T,M,
             B.data=newdata
         end
 
-        addentries!(B.op,IndexStride(B.data,nbc,0),B.datalength+1-nbc:n-nbc)
+        addentries!(B.op,IndexStride(B.data,nbc,0),B.datalength+1-nbc:n-nbc,:)
         B.datalength = n
     end
 
@@ -108,7 +108,7 @@ end
 
 
 
-function backsubstitution!{T<:Vector}(B::AlmostBandedOperator,u::Array{T})
+function backsubstitution!{T<:Vector}(B::MutableOperator,u::Array{T})
     n=size(u,1)
     b=B.bandinds[end]
     nbc = B.fill.numbcs
@@ -178,7 +178,7 @@ end
 
 ## dot for vector{Number} * Vector{Fun}
 
-function Base.dot{T<:Union(Number,Fun,MultivariateFun),F<:Union(Fun,MultivariateFun)}(c::Vector{T},f::Vector{F})
+function Base.dot{T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,MultivariateFun}}(c::Vector{T},f::Vector{F})
     @assert length(c)==length(f)
     ret=conj(first(c))*first(f)
     for k=2:length(c)
@@ -189,8 +189,8 @@ end
 
 
 # for TYP in (:Real,:Number)
-#     @eval begin 
-#         function dotu{T<:$TYP,F<:Union(Fun,MultivariateFun)}(c::Vector{T},f::Vector{F})
+#     @eval begin
+#         function dotu{T<:$TYP,F<:Union{Fun,MultivariateFun}}(c::Vector{T},f::Vector{F})
 #             @assert length(c)==length(f)
 #             ret=first(c)*first(f)
 #             for k=2:length(c)
@@ -201,7 +201,7 @@ end
 #     end
 # end
 
-function dotu{T<:Union(Fun,MultivariateFun,Number),F<:Union(Fun,MultivariateFun,Number)}(c::Vector{T},f::Vector{F})
+function dotu{T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,Number}}(c::Vector{T},f::Vector{F})
     @assert length(c)==length(f)
     ret=first(c)*first(f)
     for k=2:length(c)
@@ -209,5 +209,3 @@ function dotu{T<:Union(Fun,MultivariateFun,Number),F<:Union(Fun,MultivariateFun,
     end
     ret
 end
-
-

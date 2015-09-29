@@ -75,24 +75,27 @@ function pad(v::Vector,n::Integer,m::Integer)
     pad(v,n)
 end
 
-function pad{T}(A::Matrix{T},n::Integer,m::Integer)
+function pad(A::Matrix,n::Integer,m::Integer)
+    T=eltype(A)
 	if n <= size(A,1) && m <= size(A,2)
         A[1:n,1:m]
 	elseif n==0 || m==0
 	   Array(T,n,m)  #fixes weird julia bug when T==None
     else
-        ret = zeros(T,n,m)
-
-        if n <= size(A,1)
-            for k=1:n,j=1:size(A,2)
-                ret[k,j]=A[k,j]
-            end
-        elseif m <= size(A,2)
-            for k=1:size(A,1),j=1:m
-                ret[k,j]=A[k,j]
-            end
-        else
-            ret[1:size(A,1),1:size(A,2)]=A
+        ret = Array(T,n,m)
+        minn=min(n,size(A,1))
+        minm=min(m,size(A,2))
+        for k=1:minn,j=1:minm
+            @inbounds ret[k,j]=A[k,j]
+        end
+        for k=minn+1:n,j=1:minm
+            @inbounds ret[k,j]=zero(T)
+        end
+        for k=1:n,j=minm+1:m
+            @inbounds ret[k,j]=zero(T)
+        end
+        for k=minn+1:n,j=minm+1:m
+            @inbounds ret[k,j]=zero(T)
         end
 
         ret
@@ -167,7 +170,7 @@ function interlace{T<:Number}(v::Vector{Vector{T}})
     ret
 end
 
-function interlace(v::Vector{Any})
+function interlace(v::Union{Vector{Any},Tuple})
     #determine type
     T=Float64
     for vk in v
@@ -272,4 +275,3 @@ function tridql!(L::Matrix)
     end
     Q,L
 end
-

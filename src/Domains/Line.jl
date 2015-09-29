@@ -9,7 +9,7 @@ export Line, PeriodicLine
 
 
 immutable Line{T<:Number} <: IntervalDomain{T}
-    centre::T  ##TODO Allow complex
+    center::T  ##TODO Allow complex
     angle::T
     α::T
     β::T
@@ -27,7 +27,7 @@ Line()=Line(0.,0.)
 Line(b::Bool)=b?Line(0.,π):Line()
 
 
-isambiguous(d::Line)=isnan(d.centre) && isnan(d.angle)
+isambiguous(d::Line)=isnan(d.center) && isnan(d.angle)
 Base.convert{T<:Number}(::Type{Line{T}},::AnyDomain)=Line{T}(NaN,NaN,-1.,-1.)
 Base.convert{IT<:Line}(::Type{IT},::AnyDomain)=Line(NaN,NaN)
 
@@ -83,9 +83,9 @@ function line_invfromcanonicalD(α,β,x)
 end
 
 
-tocanonical(d::Line,x)=line_tocanonical(d.α,d.β,cistyped(-d.angle).*(x-d.centre))
-tocanonicalD(d::Line,x)=cistyped(-d.angle).*line_tocanonicalD(d.α,d.β,cistyped(-d.angle).*(x-d.centre))
-fromcanonical(d::Line,x)=cistyped(d.angle)*line_fromcanonical(d.α,d.β,x)+d.centre
+tocanonical(d::Line,x)=line_tocanonical(d.α,d.β,cistyped(-d.angle).*(x-d.center))
+tocanonicalD(d::Line,x)=cistyped(-d.angle).*line_tocanonicalD(d.α,d.β,cistyped(-d.angle).*(x-d.center))
+fromcanonical(d::Line,x)=cistyped(d.angle)*line_fromcanonical(d.α,d.β,x)+d.center
 fromcanonicalD(d::Line,x)=cistyped(d.angle)*line_fromcanonicalD(d.α,d.β,x)
 invfromcanonicalD(d::Line,x)=cistyped(-d.angle)*line_invfromcanonicalD(d.α,d.β,x)
 
@@ -94,17 +94,17 @@ invfromcanonicalD(d::Line,x)=cistyped(-d.angle)*line_invfromcanonicalD(d.α,d.β
 
 
 
-==(d::Line,m::Line) = d.centre == m.centre && d.angle == m.angle && d.β == m.β &&d.α == m.α
+==(d::Line,m::Line) = d.center == m.center && d.angle == m.angle && d.β == m.β &&d.α == m.α
 
 
 
 # algebra
-*(c::Number,d::Line)=Line(isapprox(d.centre,0)?d.centre:c*d.centre,d.angle+angle(c),d.α,d.β)
+*(c::Number,d::Line)=Line(isapprox(d.center,0)?d.center:c*d.center,d.angle+angle(c),d.α,d.β)
 *(d::Line,c::Number)=c*d
 for OP in (:+,:-)
     @eval begin
-        $OP(c::Number,d::Line)=Line($OP(c,d.centre),d.angle,d.α,d.β)
-        $OP(d::Line,c::Number)=Line($OP(d.centre,c),d.angle,d.α,d.β)
+        $OP(c::Number,d::Line)=Line($OP(c,d.center),d.angle,d.α,d.β)
+        $OP(d::Line,c::Number)=Line($OP(d.center,c),d.angle,d.α,d.β)
     end
 end
 
@@ -115,7 +115,7 @@ end
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1]
 immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
-    centre::T
+    center::T
     L::Float64
     PeriodicLine(c,L)=new(c,L)
     PeriodicLine(c)=new(c,1.)
@@ -127,46 +127,46 @@ PeriodicLine(c,a)=PeriodicLine{a/π,eltype(c)}(c,1.)
 PeriodicLine()=PeriodicLine{false,Float64}(0.,1.)
 PeriodicLine(b::Bool)=PeriodicLine{b,Float64}()
 
-isambiguous(d::PeriodicLine)=isnan(d.centre) && isnan(d.angle)
+isambiguous(d::PeriodicLine)=isnan(d.center) && isnan(d.angle)
 Base.convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain)=PeriodicLine{T,TT}(NaN,NaN)
 Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain)=PeriodicLine(NaN,NaN)
 
 Base.angle{a}(d::PeriodicLine{a})=a*π
 
-tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.centre)/d.L)
-fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.centre
+tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.center)/d.L)
+fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.center
 
-tocanonical{a}(d::PeriodicLine{a},x)=tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.centre))
-fromcanonical{a}(d::PeriodicLine{a},x)=exp(π*im*a)*fromcanonical(PeriodicLine{false,Float64}(0.,d.L),x)+d.centre
+tocanonical{a}(d::PeriodicLine{a},x)=tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))
+fromcanonical{a}(d::PeriodicLine{a},x)=exp(π*im*a)*fromcanonical(PeriodicLine{false,Float64}(0.,d.L),x)+d.center
 
 
 function invfromcanonicalD(d::PeriodicLine{false})
-    @assert d.centre==0  && d.L==1.0
+    @assert d.center==0  && d.L==1.0
     a=Fun([1.,0,1],PeriodicInterval())
 end
 
-mappoint(a::PeriodicLine{false},b::Circle,x)=b.radius*((a.L*im-(x-a.centre))./(a.L*im+(x-a.centre)))+b.center
+mappoint(a::PeriodicLine{false},b::Circle,x)=b.radius*((a.L*im-(x-a.center))./(a.L*im+(x-a.center)))+b.center
 function mappoint(b::Circle,a::PeriodicLine{false},x)
     y=(x-b.center)./b.radius
-    a.centre+a.L*im*(1-y)./(y+1)
+    a.center+a.L*im*(1-y)./(y+1)
 end
 
 
 # algebra
-*(c::Number,d::PeriodicLine)=PeriodicLine(isapprox(d.centre,0)?d.centre:c*d.centre,angle(d)+angle(c))
+*(c::Number,d::PeriodicLine)=PeriodicLine(isapprox(d.center,0)?d.center:c*d.center,angle(d)+angle(c))
 *(d::PeriodicLine,c::Number)=c*d
 for OP in (:+,:-)
     @eval begin
-        $OP{a,T}(c::Number,d::PeriodicLine{a,T})=PeriodicLine{a,promote_type(eltype(c),T)}($OP(c,d.centre),d.L)
-        $OP{a,T}(d::PeriodicLine{a,T},c::Number)=PeriodicLine{a,promote_type(eltype(c),T)}($OP(d.centre,c),d.L)
+        $OP{a,T}(c::Number,d::PeriodicLine{a,T})=PeriodicLine{a,promote_type(eltype(c),T)}($OP(c,d.center),d.L)
+        $OP{a,T}(d::PeriodicLine{a,T},c::Number)=PeriodicLine{a,promote_type(eltype(c),T)}($OP(d.center,c),d.L)
     end
 end
 
 
-Base.length(d::Union(Line,PeriodicLine)) = Inf
-Base.first(d::Union(Line,PeriodicLine))= -Inf
-Base.last(d::Union(Line,PeriodicLine))= Inf
-complexlength(d::Union(Line,PeriodicLine))=Inf
+Base.length(d::Union{Line,PeriodicLine}) = Inf
+Base.first(d::Union{Line,PeriodicLine})= -Inf
+Base.last(d::Union{Line,PeriodicLine})= Inf
+complexlength(d::Union{Line,PeriodicLine})=Inf
 
 ## vectorized
 
@@ -206,7 +206,3 @@ for typ in (:Line,:PeriodicLine)
         end
     end
 end
-
-
-
-

@@ -1,5 +1,5 @@
-typealias LineSpace{T} MappedSpace{Chebyshev,Line{T},RealBasis}
-typealias PeriodicLineSpace{T,TT} MappedSpace{Fourier,PeriodicLine{T,TT},RealBasis}
+typealias LineSpace{T} MappedSpace{Chebyshev{Interval{Float64}},Line{T},RealBasis}
+typealias PeriodicLineSpace{T,TT} MappedSpace{Fourier{PeriodicInterval{T}},PeriodicLine{T,TT},RealBasis}
 typealias PeriodicLineDirichlet{T,TT} MappedSpace{LaurentDirichlet,PeriodicLine{T,TT},ComplexBasis}
 
 
@@ -86,14 +86,20 @@ end
 
 ## Derivative
 
-function invfromcanonicalD{LL<:Union(Laurent,LaurentDirichlet)}(S::MappedSpace{LL,PeriodicLine{false}})
+function invfromcanonicalD{DD}(S::MappedSpace{Laurent{DD},PeriodicLine{false}})
     d=domain(S)
-    @assert d.centre==0  && d.L==1.0
+    @assert d.center==0  && d.L==1.0
+    a=Fun([1.,.5,.5],Laurent())
+end
+
+function invfromcanonicalD{LL<:LaurentDirichlet}(S::MappedSpace{LL,PeriodicLine{false}})
+    d=domain(S)
+    @assert d.center==0  && d.L==1.0
     a=Fun([1.,.5,.5],Laurent())
 end
 
 
-function Derivative{SS<:FunctionSpace,LD<:Union(Line,Ray,PeriodicLine,Curve),T}(S::MappedSpace{SS,LD,T},order::Int)
+function Derivative{SS<:Space,LD<:Union{Line,Ray,PeriodicLine,Curve},T}(S::MappedSpace{SS,LD,T},order::Int)
     D1=invfromcanonicalD(S)*Derivative(S.space)
     D=DerivativeWrapper(SpaceOperator(D1,S,MappedSpace(domain(S),rangespace(D1))),1)
     if order==1

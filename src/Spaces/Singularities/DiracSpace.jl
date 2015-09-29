@@ -1,10 +1,10 @@
-immutable DiracSpace{T<:FunctionSpace}<:RealUnivariateSpace
+immutable DiracSpace{T<:Space}<:RealUnivariateSpace{AnyDomain}
   space::T
   points::Vector{Float64}
 end
 
-DiracSpace() = DiracSpace{Chebyshev}(Chebyshev(),[])
-DiracSpace(points) = DiracSpace{Chebyshev}(Chebyshev(),sort(points))
+DiracSpace() = DiracSpace(Chebyshev(),Float64[])
+DiracSpace(points) = DiracSpace(Chebyshev(),sort(points))
 
 #to be extended to include dirac points
 domain(DS::DiracSpace)=domain(DS.space)∪mapreduce(Point,union,DS.points)
@@ -32,7 +32,7 @@ evaluate(S::DiracSpace,coeffs::Vector,x::Number)=evaluate(Fun(coeffs,S),x)
 function union_rule(a::DiracSpace,b::DiracSpace)
   DiracSpace(union(a.space,b.space),sort(union(a.points,b.points)))
 end
-function union_rule(a::DiracSpace,b::FunctionSpace)
+function union_rule(a::DiracSpace,b::Space)
   DiracSpace(union(a.space,b),a.points)
 end
 
@@ -75,7 +75,7 @@ function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::DiracSpace)
   end
 end
 
-# for TYP in (:ReSpace,:FunctionSpace)
+# for TYP in (:ReSpace,:Space)
 #   @eval begin
 #     function coefficients(cfs::Vector,fromspace::$TYP,tospace::DiracSpace)
 #       [0*tospace.points;coefficients(cfs,fromspace,tospace.space)]
@@ -83,7 +83,7 @@ end
 #   end
 # end
 
-# function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::FunctionSpace)
+# function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::Space)
 #   n = length(fromspace.points)
 #   if n == 0 || cfs[1:n] == 0*cfs[1:n]
 #       coefficients(fromspace.space,tospace)

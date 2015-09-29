@@ -2,10 +2,10 @@ using ApproxFun, Base.Test
 
 
 f=Fun(exp,Jacobi(2.,.5))
-@test_approx_eq f[.1] exp(.1)
+@test_approx_eq f(.1) exp(.1)
 
 f=Fun(x->cos(100x),Jacobi(2.124,.5),500)
-@test_approx_eq f[.1] cos(100*.1)
+@test_approx_eq f(.1) cos(100*.1)
 
 
 sp=Jacobi(2.124,.5)
@@ -23,12 +23,12 @@ f4=Fun(exp,sp4)
 
 m=20
 f=Fun(x->((1-x)/2).^m.*exp(x),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
-@test abs(f[.1]-(x->((1-x)/2).^m.*exp(x))(.1))<10eps()
+@test abs(f(.1)-(x->((1-x)/2).^m.*exp(x))(.1))<10eps()
 
 
 m=10
 f=Fun(x->besselj(m,m*(1-x)),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
-@test_approx_eq f[0.] besselj(m,m)
+@test_approx_eq f(0.) besselj(m,m)
 
 
 
@@ -41,13 +41,13 @@ f=Fun(x->besselj(m,m*(1-x)),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
 
 x=Fun(identity)
 ri=0.5./(1-x)
-@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(1.,0.))))[.1] (1-.1)./2*exp(.1)
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(1.,0.))))(.1) (1-.1)./2*exp(.1)
 
 
-@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(1.,0.))))[.1] (1-.1)./2*exp(.1)
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(1.,0.))))(.1) (1-.1)./2*exp(.1)
 
 
-@test_approx_eq (ri.*Fun(exp,JacobiWeight(0.,0.,Jacobi(1.,0.))))[.1] .5/(1-.1)*exp(.1)
+@test_approx_eq (ri.*Fun(exp,JacobiWeight(0.,0.,Jacobi(1.,0.))))(.1) .5/(1-.1)*exp(.1)
 
 
 ## Derivative
@@ -69,23 +69,23 @@ f=Fun(exp,domainspace(D))
 x=Fun(identity,Jacobi(0.,0.))
 f=Fun(exp,Jacobi(0.,0.))
 
-@test_approx_eq (x*f)[.1] .1exp(.1)
+@test_approx_eq (x*f)(.1) .1exp(.1)
 
 x=Fun(identity,Jacobi(0.123,12.324))
 f=Fun(exp,Jacobi(0.,0.))
 
-@test_approx_eq (x*f)[.1] .1exp(.1)
+@test_approx_eq (x*f)(.1) .1exp(.1)
 
 
 x=Fun(identity,Jacobi(0.123,12.324))
 f=Fun(exp,Jacobi(0.213,0.590))
 
-@test_approx_eq (x*f)[.1] .1exp(.1)
+@test_approx_eq (x*f)(.1) .1exp(.1)
 
 g=Fun(cos,Jacobi(0.123,12.324))
 f=Fun(exp,Jacobi(0.213,0.590))
 
-@test_approx_eq (g*f)[.1] cos(.1)*exp(.1)
+@test_approx_eq (g*f)(.1) cos(.1)*exp(.1)
 
 
 ## Jacobi integrate and sum
@@ -96,4 +96,3 @@ a=Arc(0.,.1,0.,π/2)
 g=Fun(exp,MappedSpace(a,Legendre()))
 
 @test_approx_eq sum(g) sum(Fun(exp,a))
-
