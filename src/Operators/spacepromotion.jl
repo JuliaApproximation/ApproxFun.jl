@@ -10,14 +10,14 @@ SpaceFunctional{T<:Number,S<:Space}(o::Functional{T},s::S)=SpaceFunctional{T,typ
 datalength(S::SpaceFunctional)=datalength(S.op)
 
 
-Base.convert{OT<:SpaceFunctional}(::Type{OT},S::OT)=S  # Added to fix 0.4 bug
-function Base.convert{OT<:Operator}(::Type{OT},S::SpaceFunctional)
-    T=eltype(OT)
-    if T==eltype(S)
-        S
-    else
-        op=convert(Operator{T},S.op)
-        SpaceFunctional{T,typeof(op),typeof(S.domainspace)}(op,S.domainspace,S.rangespace)
+for TYP in (:Functional,:Operator)
+    @eval function Base.convert{T}(::Type{$TYP{T}},S::SpaceFunctional)
+        if T==eltype(S)
+            S
+        else
+            op=convert(Operator{T},S.op)
+            SpaceFunctional{T,typeof(op),typeof(S.domainspace)}(op,S.domainspace,S.rangespace)
+        end
     end
 end
 

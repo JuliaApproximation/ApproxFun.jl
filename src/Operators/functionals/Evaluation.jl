@@ -35,7 +35,9 @@ Evaluation(x::Union{Number,Bool},k::Integer)=Evaluation(AnySpace(),x,k)
 Evaluation{T<:Number}(d::Vector{T},x::Union{Number,Bool},o::Integer)=Evaluation(Interval(d),x,o)
 
 
-Base.convert{BT<:Operator}(::Type{BT},E::Evaluation)=Evaluation(eltype(BT),E.space,E.x,E.order)
+for TYP in (:Operator,:Functional)
+    @eval Base.convert{T}(::Type{$TYP{T}},E::Evaluation)=Evaluation(T,E.space,E.x,E.order)
+end
 
 
 ## default getindex

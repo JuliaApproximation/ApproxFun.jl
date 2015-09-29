@@ -22,14 +22,10 @@ macro calculus_functional(Func)
 
         promotedomainspace(::$AbstOp,sp::Space)=$Func(sp)
 
-        Base.convert{OT<:$Func}(::Type{OT},Σ::OT)=Σ
-        function Base.convert{OT<:Operator}(::Type{OT},Σ::$Func)
-            if eltype(OT)==eltype(Σ)
-                Σ
-            else
-                $Func{typeof(Σ.domainspace),eltype(OT)}(Σ.domainspace)
-            end
-        end
+
+        Base.convert{T}(::Type{Operator{T}},Σ::$Func)=T==eltype(Σ)?Σ:$Func{typeof(Σ.domainspace),T}(Σ.domainspace)
+        Base.convert{T}(::Type{Functional{T}},Σ::$Func)=T==eltype(Σ)?Σ:$Func{typeof(Σ.domainspace),T}(Σ.domainspace)
+
 
         domain(Σ::$Func)=domain(Σ.domainspace)
         domainspace(Σ::$Func)=Σ.domainspace
@@ -38,8 +34,10 @@ macro calculus_functional(Func)
 
         $WrappOp(op::Functional)=$WrappOp{typeof(op),typeof(domainspace(op)),eltype(op)}(op)
 
-        Base.convert{OT<:$WrappOp}(::Type{OT},Σ::OT)=Σ
-        Base.convert{OT<:Operator}(::Type{OT},Σ::$WrappOp)=$WrappOp(convert(Operator{eltype(OT)},Σ.func))::OT
+
+        Base.convert{T}(::Type{Operator{T}},Σ::$WrappOp)=T==eltype(Σ)?Σ:$WrappOp(convert(Operator{T},Σ.func))
+        Base.convert{T}(::Type{Functional{T}},Σ::$WrappOp)=T==eltype(Σ)?Σ:$WrappOp(convert(Functional{T},Σ.func))
+
 
         #Wrapper just adds the operator it wraps
         getindex(D::$WrappOp,k::Range)=D.func[k]

@@ -17,7 +17,10 @@ end
 SavedFunctional(op::Functional,data)=SavedFunctional(op,data,length(data))
 SavedFunctional{T<:Number}(op::Functional{T})=SavedFunctional(op,Array(T,0),0)
 
-Base.convert{BT<:Operator}(::Type{BT},S::SavedFunctional)=SavedFunctional(convert(Functional{eltype(BT)},S.op))
+for TYP in (:Functional,:Operator)
+    @eval Base.convert{T}(::Type{$TYP{T}},S::SavedFunctional)=SavedFunctional(convert(Functional{T},S.op))
+end
+
 
 domainspace(F::SavedFunctional)=domainspace(F.op)
 datalength(S::SavedFunctional)=datalength(S.op)

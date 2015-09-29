@@ -195,4 +195,7 @@ function Base.getindex{T<:Number}(P::BlockFunctional{T},kr::Range)
          P.op[opr[1]-lcols:opr[end]-lcols]]
     end
 end
-Base.convert{BT<:Operator}(::Type{BT},P::BlockFunctional)=BlockFunctional(convert(Vector{eltype(BT)},P.cols),convert(Functional{eltype(BT)},P.op))
+
+for TYP in (:Functional,:Operator)
+    @eval Base.convert{T}(::Type{$TYP{T}},P::BlockFunctional)=BlockFunctional(convert(Vector{T},P.cols),convert(Functional{T},P.op))
+end

@@ -99,6 +99,8 @@ type MutableOperator{T,M,R} <: BandedBelowOperator{T}
     data::BandedMatrix{T} # Data representing bands
     fill::FillMatrix{T,R}
 
+    shift::Int            # How far down to shift the op
+
     datalength::Int       # How long data is.  We can't use the array length of data as we double the memory allocation but don't want to fill in
 
     bandinds::Tuple{Int,Int}   # Encodes the bandrange
@@ -125,13 +127,13 @@ function MutableOperator{R<:Functional}(bc::Vector{R},op::BandedOperator)
         data[k,j]=fl.bc[k][j]  # initialize data with the boundary rows
     end
 
-    MutableOperator(op,data,fl,nbc, br)
+    MutableOperator(op,data,fl,nbc,nbc, br)
 end
 
 function MutableOperator{T<:Operator}(B::Vector{T})
     bcs = Functional{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
 
-    @assert typeof(B[end]) <: BandedOperator
+    @assert typeof(B[end]) <: BandedBelowOperator
 
     MutableOperator(bcs,B[end])
 end
@@ -170,15 +172,15 @@ end
 
 
 function Base.getindex(B::MutableOperator,k::Integer,j::Integer)
-    ir = columninds(B,k)::(Int,Int)
-    nbc = B.fill.numbcs
+    ir = columninds(B,k)::Tuple{Int,Int}
+    shift = B.shift
 
     if k <= B.datalength && j <= ir[end] && ir[1] <= j
         B.data[k,j]
     elseif k <= B.datalength && j > ir[end]
         B.fill[k,j]
     else
-        B.op[k-nbc,j]##TODO: Slow
+        B.op[k-shift,j]##TODO: Slow
     end
 end
 
@@ -190,13 +192,13 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableOperator{T,M,R},n:
     resizedata!(B.fill,n)
 
     if n > B.datalength
-        nbc=B.fill.numbcs
+        shift=B.shift
 
         if n > size(B.data,1)
             pad!(B.data,2n,:)
         end
 
-        addentries!(B.op,IndexStride(B.data,nbc,0),B.datalength+1-nbc:n-nbc,:)
+        addentries!(B.op,IndexStride(B.data,shift,0),B.datalength+1-shift:n-shift,:)
         B.datalength = n
     end
 
@@ -212,14 +214,3 @@ function Base.setindex!(B::MutableOperator,x,k::Integer,j::Integer)
     B.data[k,j] = x
     x
 end
-
-
-##fast assumes we are inbounds and already resized
-# function fastsetindex!(B::MutableOperator,x,k::Integer,j::Integer)
-#     if k<=B.numbcs
-#         @inbounds B.bcdata[k,j] = x
-#     else
-#         ibsetindex!(B.data,x,k-B.numbcs,j-k+B.numbcs)
-#     end
-#     x
-# end

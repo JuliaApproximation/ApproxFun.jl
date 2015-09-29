@@ -63,7 +63,7 @@ function addentries!{S<:Space}(C::Conversion{ConstantSpace,S},A,kr::Range,::Colo
 end
 
 bandinds{F<:Space,T}(D::Multiplication{F,ConstantSpace,T}) = 1-length(D.f),0
-function addentries!{F<:Space,T}(D::Multiplication{F,ConstantSpace,T},A,kr,::Colon)
+function addentries!{F<:Space,T}(D::Multiplication{F,ConstantSpace,T},A,kr::Range,::Colon)
     Op = Multiplication(D.f,space(D.f))
     for k=kr
         if k≤length(D.f)
@@ -72,7 +72,16 @@ function addentries!{F<:Space,T}(D::Multiplication{F,ConstantSpace,T},A,kr,::Col
     end
     A
 end
+
+function addentries!{T}(D::Multiplication{ConstantSpace,ConstantSpace,T},A,kr::Range,::Colon)
+    if 1 in kr
+        A[1,1]+=D.f.coefficients[1]
+    end
+    A
+end
+
 rangespace{F<:Space,T}(D::Multiplication{F,ConstantSpace,T}) = rangespace(Multiplication(D.f,space(D.f)))
+rangespace{T}(D::Multiplication{ConstantSpace,ConstantSpace,T}) = ConstantSpaec()
 
 
 ###
@@ -112,12 +121,25 @@ function addentries!(FO::FunctionalOperator,A,kr::Range,::Colon)
     A
 end
 
-
-for OP in (:+,:-)
-    @eval $OP(A::BandedOperator,B::Functional)=$OP(A,FunctionalOperator(B))
-    @eval $OP(A::Functional,B::BandedOperator)=$OP(FunctionalOperator(A),B)
+function *(f::Fun,A::Functional)
+    if datalength(A)<Inf
+        # We get a BandedOperator, so we take that into account
+        TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
+    else
+        LowRankOperator(f,A)
+    end
 end
 
-*(A::BandedOperator,B::Functional)=A*FunctionalOperator(B)
+Base.convert(::Type{BandedOperator},B::Functional)=FunctionalOperator(B)
+Base.convert(::Type{BandedBelowOperator},B::Functional)=datalength(B)<Inf?convert(BandedOperator,B):Fun(1,ConstantSpace())*B
+
+
+
+for OP in (:+,:-)
+    @eval $OP(A::BandedOperator,B::Functional)=$OP(A,convert(BandedBelowOperator,B))
+    @eval $OP(A::Functional,B::BandedOperator)=$OP(convert(BandedBelowOperator,A),B)
+end
+
+*(A::BandedOperator,B::Functional)=A*convert(BandedBelowOperator,B)
 
 *{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:AbstractMultiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)

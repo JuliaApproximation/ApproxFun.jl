@@ -16,8 +16,3 @@
 
 
 -(A::Functional,B::Functional)=PlusFunctional([A,-B])
-
-
-
-*(f::Fun,A::Functional)=TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
-

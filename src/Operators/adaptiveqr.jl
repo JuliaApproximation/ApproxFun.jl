@@ -133,6 +133,7 @@ end
 
 adaptiveqr(M,b)=adaptiveqr(M,b,eps())
 adaptiveqr(M,b,tol)=adaptiveqr(M,b,tol,Inf)
+adaptiveqr!(B,v)=adaptiveqr!(B,v,eps())
 adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
 
@@ -140,7 +141,7 @@ adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
 
 
-convertvec{T<:Number,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{promote_type(T,V),k},v)
+convertvec{T<:Number,V<:Number,k}(::Operator{T},v::Array{V,k})=convert(Array{promote_type(T,V),k},v)
 convertvec{T<:AbstractMatrix,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=totree(v)
 convertvec{T<:AbstractMatrix,V<:AbstractArray,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{V(promote_type(eltype(T),eltype(V))),k},v)
 
