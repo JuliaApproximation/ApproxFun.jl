@@ -242,39 +242,18 @@ Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = mapreduce(
 ## Standard Operators and linear algebra
 
 
-#include("ShiftOperator.jl")
 include("linsolve.jl")
 
 include("spacepromotion.jl")
-include("ToeplitzOperator.jl")
-include("ConstantOperator.jl")
-include("TridiagonalOperator.jl")
-include("PermutationOperator.jl")
+include("banded/banded.jl")
+include("functionals/functionals.jl")
+include("almostbanded/almostbanded.jl")
 
-## Operators overrided for spaces
-
-include("Conversion.jl")
-include("Multiplication.jl")
-include("CalculusOperator.jl")
-include("CalculusFunctional.jl")
-include("Evaluation.jl")
-
-
-
-include("SavedOperator.jl")
-include("MutableOperator.jl")
-include("adaptiveqr.jl")
-
-
-include("algebra.jl")
-
-include("TransposeOperator.jl")
-include("StrideOperator.jl")
-include("FiniteOperator.jl")
-
-
-include("null.jl")
 include("systems.jl")
+
+include("adaptiveqr.jl")
+include("null.jl")
+
 
 
 

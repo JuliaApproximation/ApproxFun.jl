@@ -36,7 +36,6 @@ function Operator(f,ds::Space)
         df=f(DualFun(Fun(ds)))
     elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
         df=f(Fun(ds),DualFun(Fun(ds)))
-        map(u->u.J,df)
     else
         error("Not implemented")
     end
