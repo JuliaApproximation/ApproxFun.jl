@@ -132,6 +132,17 @@ function Multiplication{MS<:MappedSpace,T}(f::Fun{MS,T},S::MappedSpace)
     ))
 end
 
+function Multiplication{MS<:MappedSpace,T}(S::MappedSpace,f::Fun{MS,T})
+    d=domain(f)
+    @assert d==domain(S)
+    mf=Fun(coefficients(f),space(f).space)  # project f
+    M=Multiplication(S.space,mf)
+    MultiplicationWrapper(f,SpaceOperator(M,
+        MappedSpace(d,domainspace(M)),
+        MappedSpace(d,rangespace(M))
+    ))
+end
+
 
 # Use tocanonicalD to find the correct derivative
 function Derivative(S::MappedSpace,order::Int)
@@ -172,7 +183,7 @@ end
 function DefiniteLineIntegral(sp::MappedSpace)
     x=Fun(domain(sp.space))
     M=Multiplication(abs(fromcanonicalD(sp,x)),sp.space)
-    DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
+    DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteLineIntegral(rangespace(M))*M,sp))
 end
 
 
