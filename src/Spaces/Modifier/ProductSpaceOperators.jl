@@ -223,11 +223,9 @@ end
 
 #TODO: do in @calculus_operator?
 
-for TYP in (:SumSpace,:PiecewiseSpace,:TupleSpace)
-    @eval begin
-        Derivative(S::$TYP,k)=DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),$TYP),k)
-        Integral(S::$TYP,k)=IntegralWrapper(DiagonalInterlaceOperator(map(s->Integral(s,k),S.spaces),$TYP),k)
-    end
+for TYP in (:SumSpace,:PiecewiseSpace,:TupleSpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
+                                                                   (:Integral,:IntegralWrapper))
+    @eval $Op(S::$TYP,k)=$OpWrap(DiagonalInterlaceOperator(map(s->$Op(s,k),S.spaces),$TYP),k)
 end
 
 
