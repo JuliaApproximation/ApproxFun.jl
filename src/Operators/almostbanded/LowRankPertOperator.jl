@@ -50,10 +50,10 @@ end
 function MutableOperator{R<:Functional}(bc::Vector{R},S::LowRankPertOperator)
     bndinds=bandinds(S.op)
 
-    dats=datasize(S,1)
+    dats= datasize(S,1)
     lbc=length(bc)
     shift = lbc+dats
-
+    r=rank(S.pert)
 
     bndindslength=bndinds[end]-bndinds[1]+1
     br=(bndinds[1]-lbc,bndindslength+dats-1)
@@ -62,9 +62,8 @@ function MutableOperator{R<:Functional}(bc::Vector{R},S::LowRankPertOperator)
 
     # do all columns in the row, +1 for the fill
     bcdat=eye(shift,lbc)
-    lowrdat=[zeros(lbc,dats);coefficients(S.pert.U)]  # add zeros for first bc rows
+    lowrdat=[zeros(lbc,r);coefficients(S.pert.U)]  # add zeros for first bc rows
     opdat=[zeros(lbc,dats);eye(dats)]
-
     fl=FillMatrix([bc;S.pert.V;S.op[1:dats,:]],[bcdat lowrdat opdat],br[end]+1)
 
 

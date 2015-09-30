@@ -118,7 +118,7 @@ function MutableOperator{R<:Functional}(bc::Vector{R},op::BandedOperator)
     nbc = length(bc)
 
     br=((bndinds[1]-nbc),(bndindslength-1))
-    data = bazeros(op,nbc+100-br[1],br)
+    data = bazeros(op,nbc+100-br[1],:,br)
 
      # do all columns in the row, +1 for the fill
     fl=FillMatrix(eltype(data),bc,br[end]+1)
