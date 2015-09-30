@@ -23,6 +23,8 @@ for OP in (:+,:-)
         $OP(a::DualFun,b::DualFun)=DualFun($OP(a.f,b.f),$OP(a.J,b.J))
     end
 end
+-(a::DualFun)=DualFun(-a.f,-a.J)
+
 *(f::Number,d::DualFun)=DualFun(f*d.f,f*d.J)
 *(f::Fun,d::DualFun)=DualFun(f*d.f,f*d.J)
 *(a::DualFun,b::DualFun)=DualFun(a.f*b.f,a.f*b.J+b.f*a.J)

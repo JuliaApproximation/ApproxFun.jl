@@ -37,6 +37,8 @@ Base.getindex(L::LowRankPertOperator,k::Integer,j::Integer)=L.op[k,j]+L.pert[k,j
 -(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(promotespaces([-B,L])...)
 -(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(promotespaces([B,-L])...)
 
+*(L::LowRankPertOperator,f::Fun)=L.op*f+L.pert*f
+
 domainspace(L::LowRankPertOperator)=domainspace(L.op)
 rangespace(L::LowRankPertOperator)=rangespace(L.op)
 datasize(L::LowRankPertOperator,k...)=datasize(L.pert,k...)

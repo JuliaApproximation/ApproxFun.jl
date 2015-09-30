@@ -63,3 +63,5 @@ Base.rank(L::LowRankOperator)=length(L.U)
 
 
 -(L::LowRankOperator)=LowRankOperator(-L.U,L.V)
+
+*(L::LowRankOperator,f::Fun)=sum(map((u,v)->u*(v*f),L.U,L.V))
