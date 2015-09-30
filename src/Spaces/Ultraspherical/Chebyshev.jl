@@ -28,7 +28,54 @@ plan_itransform(::Chebyshev,cfs::Vector)=plan_ichebyshevtransform(cfs)
 
 ## Evaluation
 
-evaluate{C<:Chebyshev}(f::Fun{C},x)=clenshaw(f.coefficients,tocanonical(f,x))
+function clenshaw{U,V<:Number}(::Chebyshev,c::AbstractVector{U},x::V)
+    N,T = length(c),promote_type(U,V)
+    if isempty(c)
+        return zero(x)
+    end
+
+    x = 2x
+    bk1,bk2 = zero(T),zero(T)
+    for k = N:-1:2
+        bk2, bk1 = bk1, muladd(x,bk1,c[k]-bk2)
+    end
+
+    muladd(x/2,bk1,c[1]-bk2)
+end
+
+function clenshaw{S<:Chebyshev,T,U,V}(c::AbstractVector{T},x::AbstractVector{U},plan::ClenshawPlan{S,V})
+    N,n = length(c),length(x)
+    if isempty(c)
+        return zeros(x)
+    end
+
+    bk=plan.bk
+    bk1=plan.bk1
+    bk2=plan.bk2
+
+    @inbounds for i = 1:n
+        x[i] = 2x[i]
+        bk1[i] = zero(V)
+        bk2[i] = zero(V)
+    end
+
+    @inbounds for k = N:-1:2
+        ck = c[k]
+        for i = 1:n
+            bk[i] = muladd(x[i],bk1[i],ck-bk2[i])
+        end
+        bk2, bk1, bk = bk1, bk, bk2
+    end
+
+    ck = c[1]
+    @inbounds for i = 1:n
+        x[i] = x[i]/2
+        bk[i] = muladd(x[i],bk1[i],ck-bk2[i])
+    end
+
+    bk
+end
+
 
 ## Calculus
 
