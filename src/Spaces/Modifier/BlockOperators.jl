@@ -14,15 +14,16 @@ immutable BlockOperator{O,T} <: BandedOperator{T}
     end
 end
 
-function BlockOperator{S,V}(cols::Matrix{S},B::BandedOperator{V})
-    T = promote_type(S,V)
-    BlockOperator{typeof(B),T}(Array(T,0,size(cols,2)),Array(T,0,0),cols,B)
-end
-
 BlockOperator(mat11::Matrix,mat12::Matrix,mat21::Matrix,B::BandedOperator)=BlockOperator{typeof(B),
                                                                promote_type(eltype(mat11),eltype(mat12),eltype(mat21),
                                                                             eltype(B))}(mat11,mat12,mat21,B)
-BlockOperator(cols::Vector,B)=BlockOperator(reshape(cols,length(cols),1),B)
+
+function Base.hcat{S<:Number}(cols::Matrix{S},B::BandedOperator)
+    T = promote_type(S,eltype(B))
+    BlockOperator{typeof(B),T}(Array(T,0,size(cols,2)),Array(T,0,0),cols,B)
+end
+
+Base.hcat{T<:Number}(cols::Vector{T},B::BandedOperator)=hcat(reshape(cols,length(cols),1),B)
 
 
 function BlockOperator{BO<:Operator}(A::Matrix{BO})
@@ -76,7 +77,7 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
     end
 
 
-    BlockOperator(cols,B)
+    hcat(cols,B)
 end
 
 function rangespace(B::BlockOperator)
@@ -104,7 +105,7 @@ bandinds(B::BlockOperator)=min(1-size(B.mat21,1)-size(B.mat11,1),
 
 
 function addentries!(B::BlockOperator,A,kr::Range,::Colon)
-    addentries!(B.op,IndexStride(A,size(B.mat11,1),size(B.mat11,2)),kr,:)
+    addentries!(StrideOperator(B.op,size(B.mat11,1),size(B.mat11,2)),A,kr,:)
     n,m=size(B.mat11)
     for k=intersect(kr,1:n),j=1:m
         A[k,j]+=B.mat11[k,j]

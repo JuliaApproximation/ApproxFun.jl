@@ -1,20 +1,4 @@
-export sumblkdiagm
 
-
-Derivative(sp::PiecewiseSpace)=DerivativeWrapper(DiagonalInterlaceOperator(map(Derivative,sp.spaces),PiecewiseSpace),1)
-Derivative(sp::PiecewiseSpace,k::Integer)=DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),sp.spaces),PiecewiseSpace),k)
-
-
-function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
-    vf=vec(f)
-    @assert length(vf)==length(sp)
-    MultiplicationWrapper(f,DiagonalInterlaceOperator(map(Multiplication,vf,sp.spaces),PiecewiseSpace))
-end
-
-function Conversion(f::PiecewiseSpace,g::PiecewiseSpace)
-    @assert length(f)==length(g)
-    ConversionWrapper(DiagonalInterlaceOperator(map(Conversion,f.spaces,g.spaces),PiecewiseSpace))
-end
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
     @eval $op(d::PiecewiseSpace,k...)=interlace($op(d.spaces,k...))
@@ -24,17 +8,17 @@ end
 
 
 ## diag provides a way to convert between DiagonalInterlaceOperator and bacn
-function blkdiagm{B<:Operator}(v::Vector{B})
-    if spacescompatible(map(domainspace,v)) && spacescompatible(map(rangespace,v))
-        # arrayspace
-        DiagonalInterlaceOperator(v)
-    elseif domainscompatible(map(domainspace,v)) && domainscompatible(map(rangespace,v))
-        # tuplespace
-        DiagonalInterlaceOperator(v)
-    else
-        DiagonalPiecewiseOperator(v)
-    end
-end
+# function blkdiagm{B<:Operator}(v::Vector{B})
+#     if spacescompatible(map(domainspace,v)) && spacescompatible(map(rangespace,v))
+#         # arrayspace
+#         DiagonalInterlaceOperator(v)
+#     elseif domainscompatible(map(domainspace,v)) && domainscompatible(map(rangespace,v))
+#         # tuplespace
+#         DiagonalInterlaceOperator(v)
+#     else
+#         DiagonalPiecewiseOperator(v)
+#     end
+# end
 
 Base.blkdiag(A::DiagonalInterlaceOperator)=A.ops
 Base.blkdiag(A::PlusOperator)=mapreduce(blkdiag,+,A.ops)
@@ -114,40 +98,63 @@ ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(Toepli
 ## Sum Space
 
 
-sumblkdiagm(v::Tuple)=DiagonalInterlaceOperator(v,SumSpace)
-
 
 
 ## Conversion
 
 
+# TupleSpace maps down
+function Conversion(a::TupleSpace,b::TupleSpace)
+    m=findlast(s->dimension(s)==1,a.spaces)
+    @assert all(s->dimension(s)==1,a.spaces[1:m-1]) &&
+            a.spaces[1:m-1]==b.spaces[1:m-1]
 
-function Conversion(S1::SumSpace,S2::SumSpace)
-    if sort([S1.spaces...])==sort([S2.spaces...])
-        # swaps sumspace order
-        ConversionWrapper(SpaceOperator(
-        PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),S1.spaces,S2.spaces),
-                      S1,S2))
-    elseif all(map(hasconversion,S1.spaces,S2.spaces))
-        # we can blocmk convert
-        ConversionWrapper(sumblkdiagm(map(Conversion,S1.spaces,S2.spaces)))
-    elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
-        error("Not implemented")
-    elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
-        # we can block convert after permuting
-        P=PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),
-                              map(canonicalspace,S1.spaces),
-                              map(canonicalspace,S2.spaces))
-        ds2=SumSpace(S1.spaces[P.perm])
-        ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
-    elseif all(map(hasconversion,sort([map(canonicalspace,S1.spaces)...]),sort([map(canonicalspace,S2.spaces)...])))
-        #TODO: general case
-        @assert length(S1.spaces)==2
-        ds2=SumSpace(S1.spaces[[2,1]])
-        TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2))
+    if m==0
+        ConversionWrapper(DiagonalInterlaceOperator(map(Conversion,a.spaces,b.spaces),TupleSpace))
+    elseif length(a)==m
+        SpaceOperator(FiniteOperator(eye(m)),a,b)
+    elseif length(a)==m+1
+        ConversionWrapper(BlockOperator(eye(m),zeros(m,0),zeros(0,m),Conversion(a[end],b[end])))
     else
-        # we don't know how to convert so go to default
-        defaultconversion(S1,S2)
+        ConversionWrapper(BlockOperator(eye(m),zeros(m,0),zeros(0,m),Conversion(TupleSpace(a[m+1:end]),TupleSpace(b[m+1:end]))))
+    end
+end
+
+
+
+
+
+# Sum Space and PiecewiseSpace need to allow permutation of space orders
+for TYP in (:SumSpace,:PiecewiseSpace)
+    @eval function Conversion(S1::$TYP,S2::$TYP)
+        if any(s->dimension(s)!=Inf,S1.spaces) || any(s->dimension(s)!=Inf,S2.spaces)
+            error("Need to implement finite dimensional case")
+        elseif sort([S1.spaces...])==sort([S2.spaces...])
+            # swaps sumspace order
+            ConversionWrapper(SpaceOperator(
+            PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),S1.spaces,S2.spaces),
+                          S1,S2))
+        elseif all(map(hasconversion,S1.spaces,S2.spaces))
+            # we can blocmk convert
+            ConversionWrapper(DiagonalInterlaceOperator(map(Conversion,S1.spaces,S2.spaces),$TYP))
+        elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
+            error("Not implemented")
+        elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
+            # we can block convert after permuting
+            P=PermutationOperator(promote_type(eltype(domain(S1)),eltype(domain(S2))),
+                                  map(canonicalspace,S1.spaces),
+                                  map(canonicalspace,S2.spaces))
+            ds2=$TYP(S1.spaces[P.perm])
+            ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
+        elseif all(map(hasconversion,sort([map(canonicalspace,S1.spaces)...]),sort([map(canonicalspace,S2.spaces)...])))
+            #TODO: general case
+            @assert length(S1.spaces)==2
+            ds2=$TYP(S1.spaces[[2,1]])
+            TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2))
+        else
+            # we don't know how to convert so go to default
+            defaultconversion(S1,S2)
+        end
     end
 end
 
@@ -215,8 +222,13 @@ end
 ## Derivative
 
 #TODO: do in @calculus_operator?
-Derivative(S::SumSpace,k)=DerivativeWrapper(sumblkdiagm(map(s->Derivative(s,k),S.spaces)),k)
-Integral(S::SumSpace,k)=IntegralWrapper(sumblkdiagm(map(s->Integral(s,k),S.spaces)),k)
+
+for TYP in (:SumSpace,:PiecewiseSpace,:TupleSpace)
+    @eval begin
+        Derivative(S::$TYP,k)=DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),$TYP),k)
+        Integral(S::$TYP,k)=IntegralWrapper(DiagonalInterlaceOperator(map(s->Integral(s,k),S.spaces),$TYP),k)
+    end
+end
 
 
 
@@ -231,7 +243,15 @@ end
 
 
 
+
 ## Multiply pieces
+
+function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
+    vf=vec(f)
+    @assert length(vf)==length(sp)
+    MultiplicationWrapper(f,DiagonalInterlaceOperator(map(Multiplication,vf,sp.spaces),PiecewiseSpace))
+end
+
 
 function bandinds{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS})
     a,b=vec(M.f)
