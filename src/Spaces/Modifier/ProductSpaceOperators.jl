@@ -1,36 +1,19 @@
 export sumblkdiagm
 
 
-
-immutable DiagonalPiecewiseOperator{T<:Number,B<:Operator} <: AbstractDiagonalInterlaceOperator{T,B}
-    ops::Vector{B}
-end
-
-DiagonalPiecewiseOperator{B<:Operator}(v::Vector{B})=DiagonalPiecewiseOperator{mapreduce(eltype,promote_type,v),B}(v)
-DiagonalPiecewiseOperator{TT<:Tuple}(v::Union{Vector{Any},TT})=DiagonalPiecewiseOperator(Operator{mapreduce(eltype,promote_type,v)}[v...;])
-
-
-
-for op in (:domainspace,:rangespace)
-    @eval $op(D::DiagonalPiecewiseOperator)=PiecewiseSpace(map($op,D.ops))
-end
-
-
-
-
-Derivative(sp::PiecewiseSpace)=DerivativeWrapper(DiagonalPiecewiseOperator(map(Derivative,sp.spaces)),1)
-Derivative(sp::PiecewiseSpace,k::Integer)=DerivativeWrapper(DiagonalPiecewiseOperator(map(s->Derivative(s,k),sp.spaces)),k)
+Derivative(sp::PiecewiseSpace)=DerivativeWrapper(DiagonalInterlaceOperator(map(Derivative,sp.spaces),PiecewiseSpace),1)
+Derivative(sp::PiecewiseSpace,k::Integer)=DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),sp.spaces),PiecewiseSpace),k)
 
 
 function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     vf=vec(f)
     @assert length(vf)==length(sp)
-    MultiplicationWrapper(f,DiagonalPiecewiseOperator(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(vf[k],sp[k]) for k=1:length(vf)]))
+    MultiplicationWrapper(f,DiagonalInterlaceOperator(map(Multiplication,vf,sp.spaces),PiecewiseSpace))
 end
 
 function Conversion(f::PiecewiseSpace,g::PiecewiseSpace)
     @assert length(f)==length(g)
-    ConversionWrapper(DiagonalPiecewiseOperator(BandedOperator{Float64}[Conversion(f[k],g[k]) for k=1:length(f)]))
+    ConversionWrapper(DiagonalInterlaceOperator(map(Conversion,f.spaces,g.spaces),PiecewiseSpace))
 end
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
@@ -53,16 +36,16 @@ function blkdiagm{B<:Operator}(v::Vector{B})
     end
 end
 
-Base.blkdiag(A::AbstractDiagonalInterlaceOperator)=A.ops
+Base.blkdiag(A::DiagonalInterlaceOperator)=A.ops
 Base.blkdiag(A::PlusOperator)=mapreduce(blkdiag,+,A.ops)
 Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
 
 # TODO: general wrappers
 for TYP in (:DerivativeWrapper,:ConversionWrapper)
-    @eval Base.blkdiag{DT<:AbstractDiagonalInterlaceOperator}(A::($TYP{DT}))=A.op.ops
+    @eval Base.blkdiag{DT<:DiagonalInterlaceOperator}(A::($TYP{DT}))=A.op.ops
 end
 
-Base.blkdiag{FT<:PiecewiseSpace,OT<:AbstractDiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
+Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
 
 
 ## Vector
@@ -131,22 +114,7 @@ ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(Toepli
 ## Sum Space
 
 
-immutable SumInterlaceOperator{T,B<:Operator} <: AbstractDiagonalInterlaceOperator{T,B}
-    ops::Vector{B}
-end
-
-SumInterlaceOperator{B<:Operator}(v::Vector{B})=SumInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
-SumInterlaceOperator(v::Vector{Any})=SumInterlaceOperator(Operator{mapreduce(eltype,promote_type,v)}[v...])
-
-
-Base.convert{BT<:SumInterlaceOperator}(::Type{BT},SI::BT)=SI
-Base.convert{BT<:Operator}(::Type{BT},SI::SumInterlaceOperator)=SumInterlaceOperator(BandedOperator{eltype(BT)}[SI.ops...])
-
-for op in (:domainspace,:rangespace)
-    @eval $op(S::SumInterlaceOperator)=SumSpace($op(S.ops[1]),$op(S.ops[2]))
-end
-
-sumblkdiagm{B<:Operator}(v::Vector{B})=SumInterlaceOperator(v)
+sumblkdiagm(v::Tuple)=DiagonalInterlaceOperator(v,SumSpace)
 
 
 
@@ -162,7 +130,7 @@ function Conversion(S1::SumSpace,S2::SumSpace)
                       S1,S2))
     elseif all(map(hasconversion,S1.spaces,S2.spaces))
         # we can blocmk convert
-        ConversionWrapper(sumblkdiagm([map(Conversion,S1.spaces,S2.spaces)...]))
+        ConversionWrapper(sumblkdiagm(map(Conversion,S1.spaces,S2.spaces)))
     elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
         error("Not implemented")
     elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
@@ -247,8 +215,8 @@ end
 ## Derivative
 
 #TODO: do in @calculus_operator?
-Derivative(S::SumSpace,k)=DerivativeWrapper(sumblkdiagm([Derivative(S.spaces[1],k),Derivative(S.spaces[2],k)]),k)
-Integral(S::SumSpace,k)=IntegralWrapper(sumblkdiagm([Integral(S.spaces[1],k),Integral(S.spaces[2],k)]),k)
+Derivative(S::SumSpace,k)=DerivativeWrapper(sumblkdiagm(map(s->Derivative(s,k),S.spaces)),k)
+Integral(S::SumSpace,k)=IntegralWrapper(sumblkdiagm(map(s->Integral(s,k),S.spaces)),k)
 
 
 
@@ -289,7 +257,7 @@ function bandinds{S,SS<:SumSpace}(M::Multiplication{S,SS})
     Ma=Multiplication(M.f,a)
     Mb=Multiplication(M.f,b)
 
-    bandinds(DiagonalInterlaceOperator([Ma,Mb]))
+    bandinds(DiagonalInterlaceOperator((Ma,Mb),SumSpace))
 end
 function rangespace{S,SS<:SumSpace}(M::Multiplication{S,SS})
     a,b=vec(domainspace(M))
@@ -303,7 +271,7 @@ function addentries!{S,SS<:SumSpace}(M::Multiplication{S,SS},A,k,::Colon)
     Ma=Multiplication(M.f,a)
     Mb=Multiplication(M.f,b)
 
-    addentries!(DiagonalInterlaceOperator([Ma,Mb]),A,k,:)
+    addentries!(DiagonalInterlaceOperator((Ma,Mb),SumSpace),A,k,:)
 end
 
 

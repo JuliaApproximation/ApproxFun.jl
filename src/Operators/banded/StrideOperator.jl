@@ -341,20 +341,25 @@ function interlace{T<:Operator}(A::Matrix{T})
 end
 
 
-abstract AbstractDiagonalInterlaceOperator{T,B}<:BandedOperator{T}
 
-immutable DiagonalInterlaceOperator{T<:Number,B<:Operator} <: AbstractDiagonalInterlaceOperator{T,B}
-    ops::Vector{B}
+immutable DiagonalInterlaceOperator{OPS,DS,RS,T<:Number} <: BandedOperator{T}
+    ops::OPS
+    domainspace::DS
+    rangespace::RS
 end
 
-DiagonalInterlaceOperator{B<:Operator}(v::Vector{B})=DiagonalInterlaceOperator{mapreduce(eltype,promote_type,v),B}(v)
-DiagonalInterlaceOperator(v::Vector{Any})=DiagonalInterlaceOperator(Operator{mapreduce(eltype,promote_type,v)}[v...;])
+DiagonalInterlaceOperator(v::Tuple,ds::Space,rs::Space)=DiagonalInterlaceOperator{typeof(v),typeof(ds),
+                                                                                  typeof(rs),mapreduce(eltype,promote_type,v)}(v,ds,rs)
+DiagonalInterlaceOperator{ST<:Space}(v::Tuple,::Type{ST})=DiagonalInterlaceOperator(v,ST(map(domainspace,v)),ST(map(rangespace,v)))
+DiagonalInterlaceOperator(v::Vector,k...)=DiagonalInterlaceOperator(tuple(v...),k...)
 
-Base.convert{T<:BandedOperator}(::Type{T},op::DiagonalInterlaceOperator)=DiagonalInterlaceOperator{eltype(T),
-                                                                                                   BandedOperator{eltype(T)}}(op.ops)
+for TYP in (:BandedOperator,:Operator)
+    @eval Base.convert{T}(::Type{$TYP{T}},op::DiagonalInterlaceOperator)=
+        DiagonalInterlaceOperator(map($TYP{T},op.ops),op.domainspace,op.rangespace)
+end
 
 
-function bandinds(S::AbstractDiagonalInterlaceOperator)
+function bandinds(S::DiagonalInterlaceOperator)
     binds=map(bandinds,S.ops)
     bra=mapreduce(first,min,binds)
     brb=mapreduce(last,max,binds)
@@ -363,7 +368,7 @@ function bandinds(S::AbstractDiagonalInterlaceOperator)
 end
 
 
-function addentries!(D::AbstractDiagonalInterlaceOperator,A,kr::Range,::Colon)
+function addentries!(D::DiagonalInterlaceOperator,A,kr::Range,::Colon)
     n=length(D.ops)
     for k=1:n
         stride_addentries!(D.ops[k],k-n,k-n,n,n,A,kr)
@@ -371,7 +376,5 @@ function addentries!(D::AbstractDiagonalInterlaceOperator,A,kr::Range,::Colon)
     A
 end
 
-
-for op in (:domainspace,:rangespace)
-    @eval $op(D::DiagonalInterlaceOperator)=devec(map($op,D.ops))
-end
+domainspace(D::DiagonalInterlaceOperator)=D.domainspace
+rangespace(D::DiagonalInterlaceOperator)=D.rangespace
