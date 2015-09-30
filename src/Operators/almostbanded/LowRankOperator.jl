@@ -32,6 +32,8 @@ function LowRankOperator{FT<:Functional}(B::Vector{FT})
         B)
 end
 
+LowRankOperator{OO<:Operator}(B::Vector{OO})=LowRankOperator(convert(Vector{Functional{Float64}},B))
+
 LowRankOperator(A::Fun,B::Functional)=LowRankOperator([A],[B])
 
 

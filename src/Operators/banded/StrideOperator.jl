@@ -46,7 +46,7 @@ firstrw(S,k::Integer)=firstrw(S.rowstride,S.rowindex,k)
 lastrw(rs,ri,k::Integer)=fld(k-ri,rs)
 
 
-divrowrange(rs,ri,r)=max(1,firstrw(rs,ri,r[1])):max(1,lastrw(rs,ri,r[end]))
+divrowrange(rs,ri,r)=max(1,firstrw(rs,ri,r[1])):lastrw(rs,ri,r[end])
 
 for op in (:firstrw,:lastrw,:divrowrange)
     @eval $op(S,k...)=$op(S.rowstride,S.rowindex,k...)
@@ -59,8 +59,9 @@ end
 
 function stride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
     r1=divrowrange(rs,ri,kr)
-
-    addentries!(op,IndexStride(A,ri,ci,rs,cs),r1,:)
+    if length(r1)>0
+        addentries!(op,IndexStride(A,ri,ci,rs,cs),r1,:)
+    end
 
     A
 end
