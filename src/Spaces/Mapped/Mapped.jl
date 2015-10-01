@@ -166,7 +166,7 @@ function Integral(sp::MappedSpace,k::Integer)
     else # k==1
         csp=sp.space
 
-        x=Fun(identity,csp)
+        x=Fun(identity,domain(csp))
         M=Multiplication(fromcanonicalD(sp,x),csp)
         Q=Integral(rangespace(M))*M
         IntegralWrapper(SpaceOperator(Q,sp,MappedSpace(sp.domain,rangespace(Q))),1)
