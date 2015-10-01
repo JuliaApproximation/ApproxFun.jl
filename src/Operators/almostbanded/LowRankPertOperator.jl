@@ -9,7 +9,10 @@ immutable LowRankPertOperator{OO,LR,T} <: AlmostBandedOperator{T}
     end
 end
 
-LowRankPertOperator(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator{typeof(B),typeof(L),promote_type(eltype(L),eltype(B))}(B,L)
+function LowRankPertOperator(Bin::BandedOperator,Lin::LowRankOperator)
+    B,L=promotespaces(Bin,Lin)
+    LowRankPertOperator{typeof(B),typeof(L),promote_type(eltype(L),eltype(B))}(B,L)
+end
 
 # convert a vector of functionals and an operator to a LowRnakPertOperator
 function LowRankPertOperator{OT<:Operator}(A::Vector{OT})
@@ -31,13 +34,7 @@ end
 
 
 Base.getindex(L::LowRankPertOperator,k::Integer,j::Integer)=L.op[k,j]+L.pert[k,j]
-+(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(promotespaces([B,L])...)
-+(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(promotespaces([B,L])...)
 
--(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(promotespaces([-B,L])...)
--(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(promotespaces([B,-L])...)
-
-*(L::LowRankPertOperator,f::Fun)=L.op*f+L.pert*f
 
 domainspace(L::LowRankPertOperator)=domainspace(L.op)
 rangespace(L::LowRankPertOperator)=rangespace(L.op)
@@ -83,3 +80,31 @@ function MutableOperator{R<:Functional}(bc::Vector{R},S::LowRankPertOperator)
     end
     M=MutableOperator(S.op[dats+1:end,1:end],data,fl,shift,shift, br)
 end
+
+
+
+
+
+
+## algebra
+
++(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(B,L)
++(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(B,L)
+
+-(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(-B,L)
+-(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(B,-L)
+
+for OP in (:+,:-)
+    @eval $OP(A::LowRankPertOperator,B::LowRankPertOperator)=LowRankPertOperator($OP(A.op,B.op),$OP(A.pert,B.pert))
+end
+
+*(L::LowRankPertOperator,f::Fun)=L.op*f+L.pert*f
+*(L::LowRankPertOperator,B::BandedOperator)=LowRankPertOperator(L.op*B,L.pert*B)
+*(B::BandedOperator,L::LowRankPertOperator)=LowRankPertOperator(B*L.op,B*L.pert)
+
+*(L::LowRankPertOperator,B::LowRankOperator)=L.op*B+L.pert*B
+*(B::LowRankOperator,L::LowRankPertOperator)=B*L.op+B*L.pert
+
+
+
+*(A::LowRankPertOperator,B::LowRankPertOperator)=A.op*B + A.pert*B

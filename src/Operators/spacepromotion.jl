@@ -175,3 +175,12 @@ function promotespaces(ops::Vector,b::Fun)
     end
     A,Fun(b,rangespace(A[end]))
 end
+
+
+function promotespaces(A::Operator,B::Operator)
+    if domainspace(A)==domainspace(B) && rangespace(A)==rangespace(B)
+        A,B
+    else
+        tuple(promotespaces([A,B])...)
+    end
+end
