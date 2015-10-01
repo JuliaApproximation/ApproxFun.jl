@@ -12,7 +12,14 @@ DualFun(f::Fun)=DualFun(f,
 
 domain(df::DualFun)=domain(df.f)
 
-differentiate(d::DualFun)=DualFun(d.f',Derivative()*d.J)
+differentiate(d::DualFun)=DualFun(d.f',Derivative(rangespace(d.J))*d.J)
+integrate(d::DualFun)=DualFun(integrate(d.f),Integral(rangespace(d.J))*d.J)
+function Base.cumsum(d::DualFun)
+    Q=Integral(rangespace(d.J))*d.J
+    DualFun(cumsum(d.f),(I-Evaluation(rangespace(Q),false))*Q)
+end
+
+
 Base.transpose(d::DualFun)=differentiate(d)
 
 ^(d::DualFun,k::Integer)=DualFun(d.f^k,k*d.f^(k-1)*d.J)

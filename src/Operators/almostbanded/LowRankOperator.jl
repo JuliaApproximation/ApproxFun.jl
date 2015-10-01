@@ -22,8 +22,9 @@ end
 
 
 LowRankOperator{S,T}(U::Vector{Fun{S,T}},V::Vector{Functional{T}})=LowRankOperator{S,T}(U,V)
-LowRankOperator{S,T1,T2}(U::Vector{Fun{S,T1}},V::Vector{Functional{T2}})=LowRankOperator(convert(Vector{Fun{S,promote_type(T1,T2)}},U),convert(Vector{Fun{M,promote_type(T1,T2)}},V))
-LowRankOperator{S,T,FT<:Functional}(U::Vector{Fun{S,T}},V::Vector{FT})=LowRankOperator{S,T}(U,convert(Vector{Functional{eltype(FT)}},V))
+LowRankOperator{S,T1,T2}(U::Vector{Fun{S,T1}},V::Vector{Functional{T2}})=LowRankOperator(convert(Vector{Fun{S,promote_type(T1,T2)}},U),
+                                                                                         convert(Vector{Functional{promote_type(T1,T2)}},V))
+LowRankOperator{FF<:Fun,FT<:Functional}(U::Vector{FF},V::Vector{FT})=LowRankOperator(U,convert(Vector{Functional{eltype(FT)}},V))
 
 function LowRankOperator{FT<:Functional}(B::Vector{FT})
     rsp=TupleSpace(tuple(map(rangespace,B)...,ZeroSpace()))
