@@ -115,7 +115,7 @@ plan_transform(::CosSpace,x::Vector)=plan_chebyshevtransform(x;kind=2)
 plan_itransform(::CosSpace,x::Vector)=plan_ichebyshevtransform(x;kind=2)
 transform(::CosSpace,vals,plan)=chebyshevtransform(vals,plan;kind=2)
 itransform(::CosSpace,cfs,plan)=ichebyshevtransform(cfs,plan;kind=2)
-evaluate{CS<:CosSpace}(f::Fun{CS},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
+evaluate{CS<:CosSpace}(f::Fun{CS},t)=clenshaw(Chebyshev(),f.coefficients,cos(tocanonical(f,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]

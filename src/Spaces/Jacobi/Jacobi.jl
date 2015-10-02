@@ -42,7 +42,8 @@ jacobirecγ(α,β,k)=jacobirecC(α,β,k-1)/jacobirecA(α,β,k-1)
 jacobirecα(α,β,k)=-jacobirecB(α,β,k-1)/jacobirecA(α,β,k-1)
 jacobirecβ(α,β,k)=1/jacobirecA(α,β,k-1)
 
-for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ))
+for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ),
+                   (:recA,:jacobirecA),(:recB,:jacobirecB),(:recC,:jacobirecC))
     @eval $REC(::Type,sp::Jacobi,k)=$JREC(sp.a,sp.b,k)  #TODO: implement typing
 end
 

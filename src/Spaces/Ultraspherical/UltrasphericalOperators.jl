@@ -1,11 +1,18 @@
 ##  Jacobi Operator
 
+recB{T}(::Type{T},::Ultraspherical,::)=zero(T)
+
+recA{T}(::Type{T},::Chebyshev,k)=2one(T)
+recC{T}(::Type{T},::Chebyshev,k)=one(T)   # one(T) ensures we get correct type
+
+recA{T,λ}(::Type{T},::Ultraspherical{λ},k)=(2*(k+λ))/(k+one(T))   # one(T) ensures we get correct type
+recC{T,λ}(::Type{T},::Ultraspherical{λ},k)=(k-one(T)+2λ)/(k+one(T))   # one(T) ensures we get correct type
+
 # x p_k
 recα{T}(::Type{T},::Ultraspherical,::)=zero(T)
 
 recβ{T}(::Type{T},::Chebyshev,k)=ifelse(k==1,one(T),one(T)/2)   # one(T) ensures we get correct type,ifelse ensures inlining
 recγ{T}(::Type{T},::Chebyshev,k)=one(T)/2   # one(T) ensures we get correct type
-
 
 recβ{T,λ}(::Type{T},::Ultraspherical{λ},k)=k/(2*(k-one(T)+λ))   # one(T) ensures we get correct type
 recγ{T,λ}(::Type{T},::Ultraspherical{λ},k)=(k-2+2λ)/(2*(k-one(T)+λ))   # one(T) ensures we get correct type
