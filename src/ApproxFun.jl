@@ -11,7 +11,7 @@ import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
 export pad!,pad,sample,chop!,complexroots,roots,svfft
 
 ##Testing
-export bisectioninv, clenshaw
+export bisectioninv
 
 
 

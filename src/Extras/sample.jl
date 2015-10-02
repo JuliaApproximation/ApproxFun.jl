@@ -41,8 +41,8 @@ function chebbisectioninv(c::Vector{Float64},x::Float64;numits::Int=47)
 end
 
 
-chebbisectioninv(c::Vector{Float64},xl::Vector{Float64})=(n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,n)))
-function chebbisectioninv(c::Vector{Float64},xl::Vector{Float64},plan::ClenshawPlan{Float64})
+chebbisectioninv(c::Vector{Float64},xl::Vector{Float64})=(n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),length(c),n)))
+function chebbisectioninv{D<:Domain}(c::Vector{Float64},xl::Vector{Float64},plan::ClenshawPlan{Chebyshev{D},Float64})
     n = length(xl)
     a = -ones(n)
     b = ones(n)
@@ -61,8 +61,8 @@ end
 
 
 #here, xl is vector w/ length == #cols of c
-chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64})=(n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,n)))
-function chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64},plan::ClenshawPlan{Float64})
+chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64})=(n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),size(c,1),n)))
+function chebbisectioninv{D<:Domain}(c::Array{Float64,2},xl::Vector{Float64},plan::ClenshawPlan{Chebyshev{D},Float64})
     @assert size(c)[2] == length(xl)
 
     n = length(xl)

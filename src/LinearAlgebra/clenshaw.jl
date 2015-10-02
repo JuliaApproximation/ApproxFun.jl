@@ -1,39 +1,57 @@
+export clenshaw, @clenshaw
+
 type ClenshawPlan{S,T}
     sp::S
     bk::Vector{T}
     bk1::Vector{T}
     bk2::Vector{T}
-    rα::Vector{T}
-    rβ::Vector{T}
-    rγ::Vector{T}
+    A::Vector{T}
+    B::Vector{T}
+    C::Vector{T}
 end
 
 function ClenshawPlan{S,T}(::Type{T},sp::S,N::Int,n::Int)
-    rα = T[recα(T,sp,k) for k=1:N]
-    rβ = T[recβ(T,sp,k) for k=1:N+1]
-    rγ = T[recγ(T,sp,k) for k=1:N]
-    ClenshawPlan(sp,Array(T,n),Array(T,n),Array(T,n),rα,rβ,rγ)
+    A = T[recA(T,sp,k) for k=0:N-1]
+    B = T[recB(T,sp,k) for k=0:N-1]
+    C = T[recC(T,sp,k) for k=1:N]
+    ClenshawPlan(sp,Array(T,n),Array(T,n),Array(T,n),A,B,C)
 end
 
-function clenshaw{S,U,V}(sp::S,c::AbstractVector{U},x::V)
+macro clenshaw(x, c...)
+    bk1,bk2 = :(zero(t)),:(zero(t))
+    N = length(c)
+    for k = N:-1:2
+        bk2, bk1 = bk1, :(muladd(t,$bk1,$(esc(c[k]))-$bk2))
+    end
+    ex = :(muladd(t/2,$bk1,$(esc(c[1]))-$bk2))
+    Expr(:block, :(t = $(esc(2))*$(esc(x))), ex)
+end
+
+clenshaw{S,T<:Number,U<:Number}(sp::S,c::AbstractVector{T},x::AbstractArray{U}) = clenshaw(c,x,ClenshawPlan(promote_type(T,U),sp,length(c),length(x)))
+clenshaw{S,T<:Number,U<:Number}(sp::S,c::AbstractMatrix{T},x::AbstractArray{U}) = clenshaw(c,x,ClenshawPlan(promote_type(T,U),sp,size(c,1),length(x)))
+clenshaw{S,T<:Number,U<:Number}(sp::S,c::AbstractMatrix{T},x::U) = clenshaw(c,x,ClenshawPlan(promote_type(T,U),sp,size(c,1),size(c,2)))
+
+clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractVecOrMat{T},x::AbstractArray{U},plan::ClenshawPlan{S,V}) = reshape(clenshaw(c,vec(x),plan),size(x))
+clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractVecOrMat{T},x::U,plan::ClenshawPlan{S,V}) = reshape(clenshaw(c,x,plan),size(c,2))
+
+clenshaw!{S,T,U}(sp::S,c::AbstractVector{T},x::AbstractVector{U})=clenshaw!(c,x,ClenshawPlan(promote_type(T,U),sp,length(x)))
+
+function clenshaw{S,U<:Number,V<:Number}(sp::S,c::AbstractVector{U},x::V)
     N,T = length(c),promote_type(U,V)
     if isempty(c)
         return zero(x)
     end
 
     bk1,bk2 = zero(T),zero(T)
-    rα1,rβ1,rβ2,rγ2 = recα(T,sp,N),recβ(T,sp,N),recβ(T,sp,N+1),recγ(T,sp,N+1)
+    A,B,C = recA(T,sp,N-1),recB(T,sp,N-1),recC(T,sp,N)
     for k = N:-1:2
-        bk2, bk1 = bk1, muladd((x-rα1)/rβ1,bk1,muladd(-rγ2/rβ2,bk2,c[k]))
-        ra1,rβ1,rβ2,rγ2 = recα(T,sp,k-1),recβ(T,sp,k-1),rβ1,recγ(T,sp,k)
+        bk2, bk1 = bk1, muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[k])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[k])) # (A*x+B)*bk1+c[k]-C*bk2
+        A,B,C = recA(T,sp,k-2),recB(T,sp,k-2),recC(T,sp,k-1)
     end
-
-    muladd((x-rα1)/rβ1,bk1,muladd(-rγ2/rβ2,bk2,c[1]))
+    muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[1])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[1])) # (A*x+B)*bk1+c[1]-C*bk2
 end
 
-clenshaw{S,T,U}(sp::S,c::AbstractVector{T},x::AbstractVector{U}) = clenshaw(c,x,ClenshawPlan(promote_type(T,U),sp,length(c),length(x)))
-
-function clenshaw{S,T,U,V}(c::AbstractVector{T},x::AbstractVector{U},plan::ClenshawPlan{S,V})
+function clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractVector{T},x::AbstractVector{U},plan::ClenshawPlan{S,V})
     N,n = length(c),length(x)
     if isempty(c)
         return zeros(x)
@@ -42,9 +60,9 @@ function clenshaw{S,T,U,V}(c::AbstractVector{T},x::AbstractVector{U},plan::Clens
     bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
-    rα=plan.rα
-    rβ=plan.rβ
-    rγ=plan.rγ
+    A=plan.A
+    B=plan.B
+    C=plan.C
 
     @inbounds for i = 1:n
         bk1[i] = zero(V)
@@ -52,133 +70,132 @@ function clenshaw{S,T,U,V}(c::AbstractVector{T},x::AbstractVector{U},plan::Clens
     end
 
     @inbounds for k = N:-1:2
-        ck,rα1,rβ1,rβ2,rγ2 = c[k],rα[k],rβ[k],rβ[k+1],rγ[k+1]
+        ck,Ak,Bk,Ck = c[k],A[k],B[k],C[k]
         for i = 1:n
-            bk[i] = muladd((x[i]-rα1)/rβ1,bk1[i],muladd(-rγ2/rβ2,bk2[i],ck))
+            bk[i] = muladd(muladd(Ak,x[i],Bk),bk1[i],muladd(-Ck,bk2[i],ck))
         end
         bk2, bk1, bk = bk1, bk, bk2
     end
 
-    ck,rα1,rβ1,rβ2,rγ2 = c[1],rα[1],rβ[1],rβ[2],rγ[2]
+    ck,Ak,Bk,Ck = c[1],A[1],B[1],C[1]
     @inbounds for i = 1:n
-        bk[i] = muladd((x[i]-rα1)/rβ1,bk1[i],muladd(-rγ2/rβ2,bk2[i],ck))
+        bk[i] = muladd(muladd(Ak,x[i],Bk),bk1[i],muladd(-Ck,bk2[i],ck))
     end
 
     bk
 end
-
-
-########################################################################################################
 
 
 #Clenshaw routine for many Funs, x is a vector of same number of funs
 #each fun is a column
-clenshaw{T<:Number}(c::Array{T,2},x::Vector{T})=clenshaw(c,x,ClenshawPlan(T,size(c)[2]))
-function clenshaw{T<:Number}(c::Array{T,2},x::Vector{T},plan::ClenshawPlan{T})
+
+function clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractMatrix{T},x::U,plan::ClenshawPlan{S,V})
+    N,n = size(c)
+    if isempty(c)
+        return zeros(U,n)
+    end
+
     bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
+    A=plan.A
+    B=plan.B
+    C=plan.C
 
-
-    m,n=size(c) # m is # of coefficients, n is # of funs
-
-    for i = 1:n
-        @inbounds bk1[i] = zero(T)
-        @inbounds bk2[i] = zero(T)
-        @inbounds bk[i] = zero(T)
+    @inbounds for i = 1:n
+        bk1[i] = zero(V)
+        bk2[i] = zero(V)
     end
 
-    for k=m:-1:2
-        for j=1:n
-            ck = c[k,j]
-
-            @inbounds bk[j] = ck + 2x[j]*bk1[j] - bk2[j]
+    @inbounds for k = N:-1:2
+        Ak,Bk,Ck = A[k],B[k],C[k]
+        for i = 1:n
+            cki = c[k,i]
+            bk[i] = muladd(muladd(Ak,x,Bk),bk1[i],muladd(-Ck,bk2[i],cki))
         end
-
         bk2, bk1, bk = bk1, bk, bk2
     end
 
-
-    for j = 1:n
-        ce = c[1,j]
-        @inbounds bk[j] = ce + x[j]*bk1[j] - bk2[j]
+    Ak,Bk,Ck = A[1],B[1],C[1]
+    @inbounds for i = 1:n
+        ci = c[1,i]
+        bk[i] = muladd(muladd(Ak,x,Bk),bk1[i],muladd(-Ck,bk2[i],ci))
     end
 
     bk
 end
 
+function clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractMatrix{T},x::AbstractVector{U},plan::ClenshawPlan{S,V})
+    N,n = size(c)
+    @assert n == length(x)
+    if isempty(c)
+        return zeros(x)
+    end
 
-#Clenshaw routine for many Funs
-#each fun is a column
-clenshaw{T<:Number}(c::Array{T,2},x::Number)=clenshaw(c,x,ClenshawPlan(promote_type(T,typeof(x)),size(c)[2]))
-function clenshaw{T<:Number}(c::Array{T,2},x::Number,plan::ClenshawPlan{T})
     bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
+    A=plan.A
+    B=plan.B
+    C=plan.C
 
-    n=size(c)[2] #number of funs
-    m=size(c)[1] #number of coefficients
-
-    for i = 1:n
-        @inbounds bk1[i] = zero(T)
-        @inbounds bk2[i] = zero(T)
-        @inbounds bk[i] = zero(T)
+    @inbounds for i = 1:n
+        bk1[i] = zero(V)
+        bk2[i] = zero(V)
     end
 
-    for k=m:-1:2
-        for j=1:n
-            @inbounds ck = c[k,j]
-
-            @inbounds bk[j] = ck + 2x * bk1[j] - bk2[j]
+    @inbounds for k = N:-1:2
+        Ak,Bk,Ck = A[k],B[k],C[k]
+        for i = 1:n
+            cki = c[k,i]
+            bk[i] = muladd(muladd(Ak,x[i],Bk),bk1[i],muladd(-Ck,bk2[i],cki))
         end
-
         bk2, bk1, bk = bk1, bk, bk2
     end
 
-    for j = 1:n
-        ce = c[1,j]
-        @inbounds bk[j] = ce + x * bk1[j] - bk2[j]
+    Ak,Bk,Ck = A[1],B[1],C[1]
+    @inbounds for i = 1:n
+        ci = c[1,i]
+        bk[i] = muladd(muladd(Ak,x[i],Bk),bk1[i],muladd(-Ck,bk2[i],ci))
     end
 
     bk
 end
-
 
 
 # overwrite x
-clenshaw!{T<:Number,M<:Number}(c::Vector{T},x::Vector{M})=clenshaw!(c,x,ClenshawPlan(promote_type(T,M),length(x)))
-function clenshaw!{T<:Number,M<:Number,Q<:Number}(c::Vector{T},x::Vector{M},plan::ClenshawPlan{Q})
-    n = length(x)
 
+function clenshaw!{S,T<:Number,U<:Number,V<:Number}(c::Vector{T},x::Vector{U},plan::ClenshawPlan{S,V})
+    N,n = length(c),length(x)
     if isempty(c)
         for k=1:n
-            x[k]=zero(T)
+            x[k]=zero(V)
         end
-        return x
     end
 
     bk=plan.bk
     bk1=plan.bk1
     bk2=plan.bk2
+    A=plan.A
+    B=plan.B
+    C=plan.C
 
-#    x=2x
-    for i = 1:n
-        @inbounds bk1[i] = zero(Q)
-        @inbounds bk2[i] = zero(Q)
-        @inbounds bk[i] = zero(Q)
+    @inbounds for i = 1:n
+        bk1[i] = zero(V)
+        bk2[i] = zero(V)
     end
 
-    for k in  length(c):-1:2
-        ck = c[k]
-        for i in 1 : n
-            @inbounds bk[i] = ck + 2x[i] * bk1[i] - bk2[i]
+    @inbounds for k = N:-1:2
+        ck,Ak,Bk,Ck = c[k],A[k],B[k],C[k]
+        for i = 1:n
+            bk[i] = muladd(muladd(Ak,x[i],Bk),bk1[i],muladd(-Ck,bk2[i],ck))
         end
         bk2, bk1, bk = bk1, bk, bk2
     end
 
-    ce = c[1]
-    for i in 1 : n
-        @inbounds  x[i] = ce + x[i] * bk1[i] - bk2[i]
+    ck,Ak,Bk,Ck = c[1],A[1],B[1],C[1]
+    @inbounds for i = 1:n
+        x[i] = muladd(muladd(Ak,x[i],Bk),bk1[i],muladd(-Ck,bk2[i],ck))
     end
 
     x
@@ -199,3 +216,4 @@ function sineshaw(c::Vector,θ::Number)
     sin(θ)*bk1
 end
 sineshaw(c::Vector,θ::Vector) = promote_type(eltype(c),eltype(θ))[sineshaw(c,θ[k]) for k=1:length(θ)]
+sineshaw(c::Vector,θ::Matrix) = promote_type(eltype(c),eltype(θ))[sineshaw(c,θ[k,j]) for k=1:size(θ,1),j=1:size(θ,2)]

@@ -80,7 +80,7 @@ function evaluate{T<:Fun}(A::Vector{T},x::Vector{Float64})
     n=length(x)
     ret=Array(Float64,length(A),n)
 
-    cplan=ClenshawPlan(Float64,n)
+    cplan=ClenshawPlan(Float64,Chebyshev(),mapreduce(length,max,A),n)
 
     for k=1:length(A)
         bkr=clenshaw(A[k].coefficients,x,cplan)
