@@ -65,7 +65,13 @@ ZeroOperator{S,V}(d::S,v::V)=ZeroOperator(Float64,d,v)
 ZeroOperator()=ZeroOperator(AnySpace(),ZeroSpace())
 ZeroOperator{T}(::Type{T})=ZeroOperator(T,AnySpace(),ZeroSpace())
 
-Base.convert{BT<:Operator}(::Type{BT},Z::ZeroOperator)=ZeroOperator(eltype(BT),Z.domainspace,Z.rangespace)
+for TYP in (:Operator,:BandedOperator)
+    @eval Base.convert{T}(::Type{$TYP{T}},Z::ZeroOperator)=ZeroOperator(T,Z.domainspace,Z.rangespace)
+end
+
+Base.convert{T}(::Type{Functional{T}},Z::ZeroOperator)=ZeroFunctional(T,Z.domainspace)
+
+
 Base.convert{N<:Number}(::Type{N},::ZeroOperator)=zero(N)
 
 domainspace(Z::ZeroOperator)=Z.domainspace
