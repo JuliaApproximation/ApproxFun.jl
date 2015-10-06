@@ -246,6 +246,10 @@ hasconversion(A::JacobiWeight,B::JacobiWeight)=isapproxinteger(A.α-B.α) && isa
     A.α ≥ B.α && A.β ≥ B.β && hasconversion(A.space,B.space)
 
 
+hasconversion(A::JacobiWeight,B::Space)=hasconversion(A,JacobiWeight(0.,0.,B))
+hasconversion(B::Space,A::JacobiWeight)=hasconversion(JacobiWeight(0.,0.,B),A)
+
+
 
 # return the space that has banded Conversion to the other, or NoSpace
 conversion_rule{n,S<:Space}(A::SliceSpace{n,1,S,RealBasis},B::JacobiWeight)=error("Not implemented")

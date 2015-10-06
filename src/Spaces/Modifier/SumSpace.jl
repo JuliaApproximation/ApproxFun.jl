@@ -151,7 +151,7 @@ function union_rule(A::SumSpace,B::Space)
             return A
         end
     end
-    A⊕B
+    SumSpace(A,B)
 end
 
 

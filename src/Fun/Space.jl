@@ -227,12 +227,12 @@ function maxspace(a::Space,b::Space)
     end
 
     cr=maxspace_rule(a,b)
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 
     cr=maxspace_rule(b,a)
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 

@@ -121,7 +121,7 @@ for OP in (:plot,:layer,:semilogy)
         end
 
         function $OP{S}(r::Range,f::Fun{S,Float64},v...;opts...)
-            $OP(collect(r),f[collect(r)],v...;opts...)
+            $OP(collect(r),f(collect(r)),v...;opts...)
         end
     end
 end
