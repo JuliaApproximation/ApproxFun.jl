@@ -92,16 +92,13 @@ end
 Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{PiecewiseSpace{SV,B,DD,d},Float64},T)
 
 
-for OP in (:(Base.getindex),:(Base.length),:(Base.next))
+for OP in (:(Base.getindex),:(Base.length),:(Base.next),:(Base.start),:(Base.done),:(Base.endof))
     @eval $OP(S::DirectSumSpace,k...)=$OP(S.spaces,k...)
 end
 
 #support tuple set
 for OP in (:(Base.start),:(Base.done),:(Base.endof))
-    @eval begin
-        $OP(S::DirectSumSpace,k...)=$OP(S.spaces,k...)
-        $OP{SS<:DirectSumSpace}(f::Fun{SS},k...)=$OP(space(f),k...)
-    end
+    @eval $OP{SS<:DirectSumSpace}(f::Fun{SS},k...)=$OP(space(f),k...)
 end
 
 Base.next{SS<:DirectSumSpace}(f::Fun{SS},k)=f[k],k+1

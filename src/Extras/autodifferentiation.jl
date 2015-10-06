@@ -43,13 +43,16 @@ Base.last(d::DualFun)=DualFun(last(d.f),Evaluation(rangespace(d.J),true)*d.J)
 jacobian(d::DualFun)=d.J
 
 
+Base.promote_rule{DF<:DualFun,T<:Number}(::Type{DF},::Type{T})=DualFun
+Base.convert(::Type{DualFun},b::Number)=DualFun(b,0)
+
 
 
 function Operator(f,ds::Space)
     if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
-        df=f(DualFun(Fun(ds)))
+        df=f(DualFun(zeros(ds)))
     elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
-        df=f(Fun(ds),DualFun(Fun(ds)))
+        df=f(Fun(ds),DualFun(zeros(ds)))
     else
         error("Not implemented")
     end

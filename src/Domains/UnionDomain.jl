@@ -34,11 +34,16 @@ end
 ∪(d1::Domain,d2::UnionDomain)=UnionDomain((d1,d2.domains...))
 ∪(d1::UnionDomain,d2::Domain)=UnionDomain((d1.domains...,d2))
 ∪(d1::Domain,d2::Domain)=UnionDomain((d1,d2))
-Base.length(d::UnionDomain)=d.domains|>length
-Base.getindex(d::UnionDomain,k)=d.domains[k]
+
 for op in (:(Base.first),:(Base.last))
     @eval $op(d::UnionDomain)=$op($op(d.domains))
 end
+
+#support tuple set
+for OP in (:(Base.start),:(Base.done),:(Base.endof),:(Base.getindex),:(Base.length),:(Base.next))
+    @eval $OP(S::UnionDomain,k...)=$OP(S.domains,k...)
+end
+
 
 ==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
 

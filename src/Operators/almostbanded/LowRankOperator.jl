@@ -26,14 +26,15 @@ LowRankOperator{S,T1,T2}(U::Vector{Fun{S,T1}},V::Vector{Functional{T2}})=LowRank
                                                                                          convert(Vector{Functional{promote_type(T1,T2)}},V))
 LowRankOperator{FF<:Fun,FT<:Functional}(U::Vector{FF},V::Vector{FT})=LowRankOperator(U,convert(Vector{Functional{eltype(FT)}},V))
 
-function LowRankOperator{FT<:Functional}(B::Vector{FT})
+function LowRankOperator{FT<:Functional}(Bin::Vector{FT})
+    B=promotespaces(Bin)
     rsp=TupleSpace(tuple(map(rangespace,B)...,ZeroSpace()))
     LowRankOperator(
         Fun{typeof(rsp),Float64}[Fun([zeros(k-1);1],rsp) for k=1:length(B)],
         B)
 end
 
-LowRankOperator{OO<:Operator}(B::Vector{OO})=LowRankOperator(convert(Vector{Functional{Float64}},B))
+LowRankOperator(B::AbstractVector)=LowRankOperator(convert(Vector{Functional{Float64}},B))
 
 LowRankOperator(A::Fun,B::Functional)=LowRankOperator([A],[B])
 

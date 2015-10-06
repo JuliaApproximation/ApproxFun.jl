@@ -27,6 +27,14 @@ Base.show(io::IO,d::PeriodicInterval)=print(io,"【$(d.a),$(d.b)❫")
 Base.show(io::IO,d::Circle)=print(io,(d.radius==1?"":string(d.radius))*"⨀"*(d.center==0?"":"+$(d.center)"))
 
 
+function Base.show(io::IO,s::UnionDomain)
+    show(io,s[1])
+    for d in s[2:end]
+        print(io,"∪")
+        show(io,d)
+    end
+end
+
 ## Spaces
 
 
