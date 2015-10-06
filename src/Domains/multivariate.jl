@@ -12,7 +12,7 @@
 
 
 
-function Base.join{IT<:Interval}(p1::Vector{IT},p2::Vector{IT})
+function Base.join{IT<:Interval}(p1::AbstractVector{IT},p2::AbstractVector{IT})
     for k=length(p1):-1:1,j=length(p2):-1:1
         if p1[k]==reverse(p2[j])
             deleteat!(p1,k)

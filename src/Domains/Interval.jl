@@ -17,7 +17,7 @@ Interval()=Interval{Float64}()
 Interval(a::Int,b::Int) = Interval(Float64(a),Float64(b)) #convenience method
 Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
-function Interval{T<:Number}(d::Vector{T})
+function Interval{T<:Number}(d::AbstractVector{T})
     @assert length(d)==2
     @assert isfinite(d[1]) && isfinite(d[2])
     Interval(d...)
@@ -137,9 +137,7 @@ function Base.setdiff{T<:Real,V<:Real}(a::Interval{T},b::Interval{V})
     end
 end
 
-# function Base.sort(d::Vector{Interval{Float64}})
-#
-# end
+
 
 
 
@@ -147,4 +145,4 @@ end
 ## Multivariate
 
 tocanonical{V<:Vector}(d::Interval{V},x)=first(d.a + d.b - 2x)/first(d.a - d.b)
-fromcanonical{V<:Vector}(d::Interval{V},p::Vector)=V[fromcanonical(d,x) for x in p]
+fromcanonical{V<:Vector}(d::Interval{V},p::AbstractVector)=V[fromcanonical(d,x) for x in p]

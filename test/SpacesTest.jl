@@ -109,3 +109,11 @@ f=w+x
 Γ=Circle()∪Circle(0.0,0.4)
 G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)   # Before the 80 wasn’t specified causing inconsistency
 @test_approx_eq (G-I)(1.) (G(1.)-I)
+
+
+
+## Previoius seffdault
+
+x=Fun(identity,[-1.,1.])
+f=x+sin(2x)*sqrt(1-x^2)
+@test_approx_eq f(0.1) 0.1+sin(2*0.1)*sqrt(1-0.1^2)

@@ -74,7 +74,7 @@ Base.ndims{S,D,d}(::Space{S,D,d})=d
 dimension(::Space)=Inf  # We assume infinite-dimensional spaces
 
 
-Space{D<:Number}(d::Vector{D})=Space(convert(Domain,d))
+Space{D<:Number}(d::AbstractVector{D})=Space(convert(Domain,d))
 
 
 abstract AmbiguousSpace <: Space{RealBasis,AnyDomain,1}

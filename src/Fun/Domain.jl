@@ -63,8 +63,8 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 
 points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(T),n))
 
-points(d::Vector,n::Integer)=points(convert(Domain,d),n)
-bary(v::Vector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
+points(d::AbstractVector,n::Integer)=points(convert(Domain,d),n)
+bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
 
 #TODO consider moving these
 Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
@@ -117,7 +117,7 @@ Base.zeros(d::Domain)=zeros(eltype(d),Space(d))
 
 
 
-function commondomain(P::Vector)
+function commondomain(P::AbstractVector)
     ret = AnyDomain()
 
     for op in P
@@ -132,8 +132,8 @@ function commondomain(P::Vector)
     ret
 end
 
-commondomain{T<:Number}(P::Vector,g::Array{T})=commondomain(P)
-commondomain(P::Vector,g)=commondomain([P,g])
+commondomain{T<:Number}(P::AbstractVector,g::Array{T})=commondomain(P)
+commondomain(P::AbstractVector,g)=commondomain([P;g])
 
 
 domain(::Number)=AnyDomain()

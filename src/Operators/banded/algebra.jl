@@ -175,8 +175,11 @@ function Base.getindex{T}(f::TimesFunctional{T},jr::Range)#j is columns
     bi=bandinds(f.op)
     B=subview(f.op,:,jr)
     r=zeros(T,length(jr))
+
+    k1=max(first(jr)-bi[end],1)
+    func=f.functional[k1:last(jr)-bi[1]]
     for j in jr, k=max(j-bi[end],1):j-bi[1]
-        r[j-jr[1]+1]+=f.functional[k]*B[k,j]
+        @inbounds r[j-jr[1]+1]+=func[k-k1+1]*B[k,j]
     end
     r
 end

@@ -11,7 +11,7 @@ immutable UnionDomain{DD,T,d} <: Domain{T,d}
 end
 
 UnionDomain(d::Tuple)=UnionDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(ndims,max,d)}(d)
-UnionDomain(d::Vector)=UnionDomain(tuple(d...))
+UnionDomain(d::AbstractVector)=UnionDomain(tuple(d...))
 
 
 isambiguous(d::UnionDomain)=isempty(d.domains)
@@ -21,7 +21,7 @@ Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain)=UnionDomain(tuple())
 
 
 ∪(d::Domain) = d
-∪{D<:Domain}(d::Vector{D}) = UnionDomain(d)
+∪{D<:Domain}(d::AbstractVector{D}) = UnionDomain(d)
 function ∪{D<:Domain}(::Type{D},x)
     out = map(D,x)
     length(out) > 1 ? ∪(out) : out[1]

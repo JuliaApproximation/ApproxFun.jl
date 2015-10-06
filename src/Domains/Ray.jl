@@ -22,7 +22,7 @@ Ray()=Ray(0.,0.)
 
 ##deal with vector
 
-function Ray(d::Vector)
+function Ray(d::AbstractVector)
     @assert length(d)==2
     @assert abs(d[1])==Inf|| abs(d[2])==Inf
 
@@ -89,8 +89,3 @@ Base.length(d::Ray) = Inf
 
 
 ==(d::Ray,m::Ray) = d.center == m.center && d.angle == m.angle
-
-
-
-
-

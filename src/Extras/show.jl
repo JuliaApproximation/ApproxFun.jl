@@ -10,6 +10,19 @@ function Base.show(io::IO,d::Line)
         print(io,"Line($(d.center),$(d.angle),$(d.α),$(d.β))")
     end
 end
+
+function Base.show(io::IO,d::Ray)
+    if d.orientation && d.angle==0
+        print(io,"【$(d.center),∞❫")
+    elseif  d.orientation && d.angle==π
+        print(io,"【$(d.center),-∞❫")
+    elseif  d.orientation
+        print(io,"【$(d.center),exp($(d.angle)im)∞❫")
+    else # !d.orientation
+        print(io,"❪exp($(d.angle)im)∞,$(d.center)】")
+    end
+end
+
 Base.show(io::IO,d::PeriodicInterval)=print(io,"【$(d.a),$(d.b)❫")
 Base.show(io::IO,d::Circle)=print(io,(d.radius==1?"":string(d.radius))*"⨀"*(d.center==0?"":"+$(d.center)"))
 
@@ -41,6 +54,19 @@ function Base.show(io::IO,s::JacobiWeight)
         print(io,"(1-x^2)^$(s.α)[")
     else
         print(io,"(1+x)^$(s.α)*(1-x)^$(s.β)[")
+    end
+
+    show(io,s.space)
+    print(io,"]")
+end
+
+function Base.show(io::IO,s::LogWeight)
+    d=domain(s)
+    #TODO: Get shift and weights right
+    if s.α==s.β
+        print(io,"log((1-x^2)^$(s.α))[")
+    else
+        print(io,"log((1+x)^$(s.α)*(1-x)^$(s.β))[")
     end
 
     show(io,s.space)

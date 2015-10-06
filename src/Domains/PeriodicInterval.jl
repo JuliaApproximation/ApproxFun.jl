@@ -14,7 +14,7 @@ PeriodicInterval()=PeriodicInterval{Float64}()
 PeriodicInterval(a::Int,b::Int) = PeriodicInterval(Float64(a),Float64(b)) #convenience method
 PeriodicInterval(a::Number,b::Number) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)
 
-function PeriodicInterval{T<:Number}(d::Vector{T})
+function PeriodicInterval{T<:Number}(d::AbstractVector{T})
     @assert length(d)==2
     @assert isfinite(d[1]) && isfinite(d[2])
     PeriodicInterval(d...)
