@@ -81,32 +81,38 @@ end
 
 
 ##TODO: fast routine
-function horner{T}(v::Vector{T},z::Number)
+function horner{U<:Number,V<:Number}(c::AbstractVector{U},x::V)
+    N,T = length(c),promote_type(U,V)
+    if isempty(c)
+        return zero(x)
+    end
+
     ret = zero(T)
-    ei = z*one(T)
-
-    p = one(T)
-    for vk in v
-        ret += vk*p
-        p .*= ei
+    @inbounds for k = N:-1:1
+        ret = muladd(x,ret,c[k])
     end
 
     ret
 end
 
-function horner{T}(v::Vector{T},z::Vector)
-    ret = zeros(T,length(z))
-    ei = z*one(T)
+function horner{U<:Number,V<:Number}(c::AbstractVector{U},x::AbstractVector{V})
+    N,n,T = length(c),length(x),promote_type(U,V)
+    if isempty(c)
+        return zero(x)
+    end
 
-    p = ones(T,length(z))
-    for vk in v
-        ret += vk*p
-        p .*= ei
+    ret = zeros(T,n)
+    @inbounds for k = N:-1:1
+        ck = c[k]
+        for i = 1:n
+            ret[i] = muladd(x[i],ret[i],ck)
+        end
     end
 
     ret
 end
 
+horner{U<:Number,V<:Number}(c::AbstractVector{U},x::AbstractArray{V}) = reshape(horner(c,vec(x)),size(x))
 
 ## Cos and Sin space
 
@@ -115,7 +121,7 @@ plan_transform(::CosSpace,x::Vector)=plan_chebyshevtransform(x;kind=2)
 plan_itransform(::CosSpace,x::Vector)=plan_ichebyshevtransform(x;kind=2)
 transform(::CosSpace,vals,plan)=chebyshevtransform(vals,plan;kind=2)
 itransform(::CosSpace,cfs,plan)=ichebyshevtransform(cfs,plan;kind=2)
-evaluate{CS<:CosSpace}(f::Fun{CS},t)=clenshaw(f.coefficients,cos(tocanonical(f,t)))
+evaluate{CS<:CosSpace}(f::Fun{CS},t)=clenshaw(Chebyshev(),f.coefficients,cos(tocanonical(f,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]

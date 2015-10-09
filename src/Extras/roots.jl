@@ -133,8 +133,8 @@ function PruneOptions( r, htol::Float64 )
     return r
 end
 
-rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64)=rootsunit_coeffs(c,htol,ClenshawPlan(T,length(c)))
-function rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{T})
+rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64)=rootsunit_coeffs(c,htol,ClenshawPlan(T,Chebyshev(),length(c),length(c)))
+function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T})
 # Computes the roots of the polynomial given by the coefficients c on the unit interval.
 
 
