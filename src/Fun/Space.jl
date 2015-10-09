@@ -276,12 +276,12 @@ function Base.union(a::Space,b::Space)
     end
 
     cr=union_rule(a,b)
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 
     cr=union_rule(b,a)
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 
@@ -290,12 +290,12 @@ function Base.union(a::Space,b::Space)
     if cspa!=a || cspb!=b
         cr=union(cspa,cspb)  #Max or min space?
     end
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 
-    cr=maxspace(a,b)  #Max or min space?
-    if cr!=NoSpace()
+    cr=conversion_type(a,b)  #Max or min space?
+    if !isa(cr,NoSpace)
         return cr
     end
 
