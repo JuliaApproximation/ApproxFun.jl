@@ -72,6 +72,8 @@ function mat{S,V,T,DD,d}(f::Fun{MatrixSpace{S,V,DD,d},T},j::Integer)
     r
 end
 
+Base.getindex{S,V,DD,d}(f::Fun{VectorSpace{S,V,DD,d}},k...)=vec(f)[k...]
+Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
 
 
 
@@ -112,7 +114,16 @@ function demat{S,T,V,DD,d}(A::Array{Fun{VectorSpace{S,T,DD,d},V},2})
 end
 
 
+function union_rule{S,n,T,DD,dim,S2,T2,DD2}(a::ArraySpace{S,n,T,DD,dim},b::ArraySpace{S2,n,T2,DD2,dim})
+    if a.dimensions==b.dimensions
+        sp=union(a.space,b.space)
+        if !isa(sp,NoSpace)
+            return ArraySpace(sp,a.dimensions)
+        end
+    end
 
+    NoSpace()
+end
 
 
 
