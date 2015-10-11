@@ -33,19 +33,12 @@ addentries!{DD}(M::Multiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentri
 
 ## Derivative
 
-function bandinds{s,DD}(D::Derivative{Hardy{s,DD}})
-    d=domain(D)
-    if isa(d,PeriodicInterval)
-        (0,0)
-    elseif isa(d,Circle)
-        s?(0,D.order):(-D.order,0)
-    else
-        error("Derivative not defined for "*string(typeof(d)))
-    end
-end
+bandinds{s,DD<:PeriodicInterval}(D::Derivative{Hardy{s,DD}})=(0,0)
+bandinds{s,DD<:Circle}(D::Derivative{Hardy{s,DD}})=s?(0,D.order):(-D.order,0)
+
 rangespace{S<:Hardy}(D::Derivative{S})=D.space
 
-function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Range)
+function taylor_derivative_addentries!(d::PeriodicInterval,m,A,kr::Range)
     C=2/(d.b-d.a)*π*im
     for k=kr
         A[k,k] += (C*(k-1))^m
@@ -53,7 +46,7 @@ function taylor_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Rang
     A
 end
 
-function hardyfalse_derivative_addentries!(d::PeriodicInterval,m::Integer,A,kr::Range)
+function hardyfalse_derivative_addentries!(d::PeriodicInterval,m,A,kr::Range)
     C=2/(d.b-d.a)*π*im
     for k=kr
         A[k,k] += (-C*k)^m
@@ -63,7 +56,7 @@ end
 
 
 
-function taylor_derivative_addentries!(d::Circle,m::Integer,A,kr::Range)
+function taylor_derivative_addentries!(d::Circle,m,A,kr::Range)
     C=d.radius^(-m)
 
     for k=kr
@@ -77,7 +70,7 @@ function taylor_derivative_addentries!(d::Circle,m::Integer,A,kr::Range)
     A
 end
 
-function hardyfalse_derivative_addentries!(d::Circle,m::Integer,A,kr::Range)
+function hardyfalse_derivative_addentries!(d::Circle,m,A,kr::Range)
     C=(-d.radius)^(-m)
 
     for k=max(m+1,kr[1]):kr[end]
