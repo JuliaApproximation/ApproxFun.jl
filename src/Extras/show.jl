@@ -53,6 +53,12 @@ function Base.show{λ,D}(io::IO,S::Ultraspherical{λ,D})
     print(io,")")
 end
 
+function Base.show(io::IO,S::Jacobi)
+    print(io,"Jacobi($(S.a),$(S.b),")
+    show(io,domain(S))
+    print(io,")")
+end
+
 
 
 function Base.show(io::IO,s::JacobiWeight)

@@ -304,7 +304,9 @@ itransform(S::PiecewiseSpace,cfs::Vector,plan...)=vcat([itransform(S.spaces[j],c
 
 
 
-itransform(S::SumSpace,cfs)=Fun(cfs,S)(points(S,length(cfs)))
+itransform(S::SumSpace,cfs,plan...)=Fun(cfs,S)(points(S,length(cfs)))
+itransform!(S::SumSpace,cfs,plan...)=(cfs[:]=Fun(cfs,S)(points(S,length(cfs))))
+
 
 
 ## SumSpace{ConstantSpace}
