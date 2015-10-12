@@ -146,11 +146,19 @@ for TYP in (:SumSpace,:PiecewiseSpace)
                                   map(canonicalspace,S2.spaces))
             ds2=$TYP(S1.spaces[P.perm])
             ConversionWrapper(TimesOperator(Conversion(ds2,S2),SpaceOperator(P,S1,ds2)))
+        elseif all(map(hasconversion,reverse(S1.spaces),S2.spaces))
+            # special case that comes up, especially for two spaces
+            rS1=SumSpace(reverse(S1.spaces))
+            ConversionWrapper(TimesOperator(
+                Conversion(rS1,S2),
+                SpaceOperator(PermutationOperator(length(S1.spaces):-1:1),
+                            S1,rS1)))
         elseif all(map(hasconversion,sort([map(canonicalspace,S1.spaces)...]),sort([map(canonicalspace,S2.spaces)...])))
             #TODO: general case
             @assert length(S1.spaces)==2
             ds2=$TYP(S1.spaces[[2,1]])
             TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2))
+
         else
             # we don't know how to convert so go to default
             defaultconversion(S1,S2)

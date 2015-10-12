@@ -50,6 +50,7 @@ end
 for (plt,gfplt,pyplt) in ((:plot,:gadflyplot,:pyplot),
                           (:layer,:gadflylayer,:pyplot),
                           (:contour,:gadflycontour,:pycontour),
+                          (:contourf,:gadflycontourf,:pycontourf),
                           (:semilogy,:gadflysemilogy,:pysemilogy))
     @eval begin
         function $plt(opts...;kwds...)
@@ -170,18 +171,22 @@ end
 
 ## Multivariate
 
-function contour(f::MultivariateFun,v...;opts...)
-    f=chop(f,10e-10)
-    f=pad(f,max(size(f,1),20),max(size(f,2),20))
-    vals=values(f)
-    if norm(imag(vals))>10e-9
-        warn("Imaginary part is non-neglible.  Only plotting real part.")
-    end
+for FUNC in (:contour,:contourf)
+    @eval begin
+        function $FUNC(f::MultivariateFun,v...;opts...)
+            f=chop(f,10e-10)
+            f=pad(f,max(size(f,1),20),max(size(f,2),20))
+            vals=values(f)
+            if norm(imag(vals))>10e-9
+                warn("Imaginary part is non-neglible.  Only plotting real part.")
+            end
 
-    contour(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals),v...;opts...)
+            $FUNC(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals),v...;opts...)
+        end
+        $FUNC(f::Fun,v...;opts...)=$FUNC(ProductFun(f),v...;opts...)
+    end
 end
 
-contour(f::Fun,v...;opts...)=contour(ProductFun(f),v...;opts...)
 
 
 

@@ -11,6 +11,16 @@ immutable PlusFunctional{T} <: Functional{T}
     ops::Vector{Functional{T}}
 end
 
+for TYP in (:Operator,:Functional)
+    @eval function Base.convert{T}(::Type{$TYP{T}},P::PlusFunctional)
+        if T==eltype(P)
+            P
+        else
+            PlusFunctional{T}(P.ops)
+        end
+    end
+end
+
 
 function Base.getindex{T}(op::PlusFunctional{T},k::Range)
     ret = convert(Vector{T},op.ops[1][k])
@@ -148,6 +158,18 @@ immutable ConstantTimesFunctional{T,B<:Functional} <: Functional{T}
 end
 
 ConstantTimesFunctional(c::Number,op::Functional)=ConstantTimesFunctional{promote_type(typeof(c),eltype(op)),typeof(op)}(c,op)
+
+
+for TYP in (:Operator,:Functional)
+    @eval function Base.convert{T}(::Type{$TYP{T}},P::ConstantTimesFunctional)
+        if T==eltype(P)
+            P
+        else
+            ConstantTimesFunctional(convert(T,P.c),convert($TYP{T},P.op))
+        end
+    end
+end
+
 
 Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.op[k]
 datalength(C::ConstantTimesFunctional)=datalength(C.op)

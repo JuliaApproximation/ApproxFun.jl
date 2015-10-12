@@ -93,9 +93,14 @@ function pysurf(x::Vector,y::Vector,z; rstride=2,cstride=2,kwds...)
     Main.PyPlot.surf(x,y,z.';linewidth=0,rstride=rstride,cstride=cstride,kwds...)
 end
 
-function pycontour(x::Vector,y::Vector,z,kwds...)
+function pycontour(x::Vector,y::Vector,z,kwds...;opts...)
     @eval import PyPlot
-    Main.PyPlot.contour(x,y,z.',kwds...)
+    Main.PyPlot.contour(x,y,z.',kwds...;opts...)
+end
+
+function pycontourf(x::Vector,y::Vector,z,kwds...;opts...)
+    @eval import PyPlot
+    Main.PyPlot.contourf(x,y,z.',kwds...;opts...)
 end
 
 
@@ -104,9 +109,14 @@ function pysurf(x::Matrix,y::Matrix,z; rstride=2,cstride=2,kwds...)
     Main.PyPlot.surf(x,y,z;linewidth=0,rstride=rstride,cstride=cstride,kwds...)
 end
 
-function pycontour(x::Matrix,y::Matrix,z,kwds...)
+function pycontour(x::Matrix,y::Matrix,z,kwds...;opts...)
     @eval import PyPlot
-    Main.PyPlot.contour(x,y,z,kwds...)
+    Main.PyPlot.contour(x,y,z,kwds...;opts...)
+end
+
+function pycontourf(x::Matrix,y::Matrix,z,kwds...;opts...)
+    @eval import PyPlot
+    Main.PyPlot.contourf(x,y,z,kwds...;opts...)
 end
 
 
