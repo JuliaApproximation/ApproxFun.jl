@@ -49,7 +49,19 @@ coefficients(f::BivariateFun,sp::TensorSpace)=coefficients(f,sp[1],sp[2])
 points(f::BivariateFun,k...)=points(space(f),size(f,1),size(f,2),k...)
 
 
-for OP in (:+,:-)
+function *(vx::LowRankFun,u0::ProductFun)
+    ret=zeros(space(u0))
+    for k=1:length(vx.A)
+        a,b=vx.A[k],vx.B[k]
+        ret+=((b*((a*u0).')).')
+    end
+    ret
+end
+
+*(a::ProductFun,b::LowRankFun)=b*a
+*(a::MultivariateFun,b::MultivariateFun)=LowRankFun(a)*ProductFun(b)
+
+for OP in (:+,:-,:*,:/)
     @eval begin
         $OP(f::Fun,g::MultivariateFun)=$OP(ProductFun(f),g)
         $OP(f::MultivariateFun,g::Fun)=$OP(f,ProductFun(g))

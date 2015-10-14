@@ -215,10 +215,10 @@ plot{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};opts...)=plot(ProductFun(f);ops...)
 
 
 
-function plot{DS<:DiracSpace,T<:Real}(f::Fun{DS,T},v...)
+function plot{DS<:DiracSpace,T<:Real}(f::Fun{DS,T},v...;kwds...)
     n=length(space(f).points)
     plot(layer(Fun(f.coefficients[n+1:end],space(f).space)),
-               map(gadflydeltalayer,space(f).points,f.coefficients[1:n])...,v...)
+               map(gadflydeltalayer,space(f).points,f.coefficients[1:n])...,v...;kwds...)
 end
 
 ## domainplot
@@ -240,12 +240,12 @@ end
 layer{D<:Domain}(d::Vector{D})=mapreduce(layer,vcat,d)
 
 for OP in (:plot,:layer)
-    @eval $OP(d::UnionDomain)=$OP(d.domains)
+    @eval $OP(d::UnionDomain,opts...;kwds...)=$OP([d.domains...],opts...;kwds...)
 end
 
 
 domainplot(f::Union{Fun,Space},v...;kwds...)=plot(domain(f),v...;kwds...)
-domainlayer(f::Union{Fun,Space})=layer(domain(f))
+domainlayer(f::Union{Fun,Space},opts...;kwds...)=layer(domain(f),opts...;kwds...)
 
 
 
