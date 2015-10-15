@@ -66,6 +66,10 @@ function Base.show(io::IO,s::JacobiWeight)
     #TODO: Get shift and weights right
     if s.α==s.β
         print(io,"(1-x^2)^$(s.α)[")
+    elseif s.α==0
+        print(io,"(1-x)^$(s.β)[")
+    elseif s.β==0
+        print(io,"(1+x)^$(s.α)[")
     else
         print(io,"(1+x)^$(s.α)*(1-x)^$(s.β)[")
     end

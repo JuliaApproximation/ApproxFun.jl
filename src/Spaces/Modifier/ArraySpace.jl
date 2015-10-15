@@ -75,6 +75,20 @@ end
 Base.getindex{S,V,DD,d}(f::Fun{VectorSpace{S,V,DD,d}},k...)=vec(f)[k...]
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
 
+Base.getindex(S::VectorSpace,k...)=S.space
+Base.length(S::VectorSpace)=S.dimensions[1]
+Base.next(S::VectorSpace,k)=S.space,k+1
+Base.done(S::VectorSpace,k)=k>length(S)
+Base.endof(S::VectorSpace)=length(S)
+
+
+#support tuple set
+for OP in (:(Base.start),:(Base.done),:(Base.endof))
+    @eval $OP{SS<:VectorSpace}(f::Fun{SS},k...)=$OP(space(f),k...)
+end
+
+Base.next{SS<:VectorSpace}(f::Fun{SS},k)=f[k],k+1
+
 
 
 function devec{F<:Fun}(v::Vector{F})
