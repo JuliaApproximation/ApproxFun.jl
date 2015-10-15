@@ -104,7 +104,7 @@ function horner{U<:Number,V<:Number}(c::AbstractVector{U},x::AbstractVector{V})
     ret = zeros(T,n)
     @inbounds for k = N:-1:1
         ck = c[k]
-        for i = 1:n
+        @simd for i = 1:n
             ret[i] = muladd(x[i],ret[i],ck)
         end
     end

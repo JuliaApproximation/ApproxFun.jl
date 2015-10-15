@@ -103,14 +103,22 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Sym
         tol = 100*tolerance[2]*eps(T)
     end
     tol10 = tol/10
+    Avals,Bvals = zeros(T,gridx),zeros(T,gridy)
+    p₁,p₂ = plan_transform(dx,Avals),plan_transform(dy,Bvals)
 
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
         if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
-        A,B=[A;a/sqrt(abs(a(r[1])))],[B;b/(sqrt(abs(b(r[2])))*sign(b(r[2])))]
+        push!(A,a/sqrt(abs(a(r[1]))));push!(B,b/(sqrt(abs(b(r[2])))*sign(b(r[2]))))
         r=findapproxmax!(A[k],B[k],X,ptsx,ptsy,gridx,gridy)
         Ar,Br=evaluate(A,r[1]),evaluate(B,r[2])
-        a,b=Fun(x->f(x,r[2]),dx,gridx) - dotu(Br,A),Fun(y->f(r[1],y),dy,gridy) - dotu(Ar,B)
+        for i=1:gridx
+            @inbounds Avals[i] = f(ptsx[i],r[2])
+        end
+        for j=1:gridy
+            @inbounds Bvals[j] = f(r[1],ptsy[j])
+        end
+        a,b = Fun(transform(dx,Avals,p₁),dx) - dotu(Br,A),Fun(transform(dy,Bvals,p₂),dy) - dotu(Ar,B)
         chop!(a,tol10),chop!(b,tol10)
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
@@ -127,7 +135,7 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{
     pts=points(dx,grid)
     X = zeros(T,grid)
     maxabsf,r=findcholeskyapproxmax!(f,X,pts,grid)
-    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun([zero(T)],dx)],[Fun([zero(T)],dy)]),maxabsf end
+    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun([zero(T)],dx)],[Fun([zero(T)],dx)]),maxabsf end
     a=Fun(x->f(x,r),dx)
 
     # If necessary, we resize the grid to be at least as large as the
@@ -147,14 +155,19 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{
         tol = 100*tolerance[2]*eps(T)
     end
     tol10 = tol/10
+    Avals = zeros(T,grid)
+    p₁ = plan_transform(dx,Avals)
 
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
         if norm(a.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
-        A,B=[A;a/sqrt(abs(a(r)))],[B;a/(sqrt(abs(a(r)))*sign(a(r)))]
+        push!(A,a/sqrt(abs(a(r))));push!(B,a/(sqrt(abs(a(r)))*sign(a(r))))
         r=findcholeskyapproxmax!(A[k],B[k],X,pts,grid)
         Br=evaluate(B,r)
-        a=Fun(x->f(x,r),dx,grid) - dotu(Br,A)
+        for i=1:grid
+            @inbounds Avals[i] = f(pts[i],r)
+        end
+        a = Fun(transform(dx,Avals,p₁),dx) - dotu(Br,A)
         chop!(a,tol10)
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
@@ -186,37 +199,70 @@ LowRankFun(f::LowRankFun)=LowRankFun(f,Interval(),Interval())
 ## Utilities
 
 function findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
-    @inbounds for j=1:gridy,k=1:gridx
-        X[k,j]+=f(ptsx[k],ptsy[j])
+    for j=1:gridy
+        @simd for k=1:gridx
+            @inbounds X[k,j]+=f(ptsx[k],ptsy[j])
+        end
     end
-    maxabsf,impt = findmax(abs(X))
+    maxabsf,impt = findmaxabs(X)
     imptple = ind2sub((gridx,gridy),impt)
     maxabsf,[ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
 function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
-    dX = A(ptsx)*transpose(B(ptsy))
-    X[:] -= dX[:]
-    maxabsf,impt = findmax(abs(X))
+    Ax,By = A(ptsx),B(ptsy)
+    subtractrankone!(Ax,By,X,gridx,gridy)
+    maxabsf,impt = findmaxabs(X)
     imptple = ind2sub((gridx,gridy),impt)
     [ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
 function findcholeskyapproxmax!(f::Function,X::Vector,pts::Vector,grid)
-    @inbounds for k=1:grid
-        X[k]+=f(pts[k],pts[k])
+    @simd for k=1:grid
+        @inbounds X[k]+=f(pts[k],pts[k])
     end
-    maxabsf,impt = findmax(abs(X))
+    maxabsf,impt = findmaxabs(X)
     maxabsf,pts[impt]
 end
 
 function findcholeskyapproxmax!(A::Fun,B::Fun,X::Vector,pts::Vector,grid)
-    dX = A(pts).*B(pts)
-    X[:] -= dX[:]
-    maxabsf,impt = findmax(abs(X))
+    Ax,By = A(pts),B(pts)
+    subtractrankone!(Ax,By,X,grid)
+    maxabsf,impt = findmaxabs(X)
     pts[impt]
 end
 
+function subtractrankone!(A::AbstractVector,B::AbstractVector,X::AbstractMatrix,gridx::Int,gridy::Int)
+    for j=1:gridy
+        @inbounds Bj = B[j]
+        @simd for k=1:gridx
+            @inbounds X[k,j] -= A[k]*Bj
+        end
+    end
+end
+
+function subtractrankone!(A::AbstractVector,B::AbstractVector,X::AbstractVector,grid::Int)
+    @simd for k=1:grid
+        @inbounds X[k] -= A[k]*B[k]
+    end
+end
+
+## TODO: in Julia base?
+function findmaxabs(a)
+    if isempty(a)
+        throw(ArgumentError("collection must be non-empty"))
+    end
+    m = abs(a[1])
+    mi = 1
+    for i in eachindex(a)
+        ai = abs(a[i])
+        if ai > m || m!=m
+            m = ai
+            mi = i
+        end
+    end
+    return (m, mi)
+end
 
 domain(f::LowRankFun,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
 space(f::LowRankFun,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
