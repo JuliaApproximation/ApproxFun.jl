@@ -127,15 +127,13 @@ function pde_standardize_rhs(A,f::Matrix)
 end
 
 
-
-pdesolve{T<:Operator}(A::Vector{T},f)=pdesolve(A,f,10000eps())
-function pdesolve{T<:Operator}(A::Vector{T},f,tol::Real)
-    @assert tol>0
+function pdesolve{T<:Operator}(A::Vector{T},f;tolerance::Float64=100000eps(),opts...)
+    @assert tolerance>0
     maxit=11
 
     for k=5:maxit
-        u=pdesolve(A,f,2^k)
-        if norm(map(f->norm(f.coefficients),u.coefficients[end-2:end]))<tol
+        u=pdesolve(A,f,2^k;tolerance=tolerance/100,opts...)
+        if norm(map(f->norm(f.coefficients),u.coefficients[end-2:end]))<tolerance
             return u
         end
     end
@@ -143,12 +141,12 @@ function pdesolve{T<:Operator}(A::Vector{T},f,tol::Real)
 end
 
 
-function pdesolve(S::PDEStrideOperatorSchur,f::Vector,nx=100000)
+function pdesolve(S::PDEStrideOperatorSchur,f::Vector;opts...)
     @assert length(f)≤5
 
     f=pad(f,5)
-    uo=pdesolve(S.odd,[f[1],f[2],f[3]+f[4],f[end]],nx)
-    ue=pdesolve(S.even,[f[1],f[2],f[4]-f[3],f[end]],nx)
+    uo=pdesolve(S.odd,[f[1],f[2],f[3]+f[4],f[end]],nx;opts...)
+    ue=pdesolve(S.even,[f[1],f[2],f[4]-f[3],f[end]],nx;opts...)
 
     ret=Array(typeof(first(uo.coefficients)),length(uo.coefficients)+length(ue.coefficients))
     ret[1:2:end]=uo.coefficients
@@ -158,15 +156,15 @@ function pdesolve(S::PDEStrideOperatorSchur,f::Vector,nx=100000)
 end
 
 
-function pdesolve(A::AbstractPDEOperatorSchur,f::Vector,nx=100000)
+function pdesolve(A::AbstractPDEOperatorSchur,f::Vector;opts...)
     fx,fy,F=pde_standardize_rhs(A,f)
-    ProductFun(cont_constrained_lyap(A,fx,fy,F,nx),domainspace(A))
+    ProductFun(cont_constrained_lyap(A,fx,fy,F;opts...),domainspace(A))
 end
 
 
-function pdesolve(A::AbstractPDEOperatorSchur,f::Matrix,nx=100000)
+function pdesolve(A::AbstractPDEOperatorSchur,f::Matrix;opts...)
     fx,fy,F=pde_standardize_rhs(A,f)
-    X=cont_constrained_lyap(A,fx,fy,F,nx)
+    X=cont_constrained_lyap(A,fx,fy,F;opts...)
     ds=domainspace(A)
     #TODO: Change Float64
     ProductFun{typeof(ds[1]),
@@ -175,10 +173,10 @@ function pdesolve(A::AbstractPDEOperatorSchur,f::Matrix,nx=100000)
                Float64}[ProductFun(X[:,k],ds) for k=1:size(X,2)]
 end
 
-pdesolve(A::AbstractPDEOperatorSchur,f::Union{Fun,MultivariateFun,Number},nx...)=pdesolve(A,[f],nx...)
-pdesolve{T<:Operator}(A::Vector{T},f::Vector,n::Integer,n2...)=pdesolve(schurfact(A,n),f,n2...)
-pdesolve{T<:Operator}(A::Vector{T},f::Union{Fun,MultivariateFun,Number},n...)=pdesolve(A,[f],n...)
-pdesolve(A::Operator,f...)=pdesolve([A],f...)
+pdesolve(A::AbstractPDEOperatorSchur,f::Union{Fun,MultivariateFun,Number},nx...;opts...)=pdesolve(A,[f],nx...;opts...)
+pdesolve{T<:Operator}(A::Vector{T},f::Vector,n::Integer,n2...;opts...)=pdesolve(schurfact(A,n),f,n2...;opts...)
+pdesolve{T<:Operator}(A::Vector{T},f::Union{Fun,MultivariateFun,Number},n...;opts...)=pdesolve(A,[f],n...;opts...)
+pdesolve(A::Operator,f...;opts...)=pdesolve([A],f...;opts...)
 
 
 

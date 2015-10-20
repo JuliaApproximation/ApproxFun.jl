@@ -194,7 +194,7 @@ function adaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
     end
 
     if j >= N
-        warn("Maximum number of iterations " * string(N) * " reached.  Check that the correct number of boundary conditions are specified, or change maxiteration.")
+        warn("Maximum number of iterations $N reached without achieving tolerance $tol.  Check that the correct number of boundary conditions are specified, or change maxiteration.")
     end
 
     ##TODO: why max original length?
