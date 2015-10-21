@@ -109,7 +109,7 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Sym
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
         if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
-        push!(A,a/sqrt(abs(a(r[1]))));push!(B,b/(sqrt(abs(b(r[2])))*sign(b(r[2]))))
+        A,B =[A;a/sqrt(abs(a(r[1])))],[B;b/(sqrt(abs(b(r[2])))*sign(b(r[2])))]
         r=findapproxmax!(A[k],B[k],X,ptsx,ptsy,gridx,gridy)
         Ar,Br=evaluate(A,r[1]),evaluate(B,r[2])
         for i=1:gridx
@@ -161,7 +161,7 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
         if norm(a.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
-        push!(A,a/sqrt(abs(a(r))));push!(B,a/(sqrt(abs(a(r)))*sign(a(r))))
+        A,B = [A;a/sqrt(abs(a(r)))],[B;a/(sqrt(abs(a(r)))*sign(a(r)))]
         r=findcholeskyapproxmax!(A[k],B[k],X,pts,grid)
         Br=evaluate(B,r)
         for i=1:grid
@@ -200,8 +200,9 @@ LowRankFun(f::LowRankFun)=LowRankFun(f,Interval(),Interval())
 
 function findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
     for j=1:gridy
+        ptsyj = ptsy[j]
         @simd for k=1:gridx
-            @inbounds X[k,j]+=f(ptsx[k],ptsy[j])
+            @inbounds X[k,j]+=f(ptsx[k],ptsyj)
         end
     end
     maxabsf,impt = findmaxabs(X)
