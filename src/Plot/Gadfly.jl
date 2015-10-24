@@ -58,8 +58,8 @@ function gadflyplot{T<:Real}(x::Vector{T},y::Vector{Complex{Float64}},v...;opts.
     r=real(y)
     i=imag(y)
 
-    dat=Main.DataFrames.DataFrame(x=[x,x],
-                                  y=[r,i],
+    dat=Main.DataFrames.DataFrame(x=[x;x],
+                                  y=[r;i],
                                   Function=[fill("Re",length(x));fill("Im",length(x))])
 
     Main.Gadfly.plot(dat,x="x",y="y",color="Function",v...,gadflyopts(opts...)...)

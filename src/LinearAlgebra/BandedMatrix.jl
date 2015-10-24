@@ -310,7 +310,7 @@ isbazeros{T}(::Type{T},rws::UnitRange,cols::UnitRange,bnds)=isbazeros(T,rws,cols
 isbazeros{T}(::Type{T},kr::UnitRange,::Colon,bnds)=isbazeros(T,kr,:,-bnds[1],bnds[end])
 isbazeros{T}(::Type{T},kr::Colon,jr::UnitRange,bnds)=isbazeros(T,:,jr,-bnds[1],bnds[end])
 
-isbazeros(rw::Union(UnitRange,Colon),bnds...)=isbazeros(Float64,rw,bnds...)
+isbazeros(rw::Union{UnitRange,Colon},bnds...)=isbazeros(Float64,rw,bnds...)
 
 
 
@@ -422,6 +422,7 @@ end
 
 function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
     n=size(A,1);m=size(B,2)
+    @assert size(C,1)≥rs*n+ri&&size(C,2)≥cs*m+ci
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
@@ -441,6 +442,7 @@ end
 
 function bamultiply!(C::Matrix,A::BandedMatrix,B::Matrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
     n=size(A,1);m=size(B,2)
+    @assert size(C,1)≥rs*n+ri&&size(C,2)≥cs*m+ci
     for k=1:n  # rows of C
         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
             @inbounds Aj=A.data[l-k+A.l+1,k]
@@ -525,7 +527,7 @@ end
 
 ## addentries!
 
-function addentries!(B::BandedMatrix,c::Number,A,kr::Range)
+function addentries!(B::BandedMatrix,c::Number,A,kr::Range,::Colon)
     for k=intersect(kr,1:size(B,1)),j=intersect(k+bandrange(B),1:size(B,2))
         A[k,j] += c*B.data[j-k+B.l+1,k]
     end
@@ -534,7 +536,7 @@ function addentries!(B::BandedMatrix,c::Number,A,kr::Range)
 end
 
 
-function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range)
+function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range,::Colon)
     for k=kr,j=k+bandrange(B)
         ibpluseq!(A,c*B[k,j],k,j)
     end
@@ -544,4 +546,4 @@ end
 
 
 
-addentries!(B::Union(BandedMatrix,IndexTranspose,IndexStride),A,kr::Range)=addentries!(B,1,A,kr)
+addentries!(B::Union{BandedMatrix,IndexTranspose,IndexStride},A,kr::Range,::Colon)=addentries!(B,1,A,kr,:)

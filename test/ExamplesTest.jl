@@ -7,4 +7,4 @@ if isdir(Pkg.dir("RandomMatrices")) && isdir(Pkg.dir("PyPlot"))
 end
 include("../examples/Lanczos.jl")
 include("../examples/Lee\ &\ Greengard\ equation.jl")
-include("../examples/Nonlinear BVP.jl")
+include("../examples/Newton iteration for Nonlinear BVPs.jl")

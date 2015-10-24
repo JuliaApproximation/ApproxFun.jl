@@ -1,7 +1,7 @@
 
 ## Orthogonal polynomials
 
-abstract PolynomialSpace <: IntervalSpace
+abstract PolynomialSpace{D} <: RealUnivariateSpace{D}
 
 bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
 rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=domainspace(M)
@@ -9,6 +9,12 @@ rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=domain
 
 # All polynomials contain constant
 union_rule(A::ConstantSpace,B::PolynomialSpace)=B
+Base.promote_rule{T<:Number,S<:PolynomialSpace,V}(::Type{Fun{S,V}},::Type{T})=Fun{S,promote_type(V,T)}
+Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T})=Fun{S,T}
+
+## Evaluation
+
+evaluate{PS<:PolynomialSpace,T}(f::Fun{PS,T},x)=clenshaw(space(f),coefficients(f),tocanonical(f,x))
 
 ######
 # Recurrence encodes the recurrence coefficients
@@ -28,7 +34,7 @@ Base.convert{T,S}(::Type{BandedOperator{T}},J::Recurrence{S})=Recurrence{S,T}(J.
 #       x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-function addentries!{S,T}(R::Recurrence{S,T},A,kr::Range)
+function addentries!{S,T}(R::Recurrence{S,T},A,kr::Range,::Colon)
     for k=kr
         A[k,k-1]=recβ(T,R.space,k-1)
         A[k,k]  =recα(T,R.space,k)
@@ -51,7 +57,7 @@ end
 #####
 
 
-function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::Multiplication{US,PS,T},A,kr::UnitRange)
+function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::Multiplication{US,PS,T},A,kr::UnitRange,::Colon)
     a=coefficients(M.f)
     fsp=space(M.f)
     for k=kr
@@ -64,13 +70,13 @@ function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::Multiplicatio
         J=subview(Recurrence(domainspace(M)),jkr,jkr)
         C0=isbaeye(jkr)
         C1=(1/recβ(T,fsp,1))*J-(recα(T,fsp,1)/recβ(T,fsp,1))*C0
-        addentries!(C1,a[2],A,kr)
+        addentries!(C1,a[2],A,kr,:)
 
 
         for k=1:length(a)-2
             rβ=recβ(T,fsp,k+1)
             C1,C0=(1/rβ)*J*C1-(recα(T,fsp,k+1)/rβ)*C1-(recγ(T,fsp,k+1)/rβ)*C0,C1
-            addentries!(C1,a[k+2],A,kr)
+            addentries!(C1,a[k+2],A,kr,:)
         end
     end
 
@@ -83,3 +89,29 @@ end
 ## All polynomial spaces can be converted provided spaces match
 
 isconvertible(a::PolynomialSpace,b::PolynomialSpace)=domain(a)==domain(b)
+
+
+
+## General clenshaw
+clenshaw(sp::PolynomialSpace,c::AbstractVector,x::AbstractArray) = clenshaw(c,x,
+                                            ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,length(c),length(x)))
+clenshaw(sp::PolynomialSpace,c::AbstractMatrix,x::AbstractArray) = clenshaw(c,x,ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,size(c,1),length(x)))
+clenshaw(sp::PolynomialSpace,c::AbstractMatrix,x) = clenshaw(c,x,ClenshawPlan(promote_type(eltype(c),typeof(x)),sp,size(c,1),size(c,2)))
+
+clenshaw!(sp::PolynomialSpace,c::AbstractVector,x::AbstractVector)=clenshaw!(c,x,ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,length(x)))
+
+function clenshaw(sp::PolynomialSpace,c::AbstractVector,x)
+    N,T = length(c),promote_type(eltype(c),typeof(x))
+    TT = eltype(T)
+    if isempty(c)
+        return zero(T)
+    end
+
+    bk1,bk2 = zero(T),zero(T)
+    A,B,C = recA(TT,sp,N-1),recB(TT,sp,N-1),recC(TT,sp,N)
+    for k = N:-1:2
+        bk2, bk1 = bk1, muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[k])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[k])) # (A*x+B)*bk1+c[k]-C*bk2
+        A,B,C = recA(TT,sp,k-2),recB(TT,sp,k-2),recC(TT,sp,k-1)
+    end
+    muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[1])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[1])) # (A*x+B)*bk1+c[1]-C*bk2
+end

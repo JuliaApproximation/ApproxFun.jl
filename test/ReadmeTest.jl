@@ -7,15 +7,15 @@ f = sin(x^2)
 g = cos(x)
 
 
-@test_approx_eq_eps f[.1] sin(.1^2) 1000eps()
+@test_approx_eq_eps f(.1) sin(.1^2) 1000eps()
 
 h = f + g^2
 r = roots(h)
 rp = roots(differentiate(h))
 
-@test norm(h[r])<1000eps()
+@test norm(h(r))<1000eps()
 
-@test norm(diff(h)[rp])<100000eps()
+@test norm(diff(h)(rp))<100000eps()
 
 
 
@@ -26,7 +26,7 @@ fp = differentiate(f)
 @test norm(f-fp)<1000eps()
 
 g = cumsum(f)
-g = g + f[-1]
+g = g + f(-1)
 @test norm(f-g)<100eps()
 
 
@@ -55,14 +55,14 @@ B = dirichlet(d)
 L = D^2 - x
 u = [B;L] \ [airyai(d.a);airyai(d.b)]
 
-@test_approx_eq u[0.] airyai(0.)
+@test_approx_eq u(0.) airyai(0.)
 
 
 ## Nonlinear BVPs
 x=Fun()
 u0=0.x
 
-N=u->[u[-1.]-1.,u[1.]+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
+N=u->[u(-1.)-1.,u(1.)+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
 u=newton(N,u0)
 
 @test norm(N(u)[end]) ≤ 1000eps()
@@ -89,7 +89,7 @@ f = Fun(t->exp(sin(10t)),s)
 uFourier = L\f
 
 
-@ test_approx_eq uChebyshev[0.] uFourier[0.]
+@ test_approx_eq uChebyshev(0.) uFourier(0.)
 
 
 ## Sampling

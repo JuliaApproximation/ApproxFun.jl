@@ -10,8 +10,8 @@ immutable ReducedDiscreteOperators{BT,MT}
     ops::Vector{SparseMatrixCSC{MT,Int64}}
     opcols::Vector{SparseMatrixCSC{MT,Int64}}
 
-    domainspace::FunctionSpace
-    rangespace::FunctionSpace
+    domainspace::Space
+    rangespace::Space
 end
 
 numbcs(A::ReducedDiscreteOperators)=size(A.bcs,1)

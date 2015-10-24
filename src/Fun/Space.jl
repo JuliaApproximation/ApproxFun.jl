@@ -1,6 +1,6 @@
 
 
-export FunctionSpace, domainspace, rangespace, maxspace,Space,conversion_type
+export Space, domainspace, rangespace, maxspace,Space,conversion_type
 
 
 ##
@@ -44,42 +44,57 @@ Base.eltype(::Type{AnyBasis})=Number
 
 
 # T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
+# D is the domain
 # d is the dimension
-abstract FunctionSpace{T,d}
+abstract Space{T,D,d}
 
 
 
-typealias RealSpace{d} FunctionSpace{RealBasis,d}
-typealias ComplexSpace{d} FunctionSpace{ComplexBasis,d}
-typealias UnivariateSpace{T} FunctionSpace{T,1}
-typealias BivariateSpace{T} FunctionSpace{T,2}
-typealias RealUnivariateSpace RealSpace{1}
-
-
-
-
-Base.eltype{S}(::FunctionSpace{S})=eltype(S)
-basistype{T}(::FunctionSpace{T})=T
-basistype{T,d}(::Type{FunctionSpace{T,d}})=T
-basistype{FT<:FunctionSpace}(::Type{FT})=basistype(super(FT))
-
-
-coefficient_type{S}(::FunctionSpace{S},T)=coefficient_type(S,T)
-
-Base.ndims{S,d}(::FunctionSpace{S,d})=d
+typealias RealSpace{D,d} Space{RealBasis,D,d}
+typealias ComplexSpace{D,d} Space{ComplexBasis,D,d}
+typealias UnivariateSpace{T,D} Space{T,D,1}
+typealias BivariateSpace{T} Space{T,AnyDomain,2}
+typealias RealUnivariateSpace{D} RealSpace{D,1}
 
 
 
 
+Base.eltype{S}(::Space{S})=eltype(S)
+basistype{T}(::Space{T})=T
+basistype{T,D,d}(::Type{Space{T,D,d}})=T
+basistype{FT<:Space}(::Type{FT})=basistype(super(FT))
 
-abstract AmbiguousSpace <: FunctionSpace{RealBasis,1}
+domaintype{T,D}(::Space{T,D})=D
+domaintype{T,D,d}(::Type{Space{T,D,d}})=D
+domaintype{FT<:Space}(::Type{FT})=domaintype(super(FT))
+
+coefficient_type{S}(::Space{S},T)=coefficient_type(S,T)
+
+Base.ndims{S,D,d}(::Space{S,D,d})=d
+dimension(::Space)=Inf  # We assume infinite-dimensional spaces
+
+
+Space{D<:Number}(d::AbstractVector{D})=Space(convert(Domain,d))
+
+
+abstract AmbiguousSpace <: Space{RealBasis,AnyDomain,1}
 
 domain(::AmbiguousSpace)=AnyDomain()
 
-function setdomain(sp::FunctionSpace,d::Domain)
+
+function setdomain{T,D<:Domain}(sp::Space{T,D},d::D)
     S=typeof(sp)
-    @assert length(@compat(fieldnames(S)))==1
+    @assert length(fieldnames(S))==1
     S(d)
+end
+
+function setdomain(sp::Space,d::Domain)
+    S=typeof(sp)
+    @assert length(fieldnames(S))==1
+    # the domain is not compatible, but maybe we c
+    # can drop the space depence.  For example,
+    # CosSpace{Circle{Float64}} -> CosSpace
+    eval(parse(string(S.name)))(d)
 end
 
 
@@ -94,11 +109,15 @@ immutable UnsetSpace <: AmbiguousSpace end
 immutable NoSpace <: AmbiguousSpace end
 immutable ZeroSpace <: AmbiguousSpace end   # ZeroSpace is compatible with all spaces
 
+
+dimension(::ZeroSpace)=0
+
+
 isambiguous(::)=false
 isambiguous(::AmbiguousSpace)=true
 
 #TODO: should it default to canonicalspace?
-points(d::FunctionSpace,n)=points(domain(d),n)
+points(d::Space,n)=points(domain(d),n)
 
 
 
@@ -112,37 +131,41 @@ domainscompatible(a,b) = isambiguous(domain(a)) || isambiguous(domain(b)) || isa
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
-spacescompatible{D<:FunctionSpace}(f::D,g::D)=error("Override spacescompatible for "*string(D))
+spacescompatible{D<:Space}(f::D,g::D)=error("Override spacescompatible for "*string(D))
 spacescompatible(::AnySpace,::AnySpace)=true
 spacescompatible(::UnsetSpace,::UnsetSpace)=true
 spacescompatible(::NoSpace,::NoSpace)=true
 spacescompatible(::ZeroSpace,::ZeroSpace)=true
-spacescompatible(::ZeroSpace,::FunctionSpace)=true
-spacescompatible(::FunctionSpace,::ZeroSpace)=true
+#spacescompatible(::ZeroSpace,::Space)=true
+#spacescompatible(::Space,::ZeroSpace)=true
 spacescompatible(f,g)=false
-==(A::FunctionSpace,B::FunctionSpace)=spacescompatible(A,B)&&domain(A)==domain(B)
+==(A::Space,B::Space)=spacescompatible(A,B)&&domain(A)==domain(B)
 
 
 # check a list of spaces for compatibility
-function spacescompatible{T<:FunctionSpace}(v::Vector{T})
-    for k=1:length(v)-1
-        if !spacescompatible(v[k],v[k+1])
-            return false
+for OP in (:spacescompatible,:domainscompatible)
+    @eval begin
+        function $OP{T<:Space}(v::Vector{T})
+            for k=1:length(v)-1
+                if !$OP(v[k],v[k+1])
+                    return false
+                end
+            end
+            true
         end
+
+        $OP{T<:Space}(v::Array{T})=$OP(vec(v))
     end
-    true
 end
 
-spacescompatible{T<:FunctionSpace}(v::Array{T})=spacescompatible(vec(v))
 
 
-
-domain(A::FunctionSpace)=A.domain # assume it has a field domain
+domain(A::Space)=A.domain # assume it has a field domain
 
 
 
 for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD,:invfromcanonicalD)
-    @eval ($op)(sp::FunctionSpace,x...)=$op(domain(sp),x...)
+    @eval ($op)(sp::Space,x...)=$op(domain(sp),x...)
 end
 
 
@@ -170,11 +193,11 @@ for FUNC in (:conversion_type,:maxspace)
         $FUNC(::ZeroSpace,::AnySpace)=AnySpace()
     end
 
-    for TYP in (:AnySpace,:UnsetSpace,:ZeroSpace)
+    for TYP in (:AnySpace,:UnsetSpace)
         @eval begin
             $FUNC(a::$TYP,b::$TYP)=a
-            $FUNC(a::$TYP,b::FunctionSpace)=b
-            $FUNC(a::FunctionSpace,b::$TYP)=a
+            $FUNC(a::$TYP,b::Space)=b
+            $FUNC(a::Space,b::$TYP)=a
         end
     end
 end
@@ -198,18 +221,18 @@ end
 
 # gives a space c that has a banded conversion operator FROM a and b
 maxspace(a,b)=NoSpace()  # TODO: this fixes weird bug with Nothing
-function maxspace(a::FunctionSpace,b::FunctionSpace)
+function maxspace(a::Space,b::Space)
     if spacescompatible(a,b)
         return a
     end
 
     cr=maxspace_rule(a,b)
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 
     cr=maxspace_rule(b,a)
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 
@@ -247,18 +270,18 @@ end
 # union combines two spaces
 # this is used primarily for addition of two funs
 # that may be incompatible
-function Base.union(a::FunctionSpace,b::FunctionSpace)
+function Base.union(a::Space,b::Space)
     if spacescompatible(a,b)
         return a
     end
 
     cr=union_rule(a,b)
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 
     cr=union_rule(b,a)
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 
@@ -267,12 +290,12 @@ function Base.union(a::FunctionSpace,b::FunctionSpace)
     if cspa!=a || cspb!=b
         cr=union(cspa,cspb)  #Max or min space?
     end
-    if cr!=NoSpace()
+    if !isa(cr,NoSpace)
         return cr
     end
 
-    cr=maxspace(a,b)  #Max or min space?
-    if cr!=NoSpace()
+    cr=conversion_type(a,b)  #Max or min space?
+    if !isa(cr,NoSpace)
         return cr
     end
 
@@ -297,9 +320,9 @@ isconvertible(a,b)=hasconversion(union(a,b),b)
 
 coefficients(f,sp1,sp2,sp3)=coefficients(coefficients(f,sp1,sp2),sp2,sp3)
 
-coefficients{T1<:FunctionSpace,T2<:FunctionSpace}(f::Vector,::Type{T1},::Type{T2})=coefficients(f,T1(),T2())
-coefficients{T1<:FunctionSpace}(f::Vector,::Type{T1},sp2::FunctionSpace)=coefficients(f,T1(),sp2)
-coefficients{T2<:FunctionSpace}(f::Vector,sp1::FunctionSpace,::Type{T2})=coefficients(f,sp1,T2())
+coefficients{T1<:Space,T2<:Space}(f::Vector,::Type{T1},::Type{T2})=coefficients(f,T1(),T2())
+coefficients{T1<:Space}(f::Vector,::Type{T1},sp2::Space)=coefficients(f,T1(),sp2)
+coefficients{T2<:Space}(f::Vector,sp1::Space,::Type{T2})=coefficients(f,sp1,T2())
 
 ## coefficients defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
@@ -322,11 +345,11 @@ function defaultcoefficients(f,a,b)
         if spacescompatible(a,csp)||spacescompatible(b,csp)
             # b is csp too, so we are stuck, try Fun constructor
             if domain(b)⊆domain(a)
-                coefficients(Fun(x->Fun(f,a)[x],b))
+                coefficients(Fun(x->Fun(f,a)(x),b))
             else
                 # we set the value to be zero off the domain of definition
                 d=domain(a)
-                coefficients(Fun(x->x∈d?Fun(f,a)[x]:zero(Fun(f,a)[x]),b))
+                coefficients(Fun(x->x∈d?Fun(f,a)(x):zero(Fun(f,a)(x)),b))
             end
         else
             coefficients(f,a,csp,b)
@@ -340,15 +363,15 @@ coefficients(f,a,b)=defaultcoefficients(f,a,b)
 
 
 ## TODO: remove zeros
-Base.zero(S::FunctionSpace)=zeros(S)
-Base.zero{T<:Number}(::Type{T},S::FunctionSpace)=zeros(T,S)
-Base.zeros{T<:Number}(::Type{T},S::FunctionSpace)=Fun(zeros(T,1),S)
-Base.zeros(S::FunctionSpace)=Fun(zeros(1),S)
+Base.zero(S::Space)=zeros(S)
+Base.zero{T<:Number}(::Type{T},S::Space)=zeros(T,S)
+Base.zeros{T<:Number}(::Type{T},S::Space)=Fun(zeros(T,1),S)
+Base.zeros(S::Space)=Fun(zeros(1),S)
 
 # catch all
-Base.ones(S::FunctionSpace)=Fun(x->1.0,S)
-Base.ones{T<:Number}(::Type{T},S::FunctionSpace)=Fun(x->one(T),S)
-identity_fun(S::FunctionSpace)=Fun(x->x,S)
+Base.ones(S::Space)=Fun(x->1.0,S)
+Base.ones{T<:Number}(::Type{T},S::Space)=Fun(x->one(T),S)
+identity_fun(S::Space)=Fun(x->x,S)
 
 
 
@@ -359,8 +382,8 @@ identity_fun(S::FunctionSpace)=Fun(x->x,S)
 ## rand
 # checkpoints is used to give a list of points to double check
 # the expansion
-Base.rand(d::FunctionSpace,k...)=rand(domain(d),k...)
-checkpoints(d::FunctionSpace)=checkpoints(domain(d))
+Base.rand(d::Space,k...)=rand(domain(d),k...)
+checkpoints(d::Space)=checkpoints(domain(d))
 
 
 
@@ -369,10 +392,10 @@ checkpoints(d::FunctionSpace)=checkpoints(domain(d))
 # transform converts from values at points(S,n) to coefficients
 # itransform converts from coefficients to values at points(S,n)
 
-transform(S::FunctionSpace,vals)=transform(S,vals,plan_transform(S,vals))
-itransform(S::FunctionSpace,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
+transform(S::Space,vals)=transform(S,vals,plan_transform(S,vals))
+itransform(S::Space,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
 
-function transform(S::FunctionSpace,vals,plan)
+function transform(S::Space,vals,plan)
     csp=canonicalspace(S)
     if S==csp
         error("Override transform(::"*string(typeof(S))*",vals,plan)")
@@ -381,7 +404,7 @@ function transform(S::FunctionSpace,vals,plan)
     coefficients(transform(csp,vals,plan),csp,S)
 end
 
-function itransform(S::FunctionSpace,cfs,plan)
+function itransform(S::Space,cfs,plan)
     csp=canonicalspace(S)
     if S==csp
         error("Override itransform(::"*string(typeof(S))*",cfs,plan)")
@@ -394,10 +417,10 @@ end
 for OP in (:plan_transform,:plan_itransform)
     # plan transform expects a vector
     # this passes an empty Float64 array
-    @eval $OP(S::FunctionSpace,n::Integer)=$OP(S,Array(Float64,n))
+    @eval $OP(S::Space,n::Integer)=$OP(S,Array(Float64,n))
 end
 
-function plan_transform(S::FunctionSpace,vals)
+function plan_transform(S::Space,vals)
     csp=canonicalspace(S)
     if S==csp
         identity #TODO: why identity?
@@ -406,7 +429,7 @@ function plan_transform(S::FunctionSpace,vals)
     end
 end
 
-function plan_itransform(S::FunctionSpace,cfs)
+function plan_itransform(S::Space,cfs)
     csp=canonicalspace(S)
     if S==csp
         identity #TODO: why identity?
@@ -420,5 +443,5 @@ end
 # we sort spaces lexigraphically by default
 
 for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
-    @eval $OP(a::FunctionSpace,b::FunctionSpace)=$OP(string(a),string(b))
+    @eval $OP(a::Space,b::Space)=$OP(string(a),string(b))
 end

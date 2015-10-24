@@ -1,8 +1,8 @@
 export Fun,evaluate,values,points
-export coefficients,integrate,differentiate,domain,space
+export coefficients,integrate,differentiate,domain,space,linesum
 
 include("Domain.jl")
-include("FunctionSpace.jl")
+include("Space.jl")
 
 ##  Constructors
 
@@ -10,13 +10,21 @@ include("FunctionSpace.jl")
 type Fun{S,T}
     coefficients::Vector{T}
     space::S
-    Fun(coeff::Vector{T},sp::S)=new(coeff,sp)
+    function Fun(coeff::Vector{T},sp::S)
+        @assert length(coeff)≤dimension(sp)
+        new(coeff,sp)
+    end
 end
 
-Fun(coeff::Vector,sp::FunctionSpace)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
-Fun{T<:Integer}(coeff::Vector{T},sp::FunctionSpace)=Fun(1.0coeff,sp)
-Fun(::Vector{None},sp::FunctionSpace)=Fun(Float64[],sp)
-function Fun(v::Vector{Any},sp::FunctionSpace)
+"""
+    Fun(coefficients,space)
+
+returns a Fun with coefficients in the space
+"""
+Fun(coeff::Vector,sp::Space)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
+Fun{T<:Integer}(coeff::Vector{T},sp::Space)=Fun(1.0coeff,sp)
+
+function Fun(v::Vector{Any},sp::Space)
     @assert isempty(v)
     Fun(Float64[],sp)
 end
@@ -24,7 +32,12 @@ end
 ##Coefficient routines
 #TODO: domainscompatible?
 
-function coefficients(f::Fun,msp::FunctionSpace)
+"""
+    coefficients(fun,space)
+
+returns the coefficients of a fun in a possibly different space
+"""
+function coefficients(f::Fun,msp::Space)
     #zero can always be converted
     if length(f)==1 && f.coefficients[1]==0
         f.coefficients
@@ -32,9 +45,9 @@ function coefficients(f::Fun,msp::FunctionSpace)
         coefficients(f.coefficients,space(f),msp)
     end
 end
-coefficients{T<:FunctionSpace}(f::Fun,::Type{T})=coefficients(f,T(domain(f)))
+coefficients{T<:Space}(f::Fun,::Type{T})=coefficients(f,T(domain(f)))
 coefficients(f::Fun)=f.coefficients
-coefficients(c::Number,sp::FunctionSpace)=Fun(c,sp).coefficients
+coefficients(c::Number,sp::Space)=Fun(c,sp).coefficients
 
 
 ##Convert routines
@@ -44,12 +57,14 @@ Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(convert(Vector{T},f.coefficien
 Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))
 
 Base.convert{T,S}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
+Base.convert{S}(::Type{Fun{S}},x::Number)=x==0?zeros(S(AnyDomain())):x*ones(S(AnyDomain()))
+Base.convert{IF<:Fun}(::Type{IF},x::Number)=Fun(x)
 Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
-Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=IF
+
 
 Base.zero(::Type{Fun})=Fun(0.)
-Base.zero{T,S<:FunctionSpace}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
-Base.one{T,S<:FunctionSpace}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
+Base.zero{T,S<:Space}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
+Base.one{T,S<:Space}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
 for op in (:(Base.zeros),:(Base.ones))
     @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
 end
@@ -66,6 +81,7 @@ Base.eltype{S,T}(::Fun{S,T})=T
 
 ## General routines
 
+
 domain(f::Fun)=domain(f.space)
 domain{T<:Fun}(v::Vector{T})=map(domain,v)
 
@@ -77,6 +93,7 @@ for op = (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD)
 end
 
 invfromcanonicalD(d::Domain)=invfromcanonicalD(d,Fun(identity,canonicaldomain(d)))
+
 
 space(f::Fun)=f.space
 spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
@@ -96,10 +113,10 @@ function evaluate(f::Fun,x...)
 end
 
 
-Base.getindex(f::Fun,x...)=evaluate(f,x...)
+Base.call(f::Fun,x...)=evaluate(f,x...)
 
 for op in (:(Base.first),:(Base.last))
-    @eval $op{S,T}(f::Fun{S,T})=f[$op(domain(f))]
+    @eval $op{S,T}(f::Fun{S,T})=f($op(domain(f)))
 end
 
 
@@ -107,9 +124,12 @@ end
 
 ##Data routines
 
+
 values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...)
 points(f::Fun)=points(f.space,length(f))
 Base.length(f::Fun)=length(f.coefficients)
+
+
 function Base.stride(f::Fun)
     # Check only for stride 2 at the moment
     # as higher stride is very rare anyways
@@ -222,12 +242,36 @@ end
 
 Base.inv{S,T}(f::Fun{S,T})=1./f
 
+# Integrals over two Funs, which are fast with the orthogonal weight.
+
+export dotu, linedotu, linedot
+
+dotu(f::Fun,g::Fun)=defaultdotu(f,g)
+dotu(c::Number,g::Fun)=sum(c*g)
+dotu(g::Fun,c::Number)=sum(g*c)
+
+linedotu(f::Fun,g::Fun)=defaultlinedotu(f,g)
+linedotu(c::Number,g::Fun)=linesum(c*g)
+linedotu(g::Fun,c::Number)=linesum(g*c)
+
+# Having fallbacks allow for the fast implementations.
+
+defaultdotu(f::Fun,g::Fun)=sum(f.*g)
+defaultlinedotu(f::Fun,g::Fun)=linesum(f.*g)
+
+# Conjuations
+
+Base.dot(f::Fun,g::Fun)=dotu(conj(f),g)
+Base.dot(c::Number,g::Fun)=dotu(conj(c),g)
+Base.dot(g::Fun,c::Number)=dotu(conj(g),c)
+
+linedot(f::Fun,g::Fun)=linedotu(conj(f),g)
+linedot(c::Number,g::Fun)=linedotu(conj(c),g)
+linedot(g::Fun,c::Number)=linedotu(conj(g),c)
+
 ## Norm
 
-defaultdot(f::Fun,g::Fun)=sum(conj(f).*g)
-Base.dot(f::Fun,g::Fun)=defaultdot(f,g)
-Base.dot(c::Number,g::Fun)=sum(conj(c)*g)
-Base.dot(g::Fun,c::Number)=sum(conj(g)*c)
+Base.norm(f::Fun) = norm(f,2)
 
 function Base.norm(f::Fun,p::Number)
     if p < 1
@@ -247,22 +291,12 @@ function Base.norm(f::Fun,p::Int)
     end
 end
 
-# TODO: This definition of 2-norm is bad. Doesn't promote spaces so it's wrong for f::Fun{JacobiWeight}
-function Base.norm(f::Fun)
-    sp = space(f)
-    f2 = pad(f,2length(f)-1)
-    vals=values(f2)
-    # we take abs first in case the result is slightly negative
-    # or imaginary
-    sqrt(abs(sum(Fun(transform(sp,conj(vals).*vals),sp))))
-end
-
 
 ## Mapped functions
 
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op){T,D<:FunctionSpace{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
+    @eval ($op){T,D<:Space{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 
 Base.abs2{S,T<:Real}(f::Fun{S,T})=f.^2
@@ -331,7 +365,6 @@ Base.sum(f::Fun)=last(cumsum(f))
 integrate(f::Fun)=integrate(Fun(f,domain(f)))
 
 
-
 function reverseorientation(f::Fun)
     csp=canonicalspace(f)
     if spacescompatible(csp,space(f))
@@ -346,9 +379,8 @@ end
 
 *{S,T,U,V}(f::Fun{S,T},g::Fun{U,V})=f.*g
 ^(f::Fun,k::Integer)=f.^k
-^(f::Fun,k::Union(Number,Fun))=f.^k
-/(c::Union(Number,Fun),g::Fun)=c./g
+^(f::Fun,k::Union{Number,Fun})=f.^k
+/(c::Union{Number,Fun},g::Fun)=c./g
 
 
 include("constructors.jl")
-

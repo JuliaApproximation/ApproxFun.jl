@@ -106,11 +106,11 @@ regularize_bcs(S::OperatorSchur,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
 # where R and T are upper triangular
 
 ##TODO: Support complex in boundary conditions
-cont_constrained_lyapuptriang{OSS,T}(OS::PDEOperatorSchur{OSS,T},Gx,F::ProductFun,nx=100000)=cont_constrained_lyapuptriang(promote_type(T,eltype(F)),OS,Gx,F,nx)
+cont_constrained_lyapuptriang{OSS,T}(OS::PDEOperatorSchur{OSS,T},Gx,F::ProductFun;kwds...)=cont_constrained_lyapuptriang(promote_type(T,eltype(F)),OS,Gx,F;kwds...)
 #cont_constrained_lyapuptriang{N}(::Type{N},OS::PDEOperatorSchur,Gx,F::Array)=cont_constrained_lyapuptriang(N,OS,Gx,F,100000)
 
-cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::Fun,nx=100000)=cont_constrained_lyap(OS,Gxin,Gyin,ProductFun(F),nx)
-function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::ProductFun,nx=100000)
+cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::Fun;kwds...)=cont_constrained_lyap(OS,Gxin,Gyin,ProductFun(F);kwds...)
+function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::ProductFun;kwds...)
     n = size(OS.S,1)
     F=pad(F,size(F,1),n)
     Gx=pad(coefficients(Gxin).',:,n)
@@ -122,13 +122,13 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
     for k=1:n
         op=OS.Rdiags[k]
         rhs=Any[Gx[:,k]...;F.coefficients[k]]
-        Y[k]=chop!(linsolve([OS.Bx;op],rhs;maxlength=nx),eps())
+        Y[k]=chop!(linsolve([OS.Bx;op],rhs;kwds...),eps())
     end
 
     Y
 end
 
-function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::ProductFun,nx=100000)
+function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::ProductFun;kwds...)
     n = length(OS.Rdiags)
     F=pad(F,size(F,1),n)
     Gx=pad(coefficients(Gxin).',:,n)
@@ -139,17 +139,17 @@ function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::ProductF
     for k=1:n
         op=OS.Rdiags[k]
         rhs=Any[Gx[:,k]...;F.coefficients[k]]
-        Y[k]=chop!(linsolve([OS.Bx[k];op],rhs;maxlength=nx),eps())
+        Y[k]=chop!(linsolve([OS.Bx[k];op],rhs;kwds...),eps())
     end
 
     Y
 end
 
-cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::Fun,nx=100000)=cont_constrained_lyap(OS,Gxin,Gyin,ProductFun(F),nx)
+cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::Fun;kwds...)=cont_constrained_lyap(OS,Gxin,Gyin,ProductFun(F);kwds...)
 
 
 
-function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::ProductFun,nx::Integer)
+function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::ProductFun;kwds...)
     n = min(size(OS.S.T,2),max(size(F,2),size(Gx,2)))
 
     if !isempty(Gx)
@@ -197,7 +197,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
 
             ops[end]=OS.Rdiags[k]
             chop!(rhs[end],eps())
-            Y[k]=chop!(linsolve(ops,rhs;maxlength=nx),eps())
+            Y[k]=chop!(linsolve(ops,rhs;kwds...),eps())
 
             if k > 1
                 PY[k]=OS.Lx*Y[k];SY[k]=OS.Mx*Y[k]
@@ -227,7 +227,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
             blkrhs[end-1]=rhs1;blkrhs[end]=rhs2
 
 
-            y=vec(linsolve(blkops,blkrhs;maxlength=nx))
+            y=vec(linsolve(blkops,blkrhs;kwds...))
             Y[k-1]=chop!(y[1],eps());Y[k]=chop!(y[2],eps())
 
             PY[k-1]=OS.Lx*Y[k-1]; PY[k]=OS.Lx*Y[k]
@@ -246,8 +246,7 @@ end
 function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Type{N},
                                                                             OS::PDEOperatorSchur{OSS},
                                                                             Gx,
-                                                                            F::Array{PF,2},
-                                                                            nx::Integer)
+                                                                            F::Array{PF,2};kwds...)
     n = min(size(OS.S.T,2),max(mapreduce(Fk->size(Fk,2),max,F),mapreduce(Fk->size(Fk,2),max,Gx)))
     rs=rangespace(OS)
 
@@ -287,7 +286,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Ty
             end
         end
         ops[end]=OS.Rdiags[k]
-        Y[k,:]=vec(linsolve(ops,rhs;maxlength=nx))
+        Y[k,:]=vec(linsolve(ops,rhs;kwds...))
         for j=1:Fm
             chop!(Y[k,j],eps())
         end
@@ -317,11 +316,11 @@ end
 cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},
                                           Gx::Vector,
                                           Gyin::Vector,
-                                          F::Fun,nx=100000)=cont_constrained_lyap(OS,Gx,Gyin,ProductFun(F),nx)
+                                          F::Fun;kwds...)=cont_constrained_lyap(OS,Gx,Gyin,ProductFun(F);kwds...)
 function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},
                                                    Gx::Vector,
                                                    Gyin::Vector,
-                                                   F::ProductFun,nx=100000)
+                                                   F::ProductFun;kwds...)
     Gy=regularize_bcs(OS.S,Gyin)
     F=pad!(F,:,min(size(OS.S.Q,1),size(F,2)))
 
@@ -348,7 +347,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},
         Gx=[]
     end
 
-    Y=cont_constrained_lyapuptriang(OS,Gx,F,nx)
+    Y=cont_constrained_lyapuptriang(OS,Gx,F;kwds...)
     # Y is a Vector{Fun}, so that Y[k][j] corresponds to matrix element M[k,j]
     # This means acting on Y is acting on *columns* of M
 
@@ -362,7 +361,7 @@ end
 function cont_constrained_lyap{OSS<:OperatorSchur,PF<:ProductFun}(OS::PDEOperatorSchur{OSS},
                                                                   Gx::Array,
                                                                   Gyin::Array,
-                                                                  F::Array{PF},nx=100000)
+                                                                  F::Array{PF};kwds...)
     @assert size(F,1)==1
 
     Gy=regularize_bcs(OS.S,Gyin)
@@ -386,7 +385,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur,PF<:ProductFun}(OS::PDEOperato
         GxM=[]
     end
     nx=10000
-    Y=cont_constrained_lyapuptriang(Float64,OS,GxM,F,nx)
+    Y=cont_constrained_lyapuptriang(Float64,OS,GxM,F;kwds...)
     #TODO: Ky or Kx?
     X=Array(eltype(Y),size(Y,1)+Ky,size(Y,2))
     for k=1:size(Y,2)
@@ -402,4 +401,4 @@ end
 cont_constrained_lyap{OSS<:OperatorSchur,PF<:Fun}(OS::PDEOperatorSchur{OSS},
                                       Gx::Array,
                                       Gyin::Array,
-                                      F::Array{PF},nx=100000)=cont_constrained_lyap(OS,Gx,Gyin,map(ProductFun,F),nx)
+                                      F::Array{PF};kwds...)=cont_constrained_lyap(OS,Gx,Gyin,map(ProductFun,F);kwds...)

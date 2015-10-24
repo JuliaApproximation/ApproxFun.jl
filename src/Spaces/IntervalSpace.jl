@@ -1,9 +1,6 @@
 export continuity
 
 
-abstract IntervalSpace <: RealUnivariateSpace     # We assume basis is real
-
-Space{N<:Number}(d::Vector{N})=Space(Interval(d))
 
 ## Calculus
 
@@ -36,7 +33,7 @@ end
 
 
 
-function continuity{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T},order::Integer)
+function continuity(d::Union{Vector,Tuple},order::Integer)
 
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},m-1,m)
@@ -48,7 +45,7 @@ function continuity{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T},order::
     B
 end
 
-function continuity{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T},kr::UnitRange)
+function continuity(d::Union{Vector,Tuple},kr::UnitRange)
     @assert first(kr)==0
     m=length(d)
     B=zeros(Functional{mapreduce(eltype,promote_type,d)},length(kr)*(m-1),m)
@@ -59,39 +56,44 @@ function continuity{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T},kr::Uni
 end
 
 
-
-function dirichlet{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
-    m=length(d)
-    B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
-    B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
-    [B;
-    continuity(d,0:1)]
+for OP in (:dirichlet,:neumann,:periodic)
+    @eval $OP(d::Tuple)=$OP([d...])
 end
 
-function neumann{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
-    m=length(d)
-    B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
-    B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
-    [B;
-    continuity(d,0:1)]
+for DT in (:IntervalDomain,:Space)
+    @eval begin
+        function dirichlet{T<:$DT}(d::Vector{T})
+            m=length(d)
+            B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
+            B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
+            [B;
+            continuity(d,0:1)]
+        end
+
+        function neumann{T<:$DT}(d::Vector{T})
+            m=length(d)
+            B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
+            B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
+            [B;
+            continuity(d,0:1)]
+        end
+
+
+        function periodic{T<:$DT}(d::Vector{T})
+            m=length(d)
+            B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
+            B[1,1]=ldirichlet(d[1]);B[1,end]=-rdirichlet(d[end])
+            B[2,1]=lneumann(d[1]);B[2,end]=-rneumann(d[end])
+            [B;
+            continuity(d,0:1)]
+        end
+
+        function periodic{T<:$DT}(d::Vector{T})
+            m=length(d)
+            B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
+            B[1:2,1]=ivp(d[1])
+            [B;
+            continuity(d,0:1)]
+        end
+    end
 end
-
-
-function periodic{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
-    m=length(d)
-    B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
-    B[1,1]=ldirichlet(d[1]);B[1,end]=-rdirichlet(d[end])
-    B[2,1]=lneumann(d[1]);B[2,end]=-rneumann(d[end])
-    [B;
-    continuity(d,0:1)]
-end
-
-function periodic{T<:Union(IntervalDomain,IntervalSpace)}(d::Vector{T})
-    m=length(d)
-    B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
-    B[1:2,1]=ivp(d[1])
-    [B;
-    continuity(d,0:1)]
-end
-
-include("PolynomialSpace.jl")

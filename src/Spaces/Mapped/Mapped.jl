@@ -4,7 +4,7 @@ export MappedSpace
 
 #Typing D as Domain was causing issues
 
-type MappedSpace{S<:FunctionSpace,D,T} <: FunctionSpace{T,1}
+type MappedSpace{S<:Space,D,T} <: Space{T,D,1}
     domain::D
     space::S
     MappedSpace(d::D,sp::S)=new(d,sp)
@@ -16,7 +16,7 @@ end
 
 spacescompatible(a::MappedSpace,b::MappedSpace)=spacescompatible(a.space,b.space)&&domainscompatible(a,b)
 
-MappedSpace{D<:Domain,T}(d::D,s::FunctionSpace{T})=MappedSpace{typeof(s),D,T}(d,s)
+MappedSpace{D<:Domain,T}(d::D,s::Space{T})=MappedSpace{typeof(s),D,T}(d,s)
 
 
 
@@ -98,9 +98,11 @@ Conversion(S1::ConstantSpace,S2::MappedSpace)=ConversionWrapper(
         S1,S2))
 
 # Conversion is induced from canonical space
-for OP in (:union_rule,:conversion_rule,:maxspace)
+for (OPrule,OP) in ((:union_rule,:union),
+                    (:conversion_rule,:conversion_type),
+                    (:maxspace_rule,:maxspace))
     @eval begin
-        function $OP(S1::MappedSpace,S2::MappedSpace)
+        function $OPrule(S1::MappedSpace,S2::MappedSpace)
             @assert domain(S1)==domain(S2)
             cr=$OP(S1.space,S2.space)
             if isa(cr,NoSpace)
@@ -109,7 +111,7 @@ for OP in (:union_rule,:conversion_rule,:maxspace)
                 MappedSpace(domain(S1),cr)
             end
         end
-        function $OP(S1::ConstantSpace,S2::MappedSpace)
+        function $OPrule(S1::ConstantSpace,S2::MappedSpace)
             cr=$OP(S1,S2.space)
             if isa(cr,ConstantSpace)||isa(cr,NoSpace)
                 cr
@@ -126,6 +128,17 @@ function Multiplication{MS<:MappedSpace,T}(f::Fun{MS,T},S::MappedSpace)
     @assert d==domain(S)
     mf=Fun(coefficients(f),space(f).space)  # project f
     M=Multiplication(mf,S.space)
+    MultiplicationWrapper(f,SpaceOperator(M,
+        MappedSpace(d,domainspace(M)),
+        MappedSpace(d,rangespace(M))
+    ))
+end
+
+function Multiplication{MS<:MappedSpace,T}(S::MappedSpace,f::Fun{MS,T})
+    d=domain(f)
+    @assert d==domain(S)
+    mf=Fun(coefficients(f),space(f).space)  # project f
+    M=Multiplication(S.space,mf)
     MultiplicationWrapper(f,SpaceOperator(M,
         MappedSpace(d,domainspace(M)),
         MappedSpace(d,rangespace(M))
@@ -155,7 +168,7 @@ function Integral(sp::MappedSpace,k::Integer)
     else # k==1
         csp=sp.space
 
-        x=Fun(identity,csp)
+        x=Fun(identity,domain(csp))
         M=Multiplication(fromcanonicalD(sp,x),csp)
         Q=Integral(rangespace(M))*M
         IntegralWrapper(SpaceOperator(Q,sp,MappedSpace(sp.domain,rangespace(Q))),1)
@@ -172,7 +185,7 @@ end
 function DefiniteLineIntegral(sp::MappedSpace)
     x=Fun(domain(sp.space))
     M=Multiplication(abs(fromcanonicalD(sp,x)),sp.space)
-    DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
+    DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteLineIntegral(rangespace(M))*M,sp))
 end
 
 

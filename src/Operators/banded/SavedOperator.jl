@@ -17,7 +17,10 @@ end
 SavedFunctional(op::Functional,data)=SavedFunctional(op,data,length(data))
 SavedFunctional{T<:Number}(op::Functional{T})=SavedFunctional(op,Array(T,0),0)
 
-Base.convert{BT<:Operator}(::Type{BT},S::SavedFunctional)=SavedFunctional(convert(Functional{eltype(BT)},S.op))
+for TYP in (:Functional,:Operator)
+    @eval Base.convert{T}(::Type{$TYP{T}},S::SavedFunctional)=SavedFunctional(convert(Functional{T},S.op))
+end
+
 
 domainspace(F::SavedFunctional)=domainspace(F.op)
 datalength(S::SavedFunctional)=datalength(S.op)
@@ -55,7 +58,7 @@ type SavedBandedOperator{T<:Number,M<:BandedOperator} <: BandedOperator{T}
     op::M
     data::BandedMatrix{T}   #Shifted to encapsolate bandedness
     datalength::Int
-    bandinds::@compat(Tuple{Int,Int})
+    bandinds::Tuple{Int,Int}
 end
 
 
@@ -90,19 +93,24 @@ datalength(B::SavedBandedOperator)=B.datalength
 
 
 
-function addentries!(B::SavedBandedOperator,A,kr::Range)
+function addentries!(B::SavedBandedOperator,A,kr::Range,::Colon)
     resizedata!(B,kr[end])
 
-    addentries!(B.data,A,kr)
+    addentries!(B.data,A,kr,:)
 
     A
+end
+
+function Base.getindex(B::SavedBandedOperator,k::Integer,j::Integer)
+    resizedata!(B,k)
+    B.data[k,j]
 end
 
 function resizedata!(B::SavedBandedOperator,n::Integer)
     if n > B.datalength
         pad!(B.data,2n,:)
 
-        addentries!(B.op,B.data,B.datalength+1:n)
+        addentries!(B.op,B.data,B.datalength+1:n,:)
 
         B.datalength = n
     end

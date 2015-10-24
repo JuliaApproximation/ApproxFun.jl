@@ -5,16 +5,20 @@ export Ultraspherical
 
 
 
-immutable Ultraspherical{O} <: PolynomialSpace
-    domain::Interval
+immutable Ultraspherical{O,D<:Domain} <: PolynomialSpace{D}
+    domain::D
     Ultraspherical(d)=new(d)
     Ultraspherical()=new(Interval())
 end
 
 
+Base.convert{m}(::Type{Ultraspherical{m}})=Ultraspherical{m,Interval{Float64}}()
+Base.convert{m}(::Type{Ultraspherical{m}},d::Domain)=Ultraspherical{m,typeof(d)}(d)
+Base.convert{m}(::Type{Ultraspherical{m}},d::Vector)=Ultraspherical{m}(Domain(d))
 
-#Ultraspherical(o::Integer)=Ultraspherical(o,AnyDomain())
-#Chebyshev(d::IntervalDomain)=Ultraspherical(0,d)
+
+setdomain{s}(S::Ultraspherical{s},d::Domain)=Ultraspherical{s}(d)
+
 
 include("Chebyshev.jl")
 
@@ -34,15 +38,13 @@ Base.ones{O}(S::Ultraspherical{O})=Fun(ones(1),S)
 
 ## Fast evaluation
 
-Base.first{O}(f::Fun{Ultraspherical{O}})=foldr(-,coefficients(f,Chebyshev))
-Base.last{O}(f::Fun{Ultraspherical{O}})=reduce(+,coefficients(f,Chebyshev))
+Base.first{O,D}(f::Fun{Ultraspherical{O,D}})=foldr(-,coefficients(f,Chebyshev))
+Base.last{O,D}(f::Fun{Ultraspherical{O,D}})=reduce(+,coefficients(f,Chebyshev))
 identity_fun{m}(d::Ultraspherical{m})=Fun(identity_fun(domain(d)),d)
 
 
 ## Calculus
 
-#integrate(f::Fun{Ultraspherical{1}})=Fun(fromcanonicalD(f,0)*ultraint(f.coefficients),
-#                                        Chebyshev(domain(f)))
 
 
 

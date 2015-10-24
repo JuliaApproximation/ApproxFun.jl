@@ -48,7 +48,7 @@ function givensmatrix(a::Number,b::Number)
 end
 
 
-function givensreduceab!{T,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
+function givensreduceab!{T,M,R}(B::MutableOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
     bnd=B.bandinds
     A=B.data
 
@@ -67,7 +67,7 @@ function givensreduceab!{T,M,R}(B::AlmostBandedOperator{T,M,R},k1::Integer,k2::I
     ca,cb,mb,a
 end
 
-function givensreduce!{T,M,R}(B::AlmostBandedOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
+function givensreduce!{T,M,R}(B::MutableOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
     ca,cb,mb,a=givensreduceab!(B,k1,k2,j1)
 
     @simd for j=1:size(v,2)
@@ -78,7 +78,7 @@ function givensreduce!{T,M,R}(B::AlmostBandedOperator{T,M,R},v::Array,k1::Intege
     B
 end
 
-function givensreduce!(B::AlmostBandedOperator,v::Array,k1::Range,j1::Integer)
+function givensreduce!(B::MutableOperator,v::Array,k1::Range,j1::Integer)
     if length(k1)>1
         for k=k1[2]:k1[end]
             givensreduce!(B,v,k1[1],k,j1)
@@ -87,10 +87,10 @@ function givensreduce!(B::AlmostBandedOperator,v::Array,k1::Range,j1::Integer)
     B
 end
 
-givensreduce!(B::AlmostBandedOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandinds(B)[1]),j)
+givensreduce!(B::MutableOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandinds(B)[1]),j)
 
 
-function backsubstitution!(B::AlmostBandedOperator,u::Array)
+function backsubstitution!(B::MutableOperator,u::Array)
     n=size(u,1)
     b=B.bandinds[end]
     nbc = B.fill.numbcs
@@ -133,6 +133,7 @@ end
 
 adaptiveqr(M,b)=adaptiveqr(M,b,eps())
 adaptiveqr(M,b,tol)=adaptiveqr(M,b,tol,Inf)
+adaptiveqr!(B,v)=adaptiveqr!(B,v,eps())
 adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
 
@@ -140,7 +141,7 @@ adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
 
 
-convertvec{T<:Number,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{promote_type(T,V),k},v)
+convertvec{T<:Number,V<:Number,k}(::Operator{T},v::Array{V,k})=convert(Array{promote_type(T,V),k},v)
 convertvec{T<:AbstractMatrix,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=totree(v)
 convertvec{T<:AbstractMatrix,V<:AbstractArray,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{V(promote_type(eltype(T),eltype(V))),k},v)
 
@@ -167,8 +168,8 @@ function slnorm{T}(u::BandedMatrix{T},r::Range)
 end
 
 adaptiveqr(B::Operator,v::Array,tol::Real,N) = adaptiveqr([B],v,tol,N)  #May need to copy v in the future
-adaptiveqr{T<:Operator}(B::Vector{T},v::Array,tol::Real,N) = adaptiveqr!(AlmostBandedOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
-function adaptiveqr!(B::AlmostBandedOperator,v::Array,tol::Real,N)
+adaptiveqr{T<:Operator}(B::Vector{T},v::Array,tol::Real,N) = adaptiveqr!(MutableOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
+function adaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
     b=-B.bandinds[1]
     m=3+b
 
@@ -193,7 +194,7 @@ function adaptiveqr!(B::AlmostBandedOperator,v::Array,tol::Real,N)
     end
 
     if j >= N
-        warn("Maximum number of iterations " * string(N) * " reached.  Check that the correct number of boundary conditions are specified, or change maxiteration.")
+        warn("Maximum number of iterations $N reached without achieving tolerance $tol.  Check that the correct number of boundary conditions are specified, or change maxiteration.")
     end
 
     ##TODO: why max original length?

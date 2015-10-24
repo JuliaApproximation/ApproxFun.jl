@@ -11,10 +11,10 @@ immutable PeriodicInterval{T<:Number} <: PeriodicDomain{T}
 end
 
 PeriodicInterval()=PeriodicInterval{Float64}()
-PeriodicInterval(a::Int,b::Int) = PeriodicInterval(@compat(Float64(a)),@compat(Float64(b))) #convenience method
+PeriodicInterval(a::Int,b::Int) = PeriodicInterval(Float64(a),Float64(b)) #convenience method
 PeriodicInterval(a::Number,b::Number) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)
 
-function PeriodicInterval{T<:Number}(d::Vector{T})
+function PeriodicInterval{T<:Number}(d::AbstractVector{T})
     @assert length(d)==2
     @assert isfinite(d[1]) && isfinite(d[2])
     PeriodicInterval(d...)
@@ -77,4 +77,3 @@ end
 
 
 +(d1::PeriodicInterval,d2::PeriodicInterval)=PeriodicInterval(d1.a+d2.a,d1.b+d2.b)
-

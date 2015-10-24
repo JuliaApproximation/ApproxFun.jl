@@ -1,6 +1,6 @@
 
 
-immutable ContinuousSpace <: FunctionSpace{RealBasis,1}
+immutable ContinuousSpace <: Space{RealBasis,PiecewiseInterval,1}
     domain::PiecewiseInterval
 end
 
@@ -11,7 +11,7 @@ Space(d::PiecewiseInterval)=ContinuousSpace(d)
 isperiodic(C::ContinuousSpace)=isperiodic(domain(C))
 
 spacescompatible(a::ContinuousSpace,b::ContinuousSpace)=domainscompatible(a,b)
-conversion_rule(a::ContinuousSpace,b::PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis})=a
+conversion_rule{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(a::ContinuousSpace,b::PiecewiseSpace{CD,RealBasis})=a
 
 function transform(S::ContinuousSpace,vals::Vector)
     n=length(vals)
@@ -100,9 +100,9 @@ end
 ## Conversion
 
 coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace)=defaultcoefficients(cfsin,A,B)
-bandinds(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1},ContinuousSpace})=-1,length(domain(rangespace(C)))
+bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace})=-1,length(domain(rangespace(C)))
 
-function addentries!{T}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1},ContinuousSpace,T},A,kr::Range)
+function addentries!{T,DD,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(C::Conversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace,T},A,kr::Range,::Colon)
     d=domain(rangespace(C))
     K=length(d)
     if isperiodic(d)
@@ -133,8 +133,8 @@ function addentries!{T}(C::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1},Rea
     A
 end
 
-bandinds(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1}})=isperiodic(domainspace(C))?(1-2length(domain(rangespace(C))),1):(-length(domain(rangespace(C))),1)
-function addentries!{T}(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDirichlet{1,1},RealBasis,1},T},A,kr::Range)
+bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{ContinuousSpace,PiecewiseSpace{CD,RealBasis,DD,1}})=isperiodic(domainspace(C))?(1-2length(domain(rangespace(C))),1):(-length(domain(rangespace(C))),1)
+function addentries!{T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{ContinuousSpace,PiecewiseSpace{CD,RealBasis,DD,1},T},A,kr::Range,::Colon)
     d=domain(domainspace(C))
     K=length(d)
     if isperiodic(d)
@@ -170,4 +170,3 @@ function addentries!{T}(C::Conversion{ContinuousSpace,PiecewiseSpace{ChebyshevDi
     end
     A
 end
-

@@ -14,7 +14,7 @@ function splitatroots(f::Fun)
         isapprox(da,pts[1]) ? pts[1] = da : pts = [da;pts]
         db=last(d)
         isapprox(db,pts[end]) ? pts[end] = db : pts = [pts;db]
-        Fun(x->f[x],pts)
+        Fun(x->f(x),pts)
     end
 end
 
@@ -26,7 +26,7 @@ function splitmap(g,d::AffineDomain,pts)
     Fun(g,pts)
 end
 
-function splitmap(g,d::Union(IntervalDomain,Curve),pts)
+function splitmap(g,d::Union{IntervalDomain,Curve},pts)
     if length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
         Fun(g,d)
     elseif length(pts)==2 && isapprox(first(pts),first(d)) && isapprox(last(pts),last(d))
@@ -44,7 +44,7 @@ function Base.abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     if isempty(pts)
         sign(first(f))*f
     else
-        splitmap(x->abs(f[x]),d,pts)
+        splitmap(x->abs(f(x)),d,pts)
     end
 end
 
@@ -55,9 +55,9 @@ function Base.abs(f::Fun)
 
     if isempty(pts)
         # This makes sure Laurent returns real type
-        real(Fun(x->abs(f[x]),space(f)))
+        real(Fun(x->abs(f(x)),space(f)))
     else
-        splitmap(x->abs(f[x]),d,pts)
+        splitmap(x->abs(f(x)),d,pts)
     end
 end
 
@@ -77,7 +77,7 @@ function Base.sign{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
         db=last(d)
         isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts,db]
         midpts = .5(pts[1:end-1]+pts[2:end])
-        Fun([sign(f[midpts])],pts)
+        Fun([sign(f(midpts))],pts)
     end
 end
 
@@ -86,7 +86,7 @@ end
 function ./{S,T,U,V}(c::Fun{S,T},f::Fun{U,V})
     r=roots(f)
     tol=10eps()
-    if length(r)==0 || norm(c[r])<tol
+    if length(r)==0 || norm(c(r))<tol
         linsolve(Multiplication(f,space(c)),c;tolerance=tol)
     else
         c.*(1./f)
@@ -100,7 +100,7 @@ function ./{S,T}(c::Number,f::Fun{S,T})
     linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
 end
 
-function ./(c::Number,f::Fun{Chebyshev})
+function ./{C<:Chebyshev}(c::Number,f::Fun{C})
     fc = Fun(coefficients(f),Interval())
     r = roots(fc)
     x = Fun(identity)
@@ -139,7 +139,7 @@ function ./{S<:MappedSpace}(c::Number,f::Fun{S})
     g=c./Fun(coefficients(f),space(f).space)
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
-function .^{S<:FunctionSpace,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
+function .^{S<:Space,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
     g=Fun(coefficients(f),space(f).space).^k
     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
 end
@@ -156,7 +156,7 @@ function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
     @assert length(r) <= 2
 
     if length(r) == 0
-        Fun(Fun(x->fc[x]^k).coefficients,sp)
+        Fun(Fun(x->fc(x)^k).coefficients,sp)
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
@@ -173,7 +173,7 @@ function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
     end
 end
 
-function .^(f::Fun{Chebyshev},k::Float64)
+function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
     fc = setdomain(f,Interval()) #Project to interval
@@ -183,7 +183,7 @@ function .^(f::Fun{Chebyshev},k::Float64)
     @assert length(r) <= 2
 
     if length(r) == 0
-        Fun(Fun(x->fc[x]^k).coefficients,sp)
+        Fun(Fun(x->fc(x)^k).coefficients,sp)
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
@@ -276,7 +276,7 @@ function Base.log{US<:Ultraspherical}(f::Fun{US})
 end
 
 
-function Base.log{T<:Real}(f::Fun{Fourier,T})
+function Base.log{T<:Real,D}(f::Fun{Fourier{D},T})
     if isreal(domain(f))
         cumsum(differentiate(f)/f)+log(first(f))
     else
@@ -297,7 +297,7 @@ function specialfunctionnormalizationpoint(op,growth,f)
     g=chop(growth(f),eps(eltype(f)))
     xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
     xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
-    opfxmin,opfxmax = op(f[xmin]),op(f[xmax])
+    opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
     opmax = maxabs((opfxmin,opfxmax))
     if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
     xmax,opfxmax,opmax
@@ -392,8 +392,8 @@ Base.asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
 ## Second order functions
 
 
-Base.sin{S<:FunctionSpace{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
-Base.cos{S<:FunctionSpace{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
+Base.sin{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
+Base.cos{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 Base.sin{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
 Base.cos{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 
@@ -416,11 +416,11 @@ for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0f'^3",:(imag
             g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
-            opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
+            opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
             opmax = maxabs((opfxmin,opfxmax))
-            while opmax≤10eps(T) || abs(f[xmin]-f[xmax])≤10eps(T)
+            while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
                 xmin,xmax = rand(domain(f)),rand(domain(f))
-                opfxmin,opfxmax = $op(f[xmin]),$op(f[xmax])
+                opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
                 opmax = maxabs((opfxmin,opfxmax))
             end
             D=Derivative(space(f))
@@ -447,11 +447,11 @@ for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^
             g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
-            opfxmin,opfxmax = $op(ν,f[xmin]),$op(ν,f[xmax])
+            opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
             opmax = maxabs((opfxmin,opfxmax))
-            while opmax≤10eps(T) || abs(f[xmin]-f[xmax])≤10eps(T)
+            while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
                 xmin,xmax = rand(domain(f)),rand(domain(f))
-                opfxmin,opfxmax = $op(ν,f[xmin]),$op(ν,f[xmax])
+                opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
                 opmax = maxabs((opfxmin,opfxmax))
             end
             D=Derivative(space(f))
@@ -531,7 +531,7 @@ for op in (:(Base.expm1),:(Base.log1p),:(Base.lfact),:(Base.sinc),:(Base.cosc),
            :(Base.eta),:(Base.zeta),:(Base.gamma),:(Base.lgamma),
            :(Base.polygamma),:(Base.invdigamma),:(Base.digamma),:(Base.trigamma))
     @eval begin
-        $op{S,T}(f::Fun{S,T})=Fun(x->$op(f[x]),domain(f))
+        $op{S,T}(f::Fun{S,T})=Fun(x->$op(f(x)),domain(f))
     end
 end
 
@@ -567,13 +567,13 @@ for op in (:(<=),:(>=))
                 $op(first(f),c)
             elseif length(rts)==1
                 if isapprox(rts[1],first(domain(f))) || isapprox(rts[1],last(domain(f)))
-                    $op(f[fromcanonical(f,0.)],c)
+                    $op(f(fromcanonical(f,0.)),c)
                 else
                     error("Implement for mid roots")
                 end
             elseif length(rts)==2
                 if isapprox(rts[1],first(domain(f))) && isapprox(rts[2],last(domain(f)))
-                    $op(f[fromcanonical(f,0.)],c)
+                    $op(f(fromcanonical(f,0.)),c)
                 else
                     error("Implement for mid roots")
                 end
@@ -587,13 +587,13 @@ for op in (:(<=),:(>=))
                 $op(c,first(f))
             elseif length(rts)==1
                 if isapprox(rts[1],first(domain(f))) || isapprox(rts[1],first(domain(f)))
-                    $op(c,f[fromcanonical(f,0.)])
+                    $op(c,f(fromcanonical(f,0.)))
                 else
                     error("Implement for mid roots")
                 end
             elseif length(rts)==2
                 if isapprox(rts[1],first(domain(f))) && isapprox(rts[2],first(domain(f)))
-                    $op(c,f[fromcanonical(f,0.)])
+                    $op(c,f(fromcanonical(f,0.)))
                 else
                     error("Implement for mid roots")
                 end
@@ -625,9 +625,7 @@ end
 
 for OP in (:(Base.abs),:(Base.sign))
     @eval begin
-        $OP{S,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,1},T})=depiece(mapreduce($OP,vcat,pieces(f)))
-        $OP{S,B}(f::Fun{PiecewiseSpace{S,B,1}})=depiece(mapreduce($OP,vcat,pieces(f)))
+        $OP{S,DD,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,DD,1},T})=depiece(mapreduce($OP,vcat,pieces(f)))
+        $OP{S,DD,B}(f::Fun{PiecewiseSpace{S,B,DD,1}})=depiece(mapreduce($OP,vcat,pieces(f)))
     end
 end
-
-

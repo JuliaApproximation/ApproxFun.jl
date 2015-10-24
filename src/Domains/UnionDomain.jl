@@ -2,21 +2,26 @@
 
 export UnionDomain
 
-immutable UnionDomain{D<:Domain,T,d} <: Domain{T,d}
-    domains::Vector{D}
+
+"""
+    UnionDomain represents a union of multiple subdomains.
+"""
+immutable UnionDomain{DD,T,d} <: Domain{T,d}
+    domains::DD
 end
 
-UnionDomain{D<:Domain}(d::Vector{D})=UnionDomain{D,mapreduce(eltype,promote_type,d),mapreduce(ndims,max,d)}(d)
+UnionDomain(d::Tuple)=UnionDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(ndims,max,d)}(d)
+UnionDomain(d::AbstractVector)=UnionDomain(tuple(d...))
 
 
 isambiguous(d::UnionDomain)=isempty(d.domains)
-Base.convert{D<:Domain,T}(::Type{UnionDomain{D,T}},::AnyDomain)=UnionDomain{D,T}([])
-Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain)=UnionDomain([])
+Base.convert{DD,T,d}(::Type{UnionDomain{DD,T,d}},::AnyDomain)=UnionDomain{DD,T,d}(map(D->D(AnyDomain()),DD.parameters))
+Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain)=UnionDomain(tuple())
 
 
 
 ∪(d::Domain) = d
-∪{D<:Domain}(d::Vector{D}) = UnionDomain(d)
+∪{D<:Domain}(d::AbstractVector{D}) = UnionDomain(d)
 function ∪{D<:Domain}(::Type{D},x)
     out = map(D,x)
     length(out) > 1 ? ∪(out) : out[1]
@@ -25,27 +30,26 @@ function ∪{D<:Domain}(::Type{D},x,y)
     out = map(D,x,y)
     length(out) > 1 ? ∪(out) : out[1]
 end
-∪{D1,D2,T1,T2}(d1::UnionDomain{D1,T1},d2::UnionDomain{D2,T2})=UnionDomain([d1.domains;d2.domains])
-∪{T1,D2,T2}(d1::Domain{T1},d2::UnionDomain{D2,T2})=UnionDomain([d1;d2.domains])
-∪{D1,T1,T2}(d1::UnionDomain{D1,T1},d2::Domain{T2})=UnionDomain([d1.domains;d2])
-∪{T1,T2}(d1::Domain{T1},d2::Domain{T2})=UnionDomain([d1,d2])
-Base.length(d::UnionDomain)=d.domains|>length
-Base.getindex(d::UnionDomain,k)=d.domains[k]
+∪(d1::UnionDomain,d2::UnionDomain)=UnionDomain((d1.domains...,d2.domains...))
+∪(d1::Domain,d2::UnionDomain)=UnionDomain((d1,d2.domains...))
+∪(d1::UnionDomain,d2::Domain)=UnionDomain((d1.domains...,d2))
+∪(d1::Domain,d2::Domain)=UnionDomain((d1,d2))
+
 for op in (:(Base.first),:(Base.last))
-    @eval $op(d::UnionDomain)=d.domains|>$op|>$op
+    @eval $op(d::UnionDomain)=$op($op(d.domains))
 end
+
+#support tuple set
+for OP in (:(Base.start),:(Base.done),:(Base.endof),:(Base.getindex),:(Base.length),:(Base.next))
+    @eval $OP(S::UnionDomain,k...)=$OP(S.domains,k...)
+end
+
 
 ==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
 
 
 Base.in(x,d::UnionDomain)=any(a->x∈a,d.domains)
-
-
 Base.issubset(a::Domain,d::UnionDomain)=(a∪d)==d
-
-
-
-
 
 ∂(d::UnionDomain)=mapreduce(∂,union,d.domains)
 
@@ -58,12 +62,10 @@ function points(d::UnionDomain,n)
 end
 
 Base.rand(d::UnionDomain)=rand(d[rand(1:length(d))])
-
 checkpoints(d::UnionDomain)=mapreduce(checkpoints,union,d.domains)
 
-function Base.merge{D}(d1::UnionDomain{D},m::Interval)
+function Base.merge(d1::UnionDomain,m::Interval)
     ret=d1.domains
-    T=promote_type(D,typeof(m))
 
     for k=length(ret):-1:1
         it=intersect(ret[k],m)
@@ -71,9 +73,9 @@ function Base.merge{D}(d1::UnionDomain{D},m::Interval)
             sa=setdiff(ret[k],it)
             m=setdiff(m,it)
             if isempty(sa)
-                ret = T[ret[1:k-1]...;it;ret[k+1:end]...]
+                ret = [ret[1:k-1]...;it;ret[k+1:end]...]
             else
-                ret = T[ret[1:k-1]...;sa;it;ret[k+1:end]...]
+                ret = [ret[1:k-1]...;sa;it;ret[k+1:end]...]
             end
             if isempty(m)
                 break

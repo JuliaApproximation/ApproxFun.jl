@@ -26,7 +26,7 @@ for (hseqr,elty) in ((:zhseqr_,:Complex128),)
         Ptr{BlasInt},Ptr{BlasInt},Ptr{BlasInt},Ptr{$elty}, #A
         Ptr{BlasInt},Ptr{$elty},Ptr{$elty}, #z
         Ptr{BlasInt},Ptr{$elty},Ptr{BlasInt},Ptr{BlasInt}),
-        &Ec,&Nc,&N , &ilo, &ihi, A, &ldh, w, &z, &ldz, work, &lwork, &info) 
+        &Ec,&Nc,&N , &ilo, &ihi, A, &ldh, w, &z, &ldz, work, &lwork, &info)
         w
     end
 end
@@ -35,8 +35,8 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
     @eval function hesseneigvals(M::Matrix{$elty})
         if isempty(M)
             return $elty[]
-        end    
-    
+        end
+
         A=vec(M)
 
         N=size(M,1)
@@ -60,15 +60,14 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
             Ptr{BlasInt},Ptr{BlasInt},Ptr{BlasInt},Ptr{$elty}, #A
             Ptr{BlasInt},Ptr{$elty},Ptr{$elty},Ptr{$elty}, #z
             Ptr{BlasInt},Ptr{$elty},Ptr{BlasInt},Ptr{BlasInt}),
-            &Ec,&Nc,&N , &ilo, &ihi, A, &ldh, wr,wi, &z, &ldz, work, &lwork, &info) 
+            &Ec,&Nc,&N , &ilo, &ihi, A, &ldh, wr,wi, &z, &ldz, work, &lwork, &info)
 
             if lwork < 0
-                lwork=@compat(Int(real(work[1])))
+                lwork=Int(real(work[1]))
                 work=Array($elty,lwork)
             end
         end
 
-        wr+im*wi    
+        wr+im*wi
     end
 end
-

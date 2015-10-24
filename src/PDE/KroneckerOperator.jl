@@ -76,7 +76,7 @@ typealias BivariateOperator{T} BandedOperator{BandedMatrix{T}}
 #########
 
 immutable KroneckerOperator{S,V,DS,RS,T<:Number}<: BivariateOperator{T}
-    ops::@compat(Tuple{S,V})
+    ops::Tuple{S,V}
     domainspace::DS
     rangespace::RS
 end
@@ -145,8 +145,8 @@ end
 
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
-blockbandinds(::Union(ConstantOperator,ZeroOperator),::Integer)=0
-blockbandinds(K::Union(ConversionWrapper,MultiplicationWrapper,SpaceOperator,ConstantTimesOperator),k::Integer)=blockbandinds(K.op,k)
+blockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer)=0
+blockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,SpaceOperator,ConstantTimesOperator},k::Integer)=blockbandinds(K.op,k)
 
 
 
@@ -187,14 +187,14 @@ function kronaddentries!(A,B,M,kr::Range)
     M
 end
 
-addentries!(K::KroneckerOperator,A,kr::Range)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
+addentries!(K::KroneckerOperator,A,kr::Range,::Colon)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
 
 
 bazeros{BT<:BandedMatrix}(K::Operator{BT},
                           n::Integer,
                           ::Colon)=blockbandzeros(eltype(BT),n,:,bandinds(K),blockbandinds(K))
 bazeros{BT<:BandedMatrix}(K::Operator{BT},n::Integer,
-                          br::@compat(Tuple{Int,Int}))=blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
+                          br::Tuple{Int,Int})=blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
 
 # function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
 #     @assert first(kr)==1
@@ -277,7 +277,7 @@ Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T})=Operator{BandedMatrix{pro
 
 conversion_rule(a::TensorSpace,b::TensorSpace)=conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
 conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::TensorSpace)=a
-conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::FunctionSpace)=a
+conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::Space)=a
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
 Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
@@ -303,12 +303,12 @@ end
 
 
 Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
-function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{ConstantSpace,V}),T,2}},sp::TensorSpace)
+function Multiplication{T,V}(f::Fun{TensorSpace{Tuple{ConstantSpace,V},T,2}},sp::TensorSpace)
     a=Fun(vec(totensor(f.coefficients)[1,:]),space(f)[2])
     #Hack to avoid auto-typing bug.  TODO: incorporate basis
     MultiplicationWrapper(BandedMatrix{eltype(f)},f,eye(sp[1])⊗Multiplication(a,sp[2]))
 end
-function Multiplication{T,V}(f::Fun{TensorSpace{@compat(Tuple{V,ConstantSpace}),T,2}},sp::TensorSpace)
+function Multiplication{T,V}(f::Fun{TensorSpace{Tuple{V,ConstantSpace},T,2}},sp::TensorSpace)
     if isempty(f.coefficients)
         a=Fun(zeros(eltype(f),1),space(f)[1])
     else
@@ -321,7 +321,7 @@ Multiplication{D<:UnivariateSpace,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplicat
 
 
 # from algebra
-function promotedomainspace{T,T2}(P::PlusOperator{T},sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T2})
+function promotedomainspace{T,T2}(P::PlusOperator{T},sp::Space,cursp::TensorSpace{AnySpace,AnySpace,T2})
     if sp==cursp
         P
     else
@@ -329,7 +329,7 @@ function promotedomainspace{T,T2}(P::PlusOperator{T},sp::FunctionSpace,cursp::Te
     end
 end
 
-function promotedomainspace{T}(P::TimesOperator,sp::FunctionSpace,cursp::TensorSpace{AnySpace,AnySpace,T})
+function promotedomainspace{T}(P::TimesOperator,sp::Space,cursp::TensorSpace{AnySpace,AnySpace,T})
     if sp==cursp
         P
     elseif length(P.ops)==2
@@ -340,7 +340,7 @@ function promotedomainspace{T}(P::TimesOperator,sp::FunctionSpace,cursp::TensorS
 end
 
 for op in (:promotedomainspace,:promoterangespace)
-    @eval $op(P::BandedOperator,sp::FunctionSpace,::TensorSpace{AnySpace,AnySpace})=SpaceOperator(P,sp)
+    @eval $op(P::BandedOperator,sp::Space,::TensorSpace{AnySpace,AnySpace})=SpaceOperator(P,sp)
 end
 
 

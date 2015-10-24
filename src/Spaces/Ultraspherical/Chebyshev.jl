@@ -2,7 +2,7 @@
 export Chebyshev
 
 
-typealias Chebyshev Ultraspherical{0}
+typealias Chebyshev{D<:Domain} Ultraspherical{0,D}
 
 
 Space(d::Interval)=Chebyshev(d)
@@ -28,17 +28,164 @@ plan_itransform(::Chebyshev,cfs::Vector)=plan_ichebyshevtransform(cfs)
 
 ## Evaluation
 
-evaluate(f::Fun{Chebyshev},x)=clenshaw(f.coefficients,tocanonical(f,x))
+clenshaw(sp::Chebyshev,c::AbstractVector,x::AbstractArray) = clenshaw(c,x,
+                                            ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,length(c),length(x)))
+
+function clenshaw(::Chebyshev,c::AbstractVector,x)
+    N,T = length(c),promote_type(eltype(c),typeof(x))
+    if isempty(c)
+        return zero(x)
+    end
+
+    x = 2x
+    bk1,bk2 = zero(T),zero(T)
+    for k = N:-1:2
+        bk2, bk1 = bk1, muladd(x,bk1,c[k]-bk2)
+    end
+
+    muladd(x/2,bk1,c[1]-bk2)
+end
+
+function clenshaw{S<:Chebyshev,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
+    N,n = length(c),length(x)
+    if isempty(c)
+        return zeros(V,n)
+    end
+
+    bk=plan.bk
+    bk1=plan.bk1
+    bk2=plan.bk2
+
+    @inbounds for i = 1:n
+        x[i] = 2x[i]
+        bk1[i] = zero(V)
+        bk2[i] = zero(V)
+    end
+
+    @inbounds for k = N:-1:2
+        ck = c[k]
+        for i = 1:n
+            bk[i] = muladd(x[i],bk1[i],ck-bk2[i])
+        end
+        bk2, bk1, bk = bk1, bk, bk2
+    end
+
+    ck = c[1]
+    @inbounds for i = 1:n
+        x[i] = x[i]/2
+        bk[i] = muladd(x[i],bk1[i],ck-bk2[i])
+    end
+
+    bk
+end
+
+function clenshaw{S<:Chebyshev,T<:Number}(c::AbstractMatrix{T},x::T,plan::ClenshawPlan{S,T})
+    bk=plan.bk
+    bk1=plan.bk1
+    bk2=plan.bk2
+
+    m,n=size(c) # m is # of coefficients, n is # of funs
+
+    @inbounds for i = 1:n
+        bk1[i] = zero(T)
+        bk2[i] = zero(T)
+    end
+    x = 2x
+
+    @inbounds for k=m:-1:2
+        for j=1:n
+            ck = c[k,j]
+            bk[j] = muladd(x,bk1[j],ck - bk2[j])
+        end
+        bk2, bk1, bk = bk1, bk, bk2
+    end
+
+    x = x/2
+    @inbounds for i = 1:n
+        ce = c[1,i]
+        bk[i] = muladd(x,bk1[i],ce - bk2[i])
+    end
+
+    bk
+end
+
+function clenshaw{S<:Chebyshev,T<:Number}(c::AbstractMatrix{T},x::AbstractVector{T},plan::ClenshawPlan{S,T})
+    bk=plan.bk
+    bk1=plan.bk1
+    bk2=plan.bk2
+
+    m,n=size(c) # m is # of coefficients, n is # of funs
+
+    @inbounds for i = 1:n
+        x[i] = 2x[i]
+        bk1[i] = zero(T)
+        bk2[i] = zero(T)
+    end
+
+    @inbounds for k=m:-1:2
+        for j=1:n
+            ck = c[k,j]
+            bk[j] = muladd(x[j],bk1[j],ck - bk2[j])
+        end
+        bk2, bk1, bk = bk1, bk, bk2
+    end
+
+
+    @inbounds for i = 1:n
+        x[i] = x[i]/2
+        ce = c[1,i]
+        bk[i] = muladd(x[i],bk1[i],ce - bk2[i])
+    end
+
+    bk
+end
+
+# overwrite x
+
+function clenshaw!{S<:Chebyshev,V}(c::Vector,x::Vector,plan::ClenshawPlan{S,V})
+    N,n = length(c),length(x)
+
+    if isempty(c)
+        fill!(x,0)
+        return x
+    end
+
+    bk=plan.bk
+    bk1=plan.bk1
+    bk2=plan.bk2
+
+    @inbounds for i = 1:n
+        x[i] = 2x[i]
+        bk1[i] = zero(V)
+        bk2[i] = zero(V)
+    end
+
+    @inbounds for k = N:-1:2
+        ck = c[k]
+        for i = 1:n
+            bk[i] = muladd(x[i],bk1[i],ck - bk2[i])
+        end
+        bk2, bk1, bk = bk1, bk, bk2
+    end
+
+    ce = c[1]
+    @inbounds for i = 1:n
+        x[i] = x[i]/2
+        x[i] = muladd(x[i],bk1[i],ce-bk2[i])
+    end
+
+    x
+end
 
 ## Calculus
 
 
 # diff T -> U, then convert U -> T
-integrate(f::Fun{Chebyshev})=Fun(chebyshevintegrate(domain(f),f.coefficients),f.space)
+integrate{C<:Chebyshev}(f::Fun{C})=Fun(chebyshevintegrate(domain(f),f.coefficients),f.space)
 chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint!(ultraconversion(cfs))
 
 
-differentiate(f::Fun{Chebyshev})=Fun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
+differentiate{C<:Chebyshev}(f::Fun{C})=Fun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
 chebyshevdifferentiate(d::Interval,cfs::Vector)=tocanonicalD(d,0)*ultraiconversion(ultradiff(cfs))
 chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(Fun(x->tocanonicalD(d,x),d).*Fun(differentiate(Fun(cfs)),d)).coefficients
 
@@ -52,12 +199,13 @@ identity_fun(d::Chebyshev)=identity_fun(domain(d))
 
 # union_rule dictates how to create a space that both spaces can be converted to
 # in this case, it means
-function union_rule{S<:Ultraspherical}(s1::PiecewiseSpace{S},s2::PiecewiseSpace{S})
-    PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
+function union_rule{S1<:Tuple{Vararg{Ultraspherical}},
+                    S2<:Tuple{Vararg{Ultraspherical}}}(s1::PiecewiseSpace{S1},s2::PiecewiseSpace{S2})
+    PiecewiseSpace(map(Chebyshev,merge(domain(s1),domain(s2)).domains))
 end
 
-function union_rule{S<:Ultraspherical}(s1::PiecewiseSpace{S},s2::S)
-    PiecewiseSpace(map(S,merge(domain(s1),domain(s2)).domains))
+function union_rule{S1<:Tuple{Vararg{Ultraspherical}}}(s1::PiecewiseSpace{S1},s2::Ultraspherical)
+    PiecewiseSpace(map(Chebyshev,merge(domain(s1),domain(s2)).domains))
 end
 
 
@@ -72,4 +220,4 @@ end
 
 
 
-reverseorientation(f::Fun{Chebyshev})=Fun(alternatesign!(copy(f.coefficients)),Chebyshev(reverse(domain(f))))
+reverseorientation{C<:Chebyshev}(f::Fun{C})=Fun(alternatesign!(copy(f.coefficients)),Chebyshev(reverse(domain(f))))

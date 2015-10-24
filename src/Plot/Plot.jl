@@ -1,7 +1,7 @@
 export setplotter, domainplot, coefficientplot
 
 # these defaults are overloaded as packages are loaded
-plotter=@compat Dict(:contour=>"Gadfly",
+plotter=Dict(:contour=>"Gadfly",
     :plot=>"Gadfly",
     :surf=>"PyPlot")
 
@@ -50,6 +50,7 @@ end
 for (plt,gfplt,pyplt) in ((:plot,:gadflyplot,:pyplot),
                           (:layer,:gadflylayer,:pyplot),
                           (:contour,:gadflycontour,:pycontour),
+                          (:contourf,:gadflycontourf,:pycontourf),
                           (:semilogy,:gadflysemilogy,:pysemilogy))
     @eval begin
         function $plt(opts...;kwds...)
@@ -121,7 +122,7 @@ for OP in (:plot,:layer,:semilogy)
         end
 
         function $OP{S}(r::Range,f::Fun{S,Float64},v...;opts...)
-            $OP(collect(r),f[collect(r)],v...;opts...)
+            $OP(collect(r),f(collect(r)),v...;opts...)
         end
     end
 end
@@ -131,7 +132,7 @@ function complexplot(f::Fun,v...;opts...)
     vals =values(f)
     d = domain(f)
     if isa(d,Circle)
-        plot(real([vals,vals[1]]),imag([vals,vals[1]]),v...;opts...)
+        plot(real([vals;vals[1]]),imag([vals;vals[1]]),v...;opts...)
     else
         plot(real(vals),imag(vals),v...;opts...)
     end
@@ -163,25 +164,29 @@ function complexlayer{F<:Fun}(f::Vector{F},v...;opts...)
 end
 
 for (plt,TYP) in ((:plot,:Real),(:complexplot,:Complex),(:layer,:Real),(:complexlayer,:Complex))
-    @eval $plt{S<:Union(PiecewiseSpace,ArraySpace),T<:$TYP}(f::Fun{S,T},v...;opts...)=$plt(vec(f),v...;opts...)
+    @eval $plt{S<:Union{PiecewiseSpace,ArraySpace},T<:$TYP}(f::Fun{S,T},v...;opts...)=$plt(vec(f),v...;opts...)
 end
 
 
 
 ## Multivariate
 
-function contour(f::MultivariateFun,v...;opts...)
-    f=chop(f,10e-10)
-    f=pad(f,max(size(f,1),20),max(size(f,2),20))
-    vals=values(f)
-    if norm(imag(vals))>10e-9
-        warn("Imaginary part is non-neglible.  Only plotting real part.")
-    end
+for FUNC in (:contour,:contourf)
+    @eval begin
+        function $FUNC(f::MultivariateFun,v...;opts...)
+            f=chop(f,10e-10)
+            f=pad(f,max(size(f,1),20),max(size(f,2),20))
+            vals=values(f)
+            if norm(imag(vals))>10e-9
+                warn("Imaginary part is non-neglible.  Only plotting real part.")
+            end
 
-    contour(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals),v...;opts...)
+            $FUNC(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals),v...;opts...)
+        end
+        $FUNC(f::Fun,v...;opts...)=$FUNC(ProductFun(f),v...;opts...)
+    end
 end
 
-contour(f::Fun,v...;opts...)=contour(ProductFun(f),v...;opts...)
 
 
 
@@ -209,22 +214,11 @@ plot(f::MultivariateFun,obj,window;opts...)=glsurfupdate(real(values(f)),obj,win
 plot{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};opts...)=plot(ProductFun(f);ops...)
 
 
-# plot{S<:IntervalSpace,V<:PeriodicSpace,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
-# function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V};opts...)
-#     Px,Py=points(f)
-#     vals=real(values(f))
-#     surf([Px Px[:,1]], [Py Py[:,1]], [vals vals[:,1]];opts...)
-# end
-# function plot{S<:IntervalSpace,V<:PeriodicSpace}(f::ProductFun{S,V},obj,window)
-#     vals=real(values(f))
-#     glsurfupdate([vals vals[:,1]],obj,window)
-# end
 
-
-function plot{DS<:DiracSpace,T<:Real}(f::Fun{DS,T},v...)
+function plot{DS<:DiracSpace,T<:Real}(f::Fun{DS,T},v...;kwds...)
     n=length(space(f).points)
     plot(layer(Fun(f.coefficients[n+1:end],space(f).space)),
-               map(gadflydeltalayer,space(f).points,f.coefficients[1:n])...,v...)
+               map(gadflydeltalayer,space(f).points,f.coefficients[1:n])...,v...;kwds...)
 end
 
 ## domainplot
@@ -246,12 +240,12 @@ end
 layer{D<:Domain}(d::Vector{D})=mapreduce(layer,vcat,d)
 
 for OP in (:plot,:layer)
-    @eval $OP(d::UnionDomain)=$OP(d.domains)
+    @eval $OP(d::UnionDomain,opts...;kwds...)=$OP([d.domains...],opts...;kwds...)
 end
 
 
-domainplot(f::Union(Fun,FunctionSpace),v...;kwds...)=plot(domain(f),v...;kwds...)
-domainlayer(f::Union(Fun,FunctionSpace))=layer(domain(f))
+domainplot(f::Union{Fun,Space},v...;kwds...)=plot(domain(f),v...;kwds...)
+domainlayer(f::Union{Fun,Space},opts...;kwds...)=layer(domain(f),opts...;kwds...)
 
 
 

@@ -1,18 +1,37 @@
 
 include("SumSpace.jl")
 include("ArraySpace.jl")
-include("PiecewiseSpace.jl")
 include("ProductSpaceOperators.jl")
-include("PrependOperators.jl")
+include("BlockOperators.jl")
 include("SliceSpace.jl")
 
 
-⊕(A::FunctionSpace,B::FunctionSpace)=domainscompatible(A,B)?SumSpace(A,B):PiecewiseSpace(A,B)
+⊕(A::Space,B::Space)=domainscompatible(A,B)?SumSpace(A,B):PiecewiseSpace(A,B)
 ⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
 
 
 
-for TYP in (:SumSpace,:PiecewiseSpace,:FunctionSpace) # Resolve conflict
+# Conversion from Vector to Tuple
+# If a Vector fun has different spaces in each component we represenent
+#  it by a Tuple fun, so this allows conversion.
+
+
+function coefficients(f::Vector,a::VectorSpace,b::TupleSpace)
+    A=a.space
+    n=length(a)
+    @assert n==length(b.spaces)
+    ret=copy(f)
+    for k=1:n
+        ret[k:n:end]=coefficients(ret[k:n:end],A,b.spaces[k])
+    end
+    ret
+end
+
+
+
+
+
+for TYP in (:SumSpace,:PiecewiseSpace,:Space) # Resolve conflict
     @eval begin
         function coefficients(v::Vector,sp::$TYP,dropsp::SliceSpace)
             if sp==dropsp.space
@@ -74,7 +93,8 @@ end
 
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval begin
-        function coefficients(cfsin::Vector,A::FunctionSpace,B::$TYP)
+        # we need to be able to call this to avoid confusion
+        function sumspacecoefficients(cfsin::Vector,A::Space,B::$TYP)
             m=length(B.spaces)
             #TODO: What if we can convert?  FOr example, A could be Ultraspherical{1}
             # and B could contain Chebyshev
@@ -89,5 +109,6 @@ for TYP in (:SumSpace,:PiecewiseSpace)
 
             defaultcoefficients(cfsin,A,B)
         end
+        coefficients(cfsin::Vector,A::Space,B::$TYP)=sumspacecoefficients(cfsin,A,B)
     end
 end

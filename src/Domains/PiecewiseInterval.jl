@@ -4,8 +4,8 @@ end
 
 PiecewiseInterval(d::Number...)=PiecewiseInterval([d...])
 
-function PiecewiseInterval{IT<:Interval}(pcsin::Vector{IT})
-    pcs=copy(pcsin)
+function PiecewiseInterval{IT<:Interval}(pcsin::AbstractVector{IT})
+    pcs=collect(pcsin)
     p=∂(pop!(pcs))
     successful=true
     while successful

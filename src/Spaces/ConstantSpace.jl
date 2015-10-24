@@ -1,18 +1,38 @@
-immutable ConstantSpace <: UnivariateSpace{RealBasis} end
+
+
+"""
+`ConstantSpace` Represents a single number.  The remaining
+coefficients are ignored.
+"""
+
+immutable ConstantSpace <: UnivariateSpace{RealBasis,AnyDomain} end
 
 ConstantSpace(::AnyDomain)=ConstantSpace()
 
 Fun(c::Number)=Fun([c],ConstantSpace())
 Fun(c::Number,d::ConstantSpace)=Fun([c],d)
 
+dimension(::ConstantSpace)=1
+
 domain(::ConstantSpace)=AnyDomain()
 canonicalspace(C::ConstantSpace)=C
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
 
 Base.ones(S::ConstantSpace)=Fun(ones(1),S)
-Base.ones(S::Union(AnyDomain,AnySpace,UnsetSpace))=ones(ConstantSpace())
-Base.zeros(S::Union(AnyDomain,AnySpace,UnsetSpace))=zeros(ConstantSpace())
+Base.ones(S::Union{AnyDomain,AnySpace,UnsetSpace})=ones(ConstantSpace())
+Base.zeros(S::Union{AnyDomain,AnySpace,UnsetSpace})=zeros(ConstantSpace())
 evaluate(f::Fun{ConstantSpace},x...)=f.coefficients[1]
+evaluate(f::Fun{ConstantSpace},x::Array)=f.coefficients[1]*ones(x)
+
+evaluate(f::Fun{ZeroSpace},x...)=zero(eltype(f))
+evaluate(f::Fun{ZeroSpace},x::Array)=zeros(x)
+
+
+# promoting numbers to Fun
+# override promote_rule if the space type can represent constants
+Base.promote_rule{T<:Number}(::Type{Fun{ConstantSpace}},::Type{T})=Fun{ConstantSpace,T}
+Base.promote_rule{T<:Number,V}(::Type{Fun{ConstantSpace,V}},::Type{T})=Fun{ConstantSpace,promote_type(T,V)}
+Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
 
 
 
@@ -24,11 +44,15 @@ promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(o
 
 # When the union of A and B is a ConstantSpace, then it contains a one
 conversion_rule(A::ConstantSpace,B::UnsetSpace)=NoSpace()
-conversion_rule(A::ConstantSpace,B::FunctionSpace)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
+conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
+
+conversion_rule(A::ZeroSpace,B::Space)=A
+maxspace_rule(A::ZeroSpace,B::Space)=B
+Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(SpaceOperator(ZeroOperator(),A,B))
 
 
-bandinds{S<:FunctionSpace}(C::Conversion{ConstantSpace,S})=1-length(ones(rangespace(C))),0
-function addentries!{S<:FunctionSpace}(C::Conversion{ConstantSpace,S},A,kr::Range)
+bandinds{S<:Space}(C::Conversion{ConstantSpace,S})=1-length(ones(rangespace(C))),0
+function addentries!{S<:Space}(C::Conversion{ConstantSpace,S},A,kr::Range,::Colon)
     on=ones(rangespace(C))
     for k=kr
         if k≤length(on)
@@ -38,8 +62,8 @@ function addentries!{S<:FunctionSpace}(C::Conversion{ConstantSpace,S},A,kr::Rang
     A
 end
 
-bandinds{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T}) = 1-length(D.f),0
-function addentries!{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T},A,kr)
+bandinds{F<:Space,T}(D::Multiplication{F,ConstantSpace,T}) = 1-length(D.f),0
+function addentries!{F<:Space,T}(D::Multiplication{F,ConstantSpace,T},A,kr::Range,::Colon)
     Op = Multiplication(D.f,space(D.f))
     for k=kr
         if k≤length(D.f)
@@ -48,7 +72,16 @@ function addentries!{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T},A,
     end
     A
 end
-rangespace{F<:FunctionSpace,T}(D::Multiplication{F,ConstantSpace,T}) = rangespace(Multiplication(D.f,space(D.f)))
+
+function addentries!{T}(D::Multiplication{ConstantSpace,ConstantSpace,T},A,kr::Range,::Colon)
+    if 1 in kr
+        A[1,1]+=D.f.coefficients[1]
+    end
+    A
+end
+
+rangespace{F<:Space,T}(D::Multiplication{F,ConstantSpace,T}) = rangespace(Multiplication(D.f,space(D.f)))
+rangespace{T}(D::Multiplication{ConstantSpace,ConstantSpace,T}) = ConstantSpaec()
 
 
 ###
@@ -73,12 +106,12 @@ bandinds(FO::FunctionalOperator)=0,datalength(FO.func)-1
 domainspace(FO::FunctionalOperator)=domainspace(FO.func)
 rangespace(FO::FunctionalOperator)=ConstantSpace()
 
-for TYP in (:AnySpace,:UnsetSpace,:FunctionSpace)
+for TYP in (:AnySpace,:UnsetSpace,:Space)
     @eval promotedomainspace(FT::FunctionalOperator,sp::$TYP)=FunctionalOperator(promotedomainspace(FT.func,sp))
 end
 
 
-function addentries!(FO::FunctionalOperator,A,kr::Range)
+function addentries!(FO::FunctionalOperator,A,kr::Range,::Colon)
     if in(1,kr)
         dat=FO.func[1:datalength(FO.func)]
         for j=1:length(dat)
@@ -88,10 +121,25 @@ function addentries!(FO::FunctionalOperator,A,kr::Range)
     A
 end
 
-
-for OP in (:+,:-)
-    @eval $OP(A::BandedOperator,B::Functional)=$OP(A,FunctionalOperator(B))
-    @eval $OP(A::Functional,B::BandedOperator)=$OP(FunctionalOperator(A),B)
+function *(f::Fun,A::Functional)
+    if datalength(A)<Inf
+        # We get a BandedOperator, so we take that into account
+        TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
+    else
+        LowRankOperator(f,A)
+    end
 end
 
-*(A::BandedOperator,B::Functional)=A*FunctionalOperator(B)
+Base.convert(::Type{BandedOperator},B::Functional)=FunctionalOperator(B)
+Base.convert(::Type{BandedBelowOperator},B::Functional)=datalength(B)<Inf?convert(BandedOperator,B):Fun(1,ConstantSpace())*B
+
+
+
+for OP in (:+,:-)
+    @eval $OP(A::BandedOperator,B::Functional)=$OP(A,convert(BandedBelowOperator,B))
+    @eval $OP(A::Functional,B::BandedOperator)=$OP(convert(BandedBelowOperator,A),B)
+end
+
+*(A::BandedOperator,B::Functional)=A*convert(BandedBelowOperator,B)
+
+*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:AbstractMultiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)

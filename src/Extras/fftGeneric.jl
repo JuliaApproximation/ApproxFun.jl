@@ -1,4 +1,4 @@
-typealias BigFloats Union(BigFloat,Complex{BigFloat})
+typealias BigFloats Union{BigFloat,Complex{BigFloat}}
 
 if VERSION >= v"0.4-dev"
     # old DFT API: p(x) # deprecated
@@ -116,7 +116,7 @@ end
 
 # Fourier space plans for BigFloat
 
-function plan_transform{T<:BigFloat}(::Fourier,x::Vector{T})
+function plan_transform{T<:BigFloat,D}(::Fourier{D},x::Vector{T})
     function plan(x)
         v = fft(x)
         n = div(length(x),2)+1
@@ -125,7 +125,7 @@ function plan_transform{T<:BigFloat}(::Fourier,x::Vector{T})
     plan
 end
 
-function plan_itransform{T<:BigFloat}(::Fourier,x::Vector{T})
+function plan_itransform{T<:BigFloat,D}(::Fourier{D},x::Vector{T})
     function plan(x)
         n = div(length(x),2)+1
         v = complex([x[1:n],x[n-1:-1:2]],[0,-x[2n-2:-1:n+1],0,x[n+1:2n-2]])
@@ -154,7 +154,7 @@ end
 
 for SP in (:Fourier,:SinSpace), pl in (:plan_transform,:plan_itransform)
     @eval begin
-        function $pl{T<:Complex{BigFloat}}(::$SP,x::Vector{T})
+        function $pl{T<:Complex{BigFloat},D}(::$SP{D},x::Vector{T})
             function plan(x)
                 complex($pl($SP(),real(x))(real(x)),$pl($SP(),imag(x))(imag(x)))
             end

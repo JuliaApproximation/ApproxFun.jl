@@ -9,7 +9,7 @@ export chebyshevt,chebyshevu,legendre,∫,⨜,⨍,∇,Δ,ChebyshevWeight
 
 Fun()=Fun(identity)
 Fun(d::Domain)=Fun(identity,d)
-Fun(d::FunctionSpace)=Fun(identity,d)
+Fun(d::Space)=Fun(identity,d)
 
 ## Chebyshev & Legendre polynomials
 
@@ -43,11 +43,11 @@ bvp(d) = bvp(d,2)
 Base.diff{S,T}(f::Fun{S,T},n...)=differentiate(f,n...)
 Base.diff(u::MultivariateFun,j...)=differentiate(u,j...)
 
-Base.diff(d::FunctionSpace,μ::Integer)=Derivative(d,μ)
+Base.diff(d::Space,μ::Integer)=Derivative(d,μ)
 Base.diff(d::Domain,μ::Integer)=Derivative(d,μ)
 Base.diff(d::Domain)=Base.diff(d,1)
 
-Base.diff(d::Union(ProductDomain,TensorSpace),k::Integer)=Derivative(d,k)
+Base.diff(d::Union{ProductDomain,TensorSpace},k::Integer)=Derivative(d,k)
 
 # use conj(f.') for ArraySpace
 Base.ctranspose(f::Fun)=differentiate(f)

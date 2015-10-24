@@ -15,25 +15,25 @@ macro calculus_operator(Op)
         # The SSS, TTT are to work around #9312
         abstract $AbstOp{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 
-        immutable $Op{S<:FunctionSpace,OT,T} <: $AbstOp{S,OT,T}
+        immutable $Op{S<:Space,OT,T} <: $AbstOp{S,OT,T}
             space::S        # the domain space
             order::OT
         end
-        immutable $WrappOp{BT<:BandedOperator,S<:FunctionSpace,OT,T} <: $AbstOp{S,OT,T}
+        immutable $WrappOp{BT<:BandedOperator,S<:Space,OT,T} <: $AbstOp{S,OT,T}
             op::BT
             order::OT
         end
 
 
         ## Constructors
-        $Op{T}(::Type{T},sp::FunctionSpace,k)=$Op{typeof(sp),typeof(k),T}(sp,k)
-        $Op(::Type{Any},sp::FunctionSpace,k)=$Op(sp,k)
+        $Op{T}(::Type{T},sp::Space,k)=$Op{typeof(sp),typeof(k),T}(sp,k)
+        $Op(::Type{Any},sp::Space,k)=$Op(sp,k)
 
 
-        $Op(sp::FunctionSpace{ComplexBasis},k)=$Op{typeof(sp),typeof(k),Complex{real(eltype(domain(sp)))}}(sp,k)
-        $Op(sp::FunctionSpace,k)=$Op{typeof(sp),typeof(k),eltype(domain(sp))}(sp,k)
+        $Op(sp::Space{ComplexBasis},k)=$Op{typeof(sp),typeof(k),Complex{real(eltype(domain(sp)))}}(sp,k)
+        $Op(sp::Space,k)=$Op{typeof(sp),typeof(k),eltype(domain(sp))}(sp,k)
 
-        $Op(sp::FunctionSpace)=$Op(sp,1)
+        $Op(sp::Space)=$Op(sp,1)
         $Op()=$Op(UnsetSpace())
         $Op(k::Number)=$Op(UnsetSpace(),k)
 
@@ -80,16 +80,16 @@ macro calculus_operator(Op)
         domain(D::$Op)=domain(D.space)
         domainspace(D::$Op)=D.space
 
-        addentries!{OT,T}(::$Op{UnsetSpace,OT,T},A,kr::Range)=error("Spaces cannot be inferred for operator")
+        addentries!{OT,T}(::$Op{UnsetSpace,OT,T},A,kr::Range,::Colon)=error("Spaces cannot be inferred for operator")
 
-        function addentries!{S,OT,T}(D::$Op{S,OT,T},A,kr::Range)
+        function addentries!{S,OT,T}(D::$Op{S,OT,T},A,kr::Range,::Colon)
             # Default is to convert to Canonical and apply operator there
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
                 error("Override addentries! for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
-            addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr)
+            addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr,:)
         end
 
         function bandinds(D::$Op)
@@ -118,7 +118,7 @@ macro calculus_operator(Op)
         promotedomainspace(D::$AbstOp,sp::AnySpace)=D
 
 
-        function promotedomainspace{S<:FunctionSpace}(D::$AbstOp,sp::S)
+        function promotedomainspace{S<:Space}(D::$AbstOp,sp::S)
             if isambiguous(domain(sp))
                 $Op(S(domain(D)),D.order)
             else
@@ -130,7 +130,7 @@ macro calculus_operator(Op)
 
 
         #Wrapper just adds the operator it wraps
-        addentries!(D::$WrappOp,A,k::Range)=addentries!(D.op,A,k)
+        addentries!(D::$WrappOp,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
         rangespace(D::$WrappOp)=rangespace(D.op)
         domainspace(D::$WrappOp)=domainspace(D.op)
         bandinds(D::$WrappOp)=bandinds(D.op)
@@ -186,5 +186,5 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 @calculus_operator(Laplacian)
 
-Laplacian(S::FunctionSpace,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
+Laplacian(S::Space,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
 Laplacian(S)=Laplacian(S,1)

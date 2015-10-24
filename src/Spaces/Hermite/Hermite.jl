@@ -1,6 +1,7 @@
 export Hermite,GaussWeight
 
-immutable Hermite{T} <: PolynomialSpace
+#TODO: Add general lines
+immutable Hermite{T} <: PolynomialSpace{Line{T}}
     L::T
 end
 Hermite()=Hermite(1.0)
@@ -18,10 +19,11 @@ spacescompatible(::Hermite,::Hermite)=true #TODO:L
 
 
 recα(::Type,::Hermite,k)=0;recβ(::Type,::Hermite,k)=0.5;recγ(::Type,::Hermite,k)=k-1
+recA(::Type,::Hermite,k)=2;recB(::Type,::Hermite,k)=0;recC(::Type,::Hermite,k)=2k
 
 bandinds{H<:Hermite}(D::Derivative{H})=0,D.order
 rangespace{H<:Hermite}(D::Derivative{H})=domainspace(D)
-function addentries!{H<:Hermite}(D::Derivative{H},A,kr::Range)
+function addentries!{H<:Hermite}(D::Derivative{H},A,kr::Range,::Colon)
     m = D.order
     C = 2^m
     for k=kr
