@@ -10,7 +10,7 @@ type ClenshawPlan{S,T}
     C::Vector{T}
 end
 
-function ClenshawPlan{S,T}(::Type{T},sp::S,N::Int,n::Int)
+function ClenshawPlan{T}(::Type{T},sp,N::Int,n::Int)
     A = T[recA(T,sp,k) for k=0:N-1]
     B = T[recB(T,sp,k) for k=0:N-1]
     C = T[recC(T,sp,k) for k=1:N]
@@ -27,34 +27,18 @@ macro clenshaw(x, c...)
     Expr(:block, :(t = $(esc(2))*$(esc(x))), ex)
 end
 
-clenshaw{S,T<:Number,U<:Number}(sp::S,c::AbstractVector{T},x::AbstractArray{U}) = clenshaw(c,x,ClenshawPlan(promote_type(T,U),sp,length(c),length(x)))
-clenshaw{S,T<:Number,U<:Number}(sp::S,c::AbstractMatrix{T},x::AbstractArray{U}) = clenshaw(c,x,ClenshawPlan(promote_type(T,U),sp,size(c,1),length(x)))
-clenshaw{S,T<:Number,U<:Number}(sp::S,c::AbstractMatrix{T},x::U) = clenshaw(c,x,ClenshawPlan(promote_type(T,U),sp,size(c,1),size(c,2)))
-
-clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractVecOrMat{T},x::AbstractArray{U},plan::ClenshawPlan{S,V}) = reshape(clenshaw(c,vec(x),plan),size(x))
-clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractVecOrMat{T},x::U,plan::ClenshawPlan{S,V}) = reshape(clenshaw(c,x,plan),size(c,2))
-
-clenshaw!{S,T,U}(sp::S,c::AbstractVector{T},x::AbstractVector{U})=clenshaw!(c,x,ClenshawPlan(promote_type(T,U),sp,length(x)))
-
-function clenshaw{S,U<:Number,V<:Number}(sp::S,c::AbstractVector{U},x::V)
-    N,T = length(c),promote_type(U,V)
-    if isempty(c)
-        return zero(x)
+for TYP in (:AbstractVector,:AbstractMatrix)
+    @eval begin
+        clenshaw(c::$TYP,x::AbstractArray,plan::ClenshawPlan) = reshape(clenshaw(c,vec(x),plan),size(x))
+        clenshaw(c::$TYP,x,plan::ClenshawPlan) = reshape(clenshaw(c,x,plan),size(c,2))
     end
-
-    bk1,bk2 = zero(T),zero(T)
-    A,B,C = recA(T,sp,N-1),recB(T,sp,N-1),recC(T,sp,N)
-    for k = N:-1:2
-        bk2, bk1 = bk1, muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[k])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[k])) # (A*x+B)*bk1+c[k]-C*bk2
-        A,B,C = recA(T,sp,k-2),recB(T,sp,k-2),recC(T,sp,k-1)
-    end
-    muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[1])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[1])) # (A*x+B)*bk1+c[1]-C*bk2
 end
 
-function clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractVector{T},x::AbstractVector{U},plan::ClenshawPlan{S,V})
+
+function clenshaw{S,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
     N,n = length(c),length(x)
     if isempty(c)
-        return zeros(x)
+        return zeros(V,length(x))
     end
 
     bk=plan.bk
@@ -89,10 +73,10 @@ end
 #Clenshaw routine for many Funs, x is a vector of same number of funs
 #each fun is a column
 
-function clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractMatrix{T},x::U,plan::ClenshawPlan{S,V})
+function clenshaw{S,V}(c::AbstractMatrix,x,plan::ClenshawPlan{S,V})
     N,n = size(c)
     if isempty(c)
-        return zeros(U,n)
+        return zeros(V,n)
     end
 
     bk=plan.bk
@@ -125,11 +109,11 @@ function clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractMatrix{T},x::U,pla
     bk
 end
 
-function clenshaw{S,T<:Number,U<:Number,V<:Number}(c::AbstractMatrix{T},x::AbstractVector{U},plan::ClenshawPlan{S,V})
+function clenshaw{S,V}(c::AbstractMatrix,x::AbstractVector,plan::ClenshawPlan{S,V})
     N,n = size(c)
     @assert n == length(x)
     if isempty(c)
-        return zeros(x)
+        return zeros(V,length(x))
     end
 
     bk=plan.bk
@@ -165,7 +149,7 @@ end
 
 # overwrite x
 
-function clenshaw!{S,T<:Number,U<:Number,V<:Number}(c::Vector{T},x::Vector{U},plan::ClenshawPlan{S,V})
+function clenshaw!{S,V}(c::Vector,x::Vector,plan::ClenshawPlan{S,V})
     N,n = length(c),length(x)
     if isempty(c)
         for k=1:n

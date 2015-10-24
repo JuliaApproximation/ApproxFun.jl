@@ -23,6 +23,10 @@ dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
 dotu{N<:Real,T<:Number}(f::Vector{N},g::Vector{T})=dot(f,g)
 
+# implement muladd default
+muladd(a,b,c)=a*b+c
+muladd(a::Number,b::Number,c::Number)=Base.muladd(a,b,c)
+
 
 ## Helper routines
 alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1

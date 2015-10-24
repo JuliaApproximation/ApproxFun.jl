@@ -98,9 +98,11 @@ Conversion(S1::ConstantSpace,S2::MappedSpace)=ConversionWrapper(
         S1,S2))
 
 # Conversion is induced from canonical space
-for OP in (:union_rule,:conversion_rule,:maxspace)
+for (OPrule,OP) in ((:union_rule,:union),
+                    (:conversion_rule,:conversion_type),
+                    (:maxspace_rule,:maxspace))
     @eval begin
-        function $OP(S1::MappedSpace,S2::MappedSpace)
+        function $OPrule(S1::MappedSpace,S2::MappedSpace)
             @assert domain(S1)==domain(S2)
             cr=$OP(S1.space,S2.space)
             if isa(cr,NoSpace)
@@ -109,7 +111,7 @@ for OP in (:union_rule,:conversion_rule,:maxspace)
                 MappedSpace(domain(S1),cr)
             end
         end
-        function $OP(S1::ConstantSpace,S2::MappedSpace)
+        function $OPrule(S1::ConstantSpace,S2::MappedSpace)
             cr=$OP(S1,S2.space)
             if isa(cr,ConstantSpace)||isa(cr,NoSpace)
                 cr
