@@ -28,8 +28,11 @@ plan_itransform(::Chebyshev,cfs::Vector)=plan_ichebyshevtransform(cfs)
 
 ## Evaluation
 
-function clenshaw{U<:Number,V<:Number}(::Chebyshev,c::AbstractVector{U},x::V)
-    N,T = length(c),promote_type(U,V)
+clenshaw(sp::Chebyshev,c::AbstractVector,x::AbstractArray) = clenshaw(c,x,
+                                            ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,length(c),length(x)))
+
+function clenshaw(::Chebyshev,c::AbstractVector,x)
+    N,T = length(c),promote_type(eltype(c),typeof(x))
     if isempty(c)
         return zero(x)
     end
@@ -43,10 +46,10 @@ function clenshaw{U<:Number,V<:Number}(::Chebyshev,c::AbstractVector{U},x::V)
     muladd(x/2,bk1,c[1]-bk2)
 end
 
-function clenshaw{S<:Chebyshev,T<:Number,U<:Number,V<:Number}(c::AbstractVector{T},x::AbstractVector{U},plan::ClenshawPlan{S,V})
+function clenshaw{S<:Chebyshev,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
     N,n = length(c),length(x)
     if isempty(c)
-        return zeros(x)
+        return zeros(V,n)
     end
 
     bk=plan.bk
@@ -139,13 +142,11 @@ end
 
 # overwrite x
 
-function clenshaw!{S<:Chebyshev,T<:Number,U<:Number,V<:Number}(c::Vector{T},x::Vector{U},plan::ClenshawPlan{S,V})
+function clenshaw!{S<:Chebyshev,V}(c::Vector,x::Vector,plan::ClenshawPlan{S,V})
     N,n = length(c),length(x)
 
     if isempty(c)
-        for k=1:n
-            x[k]=zero(U)
-        end
+        fill!(x,0)
         return x
     end
 

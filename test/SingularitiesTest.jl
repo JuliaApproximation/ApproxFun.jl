@@ -176,3 +176,16 @@ y=Fun(Ray())
 @test_approx_eq (1/y^2)(10.) 1/y(10.)^2
 @test_approx_eq (-1/y^2)'(10.) 2/(y(10.)^3)
 @test_approx_eq exp(-1/y^2)(5.) exp(-1/y(5.)^2)
+
+
+
+# catch bug from SIE
+
+a=1+10*im;b=2-6*im
+d=Curve(Fun(x->1+a*x+b*x^2))
+
+
+x=Fun(d)
+w=sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x))
+
+@test_approx_eq sum(w/(x-2.))/(2π*im) (-4.722196879007759+2.347910413861846im)

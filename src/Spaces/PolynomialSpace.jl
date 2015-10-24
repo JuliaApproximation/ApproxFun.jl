@@ -102,15 +102,16 @@ clenshaw!(sp::PolynomialSpace,c::AbstractVector,x::AbstractVector)=clenshaw!(c,x
 
 function clenshaw(sp::PolynomialSpace,c::AbstractVector,x)
     N,T = length(c),promote_type(eltype(c),typeof(x))
+    TT = eltype(T)
     if isempty(c)
         return zero(T)
     end
 
     bk1,bk2 = zero(T),zero(T)
-    A,B,C = recA(T,sp,N-1),recB(T,sp,N-1),recC(T,sp,N)
+    A,B,C = recA(TT,sp,N-1),recB(TT,sp,N-1),recC(TT,sp,N)
     for k = N:-1:2
         bk2, bk1 = bk1, muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[k])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[k])) # (A*x+B)*bk1+c[k]-C*bk2
-        A,B,C = recA(T,sp,k-2),recB(T,sp,k-2),recC(T,sp,k-1)
+        A,B,C = recA(TT,sp,k-2),recB(TT,sp,k-2),recC(TT,sp,k-1)
     end
     muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[1])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[1])) # (A*x+B)*bk1+c[1]-C*bk2
 end
