@@ -359,7 +359,7 @@ for op = (:*,:.*,:./,:/)
     @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op)(K.B,f))
 end
 
-+(f::LowRankFun,g::LowRankFun)=LowRankFun([f.A,g.A],[f.B,g.B])
++(f::LowRankFun,g::LowRankFun)=LowRankFun([f.A;g.A],[f.B;g.B])
 -(f::LowRankFun)=LowRankFun(-f.A,f.B)
 -(f::LowRankFun,g::LowRankFun)=f+(-g)
 
