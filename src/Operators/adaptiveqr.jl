@@ -36,13 +36,22 @@ function applygivens!(ca,cb,mb,a,B::Matrix,k1::Integer,k2::Integer)
 end
 
 
-function givensmatrix(a::Number,b::Number)
-    if abs(b) < 10eps()
+function givensmatrix{T<:AbstractFloat}(a::T,b::T)
+    a,b,r = Base.LinAlg.givensAlgorithm(a,b)
+    conj(a),conj(b),-b,a
+end
+function givensmatrix{T<:AbstractFloat}(a::Complex{T},b::Complex{T})
+    a,b,r = Base.LinAlg.givensAlgorithm(a,b)
+    conj(a),conj(b),-b,a
+end
+
+function givensmatrix{S<:Number,V<:Number}(a::S,b::V)
+    if abs2(b) < 100eps(V)^2
         #Warning: This is inconsistent for the case where a is negative
         return one(a),zero(b),zero(b),one(a)
     end
 
-    sq=sqrt(abs2(a) + abs2(b))
+    sq=hypot(a,b)
     a,b=a/sq,b/sq
     conj(a),conj(b),-b,a
 end
