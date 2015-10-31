@@ -299,14 +299,13 @@ function companion_matrix{T}(c::Vector{T})
 end
 
 
-if isdir(Pkg.dir("AMVW"))
-    require("AMVW")
+if @try_import AMVW
     function complexroots(coefficients::Vector)
-        c=chop(coefficients,10eps())
+        c = chop(coefficients, 10eps())
 
         # Only use special routine for large roots
         if length(c)≥70
-            Main.AMVW.rootsAMVW(c)
+            AMVW.rootsAMVW(c)
         else
             hesseneigvals(companion_matrix(c))
         end

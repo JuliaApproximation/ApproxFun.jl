@@ -1,30 +1,29 @@
-
 ## General
 
+# TikzGraphs is already imported
+import Graphs
 
 function treeadd_edges!(str,ops,node,M,labels)
     labels[node]=str
 
     nd=node+1
     for op in ops
-        Main.Graphs.add_edge!(M,node,nd)
+        Graphs.add_edge!(M,node,nd)
         add_edges!(op,nd,M,labels)
         nd+=treecount(op)
     end
 end
 
-
 function introspect(A::Union{BandedOperator,Functional,Space})
-    require("TikzGraphs")
-    m=treecount(A)
+    m = treecount(A)
 
-    M=Main.Graphs.simple_graph(m)
+    M = Graphs.simple_graph(m)
     labels=Array(ASCIIString,m)
 
 
     add_edges!(A,1,M,labels)
 
-    Main.TikzGraphs.plot(M,labels)
+    TikzGraphs.plot(M,labels)
 end
 
 

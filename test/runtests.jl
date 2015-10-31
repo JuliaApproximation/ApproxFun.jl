@@ -1,3 +1,8 @@
+#
+
+# for our own convenience
+import ApproxFun.@try_import
+
 versioninfo()
 
 println("Fun tests")
@@ -30,7 +35,7 @@ include("SpeedPDETest.jl")
 
 
 println("Example tests")
-if isdir(Pkg.dir("Gadfly"))
+if @try_import Gadfly
     include("ExamplesTest.jl")
     include("ReadmeTest.jl")
 else

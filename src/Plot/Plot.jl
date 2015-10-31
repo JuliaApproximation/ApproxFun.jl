@@ -27,24 +27,23 @@ function setplotter(str)
 end
 
 
-if isdir(Pkg.dir("GLPlot"))
+if @try_import GLPlot
     include("GLPlot.jl")
     setplotter("GLPlot")
 end
-if isdir(Pkg.dir("PyPlot"))
+if @try_import PyPlot
     include("PyPlot.jl")
     setplotter("PyPlot")
 end
 
 include("Gadfly.jl")
 
-if isdir(Pkg.dir("Gadfly"))
+if @try_import Gadfly
     setplotter("Gadfly")
 end
-if isdir(Pkg.dir("TikzGraphs"))
+if @try_import TikzGraphs
     include("introspect.jl")
 end
-
 
 
 for (plt,gfplt,pyplt) in ((:plot,:gadflyplot,:pyplot),

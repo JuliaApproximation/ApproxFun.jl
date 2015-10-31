@@ -1,13 +1,14 @@
-# Documentation: http://docs.travis-ci.com/user/languages/julia/ 
-language: julia 
-os: 
-  - linux 
-  - osx 
-julia: 
-  - 0.4 
-notifications: 
-  email: false 
-# uncomment the following lines to override the default test script 
-#script: 
-#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi 
-#  - julia -e 'Pkg.clone(pwd()); Pkg.build("MyPackage"); Pkg.test("MyPackage"; coverage=true)' 
+# Documentation: http://docs.travis-ci.com/user/languages/julia/
+language: julia
+os:
+  - linux
+  - osx
+julia:
+  - 0.4
+  - nightly
+notifications:
+  email: false
+# uncomment the following lines to override the default test script
+#script:
+#  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
+#  - julia -e 'Pkg.clone(pwd()); Pkg.build("MyPackage"); Pkg.test("MyPackage"; coverage=true)'

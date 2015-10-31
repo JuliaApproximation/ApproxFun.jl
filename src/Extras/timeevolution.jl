@@ -104,10 +104,10 @@ BDF22(B::Vector,op::BandedOperator,g::Function,uin::MultivariateFun,h::Real,m::I
 
 ## GLPlot routines
 
+@try_import GLPlot
 
 #u_t = op*u
 function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m::Integer,glp)
-    require("GLPlot")
     setplotter("GLPlot")
     nt=size(uin,2)
     d=domain(uin)
@@ -133,7 +133,6 @@ function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m::
 end
 
 function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m=5000)
-    require("GLPlot")
     setplotter("GLPlot")
     timeevolution(B,op,bcs,uin,h,m,plot(pad(uin,80,80)))
 end
@@ -150,7 +149,6 @@ timeevolution(B::Operator,dat...)=timeevolution([B],dat...)
 
 #u_tt = op*u
 function timeevolution2(B::Vector,op,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
-    require("GLPlot")
     setplotter("GLPlot")
     nt=size(uin[1],2)
     SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
@@ -170,7 +168,6 @@ end
 
 #u_tt = op*u
 function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
-    require("GLPlot")
     setplotter("GLPlot")
     nt=size(uin[1],2)
     SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
@@ -191,13 +188,11 @@ function timeevolution2(B::Vector,op,g::Function,bcs::Vector,uin::Tuple{Multivar
 end
 
 function timeevolution2(B::Vector,op,uin::Tuple{MultivariateFun,MultivariateFun},bcs::Vector,h::Real,m=5000)
-    require("GLPlot")
     setplotter("GLPlot")
     timeevolution2(B,op,bcs,uin,h,m,plot(pad(uin[end],80,80)))
 end
 
 function timeevolution2(B::Vector,op,g::Function,uin::Tuple{MultivariateFun,MultivariateFun},bcs::Vector,h::Real,m=5000)
-    require("GLPlot")
     setplotter("GLPlot")
     timeevolution2(B,op,g,bcs,uin,h,m,plot(pad(uin[end],80,80)))
 end

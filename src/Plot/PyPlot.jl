@@ -1,42 +1,39 @@
 ## Plotting
 
+# PyPlot is already imported
 
 function pysemilogy{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
-    @eval import PyPlot
-    Main.PyPlot.semilogy(xx,yy,color="blue";opts...)
+    PyPlot.semilogy(xx,yy,color="blue";opts...)
     if axis!=-1
         if length(axis) == 4
-            Main.PyPlot.axis(axis)
+            PyPlot.axis(axis)
         else
-            Main.PyPlot.axis([xx[1];xx[end];axis])
+            PyPlot.axis([xx[1];xx[end];axis])
         end
     end
 end
 
 
 function pyplot{N<:Real}(xx,yy::Array{N};axis=-1,opts...)
-    @eval import PyPlot
-    Main.PyPlot.plot(xx,yy,color="blue";opts...)
+    PyPlot.plot(xx,yy,color="blue";opts...)
     if axis!=-1
         if length(axis) == 4
-            Main.PyPlot.axis(axis)
+            PyPlot.axis(axis)
         else
-            Main.PyPlot.axis([xx[1];xx[end];axis])
+            PyPlot.axis([xx[1];xx[end];axis])
         end
     end
 end
 
 function pyplot{N<:Complex}(xx,yy::Array{N};axis=-1,opts...)
-    @eval import PyPlot
-
-    Main.PyPlot.plot(xx,real(yy),color="blue";opts...)
-    Main.PyPlot.plot(xx,imag(yy),color="red";opts...)
+    PyPlot.plot(xx,real(yy),color="blue";opts...)
+    PyPlot.plot(xx,imag(yy),color="red";opts...)
 
     if axis!=-1
         if length(axis) == 4
-            Main.PyPlot.axis(axis)
+            PyPlot.axis(axis)
         else
-            Main.PyPlot.axis([xx[1];xx[end];axis])
+            PyPlot.axis([xx[1];xx[end];axis])
         end
     end
 end
@@ -89,44 +86,33 @@ end
 ##2D
 
 function pysurf(x::Vector,y::Vector,z; rstride=2,cstride=2,kwds...)
-    @eval import PyPlot
-    Main.PyPlot.surf(x,y,z.';linewidth=0,rstride=rstride,cstride=cstride,kwds...)
+    PyPlot.surf(x,y,z.';linewidth=0,rstride=rstride,cstride=cstride,kwds...)
 end
 
 function pycontour(x::Vector,y::Vector,z,kwds...;opts...)
-    @eval import PyPlot
-    Main.PyPlot.contour(x,y,z.',kwds...;opts...)
+    PyPlot.contour(x,y,z.',kwds...;opts...)
 end
 
 function pycontourf(x::Vector,y::Vector,z,kwds...;opts...)
-    @eval import PyPlot
-    Main.PyPlot.contourf(x,y,z.',kwds...;opts...)
+    PyPlot.contourf(x,y,z.',kwds...;opts...)
 end
 
 
 function pysurf(x::Matrix,y::Matrix,z; rstride=2,cstride=2,kwds...)
-    @eval import PyPlot
-    Main.PyPlot.surf(x,y,z;linewidth=0,rstride=rstride,cstride=cstride,kwds...)
+    PyPlot.surf(x,y,z;linewidth=0,rstride=rstride,cstride=cstride,kwds...)
 end
 
 function pycontour(x::Matrix,y::Matrix,z,kwds...;opts...)
-    @eval import PyPlot
-    Main.PyPlot.contour(x,y,z,kwds...;opts...)
+    PyPlot.contour(x,y,z,kwds...;opts...)
 end
 
 function pycontourf(x::Matrix,y::Matrix,z,kwds...;opts...)
-    @eval import PyPlot
-    Main.PyPlot.contourf(x,y,z,kwds...;opts...)
+    PyPlot.contourf(x,y,z,kwds...;opts...)
 end
-
-
 
 function pyhist(a...;kwds...)
-    @eval import PyPlot
-    Main.PyPlot.plt[:hist](a...;kwds...)
+    PyPlot.plt[:hist](a...;kwds...)
 end
-
-
 
 ## SingFun
 
