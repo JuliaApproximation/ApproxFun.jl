@@ -13,7 +13,16 @@ export pad!,pad,sample,chop!,complexroots,roots,svfft
 ##Testing
 export bisectioninv
 
-
+macro try_import(name::Symbol)
+    quote
+        try
+            $(esc(:eval))($(QuoteNode(:(import $name))))
+            true
+        catch
+            false
+        end
+    end
+end
 
 
 

@@ -1,5 +1,9 @@
 ## Plotting
 
+# GLPlot is already imported
+import ModernGL
+import GLAbstraction
+import GLFW
 
 #export surf
 
@@ -25,14 +29,10 @@ cubehelix(ma,mi) = "vec4(   (xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string
 hottocold(ma,mi) = "xyz.z > (("*string(mi)*")+0.75*(("*string(ma)*")-("*string(mi)*"))) ? vec4(1.0, 1.0 + 4.0*(("*string(mi)*")+0.75*(("*string(ma)*")-("*string(mi)*")) - xyz.z)/(("*string(ma)*")-("*string(mi)*"))  ,0.0,0.5) :  xyz.z > (("*string(mi)*")+0.5*(("*string(ma)*")-("*string(mi)*"))) ? vec4( 4.0*(xyz.z-("*string(mi)*")-0.5*(("*string(ma)*")-("*string(mi)*")))/(("*string(ma)*")-("*string(mi)*")) ,1.0,0.0,0.5) : xyz.z > (("*string(mi)*")+0.25*(("*string(ma)*")-("*string(mi)*"))) ? vec4(0.0,1.0,1.0 + 4.0*(("*string(mi)*")+0.25*(("*string(ma)*")-("*string(mi)*"))-xyz.z)/(("*string(ma)*")-("*string(mi)*")),0.5) : vec4(0.0,4.0*(xyz.z-("*string(mi)*"))/(("*string(ma)*")-("*string(mi)*")),1.0,0.5);"
 
 function glupdatewindow(obj,window)
-    require("GLPlot")
-    ModernGL=Main.ModernGL
-    GLAbstraction=Main.GLAbstraction
-
-     ModernGL.glClear(ModernGL.GL_COLOR_BUFFER_BIT | ModernGL.GL_DEPTH_BUFFER_BIT)
+    ModernGL.glClear(ModernGL.GL_COLOR_BUFFER_BIT | ModernGL.GL_DEPTH_BUFFER_BIT)
     GLAbstraction.render(obj)
-#    Main.GLFW.SwapBuffers(window.glfwWindow)
-    Main.GLFW.PollEvents()
+    # GLFW.SwapBuffers(window.glfwWindow)
+    GLFW.PollEvents()
     yield()
     obj,window
 end
@@ -40,9 +40,6 @@ end
 
 ## Vector routines
 function glsurfupdate(vals::Matrix,obj,window)##obj should be type RenderObject, window should be type Screen
-    require("GLPlot")
-    GLAbstraction=Main.GLAbstraction
-
     zvalues = obj.uniforms[:z]
 #    colrs=obj.uniforms[:color]
     zvalues[:,:]=float32(vals)
@@ -54,11 +51,6 @@ function glsurfupdate(vals::Matrix,obj,window)##obj should be type RenderObject,
 end
 
 function glsurf(vals::Matrix;colormap::Symbol=:hottocold)
-    require("GLPlot")
-    GLAbstraction=Main.GLAbstraction
-    ModernGL=Main.ModernGL
-    GLPlot=Main.GLPlot
-
     window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.),async=true)
     ModernGL.glClearColor(1,1,1,0)
     obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , primitive=GLPlot.SURFACE(), color=colorf(extrema(vals);colormap=colormap))
@@ -69,11 +61,6 @@ end
 
 
 function glsurf(xx::Array,yy::Array,vals::Matrix;colormap::Symbol=:hottocold)
-    require("GLPlot")
-    GLAbstraction=Main.GLAbstraction
-    ModernGL=Main.ModernGL
-    GLPlot=Main.GLPlot
-
     window = GLPlot.createdisplay(w=1000,h=1000,eyeposition=GLAbstraction.Vec3(1.,1.,1.), lookat=GLAbstraction.Vec3(0.,0.,0.),async=true)
     ModernGL.glClearColor(1,1,1,0)
     obj     = GLPlot.glplot(map(GLAbstraction.Vec1,vals) , xrange=float32(xx),yrange=float32(yy),primitive=GLPlot.SURFACE(), color=colorf(extrema(vals);colormap=colormap))
