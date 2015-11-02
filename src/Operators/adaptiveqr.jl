@@ -35,25 +35,25 @@ function applygivens!(ca,cb,mb,a,B::Matrix,k1::Integer,k2::Integer)
     B
 end
 
+hypot2(a,b) = hypot(a,b)
+hypot2{T<:AbstractFloat}(a::Complex{T},b::Complex{T}) = hypot(hypot(a.re,b.re),hypot(a.im,b.im))
+hypot2{T<:AbstractFloat}(a::T,b::Complex{T}) = hypot(hypot(a,b.re),b.im)
+hypot2{T<:AbstractFloat}(a::Complex{T},b::T) = hypot(hypot(a.re,b),a.im)
 
 function givensmatrix{T<:AbstractFloat}(a::T,b::T)
-    a,b,r = Base.LinAlg.givensAlgorithm(a,b)
-    conj(a),conj(b),-b,a
-end
-function givensmatrix{T<:AbstractFloat}(a::Complex{T},b::Complex{T})
-    a,b,r = Base.LinAlg.givensAlgorithm(a,b)
-    conj(a),conj(b),-b,a
+    c,s,r = Base.LinAlg.givensAlgorithm(a,b)
+    c,s,-s,c
 end
 
 function givensmatrix{S<:Number,V<:Number}(a::S,b::V)
-    if abs2(b) < 100eps(V)^2
+    if abs2(b) < 100eps2(V)^2
         #Warning: This is inconsistent for the case where a is negative
         return one(a),zero(b),zero(b),one(a)
     end
 
-    sq=hypot(a,b)
-    a,b=a/sq,b/sq
-    conj(a),conj(b),-b,a
+    r=hypot2(a,b)
+    c,s=a/r,b/r
+    conj(c),conj(s),-s,c
 end
 
 
