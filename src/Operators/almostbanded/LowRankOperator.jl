@@ -1,6 +1,8 @@
-export LowRankOperator
+export AbstractLowRankOperator, LowRankOperator
 
-immutable LowRankOperator{S<:Space,T} <: AlmostBandedOperator{T}
+abstract AbstractLowRankOperator{T} <: AlmostBandedOperator{T}
+
+immutable LowRankOperator{S<:Space,T} <: AbstractLowRankOperator{T}
     U::Vector{Fun{S,T}}
     V::Vector{Functional{T}}
 
