@@ -157,3 +157,13 @@ function Base.show(io::IO,f::Fun)
     show(io,f.space)
     print(io,")")
 end
+
+## MultivariateFun
+
+function Base.show(io::IO,L::LowRankFun)
+    print(io,"LowRankFun on ",space(L)," of rank ",rank(L),".")
+end
+
+function Base.show(io::IO,P::ProductFun)
+    print(io,"ProductFun on ",space(P))
+end
