@@ -59,7 +59,8 @@ typealias RealUnivariateSpace{D} RealSpace{D,1}
 
 
 
-Base.eltype{S}(::Space{S})=eltype(S)
+Base.eltype{T}(::Space{T})=eltype(T)
+Base.eltype{T,D,d}(::Type{Space{T,D,d}})=eltype(T)
 basistype{T}(::Space{T})=T
 basistype{T,D,d}(::Type{Space{T,D,d}})=T
 basistype{FT<:Space}(::Type{FT})=basistype(super(FT))

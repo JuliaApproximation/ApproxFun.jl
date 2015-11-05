@@ -12,6 +12,7 @@ typealias BivariateDomain{T} Domain{T,2}
 
 
 Base.eltype{T}(::Domain{T})=T
+Base.eltype{T,d}(::Type{Domain{T,d}})=T
 Base.isreal{T<:Real}(::Domain{T})=true
 Base.isreal{T}(::Domain{T})=false
 Base.ndims{T,d}(::Domain{T,d})=d
