@@ -189,6 +189,24 @@ function interlace(v::Union{Vector{Any},Tuple})
     interlace(b)
 end
 
+function interlace{S<:Number,V<:Number}(a::Vector{S},b::Vector{V})
+    na=length(a);nb=length(b)
+    T=promote_type(S,V)
+    if nb≥na
+        ret=zeros(T,2nb)
+        ret[1:2:1+2*(na-1)]=a
+        ret[2:2:end]=b
+        ret
+    else
+        ret=zeros(T,2na-1)
+        ret[1:2:end]=a
+        if !isempty(b)
+            ret[2:2:2+2*(nb-1)]=b
+        end
+        ret
+    end
+end
+
 function interlace(a::Vector,b::Vector)
     na=length(a);nb=length(b)
     T=promote_type(eltype(a),eltype(b))
