@@ -25,14 +25,32 @@ function Base.fft{T<:BigFloats}(x::Vector{T})
     return Wks.*conv(xq,wq)[n+1:2n]
 end
 
-function Base.ifft{T<:BigFloats}(x::Vector{T})
-    return conj(fft(conj(x)))/length(x)
+function Base.fft(x::Vector)
+    n,T = length(x),mapreduce(eltype,promote_type,x)
+    if ispow2(n) return fft_pow2(x) end
+    ks = linspace(zero(real(T)),n-one(real(T)),n)
+    Wks = exp(-im*convert(T,π)*ks.^2/n)
+    xq,wq = x.*Wks,conj([exp(-im*convert(T,π)*n);reverse(Wks);Wks[2:end]])
+    return Wks.*conv(xq,wq)[n+1:2n]
 end
 
-function Base.ifft!{T<:BigFloats}(x::Vector{T})
+Base.ifft(x::Vector) = conj(fft(conj(x)))/length(x)
+
+function Base.ifft!(x::Vector)
     y = conj(fft(conj(x)))/length(x)
     x[:] = y
     return x
+end
+
+function Base.conv(u::StridedVector, v::StridedVector)
+    nu,nv = length(u),length(v)
+    n = nu + nv - 1
+    np2 = nextpow2(n)
+    pad!(u,np2),pad!(v,np2)
+    y = ifft_pow2(fft_pow2(u).*fft_pow2(v))
+    #TODO This would not handle Dual/ComplexDual numbers correctly
+    T = promote_type(mapreduce(eltype,promote_type,u),mapreduce(eltype,promote_type,v))
+    y = T<:Real ? real(y[1:n]) : y[1:n]
 end
 
 function Base.conv{T<:Number}(u::StridedVector{T}, v::StridedVector{T})
@@ -51,8 +69,8 @@ end
 
 # plan_fft for BigFloats (covers Laurent svfft)
 
-Base.plan_fft{T<:BigFloats}(x::Vector{T}) = fft
-Base.plan_ifft{T<:BigFloats}(x::Vector{T}) = ifft
+Base.plan_fft(x::Vector) = fft
+Base.plan_ifft(x::Vector) = ifft
 
 # Chebyshev transforms and plans for BigFloats
 

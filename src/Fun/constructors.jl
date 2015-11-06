@@ -21,7 +21,7 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
 
     Tout=typeof(f1)
     if !( Tout<: Number || ( (Tout <: Array) && (Tout.parameters[1] <: Number) ) )
-        error("Function outputs type $(Tout), which is not a Number")
+        warn("Function outputs type $(Tout), which is not a Number")
     end
 
     Tprom = Tout
@@ -133,15 +133,14 @@ function zerocfsFun(f, d::Space)
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
         cf = defaultFun(f, d, 2^logn)
-        absc=abs(cf.coefficients)
-        maxabsc=maximum(absc)
+        maxabsc=maxabs(cf.coefficients)
         if maxabsc==0 && fr==0
             return(zeros(d))
         end
 
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&
+        if length(cf) > 8 && maxabs(cf.coefficients[end-8:end]) < tol*maxabsc &&
                 all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end
@@ -166,7 +165,7 @@ function abszerocfsFun(f,d::Space)
         #cf = Fun(f, d, 2^logn + 1)
         cf = Fun(f, d, 2^logn)
 
-        if maximum(abs(cf.coefficients[end-8:end])) < tol
+        if maxabs(cf.coefficients[end-8:end]) < tol
             return chop!(cf,10eps(T))
         end
     end

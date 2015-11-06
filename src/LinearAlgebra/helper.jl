@@ -193,12 +193,12 @@ function interlace(a::Vector,b::Vector)
     na=length(a);nb=length(b)
     T=promote_type(eltype(a),eltype(b))
     if nb≥na
-        ret=zeros(T,2nb)
+        ret=Array(T,2nb)
         ret[1:2:1+2*(na-1)]=a
         ret[2:2:end]=b
         ret
     else
-        ret=zeros(T,2na-1)
+        ret=Array(T,2na-1)
         ret[1:2:end]=a
         if !isempty(b)
             ret[2:2:2+2*(nb-1)]=b

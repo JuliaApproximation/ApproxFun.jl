@@ -78,7 +78,7 @@ end
 
 ##TODO: fast routine
 
-function horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::V)
+function horner{U,V}(c::AbstractVector{U},kr::Range{Int64},x::V)
     T = promote_type(U,V)
     if isempty(c)
         return zero(x)
@@ -92,7 +92,7 @@ function horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::V)
     ret
 end
 
-function horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::AbstractVector{V})
+function horner{U,V}(c::AbstractVector{U},kr::Range{Int64},x::AbstractVector{V})
     n,T = length(x),promote_type(U,V)
     if isempty(c)
         return zero(x)
@@ -109,9 +109,9 @@ function horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::Ab
     ret
 end
 
-horner{U<:Number,V<:Number}(c::AbstractVector{U},x::V) = horner(c,1:length(c),x)
-horner{U<:Number,V<:Number}(c::AbstractVector{U},x::AbstractArray{V}) = horner(c,1:length(c),x)
-horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::AbstractArray{V}) = reshape(horner(c,kr,vec(x)),size(x))
+horner(c::AbstractVector,x) = horner(c,1:length(c),x)
+horner(c::AbstractVector,x::AbstractArray) = horner(c,1:length(c),x)
+horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
 
 ## Cos and Sin space
 
