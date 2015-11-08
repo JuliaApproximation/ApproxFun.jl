@@ -414,7 +414,6 @@ end
 
 ## Algebra: assume we promote
 
-
 *{T,V}(A::TimesOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
 *{T,V}(A::TimesOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B])
 *{T,V}(A::BandedOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B.ops...])
@@ -472,27 +471,17 @@ function *(A::InfiniteOperator,b::Fun)
     Fun(A*coefficients(b,dsp),rangespace(A))
 end
 
-#=
+
 function *(A::TimesOperator,b::Fun)
-    dsp=conversion_type(domainspace(A),space(b))
-    A=promotedomainspace(A,dsp)
     ret = b
     for k=length(A.ops):-1:1
         ret = A.ops[k]*ret
     end
-    Fun(coefficients(ret),rangespace(A))
+    ret
 end
 
-function *(A::PlusOperator,b::Fun)
-    dsp=conversion_type(domainspace(A),space(b))
-    A=promotedomainspace(A,dsp)
-    ret = A.ops[1]*b
-    for k=2:length(A.ops)
-        ret += A.ops[k]*b
-    end
-    Fun(coefficients(ret),rangespace(A))
-end
-=#
+*(A::PlusOperator,b::Fun) = mapreduce(x->x*b,+,A.ops)
+
 
 for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})

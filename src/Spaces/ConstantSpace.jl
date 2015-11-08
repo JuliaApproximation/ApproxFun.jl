@@ -143,3 +143,4 @@ end
 *(A::BandedOperator,B::Functional)=A*convert(BandedBelowOperator,B)
 
 *{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:AbstractMultiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)
+*{D,V,T,S}(A::Multiplication{D,ConstantSpace,V,T},b::Fun{ConstantSpace,S}) = A.f*b.coefficients[1]
