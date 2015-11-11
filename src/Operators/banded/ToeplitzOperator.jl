@@ -18,8 +18,6 @@ function ToeplitzOperator(V::Vector)
     ToeplitzOperator(W,V)
 end
 
-Base.convert{BT<:Operator}(::Type{BT},T::ToeplitzOperator)=ToeplitzOperator(convert(Vector{eltype(BT)},T.negative),
-                                                                            convert(Vector{eltype(BT)},T.nonnegative))
 
 
 
@@ -112,6 +110,12 @@ end
 
 HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
+
+for TYP in (:Operator,:BandedOperator)
+    @eval Base.convert{T}(::Type{$TYP{T}},T::HankelOperator)=HankelOperator(convert(Vector{T},T.coefficients))
+end
+
+
 function hankel_addentries!(c::Number,v::Vector,A,kr::Range)
     M=maxabs(v)
     for j=1:length(v)
@@ -143,6 +147,12 @@ type LaurentOperator{T<:Number} <: BandedOperator{T}
     negative::Vector{T}
     nonnegative::Vector{T}
 end
+
+for ATYP in (:Operator,:BandedOperator), TYP in(:ToeplitzOperator,:LaurentOperator)
+    @eval Base.convert{TT}(::Type{$ATYP{TT}},T::$TYP)=$TYP(convert(Vector{TT},T.negative),
+                                                                            convert(Vector{TT},T.nonnegative))
+end
+
 
 
 
