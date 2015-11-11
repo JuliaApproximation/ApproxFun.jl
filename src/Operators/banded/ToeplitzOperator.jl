@@ -112,7 +112,7 @@ HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
 
 for TYP in (:Operator,:BandedOperator)
-    @eval Base.convert{T}(::Type{$TYP{T}},T::HankelOperator)=HankelOperator(convert(Vector{T},T.coefficients))
+    @eval Base.convert{TT}(::Type{$TYP{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
 end
 
 
