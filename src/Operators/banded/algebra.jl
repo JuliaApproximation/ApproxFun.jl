@@ -56,7 +56,8 @@ promoteplus{T}(ops::Vector{Functional{T}})=PlusFunctional(promotespaces(ops))
 
 
 
-for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOperator,:BandedOperator,:ZeroOperator))
+for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),
+                       (:PlusOperator,:BandedOperator,:ZeroOperator))
     @eval begin
         function domainspace(P::$PLUS)
             for op in P.ops

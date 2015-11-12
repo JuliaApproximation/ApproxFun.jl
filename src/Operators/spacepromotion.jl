@@ -1,11 +1,11 @@
 
 
-immutable SpaceFunctional{T,O<:Functional,S<:Space} <: Functional{T}
+immutable SpaceFunctional{O<:Functional,S<:Space,T} <: Functional{T}
     op::O
     space::S
 end
 
-SpaceFunctional{T<:Number,S<:Space}(o::Functional{T},s::S)=SpaceFunctional{T,typeof(o),S}(o,s)
+SpaceFunctional{T<:Number,S<:Space}(o::Functional{T},s::S)=SpaceFunctional{typeof(o),S,T}(o,s)
 
 datalength(S::SpaceFunctional)=datalength(S.op)
 
@@ -16,7 +16,7 @@ for TYP in (:Functional,:Operator)
             S
         else
             op=convert(Operator{T},S.op)
-            SpaceFunctional{T,typeof(op),typeof(S.domainspace)}(op,S.domainspace,S.rangespace)
+            SpaceFunctional{typeof(op),typeof(S.domainspace),T}(op,S.domainspace,S.rangespace)
         end
     end
 end
@@ -27,7 +27,7 @@ domainspace(S::SpaceFunctional)=S.space
 domain(S::SpaceFunctional)=domain(S.space)
 
 ## Space Operator is used to wrap an AnySpace() operator
-immutable SpaceOperator{T,O<:Operator,S<:Space,V<:Space} <: BandedOperator{T}
+immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: BandedOperator{T}
     op::O
     domainspace::S
     rangespace::V
@@ -40,10 +40,9 @@ end
 
 # The promote_type is needed to fix a bug in promotetimes
 # not sure if its the right long term solution
-SpaceOperator(o::Operator,s::Space,rs::Space)=SpaceOperator{eltype(o),
-                                                                            typeof(o),
+SpaceOperator(o::Operator,s::Space,rs::Space)=SpaceOperator{typeof(o),
                                                                             typeof(s),
-                                                                            typeof(rs)}(o,s,rs)
+                                                                            typeof(rs),eltype(o)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 Base.convert{OT<:SpaceOperator}(::Type{OT},S::OT)=S  # Added to fix 0.4 bug
 function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)
@@ -52,7 +51,7 @@ function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)
         S
     else
         op=convert(BandedOperator{T},S.op)
-        SpaceOperator{T,typeof(op),typeof(S.domainspace),typeof(S.rangespace)}(op,S.domainspace,S.rangespace)
+        SpaceOperator{typeof(op),typeof(S.domainspace),typeof(S.rangespace),T}(op,S.domainspace,S.rangespace)
     end
 end
 
