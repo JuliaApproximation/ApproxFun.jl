@@ -270,7 +270,7 @@ function Conversion{JS1,JS2,DD<:Interval}(A::JacobiWeight{JS1,DD},B::JacobiWeigh
     @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
 
     if isapprox(A.α,B.α) && isapprox(A.β,B.β)
-        SpaceOperator(Conversion(A.space,B.space),A,B)
+        ConversionWrapper(SpaceOperator(Conversion(A.space,B.space),A,B))
     elseif A.space==B.space
         @assert A.α≥B.α&&A.β≥B.β
         d=domain(A)
@@ -280,7 +280,7 @@ function Conversion{JS1,JS2,DD<:Interval}(A::JacobiWeight{JS1,DD},B::JacobiWeigh
         MC=Multiplication(m,B.space)
         # The following is just a safety check
         @assert rangespace(MC) == B.space
-        SpaceOperator(MC,A,B)# Wrap the operator with the correct spaces
+        ConversionWrapper(SpaceOperator(MC,A,B))# Wrap the operator with the correct spaces
     else
         @assert A.α≥B.α&&A.β≥B.β
         d=domain(A)
@@ -291,7 +291,7 @@ function Conversion{JS1,JS2,DD<:Interval}(A::JacobiWeight{JS1,DD},B::JacobiWeigh
         MC=TimesOperator(Multiplication(m,B.space),C)
         # The following is just a safety check
         @assert rangespace(MC) == B.space
-        SpaceOperator(MC,A,B)
+        ConversionWrapper(SpaceOperator(MC,A,B))
     end
 end
 

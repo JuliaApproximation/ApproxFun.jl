@@ -416,10 +416,42 @@ end
 ## Algebra: assume we promote
 
 
-*{T,V}(A::TimesOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
-*{T,V}(A::TimesOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B])
-*{T,V}(A::BandedOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B.ops...])
-*{T,V}(A::BandedOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B])
+*(A::TimesOperator,B::TimesOperator)=promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
+function *(A::TimesOperator,B::BandedOperator)
+    if isconstop(B)
+        promotedomainspace(A*convert(Number,B),domainspace(B))
+    else
+        promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
+    end
+end
+function *(A::BandedOperator,B::TimesOperator)
+    if isconstop(A)
+        promoterangespace(convert(Number,A)*B,rangespace(A))
+    else
+        promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
+    end
+end
+function *(A::BandedOperator,B::BandedOperator)
+    if isconstop(A)
+        promoterangespace(convert(Number,A)*B,rangespace(A))
+    elseif isconstop(B)
+        promotedomainspace(A*convert(Number,B),domainspace(B))
+    else
+        promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B])
+    end
+end
+
+# Conversions we always assume are intentional: no need to promote
+
+*{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A.op,B.op))
+*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::AbstractConversion)=ConversionWrapper(TimesOperator(A.op,B))
+*{TO<:TimesOperator}(A::AbstractConversion,B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A,B.op))
+
+*(A::AbstractConversion,B::AbstractConversion)=ConversionWrapper(TimesOperator(A,B))
+*(A::AbstractConversion,B::TimesOperator)=TimesOperator(A,B)
+*(A::TimesOperator,B::AbstractConversion)=TimesOperator(A,B)
+*(A::BandedOperator,B::AbstractConversion)=isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
+*(A::AbstractConversion,B::BandedOperator)=isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
 -(A::Operator)=ConstantTimesOperator(-1,A)
@@ -429,12 +461,12 @@ end
 
 for OP in (:*,:.*)
     @eval begin
-        $OP(c::Number,A::BandedOperator)=ConstantTimesOperator(c,A)
-        $OP(A::BandedOperator,c::Number)=ConstantTimesOperator(c,A)
+        $OP(c::Number,A::BandedOperator)=c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
+        $OP(A::BandedOperator,c::Number)=c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
     end
 end
 
-/(B::BandedOperator,c::Number)=ConstantTimesOperator(1.0/c,B)
+/(B::BandedOperator,c::Number)=c==1?B:ConstantTimesOperator(1.0/c,B)
 
 
 

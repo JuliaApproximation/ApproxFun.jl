@@ -106,9 +106,9 @@ promoterangespace(P::Operator,sp::Space)=promoterangespace(P,sp,rangespace(P))
 promotedomainspace(P::Operator,sp::Space)=promotedomainspace(P,sp,domainspace(P))
 
 
-promoterangespace(P::BandedOperator,sp::Space,cursp::Space)=(sp==cursp)?P:TimesOperator(Conversion(cursp,sp),P)
-promotedomainspace(P::Functional,sp::Space,cursp::Space)=(sp==cursp)?P:TimesFunctional(P,Conversion(sp,cursp))
-promotedomainspace(P::BandedOperator,sp::Space,cursp::Space)=(sp==cursp)?P:TimesOperator(P,Conversion(sp,cursp))
+promoterangespace(P::BandedOperator,sp::Space,cursp::Space)=(sp==cursp)?P:Conversion(cursp,sp)*P
+promotedomainspace(P::Functional,sp::Space,cursp::Space)=(sp==cursp)?P:P*Conversion(sp,cursp)
+promotedomainspace(P::BandedOperator,sp::Space,cursp::Space)=(sp==cursp)?P:P*Conversion(sp,cursp)
 
 
 

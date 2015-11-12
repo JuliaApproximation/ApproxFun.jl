@@ -15,7 +15,7 @@ end
 
 
 function introspect(A::Union{BandedOperator,Functional,Space})
-    require("TikzGraphs")
+    @eval import TikzGraphs
     m=treecount(A)
 
     M=Main.Graphs.simple_graph(m)

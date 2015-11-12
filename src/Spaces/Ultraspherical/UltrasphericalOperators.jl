@@ -241,7 +241,7 @@ function Conversion{a,b,DD}(A::Ultraspherical{a,DD},B::Ultraspherical{b,DD})
         Conversion{Ultraspherical{a,DD},Ultraspherical{b,DD},promote_type(Float64,real(eltype(domain(A))),real(eltype(domain(B))))}(A,B)
     else
         d=domain(A)
-        TimesOperator(Conversion(Ultraspherical{b-1,DD}(d),B),Conversion(A,Ultraspherical{b-1,DD}(d)))
+        ConversionWrapper(TimesOperator(Conversion(Ultraspherical{b-1,DD}(d),B),Conversion(A,Ultraspherical{b-1,DD}(d))))
     end
 end
 

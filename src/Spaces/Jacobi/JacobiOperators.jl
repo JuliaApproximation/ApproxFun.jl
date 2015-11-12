@@ -93,9 +93,9 @@ function Conversion(L::Jacobi,M::Jacobi)
     elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
         Conversion{Jacobi{D},Jacobi{D},Float64}(L,M)
     elseif M.b > L.b+1
-        TimesOperator(Conversion(Jacobi(M.a,M.b-1,dm),M),Conversion(L,Jacobi(M.a,M.b-1,dm)))
+        ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a,M.b-1,dm),M),Conversion(L,Jacobi(M.a,M.b-1,dm))))
     else  #if M.a >= L.a+1
-        TimesOperator(Conversion(Jacobi(M.a-1,M.b,dm),M),Conversion(L,Jacobi(M.a-1,M.b,dm)))
+        ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a-1,M.b,dm),M),Conversion(L,Jacobi(M.a-1,M.b,dm))))
     end
 end
 
@@ -145,7 +145,7 @@ function Conversion{m}(A::Ultraspherical{m},B::Jacobi)
         Conversion{Ultraspherical{m},Jacobi,Float64}(A,B)
     else
         J=Jacobi(m-0.5,m-0.5,domain(A))
-        TimesOperator(Conversion(J,B),Conversion(A,J))
+        ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
     end
 end
 

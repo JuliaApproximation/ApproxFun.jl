@@ -157,7 +157,7 @@ for TYP in (:SumSpace,:PiecewiseSpace)
             #TODO: general case
             @assert length(S1.spaces)==2
             ds2=$TYP(S1.spaces[[2,1]])
-            TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2))
+            ConversionWrapper(TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2)))
 
         else
             # we don't know how to convert so go to default
