@@ -117,6 +117,6 @@ isconstop(::Union{ZeroOperator,ConstantOperator})=true
 isconstop(S::SpaceOperator)=isconstop(S.op)
 isconstop(::)=false
 
-convert{T<:Number}(::Type{T},::ZeroOperator)=zero(T)
-convert{T<:Number}(::Type{T},C::ConstantOperator)=convert(T,C.c)
-convert{T<:Number}(::Type{T},S::SpaceOperator)=convert(T,S.op)
+Base.convert{T<:Number}(::Type{T},::ZeroOperator)=zero(T)
+Base.convert{T<:Number}(::Type{T},C::ConstantOperator)=convert(T,C.c)
+Base.convert{T<:Number}(::Type{T},S::SpaceOperator)=convert(T,S.op)
