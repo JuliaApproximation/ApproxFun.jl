@@ -280,7 +280,9 @@ conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::TensorSpace)=a
 conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::Space)=a
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
-Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
+# TODO: we explicetly state type to avoid type inference bug in 0.4
+Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(BandedMatrix{promote_type(eltype(a),eltype(b))},
+                KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
 
 
 function Conversion(a::BivariateSpace,b::BivariateSpace)

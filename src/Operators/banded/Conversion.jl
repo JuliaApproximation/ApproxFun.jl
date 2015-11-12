@@ -61,8 +61,11 @@ immutable ConversionWrapper{S<:BandedOperator,T} <: AbstractConversion{T}
 end
 
 
+ConversionWrapper{T}(::Type{T},op)=ConversionWrapper{typeof(op),T}(op)
 ConversionWrapper(B::BandedOperator)=ConversionWrapper{typeof(B),eltype(B)}(B)
-Conversion(A::Space,B::Space,C::Space)=ConversionWrapper(TimesOperator(Conversion(B,C),Conversion(A,B)))
+Conversion(A::Space,B::Space,C::Space)=Conversion(B,C)*Conversion(A,B)
+
+==(A::ConversionWrapper,B::ConversionWrapper)=A.op==B.op
 
 # Base.convert{S,T}(::Type{ConversionWrapper{S,T}},D::ConversionWrapper)=ConversionWrapper{S,T}(convert(S,D.op))
 # Base.convert{CW<:ConversionWrapper}(::Type{CW},D::CW)=D
