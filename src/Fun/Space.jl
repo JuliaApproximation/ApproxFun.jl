@@ -123,6 +123,7 @@ points(d::Space,n)=points(domain(d),n)
 
 
 canonicalspace(T)=T
+canonicaldomain(S::Space)=canonicaldomain(domain(S))
 
 
 ##Check domain compatibility
@@ -372,7 +373,7 @@ Base.zeros(S::Space)=Fun(zeros(1),S)
 # catch all
 Base.ones(S::Space)=Fun(x->1.0,S)
 Base.ones{T<:Number}(::Type{T},S::Space)=Fun(x->one(T),S)
-identity_fun(S::Space)=Fun(x->x,S)
+identity_fun(S::Union{Space,Domain})=Fun(x->x,S)
 
 
 

@@ -173,8 +173,6 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 
 
-
-
 # Multivariate
 
 
@@ -183,3 +181,25 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 Laplacian(S::Space,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
 Laplacian(S)=Laplacian(S,1)
+
+
+
+
+## Map to canonical
+function Derivative(S::Space,order::Integer)
+    if typeof(canonicaldomain(S))==typeof(domain(S))
+        # we assume the canonical domain case is implemented
+        Derivative{typeof(S),typeof(order),promote_type(eltype(S),eltype(domain(S)))}(S,order)
+    else
+        x=Fun(identity,S)
+        D1=Derivative(setdomain(S,canonicaldomain(S)))
+        DS=SpaceOperator(D1,S,setdomain(rangespace(D1),domain(S)))
+        M=Multiplication(Fun(tocanonicalD(S,x),S),rangespace(DS))
+        D=DerivativeWrapper(M*DS,1)
+        if order==1
+            D
+        else
+            Derivative(rangespace(D),order-1)*D
+        end
+    end
+end

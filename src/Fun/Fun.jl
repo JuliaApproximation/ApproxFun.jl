@@ -165,7 +165,7 @@ chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
 
 ## Addition and multiplication
 
-for op = (:+,:-)
+for op = (:+,:-,:(.+),:(.-))
     @eval begin
         function ($op)(f::Fun,g::Fun)
             if spacescompatible(f,g)
@@ -223,7 +223,7 @@ end
 -(c::Number,f::Fun)=-(f-c)
 
 
-for op = (:*,:.*,:+)
+for op = (:*,:.*,:+,:(.+))
     @eval ($op)(c::Number,f::Fun)=($op)(f,c)
 end
 
@@ -299,8 +299,8 @@ for op = (:(Base.real),:(Base.imag),:(Base.conj))
     @eval ($op){T,D<:Space{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 
-Base.abs2{S,T<:Real}(f::Fun{S,T})=f.^2
-Base.abs2{S,T<:Complex}(f::Fun{S,T})=real(f).^2+imag(f).^2
+Base.abs2{S,T<:Real}(f::Fun{S,T})=f^2
+Base.abs2{S,T<:Complex}(f::Fun{S,T})=real(f)^2+imag(f)^2
 
 ##  integration
 

@@ -233,7 +233,7 @@ end
 
 for TYP in (:SumSpace,:PiecewiseSpace,:TupleSpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
                                                                    (:Integral,:IntegralWrapper))
-    @eval $Op(S::$TYP,k)=$OpWrap(DiagonalInterlaceOperator(map(s->$Op(s,k),S.spaces),$TYP),k)
+    @eval $Op(S::$TYP,k::Integer)=$OpWrap(DiagonalInterlaceOperator(map(s->$Op(s,k),S.spaces),$TYP),k)
 end
 
 

@@ -33,6 +33,9 @@ addentries!{DD}(M::Multiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentri
 
 ## Derivative
 
+# override map definition
+Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=Derivative{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
+
 bandinds{s,DD<:PeriodicInterval}(D::Derivative{Hardy{s,DD}})=(0,0)
 bandinds{s,DD<:Circle}(D::Derivative{Hardy{s,DD}})=s?(0,D.order):(-D.order,0)
 

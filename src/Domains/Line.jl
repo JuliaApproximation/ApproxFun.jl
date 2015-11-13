@@ -122,7 +122,6 @@ immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     PeriodicLine()=new(0.,1.)
 end
 
-canonicaldomain(::PeriodicLine)=PeriodicInterval()
 PeriodicLine(c,a)=PeriodicLine{a/π,eltype(c)}(c,1.)
 PeriodicLine()=PeriodicLine{false,Float64}(0.,1.)
 PeriodicLine(b::Bool)=PeriodicLine{b,Float64}()

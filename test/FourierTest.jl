@@ -2,16 +2,15 @@ using ApproxFun, Base.Test
 
 @test norm(Fun(x->Fun(cos,Fourier,20)(x),20)-Fun(cos,20)) <100eps()
 @test norm(Fun(x->Fun(cos,Fourier)(x))-Fun(cos)) <100eps()
-@test norm(diff(Fun(cos,Fourier))+Fun(sin,Fourier)) < 100eps()
+@test norm(Fun(cos,Fourier)'+Fun(sin,Fourier)) < 100eps()
 @test norm(Fun(x->Fun(cos,Laurent)(x))-Fun(cos)) <100eps()
-@test norm(diff(Fun(cos,Laurent))+Fun(sin,Laurent)) < 100eps()
+@test norm(Fun(cos,Laurent)'+Fun(sin,Laurent)) < 100eps()
+@test norm(Fun(cos,Circle())'+Fun(sin,Circle()))<100eps()
 
-
-@test norm(diff(Fun(cos,Circle()))+Fun(sin,Circle()))<100eps()
 
 f=Fun(exp,Circle());
 
-@test norm(diff(f)-f)<100eps()
+@test norm(f'-f)<100eps()
 @test norm(integrate(f)+1-f)<100eps()
 
 f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
