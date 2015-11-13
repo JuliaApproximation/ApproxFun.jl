@@ -26,12 +26,7 @@ macro calculus_operator(Op)
 
 
         ## Constructors
-        $Op{T}(::Type{T},sp::Space,k)=$Op{typeof(sp),typeof(k),T}(sp,k)
-        $Op(::Type{Any},sp::Space,k)=$Op(sp,k)
-
-
-        $Op(sp::Space{ComplexBasis},k)=$Op{typeof(sp),typeof(k),Complex{real(eltype(domain(sp)))}}(sp,k)
-        $Op(sp::Space,k)=$Op{typeof(sp),typeof(k),eltype(domain(sp))}(sp,k)
+        $Op(sp::Space,k)=$Op{typeof(sp),typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
 
         $Op(sp::Space)=$Op(sp,1)
         $Op()=$Op(UnsetSpace())

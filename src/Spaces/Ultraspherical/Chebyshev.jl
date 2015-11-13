@@ -181,14 +181,10 @@ end
 
 
 # diff T -> U, then convert U -> T
-integrate{C<:Chebyshev}(f::Fun{C})=Fun(chebyshevintegrate(domain(f),f.coefficients),f.space)
-chebyshevintegrate(d::Interval,cfs::Vector)=fromcanonicalD(d,0)*ultraint!(ultraconversion(cfs))
-
-
-differentiate{C<:Chebyshev}(f::Fun{C})=Fun(chebyshevdifferentiate(domain(f),f.coefficients),f.space)
-chebyshevdifferentiate(d::Interval,cfs::Vector)=tocanonicalD(d,0)*ultraiconversion(ultradiff(cfs))
-chebyshevdifferentiate(d::IntervalDomain,cfs::Vector)=(Fun(x->tocanonicalD(d,x),d).*Fun(differentiate(Fun(cfs)),d)).coefficients
-
+integrate{D<:Interval}(f::Fun{Chebyshev{D}})=Fun(fromcanonicalD(f,0)*
+                    ultraint!(ultraconversion(f.coefficients)),f.space)
+differentiate{D<:Interval}(f::Fun{Chebyshev{D}})=Fun(tocanonicalD(f,0)*
+                                        ultraiconversion(ultradiff(f.coefficients)),f.space)
 
 ## identity_fun
 
