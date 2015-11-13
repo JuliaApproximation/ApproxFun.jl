@@ -203,3 +203,21 @@ function Derivative(S::Space,order::Integer)
         end
     end
 end
+
+
+function Integral(sp::Space,k::Integer)
+    if typeof(canonicaldomain(sp))==typeof(domain(sp))
+        # we assume the canonical domain case is implemented
+        Integral{typeof(sp),typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
+    elseif k > 1
+        Q=Integral(sp,1)
+        IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
+    else # k==1
+        csp=setdomain(sp,canonicaldomain(sp))
+
+        x=Fun(identity,domain(csp))
+        M=Multiplication(fromcanonicalD(sp,x),csp)
+        Q=Integral(rangespace(M))*M
+        IntegralWrapper(SpaceOperator(Q,sp,setdomain(rangespace(Q),domain(sp))),1)
+    end
+end
