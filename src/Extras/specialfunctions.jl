@@ -83,7 +83,15 @@ end
 
 # division by fun
 
-function ./{S,T,U,V}(c::Fun{S,T},f::Fun{U,V})
+function ./(c::Fun,f::Fun)
+    d=domain(f)
+    @assert domain(c)==d
+    cd=canonicaldomain(d)
+    if typeof(d)!=typeof(cd)
+        # project first to simplify
+        return setdomain(setdomain(c,cd)./setdomain(f,cd),d)
+    end
+
     r=roots(f)
     tol=10eps()
     if length(r)==0 || norm(c(r))<tol
@@ -93,7 +101,7 @@ function ./{S,T,U,V}(c::Fun{S,T},f::Fun{U,V})
     end
 end
 
-function ./{S,T}(c::Number,f::Fun{S,T})
+function ./(c::Number,f::Fun)
     r=roots(f)
     tol=10eps()
     @assert length(r)==0
@@ -101,6 +109,11 @@ function ./{S,T}(c::Number,f::Fun{S,T})
 end
 
 function ./{C<:Chebyshev}(c::Number,f::Fun{C})
+    if !isa(domain(f),Interval)
+        # project first to get better derivative behaviour
+        return setdomain(c./setdomain(f,Interval()),domain(f))
+    end
+
     fc = Fun(coefficients(f),Interval())
     r = roots(fc)
     x = Fun(identity)

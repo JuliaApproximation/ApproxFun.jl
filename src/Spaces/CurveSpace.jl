@@ -1,7 +1,8 @@
 ## CurveSpace
 
-Space{S<:IntervalDomain}(d::Curve{S})=Chebyshev(d)
-Space{S<:PeriodicDomain}(d::Curve{S})=Fourier(d)
+Space{S<:PolynomialSpace}(d::Curve{S})=Chebyshev(d)
+Space{S<:Fourier}(d::Curve{S})=Fourier(d)
+Space{S<:Laurent}(d::Curve{S})=Laurent(d)
 
 # function evaluate{C<:Curve,TT}(f::AbstractVector,S::Space{TT,C},x::Number)
 #     rts=roots(domain(S).curve-x)

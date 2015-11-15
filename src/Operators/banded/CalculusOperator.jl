@@ -174,11 +174,7 @@ function integrate(f::Fun)
         Integral(space(f))*f
     else
         # map to canonical domain
-        fc=Fun(f.coefficients,setdomain(space(f),cd))
-        x=Fun(identity,cd)
-        Mp=fromcanonicalD(f,x)
-        g=integrate(fc*Mp)
-        Fun(g.coefficients,setdomain(space(g),d))
+        setdomain(integrate(setdomain(f,cd)*fromcanonicalD(f)),d)
     end
 end
 
@@ -189,22 +185,17 @@ function Base.sum(f::Fun)
         last(cumsum(f))
     else
         # map first
-        fc=Fun(f.coefficients,setdomain(space(f),cd))
-        x=Fun(identity,d)
-        Mp=fromcanonicalD(f,x)
-        sum(fc*Mp)
+        sum(setdomain(f,cd)*fromcanonicalD(f))
     end
 end
 
 function linesum(f::Fun)
-    if typeof(canonicaldomain(f))==typeof(domain(f))  || isa(d,PeriodicDomain)
+    cd=canonicaldomain(f)
+    if typeof(cd)==typeof(domain(f))  || isa(d,PeriodicDomain)
         error("override linesum for $(f.space)")
     else
         # map first
-        fc=Fun(f.coefficients,setdomain(space(f),canonicaldomain(f)))
-        x=Fun(identity,domain(fc))
-        Mp=fromcanonicalD(f,x)
-        linesum(fc*abs(Mp))
+        linesum(setdomain(f,cd)*abs(fromcanonicalD(f)))
     end
 end
 
