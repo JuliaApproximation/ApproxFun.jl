@@ -18,16 +18,15 @@ function Base.sum{DS<:DiracSpace}(f::Fun{DS})
     sum(f.coefficients[1:n])+sum(Fun(f.coefficients[n+1:end],space(f).space))
 end
 
-function evaluate{DS<:DiracSpace}(f::Fun{DS},x::Number)
-  n = length(f.space.points)
-  if x in f.space.points
+function evaluate(f::AbstractVector,S::DiracSpace,x::Number)
+  n = length(S.points)
+  if x in S.points
     error("You cannot evaluate a Dirac delta at its center.")
   else
-    evaluate(Fun(f.coefficients[n+1:end],f.space.space),x)
+    evaluate(Fun(f[n+1:end],S.space),x)
   end
 end
 
-evaluate(S::DiracSpace,coeffs::Vector,x::Number)=evaluate(Fun(coeffs,S),x)
 
 function union_rule(a::DiracSpace,b::DiracSpace)
   DiracSpace(union(a.space,b.space),sort(union(a.points,b.points)))

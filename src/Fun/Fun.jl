@@ -103,14 +103,16 @@ canonicaldomain(f::Fun)=canonicaldomain(domain(f))
 
 ##Evaluation
 
-function evaluate(f::Fun,x...)
-    csp=canonicalspace(f)
-    if spacescompatible(csp,space(f))
+function evaluate(f::AbstractVector,S::Space,x...)
+    csp=canonicalspace(S)
+    if spacescompatible(csp,S)
         error("Override evaluate for " * string(typeof(csp)))
     else
-        evaluate(Fun(f,csp),x...)
+        evaluate(f,csp,x...)
     end
 end
+
+evaluate(f::Fun,x...)=evaluate(f.coefficients,f.space,x...)
 
 
 Base.call(f::Fun,x...)=evaluate(f,x...)

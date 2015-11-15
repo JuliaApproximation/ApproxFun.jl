@@ -155,20 +155,27 @@ end
 
 ## evaluate
 
-evaluate{D<:SumSpace,T}(f::Fun{D,T},x)=mapreduce(vf->evaluate(vf,x),+,vec(f))
+evaluate(f::AbstractVector,S::SumSpace,x)=mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
 
 
-function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
-    d=domain(f)
+function evaluate(f::AbstractVector,S::PiecewiseSpace,x::Number)
+    d=domain(S)
+    g=Fun(f,S)
     for k=1:length(d)
         if in(x,d[k])
-            return f[k](x)
+            return g[k](x)
         end
     end
 end
-evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f(xk) for xk in x]
+function evaluate(v::AbstractVector,S::PiecewiseSpace,x::Vector)
+    f=Fun(v,S)
+    [f(xk) for xk in x]
+end
 
-evaluate{S<:TupleSpace}(f::Fun{S},x...)=eltype(f)[f[k](x...) for k=1:length(f.space)]
+function evaluate(v::AbstractVector,S::TupleSpace,x...)
+    f=Fun(v,S)
+    eltype(f)[f[k](x...) for k=1:length(f.space)]
+end
 
 
 ## calculus

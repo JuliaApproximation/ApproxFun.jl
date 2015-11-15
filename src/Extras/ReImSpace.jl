@@ -19,7 +19,7 @@ for TYP in (:ReSpace,:ImSpace,:ReImSpace)
         end
 
         transform(S::$TYP,vals::Vector)=coefficients(transform(S.space,vals),S.space,S)
-        evaluate{S<:$TYP}(f::Fun{S},x)=evaluate(Fun(f,space(f).space),x)
+        evaluate(f::AbstractVector,S::$TYP,x)=evaluate(f,space(f).space,x)
 
         canonicalspace(a::$TYP)=$TYP(canonicalspace(a.space))
     end

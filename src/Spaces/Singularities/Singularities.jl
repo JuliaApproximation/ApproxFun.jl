@@ -17,14 +17,14 @@ itransform(sp::WeightSpace,cfs::Vector,plan)=itransform(sp.space,cfs,plan[2]).*p
 
 
 
-function evaluate{WS<:WeightSpace,T}(f::Fun{WS,T},x...)
+function evaluate(f::AbstractVector,S::WeightSpace,x...)
     tol=1.0E-14
-    fv=Fun(f.coefficients,space(f).space)(x...)
+    fv=Fun(f,S.space)(x...)
     if isa(fv,Number)&&abs(fv)<tol
         #TODO: Why this special case??
-        zero(T)
+        zero(eltype(fv))
     else
-        weight(space(f),x...).*fv
+        weight(S,x...).*fv
     end
 end
 

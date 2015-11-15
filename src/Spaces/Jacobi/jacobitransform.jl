@@ -11,6 +11,3 @@ function transform(S::Jacobi,vals,plan::Tuple{Vector,Vector})
     V*(w.*vals)./nrm
 end
 itransform(S::Jacobi,cfs,plan::Vector) = jacobip(0:length(cfs)-1,S.a,S.b,tocanonical(S,plan))*cfs
-
-#evaluate{J<:Jacobi}(f::Fun{J},x::Number)=length(f)==0?zero(x):dot(jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x)),f.coefficients)
-#evaluate{J<:Jacobi}(f::Fun{J},x::Vector)=jacobip(0:length(f)-1,f.space.a,f.space.b,tocanonical(f,x))*f.coefficients
