@@ -108,7 +108,7 @@ function evaluate(f::AbstractVector,S::Space,x...)
     if spacescompatible(csp,S)
         error("Override evaluate for " * string(typeof(csp)))
     else
-        evaluate(f,csp,x...)
+        evaluate(coefficients(f,S,csp),csp,x...)
     end
 end
 
