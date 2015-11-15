@@ -2,6 +2,8 @@ export continuity
 
 
 
+Space(d::IntervalDomain)=Chebyshev(d)
+
 ## Calculus
 
 

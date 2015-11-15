@@ -166,9 +166,20 @@ integrate(d::Domain)=Integral(d,1)
 
 
 # Default is to use ops
-differentiate{S,T}(f::Fun{S,T})=Derivative(space(f))*f
-integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
+differentiate(f::Fun)=Derivative(space(f))*f
+integrate(f::Fun)=Integral(space(f))*f
 
+function Base.sum(f::Fun)
+    if canonicaldomain(f)==domain(f)
+        last(cumsum(f))
+    else
+        # map first
+        fc=Fun(f.coefficients,setdomain(space(f),canonicaldomain(f)))
+        x=Fun(identity,domain(fc))
+        Mp=fromcanonicalD(f,x)
+        sum(fc*Mp)
+    end
+end
 
 
 

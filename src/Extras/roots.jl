@@ -320,7 +320,6 @@ complexroots{DD}(f::Fun{Laurent{DD}})=mappoint(Circle(),domain(f),complexroots(f
 complexroots{DD}(f::Fun{Taylor{DD}})=mappoint(Circle(),domain(f),complexroots(f.coefficients))
 
 
-roots{S<:MappedSpace}(f::Fun{S})=fromcanonical(f,roots(Fun(coefficients(f),space(f).space)))
 
 function roots{DD}(f::Fun{Laurent{DD}})
     irts=filter!(z->in(z,Circle()),complexroots(Fun(f.coefficients,Laurent(Circle()))))

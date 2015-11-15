@@ -135,43 +135,43 @@ end
 
 
 
-function ./{S<:MappedSpace}(c::Number,f::Fun{S})
-    g=c./Fun(coefficients(f),space(f).space)
-    Fun(coefficients(g),MappedSpace(domain(f),space(g)))
-end
-function .^{S<:Space,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
-    g=Fun(coefficients(f),space(f).space).^k
-    Fun(coefficients(g),MappedSpace(domain(f),space(g)))
-end
-
-
-#TODO: Unify following
-function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
-    sp=space(f)
-    # Need to think what to do if this is ever not the case..
-    @assert isapprox(domain(sp.space),Interval())
-    fc = Fun(f.coefficients,sp.space) #Project to interval
-
-    r = sort(roots(fc))
-    @assert length(r) <= 2
-
-    if length(r) == 0
-        Fun(Fun(x->fc(x)^k).coefficients,sp)
-    elseif length(r) == 1
-        @assert isapprox(abs(r[1]),1)
-
-        if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(true,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
-        else
-            Fun(coefficients(divide_singularity(false,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
-        end
-    else
-        @assert isapprox(r[1],-1)
-        @assert isapprox(r[2],1)
-
-        Fun(coefficients(divide_singularity(fc)^k),MappedSpace(sp.domain,JacobiWeight(k,k,sp.space)))
-    end
-end
+# function ./{S<:MappedSpace}(c::Number,f::Fun{S})
+#     g=c./Fun(coefficients(f),space(f).space)
+#     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
+# end
+# function .^{S<:Space,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
+#     g=Fun(coefficients(f),space(f).space).^k
+#     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
+# end
+#
+#
+# #TODO: Unify following
+# function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
+#     sp=space(f)
+#     # Need to think what to do if this is ever not the case..
+#     @assert isapprox(domain(sp.space),Interval())
+#     fc = Fun(f.coefficients,sp.space) #Project to interval
+#
+#     r = sort(roots(fc))
+#     @assert length(r) <= 2
+#
+#     if length(r) == 0
+#         Fun(Fun(x->fc(x)^k).coefficients,sp)
+#     elseif length(r) == 1
+#         @assert isapprox(abs(r[1]),1)
+#
+#         if isapprox(r[1],1.)
+#             Fun(coefficients(divide_singularity(true,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
+#         else
+#             Fun(coefficients(divide_singularity(false,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
+#         end
+#     else
+#         @assert isapprox(r[1],-1)
+#         @assert isapprox(r[2],1)
+#
+#         Fun(coefficients(divide_singularity(fc)^k),MappedSpace(sp.domain,JacobiWeight(k,k,sp.space)))
+#     end
+# end
 
 function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
     # Need to think what to do if this is ever not the case..
@@ -220,10 +220,10 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 
 Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
 
-function Base.log{MS<:MappedSpace}(f::Fun{MS})
-    g=log(Fun(f.coefficients,space(f).space))
-    Fun(g.coefficients,MappedSpace(domain(f),space(g)))
-end
+# function Base.log{MS<:MappedSpace}(f::Fun{MS})
+#     g=log(Fun(f.coefficients,space(f).space))
+#     Fun(g.coefficients,MappedSpace(domain(f),space(g)))
+# end
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
@@ -320,10 +320,10 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
         $op{PW<:PiecewiseSpace}(f::Fun{PW})=depiece(map(f->$op(f),pieces(f)))
 
         # We remove the MappedSpace
-        function $op{MS<:MappedSpace}(f::Fun{MS})
-            g=exp(Fun(f.coefficients,space(f).space))
-            Fun(g.coefficients,MappedSpace(domain(f),space(g)))
-        end
+        # function $op{MS<:MappedSpace}(f::Fun{MS})
+        #     g=exp(Fun(f.coefficients,space(f).space))
+        #     Fun(g.coefficients,MappedSpace(domain(f),space(g)))
+        # end
         function $op{S,T}(f::Fun{S,T})
             xmax,opfxmax,opmax=specialfunctionnormalizationpoint($op,$growth,f)
             # we will assume the result should be smooth on the domain

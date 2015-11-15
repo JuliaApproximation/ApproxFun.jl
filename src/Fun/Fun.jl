@@ -361,8 +361,7 @@ Base.isreal(f::Fun)=false
 
 
 
-Base.sum(f::Fun)=last(cumsum(f))
-integrate(f::Fun)=integrate(Fun(f,domain(f)))
+# sum, integrate, and idfferentiate are in CalculusOperator
 
 
 function reverseorientation(f::Fun)

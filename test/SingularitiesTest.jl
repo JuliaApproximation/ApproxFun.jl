@@ -10,6 +10,7 @@ u=sqrt(4-x.^2)/(2π)
 @test_approx_eq u(.1) sqrt(4-.1^2)/(2π)
 @test_approx_eq sum(u) 1
 
+#this call threw an error, which we check
 values(u)
 
 
@@ -95,7 +96,7 @@ g=1/f
 ## Ray
 
 f=Fun(x->exp(-x),[0,Inf])
-@test_approx_eq diff(f)(.1) -f(.1)
+@test_approx_eq f'(.1) -f(.1)
 
 x=Fun(identity,Ray())
 f=exp(-x)

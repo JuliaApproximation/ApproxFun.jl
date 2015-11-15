@@ -1,3 +1,5 @@
+Space(d::PeriodicDomain)=Fourier(d)
+
 
 ## Evaluation
 
@@ -9,4 +11,3 @@ DefiniteIntegral(d::PeriodicDomain)=DefiniteIntegral(Laurent(d))
 DefiniteLineIntegral(d::PeriodicDomain)=DefiniteLineIntegral(Laurent(d))
 
 ## Toeplitz
-
