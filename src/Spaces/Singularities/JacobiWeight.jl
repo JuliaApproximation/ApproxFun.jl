@@ -37,8 +37,8 @@ identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x
 
 
 spacescompatible(A::JacobiWeight,B::JacobiWeight)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
-spacescompatible{DD<:Interval}(A::JacobiWeight,B::RealUnivariateSpace{DD})=spacescompatible(A,JacobiWeight(0,0,B))
-spacescompatible{DD<:Interval}(B::RealUnivariateSpace{DD},A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
+spacescompatible{DD<:IntervalDomain}(A::JacobiWeight,B::RealUnivariateSpace{DD})=spacescompatible(A,JacobiWeight(0,0,B))
+spacescompatible{DD<:IntervalDomain}(B::RealUnivariateSpace{DD},A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
 transformtimes{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})=
             Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),
@@ -61,7 +61,7 @@ setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.spac
 
 
 ##TODO: paradigm for same space
-function coefficients{SJ1,SJ2,DD<:Interval}(f::Vector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD})
+function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD})
     α,β=sp1.α,sp1.β
     c,d=sp2.α,sp2.β
 
@@ -71,12 +71,12 @@ function coefficients{SJ1,SJ2,DD<:Interval}(f::Vector,sp1::JacobiWeight{SJ1,DD},
         (Conversion(sp1,sp2)*f)
     end
 end
-coefficients{SJ,S,n,st,DD<:Interval}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SliceSpace{n,st,S,RealBasis,DD,1})=error("Implement")
-coefficients{SJ,S,n,st,DD<:Interval}(f::Vector,S2::SliceSpace{n,st,S,RealBasis,DD,1},sp::JacobiWeight{SJ,DD})=error("Implement")
+coefficients{SJ,S,n,st,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SliceSpace{n,st,S,RealBasis,DD,1})=error("Implement")
+coefficients{SJ,S,n,st,DD<:IntervalDomain}(f::Vector,S2::SliceSpace{n,st,S,RealBasis,DD,1},sp::JacobiWeight{SJ,DD})=error("Implement")
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
-coefficients{SJ,SV,DD<:Interval}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1})=sumspacecoefficients(f,sp,S2)
-coefficients{SJ,DD<:Interval}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD})=coefficients(f,sp,JacobiWeight(0,0,S2))
-coefficients{SJ,DD<:Interval}(f::Vector,S2::RealUnivariateSpace{DD},sp::JacobiWeight{SJ,DD})=coefficients(f,JacobiWeight(0,0,S2),sp)
+coefficients{SJ,SV,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1})=sumspacecoefficients(f,sp,S2)
+coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD})=coefficients(f,sp,JacobiWeight(0,0,S2))
+coefficients{SJ,DD<:IntervalDomain}(f::Vector,S2::RealUnivariateSpace{DD},sp::JacobiWeight{SJ,DD})=coefficients(f,JacobiWeight(0,0,S2),sp)
 
 
 """
