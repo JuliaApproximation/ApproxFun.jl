@@ -24,8 +24,8 @@ spacescompatible(::ConstantSpace,::ConstantSpace)=true
 Base.ones(S::ConstantSpace)=Fun(ones(1),S)
 Base.ones(S::Union{AnyDomain,AnySpace,UnsetSpace})=ones(ConstantSpace())
 Base.zeros(S::Union{AnyDomain,AnySpace,UnsetSpace})=zeros(ConstantSpace())
-evaluate(f::AbstractVector,::ConstantSpace,x...)=f.coefficients[1]
-evaluate(f::AbstractVector,::ConstantSpace,x::Array)=f.coefficients[1]*ones(x)
+evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
+evaluate(f::AbstractVector,::ConstantSpace,x::Array)=f[1]*ones(x)
 
 evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
 evaluate(f::AbstractVector,::ZeroSpace,x::Array)=zeros(x)
