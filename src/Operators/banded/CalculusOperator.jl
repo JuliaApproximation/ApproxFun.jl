@@ -167,10 +167,23 @@ integrate(d::Domain)=Integral(d,1)
 
 # Default is to use ops
 differentiate(f::Fun)=Derivative(space(f))*f
-integrate(f::Fun)=Integral(space(f))*f
+function integrate(f::Fun)
+    d=domain(f)
+    cd=canonicaldomain(d)
+    if typeof(d)==typeof(cd)
+        Integral(space(f))*f
+    else
+        # map to canonical domain
+        fc=Fun(f.coefficients,setdomain(space(f),cd))
+        x=Fun(identity,cd)
+        Mp=fromcanonicalD(f,x)
+        g=integrate(fc*Mp)
+        Fun(g.coefficients,setdomain(space(g),d))
+    end
+end
 
 function Base.sum(f::Fun)
-    if canonicaldomain(f)==domain(f)
+    if typeof(canonicaldomain(f))==typeof(domain(f))
         last(cumsum(f))
     else
         # map first
@@ -178,6 +191,18 @@ function Base.sum(f::Fun)
         x=Fun(identity,domain(fc))
         Mp=fromcanonicalD(f,x)
         sum(fc*Mp)
+    end
+end
+
+function linesum(f::Fun)
+    if typeof(canonicaldomain(f))==typeof(domain(f))
+        error("override linesum for $(f.space)")
+    else
+        # map first
+        fc=Fun(f.coefficients,setdomain(space(f),canonicaldomain(f)))
+        x=Fun(identity,domain(fc))
+        Mp=fromcanonicalD(f,x)
+        linesum(fc*abs(Mp))
     end
 end
 
@@ -197,23 +222,24 @@ Laplacian(S)=Laplacian(S,1)
 
 
 ## Map to canonical
-function Derivative(S::Space,order::Integer)
+function defaultderivative(S::Space,order::Integer)
     if typeof(canonicaldomain(S))==typeof(domain(S))
         # we assume the canonical domain case is implemented
         Derivative{typeof(S),typeof(order),promote_type(eltype(S),eltype(domain(S)))}(S,order)
     else
-        x=Fun(identity,S)
-        D1=Derivative(setdomain(S,canonicaldomain(S)))
-        DS=SpaceOperator(D1,S,setdomain(rangespace(D1),domain(S)))
-        M=Multiplication(Fun(tocanonicalD(S,x),S),rangespace(DS))
-        D=DerivativeWrapper(M*DS,1)
+        D1=invfromcanonicalD(S)*Derivative(setdomain(S,canonicaldomain(S)))
+        D=DerivativeWrapper(SpaceOperator(D1,S,setdomain(rangespace(D1),domain(S))),1)
         if order==1
             D
         else
-            Derivative(rangespace(D),order-1)*D
+            DerivativeWrapper(TimesOperator(Derivative(rangespace(D),order-1),D),order)
         end
     end
 end
+
+
+
+Derivative(S::Space,order::Integer)=defaultderivative(S,order)
 
 
 function Integral(sp::Space,k::Integer)

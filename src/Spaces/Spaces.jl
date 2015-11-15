@@ -37,14 +37,3 @@ function invfromcanonicalD(S::LaurentDirichlet{PeriodicLine{false}})
     @assert d.center==0  && d.L==1.0
     a=Fun([1.,.5,.5],Laurent())
 end
-
-
-function Derivative{TT,LD<:Union{Line,Ray,PeriodicLine,Curve}}(S::Space{TT,LD},order::Integer)
-    D1=invfromcanonicalD(S)*Derivative(setdomain(S,canonicaldomain(S)))
-    D=DerivativeWrapper(SpaceOperator(D1,S,setdomain(rangespace(D1),domain(S))),1)
-    if order==1
-        D
-    else
-        DerivativeWrapper(TimesOperator(Derivative(rangespace(D),order-1),D),order)
-    end
-end

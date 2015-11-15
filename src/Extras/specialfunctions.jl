@@ -340,6 +340,11 @@ end
 # JacobiWeight explodes, we want to ensure the solution incorporates the fact
 # that exp decays rapidly
 function Base.exp{JW<:JacobiWeight}(f::Fun{JW})
+    if !isa(domain(f),Interval)
+        # project first to get better derivative behaviour
+        return setdomain(exp(setdomain(f,Interval())),domain(f))
+    end
+
     S=space(f)
     q=Fun(f.coefficients,S.space)
     if isapprox(S.α,0.) && isapprox(S.β,0.)
