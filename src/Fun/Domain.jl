@@ -31,6 +31,7 @@ complexlength(::AnyDomain)=NaN
 Base.length(::AnyDomain)=NaN
 
 
+canonicaldomain(a::Union{AnyDomain,EmptyDomain})=a
 
 ##General routines
 
@@ -80,6 +81,9 @@ end
 ###### Periodic domains
 
 abstract PeriodicDomain{T} <: UnivariateDomain{T}
+
+
+canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
 points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(T,n))
 

@@ -84,7 +84,7 @@ end
 for TYP in (:Vector,:Float64)
     @eval begin
         bisectioninv{SP<:Chebyshev}(cf::Fun{SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
-        bisectioninv{SP<:LineSpace}(cf::Fun{SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
+#        bisectioninv{SP<:LineSpace}(cf::Fun{SP,Float64},x::$TYP;opts...)=fromcanonical(cf,chebbisectioninv(coefficients(cf),x;opts...))
     end
 end
 
@@ -196,31 +196,32 @@ sample(f::MultivariateFun)=sample(f,1)[1,:]
 ## Special spaces
 
 # Rays may be schwartz at right endpoint so we project
-function sample{SS<:JacobiWeight,DD<:Ray,TT}(f::Fun{MappedSpace{SS,DD,TT},Float64},n::Integer)
-    if space(f).space.β == 0
+function sample{SS,DD<:Ray}(f::Fun{JacobiWeight{SS,DD},Float64},n::Integer)
+    if space(f).β == 0
         samplecdf(normalizedcumsum(f),n)
     else
-        sample(Fun(x->f(x),MappedSpace(domain(f),JacobiWeight(space(f).space.α,1))),n)
+        sample(Fun(x->f(x),JacobiWeight(space(f).α,1,domain(f))),n)
     end
 end
 
 # Line/Ray have unbounded endpoints so we map
-for TYP in (:Line,:Ray)
-    @eval bisectioninv{SS,DD<:$TYP,TT}(f::Fun{MappedSpace{SS,DD,TT},Float64},x::Vector)=fromcanonical(f,bisectioninv(Fun(f.coefficients,space(f).space),x))
-end
+# for TYP in (:Line,:Ray)
+#     @eval bisectioninv{SS,DD<:$TYP,TT}(f::Fun{MappedSpace{SS,DD,TT},Float64},x::Vector)=fromcanonical(f,
+#                                                                                 bisectioninv(Fun(f.coefficients,space(f).space),x))
+# end
 
 
 
-function sample{SS}(f::LowRankFun{LineSpace{SS},LineSpace{SS},TensorSpace{Tuple{LineSpace{SS},LineSpace{SS}},RealBasis,2},Float64},n::Integer)
-    cf=normalizedcumsum(sum(f,1))
-    CB=coefficients(map(cumsum,f.B))
-
-    ry=samplecdf(cf,n)
-    fA=evaluate(f.A,ry)
-    CBfA=CB*fA  #cumsums at points
-    multiply_oneatright!(CBfA)
-
-    rx=fromcanonical(first(f.B),chebbisectioninv(CBfA,rand(n)))
-
-    [rx ry]
-end
+# function sample{SS}(f::LowRankFun{LineSpace{SS},LineSpace{SS},TensorSpace{Tuple{LineSpace{SS},LineSpace{SS}},RealBasis,2},Float64},n::Integer)
+#     cf=normalizedcumsum(sum(f,1))
+#     CB=coefficients(map(cumsum,f.B))
+#
+#     ry=samplecdf(cf,n)
+#     fA=evaluate(f.A,ry)
+#     CBfA=CB*fA  #cumsums at points
+#     multiply_oneatright!(CBfA)
+#
+#     rx=fromcanonical(first(f.B),chebbisectioninv(CBfA,rand(n)))
+#
+#     [rx ry]
+# end

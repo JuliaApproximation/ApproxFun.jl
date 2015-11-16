@@ -57,3 +57,24 @@ function getindex(B::DefiniteIntegral,kr::Range)
     A=(Evaluation(S,true)-Evaluation(S,false))*Q
     A[kr]
 end
+
+
+
+
+function DefiniteIntegral(sp::Space)
+    if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
+        DefiniteIntegral{typeof(sp),eltype(sp)}(sp)
+    else
+        M=Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))
+        DefiniteIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
+    end
+end
+
+function DefiniteLineIntegral(sp::Space)
+    if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
+        DefiniteLineIntegral{typeof(sp),eltype(sp)}(sp)
+    else
+        M=Multiplication(abs(fromcanonicalD(sp)),setcanonicaldomain(sp))
+        DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteLineIntegral(rangespace(M))*M,sp))
+    end
+end

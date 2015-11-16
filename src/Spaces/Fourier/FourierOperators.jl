@@ -102,7 +102,7 @@ function addentries!{CS<:SinSpace}(D::Derivative{CS},A,kr::Range,::Colon)
     A
 end
 
-Integral(::CosSpace,m)=error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
+Integral(::CosSpace,m::Integer)=error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
 
 
 bandinds{CS<:SinSpace}(D::Integral{CS})=iseven(D.order)?(0,0):(-1,0)

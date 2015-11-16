@@ -5,13 +5,25 @@ export Curve
 """
 `Curve` Represents a domain defined by the image of a Fun
 """
-immutable Curve{S<:Space,T} <: UnivariateDomain{T}
+
+
+immutable IntervalCurve{S<:Space,T} <: IntervalDomain{T}
     curve::Fun{S,T}
 end
 
+immutable PeriodicCurve{S<:Space,T} <: PeriodicDomain{T}
+    curve::Fun{S,T}
+end
+
+typealias Curve{S,T} Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
+
+
 ==(a::Curve,b::Curve)=a.curve==b.curve
 
-points(c::Curve,n)=c.curve(points(domain(c.curve),n))
+for TYP in (:IntervalCurve,:PeriodicCurve)
+    @eval points(c::$TYP,n::Integer)=c.curve(points(domain(c.curve),n))
+end
+
 checkpoints(d::Curve)=fromcanonical(d,checkpoints(domain(d.curve)))
 
 for op in (:(Base.first),:(Base.last),:(Base.rand))

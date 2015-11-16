@@ -15,18 +15,23 @@ Fun(c::Number,d::ConstantSpace)=Fun([c],d)
 dimension(::ConstantSpace)=1
 
 domain(::ConstantSpace)=AnyDomain()
+
+setdomain(f::Fun{ConstantSpace},d::Domain)=Number(f)*ones(d)
+
 canonicalspace(C::ConstantSpace)=C
 spacescompatible(::ConstantSpace,::ConstantSpace)=true
 
 Base.ones(S::ConstantSpace)=Fun(ones(1),S)
 Base.ones(S::Union{AnyDomain,AnySpace,UnsetSpace})=ones(ConstantSpace())
 Base.zeros(S::Union{AnyDomain,AnySpace,UnsetSpace})=zeros(ConstantSpace())
-evaluate(f::Fun{ConstantSpace},x...)=f.coefficients[1]
-evaluate(f::Fun{ConstantSpace},x::Array)=f.coefficients[1]*ones(x)
+evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
+evaluate(f::AbstractVector,::ConstantSpace,x::Array)=f[1]*ones(x)
 
-evaluate(f::Fun{ZeroSpace},x...)=zero(eltype(f))
-evaluate(f::Fun{ZeroSpace},x::Array)=zeros(x)
+evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
+evaluate(f::AbstractVector,::ZeroSpace,x::Array)=zeros(x)
 
+
+Base.convert{T<:Number}(::Type{T},f::Fun{ConstantSpace})=convert(T,f.coefficients[1])
 
 # promoting numbers to Fun
 # override promote_rule if the space type can represent constants

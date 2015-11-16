@@ -91,11 +91,6 @@ function Base.show(io::IO,s::LogWeight)
     print(io,"]")
 end
 
-function Base.show(io::IO,s::MappedSpace)
-    show(io,s.space)
-    print(io,"↦")
-    show(io,s.domain)
-end
 
 function Base.show(io::IO,s::VectorSpace)
     print(io,"[")

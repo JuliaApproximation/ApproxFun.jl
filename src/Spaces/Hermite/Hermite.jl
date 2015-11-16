@@ -64,7 +64,7 @@ immutable GaussWeight{S,T} <: WeightSpace
 end
 spacescompatible(a::GaussWeight,b::GaussWeight)=spacescompatible(a.space,b.space)&&isapprox(a.L,b.L)
 
-function Derivative(sp::GaussWeight,k)
+function Derivative(sp::GaussWeight,k::Integer)
    if k==1
         x=Multiplication(Fun(identity,sp.space),sp.space)
         D=Derivative(sp.space)

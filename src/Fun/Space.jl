@@ -98,6 +98,8 @@ function setdomain(sp::Space,d::Domain)
     eval(parse(string(S.name)))(d)
 end
 
+setcanonicaldomain(s)=setdomain(s,canonicaldomain(s))
+
 
 # AnySpace dictates that an operator can act on any space
 # UnsetSpace dictates that an operator is not defined until
@@ -123,6 +125,7 @@ points(d::Space,n)=points(domain(d),n)
 
 
 canonicalspace(T)=T
+canonicaldomain(S::Space)=canonicaldomain(domain(S))
 
 
 ##Check domain compatibility
@@ -372,7 +375,20 @@ Base.zeros(S::Space)=Fun(zeros(1),S)
 # catch all
 Base.ones(S::Space)=Fun(x->1.0,S)
 Base.ones{T<:Number}(::Type{T},S::Space)=Fun(x->one(T),S)
-identity_fun(S::Space)=Fun(x->x,S)
+
+identity_fun(S::Space)=identity_fun(domain(S))
+
+function identity_fun(d::Domain)
+    cd=canonicaldomain(d)
+    if typeof(d)==typeof(cd)
+        Fun(x->x,d) # fall back to constructor
+    else
+        # this allows support for singularities, that the constructor doesn't
+        sf=fromcanonical(d,Fun(identity,cd))
+        Fun(coefficients(sf),setdomain(space(sf),d))
+    end
+end
+
 
 
 

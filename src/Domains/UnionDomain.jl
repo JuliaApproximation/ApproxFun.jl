@@ -14,6 +14,8 @@ UnionDomain(d::Tuple)=UnionDomain{typeof(d),mapreduce(eltype,promote_type,d),map
 UnionDomain(d::AbstractVector)=UnionDomain(tuple(d...))
 
 
+canonicaldomain(d::UnionDomain)=d  # we could map all to canonical, but then there would be overlap
+
 isambiguous(d::UnionDomain)=isempty(d.domains)
 Base.convert{DD,T,d}(::Type{UnionDomain{DD,T,d}},::AnyDomain)=UnionDomain{DD,T,d}(map(D->D(AnyDomain()),DD.parameters))
 Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain)=UnionDomain(tuple())

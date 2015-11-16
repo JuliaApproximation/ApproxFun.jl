@@ -2,16 +2,15 @@ using ApproxFun, Base.Test
 
 @test norm(Fun(x->Fun(cos,Fourier,20)(x),20)-Fun(cos,20)) <100eps()
 @test norm(Fun(x->Fun(cos,Fourier)(x))-Fun(cos)) <100eps()
-@test norm(diff(Fun(cos,Fourier))+Fun(sin,Fourier)) < 100eps()
+@test norm(Fun(cos,Fourier)'+Fun(sin,Fourier)) < 100eps()
 @test norm(Fun(x->Fun(cos,Laurent)(x))-Fun(cos)) <100eps()
-@test norm(diff(Fun(cos,Laurent))+Fun(sin,Laurent)) < 100eps()
+@test norm(Fun(cos,Laurent)'+Fun(sin,Laurent)) < 100eps()
+@test norm(Fun(cos,Circle())'+Fun(sin,Circle()))<100eps()
 
-
-@test norm(diff(Fun(cos,Circle()))+Fun(sin,Circle()))<100eps()
 
 f=Fun(exp,Circle());
 
-@test norm(diff(f)-f)<100eps()
+@test norm(f'-f)<100eps()
 @test norm(integrate(f)+1-f)<100eps()
 
 f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
@@ -100,3 +99,13 @@ a=Fun(t->sin(sin(t)),SinSpace)
 b=Fun(t->sin(t)+cos(3t)+1,Fourier)
 
 @test_approx_eq (a*b)(.1) a(.1)*b(.1)
+
+
+
+
+# Check bug in off centre Circle
+c2=-0.1+.2im;r2=0.3;
+d2=Circle(c2,r2)
+z=Fun(identity,d2)
+
+@test_approx_eq z(-0.1+.2im+0.3*exp(0.1im)) (-0.1+.2im+0.3*exp(0.1im))

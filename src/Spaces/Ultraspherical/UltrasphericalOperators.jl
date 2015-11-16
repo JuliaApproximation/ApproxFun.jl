@@ -42,7 +42,7 @@ end
 
 
 ##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex{T<:Number,C<:Chebyshev}(op::Evaluation{C,Bool,T},k::Range)
+function Base.getindex{T<:Number,DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool,T},k::Range)
     x = op.x
     d = domain(op)
     p = op.order
@@ -69,7 +69,7 @@ function Base.getindex{T<:Number,C<:Chebyshev}(op::Evaluation{C,Bool,T},k::Range
     return ret*cst
 end
 
-function Base.getindex{C<:Chebyshev}(op::Evaluation{C},k::Range)
+function Base.getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD}},k::Range)
     if op.order == 0
         evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
     else

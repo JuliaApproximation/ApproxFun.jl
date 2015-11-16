@@ -231,11 +231,20 @@ end
 
 #TODO: do in @calculus_operator?
 
-for TYP in (:SumSpace,:PiecewiseSpace,:TupleSpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
-                                                                   (:Integral,:IntegralWrapper))
-    @eval $Op(S::$TYP,k)=$OpWrap(DiagonalInterlaceOperator(map(s->$Op(s,k),S.spaces),$TYP),k)
+for TYP in (:PiecewiseSpace,:TupleSpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
+                                                         (:Integral,:IntegralWrapper))
+    @eval $Op(S::$TYP,k::Integer)=$OpWrap(DiagonalInterlaceOperator(map(s->$Op(s,k),S.spaces),$TYP),k)
 end
 
+function Derivative(S::SumSpace,k::Integer)
+    # we want to map before we decompose, as the map may introduce
+    # mixed bases.
+    if typeof(canonicaldomain(S))==typeof(domain(S))
+        DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),SumSpace),k)
+    else
+        defaultderivative(S,k)
+    end
+end
 
 
 

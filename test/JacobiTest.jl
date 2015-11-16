@@ -93,6 +93,6 @@ f=Fun(exp,Jacobi(0.213,0.590))
 @test_approx_eq sum(Fun(exp,Legendre([0,2]))) sum(Fun(exp,[0,2]))
 
 a=Arc(0.,.1,0.,π/2)
-g=Fun(exp,MappedSpace(a,Legendre()))
+g=Fun(exp,Legendre(a))
 
 @test_approx_eq sum(g) sum(Fun(exp,a))

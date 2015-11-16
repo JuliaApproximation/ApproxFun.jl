@@ -1,3 +1,7 @@
+identity_fun(d::Circle)=Fun([d.center,0.,d.radius],Laurent(d))
+
+Space(d::PeriodicDomain)=Fourier(d)
+
 
 ## Evaluation
 
@@ -9,4 +13,3 @@ DefiniteIntegral(d::PeriodicDomain)=DefiniteIntegral(Laurent(d))
 DefiniteLineIntegral(d::PeriodicDomain)=DefiniteLineIntegral(Laurent(d))
 
 ## Toeplitz
-

@@ -88,11 +88,16 @@ domain{T<:Fun}(v::Vector{T})=map(domain,v)
 
 setdomain(f::Fun,d::Domain)=Fun(f.coefficients,setdomain(space(f),d))
 
-for op = (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD)
-    @eval ($op)(f::Fun,x)=($op)(domain(f),x)
+for op in (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD,:invfromcanonicalD)
+    @eval $op(f::Fun,x...)=$op(domain(f),x...)
 end
 
-invfromcanonicalD(d::Domain)=invfromcanonicalD(d,Fun(identity,canonicaldomain(d)))
+for op in (:tocanonical,:tocanonicalD)
+    @eval $op(d::Domain)=$op(d,Fun(identity,d))
+end
+for op in (:fromcanonical,:fromcanonicalD,:invfromcanonicalD)
+    @eval $op(d::Domain)=$op(d,Fun(identity,canonicaldomain(d)))
+end
 
 
 space(f::Fun)=f.space
@@ -103,14 +108,16 @@ canonicaldomain(f::Fun)=canonicaldomain(domain(f))
 
 ##Evaluation
 
-function evaluate(f::Fun,x...)
-    csp=canonicalspace(f)
-    if spacescompatible(csp,space(f))
+function evaluate(f::AbstractVector,S::Space,x...)
+    csp=canonicalspace(S)
+    if spacescompatible(csp,S)
         error("Override evaluate for " * string(typeof(csp)))
     else
-        evaluate(Fun(f,csp),x...)
+        evaluate(coefficients(f,S,csp),csp,x...)
     end
 end
+
+evaluate(f::Fun,x...)=evaluate(f.coefficients,f.space,x...)
 
 
 Base.call(f::Fun,x...)=evaluate(f,x...)
@@ -165,9 +172,9 @@ chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
 
 ## Addition and multiplication
 
-for op = (:+,:-)
+for op in (:+,:-,:(.+),:(.-))
     @eval begin
-        function ($op)(f::Fun,g::Fun)
+        function $op(f::Fun,g::Fun)
             if spacescompatible(f,g)
                 n = max(length(f),length(g))
                 f2 = pad(f,n); g2 = pad(g,n)
@@ -181,12 +188,18 @@ for op = (:+,:-)
                 $op(Fun(f,m),Fun(g,m)) # convert to same space
             end
         end
-
-        ($op){N<:Number}(f::Fun,c::N)=$op(f,Fun(c))
-        ($op){N<:Number}(c::N,f::Fun)=$op(Fun(c),f)
-        ($op){S,T}(f::Fun{S,T},c::UniformScaling)=$op(f,c.λ)
-        ($op){S,T}(c::UniformScaling,f::Fun{S,T})=$op(c.λ,f)
+        $op(f::Fun,c::Number)=c==0?f:$op(f,Fun(c))
+        $op(f::Fun,c::UniformScaling)=$op(f,c.λ)
+        $op(c::UniformScaling,f::Fun)=$op(c.λ,f)
     end
+end
+
+for op in (:+,:(.+))
+    @eval $op(c::Number,f::Fun)=c==0?f:$op(Fun(c),f)
+end
+
+for op in (:-,:(.-))
+    @eval $op(c::Number,f::Fun)=c==0?-f:$op(Fun(c),f)
 end
 
 # equivalent to Y+=a*X
@@ -216,15 +229,15 @@ end
 
 
 for op = (:*,:.*,:./,:/)
-    @eval ($op)(f::Fun,c::Number) = Fun(($op)(f.coefficients,c),f.space)
+    @eval $op(f::Fun,c::Number) = Fun($op(f.coefficients,c),f.space)
 end
 
 -(f::Fun)=Fun(-f.coefficients,f.space)
 -(c::Number,f::Fun)=-(f-c)
 
 
-for op = (:*,:.*,:+)
-    @eval ($op)(c::Number,f::Fun)=($op)(f,c)
+for op = (:*,:.*,:+,:(.+))
+    @eval $op(c::Number,f::Fun)=$op(f,c)
 end
 
 
@@ -299,8 +312,8 @@ for op = (:(Base.real),:(Base.imag),:(Base.conj))
     @eval ($op){T,D<:Space{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
 end
 
-Base.abs2{S,T<:Real}(f::Fun{S,T})=f.^2
-Base.abs2{S,T<:Complex}(f::Fun{S,T})=real(f).^2+imag(f).^2
+Base.abs2{S,T<:Real}(f::Fun{S,T})=f^2
+Base.abs2{S,T<:Complex}(f::Fun{S,T})=real(f)^2+imag(f)^2
 
 ##  integration
 
@@ -361,8 +374,7 @@ Base.isreal(f::Fun)=false
 
 
 
-Base.sum(f::Fun)=last(cumsum(f))
-integrate(f::Fun)=integrate(Fun(f,domain(f)))
+# sum, integrate, and idfferentiate are in CalculusOperator
 
 
 function reverseorientation(f::Fun)

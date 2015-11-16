@@ -35,7 +35,6 @@ tocanonicalD(d::Circle,ζ)=-1.im./(ζ.-d.center)  #TODO: Check formula
 fromcanonical(d::Circle,θ)=d.radius*exp(1.im*θ) .+ d.center
 fromcanonicalD(d::Circle,θ)=d.radius*1.im*exp(1.im*θ)
 
-canonicaldomain(d::Circle)=PeriodicInterval()
 
 Base.in(z,d::Circle)=isapprox(abs(z-d.center),d.radius)
 
@@ -51,6 +50,3 @@ function mappoint(d1::Circle,d2::Circle,z)
    v=(z-d1.center)/d1.radius
    v*d2.radius+d2.center
 end
-
-
-

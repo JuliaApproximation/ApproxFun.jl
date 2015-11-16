@@ -51,7 +51,7 @@ maxspace_rule(::JacobiWeight,::LogWeight)=NoSpace()
 # Same as JacobiWeight
 
 # avoid redundency
-function Multiplication{SS,LWS,DD<:Interval,T}(f::Fun{JacobiWeight{SS,DD},T},S::LogWeight{LWS,DD})
+function Multiplication{SS,LWS,DD<:IntervalDomain,T}(f::Fun{JacobiWeight{SS,DD},T},S::LogWeight{LWS,DD})
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
     rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))

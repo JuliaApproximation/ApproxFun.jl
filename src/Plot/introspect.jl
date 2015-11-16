@@ -50,10 +50,9 @@ texname(::PiecewiseSpace)="\$\\bigcup\$"
 texname{T}(A::ArraySpace{T,1})="["*string(length(A))*"]"
 texname{T}(A::ArraySpace{T,2})="["*string(size(A,1))*"\$\\times\$"*string(size(A,2))*"]"
 texname(J::JacobiWeight)="\$(1+x)\^{"*string(J.α)*"}(1-x)\^{"*string(J.β)*"}\$"
-texname(M::MappedSpace)=texname(M.domain)
 
 treecount(S::Union{DirectSumSpace,PiecewiseSpace})=1+mapreduce(treecount,+,S.spaces)
-treecount(S::Union{ArraySpace,JacobiWeight,MappedSpace})=1+treecount(S.space)
+treecount(S::Union{ArraySpace,JacobiWeight})=1+treecount(S.space)
 treecount(::Space)=1
 
 
@@ -63,7 +62,7 @@ for (OP) in (:DirectSumSpace,:PiecewiseSpace)
     @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*texname(A),A.spaces,nd,M,labels)
 end
 
-for (OP) in (:ArraySpace,:JacobiWeight,:MappedSpace)
+for (OP) in (:ArraySpace,:JacobiWeight)
     @eval add_edges!(A::$OP,nd,M,labels)=treeadd_edges!(string(nd)*":"*texname(A),[A.space],nd,M,labels)
 end
 

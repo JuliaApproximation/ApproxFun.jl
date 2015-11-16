@@ -166,11 +166,38 @@ integrate(d::Domain)=Integral(d,1)
 
 
 # Default is to use ops
-differentiate{S,T}(f::Fun{S,T})=Derivative(space(f))*f
-integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
+differentiate(f::Fun)=Derivative(space(f))*f
+function integrate(f::Fun)
+    d=domain(f)
+    cd=canonicaldomain(d)
+    if typeof(d)==typeof(cd)  || isa(d,PeriodicDomain)
+        Integral(space(f))*f
+    else
+        # map to canonical domain
+        setdomain(integrate(setdomain(f,cd)*fromcanonicalD(f)),d)
+    end
+end
 
+function Base.sum(f::Fun)
+    d=domain(f)
+    cd=canonicaldomain(d)
+    if typeof(cd)==typeof(d)  || isa(d,PeriodicDomain)
+        last(cumsum(f))
+    else
+        # map first
+        sum(setdomain(f,cd)*fromcanonicalD(f))
+    end
+end
 
-
+function linesum(f::Fun)
+    cd=canonicaldomain(f)
+    if typeof(cd)==typeof(domain(f))  || isa(d,PeriodicDomain)
+        error("override linesum for $(f.space)")
+    else
+        # map first
+        linesum(setdomain(f,cd)*abs(fromcanonicalD(f)))
+    end
+end
 
 
 
@@ -183,3 +210,44 @@ integrate{S,T}(f::Fun{S,T})=Integral(space(f))*f
 
 Laplacian(S::Space,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
 Laplacian(S)=Laplacian(S,1)
+
+
+
+
+## Map to canonical
+function defaultderivative(S::Space,order::Integer)
+    if typeof(canonicaldomain(S)).name==typeof(domain(S)).name
+        # we assume the canonical domain case is implemented
+        Derivative{typeof(S),typeof(order),promote_type(eltype(S),eltype(domain(S)))}(S,order)
+    else
+        D1=invfromcanonicalD(S)*Derivative(setdomain(S,canonicaldomain(S)))
+        D=DerivativeWrapper(SpaceOperator(D1,S,setdomain(rangespace(D1),domain(S))),1)
+        if order==1
+            D
+        else
+            DerivativeWrapper(TimesOperator(Derivative(rangespace(D),order-1),D),order)
+        end
+    end
+end
+
+
+
+Derivative(S::Space,order::Integer)=defaultderivative(S,order)
+
+
+function Integral(sp::Space,k::Integer)
+    if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
+        # we assume the canonical domain case is implemented
+        Integral{typeof(sp),typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
+    elseif k > 1
+        Q=Integral(sp,1)
+        IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
+    else # k==1
+        csp=setdomain(sp,canonicaldomain(sp))
+
+        x=Fun(identity,domain(csp))
+        M=Multiplication(fromcanonicalD(sp,x),csp)
+        Q=Integral(rangespace(M))*M
+        IntegralWrapper(SpaceOperator(Q,sp,setdomain(rangespace(Q),domain(sp))),1)
+    end
+end
