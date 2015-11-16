@@ -98,6 +98,8 @@ function setdomain(sp::Space,d::Domain)
     eval(parse(string(S.name)))(d)
 end
 
+setcanonicaldomain(s)=setdomain(s,canonicaldomain(s))
+
 
 # AnySpace dictates that an operator can act on any space
 # UnsetSpace dictates that an operator is not defined until
