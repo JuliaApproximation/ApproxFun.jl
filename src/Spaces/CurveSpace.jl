@@ -1,8 +1,11 @@
 ## CurveSpace
 
-Space{S<:PolynomialSpace}(d::Curve{S})=Chebyshev(d)
-Space{S<:Fourier}(d::Curve{S})=Fourier(d)
-Space{S<:Laurent}(d::Curve{S})=Laurent(d)
+
+Space{S<:Fourier}(d::PeriodicCurve{S})=Fourier(d)
+Space{S<:Laurent}(d::PeriodicCurve{S})=Laurent(d)
+
+#TODO: Make type stable
+Base.convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f):PeriodicCurve(f)
 
 # function evaluate{C<:Curve,TT}(f::AbstractVector,S::Space{TT,C},x::Number)
 #     rts=roots(domain(S).curve-x)
@@ -11,4 +14,6 @@ Space{S<:Laurent}(d::Curve{S})=Laurent(d)
 # end
 
 
-identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(d.domain.curve.coefficients,d)
+
+identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(domain(d).curve.coefficients,
+                                              setdomain(space(d.domain.curve),domain(d)))

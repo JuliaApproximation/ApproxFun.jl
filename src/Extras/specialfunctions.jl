@@ -26,7 +26,7 @@ function splitmap(g,d::AffineDomain,pts)
     Fun(g,pts)
 end
 
-function splitmap(g,d::Union{IntervalDomain,Curve},pts)
+function splitmap(g,d::IntervalDomain,pts)
     if length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
         Fun(g,d)
     elseif length(pts)==2 && isapprox(first(pts),first(d)) && isapprox(last(pts),last(d))

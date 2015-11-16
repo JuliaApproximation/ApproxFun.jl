@@ -190,3 +190,4 @@ x=Fun(d)
 w=sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x))
 
 @test_approx_eq sum(w/(x-2.))/(2π*im) (-4.722196879007759+2.347910413861846im)
+@test_approx_eq linesum(w*log(abs(x-2.)))/π (88.5579588360686)
