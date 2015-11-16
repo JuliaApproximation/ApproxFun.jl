@@ -216,7 +216,7 @@ Laplacian(S)=Laplacian(S,1)
 
 ## Map to canonical
 function defaultderivative(S::Space,order::Integer)
-    if typeof(canonicaldomain(S))==typeof(domain(S))
+    if typeof(canonicaldomain(S)).name==typeof(domain(S)).name
         # we assume the canonical domain case is implemented
         Derivative{typeof(S),typeof(order),promote_type(eltype(S),eltype(domain(S)))}(S,order)
     else
@@ -236,7 +236,7 @@ Derivative(S::Space,order::Integer)=defaultderivative(S,order)
 
 
 function Integral(sp::Space,k::Integer)
-    if typeof(canonicaldomain(sp))==typeof(domain(sp))
+    if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         # we assume the canonical domain case is implemented
         Integral{typeof(sp),typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
     elseif k > 1

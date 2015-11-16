@@ -62,23 +62,19 @@ end
 
 
 function DefiniteIntegral(sp::Space)
-    if typeof(canonicaldomain(sp))==typeof(domain(sp))
+    if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         DefiniteIntegral{typeof(sp),eltype(sp)}(sp)
     else
-        cd=canonicaldomain(sp)
-        x=Fun(cd)
-        M=Multiplication(fromcanonicalD(sp,x),setdomain(sp,cd))
+        M=Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))
         DefiniteIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
     end
 end
 
 function DefiniteLineIntegral(sp::Space)
-    if typeof(canonicaldomain(sp))==typeof(domain(sp))
+    if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         DefiniteLineIntegral{typeof(sp),eltype(sp)}(sp)
     else
-        cd=canonicaldomain(sp)
-        x=Fun(cd)
-        M=Multiplication(abs(fromcanonicalD(sp,x)),setdomain(sp,cd))
+        M=Multiplication(abs(fromcanonicalD(sp)),setcanonicaldomain(sp))
         DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteLineIntegral(rangespace(M))*M,sp))
     end
 end
