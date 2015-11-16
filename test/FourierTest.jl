@@ -99,3 +99,13 @@ a=Fun(t->sin(sin(t)),SinSpace)
 b=Fun(t->sin(t)+cos(3t)+1,Fourier)
 
 @test_approx_eq (a*b)(.1) a(.1)*b(.1)
+
+
+
+
+# Check bug in off centre Circle
+c2=-0.1+.2im;r2=0.3;
+d2=Circle(c2,r2)
+z=Fun(identity,d2)
+
+@test_approx_eq z(-0.1+.2im+0.3*exp(0.1im)) (-0.1+.2im+0.3*exp(0.1im))

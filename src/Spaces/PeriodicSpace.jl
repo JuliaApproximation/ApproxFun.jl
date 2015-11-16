@@ -1,3 +1,5 @@
+identity_fun(d::Circle)=Fun([d.center,0.,d.radius],Laurent(d))
+
 Space(d::PeriodicDomain)=Fourier(d)
 
 

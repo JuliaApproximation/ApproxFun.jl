@@ -64,10 +64,6 @@ function Base.isapprox(d::Interval,m::Interval)
     abs(d.a-m.a)<tol&&abs(d.b-m.b)<tol
 end
 
-##Coefficient space operators
-
-identity_fun(d::Interval)=Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],d)
-
 
 
 ## algebra
