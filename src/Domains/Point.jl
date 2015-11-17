@@ -14,3 +14,5 @@ end
 for op in (:/,:./)
     @eval $op(d::Point,c::Number)=Point($op(d.x,c))
 end
+
+Base.in(x,d::Point)=isapprox(x,d.x)

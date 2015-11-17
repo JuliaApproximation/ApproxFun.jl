@@ -191,3 +191,14 @@ w=sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x))
 
 @test_approx_eq sum(w/(x-2.))/(2π*im) (-4.722196879007759+2.347910413861846im)
 @test_approx_eq linesum(w*log(abs(x-2.)))/π (88.5579588360686)
+
+
+
+## Dirac Space
+
+a,b=DiracDelta(0.),DiracDelta(1.)
+f=Fun(exp)
+g=a+0.2b+f
+@test_approx_eq pieces(g)[2](0.) 1.
+@test_approx_eq g(.1) exp(.1)
+@test_approx_eq sum(g) (sum(f)+1.2)

@@ -96,13 +96,40 @@ for TYP in (:SumSpace,:PiecewiseSpace)
         # we need to be able to call this to avoid confusion
         function sumspacecoefficients(cfsin::Vector,A::Space,B::$TYP)
             m=length(B.spaces)
-            #TODO: What if we can convert?  FOr example, A could be Ultraspherical{1}
-            # and B could contain Chebyshev
+
             for k=1:m
-                if isconvertible(A,B.spaces[k])
-                    cfs=coefficients(cfsin,A,B.spaces[k])
-                    ret=zeros(eltype(cfs),m*(length(cfs)-1)+k)
-                    ret[k:m:end]=cfs
+                if isconvertible(A,B[k])
+                    cfs=coefficients(cfsin,A,B[k])
+                    ret=zeros(eltype(cfs),k-1)  # all spaces have dimension at least 1,
+                                                # so there are k-1 zero coefficients
+                                                # corresponding to all spaces less than
+                                                # k
+
+                    j=k    # represents the row of ret to be added
+                    row=1  # represents the row of cfs to be added
+
+                    @assert length(cfs) ≤ dimension(B[k])
+                    dk=length(cfs)
+
+                    # we only allow at most dimension
+                    while row ≤ dk
+                        push!(ret,cfs[row])  # this sets ret[j] to cfs[row]
+                        for λ = k+1:m
+                            if dimension(B[λ]) ≥ row # loop through the rest of the spaces
+                                push!(ret,0)
+                                j+=1
+                            end
+                        end
+                        row += 1   # move on to the next row
+                        for λ = 1:k-1
+                            if dimension(B[λ]) ≥ row # loop through the previous spaces
+                                push!(ret,0)
+                                j+=1
+                            end
+                        end
+                        j+=1  # we always increment by 1 for the current space
+                    end
+
                     return ret
                 end
             end

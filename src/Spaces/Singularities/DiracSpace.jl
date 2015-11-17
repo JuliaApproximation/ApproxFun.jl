@@ -1,11 +1,18 @@
-immutable DiracSpace{T<:Space}<:RealUnivariateSpace{AnyDomain}
-  points::Vector{Float64}
+export DiracDelta
+
+
+immutable DiracSpace{T}<:RealUnivariateSpace{AnyDomain}
+  points::Vector{T}
+  DiracSpace(pts::Vector{T})=new(sort(pts))
 end
+
+DiracSpace(points::AbstractVector) = DiracSpace{eltype(points)}(points)
+DiracSpace() = DiracSpace(Float64[])
+DiracSpace(point::Number) = DiracSpace([point])
 
 dimension(d::DiracSpace)=length(d.points)
 
-DiracSpace() = DiracSpace(Float64[])
-DiracSpace(points) = DiracSpace(sort(points))
+
 
 #to be extended to include dirac points
 domain(DS::DiracSpace)=mapreduce(Point,union,DS.points)
@@ -23,29 +30,28 @@ function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::DiracSpace)
         return cfs
     end
 
-    if length(cfs) < length(tospace.points)
-        error("You have given fewer coefficients than Dirac points for the space you are converting to.")
-    end
-    if length(cfs) < length(fromspace.points)
-        error("You have given fewer coefficients than Dirac points for the space you are converting from.")
-    end
+    @assert length(cfs) ≤ length(fromspace.points)
+
     # this first for-loop removes coefficients of Dirac points that are zero
-    nonzerofromspacepoints = []
-    nonzeroDiraccfs = []
-    for i = 1:length(fromspace.points)
+    nonzerofromspacepoints = eltype(fromspace.points)[]
+    nonzeroDiraccfs = eltype(cfs)[]
+    for i = 1:length(cfs)
         if cfs[i] != 0
             push!(nonzerofromspacepoints, fromspace.points[i])
             push!(nonzeroDiraccfs, cfs[i])
         end
     end
 
+
     # if the points that remain can be represented in the tospace
     if issubset(nonzerofromspacepoints,tospace.points)
         finalDiraccfs = eltype(cfs)[]
         j=1 #counter for the nonzerofromspacepoints
         for i = 1:length(tospace.points)
-            if nonzerofromspacepoints[j] in tospace.points
-                push!(finalDiraccfs,nonzeroDirccfs[j])
+            if j > length(nonzerofromspacepoints)
+                break
+            elseif nonzerofromspacepoints[j]==tospace.points[i]
+                push!(finalDiraccfs,nonzeroDiraccfs[j])
                 j += 1
             else
                 push!(finalDiraccfs,0)
@@ -56,6 +62,9 @@ function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::DiracSpace)
         error("The space you are converting from has Dirac deltas that cannot be represented in the space you are converting to.")
     end
 end
+
+DiracDelta(x::Number)=Fun([1.],DiracSpace(x))
+DiracDelta()=DiracDelta(0.)
 
 # for TYP in (:ReSpace,:Space)
 #   @eval begin
