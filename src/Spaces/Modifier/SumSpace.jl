@@ -238,22 +238,38 @@ Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
     sp=f.space
     m=length(sp)
+    n=length(f.coefficients)
 
     spk=sp[k]
-    if k>length(f.coefficients)
-        zero(spk)   # we infer that the coefficients are zero
-    elseif dimension(spk)==1
-        Fun(f.coefficients[k:k],spk)
-    else
-        # there first m entries are the first constant
-        # after that, we interlace the non-ConstantSpace
-        # coefficients
-        @assert dimension(spk)==Inf
-        @assert k≤m
-        K=count(s->dimension(s)==1,sp)
-        K2=count(s->dimension(s)==1,sp[1:k-1])
-        Fun(f.coefficients[[k;m+k-K2:m-K:end]],sp[k])
+    dk=dimension(spk)
+
+    if k>n
+        return zero(spk)   # we infer that the coefficients are zero
     end
+
+
+    j=k
+    row=1  # represents the row of ret to be added
+    ret=eltype(f)[]
+
+    # we only allow at most dimension
+    while row ≤ dk && j ≤ n
+        push!(ret,f.coefficients[j])  # this sets ret[row] to f.coefficients[j]
+        for λ = k+1:m
+            if dimension(sp[λ]) ≥ row # loop through the rest of the spaces
+                j+=1
+            end
+        end
+        row += 1   # move on to the next row
+        for λ = 1:k-1
+            if dimension(sp[λ]) ≥ row # loop through the previous spaces
+                j+=1
+            end
+        end
+        j+=1  # we always increment by 1 for the current space
+    end
+
+    Fun(ret,spk)
 end
 
 
