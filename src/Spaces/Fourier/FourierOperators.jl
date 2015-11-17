@@ -6,6 +6,9 @@
 coefficients{DD}(cfs::Vector,A::Fourier{DD},B::Laurent{DD})=Conversion(A,B)*cfs
 coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD})=Conversion(A,B)*cfs
 
+hasconversion{DD}(::Fourier{DD},::Laurent{DD})=true
+hasconversion{DD}(::Laurent{DD},::Fourier{DD})=true
+
 function addentries!{DD}(C::Conversion{Laurent{DD},Fourier{DD}},A,kr::Range,::Colon)
     for k=kr
         if k==1
@@ -38,9 +41,11 @@ end
 bandinds{DD}(::Conversion{Laurent{DD},Fourier{DD}})=-1,1
 bandinds{DD}(::Conversion{Fourier{DD},Laurent{DD}})=-1,1
 
-function conversion_rule{DD}(A::Laurent{DD},B::Fourier{DD})
-    @assert domainscompatible(A,B)
-    B
+for RULE in (:conversion_rule,:maxspace_rule,:union_rule)
+    @eval function $RULE{DD}(A::Laurent{DD},B::Fourier{DD})
+        @assert domainscompatible(A,B)
+        B
+    end
 end
 
 

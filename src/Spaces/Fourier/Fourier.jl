@@ -247,10 +247,6 @@ function fouriermodalt!(cfs)
 end
 
 
-Space(d::PeriodicInterval)=Fourier(d)
-Space(d::Circle)=Laurent(d)
-
-
 
 canonicalspace{DD<:PeriodicInterval}(S::Laurent{DD})=Fourier(domain(S))
 canonicalspace{DD<:Circle}(S::Fourier{DD})=Laurent(domain(S))

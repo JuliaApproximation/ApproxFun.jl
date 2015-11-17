@@ -129,12 +129,13 @@ function zerocfsFun(f, d::Space)
 
 
     fr=[f(x) for x=r]
+    maxabsfr=norm(fr)
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
         cf = defaultFun(f, d, 2^logn)
         maxabsc=maxabs(cf.coefficients)
-        if maxabsc==0 && fr==0
+        if maxabsc==0 && maxabsfr==0
             return(zeros(d))
         end
 
