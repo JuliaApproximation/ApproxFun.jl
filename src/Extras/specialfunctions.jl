@@ -1,33 +1,9 @@
 ## abs
 
-
-function splitatroots(f::Fun)
-    #TODO: treat multiplicities
-    d=domain(f)
-
-    pts=roots(f)
-
-    if isempty(pts)
-        f
-    else
-        da=first(d)
-        isapprox(da,pts[1]) ? pts[1] = da : pts = [da;pts]
-        db=last(d)
-        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts;db]
-        Fun(x->f(x),pts)
-    end
-end
-
-function splitmap(g,d::AffineDomain,pts)
-    da=first(d)
-    isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : pts = [da;pts]
-    db=last(d)
-    isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts;db]
-    Fun(g,pts)
-end
-
 function splitmap(g,d::IntervalDomain,pts)
-    if length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
+    if isempty(pts)
+        Fun(g,d)
+    elseif length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
         Fun(g,d)
     elseif length(pts)==2 && isapprox(first(pts),first(d)) && isapprox(last(pts),last(d))
         Fun(g,d)
@@ -36,16 +12,53 @@ function splitmap(g,d::IntervalDomain,pts)
     end
 end
 
+function splitmap(g,d::AffineDomain,pts)
+    if isempty(pts)
+        Fun(g,d)
+    else
+        da=first(d)
+        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : unshift!(pts,da)
+        db=last(d)
+        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : push!(pts,db)
+        Fun(g,pts)
+    end
+end
+
+## TODO: type to ensure each dom in d.domains ::IntervalDomain
+function splitmap(g,d::UnionDomain,pts)
+    if isempty(pts)
+        Fun(g,d)
+    else
+        da=first(d)
+        isapprox(da,pts[1];atol=sqrt(eps(mapreduce(length,+,d.domains)))) ? pts[1] = da : unshift!(pts,da)
+        db=last(d)
+        isapprox(db,pts[end];atol=sqrt(eps(mapreduce(length,+,d.domains)))) ? pts[end] = db : push!(pts,db)
+        Fun(g,pts)
+    end
+end
+
+
+function splitatroots(f::Fun)
+    #TODO: treat multiplicities
+    d=domain(f)
+    pts=roots(f)
+    if isempty(pts)
+        f# : splitmap(f,d,pts)
+    else
+        da=first(d)
+        isapprox(da,pts[1]) ? pts[1] = da : unshift!(pts,da)
+        db=last(d)
+        isapprox(db,pts[end]) ? pts[end] = db : push!(pts,db)
+        Fun(x->f(x),pts)
+    end
+end
+
 function Base.abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
 
     pts=roots(f)
 
-    if isempty(pts)
-        sign(first(f))*f
-    else
-        splitmap(x->abs(f(x)),d,pts)
-    end
+    splitmap(x->abs(f(x)),d,pts)
 end
 
 function Base.abs(f::Fun)
@@ -69,15 +82,26 @@ function Base.sign{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     pts=roots(f)
 
     if isempty(pts)
-        sign(first(f))*one(T,f.space)
+        sign(first(f))*one(f)
     else
         @assert isa(d,AffineDomain)
         da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : pts = [da,pts]
+        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : unshift!(pts,da)
         db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts,db]
+        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : push!(pts,db)
         midpts = .5(pts[1:end-1]+pts[2:end])
-        Fun([sign(f(midpts))],pts)
+        Fun(sign(f(midpts)),pts)
+    end
+end
+
+for op in (:(Base.max),:(Base.min))
+    @eval begin
+        function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T<:Real}(f::Fun{S,T},g::Fun{V,T})
+            h=f-g
+            d=domain(h)
+            pts=roots(h)
+            splitmap(x->$op(f(x),g(x)),d,pts)
+        end
     end
 end
 

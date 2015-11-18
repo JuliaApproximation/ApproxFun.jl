@@ -339,7 +339,7 @@ end
 roots{D}(f::Fun{Fourier{D}})=roots(Fun(f,Laurent))
 
 function roots{P<:PiecewiseSpace}(f::Fun{P})
-    rts=[map(roots,vec(f))...]
+    rts=mapreduce(roots,vcat,vec(f))
     k=1
     while k < length(rts)
         if isapprox(rts[k],rts[k+1])
