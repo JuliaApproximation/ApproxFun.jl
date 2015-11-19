@@ -1,4 +1,4 @@
-using ApproxFun
+using Plots,ApproxFun
 
 #The following samples eigenvalues of an n = 2 Gaussian Unitary Ensemble:
 
@@ -9,11 +9,13 @@ r=sample(f,5000)
 
 #We can compare the histogram to the 1-point correlation
 setplotter("PyPlot")
-ApproxFun.plot(sum(f,1)/sum(f)),PyPlot.plt[:hist](vcat(r...),-4.:.1:4.,normed=true)
+plot(sum(f,1)/sum(f))
+hist!(vcat(r...),-4.:.1:4.,normed=true)
 		
 	
 #We can compare the histograms of x with the GUE:
 
 using RandomMatrices
 
-PyPlot.plt[:hist](vcat([sqrt(2)eigvalrand(GaussianHermite(2),2) for k=1:10000]...),-4:.1:4,normed=true),ApproxFun.plot(sum(f,1)/sum(f))
+hist(vcat([sqrt(2)eigvalrand(GaussianHermite(2),2) for k=1:10000]...),-4:.1:4,normed=true)
+plot!(sum(f,1)/sum(f))

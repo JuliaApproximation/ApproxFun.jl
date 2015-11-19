@@ -1,5 +1,4 @@
-using ApproxFun
-setplotter("PyPlot")
+using Plots,ApproxFun
 
 #undamped simple harmonic oscillator
 #f(x,y) = [ y(2), -y(1) ]
@@ -20,7 +19,7 @@ xt = Fun(identity, D)
 
 y0 = ApproxFun.devec(Fun[Fun(x->y, D, method="abszerocoefficients") for y in y0])
 yn = y0
-ApproxFun.plot(vec(yn)[1])
+plot(vec(yn)[1])
 
 
 while true
@@ -30,7 +29,7 @@ while true
 		break
 	end
 
-	ApproxFun.plot(vec(yn)[1])
+	plot(vec(yn)[1])
 	integrand = Fun(x::Float64->f(x,yn(x)), D)
 	yn = cumsum(integrand) + y0
 end
