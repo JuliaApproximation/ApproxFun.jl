@@ -245,12 +245,12 @@ end
 maxspace_rule{T,D<:IntervalDomain}(A::JacobiWeight,B::Space{T,D})=maxspace(A,JacobiWeight(0.,0.,B))
 
 
-hasconversion(A::JacobiWeight,B::JacobiWeight)=isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β) &&
-    A.α ≥ B.α && A.β ≥ B.β && hasconversion(A.space,B.space)
+hasconversion{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D})=isapproxinteger(A.α-B.α) &&
+    isapproxinteger(A.β-B.β) && A.α ≥ B.α && A.β ≥ B.β && hasconversion(A.space,B.space)
 
 
-hasconversion(A::JacobiWeight,B::Space)=hasconversion(A,JacobiWeight(0.,0.,B))
-hasconversion(B::Space,A::JacobiWeight)=hasconversion(JacobiWeight(0.,0.,B),A)
+hasconversion{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::Space{T,D})=hasconversion(A,JacobiWeight(0.,0.,B))
+hasconversion{T,S,D<:IntervalDomain}(B::Space{T,D},A::JacobiWeight{S,D})=hasconversion(JacobiWeight(0.,0.,B),A)
 
 
 

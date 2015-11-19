@@ -122,7 +122,7 @@ function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
     pts=space(f).points
     n=length(pts)
     ws=pad(f.coefficients,length(pts))
-    plt=$OP(plt,ones(2)*pts[1],[0,1]*ws[1];kwds...)
+    plt=plot!(plt,ones(2)*pts[1],[0,1]*ws[1];kwds...)
     c=plt.plotargs[:color_palette][1]
     plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
     plot!(plt,ones(2)*pts',[1,2]*ws';color=c,linestyle=:dot,kwds...)

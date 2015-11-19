@@ -202,3 +202,9 @@ g=a+0.2b+f
 @test_approx_eq pieces(g)[2](0.) 1.
 @test_approx_eq g(.1) exp(.1)
 @test_approx_eq sum(g) (sum(f)+1.2)
+
+
+#Checks prevoius bug
+δ=DiracDelta()
+w=sqrt(1-x^2)
+w+δ
