@@ -94,6 +94,8 @@ function complexplot!(plt::Plots.Plot,f::Fun;opts...)
 end
 
 
+## Special spaces
+
 for (plt,TYP) in ((:(Plots.plot),:Real),(:(Plots.plot!),:Real),(:complexplot,:Complex),(:complexplot!,:Complex))
     @eval $plt{S<:Union{PiecewiseSpace,ArraySpace,TupleSpace},T<:$TYP}(f::Fun{S,T};opts...)=$plt(vec(f);opts...)
 end
@@ -101,6 +103,29 @@ end
 for (plt,TYP) in ((:(Plots.plot!),:Real),(:complexplot!,:Complex))
     @eval $plt{S<:Union{PiecewiseSpace,ArraySpace,TupleSpace},T<:$TYP}(pltin::Plots.Plot,f::Fun{S,T};opts...)=
     $plt(pltin,vec(f);opts...)
+end
+
+
+for OP in (:(Plots.plot),:(Plots.plot!))
+    @eval function $OP{S<:DiracSpace,T<:Real}(f::Fun{S,T};kwds...)
+        pts=space(f).points
+        n=length(pts)
+        ws=pad(f.coefficients,length(pts))
+        plt=$OP(ones(2)*pts[1],[0,1]*ws[1];kwds...)
+        c=plt.plotargs[:color_palette][1]
+        plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
+        plot!(plt,ones(2)*pts',[1,2]*ws';color=c,linestyle=:dot,kwds...)
+    end
+end
+
+function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
+    pts=space(f).points
+    n=length(pts)
+    ws=pad(f.coefficients,length(pts))
+    plt=$OP(plt,ones(2)*pts[1],[0,1]*ws[1];kwds...)
+    c=plt.plotargs[:color_palette][1]
+    plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
+    plot!(plt,ones(2)*pts',[1,2]*ws';color=c,linestyle=:dot,kwds...)
 end
 
 
