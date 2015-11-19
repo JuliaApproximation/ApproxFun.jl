@@ -132,7 +132,9 @@ end
 
 function union_rule(A::SumSpace,B::SumSpace)
     @assert length(A.spaces)==length(B.spaces)==2
-    if spacescompatible(A,B)
+    if !domainscompatible(A,B)
+        NoSpace()
+    elseif spacescompatible(A,B)
         A
     elseif spacescompatible(A.spaces,B.spaces)
         A≤B?A:B
@@ -143,12 +145,16 @@ function union_rule(A::SumSpace,B::SumSpace)
 end
 
 function union_rule(A::SumSpace,B::Space)
-    for sp in A.spaces
-        if isconvertible(B,sp)
-            return A
+    if !domainscompatible(A,B)
+        NoSpace()
+    else
+        for sp in A.spaces
+            if isconvertible(B,sp)
+                return A
+            end
         end
+        SumSpace(A,B)
     end
-    SumSpace(A,B)
 end
 
 

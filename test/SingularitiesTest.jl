@@ -206,5 +206,6 @@ g=a+0.2b+f
 
 #Checks prevoius bug
 δ=DiracDelta()
+x=Fun()
 w=sqrt(1-x^2)
 w+δ
