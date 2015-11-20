@@ -137,6 +137,21 @@ function chop!(c::Vector,tol::Real)
     c
 end
 
+# try to capture accurate coefficients of the Dual part too.
+function chop!{T<:Real}(c::Vector,tol::Dual{T})
+    @assert tol >= 0
+
+    for k=length(c):-1:1
+        if abs(c[k]) > tol
+            resize!(c,k+1)
+            return c
+        end
+    end
+
+    resize!(c,1)
+    c
+end
+
 chop(f::Vector,tol)=chop!(copy(f),tol)
 chop!(f::Vector)=chop!(f,eps())
 

@@ -11,6 +11,12 @@ valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_t
 valsdomain_type_promote{T<:Real}(::Type{T},::Type{Vector{T}})=T,Vector{T}
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
+valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{V})=Dual{promote_type(T,V)},promote_type(T,V)
+valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{V})=Dual{promote_type(T,V)},promote_type(real(T),V)
+valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{Complex{V}})=Dual{promote_type(T,V)},Complex{promote_type(T,V)}
+valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{Complex{V}})=Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
+
+
 function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])

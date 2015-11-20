@@ -158,7 +158,7 @@ pad!(f::Fun,n::Integer)=pad!(f.coefficients,n)
 pad(f::Fun,n::Integer)=Fun(pad(f.coefficients,n),f.space)
 
 
-function chop!{S,T}(f::Fun{S,T},tol::Real)
+function chop!{S,T}(f::Fun{S,T},tol)
     chop!(f.coefficients,tol)
     if length(f.coefficients) == 0
         f.coefficients = [zero(T)]
