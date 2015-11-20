@@ -133,15 +133,14 @@ function zerocfsFun(f, d::Space)
 
     tol =T==Any?200eps():200eps(T)
 
-
-    fr=[f(x) for x=r]
-    maxabsfr=maxabs(fr)
+    fr=typeof(f0)[f(x) for x=r]
+    normfr=norm(fr)
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
         cf = defaultFun(f, d, 2^logn)
         maxabsc=maxabs(cf.coefficients)
-        if maxabsc==0 && maxabsfr==0
+        if maxabsc==0 && normfr==0
             return(zeros(d))
         end
 

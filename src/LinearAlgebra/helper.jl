@@ -11,6 +11,7 @@ real(x...)=Base.real(x...)
 real(::Type{UnsetNumber})=UnsetNumber
 real{T<:Real}(::Type{T})=T
 real{T<:Real}(::Type{Complex{T}})=T
+real{T}(::Type{Dual{T}})=real(T)
 real{T<:Real,n}(::Type{Array{T,n}})=Array{T,n}
 real{T<:Complex,n}(::Type{Array{T,n}})=Array{real(T),n}
 

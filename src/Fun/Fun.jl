@@ -394,5 +394,8 @@ end
 ^(f::Fun,k::Union{Number,Fun})=f.^k
 /(c::Union{Number,Fun},g::Fun)=c./g
 
+# Dual number support. Should there be value and dual of Space and Domain?
+DualNumbers.value(f::Fun) = Fun(value(coefficients(f)),space(f))
+DualNumbers.dual(f::Fun) = Fun(dual(coefficients(f)),space(f))
 
 include("constructors.jl")
