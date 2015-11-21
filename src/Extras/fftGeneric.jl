@@ -196,7 +196,7 @@ for SP in (:Chebyshev,:Fourier,:Laurent,:Taylor,:(Hardy{false}),:SinSpace,:CosSp
     @eval begin
         plan_transform{D<:Dual}(S::$SP,vals::Vector{D})=plan_transform(S,value(vals))
         plan_itransform{D<:Dual}(S::$SP,vals::Vector{D})=plan_itransform(S,value(vals))
-        transform{D<:Dual}(S::$SP,vals::Vector{D},plan)=Dual(transform(S,value(vals),plan),transform(S,dual(vals),plan))
-        itransform{D<:Dual}(S::$SP,vals::Vector{D},plan)=Dual(itransform(S,value(vals),plan),itransform(S,dual(vals),plan))
+        transform{D<:Dual}(S::$SP,vals::Vector{D},plan)=dual(transform(S,value(vals),plan),transform(S,epsilon(vals),plan))
+        itransform{D<:Dual}(S::$SP,vals::Vector{D},plan)=dual(itransform(S,value(vals),plan),itransform(S,epsilon(vals),plan))
     end
 end

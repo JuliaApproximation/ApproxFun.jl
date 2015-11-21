@@ -396,6 +396,6 @@ end
 
 # Dual number support. Should there be value and dual of Space and Domain?
 DualNumbers.value(f::Fun) = Fun(value(coefficients(f)),space(f))
-DualNumbers.dual(f::Fun) = Fun(dual(coefficients(f)),space(f))
+DualNumbers.epsilon(f::Fun) = Fun(epsilon(coefficients(f)),space(f))
 
 include("constructors.jl")
