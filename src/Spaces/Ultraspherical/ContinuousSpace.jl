@@ -16,7 +16,7 @@ conversion_rule{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(a::ContinuousSpace,b
 function transform(S::ContinuousSpace,vals::Vector)
     n=length(vals)
     d=domain(S)
-    K=length(d)
+    K=numpieces(d)
     k=div(n,K)
 
     PT=promote_type(eltype(d),eltype(vals))
@@ -91,20 +91,20 @@ pieces{T}(f::Fun{ContinuousSpace,T})=vec(f)
 function points(f::Fun{ContinuousSpace})
     n=length(f)
     d=domain(f)
-    K=length(d)
+    K=numpieces(d)
 
-    m=isperiodic(d)?max(K,n+2length(d)-1):n+length(d)
+    m=isperiodic(d)?max(K,n+2K-1):n+K
     points(f.space,m)
 end
 
 ## Conversion
 
 coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace)=defaultcoefficients(cfsin,A,B)
-bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace})=-1,length(domain(rangespace(C)))
+bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace})=-1,numpieces(domain(rangespace(C)))
 
 function addentries!{T,DD,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(C::Conversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace,T},A,kr::Range,::Colon)
     d=domain(rangespace(C))
-    K=length(d)
+    K=numpieces(d)
     if isperiodic(d)
         for k=kr
             if k==1
@@ -133,10 +133,10 @@ function addentries!{T,DD,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(C::Convers
     A
 end
 
-bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{ContinuousSpace,PiecewiseSpace{CD,RealBasis,DD,1}})=isperiodic(domainspace(C))?(1-2length(domain(rangespace(C))),1):(-length(domain(rangespace(C))),1)
+bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{ContinuousSpace,PiecewiseSpace{CD,RealBasis,DD,1}})=isperiodic(domainspace(C))?(1-2numpieces(domain(rangespace(C))),1):(-numpieces(domain(rangespace(C))),1)
 function addentries!{T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{ContinuousSpace,PiecewiseSpace{CD,RealBasis,DD,1},T},A,kr::Range,::Colon)
     d=domain(domainspace(C))
-    K=length(d)
+    K=numpieces(d)
     if isperiodic(d)
         for k=kr
             if k<K

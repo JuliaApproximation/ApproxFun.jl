@@ -46,6 +46,7 @@ for OP in (:(Base.start),:(Base.done),:(Base.endof),:(Base.getindex),:(Base.leng
     @eval $OP(S::UnionDomain,k...)=$OP(S.domains,k...)
 end
 
+numpieces(d::UnionDomain)=length(d.domains)
 
 ==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
 

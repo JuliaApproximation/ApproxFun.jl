@@ -52,6 +52,20 @@ Base.promote_rule{D<:PeriodicDomain,T<:Number}(::Type{D},::Type{Vector{T}})=Peri
 
 
 
+#issubset between domains
+
 Base.issubset(a::PeriodicInterval,b::Interval)=Interval(a.a,a.b)⊆b
 Base.issubset(a::Interval,b::PeriodicInterval)=a⊆PeriodicInterval(b.a,b.b)
 Base.issubset{T<:Real}(a::Interval{T},b::PiecewiseInterval{T})=a⊆Interval(first(b.points),last(b.points))
+Base.issubset(a::Interval,b::Line)=first(a)∈b && last(a)∈b
+
+
+
+function Base.setdiff{T<:Real}(a::Interval{T},b::Line)
+    @assert a ⊆ b
+    if first(a)>first(b)
+        setdiff(reverse(a),b)
+    else
+        Ray([first(b),first(a)])∪Ray([last(a),last(b)])
+    end
+end

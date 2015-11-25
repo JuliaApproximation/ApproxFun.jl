@@ -19,7 +19,11 @@ surf(x...;opts...)=pysurf(x...;opts...)
 
 
 function plotptsvals(f::Fun)
-    f=pad(f,3length(f)+50)
+    if dimension(space(f)) == Inf
+        f=pad(f,3length(f)+50)
+    else
+        f=pad(f,dimension(space(f)))
+    end
     points(f),values(f)
 end
 Plots.plot!{S,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)=
@@ -126,6 +130,34 @@ function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
     c=plt.plotargs[:color_palette][1]
     plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
     plot!(plt,ones(2)*pts',[1,2]*ws';color=c,linestyle=:dot,kwds...)
+end
+
+for OP in (:(Plots.plot),:(Plots.plot!))
+    @eval function $OP{S<:HeavisideSpace,T<:Real}(f::Fun{S,T};kwds...)
+        pts=domain(f).points
+        n=length(pts)
+        ws=pad(f.coefficients,dimension(space(f)))
+        plt=$OP(pts[1:2],ones(2)*ws[1];kwds...)
+        c=plt.plotargs[:color_palette][1]
+        for k=2:length(ws)
+            plot!(plt,ones(2)*pts[k],ws[k-1:k];color=c,linestyle=:dot,kwds...)
+            plot!(plt,pts[k:k+1],ones(2)*ws[k];color=c,kwds...)
+        end
+        plt
+    end
+end
+
+function Plots.plot!{S<:HeavisideSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
+    pts=domain(f).points
+    n=length(pts)
+    ws=pad(f.coefficients,dimension(space(f)))
+    plt=plot!(plt,pts[1:2],ones(2)*ws[1];kwds...)
+    c=plt.plotargs[:color_palette][1]
+    for k=2:length(ws)
+        plot!(plt,ones(2)*pts[k],ws[k-1:k];color=c,linestyle=:dot,kwds...)
+        plot!(plt,pts[k:k+1],ones(2)*ws[k];color=c,kwds...)
+    end
+    plt
 end
 
 
