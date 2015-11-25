@@ -15,11 +15,8 @@ function Base.eigvals{T<:Operator}(A::Vector{T},n::Int)
     for k=1:nf
         A1[k,1:n] = A[k][1:n]
     end
-    for k=1:n-nf,j=1:n
-        A1[k+nf,j] = A[end][k,j]
-        C1[k+nf,j] = C[k,j]
-    end
-    ev = eigvals(A1,C1)
-    if eltype(ev) <: Real sort!(ev) end
+    A1[1+nf:end,1:n] = A[end][1:n-nf,1:n]
+    C1[1+nf:end,1:n] = C[1:n-nf,1:n]
+    ev = sort!(eigvals(A1,C1),by=abs)
     ev[!isinf(ev)]
 end
