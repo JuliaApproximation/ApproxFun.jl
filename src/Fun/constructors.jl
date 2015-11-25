@@ -129,7 +129,7 @@ function zerocfsFun(f, d::Space)
 
 
     fr=[f(x) for x=r]
-    maxabsfr=maxabs(fr)
+    maxabsfr=norm(fr)
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
