@@ -60,11 +60,18 @@ Base.issubset{T<:Real}(a::Interval{T},b::PiecewiseInterval{T})=a⊆Interval(firs
 Base.issubset(a::Interval,b::Line)=first(a)∈b && last(a)∈b
 
 
-
-function Base.setdiff{T<:Real}(a::Interval{T},b::Line)
+function Base.intersect{T<:Real}(a::Interval{T},b::Line)
     @assert a ⊆ b
-    if first(a)>first(b)
-        setdiff(reverse(a),b)
+    a
+end
+
+Base.intersect{T<:Real}(b::Line,a::Interval{T})=intersect(a,b)
+
+
+function Base.setdiff{T<:Real}(b::Line,a::Interval{T})
+    @assert a ⊆ b
+    if first(a)>last(a)
+        setdiff(b,reverse(a))
     else
         Ray([first(b),first(a)])∪Ray([last(a),last(b)])
     end

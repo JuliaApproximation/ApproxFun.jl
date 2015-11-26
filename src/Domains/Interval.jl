@@ -119,8 +119,11 @@ function Base.setdiff{T<:Real,V<:Real}(a::Interval{T},b::Interval{V})
             a
         else # first(a) ≤ first(b) ≤last(a)
             #TODO: setdiff in the middle
-            @assert last(a) <= last(b)
-            Interval(first(a),first(b))
+            if last(a) <= last(b)
+            	Interval(first(a),first(b))
+			else  # first(a) ≤ first(b) ≤ last(b) ≤last(a)
+				Interval(first(a),first(b))∪Interval(last(b),last(a))
+			end
         end
     else #first(a)>= first(b)
         if first(a)>=last(b)
