@@ -86,21 +86,19 @@ for (plt,TYP) in ((:(Plots.plot!),:Real),(:complexplot!,:Complex))
 end
 
 
-function Plots.plot!{S<:PiecewiseSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};label=Void)
+function Plots.plot!{S<:PiecewiseSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};label=Void,kwds...)
     v=vec(f)
     if label == Void
-        plot!(plt,v[1])
-        c=plt.plotargs[:color_palette][1]
-        for k=2:length(v)
-            plot!(plt,v[k];color=c)
+        c=plt.plotargs[:color_palette][plt.n+1]
+        for k=1:length(v)
+            plot!(plt,v[k];color=c,kwds...)
         end
     else
         @assert length(label)==length(v)
 
-        plot!(plt,v[1];label=label[1])
-        c=plt.plotargs[:color_palette][1]
-        for k=2:length(v)
-            plot!(plt,v[k];label=label[k],color=c)
+        c=plt.plotargs[:color_palette][plt.n+1]
+        for k=1:length(v)
+            plot!(plt,v[k];label=label[k],color=c,kwds...)
         end
     end
     plt
@@ -112,7 +110,7 @@ function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
     n=length(pts)
     ws=pad(f.coefficients,length(pts))
     plt=plot!(plt,ones(2)*pts[1],[0,1]*ws[1];kwds...)
-    c=plt.plotargs[:color_palette][1]
+    c=plt.plotargs[:color_palette][plt.n]
     plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
     plot!(plt,ones(2)*pts',[1,2]*ws';color=c,linestyle=:dot,kwds...)
 end
@@ -122,7 +120,7 @@ function Plots.plot!{S<:HeavisideSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds
     n=length(pts)
     ws=pad(f.coefficients,dimension(space(f)))
     plt=plot!(plt,pts[1:2],ones(2)*ws[1];kwds...)
-    c=plt.plotargs[:color_palette][1]
+    c=plt.plotargs[:color_palette][plt.n]
     for k=2:length(ws)
         plot!(plt,ones(2)*pts[k],ws[k-1:k];color=c,linestyle=:dot,kwds...)
         plot!(plt,pts[k:k+1],ones(2)*ws[k];color=c,kwds...)
