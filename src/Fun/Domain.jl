@@ -75,7 +75,9 @@ Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 Base.in(x,::AnyDomain)=true
 function Base.in{T}(x,d::IntervalDomain{T})
     y=tocanonical(d,x)
-    abs(imag(y))<100eps(T)/length(d) && -one(real(T))-100eps(T)/length(d)<real(y)<one(real(T))+100eps(T)/length(d)
+    ry=real(y)
+    sc=abs(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
+    abs(imag(y))<100eps(T)/sc && -one(real(T))-100eps(T)/length(d)<ry<one(real(T))+100eps(T)/ry
 end
 
 ###### Periodic domains

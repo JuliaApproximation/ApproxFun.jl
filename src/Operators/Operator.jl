@@ -30,9 +30,8 @@ domain(A::Operator)=domain(domainspace(A))
 
 
 
-Base.size(::InfiniteOperator)=[Inf,Inf]
-Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
-Base.size(op::Operator,k::Integer)=size(op)[k]
+Base.size(A::Operator)=(size(A,1),size(A,2))
+Base.size(op::Operator,k::Integer)=k==1?dimension(rangespace(A)):dimension(domainspace(A))
 
 Base.ndims(::Operator)=2
 datalength(F::Functional)=Inf        # use datalength to indicate a finite length functional

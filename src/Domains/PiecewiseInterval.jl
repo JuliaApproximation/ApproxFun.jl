@@ -1,7 +1,8 @@
-immutable PiecewiseInterval{T<:Number} <: UnivariateDomain{T}
+immutable PiecewiseInterval{T} <: UnivariateDomain{T}
     points::Vector{T}
+    PiecewiseInterval(d::Vector{T})=new(d)
 end
-
+PiecewiseInterval{T<:Number}(d::Vector{T})=PiecewiseInterval{T}(d)
 PiecewiseInterval(d::Number...)=PiecewiseInterval([d...])
 
 function PiecewiseInterval{IT<:Interval}(pcsin::AbstractVector{IT})
@@ -27,8 +28,14 @@ end
 
 
 canonicaldomain(d::PiecewiseInterval)=d
+numpieces(d::PiecewiseInterval)=length(d.points)-1
+pieces(d::PiecewiseInterval,k)=d[k]
+pieces{T}(d::PiecewiseInterval{T})=Interval{T}[d[k] for k=1:numpieces(d)]
 
-Base.length(d::PiecewiseInterval)=length(d.points)-1
+for OP in (:(Base.length),:complexlength)
+    @eval $OP(d::PiecewiseInterval)=mapreduce($OP,+,pieces(d))
+end
+
 Base.getindex(d::PiecewiseInterval,j::Integer)=Interval(d.points[j],d.points[j+1])
 isperiodic(d::PiecewiseInterval)=first(d.points)==last(d.points)
 
@@ -38,17 +45,16 @@ Base.convert{IT<:PiecewiseInterval}(::Type{IT},::AnyDomain)=PiecewiseInterval(Fl
 
 
 function points(d::PiecewiseInterval,n)
-   k=div(n,length(d))
-    r=n-length(d)*k
+   k=div(n,numpieces(d))
+    r=n-numpieces(d)*k
 
-    [vcat([points(d[j],k+1) for j=1:r]...);
-        vcat([points(d[j],k) for j=r+1:length(d)]...)]
+    eltype(d)[vcat([points(d[j],k+1) for j=1:r]...);
+        vcat([points(d[j],k) for j=r+1:numpieces(d)]...)]
 end
 
-pieces(d::PiecewiseInterval,k)=d[k]
-pieces{T}(d::PiecewiseInterval{T})=Interval{T}[d[k] for k=1:length(d)]
 
-Base.rand(d::PiecewiseInterval)=rand(d[rand(1:length(d))])
+
+Base.rand(d::PiecewiseInterval)=rand(d[rand(1:numpieces(d))])
 checkpoints{T}(d::PiecewiseInterval{T})=mapreduce(checkpoints,union,pieces(d))
 
 for OP in (:(Base.first),:(Base.last))
