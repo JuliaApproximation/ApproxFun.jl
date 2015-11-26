@@ -71,8 +71,26 @@ complexplot!(f::Fun;opts...)=complexplot!(current(),f;opts...)
 complexplot(f::Fun;opts...)=complexplot!(plot(),f;opts...)
 
 
-## Special spaces
+##
+# Special spaces
+##
 
+function plotptsvals{S<:JacobiWeight}(f::Fun{S})
+    f=pad(f,3length(f)+50)
+    s=space(f)
+    pts,vals=points(f),values(f)
+    # add endpoints so that singularity is viewable
+    if s.α ≥ 0
+        pts=insert!(pts,1,first(domain(f)))
+        vals=insert!(vals,1,first(f))
+    end
+    if s.β ≥ 0
+        pts=push!(pts,last(domain(f)))
+        vals=push!(vals,last(f))
+    end
+
+    pts,vals
+end
 
 
 
