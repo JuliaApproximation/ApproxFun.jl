@@ -164,8 +164,8 @@ following code samples 10,000 from a PDF given as the absolute value of the sine
 ```julia
 f = abs(Fun(sin,[-5,5]))
 x = ApproxFun.sample(f,10000)
-plot(f/sum(f))
-PyPlot.plt.hist(x;normed=true,bins=[-5.:.1:5.])
+plot(x;t=:density)
+plot!(f/sum(f))
 ```
 
 ![Sampling](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/sample.png)
