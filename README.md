@@ -202,7 +202,7 @@ timeevolution(B,L,u0,h)                    # Requires GLPlot
 
 # High precision
 
-Solving differential equations with high precision types is avaiable.  The following calculates `e` to 300 digits by solving the ODE `u' = u`:
+Solving differential equations with high precision types is available.  The following calculates `e` to 300 digits by solving the ODE `u' = u`:
 
 ```julia
 with_bigfloat_precision(1000) do

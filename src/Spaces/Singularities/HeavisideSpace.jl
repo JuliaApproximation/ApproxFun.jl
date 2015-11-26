@@ -38,25 +38,21 @@ end
 # end
 
 
-function bandinds{HS<:HeavisideSpace}(D::Derivative{HS})
-    n=length(domain(D).points)
-    csp=canonicalspace(domainspace(D))
-    bi=bandinds(StrideOperator(Derivative(csp),n-2,0,1,1))
-    bi[1],max(bi[2],n)
-end
+bandinds{HS<:HeavisideSpace}(D::Derivative{HS})=-1,0
 
 rangespace{HS<:HeavisideSpace}(D::Derivative{HS})=DiracSpace(domain(D).points)
 
 function addentries!{HS<:HeavisideSpace}(D::Derivative{HS},A,kr::Range,::Colon)
-    n=length(domain(D).points)
-    csp=canonicalspace(domainspace(D))
+    n=numpieces(domain(D))
 
-    for k=kr∩(1:(n-2))
-        A[k,k]+=-1
-        A[k,k+1]+= 1
-        A[k,k+n-1]+=-1
-        A[k,k+n]+=-1
+    1 in kr && (A[1,1]+=1)
+
+    for k=kr∩(2:n)
+        A[k,k-1]+=-1
+        A[k,k]+= 1
     end
+
+    n in kr && (A[n+1,n]+=-1)
 
     A
 end
