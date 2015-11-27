@@ -206,7 +206,7 @@ end
 
 function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})
     vf=pieces(f)
-    r=zero(T)
+    r=zero(eltype(f))
     for k=1:length(vf)
         vf[k]=cumsum(vf[k]) + r
         r=last(vf[k])
