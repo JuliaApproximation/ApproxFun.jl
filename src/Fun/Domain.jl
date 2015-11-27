@@ -37,10 +37,10 @@ canonicaldomain(a::Union{AnyDomain,EmptyDomain})=a
 
 
 Base.isempty(::EmptyDomain)=true
-Base.intersect(::EmptyDomain,::EmptyDomain)=EmptyDomain()
-Base.intersect(::Domain,::EmptyDomain)=EmptyDomain()
-Base.intersect(::EmptyDomain,::Domain)=EmptyDomain()
+Base.isempty(::Domain)=false
+Base.intersect(::Domain,::Domain)=EmptyDomain()
 
+\(a::Domain,b::Domain)=setdiff(a,b)
 
 ## Interval Domains
 
@@ -105,6 +105,7 @@ end
 
 Base.issubset(a::Domain,b::Domain)=a==b
 
+Base.isless(a::Domain,b::Domain)=false
 
 Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
 Base.last(d::PeriodicDomain)=fromcanonical(d,π)

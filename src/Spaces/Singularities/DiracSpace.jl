@@ -66,6 +66,24 @@ end
 DiracDelta(x::Number)=Fun([1.],DiracSpace(x))
 DiracDelta()=DiracDelta(0.)
 
+
+function Base.cumsum{S<:DiracSpace,T<:Real}(f::Fun{S},d::Interval{T})
+    pts=space(f).points
+    @assert pts ==sort(pts)
+    cfs=cumsum(f.coefficients)
+    if first(d) < first(pts) && last(d) > last(pts)
+        Fun([0;cfs],HeavisideSpace([first(d);pts;last(d)]))
+    elseif first(d) == first(pts) && last(d) > last(pts)
+        Fun(cfs,HeavisideSpace([pts;last(d)]))
+    elseif first(d) < first(pts) && last(d) == last(pts)
+        Fun([0;cfs],HeavisideSpace([first(d);pts]))
+    elseif first(d) == first(pts) && last(d) == last(pts)
+        Fun(cfs[1:end-1],HeavisideSpace(pts))
+    else
+        error("Implement")
+    end
+end
+
 # for TYP in (:ReSpace,:Space)
 #   @eval begin
 #     function coefficients(cfs::Vector,fromspace::$TYP,tospace::DiracSpace)

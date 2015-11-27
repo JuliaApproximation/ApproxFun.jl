@@ -145,3 +145,10 @@ end
 
 tocanonical{V<:Vector}(d::Interval{V},x)=first(d.a + d.b - 2x)/first(d.a - d.b)
 fromcanonical{V<:Vector}(d::Interval{V},p::AbstractVector)=V[fromcanonical(d,x) for x in p]
+
+
+
+## sort
+Base.isless{T1<:Real,T2<:Real}(d1::Interval{T1},d2::Interval{T2})=d1≤first(d2)&&d1≤last(d2)
+Base.isless{T<:Real}(d1::Interval{T},x::Real)=first(d1)≤x && last(d1)≤x
+Base.isless{T<:Real}(x::Real,d1::Interval{T})=x≤first(d1) && x≤last(d1)

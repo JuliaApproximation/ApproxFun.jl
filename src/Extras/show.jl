@@ -2,24 +2,28 @@
 
 Base.show(io::IO,d::Interval)=print(io,"【$(d.a),$(d.b)】")
 function Base.show(io::IO,d::Line)
-    if d.center == d.angle == 0 && d.α == d.β == -1.
+    if d.center == angle(d) == 0 && d.α == d.β == -1.
         print(io,"❪-∞,∞❫")
     elseif  d.α == d.β == -1.
-        print(io,"Line($(d.center),$(d.angle))")
+        print(io,"Line($(d.center),$(angle(d)))")
     else
-        print(io,"Line($(d.center),$(d.angle),$(d.α),$(d.β))")
+        print(io,"Line($(d.center),$(angle(d)),$(d.α),$(d.β))")
     end
 end
 
 function Base.show(io::IO,d::Ray)
-    if d.orientation && d.angle==0
+    if d.orientation && angle(d)==0
         print(io,"【$(d.center),∞❫")
-    elseif  d.orientation && d.angle==π
+    elseif  d.orientation && angle(d)==1.0π
         print(io,"【$(d.center),-∞❫")
     elseif  d.orientation
-        print(io,"【$(d.center),exp($(d.angle)im)∞❫")
-    else # !d.orientation
-        print(io,"❪exp($(d.angle)im)∞,$(d.center)】")
+        print(io,"【$(d.center),exp($(angle(d))im)∞❫")
+    elseif !d.orientation  && angle(d)==0
+        print(io,"❪∞,$(d.center)】")
+    elseif !d.orientation && angle(d)==1.0π
+        print(io,"❪-∞,$(d.center)】")
+    else
+        print(io,"❪exp($(angle(d))im)∞,$(d.center)】")
     end
 end
 

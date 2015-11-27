@@ -23,6 +23,8 @@ immutable Line{angle,T<:Number} <: IntervalDomain{T}
     Line()=new(zero(T),-1.,-1.)
 end
 
+typealias RealLine{T} Union{Line{false,T},Line{true,T}}
+
 Base.convert{a}(::Type{Line{a}},c,α,β)=Line{a,typeof(c)}(c,α,β)
 Base.convert{a}(::Type{Line{a}},c::Number)=Line{a,typeof(c)}(c)
 Base.convert{a}(::Type{Line{a}})=Line{a,Float64}()

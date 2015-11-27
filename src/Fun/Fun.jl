@@ -317,10 +317,13 @@ Base.abs2{S,T<:Complex}(f::Fun{S,T})=real(f)^2+imag(f)^2
 
 ##  integration
 
-function Base.cumsum{S,T}(f::Fun{S,T})
+function Base.cumsum(f::Fun)
     cf = integrate(f)
     cf - first(cf)
 end
+
+Base.cumsum(f::Fun,d::Domain)=cumsum(Fun(f,d))
+Base.cumsum(f::Fun,d)=cumsum(f,Domain(d))
 
 
 

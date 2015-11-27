@@ -196,6 +196,12 @@ end
 Fun(f,d::Domain;opts...)=Fun(f,Space(d);opts...)
 
 
+# this supports expanding a Fun to a larger or smaller domain.
+# we take the union and then intersection to get at any singularities
+# TODO: singularities in space(f)
+Fun(f::Fun,d::Domain;opts...)=Fun(f,Space((d ∪ domain(f)) ∩ d);opts...)
+
+
 
 
 

@@ -6,19 +6,32 @@ export Ray
 
 ## Standard interval
 
-# TODO: allow bool for angle a la line
-immutable Ray{CT<:Number,T<:Number} <: IntervalDomain{T}
-    center::CT
-    angle::Float64
+# angle is (false==0) and π (true==1)
+# or ranges from (-1,1].  We use 1 as 1==true.
+#orientation true means oriented out
+immutable Ray{angle,T<:Number} <: IntervalDomain{T}
+    center::T
     orientation::Bool
-    Ray(c,a,o)=new(c,a,o)
+    Ray(c,o)=new(c,o)
+    Ray(c)=new(c,true)
+    Ray()=new(zero(T),true)
 end
 
+typealias RealRay{T} Union{Ray{false,T},Ray{true,T}}
 
-Ray{T<:Number}(c::T,a::Real,o::Bool)=(a==0||a==π)?Ray{T,T}(c,a,o):Ray{T,promote_type(T,Complex{Float64})}(c,a,o)
-Ray(c,a,o::Int)=Ray(c,a,o==1)
+Base.convert{a}(::Type{Ray{a}},c,o)=Ray{a,typeof(c)}(c,o)
+Base.convert{a}(::Type{Ray{a}},c::Number)=Ray{a,typeof(c)}(c)
+Base.convert{a}(::Type{Ray{a}})=Ray{a,Float64}()
+
+Base.angle{a}(d::Ray{a})=a*π
+
+# ensure the angle is always in (-1,1]
+Ray(c,a,o)=Ray{a==0?false:(abs(a)==(1.0π)?true:mod(a/π-1,-2)+1),typeof(c)}(c,o)
 Ray(c,a)=Ray(c,a,true)
-Ray()=Ray(0.,0.)
+
+Ray()=Ray{false}()
+
+
 
 ##deal with vector
 
@@ -34,8 +47,8 @@ function Ray(d::AbstractVector)
 end
 
 
-isambiguous(d::Ray)=isnan(d.center) && isnan(d.angle)
-Base.convert{CT<:Number,T<:Number}(::Type{Ray{CT,T}},::AnyDomain)=Ray{CT,T}(NaN,NaN,true)
+isambiguous(d::Ray)=isnan(d.center)
+Base.convert{a,T<:Number}(::Type{Ray{a,T}},::AnyDomain)=Ray{a,T}(NaN,true)
 Base.convert{IT<:Ray}(::Type{IT},::AnyDomain)=Ray(NaN,NaN)
 
 
@@ -65,27 +78,19 @@ ray_fromcanonical(o,x)=ray_fromcanonical((o?1:-1)*x)
 ray_fromcanonicalD(o,x)=(o?1:-1)*ray_fromcanonicalD((o?1:-1)*x)
 ray_invfromcanonicalD(o,x)=(o?1:-1)*ray_invfromcanonicalD((o?1:-1)*x)
 
-function cistyped(a::Real)
-    if a==0
-        1.
-    elseif a==π||a==-π
-        -1.
-    else
-        cis(a)
-    end
-end
+cisangle{a}(::Ray{a})=cis(a*π)
+cisangle(::Ray{false})=1
+cisangle(::Ray{true})=-1
 
-tocanonical(d::Ray,x)=ray_tocanonical(d.orientation,cistyped(-d.angle).*(x-d.center))
-tocanonicalD(d::Ray,x)=cistyped(-d.angle).*ray_tocanonicalD(d.orientation,cistyped(-d.angle).*(x-d.center))
-fromcanonical(d::Ray,x)=cistyped(d.angle)*ray_fromcanonical(d.orientation,x)+d.center
-fromcanonicalD(d::Ray,x)=cistyped(d.angle)*ray_fromcanonicalD(d.orientation,x)
-invfromcanonicalD(d::Ray,x)=cistyped(-d.angle)*ray_invfromcanonicalD(d.orientation,x)
+tocanonical(d::Ray,x)=ray_tocanonical(d.orientation,conj(cisangle(d)).*(x-d.center))
+tocanonicalD(d::Ray,x)=conj(cisangle(d)).*ray_tocanonicalD(d.orientation,conj(cisangle(d)).*(x-d.center))
+fromcanonical(d::Ray,x)=cisangle(d)*ray_fromcanonical(d.orientation,x)+d.center
+fromcanonicalD(d::Ray,x)=cisangle(d)*ray_fromcanonicalD(d.orientation,x)
+invfromcanonicalD(d::Ray,x)=conj(cisangle(d))*ray_invfromcanonicalD(d.orientation,x)
 
 
 
 
 Base.length(d::Ray) = Inf
 
-
-
-==(d::Ray,m::Ray) = d.center == m.center && d.angle == m.angle
+=={a}(d::Ray{a},m::Ray{a}) = d.center == m.center

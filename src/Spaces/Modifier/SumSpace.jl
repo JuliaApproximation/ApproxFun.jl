@@ -201,10 +201,10 @@ end
 
 
 for TYP in (:SumSpace,:PiecewiseSpace)
-    @eval Base.sum{V<:$TYP,T}(f::Fun{V,T})=mapreduce(sum,+,vec(f))
+    @eval Base.sum{V<:$TYP}(f::Fun{V})=mapreduce(sum,+,vec(f))
 end
 
-function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
+function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})
     vf=pieces(f)
     r=zero(T)
     for k=1:length(vf)
@@ -213,6 +213,8 @@ function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
     end
     depiece(vf)
 end
+
+Base.cumsum{V<:PiecewiseSpace}(f::Fun{V},d::Domain)=mapreduce(g->cumsum(g,d),+,pieces(f))
 
 
 
