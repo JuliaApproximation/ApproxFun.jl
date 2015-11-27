@@ -209,3 +209,10 @@ g=a+0.2b+f
 x=Fun()
 w=sqrt(1-x^2)
 w+δ
+
+
+
+## multiplicities
+x=Fun(identity,[-1,1.])
+@test_approx_eq (1/x^2)(0.1) 100.
+@test_approx_eq (1/x^2)(-0.1) 100.

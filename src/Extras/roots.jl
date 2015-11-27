@@ -27,7 +27,7 @@ end
 #    end
 #end
 
-function roots{S,T}(f::Fun{S,T})
+function roots(f::Fun)
     f2=Fun(f,domain(f)) # default is to convert to Chebyshev/Fourier
     if space(f2)==space(f)
         error("roots not implemented for "*string(typeof(f)))
@@ -45,8 +45,7 @@ function roots{C<:Chebyshev}( f::Fun{C} )
     vscale = maxabs(values(f))
     if vscale == 0
         warn("Tried to take roots of a zero function.  Returning [].")
-        ##TODO: could be complex domain, in which case type should be Complex{Float64}
-        return Float64[]
+        return eltype(domain(f))[]
     end
 
     hscale = maximum( [abs(first(d)), abs(last(d))] )
@@ -69,7 +68,19 @@ function roots{C<:Chebyshev}( f::Fun{C} )
             rts .-=f(rts)./fp(rts)
         end
     else
-        r = rootsunit_coeffs(c./vscale, Float64(htol))
+        cvscale=c./vscale
+        r = rootsunit_coeffs(cvscale, Float64(htol))
+
+        # Check endpoints, as these are prone to inaccuracy
+        # which can be deadly.
+        if (isempty(r) || !isapprox(last(r),1.)) && abs(sum(cvscale)) < htol
+            push!(r,1.)
+        end
+        if (isempty(r) || !isapprox(first(r),-1.)) && abs(alternatingsum(cvscale)) < htol
+            insert!(r,1,-1.)
+        end
+
+
         # Map roots from [-1,1] to domain of f:
         rts = fromcanonical(d,r)
     end
@@ -172,7 +183,6 @@ function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::Clens
         # Adjust the coefficients for the colleague matrix
         # Prune roots depending on preferences:
         r = PruneOptions( colleague_eigvals(c), htol )::Vector{Float64}
-
     else
 
         #  RECURSIVE SUBDIVISION:

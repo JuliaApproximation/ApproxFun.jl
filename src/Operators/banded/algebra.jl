@@ -467,7 +467,7 @@ for OP in (:*,:.*)
 end
 
 /(B::BandedOperator,c::Number)=c==1?B:ConstantTimesOperator(1.0/c,B)
-
+/(B::BandedOperator,c::Fun)=(1.0/c)*B
 
 
 
