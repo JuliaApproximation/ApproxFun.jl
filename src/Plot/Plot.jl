@@ -158,7 +158,7 @@ domainplot(f::Union{Fun,Space};kwds...)=plot(domain(f);kwds...)
 
 ## coefficientplot
 
-coefficientplot(f::Fun;opts...)=plot(log10(abs(f.coefficients));opts...)
+coefficientplot(f::Fun;opts...)=plot(abs(f.coefficients);yscale=:log10,opts...)
 
 
 
