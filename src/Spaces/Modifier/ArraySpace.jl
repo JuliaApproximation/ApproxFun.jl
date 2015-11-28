@@ -262,7 +262,7 @@ end
 ## ConstantVectorSpace
 
 
-typealias ConstantVectorSpace VectorSpace{ConstantSpace,RealBasis,AnyDomain,1}
+typealias ConstantVectorSpace VectorSpace{ConstantSpace{AnyDomain},RealBasis,AnyDomain,1}
 
 
 function Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T},k)

@@ -5,21 +5,22 @@
 coefficients are ignored.
 """
 
-immutable ConstantSpace <: UnivariateSpace{RealBasis,AnyDomain} end
+immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
+    domain::DD
+end
 
-ConstantSpace(::AnyDomain)=ConstantSpace()
+ConstantSpace()=ConstantSpace(AnyDomain())
 
 Fun(c::Number)=Fun([c],ConstantSpace())
 Fun(c::Number,d::ConstantSpace)=Fun([c],d)
 
 dimension(::ConstantSpace)=1
 
-domain(::ConstantSpace)=AnyDomain()
-
-setdomain(f::Fun{ConstantSpace},d::Domain)=Number(f)*ones(d)
+#TODO: Change
+setdomain{CS<:AnyDomain}(f::Fun{CS},d::Domain)=Number(f)*ones(d)
 
 canonicalspace(C::ConstantSpace)=C
-spacescompatible(::ConstantSpace,::ConstantSpace)=true
+spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
 
 Base.ones(S::ConstantSpace)=Fun(ones(1),S)
 Base.ones(S::Union{AnyDomain,AnySpace,UnsetSpace})=ones(ConstantSpace())
@@ -31,12 +32,12 @@ evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
 evaluate(f::AbstractVector,::ZeroSpace,x::Array)=zeros(x)
 
 
-Base.convert{T<:Number}(::Type{T},f::Fun{ConstantSpace})=convert(T,f.coefficients[1])
+Base.convert{CS<:ConstantSpace,T<:Number}(::Type{T},f::Fun{CS})=convert(T,f.coefficients[1])
 
 # promoting numbers to Fun
 # override promote_rule if the space type can represent constants
-Base.promote_rule{T<:Number}(::Type{Fun{ConstantSpace}},::Type{T})=Fun{ConstantSpace,T}
-Base.promote_rule{T<:Number,V}(::Type{Fun{ConstantSpace,V}},::Type{T})=Fun{ConstantSpace,promote_type(T,V)}
+Base.promote_rule{CS<:ConstantSpace,T<:Number}(::Type{Fun{CS}},::Type{T})=Fun{CS,T}
+Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T})=Fun{CS,promote_type(T,V)}
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
 
 
@@ -56,8 +57,8 @@ maxspace_rule(A::ZeroSpace,B::Space)=B
 Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(SpaceOperator(ZeroOperator(),A,B))
 
 
-bandinds{S<:Space}(C::Conversion{ConstantSpace,S})=1-length(ones(rangespace(C))),0
-function addentries!{S<:Space}(C::Conversion{ConstantSpace,S},A,kr::Range,::Colon)
+bandinds{CS<:ConstantSpace,S<:Space}(C::Conversion{CS,S})=1-length(ones(rangespace(C))),0
+function addentries!{CS<:ConstantSpace,S<:Space}(C::Conversion{CS,S},A,kr::Range,::Colon)
     on=ones(rangespace(C))
     for k=kr
         if k≤length(on)
@@ -67,8 +68,8 @@ function addentries!{S<:Space}(C::Conversion{ConstantSpace,S},A,kr::Range,::Colo
     A
 end
 
-bandinds{F<:Space,T}(D::Multiplication{F,ConstantSpace,T}) = 1-length(D.f),0
-function addentries!{F<:Space,T}(D::Multiplication{F,ConstantSpace,T},A,kr::Range,::Colon)
+bandinds{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T}) = 1-length(D.f),0
+function addentries!{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T},A,kr::Range,::Colon)
     Op = Multiplication(D.f,space(D.f))
     for k=kr
         if k≤length(D.f)
@@ -78,15 +79,15 @@ function addentries!{F<:Space,T}(D::Multiplication{F,ConstantSpace,T},A,kr::Rang
     A
 end
 
-function addentries!{T}(D::Multiplication{ConstantSpace,ConstantSpace,T},A,kr::Range,::Colon)
+function addentries!{CS<:ConstantSpace,T}(D::Multiplication{CS,CS,T},A,kr::Range,::Colon)
     if 1 in kr
         A[1,1]+=D.f.coefficients[1]
     end
     A
 end
 
-rangespace{F<:Space,T}(D::Multiplication{F,ConstantSpace,T}) = rangespace(Multiplication(D.f,space(D.f)))
-rangespace{T}(D::Multiplication{ConstantSpace,ConstantSpace,T}) = ConstantSpaec()
+rangespace{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T}) = rangespace(Multiplication(D.f,space(D.f)))
+rangespace{CS<:ConstantSpace,T}(D::Multiplication{CS,CS,T}) = ConstantSpaec()
 
 
 ###
