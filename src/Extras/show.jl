@@ -29,6 +29,7 @@ end
 
 Base.show(io::IO,d::PeriodicInterval)=print(io,"【$(d.a),$(d.b)❫")
 Base.show(io::IO,d::Circle)=print(io,(d.radius==1?"":string(d.radius))*"⨀"*(d.center==0?"":"+$(d.center)"))
+Base.show(io::IO,d::Point)=print(io,"Point($(d.x))")
 
 
 function Base.show(io::IO,s::UnionDomain)
@@ -40,6 +41,9 @@ function Base.show(io::IO,s::UnionDomain)
 end
 
 ## Spaces
+
+Base.show(io::IO,::ConstantSpace{AnyDomain})=print(io,"ConstantSpace")
+Base.show(io::IO,S::ConstantSpace)=print(io,"ConstantSpace($(domain(S)))")
 
 
 for typ in ("Chebyshev","Fourier","Laurent")

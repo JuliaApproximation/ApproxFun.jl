@@ -35,6 +35,7 @@ datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 
 promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
 
+
 immutable PlusOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
 end
@@ -88,6 +89,18 @@ for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),
 end
 
 
+
+function rangespace(P::PlusFunctional)
+    for op in P.ops
+        sp = rangespace(op)
+
+        if !isa(sp,ConstantSpace{AnyDomain})
+            return sp
+        end
+    end
+
+    ConstantSpace()
+end
 
 
 function rangespace(P::PlusOperator)
@@ -154,27 +167,34 @@ end
 
 immutable ConstantTimesFunctional{T,B<:Functional} <: Functional{T}
     c::T
-    op::B
+    functional::B
     ConstantTimesFunctional(c,op)=new(c,op)
 end
 
 ConstantTimesFunctional(c::Number,op::Functional)=ConstantTimesFunctional{promote_type(typeof(c),eltype(op)),typeof(op)}(c,op)
 
+for OP in (:domainspace,:rangespace)
+    @eval $OP(C::ConstantTimesFunctional)=$OP(C.functional)
+end
 
 for TYP in (:Operator,:Functional)
     @eval function Base.convert{T}(::Type{$TYP{T}},P::ConstantTimesFunctional)
         if T==eltype(P)
             P
         else
-            ConstantTimesFunctional(convert(T,P.c),convert($TYP{T},P.op))
+            ConstantTimesFunctional(convert(T,P.c),convert($TYP{T},P.functional))
         end
     end
 end
 
 
-Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.op[k]
-datalength(C::ConstantTimesFunctional)=datalength(C.op)
-promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.op,sp))
+Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.functional[k]
+datalength(C::ConstantTimesFunctional)=datalength(C.functional)
+promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.functional,sp))
+
+
+
+
 
 
 type TimesFunctional{T,A<:Functional,B<:BandedOperator} <: Functional{T}
@@ -184,9 +204,8 @@ end
 
 promotedomainspace(C::TimesFunctional,sp::Space)=C.functional*promotedomainspace(C.op,sp)
 
-for S in (:ConstantTimesFunctional,:TimesFunctional)
-    @eval domainspace(T::($S))=domainspace(T.op)
-end
+domainspace(T::TimesFunctional)=domainspace(T.op)
+rangespace(C::TimesFunctional)=rangespace(C.functional)
 
 datalength(C::TimesFunctional)=datalength(C.functional)+bandinds(C.op,2)
 

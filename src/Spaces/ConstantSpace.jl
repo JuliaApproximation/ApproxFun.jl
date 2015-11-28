@@ -7,9 +7,13 @@ coefficients are ignored.
 
 immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
     domain::DD
+    ConstantSpace(d::DD)=new(d)
 end
 
+ConstantSpace(d::Domain)=ConstantSpace{typeof(d)}(d)
 ConstantSpace()=ConstantSpace(AnyDomain())
+
+maxspace_rule(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
 
 Fun(c::Number)=Fun([c],ConstantSpace())
 Fun(c::Number,d::ConstantSpace)=Fun([c],d)
