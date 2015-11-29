@@ -139,3 +139,39 @@ for TYP in (:SumSpace,:PiecewiseSpace)
         coefficients(cfsin::Vector,A::Space,B::$TYP)=sumspacecoefficients(cfsin,A,B)
     end
 end
+
+
+## LowRank Constructors
+
+# convert a vector of functionals and an operator to a LowRnakPertOperator
+# the rangespace is a DirectSumSpace specified by ST of the input rangespaces
+# the default is a  TupleSpace, but support is there for PiecewiseSpace
+# for bcs
+for TYP in (:PiecewiseSpace,:TupleSpace)
+    @eval function LowRankPertOperator{OT<:Operator}(A::Vector{OT},::Type{$TYP})
+        A=promotedomainspace(A)
+        for k=1:length(A)-1
+            @assert isa(A[k],Functional)
+        end
+        @assert isa(A[end],BandedOperator)
+        L=LowRankOperator(A[1:end-1],PiecewiseSpace)
+        BB=A[end]
+        S=SpaceOperator(StrideOperator(BB,length(A)-1,0),domainspace(BB),
+                            $TYP(map(rangespace,A)))
+        L+S
+    end
+end
+
+LowRankPertOperator{OT<:Operator}(A::Vector{OT})=LowRankOperator(A,TupleSpace)
+
+for TYP in (:TupleSpace,:PiecewiseSpace)
+    @eval function LowRankOperator{FT<:Functional}(Bin::Vector{FT},::Type{$TYP})
+        B=promotedomainspace(Bin)
+        rsp=$TYP(map(rangespace,B))
+        LowRankOperator(
+            Fun{typeof(rsp),Float64}[Fun([zeros(k-1);1],rsp) for k=1:length(B)],
+            B)
+    end
+end
+
+LowRankOperator{FT<:Functional}(Bin::Vector{FT})=LowRankOperator(Bin,TupleSpace)

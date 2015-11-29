@@ -28,8 +28,12 @@ immutable PiecewiseSpace{SV,T,DD<:UnionDomain,d} <: DirectSumSpace{SV,T,DD,d}
     PiecewiseSpace(sp::Tuple)=new(sp)
 end
 
-PiecewiseSpace(sp::Tuple)=PiecewiseSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
+function PiecewiseSpace(spin::Tuple)
+    sp=tuple(union(spin)...)  # remove duplicates
+
+    PiecewiseSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
                                typeof(UnionDomain(map(domain,sp))),ndims(first(sp))}(sp)
+end
 
 
 
@@ -343,4 +347,4 @@ itransform!(S::SumSpace,cfs,plan...)=(cfs[:]=Fun(cfs,S)(points(S,length(cfs))))
 ## SumSpace{ConstantSpace}
 # this space is special
 
-union_rule(P::PiecewiseSpace,C::ConstantSpace)=PiecewiseSpace(map(sp->union(sp,C),P.spaces))
+union_rule(P::PiecewiseSpace,C::ConstantSpace{AnyDomain})=PiecewiseSpace(map(sp->union(sp,C),P.spaces))

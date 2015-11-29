@@ -10,23 +10,15 @@ immutable LowRankPertOperator{OO,LR,T} <: AlmostBandedOperator{T}
 end
 
 function LowRankPertOperator(Bin::BandedOperator,Lin::LowRankOperator)
-    B,L=promotespaces(Bin,Lin)
+    B,L2=promotedomainspace([Bin,Lin])
+    rsp=rangespace(B)  # use rangespace of B because LowRankOperator only
+                        # needs convert, and its unlikely that the rangespaces
+                        # will be inferred from L
+    L=promoterangespace(L2,rsp)                                        
+
     LowRankPertOperator{typeof(B),typeof(L),promote_type(eltype(L),eltype(B))}(B,L)
 end
 
-# convert a vector of functionals and an operator to a LowRnakPertOperator
-function LowRankPertOperator{OT<:Operator}(A::Vector{OT})
-    A=promotedomainspace(A)
-    for k=1:length(A)-1
-        @assert isa(A[k],Functional)
-    end
-    @assert isa(A[end],BandedOperator)
-    L=LowRankOperator(A[1:end-1])
-    BB=A[end]
-    S=SpaceOperator(StrideOperator(BB,length(A)-1,0),domainspace(BB),
-                        TupleSpace(map(rangespace,A)))
-    L+S
-end
 
 for TYP in (:BandedBelowOperator,:AlmostBandedOperator,:Operator)
     @eval Base.convert{OT<:Operator}(::Type{$TYP},V::Vector{OT})=LowRankPertOperator(V)

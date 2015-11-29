@@ -117,3 +117,12 @@ G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)   # Before the 80 wasn’t s
 x=Fun(identity,[-1.,1.])
 f=x+sin(2x)*sqrt(1-x^2)
 @test_approx_eq f(0.1) 0.1+sin(2*0.1)*sqrt(1-0.1^2)
+
+
+## Check multiple piecewisesapce
+
+x=Fun(identity,[-3,-2])+Fun(identity,[2,3])
+w=sqrt(9-x^2)
+f=w+Fun()
+@test_approx_eq (f+w)(2.5) 2w(2.5)
+@test_approx_eq (f+w)(.5) f(.5)

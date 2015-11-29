@@ -185,6 +185,8 @@ function Fun(f, d::Space; method="zerocoefficients")
         zeros(T,d)
     elseif f==one
         ones(T,d)
+    elseif !isinf(dimension(d))
+        Fun(f,d,dimension(d))  # use exactly dimension number of sample points
     elseif method == "zerocoefficients"
         zerocfsFun(f,d)
     elseif method == "abszerocoefficients"
