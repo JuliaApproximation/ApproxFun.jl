@@ -44,12 +44,12 @@ alternatesign(v::Vector)=alternatesign!(copy(v))
 
 function alternatingsum(v::Vector)
     ret=zero(eltype(v))
-    @inbounds for k=1:2:length(v)
-        ret+=v[k]
+    s=1
+    @inbounds for k=1:length(v)
+        ret+=s*v[k]
+        s*=-1
     end
-    @inbounds for k=2:2:length(v)
-        ret-=v[k]
-    end
+
     ret
 end
 
