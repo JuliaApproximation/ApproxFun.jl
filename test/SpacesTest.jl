@@ -48,6 +48,14 @@ c=Fun(cos,[-2.,2.])|>abs
 sc=Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])
 @test norm(sc-(c+s))<100eps()
 
+# max/min creates breakpoints
+
+x=Fun()
+g=4*(x-.2)
+f=max(-1,g)
+f2=min(f,1)
+f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),[-1.0;-0.05;0.45;1.0])
+@test norm(f2(collect(linspace(-1,1,10)))-f3(collect(linspace(-1,1,10)))) < 2eps()
 
 x=Fun(identity,[im,0.,1.])
 @test_approx_eq sqrt(1-x)(0.2im) sqrt(1-0.2im)
