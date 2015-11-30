@@ -80,7 +80,7 @@ numpieces(d::UnionDomain)=length(d.domains)
 
 Base.in(x,d::UnionDomain)=any(a->x∈a,d.domains)
 Base.issubset(a::Domain,d::UnionDomain)=(a∪d)==d
-
+Base.reverse(d::UnionDomain)=UnionDomain(reverse(map(reverse,d.domains)))
 
 ∂(d::UnionDomain)=mapreduce(∂,union,d.domains)
 

@@ -99,7 +99,7 @@ function setdomain(sp::Space,d::Domain)
 end
 
 setcanonicaldomain(s)=setdomain(s,canonicaldomain(s))
-
+reverseorientation(S::Space)=setdomain(S,reverse(domain(S)))
 
 # AnySpace dictates that an operator can act on any space
 # UnsetSpace dictates that an operator is not defined until
@@ -131,7 +131,8 @@ canonicaldomain(S::Space)=canonicaldomain(domain(S))
 ##Check domain compatibility
 
 Base.isapprox(a::Domain,b::Domain)=a==b
-domainscompatible(a,b) = isambiguous(domain(a)) || isambiguous(domain(b)) || isapprox(domain(a),domain(b))
+domainscompatible(a,b) = isambiguous(domain(a)) || isambiguous(domain(b)) ||
+                    isapprox(domain(a),domain(b)) || isapprox(domain(a),reverse(domain(b)))
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain

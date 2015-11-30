@@ -213,3 +213,16 @@ end
 getindex{T,DD<:Circle}(Σ::DefiniteLineIntegral{Laurent{DD},T},kr::Range)=T[k == 1?  2domain(Σ).radius*π : zero(T) for k=kr]
 datalength{DD<:PeriodicInterval}(Σ::DefiniteLineIntegral{Laurent{DD}})=1
 datalength{DD<:Circle}(Σ::DefiniteLineIntegral{Laurent{DD}})=2
+
+
+
+
+## reverse orientation
+
+conversion_type{DD<:Circle}(A::Laurent{DD},B::Laurent{DD})=domain(A).orientation?A:B
+function Conversion{DD}(A::Laurent{DD},B::Laurent{DD})
+    @assert domain(A) == reverse(domain(B))
+    ConversionWrapper(SpaceOperator(
+        BlockOperator(eye(1),PermutationOperator([2,1]))
+    ,A,B))
+end

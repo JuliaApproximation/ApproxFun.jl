@@ -18,6 +18,9 @@ BlockOperator(mat11::Matrix,mat12::Matrix,mat21::Matrix,B::BandedOperator)=Block
                                                                promote_type(eltype(mat11),eltype(mat12),eltype(mat21),
                                                                             eltype(B))}(mat11,mat12,mat21,B)
 
+BlockOperator(mat11::Matrix,B::BandedOperator)=BlockOperator(mat11,Array(eltype(mat11),size(mat11,1),0),
+                                                            Array(eltype(mat11),0,size(mat11,2)),B)
+
 function Base.hcat{S<:Number}(cols::Matrix{S},B::BandedOperator)
     T = promote_type(S,eltype(B))
     BlockOperator{typeof(B),T}(Array(T,0,size(cols,2)),Array(T,0,0),cols,B)
@@ -78,6 +81,11 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
 
 
     hcat(cols,B)
+end
+
+for OP in (:Operator,:BandedOperator)
+    @eval Base.convert{T}(::Type{$OP{T}},A::BlockOperator)=BlockOperator(convert(Matrix{T},A.mat11),
+                        convert(Matrix{T},A.mat12),convert(Matrix{T},A.mat21),convert($OP{T},A.op))
 end
 
 function rangespace(B::BlockOperator)
