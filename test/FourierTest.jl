@@ -109,3 +109,9 @@ d2=Circle(c2,r2)
 z=Fun(identity,d2)
 
 @test_approx_eq z(-0.1+.2im+0.3*exp(0.1im)) (-0.1+.2im+0.3*exp(0.1im))
+
+
+
+# false Circle
+@test_approx_eq Fun(exp,Fourier(Circle(0.,1.,false)))(exp(0.1im)) exp(exp(.1im))
+@test_approx_eq Fun(exp,Laurent(Circle(0.,1.,false)))(exp(0.1im)) exp(exp(.1im))
