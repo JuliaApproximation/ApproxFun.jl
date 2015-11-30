@@ -142,15 +142,9 @@ plan_itransform{DD}(::Laurent{DD},x::Vector)=plan_isvfft(x)
 transform{DD}(::Laurent{DD},vals,plan)=svfft(vals,plan)
 itransform{DD}(::Laurent{DD},cfs,plan)=isvfft(cfs,plan)
 
-function evaluate{D<:Circle}(f::AbstractVector,S::Laurent{D},z)
-    d=domain(S)
-    z = (z-d.center)/d.radius
-    invz = 1./z
-    horner(f,1:2:length(f),z) + horner(f,2:2:length(f),invz).*invz
-end
 
-function evaluate{D<:Domain}(f::AbstractVector,S::Laurent{D},z)
-    z = fromcanonical(Circle(),tocanonical(S,z))
+function evaluate{DD}(f::AbstractVector,S::Laurent{DD},z)
+    z = mappoint(domain(S),Circle(),z)
     invz = 1./z
     horner(f,1:2:length(f),z) + horner(f,2:2:length(f),invz).*invz
 end
@@ -266,6 +260,21 @@ end
 
 
 reverseorientation{D}(f::Fun{Fourier{D}})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
+function reverseorientation{D}(f::Fun{Laurent{D}})
+    # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
+    n=length(f)
+    ret=Array(eltype(f),iseven(n)?n+1:n)  # since z -> 1/z we get one more coefficient
+    ret[1]=f.coefficients[1]
+    for k=2:2:length(ret)-1
+        ret[k+1]=f.coefficients[k]
+    end
+    for k=2:2:n-1
+        ret[k]=f.coefficients[k+1]
+    end
+    iseven(n) && (ret[n] = 0)
+
+    Fun(ret,Laurent(reverse(domain(f))))
+end
 
 include("calculus.jl")
 include("specialfunctions.jl")

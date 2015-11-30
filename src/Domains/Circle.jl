@@ -31,7 +31,6 @@ Base.convert{IT<:Circle}(::Type{IT},::AnyDomain)=Circle(NaN,NaN)
 
 function tocanonical(d::Circle,ζ)
     v=mappoint(d,Circle(),ζ)- 0.im#Subtract 0.im so branch cut is right
-	!d.orientation && (v=conj(v))
     -1.im.*log(v)
 end
 
@@ -52,6 +51,10 @@ complexlength(d::Circle)=(d.orientation?1:-1)*im*length(d)  #TODO: why?
 
 function mappoint(d1::Circle,d2::Circle,z)
    v=(z-d1.center)/d1.radius
-   d1.orientation != d2.orientation && (v=conj(v))
+   d1.orientation != d2.orientation && (v=1./v)
    v*d2.radius+d2.center
 end
+
+
+
+Base.reverse(d::Circle)=Circle(d.center,d.radius,!d.orientation)

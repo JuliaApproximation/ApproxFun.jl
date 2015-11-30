@@ -28,7 +28,7 @@ function Base.show(io::IO,d::Ray)
 end
 
 Base.show(io::IO,d::PeriodicInterval)=print(io,"【$(d.a),$(d.b)❫")
-Base.show(io::IO,d::Circle)=print(io,(d.radius==1?"":string(d.radius))*"⨀"*(d.center==0?"":"+$(d.center)"))
+Base.show(io::IO,d::Circle)=print(io,(d.radius==1?"":string(d.radius))*(d.orientation?"🕒":"🕞")*(d.center==0?"":"+$(d.center)"))
 Base.show(io::IO,d::Point)=print(io,"Point($(d.x))")
 
 
