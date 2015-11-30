@@ -67,9 +67,15 @@ function complexplot!(plt::Plots.Plot,f::Fun;opts...)
     end
 end
 
-complexplot!(f::Fun;opts...)=complexplot!(current(),f;opts...)
-complexplot(f::Fun;opts...)=complexplot!(plot(),f;opts...)
 
+for PLOTSTR in ("complexplot","domainplot","coefficientplot")
+    PLOT=parse(PLOTSTR)
+    PLOTe=parse(PLOTSTR*"!")
+    @eval begin
+        $PLOTe(f;opts...)=$PLOTe(current(),f;opts...)
+        $PLOT(f;opts...)=$PLOTe(plot(),f;opts...)
+    end
+end
 
 ##
 # Special spaces
@@ -151,14 +157,15 @@ end
 ## domainplot
 
 
-Plots.plot(d::Domain;kwds...)=complexplot(Fun(identity,d);kwds...)  # default is to call complexplot
-Plots.plot(d::UnionDomain;kwds...)=plot([d.domains...];kwds...)
-domainplot(f::Union{Fun,Space};kwds...)=plot(domain(f);kwds...)
+Plots.plot!(plt::Plots.Plot,d::Domain;kwds...)=complexplot!(plt,Fun(identity,d);kwds...)  # default is to call complexplot
+Plots.plot!(plt::Plots.Plot,d::UnionDomain;kwds...)=plot!(plt,[d.domains...];kwds...)
+domainplot!(plt::Plots.Plot,f::Union{Fun,Space};kwds...)=plot!(plt,domain(f);kwds...)
+
 
 
 ## coefficientplot
 
-coefficientplot(f::Fun;opts...)=plot(abs(f.coefficients);yscale=:log10,opts...)
+coefficientplot!(plt::Plots.Plot,f::Fun;opts...)=plot!(plt,abs(f.coefficients);yscale=:log10,opts...)
 
 
 
