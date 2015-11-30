@@ -29,6 +29,8 @@ function splitmap(g,d::UnionDomain,pts)
     if isempty(pts)
         Fun(g,d)
     else
+        dpts = ∂(d)
+        pts = sort!(∪(pts,dpts),by=real)
         da=first(d)
         isapprox(da,pts[1];atol=sqrt(eps(mapreduce(length,+,d.domains)))) ? pts[1] = da : unshift!(pts,da)
         db=last(d)
@@ -101,6 +103,8 @@ for op in (:(Base.max),:(Base.min))
             pts=roots(h)
             splitmap(x->$op(f(x),g(x)),d,pts)
         end
+        $op{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T},g::Real) = $op(f,Fun(g,domain(f)))
+        $op{S<:RealUnivariateSpace,T<:Real}(f::Real,g::Fun{S,T}) = $op(Fun(f,domain(g)),g)
     end
 end
 
