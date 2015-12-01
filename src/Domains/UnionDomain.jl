@@ -61,6 +61,11 @@ Base.intersect(d1::UnionDomain,d2::UnionDomain)=mapreduce(d->d1∩d,∪,d2.domai
 Base.intersect(d1::Domain,d2::UnionDomain)=mapreduce(d->d1∩d,∪,d2.domains)
 Base.intersect(d1::UnionDomain,d2::Domain)=mapreduce(d->d2∩d,∪,d1.domains)
 
+
+Base.setdiff(a::UnionDomain,b::UnionDomain)=mapreduce(d->setdiff(d,b),∪,a.domains)
+Base.setdiff(a::UnionDomain,b::Domain)=mapreduce(d->setdiff(d,b),∪,a.domains)
+Base.setdiff(a::Domain,b::UnionDomain)=mapreduce(d->setdiff(a,d),∩,b.domains)
+
 Base.sort(d::UnionDomain;opts...)=UnionDomain(sort([d.domains...];opts...))
 
 

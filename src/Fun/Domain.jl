@@ -33,13 +33,15 @@ Base.length(::AnyDomain)=NaN
 
 canonicaldomain(a::Union{AnyDomain,EmptyDomain})=a
 
+Base.in(x::Domain,::EmptyDomain)=false
+
 ##General routines
 
 
 Base.isempty(::EmptyDomain)=true
 Base.isempty(::Domain)=false
 Base.intersect(::Domain,::Domain)=EmptyDomain()
-
+Base.setdiff(a::Domain,b::Domain)=error("Override setdiff(::$(typeof(a)),::$(typeof(b)))")
 \(a::Domain,b::Domain)=setdiff(a,b)
 
 ## Interval Domains
