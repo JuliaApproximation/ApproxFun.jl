@@ -8,7 +8,7 @@ import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
                 >=,./,/,.^,^,\,∪,transpose
 
 
-export pad!,pad,sample,chop!,complexroots,roots,svfft
+export pad!,pad,sample,chop!,complexroots,roots,svfft, reverseorientation
 
 ##Testing
 export bisectioninv

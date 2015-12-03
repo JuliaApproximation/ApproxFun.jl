@@ -26,7 +26,8 @@ macro calculus_operator(Op)
 
 
         ## Constructors
-        $Op(sp::Space,k)=$Op{typeof(sp),typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
+        Base.call{S}(::Type{$Op{S}},sp::S,k)=$Op{S,typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
+        $Op(sp::Space,k)=$Op{typeof(sp)}(sp,k)
 
         $Op(sp::Space)=$Op(sp,1)
         $Op()=$Op(UnsetSpace())

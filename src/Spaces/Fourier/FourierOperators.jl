@@ -48,10 +48,19 @@ for RULE in (:conversion_rule,:maxspace_rule,:union_rule)
     end
 end
 
+conversion_type{DD<:Circle}(A::Fourier{DD},B::Fourier{DD})=domain(A).orientation?A:B
 
+hasconversion{DD}(A::Fourier{DD},B::Fourier{DD})=domain(A) == reverse(domain(B))
+Conversion{DD}(A::Fourier{DD},B::Fourier{DD})=Conversion{typeof(A),typeof(B)}(A,B)
+bandinds{DD}(::Conversion{Fourier{DD},Fourier{DD}})=0,0
 
-
-
+function addentries!{DD}(C::Conversion{Fourier{DD},Fourier{DD}},A,kr::Range,::Colon)
+    @assert domain(domainspace(C)) == reverse(domain(rangespace(C)))
+    for k=kr
+        A[k,k]+=iseven(k)?(-1):1
+    end
+    A
+end
 
 
 

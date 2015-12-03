@@ -7,6 +7,9 @@ immutable Conversion{S<:Space,V<:Space,T} <: AbstractConversion{T}
     rangespace::V
 end
 
+Base.call{S,V}(::Type{Conversion{S,V}},a::S,b::V)=
+    Conversion{S,V,promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
+
 for TYP in (:Operator,:BandedOperator)
     @eval begin
         function Base.convert{T,S,V}(::Type{$TYP{T}},C::Conversion{S,V})
@@ -38,7 +41,7 @@ function defaultconversion(a::Space,b::Space)
             Conversion(a,sp,b)
         end
     else
-        Conversion{typeof(a),typeof(b),promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
+        Conversion{typeof(a),typeof(b)}(a,b)
     end
 end
 
