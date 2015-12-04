@@ -1,4 +1,13 @@
+####
+# Support for Fractional derivatives
+####
+
+
+
+export LeftIntegral,LeftDerivative
+
 @calculus_operator LeftIntegral
+@calculus_operator LeftDerivative
 
 function rangespace{DD<:Interval}(Q::LeftIntegral{Jacobi{DD},Float64})
     if Q.order==0.5
@@ -72,3 +81,9 @@ function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::Polynom
     @assert Q.order==0.5
     Legendre()⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,domain(sp)))
 end
+
+
+
+
+
+LeftDerivative(S,k)=LeftDerivativeWrapper(k=-0.5?LeftIntegral(S,0.5):Derivative()*LeftDerivative(S,k+1),k)
