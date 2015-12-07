@@ -50,6 +50,10 @@ abstract IntervalDomain{T} <: UnivariateDomain{T}
 
 canonicaldomain(::IntervalDomain)=Interval()
 
+
+domainscompatible(a::Domain,b::Domain)=isambiguous(a) || isambiguous(b) ||
+                    isapprox(a,b) || isapprox(a,reverse(b))
+
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
         T[sinpi((n-2k-one(T))/2n) for k=n-1:-1:0]
@@ -179,3 +183,11 @@ invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
 ## domains in higher dimensions
 
 points{T<:Array}(d::IntervalDomain{T},n::Integer) = T[fromcanonical(d,x) for x in chebyshevpoints(real(eltype(T)),n)]
+
+
+## sorting
+# we sort spaces lexigraphically by default
+
+for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
+    @eval $OP(a::Domain,b::Domain)=$OP(string(a),string(b))
+end

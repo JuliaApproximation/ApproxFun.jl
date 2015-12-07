@@ -264,8 +264,9 @@ end
 ## Multiply pieces
 
 function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
-    vf=vec(f)
-    @assert length(vf)==length(sp)
+    p=perm(domain(f).domains,domain(sp).domains)  # sort f
+    vf=pieces(f)[p]
+
     MultiplicationWrapper(f,DiagonalInterlaceOperator(map(Multiplication,vf,sp.spaces),PiecewiseSpace))
 end
 

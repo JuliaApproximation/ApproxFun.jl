@@ -131,8 +131,7 @@ canonicaldomain(S::Space)=canonicaldomain(domain(S))
 ##Check domain compatibility
 
 Base.isapprox(a::Domain,b::Domain)=a==b
-domainscompatible(a,b) = isambiguous(domain(a)) || isambiguous(domain(b)) ||
-                    isapprox(domain(a),domain(b)) || isapprox(domain(a),reverse(domain(b)))
+domainscompatible(a::Space,b::Space) = domainscompatible(domain(a),domain(b))
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
@@ -212,6 +211,8 @@ end
 function conversion_type(a,b)
     if spacescompatible(a,b)
         a
+    elseif !domainscompatible(a,b)
+        NoSpace()  # this avoids having to check eachtime
     else
         cr=conversion_rule(a,b)
         cr==NoSpace()?conversion_rule(b,a):cr
@@ -229,7 +230,11 @@ maxspace(a,b)=NoSpace()  # TODO: this fixes weird bug with Nothing
 function maxspace(a::Space,b::Space)
     if spacescompatible(a,b)
         return a
+    elseif !domainscompatible(a,b)
+        return NoSpace()  # this avoids having to check eachtime
     end
+
+
 
     cr=maxspace_rule(a,b)
     if !isa(cr,NoSpace)
@@ -272,9 +277,14 @@ function maxspace(a::Space,b::Space)
 end
 
 
+
+
 # union combines two spaces
 # this is used primarily for addition of two funs
 # that may be incompatible
+Base.union(a::AmbiguousSpace,b::AmbiguousSpace)=b
+Base.union(a::AmbiguousSpace,b::Space)=b
+Base.union(a::Space,b::AmbiguousSpace)=a
 function Base.union(a::Space,b::Space)
     if spacescompatible(a,b)
         return a
@@ -313,7 +323,7 @@ hasconversion(a,b)=maxspace(a,b)==b
 
 
 # tests whether a coefficients can be converted to b
-isconvertible(a,b)=hasconversion(a,b) 
+isconvertible(a,b)=hasconversion(a,b)
 
 ## Conversion routines
 #       coefficients(v::Vector,a,b)
