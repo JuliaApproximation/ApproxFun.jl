@@ -24,7 +24,9 @@ end
 
 bandinds{DD<:Interval}(Q::LeftIntegral{Jacobi{DD},Float64})=(0,0)
 
-function jacobi_frac_addentries!(c,α,μ,A,kr::UnitRange)
+jacobi_frac_addentries!(d::Interval,α,μ,A,kr::UnitRange)=
+    jacobi_frac_addentries!(sqrt(length(d)/2),α,μ,A,kr)
+function jacobi_frac_addentries!(c::Number,α,μ,A,kr::UnitRange)
     γ=c*gamma(α+1)/gamma(α+1+μ)
     for k=1:first(kr)-1
         γ*=(α+k)/(α+μ+k)
@@ -47,7 +49,7 @@ function addentries!{DD<:Interval}(Q::LeftIntegral{Jacobi{DD},Float64},A,kr::Uni
     @assert S.b==0
 
     # the 1/sqrt(length(d)) gives the constant term
-    jacobi_frac_addentries!(sqrt(length(domain(S))/2),0.,μ,A,kr)
+    jacobi_frac_addentries!(domain(S),0.,μ,A,kr)
 end
 
 function rangespace{DD<:Interval}(Q::LeftIntegral{JacobiWeight{Jacobi{DD},DD},Float64})
@@ -72,7 +74,7 @@ function addentries!{DD<:Interval}(Q::LeftIntegral{JacobiWeight{Jacobi{DD},DD},F
     @assert S.β==0
     @assert S.α==J.b
 
-    jacobi_frac_addentries!(1/sqrt(length(domain(S))),S.α,μ,A,kr)
+    jacobi_frac_addentries!(domain(S),S.α,μ,A,kr)
 end
 
 function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::JacobiWeight)
