@@ -55,8 +55,10 @@ end
 
 function LeftIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
     # convert to Jacobi
-    Q=LeftIntegral(JacobiWeight(S.α,S.β,Jacobi(S.space)),S.order)
-    LeftIntegralWrapper(SpaceOperator(Q,S,rangespace(Q)))
+    @assert k==.5
+
+    Q=LeftIntegral(JacobiWeight(S.α,S.β,Jacobi(-.5,.5,domain(S))),k)
+    ApproxFun.LeftIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
 end
 
 
@@ -102,4 +104,11 @@ end
 
 
 
-LeftDerivative(S,k)=LeftDerivativeWrapper(k=-0.5?LeftIntegral(S,0.5):Derivative()*LeftDerivative(S,k+1),k)
+LeftDerivative(S,k)=LeftDerivativeWrapper(k==-0.5?LeftIntegral(S,0.5):Derivative()*LeftDerivative(S,k+1),k)
+
+
+
+
+## SumSpace
+
+LeftIntegral(S::SumSpace,k)=LeftIntegralWrapper(DiagonalInterlaceOperator(map(s->LeftIntegral(s,k),S.spaces),SumSpace),k)
