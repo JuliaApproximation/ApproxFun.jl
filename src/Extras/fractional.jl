@@ -52,6 +52,14 @@ function addentries!{DD<:Interval}(Q::LeftIntegral{Jacobi{DD},Float64},A,kr::Uni
     jacobi_frac_addentries!(domain(S),0.,μ,A,kr)
 end
 
+
+function LeftIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
+    # convert to Jacobi
+    Q=LeftIntegral(JacobiWeight(S.α,S.β,Jacobi(S.space)),S.order)
+    LeftIntegralWrapper(SpaceOperator(Q,S,rangespace(Q)))
+end
+
+
 function rangespace{DD<:Interval}(Q::LeftIntegral{JacobiWeight{Jacobi{DD},DD},Float64})
     μ=Q.order
     S=domainspace(Q)
@@ -80,7 +88,7 @@ end
 function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::JacobiWeight)
     #TODO: general case
     @assert Q.order==0.5
-    @assert sp.α==0.5 && sp.β==0.
+    @assert isapproxinteger(sp.α-0.5) && sp.α>0 && isapproxinteger(sp.β)
     Legendre(domain(sp))
 end
 

@@ -246,6 +246,8 @@ function Derivative(S::SumSpace,k::Integer)
     end
 end
 
+choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->choosedomainspace(M,s),union,sp.spaces)
+
 
 
 ## Multiplcation for Array*Vector

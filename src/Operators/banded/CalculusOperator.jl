@@ -122,8 +122,6 @@ macro calculus_operator(Op)
             end
         end
 
-        choosedomainspace(M::$Op{UnsetSpace},sp)=sp  # we assume the space itself will work
-
 
         #Wrapper just adds the operator it wraps
         addentries!(D::$WrappOp,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
@@ -136,6 +134,8 @@ macro calculus_operator(Op)
 #         @eval $func(D::$WrappOp)=$func(D.op)
 #     end
 end
+
+choosedomainspace(M::CalculusOperator{UnsetSpace},sp)=sp  # we assume the space itself will work
 
 
 
