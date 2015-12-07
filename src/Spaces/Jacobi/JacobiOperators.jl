@@ -307,13 +307,21 @@ end
 
 #TODO: general integer decrements
 function Conversion{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
-    if A.α==1.0 && A.β==0.0
+    if A.α==A.β+1
         M=Multiplication(Fun([1.],JacobiWeight(1.,0.,domain(A))),A.space)        # multply by (1+x)
-        S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        if A.β==0.
+            S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        else
+            S=SpaceOperator(M,A,JacobiWeight(A.α-1,A.β,rangespace(M)))
+        end
         ConversionWrapper(promoterangespace(S,B))
-    elseif A.α==0.0 && A.β==1.0
+    elseif A.β==A.α+1
         M=Multiplication(Fun([1.],JacobiWeight(0.,1.,domain(A))),A.space)        # multply by (1-x)
-        S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        if A.α==0.
+            S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        else
+            S=SpaceOperator(M,A,JacobiWeight(A.α,A.β-1,rangespace(M)))
+        end
         ConversionWrapper(promoterangespace(S,B))
     else
         error("Not implemented")
@@ -323,10 +331,10 @@ end
 
 for FUNC in (:maxspace_rule,:hasconversion)
     @eval function $FUNC{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
-        if A.α==1.0 && A.β==0.0 && A.space.b>0
+        if A.α==A.β+1 && A.space.b>0
             $FUNC(Jacobi(A.space.a,A.space.b-1,domain(A)),B)
-        elseif A.α==0.0 && A.β==1.0 && A.space.a>0
-            $FUNC(Jacobi(A.space.b-1,A.space.a,domain(A)),B)
+        elseif A.β==A.α+1 && A.space.a>0
+            $FUNC(Jacobi(A.space.a-1,A.space.b,domain(A)),B)
         else
             $FUNC(A,JacobiWeight(0.,0.,B))
         end
