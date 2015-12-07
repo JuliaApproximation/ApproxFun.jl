@@ -57,12 +57,12 @@ Fun{T<:Space}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
 
-Fun(f::Vector,T::Type)=Fun(f,T())
+Fun(f::AbstractVector,T::Type)=Fun(f,T())
 
 Fun(f,T::Type)=Fun(f,T())
 Fun(f,T::Type,n::Integer)=Fun(f,T(),n)
 
-Fun(f::Vector,d::Domain)=Fun(f,Space(d))
+Fun(f::AbstractVector,d::Domain)=Fun(f,Space(d))
 
 Fun(f,d::Domain)=Fun(f,Space(d))
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
@@ -76,9 +76,9 @@ Fun(c::Number,d::Space)=c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 
 ## List constructor
 
-Fun{T<:Domain}(c::Number,dl::Vector{T})=Fun(c,UnionDomain(dl))
-Fun{T<:Domain}(f,dl::Vector{T})=Fun(f,UnionDomain(dl))
-Fun{T<:Domain}(f,dl::Vector{T},n::Integer)=Fun(f,UnionDomain(dl),n)
+Fun{T<:Domain}(c::Number,dl::AbstractVector{T})=Fun(c,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::AbstractVector{T})=Fun(f,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::AbstractVector{T},n::Integer)=Fun(f,UnionDomain(dl),n)
 
 ## Adaptive constructors
 
@@ -213,14 +213,15 @@ Fun(f::Fun,d::Domain;opts...)=Fun(f,Space((d ∪ domain(f)) ∩ d);opts...)
 
 
 Fun(f,n::Integer)=Fun(f,Interval(),n)
-Fun{T<:Number}(f,d::Vector{T},n::Integer)=Fun(f,convert(Domain,d),n)
-Fun{T<:Number,M<:Number}(cfs::Vector{M},d::Vector{T})=Fun(1.0*cfs,convert(Domain,d))
-Fun{T<:Number}(f,d::Vector{T})=Fun(f,convert(Domain,d))
-Fun{T<:Number}(f::Number,d::Vector{T})=Fun(f,convert(Domain,d))
+Fun{T<:Number}(f,d::AbstractVector{T},n::Integer)=Fun(f,Domain(d),n)
+Fun{T<:Number,M<:Number}(cfs::AbstractVector{M},d::AbstractVector{T})=Fun(1.0*cfs,Domain(d))
+Fun{T<:Number}(f,d::AbstractVector{T})=Fun(f,Domain(d))
+Fun{T<:Number}(f::Number,d::AbstractVector{T})=Fun(f,Domain(d))
+Fun(f::AbstractVector)=Fun(Domain(f))
 
 
 
-function Fun(cfs::Vector{Any},s::Space)
+function Fun(cfs::AbstractVector{Any},s::Space)
     @assert isempty(cfs)
     Fun(Float64[],s)
 end
