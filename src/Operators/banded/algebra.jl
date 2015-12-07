@@ -587,7 +587,7 @@ function choosedomainspace(P::PlusOperator,sp)
         sp2=choosedomainspace(op,sp)
         if !isa(sp2,AmbiguousSpace)  # we will ignore this result in hopes another opand
                                      # tells us a good space
-            ret=conversion_type(ret,sp2)
+            ret=union(ret,sp2)
         end
     end
     ret

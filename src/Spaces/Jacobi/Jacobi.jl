@@ -19,7 +19,7 @@ function canonicalspace(S::Jacobi)
     if isinteger(S.a) && isinteger(S.b)
         Jacobi(0.,0.,domain(S))
     elseif isinteger(S.a+0.5) && isinteger(S.b+0.5)
-        Chebyshev()
+        Chebyshev(domain(S))
     else
         S
     end

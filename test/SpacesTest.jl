@@ -134,3 +134,17 @@ w=sqrt(9-x^2)
 f=w+Fun()
 @test_approx_eq (f+w)(2.5) 2w(2.5)
 @test_approx_eq (f+w)(.5) f(.5)
+
+
+
+## Check Jacobi recurrence bug
+
+S=Jacobi(-.5,.5)
+f=Fun(exp,S)
+@test_approx_eq f(0.1) exp(0.1)
+
+
+## Check cancel conversion works
+x=Fun([0.,1.])
+f=exp(x)-1
+Fun(f,JacobiWeight(1.,0.,[0.,1.]))

@@ -29,7 +29,6 @@ JacobiWeight(a::Number,b::Number,d::IntervalDomain)=JacobiWeight(Float64(a),Floa
 JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(Float64(a),Float64(b),Space(d))
 JacobiWeight(a::Number,b::Number)=JacobiWeight(a,b,Chebyshev())
 
-JacobiWeight(a::Number,b::Number,s::Vector) = map(s->JacobiWeight(a,b,s),s)
 JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeight(a,b,vec(s)))
 
 identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x->x,S):Fun(identity,domain(S))
@@ -66,9 +65,11 @@ function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ
     c,d=sp2.α,sp2.β
 
     if isapprox(c,α) && isapprox(d,β)
+        # remove wrapper spaces and then convert
         coefficients(f,sp1.space,sp2.space)
     else
-        (Conversion(sp1,sp2)*f)
+        # go back to default
+        defaultcoefficients(f,sp1,sp2)
     end
 end
 coefficients{SJ,S,n,st,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SliceSpace{n,st,S,RealBasis,DD,1})=error("Implement")

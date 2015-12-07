@@ -3,7 +3,7 @@ import ApproxFun.Multiplication
 
 f=Fun(exp)
 d=domain(f)
-D=diff(d)
+D=Derivative(d)
 Q=integrate(d)
 
 @test norm((Q+I)*f-(integrate(f)+f)) < 2eps()
@@ -15,7 +15,7 @@ X=Multiplication(x,space(x))
 A=Conversion(Chebyshev(d),Ultraspherical{2}(d))
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
 
-@test norm((Conversion(Chebyshev(d),Ultraspherical{2}(d))\(D^2*f))-diff(diff(f))) < 100eps()
+@test norm((Conversion(Chebyshev(d),Ultraspherical{2}(d))\(D^2*f))-f'') < 100eps()
 
 @test norm(X*f-(x.*f)) < 100eps()
 
@@ -38,7 +38,7 @@ x=Fun(identity)
 
 d=PeriodicInterval(0.,2π)
 a=Fun(t-> 1+sin(cos(10t)),d)
-D=diff(d)
+D=Derivative(d)
 L=D+a
 f=Fun(t->exp(sin(t)),d)
 u=L\f
@@ -48,7 +48,7 @@ u=L\f
 d=PeriodicInterval(0.,2π)
 a1=Fun(t->sin(cos(t/2)^2),d)
 a0=Fun(t->cos(12sin(t)),d)
-D=diff(d)
+D=Derivative(d)
 L=D^2+a1*D+a0
 f=Fun(t->exp(cos(2t)),d)
 u=L\f
@@ -60,7 +60,7 @@ u=L\f
 ## Check mixed
 
 d=Interval()
-D=diff(d)
+D=Derivative(d)
 x=Fun(identity,d)
 A=D*(x*D)
 B=D+x*D^2
@@ -71,5 +71,3 @@ C=x*D^2+D
 @test norm((C-A)[1:10,1:10]|>full)<eps()
 @test norm((C-B)[1:10,1:10]|>full)<eps()
 @test norm((B-C)[1:10,1:10]|>full)<eps()
-
-
