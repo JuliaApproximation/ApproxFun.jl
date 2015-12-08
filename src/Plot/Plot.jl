@@ -16,10 +16,10 @@ end
 
 ## Fun routines
 
-Plots.plot(f::Union{Fun,Domain,MultivariateFun};kwds...)=plot!(plot(),f;kwds...)
+Plots.plot(f::Union{Fun,Domain,MultivariateFun};grid=false,kwds...)=plot!(plot(grid=grid),f;kwds...)
 Plots.plot!(f::Union{Fun,Domain,MultivariateFun};kwds...)=plot!(current(),f;kwds...)
 
-Plots.plot{F<:Union{Fun,Domain,MultivariateFun}}(v::AbstractVector{F};kwds...)=plot!(plot(),v;kwds...)
+Plots.plot{F<:Union{Fun,Domain,MultivariateFun}}(v::AbstractVector{F};grid=false,kwds...)=plot!(plot(grid=grid),v;kwds...)
 Plots.plot!{F<:Union{Fun,Domain,MultivariateFun}}(v::AbstractVector{F};kwds...)=plot!(current(),v;kwds...)
 
 
@@ -73,7 +73,7 @@ for PLOTSTR in ("complexplot","domainplot","coefficientplot")
     PLOTe=parse(PLOTSTR*"!")
     @eval begin
         $PLOTe(f;opts...)=$PLOTe(current(),f;opts...)
-        $PLOT(f;opts...)=$PLOTe(plot(),f;opts...)
+        $PLOT(f;grid=false,opts...)=$PLOTe(plot(grid=grid),f;opts...)
     end
 end
 

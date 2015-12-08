@@ -30,6 +30,7 @@ Base.ndims(::AnyDomain)=1
 complexlength(::AnyDomain)=NaN
 Base.length(::AnyDomain)=NaN
 
+Base.reverse(a::Union{AnyDomain,EmptyDomain})=a
 
 canonicaldomain(a::Union{AnyDomain,EmptyDomain})=a
 
@@ -50,7 +51,8 @@ abstract IntervalDomain{T} <: UnivariateDomain{T}
 
 canonicaldomain(::IntervalDomain)=Interval()
 
-
+Base.isapprox(a::Domain,b::Domain)=a==b
+domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain)=isambiguous(a) || isambiguous(b) ||
                     isapprox(a,b) || isapprox(a,reverse(b))
 

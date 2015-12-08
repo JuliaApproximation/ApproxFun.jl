@@ -128,11 +128,6 @@ canonicalspace(T)=T
 canonicaldomain(S::Space)=canonicaldomain(domain(S))
 
 
-##Check domain compatibility
-
-Base.isapprox(a::Domain,b::Domain)=a==b
-domainscompatible(a::Space,b::Space) = domainscompatible(domain(a),domain(b))
-
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
 spacescompatible{D<:Space}(f::D,g::D)=error("Override spacescompatible for "*string(D))
