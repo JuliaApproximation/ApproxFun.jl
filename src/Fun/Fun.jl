@@ -158,7 +158,7 @@ pad!(f::Fun,n::Integer)=pad!(f.coefficients,n)
 pad(f::Fun,n::Integer)=Fun(pad(f.coefficients,n),f.space)
 
 
-function chop!{S,T}(f::Fun{S,T},tol::Real)
+function chop!{S,T}(f::Fun{S,T},tol)
     chop!(f.coefficients,tol)
     if length(f.coefficients) == 0
         f.coefficients = [zero(T)]
@@ -397,5 +397,8 @@ end
 ^(f::Fun,k::Union{Number,Fun})=f.^k
 /(c::Union{Number,Fun},g::Fun)=c./g
 
+# Dual number support. Should there be value and dual of Space and Domain?
+DualNumbers.value(f::Fun) = Fun(value(coefficients(f)),space(f))
+DualNumbers.epsilon(f::Fun) = Fun(epsilon(coefficients(f)),space(f))
 
 include("constructors.jl")
