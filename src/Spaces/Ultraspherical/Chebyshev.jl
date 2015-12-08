@@ -46,7 +46,11 @@ function clenshaw(::Chebyshev,c::AbstractVector,x)
     muladd(x/2,bk1,c[1]-bk2)
 end
 
-function clenshaw{S<:Chebyshev,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
+clenshaw{S<:Chebyshev,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})=
+    clenshaw(c,collect(x),plan)
+
+#TODO: This modifies x, which is not threadsafe
+function clenshaw{S<:Chebyshev,V}(c::AbstractVector,x::Vector,plan::ClenshawPlan{S,V})
     N,n = length(c),length(x)
     if isempty(c)
         return zeros(V,n)
