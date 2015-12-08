@@ -4,18 +4,17 @@ using Plots,ApproxFun
 
 ff=(x,y)->(x-y)^2*exp(-x^2/2.-y^2/2)
 f=Fun(ff,[-4.,4.],[-4.,4.])
-r=sample(f,5000)
+r=ApproxFun.sample(f,5000)
 
 
 #We can compare the histogram to the 1-point correlation
-setplotter("PyPlot")
 plot(sum(f,1)/sum(f))
-hist!(vcat(r...),-4.:.1:4.,normed=true)
-		
-	
+plot!(vcat(r...);t=:density)
+
+
 #We can compare the histograms of x with the GUE:
 
 using RandomMatrices
 
-hist(vcat([sqrt(2)eigvalrand(GaussianHermite(2),2) for k=1:10000]...),-4:.1:4,normed=true)
+plot(vcat([sqrt(2)eigvalrand(GaussianHermite(2),2) for k=1:10000]...);t=:density)
 plot!(sum(f,1)/sum(f))

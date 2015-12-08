@@ -16,11 +16,20 @@ end
 
 ## Fun routines
 
-Plots.plot(f::Union{Fun,Domain,MultivariateFun};grid=false,kwds...)=plot!(plot(grid=grid),f;kwds...)
+Plots.plot(f::Union{Fun,Domain,MultivariateFun};grid=true,kwds...)=plot!(plot(grid=grid),f;kwds...)
 Plots.plot!(f::Union{Fun,Domain,MultivariateFun};kwds...)=plot!(current(),f;kwds...)
 
-Plots.plot{F<:Union{Fun,Domain,MultivariateFun}}(v::AbstractVector{F};grid=false,kwds...)=plot!(plot(grid=grid),v;kwds...)
+Plots.plot(x::AbstractVector,f::Fun;grid=true,kwds...)=plot!(plot(grid=grid),x,f;kwds...)
+Plots.plot!(x::AbstractVector,f::Fun;kwds...)=plot!(current(),x,f;kwds...)
+
+
+
+Plots.plot{F<:Union{Fun,Domain,MultivariateFun}}(v::AbstractVector{F};grid=true,kwds...)=plot!(plot(grid=grid),v;kwds...)
 Plots.plot!{F<:Union{Fun,Domain,MultivariateFun}}(v::AbstractVector{F};kwds...)=plot!(current(),v;kwds...)
+
+
+Plots.plot{F<:Fun}(x::AbstractVector,v::AbstractVector{F};grid=true,kwds...)=plot!(plot(grid=grid),x,v;kwds...)
+Plots.plot!{F<:Fun}(x::AbstractVector,v::AbstractVector{F};kwds...)=plot!(current(),x,v;kwds...)
 
 
 function plotptsvals(f::Fun)
@@ -33,6 +42,9 @@ function plotptsvals(f::Fun)
 end
 Plots.plot!{S,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)=
                 plot!(plt,plotptsvals(f)...;kwds...)
+
+Plots.plot!{S,T<:Real}(plt::Plots.Plot,x::AbstractVector{T},f::Fun{S,T};kwds...)=
+                plot!(plt,x,f(x);kwds...)
 
 
 
@@ -51,12 +63,30 @@ function Plots.plot!{F<:Union{Fun,Domain}}(plt::Plots.Plot,v::AbstractVector{F};
     plt
 end
 
+function Plots.plot!{F<:Fun}(plt::Plots.Plot,x::AbstractVector,v::AbstractVector{F};label=Void)
+    if label == Void
+        for k=1:length(v)
+            plot!(plt,x,v[k])
+        end
+    else
+        @assert length(label)==length(v)
+
+        for k=1:length(v)
+            plot!(plt,x,v[k];label=label[k])
+        end
+    end
+    plt
+end
+
 
 
 
 
 Plots.plot!{S,T<:Complex}(plt::Plots.Plot,f::Fun{S,T};label=Void)=
                 plot!(plt,[real(f),imag(f)];label=(label==Void?["Real","Imag"]:label))
+
+Plots.plot!{S,T<:Complex}(plt::Plots.Plot,x::AbstractVector,f::Fun{S,T};label=Void)=
+            plot!(plt,x,[real(f),imag(f)];label=(label==Void?["Real","Imag"]:label))
 
 function complexplot!(plt::Plots.Plot,f::Fun;opts...)
     vals =plotptsvals(f)[2]
@@ -73,7 +103,7 @@ for PLOTSTR in ("complexplot","domainplot","coefficientplot")
     PLOTe=parse(PLOTSTR*"!")
     @eval begin
         $PLOTe(f;opts...)=$PLOTe(current(),f;opts...)
-        $PLOT(f;grid=false,opts...)=$PLOTe(plot(grid=grid),f;opts...)
+        $PLOT(f;grid=true,opts...)=$PLOTe(plot(grid=grid),f;opts...)
     end
 end
 
@@ -182,7 +212,7 @@ function Plots.plot!(plt::Plots.Plot,f::MultivariateFun;linetype=:contour,opts..
     plot!(plt,points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);linetype=linetype,opts...)
 end
 
-contour(f::Fun;kwds...)=plot(f,linetype=:contour,kwds...)
+contour(f::Union{Fun,MultivariateFun};kwds...)=plot(f;linetype=:contour,kwds...)
 
 
 

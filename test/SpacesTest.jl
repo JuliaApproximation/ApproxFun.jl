@@ -9,7 +9,7 @@ import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
 d=Interval()
 sp=ChebyshevDirichlet{1,1}(d)
 B=dirichlet(sp)
-D=diff(d)
+D=Derivative(d)
 L=D^2+I
 
 @test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <eps()

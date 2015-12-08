@@ -108,7 +108,7 @@ u=[dirichlet(d);lap(d)]\g
 
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dθ*dt
-Dθ=diff(d,1);Dt=diff(d,2)
+Dθ=Derivative(d,1);Dt=Derivative(d,2)
 u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
 
@@ -139,7 +139,7 @@ Fun(identity,∂(Γ))|>values
 
 dx=Interval();dt=Interval(0,1.)
 d=dx*dt
-Dx=diff(d,1);Dt=diff(d,2)
+Dx=Derivative(d,1);Dt=Derivative(d,2)
 x=Fun(identity,dx)
 B=0.0
 C=0.0
@@ -164,7 +164,7 @@ d=dx*dt
 
 V=Fun(x->x^2,dx)
 
-Dt=diff(d,2);Dx=diff(d,1)
+Dt=Derivative(d,2);Dx=Derivative(d,1)
 
 ϵ=1.
 u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)

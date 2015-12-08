@@ -25,10 +25,10 @@ df = (u)->(2.0*D^3 + u*D^2 + D^2*u)
 plot([u,u0])      # Initial estimate and first-order approximation
 
 for k=1:10
-  u  -= [B; df(u)]\[u(0.);diff(u,1)(0.);diff(u,1)(d.b)-1.;f(u)]
+  u  -= [B; df(u)]\[u(0.);u'(0.);u'(d.b)-1.;f(u)]
 end
 norm(f(u))             # should be zero
-abs(diff(u,2)(0.)-κ)   # should also be zero
+abs(u''(0.)-κ)   # should also be zero
 plot([u,u0]) # Solution and First-order approximation
 # Now for Falkner-Skan:
 #     solves 2u''' + uu'' - β(1 - (u')^2) = 0 ,  u(0.) = u'(0.) = 0, u'[∞] = 1
@@ -40,7 +40,7 @@ v=u
 norm(F(v))               # should be non-zero, as we've perturbed the Blasius equation
 
 for k=1:10
-  v  -= [B; dF(v)]\[v(0.);diff(v,1)(0.);diff(v,1)(d.b)-1.;F(v)]
+  v  -= [B; dF(v)]\[v(0.);v'(0.);v'(d.b)-1.;F(v)]
 end
 norm(F(v))               # should be zero
 

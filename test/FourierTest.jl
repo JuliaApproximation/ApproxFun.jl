@@ -25,12 +25,12 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
 f=Fun(t->cos(t),CosSpace)
 D=Derivative(space(f))
 @test_approx_eq (D*f)(.1) -sin(.1)
-@test_approx_eq diff(f)(.1) -sin(.1)
+@test_approx_eq f'(.1) -sin(.1)
 
 f=Fun(t->sin(t),SinSpace)
 D=Derivative(space(f))
 @test_approx_eq (D*f)(.1) cos(.1)
-@test_approx_eq diff(f)(.1) cos(.1)
+@test_approx_eq f'(.1) cos(.1)
 
 f=Fun(cos,Fourier)
 @test norm((Derivative(space(f))^2)*f+f)<10eps()
@@ -53,8 +53,8 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     f=Fun(z->exp(1/z)-1,Hardy{false}(d))
     df=Fun(z->-1/z^2*exp(1/z),Hardy{false}(d))
     @test norm((Derivative()*f-df).coefficients)<1000eps()
-    @test norm((Derivative()^2*f-diff(df)).coefficients)<100000eps()
-    @test norm((diff(f)-df).coefficients)<1000eps()
+    @test norm((Derivative()^2*f-df').coefficients)<100000eps()
+    @test norm((f'-df).coefficients)<1000eps()
 end
 
 

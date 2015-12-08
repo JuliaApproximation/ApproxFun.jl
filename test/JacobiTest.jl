@@ -56,7 +56,7 @@ S=JacobiWeight(0.,0.,Jacobi(1.,0.,Interval(1.,0.)))
 D=Derivative(S)
 f=Fun(exp,domainspace(D))
 @test (D*f-f).coefficients|>norm < eps(100000.)
-@test (diff(f)-f).coefficients|>norm < eps(100000.)
+@test (f'-f).coefficients|>norm < eps(100000.)
 @test (D^2*f-f).coefficients|>norm < eps(100000000.)
 @test (D*(D*f)-f).coefficients|>norm < eps(100000000.)
 

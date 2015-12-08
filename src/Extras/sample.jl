@@ -30,10 +30,10 @@ bisectioninv{S,T}(f::Fun{S,T},x::Vector;opts...)=Float64[bisectioninv(f,xx;opts.
 function chebbisectioninv(c::Vector{Float64},x::Float64;numits::Int=47)
     a = -1.;b = 1.
 
-
+    C=Chebyshev()
     for k=1:numits  #TODO: decide 47
         m=.5*(a+b)
-        val = clenshaw(c,m)
+        val = clenshaw(C,c,m)
 
             (val<= x) ? (a = m) : (b = m)
     end

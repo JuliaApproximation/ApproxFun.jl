@@ -111,6 +111,8 @@ end
 #     Fun(f,d,2^21 + 1)
 # end
 
+samplenorm(fr)=norm(fr)
+
 
 function zerocfsFun(f, d::Space)
     #TODO: reuse function values?
@@ -128,8 +130,8 @@ function zerocfsFun(f, d::Space)
     tol =T==Any?200eps():200eps(T)
 
 
-    fr=[f(x) for x=r]
-    maxabsfr=norm(fr)
+    fr=typeof(f0)[f(x) for x=r]
+    maxabsfr=samplenorm(fr)
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)

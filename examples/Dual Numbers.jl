@@ -16,11 +16,16 @@ ApproxFun.real{T}(::Type{Dual{T}})=Dual{ApproxFun.real(T)}
 ApproxFun.plan_chebyshevtransform{D<:Dual}(v::Vector{D})=ApproxFun.plan_chebyshevtransform(real(v))
 ApproxFun.chebyshevtransform{D<:Dual}(v::Vector{D},plan...)=dual(chebyshevtransform(real(v),plan...),chebyshevtransform(epsilon(v),plan...))
 ApproxFun.chop!(f::Fun,d::Dual)=chop!(f,real(d))
+ApproxFun.samplenorm{T<:Dual}(v::Vector{T})=norm(real(v))
+
 
 
 # what is the derivative of the first coefficient with respect to the first argument of the domain?
 f=Fun(exp,Interval(dual(1.0,1),dual(2.0)))
 epsilon(f.coefficients[1])
+
 # check versus finite difference calculation:
 h=0.00001;(Fun(exp,Interval(1.0+h,2.0)).coefficients[1]-Fun(exp,Interval(1.0,2.0)).coefficients[1])/h
 
+# Or an ApproxFun calculation:
+Fun(h->Fun(exp,Interval(1.0+h,2.0)).coefficients[1],[0.,.1])'(0.)
