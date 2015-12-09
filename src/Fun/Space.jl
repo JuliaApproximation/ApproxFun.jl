@@ -298,13 +298,13 @@ function Base.union(a::Space,b::Space)
     cspa=canonicalspace(a)
     cspb=canonicalspace(b)
     if cspa!=a || cspb!=b
-        cr=union(cspa,cspb)  #Max or min space?
+        cr=union(cspa,cspb)
     end
     if !isa(cr,NoSpace)
         return cr
     end
 
-    cr=conversion_type(a,b)  #Max or min space?
+    cr=maxspace(a,b)  #Max space since we can convert both to it
     if !isa(cr,NoSpace)
         return cr
     end
