@@ -138,10 +138,10 @@ end
 function ./{C<:Chebyshev}(c::Number,f::Fun{C})
     if !isa(domain(f),Interval)
         # project first to get better derivative behaviour
-        return setdomain(c./setdomain(f,Interval()),domain(f))
+        return setdomain(c./setcanonicaldomain(f),domain(f))
     end
 
-    fc = Fun(coefficients(f),Interval())
+    fc = setcanonicaldomain(f)
     r = roots(fc)
     x = Fun(identity)
 

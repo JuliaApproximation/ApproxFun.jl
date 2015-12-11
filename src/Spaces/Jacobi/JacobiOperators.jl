@@ -329,7 +329,7 @@ function Conversion{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
 end
 
 
-for FUNC in (:maxspace_rule,:hasconversion)
+for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
     @eval function $FUNC{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
         if A.α==A.β+1 && A.space.b>0
             $FUNC(Jacobi(A.space.a,A.space.b-1,domain(A)),B)

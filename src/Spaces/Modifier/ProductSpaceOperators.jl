@@ -169,7 +169,8 @@ end
 
 
 
-for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
+for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),
+                        (:union_rule,:union))
     for TYP in (:SumSpace,:PiecewiseSpace)
         @eval function $OPrule(S1::$TYP,S2::$TYP)
             cs1,cs2=map(canonicalspace,S1.spaces),map(canonicalspace,S2.spaces)

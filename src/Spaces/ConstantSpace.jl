@@ -13,7 +13,9 @@ end
 ConstantSpace(d::Domain)=ConstantSpace{typeof(d)}(d)
 ConstantSpace()=ConstantSpace(AnyDomain())
 
-maxspace_rule(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
+for OP in (:maxspace_rule,:union_rule)
+    @eval $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
+end
 
 Fun(c::Number)=Fun([c],ConstantSpace())
 Fun(c::Number,d::ConstantSpace)=Fun([c],d)

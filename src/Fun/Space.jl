@@ -304,10 +304,11 @@ function Base.union(a::Space,b::Space)
         return cr
     end
 
-    cr=maxspace(a,b)  #Max space since we can convert both to it
-    if !isa(cr,NoSpace)
-        return cr
-    end
+    #TODO: Uncomment when Julia bug is fixed
+    # cr=maxspace(a,b)  #Max space since we can convert both to it
+    # if !isa(cr,NoSpace)
+    #     return cr
+    # end
 
     a⊕b
 end

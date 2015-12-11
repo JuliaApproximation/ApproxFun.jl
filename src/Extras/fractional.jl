@@ -104,7 +104,11 @@ end
 
 
 
-LeftDerivative(S,k)=LeftDerivativeWrapper(k==-0.5?LeftIntegral(S,0.5):Derivative()*LeftDerivative(S,k+1),k)
+function LeftDerivative(S::Space,k)
+    i=ceil(Int,k)
+    r=i-k
+    LeftDerivativeWrapper(i<0?LeftIntegral(S,-k):Derivative(i)*LeftIntegral(S,r),k)
+end
 
 
 

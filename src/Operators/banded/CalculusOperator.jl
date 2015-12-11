@@ -6,7 +6,7 @@ abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 
 ## Note that all functions called in calculus_operator must be exported
 
-
+iswrapper(::)=false
 
 macro calculus_operator(Op)
     AbstOp=parse("Abstract"*string(Op))
@@ -128,6 +128,8 @@ macro calculus_operator(Op)
         rangespace(D::$WrappOp)=rangespace(D.op)
         domainspace(D::$WrappOp)=domainspace(D.op)
         bandinds(D::$WrappOp)=bandinds(D.op)
+
+        iswrapper(::$WrappOp)=true
     end)
 #     for func in (:rangespace,:domainspace,:bandinds)
 #         # We assume the operator wrapped has the correct spaces
@@ -135,7 +137,7 @@ macro calculus_operator(Op)
 #     end
 end
 
-choosedomainspace(M::CalculusOperator{UnsetSpace},sp)=sp  # we assume the space itself will work
+choosedomainspace(M::CalculusOperator{UnsetSpace},sp)=iswrapper(M)?choosedomainspace(M.op,sp):sp  # we assume the space itself will work
 
 
 
