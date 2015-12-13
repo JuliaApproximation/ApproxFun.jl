@@ -13,6 +13,9 @@ Jacobi(a,b,d)=Jacobi(a,b,Domain(d))
 Jacobi(a,b)=Jacobi(a,b,Interval())
 Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
 
+WeightedJacobi(α,β,d::Domain)=JacobiWeight(α,β,Jacobi(β,α,d))
+WeightedJacobi(α,β)=JacobiWeight(α,β,Jacobi(β,α))
+
 spacescompatible(a::Jacobi,b::Jacobi)=a.a==b.a && a.b==b.b
 
 function canonicalspace(S::Jacobi)
