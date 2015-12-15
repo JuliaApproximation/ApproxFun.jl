@@ -2,16 +2,15 @@ using ApproxFun, Base.Test
 
 @test norm(Fun(x->Fun(cos,Fourier,20)(x),20)-Fun(cos,20)) <100eps()
 @test norm(Fun(x->Fun(cos,Fourier)(x))-Fun(cos)) <100eps()
-@test norm(diff(Fun(cos,Fourier))+Fun(sin,Fourier)) < 100eps()
+@test norm(Fun(cos,Fourier)'+Fun(sin,Fourier)) < 100eps()
 @test norm(Fun(x->Fun(cos,Laurent)(x))-Fun(cos)) <100eps()
-@test norm(diff(Fun(cos,Laurent))+Fun(sin,Laurent)) < 100eps()
+@test norm(Fun(cos,Laurent)'+Fun(sin,Laurent)) < 100eps()
+@test norm(Fun(cos,Circle())'+Fun(sin,Circle()))<100eps()
 
-
-@test norm(diff(Fun(cos,Circle()))+Fun(sin,Circle()))<100eps()
 
 f=Fun(exp,Circle());
 
-@test norm(diff(f)-f)<100eps()
+@test norm(f'-f)<100eps()
 @test norm(integrate(f)+1-f)<100eps()
 
 f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
@@ -26,12 +25,12 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
 f=Fun(t->cos(t),CosSpace)
 D=Derivative(space(f))
 @test_approx_eq (D*f)(.1) -sin(.1)
-@test_approx_eq diff(f)(.1) -sin(.1)
+@test_approx_eq f'(.1) -sin(.1)
 
 f=Fun(t->sin(t),SinSpace)
 D=Derivative(space(f))
 @test_approx_eq (D*f)(.1) cos(.1)
-@test_approx_eq diff(f)(.1) cos(.1)
+@test_approx_eq f'(.1) cos(.1)
 
 f=Fun(cos,Fourier)
 @test norm((Derivative(space(f))^2)*f+f)<10eps()
@@ -54,8 +53,8 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     f=Fun(z->exp(1/z)-1,Hardy{false}(d))
     df=Fun(z->-1/z^2*exp(1/z),Hardy{false}(d))
     @test norm((Derivative()*f-df).coefficients)<1000eps()
-    @test norm((Derivative()^2*f-diff(df)).coefficients)<100000eps()
-    @test norm((diff(f)-df).coefficients)<1000eps()
+    @test norm((Derivative()^2*f-df').coefficients)<100000eps()
+    @test norm((f'-df).coefficients)<1000eps()
 end
 
 
@@ -100,3 +99,19 @@ a=Fun(t->sin(sin(t)),SinSpace)
 b=Fun(t->sin(t)+cos(3t)+1,Fourier)
 
 @test_approx_eq (a*b)(.1) a(.1)*b(.1)
+
+
+
+
+# Check bug in off centre Circle
+c2=-0.1+.2im;r2=0.3;
+d2=Circle(c2,r2)
+z=Fun(identity,d2)
+
+@test_approx_eq z(-0.1+.2im+0.3*exp(0.1im)) (-0.1+.2im+0.3*exp(0.1im))
+
+
+
+# false Circle
+@test_approx_eq Fun(exp,Fourier(Circle(0.,1.,false)))(exp(0.1im)) exp(exp(.1im))
+@test_approx_eq Fun(exp,Laurent(Circle(0.,1.,false)))(exp(0.1im)) exp(exp(.1im))

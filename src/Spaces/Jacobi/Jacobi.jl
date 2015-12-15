@@ -13,13 +13,16 @@ Jacobi(a,b,d)=Jacobi(a,b,Domain(d))
 Jacobi(a,b)=Jacobi(a,b,Interval())
 Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
 
+WeightedJacobi(α,β,d::Domain)=JacobiWeight(α,β,Jacobi(β,α,d))
+WeightedJacobi(α,β)=JacobiWeight(α,β,Jacobi(β,α))
+
 spacescompatible(a::Jacobi,b::Jacobi)=a.a==b.a && a.b==b.b
 
 function canonicalspace(S::Jacobi)
     if isinteger(S.a) && isinteger(S.b)
         Jacobi(0.,0.,domain(S))
     elseif isinteger(S.a+0.5) && isinteger(S.b+0.5)
-        Chebyshev()
+        Chebyshev(domain(S))
     else
         S
     end
@@ -30,7 +33,7 @@ end
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
 jacobirecA(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+1:(2k+α+β+1)*(2k+α+β+2)/(2*(k+1)*(k+α+β+1))
-jacobirecB(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(β-α):(α^2-β^2)*(2k+α+β+1)/(2*(k+1)*(k+α+β+1)*(2k+α+β))
+jacobirecB(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α-β):(α^2-β^2)*(2k+α+β+1)/(2*(k+1)*(k+α+β+1)*(2k+α+β))
 jacobirecC(α,β,k)=(k+α)*(k+β)*(2k+α+β+2)/((k+1)*(k+α+β+1)*(2k+α+β))
 
 #####

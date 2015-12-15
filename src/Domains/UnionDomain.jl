@@ -14,26 +14,60 @@ UnionDomain(d::Tuple)=UnionDomain{typeof(d),mapreduce(eltype,promote_type,d),map
 UnionDomain(d::AbstractVector)=UnionDomain(tuple(d...))
 
 
+UnionDomain(d1::UnionDomain,d2::UnionDomain)=UnionDomain((d1.domains...,d2.domains...))
+UnionDomain(d1::Domain,d2::UnionDomain)=UnionDomain((d1,d2.domains...))
+UnionDomain(d1::UnionDomain,d2::Domain)=UnionDomain((d1.domains...,d2))
+
+UnionDomain(d1::Domain,d2::Domain)=UnionDomain((d1,d2))
+
+
+
+canonicaldomain(d::UnionDomain)=d  # we could map all to canonical, but then there would be overlap
+
 isambiguous(d::UnionDomain)=isempty(d.domains)
 Base.convert{DD,T,d}(::Type{UnionDomain{DD,T,d}},::AnyDomain)=UnionDomain{DD,T,d}(map(D->D(AnyDomain()),DD.parameters))
 Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain)=UnionDomain(tuple())
 
 
 
-∪(d::Domain) = d
-∪{D<:Domain}(d::AbstractVector{D}) = UnionDomain(d)
-function ∪{D<:Domain}(::Type{D},x)
+Base.union(d::Domain) = d
+Base.union{D<:Domain}(d::AbstractVector{D}) = UnionDomain(d)
+function Base.union{D<:Domain}(::Type{D},x)
     out = map(D,x)
     length(out) > 1 ? ∪(out) : out[1]
 end
-function ∪{D<:Domain}(::Type{D},x,y)
+function Base.union{D<:Domain}(::Type{D},x,y)
     out = map(D,x,y)
     length(out) > 1 ? ∪(out) : out[1]
 end
-∪(d1::UnionDomain,d2::UnionDomain)=UnionDomain((d1.domains...,d2.domains...))
-∪(d1::Domain,d2::UnionDomain)=UnionDomain((d1,d2.domains...))
-∪(d1::UnionDomain,d2::Domain)=UnionDomain((d1.domains...,d2))
-∪(d1::Domain,d2::Domain)=UnionDomain((d1,d2))
+#TODO Check for intersection
+
+
+Base.union(d1::EmptyDomain,d2::EmptyDomain)=d1
+Base.union(d1::EmptyDomain,d2::Domain)=d2
+Base.union(d1::Domain,d2::EmptyDomain)=d1
+
+function Base.union(d1::Domain,d2::Domain)
+    Γ=d1∩d2
+    if isempty(Γ)
+        UnionDomain(d1,d2)
+    else
+        (d1\Γ)∪Γ∪(d2\Γ)
+    end
+end
+
+
+Base.intersect(d1::UnionDomain,d2::UnionDomain)=mapreduce(d->d1∩d,∪,d2.domains)
+Base.intersect(d1::Domain,d2::UnionDomain)=mapreduce(d->d1∩d,∪,d2.domains)
+Base.intersect(d1::UnionDomain,d2::Domain)=mapreduce(d->d2∩d,∪,d1.domains)
+
+
+Base.setdiff(a::UnionDomain,b::UnionDomain)=mapreduce(d->setdiff(d,b),∪,a.domains)
+Base.setdiff(a::UnionDomain,b::Domain)=mapreduce(d->setdiff(d,b),∪,a.domains)
+Base.setdiff(a::Domain,b::UnionDomain)=mapreduce(d->setdiff(a,d),∩,b.domains)
+
+Base.sort(d::UnionDomain;opts...)=UnionDomain(sort([d.domains...];opts...))
+
 
 for op in (:(Base.first),:(Base.last))
     @eval $op(d::UnionDomain)=$op($op(d.domains))
@@ -44,12 +78,14 @@ for OP in (:(Base.start),:(Base.done),:(Base.endof),:(Base.getindex),:(Base.leng
     @eval $OP(S::UnionDomain,k...)=$OP(S.domains,k...)
 end
 
+numpieces(d::UnionDomain)=length(d.domains)
 
 ==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
 
 
 Base.in(x,d::UnionDomain)=any(a->x∈a,d.domains)
 Base.issubset(a::Domain,d::UnionDomain)=(a∪d)==d
+Base.reverse(d::UnionDomain)=UnionDomain(reverse(map(reverse,d.domains)))
 
 ∂(d::UnionDomain)=mapreduce(∂,union,d.domains)
 

@@ -9,7 +9,7 @@ import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
 d=Interval()
 sp=ChebyshevDirichlet{1,1}(d)
 B=dirichlet(sp)
-D=diff(d)
+D=Derivative(d)
 L=D^2+I
 
 @test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <eps()
@@ -48,6 +48,14 @@ c=Fun(cos,[-2.,2.])|>abs
 sc=Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])
 @test norm(sc-(c+s))<100eps()
 
+# max/min creates breakpoints
+
+x=Fun()
+g=4*(x-.2)
+f=max(-1,g)
+f2=min(f,1)
+f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),[-1.0;-0.05;0.45;1.0])
+@test norm(f2(collect(linspace(-1,1,10)))-f3(collect(linspace(-1,1,10)))) < 2eps()
 
 x=Fun(identity,[im,0.,1.])
 @test_approx_eq sqrt(1-x)(0.2im) sqrt(1-0.2im)
@@ -117,3 +125,26 @@ G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)   # Before the 80 wasn’t s
 x=Fun(identity,[-1.,1.])
 f=x+sin(2x)*sqrt(1-x^2)
 @test_approx_eq f(0.1) 0.1+sin(2*0.1)*sqrt(1-0.1^2)
+
+
+## Check multiple piecewisesapce
+
+x=Fun(identity,[-3,-2])+Fun(identity,[2,3])
+w=sqrt(9-x^2)
+f=w+Fun()
+@test_approx_eq (f+w)(2.5) 2w(2.5)
+@test_approx_eq (f+w)(.5) f(.5)
+
+
+
+## Check Jacobi recurrence bug
+
+S=Jacobi(-.5,.5)
+f=Fun(exp,S)
+@test_approx_eq f(0.1) exp(0.1)
+
+
+## Check cancel conversion works
+x=Fun([0.,1.])
+f=exp(x)-1
+Fun(f,JacobiWeight(1.,0.,[0.,1.]))

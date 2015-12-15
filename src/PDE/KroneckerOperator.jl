@@ -280,7 +280,9 @@ conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::TensorSpace)=a
 conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::Space)=a
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
-Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
+# TODO: we explicetly state type to avoid type inference bug in 0.4
+Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(BandedMatrix{promote_type(eltype(a),eltype(b))},
+                KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
 
 
 function Conversion(a::BivariateSpace,b::BivariateSpace)
@@ -303,12 +305,12 @@ end
 
 
 Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
-function Multiplication{T,V}(f::Fun{TensorSpace{Tuple{ConstantSpace,V},T,2}},sp::TensorSpace)
+function Multiplication{CS<:ConstantSpace,T,V}(f::Fun{TensorSpace{Tuple{CS,V},T,2}},sp::TensorSpace)
     a=Fun(vec(totensor(f.coefficients)[1,:]),space(f)[2])
     #Hack to avoid auto-typing bug.  TODO: incorporate basis
     MultiplicationWrapper(BandedMatrix{eltype(f)},f,eye(sp[1])⊗Multiplication(a,sp[2]))
 end
-function Multiplication{T,V}(f::Fun{TensorSpace{Tuple{V,ConstantSpace},T,2}},sp::TensorSpace)
+function Multiplication{CS<:ConstantSpace,T,V}(f::Fun{TensorSpace{Tuple{V,CS},T,2}},sp::TensorSpace)
     if isempty(f.coefficients)
         a=Fun(zeros(eltype(f),1),space(f)[1])
     else

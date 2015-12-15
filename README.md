@@ -23,8 +23,11 @@ the roots and extrema:
 h = f + g^2
 r = roots(h)
 rp = roots(h')
-ApproxFun.plot(h)                      # using PyPlot
-PyPlot.plot(r,h(r),"og",rp,h(rp),"or") # using PyPlot
+
+using Plots
+plot(h)
+scatter!(r,h(r);color=:green)
+scatter!(rp,h(rp);color=:red)
 ```
 
 ![Extrema](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/extrema.png)
@@ -58,19 +61,18 @@ its domain, or another function space. Let's explore:
 x = Fun(identity)
 f = exp(x)
 g = f/sqrt(1-x^2)
-space(f)
-space(g)
+space(f)   # Chebyshev(Interval(-1.0,1.0))
+space(g)   # JacobiWeight(-0.5,-0.5,Interval(-1.0,1.0))
 ```
 
-In this case, `f` is in the `Ultraspherical{0}` space on the domain `Interval(-1.0,1.0)`, and
-`g` is in the enriched `JacobiWeight{Ultraspherical{0}}` space. The absolute value is
-another case where space promotion is inferred from the operation:
+The absolute value is
+another case where the space of the output is inferred from the operation:
 
 ```julia
 f = Fun(x->cospi(5x))
 g = abs(f)
-space(f)
-space(g)
+space(f)   # Chebyshev(Interval(-1.0,1.0))
+space(g)   # PiecewiseSpace((Chebyshev(Interval(-1.,-.9)),...))
 ```
 
 Algebraic and differential operations are also implemented where possible, and most of Julia's built-in functions are overridden to accept `Fun`s:
@@ -95,7 +97,7 @@ D = Derivative(d)
 B = dirichlet(d)
 L = D^2 - x
 u = [B;L] \ [airyai(d.a);airyai(d.b)]
-ApproxFun.plot(u)						    # Requires Gadfly or PyPlot
+plot(u)						    
 ```
 
 ![Airy](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/airy.png)
@@ -111,7 +113,7 @@ u0=0.x
 
 N=u->[u(-1.)-1.,u(1.)+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
 u=newton(N,u0)
-ApproxFun.plot(u)
+plot(u)
 ```
 ![BVP](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/nbvp.png)
 
@@ -146,7 +148,7 @@ f = Fun(t->exp(sin(10t)),s)
 uFourier = L\f
 
 length(uFourier)/length(uChebyshev),2/π
-ApproxFun.plot(uFourier)						    # Requires Gadfly or PyPlot
+plot(uFourier)						    
 ```
 
 ![Periodic](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/periodic.png)
@@ -161,8 +163,8 @@ following code samples 10,000 from a PDF given as the absolute value of the sine
 ```julia
 f = abs(Fun(sin,[-5,5]))
 x = ApproxFun.sample(f,10000)
-ApproxFun.plot(f/sum(f))                           # Requires Gadfly or PyPlot
-PyPlot.plt.hist(x;normed=true,bins=[-5.:.1:5.])
+plot(x;t=:density)
+plot!(f/sum(f))
 ```
 
 ![Sampling](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/sample.png)
@@ -178,12 +180,12 @@ on a square
 d = Interval()^2          					# Defines a rectangle
 
 u = [dirichlet(d);lap(d)+100I]\ones(4)		# First four entries of rhs are
-    											# boundary conditions
-ApproxFun.contour(u)						# Requires Gadfly or PyPlot
+    										# boundary conditions
+plot(u)	                                    # contour plot			
 ```
 
 
-We can also evolve PDEs.  The following solves advection—diffusion
+<!-- We can also evolve PDEs.  The following solves advection—diffusion
 `u_t = 0.01Δu - 4u_x -3u_y` on a rectangle
 
 ```julia
@@ -194,12 +196,12 @@ D = Derivative(Interval())
 L = (0.01D^2-4D)⊗I + I⊗(0.01D^2-3D)
 h = 0.002
 timeevolution(B,L,u0,h)                    # Requires GLPlot
-```
+``` -->
 
 
 # High precision
 
-Solving differential equations with high precision types is avaiable.  The following calculates `e` to 300 digits by solving the ODE `u' = u`:
+Solving differential equations with high precision types is available.  The following calculates `e` to 300 digits by solving the ODE `u' = u`:
 
 ```julia
 with_bigfloat_precision(1000) do
@@ -215,9 +217,9 @@ end
 
 # References
 
-S. Olver & A. Townsend (2014), A practical framework for infinite-dimensional linear algebra, arXiv:1409.5529, to appear in HPTCDL 2014
+S. Olver & A. Townsend (2014), A practical framework for infinite-dimensional linear algebra, Proceedings of the 1st First Workshop for High Performance Technical Computing in Dynamic Languages, 57–62
 
-A. Townsend & S. Olver (2014), The automatic solution of partial differential equations using a global spectral method, arXiv:1409:2789
+A. Townsend & S. Olver (2014), The automatic solution of partial differential equations using a global spectral method,  J. Comp. Phys., 299: 106–123
 
 S. Olver & A. Townsend (2013), Fast inverse transform sampling in one and two dimensions, arXiv:1307.1223
 

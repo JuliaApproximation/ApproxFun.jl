@@ -14,7 +14,7 @@ Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T})=Fun{S,
 
 ## Evaluation
 
-evaluate{PS<:PolynomialSpace,T}(f::Fun{PS,T},x)=clenshaw(space(f),coefficients(f),tocanonical(f,x))
+evaluate(f::AbstractVector,S::PolynomialSpace,x)=clenshaw(S,f,tocanonical(S,x))
 
 ######
 # Recurrence encodes the recurrence coefficients

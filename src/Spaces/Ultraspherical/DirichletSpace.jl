@@ -9,7 +9,7 @@ immutable ChebyshevDirichlet{left,right,D} <: PolynomialSpace{D}
     ChebyshevDirichlet()=new(D())
 end
 
-evaluate{CD<:ChebyshevDirichlet,T}(f::Fun{CD,T},x...)=evaluate(Fun(f,canonicalspace(f)),x...)
+evaluate(f::AbstractVector,S::ChebyshevDirichlet,x...)=evaluate(Fun(Fun(f,S),canonicalspace(S)),x...)
 
 Base.convert{l,r}(::Type{ChebyshevDirichlet{l,r}})=ChebyshevDirichlet{l,r,Interval{Float64}}()
 Base.convert{l,r}(::Type{ChebyshevDirichlet{l,r}},d::Domain)=ChebyshevDirichlet{l,r,typeof(d)}(d)

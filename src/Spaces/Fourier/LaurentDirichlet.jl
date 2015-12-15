@@ -7,8 +7,8 @@
 
 
 
-immutable LaurentDirichlet <: UnivariateSpace{ComplexBasis,AnyDomain}
-    domain::PeriodicDomain
+immutable LaurentDirichlet{DD} <: UnivariateSpace{ComplexBasis,DD}
+    domain::DD
 end
 
 LaurentDirichlet()=LaurentDirichlet(PeriodicInterval())
@@ -33,8 +33,8 @@ conversion_rule{DD}(b::LaurentDirichlet,a::Laurent{DD})=b
 #
 
 
-immutable CosDirichlet <: RealUnivariateSpace{AnyDomain}
-    domain::PeriodicDomain
+immutable CosDirichlet{DD} <: RealUnivariateSpace{DD}
+    domain::DD
 end
 
 CosDirichlet()=CosDirichlet(PeriodicInterval())
@@ -43,8 +43,8 @@ spacescompatible(a::CosDirichlet,b::CosDirichlet)=domainscompatible(a,b)
 
 canonicalspace(S::CosDirichlet)=CosSpace(domain(S))
 
-bandinds{CS<:CosSpace}(::Conversion{CosDirichlet,CS})=0,1
-addentries!{CS<:CosSpace}(C::Conversion{CosDirichlet,CS},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,1.],A,kr)
+bandinds{CS<:CosSpace,CD<:CosDirichlet}(::Conversion{CD,CS})=0,1
+addentries!{CS<:CosSpace,CD<:CosDirichlet}(C::Conversion{CD,CS},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,1.],A,kr)
 
 
 conversion_rule(b::CosDirichlet,a::CosSpace)=b

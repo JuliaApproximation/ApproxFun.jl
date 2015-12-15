@@ -64,10 +64,6 @@ function Base.isapprox(d::Interval,m::Interval)
     abs(d.a-m.a)<tol&&abs(d.b-m.b)<tol
 end
 
-##Coefficient space operators
-
-identity_fun(d::Interval)=Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],d)
-
 
 
 ## algebra
@@ -123,8 +119,11 @@ function Base.setdiff{T<:Real,V<:Real}(a::Interval{T},b::Interval{V})
             a
         else # first(a) ≤ first(b) ≤last(a)
             #TODO: setdiff in the middle
-            @assert last(a) <= last(b)
-            Interval(first(a),first(b))
+            if last(a) <= last(b)
+            	Interval(first(a),first(b))
+			else  # first(a) ≤ first(b) ≤ last(b) ≤last(a)
+				Interval(first(a),first(b))∪Interval(last(b),last(a))
+			end
         end
     else #first(a)>= first(b)
         if first(a)>=last(b)
@@ -146,3 +145,10 @@ end
 
 tocanonical{V<:Vector}(d::Interval{V},x)=first(d.a + d.b - 2x)/first(d.a - d.b)
 fromcanonical{V<:Vector}(d::Interval{V},p::AbstractVector)=V[fromcanonical(d,x) for x in p]
+
+
+
+## sort
+Base.isless{T1<:Real,T2<:Real}(d1::Interval{T1},d2::Interval{T2})=d1≤first(d2)&&d1≤last(d2)
+Base.isless{T<:Real}(d1::Interval{T},x::Real)=first(d1)≤x && last(d1)≤x
+Base.isless{T<:Real}(x::Real,d1::Interval{T})=x≤first(d1) && x≤last(d1)

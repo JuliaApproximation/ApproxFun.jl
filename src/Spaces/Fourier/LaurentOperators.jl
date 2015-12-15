@@ -33,6 +33,9 @@ addentries!{DD}(M::Multiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentri
 
 ## Derivative
 
+# override map definition
+Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=Derivative{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
+
 bandinds{s,DD<:PeriodicInterval}(D::Derivative{Hardy{s,DD}})=(0,0)
 bandinds{s,DD<:Circle}(D::Derivative{Hardy{s,DD}})=s?(0,D.order):(-D.order,0)
 
@@ -101,6 +104,9 @@ addentries!{DD}(D::Derivative{Hardy{false,DD}},A,kr::Range,::Colon)=hardyfalse_d
 #     Integral{Hardy{false,D},typeof(m),Complex{Float64}}(S,m)
 # end
 
+
+Integral{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=Integral{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
+
 bandinds{DD<:Circle}(D::Integral{Taylor{DD}})=(-D.order,0)
 rangespace{s,DD<:Circle}(Q::Integral{Hardy{s,DD}})=Q.space
 
@@ -121,6 +127,8 @@ function addentries!{DD<:Circle}(D::Integral{Taylor{DD}},A,kr::Range,::Colon)
     A
 end
 
+
+Integral{n,T,DD<:Circle}(S::SliceSpace{n,1,Hardy{false,DD},T,DD,1},k::Integer)=Integral{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
 
 function bandinds{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})
     @assert D.order==n
@@ -182,6 +190,10 @@ end
 
 ## Definite integral
 
+for TYP in (:DefiniteIntegral,:DefiniteLineIntegral)
+    @eval $TYP{DD<:Circle}(S::Laurent{DD})=$TYP{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
+end
+
 function getindex{T,DD<:PeriodicInterval}(Σ::DefiniteIntegral{Laurent{DD},T},kr::Range)
     d = domain(Σ)
     T[k == 1?  d.b-d.a : zero(T) for k=kr]
@@ -201,3 +213,16 @@ end
 getindex{T,DD<:Circle}(Σ::DefiniteLineIntegral{Laurent{DD},T},kr::Range)=T[k == 1?  2domain(Σ).radius*π : zero(T) for k=kr]
 datalength{DD<:PeriodicInterval}(Σ::DefiniteLineIntegral{Laurent{DD}})=1
 datalength{DD<:Circle}(Σ::DefiniteLineIntegral{Laurent{DD}})=2
+
+
+
+
+## reverse orientation
+
+conversion_type{DD<:Circle}(A::Laurent{DD},B::Laurent{DD})=domain(A).orientation?A:B
+function Conversion{DD}(A::Laurent{DD},B::Laurent{DD})
+    @assert domain(A) == reverse(domain(B))
+    ConversionWrapper(SpaceOperator(
+        BlockOperator(eye(1),PermutationOperator([2,1]))
+    ,A,B))
+end

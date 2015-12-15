@@ -8,27 +8,53 @@ export Line, PeriodicLine
 ## Standard interval
 
 
-immutable Line{T<:Number} <: IntervalDomain{T}
-    center::T  ##TODO Allow complex
-    angle::T
-    α::T
-    β::T
+
+# angle is (false==0) and π (true==1)
+# or ranges from (-1,1].  We use 1 as 1==true.
+
+immutable Line{angle,T<:Number} <: IntervalDomain{T}
+    center::T
+    α::Float64
+    β::Float64
 
     #TODO get this inner constructor working again.
-    #Line(c,a,α,β)= begin @assert c==a==0.; @assert α<0; @assert β<0; new(c,a,α,β) end
+    Line(c,α,β)=new(c,α,β)
+    Line(c)=new(c,-1.,-1.)
+    Line()=new(zero(T),-1.,-1.)
+end
+
+typealias RealLine{T} Union{Line{false,T},Line{true,T}}
+
+Base.convert{a}(::Type{Line{a}},c,α,β)=Line{a,typeof(c)}(c,α,β)
+Base.convert{a}(::Type{Line{a}},c::Number)=Line{a,typeof(c)}(c)
+Base.convert{a}(::Type{Line{a}})=Line{a,Float64}()
+
+Base.angle{a}(d::Line{a})=a*π
+
+# ensure the angle is always in (-1,1]
+Line(c,a,α,β)=Line{mod(a/π-1,-2)+1,typeof(c)}(c,α,β)
+Line(c,a)=Line(c,a,-1.,-1.)
+# true is negative orientation, false is positive orientation
+# this is because false==0 and we take angle=0
+Line(b::Bool)=Line{b}()
+Line()=Line(false)
+
+function Line(d::AbstractVector)
+    @assert length(d)==2 && isinf(d[1]) && isinf(d[2])
+
+    if d[1]==Inf && d[2] == -Inf
+        Line(true)
+    elseif d[1]==-Inf && d[2] == Inf
+        Line(false)
+    else
+        error("Not implemented")
+    end
 end
 
 
 
-Line(c,a)=Line(c,a,-1.,-1.)
-Line()=Line(0.,0.)
-# true is negative orientation, false is positive orientation
-# this is because false==0 and we take angle=0
-Line(b::Bool)=b?Line(0.,π):Line()
-
-
-isambiguous(d::Line)=isnan(d.center) && isnan(d.angle)
-Base.convert{T<:Number}(::Type{Line{T}},::AnyDomain)=Line{T}(NaN,NaN,-1.,-1.)
+isambiguous(d::Line)=isnan(d.center)
+Base.convert{a,T<:Number}(::Type{Line{a,T}},::AnyDomain)=Line{a,T}(NaN)
 Base.convert{IT<:Line}(::Type{IT},::AnyDomain)=Line(NaN,NaN)
 
 ## Map interval
@@ -83,30 +109,49 @@ function line_invfromcanonicalD(α,β,x)
 end
 
 
-tocanonical(d::Line,x)=line_tocanonical(d.α,d.β,cistyped(-d.angle).*(x-d.center))
-tocanonicalD(d::Line,x)=cistyped(-d.angle).*line_tocanonicalD(d.α,d.β,cistyped(-d.angle).*(x-d.center))
-fromcanonical(d::Line,x)=cistyped(d.angle)*line_fromcanonical(d.α,d.β,x)+d.center
-fromcanonicalD(d::Line,x)=cistyped(d.angle)*line_fromcanonicalD(d.α,d.β,x)
-invfromcanonicalD(d::Line,x)=cistyped(-d.angle)*line_invfromcanonicalD(d.α,d.β,x)
+tocanonical(d::Line,x)=line_tocanonical(d.α,d.β,cis(-angle(d)).*(x-d.center))
+tocanonical(d::Line{false},x)=line_tocanonical(d.α,d.β,x-d.center)
+tocanonical(d::Line{true},x)=line_tocanonical(d.α,d.β,d.center-x)
+
+tocanonicalD(d::Line,x)=cis(-angle(d)).*line_tocanonicalD(d.α,d.β,cis(-angle(d)).*(x-d.center))
+tocanonicalD(d::Line{false},x)=line_tocanonicalD(d.α,d.β,x-d.center)
+tocanonicalD(d::Line{true},x)=-line_tocanonicalD(d.α,d.β,d.center-x)
+
+fromcanonical(d::Line,x)=cis(angle(d))*line_fromcanonical(d.α,d.β,x)+d.center
+fromcanonical(d::Line{false},x)=line_fromcanonical(d.α,d.β,x)+d.center
+fromcanonical(d::Line{true},x)=-line_fromcanonical(d.α,d.β,x)+d.center
+
+fromcanonicalD(d::Line,x)=cis(angle(d))*line_fromcanonicalD(d.α,d.β,x)
+fromcanonicalD(d::Line{false},x)=line_fromcanonicalD(d.α,d.β,x)
+fromcanonicalD(d::Line{true},x)=-line_fromcanonicalD(d.α,d.β,x)
+
+invfromcanonicalD(d::Line,x)=cis(-angle(d))*line_invfromcanonicalD(d.α,d.β,x)
+invfromcanonicalD(d::Line{false},x)=line_invfromcanonicalD(d.α,d.β,x)
+invfromcanonicalD(d::Line{true},x)=-line_invfromcanonicalD(d.α,d.β,x)
 
 
 
 
 
 
-==(d::Line,m::Line) = d.center == m.center && d.angle == m.angle && d.β == m.β &&d.α == m.α
+=={a}(d::Line{a},m::Line{a}) = d.center == m.center && d.β == m.β &&d.α == m.α
 
 
 
 # algebra
-*(c::Number,d::Line)=Line(isapprox(d.center,0)?d.center:c*d.center,d.angle+angle(c),d.α,d.β)
+*(c::Real,d::Line{false})=Line{sign(c)>0?false:true}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
+*(c::Real,d::Line{true})=Line{sign(c)>0?true:false}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
+*(c::Number,d::Line)=Line(isapprox(d.center,0)?d.center:c*d.center,angle(d)+angle(c),d.α,d.β)
 *(d::Line,c::Number)=c*d
 for OP in (:+,:-)
     @eval begin
-        $OP(c::Number,d::Line)=Line($OP(c,d.center),d.angle,d.α,d.β)
-        $OP(d::Line,c::Number)=Line($OP(d.center,c),d.angle,d.α,d.β)
+        $OP{a}(c::Number,d::Line{a})=Line{a}($OP(c,d.center),d.α,d.β)
+        $OP{a}(d::Line{a},c::Number)=Line{a}($OP(d.center,c),d.α,d.β)
     end
 end
+
+
+
 
 
 
@@ -122,7 +167,6 @@ immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     PeriodicLine()=new(0.,1.)
 end
 
-canonicaldomain(::PeriodicLine)=PeriodicInterval()
 PeriodicLine(c,a)=PeriodicLine{a/π,eltype(c)}(c,1.)
 PeriodicLine()=PeriodicLine{false,Float64}(0.,1.)
 PeriodicLine(b::Bool)=PeriodicLine{b,Float64}()

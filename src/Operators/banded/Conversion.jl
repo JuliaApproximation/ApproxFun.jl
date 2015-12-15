@@ -7,6 +7,9 @@ immutable Conversion{S<:Space,V<:Space,T} <: AbstractConversion{T}
     rangespace::V
 end
 
+Base.call{S,V}(::Type{Conversion{S,V}},a::S,b::V)=
+    Conversion{S,V,promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
+
 for TYP in (:Operator,:BandedOperator)
     @eval begin
         function Base.convert{T,S,V}(::Type{$TYP{T}},C::Conversion{S,V})
@@ -38,7 +41,7 @@ function defaultconversion(a::Space,b::Space)
             Conversion(a,sp,b)
         end
     else
-        Conversion{typeof(a),typeof(b),promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
+        Conversion{typeof(a),typeof(b)}(a,b)
     end
 end
 
@@ -61,8 +64,11 @@ immutable ConversionWrapper{S<:BandedOperator,T} <: AbstractConversion{T}
 end
 
 
+ConversionWrapper{T}(::Type{T},op)=ConversionWrapper{typeof(op),T}(op)
 ConversionWrapper(B::BandedOperator)=ConversionWrapper{typeof(B),eltype(B)}(B)
-Conversion(A::Space,B::Space,C::Space)=ConversionWrapper(TimesOperator(Conversion(B,C),Conversion(A,B)))
+Conversion(A::Space,B::Space,C::Space)=Conversion(B,C)*Conversion(A,B)
+
+==(A::ConversionWrapper,B::ConversionWrapper)=A.op==B.op
 
 # Base.convert{S,T}(::Type{ConversionWrapper{S,T}},D::ConversionWrapper)=ConversionWrapper{S,T}(convert(S,D.op))
 # Base.convert{CW<:ConversionWrapper}(::Type{CW},D::CW)=D

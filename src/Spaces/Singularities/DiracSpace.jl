@@ -1,78 +1,87 @@
-immutable DiracSpace{T<:Space}<:RealUnivariateSpace{AnyDomain}
-  space::T
-  points::Vector{Float64}
+export DiracDelta
+
+
+immutable DiracSpace{T}<:RealUnivariateSpace{AnyDomain}
+  points::Vector{T}
+  DiracSpace(pts::Vector{T})=new(sort(pts))
 end
 
-DiracSpace() = DiracSpace(Chebyshev(),Float64[])
-DiracSpace(points) = DiracSpace(Chebyshev(),sort(points))
+DiracSpace(points::AbstractVector) = DiracSpace{eltype(points)}(points)
+DiracSpace() = DiracSpace(Float64[])
+DiracSpace(point::Number) = DiracSpace([point])
+
+dimension(d::DiracSpace)=length(d.points)
+
+
 
 #to be extended to include dirac points
-domain(DS::DiracSpace)=domain(DS.space)∪mapreduce(Point,union,DS.points)
-setdomain(DS::DiracSpace,d::UnionDomain)=DiracSpace(setdomain(DS.space,first(d.domains)),map(d->d.x,d.domains[2:end]))
+domain(DS::DiracSpace)=mapreduce(Point,union,DS.points)
+setdomain(DS::DiracSpace,d::UnionDomain)=DiracSpace(map(d->d.x,d.domains))
 
-spacescompatible(a::DiracSpace,b::DiracSpace)=spacescompatible(a.space,b.space) && a.points==b.points
+spacescompatible(a::DiracSpace,b::DiracSpace)=a.points==b.points
 canonicalspace(a::DiracSpace)=a
 
-function Base.sum{DS<:DiracSpace}(f::Fun{DS})
-    n = length(space(f).points)
-    sum(f.coefficients[1:n])+sum(Fun(f.coefficients[n+1:end],space(f).space))
-end
+Base.sum{DS<:DiracSpace}(f::Fun{DS})=sum(f.coefficients[1:dimension(space(f))])
 
-function evaluate{DS<:DiracSpace}(f::Fun{DS},x::Number)
-  n = length(f.space.points)
-  if x in f.space.points
-    error("You cannot evaluate a Dirac delta at its center.")
-  else
-    evaluate(Fun(f.coefficients[n+1:end],f.space.space),x)
-  end
-end
-
-evaluate(S::DiracSpace,coeffs::Vector,x::Number)=evaluate(Fun(coeffs,S),x)
-
-function union_rule(a::DiracSpace,b::DiracSpace)
-  DiracSpace(union(a.space,b.space),sort(union(a.points,b.points)))
-end
-function union_rule(a::DiracSpace,b::Space)
-  DiracSpace(union(a.space,b),a.points)
-end
+union_rule(a::DiracSpace,b::DiracSpace)=DiracSpace(sort(union(a.points,b.points)))
 
 function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::DiracSpace)
     if spacescompatible(fromspace,tospace)
         return cfs
     end
 
-  if length(cfs) < length(tospace.points)
-    error("You have given fewer coefficients than Dirac points for the space you are converting to.")
-  end
-  if length(cfs) < length(fromspace.points)
-    error("You have given fewer coefficients than Dirac points for the space you are converting from.")
-  end
-  # this first for-loop removes coefficients of Dirac points that are zero
-  nonzerofromspacepoints = []
-  nonzeroDiraccfs = []
-  for i = 1:length(fromspace.points)
-    if cfs[i] != 0
-      push!(nonzerofromspacepoints, fromspace.points[i])
-      push!(nonzeroDiraccfs, cfs[i])
-    end
-  end
+    @assert length(cfs) ≤ length(fromspace.points)
 
-  # if the points that remain can be represented in the tospace
-  if issubset(nonzerofromspacepoints,tospace.points)
-    finalDiraccfs = []
-    j=1 #counter for the nonzerofromspacepoints
-    for i = 1:length(tospace.points)
-      if nonzerofromspacepoints[j] in tospace.points
-        finalDiraccfs[end] = nonzeroDirccfs[j]
-        j += 1
-      else
-        finalDiraccfs[end]=0
-      end
+    # this first for-loop removes coefficients of Dirac points that are zero
+    nonzerofromspacepoints = eltype(fromspace.points)[]
+    nonzeroDiraccfs = eltype(cfs)[]
+    for i = 1:length(cfs)
+        if cfs[i] != 0
+            push!(nonzerofromspacepoints, fromspace.points[i])
+            push!(nonzeroDiraccfs, cfs[i])
+        end
     end
-    [finalDiraccfs;coefficients(cfs[n+1:end],fromspace.space,tospace.space)]
-  else
-    error("The space you are converting from has Dirac deltas that cannot be represented in the space you are converting to.")
-  end
+
+
+    # if the points that remain can be represented in the tospace
+    if issubset(nonzerofromspacepoints,tospace.points)
+        finalDiraccfs = eltype(cfs)[]
+        j=1 #counter for the nonzerofromspacepoints
+        for i = 1:length(tospace.points)
+            if j > length(nonzerofromspacepoints)
+                break
+            elseif nonzerofromspacepoints[j]==tospace.points[i]
+                push!(finalDiraccfs,nonzeroDiraccfs[j])
+                j += 1
+            else
+                push!(finalDiraccfs,0)
+            end
+        end
+        finalDiraccfs
+    else
+        error("The space you are converting from has Dirac deltas that cannot be represented in the space you are converting to.")
+    end
+end
+
+DiracDelta(x::Number)=Fun([1.],DiracSpace(x))
+DiracDelta()=DiracDelta(0.)
+
+
+function Base.cumsum{S<:DiracSpace,T<:Real}(f::Fun{S},d::Interval{T})
+    pts=space(f).points
+    @assert pts ==sort(pts)
+    cfs=cumsum(f.coefficients)
+    if first(d) < first(pts) && last(d) > last(pts)
+        Fun([0;cfs],HeavisideSpace([first(d);pts;last(d)]))
+    elseif first(d) == first(pts) && last(d) > last(pts)
+        Fun(cfs,HeavisideSpace([pts;last(d)]))
+    elseif first(d) < first(pts) && last(d) == last(pts)
+        Fun([0;cfs],HeavisideSpace([first(d);pts]))
+    elseif first(d) == first(pts) && last(d) == last(pts)
+        Fun(cfs[1:end-1],HeavisideSpace(pts))
+    else
+        error("Implement")
+    end
 end
 
 # for TYP in (:ReSpace,:Space)

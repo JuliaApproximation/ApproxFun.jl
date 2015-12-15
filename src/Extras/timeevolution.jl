@@ -21,11 +21,13 @@ function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp,tol=1000eps())
     u2=chop(RK(g,u1,h),tol)
     u2,u1  = chop(SBDF2\[bcs;1/3.0*(4u2-u1)],tol),u2
     push!(glp,u2)
+    yield()
 
     for k=1:m
         u2,u1 = chop(RK(g,u2,h),tol),u2
         u2,u1  = chop(SBDF2\[bcs;1/3.0*(4u2-u1)],tol),u2
         push!(glp,u2)
+        yield()
     end
 
     u2
@@ -45,15 +47,19 @@ function BDF4(B::Vector,op::BandedOperator,bcs::Vector,uin::MultivariateFun,h::R
     u1=uin
     u2=SBE\[bcs;u1]
     push!(glp,pad(u2,80,80))
+    yield()
     u3=SBDF2\[bcs;1/3.0*(4u2-u1)]
     push!(glp,pad(u3,80,80))#updates window
+    yield()
     u4=SBDF3\[bcs;1/11.0*(18u3-9u2+2u1)]
     push!(glp,pad(u4,80,80))#updates window
+    yield()
 
     for k=1:m
         u4,u3,u2,u1  = SBDF4\[bcs;1/25.0*(48u4-36u3+16u2-3u1)],u4,u3,u2
 
         push!(glp,pad(u4,80,80))#updates window
+        yield()
     end
     u4
 end
@@ -69,13 +75,16 @@ function BDF22(B::Vector,op::BandedOperator,bcs::Vector,uin::Tuple{MultivariateF
     u1,u2=uin
     u3 =SBE\[bcs;2u2-u1]
     push!(glp,pad(u3,80,80))
+    yield()
     u4 =SBE\[bcs;2u3-u2]
     push!(glp,pad(u4,80,80))
+    yield()
 
     for k=1:m
         u4,u3,u2,u1  = SBDF\[bcs;1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
 
         push!(glp,pad(u4,80,80)) #updates window
+        yield()
     end
     u4
 end
@@ -88,11 +97,13 @@ function BDF22(B::Vector,op::BandedOperator,g::Function,bcs::Vector,uin::Tuple{M
     u1,u2=uin
     u3 =SBE\[bcs;2u2-u1]
     push!(glp,pad(u3,80,80))
+    yield()
     u4,u3,u2,u1=u3,u2,u1,u1
     for k=1:m
         u4,u3,u2,u1 =2u4 - u3 +h^2*g(u4),u4,u3,u2
         u4,u3,u2,u1  = SBDF\[bcs;1/9.0*(24u4-22u3+8u2-u1)],u4,u3,u2
         push!(glp,pad(u4,80,80))
+        yield()
     end
     u4
 end

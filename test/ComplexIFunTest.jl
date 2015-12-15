@@ -5,7 +5,7 @@ using ApproxFun, Base.Test
 
 f=Fun(x->exp(im.*x))
 
-@test norm(diff(f)-im*f) < 1000eps()
+@test norm(f'-im*f) < 1000eps()
 
 
 @test norm(integrate(f)+im*f-f.coefficients[1]*im) < 100eps()
@@ -22,7 +22,7 @@ f=Fun(x->exp(im.*x))
 f=Fun(x->exp(im.*x),[1,2])
 
 
-@test norm(diff(f)-im*f) < 1000eps()
+@test norm(f'-im*f) < 1000eps()
 
 
 @test norm(integrate(f)+im*f-f.coefficients[1]*im) < 100eps()
@@ -48,7 +48,7 @@ f=Fun(x->exp(im.*x),[1im,2+.5im])
 @test_approx_eq f(1+.75im) exp(im.*(1+.75im))
 
 
-@test norm(diff(f)-im*f) < 1000eps()
+@test norm(f'-im*f) < 1000eps()
 
 
 @test norm(integrate(f)+im*f-f.coefficients[1]*im) < 100eps()

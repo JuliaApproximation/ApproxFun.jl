@@ -36,3 +36,8 @@ function checkpoints(d::ProductDomain)
     end
     ret
 end
+
+Base.reverse(d::ProductDomain)=ProductDomain(map(reverse,d.domains))
+
+domainscompatible(a::ProductDomain,b::ProductDomain)=length(a.domains)==length(b.domains) &&
+                        all(map(domainscompatible,a.domains,b.domains))

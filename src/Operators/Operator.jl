@@ -30,9 +30,8 @@ domain(A::Operator)=domain(domainspace(A))
 
 
 
-Base.size(::InfiniteOperator)=[Inf,Inf]
-Base.size(::Functional)=Any[1,Inf] #use Any vector so the 1 doesn't become a float
-Base.size(op::Operator,k::Integer)=size(op)[k]
+Base.size(A::Operator)=(size(A,1),size(A,2))
+Base.size(A::Operator,k::Integer)=k==1?dimension(rangespace(A)):dimension(domainspace(A))
 
 Base.ndims(::Operator)=2
 datalength(F::Functional)=Inf        # use datalength to indicate a finite length functional
@@ -239,7 +238,7 @@ addentries!(B,A,kr,::Colon)=defaultaddentries!(B,A,kr,:)
 
 Base.getindex{BT,S,T}(B::Operator{BT},f::Fun{S,T}) = B*Multiplication(domainspace(B),f)
 Base.getindex{BT,S,M,SS,T}(B::Operator{BT},f::LowRankFun{S,M,SS,T}) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
-Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1),one(promote_type(BT,T))],f.space[2])],+,1:length(f.coefficients))
+Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1);one(promote_type(BT,T))],f.space[2])],+,1:length(f.coefficients))
 
 ## Standard Operators and linear algebra
 

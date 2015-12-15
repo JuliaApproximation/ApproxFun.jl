@@ -29,19 +29,24 @@ function coefficients(f::Vector,sp1::LogWeight,sp2::LogWeight)
     end
 end
 
-function maxspace_rule(A::LogWeight,B::LogWeight)
-    if isapprox(A.α,B.α) && isapprox(A.β,B.β)
-        LogWeight(A.α,A.β,maxspace(A.space,B.space))
-    else
-        NoSpace()
+for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
+    @eval begin
+        function $OPrule(A::LogWeight,B::LogWeight)
+            if isapprox(A.α,B.α) && isapprox(A.β,B.β)
+                LogWeight(A.α,A.β,$OP(A.space,B.space))
+            else
+                NoSpace()
+            end
+        end
+        # there are no other comatible spaces
+        # this is mostly to overcome typing bug
+        # in spacestes
+        $OPrule(::LogWeight,::JacobiWeight)=NoSpace()
+        $OPrule(::JacobiWeight,::LogWeight)=NoSpace()
     end
 end
 
-# there are no other comatible spaces
-# this is mostly to overcome typing bug
-# in spacestes
-maxspace_rule(::LogWeight,::JacobiWeight)=NoSpace()
-maxspace_rule(::JacobiWeight,::LogWeight)=NoSpace()
+
 
 
 
@@ -51,7 +56,7 @@ maxspace_rule(::JacobiWeight,::LogWeight)=NoSpace()
 # Same as JacobiWeight
 
 # avoid redundency
-function Multiplication{SS,LWS,DD<:Interval,T}(f::Fun{JacobiWeight{SS,DD},T},S::LogWeight{LWS,DD})
+function Multiplication{SS,LWS,DD<:IntervalDomain,T}(f::Fun{JacobiWeight{SS,DD},T},S::LogWeight{LWS,DD})
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
     rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))

@@ -186,7 +186,7 @@ function clenshaw!{S,V}(c::Vector,x::Vector,plan::ClenshawPlan{S,V})
 end
 
 
-function sineshaw(c::Vector,θ::Number)
+function sineshaw(c::Vector,θ)
     if isempty(c)
         return zero(θ)
     end

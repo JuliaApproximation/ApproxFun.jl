@@ -28,8 +28,12 @@ immutable PiecewiseSpace{SV,T,DD<:UnionDomain,d} <: DirectSumSpace{SV,T,DD,d}
     PiecewiseSpace(sp::Tuple)=new(sp)
 end
 
-PiecewiseSpace(sp::Tuple)=PiecewiseSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
+function PiecewiseSpace(spin::Tuple)
+    sp=tuple(union(spin)...)  # remove duplicates
+
+    PiecewiseSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
                                typeof(UnionDomain(map(domain,sp))),ndims(first(sp))}(sp)
+end
 
 
 
@@ -132,7 +136,9 @@ end
 
 function union_rule(A::SumSpace,B::SumSpace)
     @assert length(A.spaces)==length(B.spaces)==2
-    if spacescompatible(A,B)
+    if !domainscompatible(A,B)
+        NoSpace()
+    elseif spacescompatible(A,B)
         A
     elseif spacescompatible(A.spaces,B.spaces)
         A≤B?A:B
@@ -143,32 +149,43 @@ function union_rule(A::SumSpace,B::SumSpace)
 end
 
 function union_rule(A::SumSpace,B::Space)
-    for sp in A.spaces
-        if isconvertible(B,sp)
-            return A
+    if !domainscompatible(A,B)
+        NoSpace()
+    else
+        for sp in A.spaces
+            if isconvertible(B,sp)
+                return A
+            end
         end
+        SumSpace(A,B)
     end
-    SumSpace(A,B)
 end
 
 
 
 ## evaluate
 
-evaluate{D<:SumSpace,T}(f::Fun{D,T},x)=mapreduce(vf->evaluate(vf,x),+,vec(f))
+evaluate(f::AbstractVector,S::SumSpace,x)=mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
 
 
-function evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Number)
-    d=domain(f)
+function evaluate(f::AbstractVector,S::PiecewiseSpace,x::Number)
+    d=domain(S)
+    g=Fun(f,S)
     for k=1:length(d)
         if in(x,d[k])
-            return f[k](x)
+            return g[k](x)
         end
     end
 end
-evaluate{S<:PiecewiseSpace}(f::Fun{S},x::Vector)=[f(xk) for xk in x]
+function evaluate(v::AbstractVector,S::PiecewiseSpace,x::Vector)
+    f=Fun(v,S)
+    [f(xk) for xk in x]
+end
 
-evaluate{S<:TupleSpace}(f::Fun{S},x...)=eltype(f)[f[k](x...) for k=1:length(f.space)]
+function evaluate(v::AbstractVector,S::TupleSpace,x...)
+    f=Fun(v,S)
+    eltype(f)[f[k](x...) for k=1:length(f.space)]
+end
 
 
 ## calculus
@@ -188,18 +205,20 @@ end
 
 
 for TYP in (:SumSpace,:PiecewiseSpace)
-    @eval Base.sum{V<:$TYP,T}(f::Fun{V,T})=mapreduce(sum,+,vec(f))
+    @eval Base.sum{V<:$TYP}(f::Fun{V})=mapreduce(sum,+,vec(f))
 end
 
-function Base.cumsum{V<:PiecewiseSpace,T}(f::Fun{V,T})
+function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})
     vf=pieces(f)
-    r=zero(T)
+    r=zero(eltype(f))
     for k=1:length(vf)
         vf[k]=cumsum(vf[k]) + r
         r=last(vf[k])
     end
     depiece(vf)
 end
+
+Base.cumsum{V<:PiecewiseSpace}(f::Fun{V},d::Domain)=mapreduce(g->cumsum(g,d),+,pieces(f))
 
 
 
@@ -231,22 +250,38 @@ Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
     sp=f.space
     m=length(sp)
+    n=length(f.coefficients)
 
     spk=sp[k]
-    if k>length(f.coefficients)
-        zero(spk)   # we infer that the coefficients are zero
-    elseif dimension(spk)==1
-        Fun(f.coefficients[k:k],spk)
-    else
-        # there first m entries are the first constant
-        # after that, we interlace the non-ConstantSpace
-        # coefficients
-        @assert dimension(spk)==Inf
-        @assert k≤m
-        K=count(s->dimension(s)==1,sp)
-        K2=count(s->dimension(s)==1,sp[1:k-1])
-        Fun(f.coefficients[[k;m+k-K2:m-K:end]],sp[k])
+    dk=dimension(spk)
+
+    if k>n
+        return zero(spk)   # we infer that the coefficients are zero
     end
+
+
+    j=k
+    row=1  # represents the row of ret to be added
+    ret=eltype(f)[]
+
+    # we only allow at most dimension
+    while row ≤ dk && j ≤ n
+        push!(ret,f.coefficients[j])  # this sets ret[row] to f.coefficients[j]
+        for λ = k+1:m
+            if dimension(sp[λ]) ≥ row # loop through the rest of the spaces
+                j+=1
+            end
+        end
+        row += 1   # move on to the next row
+        for λ = 1:k-1
+            if dimension(sp[λ]) ≥ row # loop through the previous spaces
+                j+=1
+            end
+        end
+        j+=1  # we always increment by 1 for the current space
+    end
+
+    Fun(ret,spk)
 end
 
 
@@ -312,4 +347,4 @@ itransform!(S::SumSpace,cfs,plan...)=(cfs[:]=Fun(cfs,S)(points(S,length(cfs))))
 ## SumSpace{ConstantSpace}
 # this space is special
 
-union_rule(P::PiecewiseSpace,C::ConstantSpace)=PiecewiseSpace(map(sp->union(sp,C),P.spaces))
+union_rule(P::PiecewiseSpace,C::ConstantSpace{AnyDomain})=PiecewiseSpace(map(sp->union(sp,C),P.spaces))

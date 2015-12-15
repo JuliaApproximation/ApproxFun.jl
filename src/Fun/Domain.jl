@@ -12,6 +12,7 @@ typealias BivariateDomain{T} Domain{T,2}
 
 
 Base.eltype{T}(::Domain{T})=T
+Base.eltype{T,d}(::Type{Domain{T,d}})=T
 Base.isreal{T<:Real}(::Domain{T})=true
 Base.isreal{T}(::Domain{T})=false
 Base.ndims{T,d}(::Domain{T,d})=d
@@ -29,22 +30,31 @@ Base.ndims(::AnyDomain)=1
 complexlength(::AnyDomain)=NaN
 Base.length(::AnyDomain)=NaN
 
+Base.reverse(a::Union{AnyDomain,EmptyDomain})=a
 
+canonicaldomain(a::Union{AnyDomain,EmptyDomain})=a
+
+Base.in(x::Domain,::EmptyDomain)=false
 
 ##General routines
 
 
 Base.isempty(::EmptyDomain)=true
-Base.intersect(::EmptyDomain,::EmptyDomain)=EmptyDomain()
-Base.intersect(::Domain,::EmptyDomain)=EmptyDomain()
-Base.intersect(::EmptyDomain,::Domain)=EmptyDomain()
-
+Base.isempty(::Domain)=false
+Base.intersect(::Domain,::Domain)=EmptyDomain()
+Base.setdiff(a::Domain,b::Domain)=error("Override setdiff(::$(typeof(a)),::$(typeof(b)))")
+\(a::Domain,b::Domain)=setdiff(a,b)
 
 ## Interval Domains
 
 abstract IntervalDomain{T} <: UnivariateDomain{T}
 
 canonicaldomain(::IntervalDomain)=Interval()
+
+Base.isapprox(a::Domain,b::Domain)=a==b
+domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
+domainscompatible(a::Domain,b::Domain)=isambiguous(a) || isambiguous(b) ||
+                    isapprox(a,b) || isapprox(a,reverse(b))
 
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
@@ -73,12 +83,17 @@ Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 Base.in(x,::AnyDomain)=true
 function Base.in{T}(x,d::IntervalDomain{T})
     y=tocanonical(d,x)
-    abs(imag(y))<100eps(T)/length(d) && -one(real(T))-100eps(T)/length(d)<real(y)<one(real(T))+100eps(T)/length(d)
+    ry=real(y)
+    sc=abs(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
+    abs(imag(y))<100eps(T)/sc && -one(real(T))-100eps(T)/sc<ry<one(real(T))+100eps(T)/sc
 end
 
 ###### Periodic domains
 
 abstract PeriodicDomain{T} <: UnivariateDomain{T}
+
+
+canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
 points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(T,n))
 
@@ -98,6 +113,7 @@ end
 
 Base.issubset(a::Domain,b::Domain)=a==b
 
+Base.isless(a::Domain,b::Domain)=false
 
 Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
 Base.last(d::PeriodicDomain)=fromcanonical(d,π)
@@ -169,3 +185,11 @@ invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
 ## domains in higher dimensions
 
 points{T<:Array}(d::IntervalDomain{T},n::Integer) = T[fromcanonical(d,x) for x in chebyshevpoints(real(eltype(T)),n)]
+
+
+## sorting
+# we sort spaces lexigraphically by default
+
+for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
+    @eval $OP(a::Domain,b::Domain)=$OP(string(a),string(b))
+end

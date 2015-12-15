@@ -13,8 +13,28 @@ include("Fourier/Fourier.jl")
 include("Singularities/Singularities.jl")
 include("Jacobi/Jacobi.jl")
 include("Hermite/Hermite.jl")
-include("Mapped/Mapped.jl")
+include("CurveSpace.jl")
+#include("Mapped/Mapped.jl")
 
 
 
-typealias MappedChebyshev Union{Chebyshev{Interval{Float64}},MappedSpace{Chebyshev{Interval{Float64}}}}
+#typealias MappedChebyshev Union{Chebyshev{Interval{Float64}},MappedSpace{Chebyshev{Interval{Float64}}}}
+
+
+
+
+
+
+## Derivative
+
+function invfromcanonicalD(S::Laurent{PeriodicLine{false}})
+    d=domain(S)
+    @assert d.center==0  && d.L==1.0
+    a=Fun([1.,.5,.5],Laurent())
+end
+
+function invfromcanonicalD(S::LaurentDirichlet{PeriodicLine{false}})
+    d=domain(S)
+    @assert d.center==0  && d.L==1.0
+    a=Fun([1.,.5,.5],Laurent())
+end

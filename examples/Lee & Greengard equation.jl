@@ -1,10 +1,9 @@
 using ApproxFun
 
 x=Fun(identity)
-d=domain(x)
-D=Derivative(d)
+D=Derivative()
 
-u=[dirichlet(d);
+u=[dirichlet();
    1/70*D^2-x*D+I] \ [1.,2.]
 
-ApproxFun.plot(u)
+Plots.plot(u)

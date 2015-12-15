@@ -8,7 +8,7 @@ PermutationOperator(prm)=PermutationOperator{Int}(prm)
 Base.convert{BT<:Operator}(::Type{BT},P::PermutationOperator)=PermutationOperator{eltype(BT)}(P.perm)
 
 function bandinds(P::PermutationOperator)
-    dfs=P.perm-[1:length(P.perm);]
+    dfs=P.perm-(1:length(P.perm))
     minimum(dfs),maximum(dfs)
 end
 

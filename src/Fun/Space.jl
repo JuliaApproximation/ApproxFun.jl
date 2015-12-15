@@ -59,7 +59,8 @@ typealias RealUnivariateSpace{D} RealSpace{D,1}
 
 
 
-Base.eltype{S}(::Space{S})=eltype(S)
+Base.eltype{T}(::Space{T})=eltype(T)
+Base.eltype{T,D,d}(::Type{Space{T,D,d}})=eltype(T)
 basistype{T}(::Space{T})=T
 basistype{T,D,d}(::Type{Space{T,D,d}})=T
 basistype{FT<:Space}(::Type{FT})=basistype(super(FT))
@@ -97,6 +98,8 @@ function setdomain(sp::Space,d::Domain)
     eval(parse(string(S.name)))(d)
 end
 
+setcanonicaldomain(s)=setdomain(s,canonicaldomain(s))
+reverseorientation(S::Space)=setdomain(S,reverse(domain(S)))
 
 # AnySpace dictates that an operator can act on any space
 # UnsetSpace dictates that an operator is not defined until
@@ -122,12 +125,8 @@ points(d::Space,n)=points(domain(d),n)
 
 
 canonicalspace(T)=T
+canonicaldomain(S::Space)=canonicaldomain(domain(S))
 
-
-##Check domain compatibility
-
-Base.isapprox(a::Domain,b::Domain)=a==b
-domainscompatible(a,b) = isambiguous(domain(a)) || isambiguous(domain(b)) || isapprox(domain(a),domain(b))
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
@@ -207,6 +206,8 @@ end
 function conversion_type(a,b)
     if spacescompatible(a,b)
         a
+    elseif !domainscompatible(a,b)
+        NoSpace()  # this avoids having to check eachtime
     else
         cr=conversion_rule(a,b)
         cr==NoSpace()?conversion_rule(b,a):cr
@@ -224,7 +225,11 @@ maxspace(a,b)=NoSpace()  # TODO: this fixes weird bug with Nothing
 function maxspace(a::Space,b::Space)
     if spacescompatible(a,b)
         return a
+    elseif !domainscompatible(a,b)
+        return NoSpace()  # this avoids having to check eachtime
     end
+
+
 
     cr=maxspace_rule(a,b)
     if !isa(cr,NoSpace)
@@ -267,9 +272,14 @@ function maxspace(a::Space,b::Space)
 end
 
 
+
+
 # union combines two spaces
 # this is used primarily for addition of two funs
 # that may be incompatible
+Base.union(a::AmbiguousSpace,b::AmbiguousSpace)=b
+Base.union(a::AmbiguousSpace,b::Space)=b
+Base.union(a::Space,b::AmbiguousSpace)=a
 function Base.union(a::Space,b::Space)
     if spacescompatible(a,b)
         return a
@@ -288,16 +298,17 @@ function Base.union(a::Space,b::Space)
     cspa=canonicalspace(a)
     cspb=canonicalspace(b)
     if cspa!=a || cspb!=b
-        cr=union(cspa,cspb)  #Max or min space?
+        cr=union(cspa,cspb)
     end
     if !isa(cr,NoSpace)
         return cr
     end
 
-    cr=conversion_type(a,b)  #Max or min space?
-    if !isa(cr,NoSpace)
-        return cr
-    end
+    #TODO: Uncomment when Julia bug is fixed
+    # cr=maxspace(a,b)  #Max space since we can convert both to it
+    # if !isa(cr,NoSpace)
+    #     return cr
+    # end
 
     a⊕b
 end
@@ -308,7 +319,7 @@ hasconversion(a,b)=maxspace(a,b)==b
 
 
 # tests whether a coefficients can be converted to b
-isconvertible(a,b)=hasconversion(union(a,b),b)
+isconvertible(a,b)=hasconversion(a,b)
 
 ## Conversion routines
 #       coefficients(v::Vector,a,b)
@@ -371,7 +382,20 @@ Base.zeros(S::Space)=Fun(zeros(1),S)
 # catch all
 Base.ones(S::Space)=Fun(x->1.0,S)
 Base.ones{T<:Number}(::Type{T},S::Space)=Fun(x->one(T),S)
-identity_fun(S::Space)=Fun(x->x,S)
+
+identity_fun(S::Space)=identity_fun(domain(S))
+
+function identity_fun(d::Domain)
+    cd=canonicaldomain(d)
+    if typeof(d)==typeof(cd)
+        Fun(x->x,d) # fall back to constructor
+    else
+        # this allows support for singularities, that the constructor doesn't
+        sf=fromcanonical(d,Fun(identity,cd))
+        Fun(coefficients(sf),setdomain(space(sf),d))
+    end
+end
+
 
 
 

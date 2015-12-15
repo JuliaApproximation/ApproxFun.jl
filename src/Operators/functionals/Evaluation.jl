@@ -5,7 +5,7 @@ export Evaluation,ivp,bvp
 abstract AbstractEvaluation{T}<:Functional{T}
 
 # M = Bool if endpoint
-immutable Evaluation{S<:Space,M<:Union{Number,Bool},T<:Number} <: AbstractEvaluation{T}
+immutable Evaluation{S,M,T} <: AbstractEvaluation{T}
     space::S
     x::M
     order::Int
@@ -34,6 +34,9 @@ Evaluation(x::Union{Number,Bool})=Evaluation(AnySpace(),x,0)
 Evaluation(x::Union{Number,Bool},k::Integer)=Evaluation(AnySpace(),x,k)
 Evaluation{T<:Number}(d::Vector{T},x::Union{Number,Bool},o::Integer)=Evaluation(Interval(d),x,o)
 
+rangespace{S<:AmbiguousSpace}(E::Evaluation{S,Bool})=ConstantSpace()
+rangespace{S}(E::Evaluation{S,Bool})=ConstantSpace(Point(E.x?last(domain(E)):first(domain(E))))
+rangespace(E::Evaluation)=ConstantSpace(Point(E.x))
 
 for TYP in (:Operator,:Functional)
     @eval Base.convert{T}(::Type{$TYP{T}},E::Evaluation)=Evaluation(T,E.space,E.x,E.order)

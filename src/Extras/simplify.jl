@@ -9,8 +9,7 @@
 # to recognize M[f,C^(1)] Conversion(T,C^(1))==Conversion(T,C^(1))M[f,T]
 ##
 
-
-simplifytimes(A,B)=[A;B]
+simplifytimes(A,B)=isconstop(A)||isconstop(B)?A*B:[A;B]
 simplifytimes(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c*B.c)
 function simplifytimes(A::SpaceOperator,B::SpaceOperator)
    @assert domainspace(A)==rangespace(B)
@@ -28,4 +27,3 @@ function simplify(A::TimesOperator)
         ret
     end
 end
-

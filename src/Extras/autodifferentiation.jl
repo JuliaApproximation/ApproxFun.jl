@@ -26,7 +26,7 @@ Base.transpose(d::DualFun)=differentiate(d)
 
 for OP in (:+,:-)
     @eval begin
-        $OP(a::DualFun,b::Number)=DualFun($OP(a.f,b),a.J)
+        $OP(a::DualFun,b::Union{Number,Fun})=DualFun($OP(a.f,b),a.J)
         $OP(a::DualFun,b::DualFun)=DualFun($OP(a.f,b.f),$OP(a.J,b.J))
     end
 end

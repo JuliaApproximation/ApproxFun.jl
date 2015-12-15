@@ -1,14 +1,14 @@
 __precompile__()
 
 module ApproxFun
-    using Base, FastGaussQuadrature
+    using Base, Plots, FastGaussQuadrature
 
 
 import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
                 >=,./,/,.^,^,\,∪,transpose
 
 
-export pad!,pad,sample,chop!,complexroots,roots,svfft
+export pad!,pad,sample,chop!,complexroots,roots,svfft, reverseorientation
 
 ##Testing
 export bisectioninv
@@ -52,10 +52,10 @@ function _precompile_()
     precompile(adaptiveqr!,(MutableOperator,Vector{Float64},Float64,Int))
     precompile(+,(Int,Fun{Chebyshev{Interval{Float64}},Float64}))
     precompile(+,(Fun{Chebyshev{Interval{Float64}},Float64},Fun{Chebyshev{Interval{Float64}},Float64}))
-    precompile(+,(Fun{ConstantSpace,Float64},Fun{Chebyshev{Interval{Float64}},Float64}))
-    precompile(union,(ConstantSpace,Chebyshev{Interval{Float64}}))
-    precompile(union,(Chebyshev{Interval{Float64}},ConstantSpace))
-    precompile(Fun,(Fun{ConstantSpace,Float64},Chebyshev{Interval{Float64}}))
+    precompile(+,(Fun{ConstantSpace{AnyDomain},Float64},Fun{Chebyshev{Interval{Float64}},Float64}))
+    precompile(union,(ConstantSpace{AnyDomain},Chebyshev{Interval{Float64}}))
+    precompile(union,(Chebyshev{Interval{Float64}},ConstantSpace{AnyDomain}))
+    precompile(Fun,(Fun{ConstantSpace{AnyDomain},Float64},Chebyshev{Interval{Float64}}))
 end
 
 _precompile_()

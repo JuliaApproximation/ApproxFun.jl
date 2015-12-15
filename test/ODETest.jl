@@ -43,8 +43,8 @@ u=A\b;
 
 
 f=Fun(x->x.^2)
-D=diff(domain(f))
-@test norm(D*f-diff(f))<100eps()
+D=Derivative(domain(f))
+@test norm(D*f-f')<100eps()
 
 
 ##Test versus exp
@@ -54,9 +54,9 @@ g=Fun(t->exp(-t.^2))
 
 @test norm(Fun(t->exp(f(t)))-g)<= 100eps()
 
-fp=diff(f);
+fp=f';
 Bm=Evaluation(domain(f),domain(f).a);
-u=[Bm,diff(domain(f)) - fp]\[exp(f(domain(f).a)),0.];
+u=[Bm,Derivative(domain(f)) - fp]\[exp(f(domain(f).a)),0.];
 @test norm(u-g)<100eps()
 
 
@@ -64,7 +64,7 @@ u=[Bm,diff(domain(f)) - fp]\[exp(f(domain(f).a)),0.];
 ## Oscillatory integral
 
 f=Fun(exp);
-D=diff(domain(f));
+D=Derivative(domain(f));
 w=10.;
 B=BasisFunctional(floor(w));
 A=[B;D+1im*w*I];
@@ -76,17 +76,17 @@ u = A\[0.,f];
 ## Bessel
 
 d=Interval()
-D=diff(d)
+D=Derivative(d)
 x=Fun(identity,d)
 A=x^2*D^2+x*D+x^2
 u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 
 
 @test norm(A*u)<10eps()
-@test norm(Fun(A.ops[1]*u,d)-x.^2.*diff(u,2))<eps()
-@test norm(Fun(A.ops[2]*u,d)-x.*diff(u)) < eps()
+@test norm(Fun(A.ops[1]*u,d)-x.^2.*differentiate(u,2))<eps()
+@test norm(Fun(A.ops[2]*u,d)-x.*u') < eps()
 @test norm(Fun(A.ops[end]*u,d)-x.^2.*u) < eps()
-@test norm(x.^2.*diff(u,2) + x.*diff(u) + x.^2.*u)<10eps()
+@test norm(x.^2.*u'' + x.*u' + x.^2.*u)<10eps()
 @test_approx_eq u(0.1) besselj(0.,0.1)
 
 

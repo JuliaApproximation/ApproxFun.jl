@@ -35,6 +35,7 @@ datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 
 promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
 
+
 immutable PlusOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
 end
@@ -56,7 +57,8 @@ promoteplus{T}(ops::Vector{Functional{T}})=PlusFunctional(promotespaces(ops))
 
 
 
-for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOperator,:BandedOperator,:ZeroOperator))
+for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),
+                       (:PlusOperator,:BandedOperator,:ZeroOperator))
     @eval begin
         function domainspace(P::$PLUS)
             for op in P.ops
@@ -87,6 +89,18 @@ for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),(:PlusOpera
 end
 
 
+
+function rangespace(P::PlusFunctional)
+    for op in P.ops
+        sp = rangespace(op)
+
+        if !isa(sp,ConstantSpace{AnyDomain})
+            return sp
+        end
+    end
+
+    ConstantSpace()
+end
 
 
 function rangespace(P::PlusOperator)
@@ -153,27 +167,34 @@ end
 
 immutable ConstantTimesFunctional{T,B<:Functional} <: Functional{T}
     c::T
-    op::B
+    functional::B
     ConstantTimesFunctional(c,op)=new(c,op)
 end
 
 ConstantTimesFunctional(c::Number,op::Functional)=ConstantTimesFunctional{promote_type(typeof(c),eltype(op)),typeof(op)}(c,op)
 
+for OP in (:domainspace,:rangespace)
+    @eval $OP(C::ConstantTimesFunctional)=$OP(C.functional)
+end
 
 for TYP in (:Operator,:Functional)
     @eval function Base.convert{T}(::Type{$TYP{T}},P::ConstantTimesFunctional)
         if T==eltype(P)
             P
         else
-            ConstantTimesFunctional(convert(T,P.c),convert($TYP{T},P.op))
+            ConstantTimesFunctional(convert(T,P.c),convert($TYP{T},P.functional))
         end
     end
 end
 
 
-Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.op[k]
-datalength(C::ConstantTimesFunctional)=datalength(C.op)
-promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.op,sp))
+Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.functional[k]
+datalength(C::ConstantTimesFunctional)=datalength(C.functional)
+promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.functional,sp))
+
+
+
+
 
 
 type TimesFunctional{T,A<:Functional,B<:BandedOperator} <: Functional{T}
@@ -183,9 +204,8 @@ end
 
 promotedomainspace(C::TimesFunctional,sp::Space)=C.functional*promotedomainspace(C.op,sp)
 
-for S in (:ConstantTimesFunctional,:TimesFunctional)
-    @eval domainspace(T::($S))=domainspace(T.op)
-end
+domainspace(T::TimesFunctional)=domainspace(T.op)
+rangespace(C::TimesFunctional)=rangespace(C.functional)
 
 datalength(C::TimesFunctional)=datalength(C.functional)+bandinds(C.op,2)
 
@@ -415,10 +435,42 @@ end
 ## Algebra: assume we promote
 
 
-*{T,V}(A::TimesOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B.ops...])
-*{T,V}(A::TimesOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A.ops...,B])
-*{T,V}(A::BandedOperator{T},B::TimesOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B.ops...])
-*{T,V}(A::BandedOperator{T},B::BandedOperator{V})=promotetimes(BandedOperator{promote_type(T,V)}[A,B])
+*(A::TimesOperator,B::TimesOperator)=promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
+function *(A::TimesOperator,B::BandedOperator)
+    if isconstop(B)
+        promotedomainspace(A*convert(Number,B),domainspace(B))
+    else
+        promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
+    end
+end
+function *(A::BandedOperator,B::TimesOperator)
+    if isconstop(A)
+        promoterangespace(convert(Number,A)*B,rangespace(A))
+    else
+        promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
+    end
+end
+function *(A::BandedOperator,B::BandedOperator)
+    if isconstop(A)
+        promoterangespace(convert(Number,A)*B,rangespace(A))
+    elseif isconstop(B)
+        promotedomainspace(A*convert(Number,B),domainspace(B))
+    else
+        promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B])
+    end
+end
+
+# Conversions we always assume are intentional: no need to promote
+
+*{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A.op,B.op))
+*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::AbstractConversion)=ConversionWrapper(TimesOperator(A.op,B))
+*{TO<:TimesOperator}(A::AbstractConversion,B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A,B.op))
+
+*(A::AbstractConversion,B::AbstractConversion)=ConversionWrapper(TimesOperator(A,B))
+*(A::AbstractConversion,B::TimesOperator)=TimesOperator(A,B)
+*(A::TimesOperator,B::AbstractConversion)=TimesOperator(A,B)
+*(A::BandedOperator,B::AbstractConversion)=isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
+*(A::AbstractConversion,B::BandedOperator)=isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
 -(A::Operator)=ConstantTimesOperator(-1,A)
@@ -428,13 +480,13 @@ end
 
 for OP in (:*,:.*)
     @eval begin
-        $OP(c::Number,A::BandedOperator)=ConstantTimesOperator(c,A)
-        $OP(A::BandedOperator,c::Number)=ConstantTimesOperator(c,A)
+        $OP(c::Number,A::BandedOperator)=c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
+        $OP(A::BandedOperator,c::Number)=c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
     end
 end
 
-/(B::BandedOperator,c::Number)=ConstantTimesOperator(1.0/c,B)
-
+/(B::BandedOperator,c::Number)=c==1?B:ConstantTimesOperator(1.0/c,B)
+/(B::BandedOperator,c::Fun)=(1.0/c)*B
 
 
 
@@ -535,7 +587,7 @@ function choosedomainspace(P::PlusOperator,sp)
         sp2=choosedomainspace(op,sp)
         if !isa(sp2,AmbiguousSpace)  # we will ignore this result in hopes another opand
                                      # tells us a good space
-            ret=conversion_type(ret,sp2)
+            ret=union(ret,sp2)
         end
     end
     ret

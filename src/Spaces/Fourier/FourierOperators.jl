@@ -6,6 +6,9 @@
 coefficients{DD}(cfs::Vector,A::Fourier{DD},B::Laurent{DD})=Conversion(A,B)*cfs
 coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD})=Conversion(A,B)*cfs
 
+hasconversion{DD}(::Fourier{DD},::Laurent{DD})=true
+hasconversion{DD}(::Laurent{DD},::Fourier{DD})=true
+
 function addentries!{DD}(C::Conversion{Laurent{DD},Fourier{DD}},A,kr::Range,::Colon)
     for k=kr
         if k==1
@@ -38,15 +41,26 @@ end
 bandinds{DD}(::Conversion{Laurent{DD},Fourier{DD}})=-1,1
 bandinds{DD}(::Conversion{Fourier{DD},Laurent{DD}})=-1,1
 
-function conversion_rule{DD}(A::Laurent{DD},B::Fourier{DD})
-    @assert domainscompatible(A,B)
-    B
+for RULE in (:conversion_rule,:maxspace_rule,:union_rule)
+    @eval function $RULE{DD}(A::Laurent{DD},B::Fourier{DD})
+        @assert domainscompatible(A,B)
+        B
+    end
 end
 
+conversion_type{DD<:Circle}(A::Fourier{DD},B::Fourier{DD})=domain(A).orientation?A:B
 
+hasconversion{DD}(A::Fourier{DD},B::Fourier{DD})=domain(A) == reverse(domain(B))
+Conversion{DD}(A::Fourier{DD},B::Fourier{DD})=Conversion{typeof(A),typeof(B)}(A,B)
+bandinds{DD}(::Conversion{Fourier{DD},Fourier{DD}})=0,0
 
-
-
+function addentries!{DD}(C::Conversion{Fourier{DD},Fourier{DD}},A,kr::Range,::Colon)
+    @assert domain(domainspace(C)) == reverse(domain(rangespace(C)))
+    for k=kr
+        A[k,k]+=iseven(k)?(-1):1
+    end
+    A
+end
 
 
 
@@ -102,7 +116,7 @@ function addentries!{CS<:SinSpace}(D::Derivative{CS},A,kr::Range,::Colon)
     A
 end
 
-Integral(::CosSpace,m)=error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
+Integral(::CosSpace,m::Integer)=error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
 
 
 bandinds{CS<:SinSpace}(D::Integral{CS})=iseven(D.order)?(0,0):(-1,0)

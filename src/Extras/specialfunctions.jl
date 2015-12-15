@@ -1,33 +1,9 @@
 ## abs
 
-
-function splitatroots(f::Fun)
-    #TODO: treat multiplicities
-    d=domain(f)
-
-    pts=roots(f)
-
+function splitmap(g,d::IntervalDomain,pts)
     if isempty(pts)
-        f
-    else
-        da=first(d)
-        isapprox(da,pts[1]) ? pts[1] = da : pts = [da;pts]
-        db=last(d)
-        isapprox(db,pts[end]) ? pts[end] = db : pts = [pts;db]
-        Fun(x->f(x),pts)
-    end
-end
-
-function splitmap(g,d::AffineDomain,pts)
-    da=first(d)
-    isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : pts = [da;pts]
-    db=last(d)
-    isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts;db]
-    Fun(g,pts)
-end
-
-function splitmap(g,d::Union{IntervalDomain,Curve},pts)
-    if length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
+        Fun(g,d)
+    elseif length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
         Fun(g,d)
     elseif length(pts)==2 && isapprox(first(pts),first(d)) && isapprox(last(pts),last(d))
         Fun(g,d)
@@ -36,16 +12,54 @@ function splitmap(g,d::Union{IntervalDomain,Curve},pts)
     end
 end
 
+function splitmap(g,d::AffineDomain,pts)
+    if isempty(pts)
+        Fun(g,d)
+    else
+        da=first(d)
+        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : unshift!(pts,da)
+        db=last(d)
+        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : push!(pts,db)
+        Fun(g,pts)
+    end
+end
+
+## TODO: type to ensure each dom in d.domains ::IntervalDomain
+function splitmap(g,d::UnionDomain,pts)
+    if isempty(pts)
+        Fun(g,d)
+    else
+        dpts = ∂(d)
+        pts = sort!(∪(pts,dpts),by=real)
+        da=first(d)
+        isapprox(da,pts[1];atol=sqrt(eps(mapreduce(length,+,d.domains)))) ? pts[1] = da : unshift!(pts,da)
+        db=last(d)
+        isapprox(db,pts[end];atol=sqrt(eps(mapreduce(length,+,d.domains)))) ? pts[end] = db : push!(pts,db)
+        Fun(g,pts)
+    end
+end
+
+
+function splitatroots(f::Fun)
+    d=domain(f)
+    pts=union(roots(f)) # union removes multiplicities
+    if isempty(pts)
+        f# : splitmap(f,d,pts)
+    else
+        da=first(d)
+        isapprox(da,pts[1]) ? pts[1] = da : unshift!(pts,da)
+        db=last(d)
+        isapprox(db,pts[end]) ? pts[end] = db : push!(pts,db)
+        Fun(x->f(x),pts)
+    end
+end
+
 function Base.abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
 
     pts=roots(f)
 
-    if isempty(pts)
-        sign(first(f))*f
-    else
-        splitmap(x->abs(f(x)),d,pts)
-    end
+    splitmap(x->abs(f(x)),d,pts)
 end
 
 function Base.abs(f::Fun)
@@ -69,21 +83,42 @@ function Base.sign{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     pts=roots(f)
 
     if isempty(pts)
-        sign(first(f))*one(T,f.space)
+        sign(first(f))*one(f)
     else
         @assert isa(d,AffineDomain)
         da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : pts = [da,pts]
+        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : unshift!(pts,da)
         db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : pts = [pts,db]
+        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : push!(pts,db)
         midpts = .5(pts[1:end-1]+pts[2:end])
-        Fun([sign(f(midpts))],pts)
+        Fun(sign(f(midpts)),pts)
+    end
+end
+
+for op in (:(Base.max),:(Base.min))
+    @eval begin
+        function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T<:Real}(f::Fun{S,T},g::Fun{V,T})
+            h=f-g
+            d=domain(h)
+            pts=roots(h)
+            splitmap(x->$op(f(x),g(x)),d,pts)
+        end
+        $op{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T},g::Real) = $op(f,Fun(g,domain(f)))
+        $op{S<:RealUnivariateSpace,T<:Real}(f::Real,g::Fun{S,T}) = $op(Fun(f,domain(g)),g)
     end
 end
 
 # division by fun
 
-function ./{S,T,U,V}(c::Fun{S,T},f::Fun{U,V})
+function ./(c::Fun,f::Fun)
+    d=domain(f)
+    @assert domain(c)==d
+    cd=canonicaldomain(d)
+    if typeof(d)!=typeof(cd)
+        # project first to simplify
+        return setdomain(setdomain(c,cd)./setdomain(f,cd),d)
+    end
+
     r=roots(f)
     tol=10eps()
     if length(r)==0 || norm(c(r))<tol
@@ -93,7 +128,7 @@ function ./{S,T,U,V}(c::Fun{S,T},f::Fun{U,V})
     end
 end
 
-function ./{S,T}(c::Number,f::Fun{S,T})
+function ./(c::Number,f::Fun)
     r=roots(f)
     tol=10eps()
     @assert length(r)==0
@@ -101,7 +136,12 @@ function ./{S,T}(c::Number,f::Fun{S,T})
 end
 
 function ./{C<:Chebyshev}(c::Number,f::Fun{C})
-    fc = Fun(coefficients(f),Interval())
+    if !isa(domain(f),Interval)
+        # project first to get better derivative behaviour
+        return setdomain(c./setcanonicaldomain(f),domain(f))
+    end
+
+    fc = setcanonicaldomain(f)
     r = roots(fc)
     x = Fun(identity)
 
@@ -135,43 +175,43 @@ end
 
 
 
-function ./{S<:MappedSpace}(c::Number,f::Fun{S})
-    g=c./Fun(coefficients(f),space(f).space)
-    Fun(coefficients(g),MappedSpace(domain(f),space(g)))
-end
-function .^{S<:Space,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
-    g=Fun(coefficients(f),space(f).space).^k
-    Fun(coefficients(g),MappedSpace(domain(f),space(g)))
-end
-
-
-#TODO: Unify following
-function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
-    sp=space(f)
-    # Need to think what to do if this is ever not the case..
-    @assert isapprox(domain(sp.space),Interval())
-    fc = Fun(f.coefficients,sp.space) #Project to interval
-
-    r = sort(roots(fc))
-    @assert length(r) <= 2
-
-    if length(r) == 0
-        Fun(Fun(x->fc(x)^k).coefficients,sp)
-    elseif length(r) == 1
-        @assert isapprox(abs(r[1]),1)
-
-        if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(true,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
-        else
-            Fun(coefficients(divide_singularity(false,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
-        end
-    else
-        @assert isapprox(r[1],-1)
-        @assert isapprox(r[2],1)
-
-        Fun(coefficients(divide_singularity(fc)^k),MappedSpace(sp.domain,JacobiWeight(k,k,sp.space)))
-    end
-end
+# function ./{S<:MappedSpace}(c::Number,f::Fun{S})
+#     g=c./Fun(coefficients(f),space(f).space)
+#     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
+# end
+# function .^{S<:Space,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
+#     g=Fun(coefficients(f),space(f).space).^k
+#     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
+# end
+#
+#
+# #TODO: Unify following
+# function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
+#     sp=space(f)
+#     # Need to think what to do if this is ever not the case..
+#     @assert isapprox(domain(sp.space),Interval())
+#     fc = Fun(f.coefficients,sp.space) #Project to interval
+#
+#     r = sort(roots(fc))
+#     @assert length(r) <= 2
+#
+#     if length(r) == 0
+#         Fun(Fun(x->fc(x)^k).coefficients,sp)
+#     elseif length(r) == 1
+#         @assert isapprox(abs(r[1]),1)
+#
+#         if isapprox(r[1],1.)
+#             Fun(coefficients(divide_singularity(true,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
+#         else
+#             Fun(coefficients(divide_singularity(false,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
+#         end
+#     else
+#         @assert isapprox(r[1],-1)
+#         @assert isapprox(r[2],1)
+#
+#         Fun(coefficients(divide_singularity(fc)^k),MappedSpace(sp.domain,JacobiWeight(k,k,sp.space)))
+#     end
+# end
 
 function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
     # Need to think what to do if this is ever not the case..
@@ -220,10 +260,10 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 
 Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
 
-function Base.log{MS<:MappedSpace}(f::Fun{MS})
-    g=log(Fun(f.coefficients,space(f).space))
-    Fun(g.coefficients,MappedSpace(domain(f),space(g)))
-end
+# function Base.log{MS<:MappedSpace}(f::Fun{MS})
+#     g=log(Fun(f.coefficients,space(f).space))
+#     Fun(g.coefficients,MappedSpace(domain(f),space(g)))
+# end
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
@@ -320,10 +360,10 @@ for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
         $op{PW<:PiecewiseSpace}(f::Fun{PW})=depiece(map(f->$op(f),pieces(f)))
 
         # We remove the MappedSpace
-        function $op{MS<:MappedSpace}(f::Fun{MS})
-            g=exp(Fun(f.coefficients,space(f).space))
-            Fun(g.coefficients,MappedSpace(domain(f),space(g)))
-        end
+        # function $op{MS<:MappedSpace}(f::Fun{MS})
+        #     g=exp(Fun(f.coefficients,space(f).space))
+        #     Fun(g.coefficients,MappedSpace(domain(f),space(g)))
+        # end
         function $op{S,T}(f::Fun{S,T})
             xmax,opfxmax,opmax=specialfunctionnormalizationpoint($op,$growth,f)
             # we will assume the result should be smooth on the domain
@@ -340,6 +380,11 @@ end
 # JacobiWeight explodes, we want to ensure the solution incorporates the fact
 # that exp decays rapidly
 function Base.exp{JW<:JacobiWeight}(f::Fun{JW})
+    if !isa(domain(f),Interval)
+        # project first to get better derivative behaviour
+        return setdomain(exp(setdomain(f,Interval())),domain(f))
+    end
+
     S=space(f)
     q=Fun(f.coefficients,S.space)
     if isapprox(S.α,0.) && isapprox(S.β,0.)
@@ -425,7 +470,7 @@ for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0f'^3",:(imag
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            ([B,eval($L)]\[opfxmin/opmax,opfxmax/opmax,eval($R)/opmax])*opmax
+            ([B;eval($L)]\[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax])*opmax
         end
     end
 end
@@ -456,7 +501,7 @@ for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            ([B,eval($L)]\[opfxmin/opmax,opfxmax/opmax,eval($R)/opmax])*opmax
+            ([B;eval($L)]\[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax])*opmax
         end
     end
 end

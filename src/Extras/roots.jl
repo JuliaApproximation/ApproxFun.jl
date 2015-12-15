@@ -1,4 +1,32 @@
-## Root finding
+## Root finding for Chebyshev expansions
+#
+#  Contains code that is based in part on Chebfun v5's chebfun/@chebteck/roots.m, 
+# which is distributed with the following license:
+
+# Copyright (c) 2015, The Chancellor, Masters and Scholars of the University 
+# of Oxford, and the Chebfun Developers. All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#     * Redistributions of source code must retain the above copyright
+#       notice, this list of conditions and the following disclaimer.
+#     * Redistributions in binary form must reproduce the above copyright
+#       notice, this list of conditions and the following disclaimer in the
+#       documentation and/or other materials provided with the distribution.
+#     * Neither the name of the University of Oxford nor the names of its 
+#       contributors may be used to endorse or promote products derived from 
+#       this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR 
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
 function complexroots{C<:Chebyshev}(f::Fun{C})
@@ -27,7 +55,7 @@ end
 #    end
 #end
 
-function roots{S,T}(f::Fun{S,T})
+function roots(f::Fun)
     f2=Fun(f,domain(f)) # default is to convert to Chebyshev/Fourier
     if space(f2)==space(f)
         error("roots not implemented for "*string(typeof(f)))
@@ -45,8 +73,7 @@ function roots{C<:Chebyshev}( f::Fun{C} )
     vscale = maxabs(values(f))
     if vscale == 0
         warn("Tried to take roots of a zero function.  Returning [].")
-        ##TODO: could be complex domain, in which case type should be Complex{Float64}
-        return Float64[]
+        return eltype(domain(f))[]
     end
 
     hscale = maximum( [abs(first(d)), abs(last(d))] )
@@ -69,7 +96,19 @@ function roots{C<:Chebyshev}( f::Fun{C} )
             rts .-=f(rts)./fp(rts)
         end
     else
-        r = rootsunit_coeffs(c./vscale, Float64(htol))
+        cvscale=c./vscale
+        r = rootsunit_coeffs(cvscale, Float64(htol))
+
+        # Check endpoints, as these are prone to inaccuracy
+        # which can be deadly.
+        if (isempty(r) || !isapprox(last(r),1.)) && abs(sum(cvscale)) < htol
+            push!(r,1.)
+        end
+        if (isempty(r) || !isapprox(first(r),-1.)) && abs(alternatingsum(cvscale)) < htol
+            insert!(r,1,-1.)
+        end
+
+
         # Map roots from [-1,1] to domain of f:
         rts = fromcanonical(d,r)
     end
@@ -172,7 +211,6 @@ function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::Clens
         # Adjust the coefficients for the colleague matrix
         # Prune roots depending on preferences:
         r = PruneOptions( colleague_eigvals(c), htol )::Vector{Float64}
-
     else
 
         #  RECURSIVE SUBDIVISION:
@@ -273,12 +311,7 @@ end
 
 
 
-
-## Fourier
-
-
-
-## Root finding
+## Root finding for Laurent expansion
 
 
 function companion_matrix{T}(c::Vector{T})
@@ -320,7 +353,6 @@ complexroots{DD}(f::Fun{Laurent{DD}})=mappoint(Circle(),domain(f),complexroots(f
 complexroots{DD}(f::Fun{Taylor{DD}})=mappoint(Circle(),domain(f),complexroots(f.coefficients))
 
 
-roots{S<:MappedSpace}(f::Fun{S})=fromcanonical(f,roots(Fun(coefficients(f),space(f).space)))
 
 function roots{DD}(f::Fun{Laurent{DD}})
     irts=filter!(z->in(z,Circle()),complexroots(Fun(f.coefficients,Laurent(Circle()))))
@@ -340,7 +372,7 @@ end
 roots{D}(f::Fun{Fourier{D}})=roots(Fun(f,Laurent))
 
 function roots{P<:PiecewiseSpace}(f::Fun{P})
-    rts=[map(roots,vec(f))...]
+    rts=mapreduce(roots,vcat,vec(f))
     k=1
     while k < length(rts)
         if isapprox(rts[k],rts[k+1])
@@ -353,6 +385,8 @@ function roots{P<:PiecewiseSpace}(f::Fun{P})
     rts
 end
 
+
+## Root finding for JacobiWeight expansion
 
 # Add endpoints for JacobiWeight
 # TODO: what about cancellation?

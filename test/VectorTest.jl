@@ -25,15 +25,15 @@ for b in (b1,b2)
     u=A\b
     u1=vec(u)[1];u2=vec(u)[2];
 
-    @test norm(diff(u1)-u1+2.u2-f1)<10eps()
-    @test norm(diff(u2)+u2-f2)<10eps()
+    @test norm(u1'-u1+2.u2-f1)<10eps()
+    @test norm(u2'+u2-f2)<10eps()
 
     Ai=interlace(A)
     u=Ai\b
     u1=vec(u)[1];u2=vec(u)[2];
 
-    @test norm(diff(u1)-u1+2.u2-f1)<10eps()
-    @test norm(diff(u2)+u2-f2)<10eps()
+    @test norm(u1'-u1+2.u2-f1)<10eps()
+    @test norm(u2'+u2-f2)<10eps()
 end
 
 
@@ -58,16 +58,16 @@ for b in (b1,b2)
     u1=vec(u)[1];u2=vec(u)[2];
 
 
-    @test norm(diff(u1,2)-u1+2.u2-f1)<2eps()
-    @test norm(diff(u2)+u2-f2)<2eps()
+    @test norm(differentiate(u1,2)-u1+2.u2-f1)<2eps()
+    @test norm(u2'+u2-f2)<2eps()
 
     Ai=interlace(A)
     u=Ai\b
     u1=vec(u)[1];u2=vec(u)[2];
 
 
-    @test norm(diff(u1,2)-u1+2.u2-f1)<2eps()
-    @test norm(diff(u2)+u2-f2)<2eps()
+    @test norm(u1''-u1+2.u2-f1)<2eps()
+    @test norm(u2'+u2-f2)<2eps()
 end
 
 

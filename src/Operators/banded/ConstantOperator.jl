@@ -114,4 +114,9 @@ Base.getindex{S,T}(op::ZeroFunctional{S,T},k::Range)=zeros(T,length(k))
 
 
 isconstop(::Union{ZeroOperator,ConstantOperator})=true
+isconstop(S::SpaceOperator)=isconstop(S.op)
 isconstop(::)=false
+
+Base.convert{T<:Number}(::Type{T},::ZeroOperator)=zero(T)
+Base.convert{T<:Number}(::Type{T},C::ConstantOperator)=convert(T,C.c)
+Base.convert{T<:Number}(::Type{T},S::SpaceOperator)=convert(T,S.op)

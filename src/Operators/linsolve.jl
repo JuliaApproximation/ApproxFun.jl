@@ -15,6 +15,7 @@ end
 eps2{M<:AbstractArray}(::Type{M})=eps(eltype(M))
 eps2(T)=eps(T)
 eps2{T<:Integer}(::Type{T})=eps2(Float64)
+eps2(::Type{BigInt})=eps2(BigFloat)
 
 function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps2(eltype(A[end])),maxlength=1000000)
     A=promotedomainspace(A,choosedomainspace(A))

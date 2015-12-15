@@ -75,19 +75,21 @@ end
 Base.getindex{S,V,DD,d}(f::Fun{VectorSpace{S,V,DD,d}},k...)=vec(f)[k...]
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
 
-Base.getindex(S::VectorSpace,k...)=S.space
-Base.length(S::VectorSpace)=S.dimensions[1]
-Base.next(S::VectorSpace,k)=S.space,k+1
-Base.done(S::VectorSpace,k)=k>length(S)
-Base.endof(S::VectorSpace)=length(S)
+Base.getindex(S::ArraySpace,k...)=S.space
+Base.length(S::ArraySpace)=*(S.dimensions...)
+
+Base.start(S::ArraySpace)=1
+Base.next(S::ArraySpace,k)=S.space,k+1
+Base.done(S::ArraySpace,k)=k>length(S)
+Base.endof(S::ArraySpace)=length(S)
 
 
 #support tuple set
 for OP in (:(Base.start),:(Base.done),:(Base.endof))
-    @eval $OP{SS<:VectorSpace}(f::Fun{SS},k...)=$OP(space(f),k...)
+    @eval $OP{SS<:ArraySpace}(f::Fun{SS},k...)=$OP(space(f),k...)
 end
 
-Base.next{SS<:VectorSpace}(f::Fun{SS},k)=f[k],k+1
+Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
 
 
 
@@ -127,6 +129,9 @@ function demat{S,T,V,DD,d}(A::Array{Fun{VectorSpace{S,T,DD,d},V},2})
     demat(M)
 end
 
+Fun{F<:Fun}(V::AbstractVector{F})=devec(V)
+Fun{F<:Fun}(V::AbstractMatrix{F})=demat(V)
+
 
 function union_rule{S,n,T,DD,dim,S2,T2,DD2}(a::ArraySpace{S,n,T,DD,dim},b::ArraySpace{S2,n,T2,DD2,dim})
     if a.dimensions==b.dimensions
@@ -145,7 +150,7 @@ end
 
 spacescompatible(AS::ArraySpace,BS::ArraySpace)=size(AS)==size(BS) && spacescompatible(AS.space,BS.space)
 canonicalspace(AS::ArraySpace)=ArraySpace(canonicalspace(AS.space),size(AS))
-evaluate{AS<:ArraySpace,T}(f::Fun{AS,T},x)=evaluate(mat(f),x)
+evaluate(f::AbstractVector,S::ArraySpace,x)=evaluate(mat(Fun(f,S)),x)
 
 for OP in (:(Base.transpose),)
     @eval $OP{AS<:ArraySpace,T}(f::Fun{AS,T})=demat($OP(mat(f)))
@@ -262,7 +267,7 @@ end
 ## ConstantVectorSpace
 
 
-typealias ConstantVectorSpace VectorSpace{ConstantSpace,RealBasis,AnyDomain,1}
+typealias ConstantVectorSpace VectorSpace{ConstantSpace{AnyDomain},RealBasis,AnyDomain,1}
 
 
 function Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T},k)

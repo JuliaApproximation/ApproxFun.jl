@@ -38,16 +38,7 @@ bvp(d) = bvp(d,2)
 
 ## diff
 
-# diff(::Fun{ArraySpace}) is left as array diff
 
-Base.diff{S,T}(f::Fun{S,T},n...)=differentiate(f,n...)
-Base.diff(u::MultivariateFun,j...)=differentiate(u,j...)
-
-Base.diff(d::Space,μ::Integer)=Derivative(d,μ)
-Base.diff(d::Domain,μ::Integer)=Derivative(d,μ)
-Base.diff(d::Domain)=Base.diff(d,1)
-
-Base.diff(d::Union{ProductDomain,TensorSpace},k::Integer)=Derivative(d,k)
 
 # use conj(f.') for ArraySpace
 Base.ctranspose(f::Fun)=differentiate(f)

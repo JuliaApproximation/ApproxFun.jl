@@ -57,29 +57,29 @@ plan_itransform(::Hardy{false},x::Vector)=wrap_fft_plan(plan_ifft(x))
 transform(::Hardy{false},vals::Vector,plan)=-alternatesign!(flipdim(plan(vals),1)/length(vals))
 itransform(::Hardy{false},cfs::Vector,plan)=plan(flipdim(alternatesign!(-cfs),1))*length(cfs)
 
-evaluate{D<:Domain}(f::Fun{Taylor{D}},z) = horner(f.coefficients,fromcanonical(Circle(),tocanonical(f,z)))
-function evaluate{D<:Circle}(f::Fun{Taylor{D}},z)
-    d=domain(f)
-    horner(f.coefficients,(z-d.center)/d.radius)
+evaluate{D<:Domain}(f::AbstractVector,S::Taylor{D},z) = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
+function evaluate{D<:Circle}(f::AbstractVector,S::Taylor{D},z)
+    d=domain(S)
+    horner(f,(z-d.center)/d.radius)
 end
 
-function evaluate{D<:Domain}(f::Fun{Hardy{false,D}},z)
-    z=fromcanonical(Circle(),tocanonical(f,z))
+function evaluate{D<:Domain}(f::AbstractVector,S::Hardy{false,D},z)
+    z=fromcanonical(Circle(),tocanonical(S,z))
     z=1./z
-    z.*horner(f.coefficients,z)
+    z.*horner(f,z)
 end
-function evaluate{D<:Circle}(f::Fun{Hardy{false,D}},z)
-    d=domain(f)
+function evaluate{D<:Circle}(f::AbstractVector,S::Hardy{false,D},z)
+    d=domain(S)
     z=(z-d.center)/d.radius
     z=1./z
-    z.*horner(f.coefficients,z)
+    z.*horner(f,z)
 end
 
 
 ##TODO: fast routine
 
-function horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::V)
-    T = promote_type(U,V)
+function horner(c::AbstractVector,kr::Range{Int64},x)
+    T = promote_type(eltype(c),typeof(x))
     if isempty(c)
         return zero(x)
     end
@@ -92,8 +92,8 @@ function horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::V)
     ret
 end
 
-function horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::AbstractVector{V})
-    n,T = length(x),promote_type(U,V)
+function horner(c::AbstractVector,kr::Range{Int64},x::AbstractVector)
+    n,T = length(x),promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
     end
@@ -109,9 +109,9 @@ function horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::Ab
     ret
 end
 
-horner{U<:Number,V<:Number}(c::AbstractVector{U},x::V) = horner(c,1:length(c),x)
-horner{U<:Number,V<:Number}(c::AbstractVector{U},x::AbstractArray{V}) = horner(c,1:length(c),x)
-horner{U<:Number,V<:Number}(c::AbstractVector{U},kr::Range{Int64},x::AbstractArray{V}) = reshape(horner(c,kr,vec(x)),size(x))
+horner(c::AbstractVector,x) = horner(c,1:length(c),x)
+horner(c::AbstractVector,x::AbstractArray) = horner(c,1:length(c),x)
+horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,kr,vec(x)),size(x))
 
 ## Cos and Sin space
 
@@ -120,7 +120,7 @@ plan_transform(::CosSpace,x::Vector)=plan_chebyshevtransform(x;kind=2)
 plan_itransform(::CosSpace,x::Vector)=plan_ichebyshevtransform(x;kind=2)
 transform(::CosSpace,vals,plan)=chebyshevtransform(vals,plan;kind=2)
 itransform(::CosSpace,cfs,plan)=ichebyshevtransform(cfs,plan;kind=2)
-evaluate{CS<:CosSpace}(f::Fun{CS},t)=clenshaw(Chebyshev(),f.coefficients,cos(tocanonical(f,t)))
+evaluate(f::Vector,S::CosSpace,t)=clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
@@ -128,7 +128,7 @@ plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.p
 plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.plan_r2r(x,FFTW.RODFT00))
 transform(::SinSpace,vals,plan)=plan(vals)/(length(vals)+1)
 itransform(::SinSpace,cfs,plan)=plan(cfs)/2
-evaluate{SS<:SinSpace}(f::Fun{SS},t)=sineshaw(f.coefficients,tocanonical(f,t))
+evaluate(f::AbstractVector,S::SinSpace,t)=sineshaw(f,tocanonical(S,t))
 
 
 
@@ -142,17 +142,11 @@ plan_itransform{DD}(::Laurent{DD},x::Vector)=plan_isvfft(x)
 transform{DD}(::Laurent{DD},vals,plan)=svfft(vals,plan)
 itransform{DD}(::Laurent{DD},cfs,plan)=isvfft(cfs,plan)
 
-function evaluate{D<:Circle}(f::Fun{Laurent{D}},z)
-    d=domain(f)
-    z = (z-d.center)/d.radius
-    invz = 1./z
-    horner(f.coefficients,1:2:length(f),z) + horner(f.coefficients,2:2:length(f),invz).*invz
-end
 
-function evaluate{D<:Domain}(f::Fun{Laurent{D}},z)
-    z = fromcanonical(Circle(),tocanonical(f,z))
+function evaluate{DD}(f::AbstractVector,S::Laurent{DD},z)
+    z = mappoint(domain(S),Circle(),z)
     invz = 1./z
-    horner(f.coefficients,1:2:length(f),z) + horner(f.coefficients,2:2:length(f),invz).*invz
+    horner(f,1:2:length(f),z) + horner(f,2:2:length(f),invz).*invz
 end
 
 ## Fourier space
@@ -247,10 +241,6 @@ function fouriermodalt!(cfs)
 end
 
 
-Space(d::PeriodicInterval)=Fourier(d)
-Space(d::Circle)=Laurent(d)
-
-
 
 canonicalspace{DD<:PeriodicInterval}(S::Laurent{DD})=Fourier(domain(S))
 canonicalspace{DD<:Circle}(S::Fourier{DD})=Laurent(domain(S))
@@ -270,6 +260,21 @@ end
 
 
 reverseorientation{D}(f::Fun{Fourier{D}})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
+function reverseorientation{D}(f::Fun{Laurent{D}})
+    # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
+    n=length(f)
+    ret=Array(eltype(f),iseven(n)?n+1:n)  # since z -> 1/z we get one more coefficient
+    ret[1]=f.coefficients[1]
+    for k=2:2:length(ret)-1
+        ret[k+1]=f.coefficients[k]
+    end
+    for k=2:2:n-1
+        ret[k]=f.coefficients[k+1]
+    end
+    iseven(n) && (ret[n] = 0)
+
+    Fun(ret,Laurent(reverse(domain(f))))
+end
 
 include("calculus.jl")
 include("specialfunctions.jl")

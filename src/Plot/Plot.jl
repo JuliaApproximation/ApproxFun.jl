@@ -1,254 +1,233 @@
-export setplotter, domainplot, coefficientplot
-
-# these defaults are overloaded as packages are loaded
-plotter=Dict(:contour=>"Gadfly",
-    :plot=>"Gadfly",
-    :surf=>"PyPlot")
+export domainplot, coefficientplot, complexplot
 
 
-function setplotter(key,val)
-    global plotter
-    @assert val=="PyPlot" || val =="Gadfly" || val =="GLPlot"
-    plotter[key]=val
-    plotter
-end
-
-function setplotter(str)
-    if str=="PyPlot"
-        setplotter(:contour,str)
-        setplotter(:plot,str)
-        setplotter(:surf,str)
-    elseif str == "GLPlot"
-        setplotter(:surf,str)
-    else
-        setplotter(:contour,str)
-        setplotter(:plot,str)
-    end
-end
-
-
-if isdir(Pkg.dir("GLPlot"))
-    include("GLPlot.jl")
-    setplotter("GLPlot")
-end
 if isdir(Pkg.dir("PyPlot"))
     include("PyPlot.jl")
-    setplotter("PyPlot")
 end
 
-include("Gadfly.jl")
-
-if isdir(Pkg.dir("Gadfly"))
-    setplotter("Gadfly")
-end
 if isdir(Pkg.dir("TikzGraphs"))
     include("introspect.jl")
 end
 
 
 
-for (plt,gfplt,pyplt) in ((:plot,:gadflyplot,:pyplot),
-                          (:layer,:gadflylayer,:pyplot),
-                          (:contour,:gadflycontour,:pycontour),
-                          (:contourf,:gadflycontourf,:pycontourf),
-                          (:semilogy,:gadflysemilogy,:pysemilogy))
-    @eval begin
-        function $plt(opts...;kwds...)
-            if plotter[:plot]=="Gadfly"
-                $gfplt(opts...;kwds...)
-            elseif plotter[:plot]=="PyPlot"
-                $pyplt(opts...;kwds...)
-            else
-                error("Plotter " * plotter[:plot] * " not supported.")
-            end
-        end
-    end
-end
-
-
-
-function surf(x...;opts...)
-    if plotter[:surf]=="GLPlot"
-        glsurf(x...;opts...)
-    elseif plotter[:surf]=="PyPlot"
-        pysurf(x...;opts...)
-    else
-        error("Plotter " * plotter[:surf] * " not supported.")
-    end
-end
-
-function hist(x...;opts...)
-    if plotter[:plot]=="Gadfly"
-        gadflyhist(x...;opts...)
-    elseif plotter[:plot]=="PyPlot"
-        pyhist(x...;opts...)
-    else
-        error("Plotter " * plotter[:plot] * " not supported.")
-    end
-end
-
+#surf(x...;opts...)=pysurf(x...;opts...)
 
 
 ## Fun routines
 
+Plots.plot(f::Union{Fun,Domain,MultivariateFun};grid=true,kwds...)=plot!(plot(grid=grid),f;kwds...)
+Plots.plot!(f::Union{Fun,Domain,MultivariateFun};kwds...)=plot!(current(),f;kwds...)
 
-for OP in (:plot,:layer,:semilogy)
+Plots.plot(x::AbstractVector,f::Fun;grid=true,kwds...)=plot!(plot(grid=grid),x,f;kwds...)
+Plots.plot!(x::AbstractVector,f::Fun;kwds...)=plot!(current(),x,f;kwds...)
+
+
+
+Plots.plot{F<:Union{Fun,Domain,MultivariateFun}}(v::AbstractVector{F};grid=true,kwds...)=plot!(plot(grid=grid),v;kwds...)
+Plots.plot!{F<:Union{Fun,Domain,MultivariateFun}}(v::AbstractVector{F};kwds...)=plot!(current(),v;kwds...)
+
+
+Plots.plot{F<:Fun}(x::AbstractVector,v::AbstractVector{F};grid=true,kwds...)=plot!(plot(grid=grid),x,v;kwds...)
+Plots.plot!{F<:Fun}(x::AbstractVector,v::AbstractVector{F};kwds...)=plot!(current(),x,v;kwds...)
+
+
+function plotptsvals(f::Fun)
+    if dimension(space(f)) == Inf
+        f=pad(f,3length(f)+50)
+    else
+        f=pad(f,dimension(space(f)))
+    end
+    points(f),values(f)
+end
+Plots.plot!{S,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)=
+                plot!(plt,plotptsvals(f)...;kwds...)
+
+Plots.plot!{S,T<:Real}(plt::Plots.Plot,x::AbstractVector{T},f::Fun{S,T};kwds...)=
+                plot!(plt,x,f(x);kwds...)
+
+
+
+function Plots.plot!{F<:Union{Fun,Domain}}(plt::Plots.Plot,v::AbstractVector{F};label=Void)
+    if label == Void
+        for k=1:length(v)
+            plot!(plt,v[k])
+        end
+    else
+        @assert length(label)==length(v)
+
+        for k=1:length(v)
+            plot!(plt,v[k];label=label[k])
+        end
+    end
+    plt
+end
+
+function Plots.plot!{F<:Fun}(plt::Plots.Plot,x::AbstractVector,v::AbstractVector{F};label=Void)
+    if label == Void
+        for k=1:length(v)
+            plot!(plt,x,v[k])
+        end
+    else
+        @assert length(label)==length(v)
+
+        for k=1:length(v)
+            plot!(plt,x,v[k];label=label[k])
+        end
+    end
+    plt
+end
+
+
+
+
+
+Plots.plot!{S,T<:Complex}(plt::Plots.Plot,f::Fun{S,T};label=Void)=
+                plot!(plt,[real(f),imag(f)];label=(label==Void?["Real","Imag"]:label))
+
+Plots.plot!{S,T<:Complex}(plt::Plots.Plot,x::AbstractVector,f::Fun{S,T};label=Void)=
+            plot!(plt,x,[real(f),imag(f)];label=(label==Void?["Real","Imag"]:label))
+
+function complexplot!(plt::Plots.Plot,f::Fun;opts...)
+    vals =plotptsvals(f)[2]
+    if isa(domain(f),PeriodicDomain)
+        plot!(plt,real([vals;vals[1]]),imag([vals;vals[1]]);opts...)
+    else
+        plot!(plt,real(vals),imag(vals);opts...)
+    end
+end
+
+
+for PLOTSTR in ("complexplot","domainplot","coefficientplot")
+    PLOT=parse(PLOTSTR)
+    PLOTe=parse(PLOTSTR*"!")
     @eval begin
-        function $OP{S,T<:Real}(f::Fun{S,T},v...;opts...)
-            f=pad(f,3length(f)+50)
-            $OP(points(f),values(f),v...;opts...)
-        end
-
-        function $OP{S,T<:Complex}(f::Fun{S,T},v...;opts...)
-            f=pad(f,3length(f)+50)
-            $OP(points(f),values(f),v...;opts...)
-        end
-
-        function $OP{F<:Fun}(f::Vector{F},v...;opts...)
-            if plotter[:plot]=="PyPlot"
-                for k=1:length(f)
-                    $OP(f[k],v...;opts...)
-                end
-            else
-                n=3mapreduce(length,max,f)+50
-                m=length(f)
-                X,Y=Array(Float64,n,m),Array(Float64,n,m)
-                for k=1:length(f)
-                    X[:,k]=points(space(f[k]),n)
-                    Y[:,k]=values(pad(f[k],n))
-                end
-                plot(X,Y,v...;opts...)
-            end
-        end
-
-        function $OP{S}(r::Range,f::Fun{S,Float64},v...;opts...)
-            $OP(collect(r),f(collect(r)),v...;opts...)
-        end
+        $PLOTe(f;opts...)=$PLOTe(current(),f;opts...)
+        $PLOT(f;grid=true,opts...)=$PLOTe(plot(grid=grid),f;opts...)
     end
 end
 
-function complexplot(f::Fun,v...;opts...)
+##
+# Special spaces
+##
+
+function plotptsvals{S<:JacobiWeight}(f::Fun{S})
     f=pad(f,3length(f)+50)
-    vals =values(f)
-    d = domain(f)
-    if isa(d,Circle)
-        plot(real([vals;vals[1]]),imag([vals;vals[1]]),v...;opts...)
-    else
-        plot(real(vals),imag(vals),v...;opts...)
+    s=space(f)
+    pts,vals=points(f),values(f)
+    # add endpoints so that singularity is viewable
+    if s.α ≥ 0
+        pts=insert!(pts,1,first(domain(f)))
+        vals=insert!(vals,1,first(f))
     end
+    if s.β ≥ 0
+        pts=push!(pts,last(domain(f)))
+        vals=push!(vals,last(f))
+    end
+
+    pts,vals
 end
 
-function complexplot{F<:Fun}(f::Vector{F},v...;opts...)
-    if plotter[:plot]=="PyPlot"
-        for k=1:length(f)
-            complexplot(f[k],v...;opts...)
+
+
+for (plt,TYP) in ((:(Plots.plot),:Real),(:(Plots.plot!),:Real),(:complexplot,:Complex),(:complexplot!,:Complex))
+    @eval $plt{S<:Union{ArraySpace,TupleSpace},T<:$TYP}(f::Fun{S,T};opts...)=$plt(vec(f);opts...)
+end
+
+for (plt,TYP) in ((:(Plots.plot!),:Real),(:complexplot!,:Complex))
+    @eval $plt{S<:Union{ArraySpace,TupleSpace},T<:$TYP}(pltin::Plots.Plot,f::Fun{S,T};opts...)=
+    $plt(pltin,vec(f);opts...)
+end
+
+
+function Plots.plot!{S<:PiecewiseSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};label=Void,kwds...)
+    v=vec(f)
+    if label == Void
+        c=plt.plotargs[:color_palette][plt.n+1]
+        for k=1:length(v)
+            plot!(plt,v[k];color=c,kwds...)
         end
     else
-        plot(mapreduce(complexlayer,vcat,f),v...;opts...)
+        @assert length(label)==length(v)
+
+        c=plt.plotargs[:color_palette][plt.n+1]
+        for k=1:length(v)
+            plot!(plt,v[k];label=label[k],color=c,kwds...)
+        end
     end
+    plt
 end
 
-function complexlayer(f::Fun,v...;opts...)
-    f=pad(f,3length(f)+50)
-    vals =values(f)
-    d = domain(f)
-    if isa(d,Circle)
-        layer(real([vals,vals[1]]),imag([vals,vals[1]]),v...;opts...)
-    else
-        layer(real(vals),imag(vals),v...;opts...)
+
+function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
+    pts=space(f).points
+    n=length(pts)
+    ws=pad(f.coefficients,length(pts))
+    plt=plot!(plt,ones(2)*pts[1],[0,1]*ws[1];kwds...)
+    c=plt.plotargs[:color_palette][plt.n]
+    plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
+    plot!(plt,ones(2)*pts',[1,2]*ws';color=c,linestyle=:dot,kwds...)
+end
+
+function Plots.plot!{S<:HeavisideSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
+    pts=domain(f).points
+    n=length(pts)
+    ws=pad(f.coefficients,dimension(space(f)))
+    plt=plot!(plt,pts[1:2],ones(2)*ws[1];kwds...)
+    c=plt.plotargs[:color_palette][plt.n]
+    for k=2:length(ws)
+        plot!(plt,ones(2)*pts[k],ws[k-1:k];color=c,linestyle=:dot,kwds...)
+        plot!(plt,pts[k:k+1],ones(2)*ws[k];color=c,kwds...)
     end
+    plt
 end
 
-function complexlayer{F<:Fun}(f::Vector{F},v...;opts...)
-    typeof(complexlayer(f[1],v...;opts...)[1])[complexlayer(f[k],v...;opts...)[1] for k=1:length(f)]
-end
 
-for (plt,TYP) in ((:plot,:Real),(:complexplot,:Complex),(:layer,:Real),(:complexlayer,:Complex))
-    @eval $plt{S<:Union{PiecewiseSpace,ArraySpace},T<:$TYP}(f::Fun{S,T},v...;opts...)=$plt(vec(f),v...;opts...)
-end
+
+## domainplot
+
+
+Plots.plot!(plt::Plots.Plot,d::Domain;kwds...)=complexplot!(plt,Fun(identity,d);kwds...)  # default is to call complexplot
+Plots.plot!(plt::Plots.Plot,d::UnionDomain;kwds...)=plot!(plt,[d.domains...];kwds...)
+domainplot!(plt::Plots.Plot,f::Union{Fun,Space};kwds...)=plot!(plt,domain(f);kwds...)
+
+
+
+## coefficientplot
+
+coefficientplot!(plt::Plots.Plot,f::Fun;opts...)=plot!(plt,abs(f.coefficients);yscale=:log10,opts...)
 
 
 
 ## Multivariate
 
-for FUNC in (:contour,:contourf)
-    @eval begin
-        function $FUNC(f::MultivariateFun,v...;opts...)
-            f=chop(f,10e-10)
-            f=pad(f,max(size(f,1),20),max(size(f,2),20))
-            vals=values(f)
-            if norm(imag(vals))>10e-9
-                warn("Imaginary part is non-neglible.  Only plotting real part.")
-            end
-
-            $FUNC(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals),v...;opts...)
-        end
-        $FUNC(f::Fun,v...;opts...)=$FUNC(ProductFun(f),v...;opts...)
+function Plots.plot!(plt::Plots.Plot,f::MultivariateFun;linetype=:contour,opts...)
+    f=chop(f,10e-10)
+    f=pad(f,max(size(f,1),20),max(size(f,2),20))
+    vals=values(f)
+    if norm(imag(vals))>10e-9
+        warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
+
+    plot!(plt,points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);linetype=linetype,opts...)
 end
+
+contour(f::Union{Fun,MultivariateFun};kwds...)=plot(f;linetype=:contour,kwds...)
 
 
 
 
 ## 3D plotting
 # TODO: The extra vals should only be added for periodicity?
-function plot(xx::Range,yy::Range,f::MultivariateFun,v...;opts...)
-    vals      = evaluate(f,xx,yy)
+function Plots.plot!(plt::Plots.Plot,xx::Range,yy::Range,f::MultivariateFun;opts...)
+    vals      = f(xx,yy)
     #vals=[vals[:,1] vals vals[:,end]];
     #vals=[vals[1,:]; vals; vals[end,:]]
-    surf(collect(xx),collect(yy),real(vals),v...;opts...)
-end
-
-function plot(xx::Range,yy::Range,f::MultivariateFun,obj,window)
-    vals      = evaluate(f,xx,yy)
-    #vals=[vals[:,1] vals vals[:,end]];
-    #vals=[vals[1,:]; vals; vals[end,:]]
-    glsurfupdate(real(vals),obj,window)
+    plot!(plt,xx,yy,real(vals);opts...)
 end
 
 
-plot(f::MultivariateFun;opts...)=surf(points(f,1),points(f,2),real(values(f));opts...)
-plot{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
-plot(f::LowRankFun;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
-plot(f::MultivariateFun,obj,window;opts...)=glsurfupdate(real(values(f)),obj,window;opts...)
-plot{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};opts...)=plot(ProductFun(f);ops...)
-
-
-
-function plot{DS<:DiracSpace,T<:Real}(f::Fun{DS,T},v...;kwds...)
-    n=length(space(f).points)
-    plot(layer(Fun(f.coefficients[n+1:end],space(f).space)),
-               map(gadflydeltalayer,space(f).points,f.coefficients[1:n])...,v...;kwds...)
-end
-
-## domainplot
-
-
-for (plt,cplt) in ((:plot,:complexplot),(:layer,:complexlayer))
-    @eval $plt(d::Domain,v...;kwds...)=$cplt(Fun(identity,d),v...;kwds...)  # default is to call complexplot
-end
-function plot{D<:Domain}(f::Vector{D},v...;opts...)
-    if plotter[:plot]=="PyPlot"
-        for k=1:length(f)
-            plot(f[k],v...;opts...)
-        end
-    else
-        plot(layer(f),v...;opts...)
-    end
-end
-
-layer{D<:Domain}(d::Vector{D})=mapreduce(layer,vcat,d)
-
-for OP in (:plot,:layer)
-    @eval $OP(d::UnionDomain,opts...;kwds...)=$OP([d.domains...],opts...;kwds...)
-end
-
-
-domainplot(f::Union{Fun,Space},v...;kwds...)=plot(domain(f),v...;kwds...)
-domainlayer(f::Union{Fun,Space},opts...;kwds...)=layer(domain(f),opts...;kwds...)
-
-
-
-## coefficientplot
-
-coefficientplot(f::Fun,v...;opts...)=semilogy(abs(f.coefficients),v...;opts...)
+#plot{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
+#plot(f::LowRankFun;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
+#plot(f::MultivariateFun,obj,window;opts...)=glsurfupdate(real(values(f)),obj,window;opts...)
+Plots.plot{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};kwds...)=plot(ProductFun(f);kwds...)

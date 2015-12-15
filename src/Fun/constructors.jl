@@ -21,7 +21,7 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
 
     Tout=typeof(f1)
     if !( Tout<: Number || ( (Tout <: Array) && (Tout.parameters[1] <: Number) ) )
-        error("Function outputs type $(Tout), which is not a Number")
+        warn("Function outputs type $(Tout), which is not a Number")
     end
 
     Tprom = Tout
@@ -57,12 +57,12 @@ Fun{T<:Space}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
 
-Fun(f::Vector,T::Type)=Fun(f,T())
+Fun(f::AbstractVector,T::Type)=Fun(f,T())
 
 Fun(f,T::Type)=Fun(f,T())
 Fun(f,T::Type,n::Integer)=Fun(f,T(),n)
 
-Fun(f::Vector,d::Domain)=Fun(f,Space(d))
+Fun(f::AbstractVector,d::Domain)=Fun(f,Space(d))
 
 Fun(f,d::Domain)=Fun(f,Space(d))
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
@@ -76,9 +76,9 @@ Fun(c::Number,d::Space)=c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 
 ## List constructor
 
-Fun{T<:Domain}(c::Number,dl::Vector{T})=Fun(c,UnionDomain(dl))
-Fun{T<:Domain}(f,dl::Vector{T})=Fun(f,UnionDomain(dl))
-Fun{T<:Domain}(f,dl::Vector{T},n::Integer)=Fun(f,UnionDomain(dl),n)
+Fun{T<:Domain}(c::Number,dl::AbstractVector{T})=Fun(c,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::AbstractVector{T})=Fun(f,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::AbstractVector{T},n::Integer)=Fun(f,UnionDomain(dl),n)
 
 ## Adaptive constructors
 
@@ -111,6 +111,8 @@ end
 #     Fun(f,d,2^21 + 1)
 # end
 
+samplenorm(fr)=norm(fr)
+
 
 function zerocfsFun(f, d::Space)
     #TODO: reuse function values?
@@ -128,20 +130,20 @@ function zerocfsFun(f, d::Space)
     tol =T==Any?200eps():200eps(T)
 
 
-    fr=[f(x) for x=r]
+    fr=typeof(f0)[f(x) for x=r]
+    maxabsfr=samplenorm(fr)
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
         cf = defaultFun(f, d, 2^logn)
-        absc=abs(cf.coefficients)
-        maxabsc=maximum(absc)
-        if maxabsc==0 && fr==0
+        maxabsc=maxabs(cf.coefficients)
+        if maxabsc==0 && maxabsfr==0
             return(zeros(d))
         end
 
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if length(cf) > 8 && maximum(absc[end-8:end]) < tol*maxabsc &&
+        if length(cf) > 8 && maxabs(cf.coefficients[end-8:end]) < tol*maxabsc &&
                 all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end
@@ -166,7 +168,7 @@ function abszerocfsFun(f,d::Space)
         #cf = Fun(f, d, 2^logn + 1)
         cf = Fun(f, d, 2^logn)
 
-        if maximum(abs(cf.coefficients[end-8:end])) < tol
+        if maxabs(cf.coefficients[end-8:end]) < tol
             return chop!(cf,10eps(T))
         end
     end
@@ -185,6 +187,8 @@ function Fun(f, d::Space; method="zerocoefficients")
         zeros(T,d)
     elseif f==one
         ones(T,d)
+    elseif !isinf(dimension(d))
+        Fun(f,d,dimension(d))  # use exactly dimension number of sample points
     elseif method == "zerocoefficients"
         zerocfsFun(f,d)
     elseif method == "abszerocoefficients"
@@ -196,6 +200,12 @@ end
 Fun(f,d::Domain;opts...)=Fun(f,Space(d);opts...)
 
 
+# this supports expanding a Fun to a larger or smaller domain.
+# we take the union and then intersection to get at any singularities
+# TODO: singularities in space(f)
+Fun(f::Fun,d::Domain;opts...)=Fun(f,Space((d ∪ domain(f)) ∩ d);opts...)
+
+
 
 
 
@@ -205,14 +215,15 @@ Fun(f,d::Domain;opts...)=Fun(f,Space(d);opts...)
 
 
 Fun(f,n::Integer)=Fun(f,Interval(),n)
-Fun{T<:Number}(f,d::Vector{T},n::Integer)=Fun(f,convert(Domain,d),n)
-Fun{T<:Number,M<:Number}(cfs::Vector{M},d::Vector{T})=Fun(1.0*cfs,convert(Domain,d))
-Fun{T<:Number}(f,d::Vector{T})=Fun(f,convert(Domain,d))
-Fun{T<:Number}(f::Number,d::Vector{T})=Fun(f,convert(Domain,d))
+Fun{T<:Number}(f,d::AbstractVector{T},n::Integer)=Fun(f,Domain(d),n)
+Fun{T<:Number,M<:Number}(cfs::AbstractVector{M},d::AbstractVector{T})=Fun(1.0*cfs,Domain(d))
+Fun{T<:Number}(f,d::AbstractVector{T})=Fun(f,Domain(d))
+Fun{T<:Number}(f::Number,d::AbstractVector{T})=Fun(f,Domain(d))
+Fun(f::AbstractVector)=Fun(Domain(f))
 
 
 
-function Fun(cfs::Vector{Any},s::Space)
+function Fun(cfs::AbstractVector{Any},s::Space)
     @assert isempty(cfs)
     Fun(Float64[],s)
 end

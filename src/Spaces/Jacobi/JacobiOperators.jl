@@ -93,9 +93,9 @@ function Conversion(L::Jacobi,M::Jacobi)
     elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
         Conversion{Jacobi{D},Jacobi{D},Float64}(L,M)
     elseif M.b > L.b+1
-        TimesOperator(Conversion(Jacobi(M.a,M.b-1,dm),M),Conversion(L,Jacobi(M.a,M.b-1,dm)))
+        ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a,M.b-1,dm),M),Conversion(L,Jacobi(M.a,M.b-1,dm))))
     else  #if M.a >= L.a+1
-        TimesOperator(Conversion(Jacobi(M.a-1,M.b,dm),M),Conversion(L,Jacobi(M.a-1,M.b,dm)))
+        ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a-1,M.b,dm),M),Conversion(L,Jacobi(M.a-1,M.b,dm))))
     end
 end
 
@@ -145,7 +145,7 @@ function Conversion{m}(A::Ultraspherical{m},B::Jacobi)
         Conversion{Ultraspherical{m},Jacobi,Float64}(A,B)
     else
         J=Jacobi(m-0.5,m-0.5,domain(A))
-        TimesOperator(Conversion(J,B),Conversion(A,J))
+        ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
     end
 end
 
@@ -274,13 +274,14 @@ bandinds{J<:Jacobi,C<:Chebyshev,DD<:Interval}(::Multiplication{JacobiWeight{C,DD
 function addentries!{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::Multiplication{JacobiWeight{C,DD},J},A,kr::Range,::Colon)
     @assert length(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
+    c=M.f.coefficients[1]
     if space(M.f).α==1
         @assert space(M.f).β==0
         # multiply by (1+x)
         for k=kr
-            A[k,k]+=2(k+b-1)/(2k+a+b-1)
+            A[k,k]+=c*2(k+b-1)/(2k+a+b-1)
             if k > 1
-                A[k,k-1]+=(2k-2)/(2k+a+b-3)
+                A[k,k-1]+=c*(2k-2)/(2k+a+b-3)
             end
         end
         A
@@ -288,9 +289,9 @@ function addentries!{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::Multiplication{Jaco
         @assert space(M.f).α==0
         # multiply by (1-x)
         for k=kr
-            A[k,k]+=2(k+a-1)/(2k+a+b-1)
+            A[k,k]+=c*2(k+a-1)/(2k+a+b-1)
             if k > 1
-                A[k,k-1]-=(2k-2)/(2k+a+b-3)
+                A[k,k-1]-=c*(2k-2)/(2k+a+b-3)
             end
         end
         A
@@ -306,26 +307,37 @@ end
 
 #TODO: general integer decrements
 function Conversion{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
-    if A.α==1.0 && A.β==0.0
+    if A.α==A.β+1
         M=Multiplication(Fun([1.],JacobiWeight(1.,0.,domain(A))),A.space)        # multply by (1+x)
-        S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        if A.β==0.
+            S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        else
+            S=SpaceOperator(M,A,JacobiWeight(A.α-1,A.β,rangespace(M)))
+        end
         ConversionWrapper(promoterangespace(S,B))
-    elseif A.α==0.0 && A.β==1.0
+    elseif A.β==A.α+1
         M=Multiplication(Fun([1.],JacobiWeight(0.,1.,domain(A))),A.space)        # multply by (1-x)
-        S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        if A.α==0.
+            S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
+        else
+            S=SpaceOperator(M,A,JacobiWeight(A.α,A.β-1,rangespace(M)))
+        end
         ConversionWrapper(promoterangespace(S,B))
     else
         error("Not implemented")
     end
 end
 
-function maxspace_rule{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
-    if A.α==1.0 && A.β==0.0 && A.space.b>0
-        maxspace(Jacobi(A.space.a,A.space.b-1),B)
-    elseif A.α==0.0 && A.β==1.0 && A.space.a>0
-        maxspace(Jacobi(A.space.b-1,A.space.a),B)
-    else
-        maxspace(A,JacobiWeight(0.,0.,B))
+
+for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
+    @eval function $FUNC{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
+        if A.α==A.β+1 && A.space.b>0
+            $FUNC(Jacobi(A.space.a,A.space.b-1,domain(A)),B)
+        elseif A.β==A.α+1 && A.space.a>0
+            $FUNC(Jacobi(A.space.a-1,A.space.b,domain(A)),B)
+        else
+            $FUNC(A,JacobiWeight(0.,0.,B))
+        end
     end
 end
 

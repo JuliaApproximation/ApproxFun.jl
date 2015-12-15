@@ -56,7 +56,7 @@ S=JacobiWeight(0.,0.,Jacobi(1.,0.,Interval(1.,0.)))
 D=Derivative(S)
 f=Fun(exp,domainspace(D))
 @test (D*f-f).coefficients|>norm < eps(100000.)
-@test (diff(f)-f).coefficients|>norm < eps(100000.)
+@test (f'-f).coefficients|>norm < eps(100000.)
 @test (D^2*f-f).coefficients|>norm < eps(100000000.)
 @test (D*(D*f)-f).coefficients|>norm < eps(100000000.)
 
@@ -93,6 +93,6 @@ f=Fun(exp,Jacobi(0.213,0.590))
 @test_approx_eq sum(Fun(exp,Legendre([0,2]))) sum(Fun(exp,[0,2]))
 
 a=Arc(0.,.1,0.,π/2)
-g=Fun(exp,MappedSpace(a,Legendre()))
+g=Fun(exp,Legendre(a))
 
 @test_approx_eq sum(g) sum(Fun(exp,a))

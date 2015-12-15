@@ -157,7 +157,7 @@ for TYP in (:SumSpace,:PiecewiseSpace)
             #TODO: general case
             @assert length(S1.spaces)==2
             ds2=$TYP(S1.spaces[[2,1]])
-            TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2))
+            ConversionWrapper(TimesOperator(Conversion(ds2,S2),Conversion(S1,ds2)))
 
         else
             # we don't know how to convert so go to default
@@ -169,7 +169,8 @@ end
 
 
 
-for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace))
+for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),
+                        (:union_rule,:union))
     for TYP in (:SumSpace,:PiecewiseSpace)
         @eval function $OPrule(S1::$TYP,S2::$TYP)
             cs1,cs2=map(canonicalspace,S1.spaces),map(canonicalspace,S2.spaces)
@@ -231,11 +232,22 @@ end
 
 #TODO: do in @calculus_operator?
 
-for TYP in (:SumSpace,:PiecewiseSpace,:TupleSpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
-                                                                   (:Integral,:IntegralWrapper))
-    @eval $Op(S::$TYP,k)=$OpWrap(DiagonalInterlaceOperator(map(s->$Op(s,k),S.spaces),$TYP),k)
+for TYP in (:PiecewiseSpace,:TupleSpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
+                                                         (:Integral,:IntegralWrapper))
+    @eval $Op(S::$TYP,k::Integer)=$OpWrap(DiagonalInterlaceOperator(map(s->$Op(s,k),S.spaces),$TYP),k)
 end
 
+function Derivative(S::SumSpace,k::Integer)
+    # we want to map before we decompose, as the map may introduce
+    # mixed bases.
+    if typeof(canonicaldomain(S))==typeof(domain(S))
+        DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),SumSpace),k)
+    else
+        defaultderivative(S,k)
+    end
+end
+
+choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->choosedomainspace(M,s),union,sp.spaces)
 
 
 
@@ -253,8 +265,9 @@ end
 ## Multiply pieces
 
 function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
-    vf=vec(f)
-    @assert length(vf)==length(sp)
+    p=perm(domain(f).domains,domain(sp).domains)  # sort f
+    vf=pieces(f)[p]
+
     MultiplicationWrapper(f,DiagonalInterlaceOperator(map(Multiplication,vf,sp.spaces),PiecewiseSpace))
 end
 

@@ -10,6 +10,7 @@ u=sqrt(4-x.^2)/(2π)
 @test_approx_eq u(.1) sqrt(4-.1^2)/(2π)
 @test_approx_eq sum(u) 1
 
+#this call threw an error, which we check
 values(u)
 
 
@@ -95,7 +96,7 @@ g=1/f
 ## Ray
 
 f=Fun(x->exp(-x),[0,Inf])
-@test_approx_eq diff(f)(.1) -f(.1)
+@test_approx_eq f'(.1) -f(.1)
 
 x=Fun(identity,Ray())
 f=exp(-x)
@@ -106,7 +107,7 @@ u=integrate(f)
 
 x=Fun(identity,Ray())
 f=x^(-0.123)*exp(-x)
-@test_approx_eq diff(integrate(f))(1.) f(1.)
+@test_approx_eq integrate(f)'(1.) f(1.)
 
 
 @test_approx_eq_eps sum(Fun(sech,[0,Inf])) sum(Fun(sech,[0,40.])) 1000000eps()
@@ -189,3 +190,29 @@ x=Fun(d)
 w=sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x))
 
 @test_approx_eq sum(w/(x-2.))/(2π*im) (-4.722196879007759+2.347910413861846im)
+@test_approx_eq linesum(w*log(abs(x-2.)))/π (88.5579588360686)
+
+
+
+## Dirac Space
+
+a,b=DiracDelta(0.),DiracDelta(1.)
+f=Fun(exp)
+g=a+0.2b+f
+@test_approx_eq pieces(g)[2](0.) 1.
+@test_approx_eq g(.1) exp(.1)
+@test_approx_eq sum(g) (sum(f)+1.2)
+
+
+#Checks prevoius bug
+δ=DiracDelta()
+x=Fun()
+w=sqrt(1-x^2)
+w+δ
+
+
+
+## multiplicities
+x=Fun(identity,[-1,1.])
+@test_approx_eq (1/x^2)(0.1) 100.
+@test_approx_eq (1/x^2)(-0.1) 100.
