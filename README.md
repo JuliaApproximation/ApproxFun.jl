@@ -61,19 +61,18 @@ its domain, or another function space. Let's explore:
 x = Fun(identity)
 f = exp(x)
 g = f/sqrt(1-x^2)
-space(f)
-space(g)
+space(f)   # Chebyshev(Interval(-1.0,1.0))
+space(g)   # JacobiWeight(-0.5,-0.5,Interval(-1.0,1.0))
 ```
 
-In this case, `f` is in the `Ultraspherical{0}` space on the domain `Interval(-1.0,1.0)`, and
-`g` is in the enriched `JacobiWeight{Ultraspherical{0}}` space. The absolute value is
-another case where space promotion is inferred from the operation:
+The absolute value is
+another case where the space of the output is inferred from the operation:
 
 ```julia
 f = Fun(x->cospi(5x))
 g = abs(f)
-space(f)
-space(g)
+space(f)   # Chebyshev(Interval(-1.0,1.0))
+space(g)   # PiecewiseSpace((Chebyshev(Interval(-1.,-.9)),...))
 ```
 
 Algebraic and differential operations are also implemented where possible, and most of Julia's built-in functions are overridden to accept `Fun`s:
@@ -218,9 +217,9 @@ end
 
 # References
 
-S. Olver & A. Townsend (2014), A practical framework for infinite-dimensional linear algebra, arXiv:1409.5529, to appear in HPTCDL 2014
+S. Olver & A. Townsend (2014), A practical framework for infinite-dimensional linear algebra, Proceedings of the 1st First Workshop for High Performance Technical Computing in Dynamic Languages, 57–62
 
-A. Townsend & S. Olver (2014), The automatic solution of partial differential equations using a global spectral method, arXiv:1409:2789
+A. Townsend & S. Olver (2014), The automatic solution of partial differential equations using a global spectral method,  J. Comp. Phys., 299: 106–123
 
 S. Olver & A. Townsend (2013), Fast inverse transform sampling in one and two dimensions, arXiv:1307.1223
 

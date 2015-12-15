@@ -22,8 +22,7 @@ rp = roots(differentiate(h))
 
 ## Differentiation and Integration
 f = Fun(x->exp(x),[-1.,1.])
-fp = differentiate(f)
-@test norm(f-fp)<1000eps()
+@test norm(f-f')<1000eps()
 
 g = cumsum(f)
 g = g + f(-1)
@@ -45,6 +44,10 @@ g = abs(f)
 space(f)
 space(g)
 
+x = Fun()
+f = erf(x)
+g = besselj(3,exp(f))
+h = airyai(10asin(f)+2g)
 
 ## Solving ODEs
 
@@ -114,3 +117,12 @@ B = dirichlet(d)
 D = Derivative(Interval())
 L = (0.01D^2-4D)⊗I + I⊗(0.01D^2-3D)
 h = 0.002
+
+
+
+with_bigfloat_precision(1000) do
+    d=Interval{BigFloat}(0,1)
+    D=Derivative(d)
+    u=[ldirichlet();D-I]\[1]
+    @test_approx_eq u(1) exp(BigFloat(1))
+end
