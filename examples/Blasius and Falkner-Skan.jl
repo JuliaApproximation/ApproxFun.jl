@@ -28,8 +28,8 @@ for k=1:10
   u  -= [B; df(u)]\[u(0.);u'(0.);u'(d.b)-1.;f(u)]
 end
 norm(f(u))             # should be zero
-abs(u''(0.)-κ)   # should also be zero
-plot([u,u0]) # Solution and First-order approximation
+abs(u''(0.)-κ)         # should also be zero
+plot([u,u0])           # Solution and First-order approximation
 # Now for Falkner-Skan:
 #     solves 2u''' + uu'' - β(1 - (u')^2) = 0 ,  u(0.) = u'(0.) = 0, u'[∞] = 1
 m = 0.11                # m ∈ [-0.0905, 2]

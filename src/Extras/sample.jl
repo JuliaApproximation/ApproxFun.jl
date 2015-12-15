@@ -175,6 +175,13 @@ samplecdf(v::Vector)=chebbisectioninv(v,rand())
 
 sample{TS<:AbstractProductSpace}(f::Fun{TS},k::Integer)=sample(ProductFun(f),k)
 
+function sample(f::LowRankFun,n::Integer)
+    rx=sample(sum(f,2),n)
+    fA=evaluate(f,rx,:)
+    ry=map(sample,fA)
+    [rx ry]
+end
+
 function sample{C<:Chebyshev}(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},RealBasis,2},Float64},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)

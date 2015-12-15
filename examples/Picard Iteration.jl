@@ -12,9 +12,9 @@ f =(x,y) -> [ y[2], -sin(y[1]) ]
 
 
 y0 = [3., 0.]
-D = Interval(0.,20.)
-xt = Fun(identity, D)
-y0=Fun(x->y0,D)
+d = Interval(0.,20.)
+xt = Fun(identity, d)
+y0=Fun(x->y0,d)
 yn = y0
 plot(yn[1])
 
@@ -31,6 +31,6 @@ while true
 end
 
 
-xts = D.a:0.01:D.b
+xts = d.a:0.01:d.b
 plot(xts,yn[1])
 plot!(xts,yn[2])

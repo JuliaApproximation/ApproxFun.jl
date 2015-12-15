@@ -33,7 +33,7 @@ end
 
 
  # Semicircle law
-x=Fun(x->x,[-2.,2.])
+x=Fun(identity,[-2.,2.])
 w=sqrt(4-x^2)/(2π)
 
 lanczos(w,5)

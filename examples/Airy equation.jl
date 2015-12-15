@@ -3,10 +3,8 @@ using ApproxFun
 #The following solves the Airy ODE with dirichlet boundary conditions
 
 x=Fun(x->x,[-1000.,15.])   # Fun corresponding to multiplication by x, on [-100,15]
-d=domain(x)                # The domain
-D=Derivative(d)            # The derivative operator
-B=dirichlet(d)             # Dirichlet boundary conditions, [u(-100),u(15)]
-
+D=Derivative()             # The derivative operator
+B=dirichlet()              # Dirichlet boundary conditions, [u(-100),u(15)]
 
 #Construct operator
 
@@ -19,12 +17,12 @@ u=A\b                      # u satisfies A*u = b, or in other words,
                            # B*u = [airyai(-100.),0.] and (D2 - x)*u = 0.
 
 # Check the accuracy
-norm(u - Fun(airyai,d))
+norm(u - Fun(airyai,[-1000.,15.]))
 
 
 ## We now solve with Neumann conditions
 
-B=neumann(d)
+B=neumann()
 A=[B;D^2-x]
 b=[airyaiprime(d.a),0.,0.]
 
@@ -32,4 +30,4 @@ u=A\b
 
 
 # Check the accuracy
-norm(u - Fun(airyai,d))
+norm(u - Fun(airyai,[-1000.,15.]))

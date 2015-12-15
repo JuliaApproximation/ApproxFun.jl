@@ -13,7 +13,6 @@ plot!(vcat(r...);t=:density)
 
 
 #We can compare the histograms of x with the GUE:
-
 using RandomMatrices
 
 plot(vcat([sqrt(2)eigvalrand(GaussianHermite(2),2) for k=1:10000]...);t=:density)
