@@ -191,7 +191,11 @@ end
 
 function Multiplication{S1,S2,DD<:IntervalDomain,T}(f::Fun{JacobiWeight{S1,DD},T},S::JacobiWeight{S2,DD})
     M=Multiplication(Fun(f.coefficients,space(f).space),S.space)
-    rsp=canonicalspace(JacobiWeight(space(f).α+S.α,space(f).β+S.β,rangespace(M)))
+    if space(f).α+S.α==space(f).β+S.β==0
+        rsp=rangespace(M)
+    else
+        rsp=JacobiWeight(space(f).α+S.α,space(f).β+S.β,rangespace(M))
+    end
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 

@@ -216,3 +216,10 @@ w+δ
 x=Fun(identity,[-1,1.])
 @test_approx_eq (1/x^2)(0.1) 100.
 @test_approx_eq (1/x^2)(-0.1) 100.
+
+
+
+## erf(sqrt(x))
+
+x=Fun([0.,1.])
+@test_approx_eq erf(sqrt(x))(0.1) erf(sqrt(0.1))

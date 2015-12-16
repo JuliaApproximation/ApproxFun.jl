@@ -444,20 +444,20 @@ Base.cos{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 
 
 
-for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0f'^3",:(imag)),
-                            (:(Base.erfi),"f'*D^2-(2f*f'^2+f'')*D","0f'^3",:(real)),
-                            (:(Base.erfc),"f'*D^2+(2f*f'^2-f'')*D","0f'^3",:(real)),
-                            (:(Base.sin),"f'*D^2-f''*D+f'^3","0f'^3",:(imag)),
-                            (:(Base.cos),"f'*D^2-f''*D+f'^3","0f'^3",:(imag)),
-                            (:(Base.sinh),"f'*D^2-f''*D-f'^3","0f'^3",:(real)),
-                            (:(Base.cosh),"f'*D^2-f''*D-f'^3","0f'^3",:(real)),
-                            (:(Base.airyai),"f'*D^2-f''*D-f*f'^3","0f'^3",:(imag)),
-                            (:(Base.airybi),"f'*D^2-f''*D-f*f'^3","0f'^3",:(imag)),
+for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
+                            (:(Base.erfi),"f'*D^2-(2f*f'^2+f'')*D","0",:(real)),
+                            (:(Base.erfc),"f'*D^2+(2f*f'^2-f'')*D","0",:(real)),
+                            (:(Base.sin),"f'*D^2-f''*D+f'^3","0",:(imag)),
+                            (:(Base.cos),"f'*D^2-f''*D+f'^3","0",:(imag)),
+                            (:(Base.sinh),"f'*D^2-f''*D-f'^3","0",:(real)),
+                            (:(Base.cosh),"f'*D^2-f''*D-f'^3","0",:(real)),
+                            (:(Base.airyai),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
+                            (:(Base.airybi),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
                             (:(Base.airyaiprime),"f'*D^2-f''*D-f*f'^3","airyai(f)*f'^3",:(imag)),
                             (:(Base.airybiprime),"f'*D^2-f''*D-f*f'^3","airybi(f)*f'^3",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
-        function $op{S<:Ultraspherical,T}(f::Fun{S,T})
+        function $op{S,T}(f::Fun{S,T})
             g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
@@ -477,15 +477,15 @@ end
 
 ## Second order functions with parameter ν
 
-for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.hankelh2),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.besselj),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.bessely),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.besseli),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0f'^3",:(real)),
-                            (:(Base.besselk),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0f'^3",:(real)),
-                            (:(Base.besselkx),"f^2*f'*D^2+((-2f^2+f)*f'^2-f^2*f'')*D-(f+ν^2)*f'^3","0f'^3",:(real)),
-                            (:(Base.hankelh1x),"f^2*f'*D^2+((2im*f^2+f)*f'^2-f^2*f'')*D+(im*f-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0f'^3",:(imag)))
+for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.hankelh2),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.besselj),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.bessely),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.besseli),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0",:(real)),
+                            (:(Base.besselk),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0",:(real)),
+                            (:(Base.besselkx),"f^2*f'*D^2+((-2f^2+f)*f'^2-f^2*f'')*D-(f+ν^2)*f'^3","0",:(real)),
+                            (:(Base.hankelh1x),"f^2*f'*D^2+((2im*f^2+f)*f'^2-f^2*f'')*D+(im*f-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
         function $op{S<:Ultraspherical,T}(ν,f::Fun{S,T})
