@@ -205,7 +205,7 @@ function Multiplication{D,T,SS,DD<:IntervalDomain}(f::Fun{D,T},S::JacobiWeight{S
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
-function Multiplication{SS,T,V,ID<:IntervalDomain}(f::Fun{JacobiWeight{SS,ID},T},S::Space{V,ID})
+function Multiplication{SS,T,ID<:IntervalDomain}(f::Fun{JacobiWeight{SS,ID},T},S::PolynomialSpace{ID})
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
     rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))

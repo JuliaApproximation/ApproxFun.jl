@@ -271,47 +271,9 @@ function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     MultiplicationWrapper(f,DiagonalInterlaceOperator(map(Multiplication,vf,sp.spaces),PiecewiseSpace))
 end
 
+Multiplication{SV1,SV2,T2,T1,D,d}(f::Fun{SumSpace{SV1,T1,D,d}},sp::SumSpace{SV2,T2,D,d})=MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,vec(f)))
+Multiplication(f::Fun,sp::SumSpace)=MultiplicationWrapper(f,DiagonalInterlaceOperator(map(s->Multiplication(f,s),vec(sp)),SumSpace))
 
-function bandinds{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS})
-    a,b=vec(M.f)
-    sp=domainspace(M)
-    bandinds(Multiplication(a,sp)+Multiplication(b,sp))
-end
-function rangespace{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS})
-    a,b=vec(M.f)
-    sp=domainspace(M)
-    rangespace(Multiplication(a,sp)+Multiplication(b,sp))
-end
-function addentries!{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS},A,k,::Colon)
-    a,b=vec(M.f)
-    sp=domainspace(M)
-    addentries!(Multiplication(a,sp)+Multiplication(b,sp),A,k,:)
-end
-
-
-
-
-function bandinds{S,SS<:SumSpace}(M::Multiplication{S,SS})
-    a,b=vec(domainspace(M))
-    Ma=Multiplication(M.f,a)
-    Mb=Multiplication(M.f,b)
-
-    bandinds(DiagonalInterlaceOperator((Ma,Mb),SumSpace))
-end
-function rangespace{S,SS<:SumSpace}(M::Multiplication{S,SS})
-    a,b=vec(domainspace(M))
-    Ma=Multiplication(M.f,a)
-    Mb=Multiplication(M.f,b)
-
-    rangespace(Ma)⊕rangespace(Mb)
-end
-function addentries!{S,SS<:SumSpace}(M::Multiplication{S,SS},A,k,::Colon)
-    a,b=vec(domainspace(M))
-    Ma=Multiplication(M.f,a)
-    Mb=Multiplication(M.f,b)
-
-    addentries!(DiagonalInterlaceOperator((Ma,Mb),SumSpace),A,k,:)
-end
 
 
 

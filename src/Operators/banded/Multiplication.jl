@@ -9,11 +9,13 @@ immutable Multiplication{D<:Space,S<:Space,V,T} <: AbstractMultiplication{T}
     Multiplication(f::Fun{D,V},sp::S)=new(f,sp)
 end
 
-function Multiplication{D,T}(f::Fun{D,T},sp::Space)
+function defaultMultiplication{D,T}(f::Fun{D,T},sp::Space)
     @assert domainscompatible(space(f),sp)
     Multiplication{D,typeof(sp),T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 end
 
+
+Multiplication(f::Fun,sp::Space)=defaultMultiplication(f,sp)
 Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
 Multiplication(c::Number)=ConstantOperator(c)
 

@@ -23,6 +23,7 @@ getindex{DD}(T::Evaluation{Taylor{DD},Complex{Float64},Complex{Float64}},cols::R
 
 ## Multiplication
 
+Multiplication{DD}(f::Fun{Laurent{DD}},sp::Laurent{DD})=defaultMultiplication(f,sp)
 bandinds{DD}(M::Multiplication{Laurent{DD},Laurent{DD}})=bandinds(LaurentOperator(M.f))
 rangespace{DD}(M::Multiplication{Laurent{DD},Laurent{DD}})=domainspace(M)
 addentries!{DD}(M::Multiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentries!(LaurentOperator(M.f),A,k,:)
