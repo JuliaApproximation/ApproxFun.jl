@@ -254,21 +254,6 @@ end
 datalength{D}(Σ::DefiniteLineIntegral{Fourier{D}})=1
 
 
-
-
-
-## Split Multiplication in 2 to lower bandwidths
-
-function coefficienttimes{D1,D2}(f::Fun{Fourier{D1}},g::Fun{Fourier{D2}})
-    a,b=vec(f)
-    coefficienttimes(a,g)+coefficienttimes(b,g)
-end
-function coefficienttimes{D}(f::Fun,g::Fun{Fourier{D}})
-    c,d=vec(g)
-    coefficienttimes(f,c)+coefficienttimes(f,d)
-end
-coefficienttimes{D}(f::Fun{Fourier{D}},g::Fun) = coefficienttimes(g,f)
-
 transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),g)
 transformtimes{SS<:SinSpace,D}(f::Fun{SS},g::Fun{Fourier{D}}) = transformtimes(Fun(interlace(zeros(eltype(f),length(f)+1),f.coefficients),Fourier(domain(f))),g)
 transformtimes{CS<:CosSpace,SS<:SinSpace}(f::Fun{CS},g::Fun{SS}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),Fun(interlace(zeros(eltype(g),length(g)+1),g.coefficients),Fourier(domain(g))))

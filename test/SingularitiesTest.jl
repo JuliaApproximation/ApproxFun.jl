@@ -223,3 +223,9 @@ x=Fun(identity,[-1,1.])
 
 x=Fun([0.,1.])
 @test_approx_eq erf(sqrt(x))(0.1) erf(sqrt(0.1))
+@test_approx_eq erfc(sqrt(x))(0.1) erfc(sqrt(0.1))
+
+
+## norm(u-x)
+
+@test_approx_eq norm(Fun(exp,Legendre([0,1]))+sqrt(x)) 2.491141949903508

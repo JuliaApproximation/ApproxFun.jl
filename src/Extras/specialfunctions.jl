@@ -446,7 +446,6 @@ Base.cos{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 
 for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
                             (:(Base.erfi),"f'*D^2-(2f*f'^2+f'')*D","0",:(real)),
-                            (:(Base.erfc),"f'*D^2+(2f*f'^2-f'')*D","0",:(real)),
                             (:(Base.sin),"f'*D^2-f''*D+f'^3","0",:(imag)),
                             (:(Base.cos),"f'*D^2-f''*D+f'^3","0",:(imag)),
                             (:(Base.sinh),"f'*D^2-f''*D-f'^3","0",:(real)),
@@ -474,6 +473,8 @@ for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
         end
     end
 end
+
+Base.erfc(f::Fun)=1-erf(f)
 
 ## Second order functions with parameter ν
 

@@ -29,6 +29,9 @@ rangespace{DD}(M::ConcreteMultiplication{Laurent{DD},Laurent{DD}})=domainspace(M
 addentries!{DD}(M::ConcreteMultiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentries!(LaurentOperator(M.f),A,k,:)
 
 
+# override SumSpace default
+coefficienttimes{DD}(f::Fun{Laurent{DD}},g::Fun{Laurent{DD}}) = Multiplication(f,space(g))*g
+
 
 
 

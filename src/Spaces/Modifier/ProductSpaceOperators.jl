@@ -275,6 +275,11 @@ Multiplication{SV1,SV2,T2,T1,D,d}(f::Fun{SumSpace{SV1,T1,D,d}},sp::SumSpace{SV2,
 Multiplication(f::Fun,sp::SumSpace)=MultiplicationWrapper(f,DiagonalInterlaceOperator(map(s->Multiplication(f,s),vec(sp)),SumSpace))
 
 
+# we override coefficienttimes to split the multiplication down to components as union may combine spaes
+
+coefficienttimes{S1<:SumSpace,S2<:SumSpace}(f::Fun{S1},g::Fun{S2}) = mapreduce(ff->ff*g,+,vec(f))
+coefficienttimes{S1<:SumSpace}(f::Fun{S1},g::Fun) = mapreduce(ff->ff*g,+,vec(f))
+coefficienttimes{S2<:SumSpace}(f::Fun,g::Fun{S2}) = mapreduce(gg->f*gg,+,vec(g))
 
 
 

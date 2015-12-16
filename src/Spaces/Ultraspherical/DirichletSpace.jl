@@ -25,6 +25,20 @@ canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
 setdomain{l,r}(S::ChebyshevDirichlet{l,r},d::Domain)=ChebyshevDirichlet{l,r}(d)
 
 
+# These are used to make sure Chebyshev comes first
+
+Base.isless(a::Chebyshev,b::ChebyshevDirichlet)=true
+<(a::Chebyshev,b::ChebyshevDirichlet)=true
+<=(a::Chebyshev,b::ChebyshevDirichlet)=true
+>(a::Chebyshev,b::ChebyshevDirichlet)=false
+>=(a::Chebyshev,b::ChebyshevDirichlet)=false
+
+Base.isless(a::ChebyshevDirichlet,b::Chebyshev)=false
+<(a::ChebyshevDirichlet,b::Chebyshev)=false
+<=(a::ChebyshevDirichlet,b::Chebyshev)=false
+>(a::ChebyshevDirichlet,b::Chebyshev)=true
+>=(a::ChebyshevDirichlet,b::Chebyshev)=true
+
 ## coefficients
 
 # converts to f_0 T_0 + f_1 T_1 +  \sum f_k (T_k - T_{k-2})

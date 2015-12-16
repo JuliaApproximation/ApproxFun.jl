@@ -253,13 +253,15 @@ for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
 end
 
 
-hasconversion{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D})=isapproxinteger(A.α-B.α) &&
-    isapproxinteger(A.β-B.β) && A.α ≥ B.α && A.β ≥ B.β && hasconversion(A.space,B.space)
+for FUNC in (:hasconversion,:isconvertible)
+    @eval begin
+        $FUNC{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D})=isapproxinteger(A.α-B.α) &&
+            isapproxinteger(A.β-B.β) && A.α ≥ B.α && A.β ≥ B.β && $FUNC(A.space,B.space)
 
-
-hasconversion{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::Space{T,D})=hasconversion(A,JacobiWeight(0.,0.,B))
-hasconversion{T,S,D<:IntervalDomain}(B::Space{T,D},A::JacobiWeight{S,D})=hasconversion(JacobiWeight(0.,0.,B),A)
-
+        $FUNC{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::Space{T,D})=$FUNC(A,JacobiWeight(0.,0.,B))
+        $FUNC{T,S,D<:IntervalDomain}(B::Space{T,D},A::JacobiWeight{S,D})=$FUNC(JacobiWeight(0.,0.,B),A)
+    end
+end
 
 
 # return the space that has banded Conversion to the other, or NoSpace
