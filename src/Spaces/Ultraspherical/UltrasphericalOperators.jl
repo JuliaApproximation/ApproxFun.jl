@@ -84,7 +84,7 @@ end
 # these are special cases
 
 
-Base.stride{U<:Ultraspherical,V<:Ultraspherical}(M::Multiplication{U,V})=stride(M.f)
+Base.stride{U<:Ultraspherical,V<:Ultraspherical}(M::ConcreteMultiplication{U,V})=stride(M.f)
 
 
 function chebmult_addentries!(cfs::Vector,A,kr::Range)
@@ -95,9 +95,9 @@ end
 
 for TYP in (:UnitRange,:Range) # needed to avoid confusion
     @eval begin
-        addentries!{T,C<:Chebyshev}(M::Multiplication{C,C,T},A,kr::$TYP,::Colon)=chebmult_addentries!(coefficients(M.f),A,kr)
+        addentries!{T,C<:Chebyshev}(M::ConcreteMultiplication{C,C,T},A,kr::$TYP,::Colon)=chebmult_addentries!(coefficients(M.f),A,kr)
 
-        function addentries!{D,T,C<:Chebyshev}(M::Multiplication{C,Ultraspherical{1,D},T},A,kr::$TYP,::Colon)
+        function addentries!{D,T,C<:Chebyshev}(M::ConcreteMultiplication{C,Ultraspherical{1,D},T},A,kr::$TYP,::Colon)
             cfs=coefficients(M.f)
             toeplitz_addentries!(.5cfs,A,kr)
             hankel_addentries!(-.5cfs[3:end],A,kr)
@@ -105,7 +105,7 @@ for TYP in (:UnitRange,:Range) # needed to avoid confusion
     end
 end
 
-function addentries!{λ,PS<:PolynomialSpace,D,T}(M::Multiplication{Ultraspherical{λ,D},PS,T},A,kr::UnitRange,::Colon)
+function addentries!{λ,PS<:PolynomialSpace,D,T}(M::ConcreteMultiplication{Ultraspherical{λ,D},PS,T},A,kr::UnitRange,::Colon)
     a=coefficients(M.f)
     for k=kr
         A[k,k]=a[1]
@@ -129,7 +129,7 @@ function addentries!{λ,PS<:PolynomialSpace,D,T}(M::Multiplication{Ultraspherica
 end
 
 
-function addentries!{PS<:PolynomialSpace,T,C<:Chebyshev}(M::Multiplication{C,PS,T},A,kr::UnitRange,::Colon)
+function addentries!{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},A,kr::UnitRange,::Colon)
     a=coefficients(M.f)
 
     for k=kr

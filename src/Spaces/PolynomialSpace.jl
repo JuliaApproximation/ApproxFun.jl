@@ -3,8 +3,8 @@
 
 abstract PolynomialSpace{D} <: RealUnivariateSpace{D}
 
-bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
-rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=domainspace(M)
+bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
+rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=domainspace(M)
 
 
 # All polynomials contain constant
@@ -57,7 +57,7 @@ end
 #####
 
 
-function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::Multiplication{US,PS,T},A,kr::UnitRange,::Colon)
+function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::ConcreteMultiplication{US,PS,T},A,kr::UnitRange,::Colon)
     a=coefficients(M.f)
     fsp=space(M.f)
     for k=kr

@@ -247,7 +247,7 @@ function Multiplication{C<:Chebyshev,DD<:Interval}(f::Fun{JacobiWeight{C,DD}},S:
     # see DLMF (18.9.6)
     if length(f)==1 && ((space(f).α==1 && space(f).β==0 && S.b >0) ||
                         (space(f).α==0 && space(f).β==1 && S.a >0))
-        Multiplication{typeof(space(f)),typeof(S),eltype(f),eltype(f)}(f,S)
+        ConcreteMultiplication(f,S)
     else
 # default JacobiWeight
         M=Multiplication(Fun(f.coefficients,space(f).space),S)
@@ -256,7 +256,7 @@ function Multiplication{C<:Chebyshev,DD<:Interval}(f::Fun{JacobiWeight{C,DD}},S:
     end
 end
 
-function rangespace{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::Multiplication{JacobiWeight{C,DD},J})
+function rangespace{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::ConcreteMultiplication{JacobiWeight{C,DD},J})
     S=domainspace(M)
     if space(M.f).α==1
         # multiply by (1+x)
@@ -269,9 +269,9 @@ function rangespace{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::Multiplication{Jacob
     end
 end
 
-bandinds{J<:Jacobi,C<:Chebyshev,DD<:Interval}(::Multiplication{JacobiWeight{C,DD},J})=-1,0
+bandinds{J<:Jacobi,C<:Chebyshev,DD<:Interval}(::ConcreteMultiplication{JacobiWeight{C,DD},J})=-1,0
 
-function addentries!{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::Multiplication{JacobiWeight{C,DD},J},A,kr::Range,::Colon)
+function addentries!{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::ConcreteMultiplication{JacobiWeight{C,DD},J},A,kr::Range,::Colon)
     @assert length(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     c=M.f.coefficients[1]

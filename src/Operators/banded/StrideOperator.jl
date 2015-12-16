@@ -271,7 +271,7 @@ rangespace(IO::InterlaceOperator)=rangespace(IO.ops[:,1])
 
 #tests whether an operator can be made into a column
 iscolop(op)=isconstop(op)
-iscolop(::AbstractMultiplication)=true
+iscolop(::Multiplication)=true
 
 function interlace{T<:BandedOperator}(A::Matrix{T})
     # Hack to use BlockOperator when appropriate

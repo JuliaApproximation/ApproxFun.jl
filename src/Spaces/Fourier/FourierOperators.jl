@@ -171,35 +171,35 @@ end
 
 # CosSpace Multiplicaiton is the same as Chebyshev
 
-bandinds{Sp<:CosSpace}(M::Multiplication{Sp,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
-rangespace{Sp<:CosSpace}(M::Multiplication{Sp,Sp})=domainspace(M)
-addentries!{Sp<:CosSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange,::Colon)=chebmult_addentries!(M.f.coefficients,A,kr)
+bandinds{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
+rangespace{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp})=domainspace(M)
+addentries!{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp},A,kr::UnitRange,::Colon)=chebmult_addentries!(M.f.coefficients,A,kr)
 
 
-function addentries!{Sp<:SinSpace}(M::Multiplication{Sp,Sp},A,kr::UnitRange,::Colon)
+function addentries!{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp},A,kr::UnitRange,::Colon)
     a=M.f.coefficients
     toeplitz_addentries!(0.5,[0.;-a],a,A,kr)
     hankel_addentries!(0.5,a,A,max(kr[1],2):kr[end])
     A
 end
 
-bandinds{Sp<:SinSpace}(M::Multiplication{Sp,Sp})=-length(M.f)-1,length(M.f)-1
-rangespace{Sp<:SinSpace}(M::Multiplication{Sp,Sp})=CosSpace(domain(M))
+bandinds{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp})=-length(M.f)-1,length(M.f)-1
+rangespace{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp})=CosSpace(domain(M))
 
 
-function addentries!{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Sp,Cs},A,kr::Range,::Colon)
+function addentries!{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Sp,Cs},A,kr::Range,::Colon)
     a=M.f.coefficients
     toeplitz_addentries!(0.5,a[2:end],[a[1];0.;-a],A,kr)
     hankel_addentries!(0.5,a,A,kr)
     A
 end
 
-bandinds{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Sp,Cs})=1-length(M.f),length(M.f)+1
-rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Sp,Cs})=SinSpace(domain(M))
+bandinds{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Sp,Cs})=1-length(M.f),length(M.f)+1
+rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Sp,Cs})=SinSpace(domain(M))
 
 
 
-function addentries!{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp},A,kr::Range,::Colon)
+function addentries!{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,Sp},A,kr::Range,::Colon)
     a=M.f.coefficients
     toeplitz_addentries!(0.5a,A,kr)
     if length(a)>=3
@@ -208,8 +208,8 @@ function addentries!{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp},A,kr::R
     A
 end
 
-bandinds{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
-rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::Multiplication{Cs,Sp})=SinSpace(domain(M))
+bandinds{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
+rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,Sp})=SinSpace(domain(M))
 
 
 
@@ -218,7 +218,7 @@ function Multiplication{T,D}(a::Fun{Fourier{D},T},sp::Fourier{D})
     c,s=vec(a)
     O=BandedOperator{T}[Multiplication(c,CosSpace(d)) Multiplication(s,SinSpace(d));
                         Multiplication(s,CosSpace(d)) Multiplication(c,SinSpace(d))]
-    M=SpaceOperator(InterlaceOperator(O),space(a),sp)
+    MultiplicationWrapper(a,SpaceOperator(InterlaceOperator(O),space(a),sp))
 end
 
 

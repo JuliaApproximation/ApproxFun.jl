@@ -40,7 +40,7 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
         rs=AnySpace()  # for the case of all constants
 
         for k=1:size(A,2)-1
-            if isa(A[1,k],AbstractMultiplication)
+            if isa(A[1,k],Multiplication)
                 # cols are going to be constantspace, so rangespace is just space of f
                 rs=union(rs,space(A[1,k].f))
             end
@@ -60,7 +60,7 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
     T=mapreduce(eltype,promote_type,M)
     colsv=Array(Vector{T},length(M))
     for k=1:length(M)
-        if isa(M[k],AbstractMultiplication)
+        if isa(M[k],Multiplication)
             ds=domainspace(M[k])
             @assert isa(ds,UnsetSpace) || isa(ds,ConstantSpace)
             @assert !isambiguous(rs)

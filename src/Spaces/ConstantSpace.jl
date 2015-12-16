@@ -74,8 +74,8 @@ function addentries!{CS<:ConstantSpace,S<:Space}(C::Conversion{CS,S},A,kr::Range
     A
 end
 
-bandinds{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T}) = 1-length(D.f),0
-function addentries!{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T},A,kr::Range,::Colon)
+bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = 1-length(D.f),0
+function addentries!{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T},A,kr::Range,::Colon)
     Op = Multiplication(D.f,space(D.f))
     for k=kr
         if k≤length(D.f)
@@ -85,15 +85,15 @@ function addentries!{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T},A,k
     A
 end
 
-function addentries!{CS<:ConstantSpace,T}(D::Multiplication{CS,CS,T},A,kr::Range,::Colon)
+function addentries!{CS<:ConstantSpace,T}(D::ConcreteMultiplication{CS,CS,T},A,kr::Range,::Colon)
     if 1 in kr
         A[1,1]+=D.f.coefficients[1]
     end
     A
 end
 
-rangespace{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T}) = rangespace(Multiplication(D.f,space(D.f)))
-rangespace{CS<:ConstantSpace,T}(D::Multiplication{CS,CS,T}) = ConstantSpaec()
+rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = rangespace(Multiplication(D.f,space(D.f)))
+rangespace{CS<:ConstantSpace,T}(D::ConcreteMultiplication{CS,CS,T}) = ConstantSpaec()
 
 
 ###
@@ -154,4 +154,4 @@ end
 
 *(A::BandedOperator,B::Functional)=A*convert(BandedBelowOperator,B)
 
-*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:AbstractMultiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)
+*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)

@@ -11,9 +11,9 @@ LaurentOperator{DD}(f::Fun{Laurent{DD}})=LaurentOperator(f.coefficients[3:2:end]
 ##Taylor
 
 
-bandinds{DD}(M::Multiplication{Taylor{DD},Taylor{DD}})=1-length(M.f),0
-rangespace{DD}(M::Multiplication{Taylor{DD},Taylor{DD}})=domainspace(M)
-addentries!{DD}(M::Multiplication{Taylor{DD},Taylor{DD}},A,k,::Colon)=addentries!(ToeplitzOperator(M.f.coefficients[2:end],[M.f.coefficients[1]]),A,k,:)
+bandinds{DD}(M::ConcreteMultiplication{Taylor{DD},Taylor{DD}})=1-length(M.f),0
+rangespace{DD}(M::ConcreteMultiplication{Taylor{DD},Taylor{DD}})=domainspace(M)
+addentries!{DD}(M::ConcreteMultiplication{Taylor{DD},Taylor{DD}},A,k,::Colon)=addentries!(ToeplitzOperator(M.f.coefficients[2:end],[M.f.coefficients[1]]),A,k,:)
 
 
 ## Evaluation
@@ -23,10 +23,10 @@ getindex{DD}(T::Evaluation{Taylor{DD},Complex{Float64},Complex{Float64}},cols::R
 
 ## Multiplication
 
-Multiplication{DD}(f::Fun{Laurent{DD}},sp::Laurent{DD})=defaultMultiplication(f,sp)
-bandinds{DD}(M::Multiplication{Laurent{DD},Laurent{DD}})=bandinds(LaurentOperator(M.f))
-rangespace{DD}(M::Multiplication{Laurent{DD},Laurent{DD}})=domainspace(M)
-addentries!{DD}(M::Multiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentries!(LaurentOperator(M.f),A,k,:)
+Multiplication{DD}(f::Fun{Laurent{DD}},sp::Laurent{DD})=ConcreteMultiplication(f,sp)  # override SumSpace default
+bandinds{DD}(M::ConcreteMultiplication{Laurent{DD},Laurent{DD}})=bandinds(LaurentOperator(M.f))
+rangespace{DD}(M::ConcreteMultiplication{Laurent{DD},Laurent{DD}})=domainspace(M)
+addentries!{DD}(M::ConcreteMultiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentries!(LaurentOperator(M.f),A,k,:)
 
 
 
