@@ -68,13 +68,13 @@ end
 ### Cos/Sine
 
 
-bandinds{CS<:CosSpace}(D::Derivative{CS})=iseven(D.order)?(0,0):(0,1)
-bandinds{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?(0,0):(-1,0)
-rangespace{S<:CosSpace}(D::Derivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
-rangespace{S<:SinSpace}(D::Derivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
+bandinds{CS<:CosSpace}(D::ConcreteDerivative{CS})=iseven(D.order)?(0,0):(0,1)
+bandinds{S<:SinSpace}(D::ConcreteDerivative{S})=iseven(D.order)?(0,0):(-1,0)
+rangespace{S<:CosSpace}(D::ConcreteDerivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
+rangespace{S<:SinSpace}(D::ConcreteDerivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 
 
-function addentries!{CS<:CosSpace}(D::Derivative{CS},A,kr::Range,::Colon)
+function addentries!{CS<:CosSpace}(D::ConcreteDerivative{CS},A,kr::Range,::Colon)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
@@ -95,7 +95,7 @@ function addentries!{CS<:CosSpace}(D::Derivative{CS},A,kr::Range,::Colon)
     A
 end
 
-function addentries!{CS<:SinSpace}(D::Derivative{CS},A,kr::Range,::Colon)
+function addentries!{CS<:SinSpace}(D::ConcreteDerivative{CS},A,kr::Range,::Colon)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
@@ -119,11 +119,11 @@ end
 Integral(::CosSpace,m::Integer)=error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
 
 
-bandinds{CS<:SinSpace}(D::Integral{CS})=iseven(D.order)?(0,0):(-1,0)
-rangespace{S<:CosSpace}(D::Integral{S})=iseven(D.order)?D.space:SinSpace(domain(D))
-rangespace{S<:SinSpace}(D::Integral{S})=iseven(D.order)?D.space:CosSpace(domain(D))
+bandinds{CS<:SinSpace}(D::ConcreteIntegral{CS})=iseven(D.order)?(0,0):(-1,0)
+rangespace{S<:CosSpace}(D::ConcreteIntegral{S})=iseven(D.order)?D.space:SinSpace(domain(D))
+rangespace{S<:SinSpace}(D::ConcreteIntegral{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 
-function addentries!{CS<:SinSpace}(D::Integral{CS},A,kr::Range,::Colon)
+function addentries!{CS<:SinSpace}(D::ConcreteIntegral{CS},A,kr::Range,::Colon)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order
@@ -145,10 +145,10 @@ function addentries!{CS<:SinSpace}(D::Integral{CS},A,kr::Range,::Colon)
 end
 
 
-bandinds{T,CS<:CosSpace,DD<:PeriodicInterval}(D::Integral{SliceSpace{1,1,CS,T,DD,1}})=(0,0)
-rangespace{T,CS<:CosSpace,DD<:PeriodicInterval}(D::Integral{SliceSpace{1,1,CS,T,DD,1}})=iseven(D.order)?D.space:SinSpace(domain(D))
+bandinds{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}})=(0,0)
+rangespace{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}})=iseven(D.order)?D.space:SinSpace(domain(D))
 
-function addentries!{T,CS<:CosSpace,DD<:PeriodicInterval}(D::Integral{SliceSpace{1,1,CS,T,DD,1}},A,kr::Range,::Colon)
+function addentries!{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}},A,kr::Range,::Colon)
     d=domain(D)
     @assert isa(d,PeriodicInterval)
     m=D.order

@@ -16,7 +16,7 @@ export LeftIntegral,LeftDerivative, RightDerivative, RightIntegral
 
 # DLMF18.17.9 with μ=0.5 and α=β=0
 
-function rangespace{DD<:Interval}(Q::LeftIntegral{Jacobi{DD},Float64})
+function rangespace{DD<:Interval}(Q::ConcreteLeftIntegral{Jacobi{DD},Float64})
     if Q.order==0.5
         S=domainspace(Q)
         @assert S.a==0
@@ -27,7 +27,7 @@ function rangespace{DD<:Interval}(Q::LeftIntegral{Jacobi{DD},Float64})
     end
 end
 
-function rangespace{DD<:Interval}(Q::RightIntegral{Jacobi{DD},Float64})
+function rangespace{DD<:Interval}(Q::ConcreteRightIntegral{Jacobi{DD},Float64})
     if Q.order==0.5
         S=domainspace(Q)
         @assert S.a==0
@@ -38,7 +38,7 @@ function rangespace{DD<:Interval}(Q::RightIntegral{Jacobi{DD},Float64})
     end
 end
 
-for TYP in (:LeftIntegral,:RightIntegral)
+for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
     @eval bandinds{DD<:Interval}(Q::$TYP{Jacobi{DD},Float64})=(0,0)
 end
 
@@ -58,7 +58,7 @@ function jacobi_frac_addentries!(c::Number,α,μ,A,kr::UnitRange)
     A
 end
 
-for TYP in (:LeftIntegral,:RightIntegral)
+for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
     @eval function addentries!{DD<:Interval}(Q::$TYP{Jacobi{DD},Float64},A,kr::UnitRange,::Colon)
         μ=Q.order
         S=domainspace(Q)
@@ -84,12 +84,12 @@ function RightIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
     # convert to Jacobi
     @assert k==.5
 
-    Q=LeftIntegral(JacobiWeight(S.α,S.β,Jacobi(.5,-.5,domain(S))),k)
-    LeftIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
+    Q=RightIntegral(JacobiWeight(S.α,S.β,Jacobi(.5,-.5,domain(S))),k)
+    RightIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
 end
 
 #DLMF18.17.9
-function rangespace{DD<:Interval}(Q::LeftIntegral{JacobiWeight{Jacobi{DD},DD},Float64})
+function rangespace{DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD},DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -102,7 +102,7 @@ function rangespace{DD<:Interval}(Q::LeftIntegral{JacobiWeight{Jacobi{DD},DD},Fl
     end
 end
 
-function rangespace{DD<:Interval}(Q::RightIntegral{JacobiWeight{Jacobi{DD},DD},Float64})
+function rangespace{DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD},DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -115,11 +115,11 @@ function rangespace{DD<:Interval}(Q::RightIntegral{JacobiWeight{Jacobi{DD},DD},F
     end
 end
 
-for TYP in (:LeftIntegral,:RightIntegral)
+for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
     @eval bandinds{DD<:Interval}(Q::$TYP{JacobiWeight{Jacobi{DD},DD},Float64})=(0,0)
 end
 
-function addentries!{DD<:Interval}(Q::LeftIntegral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange,::Colon)
+function addentries!{DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange,::Colon)
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -129,7 +129,7 @@ function addentries!{DD<:Interval}(Q::LeftIntegral{JacobiWeight{Jacobi{DD},DD},F
     jacobi_frac_addentries!(domain(S),S.α,μ,A,kr)
 end
 
-function addentries!{DD<:Interval}(Q::RightIntegral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange,::Colon)
+function addentries!{DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange,::Colon)
     μ=Q.order
     S=domainspace(Q)
     J=S.space

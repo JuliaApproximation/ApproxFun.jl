@@ -38,11 +38,11 @@ end
 # end
 
 
-bandinds{HS<:HeavisideSpace}(D::Derivative{HS})=-1,0
+bandinds{HS<:HeavisideSpace}(D::ConcreteDerivative{HS})=-1,0
 
-rangespace{HS<:HeavisideSpace}(D::Derivative{HS})=DiracSpace(domain(D).points)
+rangespace{HS<:HeavisideSpace}(D::ConcreteDerivative{HS})=DiracSpace(domain(D).points)
 
-function addentries!{HS<:HeavisideSpace}(D::Derivative{HS},A,kr::Range,::Colon)
+function addentries!{HS<:HeavisideSpace}(D::ConcreteDerivative{HS},A,kr::Range,::Colon)
     n=numpieces(domain(D))
 
     1 in kr && (A[1,1]+=1)

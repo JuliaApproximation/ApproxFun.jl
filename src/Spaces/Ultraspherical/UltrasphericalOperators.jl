@@ -166,12 +166,12 @@ end
 #Derivative(d::IntervalDomain)=Derivative(1,d)
 
 
-rangespace{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}})=Ultraspherical{λ+D.order}(domain(D))
-bandinds{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}})=0,D.order
-bandinds{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}})=-D.order,0
-Base.stride{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}})=D.order
+rangespace{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=Ultraspherical{λ+D.order}(domain(D))
+bandinds{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=0,D.order
+bandinds{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}})=-D.order,0
+Base.stride{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=D.order
 
-function addentries!{λ,DD<:Interval}(D::Derivative{Ultraspherical{λ,DD}},A,kr::Range,::Colon)
+function addentries!{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}},A,kr::Range,::Colon)
     m=D.order
     d=domain(D)
 
@@ -204,9 +204,9 @@ end
 Integral{DD<:Interval}(sp::Chebyshev{DD},m::Integer)=IntegralWrapper(
     TimesOperator([Integral(Ultraspherical{m}(domain(sp)),m),Conversion(sp,Ultraspherical{m}(domain(sp)))]),m)
 
-rangespace{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}})=Ultraspherical{λ-D.order}(domain(D))
+rangespace{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}})=Ultraspherical{λ-D.order}(domain(D))
 
-function addentries!{λ,DD<:Interval}(D::Integral{Ultraspherical{λ,DD}},A,kr::Range,::Colon)
+function addentries!{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}},A,kr::Range,::Colon)
     m=D.order
     d=domain(D)
     @assert m<=λ

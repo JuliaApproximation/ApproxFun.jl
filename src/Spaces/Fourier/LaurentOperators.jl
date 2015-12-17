@@ -38,12 +38,12 @@ coefficienttimes{DD}(f::Fun{Laurent{DD}},g::Fun{Laurent{DD}}) = Multiplication(f
 ## Derivative
 
 # override map definition
-Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=Derivative{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
+Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=ConcreteDerivative(S,k)
 
-bandinds{s,DD<:PeriodicInterval}(D::Derivative{Hardy{s,DD}})=(0,0)
-bandinds{s,DD<:Circle}(D::Derivative{Hardy{s,DD}})=s?(0,D.order):(-D.order,0)
+bandinds{s,DD<:PeriodicInterval}(D::ConcreteDerivative{Hardy{s,DD}})=(0,0)
+bandinds{s,DD<:Circle}(D::ConcreteDerivative{Hardy{s,DD}})=s?(0,D.order):(-D.order,0)
 
-rangespace{S<:Hardy}(D::Derivative{S})=D.space
+rangespace{S<:Hardy}(D::ConcreteDerivative{S})=D.space
 
 function taylor_derivative_addentries!(d::PeriodicInterval,m,A,kr::Range)
     C=2/(d.b-d.a)*π*im
@@ -92,8 +92,8 @@ function hardyfalse_derivative_addentries!(d::Circle,m,A,kr::Range)
 end
 
 
-addentries!{DD}(D::Derivative{Taylor{DD}},A,kr::Range,::Colon)=taylor_derivative_addentries!(domain(D),D.order,A,kr)
-addentries!{DD}(D::Derivative{Hardy{false,DD}},A,kr::Range,::Colon)=hardyfalse_derivative_addentries!(domain(D),D.order,A,kr)
+addentries!{DD}(D::ConcreteDerivative{Taylor{DD}},A,kr::Range,::Colon)=taylor_derivative_addentries!(domain(D),D.order,A,kr)
+addentries!{DD}(D::ConcreteDerivative{Hardy{false,DD}},A,kr::Range,::Colon)=hardyfalse_derivative_addentries!(domain(D),D.order,A,kr)
 
 
 
@@ -109,12 +109,12 @@ addentries!{DD}(D::Derivative{Hardy{false,DD}},A,kr::Range,::Colon)=hardyfalse_d
 # end
 
 
-Integral{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=Integral{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
+Integral{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=ConcreteIntegral(S,k)
 
-bandinds{DD<:Circle}(D::Integral{Taylor{DD}})=(-D.order,0)
-rangespace{s,DD<:Circle}(Q::Integral{Hardy{s,DD}})=Q.space
+bandinds{DD<:Circle}(D::ConcreteIntegral{Taylor{DD}})=(-D.order,0)
+rangespace{s,DD<:Circle}(Q::ConcreteIntegral{Hardy{s,DD}})=Q.space
 
-function addentries!{DD<:Circle}(D::Integral{Taylor{DD}},A,kr::Range,::Colon)
+function addentries!{DD<:Circle}(D::ConcreteIntegral{Taylor{DD}},A,kr::Range,::Colon)
     d=domain(D)
     m=D.order
 
@@ -132,15 +132,15 @@ function addentries!{DD<:Circle}(D::Integral{Taylor{DD}},A,kr::Range,::Colon)
 end
 
 
-Integral{n,T,DD<:Circle}(S::SliceSpace{n,1,Hardy{false,DD},T,DD,1},k::Integer)=Integral{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
+Integral{n,T,DD<:Circle}(S::SliceSpace{n,1,Hardy{false,DD},T,DD,1},k::Integer)=ConcreteIntegral(S,k)
 
-function bandinds{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})
+function bandinds{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})
     @assert D.order==n
     (0,0)
 end
-rangespace{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})=D.space.space
+rangespace{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})=D.space.space
 
-function addentries!{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}},A,kr::Range,::Colon)
+function addentries!{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}},A,kr::Range,::Colon)
     d=domain(D)
     m=D.order
 
@@ -159,11 +159,11 @@ end
 
 
 
-bandinds{DD<:PeriodicInterval}(D::Integral{Hardy{false,DD}})=(0,0)
-rangespace{DD<:PeriodicInterval}(D::Integral{Taylor{DD}})=D.space
+bandinds{DD<:PeriodicInterval}(D::ConcreteIntegral{Hardy{false,DD}})=(0,0)
+rangespace{DD<:PeriodicInterval}(D::ConcreteIntegral{Taylor{DD}})=D.space
 
 
-function addentries!{DD<:PeriodicInterval}(D::Integral{Hardy{false,DD}},A,kr::Range,::Colon)
+function addentries!{DD<:PeriodicInterval}(D::ConcreteIntegral{Hardy{false,DD}},A,kr::Range,::Colon)
     d=domain(D)
     m=D.order
 
@@ -176,10 +176,10 @@ end
 
 
 
-bandinds{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=(0,0)
-rangespace{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=D.space
+bandinds{n,T,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=(0,0)
+rangespace{n,T,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=D.space
 
-function addentries!{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,DD,1}},A,kr::Range,::Colon)
+function addentries!{n,T,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{n,1,Taylor{DD},T,DD,1}},A,kr::Range,::Colon)
     d=domain(D)
     m=D.order
 

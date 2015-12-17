@@ -9,25 +9,25 @@ abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 iswrapper(::)=false
 
 macro calculus_operator(Op)
-    AbstOp=parse("Abstract"*string(Op))
+    ConcOp=parse("Concrete"*string(Op))
     WrappOp=parse(string(Op)*"Wrapper")
     return esc(quote
         # The SSS, TTT are to work around #9312
-        abstract $AbstOp{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
+        abstract $Op{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
 
-        immutable $Op{S<:Space,OT,T} <: $AbstOp{S,OT,T}
+        immutable $ConcOp{S<:Space,OT,T} <: $Op{S,OT,T}
             space::S        # the domain space
             order::OT
         end
-        immutable $WrappOp{BT<:BandedOperator,S<:Space,OT,T} <: $AbstOp{S,OT,T}
+        immutable $WrappOp{BT<:BandedOperator,S<:Space,OT,T} <: $Op{S,OT,T}
             op::BT
             order::OT
         end
 
 
         ## Constructors
-        Base.call{S}(::Type{$Op{S}},sp::S,k)=$Op{S,typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
-        $Op(sp::Space,k)=$Op{typeof(sp)}(sp,k)
+        $ConcOp(sp::Space,k)=$ConcOp{typeof(sp),typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
+        $Op(sp::Space,k)=$ConcOp(sp,k)
 
         $Op(sp::Space)=$Op(sp,1)
         $Op()=$Op(UnsetSpace())
@@ -38,19 +38,19 @@ macro calculus_operator(Op)
         $Op(d::Vector)=$Op(Space(d),1)
         $Op(d::Vector,n)=$Op(Space(d),n)
 
-        function Base.convert{T}(::Type{Operator{T}},D::$Op)
+        function Base.convert{T}(::Type{Operator{T}},D::$ConcOp)
             if T==eltype(D)
                 D
             else
-                $Op{typeof(D.space),typeof(D.order),T}(D.space,D.order)
+                $ConcOp{typeof(D.space),typeof(D.order),T}(D.space,D.order)
             end
         end
 
-        function Base.convert{T}(::Type{BandedOperator{T}},D::$Op)
+        function Base.convert{T}(::Type{BandedOperator{T}},D::$ConcOp)
             if T==eltype(D)
                 D
             else
-                $Op{typeof(D.space),typeof(D.order),T}(D.space,D.order)
+                $ConcOp{typeof(D.space),typeof(D.order),T}(D.space,D.order)
             end
         end
 
@@ -73,50 +73,50 @@ macro calculus_operator(Op)
         end
 
         ## Routines
-        domain(D::$Op)=domain(D.space)
-        domainspace(D::$Op)=D.space
+        domain(D::$ConcOp)=domain(D.space)
+        domainspace(D::$ConcOp)=D.space
 
-        addentries!{OT,T}(::$Op{UnsetSpace,OT,T},A,kr::Range,::Colon)=error("Spaces cannot be inferred for operator")
+        addentries!{OT,T}(::$ConcOp{UnsetSpace,OT,T},A,kr::Range,::Colon)=error("Spaces cannot be inferred for operator")
 
-        function addentries!{S,OT,T}(D::$Op{S,OT,T},A,kr::Range,::Colon)
+        function addentries!{S,OT,T}(D::$ConcOp{S,OT,T},A,kr::Range,::Colon)
             # Default is to convert to Canonical and apply operator there
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override addentries! for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override addentries! for "*string($ConcOp)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             addentries!(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]),A,kr,:)
         end
 
-        function bandinds(D::$Op)
+        function bandinds(D::$ConcOp)
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override bandinds for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override bandinds for "*string($ConcOp)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             bandinds(TimesOperator([$Op(csp,D.order),Conversion(sp,csp)]))
         end
 
         # corresponds to default implementation
-        function rangespace{S,T}(D::$Op{S,T})
+        function rangespace{S,T}(D::$ConcOp{S,T})
             sp=domainspace(D)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-                error("Override rangespace for "*string($Op)*"(::"*string(typeof(sp))*","*string(D.order)*")")
+                error("Override rangespace for "*string($ConcOp)*"(::"*string(typeof(sp))*","*string(D.order)*")")
             end
             rangespace($Op(canonicalspace(domainspace(D)),D.order))
         end
-        rangespace{T}(D::$Op{UnsetSpace,T})=UnsetSpace()
+        rangespace{T}(D::$ConcOp{UnsetSpace,T})=UnsetSpace()
 
         #promoting domain space is allowed to change range space
         # for integration, we fall back on existing conversion for now
-        promotedomainspace(D::$AbstOp,sp::UnsetSpace)=D
-        promotedomainspace(D::$AbstOp,sp::AnySpace)=D
+        promotedomainspace(D::$Op,sp::UnsetSpace)=D
+        promotedomainspace(D::$Op,sp::AnySpace)=D
 
 
-        function promotedomainspace{S<:Space}(D::$AbstOp,sp::S)
+        function promotedomainspace(D::$Op,sp::Space)
             if isambiguous(domain(sp))
-                $Op(S(domain(D)),D.order)
+                $Op(typeof(sp)(domain(D)),D.order)
             else
                 $Op(sp,D.order)
             end
@@ -144,9 +144,9 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp)=iswrapper(M)?choosedomains
 @calculus_operator(Derivative)
 @calculus_operator(Integral)
 
-for (ATYP,TYP) in ((:AbstractDerivative,:Derivative),(:AbstractIntegral,:Integral))
+for TYP in (:Derivative,:Integral)
     @eval begin
-        function *(D1::$ATYP,D2::$ATYP)
+        function *(D1::$TYP,D2::$TYP)
             @assert domain(D1) == domain(D2)
 
             $TYP(domainspace(D2),D1.order+D2.order)
@@ -211,7 +211,7 @@ end
 
 @calculus_operator(Laplacian)
 
-Laplacian(S::Space,k)=Laplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
+Laplacian(S::Space,k)=ConcreteLaplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
 Laplacian(S)=Laplacian(S,1)
 
 
@@ -221,7 +221,7 @@ Laplacian(S)=Laplacian(S,1)
 function defaultderivative(S::Space,order::Integer)
     if typeof(canonicaldomain(S)).name==typeof(domain(S)).name
         # we assume the canonical domain case is implemented
-        Derivative{typeof(S),typeof(order),promote_type(eltype(S),eltype(domain(S)))}(S,order)
+        ConcreteDerivative(S,order)
     else
         D1=invfromcanonicalD(S)*Derivative(setdomain(S,canonicaldomain(S)))
         D=DerivativeWrapper(SpaceOperator(D1,S,setdomain(rangespace(D1),domain(S))),1)
@@ -241,7 +241,7 @@ Derivative(S::Space,order::Integer)=defaultderivative(S,order)
 function Integral(sp::Space,k::Integer)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         # we assume the canonical domain case is implemented
-        Integral{typeof(sp),typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
+        ConcreteIntegral(sp,k)
     elseif k > 1
         Q=Integral(sp,1)
         IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)

@@ -34,14 +34,14 @@ end
 
 ## Derivative
 
-Derivative(J::Jacobi,k::Integer)=k==1?Derivative{Jacobi,Int,eltype(domain(J))}(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),Derivative{Jacobi,Int,eltype(domain(J))}(J,1)),k)
+Derivative(J::Jacobi,k::Integer)=k==1?ConcreteDerivative(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),ConcreteDerivative(J,1)),k)
 
 
 
-rangespace{J<:Jacobi}(D::Derivative{J})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
-bandinds{J<:Jacobi}(D::Derivative{J})=0,D.order
+rangespace{J<:Jacobi}(D::ConcreteDerivative{J})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
+bandinds{J<:Jacobi}(D::ConcreteDerivative{J})=0,D.order
 
-function addentries!{J<:Jacobi}(T::Derivative{J},A,kr::Range,::Colon)
+function addentries!{J<:Jacobi}(T::ConcreteDerivative{J},A,kr::Range,::Colon)
     d=domain(T)
     for k=kr
         A[k,k+1]+=(k+1+T.space.a+T.space.b)./(d.b-d.a)
@@ -57,7 +57,7 @@ function Integral(J::Jacobi,k::Integer)
         Q=Integral(J,1)
         IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
     elseif J.a > 0 && J.b > 0   # we have a simple definition
-        Integral{Jacobi,Int,Float64}(J,1)
+        ConcreteIntegral(J,1)
     else   # convert and then integrate
         sp=Jacobi(J.a+1,J.b+1,domain(J))
         C=Conversion(J,sp)
@@ -67,10 +67,10 @@ function Integral(J::Jacobi,k::Integer)
 end
 
 
-rangespace{J<:Jacobi}(D::Integral{J})=Jacobi(D.space.a-D.order,D.space.b-D.order,domain(D))
-bandinds{J<:Jacobi}(D::Integral{J})=-D.order,0
+rangespace{J<:Jacobi}(D::ConcreteIntegral{J})=Jacobi(D.space.a-D.order,D.space.b-D.order,domain(D))
+bandinds{J<:Jacobi}(D::ConcreteIntegral{J})=-D.order,0
 
-function addentries!{J<:Jacobi}(T::Integral{J},A,kr::Range,::Colon)
+function addentries!{J<:Jacobi}(T::ConcreteIntegral{J},A,kr::Range,::Colon)
     @assert T.order==1
     d=domain(T)
     for k=intersect(2:kr[end],kr)
