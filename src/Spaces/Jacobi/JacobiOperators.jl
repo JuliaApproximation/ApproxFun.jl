@@ -91,7 +91,7 @@ function Conversion(L::Jacobi,M::Jacobi)
     if isapprox(M.a,L.a) && isapprox(M.b,L.b)
         SpaceOperator(IdentityOperator(),L,M)
     elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
-        Conversion{Jacobi{D},Jacobi{D},Float64}(L,M)
+        ConcreteConversion(L,M)
     elseif M.b > L.b+1
         ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a,M.b-1,dm),M),Conversion(L,Jacobi(M.a,M.b-1,dm))))
     else  #if M.a >= L.a+1
@@ -99,11 +99,11 @@ function Conversion(L::Jacobi,M::Jacobi)
     end
 end
 
-bandinds{J<:Jacobi}(C::Conversion{J,J})=(0,1)
+bandinds{J<:Jacobi}(C::ConcreteConversion{J,J})=(0,1)
 
 
 
-function Base.getindex{J<:Jacobi}(C::Conversion{J,J},k::Integer,j::Integer)
+function Base.getindex{J<:Jacobi}(C::ConcreteConversion{J,J},k::Integer,j::Integer)
     L=C.domainspace
     if L.b+1==C.rangespace.b
         if j==k
@@ -142,18 +142,18 @@ end
 
 function Conversion{m}(A::Ultraspherical{m},B::Jacobi)
     if isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
-        Conversion{Ultraspherical{m},Jacobi,Float64}(A,B)
+        ConcreteConversion(A,B)
     else
         J=Jacobi(m-0.5,m-0.5,domain(A))
         ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
     end
 end
 
-bandinds{US<:Ultraspherical,J<:Jacobi}(C::Conversion{US,J})=0,0
-bandinds{US<:Ultraspherical,J<:Jacobi}(C::Conversion{J,US})=0,0
+bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{US,J})=0,0
+bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{J,US})=0,0
 
 
-function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{CC,J},A,kr::Range,::Colon)
+function addentries!{J<:Jacobi,CC<:Chebyshev}(C::ConcreteConversion{CC,J},A,kr::Range,::Colon)
     S=rangespace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
     jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
@@ -164,7 +164,7 @@ function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{CC,J},A,kr::Range,::
     A
 end
 
-function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{J,CC},A,kr::Range,::Colon)
+function addentries!{J<:Jacobi,CC<:Chebyshev}(C::ConcreteConversion{J,CC},A,kr::Range,::Colon)
     S=domainspace(C)
     @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
 
@@ -176,7 +176,7 @@ function addentries!{J<:Jacobi,CC<:Chebyshev}(C::Conversion{J,CC},A,kr::Range,::
     A
 end
 
-function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{US,J},A,kr::Range,::Colon)
+function addentries!{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{US,J},A,kr::Range,::Colon)
     S=rangespace(C)
     m=order(US)
     @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
@@ -189,7 +189,7 @@ function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{US,J},A,kr::Ran
     A
 end
 
-function addentries!{US<:Ultraspherical,J<:Jacobi}(C::Conversion{J,US},A,kr::Range,::Colon)
+function addentries!{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{J,US},A,kr::Range,::Colon)
     m=order(US)
     S=domainspace(C)
     @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)

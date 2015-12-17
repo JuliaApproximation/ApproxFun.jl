@@ -17,8 +17,8 @@ spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet)=domainscompatible(a,b)
 
 canonicalspace(S::LaurentDirichlet)=Laurent(domain(S))
 
-bandinds{DD}(::Conversion{LaurentDirichlet,Laurent{DD}})=0,2
-function addentries!{DD}(C::Conversion{LaurentDirichlet,Laurent{DD}},A,kr::Range,::Colon)
+bandinds{DD}(::ConcreteConversion{LaurentDirichlet,Laurent{DD}})=0,2
+function addentries!{DD}(C::ConcreteConversion{LaurentDirichlet,Laurent{DD}},A,kr::Range,::Colon)
     A[1,2]+=1
     toeplitz_addentries!([],[1.,0.,1.],A,kr)
 end
@@ -43,8 +43,8 @@ spacescompatible(a::CosDirichlet,b::CosDirichlet)=domainscompatible(a,b)
 
 canonicalspace(S::CosDirichlet)=CosSpace(domain(S))
 
-bandinds{CS<:CosSpace,CD<:CosDirichlet}(::Conversion{CD,CS})=0,1
-addentries!{CS<:CosSpace,CD<:CosDirichlet}(C::Conversion{CD,CS},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,1.],A,kr)
+bandinds{CS<:CosSpace,CD<:CosDirichlet}(::ConcreteConversion{CD,CS})=0,1
+addentries!{CS<:CosSpace,CD<:CosDirichlet}(C::ConcreteConversion{CD,CS},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,1.],A,kr)
 
 
 conversion_rule(b::CosDirichlet,a::CosSpace)=b

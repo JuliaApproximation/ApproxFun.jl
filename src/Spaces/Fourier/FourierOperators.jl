@@ -9,7 +9,7 @@ coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD})=Conversion(A,B)*cfs
 hasconversion{DD}(::Fourier{DD},::Laurent{DD})=true
 hasconversion{DD}(::Laurent{DD},::Fourier{DD})=true
 
-function addentries!{DD}(C::Conversion{Laurent{DD},Fourier{DD}},A,kr::Range,::Colon)
+function addentries!{DD}(C::ConcreteConversion{Laurent{DD},Fourier{DD}},A,kr::Range,::Colon)
     for k=kr
         if k==1
             A[k,k]+=1.
@@ -23,7 +23,7 @@ function addentries!{DD}(C::Conversion{Laurent{DD},Fourier{DD}},A,kr::Range,::Co
     end
     A
 end
-function addentries!{DD}(C::Conversion{Fourier{DD},Laurent{DD}},A,kr::Range,::Colon)
+function addentries!{DD}(C::ConcreteConversion{Fourier{DD},Laurent{DD}},A,kr::Range,::Colon)
     for k=kr
         if k==1
             A[k,k]+=1.
@@ -38,8 +38,8 @@ function addentries!{DD}(C::Conversion{Fourier{DD},Laurent{DD}},A,kr::Range,::Co
     A
 end
 
-bandinds{DD}(::Conversion{Laurent{DD},Fourier{DD}})=-1,1
-bandinds{DD}(::Conversion{Fourier{DD},Laurent{DD}})=-1,1
+bandinds{DD}(::ConcreteConversion{Laurent{DD},Fourier{DD}})=-1,1
+bandinds{DD}(::ConcreteConversion{Fourier{DD},Laurent{DD}})=-1,1
 
 for RULE in (:conversion_rule,:maxspace_rule,:union_rule)
     @eval function $RULE{DD}(A::Laurent{DD},B::Fourier{DD})
@@ -51,10 +51,10 @@ end
 conversion_type{DD<:Circle}(A::Fourier{DD},B::Fourier{DD})=domain(A).orientation?A:B
 
 hasconversion{DD}(A::Fourier{DD},B::Fourier{DD})=domain(A) == reverse(domain(B))
-Conversion{DD}(A::Fourier{DD},B::Fourier{DD})=Conversion{typeof(A),typeof(B)}(A,B)
-bandinds{DD}(::Conversion{Fourier{DD},Fourier{DD}})=0,0
+Conversion{DD}(A::Fourier{DD},B::Fourier{DD})=ConcreteConversion(A,B)
+bandinds{DD}(::ConcreteConversion{Fourier{DD},Fourier{DD}})=0,0
 
-function addentries!{DD}(C::Conversion{Fourier{DD},Fourier{DD}},A,kr::Range,::Colon)
+function addentries!{DD}(C::ConcreteConversion{Fourier{DD},Fourier{DD}},A,kr::Range,::Colon)
     @assert domain(domainspace(C)) == reverse(domain(rangespace(C)))
     for k=kr
         A[k,k]+=iseven(k)?(-1):1

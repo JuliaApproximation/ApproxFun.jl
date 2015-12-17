@@ -20,9 +20,9 @@ canonicalspace(sp::HeavisideSpace)=PiecewiseSpace(map(Chebyshev,pieces(domain(sp
 
 conversion_rule{k,PS<:PolynomialSpace}(sp::HeavisideSpace,sp2::PiecewiseSpace{NTuple{k,PS}})=sp
 
-bandinds{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(::Conversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}})=0,0
-#bandinds{HS<:HeavisideSpace,DD,D}(::Conversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},HS})=0,0
-function addentries!{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(C::Conversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}},A,kr::Range,::Colon)
+bandinds{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}})=0,0
+#bandinds{HS<:HeavisideSpace,DD,D}(::ConcreteConversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},HS})=0,0
+function addentries!{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}},A,kr::Range,::Colon)
     d=dimension(domainspace(C))
     for k=kr
         k ≤ d && (A[k,k]+=1)
@@ -30,7 +30,7 @@ function addentries!{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(C::Conversion
     A
 end
 
-# function addentries!{HS<:HeavisideSpace,CC<:PolynomialSpace,DD}(C::Conversion{PiecewiseSpace{CC,RealBasis,DD,1},HS},A,kr::Range,::Colon)
+# function addentries!{HS<:HeavisideSpace,CC<:PolynomialSpace,DD}(C::ConcreteConversion{PiecewiseSpace{CC,RealBasis,DD,1},HS},A,kr::Range,::Colon)
 #    for k=kr
 #         A[k,k]+=1
 #     end

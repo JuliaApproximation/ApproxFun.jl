@@ -298,7 +298,7 @@ function Conversion(a::BivariateSpace,b::BivariateSpace)
             Conversion(a,sp,b)
         end
     else
-        Conversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
+        ConcreteConversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
     end
 end
 

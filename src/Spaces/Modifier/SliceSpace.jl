@@ -21,9 +21,9 @@ domain(DS::SliceSpace)=domain(DS.space)
 setdomain(DS::SliceSpace,d::Domain)=SliceSpace(setdomain(DS.space,d),index(DS),stride(DS))
 
 
-bandinds{n,st,S,T,DD,d}(C::Conversion{SliceSpace{n,st,S,T,DD,d},S})=-n,0
+bandinds{n,st,S,T,DD,d}(C::ConcreteConversion{SliceSpace{n,st,S,T,DD,d},S})=-n,0
 
-function addentries!{ind,st,S,T,DD,d}(C::Conversion{SliceSpace{ind,st,S,T,DD,d},S},A,kr::Range,::Colon)
+function addentries!{ind,st,S,T,DD,d}(C::ConcreteConversion{SliceSpace{ind,st,S,T,DD,d},S},A,kr::Range,::Colon)
     ds =domainspace(C)
     @assert st==1
 

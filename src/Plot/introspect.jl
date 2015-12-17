@@ -92,7 +92,7 @@ domainrangestr(A)=texname(domainspace(A))*"\$\\rightarrow\$"*texname(rangespace(
 texname(A::BandedOperator)=string(typeof(A))
 texname(D::ConcreteDerivative)=(D.order==1?"\$D":"\$D\^"*string(D.order))*"\$:"*domainrangestr(D)
 texname(A::ConstantOperator)=string(A.c)*"I"
-texname(C::Conversion)="C:"*domainrangestr(C)
+texname(C::ConcreteConversion)="C:"*domainrangestr(C)
 texname(A::ConcreteMultiplication)=space(A.f)==domainspace(A)==rangespace(A)?"M["*texname(space(A.f))*"]":"M["*texname(space(A.f))*"]:"domainrangestr(A)
 
 

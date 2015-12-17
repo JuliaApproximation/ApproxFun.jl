@@ -63,8 +63,8 @@ maxspace_rule(A::ZeroSpace,B::Space)=B
 Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(SpaceOperator(ZeroOperator(),A,B))
 
 
-bandinds{CS<:ConstantSpace,S<:Space}(C::Conversion{CS,S})=1-length(ones(rangespace(C))),0
-function addentries!{CS<:ConstantSpace,S<:Space}(C::Conversion{CS,S},A,kr::Range,::Colon)
+bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-length(ones(rangespace(C))),0
+function addentries!{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S},A,kr::Range,::Colon)
     on=ones(rangespace(C))
     for k=kr
         if k≤length(on)

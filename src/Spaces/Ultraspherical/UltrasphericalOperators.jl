@@ -239,7 +239,7 @@ function Conversion{a,b,DD}(A::Ultraspherical{a,DD},B::Ultraspherical{b,DD})
     if b==a
         eye(A)
     elseif b==a+1
-        Conversion{Ultraspherical{a,DD},Ultraspherical{b,DD},promote_type(Float64,real(eltype(domain(A))),real(eltype(domain(B))))}(A,B)
+        ConcreteConversion(A,B)
     else
         d=domain(A)
         ConversionWrapper(TimesOperator(Conversion(Ultraspherical{b-1,DD}(d),B),Conversion(A,Ultraspherical{b-1,DD}(d))))
@@ -247,7 +247,7 @@ function Conversion{a,b,DD}(A::Ultraspherical{a,DD},B::Ultraspherical{b,DD})
 end
 
 
-function addentries!{DD,C<:Chebyshev}(M::Conversion{C,Ultraspherical{1,DD}},A,kr::Range,::Colon)
+function addentries!{DD,C<:Chebyshev}(M::ConcreteConversion{C,Ultraspherical{1,DD}},A,kr::Range,::Colon)
     # this uses that 0.5 is exact, so no need for special bigfloat def
     for k=kr
         A[k,k] += (k == 1)? 1. : .5
@@ -257,7 +257,7 @@ function addentries!{DD,C<:Chebyshev}(M::Conversion{C,Ultraspherical{1,DD}},A,kr
     A
 end
 
-function addentries!{m,λ,DD,T}(M::Conversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},A,kr::Range,::Colon)
+function addentries!{m,λ,DD,T}(M::ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},A,kr::Range,::Colon)
     @assert λ==m+1
     c=λ-one(T)  # this supports big types
     for k=kr
@@ -268,7 +268,7 @@ function addentries!{m,λ,DD,T}(M::Conversion{Ultraspherical{m,DD},Ultraspherica
     A
 end
 
-function multiplyentries!{DD,C<:Chebyshev}(M::Conversion{C,Ultraspherical{1,DD}},A,kr::Range)
+function multiplyentries!{DD,C<:Chebyshev}(M::ConcreteConversion{C,Ultraspherical{1,DD}},A,kr::Range)
     cr=columnrange(A)::Range1{Int}
 
     #We assume here that the extra rows are redundant
@@ -282,7 +282,7 @@ function multiplyentries!{DD,C<:Chebyshev}(M::Conversion{C,Ultraspherical{1,DD}}
     end
 end
 
-function multiplyentries!{m,λ,DD,T}(M::Conversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},A,kr::Range)
+function multiplyentries!{m,λ,DD,T}(M::ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},A,kr::Range)
     @assert λ==m+1
     cr=columnrange(A)::Range1{Int64}
 
@@ -298,8 +298,8 @@ function multiplyentries!{m,λ,DD,T}(M::Conversion{Ultraspherical{m,DD},Ultrasph
     end
 end
 
-bandinds{m,DD,λ}(C::Conversion{Ultraspherical{m,DD},Ultraspherical{λ,DD}})=0,2
-Base.stride{m,λ,DD}(C::Conversion{Ultraspherical{m,DD},Ultraspherical{λ,DD}})=2
+bandinds{m,DD,λ}(C::ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD}})=0,2
+Base.stride{m,λ,DD}(C::ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD}})=2
 
 
 ## coefficients

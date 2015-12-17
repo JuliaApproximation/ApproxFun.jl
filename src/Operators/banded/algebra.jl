@@ -348,7 +348,7 @@ function promotetimes{B<:BandedOperator}(opsin::Vector{B},dsp)
     ops=Array(BandedOperator{mapreduce(eltype,promote_type,opsin)},0)
 
     for k=length(opsin):-1:1
-        if !isa(opsin[k],AbstractConversion)
+        if !isa(opsin[k],Conversion)
             op=promotedomainspace(opsin[k],dsp)
             if op==()
                 # do nothing
@@ -463,14 +463,14 @@ end
 # Conversions we always assume are intentional: no need to promote
 
 *{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A.op,B.op))
-*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::AbstractConversion)=ConversionWrapper(TimesOperator(A.op,B))
-*{TO<:TimesOperator}(A::AbstractConversion,B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A,B.op))
+*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::Conversion)=ConversionWrapper(TimesOperator(A.op,B))
+*{TO<:TimesOperator}(A::Conversion,B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A,B.op))
 
-*(A::AbstractConversion,B::AbstractConversion)=ConversionWrapper(TimesOperator(A,B))
-*(A::AbstractConversion,B::TimesOperator)=TimesOperator(A,B)
-*(A::TimesOperator,B::AbstractConversion)=TimesOperator(A,B)
-*(A::BandedOperator,B::AbstractConversion)=isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
-*(A::AbstractConversion,B::BandedOperator)=isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
+*(A::Conversion,B::Conversion)=ConversionWrapper(TimesOperator(A,B))
+*(A::Conversion,B::TimesOperator)=TimesOperator(A,B)
+*(A::TimesOperator,B::Conversion)=TimesOperator(A,B)
+*(A::BandedOperator,B::Conversion)=isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
+*(A::Conversion,B::BandedOperator)=isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
 -(A::Operator)=ConstantTimesOperator(-1,A)
