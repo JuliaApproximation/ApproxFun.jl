@@ -19,6 +19,8 @@ println("Spaces tests")
 include("SpacesTest.jl")
 include("JacobiTest.jl")
 
+include("ETDRK4Test.jl")
+
 println("Multivariate tests")
 include("MultivariateTest.jl")
 println("PDE tests")
