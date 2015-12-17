@@ -18,6 +18,9 @@ end
 
 
 ProductDomain(A,B)=ProductDomain((A,B))
+*(A::ProductDomain,B::ProductDomain)=ProductDomain(tuple(A.domains...,B.domains...))
+*(A::ProductDomain,B::Domain)=ProductDomain(tuple(A.domains...,B))
+*(A::Domain,B::ProductDomain)=ProductDomain(tuple(A,B.domains...))
 *(A::Domain,B::Domain)=ProductDomain(A,B)
 
 Base.length(d::ProductDomain)=length(d.domains)
@@ -27,13 +30,30 @@ Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
 
 Base.first(d::ProductDomain)=(first(d[1]),first(d[2]))
 
-function checkpoints(d::ProductDomain)
-    ptsx=checkpoints(d[1])
-    ptsy=checkpoints(d[2])
-    ret=Array(Tuple{eltype(d[1]),eltype(d[2])},0)
-    for x in ptsx,y in ptsy
-        push!(ret,(x,y))
+
+function pushappendpts!(ret,xx,pts)
+    if isempty(pts)
+        push!(ret,xx)
+    else
+        for x in pts[1]
+            pushappendpts!(ret,(xx...,x),pts[2:end])
+        end
     end
+    ret
+end
+
+function checkpoints(d::ProductDomain)
+    pts=map(checkpoints,d.domains)
+    ret=Array(Tuple{map(eltype,d.domains)...},0)
+    pushappendpts!(ret,(),pts)
+    ret
+end
+
+function points(d::ProductDomain,n::Tuple)
+    @assert length(d.domains) == length(n)
+    pts=map(points,d.domains,n)
+    ret=Array(Tuple{map(eltype,d.domains)...},0)
+    pushappendpts!(ret,(),pts)
     ret
 end
 

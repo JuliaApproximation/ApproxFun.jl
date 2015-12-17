@@ -4,11 +4,8 @@ export TensorSpace,⊗,ProductSpace
 #  SV is a tuple of d spaces
 abstract AbstractProductSpace{SV,T,d} <: Space{T,AnyDomain,d}
 
-if VERSION≥v"0.4.0-dev"
-    spacetype{SV}(::AbstractProductSpace{SV},k)=SV.parameters[k]
-else
-    spacetype{SV}(::AbstractProductSpace{SV},k)=SV[k]
-end
+
+spacetype{SV}(::AbstractProductSpace{SV},k)=SV.parameters[k]
 
 
 

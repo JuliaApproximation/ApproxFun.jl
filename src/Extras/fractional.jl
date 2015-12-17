@@ -17,25 +17,19 @@ export LeftIntegral,LeftDerivative, RightDerivative, RightIntegral
 # DLMF18.17.9 with μ=0.5 and α=β=0
 
 function rangespace{DD<:Interval}(Q::ConcreteLeftIntegral{Jacobi{DD},Float64})
-    if Q.order==0.5
-        S=domainspace(Q)
-        @assert S.a==0
-        @assert S.b==0
-        JacobiWeight(0.5,0.,Jacobi(-0.5,0.5,domain(S)))
-    else
-        error("Not implemented")
-    end
+    μ=Q.order
+    S=domainspace(Q)
+    @assert S.b==0
+
+    JacobiWeight(S.b+μ,0.,Jacobi(S.a-μ,S.b+μ,domain(S)))
 end
 
 function rangespace{DD<:Interval}(Q::ConcreteRightIntegral{Jacobi{DD},Float64})
-    if Q.order==0.5
-        S=domainspace(Q)
-        @assert S.a==0
-        @assert S.b==0
-        JacobiWeight(0.,0.5,Jacobi(0.5,-0.5,domain(S)))
-    else
-        error("Not implemented")
-    end
+    μ=Q.order
+    S=domainspace(Q)
+    @assert S.b==0
+
+    JacobiWeight(0.,S.a+μ,Jacobi(S.a+μ,S.b-μ,domain(S)))
 end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
@@ -62,7 +56,6 @@ for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
     @eval function addentries!{DD<:Interval}(Q::$TYP{Jacobi{DD},Float64},A,kr::UnitRange,::Colon)
         μ=Q.order
         S=domainspace(Q)
-        @assert μ==0.5
         @assert S.a==0
         @assert S.b==0
 
@@ -140,31 +133,31 @@ function addentries!{DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{
 end
 
 function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::JacobiWeight)
-    #TODO: general case
-    @assert Q.order==0.5
-    @assert isapproxinteger(sp.α-0.5) && sp.α>0 && isapproxinteger(sp.β)
-    Legendre(domain(sp))
+    @assert sp.α>0 && isapproxinteger(sp.β)
+
+    if isapprox(Q.order,sp.α)
+        Legendre(domain(sp))
+    else
+        JacobiWeight(sp.α-Q.order,0.,Jacobi(0.,sp.α-Q.order))
+    end
 end
 
-function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::PolynomialSpace)
-    #TODO: general case
-    @assert Q.order==0.5
-    JacobiWeight(0.5,0.,Jacobi(0.5,0.5,domain(sp)))
-end
+choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::PolynomialSpace)=
+                JacobiWeight(-Q.order,0.,Jacobi(-Q.order,-Q.order,domain(sp)))
+
 
 
 function choosedomainspace{T<:Float64}(Q::RightIntegral{UnsetSpace,T},sp::JacobiWeight)
-    #TODO: general case
-    @assert Q.order==0.5
-    @assert isapproxinteger(sp.β-0.5) && sp.β>0 && isapproxinteger(sp.α)
-    Legendre(domain(sp))
-end
+    @assert sp.β>0  && isapproxinteger(sp.α)
 
-function choosedomainspace{T<:Float64}(Q::RightIntegral{UnsetSpace,T},sp::PolynomialSpace)
-    #TODO: general case
-    @assert Q.order==0.5
-    JacobiWeight(0.,0.5,Jacobi(0.5,0.5,domain(sp)))
+    if isapprox(Q.order,sp.β)
+        Legendre(domain(sp))
+    else
+        JacobiWeight(0.,sp.β-Q.order,Jacobi(sp.β-Q.order,0.))
+    end
 end
+choosedomainspace{T<:Float64}(Q::RightIntegral{UnsetSpace,T},sp::PolynomialSpace)=
+    JacobiWeight(0.,-Q.order,Jacobi(-Q.order,-Q.order,domain(sp)))
 
 
 

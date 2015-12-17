@@ -1,4 +1,4 @@
-export Jacobi,Legendre
+export Jacobi,Legendre,WeightedJacobi
 
 #TODO Type
 immutable Jacobi{D<:Domain} <: PolynomialSpace{D}
