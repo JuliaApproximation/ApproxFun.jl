@@ -157,7 +157,7 @@ for TYP in (:Laurent,:Fourier)
     @eval begin
         Base.call(::Type{$TYP},d::Domain)=$TYP{typeof(d)}(d)
         Base.call(::Type{$TYP})=$TYP(PeriodicInterval())
-        Base.call{T<:Number}(::Type{$TYP},d::Vector{T})=Fourier(PeriodicInterval(d))
+        Base.call{T<:Number}(::Type{$TYP},d::Vector{T})=Fourier(PeriodicDomain(d))
 
         hasfasttransform{D}(::$TYP{D})=true
     end
