@@ -9,8 +9,10 @@
 
 immutable LaurentDirichlet{DD} <: UnivariateSpace{ComplexBasis,DD}
     domain::DD
+    LaurentDirichlet(d::DD)=new(d)
 end
-
+LaurentDirichlet{T<:Number}(d::Vector{T})=LaurentDirichlet(PeriodicDomain(d))
+LaurentDirichlet(d::Domain)=LaurentDirichlet{typeof(d)}(d)
 LaurentDirichlet()=LaurentDirichlet(PeriodicInterval())
 
 spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet)=domainscompatible(a,b)
