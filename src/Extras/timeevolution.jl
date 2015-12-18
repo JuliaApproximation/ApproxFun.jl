@@ -1,31 +1,4 @@
-export timeevolution, BDF2,BDF4,BDF22
-
-#
-# These formulæ, appearing in Eq. (2.5) of:
-#
-# A.-K. Kassam and L. N. Trefethen, Fourth-order time-stepping for stiff PDEs, SIAM J. Sci. Comput., 26:1214--1233, 2005,
-#
-# are derived to implement ETDRK4 in double precision without numerical instability from cancellation.
-#
-
-expα(x) = (exp(x)*(4-3x+x^2)-4-x)/x^3
-expβ(x) = (exp(x)*(x-2)+x+2)/x^3
-expγ(x) = (exp(x)*(4-x)-4-3x-x^2)/x^3
-
-expα_taylor(x::Float64) = Base.Math.@horner(x,1/6,1/6,3/40,1/45,5/1008,1/1120,7/51840,1/56700,1/492800,1/4790016,11/566092800,1/605404800,13/100590336000,1/106748928000,1/1580833013760,1/25009272288000,17/7155594141696000,1/7508956815360000)
-expβ_taylor(x::Float64) = Base.Math.@horner(x,1/6,1/12,1/40,1/180,1/1008,1/6720,1/51840,1/453600,1/4435200,1/47900160,1/566092800,1/7264857600,1/100590336000,1/1494484992000,1/23712495206400,1/400148356608000,1/7155594141696000,1/135161222676480000)
-expγ_taylor(x::Float64) = Base.Math.@horner(x,1/6,0/1,-1/120,-1/360,-1/1680,-1/10080,-1/72576,-1/604800,-1/5702400,-1/59875200,-1/691891200,-1/8717829120,-1/118879488000,-1/1743565824000,-1/27360571392000,-1/457312407552000,-1/8109673360588800)
-
-expα(x::Float64) = abs2(x) < (17/16)^2 ? expα_taylor(x) : (exp(x)*(4-3x+x^2)-4-x)/x^3
-expβ(x::Float64) = abs2(x) < (19/16)^2 ? expβ_taylor(x) : (exp(x)*(x-2)+x+2)/x^3
-expγ(x::Float64) = abs2(x) < (15/16)^2 ? expγ_taylor(x) : (exp(x)*(4-x)-4-3x-x^2)/x^3
-
-@vectorize_1arg Number expα
-@vectorize_1arg Number expβ
-@vectorize_1arg Number expγ
-
-
-## Multivariate
+export timeevolution, ETDRK4, BDF2, BDF4, BDF22
 
 
 function RK(L,y,h)
@@ -56,7 +29,34 @@ function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp,tol=1000eps())
     u2
 end
 
+function ETDRK4(L::BandedOperator,N::Function,u,t,h,m,glp,tol=10eps())
+    z = L*h
+    ez,ez2,h2ez2m1 = exp(z),exp(z/2),h/2*expm1(z/2)
+    ezα,ezβ2,ezγ = expα(z),2expβ(z),expγ(z)
+    push!(glp,u)
+    yield()
 
+    for k=1:m
+        ez2u = ez2*u
+        Nut = N(u,t)
+
+        a = ez2u + h2ez2m1*Nut
+        Nath2 = N(a,t+h/2)
+        b = ez2u + h2ez2m1*Nath2
+        Nbth2 = N(b,t+h/2)
+        c = ez2*a + h2ez2m1*(2Nbth2-Nut)
+
+        u = chop(ez*u + h*(ezα*Nut + ezβ2*(Nath2+Nbth2) + ezγ*N(c,t+h)),tol)
+        push!(glp,u)
+        yield()
+        t+=h
+    end
+
+    u,t
+end
+
+
+## Multivariate
 
 
 function BDF4(B::Vector,op::BandedOperator,bcs::Vector,uin::MultivariateFun,h::Real,m::Integer,glp)
