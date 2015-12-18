@@ -32,7 +32,7 @@ end
 function ETDRK4(L::BandedOperator,N::Function,u,t,h,m,glp,tol=10eps())
     z = L*h
     ez,ez2,h2ez2m1 = exp(z),exp(z/2),h/2*expm1(z/2)
-    ezα,ezβ2,ezγ = expα(z),2expβ(z),expγ(z)
+    hezα,h2ezβ,hezγ = h*expα(z),2h*expβ(z),h*expγ(z)
     push!(glp,u)
     yield()
 
@@ -46,7 +46,7 @@ function ETDRK4(L::BandedOperator,N::Function,u,t,h,m,glp,tol=10eps())
         Nbth2 = N(b,t+h/2)
         c = ez2*a + h2ez2m1*(2Nbth2-Nut)
 
-        u = chop(ez*u + h*(ezα*Nut + ezβ2*(Nath2+Nbth2) + ezγ*N(c,t+h)),tol)
+        u = chop(ez*u + hezα*Nut + h2ezβ*(Nath2+Nbth2) + hezγ*N(c,t+h),tol)
         push!(glp,u)
         yield()
         t+=h
