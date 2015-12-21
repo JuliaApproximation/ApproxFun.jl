@@ -28,6 +28,8 @@ bandinds{DD}(M::ConcreteMultiplication{Laurent{DD},Laurent{DD}})=bandinds(Lauren
 rangespace{DD}(M::ConcreteMultiplication{Laurent{DD},Laurent{DD}})=domainspace(M)
 addentries!{DD}(M::ConcreteMultiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentries!(LaurentOperator(M.f),A,k,:)
 
+Multiplication{DD}(f::Fun{Fourier{DD}},sp::Laurent{DD})=Multiplication(Fun(f,sp),sp)
+Multiplication{DD}(f::Fun{Laurent{DD}},sp::Fourier{DD})=Multiplication(Fun(f,sp),sp)
 
 # override SumSpace default
 coefficienttimes{DD}(f::Fun{Laurent{DD}},g::Fun{Laurent{DD}}) = Multiplication(f,space(g))*g

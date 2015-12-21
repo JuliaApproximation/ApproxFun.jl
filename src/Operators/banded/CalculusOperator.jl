@@ -223,7 +223,7 @@ function defaultderivative(S::Space,order::Integer)
         # we assume the canonical domain case is implemented
         ConcreteDerivative(S,order)
     else
-        D1=Fun(invfromcanonicalD(S),setdomain(canonicalspace(S),canonicaldomain(S)))*Derivative(setdomain(S,canonicaldomain(S)))
+        D1=invfromcanonicalD(S)*Derivative(setdomain(S,canonicaldomain(S)))
         D=DerivativeWrapper(SpaceOperator(D1,S,setdomain(rangespace(D1),domain(S))),1)
         if order==1
             D
