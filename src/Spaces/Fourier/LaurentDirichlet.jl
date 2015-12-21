@@ -23,7 +23,9 @@ canonicalspace(S::LaurentDirichlet)=Laurent(domain(S))
 
 bandinds{DD}(::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}})=0,2
 function addentries!{DD}(C::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}},A,kr::Range,::Colon)
-    A[1,2]+=1
+    if 1 in kr
+        A[1,2]+=1
+    end
     toeplitz_addentries!([],[1.,0.,1.],A,kr)
 end
 
