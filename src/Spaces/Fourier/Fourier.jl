@@ -244,6 +244,7 @@ end
 
 canonicalspace{DD<:PeriodicInterval}(S::Laurent{DD})=Fourier(domain(S))
 canonicalspace{DD<:Circle}(S::Fourier{DD})=Laurent(domain(S))
+canonicalspace{DD<:PeriodicLine}(S::Laurent{DD})=S
 
 for TYP in (:CosSpace,:Taylor)
     @eval union_rule(A::ConstantSpace,B::$TYP)=B

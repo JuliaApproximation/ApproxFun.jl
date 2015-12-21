@@ -29,6 +29,25 @@ function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp,tol=1000eps())
     u2
 end
 
+function BDF2(L::BandedOperator,N::Function,u0,h,m,glp,tol=1000eps())
+    SBDF2 = I-2.0/3.0*h*L
+
+    u1=u0
+    u2=chop(RK(N,u1,h),tol)
+    u2,u1  = chop(SBDF2\(1/3.0*(4u2-u1)),tol),u2
+    push!(glp,u2)
+    yield()
+
+    for k=1:m
+        u2,u1 = chop(RK(N,u2,h),tol),u2
+        u2,u1  = chop(SBDF2\(1/3.0*(4u2-u1)),tol),u2
+        push!(glp,u2)
+        yield()
+    end
+
+    u2
+end
+
 function ETDRK4(L::BandedOperator,N::Function,u,t,h,m,glp,tol=10eps())
     z = L*h
     ez,ez2,h2ez2m1 = exp(z),exp(z/2),h/2*expm1(z/2)

@@ -1,3 +1,5 @@
+export LaurentDirichlet
+
 ##
 # LaurentDirichlet represents functions in the basis
 #       1, z^(-1)+1,z+1,z^(-2)+z^(-1),z^2+z,…
@@ -19,8 +21,8 @@ spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet)=domainscompatible(a,b)
 
 canonicalspace(S::LaurentDirichlet)=Laurent(domain(S))
 
-bandinds{DD}(::ConcreteConversion{LaurentDirichlet,Laurent{DD}})=0,2
-function addentries!{DD}(C::ConcreteConversion{LaurentDirichlet,Laurent{DD}},A,kr::Range,::Colon)
+bandinds{DD}(::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}})=0,2
+function addentries!{DD}(C::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}},A,kr::Range,::Colon)
     A[1,2]+=1
     toeplitz_addentries!([],[1.,0.,1.],A,kr)
 end
@@ -28,6 +30,8 @@ end
 
 conversion_rule{DD}(b::LaurentDirichlet,a::Laurent{DD})=b
 
+Base.real{DD}(f::Fun{LaurentDirichlet{DD}}) = real(Fun(f,Laurent(domain(f))))
+Base.imag{DD}(f::Fun{LaurentDirichlet{DD}}) = imag(Fun(f,Laurent(domain(f))))
 
 ##
 # CosDirichlet represents
