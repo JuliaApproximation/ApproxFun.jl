@@ -1,5 +1,6 @@
 """
- WeightSpace represents a space that weights another space
+ WeightSpace represents a space that weights another space.
+ Overload weight(S,x).
 """
 abstract WeightSpace{T,DD,d} <: Space{T,DD,d}
 
