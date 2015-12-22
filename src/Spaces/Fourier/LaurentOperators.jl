@@ -41,6 +41,7 @@ coefficienttimes{DD}(f::Fun{Laurent{DD}},g::Fun{Laurent{DD}}) = Multiplication(f
 
 # override map definition
 Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=ConcreteDerivative(S,k)
+Derivative{DD<:Circle}(S::Laurent{DD},k::Integer)=DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),SumSpace),k)
 
 bandinds{s,DD<:PeriodicInterval}(D::ConcreteDerivative{Hardy{s,DD}})=(0,0)
 bandinds{s,DD<:Circle}(D::ConcreteDerivative{Hardy{s,DD}})=s?(0,D.order):(-D.order,0)

@@ -30,13 +30,13 @@ end
 function fourierdiff{T<:Number}(v::Vector{T})
     n = 2(length(v)÷2)+1
     w = Array{T}(n)
-    w[1],w[n-1] = zero(T),zero(T)
+    w[1] = zero(T)
+    n > 1 && (w[n-1] = zero(T))
     for k=1:n÷2-1
         @inbounds w[2k] = -k*v[2k+1]
         @inbounds w[2k+1] = k*v[2k]
     end
-    w[n] = (n÷2)*v[n-1]
-    n == length(v) && (w[n-1] = -(n÷2)*v[n])
+    n > 1 && (w[n] = (n÷2)*v[n-1]; n == length(v) && (w[n-1] = -(n÷2)*v[n]))
 
     w
 end
