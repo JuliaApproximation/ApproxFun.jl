@@ -32,8 +32,44 @@ end
 
 conversion_rule{DD}(b::LaurentDirichlet,a::Laurent{DD})=b
 
-Base.real{DD}(f::Fun{LaurentDirichlet{DD}}) = real(Fun(f,Laurent(domain(f))))
-Base.imag{DD}(f::Fun{LaurentDirichlet{DD}}) = imag(Fun(f,Laurent(domain(f))))
+differentiate{DD}(f::Fun{LaurentDirichlet{DD}}) = differentiate(Fun(f,Laurent))
+
+.*{DD}(f::Fun{Laurent{DD}},g::Fun{LaurentDirichlet{DD}}) = f.*Fun(g,Laurent)
+.*{DD}(f::Fun{LaurentDirichlet{DD}},g::Fun{Laurent{DD}}) = Fun(f,Laurent).*g
+.*{DD}(f::Fun{LaurentDirichlet{DD}},g::Fun{LaurentDirichlet{DD}}) = Fun(f,Laurent).*g
+
+Base.real{DD}(f::Fun{LaurentDirichlet{DD}}) = real(Fun(f,Laurent))
+Base.imag{DD}(f::Fun{LaurentDirichlet{DD}}) = imag(Fun(f,Laurent))
+
+
+coefficients(v::Vector,::Laurent,::LaurentDirichlet)=laurentdirichlettransform!(copy(v))
+coefficients(v::Vector,::LaurentDirichlet,::Laurent)=laurentidirichlettransform!(copy(v))
+
+function laurentdirichlettransform!(w::Vector)
+    if length(w) > 1
+        for k=length(w)-2:-1:1
+            @inbounds w[k] -= w[k+2]
+        end
+        @inbounds w[1] -= w[2]
+    end
+
+    w
+end
+
+function laurentidirichlettransform!(w::Vector)
+    if length(w) == 1
+    elseif length(w) == 2
+        @inbounds w[1] += w[2]
+    else
+        @inbounds w[1] += w[2]+w[3]
+        for k=4:length(w)
+            @inbounds w[k-2] += w[k]
+        end
+    end
+
+    w
+end
+
 
 ##
 # CosDirichlet represents
