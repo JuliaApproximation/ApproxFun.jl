@@ -33,8 +33,8 @@ include("Spaces/Spaces.jl")
 ## Further extra features
 
 include("PDE/PDE.jl")
-include("Plot/Plot.jl")
 include("Extras/Extras.jl")
+include("Plot/Plot.jl")
 
 include("docs.jl")
 
