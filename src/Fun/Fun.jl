@@ -393,7 +393,7 @@ end
 
 ## non-vector notation
 
-*{S,T,U,V}(f::Fun{S,T},g::Fun{U,V})=f.*g
+*(f::Fun,g::Fun)=f.*g
 ^(f::Fun,k::Integer)=f.^k
 ^(f::Fun,k::Union{Number,Fun})=f.^k
 /(c::Union{Number,Fun},g::Fun)=c./g

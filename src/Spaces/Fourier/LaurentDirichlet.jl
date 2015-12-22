@@ -34,9 +34,14 @@ conversion_rule{DD}(b::LaurentDirichlet,a::Laurent{DD})=b
 
 differentiate{DD}(f::Fun{LaurentDirichlet{DD}}) = differentiate(Fun(f,Laurent))
 
-.*{DD}(f::Fun{Laurent{DD}},g::Fun{LaurentDirichlet{DD}}) = f.*Fun(g,Laurent)
-.*{DD}(f::Fun{LaurentDirichlet{DD}},g::Fun{Laurent{DD}}) = Fun(f,Laurent).*g
-.*{DD}(f::Fun{LaurentDirichlet{DD}},g::Fun{LaurentDirichlet{DD}}) = Fun(f,Laurent).*g
+for op in (:+,:-,:(.+),:(.-),:(.*))
+    @eval begin
+        $op{DD}(f::Fun{Laurent{DD}},g::Fun{LaurentDirichlet{DD}}) = $op(f,Fun(g,Laurent))
+        $op{DD}(f::Fun{LaurentDirichlet{DD}},g::Fun{Laurent{DD}}) = $op(Fun(f,Laurent),g)
+        $op{DD}(f::Fun{LaurentDirichlet{DD}},g::Fun{LaurentDirichlet{DD}}) = $op(Fun(f,Laurent),Fun(g,Laurent))
+    end
+end
+
 
 Base.real{DD}(f::Fun{LaurentDirichlet{DD}}) = real(Fun(f,Laurent))
 Base.imag{DD}(f::Fun{LaurentDirichlet{DD}}) = imag(Fun(f,Laurent))

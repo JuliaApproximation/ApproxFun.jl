@@ -16,9 +16,9 @@ linesum{DD<:Circle}(f::Fun{Fourier{DD}})=sum(Fun(f.coefficients,Fourier(canonica
 linesum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}})=sum(f) #TODO: Complex periodic interval
 
 
-differentiate{DD<:PeriodicInterval}(f::Fun{Taylor{DD}}) = Fun(tocanonicalD(f,0)*taylor_diff(f.coefficients),f.space)
-differentiate{DD<:PeriodicInterval}(f::Fun{Hardy{false,DD}}) = Fun(tocanonicalD(f,0)*hardyfalse_diff(f.coefficients),f.space)
-differentiate{DD<:PeriodicInterval}(f::Fun{Laurent{DD}}) = Fun(tocanonicalD(f,0)*laurentdiff(f.coefficients),f.space)
+differentiate{DD<:PeriodicInterval}(f::Fun{Taylor{DD}}) = Fun(im*tocanonicalD(f,0)*taylor_diff(f.coefficients),f.space)
+differentiate{DD<:PeriodicInterval}(f::Fun{Hardy{false,DD}}) = Fun(im*tocanonicalD(f,0)*hardyfalse_diff(f.coefficients),f.space)
+differentiate{DD<:PeriodicInterval}(f::Fun{Laurent{DD}}) = Fun(im*tocanonicalD(f,0)*laurentdiff(f.coefficients),f.space)
 
 differentiate{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) = Fun(tocanonicalD(f,0)*cosspacediff(f.coefficients),SinSpace(domain(f)))
 differentiate{DD<:PeriodicInterval}(f::Fun{SinSpace{DD}}) = Fun(tocanonicalD(f,0)*sinspacediff(f.coefficients),CosSpace(domain(f)))
