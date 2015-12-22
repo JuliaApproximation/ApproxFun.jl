@@ -50,8 +50,8 @@ end
 
 function ETDRK4(L::BandedOperator,N::Function,u,t,h,m,glp,tol=10eps())
     z = L*h
-    ez,ez2,h2ez2m1 = exp(z),exp(z/2),h/2*expm1(z/2)
-    hezα,h2ezβ,hezγ = h*expα(z),2h*expβ(z),h*expγ(z)
+    ez,ez2,h2ez2m1 = SavedBandedOperator(exp(z)),SavedBandedOperator(exp(z/2)),SavedBandedOperator(h/2*expm1(z/2))
+    hezα,h2ezβ,hezγ = SavedBandedOperator(h*expα(z)),SavedBandedOperator(2h*expβ(z)),SavedBandedOperator(h*expγ(z))
     push!(glp,u)
     yield()
 
