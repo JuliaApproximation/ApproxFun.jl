@@ -19,12 +19,11 @@ WeightedJacobi(α,β)=JacobiWeight(α,β,Jacobi(β,α))
 spacescompatible(a::Jacobi,b::Jacobi)=a.a==b.a && a.b==b.b
 
 function canonicalspace(S::Jacobi)
-    if isinteger(S.a) && isinteger(S.b)
-        Jacobi(0.,0.,domain(S))
-    elseif isinteger(S.a+0.5) && isinteger(S.b+0.5)
+    if isapproxinteger(S.a+0.5) && isapproxinteger(S.b+0.5)
         Chebyshev(domain(S))
     else
-        S
+        # return space with parameters in (-1,0.]
+        Jacobi(mod(S.a,-1),mod(S.b,-1),domain(S))
     end
 end
 
