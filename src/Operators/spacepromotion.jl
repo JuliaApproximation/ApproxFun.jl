@@ -89,6 +89,10 @@ function findmaxrangespace(ops::Vector)
 end
 
 
+# The coolest definitions ever!!
+# supports Derivative():Chebyshev()↦Ultraspherical{1}()
+↦(A::Operator,b::Space)=promoterangespace(A,b)
+Base.colon(A::Operator,b::Space)=promotedomainspace(A,b)
 
 
 promotedomainspace(P::Functional,sp::Space,::AnySpace)=SpaceFunctional(P,sp)
