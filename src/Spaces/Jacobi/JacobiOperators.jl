@@ -50,6 +50,30 @@ function addentries!{J<:Jacobi}(T::ConcreteDerivative{J},A,kr::Range,::Colon)
 end
 
 
+function Derivative{DDD<:Interval}(S::WeightedJacobi{DDD})
+    if S.α>0 && S.β>0 && S.α==S.space.b && S.β==S.space.a
+        ConcreteDerivative(S,1)
+    else
+        jacobiweightDerivative(S)
+    end
+end
+
+bandinds{DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{DDD}})=-1,0
+rangespace{DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{DDD}})=WeightedJacobi(domainspace(D).α-1,domainspace(D).β-1,domain(D))
+
+
+function addentries!{DDD<:Interval}(T::ConcreteDerivative{WeightedJacobi{DDD}},A,kr::Range,::Colon)
+    d=domain(T)
+    for k=kr
+        if k > 1
+            A[k,k-1]-=4(k-1)./(d.b-d.a)
+        end
+    end
+    A
+end
+
+
+
 ## Integral
 
 function Integral(J::Jacobi,k::Integer)
@@ -144,10 +168,20 @@ function Conversion{m}(A::Ultraspherical{m},B::Jacobi)
     if isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
         ConcreteConversion(A,B)
     else
-        J=Jacobi(m-0.5,m-0.5,domain(A))
+        J=Jacobi(A)
         ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
     end
 end
+
+function Conversion{m}(A::Jacobi,B::Ultraspherical{m})
+    if isapprox(A.a,m-0.5)&&isapprox(A.b,m-0.5)
+        ConcreteConversion(A,B)
+    else
+        J=Jacobi(B)
+        ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
+    end
+end
+
 
 bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{US,J})=0,0
 bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{J,US})=0,0
@@ -306,7 +340,7 @@ end
 
 
 #TODO: general integer decrements
-function Conversion{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
+function Conversion{DD<:Interval}(A::WeightedJacobi{DD},B::Jacobi)
     if A.α==A.β+1
         M=Multiplication(Fun([1.],JacobiWeight(1.,0.,domain(A))),A.space)        # multply by (1+x)
         if A.β==0.
@@ -330,7 +364,7 @@ end
 
 
 for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
-    @eval function $FUNC{J<:Jacobi,DD<:Interval}(A::JacobiWeight{J,DD},B::Jacobi)
+    @eval function $FUNC{DD<:Interval}(A::WeightedJacobi{DD},B::Jacobi)
         if A.α==A.β+1 && A.space.b>0
             $FUNC(Jacobi(A.space.a,A.space.b-1,domain(A)),B)
         elseif A.β==A.α+1 && A.space.a>0

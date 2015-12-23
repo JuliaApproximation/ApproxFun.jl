@@ -1,4 +1,4 @@
-
+export ↦
 
 immutable SpaceFunctional{O<:Functional,S<:Space,T} <: Functional{T}
     op::O

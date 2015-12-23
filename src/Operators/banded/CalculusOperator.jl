@@ -37,6 +37,7 @@ macro calculus_operator(Op)
         $Op(d::Domain)=$Op(d,1)
         $Op(d::Vector)=$Op(Space(d),1)
         $Op(d::Vector,n)=$Op(Space(d),n)
+        $ConcOp(S::Space)=$ConcOp(S,1)
 
         function Base.convert{T}(::Type{Operator{T}},D::$ConcOp)
             if T==eltype(D)

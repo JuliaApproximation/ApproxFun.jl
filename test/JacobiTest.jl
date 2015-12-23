@@ -96,3 +96,14 @@ a=Arc(0.,.1,0.,π/2)
 g=Fun(exp,Legendre(a))
 
 @test_approx_eq sum(g) sum(Fun(exp,a))
+
+
+
+## Test special derivative
+
+x=Fun()
+f=exp(x)*sqrt(1-x^2)
+D=Derivative(WeightedJacobi(.5,.5))
+g=(D*Fun(f,domainspace(D)))
+@test_approx_eq f'(0.1) g(0.1)
+

@@ -27,7 +27,7 @@ end
 function rangespace{DD<:Interval}(Q::ConcreteRightIntegral{Jacobi{DD},Float64})
     μ=Q.order
     S=domainspace(Q)
-    @assert S.b==0
+    @assert S.a==0
 
     JacobiWeight(0.,S.a+μ,Jacobi(S.a+μ,S.b-μ,domain(S)))
 end
@@ -52,16 +52,21 @@ function jacobi_frac_addentries!(c::Number,α,μ,A,kr::UnitRange)
     A
 end
 
-for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
-    @eval function addentries!{DD<:Interval}(Q::$TYP{Jacobi{DD},Float64},A,kr::UnitRange,::Colon)
-        μ=Q.order
-        S=domainspace(Q)
-        @assert S.a==0
-        @assert S.b==0
+function addentries!{DD<:Interval}(Q::ConcreteLeftIntegral{Jacobi{DD},Float64},A,kr::UnitRange,::Colon)
+    μ=Q.order
+    S=domainspace(Q)
+    @assert S.b==0
 
-        # the 1/sqrt(length(d)) gives the constant term
-        jacobi_frac_addentries!(domain(S),0.,μ,A,kr)
-    end
+    # the 1/sqrt(length(d)) gives the constant term
+    jacobi_frac_addentries!(domain(S),0.,μ,A,kr)
+end
+function addentries!{DD<:Interval}(Q::ConcreteRightIntegral{Jacobi{DD},Float64},A,kr::UnitRange,::Colon)
+    μ=Q.order
+    S=domainspace(Q)
+    @assert S.a==0
+
+    # the 1/sqrt(length(d)) gives the constant term
+    jacobi_frac_addentries!(domain(S),0.,μ,A,kr)
 end
 
 

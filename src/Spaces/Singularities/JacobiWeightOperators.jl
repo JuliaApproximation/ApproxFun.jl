@@ -143,7 +143,7 @@ end
 ## Operators
 
 
-function Derivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
+function jacobiweightDerivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
     d=domain(S)
 
     if S.α==S.β==0
@@ -172,6 +172,8 @@ function Derivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
     end
 
 end
+
+Derivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})=jacobiweightDerivative(S)
 
 function Derivative{SS,DD<:Interval}(S::JacobiWeight{SS,DD},k::Integer)
     if k==1
