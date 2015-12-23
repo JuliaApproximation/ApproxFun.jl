@@ -359,7 +359,14 @@ function defaultcoefficients(f,a,b)
                 coefficients(Fun(x->Fun(f,a)(x),b))
             else
                 # we set the value to be zero off the domain of definition
+                # but first ensure that domain(b) has a jump
+                # TODO: this is disabled as it breaks the case of splitting
+                #       one interval into two
                 d=domain(a)
+#                 if !issubcomponent(d,domain(b))
+#                     error("$(d) is not a subcomponent of $(domain(b))")
+#                 end
+
                 coefficients(Fun(x->x∈d?Fun(f,a)(x):zero(Fun(f,a)(x)),b))
             end
         else
@@ -369,6 +376,7 @@ function defaultcoefficients(f,a,b)
 end
 
 coefficients(f,a,b)=defaultcoefficients(f,a,b)
+
 
 
 

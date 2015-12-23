@@ -138,7 +138,7 @@ function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::JacobiW
     if isapprox(Q.order,sp.α)
         Legendre(domain(sp))
     else
-        JacobiWeight(sp.α-Q.order,0.,Jacobi(0.,sp.α-Q.order))
+        JacobiWeight(sp.α-Q.order,0.,Jacobi(0.,sp.α-Q.order,domain(sp)))
     end
 end
 

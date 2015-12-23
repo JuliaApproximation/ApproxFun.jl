@@ -88,6 +88,9 @@ function Base.in{T}(x,d::IntervalDomain{T})
     abs(imag(y))<100eps(T)/sc && -one(real(T))-100eps(T)/sc<ry<one(real(T))+100eps(T)/sc
 end
 
+pieces(d::Domain)=[d]
+issubcomponent(a::Domain,b::Domain)=a in pieces(b)
+
 ###### Periodic domains
 
 abstract PeriodicDomain{T} <: UnivariateDomain{T}
