@@ -11,8 +11,6 @@ include("Curve.jl")
 
 include("Point.jl")
 
-include("multivariate.jl")
-
 
 typealias AffineDomain Union{Interval,PeriodicInterval,Ray,Line}
 
@@ -91,3 +89,9 @@ end
 
 Base.isless{T1<:Real,T2<:Real}(d1::Interval{T1},d2::Ray{false,T2})=d1≤d2.center
 Base.isless{T1<:Real,T2<:Real}(d2::Ray{true,T2},d1::Interval{T1})=d2.center≤d1
+
+
+# multivariate domainxs
+
+include("multivariate.jl")
+include("Disk.jl")
