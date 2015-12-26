@@ -189,12 +189,24 @@ end
 
 
 ## calculus
-for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace), OP in (:differentiate,:integrate)
-    @eval function $OP{D<:$TYP,T}(f::Fun{D,T})
-        fs=map($OP,vec(f))
-        Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
+for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace)
+    for OP in (:differentiate,:integrate)
+        @eval function $OP{D<:$TYP,T}(f::Fun{D,T})
+            fs=map($OP,vec(f))
+            Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
+        end
+    end
+    for OP in (:(Base.real),:(Base.imag),:(Base.conj))
+        @eval begin
+            $OP{SV,DD,d}(f::Fun{$TYP{SV,RealBasis,DD,d}}) = Fun($OP(f.coefficients),f.space)
+            function $OP{SV,T,DD,d}(f::Fun{$TYP{SV,T,DD,d}})
+                fs=map($OP,vec(f))
+                Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
+            end
+        end
     end
 end
+
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval function Base.cumsum{D<:$TYP,T}(f::Fun{D,T})
@@ -204,8 +216,8 @@ for TYP in (:SumSpace,:TupleSpace)
 end
 
 
-for TYP in (:SumSpace,:PiecewiseSpace)
-    @eval Base.sum{V<:$TYP}(f::Fun{V})=mapreduce(sum,+,vec(f))
+for TYP in (:SumSpace,:PiecewiseSpace), OP in (:(Base.sum),:linesum)
+    @eval $OP{V<:$TYP}(f::Fun{V})=mapreduce($OP,+,vec(f))
 end
 
 function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})

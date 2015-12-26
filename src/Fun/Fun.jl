@@ -1,5 +1,5 @@
 export Fun,evaluate,values,points
-export coefficients,integrate,differentiate,domain,space,linesum
+export coefficients,integrate,differentiate,domain,space,linesum,linenorm
 
 include("Domain.jl")
 include("Space.jl")
@@ -285,23 +285,27 @@ linedot(g::Fun,c::Number)=linedotu(conj(g),c)
 
 ## Norm
 
-Base.norm(f::Fun) = norm(f,2)
+for (OP,SUM) in ((:(Base.norm),:(Base.sum)),(:linenorm,:linesum))
+    @eval begin
+        $OP(f::Fun) = $OP(f,2)
 
-function Base.norm(f::Fun,p::Number)
-    if p < 1
-        return error("p should be 1 ≤ p ≤ ∞")
-    elseif 1 ≤ p < Inf
-        return abs(sum(abs2(f)^(p/2)))^(1/p)
-    else
-        return maxabs(f)
-    end
-end
+        function $OP(f::Fun,p::Number)
+            if p < 1
+                return error("p should be 1 ≤ p ≤ ∞")
+            elseif 1 ≤ p < Inf
+                return abs($SUM(abs2(f)^(p/2)))^(1/p)
+            else
+                return maxabs(f)
+            end
+        end
 
-function Base.norm(f::Fun,p::Int)
-    if 1 ≤ p < Inf
-        return iseven(p) ? abs(sum(abs2(f)^div(p,2)))^(1/p) : abs(sum(abs2(f)^(p/2)))^(1/p)
-    else
-        return error("p should be 1 ≤ p ≤ ∞")
+        function $OP(f::Fun,p::Int)
+            if 1 ≤ p < Inf
+                return iseven(p) ? abs($SUM(abs2(f)^div(p,2)))^(1/p) : abs($SUM(abs2(f)^(p/2)))^(1/p)
+            else
+                return error("p should be 1 ≤ p ≤ ∞")
+            end
+        end
     end
 end
 
@@ -310,11 +314,14 @@ end
 
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op){T,D<:Space{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
+    @eval ($op){S<:Space{RealBasis}}(f::Fun{S}) = Fun(($op)(f.coefficients),f.space)
 end
 
-Base.abs2{S,T<:Real}(f::Fun{S,T})=f^2
-Base.abs2{S,T<:Complex}(f::Fun{S,T})=real(f)^2+imag(f)^2
+Base.conj(f::Fun)=error("Override conj for $(typeof(f))")
+
+Base.abs2{S<:Space{RealBasis},T<:Real}(f::Fun{S,T})=f^2
+Base.abs2{S<:Space{RealBasis},T<:Complex}(f::Fun{S,T})=real(f)^2+imag(f)^2
+Base.abs2(f::Fun)=f*conj(f)
 
 ##  integration
 

@@ -13,8 +13,15 @@ end
 ConstantSpace(d::Domain)=ConstantSpace{typeof(d)}(d)
 ConstantSpace()=ConstantSpace(AnyDomain())
 
-for OP in (:maxspace_rule,:union_rule)
-    @eval $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
+# we override maxspace instead of maxspace_rule to avoid
+# domainscompatible check.
+for OP in (:maxspace,:(Base.union))
+    @eval begin
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace{AnyDomain})=A
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
+        $OP(A::ConstantSpace,B::ConstantSpace{AnyDomain})=A
+        $OP(A::ConstantSpace,B::ConstantSpace)=ConstantSpace(domain(A) ∪ domain(B))
+    end
 end
 
 Fun(c::Number)=Fun([c],ConstantSpace())
@@ -47,8 +54,8 @@ Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T})=Fu
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
 
 
-
-promoterangespace(P::Functional,::ConstantSpace,::ConstantSpace)=P # functionals always map to vector space
+# functionals always map to Constant space
+promoterangespace(P::Functional,A::ConstantSpace,cur::ConstantSpace)=domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
 
 ## Promotion: Zero operators are the only operators that also make sense as functionals
 promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))

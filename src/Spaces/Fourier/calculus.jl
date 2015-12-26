@@ -6,13 +6,13 @@ Base.sum{DD}(f::Fun{Fourier{DD}})=fouriersum(domain(f),f.coefficients)
 function linesum{DD}(f::Fun{Laurent{DD}})
     d=domain(f)
     if isa(d,Circle)
-        sum(Fun(f.coefficients,S(canonicaldomain(f))))*d.radius
+        sum(setcanonicaldomain(f))*d.radius
     else
         sum(f)
     end
 end
 
-linesum{DD<:Circle}(f::Fun{Fourier{DD}})=sum(Fun(f.coefficients,Fourier(canonicaldomain(f))))*d.radius
+linesum{DD<:Circle}(f::Fun{Fourier{DD}})=sum(setcanonicaldomain(f))*d.radius
 linesum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}})=sum(f) #TODO: Complex periodic interval
 
 
