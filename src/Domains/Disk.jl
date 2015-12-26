@@ -3,16 +3,15 @@ export Disk,𝔻
 # TT is Real or Complex
 # T is (Real,Real) or Complex
 immutable Disk{orientation,T,TT} <: BivariateDomain{T}
-    radius::Float64
     center::TT
+    radius::Float64
 end
 
-Base.convert{o}(::Type{Disk{o}},r,p::Complex)=Disk{o,typeof(p),typeof(p)}(r,p)
-Base.convert{o,T<:Real}(::Type{Disk{o}},r,p::Tuple{T,T})=Disk{o,T,typeof(p)}(r,p)
+Base.convert{o}(::Type{Disk{o}},c::Complex,r)=Disk{o,typeof(c),typeof(c)}(c,r)
+Base.convert{o,T<:Real}(::Type{Disk{o}},c::Tuple{T,T},r)=Disk{o,T,typeof(c)}(c,r)
 
-Disk(r,p)=Disk{true}(r,p)
-Disk(r)=Disk(r,(0.,0.))
-Disk()=Disk(1.)
+Disk(c,r)=Disk{true}(c,r)
+Disk()=Disk((0.,0.),1.)
 Disk(::AnyDomain)=Disk(NaN,(NaN,NaN))
 
 const 𝔻=Disk()
