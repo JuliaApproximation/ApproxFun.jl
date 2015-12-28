@@ -59,18 +59,18 @@ itransform(::Hardy{false},cfs::Vector,plan)=plan(flipdim(alternatesign!(-cfs),1)
 
 evaluate{D<:Domain}(f::AbstractVector,S::Taylor{D},z) = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
 function evaluate{D<:Circle}(f::AbstractVector,S::Taylor{D},z)
+    z=mappoint(S,𝕌,z)
     d=domain(S)
-    horner(f,(z-d.center)/d.radius)
+    horner(f,z)
 end
 
 function evaluate{D<:Domain}(f::AbstractVector,S::Hardy{false,D},z)
-    z=fromcanonical(Circle(),tocanonical(S,z))
+    z=mappoint(S,𝕌,z)
     z=1./z
     z.*horner(f,z)
 end
 function evaluate{D<:Circle}(f::AbstractVector,S::Hardy{false,D},z)
-    d=domain(S)
-    z=(z-d.center)/d.radius
+    z=mappoint(S,𝕌,z)
     z=1./z
     z.*horner(f,z)
 end

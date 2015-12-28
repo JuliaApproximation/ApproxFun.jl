@@ -115,3 +115,10 @@ z=Fun(identity,d2)
 # false Circle
 @test_approx_eq Fun(exp,Fourier(Circle(0.,1.,false)))(exp(0.1im)) exp(exp(.1im))
 @test_approx_eq Fun(exp,Laurent(Circle(0.,1.,false)))(exp(0.1im)) exp(exp(.1im))
+
+
+
+## Reverse orientation
+
+f=Fun(z->1/z,Taylor(1/Circle()))
+@test_approx_eq f(exp(0.1im)) exp(-0.1im)

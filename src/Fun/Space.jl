@@ -167,6 +167,10 @@ for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD,:invfromcan
     @eval ($op)(sp::Space,x...)=$op(domain(sp),x...)
 end
 
+mappoint(a::Space,b::Space,x)=mappoint(domain(a),domain(b),x)
+mappoint(a::Space,b::Domain,x)=mappoint(domain(a),b,x)
+mappoint(a::Domain,b::Space,x)=mappoint(a,domain(b),x)
+
 
 
 for FUNC in (:conversion_rule,:maxspace_rule,:union_rule)
