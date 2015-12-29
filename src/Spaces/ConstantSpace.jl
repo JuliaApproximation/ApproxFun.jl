@@ -167,3 +167,9 @@ end
 for op = (:*,:.*,:./,:/)
     @eval $op{CS<:ConstantSpace}(f::Fun,c::Fun{CS}) = f*convert(Number,c)
 end
+
+
+
+## Multivariate case
+union_rule(a::TensorSpace,b::ConstantSpace{AnyDomain})=TensorSpace(map(sp->union(sp,b),a.spaces))
+

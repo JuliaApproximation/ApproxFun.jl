@@ -247,3 +247,6 @@ Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace)=Fun(fromtree(v),S)
 #     @assert length(d.spaces) ==2
 #     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
 # end
+
+
+union_rule(a::TensorSpace,b::TensorSpace)=TensorSpace(map(union,a.spaces,b.spaces))

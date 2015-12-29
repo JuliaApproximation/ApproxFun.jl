@@ -202,7 +202,7 @@ function Plots.plot!(plt::Plots.Plot,f::MultivariateFun;linetype=:contour,opts..
     f=chop(f,10e-10)
     f=pad(f,max(size(f,1),20),max(size(f,2),20))
     vals=values(f)
-    if norm(imag(vals))>10e-9
+    if norm(imag(vals),Inf)>10e-9
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
 
@@ -213,7 +213,7 @@ function Plots.surface(f::MultivariateFun;opts...)
     f=chop(f,10e-10)
     f=pad(f,max(size(f,1),20),max(size(f,2),20))
     vals=values(f)
-    if norm(imag(vals))>10e-9
+    if norm(imag(vals),Inf)>10e-9
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
 

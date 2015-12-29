@@ -27,6 +27,14 @@ f=Fun(gg)
 @test_approx_eq f(0.,0.) ff(0.,0.)
 
 
+# Fun +-* constant
+f=Fun((x,y)->exp(x)*cos(y))
+
+@test_approx_eq f(0.1,0.2)+2 (f+2)(0.1,0.2)
+@test_approx_eq f(0.1,0.2)-2 (f-2)(0.1,0.2)
+@test_approx_eq f(0.1,0.2)*2 (f*2)(0.1,0.2)
+
+
 
 ## ProductFun
 u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5).^2-40(y+.2).^2))
