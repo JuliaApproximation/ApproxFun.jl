@@ -15,6 +15,7 @@ for T in (:CosSpace,:SinSpace)
         spacescompatible(a::$T,b::$T)=domainscompatible(a,b)
         hasfasttransform(::$T)=true
         canonicalspace(S::$T)=Fourier(domain(S))
+        setdomain(S::$T,d::Domain)=$T(d)
     end
 end
 # s == true means analytic inside, taylor series
