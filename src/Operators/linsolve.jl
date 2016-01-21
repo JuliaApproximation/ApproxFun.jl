@@ -18,7 +18,8 @@ eps2{T<:Integer}(::Type{T})=eps2(Float64)
 eps2(::Type{BigInt})=eps2(BigFloat)
 
 function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps2(eltype(A[end])),maxlength=1000000)
-    if isambiguous(domainspace(A[end]))
+    if isambiguous(domainspace(A[end])) ||
+            !spacescompatible(A)
         A=promotedomainspace(A,choosedomainspace(A))
     end
     if length(A)==3&&
