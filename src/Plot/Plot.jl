@@ -45,16 +45,16 @@ Plots.plot!{S,T<:Real}(plt::Plots.Plot,x::AbstractVector{T},f::Fun{S,T};kwds...)
 
 
 
-function Plots.plot!{F<:Union{Fun,Domain}}(plt::Plots.Plot,v::AbstractVector{F};label=Void)
+function Plots.plot!{F<:Union{Fun,Domain}}(plt::Plots.Plot,v::AbstractVector{F};label=Void,kwds...)
     if label == Void
         for k=1:length(v)
-            plot!(plt,v[k])
+            plot!(plt,v[k];kwds...)
         end
     else
         @assert length(label)==length(v)
 
         for k=1:length(v)
-            plot!(plt,v[k];label=label[k])
+            plot!(plt,v[k];label=label[k],kwds...)
         end
     end
     plt

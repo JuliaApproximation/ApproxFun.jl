@@ -46,3 +46,9 @@ fromcanonicalD(c::Curve,x)=differentiate(c.curve)(x)
 
 
 Base.in(x,d::Curve)=in(tocanonical(d,x),canonicaldomain(d))
+
+Base.reverse(d::Curve)=Curve(reverseorientation(d.curve))
+
+isambiguous(d::Curve)=length(d.curve)==0 && isambiguous(domain(d.curve))
+Base.convert{S,T}(::Type{IntervalCurve{S,T}},::AnyDomain)=Fun([NaN],S(AnyDomain()))
+Base.convert{S,T}(::Type{PeriodicCurve{S,T}},::AnyDomain)=Fun([NaN],S(AnyDomain()))
