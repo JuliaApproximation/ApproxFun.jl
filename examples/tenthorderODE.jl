@@ -29,4 +29,4 @@ ApproxFun.plot(u)
     png("tenthorder")
 
 
-1
+∂
