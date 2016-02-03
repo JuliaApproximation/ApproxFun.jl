@@ -25,9 +25,9 @@ end
 
 typealias RealLine{T} Union{Line{false,T},Line{true,T}}
 
-Base.convert{a}(::Type{Line{a}},c,α,β)=Line{a,typeof(c)}(c,α,β)
-Base.convert{a}(::Type{Line{a}},c::Number)=Line{a,typeof(c)}(c)
-Base.convert{a}(::Type{Line{a}})=Line{a,Float64}()
+Base.call{a}(::Type{Line{a}},c,α,β)=Line{a,typeof(c)}(c,α,β)
+Base.call{a}(::Type{Line{a}},c::Number)=Line{a,typeof(c)}(c)
+Base.call{a}(::Type{Line{a}})=Line{a,Float64}()
 
 Base.angle{a}(d::Line{a})=a*π
 

@@ -115,7 +115,6 @@ end
 
 Base.issubset(a::Domain,b::Domain)=a==b
 
-Base.isless(a::Domain,b::Domain)=false
 
 Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
 Base.last(d::PeriodicDomain)=fromcanonical(d,π)

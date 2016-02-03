@@ -3,7 +3,11 @@
 
 import Base.BLAS: BlasInt
 
-blasfunc(x...)=BLAS.blasfunc(x...)
+if VERSION < v"0.5.0-dev"
+    blasfunc(x...)=BLAS.blasfunc(x...)
+else
+    blasfunc(x...)=@BLAS.blasfunc(x...)
+end
 
 for (hseqr,elty) in ((:zhseqr_,:Complex128),)
     @eval function hesseneigvals(M::Matrix{$elty})

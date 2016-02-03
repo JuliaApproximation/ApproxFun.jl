@@ -59,7 +59,6 @@ Fun{ReComp}(f,d::Space{ReComp},n::Integer)=defaultFun(f,d,n)
 #TODO: fall back to Fun(x->f(x),d) if conversion not implemented?
 Fun(f::Fun,d::Space)=Fun(coefficients(f,d),d)
 Fun{T<:Space}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
-Fun{T<:Space}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
 
@@ -70,7 +69,7 @@ Fun(f,T::Type,n::Integer)=Fun(f,T(),n)
 
 Fun(f::AbstractVector,d::Domain)=Fun(f,Space(d))
 
-Fun(f,d::Domain)=Fun(f,Space(d))
+
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
 
 

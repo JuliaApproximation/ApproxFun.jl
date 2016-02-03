@@ -391,7 +391,6 @@ IndexTranspose(mat,fl)=IndexTranspose(mat,fl[1],fl[end])
 
 
 getindex(S::IndexTranspose,k,j)=S.matrix[j,k]
-setindex!(S::IndexTranspose,x,k,j)=(S.matrix[j,k]=x)
 function setindex!(S::IndexTranspose,x,k,j)
     if S.firstrow≤k+j≤S.lastrow
         S.matrix[j,k]=x

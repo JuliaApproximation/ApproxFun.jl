@@ -195,13 +195,6 @@ for op in (:+,:-,:(.+),:(.-))
     end
 end
 
-for op in (:+,:(.+))
-    @eval $op(c::Number,f::Fun)=c==0?f:$op(Fun(c),f)
-end
-
-for op in (:-,:(.-))
-    @eval $op(c::Number,f::Fun)=c==0?-f:$op(Fun(c),f)
-end
 
 # equivalent to Y+=a*X
 axpy!(a,X::Fun,Y::Fun)=axpy!(a,coefficients(X,space(Y)),Y)
@@ -229,12 +222,15 @@ end
 
 
 
+-(f::Fun)=Fun(-f.coefficients,f.space)
+for op in (:-,:(.-))
+    @eval $op(c::Number,f::Fun)=-$op(f,c)
+end
+
+
 for op = (:*,:.*,:./,:/)
     @eval $op(f::Fun,c::Number) = Fun($op(f.coefficients,c),f.space)
 end
-
--(f::Fun)=Fun(-f.coefficients,f.space)
--(c::Number,f::Fun)=-(f-c)
 
 
 for op = (:*,:.*,:+,:(.+))
