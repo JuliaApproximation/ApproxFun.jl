@@ -20,7 +20,7 @@ for (hseqr,elty) in ((:zhseqr_,:Complex128),)
 
         Ec='E'
         Nc='N'
-        ccall(($(BLAS.blasfunc(hseqr)),LAPACK.liblapack),
+        ccall((@compat(@BLAS.blasfunc($hseqr)),LAPACK.liblapack),
             Void,
             (Ptr{UInt8},Ptr{UInt8},
         Ptr{BlasInt},Ptr{BlasInt},Ptr{BlasInt},Ptr{$elty}, #A
@@ -54,7 +54,7 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
         Ec='E'
         Nc='N'
         for i=1:2
-            ccall(($(BLAS.blasfunc(hseqr)),LAPACK.liblapack),
+            ccall((@compat(@BLAS.blasfunc($hseqr)),LAPACK.liblapack),
                 Void,
                 (Ptr{UInt8},Ptr{UInt8},
             Ptr{BlasInt},Ptr{BlasInt},Ptr{BlasInt},Ptr{$elty}, #A
