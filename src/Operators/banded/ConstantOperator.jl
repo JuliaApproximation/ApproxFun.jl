@@ -22,7 +22,7 @@ addentries!(C::ConstantOperator,A,kr::Range,::Colon)=toeplitz_addentries!([.5C.c
 
 Base.convert{BT<:ConstantOperator}(::Type{BT},C::ConstantOperator)=C
 Base.convert{BT<:Operator}(::Type{BT},C::ConstantOperator)=ConstantOperator(eltype(BT),C.c)
-Base.convert{N<:Number}(::Type{N},C::ConstantOperator)=convert(N,C.c)
+
 ## Algebra
 
 for op in (:+,:-,:*)
@@ -72,7 +72,7 @@ end
 Base.convert{T}(::Type{Functional{T}},Z::ZeroOperator)=ZeroFunctional(T,Z.domainspace)
 
 
-Base.convert{N<:Number}(::Type{N},::ZeroOperator)=zero(N)
+
 
 domainspace(Z::ZeroOperator)=Z.domainspace
 rangespace(Z::ZeroOperator)=Z.rangespace
@@ -85,8 +85,6 @@ promotedomainspace(Z::ZeroOperator,sp::AnySpace)=Z
 promoterangespace(Z::ZeroOperator,sp::AnySpace)=Z
 promotedomainspace(Z::ZeroOperator,sp::UnsetSpace)=Z
 promoterangespace(Z::ZeroOperator,sp::UnsetSpace)=Z
-promotedomainspace(Z::ZeroOperator,sp::Space)=ZeroOperator(sp,rangespace(Z))
-promoterangespace(Z::ZeroOperator,sp::Space)=ZeroOperator(domainspace(Z),sp)
 promotedomainspace(Z::ZeroOperator,sp::Space)=ZeroOperator(sp,rangespace(Z))
 promoterangespace(Z::ZeroOperator,sp::Space)=ZeroOperator(domainspace(Z),sp)
 

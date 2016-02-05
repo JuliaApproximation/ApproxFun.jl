@@ -12,9 +12,9 @@ immutable Ultraspherical{O,D<:Domain} <: PolynomialSpace{D}
 end
 
 
-Base.convert{m}(::Type{Ultraspherical{m}})=Ultraspherical{m,Interval{Float64}}()
-Base.convert{m}(::Type{Ultraspherical{m}},d::Domain)=Ultraspherical{m,typeof(d)}(d)
-Base.convert{m}(::Type{Ultraspherical{m}},d::Vector)=Ultraspherical{m}(Domain(d))
+Base.call{m}(::Type{Ultraspherical{m}})=Ultraspherical{m,Interval{Float64}}()
+Base.call{m}(::Type{Ultraspherical{m}},d::Domain)=Ultraspherical{m,typeof(d)}(d)
+Base.call{m}(::Type{Ultraspherical{m}},d::Vector)=Ultraspherical{m}(Domain(d))
 
 
 setdomain{s}(S::Ultraspherical{s},d::Domain)=Ultraspherical{s}(d)

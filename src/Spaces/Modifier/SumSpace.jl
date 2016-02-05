@@ -134,20 +134,6 @@ function spacescompatible(A::Tuple,B::Tuple)
 end
 
 
-function union_rule(A::SumSpace,B::SumSpace)
-    @assert length(A.spaces)==length(B.spaces)==2
-    if !domainscompatible(A,B)
-        NoSpace()
-    elseif spacescompatible(A,B)
-        A
-    elseif spacescompatible(A.spaces,B.spaces)
-        A≤B?A:B
-    else
-        #TODO: should it be attempted to union subspaces?
-        SumSpace(union(A.spaces,B.spaces))
-    end
-end
-
 function union_rule(A::SumSpace,B::Space)
     if !domainscompatible(A,B)
         NoSpace()

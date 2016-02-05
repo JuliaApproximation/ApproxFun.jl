@@ -68,9 +68,8 @@ Base.getindex(d::ProductSpace,k::Integer)=k==1?d.spacesx:d.spacey
 space(d::AbstractProductSpace,k)=d[k]
 isambiguous(A::TensorSpace)=isambiguous(A[1])||isambiguous(A[2])
 
-for TT in (:ProductDomain,:TensorSpace)
-    @eval Base.transpose(d::$TT)=$TT(d[2],d[1])
-end
+
+Base.transpose(d::TensorSpace)=TensorSpace(d[2],d[1])
 
 
 

@@ -293,7 +293,7 @@ function interlace{T<:Operator}(A::Matrix{T})
             all(iscolop,A[end,1:end-1]) &&
             all(a->isa(a,Functional),A[1:end-1,end]) && isa(A[end,end],BandedOperator)
         return [Functional{TT}[BlockFunctional(map(Number,vec(A[k,1:end-1])),A[k,end]) for k=1:m-1]...;
-                    BlockOperator(A[end,:])]
+                    BlockOperator(A[end:end,:])]
     end
 
 

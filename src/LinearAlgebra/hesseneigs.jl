@@ -7,6 +7,8 @@ if VERSION < v"0.5.0-dev"
     macro blasfunc(x)
        return :( $(BLAS.blasfunc(x) ))
     end
+else
+    import Base.BLAS.@blasfunc
 end
 
 
