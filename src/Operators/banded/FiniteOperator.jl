@@ -8,6 +8,9 @@ immutable FiniteOperator{T<:Number} <: BandedOperator{T}
 end
 
 
+#TODO: do special case
+FiniteOperator(M::BandedMatrix)=FiniteOperator(full(M))
+
 
 function matrix_addentries!(M::Array,A,kr::Range)
     for k=kr[1]:min(size(M,1),kr[end]),j=1:size(M,2)
