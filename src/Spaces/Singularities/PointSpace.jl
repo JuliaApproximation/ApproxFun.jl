@@ -65,6 +65,26 @@ function Base.cumsum{S<:PointSpace,T<:Real}(f::Fun{S},d::Interval{T})
 end
 
 function evaluate(f::AbstractVector,PS::PointSpace,x...)
-  if issubset(x,PS.points)
+  p = findfirst(x.==PS.points)
+  if p == []
+    0
+  else
+    (f.coefficients)[p]
+  end
+end
 
-function evaluate(f::AbstractVector,PS::PointSpace,x::Array)
+# function evaluate(f::AbstractVector,PS::PointSpace,x::Array)
+#   output = zeros(size(x))
+#   for p in x
+#     p = findfirst(x.==PS.points)
+#     if p == []
+#       output[getindex(p,x)]
+#     else
+#       (f.coefficients)[p]
+#     end
+#   end
+# end
+
+# function *(f::Fun{DiracSpace},g::Fun{PointSpace})
+
+# end
