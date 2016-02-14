@@ -213,6 +213,10 @@ end
 ```
 
 
+# Further reading
+
+The [ApproxFun Documentation](https://github.com/ApproxFun/ApproxFun.jl/wiki/ApproxFun-Documentation) is a work-in-process Wiki documentating the internal workings of `ApproxFun`
+
 
 
 # References
