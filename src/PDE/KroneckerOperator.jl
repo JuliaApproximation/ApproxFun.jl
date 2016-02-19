@@ -1,6 +1,10 @@
 export KroneckerOperator
 
 
+
+
+
+
 # gives zero block banded matrix, where the blocks are increasing size
 # the bandwidths are assumed to be constant
 
@@ -146,7 +150,7 @@ end
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
 blockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer)=0
-blockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,SpaceOperator,ConstantTimesOperator},k::Integer)=blockbandinds(K.op,k)
+blockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,SpaceOperator,ConstantTimesOperator},k::Integer)=blockbandinds(K.op,k)
 
 
 
@@ -392,3 +396,21 @@ Base.transpose(S::SpaceOperator)=SpaceOperator(transpose(S.op),domainspace(S).',
 Base.transpose(S::ConstantTimesOperator)=sp.c*S.op.'
 Base.transpose{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=C
  Base.transpose{V,T<:AbstractArray}(C::ZeroOperator{V,T},k)=C
+
+
+
+### Calculus
+
+#TODO: general dimension
+function Derivative{SV,T}(S::TensorSpace{SV,T,2},order::NTuple{2,Int})
+    if order[1]==0
+        DerivativeWrapper(eye(S[1])⊗Derivative(S[2],order[2]),order)
+    elseif order[2]==0
+        DerivativeWrapper(Derivative(S[1],order[1])⊗eye(S[2]),order)
+    else
+        DerivativeWrapper(Derivative(S[1],order[1])⊗Derivative(S[2],order[2]),order)
+    end
+end
+
+
+

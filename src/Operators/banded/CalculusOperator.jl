@@ -26,7 +26,7 @@ macro calculus_operator(Op)
 
 
         ## Constructors
-        $ConcOp(sp::Space,k)=$ConcOp{typeof(sp),typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
+        $ConcOp(sp::Space,k)=$ConcOp{typeof(sp),typeof(k),op_eltype(sp)}(sp,k)
         $Op(sp::Space,k)=$ConcOp(sp,k)
 
         $Op(sp::Space)=$Op(sp,1)

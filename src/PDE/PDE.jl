@@ -1,5 +1,9 @@
 export discretize,timedirichlet
 
+
+# Bivariate functions have BandedMatrix
+op_eltype{T,D}(sp::Space{T,D,2})=BandedMatrix{promote_type(eltype(sp),eltype(domain(sp)))}
+
 include("OperatorSchur.jl")
 include("KroneckerOperator.jl")
 include("dekron.jl")
