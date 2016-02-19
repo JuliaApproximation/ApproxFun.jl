@@ -286,27 +286,27 @@ function Conversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B::Jacob
 
     if isapprox(A.α,B.α) && isapprox(A.β,B.β)
         ConversionWrapper(SpaceOperator(Conversion(A.space,B.space),A,B))
-    elseif A.space==B.space
-        @assert A.α≥B.α&&A.β≥B.β
-        d=domain(A)
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        m=(1+M).^round(Int,A.α-B.α).*(1-M).^round(Int,A.β-B.β)
-        MC=Multiplication(m,B.space)
-        # The following is just a safety check
-        @assert rangespace(MC) == B.space
-        ConversionWrapper(SpaceOperator(MC,A,B))# Wrap the operator with the correct spaces
     else
         @assert A.α≥B.α&&A.β≥B.β
+        # first check if a multiplication by JacobiWeight times B.space is overloaded
+        # this is currently designed for Jacobi multiplied by (1-x), etc.
+        αdif,βdif=round(Int,A.α-B.α),round(Int,A.β-B.β)
         d=domain(A)
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        C=Conversion(A.space,B.space)
-        m=(1+M).^round(Int,A.α-B.α).*(1-M).^round(Int,A.β-B.β)
-        MC=TimesOperator(Multiplication(m,B.space),C)
-        # The following is just a safety check
-        @assert rangespace(MC) == B.space
-        ConversionWrapper(SpaceOperator(MC,A,B))
+        M=Multiplication(Fun([1.],JacobiWeight(αdif,βdif,ConstantSpace(d))),
+                         B.space)
+
+        if rangespace(M)==JacobiWeight(αdif,βdif,B.space)
+            # M is the default, so we should use multiplication by polynomials instead
+            x=Fun(identity,d)
+            y=tocanonical(d,x)
+            m=(1+y).^αdif.*(1-y).^βdif
+            MC=promoterangespace(Multiplication(m,A.space),B.space)
+
+            ConversionWrapper(SpaceOperator(MC,A,B))# Wrap the operator with the correct spaces
+        else
+            ConversionWrapper(SpaceOperator(promoterangespace(M,B.space),
+                                            A,B))
+        end
     end
 end
 

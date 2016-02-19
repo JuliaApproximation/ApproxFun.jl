@@ -103,7 +103,7 @@ rangespace{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS
 
 rangespace{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=UnsetSpace()
 bandinds{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
-addentries!{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T},A,kr,::Colon)=error("No range space attached to Multiplication")
+addentries!{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T},A,kr::Range,::Colon)=error("No range space attached to Multiplication")
 
 
 
