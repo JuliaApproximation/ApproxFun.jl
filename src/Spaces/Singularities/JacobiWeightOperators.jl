@@ -292,10 +292,10 @@ function Conversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B::Jacob
         # this is currently designed for Jacobi multiplied by (1-x), etc.
         αdif,βdif=round(Int,A.α-B.α),round(Int,A.β-B.β)
         d=domain(A)
-        M=Multiplication(Fun([1.],JacobiWeight(αdif,βdif,ConstantSpace(d))),
-                         B.space)
+        M=Multiplication(jacobiweight(αdif,βdif,d),
+                         A.space)
 
-        if rangespace(M)==JacobiWeight(αdif,βdif,B.space)
+        if rangespace(M)==JacobiWeight(αdif,βdif,A.space)
             # M is the default, so we should use multiplication by polynomials instead
             x=Fun(identity,d)
             y=tocanonical(d,x)

@@ -1,7 +1,7 @@
 export Disk,𝔻
 
-# TT is Real or Complex
-# T is (Real,Real) or Complex
+# T is Real or Complex
+# TT is (Real,Real) or Complex
 immutable Disk{T,TT} <: BivariateDomain{T}
     center::TT
     radius::Float64

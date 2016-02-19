@@ -276,12 +276,22 @@ hasconversion(a::Ultraspherical,b::Jacobi)=hasconversion(Jacobi(a),b)
 # (1+x) or (1-x) by _decreasing_ the parameter.  Thus the
 
 
-function Multiplication{C<:Chebyshev,DD<:Interval}(f::Fun{JacobiWeight{C,DD}},S::Jacobi)
+## <: IntervalDomain avoids a julia bug
+function Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight{C,DD}},S::Jacobi)
     # this implements (1+x)*P and (1-x)*P special case
     # see DLMF (18.9.6)
-    if length(f)==1 && ((space(f).α==1 && space(f).β==0 && S.b >0) ||
+    d=domain(f)
+    if ((space(f).α==1 && space(f).β==0 && S.b >0) ||
                         (space(f).α==0 && space(f).β==1 && S.a >0))
         ConcreteMultiplication(f,S)
+    elseif isapproxinteger(space(f).α) && space(f).α ≥ 1 && S.b >0
+        # decrement α and multiply again
+        M=Multiplication(f.coefficients[1]*jacobiweight(1.,0.,d),S)
+        MultiplicationWrapper(f,Multiplication(jacobiweight(space(f).α-1,space(f).β,d),rangespace(M))*M)
+    elseif isapproxinteger(space(f).β) && space(f).β ≥ 1 && S.a >0
+        # decrement β and multiply again
+        M=Multiplication(f.coefficients[1]*jacobiweight(0.,1.,d),S)
+        MultiplicationWrapper(f,Multiplication(jacobiweight(space(f).α,space(f).β-1,d),rangespace(M))*M)
     else
 # default JacobiWeight
         M=Multiplication(Fun(f.coefficients,space(f).space),S)
@@ -290,7 +300,7 @@ function Multiplication{C<:Chebyshev,DD<:Interval}(f::Fun{JacobiWeight{C,DD}},S:
     end
 end
 
-function rangespace{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::ConcreteMultiplication{JacobiWeight{C,DD},J})
+function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J})
     S=domainspace(M)
     if space(M.f).α==1
         # multiply by (1+x)
@@ -303,9 +313,9 @@ function rangespace{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::ConcreteMultiplicati
     end
 end
 
-bandinds{J<:Jacobi,C<:Chebyshev,DD<:Interval}(::ConcreteMultiplication{JacobiWeight{C,DD},J})=-1,0
+bandinds{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(::ConcreteMultiplication{JacobiWeight{C,DD},J})=-1,0
 
-function addentries!{J<:Jacobi,C<:Chebyshev,DD<:Interval}(M::ConcreteMultiplication{JacobiWeight{C,DD},J},A,kr::Range,::Colon)
+function addentries!{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J},A,kr::Range,::Colon)
     @assert length(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     c=M.f.coefficients[1]
@@ -336,31 +346,6 @@ end
 
 
 # We can exploit the special multiplication to construct a Conversion
-# that decrements parameters
-
-
-#TODO: general integer decrements
-function Conversion{DD<:Interval}(A::WeightedJacobi{DD},B::Jacobi)
-    if A.α==A.β+1
-        M=Multiplication(Fun([1.],JacobiWeight(1.,0.,domain(A))),A.space)        # multply by (1+x)
-        if A.β==0.
-            S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
-        else
-            S=SpaceOperator(M,A,JacobiWeight(A.α-1,A.β,rangespace(M)))
-        end
-        ConversionWrapper(promoterangespace(S,B))
-    elseif A.β==A.α+1
-        M=Multiplication(Fun([1.],JacobiWeight(0.,1.,domain(A))),A.space)        # multply by (1-x)
-        if A.α==0.
-            S=SpaceOperator(M,A,rangespace(M))  # this removes the JacobiWeight
-        else
-            S=SpaceOperator(M,A,JacobiWeight(A.α,A.β-1,rangespace(M)))
-        end
-        ConversionWrapper(promoterangespace(S,B))
-    else
-        error("Not implemented")
-    end
-end
 
 
 for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
