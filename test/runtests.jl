@@ -20,6 +20,7 @@ include("SpacesTest.jl")
 include("JacobiTest.jl")
 
 include("ETDRK4Test.jl")
+include("ExtrasTest.jl")
 
 println("Multivariate tests")
 include("MultivariateTest.jl")
