@@ -69,6 +69,6 @@ function dualcfsFun(f,S)
     end
     warn("Maximum length "*string(2^20+1)*" reached")
 
-    Fun(f,d,2^21)
+    Fun(f,S,2^21)
 end
 
