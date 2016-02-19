@@ -2,7 +2,7 @@
 points(S::Jacobi,n)=fromcanonical(S,gaussjacobi(n,S.a,S.b)[1])
 
 immutable JacobiTransformPlan{DD,T}
-    space::Jacobi{DD}
+    space::Jacobi{Float64,DD}
     points::Vector{T}
     weights::Vector{T}
 end
@@ -19,7 +19,7 @@ end
 
 
 immutable JacobiITransformPlan{DD,T}
-    space::Jacobi{DD}
+    space::Jacobi{Float64,DD}
     points::Vector{T}
 end
 

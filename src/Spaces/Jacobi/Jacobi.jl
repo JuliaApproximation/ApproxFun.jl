@@ -1,19 +1,19 @@
 export Jacobi,Legendre,WeightedJacobi
 
-#TODO Type
-immutable Jacobi{D<:Domain} <: PolynomialSpace{D}
-    a::Float64
-    b::Float64
+
+immutable Jacobi{T,D<:Domain} <: PolynomialSpace{D}
+    a::T
+    b::T
     domain::D
 end
 Legendre(domain)=Jacobi(0.,0.,domain)
 Legendre()=Legendre(Interval())
-Jacobi(a,b,d::Domain)=Jacobi{typeof(d)}(a,b,d)
+Jacobi(a,b,d::Domain)=Jacobi{promote_type(typeof(a),typeof(b)),typeof(d)}(a,b,d)
 Jacobi(a,b,d)=Jacobi(a,b,Domain(d))
 Jacobi(a,b)=Jacobi(a,b,Interval())
 Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
 
-typealias WeightedJacobi{D} JacobiWeight{Jacobi{D},D}
+typealias WeightedJacobi{D} JacobiWeight{Jacobi{Float64,D},D}
 
 Base.call(::Type{WeightedJacobi},α,β,d::Domain)=JacobiWeight(α,β,Jacobi(β,α,d))
 Base.call(::Type{WeightedJacobi},α,β)=JacobiWeight(α,β,Jacobi(β,α))
