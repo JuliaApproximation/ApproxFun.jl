@@ -92,3 +92,36 @@ function fouriersum{T}(d::Circle,cfs::Vector{T})
         im*zero(T)
     end
 end
+
+
+# O(min(m,n)) Laurent line integral
+
+function linedotu{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
+    @assert domain(f) == domain(g)
+    u,v,mn = f.coefficients,g.coefficients,min(length(f),length(g))
+    if mn > 1
+        ret = u[1]*v[1]
+        for i=2:2:mn-1
+            ret += u[i]*v[i+1] + u[i+1]*v[i]
+        end
+        return length(domain(f))*ret
+    elseif mn > 0
+        return length(domain(f))*u[1]*v[1]
+    else
+        return zero(T)
+    end
+end
+
+function dotu{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
+    @assert domain(f) == domain(g)
+    u,v,mn = f.coefficients,g.coefficients,min(length(f),length(g))
+    if mn > 2
+        ret = u[1]*v[2] + u[2]*v[1]
+        for i=3:2:mn-1
+            ret += u[i]*v[i+1] + u[i+1]*v[i]
+        end
+        return complexlength(domain(f))*ret
+    else
+        return zero(T)
+    end
+end
