@@ -160,8 +160,8 @@ end
 function Base.conj{DD}(f::Fun{Laurent{DD}})
     cfs=Array(eltype(f),iseven(length(f))?length(f)+1:length(f))
     cfs[1]=conj(f.coefficients[1])
-    for k=2:2:length(f)
-        cfs[k+1]=conj(f.coefficients[k])
+    for k=2:2:length(f)-1
+        cfs[k]=conj(f.coefficients[k+1])
     end
     for k=3:2:length(f)
         cfs[k]=conj(f.coefficients[k-1])
