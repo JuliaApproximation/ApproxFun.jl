@@ -75,6 +75,11 @@ union_rule(A::ConstantSpace,B::Space)=ConstantSpace(domain(B))⊕B
 
 ## Special Multiplication and Conversion for constantspace
 
+#  TODO: this is a special work around but really we want it to be blocks
+Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2})=ConcreteConversion{typeof(a),typeof(b),
+        promote_type(op_eltype_realdomain(a),eltype(op_eltype_realdomain(b)))}(a,b)
+
+
 bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-length(ones(rangespace(C))),0
 function addentries!{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S},A,kr::Range,::Colon)
     on=ones(rangespace(C))
