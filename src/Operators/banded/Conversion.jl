@@ -8,8 +8,7 @@ immutable ConcreteConversion{S<:Space,V<:Space,T} <: Conversion{T}
 end
 
 ConcreteConversion(a::Space,b::Space)=ConcreteConversion{typeof(a),typeof(b),
-        promote_type(eltype(a),eltype(b),
-                     real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
+        promote_type(op_eltype_realdomain(a),op_eltype_realdomain(b))}(a,b)
 
 
 for TYP in (:Operator,:BandedOperator)
