@@ -5,12 +5,17 @@ export ultraconversion!,ultraint!
 # diff from T -> U
 function ultradiff{T<:Number}(v::Vector{T})
     #polynomial is p(x) = sum ( v[i] * x^(i-1) )
-    if length(v)==1 
-        zeros(T,1) 
+    if length(v)==1
+        w = zeros(T,1)
     else
-        collect(1:length(v)-1).*v[2:end] 
+        w = Array{T}(length(v)-1)
+        for k=1:length(v)-1
+            @inbounds w[k] = k*v[k+1]
+        end
     end
-end 
+
+    w
+end
 
 #int from U ->T
 
@@ -21,11 +26,11 @@ function ultraint!{T<:Number}(v::Array{T,2})
             @inbounds v[k,j] = v[k-1,j]/(k-1)
         end
     end
-    
+
     @simd for j=1:size(v)[2]
         @inbounds v[1,j] = zero(T)
     end
-    
+
     v
 end
 
@@ -34,9 +39,9 @@ function ultraint!{T<:Number}(v::Vector{T})
     @simd for k=length(v):-1:2
         @inbounds v[k] = v[k-1]/(k-1)
     end
-    
+
     @inbounds v[1] = zero(T)
-    
+
     v
 end
 
@@ -44,23 +49,23 @@ end
 function ultraiconversion{T<:Number}(v::Vector{T})
     n = length(v)
     w = Array(T,n)
-        
+
     if n == 1
         w[1] = v[1]
     elseif n == 2
         w[1] = v[1]
         w[2] = 2v[2]
-    elseif n ≥ 3  
+    elseif n ≥ 3
         @inbounds w[end] = 2v[end]
         @inbounds w[end-1] = 2v[end-1]
-        
+
         for k = n-2:-1:2
             @inbounds w[k] = 2*(v[k] + .5w[k+2])
         end
-        
+
         @inbounds w[1] = v[1] + .5w[3]
     end
-    
+
     w
 end
 
@@ -69,23 +74,23 @@ end
 function ultraconversion{T<:Number}(v::Vector{T})
     n = length(v)
     w = Array(T,n)
-    
+
     if n == 1
         w[1] = v[1]
     elseif n == 2
         w[1] = v[1]
         w[2] = .5v[2]
     elseif n ≥ 3
-        w[1] = v[1] - .5v[3]        
-    
+        w[1] = v[1] - .5v[3]
+
         @simd for j=2:n-2
             @inbounds w[j] = .5*(v[j] - v[j+2])
         end
-    
+
         w[n-1] = .5v[n-1]
-        w[n] = .5v[n]        
+        w[n] = .5v[n]
     end
-    
+
     w
 end
 
@@ -98,14 +103,14 @@ function ultraconversion!{T<:Number}(v::Vector{T})
         @inbounds v[2] /= 2
     else
         @inbounds v[1] -= v[3]/2
-    
+
         for j=2:n-2
             @inbounds v[j] = (v[j] - v[j+2])/2
         end
         @inbounds v[n-1] /= 2
-        @inbounds v[n] /= 2              
+        @inbounds v[n] /= 2
     end
-    
+
     v
 end
 
@@ -123,7 +128,7 @@ function ultraconversion!{T<:Number}(v::Array{T,2})
     else
         for k=1:m
             @inbounds v[1,k] -= v[3,k]/2
-        
+
             for j=2:n-2
                 @inbounds v[j,k] = (v[j,k] - v[j+2,k])/2
             end
@@ -131,7 +136,7 @@ function ultraconversion!{T<:Number}(v::Array{T,2})
             v[n,k] /= 2
         end
     end
-    
+
     v
 end
 

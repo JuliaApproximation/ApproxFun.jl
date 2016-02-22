@@ -112,6 +112,7 @@ end
 bandinds{D,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{1,0,D},C})=0,1
 bandinds{D,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{0,1,D},C})=0,1
 bandinds{D,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{1,1,D},C})=0,2
+bandinds{D,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{2,2,D},C})=0,4
 
 conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 
