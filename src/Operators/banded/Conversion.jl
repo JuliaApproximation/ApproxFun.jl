@@ -48,6 +48,8 @@ end
 
 Conversion(a::Space,b::Space)=defaultconversion(a,b)
 
+Conversion()=ConversionWrapper(eye(UnsetSpace()))
+
 
 ## Wrapper
 # this allows for a Derivative implementation to return another operator, use a SpaceOperator containing

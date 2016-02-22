@@ -1,4 +1,4 @@
-export Operator,Functional,InfiniteOperator
+export Operator,BandedOperator,Functional,InfiniteOperator
 export bandinds, bandrange, linsolve, periodic
 export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
@@ -179,6 +179,9 @@ end
 
 
 defaultgetindex(A::BandedOperator,k::Integer,::Colon)=FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
+defaultgetindex(A::BandedOperator,kr::Range,::Colon)=slice(A,kr,:)
+defaultgetindex(A::BandedOperator,::Colon,jr::Range)=slice(A,:,jr)
+defaultgetindex(A::BandedOperator,::Colon,::Colon)=A
 Base.getindex(B::Operator,k,j)=defaultgetindex(B,k,j)
 
 
@@ -196,6 +199,9 @@ function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
     @assert last(kr)==last(jr)==Inf
     SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
 end
+Base.slice(B::BandedOperator,::Colon,jr::FloatRange)=slice(B,1:Inf,jr)
+Base.slice(B::BandedOperator,kr::FloatRange,::Colon)=slice(B,kr,1:Inf)
+Base.slice(A::BandedOperator,::Colon,::Colon)=A
 
 function subview(B::BandedOperator,kr::Range,::Colon)
      br=bandinds(B)

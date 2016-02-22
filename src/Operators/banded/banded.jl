@@ -17,3 +17,5 @@ include("FiniteOperator.jl")
 
 
 include("algebra.jl")
+
+include("FunctionBandedOperator.jl")

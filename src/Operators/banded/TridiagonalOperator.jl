@@ -30,3 +30,25 @@ function symmetrize{T}(J::TridiagonalOperator{T},n::Integer)
     T[J[k,k] for k=1:n],
     T[J[k,k+1]*d[k+1]/d[k] for k=1:n-1])
 end
+
+immutable DiagonalInverseOperator{S,T} <: DiagonalOperator{T}
+    op::S
+end
+
+function DiagonalInverseOperator(B::BandedOperator)
+    @assert bandinds(B)==(0,0)
+    DiagonalInverseOperator{typeof(B),promote_type(Float64,eltype(B))}(B)
+end
+
+domainspace(D::DiagonalInverseOperator)=rangespace(D.op)
+rangespace(D::DiagonalInverseOperator)=domainspace(D.op)
+
+Base.getindex(D::DiagonalInverseOperator,k::Integer,j::Integer)=k==j?1./D.op[k,k]:zero(eltype(D))
+
+for TYP in (:BandedOperator,:Operator)
+    @eval Base.convert{T}(::Type{$TYP{T}},F::DiagonalInverseOperator)=DiagonalInverseOperator{typeof(F.op),
+                                                                                            T}(F.op)
+end
+
+Base.inv(B::BandedOperator)=DiagonalInverseOperator(B)
+
