@@ -88,5 +88,5 @@ for func in (:rangespace,:domainspace,:bandinds,:(Base.stride))
 end
 
 
-#TODO: decide
-#promotedomainspace(P::Conversion,sp::Space)=SpaceOperator(ConstantOperator(one(eltype(P))),sp,sp)
+promotedomainspace(P::Conversion,sp::Space)=ConversionWrapper(eye(sp))
+
