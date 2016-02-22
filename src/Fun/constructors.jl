@@ -116,7 +116,6 @@ end
 #     Fun(f,d,2^21 + 1)
 # end
 
-samplenorm(fr)=norm(fr)
 
 
 function zerocfsFun(f, d::Space)
@@ -135,8 +134,8 @@ function zerocfsFun(f, d::Space)
     tol =T==Any?200eps():200eps(T)
 
 
-    fr=typeof(f0)[f(x) for x=r]
-    maxabsfr=samplenorm(fr)
+    fr=map(f,r)
+    maxabsfr=norm(fr,Inf)
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
