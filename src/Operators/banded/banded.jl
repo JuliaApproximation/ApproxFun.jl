@@ -8,6 +8,7 @@ include("PermutationOperator.jl")
 include("Conversion.jl")
 include("Multiplication.jl")
 include("CalculusOperator.jl")
+include("OperatorFunction.jl")
 
 include("SavedOperator.jl")
 

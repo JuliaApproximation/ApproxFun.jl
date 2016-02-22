@@ -12,9 +12,9 @@ include("fftGeneric.jl")
 digits(n::Int) = set_bigfloat_precision(round(Int,ceil(n*log2(10))))
 digits() = round(Int,floor(get_bigfloat_precision()*log10(2)))
 
-function pochhammer{T<:Number}(x::T,n::Integer)
-    ret = one(T)
-    if n>=0
+function pochhammer(x::Number,n::Integer)
+    ret = one(x)
+    if n≥0
         for i=0:n-1
             ret *= x+i
         end
@@ -23,19 +23,22 @@ function pochhammer{T<:Number}(x::T,n::Integer)
     end
     ret
 end
-function pochhammer{T<:Number}(x::Array{T},n::Integer)
-    ret = ones(T,size(x))
-    if n>=0
-        for i=0:n-1
-            ret .*= x+i
-        end
-    else
-        ret ./= pochhammer(x+n,-n)
+
+pochhammer{T<:Number}(x::AbstractArray{T,1},n::Integer) = [pochhammer(x[i],n) for i=1:length(x)]
+pochhammer{T<:Number}(x::AbstractArray{T,2},n::Integer) = [pochhammer(x[i,j],n) for i=1:size(x,1),j=1:size(x,2)]
+pochhammer{T<:Number}(x::AbstractArray{T},n::Integer) = reshape([ pochhammer(x[i],n) for i in eachindex(x) ], size(x))
+
+pochhammer(x::Number,n::Number) = gamma(x+n)/gamma(x)
+pochhammer{T<:Number}(x::AbstractArray{T},n::Number) = gamma(x+n)./gamma(x)
+
+function pochhammer{T<:Real}(x::Number,n::UnitRange{T})
+    ret = Vector{promote_type(typeof(x),T)}(length(n))
+    ret[1] = pochhammer(x,first(n))
+    for i=2:length(n)
+        ret[i] = (x+n[i]-1)*ret[i-1]
     end
     ret
 end
-pochhammer{T1<:Number,T2<:Number}(x::T1,n::T2) = gamma(x+n)/gamma(x)
-pochhammer{T1<:Number,T2<:Number}(x::Array{T1},n::T2) = gamma(x+n)./gamma(x)
 
 include("show.jl")
 include("poetry.jl")

@@ -35,7 +35,11 @@ function plotptsvals(f::Fun)
     else
         f=pad(f,dimension(space(f)))
     end
-    points(f),values(f)
+    if length(domain(f)) < Inf
+        return points(f),values(f)
+    else
+        return points(f)[2:end],values(f)[2:end]
+    end
 end
 Plots.plot!{S,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)=
                 plot!(plt,plotptsvals(f)...;kwds...)
