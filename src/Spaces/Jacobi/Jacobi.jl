@@ -57,12 +57,13 @@ function jacobip(r::Range,α,β,x)
     if n<=2
         v=[1.,.5*(α-β+(2+α+β)*x)]
     else
-        v=Array(promote_type(Float64,typeof(x)),n)  # x may be complex
+        T=promote_type(Float64,typeof(x))
+        v=Vector{T}(n)  # x may be complex
         v[1]=1.
         v[2]=.5*(α-β+(2+α+β)*x)
 
         for k=2:n-1
-            v[k+1]=((x-jacobirecα(α,β,k))*v[k] - jacobirecγ(α,β,k)*v[k-1])/jacobirecβ(α,β,k)
+            v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
         end
     end
     v[r+1]
