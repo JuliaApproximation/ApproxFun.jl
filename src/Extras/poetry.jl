@@ -13,9 +13,9 @@ Fun(d::Space)=Fun(identity,d)
 
 ## Chebyshev & Legendre polynomials
 
-chebyshevt{T<:Number}(n::Int,d::Interval{T}) = Fun([zeros(T,n),one(T)],Chebyshev(d))
-chebyshevu{T<:Number}(n::Int,d::Interval{T}) = mod(n,2) == 1 ? Fun(interlace(zeros(T,div(n+2,2)),2ones(T,div(n+2,2))),Chebyshev(d)) : Fun(interlace(2ones(T,div(n+2,2)),zeros(T,div(n+2,2)))[1:n+1]-[one(T),zeros(T,n)],Chebyshev(d))
-legendre{T<:Number}(n::Int,d::Interval{T}) = Fun([zeros(T,n),one(T)],Legendre(d))
+chebyshevt{T<:Number}(n::Int,d::Interval{T}) = Fun([zeros(T,n);one(T)],Chebyshev(d))
+chebyshevu{T<:Number}(n::Int,d::Interval{T}) = mod(n,2) == 1 ? Fun(interlace(zeros(T,div(n+2,2)),2ones(T,div(n+2,2))),Chebyshev(d)) : Fun(interlace(2ones(T,div(n+2,2)),zeros(T,div(n+2,2)))[1:n+1]-[one(T);zeros(T,n)],Chebyshev(d))
+legendre{T<:Number}(n::Int,d::Interval{T}) = Fun([zeros(T,n);one(T)],Legendre(d))
 
 for poly in (:chebyshevt,:chebyshevu,:legendre)
     @eval begin

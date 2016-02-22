@@ -57,12 +57,12 @@ function ETDRK4(L::BandedOperator,N::Function,u,t,h,m,glp,tol=10eps())
 
     for k=1:m
         ez2u = ez2*u
-        Nut = N(u,t)
+        Nut = chop(N(u,t),tol)
 
         a = ez2u + h2ez2m1*Nut
-        Nath2 = N(a,t+h/2)
+        Nath2 = chop(N(a,t+h/2),tol)
         b = ez2u + h2ez2m1*Nath2
-        Nbth2 = N(b,t+h/2)
+        Nbth2 = chop(N(b,t+h/2),tol)
         c = ez2*a + h2ez2m1*(2Nbth2-Nut)
 
         u = chop(ez*u + hezα*Nut + h2ezβ*(Nath2+Nbth2) + hezγ*N(c,t+h),tol)

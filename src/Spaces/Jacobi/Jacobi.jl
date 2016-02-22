@@ -32,22 +32,22 @@ end
 # jacobirecA/B/C is from dlmf:
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
-jacobirecA(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+1:(2k+α+β+1)*(2k+α+β+2)/(2*(k+1)*(k+α+β+1))
-jacobirecB(α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α-β):(α^2-β^2)*(2k+α+β+1)/(2*(k+1)*(k+α+β+1)*(2k+α+β))
-jacobirecC(α,β,k)=(k+α)*(k+β)*(2k+α+β+2)/((k+1)*(k+α+β+1)*(2k+α+β))
+jacobirecA{T}(::Type{T},α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+one(T):(2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
+jacobirecB{T}(::Type{T},α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α-β)*one(T):(α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
+jacobirecC{T}(::Type{T},α,β,k)=(one(T)*k+α)*(one(T)*k+β)*(2k+α+β+2one(T))/((k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
 
 #####
 # jacobirecA/B/C is from dlmf:
 # x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-jacobirecγ(α,β,k)=jacobirecC(α,β,k-1)/jacobirecA(α,β,k-1)
-jacobirecα(α,β,k)=-jacobirecB(α,β,k-1)/jacobirecA(α,β,k-1)
-jacobirecβ(α,β,k)=1/jacobirecA(α,β,k-1)
+jacobirecγ{T}(::Type{T},α,β,k)=jacobirecC(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+jacobirecα{T}(::Type{T},α,β,k)=-jacobirecB(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+jacobirecβ{T}(::Type{T},α,β,k)=1/jacobirecA(T,α,β,k-1)
 
 for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ),
                    (:recA,:jacobirecA),(:recB,:jacobirecB),(:recC,:jacobirecC))
-    @eval $REC(::Type,sp::Jacobi,k)=$JREC(sp.a,sp.b,k)  #TODO: implement typing
+    @eval $REC{T}(::Type{T},sp::Jacobi,k)=$JREC(T,sp.a,sp.b,k)  #TODO: implement typing
 end
 
 
@@ -61,12 +61,13 @@ function jacobip(r::Range,α,β,x::Number)
         if n<=2
             v=[1.,.5*(α-β+(2+α+β)*x)]
         else
-            v=Array(promote_type(Float64,typeof(x)),n)  # x may be complex
+            T=promote_type(Float64,typeof(x))
+            v=Vector{T}(n)  # x may be complex
             v[1]=1.
             v[2]=.5*(α-β+(2+α+β)*x)
 
             for k=2:n-1
-                v[k+1]=((x-jacobirecα(α,β,k))*v[k] - jacobirecγ(α,β,k)*v[k-1])/jacobirecβ(α,β,k)
+                v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
             end
         end
         v[r+1]
