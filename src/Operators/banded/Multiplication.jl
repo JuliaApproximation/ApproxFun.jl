@@ -38,6 +38,7 @@ domain(T::ConcreteMultiplication)=domain(T.f)
 
 ## Default implementation: try converting to space of M.f
 
+# avoid ambiguity
 rangespace{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=UnsetSpace()
 bandinds{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
 addentries!{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},A,kr,::Colon)=error("No range space attached to Multiplication")

@@ -26,7 +26,7 @@ macro calculus_operator(Op)
 
 
         ## Constructors
-        $ConcOp(sp::Space,k)=$ConcOp{typeof(sp),typeof(k),promote_type(eltype(sp),eltype(domain(sp)))}(sp,k)
+        $ConcOp(sp::Space,k)=$ConcOp{typeof(sp),typeof(k),op_eltype(sp)}(sp,k)
         $Op(sp::Space,k)=$ConcOp(sp,k)
 
         $Op(sp::Space)=$Op(sp,1)
@@ -37,6 +37,7 @@ macro calculus_operator(Op)
         $Op(d::Domain)=$Op(d,1)
         $Op(d::Vector)=$Op(Space(d),1)
         $Op(d::Vector,n)=$Op(Space(d),n)
+        $ConcOp(S::Space)=$ConcOp(S,1)
 
         function Base.convert{T}(::Type{Operator{T}},D::$ConcOp)
             if T==eltype(D)

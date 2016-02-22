@@ -16,7 +16,7 @@ export LeftIntegral,LeftDerivative, RightDerivative, RightIntegral
 
 # DLMF18.17.9 with μ=0.5 and α=β=0
 
-function rangespace{DD<:Interval}(Q::ConcreteLeftIntegral{Jacobi{DD},Float64})
+function rangespace{T,DD<:Interval}(Q::ConcreteLeftIntegral{Jacobi{T,DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     @assert S.b==0
@@ -24,20 +24,20 @@ function rangespace{DD<:Interval}(Q::ConcreteLeftIntegral{Jacobi{DD},Float64})
     JacobiWeight(S.b+μ,0.,Jacobi(S.a-μ,S.b+μ,domain(S)))
 end
 
-function rangespace{DD<:Interval}(Q::ConcreteRightIntegral{Jacobi{DD},Float64})
+function rangespace{T,DD<:Interval}(Q::ConcreteRightIntegral{Jacobi{T,DD},Float64})
     μ=Q.order
     S=domainspace(Q)
-    @assert S.b==0
+    @assert S.a==0
 
     JacobiWeight(0.,S.a+μ,Jacobi(S.a+μ,S.b-μ,domain(S)))
 end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
-    @eval bandinds{DD<:Interval}(Q::$TYP{Jacobi{DD},Float64})=(0,0)
+    @eval bandinds{T,DD<:Interval}(Q::$TYP{Jacobi{T,DD},Float64})=(0,0)
 end
 
 jacobi_frac_addentries!(d::Interval,α,μ,A,kr::UnitRange)=
-    jacobi_frac_addentries!(sqrt(length(d)/2),α,μ,A,kr)
+    jacobi_frac_addentries!((length(d)/2)^μ,α,μ,A,kr)
 function jacobi_frac_addentries!(c::Number,α,μ,A,kr::UnitRange)
     γ=c*gamma(α+1)/gamma(α+1+μ)
     for k=1:first(kr)-1
@@ -52,16 +52,21 @@ function jacobi_frac_addentries!(c::Number,α,μ,A,kr::UnitRange)
     A
 end
 
-for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
-    @eval function addentries!{DD<:Interval}(Q::$TYP{Jacobi{DD},Float64},A,kr::UnitRange,::Colon)
-        μ=Q.order
-        S=domainspace(Q)
-        @assert S.a==0
-        @assert S.b==0
+function addentries!{T,DD<:Interval}(Q::ConcreteLeftIntegral{Jacobi{T,DD},Float64},A,kr::UnitRange,::Colon)
+    μ=Q.order
+    S=domainspace(Q)
+    @assert S.b==0
 
-        # the 1/sqrt(length(d)) gives the constant term
-        jacobi_frac_addentries!(domain(S),0.,μ,A,kr)
-    end
+    # the 1/sqrt(length(d)) gives the constant term
+    jacobi_frac_addentries!(domain(S),0.,μ,A,kr)
+end
+function addentries!{T,DD<:Interval}(Q::ConcreteRightIntegral{Jacobi{T,DD},Float64},A,kr::UnitRange,::Colon)
+    μ=Q.order
+    S=domainspace(Q)
+    @assert S.a==0
+
+    # the 1/sqrt(length(d)) gives the constant term
+    jacobi_frac_addentries!(domain(S),0.,μ,A,kr)
 end
 
 
@@ -82,7 +87,7 @@ function RightIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
 end
 
 #DLMF18.17.9
-function rangespace{DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD},DD},Float64})
+function rangespace{T,DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -95,7 +100,7 @@ function rangespace{DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD
     end
 end
 
-function rangespace{DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD},DD},Float64})
+function rangespace{T,DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -109,10 +114,10 @@ function rangespace{DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{D
 end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
-    @eval bandinds{DD<:Interval}(Q::$TYP{JacobiWeight{Jacobi{DD},DD},Float64})=(0,0)
+    @eval bandinds{T,DD<:Interval}(Q::$TYP{JacobiWeight{Jacobi{T,DD},DD},Float64})=(0,0)
 end
 
-function addentries!{DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange,::Colon)
+function addentries!{T,DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64},A,kr::UnitRange,::Colon)
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -122,7 +127,7 @@ function addentries!{DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{D
     jacobi_frac_addentries!(domain(S),S.α,μ,A,kr)
 end
 
-function addentries!{DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{DD},DD},Float64},A,kr::UnitRange,::Colon)
+function addentries!{T,DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64},A,kr::UnitRange,::Colon)
     μ=Q.order
     S=domainspace(Q)
     J=S.space
@@ -138,7 +143,7 @@ function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::JacobiW
     if isapprox(Q.order,sp.α)
         Legendre(domain(sp))
     else
-        JacobiWeight(sp.α-Q.order,0.,Jacobi(0.,sp.α-Q.order))
+        JacobiWeight(sp.α-Q.order,0.,Jacobi(0.,sp.α-Q.order,domain(sp)))
     end
 end
 

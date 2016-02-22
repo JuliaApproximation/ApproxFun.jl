@@ -93,7 +93,6 @@ function Conversion(AS::ArraySpace,BS::ArraySpace)
 end
 
 ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(ToeplitzOperator,mat(G)))
-ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(ToeplitzOperator,mat(G)))
 
 ## Sum Space
 

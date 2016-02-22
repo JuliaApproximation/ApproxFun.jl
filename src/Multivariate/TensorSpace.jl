@@ -68,9 +68,8 @@ Base.getindex(d::ProductSpace,k::Integer)=k==1?d.spacesx:d.spacey
 space(d::AbstractProductSpace,k)=d[k]
 isambiguous(A::TensorSpace)=isambiguous(A[1])||isambiguous(A[2])
 
-for TT in (:ProductDomain,:TensorSpace)
-    @eval Base.transpose(d::$TT)=$TT(d[2],d[1])
-end
+
+Base.transpose(d::TensorSpace)=TensorSpace(d[2],d[1])
 
 
 
@@ -247,3 +246,6 @@ Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace)=Fun(fromtree(v),S)
 #     @assert length(d.spaces) ==2
 #     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
 # end
+
+
+union_rule(a::TensorSpace,b::TensorSpace)=TensorSpace(map(union,a.spaces,b.spaces))

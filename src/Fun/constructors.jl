@@ -11,6 +11,32 @@ valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_t
 valsdomain_type_promote{T<:Real}(::Type{T},::Type{Vector{T}})=T,Vector{T}
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
+
+
+function choosefuneltype(ftype,Td)
+    if !( ftype<: Number || ( (ftype <: Array) && (ftype.parameters[1] <: Number) ) )
+        warn("Function outputs type $(ftype), which is not a Number")
+    end
+
+    Tprom = ftype
+
+    if ftype <: Number #TODO should also work for array-valued functions
+        Tprom,Tpromd=valsdomain_type_promote(ftype,Td)
+
+        if ftype != Int && Tprom != ftype
+                warn("Promoting function output type from $(ftype) to $(Tprom)")
+        end
+        if Tpromd != Td
+                warn("Space domain number type $(Td) is not compatible with coefficient type $(Tprom)")
+                #TODO should construct a new Space that contains a domain where the numbers have been promoted
+                #and call constructor with this Space.
+        end
+    end
+
+    Tprom
+end
+
+
 function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
     pts=points(d, n)
     f1=f(pts[1])
@@ -19,27 +45,7 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
         return Fun(f,ArraySpace(d,size(f1)...),n)
     end
 
-    Tout=typeof(f1)
-    if !( Tout<: Number || ( (Tout <: Array) && (Tout.parameters[1] <: Number) ) )
-        warn("Function outputs type $(Tout), which is not a Number")
-    end
-
-    Tprom = Tout
-
-    if Tout <: Number #TODO should also work for array-valued functions
-        Td = eltype(domain(d))
-
-        Tprom,Tpromd=valsdomain_type_promote(Tout,Td)
-
-        if Tout != Int && Tprom != Tout
-                warn("Promoting function output type from $(Tout) to $(Tprom)")
-        end
-        if Tpromd != Td
-                warn("Space domain number type $(Td) is not compatible with coefficient type $(Tprom)")
-                #TODO should construct a new Space that contains a domain where the numbers have been promoted
-                #and call constructor with this Space.
-        end
-    end
+    Tprom=choosefuneltype(typeof(f1),eltype(domain(d)))
 
 
     vals=Tprom[f(x) for x in pts]
@@ -53,7 +59,6 @@ Fun{ReComp}(f,d::Space{ReComp},n::Integer)=defaultFun(f,d,n)
 #TODO: fall back to Fun(x->f(x),d) if conversion not implemented?
 Fun(f::Fun,d::Space)=Fun(coefficients(f,d),d)
 Fun{T<:Space}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
-Fun{T<:Space}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
 
@@ -64,7 +69,7 @@ Fun(f,T::Type,n::Integer)=Fun(f,T(),n)
 
 Fun(f::AbstractVector,d::Domain)=Fun(f,Space(d))
 
-Fun(f,d::Domain)=Fun(f,Space(d))
+
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
 
 

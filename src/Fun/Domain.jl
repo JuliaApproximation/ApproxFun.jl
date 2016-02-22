@@ -42,7 +42,6 @@ Base.in(x::Domain,::EmptyDomain)=false
 Base.isempty(::EmptyDomain)=true
 Base.isempty(::Domain)=false
 Base.intersect(::Domain,::Domain)=EmptyDomain()
-Base.setdiff(a::Domain,b::Domain)=error("Override setdiff(::$(typeof(a)),::$(typeof(b)))")
 \(a::Domain,b::Domain)=setdiff(a,b)
 
 ## Interval Domains
@@ -88,6 +87,9 @@ function Base.in{T}(x,d::IntervalDomain{T})
     abs(imag(y))<100eps(T)/sc && -one(real(T))-100eps(T)/sc<ry<one(real(T))+100eps(T)/sc
 end
 
+pieces(d::Domain)=[d]
+issubcomponent(a::Domain,b::Domain)=a in pieces(b)
+
 ###### Periodic domains
 
 abstract PeriodicDomain{T} <: UnivariateDomain{T}
@@ -113,7 +115,6 @@ end
 
 Base.issubset(a::Domain,b::Domain)=a==b
 
-Base.isless(a::Domain,b::Domain)=false
 
 Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
 Base.last(d::PeriodicDomain)=fromcanonical(d,π)

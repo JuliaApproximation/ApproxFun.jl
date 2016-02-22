@@ -89,14 +89,14 @@ function setdomain{T,D<:Domain}(sp::Space{T,D},d::D)
     S(d)
 end
 
-function setdomain(sp::Space,d::Domain)
-    S=typeof(sp)
-    @assert length(fieldnames(S))==1
-    # the domain is not compatible, but maybe we c
-    # can drop the space depence.  For example,
-    # CosSpace{Circle{Float64}} -> CosSpace
-    eval(parse(string(S.name)))(d)
-end
+# function setdomain(sp::Space,d::Domain)
+#     S=typeof(sp)
+#     @assert length(fieldnames(S))==1
+#     # the domain is not compatible, but maybe we c
+#     # can drop the space depence.  For example,
+#     # CosSpace{Circle{Float64}} -> CosSpace
+#     eval(parse(string(S.name.module)*"."*string(S.name)))(d)
+# end
 
 setcanonicaldomain(s)=setdomain(s,canonicaldomain(s))
 reverseorientation(S::Space)=setdomain(S,reverse(domain(S)))
@@ -166,6 +166,10 @@ domain(A::Space)=A.domain # assume it has a field domain
 for op in (:tocanonical,:fromcanonical,:tocanonicalD,:fromcanonicalD,:invfromcanonicalD)
     @eval ($op)(sp::Space,x...)=$op(domain(sp),x...)
 end
+
+mappoint(a::Space,b::Space,x)=mappoint(domain(a),domain(b),x)
+mappoint(a::Space,b::Domain,x)=mappoint(domain(a),b,x)
+mappoint(a::Domain,b::Space,x)=mappoint(a,domain(b),x)
 
 
 
@@ -359,7 +363,14 @@ function defaultcoefficients(f,a,b)
                 coefficients(Fun(x->Fun(f,a)(x),b))
             else
                 # we set the value to be zero off the domain of definition
+                # but first ensure that domain(b) has a jump
+                # TODO: this is disabled as it breaks the case of splitting
+                #       one interval into two
                 d=domain(a)
+#                 if !issubcomponent(d,domain(b))
+#                     error("$(d) is not a subcomponent of $(domain(b))")
+#                 end
+
                 coefficients(Fun(x->x∈d?Fun(f,a)(x):zero(Fun(f,a)(x)),b))
             end
         else
@@ -369,6 +380,7 @@ function defaultcoefficients(f,a,b)
 end
 
 coefficients(f,a,b)=defaultcoefficients(f,a,b)
+
 
 
 

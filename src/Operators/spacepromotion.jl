@@ -1,11 +1,13 @@
+export ↦
 
-
-immutable SpaceFunctional{O<:Functional,S<:Space,T} <: Functional{T}
+immutable SpaceFunctional{O<:Functional,S<:Space,D<:Domain,T} <: Functional{T}
     op::O
-    space::S
+    domainspace::S
+    rangedomain::D
 end
 
-SpaceFunctional{T<:Number,S<:Space}(o::Functional{T},s::S)=SpaceFunctional{typeof(o),S,T}(o,s)
+SpaceFunctional(o::Functional,s::Space,d::Domain)=SpaceFunctional{typeof(o),typeof(s),typeof(d),eltype(o)}(o,s,d)
+SpaceFunctional(o::Functional,s::Space)=SpaceFunctional(o,s,domain(s))
 
 datalength(S::SpaceFunctional)=datalength(S.op)
 
@@ -23,8 +25,9 @@ end
 
 getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
 
-domainspace(S::SpaceFunctional)=S.space
-domain(S::SpaceFunctional)=domain(S.space)
+domainspace(S::SpaceFunctional)=S.domainspace
+rangespace(S::SpaceFunctional)=ConstantSpace(S.rangedomain)
+domain(S::SpaceFunctional)=domain(S.domainspace)
 
 ## Space Operator is used to wrap an AnySpace() operator
 immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: BandedOperator{T}
@@ -89,6 +92,10 @@ function findmaxrangespace(ops::Vector)
 end
 
 
+# The coolest definitions ever!!
+# supports Derivative():Chebyshev()↦Ultraspherical{1}()
+↦(A::Operator,b::Space)=promoterangespace(A,b)
+Base.colon(A::Operator,b::Space)=promotedomainspace(A,b)
 
 
 promotedomainspace(P::Functional,sp::Space,::AnySpace)=SpaceFunctional(P,sp)

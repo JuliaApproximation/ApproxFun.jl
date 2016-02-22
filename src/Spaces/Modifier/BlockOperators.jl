@@ -182,7 +182,14 @@ end
 BlockFunctional{T<:Number}(cols::Vector{T},op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
 BlockFunctional{T<:Number}(col::T,op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
 
-domainspace(P::BlockFunctional)=TupleSpace(ConstantSpace(),domainspace(P.op))
+function domainspace(B::BlockFunctional)
+    ds=domainspace(B.op)
+    if isa(ds,UnsetSpace) || length(B.cols)==0
+        ds # avoids TupleSpace⊕UnsetSpace
+    else
+        TupleSpace(fill(ConstantSpace(),length(B.cols))...,ds)
+    end
+end
 
 
 function promotedomainspace(P::BlockFunctional,S::TupleSpace)

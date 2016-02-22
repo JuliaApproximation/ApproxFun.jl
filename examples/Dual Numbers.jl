@@ -4,24 +4,10 @@
 ##
 
 
-
-
-using DualNumbers
-
-# We need to implement some functionality for the ApproxFun constructor to work
-Base.sinpi(x::Dual)=sin(π*x)
-
-using ApproxFun
-ApproxFun.real{T}(::Type{Dual{T}})=Dual{ApproxFun.real(T)}
-ApproxFun.plan_chebyshevtransform{D<:Dual}(v::Vector{D})=ApproxFun.plan_chebyshevtransform(real(v))
-ApproxFun.chebyshevtransform{D<:Dual}(v::Vector{D},plan...)=dual(chebyshevtransform(real(v),plan...),chebyshevtransform(epsilon(v),plan...))
-ApproxFun.chop!(f::Fun,d::Dual)=chop!(f,real(d))
-ApproxFun.samplenorm{T<:Dual}(v::Vector{T})=norm(real(v))
-
-
+using DualNumbers, ApproxFun
 
 # what is the derivative of the first coefficient with respect to the first argument of the domain?
-f=Fun(exp,Interval(dual(1.0,1),dual(2.0)))
+f=Fun(exp,Interval(dual(1.0,1),dual(2.0)),20)
 epsilon(f.coefficients[1])
 
 # check versus finite difference calculation:

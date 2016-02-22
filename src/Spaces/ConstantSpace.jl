@@ -13,8 +13,15 @@ end
 ConstantSpace(d::Domain)=ConstantSpace{typeof(d)}(d)
 ConstantSpace()=ConstantSpace(AnyDomain())
 
-for OP in (:maxspace_rule,:union_rule)
-    @eval $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
+# we override maxspace instead of maxspace_rule to avoid
+# domainscompatible check.
+for OP in (:maxspace,:(Base.union))
+    @eval begin
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace{AnyDomain})=A
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
+        $OP(A::ConstantSpace,B::ConstantSpace{AnyDomain})=A
+        $OP(A::ConstantSpace,B::ConstantSpace)=ConstantSpace(domain(A) ∪ domain(B))
+    end
 end
 
 Fun(c::Number)=Fun([c],ConstantSpace())
@@ -47,8 +54,8 @@ Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T})=Fu
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
 
 
-
-promoterangespace(P::Functional,::ConstantSpace,::ConstantSpace)=P # functionals always map to vector space
+# functionals always map to Constant space
+promoterangespace(P::Functional,A::ConstantSpace,cur::ConstantSpace)=domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
 
 ## Promotion: Zero operators are the only operators that also make sense as functionals
 promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))
@@ -63,6 +70,11 @@ maxspace_rule(A::ZeroSpace,B::Space)=B
 Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(SpaceOperator(ZeroOperator(),A,B))
 
 
+union_rule(A::ConstantSpace,B::Space)=ConstantSpace(domain(B))⊕B
+
+
+## Special Multiplication and Conversion for constantspace
+
 bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-length(ones(rangespace(C))),0
 function addentries!{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S},A,kr::Range,::Colon)
     on=ones(rangespace(C))
@@ -74,6 +86,38 @@ function addentries!{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S},A,k
     A
 end
 
+
+# this is identity operator, but we don't use MultiplicationWrapper to avoid
+# ambiguity errors
+
+
+bandinds{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) = 0,0
+function addentries!{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T},A,kr::Range,::Colon)
+    if 1 in kr
+        A[1,1]+=D.f.coefficients[1]
+    end
+    A
+end
+rangespace{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) = D.space
+
+
+rangespace{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=UnsetSpace()
+bandinds{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
+addentries!{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T},A,kr::Range,::Colon)=error("No range space attached to Multiplication")
+
+
+
+bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = 0,0
+function addentries!{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T},A,kr::Range,::Colon)
+    c=Number(D.f)
+    for k=kr
+        A[k,k]+=c
+    end
+    A
+end
+rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = D.space
+
+
 bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = 1-length(D.f),0
 function addentries!{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T},A,kr::Range,::Colon)
     Op = Multiplication(D.f,space(D.f))
@@ -84,16 +128,9 @@ function addentries!{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,C
     end
     A
 end
-
-function addentries!{CS<:ConstantSpace,T}(D::ConcreteMultiplication{CS,CS,T},A,kr::Range,::Colon)
-    if 1 in kr
-        A[1,1]+=D.f.coefficients[1]
-    end
-    A
-end
-
 rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = rangespace(Multiplication(D.f,space(D.f)))
-rangespace{CS<:ConstantSpace,T}(D::ConcreteMultiplication{CS,CS,T}) = ConstantSpaec()
+
+
 
 
 ###
@@ -160,3 +197,9 @@ end
 for op = (:*,:.*,:./,:/)
     @eval $op{CS<:ConstantSpace}(f::Fun,c::Fun{CS}) = f*convert(Number,c)
 end
+
+
+
+## Multivariate case
+union_rule(a::TensorSpace,b::ConstantSpace{AnyDomain})=TensorSpace(map(sp->union(sp,b),a.spaces))
+

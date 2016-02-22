@@ -4,7 +4,6 @@ abstract BivariateFun{T} <: MultivariateFun{T}
 export grad,lap,curl
 
 #implements coefficients/values/evaluate
-Base.call(f::BivariateFun,x,y)=evaluate(f,x,y)
 space(f::BivariateFun)=space(f,1)⊗space(f,2)
 domain(f::BivariateFun)=domain(f,1)*domain(f,2)
 

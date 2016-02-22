@@ -1,9 +1,6 @@
 export domainplot, coefficientplot, complexplot
 
 
-if isdir(Pkg.dir("PyPlot"))
-    include("PyPlot.jl")
-end
 
 if isdir(Pkg.dir("TikzGraphs"))
     include("introspect.jl")
@@ -52,16 +49,16 @@ Plots.plot!{S,T<:Real}(plt::Plots.Plot,x::AbstractVector{T},f::Fun{S,T};kwds...)
 
 
 
-function Plots.plot!{F<:Union{Fun,Domain}}(plt::Plots.Plot,v::AbstractVector{F};label=Void)
+function Plots.plot!{F<:Union{Fun,Domain}}(plt::Plots.Plot,v::AbstractVector{F};label=Void,kwds...)
     if label == Void
         for k=1:length(v)
-            plot!(plt,v[k])
+            plot!(plt,v[k];kwds...)
         end
     else
         @assert length(label)==length(v)
 
         for k=1:length(v)
-            plot!(plt,v[k];label=label[k])
+            plot!(plt,v[k];label=label[k],kwds...)
         end
     end
     plt
@@ -209,14 +206,23 @@ function Plots.plot!(plt::Plots.Plot,f::MultivariateFun;linetype=:contour,opts..
     f=chop(f,10e-10)
     f=pad(f,max(size(f,1),20),max(size(f,2),20))
     vals=values(f)
-    if norm(imag(vals))>10e-9
+    if norm(imag(vals),Inf)>10e-9
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
 
     plot!(plt,points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);linetype=linetype,opts...)
 end
 
-contour(f::Union{Fun,MultivariateFun};kwds...)=plot(f;linetype=:contour,kwds...)
+function Plots.surface(f::MultivariateFun;opts...)
+    f=chop(f,10e-10)
+    f=pad(f,max(size(f,1),20),max(size(f,2),20))
+    vals=values(f)
+    if norm(imag(vals),Inf)>10e-9
+        warn("Imaginary part is non-neglible.  Only plotting real part.")
+    end
+
+    surface(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);opts...)
+end
 
 
 
@@ -234,4 +240,12 @@ end
 #plot{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
 #plot(f::LowRankFun;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
 #plot(f::MultivariateFun,obj,window;opts...)=glsurfupdate(real(values(f)),obj,window;opts...)
-Plots.plot{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};kwds...)=plot(ProductFun(f);kwds...)
+
+for Plt in (:(Plots.plot),:(Plots.contour),:(Plots.surface))
+    Pltex=parse(string(Plt)*"!")
+    @eval begin
+        $Plt{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};kwds...)=$Plt(ProductFun(f);kwds...)
+        $Pltex{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};kwds...)=$Pltex(ProductFun(f);kwds...)
+        $Pltex{TS<:TensorSpace,T<:Real}(plt::Plots.Plot,f::Fun{TS,T};kwds...)=$Pltex(plt,ProductFun(f);kwds...)
+    end
+end

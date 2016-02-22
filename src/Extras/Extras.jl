@@ -55,3 +55,6 @@ include("hacks.jl")
 
 include("autodifferentiation.jl")
 include("fractional.jl")
+
+
+include("dualnumbers.jl")

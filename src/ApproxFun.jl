@@ -1,7 +1,7 @@
 __precompile__()
 
 module ApproxFun
-    using Base, Plots, FastGaussQuadrature
+    using Base, Compat, Plots, FastGaussQuadrature, DualNumbers
 
 
 import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
@@ -33,8 +33,8 @@ include("Spaces/Spaces.jl")
 ## Further extra features
 
 include("PDE/PDE.jl")
-include("Plot/Plot.jl")
 include("Extras/Extras.jl")
+include("Plot/Plot.jl")
 
 include("docs.jl")
 

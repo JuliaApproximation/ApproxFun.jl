@@ -49,9 +49,13 @@ transformtimes{JW<:JacobiWeight}(f::Fun,g::Fun{JW}) = Fun(coefficients(transform
 ##  α and β are opposite the convention for Jacobi polynomials
 # Here, α is the left algebraic singularity and β is the right algebraic singularity.
 
-jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
-weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 
+jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
+jacobiweight(α,β,d::Domain)=Fun([1.],JacobiWeight(α,β,ConstantSpace(d)))
+jacobiweight(α,β)=jacobiweight(α,β,Interval())
+
+weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
+dimension(sp::JacobiWeight)=dimension(sp.space)
 
 
 setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.space,d))

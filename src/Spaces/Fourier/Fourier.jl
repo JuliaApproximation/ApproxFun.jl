@@ -15,6 +15,7 @@ for T in (:CosSpace,:SinSpace)
         spacescompatible(a::$T,b::$T)=domainscompatible(a,b)
         hasfasttransform(::$T)=true
         canonicalspace(S::$T)=Fourier(domain(S))
+        setdomain(S::$T,d::Domain)=$T(d)
     end
 end
 # s == true means analytic inside, taylor series
@@ -59,18 +60,18 @@ itransform(::Hardy{false},cfs::Vector,plan)=plan(flipdim(alternatesign!(-cfs),1)
 
 evaluate{D<:Domain}(f::AbstractVector,S::Taylor{D},z) = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
 function evaluate{D<:Circle}(f::AbstractVector,S::Taylor{D},z)
+    z=mappoint(S,𝕌,z)
     d=domain(S)
-    horner(f,(z-d.center)/d.radius)
+    horner(f,z)
 end
 
 function evaluate{D<:Domain}(f::AbstractVector,S::Hardy{false,D},z)
-    z=fromcanonical(Circle(),tocanonical(S,z))
+    z=mappoint(S,𝕌,z)
     z=1./z
     z.*horner(f,z)
 end
 function evaluate{D<:Circle}(f::AbstractVector,S::Hardy{false,D},z)
-    d=domain(S)
-    z=(z-d.center)/d.radius
+    z=mappoint(S,𝕌,z)
     z=1./z
     z.*horner(f,z)
 end
@@ -126,6 +127,12 @@ evaluate(f::Vector,S::CosSpace,t)=clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
 plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.plan_r2r(x,FFTW.RODFT00))
 plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.plan_r2r(x,FFTW.RODFT00))
+
+plan_transform{D}(::SinSpace{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
+plan_itransform{D}(::SinSpace{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
+
+
+
 transform(::SinSpace,vals,plan)=plan(vals)/(length(vals)+1)
 itransform(::SinSpace,cfs,plan)=plan(cfs)/2
 evaluate(f::AbstractVector,S::SinSpace,t)=sineshaw(f,tocanonical(S,t))
@@ -147,6 +154,19 @@ function evaluate{DD}(f::AbstractVector,S::Laurent{DD},z)
     z = mappoint(domain(S),Circle(),z)
     invz = 1./z
     horner(f,1:2:length(f),z) + horner(f,2:2:length(f),invz).*invz
+end
+
+
+function Base.conj{DD}(f::Fun{Laurent{DD}})
+    cfs=Array(eltype(f),iseven(length(f))?length(f)+1:length(f))
+    cfs[1]=conj(f.coefficients[1])
+    for k=2:2:length(f)
+        cfs[k+1]=conj(f.coefficients[k])
+    end
+    for k=3:2:length(f)
+        cfs[k]=conj(f.coefficients[k-1])
+    end
+    Fun(cfs,space(f))
 end
 
 ## Fourier space
@@ -174,6 +194,9 @@ end
 points{D}(sp::Fourier{D},n)=points(domain(sp),n)
 plan_transform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.R2HC))
 plan_itransform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.HC2R))
+
+plan_transform{D}(::Fourier{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
+plan_itransform{D}(::Fourier{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
 
 function transform{T<:Number,D}(::Fourier{D},vals::Vector{T},plan)
     n=length(vals)

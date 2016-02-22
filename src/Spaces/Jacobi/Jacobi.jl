@@ -1,30 +1,31 @@
 export Jacobi,Legendre,WeightedJacobi
 
-#TODO Type
-immutable Jacobi{D<:Domain} <: PolynomialSpace{D}
-    a::Float64
-    b::Float64
+
+immutable Jacobi{T,D<:Domain} <: PolynomialSpace{D}
+    a::T
+    b::T
     domain::D
 end
 Legendre(domain)=Jacobi(0.,0.,domain)
 Legendre()=Legendre(Interval())
-Jacobi(a,b,d::Domain)=Jacobi{typeof(d)}(a,b,d)
+Jacobi(a,b,d::Domain)=Jacobi{promote_type(typeof(a),typeof(b)),typeof(d)}(a,b,d)
 Jacobi(a,b,d)=Jacobi(a,b,Domain(d))
 Jacobi(a,b)=Jacobi(a,b,Interval())
 Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
 
-WeightedJacobi(α,β,d::Domain)=JacobiWeight(α,β,Jacobi(β,α,d))
-WeightedJacobi(α,β)=JacobiWeight(α,β,Jacobi(β,α))
+typealias WeightedJacobi{D} JacobiWeight{Jacobi{Float64,D},D}
+
+Base.call(::Type{WeightedJacobi},α,β,d::Domain)=JacobiWeight(α,β,Jacobi(β,α,d))
+Base.call(::Type{WeightedJacobi},α,β)=JacobiWeight(α,β,Jacobi(β,α))
 
 spacescompatible(a::Jacobi,b::Jacobi)=a.a==b.a && a.b==b.b
 
 function canonicalspace(S::Jacobi)
-    if isinteger(S.a) && isinteger(S.b)
-        Jacobi(0.,0.,domain(S))
-    elseif isinteger(S.a+0.5) && isinteger(S.b+0.5)
+    if isapproxinteger(S.a+0.5) && isapproxinteger(S.b+0.5)
         Chebyshev(domain(S))
     else
-        S
+        # return space with parameters in (-1,0.]
+        Jacobi(mod(S.a,-1),mod(S.b,-1),domain(S))
     end
 end
 
@@ -51,6 +52,23 @@ for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobire
 end
 
 
+function jacobip(r::Range,α,β,x)
+    n=r[end]+1
+    if n<=2
+        v=[1.,.5*(α-β+(2+α+β)*x)]
+    else
+        v=Array(promote_type(Float64,typeof(x)),n)  # x may be complex
+        v[1]=1.
+        v[2]=.5*(α-β+(2+α+β)*x)
+
+        for k=2:n-1
+            v[k+1]=((x-jacobirecα(α,β,k))*v[k] - jacobirecγ(α,β,k)*v[k-1])/jacobirecβ(α,β,k)
+        end
+    end
+    v[r+1]
+end
+
+
 function jacobip(r::Range,α,β,x::Number)
     if x==1. && α==0.
         ones(length(r))
@@ -73,7 +91,7 @@ function jacobip(r::Range,α,β,x::Number)
         v[r+1]
     end
 end
-jacobip(n::Integer,α,β,v::Number)=jacobip(n:n,α,β,v)[1]
+jacobip(n::Integer,α,β,v)=jacobip(n:n,α,β,v)[1]
 jacobip(n::Range,α,β,v::Vector)=transpose(hcat(map(x->jacobip(n,α,β,x),v)...))
 jacobip(n::Integer,α,β,v::Vector)=map(x->jacobip(n,α,β,x),v)
 jacobip(n,S::Jacobi,v)=jacobip(n,S.a,S.b,v)
