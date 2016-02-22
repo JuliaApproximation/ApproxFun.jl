@@ -1,6 +1,16 @@
 # We need to implement some functionality for the ApproxFun constructor to work
 real{T}(::Type{Dual{T}})=Dual{ApproxFun.real(T)}
 
+# Dual number support. Should there be realpart and dualpart of Space and Domain?
+DualNumbers.realpart(f::Fun) = Fun(realpart(coefficients(f)),space(f))
+DualNumbers.dualpart(f::Fun) = Fun(dualpart(coefficients(f)),space(f))
+
+valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{V})=Dual{promote_type(T,V)},promote_type(T,V)
+valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{V})=Dual{promote_type(T,V)},promote_type(real(T),V)
+valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{Complex{V}})=Dual{promote_type(T,V)},Complex{promote_type(T,V)}
+valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{Complex{V}})=Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
+
+
 for OP in (:plan_chebyshevtransform,:plan_ichebyshevtransform)
     @eval $OP{D<:Dual}(v::Vector{D})=$OP(realpart(v))
 end
@@ -21,7 +31,6 @@ for OP in (:transform,:itransform)
 end
 
 chop!(f::Fun,d::Dual)=chop!(f,realpart(d))
-samplenorm{T<:Dual}(v::Vector{T})=norm(realpart(v))
 
 
 
