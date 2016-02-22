@@ -401,7 +401,7 @@ function addentries!(P::TimesOperator,A,kr::Range,::Colon)
         return A
     end
 
-   st=step(kr)
+    st=step(kr)
 
     krl=Array(Int,length(P.ops),2)
 

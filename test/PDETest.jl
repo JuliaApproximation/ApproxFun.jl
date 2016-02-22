@@ -92,6 +92,43 @@ if OS_NAME==:Darwin
     uD=KD\G;
 
     @test_approx_eq uD(.1,.2) real(exp(.1+.2im))
+
+
+
+    # fourth order
+    dx=dy=Interval()
+    d=dx*dy
+    Dx=Derivative(dx);Dy=Derivative(dy)
+    L=Dx^4⊗I+Dx^2⊗Dy^2+I⊗Dy^4
+
+    K=kronfact([dirichlet(d);
+         neumann(d);
+         L],100,100)
+
+    x=Fun(identity,dx);y=Fun(identity,dy)
+
+    G=[real(exp(-1+1.im*y));
+                            real(exp(1+1im*y));
+                            real(exp(x-1im));
+                            real(exp(x+1im))]
+    u=K\G
+    @test_approx_eq u(.1,.2) 1.662356283953618
+
+    # mixed
+
+    K=kronfact([(ldirichlet(dx)+lneumann(dx))⊗I;
+            (rdirichlet(dx)+rneumann(dx))⊗I;
+            I⊗(ldirichlet(dy)+lneumann(dy));
+            I⊗(rdirichlet(dy)+rneumann(dy));
+            (ldirichlet(dx)-lneumann(dx))⊗I;
+            (rdirichlet(dx)-rneumann(dx))⊗I;
+            I⊗(ldirichlet(dy)-lneumann(dy));
+            I⊗(rdirichlet(dy)-rneumann(dy));
+             L],100,100)
+
+    u=K\G
+
+    @test_approx_eq u(.1,.2) 0.5261033615359566
 end
 
 

@@ -55,7 +55,20 @@ promotedomainspace{CO<:ConstantOperator}(S::SpaceOperator{CO},sp::Space)=SpaceOp
 
 
 
-## MutableOperator bor BandedMatrix
+## These hacks support PDEs with block matrices
+
+
+# this is a hack since it assumes the growth in the blocks
+function bazeros{T}(::Type{Matrix{T}},n::Integer,m::Integer,l::Integer,u::Integer)
+    ret=BandedMatrix(Matrix{T},n,m,l,u)
+    for k=1:n,j=max(1,k-l):min(m,k+u)
+        ret[k,j]=zeros(T,k,j)  #The ::Number works around an 0.4 bug
+    end
+    ret
+end
+
+
+
 
 function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::MutableOperator{T,M,R},n::Integer)
     resizedata!(B.fill,n)
