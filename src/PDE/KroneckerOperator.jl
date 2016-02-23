@@ -402,7 +402,8 @@ Base.transpose{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=C
 ### Calculus
 
 #TODO: general dimension
-function Derivative{SV,T}(S::TensorSpace{SV,T,2},order::NTuple{2,Int})
+function Derivative{SV,T}(S::TensorSpace{SV,T,2},order::Vector{Int})
+    @assert length(order)==2
     if order[1]==0
         DerivativeWrapper(eye(S[1])⊗Derivative(S[2],order[2]),order)
     elseif order[2]==0
