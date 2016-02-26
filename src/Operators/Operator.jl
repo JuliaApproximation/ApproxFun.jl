@@ -87,14 +87,14 @@ Base.isdiag(A::BandedOperator)=bandinds(A)==(0,0)
 bazeros(B::Operator,n::Integer,m::Integer)=bazeros(eltype(B),n,m,bandinds(B))
 bazeros(B::Operator,n::Integer,m::Colon)=bazeros(eltype(B),n,m,bandinds(B))
 bazeros(B::Operator,n::Integer,m::Colon,br::Tuple{Int,Int})=bazeros(eltype(B),n,m,br)
-
+isbazeros(B::Operator,rws::Range,::Colon)=isbazeros(eltype(B),rws,:,bandinds(B))
 
 BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n,:)
 function BandedMatrix(B::Operator,rws::UnitRange,::Colon)
     if first(rws)==1
         BandedMatrix(B,last(rws))
     else
-        addentries!(B,isbazeros(eltype(B),rws,:,bandinds(B)),rws,:).matrix
+        addentries!(B,isbazeros(B,rws,:),rws,:).matrix
     end
 end
 

@@ -16,11 +16,14 @@ include("kron.jl")
 
 ## PDE
 
-function lap(d::Union{ProductDomain,TensorSpace})
+lap(d)=Laplacian(d)
+
+
+function Laplacian(d::Union{ProductDomain,TensorSpace})
     @assert length(d)==2
-    Dx=Derivative(d[1])
-    Dy=Derivative(d[2])
-    Dx^2⊗I+I⊗Dy^2
+    Dx2=Derivative(d,[2,0])
+    Dy2=Derivative(d,[0,2])
+    LaplacianWrapper(Dx2+Dy2)
 end
 
 
