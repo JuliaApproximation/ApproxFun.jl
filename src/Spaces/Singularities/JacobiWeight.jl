@@ -58,6 +58,9 @@ weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 dimension(sp::JacobiWeight)=dimension(sp.space)
 
 
+Base.first{JW<:JacobiWeight}(f::Fun{JW})=space(f).α>0?zero(eltype(f)):f(first(domain(f)))
+Base.last{JW<:JacobiWeight}(f::Fun{JW})=space(f).β>0?zero(eltype(f)):f(last(domain(f)))
+
 setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.space,d))
 
 # we assume that points avoids singularities
