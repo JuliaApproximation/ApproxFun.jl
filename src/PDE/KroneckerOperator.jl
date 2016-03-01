@@ -8,25 +8,39 @@ export KroneckerOperator
 # gives zero block banded matrix, where the blocks are increasing size
 # the bandwidths are assumed to be constant
 
-function blockbandzeros{T}(zer::Function,::Type{T},n,m::Integer,l,u,Bl,Bu)
+function blockbandzeros{T}(zer::Function,::Type{T},n,m::Integer,l,u,Bl,Bu,rshft=0,cshft=0)
 #    l=Al+Bl;u=Au+Bu
     ret=BandedMatrix(T,n,m,l,u)
 
     for k=1:n,j=max(1,k-l):min(m,k+u)
 #        nl=min(Al,Bu+k-j);nu=min(Au,Bl+j-k)
 #        ret[k,j]=zer(eltype(T),k,j,Bl,Bu)
-        ret[k,j]=zer(eltype(T),k,j)  #The ::Number works around an 0.4 bug
+        ret[k,j]=zer(eltype(T),k+rshft,j+cshft)  #The ::Number works around an 0.4 bug
     end
 
     ret
 end
 
-blockbandzeros{T}(::Type{T},n,m::Integer,l,u,Bl,Bu)=blockbandzeros(zeros,Matrix{T},n,m,l,u,Bl,Bu)
+
+function isblockbandzeros{T}(zer::Function,::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer,Bl::Integer,Bu::Integer)
+    shft=kr[1]-jr[1]
+    IndexStride(blockbandzeros(zer,T,length(kr),length(jr),l-shft,u+shft,Bl,Bu,kr[1]-1,jr[1]-1),1-kr[1],1-jr[1])
+end
+
+
+for OP in (:blockbandzeros,:isblockbandzeros)
+    @eval begin
+        $OP{T}(::Type{T},n,m::Integer,l,u,Bl,Bu)=$OP(zeros,Matrix{T},n,m,l,u,Bl,Bu)
+        $OP{T}(::Type{T},n,m::Range,l,u,Bl,Bu)=$OP(zeros,Matrix{T},n,m,l,u,Bl,Bu)
+        $OP{T}(::Type{T},n,m,Alu,Blu)=$OP(T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
+        $OP{T}(zer::Function,::Type{T},n,m,Alu,Blu)=$OP(zer,T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
+    end
+end
 
 blockbandzeros{T}(::Type{T},n,m::Colon,Al,Au,Bl,Bu)=blockbandzeros(T,n,n+Au,Al,Au,Bl,Bu)
-blockbandzeros{T}(::Type{T},n,m,Alu,Blu)=blockbandzeros(T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
-blockbandzeros{T}(zer::Function,::Type{T},n,m,Alu,Blu)=blockbandzeros(zer,T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
+isblockbandzeros{T}(::Type{T},kr,m::Colon,Al,Au,Bl,Bu)=isblockbandzeros(T,kr,max(1,kr[1]-Al):kr[end]+Au,Al,Au,Bl,Bu)
 
+#TODO:  isbazeros{T}(::Type{T},kr::UnitRange,::Colon,l::Integer,u::Integer)=isbazeros(T,kr,max(1,kr[1]-l):kr[end]+u,l,u)
 
 ##########
 # Convert a block banded matrix to a full matrix
@@ -150,7 +164,8 @@ end
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
 blockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer)=0
-blockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,SpaceOperator,ConstantTimesOperator},k::Integer)=blockbandinds(K.op,k)
+blockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
+                       SpaceOperator,ConstantTimesOperator},k::Integer)=blockbandinds(K.op,k)
 
 
 
@@ -198,7 +213,16 @@ bazeros{BT<:BandedMatrix}(K::Operator{BT},
                           n::Integer,
                           ::Colon)=blockbandzeros(eltype(BT),n,:,bandinds(K),blockbandinds(K))
 bazeros{BT<:BandedMatrix}(K::Operator{BT},n::Integer,
-                          br::Tuple{Int,Int})=blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
+                          br::Tuple{Int,Int})=error("Fix call signature") #blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
+
+
+isbazeros{BT<:BandedMatrix}(K::Operator{BT},
+                          rws::Range,
+                          ::Colon)=isblockbandzeros(eltype(BT),rws,:,bandinds(K),blockbandinds(K))
+
+bazeros{BT<:BandedMatrix}(K::Operator{BT},rws::Range,
+                          br::Tuple{Int,Int})=error("Fix call signature")   # isblockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
+
 
 # function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
 #     @assert first(kr)==1
@@ -386,7 +410,7 @@ end
 
 Base.transpose(K::KroneckerOperator)=KroneckerOperator(K.ops[2],K.ops[1])
 
-for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper)
+for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper,:LaplacianWrapper)
     @eval Base.transpose(S::$TYP)=$TYP(transpose(S.op))
 end
 

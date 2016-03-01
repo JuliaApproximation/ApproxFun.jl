@@ -54,7 +54,7 @@ coefficients(c::Number,sp::Space)=Fun(c,sp).coefficients
 
 
 Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(convert(Vector{T},f.coefficients),f.space)
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))
+Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))  #TODO: this line is incompatible with space conversion
 
 Base.convert{T,S}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
 Base.convert{S}(::Type{Fun{S}},x::Number)=x==0?zeros(S(AnyDomain())):x*ones(S(AnyDomain()))

@@ -77,6 +77,9 @@ Base.transpose(d::TensorSpace)=TensorSpace(d[2],d[1])
 
 ##Transforms
 
+plan_column_transform(S,v)=plan_transform(columnspace(S,1),v)
+plan_column_itransform(S,v)=plan_itransform(columnspace(S,1),v)
+
 function itransform!(S::TensorSpace,M::Matrix)
     n=size(M,1)
 
@@ -96,7 +99,7 @@ function itransform!(S::AbstractProductSpace,M::Matrix)
     n=size(M,1)
 
     ## The order matters
-    pln=plan_itransform(columnspace(S,1),n)
+    pln=plan_column_itransform(S,n)
     for k=1:size(M,2)
         M[:,k]=itransform(columnspace(S,k),M[:,k],pln)
     end
@@ -132,7 +135,7 @@ function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
         M[k,:]=transform(space(S,2),vec(M[k,:]))
     end
 
-    pln=plan_transform(columnspace(S,1),n)
+    pln=plan_column_transform(S,n)
     for k=1:size(M,2)
         # col may not be full length
         col=transform(columnspace(S,k),M[:,k],pln)
