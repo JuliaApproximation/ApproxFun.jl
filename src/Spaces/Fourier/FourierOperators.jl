@@ -51,7 +51,7 @@ end
 conversion_type{DD<:Circle}(A::Fourier{DD},B::Fourier{DD})=domain(A).orientation?A:B
 
 hasconversion{DD}(A::Fourier{DD},B::Fourier{DD})=domain(A) == reverse(domain(B))
-Conversion{DD}(A::Fourier{DD},B::Fourier{DD})=ConcreteConversion(A,B)
+Conversion{DD}(A::Fourier{DD},B::Fourier{DD})=A==B?ConversionWrapper(eye(A)):ConcreteConversion(A,B)
 bandinds{DD}(::ConcreteConversion{Fourier{DD},Fourier{DD}})=0,0
 
 function addentries!{DD}(C::ConcreteConversion{Fourier{DD},Fourier{DD}},A,kr::Range,::Colon)

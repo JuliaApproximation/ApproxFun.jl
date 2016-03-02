@@ -31,7 +31,7 @@ rangespace(C::ConcreteConversion)=C.rangespace
 
 function defaultconversion(a::Space,b::Space)
     if a==b
-        eye(a)
+        ConversionWrapper(eye(a))
     elseif conversion_type(a,b)==NoSpace()
         sp=canonicalspace(a)
         if typeof(sp) == typeof(a)
