@@ -21,7 +21,7 @@ function Base.irfft{T<:BigFloats}(v::Vector{T},n::Integer)
     r=Array(Complex{BigFloat},n)
     r[1:length(v)]=v
     r[length(v)+1:end]=reverse(conj(v[2:end]))
-    ifft(r)
+    real(ifft(r))
 end
 
 Base.ifft{T<:BigFloats}(x::Vector{T}) = conj(fft(conj(x)))/length(x)
