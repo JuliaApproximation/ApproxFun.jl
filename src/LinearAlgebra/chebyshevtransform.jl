@@ -6,9 +6,9 @@ export plan_chebyshevtransform, plan_ichebyshevtransform, chebyshevtransform, ic
 
 function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
     if kind == 1
-        length(x)==1?identity:wrap_fft_plan(FFTW.plan_r2r(x, FFTW.REDFT10))
+        FFTW.plan_r2r(x, FFTW.REDFT10)
     elseif kind == 2
-        length(x)==1?identity:wrap_fft_plan(FFTW.plan_r2r(x, FFTW.REDFT00))
+        FFTW.plan_r2r(x, FFTW.REDFT00)
     end
 end
 
@@ -40,9 +40,9 @@ chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)=chebyshevtr
 
 function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
     if kind == 1
-        length(x)==1?identity:wrap_fft_plan(FFTW.plan_r2r(x, FFTW.REDFT01))
+        FFTW.plan_r2r(x, FFTW.REDFT01)
     elseif kind == 2
-        length(x)==1?identity:wrap_fft_plan(FFTW.plan_r2r(x, FFTW.REDFT00))
+        FFTW.plan_r2r(x, FFTW.REDFT00)
     end
 end
 

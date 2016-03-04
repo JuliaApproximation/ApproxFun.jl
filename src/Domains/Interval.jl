@@ -15,7 +15,7 @@ end
 
 Interval()=Interval{Float64}()
 Interval(a::Int,b::Int) = Interval(Float64(a),Float64(b)) #convenience method
-Interval(a::Number,b::Number) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
+Interval(a,b) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 
 function Interval{T<:Number}(d::AbstractVector{T})
     @assert length(d)==2

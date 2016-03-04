@@ -1,18 +1,6 @@
 typealias BigFloats Union{BigFloat,Complex{BigFloat}}
 
-if VERSION >= v"0.4-dev"
-    # old DFT API: p(x) # deprecated
-    wrap_fft_plan(x::Function) = x
-    # new DFT API
-    immutable FFTPlanWrapper{P}
-        p::P
-    end
-    call(p::FFTPlanWrapper, arg) = p.p * arg
-    wrap_fft_plan(x) = FFTPlanWrapper(x)
-else
-    # 0.3 (old) DFT API
-    wrap_fft_plan(x) = x
-end
+
 
 # The following implements Bluestein's algorithm, following http://www.dsprelated.com/dspbooks/mdft/Bluestein_s_FFT_Algorithm.html
 # To add more types, add them in the union of the function's signature.
@@ -23,6 +11,17 @@ function Base.fft{T<:BigFloats}(x::Vector{T})
     Wks = exp(-im*convert(T,π)*ks.^2/n)
     xq,wq = x.*Wks,conj([exp(-im*convert(T,π)*n);reverse(Wks);Wks[2:end]])
     return Wks.*conv(xq,wq)[n+1:2n]
+end
+
+# add rfft for BigFloat, by calling fft
+#  this creates ToeplitzMatrices.rfft, so avoids changing Base.rfft
+Base.rfft{T<:BigFloats}(v::Vector{T})=fft(v)[1:div(length(v),2)+1]
+function Base.irfft{T<:BigFloats}(v::Vector{T},n::Integer)
+    @assert n==2length(v)-1
+    r=Array(Complex{BigFloat},n)
+    r[1:length(v)]=v
+    r[length(v)+1:end]=reverse(conj(v[2:end]))
+    ifft(r)
 end
 
 Base.ifft{T<:BigFloats}(x::Vector{T}) = conj(fft(conj(x)))/length(x)
@@ -75,10 +74,31 @@ end
 
 # plan_fft for BigFloats (covers Laurent svfft)
 
-Base.plan_fft{T<:BigFloats}(x::Vector{T}) = fft
-Base.plan_ifft{T<:BigFloats}(x::Vector{T}) = ifft
+# dummy plans
+type DummyFFTPlan{T} <: Base.DFT.Plan{T} end
+type DummyiFFTPlan{T} <: Base.DFT.Plan{T} end
+type DummyrFFTPlan{T} <: Base.DFT.Plan{T} end
+type DummyirFFTPlan{T} <: Base.DFT.Plan{T} end
+
+
+*{T,N}(p::DummyFFTPlan{T}, x::StridedArray{T,N})=fft(x)
+*{T,N}(p::DummyiFFTPlan{T}, x::StridedArray{T,N})=ifft(x)
+*{T,N}(p::DummyrFFTPlan{T}, x::StridedArray{T,N})=rfft(x)
+*{T,N}(p::DummyirFFTPlan{T}, x::StridedArray{T,N})=irfft(x)
+
+Base.plan_fft{T<:BigFloats}(x::Vector{T}) = DummyFFTPlan{Complex{BigFloat}}()
+Base.plan_fft!{T<:BigFloats}(x::Vector{T}) = DummyFFTPlan{Complex{BigFloat}}()
+Base.plan_ifft{T<:BigFloats}(x::Vector{T}) = DummyiFFTPlan{Complex{BigFloat}}()
+Base.plan_ifft!{T<:BigFloats}(x::Vector{T}) = DummyiFFTPlan{Complex{BigFloat}}()
+
+Base.plan_rfft{T<:BigFloats}(x::Vector{T}) = DummyrFFTPlan{Complex{BigFloat}}()
+Base.plan_irfft{T<:BigFloats}(x::Vector{T},n::Integer) = DummyirFFTPlan{Complex{BigFloat}}()
+
+
+
 Base.plan_fft{F<:Fun}(x::Vector{F}) = fft
 Base.plan_ifft{F<:Fun}(x::Vector{F}) = ifft
+Base.plan_ifft!{F<:Fun}(x::Vector{F}) = ifft
 
 # Chebyshev transforms and plans for BigFloats
 
