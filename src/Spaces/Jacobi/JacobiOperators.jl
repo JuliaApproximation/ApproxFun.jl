@@ -104,6 +104,32 @@ function addentries!{J<:Jacobi}(T::ConcreteIntegral{J},A,kr::Range,::Colon)
 end
 
 
+## Volterra Integral operator
+
+Volterra(d::Interval) = Volterra(Legendre(d))
+
+function rangespace{J<:Jacobi}(V::ConcreteVolterra{J})
+    @assert V.space.a == V.space.b == 0.0
+    Jacobi(0.0,-1.0,domain(V))
+end
+function bandinds{J<:Jacobi}(V::ConcreteVolterra{J})
+    @assert V.space.a == V.space.b == 0.0
+    -1,0
+end
+
+function addentries!{J<:Jacobi}(V::ConcreteVolterra{J},A,kr::Range,::Colon)
+    @assert V.space.a == V.space.b == 0.0
+    @assert V.order==1
+    d=domain(V)
+    C = 0.5(d.b-d.a)
+    for k=intersect(2:kr[end],kr)
+        A[k,k-1]+=C/(k-1.5)
+        A[k,k]-=C/(k-0.5)
+    end
+    A
+end
+
+
 ## Conversion
 # We can only increment by a or b by one, so the following
 # multiplies conversion operators to handle otherwise

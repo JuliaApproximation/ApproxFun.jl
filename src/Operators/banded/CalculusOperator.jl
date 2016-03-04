@@ -1,4 +1,4 @@
-export Derivative,Integral,Laplacian
+export Derivative,Integral,Laplacian,Volterra
 
 
 abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
@@ -144,6 +144,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp)=iswrapper(M)?choosedomains
 
 @calculus_operator(Derivative)
 @calculus_operator(Integral)
+@calculus_operator(Volterra)
 
 for TYP in (:Derivative,:Integral)
     @eval begin
