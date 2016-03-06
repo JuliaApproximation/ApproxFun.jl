@@ -248,7 +248,7 @@ plan_isvfft(x::Vector) = plan_ifft(x)
 
 function svfft(v::Vector,plan)
     n=length(v)
-    v=plan(v)/n
+    v=plan*v/n
     if mod(n,2) == 0
         ind=div(n,2)
         v=alternatesign!(v)
@@ -278,7 +278,7 @@ function isvfft(sv::Vector,plan)
            alternatesign!(flipdim(sv[2:2:end],1))]
     end
 
-    plan(n*v)
+    plan*(n*v)
 end
 
 
