@@ -70,7 +70,7 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(T),n))
+points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(eltype(T)),n))  # eltype to handle point
 
 points(d::AbstractVector,n::Integer)=points(convert(Domain,d),n)
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
@@ -177,6 +177,7 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,eltype(d)[1.223972,-2.83273484])
 
 ## map domains
 
+fromcanonical(d::Domain,v::Vector)=[fromcanonical(d,vk) for vk in v]
 
 mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
 invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
