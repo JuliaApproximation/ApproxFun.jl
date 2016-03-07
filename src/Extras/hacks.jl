@@ -1,45 +1,88 @@
 ## Constructors that involve MultivariateFun
 
-function Fun(f::Function,d::BivariateSpace)
-    if f==zero
-        zeros(d)
-    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
-        Fun(ProductFun(f,d))
-    else
-        Fun(ProductFun((x,y)->f((x,y)),d))
-    end
-end
 
-
-function Fun(f::Function,d::BivariateSpace,n::Integer)
-    if (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
-        defaultFun(x->f(x...),d,n)
-    else
-        defaultFun(f,d,n)
-    end
-end
-
-function Fun(f::Function)
-    if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
-        # check for tuple
-        try
-            f(0)
-        catch ex
-            if isa(ex,BoundsError)
-                # assume its a tuple
-                return Fun(f,Interval()^2)
-            else
-                throw(ex)
-            end
+if VERSION < v"0.5.0-dev"
+    function Fun(f::Function,d::BivariateSpace)
+        if f==zero
+            zeros(d)
+        elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+            Fun(ProductFun(f,d))
+        else
+            Fun(ProductFun((x,y)->f((x,y)),d))
         end
+    end
+    function Fun(f::Function,d::BivariateSpace,n::Integer)
+        if (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+            defaultFun(x->f(x...),d,n)
+        else
+            defaultFun(f,d,n)
+        end
+    end
 
-        Fun(f,Interval())
-    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
-            Fun(f,Interval()^2)
-    else
-        error("Function not defined on interval or square")
+    function Fun(f::Function)
+        if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
+            # check for tuple
+            try
+                f(0)
+            catch ex
+                if isa(ex,BoundsError)
+                    # assume its a tuple
+                    return Fun(f,Interval()^2)
+                else
+                    throw(ex)
+                end
+            end
+
+            Fun(f,Interval())
+        elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+                Fun(f,Interval()^2)
+        else
+            error("Function not defined on interval or square")
+        end
+    end
+else
+    function Fun(f::Function,d::BivariateSpace)
+        if f==zero
+            zeros(d)
+        elseif applicable(f,0,0)
+            Fun(ProductFun(f,d))
+        else
+            Fun(ProductFun((x,y)->f((x,y)),d))
+        end
+    end
+
+
+    function Fun(f::Function,d::BivariateSpace,n::Integer)
+        if applicable(f,0,0)
+            defaultFun(x->f(x...),d,n)
+        else
+            defaultFun(f,d,n)
+        end
+    end
+
+    function Fun(f::Function)
+        if applicable(f,0)
+            # check for tuple
+            try
+                f(0)
+            catch ex
+                if isa(ex,BoundsError)
+                    # assume its a tuple
+                    return Fun(f,Interval()^2)
+                else
+                    throw(ex)
+                end
+            end
+
+            Fun(f,Interval())
+        elseif applicable(f,0,0)
+                Fun(f,Interval()^2)
+        else
+            error("Function not defined on interval or square")
+        end
     end
 end
+
 
 
 

@@ -171,7 +171,7 @@ choosedomainspace{T<:Float64}(Q::RightIntegral{UnsetSpace,T},sp::PolynomialSpace
 for (DTYP,QTYP,QWRAP) in ((:LeftDerivative,:LeftIntegral,:LeftIntegralWrapper),
                             (:RightDerivative,:RightIntegral,:RightIntegralWrapper))
     @eval begin
-        function $DTYP(S::Space,k)
+        function $DTYP(S::Space,k::Real)
             i=ceil(Int,k)
             r=i-k
             $QWRAP(i<0?$QTYP(S,-k):Derivative(i)*$QTYP(S,r),k)
