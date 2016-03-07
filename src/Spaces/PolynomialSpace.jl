@@ -14,7 +14,25 @@ Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T})=Fun{S,
 
 ## Evaluation
 
-evaluate(f::AbstractVector,S::PolynomialSpace,x)=clenshaw(S,f,tocanonical(S,x))
+function evaluate(f::AbstractVector,S::PolynomialSpace,x::Number)
+    if x in domain(S)
+        clenshaw(S,f,tocanonical(S,x))
+    else
+        zero(eltype(f))
+    end
+end
+
+evaluate{T<:Number}(f::AbstractVector,S::PolynomialSpace,x::Vector{T})=map(y->evaluate(f,S,y),x)
+
+function evaluate(f::AbstractVector,S::PolynomialSpace,x::Fun)
+    if issubset(Interval(minimum(g),maximum(g)),domain(x))
+        clenshaw(S,f,tocanonical(S,x))
+    else
+        error("Implement splitatpoints for evaluate ")
+    end
+end
+
+
 
 ######
 # Recurrence encodes the recurrence coefficients
