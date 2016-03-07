@@ -151,17 +151,29 @@ end
 
 ## evaluate
 
+
+for OP in (:(Base.last),:(Base.first))
+    @eval begin
+        $OP{SS<:SumSpace}(f::Fun{SS})=mapreduce($OP,+,vec(f))
+        $OP{SS<:PiecewiseSpace}(f::Fun{SS})=$OP($OP(vec(f)))
+        $OP{SS<:TupleSpace}(f::Fun{SS})=$OP(vec(f))
+    end
+end
+
 evaluate(f::AbstractVector,S::SumSpace,x)=mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
 
 
 function evaluate(f::AbstractVector,S::PiecewiseSpace,x::Number)
     d=domain(S)
     g=Fun(f,S)
+
+    ret=zero(promote_type(eltype(f),eltype(S)))
     for k=1:length(d)
         if in(x,d[k])
-            return g[k](x)
+            ret+=g[k](x)
         end
     end
+    ret
 end
 function evaluate(v::AbstractVector,S::PiecewiseSpace,x::Vector)
     f=Fun(v,S)

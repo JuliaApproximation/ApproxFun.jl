@@ -91,9 +91,9 @@ g=1/f
 
 
 
-
-
 ## Ray
+
+@test Inf in Ray()   # this was a bug
 
 f=Fun(x->exp(-x),[0,Inf])
 @test_approx_eq f'(.1) -f(.1)

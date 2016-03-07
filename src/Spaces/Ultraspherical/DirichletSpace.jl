@@ -9,8 +9,9 @@ immutable ChebyshevDirichlet{left,right,D} <: PolynomialSpace{D}
     ChebyshevDirichlet()=new(D())
 end
 
-evaluate(f::AbstractVector,S::ChebyshevDirichlet,x...)=evaluate(Fun(Fun(f,S),canonicalspace(S)),x...)
-
+for TYP in (:Number,:AbstractArray,:Fun)
+    @eval evaluate(f::AbstractVector,S::ChebyshevDirichlet,x::$TYP)=evaluate(Fun(Fun(f,S),canonicalspace(S)),x)
+end
 Base.convert{l,r}(::Type{ChebyshevDirichlet{l,r}})=ChebyshevDirichlet{l,r,Interval{Float64}}()
 Base.convert{l,r}(::Type{ChebyshevDirichlet{l,r}},d::Domain)=ChebyshevDirichlet{l,r,typeof(d)}(d)
 

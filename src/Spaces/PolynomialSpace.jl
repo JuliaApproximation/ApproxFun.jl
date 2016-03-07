@@ -22,10 +22,10 @@ function evaluate(f::AbstractVector,S::PolynomialSpace,x::Number)
     end
 end
 
-evaluate{T<:Number}(f::AbstractVector,S::PolynomialSpace,x::Vector{T})=map(y->evaluate(f,S,y),x)
+evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->evaluate(f,S,y),x)
 
 function evaluate(f::AbstractVector,S::PolynomialSpace,x::Fun)
-    if issubset(Interval(minimum(g),maximum(g)),domain(x))
+    if issubset(Interval(minimum(x),maximum(x)),domain(S))
         clenshaw(S,f,tocanonical(S,x))
     else
         error("Implement splitatpoints for evaluate ")
