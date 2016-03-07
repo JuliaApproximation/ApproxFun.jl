@@ -213,7 +213,7 @@ end
 
 @calculus_operator(Laplacian)
 
-Laplacian(S::Space,k)=ConcreteLaplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
+Laplacian(S::Space,k::Integer)=ConcreteLaplacian{typeof(S),Int,BandedMatrix{eltype(S)}}(S,k)
 Laplacian(S)=Laplacian(S,1)
 
 
