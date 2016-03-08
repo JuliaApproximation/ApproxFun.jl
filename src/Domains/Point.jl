@@ -28,3 +28,7 @@ Base.intersect(b::Point,a::Domain)=b.x in a?b:EmptyDomain()
 
 Base.setdiff(a::Point,b::Point)=a==b?EmptyDomain():a
 Base.reverse(a::Point)=a
+
+
+canonicaldomain(a::Point)=Point(0.)
+
