@@ -167,13 +167,13 @@ function evaluate(f::AbstractVector,S::PiecewiseSpace,x::Number)
     d=domain(S)
     g=Fun(f,S)
 
-    ret=zero(promote_type(eltype(f),eltype(S)))
+#    ret=zero(promote_type(eltype(f),eltype(S)))
     for k=1:length(d)
         if in(x,d[k])
-            ret+=g[k](x)
+            return g[k](x)
         end
     end
-    ret
+    return 0*first(g)
 end
 function evaluate(v::AbstractVector,S::PiecewiseSpace,x::Vector)
     f=Fun(v,S)
