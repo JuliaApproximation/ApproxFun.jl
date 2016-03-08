@@ -58,10 +58,14 @@ identity_fun(sp::Hermite)=Fun([0.,0.5],sp)
 
 
 # exp(-Lx^2)
-immutable GaussWeight{S,T} <: WeightSpace
+immutable GaussWeight{S,T} <: WeightSpace{S,RealBasis,Line{Float64},1}
     space::S
     L::T
 end
+
+GaussWeight(H::Hermite)=GaussWeight(H,H.L)
+GaussWeight()=GaussWeight(Hermite())
+
 spacescompatible(a::GaussWeight,b::GaussWeight)=spacescompatible(a.space,b.space)&&isapprox(a.L,b.L)
 
 function Derivative(sp::GaussWeight,k::Integer)
@@ -77,5 +81,10 @@ function Derivative(sp::GaussWeight,k::Integer)
 end
 
 weight(H::GaussWeight,x)=exp(-H.L*x.^2)
+
+function Base.sum{H<:Hermite,T}(f::Fun{GaussWeight{H,T}})
+    @assert space(f).space.L==space(f).L  # only implemented with matching weight
+    f.coefficients[1]*sqrt(π)/sqrt(space(f).L)
+end
 
 include("hermitetransform.jl")

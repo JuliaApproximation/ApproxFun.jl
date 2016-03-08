@@ -2,7 +2,7 @@
  LogWeight
  represents a function on [-1,1] weighted by log((1+x)^α*(1-x)^β)
 """
-immutable LogWeight{S,DD} <: WeightSpace{RealBasis,DD,1}
+immutable LogWeight{S,DD} <: WeightSpace{S,RealBasis,DD,1}
     α::Float64
     β::Float64
     space::S

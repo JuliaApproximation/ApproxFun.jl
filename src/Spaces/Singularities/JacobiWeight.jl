@@ -11,7 +11,7 @@ weights a basis on `[-1,1]` weighted by `(1+x)^α*(1-x)^β`.
 Note the inconsistency of the parameters with `Jacobi`.
 when the domain is `[a,b]` the weight is inferred by mapping to `[-1,1]`
 """
-immutable JacobiWeight{S,DD} <: WeightSpace{RealBasis,DD,1}
+immutable JacobiWeight{S,DD} <: WeightSpace{S,RealBasis,DD,1}
     α::Float64
     β::Float64
     space::S
