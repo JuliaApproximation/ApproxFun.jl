@@ -66,6 +66,9 @@ end
 GaussWeight(H::Hermite)=GaussWeight(H,H.L)
 GaussWeight()=GaussWeight(Hermite())
 
+
+identity_fun(sp::GaussWeight)=identity_fun(sp.space)
+
 spacescompatible(a::GaussWeight,b::GaussWeight)=spacescompatible(a.space,b.space)&&isapprox(a.L,b.L)
 
 function Derivative(sp::GaussWeight,k::Integer)
@@ -88,3 +91,21 @@ function Base.sum{H<:Hermite,T}(f::Fun{GaussWeight{H,T}})
 end
 
 include("hermitetransform.jl")
+
+
+
+
+
+function Multiplication{H<:Hermite}(f::Fun{H},S::GaussWeight{H})
+    M=Multiplication(f,S.space)
+    rs=rangespace(M)
+    MultiplicationWrapper(f,SpaceOperator(M,S,GaussWeight(rs,rs.L)))
+end
+
+function Multiplication{H<:Hermite,T}(f::Fun{GaussWeight{H,T}},S::Hermite)
+    M=Multiplication(Fun(f.coefficients,space(f).space),S)
+    rs=rangespace(M)
+    MultiplicationWrapper(f,SpaceOperator(M,S,GaussWeight(rs,rs.L)))
+end
+
+

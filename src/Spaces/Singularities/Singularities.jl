@@ -43,18 +43,6 @@ function evaluate(f::AbstractVector,S::WeightSpace,x...)
     end
 end
 
-Multiplication{D<:UnivariateSpace,T,SS,TT}(f::Fun{D,T},sp::WeightSpace{SS,TT,AnyDomain,2})=Multiplication(f⊗1,sp)
-function Multiplication(f::Fun,S::WeightSpace)
-    M=Multiplication(f,S.space)
-    if rangespace(M)==S.space
-        MultiplicationWrapper(f,SpaceOperator(M,S,S))
-    else
-        error("Implement case where rangespace is different")
-    end
-end
-
-
-
 
 
 include("divide_singularity.jl")
