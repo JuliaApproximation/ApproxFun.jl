@@ -149,74 +149,74 @@ function conjugatedinnerproduct{S,V}(sp::Jacobi,u::Vector{S},v::Vector{V})
     end
 end
 
-function dotu{J<:Jacobi}(f::Fun{J},g::Fun{J})
+function bilinearform{J<:Jacobi}(f::Fun{J},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.a == g.space.a == 0. && f.space.b == g.space.b == 0.
         return complexlength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function dotu{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
+function bilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function dotu{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
+function bilinearform{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function dotu{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
+function bilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function linedotu{J<:Jacobi}(f::Fun{J},g::Fun{J})
+function linebilinearform{J<:Jacobi}(f::Fun{J},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.a == g.space.a == 0. && f.space.b == g.space.b == 0.
         return length(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end
 
-function linedotu{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
+function linebilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return length(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end
 
-function linedotu{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
+function linebilinearform{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return length(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end
 
-function linedotu{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
+function linebilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return length(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end

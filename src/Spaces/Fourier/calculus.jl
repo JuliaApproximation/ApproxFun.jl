@@ -96,7 +96,7 @@ end
 
 # O(min(m,n)) Laurent line integral
 
-function linedotu{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
+function linebilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
     @assert domain(f) == domain(g)
     u,v,mn = f.coefficients,g.coefficients,min(length(f),length(g))
     if mn > 1
@@ -112,7 +112,7 @@ function linedotu{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
     end
 end
 
-function dotu{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
+function bilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
     @assert domain(f) == domain(g)
     u,v,mn = f.coefficients,g.coefficients,min(length(f),length(g))
     if mn > 2

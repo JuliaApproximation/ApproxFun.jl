@@ -1,4 +1,4 @@
-
+export dotu
 import Base.chop
 
 # Used for spaces not defined yet

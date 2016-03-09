@@ -254,30 +254,32 @@ Base.inv{S,T}(f::Fun{S,T})=1./f
 
 # Integrals over two Funs, which are fast with the orthogonal weight.
 
-export dotu, linedotu, linedot
-
-dotu(f::Fun,g::Fun)=defaultdotu(f,g)
-dotu(c::Number,g::Fun)=sum(c*g)
-dotu(g::Fun,c::Number)=sum(g*c)
-
-linedotu(f::Fun,g::Fun)=defaultlinedotu(f,g)
-linedotu(c::Number,g::Fun)=linesum(c*g)
-linedotu(g::Fun,c::Number)=linesum(g*c)
+export bilinearform,linebilinearform,innerproduct,lineinnerproduct
 
 # Having fallbacks allow for the fast implementations.
 
-defaultdotu(f::Fun,g::Fun)=sum(f.*g)
-defaultlinedotu(f::Fun,g::Fun)=linesum(f.*g)
+defaultbilinearform(f::Fun,g::Fun)=sum(f.*g)
+defaultlinebilinearform(f::Fun,g::Fun)=linesum(f.*g)
+
+bilinearform(f::Fun,g::Fun)=defaultbilinearform(f,g)
+bilinearform(c::Number,g::Fun)=sum(c*g)
+bilinearform(g::Fun,c::Number)=sum(g*c)
+
+linebilinearform(f::Fun,g::Fun)=defaultbilinearform(f,g)
+linebilinearform(c::Number,g::Fun)=linesum(c*g)
+linebilinearform(g::Fun,c::Number)=linesum(g*c)
+
+
 
 # Conjuations
 
-Base.dot(f::Fun,g::Fun)=dotu(conj(f),g)
-Base.dot(c::Number,g::Fun)=dotu(conj(c),g)
-Base.dot(g::Fun,c::Number)=dotu(conj(g),c)
+innerproduct(f::Fun,g::Fun)=dotu(conj(f),g)
+innerproduct(c::Number,g::Fun)=dotu(conj(c),g)
+innerproduct(g::Fun,c::Number)=dotu(conj(g),c)
 
-linedot(f::Fun,g::Fun)=linedotu(conj(f),g)
-linedot(c::Number,g::Fun)=linedotu(conj(c),g)
-linedot(g::Fun,c::Number)=linedotu(conj(g),c)
+lineinnerproduct(f::Fun,g::Fun)=linebilinearform(conj(f),g)
+lineinnerproduct(c::Number,g::Fun)=linebilinearform(conj(c),g)
+lineinnerproduct(g::Fun,c::Number)=linebilinearform(conj(g),c)
 
 ## Norm
 

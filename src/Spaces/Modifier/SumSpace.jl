@@ -232,8 +232,8 @@ Base.cumsum{V<:PiecewiseSpace}(f::Fun{V},d::Domain)=mapreduce(g->cumsum(g,d),+,p
 
 
 
-dotu{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(dotu,pieces(f),pieces(g)))
-linedotu{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(linedotu,pieces(f),pieces(g)))
+bilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(bilinearform,pieces(f),pieces(g)))
+linebilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(linebilinearform,pieces(f),pieces(g)))
 
 # assume first domain has 1 as a basis element
 

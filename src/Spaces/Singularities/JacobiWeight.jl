@@ -192,56 +192,56 @@ function conjugatedinnerproduct{D}(::Type{Ultraspherical{1,D}},u::Vector,v::Vect
     end
 end
 
-function dotu{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
+function bilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
     @assert domain(f) == domain(g)
     if f.space.α == f.space.β == λ-0.5
         return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function dotu{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
+function bilinearform{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if g.space.α == g.space.β == λ-0.5
         return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function dotu{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
+function bilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
         return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function linedotu{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
+function linebilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
     @assert domain(f) == domain(g)
     if f.space.α == f.space.β == λ-0.5
         return length(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end
 
-function linedotu{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
+function linebilinearform{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if g.space.α == g.space.β == λ-0.5
         return length(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end
 
-function linedotu{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
+function linebilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
         return length(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end
