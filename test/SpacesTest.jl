@@ -148,3 +148,9 @@ f=Fun(exp,S)
 x=Fun([0.,1.])
 f=exp(x)-1
 Fun(f,JacobiWeight(1.,0.,[0.,1.]))
+
+
+## Hermite
+f=Fun(x->x+x^2,Hermite())
+@test_approx_eq f(1.) 2.
+

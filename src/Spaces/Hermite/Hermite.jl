@@ -9,7 +9,8 @@ Hermite()=Hermite(1.0)
 domain(::Hermite)=Line()
 canonicalspace(H::Hermite)=Hermite()
 spacescompatible(::Hermite,::Hermite)=true #TODO:L
-
+canonicaldomain(H::Hermite)=Line()
+tocanonical(H::Hermite,x)=x
 
 
 #####
