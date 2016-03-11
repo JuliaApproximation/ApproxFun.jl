@@ -70,7 +70,7 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(eltype(T)),n))  # eltype to handle point
+points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
 
 points(d::AbstractVector,n::Integer)=points(convert(Domain,d),n)
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
@@ -80,11 +80,12 @@ Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
 Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 
 Base.in(x,::AnyDomain)=true
-function Base.in{T}(x,d::IntervalDomain{T})
+function Base.in(x,d::IntervalDomain)
+    T=real(eltype(eltype(eltype(d))))
     y=tocanonical(d,x)
     ry=real(y)
-    sc=abs(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
-    abs(imag(y))≤100eps(T)/sc && -one(real(T))-100eps(T)/sc≤ry≤one(real(T))+100eps(T)/sc
+    sc=norm(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
+    abs(imag(y))≤100eps(T)/sc && -one(T)-100eps(T)/sc≤ry≤one(T)+100eps(T)/sc
 end
 
 pieces(d::Domain)=[d]
@@ -163,8 +164,8 @@ domain(::Number)=AnyDomain()
 Base.rand(d::IntervalDomain,k...)=fromcanonical(d,2rand(k...)-1)
 Base.rand(d::PeriodicDomain,k...)=fromcanonical(d,2π*rand(k...)-π)
 
-checkpoints(d::IntervalDomain)=fromcanonical(d,eltype(d)[-0.823972,0.3273484])
-checkpoints(d::PeriodicDomain)=fromcanonical(d,eltype(d)[1.223972,-2.83273484])
+checkpoints(d::IntervalDomain)=fromcanonical(d,[-0.823972,0.3273484])
+checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 
 ## boundary
 
@@ -176,7 +177,8 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,eltype(d)[1.223972,-2.83273484])
 
 
 ## map domains
-
+# we auto vectorize arguments
+tocanonical(d::Domain,x...)=tocanonical(d,[x...])
 fromcanonical(d::Domain,v::Vector)=[fromcanonical(d,vk) for vk in v]
 
 mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))

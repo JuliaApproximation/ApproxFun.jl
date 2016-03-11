@@ -29,7 +29,7 @@ Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
 
 AnyInterval{T}(::Type{T})=Interval{T}(NaN,NaN)
 AnyInterval()=AnyInterval(Float64)
-isambiguous(d::Interval)=isnan(d.a) && isnan(d.b)
+isambiguous(d::Interval)=all(isnan(d.a)) && all(isnan(d.b))
 Base.convert{T<:Number}(::Type{Interval{T}},::AnyDomain)=AnyInterval(T)
 Base.convert{IT<:Interval}(::Type{IT},::AnyDomain)=AnyInterval()
 
@@ -47,13 +47,16 @@ Base.issubset(a::Interval,b::Interval)=first(a)∈b && last(a)∈b
 ## Map interval
 
 
-tocanonical(d::Interval,x)=(d.a + d.b - 2x)/(d.a - d.b)
-tocanonicalD(d::Interval,x)=2/( d.b- d.a)
+tocanonical(d::Interval,x)=2norm(x-d.a)/length(d)-1
+
+
+tocanonical(d::Interval,x::Number)=(d.a + d.b - 2x)/(d.a - d.b)
+tocanonicalD(d::Interval,x::Number)=2/( d.b- d.a)
 fromcanonical(d::Interval,x)=(d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonicalD(d::Interval,x)=( d.b- d.a) / 2
 
 
-Base.length(d::Interval) = abs(d.b - d.a)
+Base.length(d::Interval) = norm(d.b - d.a)
 Base.angle(d::Interval)=angle(d.b-d.a)
 complexlength(d::Interval)=d.b-d.a
 
@@ -61,7 +64,7 @@ complexlength(d::Interval)=d.b-d.a
 ==(d::Interval,m::Interval) = d.a == m.a && d.b == m.b
 function Base.isapprox(d::Interval,m::Interval)
     tol=10E-12
-    abs(d.a-m.a)<tol&&abs(d.b-m.b)<tol
+    norm(d.a-m.a)<tol&&norm(d.b-m.b)<tol
 end
 
 

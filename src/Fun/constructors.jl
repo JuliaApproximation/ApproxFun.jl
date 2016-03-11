@@ -45,7 +45,9 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
         return Fun(f,ArraySpace(d,size(f1)...),n)
     end
 
-    Tprom=choosefuneltype(typeof(f1),eltype(domain(d)))
+
+    # we need 3 eltype calls for the case Interval(Point([1.,1.]))
+    Tprom=choosefuneltype(typeof(f1),eltype(eltype(eltype(domain(d)))))
 
 
     vals=Tprom[f(x) for x in pts]
