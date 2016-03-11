@@ -159,7 +159,7 @@ function Plots.plot!{S<:PiecewiseSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};labe
     plt
 end
 
-
+# For dirac space, we draw a dotted line extending to infinity
 function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
     pts=space(f).points
     n=length(pts)
@@ -168,6 +168,16 @@ function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
     c=plt.plotargs[:color_palette][plt.n]
     plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
     plot!(plt,ones(2)*pts',[1,2]*ws';color=c,linestyle=:dot,kwds...)
+end
+
+# for PointSpace, we draw just a line
+function Plots.plot!{S<:PointSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
+    pts=space(f).points
+    n=length(pts)
+    ws=pad(f.coefficients,length(pts))
+    plt=plot!(plt,ones(2)*pts[1],[0,1]*ws[1];kwds...)
+    c=plt.plotargs[:color_palette][plt.n]
+    plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
 end
 
 function Plots.plot!{S<:HeavisideSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)

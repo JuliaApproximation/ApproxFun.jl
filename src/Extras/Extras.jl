@@ -58,3 +58,4 @@ include("fractional.jl")
 
 
 include("dualnumbers.jl")
+include("lanczos.jl")

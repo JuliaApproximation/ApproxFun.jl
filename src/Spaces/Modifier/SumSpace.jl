@@ -208,7 +208,7 @@ end
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval function Base.cumsum{D<:$TYP,T}(f::Fun{D,T})
-        fs=map(Base.cumsum,vec(f))
+        fs=map(cumsum,vec(f))
         Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
     end
 end
@@ -253,6 +253,8 @@ Base.ones(S::SumSpace)=ones(Float64,S)
 Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V})=depiece(map(ones,S.spaces))
 Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 
+
+identity_fun(S::PiecewiseSpace)=depiece(map(identity_fun,S.spaces))
 
 # vec
 
@@ -299,9 +301,16 @@ Base.vec(S::DirectSumSpace)=S.spaces
 Base.vec{S<:DirectSumSpace}(f::Fun{S})=Fun[f[j] for j=1:length(space(f).spaces)]
 
 pieces{S<:PiecewiseSpace}(f::Fun{S})=vec(f)
-depiece{F<:Fun}(v::Vector{F})=Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
+function depiece{F<:Fun}(v::Vector{F})
+    spaces=map(space,v)
+    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),PiecewiseSpace(spaces))
+end
+function depiece(v::Tuple)
+    spaces=map(space,v)
+    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),PiecewiseSpace(spaces))
+end
+
 depiece(v::Vector{Any})=depiece([v...])
-depiece(v::Tuple)=Fun(interlace(map(coefficients,v)),PiecewiseSpace(map(space,v)))
 
 
 
