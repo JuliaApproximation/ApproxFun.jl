@@ -99,7 +99,7 @@ if OS_NAME==:Darwin
     dx=dy=Interval()
     d=dx*dy
     Dx=Derivative(dx);Dy=Derivative(dy)
-    L=Dx^4⊗I+Dx^2⊗Dy^2+I⊗Dy^4
+    L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
     K=kronfact([dirichlet(d);
          neumann(d);
@@ -108,11 +108,17 @@ if OS_NAME==:Darwin
     x=Fun(identity,dx);y=Fun(identity,dy)
 
     G=[real(exp(-1+1.im*y));
-                            real(exp(1+1im*y));
-                            real(exp(x-1im));
-                            real(exp(x+1im))]
+                    real(exp(1+1im*y));
+                    real(exp(x-1im));
+                    real(exp(x+1im));
+                    real(exp(-1+1.im*y));
+                    real(exp(1+1im*y));
+                    -imag(exp(x-1im));
+                    -imag(exp(x+1im))
+       ]
     u=K\G
-    @test_approx_eq u(.1,.2) 1.662356283953618
+    @test_approx_eq u(.1,.2) real(exp(.1+.2im))
+
 
     # mixed
 
@@ -125,10 +131,18 @@ if OS_NAME==:Darwin
             I⊗(ldirichlet(dy)-lneumann(dy));
             I⊗(rdirichlet(dy)-rneumann(dy));
              L],100,100)
-
+    G=[2real(exp(-1+1.im*y));
+                    2real(exp(1+1im*y));
+                    real(exp(x-1im))-imag(exp(x-1im));
+                    real(exp(x+1im))-imag(exp(x+1im));
+                    0;
+                    0;
+                    real(exp(x-1im))+imag(exp(x-1im));
+                    real(exp(x+1im))+imag(exp(x+1im))
+       ]
     u=K\G
 
-    @test_approx_eq u(.1,.2) 0.5261033615359566
+    @test_approx_eq u(.1,.2) real(exp(.1+.2im))
 end
 
 
