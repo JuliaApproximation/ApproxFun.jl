@@ -24,6 +24,7 @@ include("Chebyshev.jl")
 
 
 order{o}(::Ultraspherical{o})=o
+order{o,D}(::Type{Ultraspherical{o,D}})=o
 
 
 
