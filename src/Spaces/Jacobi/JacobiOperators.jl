@@ -241,7 +241,7 @@ function addentries!{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{US,J},A
     m=order(US)
     @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
     jp=jacobip(0:kr[end],S.a,S.b,1.0)
-    um=Evaluation(US(),1.)[1:kr[end]]
+    um=Evaluation(setcanonicaldomain(domainspace(C)),1.)[1:kr[end]]
     for k=kr
         A[k,k]+=um[k]./jp[k]
     end
