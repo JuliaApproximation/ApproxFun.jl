@@ -300,3 +300,33 @@ function isvfft(sv::Vector,plan)
 end
 
 
+
+
+## slnorm gives the norm of a slice of a matrix
+
+function slnorm{T}(u::Array{T},r::Range)
+    ret = zero(real(T))
+    for k=r
+        @simd for j=1:size(u,2)
+            #@inbounds
+            ret=max(norm(u[k,j]),ret)
+        end
+    end
+    ret
+end
+
+
+function slnorm(m::Matrix,kr::Range,jr::Range)
+    ret=0.0
+    for j=jr
+        for k=kr
+            @inbounds ret=ret+abs2(m[k,j])
+        end
+    end
+    ret
+end
+
+slnorm(m::Matrix,kr::Range,jr::Integer)=slnorm(m,kr,jr:jr)
+slnorm(m::Matrix,kr::Integer,jr::Range)=slnorm(m,kr:kr,jr)
+
+
