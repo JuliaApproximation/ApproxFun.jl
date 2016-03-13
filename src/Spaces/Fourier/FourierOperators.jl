@@ -9,6 +9,9 @@ coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD})=Conversion(A,B)*cfs
 hasconversion{DD}(::Fourier{DD},::Laurent{DD})=true
 hasconversion{DD}(::Laurent{DD},::Fourier{DD})=true
 
+Conversion{DD}(a::Laurent{DD},b::Fourier{DD})=ConcreteConversion(a,b)
+Conversion{DD}(a::Fourier{DD},b::Laurent{DD})=ConcreteConversion(a,b)
+
 function addentries!{DD}(C::ConcreteConversion{Laurent{DD},Fourier{DD}},A,kr::Range,::Colon)
     for k=kr
         if k==1
