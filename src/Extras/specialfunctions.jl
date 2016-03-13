@@ -146,7 +146,7 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
-    tol = 50eps()/length(d)
+    tol = 100eps()*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
     if length(f)==1
