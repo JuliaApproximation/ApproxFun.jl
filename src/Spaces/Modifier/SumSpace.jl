@@ -179,7 +179,8 @@ function evaluate(f::AbstractVector,S::PiecewiseSpace,x::Number)
     end
     return 0*first(g)
 end
-function evaluate(v::AbstractVector,S::PiecewiseSpace,x::Vector)
+
+function evaluate(v::AbstractVector,S::PiecewiseSpace,x::AbstractVector)
     f=Fun(v,S)
     [f(xk) for xk in x]
 end
