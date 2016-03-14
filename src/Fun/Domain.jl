@@ -177,7 +177,7 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,eltype(d)[1.223972,-2.83273484])
 
 ## map domains
 
-fromcanonical(d::Domain,v::Vector)=[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Domain,v::AbstractMatrix)=[fromcanonical(d,vk) for vk in v]
 
 mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
 invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
