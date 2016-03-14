@@ -35,11 +35,7 @@ function plotptsvals(f::Fun)
     else
         f=pad(f,dimension(space(f)))
     end
-    if length(domain(f)) < Inf
-        return points(f),values(f)
-    else
-        return points(f)[2:end],values(f)[2:end]
-    end
+    return points(f),values(f)
 end
 Plots.plot!{S,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)=
                 plot!(plt,plotptsvals(f)...;kwds...)
@@ -129,7 +125,19 @@ function plotptsvals{S<:JacobiWeight}(f::Fun{S})
     pts,vals
 end
 
-
+# TODO Fourier and Laurent spaces
+# function plotptsvals{S<:Per}(f::Fun)
+#     if dimension(space(f)) == Inf
+#         f=pad(f,3length(f)+50)
+#     else
+#         f=pad(f,dimension(space(f)))
+#     end
+#     if length(domain(f)) < Inf
+#         return points(f),values(f)
+#     else
+#         return points(f)[2:end],values(f)[2:end] # A hack for Fourier
+#     end
+# end
 
 for (plt,TYP) in ((:(Plots.plot),:Real),(:(Plots.plot!),:Real),(:complexplot,:Complex),(:complexplot!,:Complex))
     @eval $plt{S<:Union{ArraySpace,TupleSpace},T<:$TYP}(f::Fun{S,T};opts...)=$plt(vec(f);opts...)
