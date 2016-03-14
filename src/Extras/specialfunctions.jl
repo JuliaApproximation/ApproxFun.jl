@@ -135,43 +135,57 @@ function ./(c::Number,f::Fun)
     linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
 end
 
-function ./{C<:Chebyshev}(c::Number,f::Fun{C})
-    if !isa(domain(f),Interval)
-        # project first to get better derivative behaviour
-        return setdomain(c./setcanonicaldomain(f),domain(f))
-    end
+# project to interval if we are not on the interview
+# TODO: need to work out how to set piecewise domain
 
+
+scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
+
+./{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c./setcanonicaldomain(f),domain(f))
+function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
-    r = roots(fc)
-    x = Fun(identity)
-
+    d=domain(f)
     # if domain f is small then the pts get projected in
-    tol = 50eps()/length(domain(f))
+    tol = 100eps()*norm(f.coefficients,1)
 
-
-    if length(r) == 0
-        linsolve(Multiplication(f,space(f)),c;tolerance=tol)
-    elseif all(r->isapprox(abs(r),1.),r)  # all roots are on the boundary
-        # cound number of left and right roots
-        leftr=0
-        rightr=0
-        for rt in r
-            if isapprox(rt,-1.)
-                leftr+=1
-            else
-                rightr+=1
-            end
+    # we prune out roots at the boundary first
+    if length(f)==1
+        return Fun(c/f.coefficients[1],space(f))
+    elseif length(f)==2
+        if isempty(roots(f))
+            return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
+        elseif isapprox(fc.coefficients[1],fc.coefficients[2])
+            # we check directly for f*(1+x)
+            return Fun([c./fc.coefficients[1]],JacobiWeight(-1,0,space(f)))
+        elseif isapprox(fc.coefficients[1],-fc.coefficients[2])
+            # we check directly for f*(1-x)
+            return Fun([c./fc.coefficients[1]],JacobiWeight(0,-1,space(f)))
+        else
+            # we need to split at the only root
+            return c./splitatroots(f)
         end
-
-        g = divide_singularity((leftr,rightr),fc)  # divide by (1+x)^leftr(1-x)^rightr
-        p = c./g
-        Fun(p.coefficients,JacobiWeight(-leftr,-rightr,setdomain(space(p),domain(f))))
+    elseif abs(first(fc))<tol
+        g=divide_singularity((1,0),fc)
+        p=c./g
+        x=identity_fun(domain(p))
+        return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
+    elseif abs(last(fc))<tol
+        g=divide_singularity((0,1),fc)
+        p=c./g
+        x=identity_fun(domain(p))
+        return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
     else
-        #split at the roots
-        c./splitatroots(f)
+       # no roots on the boundary
+        r = roots(fc)
+        x = Fun(identity)
+
+        if length(r) == 0
+            return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
+        else
+            return c./splitatroots(f)
+        end
     end
 end
-
 
 
 
