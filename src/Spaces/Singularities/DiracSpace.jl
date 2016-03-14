@@ -71,12 +71,15 @@ transform(S::PointSpace,v::Vector,plan...)=v
 
 function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     p = findfirst(y->isapprox(x,y),PS.points)
-    if isempty(p)
+    if p==0
         zero(eltype(f))
     else
-        (f.coefficients)[p]
+        f[p]
     end
 end
+
+evaluate(f::AbstractVector,PS::PointSpace,x::Vector)=
+    map(y->evaluate(f,PS,y),x)
 
 Base.sum{DS<:DiracSpace}(f::Fun{DS})=sum(f.coefficients[1:dimension(space(f))])
 
