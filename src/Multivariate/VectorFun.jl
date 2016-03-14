@@ -70,43 +70,25 @@ end
 
 
 #TODO: fix for complex
-evaluate{T<:Fun}(A::Vector{T},x::Number)=typeof(first(A)(x))[A[k](x) for k=1:length(A)]
-evaluate{T<:Fun}(A::Array{T},x::Number)=typeof(first(A)(x))[A[k,j](x) for k=1:size(A,1),j=1:size(A,2)]
+evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for Akj in A]
 
 
-function evaluate{T<:Fun}(A::Vector{T},x::Vector{Float64})
-    x = tocanonical(first(A),x)
-
-    n=length(x)
-    ret=Array(Float64,length(A),n)
-
-    cplan=ClenshawPlan(Float64,Chebyshev(),mapreduce(length,max,A),n)
-
-    for k=1:length(A)
-        bkr=clenshaw(A[k].coefficients,x,cplan)
-
-        for j=1:n
-            ret[k,j]=bkr[j]
-        end
-    end
-
-    ret
-end
-
-# function evaluate{T<:FFun}(A::Vector{T},x::Vector{Float64})
+# function evaluate{T<:Fun}(A::AbstractVector{T},x::AbstractVector{Float64})
 #     x = tocanonical(first(A),x)
-#
+
 #     n=length(x)
 #     ret=Array(Float64,length(A),n)
-#
+
+#     cplan=ClenshawPlan(Float64,Chebyshev(),mapreduce(length,max,A),n)
+
 #     for k=1:length(A)
-#         bk=horner(A[k].coefficients,x)
-#
+#         bkr=clenshaw(A[k].coefficients,x,cplan)
+
 #         for j=1:n
-#             ret[k,j]=bk[j]
+#             ret[k,j]=bkr[j]
 #         end
 #     end
-#
+
 #     ret
 # end
 
@@ -144,7 +126,7 @@ end
 #can't just promote constant vector to a vector-valued fun because don't know the domain.
 for op = (:+,:-,:.*,:./)
     @eval begin
-        ($op){T<:Number,S,V}(f::Fun{S,V},c::Array{T})=devec($op(vec(f),c))
-        ($op){T<:Number,S,V}(c::Array{T},f::Fun{S,V})=devec($op(c,vec(f)))
+        ($op){T<:Number,S,V}(f::Fun{S,V},c::AbstractArray{T})=devec($op(vec(f),c))
+        ($op){T<:Number,S,V}(c::AbstractArray{T},f::Fun{S,V})=devec($op(c,vec(f)))
     end
 end

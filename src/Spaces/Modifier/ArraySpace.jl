@@ -150,7 +150,7 @@ end
 
 spacescompatible(AS::ArraySpace,BS::ArraySpace)=size(AS)==size(BS) && spacescompatible(AS.space,BS.space)
 canonicalspace(AS::ArraySpace)=ArraySpace(canonicalspace(AS.space),size(AS))
-evaluate(f::AbstractVector,S::ArraySpace,x)=evaluate(mat(Fun(f,S)),x)
+evaluate(f::AbstractVector,S::ArraySpace,x)=map(g->evaluate(g,x),mat(Fun(f,S)))
 
 for OP in (:(Base.transpose),)
     @eval $OP{AS<:ArraySpace,T}(f::Fun{AS,T})=demat($OP(mat(f)))
