@@ -28,20 +28,6 @@ scalarorfuntype{F<:Fun}(b::Vector{F})=promote_type(map(scalarorfuntype,b)...)
 coefficients{F<:Fun}(Q::Vector{F},o...)=coefficients(scalarorfuntype(Q),Q,o...)
 coefficients(Q::Vector{Any})=(@assert isempty(Q); zeros(0,0))
 
-# function coefficients{T<:FFun}(B::Vector{T})
-#     m=mapreduce(length,max,B)
-#     fi=mapreduce(f->firstindex(f.coefficients),min,B)
-#
-#     n=length(B)
-#     ret = zeros(Complex{Float64},m,length(B))
-#     for j=1:n
-#         for k=firstindex(B[j].coefficients):lastindex(B[j].coefficients)
-#             ret[k - fi + 1,j] = B[j].coefficients[k]
-#         end
-#     end
-#
-#     ret
-# end
 
 
 function values{D,N}(f::Vector{Fun{D,N}})
@@ -73,24 +59,22 @@ end
 evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for Akj in A]
 
 
-# function evaluate{T<:Fun}(A::AbstractVector{T},x::AbstractVector{Float64})
-#     x = tocanonical(first(A),x)
+function evaluate{T<:Fun}(A::AbstractVector{T},x::AbstractVector)
+    x = tocanonical(first(A),x)
 
-#     n=length(x)
-#     ret=Array(Float64,length(A),n)
+    n=length(x)
+    ret=Array(promote_type(eltype(x),mapreduce(eltype,promote_type,A)),length(A),n)
 
-#     cplan=ClenshawPlan(Float64,Chebyshev(),mapreduce(length,max,A),n)
+    for k=1:length(A)
+        bkr=evaluate(A[k],x)
 
-#     for k=1:length(A)
-#         bkr=clenshaw(A[k].coefficients,x,cplan)
+        for j=1:n
+            ret[k,j]=bkr[j]
+        end
+    end
 
-#         for j=1:n
-#             ret[k,j]=bkr[j]
-#         end
-#     end
-
-#     ret
-# end
+    ret
+end
 
 
 
