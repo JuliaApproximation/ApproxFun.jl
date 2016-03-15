@@ -2,8 +2,8 @@
 *(A::Functional,b::Vector)=dotu(A[1:length(b)],b)
 *(A::Functional,b::Fun)=promotedomainspace(A,space(b))*b.coefficients
 
-*{T,D<:DefiniteIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = dotu(A.op.f,b)
-*{T,D<:DefiniteLineIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = linedotu(A.op.f,b)
+*{T,D<:DefiniteIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = bilinearform(A.op.f,b)
+*{T,D<:DefiniteLineIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = linebilinearform(A.op.f,b)
 
 
 *(c::Number,B::Functional)=c==1?B:ConstantTimesFunctional(c,B)
