@@ -82,7 +82,7 @@ toeplitz_addentries!(neg::Vector,pos::Vector,A,kr::Range)=toeplitz_addentries!(1
 
 
 function Base.getindex(T::ToeplitzOperator,k::Integer,j::Integer)
-    if length(T.negative)≤j-k<0
+    if 0<k-j≤length(T.negative)
         T.negative[k-j]
     elseif 0≤j-k≤length(T.nonnegative)-1
         T.nonnegative[j-k+1]
