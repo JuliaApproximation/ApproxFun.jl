@@ -42,6 +42,8 @@ end
 
 ## Spaces
 
+Base.show(io::IO,::AnySpace)=print(io,"AnySpace")
+
 Base.show(io::IO,::ConstantSpace{AnyDomain})=print(io,"ConstantSpace")
 Base.show(io::IO,S::ConstantSpace)=print(io,"ConstantSpace($(domain(S)))")
 
@@ -169,4 +171,31 @@ end
 
 function Base.show(io::IO,P::ProductFun)
     print(io,"ProductFun on ",space(P))
+end
+
+
+
+## Operator
+
+Base.summary(B::Operator)=string(typeof(B).name.name)*":"*string(domainspace(B))*"↦"*string(rangespace(B))
+
+function Base.show(io::IO,B::BandedOperator)
+    println(io,summary(B))
+
+    BM=B[1:10,1:10]
+
+    M=Array(Any,11,11)
+    fill!(M,PrintShow(""))
+    for kj=eachbandedindex(BM)
+        M[kj]=BM[kj]
+    end
+
+    for k=max(1,11-bandinds(B,2)):11
+        M[k,end]=PrintShow("⋱")
+    end
+    for j=max(1,11+bandinds(B,1)):10
+        M[end,j]=PrintShow("⋱")
+    end
+
+    Base.showarray(io,M;header=false)
 end

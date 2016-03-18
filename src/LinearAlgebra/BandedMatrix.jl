@@ -279,8 +279,10 @@ end
 
 
 
-type NoShow end
-function Base.show(io::IO,::NoShow) end
+type PrintShow
+    str
+end
+Base.show(io::IO,N::PrintShow)=print(io,N.str)
 
 function Base.showarray(io::IO,B::BandedMatrix;
                    header::Bool=true, limit::Bool=Base._limit_output,
@@ -290,7 +292,7 @@ function Base.showarray(io::IO,B::BandedMatrix;
     if !isempty(B)
         header && println(io,":")
         M=Array(Any,size(B)...)
-        fill!(M,NoShow())
+        fill!(M,PrintShow(""))
         for kj=eachbandedindex(B)
             M[kj]=B[kj]
         end
