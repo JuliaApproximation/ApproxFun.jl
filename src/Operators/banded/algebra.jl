@@ -435,6 +435,10 @@ end
 ## Algebra: assume we promote
 
 
+for OP in (:(Base.ctranspose),:(Base.transpose))
+    @eval $OP(A::TimesOperator)=TimesOperator(reverse!(map($OP,A.ops)))
+end
+
 *(A::TimesOperator,B::TimesOperator)=promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
 function *(A::TimesOperator,B::BandedOperator)
     if isconstop(B)

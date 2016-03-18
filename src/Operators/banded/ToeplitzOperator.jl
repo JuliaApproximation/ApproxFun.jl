@@ -271,6 +271,17 @@ end
 
 ## algebra
 
+
+function Base.maximum(T::ToeplitzOperator)
+    if isempty(T.negative)
+        maximum(T.nonnegative)
+    elseif isempty(T.nonnegative)
+        maximum(T.negative)
+    else
+        max(maximum(T.negative),maximum(T.nonnegative))
+    end
+end
+
 for TYP in (:ToeplitzOperator,:LaurentOperator)
     @eval begin
         -(T::$TYP)=$TYP(-T.negative,-T.nonnegative)

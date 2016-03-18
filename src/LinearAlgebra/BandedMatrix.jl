@@ -146,6 +146,18 @@ function setindex!(A::BandedMatrix,v,k::Integer,jr::Range)
 end
 
 
+
+## ALgebra and other funcrtions
+
+function Base.maximum(B::BandedMatrix)
+    m=zero(eltype(B))
+    for k=1:size(B,1), j=max(1,k-B.l):min(B.m,k+B.u)
+        m=max(B[k,j],m)
+    end
+    m
+end
+
+
 for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
         $OP(B::BandedMatrix{Bool},x::Bool)=BandedMatrix($OP(B.data,x),B.m,B.l,B.u)

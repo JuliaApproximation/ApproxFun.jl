@@ -36,6 +36,8 @@ function Base.slice(K::FiniteOperator,kr::FloatRange,jr::FloatRange)
     FiniteOperator(K.matrix[first(kr):st:end,first(jr):st:end])
 end
 
+Base.maximum(K::FiniteOperator)=maximum(K.matrix)
+
 
 immutable FiniteFunctional{S,T} <: Functional{T}
     data::Vector{T}
