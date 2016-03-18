@@ -690,6 +690,17 @@ for OP in (:(Base.abs),:(Base.sign))
     end
 end
 
+## PointSpace
+
+for OP in (:(Base.abs),:(Base.sign))
+    # ambiguity warnings
+    @eval $OP{S<:PointSpace,T<:Real}(f::Fun{S,T})=Fun(map($OP,f.coefficients),space(f))
+end
+for OP in (:(Base.exp),:(Base.abs),:(Base.sign))
+    @eval $OP{S<:PointSpace}(f::Fun{S})=Fun(map($OP,f.coefficients),space(f))
+end
+
+
 #
 # These formulæ, appearing in Eq. (2.5) of:
 #

@@ -81,6 +81,16 @@ end
 toeplitz_addentries!(neg::Vector,pos::Vector,A,kr::Range)=toeplitz_addentries!(1,neg,pos,A,kr)
 
 
+function Base.getindex(T::ToeplitzOperator,k::Integer,j::Integer)
+    if length(T.negative)≤j-k<0
+        T.negative[k-j]
+    elseif 0≤j-k≤length(T.nonnegative)-1
+        T.nonnegative[j-k+1]
+    else
+        zero(eltype(T))
+    end
+end
+
 
 addentries!(T::ToeplitzOperator,A,kr::Range,::Colon)=toeplitz_addentries!(1,T.negative,T.nonnegative,A,kr)
 bandinds(T::ToeplitzOperator)=(-length(T.negative),length(T.nonnegative)-1)
@@ -259,6 +269,17 @@ function bandinds(T::LaurentOperator)
 end
 
 
+## algebra
+
+for TYP in (:ToeplitzOperator,:LaurentOperator)
+    @eval begin
+        -(T::$TYP)=$TYP(-T.negative,-T.nonnegative)
+        *(c::Number,T::$TYP)=$TYP(c*T.negative,c*T.nonnegative)
+    end
+end
+
+-(H::HankelOperator)=HankelOperator(-H.coefficients)
+*(c::Number,H::HankelOperator)=HankelOperator(c*H.coefficients)
 
 
 ## inv
@@ -278,3 +299,5 @@ function Fun(T::ToeplitzOperator)
         Fun(interlace(T.nonnegative,T.negative),Laurent(Circle()))
     end
 end
+
+
