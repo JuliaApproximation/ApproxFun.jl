@@ -348,7 +348,7 @@ function defaultcoefficients(f,a,b)
     if spacescompatible(a,b)
         f
     elseif spacescompatible(ct,a)
-        Conversion(a,b)*f  #TODO: Make * and \ consistent in return type
+        (Conversion(a,b)*f).coefficients
     elseif spacescompatible(ct,b)
         (Conversion(b,a)\f).coefficients
     else

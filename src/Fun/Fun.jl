@@ -83,7 +83,7 @@ Base.eltype{S,T}(::Fun{S,T})=T
 
 
 domain(f::Fun)=domain(f.space)
-domain{T<:Fun}(v::Vector{T})=map(domain,v)
+domain{T<:Fun}(v::AbstractMatrix{T})=map(domain,v)
 
 
 setdomain(f::Fun,d::Domain)=Fun(f.coefficients,setdomain(space(f),d))

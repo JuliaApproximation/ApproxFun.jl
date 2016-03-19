@@ -145,7 +145,7 @@ function promotedomainspace(P::BlockOperator,S::TupleSpace)
         # we don't know how to change the rangespace
         # TODO: convert coefficients from old rangespace to
         # new rangespace
-        @assert rangespace(op)==rangespace(P)
+        @assert rangespace(op)==rangespace(P.op)
         BlockOperator(P.mat11,P.mat12,P.mat21,op)
     end
 end

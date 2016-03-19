@@ -217,7 +217,11 @@ x=Fun(identity,[-1,1.])
 @test_approx_eq (1/x^2)(0.1) 100.
 @test_approx_eq (1/x^2)(-0.1) 100.
 
+fc=x*(1+x)^2
+@test_approx_eq (1/fc)(0.1) 1/fc(0.1)
 
+fc=x*(1-x)^2
+@test_approx_eq (1/fc)(0.1) 1/fc(0.1)
 
 ## erf(sqrt(x))
 

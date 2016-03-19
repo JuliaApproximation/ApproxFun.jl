@@ -25,6 +25,10 @@ Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
 Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
 Base.size(AS::ArraySpace)=AS.dimensions
 Base.size(AS::ArraySpace,k)=AS.dimensions[k]
+function Base.reshape(AS::VectorSpace,k,j)
+    @assert length(AS)==k*j
+    ArraySpace(AS.space,(k,j))
+end
 
 domain(AS::ArraySpace)=domain(AS.space)
 
@@ -150,11 +154,14 @@ end
 
 spacescompatible(AS::ArraySpace,BS::ArraySpace)=size(AS)==size(BS) && spacescompatible(AS.space,BS.space)
 canonicalspace(AS::ArraySpace)=ArraySpace(canonicalspace(AS.space),size(AS))
-evaluate(f::AbstractVector,S::ArraySpace,x)=evaluate(mat(Fun(f,S)),x)
+evaluate(f::AbstractVector,S::ArraySpace,x)=map(g->evaluate(g,x),mat(Fun(f,S)))
 
 for OP in (:(Base.transpose),)
     @eval $OP{AS<:ArraySpace,T}(f::Fun{AS,T})=demat($OP(mat(f)))
 end
+
+
+Base.reshape{AS<:ArraySpace}(f::Fun{AS},k...)=Fun(f.coefficients,reshape(space(f),k...))
 
 Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...)=demat(diff(mat(f),n...))
 

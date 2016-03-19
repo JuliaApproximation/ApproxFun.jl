@@ -92,6 +92,17 @@ bandinds(A::BandedMatrix)=-A.l,A.u
 bandrange(A::BandedMatrix)=-A.l:A.u
 
 
+# returns a vector of each banded index
+# TODO: make a special iterator, to avoid allocating memory
+function eachbandedindex(B::BandedMatrix)
+    ret=Array(CartesianIndex{2},0)
+    for j=1:size(B,2),k=max(1,j-B.u):min(j+B.l,size(B,1))
+        push!(ret,CartesianIndex((k,j)))
+    end
+    ret
+end
+
+
 usgetindex(A::BandedMatrix,k::Integer,j::Integer)=A.data[j-k+A.l+1,k]
 usgetindex(A::BandedMatrix,k::Integer,jr::Range)=vec(A.data[jr-k+A.l+1,k])
 getindex(A::BandedMatrix,k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zero(eltype(A)):throw(BoundsError()))
@@ -143,6 +154,18 @@ function setindex!(A::BandedMatrix,v,k::Integer,jr::Range)
     for j in jr
         A[k,j]=v[j]
     end
+end
+
+
+
+## ALgebra and other funcrtions
+
+function Base.maximum(B::BandedMatrix)
+    m=zero(eltype(B))
+    for k=1:size(B,1), j=max(1,k-B.l):min(B.m,k+B.u)
+        m=max(B[k,j],m)
+    end
+    m
 end
 
 
@@ -253,6 +276,31 @@ function Base.diag{T}(A::BandedMatrix{T})
 
     vec(A.data[A.l+1,1:n])
 end
+
+
+
+type PrintShow
+    str
+end
+Base.show(io::IO,N::PrintShow)=print(io,N.str)
+
+function Base.showarray(io::IO,B::BandedMatrix;
+                   header::Bool=true, limit::Bool=Base._limit_output,
+                   sz = (s = Base.tty_size(); (s[1]-4, s[2])), repr=false)
+    header && print(io,summary(B))
+
+    if !isempty(B)
+        header && println(io,":")
+        M=Array(Any,size(B)...)
+        fill!(M,PrintShow(""))
+        for kj=eachbandedindex(B)
+            M[kj]=B[kj]
+        end
+
+        Base.showarray(io,M;header=false)
+    end
+end
+
 
 
 ## Used to scam addentries! into thinking we are somewhere else

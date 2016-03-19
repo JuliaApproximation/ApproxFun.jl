@@ -3,13 +3,12 @@ export FiniteOperator
 
 
 
-immutable FiniteOperator{T<:Number} <: BandedOperator{T}
-    matrix::Array{T,2}
+immutable FiniteOperator{AT<:AbstractMatrix,T<:Number} <: BandedOperator{T}
+    matrix::AT
 end
 
 
-#TODO: do special case
-FiniteOperator(M::BandedMatrix)=FiniteOperator(full(M))
+FiniteOperator(M::AbstractMatrix)=FiniteOperator{typeof(M),eltype(M)}(M)
 
 
 function matrix_addentries!(M::Array,A,kr::Range)
@@ -22,8 +21,10 @@ end
 
 
 addentries!(T::FiniteOperator,A,kr::Range,::Colon)=matrix_addentries!(T.matrix,A,kr)
+addentries!{AT<:BandedMatrix}(T::FiniteOperator{AT},A,kr::Range,::Colon)=addentries!(T.matrix,A,kr,:)
 
 bandinds(T::FiniteOperator)=(1-size(T.matrix,1),size(T.matrix,2)-1)
+bandinds{AT<:BandedMatrix}(T::FiniteOperator{AT})=bandinds(T.matrix)
 
 
 # An infinite slice of a FiniteOperator is also a FiniteOperator
@@ -34,6 +35,8 @@ function Base.slice(K::FiniteOperator,kr::FloatRange,jr::FloatRange)
     @assert last(kr)==last(jr)==Inf
     FiniteOperator(K.matrix[first(kr):st:end,first(jr):st:end])
 end
+
+Base.maximum(K::FiniteOperator)=maximum(K.matrix)
 
 
 immutable FiniteFunctional{S,T} <: Functional{T}

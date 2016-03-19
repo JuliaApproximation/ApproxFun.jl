@@ -435,6 +435,10 @@ end
 ## Algebra: assume we promote
 
 
+for OP in (:(Base.ctranspose),:(Base.transpose))
+    @eval $OP(A::TimesOperator)=TimesOperator(reverse!(map($OP,A.ops)))
+end
+
 *(A::TimesOperator,B::TimesOperator)=promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
 function *(A::TimesOperator,B::BandedOperator)
     if isconstop(B)
@@ -509,11 +513,14 @@ for TYP in (:Vector,:Matrix)
         function *(A::BandedOperator,b::$TYP)
             n=size(b,1)
 
-            if n>0
+            ret=if n>0
                 slice(A,:,1:n)*b
             else
                 b
             end
+
+            rs=rangespace(A)
+            isambiguous(rs)?ret:Fun(ret,rs)
         end
     end
 end
@@ -550,12 +557,7 @@ for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
         @assert size(b,1)==1
         C=A*coefficients(vec(b),domainspace(A))
-        rs=rangespace(A)
-        ret=Array(Fun{typeof(rs),eltype(C)},1,size(C,2))
-        for k=1:size(C,2)
-            ret[1,k]=Fun(C[:,k],rs)
-        end
-        ret
+        reshape(C,1,length(space(C)))
     end
 end
 

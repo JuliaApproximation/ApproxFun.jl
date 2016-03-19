@@ -272,11 +272,13 @@ end
 function *{BM<:BandedMatrix}(A::BandedOperator{BM},b::Vector)
     n=size(b,1)
 
-    if n>0
+    ret=if n>0
         slice(A,:,1:totensorblock(n))*pad(b,fromtensorblock(totensorblock(n))[end])
     else
         b
     end
+
+    Fun(ret,rangespace(A))
 end
 
 

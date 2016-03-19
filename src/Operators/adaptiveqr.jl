@@ -2,6 +2,16 @@
 
 export adaptiveqr!
 
+
+# ca gives conj(a), cb gives conj(b), mb gives -b
+# This is written to support matrix value and a and b
+
+# applygivens! considers three cases:
+#  The case where two entries in the banded part are manipulated
+#  The case where one enty in the band part and one in the filled in part are manipulated
+#  The case where the fill is manipulated
+#
+
 function applygivens!(ca,cb,mb,a,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
     @simd for j = jr
         @inbounds B1 = B.data[j-k1+B.l+1,k1]    #B[k1,j]
@@ -24,6 +34,8 @@ function applygivens!(ca,cb,mb,a,F::FillMatrix,B::BandedMatrix,k1::Integer,k2::I
     B
 end
 
+
+# this applygivens! is used to update fill.data
 function applygivens!(ca,cb,mb,a,B::Matrix,k1::Integer,k2::Integer)
     for j = 1:size(B,2)
         @inbounds B1 = B[k1,j]
