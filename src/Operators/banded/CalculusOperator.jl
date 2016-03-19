@@ -201,7 +201,7 @@ end
 
 
 ## Map to canonical
-function defaultderivative(sp::Space,order::Integer)
+function defaultDerivative(sp::Space,order::Integer)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         # this is the normal default constructor
         csp=canonicalspace(sp)
@@ -222,7 +222,7 @@ end
 
 
 
-Derivative(sp::Space,order)=defaultderivative(sp,order)
+Derivative(sp::Space,order)=defaultDerivative(sp,order)
 
 
 function Integral(sp::Space,k::Integer)

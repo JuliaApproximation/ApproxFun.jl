@@ -280,8 +280,8 @@ end
 conversion_rule{T,D<:IntervalDomain}(A::JacobiWeight,B::UnivariateSpace{T,D})=conversion_type(A,JacobiWeight(0,0,B))
 
 
-# override defaultconversion instead of Conversion to avoid ambiguity errors
-function defaultconversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B::JacobiWeight{JS2,DD})
+# override defaultConversion instead of Conversion to avoid ambiguity errors
+function defaultConversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B::JacobiWeight{JS2,DD})
     @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
 
     if isapprox(A.α,B.α) && isapprox(A.β,B.β)
@@ -310,11 +310,11 @@ function defaultconversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B
     end
 end
 
-defaultconversion{JS,D<:IntervalDomain}(A::RealUnivariateSpace{D},B::JacobiWeight{JS,D})=ConversionWrapper(
+defaultConversion{JS,D<:IntervalDomain}(A::RealUnivariateSpace{D},B::JacobiWeight{JS,D})=ConversionWrapper(
     SpaceOperator(
         Conversion(JacobiWeight(0,0,A),B),
         A,B))
-defaultconversion{JS,D<:IntervalDomain}(A::JacobiWeight{JS,D},B::RealUnivariateSpace{D})=ConversionWrapper(
+defaultConversion{JS,D<:IntervalDomain}(A::JacobiWeight{JS,D},B::RealUnivariateSpace{D})=ConversionWrapper(
     SpaceOperator(
         Conversion(A,JacobiWeight(0,0,B)),
         A,B))
