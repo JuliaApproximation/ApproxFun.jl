@@ -151,8 +151,8 @@ for TYP in (:Operator,:BandedOperator)
             if T==eltype(eltype(K))
                 K
             else
-                KroneckerOperator(convert(Operator{T},K.ops[1]),
-                        convert(Operator{T},K.ops[2]),
+                ops=convert(Operator{T},K.ops[1]),convert(Operator{T},K.ops[2])
+                KroneckerOperator{typeof(ops[1]),typeof(ops[2]),typeof(K.domainspace),typeof(K.rangespace),T}(ops,
                       K.domainspace,
                       K.rangespace)
             end
@@ -420,27 +420,35 @@ for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:Integr
     @eval Base.transpose(S::$TYP)=$TYP(transpose(S.op))
 end
 
-Base.transpose(S::TimesOperator)=TimesOperator(reverse!(map(transpose,S.ops)))
 
 Base.transpose(S::SpaceOperator)=SpaceOperator(transpose(S.op),domainspace(S).',rangespace(S).')
 Base.transpose(S::ConstantTimesOperator)=sp.c*S.op.'
 Base.transpose{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=C
- Base.transpose{V,T<:AbstractArray}(C::ZeroOperator{V,T},k)=C
+Base.transpose{V,T<:AbstractArray}(C::ZeroOperator{V,T},k)=C
 
 
 
 ### Calculus
 
 #TODO: general dimension
-function Derivative{SV,T}(S::TensorSpace{SV,T,2},order::Vector{Int})
+function Derivative{SV,TT}(S::TensorSpace{SV,TT,2},order::Vector{Int})
     @assert length(order)==2
     if order[1]==0
-        DerivativeWrapper(eye(S[1])⊗Derivative(S[2],order[2]),order)
+        Dy=Derivative(S[2],order[2])
+        K=eye(S[1])⊗Dy
+        T=eltype(Dy)
     elseif order[2]==0
-        DerivativeWrapper(Derivative(S[1],order[1])⊗eye(S[2]),order)
+        Dx=Derivative(S[1],order[1])
+        K=Dx⊗eye(S[2])
+        T=eltype(Dx)
     else
-        DerivativeWrapper(Derivative(S[1],order[1])⊗Derivative(S[2],order[2]),order)
+        Dx=Derivative(S[1],order[1])
+        Dy=Derivative(S[2],order[2])
+        K=Dx⊗Dy
+        T=promote_type(eltype(Dx),eltype(Dy))
     end
+    # try to work around type inference
+    DerivativeWrapper{typeof(K),typeof(domainspace(K)),Vector{Int},BandedMatrix{T}}(K,order)
 end
 
 

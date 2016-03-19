@@ -22,6 +22,10 @@ tocanonical(H::Hermite,x)=x
 recα(::Type,::Hermite,k)=0;recβ(::Type,::Hermite,k)=0.5;recγ(::Type,::Hermite,k)=k-1
 recA(::Type,::Hermite,k)=2;recB(::Type,::Hermite,k)=0;recC(::Type,::Hermite,k)=2k
 
+
+Derivative(H::Hermite,order)=ConcreteDerivative(H,order)
+
+
 bandinds{H<:Hermite}(D::ConcreteDerivative{H})=0,D.order
 rangespace{H<:Hermite}(D::ConcreteDerivative{H})=domainspace(D)
 function addentries!{H<:Hermite}(D::ConcreteDerivative{H},A,kr::Range,::Colon)

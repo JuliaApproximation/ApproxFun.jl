@@ -179,7 +179,7 @@ end
 
 Base.summary(B::Operator)=string(typeof(B).name.name)*":"*string(domainspace(B))*"↦"*string(rangespace(B))
 
-function Base.show(io::IO,B::BandedOperator)
+function Base.show{T<:Number}(io::IO,B::BandedOperator{T})
     println(io,summary(B))
 
     BM=B[1:10,1:10]

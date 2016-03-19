@@ -107,19 +107,16 @@ end
 ## Volterra Integral operator
 
 Volterra(d::Interval) = Volterra(Legendre(d))
+function Volterra(S::Jacobi,order::Integer)
+    @assert S.a == S.b == 0.0
+    @assert order==1
+    ConcreteVolterra(S,order)
+end
 
-function rangespace{J<:Jacobi}(V::ConcreteVolterra{J})
-    @assert V.space.a == V.space.b == 0.0
-    Jacobi(0.0,-1.0,domain(V))
-end
-function bandinds{J<:Jacobi}(V::ConcreteVolterra{J})
-    @assert V.space.a == V.space.b == 0.0
-    -1,0
-end
+rangespace{J<:Jacobi}(V::ConcreteVolterra{J})=Jacobi(0.0,-1.0,domain(V))
+bandinds{J<:Jacobi}(V::ConcreteVolterra{J})=-1,0
 
 function addentries!{J<:Jacobi}(V::ConcreteVolterra{J},A,kr::Range,::Colon)
-    @assert V.space.a == V.space.b == 0.0
-    @assert V.order==1
     d=domain(V)
     C = 0.5(d.b-d.a)
     for k=intersect(2:kr[end],kr)

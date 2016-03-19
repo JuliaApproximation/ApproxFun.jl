@@ -42,7 +42,7 @@ d=dx*dt
 
 V=Fun(x->x^2,dx)
 
-Dt=Derivative(d,2);Dx=Derivative(d,1)
+Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 
 ϵ=0.1
 

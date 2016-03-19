@@ -165,6 +165,9 @@ end
 #Derivative(k::Integer,d::IntervalDomain)=Derivative(k-1:k,d)
 #Derivative(d::IntervalDomain)=Derivative(1,d)
 
+Derivative{λ,DD<:Interval}(sp::Ultraspherical{λ,DD},order::Integer)=ConcreteDerivative(sp,order)
+Integral{λ,DD<:Interval}(sp::Ultraspherical{λ,DD},order::Integer)=ConcreteIntegral(sp,order)
+
 
 rangespace{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=Ultraspherical{λ+D.order}(domain(D))
 bandinds{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=0,D.order

@@ -159,7 +159,7 @@ u=[dirichlet(d);lap(d)]\g
 
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dθ*dt
-Dθ=Derivative(d,1);Dt=Derivative(d,2)
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
 
@@ -190,7 +190,7 @@ Fun(identity,∂(Γ))|>values
 
 dx=Interval();dt=Interval(0,1.)
 d=dx*dt
-Dx=Derivative(d,1);Dt=Derivative(d,2)
+Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x=Fun(identity,dx)
 B=0.0
 C=0.0
@@ -215,7 +215,7 @@ d=dx*dt
 
 V=Fun(x->x^2,dx)
 
-Dt=Derivative(d,2);Dx=Derivative(d,1)
+Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 
 ϵ=1.
 u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
@@ -243,10 +243,12 @@ u=[dirichlet(d);lap(d)]\g
 
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dθ*dt
-Dθ=Derivative(d,1);Dt=Derivative(d,2)
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
-A=[ldirichlet(dt)⊗I;(Dt+Dθ).']
+d=dt*dθ
+Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
+A=[ldirichlet(dt)⊗I;Dt+Dθ]
 f=Fun(θ->exp(-20θ^2),dθ)
 ut=A\f
 
@@ -259,7 +261,7 @@ ut=A\f
 
 dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.03)
 d=dθ*dt
-Dθ=Derivative(d,1);Dt=Derivative(d,2);
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
 
 B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
 u=pdesolve([B;Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)

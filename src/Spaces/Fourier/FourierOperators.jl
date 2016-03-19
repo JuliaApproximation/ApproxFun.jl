@@ -71,6 +71,8 @@ end
 ### Cos/Sine
 
 
+Derivative(S::Union{CosSpace,SinSpace},order)=ConcreteDerivative(S,order)
+
 bandinds{CS<:CosSpace}(D::ConcreteDerivative{CS})=iseven(D.order)?(0,0):(0,1)
 bandinds{S<:SinSpace}(D::ConcreteDerivative{S})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::ConcreteDerivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
