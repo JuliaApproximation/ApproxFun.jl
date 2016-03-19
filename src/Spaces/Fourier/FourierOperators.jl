@@ -3,8 +3,8 @@
 ## Converison
 
 #ensure that COnversion is called
-coefficients{DD}(cfs::Vector,A::Fourier{DD},B::Laurent{DD})=Conversion(A,B)*cfs
-coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD})=Conversion(A,B)*cfs
+coefficients{DD}(cfs::Vector,A::Fourier{DD},B::Laurent{DD})=(Conversion(A,B)*cfs).coefficients
+coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD})=(Conversion(A,B)*cfs).coefficients
 
 hasconversion{DD}(::Fourier{DD},::Laurent{DD})=true
 hasconversion{DD}(::Laurent{DD},::Fourier{DD})=true
