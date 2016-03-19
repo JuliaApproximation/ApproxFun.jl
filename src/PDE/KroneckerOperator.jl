@@ -311,6 +311,10 @@ conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::Space)=a
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
 # TODO: we explicetly state type to avoid type inference bug in 0.4
+
+ConcreteConversion(a::BivariateSpace,b::BivariateSpace)=
+    ConcreteConversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
+
 Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(BandedMatrix{promote_type(eltype(a),eltype(b))},
                 KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
 
@@ -321,14 +325,14 @@ function Conversion(a::BivariateSpace,b::BivariateSpace)
     elseif conversion_type(a,b)==NoSpace()
         sp=canonicalspace(a)
         if typeof(sp) == typeof(a)
-            error("implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
+            error("Implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
         elseif typeof(sp) == typeof(b)
-            error("implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
+            error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
         else
             Conversion(a,sp,b)
         end
     else
-        ConcreteConversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
+        error("Implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
     end
 end
 

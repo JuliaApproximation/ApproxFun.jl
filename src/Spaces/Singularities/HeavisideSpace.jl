@@ -20,6 +20,8 @@ canonicalspace(sp::HeavisideSpace)=PiecewiseSpace(map(Chebyshev,pieces(domain(sp
 
 conversion_rule{k,PS<:PolynomialSpace}(sp::HeavisideSpace,sp2::PiecewiseSpace{NTuple{k,PS}})=sp
 
+
+Conversion{kk,CC<:PolynomialSpace,DD}(a::HeavisideSpace,b::PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1})=ConcreteConversion(a,b)
 bandinds{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}})=0,0
 #bandinds{HS<:HeavisideSpace,DD,D}(::ConcreteConversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},HS})=0,0
 function addentries!{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}},A,kr::Range,::Colon)
