@@ -176,9 +176,16 @@ end
 
 # CosSpace Multiplicaiton is the same as Chebyshev
 
+
+Multiplication{CS<:CosSpace}(f::Fun{CS},sp::CS)=ConcreteMultiplication(f,sp)
+Multiplication{CS<:SinSpace}(f::Fun{CS},sp::CS)=ConcreteMultiplication(f,sp)
+Multiplication{CS<:CosSpace}(f::Fun{CS},sp::SinSpace)=ConcreteMultiplication(f,sp)
+Multiplication{CS<:SinSpace}(f::Fun{CS},sp::CosSpace)=ConcreteMultiplication(f,sp)
+
 bandinds{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
 rangespace{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp})=domainspace(M)
 addentries!{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp},A,kr::UnitRange,::Colon)=chebmult_addentries!(M.f.coefficients,A,kr)
+
 
 
 function addentries!{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp},A,kr::UnitRange,::Colon)

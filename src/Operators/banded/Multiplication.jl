@@ -15,7 +15,21 @@ function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
 end
 
 
-Multiplication(f::Fun,sp::Space)=ConcreteMultiplication(f,sp)
+
+# We do this in two stages to support Modifier spaces
+# without ambiguity errors
+function defaultMultiplication(f::Fun,sp::Space)
+    csp=space(f)
+    if csp==sp
+        error("Implement Multiplication(::Fun{$(typeof(space(f)))},::$(typeof(sp)))")
+    end
+    MultiplicationWrapper(f,Multiplication(D.f,csp)*Conversion(sp,csp))
+end
+
+Multiplication(f::Fun,sp::Space)=defaultMultiplication(f,sp)
+
+
+Multiplication(f::Fun,sp::UnsetSpace)=ConcreteMultiplication(f,sp)
 Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
 Multiplication(c::Number)=Multiplication(Fun(c) )
 
@@ -42,36 +56,6 @@ domain(T::ConcreteMultiplication)=domain(T.f)
 rangespace{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=UnsetSpace()
 bandinds{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
 addentries!{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},A,kr,::Colon)=error("No range space attached to Multiplication")
-
-
-function addentries!{F,S,T}(D::ConcreteMultiplication{F,S,T},A,kr,::Colon)
-    # Default is to convert to space of f
-    sp=domainspace(D)
-    csp=space(D.f)
-    if csp==sp
-        error("Override addentries! on ConcreteMultiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*") for range type"*string(typeof(kr)))
-    end
-    addentries!(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]),A,kr,:)
-end
-
-function bandinds{F,S,T}(D::ConcreteMultiplication{F,S,T})
-    sp=domainspace(D)
-    csp=space(D.f)
-    if csp==sp
-        error("Override bandinds for ConcreteMultiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*")")
-    end
-    bandinds(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]))
-end
-
-# corresponds to default implementation
-function rangespace{F,S,T}(D::ConcreteMultiplication{F,S,T})
-    sp=domainspace(D)
-    csp=space(D.f)
-    if csp==sp
-        error("Override rangespace for ConcreteMultiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*")")
-    end
-    rangespace(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]))
-end
 
 
 
