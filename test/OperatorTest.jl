@@ -20,7 +20,7 @@ A=Conversion(Chebyshev(d),Ultraspherical{2}(d))
 @test norm(X*f-(x.*f)) < 100eps()
 
 A=Conversion(Chebyshev(d),Ultraspherical{2}(d))*X
-@test norm(A*f.coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
+@test norm((A*f.coefficients).coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
 
 
 ## Special functions
