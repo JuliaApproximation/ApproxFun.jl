@@ -111,6 +111,11 @@ getindex(A::BandedMatrix,kr::Range,j::Integer)=[A[k,j] for k=kr]
 getindex(A::BandedMatrix,kr::Range,jr::Range)=[A[k,j] for k=kr,j=jr]
 Base.full(A::BandedMatrix)=A[1:size(A,1),1:size(A,2)]
 
+function Base.slice(B::BandedMatrix,kr::Range,j::Integer)
+  A = B.data
+  n = size(A,1)
+  slice(A,(j-1)*n+kr[1]-j+A.l + (n-1)*kr)
+end
 
 function Base.sparse(B::BandedMatrix)
     i=Array(Int,length(B.data));j=Array(Int,length(B.data))
