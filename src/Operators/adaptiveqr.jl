@@ -210,3 +210,93 @@ function adaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
     ##TODO: why max original length?
     backsubstitution!(B,isa(u,Vector)?u[1:max(j-1,length(v))]:u[1:max(j-1,size(v,1)),:])
 end
+
+# Apply Householder(w) to the part of the operator within the bands
+function applyhouseholder!(w,B::BandedMatrix,kr::Range,jr::Range)
+    @simd for j = jr
+        v = slice(B,kr,j)
+        v[:] -= 2*(v⋅w)*w
+    end
+    B
+end
+
+# Apply Householder(w) to the part of the operator both in and out of the bands
+function applyhouseholder!(w,F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
+    n = size(B.data,1)
+    bnd = -bandinds(B)[1]
+    kr1 = kr[1]
+    kr2 = kr[1]
+    kr3 = kr[1]+1
+    kr4 = kr[end]
+    for j = jr
+        x1 = getindex(F,kr1:kr2,j)
+        x2 = slice(B,kr3:kr4,j)
+        x2[:] -= 2*(w⋅[x1;x2])*w[length(x1)+1:end]
+        kr2 += 1
+        kr3 += 1
+    end
+    B
+end
+
+# Apply Householder(w) to the part of the operator outside the bands
+function applyhouseholder!(w,B::Matrix,kr::Range)
+    k1 = first(kr)
+    m = min(size(B,1),kr[end]) - k1
+    w = pad(w,m+1)
+    for j = 1:size(B,2)
+        B[k1:k1+m,j] -= 2*(B[k1:k1+m,j]⋅w)*w
+    end
+    B
+end
+
+function householderreducevec!{T,M,R}(B::MutableOperator{T,M,R},kr::Range,j1::Integer)
+    bnd=bandinds(B)[end]
+    w = B[kr,j1]
+    w[1]-= norm(w)
+    w = w/norm(w)
+    applyhouseholder!(w,B.data,kr,j1:kr[1]+bnd)
+    applyhouseholder!(w,B.fill,B.data,kr,kr[1]+bnd+1:kr[end]+bnd)
+    applyhouseholder!(w,B.fill.data,kr)
+    w
+end
+
+function householderreduce!(B::MutableOperator,v::Array,kr::Range,j1::Integer)
+    w = householderreducevec!(B,kr,j1)
+    @simd for j=1:size(v,2)
+        v[kr,j] -= 2*(v[kr,j]⋅w)*w
+    end
+    B
+end
+
+householderreduce!(B::MutableOperator,v::Array,j::Integer)=householderreduce!(B,v,j:(j-bandinds(B)[1]),j)
+
+function householderadaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
+    b=-B.bandinds[1]
+    m=3+b
+
+    l = size(v,1) + m
+
+    u=pad(v,l,size(v,2))
+    resizedata!(B,l)
+
+
+    j=1
+    ##TODO: we can allow early convergence
+    while j <= N && (slnorm(u,j:j+b-1) > tol  || j <= size(v,1))
+        if j + b == l
+            l *= 2
+            u = pad(u,l,size(u,2))
+            resizedata!(B,l)
+        end
+
+        householderreduce!(B,u,j)
+        j+=1
+    end
+
+    if j >= N
+        warn("Maximum number of iterations $N reached without achieving tolerance $tol.  Check that the correct number of boundary conditions are specified, or change maxiteration.")
+    end
+
+    ##TODO: why max original length?
+    backsubstitution!(B,isa(u,Vector)?u[1:max(j-1,length(v))]:u[1:max(j-1,size(v,1)),:])
+end
