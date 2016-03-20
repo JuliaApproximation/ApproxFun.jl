@@ -165,7 +165,7 @@ function Base.getindex{T<:Number,M,R}(B::MutableOperator{T,M,R},kr::UnitRange,jr
     for k = kr
         if k <= B.datalength
             for j=jr
-                ret[k,j] = B[k,j]
+                ret[k-kr[1]+1,j-jr[1]+1] = B[k,j]
             end
         else
             ir = B.bandinds
