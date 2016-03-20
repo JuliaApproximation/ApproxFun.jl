@@ -220,7 +220,7 @@ coefficientplot!(plt::Plots.Plot,f::Fun;opts...)=plot!(plt,abs(f.coefficients);y
 
 ## Multivariate
 
-function Plots.plot!(plt::Plots.Plot,f::MultivariateFun;linetype=:contour,opts...)
+function Plots.plot!{S,V,SV<:TensorSpace}(plt::Plots.Plot,f::ProductFun{S,V,SV};linetype=:contour,opts...)
     f=chop(f,10e-10)
     f=pad(f,max(size(f,1),20),max(size(f,2),20))
     vals=values(f)
@@ -231,7 +231,7 @@ function Plots.plot!(plt::Plots.Plot,f::MultivariateFun;linetype=:contour,opts..
     plot!(plt,points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);linetype=linetype,opts...)
 end
 
-function Plots.surface(f::MultivariateFun;opts...)
+function Plots.surface{S,V,SV<:TensorSpace}(f::ProductFun{S,V,SV};opts...)
     f=chop(f,10e-10)
     f=pad(f,max(size(f,1),20),max(size(f,2),20))
     vals=values(f)
@@ -240,6 +240,17 @@ function Plots.surface(f::MultivariateFun;opts...)
     end
 
     surface(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);opts...)
+end
+
+function Plots.surface(f::ProductFun;opts...)
+    f=chop(f,10e-10)
+    f=pad(f,max(size(f,1),20),max(size(f,2),20))
+    vals=values(f)
+    if norm(imag(vals),Inf)>10e-9
+        warn("Imaginary part is non-neglible.  Only plotting real part.")
+    end
+
+    surface(points(f,1),points(f,2),real(vals);opts...)
 end
 
 
@@ -262,8 +273,8 @@ end
 for Plt in (:(Plots.plot),:(Plots.contour),:(Plots.surface))
     Pltex=parse(string(Plt)*"!")
     @eval begin
-        $Plt{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};kwds...)=$Plt(ProductFun(f);kwds...)
-        $Pltex{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};kwds...)=$Pltex(ProductFun(f);kwds...)
-        $Pltex{TS<:TensorSpace,T<:Real}(plt::Plots.Plot,f::Fun{TS,T};kwds...)=$Pltex(plt,ProductFun(f);kwds...)
+        $Plt{TS<:AbstractProductSpace}(f::Fun{TS};kwds...)=$Plt(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace}(f::Fun{TS};kwds...)=$Pltex(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace}(plt::Plots.Plot,f::Fun{TS};kwds...)=$Pltex(plt,ProductFun(f);kwds...)
     end
 end
