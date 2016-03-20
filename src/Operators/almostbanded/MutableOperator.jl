@@ -72,6 +72,19 @@ function unsafe_getindex{T,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret
 end
 
+function getindex{T<:Number,R}(B::FillMatrix{T,R},kr::Range,j::Integer)
+    ret = zeros(T,length(kr))
+
+    for m=1:B.numbcs
+        @assert j <= B.bc[m].datalength #TODO: temporary for debugging
+
+        bcv = B.bc[m].data[j]
+        fd=B.data[kr,m]
+        ret += fd*bcv
+    end
+
+    ret
+end
 
 function resizedata!{T}(B::FillMatrix{T},n)
     nbc=B.numbcs
