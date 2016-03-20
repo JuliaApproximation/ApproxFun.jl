@@ -48,6 +48,10 @@ Base.union(d1::EmptyDomain,d2::Domain)=d2
 Base.union(d1::Domain,d2::EmptyDomain)=d1
 
 function Base.union(d1::Domain,d2::Domain)
+    if d1==d2
+        return d1
+    end
+
     Γ=d1∩d2
     if isempty(Γ)
         UnionDomain(d1,d2)
