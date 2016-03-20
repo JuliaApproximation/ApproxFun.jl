@@ -179,6 +179,7 @@ end
 
 Base.summary(B::Operator)=string(typeof(B).name.name)*":"*string(domainspace(B))*"↦"*string(rangespace(B))
 
+
 function Base.show(io::IO,B::BandedOperator;header::Bool=true)
     header && println(io,summary(B))
 

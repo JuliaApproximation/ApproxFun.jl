@@ -29,7 +29,7 @@ rangespace(C::ConcreteConversion)=C.rangespace
 
 
 
-function defaultconversion(a::Space,b::Space)
+function defaultConversion(a::Space,b::Space)
     if a==b
         Conversion(a)
     elseif conversion_type(a,b)==NoSpace()
@@ -46,7 +46,7 @@ function defaultconversion(a::Space,b::Space)
     end
 end
 
-Conversion(a::Space,b::Space)=defaultconversion(a,b)
+Conversion(a::Space,b::Space)=defaultConversion(a,b)
 Conversion(a::Space)=ConversionWrapper(eye(a))
 Conversion()=ConversionWrapper(eye(UnsetSpace()))
 

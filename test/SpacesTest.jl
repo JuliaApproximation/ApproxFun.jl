@@ -1,6 +1,5 @@
 using ApproxFun, Base.Test
-
-import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
+    import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
 
 
 @test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})(.1) exp(.1)
