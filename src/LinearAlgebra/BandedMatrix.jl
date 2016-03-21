@@ -111,12 +111,17 @@ getindex(A::BandedMatrix,kr::Range,j::Integer)=[A[k,j] for k=kr]
 getindex(A::BandedMatrix,kr::Range,jr::Range)=[A[k,j] for k=kr,j=jr]
 Base.full(A::BandedMatrix)=A[1:size(A,1),1:size(A,2)]
 
-function Base.slice(B::BandedMatrix,kr::Range,j::Integer)
-  A = B.data
-  n = size(A,1)
-  slice(A,(j-1)*n+kr[1]-j+A.l + (n-1)*kr)
+function Base.slice(B::BandedMatrix,kr::Range,j::Int)
+    if first(kr) < j - B.u || last(kr) > j+B.l
+        error("slice(::BandedMatrix,$(string(kr)),$j) goes outside the bands $(-B.l) and $(B.u)")
+    end
+    if last(kr) > size(B,2)
+        error("slice(::BandedMatrix,$(string(kr)),$j) goes outside the $(size(B))")
+    end
+    A = B.data
+    n = size(A,1)
+    slice(A,j+B.l+1-n + (n-1)*kr)
 end
-
 function Base.sparse(B::BandedMatrix)
     i=Array(Int,length(B.data));j=Array(Int,length(B.data))
     n,m=size(B.data)
