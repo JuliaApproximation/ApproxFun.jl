@@ -220,6 +220,7 @@ function applyhouseholder!(w,B::BandedMatrix,kr::Range,jr::Range)
     B
 end
 
+
 # Apply Householder(w) to the part of the operator both in and out of the bands
 function applyhouseholder!(w,F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
     n = size(B.data,1)
@@ -236,21 +237,23 @@ function applyhouseholder!(w,F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
         dt=zero(eltype(w))
         m=(kr2-kr1+1)
         @inbounds for k = 1:m
-            dt += w[k]⋅F[k+kr1-1,j]
+            dt += w[k]⋅unsafe_getindex(F,k+kr1-1,j)
         end
-        @inbounds for k = 1:length(x2)
-            dt+= w[k+m]⋅x2[k]
+
+        @inbounds for k=1:length(x2)
+            dt+=w[k+m]⋅x2[k]
         end
 
         # now update x2:
         for k = eachindex(x2)
-            x2[k] -= 2*dt*w[k+m]
+            @inbounds x2[k] -= 2*dt*w[k+m]
         end
         kr2 += 1
         kr3 += 1
     end
     B
 end
+
 
 # Apply Householder(w) to the part of the operator outside the bands
 function applyhouseholder!(w,B::Matrix,kr::Range)
@@ -259,7 +262,10 @@ function applyhouseholder!(w,B::Matrix,kr::Range)
 
 
     for j = 1:size(B,2)
-        dt=slice(B,k1:k1+m,j)⋅w
+        dt=zero(eltype(w))
+        @inbounds for k=1:length(w)
+            dt+=B[k+k1-1,j]⋅w[k]
+        end
         @inbounds for k=1:m+1
             B[k+k1-1,j] -= 2dt*w[k]
         end
@@ -269,13 +275,15 @@ end
 
 function householderreducevec!{T,M,R}(B::MutableOperator{T,M,R},kr::Range,j1::Integer, w)
     bnd=bandinds(B)[end]
-    w[:] = B[kr,j1]
+    w[:] = B.data[kr,j1]
     w[1]-= norm(w)
-    w /= norm(w)
+    BLAS.scal!(length(w),1/norm(w),w,1)  #w/=norm(w)
     applyhouseholder!(w,B.data,kr,j1:kr[1]+bnd)
     applyhouseholder!(w,B.fill,B.data,kr,kr[1]+bnd+1:kr[end]+bnd)
     applyhouseholder!(w,B.fill.data,kr)
 end
+
+
 
 function householderreduce!(B::MutableOperator,v::Array,kr::Range,j1::Integer,w)
     householderreducevec!(B,kr,j1,w)
@@ -283,7 +291,10 @@ function householderreduce!(B::MutableOperator,v::Array,kr::Range,j1::Integer,w)
     m=length(w)
     k1=first(kr)
     for j=1:size(v,2)
-        dt=slice(v,kr,j)⋅w
+        dt=zero(eltype(w))
+        @simd for k=1:m
+            @inbounds dt+=v[k+k1-1]⋅w[k]
+        end
         @simd for k=1:m
             @inbounds v[k+k1-1,j] -= 2*dt*w[k]
         end
