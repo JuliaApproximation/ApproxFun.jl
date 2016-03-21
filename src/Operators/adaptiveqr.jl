@@ -232,13 +232,13 @@ function applyhouseholder!(w,F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
     for j = jr
         x2 = slice(B,kr3:kr4,j)
 
-        #dt reprents w ⋅ [F[kr1:kr2,j];x2]
+        #dt represents w ⋅ [F[kr1:kr2,j];x2]
         dt=zero(eltype(w))
         m=(kr2-kr1+1)
         for k = 1:m
             dt += w[k]*F[k+kr1-1,j]
         end
-        dt+=slice(w,(m+1):length(w))⋅x2
+        dt+=slice(w,(m+1):bnd+1)⋅x2
 
         # now update x2:
         for k = eachindex(x2)
@@ -261,29 +261,29 @@ function applyhouseholder!(w,B::Matrix,kr::Range)
     B
 end
 
-function householderreducevec!{T,M,R}(B::MutableOperator{T,M,R},kr::Range,j1::Integer)
+function householderreducevec!{T,M,R}(B::MutableOperator{T,M,R},kr::Range,j1::Integer, w)
     bnd=bandinds(B)[end]
-    w = B[kr,j1]
+    w[:] = B[kr,j1]
     w[1]-= norm(w)
-    w = w/norm(w)
+    w[:] = w/norm(w)
     applyhouseholder!(w,B.data,kr,j1:kr[1]+bnd)
     applyhouseholder!(w,B.fill,B.data,kr,kr[1]+bnd+1:kr[end]+bnd)
     applyhouseholder!(w,B.fill.data,kr)
-    w
 end
 
-function householderreduce!(B::MutableOperator,v::Array,kr::Range,j1::Integer)
-    w = householderreducevec!(B,kr,j1)
+function householderreduce!(B::MutableOperator,v::Array,kr::Range,j1::Integer,w)
+    householderreducevec!(B,kr,j1,w)
     @simd for j=1:size(v,2)
         v[kr,j] -= 2*(v[kr,j]⋅w)*w
     end
     B
 end
 
-householderreduce!(B::MutableOperator,v::Array,j::Integer)=householderreduce!(B,v,j:(j-bandinds(B)[1]),j)
+householderreduce!(B::MutableOperator,v::Array,j::Integer,w)=householderreduce!(B,v,j:(j-bandinds(B)[1]),j,w)
 
 function householderadaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
     b=-B.bandinds[1]
+    w = zeros(b+1) # The vector in Householder matrix is only allocated once
     m=3+b
 
     l = size(v,1) + m
@@ -301,7 +301,7 @@ function householderadaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
             resizedata!(B,l)
         end
 
-        householderreduce!(B,u,j)
+        householderreduce!(B,u,j,w)
         j+=1
     end
 
