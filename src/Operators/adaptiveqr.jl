@@ -215,7 +215,7 @@ end
 function applyhouseholder!(w,B::BandedMatrix,kr::Range,jr::Range)
     @simd for j = jr
         v = slice(B,kr,j)
-        v[:] -= 2*(v⋅w)*w
+        BLAS.axpy!(-2*(v⋅w),w,v)   # v[:]= -2*(v⋅w)*w
     end
     B
 end
@@ -235,10 +235,12 @@ function applyhouseholder!(w,F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
         #dt represents w ⋅ [F[kr1:kr2,j];x2]
         dt=zero(eltype(w))
         m=(kr2-kr1+1)
-        for k = 1:m
-            dt += w[k]*F[k+kr1-1,j]
+        @inbounds for k = 1:m
+            dt += w[k]⋅F[k+kr1-1,j]
         end
-        dt+=slice(w,(m+1):bnd+1)⋅x2
+        @inbounds for k = 1:length(x2)
+            dt+= w[k+m]⋅x2[k]
+        end
 
         # now update x2:
         for k = eachindex(x2)
@@ -253,10 +255,14 @@ end
 # Apply Householder(w) to the part of the operator outside the bands
 function applyhouseholder!(w,B::Matrix,kr::Range)
     k1 = first(kr)
-    m = min(size(B,1),kr[end]) - k1
-    w = pad(w,m+1)
+    m = length(w)-1
+
+
     for j = 1:size(B,2)
-        B[k1:k1+m,j] -= 2*(B[k1:k1+m,j]⋅w)*w
+        dt=slice(B,k1:k1+m,j)⋅w
+        @inbounds for k=1:m+1
+            B[k+k1-1,j] -= 2dt*w[k]
+        end
     end
     B
 end
@@ -265,7 +271,7 @@ function householderreducevec!{T,M,R}(B::MutableOperator{T,M,R},kr::Range,j1::In
     bnd=bandinds(B)[end]
     w[:] = B[kr,j1]
     w[1]-= norm(w)
-    w[:] = w/norm(w)
+    w /= norm(w)
     applyhouseholder!(w,B.data,kr,j1:kr[1]+bnd)
     applyhouseholder!(w,B.fill,B.data,kr,kr[1]+bnd+1:kr[end]+bnd)
     applyhouseholder!(w,B.fill.data,kr)
@@ -273,8 +279,14 @@ end
 
 function householderreduce!(B::MutableOperator,v::Array,kr::Range,j1::Integer,w)
     householderreducevec!(B,kr,j1,w)
-    @simd for j=1:size(v,2)
-        v[kr,j] -= 2*(v[kr,j]⋅w)*w
+
+    m=length(w)
+    k1=first(kr)
+    for j=1:size(v,2)
+        dt=slice(v,kr,j)⋅w
+        @simd for k=1:m
+            @inbounds v[k+k1-1,j] -= 2*dt*w[k]
+        end
     end
     B
 end
