@@ -228,10 +228,22 @@ function applyhouseholder!(w,F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
     kr2 = kr[1]
     kr3 = kr[1]+1
     kr4 = kr[end]
+
     for j = jr
-        x1 = getindex(F,kr1:kr2,j)
         x2 = slice(B,kr3:kr4,j)
-        x2[:] -= 2*(w⋅[x1;x2])*w[length(x1)+1:end]
+
+        #dt reprents w ⋅ [F[kr1:kr2,j];x2]
+        dt=zero(eltype(w))
+        m=(kr2-kr1+1)
+        for k = 1:m
+            dt += w[k]*F[k+kr1-1,j]
+        end
+        dt+=slice(w,(m+1):length(w))⋅x2
+
+        # now update x2:
+        for k = eachindex(x2)
+            x2[k] -= 2*dt*w[k+m]
+        end
         kr2 += 1
         kr3 += 1
     end
