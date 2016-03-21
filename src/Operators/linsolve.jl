@@ -67,26 +67,14 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};
 
             bend=b[end,:]
 
-            # check if space is already compatible
-            # TODO: this should be in promotedomainspace/choosedomainspace
-            isbendspace=true
             rs=rangespace(A[end])
-            for bs in bend
-                @assert isa(bs,Fun)
-                if !spacescompatible(rs,space(bs))
-                    isbendspace=false
-                    break
-                end
-            end
-
-
-            if !isbendspace
+            if isambiguous(rs)
                 ds=choosedomainspace(A,space(b[end,1]))
                 A=promotedomainspace(A,ds)
+                rs=rangespace(A[end])
             end
 
             # coefficients in the rangespace
-            rs=rangespace(A[end])
             typ=promote_type(mapreduce(eltype,promote_type,bend),eltype(rs))
 
             cfsB=Vector{typ}[coefficients(b[end,k],rs) for k=1:size(b,2)]
