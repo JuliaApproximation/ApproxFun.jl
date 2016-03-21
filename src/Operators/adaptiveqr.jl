@@ -211,73 +211,65 @@ function adaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
     backsubstitution!(B,isa(u,Vector)?u[1:max(j-1,length(v))]:u[1:max(j-1,size(v,1)),:])
 end
 
+function applyhouseholder!{T}(w::Vector{T},B::AbstractArray{T},k1::Int64,kr::Range,j::Int64)
+    v = slice(B,k1+kr,j)
+    BLAS.axpy!(-2*(v⋅w),w,v)   # v[:]= -2*(v⋅w)*w
+    #dt = zero(T)
+    #@inbounds @simd for k in kr dt+=B[k+k1,j]⋅w[k] end
+    #dt *= -2
+    #@inbounds @simd for k in kr B[k+k1,j]+=dt*w[k] end
+    B
+end
+
+function applyhouseholder!{T}(w::Vector{T},B::AbstractArray{T},kr::Range,k2::Int64,j::Int64)
+    v = slice(B,kr,j)
+    BLAS.axpy!(-2*(v⋅w),w,v)   # v[:]= -2*(v⋅w)*w
+    #dt = zero(T)
+    #@inbounds @simd for k in kr dt+=B[k,j]⋅w[k+k2] end
+    #dt *= -2
+    #@inbounds @simd for k in kr B[k,j]+=dt*w[k+k2] end
+    B
+end
+
 # Apply Householder(w) to the part of the operator within the bands
-function applyhouseholder!(w,B::BandedMatrix,kr::Range,jr::Range)
-    @simd for j = jr
-        v = slice(B,kr,j)
-        BLAS.axpy!(-2*(v⋅w),w,v)   # v[:]= -2*(v⋅w)*w
-    end
+function applyhouseholder!{T}(w::Vector{T},B::BandedMatrix,kr::Range,jr::Range)
+    for j = jr applyhouseholder!(w,B,kr,1-first(kr),j) end
     B
 end
 
 
 # Apply Householder(w) to the part of the operator both in and out of the bands
-function applyhouseholder!(w,F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
-    n = size(B.data,1)
-    bnd = -bandinds(B)[1]
-    kr1 = kr[1]
-    kr2 = kr[1]
-    kr3 = kr[1]+1
-    kr4 = kr[end]
+function applyhouseholder!{T}(w::Vector{T},F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
+    k1 = first(kr)-1
+    k2 = last(kr)-first(kr)
+    m=1
 
     for j = jr
-        x2 = slice(B,kr3:kr4,j)
-
         #dt represents w ⋅ [F[kr1:kr2,j];x2]
-        dt=zero(eltype(w))
-        m=(kr2-kr1+1)
-        @inbounds for k = 1:m
-            dt += w[k]⋅unsafe_getindex(F,k+kr1-1,j)
-        end
-
-        @inbounds for k=1:length(x2)
-            dt+=w[k+m]⋅x2[k]
-        end
-
-        # now update x2:
-        for k = eachindex(x2)
-            @inbounds x2[k] -= 2*dt*w[k+m]
-        end
-        kr2 += 1
-        kr3 += 1
+        dt=zero(T)
+        @inbounds @simd for k = 1:m dt += w[k]⋅unsafe_getindex(F,k+k1,j) end
+        @inbounds @simd for k = 1+m:k2 dt+=w[k]⋅B[k+k1,j] end
+        dt *= -2
+        @inbounds @simd for k = 1+m:k2 B[k+k1,j] += dt*w[k] end
+        m+=1
     end
     B
 end
 
 
 # Apply Householder(w) to the part of the operator outside the bands
-function applyhouseholder!(w,B::Matrix,kr::Range)
-    k1 = first(kr)
-    m = length(w)-1
-
-
-    for j = 1:size(B,2)
-        dt=zero(eltype(w))
-        @inbounds for k=1:length(w)
-            dt+=B[k+k1-1,j]⋅w[k]
-        end
-        @inbounds for k=1:m+1
-            B[k+k1-1,j] -= 2dt*w[k]
-        end
-    end
+function applyhouseholder!{T}(w::Vector{T},B::Matrix,kr::Range)
+    for j = 1:size(B,2) applyhouseholder!(w,B,first(kr)-1,1:length(w),j) end
     B
 end
 
-function householderreducevec!{T,M,R}(B::MutableOperator{T,M,R},kr::Range,j1::Integer, w)
+function householderreducevec!{T,M,R}(w::Vector{T}, B::MutableOperator{T,M,R},kr::Range,j1::Integer)
     bnd=bandinds(B)[end]
-    w[:] = B.data[kr,j1]
+    copy!(w,B.data[kr,j1])
     w[1]-= norm(w)
-    BLAS.scal!(length(w),1/norm(w),w,1)  #w/=norm(w)
+    # TODO: should be normalize!(w) below, since this is compatible with any type T.
+    # But this is only supported in Julia v0.5 https://github.com/JuliaLang/julia/pull/13681
+    BLAS.scal!(length(w),inv(norm(w)),w,1) #w/=norm(w)
     applyhouseholder!(w,B.data,kr,j1:kr[1]+bnd)
     applyhouseholder!(w,B.fill,B.data,kr,kr[1]+bnd+1:kr[end]+bnd)
     applyhouseholder!(w,B.fill.data,kr)
@@ -285,28 +277,17 @@ end
 
 
 
-function householderreduce!(B::MutableOperator,v::Array,kr::Range,j1::Integer,w)
-    householderreducevec!(B,kr,j1,w)
-
-    m=length(w)
-    k1=first(kr)
-    for j=1:size(v,2)
-        dt=zero(eltype(w))
-        @simd for k=1:m
-            @inbounds dt+=v[k+k1-1]⋅w[k]
-        end
-        @simd for k=1:m
-            @inbounds v[k+k1-1,j] -= 2*dt*w[k]
-        end
-    end
+function householderreduce!{T}(w::Vector{T},B::MutableOperator,v::Array,kr::Range,j1::Integer)
+    householderreducevec!(w,B,kr,j1)
+    for j=1:size(v,2) applyhouseholder!(w,v,first(kr)-1,1:length(w),j) end
     B
 end
 
-householderreduce!(B::MutableOperator,v::Array,j::Integer,w)=householderreduce!(B,v,j:(j-bandinds(B)[1]),j,w)
+householderreduce!(w::Vector,B::MutableOperator,v::Array,j::Integer)=householderreduce!(w,B,v,j:(j-bandinds(B)[1]),j)
 
-function householderadaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
+function householderadaptiveqr!{T,M,R}(B::MutableOperator{T,M,R},v::Array,tol::Real,N)
     b=-B.bandinds[1]
-    w = zeros(b+1) # The vector in Householder matrix is only allocated once
+    w = zeros(T,b+1) # The vector in Householder matrix is only allocated once
     m=3+b
 
     l = size(v,1) + m
@@ -324,7 +305,7 @@ function householderadaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
             resizedata!(B,l)
         end
 
-        householderreduce!(B,u,j,w)
+        householderreduce!(w,B,u,j)
         j+=1
     end
 
