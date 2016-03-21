@@ -231,7 +231,9 @@ function Plots.plot!{S,V,SV<:TensorSpace}(plt::Plots.Plot,f::ProductFun{S,V,SV};
     plot!(plt,points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);linetype=linetype,opts...)
 end
 
-function Plots.surface{S,V,SV<:TensorSpace}(f::ProductFun{S,V,SV};opts...)
+function Plots.surface{S<:UnivariateSpace,
+                       V<:UnivariateSpace,
+                       SV<:TensorSpace}(f::ProductFun{S,V,SV};opts...)
     f=chop(f,10e-10)
     f=pad(f,max(size(f,1),20),max(size(f,2),20))
     vals=values(f)
@@ -273,6 +275,15 @@ end
 for Plt in (:(Plots.plot),:(Plots.contour),:(Plots.surface))
     Pltex=parse(string(Plt)*"!")
     @eval begin
+        $Plt{TS<:AbstractProductSpace,T<:Real}(f::Fun{TS,T};kwds...)=$Plt(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace,T<:Real}(f::Fun{TS,T};kwds...)=$Pltex(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace,T<:Real}(plt::Plots.Plot,f::Fun{TS,T};kwds...)=$Pltex(plt,ProductFun(f);kwds...)
+
+        $Plt{TS<:AbstractProductSpace,T<:Complex}(f::Fun{TS,T};kwds...)=$Plt(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace,T<:Complex}(f::Fun{TS,T};kwds...)=$Pltex(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace,T<:Complex}(plt::Plots.Plot,f::Fun{TS,T};kwds...)=$Pltex(plt,ProductFun(f);kwds...)
+
+
         $Plt{TS<:AbstractProductSpace}(f::Fun{TS};kwds...)=$Plt(ProductFun(f);kwds...)
         $Pltex{TS<:AbstractProductSpace}(f::Fun{TS};kwds...)=$Pltex(ProductFun(f);kwds...)
         $Pltex{TS<:AbstractProductSpace}(plt::Plots.Plot,f::Fun{TS};kwds...)=$Pltex(plt,ProductFun(f);kwds...)
