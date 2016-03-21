@@ -210,3 +210,128 @@ function adaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
     ##TODO: why max original length?
     backsubstitution!(B,isa(u,Vector)?u[1:max(j-1,length(v))]:u[1:max(j-1,size(v,1)),:])
 end
+
+# Apply Householder(w) to the part of the operator within the bands
+function applyhouseholder!(w,B::BandedMatrix,kr::Range,jr::Range)
+    @simd for j = jr
+        v = slice(B,kr,j)
+        BLAS.axpy!(-2*(v⋅w),w,v)   # v[:]= -2*(v⋅w)*w
+    end
+    B
+end
+
+
+# Apply Householder(w) to the part of the operator both in and out of the bands
+function applyhouseholder!(w,F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
+    n = size(B.data,1)
+    bnd = -bandinds(B)[1]
+    kr1 = kr[1]
+    kr2 = kr[1]
+    kr3 = kr[1]+1
+    kr4 = kr[end]
+
+    for j = jr
+        x2 = slice(B,kr3:kr4,j)
+
+        #dt represents w ⋅ [F[kr1:kr2,j];x2]
+        dt=zero(eltype(w))
+        m=(kr2-kr1+1)
+        @inbounds for k = 1:m
+            dt += w[k]⋅unsafe_getindex(F,k+kr1-1,j)
+        end
+
+        @inbounds for k=1:length(x2)
+            dt+=w[k+m]⋅x2[k]
+        end
+
+        # now update x2:
+        for k = eachindex(x2)
+            @inbounds x2[k] -= 2*dt*w[k+m]
+        end
+        kr2 += 1
+        kr3 += 1
+    end
+    B
+end
+
+
+# Apply Householder(w) to the part of the operator outside the bands
+function applyhouseholder!(w,B::Matrix,kr::Range)
+    k1 = first(kr)
+    m = length(w)-1
+
+
+    for j = 1:size(B,2)
+        dt=zero(eltype(w))
+        @inbounds for k=1:length(w)
+            dt+=B[k+k1-1,j]⋅w[k]
+        end
+        @inbounds for k=1:m+1
+            B[k+k1-1,j] -= 2dt*w[k]
+        end
+    end
+    B
+end
+
+function householderreducevec!{T,M,R}(B::MutableOperator{T,M,R},kr::Range,j1::Integer, w)
+    bnd=bandinds(B)[end]
+    w[:] = B.data[kr,j1]
+    w[1]-= norm(w)
+    BLAS.scal!(length(w),1/norm(w),w,1)  #w/=norm(w)
+    applyhouseholder!(w,B.data,kr,j1:kr[1]+bnd)
+    applyhouseholder!(w,B.fill,B.data,kr,kr[1]+bnd+1:kr[end]+bnd)
+    applyhouseholder!(w,B.fill.data,kr)
+end
+
+
+
+function householderreduce!(B::MutableOperator,v::Array,kr::Range,j1::Integer,w)
+    householderreducevec!(B,kr,j1,w)
+
+    m=length(w)
+    k1=first(kr)
+    for j=1:size(v,2)
+        dt=zero(eltype(w))
+        @simd for k=1:m
+            @inbounds dt+=v[k+k1-1]⋅w[k]
+        end
+        @simd for k=1:m
+            @inbounds v[k+k1-1,j] -= 2*dt*w[k]
+        end
+    end
+    B
+end
+
+householderreduce!(B::MutableOperator,v::Array,j::Integer,w)=householderreduce!(B,v,j:(j-bandinds(B)[1]),j,w)
+
+function householderadaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
+    b=-B.bandinds[1]
+    w = zeros(b+1) # The vector in Householder matrix is only allocated once
+    m=3+b
+
+    l = size(v,1) + m
+
+    u=pad(v,l,size(v,2))
+    resizedata!(B,l)
+
+
+    j=1
+    ##TODO: we can allow early convergence
+    while j <= N && (slnorm(u,j:j+b-1) > tol  || j <= size(v,1))
+        if j + b == l
+            l *= 2
+            u = pad(u,l,size(u,2))
+            resizedata!(B,l)
+        end
+
+        householderreduce!(B,u,j,w)
+        j+=1
+    end
+
+    if j >= N
+        warn("Maximum number of iterations $N reached without achieving tolerance $tol.  Check that the correct number of boundary conditions are specified, or change maxiteration.")
+    end
+
+    ##TODO: why max original length?
+    backsubstitution!(B,isa(u,Vector)?u[1:max(j-1,length(v))]:u[1:max(j-1,size(v,1)),:])
+end
