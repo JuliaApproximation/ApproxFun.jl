@@ -3,7 +3,7 @@
 Base.show(io::IO,d::Interval)=print(io,"【$(d.a),$(d.b)】")
 function Base.show(io::IO,d::Line)
     if d.center == angle(d) == 0 && d.α == d.β == -1.
-        print(io,"❪-∞,∞❫")
+        print(io,"ℝ")
     elseif  d.α == d.β == -1.
         print(io,"Line($(d.center),$(angle(d)))")
     else
@@ -64,7 +64,7 @@ function Base.show{λ,D}(io::IO,S::Ultraspherical{λ,D})
 end
 
 function Base.show(io::IO,S::Jacobi)
-    print(io,"Jacobi($(S.a),$(S.b),")
+    S.a == S.b == 0 ? print(io,"Legendre(") : print(io,"Jacobi($(S.a),$(S.b),")
     show(io,domain(S))
     print(io,")")
 end
@@ -170,7 +170,7 @@ function Base.show(io::IO,L::LowRankFun)
 end
 
 function Base.show(io::IO,P::ProductFun)
-    print(io,"ProductFun on ",space(P))
+    print(io,"ProductFun on ",space(P),".")
 end
 
 
