@@ -169,7 +169,7 @@ end
 
 function sampletest(cf::Fun,r::Vector,fr::Vector)
     ret = true
-    for k=1:length(r) ret *= norm(cf(r[k])/fr[k]-1,1)<1E-4 end
+    for k=1:length(r) ret *= norm(cf(r[k])-fr[k],1)<1E-4norm(fr[k],1) end
     ret
 end
 
