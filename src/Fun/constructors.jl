@@ -131,33 +131,47 @@ function zerocfsFun(f, d::Space)
         return zerocfsFun(f,ArraySpace(d,size(f0)...))
     end
 
-    tol =T==Any?200eps():200eps(T)
-
+    tol =T==Any?eps():eps(T)
 
     fr=map(f,r)
     maxabsfr=norm(fr,Inf)
 
-    for logn = 4:20
-        #cf = Fun(f, d, 2^logn + 1)
-        cf = defaultFun(f, d, 2^logn)
-        maxabsc=maxabs(cf.coefficients)
+    n = 16
+    while n ≤ 2^20
+        cf = defaultFun(f, d, n)
+        maxabsc = norm(cf.coefficients,Inf)
         if maxabsc==0 && maxabsfr==0
             return(zeros(d))
         end
 
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if length(cf) > 8 && maxabs(cf.coefficients[end-8:end]) < tol*maxabsc &&
-                all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
-            return chop!(cf,tol*maxabsc/10)
+        if length(cf) > 8 && norm(slice(cf.coefficients,length(cf)>>2:length(cf)),Inf) < length(cf)*maxabsc*tol && sampletest(cf,r,fr)
+            return pad(cf,findend(cf.coefficients,maxabsc*tol/10))
         end
+        n = n << 1
     end
 
-    warn("Maximum length "*string(2^20+1)*" reached")
+    warn("Maximum length "*string(n)*" reached")
 
-    Fun(f,d,2^21)
+    Fun(f,d,n)
 end
 
+function findend(cfs::Vector,tol::Real)
+    N = length(cfs)
+    k = N
+    while k > 1
+        if abs(cfs[k]) > k*log2(k)*tol break end
+        k-=1
+    end
+    k
+end
+
+function sampletest(cf::Fun,r::Vector,fr::Vector)
+    ret = true
+    for k=1:length(r) ret *= norm(cf(r[k])/fr[k]-1,1)<1E-4 end
+    ret
+end
 
 function abszerocfsFun(f,d::Space)
     #reuse function values
