@@ -20,7 +20,7 @@ domain(DS::SliceSpace)=domain(DS.space)
 
 setdomain(DS::SliceSpace,d::Domain)=SliceSpace(setdomain(DS.space,d),index(DS),stride(DS))
 
-
+#Conversion{n,st,S<:Space,T,DD,d}(a::SliceSpace{n,st,S,T,DD,d},b::S)=ConcreteConversion(a,b)
 bandinds{n,st,S,T,DD,d}(C::ConcreteConversion{SliceSpace{n,st,S,T,DD,d},S})=-n,0
 
 function addentries!{ind,st,S,T,DD,d}(C::ConcreteConversion{SliceSpace{ind,st,S,T,DD,d},S},A,kr::Range,::Colon)

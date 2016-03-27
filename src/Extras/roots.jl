@@ -247,7 +247,7 @@ function extremal_args(f::Fun)
         roots(differentiate(f))
     elseif isa(d,PeriodicDomain)  # avoid complex domains
         S=typeof(space(f))
-        fromcanonical(f,extremal_args(Fun(f.coefficients,S(canonicaldomain(f)))))
+        fromcanonical(f,extremal_args(setcanonicaldomain(f)))
     else
         dab=∂(domain(f))
         if length(f) <=2 #TODO this is only relevant for Polynomial bases

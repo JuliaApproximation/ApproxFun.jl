@@ -10,7 +10,7 @@ LaurentOperator{DD}(f::Fun{Laurent{DD}})=LaurentOperator(f.coefficients[3:2:end]
 
 ##Taylor
 
-
+Multiplication{DD}(f::Fun{Taylor{DD}},sp::Taylor{DD})=ConcreteMultiplication(f,sp)
 bandinds{DD}(M::ConcreteMultiplication{Taylor{DD},Taylor{DD}})=1-length(M.f),0
 rangespace{DD}(M::ConcreteMultiplication{Taylor{DD},Taylor{DD}})=domainspace(M)
 addentries!{DD}(M::ConcreteMultiplication{Taylor{DD},Taylor{DD}},A,k,::Colon)=addentries!(ToeplitzOperator(M.f.coefficients[2:end],[M.f.coefficients[1]]),A,k,:)

@@ -92,6 +92,7 @@ coefficients(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransfor
 
 ## Dirichlet Conversion operators
 
+Conversion(D::ChebyshevDirichlet,C::Chebyshev)=ConcreteConversion(D,C)
 addentries!{D,CC<:Chebyshev}(C::ConcreteConversion{ChebyshevDirichlet{1,0,D},CC},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,1.],A,kr)
 addentries!{D,CC<:Chebyshev}(C::ConcreteConversion{ChebyshevDirichlet{0,1,D},CC},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,-1.],A,kr)
 function addentries!{D,CC<:Chebyshev}(C::ConcreteConversion{ChebyshevDirichlet{1,1,D},CC},A,kr::Range,::Colon)

@@ -122,3 +122,13 @@ z=Fun(identity,d2)
 
 f=Fun(z->1/z,Taylor(1/Circle()))
 @test_approx_eq f(exp(0.1im)) exp(-0.1im)
+
+
+
+## exp(z)
+
+z=Fun(identity,Circle())
+cfs=exp(z).coefficients[1:2:end]
+for k=1:length(cfs)
+    @test_approx_eq_eps cfs[k] 1/factorial(1.0(k-1)) 1E-10
+end

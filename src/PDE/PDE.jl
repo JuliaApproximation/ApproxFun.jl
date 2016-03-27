@@ -31,11 +31,7 @@ function Laplacian(d::Union{ProductDomain,TensorSpace},k::Integer)
 end
 
 
-for TYP in (:Derivative,:Integral)
-    @eval $TYP(d::Union{ProductDomain,TensorSpace},k::Integer)=k==1?$TYP(d[1])⊗eye(d[2]):eye(d[1])⊗$TYP(d[2])
-end
-
-grad(d::ProductDomain)=[Derivative(d,k) for k=1:length(d.domains)]
+grad(d::ProductDomain)=[Derivative(d,[1,0]),Derivative(d,[0,1])]
 
 
 

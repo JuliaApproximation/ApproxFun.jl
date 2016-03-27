@@ -1,7 +1,6 @@
 
 
 
-
 function pad!(A::BandedMatrix,n,m)
     A.data=pad(A.data,size(A.data,1),n)
     A.m=m
@@ -11,6 +10,31 @@ end
 pad!(A::BandedMatrix,n,::Colon)=pad!(A,n,n+A.u)  # Default is to get all columns
 
 
+
+
+
+
+type PrintShow
+    str
+end
+Base.show(io::IO,N::PrintShow)=print(io,N.str)
+
+function Base.showarray(io::IO,B::BandedMatrix;
+                   header::Bool=true, limit::Bool=Base._limit_output,
+                   sz = (s = Base.tty_size(); (s[1]-4, s[2])), repr=false)
+    header && print(io,summary(B))
+
+    if !isempty(B)
+        header && println(io,":")
+        M=Array(Any,size(B)...)
+        fill!(M,PrintShow(""))
+        for kj=eachbandedindex(B)
+            M[kj]=B[kj]
+        end
+
+        Base.showarray(io,M;header=false)
+    end
+end
 
 
 
