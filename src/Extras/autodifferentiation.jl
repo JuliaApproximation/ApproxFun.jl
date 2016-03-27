@@ -84,4 +84,5 @@ function newton(N,u0;maxiterations=100,tolerance=1E-15)
             u=chop(unew,tolerance)
         end
     end
+    return u
 end
