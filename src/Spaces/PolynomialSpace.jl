@@ -89,7 +89,7 @@ function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::ConcreteMulti
         jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
 
         J=subview(Recurrence(domainspace(M)),jkr,jkr)
-        C0=isbaeye(jkr)
+        C0=isbeye(jkr)
         C1=(1/recβ(T,fsp,1))*J-(recα(T,fsp,1)/recβ(T,fsp,1))*C0
         addentries!(C1,a[2],A,kr,:)
 

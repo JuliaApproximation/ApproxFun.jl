@@ -426,7 +426,7 @@ function addentries!(P::TimesOperator,A,kr::Range,::Colon)
 
     firstjr=max(st-mod(kr[1],st),kr[1]+bandinds(P,1))
     ri,ci=first(kr)-st,firstjr-st
-    bamultiply!(A,P1,BA,ri,ci,st,st)
+    bmultiply!(A,P1,BA,ri,ci,st,st)
 end
 
 

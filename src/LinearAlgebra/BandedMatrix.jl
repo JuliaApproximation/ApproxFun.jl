@@ -13,31 +13,6 @@ pad!(A::BandedMatrix,n,::Colon)=pad!(A,n,n+A.u)  # Default is to get all columns
 
 
 
-
-type PrintShow
-    str
-end
-Base.show(io::IO,N::PrintShow)=print(io,N.str)
-
-function Base.showarray(io::IO,B::BandedMatrix;
-                   header::Bool=true, limit::Bool=Base._limit_output,
-                   sz = (s = Base.tty_size(); (s[1]-4, s[2])), repr=false)
-    header && print(io,summary(B))
-
-    if !isempty(B)
-        header && println(io,":")
-        M=Array(Any,size(B)...)
-        fill!(M,PrintShow(""))
-        for kj=eachbandedindex(B)
-            M[kj]=B[kj]
-        end
-
-        Base.showarray(io,M;header=false)
-    end
-end
-
-
-
 ## Used to scam addentries! into thinking we are somewhere else
 
 immutable IndexStride{S}
@@ -56,7 +31,7 @@ IndexStride(mat,ri,ci)=IndexStride(mat,ri,ci,1,1)
 
 getindex(S::IndexStride,k,j)=S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]
 setindex!(S::IndexStride,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]=x)
-ibpluseq!(S::IndexStride,x,k,j)=ibpluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
+unsafe_pluseq!(S::IndexStride,x,k,j)=unsafe_pluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
 
 
 # Odd rows/columns become real part and even become imag part
@@ -77,23 +52,23 @@ end
 
 
 
-isbaeye(kr::Range)=IndexStride(baeye(length(kr)),1-first(kr),1-first(kr))
+isbeye(kr::Range)=IndexStride(beye(length(kr)),1-first(kr),1-first(kr))
 
-function isbazeros{T}(::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer)
+function isbzeros{T}(::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer)
     shft=kr[1]-jr[1]
-    IndexStride(bazeros(T,length(kr),length(jr),l-shft,u+shft),1-kr[1],1-jr[1])
+    IndexStride(bzeros(T,length(kr),length(jr),l-shft,u+shft),1-kr[1],1-jr[1])
 end
 
 
 # These view the operation as taking a slice of an infinite dimensional matrix
-isbazeros{T}(::Type{T},kr::UnitRange,::Colon,l::Integer,u::Integer)=isbazeros(T,kr,max(1,kr[1]-l):kr[end]+u,l,u)
-isbazeros{T}(::Type{T},kr::Colon,jr::UnitRange,l::Integer,u::Integer)=isbazeros(T,max(1,jr[1]-u):jr[end]+l,jr,l,u)
+isbzeros{T}(::Type{T},kr::UnitRange,::Colon,l::Integer,u::Integer)=isbzeros(T,kr,max(1,kr[1]-l):kr[end]+u,l,u)
+isbzeros{T}(::Type{T},kr::Colon,jr::UnitRange,l::Integer,u::Integer)=isbzeros(T,max(1,jr[1]-u):jr[end]+l,jr,l,u)
 
-isbazeros{T}(::Type{T},rws::UnitRange,cols::UnitRange,bnds)=isbazeros(T,rws,cols,-bnds[1],bnds[end])
-isbazeros{T}(::Type{T},kr::UnitRange,::Colon,bnds)=isbazeros(T,kr,:,-bnds[1],bnds[end])
-isbazeros{T}(::Type{T},kr::Colon,jr::UnitRange,bnds)=isbazeros(T,:,jr,-bnds[1],bnds[end])
+isbzeros{T}(::Type{T},rws::UnitRange,cols::UnitRange,bnds)=isbzeros(T,rws,cols,-bnds[1],bnds[end])
+isbzeros{T}(::Type{T},kr::UnitRange,::Colon,bnds)=isbzeros(T,kr,:,-bnds[1],bnds[end])
+isbzeros{T}(::Type{T},kr::Colon,jr::UnitRange,bnds)=isbzeros(T,:,jr,-bnds[1],bnds[end])
 
-isbazeros(rw::Union{UnitRange,Colon},bnds...)=isbazeros(Float64,rw,bnds...)
+isbzeros(rw::Union{UnitRange,Colon},bnds...)=isbzeros(Float64,rw,bnds...)
 
 
 
@@ -148,7 +123,7 @@ IndexSlice(mat,ri,ci)=IndexStride(mat,ri,ci,1,1)
 #       to make a small array look larger
 getindex(S::IndexSlice,k,j)=S.matrix[div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride)]
 setindex!(S::IndexSlice,x,k,j)=(S.matrix[div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride)]=x)
-ibpluseq!(S::IndexSlice,x,k,j)=ibpluseq!(S.matrix,x,div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride))
+unsafe_pluseq!(S::IndexSlice,x,k,j)=unsafe_pluseq!(S.matrix,x,div(k-S.rowindex,S.rowstride),div(j-S.colindex,S.colstride))
 
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
@@ -181,21 +156,21 @@ function setindex!(S::IndexTranspose,x,k,j)
     x
 end
 
-#ibpluseq!(S.matrix,x,k+j,-j)
+#unsafe_pluseq!(S.matrix,x,k+j,-j)
 
 
-function bamultiply!(C::IndexStride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
-    bamultiply!(C.matrix,A,B,ri*C.rowstride+C.rowindex,ci*C.colstride+C.colindex,rs*C.rowstride,cs*C.colstride)
+function bmultiply!(C::IndexStride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
+    bmultiply!(C.matrix,A,B,ri*C.rowstride+C.rowindex,ci*C.colstride+C.colindex,rs*C.rowstride,cs*C.colstride)
     C
 end
 
 
-function bamultiply!(C::IndexSlice,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
+function bmultiply!(C::IndexSlice,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
     @assert rs==C.rowstride==cs==C.colstride
     @assert mod(ri-C.rowindex,rs)==mod(ci-C.colindex,cs)==0
     # div(rs*k+ri -C.rowindex,C.rowstride)
     # k+div(ri -C.rowindex,C.rowstride)
-    bamultiply!(C.matrix,A,B,div(ri -C.rowindex,C.rowstride),div(ci -C.colindex,C.colstride))
+    bmultiply!(C.matrix,A,B,div(ri -C.rowindex,C.rowstride),div(ci -C.colindex,C.colstride))
     C
 end
 
@@ -204,7 +179,7 @@ end
 
 # Unoptimized but more readible version
 
-# function bamultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)
+# function bmultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix)
 #     n,m=size(C)
 #     for k=1:n  # ROWS
 #         for l=max(1,k-A.l):min(k+A.u,size(A,2)) # columns of A
@@ -235,7 +210,7 @@ end
 
 function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range,::Colon)
     for k=kr,j=k+bandrange(B)
-        ibpluseq!(A,c*B[k,j],k,j)
+        unsafe_pluseq!(A,c*B[k,j],k,j)
     end
 
     A
