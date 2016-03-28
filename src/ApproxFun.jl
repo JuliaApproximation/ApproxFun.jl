@@ -9,7 +9,7 @@ import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
 
 
 import BandedMatrices: bzeros, bandinds, bandrange, unsafe_pluseq!, bmultiply!,
-                        PrintShow
+                        PrintShow, eachbandedindex
 
 export pad!,pad,sample,chop!,complexroots,roots,svfft, reverseorientation
 
