@@ -81,4 +81,4 @@ f = Fun(exp,d)
 @test rangespace(L) == Legendre(d)
 @test bandrange(V) == -1:0
 u = L\f
-@test norm(L*u-f) ≤ 10eps()
+@test norm(L*u-f) ≤ 20eps()
