@@ -3,4 +3,4 @@ FastGaussQuadrature 0.0.3
 Plots 0.5
 Compat 0.7.8
 DualNumbers 0.2.1
-BandedMatrices
+BandedMatrices 0.0.1
