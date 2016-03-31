@@ -107,3 +107,11 @@ D=Derivative(WeightedJacobi(.5,.5))
 g=(D*Fun(f,domainspace(D)))
 @test_approx_eq f'(0.1) g(0.1)
 
+## Test implementation of conversion between Chebyshev and Jacobi spaces using FastTransforms
+
+f = Fun(x->cospi(1000x))
+g = Fun(f,Legendre())
+h = Fun(g,Chebyshev())
+@test norm(f.coefficients-h.coefficients,Inf) < 10eps()
+h = Fun(h,Legendre())
+@test norm(g.coefficients-h.coefficients,Inf) < 100eps()
