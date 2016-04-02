@@ -117,7 +117,7 @@ function addentries!{λ,PS<:PolynomialSpace,D,T}(M::ConcreteMultiplication{Ultra
         J=subview(Recurrence(domainspace(M)),jkr,jkr)
         C1=2λ*J
         addentries!(C1,a[2],A,kr,:)
-        C0=isbaeye(jkr)
+        C0=isbeye(jkr)
 
         for k=1:length(a)-2
             C1,C0=2(k+λ)/(k+one(T))*J*C1-(k+2λ-one(T))/(k+one(T))*C0,C1
@@ -144,7 +144,7 @@ function addentries!{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplicati
         J=subview(Recurrence(sp),jkr,jkr)
         C1=J
         addentries!(C1,a[2],A,kr,:)
-        C0=isbaeye(jkr)
+        C0=isbeye(jkr)
 
         for k=1:length(a)-2
             C1,C0=2J*C1-C0,C1
@@ -164,6 +164,9 @@ end
 
 #Derivative(k::Integer,d::IntervalDomain)=Derivative(k-1:k,d)
 #Derivative(d::IntervalDomain)=Derivative(1,d)
+
+Derivative{λ,DD<:Interval}(sp::Ultraspherical{λ,DD},order::Integer)=ConcreteDerivative(sp,order)
+Integral{λ,DD<:Interval}(sp::Ultraspherical{λ,DD},order::Integer)=ConcreteIntegral(sp,order)
 
 
 rangespace{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=Ultraspherical{λ+D.order}(domain(D))

@@ -1,6 +1,5 @@
 using ApproxFun, Base.Test
-
-import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
+    import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
 
 
 @test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})(.1) exp(.1)
@@ -154,3 +153,9 @@ Fun(f,JacobiWeight(1.,0.,[0.,1.]))
 f=Fun(x->x+x^2,Hermite())
 @test_approx_eq f(1.) 2.
 
+
+
+## Arc exp
+
+z=Fun(identity,Arc(0.,.1,0.,π/2))
+@test_approx_eq exp(z)(0.1exp(0.2im)) exp(0.1exp(0.2im))

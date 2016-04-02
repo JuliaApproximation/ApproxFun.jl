@@ -24,35 +24,35 @@ Base.ndims{DT<:Domain}(::Type{DT})=ndims(super(DT))
 immutable AnyDomain <: Domain{UnsetNumber} end
 immutable EmptyDomain <: Domain{UnsetNumber} end
 
-isambiguous(::AnyDomain)=true
-Base.ndims(::AnyDomain)=1
+isambiguous(::AnyDomain) = true
+Base.ndims(::AnyDomain) = 1
 
-complexlength(::AnyDomain)=NaN
-Base.length(::AnyDomain)=NaN
+complexlength(::AnyDomain) = NaN
+Base.length(::AnyDomain) = NaN
 
-Base.reverse(a::Union{AnyDomain,EmptyDomain})=a
+Base.reverse(a::Union{AnyDomain,EmptyDomain}) = a
 
-canonicaldomain(a::Union{AnyDomain,EmptyDomain})=a
+canonicaldomain(a::Union{AnyDomain,EmptyDomain}) = a
 
-Base.in(x::Domain,::EmptyDomain)=false
+Base.in(x::Domain,::EmptyDomain) = false
 
 ##General routines
 
 
-Base.isempty(::EmptyDomain)=true
-Base.isempty(::Domain)=false
-Base.intersect(::Domain,::Domain)=EmptyDomain()
-\(a::Domain,b::Domain)=setdiff(a,b)
+Base.isempty(::EmptyDomain) = true
+Base.isempty(::Domain) = false
+Base.intersect(a::Domain,b::Domain) = a==b?a:EmptyDomain()
+\(a::Domain,b::Domain) = setdiff(a,b)
 
 ## Interval Domains
 
 abstract IntervalDomain{T} <: UnivariateDomain{T}
 
-canonicaldomain(::IntervalDomain)=Interval()
+canonicaldomain(::IntervalDomain) = Interval()
 
-Base.isapprox(a::Domain,b::Domain)=a==b
+Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
-domainscompatible(a::Domain,b::Domain)=isambiguous(a) || isambiguous(b) ||
+domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
                     isapprox(a,b) || isapprox(a,reverse(b))
 
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
@@ -179,7 +179,8 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 ## map domains
 # we auto vectorize arguments
 tocanonical(d::Domain,x...)=tocanonical(d,[x...])
-fromcanonical(d::Domain,v::Vector)=[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Domain,v::AbstractMatrix)=[fromcanonical(d,vk) for vk in v]
+
 
 mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
 invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)

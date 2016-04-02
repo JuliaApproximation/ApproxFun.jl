@@ -40,15 +40,15 @@ end
 blockbandzeros{T}(::Type{T},n,m::Colon,Al,Au,Bl,Bu)=blockbandzeros(T,n,n+Au,Al,Au,Bl,Bu)
 isblockbandzeros{T}(::Type{T},kr,m::Colon,Al,Au,Bl,Bu)=isblockbandzeros(T,kr,max(1,kr[1]-Al):kr[end]+Au,Al,Au,Bl,Bu)
 
-#TODO:  isbazeros{T}(::Type{T},kr::UnitRange,::Colon,l::Integer,u::Integer)=isbazeros(T,kr,max(1,kr[1]-l):kr[end]+u,l,u)
+#TODO:  isbzeros{T}(::Type{T},kr::UnitRange,::Colon,l::Integer,u::Integer)=isbzeros(T,kr,max(1,kr[1]-l):kr[end]+u,l,u)
 
 ##########
 # Convert a block banded matrix to a full matrix
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
 
-getindex{MT<:Matrix}(A::BandedMatrix{MT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
-getindex{BT<:BandedMatrix}(A::BandedMatrix{BT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?bazeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
+getindex{MT<:Matrix}(A::BandedMatrix{MT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?unsafe_getindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
+getindex{BT<:BandedMatrix}(A::BandedMatrix{BT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?unsafe_getindex(A,k,j):(j≤A.m?bzeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
 
 function Base.convert{MT<:Matrix,BM<:BandedMatrix}(::Type{MT},K::BandedMatrix{BM})
     n=size(K,1)
@@ -151,8 +151,8 @@ for TYP in (:Operator,:BandedOperator)
             if T==eltype(eltype(K))
                 K
             else
-                KroneckerOperator(convert(Operator{T},K.ops[1]),
-                        convert(Operator{T},K.ops[2]),
+                ops=convert(Operator{T},K.ops[1]),convert(Operator{T},K.ops[2])
+                KroneckerOperator{typeof(ops[1]),typeof(ops[2]),typeof(K.domainspace),typeof(K.rangespace),T}(ops,
                       K.domainspace,
                       K.rangespace)
             end
@@ -209,18 +209,18 @@ end
 addentries!(K::KroneckerOperator,A,kr::Range,::Colon)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
 
 
-bazeros{BT<:BandedMatrix}(K::Operator{BT},
+bzeros{BT<:BandedMatrix}(K::Operator{BT},
                           n::Integer,
                           ::Colon)=blockbandzeros(eltype(BT),n,:,bandinds(K),blockbandinds(K))
-bazeros{BT<:BandedMatrix}(K::Operator{BT},n::Integer,
+bzeros{BT<:BandedMatrix}(K::Operator{BT},n::Integer,
                           br::Tuple{Int,Int})=error("Fix call signature") #blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
 
 
-isbazeros{BT<:BandedMatrix}(K::Operator{BT},
+isbzeros{BT<:BandedMatrix}(K::Operator{BT},
                           rws::Range,
                           ::Colon)=isblockbandzeros(eltype(BT),rws,:,bandinds(K),blockbandinds(K))
 
-bazeros{BT<:BandedMatrix}(K::Operator{BT},rws::Range,
+bzeros{BT<:BandedMatrix}(K::Operator{BT},rws::Range,
                           br::Tuple{Int,Int})=error("Fix call signature")   # isblockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
 
 
@@ -246,7 +246,7 @@ function *{T<:BandedMatrix,V<:BandedMatrix}(A::BandedMatrix{T},B::BandedMatrix{V
     end
     n,m=size(A,1),size(B,2)
     error("Implement")
-    bamultiply!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
+    bmultiply!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
 function *{BM<:AbstractArray}(M::BandedMatrix{BM},v::Vector)
@@ -272,11 +272,13 @@ end
 function *{BM<:BandedMatrix}(A::BandedOperator{BM},b::Vector)
     n=size(b,1)
 
-    if n>0
+    ret=if n>0
         slice(A,:,1:totensorblock(n))*pad(b,fromtensorblock(totensorblock(n))[end])
     else
         b
     end
+
+    Fun(ret,rangespace(A))
 end
 
 
@@ -309,6 +311,10 @@ conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::Space)=a
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
 # TODO: we explicetly state type to avoid type inference bug in 0.4
+
+ConcreteConversion(a::BivariateSpace,b::BivariateSpace)=
+    ConcreteConversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
+
 Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(BandedMatrix{promote_type(eltype(a),eltype(b))},
                 KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
 
@@ -319,14 +325,14 @@ function Conversion(a::BivariateSpace,b::BivariateSpace)
     elseif conversion_type(a,b)==NoSpace()
         sp=canonicalspace(a)
         if typeof(sp) == typeof(a)
-            error("implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
+            error("Implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
         elseif typeof(sp) == typeof(b)
-            error("implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
+            error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
         else
             Conversion(a,sp,b)
         end
     else
-        ConcreteConversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
+        error("Implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
     end
 end
 
@@ -414,27 +420,35 @@ for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:Integr
     @eval Base.transpose(S::$TYP)=$TYP(transpose(S.op))
 end
 
-Base.transpose(S::TimesOperator)=TimesOperator(reverse!(map(transpose,S.ops)))
 
 Base.transpose(S::SpaceOperator)=SpaceOperator(transpose(S.op),domainspace(S).',rangespace(S).')
 Base.transpose(S::ConstantTimesOperator)=sp.c*S.op.'
 Base.transpose{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=C
- Base.transpose{V,T<:AbstractArray}(C::ZeroOperator{V,T},k)=C
+Base.transpose{V,T<:AbstractArray}(C::ZeroOperator{V,T},k)=C
 
 
 
 ### Calculus
 
 #TODO: general dimension
-function Derivative{SV,T}(S::TensorSpace{SV,T,2},order::Vector{Int})
+function Derivative{SV,TT}(S::TensorSpace{SV,TT,2},order::Vector{Int})
     @assert length(order)==2
     if order[1]==0
-        DerivativeWrapper(eye(S[1])⊗Derivative(S[2],order[2]),order)
+        Dy=Derivative(S[2],order[2])
+        K=eye(S[1])⊗Dy
+        T=eltype(Dy)
     elseif order[2]==0
-        DerivativeWrapper(Derivative(S[1],order[1])⊗eye(S[2]),order)
+        Dx=Derivative(S[1],order[1])
+        K=Dx⊗eye(S[2])
+        T=eltype(Dx)
     else
-        DerivativeWrapper(Derivative(S[1],order[1])⊗Derivative(S[2],order[2]),order)
+        Dx=Derivative(S[1],order[1])
+        Dy=Derivative(S[2],order[2])
+        K=Dx⊗Dy
+        T=promote_type(eltype(Dx),eltype(Dy))
     end
+    # try to work around type inference
+    DerivativeWrapper{typeof(K),typeof(domainspace(K)),Vector{Int},BandedMatrix{T}}(K,order)
 end
 
 

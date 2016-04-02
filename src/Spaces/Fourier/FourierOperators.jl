@@ -3,11 +3,14 @@
 ## Converison
 
 #ensure that COnversion is called
-coefficients{DD}(cfs::Vector,A::Fourier{DD},B::Laurent{DD})=Conversion(A,B)*cfs
-coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD})=Conversion(A,B)*cfs
+coefficients{DD}(cfs::Vector,A::Fourier{DD},B::Laurent{DD})=(Conversion(A,B)*cfs).coefficients
+coefficients{DD}(cfs::Vector,A::Laurent{DD},B::Fourier{DD})=(Conversion(A,B)*cfs).coefficients
 
 hasconversion{DD}(::Fourier{DD},::Laurent{DD})=true
 hasconversion{DD}(::Laurent{DD},::Fourier{DD})=true
+
+Conversion{DD}(a::Laurent{DD},b::Fourier{DD})=ConcreteConversion(a,b)
+Conversion{DD}(a::Fourier{DD},b::Laurent{DD})=ConcreteConversion(a,b)
 
 function addentries!{DD}(C::ConcreteConversion{Laurent{DD},Fourier{DD}},A,kr::Range,::Colon)
     for k=kr
@@ -67,6 +70,8 @@ end
 
 ### Cos/Sine
 
+
+Derivative(S::Union{CosSpace,SinSpace},order)=ConcreteDerivative(S,order)
 
 bandinds{CS<:CosSpace}(D::ConcreteDerivative{CS})=iseven(D.order)?(0,0):(0,1)
 bandinds{S<:SinSpace}(D::ConcreteDerivative{S})=iseven(D.order)?(0,0):(-1,0)
@@ -171,9 +176,16 @@ end
 
 # CosSpace Multiplicaiton is the same as Chebyshev
 
+
+Multiplication{CS<:CosSpace}(f::Fun{CS},sp::CS)=ConcreteMultiplication(f,sp)
+Multiplication{CS<:SinSpace}(f::Fun{CS},sp::CS)=ConcreteMultiplication(f,sp)
+Multiplication{CS<:CosSpace}(f::Fun{CS},sp::SinSpace)=ConcreteMultiplication(f,sp)
+Multiplication{CS<:SinSpace}(f::Fun{CS},sp::CosSpace)=ConcreteMultiplication(f,sp)
+
 bandinds{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
 rangespace{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp})=domainspace(M)
 addentries!{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp},A,kr::UnitRange,::Colon)=chebmult_addentries!(M.f.coefficients,A,kr)
+
 
 
 function addentries!{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp},A,kr::UnitRange,::Colon)

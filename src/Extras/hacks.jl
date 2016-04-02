@@ -102,7 +102,7 @@ promotedomainspace{CO<:ConstantOperator}(S::SpaceOperator{CO},sp::Space)=SpaceOp
 
 
 # this is a hack since it assumes the growth in the blocks
-function bazeros{T}(::Type{Matrix{T}},n::Integer,m::Integer,l::Integer,u::Integer)
+function bzeros{T}(::Type{Matrix{T}},n::Integer,m::Integer,l::Integer,u::Integer)
     ret=BandedMatrix(Matrix{T},n,m,l,u)
     for k=1:n,j=max(1,k-l):min(m,k+u)
         ret[k,j]=zeros(T,k,j)  #The ::Number works around an 0.4 bug

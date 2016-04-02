@@ -47,11 +47,15 @@ for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace)
         $TYP(sp::Array)=$TYP(tuple(sp...))
 
         canonicalspace(A::$TYP)=$TYP(sort([A.spaces...]))
-
-
-        setdomain(A::$TYP,d::Domain)=$TYP(map(sp->setdomain(sp,d),A.spaces))
     end
 end
+
+for TYP in (:SumSpace,:TupleSpace)
+    @eval setdomain(A::$TYP,d::Domain)=$TYP(map(sp->setdomain(sp,d),A.spaces))
+end
+
+setdomain(A::PiecewiseSpace,d::UnionDomain)=PiecewiseSpace(map((sp,dd)->setdomain(sp,dd),A.spaces,d.domains))
+
 
 
 function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
@@ -168,14 +172,15 @@ function evaluate(f::AbstractVector,S::PiecewiseSpace,x::Number)
     g=Fun(f,S)
 
 #    ret=zero(promote_type(eltype(f),eltype(S)))
-    for k=1:length(d)
+    for k=1:numpieces(d)
         if in(x,d[k])
             return g[k](x)
         end
     end
     return 0*first(g)
 end
-function evaluate(v::AbstractVector,S::PiecewiseSpace,x::Vector)
+
+function evaluate(v::AbstractVector,S::PiecewiseSpace,x::AbstractVector)
     f=Fun(v,S)
     [f(xk) for xk in x]
 end

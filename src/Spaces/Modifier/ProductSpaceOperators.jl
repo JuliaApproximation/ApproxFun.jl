@@ -160,7 +160,7 @@ for TYP in (:SumSpace,:PiecewiseSpace)
 
         else
             # we don't know how to convert so go to default
-            defaultconversion(S1,S2)
+            defaultConversion(S1,S2)
         end
     end
 end
@@ -242,7 +242,7 @@ function Derivative(S::SumSpace,k::Integer)
     if typeof(canonicaldomain(S))==typeof(domain(S))
         DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),SumSpace),k)
     else
-        defaultderivative(S,k)
+        defaultDerivative(S,k)
     end
 end
 

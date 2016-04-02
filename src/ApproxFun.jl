@@ -1,12 +1,16 @@
 __precompile__()
 
 module ApproxFun
-    using Base, Compat, Plots, FastGaussQuadrature, DualNumbers
+    using Base, Compat, Plots, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices
+
 
 
 import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
                 >=,./,/,.^,^,\,∪,transpose
 
+
+import BandedMatrices: bzeros, bandinds, bandrange, unsafe_pluseq!, bmultiply!,
+                        PrintShow, eachbandedindex, unsafe_getindex, unsafe_setindex!
 
 export pad!,pad,sample,chop!,complexroots,roots,svfft, reverseorientation
 

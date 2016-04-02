@@ -29,25 +29,25 @@ rangespace(C::ConcreteConversion)=C.rangespace
 
 
 
-function defaultconversion(a::Space,b::Space)
+function defaultConversion(a::Space,b::Space)
     if a==b
-        ConversionWrapper(eye(a))
+        Conversion(a)
     elseif conversion_type(a,b)==NoSpace()
         sp=canonicalspace(a)
         if typeof(sp) == typeof(a)
-            error("implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
+            error("Implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
         elseif typeof(sp) == typeof(b)
-            error("implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
+            error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
         else
             Conversion(a,sp,b)
         end
     else
-        ConcreteConversion(a,b)
+        error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(b)))
     end
 end
 
-Conversion(a::Space,b::Space)=defaultconversion(a,b)
-
+Conversion(a::Space,b::Space)=defaultConversion(a,b)
+Conversion(a::Space)=ConversionWrapper(eye(a))
 Conversion()=ConversionWrapper(eye(UnsetSpace()))
 
 

@@ -72,6 +72,19 @@ function unsafe_getindex{T,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret
 end
 
+function getindex{T<:Number,R}(B::FillMatrix{T,R},kr::Range,j::Integer)
+    ret = zeros(T,length(kr))
+
+    for m=1:B.numbcs
+        @assert j <= B.bc[m].datalength #TODO: temporary for debugging
+
+        bcv = B.bc[m].data[j]
+        fd=B.data[kr,m]
+        ret += fd*bcv
+    end
+
+    ret
+end
 
 function resizedata!{T}(B::FillMatrix{T},n)
     nbc=B.numbcs
@@ -118,7 +131,7 @@ function MutableOperator{R<:Functional}(bc::Vector{R},op::BandedOperator)
     nbc = length(bc)
 
     br=((bndinds[1]-nbc),(bndindslength-1))
-    data = bazeros(op,nbc+100-br[1],:,br)
+    data = bzeros(op,nbc+100-br[1],:,br)
 
      # do all columns in the row, +1 for the fill
     fl=FillMatrix(eltype(data),bc,br[end]+1)
@@ -152,7 +165,7 @@ function Base.getindex{T<:Number,M,R}(B::MutableOperator{T,M,R},kr::UnitRange,jr
     for k = kr
         if k <= B.datalength
             for j=jr
-                ret[k,j] = B[k,j]
+                ret[k-kr[1]+1,j-jr[1]+1] = B[k,j]
             end
         else
             ir = B.bandinds

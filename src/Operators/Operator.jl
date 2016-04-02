@@ -84,17 +84,17 @@ Base.isdiag(A::BandedOperator)=bandinds(A)==(0,0)
 
 
 
-bazeros(B::Operator,n::Integer,m::Integer)=bazeros(eltype(B),n,m,bandinds(B))
-bazeros(B::Operator,n::Integer,m::Colon)=bazeros(eltype(B),n,m,bandinds(B))
-bazeros(B::Operator,n::Integer,m::Colon,br::Tuple{Int,Int})=bazeros(eltype(B),n,m,br)
-isbazeros(B::Operator,rws::Range,::Colon)=isbazeros(eltype(B),rws,:,bandinds(B))
+bzeros(B::Operator,n::Integer,m::Integer)=bzeros(eltype(B),n,m,bandinds(B))
+bzeros(B::Operator,n::Integer,m::Colon)=bzeros(eltype(B),n,m,bandinds(B))
+bzeros(B::Operator,n::Integer,m::Colon,br::Tuple{Int,Int})=bzeros(eltype(B),n,m,br)
+isbzeros(B::Operator,rws::Range,::Colon)=isbzeros(eltype(B),rws,:,bandinds(B))
 
-BandedMatrix(B::Operator,n::Integer)=addentries!(B,bazeros(B,n,:),1:n,:)
+BandedMatrix(B::Operator,n::Integer)=addentries!(B,bzeros(B,n,:),1:n,:)
 function BandedMatrix(B::Operator,rws::UnitRange,::Colon)
     if first(rws)==1
         BandedMatrix(B,last(rws))
     else
-        addentries!(B,isbazeros(B,rws,:),rws,:).matrix
+        addentries!(B,isbzeros(B,rws,:),rws,:).matrix
     end
 end
 
@@ -112,7 +112,7 @@ function BandedMatrix(B::Operator,kr::StepRange,::Colon)
         jr=max(stp-mod(kr[1],stp),kr[1]+bandinds(B,1)):stp:kr[end]+bandinds(B,2)
         shf=div(first(kr)-first(jr),stp)
         bi=div(bandinds(B,1),stp)+shf,div(bandinds(B,2),stp)+shf
-        A=bazeros(eltype(B),length(kr),length(jr),bi)
+        A=bzeros(eltype(B),length(kr),length(jr),bi)
         addentries!(B,IndexSlice(A,first(kr)-stp,first(jr)-stp,stp,stp),kr,:)
         A
     end

@@ -100,6 +100,16 @@ end
 ## Conversion
 
 coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace)=defaultcoefficients(cfsin,A,B)
+
+
+# We implemnt conversion between continuous space and PiecewiseSpace with Chebyshev dirichlet
+Conversion{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(ps::PiecewiseSpace{CD,RealBasis,DD,1},cs::ContinuousSpace)=
+                ConcreteConversion(ps,cs)
+
+Conversion{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(cs::ContinuousSpace,ps::PiecewiseSpace{CD,RealBasis,DD,1})=
+                ConcreteConversion(cs,ps)
+
+
 bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::ConcreteConversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace})=-1,numpieces(domain(rangespace(C)))
 
 function addentries!{T,DD,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(C::ConcreteConversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace,T},A,kr::Range,::Colon)
