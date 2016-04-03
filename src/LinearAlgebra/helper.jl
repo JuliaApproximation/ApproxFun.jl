@@ -13,8 +13,8 @@ else
 end
 
 
-isapprox(a...)=Base.isapprox(a...)
-isapprox(a::Vec,b::Vec)=isapprox([a...],[b...])
+isapprox(a...;kwds...)=Base.isapprox(a...;kwds...)
+isapprox(a::Vec,b::Vec;kwds...)=isapprox([a...],[b...];kwds...)
 
 # This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
 # which we override for default julia types
