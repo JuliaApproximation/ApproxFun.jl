@@ -5,6 +5,14 @@ import Base.chop
 immutable UnsetNumber <: Number  end
 Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
 
+# Test the number of arguments a function takes
+if VERSION < v"0.5.0-dev"
+    hasnumargs(f,k)=(isgeneric(f)&&applicable(f,zeros(k)...)) || (!isgeneric(f)&&arglength(f)==k)
+else
+    hasnumargs(f,k)=applicable(f,zeros(k)...)
+end
+
+
 isapprox(a...)=Base.isapprox(a...)
 isapprox(a::Vec,b::Vec)=isapprox([a...],[b...])
 

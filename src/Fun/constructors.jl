@@ -187,12 +187,15 @@ end
 
 function Fun(f, d::Space; method="zerocoefficients")
     T = eltype(domain(d))
+
     if f==identity
         identity_fun(d)
     elseif f==zero # zero is always defined
         zeros(T,d)
     elseif f==one
         ones(T,d)
+    elseif T<:Vec && !hasnumargs(f,1)  # Splat out Vec
+        Fun(xy->f(xy...),d;method=method)
     elseif !isinf(dimension(d))
         Fun(f,d,dimension(d))  # use exactly dimension number of sample points
     elseif method == "zerocoefficients"
