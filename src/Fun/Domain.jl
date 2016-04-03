@@ -85,7 +85,8 @@ function Base.in(x,d::IntervalDomain)
     y=tocanonical(d,x)
     ry=real(y)
     sc=norm(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
-    abs(imag(y))≤100eps(T)/sc && -one(T)-100eps(T)/sc≤ry≤one(T)+100eps(T)/sc
+    isapprox(fromcanonical(d,y),x) &&
+        -one(T)-100eps(T)/sc≤ry≤one(T)+100eps(T)/sc
 end
 
 pieces(d::Domain)=[d]
@@ -178,7 +179,7 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 
 ## map domains
 # we auto vectorize arguments
-tocanonical(d::Domain,x...)=tocanonical(d,[x...])
+tocanonical(d::Domain,x,y,z...)=tocanonical(d,Vec(x,y,z...))
 fromcanonical(d::Domain,v::AbstractMatrix)=[fromcanonical(d,vk) for vk in v]
 
 

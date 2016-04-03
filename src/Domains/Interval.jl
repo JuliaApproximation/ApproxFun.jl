@@ -5,8 +5,8 @@ export Interval
 
 
 ## Standard interval
-
-immutable Interval{T} <: IntervalDomain{T}  #repeat <:Number due to Julia issue #9441
+# T Must be a Vector space
+immutable Interval{T} <: IntervalDomain{T}
 	a::T
 	b::T
 	Interval()=new(-one(T),one(T))
@@ -16,6 +16,7 @@ end
 Interval()=Interval{Float64}()
 Interval(a::Int,b::Int) = Interval(Float64(a),Float64(b)) #convenience method
 Interval(a,b) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
+Interval(a::Tuple,b::Tuple)=Interval(Vec(a...),Vec(b...))
 
 function Interval{T<:Number}(d::AbstractVector{T})
     @assert length(d)==2
@@ -45,13 +46,12 @@ Base.issubset(a::Interval,b::Interval)=first(a)∈b && last(a)∈b
 
 
 ## Map interval
-
+# The first definition  is the more general
 
 tocanonical{T}(d::Interval{T},x::T)=2norm(x-d.a)/length(d)-1
-
-tocanonical(d::Interval,x::Vector)=(d.a + d.b - 2x)/(d.a - d.b)
-tocanonical(d::Interval,x::Number)=(d.a + d.b - 2x)/(d.a - d.b)
-tocanonicalD(d::Interval,x::Number)=2/( d.b- d.a)
+tocanonical{T<:Complex}(d::Interval{T},x::Number)=2norm(x-d.a)/length(d)-1
+tocanonical{T<:Real}(d::Interval{T},x)=(d.a + d.b - 2x)/(d.a - d.b)
+tocanonicalD{T<:Real}(d::Interval{T},x)=2/( d.b- d.a)
 fromcanonical(d::Interval,x)=(d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonicalD(d::Interval,x)=( d.b- d.a) / 2
 
