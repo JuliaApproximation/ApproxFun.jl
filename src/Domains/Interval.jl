@@ -146,8 +146,7 @@ end
 
 ## Multivariate
 
-tocanonical{V<:AbstractVector}(d::Interval{V},x::Number)=first(d.a + d.b - 2x)/first(d.a - d.b)
-fromcanonical{V<:AbstractVector}(d::Interval{V},p::AbstractVector)=V[fromcanonical(d,x) for x in p]
+fromcanonical{V<:Vec}(d::Interval{V},p::AbstractVector)=V[fromcanonical(d,x) for x in p]
 
 
 

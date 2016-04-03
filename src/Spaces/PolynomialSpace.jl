@@ -17,7 +17,7 @@ Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T})=Fun{S,
 
 ## Evaluation
 
-function evaluate(f::AbstractVector,S::PolynomialSpace,x::Number)
+function evaluate(f::AbstractVector,S::PolynomialSpace,x)
     if x in domain(S)
         clenshaw(S,f,tocanonical(S,x))
     else
@@ -28,14 +28,8 @@ end
 evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->evaluate(f,S,y),x)
 
 # we need the ... for multi-dimensional
-function evaluate(f::AbstractVector,S::PolynomialSpace,x,y...)
-    z=[x;y...]
-    if z in domain(S)
-        clenshaw(S,f,tocanonical(S,z))
-    else
-        zero(eltype(f))
-    end
-end
+evaluate(f::AbstractVector,S::PolynomialSpace,x,y,z...)=
+    evaluate(f,S,Vec(x,y,z...))
 
 #evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->evaluate(f,S,y),x)
 

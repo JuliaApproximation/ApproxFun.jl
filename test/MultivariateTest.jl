@@ -93,3 +93,13 @@ B=ldirichlet(d)
 f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
 @test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<20000eps()
 @test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<20000eps()
+
+
+
+## 1D in 2D
+
+d=Interval((0.,0.),(1.,1.))
+f=Fun(xy->exp(-xy[1]-2cos(xy[2])),d)
+@test_approx_eq f(0.5,0.5) exp(-0.5-2cos(0.5))
+
+
