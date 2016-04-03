@@ -47,9 +47,9 @@ Base.issubset(a::Interval,b::Interval)=first(a)∈b && last(a)∈b
 ## Map interval
 
 
-tocanonical(d::Interval,x)=2norm(x-d.a)/length(d)-1
+tocanonical{T}(d::Interval{T},x::T)=2norm(x-d.a)/length(d)-1
 
-
+tocanonical(d::Interval,x::Vector)=(d.a + d.b - 2x)/(d.a - d.b)
 tocanonical(d::Interval,x::Number)=(d.a + d.b - 2x)/(d.a - d.b)
 tocanonicalD(d::Interval,x::Number)=2/( d.b- d.a)
 fromcanonical(d::Interval,x)=(d.a + d.b)/2 + (d.b - d.a)x/2
@@ -146,7 +146,7 @@ end
 
 ## Multivariate
 
-tocanonical{V<:AbstractVector}(d::Interval{V},x)=first(d.a + d.b - 2x)/first(d.a - d.b)
+tocanonical{V<:AbstractVector}(d::Interval{V},x::Number)=first(d.a + d.b - 2x)/first(d.a - d.b)
 fromcanonical{V<:AbstractVector}(d::Interval{V},p::AbstractVector)=V[fromcanonical(d,x) for x in p]
 
 
