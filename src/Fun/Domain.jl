@@ -107,6 +107,10 @@ fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/
 
 function Base.in{T}(x,d::PeriodicDomain{T})
     y=tocanonical(d,x)
+    if !isapprox(fromcanonical(d,y),x)
+        return false
+    end
+
     l=length(d)
     if isinf(l)
         abs(imag(y))<20eps(T) && -π-2eps(T)<real(y)<π+2eps(T)
