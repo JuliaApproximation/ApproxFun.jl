@@ -16,8 +16,8 @@ Base.promote_rule{T<:Number,S<:PolynomialSpace,V}(::Type{Fun{S,V}},::Type{T})=Fu
 Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T})=Fun{S,T}
 
 ## Evaluation
-# we need the ... for multi-dimensional
-function evaluate(f::AbstractVector,S::PolynomialSpace,x)
+
+function evaluate(f::AbstractVector,S::PolynomialSpace,x::Number)
     if x in domain(S)
         clenshaw(S,f,tocanonical(S,x))
     else
@@ -25,6 +25,9 @@ function evaluate(f::AbstractVector,S::PolynomialSpace,x)
     end
 end
 
+evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->evaluate(f,S,y),x)
+
+# we need the ... for multi-dimensional
 function evaluate(f::AbstractVector,S::PolynomialSpace,x,y...)
     z=[x;y...]
     if z in domain(S)
