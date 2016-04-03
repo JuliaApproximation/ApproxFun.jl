@@ -6,18 +6,25 @@ export Circle
 ##  Circle
 
 
-immutable Circle{T<:Number,V<:Real} <: PeriodicDomain{Complex{V}}
+# T Must be in an Algebra
+immutable Circle{T,V<:Real,TT} <: PeriodicDomain{TT}
 	center::T
 	radius::V
 	orientation::Bool
+
 end
 
-Circle{T1<:Number,T2<:Number,V<:Real}(::Type{T1},c::T2,r::V,o::Bool) = Circle(convert(promote_type(T1,T2,V),c),
-																	  convert(promote_type(real(T1),real(T2),V),r),o)
-Circle{T1<:Number}(::Type{T1},c::Number,r::Real)=Circle(T1,c,r)
-Circle(c::Number,r::Real)=Circle(c,r,true)
+Circle(c::Number,r::Real,o::Bool)=Circle{typeof(c),typeof(r),Complex{typeof(r)}}(c,r,o)
+Circle(c::Vec,r::Real,o::Bool)=Circle{typeof(c),typeof(r),typeof(c)}(c,r,o)
+
+Circle{T1,T2,V<:Real}(::Type{T1},c::T2,r::V,o::Bool) = Circle(convert(promote_type(T1,T2,V),c),
+															  convert(promote_type(real(T1),real(T2),V),r),o)
+Circle{T1<:Number}(::Type{T1},c,r::Bool)=Circle(T1,c,r)
+Circle{T1<:Number}(::Type{T1},c,r::Real)=Circle(T1,c,r)
+Circle(c,r::Real)=Circle(c,r,true)
 Circle(r::Real) = Circle(zero(r),r)
 Circle(r::Int)=Circle(Float64,0.,r)
+Circle(a::Tuple,r::Real)=Circle(Vec(a...),r)
 
 Circle{V<:Real}(::Type{V}) = Circle(one(V))
 Circle()=Circle(1.)
@@ -25,18 +32,26 @@ Circle()=Circle(1.)
 
 
 isambiguous(d::Circle)=isnan(d.center) && isnan(d.radius)
-Base.convert{T<:Number,V<:Number}(::Type{Circle{T,V}},::AnyDomain)=Circle{T,V}(NaN,NaN)
+Base.convert{T<:Number,V<:Real}(::Type{Circle{T,V}},::AnyDomain)=Circle{T,V}(NaN,NaN)
 Base.convert{IT<:Circle}(::Type{IT},::AnyDomain)=Circle(NaN,NaN)
 
 
-function tocanonical(d::Circle,ζ)
-    v=mappoint(d,Circle(),ζ)- 0.im#Subtract 0.im so branch cut is right
-    -1.im.*log(v)
+function tocanonical{T<:Number}(d::Circle{T},ζ)
+    v=mappoint(d,Circle(),ζ)
+    atan2(imag(v)-0.0,real(v))  # -0.0 to get branch cut right
 end
 
-tocanonicalD(d::Circle,ζ)=-1.im./(ζ-d.center)  #TODO: Check formula
-fromcanonical(d::Circle,θ)=d.radius*exp((d.orientation?1:-1)*1.im*θ) + d.center
-fromcanonicalD(d::Circle,θ)=(d.orientation?1:-1)*d.radius*1.im*exp((d.orientation?1:-1)*1.im*θ)
+function tocanonical{T<:Vec}(d::Circle{T},ζ)
+    v=mappoint(d,Circle((0.,0.),1.),ζ)
+    atan2(v[2]-0.0,v[1])  # -0.0 to get branch cut right
+end
+
+fromcanonical{T<:Number}(d::Circle{T},θ)=d.radius*exp((d.orientation?1:-1)*1.im*θ) + d.center
+fromcanonicalD{T<:Number}(d::Circle{T},θ)=(d.orientation?1:-1)*d.radius*1.im*exp((d.orientation?1:-1)*1.im*θ)
+
+
+fromcanonical{T<:Vec}(d::Circle{T},θ::Number)=d.radius*Vec(cos((d.orientation?1:-1)*θ),sin((d.orientation?1:-1)*θ)) + d.center
+fromcanonicalD{T<:Vec}(d::Circle{T},θ::Number)=d.radius*(d.orientation?1:-1)*Vec(-sin((d.orientation?1:-1)*θ),cos((d.orientation?1:-1)*θ))
 
 
 Base.in(z,d::Circle)=isapprox(abs(z-d.center),d.radius)
