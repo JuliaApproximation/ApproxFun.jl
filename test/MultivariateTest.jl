@@ -116,7 +116,7 @@ f=Fun((x,y)->exp(-x-2cos(y)),d,20)
 d=Circle((0.,0.),1.)
 f=Fun(xy->exp(-xy[1]-2cos(xy[2])),Fourier(d),40)
 @test_approx_eq f(cos(0.1),sin(0.1)) exp(-cos(0.1)-2cos(sin(0.1)))
-@test_approx_eq f(Vec(cos(0.1),sin(0.1))) exp(-cos(0.1)-2cos(sin(0.1)))
+@test_approx_eq f(FixedSizeArrays.Vec(cos(0.1),sin(0.1))) exp(-cos(0.1)-2cos(sin(0.1)))
 
 f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d),40)
 @test_approx_eq f(cos(0.1),sin(0.1)) exp(-cos(0.1)-2cos(sin(0.1)))
