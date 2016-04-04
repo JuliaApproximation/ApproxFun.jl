@@ -70,7 +70,7 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(eltype(T)),n))  # eltype to handle point
+points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
 
 points(d::AbstractVector,n::Integer)=points(convert(Domain,d),n)
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
@@ -80,11 +80,13 @@ Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
 Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
 
 Base.in(x,::AnyDomain)=true
-function Base.in{T}(x,d::IntervalDomain{T})
+function Base.in(x,d::IntervalDomain)
+    T=real(eltype(eltype(eltype(d))))
     y=tocanonical(d,x)
     ry=real(y)
-    sc=abs(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
-    abs(imag(y))≤100eps(T)/sc && -one(real(T))-100eps(T)/sc≤ry≤one(real(T))+100eps(T)/sc
+    sc=norm(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
+    isapprox(fromcanonical(d,y),x) &&
+        -one(T)-100eps(T)/sc≤ry≤one(T)+100eps(T)/sc
 end
 
 pieces(d::Domain)=[d]
@@ -97,7 +99,7 @@ abstract PeriodicDomain{T} <: UnivariateDomain{T}
 
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
-points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(T,n))
+points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(real(eltype(eltype(T))),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/n
@@ -105,6 +107,10 @@ fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/
 
 function Base.in{T}(x,d::PeriodicDomain{T})
     y=tocanonical(d,x)
+    if !isapprox(fromcanonical(d,y),x)
+        return false
+    end
+
     l=length(d)
     if isinf(l)
         abs(imag(y))<20eps(T) && -π-2eps(T)<real(y)<π+2eps(T)
@@ -163,8 +169,8 @@ domain(::Number)=AnyDomain()
 Base.rand(d::IntervalDomain,k...)=fromcanonical(d,2rand(k...)-1)
 Base.rand(d::PeriodicDomain,k...)=fromcanonical(d,2π*rand(k...)-π)
 
-checkpoints(d::IntervalDomain)=fromcanonical(d,eltype(d)[-0.823972,0.3273484])
-checkpoints(d::PeriodicDomain)=fromcanonical(d,eltype(d)[1.223972,-2.83273484])
+checkpoints(d::IntervalDomain)=fromcanonical(d,[-0.823972,0.3273484])
+checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 
 ## boundary
 
@@ -176,8 +182,10 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,eltype(d)[1.223972,-2.83273484])
 
 
 ## map domains
+# we auto vectorize arguments
+tocanonical(d::Domain,x,y,z...)=tocanonical(d,Vec(x,y,z...))
+fromcanonical(d::Domain,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
 
-fromcanonical(d::Domain,v::AbstractMatrix)=[fromcanonical(d,vk) for vk in v]
 
 mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
 invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
@@ -186,8 +194,10 @@ invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
 
 ## domains in higher dimensions
 
-points{T<:Array}(d::IntervalDomain{T},n::Integer) = T[fromcanonical(d,x) for x in chebyshevpoints(real(eltype(T)),n)]
+fromcanonical{V<:Vec}(d::Domain{V},p::AbstractVector)=V[fromcanonical(d,x) for x in p]
 
+# points{T<:Array}(d::IntervalDomain{T},n::Integer) = T[fromcanonical(d,x) for x in chebyshevpoints(real(eltype(T)),n)]
+# points{T<:Array}(d::PeriodicDomain{T},n::Integer) = T[fromcanonical(d,x) for x in fourierpoints(real(eltype(T)),n)]
 
 ## sorting
 # we sort spaces lexigraphically by default

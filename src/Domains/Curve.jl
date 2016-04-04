@@ -34,7 +34,7 @@ end
 canonicaldomain(c::Curve)=domain(c.curve)
 
 
-fromcanonical(c::Curve,x)=c.curve(x)
+fromcanonical{S<:Space,T<:Number}(c::Curve{S,T},x)=c.curve(x)
 function tocanonical(c::Curve,x)
     rts=roots(c.curve-x)
     @assert length(rts)==1

@@ -187,7 +187,7 @@ end
 # diff T -> U, then convert U -> T
 integrate{D<:Interval}(f::Fun{Chebyshev{D}})=Fun(fromcanonicalD(f,0)*
                     ultraint!(ultraconversion(f.coefficients)),f.space)
-differentiate{D<:Interval}(f::Fun{Chebyshev{D}})=Fun(tocanonicalD(f,0)*
+differentiate{D<:Interval}(f::Fun{Chebyshev{D}})=Fun(1/fromcanonicalD(f,0)*
                                         ultraiconversion(ultradiff(f.coefficients)),f.space)
 
 ## identity_fun

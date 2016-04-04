@@ -15,7 +15,25 @@ for op in (:/,:./)
     @eval $op(d::Point,c::Number)=Point($op(d.x,c))
 end
 
+for op in (:+,:-,:.+,:.-)
+    @eval $op(a::Point,b::Point)=Point($op(a.x,b.x))
+end
+
+
+for op in (:*,:+)
+    @eval begin
+        $op(a::Point,v::Vector)=map(y->$op(a,y),v)
+        $op(v::Vector,a::Point)=map(y->$op(y,a),v)
+    end
+end
+
+Base.norm(p::Point)=norm(p.x)
+
+Base.getindex(p::Point,k...)=p.x[k...]
+
 Base.in(x,d::Point)=isapprox(x,d.x)
+
+Base.isnan(d::Point)=false
 
 Base.issubset(a::Point,d::UnionDomain)=a.x in d
 Base.issubset(a::Point,b::Domain)=a.x in b

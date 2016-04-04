@@ -117,7 +117,8 @@ function evaluate(f::AbstractVector,S::Space,x...)
     end
 end
 
-evaluate(f::Fun,x...)=evaluate(f.coefficients,f.space,x...)
+evaluate(f::Fun,x)=evaluate(f.coefficients,f.space,x)
+evaluate(f::Fun,x,y,z...)=evaluate(f.coefficients,f.space,Vec(x,y,z...))
 
 
 Base.call(f::Fun,x...)=evaluate(f,x...)

@@ -5,6 +5,17 @@ import Base.chop
 immutable UnsetNumber <: Number  end
 Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
 
+# Test the number of arguments a function takes
+if VERSION < v"0.5.0-dev"
+    hasnumargs(f,k)=(isgeneric(f)&&applicable(f,zeros(k)...)) || (!isgeneric(f)&&arglength(f)==k)
+else
+    hasnumargs(f,k)=applicable(f,zeros(k)...)
+end
+
+
+isapprox(a...;kwds...)=Base.isapprox(a...;kwds...)
+isapprox(a::Vec,b::Vec;kwds...)=isapprox([a...],[b...];kwds...)
+
 # This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
 # which we override for default julia types
 real(x...)=Base.real(x...)
@@ -17,7 +28,9 @@ real{T<:Complex,n}(::Type{Array{T,n}})=Array{real(T),n}
 eps(x...)=Base.eps(x...)
 eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
 eps{T<:Real}(z::Complex{T})=eps(abs(z))
-eps{T<:Number}(z::Type{Vector{T}})=eps(T)
+eps{T<:Number}(::Type{Vector{T}})=eps(T)
+eps{k,T<:Number}(::Type{Vec{k,T}})=eps(T)
+
 
 dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)

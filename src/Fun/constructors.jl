@@ -39,13 +39,19 @@ end
 
 function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
     pts=points(d, n)
+    if !hasnumargs(f,1)  # Splat out Vec
+        return Fun(xy->f(xy...),d,n)
+    end
+
     f1=f(pts[1])
 
     if isa(f1,Array) && !isa(d,ArraySpace)
         return Fun(f,ArraySpace(d,size(f1)...),n)
     end
 
-    Tprom=choosefuneltype(typeof(f1),eltype(domain(d)))
+
+    # we need 3 eltype calls for the case Interval(Point([1.,1.]))
+    Tprom=choosefuneltype(typeof(f1),eltype(eltype(eltype(domain(d)))))
 
 
     vals=Tprom[f(x) for x in pts]
@@ -185,12 +191,15 @@ end
 
 function Fun(f, d::Space; method="zerocoefficients")
     T = eltype(domain(d))
+
     if f==identity
         identity_fun(d)
     elseif f==zero # zero is always defined
         zeros(T,d)
     elseif f==one
         ones(T,d)
+    elseif !hasnumargs(f,1)  # Splat out Vec
+        Fun(xy->f(xy...),d;method=method)
     elseif !isinf(dimension(d))
         Fun(f,d,dimension(d))  # use exactly dimension number of sample points
     elseif method == "zerocoefficients"
