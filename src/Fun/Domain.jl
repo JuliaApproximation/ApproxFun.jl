@@ -99,7 +99,7 @@ abstract PeriodicDomain{T} <: UnivariateDomain{T}
 
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
-points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(T,n))
+points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(real(eltype(eltype(T))),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/n

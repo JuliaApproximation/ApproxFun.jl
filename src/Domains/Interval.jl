@@ -52,7 +52,8 @@ tocanonical{T}(d::Interval{T},x::T)=2norm(x-d.a)/length(d)-1
 tocanonical{T<:Complex}(d::Interval{T},x::Number)=2norm(x-d.a)/length(d)-1
 tocanonical{T<:Real}(d::Interval{T},x)=(d.a + d.b - 2x)/(d.a - d.b)
 tocanonicalD{T<:Real}(d::Interval{T},x)=2/( d.b- d.a)
-fromcanonical(d::Interval,x)=(d.a + d.b)/2 + (d.b - d.a)x/2
+fromcanonical{T<:Number}(d::Interval{T},x)=(d.a + d.b)/2 + (d.b - d.a)x/2
+fromcanonical{T<:Vec}(d::Interval{T},x::Number)=(d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonicalD(d::Interval,x)=( d.b- d.a) / 2
 
 

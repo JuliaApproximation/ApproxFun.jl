@@ -39,6 +39,10 @@ end
 
 function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
     pts=points(d, n)
+    if !hasnumargs(f,1)  # Splat out Vec
+        return Fun(xy->f(xy...),d,n)
+    end
+
     f1=f(pts[1])
 
     if isa(f1,Array) && !isa(d,ArraySpace)
@@ -194,7 +198,7 @@ function Fun(f, d::Space; method="zerocoefficients")
         zeros(T,d)
     elseif f==one
         ones(T,d)
-    elseif T<:Vec && !hasnumargs(f,1)  # Splat out Vec
+    elseif !hasnumargs(f,1)  # Splat out Vec
         Fun(xy->f(xy...),d;method=method)
     elseif !isinf(dimension(d))
         Fun(f,d,dimension(d))  # use exactly dimension number of sample points

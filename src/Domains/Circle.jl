@@ -31,7 +31,8 @@ Circle()=Circle(1.)
 
 
 
-isambiguous(d::Circle)=isnan(d.center) && isnan(d.radius)
+isambiguous{T<:Number}(d::Circle{T})=isnan(d.center) && isnan(d.radius)
+isambiguous{T<:Vec}(d::Circle{T})=all(isnan,d.center) && isnan(d.radius)
 Base.convert{T<:Number,V<:Real}(::Type{Circle{T,V}},::AnyDomain)=Circle{T,V}(NaN,NaN)
 Base.convert{IT<:Circle}(::Type{IT},::AnyDomain)=Circle(NaN,NaN)
 
@@ -46,7 +47,7 @@ function tocanonical{T<:Vec}(d::Circle{T},ζ)
     atan2(v[2]-0.0,v[1])  # -0.0 to get branch cut right
 end
 
-fromcanonical{T<:Number}(d::Circle{T},θ)=d.radius*exp((d.orientation?1:-1)*1.im*θ) + d.center
+fromcanonical{T<:Number,V<:Real}(d::Circle{T,V,Complex{V}},θ)=d.radius*exp((d.orientation?1:-1)*1.im*θ) + d.center
 fromcanonicalD{T<:Number}(d::Circle{T},θ)=(d.orientation?1:-1)*d.radius*1.im*exp((d.orientation?1:-1)*1.im*θ)
 
 
