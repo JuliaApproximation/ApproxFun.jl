@@ -1,46 +1,5 @@
 typealias BigFloats Union{BigFloat,Complex{BigFloat}}
 
-
-
-# The following implements Bluestein's algorithm, following http://www.dsprelated.com/dspbooks/mdft/Bluestein_s_FFT_Algorithm.html
-# To add more types, add them in the union of the function's signature.
-function Base.fft{T<:BigFloats}(x::Vector{T})
-    n = length(x)
-    if ispow2(n) return fft_pow2(x) end
-    ks = linspace(zero(real(T)),n-one(real(T)),n)
-    Wks = exp(-im*convert(T,π)*ks.^2/n)
-    xq,wq = x.*Wks,conj([exp(-im*convert(T,π)*n);reverse(Wks);Wks[2:end]])
-    return Wks.*conv(xq,wq)[n+1:2n]
-end
-
-# add rfft for BigFloat, by calling fft
-#  this creates ToeplitzMatrices.rfft, so avoids changing Base.rfft
-Base.rfft{T<:BigFloats}(v::Vector{T})=fft(v)[1:div(length(v),2)+1]
-function Base.irfft{T<:BigFloats}(v::Vector{T},n::Integer)
-    @assert n==2length(v)-1
-    r=Array(Complex{BigFloat},n)
-    r[1:length(v)]=v
-    r[length(v)+1:end]=reverse(conj(v[2:end]))
-    real(ifft(r))
-end
-
-Base.ifft{T<:BigFloats}(x::Vector{T}) = conj(fft(conj(x)))/length(x)
-function Base.ifft!{T<:BigFloats}(x::Vector{T})
-    y = conj(fft(conj(x)))/length(x)
-    x[:] = y
-    return x
-end
-
-function Base.conv{T<:BigFloats}(u::StridedVector{T}, v::StridedVector{T})
-    nu,nv = length(u),length(v)
-    n = nu + nv - 1
-    np2 = nextpow2(n)
-    pad!(u,np2),pad!(v,np2)
-    y = ifft_pow2(fft_pow2(u).*fft_pow2(v))
-    #TODO This would not handle Dual/ComplexDual numbers correctly
-    y = T<:Real ? real(y[1:n]) : y[1:n]
-end
-
 function Base.fft{F<:Fun}(x::Vector{F})
     n,T = length(x),mapreduce(eltype,promote_type,x)
     if ispow2(n) return fft_pow2(x) end
@@ -73,28 +32,6 @@ end
 ######################################################################
 
 # plan_fft for BigFloats (covers Laurent svfft)
-
-# dummy plans
-type DummyFFTPlan{T} <: Base.DFT.Plan{T} end
-type DummyiFFTPlan{T} <: Base.DFT.Plan{T} end
-type DummyrFFTPlan{T} <: Base.DFT.Plan{T} end
-type DummyirFFTPlan{T} <: Base.DFT.Plan{T} end
-
-
-*{T,N}(p::DummyFFTPlan{T}, x::StridedArray{T,N})=fft(x)
-*{T,N}(p::DummyiFFTPlan{T}, x::StridedArray{T,N})=ifft(x)
-*{T,N}(p::DummyrFFTPlan{T}, x::StridedArray{T,N})=rfft(x)
-*{T,N}(p::DummyirFFTPlan{T}, x::StridedArray{T,N})=irfft(x)
-
-Base.plan_fft{T<:BigFloats}(x::Vector{T}) = DummyFFTPlan{Complex{BigFloat}}()
-Base.plan_fft!{T<:BigFloats}(x::Vector{T}) = DummyFFTPlan{Complex{BigFloat}}()
-Base.plan_ifft{T<:BigFloats}(x::Vector{T}) = DummyiFFTPlan{Complex{BigFloat}}()
-Base.plan_ifft!{T<:BigFloats}(x::Vector{T}) = DummyiFFTPlan{Complex{BigFloat}}()
-
-Base.plan_rfft{T<:BigFloats}(x::Vector{T}) = DummyrFFTPlan{Complex{BigFloat}}()
-Base.plan_irfft{T<:BigFloats}(x::Vector{T},n::Integer) = DummyirFFTPlan{Complex{BigFloat}}()
-
-
 
 Base.plan_fft{F<:Fun}(x::Vector{F}) = fft
 Base.plan_ifft{F<:Fun}(x::Vector{F}) = ifft
