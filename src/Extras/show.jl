@@ -187,8 +187,8 @@ function Base.show(io::IO,B::BandedOperator;header::Bool=true)
 
     M=Array(Any,11,11)
     fill!(M,PrintShow(""))
-    for kj=eachbandedindex(BM)
-        M[kj]=BM[kj]
+    for (k,j)=eachbandedindex(BM)
+        M[k,j]=BM[k,j]
     end
 
     for k=max(1,11-bandinds(B,2)):11

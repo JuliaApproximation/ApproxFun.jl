@@ -249,7 +249,7 @@ function *{T<:BandedMatrix,V<:BandedMatrix}(A::BandedMatrix{T},B::BandedMatrix{V
     bmultiply!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
-function *{BM<:AbstractArray}(M::BandedMatrix{BM},v::Vector)
+function *{BM<:AbstractArray,TT<:Number}(M::BandedMatrix{BM},v::Vector{TT})
     n,m=size(M)
     r=zeros(promote_type(eltype(BM),eltype(v)),div(n*(n+1),2))
     for j=1:m-1
