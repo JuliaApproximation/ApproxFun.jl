@@ -78,6 +78,8 @@ isbzeros(rw::Union{UnitRange,Colon},bnds...)=isbzeros(Float64,rw,bnds...)
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
+        $OP{S}(B::IndexStride{S,Bool},x::Bool)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
+        $OP{S}(x::Bool,B::IndexStride{S,Bool})=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)
         $OP(B::IndexStride,x::Number)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
         $OP(x::Number,B::IndexStride)=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)
 
