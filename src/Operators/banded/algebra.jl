@@ -395,13 +395,12 @@ Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 
 
-function addentries!(P::TimesOperator,A,kr::Range,::Colon)
+function addentries!(P::TimesOperator,A,kr::UnitRange,::Colon)
     @assert length(P.ops)≥2
     if length(kr)==0
         return A
     end
 
-    st=step(kr)
 
     krl=Array(Int,length(P.ops),2)
 
@@ -409,25 +408,56 @@ function addentries!(P::TimesOperator,A,kr::Range,::Colon)
 
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
-        krl[m+1,1]=max(st-mod(kr[1],st),br[1] + krl[m,1])  # no negative
+        krl[m+1,1]=max(1-mod(kr[1],1),br[1] + krl[m,1])  # no negative
         krl[m+1,2]=br[end] + krl[m,2]
     end
 
     # The following returns a banded Matrix with all rows
     # for large k its upper triangular
-    BA=slice(P.ops[end],krl[end,1]:st:krl[end,2],:)
-    for m=(length(P.ops)-1):-1:2
-        BA=slice(P.ops[m],krl[m,1]:st:krl[m,2],:)*BA
+    BA=slice(P.ops[end],krl[end,1]:krl[end,2],:)
+    for m=(length(P.ops)-1):-1:1
+        BA=slice(P.ops[m],krl[m,1]:krl[m,2],:)*BA
     end
 
-    # Write directly to A, shifting by rows and columns
-    # See subview in Operator.jl for these definitions
-    P1=slice(P.ops[1],krl[1,1]:st:krl[1,2],:)
-
-    firstjr=max(st-mod(kr[1],st),kr[1]+bandinds(P,1))
-    ri,ci=first(kr)-st,firstjr-st
-    bmultiply!(A,P1,BA,ri,ci,st,st)
+    firstjr=max(1-mod(kr[1],1),kr[1]+bandinds(P,1))
+    BLAS.axpy!(1.0,BA,slice(A,kr,firstjr:firstjr-1+size(BA,2)))
+    A
 end
+
+
+# function addentries!(P::TimesOperator,A,kr::Range,::Colon)
+#     @assert length(P.ops)≥2
+#     if length(kr)==0
+#         return A
+#     end
+
+#     st=step(kr)
+
+#     krl=Array(Int,length(P.ops),2)
+
+#     krl[1,1],krl[1,2]=kr[1],kr[end]
+
+#     for m=1:length(P.ops)-1
+#         br=bandinds(P.ops[m])
+#         krl[m+1,1]=max(st-mod(kr[1],st),br[1] + krl[m,1])  # no negative
+#         krl[m+1,2]=br[end] + krl[m,2]
+#     end
+
+#     # The following returns a banded Matrix with all rows
+#     # for large k its upper triangular
+#     BA=slice(P.ops[end],krl[end,1]:st:krl[end,2],:)
+#     for m=(length(P.ops)-1):-1:2
+#         BA=slice(P.ops[m],krl[m,1]:st:krl[m,2],:)*BA
+#     end
+
+#     # Write directly to A, shifting by rows and columns
+#     # See subview in Operator.jl for these definitions
+#     P1=slice(P.ops[1],krl[1,1]:st:krl[1,2],:)
+
+#     firstjr=max(st-mod(kr[1],st),kr[1]+bandinds(P,1))
+#     ri,ci=first(kr)-st,firstjr-st
+#     bmultiply!(A,P1,BA,ri,ci,st,st)
+# end
 
 
 

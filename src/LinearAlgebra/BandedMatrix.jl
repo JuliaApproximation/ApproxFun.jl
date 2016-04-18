@@ -15,7 +15,7 @@ pad!(A::BandedMatrix,n,::Colon)=pad!(A,n,n+A.u)  # Default is to get all columns
 
 ## Used to scam addentries! into thinking we are somewhere else
 
-immutable IndexStride{S}
+immutable IndexStride{S,T} <: AbstractMatrix{T}
     matrix::S
     rowindex::Int
     colindex::Int
@@ -25,9 +25,13 @@ end
 function IndexStride{S<:BandedMatrix}(mat::S,ri::Int,ci::Int,rs::Int,cs::Int)
     # its no longer banded unless the strides match
     @assert rs==cs
-    IndexStride{S}(mat,ri,ci,rs,cs)
+    IndexStride{S,eltype(S)}(mat,ri,ci,rs,cs)
 end
 IndexStride(mat,ri,ci)=IndexStride(mat,ri,ci,1,1)
+
+
+Base.size(S::IndexStride,k)=k==1?div(size(S.matrix,k)-S.rowindex,S.rowstride):div(size(S.matrix,k)-S.colindex,S.colstride)
+Base.linearindexing{IS<:IndexStride}(::Type{IS})=Base.LinearSlow()
 
 getindex(S::IndexStride,k,j)=S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]
 setindex!(S::IndexStride,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]=x)

@@ -118,11 +118,11 @@ function BandedMatrix(B::Operator,kr::StepRange,::Colon)
     end
 end
 
-function BandedMatrix(B::Operator,kr::Range,jr::Range)
-    br=bandrange(B)
-    shft=kr[1]-jr[1]
-
-    BandedMatrix(BandedMatrix(B,kr,:).data,length(jr),-br[1]-shft,br[end]+shft)
+function BandedMatrix(B::Operator,kr::UnitRange,jr::UnitRange)
+    l=bandinds(B,1)
+    kr1=first(kr)
+    BM=BandedMatrix(B,kr,:)
+    kr1≤-l?BM[:,jr]:BM[:,jr-kr1+l+1]
 end
 
 
