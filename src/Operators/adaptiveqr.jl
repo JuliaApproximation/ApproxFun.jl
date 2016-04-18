@@ -125,10 +125,10 @@ function backsubstitution!(B::MutableOperator,u::Array)
         # before we get to filled rows
         for k=n:-1:max(1,n-b)
             @simd for j=k+1:n
-                @inbounds u[k,c]-=A.data[j-k+A.l+1,k]*u[j,c]
+                @inbounds u[k,c]-=A.data[k-j+A.u+1,j]*u[j,c]
             end
 
-            @inbounds u[k,c] /= A.data[A.l+1,k]
+            @inbounds u[k,c] /= A.data[A.u+1,k]
         end
 
        #filled rows
@@ -138,14 +138,14 @@ function backsubstitution!(B::MutableOperator,u::Array)
             end
 
             @simd for j=k+1:k+b
-                @inbounds u[k,c]-=A.data[j-k+A.l+1,k]*u[j,c]
+                @inbounds u[k,c]-=A.data[k-j+A.u+1,j]*u[j,c]
             end
 
             @simd for j=1:nbc
                 @inbounds u[k,c] -= B.fill.data[k,j]*pk[j]
             end
 
-            @inbounds u[k,c] /= A.data[A.l+1,k]
+            @inbounds u[k,c] /= A.data[A.u+1,k]
         end
     end
     u
