@@ -6,8 +6,8 @@ d=domain(f)
 D=Derivative(d)
 Q=integrate(d)
 
-@test norm((Q+I)*f-(integrate(f)+f)) < 2eps()
-@test norm((Q)*f-(integrate(f))) < eps()
+@test norm((Q+I)*f-(integrate(f)+f)) < 100eps()
+@test norm((Q)*f-(integrate(f))) < 100eps()
 
 x=Fun(identity)
 X=Multiplication(x,space(x))

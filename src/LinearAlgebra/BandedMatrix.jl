@@ -158,6 +158,14 @@ end
 
 #unsafe_pluseq!(S.matrix,x,k+j,-j)
 
+function bmultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
+   if rs==cs==1 && ri==ci==0 && size(C,1)==size(A,1) && size(C,2) == size(B,2)
+        A_mul_B!(C,A,B)
+    else
+        error("Reimplemnt")
+    end
+end
+
 
 function bmultiply!(C::IndexStride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
     bmultiply!(C.matrix,A,B,ri*C.rowstride+C.rowindex,ci*C.colstride+C.colindex,rs*C.rowstride,cs*C.colstride)
