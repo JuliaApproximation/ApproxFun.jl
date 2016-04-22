@@ -250,25 +250,29 @@ function Conversion{a,b,DD}(A::Ultraspherical{a,DD},B::Ultraspherical{b,DD})
 end
 
 
-function addentries!{DD,C<:Chebyshev}(M::ConcreteConversion{C,Ultraspherical{1,DD}},A,kr::Range,::Colon)
-    # this uses that 0.5 is exact, so no need for special bigfloat def
-    for k=kr
-        A[k,k] += (k == 1)? 1. : .5
-        A[k,k+2] += -.5
+function getindex{DD,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{1,DD},T},k::Integer,j::Integer)
+    if k==j==1
+        one(T)
+    elseif k==j
+        one(T)/2
+    elseif j==k+2
+        -one(T)/2
+    else
+        zero(T)
     end
-
-    A
 end
 
-function addentries!{m,λ,DD,T}(M::ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},A,kr::Range,::Colon)
-    @assert λ==m+1
-    c=λ-one(T)  # this supports big types
-    for k=kr
-        A[k,k] += c/(k - 2 + λ)
-        A[k,k+2] += -c/(k + λ)
-    end
 
-    A
+function getindex{m,λ,DD,T}(M::ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},k::Integer,j::Integer)
+    #  we can assume that λ==m+1
+    c=λ-one(T)  # this supports big types
+    if k==j
+        c/(k - 2 + λ)
+    elseif j==k+2
+        -c/(k + λ)
+    else
+        zero(T)
+    end
 end
 
 function multiplyentries!{DD,C<:Chebyshev}(M::ConcreteConversion{C,Ultraspherical{1,DD}},A,kr::Range)
