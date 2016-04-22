@@ -107,25 +107,12 @@ for ST in (:RealOperator,:ImagOperator)
     end
 end
 
+Base.getindex{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},k::Integer,j::Integer)=
+    isodd(k)&&j==k?one(T):zero(T)
 
+Base.getindex{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},k::Integer,j::Integer)=
+    iseven(k)&&j==k?one(T):zero(T)
 
-function addentries!{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},A,kr::Range,::Colon)
-    for k=kr
-        if isodd(k)
-            A[k,k]+=1
-        end
-    end
-    A
-end
-
-function addentries!{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},A,kr::Range,::Colon)
-    for k=kr
-        if iseven(k)
-            A[k,k]+=1
-        end
-    end
-    A
-end
 
 
 
