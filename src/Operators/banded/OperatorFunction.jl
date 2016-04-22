@@ -17,17 +17,13 @@ for op in (:domainspace,:rangespace,:domain,:bandinds)
     end
 end
 
-function addentries!(OF::ConcreteOperatorFunction,A,kr::Range,::Colon)
-    if isdiag(OF.op)
-        addentries!(OF.op,A,kr,:)
-        for k=kr
-            A[k,k] = OF.f(A[k,k])
-        end
+function getindex(OF::ConcreteOperatorFunction,k::Integer,j::Integer)
+    @assert isdiag(F.op)
+    if k==j
+        OF.f(OF.op[k,k])::eltype(OF)
     else
-        error("Not implemented")
+        zero(eltype(OF))
     end
-
-    A
 end
 
 function Base.convert{T}(::Type{Operator{T}},D::ConcreteOperatorFunction)
