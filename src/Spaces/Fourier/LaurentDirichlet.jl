@@ -24,13 +24,16 @@ canonicalspace(S::LaurentDirichlet)=Laurent(domain(S))
 
 Conversion{DD}(a::LaurentDirichlet{DD},b::Laurent{DD})=ConcreteConversion(a,b)
 bandinds{DD}(::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}})=0,2
-function addentries!{DD}(C::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}},A,kr::Range,::Colon)
-    if 1 in kr
-        A[1,2]+=1
-    end
-    toeplitz_addentries!([],[1.,0.,1.],A,kr)
-end
 
+function getindex{DD}(C::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}},k::Integer,j::Integer)
+    if k==1 && j==2
+        one(eltype(C))
+    elseif k==j || j==k+2
+        one(eltype(C))
+    else
+        zero(eltype(C))
+    end
+end
 
 conversion_rule{DD}(b::LaurentDirichlet,a::Laurent{DD})=b
 
@@ -90,13 +93,14 @@ end
 
 CosDirichlet()=CosDirichlet(PeriodicInterval())
 
-spacescompatible(a::CosDirichlet,b::CosDirichlet)=domainscompatible(a,b)
+spacescompatible(a::CosDirichlet,b::CosDirichlet) = domainscompatible(a,b)
 
 canonicalspace(S::CosDirichlet)=CosSpace(domain(S))
 
-Conversion(a::CosSpace,b::CosDirichlet)=ConcreteConversion(a,b)
+Conversion(a::CosSpace,b::CosDirichlet) = ConcreteConversion(a,b)
 bandinds{CS<:CosSpace,CD<:CosDirichlet}(::ConcreteConversion{CD,CS})=0,1
-addentries!{CS<:CosSpace,CD<:CosDirichlet}(C::ConcreteConversion{CD,CS},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,1.],A,kr)
+getindex{CS<:CosSpace,CD<:CosDirichlet}(C::ConcreteConversion{CD,CS},k::Integer,j::Integer) =
+    (k==j||j==k+1)?one(eltype(C)):zero(eltype(C))
 
 
 conversion_rule(b::CosDirichlet,a::CosSpace)=b

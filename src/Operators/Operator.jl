@@ -239,7 +239,7 @@ function defaultaddentries!(B::BandedOperator,A,kr,::Colon)
      br=bandinds(B)
      for k=(max(kr[1],1)):(kr[end])
          for j=max(br[1],1-k):br[end]
-             A[k,k+j]=B[k,k+j]
+             A[k,k+j]+=B[k,k+j]
          end
      end
 

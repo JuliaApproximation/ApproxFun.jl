@@ -107,25 +107,12 @@ for ST in (:RealOperator,:ImagOperator)
     end
 end
 
+Base.getindex{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},k::Integer,j::Integer)=
+    isodd(k)&&j==k?one(T):zero(T)
 
+Base.getindex{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},k::Integer,j::Integer)=
+    iseven(k)&&j==k?one(T):zero(T)
 
-function addentries!{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},A,kr::Range,::Colon)
-    for k=kr
-        if isodd(k)
-            A[k,k]+=1
-        end
-    end
-    A
-end
-
-function addentries!{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},A,kr::Range,::Colon)
-    for k=kr
-        if iseven(k)
-            A[k,k]+=1
-        end
-    end
-    A
-end
 
 
 
@@ -142,13 +129,6 @@ bandinds(RI::ReImOperator)=2bandinds(RI.op,1),2bandinds(RI.op,2)
 for OP in (:rangespace,:domainspace)
     @eval $OP(R::ReImOperator)=ReImSpace($OP(R.op))
 end
-
-# function addentries!(RI::ReImOperator,A,kr::UnitRange,::Colon)
-#     @assert isodd(kr[1])
-#     @assert iseven(kr[end])
-#     addentries!(RI.op,IndexReIm(A),div(kr[1],2)+1:div(kr[end],2))
-#     A
-# end
 
 
 function addentries!(RI::ReImOperator,A,kr::UnitRange,::Colon)
@@ -235,24 +215,23 @@ bandinds{T,DD}(::ImagOperator{ReImSpace{Taylor{DD},T}})=0,1
 
 
 ## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
-function addentries!{T,DD}(R::RealOperator{ReImSpace{Taylor{DD},T}},A,kr::Range,::Colon)
-    for k=kr
-        if isodd(k)         # real part
-            A[k,k]+=1
-        elseif iseven(k)    # imag part
-            A[k,k+2]+=-1
-        end
+
+function Base.getindex{T,DD}(R::RealOperator{ReImSpace{Taylor{DD},T}},k::Integer,j::Integer)
+    if isodd(k)&&j==k
+        one(T)
+    elseif iseven(k)&&j==k+2
+        -one(T)
+    else
+        zero(T)
     end
-    A
 end
 
+
 ## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
-function addentries!{T,DD}(R::ImagOperator{ReImSpace{Taylor{DD},T}},A,kr::Range,::Colon)
-    for k=kr
-        A[k,k+1]+=1
-    end
-    A
-end
+
+Base.getindex{T,DD}(R::ImagOperator{ReImSpace{Taylor{DD},T}},k::Integer,j::Integer)=
+    j==k+1?one(T):zero(T)
+
 
 # Neg
 
@@ -269,23 +248,26 @@ bandinds{T,D}(::ImagOperator{ReImSpace{Hardy{false,D},T}})=0,0
 
 
 ## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
-function addentries!{T,D}(R::RealOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range,::Colon)
-    for k=kr
-        if isodd(k)    # imag part
-            A[k,k+1]+=1
-        elseif iseven(k)         # real part
-            A[k,k-1]+=1
-        end
+function Base.getindex{T,D}(R::RealOperator{ReImSpace{Hardy{false,D},T}},k::Integer,j::Integer)
+    if (isodd(k) && j==k+1) || (iseven(k) && j==k-1)  # imag part
+        one(T)
+    else       # real part
+        zero(T)
     end
-    A
 end
 
+
 ## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
-function addentries!{T,D}(R::ImagOperator{ReImSpace{Hardy{false,D},T}},A,kr::Range,::Colon)
-    for k=kr
-        A[k,k]+=isodd(k)?-1:1
+function Base.getindex{T,D}(R::ImagOperator{ReImSpace{Hardy{false,D},T}},k::Integer,j::Integer)
+    if k==j
+        if isodd(k)
+            -one(T)
+        else
+            one(T)
+        end
+    else
+        zero(T)
     end
-    A
 end
 
 
@@ -297,15 +279,15 @@ for TYP in (:RealOperator,:ImagOperator)
 end
 
 bandinds{T,DD}(::RealOperator{ReImSpace{Laurent{DD},T}})=0,2
-function addentries!{T,DD}(R::RealOperator{ReImSpace{Laurent{DD},T}},A,kr::Range,::Colon)
-    for k=kr
-        if isodd(k)    # real part
-            A[k,k]+=1
-        elseif iseven(k)         # odd part
-            A[k,k+2]+=iseven(div(k,2))?-1:1
-        end
+
+function Base.getindex{T,DD}(R::RealOperator{ReImSpace{Laurent{DD},T}},k::Integer,j::Integer)
+    if isodd(k) && k==j
+        one(T)
+    elseif iseven(k) && j==k+2
+        iseven(div(k,2))?-one(T):one(T)
+    else
+        zero(T)
     end
-    A
 end
 
 

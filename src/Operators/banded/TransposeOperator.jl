@@ -21,6 +21,9 @@ domain(P::TransposeOperator)=domain(P.op)
 bandinds(P::TransposeOperator)=-bandinds(P.op)[end],-bandinds(P.op)[1]
 
 
+getindex(P::TransposeOperator,k::Integer,j::Integer) =
+    P.op[k,j]
+
 function addentries!(P::TransposeOperator,A,kr::Range,::Colon)
     br=bandinds(P.op)
     # the number of rows we need increases when we

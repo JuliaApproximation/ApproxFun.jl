@@ -28,14 +28,10 @@ Derivative(H::Hermite,order)=ConcreteDerivative(H,order)
 
 bandinds{H<:Hermite}(D::ConcreteDerivative{H})=0,D.order
 rangespace{H<:Hermite}(D::ConcreteDerivative{H})=domainspace(D)
-function addentries!{H<:Hermite}(D::ConcreteDerivative{H},A,kr::Range,::Colon)
-    m = D.order
-    C = 2^m
-    for k=kr
-        A[k,k+D.order]+=C*pochhammer(k,m)
-    end
-    A
-end
+getindex{H<:Hermite}(D::ConcreteDerivative{H},k::Integer,j::Integer) =
+        j==k+D.order?one(eltype(D))*2^m*pochhammer(k,D.order):zero(eltype(D))
+
+
 
 function hermitep(r::Range,x::Number)
     n=r[end]+1

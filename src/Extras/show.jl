@@ -183,32 +183,35 @@ Base.summary(B::Operator)=string(typeof(B).name.name)*":"*string(domainspace(B))
 function Base.show(io::IO,B::BandedOperator;header::Bool=true)
     header && println(io,summary(B))
 
-    BM=B[1:10,1:10]
+    if !isa(domainspace(B),UnsetSpace)
+        BM=B[1:10,1:10]
 
-    M=Array(Any,11,11)
-    fill!(M,PrintShow(""))
-    for (k,j)=eachbandedindex(BM)
-        M[k,j]=BM[k,j]
-    end
+        M=Array(Any,11,11)
+        fill!(M,PrintShow(""))
+        for (k,j)=eachbandedindex(BM)
+            M[k,j]=BM[k,j]
+        end
 
-    for k=max(1,11-bandinds(B,2)):11
-        M[k,end]=PrintShow("⋱")
-    end
-    for j=max(1,11+bandinds(B,1)):10
-        M[end,j]=PrintShow("⋱")
-    end
+        for k=max(1,11-bandinds(B,2)):11
+            M[k,end]=PrintShow("⋱")
+        end
+        for j=max(1,11+bandinds(B,1)):10
+            M[end,j]=PrintShow("⋱")
+        end
 
-    Base.showarray(io,M;header=false)
+        Base.showarray(io,M;header=false)
+    end
 end
 
 function Base.show(io::IO,F::Functional;header::Bool=true)
     header && println(io,summary(F))
+    if !isa(domainspace(F),UnsetSpace)
+        V=Array{Any}(1,11)
+        copy!(V,F[1:10])
+        V[end]=PrintShow("⋯")
 
-    V=Array{Any}(1,11)
-    copy!(V,F[1:10])
-    V[end]=PrintShow("⋯")
-
-    Base.showarray(io,V;header=false)
+        Base.showarray(io,V;header=false)
+    end
 end
 
 function Base.writemime{T<:Functional}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)

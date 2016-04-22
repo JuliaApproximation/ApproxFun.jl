@@ -16,7 +16,8 @@ IdentityOperator()=ConstantOperator(1.0)
 
 bandinds(T::ConstantOperator)=0,0
 
-addentries!(C::ConstantOperator,A,kr::Range,::Colon)=toeplitz_addentries!([.5C.c],A,kr)
+getindex(C::ConstantOperator,k::Integer,j::Integer)=k==j?C.c:zero(eltype(C))
+
 
 ==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
 
@@ -79,7 +80,7 @@ rangespace(Z::ZeroOperator)=Z.rangespace
 
 bandinds(T::ZeroOperator)=0,0
 
-addentries!(C::ZeroOperator,A,kr::Range,::Colon)=A
+getindex(C::ZeroOperator,k::Integer,j::Integer)=zero(eltype(C))
 
 promotedomainspace(Z::ZeroOperator,sp::AnySpace)=Z
 promoterangespace(Z::ZeroOperator,sp::AnySpace)=Z

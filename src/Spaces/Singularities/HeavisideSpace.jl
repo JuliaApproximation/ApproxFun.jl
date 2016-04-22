@@ -24,13 +24,8 @@ conversion_rule{k,PS<:PolynomialSpace}(sp::HeavisideSpace,sp2::PiecewiseSpace{NT
 Conversion{kk,CC<:PolynomialSpace,DD}(a::HeavisideSpace,b::PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1})=ConcreteConversion(a,b)
 bandinds{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}})=0,0
 #bandinds{HS<:HeavisideSpace,DD,D}(::ConcreteConversion{PiecewiseSpace{ChebyshevDirichlet{1,1,D},RealBasis,DD,1},HS})=0,0
-function addentries!{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}},A,kr::Range,::Colon)
-    d=dimension(domainspace(C))
-    for k=kr
-        k ≤ d && (A[k,k]+=1)
-    end
-    A
-end
+getindex{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}},k::Integer,j::Integer) =
+    k ≤ dimension(domainspace(C)) && j==k? one(eltype(C)) : zero(eltype(C))
 
 # function addentries!{HS<:HeavisideSpace,CC<:PolynomialSpace,DD}(C::ConcreteConversion{PiecewiseSpace{CC,RealBasis,DD,1},HS},A,kr::Range,::Colon)
 #    for k=kr
@@ -44,17 +39,13 @@ bandinds{HS<:HeavisideSpace}(D::ConcreteDerivative{HS})=-1,0
 
 rangespace{HS<:HeavisideSpace}(D::ConcreteDerivative{HS})=DiracSpace(domain(D).points)
 
-function addentries!{HS<:HeavisideSpace}(D::ConcreteDerivative{HS},A,kr::Range,::Colon)
+function getindex{HS<:HeavisideSpace}(D::ConcreteDerivative{HS},k::Integer,j::Integer)
     n=numpieces(domain(D))
-
-    1 in kr && (A[1,1]+=1)
-
-    for k=kr∩(2:n)
-        A[k,k-1]+=-1
-        A[k,k]+= 1
+    if k≤n && j==k
+        one(eltype(D))
+    elseif j≤n && j==k-1
+        -one(eltype(D))
+    else
+        zero(eltype(D))
     end
-
-    n in kr && (A[n+1,n]+=-1)
-
-    A
 end
