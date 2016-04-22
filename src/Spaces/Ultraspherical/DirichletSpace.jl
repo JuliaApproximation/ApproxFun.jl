@@ -93,24 +93,29 @@ coefficients(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransfor
 ## Dirichlet Conversion operators
 
 Conversion(D::ChebyshevDirichlet,C::Chebyshev)=ConcreteConversion(D,C)
-addentries!{D,CC<:Chebyshev}(C::ConcreteConversion{ChebyshevDirichlet{1,0,D},CC},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,1.],A,kr)
-addentries!{D,CC<:Chebyshev}(C::ConcreteConversion{ChebyshevDirichlet{0,1,D},CC},A,kr::Range,::Colon)=toeplitz_addentries!([],[1.,-1.],A,kr)
-function addentries!{D,CC<:Chebyshev}(C::ConcreteConversion{ChebyshevDirichlet{1,1,D},CC},A,kr::Range,::Colon)
-    A=toeplitz_addentries!([],[1.,0.,-1.],A,kr)
 
-    A
-end
-function addentries!{D,CC<:Chebyshev}(C::ConcreteConversion{ChebyshevDirichlet{2,2,D},CC},A,kr::Range,::Colon)
-    for k=kr
-        A[k,k]=1
-        A[k,k+4]=2*(k+1)/k-1
-        if k>= 3
-            A[k,k+2]=-2*(k-1)/(k-2)
-        end
+getindex{D,CC<:Chebyshev,T}(C::ConcreteConversion{ChebyshevDirichlet{1,0,D},CC,T},k::Integer,j::Integer) =
+    j==k || j==k+1 ? one(T) : zero(T)
+
+getindex{D,CC<:Chebyshev,T}(C::ConcreteConversion{ChebyshevDirichlet{0,1,D},CC,T},k::Integer,j::Integer) =
+    j==k ? one(T) : ( j==k+1? -one(T) : zero(eltype(C)))
+
+getindex{D,CC<:Chebyshev,T}(C::ConcreteConversion{ChebyshevDirichlet{1,1,D},CC,T},k::Integer,j::Integer) =
+    j==k ? one(T) : ( j==k+2? -one(T) : zero(eltype(C)))
+
+function getindex{D,CC<:Chebyshev,T}(C::ConcreteConversion{ChebyshevDirichlet{2,2,D},CC,T},k::Integer,j::Integer)
+    if j==k
+        one(T)
+    elseif j==k+4
+        2one(T)*(k+1)/k-1
+    elseif k≥3 && j==k+2
+        -2one(T)*(k-1)/(k-2)
+    else
+        zero(T)
     end
-
-    A
 end
+
+
 bandinds{D,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{1,0,D},C})=0,1
 bandinds{D,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{0,1,D},C})=0,1
 bandinds{D,C<:Chebyshev}(::ConcreteConversion{ChebyshevDirichlet{1,1,D},C})=0,2
