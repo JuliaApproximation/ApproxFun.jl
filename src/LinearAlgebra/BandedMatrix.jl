@@ -38,24 +38,6 @@ setindex!(S::IndexStride,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j
 unsafe_pluseq!(S::IndexStride,x,k,j)=unsafe_pluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
 
 
-# Odd rows/columns become real part and even become imag part
-# S Should be a Real-valued matrix
-immutable IndexReIm{S}
-    matrix::S
-end
-
-
-getindex(S::IndexReIm,k,j)=S.matrix[2k-1,2j-1]+im*S.matrix[2k,2j]
-function setindex!(S::IndexReIm,x,k,j)
-    S.matrix[2k-1,2j-1]=real(x)
-    S.matrix[2k,2j]=imag(x)
-    x
-end
-
-
-
-
-
 isbeye(kr::Range)=IndexStride(beye(length(kr)),1-first(kr),1-first(kr))
 
 function isbzeros{T}(::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer)
@@ -96,12 +78,17 @@ for OP in (:*,:.*,:+,:.+,:-,:.-)
 end
 
 
-
+## BandedMatrix operations
 
 
 bandrange(S::IndexStride)=S.rowstride*bandrange(S.matrix)+S.rowindex-S.colindex
 bandinds(S::IndexStride)=(S.rowstride*bandinds(S.matrix,1)+S.rowindex-S.colindex,S.rowstride*bandinds(S.matrix,2)+S.rowindex-S.colindex)
 columnrange(A,row::Integer)=max(1,row+bandinds(A,1)):row+bandinds(A,2)
+
+
+function eachbandedindex{ST<:BandedMatrix}(B::IndexStride{ST})
+    map((k,j)->((k-S.rowindex)÷S.rowstride,(k-S.colindex)÷S.colstride),collect(eachbandedindex(B.matrix)))
+end
 
 
 ## IndexSlice
@@ -212,9 +199,10 @@ end
 
 
 ## addentries!
+# TODO: Remove
 
 function addentries!(B::BandedMatrix,c::Number,A,kr::Range,::Colon)
-    for k=intersect(kr,1:size(B,1)),j=intersect(k+bandrange(B),1:size(B,2))
+    for (k,j) in eachbandedindex(B)
         A[k,j] += c*B.data[j-k+B.l+1,k]
     end
 
@@ -223,8 +211,8 @@ end
 
 
 function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range,::Colon)
-    for k=kr,j=k+bandrange(B)
-        unsafe_pluseq!(A,c*B[k,j],k,j)
+    for (k,j) in eachbandedindex(B)
+        A[k,j]+=c*B[k,j]
     end
 
     A
