@@ -87,7 +87,7 @@ columnrange(A,row::Integer)=max(1,row+bandinds(A,1)):row+bandinds(A,2)
 
 
 function eachbandedindex{ST<:BandedMatrix}(B::IndexStride{ST})
-    map((k,j)->((k-S.rowindex)÷S.rowstride,(k-S.colindex)÷S.colstride),collect(eachbandedindex(B.matrix)))
+    map(kj->((kj[1]-B.rowindex)÷B.rowstride,(kj[2]-B.colindex)÷B.colstride),collect(eachbandedindex(B.matrix)))
 end
 
 
@@ -211,7 +211,7 @@ end
 
 
 function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range,::Colon)
-    for (k,j) in eachbandedindex(B)
+    for k=kr,j=max(1,k+bandinds(B,1)):k+bandinds(B,2)
         A[k,j]+=c*B[k,j]
     end
 

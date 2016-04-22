@@ -56,8 +56,8 @@ function givensreduceab!{T,M,R}(B::MutableOperator{T,M,R},k1::Integer,k2::Intege
     bnd=B.bandinds
     A=B.data
 
-    @inbounds a=A.data[k1-j1+A.u+1,j]  #A[k1,j1]
-    @inbounds b=A.data[k2-j1+A.u+1,j]  #A[k2,j1]
+    @inbounds a=A.data[k1-j1+A.u+1,j1]  #A[k1,j1]
+    @inbounds b=A.data[k2-j1+A.u+1,j1]  #A[k2,j1]
 
     ca,cb,mb,a=givensmatrix(a,b)
 
