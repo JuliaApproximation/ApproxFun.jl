@@ -124,10 +124,10 @@ function BandedMatrix(B::Operator,kr::UnitRange,jr::UnitRange)
     BM=BandedMatrix(B,kr,:)
     if kr1≤1-l  # still starts at col 1
         BM[:,jr]
-    elseif jr[1]-kr1+l+1≤0
+    elseif jr[1]-kr1-l+1≤0
         zeros(eltype(B),length(kr),length(jr))
     else
-        BM[:,jr-kr1+l+1]
+        BM[:,jr-kr1-l+1]
     end
 end
 
