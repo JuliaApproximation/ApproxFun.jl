@@ -22,16 +22,16 @@ function Evaluation{T}(::Type{T},sp::Space,x::Number,order::Integer)
     end
 end
 
-Evaluation(sp::AnySpace,x::Bool,k::Integer)=Evaluation{AnySpace,Bool,UnsetNumber}(sp,x,k)
+Evaluation(sp::UnsetSpace,x::Bool,k::Integer)=Evaluation{UnsetSpace,Bool,UnsetNumber}(sp,x,k)
 Evaluation(sp::Space{ComplexBasis},x,order::Integer)=Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
 Evaluation(sp::Space,x,order::Integer)=Evaluation(eltype(domain(sp)),sp,x,order)
 
-#Evaluation(sp::AnySpace,x::Bool)=Evaluation(sp,x,0)
+#Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::Space,x::Union{Number,Bool})=Evaluation(d,x,0)
 
 Evaluation(d::Domain,x::Union{Number,Bool},n...)=Evaluation(Space(d),x,n...)
-Evaluation(x::Union{Number,Bool})=Evaluation(AnySpace(),x,0)
-Evaluation(x::Union{Number,Bool},k::Integer)=Evaluation(AnySpace(),x,k)
+Evaluation(x::Union{Number,Bool})=Evaluation(UnsetSpace(),x,0)
+Evaluation(x::Union{Number,Bool},k::Integer)=Evaluation(UnsetSpace(),x,k)
 Evaluation{T<:Number}(d::Vector{T},x::Union{Number,Bool},o::Integer)=Evaluation(Interval(d),x,o)
 
 rangespace{S<:AmbiguousSpace}(E::Evaluation{S,Bool})=ConstantSpace()
@@ -99,13 +99,13 @@ periodic(d,k) = Functional{eltype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i)
 
 for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann,:ivp,:bvp)
     @eval begin
-        $op()=$op(AnySpace())
+        $op()=$op(UnsetSpace())
         $op(::PeriodicDomain)=[]
     end
 end
 
 for op in (:ldiffbc,:rdiffbc,:diffbcs,:ivp,:bvp,:periodic)
-    @eval $op(k::Integer)=$op(AnySpace(),k)
+    @eval $op(k::Integer)=$op(UnsetSpace(),k)
 end
 
 

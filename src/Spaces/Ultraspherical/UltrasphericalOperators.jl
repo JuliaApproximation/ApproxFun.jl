@@ -262,6 +262,16 @@ function getindex{DD,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{1,DD
     end
 end
 
+# function addentries!{DD,C<:Chebyshev}(M::ConcreteConversion{C,Ultraspherical{1,DD}},A,kr::Range,::Colon)
+#     # this uses that 0.5 is exact, so no need for special bigfloat def
+#     for k=kr
+#         A[k,k] += (k == 1)? 1. : .5
+#         A[k,k+2] += -.5
+#     end
+
+#     A
+# end
+
 
 function getindex{m,λ,DD,T}(M::ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},k::Integer,j::Integer)
     #  we can assume that λ==m+1
