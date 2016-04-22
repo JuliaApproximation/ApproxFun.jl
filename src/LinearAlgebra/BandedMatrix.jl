@@ -15,7 +15,7 @@ pad!(A::BandedMatrix,n,::Colon)=pad!(A,n,n+A.u)  # Default is to get all columns
 
 ## Used to scam addentries! into thinking we are somewhere else
 
-immutable IndexStride{S}
+immutable IndexStride{S,T} <: AbstractMatrix{T}
     matrix::S
     rowindex::Int
     colindex::Int
@@ -25,31 +25,17 @@ end
 function IndexStride{S<:BandedMatrix}(mat::S,ri::Int,ci::Int,rs::Int,cs::Int)
     # its no longer banded unless the strides match
     @assert rs==cs
-    IndexStride{S}(mat,ri,ci,rs,cs)
+    IndexStride{S,eltype(S)}(mat,ri,ci,rs,cs)
 end
 IndexStride(mat,ri,ci)=IndexStride(mat,ri,ci,1,1)
+
+
+Base.size(S::IndexStride,k)=k==1?div(size(S.matrix,k)-S.rowindex,S.rowstride):div(size(S.matrix,k)-S.colindex,S.colstride)
+Base.linearindexing{IS<:IndexStride}(::Type{IS})=Base.LinearSlow()
 
 getindex(S::IndexStride,k,j)=S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]
 setindex!(S::IndexStride,x,k,j)=(S.matrix[S.rowstride*k+S.rowindex,S.colstride*j+S.colindex]=x)
 unsafe_pluseq!(S::IndexStride,x,k,j)=unsafe_pluseq!(S.matrix,x,S.rowstride*k+S.rowindex,S.colstride*j+S.colindex)
-
-
-# Odd rows/columns become real part and even become imag part
-# S Should be a Real-valued matrix
-immutable IndexReIm{S}
-    matrix::S
-end
-
-
-getindex(S::IndexReIm,k,j)=S.matrix[2k-1,2j-1]+im*S.matrix[2k,2j]
-function setindex!(S::IndexReIm,x,k,j)
-    S.matrix[2k-1,2j-1]=real(x)
-    S.matrix[2k,2j]=imag(x)
-    x
-end
-
-
-
 
 
 isbeye(kr::Range)=IndexStride(beye(length(kr)),1-first(kr),1-first(kr))
@@ -74,6 +60,8 @@ isbzeros(rw::Union{UnitRange,Colon},bnds...)=isbzeros(Float64,rw,bnds...)
 
 for OP in (:*,:.*,:+,:.+,:-,:.-)
     @eval begin
+        $OP{S}(B::IndexStride{S,Bool},x::Bool)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
+        $OP{S}(x::Bool,B::IndexStride{S,Bool})=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)
         $OP(B::IndexStride,x::Number)=IndexStride($OP(B.matrix,x),B.rowindex,B.colindex,B.rowstride,B.colstride)
         $OP(x::Number,B::IndexStride)=IndexStride($OP(x,B.matrix),B.rowindex,B.colindex,B.rowstride,B.colstride)
 
@@ -90,12 +78,17 @@ for OP in (:*,:.*,:+,:.+,:-,:.-)
 end
 
 
-
+## BandedMatrix operations
 
 
 bandrange(S::IndexStride)=S.rowstride*bandrange(S.matrix)+S.rowindex-S.colindex
 bandinds(S::IndexStride)=(S.rowstride*bandinds(S.matrix,1)+S.rowindex-S.colindex,S.rowstride*bandinds(S.matrix,2)+S.rowindex-S.colindex)
 columnrange(A,row::Integer)=max(1,row+bandinds(A,1)):row+bandinds(A,2)
+
+
+function eachbandedindex{ST<:BandedMatrix}(B::IndexStride{ST})
+    map((k,j)->((k-S.rowindex)÷S.rowstride,(k-S.colindex)÷S.colstride),collect(eachbandedindex(B.matrix)))
+end
 
 
 ## IndexSlice
@@ -158,6 +151,14 @@ end
 
 #unsafe_pluseq!(S.matrix,x,k+j,-j)
 
+function bmultiply!(C::BandedMatrix,A::BandedMatrix,B::BandedMatrix,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
+   if rs==cs==1 && ri==ci==0 && size(C,1)==size(A,1) && size(C,2) == size(B,2)
+        A_mul_B!(C,A,B)
+    else
+        error("Reimplemnt")
+    end
+end
+
 
 function bmultiply!(C::IndexStride,A,B,ri::Integer=0,ci::Integer=0,rs::Integer=1,cs::Integer=1)
     bmultiply!(C.matrix,A,B,ri*C.rowstride+C.rowindex,ci*C.colstride+C.colindex,rs*C.rowstride,cs*C.colstride)
@@ -198,9 +199,10 @@ end
 
 
 ## addentries!
+# TODO: Remove
 
 function addentries!(B::BandedMatrix,c::Number,A,kr::Range,::Colon)
-    for k=intersect(kr,1:size(B,1)),j=intersect(k+bandrange(B),1:size(B,2))
+    for (k,j) in eachbandedindex(B)
         A[k,j] += c*B.data[j-k+B.l+1,k]
     end
 
@@ -209,8 +211,8 @@ end
 
 
 function addentries!{ST<:BandedMatrix}(B::IndexStride{ST},c::Number,A,kr::Range,::Colon)
-    for k=kr,j=k+bandrange(B)
-        unsafe_pluseq!(A,c*B[k,j],k,j)
+    for (k,j) in eachbandedindex(B)
+        A[k,j]+=c*B[k,j]
     end
 
     A

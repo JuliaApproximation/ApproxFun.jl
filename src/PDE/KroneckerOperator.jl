@@ -246,7 +246,7 @@ function *{T<:BandedMatrix,V<:BandedMatrix}(A::BandedMatrix{T},B::BandedMatrix{V
     end
     n,m=size(A,1),size(B,2)
     error("Implement")
-    bmultiply!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
+    A_mul_B!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
 function *{BM<:AbstractArray,TT<:Number}(M::BandedMatrix{BM},v::Vector{TT})
