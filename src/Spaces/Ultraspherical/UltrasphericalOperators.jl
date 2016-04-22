@@ -174,19 +174,28 @@ bandinds{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=0,D.orde
 bandinds{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}})=-D.order,0
 Base.stride{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=D.order
 
-function addentries!{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}},A,kr::Range,::Colon)
+function BLAS.axpy!{T,λ,DD<:Interval}(α,D::SubOperator{T,ConcreteDerivative{Ultraspherical{λ,DD}}},A)
+    @assert size(X)==size(Y)
+    kr,jr=D.indexes
+
+
     m=D.order
+    indexin(kr+m,jr)
+
+
     d=domain(D)
 
     if λ == 0
         C=.5pochhammer(1.,m-1)*(4./(d.b-d.a)).^m
-        for k=kr
-            A[k,k+m] += C*(m+k-1)
+        for kA=1:size(A,1)
+            k=kr[kA]
+            jA=firstindexin(k+m,jr)
+            A[kA,jA] += α*C*(m+k-1)
         end
     else
         C=pochhammer(1.λ,m)*(4./(d.b-d.a)).^m
         for k=kr
-            A[k,k+m] += C
+            A[k,k+m] += α*C
         end
     end
 
