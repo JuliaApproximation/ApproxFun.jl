@@ -61,13 +61,16 @@ Base.convert{T,S}(::Type{BandedOperator{T}},J::Recurrence{S})=Recurrence{S,T}(J.
 #       x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-function addentries!{S,T}(R::Recurrence{S,T},A,kr::Range,::Colon)
-    for k=kr
-        A[k,k-1]=recβ(T,R.space,k-1)
-        A[k,k]  =recα(T,R.space,k)
-        A[k,k+1]=recγ(T,R.space,k+1)
+function getindex{S,T}(R::Recurrence{S,T},k::Integer,j::Integer)
+    if j==k-1
+        recβ(T,R.space,k-1)
+    elseif j==k
+        recα(T,R.space,k)
+    elseif j==k+1
+        recγ(T,R.space,k+1)
+    else
+        zero(T)
     end
-    A
 end
 
 

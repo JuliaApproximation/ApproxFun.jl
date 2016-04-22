@@ -41,13 +41,9 @@ Derivative(J::Jacobi,k::Integer)=k==1?ConcreteDerivative(J,1):DerivativeWrapper(
 rangespace{J<:Jacobi}(D::ConcreteDerivative{J})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
 bandinds{J<:Jacobi}(D::ConcreteDerivative{J})=0,D.order
 
-function addentries!{J<:Jacobi}(T::ConcreteDerivative{J},A,kr::Range,::Colon)
-    d=domain(T)
-    for k=kr
-        A[k,k+1]+=(k+1+T.space.a+T.space.b)./(d.b-d.a)
-    end
-    A
-end
+getindex{J<:Jacobi}(T::ConcreteDerivative{J},k::Integer,j::Integer) =
+    j==k+1? (k+1+T.space.a+T.space.b)./complexlength(domain(T)) : zero(eltype(T))
+
 
 
 function Derivative{DDD<:Interval}(S::WeightedJacobi{DDD})
@@ -62,16 +58,8 @@ bandinds{DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{DDD}})=-1,0
 rangespace{DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{DDD}})=WeightedJacobi(domainspace(D).α-1,domainspace(D).β-1,domain(D))
 
 
-function addentries!{DDD<:Interval}(T::ConcreteDerivative{WeightedJacobi{DDD}},A,kr::Range,::Colon)
-    d=domain(T)
-    for k=kr
-        if k > 1
-            A[k,k-1]-=4(k-1)./(d.b-d.a)
-        end
-    end
-    A
-end
-
+getindex{DDD<:Interval}(T::ConcreteDerivative{WeightedJacobi{DDD}},k::Integer,j::Integer) =
+    j==k-1? -4(k-1)./complexlength(domain(T)) : zero(eltype(T))
 
 
 ## Integral
@@ -94,13 +82,13 @@ end
 rangespace{J<:Jacobi}(D::ConcreteIntegral{J})=Jacobi(D.space.a-D.order,D.space.b-D.order,domain(D))
 bandinds{J<:Jacobi}(D::ConcreteIntegral{J})=-D.order,0
 
-function addentries!{J<:Jacobi}(T::ConcreteIntegral{J},A,kr::Range,::Colon)
+function getindex{J<:Jacobi}(T::ConcreteIntegral{J},k::Integer,j::Integer)
     @assert T.order==1
-    d=domain(T)
-    for k=intersect(2:kr[end],kr)
-        A[k,k-1]+=(d.b-d.a)./(k+T.space.a+T.space.b-2)
+    if k≥2 && j==k-1
+        complexlength(domain(T))./(k+T.space.a+T.space.b-2)
+    else
+        zero(eltype(J))
     end
-    A
 end
 
 
@@ -116,14 +104,20 @@ end
 rangespace{J<:Jacobi}(V::ConcreteVolterra{J})=Jacobi(0.0,-1.0,domain(V))
 bandinds{J<:Jacobi}(V::ConcreteVolterra{J})=-1,0
 
-function addentries!{J<:Jacobi}(V::ConcreteVolterra{J},A,kr::Range,::Colon)
+function getindex{J<:Jacobi}(V::ConcreteVolterra{J},k::Integer,j::Integer)
     d=domain(V)
     C = 0.5(d.b-d.a)
-    for k=intersect(2:kr[end],kr)
-        A[k,k-1]+=C/(k-1.5)
-        A[k,k]-=C/(k-0.5)
+    if k≥2
+        if j==k-1
+            C/(k-1.5)
+        elseif j==k
+            -C/(k-0.5)
+        else
+            zero(eltype(V))
+        end
+    else
+        zero(eltype(V))
     end
-    A
 end
 
 
@@ -341,30 +335,30 @@ end
 
 bandinds{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(::ConcreteMultiplication{JacobiWeight{C,DD},J})=-1,0
 
-function addentries!{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J},A,kr::Range,::Colon)
+function getindex{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J},k::Integer,j::Integer)
     @assert length(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     c=M.f.coefficients[1]
     if space(M.f).α==1
         @assert space(M.f).β==0
         # multiply by (1+x)
-        for k=kr
-            A[k,k]+=c*2(k+b-1)/(2k+a+b-1)
-            if k > 1
-                A[k,k-1]+=c*(2k-2)/(2k+a+b-3)
-            end
+        if j==k
+            c*2(k+b-1)/(2k+a+b-1)
+        elseif k > 1 && j==k-1
+            c*(2k-2)/(2k+a+b-3)
+        else
+            zero(eltype(M))
         end
-        A
     elseif space(M.f).β == 1
         @assert space(M.f).α==0
         # multiply by (1-x)
-        for k=kr
-            A[k,k]+=c*2(k+a-1)/(2k+a+b-1)
-            if k > 1
-                A[k,k-1]-=c*(2k-2)/(2k+a+b-3)
-            end
+        if j==k
+            c*2(k+a-1)/(2k+a+b-1)
+        elseif k > 1 && j==k-1
+            -c*(2k-2)/(2k+a+b-3)
+        else
+            zero(eltype(M))
         end
-        A
     else
         error("Not implemented")
     end
@@ -405,10 +399,11 @@ domainspace(op::JacobiSD)=op.S
 rangespace(op::JacobiSD)=op.lr?Jacobi(op.S.a-1,op.S.b+1,domain(op.S)):Jacobi(op.S.a+1,op.S.b-1,domain(op.S))
 bandinds(::JacobiSD)=0,0
 
-function addentries!(op::JacobiSD,A,kr::Range,::Colon)
+function getindex(op::JacobiSD,A,k::Integer,j::Integer)
     m=op.lr?op.S.a:op.S.b
-    for k=kr
-        A[k,k]+=k+m-1
+    if k==j
+        k+m-1
+    else
+        zero(eltype(op))
     end
-    A
 end
