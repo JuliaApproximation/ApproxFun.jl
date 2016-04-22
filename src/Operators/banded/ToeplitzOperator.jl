@@ -47,25 +47,7 @@ function toeplitz_addentries!(v::Vector,A,kr::Range)
     A
 end
 
-function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)
-    if !isempty(v)
-        @inbounds v1=v[1]
-        @simd for k=kr
-            @inbounds A.data[A.l+1,k]+=2v1
-        end
 
-        for j=2:length(v)
-            @inbounds vj=v[j]
-            @simd for k = kr
-                @inbounds A.data[j+A.l,k] +=vj
-            end
-            @simd for k = max(kr[1],j):kr[end]
-                @inbounds A.data[2-j+A.l,k]+=vj
-            end
-        end
-    end
-    A
-end
 
 function toeplitz_addentries!(c::Number,neg::Vector,pos::Vector,A,kr::Range)
     for k=kr,j=1:min(length(neg),k-1)

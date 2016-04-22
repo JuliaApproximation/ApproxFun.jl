@@ -203,7 +203,7 @@ end
 
 function addentries!(B::BandedMatrix,c::Number,A,kr::Range,::Colon)
     for (k,j) in eachbandedindex(B)
-        A[k,j] += c*B.data[j-k+B.l+1,k]
+        A[k,j] += c*B.data[k-j+B.u+1,j]
     end
 
     A

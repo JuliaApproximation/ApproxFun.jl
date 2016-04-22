@@ -9,7 +9,7 @@ import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
                 >=,./,/,.^,^,\,∪,transpose
 
 
-import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, unsafe_getindex, unsafe_setindex!
+import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, unsafe_getindex, unsafe_setindex!, bandwidth
 
 import FixedSizeArrays: Vec
 

@@ -3,36 +3,6 @@
 export adaptiveqr!
 
 
-# ca gives conj(a), cb gives conj(b), mb gives -b
-# This is written to support matrix value and a and b
-
-# applygivens! considers three cases:
-#  The case where two entries in the banded part are manipulated
-#  The case where one enty in the band part and one in the filled in part are manipulated
-#  The case where the fill is manipulated
-#
-
-function applygivens!(ca,cb,mb,a,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
-    @simd for j = jr
-        @inbounds B1 = B.data[j-k1+B.l+1,k1]    #B[k1,j]
-        @inbounds B2 = B.data[j-k2+B.l+1,k2]    #B[k2,j]
-
-        @inbounds B.data[j-k1+B.l+1,k1],B.data[j-k2+B.l+1,k2]= ca*B1 + cb*B2,mb*B1 + a*B2
-    end
-
-    B
-end
-
-function applygivens!(ca,cb,mb,a,F::FillMatrix,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
-    for j = jr
-        B1 = unsafe_getindex(F,k1,j)
-        @inbounds B2 = B.data[j-k2+B.l+1,k2]   #B[k2,j]
-
-        @inbounds B.data[j-k2+B.l+1,k2]=mb*B1 + a*B2
-    end
-
-    B
-end
 
 
 # this applygivens! is used to update fill.data
@@ -69,25 +39,6 @@ function givensmatrix{S<:Number,V<:Number}(a::S,b::V)
 end
 
 
-function givensreduceab!{T,M,R}(B::MutableOperator{T,M,R},k1::Integer,k2::Integer,j1::Integer)
-    bnd=B.bandinds
-    A=B.data
-
-    @inbounds a=A.data[j1-k1+A.l+1,k1]  #A[k1,j1]
-    @inbounds b=A.data[j1-k2+A.l+1,k2]  #A[k2,j1]
-
-    ca,cb,mb,a=givensmatrix(a,b)
-
-
-    #Assuming that left rows are already zero
-    applygivens!(ca,cb,mb,a,B.data,k1,k2,j1:k1+B.bandinds[end])
-    applygivens!(ca,cb,mb,a,B.fill,B.data,k1,k2,k1+B.bandinds[end]+1:k2+B.bandinds[end])
-    applygivens!(ca,cb,mb,a,B.fill.data,k1,k2)
-
-
-    ca,cb,mb,a
-end
-
 function givensreduce!{T,M,R}(B::MutableOperator{T,M,R},v::Array,k1::Integer,k2::Integer,j1::Integer)
     ca,cb,mb,a=givensreduceab!(B,k1,k2,j1)
 
@@ -110,46 +61,6 @@ end
 
 givensreduce!(B::MutableOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandinds(B)[1]),j)
 
-
-function backsubstitution!(B::MutableOperator,u::Array)
-    n=size(u,1)
-    b=B.bandinds[end]
-    nbc = B.fill.numbcs
-    A=B.data
-    T=eltype(u)
-    pk = zeros(T,nbc)
-
-    for c=1:size(u,2)
-        fill!(pk,zero(T))
-
-        # before we get to filled rows
-        for k=n:-1:max(1,n-b)
-            @simd for j=k+1:n
-                @inbounds u[k,c]-=A.data[k-j+A.u+1,j]*u[j,c]
-            end
-
-            @inbounds u[k,c] /= A.data[A.u+1,k]
-        end
-
-       #filled rows
-        for k=n-b-1:-1:1
-            @simd for j=1:nbc
-                @inbounds pk[j] += u[k+b+1,c]*B.fill.bc[j].data[k+b+1]
-            end
-
-            @simd for j=k+1:k+b
-                @inbounds u[k,c]-=A.data[k-j+A.u+1,j]*u[j,c]
-            end
-
-            @simd for j=1:nbc
-                @inbounds u[k,c] -= B.fill.data[k,j]*pk[j]
-            end
-
-            @inbounds u[k,c] /= A.data[A.u+1,k]
-        end
-    end
-    u
-end
 
 
 adaptiveqr(M,b)=adaptiveqr(M,b,eps())

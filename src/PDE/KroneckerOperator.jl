@@ -191,21 +191,6 @@ end
 domainspace(K::KroneckerOperator)=K.domainspace
 rangespace(K::KroneckerOperator)=K.rangespace
 
-function kronaddentries!(A,B,M,kr::Range)
-    m=max(size(A,2),size(B,2))
-    l=A.l+B.l;u=A.u+B.u
-
-    for k=kr,j=max(1,k-l):k+u
-        nl=min(A.l,B.u+k-j);nu=min(A.u,B.l+j-k)
-        @inbounds Mkj=M[k,j]
-        for κ=1:k,ξ=max(1,κ-nl):min(j,κ+nu)
-            #Mkj[κ,ξ]+=A[κ,ξ]*B[k-κ+1,j-ξ+1]
-            @inbounds Mkj[κ,ξ]+=A.data[ξ-κ+A.l+1,κ]*B.data[j-k+κ-ξ+B.l+1,k-κ+1]
-        end
-    end
-    M
-end
-
 addentries!(K::KroneckerOperator,A,kr::Range,::Colon)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
 
 

@@ -52,7 +52,7 @@ datalength(F::Functional)=Inf        # use datalength to indicate a finite lengt
 
 ## bandrange and indexrange
 
-
+bandwidth(A::BandedOperator,k::Integer)=k==1?-bandinds(A,1):bandinds(A,2)
 bandinds(A,k::Integer)=bandinds(A)[k]
 bandrange(b::BandedBelowOperator)=UnitRange(bandinds(b)...)
 function bandrangelength(B::BandedBelowOperator)
@@ -122,7 +122,13 @@ function BandedMatrix(B::Operator,kr::UnitRange,jr::UnitRange)
     l=bandinds(B,1)
     kr1=first(kr)
     BM=BandedMatrix(B,kr,:)
-    kr1≤-l?BM[:,jr]:BM[:,jr-kr1+l+1]
+    if kr1≤1-l  # still starts at col 1
+        BM[:,jr]
+    elseif jr[1]-kr1+l+1≤0
+        zeros(eltype(B),length(kr),length(jr))
+    else
+        BM[:,jr-kr1+l+1]
+    end
 end
 
 
