@@ -174,32 +174,22 @@ bandinds{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=0,D.orde
 bandinds{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}})=-D.order,0
 Base.stride{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=D.order
 
-function BLAS.axpy!{T,λ,DD<:Interval}(α,D::SubOperator{T,ConcreteDerivative{Ultraspherical{λ,DD}}},A)
-    @assert size(X)==size(Y)
-    kr,jr=D.indexes
 
-
+function getindex{λ,DD<:Interval,T}(D::ConcreteDerivative{Ultraspherical{λ,DD},T},k::Integer,j::Integer)
     m=D.order
     indexin(kr+m,jr)
 
 
     d=domain(D)
 
-    if λ == 0
+    if λ == 0 && j==k+m
         C=.5pochhammer(1.,m-1)*(4./(d.b-d.a)).^m
-        for kA=1:size(A,1)
-            k=kr[kA]
-            jA=firstindexin(k+m,jr)
-            A[kA,jA] += α*C*(m+k-1)
-        end
+        C*(m+k-one(T))
+    elseif j==k+m
+        pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m
     else
-        C=pochhammer(1.λ,m)*(4./(d.b-d.a)).^m
-        for k=kr
-            A[k,k+m] += α*C
-        end
+        zero(T)
     end
-
-    A
 end
 
 
@@ -218,24 +208,19 @@ Integral{DD<:Interval}(sp::Chebyshev{DD},m::Integer)=IntegralWrapper(
 
 rangespace{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}})=Ultraspherical{λ-D.order}(domain(D))
 
-function addentries!{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}},A,kr::Range,::Colon)
+function getindex{λ,DD<:Interval,T}(D::ConcreteIntegral{Ultraspherical{λ,DD},T},k::Integer,j::Integer)
     m=D.order
     d=domain(D)
     @assert m<=λ
 
-    if λ == 1
+    if λ == 1 && k==j+1
         C = .5(d.b-d.a)
-        for k=max(kr[1],2):kr[end]
-            A[k,k-1] += C./(k-1)
-        end
-    elseif λ > 1
-        C=pochhammer(1.λ,-m)*(.25(d.b-d.a))^m
-        for k=kr
-            A[k,k-m] += C
-        end
+        C./(k-one(T))
+    elseif λ > 1 && k==j+m
+        pochhammer(one(T)*λ,-m)*(.25(d.b-d.a))^m
+    else
+        zero(T)
     end
-
-    A
 end
 
 
@@ -281,36 +266,6 @@ function getindex{m,λ,DD,T}(M::ConcreteConversion{Ultraspherical{m,DD},Ultrasph
         -c/(k + λ)
     else
         zero(T)
-    end
-end
-
-function multiplyentries!{DD,C<:Chebyshev}(M::ConcreteConversion{C,Ultraspherical{1,DD}},A,kr::Range)
-    cr=columnrange(A)::Range1{Int}
-
-    #We assume here that the extra rows are redundant
-    for k=max(2,kr[1]):kr[end]+2,j=cr
-        A[k,j] *= .5
-    end
-
-    #We assume that A has allocated 2 more bandwidth
-    for k=max(1,kr[1]):kr[end],j=(cr[1]+2):cr[end]
-        A[k,j] -= A[k+2,j-2]
-    end
-end
-
-function multiplyentries!{m,λ,DD,T}(M::ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},A,kr::Range)
-    @assert λ==m+1
-    cr=columnrange(A)::Range1{Int64}
-
-    c = λ-one(T)
-    #We assume here that the extra rows are redundant
-    for k=max(kr[1],1):kr[end]+2,j=cr
-        A[k,j] *= c./(k - 2. + λ)
-    end
-
-    #We assume that A has allocated 2 more bandwidth
-    for k=max(kr[1],1):kr[end],j=(cr[1]+2):cr[end]
-        A[k,j] -= A[k+2,j-2]
     end
 end
 
