@@ -167,7 +167,7 @@ end
 ## override getindex or addentries!.  Each defaults
 
 defaultgetindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
-defaultgetindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
+defaultgetindex(B::BandedOperator,k::Range,j::Range)=copy(sub(B,k,j))
 
 # the defualt is to use getindex
 

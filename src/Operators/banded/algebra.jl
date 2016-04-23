@@ -286,12 +286,11 @@ for TYP in (:Operator,:BandedOperator)
 end
 
 
-function addentries!(P::ConstantTimesOperator,A,kr::Range,::Colon)
-    # Write directly to A, shifting by rows and columns
-    # See subview in Operator.jl for these definitions
-    P1=subview(P.op,kr,:)
-    addentries!(P1,P.c,A,kr,:)
-end
+getindex(P::ConstantTimesOperator,k::Integer,j::Integer) =
+    P.c*P.op[k,j]
+
+BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,P::SubBandedOperator{T,OP},A::AbstractMatrix) =
+    BLAS.axpy!(α*P.c,P.op,A)
 
 
 
@@ -404,9 +403,12 @@ Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 
 
-function addentries!(P::TimesOperator,A,kr::UnitRange,::Colon)
+function BLAS.axpy!{T,TO<:TimesOperator}(α,sub::SubBandedOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}},A::AbstractMatrix)
+    P=parent(sub)
+    kr,jr=parentindexes(sub)
+
     @assert length(P.ops)≥2
-    if length(kr)==0
+    if size(sub,1)==0
         return A
     end
 
@@ -423,14 +425,12 @@ function addentries!(P::TimesOperator,A,kr::UnitRange,::Colon)
 
     # The following returns a banded Matrix with all rows
     # for large k its upper triangular
-    BA=slice(P.ops[end],krl[end,1]:krl[end,2],:)
+    BA=P.ops[end][krl[end,1]:krl[end,2],jr]
     for m=(length(P.ops)-1):-1:1
-        BA=slice(P.ops[m],krl[m,1]:krl[m,2],:)*BA
+        BA=P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]]*BA
     end
 
-    firstjr=max(1-mod(kr[1],1),kr[1]+bandinds(P,1))
-    BLAS.axpy!(1.0,BA,slice(A,kr,firstjr:firstjr-1+size(BA,2)))
-    A
+    BLAS.axpy!(α,BA,A)
 end
 
 

@@ -38,3 +38,9 @@ function Base.sub(A::BandedOperator,kr::UnitRange,jr::UnitRange)
                                                                       (length(kr),length(jr)),
                                                                       max(bandwidth(A,1)-shft,0),max(bandinds(A,2)+shft,0))
 end
+
+
+Base.copy(S::SubBandedOperator) =
+    BLAS.axpy!(1.0,S,bzeros(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2)))
+
+

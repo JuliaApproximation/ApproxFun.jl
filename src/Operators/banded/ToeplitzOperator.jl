@@ -65,7 +65,7 @@ function toeplitz_getindex{T}(cfs::Vector{T},k::Integer,j::Integer)
     if k==j
         2cfs[1]
     elseif 0<k-j≤length(cfs)
-        cfs[k-j]
+        cfs[k-j+1]
     elseif 0<j-k≤length(cfs)-1
         cfs[j-k+1]
     else
@@ -106,27 +106,18 @@ for TYP in (:Operator,:BandedOperator)
     @eval Base.convert{TT}(::Type{$TYP{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
 end
 
-
-function hankel_addentries!(c::Number,v::Vector,A,kr::Range)
-    M=maxabs(v)
-    for j=1:length(v)
-        vj=c*v[j]
-        if abs(vj)>M*10eps(eltype(v))
-            for k=intersect(kr,1:j)
-                if j + 1 >= k+1
-                    A[k,j-k+1] += vj
-                end
-            end
-        end
+function hankel_getindex(v::Vector,k::Integer,j::Integer)
+   if k+j-1 ≤ length(v)
+        v[k+j-1]
+    else
+        zero(eltype(v))
     end
-
-    A
 end
 
-hankel_addentries!(v::Vector,A,kr::Range)=hankel_addentries!(1,v,A,kr)
+getindex(T::HankelOperator,k::Integer,j::Integer) =
+    hankel_getindex(T.coefficients,k,j)
 
 
-addentries!(T::HankelOperator,A,kr::Range,::Colon)=hankel_addentries!(T.coefficients,A,kr)
 
 bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
 
