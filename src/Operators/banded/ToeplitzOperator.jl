@@ -48,33 +48,32 @@ function toeplitz_addentries!(v::Vector,A,kr::Range)
 end
 
 
+getindex(T::ToeplitzOperator,k::Integer,j::Integer) =
+    toeplitz_getindex(T.negative,T.nonnegative,k,j)
 
-function toeplitz_addentries!(c::Number,neg::Vector,pos::Vector,A,kr::Range)
-    for k=kr,j=1:min(length(neg),k-1)
-        A[k,k-j] += c*neg[j]
-    end
-    for k=kr,j=1:length(pos)
-        A[k,k+j-1] += c*pos[j]
-    end
-
-    A
-end
-
-toeplitz_addentries!(neg::Vector,pos::Vector,A,kr::Range)=toeplitz_addentries!(1,neg,pos,A,kr)
-
-
-function Base.getindex(T::ToeplitzOperator,k::Integer,j::Integer)
+function toeplitz_getindex{T}(negative::Vector{T},nonnegative::Vector{T},k::Integer,j::Integer)
     if 0<k-j≤length(T.negative)
-        T.negative[k-j]
+        negative[k-j]
     elseif 0≤j-k≤length(T.nonnegative)-1
-        T.nonnegative[j-k+1]
+        nonnegative[j-k+1]
     else
-        zero(eltype(T))
+        zero(T)
+    end
+end
+
+function toeplitz_getindex{T}(cfs::Vector{T},k::Integer,j::Integer)
+    if k==j
+        2cfs[1]
+    elseif 0<k-j≤length(cfs)
+        cfs[k-j]
+    elseif 0<j-k≤length(cfs)-1
+        cfs[j-k+1]
+    else
+        zero(T)
     end
 end
 
 
-addentries!(T::ToeplitzOperator,A,kr::Range,::Colon)=toeplitz_addentries!(1,T.negative,T.nonnegative,A,kr)
 bandinds(T::ToeplitzOperator)=(-length(T.negative),length(T.nonnegative)-1)
 
 

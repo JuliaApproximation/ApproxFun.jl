@@ -87,23 +87,22 @@ end
 Base.stride{U<:Ultraspherical,V<:Ultraspherical}(M::ConcreteMultiplication{U,V})=stride(M.f)
 
 
-function chebmult_addentries!(cfs::Vector,A,kr::Range)
-    toeplitz_addentries!(.5cfs,A,kr)
-    hankel_addentries!(.5cfs,A,intersect(2:kr[end],kr))
+function chebmult_getindex(cfs::Vector,k::Integer,j::Integer)
+    toeplitz_getindex(.5cfs,k,j)
+    hankel_getindex(.5cfs,k,j)
+end
+
+getindex{T,C<:Chebyshev}(M::ConcreteMultiplication{C,C,T},k::Integer,j::Integer) =
+    chebmult_getindex(coefficients(M.f),k,j)
+
+
+function getindex{D,T,C<:Chebyshev}(M::ConcreteMultiplication{C,Ultraspherical{1,D},T},k::Integer,j::Integer)
+    cfs=coefficients(M.f)
+    toeplitz_getindex(.5cfs,k,j)
+    hankel_getindex(-.5cfs[3:end],k,j)
 end
 
 
-for TYP in (:UnitRange,:Range) # needed to avoid confusion
-    @eval begin
-        addentries!{T,C<:Chebyshev}(M::ConcreteMultiplication{C,C,T},A,kr::$TYP,::Colon)=chebmult_addentries!(coefficients(M.f),A,kr)
-
-        function addentries!{D,T,C<:Chebyshev}(M::ConcreteMultiplication{C,Ultraspherical{1,D},T},A,kr::$TYP,::Colon)
-            cfs=coefficients(M.f)
-            toeplitz_addentries!(.5cfs,A,kr)
-            hankel_addentries!(-.5cfs[3:end],A,kr)
-        end
-    end
-end
 
 function addentries!{λ,PS<:PolynomialSpace,D,T}(M::ConcreteMultiplication{Ultraspherical{λ,D},PS,T},A,kr::UnitRange,::Colon)
     a=coefficients(M.f)
@@ -177,9 +176,6 @@ Base.stride{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=D.ord
 
 function getindex{λ,DD<:Interval,T}(D::ConcreteDerivative{Ultraspherical{λ,DD},T},k::Integer,j::Integer)
     m=D.order
-    indexin(kr+m,jr)
-
-
     d=domain(D)
 
     if λ == 0 && j==k+m

@@ -24,5 +24,5 @@ function defaultaxpy!(a,X::SubBandedOperator,Y)
      Y
 end
 
-BLAS.axpy!(a,X::SubBandedOperator,Y) = defaultaxpy!(a,X,Y)
+BLAS.axpy!(a,X::SubBandedOperator,Y::AbstractMatrix) = defaultaxpy!(a,X,Y)
 

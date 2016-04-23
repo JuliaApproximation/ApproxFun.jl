@@ -97,7 +97,7 @@ BandedMatrix(B::Operator,n::Integer)=addentries!(B,bzeros(B,n,:),1:n,:)
 function BandedMatrix(B::Operator,rws::UnitRange,::Colon)
     S=sub(B,rws,1:last(rws)+bandwidth(B,2))
     BLAS.axpy!(one(eltype(B)),S,
-               BandedMatrix(eltype(B),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2)))
+               bzeros(eltype(B),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2)))
 end
 
 function BandedMatrix(B::Operator,kr::StepRange,::Colon)

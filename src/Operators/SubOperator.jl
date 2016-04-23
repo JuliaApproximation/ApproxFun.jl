@@ -16,13 +16,18 @@ end
 for TYP in (:SubBandedOperator,:SubOperator)
     @eval begin
         size(V::$TYP) = V.dims
-        unsafe_getindex(V::$TYP,k::Integer,j::Integer)=V.parent[V.indexes[1][k],V.indexes[2][j]]
-        getindex(V::$TYP,k::Integer,j::Integer)=V.parent[V.indexes[1][k],V.indexes[2][j]]
-        getindex(V::$TYP,k,j)=V.parent[V.indexes[1][k],V.indexes[2][j]]
+        unsafe_getindex(V::$TYP,k::Integer,j::Integer) = V.parent[V.indexes[1][k],V.indexes[2][j]]
+        getindex(V::$TYP,k::Integer,j::Integer) = V.parent[V.indexes[1][k],V.indexes[2][j]]
+        getindex(V::$TYP,k,j) = V.parent[V.indexes[1][k],V.indexes[2][j]]
+        Base.parent(S::$TYP) = S.parent
+        Base.parentindexes(S::$TYP) = S.indexes
     end
 end
 
 bandwidth(V::SubBandedOperator,k)=k==1?V.l:V.u
+bandshift(S::SubBandedOperator)=first(S.indexes[1])-first(S.indexes[2])
+
+
 
 Base.sub(A::Operator,kr::Range,jr::Range)=SubOperator{eltype(A),typeof(A),Tuple{typeof(kr),typeof(jr)}}(A,(kr,jr),(length(kr),length(jr)))
 

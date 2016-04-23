@@ -130,9 +130,18 @@ end
 Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 
-function addentries!(P::PlusOperator,A,kr,::Colon)
+function getindex(P::PlusOperator,k::Integer,j::Integer)
+    ret=zero(eltype(P))
     for op in P.ops
-        addentries!(op,A,kr,:)
+        ret+=op[k,j]
+    end
+    ret
+end
+
+
+function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedOperator{T,PP},A::AbstractMatrix)
+    for op in parent(P).ops
+        BLAS.axpy!(α,sub(op,P.indexes[1],P.indexes[2]),A)
     end
 
     A
