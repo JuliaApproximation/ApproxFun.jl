@@ -1,12 +1,6 @@
 
 
 
-function pad!(A::BandedMatrix,n,m)
-    A.data=pad(A.data,size(A.data,1),n)
-    A.m=m
-    A
-end
-
 pad!(A::BandedMatrix,n,::Colon)=pad!(A,n,n+A.u)  # Default is to get all columns
 
 

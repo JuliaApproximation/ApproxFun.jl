@@ -1,6 +1,15 @@
 ## Functions that depend on the structure of BandedMatrix
 
 
+function pad!(A::BandedMatrix,n,m)
+    A.data=pad(A.data,size(A.data,1),m)
+    A.m=n
+    A
+end
+
+
+
+
 function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)
     if !isempty(v)
         @inbounds v1=v[1]
