@@ -24,6 +24,8 @@ macro calculus_operator(Op)
             order::OT
         end
 
+        @wrapper $WrappOp
+
 
         ## Constructors
         $ConcOp(sp::Space,k)=$ConcOp{typeof(sp),typeof(k),op_eltype(sp)}(sp,k)
@@ -108,15 +110,6 @@ macro calculus_operator(Op)
                 $Op(sp,D.order)
             end
         end
-
-
-        #Wrapper just adds the operator it wraps
-        addentries!(D::$WrappOp,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
-        rangespace(D::$WrappOp)=rangespace(D.op)
-        domainspace(D::$WrappOp)=domainspace(D.op)
-        bandinds(D::$WrappOp)=bandinds(D.op)
-
-        iswrapper(::$WrappOp)=true
     end)
 #     for func in (:rangespace,:domainspace,:bandinds)
 #         # We assume the operator wrapped has the correct spaces

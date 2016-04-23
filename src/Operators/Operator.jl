@@ -264,7 +264,33 @@ Base.getindex{BT,S,M,SS,T}(B::Operator{BT},f::LowRankFun{S,M,SS,T}) = mapreduce(
 Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
     mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1);one(promote_type(BT,T))],f.space[2])],+,1:length(f.coefficients))
 
+
+
+# Convenience for wrapper ops
+unwrap_axpy!(α,P,A) = BLAS.axpy!(α,sub(parent(P).op,P.indexes[1],P.indexes[2]),A)
+
+macro wrapper(Wrap)
+   ret = quote
+        getindex(OP::$Wrap,k::Integer,j::Integer) =
+            OP.op[k,j];
+
+        BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubBandedOperator{T,OP},A::AbstractMatrix) =
+            unwrap_axpy!(α,P,A);
+
+        iswrapper(::$Wrap)=true;
+    end
+   for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
+        ret=quote
+            $ret
+
+            $func(D::$Wrap)=$func(D.op)
+         end
+   end
+    esc(ret)
+end
+
 ## Standard Operators and linear algebra
+
 
 
 include("linsolve.jl")

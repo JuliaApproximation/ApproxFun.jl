@@ -81,10 +81,8 @@ end
 MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
 MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
 
-addentries!(D::MultiplicationWrapper,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
-for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
-    @eval $func(D::MultiplicationWrapper)=$func(D.op)
-end
+@wrapper MultiplicationWrapper
+
 
 Base.convert{BT<:MultiplicationWrapper}(::Type{BT},C::BT)=C
 function Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper{S,V,VV,T})
