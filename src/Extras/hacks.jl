@@ -23,6 +23,66 @@ function Base.copy(S::SubBandedOperator)
 end
 
 
+# Base.copy
+
+
+function Base.copy{T,C<:Chebyshev,U<:Ultraspherical{1}}(S::SubBandedOperator{T,ConcreteConversion{C,U,T},
+                                                                              Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+    u=bandwidth(ret,2)
+
+    kr,jr=parentindexes(S)
+    dat=ret.data
+    dg1=u+1
+    dg3=u-1
+
+    @assert 1 ≤ dg1 ≤ size(dat,1)
+    @assert 1 ≤ dg3 ≤ size(dat,1)
+
+    for j=1:size(dat,2)
+        @inbounds dat[dg1,j]=0.5
+        @inbounds dat[dg3,j]=-0.5
+    end
+
+    if 1 in kr && 1 in jr
+        dat[dg1,1]=1.0
+    end
+
+    ret
+end
+
+function Base.copy{T,K,DD,λ}(S::SubBandedOperator{T,ConcreteDerivative{Ultraspherical{λ,DD},K,T},
+                                                                Tuple{UnitRange{Int},UnitRange{Int}}})
+    D=parent(S)
+    m=D.order
+    d=domain(D)
+
+    ret=bzeros(S)
+    u=bandwidth(ret,2)
+
+    kr,jr=parentindexes(S)
+    dat=ret.data
+
+    shft = jr[1]-1
+
+
+    # the top row is always the top band
+    if λ == 0
+        C=(.5pochhammer(one(T),m-1)*(4./(d.b-d.a)).^m)::T
+        for j=max(m+1-shft,1):size(dat,2)
+            @inbounds dat[1,j]=C*(j+shft-one(T))
+        end
+    else
+        C=(.5pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
+        for j=max(m+1-shft,1):size(dat,2)
+            @inbounds dat[1,j]=C
+        end
+    end
+
+    ret
+end
+
+
 # linear algebra
 
 

@@ -191,15 +191,15 @@ bandinds{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}})=-D.order,0
 Base.stride{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=D.order
 
 
-function getindex{λ,DD<:Interval,T}(D::ConcreteDerivative{Ultraspherical{λ,DD},T},k::Integer,j::Integer)
+function getindex{λ,DD<:Interval,K,T}(D::ConcreteDerivative{Ultraspherical{λ,DD},K,T},k::Integer,j::Integer)
     m=D.order
     d=domain(D)
 
     if λ == 0 && j==k+m
         C=.5pochhammer(1.,m-1)*(4./(d.b-d.a)).^m
-        C*(m+k-one(T))
+        (C*(m+k-one(T)))::T
     elseif j==k+m
-        pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m
+        (pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
     else
         zero(T)
     end

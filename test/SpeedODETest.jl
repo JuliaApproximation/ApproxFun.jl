@@ -17,29 +17,35 @@ u=[dirichlet(d);Derivative(d)^2+I]\[1.,0.]
 println("Cos/Sin: should be ~0.017")
 
 
-L=Derivative(d)^2-x
-
-@time L[1:12500,1:12500]
+@elapsed L[1:12500,1:12500]
+@elapsed for k=1:100 L[1:1250,1:1250] end
 @elapsed for k=1:100 L.ops[1][1:1250,1:1250] end
+@elapsed for k=1:100 L.ops[2][1:1250,1:1250] end
+
+L.ops[2].ops[1].op.ops[1]
+L.ops[2].ops[1].op.ops[2]
+
+@elapsed for k=1:100 L.ops[2].ops[1].op.ops[1][1:1250,1:1250] end
+@elapsed for k=1:100 L.ops[2].ops[1].op.ops[2][1:1250,1:1250] end
+
+
 @elapsed for k=1:100 L.ops[2].ops[1][1:1250,1:1250] end
 @elapsed for k=1:100 L.ops[2].ops[2][1:1250,1:1250] end
 
 
-using BandedMatrices
-@time (B=bzeros(1250,1250,0,2);)
-@time B.data[1,:]=ones(size(B.data,2))
-A=L.ops[2].ops[2]
-@time for k=1:size(B,1)
-    B[k,k] = A[k,k]
-end
 
-@time fill!(sub(B.data,1,:),0.5)
-B
-methods(fill!)
+@elapsed L[1:12500,1:12500]
+@elapsed for k=1:100 L[1:1250,1:1250] end
+@elapsed for k=1:100 L.ops[1][1:1250,1:1250] end
+@elapsed for k=1:100 L.ops[2][1:1250,1:1250] end
+@elapsed (A+B)
 
-S=sub(A,1:10,1:10)
+@elapsed for k=1:100 L.ops[2].ops[1][1:1250,1:1250] end
+@elapsed for k=1:100 L.ops[2].ops[2][1:1250,1:1250] end
 
-@which copy(S)
+@elapsed for k=1:100 L.ops[2].ops[1].op.ops[1][1:1250,1:1250] end
+@elapsed for k=1:100 L.ops[2].ops[1].op.ops[2][1:1250,1:1250] end
+
 
 L.ops[2].ops[1].op.ops[2]
 
@@ -58,9 +64,7 @@ u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
 u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
 @time u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
 println("Airy: should be ~0.013")
-u(0.)
-@profile u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
-Profile.print()
+
 S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)
