@@ -402,6 +402,7 @@ bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
 Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 
+getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
 
 function BLAS.axpy!{T,TO<:TimesOperator}(α,sub::SubBandedOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}},A::AbstractMatrix)
     P=parent(sub)

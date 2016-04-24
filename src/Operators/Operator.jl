@@ -166,8 +166,8 @@ end
 
 ## override getindex or addentries!.  Each defaults
 
-defaultgetindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
-defaultgetindex(B::BandedOperator,k::Range,j::Range)=copy(sub(B,k,j))
+defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override getindex for $(typeof(B))")
+defaultgetindex(B::BandedOperator,k::Range,j::Range) = copy(sub(B,k,j))
 
 # the defualt is to use getindex
 
@@ -186,11 +186,14 @@ function defaultgetindex(op::Operator,kr::Range,jr::Range)
 end
 
 
-defaultgetindex(A::BandedOperator,k::Integer,::Colon)=FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
-defaultgetindex(A::BandedOperator,kr::Range,::Colon)=slice(A,kr,:)
-defaultgetindex(A::BandedOperator,::Colon,jr::Range)=slice(A,:,jr)
-defaultgetindex(A::BandedOperator,::Colon,::Colon)=A
-Base.getindex(B::Operator,k,j)=defaultgetindex(B,k,j)
+defaultgetindex(A::BandedOperator,k::Integer,::Colon) =
+    FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
+defaultgetindex(A::BandedOperator,kr::Range,::Colon) =
+    slice(A,kr,:)
+defaultgetindex(A::BandedOperator,::Colon,jr::Range) =
+    slice(A,:,jr)
+defaultgetindex(A::BandedOperator,::Colon,::Colon) = A
+Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
 
 
 
