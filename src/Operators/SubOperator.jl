@@ -41,7 +41,7 @@ end
 ## BLAS and matrix routines
 # We assume that copy may be overriden
 
-BLAS.axpy!(a,X::SubBandedOperator,Y::AbstractMatrix) = axpy!(a,copy(X),Y)
+BLAS.axpy!(a,X::SubBandedOperator,Y::AbstractMatrix) = BLAS.axpy!(a,copy(X),Y)
 
 # this is for operators that implement copy via axpy!
 

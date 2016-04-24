@@ -16,7 +16,7 @@ function Base.copy(S::SubBandedOperator)
     Y=BandedMatrix(eltype(S),size(S,1),size(S,2),l,u)
 
     for (k,j) in eachbandedindex(S)
-        @inbounds Y.data[k-j+u+1,j]=X[k,j]
+        @inbounds Y.data[k-j+u+1,j]=S[k,j]
     end
 
     Y
