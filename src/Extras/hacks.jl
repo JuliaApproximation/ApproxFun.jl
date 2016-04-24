@@ -9,6 +9,22 @@ end
 
 
 
+# default copy is to loop through
+# override this for most operators.
+function Base.copy(S::SubBandedOperator)
+    l,u = bandwidth(S,1),bandwidth(S,2)
+    Y=BandedMatrix(eltype(S),size(S,1),size(S,2),l,u)
+
+    for (k,j) in eachbandedindex(S)
+        @inbounds Y.data[k-j+u+1,j]=X[k,j]
+    end
+
+    Y
+end
+
+
+# linear algebra
+
 
 function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)
     if !isempty(v)

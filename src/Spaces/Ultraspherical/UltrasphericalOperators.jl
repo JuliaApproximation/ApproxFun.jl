@@ -87,8 +87,27 @@ end
 Base.stride{U<:Ultraspherical,V<:Ultraspherical}(M::ConcreteMultiplication{U,V})=stride(M.f)
 
 
-chebmult_getindex(cfs::Vector,k::Integer,j::Integer) =
-    toeplitz_getindex(.5cfs,k,j)+(k≥2?hankel_getindex(.5cfs,k,j):zero(eltype(cfs)))
+function chebmult_getindex(cfs::Vector,k::Integer,j::Integer)
+    n=length(cfs)
+
+    ret=zero(eltype(cfs))
+
+    # Toeplitz part
+    if k == j
+        ret += cfs[1]
+    elseif k > j && k-j+1 ≤ n
+        ret += cfs[k-j+1]/2
+    elseif k < j && j-k+1 ≤ n
+        ret += cfs[j-k+1]/2
+    end
+
+    # Hankel part
+    if k ≥ 2 && k+j-1 ≤ n
+        ret += cfs[k+j-1]/2
+    end
+
+    ret
+end
 
 
 getindex{T,C<:Chebyshev}(M::ConcreteMultiplication{C,C,T},k::Integer,j::Integer) =

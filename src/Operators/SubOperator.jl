@@ -25,9 +25,6 @@ for TYP in (:SubBandedOperator,:SubOperator)
 end
 
 bandwidth(V::SubBandedOperator,k)=k==1?V.l:V.u
-bandshift(S::SubBandedOperator)=first(S.indexes[1])-first(S.indexes[2])
-
-
 
 Base.sub(A::Operator,kr::Range,jr::Range)=SubOperator{eltype(A),typeof(A),Tuple{typeof(kr),typeof(jr)}}(A,(kr,jr),(length(kr),length(jr)))
 
@@ -40,7 +37,41 @@ function Base.sub(A::BandedOperator,kr::UnitRange,jr::UnitRange)
 end
 
 
-Base.copy(S::SubBandedOperator) =
+
+## BLAS and matrix routines
+# We assume that copy may be overriden
+
+BLAS.axpy!(a,X::SubBandedOperator,Y::AbstractMatrix) = axpy!(a,copy(X),Y)
+
+# this is for operators that implement copy via axpy!
+
+copy_axpy!(S::SubBandedOperator) =
     BLAS.axpy!(1.0,S,bzeros(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2)))
 
 
+
+
+
+
+
+#
+# function defaultaxpy!(a,X::SubBandedOperator,Y::BandedMatrix)
+#      @assert size(X)==size(Y)
+#      @assert bandwidth(X,1) ≤ bandwidth(Y,1) && bandwidth(X,2) ≤ bandwidth(Y,2)
+#
+#      for (k,j) in eachbandedindex(X)
+#          Y[k,j]+=a*X[k,j]
+#      end
+#
+#      Y
+# end
+#
+# function defaultaxpy!(a,X::SubBandedOperator,Y)
+#      @assert size(X)==size(Y)
+#
+#      for (k,j) in eachbandedindex(X)
+#          Y[k,j]+=a*X[k,j]
+#      end
+#
+#      Y
+# end

@@ -139,6 +139,11 @@ function getindex(P::PlusOperator,k::Integer,j::Integer)
 end
 
 
+
+Base.copy{T,PP<:PlusOperator}(P::SubBandedOperator{T,PP}) =
+    copy_axpy!(P)   # use axpy! to copy
+
+
 function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedOperator{T,PP},A::AbstractMatrix)
     for op in parent(P).ops
         BLAS.axpy!(α,sub(op,P.indexes[1],P.indexes[2]),A)
@@ -404,7 +409,7 @@ Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
 
-function BLAS.axpy!{T,TO<:TimesOperator}(α,sub::SubBandedOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}},A::AbstractMatrix)
+function Base.copy{T,TO<:TimesOperator}(sub::SubBandedOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
     P=parent(sub)
     kr,jr=parentindexes(sub)
 
@@ -431,7 +436,7 @@ function BLAS.axpy!{T,TO<:TimesOperator}(α,sub::SubBandedOperator{T,TO,Tuple{Un
         BA=P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]]*BA
     end
 
-    BLAS.axpy!(α,BA,A)
+    BA
 end
 
 

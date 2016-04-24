@@ -84,7 +84,6 @@ Base.isdiag(A::BandedOperator)=bandinds(A)==(0,0)
 
 
 include("SubOperator.jl")
-include("blas.jl")
 
 
 
@@ -275,12 +274,15 @@ unwrap_axpy!(α,P,A) = BLAS.axpy!(α,sub(parent(P).op,P.indexes[1],P.indexes[2])
 macro wrapper(Wrap)
    ret = quote
         getindex(OP::$Wrap,k::Integer,j::Integer) =
-            OP.op[k,j];
+            OP.op[k,j]
 
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubBandedOperator{T,OP},A::AbstractMatrix) =
-            unwrap_axpy!(α,P,A);
+            unwrap_axpy!(α,P,A)
 
-        iswrapper(::$Wrap)=true;
+        Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubBandedOperator{T,OP}) =
+            copy(sub(parent(P).op,P.indexes[1],P.indexes[2]))
+
+        iswrapper(::$Wrap)=true
     end
    for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
         ret=quote
