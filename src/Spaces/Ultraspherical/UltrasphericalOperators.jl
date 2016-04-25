@@ -48,26 +48,27 @@ function Base.getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range
     d = domain(op)
     p = op.order
     cst = (2/(d.b-d.a))^p
+    n=length(k)
 
     if x
-        ret = ones(T,length(k))
+        ret = ones(T,n)
     else
-        ret = Array(T,length(k))
+        ret = Array(T,n)
         k1=1-first(k)
-        for j=k
-            ret[j+k1]=(-1)^(p+1)*(-one(T))^j
+        @simd for j=k
+            @inbounds ret[j+k1]=(-1)^(p+1)*(-one(T))^j
         end
     end
 
     for m=0:p-1
         k1=1-first(k)
-        for j=k
-            ret[j+k1] *= (j-1)^2-m^2
+        @simd for j=k
+            @inbounds ret[j+k1] *= (j-1)^2-m^2
         end
-        ret /= 2m+1
+        BLAS.scal!(n, 1/(2m+1), ret,1)
     end
 
-    return ret*cst
+    BLAS.scal!(n,cst,ret,1)
 end
 
 function Base.getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},k::Range)

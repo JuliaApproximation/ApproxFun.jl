@@ -39,7 +39,7 @@ function Base.copy{T,C<:Chebyshev,U<:Ultraspherical{1}}(S::SubBandedOperator{T,C
     @assert 1 ≤ dg1 ≤ size(dat,1)
     @assert 1 ≤ dg3 ≤ size(dat,1)
 
-    for j=1:size(dat,2)
+    @simd for j=1:size(dat,2)
         @inbounds dat[dg1,j]=0.5
         @inbounds dat[dg3,j]=-0.5
     end
@@ -50,6 +50,30 @@ function Base.copy{T,C<:Chebyshev,U<:Ultraspherical{1}}(S::SubBandedOperator{T,C
 
     ret
 end
+
+function Base.copy{T,m,λ,DD}(S::SubBandedOperator{T,ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},
+                                                                              Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+
+    kr,jr=parentindexes(S)
+    dat=ret.data
+
+    shft = jr[1]-1
+    # the top row is always the top band
+    c=λ-one(T)  # this supports big types
+    @simd for j=1:size(dat,2)
+        @inbounds dat[3,j]=c/(j+shft - 2 + λ)
+    end
+
+    @simd for j=max(3,3-shft):size(dat,2)
+        @inbounds dat[1,j]=-c/(j+shft - 2 + λ)
+    end
+
+    ret
+end
+
+
+
 
 function Base.copy{T,K,DD,λ}(S::SubBandedOperator{T,ConcreteDerivative{Ultraspherical{λ,DD},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
@@ -69,12 +93,12 @@ function Base.copy{T,K,DD,λ}(S::SubBandedOperator{T,ConcreteDerivative{Ultrasph
     # the top row is always the top band
     if λ == 0
         C=(.5pochhammer(one(T),m-1)*(4./(d.b-d.a)).^m)::T
-        for j=max(m+1-shft,1):size(dat,2)
+        @simd for j=max(m+1-shft,1):size(dat,2)
             @inbounds dat[1,j]=C*(j+shft-one(T))
         end
     else
         C=(.5pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
-        for j=max(m+1-shft,1):size(dat,2)
+        @simd for j=max(m+1-shft,1):size(dat,2)
             @inbounds dat[1,j]=C
         end
     end

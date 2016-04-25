@@ -13,49 +13,7 @@ x=Fun(identity,d)
 u=[dirichlet(d);Derivative(d)^2+I]\[1.,0.]
 u=[dirichlet(d);Derivative(d)^2+I]\[1.,0.]
 @time u=[dirichlet(d);Derivative(d)^2+I]\[1.,0.]
-
 println("Cos/Sin: should be ~0.017")
-
-
-@elapsed L[1:12500,1:12500]
-@elapsed for k=1:100 L[1:1250,1:1250] end
-@elapsed for k=1:100 L.ops[1][1:1250,1:1250] end
-@elapsed for k=1:100 L.ops[2][1:1250,1:1250] end
-
-L.ops[2].ops[1].op.ops[1]
-L.ops[2].ops[1].op.ops[2]
-
-@elapsed for k=1:100 L.ops[2].ops[1].op.ops[1][1:1250,1:1250] end
-@elapsed for k=1:100 L.ops[2].ops[1].op.ops[2][1:1250,1:1250] end
-
-
-@elapsed for k=1:100 L.ops[2].ops[1][1:1250,1:1250] end
-@elapsed for k=1:100 L.ops[2].ops[2][1:1250,1:1250] end
-
-
-
-@elapsed L[1:12500,1:12500]
-@elapsed for k=1:100 L[1:1250,1:1250] end
-@elapsed for k=1:100 L.ops[1][1:1250,1:1250] end
-@elapsed for k=1:100 L.ops[2][1:1250,1:1250] end
-@elapsed (A+B)
-
-@elapsed for k=1:100 L.ops[2].ops[1][1:1250,1:1250] end
-@elapsed for k=1:100 L.ops[2].ops[2][1:1250,1:1250] end
-
-@elapsed for k=1:100 L.ops[2].ops[1].op.ops[1][1:1250,1:1250] end
-@elapsed for k=1:100 L.ops[2].ops[1].op.ops[2][1:1250,1:1250] end
-
-
-L.ops[2].ops[1].op.ops[2]
-
-@elapsed for k=1:100 L.ops[2].ops[1].op.ops[1][1:1250,1:1250] end
-@elapsed for k=1:100 L.ops[2].ops[1].op.ops[2][1:1250,1:1250] end
-
-@which L.ops[2].ops[1].op.ops[2][1,3]
-
-
-?Diagonal
 
 
 d=Interval(-1000.,5.)
@@ -76,8 +34,16 @@ u=[B;L]\rhs
 u=[B;L]\rhs
 @time u=[B;L]\rhs
 println("Poly: should be ~0.025")
+Profile.print()
 
+M=MutableOperator([B;L])
+    @time ApproxFun.resizedata!(M,20100)
+    @profile adaptiveqr!(M,rhs)
+bandinds(L)
 
+Profile.print()
+
+Profile.clear()
 S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)
