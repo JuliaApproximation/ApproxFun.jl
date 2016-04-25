@@ -83,7 +83,7 @@ Base.isdiag(A::BandedOperator)=bandinds(A)==(0,0)
 ## Construct operators
 
 
-include("SubOperator.jl")
+include("SubMatrix.jl")
 
 
 
@@ -276,10 +276,10 @@ macro wrapper(Wrap)
         getindex(OP::$Wrap,k::Integer,j::Integer) =
             OP.op[k,j]
 
-        BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubBandedOperator{T,OP},A::AbstractMatrix) =
+        BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubBandedMatrix{T,OP},A::AbstractMatrix) =
             unwrap_axpy!(α,P,A)
 
-        Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubBandedOperator{T,OP}) =
+        Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubBandedMatrix{T,OP}) =
             copy(sub(parent(P).op,P.indexes[1],P.indexes[2]))
 
         iswrapper(::$Wrap)=true

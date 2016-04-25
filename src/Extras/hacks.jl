@@ -11,7 +11,7 @@ end
 
 # default copy is to loop through
 # override this for most operators.
-function Base.copy(S::SubBandedOperator)
+function Base.copy(S::SubBandedMatrix)
     l,u = bandwidth(S,1),bandwidth(S,2)
     Y=BandedMatrix(eltype(S),size(S,1),size(S,2),l,u)
 
@@ -26,7 +26,7 @@ end
 # Base.copy
 
 
-function Base.copy{T,C<:Chebyshev,U<:Ultraspherical{1}}(S::SubBandedOperator{T,ConcreteConversion{C,U,T},
+function Base.copy{T,C<:Chebyshev,U<:Ultraspherical{1}}(S::SubBandedMatrix{T,ConcreteConversion{C,U,T},
                                                                               Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     u=bandwidth(ret,2)
@@ -51,7 +51,7 @@ function Base.copy{T,C<:Chebyshev,U<:Ultraspherical{1}}(S::SubBandedOperator{T,C
     ret
 end
 
-function Base.copy{T,m,λ,DD}(S::SubBandedOperator{T,ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},
+function Base.copy{T,m,λ,DD}(S::SubBandedMatrix{T,ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},
                                                                               Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
@@ -75,7 +75,7 @@ end
 
 
 
-function Base.copy{T,K,DD,λ}(S::SubBandedOperator{T,ConcreteDerivative{Ultraspherical{λ,DD},K,T},
+function Base.copy{T,K,DD,λ}(S::SubBandedMatrix{T,ConcreteDerivative{Ultraspherical{λ,DD},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
     D=parent(S)
     m=D.order

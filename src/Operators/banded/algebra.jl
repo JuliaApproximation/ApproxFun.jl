@@ -140,11 +140,11 @@ end
 
 
 
-Base.copy{T,PP<:PlusOperator}(P::SubBandedOperator{T,PP}) =
+Base.copy{T,PP<:PlusOperator}(P::SubBandedMatrix{T,PP}) =
     copy_axpy!(P)   # use axpy! to copy
 
 
-function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedOperator{T,PP},A::AbstractMatrix)
+function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedMatrix{T,PP},A::AbstractMatrix)
     for op in parent(P).ops
         BLAS.axpy!(α,sub(op,P.indexes[1],P.indexes[2]),A)
     end
@@ -294,7 +294,7 @@ end
 getindex(P::ConstantTimesOperator,k::Integer,j::Integer) =
     P.c*P.op[k,j]
 
-BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,P::SubBandedOperator{T,OP},A::AbstractMatrix) =
+BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,P::SubBandedMatrix{T,OP},A::AbstractMatrix) =
     unwrap_axpy!(α*parent(P).c,P,A)
 
 
@@ -409,7 +409,7 @@ Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
 
-function Base.copy{T,TO<:TimesOperator}(sub::SubBandedOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.copy{T,TO<:TimesOperator}(sub::SubBandedMatrix{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
     P=parent(sub)
     kr,jr=parentindexes(sub)
 
