@@ -159,30 +159,33 @@ function Base.copy{PS<:PolynomialSpace,V,T,C<:Chebyshev}(S::SubBandedMatrix{T,Co
 
     shft=bandshift(A)
 
-
-    # TODO: general case
-    @assert kr[1]==jr[1]==1
-
-    for j=1:size(A,2)
-        A[j,j]=a[1]
+    for k=kr ∩ jr
+        A[k-kr[1]+1,k-jr[1]+1]=a[1]
     end
 
-    n,m=size(A)
     sp=M.space
-    jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+    jkr=max(1,min(kr[1],jr[1])-length(a)+1):max(kr[end],jr[end])+length(a)-1
 
     #Multiplication is transpose
     J=Recurrence(sp)[jkr,jkr]
     C1=J
 
 
-    BLAS.axpy!(a[2],sub(C1,1:n,1:m),A)
+    (kr[1]-jkr[1]+1)
+
+    kr-kr[1]+jkr[1]
+    kr-jkr[1]+1
+
+    # the sub ranges of jkr that correspond to kr, jr
+    kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
+
+    BLAS.axpy!(a[2],sub(C1,kr2,jr2),A)
     C0=beye(size(J,1),size(J,2),0,0)
 
 
     for k=1:length(a)-2
         C1,C0=2J*C1-C0,C1
-        BLAS.axpy!(a[k+2],sub(C1,1:n,1:m),A)
+        BLAS.axpy!(a[k+2],sub(C1,kr2,jr2),A)
     end
 
     A
