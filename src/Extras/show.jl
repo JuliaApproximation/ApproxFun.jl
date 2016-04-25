@@ -242,8 +242,8 @@ function Base.writemime{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T};he
     B = A[end]
     BM=B[1:10-nf,1:10]
 
-    for kj=eachbandedindex(BM)
-        MM[kj]=BM[kj]
+    for (k,j)=eachbandedindex(BM)
+        MM[k,j]=BM[k,j]
     end
 
     for k=1+nf:10,j=1:10

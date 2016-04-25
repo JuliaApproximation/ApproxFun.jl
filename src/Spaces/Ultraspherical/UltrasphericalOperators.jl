@@ -146,6 +146,49 @@ function addentries!{λ,PS<:PolynomialSpace,D,T}(M::ConcreteMultiplication{Ultra
 end
 
 
+getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
+
+function Base.copy{PS<:PolynomialSpace,V,T,C<:Chebyshev}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
+                                                                            Tuple{UnitRange{Int},UnitRange{Int}}})
+    M=parent(S)
+    kr,jr=parentindexes(S)
+
+    A=bzeros(S)
+
+    a=coefficients(M.f)
+
+    shft=bandshift(A)
+
+
+    # TODO: general case
+    @assert kr[1]==jr[1]==1
+
+    for j=1:size(A,2)
+        A[j,j]=a[1]
+    end
+
+    n,m=size(A)
+    sp=M.space
+    jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+
+    #Multiplication is transpose
+    J=Recurrence(sp)[jkr,jkr]
+    C1=J
+
+
+    BLAS.axpy!(a[2],sub(C1,1:n,1:m),A)
+    C0=beye(size(J,1),size(J,2),0,0)
+
+
+    for k=1:length(a)-2
+        C1,C0=2J*C1-C0,C1
+        BLAS.axpy!(a[k+2],sub(C1,1:n,1:m),A)
+    end
+
+    A
+end
+
+
 function addentries!{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},A,kr::UnitRange,::Colon)
     a=coefficients(M.f)
 
