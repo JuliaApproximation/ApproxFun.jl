@@ -81,62 +81,52 @@ Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2})=ConcreteConversion{typeof(a),t
 
 Conversion(a::ConstantSpace,b::Space)=ConcreteConversion(a,b)
 bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-length(ones(rangespace(C))),0
-function addentries!{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S},A,kr::Range,::Colon)
+function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer)
     on=ones(rangespace(C))
-    for k=kr
-        if k≤length(on)
-            A[k,1]+=on.coefficients[k]
-        end
-    end
-    A
+    k ≤ length(on)?T(on.coefficients[k]):zero(T)
 end
 
 
 # this is identity operator, but we don't use MultiplicationWrapper to avoid
 # ambiguity errors
 
-defaultMultiplication{CS<:ConstantSpace}(f::Fun{CS},b::ConstantSpace)=ConcreteMultiplication(f,b)
-defaultMultiplication{CS<:ConstantSpace}(f::Fun{CS},b::Space)=ConcreteMultiplication(f,b)
-defaultMultiplication(f::Fun,b::ConstantSpace)=ConcreteMultiplication(f,b)
+defaultMultiplication{CS<:ConstantSpace}(f::Fun{CS},b::ConstantSpace) =
+    ConcreteMultiplication(f,b)
+defaultMultiplication{CS<:ConstantSpace}(f::Fun{CS},b::Space) =
+    ConcreteMultiplication(f,b)
+defaultMultiplication(f::Fun,b::ConstantSpace) = ConcreteMultiplication(f,b)
 
-bandinds{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) = 0,0
-function addentries!{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T},A,kr::Range,::Colon)
-    if 1 in kr
-        A[1,1]+=D.f.coefficients[1]
-    end
-    A
-end
-rangespace{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) = D.space
+bandinds{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) =
+    0,0
+getindex{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T},k::Integer,j::Integer) =
+    k==j==1?T(D.f.coefficients[1]):one(T)
+
+rangespace{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) =
+    D.space
 
 
-rangespace{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=UnsetSpace()
-bandinds{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
-addentries!{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T},A,kr::Range,::Colon)=error("No range space attached to Multiplication")
+rangespace{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T}) =
+    UnsetSpace()
+bandinds{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T}) =
+    error("No range space attached to Multiplication")
+getindex{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
+    error("No range space attached to Multiplication")
 
 
 
 bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = 0,0
-function addentries!{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T},A,kr::Range,::Colon)
-    c=Number(D.f)
-    for k=kr
-        A[k,k]+=c
-    end
-    A
-end
+getindex{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T},k::Integer,j::Integer) =
+    k==j?T(D.f):zero(T)
 rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = D.space
 
 
 bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = 1-length(D.f),0
-function addentries!{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T},A,kr::Range,::Colon)
+function getindex{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T},k::Integer,j::Integer)
     Op = Multiplication(D.f,space(D.f))
-    for k=kr
-        if k≤length(D.f)
-            A[k,1]+=Op[k,1]
-        end
-    end
-    A
+    k≤length(D.f) && j==1?T(Op[k,1]):zero(T)
 end
-rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = rangespace(Multiplication(D.f,space(D.f)))
+rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) =
+    rangespace(Multiplication(D.f,space(D.f)))
 
 
 
@@ -168,15 +158,9 @@ for TYP in (:AnySpace,:UnsetSpace,:Space)
 end
 
 
-function addentries!(FO::FunctionalOperator,A,kr::Range,::Colon)
-    if in(1,kr)
-        dat=FO.func[1:datalength(FO.func)]
-        for j=1:length(dat)
-            A[1,j]+=dat[j]
-        end
-    end
-    A
-end
+getindex(FO::FunctionalOperator,k::Integer,j::Integer) =
+    k==1?FO.func[j]:zero(eltype(FO))
+
 
 function *(f::Fun,A::Functional)
     if datalength(A)<Inf
@@ -210,4 +194,3 @@ end
 
 ## Multivariate case
 union_rule(a::TensorSpace,b::ConstantSpace{AnyDomain})=TensorSpace(map(sp->union(sp,b),a.spaces))
-
