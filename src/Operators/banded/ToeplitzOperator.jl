@@ -21,40 +21,40 @@ end
 
 
 
-
-function toeplitz_addentries!(v::Vector,A,kr::Range)
-    if !isempty(v)
-        v1=v[1]
-        M=maxabs(v)
-        if abs(v1) > M*10eps(eltype(v))
-            for k=kr
-                A[k,k]+=2v1
-            end
-        end
-
-        for j=2:length(v)
-            vj=v[j]
-            if abs(vj)> M*10eps(eltype(v))
-                for k = kr
-                    A[k,k+j-1]+=vj
-                end
-                for k = intersect(j:kr[end],kr)
-                    A[k,k-j+1]+=vj
-                end
-            end
-        end
-    end
-    A
-end
+#
+# function toeplitz_addentries!(v::Vector,A,kr::Range)
+#     if !isempty(v)
+#         v1=v[1]
+#         M=maxabs(v)
+#         if abs(v1) > M*10eps(eltype(v))
+#             for k=kr
+#                 A[k,k]+=2v1
+#             end
+#         end
+#
+#         for j=2:length(v)
+#             vj=v[j]
+#             if abs(vj)> M*10eps(eltype(v))
+#                 for k = kr
+#                     A[k,k+j-1]+=vj
+#                 end
+#                 for k = intersect(j:kr[end],kr)
+#                     A[k,k-j+1]+=vj
+#                 end
+#             end
+#         end
+#     end
+#     A
+# end
 
 
 getindex(T::ToeplitzOperator,k::Integer,j::Integer) =
     toeplitz_getindex(T.negative,T.nonnegative,k,j)
 
 function toeplitz_getindex{T}(negative::Vector{T},nonnegative::Vector{T},k::Integer,j::Integer)
-    if 0<k-j≤length(T.negative)
+    if 0<k-j≤length(negative)
         negative[k-j]
-    elseif 0≤j-k≤length(T.nonnegative)-1
+    elseif 0≤j-k≤length(nonnegative)-1
         nonnegative[j-k+1]
     else
         zero(T)
@@ -64,7 +64,7 @@ end
 function toeplitz_getindex{T}(cfs::Vector{T},k::Integer,j::Integer)
     if k==j
         2cfs[1]
-    elseif 0<k-j≤length(cfs)
+    elseif 0<k-j≤length(cfs)-1
         cfs[k-j+1]
     elseif 0<j-k≤length(cfs)-1
         cfs[j-k+1]
@@ -282,5 +282,3 @@ function Fun(T::ToeplitzOperator)
         Fun(interlace(T.nonnegative,T.negative),Laurent(Circle()))
     end
 end
-
-
