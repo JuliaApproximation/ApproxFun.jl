@@ -34,12 +34,9 @@ immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: BandedOperator{T}
     op::O
     domainspace::S
     rangespace::V
-#
-#     function SpaceOperator{T,O,S}(o::O,s::S)
-#         @assert domainspace(o)==rangespace(o)==AnySpace()
-#         new(o,s)
-#     end
 end
+
+@wrapper SpaceOperator
 
 # The promote_type is needed to fix a bug in promotetimes
 # not sure if its the right long term solution
@@ -59,14 +56,8 @@ function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)
 end
 
 domain(S::SpaceOperator)=domain(domainspace(S))
-
 domainspace(S::SpaceOperator)=S.domainspace
 rangespace(S::SpaceOperator)=S.rangespace
-addentries!(S::SpaceOperator,A,kr,::Colon)=addentries!(S.op,A,kr,:)
-
-for op in (:bandinds,:(Base.stride))
-    @eval $op(S::SpaceOperator)=$op(S.op)
-end
 
 
 

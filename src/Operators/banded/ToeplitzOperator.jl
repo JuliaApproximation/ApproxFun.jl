@@ -20,38 +20,10 @@ end
 
 
 
-
-#
-# function toeplitz_addentries!(v::Vector,A,kr::Range)
-#     if !isempty(v)
-#         v1=v[1]
-#         M=maxabs(v)
-#         if abs(v1) > M*10eps(eltype(v))
-#             for k=kr
-#                 A[k,k]+=2v1
-#             end
-#         end
-#
-#         for j=2:length(v)
-#             vj=v[j]
-#             if abs(vj)> M*10eps(eltype(v))
-#                 for k = kr
-#                     A[k,k+j-1]+=vj
-#                 end
-#                 for k = intersect(j:kr[end],kr)
-#                     A[k,k-j+1]+=vj
-#                 end
-#             end
-#         end
-#     end
-#     A
-# end
-
-
 getindex(T::ToeplitzOperator,k::Integer,j::Integer) =
     toeplitz_getindex(T.negative,T.nonnegative,k,j)
 
-function toeplitz_getindex{T}(negative::Vector{T},nonnegative::Vector{T},k::Integer,j::Integer)
+function toeplitz_getindex{T}(negative::AbstractVector{T},nonnegative::AbstractVector{T},k::Integer,j::Integer)
     if 0<k-j≤length(negative)
         negative[k-j]
     elseif 0≤j-k≤length(nonnegative)-1
@@ -61,7 +33,7 @@ function toeplitz_getindex{T}(negative::Vector{T},nonnegative::Vector{T},k::Inte
     end
 end
 
-function toeplitz_getindex{T}(cfs::Vector{T},k::Integer,j::Integer)
+function toeplitz_getindex{T}(cfs::AbstractVector{T},k::Integer,j::Integer)
     if k==j
         2cfs[1]
     elseif 0<k-j≤length(cfs)-1
@@ -138,101 +110,25 @@ end
 
 
 
-function shiftrowrange(kr::Range)
-    if isodd(kr[1]) && isodd(kr[end])
-        poskr=div(kr[1]-1,2):div(kr[end]-1,2)
-        negkr=-div(kr[end]-1,2):-div(kr[1]+1,2)
-    elseif isodd(kr[1]) # && iseven(kr[end])
-        poskr=div(kr[1]-1,2):div(kr[end],2)-1
-        negkr=-div(kr[end],2):-div(kr[1]+1,2)
-    elseif isodd(kr[end]) # && iseven(kr[1])
-        poskr=div(kr[1],2):div(kr[end]-1,2)
-        negkr=-div(kr[end]-1,2):-div(kr[1],2)
-    else # iseven(kr[end]) && iseven(kr[1])
-        poskr=div(kr[1],2):div(kr[end],2)-1
-        negkr=-div(kr[end],2):-div(kr[1],2)
+function laurent_getindex{T}(negative::AbstractVector{T},nonnegative::AbstractVector{T},k::Integer,j::Integer)
+    # switch to double-infinite indices
+    k=iseven(k)?-div(k,2):div(k-1,2)
+    j=iseven(j)?-div(j,2):div(j-1,2)
+
+    if 0<k-j≤length(negative)
+        negative[k-j]
+    elseif 0≤j-k≤length(nonnegative)-1
+        nonnegative[j-k+1]
+    else
+        zero(T)
     end
-    negkr,poskr
-end
-
-# function laurent_addentries!(v::Vector,A,kr::Range)
-#     negkr,poskr=shiftrowrange(kr)
-#     br=1-length(v):length(v)-1
-#
-#     for k=poskr,j=br
-#         if j≥0 # && k≥0
-#             A[2k+1,2j+1] += (j ==0) ? 2v[1] : v[abs(j)+1]
-#         else # && k≥0
-#             A[2k+1,-2j] += (j ==0) ? 2v[1] : v[abs(j)+1]
-#         end
-#     end
-#
-#     for k=negkr,j=br
-#         if j≥0 # && k <0
-#             A[-2k,2j+1] += (j ==0) ? 2v[1] : v[abs(j)+1]
-#         else # j<0 && k<0
-#             A[-2k,-2j] += (j ==0) ? 2v[1] : v[abs(j)+1]
-#         end
-#     end
-#
-#     A
-# end
-
-
-
-
-function laurent_addentries!(neg::Vector,pos::Vector,A,kr::Range)
-    negkr,poskr=shiftrowrange(kr)
-
-    for k=poskr
-        for j=1:length(neg)
-            if k-j≥0 # && k≥0
-                #A[k,k+j]=v[j]
-                # k->2k+1
-                A[2k+1,2k-2j+1] += neg[j]
-            else # k+j<0 && k≥0
-
-                #A[k,k+j]=v[j]
-                A[2k+1,-2k+2j] += neg[j]
-            end
-        end
-        for j=0:length(pos)-1
-            if k+j≥0 # && k≥0
-                #A[k,k+j]=v[j]
-                # k->2k+1
-                A[2k+1,2k+2j+1] += pos[j+1]
-            else # k+j<0 && k≥0
-
-                #A[k,k+j]=v[j]
-                A[2k+1,-2k-2j] += pos[j+1]
-            end
-        end
-    end
-
-    for k=negkr
-        for j=1:length(neg)
-            if k-j<0 # && k <0
-                A[-2k,-2k+2j] += neg[j]
-            else # k+j>0 && k<0
-                A[-2k,2k-2j+1] += neg[j]
-            end
-        end
-        for j=0:length(pos)-1
-            if k+j<0 # && k <0
-                A[-2k,-2k-2j] += pos[j+1]
-            else # k+j>0 && k<0
-                A[-2k,2k+2j+1] += pos[j+1]
-            end
-        end
-    end
-
-    A
 end
 
 
 
 
-addentries!(T::LaurentOperator,A,kr::Range,::Colon)=laurent_addentries!(T.negative,T.nonnegative,A,kr)
+
+getindex(T::LaurentOperator,k::Integer,j::Integer)=laurent_getindex(T.negative,T.nonnegative,k,j)
 
 shiftbandinds(T::LaurentOperator)=-length(T.negative),length(T.nonnegative)-1
 function bandinds(T::LaurentOperator)

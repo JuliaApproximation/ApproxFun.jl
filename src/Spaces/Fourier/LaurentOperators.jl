@@ -11,7 +11,9 @@ LaurentOperator{DD}(f::Fun{Laurent{DD}})=LaurentOperator(f.coefficients[3:2:end]
 ##Taylor
 
 Multiplication{DD}(f::Fun{Taylor{DD}},sp::Taylor{DD}) =
-    MultiplicationWrapper(f,ToeplitzOperator(M.f.coefficients[2:end],[M.f.coefficients[1]]))
+    MultiplicationWrapper(f,SpaceOperator(ToeplitzOperator(M.f.coefficients[2:end],
+                                                           [M.f.coefficients[1]]),
+                                          sp,sp))
 
 
 ## Evaluation
@@ -23,7 +25,7 @@ getindex{DD}(T::Evaluation{Taylor{DD},Complex{Float64},Complex{Float64}},cols::R
 ## Multiplication
 
 Multiplication{DD}(f::Fun{Laurent{DD}},sp::Laurent{DD}) =
-    MultiplicationWrapper(f,LaurentOperator(f))
+    MultiplicationWrapper(f,SpaceOperator(LaurentOperator(f),sp,sp))
 
 
 Multiplication{DD}(f::Fun{Fourier{DD}},sp::Laurent{DD}) = Multiplication(Fun(f,sp),sp)

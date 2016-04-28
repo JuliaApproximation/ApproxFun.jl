@@ -221,8 +221,13 @@ Derivative(sp::Space,order)=defaultDerivative(sp,order)
 
 function Integral(sp::Space,k::Integer)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
-        # we assume the canonical domain case is implemented
-        ConcreteIntegral(sp,k)
+        # this is the normal default constructor
+        csp=canonicalspace(sp)
+        if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
+            # we require that Integral is overridden
+            error("Implement Integeral($(string(sp)),$order)")
+        end
+        IntegralWrapper(TimesOperator([Integeral(csp,order),Conversion(sp,csp)]),order)
     elseif k > 1
         Q=Integral(sp,1)
         IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
