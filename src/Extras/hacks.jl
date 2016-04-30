@@ -33,8 +33,8 @@ function Base.copy{T,C<:Chebyshev,U<:Ultraspherical{1}}(S::SubBandedMatrix{T,Con
 
     kr,jr=parentindexes(S)
     dat=ret.data
-    dg1=u+1
-    dg3=u-1
+    dg1=u+jr[1]-kr[1]+1
+    dg3=u+jr[1]-kr[1]-1
 
     @assert 1 ≤ dg1 ≤ size(dat,1)
     @assert 1 ≤ dg3 ≤ size(dat,1)
@@ -89,17 +89,19 @@ function Base.copy{T,K,DD,λ}(S::SubBandedMatrix{T,ConcreteDerivative{Ultraspher
 
     shft = jr[1]-1
 
+    dg=jr[1]-kr[1]+u+1-m
+
 
     # the top row is always the top band
     if λ == 0
         C=(.5pochhammer(one(T),m-1)*(4./(d.b-d.a)).^m)::T
         @simd for j=max(m+1-shft,1):size(dat,2)
-            @inbounds dat[1,j]=C*(j+shft-one(T))
+            @inbounds dat[dg,j]=C*(j+shft-one(T))
         end
     else
         C=(.5pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
         @simd for j=max(m+1-shft,1):size(dat,2)
-            @inbounds dat[1,j]=C
+            @inbounds dat[dg,j]=C
         end
     end
 

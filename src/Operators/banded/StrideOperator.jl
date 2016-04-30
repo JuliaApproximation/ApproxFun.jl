@@ -57,22 +57,17 @@ end
 #S[k,j] == A[k,j-k]
 #A[rowstride*k + rowindex,colstride*j + colindex - k] == op[k,j]
 
-function stride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
-    r1=divrowrange(rs,ri,kr)
-    if length(r1)>0
-        addentries!(op,IndexStride(A,ri,ci,rs,cs),r1,:)
-    end
-
-    A
-end
+stride_getindex(op,ri,ci,rs,cs,k::Integer,j::Integer) =
+    op[firstrw(rs,ri,k),firstrw(cs,ci,j)]
 
 
 
-stride_addentries!(S::StrideOperator,A,kr::Range)=stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
+stride_getindex(S::StrideOperator,k::Integer,j::Integer) =
+    stride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,k,j)
 
 
-addentries!(S::StrideOperator,A,kr,::Colon)=stride_addentries!(S,A,kr)
-domain(S::StrideOperator)=Any ##TODO: tensor product
+getindex(S::StrideOperator,k::Integer,j::Integer) = stride_addentries!(S,k,j)
+domain(S::StrideOperator) = Any ##TODO: tensor product
 
 
 ## SliceOperator
@@ -258,12 +253,21 @@ end
 bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandinds(m,k)-1,min,M.ops)+1):(size(M.ops,k)*mapreduce(m->bandinds(m,k)+1,max,M.ops)-1)
 bandinds(M::InterlaceOperator)=bandinds(M,1),bandinds(M,2)
 
-function addentries!(M::InterlaceOperator,A,kr::Range,::Colon)
+function getindex(M::InterlaceOperator,k::Integer,j::Integer)
     n=size(M.ops,1)
     for k=1:n,j=1:n
         stride_addentries!(M.ops[k,j],k-n,j-n,n,n,A,kr)
     end
     A
+
+    n,m=size(M.ops)
+    mk = n+mod(k,-n)
+    mj = m+mod(j,-m)
+    T=eltype(D)
+
+    k=(k-1)÷n+1  # map k and j to block coordinates
+    j=(j-1)÷m+1
+    D.ops[mk,mj][k,j]::T
 end
 
 domainspace(IO::InterlaceOperator)=domainspace(IO.ops)
@@ -377,7 +381,7 @@ function getindex(D::DiagonalInterlaceOperator,k::Integer,j::Integer)
     if mk == n+mod(j,-n)  # same block
         k=(k-1)÷n+1  # map k and j to block coordinates
         j=(j-1)÷n+1
-        T(D.ops[mk][k,j])
+        D.ops[mk][k,j]::T
     else
         zero(T)
     end

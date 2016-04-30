@@ -22,20 +22,7 @@ bandinds(P::TransposeOperator)=-bandinds(P.op)[end],-bandinds(P.op)[1]
 
 
 getindex(P::TransposeOperator,k::Integer,j::Integer) =
-    P.op[k,j]
-
-function addentries!(P::TransposeOperator,A,kr::Range,::Colon)
-    br=bandinds(P.op)
-    # the number of rows we need increases when we
-    # transpose
-    kr2=max(kr[1]-br[end],1):kr[end]-br[1]
-
-    B=subview(P.op,:,kr)
-    for k=kr,j=max(1,k+bandinds(P,1)):k+bandinds(P,2)
-        A[k,j]+=B[j,k]
-    end
-    A
-end
+    P.op[j,k]
 
 
 Base.transpose(A::BandedOperator)=TransposeOperator(A)

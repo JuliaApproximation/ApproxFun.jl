@@ -120,7 +120,6 @@ A= [0  ldirichlet(d);
     0    rdirichlet(d);
     -1    F; ]
 
-
 u,x=A\[1.,0.,2.,0.]
 
 @test norm(F*x-u)<1000eps()
