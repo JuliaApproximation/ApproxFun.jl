@@ -90,59 +90,24 @@ include("SubMatrix.jl")
 bzeros(B::Operator,n::Integer,m::Integer)=bzeros(eltype(B),n,m,bandinds(B))
 bzeros(B::Operator,n::Integer,m::Colon)=bzeros(eltype(B),n,m,bandinds(B))
 bzeros(B::Operator,n::Integer,m::Colon,br::Tuple{Int,Int})=bzeros(eltype(B),n,m,br)
-isbzeros(B::Operator,rws::Range,::Colon)=isbzeros(eltype(B),rws,:,bandinds(B))
-
-BandedMatrix(B::Operator,n::Integer)=addentries!(B,bzeros(B,n,:),1:n,:)
-function BandedMatrix(B::Operator,rws::UnitRange,::Colon)
-    S=sub(B,rws,1:last(rws)+bandwidth(B,2))
-    BLAS.axpy!(one(eltype(B)),S,
-               bzeros(eltype(B),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2)))
-end
-
-function BandedMatrix(B::Operator,kr::StepRange,::Colon)
-    stp=step(kr)
-
-    if stp==1
-        BandedMatrix(B,first(kr):last(kr),:)
-    else
-        str=stride(B)
-        @assert mod(str,stp)==0
-        # we need the shifting by bandinds to preserve mod
-        @assert mod(bandinds(B,1),stp)==mod(bandinds(B,2),stp)==0
-        # find column range
-        jr=max(stp-mod(kr[1],stp),kr[1]+bandinds(B,1)):stp:kr[end]+bandinds(B,2)
-        shf=div(first(kr)-first(jr),stp)
-        bi=div(bandinds(B,1),stp)+shf,div(bandinds(B,2),stp)+shf
-        A=bzeros(eltype(B),length(kr),length(jr),bi)
-        addentries!(B,IndexSlice(A,first(kr)-stp,first(jr)-stp,stp,stp),kr,:)
-        A
-    end
-end
-
-function BandedMatrix(B::Operator,kr::UnitRange,jr::UnitRange)
-    l=bandinds(B,1)
-    kr1=first(kr)
-    BM=BandedMatrix(B,kr,:)
-    if kr1≤1-l  # still starts at col 1
-        BM[:,jr]
-    elseif jr[1]-kr1-l+1≤0
-        zeros(eltype(B),length(kr),length(jr))
-    else
-        BM[:,jr-kr1-l+1]
-    end
-end
 
 
-# Returns all columns in rows kr
-# The first column of the returned BandedMatrix
-# will be the first non-zero column
+# The following support converting an Operator to a BandedMatrix
+#  In this case : is interpreted to mean all nonzero rows
 
-BandedMatrix(B::Operator,kr::Colon,jr::UnitRange)=BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
+BandedMatrix(B::Operator,kr::Range,jr::Range) =
+    copy(sub(B,kr,jr))
 
-Base.sparse(B::Operator,n::Integer)=sparse(BandedMatrix(B,n))
-Base.sparse(B::Operator,n::Range,m::Range)=sparse(BandedMatrix(B,n,m))
-Base.sparse(B::Operator,n::Colon,m::Range)=sparse(BandedMatrix(B,n,m))
-Base.sparse(B::Operator,n::Range,m::Colon)=sparse(BandedMatrix(B,n,m))
+BandedMatrix(B::Operator,rws::Range,::Colon) =
+    BandedMatrix(B,rws,1:last(rws)+bandwidth(B,2))
+
+BandedMatrix(B::Operator,kr::Colon,jr::UnitRange) =
+    BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
+#
+# Base.sparse(B::Operator,n::Integer)=sparse(BandedMatrix(B,n))
+# Base.sparse(B::Operator,n::Range,m::Range)=sparse(BandedMatrix(B,n,m))
+# Base.sparse(B::Operator,n::Colon,m::Range)=sparse(BandedMatrix(B,n,m))
+# Base.sparse(B::Operator,n::Range,m::Colon)=sparse(BandedMatrix(B,n,m))
 
 ## geteindex
 
@@ -196,47 +161,23 @@ Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
 
 
 
-# we use slice instead of get index because we can't override
-# getindex (::Colon)
-# This violates the behaviour of slices though...
-Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
-# Float-valued ranges are implemented to support 1:Inf to take a slice
-# TODO: right now non-integer steps are only supported when the operator itself
-# has compatible stride
-function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
-    st=step(kr)
-    @assert step(jr)==st
-    @assert last(kr)==last(jr)==Inf
-    SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
-end
-Base.slice(B::BandedOperator,::Colon,jr::FloatRange)=slice(B,1:Inf,jr)
-Base.slice(B::BandedOperator,kr::FloatRange,::Colon)=slice(B,kr,1:Inf)
-Base.slice(A::BandedOperator,::Colon,::Colon)=A
-
-function subview(B::BandedOperator,kr::Range,::Colon)
-     br=bandinds(B)
-     BM=slice(B,kr,:)
-
-     # This shifts to the correct slice
-     IndexStride(BM,1-kr[1],-max(0,kr[1]-1+br[1]))
-end
-
-
-function subview(B::BandedOperator,::Colon,jr::Range)
-     br=bandinds(B)
-     BM=slice(B,:,jr)
-
-     # This shifts to the correct slice
-     IndexStride(BM,-max(jr[1]-1-br[end],0),1-jr[1])
-end
-
-function subview(B::BandedOperator,kr::Range,jr::Range)
-     br=bandinds(B)
-     BM=slice(B,kr,jr)
-
-     # This shifts to the correct slice
-     IndexStride(BM,1-kr[1],1-jr[1])
-end
+# # we use slice instead of get index because we can't override
+# # getindex (::Colon)
+# # This violates the behaviour of slices though...
+# Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
+# # Float-valued ranges are implemented to support 1:Inf to take a slice
+# # TODO: right now non-integer steps are only supported when the operator itself
+# # has compatible stride
+# function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
+#     st=step(kr)
+#     @assert step(jr)==st
+#     @assert last(kr)==last(jr)==Inf
+#     SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
+# end
+# Base.slice(B::BandedOperator,::Colon,jr::FloatRange)=slice(B,1:Inf,jr)
+# Base.slice(B::BandedOperator,kr::FloatRange,::Colon)=slice(B,kr,1:Inf)
+# Base.slice(A::BandedOperator,::Colon,::Colon)=A
+#
 
 
 

@@ -17,6 +17,7 @@ d=Interval()
 
 A=Conversion(Chebyshev(d),Ultraspherical{2}(d))
 
+
 @test_approx_eq BandedMatrices.BandedMatrix(A,1:10,1:10)[5:10,5:10] BandedMatrices.BandedMatrix(A,5:10,5:10)
 
 

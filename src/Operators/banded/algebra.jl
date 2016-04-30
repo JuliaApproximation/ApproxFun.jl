@@ -559,7 +559,7 @@ for TYP in (:Vector,:Matrix)
             n=size(b,1)
 
             ret=if n>0
-                slice(A,:,1:n)*b
+                BandedMatrix(A,:,1:n)*b
             else
                 b
             end
