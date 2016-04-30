@@ -41,8 +41,8 @@ end
 # The promote_type is needed to fix a bug in promotetimes
 # not sure if its the right long term solution
 SpaceOperator(o::Operator,s::Space,rs::Space)=SpaceOperator{typeof(o),
-                                                                            typeof(s),
-                                                                            typeof(rs),eltype(o)}(o,s,rs)
+                                                            typeof(s),
+                                                            typeof(rs),eltype(o)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 Base.convert{OT<:SpaceOperator}(::Type{OT},S::OT)=S  # Added to fix 0.4 bug
 function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)

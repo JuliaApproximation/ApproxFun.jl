@@ -370,12 +370,17 @@ function bandinds(S::DiagonalInterlaceOperator)
 end
 
 
-function addentries!(D::DiagonalInterlaceOperator,A,kr::Range,::Colon)
+function getindex(D::DiagonalInterlaceOperator,k::Integer,j::Integer)
     n=length(D.ops)
-    for k=1:n
-        stride_addentries!(D.ops[k],k-n,k-n,n,n,A,kr)
+    mk = n+mod(k,-n)
+    T=eltype(D)
+    if mk == n+mod(j,-n)  # same block
+        k=(k-1)÷n+1  # map k and j to block coordinates
+        j=(j-1)÷n+1
+        T(D.ops[mk][k,j])
+    else
+        zero(T)
     end
-    A
 end
 
 domainspace(D::DiagonalInterlaceOperator)=D.domainspace

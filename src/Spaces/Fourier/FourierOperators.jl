@@ -199,7 +199,7 @@ getindex{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp},k::Integer,j::Integer) =
 
 function getindex{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp},k::Integer,j::Integer)
     a=M.f.coefficients
-    ret=0.5*toeplitz_getindex([0.;-a],k,j)
+    ret=0.5*toeplitz_getindex([0.;-a],a,k,j)
     if k ≥ 2
         ret+=0.5*hankel_getindex(a,k,j)
     end
@@ -223,11 +223,11 @@ rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Sp,Cs})=SinSpace
 
 function getindex{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,Sp},k::Integer,j::Integer)
     a=M.f.coefficients
-    0.5*toeplitz_getindex(a,k,j)
+    ret=0.5*toeplitz_getindex(a,k,j)
     if length(a)>=3
-        -0.5*hankel_getindex(slice(a,3:length(a)),k,j)
+        ret-=0.5*hankel_getindex(slice(a,3:length(a)),k,j)
     end
-    A
+    ret
 end
 
 bandinds{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)

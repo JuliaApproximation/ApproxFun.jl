@@ -78,7 +78,7 @@ for TYP in (:Operator,:BandedOperator)
     @eval Base.convert{TT}(::Type{$TYP{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
 end
 
-function hankel_getindex(v::Vector,k::Integer,j::Integer)
+function hankel_getindex(v::AbstractVector,k::Integer,j::Integer)
    if k+j-1 ≤ length(v)
         v[k+j-1]
     else

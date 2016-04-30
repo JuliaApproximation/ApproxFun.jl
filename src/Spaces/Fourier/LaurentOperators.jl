@@ -40,8 +40,9 @@ coefficienttimes{DD}(f::Fun{Laurent{DD}},g::Fun{Laurent{DD}}) = Multiplication(f
 ## Derivative
 
 # override map definition
-Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=ConcreteDerivative(S,k)
-Derivative{DD<:Circle}(S::Laurent{DD},k::Integer)=DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),SumSpace),k)
+Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer) = ConcreteDerivative(S,k)
+Derivative{DD<:Circle}(S::Laurent{DD},k::Integer) =
+    DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),SumSpace),k)
 
 bandinds{s,DD<:PeriodicInterval}(D::ConcreteDerivative{Hardy{s,DD}})=(0,0)
 bandinds{s,DD<:Circle}(D::ConcreteDerivative{Hardy{s,DD}})=s?(0,D.order):(-D.order,0)
@@ -139,11 +140,11 @@ function bandinds{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false
 end
 rangespace{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})=D.space.space
 
-function getindex{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}},k::Integer,j::Integer)
+function getindex{n,T,OT,TT,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1},OT,TT},k::Integer,j::Integer)
     d=domain(D)
     m=D.order
 
-    C=T((-d.radius)^m)
+    C=TT((-d.radius)^m)
 
     if k==j
         D=k
@@ -152,7 +153,7 @@ function getindex{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false
         end
         C/D
     else
-        zero(T)
+        zero(TT)
     end
 end
 
