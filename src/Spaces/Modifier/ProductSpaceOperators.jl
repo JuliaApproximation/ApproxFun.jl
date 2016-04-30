@@ -33,7 +33,7 @@ Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::Multiplication
 
 
 ## Vector
-
+# represents an operator applied to all spaces in an array space
 
 
 immutable DiagonalArrayOperator{B<:BandedOperator,T<:Number} <: BandedOperator{T}
@@ -52,12 +52,16 @@ function bandinds(D::DiagonalArrayOperator)
 end
 
 
-function addentries!(D::DiagonalArrayOperator,A,kr::Range,::Colon)
+function getindex{B,T}(D::DiagonalArrayOperator{B,T},k::Integer,j::Integer)
     n=*(D.dimensions...)
-    for k=1:n
-        stride_addentries!(D.op,k-n,k-n,n,n,A,kr)
+
+    if mod(k,n) == mod(j,n)  # same block
+        k=(k-1)÷n+1  # map k and j to block coordinates
+        j=(j-1)÷n+1
+        D.op[k,j]::T
+    else
+        zero(T)
     end
-    A
 end
 
 

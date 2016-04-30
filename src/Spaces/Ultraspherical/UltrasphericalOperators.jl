@@ -47,7 +47,7 @@ function Base.getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range
     x = op.x
     d = domain(op)
     p = op.order
-    cst = (2/(d.b-d.a))^p
+    cst = T((2/(d.b-d.a))^p)
     n=length(k)
 
     if x
@@ -65,7 +65,7 @@ function Base.getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range
         @simd for j=k
             @inbounds ret[j+k1] *= (j-1)^2-m^2
         end
-        BLAS.scal!(n, 1/(2m+1), ret,1)
+        BLAS.scal!(n, T(1/(2m+1)), ret,1)
     end
 
     BLAS.scal!(n,cst,ret,1)

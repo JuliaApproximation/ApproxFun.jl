@@ -254,20 +254,14 @@ bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandi
 bandinds(M::InterlaceOperator)=bandinds(M,1),bandinds(M,2)
 
 function getindex(M::InterlaceOperator,k::Integer,j::Integer)
-    n=size(M.ops,1)
-    for k=1:n,j=1:n
-        stride_addentries!(M.ops[k,j],k-n,j-n,n,n,A,kr)
-    end
-    A
-
     n,m=size(M.ops)
     mk = n+mod(k,-n)
     mj = m+mod(j,-m)
-    T=eltype(D)
+    T=eltype(M)
 
     k=(k-1)÷n+1  # map k and j to block coordinates
     j=(j-1)÷m+1
-    D.ops[mk,mj][k,j]::T
+    M.ops[mk,mj][k,j]::T
 end
 
 domainspace(IO::InterlaceOperator)=domainspace(IO.ops)
