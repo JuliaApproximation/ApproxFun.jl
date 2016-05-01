@@ -12,13 +12,15 @@ function bandinds(P::PermutationOperator)
     minimum(dfs),maximum(dfs)
 end
 
-function addentries!(P::PermutationOperator,A,kr::Range,::Colon)
+function getindex{T}(P::PermutationOperator{T},k::Integer,j::Integer)
     n=length(P.perm)
-    for k=kr
-        m=mod(k-1,n)+1
-        A[k,P.perm[m]-m+k]+=1
+    if (k-1)÷n == (j-1)÷n  # diagonal blocks
+        k=mod(k-1,n)+1
+        j=mod(j-1,n)+1
+        T(P.perm[k]==j)
+    else
+        zero(T)
     end
-    A
 end
 
 

@@ -99,7 +99,7 @@ function Base.copy{T,K,DD,λ}(S::SubBandedMatrix{T,ConcreteDerivative{Ultraspher
             @inbounds dat[dg,j]=C*(j+shft-one(T))
         end
     else
-        C=(.5pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
+        C=(pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
         @simd for j=max(m+1-shft,1):size(dat,2)
             @inbounds dat[dg,j]=C
         end

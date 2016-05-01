@@ -185,19 +185,25 @@ end
 
 
 Multiplication{CS<:CosSpace}(f::Fun{CS},sp::CS) = ConcreteMultiplication(f,sp)
-Multiplication{CS<:SinSpace}(f::Fun{CS},sp::CS) = ConcreteMultiplication(f,sp)
+Multiplication{SS<:SinSpace}(f::Fun{SS},sp::SS) = ConcreteMultiplication(f,sp)
 Multiplication{CS<:CosSpace}(f::Fun{CS},sp::SinSpace) = ConcreteMultiplication(f,sp)
-Multiplication{CS<:SinSpace}(f::Fun{CS},sp::CosSpace) = ConcreteMultiplication(f,sp)
+function Multiplication{SS<:SinSpace}(f::Fun{SS},sp::CosSpace)
+    @assert domain(f) == domain(sp)
+    a=f.coefficients/2
+    A=ToeplitzOperator(a[2:end],[a[1];0.;-a]) + HankelOperator(a)
+    MultiplicationWrapper(f,SpaceOperator(A,sp,SinSpace(domain(sp))))
+end
 
-bandinds{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp}) =
+
+bandinds{CS<:CosSpace}(M::ConcreteMultiplication{CS,CS}) =
     (1-length(M.f.coefficients),length(M.f.coefficients)-1)
-rangespace{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp}) = domainspace(M)
-getindex{Sp<:CosSpace}(M::ConcreteMultiplication{Sp,Sp},k::Integer,j::Integer) =
+rangespace{CS<:CosSpace}(M::ConcreteMultiplication{CS,CS}) = domainspace(M)
+getindex{CS<:CosSpace}(M::ConcreteMultiplication{CS,CS},k::Integer,j::Integer) =
     chebmult_getindex(M.f.coefficients,k,j)
 
 
 
-function getindex{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp},k::Integer,j::Integer)
+function getindex{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS},k::Integer,j::Integer)
     a=M.f.coefficients
     ret=0.5*toeplitz_getindex([0.;-a],a,k,j)
     if k ≥ 2
@@ -206,22 +212,11 @@ function getindex{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp},k::Integer,j::I
     ret
 end
 
-bandinds{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp})=-length(M.f)-1,length(M.f)-1
-rangespace{Sp<:SinSpace}(M::ConcreteMultiplication{Sp,Sp})=CosSpace(domain(M))
+bandinds{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS})=-length(M.f)-1,length(M.f)-1
+rangespace{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS})=CosSpace(domain(M))
 
 
-function getindex{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Sp,Cs},k::Integer,j::Integer)
-    a=M.f.coefficients
-    0.5*toeplitz_getindex(a[2:end],[a[1];0.;-a],k,j) +
-        0.5*hankel_getindex(a,k,j)
-end
-
-bandinds{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Sp,Cs})=1-length(M.f),length(M.f)+1
-rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Sp,Cs})=SinSpace(domain(M))
-
-
-
-function getindex{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,Sp},k::Integer,j::Integer)
+function getindex{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS},k::Integer,j::Integer)
     a=M.f.coefficients
     ret=0.5*toeplitz_getindex(a,k,j)
     if length(a)>=3
@@ -230,8 +225,8 @@ function getindex{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,Sp},k:
     ret
 end
 
-bandinds{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,Sp})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
-rangespace{Sp<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,Sp})=SinSpace(domain(M))
+bandinds{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
+rangespace{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS})=SinSpace(domain(M))
 
 
 
