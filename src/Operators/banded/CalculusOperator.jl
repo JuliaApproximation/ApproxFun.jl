@@ -94,7 +94,7 @@ macro calculus_operator(Op)
         domain(D::$ConcOp)=domain(D.space)
         domainspace(D::$ConcOp)=D.space
 
-        addentries!{OT,T}(::$ConcOp{UnsetSpace,OT,T},A,kr::Range,::Colon)=error("Spaces cannot be inferred for operator")
+        getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer)=error("Spaces cannot be inferred for operator")
         rangespace{T}(D::$ConcOp{UnsetSpace,T})=UnsetSpace()
 
         #promoting domain space is allowed to change range space

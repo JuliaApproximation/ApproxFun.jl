@@ -230,20 +230,21 @@ end
 
 
 
-function kronaddentries!(A,B,M,kr::Range)
-    m=max(size(A,2),size(B,2))
-    l=A.l+B.l;u=A.u+B.u
+# function kronaddentries!(A,B,M,kr::Range)
+#     m=max(size(A,2),size(B,2))
+#     l=A.l+B.l;u=A.u+B.u
+#
+#     for k=kr,j=max(1,k-l):k+u
+#         nl=min(A.l,B.u+k-j);nu=min(A.u,B.l+j-k)
+#         @inbounds Mkj=M[k,j]
+#         for κ=1:k,ξ=max(1,κ-nl):min(j,κ+nu)
+#             #Mkj[κ,ξ]+=A[κ,ξ]*B[k-κ+1,j-ξ+1]
+#             @inbounds Mkj[κ,ξ]+=A.data[κ-ξ+A.u+1,ξ]*B.data[k-κ-j+ξ+B.u+1,j-ξ+1]
+#         end
+#     end
+#     M
+# end
 
-    for k=kr,j=max(1,k-l):k+u
-        nl=min(A.l,B.u+k-j);nu=min(A.u,B.l+j-k)
-        @inbounds Mkj=M[k,j]
-        for κ=1:k,ξ=max(1,κ-nl):min(j,κ+nu)
-            #Mkj[κ,ξ]+=A[κ,ξ]*B[k-κ+1,j-ξ+1]
-            @inbounds Mkj[κ,ξ]+=A.data[κ-ξ+A.u+1,ξ]*B.data[k-κ-j+ξ+B.u+1,j-ξ+1]
-        end
-    end
-    M
-end
 
 
 ## Constructors that involve MultivariateFun

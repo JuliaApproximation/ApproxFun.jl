@@ -34,16 +34,8 @@ u=[B;L]\rhs
 u=[B;L]\rhs
 @time u=[B;L]\rhs
 println("Poly: should be ~0.025")
-Profile.print()
 
-M=MutableOperator([B;L])
-    @time ApproxFun.resizedata!(M,20100)
-    @profile adaptiveqr!(M,rhs)
-bandinds(L)
 
-Profile.print()
-
-Profile.clear()
 S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)

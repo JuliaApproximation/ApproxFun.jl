@@ -128,7 +128,7 @@ end
 
 
 
-## override getindex or addentries!.  Each defaults
+## override getindex.
 
 defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override getindex for $(typeof(B))")
 defaultgetindex(B::BandedOperator,k::Range,j::Range) = copy(sub(B,k,j))
@@ -179,25 +179,6 @@ Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
 # Base.slice(A::BandedOperator,::Colon,::Colon)=A
 #
 
-
-
-## Default addentries!
-#  override either addentries! or getindex, otherwise there will be
-#  an infinite loop.
-
-
-function defaultaddentries!(B::BandedOperator,A,kr,::Colon)
-     br=bandinds(B)
-     for k=(max(kr[1],1)):(kr[end])
-         for j=max(br[1],1-k):br[end]
-             A[k,k+j]+=B[k,k+j]
-         end
-     end
-
-     A
-end
-
-addentries!(B,A,kr,::Colon)=defaultaddentries!(B,A,kr,:)
 
 
 ## Composition with a Fun, LowRankFun, and ProductFun

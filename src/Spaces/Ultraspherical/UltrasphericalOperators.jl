@@ -122,30 +122,6 @@ end
 
 
 
-function addentries!{λ,PS<:PolynomialSpace,D,T}(M::ConcreteMultiplication{Ultraspherical{λ,D},PS,T},A,kr::UnitRange,::Colon)
-    a=coefficients(M.f)
-    for k=kr
-        A[k,k]=a[1]
-    end
-
-    if length(a) > 1
-        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
-
-        J=subview(Recurrence(domainspace(M)),jkr,jkr)
-        C1=2λ*J
-        addentries!(C1,a[2],A,kr,:)
-        C0=isbeye(jkr)
-
-        for k=1:length(a)-2
-            C1,C0=2(k+λ)/(k+one(T))*J*C1-(k+2λ-one(T))/(k+one(T))*C0,C1
-            addentries!(C1,a[k+2],A,kr,:)
-        end
-    end
-
-    A
-end
-
-
 getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
 
 function Base.copy{PS<:PolynomialSpace,V,T,C<:Chebyshev}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
@@ -181,33 +157,6 @@ function Base.copy{PS<:PolynomialSpace,V,T,C<:Chebyshev}(S::SubBandedMatrix{T,Co
         for k=1:length(a)-2
             C1,C0=2J*C1-C0,C1
             BLAS.axpy!(a[k+2],sub(C1,kr2,jr2),A)
-        end
-    end
-
-    A
-end
-
-
-function addentries!{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},A,kr::UnitRange,::Colon)
-    a=coefficients(M.f)
-
-    for k=kr
-        A[k,k]=a[1]
-    end
-
-    if length(M.f) > 1
-        sp=M.space
-        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
-
-        #Multiplication is transpose
-        J=subview(Recurrence(sp),jkr,jkr)
-        C1=J
-        addentries!(C1,a[2],A,kr,:)
-        C0=isbeye(jkr)
-
-        for k=1:length(a)-2
-            C1,C0=2J*C1-C0,C1
-            addentries!(C1,a[k+2],A,kr,:)
         end
     end
 
@@ -258,7 +207,7 @@ end
 
 
 
-# TODO: include in addentries! to speed up
+# TODO: include in getindex to speed up
 Integral{DD<:Interval}(sp::Chebyshev{DD},m::Integer)=IntegralWrapper(
     TimesOperator([Integral(Ultraspherical{m}(domain(sp)),m),Conversion(sp,Ultraspherical{m}(domain(sp)))]),m)
 

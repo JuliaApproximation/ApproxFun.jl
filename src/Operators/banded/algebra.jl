@@ -228,8 +228,9 @@ TimesFunctional{T,V}(A::Functional{T},B::BandedOperator{V})=TimesFunctional{prom
 
 
 function Base.getindex{T}(f::TimesFunctional{T},jr::Range)#j is columns
-    bi=bandinds(f.op)
-    B=subview(f.op,:,jr)
+    B=f.op
+    bi=bandinds(B)
+
     r=zeros(T,length(jr))
 
     k1=max(first(jr)-bi[end],1)

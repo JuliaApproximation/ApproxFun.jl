@@ -191,7 +191,17 @@ end
 domainspace(K::KroneckerOperator)=K.domainspace
 rangespace(K::KroneckerOperator)=K.rangespace
 
-addentries!(K::KroneckerOperator,A,kr::Range,::Colon)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
+function getindex(K::KroneckerOperator,k::Integer,j::Integer)
+    T=eltype(K)
+    A=K.ops[1][1:k,1:j]
+    B=K.ops[2][1:k,1:j]
+    nl=min(A.l,B.u+k-j);nu=min(A.u,B.l+j-k)
+    ret=BandedMatrix(T,k,j,nl,nu)
+    for (κ,ξ) in eachbandedindex(ret)
+        ret[κ,ξ]=A[κ,ξ]*B[k-κ+1,j-ξ+1]
+    end
+    ret
+end
 
 
 bzeros{BT<:BandedMatrix}(K::Operator{BT},
@@ -258,7 +268,7 @@ function *{BM<:BandedMatrix}(A::BandedOperator{BM},b::Vector)
     n=size(b,1)
 
     ret=if n>0
-        slice(A,:,1:totensorblock(n))*pad(b,fromtensorblock(totensorblock(n))[end])
+        BandedMatrix(A,:,1:totensorblock(n))*pad(b,fromtensorblock(totensorblock(n))[end])
     else
         b
     end
@@ -435,6 +445,3 @@ function Derivative{SV,TT}(S::TensorSpace{SV,TT,2},order::Vector{Int})
     # try to work around type inference
     DerivativeWrapper{typeof(K),typeof(domainspace(K)),Vector{Int},BandedMatrix{T}}(K,order)
 end
-
-
-

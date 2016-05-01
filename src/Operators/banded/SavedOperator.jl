@@ -93,13 +93,6 @@ datalength(B::SavedBandedOperator)=B.datalength
 
 
 
-function addentries!(B::SavedBandedOperator,A,kr::Range,::Colon)
-    resizedata!(B,kr[end])
-
-    addentries!(B.data,A,kr,:)
-
-    A
-end
 
 function Base.getindex(B::SavedBandedOperator,k::Integer,j::Integer)
     resizedata!(B,k)
@@ -110,7 +103,9 @@ function resizedata!(B::SavedBandedOperator,n::Integer)
     if n > B.datalength
         pad!(B.data,2n,:)
 
-        addentries!(B.op,B.data,B.datalength+1:n,:)
+        kr=B.datalength+1:n
+        jr=max(B.datalength+1-B.data.l,1):n+B.data.u
+        BLAS.axpy!(1.0,sub(B.op,kr,jr),sub(B.data,kr,jr))
 
         B.datalength = n
     end
