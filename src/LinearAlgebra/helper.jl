@@ -377,3 +377,41 @@ function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
     end
     ret
 end
+
+
+
+
+
+
+## New Inf
+
+const ∞ = Irrational{:∞}()
+
+Base.show(io::IO, x::Irrational{:∞}) = print(io, "∞")
+Base.convert{F<:AbstractFloat}(::Type{F},::Irrational{:∞}) = convert(F,Inf)
+
+## My Count
+
+immutable Count{S<:Number}
+    start::S
+    step::S
+end
+countfrom(start::Number, step::Number) = Count(promote(start, step)...)
+countfrom(start::Number)               = Count(start, one(start))
+countfrom()                            = Count(1, 1)
+
+Base.eltype{S}(::Type{Count{S}}) = S
+
+Base.start(it::Count) = it.start
+Base.next(it::Count, state) = (state, state + it.step)
+Base.done(it::Count, state) = false
+
+Base.length(it::Count) = ∞
+getindex(it::Count,k) = it.start + it.step*(k-1)
+
+
+Base.colon(a::Real,b::Irrational{:∞}) = countfrom(a)
+Base.colon(::Irrational{:∞},::AbstractFloat,::Irrational{:∞}) = [∞]
+Base.colon(a::Real,st::Real,b::Irrational{:∞}) = countfrom(a,st)
+
+Base.isinf(::Irrational{:∞}) = true

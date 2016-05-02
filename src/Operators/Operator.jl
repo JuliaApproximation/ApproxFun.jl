@@ -39,11 +39,11 @@ domain(A::Operator)=domain(domainspace(A))
 
 
 
-Base.size(A::Operator)=(size(A,1),size(A,2))
-Base.size(A::Operator,k::Integer)=k==1?dimension(rangespace(A)):dimension(domainspace(A))
+Base.size(A::Operator) = (size(A,1),size(A,2))
+Base.size(A::Operator,k::Integer) = k==1?dimension(rangespace(A)):dimension(domainspace(A))
 
-Base.ndims(::Operator)=2
-datalength(F::Functional)=Inf        # use datalength to indicate a finite length functional
+Base.ndims(::Operator) = 2
+datalength(F::Functional) = ∞        # use datalength to indicate a finite length functional
 
 
 
@@ -158,27 +158,6 @@ defaultgetindex(A::BandedOperator,::Colon,jr::Range) =
     slice(A,:,jr)
 defaultgetindex(A::BandedOperator,::Colon,::Colon) = A
 Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
-
-
-
-# # we use slice instead of get index because we can't override
-# # getindex (::Colon)
-# # This violates the behaviour of slices though...
-# Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
-# # Float-valued ranges are implemented to support 1:Inf to take a slice
-# # TODO: right now non-integer steps are only supported when the operator itself
-# # has compatible stride
-# function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
-#     st=step(kr)
-#     @assert step(jr)==st
-#     @assert last(kr)==last(jr)==Inf
-#     SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
-# end
-# Base.slice(B::BandedOperator,::Colon,jr::FloatRange)=slice(B,1:Inf,jr)
-# Base.slice(B::BandedOperator,kr::FloatRange,::Colon)=slice(B,kr,1:Inf)
-# Base.slice(A::BandedOperator,::Colon,::Colon)=A
-#
-
 
 
 ## Composition with a Fun, LowRankFun, and ProductFun
