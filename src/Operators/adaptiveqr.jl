@@ -169,7 +169,7 @@ function householderreducevec!{T,M,R}(w::Vector{T}, B::MutableOperator{T,M,R},kr
     w[1]-= norm(w)
     # TODO: should be normalize!(w) below, since this is compatible with any type T.
     # But this is only supported in Julia v0.5 https://github.com/JuliaLang/julia/pull/13681
-    BLAS.scal!(length(w),inv(norm(w)),w,1) #w/=norm(w)
+    scal!(inv(norm(w)),w) #w/=norm(w)
     applyhouseholder!(w,B.data,kr,j1:kr[1]+bnd)
     applyhouseholder!(w,B.fill,B.data,kr,kr[1]+bnd+1:kr[end]+bnd)
     applyhouseholder!(w,B.fill.data,kr)

@@ -65,10 +65,10 @@ function Base.getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range
         @simd for j=k
             @inbounds ret[j+k1] *= (j-1)^2-m^2
         end
-        BLAS.scal!(n, T(1/(2m+1)), ret,1)
+        scal!(T(1/(2m+1)), ret)
     end
 
-    BLAS.scal!(n,cst,ret,1)
+    scal!(cst,ret)
 end
 
 function Base.getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},k::Range)

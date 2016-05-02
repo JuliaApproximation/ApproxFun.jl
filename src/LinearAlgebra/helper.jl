@@ -32,6 +32,8 @@ eps{T<:Number}(::Type{Vector{T}})=eps(T)
 eps{k,T<:Number}(::Type{Vec{k,T}})=eps(T)
 
 
+# BLAS
+
 dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
 dotu{N<:Real,T<:Number}(f::Vector{N},g::Vector{T})=dot(f,g)
@@ -39,6 +41,27 @@ dotu{N<:Real,T<:Number}(f::Vector{N},g::Vector{T})=dot(f,g)
 # implement muladd default
 muladd(a,b,c)=a*b+c
 muladd(a::Number,b::Number,c::Number)=Base.muladd(a,b,c)
+
+
+for TYP in (:Float64,:Float32,:Complex128,:Complex64)
+    @eval scal!{T<:$TYP}(n::Integer,cst::$TYP,ret::DenseArray{T},k::Integer) =
+            BLAS.scal!(n,cst,ret,k)
+end
+
+typealias BlasNumber Union{Float64,Float32,Complex128,Complex64}
+scal!{T<:BlasNumber}(n::Integer,cst::BlasNumber,ret::DenseArray{T},k::Integer) =
+    BLAS.scal!(n,T(cst),ret,k)
+
+function scal!(n::Integer,cst::Number,ret::AbstractArray,k::Integer)
+    @assert k*n ≤ length(ret)
+    @simd for j=1:k:k*(n-1)+1
+        @inbounds ret[j] *= cst
+    end
+    ret
+end
+
+scal!(cst::Number,v::AbstractArray) = scal!(length(v),cst,v,1)
+
 
 
 ## Helper routines
