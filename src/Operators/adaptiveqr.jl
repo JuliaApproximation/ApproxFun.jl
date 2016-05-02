@@ -77,17 +77,6 @@ convertvec{T<:Number,V<:Number,k}(::Operator{T},v::Array{V,k})=convert(Array{pro
 convertvec{T<:AbstractMatrix,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=totree(v)
 convertvec{T<:AbstractMatrix,V<:AbstractArray,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{V(promote_type(eltype(T),eltype(V))),k},v)
 
-function slnorm{T}(u::BandedMatrix{T},r::Range)
-    ret = zero(real(T))
-    for k=r
-        @simd for j=1:size(u.data,1)
-            #@inbounds
-            ret=max(abs(u.data[j,k]),ret)
-        end
-    end
-    ret
-end
-
 adaptiveqr(B::Operator,v::Array,tol::Real,N) = adaptiveqr([B],v,tol,N)  #May need to copy v in the future
 adaptiveqr{T<:Operator}(B::Vector{T},v::Array,tol::Real,N) = adaptiveqr!(MutableOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
 function adaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)

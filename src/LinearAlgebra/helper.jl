@@ -317,7 +317,7 @@ end
 
 ## slnorm gives the norm of a slice of a matrix
 
-function slnorm{T}(u::Array{T},r::Range)
+function slnorm{T}(u::AbstractArray{T},r::Range,::Colon)
     ret = zero(real(T))
     for k=r
         @simd for j=1:size(u,2)
@@ -329,7 +329,7 @@ function slnorm{T}(u::Array{T},r::Range)
 end
 
 
-function slnorm(m::Matrix,kr::Range,jr::Range)
+function slnorm(m::AbstractMatrix,kr::Range,jr::Range)
     ret=0.0
     for j=jr
         for k=kr
@@ -343,3 +343,14 @@ slnorm(m::Matrix,kr::Range,jr::Integer)=slnorm(m,kr,jr:jr)
 slnorm(m::Matrix,kr::Integer,jr::Range)=slnorm(m,kr:kr,jr)
 
 
+function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
+    ret = zero(real(T))
+    m=size(B,2)
+    for k=r
+        @simd for j=max(1,k-B.l):min(k+B.u,m)
+            #@inbounds
+            ret=max(norm(B[k,j]),ret)
+        end
+    end
+    ret
+end

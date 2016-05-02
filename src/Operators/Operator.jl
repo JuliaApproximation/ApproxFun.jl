@@ -230,7 +230,7 @@ include("almostbanded/almostbanded.jl")
 include("systems.jl")
 
 include("adaptiveqr.jl")
-include("null.jl")
+include("nullspace.jl")
 
 
 

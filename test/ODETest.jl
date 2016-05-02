@@ -97,7 +97,7 @@ u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 d=Interval(-50.,5.)
 D=Derivative(d)
 x=Fun(identity,d)
-u=null(D^2-x)
+u=nullspace(D^2-x)
 c=[evaluate(u,d.a)'; evaluate(u,d.b)']\[airyai(d.a),airyai(d.b)]
 @test norm(dot(c,u)-Fun(airyai,d))<eps(1000.)
 

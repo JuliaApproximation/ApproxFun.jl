@@ -97,9 +97,9 @@ println("Systems: should be ~0.0008")
 d=Interval(-300.,5.)
 x=Fun(identity,d)
 A=Derivative(d)^2-x
-u=null(A)
-u=null(A)
-@time u=null(A)
+u=nullspace(A)
+u=nullspace(A)
+@time u=nullspace(A)
 println("Null Airy: should be ~0.061")
 
 
