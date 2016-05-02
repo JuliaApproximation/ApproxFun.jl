@@ -188,21 +188,24 @@ Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
 
 # Convenience for wrapper ops
 unwrap_axpy!(α,P,A) = BLAS.axpy!(α,sub(parent(P).op,P.indexes[1],P.indexes[2]),A)
+iswrapper(::)=false
+
 
 macro wrapper(Wrap)
    ret = quote
-        getindex(OP::$Wrap,k::Integer,j::Integer) =
+        Base.getindex(OP::$Wrap,k::Integer,j::Integer) =
             OP.op[k,j]
 
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubBandedMatrix{T,OP},A::AbstractMatrix) =
-            unwrap_axpy!(α,P,A)
+            ApproxFun.unwrap_axpy!(α,P,A)
 
         Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubBandedMatrix{T,OP}) =
             copy(sub(parent(P).op,P.indexes[1],P.indexes[2]))
 
-        iswrapper(::$Wrap)=true
+        ApproxFun.iswrapper(::$Wrap)=true
     end
-   for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
+   for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
+                :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride))
         ret=quote
             $ret
 

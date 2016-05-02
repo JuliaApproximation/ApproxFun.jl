@@ -6,8 +6,6 @@ abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 
 ## Note that all functions called in calculus_operator must be exported
 
-iswrapper(::)=false
-
 macro calculus_operator(Op)
     ConcOp=parse("Concrete"*string(Op))
     WrappOp=parse(string(Op)*"Wrapper")
