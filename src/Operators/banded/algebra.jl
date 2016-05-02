@@ -130,9 +130,23 @@ end
 Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 
-function addentries!(P::PlusOperator,A,kr,::Colon)
+function getindex{T}(P::PlusOperator{T},k::Integer,j::Integer)
+    ret=zero(T)
     for op in P.ops
-        addentries!(op,A,kr,:)
+        ret+=op[k,j]::T
+    end
+    ret
+end
+
+
+
+Base.copy{T,PP<:PlusOperator}(P::SubBandedMatrix{T,PP}) =
+    copy_axpy!(P)   # use axpy! to copy
+
+
+function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedMatrix{T,PP},A::AbstractMatrix)
+    for op in parent(P).ops
+        BLAS.axpy!(α,sub(op,P.indexes[1],P.indexes[2]),A)
     end
 
     A
@@ -214,8 +228,9 @@ TimesFunctional{T,V}(A::Functional{T},B::BandedOperator{V})=TimesFunctional{prom
 
 
 function Base.getindex{T}(f::TimesFunctional{T},jr::Range)#j is columns
-    bi=bandinds(f.op)
-    B=subview(f.op,:,jr)
+    B=f.op
+    bi=bandinds(B)
+
     r=zeros(T,length(jr))
 
     k1=max(first(jr)-bi[end],1)
@@ -277,12 +292,11 @@ for TYP in (:Operator,:BandedOperator)
 end
 
 
-function addentries!(P::ConstantTimesOperator,A,kr::Range,::Colon)
-    # Write directly to A, shifting by rows and columns
-    # See subview in Operator.jl for these definitions
-    P1=subview(P.op,kr,:)
-    addentries!(P1,P.c,A,kr,:)
-end
+getindex(P::ConstantTimesOperator,k::Integer,j::Integer) =
+    P.c*P.op[k,j]
+
+BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,P::SubBandedMatrix{T,OP},A::AbstractMatrix) =
+    unwrap_axpy!(α*parent(P).c,P,A)
 
 
 
@@ -394,14 +408,17 @@ bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
 Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 
+getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
 
-function addentries!(P::TimesOperator,A,kr::Range,::Colon)
+function Base.copy{T,TO<:TimesOperator}(sub::SubBandedMatrix{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
+    P=parent(sub)
+    kr,jr=parentindexes(sub)
+
     @assert length(P.ops)≥2
-    if length(kr)==0
+    if size(sub,1)==0
         return A
     end
 
-    st=step(kr)
 
     krl=Array(Int,length(P.ops),2)
 
@@ -409,25 +426,54 @@ function addentries!(P::TimesOperator,A,kr::Range,::Colon)
 
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
-        krl[m+1,1]=max(st-mod(kr[1],st),br[1] + krl[m,1])  # no negative
+        krl[m+1,1]=max(1-mod(kr[1],1),br[1] + krl[m,1])  # no negative
         krl[m+1,2]=br[end] + krl[m,2]
     end
 
     # The following returns a banded Matrix with all rows
     # for large k its upper triangular
-    BA=slice(P.ops[end],krl[end,1]:st:krl[end,2],:)
-    for m=(length(P.ops)-1):-1:2
-        BA=slice(P.ops[m],krl[m,1]:st:krl[m,2],:)*BA
+    BA=P.ops[end][krl[end,1]:krl[end,2],jr]
+    for m=(length(P.ops)-1):-1:1
+        BA=P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]]*BA
     end
 
-    # Write directly to A, shifting by rows and columns
-    # See subview in Operator.jl for these definitions
-    P1=slice(P.ops[1],krl[1,1]:st:krl[1,2],:)
-
-    firstjr=max(st-mod(kr[1],st),kr[1]+bandinds(P,1))
-    ri,ci=first(kr)-st,firstjr-st
-    bmultiply!(A,P1,BA,ri,ci,st,st)
+    BA
 end
+
+
+# function addentries!(P::TimesOperator,A,kr::Range,::Colon)
+#     @assert length(P.ops)≥2
+#     if length(kr)==0
+#         return A
+#     end
+
+#     st=step(kr)
+
+#     krl=Array(Int,length(P.ops),2)
+
+#     krl[1,1],krl[1,2]=kr[1],kr[end]
+
+#     for m=1:length(P.ops)-1
+#         br=bandinds(P.ops[m])
+#         krl[m+1,1]=max(st-mod(kr[1],st),br[1] + krl[m,1])  # no negative
+#         krl[m+1,2]=br[end] + krl[m,2]
+#     end
+
+#     # The following returns a banded Matrix with all rows
+#     # for large k its upper triangular
+#     BA=slice(P.ops[end],krl[end,1]:st:krl[end,2],:)
+#     for m=(length(P.ops)-1):-1:2
+#         BA=slice(P.ops[m],krl[m,1]:st:krl[m,2],:)*BA
+#     end
+
+#     # Write directly to A, shifting by rows and columns
+#     # See subview in Operator.jl for these definitions
+#     P1=slice(P.ops[1],krl[1,1]:st:krl[1,2],:)
+
+#     firstjr=max(st-mod(kr[1],st),kr[1]+bandinds(P,1))
+#     ri,ci=first(kr)-st,firstjr-st
+#     bmultiply!(A,P1,BA,ri,ci,st,st)
+# end
 
 
 
@@ -514,7 +560,7 @@ for TYP in (:Vector,:Matrix)
             n=size(b,1)
 
             ret=if n>0
-                slice(A,:,1:n)*b
+                BandedMatrix(A,:,1:n)*b
             else
                 b
             end

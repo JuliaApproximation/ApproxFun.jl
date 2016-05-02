@@ -22,18 +22,18 @@ function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01
             !spacescompatible(A)
         A=promotedomainspace(A,choosedomainspace(A))
     end
-    if length(A)==3&&
-            isa(A[end],BandedOperator) &&
-            isa(A[1],Evaluation)&&
-            isa(A[2],Evaluation)&&
-            isa(domainspace(A[1]),Chebyshev) &&
-            !A[1].x && A[2].x &&
-            length(bandrange(A[end]))≥25&&
-            iseven(stride(A[end]))
-        r=stridelinsolve(A,b,tolerance,maxlength)
-    else
-        r=adaptiveqr(A,b,tolerance,maxlength)
-    end
+    # if length(A)==3&&
+    #         isa(A[end],BandedOperator) &&
+    #         isa(A[1],Evaluation)&&
+    #         isa(A[2],Evaluation)&&
+    #         isa(domainspace(A[1]),Chebyshev) &&
+    #         !A[1].x && A[2].x &&
+    #         length(bandrange(A[end]))≥25&&
+    #         iseven(stride(A[end]))
+    #     r=stridelinsolve(A,b,tolerance,maxlength)
+    # else
+    r=adaptiveqr(A,b,tolerance,maxlength)
+    # end
 
     #all rows of Ad should have same domain space
     ds=domainspace(A[end])

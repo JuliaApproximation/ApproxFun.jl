@@ -60,6 +60,8 @@ immutable ConversionWrapper{S<:BandedOperator,T} <: Conversion{T}
     op::S
 end
 
+@wrapper ConversionWrapper
+
 
 ConversionWrapper{T}(::Type{T},op)=ConversionWrapper{typeof(op),T}(op)
 ConversionWrapper(B::BandedOperator)=ConversionWrapper{typeof(B),eltype(B)}(B)
@@ -80,11 +82,6 @@ for TYP in (:Operator,:BandedOperator)
             end
         end
     end
-end
-
-addentries!(D::ConversionWrapper,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
-for func in (:rangespace,:domainspace,:bandinds,:(Base.stride))
-    @eval $func(D::ConversionWrapper)=$func(D.op)
 end
 
 

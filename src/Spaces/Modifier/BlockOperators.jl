@@ -112,19 +112,19 @@ bandinds(B::BlockOperator)=min(1-size(B.mat21,1)-size(B.mat11,1),
                                bandinds(B.op,2)+size(B.mat11,2)-size(B.mat11,1))
 
 
-function addentries!(B::BlockOperator,A,kr::Range,::Colon)
-    addentries!(StrideOperator(B.op,size(B.mat11,1),size(B.mat11,2)),A,kr,:)
+function getindex(B::BlockOperator,k::Integer,j::Integer)
     n,m=size(B.mat11)
-    for k=intersect(kr,1:n),j=1:m
-        A[k,j]+=B.mat11[k,j]
+    if k ≤ n && j ≤ m
+        B.mat11[k,j]
+    elseif k ≤ n && j ≤ m + size(B.mat12,2)
+        B.mat12[k,j-m]
+    elseif k ≤ n + size(B.mat21,1) && j ≤ m
+        B.mat21[k-n,j]
+    elseif k > n && j > m
+        B.op[k-n,j-m]
+    else
+        zero(eltype(B))
     end
-    for k=intersect(kr,1:n),j=m+1:m+size(B.mat12,2)
-        A[k,j]+=B.mat12[k,j-m]
-    end
-    for k=intersect(kr,n+1:n+size(B.mat21,1)),j=1:m
-        A[k,j]+=B.mat21[k-n,j]
-    end
-    A
 end
 
 

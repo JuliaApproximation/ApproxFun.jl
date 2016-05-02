@@ -6,11 +6,11 @@ module ApproxFun
 
 
 import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
-                >=,./,/,.^,^,\,∪,transpose
+                >=,./,/,.^,^,\,∪,transpose, size
 
 
-import BandedMatrices: bzeros, bandinds, bandrange, unsafe_pluseq!, bmultiply!,
-                        PrintShow, eachbandedindex, unsafe_getindex, unsafe_setindex!
+import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
+                        unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix
 
 import FixedSizeArrays: Vec
 

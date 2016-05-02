@@ -1,5 +1,10 @@
 using ApproxFun, Base.Test
 
+
+@test abs(Fun(cos,Circle())(exp(0.1im))-cos(exp(0.1im)))<100eps()
+@test abs(Fun(cos,Circle())'(exp(0.1im))+sin(exp(0.1im)))<100eps()
+@test abs(Fun(cos,Circle())'(exp(0.1im))+Fun(sin,Circle())(exp(0.1im)))<100eps()
+
 @test norm(Fun(x->Fun(cos,Fourier,20)(x),20)-Fun(cos,20)) <100eps()
 @test norm(Fun(x->Fun(cos,Fourier)(x))-Fun(cos)) <100eps()
 @test norm(Fun(cos,Fourier)'+Fun(sin,Fourier)) < 100eps()
@@ -18,7 +23,8 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
 
 
 
-@test_approx_eq (Fun(z->sin(z)*cos(1/z),Circle())*Fun(z->exp(z)*airyai(1/z),Circle()))(exp(.1im)) (z->sin(z)*cos(1/z)*exp(z)*airyai(1/z))(exp(.1im))
+@test_approx_eq((Fun(z->sin(z)*cos(1/z),Circle())*Fun(z->exp(z)*airyai(1/z),Circle()))(exp(.1im)),
+                (z->sin(z)*cos(1/z)*exp(z)*airyai(1/z))(exp(.1im)))
 
 ## Calculus
 
@@ -63,6 +69,7 @@ end
 
 s=Fun(t->(sin(t)+sin(2t))*cos(sin(t)),SinSpace)
 b=Fun(t->(sin(t)+sin(3t)),SinSpace)
+
 @test_approx_eq (s*s)(.1) s(.1)^2
 @test_approx_eq (s*b)(.1) s(.1)*b(.1)
 

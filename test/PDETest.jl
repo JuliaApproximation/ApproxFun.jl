@@ -20,7 +20,7 @@ u=A\G
 
 A=[dirichlet(d);lap(d)+0.0I]
 u=A\G
-@test_approx_eq u(.1,.2) real(exp(.1+.2im))
+@test_approx_eq_eps u(.1,.2) real(exp(.1+.2im)) 1E-11
 
 
 ## Poisson
@@ -172,12 +172,14 @@ u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
 
 d=Interval(0,1)^2
-A=discretize([dirichlet(d);lap(d)],20)
+n,m=20,80
+A=discretize([dirichlet(d);lap(d)],n)
 ∂d=∂(d)
 g=Fun(z->real(exp(z)),∂d)
-f=[Fun([zeros(k-1);1.0],∂d) for k=1:80].'
+f=[Fun([zeros(k-1);1.0],∂d) for k=1:m].'
 U=A\f
 @test_approx_eq dot(real(g.coefficients),U[1:length(g)])(.1,.2) real(exp(.1+.2im))
+
 
 
 Rectangle(a,b,c,d)=Interval(a,b)*Interval(c,d)

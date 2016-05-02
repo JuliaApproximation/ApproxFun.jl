@@ -87,29 +87,48 @@ end
 #####
 
 
-function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::ConcreteMultiplication{US,PS,T},A,kr::UnitRange,::Colon)
+getindex{PS<:PolynomialSpace,T,C<:PolynomialSpace}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
+
+
+function Base.copy{PS<:PolynomialSpace,V,T,C<:PolynomialSpace}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
+                                                                            Tuple{UnitRange{Int},UnitRange{Int}}})
+    M=parent(S)
+    kr,jr=parentindexes(S)
+
+    A=bzeros(S)
+
     a=coefficients(M.f)
-    fsp=space(M.f)
-    for k=kr
-        A[k,k]=a[1]
+
+    shft=bandshift(A)
+
+    for k=kr ∩ jr
+        A[k-kr[1]+1,k-jr[1]+1]=a[1]
     end
 
     if length(a) > 1
-        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+        sp=M.space
+        fsp=space(M.f)
+        jkr=max(1,min(kr[1],jr[1])-length(a)+1):max(kr[end],jr[end])+length(a)-1
 
-        J=subview(Recurrence(domainspace(M)),jkr,jkr)
-        C0=isbeye(jkr)
+        #Multiplication is transpose
+        J=Recurrence(sp)[jkr,jkr]
+
+
+        # the sub ranges of jkr that correspond to kr, jr
+        kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
+
+
+        C0=beye(size(J,1),size(J,2),0,0)
         C1=(1/recβ(T,fsp,1))*J-(recα(T,fsp,1)/recβ(T,fsp,1))*C0
-        addentries!(C1,a[2],A,kr,:)
 
+        BLAS.axpy!(a[2],sub(C1,kr2,jr2),A)
 
         for k=1:length(a)-2
             rβ=recβ(T,fsp,k+1)
             C1,C0=(1/rβ)*J*C1-(recα(T,fsp,k+1)/rβ)*C1-(recγ(T,fsp,k+1)/rβ)*C0,C1
-            addentries!(C1,a[k+2],A,kr,:)
+            BLAS.axpy!(a[k+2],sub(C1,kr2,jr2),A)
         end
     end
-
     A
 end
 

@@ -204,55 +204,44 @@ bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{US,J})=0,0
 bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{J,US})=0,0
 
 
-function addentries!{J<:Jacobi,CC<:Chebyshev}(C::ConcreteConversion{CC,J},A,kr::Range,::Colon)
-    S=rangespace(C)
-    @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
-    jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
-    for k=kr
-        A[k,k]+=1./jp[k]
+function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{CC,J,T},k::Integer,j::Integer)
+    if j==k
+        one(T)/jacobip(k-1,-one(T)/2,-one(T)/2,one(T))
+    else
+        zero(T)
     end
-
-    A
 end
 
-function addentries!{J<:Jacobi,CC<:Chebyshev}(C::ConcreteConversion{J,CC},A,kr::Range,::Colon)
-    S=domainspace(C)
-    @assert isapprox(S.a,-0.5)&&isapprox(S.b,-0.5)
-
-    jp=jacobip(0:kr[end],-0.5,-0.5,1.0)
-    for k=kr
-        A[k,k]+=jp[k]
+function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{J,CC,T},k::Integer,j::Integer)
+    if j==k
+        jacobip(k-1,-one(T)/2,-one(T)/2,one(T))
+    else
+        zero(T)
     end
-
-    A
 end
 
-function addentries!{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{US,J},A,kr::Range,::Colon)
-    S=rangespace(C)
-    m=order(US)
-    @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
-    jp=jacobip(0:kr[end],S.a,S.b,1.0)
-    um=Evaluation(setcanonicaldomain(domainspace(C)),1.)[1:kr[end]]
-    for k=kr
-        A[k,k]+=um[k]./jp[k]
+function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{US,J,T},k::Integer,j::Integer)
+    if j==k
+        S=rangespace(C)
+        jp=jacobip(k-1,S.a,S.b,one(T))
+        um=Evaluation(setcanonicaldomain(domainspace(C)),one(T))[k]
+        um/jp
+    else
+        zero(T)
     end
-
-    A
 end
 
-function addentries!{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{J,US},A,kr::Range,::Colon)
-    m=order(US)
-    S=domainspace(C)
-    @assert isapprox(S.a,m-0.5)&&isapprox(S.b,m-0.5)
-
-    jp=jacobip(0:kr[end],S.a,S.b,1.0)
-    um=Evaluation(Ultraspherical{m}(),1.)[1:kr[end]]
-    for k=kr
-        A[k,k]+=jp[k]./um[k]
+function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{J,US,T},k::Integer,j::Integer)
+    if j==k
+        S=domainspace(C)
+        jp=jacobip(k-1,S.a,S.b,one(T))
+        um=Evaluation(setcanonicaldomain(rangespace(C)),one(T))[k]
+        jp/um
+    else
+        zero(T)
     end
-
-    A
 end
+
 
 
 

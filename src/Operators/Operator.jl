@@ -39,11 +39,24 @@ domain(A::Operator)=domain(domainspace(A))
 
 
 
-Base.size(A::Operator)=(size(A,1),size(A,2))
-Base.size(A::Operator,k::Integer)=k==1?dimension(rangespace(A)):dimension(domainspace(A))
+Base.size(A::Operator) = (size(A,1),size(A,2))
+Base.size(A::Operator,k::Integer) = k==1?dimension(rangespace(A)):dimension(domainspace(A))
 
-Base.ndims(::Operator)=2
-datalength(F::Functional)=Inf        # use datalength to indicate a finite length functional
+# used to compute "end" for last index
+function Base.trailingsize(A::BandedOperator, n::Integer)
+    if n > 2
+        1
+    elseif n==2
+        size(A,2)
+    elseif isinf(size(A,2)) || isinf(size(A,1))
+        ∞
+    else
+        size(A,1)*size(A,2)
+    end
+end
+
+Base.ndims(::Operator) = 2
+datalength(F::Functional) = ∞        # use datalength to indicate a finite length functional
 
 
 
@@ -52,7 +65,7 @@ datalength(F::Functional)=Inf        # use datalength to indicate a finite lengt
 
 ## bandrange and indexrange
 
-
+bandwidth(A::BandedOperator,k::Integer)=k==1?-bandinds(A,1):bandinds(A,2)
 bandinds(A,k::Integer)=bandinds(A)[k]
 bandrange(b::BandedBelowOperator)=UnitRange(bandinds(b)...)
 function bandrangelength(B::BandedBelowOperator)
@@ -83,59 +96,31 @@ Base.isdiag(A::BandedOperator)=bandinds(A)==(0,0)
 ## Construct operators
 
 
+include("SubMatrix.jl")
+
+
 
 bzeros(B::Operator,n::Integer,m::Integer)=bzeros(eltype(B),n,m,bandinds(B))
 bzeros(B::Operator,n::Integer,m::Colon)=bzeros(eltype(B),n,m,bandinds(B))
 bzeros(B::Operator,n::Integer,m::Colon,br::Tuple{Int,Int})=bzeros(eltype(B),n,m,br)
-isbzeros(B::Operator,rws::Range,::Colon)=isbzeros(eltype(B),rws,:,bandinds(B))
-
-BandedMatrix(B::Operator,n::Integer)=addentries!(B,bzeros(B,n,:),1:n,:)
-function BandedMatrix(B::Operator,rws::UnitRange,::Colon)
-    if first(rws)==1
-        BandedMatrix(B,last(rws))
-    else
-        addentries!(B,isbzeros(B,rws,:),rws,:).matrix
-    end
-end
-
-function BandedMatrix(B::Operator,kr::StepRange,::Colon)
-    stp=step(kr)
-
-    if stp==1
-        BandedMatrix(B,first(kr):last(kr),:)
-    else
-        str=stride(B)
-        @assert mod(str,stp)==0
-        # we need the shifting by bandinds to preserve mod
-        @assert mod(bandinds(B,1),stp)==mod(bandinds(B,2),stp)==0
-        # find column range
-        jr=max(stp-mod(kr[1],stp),kr[1]+bandinds(B,1)):stp:kr[end]+bandinds(B,2)
-        shf=div(first(kr)-first(jr),stp)
-        bi=div(bandinds(B,1),stp)+shf,div(bandinds(B,2),stp)+shf
-        A=bzeros(eltype(B),length(kr),length(jr),bi)
-        addentries!(B,IndexSlice(A,first(kr)-stp,first(jr)-stp,stp,stp),kr,:)
-        A
-    end
-end
-
-function BandedMatrix(B::Operator,kr::Range,jr::Range)
-    br=bandrange(B)
-    shft=kr[1]-jr[1]
-
-    BandedMatrix(BandedMatrix(B,kr,:).data,length(jr),-br[1]-shft,br[end]+shft)
-end
 
 
-# Returns all columns in rows kr
-# The first column of the returned BandedMatrix
-# will be the first non-zero column
+# The following support converting an Operator to a BandedMatrix
+#  In this case : is interpreted to mean all nonzero rows
 
-BandedMatrix(B::Operator,kr::Colon,jr::UnitRange)=BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
+BandedMatrix(B::Operator,kr::Range,jr::Range) =
+    copy(sub(B,kr,jr))
 
-Base.sparse(B::Operator,n::Integer)=sparse(BandedMatrix(B,n))
-Base.sparse(B::Operator,n::Range,m::Range)=sparse(BandedMatrix(B,n,m))
-Base.sparse(B::Operator,n::Colon,m::Range)=sparse(BandedMatrix(B,n,m))
-Base.sparse(B::Operator,n::Range,m::Colon)=sparse(BandedMatrix(B,n,m))
+BandedMatrix(B::Operator,rws::Range,::Colon) =
+    BandedMatrix(B,rws,1:last(rws)+bandwidth(B,2))
+
+BandedMatrix(B::Operator,kr::Colon,jr::UnitRange) =
+    BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
+#
+# Base.sparse(B::Operator,n::Integer)=sparse(BandedMatrix(B,n))
+# Base.sparse(B::Operator,n::Range,m::Range)=sparse(BandedMatrix(B,n,m))
+# Base.sparse(B::Operator,n::Colon,m::Range)=sparse(BandedMatrix(B,n,m))
+# Base.sparse(B::Operator,n::Range,m::Colon)=sparse(BandedMatrix(B,n,m))
 
 ## geteindex
 
@@ -156,10 +141,10 @@ end
 
 
 
-## override getindex or addentries!.  Each defaults
+## override getindex.
 
-defaultgetindex(op::Operator,k::Integer,j::Integer)=op[k:k,j:j][1,1]
-defaultgetindex(B::BandedOperator,k::Range,j::Range)=slice(B,k,j)
+defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override getindex for $(typeof(B))")
+defaultgetindex(B::BandedOperator,k::Range,j::Range) = copy(sub(B,k,j))
 
 # the defualt is to use getindex
 
@@ -178,84 +163,60 @@ function defaultgetindex(op::Operator,kr::Range,jr::Range)
 end
 
 
-defaultgetindex(A::BandedOperator,k::Integer,::Colon)=FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
-defaultgetindex(A::BandedOperator,kr::Range,::Colon)=slice(A,kr,:)
-defaultgetindex(A::BandedOperator,::Colon,jr::Range)=slice(A,:,jr)
-defaultgetindex(A::BandedOperator,::Colon,::Colon)=A
-Base.getindex(B::Operator,k,j)=defaultgetindex(B,k,j)
+defaultgetindex(A::BandedOperator,k::Integer,::Colon) =
+    FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
+defaultgetindex(A::BandedOperator,kr::Range,::Colon) = sub(A,kr,:)
+defaultgetindex(A::BandedOperator,::Colon,jr::Range) = sub(A,:,jr)
+defaultgetindex(A::BandedOperator,::Colon,::Colon) = A
+
+defaultgetindex(A::BandedOperator,kr::AbstractCount,jr::AbstractCount) = sub(A,kr,jr)
+defaultgetindex(B::BandedOperator,k::AbstractCount,::Colon) = B[k,1:end]
+defaultgetindex(B::BandedOperator,::Colon,j::AbstractCount) = B[1:end,j]
 
 
-
-# we use slice instead of get index because we can't override
-# getindex (::Colon)
-# This violates the behaviour of slices though...
-Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
-# Float-valued ranges are implemented to support 1:Inf to take a slice
-# TODO: right now non-integer steps are only supported when the operator itself
-# has compatible stride
-function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
-    st=step(kr)
-    @assert step(jr)==st
-    @assert last(kr)==last(jr)==Inf
-    SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
-end
-Base.slice(B::BandedOperator,::Colon,jr::FloatRange)=slice(B,1:Inf,jr)
-Base.slice(B::BandedOperator,kr::FloatRange,::Colon)=slice(B,kr,1:Inf)
-Base.slice(A::BandedOperator,::Colon,::Colon)=A
-
-function subview(B::BandedOperator,kr::Range,::Colon)
-     br=bandinds(B)
-     BM=slice(B,kr,:)
-
-     # This shifts to the correct slice
-     IndexStride(BM,1-kr[1],-max(0,kr[1]-1+br[1]))
-end
-
-
-function subview(B::BandedOperator,::Colon,jr::Range)
-     br=bandinds(B)
-     BM=slice(B,:,jr)
-
-     # This shifts to the correct slice
-     IndexStride(BM,-max(jr[1]-1-br[end],0),1-jr[1])
-end
-
-function subview(B::BandedOperator,kr::Range,jr::Range)
-     br=bandinds(B)
-     BM=slice(B,kr,jr)
-
-     # This shifts to the correct slice
-     IndexStride(BM,1-kr[1],1-jr[1])
-end
-
-
-
-## Default addentries!
-#  override either addentries! or getindex, otherwise there will be
-#  an infinite loop.
-
-
-function defaultaddentries!(B::BandedOperator,A,kr,::Colon)
-     br=bandinds(B)
-     for k=(max(kr[1],1)):(kr[end])
-         for j=max(br[1],1-k):br[end]
-             A[k,k+j]+=B[k,k+j]
-         end
-     end
-
-     A
-end
-
-addentries!(B,A,kr,::Colon)=defaultaddentries!(B,A,kr,:)
+Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
 
 
 ## Composition with a Fun, LowRankFun, and ProductFun
 
 Base.getindex{BT,S,T}(B::Operator{BT},f::Fun{S,T}) = B*Multiplication(domainspace(B),f)
 Base.getindex{BT,S,M,SS,T}(B::Operator{BT},f::LowRankFun{S,M,SS,T}) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
-Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) = mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1);one(promote_type(BT,T))],f.space[2])],+,1:length(f.coefficients))
+Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
+    mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1);one(promote_type(BT,T))],f.space[2])],+,1:length(f.coefficients))
+
+
+
+# Convenience for wrapper ops
+unwrap_axpy!(α,P,A) = BLAS.axpy!(α,sub(parent(P).op,P.indexes[1],P.indexes[2]),A)
+iswrapper(::)=false
+
+
+macro wrapper(Wrap)
+   ret = quote
+        Base.getindex(OP::$Wrap,k::Integer,j::Integer) =
+            OP.op[k,j]
+
+        BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubBandedMatrix{T,OP},A::AbstractMatrix) =
+            ApproxFun.unwrap_axpy!(α,P,A)
+
+        Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubBandedMatrix{T,OP}) =
+            copy(sub(parent(P).op,P.indexes[1],P.indexes[2]))
+
+        ApproxFun.iswrapper(::$Wrap)=true
+    end
+   for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
+                :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride))
+        ret=quote
+            $ret
+
+            $func(D::$Wrap)=$func(D.op)
+         end
+   end
+    esc(ret)
+end
 
 ## Standard Operators and linear algebra
+
 
 
 include("linsolve.jl")
@@ -268,7 +229,7 @@ include("almostbanded/almostbanded.jl")
 include("systems.jl")
 
 include("adaptiveqr.jl")
-include("null.jl")
+include("nullspace.jl")
 
 
 

@@ -191,22 +191,21 @@ end
 domainspace(K::KroneckerOperator)=K.domainspace
 rangespace(K::KroneckerOperator)=K.rangespace
 
-function kronaddentries!(A,B,M,kr::Range)
-    m=max(size(A,2),size(B,2))
-    l=A.l+B.l;u=A.u+B.u
-
-    for k=kr,j=max(1,k-l):k+u
-        nl=min(A.l,B.u+k-j);nu=min(A.u,B.l+j-k)
-        @inbounds Mkj=M[k,j]
-        for κ=1:k,ξ=max(1,κ-nl):min(j,κ+nu)
-            #Mkj[κ,ξ]+=A[κ,ξ]*B[k-κ+1,j-ξ+1]
-            @inbounds Mkj[κ,ξ]+=A.data[ξ-κ+A.l+1,κ]*B.data[j-k+κ-ξ+B.l+1,k-κ+1]
+function getindex(K::KroneckerOperator,k::Integer,j::Integer)
+    T=eltype(eltype(K))
+    if bandinds(K,1) ≤ j-k ≤ bandinds(K,2)
+        A=K.ops[1][1:k,1:j]
+        B=K.ops[2][1:k,1:j]
+        nl=max(0,min(A.l,B.u+k-j));nu=max(0,min(A.u,B.l+j-k))
+        ret=BandedMatrix(T,k,j,nl,nu)
+        for (κ,ξ) in eachbandedindex(ret)
+            ret[κ,ξ]=A[κ,ξ]*B[k-κ+1,j-ξ+1]
         end
+        ret
+    else
+        bzeros(T,k,j,0,0)
     end
-    M
 end
-
-addentries!(K::KroneckerOperator,A,kr::Range,::Colon)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
 
 
 bzeros{BT<:BandedMatrix}(K::Operator{BT},
@@ -246,7 +245,7 @@ function *{T<:BandedMatrix,V<:BandedMatrix}(A::BandedMatrix{T},B::BandedMatrix{V
     end
     n,m=size(A,1),size(B,2)
     error("Implement")
-    bmultiply!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
+    A_mul_B!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
 end
 
 function *{BM<:AbstractArray,TT<:Number}(M::BandedMatrix{BM},v::Vector{TT})
@@ -273,7 +272,7 @@ function *{BM<:BandedMatrix}(A::BandedOperator{BM},b::Vector)
     n=size(b,1)
 
     ret=if n>0
-        slice(A,:,1:totensorblock(n))*pad(b,fromtensorblock(totensorblock(n))[end])
+        BandedMatrix(A,:,1:totensorblock(n))*pad(b,fromtensorblock(totensorblock(n))[end])
     else
         b
     end
@@ -450,6 +449,3 @@ function Derivative{SV,TT}(S::TensorSpace{SV,TT,2},order::Vector{Int})
     # try to work around type inference
     DerivativeWrapper{typeof(K),typeof(domainspace(K)),Vector{Int},BandedMatrix{T}}(K,order)
 end
-
-
-

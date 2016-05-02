@@ -6,8 +6,6 @@ abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
 
 ## Note that all functions called in calculus_operator must be exported
 
-iswrapper(::)=false
-
 macro calculus_operator(Op)
     ConcOp=parse("Concrete"*string(Op))
     WrappOp=parse(string(Op)*"Wrapper")
@@ -23,6 +21,8 @@ macro calculus_operator(Op)
             op::BT
             order::OT
         end
+
+        @wrapper $WrappOp
 
 
         ## Constructors
@@ -92,7 +92,7 @@ macro calculus_operator(Op)
         domain(D::$ConcOp)=domain(D.space)
         domainspace(D::$ConcOp)=D.space
 
-        addentries!{OT,T}(::$ConcOp{UnsetSpace,OT,T},A,kr::Range,::Colon)=error("Spaces cannot be inferred for operator")
+        getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer)=error("Spaces cannot be inferred for operator")
         rangespace{T}(D::$ConcOp{UnsetSpace,T})=UnsetSpace()
 
         #promoting domain space is allowed to change range space
@@ -108,15 +108,6 @@ macro calculus_operator(Op)
                 $Op(sp,D.order)
             end
         end
-
-
-        #Wrapper just adds the operator it wraps
-        addentries!(D::$WrappOp,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
-        rangespace(D::$WrappOp)=rangespace(D.op)
-        domainspace(D::$WrappOp)=domainspace(D.op)
-        bandinds(D::$WrappOp)=bandinds(D.op)
-
-        iswrapper(::$WrappOp)=true
     end)
 #     for func in (:rangespace,:domainspace,:bandinds)
 #         # We assume the operator wrapped has the correct spaces
@@ -228,8 +219,13 @@ Derivative(sp::Space,order)=defaultDerivative(sp,order)
 
 function Integral(sp::Space,k::Integer)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
-        # we assume the canonical domain case is implemented
-        ConcreteIntegral(sp,k)
+        # this is the normal default constructor
+        csp=canonicalspace(sp)
+        if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
+            # we require that Integral is overridden
+            error("Implement Integeral($(string(sp)),$order)")
+        end
+        IntegralWrapper(TimesOperator([Integeral(csp,order),Conversion(sp,csp)]),order)
     elseif k > 1
         Q=Integral(sp,1)
         IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
