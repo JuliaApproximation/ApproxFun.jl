@@ -168,7 +168,11 @@ defaultgetindex(A::BandedOperator,k::Integer,::Colon) =
 defaultgetindex(A::BandedOperator,kr::Range,::Colon) = sub(A,kr,:)
 defaultgetindex(A::BandedOperator,::Colon,jr::Range) = sub(A,:,jr)
 defaultgetindex(A::BandedOperator,::Colon,::Colon) = A
+
 defaultgetindex(A::BandedOperator,kr::AbstractCount,jr::AbstractCount) = sub(A,kr,jr)
+defaultgetindex(B::BandedOperator,k::AbstractCount,::Colon) = B[k,1:end]
+defaultgetindex(B::BandedOperator,::Colon,j::AbstractCount) = B[1:end,j]
+
 
 Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
 
