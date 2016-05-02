@@ -392,22 +392,35 @@ Base.convert{F<:AbstractFloat}(::Type{F},::Irrational{:∞}) = convert(F,Inf)
 
 ## My Count
 
-immutable Count{S<:Number}
+abstract AbstractCount{S<:Number}
+
+immutable UnitCount{S<:Number} <: AbstractCount{S}
+    start::S
+end
+
+immutable Count{S<:Number} <: AbstractCount{S}
     start::S
     step::S
 end
 countfrom(start::Number, step::Number) = Count(promote(start, step)...)
-countfrom(start::Number)               = Count(start, one(start))
-countfrom()                            = Count(1, 1)
+countfrom(start::Number)               = UnitCount(start)
+countfrom()                            = UnitCount(1)
 
-Base.eltype{S}(::Type{Count{S}}) = S
 
-Base.start(it::Count) = it.start
-Base.next(it::Count, state) = (state, state + it.step)
-Base.done(it::Count, state) = false
+Base.eltype{S}(::Type{AbstractCount{S}}) = S
+Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(super(AS))
 
-Base.length(it::Count) = ∞
+Base.step(it::Count) = it.step
+Base.step(it::UnitCount) = 1
+
+Base.start(it::AbstractCount) = it.start
+Base.next(it::AbstractCount, state) = (state, state + step(it))
+Base.done(it::AbstractCount, state) = false
+
+Base.length(it::AbstractCount) = ∞
+
 getindex(it::Count,k) = it.start + it.step*(k-1)
+getindex(it::UnitCount,k) = it.start + k - 1
 
 
 Base.colon(a::Real,b::Irrational{:∞}) = countfrom(a)

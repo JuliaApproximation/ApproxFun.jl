@@ -30,7 +30,7 @@ Plots.plot!{F<:Fun}(x::AbstractVector,v::AbstractVector{F};kwds...)=plot!(curren
 
 
 function plotptsvals(f::Fun)
-    if dimension(space(f)) == Inf
+    if isinf(dimension(space(f)))
         f=pad(f,3length(f)+50)
     else
         f=pad(f,dimension(space(f)))

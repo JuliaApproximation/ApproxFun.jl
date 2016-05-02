@@ -42,6 +42,19 @@ domain(A::Operator)=domain(domainspace(A))
 Base.size(A::Operator) = (size(A,1),size(A,2))
 Base.size(A::Operator,k::Integer) = k==1?dimension(rangespace(A)):dimension(domainspace(A))
 
+# used to compute "end" for last index
+function Base.trailingsize(A::BandedOperator, n::Integer)
+    if n > 2
+        1
+    elseif n==2
+        size(A,2)
+    elseif isinf(size(A,2)) || isinf(size(A,1))
+        ∞
+    else
+        size(A,1)*size(A,2)
+    end
+end
+
 Base.ndims(::Operator) = 2
 datalength(F::Functional) = ∞        # use datalength to indicate a finite length functional
 
@@ -152,11 +165,11 @@ end
 
 defaultgetindex(A::BandedOperator,k::Integer,::Colon) =
     FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
-defaultgetindex(A::BandedOperator,kr::Range,::Colon) =
-    slice(A,kr,:)
-defaultgetindex(A::BandedOperator,::Colon,jr::Range) =
-    slice(A,:,jr)
+defaultgetindex(A::BandedOperator,kr::Range,::Colon) = sub(A,kr,:)
+defaultgetindex(A::BandedOperator,::Colon,jr::Range) = sub(A,:,jr)
 defaultgetindex(A::BandedOperator,::Colon,::Colon) = A
+defaultgetindex(A::BandedOperator,kr::AbstractCount,jr::AbstractCount) = sub(A,kr,jr)
+
 Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
 
 

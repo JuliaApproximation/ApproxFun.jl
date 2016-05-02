@@ -70,62 +70,6 @@ getindex(S::StrideOperator,k::Integer,j::Integer) = stride_addentries!(S,k,j)
 domain(S::StrideOperator) = Any ##TODO: tensor product
 
 
-## SliceOperator
-
-# Some of this is verbatim from IndexSlice
-immutable SliceOperator{T,B} <: BandedOperator{T}
-    op::B
-    rowindex::Int
-    colindex::Int
-    rowstride::Int
-    colstride::Int
-
-    function SliceOperator(o,r,c,rs,cs)
-        @assert rs == cs
-        @assert rs != 0
-        @assert mod(r-c,rs)==0
-        @assert mod(stride(o),rs)==0
-
-        new(o,r,c,rs,cs)
-    end
-end
-
-SliceOperator{T<:Number}(B::Operator{T},r,c,rs,cs)=SliceOperator{T,typeof(B)}(B,r,c,rs,cs)
-SliceOperator{T<:Number}(B::Operator{T},r,c,rs)=SliceOperator{T,typeof(B)}(B,r,c,rs,rs)
-SliceOperator{T<:Number}(B::Operator{T},r,c)=SliceOperator{T,typeof(B)}(B,r,c,1,1)
-
-
-Base.convert{BT<:Operator}(::Type{BT},S::SliceOperator)=SliceOperator(convert(BandedOperator{eltype(BT)},S.op),
-                                                                        S.rowindex,S.colindex,S.rowstride,S.colstride)
-
-bandinds(S::SliceOperator)=(div(bandinds(S.op,1)+S.rowindex-S.colindex,S.rowstride),div(bandinds(S.op,2)+S.rowindex-S.colindex,S.rowstride))
-
-function destride_addentries!(op,ri,ci,rs,cs,A,kr::UnitRange)
-    r1=rs*kr[1]+ri:rs:rs*kr[end]+ri
-    addentries!(op,IndexSlice(A,ri,ci,rs,cs),r1,:)
-    A
-end
-
-function destride_addentries!(op,ri,ci,A,kr::UnitRange)
-    r1=kr[1]+ri:kr[end]+ri
-    addentries!(op,IndexSlice(A,ri,ci,1,1),r1,:)
-    A
-end
-
-function destride_addentries!(S::SliceOperator,A,kr::Range)
-    if S.rowstride==S.colstride==1
-        destride_addentries!(S.op,S.rowindex,S.colindex,A,kr)
-    else
-        destride_addentries!(S.op,S.rowindex,S.colindex,S.rowstride,S.colstride,A,kr)
-    end
-end
-
-addentries!(S::SliceOperator,A,kr,::Colon)=destride_addentries!(S,A,kr)
-domain(S::SliceOperator)=domain(S.op)
-domainspace(S::SliceOperator)=S.colindex==0&&S.colstride==1?domainspace(S.op):SliceSpace(domainspace(S.op),S.colindex,S.colstride)
-rangespace(S::SliceOperator)=SliceSpace(rangespace(S.op),S.rowindex,S.rowstride)
-
-
 
 
 ## StrideFunctional
