@@ -20,7 +20,7 @@ u=A\G
 
 A=[dirichlet(d);lap(d)+0.0I]
 u=A\G
-@test_approx_eq u(.1,.2) real(exp(.1+.2im))
+@test_approx_eq_eps u(.1,.2) real(exp(.1+.2im)) 1E-11
 
 
 ## Poisson
