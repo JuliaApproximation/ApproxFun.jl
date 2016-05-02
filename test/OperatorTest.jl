@@ -108,3 +108,8 @@ f=Fun(exp)
 @test norm((C-A)[1:10,1:10]|>full)<eps()
 @test norm((C-B)[1:10,1:10]|>full)<eps()
 @test norm((B-C)[1:10,1:10]|>full)<eps()
+
+
+
+## SavedBandedOperator
+@test SavedBandedOperator(Derivative(Chebyshev(),2))[1,1]==0

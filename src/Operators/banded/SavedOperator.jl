@@ -78,7 +78,7 @@ end
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function SavedBandedOperator{T<:Number}(op::BandedOperator{T})
-    data = BandedMatrix(T,0,:,bandinds(op))
+    data = bzeros(T,0,:,bandinds(op))  # bzeros is needed to allocate top of array
     SavedBandedOperator(op,data,0,bandinds(op))
 end
 
