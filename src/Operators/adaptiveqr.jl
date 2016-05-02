@@ -91,7 +91,7 @@ function adaptiveqr!(B::MutableOperator,v::Array,tol::Real,N)
 
     j=1
     ##TODO: we can allow early convergence
-    while j <= N && (slnorm(u,j:j+b-1) > tol  || j <= size(v,1))
+    while j <= N && (slnorm(u,j:j+b-1,:) > tol  || j <= size(v,1))
         if j + b == l
             l *= 2
             u = pad(u,l,size(u,2))
