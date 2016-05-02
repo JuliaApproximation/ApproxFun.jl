@@ -39,11 +39,24 @@ domain(A::Operator)=domain(domainspace(A))
 
 
 
-Base.size(A::Operator)=(size(A,1),size(A,2))
-Base.size(A::Operator,k::Integer)=k==1?dimension(rangespace(A)):dimension(domainspace(A))
+Base.size(A::Operator) = (size(A,1),size(A,2))
+Base.size(A::Operator,k::Integer) = k==1?dimension(rangespace(A)):dimension(domainspace(A))
 
-Base.ndims(::Operator)=2
-datalength(F::Functional)=Inf        # use datalength to indicate a finite length functional
+# used to compute "end" for last index
+function Base.trailingsize(A::BandedOperator, n::Integer)
+    if n > 2
+        1
+    elseif n==2
+        size(A,2)
+    elseif isinf(size(A,2)) || isinf(size(A,1))
+        ∞
+    else
+        size(A,1)*size(A,2)
+    end
+end
+
+Base.ndims(::Operator) = 2
+datalength(F::Functional) = ∞        # use datalength to indicate a finite length functional
 
 
 
@@ -152,33 +165,16 @@ end
 
 defaultgetindex(A::BandedOperator,k::Integer,::Colon) =
     FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
-defaultgetindex(A::BandedOperator,kr::Range,::Colon) =
-    slice(A,kr,:)
-defaultgetindex(A::BandedOperator,::Colon,jr::Range) =
-    slice(A,:,jr)
+defaultgetindex(A::BandedOperator,kr::Range,::Colon) = sub(A,kr,:)
+defaultgetindex(A::BandedOperator,::Colon,jr::Range) = sub(A,:,jr)
 defaultgetindex(A::BandedOperator,::Colon,::Colon) = A
+
+defaultgetindex(A::BandedOperator,kr::AbstractCount,jr::AbstractCount) = sub(A,kr,jr)
+defaultgetindex(B::BandedOperator,k::AbstractCount,::Colon) = B[k,1:end]
+defaultgetindex(B::BandedOperator,::Colon,j::AbstractCount) = B[1:end,j]
+
+
 Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
-
-
-
-# # we use slice instead of get index because we can't override
-# # getindex (::Colon)
-# # This violates the behaviour of slices though...
-# Base.slice(B::BandedOperator,k,j)=BandedMatrix(B,k,j)
-# # Float-valued ranges are implemented to support 1:Inf to take a slice
-# # TODO: right now non-integer steps are only supported when the operator itself
-# # has compatible stride
-# function Base.slice(B::BandedOperator,kr::FloatRange,jr::FloatRange)
-#     st=step(kr)
-#     @assert step(jr)==st
-#     @assert last(kr)==last(jr)==Inf
-#     SliceOperator(B,first(kr)-st,first(jr)-st,st,st)
-# end
-# Base.slice(B::BandedOperator,::Colon,jr::FloatRange)=slice(B,1:Inf,jr)
-# Base.slice(B::BandedOperator,kr::FloatRange,::Colon)=slice(B,kr,1:Inf)
-# Base.slice(A::BandedOperator,::Colon,::Colon)=A
-#
-
 
 
 ## Composition with a Fun, LowRankFun, and ProductFun

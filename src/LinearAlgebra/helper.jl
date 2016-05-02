@@ -377,3 +377,54 @@ function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
     end
     ret
 end
+
+
+
+
+
+
+## New Inf
+
+const ∞ = Irrational{:∞}()
+
+Base.show(io::IO, x::Irrational{:∞}) = print(io, "∞")
+Base.convert{F<:AbstractFloat}(::Type{F},::Irrational{:∞}) = convert(F,Inf)
+
+## My Count
+
+abstract AbstractCount{S<:Number}
+
+immutable UnitCount{S<:Number} <: AbstractCount{S}
+    start::S
+end
+
+immutable Count{S<:Number} <: AbstractCount{S}
+    start::S
+    step::S
+end
+countfrom(start::Number, step::Number) = Count(promote(start, step)...)
+countfrom(start::Number)               = UnitCount(start)
+countfrom()                            = UnitCount(1)
+
+
+Base.eltype{S}(::Type{AbstractCount{S}}) = S
+Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(super(AS))
+
+Base.step(it::Count) = it.step
+Base.step(it::UnitCount) = 1
+
+Base.start(it::AbstractCount) = it.start
+Base.next(it::AbstractCount, state) = (state, state + step(it))
+Base.done(it::AbstractCount, state) = false
+
+Base.length(it::AbstractCount) = ∞
+
+getindex(it::Count,k) = it.start + it.step*(k-1)
+getindex(it::UnitCount,k) = it.start + k - 1
+
+
+Base.colon(a::Real,b::Irrational{:∞}) = countfrom(a)
+Base.colon(::Irrational{:∞},::AbstractFloat,::Irrational{:∞}) = [∞]
+Base.colon(a::Real,st::Real,b::Irrational{:∞}) = countfrom(a,st)
+
+Base.isinf(::Irrational{:∞}) = true

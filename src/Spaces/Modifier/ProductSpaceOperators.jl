@@ -130,7 +130,7 @@ end
 # Sum Space and PiecewiseSpace need to allow permutation of space orders
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval function Conversion(S1::$TYP,S2::$TYP)
-        if any(s->dimension(s)!=Inf,S1.spaces) || any(s->dimension(s)!=Inf,S2.spaces)
+        if any(s->!isinf(dimension(s)),S1.spaces) || any(s->!isinf(dimension(s)),S2.spaces)
             error("Need to implement finite dimensional case")
         elseif sort([S1.spaces...])==sort([S2.spaces...])
             # swaps sumspace order
