@@ -47,27 +47,28 @@ function Base.getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range
     x = op.x
     d = domain(op)
     p = op.order
-    cst = (2/(d.b-d.a))^p
+    cst = T((2/(d.b-d.a))^p)
+    n=length(k)
 
     if x
-        ret = ones(T,length(k))
+        ret = ones(T,n)
     else
-        ret = Array(T,length(k))
+        ret = Array(T,n)
         k1=1-first(k)
-        for j=k
-            ret[j+k1]=(-1)^(p+1)*(-one(T))^j
+        @simd for j=k
+            @inbounds ret[j+k1]=(-1)^(p+1)*(-one(T))^j
         end
     end
 
     for m=0:p-1
         k1=1-first(k)
-        for j=k
-            ret[j+k1] *= (j-1)^2-m^2
+        @simd for j=k
+            @inbounds ret[j+k1] *= (j-1)^2-m^2
         end
-        ret /= 2m+1
+        scal!(T(1/(2m+1)), ret)
     end
 
-    return ret*cst
+    scal!(cst,ret)
 end
 
 function Base.getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},k::Range)
@@ -87,68 +88,75 @@ end
 Base.stride{U<:Ultraspherical,V<:Ultraspherical}(M::ConcreteMultiplication{U,V})=stride(M.f)
 
 
-function chebmult_addentries!(cfs::Vector,A,kr::Range)
-    toeplitz_addentries!(.5cfs,A,kr)
-    hankel_addentries!(.5cfs,A,intersect(2:kr[end],kr))
-end
+function chebmult_getindex(cfs::Vector,k::Integer,j::Integer)
+    n=length(cfs)
 
+    ret=zero(eltype(cfs))
 
-for TYP in (:UnitRange,:Range) # needed to avoid confusion
-    @eval begin
-        addentries!{T,C<:Chebyshev}(M::ConcreteMultiplication{C,C,T},A,kr::$TYP,::Colon)=chebmult_addentries!(coefficients(M.f),A,kr)
-
-        function addentries!{D,T,C<:Chebyshev}(M::ConcreteMultiplication{C,Ultraspherical{1,D},T},A,kr::$TYP,::Colon)
-            cfs=coefficients(M.f)
-            toeplitz_addentries!(.5cfs,A,kr)
-            hankel_addentries!(-.5cfs[3:end],A,kr)
-        end
+    # Toeplitz part
+    if k == j
+        ret += cfs[1]
+    elseif k > j && k-j+1 ≤ n
+        ret += cfs[k-j+1]/2
+    elseif k < j && j-k+1 ≤ n
+        ret += cfs[j-k+1]/2
     end
+
+    # Hankel part
+    if k ≥ 2 && k+j-1 ≤ n
+        ret += cfs[k+j-1]/2
+    end
+
+    ret
 end
 
-function addentries!{λ,PS<:PolynomialSpace,D,T}(M::ConcreteMultiplication{Ultraspherical{λ,D},PS,T},A,kr::UnitRange,::Colon)
+
+getindex{T,C<:Chebyshev}(M::ConcreteMultiplication{C,C,T},k::Integer,j::Integer) =
+    chebmult_getindex(coefficients(M.f),k,j)
+
+
+function getindex{D,T,C<:Chebyshev}(M::ConcreteMultiplication{C,Ultraspherical{1,D},T},k::Integer,j::Integer)
+    cfs=coefficients(M.f)
+    toeplitz_getindex(.5cfs,k,j)+hankel_getindex(-.5cfs[3:end],k,j)
+end
+
+
+
+getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
+
+function Base.copy{PS<:PolynomialSpace,V,T,C<:Chebyshev}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
+                                                                            Tuple{UnitRange{Int},UnitRange{Int}}})
+    M=parent(S)
+    kr,jr=parentindexes(S)
+
+    A=bzeros(S)
+
     a=coefficients(M.f)
-    for k=kr
-        A[k,k]=a[1]
+
+    shft=bandshift(A)
+
+    for k=kr ∩ jr
+        A[k-kr[1]+1,k-jr[1]+1]=a[1]
     end
 
     if length(a) > 1
-        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
-
-        J=subview(Recurrence(domainspace(M)),jkr,jkr)
-        C1=2λ*J
-        addentries!(C1,a[2],A,kr,:)
-        C0=isbeye(jkr)
-
-        for k=1:length(a)-2
-            C1,C0=2(k+λ)/(k+one(T))*J*C1-(k+2λ-one(T))/(k+one(T))*C0,C1
-            addentries!(C1,a[k+2],A,kr,:)
-        end
-    end
-
-    A
-end
-
-
-function addentries!{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},A,kr::UnitRange,::Colon)
-    a=coefficients(M.f)
-
-    for k=kr
-        A[k,k]=a[1]
-    end
-
-    if length(M.f) > 1
         sp=M.space
-        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+        jkr=max(1,min(kr[1],jr[1])-length(a)+1):max(kr[end],jr[end])+length(a)-1
 
         #Multiplication is transpose
-        J=subview(Recurrence(sp),jkr,jkr)
+        J=Recurrence(sp)[jkr,jkr]
         C1=J
-        addentries!(C1,a[2],A,kr,:)
-        C0=isbeye(jkr)
+
+        # the sub ranges of jkr that correspond to kr, jr
+        kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
+
+        BLAS.axpy!(a[2],sub(C1,kr2,jr2),A)
+        C0=beye(size(J,1),size(J,2),0,0)
+
 
         for k=1:length(a)-2
             C1,C0=2J*C1-C0,C1
-            addentries!(C1,a[k+2],A,kr,:)
+            BLAS.axpy!(a[k+2],sub(C1,kr2,jr2),A)
         end
     end
 
@@ -174,15 +182,16 @@ bandinds{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=0,D.orde
 bandinds{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}})=-D.order,0
 Base.stride{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=D.order
 
-function getindex{λ,DD<:Interval,T}(D::ConcreteDerivative{Ultraspherical{λ,DD},T},k::Integer,j::Integer)
+
+function getindex{λ,DD<:Interval,K,T}(D::ConcreteDerivative{Ultraspherical{λ,DD},K,T},k::Integer,j::Integer)
     m=D.order
     d=domain(D)
 
     if λ == 0 && j==k+m
         C=.5pochhammer(1.,m-1)*(4./(d.b-d.a)).^m
-        C*(m+k-one(T))
+        (C*(m+k-one(T)))::T
     elseif j==k+m
-        pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m
+        (pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
     else
         zero(T)
     end
@@ -198,7 +207,7 @@ end
 
 
 
-# TODO: include in addentries! to speed up
+# TODO: include in getindex to speed up
 Integral{DD<:Interval}(sp::Chebyshev{DD},m::Integer)=IntegralWrapper(
     TimesOperator([Integral(Ultraspherical{m}(domain(sp)),m),Conversion(sp,Ultraspherical{m}(domain(sp)))]),m)
 

@@ -211,7 +211,10 @@ function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableOperator{T,M,R},n:
             pad!(B.data,2n,:)
         end
 
-        addentries!(B.op,IndexStride(B.data,shift,0),B.datalength+1-shift:n-shift,:)
+        kr=B.datalength+1:n
+        jr=max(B.datalength+1-B.data.l,1):n+B.data.u
+        BLAS.axpy!(1.0,sub(B.op,kr-shift,jr),sub(B.data,kr,jr))
+
         B.datalength = n
     end
 

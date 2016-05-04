@@ -298,7 +298,7 @@ function defaultConversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B
         if rangespace(M)==JacobiWeight(αdif,βdif,A.space)
             # M is the default, so we should use multiplication by polynomials instead
             x=Fun(identity,d)
-            y=tocanonical(d,x)
+            y=mobius(d,x)   # we use mobius instead of tocanonical so that it works for Funs
             m=(1+y).^αdif.*(1-y).^βdif
             MC=promoterangespace(Multiplication(m,A.space),B.space)
 

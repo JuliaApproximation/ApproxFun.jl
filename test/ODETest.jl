@@ -81,13 +81,13 @@ x=Fun(identity,d)
 A=x^2*D^2+x*D+x^2
 u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 
-
+@test_approx_eq u(0.1) besselj(0.,0.1)
 @test norm(A*u)<10eps()
 @test norm(Fun(A.ops[1]*u,d)-x.^2.*differentiate(u,2))<eps()
 @test norm(Fun(A.ops[2]*u,d)-x.*u') < eps()
 @test norm(Fun(A.ops[end]*u,d)-x.^2.*u) < eps()
 @test norm(x.^2.*u'' + x.*u' + x.^2.*u)<10eps()
-@test_approx_eq u(0.1) besselj(0.,0.1)
+
 
 
 
@@ -97,7 +97,7 @@ u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 d=Interval(-50.,5.)
 D=Derivative(d)
 x=Fun(identity,d)
-u=null(D^2-x)
+u=nullspace(D^2-x)
 c=[evaluate(u,d.a)'; evaluate(u,d.b)']\[airyai(d.a),airyai(d.b)]
 @test norm(dot(c,u)-Fun(airyai,d))<eps(1000.)
 
@@ -119,7 +119,6 @@ A= [0  ldirichlet(d);
     0    lneumann(d);
     0    rdirichlet(d);
     -1    F; ]
-
 
 u,x=A\[1.,0.,2.,0.]
 

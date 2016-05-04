@@ -59,28 +59,28 @@ typealias RealUnivariateSpace{D} RealSpace{D,1}
 
 
 
-Base.eltype{T}(::Space{T})=eltype(T)
-Base.eltype{T,D,d}(::Type{Space{T,D,d}})=eltype(T)
-basistype{T}(::Space{T})=T
-basistype{T,D,d}(::Type{Space{T,D,d}})=T
-basistype{FT<:Space}(::Type{FT})=basistype(super(FT))
+Base.eltype{T}(::Space{T}) = eltype(T)
+Base.eltype{T,D,d}(::Type{Space{T,D,d}}) = eltype(T)
+basistype{T}(::Space{T}) = T
+basistype{T,D,d}(::Type{Space{T,D,d}}) = T
+basistype{FT<:Space}(::Type{FT}) = basistype(super(FT))
 
-domaintype{T,D}(::Space{T,D})=D
-domaintype{T,D,d}(::Type{Space{T,D,d}})=D
-domaintype{FT<:Space}(::Type{FT})=domaintype(super(FT))
+domaintype{T,D}(::Space{T,D}) = D
+domaintype{T,D,d}(::Type{Space{T,D,d}}) = D
+domaintype{FT<:Space}(::Type{FT}) = domaintype(super(FT))
 
-coefficient_type{S}(::Space{S},T)=coefficient_type(S,T)
+coefficient_type{S}(::Space{S},T) = coefficient_type(S,T)
 
-Base.ndims{S,D,d}(::Space{S,D,d})=d
-dimension(::Space)=Inf  # We assume infinite-dimensional spaces
+Base.ndims{S,D,d}(::Space{S,D,d}) = d
+dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 
 
-Space{D<:Number}(d::AbstractVector{D})=Space(convert(Domain,d))
+Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
 
 abstract AmbiguousSpace <: Space{RealBasis,AnyDomain,1}
 
-domain(::AmbiguousSpace)=AnyDomain()
+domain(::AmbiguousSpace) = AnyDomain()
 
 
 function setdomain{T,D<:Domain}(sp::Space{T,D},d::D)

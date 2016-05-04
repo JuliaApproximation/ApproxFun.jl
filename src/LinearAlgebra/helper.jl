@@ -32,6 +32,8 @@ eps{T<:Number}(::Type{Vector{T}})=eps(T)
 eps{k,T<:Number}(::Type{Vec{k,T}})=eps(T)
 
 
+# BLAS
+
 dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
 dotu{N<:Real,T<:Number}(f::Vector{N},g::Vector{T})=dot(f,g)
@@ -39,6 +41,27 @@ dotu{N<:Real,T<:Number}(f::Vector{N},g::Vector{T})=dot(f,g)
 # implement muladd default
 muladd(a,b,c)=a*b+c
 muladd(a::Number,b::Number,c::Number)=Base.muladd(a,b,c)
+
+
+for TYP in (:Float64,:Float32,:Complex128,:Complex64)
+    @eval scal!{T<:$TYP}(n::Integer,cst::$TYP,ret::DenseArray{T},k::Integer) =
+            BLAS.scal!(n,cst,ret,k)
+end
+
+typealias BlasNumber Union{Float64,Float32,Complex128,Complex64}
+scal!{T<:BlasNumber}(n::Integer,cst::BlasNumber,ret::DenseArray{T},k::Integer) =
+    BLAS.scal!(n,T(cst),ret,k)
+
+function scal!(n::Integer,cst::Number,ret::AbstractArray,k::Integer)
+    @assert k*n ≤ length(ret)
+    @simd for j=1:k:k*(n-1)+1
+        @inbounds ret[j] *= cst
+    end
+    ret
+end
+
+scal!(cst::Number,v::AbstractArray) = scal!(length(v),cst,v,1)
+
 
 
 ## Helper routines
@@ -317,7 +340,7 @@ end
 
 ## slnorm gives the norm of a slice of a matrix
 
-function slnorm{T}(u::Array{T},r::Range)
+function slnorm{T}(u::AbstractArray{T},r::Range,::Colon)
     ret = zero(real(T))
     for k=r
         @simd for j=1:size(u,2)
@@ -329,7 +352,7 @@ function slnorm{T}(u::Array{T},r::Range)
 end
 
 
-function slnorm(m::Matrix,kr::Range,jr::Range)
+function slnorm(m::AbstractMatrix,kr::Range,jr::Range)
     ret=0.0
     for j=jr
         for k=kr
@@ -343,3 +366,65 @@ slnorm(m::Matrix,kr::Range,jr::Integer)=slnorm(m,kr,jr:jr)
 slnorm(m::Matrix,kr::Integer,jr::Range)=slnorm(m,kr:kr,jr)
 
 
+function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
+    ret = zero(real(T))
+    m=size(B,2)
+    for k=r
+        @simd for j=max(1,k-B.l):min(k+B.u,m)
+            #@inbounds
+            ret=max(norm(B[k,j]),ret)
+        end
+    end
+    ret
+end
+
+
+
+
+
+
+## New Inf
+
+const ∞ = Irrational{:∞}()
+
+Base.show(io::IO, x::Irrational{:∞}) = print(io, "∞")
+Base.convert{F<:AbstractFloat}(::Type{F},::Irrational{:∞}) = convert(F,Inf)
+
+## My Count
+
+abstract AbstractCount{S<:Number}
+
+immutable UnitCount{S<:Number} <: AbstractCount{S}
+    start::S
+end
+
+immutable Count{S<:Number} <: AbstractCount{S}
+    start::S
+    step::S
+end
+countfrom(start::Number, step::Number) = Count(promote(start, step)...)
+countfrom(start::Number)               = UnitCount(start)
+countfrom()                            = UnitCount(1)
+
+
+Base.eltype{S}(::Type{AbstractCount{S}}) = S
+Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(super(AS))
+
+Base.step(it::Count) = it.step
+Base.step(it::UnitCount) = 1
+
+Base.start(it::AbstractCount) = it.start
+Base.next(it::AbstractCount, state) = (state, state + step(it))
+Base.done(it::AbstractCount, state) = false
+
+Base.length(it::AbstractCount) = ∞
+
+getindex(it::Count,k) = it.start + it.step*(k-1)
+getindex(it::UnitCount,k) = it.start + k - 1
+
+
+Base.colon(a::Real,b::Irrational{:∞}) = countfrom(a)
+Base.colon(::Irrational{:∞},::AbstractFloat,::Irrational{:∞}) = [∞]
+Base.colon(a::Real,st::Real,b::Irrational{:∞}) = countfrom(a,st)
+
+Base.isinf(::Irrational{:∞}) = true
