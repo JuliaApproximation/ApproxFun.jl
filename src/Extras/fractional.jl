@@ -70,6 +70,11 @@ function addentries!{T,DD<:Interval}(Q::ConcreteRightIntegral{Jacobi{T,DD},Float
 end
 
 
+function LeftIntegral(S::Jacobi,k)
+    @assert S.b==0
+    ConcreteLeftIntegral(S,k)
+end
+
 function LeftIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
     # convert to Jacobi
     @assert k==.5
