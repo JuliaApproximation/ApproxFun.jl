@@ -6,6 +6,11 @@ import ApproxFun.Multiplication
 
 
 d=Interval(-10.,5.);
+S=Chebyshev(d)
+
+@test norm(Fun(Fun(Fun(exp,S),Ultraspherical{2}(d)),S)) < 100eps()
+
+
 Bm=Evaluation(d,d.a);
 Bp=Evaluation(d,d.b);
 B=[Bm;Bp];

@@ -51,8 +51,7 @@ bandinds(T::ToeplitzOperator)=(-length(T.negative),length(T.nonnegative)-1)
 
 # slice of a ToeplitzOPerator is a ToeplitzOperator
 
-function Base.slice(T::ToeplitzOperator,kr::FloatRange,jr::FloatRange)
-    @assert last(kr)==last(jr)==Inf
+function Base.getindex(T::ToeplitzOperator,kr::AbstractCount,jr::AbstractCount)
     sh=first(jr)-first(kr)
     st=step(jr)
     @assert st==step(kr)

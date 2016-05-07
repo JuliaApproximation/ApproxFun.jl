@@ -1,7 +1,5 @@
 include("helper.jl")
 
-include("BandedMatrix.jl")
-
 include("chebyshevtransform.jl")
 
 include("lyap.jl")
