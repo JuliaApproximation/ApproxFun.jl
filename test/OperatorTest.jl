@@ -2,6 +2,20 @@ using ApproxFun, Base.Test
     import ApproxFun.Multiplication
 
 
+C=Conversion(Ultraspherical{1}(),Ultraspherical{2}())[1:5,1:5]
+
+@test_approx_eq full(C) [1.0 0.0 -0.3333333333333333 0.0 0.0
+                         0.0 0.5 0.0 -0.25 0.0
+                         0.0 0.0 0.3333333333333333 0.0 -0.2
+                         0.0 0.0 0.0 0.25 0.0
+                         0.0 0.0 0.0 0.0 0.2]
+
+
+
+@test_approx_eq C[1:5,1:5][2:5,1:5] C[2:5,1:5]
+@test_approx_eq C[1:5,2:5] C[1:5,1:5][:,2:end]
+
+
 @test_approx_eq copy(sub(Derivative(Ultraspherical{1}()),1:2,1:2))[1,2] Derivative(Ultraspherical{1}())[1,2]
 @test_approx_eq exp(0.1) (Derivative()*Fun(exp,Ultraspherical{1}()))(0.1)
 
