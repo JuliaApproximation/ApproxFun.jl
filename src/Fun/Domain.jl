@@ -84,9 +84,11 @@ function Base.in(x,d::IntervalDomain)
     T=real(eltype(eltype(eltype(d))))
     y=tocanonical(d,x)
     ry=real(y)
+    iy=imag(y)
     sc=norm(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
     isapprox(fromcanonical(d,y),x) &&
-        -one(T)-100eps(T)/sc≤ry≤one(T)+100eps(T)/sc
+        -one(T)-100eps(T)/sc≤ry≤one(T)+100eps(T)/sc &&
+        -100eps(T)/sc≤iy≤100eps(T)/sc
 end
 
 pieces(d::Domain)=[d]

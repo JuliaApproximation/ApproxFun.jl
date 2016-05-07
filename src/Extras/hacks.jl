@@ -11,7 +11,7 @@ end
 
 # default copy is to loop through
 # override this for most operators.
-function Base.copy(S::SubBandedMatrix)
+function default_copy(S::SubBandedMatrix)
     l,u = bandwidth(S,1),bandwidth(S,2)
     Y=BandedMatrix(eltype(S),size(S,1),size(S,2),l,u)
 
@@ -21,6 +21,9 @@ function Base.copy(S::SubBandedMatrix)
 
     Y
 end
+
+Base.copy(S::SubBandedMatrix) = default_copy(S)
+
 
 
 # Base.copy
