@@ -174,8 +174,8 @@ function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication
     for k=2:min(length(cfs),dg)
         dat[dg-k+1,:]=cfs[k]/2
     end
-    for k=2:min(length(cfs),size(dat,1)-dg)
-        dat[dg+k,:]=cfs[k]/2
+    for k=2:min(length(cfs),size(dat,1)+1-dg)
+        dat[dg+k-1,:]=cfs[k]/2
     end
 
     if length(cfs) ≥ 2

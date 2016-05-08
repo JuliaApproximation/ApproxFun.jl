@@ -19,6 +19,19 @@ C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
 
 
+M=Multiplication(Fun([1.,2.,3.],Chebyshev()),Chebyshev())
+
+B=M[1:5,1:5]
+
+for k=1:5,j=1:5
+    @test_approx_eq B[k,j] M[k,j]
+end
+
+@test_approx_eq M[1:5,1:5][2:5,1:5] M[2:5,1:5]
+@test_approx_eq M[1:5,2:5] M[1:5,1:5][:,2:end]
+
+
+
 C=Conversion(Ultraspherical{1}(),Ultraspherical{2}())
 
 @test_approx_eq full(C[1:5,1:5])    [1.0 0.0 -0.3333333333333333 0.0  0.0
