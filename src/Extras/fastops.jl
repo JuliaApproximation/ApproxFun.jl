@@ -178,10 +178,12 @@ function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication
         dat[dg+k,:]=cfs[k]/2
     end
 
-    if first(kr) ≥ 2
-        BLAS.axpy!(0.5,sub(HankelOperator(cfs),kr,jr),ret)
-    else
-        BLAS.axpy!(0.5,sub(HankelOperator(cfs),2:last(kr),jr),sub(ret,2:size(ret,1),:))
+    if length(cfs) ≥ 2
+        if first(kr) ≥ 2
+            BLAS.axpy!(0.5,sub(HankelOperator(cfs),kr,jr),ret)
+        else
+            BLAS.axpy!(0.5,sub(HankelOperator(cfs),2:last(kr),jr),sub(ret,2:size(ret,1),:))
+        end
     end
 
     ret
