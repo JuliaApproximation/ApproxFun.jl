@@ -76,11 +76,11 @@ function Base.copy{T,m,λ,DD}(S::SubBandedMatrix{T,ConcreteConversion{Ultraspher
 
     c=λ-one(T)  # this supports big types
     @simd for j=1:size(dat,2)
-        @inbounds dat[dg3,j]=c/(j+shft - 2 + λ)
+        @inbounds dat[dg1,j]=c/(j+shft - 2 + λ)
     end
 
-    @simd for j=max(3,3-shft):size(dat,2)
-        @inbounds dat[dg1,j]=-c/(j+shft - 2 + λ)
+    @simd for j=max(1,3-shft):size(dat,2)
+        @inbounds dat[dg3,j]=-c/(j+shft - 2 + λ)
     end
 
     ret
