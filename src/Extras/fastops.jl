@@ -129,8 +129,60 @@ end
 # Toeplitz/Hankel
 ####
 
+function Base.copy{T}(S::SubBandedMatrix{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
 
+    kr,jr=parentindexes(S)
+    dat=ret.data
+
+    shft = jr[1]-1
+
+    dg=diagindrow(S)
+
+    neg=parent(S).negative
+    pos=parent(S).nonnegative
+
+    for k=1:min(length(pos),dg)
+        dat[dg-k+1,:]=pos[k]
+    end
+    for k=1:min(length(neg),size(dat,1)-dg)
+        dat[dg+k,:]=neg[k]
+    end
+
+    ret
+end
 
 ####
 # Multiplication
 ####
+
+
+function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication{C,C,V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+
+    kr,jr=parentindexes(S)
+    dat=ret.data
+
+    shft = jr[1]-1
+
+    dg=diagindrow(S)
+
+    cfs=parent(S).f.coefficients
+
+    dat[dg,:]=first(cfs)
+
+    for k=2:min(length(cfs),dg)
+        dat[dg-k+1,:]=cfs[k]/2
+    end
+    for k=2:min(length(cfs),size(dat,1)-dg)
+        dat[dg+k,:]=cfs[k]/2
+    end
+
+    if first(kr) ≥ 2
+        BLAS.axpy!(0.5,sub(HankelOperator(cfs),kr,jr),ret)
+    else
+        BLAS.axpy!(0.5,sub(HankelOperator(cfs),2:last(kr),jr),sub(ret,2:size(ret,1),:))
+    end
+
+    ret
+end

@@ -2,6 +2,23 @@ using ApproxFun, Base.Test
     import ApproxFun.Multiplication
 
 
+
+
+C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
+
+@test_approx_eq full(C[1:5,1:5])    [4.0 5.0 6.0 0.0 0.0
+                                     1.0 4.0 5.0 6.0 0.0
+                                     2.0 1.0 4.0 5.0 6.0
+                                     3.0 2.0 1.0 4.0 5.0
+                                     0.0 3.0 2.0 1.0 4.0]
+
+
+
+@test_approx_eq C[1:5,1:5][2:5,1:5] C[2:5,1:5]
+@test_approx_eq C[1:5,2:5] C[1:5,1:5][:,2:end]
+
+
+
 C=Conversion(Ultraspherical{1}(),Ultraspherical{2}())
 
 @test_approx_eq full(C[1:5,1:5])    [1.0 0.0 -0.3333333333333333 0.0  0.0
