@@ -28,6 +28,7 @@ M=MutableOperator([dirichlet(d);Derivative(d)^2-x])
 println("Airy construct op: 0.005417 seconds (81 allocations: 5.279 MB)")
 
 
+
 S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)

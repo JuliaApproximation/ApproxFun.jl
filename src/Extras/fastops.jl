@@ -129,11 +129,31 @@ end
 # Toeplitz/Hankel
 ####
 
+
+function toeplitz_axpy!(α,neg,pos,kr,jr,dg,ret)
+    dat=ret.data
+
+    for k=1:min(length(pos),dg)
+        αp=α*pos[k]
+        @simd for j=1:size(dat,2)
+            @inbounds dat[dg-k+1,j]+=αp
+        end
+    end
+    @simd for k=1:min(length(neg),size(dat,1)-dg)
+        αn=α*neg[k]
+        @simd for j=1:size(dat,2)
+            @inbounds dat[dg+k,j]+=αn
+        end
+    end
+
+    ret
+end
+
+
 function Base.copy{T}(S::SubBandedMatrix{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
-    dat=ret.data
 
     shft = jr[1]-1
 
@@ -142,11 +162,30 @@ function Base.copy{T}(S::SubBandedMatrix{T,ToeplitzOperator{T},Tuple{UnitRange{I
     neg=parent(S).negative
     pos=parent(S).nonnegative
 
-    for k=1:min(length(pos),dg)
-        dat[dg-k+1,:]=pos[k]
-    end
-    for k=1:min(length(neg),size(dat,1)-dg)
-        dat[dg+k,:]=neg[k]
+    toeplitz_axpy!(1.0,neg,pos,kr,jr,dg,ret)
+end
+
+
+# dg gives the row corresponding to the diagonal of the original operator
+function hankel_axpy!(α,cfs,kr,jr,dg,ret)
+    dat=ret.data
+
+    st=stride(dat,2)-2
+    mink=kr[1]+jr[1]-1
+
+    N=length(dat)
+
+    # we need the entry where the first entry is written to
+    # this is going to be a shift of the diagonal of the true operator
+    dg1=dg+kr[1]-jr[1]
+
+    for k=mink:min(length(cfs),size(dat,1)+mink-dg1)
+        dk=k-mink+dg1
+        nk=k-mink
+        αc=α*cfs[k]
+        @simd for j=dk:st:min(dk+nk*st,N)
+            @inbounds dat[j]+=αc
+        end
     end
 
     ret
@@ -156,23 +195,9 @@ function Base.copy{T}(S::SubBandedMatrix{T,HankelOperator{T},Tuple{UnitRange{Int
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
-    dat=ret.data
-
-    dg=bandwidth(S,2)+1
-
     cfs=parent(S).coefficients
 
-    st=stride(dat,2)-2
-    mink=kr[1]+jr[1]-1
-
-    N=length(dat)
-
-    for k=mink:min(length(cfs),size(dat,1)+mink-dg)
-        dk=k-mink+dg
-        nk=k-mink
-        dat[dk:st:min(dk+nk*st,N)]=cfs[k]
-    end
-    ret
+    hankel_axpy!(1.0,cfs,kr,jr,diagindrow(S),ret)
 end
 
 
@@ -193,22 +218,41 @@ function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication
 
     cfs=parent(S).f.coefficients
 
-    dat[dg,:]=first(cfs)
+    # Toeplitz part
+
+    m=size(dat,2)
+    fc=first(cfs)
+    @simd for j=1:m
+        @inbounds dat[dg,j]=fc
+    end
 
     for k=2:min(length(cfs),dg)
-        dat[dg-k+1,:]=cfs[k]/2
-    end
-    for k=2:min(length(cfs),size(dat,1)+1-dg)
-        dat[dg+k-1,:]=cfs[k]/2
-    end
-
-    if length(cfs) ≥ 2
-        if first(kr) ≥ 2
-            BLAS.axpy!(0.5,sub(HankelOperator(cfs),kr,jr),ret)
-        else
-            BLAS.axpy!(0.5,sub(HankelOperator(cfs),2:last(kr),jr),sub(ret,2:size(ret,1),:))
+        fc=cfs[k]/2
+        @simd for j=1:m
+            @inbounds dat[dg-k+1,j]=fc
         end
     end
+    for k=2:min(length(cfs),size(dat,1)+1-dg)
+        fc=cfs[k]/2
+        @simd for j=1:m
+            @inbounds dat[dg+k-1,j]=fc
+        end
+    end
+
+    #Hankel part
+    hankel_axpy!(0.5,cfs,kr,jr,dg,ret)
+
+    # divide first row by half
+    if first(kr)==1
+        if first(jr)==1
+            ret[1,1]+=0.5cfs[1]
+        end
+
+        for j=1:1+ret.u
+            ret[1,j]/=2
+        end
+    end
+
 
     ret
 end
