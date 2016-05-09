@@ -21,7 +21,12 @@ x=Fun(identity,d)
 u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
 u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
 @time u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
-println("Airy: should be ~0.013")
+println("Airy: 0.014356 seconds (1.08 k allocations: 8.015 MB)")
+
+M=MutableOperator([dirichlet(d);Derivative(d)^2-x])
+@time ApproxFun.resizedata!(M,12500)
+println("Airy construct op: 0.005417 seconds (81 allocations: 5.279 MB)")
+
 
 S=Chebyshev()
 x=Fun(identity,S)
