@@ -27,11 +27,12 @@ Base.copy(S::SubBandedMatrix) = default_copy(S)
 # banded matrix, so the following calculates the row of the
 # Banded matrix corresponding to the diagonal of the original operator
 
-function diagindrow(S::SubBandedMatrix)
-    u=bandwidth(S,2)
-    kr,jr=parentindexes(S)
-    u+first(jr)-first(kr)+1
-end
+
+diagindrow(S::AbstractBandedMatrix,kr,jr) =
+    bandwidth(S,2)+first(jr)-first(kr)+1
+
+diagindrow(S::SubBandedMatrix) =
+    diagindrow(S,parentindexes(S)[1],parentindexes(S)[2])
 
 #####
 # Conversions
@@ -130,50 +131,91 @@ end
 ####
 
 
-function toeplitz_axpy!(α,neg,pos,kr,jr,dg,ret)
+# αn,α0,αp give the constant for the negative, diagonal and positive
+# entries.  The usual case is 1,2,1
+function toeplitz_axpy!(αn,α0,αp,neg,pos,kr,jr,ret)
     dat=ret.data
+    m=size(dat,2)
 
-    for k=1:min(length(pos),dg)
-        αp=α*pos[k]
-        @simd for j=1:size(dat,2)
-            @inbounds dat[dg-k+1,j]+=αp
+    dg=diagindrow(ret,kr,jr)
+
+    # diagonal
+    if dg ≥ 1
+        α0p=α0*pos[1]
+        @simd for j=1:m
+            @inbounds dat[dg,j]+=α0p
         end
     end
-    @simd for k=1:min(length(neg),size(dat,1)-dg)
-        αn=α*neg[k]
-        @simd for j=1:size(dat,2)
-            @inbounds dat[dg+k,j]+=αn
+
+    # positive entries
+    for k=2:min(length(pos),dg)
+        αpp=αp*pos[k]
+        @simd for j=1:m
+            @inbounds dat[dg-k+1,j]+=αpp
+        end
+    end
+
+    # negative entries
+    for k=1:min(length(neg),size(dat,1)-dg)
+        αnn=αn*neg[k]
+        @simd for j=1:m
+            @inbounds dat[dg+k,j]+=αnn
         end
     end
 
     ret
 end
 
+# this routine is for when we want a symmetric toeplitz
+function sym_toeplitz_axpy!(αn,α0,αp,cfs,kr,jr,ret)
+    dg=diagindrow(ret,kr,jr)
 
-function Base.copy{T}(S::SubBandedMatrix{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
-    ret=bzeros(S)
+    dat=ret.data
+    m=size(dat,2)
+    # diagonal
+    if dg ≥ 1
+        α0p=α0*cfs[1]
+        @simd for j=1:m
+            @inbounds dat[dg,j]+=α0p
+        end
+    end
 
-    kr,jr=parentindexes(S)
+    # positive entries
+    for k=2:min(length(cfs),dg)
+        αpp=αp*cfs[k]
+        @simd for j=1:m
+            @inbounds dat[dg-k+1,j]+=αpp
+        end
+    end
 
-    shft = jr[1]-1
+    # negative entries
+    for k=2:min(length(cfs),size(dat,1)-dg+1)
+        αnn=αn*cfs[k]
+        @simd for j=1:m
+            @inbounds dat[dg+k-1,j]+=αnn
+        end
+    end
 
-    dg=diagindrow(S)
-
-    neg=parent(S).negative
-    pos=parent(S).nonnegative
-
-    toeplitz_axpy!(1.0,neg,pos,kr,jr,dg,ret)
+    ret
 end
 
+toeplitz_axpy!(α,neg,pos,kr,jr,ret) =
+    toeplitz_axpy!(α,α,α,neg,pos,kr,jr,ret)
 
-# dg gives the row corresponding to the diagonal of the original operator
-function hankel_axpy!(α,cfs,kr,jr,dg,ret)
+sym_toeplitz_axpy!(α0,αp,cfs,kr,jr,ret) =
+    sym_toeplitz_axpy!(αp,α0,αp,cfs,kr,jr,ret)
+
+
+function hankel_axpy!(α,cfs,kr,jr,ret)
     dat=ret.data
 
     st=stride(dat,2)-2
     mink=kr[1]+jr[1]-1
 
     N=length(dat)
+
+    # dg gives the row corresponding to the diagonal of the original operator
+    dg=diagindrow(ret,kr,jr)
 
     # we need the entry where the first entry is written to
     # this is going to be a shift of the diagonal of the true operator
@@ -187,72 +229,6 @@ function hankel_axpy!(α,cfs,kr,jr,dg,ret)
             @inbounds dat[j]+=αc
         end
     end
-
-    ret
-end
-
-function Base.copy{T}(S::SubBandedMatrix{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
-    ret=bzeros(S)
-
-    kr,jr=parentindexes(S)
-    cfs=parent(S).coefficients
-
-    hankel_axpy!(1.0,cfs,kr,jr,diagindrow(S),ret)
-end
-
-
-####
-# Multiplication
-####
-
-
-function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication{C,C,V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
-    ret=bzeros(S)
-
-    kr,jr=parentindexes(S)
-    dat=ret.data
-
-    shft = jr[1]-1
-
-    dg=diagindrow(S)
-
-    cfs=parent(S).f.coefficients
-
-    # Toeplitz part
-
-    m=size(dat,2)
-    fc=first(cfs)
-    @simd for j=1:m
-        @inbounds dat[dg,j]=fc
-    end
-
-    for k=2:min(length(cfs),dg)
-        fc=cfs[k]/2
-        @simd for j=1:m
-            @inbounds dat[dg-k+1,j]=fc
-        end
-    end
-    for k=2:min(length(cfs),size(dat,1)+1-dg)
-        fc=cfs[k]/2
-        @simd for j=1:m
-            @inbounds dat[dg+k-1,j]=fc
-        end
-    end
-
-    #Hankel part
-    hankel_axpy!(0.5,cfs,kr,jr,dg,ret)
-
-    # divide first row by half
-    if first(kr)==1
-        if first(jr)==1
-            ret[1,1]+=0.5cfs[1]
-        end
-
-        for j=1:1+ret.u
-            ret[1,j]/=2
-        end
-    end
-
 
     ret
 end

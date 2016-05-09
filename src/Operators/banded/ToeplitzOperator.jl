@@ -46,6 +46,18 @@ function toeplitz_getindex{T}(cfs::AbstractVector{T},k::Integer,j::Integer)
     end
 end
 
+function Base.copy{T}(S::SubBandedMatrix{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+
+    kr,jr=parentindexes(S)
+
+    neg=parent(S).negative
+    pos=parent(S).nonnegative
+
+    toeplitz_axpy!(1.0,neg,pos,kr,jr,ret)
+end
+
+
 
 bandinds(T::ToeplitzOperator)=(-length(T.negative),length(T.nonnegative)-1)
 
@@ -62,6 +74,9 @@ function Base.getindex(T::ToeplitzOperator,kr::AbstractCount,jr::AbstractCount)
         ToeplitzOperator(T.negative[-sh+1:st:end],[reverse!(T.negative[1:-sh]);T.nonnegative])
     end
 end
+
+
+
 
 
 ## Hankel Operator
@@ -91,6 +106,15 @@ end
 getindex(T::HankelOperator,k::Integer,j::Integer) =
     hankel_getindex(T.coefficients,k,j)
 
+
+function Base.copy{T}(S::SubBandedMatrix{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+
+    kr,jr=parentindexes(S)
+    cfs=parent(S).coefficients
+
+    hankel_axpy!(1.0,cfs,kr,jr,ret)
+end
 
 
 bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)

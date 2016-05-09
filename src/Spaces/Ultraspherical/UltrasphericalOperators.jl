@@ -124,6 +124,52 @@ end
 
 getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
 
+
+function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication{C,C,V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+
+    kr,jr=parentindexes(S)
+    cfs=parent(S).f.coefficients
+
+    # Toeplitz part
+    sym_toeplitz_axpy!(1.0,0.5,cfs,kr,jr,ret)
+
+    #Hankel part
+    hankel_axpy!(0.5,cfs,kr,jr,ret)
+
+    # divide first row by half
+    if first(kr)==1
+        if first(jr)==1
+            ret[1,1]+=0.5cfs[1]
+        end
+
+        for j=1:min(1+ret.u,size(ret,2))
+            ret[1,j]/=2
+        end
+    end
+
+
+    ret
+end
+
+function Base.copy{C<:Chebyshev,D,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication{C,Ultraspherical{1,D},V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+
+    kr,jr=parentindexes(S)
+    cfs=parent(S).f.coefficients
+
+    # Toeplitz part
+    sym_toeplitz_axpy!(1.0,0.5,cfs,kr,jr,ret)
+
+    #Hankel part
+    hankel_axpy!(-0.5,sub(cfs,3:length(cfs)),kr,jr,ret)
+
+    ret
+end
+
+
+
+
 function Base.copy{PS<:PolynomialSpace,V,T,C<:Chebyshev}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
                                                                             Tuple{UnitRange{Int},UnitRange{Int}}})
     M=parent(S)
