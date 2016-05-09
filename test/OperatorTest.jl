@@ -3,6 +3,8 @@ using ApproxFun, Base.Test
 
 
 
+# test fast copy is consistent with getindex
+
 
 C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
@@ -12,38 +14,31 @@ C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
                                      3.0 2.0 1.0 4.0 5.0
                                      0.0 3.0 2.0 1.0 4.0]
 
-
-
-@test_approx_eq C[1:5,1:5][2:5,1:5] C[2:5,1:5]
-@test_approx_eq C[1:5,2:5] C[1:5,1:5][:,2:end]
-
-
-
-M=Multiplication(Fun([1.,2.,3.],Chebyshev()),Chebyshev())
-
-B=M[1:5,1:5]
-
-for k=1:5,j=1:5
-    @test_approx_eq B[k,j] M[k,j]
-end
-
-@test_approx_eq M[1:5,1:5][2:5,1:5] M[2:5,1:5]
-@test_approx_eq M[1:5,2:5] M[1:5,1:5][:,2:end]
-
-
-
 C=Conversion(Ultraspherical{1}(),Ultraspherical{2}())
 
-@test_approx_eq full(C[1:5,1:5])    [1.0 0.0 -0.3333333333333333 0.0  0.0
-                                     0.0 0.5  0.0               -0.25 0.0
-                                     0.0 0.0  0.3333333333333333 0.0 -0.2
-                                     0.0 0.0  0.0                0.25 0.0
-                                     0.0 0.0  0.0                0.0  0.2]
+@test_approx_eq full(C[1:5,1:5])     [1.0 0.0 -0.3333333333333333 0.0  0.0
+                                      0.0 0.5  0.0               -0.25 0.0
+                                      0.0 0.0  0.3333333333333333 0.0 -0.2
+                                      0.0 0.0  0.0                0.25 0.0
+                                      0.0 0.0  0.0                0.0  0.2]
 
 
 
-@test_approx_eq C[1:5,1:5][2:5,1:5] C[2:5,1:5]
-@test_approx_eq C[1:5,2:5] C[1:5,1:5][:,2:end]
+
+for M in (ToeplitzOperator([1.,2.,3.],[4.,5.,6.]),
+                HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
+                Conversion(Ultraspherical{1}(),Ultraspherical{2}()),
+                Multiplication(Fun([1.,2.,3.],Chebyshev()),Chebyshev()))
+    B=M[1:5,1:5]
+
+    for k=1:5,j=1:5
+        @test_approx_eq B[k,j] M[k,j]
+    end
+
+    @test_approx_eq M[1:5,1:5][2:5,1:5] M[2:5,1:5]
+    @test_approx_eq M[1:5,2:5] M[1:5,1:5][:,2:end]
+end
+
 
 
 d=Interval(-10.,5.);

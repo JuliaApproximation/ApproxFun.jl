@@ -152,6 +152,30 @@ function Base.copy{T}(S::SubBandedMatrix{T,ToeplitzOperator{T},Tuple{UnitRange{I
     ret
 end
 
+function Base.copy{T}(S::SubBandedMatrix{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+
+    kr,jr=parentindexes(S)
+    dat=ret.data
+
+    dg=bandwidth(S,2)+1
+
+    cfs=parent(S).coefficients
+
+    st=stride(dat,2)-2
+    mink=kr[1]+jr[1]-1
+
+    N=length(dat)
+
+    for k=mink:min(length(cfs),size(dat,1)+mink-dg)
+        dk=k-mink+dg
+        nk=k-mink
+        dat[dk:st:min(dk+nk*st,N)]=cfs[k]
+    end
+    ret
+end
+
+
 ####
 # Multiplication
 ####
