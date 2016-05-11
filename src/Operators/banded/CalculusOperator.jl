@@ -35,9 +35,9 @@ macro calculus_operator(Op)
         function $Op(sp::Space,k)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-               error("Implement $(string($Op))($(string(sp)),$order)")
+               error("Implement $(string($Op))($(string(sp)),$k)")
             end
-            $WrappOp(TimesOperator([$Op(csp,order),Conversion(sp,csp)]),order)
+            $WrappOp(TimesOperator([$Op(csp,k),Conversion(sp,csp)]),k)
         end
 
         $Op(sp::Space)=$Op(sp,1)
