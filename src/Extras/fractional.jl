@@ -140,10 +140,10 @@ for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
 end
 
 getindex{T,DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64},k::Integer,j::Integer) =
-    jacobi_frac_getindex(domain(Q),space(Q).α,Q.order,k,j)
+    jacobi_frac_getindex(domain(Q),domainspace(Q).α,Q.order,k,j)
 
 getindex{T,DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64},k::Integer,j::Integer) =
-    jacobi_frac_getindex(domain(Q),space(Q).β,Q.order,k,j)
+    jacobi_frac_getindex(domain(Q),domainspace(Q).β,Q.order,k,j)
 
 function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::JacobiWeight)
     @assert sp.α>0 && isapproxinteger(sp.β)
