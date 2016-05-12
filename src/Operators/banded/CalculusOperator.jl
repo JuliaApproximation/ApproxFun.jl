@@ -223,9 +223,9 @@ function Integral(sp::Space,k::Integer)
         csp=canonicalspace(sp)
         if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
             # we require that Integral is overridden
-            error("Implement Integeral($(string(sp)),$order)")
+            error("Implement Integral($(string(sp)),$order)")
         end
-        IntegralWrapper(TimesOperator([Integeral(csp,order),Conversion(sp,csp)]),order)
+        IntegralWrapper(TimesOperator([Integral(csp,order),Conversion(sp,csp)]),order)
     elseif k > 1
         Q=Integral(sp,1)
         IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)
