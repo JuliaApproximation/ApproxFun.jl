@@ -366,15 +366,15 @@ end
 for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:length))
     @eval begin
 
-        function getindex{λ,D<:Interval,T}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D},D},T},kr::Range)
+        function getindex{λ,D<:Interval,T}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D},D},T},k::Integer)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
 
             if dsp.α==dsp.β==λ-0.5
-                promote_type(T,typeof(C))[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
+                k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T)
             else
-                promote_type(T,typeof(C))[sum(Fun([zeros(k-1);1],dsp)) for k=kr]
+                sum(Fun([zeros(k-1);1],dsp)) 
             end
         end
 
