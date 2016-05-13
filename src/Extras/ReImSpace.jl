@@ -124,11 +124,11 @@ for ST in (:RealOperator,:ImagOperator)
     end
 end
 
-Base.getindex{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},k::Integer,j::Integer)=
-    isodd(k)&&j==k?one(T):zero(T)
+getindex{S<:RealSpace,T}(::RealOperator{ReImSpace{S,T}},k::Integer,j::Integer) =
+    ifelse(isodd(k)&&j==k,one(T),zero(T))
 
-Base.getindex{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},k::Integer,j::Integer)=
-    iseven(k)&&j==k?one(T):zero(T)
+getindex{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},k::Integer,j::Integer) =
+    ifelse(iseven(k)&&j==k,one(T),zero(T))
 
 
 
@@ -148,21 +148,16 @@ for OP in (:rangespace,:domainspace)
 end
 
 
-function addentries!(RI::ReImOperator,A,kr::UnitRange,::Colon)
-    divr=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
-    B=subview(RI.op,divr,:)
-    for k=kr,j=columnrange(RI,k)
-        if isodd(k) && isodd(j)
-            A[k,j]+=real(B[div(k,2)+1,div(j,2)+1])
-        elseif isodd(k) && iseven(j)
-            A[k,j]+=-imag(B[div(k,2)+1,div(j,2)])
-        elseif iseven(k) && isodd(j)
-            A[k,j]+=imag(B[div(k,2),div(j,2)+1])
-        else #both iseven
-            A[k,j]+=real(B[div(k,2),div(j,2)])
-        end
+function getindex(RI::ReImOperator,k::Integer,j::Integer)
+    if isodd(k) && isodd(j)
+        real(B[k÷2+1,j÷2+1])
+    elseif isodd(k) && iseven(j)
+        -imag(B[k÷2+1,j÷2])
+    elseif iseven(k) && isodd(j)
+        imag(B[k÷2,j÷2+1])
+    else #both iseven
+        real(B[k÷2,j÷2])
     end
-    A
 end
 
 
@@ -233,7 +228,7 @@ bandinds{T,DD}(::ImagOperator{ReImSpace{Taylor{DD},T}})=0,1
 
 ## Re[r z^k] = r cos(k x), Re[im q z^k] = -sin(k x)
 
-function Base.getindex{T,DD}(R::RealOperator{ReImSpace{Taylor{DD},T}},k::Integer,j::Integer)
+function getindex{T,DD}(R::RealOperator{ReImSpace{Taylor{DD},T}},k::Integer,j::Integer)
     if isodd(k)&&j==k
         one(T)
     elseif iseven(k)&&j==k+2
@@ -246,7 +241,7 @@ end
 
 ## Im[r z^k] = r sin(k x), Im[im q z^k] = cos(k x)
 
-Base.getindex{T,DD}(R::ImagOperator{ReImSpace{Taylor{DD},T}},k::Integer,j::Integer)=
+getindex{T,DD}(R::ImagOperator{ReImSpace{Taylor{DD},T}},k::Integer,j::Integer)=
     j==k+1?one(T):zero(T)
 
 
@@ -265,7 +260,7 @@ bandinds{T,D}(::ImagOperator{ReImSpace{Hardy{false,D},T}})=0,0
 
 
 ## Re[r z^(-k)] = r cos(k x), Re[im q z^(-k)] = -sin(-k x)= sin(k x)
-function Base.getindex{T,D}(R::RealOperator{ReImSpace{Hardy{false,D},T}},k::Integer,j::Integer)
+function getindex{T,D}(R::RealOperator{ReImSpace{Hardy{false,D},T}},k::Integer,j::Integer)
     if (isodd(k) && j==k+1) || (iseven(k) && j==k-1)  # imag part
         one(T)
     else       # real part
@@ -275,7 +270,7 @@ end
 
 
 ## Im[r z^(-k)] = r sin(-k x)=-r sin(kx), Im[im q z^(-k)] = cos(-k x)=cos(kx)
-function Base.getindex{T,D}(R::ImagOperator{ReImSpace{Hardy{false,D},T}},k::Integer,j::Integer)
+function getindex{T,D}(R::ImagOperator{ReImSpace{Hardy{false,D},T}},k::Integer,j::Integer)
     if k==j
         if isodd(k)
             -one(T)
@@ -297,7 +292,7 @@ end
 
 bandinds{T,DD}(::RealOperator{ReImSpace{Laurent{DD},T}})=0,2
 
-function Base.getindex{T,DD}(R::RealOperator{ReImSpace{Laurent{DD},T}},k::Integer,j::Integer)
+function getindex{T,DD}(R::RealOperator{ReImSpace{Laurent{DD},T}},k::Integer,j::Integer)
     if isodd(k) && k==j
         one(T)
     elseif iseven(k) && j==k+2
@@ -326,17 +321,9 @@ end
 
 
 
-function addentries!(RI::ReOperator,A,kr::UnitRange,::Colon)
-    if isa(eltype(RI.op),Real)
-        addentries!(RI.op,A,kr,:)
-    else
-        B=subview(RI.op,kr,:)
-        for k=kr,j=columnrange(RI,k)
-           A[k,j]+=real(B[k,j])
-        end
-        A
-    end
-end
+getindex(RI::ReOperator,k::Integer,j::Integer) =
+    real(RI.op[k,j])
+
 
 choosedomainspace(R::ReOperator,sp)=choosedomainspace(R.op,sp)
 for OP in (:promotedomainspace,:promoterangespace)
@@ -352,3 +339,56 @@ end
 # TODO: can't do this because UnsetSpace might change type
 #Base.real{T<:Real}(op::BandedOperator{T})=op
 Base.real(op::BandedOperator)=ReOperator(op)
+
+
+
+
+
+
+#####
+# ReReOperator takes the real part of two operators
+# this allows for well-posed equations
+#####
+
+
+immutable ReReOperator{S,V,T} <: BandedOperator{T}
+    ops::Tuple{S,V}
+    function ReReOperator(ops)
+            #TODO: promotion
+        @assert domainspace(ops[1])==domainspace(ops[2])
+        @assert rangespace(ops[1])==rangespace(ops[2])
+        new(ops)
+    end
+end
+
+
+ReReOperator{S,V}(ops::Tuple{S,V})=ReReOperator{S,V,Float64}(ops)
+ReReOperator(ops1,ops2)=ReReOperator((ops1,ops2))
+Base.real(S::BandedOperator,V::BandedOperator)=ReReOperator(S,V)
+
+bandinds(R::ReReOperator)=min(2bandinds(R.ops[1],1)-1,2bandinds(R.ops[2],1)-2),max(2bandinds(R.ops[1],2)+1,2bandinds(R.ops[2],2))
+
+domainspace(R::ReReOperator)=ReImSpace(domainspace(R.ops[1]))
+rangespace(R::ReReOperator)=ArraySpace(rangespace(R.ops[1]),2)
+
+
+function addentries!(R::ReReOperator,A,kr::Range,::Colon)
+    kr1=div(kr[1],2)+1:(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
+    kr2=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):div(kr[end],2)
+
+    B1=subview(R.ops[1],kr1,:)
+    B2=subview(R.ops[2],kr2,:)
+
+
+    for k=kr1,j=columnrange(R.ops[1],k)
+        A[2k-1,2j-1]+=real(B1[k,j])
+        A[2k-1,2j]+=-imag(B1[k,j])
+    end
+
+    for k=kr2,j=columnrange(R.ops[2],k)
+        A[2k,2j-1]+=real(B2[k,j])
+        A[2k,2j]+=-imag(B2[k,j])
+    end
+
+    A
+end

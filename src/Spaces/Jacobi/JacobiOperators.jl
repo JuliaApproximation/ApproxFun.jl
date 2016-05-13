@@ -1,6 +1,14 @@
 ## Evaluation
 
-function Base.getindex{J<:Jacobi}(op::Evaluation{J,Bool},kr::Range)
+
+getindex{J<:Jacobi}(op::Evaluation{J,Bool},k::Integer) =
+    op[k:k][1]
+
+getindex{J<:Jacobi}(op::Evaluation{J},k::Integer) =
+    op[k:k][1]
+
+
+function getindex{J<:Jacobi}(op::Evaluation{J,Bool},kr::Range)
     @assert op.order <= 2
     sp=op.space
     a=sp.a;b=sp.b
@@ -26,7 +34,7 @@ function Base.getindex{J<:Jacobi}(op::Evaluation{J,Bool},kr::Range)
         Float64[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
-function Base.getindex{J<:Jacobi}(op::Evaluation{J,Float64},kr::Range)
+function getindex{J<:Jacobi}(op::Evaluation{J,Float64},kr::Range)
     @assert op.order == 0
     jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
 end

@@ -38,11 +38,21 @@ function evaluatechebyshev{T<:Number}(n::Integer,x::T)
 end
 
 
+function getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},j::Integer)
+    T=eltype(op)
+    if op.order == 0
+        ifelse(op.x || isodd(j),  # right rule
+            one(T),
+            -one(T))
+    else
+        #TODO: Fast version
+        op[j:j][1]
+    end
+end
 
 
 
-##TODO: the overloading as both vector and row vector may be confusing
-function Base.getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range)
+function getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range)
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -71,7 +81,15 @@ function Base.getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range
     scal!(cst,ret)
 end
 
-function Base.getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},k::Range)
+function getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},j::Integer)
+    if op.order == 0
+        evaluatechebyshev(j,tocanonical(domain(op),op.x))[end]
+    else
+        error("Only zero–second order implemented")
+    end
+end
+
+function getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},k::Range)
     if op.order == 0
         evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
     else

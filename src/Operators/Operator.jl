@@ -124,64 +124,59 @@ BandedMatrix(B::Operator,kr::Colon,jr::UnitRange) =
 
 ## geteindex
 
-Base.getindex(op::Operator,k::Integer,j::Range)=op[k:k,j][1,:]
-Base.getindex(op::Operator,k::Range,j::Integer)=op[k,j:j][:,1]
-Base.getindex(op::Functional,k::Integer)=op[k:k][1]
 
-Base.getindex(L::BandedOperator,kr::Range,::Colon)=Functional{eltype(L)}[L[k,:] for k=kr]
 
-function Base.getindex(op::Functional,j::Range,k::Range)
-  @assert j[1]==1 && j[end]==1
-  op[k].'
-end
-function Base.getindex(op::Functional,j::Integer,k::Range)
-  @assert j==1
-  op[k].'
-end
-
+Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
+Base.getindex(B::Operator,k) = defaultgetindex(B,k)
 
 
 ## override getindex.
 
+defaultgetindex(B::Operator,k::Integer) = error("Override getindex for $(typeof(B))")
 defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override getindex for $(typeof(B))")
-defaultgetindex(B::BandedOperator,k::Range,j::Range) = copy(sub(B,k,j))
 
-# the defualt is to use getindex
 
-function defaultgetindex(op::Operator,kr::Range,jr::Range)
-    ret=Array(eltype(op),length(kr),length(jr))
-    kk,jj=1,1
-    for j=jr
-        for k=kr
-            ret[kk,jj]=op[k,j]
-            kk+=1
-        end
-        kk=1
-        jj+=1
-    end
-    ret
+# Ranges
+
+
+defaultgetindex(op::Operator,kr::Range)=eltype(op)[op[k] for k in kr]
+defaultgetindex(B::Operator,k::Range,j::Range) = copy(sub(B,k,j))
+
+defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] for j in j],1,length(j))
+defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
+
+
+function defaultgetindex(op::Functional,k::Integer,j::Integer)
+    @assert k==1
+    op[j]
 end
 
 
+
+
+
+
+
+# Colon casdes
+defaultgetindex(L::BandedOperator,kr::Range,::Colon)=Functional{eltype(L)}[L[k,:] for k=kr]
 defaultgetindex(A::BandedOperator,k::Integer,::Colon) =
     FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
-defaultgetindex(A::BandedOperator,kr::Range,::Colon) = sub(A,kr,:)
-defaultgetindex(A::BandedOperator,::Colon,jr::Range) = sub(A,:,jr)
-defaultgetindex(A::BandedOperator,::Colon,::Colon) = A
+defaultgetindex(A::Operator,kr::Range,::Colon) = sub(A,kr,:)
+defaultgetindex(A::Operator,::Colon,jr::Range) = sub(A,:,jr)
+defaultgetindex(A::Operator,::Colon,::Colon) = A
 
-defaultgetindex(A::BandedOperator,kr::AbstractCount,jr::AbstractCount) = sub(A,kr,jr)
-defaultgetindex(B::BandedOperator,k::AbstractCount,::Colon) = B[k,1:end]
-defaultgetindex(B::BandedOperator,::Colon,j::AbstractCount) = B[1:end,j]
+defaultgetindex(A::Operator,kr::AbstractCount,jr::AbstractCount) = sub(A,kr,jr)
+defaultgetindex(B::Operator,k::AbstractCount,::Colon) = B[k,1:end]
+defaultgetindex(B::Operator,::Colon,j::AbstractCount) = B[1:end,j]
 
 
-Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
 
 
 ## Composition with a Fun, LowRankFun, and ProductFun
 
-Base.getindex{BT,S,T}(B::Operator{BT},f::Fun{S,T}) = B*Multiplication(domainspace(B),f)
-Base.getindex{BT,S,M,SS,T}(B::Operator{BT},f::LowRankFun{S,M,SS,T}) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
-Base.getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
+defaultgetindex{BT,S,T}(B::Operator{BT},f::Fun{S,T}) = B*Multiplication(domainspace(B),f)
+defaultgetindex{BT,S,M,SS,T}(B::Operator{BT},f::LowRankFun{S,M,SS,T}) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
+defaultgetindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
     mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1);one(promote_type(BT,T))],f.space[2])],+,1:length(f.coefficients))
 
 
