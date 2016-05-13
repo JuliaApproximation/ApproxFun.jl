@@ -572,9 +572,12 @@ for TYP in (:Vector,:Matrix)
 end
  ##TODO: Make * and \ consistent in return type
 function *(A::InfiniteOperator,b::Fun)
-    dsp=conversion_type(domainspace(A),space(b))
-    A=promotedomainspace(A,dsp)
-    Fun(A*coefficients(b,dsp),rangespace(A))
+    dsp=domainspace(A)
+    if isambiguous(dsp)
+        promotedomainspace(A,space(b))*b
+    else
+        Fun(A*coefficients(b,dsp),rangespace(A))
+    end
 end
 
 #=

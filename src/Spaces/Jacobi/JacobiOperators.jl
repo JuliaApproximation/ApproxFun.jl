@@ -144,19 +144,23 @@ bandinds{J<:Jacobi}(C::ConcreteConversion{J,J})=(0,1)
 
 
 
-function Base.getindex{J<:Jacobi}(C::ConcreteConversion{J,J},k::Integer,j::Integer)
+function Base.getindex{J<:Jacobi,T}(C::ConcreteConversion{J,J,T},k::Integer,j::Integer)
     L=C.domainspace
     if L.b+1==C.rangespace.b
         if j==k
-            k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
+            k==1?T(1):T((L.a+L.b+k)/(L.a+L.b+2k-1))
+        elseif j==k+1
+            T((L.a+k)./(L.a+L.b+2k+1))
         else
-            (L.a+k)./(L.a+L.b+2k+1)
+            zero(T)
         end
     elseif L.a+1==C.rangespace.a
         if j==k
-            k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
+            k==1?T(1):T((L.a+L.b+k)/(L.a+L.b+2k-1))
+        elseif j==k+1
+            T(-(L.b+k)./(L.a+L.b+2k+1))
         else
-            -(L.b+k)./(L.a+L.b+2k+1)
+            zero(T)
         end
     else
         error("Not implemented")
