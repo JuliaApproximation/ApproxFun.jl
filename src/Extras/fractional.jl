@@ -110,6 +110,15 @@ function RightIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
     RightIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
 end
 
+for (TYP,WRAP) in ((:LeftIntegral,:LeftIntegralWrapper),
+                    (:RightIntegral,:RightIntegralWrapper))
+    @eval function $TYP{λ,DD}(S::JacobiWeight{Ultraspherical{λ,DD}},k)
+        JS = JacobiWeight(S.α,S.β,Jacobi(S.space))
+        $WRAP($TYP(JS,k)*Conversion(S,JS),k)
+    end
+end
+
+
 #DLMF18.17.9
 function rangespace{T,DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64})
     μ=Q.order
