@@ -229,7 +229,7 @@ end
 
 function transform(sp::TensorSpace,vals)
     m=round(Int,sqrt(length(vals)))
-    M=reshape(vals,m,m)
+    M=reshape(copy(vals),m,m)
 
     fromtensor(transform!(sp,M))
 end
