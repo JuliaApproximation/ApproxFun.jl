@@ -258,15 +258,13 @@ datalength{D}(Σ::DefiniteIntegral{Fourier{D}})=isa(domain(Σ),PeriodicInterval)
 
 DefiniteLineIntegral{D}(sp::Fourier{D})=DefiniteLineIntegral{typeof(sp),Float64}(sp)
 
-function getindex{T,D}(Σ::DefiniteLineIntegral{Fourier{D},T},kr::Range)
-    d = domain(Σ)
-    if isa(d,PeriodicInterval)
-        T[k == 1?  d.b-d.a : zero(T) for k=kr]
-    else
-        @assert isa(d,Circle)
-        T[k == 1?  2d.radius*π : zero(T) for k=kr]
-    end
-end
+
+getindex{T,D<:PeriodicInterval}(Σ::DefiniteLineIntegral{Fourier{D},T},k::Integer) =
+    k==1? domain(Σ).b-domain(Σ).a : zero(T)
+
+getindex{T,D<:Circle}(Σ::DefiniteLineIntegral{Fourier{D},T},k::Integer) =
+    k==1? domain(Σ).radius*π : zero(T)
+
 
 datalength{D}(Σ::DefiniteLineIntegral{Fourier{D}})=1
 

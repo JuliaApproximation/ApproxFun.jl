@@ -23,13 +23,13 @@ u=Q\(exp(x)-1)
 x=Fun([0.,1.])
 Q=gamma(1/5)*LeftIntegral(1/5)
 u=Q\(x+1)
-norm(u.-(1+1.25x)*sin(0.8π)/(π*x^(1/5)))
+@test norm(u.-(1+1.25x)*sin(0.8π)/(π*x^(1/5))) < 10eps()
 
 # Example 4
 x=Fun([0.,1.])
 Q=gamma(1-1/3)*LeftIntegral(1-1/3)
 u=Q\x^(7/6)
-norm(u-7*gamma(1/6)/(18*sqrt(π)*gamma(2/3))*sqrt(x))
+@test norm(u-7*gamma(1/6)/(18*sqrt(π)*gamma(2/3))*sqrt(x)) < 100eps()
 
 
 # Example 5
@@ -39,9 +39,19 @@ x=Fun(d)
 f=x+4/3*x^(3/2)
 S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
 Q=gamma(.5)*LeftIntegral(S,.5)
+
+
+@test_approx_eq sum(f/sqrt(1.-x)) last(Q*f)
+
 L=I+Q
+
+@test_approx_eq last(L.ops[2]*f) last(Q*f)
+
+@test_approx_eq last(L*f) last(f)+last(Q*f)
+
 u=L\f
-norm(u-x)  # 4.967828369398805e-15
+@test norm(u-x)  < 10eps()
+
 
 # Example 6
 
@@ -52,7 +62,7 @@ S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
 Q=gamma(.5)*LeftIntegral(S,.5)
 L=I+Q
 u=L\f
-norm(u-x^2) # 3.741677490621214e-15
+@test norm(u-x^2) < 10eps()
 
 # Example 7
 
@@ -63,9 +73,8 @@ S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
 Q=gamma(.5)*LeftIntegral(S,.5)
 L=I+Q
 u=L\f
-plot(u)
 
-norm(1-exp(π*x)*erfc(sqrt(π*x))-u)
+@test norm(1-exp(π*x)*erfc(sqrt(π*x))-u) < 100eps()
 
 
 # Example 8
@@ -77,4 +86,4 @@ S=Legendre(d)⊕JacobiWeight(.5,0.,Jacobi(.5,.5,d))
 Q=gamma(.5)*LeftIntegral(S,.5)
 L=I+Q
 u=L\f
-norm((u-1/(x+1)).coefficients)   # 1.2011889731154679e-14
+norm((u-1/(x+1)).coefficients) < 1000eps()   # 1.2011889731154679e-14

@@ -22,7 +22,17 @@ for TYP in (:Operator,:Functional)
 end
 
 
-function Base.getindex{T}(op::PlusFunctional{T},k::Range)
+
+function getindex{T}(op::PlusFunctional{T},k::Integer)
+    ret = op.ops[1][k]::T
+    for j=2:length(op.ops)
+        ret+=op.ops[j][k]::T
+    end
+    ret::T
+end
+
+
+function getindex{T}(op::PlusFunctional{T},k::Range)
     ret = convert(Vector{T},op.ops[1][k])
     for j=2:length(op.ops)
         ret+=convert(Vector{T},op.ops[j][k])
@@ -202,7 +212,7 @@ for TYP in (:Operator,:Functional)
 end
 
 
-Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.functional[k]
+getindex(op::ConstantTimesFunctional,k)=op.c*op.functional[k]
 datalength(C::ConstantTimesFunctional)=datalength(C.functional)
 promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.functional,sp))
 
@@ -226,12 +236,15 @@ datalength(C::TimesFunctional)=datalength(C.functional)+bandinds(C.op,2)
 
 TimesFunctional{T,V}(A::Functional{T},B::BandedOperator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
 
+getindex(f::TimesFunctional,j::Integer) =
+    f[j:j][1]
 
-function Base.getindex{T}(f::TimesFunctional{T},jr::Range)#j is columns
+
+function getindex(f::TimesFunctional,jr::Range)#j is columns
     B=f.op
     bi=bandinds(B)
 
-    r=zeros(T,length(jr))
+    r=zeros(eltype(f),length(jr))
 
     k1=max(first(jr)-bi[end],1)
     func=f.functional[k1:last(jr)-bi[1]]
@@ -572,9 +585,12 @@ for TYP in (:Vector,:Matrix)
 end
  ##TODO: Make * and \ consistent in return type
 function *(A::InfiniteOperator,b::Fun)
-    dsp=conversion_type(domainspace(A),space(b))
-    A=promotedomainspace(A,dsp)
-    Fun(A*coefficients(b,dsp),rangespace(A))
+    dsp=domainspace(A)
+    if isambiguous(dsp)
+        promotedomainspace(A,space(b))*b
+    else
+        Fun(A*coefficients(b,dsp),rangespace(A))
+    end
 end
 
 #=
@@ -664,57 +680,4 @@ function choosedomainspace(P::TimesOperator,sp)
         sp=choosedomainspace(op,sp)
     end
     sp
-end
-
-
-
-
-
-
-#####
-# ReReOperator takes the real part of two operators
-# this allows for well-posed equations
-#####
-
-
-immutable ReReOperator{S,V,T} <: BandedOperator{T}
-    ops::Tuple{S,V}
-    function ReReOperator(ops)
-            #TODO: promotion
-        @assert domainspace(ops[1])==domainspace(ops[2])
-        @assert rangespace(ops[1])==rangespace(ops[2])
-        new(ops)
-    end
-end
-
-
-ReReOperator{S,V}(ops::Tuple{S,V})=ReReOperator{S,V,Float64}(ops)
-ReReOperator(ops1,ops2)=ReReOperator((ops1,ops2))
-Base.real(S::BandedOperator,V::BandedOperator)=ReReOperator(S,V)
-
-bandinds(R::ReReOperator)=min(2bandinds(R.ops[1],1)-1,2bandinds(R.ops[2],1)-2),max(2bandinds(R.ops[1],2)+1,2bandinds(R.ops[2],2))
-
-domainspace(R::ReReOperator)=ReImSpace(domainspace(R.ops[1]))
-rangespace(R::ReReOperator)=ArraySpace(rangespace(R.ops[1]),2)
-
-
-function addentries!(R::ReReOperator,A,kr::Range,::Colon)
-    kr1=div(kr[1],2)+1:(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
-    kr2=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):div(kr[end],2)
-
-    B1=subview(R.ops[1],kr1,:)
-    B2=subview(R.ops[2],kr2,:)
-
-
-    for k=kr1,j=columnrange(R.ops[1],k)
-        A[2k-1,2j-1]+=real(B1[k,j])
-        A[2k-1,2j]+=-imag(B1[k,j])
-    end
-
-    for k=kr2,j=columnrange(R.ops[2],k)
-        A[2k,2j-1]+=real(B2[k,j])
-        A[2k,2j]+=-imag(B2[k,j])
-    end
-
-    A
 end

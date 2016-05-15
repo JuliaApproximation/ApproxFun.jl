@@ -1,6 +1,14 @@
 ## Evaluation
 
-function Base.getindex{J<:Jacobi}(op::Evaluation{J,Bool},kr::Range)
+
+getindex{J<:Jacobi}(op::Evaluation{J,Bool},k::Integer) =
+    op[k:k][1]
+
+getindex{J<:Jacobi}(op::Evaluation{J},k::Integer) =
+    op[k:k][1]
+
+
+function getindex{J<:Jacobi}(op::Evaluation{J,Bool},kr::Range)
     @assert op.order <= 2
     sp=op.space
     a=sp.a;b=sp.b
@@ -26,7 +34,7 @@ function Base.getindex{J<:Jacobi}(op::Evaluation{J,Bool},kr::Range)
         Float64[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
-function Base.getindex{J<:Jacobi}(op::Evaluation{J,Float64},kr::Range)
+function getindex{J<:Jacobi}(op::Evaluation{J,Float64},kr::Range)
     @assert op.order == 0
     jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
 end
@@ -144,19 +152,23 @@ bandinds{J<:Jacobi}(C::ConcreteConversion{J,J})=(0,1)
 
 
 
-function Base.getindex{J<:Jacobi}(C::ConcreteConversion{J,J},k::Integer,j::Integer)
+function Base.getindex{J<:Jacobi,T}(C::ConcreteConversion{J,J,T},k::Integer,j::Integer)
     L=C.domainspace
     if L.b+1==C.rangespace.b
         if j==k
-            k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
+            k==1?T(1):T((L.a+L.b+k)/(L.a+L.b+2k-1))
+        elseif j==k+1
+            T((L.a+k)./(L.a+L.b+2k+1))
         else
-            (L.a+k)./(L.a+L.b+2k+1)
+            zero(T)
         end
     elseif L.a+1==C.rangespace.a
         if j==k
-            k==1?1.:(L.a+L.b+k)/(L.a+L.b+2k-1)
+            k==1?T(1):T((L.a+L.b+k)/(L.a+L.b+2k-1))
+        elseif j==k+1
+            T(-(L.b+k)./(L.a+L.b+2k+1))
         else
-            -(L.b+k)./(L.a+L.b+2k+1)
+            zero(T)
         end
     else
         error("Not implemented")

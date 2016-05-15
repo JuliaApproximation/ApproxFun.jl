@@ -62,7 +62,7 @@ end
 jacobi_frac_getindex(d::Interval,α,μ,k::Integer,j::Integer) =
     jacobi_frac_getindex((length(d)/2)^μ,α,μ,k,j)
 jacobi_frac_getindex(c::Number,α,μ,k::Integer,j::Integer) =
-    k==j ? c*gamma(α+k)/gamma(α+μ+k) : zero(promote_type(typeof(c),typeof(α),typeof(μ)))
+    k==j ? c*exp(lgamma(α+k)-lgamma(α+μ+k)) : zero(promote_type(typeof(c),typeof(α),typeof(μ)))
 
 
 # jacobi_frac_addentries!(d::Interval,α,μ,A,kr::UnitRange)=
@@ -109,6 +109,15 @@ function RightIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
     Q=RightIntegral(JacobiWeight(S.α,S.β,Jacobi(.5,-.5,domain(S))),k)
     RightIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
 end
+
+for (TYP,WRAP) in ((:LeftIntegral,:LeftIntegralWrapper),
+                    (:RightIntegral,:RightIntegralWrapper))
+    @eval function $TYP{λ,DD}(S::JacobiWeight{Ultraspherical{λ,DD}},k)
+        JS = JacobiWeight(S.α,S.β,Jacobi(S.space))
+        $WRAP($TYP(JS,k)*Conversion(S,JS),k)
+    end
+end
+
 
 #DLMF18.17.9
 function rangespace{T,DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64})

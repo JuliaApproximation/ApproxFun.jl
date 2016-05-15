@@ -26,8 +26,11 @@ println("Spaces tests")
 include("SpacesTest.jl")
 include("JacobiTest.jl")
 
+
+println("Extras tests")
 include("ETDRK4Test.jl")
 include("ExtrasTest.jl")
+include("FractionalTest.jl")
 
 println("Multivariate tests")
 include("MultivariateTest.jl")

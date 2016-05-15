@@ -23,7 +23,9 @@ for TYP in (:Functional,:Operator)
     end
 end
 
-getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
+getindex(S::SpaceFunctional,k)=S.op[k]
+getindex(S::SpaceFunctional,k,j)=S.op[k,j]
+
 
 domainspace(S::SpaceFunctional)=S.domainspace
 rangespace(S::SpaceFunctional)=ConstantSpace(S.rangedomain)
