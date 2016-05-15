@@ -227,35 +227,36 @@ end
 
 function Base.writemime{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
     nf = length(A)-1
-    for k=1:nf @assert isa(A[k],Functional) end
-    header && for k=1:nf+1 println(io,summary(A[k])) end
-    M=Array{Any}(11,11)
-    fill!(M,PrintShow(""))
-    for k=1:nf
-        M[k,1:10] = A[k][1:10]
-        M[k,end]=PrintShow("⋯")
+    if all(Ak -> isa(Ak,Functional), A[1:nf]) && isa(A[end],BandedOperator)
+        header && for k=1:nf+1 println(io,summary(A[k])) end
+        M=Array{Any}(11,11)
+        fill!(M,PrintShow(""))
+        for k=1:nf
+            M[k,1:10] = A[k][1:10]
+            M[k,end]=PrintShow("⋯")
+        end
+
+        MM=Array{Any}(11-nf,11)
+        fill!(MM,PrintShow(""))
+
+        B = A[end]
+        BM=B[1:10-nf,1:10]
+
+        for (k,j)=eachbandedindex(BM)
+            MM[k,j]=BM[k,j]
+        end
+
+        for k=1+nf:10,j=1:10
+            M[k,j] = MM[k-nf,j]
+        end
+
+        for k=max(1,11-bandinds(B,2)+nf):11
+            M[k,end]=PrintShow("⋱")
+        end
+        for j=max(1,11+bandinds(B,1)-nf):10
+            M[end,j]=PrintShow("⋱")
+        end
+
+        Base.with_output_limit(()->Base.print_matrix(io, M))
     end
-
-    MM=Array{Any}(11-nf,11)
-    fill!(MM,PrintShow(""))
-
-    B = A[end]
-    BM=B[1:10-nf,1:10]
-
-    for (k,j)=eachbandedindex(BM)
-        MM[k,j]=BM[k,j]
-    end
-
-    for k=1+nf:10,j=1:10
-        M[k,j] = MM[k-nf,j]
-    end
-
-    for k=max(1,11-bandinds(B,2)+nf):11
-        M[k,end]=PrintShow("⋱")
-    end
-    for j=max(1,11+bandinds(B,1)-nf):10
-        M[end,j]=PrintShow("⋱")
-    end
-
-    Base.with_output_limit(()->Base.print_matrix(io, M))
 end

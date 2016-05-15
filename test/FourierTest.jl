@@ -64,6 +64,12 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
 end
 
 
+# check's Derivative constructor works
+D=Derivative(Taylor(PeriodicInterval()))
+
+
+
+
 
 ## Multiplication
 
@@ -139,3 +145,6 @@ cfs=exp(z).coefficients[1:2:end]
 for k=1:length(cfs)
     @test_approx_eq_eps cfs[k] 1/factorial(1.0(k-1)) 1E-10
 end
+
+
+##

@@ -331,7 +331,7 @@ function Conversion(a::BivariateSpace,b::BivariateSpace)
             Conversion(a,sp,b)
         end
     else
-        error("Implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
+        error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(b)))
     end
 end
 

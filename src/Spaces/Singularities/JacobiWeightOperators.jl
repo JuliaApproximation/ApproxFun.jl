@@ -39,7 +39,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
                 return 0.5*$Len(d)*dotu(f.coefficients,c)
             end
         end
-        $Func{PS<:PolynomialSpace,DD}(f::Fun{JacobiWeight{PS,DD}})=$Func(Fun(f,
+        $Func{PS<:PolynomialSpace,DD}(f::Fun{JacobiWeight{PS,DD}}) = $Func(Fun(f,
                                                                        JacobiWeight(space(f).α,
                                                                                     space(f).β,
                                                                                     Chebyshev(domain(f)))))

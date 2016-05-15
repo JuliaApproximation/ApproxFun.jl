@@ -326,17 +326,8 @@ end
 
 
 
-function addentries!(RI::ReOperator,A,kr::UnitRange,::Colon)
-    if isa(eltype(RI.op),Real)
-        addentries!(RI.op,A,kr,:)
-    else
-        B=subview(RI.op,kr,:)
-        for k=kr,j=columnrange(RI,k)
-           A[k,j]+=real(B[k,j])
-        end
-        A
-    end
-end
+getindex(RI::ReOperator,k::Integer,j::Integer) =
+    real(RI.op[k,j])
 
 choosedomainspace(R::ReOperator,sp)=choosedomainspace(R.op,sp)
 for OP in (:promotedomainspace,:promoterangespace)

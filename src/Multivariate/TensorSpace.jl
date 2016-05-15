@@ -217,7 +217,7 @@ function totree(v::Vector)
     r
 end
 
-fromtree{T}(v::Vector{Vector{T}})=vcat(v...)
+fromtree{T}(v::Vector{Vector{T}}) = vcat(v...)
 
 function points(sp::TensorSpace,n)
     pts=Array(Tuple{Float64,Float64},0)
@@ -234,14 +234,14 @@ function transform(sp::TensorSpace,vals)
     fromtensor(transform!(sp,M))
 end
 
-evaluate(f::AbstractVector,S::TensorSpace,x)=ProductFun(totensor(f),S)(x...)
-evaluate(f::AbstractVector,S::TensorSpace,x,y)=ProductFun(totensor(f),S)(x,y)
+evaluate(f::AbstractVector,S::AbstractProductSpace,x) = ProductFun(totensor(f),S)(x...)
+evaluate(f::AbstractVector,S::AbstractProductSpace,x,y) = ProductFun(totensor(f),S)(x,y)
 
 
 
-coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S})=totensor(f.coefficients)
+coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(f.coefficients)
 
-Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace)=Fun(fromtree(v),S)
+Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace) = Fun(fromtree(v),S)
 
 
 #TODO: Implement

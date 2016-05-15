@@ -82,28 +82,28 @@ Base.eltype{S,T}(::Fun{S,T})=T
 ## General routines
 
 
-domain(f::Fun)=domain(f.space)
-domain{T<:Fun}(v::AbstractMatrix{T})=map(domain,v)
+domain(f::Fun) = domain(f.space)
+domain{T<:Fun}(v::AbstractMatrix{T}) = map(domain,v)
 
 
-setdomain(f::Fun,d::Domain)=Fun(f.coefficients,setdomain(space(f),d))
+setdomain(f::Fun,d::Domain) = Fun(f.coefficients,setdomain(space(f),d))
 
 for op in (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD,:invfromcanonicalD)
-    @eval $op(f::Fun,x...)=$op(domain(f),x...)
+    @eval $op(f::Fun,x...) = $op(domain(f),x...)
 end
 
 for op in (:tocanonical,:tocanonicalD)
-    @eval $op(d::Domain)=$op(d,Fun(identity,d))
+    @eval $op(d::Domain) = $op(d,Fun(identity,d))
 end
 for op in (:fromcanonical,:fromcanonicalD,:invfromcanonicalD)
-    @eval $op(d::Domain)=$op(d,Fun(identity,canonicaldomain(d)))
+    @eval $op(d::Domain) = $op(d,Fun(identity,canonicaldomain(d)))
 end
 
 
-space(f::Fun)=f.space
-spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
-canonicalspace(f::Fun)=canonicalspace(space(f))
-canonicaldomain(f::Fun)=canonicaldomain(domain(f))
+space(f::Fun) = f.space
+spacescompatible(f::Fun,g::Fun) = spacescompatible(space(f),space(g))
+canonicalspace(f::Fun) = canonicalspace(space(f))
+canonicaldomain(f::Fun) = canonicaldomain(domain(f))
 
 
 ##Evaluation
@@ -117,8 +117,8 @@ function evaluate(f::AbstractVector,S::Space,x...)
     end
 end
 
-evaluate(f::Fun,x)=evaluate(f.coefficients,f.space,x)
-evaluate(f::Fun,x,y,z...)=evaluate(f.coefficients,f.space,Vec(x,y,z...))
+evaluate(f::Fun,x) = evaluate(f.coefficients,f.space,x)
+evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 
 
 Base.call(f::Fun,x...)=evaluate(f,x...)
