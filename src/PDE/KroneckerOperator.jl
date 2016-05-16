@@ -47,8 +47,10 @@ isblockbandzeros{T}(::Type{T},kr,m::Colon,Al,Au,Bl,Bu)=isblockbandzeros(T,kr,max
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
 
-getindex{MT<:Matrix}(A::BandedMatrix{MT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?unsafe_getindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
-getindex{BT<:BandedMatrix}(A::BandedMatrix{BT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?unsafe_getindex(A,k,j):(j≤A.m?bzeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
+getindex{MT<:Matrix}(A::BandedMatrix{MT},k::Integer,j::Integer) =
+    (-A.l≤j-k≤A.u)?unsafe_getindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
+getindex{BT<:BandedMatrix}(A::BandedMatrix{BT},k::Integer,j::Integer) =
+    (-A.l≤j-k≤A.u)?unsafe_getindex(A,k,j):(j≤A.m?bzeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
 
 function Base.convert{MT<:Matrix,BM<:BandedMatrix}(::Type{MT},K::BandedMatrix{BM})
     n=size(K,1)
@@ -237,16 +239,6 @@ bzeros{BT<:BandedMatrix}(K::Operator{BT},rws::Range,
 # decompose into blocks
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
-
-
-function *{T<:BandedMatrix,V<:BandedMatrix}(A::BandedMatrix{T},B::BandedMatrix{V})
-    if size(A,2)!=size(B,1)
-        throw(DimensionMismatch("*"))
-    end
-    n,m=size(A,1),size(B,2)
-    error("Implement")
-    A_mul_B!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
-end
 
 function *{BM<:AbstractArray,TT<:Number}(M::BandedMatrix{BM},v::Vector{TT})
     n,m=size(M)
