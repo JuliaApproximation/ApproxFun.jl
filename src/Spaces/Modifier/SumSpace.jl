@@ -318,6 +318,18 @@ end
 depiece(v::Vector{Any})=depiece([v...])
 
 
+function detuple{F<:Fun}(v::Vector{F})
+    spaces=map(space,v)
+    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),TupleSpace(spaces))
+end
+function detuple(v::Tuple)
+    spaces=map(space,v)
+    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),TupleSpace(spaces))
+end
+
+detuple(v::Vector{Any})=detuple([v...])
+
+
 
 ## transforms
 

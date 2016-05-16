@@ -101,6 +101,8 @@ function devec{F<:Fun}(v::Vector{F})
     sps=map(space,v)
     if spacescompatible(sps)
         Fun(vec(coefficients(v).'),ArraySpace(first(sps),length(v)))
+    elseif domainscompatible(sps)
+        Fun(vec(coefficients(v).'),TupleSpace(sps))
     else
         Fun(vec(coefficients(v).'),PiecewiseSpace(sps))
     end

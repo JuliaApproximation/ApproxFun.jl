@@ -107,6 +107,13 @@ ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(Toepli
 
 
 # TupleSpace maps down
+
+
+function coefficients(v::AbstractVector,a::TupleSpace,b::TupleSpace)
+    vs=vec(Fun(v,a))
+    coefficients(detuple(map((f,s)->Fun(f,s),vs,b)))
+end
+
 function Conversion(a::TupleSpace,b::TupleSpace)
     m=findlast(s->dimension(s)==1,a.spaces)
     @assert all(s->dimension(s)==1,a.spaces[1:m-1]) &&
