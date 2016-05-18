@@ -173,6 +173,9 @@ blockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper
 
 blockbandinds(K::PlusOperator,k::Integer)=mapreduce(v->blockbandinds(v,k),k==1?min:max,K.ops)
 
+Base.copy{T<:BandedMatrix}(P::SubBandedMatrix{T,PlusOperator{T}}) =
+        default_copy(P)
+
 
 function blockbandindssum(P,k)
     ret=0

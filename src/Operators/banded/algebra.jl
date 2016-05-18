@@ -141,8 +141,8 @@ Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 
 function getindex{T}(P::PlusOperator{T},k::Integer,j::Integer)
-    ret=zero(T)
-    for op in P.ops
+    ret=P.ops[1][k,j]::T
+    for op in rest(P.ops,2)
         ret+=op[k,j]::T
     end
     ret
