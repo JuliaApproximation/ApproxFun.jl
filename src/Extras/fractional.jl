@@ -100,13 +100,13 @@ end
 
 function LeftIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
     # convert to Jacobi
-    Q=LeftIntegral(JacobiWeight(S.α,S.β,Jacobi(-.5,.5,domain(S))),k)
+    Q=LeftIntegral(JacobiWeight(S.α,S.β,Jacobi(S.space)),k)
     LeftIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
 end
 
 function RightIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
     # convert to Jacobi
-    Q=RightIntegral(JacobiWeight(S.α,S.β,Jacobi(.5,-.5,domain(S))),k)
+    Q=RightIntegral(JacobiWeight(S.α,S.β,Jacobi(S.space)),k)
     RightIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
 end
 
@@ -185,13 +185,13 @@ choosedomainspace{T<:Float64}(Q::RightIntegral{UnsetSpace,T},sp::PolynomialSpace
 
 
 # Define Left/RightDerivative
-for (DTYP,QTYP,QWRAP) in ((:LeftDerivative,:LeftIntegral,:LeftIntegralWrapper),
-                            (:RightDerivative,:RightIntegral,:RightIntegralWrapper))
+for (DTYP,QTYP,DWRAP,QWRAP) in ((:LeftDerivative,:LeftIntegral,:LeftDerivativeWrapper,:LeftIntegralWrapper),
+                            (:RightDerivative,:RightIntegral,:RightDerivativeWrapper,:LeftIntegralWrapper))
     @eval begin
         function $DTYP(S::Space,k::Real)
             i=ceil(Int,k)
             r=i-k
-            $QWRAP(i<0?$QTYP(S,-k):Derivative(i)*$QTYP(S,r),k)
+            $DWRAP(i<0?$QTYP(S,-k):Derivative(i)*$QTYP(S,r),k)
         end
         $QTYP(S::SumSpace,k)=$QWRAP(DiagonalInterlaceOperator(map(s->$QTYP(s,k),S.spaces),SumSpace),k)
     end

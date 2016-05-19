@@ -146,31 +146,32 @@ end
 function jacobiweightDerivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
     d=domain(S)
 
+    if d!=Interval()
+        # map to canonical
+        Mp=fromcanonicalD(d,d.a)
+        DD=jacobiweightDerivative(setdomain(S,Interval()))
+
+        return DerivativeWrapper(SpaceOperator(DD.op.op,S,setdomain(rangespace(DD),d))/Mp,1)
+    end
+
+    x=Fun(identity)
+
+
     if S.α==S.β==0
         DerivativeWrapper(SpaceOperator(Derivative(S.space),S,JacobiWeight(0.,0.,rangespace(Derivative(S.space)))),1)
     elseif S.α==0
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeight but doesn't need to
-        DD=(-Mp*S.β) +(1-M)*Derivative(S.space)
+        DD=-S.β +(1-x)*Derivative(S.space)
         rs=S.β==1?rangespace(DD):JacobiWeight(0.,S.β-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     elseif S.β==0
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeight but doesn't need to
-        DD=(Mp*S.α) +(1+M)*Derivative(S.space)
+        DD=S.α +(1+x)*Derivative(S.space)
         rs=S.α==1?rangespace(DD):JacobiWeight(S.α-1,0.,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     else
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeight but doesn't need to
-        DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
+        DD=S.α*(1-x) - S.β*(1+x) +(1-x^2)*Derivative(S.space)
         rs=S.α==1&&s.β==1?rangespace(DD):JacobiWeight(S.α-1,S.β-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     end
-
 end
 
 Derivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})=jacobiweightDerivative(S)
@@ -388,7 +389,7 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:le
             else
                 promote_type(T,typeof(C))[sum(Fun([zeros(k-1);1],dsp)) for k=kr]
             end
-        end        
+        end
 
         datalength{λ,D<:Interval}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D},D}})=(domainspace(Σ).α==domainspace(Σ).β==λ-0.5)?1:Inf
     end
