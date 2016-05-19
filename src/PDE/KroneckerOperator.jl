@@ -119,6 +119,8 @@ KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 
 
 
+Base.eye{T,D}(S::Space{T,D,2}) = KroneckerOperator(IdentityOperator(),IdentityOperator(),S,S)
+
 
 function promotedomainspace(K::KroneckerOperator,ds::TensorSpace)
     A=promotedomainspace(K.ops[1],ds[1])
