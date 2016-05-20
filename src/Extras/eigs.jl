@@ -1,7 +1,7 @@
 
 
 for OP in (:(Base.eigvals),:(Base.eigs))
-    @eval $OP(A::BandedOperator,n::Integer;tolerance::Float64=100eps())=$OP([A],n;tolerance=toelrance)
+    @eval $OP(A::BandedOperator,n::Integer;tolerance::Float64=100eps())=$OP([A],n;tolerance=tolerance)
 end
 
 Base.eigvals{T<:Operator}(A::Vector{T},n::Integer;tolerance::Float64=100eps())=eigs(A,n;tolerance=tolerance)[1]
@@ -41,4 +41,3 @@ function pruneeigs(λ,V,ds,tolerance)
     end
     retλ,retV
 end
-
