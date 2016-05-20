@@ -308,8 +308,11 @@ end
 getindex(P::ConstantTimesOperator,k::Integer,j::Integer) =
     P.c*P.op[k,j]
 
-BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,P::SubBandedMatrix{T,OP},A::AbstractMatrix) =
-    unwrap_axpy!(α*parent(P).c,P,A)
+BLAS.copy{T,OP<:ConstantTimesOperator}(S::SubBandedMatrix{T,OP}) =
+    BLAS.axpy!(parent(S).c,S,bzeros(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2)))
+
+BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubBandedMatrix{T,OP},A::AbstractMatrix) =
+    unwrap_axpy!(α*parent(S).c,S,A)
 
 
 
