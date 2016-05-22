@@ -586,27 +586,17 @@ for TYP in (:Vector,:Matrix)
         end
     end
 end
- ##TODO: Make * and \ consistent in return type
+
 function *(A::InfiniteOperator,b::Fun)
     dsp=domainspace(A)
     if isambiguous(dsp)
         promotedomainspace(A,space(b))*b
     else
-        Fun(A*coefficients(b,dsp),rangespace(A))
+        A*coefficients(b,dsp)
     end
 end
 
 #=
-function *(A::TimesOperator,b::Fun)
-    dsp=conversion_type(domainspace(A),space(b))
-    A=promotedomainspace(A,dsp)
-    ret = b
-    for k=length(A.ops):-1:1
-        ret = A.ops[k]*ret
-    end
-    Fun(coefficients(ret),rangespace(A))
-end
-
 function *(A::PlusOperator,b::Fun)
     dsp=conversion_type(domainspace(A),space(b))
     A=promotedomainspace(A,dsp)

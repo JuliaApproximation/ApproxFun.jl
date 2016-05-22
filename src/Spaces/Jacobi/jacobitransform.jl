@@ -33,6 +33,25 @@ function itransform(S::Jacobi,cfs,plan::JacobiITransformPlan)
     jacobip(0:length(cfs)-1,S.a,S.b,tocanonical(S,plan.points))*cfs
 end
 
-coefficients(f::Vector,a::Jacobi,b::Chebyshev) = domain(a) == domain(b) ? cjt(f,a.a,a.b) : defaultcoefficients(f,a,b)
-coefficients(f::Vector,a::Chebyshev,b::Jacobi) = domain(a) == domain(b) ? icjt(f,b.a,b.b) : defaultcoefficients(f,a,b)
-coefficients(f::Vector,a::Jacobi,b::Jacobi) = domain(a) == domain(b) ? jjt(f,a.a,a.b,b.a,b.b) : defaultcoefficients(f,a,b)
+function coefficients(f::Vector,a::Jacobi,b::Chebyshev)
+    if domain(a) == domain(b) && (!isapproxinteger(a.a-0.5) || !isapproxinteger(a.b-0.5))
+        cjt(f,a.a,a.b)
+    else
+        defaultcoefficients(f,a,b)
+    end
+end
+function coefficients(f::Vector,a::Chebyshev,b::Jacobi)
+    if domain(a) == domain(b) && (!isapproxinteger(b.a-0.5) || !isapproxinteger(b.b-0.5))
+        icjt(f,b.a,b.b)
+    else
+        defaultcoefficients(f,a,b)
+    end
+end
+
+function coefficients(f::Vector,a::Jacobi,b::Jacobi)
+    if domain(a) == domain(b) && (!isapproxinteger(a.a-b.a) || !isapproxinteger(a.b-b.b))
+        jjt(f,a.a,a.b,b.a,b.b)
+    else
+        defaultcoefficients(f,a,b)
+    end
+end
