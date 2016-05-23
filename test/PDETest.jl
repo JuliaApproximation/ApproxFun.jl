@@ -289,3 +289,16 @@ Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
 u=pdesolve([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],Any[Fun(x->exp(-20(x+0.5)^2),s)],200)
 @test_approx_eq_eps u(-.1,.2) exp(-20(-.2-.1+0.5)^2) 0.00001
+
+
+
+## Test error
+
+
+dx=Interval();dt=Interval(0,2.)
+d=dx*dt
+Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
+x=Fun(identity,dx)
+u=[I⊗ldirichlet(dt);Dt+x*Dx]\Fun(x->exp(-20x^2),dx)
+
+@test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical

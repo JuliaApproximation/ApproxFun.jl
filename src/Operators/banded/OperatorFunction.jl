@@ -18,7 +18,7 @@ for op in (:domainspace,:rangespace,:domain,:bandinds)
 end
 
 function getindex(OF::ConcreteOperatorFunction,k::Integer,j::Integer)
-    @assert isdiag(F.op)
+    @assert isdiag(OF.op)
     if k==j
         OF.f(OF.op[k,k])::eltype(OF)
     else
