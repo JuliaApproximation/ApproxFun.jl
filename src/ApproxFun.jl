@@ -1,12 +1,18 @@
 __precompile__()
 
 module ApproxFun
-    using Base, Plots, FastGaussQuadrature
+    using Base, Compat, Plots, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices
+    import FixedSizeArrays
 
 
 import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
-                >=,./,/,.^,^,\,∪,transpose
+                >=,./,/,.^,^,\,∪,transpose, size
 
+
+import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
+                        unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix
+
+import FixedSizeArrays: Vec
 
 export pad!,pad,sample,chop!,complexroots,roots,svfft, reverseorientation
 
@@ -33,8 +39,8 @@ include("Spaces/Spaces.jl")
 ## Further extra features
 
 include("PDE/PDE.jl")
-include("Plot/Plot.jl")
 include("Extras/Extras.jl")
+include("Plot/Plot.jl")
 
 include("docs.jl")
 

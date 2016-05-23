@@ -71,10 +71,13 @@ domain(P::PDEOperatorKron)=domain(domainspace(P))
 
 function PDEOperatorKron(A,nx::Integer,ny::Integer)
     L=A[end]
+    @assert iskronsumop(L)
+    ops=sumops(L)
+
     indsBx,Bx=findfunctionals(A,1)
-    Ax=ReducedDiscreteOperators(Bx,map(op->dekron(op,1),L.ops),nx)
+    Ax=ReducedDiscreteOperators(Bx,map(op->dekron(op,1),ops),nx)
     indsBy,By=findfunctionals(A,2)
-    Ay=ReducedDiscreteOperators(By,map(op->dekron(op,2),L.ops),ny)
+    Ay=ReducedDiscreteOperators(By,map(op->dekron(op,2),ops),ny)
     PDEOperatorKron(L,Ax,Ay,indsBx,indsBy,kron(Ax,Ay))
 end
 
@@ -91,7 +94,8 @@ kronfact(A::Vector,S::BivariateDomain,n::Integer)=kronfact(A,n)
 
 function pdesolve(K::PDEOperatorKron,G)
     fx,fy,F=pde_standardize_rhs(K,G)
-    F=cont_reduce_dofs!(K.opsx,map(op->op.ops[2],K.op.ops),fx,F.').'
+
+    F=cont_reduce_dofs!(K.opsx,map(op->dekron(op,2),sumops(K.op)),fx,F.').'
     F=cont_reduce_dofs!(K.opsy,K.opsx,fy,F)
 
 

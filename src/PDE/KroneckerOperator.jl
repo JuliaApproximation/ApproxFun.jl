@@ -1,36 +1,56 @@
 export KroneckerOperator
 
 
+
+
+
+
 # gives zero block banded matrix, where the blocks are increasing size
 # the bandwidths are assumed to be constant
 
-function blockbandzeros{T}(zer::Function,::Type{T},n,m::Integer,l,u,Bl,Bu)
+function blockbandzeros{T}(zer::Function,::Type{T},n,m::Integer,l,u,Bl,Bu,rshft=0,cshft=0)
 #    l=Al+Bl;u=Au+Bu
     ret=BandedMatrix(T,n,m,l,u)
 
     for k=1:n,j=max(1,k-l):min(m,k+u)
 #        nl=min(Al,Bu+k-j);nu=min(Au,Bl+j-k)
 #        ret[k,j]=zer(eltype(T),k,j,Bl,Bu)
-        ret[k,j]=zer(eltype(T),k,j)  #The ::Number works around an 0.4 bug
+        ret[k,j]=zer(eltype(T),k+rshft,j+cshft)  #The ::Number works around an 0.4 bug
     end
 
     ret
 end
 
-blockbandzeros{T}(::Type{T},n,m::Integer,l,u,Bl,Bu)=blockbandzeros(zeros,Matrix{T},n,m,l,u,Bl,Bu)
+
+function isblockbandzeros{T}(zer::Function,::Type{T},kr::UnitRange,jr::UnitRange,l::Integer,u::Integer,Bl::Integer,Bu::Integer)
+    shft=kr[1]-jr[1]
+    IndexStride(blockbandzeros(zer,T,length(kr),length(jr),l-shft,u+shft,Bl,Bu,kr[1]-1,jr[1]-1),1-kr[1],1-jr[1])
+end
+
+
+for OP in (:blockbandzeros,:isblockbandzeros)
+    @eval begin
+        $OP{T}(::Type{T},n,m::Integer,l,u,Bl,Bu)=$OP(zeros,Matrix{T},n,m,l,u,Bl,Bu)
+        $OP{T}(::Type{T},n,m::Range,l,u,Bl,Bu)=$OP(zeros,Matrix{T},n,m,l,u,Bl,Bu)
+        $OP{T}(::Type{T},n,m,Alu,Blu)=$OP(T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
+        $OP{T}(zer::Function,::Type{T},n,m,Alu,Blu)=$OP(zer,T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
+    end
+end
 
 blockbandzeros{T}(::Type{T},n,m::Colon,Al,Au,Bl,Bu)=blockbandzeros(T,n,n+Au,Al,Au,Bl,Bu)
-blockbandzeros{T}(::Type{T},n,m,Alu,Blu)=blockbandzeros(T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
-blockbandzeros{T}(zer::Function,::Type{T},n,m,Alu,Blu)=blockbandzeros(zer,T,n,m,-Alu[1],Alu[2],-Blu[1],Blu[2])
+isblockbandzeros{T}(::Type{T},kr,m::Colon,Al,Au,Bl,Bu)=isblockbandzeros(T,kr,max(1,kr[1]-Al):kr[end]+Au,Al,Au,Bl,Bu)
 
+#TODO:  isbzeros{T}(::Type{T},kr::UnitRange,::Colon,l::Integer,u::Integer)=isbzeros(T,kr,max(1,kr[1]-l):kr[end]+u,l,u)
 
 ##########
 # Convert a block banded matrix to a full matrix
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
 
-getindex{MT<:Matrix}(A::BandedMatrix{MT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
-getindex{BT<:BandedMatrix}(A::BandedMatrix{BT},k::Integer,j::Integer)=(-A.l≤j-k≤A.u)?usgetindex(A,k,j):(j≤A.m?bazeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
+getindex{MT<:Matrix}(A::BandedMatrix{MT},k::Integer,j::Integer) =
+    (-A.l≤j-k≤A.u)?unsafe_getindex(A,k,j):(j≤A.m?zeros(eltype(eltype(A)),k,j):throw(BoundsError()))
+getindex{BT<:BandedMatrix}(A::BandedMatrix{BT},k::Integer,j::Integer) =
+    (-A.l≤j-k≤A.u)?unsafe_getindex(A,k,j):(j≤A.m?bzeros(eltype(eltype(A)),k,j,0,0):throw(BoundsError()))
 
 function Base.convert{MT<:Matrix,BM<:BandedMatrix}(::Type{MT},K::BandedMatrix{BM})
     n=size(K,1)
@@ -99,6 +119,8 @@ KroneckerOperator(A::Fun,B)=KroneckerOperator(Multiplication(A),B)
 
 
 
+Base.eye{T,D}(S::Space{T,D,2}) = KroneckerOperator(IdentityOperator(),IdentityOperator(),S,S)
+
 
 function promotedomainspace(K::KroneckerOperator,ds::TensorSpace)
     A=promotedomainspace(K.ops[1],ds[1])
@@ -133,8 +155,8 @@ for TYP in (:Operator,:BandedOperator)
             if T==eltype(eltype(K))
                 K
             else
-                KroneckerOperator(convert(Operator{T},K.ops[1]),
-                        convert(Operator{T},K.ops[2]),
+                ops=convert(Operator{T},K.ops[1]),convert(Operator{T},K.ops[2])
+                KroneckerOperator{typeof(ops[1]),typeof(ops[2]),typeof(K.domainspace),typeof(K.rangespace),T}(ops,
                       K.domainspace,
                       K.rangespace)
             end
@@ -146,11 +168,15 @@ end
 bandinds(K::KroneckerOperator)=bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::KroneckerOperator,k::Integer)=k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
 blockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer)=0
-blockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,SpaceOperator,ConstantTimesOperator},k::Integer)=blockbandinds(K.op,k)
+blockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
+                       SpaceOperator,ConstantTimesOperator},k::Integer)=blockbandinds(K.op,k)
 
 
 
 blockbandinds(K::PlusOperator,k::Integer)=mapreduce(v->blockbandinds(v,k),k==1?min:max,K.ops)
+
+Base.copy{T<:BandedMatrix}(P::SubBandedMatrix{T,PlusOperator{T}}) =
+        default_copy(P)
 
 
 function blockbandindssum(P,k)
@@ -172,29 +198,37 @@ end
 domainspace(K::KroneckerOperator)=K.domainspace
 rangespace(K::KroneckerOperator)=K.rangespace
 
-function kronaddentries!(A,B,M,kr::Range)
-    m=max(size(A,2),size(B,2))
-    l=A.l+B.l;u=A.u+B.u
-
-    for k=kr,j=max(1,k-l):k+u
-        nl=min(A.l,B.u+k-j);nu=min(A.u,B.l+j-k)
-        @inbounds Mkj=M[k,j]
-        for κ=1:k,ξ=max(1,κ-nl):min(j,κ+nu)
-            #Mkj[κ,ξ]+=A[κ,ξ]*B[k-κ+1,j-ξ+1]
-            @inbounds Mkj[κ,ξ]+=A.data[ξ-κ+A.l+1,κ]*B.data[j-k+κ-ξ+B.l+1,k-κ+1]
+function getindex(K::KroneckerOperator,k::Integer,j::Integer)
+    T=eltype(eltype(K))
+    if bandinds(K,1) ≤ j-k ≤ bandinds(K,2)
+        A=K.ops[1][1:k,1:j]
+        B=K.ops[2][1:k,1:j]
+        nl=max(0,min(A.l,B.u+k-j));nu=max(0,min(A.u,B.l+j-k))
+        ret=BandedMatrix(T,k,j,nl,nu)
+        for (κ,ξ) in eachbandedindex(ret)
+            ret[κ,ξ]=A[κ,ξ]*B[k-κ+1,j-ξ+1]
         end
+        ret
+    else
+        bzeros(T,k,j,0,0)
     end
-    M
 end
 
-addentries!(K::KroneckerOperator,A,kr::Range,::Colon)=kronaddentries!(slice(K.ops[1],1:last(kr),:),slice(K.ops[2],1:last(kr),:),A,kr)
 
-
-bazeros{BT<:BandedMatrix}(K::Operator{BT},
+bzeros{BT<:BandedMatrix}(K::Operator{BT},
                           n::Integer,
                           ::Colon)=blockbandzeros(eltype(BT),n,:,bandinds(K),blockbandinds(K))
-bazeros{BT<:BandedMatrix}(K::Operator{BT},n::Integer,
-                          br::Tuple{Int,Int})=blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
+bzeros{BT<:BandedMatrix}(K::Operator{BT},n::Integer,
+                          br::Tuple{Int,Int})=error("Fix call signature") #blockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
+
+
+isbzeros{BT<:BandedMatrix}(K::Operator{BT},
+                          rws::Range,
+                          ::Colon)=isblockbandzeros(eltype(BT),rws,:,bandinds(K),blockbandinds(K))
+
+bzeros{BT<:BandedMatrix}(K::Operator{BT},rws::Range,
+                          br::Tuple{Int,Int})=error("Fix call signature")   # isblockbandzeros(eltype(BT),n,:,br,blockbandinds(K))
+
 
 # function BandedMatrix{T}(K::BivariateOperator{T},kr::UnitRange,::Colon)
 #     @assert first(kr)==1
@@ -211,17 +245,7 @@ bazeros{BT<:BandedMatrix}(K::Operator{BT},n::Integer,
 # TODO: Don't assume block banded matrix has i x j blocks
 ###########
 
-
-function *{T<:BandedMatrix,V<:BandedMatrix}(A::BandedMatrix{T},B::BandedMatrix{V})
-    if size(A,2)!=size(B,1)
-        throw(DimensionMismatch("*"))
-    end
-    n,m=size(A,1),size(B,2)
-    error("Implement")
-    bamultiply!(blockbandzeros(promote_type(T,V),n,m,A.l+B.l,A.u+B.u),A,B)
-end
-
-function *{BM<:AbstractArray}(M::BandedMatrix{BM},v::Vector)
+function *{BM<:AbstractArray,TT<:Number}(M::BandedMatrix{BM},v::Vector{TT})
     n,m=size(M)
     r=zeros(promote_type(eltype(BM),eltype(v)),div(n*(n+1),2))
     for j=1:m-1
@@ -244,11 +268,13 @@ end
 function *{BM<:BandedMatrix}(A::BandedOperator{BM},b::Vector)
     n=size(b,1)
 
-    if n>0
-        slice(A,:,1:totensorblock(n))*pad(b,fromtensorblock(totensorblock(n))[end])
+    ret=if n>0
+        BandedMatrix(A,:,1:totensorblock(n))*pad(b,fromtensorblock(totensorblock(n))[end])
     else
         b
     end
+
+    Fun(ret,rangespace(A))
 end
 
 
@@ -281,6 +307,10 @@ conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::Space)=a
 maxspace(a::TensorSpace,b::TensorSpace)=maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
 # TODO: we explicetly state type to avoid type inference bug in 0.4
+
+ConcreteConversion(a::BivariateSpace,b::BivariateSpace)=
+    ConcreteConversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
+
 Conversion(a::TensorSpace,b::TensorSpace)=ConversionWrapper(BandedMatrix{promote_type(eltype(a),eltype(b))},
                 KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
 
@@ -291,20 +321,20 @@ function Conversion(a::BivariateSpace,b::BivariateSpace)
     elseif conversion_type(a,b)==NoSpace()
         sp=canonicalspace(a)
         if typeof(sp) == typeof(a)
-            error("implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
+            error("Implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
         elseif typeof(sp) == typeof(b)
-            error("implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
+            error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
         else
             Conversion(a,sp,b)
         end
     else
-        Conversion{typeof(a),typeof(b),BandedMatrix{promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}}(a,b)
+        error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(b)))
     end
 end
 
 
 
-Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace)=ConcreteMultiplication{D,typeof(sp),T,BandedMatrix{T}}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 function Multiplication{CS<:ConstantSpace,T,V}(f::Fun{TensorSpace{Tuple{CS,V},T,2}},sp::TensorSpace)
     a=Fun(vec(totensor(f.coefficients)[1,:]),space(f)[2])
     #Hack to avoid auto-typing bug.  TODO: incorporate basis
@@ -318,6 +348,8 @@ function Multiplication{CS<:ConstantSpace,T,V}(f::Fun{TensorSpace{Tuple{V,CS},T,
     end
     MultiplicationWrapper(BandedMatrix{eltype(f)},f,Multiplication(a,sp[1])⊗eye(sp[2]))
 end
+
+Multiplication{D<:UnivariateSpace,SV,TT,T}(f::Fun{D,T},sp::SumSpace{SV,TT,AnyDomain,2})=Multiplication(f⊗1,sp)
 Multiplication{D<:UnivariateSpace,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication(f⊗1,sp)
 
 
@@ -380,13 +412,37 @@ end
 
 Base.transpose(K::KroneckerOperator)=KroneckerOperator(K.ops[2],K.ops[1])
 
-for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper)
+for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper,:LaplacianWrapper)
     @eval Base.transpose(S::$TYP)=$TYP(transpose(S.op))
 end
 
-Base.transpose(S::TimesOperator)=TimesOperator(reverse!(map(transpose,S.ops)))
 
 Base.transpose(S::SpaceOperator)=SpaceOperator(transpose(S.op),domainspace(S).',rangespace(S).')
 Base.transpose(S::ConstantTimesOperator)=sp.c*S.op.'
 Base.transpose{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=C
- Base.transpose{V,T<:AbstractArray}(C::ZeroOperator{V,T},k)=C
+Base.transpose{V,T<:AbstractArray}(C::ZeroOperator{V,T},k)=C
+
+
+
+### Calculus
+
+#TODO: general dimension
+function Derivative{SV,TT}(S::TensorSpace{SV,TT,2},order::Vector{Int})
+    @assert length(order)==2
+    if order[1]==0
+        Dy=Derivative(S[2],order[2])
+        K=eye(S[1])⊗Dy
+        T=eltype(Dy)
+    elseif order[2]==0
+        Dx=Derivative(S[1],order[1])
+        K=Dx⊗eye(S[2])
+        T=eltype(Dx)
+    else
+        Dx=Derivative(S[1],order[1])
+        Dy=Derivative(S[2],order[2])
+        K=Dx⊗Dy
+        T=promote_type(eltype(Dx),eltype(Dy))
+    end
+    # try to work around type inference
+    DerivativeWrapper{typeof(K),typeof(domainspace(K)),Vector{Int},BandedMatrix{T}}(K,order)
+end

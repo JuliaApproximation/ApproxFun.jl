@@ -9,7 +9,7 @@ export Line, PeriodicLine
 
 
 
-# angle is (false==0) and π (true==1)
+# angle is π*a where a is (false==0) and (true==1)
 # or ranges from (-1,1].  We use 1 as 1==true.
 
 immutable Line{angle,T<:Number} <: IntervalDomain{T}
@@ -25,11 +25,17 @@ end
 
 typealias RealLine{T} Union{Line{false,T},Line{true,T}}
 
-Base.convert{a}(::Type{Line{a}},c,α,β)=Line{a,typeof(c)}(c,α,β)
-Base.convert{a}(::Type{Line{a}},c::Number)=Line{a,typeof(c)}(c)
-Base.convert{a}(::Type{Line{a}})=Line{a,Float64}()
+Base.call{a}(::Type{Line{a}},c,α,β)=Line{a,typeof(c)}(c,α,β)
+Base.call{a}(::Type{Line{a}},c::Number)=Line{a,typeof(c)}(c)
+Base.call{a}(::Type{Line{a}})=Line{a,Float64}()
 
 Base.angle{a}(d::Line{a})=a*π
+
+
+
+Base.reverse(d::Line{true})=Line{false}(d.center,d.β,d.α)
+Base.reverse(d::Line{false})=Line{true}(d.center,d.β,d.α)
+Base.reverse{a}(d::Line{a})=Line{a-1}(d.center,d.β,d.α)
 
 # ensure the angle is always in (-1,1]
 Line(c,a,α,β)=Line{mod(a/π-1,-2)+1,typeof(c)}(c,α,β)
@@ -167,6 +173,9 @@ immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     PeriodicLine()=new(0.,1.)
 end
 
+Base.convert{a}(::Type{PeriodicLine{a}},c,L)=PeriodicLine{a,typeof(c)}(c,L)
+
+
 PeriodicLine(c,a)=PeriodicLine{a/π,eltype(c)}(c,1.)
 PeriodicLine()=PeriodicLine{false,Float64}(0.,1.)
 PeriodicLine(b::Bool)=PeriodicLine{b,Float64}()
@@ -176,6 +185,10 @@ Base.convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain)=PeriodicLine{
 Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain)=PeriodicLine(NaN,NaN)
 
 Base.angle{a}(d::PeriodicLine{a})=a*π
+
+Base.reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
+Base.reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
+Base.reverse{a}(d::PeriodicLine{a})=PeriodicLine{a-1}(d.center,d.L)
 
 tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.center)/d.L)
 fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.center

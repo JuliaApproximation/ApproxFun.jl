@@ -1,6 +1,5 @@
 using ApproxFun, Base.Test
-
-import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
+    import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
 
 
 @test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})(.1) exp(.1)
@@ -108,6 +107,15 @@ f=w+x
 @test_approx_eq ((w+x)+1)(0.1) (w(0.1)+1.1)
 
 
+## SumSpace bug
+
+dsp=JacobiWeight(1.,0.,Jacobi(0.,1.,[0.,1.]))⊕JacobiWeight(0.5,0.,Jacobi(-0.5,0.5,[0.,1.]))
+rsp=Legendre([0.,1.])⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,[0.,1.]))
+C=Conversion(dsp,rsp)
+f=Fun([1.,2.,3.,4.,5.],dsp)
+@test_approx_eq f(0.1) (C*f)(0.1)
+
+
 
 
 
@@ -148,3 +156,15 @@ f=Fun(exp,S)
 x=Fun([0.,1.])
 f=exp(x)-1
 Fun(f,JacobiWeight(1.,0.,[0.,1.]))
+
+
+## Hermite
+f=Fun(x->x+x^2,Hermite())
+@test_approx_eq f(1.) 2.
+
+
+
+## Arc exp
+
+z=Fun(identity,Arc(0.,.1,0.,π/2))
+@test_approx_eq exp(z)(0.1exp(0.2im)) exp(0.1exp(0.2im))

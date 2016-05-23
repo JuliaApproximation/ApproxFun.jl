@@ -1,57 +1,54 @@
 export Conversion
 
-abstract AbstractConversion{T}<:BandedOperator{T}
+abstract Conversion{T}<:BandedOperator{T}
 
-immutable Conversion{S<:Space,V<:Space,T} <: AbstractConversion{T}
+immutable ConcreteConversion{S<:Space,V<:Space,T} <: Conversion{T}
     domainspace::S
     rangespace::V
 end
 
-Base.call{S,V}(::Type{Conversion{S,V}},a::S,b::V)=
-    Conversion{S,V,promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
+ConcreteConversion(a::Space,b::Space)=ConcreteConversion{typeof(a),typeof(b),
+        promote_type(op_eltype_realdomain(a),op_eltype_realdomain(b))}(a,b)
+
 
 for TYP in (:Operator,:BandedOperator)
     @eval begin
-        function Base.convert{T,S,V}(::Type{$TYP{T}},C::Conversion{S,V})
+        function Base.convert{T,S,V}(::Type{$TYP{T}},C::ConcreteConversion{S,V})
             if T==eltype(C)
                 C
             else
-                Conversion{S,V,T}(C.domainspace,C.rangespace)
+                ConcreteConversion{S,V,T}(C.domainspace,C.rangespace)
             end
         end
     end
 end
 
-domainspace(C::Conversion)=C.domainspace
-rangespace(C::Conversion)=C.rangespace
+domainspace(C::ConcreteConversion)=C.domainspace
+rangespace(C::ConcreteConversion)=C.rangespace
 
 
 
 
-function defaultconversion(a::Space,b::Space)
+function defaultConversion(a::Space,b::Space)
     if a==b
-        eye(a)
+        Conversion(a)
     elseif conversion_type(a,b)==NoSpace()
         sp=canonicalspace(a)
         if typeof(sp) == typeof(a)
-            error("implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
+            error("Implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
         elseif typeof(sp) == typeof(b)
-            error("implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
+            error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
         else
             Conversion(a,sp,b)
         end
     else
-        Conversion{typeof(a),typeof(b)}(a,b)
+        error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(b)))
     end
 end
 
-Conversion(a::Space,b::Space)=defaultconversion(a,b)
-
-
-
-## convert TO canonical
-Conversion(A::Space)=Conversion(A,canonicalspace(A))
-
+Conversion(a::Space,b::Space)=defaultConversion(a,b)
+Conversion(a::Space)=ConversionWrapper(eye(a))
+Conversion()=ConversionWrapper(eye(UnsetSpace()))
 
 
 ## Wrapper
@@ -59,9 +56,11 @@ Conversion(A::Space)=Conversion(A,canonicalspace(A))
 # the domain and range space
 # but continue to know its a derivative
 
-immutable ConversionWrapper{S<:BandedOperator,T} <: AbstractConversion{T}
+immutable ConversionWrapper{S<:BandedOperator,T} <: Conversion{T}
     op::S
 end
+
+@wrapper ConversionWrapper
 
 
 ConversionWrapper{T}(::Type{T},op)=ConversionWrapper{typeof(op),T}(op)
@@ -85,11 +84,6 @@ for TYP in (:Operator,:BandedOperator)
     end
 end
 
-addentries!(D::ConversionWrapper,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
-for func in (:rangespace,:domainspace,:bandinds,:(Base.stride))
-    @eval $func(D::ConversionWrapper)=$func(D.op)
-end
 
+#promotedomainspace(P::Conversion,sp::Space)=ConversionWrapper(eye(sp))
 
-#TODO: decide
-#promotedomainspace(P::Conversion,sp::Space)=SpaceOperator(ConstantOperator(one(eltype(P))),sp,sp)

@@ -11,28 +11,20 @@ valsdomain_type_promote{T<:Integer,V<:Complex}(::Type{T},::Type{V})=valsdomain_t
 valsdomain_type_promote{T<:Real}(::Type{T},::Type{Vector{T}})=T,Vector{T}
 valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type(T,V)
 
-function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
-    pts=points(d, n)
-    f1=f(pts[1])
 
-    if isa(f1,Array) && !isa(d,ArraySpace)
-        return Fun(f,ArraySpace(d,size(f1)...),n)
+
+function choosefuneltype(ftype,Td)
+    if !( ftype<: Number || ( (ftype <: Array) && (ftype.parameters[1] <: Number) ) )
+        warn("Function outputs type $(ftype), which is not a Number")
     end
 
-    Tout=typeof(f1)
-    if !( Tout<: Number || ( (Tout <: Array) && (Tout.parameters[1] <: Number) ) )
-        warn("Function outputs type $(Tout), which is not a Number")
-    end
+    Tprom = ftype
 
-    Tprom = Tout
+    if ftype <: Number #TODO should also work for array-valued functions
+        Tprom,Tpromd=valsdomain_type_promote(ftype,Td)
 
-    if Tout <: Number #TODO should also work for array-valued functions
-        Td = eltype(domain(d))
-
-        Tprom,Tpromd=valsdomain_type_promote(Tout,Td)
-
-        if Tout != Int && Tprom != Tout
-                warn("Promoting function output type from $(Tout) to $(Tprom)")
+        if ftype != Int && Tprom != ftype
+                warn("Promoting function output type from $(ftype) to $(Tprom)")
         end
         if Tpromd != Td
                 warn("Space domain number type $(Td) is not compatible with coefficient type $(Tprom)")
@@ -40,6 +32,26 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
                 #and call constructor with this Space.
         end
     end
+
+    Tprom
+end
+
+
+function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
+    pts=points(d, n)
+    if !hasnumargs(f,1)  # Splat out Vec
+        return Fun(xy->f(xy...),d,n)
+    end
+
+    f1=f(pts[1])
+
+    if isa(f1,Array) && !isa(d,ArraySpace)
+        return Fun(f,ArraySpace(d,size(f1)...),n)
+    end
+
+
+    # we need 3 eltype calls for the case Interval(Point([1.,1.]))
+    Tprom=choosefuneltype(typeof(f1),eltype(eltype(eltype(domain(d)))))
 
 
     vals=Tprom[f(x) for x in pts]
@@ -53,7 +65,6 @@ Fun{ReComp}(f,d::Space{ReComp},n::Integer)=defaultFun(f,d,n)
 #TODO: fall back to Fun(x->f(x),d) if conversion not implemented?
 Fun(f::Fun,d::Space)=Fun(coefficients(f,d),d)
 Fun{T<:Space}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
-Fun{T<:Space}(c::Number,::Type{T})=Fun(c,T(AnyDomain()))
 
 
 
@@ -64,7 +75,7 @@ Fun(f,T::Type,n::Integer)=Fun(f,T(),n)
 
 Fun(f::AbstractVector,d::Domain)=Fun(f,Space(d))
 
-Fun(f,d::Domain)=Fun(f,Space(d))
+
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
 
 
@@ -111,7 +122,6 @@ end
 #     Fun(f,d,2^21 + 1)
 # end
 
-samplenorm(fr)=norm(fr)
 
 
 function zerocfsFun(f, d::Space)
@@ -130,8 +140,8 @@ function zerocfsFun(f, d::Space)
     tol =T==Any?200eps():200eps(T)
 
 
-    fr=typeof(f0)[f(x) for x=r]
-    maxabsfr=samplenorm(fr)
+    fr=map(f,r)
+    maxabsfr=norm(fr,Inf)
 
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
@@ -181,12 +191,15 @@ end
 
 function Fun(f, d::Space; method="zerocoefficients")
     T = eltype(domain(d))
+
     if f==identity
         identity_fun(d)
     elseif f==zero # zero is always defined
         zeros(T,d)
     elseif f==one
         ones(T,d)
+    elseif !hasnumargs(f,1)  # Splat out Vec
+        Fun(xy->f(xy...),d;method=method)
     elseif !isinf(dimension(d))
         Fun(f,d,dimension(d))  # use exactly dimension number of sample points
     elseif method == "zerocoefficients"

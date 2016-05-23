@@ -41,7 +41,7 @@ function cont_reduce_dofs!{NT<:Number,T<:Number}( A::AbstractArray{NT},M::Abstra
     F
 end
 
-cont_reduce_dofs!{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M::AbstractArray{MT},G::Vector{T},F::Fun )=cont_reduce_dofs!{T<:Fun,NT<:Number,MT<:Number}(A,M,G,ProductFun(F))
+cont_reduce_dofs!{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M::AbstractArray{MT},G::Vector{T},F::Fun )=cont_reduce_dofs!(A,M,G,ProductFun(F))
 function cont_reduce_dofs!{T<:Fun,NT<:Number,MT<:Number}( A::AbstractArray{NT},M::AbstractArray{MT},G::Vector{T},F::ProductFun )
         # first multiply to get MXR' = M*G' = [M*G1 M*G2 ...]
         # then kill the row by subtracting
@@ -292,7 +292,8 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Ty
         end
 
         if k > 1
-            PY[k,:]=OS.Lx*Y[k,:];SY[k,:]=OS.Mx*Y[k,:]  # L*Array returns an array space op
+            PY[k,:]=vec(OS.Lx*Y[k,:])
+            SY[k,:]=vec(OS.Mx*Y[k,:])  # L*Array returns an array space op
         end
         k-=1
     end

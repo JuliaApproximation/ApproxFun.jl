@@ -1,19 +1,34 @@
 """
- WeightSpace represents a space that weights another space
+ WeightSpace represents a space that weights another space.
+ Overload weight(S,x).
 """
-abstract WeightSpace{T,DD,d} <: Space{T,DD,d}
+abstract WeightSpace{S,T,DD,d} <: Space{T,DD,d}
 
 
 domain(S::WeightSpace)=domain(S.space)
 
 
 points(sp::WeightSpace,n)=points(sp.space,n)
-plan_transform(S::WeightSpace,vals::Vector)=1./weight(S,points(S,length(vals))),plan_transform(S.space,vals)
-plan_itransform(S::WeightSpace,vals::Vector)=weight(S,points(S,length(vals))),plan_itransform(S.space,vals)
 
 
-transform(sp::WeightSpace,vals::Vector,plan)=transform(sp.space,vals.*plan[1],plan[2])
-itransform(sp::WeightSpace,cfs::Vector,plan)=itransform(sp.space,cfs,plan[2]).*plan[1]
+immutable WeightSpacePlan{S,P,T}
+    space::S
+    plan::P
+    points::Vector{T}
+    weights::Vector{T}
+end
+
+
+for TYP in (:plan_transform,:plan_itransform)
+    @eval function $TYP(S::WeightSpace,vals::Vector)
+        pts=points(S,length(vals))
+        WeightSpacePlan(S,$TYP(S.space,vals),pts,weight(S,pts))
+    end
+end
+
+
+transform(sp::WeightSpace,vals::Vector,plan::WeightSpacePlan)=transform(sp.space,vals./(sp==plan.space?plan.weights:weight(sp,plan.points)),plan.plan)
+itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan)=itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight(sp,plan.points))
 
 
 
@@ -27,7 +42,6 @@ function evaluate(f::AbstractVector,S::WeightSpace,x...)
         weight(S,x...).*fv
     end
 end
-
 
 
 

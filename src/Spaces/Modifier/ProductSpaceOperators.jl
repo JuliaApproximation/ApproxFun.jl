@@ -33,7 +33,7 @@ Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::Multiplication
 
 
 ## Vector
-
+# represents an operator applied to all spaces in an array space
 
 
 immutable DiagonalArrayOperator{B<:BandedOperator,T<:Number} <: BandedOperator{T}
@@ -52,12 +52,16 @@ function bandinds(D::DiagonalArrayOperator)
 end
 
 
-function addentries!(D::DiagonalArrayOperator,A,kr::Range,::Colon)
+function getindex{B,T}(D::DiagonalArrayOperator{B,T},k::Integer,j::Integer)
     n=*(D.dimensions...)
-    for k=1:n
-        stride_addentries!(D.op,k-n,k-n,n,n,A,kr)
+
+    if mod(k,n) == mod(j,n)  # same block
+        k=(k-1)÷n+1  # map k and j to block coordinates
+        j=(j-1)÷n+1
+        D.op[k,j]::T
+    else
+        zero(T)
     end
-    A
 end
 
 
@@ -93,7 +97,6 @@ function Conversion(AS::ArraySpace,BS::ArraySpace)
 end
 
 ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(ToeplitzOperator,mat(G)))
-ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(ToeplitzOperator,mat(G)))
 
 ## Sum Space
 
@@ -104,6 +107,13 @@ ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(Toepli
 
 
 # TupleSpace maps down
+
+
+function coefficients(v::AbstractVector,a::TupleSpace,b::TupleSpace)
+    vs=vec(Fun(v,a))
+    coefficients(detuple(map((f,s)->Fun(f,s),vs,b)))
+end
+
 function Conversion(a::TupleSpace,b::TupleSpace)
     m=findlast(s->dimension(s)==1,a.spaces)
     @assert all(s->dimension(s)==1,a.spaces[1:m-1]) &&
@@ -127,7 +137,7 @@ end
 # Sum Space and PiecewiseSpace need to allow permutation of space orders
 for TYP in (:SumSpace,:PiecewiseSpace)
     @eval function Conversion(S1::$TYP,S2::$TYP)
-        if any(s->dimension(s)!=Inf,S1.spaces) || any(s->dimension(s)!=Inf,S2.spaces)
+        if any(s->!isinf(dimension(s)),S1.spaces) || any(s->!isinf(dimension(s)),S2.spaces)
             error("Need to implement finite dimensional case")
         elseif sort([S1.spaces...])==sort([S2.spaces...])
             # swaps sumspace order
@@ -161,7 +171,7 @@ for TYP in (:SumSpace,:PiecewiseSpace)
 
         else
             # we don't know how to convert so go to default
-            defaultconversion(S1,S2)
+            defaultConversion(S1,S2)
         end
     end
 end
@@ -243,7 +253,7 @@ function Derivative(S::SumSpace,k::Integer)
     if typeof(canonicaldomain(S))==typeof(domain(S))
         DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),SumSpace),k)
     else
-        defaultderivative(S,k)
+        defaultDerivative(S,k)
     end
 end
 
@@ -271,49 +281,18 @@ function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     MultiplicationWrapper(f,DiagonalInterlaceOperator(map(Multiplication,vf,sp.spaces),PiecewiseSpace))
 end
 
-
-function bandinds{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS})
-    a,b=vec(M.f)
-    sp=domainspace(M)
-    bandinds(Multiplication(a,sp)+Multiplication(b,sp))
-end
-function rangespace{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS})
-    a,b=vec(M.f)
-    sp=domainspace(M)
-    rangespace(Multiplication(a,sp)+Multiplication(b,sp))
-end
-function addentries!{S<:SumSpace,SS<:SumSpace}(M::Multiplication{S,SS},A,k,::Colon)
-    a,b=vec(M.f)
-    sp=domainspace(M)
-    addentries!(Multiplication(a,sp)+Multiplication(b,sp),A,k,:)
-end
+Multiplication{SV1,SV2,T2,T1,D,d}(f::Fun{SumSpace{SV1,T1,D,d}},sp::SumSpace{SV2,T2,D,d})=MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,vec(f)))
+Multiplication(f::Fun,sp::SumSpace)=MultiplicationWrapper(f,DiagonalInterlaceOperator(map(s->Multiplication(f,s),vec(sp)),SumSpace))
 
 
+# we override coefficienttimes to split the multiplication down to components as union may combine spaes
+
+coefficienttimes{S1<:SumSpace,S2<:SumSpace}(f::Fun{S1},g::Fun{S2}) = mapreduce(ff->ff*g,+,vec(f))
+coefficienttimes{S1<:SumSpace}(f::Fun{S1},g::Fun) = mapreduce(ff->ff*g,+,vec(f))
+coefficienttimes{S2<:SumSpace}(f::Fun,g::Fun{S2}) = mapreduce(gg->f*gg,+,vec(g))
 
 
-function bandinds{S,SS<:SumSpace}(M::Multiplication{S,SS})
-    a,b=vec(domainspace(M))
-    Ma=Multiplication(M.f,a)
-    Mb=Multiplication(M.f,b)
-
-    bandinds(DiagonalInterlaceOperator((Ma,Mb),SumSpace))
-end
-function rangespace{S,SS<:SumSpace}(M::Multiplication{S,SS})
-    a,b=vec(domainspace(M))
-    Ma=Multiplication(M.f,a)
-    Mb=Multiplication(M.f,b)
-
-    rangespace(Ma)⊕rangespace(Mb)
-end
-function addentries!{S,SS<:SumSpace}(M::Multiplication{S,SS},A,k,::Colon)
-    a,b=vec(domainspace(M))
-    Ma=Multiplication(M.f,a)
-    Mb=Multiplication(M.f,b)
-
-    addentries!(DiagonalInterlaceOperator((Ma,Mb),SumSpace),A,k,:)
-end
-
-
+coefficienttimes{S1<:PiecewiseSpace,S2<:PiecewiseSpace}(f::Fun{S1},g::Fun{S2})=depiece(map(coefficienttimes,pieces(f),pieces(g)))
 
 
 ## Definite Integral

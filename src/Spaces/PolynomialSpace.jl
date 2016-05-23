@@ -3,8 +3,11 @@
 
 abstract PolynomialSpace{D} <: RealUnivariateSpace{D}
 
-bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
-rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::Multiplication{U,V})=domainspace(M)
+
+
+Multiplication{U<:PolynomialSpace}(f::Fun{U},sp::PolynomialSpace)=ConcreteMultiplication(f,sp)
+bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
+rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=domainspace(M)
 
 
 # All polynomials contain constant
@@ -14,7 +17,31 @@ Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T})=Fun{S,
 
 ## Evaluation
 
-evaluate(f::AbstractVector,S::PolynomialSpace,x)=clenshaw(S,f,tocanonical(S,x))
+function evaluate(f::AbstractVector,S::PolynomialSpace,x)
+    if x in domain(S)
+        clenshaw(S,f,tocanonical(S,x))
+    else
+        zero(eltype(f))
+    end
+end
+
+evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->evaluate(f,S,y),x)
+
+# we need the ... for multi-dimensional
+evaluate(f::AbstractVector,S::PolynomialSpace,x,y,z...)=
+    evaluate(f,S,Vec(x,y,z...))
+
+#evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->evaluate(f,S,y),x)
+
+function evaluate(f::AbstractVector,S::PolynomialSpace,x::Fun)
+    if issubset(Interval(minimum(x),maximum(x)),domain(S))
+        clenshaw(S,f,tocanonical(S,x))
+    else
+        error("Implement splitatpoints for evaluate ")
+    end
+end
+
+
 
 ######
 # Recurrence encodes the recurrence coefficients
@@ -34,13 +61,16 @@ Base.convert{T,S}(::Type{BandedOperator{T}},J::Recurrence{S})=Recurrence{S,T}(J.
 #       x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-function addentries!{S,T}(R::Recurrence{S,T},A,kr::Range,::Colon)
-    for k=kr
-        A[k,k-1]=recβ(T,R.space,k-1)
-        A[k,k]  =recα(T,R.space,k)
-        A[k,k+1]=recγ(T,R.space,k+1)
+function getindex{S,T}(R::Recurrence{S,T},k::Integer,j::Integer)
+    if j==k-1
+        recβ(T,R.space,k-1)
+    elseif j==k
+        recα(T,R.space,k)
+    elseif j==k+1
+        recγ(T,R.space,k+1)
+    else
+        zero(T)
     end
-    A
 end
 
 
@@ -57,29 +87,48 @@ end
 #####
 
 
-function addentries!{US<:PolynomialSpace,PS<:PolynomialSpace,T}(M::Multiplication{US,PS,T},A,kr::UnitRange,::Colon)
+getindex{PS<:PolynomialSpace,T,C<:PolynomialSpace}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
+
+
+function Base.copy{PS<:PolynomialSpace,V,T,C<:PolynomialSpace}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
+                                                                            Tuple{UnitRange{Int},UnitRange{Int}}})
+    M=parent(S)
+    kr,jr=parentindexes(S)
+
+    A=bzeros(S)
+
     a=coefficients(M.f)
-    fsp=space(M.f)
-    for k=kr
-        A[k,k]=a[1]
+
+    shft=bandshift(A)
+
+    for k=kr ∩ jr
+        A[k-kr[1]+1,k-jr[1]+1]=a[1]
     end
 
     if length(a) > 1
-        jkr=max(1,kr[1]-length(a)+1):kr[end]+length(a)-1
+        sp=M.space
+        fsp=space(M.f)
+        jkr=max(1,min(kr[1],jr[1])-length(a)+1):max(kr[end],jr[end])+length(a)-1
 
-        J=subview(Recurrence(domainspace(M)),jkr,jkr)
-        C0=isbaeye(jkr)
+        #Multiplication is transpose
+        J=Recurrence(sp)[jkr,jkr]
+
+
+        # the sub ranges of jkr that correspond to kr, jr
+        kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
+
+
+        C0=beye(size(J,1),size(J,2),0,0)
         C1=(1/recβ(T,fsp,1))*J-(recα(T,fsp,1)/recβ(T,fsp,1))*C0
-        addentries!(C1,a[2],A,kr,:)
 
+        BLAS.axpy!(a[2],sub(C1,kr2,jr2),A)
 
         for k=1:length(a)-2
             rβ=recβ(T,fsp,k+1)
             C1,C0=(1/rβ)*J*C1-(recα(T,fsp,k+1)/rβ)*C1-(recγ(T,fsp,k+1)/rβ)*C0,C1
-            addentries!(C1,a[k+2],A,kr,:)
+            BLAS.axpy!(a[k+2],sub(C1,kr2,jr2),A)
         end
     end
-
     A
 end
 
@@ -89,7 +138,7 @@ end
 ## All polynomial spaces can be converted provided spaces match
 
 isconvertible(a::PolynomialSpace,b::PolynomialSpace)=domain(a)==domain(b)
-
+union_rule{D}(a::PolynomialSpace{D},b::PolynomialSpace{D})=domainscompatible(a,b)?(a<b?a:b):NoSpace()   # the union of two polys is always a poly
 
 
 ## General clenshaw

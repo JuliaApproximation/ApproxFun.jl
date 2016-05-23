@@ -1,8 +1,4 @@
-export timeevolution, BDF2,BDF4,BDF22
-
-
-
-## Multivariate
+export timeevolution, ETDRK4, BDF2, BDF4, BDF22
 
 
 function RK(L,y,h)
@@ -33,7 +29,53 @@ function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp,tol=1000eps())
     u2
 end
 
+function BDF2(L::BandedOperator,N::Function,u0,h,m,glp,tol=1000eps())
+    SBDF2 = I-2.0/3.0*h*L
 
+    u1=u0
+    u2=chop(RK(N,u1,h),tol)
+    u2,u1  = chop(SBDF2\(1/3.0*(4u2-u1)),tol),u2
+    push!(glp,u2)
+    yield()
+
+    for k=1:m
+        u2,u1 = chop(RK(N,u2,h),tol),u2
+        u2,u1  = chop(SBDF2\(1/3.0*(4u2-u1)),tol),u2
+        push!(glp,u2)
+        yield()
+    end
+
+    u2
+end
+
+function ETDRK4(L::BandedOperator,N::Function,u,t,h,m,glp,tol=10eps())
+    z = L*h
+    ez,ez2,h2ez2m1 = SavedBandedOperator(exp(z)),SavedBandedOperator(exp(z/2)),SavedBandedOperator(h/2*expm1(z/2))
+    hezα,h2ezβ,hezγ = SavedBandedOperator(h*expα(z)),SavedBandedOperator(2h*expβ(z)),SavedBandedOperator(h*expγ(z))
+    push!(glp,u)
+    yield()
+
+    for k=1:m
+        ez2u = ez2*u
+        Nut = chop(N(u,t),tol)
+
+        a = ez2u + h2ez2m1*Nut
+        Nath2 = chop(N(a,t+h/2),tol)
+        b = ez2u + h2ez2m1*Nath2
+        Nbth2 = chop(N(b,t+h/2),tol)
+        c = ez2*a + h2ez2m1*(2Nbth2-Nut)
+
+        u = chop(ez*u + hezα*Nut + h2ezβ*(Nath2+Nbth2) + hezγ*N(c,t+h),tol)
+        push!(glp,u)
+        yield()
+        t+=h
+    end
+
+    u,t
+end
+
+
+## Multivariate
 
 
 function BDF4(B::Vector,op::BandedOperator,bcs::Vector,uin::MultivariateFun,h::Real,m::Integer,glp)

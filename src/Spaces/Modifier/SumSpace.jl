@@ -47,11 +47,15 @@ for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace)
         $TYP(sp::Array)=$TYP(tuple(sp...))
 
         canonicalspace(A::$TYP)=$TYP(sort([A.spaces...]))
-
-
-        setdomain(A::$TYP,d::Domain)=$TYP(map(sp->setdomain(sp,d),A.spaces))
     end
 end
+
+for TYP in (:SumSpace,:TupleSpace)
+    @eval setdomain(A::$TYP,d::Domain)=$TYP(map(sp->setdomain(sp,d),A.spaces))
+end
+
+setdomain(A::PiecewiseSpace,d::UnionDomain)=PiecewiseSpace(map((sp,dd)->setdomain(sp,dd),A.spaces,d.domains))
+
 
 
 function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
@@ -134,20 +138,6 @@ function spacescompatible(A::Tuple,B::Tuple)
 end
 
 
-function union_rule(A::SumSpace,B::SumSpace)
-    @assert length(A.spaces)==length(B.spaces)==2
-    if !domainscompatible(A,B)
-        NoSpace()
-    elseif spacescompatible(A,B)
-        A
-    elseif spacescompatible(A.spaces,B.spaces)
-        A≤B?A:B
-    else
-        #TODO: should it be attempted to union subspaces?
-        SumSpace(union(A.spaces,B.spaces))
-    end
-end
-
 function union_rule(A::SumSpace,B::Space)
     if !domainscompatible(A,B)
         NoSpace()
@@ -165,19 +155,32 @@ end
 
 ## evaluate
 
+
+for OP in (:(Base.last),:(Base.first))
+    @eval begin
+        $OP{SS<:SumSpace}(f::Fun{SS})=mapreduce($OP,+,vec(f))
+        $OP{SS<:PiecewiseSpace}(f::Fun{SS})=$OP($OP(vec(f)))
+        $OP{SS<:TupleSpace}(f::Fun{SS})=$OP(vec(f))
+    end
+end
+
 evaluate(f::AbstractVector,S::SumSpace,x)=mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
 
 
 function evaluate(f::AbstractVector,S::PiecewiseSpace,x::Number)
     d=domain(S)
     g=Fun(f,S)
-    for k=1:length(d)
+
+#    ret=zero(promote_type(eltype(f),eltype(S)))
+    for k=1:numpieces(d)
         if in(x,d[k])
             return g[k](x)
         end
     end
+    return 0*first(g)
 end
-function evaluate(v::AbstractVector,S::PiecewiseSpace,x::Vector)
+
+function evaluate(v::AbstractVector,S::PiecewiseSpace,x::AbstractVector)
     f=Fun(v,S)
     [f(xk) for xk in x]
 end
@@ -189,23 +192,35 @@ end
 
 
 ## calculus
-for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace), OP in (:differentiate,:integrate)
-    @eval function $OP{D<:$TYP,T}(f::Fun{D,T})
-        fs=map($OP,vec(f))
-        Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
+for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace)
+    for OP in (:differentiate,:integrate)
+        @eval function $OP{D<:$TYP,T}(f::Fun{D,T})
+            fs=map($OP,vec(f))
+            Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
+        end
+    end
+    for OP in (:(Base.real),:(Base.imag),:(Base.conj))
+        @eval begin
+            $OP{SV,DD,d}(f::Fun{$TYP{SV,RealBasis,DD,d}}) = Fun($OP(f.coefficients),f.space)
+            function $OP{SV,T,DD,d}(f::Fun{$TYP{SV,T,DD,d}})
+                fs=map($OP,vec(f))
+                Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
+            end
+        end
     end
 end
+
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval function Base.cumsum{D<:$TYP,T}(f::Fun{D,T})
-        fs=map(Base.cumsum,vec(f))
+        fs=map(cumsum,vec(f))
         Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
     end
 end
 
 
-for TYP in (:SumSpace,:PiecewiseSpace)
-    @eval Base.sum{V<:$TYP}(f::Fun{V})=mapreduce(sum,+,vec(f))
+for TYP in (:SumSpace,:PiecewiseSpace), OP in (:(Base.sum),:linesum)
+    @eval $OP{V<:$TYP}(f::Fun{V})=mapreduce($OP,+,vec(f))
 end
 
 function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})
@@ -222,8 +237,8 @@ Base.cumsum{V<:PiecewiseSpace}(f::Fun{V},d::Domain)=mapreduce(g->cumsum(g,d),+,p
 
 
 
-dotu{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(dotu,pieces(f),pieces(g)))
-linedotu{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(linedotu,pieces(f),pieces(g)))
+bilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(bilinearform,pieces(f),pieces(g)))
+linebilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) = sum(map(linebilinearform,pieces(f),pieces(g)))
 
 # assume first domain has 1 as a basis element
 
@@ -243,6 +258,8 @@ Base.ones(S::SumSpace)=ones(Float64,S)
 Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V})=depiece(map(ones,S.spaces))
 Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 
+
+identity_fun(S::PiecewiseSpace)=depiece(map(identity_fun,S.spaces))
 
 # vec
 
@@ -289,9 +306,28 @@ Base.vec(S::DirectSumSpace)=S.spaces
 Base.vec{S<:DirectSumSpace}(f::Fun{S})=Fun[f[j] for j=1:length(space(f).spaces)]
 
 pieces{S<:PiecewiseSpace}(f::Fun{S})=vec(f)
-depiece{F<:Fun}(v::Vector{F})=Fun(vec(coefficients(v).'),PiecewiseSpace(map(space,v)))
+function depiece{F<:Fun}(v::Vector{F})
+    spaces=map(space,v)
+    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),PiecewiseSpace(spaces))
+end
+function depiece(v::Tuple)
+    spaces=map(space,v)
+    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),PiecewiseSpace(spaces))
+end
+
 depiece(v::Vector{Any})=depiece([v...])
-depiece(v::Tuple)=Fun(interlace(map(coefficients,v)),PiecewiseSpace(map(space,v)))
+
+
+function detuple{F<:Fun}(v::Vector{F})
+    spaces=map(space,v)
+    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),TupleSpace(spaces))
+end
+function detuple(v::Tuple)
+    spaces=map(space,v)
+    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),TupleSpace(spaces))
+end
+
+detuple(v::Vector{Any})=detuple([v...])
 
 
 

@@ -54,7 +54,7 @@ function MutableOperator{R<:Functional}(bc::Vector{R},S::LowRankPertOperator)
     bndindslength=bndinds[end]-bndinds[1]+1
     br=(bndinds[1]-lbc,bndindslength+dats-1)
 
-    data = bazeros(S.op,shift+100-br[1],:,br)
+    data = bzeros(S.op,shift+100-br[1],:,br)
 
     # do all columns in the row, +1 for the fill
     bcdat=eye(shift,lbc)

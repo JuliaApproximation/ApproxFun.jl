@@ -13,8 +13,15 @@ end
 ConstantSpace(d::Domain)=ConstantSpace{typeof(d)}(d)
 ConstantSpace()=ConstantSpace(AnyDomain())
 
-for OP in (:maxspace_rule,:union_rule)
-    @eval $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
+# we override maxspace instead of maxspace_rule to avoid
+# domainscompatible check.
+for OP in (:maxspace,:(Base.union))
+    @eval begin
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace{AnyDomain})=A
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
+        $OP(A::ConstantSpace,B::ConstantSpace{AnyDomain})=A
+        $OP(A::ConstantSpace,B::ConstantSpace)=ConstantSpace(domain(A) ∪ domain(B))
+    end
 end
 
 Fun(c::Number)=Fun([c],ConstantSpace())
@@ -47,8 +54,8 @@ Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T})=Fu
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
 
 
-
-promoterangespace(P::Functional,::ConstantSpace,::ConstantSpace)=P # functionals always map to vector space
+# functionals always map to Constant space
+promoterangespace(P::Functional,A::ConstantSpace,cur::ConstantSpace)=domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
 
 ## Promotion: Zero operators are the only operators that also make sense as functionals
 promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))
@@ -63,37 +70,65 @@ maxspace_rule(A::ZeroSpace,B::Space)=B
 Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(SpaceOperator(ZeroOperator(),A,B))
 
 
-bandinds{CS<:ConstantSpace,S<:Space}(C::Conversion{CS,S})=1-length(ones(rangespace(C))),0
-function addentries!{CS<:ConstantSpace,S<:Space}(C::Conversion{CS,S},A,kr::Range,::Colon)
+union_rule(A::ConstantSpace,B::Space)=ConstantSpace(domain(B))⊕B
+
+
+## Special Multiplication and Conversion for constantspace
+
+#  TODO: this is a special work around but really we want it to be blocks
+Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2})=ConcreteConversion{typeof(a),typeof(b),
+        promote_type(op_eltype_realdomain(a),eltype(op_eltype_realdomain(b)))}(a,b)
+
+Conversion(a::ConstantSpace,b::Space)=ConcreteConversion(a,b)
+bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-length(ones(rangespace(C))),0
+function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer)
     on=ones(rangespace(C))
-    for k=kr
-        if k≤length(on)
-            A[k,1]+=on.coefficients[k]
-        end
-    end
-    A
+    k ≤ length(on)?T(on.coefficients[k]):zero(T)
 end
 
-bandinds{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T}) = 1-length(D.f),0
-function addentries!{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T},A,kr::Range,::Colon)
+
+# this is identity operator, but we don't use MultiplicationWrapper to avoid
+# ambiguity errors
+
+defaultMultiplication{CS<:ConstantSpace}(f::Fun{CS},b::ConstantSpace) =
+    ConcreteMultiplication(f,b)
+defaultMultiplication{CS<:ConstantSpace}(f::Fun{CS},b::Space) =
+    ConcreteMultiplication(f,b)
+defaultMultiplication(f::Fun,b::ConstantSpace) = ConcreteMultiplication(f,b)
+
+bandinds{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) =
+    0,0
+getindex{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T},k::Integer,j::Integer) =
+    k==j==1?T(D.f.coefficients[1]):one(T)
+
+rangespace{CS1<:ConstantSpace,CS2<:ConstantSpace,T}(D::ConcreteMultiplication{CS1,CS2,T}) =
+    D.space
+
+
+rangespace{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T}) =
+    UnsetSpace()
+bandinds{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T}) =
+    error("No range space attached to Multiplication")
+getindex{F<:ConstantSpace,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
+    error("No range space attached to Multiplication")
+
+
+
+bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = 0,0
+getindex{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T},k::Integer,j::Integer) =
+    k==j?T(D.f):zero(T)
+rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = D.space
+
+
+bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = 1-length(D.f),0
+function getindex{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T},k::Integer,j::Integer)
     Op = Multiplication(D.f,space(D.f))
-    for k=kr
-        if k≤length(D.f)
-            A[k,1]+=Op[k,1]
-        end
-    end
-    A
+    k≤length(D.f) && j==1?T(Op[k,1]):zero(T)
 end
+rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) =
+    rangespace(Multiplication(D.f,space(D.f)))
 
-function addentries!{CS<:ConstantSpace,T}(D::Multiplication{CS,CS,T},A,kr::Range,::Colon)
-    if 1 in kr
-        A[1,1]+=D.f.coefficients[1]
-    end
-    A
-end
 
-rangespace{CS<:ConstantSpace,F<:Space,T}(D::Multiplication{F,CS,T}) = rangespace(Multiplication(D.f,space(D.f)))
-rangespace{CS<:ConstantSpace,T}(D::Multiplication{CS,CS,T}) = ConstantSpaec()
 
 
 ###
@@ -123,15 +158,9 @@ for TYP in (:AnySpace,:UnsetSpace,:Space)
 end
 
 
-function addentries!(FO::FunctionalOperator,A,kr::Range,::Colon)
-    if in(1,kr)
-        dat=FO.func[1:datalength(FO.func)]
-        for j=1:length(dat)
-            A[1,j]+=dat[j]
-        end
-    end
-    A
-end
+getindex(FO::FunctionalOperator,k::Integer,j::Integer) =
+    k==1?FO.func[j]:zero(eltype(FO))
+
 
 function *(f::Fun,A::Functional)
     if datalength(A)<Inf
@@ -154,4 +183,14 @@ end
 
 *(A::BandedOperator,B::Functional)=A*convert(BandedBelowOperator,B)
 
-*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:AbstractMultiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)
+*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)
+
+
+for op = (:*,:.*,:./,:/)
+    @eval $op{CS<:ConstantSpace}(f::Fun,c::Fun{CS}) = f*convert(Number,c)
+end
+
+
+
+## Multivariate case
+union_rule(a::TensorSpace,b::ConstantSpace{AnyDomain})=TensorSpace(map(sp->union(sp,b),a.spaces))

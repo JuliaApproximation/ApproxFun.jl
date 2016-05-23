@@ -48,6 +48,10 @@ Base.union(d1::EmptyDomain,d2::Domain)=d2
 Base.union(d1::Domain,d2::EmptyDomain)=d1
 
 function Base.union(d1::Domain,d2::Domain)
+    if d1==d2
+        return d1
+    end
+
     Γ=d1∩d2
     if isempty(Γ)
         UnionDomain(d1,d2)
@@ -78,6 +82,7 @@ for OP in (:(Base.start),:(Base.done),:(Base.endof),:(Base.getindex),:(Base.leng
     @eval $OP(S::UnionDomain,k...)=$OP(S.domains,k...)
 end
 
+pieces(d::UnionDomain)=[d.domains...]
 numpieces(d::UnionDomain)=length(d.domains)
 
 ==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])

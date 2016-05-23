@@ -6,16 +6,26 @@ Base.sum{DD}(f::Fun{Fourier{DD}})=fouriersum(domain(f),f.coefficients)
 function linesum{DD}(f::Fun{Laurent{DD}})
     d=domain(f)
     if isa(d,Circle)
-        sum(Fun(f.coefficients,S(canonicaldomain(f))))*d.radius
+        sum(setcanonicaldomain(f))*d.radius
     else
         sum(f)
     end
 end
 
-linesum{DD<:Circle}(f::Fun{Fourier{DD}})=sum(Fun(f.coefficients,Fourier(canonicaldomain(f))))*d.radius
+linesum{DD<:Circle}(f::Fun{Fourier{DD}})=sum(setcanonicaldomain(f))*d.radius
 linesum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}})=sum(f) #TODO: Complex periodic interval
 
 
+differentiate{DD<:PeriodicInterval}(f::Fun{Taylor{DD}}) = Fun(im*tocanonicalD(f,0)*taylor_diff(f.coefficients),f.space)
+differentiate{DD<:PeriodicInterval}(f::Fun{Hardy{false,DD}}) = Fun(im*tocanonicalD(f,0)*hardyfalse_diff(f.coefficients),f.space)
+differentiate{DD<:PeriodicInterval}(f::Fun{Laurent{DD}}) = Fun(im*tocanonicalD(f,0)*laurentdiff(f.coefficients),f.space)
+
+differentiate{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) = Fun(tocanonicalD(f,0)*cosspacediff(f.coefficients),SinSpace(domain(f)))
+differentiate{DD<:PeriodicInterval}(f::Fun{SinSpace{DD}}) = Fun(tocanonicalD(f,0)*sinspacediff(f.coefficients),CosSpace(domain(f)))
+differentiate{DD<:PeriodicInterval}(f::Fun{Fourier{DD}}) = Fun(tocanonicalD(f,0)*fourierdiff(f.coefficients),f.space)
+
+differentiate{DD}(f::Fun{Laurent{DD}}) = Derivative(space(f))*f
+differentiate{DD}(f::Fun{Fourier{DD}}) = Derivative(space(f))*f
 
 function integrate{D}(f::Fun{Hardy{false,D}})
     if isa(domain(f),Circle) # drop -1 term if zero and try again
@@ -80,5 +90,38 @@ function fouriersum{T}(d::Circle,cfs::Vector{T})
         2π*im*cfs[2]*d.radius
     else
         im*zero(T)
+    end
+end
+
+
+# O(min(m,n)) Laurent line integral
+
+function linebilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
+    @assert domain(f) == domain(g)
+    u,v,mn = f.coefficients,g.coefficients,min(length(f),length(g))
+    if mn > 1
+        ret = u[1]*v[1]
+        for i=2:2:mn-1
+            ret += u[i]*v[i+1] + u[i+1]*v[i]
+        end
+        return length(domain(f))*ret
+    elseif mn > 0
+        return length(domain(f))*u[1]*v[1]
+    else
+        return zero(T)
+    end
+end
+
+function bilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
+    @assert domain(f) == domain(g)
+    u,v,mn = f.coefficients,g.coefficients,min(length(f),length(g))
+    if mn > 2
+        ret = u[1]*v[2] + u[2]*v[1]
+        for i=3:2:mn-1
+            ret += u[i]*v[i+1] + u[i+1]*v[i]
+        end
+        return complexlength(domain(f))*ret
+    else
+        return zero(T)
     end
 end

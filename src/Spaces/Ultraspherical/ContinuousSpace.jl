@@ -100,73 +100,82 @@ end
 ## Conversion
 
 coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace)=defaultcoefficients(cfsin,A,B)
-bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace})=-1,numpieces(domain(rangespace(C)))
 
-function addentries!{T,DD,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(C::Conversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace,T},A,kr::Range,::Colon)
+
+# We implemnt conversion between continuous space and PiecewiseSpace with Chebyshev dirichlet
+Conversion{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(ps::PiecewiseSpace{CD,RealBasis,DD,1},cs::ContinuousSpace)=
+                ConcreteConversion(ps,cs)
+
+Conversion{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(cs::ContinuousSpace,ps::PiecewiseSpace{CD,RealBasis,DD,1})=
+                ConcreteConversion(cs,ps)
+
+
+bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::ConcreteConversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace})=-1,numpieces(domain(rangespace(C)))
+
+
+function getindex{T,DD,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(C::ConcreteConversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace,T},k::Integer,j::Integer)
     d=domain(rangespace(C))
     K=numpieces(d)
     if isperiodic(d)
-        for k=kr
-            if k==1
-                A[k,1]+=1
-                A[k,K+1]-=1
-            elseif k≤K
-                A[k,k-1]+=1
-                A[k,K+k-1]+=1
-            else #K+1->
-                A[k,k+K]+=1
-            end
+        if k==j==1
+            one(T)
+        elseif k==1 && j==K+1
+            -one(T)
+        elseif 2≤k≤K && (j==k-1 || j==K+k-1)
+            one(T)
+        elseif K<k && j==k+K
+            one(T)
+        else
+            zero(T)
         end
     else
-        for k=kr
-            if k==1
-                A[k,1]+=1
-                A[k,K+1]-=1
-            elseif k≤K+1
-                A[k,k-1]+=1
-                A[k,K+k-1]+=1
-            else #K+1->
-                A[k,k+K-1]+=1
-            end
+        if k==j==1
+            one(T)
+        elseif k==1 && j==K+1
+            -one(T)
+        elseif 2≤k≤K+1 && (j==k-1 || j==K+k-1)
+            one(T)
+        elseif K+1<k && j==k+K-1
+            one(T)
+        else
+            zero(T)
         end
     end
-    A
 end
 
-bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{ContinuousSpace,PiecewiseSpace{CD,RealBasis,DD,1}})=isperiodic(domainspace(C))?(1-2numpieces(domain(rangespace(C))),1):(-numpieces(domain(rangespace(C))),1)
-function addentries!{T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::Conversion{ContinuousSpace,PiecewiseSpace{CD,RealBasis,DD,1},T},A,kr::Range,::Colon)
+
+bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::ConcreteConversion{ContinuousSpace,PiecewiseSpace{CD,RealBasis,DD,1}})=isperiodic(domainspace(C))?(1-2numpieces(domain(rangespace(C))),1):(-numpieces(domain(rangespace(C))),1)
+
+function getindex{T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD}(C::ConcreteConversion{ContinuousSpace,PiecewiseSpace{CD,RealBasis,DD,1},T},k::Integer,j::Integer)
     d=domain(domainspace(C))
     K=numpieces(d)
     if isperiodic(d)
-        for k=kr
-            if k<K
-                A[k,k]+=0.5
-                A[k,k+1]+=0.5
-            elseif k==K
-                A[k,k]+=0.5
-                A[k,1]+=0.5
-            elseif K+1≤k<2K
-                A[k,k-K]+=-0.5
-                A[k,k-K+1]+=0.5
-            elseif k==2K
-                A[k,k-K]+=-0.5
-                A[k,1]+=0.5
-            else #K+1->
-                A[k,k-K]+=1
-            end
+        if k < K && (j==k || j==k+1)
+            one(T)/2
+        elseif k==K && (j==K || j==1)
+            one(T)/2
+        elseif K+1≤k≤2K && j==k-K
+            -one(T)/2
+        elseif K+1≤k<2K && j==k-K+1
+            one(T)/2
+        elseif k==2K && j==1
+            one(T)/2
+        elseif k>2K && j==k-K
+            one(T)
+        else
+            zero(T)
         end
     else
-        for k=kr
-            if k≤K
-                A[k,k]+=0.5
-                A[k,k+1]+=0.5
-            elseif K+1≤k≤2K
-                A[k,k-K]+=-0.5
-                A[k,k-K+1]+=0.5
-            else #K+1->
-                A[k,k-K+1]+=1
-            end
+        if k≤K && (j==k || j==k+1)
+            one(T)/2
+        elseif K+1≤k≤2K && j==k-K
+            -one(T)/2
+        elseif K+1≤k≤2K && j==k-K+1
+            one(T)/2
+        elseif k>2K && j==k-K+1
+            one(T)
+        else
+            zero(T)
         end
     end
-    A
 end

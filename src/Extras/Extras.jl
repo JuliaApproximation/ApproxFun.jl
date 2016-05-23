@@ -12,30 +12,7 @@ include("fftGeneric.jl")
 digits(n::Int) = set_bigfloat_precision(round(Int,ceil(n*log2(10))))
 digits() = round(Int,floor(get_bigfloat_precision()*log10(2)))
 
-function pochhammer{T<:Number}(x::T,n::Integer)
-    ret = one(T)
-    if n>=0
-        for i=0:n-1
-            ret *= x+i
-        end
-    else
-        ret /= pochhammer(x+n,-n)
-    end
-    ret
-end
-function pochhammer{T<:Number}(x::Array{T},n::Integer)
-    ret = ones(T,size(x))
-    if n>=0
-        for i=0:n-1
-            ret .*= x+i
-        end
-    else
-        ret ./= pochhammer(x+n,-n)
-    end
-    ret
-end
-pochhammer{T1<:Number,T2<:Number}(x::T1,n::T2) = gamma(x+n)/gamma(x)
-pochhammer{T1<:Number,T2<:Number}(x::Array{T1},n::T2) = gamma(x+n)./gamma(x)
+import FastTransforms: pochhammer
 
 include("show.jl")
 include("poetry.jl")
@@ -49,6 +26,11 @@ include("simplify.jl")
 
 include("eigs.jl")
 include("hacks.jl")
+include("fastops.jl")
 
 include("autodifferentiation.jl")
 include("fractional.jl")
+
+
+include("dualnumbers.jl")
+include("lanczos.jl")

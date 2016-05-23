@@ -57,14 +57,13 @@ for ν in (1.,.123,2.,3.5)
     D=Derivative(S)
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
-    u=[rdirichlet(S);rneumann(S);L]\[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.))]
-    @test_approx_eq_eps u(.1) bessely(ν,.1) eps(10000.)*max(abs(u(.1)),1)
-    u=[rdirichlet(S),rneumann(S),L]\[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.))]
-    @test_approx_eq_eps u(.1) besselj(ν,.1) eps(10000.)*max(abs(u(.1)),1)
+    u=linsolve([rdirichlet(S);rneumann(S);L],[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.))];
+                tolerance=1E-12)
+    @test_approx_eq_eps u(.1) bessely(ν,.1) eps(100000.)*max(abs(u(.1)),1)
+    u=linsolve([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.))];
+                tolerance=1E-12)
+    @test_approx_eq_eps u(.1) besselj(ν,.1) eps(100000.)*max(abs(u(.1)),1)
 end
-
-
-
 
 
 
@@ -91,9 +90,9 @@ g=1/f
 
 
 
-
-
 ## Ray
+
+@test Inf in Ray()   # this was a bug
 
 f=Fun(x->exp(-x),[0,Inf])
 @test_approx_eq f'(.1) -f(.1)
@@ -216,3 +215,39 @@ w+δ
 x=Fun(identity,[-1,1.])
 @test_approx_eq (1/x^2)(0.1) 100.
 @test_approx_eq (1/x^2)(-0.1) 100.
+
+fc=x*(1+x)^2
+@test_approx_eq (1/fc)(0.1) 1/fc(0.1)
+
+fc=x*(1-x)^2
+@test_approx_eq (1/fc)(0.1) 1/fc(0.1)
+
+## erf(sqrt(x))
+
+x=Fun([0.,1.])
+@test_approx_eq erf(sqrt(x))(0.1) erf(sqrt(0.1))
+@test_approx_eq erfc(sqrt(x))(0.1) erfc(sqrt(0.1))
+
+
+## norm(u-x)
+
+@test_approx_eq norm(Fun(exp,Legendre([0,1]))+sqrt(x)) 2.491141949903508
+
+
+
+## Test Jacobi special conversions
+
+
+
+S1,S2=JacobiWeight(3.,1.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(1.,0.))
+f=Fun([1,2,3.],S1)
+C=Conversion(S1,S2)
+Cf=C*f
+@test_approx_eq Cf(0.1) f(0.1)
+
+
+S1,S2=JacobiWeight(3.,2.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(0.,0.))
+f=Fun([1,2,3.],S1)
+C=Conversion(S1,S2)
+Cf=C*f
+@test_approx_eq Cf(0.1) f(0.1)

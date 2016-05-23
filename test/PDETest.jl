@@ -20,7 +20,7 @@ u=A\G
 
 A=[dirichlet(d);lap(d)+0.0I]
 u=A\G
-@test_approx_eq u(.1,.2) real(exp(.1+.2im))
+@test_approx_eq_eps u(.1,.2) real(exp(.1+.2im)) 1E-11
 
 
 ## Poisson
@@ -92,6 +92,57 @@ if OS_NAME==:Darwin
     uD=KD\G;
 
     @test_approx_eq uD(.1,.2) real(exp(.1+.2im))
+
+
+
+    # fourth order
+    dx=dy=Interval()
+    d=dx*dy
+    Dx=Derivative(dx);Dy=Derivative(dy)
+    L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
+
+    K=kronfact([dirichlet(d);
+         neumann(d);
+         L],100,100)
+
+    x=Fun(identity,dx);y=Fun(identity,dy)
+
+    G=[real(exp(-1+1.im*y));
+                    real(exp(1+1im*y));
+                    real(exp(x-1im));
+                    real(exp(x+1im));
+                    real(exp(-1+1.im*y));
+                    real(exp(1+1im*y));
+                    -imag(exp(x-1im));
+                    -imag(exp(x+1im))
+       ]
+    u=K\G
+    @test_approx_eq u(.1,.2) real(exp(.1+.2im))
+
+
+    # mixed
+
+    K=kronfact([(ldirichlet(dx)+lneumann(dx))⊗I;
+            (rdirichlet(dx)+rneumann(dx))⊗I;
+            I⊗(ldirichlet(dy)+lneumann(dy));
+            I⊗(rdirichlet(dy)+rneumann(dy));
+            (ldirichlet(dx)-lneumann(dx))⊗I;
+            (rdirichlet(dx)-rneumann(dx))⊗I;
+            I⊗(ldirichlet(dy)-lneumann(dy));
+            I⊗(rdirichlet(dy)-rneumann(dy));
+             L],100,100)
+    G=[2real(exp(-1+1.im*y));
+                    2real(exp(1+1im*y));
+                    real(exp(x-1im))-imag(exp(x-1im));
+                    real(exp(x+1im))-imag(exp(x+1im));
+                    0;
+                    0;
+                    real(exp(x-1im))+imag(exp(x-1im));
+                    real(exp(x+1im))+imag(exp(x+1im))
+       ]
+    u=K\G
+
+    @test_approx_eq u(.1,.2) real(exp(.1+.2im))
 end
 
 
@@ -108,7 +159,7 @@ u=[dirichlet(d);lap(d)]\g
 
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dθ*dt
-Dθ=Derivative(d,1);Dt=Derivative(d,2)
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
 
@@ -121,12 +172,14 @@ u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
 
 d=Interval(0,1)^2
-A=discretize([dirichlet(d);lap(d)],20)
+n,m=20,80
+A=discretize([dirichlet(d);lap(d)],n)
 ∂d=∂(d)
 g=Fun(z->real(exp(z)),∂d)
-f=[Fun([zeros(k-1);1.0],∂d) for k=1:80].'
+f=[Fun([zeros(k-1);1.0],∂d) for k=1:m].'
 U=A\f
 @test_approx_eq dot(real(g.coefficients),U[1:length(g)])(.1,.2) real(exp(.1+.2im))
+
 
 
 Rectangle(a,b,c,d)=Interval(a,b)*Interval(c,d)
@@ -139,7 +192,7 @@ Fun(identity,∂(Γ))|>values
 
 dx=Interval();dt=Interval(0,1.)
 d=dx*dt
-Dx=Derivative(d,1);Dt=Derivative(d,2)
+Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x=Fun(identity,dx)
 B=0.0
 C=0.0
@@ -164,7 +217,7 @@ d=dx*dt
 
 V=Fun(x->x^2,dx)
 
-Dt=Derivative(d,2);Dx=Derivative(d,1)
+Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 
 ϵ=1.
 u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
@@ -192,10 +245,12 @@ u=[dirichlet(d);lap(d)]\g
 
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dθ*dt
-Dθ=Derivative(d,1);Dt=Derivative(d,2)
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
-A=[ldirichlet(dt)⊗I;(Dt+Dθ).']
+d=dt*dθ
+Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
+A=[ldirichlet(dt)⊗I;Dt+Dθ]
 f=Fun(θ->exp(-20θ^2),dθ)
 ut=A\f
 
@@ -208,7 +263,7 @@ ut=A\f
 
 dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.03)
 d=dθ*dt
-Dθ=Derivative(d,1);Dt=Derivative(d,2);
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
 
 B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
 u=pdesolve([B;Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)
@@ -234,3 +289,16 @@ Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
 u=pdesolve([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],Any[Fun(x->exp(-20(x+0.5)^2),s)],200)
 @test_approx_eq_eps u(-.1,.2) exp(-20(-.2-.1+0.5)^2) 0.00001
+
+
+
+## Test error
+
+
+dx=Interval();dt=Interval(0,2.)
+d=dx*dt
+Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
+x=Fun(identity,dx)
+u=[I⊗ldirichlet(dt);Dt+x*Dx]\Fun(x->exp(-20x^2),dx)
+
+@test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical

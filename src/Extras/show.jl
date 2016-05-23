@@ -3,7 +3,7 @@
 Base.show(io::IO,d::Interval)=print(io,"【$(d.a),$(d.b)】")
 function Base.show(io::IO,d::Line)
     if d.center == angle(d) == 0 && d.α == d.β == -1.
-        print(io,"❪-∞,∞❫")
+        print(io,"ℝ")
     elseif  d.α == d.β == -1.
         print(io,"Line($(d.center),$(angle(d)))")
     else
@@ -42,6 +42,8 @@ end
 
 ## Spaces
 
+Base.show(io::IO,::AnySpace)=print(io,"AnySpace")
+
 Base.show(io::IO,::ConstantSpace{AnyDomain})=print(io,"ConstantSpace")
 Base.show(io::IO,S::ConstantSpace)=print(io,"ConstantSpace($(domain(S)))")
 
@@ -62,7 +64,7 @@ function Base.show{λ,D}(io::IO,S::Ultraspherical{λ,D})
 end
 
 function Base.show(io::IO,S::Jacobi)
-    print(io,"Jacobi($(S.a),$(S.b),")
+    S.a == S.b == 0 ? print(io,"Legendre(") : print(io,"Jacobi($(S.a),$(S.b),")
     show(io,domain(S))
     print(io,")")
 end
@@ -168,5 +170,93 @@ function Base.show(io::IO,L::LowRankFun)
 end
 
 function Base.show(io::IO,P::ProductFun)
-    print(io,"ProductFun on ",space(P))
+    print(io,"ProductFun on ",space(P),".")
+end
+
+
+
+## Operator
+
+Base.summary(B::Operator)=string(typeof(B).name.name)*":"*string(domainspace(B))*"↦"*string(rangespace(B))
+
+
+function Base.show(io::IO,B::BandedOperator;header::Bool=true)
+    header && println(io,summary(B))
+
+    if !isa(domainspace(B),UnsetSpace)
+        BM=B[1:10,1:10]
+
+        M=Array(Any,11,11)
+        fill!(M,PrintShow(""))
+        for (k,j)=eachbandedindex(BM)
+            M[k,j]=BM[k,j]
+        end
+
+        for k=max(1,11-bandinds(B,2)):11
+            M[k,end]=PrintShow("⋱")
+        end
+        for j=max(1,11+bandinds(B,1)):10
+            M[end,j]=PrintShow("⋱")
+        end
+
+        Base.showarray(io,M;header=false)
+    end
+end
+
+function Base.show(io::IO,F::Functional;header::Bool=true)
+    header && println(io,summary(F))
+    if !isa(domainspace(F),UnsetSpace)
+        V=Array{Any}(1,11)
+        copy!(V,F[1:10])
+        V[end]=PrintShow("⋯")
+
+        Base.showarray(io,V;header=false)
+    end
+end
+
+function Base.writemime{T<:Functional}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
+    n = length(A)
+    header && for k=1:n println(io,summary(A[k])) end
+    M=Array{Any}(n,11)
+    for k=1:n
+        M[k,1:10] = A[k][1:10]
+        M[k,end]=PrintShow("⋯")
+    end
+    Base.with_output_limit(()->Base.print_matrix(io, M))
+end
+
+function Base.writemime{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
+    nf = length(A)-1
+    if all(Ak -> isa(Ak,Functional), A[1:nf]) && isa(A[end],BandedOperator)
+        header && for k=1:nf+1 println(io,summary(A[k])) end
+        M=Array{Any}(11,11)
+        fill!(M,PrintShow(""))
+        for k=1:nf
+            M[k,1:10] = A[k][1:10]
+            M[k,end]=PrintShow("⋯")
+        end
+
+        MM=Array{Any}(11-nf,11)
+        fill!(MM,PrintShow(""))
+
+        B = A[end]
+        BM=B[1:10-nf,1:10]
+
+        for (k,j)=eachbandedindex(BM)
+            MM[k,j]=BM[k,j]
+        end
+
+        for k=1+nf:10,j=1:10
+            M[k,j] = MM[k-nf,j]
+        end
+
+        for k=max(1,11-bandinds(B,2)+nf):11
+            M[k,end]=PrintShow("⋱")
+        end
+        for j=max(1,11+bandinds(B,1)-nf):10
+            M[end,j]=PrintShow("⋱")
+        end
+
+        Base.with_output_limit(()->Base.print_matrix(io, M))
+    end
 end

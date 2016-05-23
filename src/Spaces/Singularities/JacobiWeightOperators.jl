@@ -39,7 +39,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
                 return 0.5*$Len(d)*dotu(f.coefficients,c)
             end
         end
-        $Func{PS<:PolynomialSpace,DD}(f::Fun{JacobiWeight{PS,DD}})=$Func(Fun(f,
+        $Func{PS<:PolynomialSpace,DD}(f::Fun{JacobiWeight{PS,DD}}) = $Func(Fun(f,
                                                                        JacobiWeight(space(f).α,
                                                                                     space(f).β,
                                                                                     Chebyshev(domain(f)))))
@@ -143,35 +143,43 @@ end
 ## Operators
 
 
-function Derivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
+function jacobiweightDerivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
     d=domain(S)
+
+    if d!=Interval()
+        # map to canonical
+        Mp=fromcanonicalD(d,d.a)
+        DD=jacobiweightDerivative(setdomain(S,Interval()))
+
+        return DerivativeWrapper(SpaceOperator(DD.op.op,S,setdomain(rangespace(DD),d))/Mp,1)
+    end
+
 
     if S.α==S.β==0
         DerivativeWrapper(SpaceOperator(Derivative(S.space),S,JacobiWeight(0.,0.,rangespace(Derivative(S.space)))),1)
     elseif S.α==0
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeight but doesn't need to
-        DD=(-Mp*S.β) +(1-M)*Derivative(S.space)
+        w=Fun([1.],JacobiWeight(0,1,ConstantSpace(d)))
+
+        DD=-S.β + w*Derivative(S.space)
         rs=S.β==1?rangespace(DD):JacobiWeight(0.,S.β-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     elseif S.β==0
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeight but doesn't need to
-        DD=(Mp*S.α) +(1+M)*Derivative(S.space)
+        w=Fun([1.],JacobiWeight(1,0,ConstantSpace(d)))
+
+        DD=S.α + w*Derivative(S.space)
         rs=S.α==1?rangespace(DD):JacobiWeight(S.α-1,0.,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     else
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        Mp=isa(d,Interval)?tocanonicalD(d,d.a):Fun(tocanonicalD(d,x),S.space) #TODO hack for Ray, which returns JacobiWeight but doesn't need to
-        DD=(Mp*S.α)*(1-M) - (Mp*S.β)*(1+M) +(1-M.^2)*Derivative(S.space)
+        w=Fun([1.],JacobiWeight(1,1,ConstantSpace(d)))
+        x=Fun()
+        
+        DD=S.α*(1-x) - S.β*(1+x) + w*Derivative(S.space)
         rs=S.α==1&&s.β==1?rangespace(DD):JacobiWeight(S.α-1,S.β-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     end
-
 end
+
+Derivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})=jacobiweightDerivative(S)
 
 function Derivative{SS,DD<:Interval}(S::JacobiWeight{SS,DD},k::Integer)
     if k==1
@@ -191,7 +199,11 @@ end
 
 function Multiplication{S1,S2,DD<:IntervalDomain,T}(f::Fun{JacobiWeight{S1,DD},T},S::JacobiWeight{S2,DD})
     M=Multiplication(Fun(f.coefficients,space(f).space),S.space)
-    rsp=canonicalspace(JacobiWeight(space(f).α+S.α,space(f).β+S.β,rangespace(M)))
+    if space(f).α+S.α==space(f).β+S.β==0
+        rsp=rangespace(M)
+    else
+        rsp=JacobiWeight(space(f).α+S.α,space(f).β+S.β,rangespace(M))
+    end
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
@@ -201,7 +213,7 @@ function Multiplication{D,T,SS,DD<:IntervalDomain}(f::Fun{D,T},S::JacobiWeight{S
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
-function Multiplication{SS,T,V,ID<:IntervalDomain}(f::Fun{JacobiWeight{SS,ID},T},S::Space{V,ID})
+function Multiplication{SS,T,ID<:IntervalDomain}(f::Fun{JacobiWeight{SS,ID},T},S::PolynomialSpace{ID})
     M=Multiplication(Fun(f.coefficients,space(f).space),S)
     rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
@@ -249,13 +261,15 @@ for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
 end
 
 
-hasconversion{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D})=isapproxinteger(A.α-B.α) &&
-    isapproxinteger(A.β-B.β) && A.α ≥ B.α && A.β ≥ B.β && hasconversion(A.space,B.space)
+for FUNC in (:hasconversion,:isconvertible)
+    @eval begin
+        $FUNC{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D})=isapproxinteger(A.α-B.α) &&
+            isapproxinteger(A.β-B.β) && A.α ≥ B.α && A.β ≥ B.β && $FUNC(A.space,B.space)
 
-
-hasconversion{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::Space{T,D})=hasconversion(A,JacobiWeight(0.,0.,B))
-hasconversion{T,S,D<:IntervalDomain}(B::Space{T,D},A::JacobiWeight{S,D})=hasconversion(JacobiWeight(0.,0.,B),A)
-
+        $FUNC{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::Space{T,D})=$FUNC(A,JacobiWeight(0.,0.,B))
+        $FUNC{T,S,D<:IntervalDomain}(B::Space{T,D},A::JacobiWeight{S,D})=$FUNC(JacobiWeight(0.,0.,B),A)
+    end
+end
 
 
 # return the space that has banded Conversion to the other, or NoSpace
@@ -272,41 +286,41 @@ end
 conversion_rule{T,D<:IntervalDomain}(A::JacobiWeight,B::UnivariateSpace{T,D})=conversion_type(A,JacobiWeight(0,0,B))
 
 
-
-function Conversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B::JacobiWeight{JS2,DD})
+# override defaultConversion instead of Conversion to avoid ambiguity errors
+function defaultConversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B::JacobiWeight{JS2,DD})
     @assert isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
 
     if isapprox(A.α,B.α) && isapprox(A.β,B.β)
         ConversionWrapper(SpaceOperator(Conversion(A.space,B.space),A,B))
-    elseif A.space==B.space
-        @assert A.α≥B.α&&A.β≥B.β
-        d=domain(A)
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        m=(1+M).^round(Int,A.α-B.α).*(1-M).^round(Int,A.β-B.β)
-        MC=Multiplication(m,B.space)
-        # The following is just a safety check
-        @assert rangespace(MC) == B.space
-        ConversionWrapper(SpaceOperator(MC,A,B))# Wrap the operator with the correct spaces
     else
         @assert A.α≥B.α&&A.β≥B.β
+        # first check if a multiplication by JacobiWeight times B.space is overloaded
+        # this is currently designed for Jacobi multiplied by (1-x), etc.
+        αdif,βdif=round(Int,A.α-B.α),round(Int,A.β-B.β)
         d=domain(A)
-        x=Fun(identity,d)
-        M=tocanonical(d,x)
-        C=Conversion(A.space,B.space)
-        m=(1+M).^round(Int,A.α-B.α).*(1-M).^round(Int,A.β-B.β)
-        MC=TimesOperator(Multiplication(m,B.space),C)
-        # The following is just a safety check
-        @assert rangespace(MC) == B.space
-        ConversionWrapper(SpaceOperator(MC,A,B))
+        M=Multiplication(jacobiweight(αdif,βdif,d),
+                         A.space)
+
+        if rangespace(M)==JacobiWeight(αdif,βdif,A.space)
+            # M is the default, so we should use multiplication by polynomials instead
+            x=Fun(identity,d)
+            y=mobius(d,x)   # we use mobius instead of tocanonical so that it works for Funs
+            m=(1+y).^αdif.*(1-y).^βdif
+            MC=promoterangespace(Multiplication(m,A.space),B.space)
+
+            ConversionWrapper(SpaceOperator(MC,A,B))# Wrap the operator with the correct spaces
+        else
+            ConversionWrapper(SpaceOperator(promoterangespace(M,B.space),
+                                            A,B))
+        end
     end
 end
 
-Conversion{JS,D<:IntervalDomain}(A::RealUnivariateSpace{D},B::JacobiWeight{JS,D})=ConversionWrapper(
+defaultConversion{JS,D<:IntervalDomain}(A::RealUnivariateSpace{D},B::JacobiWeight{JS,D})=ConversionWrapper(
     SpaceOperator(
         Conversion(JacobiWeight(0,0,A),B),
         A,B))
-Conversion{JS,D<:IntervalDomain}(A::JacobiWeight{JS,D},B::RealUnivariateSpace{D})=ConversionWrapper(
+defaultConversion{JS,D<:IntervalDomain}(A::JacobiWeight{JS,D},B::RealUnivariateSpace{D})=ConversionWrapper(
     SpaceOperator(
         Conversion(A,JacobiWeight(0,0,B)),
         A,B))
@@ -357,6 +371,18 @@ end
 
 for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:length))
     @eval begin
+
+        function getindex{λ,D<:Interval,T}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D},D},T},k::Integer)
+            dsp = domainspace(Σ)
+            d = domain(Σ)
+            C = $Len(d)/2
+
+            if dsp.α==dsp.β==λ-0.5
+                k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T)
+            else
+                sum(Fun([zeros(k-1);1],dsp))
+            end
+        end
 
         function getindex{λ,D<:Interval,T}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D},D},T},kr::Range)
             dsp = domainspace(Σ)

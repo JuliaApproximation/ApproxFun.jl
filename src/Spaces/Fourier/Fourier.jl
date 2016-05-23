@@ -15,6 +15,7 @@ for T in (:CosSpace,:SinSpace)
         spacescompatible(a::$T,b::$T)=domainscompatible(a,b)
         hasfasttransform(::$T)=true
         canonicalspace(S::$T)=Fourier(domain(S))
+        setdomain(S::$T,d::Domain)=$T(d)
     end
 end
 # s == true means analytic inside, taylor series
@@ -47,30 +48,30 @@ hasfasttransform(::Hardy)=true
 # The <: Domain is crucial for matching Base.call overrides
 typealias Taylor{D<:Domain} Hardy{true,D}
 
-plan_transform(::Taylor,x::Vector)=wrap_fft_plan(plan_fft(x))
-plan_itransform(::Taylor,x::Vector)=wrap_fft_plan(plan_ifft(x))
-transform(::Taylor,vals::Vector,plan)=alternatesign!(plan(vals)/length(vals))
-itransform(::Taylor,cfs::Vector,plan)=plan(alternatesign!(cfs))*length(cfs)
+plan_transform(::Taylor,x::Vector)=plan_fft(x)
+plan_itransform(::Taylor,x::Vector)=plan_ifft(x)
+transform(::Taylor,vals::Vector,plan)=alternatesign!(plan*vals/length(vals))
+itransform(::Taylor,cfs::Vector,plan)=plan*alternatesign!(cfs)*length(cfs)
 
-plan_transform(::Hardy{false},x::Vector)=wrap_fft_plan(plan_fft(x))
-plan_itransform(::Hardy{false},x::Vector)=wrap_fft_plan(plan_ifft(x))
-transform(::Hardy{false},vals::Vector,plan)=-alternatesign!(flipdim(plan(vals),1)/length(vals))
-itransform(::Hardy{false},cfs::Vector,plan)=plan(flipdim(alternatesign!(-cfs),1))*length(cfs)
+plan_transform(::Hardy{false},x::Vector)=plan_fft(x)
+plan_itransform(::Hardy{false},x::Vector)=plan_ifft(x)
+transform(::Hardy{false},vals::Vector,plan)=-alternatesign!(flipdim(plan*vals,1)/length(vals))
+itransform(::Hardy{false},cfs::Vector,plan)=plan*flipdim(alternatesign!(-cfs),1)*length(cfs)
 
 evaluate{D<:Domain}(f::AbstractVector,S::Taylor{D},z) = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
 function evaluate{D<:Circle}(f::AbstractVector,S::Taylor{D},z)
+    z=mappoint(S,𝕌,z)
     d=domain(S)
-    horner(f,(z-d.center)/d.radius)
+    horner(f,z)
 end
 
 function evaluate{D<:Domain}(f::AbstractVector,S::Hardy{false,D},z)
-    z=fromcanonical(Circle(),tocanonical(S,z))
+    z=mappoint(S,𝕌,z)
     z=1./z
     z.*horner(f,z)
 end
 function evaluate{D<:Circle}(f::AbstractVector,S::Hardy{false,D},z)
-    d=domain(S)
-    z=(z-d.center)/d.radius
+    z=mappoint(S,𝕌,z)
     z=1./z
     z.*horner(f,z)
 end
@@ -124,10 +125,16 @@ evaluate(f::Vector,S::CosSpace,t)=clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
-plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.plan_r2r(x,FFTW.RODFT00))
-plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=wrap_fft_plan(FFTW.plan_r2r(x,FFTW.RODFT00))
-transform(::SinSpace,vals,plan)=plan(vals)/(length(vals)+1)
-itransform(::SinSpace,cfs,plan)=plan(cfs)/2
+plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+
+plan_transform{D}(::SinSpace{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
+plan_itransform{D}(::SinSpace{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
+
+
+
+transform(::SinSpace,vals,plan)=plan*vals/(length(vals)+1)
+itransform(::SinSpace,cfs,plan)=plan*cfs/2
 evaluate(f::AbstractVector,S::SinSpace,t)=sineshaw(f,tocanonical(S,t))
 
 
@@ -149,6 +156,19 @@ function evaluate{DD}(f::AbstractVector,S::Laurent{DD},z)
     horner(f,1:2:length(f),z) + horner(f,2:2:length(f),invz).*invz
 end
 
+
+function Base.conj{DD}(f::Fun{Laurent{DD}})
+    cfs=Array(eltype(f),iseven(length(f))?length(f)+1:length(f))
+    cfs[1]=conj(f.coefficients[1])
+    for k=2:2:length(f)-1
+        cfs[k]=conj(f.coefficients[k+1])
+    end
+    for k=3:2:length(f)
+        cfs[k]=conj(f.coefficients[k-1])
+    end
+    Fun(cfs,space(f))
+end
+
 ## Fourier space
 
 typealias Fourier{DD} SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
@@ -157,7 +177,7 @@ for TYP in (:Laurent,:Fourier)
     @eval begin
         Base.call(::Type{$TYP},d::Domain)=$TYP{typeof(d)}(d)
         Base.call(::Type{$TYP})=$TYP(PeriodicInterval())
-        Base.call{T<:Number}(::Type{$TYP},d::Vector{T})=Fourier(PeriodicInterval(d))
+        Base.call{T<:Number}(::Type{$TYP},d::Vector{T})=Fourier(PeriodicDomain(d))
 
         hasfasttransform{D}(::$TYP{D})=true
     end
@@ -172,12 +192,15 @@ for T in (:CosSpace,:SinSpace)
 end
 
 points{D}(sp::Fourier{D},n)=points(domain(sp),n)
-plan_transform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.R2HC))
-plan_itransform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = wrap_fft_plan(FFTW.plan_r2r(x, FFTW.HC2R))
+plan_transform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = FFTW.plan_r2r(x, FFTW.R2HC)
+plan_itransform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = FFTW.plan_r2r(x, FFTW.HC2R)
+
+plan_transform{D}(::Fourier{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
+plan_itransform{D}(::Fourier{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
 
 function transform{T<:Number,D}(::Fourier{D},vals::Vector{T},plan)
     n=length(vals)
-    cfs=2plan(vals)/n
+    cfs=2plan*vals/n
     cfs[1]/=2
     if iseven(n)
         cfs[div(n,2)+1]/=2
@@ -205,7 +228,7 @@ function itransform{T<:Number,D}(::Fourier{D},a::Vector{T},plan)
         cfs[div(n,2)+1]*=2
     end
     cfs[1]*=2
-    plan(cfs)/2
+    plan*cfs/2
 end
 
 function fouriermodalt!(cfs)
@@ -244,6 +267,7 @@ end
 
 canonicalspace{DD<:PeriodicInterval}(S::Laurent{DD})=Fourier(domain(S))
 canonicalspace{DD<:Circle}(S::Fourier{DD})=Laurent(domain(S))
+canonicalspace{DD<:PeriodicLine}(S::Laurent{DD})=S
 
 for TYP in (:CosSpace,:Taylor)
     @eval union_rule(A::ConstantSpace,B::$TYP)=B

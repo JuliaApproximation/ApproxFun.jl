@@ -1,9 +1,6 @@
 export domainplot, coefficientplot, complexplot
 
 
-if isdir(Pkg.dir("PyPlot"))
-    include("PyPlot.jl")
-end
 
 if isdir(Pkg.dir("TikzGraphs"))
     include("introspect.jl")
@@ -33,12 +30,12 @@ Plots.plot!{F<:Fun}(x::AbstractVector,v::AbstractVector{F};kwds...)=plot!(curren
 
 
 function plotptsvals(f::Fun)
-    if dimension(space(f)) == Inf
+    if isinf(dimension(space(f)))
         f=pad(f,3length(f)+50)
     else
         f=pad(f,dimension(space(f)))
     end
-    points(f),values(f)
+    return points(f),values(f)
 end
 Plots.plot!{S,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)=
                 plot!(plt,plotptsvals(f)...;kwds...)
@@ -48,16 +45,16 @@ Plots.plot!{S,T<:Real}(plt::Plots.Plot,x::AbstractVector{T},f::Fun{S,T};kwds...)
 
 
 
-function Plots.plot!{F<:Union{Fun,Domain}}(plt::Plots.Plot,v::AbstractVector{F};label=Void)
+function Plots.plot!{F<:Union{Fun,Domain}}(plt::Plots.Plot,v::AbstractVector{F};label=Void,kwds...)
     if label == Void
         for k=1:length(v)
-            plot!(plt,v[k])
+            plot!(plt,v[k];kwds...)
         end
     else
         @assert length(label)==length(v)
 
         for k=1:length(v)
-            plot!(plt,v[k];label=label[k])
+            plot!(plt,v[k];label=label[k],kwds...)
         end
     end
     plt
@@ -128,7 +125,19 @@ function plotptsvals{S<:JacobiWeight}(f::Fun{S})
     pts,vals
 end
 
-
+# TODO Fourier and Laurent spaces
+# function plotptsvals{S<:Per}(f::Fun)
+#     if dimension(space(f)) == Inf
+#         f=pad(f,3length(f)+50)
+#     else
+#         f=pad(f,dimension(space(f)))
+#     end
+#     if length(domain(f)) < Inf
+#         return points(f),values(f)
+#     else
+#         return points(f)[2:end],values(f)[2:end] # A hack for Fourier
+#     end
+# end
 
 for (plt,TYP) in ((:(Plots.plot),:Real),(:(Plots.plot!),:Real),(:complexplot,:Complex),(:complexplot!,:Complex))
     @eval $plt{S<:Union{ArraySpace,TupleSpace},T<:$TYP}(f::Fun{S,T};opts...)=$plt(vec(f);opts...)
@@ -158,7 +167,7 @@ function Plots.plot!{S<:PiecewiseSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};labe
     plt
 end
 
-
+# For dirac space, we draw a dotted line extending to infinity
 function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
     pts=space(f).points
     n=length(pts)
@@ -167,6 +176,16 @@ function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
     c=plt.plotargs[:color_palette][plt.n]
     plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
     plot!(plt,ones(2)*pts',[1,2]*ws';color=c,linestyle=:dot,kwds...)
+end
+
+# for PointSpace, we draw just a line
+function Plots.plot!{S<:PointSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
+    pts=space(f).points
+    n=length(pts)
+    ws=pad(f.coefficients,length(pts))
+    plt=plot!(plt,ones(2)*pts[1],[0,1]*ws[1];kwds...)
+    c=plt.plotargs[:color_palette][plt.n]
+    plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
 end
 
 function Plots.plot!{S<:HeavisideSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
@@ -201,18 +220,40 @@ coefficientplot!(plt::Plots.Plot,f::Fun;opts...)=plot!(plt,abs(f.coefficients);y
 
 ## Multivariate
 
-function Plots.plot!(plt::Plots.Plot,f::MultivariateFun;linetype=:contour,opts...)
+function Plots.plot!{S,V,SV<:TensorSpace}(plt::Plots.Plot,f::ProductFun{S,V,SV};linetype=:contour,opts...)
     f=chop(f,10e-10)
     f=pad(f,max(size(f,1),20),max(size(f,2),20))
     vals=values(f)
-    if norm(imag(vals))>10e-9
+    if norm(imag(vals),Inf)>10e-9
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
 
     plot!(plt,points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);linetype=linetype,opts...)
 end
 
-contour(f::Union{Fun,MultivariateFun};kwds...)=plot(f;linetype=:contour,kwds...)
+function Plots.surface{S<:UnivariateSpace,
+                       V<:UnivariateSpace,
+                       SV<:TensorSpace}(f::ProductFun{S,V,SV};opts...)
+    f=chop(f,10e-10)
+    f=pad(f,max(size(f,1),20),max(size(f,2),20))
+    vals=values(f)
+    if norm(imag(vals),Inf)>10e-9
+        warn("Imaginary part is non-neglible.  Only plotting real part.")
+    end
+
+    surface(points(space(f,1),size(vals,1)),points(space(f,2),size(vals,2)),real(vals);opts...)
+end
+
+function Plots.surface(f::ProductFun;opts...)
+    f=chop(f,10e-10)
+    f=pad(f,max(size(f,1),20),max(size(f,2),20))
+    vals=values(f)
+    if norm(imag(vals),Inf)>10e-9
+        warn("Imaginary part is non-neglible.  Only plotting real part.")
+    end
+
+    surface(points(f,1),points(f,2),real(vals);opts...)
+end
 
 
 
@@ -230,4 +271,20 @@ end
 #plot{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS};opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
 #plot(f::LowRankFun;opts...)=surf(vecpoints(f,1),vecpoints(f,2),real(values(f));opts...)
 #plot(f::MultivariateFun,obj,window;opts...)=glsurfupdate(real(values(f)),obj,window;opts...)
-Plots.plot{TS<:TensorSpace,T<:Real}(f::Fun{TS,T};kwds...)=plot(ProductFun(f);kwds...)
+
+for Plt in (:(Plots.plot),:(Plots.contour),:(Plots.surface))
+    Pltex=parse(string(Plt)*"!")
+    @eval begin
+        $Plt{TS<:AbstractProductSpace,T<:Real}(f::Fun{TS,T};kwds...)=$Plt(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace,T<:Real}(f::Fun{TS,T};kwds...)=$Pltex(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace,T<:Real}(plt::Plots.Plot,f::Fun{TS,T};kwds...)=$Pltex(plt,ProductFun(f);kwds...)
+
+        $Plt{TS<:AbstractProductSpace,T<:Complex}(f::Fun{TS,T};kwds...)=$Plt(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace,T<:Complex}(f::Fun{TS,T};kwds...)=$Pltex(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace,T<:Complex}(plt::Plots.Plot,f::Fun{TS,T};kwds...)=$Pltex(plt,ProductFun(f);kwds...)
+
+        $Plt{TS<:AbstractProductSpace}(f::Fun{TS};kwds...)=$Plt(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace}(f::Fun{TS};kwds...)=$Pltex(ProductFun(f);kwds...)
+        $Pltex{TS<:AbstractProductSpace}(plt::Plots.Plot,f::Fun{TS};kwds...)=$Pltex(plt,ProductFun(f);kwds...)
+    end
+end

@@ -22,7 +22,17 @@ for TYP in (:Operator,:Functional)
 end
 
 
-function Base.getindex{T}(op::PlusFunctional{T},k::Range)
+
+function getindex{T}(op::PlusFunctional{T},k::Integer)
+    ret = op.ops[1][k]::T
+    for j=2:length(op.ops)
+        ret+=op.ops[j][k]::T
+    end
+    ret::T
+end
+
+
+function getindex{T}(op::PlusFunctional{T},k::Range)
     ret = convert(Vector{T},op.ops[1][k])
     for j=2:length(op.ops)
         ret+=convert(Vector{T},op.ops[j][k])
@@ -130,9 +140,23 @@ end
 Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 
-function addentries!(P::PlusOperator,A,kr,::Colon)
-    for op in P.ops
-        addentries!(op,A,kr,:)
+function getindex{T}(P::PlusOperator{T},k::Integer,j::Integer)
+    ret=P.ops[1][k,j]::T
+    for op in rest(P.ops,2)
+        ret+=op[k,j]::T
+    end
+    ret
+end
+
+
+
+Base.copy{T,PP<:PlusOperator}(P::SubBandedMatrix{T,PP}) =
+    copy_axpy!(P)   # use axpy! to copy
+
+
+function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedMatrix{T,PP},A::AbstractMatrix)
+    for op in parent(P).ops
+        BLAS.axpy!(α,sub(op,P.indexes[1],P.indexes[2]),A)
     end
 
     A
@@ -188,7 +212,7 @@ for TYP in (:Operator,:Functional)
 end
 
 
-Base.getindex(op::ConstantTimesFunctional,k::Range)=op.c*op.functional[k]
+getindex(op::ConstantTimesFunctional,k)=op.c*op.functional[k]
 datalength(C::ConstantTimesFunctional)=datalength(C.functional)
 promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.functional,sp))
 
@@ -212,11 +236,15 @@ datalength(C::TimesFunctional)=datalength(C.functional)+bandinds(C.op,2)
 
 TimesFunctional{T,V}(A::Functional{T},B::BandedOperator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
 
+getindex(f::TimesFunctional,j::Integer) =
+    f[j:j][1]
 
-function Base.getindex{T}(f::TimesFunctional{T},jr::Range)#j is columns
-    bi=bandinds(f.op)
-    B=subview(f.op,:,jr)
-    r=zeros(T,length(jr))
+
+function getindex(f::TimesFunctional,jr::Range)#j is columns
+    B=f.op
+    bi=bandinds(B)
+
+    r=zeros(eltype(f),length(jr))
 
     k1=max(first(jr)-bi[end],1)
     func=f.functional[k1:last(jr)-bi[1]]
@@ -277,12 +305,14 @@ for TYP in (:Operator,:BandedOperator)
 end
 
 
-function addentries!(P::ConstantTimesOperator,A,kr::Range,::Colon)
-    # Write directly to A, shifting by rows and columns
-    # See subview in Operator.jl for these definitions
-    P1=subview(P.op,kr,:)
-    addentries!(P1,P.c,A,kr,:)
-end
+getindex(P::ConstantTimesOperator,k::Integer,j::Integer) =
+    P.c*P.op[k,j]
+
+BLAS.copy{T,OP<:ConstantTimesOperator}(S::SubBandedMatrix{T,OP}) =
+    copy_axpy!(S)
+
+BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubBandedMatrix{T,OP},A::AbstractMatrix) =
+    unwrap_axpy!(α*parent(S).c,S,A)
 
 
 
@@ -348,7 +378,7 @@ function promotetimes{B<:BandedOperator}(opsin::Vector{B},dsp)
     ops=Array(BandedOperator{mapreduce(eltype,promote_type,opsin)},0)
 
     for k=length(opsin):-1:1
-        if !isa(opsin[k],AbstractConversion)
+        if !isa(opsin[k],Conversion)
             op=promotedomainspace(opsin[k],dsp)
             if op==()
                 # do nothing
@@ -394,14 +424,17 @@ bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
 Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 
+getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
 
-function addentries!(P::TimesOperator,A,kr::Range,::Colon)
+function Base.copy{T,TO<:TimesOperator}(sub::SubBandedMatrix{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
+    P=parent(sub)
+    kr,jr=parentindexes(sub)
+
     @assert length(P.ops)≥2
-    if length(kr)==0
+    if size(sub,1)==0
         return A
     end
 
-   st=step(kr)
 
     krl=Array(Int,length(P.ops),2)
 
@@ -409,31 +442,64 @@ function addentries!(P::TimesOperator,A,kr::Range,::Colon)
 
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
-        krl[m+1,1]=max(st-mod(kr[1],st),br[1] + krl[m,1])  # no negative
+        krl[m+1,1]=max(1-mod(kr[1],1),br[1] + krl[m,1])  # no negative
         krl[m+1,2]=br[end] + krl[m,2]
     end
 
     # The following returns a banded Matrix with all rows
     # for large k its upper triangular
-    BA=slice(P.ops[end],krl[end,1]:st:krl[end,2],:)
-    for m=(length(P.ops)-1):-1:2
-        BA=slice(P.ops[m],krl[m,1]:st:krl[m,2],:)*BA
+    BA=P.ops[end][krl[end,1]:krl[end,2],jr]
+    for m=(length(P.ops)-1):-1:1
+        BA=P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]]*BA
     end
 
-    # Write directly to A, shifting by rows and columns
-    # See subview in Operator.jl for these definitions
-    P1=slice(P.ops[1],krl[1,1]:st:krl[1,2],:)
-
-    firstjr=max(st-mod(kr[1],st),kr[1]+bandinds(P,1))
-    ri,ci=first(kr)-st,firstjr-st
-    bamultiply!(A,P1,BA,ri,ci,st,st)
+    BA
 end
+
+
+# function addentries!(P::TimesOperator,A,kr::Range,::Colon)
+#     @assert length(P.ops)≥2
+#     if length(kr)==0
+#         return A
+#     end
+
+#     st=step(kr)
+
+#     krl=Array(Int,length(P.ops),2)
+
+#     krl[1,1],krl[1,2]=kr[1],kr[end]
+
+#     for m=1:length(P.ops)-1
+#         br=bandinds(P.ops[m])
+#         krl[m+1,1]=max(st-mod(kr[1],st),br[1] + krl[m,1])  # no negative
+#         krl[m+1,2]=br[end] + krl[m,2]
+#     end
+
+#     # The following returns a banded Matrix with all rows
+#     # for large k its upper triangular
+#     BA=slice(P.ops[end],krl[end,1]:st:krl[end,2],:)
+#     for m=(length(P.ops)-1):-1:2
+#         BA=slice(P.ops[m],krl[m,1]:st:krl[m,2],:)*BA
+#     end
+
+#     # Write directly to A, shifting by rows and columns
+#     # See subview in Operator.jl for these definitions
+#     P1=slice(P.ops[1],krl[1,1]:st:krl[1,2],:)
+
+#     firstjr=max(st-mod(kr[1],st),kr[1]+bandinds(P,1))
+#     ri,ci=first(kr)-st,firstjr-st
+#     bmultiply!(A,P1,BA,ri,ci,st,st)
+# end
 
 
 
 
 ## Algebra: assume we promote
 
+
+for OP in (:(Base.ctranspose),:(Base.transpose))
+    @eval $OP(A::TimesOperator)=TimesOperator(reverse!(map($OP,A.ops)))
+end
 
 *(A::TimesOperator,B::TimesOperator)=promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
 function *(A::TimesOperator,B::BandedOperator)
@@ -463,14 +529,14 @@ end
 # Conversions we always assume are intentional: no need to promote
 
 *{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A.op,B.op))
-*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::AbstractConversion)=ConversionWrapper(TimesOperator(A.op,B))
-*{TO<:TimesOperator}(A::AbstractConversion,B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A,B.op))
+*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::Conversion)=ConversionWrapper(TimesOperator(A.op,B))
+*{TO<:TimesOperator}(A::Conversion,B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A,B.op))
 
-*(A::AbstractConversion,B::AbstractConversion)=ConversionWrapper(TimesOperator(A,B))
-*(A::AbstractConversion,B::TimesOperator)=TimesOperator(A,B)
-*(A::TimesOperator,B::AbstractConversion)=TimesOperator(A,B)
-*(A::BandedOperator,B::AbstractConversion)=isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
-*(A::AbstractConversion,B::BandedOperator)=isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
+*(A::Conversion,B::Conversion)=ConversionWrapper(TimesOperator(A,B))
+*(A::Conversion,B::TimesOperator)=TimesOperator(A,B)
+*(A::TimesOperator,B::Conversion)=TimesOperator(A,B)
+*(A::BandedOperator,B::Conversion)=isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
+*(A::Conversion,B::BandedOperator)=isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
 -(A::Operator)=ConstantTimesOperator(-1,A)
@@ -509,32 +575,28 @@ for TYP in (:Vector,:Matrix)
         function *(A::BandedOperator,b::$TYP)
             n=size(b,1)
 
-            if n>0
-                slice(A,:,1:n)*b
+            ret=if n>0
+                BandedMatrix(A,:,1:n)*b
             else
                 b
             end
+
+            rs=rangespace(A)
+            isambiguous(rs)?ret:Fun(ret,rs)
         end
     end
 end
- ##TODO: Make * and \ consistent in return type
+
 function *(A::InfiniteOperator,b::Fun)
-    dsp=conversion_type(domainspace(A),space(b))
-    A=promotedomainspace(A,dsp)
-    Fun(A*coefficients(b,dsp),rangespace(A))
+    dsp=domainspace(A)
+    if isambiguous(dsp)
+        promotedomainspace(A,space(b))*b
+    else
+        A*coefficients(b,dsp)
+    end
 end
 
 #=
-function *(A::TimesOperator,b::Fun)
-    dsp=conversion_type(domainspace(A),space(b))
-    A=promotedomainspace(A,dsp)
-    ret = b
-    for k=length(A.ops):-1:1
-        ret = A.ops[k]*ret
-    end
-    Fun(coefficients(ret),rangespace(A))
-end
-
 function *(A::PlusOperator,b::Fun)
     dsp=conversion_type(domainspace(A),space(b))
     A=promotedomainspace(A,dsp)
@@ -550,12 +612,7 @@ for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
         @assert size(b,1)==1
         C=A*coefficients(vec(b),domainspace(A))
-        rs=rangespace(A)
-        ret=Array(Fun{typeof(rs),eltype(C)},1,size(C,2))
-        for k=1:size(C,2)
-            ret[1,k]=Fun(C[:,k],rs)
-        end
-        ret
+        reshape(C,1,length(space(C)))
     end
 end
 
@@ -616,57 +673,4 @@ function choosedomainspace(P::TimesOperator,sp)
         sp=choosedomainspace(op,sp)
     end
     sp
-end
-
-
-
-
-
-
-#####
-# ReReOperator takes the real part of two operators
-# this allows for well-posed equations
-#####
-
-
-immutable ReReOperator{S,V,T} <: BandedOperator{T}
-    ops::Tuple{S,V}
-    function ReReOperator(ops)
-            #TODO: promotion
-        @assert domainspace(ops[1])==domainspace(ops[2])
-        @assert rangespace(ops[1])==rangespace(ops[2])
-        new(ops)
-    end
-end
-
-
-ReReOperator{S,V}(ops::Tuple{S,V})=ReReOperator{S,V,Float64}(ops)
-ReReOperator(ops1,ops2)=ReReOperator((ops1,ops2))
-Base.real(S::BandedOperator,V::BandedOperator)=ReReOperator(S,V)
-
-bandinds(R::ReReOperator)=min(2bandinds(R.ops[1],1)-1,2bandinds(R.ops[2],1)-2),max(2bandinds(R.ops[1],2)+1,2bandinds(R.ops[2],2))
-
-domainspace(R::ReReOperator)=ReImSpace(domainspace(R.ops[1]))
-rangespace(R::ReReOperator)=ArraySpace(rangespace(R.ops[1]),2)
-
-
-function addentries!(R::ReReOperator,A,kr::Range,::Colon)
-    kr1=div(kr[1],2)+1:(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
-    kr2=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):div(kr[end],2)
-
-    B1=subview(R.ops[1],kr1,:)
-    B2=subview(R.ops[2],kr2,:)
-
-
-    for k=kr1,j=columnrange(R.ops[1],k)
-        A[2k-1,2j-1]+=real(B1[k,j])
-        A[2k-1,2j]+=-imag(B1[k,j])
-    end
-
-    for k=kr2,j=columnrange(R.ops[2],k)
-        A[2k,2j-1]+=real(B2[k,j])
-        A[2k,2j]+=-imag(B2[k,j])
-    end
-
-    A
 end

@@ -1,6 +1,9 @@
 #############
-# Schur PDEOperator
-# represent an operator that's been discretized in the Y direction
+#  PDEOperatorSchur
+# represent a splitting rank 2 operator that's been discretized in the Y direction using
+# the Schur decomposition
+#
+#  S is an AbstractOperatorSchur that encodes the schur decomposition
 #############
 
 
@@ -61,11 +64,13 @@ PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::AbstractOperatorS
 PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,ConstantOperator(Lx.λ),Mx,S)
 
 
-function PDEOperatorSchur(Bx,By,A::PlusOperator,ny::Integer,indsBx,indsBy)
-    @assert all(isproductop,A.ops)
-    @assert length(A.ops)==2
+function PDEOperatorSchur(Bx,By,A::BandedOperator,ny::Integer,indsBx,indsBy)
+    @assert iskronsumop(A)
+    ops=sumops(A)
+    @assert all(isproductop,ops)
+    @assert length(ops)==2
 
-    PDEOperatorSchur(Bx,dekron(A.ops[1],1),dekron(A.ops[2],1),schurfact(By,[dekron(A.ops[1],2),dekron(A.ops[2],2)],ny),indsBx,indsBy)
+    PDEOperatorSchur(Bx,dekron(ops[1],1),dekron(ops[2],1),schurfact(By,[dekron(ops[1],2),dekron(ops[2],2)],ny),indsBx,indsBy)
 end
 
 
@@ -153,7 +158,7 @@ domain(P::PDEProductOperatorSchur)=domain(domainspace(P))
 function PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::AbstractProductSpace,nt::Integer)
     Bx=A[1:end-1]
     L=A[end]
-    
+
     @assert isdiagop(L,2)
 
     BxV=Array(Vector{SavedFunctional{Float64}},nt)
@@ -188,7 +193,7 @@ rangespace(S::PDEProductOperatorSchur)=S.rangespace
 Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)=PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 Base.schurfact{LT<:Number,MT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::StrideOperatorSchur{ST},indsBx,indsBy)=PDEStrideOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 
-function Base.schurfact{T}(Bx,By,A::PlusOperator{BandedMatrix{T}},ny::Integer,indsBx,indsBy)
+function Base.schurfact{T}(Bx,By,A::BandedOperator{BandedMatrix{T}},ny::Integer,indsBx,indsBy)
     @assert iskronsumop(A)
     opsx,opsy=simplifydekron(A)
     @assert length(opsx)==length(opsy)==2

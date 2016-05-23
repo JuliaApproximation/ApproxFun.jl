@@ -11,7 +11,7 @@ weights a basis on `[-1,1]` weighted by `(1+x)^α*(1-x)^β`.
 Note the inconsistency of the parameters with `Jacobi`.
 when the domain is `[a,b]` the weight is inferred by mapping to `[-1,1]`
 """
-immutable JacobiWeight{S,DD} <: WeightSpace{RealBasis,DD,1}
+immutable JacobiWeight{S,DD} <: WeightSpace{S,RealBasis,DD,1}
     α::Float64
     β::Float64
     space::S
@@ -49,10 +49,17 @@ transformtimes{JW<:JacobiWeight}(f::Fun,g::Fun{JW}) = Fun(coefficients(transform
 ##  α and β are opposite the convention for Jacobi polynomials
 # Here, α is the left algebraic singularity and β is the right algebraic singularity.
 
+
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
+jacobiweight(α,β,d::Domain)=Fun([1.],JacobiWeight(α,β,ConstantSpace(d)))
+jacobiweight(α,β)=jacobiweight(α,β,Interval())
+
 weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
+dimension(sp::JacobiWeight)=dimension(sp.space)
 
 
+Base.first{JW<:JacobiWeight}(f::Fun{JW})=space(f).α>0?zero(eltype(f)):f(first(domain(f)))
+Base.last{JW<:JacobiWeight}(f::Fun{JW})=space(f).β>0?zero(eltype(f)):f(last(domain(f)))
 
 setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.space,d))
 
@@ -185,56 +192,56 @@ function conjugatedinnerproduct{D}(::Type{Ultraspherical{1,D}},u::Vector,v::Vect
     end
 end
 
-function dotu{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
+function bilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
     @assert domain(f) == domain(g)
     if f.space.α == f.space.β == λ-0.5
         return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function dotu{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
+function bilinearform{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if g.space.α == g.space.β == λ-0.5
         return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function dotu{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
+function bilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
         return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultdotu(f,g)
+        return defaultbilinearform(f,g)
     end
 end
 
-function linedotu{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
+function linebilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
     @assert domain(f) == domain(g)
     if f.space.α == f.space.β == λ-0.5
         return length(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end
 
-function linedotu{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
+function linebilinearform{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if g.space.α == g.space.β == λ-0.5
         return length(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end
 
-function linedotu{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
+function linebilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
         return length(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
-        return defaultlinedotu(f,g)
+        return defaultlinebilinearform(f,g)
     end
 end

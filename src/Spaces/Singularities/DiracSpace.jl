@@ -1,67 +1,89 @@
 export DiracDelta
 
+for TYP in (:DiracSpace,:PointSpace)
+    @eval begin
+        immutable $TYP{T}<:RealUnivariateSpace{AnyDomain}
+          points::Vector{T}
+          $TYP(pts::Vector{T})=new(sort(pts))
+        end
 
-immutable DiracSpace{T}<:RealUnivariateSpace{AnyDomain}
-  points::Vector{T}
-  DiracSpace(pts::Vector{T})=new(sort(pts))
+        $TYP(points::AbstractVector) = $TYP{eltype(points)}(points)
+        $TYP() = $TYP(Float64[])
+        $TYP(point::Number) = $TYP([point])
+        $TYP(p::Point)=$TYP(p.x)
+        dimension(d::$TYP)=length(d.points)
+
+        domain(DS::$TYP)=mapreduce(Point,union,DS.points)
+        setdomain(DS::$TYP,d::UnionDomain)=$TYP(map(d->d.x,d.domains))
+        points(sp::$TYP,n::Integer)=sp.points[1:n]
+
+        spacescompatible(a::$TYP,b::$TYP)=a.points==b.points
+        canonicalspace(a::$TYP)=a
+
+        union_rule(a::$TYP,b::$TYP)=$TYP(sort(union(a.points,b.points)))
+
+        function coefficients(cfs::Vector,fromspace::$TYP,tospace::$TYP)
+            if spacescompatible(fromspace,tospace)
+                return cfs
+            end
+
+            @assert length(cfs) ≤ length(fromspace.points)
+
+            # this first for-loop removes coefficients of Dirac points that are zero
+            nonzerofromspacepoints = eltype(fromspace.points)[]
+            nonzeroDiraccfs = eltype(cfs)[]
+            for i = 1:length(cfs)
+                if cfs[i] != 0
+                    push!(nonzerofromspacepoints, fromspace.points[i])
+                    push!(nonzeroDiraccfs, cfs[i])
+                end
+            end
+
+
+            # if the points that remain can be represented in the tospace
+            if issubset(nonzerofromspacepoints,tospace.points)
+                finalDiraccfs = eltype(cfs)[]
+                j=1 #counter for the nonzerofromspacepoints
+                for i = 1:length(tospace.points)
+                    if j > length(nonzerofromspacepoints)
+                        break
+                    elseif nonzerofromspacepoints[j]==tospace.points[i]
+                        push!(finalDiraccfs,nonzeroDiraccfs[j])
+                        j += 1
+                    else
+                        push!(finalDiraccfs,0)
+                    end
+                end
+                finalDiraccfs
+            else
+                error("The domain of the space being converted from has points that cannot be represented in the space you are converting to.")
+            end
+        end
+    end
 end
 
-DiracSpace(points::AbstractVector) = DiracSpace{eltype(points)}(points)
-DiracSpace() = DiracSpace(Float64[])
-DiracSpace(point::Number) = DiracSpace([point])
+Space(d::Point)=PointSpace(d)
 
-dimension(d::DiracSpace)=length(d.points)
+identity_fun(S::PointSpace)=Fun(S.points,S)
+identity_fun(S::DiracSpace)=Fun(S.points,PointSpace(S.points))
+transform(S::PointSpace,v::Vector,plan...)=v
 
 
+function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
+    p = findfirst(y->isapprox(x,y),PS.points)
+    if p==0
+        zero(eltype(f))
+    else
+        f[p]
+    end
+end
 
-#to be extended to include dirac points
-domain(DS::DiracSpace)=mapreduce(Point,union,DS.points)
-setdomain(DS::DiracSpace,d::UnionDomain)=DiracSpace(map(d->d.x,d.domains))
-
-spacescompatible(a::DiracSpace,b::DiracSpace)=a.points==b.points
-canonicalspace(a::DiracSpace)=a
+evaluate(f::AbstractVector,PS::PointSpace,x::AbstractVector)=
+    map(y->evaluate(f,PS,y),x)
 
 Base.sum{DS<:DiracSpace}(f::Fun{DS})=sum(f.coefficients[1:dimension(space(f))])
 
-union_rule(a::DiracSpace,b::DiracSpace)=DiracSpace(sort(union(a.points,b.points)))
 
-function coefficients(cfs::Vector,fromspace::DiracSpace,tospace::DiracSpace)
-    if spacescompatible(fromspace,tospace)
-        return cfs
-    end
-
-    @assert length(cfs) ≤ length(fromspace.points)
-
-    # this first for-loop removes coefficients of Dirac points that are zero
-    nonzerofromspacepoints = eltype(fromspace.points)[]
-    nonzeroDiraccfs = eltype(cfs)[]
-    for i = 1:length(cfs)
-        if cfs[i] != 0
-            push!(nonzerofromspacepoints, fromspace.points[i])
-            push!(nonzeroDiraccfs, cfs[i])
-        end
-    end
-
-
-    # if the points that remain can be represented in the tospace
-    if issubset(nonzerofromspacepoints,tospace.points)
-        finalDiraccfs = eltype(cfs)[]
-        j=1 #counter for the nonzerofromspacepoints
-        for i = 1:length(tospace.points)
-            if j > length(nonzerofromspacepoints)
-                break
-            elseif nonzerofromspacepoints[j]==tospace.points[i]
-                push!(finalDiraccfs,nonzeroDiraccfs[j])
-                j += 1
-            else
-                push!(finalDiraccfs,0)
-            end
-        end
-        finalDiraccfs
-    else
-        error("The space you are converting from has Dirac deltas that cannot be represented in the space you are converting to.")
-    end
-end
 
 DiracDelta(x::Number)=Fun([1.],DiracSpace(x))
 DiracDelta()=DiracDelta(0.)
@@ -100,3 +122,34 @@ end
 #     error("The space you are converting from has Dirac deltas that cannot be represented in the space you are converting to.")
 #   end
 # end
+
+
+# function Multiplication{PS<:PointSpace}(f::Fun{PS},PS2::PointSpace)
+#     @assert space(f).points==PS2.points
+#     SpaceOperator(FiniteOperator(diagm(f.coefficients)),PS2,PS2)
+# end
+
+# function Multiplication{PS<:PointSpace}(f::Fun{PS},DS::DiracSpace)
+#     @assert space(f).points==DS.points
+#     SpaceOperator(FiniteOperator(diagm(f.coefficients)),DS,DS)
+# end
+
+# function Multiplication{DS<:DiracSpace}(f::Fun{DS},PS::PointSpace)
+#     @assert space(f).points==PS.points
+#     SpaceOperator(FiniteOperator(diagm(f.coefficients)),PS,space(f))
+# end
+
+function coefficienttimes{PS<:PointSpace,DS<:DiracSpace}(f::Fun{PS},g::Fun{DS})
+    @assert space(f).points==space(g).points
+    Fun(f.coefficients.*g.coefficients,space(g))
+end
+
+function coefficienttimes{PS<:PointSpace,DS<:DiracSpace}(f::Fun{DS},g::Fun{PS})
+    @assert space(f).points==space(g).points
+    Fun(f.coefficients.*g.coefficients,space(f))
+end
+
+function coefficienttimes{PS<:PointSpace,PS2<:PointSpace}(f::Fun{PS},g::Fun{PS2})
+    @assert space(f).points==space(g).points
+    Fun(f.coefficients.*g.coefficients,space(g))
+end

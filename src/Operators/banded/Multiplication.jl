@@ -1,73 +1,61 @@
 export Multiplication
 
-abstract AbstractMultiplication{T} <:BandedOperator{T}
+abstract Multiplication{T} <:BandedOperator{T}
 
-immutable Multiplication{D<:Space,S<:Space,V,T} <: AbstractMultiplication{T}
+immutable ConcreteMultiplication{D<:Space,S<:Space,V,T} <: Multiplication{T}
     f::Fun{D,V}
     space::S
 
-    Multiplication(f::Fun{D,V},sp::S)=new(f,sp)
+    ConcreteMultiplication(f::Fun{D,V},sp::S)=new(f,sp)
 end
 
-function Multiplication{D,T}(f::Fun{D,T},sp::Space)
+function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     @assert domainscompatible(space(f),sp)
-    Multiplication{D,typeof(sp),T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+    ConcreteMultiplication{D,typeof(sp),T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 end
 
+
+
+# We do this in two stages to support Modifier spaces
+# without ambiguity errors
+function defaultMultiplication(f::Fun,sp::Space)
+    csp=space(f)
+    if csp==sp
+        error("Implement Multiplication(::Fun{$(typeof(space(f)))},::$(typeof(sp)))")
+    end
+    MultiplicationWrapper(f,Multiplication(f,csp)*Conversion(sp,csp))
+end
+
+Multiplication(f::Fun,sp::Space)=defaultMultiplication(f,sp)
+
+
+Multiplication(f::Fun,sp::UnsetSpace)=ConcreteMultiplication(f,sp)
 Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
-Multiplication(c::Number)=ConstantOperator(c)
+Multiplication(c::Number)=Multiplication(Fun(c) )
 
 # This covers right multiplication unless otherwise specified.
 Multiplication{D,T}(S::Space,f::Fun{D,T}) = Multiplication(f,S)
 
-Base.convert{BT<:Multiplication}(::Type{BT},C::BT)=C
-function Base.convert{BT<:Operator,S,V,T}(::Type{BT},C::Multiplication{S,V,T})
-    if eltype(BT)==eltype(C)
-        C
-    else
-        Multiplication{S,V,T,eltype(BT)}(C.f,C.space)
+for TYP in (:Operator,:BandedOperator)
+    @eval function Base.convert{S,V,TT,T}(::Type{$TYP{T}},C::ConcreteMultiplication{S,V,TT})
+        if T==eltype(C)
+            C
+        else
+            ConcreteMultiplication{S,V,TT,T}(C.f,C.space)
+        end
     end
 end
 
-domainspace{D,S,T,V}(M::Multiplication{D,S,T,V})=M.space
-domain(T::Multiplication)=domain(T.f)
+domainspace{D,S,T,V}(M::ConcreteMultiplication{D,S,T,V})=M.space
+domain(T::ConcreteMultiplication)=domain(T.f)
 
 
 ## Default implementation: try converting to space of M.f
 
-rangespace{F,T}(D::Multiplication{F,UnsetSpace,T})=UnsetSpace()
-bandinds{F,T}(D::Multiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
-addentries!{F,T}(D::Multiplication{F,UnsetSpace,T},A,kr,::Colon)=error("No range space attached to Multiplication")
-
-
-function addentries!{F,S,T}(D::Multiplication{F,S,T},A,kr,::Colon)
-    # Default is to convert to space of f
-    sp=domainspace(D)
-    csp=space(D.f)
-    if csp==sp
-        error("Override addentries! on Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*") for range type"*string(typeof(kr)))
-    end
-    addentries!(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]),A,kr,:)
-end
-
-function bandinds{F,S,T}(D::Multiplication{F,S,T})
-    sp=domainspace(D)
-    csp=space(D.f)
-    if csp==sp
-        error("Override bandinds for Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*")")
-    end
-    bandinds(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]))
-end
-
-# corresponds to default implementation
-function rangespace{F,S,T}(D::Multiplication{F,S,T})
-    sp=domainspace(D)
-    csp=space(D.f)
-    if csp==sp
-        error("Override rangespace for Multiplication(::Fun{"*string(typeof(space(D.f)))*",T},"*string(typeof(sp))*")")
-    end
-    rangespace(TimesOperator([Multiplication(D.f,csp),Conversion(sp,csp)]))
-end
+# avoid ambiguity
+rangespace{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=UnsetSpace()
+bandinds{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
+getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer)=error("No range space attached to Multiplication")
 
 
 
@@ -75,17 +63,17 @@ end
 
 
 ##multiplication can always be promoted, range space is allowed to change
-promotedomainspace(D::AbstractMultiplication,sp::UnsetSpace)=D
-promotedomainspace(D::AbstractMultiplication,sp::AnySpace)=D
-promotedomainspace(D::AbstractMultiplication,sp::Space)=Multiplication(D.f,sp)
+promotedomainspace(D::Multiplication,sp::UnsetSpace)=D
+promotedomainspace(D::Multiplication,sp::AnySpace)=D
+promotedomainspace(D::Multiplication,sp::Space)=Multiplication(D.f,sp)
 
-choosedomainspace{D}(M::Multiplication{D,UnsetSpace},::AnySpace)=space(M.f)
-choosedomainspace{D}(M::Multiplication{D,UnsetSpace},sp)=sp  # we assume multiplication maps spaces to themselves
+choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},::AnySpace)=space(M.f)
+choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp)=sp  # we assume multiplication maps spaces to themselves
 
 
 Base.diagm(a::Fun)=Multiplication(a)
 
-immutable MultiplicationWrapper{D<:Space,O<:BandedOperator,V,T} <: AbstractMultiplication{T}
+immutable MultiplicationWrapper{D<:Space,O<:BandedOperator,V,T} <: Multiplication{T}
     f::Fun{D,V}
     op::O
 end
@@ -93,10 +81,8 @@ end
 MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
 MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
 
-addentries!(D::MultiplicationWrapper,A,k::Range,::Colon)=addentries!(D.op,A,k,:)
-for func in (:rangespace,:domainspace,:bandinds,:domain,:(Base.stride))
-    @eval $func(D::MultiplicationWrapper)=$func(D.op)
-end
+@wrapper MultiplicationWrapper
+
 
 Base.convert{BT<:MultiplicationWrapper}(::Type{BT},C::BT)=C
 function Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper{S,V,VV,T})

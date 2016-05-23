@@ -19,9 +19,9 @@ end
 
 typealias RealRay{T} Union{Ray{false,T},Ray{true,T}}
 
-Base.convert{a}(::Type{Ray{a}},c,o)=Ray{a,typeof(c)}(c,o)
-Base.convert{a}(::Type{Ray{a}},c::Number)=Ray{a,typeof(c)}(c)
-Base.convert{a}(::Type{Ray{a}})=Ray{a,Float64}()
+Base.call{a}(::Type{Ray{a}},c,o)=Ray{a,typeof(c)}(c,o)
+Base.call{a}(::Type{Ray{a}},c::Number)=Ray{a,typeof(c)}(c)
+Base.call{a}(::Type{Ray{a}})=Ray{a,Float64}()
 
 Base.angle{a}(d::Ray{a})=a*π
 

@@ -1,5 +1,5 @@
 export Fun,evaluate,values,points
-export coefficients,integrate,differentiate,domain,space,linesum
+export coefficients,integrate,differentiate,domain,space,linesum,linenorm
 
 include("Domain.jl")
 include("Space.jl")
@@ -54,7 +54,7 @@ coefficients(c::Number,sp::Space)=Fun(c,sp).coefficients
 
 
 Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(convert(Vector{T},f.coefficients),f.space)
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))
+Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))  #TODO: this line is incompatible with space conversion
 
 Base.convert{T,S}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
 Base.convert{S}(::Type{Fun{S}},x::Number)=x==0?zeros(S(AnyDomain())):x*ones(S(AnyDomain()))
@@ -82,28 +82,28 @@ Base.eltype{S,T}(::Fun{S,T})=T
 ## General routines
 
 
-domain(f::Fun)=domain(f.space)
-domain{T<:Fun}(v::Vector{T})=map(domain,v)
+domain(f::Fun) = domain(f.space)
+domain{T<:Fun}(v::AbstractMatrix{T}) = map(domain,v)
 
 
-setdomain(f::Fun,d::Domain)=Fun(f.coefficients,setdomain(space(f),d))
+setdomain(f::Fun,d::Domain) = Fun(f.coefficients,setdomain(space(f),d))
 
 for op in (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD,:invfromcanonicalD)
-    @eval $op(f::Fun,x...)=$op(domain(f),x...)
+    @eval $op(f::Fun,x...) = $op(domain(f),x...)
 end
 
 for op in (:tocanonical,:tocanonicalD)
-    @eval $op(d::Domain)=$op(d,Fun(identity,d))
+    @eval $op(d::Domain) = $op(d,Fun(identity,d))
 end
 for op in (:fromcanonical,:fromcanonicalD,:invfromcanonicalD)
-    @eval $op(d::Domain)=$op(d,Fun(identity,canonicaldomain(d)))
+    @eval $op(d::Domain) = $op(d,Fun(identity,canonicaldomain(d)))
 end
 
 
-space(f::Fun)=f.space
-spacescompatible(f::Fun,g::Fun)=spacescompatible(space(f),space(g))
-canonicalspace(f::Fun)=canonicalspace(space(f))
-canonicaldomain(f::Fun)=canonicaldomain(domain(f))
+space(f::Fun) = f.space
+spacescompatible(f::Fun,g::Fun) = spacescompatible(space(f),space(g))
+canonicalspace(f::Fun) = canonicalspace(space(f))
+canonicaldomain(f::Fun) = canonicaldomain(domain(f))
 
 
 ##Evaluation
@@ -117,7 +117,8 @@ function evaluate(f::AbstractVector,S::Space,x...)
     end
 end
 
-evaluate(f::Fun,x...)=evaluate(f.coefficients,f.space,x...)
+evaluate(f::Fun,x) = evaluate(f.coefficients,f.space,x)
+evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 
 
 Base.call(f::Fun,x...)=evaluate(f,x...)
@@ -195,13 +196,6 @@ for op in (:+,:-,:(.+),:(.-))
     end
 end
 
-for op in (:+,:(.+))
-    @eval $op(c::Number,f::Fun)=c==0?f:$op(Fun(c),f)
-end
-
-for op in (:-,:(.-))
-    @eval $op(c::Number,f::Fun)=c==0?-f:$op(Fun(c),f)
-end
 
 # equivalent to Y+=a*X
 axpy!(a,X::Fun,Y::Fun)=axpy!(a,coefficients(X,space(Y)),Y)
@@ -229,12 +223,15 @@ end
 
 
 
+-(f::Fun)=Fun(-f.coefficients,f.space)
+for op in (:-,:(.-))
+    @eval $op(c::Number,f::Fun)=-$op(f,c)
+end
+
+
 for op = (:*,:.*,:./,:/)
     @eval $op(f::Fun,c::Number) = Fun($op(f.coefficients,c),f.space)
 end
-
--(f::Fun)=Fun(-f.coefficients,f.space)
--(c::Number,f::Fun)=-(f-c)
 
 
 for op = (:*,:.*,:+,:(.+))
@@ -258,50 +255,56 @@ Base.inv{S,T}(f::Fun{S,T})=1./f
 
 # Integrals over two Funs, which are fast with the orthogonal weight.
 
-export dotu, linedotu, linedot
-
-dotu(f::Fun,g::Fun)=defaultdotu(f,g)
-dotu(c::Number,g::Fun)=sum(c*g)
-dotu(g::Fun,c::Number)=sum(g*c)
-
-linedotu(f::Fun,g::Fun)=defaultlinedotu(f,g)
-linedotu(c::Number,g::Fun)=linesum(c*g)
-linedotu(g::Fun,c::Number)=linesum(g*c)
+export bilinearform,linebilinearform,innerproduct,lineinnerproduct
 
 # Having fallbacks allow for the fast implementations.
 
-defaultdotu(f::Fun,g::Fun)=sum(f.*g)
-defaultlinedotu(f::Fun,g::Fun)=linesum(f.*g)
+defaultbilinearform(f::Fun,g::Fun)=sum(f.*g)
+defaultlinebilinearform(f::Fun,g::Fun)=linesum(f.*g)
+
+bilinearform(f::Fun,g::Fun)=defaultbilinearform(f,g)
+bilinearform(c::Number,g::Fun)=sum(c*g)
+bilinearform(g::Fun,c::Number)=sum(g*c)
+
+linebilinearform(f::Fun,g::Fun)=defaultbilinearform(f,g)
+linebilinearform(c::Number,g::Fun)=linesum(c*g)
+linebilinearform(g::Fun,c::Number)=linesum(g*c)
+
+
 
 # Conjuations
 
-Base.dot(f::Fun,g::Fun)=dotu(conj(f),g)
-Base.dot(c::Number,g::Fun)=dotu(conj(c),g)
-Base.dot(g::Fun,c::Number)=dotu(conj(g),c)
+innerproduct(f::Fun,g::Fun)=dotu(conj(f),g)
+innerproduct(c::Number,g::Fun)=dotu(conj(c),g)
+innerproduct(g::Fun,c::Number)=dotu(conj(g),c)
 
-linedot(f::Fun,g::Fun)=linedotu(conj(f),g)
-linedot(c::Number,g::Fun)=linedotu(conj(c),g)
-linedot(g::Fun,c::Number)=linedotu(conj(g),c)
+lineinnerproduct(f::Fun,g::Fun)=linebilinearform(conj(f),g)
+lineinnerproduct(c::Number,g::Fun)=linebilinearform(conj(c),g)
+lineinnerproduct(g::Fun,c::Number)=linebilinearform(conj(g),c)
 
 ## Norm
 
-Base.norm(f::Fun) = norm(f,2)
+for (OP,SUM) in ((:(Base.norm),:(Base.sum)),(:linenorm,:linesum))
+    @eval begin
+        $OP(f::Fun) = $OP(f,2)
 
-function Base.norm(f::Fun,p::Number)
-    if p < 1
-        return error("p should be 1 ≤ p ≤ ∞")
-    elseif 1 ≤ p < Inf
-        return abs(sum(abs2(f)^(p/2)))^(1/p)
-    else
-        return maxabs(f)
-    end
-end
+        function $OP(f::Fun,p::Number)
+            if p < 1
+                return error("p should be 1 ≤ p ≤ ∞")
+            elseif 1 ≤ p < Inf
+                return abs($SUM(abs2(f)^(p/2)))^(1/p)
+            else
+                return maxabs(f)
+            end
+        end
 
-function Base.norm(f::Fun,p::Int)
-    if 1 ≤ p < Inf
-        return iseven(p) ? abs(sum(abs2(f)^div(p,2)))^(1/p) : abs(sum(abs2(f)^(p/2)))^(1/p)
-    else
-        return error("p should be 1 ≤ p ≤ ∞")
+        function $OP(f::Fun,p::Int)
+            if 1 ≤ p < Inf
+                return iseven(p) ? abs($SUM(abs2(f)^div(p,2)))^(1/p) : abs($SUM(abs2(f)^(p/2)))^(1/p)
+            else
+                return error("p should be 1 ≤ p ≤ ∞")
+            end
+        end
     end
 end
 
@@ -310,11 +313,14 @@ end
 
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op){T,D<:Space{RealBasis}}(f::Fun{D,T}) = Fun(($op)(f.coefficients),f.space)
+    @eval ($op){S<:Space{RealBasis}}(f::Fun{S}) = Fun(($op)(f.coefficients),f.space)
 end
 
-Base.abs2{S,T<:Real}(f::Fun{S,T})=f^2
-Base.abs2{S,T<:Complex}(f::Fun{S,T})=real(f)^2+imag(f)^2
+Base.conj(f::Fun)=error("Override conj for $(typeof(f))")
+
+Base.abs2{S<:Space{RealBasis},T<:Real}(f::Fun{S,T})=f^2
+Base.abs2{S<:Space{RealBasis},T<:Complex}(f::Fun{S,T})=real(f)^2+imag(f)^2
+Base.abs2(f::Fun)=f*conj(f)
 
 ##  integration
 
@@ -393,7 +399,7 @@ end
 
 ## non-vector notation
 
-*{S,T,U,V}(f::Fun{S,T},g::Fun{U,V})=f.*g
+*(f::Fun,g::Fun)=f.*g
 ^(f::Fun,k::Integer)=f.^k
 ^(f::Fun,k::Union{Number,Fun})=f.^k
 /(c::Union{Number,Fun},g::Fun)=c./g

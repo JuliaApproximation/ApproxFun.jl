@@ -1,8 +1,9 @@
-[![Build Status](https://travis-ci.org/ApproxFun/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/ApproxFun/ApproxFun.jl) [![Coverage Status](https://img.shields.io/coveralls/ApproxFun/ApproxFun.jl.svg)](https://coveralls.io/r/ApproxFun/ApproxFun.jl?branch=master)
+# ApproxFun.jl
+
+[![Build Status](https://travis-ci.org/ApproxFun/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/ApproxFun/ApproxFun.jl) [![Coverage Status](https://img.shields.io/coveralls/ApproxFun/ApproxFun.jl.svg)](https://coveralls.io/r/ApproxFun/ApproxFun.jl?branch=master) [![Join the chat at https://gitter.im/ApproxFun/ApproxFun.jl](https://badges.gitter.im/ApproxFun/ApproxFun.jl.svg)](https://gitter.im/ApproxFun/ApproxFun.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 `ApproxFun` is a package for approximating functions. It is heavily influenced by the Matlab
 package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
-
 
 
 Take your two favourite functions on an interval and create approximations to them as simply as:
@@ -26,11 +27,11 @@ rp = roots(h')
 
 using Plots
 plot(h)
-scatter!(r,h(r);color=:green)
-scatter!(rp,h(rp);color=:red)
+scatter!(r,h(r))
+scatter!(rp,h(rp))
 ```
 
-![Extrema](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/extrema.png)
+<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/extrema.png width=500 height=400>
 
 
 # Differentiation and integration
@@ -97,10 +98,10 @@ D = Derivative(d)
 B = dirichlet(d)
 L = D^2 - x
 u = [B;L] \ [airyai(d.a);airyai(d.b)]
-plot(u)						    
+plot(u)
 ```
 
-![Airy](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/airy.png)
+<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/airy.png width=500 height=400>
 
 
 # Nonlinear Boundary Value problems
@@ -115,7 +116,9 @@ N=u->[u(-1.)-1.,u(1.)+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
 u=newton(N,u0)
 plot(u)
 ```
-![BVP](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/nbvp.png)
+
+<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/nbvp.png width=500 height=400>
+
 
 
 # Periodic functions
@@ -148,10 +151,11 @@ f = Fun(t->exp(sin(10t)),s)
 uFourier = L\f
 
 length(uFourier)/length(uChebyshev),2/π
-plot(uFourier)						    
+plot(uFourier)
 ```
 
-![Periodic](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/periodic.png)
+<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/periodic.png width=500 height=400>
+
 
 
 # Sampling
@@ -167,7 +171,7 @@ plot(x;t=:density)
 plot!(f/sum(f))
 ```
 
-![Sampling](https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/sample.png)
+<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/sample.png width=500 height=400>
 
 
 # Solving partial differential equations
@@ -181,8 +185,10 @@ d = Interval()^2          					# Defines a rectangle
 
 u = [dirichlet(d);lap(d)+100I]\ones(4)		# First four entries of rhs are
     										# boundary conditions
-plot(u)	                                    # contour plot			
+plot(u)	                                    # contour plot
 ```
+
+<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/helmholtz.png width=500 height=400>
 
 
 <!-- We can also evolve PDEs.  The following solves advection—diffusion

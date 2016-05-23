@@ -135,43 +135,57 @@ function ./(c::Number,f::Fun)
     linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
 end
 
-function ./{C<:Chebyshev}(c::Number,f::Fun{C})
-    if !isa(domain(f),Interval)
-        # project first to get better derivative behaviour
-        return setdomain(c./setcanonicaldomain(f),domain(f))
-    end
+# project to interval if we are not on the interview
+# TODO: need to work out how to set piecewise domain
 
+
+scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
+
+./{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c./setcanonicaldomain(f),domain(f))
+function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
-    r = roots(fc)
-    x = Fun(identity)
-
+    d=domain(f)
     # if domain f is small then the pts get projected in
-    tol = 50eps()/length(domain(f))
+    tol = 100eps()*norm(f.coefficients,1)
 
-
-    if length(r) == 0
-        linsolve(Multiplication(f,space(f)),c;tolerance=tol)
-    elseif all(r->isapprox(abs(r),1.),r)  # all roots are on the boundary
-        # cound number of left and right roots
-        leftr=0
-        rightr=0
-        for rt in r
-            if isapprox(rt,-1.)
-                leftr+=1
-            else
-                rightr+=1
-            end
+    # we prune out roots at the boundary first
+    if length(f)==1
+        return Fun(c/f.coefficients[1],space(f))
+    elseif length(f)==2
+        if isempty(roots(f))
+            return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
+        elseif isapprox(fc.coefficients[1],fc.coefficients[2])
+            # we check directly for f*(1+x)
+            return Fun([c./fc.coefficients[1]],JacobiWeight(-1,0,space(f)))
+        elseif isapprox(fc.coefficients[1],-fc.coefficients[2])
+            # we check directly for f*(1-x)
+            return Fun([c./fc.coefficients[1]],JacobiWeight(0,-1,space(f)))
+        else
+            # we need to split at the only root
+            return c./splitatroots(f)
         end
-
-        g = divide_singularity((leftr,rightr),fc)  # divide by (1+x)^leftr(1-x)^rightr
-        p = c./g
-        Fun(p.coefficients,JacobiWeight(-leftr,-rightr,setdomain(space(p),domain(f))))
+    elseif abs(first(fc))<tol
+        g=divide_singularity((1,0),fc)
+        p=c./g
+        x=identity_fun(domain(p))
+        return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
+    elseif abs(last(fc))<tol
+        g=divide_singularity((0,1),fc)
+        p=c./g
+        x=identity_fun(domain(p))
+        return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
     else
-        #split at the roots
-        c./splitatroots(f)
+       # no roots on the boundary
+        r = roots(fc)
+        x = Fun(identity)
+
+        if length(r) == 0
+            return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
+        else
+            return c./splitatroots(f)
+        end
     end
 end
-
 
 
 
@@ -444,20 +458,19 @@ Base.cos{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 
 
 
-for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0f'^3",:(imag)),
-                            (:(Base.erfi),"f'*D^2-(2f*f'^2+f'')*D","0f'^3",:(real)),
-                            (:(Base.erfc),"f'*D^2+(2f*f'^2-f'')*D","0f'^3",:(real)),
-                            (:(Base.sin),"f'*D^2-f''*D+f'^3","0f'^3",:(imag)),
-                            (:(Base.cos),"f'*D^2-f''*D+f'^3","0f'^3",:(imag)),
-                            (:(Base.sinh),"f'*D^2-f''*D-f'^3","0f'^3",:(real)),
-                            (:(Base.cosh),"f'*D^2-f''*D-f'^3","0f'^3",:(real)),
-                            (:(Base.airyai),"f'*D^2-f''*D-f*f'^3","0f'^3",:(imag)),
-                            (:(Base.airybi),"f'*D^2-f''*D-f*f'^3","0f'^3",:(imag)),
+for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
+                            (:(Base.erfi),"f'*D^2-(2f*f'^2+f'')*D","0",:(real)),
+                            (:(Base.sin),"f'*D^2-f''*D+f'^3","0",:(imag)),
+                            (:(Base.cos),"f'*D^2-f''*D+f'^3","0",:(imag)),
+                            (:(Base.sinh),"f'*D^2-f''*D-f'^3","0",:(real)),
+                            (:(Base.cosh),"f'*D^2-f''*D-f'^3","0",:(real)),
+                            (:(Base.airyai),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
+                            (:(Base.airybi),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
                             (:(Base.airyaiprime),"f'*D^2-f''*D-f*f'^3","airyai(f)*f'^3",:(imag)),
                             (:(Base.airybiprime),"f'*D^2-f''*D-f*f'^3","airybi(f)*f'^3",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
-        function $op{S<:Ultraspherical,T}(f::Fun{S,T})
+        function $op{S,T}(f::Fun{S,T})
             g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
@@ -470,22 +483,25 @@ for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0f'^3",:(imag
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            ([B;eval($L)]\[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax])*opmax
+            linsolve([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
+                        tolerance=10length(f)*eps(T)*opmax)*opmax
         end
     end
 end
 
+Base.erfc(f::Fun)=1-erf(f)
+
 ## Second order functions with parameter ν
 
-for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.hankelh2),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.besselj),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.bessely),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.besseli),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0f'^3",:(real)),
-                            (:(Base.besselk),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0f'^3",:(real)),
-                            (:(Base.besselkx),"f^2*f'*D^2+((-2f^2+f)*f'^2-f^2*f'')*D-(f+ν^2)*f'^3","0f'^3",:(real)),
-                            (:(Base.hankelh1x),"f^2*f'*D^2+((2im*f^2+f)*f'^2-f^2*f'')*D+(im*f-ν^2)*f'^3","0f'^3",:(imag)),
-                            (:(Base.hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0f'^3",:(imag)))
+for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.hankelh2),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.besselj),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.bessely),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.besseli),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0",:(real)),
+                            (:(Base.besselk),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0",:(real)),
+                            (:(Base.besselkx),"f^2*f'*D^2+((-2f^2+f)*f'^2-f^2*f'')*D-(f+ν^2)*f'^3","0",:(real)),
+                            (:(Base.hankelh1x),"f^2*f'*D^2+((2im*f^2+f)*f'^2-f^2*f'')*D+(im*f-ν^2)*f'^3","0",:(imag)),
+                            (:(Base.hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
         function $op{S<:Ultraspherical,T}(ν,f::Fun{S,T})
@@ -672,5 +688,54 @@ for OP in (:(Base.abs),:(Base.sign))
     @eval begin
         $OP{S,DD,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,DD,1},T})=depiece(mapreduce($OP,vcat,pieces(f)))
         $OP{S,DD,B}(f::Fun{PiecewiseSpace{S,B,DD,1}})=depiece(mapreduce($OP,vcat,pieces(f)))
+    end
+end
+
+## PointSpace
+
+for OP in (:(Base.abs),:(Base.sign))
+    # ambiguity warnings
+    @eval $OP{S<:PointSpace,T<:Real}(f::Fun{S,T})=Fun(map($OP,f.coefficients),space(f))
+end
+for OP in (:(Base.exp),:(Base.abs),:(Base.sign))
+    @eval $OP{S<:PointSpace}(f::Fun{S})=Fun(map($OP,f.coefficients),space(f))
+end
+
+
+#
+# These formulæ, appearing in Eq. (2.5) of:
+#
+# A.-K. Kassam and L. N. Trefethen, Fourth-order time-stepping for stiff PDEs, SIAM J. Sci. Comput., 26:1214--1233, 2005,
+#
+# are derived to implement ETDRK4 in double precision without numerical instability from cancellation.
+#
+
+expα_asy(x) = (exp(x)*(4-3x+x^2)-4-x)/x^3
+expβ_asy(x) = (exp(x)*(x-2)+x+2)/x^3
+expγ_asy(x) = (exp(x)*(4-x)-4-3x-x^2)/x^3
+
+expα_taylor(x::Union{Float64,Complex128}) = @evalpoly(x,1/6,1/6,3/40,1/45,5/1008,1/1120,7/51840,1/56700,1/492800,1/4790016,11/566092800,1/605404800,13/100590336000,1/106748928000,1/1580833013760,1/25009272288000,17/7155594141696000,1/7508956815360000)
+expβ_taylor(x::Union{Float64,Complex128}) = @evalpoly(x,1/6,1/12,1/40,1/180,1/1008,1/6720,1/51840,1/453600,1/4435200,1/47900160,1/566092800,1/7264857600,1/100590336000,1/1494484992000,1/23712495206400,1/400148356608000,1/7155594141696000,1/135161222676480000)
+expγ_taylor(x::Union{Float64,Complex128}) = @evalpoly(x,1/6,0/1,-1/120,-1/360,-1/1680,-1/10080,-1/72576,-1/604800,-1/5702400,-1/59875200,-1/691891200,-1/8717829120,-1/118879488000,-1/1743565824000,-1/27360571392000,-1/457312407552000,-1/8109673360588800)
+
+expα(x::Float64) = abs(x) < 17/16 ? expα_taylor(x) : expα_asy(x)
+expβ(x::Float64) = abs(x) < 19/16 ? expβ_taylor(x) : expβ_asy(x)
+expγ(x::Float64) = abs(x) < 15/16 ? expγ_taylor(x) : expγ_asy(x)
+
+expα(x::Complex128) = abs2(x) < (17/16)^2 ? expα_taylor(x) : expα_asy(x)
+expβ(x::Complex128) = abs2(x) < (19/16)^2 ? expβ_taylor(x) : expβ_asy(x)
+expγ(x::Complex128) = abs2(x) < (15/16)^2 ? expγ_taylor(x) : expγ_asy(x)
+
+expα(x) = expα_asy(x)
+expβ(x) = expβ_asy(x)
+expγ(x) = expγ_asy(x)
+
+@vectorize_1arg Number expα
+@vectorize_1arg Number expβ
+@vectorize_1arg Number expγ
+
+for f in (:(Base.exp),:(Base.expm1),:expα,:expβ,:expγ)
+    @eval begin
+        $f(op::BandedOperator) = OperatorFunction(op,$f)
     end
 end

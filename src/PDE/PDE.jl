@@ -1,5 +1,10 @@
 export discretize,timedirichlet
 
+
+# Bivariate functions have BandedMatrix
+op_eltype{T,D}(sp::Space{T,D,2})=BandedMatrix{promote_type(eltype(sp),eltype(domain(sp)))}
+op_eltype_realdomain{T,D}(sp::Space{T,D,2})=BandedMatrix{promote_type(eltype(sp),real(eltype(domain(sp))))}
+
 include("OperatorSchur.jl")
 include("KroneckerOperator.jl")
 include("dekron.jl")
@@ -11,19 +16,22 @@ include("kron.jl")
 
 ## PDE
 
-function lap(d::Union{ProductDomain,TensorSpace})
+lap(d)=Laplacian(d)
+
+
+function Laplacian(d::Union{ProductDomain,TensorSpace},k::Integer)
     @assert length(d)==2
-    Dx=Derivative(d[1])
-    Dy=Derivative(d[2])
-    Dx^2⊗I+I⊗Dy^2
+    Dx2=Derivative(d,[2,0])
+    Dy2=Derivative(d,[0,2])
+    if k==1
+        LaplacianWrapper(Dx2+Dy2,k)
+    else
+        LaplacianWrapper((Dx2+Dy2)^k,k)
+    end
 end
 
 
-for TYP in (:Derivative,:Integral)
-    @eval $TYP(d::Union{ProductDomain,TensorSpace},k::Integer)=k==1?$TYP(d[1])⊗eye(d[2]):eye(d[1])⊗$TYP(d[2])
-end
-
-grad(d::ProductDomain)=[Derivative(d,k) for k=1:length(d.domains)]
+grad(d::ProductDomain)=[Derivative(d,[1,0]),Derivative(d,[0,1])]
 
 
 

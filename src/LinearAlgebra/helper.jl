@@ -1,9 +1,20 @@
-
+export dotu
 import Base.chop
 
 # Used for spaces not defined yet
 immutable UnsetNumber <: Number  end
 Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
+
+# Test the number of arguments a function takes
+if VERSION < v"0.5.0-dev"
+    hasnumargs(f,k)=(isgeneric(f)&&applicable(f,zeros(k)...)) || (!isgeneric(f)&&arglength(f)==k)
+else
+    hasnumargs(f,k)=applicable(f,zeros(k)...)
+end
+
+
+isapprox(a...;kwds...)=Base.isapprox(a...;kwds...)
+isapprox(a::Vec,b::Vec;kwds...)=isapprox([a...],[b...];kwds...)
 
 # This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
 # which we override for default julia types
@@ -17,7 +28,13 @@ real{T<:Complex,n}(::Type{Array{T,n}})=Array{real(T),n}
 eps(x...)=Base.eps(x...)
 eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
 eps{T<:Real}(z::Complex{T})=eps(abs(z))
-eps{T<:Number}(z::Type{Vector{T}})=eps(T)
+eps{T<:Real}(::Type{Dual{Complex{T}}})=eps(real(T))
+eps{T<:Real}(z::Dual{Complex{T}})=eps(abs(z))
+eps{T<:Number}(::Type{Vector{T}})=eps(T)
+eps{k,T<:Number}(::Type{Vec{k,T}})=eps(T)
+
+
+# BLAS
 
 dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
 dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
@@ -26,6 +43,27 @@ dotu{N<:Real,T<:Number}(f::Vector{N},g::Vector{T})=dot(f,g)
 # implement muladd default
 muladd(a,b,c)=a*b+c
 muladd(a::Number,b::Number,c::Number)=Base.muladd(a,b,c)
+
+
+for TYP in (:Float64,:Float32,:Complex128,:Complex64)
+    @eval scal!{T<:$TYP}(n::Integer,cst::$TYP,ret::DenseArray{T},k::Integer) =
+            BLAS.scal!(n,cst,ret,k)
+end
+
+typealias BlasNumber Union{Float64,Float32,Complex128,Complex64}
+scal!{T<:BlasNumber}(n::Integer,cst::BlasNumber,ret::DenseArray{T},k::Integer) =
+    BLAS.scal!(n,T(cst),ret,k)
+
+function scal!(n::Integer,cst::Number,ret::AbstractArray,k::Integer)
+    @assert k*n ≤ length(ret)
+    @simd for j=1:k:k*(n-1)+1
+        @inbounds ret[j] *= cst
+    end
+    ret
+end
+
+scal!(cst::Number,v::AbstractArray) = scal!(length(v),cst,v,1)
+
 
 
 ## Helper routines
@@ -174,16 +212,6 @@ chop(A::Array,tol)=chop!(A,tol)#replace by chop!(copy(A),tol) when chop! is actu
 ## interlace
 
 
-function interlace{T<:Number}(v::Vector{Vector{T}})
-    n=length(v)
-    l=mapreduce(length,max,v)
-    ret=zeros(T,n*l)
-
-    for k=1:n
-        ret[k:n:k+(length(v[k])-1)*n]=v[k]
-    end
-    ret
-end
 
 function interlace(v::Union{Vector{Any},Tuple})
     #determine type
@@ -237,18 +265,46 @@ function interlace(a::Vector,b::Vector)
 end
 
 
+# this limits the dimension of the padding to da and db
+# interlacing every other coefficient until then
+
+interlace(a::Union{Tuple,AbstractVector};dimensions=fill(Inf,length(a)))=dim_interlace(a,dimensions)
+dim_interlace(a,dimensions)=
+        dim_interlace(mapreduce(eltype,promote_type,a),a,dimensions)
+function dim_interlace{T}(::Type{T},a,d)
+    @assert length(d)==length(a)
+    m=length(a)
+    for j=1:m
+        @assert length(a[j])≤d[j]
+    end
+    ret=Array(T,0)
+    n=mapreduce(length,max,a)   # the max length
+    for k=1:n, j=1:m
+        if k ≤ length(a[j])
+            push!(ret,a[j][k])
+        elseif k ≤ d[j]
+            # only add zero if we are less than the dimension dictated by d
+            push!(ret,zero(T))
+        end
+    end
+
+    ret
+end
+
+
+
 
 
 ## svfft
 
 ##FFT That interlaces coefficients
 
-plan_svfft(x::Vector) = wrap_fft_plan(plan_fft(x))
-plan_isvfft(x::Vector) = wrap_fft_plan(plan_ifft(x))
+plan_svfft(x::Vector) = plan_fft(x)
+plan_isvfft(x::Vector) = plan_ifft(x)
 
 function svfft(v::Vector,plan)
     n=length(v)
-    v=plan(v)/n
+    v=plan*v/n
     if mod(n,2) == 0
         ind=div(n,2)
         v=alternatesign!(v)
@@ -278,33 +334,107 @@ function isvfft(sv::Vector,plan)
            alternatesign!(flipdim(sv[2:2:end],1))]
     end
 
-    plan(n*v)
+    plan*(n*v)
 end
 
 
 
 
+## slnorm gives the norm of a slice of a matrix
 
-## tridiagonal ql
-
-function tridql!(L::Matrix)
-    n=size(L,1)
-
-  # Now we do QL for the compact part in the top left
-    Q = eye(eltype(L),n)
-    for i = n:-1:2
-        nrm=sqrt(L[i-1,i]^2+L[i,i]^2)
-        c,s = L[i,i]/nrm, L[i-1,i]/nrm
-        if i > 2
-            L[i-1:i,i-2:i] = [c -s; s c]*L[i-1:i,i-2:i]
-            L[i-1,i]=0
-        else
-            L[i-1:i,i-1:i] = [c -s; s c]*L[i-1:i,i-1:i]
-            L[i-1,i]=0
+function slnorm{T}(u::AbstractArray{T},r::Range,::Colon)
+    ret = zero(real(T))
+    for k=r
+        @simd for j=1:size(u,2)
+            #@inbounds
+            ret=max(norm(u[k,j]),ret)
         end
-        G=eye(eltype(L),n)
-        G[i-1:i,i-1:i]=[c s; -s c]
-        Q = Q*G
     end
-    Q,L
+    ret
 end
+
+
+function slnorm(m::AbstractMatrix,kr::Range,jr::Range)
+    ret=0.0
+    for j=jr
+        for k=kr
+            @inbounds ret=ret+abs2(m[k,j])
+        end
+    end
+    ret
+end
+
+slnorm(m::Matrix,kr::Range,jr::Integer)=slnorm(m,kr,jr:jr)
+slnorm(m::Matrix,kr::Integer,jr::Range)=slnorm(m,kr:kr,jr)
+
+
+function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
+    ret = zero(real(T))
+    m=size(B,2)
+    for k=r
+        @simd for j=max(1,k-B.l):min(k+B.u,m)
+            #@inbounds
+            ret=max(norm(B[k,j]),ret)
+        end
+    end
+    ret
+end
+
+
+
+
+
+
+## New Inf
+
+const ∞ = Irrational{:∞}()
+
+Base.show(io::IO, x::Irrational{:∞}) = print(io, "∞")
+Base.convert{F<:AbstractFloat}(::Type{F},::Irrational{:∞}) = convert(F,Inf)
+
+## My Count
+
+abstract AbstractCount{S<:Number}
+
+immutable UnitCount{S<:Number} <: AbstractCount{S}
+    start::S
+end
+
+immutable Count{S<:Number} <: AbstractCount{S}
+    start::S
+    step::S
+end
+countfrom(start::Number, step::Number) = Count(promote(start, step)...)
+countfrom(start::Number)               = UnitCount(start)
+countfrom()                            = UnitCount(1)
+
+
+Base.eltype{S}(::Type{AbstractCount{S}}) = S
+Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(super(AS))
+
+Base.step(it::Count) = it.step
+Base.step(it::UnitCount) = 1
+
+Base.start(it::AbstractCount) = it.start
+Base.next(it::AbstractCount, state) = (state, state + step(it))
+Base.done(it::AbstractCount, state) = false
+
+Base.length(it::AbstractCount) = ∞
+
+getindex(it::Count,k) = it.start + it.step*(k-1)
+getindex(it::UnitCount,k) = it.start + k - 1
+
+
+Base.colon(a::Real,b::Irrational{:∞}) = countfrom(a)
+Base.colon(::Irrational{:∞},::AbstractFloat,::Irrational{:∞}) = [∞]
+Base.colon(a::Real,st::Real,b::Irrational{:∞}) = countfrom(a,st)
+
+Base.isinf(::Irrational{:∞}) = true
+
+
+## BandedMatrix
+
+
+
+pad!(A::BandedMatrix,n,::Colon) = pad!(A,n,n+A.u)  # Default is to get all columns
+columnrange(A,row::Integer) = max(1,row+bandinds(A,1)):row+bandinds(A,2)

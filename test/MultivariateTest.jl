@@ -27,6 +27,14 @@ f=Fun(gg)
 @test_approx_eq f(0.,0.) ff(0.,0.)
 
 
+# Fun +-* constant
+f=Fun((x,y)->exp(x)*cos(y))
+
+@test_approx_eq f(0.1,0.2)+2 (f+2)(0.1,0.2)
+@test_approx_eq f(0.1,0.2)-2 (f-2)(0.1,0.2)
+@test_approx_eq f(0.1,0.2)*2 (f*2)(0.1,0.2)
+
+
 
 ## ProductFun
 u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5).^2-40(y+.2).^2))
@@ -85,3 +93,35 @@ B=ldirichlet(d)
 f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
 @test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<20000eps()
 @test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<20000eps()
+
+
+
+## 1D in 2D
+
+d=Interval((0.,0.),(1.,1.))
+f=Fun(xy->exp(-xy[1]-2cos(xy[2])),d)
+@test_approx_eq f(0.5,0.5) exp(-0.5-2cos(0.5))
+@test_approx_eq f(FixedSizeArrays.Vec(0.5,0.5)) exp(-0.5-2cos(0.5))
+
+f=Fun(xy->exp(-xy[1]-2cos(xy[2])),d,20)
+@test_approx_eq f(0.5,0.5) exp(-0.5-2cos(0.5))
+
+f=Fun((x,y)->exp(-x-2cos(y)),d)
+@test_approx_eq f(0.5,0.5) exp(-0.5-2cos(0.5))
+
+f=Fun((x,y)->exp(-x-2cos(y)),d,20)
+@test_approx_eq f(0.5,0.5) exp(-0.5-2cos(0.5))
+
+
+d=Circle((0.,0.),1.)
+f=Fun(xy->exp(-xy[1]-2cos(xy[2])),Fourier(d),40)
+@test_approx_eq f(cos(0.1),sin(0.1)) exp(-cos(0.1)-2cos(sin(0.1)))
+@test_approx_eq f(FixedSizeArrays.Vec(cos(0.1),sin(0.1))) exp(-cos(0.1)-2cos(sin(0.1)))
+
+f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d),40)
+@test_approx_eq f(cos(0.1),sin(0.1)) exp(-cos(0.1)-2cos(sin(0.1)))
+
+
+f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d))
+@test_approx_eq f(cos(0.1),sin(0.1)) exp(-cos(0.1)-2cos(sin(0.1)))
+

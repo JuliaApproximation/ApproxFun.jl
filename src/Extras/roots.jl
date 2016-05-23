@@ -1,11 +1,11 @@
 ## Root finding for Chebyshev expansions
 #
-#  Contains code that is based in part on Chebfun v5's chebfun/@chebteck/roots.m, 
+#  Contains code that is based in part on Chebfun v5's chebfun/@chebteck/roots.m,
 # which is distributed with the following license:
 
-# Copyright (c) 2015, The Chancellor, Masters and Scholars of the University 
+# Copyright (c) 2015, The Chancellor, Masters and Scholars of the University
 # of Oxford, and the Chebfun Developers. All rights reserved.
-# 
+#
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
 #     * Redistributions of source code must retain the above copyright
@@ -13,14 +13,14 @@
 #     * Redistributions in binary form must reproduce the above copyright
 #       notice, this list of conditions and the following disclaimer in the
 #       documentation and/or other materials provided with the distribution.
-#     * Neither the name of the University of Oxford nor the names of its 
-#       contributors may be used to endorse or promote products derived from 
+#     * Neither the name of the University of Oxford nor the names of its
+#       contributors may be used to endorse or promote products derived from
 #       this software without specific prior written permission.
-# 
+#
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR 
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
 # ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -156,7 +156,9 @@ function colleague_balance!(M)
 end
 
 
-colleague_eigvals( c::Vector )=hesseneigvals(colleague_balance!(colleague_matrix(c)))
+# colleague_eigvals( c::Vector )=hesseneigvals(colleague_balance!(colleague_matrix(c)))
+
+colleague_eigvals( c::Vector )=eigvals(colleague_matrix(c))
 
 function PruneOptions( r, htol::Float64 )
 # ONLY KEEP ROOTS IN THE INTERVAL
@@ -245,7 +247,7 @@ function extremal_args(f::Fun)
         roots(differentiate(f))
     elseif isa(d,PeriodicDomain)  # avoid complex domains
         S=typeof(space(f))
-        fromcanonical(f,extremal_args(Fun(f.coefficients,S(canonicaldomain(f)))))
+        fromcanonical(f,extremal_args(setcanonicaldomain(f)))
     else
         dab=∂(domain(f))
         if length(f) <=2 #TODO this is only relevant for Polynomial bases

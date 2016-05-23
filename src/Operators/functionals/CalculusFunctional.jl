@@ -2,6 +2,8 @@ export DefiniteIntegral,DefiniteLineIntegral
 
 abstract CalculusFunctional{S,T} <: Functional{T}
 
+##TODO: Add ConcreteOp
+
 macro calculus_functional(Func)
     AbstOp=parse("Abstract"*string(Func))
     WrappOp=parse(string(Func)*"Wrapper")
@@ -41,6 +43,7 @@ macro calculus_functional(Func)
 
         #Wrapper just adds the operator it wraps
         getindex(D::$WrappOp,k::Range)=D.func[k]
+        getindex(D::$WrappOp,k::Integer)=D.func[k]
         domainspace(D::$WrappOp)=domainspace(D.func)
         datalength(D::$WrappOp)=datalength(D.func)
     end)
@@ -52,6 +55,13 @@ end
 
 #default implementation
 function getindex(B::DefiniteIntegral,kr::Range)
+    S=domainspace(B)
+    Q=Integral(S)
+    A=(Evaluation(S,true)-Evaluation(S,false))*Q
+    A[kr]
+end
+
+function getindex(B::DefiniteIntegral,kr::Integer)
     S=domainspace(B)
     Q=Integral(S)
     A=(Evaluation(S,true)-Evaluation(S,false))*Q

@@ -10,23 +10,29 @@ LaurentOperator{DD}(f::Fun{Laurent{DD}})=LaurentOperator(f.coefficients[3:2:end]
 
 ##Taylor
 
-
-bandinds{DD}(M::Multiplication{Taylor{DD},Taylor{DD}})=1-length(M.f),0
-rangespace{DD}(M::Multiplication{Taylor{DD},Taylor{DD}})=domainspace(M)
-addentries!{DD}(M::Multiplication{Taylor{DD},Taylor{DD}},A,k,::Colon)=addentries!(ToeplitzOperator(M.f.coefficients[2:end],[M.f.coefficients[1]]),A,k,:)
+Multiplication{DD}(f::Fun{Taylor{DD}},sp::Taylor{DD}) =
+    MultiplicationWrapper(f,SpaceOperator(ToeplitzOperator(M.f.coefficients[2:end],
+                                                           [M.f.coefficients[1]]),
+                                          sp,sp))
 
 
 ## Evaluation
 
-getindex{DD}(T::Evaluation{Taylor{DD},Complex{Float64},Complex{Float64}},cols::Range)=mappoint(domain(T),Circle(),T.x).^(cols-1)
+getindex{DD}(T::Evaluation{Taylor{DD},Complex{Float64},Complex{Float64}},cols::Range) =
+    mappoint(domain(T),Circle(),T.x).^(cols-1)
 
 
 ## Multiplication
 
-bandinds{DD}(M::Multiplication{Laurent{DD},Laurent{DD}})=bandinds(LaurentOperator(M.f))
-rangespace{DD}(M::Multiplication{Laurent{DD},Laurent{DD}})=domainspace(M)
-addentries!{DD}(M::Multiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentries!(LaurentOperator(M.f),A,k,:)
+Multiplication{DD}(f::Fun{Laurent{DD}},sp::Laurent{DD}) =
+    MultiplicationWrapper(f,SpaceOperator(LaurentOperator(f),sp,sp))
 
+
+Multiplication{DD}(f::Fun{Fourier{DD}},sp::Laurent{DD}) = Multiplication(Fun(f,sp),sp)
+Multiplication{DD}(f::Fun{Laurent{DD}},sp::Fourier{DD}) = Multiplication(Fun(f,sp),sp)
+
+# override SumSpace default
+coefficienttimes{DD}(f::Fun{Laurent{DD}},g::Fun{Laurent{DD}}) = Multiplication(f,space(g))*g
 
 
 
@@ -34,62 +40,61 @@ addentries!{DD}(M::Multiplication{Laurent{DD},Laurent{DD}},A,k,::Colon)=addentri
 ## Derivative
 
 # override map definition
-Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=Derivative{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
+Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer) = ConcreteDerivative(S,k)
+Derivative{s,DD<:PeriodicInterval}(S::Hardy{s,DD},k::Integer) = ConcreteDerivative(S,k)
+Derivative{DD<:Circle}(S::Laurent{DD},k::Integer) =
+    DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),SumSpace),k)
 
-bandinds{s,DD<:PeriodicInterval}(D::Derivative{Hardy{s,DD}})=(0,0)
-bandinds{s,DD<:Circle}(D::Derivative{Hardy{s,DD}})=s?(0,D.order):(-D.order,0)
+bandinds{s,DD<:PeriodicInterval}(D::ConcreteDerivative{Hardy{s,DD}})=(0,0)
+bandinds{s,DD<:Circle}(D::ConcreteDerivative{Hardy{s,DD}})=s?(0,D.order):(-D.order,0)
 
-rangespace{S<:Hardy}(D::Derivative{S})=D.space
+rangespace{S<:Hardy}(D::ConcreteDerivative{S})=D.space
 
-function taylor_derivative_addentries!(d::PeriodicInterval,m,A,kr::Range)
+function taylor_derivative_getindex(d::PeriodicInterval,m,k::Integer,j::Integer)
     C=2/(d.b-d.a)*π*im
-    for k=kr
-        A[k,k] += (C*(k-1))^m
-    end
-    A
+    k==j?(C*(k-1))^m:zero(C)
 end
 
-function hardyfalse_derivative_addentries!(d::PeriodicInterval,m,A,kr::Range)
+function hardyfalse_derivative_getindex(d::PeriodicInterval,m,k::Integer,j::Integer)
     C=2/(d.b-d.a)*π*im
-    for k=kr
-        A[k,k] += (-C*k)^m
-    end
-    A
+    k==j?(-C*k)^m:zero(C)
 end
 
 
 
-function taylor_derivative_addentries!(d::Circle,m,A,kr::Range)
+function taylor_derivative_getindex(d::Circle,m,k::Integer,j::Integer)
     C=d.radius^(-m)
 
-    for k=kr
+    if j==k+m
         D=k
         for j=k+1:k+m-1
           D*=j
         end
-        A[k,k+m] += C*D
+        C*D
+    else
+        zero(C)
     end
-
-    A
 end
 
-function hardyfalse_derivative_addentries!(d::Circle,m,A,kr::Range)
+function hardyfalse_derivative_getindex(d::Circle,m,k::Integer,j::Integer)
     C=(-d.radius)^(-m)
 
-    for k=max(m+1,kr[1]):kr[end]
+    if j == k-m
         D=k-m
         for j=k-m+1:k-1
           D*=j
         end
-        A[k,k-m] += C*D
+        C*D
+    else
+        zero(C)
     end
-
-    A
 end
 
 
-addentries!{DD}(D::Derivative{Taylor{DD}},A,kr::Range,::Colon)=taylor_derivative_addentries!(domain(D),D.order,A,kr)
-addentries!{DD}(D::Derivative{Hardy{false,DD}},A,kr::Range,::Colon)=hardyfalse_derivative_addentries!(domain(D),D.order,A,kr)
+getindex{DD,OT,T}(D::ConcreteDerivative{Taylor{DD},OT,T},k::Integer,j::Integer)  =
+    T(taylor_derivative_getindex(domain(D),D.order,k,j))
+getindex{DD,OT,T}(D::ConcreteDerivative{Hardy{false,DD},OT,T},k::Integer,j::Integer) =
+    T(hardyfalse_derivative_getindex(domain(D),D.order,k,j))
 
 
 
@@ -105,85 +110,87 @@ addentries!{DD}(D::Derivative{Hardy{false,DD}},A,kr::Range,::Colon)=hardyfalse_d
 # end
 
 
-Integral{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=Integral{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
+Integral{s,DD<:Circle}(S::Hardy{s,DD},k::Integer)=ConcreteIntegral(S,k)
 
-bandinds{DD<:Circle}(D::Integral{Taylor{DD}})=(-D.order,0)
-rangespace{s,DD<:Circle}(Q::Integral{Hardy{s,DD}})=Q.space
+bandinds{DD<:Circle}(D::ConcreteIntegral{Taylor{DD}})=(-D.order,0)
+rangespace{s,DD<:Circle}(Q::ConcreteIntegral{Hardy{s,DD}})=Q.space
 
-function addentries!{DD<:Circle}(D::Integral{Taylor{DD}},A,kr::Range,::Colon)
+function getindex{DD<:Circle}(D::ConcreteIntegral{Taylor{DD}},k::Integer,j::Integer)
     d=domain(D)
     m=D.order
+    T=eltype(D)
+    C=T(d.radius^m)
 
-    C=d.radius^m
-
-    for k=max(m+1,kr[1]):kr[end]
+    if j==k-m
         D=k-m
         for j=k-m+1:k-1
           D*=j
         end
-        A[k,k-m] += C/D
+        C/D
+    else
+        zero(T)
     end
-
-    A
 end
 
 
-Integral{n,T,DD<:Circle}(S::SliceSpace{n,1,Hardy{false,DD},T,DD,1},k::Integer)=Integral{typeof(S),typeof(k),promote_type(eltype(S),eltype(DD))}(S,k)
+Integral{n,T,DD<:Circle}(S::SliceSpace{n,1,Hardy{false,DD},T,DD,1},k::Integer)=ConcreteIntegral(S,k)
 
-function bandinds{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})
+function bandinds{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})
     @assert D.order==n
     (0,0)
 end
-rangespace{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})=D.space.space
+rangespace{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})=D.space.space
 
-function addentries!{n,T,DD<:Circle}(D::Integral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}},A,kr::Range,::Colon)
+function getindex{n,T,OT,TT,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1},OT,TT},k::Integer,j::Integer)
     d=domain(D)
     m=D.order
 
-    C=(-d.radius)^m
+    C=TT((-d.radius)^m)
 
-    for k=kr
+    if k==j
         D=k
         for j=k+1:k+m-1
           D*=j
         end
-        A[k,k] += C/D
+        C/D
+    else
+        zero(TT)
     end
-
-    A
 end
 
 
 
-bandinds{DD<:PeriodicInterval}(D::Integral{Hardy{false,DD}})=(0,0)
-rangespace{DD<:PeriodicInterval}(D::Integral{Taylor{DD}})=D.space
+bandinds{DD<:PeriodicInterval}(D::ConcreteIntegral{Hardy{false,DD}})=(0,0)
+rangespace{DD<:PeriodicInterval}(D::ConcreteIntegral{Taylor{DD}})=D.space
 
 
-function addentries!{DD<:PeriodicInterval}(D::Integral{Hardy{false,DD}},A,kr::Range,::Colon)
+function getindex{DD<:PeriodicInterval}(D::ConcreteIntegral{Hardy{false,DD}},k::Integer,j::Integer)
     d=domain(D)
     m=D.order
-
+    T=eltype(D)
     C=2/(d.b-d.a)*π*im
-    for k=kr
-        A[k,k] += (-C*k)^(-m)
+    if k==j
+        T((-C*k)^(-m))
+    else
+        zero(T)
     end
-    A
 end
 
 
 
-bandinds{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=(0,0)
-rangespace{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=D.space
+bandinds{n,T,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=(0,0)
+rangespace{n,T,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=D.space
 
-function addentries!{n,T,DD<:PeriodicInterval}(D::Integral{SliceSpace{n,1,Taylor{DD},T,DD,1}},A,kr::Range,::Colon)
+function getindex{n,T,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{n,1,Taylor{DD},T,DD,1}},k::Integer,j::Integer)
     d=domain(D)
     m=D.order
-
+    TT=eltype(D)
     C=2/(d.b-d.a)*π*im
-    for k=kr
-        A[k,k] += (C*(k+n-1))^(-m)
+    if k==j
+        TT((C*(k+n-1))^(-m))
+    else
+        zero(TT)
     end
-    A
 end
 
 
@@ -191,7 +198,7 @@ end
 ## Definite integral
 
 for TYP in (:DefiniteIntegral,:DefiniteLineIntegral)
-    @eval $TYP{DD<:Circle}(S::Laurent{DD})=$TYP{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
+    @eval $TYP{DD<:Circle}(S::Laurent{DD}) = $TYP{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
 end
 
 function getindex{T,DD<:PeriodicInterval}(Σ::DefiniteIntegral{Laurent{DD},T},kr::Range)
@@ -199,7 +206,8 @@ function getindex{T,DD<:PeriodicInterval}(Σ::DefiniteIntegral{Laurent{DD},T},kr
     T[k == 1?  d.b-d.a : zero(T) for k=kr]
 end
 
-getindex{T,DD<:Circle}(Σ::DefiniteIntegral{Laurent{DD},T},kr::Range)=T[k == 2?  2domain(Σ).radius*π*im :zero(T) for k=kr]
+getindex{T,DD<:Circle}(Σ::DefiniteIntegral{Laurent{DD},T},kr::Range) =
+    T[k == 2?  2domain(Σ).radius*π*im :zero(T) for k=kr]
 
 datalength{DD<:PeriodicInterval}(Σ::DefiniteIntegral{Laurent{DD}})=1
 datalength{DD<:Circle}(Σ::DefiniteIntegral{Laurent{DD}})=2

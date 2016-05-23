@@ -68,3 +68,17 @@ x=Fun(d)
 w=1/(sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x)))
 
 @test_approx_eq linesum(w) DefiniteLineIntegral()*w
+
+
+## Volterra integral equation
+
+d = Interval(0.0,1.0)
+V = Volterra(d)
+K = LowRankFun((x,y)->sin(y-x),d^2)
+L = I-V[K]
+f = Fun(exp,d)
+@test domainspace(L) == Legendre(d)
+@test rangespace(L) == Legendre(d)
+@test bandrange(V) == -1:0
+u = L\f
+@test norm(L*u-f) ≤ 20eps()

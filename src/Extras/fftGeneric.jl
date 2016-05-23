@@ -1,47 +1,5 @@
 typealias BigFloats Union{BigFloat,Complex{BigFloat}}
 
-if VERSION >= v"0.4-dev"
-    # old DFT API: p(x) # deprecated
-    wrap_fft_plan(x::Function) = x
-    # new DFT API
-    immutable FFTPlanWrapper{P}
-        p::P
-    end
-    call(p::FFTPlanWrapper, arg) = p.p * arg
-    wrap_fft_plan(x) = FFTPlanWrapper(x)
-else
-    # 0.3 (old) DFT API
-    wrap_fft_plan(x) = x
-end
-
-# The following implements Bluestein's algorithm, following http://www.dsprelated.com/dspbooks/mdft/Bluestein_s_FFT_Algorithm.html
-# To add more types, add them in the union of the function's signature.
-function Base.fft{T<:BigFloats}(x::Vector{T})
-    n = length(x)
-    if ispow2(n) return fft_pow2(x) end
-    ks = linspace(zero(real(T)),n-one(real(T)),n)
-    Wks = exp(-im*convert(T,π)*ks.^2/n)
-    xq,wq = x.*Wks,conj([exp(-im*convert(T,π)*n);reverse(Wks);Wks[2:end]])
-    return Wks.*conv(xq,wq)[n+1:2n]
-end
-
-Base.ifft{T<:BigFloats}(x::Vector{T}) = conj(fft(conj(x)))/length(x)
-function Base.ifft!{T<:BigFloats}(x::Vector{T})
-    y = conj(fft(conj(x)))/length(x)
-    x[:] = y
-    return x
-end
-
-function Base.conv{T<:BigFloats}(u::StridedVector{T}, v::StridedVector{T})
-    nu,nv = length(u),length(v)
-    n = nu + nv - 1
-    np2 = nextpow2(n)
-    pad!(u,np2),pad!(v,np2)
-    y = ifft_pow2(fft_pow2(u).*fft_pow2(v))
-    #TODO This would not handle Dual/ComplexDual numbers correctly
-    y = T<:Real ? real(y[1:n]) : y[1:n]
-end
-
 function Base.fft{F<:Fun}(x::Vector{F})
     n,T = length(x),mapreduce(eltype,promote_type,x)
     if ispow2(n) return fft_pow2(x) end
@@ -75,10 +33,9 @@ end
 
 # plan_fft for BigFloats (covers Laurent svfft)
 
-Base.plan_fft{T<:BigFloats}(x::Vector{T}) = fft
-Base.plan_ifft{T<:BigFloats}(x::Vector{T}) = ifft
 Base.plan_fft{F<:Fun}(x::Vector{F}) = fft
 Base.plan_ifft{F<:Fun}(x::Vector{F}) = ifft
+Base.plan_ifft!{F<:Fun}(x::Vector{F}) = ifft
 
 # Chebyshev transforms and plans for BigFloats
 

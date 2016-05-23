@@ -77,10 +77,10 @@ treecount(::BandedOperator)=1
 treecount(::Derivative)=1
 treecount(::ConstantOperator)=1
 treecount(::Conversion)=1
-treecount(::Multiplication)=1
+treecount(::ConcreteMultiplication)=1
 
 
-treecount(M::Union{MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
+treecount(M::Union{MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,LeftIntegralWrapper,RightIntegralWrapper,
                    ConversionWrapper,SpaceOperator,DiagonalArrayOperator,ConstantTimesOperator})=1+treecount(M.op)
 treecount(A::Union{PlusOperator,TimesOperator,InterlaceOperator,
                    DiagonalInterlaceOperator,
@@ -90,11 +90,13 @@ domainrangestr(A)=texname(domainspace(A))*"\$\\rightarrow\$"*texname(rangespace(
 
 
 texname(A::BandedOperator)=string(typeof(A))
-texname(D::Derivative)=(D.order==1?"\$D":"\$D\^"*string(D.order))*"\$:"*domainrangestr(D)
+texname(D::ConcreteDerivative)=(D.order==1?"\$D":"\$D\^"*string(D.order))*"\$:"*domainrangestr(D)
 texname(A::ConstantOperator)=string(A.c)*"I"
-texname(C::Conversion)="C:"*domainrangestr(C)
-texname(A::Multiplication)=space(A.f)==domainspace(A)==rangespace(A)?"M["*texname(space(A.f))*"]":"M["*texname(space(A.f))*"]:"domainrangestr(A)
+texname(C::ConcreteConversion)="C:"*domainrangestr(C)
+texname(A::ConcreteMultiplication)=space(A.f)==domainspace(A)==rangespace(A)?"M["*texname(space(A.f))*"]":"M["*texname(space(A.f))*"]:"domainrangestr(A)
 
+texname(D::ConcreteIntegral)=(D.order==1?"\$Q":"\$Q\^"*string(D.order))*"\$:"*domainrangestr(D)
+texname(D::ConcreteLeftIntegral)=(D.order==1?"\$Q_{$(first(domain(D)))}":"\$Q_{$(first(domain(D)))}\^"*string(D.order))*"\$:"*domainrangestr(D)
 
 texname(D::DerivativeWrapper)=(D.order==1?"\$(D":"\$(D\^"*string(D.order))*")\$"
 texname(A::SpaceOperator)="("*domainrangestr(A)*")"

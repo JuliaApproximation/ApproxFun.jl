@@ -18,19 +18,22 @@ eps2{T<:Integer}(::Type{T})=eps2(Float64)
 eps2(::Type{BigInt})=eps2(BigFloat)
 
 function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01eps2(eltype(A[end])),maxlength=1000000)
-    A=promotedomainspace(A,choosedomainspace(A))
-    if length(A)==3&&
-            isa(A[end],BandedOperator) &&
-            isa(A[1],Evaluation)&&
-            isa(A[2],Evaluation)&&
-            isa(domainspace(A[1]),Chebyshev) &&
-            !A[1].x && A[2].x &&
-            length(bandrange(A[end]))≥25&&
-            iseven(stride(A[end]))
-        r=stridelinsolve(A,b,tolerance,maxlength)
-    else
-        r=adaptiveqr(A,b,tolerance,maxlength)
+    if isambiguous(domainspace(A[end])) ||
+            !spacescompatible(A)
+        A=promotedomainspace(A,choosedomainspace(A))
     end
+    # if length(A)==3&&
+    #         isa(A[end],BandedOperator) &&
+    #         isa(A[1],Evaluation)&&
+    #         isa(A[2],Evaluation)&&
+    #         isa(domainspace(A[1]),Chebyshev) &&
+    #         !A[1].x && A[2].x &&
+    #         length(bandrange(A[end]))≥25&&
+    #         iseven(stride(A[end]))
+    #     r=stridelinsolve(A,b,tolerance,maxlength)
+    # else
+    r=adaptiveqr(A,b,tolerance,maxlength)
+    # end
 
     #all rows of Ad should have same domain space
     ds=domainspace(A[end])
@@ -64,26 +67,14 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};
 
             bend=b[end,:]
 
-            # check if space is already compatible
-            # TODO: this should be in promotedomainspace/choosedomainspace
-            isbendspace=true
             rs=rangespace(A[end])
-            for bs in bend
-                @assert isa(bs,Fun)
-                if !spacescompatible(rs,space(bs))
-                    isbendspace=false
-                    break
-                end
-            end
-
-
-            if !isbendspace
+            if isambiguous(rs)
                 ds=choosedomainspace(A,space(b[end,1]))
                 A=promotedomainspace(A,ds)
+                rs=rangespace(A[end])
             end
 
             # coefficients in the rangespace
-            rs=rangespace(A[end])
             typ=promote_type(mapreduce(eltype,promote_type,bend),eltype(rs))
 
             cfsB=Vector{typ}[coefficients(b[end,k],rs) for k=1:size(b,2)]

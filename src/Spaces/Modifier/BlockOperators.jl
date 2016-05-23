@@ -40,7 +40,7 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
         rs=AnySpace()  # for the case of all constants
 
         for k=1:size(A,2)-1
-            if isa(A[1,k],AbstractMultiplication)
+            if isa(A[1,k],Multiplication)
                 # cols are going to be constantspace, so rangespace is just space of f
                 rs=union(rs,space(A[1,k].f))
             end
@@ -60,7 +60,7 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
     T=mapreduce(eltype,promote_type,M)
     colsv=Array(Vector{T},length(M))
     for k=1:length(M)
-        if isa(M[k],AbstractMultiplication)
+        if isa(M[k],Multiplication)
             ds=domainspace(M[k])
             @assert isa(ds,UnsetSpace) || isa(ds,ConstantSpace)
             @assert !isambiguous(rs)
@@ -112,19 +112,19 @@ bandinds(B::BlockOperator)=min(1-size(B.mat21,1)-size(B.mat11,1),
                                bandinds(B.op,2)+size(B.mat11,2)-size(B.mat11,1))
 
 
-function addentries!(B::BlockOperator,A,kr::Range,::Colon)
-    addentries!(StrideOperator(B.op,size(B.mat11,1),size(B.mat11,2)),A,kr,:)
+function getindex(B::BlockOperator,k::Integer,j::Integer)
     n,m=size(B.mat11)
-    for k=intersect(kr,1:n),j=1:m
-        A[k,j]+=B.mat11[k,j]
+    if k ≤ n && j ≤ m
+        B.mat11[k,j]
+    elseif k ≤ n && j ≤ m + size(B.mat12,2)
+        B.mat12[k,j-m]
+    elseif k ≤ n + size(B.mat21,1) && j ≤ m
+        B.mat21[k-n,j]
+    elseif k > n && j > m
+        B.op[k-n,j-m]
+    else
+        zero(eltype(B))
     end
-    for k=intersect(kr,1:n),j=m+1:m+size(B.mat12,2)
-        A[k,j]+=B.mat12[k,j-m]
-    end
-    for k=intersect(kr,n+1:n+size(B.mat21,1)),j=1:m
-        A[k,j]+=B.mat21[k-n,j]
-    end
-    A
 end
 
 
@@ -145,7 +145,7 @@ function promotedomainspace(P::BlockOperator,S::TupleSpace)
         # we don't know how to change the rangespace
         # TODO: convert coefficients from old rangespace to
         # new rangespace
-        @assert rangespace(op)==rangespace(P)
+        @assert rangespace(op)==rangespace(P.op)
         BlockOperator(P.mat11,P.mat12,P.mat21,op)
     end
 end
@@ -182,7 +182,14 @@ end
 BlockFunctional{T<:Number}(cols::Vector{T},op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
 BlockFunctional{T<:Number}(col::T,op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
 
-domainspace(P::BlockFunctional)=TupleSpace(ConstantSpace(),domainspace(P.op))
+function domainspace(B::BlockFunctional)
+    ds=domainspace(B.op)
+    if isa(ds,UnsetSpace) || length(B.cols)==0
+        ds # avoids TupleSpace⊕UnsetSpace
+    else
+        TupleSpace(fill(ConstantSpace(),length(B.cols))...,ds)
+    end
+end
 
 
 function promotedomainspace(P::BlockFunctional,S::TupleSpace)

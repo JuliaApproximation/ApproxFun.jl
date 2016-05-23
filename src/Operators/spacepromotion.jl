@@ -1,11 +1,13 @@
+export ↦
 
-
-immutable SpaceFunctional{O<:Functional,S<:Space,T} <: Functional{T}
+immutable SpaceFunctional{O<:Functional,S<:Space,D<:Domain,T} <: Functional{T}
     op::O
-    space::S
+    domainspace::S
+    rangedomain::D
 end
 
-SpaceFunctional{T<:Number,S<:Space}(o::Functional{T},s::S)=SpaceFunctional{typeof(o),S,T}(o,s)
+SpaceFunctional(o::Functional,s::Space,d::Domain)=SpaceFunctional{typeof(o),typeof(s),typeof(d),eltype(o)}(o,s,d)
+SpaceFunctional(o::Functional,s::Space)=SpaceFunctional(o,s,domain(s))
 
 datalength(S::SpaceFunctional)=datalength(S.op)
 
@@ -21,28 +23,28 @@ for TYP in (:Functional,:Operator)
     end
 end
 
-getindex(S::SpaceFunctional,k::Range)=getindex(S.op,k)
+getindex(S::SpaceFunctional,k)=S.op[k]
+getindex(S::SpaceFunctional,k,j)=S.op[k,j]
 
-domainspace(S::SpaceFunctional)=S.space
-domain(S::SpaceFunctional)=domain(S.space)
+
+domainspace(S::SpaceFunctional)=S.domainspace
+rangespace(S::SpaceFunctional)=ConstantSpace(S.rangedomain)
+domain(S::SpaceFunctional)=domain(S.domainspace)
 
 ## Space Operator is used to wrap an AnySpace() operator
 immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: BandedOperator{T}
     op::O
     domainspace::S
     rangespace::V
-#
-#     function SpaceOperator{T,O,S}(o::O,s::S)
-#         @assert domainspace(o)==rangespace(o)==AnySpace()
-#         new(o,s)
-#     end
 end
+
+@wrapper SpaceOperator
 
 # The promote_type is needed to fix a bug in promotetimes
 # not sure if its the right long term solution
 SpaceOperator(o::Operator,s::Space,rs::Space)=SpaceOperator{typeof(o),
-                                                                            typeof(s),
-                                                                            typeof(rs),eltype(o)}(o,s,rs)
+                                                            typeof(s),
+                                                            typeof(rs),eltype(o)}(o,s,rs)
 SpaceOperator(o,s)=SpaceOperator(o,s,s)
 Base.convert{OT<:SpaceOperator}(::Type{OT},S::OT)=S  # Added to fix 0.4 bug
 function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)
@@ -56,14 +58,8 @@ function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)
 end
 
 domain(S::SpaceOperator)=domain(domainspace(S))
-
 domainspace(S::SpaceOperator)=S.domainspace
 rangespace(S::SpaceOperator)=S.rangespace
-addentries!(S::SpaceOperator,A,kr,::Colon)=addentries!(S.op,A,kr,:)
-
-for op in (:bandinds,:(Base.stride))
-    @eval $op(S::SpaceOperator)=$op(S.op)
-end
 
 
 
@@ -89,6 +85,10 @@ function findmaxrangespace(ops::Vector)
 end
 
 
+# The coolest definitions ever!!
+# supports Derivative():Chebyshev()↦Ultraspherical{1}()
+↦(A::Operator,b::Space)=promoterangespace(A,b)
+Base.colon(A::Operator,b::Space)=promotedomainspace(A,b)
 
 
 promotedomainspace(P::Functional,sp::Space,::AnySpace)=SpaceFunctional(P,sp)
