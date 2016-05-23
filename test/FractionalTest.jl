@@ -8,7 +8,7 @@ using ApproxFun, Base.Test
 x=Fun([0.,1.])
 Q=gamma(0.5)*LeftIntegral(0.5)
 u=Q\(2/105*sqrt(x)*(105-56x^2+48x^3))
-@test norm(u-(x^3-x^2+1))<10eps()
+@test norm(u-(x^3-x^2+1))<100eps()
 
 
 # Example 2
