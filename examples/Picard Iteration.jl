@@ -1,4 +1,4 @@
-using Plots,ApproxFun
+using Plots, ApproxFun; gr()
 
 #undamped simple harmonic oscillator
 #f =(x,y)-> [ y(2), -y(1) ]
@@ -13,7 +13,7 @@ f =(x,y) -> [ y[2], -sin(y[1]) ]
 
 y0 = [3., 0.]
 d = Interval(0.,20.)
-xt = Fun(identity, d)
+x = Fun(identity, d)
 y0=Fun(x->y0,d)
 yn = y0
 plot(yn[1])
@@ -25,7 +25,7 @@ while true
 		break
 	end
 
-    plot(yn[1])
+    plot!(yn[1])
 	integrand = Fun(f(x,yn))
     yn = chop(cumsum(integrand) + y0,100eps())
 end

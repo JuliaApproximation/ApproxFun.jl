@@ -12,21 +12,4 @@ B=[dirichlet(d);neumann(d);[Evaluation(Interval(),false,k) for k=2:4];
 u=[B;L]\[0.;0.;1.;1.;zeros(6);exp(x)]
 
 
-L
-
-ApproxFun.promoterangespace(
-        ApproxFun.promotedomainspace(D,Chebyshev())
-
-
-Q=LeftIntegral(0.5,Legendre())
-
-
-(D:Chebyshev()↦Ultraspherical{3}())|>ApproxFun.introspect
-
-(D:Fourier()↦Laurent())[1:10,1:10]
-
 ApproxFun.plot(u)
-    png("tenthorder")
-
-
-∂

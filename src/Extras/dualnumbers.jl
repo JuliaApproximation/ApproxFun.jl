@@ -5,6 +5,12 @@ real{T}(::Type{Dual{T}})=Dual{ApproxFun.real(T)}
 DualNumbers.realpart(f::Fun) = Fun(realpart(coefficients(f)),space(f))
 DualNumbers.dualpart(f::Fun) = Fun(dualpart(coefficients(f)),space(f))
 
+
+DualNumbers.realpart{DD<:Dual}(d::Interval{DD}) = Interval(realpart(d.a),realpart(d.b))
+Base.in{DD<:Dual}(x::Number,d::Interval{DD}) = in(x,realpart(d))
+Base.in{DD<:Dual}(x::Dual,d::Interval{DD}) = in(realpart(x),d)
+
+
 valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{V})=Dual{promote_type(T,V)},promote_type(T,V)
 valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{V})=Dual{promote_type(T,V)},promote_type(real(T),V)
 valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{Complex{V}})=Dual{promote_type(T,V)},Complex{promote_type(T,V)}
@@ -80,4 +86,3 @@ function dualcfsFun(f,S)
 
     Fun(f,S,2^21)
 end
-

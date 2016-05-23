@@ -9,11 +9,11 @@ r=ApproxFun.sample(f,5000)
 
 #We can compare the histogram to the 1-point correlation
 plot(sum(f,1)/sum(f))
-plot!(vcat(r...);t=:density)
+histogram!(vcat(r...);normed=true)
 
 
 #We can compare the histograms of x with the GUE:
 using RandomMatrices
 
-plot(vcat([sqrt(2)eigvalrand(GaussianHermite(2),2) for k=1:10000]...);t=:density)
+histogram(vcat([sqrt(2)eigvalrand(GaussianHermite(2),2) for k=1:10000]...);normed=true)
 plot!(sum(f,1)/sum(f))

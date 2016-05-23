@@ -5,7 +5,7 @@ export ultraconversion!,ultraint!
 # diff from T -> U
 function ultradiff{T<:Number}(v::Vector{T})
     #polynomial is p(x) = sum ( v[i] * x^(i-1) )
-    if length(v)==1
+    if length(v)≤1
         w = zeros(T,1)
     else
         w = Array{T}(length(v)-1)
@@ -147,4 +147,3 @@ end
 
 #using DualNumbers
 #ultraconversion{T<:Number}(v::Vector{Dual{T}})=dual(ultraconversion(real(v)), ultraconversion(epsilon(v)) )
-
