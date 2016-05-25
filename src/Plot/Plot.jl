@@ -174,7 +174,9 @@ function Plots.plot!{S<:DiracSpace,T<:Real}(plt::Plots.Plot,f::Fun{S,T};kwds...)
     ws=pad(f.coefficients,length(pts))
     plt=plot!(plt,ones(2)*pts[1],[0,1]*ws[1];kwds...)
     c=plt.plotargs[:color_palette][plt.n]
-    plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
+    if length(pts)≥2
+        plot!(plt,ones(2)*pts[2:end]',[0,1]*ws[2:end]';color=c,kwds...)
+    end
     plot!(plt,ones(2)*pts',[1,2]*ws';color=c,linestyle=:dot,kwds...)
 end
 
