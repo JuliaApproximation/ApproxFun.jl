@@ -141,6 +141,9 @@ end
 
 scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
 
+./{λ,DD}(c::Number,f::Fun{Ultraspherical{λ,DD}}) = c./Fun(f,Chebyshev(domain(f)))
+./{λ,DD}(c::Number,f::Fun{Jacobi{DD}}) = c./Fun(f,Chebyshev(domain(f)))
+
 ./{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c./setcanonicaldomain(f),domain(f))
 function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
