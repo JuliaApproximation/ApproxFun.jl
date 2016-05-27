@@ -185,7 +185,7 @@ d = Interval()^2          					# Defines a rectangle
 
 u = [dirichlet(d);lap(d)+100I]\ones(4)		# First four entries of rhs are
     										# boundary conditions
-plot(u)	                                    # contour plot
+surface(u)	                                # surface plot
 ```
 
 <img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/helmholtz.png width=500 height=400>
