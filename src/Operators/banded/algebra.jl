@@ -432,7 +432,7 @@ function Base.copy{T,TO<:TimesOperator}(S::SubBandedMatrix{T,TO,Tuple{UnitRange{
 
     @assert length(P.ops)≥2
     if size(S,1)==0
-        return A
+        return bzeros(S)
     end
 
 
@@ -456,6 +456,14 @@ function Base.copy{T,TO<:TimesOperator}(S::SubBandedMatrix{T,TO,Tuple{UnitRange{
         krl[m,1]=max(krl[m,1],krl[m+1,1]-br[2])
         krl[m,2]=min(krl[m,2],krl[m+1,2]-br[1])
     end
+
+    # Check if any range is invalid, in which case return zero
+    for m=1:length(P.ops)
+        if krl[m,1]>krl[m,2]
+            return bzeros(S)
+        end
+    end
+
 
 
     # The following returns a banded Matrix with all rows

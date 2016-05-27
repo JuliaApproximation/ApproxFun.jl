@@ -87,3 +87,17 @@ Q=gamma(.5)*LeftIntegral(S,.5)
 L=I+Q
 u=L\f
 norm((u-1/(x+1)).coefficients) < 1000eps()   # 1.2011889731154679e-14
+
+
+
+
+## Test for bug
+
+QL = LeftIntegral(0.5)	: Legendre()					↦	JacobiWeight(0.5,0.,Ultraspherical{1}())
+QU = LeftIntegral(0.5)	: JacobiWeight(0.5,0.,Ultraspherical{1}())	↦	Legendre()
+
+
+λ=0.25
+A=[λ*I QU; QL λ*I]
+L=ApproxFun.interlace(A)
+@test_approx_eq L[2,5] 0.
