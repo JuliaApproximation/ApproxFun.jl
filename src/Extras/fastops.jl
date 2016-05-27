@@ -70,7 +70,7 @@ function Base.copy{T,m,λ,DD}(S::SubBandedMatrix{T,ConcreteConversion{Ultraspher
     kr,jr=parentindexes(S)
     dat=ret.data
 
-    shft = jr[1]-1
+    shft = first(jr)-1
 
     dg1=diagindrow(S)
     dg3=dg1-2
@@ -106,7 +106,7 @@ function Base.copy{T,K,DD,λ}(S::SubBandedMatrix{T,ConcreteDerivative{Ultraspher
     kr,jr=parentindexes(S)
     dat=ret.data
 
-    shft = jr[1]-1
+    shft = first(jr)-1
 
     dg=diagindrow(S)-m   # mth superdiagonal
 
@@ -210,7 +210,7 @@ function hankel_axpy!(α,cfs,kr,jr,ret)
     dat=ret.data
 
     st=stride(dat,2)-2
-    mink=kr[1]+jr[1]-1
+    mink=first(kr)+first(jr)-1
 
     N=length(dat)
 
@@ -219,7 +219,7 @@ function hankel_axpy!(α,cfs,kr,jr,ret)
 
     # we need the entry where the first entry is written to
     # this is going to be a shift of the diagonal of the true operator
-    dg1=dg+kr[1]-jr[1]
+    dg1=dg+first(kr)-first(jr)
 
     for k=mink:min(length(cfs),size(dat,1)+mink-dg1)
         dk=k-mink+dg1

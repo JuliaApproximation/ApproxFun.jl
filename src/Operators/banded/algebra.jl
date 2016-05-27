@@ -426,12 +426,12 @@ Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
 
-function Base.copy{T,TO<:TimesOperator}(sub::SubBandedMatrix{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
-    P=parent(sub)
-    kr,jr=parentindexes(sub)
+function Base.copy{T,TO<:TimesOperator}(S::SubBandedMatrix{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
+    P=parent(S)
+    kr,jr=parentindexes(S)
 
     @assert length(P.ops)≥2
-    if size(sub,1)==0
+    if size(S,1)==0
         return A
     end
 
@@ -440,11 +440,23 @@ function Base.copy{T,TO<:TimesOperator}(sub::SubBandedMatrix{T,TO,Tuple{UnitRang
 
     krl[1,1],krl[1,2]=kr[1],kr[end]
 
+    # find minimal row/column range starting from left
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
         krl[m+1,1]=max(1-mod(kr[1],1),br[1] + krl[m,1])  # no negative
         krl[m+1,2]=br[end] + krl[m,2]
     end
+
+    #find minimal row/column range starting from right
+    br=bandinds(P.ops[end])
+    krl[end,1]=max(krl[end,1],jr[1]-br[2])
+    krl[end,2]=min(krl[end,2],jr[end]-br[1])
+    for m=length(P.ops)-1:-1:2
+        br=bandinds(P.ops[m])
+        krl[m,1]=max(krl[m,1],krl[m+1,1]-br[2])
+        krl[m,2]=min(krl[m,2],krl[m+1,2]-br[1])
+    end
+
 
     # The following returns a banded Matrix with all rows
     # for large k its upper triangular
