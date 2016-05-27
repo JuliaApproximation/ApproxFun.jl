@@ -5,6 +5,8 @@ module ApproxFun
     import FixedSizeArrays
 
 
+import Base.LinAlg: BlasFloat
+
 import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
                 >=,./,/,.^,^,\,∪,transpose, size
 

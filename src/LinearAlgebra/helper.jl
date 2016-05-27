@@ -50,8 +50,8 @@ for TYP in (:Float64,:Float32,:Complex128,:Complex64)
             BLAS.scal!(n,cst,ret,k)
 end
 
-typealias BlasNumber Union{Float64,Float32,Complex128,Complex64}
-scal!{T<:BlasNumber}(n::Integer,cst::BlasNumber,ret::DenseArray{T},k::Integer) =
+
+scal!{T<:BlasFloat}(n::Integer,cst::BlasFloat,ret::DenseArray{T},k::Integer) =
     BLAS.scal!(n,T(cst),ret,k)
 
 function scal!(n::Integer,cst::Number,ret::AbstractArray,k::Integer)
