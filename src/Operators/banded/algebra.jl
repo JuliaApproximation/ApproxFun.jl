@@ -548,31 +548,33 @@ end
 
 # Conversions we always assume are intentional: no need to promote
 
-*{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A.op,B.op))
-*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::Conversion)=ConversionWrapper(TimesOperator(A.op,B))
-*{TO<:TimesOperator}(A::Conversion,B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A,B.op))
+*{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO}) = ConversionWrapper(TimesOperator(A.op,B.op))
+*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::Conversion) = ConversionWrapper(TimesOperator(A.op,B))
+*{TO<:TimesOperator}(A::Conversion,B::ConversionWrapper{TO}) = ConversionWrapper(TimesOperator(A,B.op))
 
-*(A::Conversion,B::Conversion)=ConversionWrapper(TimesOperator(A,B))
-*(A::Conversion,B::TimesOperator)=TimesOperator(A,B)
-*(A::TimesOperator,B::Conversion)=TimesOperator(A,B)
-*(A::BandedOperator,B::Conversion)=isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
-*(A::Conversion,B::BandedOperator)=isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
+*(A::Conversion,B::Conversion) = ConversionWrapper(TimesOperator(A,B))
+*(A::Conversion,B::TimesOperator) = TimesOperator(A,B)
+*(A::TimesOperator,B::Conversion) = TimesOperator(A,B)
+*(A::BandedOperator,B::Conversion) = isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
+*(A::Conversion,B::BandedOperator) = isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
--(A::Operator)=ConstantTimesOperator(-1,A)
--(A::Operator,B::Operator)=A+(-B)
+-(A::Operator) = ConstantTimesOperator(-1,A)
+-(A::Operator,B::Operator) = A+(-B)
 
-*(f::Fun,A::BandedOperator)=TimesOperator(Multiplication(f,rangespace(A)),A)
+*(f::Fun,A::BandedOperator) = TimesOperator(Multiplication(f,rangespace(A)),A)
 
 for OP in (:*,:.*)
     @eval begin
-        $OP(c::Number,A::BandedOperator)=c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
-        $OP(A::BandedOperator,c::Number)=c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
+        $OP(c::Number,A::BandedOperator) =
+            c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
+        $OP(A::BandedOperator,c::Number) =
+            c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
     end
 end
 
-/(B::BandedOperator,c::Number)=c==1?B:ConstantTimesOperator(1.0/c,B)
-/(B::BandedOperator,c::Fun)=(1.0/c)*B
+/(B::BandedOperator,c::Number) = c==1?B:ConstantTimesOperator(1.0/c,B)
+/(B::BandedOperator,c::Fun) = (1.0/c)*B
 
 
 
@@ -636,8 +638,19 @@ for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
     end
 end
 
-*{T<:Operator}(A::Vector{T},b::Fun)=map(a->a*b,convert(Array{Any,1},A))
+*{T<:Operator}(A::Vector{T},b::Fun) = map(a->a*b,convert(Array{Any,1},A))
 
+
+
+for TYP in (:Vector,:Fun,:Number)
+    @eval function linsolve(A::TimesOperator,b::$TYP;kwds...)
+        ret = b
+        for k=length(A.ops):-1:1
+            ret = linsolve(A.ops[k],ret;kwds...)
+        end
+        ret
+    end
+end
 
 
 
