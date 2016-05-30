@@ -27,7 +27,7 @@ Circle(r::Int)=Circle(Float64,0.,r)
 Circle(a::Tuple,r::Real)=Circle(Vec(a...),r)
 
 Circle{V<:Real}(::Type{V}) = Circle(one(V))
-Circle()=Circle(1.)
+Circle()=Circle(1.0)
 
 
 
@@ -43,12 +43,12 @@ function tocanonical{T<:Number}(d::Circle{T},ζ)
 end
 
 function tocanonical{T<:Vec}(d::Circle{T},ζ)
-    v=mappoint(d,Circle((0.,0.),1.),ζ)
+    v=mappoint(d,Circle((0.0,0.0),1.0),ζ)
     atan2(v[2]-0.0,v[1])  # -0.0 to get branch cut right
 end
 
-fromcanonical{T<:Number,V<:Real}(d::Circle{T,V,Complex{V}},θ)=d.radius*exp((d.orientation?1:-1)*1.im*θ) + d.center
-fromcanonicalD{T<:Number}(d::Circle{T},θ)=(d.orientation?1:-1)*d.radius*1.im*exp((d.orientation?1:-1)*1.im*θ)
+fromcanonical{T<:Number,V<:Real}(d::Circle{T,V,Complex{V}},θ)=d.radius*exp((d.orientation?1:-1)*1.0im*θ) + d.center
+fromcanonicalD{T<:Number}(d::Circle{T},θ)=(d.orientation?1:-1)*d.radius*1.0im*exp((d.orientation?1:-1)*1.0im*θ)
 
 
 fromcanonical{T<:Vec}(d::Circle{T},θ::Number)=d.radius*Vec(cos((d.orientation?1:-1)*θ),sin((d.orientation?1:-1)*θ)) + d.center
@@ -93,4 +93,3 @@ end
 
 
 /(c::Number,d::Circle)=c==1?(d.center==0?Circle(d.center,1/d.radius,!d.orientation):Circle(1/d.center,abs(1/(d.center+d.radius)-1/(d.center)),!d.orientation)):c*(1/d)
-

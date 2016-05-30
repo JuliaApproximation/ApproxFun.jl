@@ -70,6 +70,6 @@ end
 
 # allow exp(im*Interval(0,1)) for constructing arc
 function Base.exp{CMP<:Complex}(d::Interval{CMP})
-    @assert isapprox(real(d.a),0.) && isapprox(real(d.b),0.)
-    Arc(0.,1.,(imag(d.a),imag(d.b)))
+    @assert isapprox(real(d.a),0) && isapprox(real(d.b),0)
+    Arc(0,1,(imag(d.a),imag(d.b)))
 end

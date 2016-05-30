@@ -142,8 +142,8 @@ end
 
 
 #ultraiconversion and ultraconversion are linear, so it is possible to define them on Complex numbers as so
-#ultraiconversion(v::Vector{Complex{Float64}})=ultraiconversion(real(v)) + ultraiconversion(imag(v))*1.im
-#ultraconversion(v::Vector{Complex{Float64}})=ultraconversion(real(v)) + ultraconversion(imag(v))*1.im
+#ultraiconversion(v::Vector{Complex{Float64}})=ultraiconversion(real(v)) + ultraiconversion(imag(v))*1.0im
+#ultraconversion(v::Vector{Complex{Float64}})=ultraconversion(real(v)) + ultraconversion(imag(v))*1.0im
 
 #using DualNumbers
 #ultraconversion{T<:Number}(v::Vector{Dual{T}})=dual(ultraconversion(real(v)), ultraconversion(epsilon(v)) )
