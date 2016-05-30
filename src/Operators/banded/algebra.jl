@@ -645,8 +645,8 @@ end
 for TYP in (:Vector,:Fun,:Number)
     @eval function linsolve(A::TimesOperator,b::$TYP;kwds...)
         ret = b
-        for k=length(A.ops):-1:1
-            ret = linsolve(A.ops[k],ret;kwds...)
+        for op in A.ops
+            ret = linsolve(op,ret;kwds...)
         end
         ret
     end
