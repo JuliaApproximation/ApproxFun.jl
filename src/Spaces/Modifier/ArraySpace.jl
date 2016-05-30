@@ -261,12 +261,15 @@ end
 
 ## linsolve
 # special implementation to solve column by column
-function linsolve{S,T,DD,Q}(A::BandedOperator,b::Fun{MatrixSpace{S,T,DD,1},Q};kwds...)
-    rs=rangespace(A)
-    if isa(rs,ArraySpace) && size(rs)==size(space(b))
-        linsolve(A,[b];kwds...)
-    else
-        linsolve(A,mat(b,1);kwds...)
+# override for TimesOperator to avoid ambiguity
+for TYP in (:TimesOperator,:SpaceOperator,:BandedOperator)
+    @eval function linsolve{S,T,DD,Q}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,1},Q};kwds...)
+        rs=rangespace(A)
+        if isa(rs,ArraySpace) && size(rs)==size(space(b))
+            linsolve(A,[b];kwds...)
+        else
+            linsolve(A,mat(b,1);kwds...)
+        end
     end
 end
 
