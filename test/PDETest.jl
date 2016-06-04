@@ -8,19 +8,19 @@ x=Fun(identity,dx);y=Fun(identity,dy)
 
 #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
 
-G=[real(exp(-1+1.im*y));
+G=[real(exp(-1+1.0im*y));
                         real(exp(1+1im*y));
                         real(exp(x-1im));
                         real(exp(x+1im));0.];
 
 A=[dirichlet(d);lap(d)]
 u=A\G
-@test_approx_eq u(.1,.2) real(exp(.1+.2im))
+@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
 A=[dirichlet(d);lap(d)+0.0I]
 u=A\G
-@test_approx_eq_eps u(.1,.2) real(exp(.1+.2im)) 1E-11
+@test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-11
 
 
 ## Poisson
@@ -52,7 +52,7 @@ if OS_NAME==:Darwin
 
     #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
 
-    G=[real(exp(-1+1.im*y));
+    G=[real(exp(-1+1.0im*y));
                             real(exp(1+1im*y));
                             real(exp(x-1im));
                             real(exp(x+1im));0.];
@@ -84,7 +84,7 @@ if OS_NAME==:Darwin
 
     #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
     x=Fun(identity);y=Fun(identity);
-    G=[Fun(real(exp(-1+1.im*y)),S[2]);
+    G=[Fun(real(exp(-1+1.0im*y)),S[2]);
         Fun(real(exp(1+1im*y)),S[2]);
         Fun(real(exp(x-1im)),S[1]);
                             Fun(real(exp(x+1im)),S[1]);0.];
@@ -107,11 +107,11 @@ if OS_NAME==:Darwin
 
     x=Fun(identity,dx);y=Fun(identity,dy)
 
-    G=[real(exp(-1+1.im*y));
+    G=[real(exp(-1+1.0im*y));
                     real(exp(1+1im*y));
                     real(exp(x-1im));
                     real(exp(x+1im));
-                    real(exp(-1+1.im*y));
+                    real(exp(-1+1.0im*y));
                     real(exp(1+1im*y));
                     -imag(exp(x-1im));
                     -imag(exp(x+1im))
@@ -131,7 +131,7 @@ if OS_NAME==:Darwin
             I⊗(ldirichlet(dy)-lneumann(dy));
             I⊗(rdirichlet(dy)-rneumann(dy));
              L],100,100)
-    G=[2real(exp(-1+1.im*y));
+    G=[2real(exp(-1+1.0im*y));
                     2real(exp(1+1im*y));
                     real(exp(x-1im))-imag(exp(x-1im));
                     real(exp(x+1im))-imag(exp(x+1im));

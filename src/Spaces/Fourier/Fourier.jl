@@ -32,20 +32,22 @@ immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
 end
 
 
-Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},::Type{T})=Fun{S,promote_type(V,T)}
-Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace}}(::Type{Fun{S}},::Type{T})=Fun{S,T}
+Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},::Type{T}) =
+    Fun{S,promote_type(V,T)}
+Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace}}(::Type{Fun{S}},::Type{T}) =
+    Fun{S,T}
 
-Base.call{s}(H::Type{Hardy{s}},d::Domain)=Hardy{s,typeof(d)}(d)
-Base.call{s}(H::Type{Hardy{s}})=Hardy{s}(Circle())
+@compat (H::Type{Hardy{s}}){s}(d::Domain) = Hardy{s,typeof(d)}(d)
+@compat (H::Type{Hardy{s}}){s}() = Hardy{s}(Circle())
 
-canonicalspace(S::Hardy)=S
-setdomain{s}(S::Hardy{s},d::Domain)=Hardy{s}(d)
+canonicalspace(S::Hardy) = S
+setdomain{s}(S::Hardy{s},d::Domain) = Hardy{s}(d)
 
 
-spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
-hasfasttransform(::Hardy)=true
+spacescompatible{s}(a::Hardy{s},b::Hardy{s}) = domainscompatible(a,b)
+hasfasttransform(::Hardy) = true
 
-# The <: Domain is crucial for matching Base.call overrides
+# The <: Domain is crucial for matching Basecall overrides
 typealias Taylor{D<:Domain} Hardy{true,D}
 
 plan_transform(::Taylor,x::Vector)=plan_fft(x)
@@ -175,19 +177,19 @@ typealias Fourier{DD} SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
 
 for TYP in (:Laurent,:Fourier)
     @eval begin
-        Base.call(::Type{$TYP},d::Domain)=$TYP{typeof(d)}(d)
-        Base.call(::Type{$TYP})=$TYP(PeriodicInterval())
-        Base.call{T<:Number}(::Type{$TYP},d::Vector{T})=Fourier(PeriodicDomain(d))
+        @compat (::Type{$TYP})(d::Domain) = $TYP{typeof(d)}(d)
+        @compat (::Type{$TYP})() = $TYP(PeriodicInterval())
+        @compat (::Type{$TYP}){T<:Number}(d::Vector{T}) = Fourier(PeriodicDomain(d))
 
-        hasfasttransform{D}(::$TYP{D})=true
+        hasfasttransform{D}(::$TYP{D}) = true
     end
 end
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
         # override default as canonicalspace must be implemented
-        maxspace{D}(::$T,::Fourier{D})=NoSpace()
-        maxspace{D}(::Fourier{D},::$T)=NoSpace()
+        maxspace{D}(::$T,::Fourier{D}) = NoSpace()
+        maxspace{D}(::Fourier{D},::$T) = NoSpace()
     end
 end
 

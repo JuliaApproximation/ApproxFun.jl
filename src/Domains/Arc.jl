@@ -42,6 +42,7 @@ end
 
 tocanonical(a::Arc,x)=mobius(a,x)
 tocanonicalD(a::Arc,x)=mobiusD(a,x)
+fromcanonical(d::Arc,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(a::Arc,x)=mobiusinv(a,x)
 fromcanonicalD(a::Arc,x)=mobiusinvD(a,x)
 

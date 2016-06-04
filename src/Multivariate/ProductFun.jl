@@ -171,7 +171,7 @@ function coefficients(f::ProductFun,ox::Space,oy::Space)
     B
 end
 
-Base.call(f::ProductFun,x,y) = evaluate(f,x,y)
+@compat (f::ProductFun)(x,y) = evaluate(f,x,y)
 
 coefficients(f::ProductFun,ox::TensorSpace) = coefficients(f,ox[1],ox[2])
 

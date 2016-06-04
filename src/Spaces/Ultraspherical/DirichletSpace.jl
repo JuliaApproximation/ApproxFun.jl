@@ -10,20 +10,26 @@ immutable ChebyshevDirichlet{left,right,D} <: PolynomialSpace{D}
 end
 
 for TYP in (:Number,:AbstractArray,:Fun)
-    @eval evaluate(f::AbstractVector,S::ChebyshevDirichlet,x::$TYP)=evaluate(Fun(Fun(f,S),canonicalspace(S)),x)
+    @eval evaluate(f::AbstractVector,S::ChebyshevDirichlet,x::$TYP) =
+        evaluate(Fun(Fun(f,S),canonicalspace(S)),x)
 end
-Base.convert{l,r}(::Type{ChebyshevDirichlet{l,r}})=ChebyshevDirichlet{l,r,Interval{Float64}}()
-Base.convert{l,r}(::Type{ChebyshevDirichlet{l,r}},d::Domain)=ChebyshevDirichlet{l,r,typeof(d)}(d)
+@compat (::Type{ChebyshevDirichlet{l,r}}){l,r}() =
+    ChebyshevDirichlet{l,r,Interval{Float64}}()
+@compat (::Type{ChebyshevDirichlet{l,r}}){l,r}(d::Domain) =
+    ChebyshevDirichlet{l,r,typeof(d)}(d)
 
-spacescompatible{l,r,D}(a::ChebyshevDirichlet{l,r,D},b::ChebyshevDirichlet{l,r,D})=domainscompatible(a,b)
+spacescompatible{l,r,D}(a::ChebyshevDirichlet{l,r,D},b::ChebyshevDirichlet{l,r,D}) =
+    domainscompatible(a,b)
 
-ChebyshevDirichlet()=ChebyshevDirichlet{1,1,Interval{Float64}}()
-ZeroChebyshevDirichlet(d)=SliceSpace(ChebyshevDirichlet{1,1,Interval{Float64}}(d),2)
-ZeroChebyshevDirichlet()=SliceSpace(ChebyshevDirichlet{1,1,Interval{Float64}}(),2)
+ChebyshevDirichlet() = ChebyshevDirichlet{1,1,Interval{Float64}}()
+ZeroChebyshevDirichlet(d) =
+    SliceSpace(ChebyshevDirichlet{1,1,Interval{Float64}}(d),2)
+ZeroChebyshevDirichlet() =
+    SliceSpace(ChebyshevDirichlet{1,1,Interval{Float64}}(),2)
 
-canonicalspace(S::ChebyshevDirichlet)=Chebyshev(domain(S))
+canonicalspace(S::ChebyshevDirichlet) = Chebyshev(domain(S))
 
-setdomain{l,r}(S::ChebyshevDirichlet{l,r},d::Domain)=ChebyshevDirichlet{l,r}(d)
+setdomain{l,r}(S::ChebyshevDirichlet{l,r},d::Domain) = ChebyshevDirichlet{l,r}(d)
 
 
 # These are used to make sure Chebyshev comes first

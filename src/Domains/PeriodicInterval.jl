@@ -45,6 +45,7 @@ Base.issubset(a::PeriodicInterval,b::PeriodicInterval)=first(a)∈b && last(a)�
 
 tocanonical{T}(d::PeriodicInterval{T},x)=convert(T,π).*tocanonical(Interval(d),x)
 tocanonicalD{T}(d::PeriodicInterval{T},x)=convert(T,π).*tocanonicalD(Interval(d),x)
+fromcanonical(d::PeriodicInterval,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::PeriodicInterval,θ)=fromcanonical(Interval(d),θ/π)
 fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Interval(d),θ/π)/π
 

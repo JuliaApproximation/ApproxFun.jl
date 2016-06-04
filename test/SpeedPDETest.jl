@@ -13,7 +13,7 @@ x=Fun(identity,d[1]);y=Fun(identity,d[2])
 
 #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
 A=[dirichlet(d);lap(d)]
-f=[real(exp(-1+1.im*y));
+f=[real(exp(-1+1.0im*y));
                         real(exp(1+1im*y));
                         real(exp(x-1im));
                         real(exp(x+1im))]
@@ -46,7 +46,7 @@ Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 
 ϵ=0.1
 
-u0=Fun(x->exp(-25*(x-.5)^2)*exp(-1.im/(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
+u0=Fun(x->exp(-25*(x-.5)^2)*exp(-1.0im/(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
 L=1im*ϵ*Dt+.5*ϵ^2*Dx^2-V⊗1
 
 PO=discretize([timedirichlet(d);L],50)

@@ -24,7 +24,7 @@ for TYP in (:IntervalCurve,:PeriodicCurve)
     @eval points(c::$TYP,n::Integer)=c.curve(points(domain(c.curve),n))
 end
 
-checkpoints(d::Curve)=fromcanonical(d,checkpoints(domain(d.curve)))
+checkpoints(d::Curve) = fromcanonical(d,checkpoints(domain(d.curve)))
 
 for op in (:(Base.first),:(Base.last),:(Base.rand))
     @eval $op(c::Curve)=c.curve($op(domain(c.curve)))
@@ -33,8 +33,8 @@ end
 
 canonicaldomain(c::Curve)=domain(c.curve)
 
-
-fromcanonical{S<:Space,T<:Number}(c::Curve{S,T},x)=c.curve(x)
+fromcanonical{S<:Space,T<:Number}(d::Curve{S,T},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical{S<:Space,T<:Number}(c::Curve{S,T},x) = c.curve(x)
 function tocanonical(c::Curve,x)
     rts=roots(c.curve-x)
     @assert length(rts)==1

@@ -36,9 +36,9 @@ end
 *(f::Fun,d::DualFun)=DualFun(f*d.f,f*d.J)
 *(a::DualFun,b::DualFun)=DualFun(a.f*b.f,a.f*b.J+b.f*a.J)
 
-Base.call(d::DualFun,x)=DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
-Base.first(d::DualFun)=DualFun(first(d.f),Evaluation(rangespace(d.J),false)*d.J)
-Base.last(d::DualFun)=DualFun(last(d.f),Evaluation(rangespace(d.J),true)*d.J)
+@compat (d::DualFun)(x) = DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
+Base.first(d::DualFun) = DualFun(first(d.f),Evaluation(rangespace(d.J),false)*d.J)
+Base.last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),true)*d.J)
 
 jacobian(d::DualFun)=d.J
 

@@ -7,24 +7,24 @@ export Ultraspherical
 
 immutable Ultraspherical{O,D<:Domain} <: PolynomialSpace{D}
     domain::D
-    Ultraspherical(d)=new(d)
-    Ultraspherical()=new(Interval())
+    Ultraspherical(d) = new(d)
+    Ultraspherical() = new(Interval())
 end
 
 
-Base.call{m}(::Type{Ultraspherical{m}})=Ultraspherical{m,Interval{Float64}}()
-Base.call{m}(::Type{Ultraspherical{m}},d::Domain)=Ultraspherical{m,typeof(d)}(d)
-Base.call{m}(::Type{Ultraspherical{m}},d::Vector)=Ultraspherical{m}(Domain(d))
+@compat (::Type{Ultraspherical{m}}){m}() = Ultraspherical{m,Interval{Float64}}()
+@compat (::Type{Ultraspherical{m}}){m}(d::Domain) = Ultraspherical{m,typeof(d)}(d)
+@compat (::Type{Ultraspherical{m}}){m}(d::Vector) = Ultraspherical{m}(Domain(d))
 
 
-setdomain{s}(S::Ultraspherical{s},d::Domain)=Ultraspherical{s}(d)
+setdomain{s}(S::Ultraspherical{s},d::Domain) = Ultraspherical{s}(d)
 
 
 include("Chebyshev.jl")
 
 
-order{o}(::Ultraspherical{o})=o
-order{o,D}(::Type{Ultraspherical{o,D}})=o
+order{o}(::Ultraspherical{o}) = o
+order{o,D}(::Type{Ultraspherical{o,D}}) = o
 
 
 
@@ -32,8 +32,8 @@ order{o,D}(::Type{Ultraspherical{o,D}})=o
 
 #domain(S) may be any domain
 
-Base.ones{T<:Number,O}(::Type{T},S::Ultraspherical{O})=Fun(ones(T,1),S)
-Base.ones{O}(S::Ultraspherical{O})=Fun(ones(1),S)
+Base.ones{T<:Number,O}(::Type{T},S::Ultraspherical{O}) = Fun(ones(T,1),S)
+Base.ones{O}(S::Ultraspherical{O}) = Fun(ones(1),S)
 
 
 

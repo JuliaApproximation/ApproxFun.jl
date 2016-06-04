@@ -9,7 +9,7 @@ B=ldirichlet();
 Bn=lneumann();
 A=[B 0;
    0 B;
-   D-I 2.I;
+   D-I 2I;
    0 D+I];
 
 f=Fun(x->[exp(x),cos(x)],d)
@@ -25,14 +25,14 @@ for b in (b1,b2)
     u=A\b
     u1=vec(u)[1];u2=vec(u)[2];
 
-    @test norm(u1'-u1+2.u2-f1)<10eps()
+    @test norm(u1'-u1+2u2-f1)<10eps()
     @test norm(u2'+u2-f2)<10eps()
 
     Ai=interlace(A)
     u=Ai\b
     u1=vec(u)[1];u2=vec(u)[2];
 
-    @test norm(u1'-u1+2.u2-f1)<10eps()
+    @test norm(u1'-u1+2u2-f1)<10eps()
     @test norm(u2'+u2-f2)<10eps()
 end
 
@@ -43,7 +43,7 @@ end
 A=[B 0;
    Bn 0;
    0 B;
-   D^2-I 2.I;
+   D^2-I 2I;
    0 D+I];
 
 
@@ -58,7 +58,7 @@ for b in (b1,b2)
     u1=vec(u)[1];u2=vec(u)[2];
 
 
-    @test norm(differentiate(u1,2)-u1+2.u2-f1)<2eps()
+    @test norm(differentiate(u1,2)-u1+2u2-f1)<2eps()
     @test norm(u2'+u2-f2)<2eps()
 
     Ai=interlace(A)
@@ -66,7 +66,7 @@ for b in (b1,b2)
     u1=vec(u)[1];u2=vec(u)[2];
 
 
-    @test norm(u1''-u1+2.u2-f1)<2eps()
+    @test norm(u1''-u1+2u2-f1)<2eps()
     @test norm(u2'+u2-f2)<2eps()
 end
 

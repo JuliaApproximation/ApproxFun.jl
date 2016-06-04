@@ -55,6 +55,7 @@ tocanonical{T<:Complex}(d::Interval{T},x::Number) = 2norm(x-d.a)/length(d)-1
 mobius(d::Interval,x) = (d.a + d.b - 2x)/(d.a - d.b)
 tocanonical{T<:Real}(d::Interval{T},x) = mobius(d,x)
 tocanonicalD{T<:Real}(d::Interval{T},x) = 2/(d.b- d.a)
+fromcanonical{T<:Number}(d::Interval{T},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical{T<:Number}(d::Interval{T},x) = (d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonical{T<:Vec}(d::Interval{T},x::Number) = (d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonicalD(d::Interval,x) = (d.b- d.a) / 2

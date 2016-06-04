@@ -19,17 +19,17 @@ end
 
 typealias RealRay{T} Union{Ray{false,T},Ray{true,T}}
 
-Base.call{a}(::Type{Ray{a}},c,o)=Ray{a,typeof(c)}(c,o)
-Base.call{a}(::Type{Ray{a}},c::Number)=Ray{a,typeof(c)}(c)
-Base.call{a}(::Type{Ray{a}})=Ray{a,Float64}()
+@compat (::Type{Ray{a}}){a}(c,o) = Ray{a,typeof(c)}(c,o)
+@compat (::Type{Ray{a}}){a}(c::Number) = Ray{a,typeof(c)}(c)
+@compat (::Type{Ray{a}}){a}() = Ray{a,Float64}()
 
-Base.angle{a}(d::Ray{a})=a*π
+Base.angle{a}(d::Ray{a}) = a*π
 
 # ensure the angle is always in (-1,1]
-Ray(c,a,o)=Ray{a==0?false:(abs(a)==(1.0π)?true:mod(a/π-1,-2)+1),typeof(c)}(c,o)
-Ray(c,a)=Ray(c,a,true)
+Ray(c,a,o) = Ray{a==0?false:(abs(a)==(1.0π)?true:mod(a/π-1,-2)+1),typeof(c)}(c,o)
+Ray(c,a) = Ray(c,a,true)
 
-Ray()=Ray{false}()
+Ray() = Ray{false}()
 
 
 
@@ -84,6 +84,7 @@ cisangle(::Ray{true})=-1
 
 tocanonical(d::Ray,x)=ray_tocanonical(d.orientation,conj(cisangle(d)).*(x-d.center))
 tocanonicalD(d::Ray,x)=conj(cisangle(d)).*ray_tocanonicalD(d.orientation,conj(cisangle(d)).*(x-d.center))
+fromcanonical(d::Ray,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::Ray,x)=cisangle(d)*ray_fromcanonical(d.orientation,x)+d.center
 fromcanonicalD(d::Ray,x)=cisangle(d)*ray_fromcanonicalD(d.orientation,x)
 invfromcanonicalD(d::Ray,x)=conj(cisangle(d))*ray_invfromcanonicalD(d.orientation,x)

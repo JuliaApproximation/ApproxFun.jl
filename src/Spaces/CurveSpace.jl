@@ -32,9 +32,9 @@ end
 
 const Bézier = Bernstein # option+e e gives é
 
-Base.call{O}(::Type{Bernstein{O}})=Bernstein{O,Float64}()
-Base.call{O}(::Type{Bernstein{O}},d::Domain)=Bernstein{O,eltype(d)}(d)
-Base.call{O}(::Type{Bernstein{O}},d::Vector)=Bernstein{O}(Interval(d))
+@compat (::Type{Bernstein{O}}){O}() = Bernstein{O,Float64}()
+@compat (::Type{Bernstein{O}}){O}(d::Domain) = Bernstein{O,eltype(d)}(d)
+@compat (::Type{Bernstein{O}}){O}(d::Vector) = Bernstein{O}(Interval(d))
 
 order{O}(::Bernstein{O}) = O
 order{O,T}(::Type{Bernstein{O,T}}) = O

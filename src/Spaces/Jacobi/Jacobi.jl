@@ -19,10 +19,10 @@ Base.convert{T,V,D}(::Type{Jacobi{T,D}},J::Jacobi{V,D})=Jacobi{T,D}(J.a,J.b,J.do
 
 typealias WeightedJacobi{D} JacobiWeight{Jacobi{Float64,D},D}
 
-Base.call(::Type{WeightedJacobi},α,β,d::Domain)=JacobiWeight(α,β,Jacobi(β,α,d))
-Base.call(::Type{WeightedJacobi},α,β)=JacobiWeight(α,β,Jacobi(β,α))
+@compat (::Type{WeightedJacobi})(α,β,d::Domain) = JacobiWeight(α,β,Jacobi(β,α,d))
+@compat (::Type{WeightedJacobi})(α,β) = JacobiWeight(α,β,Jacobi(β,α))
 
-spacescompatible(a::Jacobi,b::Jacobi)=a.a==b.a && a.b==b.b
+spacescompatible(a::Jacobi,b::Jacobi) = a.a==b.a && a.b==b.b
 
 function canonicalspace(S::Jacobi)
     if isapproxinteger(S.a+0.5) && isapproxinteger(S.b+0.5)
