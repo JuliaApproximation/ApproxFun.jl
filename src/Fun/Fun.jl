@@ -262,7 +262,7 @@ Base.inv{S,T}(f::Fun{S,T})=1./f
 
 # Integrals over two Funs, which are fast with the orthogonal weight.
 
-export bilinearform,linebilinearform,innerproduct,lineinnerproduct
+export bilinearform, linebilinearform, innerproduct, lineinnerproduct
 
 # Having fallbacks allow for the fast implementations.
 
@@ -279,11 +279,11 @@ linebilinearform(g::Fun,c::Number)=linesum(g*c)
 
 
 
-# Conjuations
+# Conjugations
 
-innerproduct(f::Fun,g::Fun)=dotu(conj(f),g)
-innerproduct(c::Number,g::Fun)=dotu(conj(c),g)
-innerproduct(g::Fun,c::Number)=dotu(conj(g),c)
+innerproduct(f::Fun,g::Fun)=bilinearform(conj(f),g)
+innerproduct(c::Number,g::Fun)=bilinearform(conj(c),g)
+innerproduct(g::Fun,c::Number)=bilinearform(conj(g),c)
 
 lineinnerproduct(f::Fun,g::Fun)=linebilinearform(conj(f),g)
 lineinnerproduct(c::Number,g::Fun)=linebilinearform(conj(c),g)
