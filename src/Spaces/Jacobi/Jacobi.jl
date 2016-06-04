@@ -1,4 +1,4 @@
-export Jacobi,Legendre,WeightedJacobi
+export Jacobi, Legendre, WeightedJacobi
 
 
 immutable Jacobi{T,D<:Domain} <: PolynomialSpace{D}
@@ -8,7 +8,7 @@ immutable Jacobi{T,D<:Domain} <: PolynomialSpace{D}
 end
 Legendre(domain)=Jacobi(0.,0.,domain)
 Legendre()=Legendre(Interval())
-Jacobi(a,b,d::Domain)=Jacobi{promote_type(typeof(a),typeof(b)),typeof(d)}(a,b,d)
+Jacobi(a,b,d::Domain)=Jacobi(promote(a,b)...,d)
 Jacobi(a,b,d)=Jacobi(a,b,Domain(d))
 Jacobi(a,b)=Jacobi(a,b,Interval())
 Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
@@ -17,7 +17,7 @@ Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
 Base.promote_rule{T,V,D}(::Type{Jacobi{T,D}},::Type{Jacobi{V,D}})=Jacobi{promote_type(T,V),D}
 Base.convert{T,V,D}(::Type{Jacobi{T,D}},J::Jacobi{V,D})=Jacobi{T,D}(J.a,J.b,J.domain)
 
-typealias WeightedJacobi{D} JacobiWeight{Jacobi{Float64,D},D}
+typealias WeightedJacobi{T,D} JacobiWeight{Jacobi{T,D},D}
 
 @compat (::Type{WeightedJacobi})(α,β,d::Domain) = JacobiWeight(α,β,Jacobi(β,α,d))
 @compat (::Type{WeightedJacobi})(α,β) = JacobiWeight(α,β,Jacobi(β,α))
@@ -52,7 +52,7 @@ jacobirecβ{T}(::Type{T},α,β,k)=1/jacobirecA(T,α,β,k-1)
 
 for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ),
                    (:recA,:jacobirecA),(:recB,:jacobirecB),(:recC,:jacobirecC))
-    @eval $REC{T}(::Type{T},sp::Jacobi,k)=$JREC(T,sp.a,sp.b,k)  #TODO: implement typing
+    @eval $REC{T}(::Type{T},sp::Jacobi,k)=$JREC(T,sp.a,sp.b,k)
 end
 
 

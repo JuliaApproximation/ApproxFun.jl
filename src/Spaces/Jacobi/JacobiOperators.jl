@@ -54,7 +54,7 @@ getindex{J<:Jacobi}(T::ConcreteDerivative{J},k::Integer,j::Integer) =
 
 
 
-function Derivative{DDD<:Interval}(S::WeightedJacobi{DDD})
+function Derivative{T,DDD<:Interval}(S::WeightedJacobi{T,DDD})
     if S.α>0 && S.β>0 && S.α==S.space.b && S.β==S.space.a
         ConcreteDerivative(S,1)
     else
@@ -62,12 +62,12 @@ function Derivative{DDD<:Interval}(S::WeightedJacobi{DDD})
     end
 end
 
-bandinds{DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{DDD}})=-1,0
-rangespace{DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{DDD}})=WeightedJacobi(domainspace(D).α-1,domainspace(D).β-1,domain(D))
+bandinds{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=-1,0
+rangespace{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=WeightedJacobi(domainspace(D).α-1,domainspace(D).β-1,domain(D))
 
 
-getindex{DDD<:Interval}(T::ConcreteDerivative{WeightedJacobi{DDD}},k::Integer,j::Integer) =
-    j==k-1? -4(k-1)./complexlength(domain(T)) : zero(eltype(T))
+getindex{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}},k::Integer,j::Integer) =
+    j==k-1? -4(k-1)./complexlength(domain(D)) : zero(eltype(D))
 
 
 ## Integral
@@ -370,7 +370,7 @@ end
 
 
 for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
-    @eval function $FUNC{DD<:Interval}(A::WeightedJacobi{DD},B::Jacobi)
+    @eval function $FUNC{T,DD<:Interval}(A::WeightedJacobi{T,DD},B::Jacobi)
         if A.α==A.β+1 && A.space.b>0
             $FUNC(Jacobi(A.space.a,A.space.b-1,domain(A)),B)
         elseif A.β==A.α+1 && A.space.a>0
