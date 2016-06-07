@@ -1,11 +1,13 @@
-abstract MultivariateFun{T}
-abstract BivariateFun{T} <: MultivariateFun{T}
+abstract MultivariateFun{T,N}
+typealias BivariateFun{T} MultivariateFun{T,2}
 
-export grad,lap,curl
+export grad, lap, curl
 
 #implements coefficients/values/evaluate
-space(f::BivariateFun)=space(f,1)⊗space(f,2)
-domain(f::BivariateFun)=domain(f,1)*domain(f,2)
+space{T,N}(f::MultivariateFun{T,N})=mapreduce(k->space(f,k),⊗,1:N)
+domain{T,N}(f::MultivariateFun{T,N})=mapreduce(k->domain(f,k),*,1:N)
+
+domain(f::MultivariateFun,k::Integer)=domain(space(f,k))
 
 differentiate(u::BivariateFun,i::Integer,j::Integer)=j==0?u:differentiate(differentiate(u,i),i,j-1)
 grad(u::BivariateFun)=[differentiate(u,1),differentiate(u,2)]
@@ -15,7 +17,7 @@ curl{B<:BivariateFun}(u::Vector{B})=differentiate(u[2],1)-differentiate(u[1],2)
 
 Base.chop(f::MultivariateFun)=chop(f,10eps())
 Base.eltype{T}(::MultivariateFun{T})=T
-Base.eltype{T}(::Type{MultivariateFun{T}})=T
+Base.eltype{T,N}(::Type{MultivariateFun{T,N}})=T
 Base.eltype{MF<:MultivariateFun}(::Type{MF})=eltype(super(MF))
 
 

@@ -91,6 +91,12 @@ function alternatingsum(v::Vector)
     ret
 end
 
+# Sum Hadamard product of vectors up to minimum over lengths
+function mindotu(a::Vector,b::Vector)
+    ret,m = zero(promote_type(eltype(a),eltype(b))),min(length(a),length(b))
+    @inbounds @simd for i=m:-1:1 ret += a[i]*b[i] end
+    ret
+end
 
 
 function pad!{T}(f::Vector{T},n::Integer)
