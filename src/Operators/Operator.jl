@@ -186,8 +186,8 @@ unwrap_axpy!(α,P,A) = BLAS.axpy!(α,sub(parent(P).op,P.indexes[1],P.indexes[2])
 iswrapper(::)=false
 
 
-macro wrapper(Wrap)
-   ret = quote
+macro wrappergetindex(Wrap)
+    ret = quote
         Base.getindex(OP::$Wrap,k::Integer,j::Integer) =
             OP.op[k,j]
 
@@ -196,17 +196,26 @@ macro wrapper(Wrap)
 
         Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubBandedMatrix{T,OP}) =
             copy(sub(parent(P).op,P.indexes[1],P.indexes[2]))
+    end
+
+    esc(ret)
+end
+
+
+macro wrapper(Wrap)
+    ret = quote
+        @wrappergetindex($Wrap)
 
         ApproxFun.iswrapper(::$Wrap)=true
     end
-   for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
-                :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride))
+    for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
+                 :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride))
         ret=quote
             $ret
 
             $func(D::$Wrap)=$func(D.op)
-         end
-   end
+        end
+    end
     esc(ret)
 end
 

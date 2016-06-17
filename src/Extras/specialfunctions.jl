@@ -582,7 +582,7 @@ end
 Base.besselh(ν,k::Integer,f::Fun) = k == 1 ? hankelh1(ν,f) : k == 2 ? hankelh2(ν,f) : throw(Base.Math.AmosException(1))
 
 for jy in ("j","y"), ν in (0,1)
-    bjy = symbol(string("bessel",jy))
+    bjy = Symbol(string("bessel",jy))
     bjynu = parse(string("Base.bessel",jy,ν))
     @eval begin
         $bjynu(f::Fun) = $bjy($ν,f)

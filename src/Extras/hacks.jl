@@ -181,7 +181,7 @@ function Fun(f::Function)
         end
 
         Fun(f,Interval())
-    elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
+    elseif hasnumargs(f,2)
             Fun(f,Interval()^2)
     else
         error("Function not defined on interval or square")
