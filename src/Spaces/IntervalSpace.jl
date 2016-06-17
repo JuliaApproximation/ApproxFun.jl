@@ -92,13 +92,5 @@ for DT in (:IntervalDomain,:Space)
             [B;
             continuity(d,0:1)]
         end
-
-        function periodic{T<:$DT}(d::Vector{T})
-            m=length(d)
-            B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
-            B[1:2,1]=ivp(d[1])
-            [B;
-            continuity(d,0:1)]
-        end
     end
 end

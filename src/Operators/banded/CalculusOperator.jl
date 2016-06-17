@@ -32,7 +32,7 @@ macro calculus_operator(Op)
         $Op(sp::UnsetSpace,k::Real)=$ConcOp(sp,k)
         $Op(sp::UnsetSpace,k::Integer)=$ConcOp(sp,k)
 
-        function $Op(sp::Space,k)
+        function $Op(sp,k)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
                error("Implement $(string($Op))($(string(sp)),$k)")
@@ -40,7 +40,7 @@ macro calculus_operator(Op)
             $WrappOp(TimesOperator([$Op(csp,k),Conversion(sp,csp)]),k)
         end
 
-        $Op(sp::Space)=$Op(sp,1)
+        $Op(sp)=$Op(sp,1)
         $Op()=$Op(UnsetSpace())
         $Op(k::Number)=$Op(UnsetSpace(),k)
 

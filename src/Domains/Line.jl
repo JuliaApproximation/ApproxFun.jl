@@ -45,19 +45,6 @@ Line(c,a) = Line(c,a,-1.,-1.)
 Line(b::Bool) = Line{b}()
 Line() = Line(false)
 
-function Line(d::AbstractVector)
-    @assert length(d)==2 && isinf(d[1]) && isinf(d[2])
-
-    if d[1]==Inf && d[2] == -Inf
-        Line(true)
-    elseif d[1]==-Inf && d[2] == Inf
-        Line(false)
-    else
-        error("Not implemented")
-    end
-end
-
-
 
 isambiguous(d::Line)=isnan(d.center)
 Base.convert{a,T<:Number}(::Type{Line{a,T}},::AnyDomain)=Line{a,T}(NaN)
