@@ -254,7 +254,7 @@ Base.eye(S::Domain)=eye(Space(S))
 # TODO: can convert return different type?
 
 
-Base.convert{T<:Functional}(::Type{T},f::Fun)=DefiniteIntegral()[f]
+Base.convert{T<:Functional}(::Type{T},f::Fun) = DefiniteIntegral()[f]
 
 
 

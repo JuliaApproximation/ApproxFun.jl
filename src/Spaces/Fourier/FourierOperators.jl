@@ -241,10 +241,12 @@ end
 
 ## Definite integral
 
-DefiniteIntegral{D<:PeriodicInterval}(sp::Fourier{D})=DefiniteIntegral{typeof(sp),Float64}(sp)
-DefiniteIntegral{D<:Circle}(sp::Fourier{D})=DefiniteIntegral{typeof(sp),Complex{Float64}}(sp)
+DefiniteIntegral{D<:PeriodicInterval}(sp::Fourier{D}) =
+    ConcreteDefiniteIntegral{typeof(sp),Float64}(sp)
+DefiniteIntegral{D<:Circle}(sp::Fourier{D}) =
+    ConcreteDefiniteIntegral{typeof(sp),Complex{Float64}}(sp)
 
-function getindex{T,D}(Σ::DefiniteIntegral{Fourier{D},T},kr::Range)
+function getindex{T,D}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},kr::Range)
     d = domain(Σ)
     if isa(d,PeriodicInterval)
         T[k == 1?  d.b-d.a : zero(T) for k=kr]
@@ -254,24 +256,29 @@ function getindex{T,D}(Σ::DefiniteIntegral{Fourier{D},T},kr::Range)
     end
 end
 
-datalength{D}(Σ::DefiniteIntegral{Fourier{D}})=isa(domain(Σ),PeriodicInterval)?1:3
+datalength{D}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = isa(domain(Σ),PeriodicInterval)?1:3
 
-DefiniteLineIntegral{D}(sp::Fourier{D})=DefiniteLineIntegral{typeof(sp),Float64}(sp)
+DefiniteLineIntegral{D}(sp::Fourier{D}) =
+    ConcreteDefiniteLineIntegral{typeof(sp),Float64}(sp)
 
 
-getindex{T,D<:PeriodicInterval}(Σ::DefiniteLineIntegral{Fourier{D},T},k::Integer) =
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
     k==1? domain(Σ).b-domain(Σ).a : zero(T)
 
-getindex{T,D<:Circle}(Σ::DefiniteLineIntegral{Fourier{D},T},k::Integer) =
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
     k==1? domain(Σ).radius*π : zero(T)
 
 
-datalength{D}(Σ::DefiniteLineIntegral{Fourier{D}})=1
+datalength{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 1
 
 
-transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),g)
-transformtimes{SS<:SinSpace,D}(f::Fun{SS},g::Fun{Fourier{D}}) = transformtimes(Fun(interlace(zeros(eltype(f),length(f)+1),f.coefficients),Fourier(domain(f))),g)
-transformtimes{CS<:CosSpace,SS<:SinSpace}(f::Fun{CS},g::Fun{SS}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),Fun(interlace(zeros(eltype(g),length(g)+1),g.coefficients),Fourier(domain(g))))
+transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) =
+    transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),g)
+transformtimes{SS<:SinSpace,D}(f::Fun{SS},g::Fun{Fourier{D}}) =
+    transformtimes(Fun(interlace(zeros(eltype(f),length(f)+1),f.coefficients),Fourier(domain(f))),g)
+transformtimes{CS<:CosSpace,SS<:SinSpace}(f::Fun{CS},g::Fun{SS}) =
+    transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),
+                    Fun(interlace(zeros(eltype(g),length(g)+1),g.coefficients),Fourier(domain(g))))
 transformtimes{CS<:CosSpace,D}(f::Fun{Fourier{D}},g::Fun{CS}) = transformtimes(g,f)
 transformtimes{SS<:SinSpace,D}(f::Fun{Fourier{D}},g::Fun{SS}) = transformtimes(g,f)
 transformtimes{SS<:SinSpace,CS<:CosSpace}(f::Fun{SS},g::Fun{CS}) = transformtimes(g,f)

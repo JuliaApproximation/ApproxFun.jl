@@ -16,7 +16,7 @@ Integral(d::IntervalDomain,n::Integer)=Integral(Ultraspherical{1}(d),n)
 
 for Func in (:DefiniteIntegral,:DefiniteLineIntegral)
     @eval begin
-        $Func(d::IntervalDomain)=$Func(JacobiWeight(-.5,-.5,Chebyshev(d)))
+        $Func(d::IntervalDomain) = $Func(JacobiWeight(-.5,-.5,Chebyshev(d)))
         function $Func(α::Number,β::Number,d::IntervalDomain)
             @assert α == β
             @assert round(Int,α+.5) == α+.5
