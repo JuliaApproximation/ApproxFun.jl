@@ -149,7 +149,7 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
-    tol = 100eps()*norm(f.coefficients,1)
+    tol = 200eps()*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
     if length(f)==1
@@ -167,24 +167,37 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
             # we need to split at the only root
             return c./splitatroots(f)
         end
-    elseif abs(first(fc))<tol
+    elseif abs(first(fc))≤tol
+        #left root
         g=divide_singularity((1,0),fc)
         p=c./g
         x=identity_fun(domain(p))
         return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
-    elseif abs(last(fc))<tol
+    elseif abs(last(fc))≤tol
+        #right root
         g=divide_singularity((0,1),fc)
         p=c./g
         x=identity_fun(domain(p))
         return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
     else
-       # no roots on the boundary
         r = roots(fc)
-        x = Fun(identity)
 
         if length(r) == 0
             return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
+        elseif abs(last(r)+1.0)≤tol  # double check
+            #left root
+            g=divide_singularity((1,0),fc)
+            p=c./g
+            x=identity_fun(domain(p))
+            return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
+        elseif abs(last(r)-1.0)≤tol  # double check
+            #right root
+            g=divide_singularity((0,1),fc)
+            p=c./g
+            x=identity_fun(domain(p))
+            return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
         else
+            # no roots on the boundary
             return c./splitatroots(f)
         end
     end
