@@ -24,6 +24,9 @@ real{T<:Real}(::Type{T})=T
 real{T<:Real}(::Type{Complex{T}})=T
 real{T<:Real,n}(::Type{Array{T,n}})=Array{T,n}
 real{T<:Complex,n}(::Type{Array{T,n}})=Array{real(T),n}
+real{N,T<:Real}(::Type{Vec{N,T}})=Vec{N,T}
+real{N,T<:Complex}(::Type{Vec{N,T}})=Vec{N,real(T)}
+
 
 eps(x...)=Base.eps(x...)
 eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
@@ -32,6 +35,10 @@ eps{T<:Real}(::Type{Dual{Complex{T}}})=eps(real(T))
 eps{T<:Real}(z::Dual{Complex{T}})=eps(abs(z))
 eps{T<:Number}(::Type{Vector{T}})=eps(T)
 eps{k,T<:Number}(::Type{Vec{k,T}})=eps(T)
+
+
+isnan(x)=Base.isnan(x)
+isnan(x::Vec)=map(isnan,x)
 
 
 # BLAS

@@ -52,6 +52,7 @@ mobius(S::Space,x...) = mobius(domain(S),x...)
 
 tocanonical{T}(d::Interval{T},x::T) = 2norm(x-d.a)/length(d)-1
 tocanonical{T<:Complex}(d::Interval{T},x::Number) = 2norm(x-d.a)/length(d)-1
+tocanonical{T}(d::Interval{T},x::AbstractVector{T}) = map(x->tocanonical(d,x),x)
 mobius(d::Interval,x) = (d.a + d.b - 2x)/(d.a - d.b)
 tocanonical{T<:Real}(d::Interval{T},x) = mobius(d,x)
 tocanonicalD{T<:Real}(d::Interval{T},x) = 2/(d.b- d.a)

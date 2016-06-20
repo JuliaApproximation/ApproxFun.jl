@@ -19,7 +19,7 @@ function transform(S::ContinuousSpace,vals::Vector)
     K=numpieces(d)
     k=div(n,K)
 
-    PT=promote_type(eltype(d),eltype(vals))
+    PT=promote_type(eltype(eltype(d)),eltype(vals))
     if k==0
         vals
     elseif isperiodic(d)
