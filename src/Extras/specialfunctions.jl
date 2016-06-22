@@ -17,9 +17,9 @@ function splitmap(g,d::AffineDomain,pts)
         Fun(g,d)
     else
         da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : unshift!(pts,da)
+        isapprox(da,pts[1];atol=sqrt(eps(arclength(d)))) ? pts[1] = da : unshift!(pts,da)
         db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : push!(pts,db)
+        isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
         Fun(g,pts)
     end
 end
@@ -32,9 +32,9 @@ function splitmap(g,d::UnionDomain,pts)
         dpts = ∂(d)
         pts = sort!(∪(pts,dpts),by=real)
         da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(mapreduce(length,+,d.domains)))) ? pts[1] = da : unshift!(pts,da)
+        isapprox(da,pts[1];atol=sqrt(eps(mapreduce(arclength,+,d.domains)))) ? pts[1] = da : unshift!(pts,da)
         db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(mapreduce(length,+,d.domains)))) ? pts[end] = db : push!(pts,db)
+        isapprox(db,pts[end];atol=sqrt(eps(mapreduce(arclength,+,d.domains)))) ? pts[end] = db : push!(pts,db)
         Fun(g,pts)
     end
 end
@@ -87,9 +87,9 @@ function Base.sign{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     else
         @assert isa(d,AffineDomain)
         da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : unshift!(pts,da)
+        isapprox(da,pts[1];atol=sqrt(eps(arclength(d)))) ? pts[1] = da : unshift!(pts,da)
         db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : push!(pts,db)
+        isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
         midpts = .5(pts[1:end-1]+pts[2:end])
         Fun(sign(f(midpts)),pts)
     end

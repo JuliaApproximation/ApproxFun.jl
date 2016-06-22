@@ -51,7 +51,7 @@ fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Interval(d),θ/π)/π
 
 
 
-Base.length(d::PeriodicInterval) = abs(d.b - d.a)
+arclength(d::PeriodicInterval) = abs(d.b - d.a)
 Base.angle(d::PeriodicInterval) = angle(d.b - d.a)
 Base.reverse(d::PeriodicInterval)=PeriodicInterval(d.b,d.a)
 

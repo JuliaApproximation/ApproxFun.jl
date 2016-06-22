@@ -84,7 +84,7 @@ itransform{n,st,S,T}(sp::SliceSpace{n,st,S},cfs::Vector{T})=itransform(sp.space,
 
 ##TODO: coefficients
 
-points{n,S,T}(f::Fun{SliceSpace{n,1,S,T}})=points(space(f),length(f)+n)
+points{n,S,T}(f::Fun{SliceSpace{n,1,S,T}})=points(space(f),ncoefficients(f)+n)
 
 ## ProductFUn
 

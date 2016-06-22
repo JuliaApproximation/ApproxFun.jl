@@ -6,7 +6,7 @@
 Base.sum{C<:Chebyshev,DD}(f::Fun{JacobiWeight{C,DD}})=sum(setdomain(f,canonicaldomain(f))*fromcanonicalD(f))
 linesum{C<:Chebyshev,DD}(f::Fun{JacobiWeight{C,DD}})=linesum(setdomain(f,canonicaldomain(f))*abs(fromcanonicalD(f)))
 
-for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
+for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
     @eval begin
         function $Func{C<:Chebyshev,DD<:Interval}(f::Fun{JacobiWeight{C,DD}})
             tol=1e-10
@@ -369,7 +369,7 @@ end
 
 ## Definite Integral
 
-for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:length))
+for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
     ConcFunc = parse("Concrete"*string(Func))
 
     @eval begin

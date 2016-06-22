@@ -132,7 +132,7 @@ end
 #     else
 #         f=pad(f,dimension(space(f)))
 #     end
-#     if length(domain(f)) < Inf
+#     if arclength(domain(f)) < Inf
 #         return points(f),values(f)
 #     else
 #         return points(f)[2:end],values(f)[2:end] # A hack for Fourier

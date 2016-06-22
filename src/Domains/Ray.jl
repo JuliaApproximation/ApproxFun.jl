@@ -92,6 +92,6 @@ invfromcanonicalD(d::Ray,x)=conj(cisangle(d))*ray_invfromcanonicalD(d.orientatio
 
 
 
-Base.length(d::Ray) = Inf
+arclength(d::Ray) = Inf
 
 =={a}(d::Ray{a},m::Ray{a}) = d.center == m.center

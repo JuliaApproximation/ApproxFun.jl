@@ -305,10 +305,10 @@ DefiniteLineIntegral(d::UnionDomain) = ConcreteDefiniteLineIntegral(PiecewiseSpa
 ####### This is a hack to get the Faraday Cage working.
 function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},kr::Range)
     d = domain(Σ)
-    n = length(d)
+    n = arclength(d)
     promote_type(T,eltype(d))[k ≤ n? one(T) : zero(T) for k=kr]
 end
-datalength{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T})=length(domain(Σ))
+datalength{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T})=arclength(domain(Σ))
 ####### This is a hack to get the Faraday Cage working.
 
 ## TensorSpace of two PiecewiseSpaces

@@ -50,8 +50,8 @@ Base.issubset(a::Interval,b::Interval)=first(a)∈b && last(a)∈b
 
 mobius(S::Space,x...) = mobius(domain(S),x...)
 
-tocanonical{T}(d::Interval{T},x::T) = 2norm(x-d.a)/length(d)-1
-tocanonical{T<:Complex}(d::Interval{T},x::Number) = 2norm(x-d.a)/length(d)-1
+tocanonical{T}(d::Interval{T},x::T) = 2norm(x-d.a)/arclength(d)-1
+tocanonical{T<:Complex}(d::Interval{T},x::Number) = 2norm(x-d.a)/arclength(d)-1
 tocanonical{T}(d::Interval{T},x::AbstractVector{T}) = map(x->tocanonical(d,x),x)
 mobius(d::Interval,x) = (d.a + d.b - 2x)/(d.a - d.b)
 tocanonical{T<:Real}(d::Interval{T},x::AbstractVector{T}) = mobius(d,x)
@@ -63,7 +63,7 @@ fromcanonical{T<:Vec}(d::Interval{T},x::Number) = (d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonicalD(d::Interval,x) = (d.b- d.a) / 2
 
 
-Base.length(d::Interval) = norm(d.b - d.a)
+arclength(d::Interval) = norm(d.b - d.a)
 Base.angle(d::Interval)=angle(d.b-d.a)
 complexlength(d::Interval)=d.b-d.a
 
@@ -110,7 +110,7 @@ function Base.intersect{T<:Real,V<:Real}(a::Interval{T},b::Interval{V})
         EmptyDomain()
     elseif last(a)>=last(b)
         b
-    elseif isapprox(first(b),last(a);atol=100eps(promote_type(T,V))/max(length(a),length(b)))
+    elseif isapprox(first(b),last(a);atol=100eps(promote_type(T,V))/max(arclength(a),arclength(b)))
         EmptyDomain()
     else
         Interval(first(b),last(a))

@@ -66,33 +66,36 @@ Base.intersect(d1::Domain,d2::UnionDomain)=mapreduce(d->d1∩d,∪,d2.domains)
 Base.intersect(d1::UnionDomain,d2::Domain)=mapreduce(d->d2∩d,∪,d1.domains)
 
 
-Base.setdiff(a::UnionDomain,b::UnionDomain)=mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a::UnionDomain,b::Domain)=mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a::Domain,b::UnionDomain)=mapreduce(d->setdiff(a,d),∩,b.domains)
+Base.setdiff(a::UnionDomain,b::UnionDomain) = mapreduce(d->setdiff(d,b),∪,a.domains)
+Base.setdiff(a::UnionDomain,b::Domain) = mapreduce(d->setdiff(d,b),∪,a.domains)
+Base.setdiff(a::Domain,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
 
-Base.sort(d::UnionDomain;opts...)=UnionDomain(sort([d.domains...];opts...))
+Base.sort(d::UnionDomain;opts...) = UnionDomain(sort([d.domains...];opts...))
 
 
 for op in (:(Base.first),:(Base.last))
-    @eval $op(d::UnionDomain)=$op($op(d.domains))
+    @eval $op(d::UnionDomain) = $op($op(d.domains))
 end
 
 #support tuple set
 for OP in (:(Base.start),:(Base.done),:(Base.endof),:(Base.getindex),:(Base.length),:(Base.next))
-    @eval $OP(S::UnionDomain,k...)=$OP(S.domains,k...)
+    @eval $OP(S::UnionDomain,k...) = $OP(S.domains,k...)
 end
 
-pieces(d::UnionDomain)=[d.domains...]
-numpieces(d::UnionDomain)=length(d.domains)
+pieces(d::UnionDomain) = [d.domains...]
+numpieces(d::UnionDomain) = length(d.domains)
 
-==(d1::UnionDomain,d2::UnionDomain)=length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
+arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
+
+==(d1::UnionDomain,d2::UnionDomain) = 
+    length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
 
 
-Base.in(x,d::UnionDomain)=any(a->x∈a,d.domains)
-Base.issubset(a::Domain,d::UnionDomain)=(a∪d)==d
-Base.reverse(d::UnionDomain)=UnionDomain(reverse(map(reverse,d.domains)))
+Base.in(x,d::UnionDomain) = any(a->x∈a,d.domains)
+Base.issubset(a::Domain,d::UnionDomain) = (a∪d)==d
+Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 
-∂(d::UnionDomain)=mapreduce(∂,union,d.domains)
+∂(d::UnionDomain) = mapreduce(∂,union,d.domains)
 
 function points(d::UnionDomain,n)
    k=div(n,length(d))

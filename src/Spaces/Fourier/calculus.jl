@@ -83,7 +83,7 @@ end
 
 
 
-fouriersum(d::PeriodicInterval,cfs)=cfs[1].*length(d)
+fouriersum(d::PeriodicInterval,cfs)=cfs[1].*arclength(d)
 
 function fouriersum{T}(d::Circle,cfs::Vector{T})
     if length(cfs)≥2
@@ -104,9 +104,9 @@ function linebilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T}
         for i=2:2:mn-1
             ret += u[i]*v[i+1] + u[i+1]*v[i]
         end
-        return length(domain(f))*ret
+        return arclength(domain(f))*ret
     elseif mn > 0
-        return length(domain(f))*u[1]*v[1]
+        return arclength(domain(f))*u[1]*v[1]
     else
         return zero(T)
     end

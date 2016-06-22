@@ -28,7 +28,7 @@ isambiguous(::AnyDomain) = true
 Base.ndims(::AnyDomain) = 1
 
 complexlength(::AnyDomain) = NaN
-Base.length(::AnyDomain) = NaN
+arclength(::AnyDomain) = NaN
 
 Base.reverse(a::Union{AnyDomain,EmptyDomain}) = a
 
@@ -113,7 +113,7 @@ function Base.in{T}(x,d::PeriodicDomain{T})
         return false
     end
 
-    l=length(d)
+    l=arclength(d)
     if isinf(l)
         abs(imag(y))<20eps(T) && -π-2eps(T)<real(y)<π+2eps(T)
     else

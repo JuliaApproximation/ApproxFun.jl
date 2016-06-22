@@ -23,7 +23,7 @@ isambiguous(d::Arc)=isnan(d.center) && isnan(d.radius) && isnan(d.angles[1]) && 
 Base.convert{T<:Number,V<:Number}(::Type{Arc{T,V}},::AnyDomain)=Arc{T,V}(NaN,NaN,(NaN,NaN))
 Base.convert{IT<:Arc}(::Type{IT},::AnyDomain)=Arc(NaN,NaN,(NaN,NaN))
 
-Base.length(d::Arc) = d.radius*(d.angles[2]-d.angles[1])
+arclength(d::Arc) = d.radius*(d.angles[2]-d.angles[1])
 
 
 function mobiuspars(z0,r,t0,t1)

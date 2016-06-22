@@ -32,7 +32,7 @@ numpieces(d::PiecewiseInterval)=length(d.points)-1
 pieces(d::PiecewiseInterval,k)=d[k]
 pieces{T}(d::PiecewiseInterval{T})=Interval{T}[d[k] for k=1:numpieces(d)]
 
-for OP in (:(Base.length),:complexlength)
+for OP in (:arclength,:complexlength)
     @eval $OP(d::PiecewiseInterval)=mapreduce($OP,+,pieces(d))
 end
 

@@ -58,8 +58,8 @@ fromcanonicalD{T<:Vec}(d::Circle{T},θ::Number)=d.radius*(d.orientation?1:-1)*Ve
 
 Base.in(z,d::Circle)=isapprox(abs(z-d.center),d.radius)
 
-Base.length(d::Circle) = 2π*d.radius
-complexlength(d::Circle)=(d.orientation?1:-1)*im*length(d)  #TODO: why?
+arclength(d::Circle) = 2π*d.radius
+complexlength(d::Circle)=(d.orientation?1:-1)*im*arclength(d)  #TODO: why?
 
 
 ==(d::Circle,m::Circle) = d.center == m.center && d.radius == m.radius && d.orientation == m.orientation
