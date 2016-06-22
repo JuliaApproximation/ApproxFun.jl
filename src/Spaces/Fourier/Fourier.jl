@@ -160,12 +160,12 @@ end
 
 
 function Base.conj{DD}(f::Fun{Laurent{DD}})
-    cfs=Array(eltype(f),iseven(length(f))?length(f)+1:length(f))
+    cfs=Array(eltype(f),iseven(ncoefficients(f))?ncoefficients(f)+1:ncoefficients(f))
     cfs[1]=conj(f.coefficients[1])
-    for k=2:2:length(f)-1
+    for k=2:2:ncoefficients(f)-1
         cfs[k]=conj(f.coefficients[k+1])
     end
-    for k=3:2:length(f)
+    for k=3:2:ncoefficients(f)
         cfs[k]=conj(f.coefficients[k-1])
     end
     Fun(cfs,space(f))
@@ -288,7 +288,7 @@ end
 reverseorientation{D}(f::Fun{Fourier{D}})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
 function reverseorientation{D}(f::Fun{Laurent{D}})
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
-    n=length(f)
+    n=ncoefficients(f)
     ret=Array(eltype(f),iseven(n)?n+1:n)  # since z -> 1/z we get one more coefficient
     ret[1]=f.coefficients[1]
     for k=2:2:length(ret)-1

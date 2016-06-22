@@ -152,9 +152,9 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     tol = 200eps()*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
-    if length(f)==1
+    if ncoefficients(f)==1
         return Fun(c/f.coefficients[1],space(f))
-    elseif length(f)==2
+    elseif ncoefficients(f)==2
         if isempty(roots(f))
             return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
@@ -500,7 +500,7 @@ for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
             linsolve([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
-                        tolerance=10length(f)*eps(T)*opmax)*opmax
+                        tolerance=10ncoefficients(f)*eps(T)*opmax)*opmax
         end
     end
 end

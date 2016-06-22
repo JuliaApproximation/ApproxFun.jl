@@ -17,7 +17,7 @@ ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
    ProductFun{W,V,typeof(sp),T}(Fun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 
 Base.size(f::ProductFun,k::Integer) =
-    k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
+    k==1?mapreduce(ncoefficients,max,f.coefficients):length(f.coefficients)
 Base.size(f::ProductFun) = (size(f,1),size(f,2))
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
@@ -112,9 +112,9 @@ ProductFun(f::Fun,sp::BivariateSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
 
 
 function funlist2coefficients{S,T}(f::Vector{Fun{S,T}})
-    A=zeros(T,mapreduce(length,max,f),length(f))
+    A=zeros(T,mapreduce(ncoefficients,max,f),length(f))
     for k=1:length(f)
-        A[1:length(f[k]),k]=f[k].coefficients
+        A[1:ncoefficients(f[k]),k]=f[k].coefficients
     end
     A
 end

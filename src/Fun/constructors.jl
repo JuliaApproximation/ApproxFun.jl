@@ -117,7 +117,7 @@ end
 #         end
 #     end
 #
-#     warn("Maximum length reached")
+#     warn("Maximum number of coefficients reached")
 #
 #     Fun(f,d,2^21 + 1)
 # end
@@ -153,13 +153,13 @@ function zerocfsFun(f, d::Space)
 
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if length(cf) > 8 && maxabs(cf.coefficients[end-8:end]) < tol*maxabsc &&
+        if ncoefficients(cf) > 8 && maxabs(cf.coefficients[end-8:end]) < tol*maxabsc &&
                 all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end
     end
 
-    warn("Maximum length "*string(2^20+1)*" reached")
+    warn("Maximum number of coefficients "*string(2^20+1)*" reached")
 
     Fun(f,d,2^21)
 end
@@ -183,7 +183,7 @@ function abszerocfsFun(f,d::Space)
         end
     end
 
-    warn("Maximum length "*string(2^20+1)*" reached")
+    warn("Maximum number of coefficients "*string(2^20+1)*" reached")
 
     Fun(f,d,2^21)
 end

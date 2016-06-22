@@ -31,7 +31,7 @@ Plots.plot!{F<:Fun}(x::AbstractVector,v::AbstractVector{F};kwds...)=plot!(curren
 
 function plotptsvals(f::Fun)
     if isinf(dimension(space(f)))
-        f=pad(f,3length(f)+50)
+        f=pad(f,3ncoefficients(f)+50)
     else
         f=pad(f,dimension(space(f)))
     end
@@ -109,7 +109,7 @@ end
 ##
 
 function plotptsvals{S<:JacobiWeight}(f::Fun{S})
-    f=pad(f,3length(f)+50)
+    f=pad(f,3ncoefficients(f)+50)
     s=space(f)
     pts,vals=points(f),values(f)
     # add endpoints so that singularity is viewable
@@ -128,7 +128,7 @@ end
 # TODO Fourier and Laurent spaces
 # function plotptsvals{S<:Per}(f::Fun)
 #     if dimension(space(f)) == Inf
-#         f=pad(f,3length(f)+50)
+#         f=pad(f,3ncoefficients(f)+50)
 #     else
 #         f=pad(f,dimension(space(f)))
 #     end

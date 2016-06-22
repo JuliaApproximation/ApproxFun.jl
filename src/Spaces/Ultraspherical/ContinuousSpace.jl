@@ -89,7 +89,7 @@ pieces{T}(f::Fun{ContinuousSpace,T})=vec(f)
 
 
 function points(f::Fun{ContinuousSpace})
-    n=length(f)
+    n=ncoefficients(f)
     d=domain(f)
     K=numpieces(d)
 

@@ -6,7 +6,7 @@ abstract PolynomialSpace{D} <: RealUnivariateSpace{D}
 
 
 Multiplication{U<:PolynomialSpace}(f::Fun{U},sp::PolynomialSpace)=ConcreteMultiplication(f,sp)
-bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
+bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=(1-ncoefficients(M.f),ncoefficients(M.f)-1)
 rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=domainspace(M)
 
 

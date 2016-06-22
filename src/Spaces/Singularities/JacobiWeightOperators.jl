@@ -10,7 +10,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
     @eval begin
         function $Func{C<:Chebyshev,DD<:Interval}(f::Fun{JacobiWeight{C,DD}})
             tol=1e-10
-            d,α,β,n=domain(f),f.space.α,f.space.β,length(f)
+            d,α,β,n=domain(f),f.space.α,f.space.β,ncoefficients(f)
             g=Fun(f.coefficients,space(f).space)
             if α ≤ -1.0 && abs(first(g))≤tol
                 $Func(increase_jacobi_parameter(-1,f))

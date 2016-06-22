@@ -129,7 +129,7 @@ function linsolve{T<:Operator,F<:Fun}(A::Vector{T},b::Array{F};kwds...)
     # this undoes the effect of [0.,f]
     for k=1:size(A,1)-1,j=1:size(b,2)
         # we only allow constants
-        @assert length(b[k,j])==1
+        @assert ncoefficients(b[k,j])==1
         #TODO: 1,1 entry may not be zero
         r[k,j]=b[k,j].coefficients[1]
     end

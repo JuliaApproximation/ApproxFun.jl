@@ -178,7 +178,7 @@ A=discretize([dirichlet(d);lap(d)],n)
 g=Fun(z->real(exp(z)),∂d)
 f=[Fun([zeros(k-1);1.0],∂d) for k=1:m].'
 U=A\f
-@test_approx_eq dot(real(g.coefficients),U[1:length(g)])(.1,.2) real(exp(.1+.2im))
+@test_approx_eq dot(real(g.coefficients),U[1:ncoefficients(g)])(.1,.2) real(exp(.1+.2im))
 
 
 
