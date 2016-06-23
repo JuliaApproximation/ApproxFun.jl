@@ -82,7 +82,7 @@ end
 ##TODO: fast routine
 
 function horner(c::AbstractVector,kr::Range{Int64},x)
-    T = promote_type(eltype(c),typeof(x))
+    T = promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
     end

@@ -66,6 +66,12 @@ complexlength(d::Circle)=(d.orientation?1:-1)*im*arclength(d)  #TODO: why?
 
 
 
+mappoint{T<:Vec,V<:Number}(d1::Circle{T},d2::Circle{V},z) =
+	mappoint(Circle(complex(d1.center...),d1.radius),d2,z[1]+im*z[2])
+
+mappoint{T<:Number,V<:Vec}(d1::Circle{T},d2::Circle{V},z) =
+	mappoint(Circle(Vec(d1.center...),d1.radius),d2,Vec(real(z),imag(z)))
+
 function mappoint(d1::Circle,d2::Circle,z)
    v=(z-d1.center)/d1.radius
    d1.orientation != d2.orientation && (v=1./v)
