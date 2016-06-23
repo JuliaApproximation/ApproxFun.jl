@@ -11,11 +11,11 @@ domain(S::WeightSpace)=domain(S.space)
 points(sp::WeightSpace,n)=points(sp.space,n)
 
 
-immutable WeightSpacePlan{S,P,T}
+immutable WeightSpacePlan{S,P,T,V}
     space::S
     plan::P
     points::Vector{T}
-    weights::Vector{T}
+    weights::Vector{V}
 end
 
 

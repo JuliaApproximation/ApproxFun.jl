@@ -19,6 +19,9 @@ Base.ndims{T,d}(::Domain{T,d})=d
 Base.ndims{T,d}(::Type{Domain{T,d}})=d
 Base.ndims{DT<:Domain}(::Type{DT})=ndims(super(DT))
 
+# prectype gives the precision, including for Vec
+prectype(d::Domain) = eltype(eltype(d))
+
 
 #TODO: bivariate AnyDomain
 immutable AnyDomain <: Domain{UnsetNumber} end
@@ -135,8 +138,8 @@ Base.convert{D<:PeriodicDomain}(::Type{D},::AnyDomain)=AnyPeriodicDomain()
 
 ## conveninece routines
 
-Base.ones(d::Domain)=ones(eltype(d),Space(d))
-Base.zeros(d::Domain)=zeros(eltype(d),Space(d))
+Base.ones(d::Domain)=ones(prectype(d),Space(d))
+Base.zeros(d::Domain)=zeros(prectype(d),Space(d))
 
 
 

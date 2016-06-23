@@ -23,8 +23,8 @@ Base.eltype{OT<:Operator}(::Type{OT})=eltype(super(OT))
 # realdomain case doesn't use
 
 
-op_eltype(sp::Space)=promote_type(eltype(sp),eltype(domain(sp)))
-op_eltype_realdomain(sp::Space)=promote_type(eltype(sp),real(eltype(domain(sp))))
+op_eltype(sp::Space)=promote_type(eltype(sp),prectype(domain(sp)))
+op_eltype_realdomain(sp::Space)=promote_type(eltype(sp),real(prectype(domain(sp))))
 
  #Operators are immutable
 Base.copy(A::Operator)=A
