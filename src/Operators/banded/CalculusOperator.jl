@@ -164,7 +164,8 @@ function Base.sum(f::Fun)
     d=domain(f)
     cd=canonicaldomain(d)
     if typeof(cd)==typeof(d)  || isa(d,PeriodicDomain)
-        last(cumsum(f))
+        g=integrate(f)
+        last(g)-first(g)
     else
         # map first
         sum(setdomain(f,cd)*fromcanonicalD(f))

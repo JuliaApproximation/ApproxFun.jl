@@ -153,16 +153,17 @@ function getindex{CS<:SinSpace,OT,T}(D::ConcreteIntegral{CS,OT,T},k::Integer,j::
 end
 
 function Integral{T,CS<:CosSpace,DD<:PeriodicInterval}(S::SliceSpace{1,1,CS,T,DD,1},k::Integer)
-    @assert isa(d,PeriodicInterval)
+    @assert isa(domain(S),PeriodicInterval)
     ConcreteIntegral(S,k)
 end
 
 bandinds{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}})=(0,0)
 rangespace{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}})=iseven(D.order)?D.space:SinSpace(domain(D))
 
-function getindex{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}},k::Integer,j::Integer)
+function getindex{TT,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,TT,DD,1}},k::Integer,j::Integer)
     d=domain(D)
     m=D.order
+    T=eltype(D)
     C=T(2/(d.b-d.a)*π)
 
 
