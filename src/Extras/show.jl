@@ -182,8 +182,9 @@ Base.summary(B::Operator)=string(typeof(B).name.name)*":"*string(domainspace(B))
 
 function Base.show(io::IO,B::BandedOperator;header::Bool=true)
     header && println(io,summary(B))
+    dsp=domainspace(B)
 
-    if !isambiguous(domainspace(B))
+    if isa(dsp,AnySpace) || !isambiguous(domainspace(B))
         BM=B[1:10,1:10]
 
         M=Array(Any,11,11)
@@ -205,7 +206,10 @@ end
 
 function Base.show(io::IO,F::Functional;header::Bool=true)
     header && println(io,summary(F))
-    if !isambiguous(domainspace(F))
+
+    dsp=domainspace(F)
+
+    if isa(dsp,AnySpace) || !isambiguous(dsp)
         V=Array{Any}(1,11)
         copy!(V,F[1:10])
         V[end]=PrintShow("⋯")
