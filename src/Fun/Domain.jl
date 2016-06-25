@@ -189,7 +189,8 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 ## map domains
 # we auto vectorize arguments
 tocanonical(d::Domain,x,y,z...)=tocanonical(d,Vec(x,y,z...))
-fromcanonical(d::Domain,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Domain,v::AbstractArray) =
+    eltype(d)[fromcanonical(d,vk) for vk in v]
 
 
 mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
@@ -199,7 +200,8 @@ invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
 
 ## domains in higher dimensions
 
-fromcanonical{V<:Vec}(d::Domain{V},p::AbstractVector)=V[fromcanonical(d,x) for x in p]
+fromcanonical{V<:Vec}(d::Domain{V},p::AbstractArray) =
+    V[fromcanonical(d,x) for x in p]
 
 # points{T<:Array}(d::IntervalDomain{T},n::Integer) = T[fromcanonical(d,x) for x in chebyshevpoints(real(eltype(T)),n)]
 # points{T<:Array}(d::PeriodicDomain{T},n::Integer) = T[fromcanonical(d,x) for x in fourierpoints(real(eltype(T)),n)]
