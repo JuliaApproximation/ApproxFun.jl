@@ -9,20 +9,20 @@ f=Fun(exp,Interval(DualNumbers.dual(1.0,1),DualNumbers.dual(2.0)),20)
 
 
 
-## Eig test
+## Eig test #336
 
 F = x->x.^8
 d = Interval(0.0,10.)
 f = Fun(F,d)
-ginf = @time Fun(x->exp(-x),d)
-gp = @time ginf'
-Af = @time Fun(x->x+f(x),d)
+ginf = Fun(x->exp(-x),d)
+gp = ginf'
+Af = Fun(x->x+f(x),d)
 transport_ = Fun(x-> x - 1,d)
 damping = Fun(x-> 1 - f(x),d)
-A = @time transport_*Derivative(d) + damping
-P = @time -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
-λ,V = @time ApproxFun.eigs([A],100)
+A = transport_*Derivative(d) + damping
+P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
+λ,V = ApproxFun.eigs([A],100)
 @test_approx_eq λ[1] 53.193102118227415
 
-λ,V = @time ApproxFun.eigs([A+P],100)
+λ,V = ApproxFun.eigs([A+P],100)
 @test_approx_eq λ[1] 53.186205215128695
