@@ -43,8 +43,7 @@ function givensreduce!{T,M,R}(B::MutableOperator{T,M,R},v::Array,k1::Integer,k2:
     ca,cb,mb,a=givensreduceab!(B,k1,k2,j1)
 
     @simd for j=1:size(v,2)
-        #@inbounds
-        v[k1,j],v[k2,j] = ca*v[k1,j] + cb*v[k2,j],mb*v[k1,j] + a*v[k2,j]
+        @inbounds v[k1,j],v[k2,j] = ca*v[k1,j] + cb*v[k2,j],mb*v[k1,j] + a*v[k2,j]
     end
 
     B
