@@ -141,9 +141,20 @@ end
 
 
 
-@recipe function f{S<:Union{ArraySpace,TupleSpace,PiecewiseSpace},T<:Real}(g::Fun{S,T})
+@recipe function f{S<:Union{ArraySpace,TupleSpace},T<:Real}(g::Fun{S,T})
     vec(g)
 end
+
+@recipe function f{S<:PiecewiseSpace,T<:Real}(g::Fun{S,T})
+    p=pieces(g)
+    for k=1:length(p)
+        @series begin
+            primary := (k==1)
+            p[k]
+        end
+    end
+end
+
 
 
 @recipe function f{S<:DiracSpace,T<:Real}(g::Fun{S,T})
@@ -153,12 +164,16 @@ end
 
     xlims --> (minimum(pts)-1.,maximum(pts)+1.)
 
-    @series begin
-        ones(2)*pts',[0,1]*ws'
-    end
-    @series begin
-        linestyle := :dot
-        ones(2)*pts',[1,2]*ws'
+    for k=1:length(pts)
+        @series begin
+            primary := (k==1)
+            ones(2)*pts[k],[0,1]*ws[k]
+        end
+        @series begin
+            linestyle := :dot
+            primary := false
+            ones(2)*pts[k],[1,2]*ws[k]
+        end
     end
 end
 
@@ -169,7 +184,12 @@ end
 
     xlims --> (minimum(pts)-1.,maximum(pts)+1.)
 
-    ones(2)*pts',[0,1]*ws'
+    for k=1:length(pts)
+        @series begin
+            primary := (k==1)
+            ones(2)*pts[k],[0,1]*ws[k]
+        end
+    end
 end
 
 
@@ -180,18 +200,27 @@ end
     ws=pad(g.coefficients,dimension(space(g)))
 
     ylims --> (minimum(ws)-1.,maximum(ws)+1.)
-    @series pts[1:2],ones(2)*ws[1]
+    @series begin
+        primary := true
+        pts[1:2],ones(2)*ws[1]
+    end
 
     for k=2:length(ws)
         @series begin
+           primary := false
            linestyle --> :dot
            ones(2)*pts[k],ws[k-1:k]
         end
-        @series pts[k:k+1],ones(2)*ws[k]
+        @series begin
+            primary := false
+            pts[k:k+1],ones(2)*ws[k]
+        end
     end
 end
 
-
+###
+# Multivariate
+###
 
 
 @recipe function f{S<:UnivariateSpace,
