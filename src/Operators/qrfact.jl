@@ -16,6 +16,11 @@ type QROperator{B,S,T}  <: Operator{T}
     ncols::Int   # number of cols already upper triangularized
 end
 
+for OP in (:domainspace,:rangespace)
+    @eval $OP(QR::QROperator) = $OP(QR.R)
+end
+
+
 
 immutable QROperatorR{QRT,T} <: Operator{T}
     QR::QRT
@@ -56,6 +61,10 @@ end
 
 
 function resizedata!(QR::QROperator,col)
+    if col ≤ QR.ncols
+        return QR
+    end
+
     MO=QR.R
     W=QR.H
 
@@ -122,14 +131,15 @@ end
 
 ## Multiplication routines
 
+linsolve{S,B,T<:Number}(QR::QROperator{S,B,T},b::Vector{T};kwds...) =
+    Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
+
+linsolve(QR::QROperator,b::Fun;kwds...) = linsolve(QR,coefficients(b,rangespace(QR));kwds...)
 
 Base.At_mul_B{T<:Real}(A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B(A,B)
-Base.At_mul_B!{T<:Real}(Y,A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B!(Y,A,B)
-
-
-# Each Householder increases the size og B
-
-function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T})
+function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
+                                        tolerance::Float64=eps2(T)/10,
+                                        maxlength::Int=1000000)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,length(B)+size(A.QR.H,1)+10)
@@ -148,11 +158,10 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T})
     m=length(B)
     Y=pad(B,m+M+10)
     y=pointer(Y)
-    tol=eps()/10
 
     k=1
     yp=y
-    while k ≤ m+M || BLAS.nrm2(M,yp,1) > tol
+    while (k ≤ m+M || BLAS.nrm2(M,yp,1) > tolerance ) && k ≤ maxlength
         if k+M-1>length(Y)
             pad!(Y,2*(k+M))
             y=pointer(Y)
@@ -171,11 +180,11 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T})
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end
-    Y
+    resize!(Y,k+M-1)  # chop off zeros
 end
 
 
-function \{QR,T}(R::QROperatorR{QR,T},b::Vector{T})
+function linsolve{QR,T}(R::QROperatorR{QR,T},b::Vector{T})
     if length(b) > R.QR.ncols
         # upper triangularize columns
         resizedata!(R,length(b))

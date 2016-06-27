@@ -99,7 +99,7 @@ Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
 
 function devec{F<:Fun}(v::Vector{F})
     sps=map(space,v)
-    if spacescompatible(sps)
+    if spacesequal(sps)
         Fun(vec(coefficients(v).'),ArraySpace(first(sps),length(v)))
     elseif domainscompatible(sps)
         Fun(vec(coefficients(v).'),TupleSpace(sps))
