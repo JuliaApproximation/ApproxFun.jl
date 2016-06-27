@@ -175,10 +175,10 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T})
 end
 
 
-# function Base.\(R::QROperatorR,b::Vector)
-#     if length(b) > R.QR.ncols
-#         # upper triangularize columns
-#         resizedata!(R,length(b))
-#     end
-# s
-# end
+function \{QR,T}(R::QROperatorR{QR,T},b::Vector{T})
+    if length(b) > R.QR.ncols
+        # upper triangularize columns
+        resizedata!(R,length(b))
+    end
+    backsubstitution!(R.QR.R,copy(b))
+end
