@@ -235,6 +235,8 @@ include("systems.jl")
 include("adaptiveqr.jl")
 include("nullspace.jl")
 
+include("qrfact.jl")
+
 
 
 
