@@ -12,7 +12,8 @@ import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
 
 
 import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
-                        unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix
+                        unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix,
+                        dot, dotu, normalize!
 
 import FixedSizeArrays: Vec
 

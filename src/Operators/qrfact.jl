@@ -1,13 +1,5 @@
 
-normalize!(w) = BLAS.scal!(length(w),inv(norm(w)),w,1)
-function normalize!(n,w)
-    BLAS.scal!(n,inv(BLAS.nrm2(n,w,1)),w,1)
-end
 
-function resizecols!(W::Matrix,m)
-    n=size(W,1)
-    reshape(resize!(vec(W),n*m),n,m)
-end
 
 
 type QROperator{B,S,T}  <: Operator{T}
@@ -100,14 +92,14 @@ function resizedata!(QR::QROperator,col)
 
         for j=k:k+R.u
             v=r+sz*(R.u + (k-1)*st + (j-k)*(st-1))
-            dt=BLAS.dot(M,v,1,wp,1)
+            dt=dot(M,wp,1,v,1)
             BLAS.axpy!(M,-2*dt,wp,1,v,1)
         end
 
         for j=k+R.u+1:k+R.u+M-1
             p=j-k-R.u
             v=r+sz*((j-1)*st)  # shift down each time
-            dt=BLAS.dot(M-p,v,1,wp+p*sz,1)
+            dt=dot(M-p,wp+p*sz,1,v,1)
             for ℓ=k:k+p-1
                 @inbounds dt+=conj(W[ℓ-k+1,k])*unsafe_getindex(MO.fill,ℓ,j)
             end
@@ -118,7 +110,7 @@ function resizedata!(QR::QROperator,col)
         fst=stride(F,2)
         for j=1:size(F,2)
             v=fp+fst*(j-1)*sz   # the k,jth entry of F
-            dt=BLAS.dot(M,v,1,wp,1)
+            dt=dot(M,wp,1,v,1)
             BLAS.axpy!(M,-2*dt,wp,1,v,1)
         end
     end
@@ -131,8 +123,17 @@ end
 
 ## Multiplication routines
 
-linsolve{S,B,T<:Number}(QR::QROperator{S,B,T},b::Vector{T};kwds...) =
+linsolve{S,B,T<:Real}(QR::QROperator{S,B,T},b::Vector{T};kwds...) =
     Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
+linsolve{S,B,T<:Complex}(QR::QROperator{S,B,T},b::Vector{T};kwds...) =
+    Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
+
+linsolve{S,B,T<:Real,V<:Complex}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
+    linsolve(QR,real(b);kwds...)+im*linsolve(QR,imag(b);kwds...)
+linsolve{S,B,T<:Complex,V<:Real}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
+    linsolve(QR,Vector{T}(b);kwds...)
+
+
 
 linsolve(QR::QROperator,b::Fun;kwds...) = linsolve(QR,coefficients(b,rangespace(QR));kwds...)
 
@@ -176,18 +177,18 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
         wp=h+sz*st*(k-1)
         yp=y+sz*(k-1)
 
-        dt=BLAS.dot(M,yp,1,wp,1)
+        dt=dot(M,wp,1,yp,1)
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end
-    resize!(Y,k+M-1)  # chop off zeros
+    resize!(Y,k-1)  # chop off zeros
 end
 
 
 function linsolve{QR,T}(R::QROperatorR{QR,T},b::Vector{T})
     if length(b) > R.QR.ncols
         # upper triangularize columns
-        resizedata!(R,length(b))
+        resizedata!(R.QR,length(b))
     end
     backsubstitution!(R.QR.R,copy(b))
 end

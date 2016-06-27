@@ -43,9 +43,6 @@ isnan(x::Vec)=map(isnan,x)
 
 # BLAS
 
-dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
-dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
-dotu{N<:Real,T<:Number}(f::Vector{N},g::Vector{T})=dot(f,g)
 
 # implement muladd default
 muladd(a,b,c)=a*b+c
@@ -170,6 +167,12 @@ end
 
 pad(A::Matrix,::Colon,m::Integer)=pad(A,size(A,1),m)
 pad(A::Matrix,n::Integer,::Colon)=pad(A,n,size(A,2))
+
+
+function resizecols!(W::Matrix,m)
+    n=size(W,1)
+    reshape(resize!(vec(W),n*m),n,m)
+end
 
 
 #TODO:padleft!
