@@ -236,17 +236,19 @@ end
         warn("Imaginary part is non-neglible.  Only plotting real part.")
     end
 
-    points(space(g,1),size(vals,1)),points(space(g,2),size(vals,2)),real(vals)
+    points(space(g,1),size(vals,1)),points(space(g,2),size(vals,2)),real(vals).'
 end
 
 
 @recipe function f(x::AbstractVector,y::AbstractVector,g::MultivariateFun)
-    x,y,real(f(x,y))
+    seriestype --> :surface
+    x,y,real(g(x,y)).'
 end
 
 
 @recipe function f(x::AbstractVector,y::AbstractVector,g::MultivariateFun)
-    x,y,real(f(x,y))
+    seriestype --> :surface
+    x,y,real(g(x,y)).'
 end
 
 

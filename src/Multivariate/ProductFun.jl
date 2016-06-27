@@ -200,7 +200,7 @@ canonicalevaluate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},x::Colon,y::Number)
     evaluate(f.',y,:)  # doesn't make sense For general product fon without specifying space
 
 canonicalevaluate(f::ProductFun,xx::AbstractVector,yy::AbstractVector) =
-    hcat([evaluate(f,x,:)([yy]) for x in xx]...).'
+    hcat([evaluate(f,x,:)(yy) for x in xx]...).'
 
 
 evaluate(f::ProductFun,x,y) = canonicalevaluate(f,tocanonical(f,x,y)...)
