@@ -204,7 +204,6 @@ canonicalevaluate(f::ProductFun,xx::AbstractVector,yy::AbstractVector) =
 
 
 evaluate(f::ProductFun,x,y) = canonicalevaluate(f,tocanonical(f,x,y)...)
-evaluate(f::ProductFun,x::Range,y::Range) = evaluate(f,[x],[y])
 evaluate(f::ProductFun,x) = evaluate(f,x...)
 
 *{F<:ProductFun}(c::Number,f::F) = F(c*f.coefficients,f.space)
