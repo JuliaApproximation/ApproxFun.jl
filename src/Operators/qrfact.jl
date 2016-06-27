@@ -16,21 +16,19 @@ type QROperator{B,S,T}  <: Operator{T}
     ncols::Int   # number of cols already upper triangularized
 end
 
-function Base.qrfact{OO<:Operator}(A::Vector{OO})
-    R = MutableOperator(A)
-    M=R.data.l+1   # number of diag+subdiagonal bands
-    H=Array(mapreduce(eltype,promote_type,A),M,100)
-    QROperator(R,H,0)
-end
-
 
 immutable QROperatorR{QRT,T} <: Operator{T}
     QR::QRT
 end
 
+QROperatorR(QR) = QROperatorR{typeof(QR),eltype(QR)}(QR)
+
+
 immutable QROperatorQ{QRT,T} <: Operator{T}
     QR::QRT
 end
+
+QROperatorQ(QR) = QROperatorQ{typeof(QR),eltype(QR)}(QR)
 
 function getindex(QR::QROperator,d::Symbol)
     d==:Q && return QROperatorQ(QR)
@@ -38,6 +36,24 @@ function getindex(QR::QROperator,d::Symbol)
 
     error("Symbol not recognized")
 end
+
+
+function Base.qrfact{OO<:Operator}(A::Vector{OO})
+    R = MutableOperator(A)
+    M=R.data.l+1   # number of diag+subdiagonal bands
+    H=Array(mapreduce(eltype,promote_type,A),M,100)
+    QROperator(R,H,0)
+end
+
+function Base.qr{OO<:Operator}(A::Vector{OO})
+    QR=qrfact(A)
+    QR[:Q],QR[:R]
+end
+
+
+
+## populate data
+
 
 function resizedata!(QR::QROperator,col)
     MO=QR.R
@@ -100,3 +116,69 @@ function resizedata!(QR::QROperator,col)
     QR.ncols=col
     QR
 end
+
+
+
+
+## Multiplication routines
+
+
+Base.At_mul_B{T<:Real}(A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B(A,B)
+Base.At_mul_B!{T<:Real}(Y,A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B!(Y,A,B)
+
+
+# Each Householder increases the size og B
+
+function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T})
+    if length(B) > A.QR.ncols
+        # upper triangularize extra columns to prepare for \
+        resizedata!(A.QR,length(B)+size(A.QR.H,1)+10)
+    end
+
+    H=A.QR.H
+    h=pointer(H)
+
+    M=size(H,1)
+
+    b=pointer(B)
+    st=stride(H,2)
+
+    sz=sizeof(T)
+
+    m=length(B)
+    Y=pad(B,m+M+10)
+    y=pointer(Y)
+    tol=eps()/10
+
+    k=1
+    yp=y
+    while k ≤ m+M || BLAS.nrm2(M,yp,1) > tol
+        if k+M-1>length(Y)
+            pad!(Y,2*(k+M))
+            y=pointer(Y)
+        end
+        if k > A.QR.ncols
+            # upper triangularize extra columns to prepare for \
+            resizedata!(A.QR,2*(k+M))
+            H=A.QR.H
+            h=pointer(H)
+        end
+
+        wp=h+sz*st*(k-1)
+        yp=y+sz*(k-1)
+
+        dt=BLAS.dot(M,yp,1,wp,1)
+        BLAS.axpy!(M,-2*dt,wp,1,yp,1)
+        k+=1
+    end
+    Y
+end
+
+
+# function Base.\(R::QROperatorR,b::Vector)
+#     if length(b) > R.QR.ncols
+#         # upper triangularize columns
+#         resizedata!(R,length(b))
+#     end
+# s
+# end
