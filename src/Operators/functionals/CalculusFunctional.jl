@@ -18,9 +18,7 @@ macro calculus_functional(Op)
 
 
         # We expect the operator to be real/complex if the basis is real/complex
-        $ConcOp(dsp::Space) = error("Implement $(string($Op))($(string(sp)))")
-
-        #  $ConcOp{typeof(dsp),eltype(dsp)}(dsp)
+        $ConcOp(dsp::Space) = $ConcOp{typeof(dsp),eltype(dsp)}(dsp)
 
         $Op() = $Op(UnsetSpace())
         $Op(dsp) = $ConcOp(dsp)
