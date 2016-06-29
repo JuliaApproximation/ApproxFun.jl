@@ -257,6 +257,7 @@ end
 
 
 LowRankFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS}) = LowRankFun(f.coefficients,space(f,2))
+LowRankFun(f::Fun) = LowRankFun(ProductFun(f))
 
 function differentiate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},j::Integer)
     if j==1
