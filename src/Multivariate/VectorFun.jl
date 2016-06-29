@@ -60,8 +60,6 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 
 
 function evaluate{T<:Fun}(A::AbstractVector{T},x::AbstractVector)
-    x = tocanonical(first(A),x)
-
     n=length(x)
     ret=Array(promote_type(eltype(x),mapreduce(eltype,promote_type,A)),length(A),n)
 

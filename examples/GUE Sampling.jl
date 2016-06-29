@@ -9,7 +9,7 @@ r=ApproxFun.sample(f,5000)
 
 #We can compare the histogram to the 1-point correlation
 plot(sum(f,1)/sum(f))
-histogram!(vcat(r...);normed=true)
+histogram!(vec(r);normed=true)
 
 
 #We can compare the histograms of x with the GUE:
