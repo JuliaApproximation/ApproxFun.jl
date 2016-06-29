@@ -204,7 +204,7 @@ end
 
 macro wrapper(Wrap)
     ret = quote
-        @wrappergetindex($Wrap)
+        ApproxFun.@wrappergetindex($Wrap)
 
         ApproxFun.iswrapper(::$Wrap)=true
     end
