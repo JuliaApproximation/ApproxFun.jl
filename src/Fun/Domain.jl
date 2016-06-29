@@ -19,6 +19,8 @@ Base.ndims{T,d}(::Domain{T,d})=d
 Base.ndims{T,d}(::Type{Domain{T,d}})=d
 Base.ndims{DT<:Domain}(::Type{DT})=ndims(super(DT))
 
+Base.length(d::Domain) = 1
+
 # prectype gives the precision, including for Vec
 prectype(d::Domain) = eltype(eltype(d))
 
