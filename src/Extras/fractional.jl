@@ -186,7 +186,7 @@ choosedomainspace{T<:Float64}(Q::RightIntegral{UnsetSpace,T},sp::PolynomialSpace
 
 # Define Left/RightDerivative
 for (DTYP,QTYP,DWRAP,QWRAP) in ((:LeftDerivative,:LeftIntegral,:LeftDerivativeWrapper,:LeftIntegralWrapper),
-                            (:RightDerivative,:RightIntegral,:RightDerivativeWrapper,:LeftIntegralWrapper))
+                            (:RightDerivative,:RightIntegral,:RightDerivativeWrapper,:RightIntegralWrapper))
     @eval begin
         function $DTYP(S::Space,k::Real)
             i=ceil(Int,k)
