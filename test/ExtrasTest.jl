@@ -22,7 +22,7 @@ damping = Fun(x-> 1 - f(x),d)
 A = transport_*Derivative(d) + damping
 P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
 λ,V = ApproxFun.eigs([A],100)
-@test_approx_eq λ[1] 53.193102118227415
+@test_approx_eq_eps λ[1] 53.193102118227415 1E-3
 
 λ,V = ApproxFun.eigs([A+P],100)
-@test_approx_eq λ[1] 53.186205215128695
+@test_approx_eq_eps λ[1] 53.186205215128695 1E-3
