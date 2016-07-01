@@ -167,7 +167,7 @@ following code samples 10,000 from a PDF given as the absolute value of the sine
 ```julia
 f = abs(Fun(sin,[-5,5]))
 x = ApproxFun.sample(f,10000)
-plot(x;t=:density)
+histogram(x;normed=true)
 plot!(f/sum(f))
 ```
 
@@ -181,11 +181,11 @@ We can solve PDEs, the following solves Helmholtz `Δu + 100u=0` with `u(±1,y)=
 on a square
 
 ```julia
-d = Interval()^2          					# Defines a rectangle
-
-u = [dirichlet(d);lap(d)+100I]\ones(4)		# First four entries of rhs are
-    										# boundary conditions
-surface(u)	                                # surface plot
+d = Interval()^2                            # Defines a rectangle
+Δ = Laplacian(d)                            # Represent the Laplacian
+u = [dirichlet(d);Δ+100I]\ones(4)           # First four entries of rhs are
+    										#   boundary conditions
+surface(u)                                  # Surface plot
 ```
 
 <img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/helmholtz.png width=500 height=400>
