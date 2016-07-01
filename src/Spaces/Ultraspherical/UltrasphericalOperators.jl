@@ -214,13 +214,13 @@ function Base.copy{PS<:PolynomialSpace,V,T,C<:Chebyshev}(S::SubBandedMatrix{T,Co
         # the sub ranges of jkr that correspond to kr, jr
         kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
 
-        BLAS.axpy!(a[2],@compat view(C1,kr2,jr2),A)
+        BLAS.axpy!(a[2],@compat(view(C1,kr2,jr2)),A)
         C0=beye(size(J,1),size(J,2),0,0)
 
 
         for k=1:length(a)-2
             C1,C0=2J*C1-C0,C1
-            BLAS.axpy!(a[k+2],@compat view(C1,kr2,jr2),A)
+            BLAS.axpy!(a[k+2],@compat(view(C1,kr2,jr2)),A)
         end
     end
 
