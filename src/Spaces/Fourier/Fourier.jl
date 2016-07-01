@@ -32,20 +32,22 @@ immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
 end
 
 
-Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},::Type{T})=Fun{S,promote_type(V,T)}
-Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace}}(::Type{Fun{S}},::Type{T})=Fun{S,T}
+Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},::Type{T}) =
+    Fun{S,promote_type(V,T)}
+Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace}}(::Type{Fun{S}},::Type{T}) =
+    Fun{S,T}
 
-Base.call{s}(H::Type{Hardy{s}},d::Domain)=Hardy{s,typeof(d)}(d)
-Base.call{s}(H::Type{Hardy{s}})=Hardy{s}(Circle())
+@compat (H::Type{Hardy{s}}){s}(d::Domain) = Hardy{s,typeof(d)}(d)
+@compat (H::Type{Hardy{s}}){s}() = Hardy{s}(Circle())
 
-canonicalspace(S::Hardy)=S
-setdomain{s}(S::Hardy{s},d::Domain)=Hardy{s}(d)
+canonicalspace(S::Hardy) = S
+setdomain{s}(S::Hardy{s},d::Domain) = Hardy{s}(d)
 
 
-spacescompatible{s}(a::Hardy{s},b::Hardy{s})=domainscompatible(a,b)
-hasfasttransform(::Hardy)=true
+spacescompatible{s}(a::Hardy{s},b::Hardy{s}) = domainscompatible(a,b)
+hasfasttransform(::Hardy) = true
 
-# The <: Domain is crucial for matching Base.call overrides
+# The <: Domain is crucial for matching Basecall overrides
 typealias Taylor{D<:Domain} Hardy{true,D}
 
 plan_transform(::Taylor,x::Vector)=plan_fft(x)
@@ -80,7 +82,7 @@ end
 ##TODO: fast routine
 
 function horner(c::AbstractVector,kr::Range{Int64},x)
-    T = promote_type(eltype(c),typeof(x))
+    T = promote_type(eltype(c),eltype(x))
     if isempty(c)
         return zero(x)
     end
@@ -158,12 +160,12 @@ end
 
 
 function Base.conj{DD}(f::Fun{Laurent{DD}})
-    cfs=Array(eltype(f),iseven(length(f))?length(f)+1:length(f))
+    cfs=Array(eltype(f),iseven(ncoefficients(f))?ncoefficients(f)+1:ncoefficients(f))
     cfs[1]=conj(f.coefficients[1])
-    for k=2:2:length(f)-1
+    for k=2:2:ncoefficients(f)-1
         cfs[k]=conj(f.coefficients[k+1])
     end
-    for k=3:2:length(f)
+    for k=3:2:ncoefficients(f)
         cfs[k]=conj(f.coefficients[k-1])
     end
     Fun(cfs,space(f))
@@ -175,19 +177,19 @@ typealias Fourier{DD} SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
 
 for TYP in (:Laurent,:Fourier)
     @eval begin
-        Base.call(::Type{$TYP},d::Domain)=$TYP{typeof(d)}(d)
-        Base.call(::Type{$TYP})=$TYP(PeriodicInterval())
-        Base.call{T<:Number}(::Type{$TYP},d::Vector{T})=Fourier(PeriodicDomain(d))
+        @compat (::Type{$TYP})(d::Domain) = $TYP{typeof(d)}(d)
+        @compat (::Type{$TYP})() = $TYP(PeriodicInterval())
+        @compat (::Type{$TYP}){T<:Number}(d::Vector{T}) = Fourier(PeriodicDomain(d))
 
-        hasfasttransform{D}(::$TYP{D})=true
+        hasfasttransform{D}(::$TYP{D}) = true
     end
 end
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
         # override default as canonicalspace must be implemented
-        maxspace{D}(::$T,::Fourier{D})=NoSpace()
-        maxspace{D}(::Fourier{D},::$T)=NoSpace()
+        maxspace{D}(::$T,::Fourier{D}) = NoSpace()
+        maxspace{D}(::Fourier{D},::$T) = NoSpace()
     end
 end
 
@@ -286,7 +288,7 @@ end
 reverseorientation{D}(f::Fun{Fourier{D}})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
 function reverseorientation{D}(f::Fun{Laurent{D}})
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
-    n=length(f)
+    n=ncoefficients(f)
     ret=Array(eltype(f),iseven(n)?n+1:n)  # since z -> 1/z we get one more coefficient
     ret[1]=f.coefficients[1]
     for k=2:2:length(ret)-1

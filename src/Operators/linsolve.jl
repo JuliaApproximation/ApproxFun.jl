@@ -129,7 +129,7 @@ function linsolve{T<:Operator,F<:Fun}(A::Vector{T},b::Array{F};kwds...)
     # this undoes the effect of [0.,f]
     for k=1:size(A,1)-1,j=1:size(b,2)
         # we only allow constants
-        @assert length(b[k,j])==1
+        @assert ncoefficients(b[k,j])==1
         #TODO: 1,1 entry may not be zero
         r[k,j]=b[k,j].coefficients[1]
     end
@@ -139,15 +139,19 @@ function linsolve{T<:Operator,F<:Fun}(A::Vector{T},b::Array{F};kwds...)
     linsolve(A,r;kwds...)
 end
 
-
-linsolve{S,T}(A::Operator,b::Fun{S,T};kwds...)=linsolve([A],[b];kwds...)
-linsolve(A::Operator,b::Number;kwds...)=linsolve([A],b*ones(rangespace(A));kwds...)
-linsolve{T<:Operator}(A::Vector{T},b::Number;kwds...)=linsolve(A,[b];kwds...)
-linsolve{S,Q,T<:Operator}(A::Vector{T},b::Fun{S,Q};kwds...)=linsolve(A,[b];kwds...)
-linsolve{T<:Operator}(A::Array{T,2},b;kwds...)=linsolve(interlace(A),b;kwds...)
-linsolve(A::Operator,b::Array;kwds...)=linsolve([A],b;kwds...)
+linsolve{T<:Operator}(A::Vector{T},b::Number;kwds...) = linsolve(A,[b];kwds...)
+linsolve{T<:Operator}(A::Vector{T},b::Fun;kwds...) = linsolve(A,[b];kwds...)
+linsolve{T<:Operator}(A::Array{T,2},b;kwds...) = linsolve(interlace(A),b;kwds...)
 
 
-\{T<:Operator}(A::Matrix{T},b::Union{Array,Number,Fun})=linsolve(A,b)
-\{T<:Operator}(A::Vector{T},b::Union{Array,Number,Fun})=linsolve(A,b)
-\(A::Operator,b)=linsolve(A,b)
+\{T<:Operator}(A::Matrix{T},b::Union{Array,Number,Fun}) = linsolve(A,b)
+\{T<:Operator}(A::Vector{T},b::Union{Array,Number,Fun}) = linsolve(A,b)
+
+
+# Operator versions
+linsolve(A::Operator,b::Fun;kwds...) = linsolve([A],[b];kwds...)
+linsolve(A::Operator,b::Number;kwds...) = linsolve([A],b*ones(rangespace(A));kwds...)
+linsolve(A::Operator,b::Array;kwds...) = linsolve([A],b;kwds...)
+
+
+\(A::Operator,b) = linsolve(A,b)

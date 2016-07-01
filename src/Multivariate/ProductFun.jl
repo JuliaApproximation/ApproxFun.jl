@@ -17,7 +17,7 @@ ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
    ProductFun{W,V,typeof(sp),T}(Fun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 
 Base.size(f::ProductFun,k::Integer) =
-    k==1?mapreduce(length,max,f.coefficients):length(f.coefficients)
+    k==1?mapreduce(ncoefficients,max,f.coefficients):length(f.coefficients)
 Base.size(f::ProductFun) = (size(f,1),size(f,2))
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
@@ -112,9 +112,9 @@ ProductFun(f::Fun,sp::BivariateSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
 
 
 function funlist2coefficients{S,T}(f::Vector{Fun{S,T}})
-    A=zeros(T,mapreduce(length,max,f),length(f))
+    A=zeros(T,mapreduce(ncoefficients,max,f),length(f))
     for k=1:length(f)
-        A[1:length(f[k]),k]=f[k].coefficients
+        A[1:ncoefficients(f[k]),k]=f[k].coefficients
     end
     A
 end
@@ -171,7 +171,7 @@ function coefficients(f::ProductFun,ox::Space,oy::Space)
     B
 end
 
-Base.call(f::ProductFun,x,y) = evaluate(f,x,y)
+@compat (f::ProductFun)(x,y) = evaluate(f,x,y)
 
 coefficients(f::ProductFun,ox::TensorSpace) = coefficients(f,ox[1],ox[2])
 
@@ -200,11 +200,10 @@ canonicalevaluate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},x::Colon,y::Number)
     evaluate(f.',y,:)  # doesn't make sense For general product fon without specifying space
 
 canonicalevaluate(f::ProductFun,xx::AbstractVector,yy::AbstractVector) =
-    hcat([evaluate(f,x,:)([yy]) for x in xx]...).'
+    hcat([evaluate(f,x,:)(yy) for x in xx]...).'
 
 
 evaluate(f::ProductFun,x,y) = canonicalevaluate(f,tocanonical(f,x,y)...)
-evaluate(f::ProductFun,x::Range,y::Range) = evaluate(f,[x],[y])
 evaluate(f::ProductFun,x) = evaluate(f,x...)
 
 *{F<:ProductFun}(c::Number,f::F) = F(c*f.coefficients,f.space)
@@ -258,6 +257,7 @@ end
 
 
 LowRankFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS}) = LowRankFun(f.coefficients,space(f,2))
+LowRankFun(f::Fun) = LowRankFun(ProductFun(f))
 
 function differentiate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},j::Integer)
     if j==1

@@ -1,5 +1,6 @@
 export Fun,evaluate,values,points
-export coefficients,integrate,differentiate,domain,space,linesum,linenorm
+export coefficients,ncoefficients
+export integrate,differentiate,domain,space,linesum,linenorm
 
 include("Domain.jl")
 include("Space.jl")
@@ -39,7 +40,7 @@ returns the coefficients of a fun in a possibly different space
 """
 function coefficients(f::Fun,msp::Space)
     #zero can always be converted
-    if length(f)==1 && f.coefficients[1]==0
+    if ncoefficients(f)==1 && f.coefficients[1]==0
         f.coefficients
     else
         coefficients(f.coefficients,space(f),msp)
@@ -74,6 +75,13 @@ Base.one(f::Fun)=ones(f)
 
 Base.eltype{S,T}(::Fun{S,T})=T
 
+
+
+
+setspace(v::AbstractVector,s::Space) = Fun(v,s)
+setspace(v::AbstractVector,s::AnySpace) = v
+setspace(f::Fun,s::Space) = Fun(f.coefficients,s)
+setspace(f::Fun,s::AnySpace) = f.coefficients
 
 
 ## domain
@@ -121,7 +129,7 @@ evaluate(f::Fun,x) = evaluate(f.coefficients,f.space,x)
 evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 
 
-Base.call(f::Fun,x...)=evaluate(f,x...)
+@compat (f::Fun)(x...)=evaluate(f,x...)
 
 for op in (:(Base.first),:(Base.last))
     @eval $op{S,T}(f::Fun{S,T})=f($op(domain(f)))
@@ -134,15 +142,15 @@ end
 
 
 values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...)
-points(f::Fun)=points(f.space,length(f))
-Base.length(f::Fun)=length(f.coefficients)
+points(f::Fun)=points(f.space,ncoefficients(f))
+ncoefficients(f::Fun)=length(f.coefficients)
 
 
 function Base.stride(f::Fun)
     # Check only for stride 2 at the moment
     # as higher stride is very rare anyways
     M=maxabs(f.coefficients)
-    for k=2:2:length(f)
+    for k=2:2:ncoefficients(f)
         if abs(f.coefficients[k])>40*M*eps()
             return 1
         end
@@ -177,7 +185,7 @@ for op in (:+,:-,:(.+),:(.-))
     @eval begin
         function $op(f::Fun,g::Fun)
             if spacescompatible(f,g)
-                n = max(length(f),length(g))
+                n = max(ncoefficients(f),ncoefficients(g))
                 f2 = pad(f,n); g2 = pad(g,n)
 
                 Fun(($op)(f2.coefficients,g2.coefficients),isambiguous(domain(f))?g.space:f.space)
@@ -201,7 +209,7 @@ end
 axpy!(a,X::Fun,Y::Fun)=axpy!(a,coefficients(X,space(Y)),Y)
 function axpy!(a,xcfs::Vector,Y::Fun)
     if a!=0
-        n=length(Y); m=length(xcfs)
+        n=ncoefficients(Y); m=length(xcfs)
 
         if n≤m
             resize!(Y.coefficients,m)
@@ -255,7 +263,7 @@ Base.inv{S,T}(f::Fun{S,T})=1./f
 
 # Integrals over two Funs, which are fast with the orthogonal weight.
 
-export bilinearform,linebilinearform,innerproduct,lineinnerproduct
+export bilinearform, linebilinearform, innerproduct, lineinnerproduct
 
 # Having fallbacks allow for the fast implementations.
 
@@ -272,11 +280,11 @@ linebilinearform(g::Fun,c::Number)=linesum(g*c)
 
 
 
-# Conjuations
+# Conjugations
 
-innerproduct(f::Fun,g::Fun)=dotu(conj(f),g)
-innerproduct(c::Number,g::Fun)=dotu(conj(c),g)
-innerproduct(g::Fun,c::Number)=dotu(conj(g),c)
+innerproduct(f::Fun,g::Fun)=bilinearform(conj(f),g)
+innerproduct(c::Number,g::Fun)=bilinearform(conj(c),g)
+innerproduct(g::Fun,c::Number)=bilinearform(conj(g),c)
 
 lineinnerproduct(f::Fun,g::Fun)=linebilinearform(conj(f),g)
 lineinnerproduct(c::Number,g::Fun)=linebilinearform(conj(c),g)
@@ -345,7 +353,7 @@ end
 ==(f::Fun,g::Fun) =  (f.coefficients == g.coefficients && f.space == g.space)
 function Base.isapprox(f::Fun,g::Fun)
     if spacescompatible(f,g)
-        m=min(length(f),length(g))
+        m=min(ncoefficients(f),ncoefficients(g))
         tol=100eps()  # TODO: normalize by norm of f/g
 
         for k=1:m
@@ -353,12 +361,12 @@ function Base.isapprox(f::Fun,g::Fun)
                 return false
             end
         end
-        for k=m+1:length(f)
+        for k=m+1:ncoefficients(f)
             if abs(f.coefficients[k])>tol
                 return false
             end
         end
-        for k=m+1:length(g)
+        for k=m+1:ncoefficients(g)
             if abs(g.coefficients[k])>tol
                 return false
             end

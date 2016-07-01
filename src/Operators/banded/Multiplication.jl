@@ -107,7 +107,7 @@ hasfasttransformtimes(f,g)=spacescompatible(f,g) && hasfasttransform(f) && hasfa
 function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     # When the spaces differ we promote and multiply
     if domainscompatible(space(f),space(g))
-        m,n = length(f),length(g)
+        m,n = ncoefficients(f),ncoefficients(g)
         # Heuristic division of parameter space between value-space and coefficient-space multiplication.
         if hasfasttransformtimes(f,g) && log10(m)*log10(n)>4
             transformtimes(f,g)
@@ -130,4 +130,4 @@ function transformtimes(f::Fun,g::Fun,n)
     hc = transform(sp,values(f2).*values(g2))
     chop!(Fun(hc,sp),10norm(hc,Inf)*eps(eltype(hc)))
 end
-transformtimes(f::Fun,g::Fun)=transformtimes(f,g,length(f) + length(g) - 1)
+transformtimes(f::Fun,g::Fun)=transformtimes(f,g,ncoefficients(f) + ncoefficients(g) - 1)

@@ -159,3 +159,23 @@ f=Fun(exp)
 
 ## SavedBandedOperator
 @test SavedBandedOperator(Derivative(Chebyshev(),2))[1,1]==0
+
+
+
+## QR
+
+S=Chebyshev()
+A=[dirichlet(S);Derivative(S)^2 - I]
+QR=qrfact(A)
+@test norm((QR\[1.])-(A\[1.]))<100eps()
+Q,R=qr(A)
+u=(R\(Q'*[1.]))
+@test norm(u-pad((A\[1.]).coefficients,length(u)))<100eps()
+
+x=Fun(S)
+A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
+
+
+QR=qrfact(A)
+
+@test norm((A\[1.])-(QR\[1.]))<100eps()

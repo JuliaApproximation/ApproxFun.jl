@@ -266,7 +266,7 @@ end
 
 function linesum{λ,DD<:Interval}(f::Fun{Ultraspherical{λ,DD}})
     d=domain(f)
-    sum(Fun(f.coefficients,Ultraspherical{λ}()))*length(d)/2
+    sum(Fun(f.coefficients,Ultraspherical{λ}()))*arclength(d)/2
 end
 
 

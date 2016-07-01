@@ -3,7 +3,7 @@
 #####
 
 
-export chebyshevt,chebyshevu,legendre,∫,⨜,⨍,∇,Δ,ChebyshevWeight,𝕀,ℝ,𝕌
+export chebyshevt,chebyshevu,legendre,∫,⨜,⨍,∇,Δ,ChebyshevWeight,𝕀,ℝ,𝕌,𝒟
 
 ## Constructors
 
@@ -52,14 +52,15 @@ for OP in (:Σ,:∮,:⨍,:⨎)
 end
 
 ∇(F::MultivariateFun) = grad(F)
-Δ(F::MultivariateFun) = lap(F)
 Base.dot{M<:MultivariateFun}(∇::Function,F::Vector{M}) = div(F)
 Base.cross{M<:MultivariateFun}(∇::Function,F::Vector{M}) = curl(F)
 
 
 ## Domains
 
-const 𝕀=Interval()
-const ℝ=Line()
-const 𝕌=Circle()
+const 𝕀 = Interval()
+const ℝ = Line()
+const 𝕌 = Circle()
 
+𝒟 = Derivative()
+Δ = Laplacian()

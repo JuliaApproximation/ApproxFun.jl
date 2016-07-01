@@ -47,10 +47,10 @@ function LowRankFun{S,T,SV}(X::Vector{Fun{S,T}},d::TensorSpace{SV,T,2})
 end
 
 function LowRankFun{S,T}(X::Vector{Fun{S,T}},dy::Space)
-    m=mapreduce(length,max,X)
+    m=mapreduce(ncoefficients,max,X)
     M=zeros(T,m,length(X))
     for k=1:length(X)
-        M[1:length(X[k]),k]=X[k].coefficients
+        M[1:ncoefficients(X[k]),k]=X[k].coefficients
     end
 
     LowRankFun(M,space(X[1]),dy)
@@ -88,8 +88,8 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Sym
 
     # If necessary, we resize the grid to be at least as large as the
     # lengths of the first row and column Funs and we recompute the values of X.
-    if gridx < length(a) || gridy < length(b)
-        gridx,gridy = max(gridx,length(a)),max(gridy,length(b))
+    if gridx < ncoefficients(a) || gridy < ncoefficients(b)
+        gridx,gridy = max(gridx,ncoefficients(a)),max(gridy,ncoefficients(b))
         ptsx,ptsy=points(dx,gridx),points(dy,gridy)
         X = zeros(T,gridx,gridy)
         maxabsf,r=findapproxmax!(f,X,ptsx,ptsy,gridx,gridy)
@@ -139,9 +139,9 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{
     a=Fun(x->f(x,r),dx)
 
     # If necessary, we resize the grid to be at least as large as the
-    # length of the first row/column Fun and we recompute the values of X.
-    if grid < length(a)
-        grid = max(grid,length(a))
+    # ncoefficients of the first row/column Fun and we recompute the values of X.
+    if grid < ncoefficients(a)
+        grid = max(grid,ncoefficients(a))
         pts=points(dx,grid)
         X = zeros(T,grid)
         maxabsf,r=findcholeskyapproxmax!(f,X,pts,grid)
@@ -265,7 +265,7 @@ function findmaxabs(a)
     return (m, mi)
 end
 
-Base.call(f::LowRankFun,x,y)=evaluate(f,x,y)
+@compat (f::LowRankFun)(x,y)=evaluate(f,x,y)
 
 domain(f::LowRankFun,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
 space(f::LowRankFun,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))
@@ -274,8 +274,8 @@ space(f::LowRankFun)=f.space
 Base.transpose{S,M,SS,T}(f::LowRankFun{S,M,SS,T})=LowRankFun(f.B,f.A,transpose(space(f)))
 
 function values(f::LowRankFun)
-    xm=mapreduce(length,max,f.A)
-    ym=mapreduce(length,max,f.B)
+    xm=mapreduce(ncoefficients,max,f.A)
+    ym=mapreduce(ncoefficients,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
         ret+=values(pad(f.A[k],xm))*values(pad(f.B[k],ym)).'
@@ -285,8 +285,8 @@ end
 
 #TODO: this is inconsistent with 1D where it does canonical
 function coefficients(f::LowRankFun)
-    xm=mapreduce(length,max,f.A)
-    ym=mapreduce(length,max,f.B)
+    xm=mapreduce(ncoefficients,max,f.A)
+    ym=mapreduce(ncoefficients,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
         ret+=pad(f.A[k].coefficients,xm)*pad(f.B[k].coefficients,ym).'
@@ -295,8 +295,8 @@ function coefficients(f::LowRankFun)
 end
 
 function coefficients(f::LowRankFun,n::Space,m::Space)
-    xm=mapreduce(length,max,f.A)
-    ym=mapreduce(length,max,f.B)
+    xm=mapreduce(ncoefficients,max,f.A)
+    ym=mapreduce(ncoefficients,max,f.B)
     ret=zeros(xm,ym)
     for k=1:length(f.A)
         ret+=pad(coefficients(f.A[k],n),xm)*pad(coefficients(f.B[k],m),ym).'
@@ -306,10 +306,10 @@ end
 
 function vecpoints(f::LowRankFun,k::Integer)
     if k==1
-        xm=mapreduce(length,max,f.A)
+        xm=mapreduce(ncoefficients,max,f.A)
         points(space(first(f.A)),xm)
     else
-        ym=mapreduce(length,max,f.B)
+        ym=mapreduce(ncoefficients,max,f.B)
         points(space(first(f.B)),ym)
     end
 end
@@ -323,12 +323,12 @@ evaluate(f::LowRankFun,::Colon,::Colon)=f
 evaluate(f::LowRankFun,x::Number,::Colon)=dotu(f.B,evaluate(f.A,x))
 evaluate{T<:Number}(f::LowRankFun,x::Vector{T},::Colon)=f.B.'*evaluate(f.A,x)
 function evaluate(f::LowRankFun,::Colon,y::Number)
-    m = maximum(map(length,f.A))
+    m = maximum(map(ncoefficients,f.A))
     r=rank(f)
     ret = zeros(m)
 
     for k=1:r
-        for j=1:length(f.A[k])
+        for j=1:ncoefficients(f.A[k])
             @inbounds ret[j] += f.A[k].coefficients[j]*f.B[k](y)
         end
     end

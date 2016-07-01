@@ -49,11 +49,11 @@ points(fun::Fun)
 
 
 doc"""
-    length(fun) -> Integer
+    ncoefficients(fun) -> Integer
 
 returns the number of coefficients of a fun
 """
-Base.length(fun::Fun)
+ncoefficients(fun::Fun)
 
 doc"""
     stride(fun)

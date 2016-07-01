@@ -80,10 +80,10 @@ Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2})=ConcreteConversion{typeof(a),t
         promote_type(op_eltype_realdomain(a),eltype(op_eltype_realdomain(b)))}(a,b)
 
 Conversion(a::ConstantSpace,b::Space)=ConcreteConversion(a,b)
-bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-length(ones(rangespace(C))),0
+bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-ncoefficients(ones(rangespace(C))),0
 function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer)
     on=ones(rangespace(C))
-    k ≤ length(on)?T(on.coefficients[k]):zero(T)
+    k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
 
 
@@ -120,10 +120,10 @@ getindex{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T},k::Inte
 rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = D.space
 
 
-bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = 1-length(D.f),0
+bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = 1-ncoefficients(D.f),0
 function getindex{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T},k::Integer,j::Integer)
     Op = Multiplication(D.f,space(D.f))
-    k≤length(D.f) && j==1?T(Op[k,1]):zero(T)
+    k≤ncoefficients(D.f) && j==1?T(Op[k,1]):zero(T)
 end
 rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) =
     rangespace(Multiplication(D.f,space(D.f)))

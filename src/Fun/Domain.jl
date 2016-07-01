@@ -1,7 +1,7 @@
 
 
 export Domain,IntervalDomain,PeriodicDomain,tocanonical,fromcanonical,fromcanonicalD,∂
-export chebyshevpoints,fourierpoints,isambiguous
+export chebyshevpoints,fourierpoints,isambiguous,arclength
 
 
 # T is the numeric type used to represent the domain
@@ -19,6 +19,11 @@ Base.ndims{T,d}(::Domain{T,d})=d
 Base.ndims{T,d}(::Type{Domain{T,d}})=d
 Base.ndims{DT<:Domain}(::Type{DT})=ndims(super(DT))
 
+Base.length(d::Domain) = 1
+
+# prectype gives the precision, including for Vec
+prectype(d::Domain) = eltype(eltype(d))
+
 
 #TODO: bivariate AnyDomain
 immutable AnyDomain <: Domain{UnsetNumber} end
@@ -28,7 +33,7 @@ isambiguous(::AnyDomain) = true
 Base.ndims(::AnyDomain) = 1
 
 complexlength(::AnyDomain) = NaN
-Base.length(::AnyDomain) = NaN
+arclength(::AnyDomain) = NaN
 
 Base.reverse(a::Union{AnyDomain,EmptyDomain}) = a
 
@@ -113,7 +118,7 @@ function Base.in{T}(x,d::PeriodicDomain{T})
         return false
     end
 
-    l=length(d)
+    l=arclength(d)
     if isinf(l)
         abs(imag(y))<20eps(T) && -π-2eps(T)<real(y)<π+2eps(T)
     else
@@ -135,8 +140,8 @@ Base.convert{D<:PeriodicDomain}(::Type{D},::AnyDomain)=AnyPeriodicDomain()
 
 ## conveninece routines
 
-Base.ones(d::Domain)=ones(eltype(d),Space(d))
-Base.zeros(d::Domain)=zeros(eltype(d),Space(d))
+Base.ones(d::Domain)=ones(prectype(d),Space(d))
+Base.zeros(d::Domain)=zeros(prectype(d),Space(d))
 
 
 
@@ -186,7 +191,8 @@ checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
 ## map domains
 # we auto vectorize arguments
 tocanonical(d::Domain,x,y,z...)=tocanonical(d,Vec(x,y,z...))
-fromcanonical(d::Domain,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Domain,v::AbstractArray) =
+    eltype(d)[fromcanonical(d,vk) for vk in v]
 
 
 mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
@@ -196,7 +202,8 @@ invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
 
 ## domains in higher dimensions
 
-fromcanonical{V<:Vec}(d::Domain{V},p::AbstractVector)=V[fromcanonical(d,x) for x in p]
+fromcanonical{V<:Vec}(d::Domain{V},p::AbstractArray) =
+    V[fromcanonical(d,x) for x in p]
 
 # points{T<:Array}(d::IntervalDomain{T},n::Integer) = T[fromcanonical(d,x) for x in chebyshevpoints(real(eltype(T)),n)]
 # points{T<:Array}(d::PeriodicDomain{T},n::Integer) = T[fromcanonical(d,x) for x in fourierpoints(real(eltype(T)),n)]

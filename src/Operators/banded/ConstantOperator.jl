@@ -38,6 +38,7 @@ immutable BasisFunctional{T} <: Functional{T}
 end
 BasisFunctional(k)=BasisFunctional{Float64}(k)
 
+datalength(B::BasisFunctional) = B.k
 
 for TYP in (:Functional,:Operator)
     @eval Base.convert{T}(::Type{$TYP{T}},B::BasisFunctional)=BasisFunctional{T}(B.k)

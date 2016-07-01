@@ -6,11 +6,11 @@
 Base.sum{C<:Chebyshev,DD}(f::Fun{JacobiWeight{C,DD}})=sum(setdomain(f,canonicaldomain(f))*fromcanonicalD(f))
 linesum{C<:Chebyshev,DD}(f::Fun{JacobiWeight{C,DD}})=linesum(setdomain(f,canonicaldomain(f))*abs(fromcanonicalD(f)))
 
-for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:length))
+for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
     @eval begin
         function $Func{C<:Chebyshev,DD<:Interval}(f::Fun{JacobiWeight{C,DD}})
             tol=1e-10
-            d,α,β,n=domain(f),f.space.α,f.space.β,length(f)
+            d,α,β,n=domain(f),f.space.α,f.space.β,ncoefficients(f)
             g=Fun(f.coefficients,space(f).space)
             if α ≤ -1.0 && abs(first(g))≤tol
                 $Func(increase_jacobi_parameter(-1,f))
@@ -172,7 +172,7 @@ function jacobiweightDerivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
     else
         w=Fun([1.],JacobiWeight(1,1,ConstantSpace(d)))
         x=Fun()
-        
+
         DD=S.α*(1-x) - S.β*(1+x) + w*Derivative(S.space)
         rs=S.α==1&&s.β==1?rangespace(DD):JacobiWeight(S.α-1,S.β-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
@@ -369,10 +369,12 @@ end
 
 ## Definite Integral
 
-for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:length))
+for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
+    ConcFunc = parse("Concrete"*string(Func))
+
     @eval begin
 
-        function getindex{λ,D<:Interval,T}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D},D},T},k::Integer)
+        function getindex{λ,D<:Interval,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D},T},k::Integer)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -384,7 +386,7 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:le
             end
         end
 
-        function getindex{λ,D<:Interval,T}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D},D},T},kr::Range)
+        function getindex{λ,D<:Interval,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D},T},kr::Range)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -396,6 +398,6 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:le
             end
         end
 
-        datalength{λ,D<:Interval}(Σ::$Func{JacobiWeight{Ultraspherical{λ,D},D}})=(domainspace(Σ).α==domainspace(Σ).β==λ-0.5)?1:Inf
+        datalength{λ,D<:Interval}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D}})=(domainspace(Σ).α==domainspace(Σ).β==λ-0.5)?1:Inf
     end
 end

@@ -6,7 +6,7 @@ abstract PolynomialSpace{D} <: RealUnivariateSpace{D}
 
 
 Multiplication{U<:PolynomialSpace}(f::Fun{U},sp::PolynomialSpace)=ConcreteMultiplication(f,sp)
-bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
+bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=(1-ncoefficients(M.f),ncoefficients(M.f)-1)
 rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=domainspace(M)
 
 
@@ -45,7 +45,7 @@ end
 
 ######
 # Recurrence encodes the recurrence coefficients
-# or equivalentally multiplication by x
+# or equivalently multiplication by x
 ######
 immutable Recurrence{S,T} <: TridiagonalOperator{T}
     space::S
@@ -68,6 +68,37 @@ function getindex{S,T}(R::Recurrence{S,T},k::Integer,j::Integer)
         recα(T,R.space,k)
     elseif j==k+1
         recγ(T,R.space,k+1)
+    else
+        zero(T)
+    end
+end
+
+######
+# JacobiZ encodes [BasisFunctional(1);(J-z*I)[2:end,:]]
+# where J is the Jacobi operator
+######
+immutable JacobiZ{S,T} <: TridiagonalOperator{T}
+    space::S
+    z::T
+end
+
+JacobiZ(sp,z)=(T = promote_type(eltype(sp),eltype(domain(sp)),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
+
+Base.convert{T,S}(::Type{BandedOperator{T}},J::JacobiZ{S})=JacobiZ{S,T}(J.space,J.z)
+
+
+#####
+# recα/β/γ are given by
+#       x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
+#####
+
+function getindex{S,T}(J::JacobiZ{S,T},k::Integer,j::Integer)
+    if j==k-1
+        recγ(T,J.space,k)
+    elseif j==k
+        k == 1 ? one(T) : recα(T,J.space,k)-J.z
+    elseif j==k+1 && k > 1
+        recβ(T,J.space,k)
     else
         zero(T)
     end

@@ -38,8 +38,6 @@ immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: BandedOperator{T}
     rangespace::V
 end
 
-@wrapper SpaceOperator
-
 # The promote_type is needed to fix a bug in promotetimes
 # not sure if its the right long term solution
 SpaceOperator(o::Operator,s::Space,rs::Space)=SpaceOperator{typeof(o),
@@ -55,6 +53,16 @@ function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)
         op=convert(BandedOperator{T},S.op)
         SpaceOperator{typeof(op),typeof(S.domainspace),typeof(S.rangespace),T}(op,S.domainspace,S.rangespace)
     end
+end
+
+
+
+# Similar to wrapper, but different domain/domainspace/rangespace
+
+@wrappergetindex SpaceOperator
+
+for func in (:(ApproxFun.bandinds),:(Base.stride))
+     @eval $func(D::SpaceOperator)=$func(D.op)
 end
 
 domain(S::SpaceOperator)=domain(domainspace(S))
@@ -183,3 +191,16 @@ function promotespaces(A::Operator,B::Operator)
         tuple(promotespaces([A,B])...)
     end
 end
+
+
+
+## algebra
+
+
+linsolve(A::SpaceOperator,b::Fun;kwds...) =
+    setspace(linsolve(A.op,coefficients(b,rangespace(A));kwds...),domainspace(A))
+
+linsolve{T<:Number}(A::SpaceOperator,b::Array{T};kwds...) =
+    setspace(linsolve(A.op,b;kwds...),rangespace(A))
+linsolve(A::SpaceOperator,b::Number;kwds...) =
+    setspace(linsolve(A.op,b;kwds...),rangespace(A))

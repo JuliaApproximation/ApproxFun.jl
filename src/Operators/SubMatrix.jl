@@ -20,7 +20,11 @@ SubBandedMatrix(A,inds,d,l,u) =
 
 bandwidth(V::SubBandedMatrix,k) = k==1?V.l:V.u
 
-function Base.sub(A::Operator,kr::Range,jr::Range)
+
+Base.sub(A::Operator,kr::Range,jr::Range) =
+    SubMatrix(A,(kr,jr),(length(kr),length(jr)))
+
+function Base.sub(A::BandedOperator,kr::Range,jr::Range)
     st=step(kr)
     if st == step(jr)
         kr1=first(kr)

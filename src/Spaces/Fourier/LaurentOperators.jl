@@ -197,30 +197,37 @@ end
 
 ## Definite integral
 
-for TYP in (:DefiniteIntegral,:DefiniteLineIntegral)
-    @eval $TYP{DD<:Circle}(S::Laurent{DD}) = $TYP{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
-end
 
-function getindex{T,DD<:PeriodicInterval}(Σ::DefiniteIntegral{Laurent{DD},T},kr::Range)
+DefiniteIntegral{DD<:Circle}(S::Laurent{DD}) =
+    ConcreteDefiniteIntegral{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
+
+    DefiniteLineIntegral{DD<:Circle}(S::Laurent{DD}) =
+        ConcreteDefiniteLineIntegral{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
+
+
+
+
+function getindex{T,DD<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{DD},T},kr::Range)
     d = domain(Σ)
     T[k == 1?  d.b-d.a : zero(T) for k=kr]
 end
 
-getindex{T,DD<:Circle}(Σ::DefiniteIntegral{Laurent{DD},T},kr::Range) =
+getindex{T,DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD},T},kr::Range) =
     T[k == 2?  2domain(Σ).radius*π*im :zero(T) for k=kr]
 
-datalength{DD<:PeriodicInterval}(Σ::DefiniteIntegral{Laurent{DD}})=1
-datalength{DD<:Circle}(Σ::DefiniteIntegral{Laurent{DD}})=2
+datalength{DD<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{DD}}) = 1
+datalength{DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD}})=2
 
 
-function getindex{T,DD<:PeriodicInterval}(Σ::DefiniteLineIntegral{Laurent{DD},T},kr::Range)
+function getindex{T,DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},kr::Range)
     d = domain(Σ)
     T[k == 1?  d.b-d.a : zero(T) for k=kr]
 end
 
-getindex{T,DD<:Circle}(Σ::DefiniteLineIntegral{Laurent{DD},T},kr::Range)=T[k == 1?  2domain(Σ).radius*π : zero(T) for k=kr]
-datalength{DD<:PeriodicInterval}(Σ::DefiniteLineIntegral{Laurent{DD}})=1
-datalength{DD<:Circle}(Σ::DefiniteLineIntegral{Laurent{DD}})=2
+getindex{T,DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},kr::Range) =
+    T[k == 1?  2domain(Σ).radius*π : zero(T) for k=kr]
+datalength{DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 1
+datalength{DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 2
 
 
 

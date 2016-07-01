@@ -24,6 +24,9 @@ real{T<:Real}(::Type{T})=T
 real{T<:Real}(::Type{Complex{T}})=T
 real{T<:Real,n}(::Type{Array{T,n}})=Array{T,n}
 real{T<:Complex,n}(::Type{Array{T,n}})=Array{real(T),n}
+real{N,T<:Real}(::Type{Vec{N,T}})=Vec{N,T}
+real{N,T<:Complex}(::Type{Vec{N,T}})=Vec{N,real(T)}
+
 
 eps(x...)=Base.eps(x...)
 eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
@@ -34,11 +37,12 @@ eps{T<:Number}(::Type{Vector{T}})=eps(T)
 eps{k,T<:Number}(::Type{Vec{k,T}})=eps(T)
 
 
+isnan(x)=Base.isnan(x)
+isnan(x::Vec)=map(isnan,x)
+
+
 # BLAS
 
-dotu(f::Vector{Complex{Float64}},g::Vector{Complex{Float64}})=BLAS.dotu(f,g)
-dotu{N<:Real}(f::Vector{Complex{Float64}},g::Vector{N})=dot(conj(f),g)
-dotu{N<:Real,T<:Number}(f::Vector{N},g::Vector{T})=dot(f,g)
 
 # implement muladd default
 muladd(a,b,c)=a*b+c
@@ -50,8 +54,8 @@ for TYP in (:Float64,:Float32,:Complex128,:Complex64)
             BLAS.scal!(n,cst,ret,k)
 end
 
-typealias BlasNumber Union{Float64,Float32,Complex128,Complex64}
-scal!{T<:BlasNumber}(n::Integer,cst::BlasNumber,ret::DenseArray{T},k::Integer) =
+
+scal!{T<:BlasFloat}(n::Integer,cst::BlasFloat,ret::DenseArray{T},k::Integer) =
     BLAS.scal!(n,T(cst),ret,k)
 
 function scal!(n::Integer,cst::Number,ret::AbstractArray,k::Integer)
@@ -91,6 +95,12 @@ function alternatingsum(v::Vector)
     ret
 end
 
+# Sum Hadamard product of vectors up to minimum over lengths
+function mindotu(a::Vector,b::Vector)
+    ret,m = zero(promote_type(eltype(a),eltype(b))),min(length(a),length(b))
+    @inbounds @simd for i=m:-1:1 ret += a[i]*b[i] end
+    ret
+end
 
 
 function pad!{T}(f::Vector{T},n::Integer)
@@ -157,6 +167,12 @@ end
 
 pad(A::Matrix,::Colon,m::Integer)=pad(A,size(A,1),m)
 pad(A::Matrix,n::Integer,::Colon)=pad(A,n,size(A,2))
+
+
+function resizecols!(W::Matrix,m)
+    n=size(W,1)
+    reshape(resize!(vec(W),n*m),n,m)
+end
 
 
 #TODO:padleft!

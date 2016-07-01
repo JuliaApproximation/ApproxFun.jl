@@ -117,32 +117,30 @@ dimension(::ZeroSpace)=0
 
 
 isambiguous(::)=false
-isambiguous(::AmbiguousSpace)=true
+isambiguous(::AmbiguousSpace) = true
 
 #TODO: should it default to canonicalspace?
-points(d::Space,n)=points(domain(d),n)
+points(d::Space,n) = points(domain(d),n)
 
 
 
-canonicalspace(T)=T
-canonicaldomain(S::Space)=canonicaldomain(domain(S))
+canonicalspace(T) = T
+canonicaldomain(S::Space) = canonicaldomain(domain(S))
 
 
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
-spacescompatible{D<:Space}(f::D,g::D)=error("Override spacescompatible for "*string(D))
-spacescompatible(::AnySpace,::AnySpace)=true
-spacescompatible(::UnsetSpace,::UnsetSpace)=true
-spacescompatible(::NoSpace,::NoSpace)=true
-spacescompatible(::ZeroSpace,::ZeroSpace)=true
-#spacescompatible(::ZeroSpace,::Space)=true
-#spacescompatible(::Space,::ZeroSpace)=true
-spacescompatible(f,g)=false
-==(A::Space,B::Space)=spacescompatible(A,B)&&domain(A)==domain(B)
-
+spacescompatible{D<:Space}(f::D,g::D) = error("Override spacescompatible for "*string(D))
+spacescompatible(::AnySpace,::AnySpace) = true
+spacescompatible(::UnsetSpace,::UnsetSpace) = true
+spacescompatible(::NoSpace,::NoSpace) = true
+spacescompatible(::ZeroSpace,::ZeroSpace) = true
+spacescompatible(f,g) = false
+==(A::Space,B::Space) = spacescompatible(A,B)&&domain(A)==domain(B)
+spacesequal(A::Space,B::Space) = A==B
 
 # check a list of spaces for compatibility
-for OP in (:spacescompatible,:domainscompatible)
+for OP in (:spacescompatible,:domainscompatible,:spacesequal)
     @eval begin
         function $OP{T<:Space}(v::Vector{T})
             for k=1:length(v)-1
@@ -153,13 +151,13 @@ for OP in (:spacescompatible,:domainscompatible)
             true
         end
 
-        $OP{T<:Space}(v::Array{T})=$OP(vec(v))
+        $OP{T<:Space}(v::Array{T}) = $OP(vec(v))
     end
 end
 
 
 
-domain(A::Space)=A.domain # assume it has a field domain
+domain(A::Space) = A.domain # assume it has a field domain
 
 
 

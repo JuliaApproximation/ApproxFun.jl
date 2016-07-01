@@ -153,16 +153,17 @@ function getindex{CS<:SinSpace,OT,T}(D::ConcreteIntegral{CS,OT,T},k::Integer,j::
 end
 
 function Integral{T,CS<:CosSpace,DD<:PeriodicInterval}(S::SliceSpace{1,1,CS,T,DD,1},k::Integer)
-    @assert isa(d,PeriodicInterval)
+    @assert isa(domain(S),PeriodicInterval)
     ConcreteIntegral(S,k)
 end
 
 bandinds{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}})=(0,0)
 rangespace{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}})=iseven(D.order)?D.space:SinSpace(domain(D))
 
-function getindex{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}},k::Integer,j::Integer)
+function getindex{TT,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,TT,DD,1}},k::Integer,j::Integer)
     d=domain(D)
     m=D.order
+    T=eltype(D)
     C=T(2/(d.b-d.a)*π)
 
 
@@ -196,7 +197,7 @@ end
 
 
 bandinds{CS<:CosSpace}(M::ConcreteMultiplication{CS,CS}) =
-    (1-length(M.f.coefficients),length(M.f.coefficients)-1)
+    (1-ncoefficients(M.f),ncoefficients(M.f)-1)
 rangespace{CS<:CosSpace}(M::ConcreteMultiplication{CS,CS}) = domainspace(M)
 getindex{CS<:CosSpace}(M::ConcreteMultiplication{CS,CS},k::Integer,j::Integer) =
     chebmult_getindex(M.f.coefficients,k,j)
@@ -212,7 +213,7 @@ function getindex{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS},k::Integer,j::I
     ret
 end
 
-bandinds{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS})=-length(M.f)-1,length(M.f)-1
+bandinds{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS})=-ncoefficients(M.f)-1,ncoefficients(M.f)-1
 rangespace{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS})=CosSpace(domain(M))
 
 
@@ -225,8 +226,10 @@ function getindex{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS},k:
     ret
 end
 
-bandinds{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS})=(1-length(M.f.coefficients),length(M.f.coefficients)-1)
-rangespace{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS})=SinSpace(domain(M))
+bandinds{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS}) =
+    (1-ncoefficients(M.f),ncoefficients(M.f)-1)
+rangespace{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS}) =
+    SinSpace(domain(M))
 
 
 
@@ -241,10 +244,12 @@ end
 
 ## Definite integral
 
-DefiniteIntegral{D<:PeriodicInterval}(sp::Fourier{D})=DefiniteIntegral{typeof(sp),Float64}(sp)
-DefiniteIntegral{D<:Circle}(sp::Fourier{D})=DefiniteIntegral{typeof(sp),Complex{Float64}}(sp)
+DefiniteIntegral{D<:PeriodicInterval}(sp::Fourier{D}) =
+    ConcreteDefiniteIntegral{typeof(sp),Float64}(sp)
+DefiniteIntegral{D<:Circle}(sp::Fourier{D}) =
+    ConcreteDefiniteIntegral{typeof(sp),Complex{Float64}}(sp)
 
-function getindex{T,D}(Σ::DefiniteIntegral{Fourier{D},T},kr::Range)
+function getindex{T,D}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},kr::Range)
     d = domain(Σ)
     if isa(d,PeriodicInterval)
         T[k == 1?  d.b-d.a : zero(T) for k=kr]
@@ -254,24 +259,29 @@ function getindex{T,D}(Σ::DefiniteIntegral{Fourier{D},T},kr::Range)
     end
 end
 
-datalength{D}(Σ::DefiniteIntegral{Fourier{D}})=isa(domain(Σ),PeriodicInterval)?1:3
+datalength{D}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = isa(domain(Σ),PeriodicInterval)?1:3
 
-DefiniteLineIntegral{D}(sp::Fourier{D})=DefiniteLineIntegral{typeof(sp),Float64}(sp)
+DefiniteLineIntegral{D}(sp::Fourier{D}) =
+    ConcreteDefiniteLineIntegral{typeof(sp),Float64}(sp)
 
 
-getindex{T,D<:PeriodicInterval}(Σ::DefiniteLineIntegral{Fourier{D},T},k::Integer) =
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
     k==1? domain(Σ).b-domain(Σ).a : zero(T)
 
-getindex{T,D<:Circle}(Σ::DefiniteLineIntegral{Fourier{D},T},k::Integer) =
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
     k==1? domain(Σ).radius*π : zero(T)
 
 
-datalength{D}(Σ::DefiniteLineIntegral{Fourier{D}})=1
+datalength{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 1
 
 
-transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),g)
-transformtimes{SS<:SinSpace,D}(f::Fun{SS},g::Fun{Fourier{D}}) = transformtimes(Fun(interlace(zeros(eltype(f),length(f)+1),f.coefficients),Fourier(domain(f))),g)
-transformtimes{CS<:CosSpace,SS<:SinSpace}(f::Fun{CS},g::Fun{SS}) = transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),length(f)-1)),Fourier(domain(f))),Fun(interlace(zeros(eltype(g),length(g)+1),g.coefficients),Fourier(domain(g))))
+transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) =
+    transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1)),Fourier(domain(f))),g)
+transformtimes{SS<:SinSpace,D}(f::Fun{SS},g::Fun{Fourier{D}}) =
+    transformtimes(Fun(interlace(zeros(eltype(f),ncoefficients(f)+1),f.coefficients),Fourier(domain(f))),g)
+transformtimes{CS<:CosSpace,SS<:SinSpace}(f::Fun{CS},g::Fun{SS}) =
+    transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1)),Fourier(domain(f))),
+                    Fun(interlace(zeros(eltype(g),ncoefficients(g)+1),g.coefficients),Fourier(domain(g))))
 transformtimes{CS<:CosSpace,D}(f::Fun{Fourier{D}},g::Fun{CS}) = transformtimes(g,f)
 transformtimes{SS<:SinSpace,D}(f::Fun{Fourier{D}},g::Fun{SS}) = transformtimes(g,f)
 transformtimes{SS<:SinSpace,CS<:CosSpace}(f::Fun{SS},g::Fun{CS}) = transformtimes(g,f)

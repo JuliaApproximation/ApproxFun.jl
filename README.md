@@ -42,7 +42,7 @@ base functions are overridden for the purposes of calculus. Because the exponent
 derivative, the `norm` is small:
 
 ```julia
-f = Fun(x->exp(x),[-1.,1.])
+f = Fun(x->exp(x),[-1,1])
 norm(f-f')
 ```
 
@@ -73,7 +73,7 @@ another case where the space of the output is inferred from the operation:
 f = Fun(x->cospi(5x))
 g = abs(f)
 space(f)   # Chebyshev(Interval(-1.0,1.0))
-space(g)   # PiecewiseSpace((Chebyshev(Interval(-1.,-.9)),...))
+space(g)   # PiecewiseSpace((Chebyshev(Interval(-1.0,-0.9)),...))
 ```
 
 Algebraic and differential operations are also implemented where possible, and most of Julia's built-in functions are overridden to accept `Fun`s:
@@ -112,7 +112,7 @@ Solve a nonlinear boundary value problem satisfying the ODE `0.001u'' + 6*(1-x^2
 x=Fun()
 u0=0.x
 
-N=u->[u(-1.)-1.,u(1.)+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
+N=u->[u(-1)-1,u(1)+0.5,0.001u''+6*(1-x^2)*u'+u^2-1]
 u=newton(N,u0)
 plot(u)
 ```
@@ -167,7 +167,7 @@ following code samples 10,000 from a PDF given as the absolute value of the sine
 ```julia
 f = abs(Fun(sin,[-5,5]))
 x = ApproxFun.sample(f,10000)
-plot(x;t=:density)
+histogram(x;normed=true)
 plot!(f/sum(f))
 ```
 
@@ -181,11 +181,11 @@ We can solve PDEs, the following solves Helmholtz `Δu + 100u=0` with `u(±1,y)=
 on a square
 
 ```julia
-d = Interval()^2          					# Defines a rectangle
-
-u = [dirichlet(d);lap(d)+100I]\ones(4)		# First four entries of rhs are
-    										# boundary conditions
-surface(u)	                                # surface plot
+d = Interval()^2                            # Defines a rectangle
+Δ = Laplacian(d)                            # Represent the Laplacian
+u = [dirichlet(d);Δ+100I]\ones(4)           # First four entries of rhs are
+    										#   boundary conditions
+surface(u)                                  # Surface plot
 ```
 
 <img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/helmholtz.png width=500 height=400>

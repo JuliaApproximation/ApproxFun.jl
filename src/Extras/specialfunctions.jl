@@ -17,9 +17,9 @@ function splitmap(g,d::AffineDomain,pts)
         Fun(g,d)
     else
         da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : unshift!(pts,da)
+        isapprox(da,pts[1];atol=sqrt(eps(arclength(d)))) ? pts[1] = da : unshift!(pts,da)
         db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : push!(pts,db)
+        isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
         Fun(g,pts)
     end
 end
@@ -32,9 +32,9 @@ function splitmap(g,d::UnionDomain,pts)
         dpts = ∂(d)
         pts = sort!(∪(pts,dpts),by=real)
         da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(mapreduce(length,+,d.domains)))) ? pts[1] = da : unshift!(pts,da)
+        isapprox(da,pts[1];atol=sqrt(eps(mapreduce(arclength,+,d.domains)))) ? pts[1] = da : unshift!(pts,da)
         db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(mapreduce(length,+,d.domains)))) ? pts[end] = db : push!(pts,db)
+        isapprox(db,pts[end];atol=sqrt(eps(mapreduce(arclength,+,d.domains)))) ? pts[end] = db : push!(pts,db)
         Fun(g,pts)
     end
 end
@@ -87,9 +87,9 @@ function Base.sign{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     else
         @assert isa(d,AffineDomain)
         da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(length(d)))) ? pts[1] = da : unshift!(pts,da)
+        isapprox(da,pts[1];atol=sqrt(eps(arclength(d)))) ? pts[1] = da : unshift!(pts,da)
         db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(length(d)))) ? pts[end] = db : push!(pts,db)
+        isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
         midpts = .5(pts[1:end-1]+pts[2:end])
         Fun(sign(f(midpts)),pts)
     end
@@ -141,17 +141,20 @@ end
 
 scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
 
+./{λ,DD}(c::Number,f::Fun{Ultraspherical{λ,DD}}) = c./Fun(f,Chebyshev(domain(f)))
+./{DD}(c::Number,f::Fun{Jacobi{DD}}) = c./Fun(f,Chebyshev(domain(f)))
+
 ./{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c./setcanonicaldomain(f),domain(f))
 function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
-    tol = 100eps()*norm(f.coefficients,1)
+    tol = 200eps()*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
-    if length(f)==1
+    if ncoefficients(f)==1
         return Fun(c/f.coefficients[1],space(f))
-    elseif length(f)==2
+    elseif ncoefficients(f)==2
         if isempty(roots(f))
             return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
@@ -164,24 +167,37 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
             # we need to split at the only root
             return c./splitatroots(f)
         end
-    elseif abs(first(fc))<tol
+    elseif abs(first(fc))≤tol
+        #left root
         g=divide_singularity((1,0),fc)
         p=c./g
         x=identity_fun(domain(p))
         return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
-    elseif abs(last(fc))<tol
+    elseif abs(last(fc))≤tol
+        #right root
         g=divide_singularity((0,1),fc)
         p=c./g
         x=identity_fun(domain(p))
         return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
     else
-       # no roots on the boundary
         r = roots(fc)
-        x = Fun(identity)
 
         if length(r) == 0
             return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
+        elseif abs(last(r)+1.0)≤tol  # double check
+            #left root
+            g=divide_singularity((1,0),fc)
+            p=c./g
+            x=identity_fun(domain(p))
+            return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
+        elseif abs(last(r)-1.0)≤tol  # double check
+            #right root
+            g=divide_singularity((0,1),fc)
+            p=c./g
+            x=identity_fun(domain(p))
+            return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
         else
+            # no roots on the boundary
             return c./splitatroots(f)
         end
     end
@@ -484,7 +500,7 @@ for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
             linsolve([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
-                        tolerance=10length(f)*eps(T)*opmax)*opmax
+                        tolerance=10ncoefficients(f)*eps(T)*opmax)*opmax
         end
     end
 end
@@ -579,7 +595,7 @@ end
 Base.besselh(ν,k::Integer,f::Fun) = k == 1 ? hankelh1(ν,f) : k == 2 ? hankelh2(ν,f) : throw(Base.Math.AmosException(1))
 
 for jy in ("j","y"), ν in (0,1)
-    bjy = symbol(string("bessel",jy))
+    bjy = Symbol(string("bessel",jy))
     bjynu = parse(string("Base.bessel",jy,ν))
     @eval begin
         $bjynu(f::Fun) = $bjy($ν,f)

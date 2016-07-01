@@ -18,3 +18,4 @@ examples/.ipynb_checkpoints/Floquet-checkpoint.ipynb
 examples/.ipynb_checkpoints/Sampling-checkpoint.ipynb
 examples/.ipynb_checkpoints/Time Evolution PDEs on Disk (GLPlot)-checkpoint.ipynb
 examples/.ipynb_checkpoints/Time Evolution PDEs on Square (PlotlyJS)-checkpoint.ipynb
+examples/gks.svg

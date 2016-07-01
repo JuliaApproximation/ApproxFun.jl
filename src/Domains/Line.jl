@@ -25,38 +25,25 @@ end
 
 typealias RealLine{T} Union{Line{false,T},Line{true,T}}
 
-Base.call{a}(::Type{Line{a}},c,α,β)=Line{a,typeof(c)}(c,α,β)
-Base.call{a}(::Type{Line{a}},c::Number)=Line{a,typeof(c)}(c)
-Base.call{a}(::Type{Line{a}})=Line{a,Float64}()
+@compat (::Type{Line{a}}){a}(c,α,β) = Line{a,typeof(c)}(c,α,β)
+@compat (::Type{Line{a}}){a}(c::Number) = Line{a,typeof(c)}(c)
+@compat (::Type{Line{a}}){a}() = Line{a,Float64}()
 
-Base.angle{a}(d::Line{a})=a*π
+Base.angle{a}(d::Line{a}) = a*π
 
 
 
-Base.reverse(d::Line{true})=Line{false}(d.center,d.β,d.α)
-Base.reverse(d::Line{false})=Line{true}(d.center,d.β,d.α)
-Base.reverse{a}(d::Line{a})=Line{a-1}(d.center,d.β,d.α)
+Base.reverse(d::Line{true}) = Line{false}(d.center,d.β,d.α)
+Base.reverse(d::Line{false}) = Line{true}(d.center,d.β,d.α)
+Base.reverse{a}(d::Line{a}) = Line{a-1}(d.center,d.β,d.α)
 
 # ensure the angle is always in (-1,1]
-Line(c,a,α,β)=Line{mod(a/π-1,-2)+1,typeof(c)}(c,α,β)
-Line(c,a)=Line(c,a,-1.,-1.)
+Line(c,a,α,β) = Line{mod(a/π-1,-2)+1,typeof(c)}(c,α,β)
+Line(c,a) = Line(c,a,-1.,-1.)
 # true is negative orientation, false is positive orientation
 # this is because false==0 and we take angle=0
-Line(b::Bool)=Line{b}()
-Line()=Line(false)
-
-function Line(d::AbstractVector)
-    @assert length(d)==2 && isinf(d[1]) && isinf(d[2])
-
-    if d[1]==Inf && d[2] == -Inf
-        Line(true)
-    elseif d[1]==-Inf && d[2] == Inf
-        Line(false)
-    else
-        error("Not implemented")
-    end
-end
-
+Line(b::Bool) = Line{b}()
+Line() = Line(false)
 
 
 isambiguous(d::Line)=isnan(d.center)
@@ -123,6 +110,9 @@ tocanonicalD(d::Line,x)=cis(-angle(d)).*line_tocanonicalD(d.α,d.β,cis(-angle(d
 tocanonicalD(d::Line{false},x)=line_tocanonicalD(d.α,d.β,x-d.center)
 tocanonicalD(d::Line{true},x)=-line_tocanonicalD(d.α,d.β,d.center-x)
 
+fromcanonical(d::Line,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Line{false},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Line{true},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::Line,x)=cis(angle(d))*line_fromcanonical(d.α,d.β,x)+d.center
 fromcanonical(d::Line{false},x)=line_fromcanonical(d.α,d.β,x)+d.center
 fromcanonical(d::Line{true},x)=-line_fromcanonical(d.α,d.β,x)+d.center
@@ -191,9 +181,11 @@ Base.reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
 Base.reverse{a}(d::PeriodicLine{a})=PeriodicLine{a-1}(d.center,d.L)
 
 tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.center)/d.L)
+fromcanonical(d::PeriodicLine{false},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.center
 
 tocanonical{a}(d::PeriodicLine{a},x)=tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))
+fromcanonical{a}(d::PeriodicLine{a},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical{a}(d::PeriodicLine{a},x)=exp(π*im*a)*fromcanonical(PeriodicLine{false,Float64}(0.,d.L),x)+d.center
 
 
@@ -220,7 +212,7 @@ for OP in (:+,:-)
 end
 
 
-Base.length(d::Union{Line,PeriodicLine}) = Inf
+arclength(d::Union{Line,PeriodicLine}) = Inf
 Base.first(d::Union{Line,PeriodicLine})= -Inf
 Base.last(d::Union{Line,PeriodicLine})= Inf
 complexlength(d::Union{Line,PeriodicLine})=Inf

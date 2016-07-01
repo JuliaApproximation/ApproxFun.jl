@@ -194,7 +194,23 @@ end
 
 
 #TODO: More efficient to save bandinds
-bandinds(M::InterlaceOperator,k::Integer)=k==1?(size(M.ops,k)*mapreduce(m->bandinds(m,k)-1,min,M.ops)+1):(size(M.ops,k)*mapreduce(m->bandinds(m,k)+1,max,M.ops)-1)
+function bandinds(M::InterlaceOperator,N::Integer)
+    if N==1
+        p=size(M.ops,1)
+        ret=0
+        for k=1:p,j=1:p
+            ret=min(ret,p*bandinds(M.ops[k,j],1)+j-k)
+        end
+        ret
+    else #N==2
+        p=size(M.ops,1)
+        ret=0
+        for k=1:p,j=1:p
+            ret=max(ret,p*bandinds(M.ops[k,j],2)+j-k)
+        end
+        ret
+    end
+end
 bandinds(M::InterlaceOperator)=bandinds(M,1),bandinds(M,2)
 
 function getindex(M::InterlaceOperator,k::Integer,j::Integer)

@@ -147,4 +147,15 @@ for k=1:length(cfs)
 end
 
 
-##
+##  Norms
+
+
+@test_approx_eq sum(Fun([1.],CosSpace()))/π 1.
+@test_approx_eq sum(Fun([0.,1.],CosSpace())^2)/π 0.5
+@test_approx_eq sum(Fun([0.,0.,1.],CosSpace())^2)/π 0.5
+@test_approx_eq sum(Fun([0.,0.,0.,1.],CosSpace())^2)/π 0.5
+
+
+@test_approx_eq sum(Fun([0.,1.],SinSpace())^2)/π 0.5
+@test_approx_eq sum(Fun([0.,0.,1.],SinSpace())^2)/π 0.5
+@test_approx_eq sum(Fun([0.,0.,0.,1.],SinSpace())^2)/π 0.5

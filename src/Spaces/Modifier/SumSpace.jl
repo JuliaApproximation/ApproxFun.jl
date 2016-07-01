@@ -167,7 +167,7 @@ end
 evaluate(f::AbstractVector,S::SumSpace,x)=mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
 
 
-function evaluate(f::AbstractVector,S::PiecewiseSpace,x::Number)
+function evaluate(f::AbstractVector,S::PiecewiseSpace,x)
     d=domain(S)
     g=Fun(f,S)
 

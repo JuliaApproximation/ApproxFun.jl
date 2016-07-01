@@ -17,7 +17,7 @@ X=Multiplication(Fun(x->x,d));
 
 u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
 
-@test_approx_eq_eps u(0.) airyai(0.) 10length(u)*eps()
+@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
 
 
 
@@ -29,7 +29,7 @@ D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
 u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
-@test_approx_eq_eps u(0.) airyai(0.) 10length(u)*eps()
+@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
 
 
 
@@ -39,7 +39,7 @@ b=[airyaiprime(d.a),airyaiprime(d.b),0.];
 
 u=A\b;
 
-@test_approx_eq_eps u(0.) airyai(0.) 10length(u)*eps()
+@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
 
 ## Neumann condition
 

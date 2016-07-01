@@ -5,12 +5,15 @@ module ApproxFun
     import FixedSizeArrays
 
 
+import Base.LinAlg: BlasFloat
+
 import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
                 >=,./,/,.^,^,\,∪,transpose, size
 
 
 import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
-                        unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix
+                        unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix,
+                        dot, dotu, normalize!
 
 import FixedSizeArrays: Vec
 

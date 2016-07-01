@@ -15,7 +15,8 @@ end
 
 #d is number of elements in the kernel
 
-function Base.nullspace{T<:Number}(A::BandedOperator{T},d,maxit=100000)
+function Base.nullspace{T<:Number}(A::BandedOperator{T},d;maxlength::Int=100000,
+                                                        tolerance::T=eps(T))
     M=MutableOperator(A')
     m=bandinds(A)[end]
     n=m+100
@@ -29,7 +30,7 @@ function Base.nullspace{T<:Number}(A::BandedOperator{T},d,maxit=100000)
 
     k=0
 
-    while slnorm(M.data,k+1:k+d,:)>eps(T)  && k <= maxit
+    while slnorm(M.data,k+1:k+d,:)>tolerance  && k <= maxlength
         k+=1
 
         if k+m+d >= n

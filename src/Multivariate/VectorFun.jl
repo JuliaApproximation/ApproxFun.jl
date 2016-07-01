@@ -8,11 +8,11 @@ function coefficients{N,F}(::Type{N},f::Vector{F},o...)
         return Array(N,0,0)
     end
 
-    n=mapreduce(length,max,f)
+    n=mapreduce(ncoefficients,max,f)
     m=length(f)
     R=zeros(N,n,m)
     for k=1:m
-        R[1:length(f[k]),k]=coefficients(f[k],o...)
+        R[1:ncoefficients(f[k]),k]=coefficients(f[k],o...)
     end
     R
 end
@@ -31,7 +31,7 @@ coefficients(Q::Vector{Any})=(@assert isempty(Q); zeros(0,0))
 
 
 function values{D,N}(f::Vector{Fun{D,N}})
-    n=mapreduce(length,max,f)
+    n=mapreduce(ncoefficients,max,f)
     m=length(f)
     R=zeros(N,n,m)
     for k=1:m
@@ -60,8 +60,6 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 
 
 function evaluate{T<:Fun}(A::AbstractVector{T},x::AbstractVector)
-    x = tocanonical(first(A),x)
-
     n=length(x)
     ret=Array(promote_type(eltype(x),mapreduce(eltype,promote_type,A)),length(A),n)
 

@@ -426,13 +426,13 @@ Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
 
 getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
 
-function Base.copy{T,TO<:TimesOperator}(sub::SubBandedMatrix{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
-    P=parent(sub)
-    kr,jr=parentindexes(sub)
+function Base.copy{T,TO<:TimesOperator}(S::SubBandedMatrix{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
+    P=parent(S)
+    kr,jr=parentindexes(S)
 
     @assert length(P.ops)≥2
-    if size(sub,1)==0
-        return A
+    if size(S,1)==0
+        return bzeros(S)
     end
 
 
@@ -440,11 +440,31 @@ function Base.copy{T,TO<:TimesOperator}(sub::SubBandedMatrix{T,TO,Tuple{UnitRang
 
     krl[1,1],krl[1,2]=kr[1],kr[end]
 
+    # find minimal row/column range starting from left
     for m=1:length(P.ops)-1
         br=bandinds(P.ops[m])
         krl[m+1,1]=max(1-mod(kr[1],1),br[1] + krl[m,1])  # no negative
         krl[m+1,2]=br[end] + krl[m,2]
     end
+
+    #find minimal row/column range starting from right
+    br=bandinds(P.ops[end])
+    krl[end,1]=max(krl[end,1],jr[1]-br[2])
+    krl[end,2]=min(krl[end,2],jr[end]-br[1])
+    for m=length(P.ops)-1:-1:2
+        br=bandinds(P.ops[m])
+        krl[m,1]=max(krl[m,1],krl[m+1,1]-br[2])
+        krl[m,2]=min(krl[m,2],krl[m+1,2]-br[1])
+    end
+
+    # Check if any range is invalid, in which case return zero
+    for m=1:length(P.ops)
+        if krl[m,1]>krl[m,2]
+            return bzeros(S)
+        end
+    end
+
+
 
     # The following returns a banded Matrix with all rows
     # for large k its upper triangular
@@ -528,31 +548,33 @@ end
 
 # Conversions we always assume are intentional: no need to promote
 
-*{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A.op,B.op))
-*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::Conversion)=ConversionWrapper(TimesOperator(A.op,B))
-*{TO<:TimesOperator}(A::Conversion,B::ConversionWrapper{TO})=ConversionWrapper(TimesOperator(A,B.op))
+*{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO}) = ConversionWrapper(TimesOperator(A.op,B.op))
+*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::Conversion) = ConversionWrapper(TimesOperator(A.op,B))
+*{TO<:TimesOperator}(A::Conversion,B::ConversionWrapper{TO}) = ConversionWrapper(TimesOperator(A,B.op))
 
-*(A::Conversion,B::Conversion)=ConversionWrapper(TimesOperator(A,B))
-*(A::Conversion,B::TimesOperator)=TimesOperator(A,B)
-*(A::TimesOperator,B::Conversion)=TimesOperator(A,B)
-*(A::BandedOperator,B::Conversion)=isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
-*(A::Conversion,B::BandedOperator)=isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
+*(A::Conversion,B::Conversion) = ConversionWrapper(TimesOperator(A,B))
+*(A::Conversion,B::TimesOperator) = TimesOperator(A,B)
+*(A::TimesOperator,B::Conversion) = TimesOperator(A,B)
+*(A::BandedOperator,B::Conversion) = isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
+*(A::Conversion,B::BandedOperator) = isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
--(A::Operator)=ConstantTimesOperator(-1,A)
--(A::Operator,B::Operator)=A+(-B)
+-(A::Operator) = ConstantTimesOperator(-1,A)
+-(A::Operator,B::Operator) = A+(-B)
 
-*(f::Fun,A::BandedOperator)=TimesOperator(Multiplication(f,rangespace(A)),A)
+*(f::Fun,A::BandedOperator) = TimesOperator(Multiplication(f,rangespace(A)),A)
 
 for OP in (:*,:.*)
     @eval begin
-        $OP(c::Number,A::BandedOperator)=c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
-        $OP(A::BandedOperator,c::Number)=c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
+        $OP(c::Number,A::BandedOperator) =
+            c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
+        $OP(A::BandedOperator,c::Number) =
+            c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
     end
 end
 
-/(B::BandedOperator,c::Number)=c==1?B:ConstantTimesOperator(1.0/c,B)
-/(B::BandedOperator,c::Fun)=(1.0/c)*B
+/(B::BandedOperator,c::Number) = c==1?B:ConstantTimesOperator(1.0/c,B)
+/(B::BandedOperator,c::Fun) = (1.0/c)*B
 
 
 
@@ -616,8 +638,19 @@ for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
     end
 end
 
-*{T<:Operator}(A::Vector{T},b::Fun)=map(a->a*b,convert(Array{Any,1},A))
+*{T<:Operator}(A::Vector{T},b::Fun) = map(a->a*b,convert(Array{Any,1},A))
 
+
+
+for TYP in (:Vector,:Fun,:Number)
+    @eval function linsolve(A::TimesOperator,b::$TYP;kwds...)
+        ret = b
+        for op in A.ops
+            ret = linsolve(op,ret;kwds...)
+        end
+        ret
+    end
+end
 
 
 

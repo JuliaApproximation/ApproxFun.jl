@@ -27,18 +27,24 @@ Base.transpose(d::DualFun)=differentiate(d)
 for OP in (:+,:-)
     @eval begin
         $OP(a::DualFun,b::Union{Number,Fun})=DualFun($OP(a.f,b),a.J)
+        $OP(a::Union{Number,Fun},b::DualFun)=DualFun($OP(a,b.f),b.J)
         $OP(a::DualFun,b::DualFun)=DualFun($OP(a.f,b.f),$OP(a.J,b.J))
     end
 end
 -(a::DualFun)=DualFun(-a.f,-a.J)
 
-*(f::Number,d::DualFun)=DualFun(f*d.f,f*d.J)
-*(f::Fun,d::DualFun)=DualFun(f*d.f,f*d.J)
+*(a::Union{Number,Fun},b::DualFun)=DualFun(a*b.f,a*b.J)
+*(a::DualFun,b::Union{Number,Fun})=DualFun(b*a.f,b*a.J)
 *(a::DualFun,b::DualFun)=DualFun(a.f*b.f,a.f*b.J+b.f*a.J)
 
-Base.call(d::DualFun,x)=DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
-Base.first(d::DualFun)=DualFun(first(d.f),Evaluation(rangespace(d.J),false)*d.J)
-Base.last(d::DualFun)=DualFun(last(d.f),Evaluation(rangespace(d.J),true)*d.J)
+/(a::Union{Number,Fun},b::DualFun)=DualFun(a/b.f,-a/b.f^2*b.J)
+/(a::DualFun,b::Union{Number,Fun})=DualFun(a.f/b,a.J/b)
+/(a::DualFun,b::DualFun)=DualFun(a.f/b.f,a.J/b.f-a.f/b.f^2*b.J)
+
+
+@compat (d::DualFun)(x) = DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
+Base.first(d::DualFun) = DualFun(first(d.f),Evaluation(rangespace(d.J),false)*d.J)
+Base.last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),true)*d.J)
 
 jacobian(d::DualFun)=d.J
 

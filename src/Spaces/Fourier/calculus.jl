@@ -29,7 +29,7 @@ differentiate{DD}(f::Fun{Fourier{DD}}) = Derivative(space(f))*f
 
 function integrate{D}(f::Fun{Hardy{false,D}})
     if isa(domain(f),Circle) # drop -1 term if zero and try again
-        @assert length(f)==0 || abs(f.coefficients[1])<100eps()
+        @assert ncoefficients(f)==0 || abs(f.coefficients[1])<100eps()
         integrate(Fun(f,SliceSpace(space(f),1)))
     else  # Probably periodic itnerval
         Integral(space(f))*f
@@ -40,7 +40,7 @@ function integrate{D}(f::Fun{Taylor{D}})
     if isa(domain(f),Circle)
         Integral(space(f))*f
     else  # Probably periodic itnerval  drop constant term if zero
-        @assert length(f)==0 || abs(f.coefficients[1])<100eps()
+        @assert ncoefficients(f)==0 || abs(f.coefficients[1])<100eps()
         Fun(integrate(Fun(f,SliceSpace(space(f),1))),space(f))
     end
 end
@@ -83,7 +83,7 @@ end
 
 
 
-fouriersum(d::PeriodicInterval,cfs)=cfs[1].*length(d)
+fouriersum(d::PeriodicInterval,cfs)=cfs[1].*arclength(d)
 
 function fouriersum{T}(d::Circle,cfs::Vector{T})
     if length(cfs)≥2
@@ -98,15 +98,15 @@ end
 
 function linebilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
     @assert domain(f) == domain(g)
-    u,v,mn = f.coefficients,g.coefficients,min(length(f),length(g))
+    u,v,mn = f.coefficients,g.coefficients,min(ncoefficients(f),ncoefficients(g))
     if mn > 1
         ret = u[1]*v[1]
         for i=2:2:mn-1
             ret += u[i]*v[i+1] + u[i+1]*v[i]
         end
-        return length(domain(f))*ret
+        return arclength(domain(f))*ret
     elseif mn > 0
-        return length(domain(f))*u[1]*v[1]
+        return arclength(domain(f))*u[1]*v[1]
     else
         return zero(T)
     end
@@ -114,7 +114,7 @@ end
 
 function bilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
     @assert domain(f) == domain(g)
-    u,v,mn = f.coefficients,g.coefficients,min(length(f),length(g))
+    u,v,mn = f.coefficients,g.coefficients,min(ncoefficients(f),ncoefficients(g))
     if mn > 2
         ret = u[1]*v[2] + u[2]*v[1]
         for i=3:2:mn-1

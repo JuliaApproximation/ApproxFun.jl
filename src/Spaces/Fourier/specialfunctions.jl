@@ -1,5 +1,5 @@
 function Base.real{DD}(f::Fun{Laurent{DD}})
-    n=length(f)
+    n=ncoefficients(f)
     cfs=f.coefficients
 
     ret=Array(Float64,iseven(n)?n+1:n)
@@ -22,7 +22,7 @@ end
 
 
 function Base.imag{DD}(f::Fun{Laurent{DD}})
-    n=length(f)
+    n=ncoefficients(f)
     cfs=f.coefficients
 
     ret=Array(Float64,iseven(n)?n+1:n)

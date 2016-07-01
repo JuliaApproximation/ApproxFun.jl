@@ -30,12 +30,12 @@
 
 
 function complexroots{C<:Chebyshev}(f::Fun{C})
-    if length(f)==0 || (length(f)==1 && isapprox(f.coefficients[1],0))
+    if ncoefficients(f)==0 || (ncoefficients(f)==1 && isapprox(f.coefficients[1],0))
         warn("Tried to take roots of a zero function.  Returning [].")
         Complex128[]
-    elseif length(f)==1
+    elseif ncoefficients(f)==1
         Complex128[]
-    elseif length(f)==2
+    elseif ncoefficients(f)==2
         Complex128[-f.coefficients[1]/f.coefficients[2]]
     else
         fromcanonical(f,colleague_eigvals(f.coefficients))
@@ -250,7 +250,7 @@ function extremal_args(f::Fun)
         fromcanonical(f,extremal_args(setcanonicaldomain(f)))
     else
         dab=∂(domain(f))
-        if length(f) <=2 #TODO this is only relevant for Polynomial bases
+        if ncoefficients(f) <=2 #TODO this is only relevant for Polynomial bases
             dab
         else
             [dab;roots(differentiate(f))]

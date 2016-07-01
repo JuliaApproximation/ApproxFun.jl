@@ -222,7 +222,7 @@ end
 function linebilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
     @assert domain(f) == domain(g)
     if f.space.α == f.space.β == λ-0.5
-        return length(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
+        return arclength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
         return defaultlinebilinearform(f,g)
     end
@@ -231,7 +231,7 @@ end
 function linebilinearform{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if g.space.α == g.space.β == λ-0.5
-        return length(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
+        return arclength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
         return defaultlinebilinearform(f,g)
     end
@@ -240,7 +240,7 @@ end
 function linebilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
     @assert domain(f) == domain(g)
     if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
-        return length(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
+        return arclength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
     else
         return defaultlinebilinearform(f,g)
     end

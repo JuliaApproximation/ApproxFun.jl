@@ -2,7 +2,7 @@ immutable PiecewiseInterval{T} <: UnivariateDomain{T}
     points::Vector{T}
     PiecewiseInterval(d::Vector{T})=new(d)
 end
-PiecewiseInterval{T<:Number}(d::Vector{T})=PiecewiseInterval{T}(d)
+PiecewiseInterval(d::AbstractVector)=PiecewiseInterval{eltype(d)}(d)
 PiecewiseInterval(d::Number...)=PiecewiseInterval([d...])
 
 function PiecewiseInterval{IT<:Interval}(pcsin::AbstractVector{IT})
@@ -32,7 +32,7 @@ numpieces(d::PiecewiseInterval)=length(d.points)-1
 pieces(d::PiecewiseInterval,k)=d[k]
 pieces{T}(d::PiecewiseInterval{T})=Interval{T}[d[k] for k=1:numpieces(d)]
 
-for OP in (:(Base.length),:complexlength)
+for OP in (:arclength,:complexlength)
     @eval $OP(d::PiecewiseInterval)=mapreduce($OP,+,pieces(d))
 end
 

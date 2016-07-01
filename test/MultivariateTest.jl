@@ -125,3 +125,14 @@ f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d),40)
 f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d))
 @test_approx_eq f(cos(0.1),sin(0.1)) exp(-cos(0.1)-2cos(sin(0.1)))
 
+
+
+## Sum
+
+ff=(x,y)->(x-y)^2*exp(-x^2/2.-y^2/2)
+f=Fun(ff,[-4.,4.],[-4.,4.])
+
+
+@test_approx_eq sum(f,1)(0.1) 2.5162377980828357
+f=LowRankFun(f)
+@test_approx_eq evaluate(f.A,0.1) map(f->f(0.1),f.A)

@@ -36,7 +36,7 @@ LowRankOperator(A::Fun,B::Functional)=LowRankOperator([A],[B])
 
 
 
-datasize(L::LowRankOperator,k)=k==1?mapreduce(length,max,L.U):mapreduce(datalength,max,L.V)
+datasize(L::LowRankOperator,k)=k==1?mapreduce(ncoefficients,max,L.U):mapreduce(datalength,max,L.V)
 datasize(L::LowRankOperator)=datasize(L,1),datasize(L,2)
 
 
@@ -48,7 +48,7 @@ promotedomainspace(L::LowRankOperator,sp::Space)=LowRankOperator(L.U,map(v->prom
 function Base.getindex(L::LowRankOperator,k::Integer,j::Integer)
     ret=zero(eltype(L))
     for p=1:length(L.U)
-        if k≤length(L.U[p])
+        if k≤ncoefficients(L.U[p])
             ret+=L.U[p].coefficients[k]*L.V[p][j]
         end
     end

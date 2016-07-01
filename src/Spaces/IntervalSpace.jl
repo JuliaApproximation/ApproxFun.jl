@@ -16,7 +16,7 @@ Integral(d::IntervalDomain,n::Integer)=Integral(Ultraspherical{1}(d),n)
 
 for Func in (:DefiniteIntegral,:DefiniteLineIntegral)
     @eval begin
-        $Func(d::IntervalDomain)=$Func(JacobiWeight(-.5,-.5,Chebyshev(d)))
+        $Func(d::IntervalDomain) = $Func(JacobiWeight(-.5,-.5,Chebyshev(d)))
         function $Func(α::Number,β::Number,d::IntervalDomain)
             @assert α == β
             @assert round(Int,α+.5) == α+.5
@@ -89,14 +89,6 @@ for DT in (:IntervalDomain,:Space)
             B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
             B[1,1]=ldirichlet(d[1]);B[1,end]=-rdirichlet(d[end])
             B[2,1]=lneumann(d[1]);B[2,end]=-rneumann(d[end])
-            [B;
-            continuity(d,0:1)]
-        end
-
-        function periodic{T<:$DT}(d::Vector{T})
-            m=length(d)
-            B=zeros(Functional{mapreduce(eltype,promote_type,d)},2,m)
-            B[1:2,1]=ivp(d[1])
             [B;
             continuity(d,0:1)]
         end

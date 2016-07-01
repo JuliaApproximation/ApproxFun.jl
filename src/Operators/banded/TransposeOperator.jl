@@ -24,6 +24,11 @@ bandinds(P::TransposeOperator)=-bandinds(P.op)[end],-bandinds(P.op)[1]
 getindex(P::TransposeOperator,k::Integer,j::Integer) =
     P.op[j,k]
 
+function Base.copy{T,TO<:TransposeOperator}(S::SubBandedMatrix{T,TO})
+    kr,jr=parentindexes(S)
+    copy(sub(parent(S).op,jr,kr)).'
+end
+
 
 Base.transpose(A::BandedOperator)=TransposeOperator(A)
 Base.ctranspose{T<:Real}(A::BandedOperator{T})=TransposeOperator(A)
