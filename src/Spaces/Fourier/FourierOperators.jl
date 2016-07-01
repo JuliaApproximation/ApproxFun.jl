@@ -221,7 +221,7 @@ function getindex{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS},k:
     a=M.f.coefficients
     ret=0.5*toeplitz_getindex(a,k,j)
     if length(a)>=3
-        ret-=0.5*hankel_getindex(slice(a,3:length(a)),k,j)
+        ret-=0.5*hankel_getindex(@compat(view(a,3:length(a))),k,j)
     end
     ret
 end

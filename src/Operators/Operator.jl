@@ -109,7 +109,7 @@ bzeros(B::Operator,n::Integer,m::Colon,br::Tuple{Int,Int})=bzeros(eltype(B),n,m,
 #  In this case : is interpreted to mean all nonzero rows
 
 BandedMatrix(B::Operator,kr::Range,jr::Range) =
-    copy(sub(B,kr,jr))
+    copy(@compat(view(B,kr,jr)))
 
 BandedMatrix(B::Operator,rws::Range,::Colon) =
     BandedMatrix(B,rws,1:last(rws)+bandwidth(B,2))
@@ -140,7 +140,7 @@ defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override getindex fo
 
 
 defaultgetindex(op::Operator,kr::Range)=eltype(op)[op[k] for k in kr]
-defaultgetindex(B::Operator,k::Range,j::Range) = copy(sub(B,k,j))
+defaultgetindex(B::Operator,k::Range,j::Range) = copy(@compat(view(B,k,j)))
 
 defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] for j in j],1,length(j))
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
@@ -161,11 +161,11 @@ end
 defaultgetindex(L::BandedOperator,kr::Range,::Colon)=Functional{eltype(L)}[L[k,:] for k=kr]
 defaultgetindex(A::BandedOperator,k::Integer,::Colon) =
     FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
-defaultgetindex(A::Operator,kr::Range,::Colon) = sub(A,kr,:)
-defaultgetindex(A::Operator,::Colon,jr::Range) = sub(A,:,jr)
+defaultgetindex(A::Operator,kr::Range,::Colon) = @compat(view(A,kr,:))
+defaultgetindex(A::Operator,::Colon,jr::Range) = @compat(view(A,:,jr))
 defaultgetindex(A::Operator,::Colon,::Colon) = A
 
-defaultgetindex(A::Operator,kr::AbstractCount,jr::AbstractCount) = sub(A,kr,jr)
+defaultgetindex(A::Operator,kr::AbstractCount,jr::AbstractCount) = @compat(view(A,kr,jr))
 defaultgetindex(B::Operator,k::AbstractCount,::Colon) = B[k,1:end]
 defaultgetindex(B::Operator,::Colon,j::AbstractCount) = B[1:end,j]
 
@@ -182,7 +182,7 @@ defaultgetindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
 
 
 # Convenience for wrapper ops
-unwrap_axpy!(α,P,A) = BLAS.axpy!(α,sub(parent(P).op,P.indexes[1],P.indexes[2]),A)
+unwrap_axpy!(α,P,A) = BLAS.axpy!(α,@compat(view(parent(P).op,P.indexes[1],P.indexes[2])),A)
 iswrapper(::)=false
 
 
@@ -195,7 +195,7 @@ macro wrappergetindex(Wrap)
             ApproxFun.unwrap_axpy!(α,P,A)
 
         Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubBandedMatrix{T,OP}) =
-            copy(sub(parent(P).op,P.indexes[1],P.indexes[2]))
+            copy(@compat view(parent(P).op,P.indexes[1],P.indexes[2]))
     end
 
     esc(ret)
