@@ -26,7 +26,7 @@ getindex(P::TransposeOperator,k::Integer,j::Integer) =
 
 function Base.copy{T,TO<:TransposeOperator}(S::SubBandedMatrix{T,TO})
     kr,jr=parentindexes(S)
-    copy(@compat view(parent(S).op,jr,kr)).'
+    copy(view(parent(S).op,jr,kr)).'
 end
 
 

@@ -21,10 +21,10 @@ SubBandedMatrix(A,inds,d,l,u) =
 bandwidth(V::SubBandedMatrix,k) = k==1?V.l:V.u
 
 
-@compat(Base.view)(A::Operator,kr::Range,jr::Range) =
+view(A::Operator,kr::Range,jr::Range) =
     SubMatrix(A,(kr,jr),(length(kr),length(jr)))
 
-function @compat(Base.view)(A::BandedOperator,kr::Range,jr::Range)
+function view(A::BandedOperator,kr::Range,jr::Range)
     st=step(kr)
     if st == step(jr)
         kr1=first(kr)
@@ -37,14 +37,14 @@ function @compat(Base.view)(A::BandedOperator,kr::Range,jr::Range)
 end
 
 
-function @compat(Base.view)(A::BandedOperator,kr::UnitRange,jr::UnitRange)
+function view(A::BandedOperator,kr::UnitRange,jr::UnitRange)
     shft=first(kr)-first(jr)
     l,u=max(bandwidth(A,1)-shft,0),max(bandinds(A,2)+shft,0)
     SubBandedMatrix(A,(kr,jr),(length(kr),length(jr)),l,u)
 end
 
-@compat(Base.view)(A::SubBandedMatrix,kr::UnitRange,jr::UnitRange) =
-    @compat view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
+view(A::SubBandedMatrix,kr::UnitRange,jr::UnitRange) =
+    view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
 
 
 
@@ -98,7 +98,7 @@ end
 
 SubBandedOperator(A,inds,l,u) = SubBandedOperator{eltype(A),typeof(A),typeof(inds)}(A,inds,l,u)
 
-function @compat(Base.view)(A::BandedOperator,kr::AbstractCount,jr::AbstractCount)
+function view(A::BandedOperator,kr::AbstractCount,jr::AbstractCount)
     st=step(kr)
     @assert st==step(jr)  # Otherwise, its not a banded operator
     kr1=first(kr)
@@ -127,8 +127,8 @@ for TYP in (:SubBandedMatrix,:SubMatrix,:SubBandedOperator)
 end
 
 
-function @compat(Base.view)(A::SubBandedOperator,kr::UnitRange,jr::UnitRange)
-    @compat view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
+function view(A::SubBandedOperator,kr::UnitRange,jr::UnitRange)
+    view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
 end
 
 

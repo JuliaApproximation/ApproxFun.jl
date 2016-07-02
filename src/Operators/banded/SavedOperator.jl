@@ -105,7 +105,7 @@ function resizedata!(B::SavedBandedOperator,n::Integer)
 
         kr=B.datalength+1:n
         jr=max(B.datalength+1-B.data.l,1):n+B.data.u
-        BLAS.axpy!(1.0,@compat(view(B.op,kr,jr)),@compat(view(B.data,kr,jr)))
+        BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
 
         B.datalength = n
     end

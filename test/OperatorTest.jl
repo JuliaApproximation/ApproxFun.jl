@@ -1,6 +1,7 @@
 using ApproxFun, Base.Test, Compat
     import ApproxFun.Multiplication
 
+import Compat.view
 
 
 # test fast copy is consistent with getindex

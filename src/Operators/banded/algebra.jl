@@ -156,7 +156,7 @@ Base.copy{T,PP<:PlusOperator}(P::SubBandedMatrix{T,PP}) =
 
 function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedMatrix{T,PP},A::AbstractMatrix)
     for op in parent(P).ops
-        BLAS.axpy!(α,@compat(view(op,P.indexes[1],P.indexes[2])),A)
+        BLAS.axpy!(α,view(op,P.indexes[1],P.indexes[2]),A)
     end
 
     A

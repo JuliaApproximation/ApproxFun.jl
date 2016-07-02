@@ -15,6 +15,8 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, 
                         unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix,
                         dot, dotu, normalize!
 
+import Compat: view                        
+
 import FixedSizeArrays: Vec
 
 export pad!,pad,sample,chop!,complexroots,roots,svfft, reverseorientation
