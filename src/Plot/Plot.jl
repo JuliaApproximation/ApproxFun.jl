@@ -246,12 +246,6 @@ end
 end
 
 
-@recipe function f(x::AbstractVector,y::AbstractVector,g::MultivariateFun)
-    seriestype --> :surface
-    x,y,real(g(x,y)).'
-end
-
-
 @recipe function f{TS<:AbstractProductSpace,T<:Real}(g::Fun{TS,T})
     ProductFun(g)
 end
