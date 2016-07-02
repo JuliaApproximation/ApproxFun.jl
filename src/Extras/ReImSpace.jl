@@ -369,25 +369,3 @@ bandinds(R::ReReOperator)=min(2bandinds(R.ops[1],1)-1,2bandinds(R.ops[2],1)-2),m
 
 domainspace(R::ReReOperator)=ReImSpace(domainspace(R.ops[1]))
 rangespace(R::ReReOperator)=ArraySpace(rangespace(R.ops[1]),2)
-
-
-function addentries!(R::ReReOperator,A,kr::Range,::Colon)
-    kr1=div(kr[1],2)+1:(iseven(kr[end])?div(kr[end],2):div(kr[end],2)+1)
-    kr2=(iseven(kr[1])?div(kr[1],2):div(kr[1],2)+1):div(kr[end],2)
-
-    B1=subview(R.ops[1],kr1,:)
-    B2=subview(R.ops[2],kr2,:)
-
-
-    for k=kr1,j=columnrange(R.ops[1],k)
-        A[2k-1,2j-1]+=real(B1[k,j])
-        A[2k-1,2j]+=-imag(B1[k,j])
-    end
-
-    for k=kr2,j=columnrange(R.ops[2],k)
-        A[2k,2j-1]+=real(B2[k,j])
-        A[2k,2j]+=-imag(B2[k,j])
-    end
-
-    A
-end

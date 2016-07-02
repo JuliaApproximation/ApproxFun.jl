@@ -152,12 +152,12 @@ function Base.copy{PS<:PolynomialSpace,V,T,C<:PolynomialSpace}(S::SubBandedMatri
         C0=beye(size(J,1),size(J,2),0,0)
         C1=(1/recβ(T,fsp,1))*J-(recα(T,fsp,1)/recβ(T,fsp,1))*C0
 
-        BLAS.axpy!(a[2],sub(C1,kr2,jr2),A)
+        BLAS.axpy!(a[2],view(C1,kr2,jr2),A)
 
         for k=1:length(a)-2
             rβ=recβ(T,fsp,k+1)
             C1,C0=(1/rβ)*J*C1-(recα(T,fsp,k+1)/rβ)*C1-(recγ(T,fsp,k+1)/rβ)*C0,C1
-            BLAS.axpy!(a[k+2],sub(C1,kr2,jr2),A)
+            BLAS.axpy!(a[k+2],view(C1,kr2,jr2),A)
         end
     end
     A
