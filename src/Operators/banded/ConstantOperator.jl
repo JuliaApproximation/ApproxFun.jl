@@ -33,24 +33,27 @@ end
 
 ## Basis Functional
 
-immutable BasisFunctional{T} <: Functional{T}
+immutable BasisFunctional{T} <: Operator{T}
     k::Integer
 end
+
+@functional BasisFunctional
+
 BasisFunctional(k)=BasisFunctional{Float64}(k)
 
 datalength(B::BasisFunctional) = B.k
 
-for TYP in (:Functional,:Operator)
-    @eval Base.convert{T}(::Type{$TYP{T}},B::BasisFunctional)=BasisFunctional{T}(B.k)
-end
+
+Base.convert{T}(::Type{Operator{T}},B::BasisFunctional)=BasisFunctional{T}(B.k)
 
 Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
 Base.getindex(op::BasisFunctional,k::Range)=convert(Vector{Float64},k.==op.k)
 
-immutable FillFunctional{T} <: Functional{T}
+immutable FillFunctional{T} <: Operator{T}
     c::T
 end
 
+@functional FillFunctional
 
 Base.getindex(op::FillFunctional,k::Integer)=op.c
 Base.getindex(op::FillFunctional,k::Range)=fill(op.c,length(k))
@@ -71,7 +74,6 @@ for TYP in (:Operator,:BandedOperator)
     @eval Base.convert{T}(::Type{$TYP{T}},Z::ZeroOperator)=ZeroOperator(T,Z.domainspace,Z.rangespace)
 end
 
-Base.convert{T}(::Type{Functional{T}},Z::ZeroOperator)=ZeroFunctional(T,Z.domainspace)
 
 
 
@@ -91,18 +93,21 @@ promotedomainspace(Z::ZeroOperator,sp::Space)=ZeroOperator(sp,rangespace(Z))
 promoterangespace(Z::ZeroOperator,sp::Space)=ZeroOperator(domainspace(Z),sp)
 
 
-immutable ZeroFunctional{S<:Space,T<:Number} <: Functional{T}
+immutable ZeroFunctional{S<:Space,T<:Number} <: Operator{T}
     domainspace::S
 end
+
+@functional ZeroFunctional
+
 ZeroFunctional(sp::Space)=ZeroFunctional{typeof(sp),Float64}(sp)
 ZeroFunctional{T<:Number}(::Type{T},sp::Space)=ZeroFunctional{typeof(sp),T}(sp)
 ZeroFunctional{T<:Number}(::Type{T})=ZeroFunctional(T,AnySpace())
 ZeroFunctional()=ZeroFunctional(AnySpace())
 
 
-for TYP in (:Functional,:Operator)
-    @eval Base.convert{T}(::Type{$TYP{T}},Z::ZeroFunctional)=ZeroFunctional(T,Z.domainspace)
-end
+
+Base.convert{T}(::Type{Operator{T}},Z::ZeroFunctional)=ZeroFunctional(T,Z.domainspace)
+
 
 
 domainspace(Z::ZeroFunctional)=Z.domainspace

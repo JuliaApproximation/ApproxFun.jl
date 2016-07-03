@@ -169,13 +169,16 @@ Multiplication{D,T}(f::Fun{D,T},sp::ReImSpace)=MultiplicationWrapper(f,ReImOpera
 # to take the real/imag part of a functional
 for TYP in (:ReFunctional,:ImFunctional)
     @eval begin
-        immutable $TYP{O,T} <: Functional{T}
+        immutable $TYP{O,T} <: Operator{T}
             functional::O
         end
 
-        $TYP{T}(func::Functional{T})=$TYP{typeof(func),real(T)}(func)
+        @functional $TYP
 
-        domainspace(RF::$TYP)=ReImSpace(domainspace(RF.functional))
+        $TYP{T}(func::Operator{T}) = $TYP{typeof(func),real(T)}(func)
+
+        domainspace(RF::$TYP) = ReImSpace(domainspace(RF.functional))
+        rangespace(RF::$TYP) = ConstantSpace()
     end
 end
 
@@ -190,9 +193,6 @@ function getindex{R,T}(S::ImFunctional{R,T},kr::Range)
      res=S.functional[kr1]
      T[isodd(k)?imag(res[div(k+1,2)-first(kr1)+1]):real(res[div(k+1,2)-first(kr1)+1]) for k=kr]
 end
-
-Base.real(F::Functional)=ReFunctional(F)
-Base.imag(F::Functional)=ImFunctional(F)
 
 
 ## Definite Integral

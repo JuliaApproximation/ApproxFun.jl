@@ -14,7 +14,7 @@ function treeadd_edges!(str,ops,node,M,labels)
 end
 
 
-function introspect(A::Union{BandedOperator,Functional,Space})
+function introspect(A::Union{BandedOperator,Operator,Space})
     @eval import TikzGraphs
     m=treecount(A)
 

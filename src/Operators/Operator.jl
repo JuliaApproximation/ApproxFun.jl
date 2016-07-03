@@ -1,4 +1,4 @@
-export Operator,BandedOperator,Functional,InfiniteOperator
+export Operator,BandedOperator,InfiniteOperator
 export bandinds, bandrange, linsolve, periodic
 export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
@@ -7,7 +7,6 @@ export domainspace,rangespace
 
 
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
-abstract Functional{T} <: Operator{T}
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
 abstract AlmostBandedOperator{T} <: BandedBelowOperator{T}
@@ -33,10 +32,25 @@ Base.copy(A::Operator)=A
 ## We assume operators are T->T
 rangespace(A::Operator)=AnySpace()
 domainspace(A::Operator)=AnySpace()
-rangespace(A::Functional)=ConstantSpace()
 domain(A::Operator)=domain(domainspace(A))
 
 
+
+## Functionals
+isafunctional(A::Operator) = size(A,1)==1 && rangespace(A)==ConstantSpace()
+
+macro functional(FF)
+    quote
+        Base.size(A::$FF,k::Integer) = k==1?1:∞
+        rangespace(::$FF) = ConstantSpace()
+        isafunctional(::$FF) = true
+        datalength(::$FF) = ∞
+        function defaultgetindex(f::$FF,k::Integer,j::Integer)
+            @assert k==1
+            f[j]
+        end
+    end
+end
 
 
 Base.size(A::Operator) = (size(A,1),size(A,2))
@@ -56,7 +70,7 @@ function Base.trailingsize(A::BandedOperator, n::Integer)
 end
 
 Base.ndims(::Operator) = 2
-datalength(F::Functional) = ∞        # use datalength to indicate a finite length functional
+datalength(F::Operator) = ∞        # use datalength to indicate a finite length functional
 
 
 
@@ -88,7 +102,7 @@ end
 # which we represent by a factorial, so that
 # the gcd with any number < 10 is the number
 Base.stride(A::BandedOperator)=isdiag(A)?factorial(10):1
-Base.stride(A::Functional)=1
+Base.stride(A::Operator)=1
 
 Base.isdiag(A::BandedOperator)=bandinds(A)==(0,0)
 
@@ -146,19 +160,13 @@ defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] f
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
 
 
-function defaultgetindex(op::Functional,k::Integer,j::Integer)
-    @assert k==1
-    op[j]
-end
-
-
 
 
 
 
 
 # Colon casdes
-defaultgetindex(L::BandedOperator,kr::Range,::Colon)=Functional{eltype(L)}[L[k,:] for k=kr]
+defaultgetindex(L::BandedOperator,kr::Range,::Colon)=Operator{eltype(L)}[L[k,:] for k=kr]
 defaultgetindex(A::BandedOperator,k::Integer,::Colon) =
     FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
 defaultgetindex(A::Operator,kr::Range,::Colon) = view(A,kr,:)
@@ -243,9 +251,8 @@ include("qrfact.jl")
 ## Conversion
 
 
-Base.zero{T<:Number}(::Type{Functional{T}})=ZeroFunctional(T)
+
 Base.zero{T<:Number}(::Type{Operator{T}})=ZeroOperator(T)
-Base.zero{O<:Functional}(::Type{O})=ZeroFunctional(eltype(O))
 Base.zero{O<:Operator}(::Type{O})=ZeroOperator(eltype(O))
 
 
@@ -254,10 +261,6 @@ Base.eye(S::Domain)=eye(Space(S))
 
 
 # TODO: can convert return different type?
-
-
-Base.convert{T<:Functional}(::Type{T},f::Fun) = DefiniteIntegral()[f]
-
 
 
 Base.convert{T<:Operator}(A::Type{T},n::Number)=n==0?zero(A):ConstantOperator(eltype(T),n)
@@ -294,7 +297,7 @@ for OP in (:BandedOperator,:Operator)
   end
 end
 
-for OP in (:BandedOperator,:Functional,:Operator)
+for OP in (:BandedOperator,:Operator)
   @eval Base.promote_rule{BO1<:$OP,BO2<:$OP}(::Type{BO1},::Type{BO2})=$OP{mat_promote_type(eltype(BO1),eltype(BO2))}
 end
 

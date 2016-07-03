@@ -46,7 +46,7 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};
                                tolerance=0.01eps2(eltype(A[end])),maxlength=1000000)
  #TODO: depends on ordering of A
     for k=1:length(A)-1
-        @assert isa(A[k],Functional)
+        @assert isafunctional(A[k])
     end
 
     for k=1:min(length(A)-1,size(b,1)),j=1:size(b,2)

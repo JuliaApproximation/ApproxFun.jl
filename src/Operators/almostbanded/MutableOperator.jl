@@ -125,7 +125,7 @@ rangespace(M::MutableOperator)=rangespace(M.op)
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
-function MutableOperator{R<:Functional}(bc::Vector{R},op::BandedOperator)
+function MutableOperator{R<:Operator}(bc::Vector{R},op::BandedOperator)
     bndinds=bandinds(op)
     bndindslength=bndinds[end]-bndinds[1]+1
     nbc = length(bc)
@@ -144,7 +144,7 @@ function MutableOperator{R<:Functional}(bc::Vector{R},op::BandedOperator)
 end
 
 function MutableOperator{T<:Operator}(B::Vector{T})
-    bcs = Functional{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
+    bcs = Operator{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
 
     @assert typeof(B[end]) <: BandedBelowOperator
 

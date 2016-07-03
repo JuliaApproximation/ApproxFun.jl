@@ -1,6 +1,8 @@
 export DefiniteIntegral,DefiniteLineIntegral
 
-abstract CalculusFunctional{S,T} <: Functional{T}
+abstract CalculusFunctional{S,T} <: Operator{T}
+
+@functional CalculusFunctional
 
 ##TODO: Add ConcreteOp
 
@@ -12,7 +14,7 @@ macro calculus_functional(Op)
         immutable $ConcOp{S,T} <: $Op{S,T}
             domainspace::S
         end
-        immutable $WrappOp{BT<:Functional,S<:Space,T} <: $Op{S,T}
+        immutable $WrappOp{BT<:Operator,S<:Space,T} <: $Op{S,T}
             func::BT
         end
 
@@ -29,9 +31,6 @@ macro calculus_functional(Op)
 
         Base.convert{T}(::Type{Operator{T}},Σ::$ConcOp) =
             T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace)
-        Base.convert{T}(::Type{Functional{T}},Σ::$ConcOp) =
-            T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace)
-
 
         domain(Σ::$ConcOp) = domain(Σ.domainspace)
         domainspace(Σ::$ConcOp) = Σ.domainspace
@@ -39,15 +38,12 @@ macro calculus_functional(Op)
         getindex(::$ConcOp{UnsetSpace},kr::Range) =
             error("Spaces cannot be inferred for operator")
 
-        $WrappOp(op::Functional) =
+        $WrappOp(op::Operator) =
             $WrappOp{typeof(op),typeof(domainspace(op)),eltype(op)}(op)
 
 
         Base.convert{T}(::Type{Operator{T}},Σ::$WrappOp) =
             T==eltype(Σ)?Σ:$WrappOp(convert(Operator{T},Σ.func))
-        Base.convert{T}(::Type{Functional{T}},Σ::$WrappOp) =
-            T==eltype(Σ)?Σ:$WrappOp(convert(Functional{T},Σ.func))
-
 
         #Wrapper just adds the operator it wraps
         getindex(D::$WrappOp,k::Range) = D.func[k]

@@ -1,27 +1,29 @@
 export ↦
 
-immutable SpaceFunctional{O<:Functional,S<:Space,D<:Domain,T} <: Functional{T}
+immutable SpaceFunctional{O<:Operator,S<:Space,D<:Domain,T} <: Operator{T}
     op::O
     domainspace::S
     rangedomain::D
 end
 
-SpaceFunctional(o::Functional,s::Space,d::Domain)=SpaceFunctional{typeof(o),typeof(s),typeof(d),eltype(o)}(o,s,d)
-SpaceFunctional(o::Functional,s::Space)=SpaceFunctional(o,s,domain(s))
+@functional SpaceFunctional
+
+SpaceFunctional(o::Operator,s::Space,d::Domain)=SpaceFunctional{typeof(o),typeof(s),typeof(d),eltype(o)}(o,s,d)
+SpaceFunctional(o::Operator,s::Space)=SpaceFunctional(o,s,domain(s))
 
 datalength(S::SpaceFunctional)=datalength(S.op)
 
 
-for TYP in (:Functional,:Operator)
-    @eval function Base.convert{T}(::Type{$TYP{T}},S::SpaceFunctional)
-        if T==eltype(S)
-            S
-        else
-            op=convert(Operator{T},S.op)
-            SpaceFunctional{typeof(op),typeof(S.domainspace),T}(op,S.domainspace,S.rangespace)
-        end
+
+function Base.convert{T}(::Type{Operator{T}},S::SpaceFunctional)
+    if T==eltype(S)
+        S
+    else
+        op=convert(Operator{T},S.op)
+        SpaceFunctional{typeof(op),typeof(S.domainspace),T}(op,S.domainspace,S.rangespace)
     end
 end
+
 
 getindex(S::SpaceFunctional,k)=S.op[k]
 getindex(S::SpaceFunctional,k,j)=S.op[k,j]
@@ -99,8 +101,14 @@ end
 Base.colon(A::Operator,b::Space)=promotedomainspace(A,b)
 
 
-promotedomainspace(P::Functional,sp::Space,::AnySpace)=SpaceFunctional(P,sp)
-promotedomainspace(P::Functional,sp::Space,::ZeroSpace)=SpaceFunctional(P,sp)
+function promotedomainspace(P::Operator,sp::Space,::AnySpace)
+    @assert isafunctional(P)
+    SpaceFunctional(P,sp)
+end
+function promotedomainspace(P::Operator,sp::Space,::ZeroSpace)
+    @assert isafunctional(P)
+    SpaceFunctional(P,sp)
+end
 
 for op in (:promoterangespace,:promotedomainspace)
     @eval begin
@@ -115,13 +123,12 @@ promotedomainspace(P::Operator,sp::Space)=promotedomainspace(P,sp,domainspace(P)
 
 
 promoterangespace(P::BandedOperator,sp::Space,cursp::Space)=(sp==cursp)?P:Conversion(cursp,sp)*P
-promotedomainspace(P::Functional,sp::Space,cursp::Space)=(sp==cursp)?P:P*Conversion(sp,cursp)
-promotedomainspace(P::BandedOperator,sp::Space,cursp::Space)=(sp==cursp)?P:P*Conversion(sp,cursp)
+promotedomainspace(P::Operator,sp::Space,cursp::Space)=(sp==cursp)?P:P*Conversion(sp,cursp)
 
 
 
 
-for TYP in (:Operator,:BandedOperator,:Functional)
+for TYP in (:Operator,:BandedOperator)
   @eval begin
     #TODO: better way of deciding type
     function promoterangespace{O<:$TYP}(ops::Vector{O})
@@ -157,7 +164,6 @@ function choosedomainspace(A::Operator,sp)
     sp2=domainspace(A)
     isambiguous(sp2)?sp:sp2
 end
-choosedomainspace(A::Functional,sp)=domainspace(A)
 
 choosedomainspace(A)=choosedomainspace(A,AnySpace())
 

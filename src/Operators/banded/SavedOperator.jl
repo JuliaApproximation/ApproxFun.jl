@@ -8,18 +8,19 @@ export SavedFunctional,SavedBandedOperator
 
 ## SavedFunctional
 
-type SavedFunctional{T<:Number,M<:Functional} <: Functional{T}
+type SavedFunctional{T<:Number,M<:Operator} <: Operator{T}
     op::M
     data::Vector{T}
     datalength::Int
 end
 
-SavedFunctional(op::Functional,data)=SavedFunctional(op,data,length(data))
-SavedFunctional{T<:Number}(op::Functional{T})=SavedFunctional(op,Array(T,0),0)
+@functional SavedFunctional
 
-for TYP in (:Functional,:Operator)
-    @eval Base.convert{T}(::Type{$TYP{T}},S::SavedFunctional)=SavedFunctional(convert(Functional{T},S.op))
-end
+SavedFunctional(op::Operator,data)=SavedFunctional(op,data,length(data))
+SavedFunctional{T<:Number}(op::Operator{T})=SavedFunctional(op,Array(T,0),0)
+
+@eval Base.convert{T}(::Type{Operator{T}},S::SavedFunctional)=SavedFunctional(convert(Operator{T},S.op))
+
 
 
 domainspace(F::SavedFunctional)=domainspace(F.op)

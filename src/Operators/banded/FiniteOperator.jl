@@ -33,12 +33,14 @@ bandinds{AT<:BandedMatrix}(T::FiniteOperator{AT})=bandinds(T.matrix)
 Base.maximum(K::FiniteOperator)=maximum(K.matrix)
 
 
-immutable FiniteFunctional{S,T} <: Functional{T}
+immutable FiniteFunctional{S,T} <: Operator{T}
     data::Vector{T}
     domainspace::S
 end
 
-Base.convert{T}(::Type{Functional{T}},S::FiniteFunctional)=FiniteFunctional(convert(Vector{T},S.data),S.domainspace)
+@functional FiniteFunctional
+
+Base.convert{T}(::Type{Operator{T}},S::FiniteFunctional)=FiniteFunctional(convert(Vector{T},S.data),S.domainspace)
 
 domainspace(S::FiniteFunctional)=S.domainspace
 datalength(S::FiniteFunctional)=length(S.data)

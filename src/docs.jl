@@ -82,11 +82,6 @@ doc"""
 Operator
 
 doc"""
-    `Functional{T}` represents a row operator
-"""
-Functional
-
-doc"""
     `InfiniteOperator{T}` represents an operator with an infinite number of rows
 """
 InfiniteOperator

@@ -55,7 +55,10 @@ Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
 
 
 # functionals always map to Constant space
-promoterangespace(P::Functional,A::ConstantSpace,cur::ConstantSpace)=domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
+function promoterangespace(P::Operator,A::ConstantSpace,cur::ConstantSpace)
+    @assert isafunctional(P)
+    domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
+end
 
 ## Promotion: Zero operators are the only operators that also make sense as functionals
 promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))
@@ -139,7 +142,10 @@ immutable FunctionalOperator{FT,T} <: BandedOperator{T}
     func::FT
 end
 
-FunctionalOperator(func::Functional)=FunctionalOperator{typeof(func),eltype(func)}(func)
+function FunctionalOperator(func::Operator)
+    @assert isafunctional(func)
+    FunctionalOperator{typeof(func),eltype(func)}(func)
+end
 
 function Base.convert{O<:Operator}(::Type{O},FO::FunctionalOperator)
     if eltype(O)==eltype(FO)
@@ -162,7 +168,8 @@ getindex(FO::FunctionalOperator,k::Integer,j::Integer) =
     k==1?FO.func[j]:zero(eltype(FO))
 
 
-function *(f::Fun,A::Functional)
+function *(f::Fun,A::Operator)
+    @assert isafunctional(A)
     if datalength(A)<Inf
         # We get a BandedOperator, so we take that into account
         TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
@@ -171,17 +178,18 @@ function *(f::Fun,A::Functional)
     end
 end
 
-Base.convert(::Type{BandedOperator},B::Functional)=FunctionalOperator(B)
-Base.convert(::Type{BandedBelowOperator},B::Functional)=datalength(B)<Inf?convert(BandedOperator,B):Fun(1,ConstantSpace())*B
+Base.convert(::Type{BandedOperator},B::Operator) = FunctionalOperator(B)
+Base.convert(::Type{BandedBelowOperator},B::Operator) =
+    datalength(B)<Inf?convert(BandedOperator,B):Fun(1,ConstantSpace())*B
 
 
 
 for OP in (:+,:-)
-    @eval $OP(A::BandedOperator,B::Functional)=$OP(A,convert(BandedBelowOperator,B))
-    @eval $OP(A::Functional,B::BandedOperator)=$OP(convert(BandedBelowOperator,A),B)
+    @eval $OP(A::BandedOperator,B::Operator) = $OP(A,convert(BandedBelowOperator,B))
+    @eval $OP(A::Operator,B::BandedOperator) = $OP(convert(BandedBelowOperator,A),B)
 end
 
-*(A::BandedOperator,B::Functional)=A*convert(BandedBelowOperator,B)
+*(A::BandedOperator,B::Operator) = A*convert(BandedBelowOperator,B)
 
 *{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)
 

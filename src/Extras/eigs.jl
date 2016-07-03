@@ -9,7 +9,7 @@ Base.eigvals{T<:Operator}(A::Vector{T},n::Integer;tolerance::Float64=100eps())=e
 function Base.eigs{T<:Operator}(A::Vector{T},n::Integer;tolerance::Float64=100eps())
     nf = length(A)-1
     for k=1:nf
-        @assert isa(A[k],Functional)
+        @assert isafunctional(A[k])
     end
     A = promotedomainspace(A,choosedomainspace(A))
     typ = mapreduce(eltype,promote_type,A)

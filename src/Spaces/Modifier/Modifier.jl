@@ -151,7 +151,7 @@ for TYP in (:PiecewiseSpace,:TupleSpace)
     @eval function LowRankPertOperator{OT<:Operator}(A::Vector{OT},::Type{$TYP})
         A=promotedomainspace(A)
         for k=1:length(A)-1
-            @assert isa(A[k],Functional)
+            @assert isafunctional(A[k])
         end
         @assert isa(A[end],BandedOperator)
         L=LowRankOperator(A[1:end-1],$TYP)
@@ -164,7 +164,7 @@ end
 
 LowRankPertOperator{OT<:Operator}(A::Vector{OT})=LowRankPertOperator(A,TupleSpace)
 
-function LowRankOperator{FT<:Functional}(Bin::Vector{FT},::Type{PiecewiseSpace})
+function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{PiecewiseSpace})
     B=promotedomainspace(Bin)
     rsp=PiecewiseSpace(map(rangespace,B))
     LowRankOperator(
@@ -172,7 +172,7 @@ function LowRankOperator{FT<:Functional}(Bin::Vector{FT},::Type{PiecewiseSpace})
         B)
 end
 
-function LowRankOperator{FT<:Functional}(Bin::Vector{FT},::Type{TupleSpace})
+function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{TupleSpace})
     B=promotedomainspace(Bin)
     rsp=TupleSpace(tuple(map(rangespace,B)...,ZeroSpace()))  #TODO: Why the hack?
     LowRankOperator(
@@ -182,4 +182,4 @@ end
 
 
 
-LowRankOperator{FT<:Functional}(Bin::Vector{FT})=LowRankOperator(Bin,TupleSpace)
+LowRankOperator{FT<:Operator}(Bin::Vector{FT})=LowRankOperator(Bin,TupleSpace)

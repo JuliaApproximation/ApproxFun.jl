@@ -1,11 +1,11 @@
 
 
 
-toarray{T<:Functional}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
+toarray{T<:Operator}(B::Array{T},n)=Float64[    B[k][j] for  k=1:length(B),j=1:n];
 function toarray{T<:Operator}(A::Vector{T},n::Integer,m::Integer)
     ret = zeros(n,m)
 
-    nbc = isa(A[end],Functional)?length(A):length(A)-1
+    nbc = isafunctional(A[end])?length(A):length(A)-1
     for k=1:nbc
         ret[k,:]=A[k][1:m]
     end
@@ -138,8 +138,8 @@ getdiagonal(S::OperatorSchur,k,j)=j==1?S.R[k,k]:S.T[k,k]
 
 
 
-OperatorSchur{FT<:Functional}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L),M,n)
-OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M),n)
+OperatorSchur{FT<:Operator}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L),M,n)
+OperatorSchur{FT<:Operator}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M),n)
 
 
 
@@ -165,7 +165,7 @@ function OperatorSchur(B::Array,L::Array,M::Array,ds,rs)
 end
 
 
-function OperatorSchur{FT<:Functional}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
+function OperatorSchur{FT<:Operator}(B::Vector{FT},L::Operator,M::Operator,n::Integer)
     L,M=promotespaces([L,M])
     OperatorSchur(pdetoarray(B,L,M,n)...,domainspace(L),rangespace(L))
 end
@@ -200,7 +200,7 @@ end
 ## Decide which data structure
 
 
-function Base.schurfact{FT<:Functional,O<:Operator}(B::Vector{FT},A::Vector{O},n::Integer)
+function Base.schurfact{FT<:Operator,O<:Operator}(B::Vector{FT},A::Vector{O},n::Integer)
     if isempty(B) && all(LM->bandinds(LM)==(0,0),A)
         DiagonalOperatorSchur(A,n)
     elseif length(A)==2

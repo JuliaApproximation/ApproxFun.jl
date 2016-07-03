@@ -174,13 +174,15 @@ end
 
 ## BlockFunctional
 
-immutable BlockFunctional{T<:Number,B<:Functional} <: Functional{T}
+immutable BlockFunctional{T<:Number,B<:Operator} <: Operator{T}
     cols::Vector{T}
     op::B
 end
 
-BlockFunctional{T<:Number}(cols::Vector{T},op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
-BlockFunctional{T<:Number}(col::T,op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
+@functional BlockFunctional
+
+BlockFunctional{T<:Number}(cols::Vector{T},op::Operator) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
+BlockFunctional{T<:Number}(col::T,op::Operator) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
 
 function domainspace(B::BlockFunctional)
     ds=domainspace(B.op)
@@ -212,6 +214,5 @@ function Base.getindex{T<:Number}(P::BlockFunctional{T},kr::Range)
     end
 end
 
-for TYP in (:Functional,:Operator)
-    @eval Base.convert{T}(::Type{$TYP{T}},P::BlockFunctional)=BlockFunctional(convert(Vector{T},P.cols),convert(Functional{T},P.op))
-end
+
+@eval Base.convert{T}(::Type{Operator{T}},P::BlockFunctional)=BlockFunctional(convert(Vector{T},P.cols),convert(Operator{T},P.op))

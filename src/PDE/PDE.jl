@@ -62,7 +62,10 @@ end
 
 
 
-*(B::Functional,f::ProductFun)=Fun(map(c->B*c,f.coefficients),space(f,2))
+function *(B::Operator,f::ProductFun)
+    @assert isafunctional(B)
+    Fun(map(c->B*c,f.coefficients),space(f,2))
+end
 *(B::BandedOperator,f::ProductFun)=ProductFun(map(c->B*c,f.coefficients),space(f))
 
 *(f::ProductFun,B::Operator)=(B*(f.')).'

@@ -7,21 +7,20 @@ export PlusOperator,TimesOperator
 
 ##PlusFunctional
 
-immutable PlusFunctional{T} <: Functional{T}
-    ops::Vector{Functional{T}}
+immutable PlusFunctional{T} <: Operator{T}
+    ops::Vector{Operator{T}}
 end
 
-for TYP in (:Operator,:Functional)
-    @eval function Base.convert{T}(::Type{$TYP{T}},P::PlusFunctional)
-        if T==eltype(P)
-            P
-        else
-            PlusFunctional{T}(P.ops)
-        end
+function Base.convert{T}(::Type{Operator{T}},P::PlusFunctional)
+    if T==eltype(P)
+        P
+    else
+        PlusFunctional{T}(P.ops)
     end
 end
 
 
+@functional PlusFunctional
 
 function getindex{T}(op::PlusFunctional{T},k::Integer)
     ret = op.ops[1][k]::T
@@ -43,7 +42,7 @@ end
 
 datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 
-promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Functional{T}[promotedomainspace(c,sp) for c in C.ops])
+promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Operator{T}[promotedomainspace(c,sp) for c in C.ops])
 
 
 immutable PlusOperator{T} <: BandedOperator{T}
@@ -62,12 +61,12 @@ for TYP in (:Operator,:BandedOperator)
 end
 
 promoteplus{T}(ops::Vector{BandedOperator{T}})=PlusOperator(promotespaces(ops))
-promoteplus{T}(ops::Vector{Functional{T}})=PlusFunctional(promotespaces(ops))
+promoteplus{T}(ops::Vector{Operator{T}})=PlusFunctional(promotespaces(ops))
 
 
 
 
-for (PLUS,TYP,ZER) in ((:PlusFunctional,:Functional,:ZeroFunctional),
+for (PLUS,TYP,ZER) in ((:PlusFunctional,:Operator,:ZeroFunctional),
                        (:PlusOperator,:BandedOperator,:ZeroOperator))
     @eval begin
         function domainspace(P::$PLUS)
@@ -171,8 +170,8 @@ end
 +(A::BandedOperator,::ZeroOperator)=A
 +(::ZeroOperator,B::BandedOperator)=B
 +(A::ZeroFunctional,::ZeroFunctional)=A
-+(A::Functional,::ZeroFunctional)=A
-+(::ZeroFunctional,B::Functional)=B
++(A::Operator,::ZeroFunctional)=A
++(::ZeroFunctional,B::Operator)=B
 
 
 
@@ -189,25 +188,25 @@ end
 
 ## Times Operator
 
-immutable ConstantTimesFunctional{T,B<:Functional} <: Functional{T}
+immutable ConstantTimesFunctional{T,B<:Operator} <: Operator{T}
     c::T
     functional::B
     ConstantTimesFunctional(c,op)=new(c,op)
 end
 
-ConstantTimesFunctional(c::Number,op::Functional)=ConstantTimesFunctional{promote_type(typeof(c),eltype(op)),typeof(op)}(c,op)
+@functional ConstantTimesFunctional
+
+ConstantTimesFunctional(c::Number,op::Operator)=ConstantTimesFunctional{promote_type(typeof(c),eltype(op)),typeof(op)}(c,op)
 
 for OP in (:domainspace,:rangespace)
     @eval $OP(C::ConstantTimesFunctional)=$OP(C.functional)
 end
 
-for TYP in (:Operator,:Functional)
-    @eval function Base.convert{T}(::Type{$TYP{T}},P::ConstantTimesFunctional)
-        if T==eltype(P)
-            P
-        else
-            ConstantTimesFunctional(convert(T,P.c),convert($TYP{T},P.functional))
-        end
+@eval function Base.convert{T}(::Type{Operator{T}},P::ConstantTimesFunctional)
+    if T==eltype(P)
+        P
+    else
+        ConstantTimesFunctional(convert(T,P.c),convert(Operator{T},P.functional))
     end
 end
 
@@ -221,10 +220,12 @@ promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional
 
 
 
-type TimesFunctional{T,A<:Functional,B<:BandedOperator} <: Functional{T}
+type TimesFunctional{T,A<:Operator,B<:BandedOperator} <: Operator{T}
     functional::A
     op::B
 end
+
+@functional TimesFunctional
 
 promotedomainspace(C::TimesFunctional,sp::Space)=C.functional*promotedomainspace(C.op,sp)
 
@@ -234,7 +235,7 @@ rangespace(C::TimesFunctional)=rangespace(C.functional)
 datalength(C::TimesFunctional)=datalength(C.functional)+bandinds(C.op,2)
 
 
-TimesFunctional{T,V}(A::Functional{T},B::BandedOperator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
+TimesFunctional{T,V}(A::Operator{T},B::BandedOperator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
 
 getindex(f::TimesFunctional,j::Integer) =
     f[j:j][1]

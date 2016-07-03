@@ -9,7 +9,7 @@
 
 abstract AbstractPDEOperatorSchur
 
-immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
+immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number,FT<:Operator} <: AbstractPDEOperatorSchur
     Bx::Vector{FT}
     Lx::Operator{LT}
     Mx::Operator{MT}
@@ -131,7 +131,7 @@ end
 #############
 
 immutable PDEProductOperatorSchur{ST<:Number,
-                                  FT<:Functional,
+                                  FT<:Operator,
                                   DS<:AbstractProductSpace,
                                   RS<:AbstractProductSpace,
                                   S<:Space,
@@ -248,5 +248,3 @@ function discretize{OT<:Operator}(A::Vector{OT},S...)
     end
 end
 discretize{T}(A::BivariateOperator{T},n::Integer)=discretize([A],n)
-
-

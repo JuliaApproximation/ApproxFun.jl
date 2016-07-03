@@ -75,20 +75,20 @@ domain(S::StrideOperator) = Any ##TODO: tensor product
 ## StrideFunctional
 
 
-type StrideFunctional{T<:Number,B<:Functional} <: Functional{T}
+type StrideFunctional{T<:Number,B<:Operator} <: Operator{T}
     op::B
     rowindex::Int
     stride::Int
 end
 
-StrideFunctional{T<:Number}(B::Functional{T},r,rs)=StrideFunctional{T,typeof(B)}(B,r,rs)
+@functional StrideFunctional
+
+StrideFunctional{T<:Number}(B::Operator{T},r,rs)=StrideFunctional{T,typeof(B)}(B,r,rs)
 
 
 Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range)=T[((k-op.rowindex)≥1 &&(k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
 
-for TYP in (:Operator,:Functional)
-    @eval Base.convert{T}(::Type{$TYP{T}},S::StrideFunctional)=StrideFunctional(convert(Functional{T},S.op),S.rowindex,S.stride)
-end
+@eval Base.convert{T}(::Type{Operator{T}},S::StrideFunctional)=StrideFunctional(convert(Operator{T},S.op),S.rowindex,S.stride)
 
 
 ##interlace block operators
@@ -99,7 +99,7 @@ iszerooperator(A::ConstantOperator)=A.c==0.
 iszerooperator(A)=false
 function isboundaryrow(A,k)
     for j=1:size(A,2)
-        if isa(A[k,j],Functional)
+        if isafunctional(A[k,j])
             return true
         end
     end
@@ -249,8 +249,8 @@ function interlace{T<:Operator}(A::Matrix{T})
     # Use BlockOperator whenever the first columns are all constants
     if all(isconstop,A[1:end-1,1:end-1]) &&
             all(iscolop,A[end,1:end-1]) &&
-            all(a->isa(a,Functional),A[1:end-1,end]) && isa(A[end,end],BandedOperator)
-        return [Functional{TT}[BlockFunctional(map(Number,vec(A[k,1:end-1])),A[k,end]) for k=1:m-1]...;
+            all(a->isafunctional(a),A[1:end-1,end]) && isa(A[end,end],BandedOperator)
+        return [Operator{TT}[BlockFunctional(map(Number,vec(A[k,1:end-1])),A[k,end]) for k=1:m-1]...;
                     BlockOperator(A[end:end,:])]
     end
 

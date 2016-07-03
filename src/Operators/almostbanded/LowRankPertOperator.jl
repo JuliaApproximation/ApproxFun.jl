@@ -14,7 +14,7 @@ function LowRankPertOperator(Bin::BandedOperator,Lin::LowRankOperator)
     rsp=rangespace(B)  # use rangespace of B because LowRankOperator only
                         # needs convert, and its unlikely that the rangespaces
                         # will be inferred from L
-    L=promoterangespace(L2,rsp)                                        
+    L=promoterangespace(L2,rsp)
 
     LowRankPertOperator{typeof(B),typeof(L),promote_type(eltype(L),eltype(B))}(B,L)
 end
@@ -43,7 +43,7 @@ end
 
 
 
-function MutableOperator{R<:Functional}(bc::Vector{R},S::LowRankPertOperator)
+function MutableOperator{R<:Operator}(bc::Vector{R},S::LowRankPertOperator)
     bndinds=bandinds(S.op)
 
     dats= datasize(S,1)

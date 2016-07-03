@@ -204,34 +204,10 @@ function Base.show(io::IO,B::BandedOperator;header::Bool=true)
     end
 end
 
-function Base.show(io::IO,F::Functional;header::Bool=true)
-    header && println(io,summary(F))
-
-    dsp=domainspace(F)
-
-    if isa(dsp,AnySpace) || !isambiguous(dsp)
-        V=Array{Any}(1,11)
-        copy!(V,F[1:10])
-        V[end]=PrintShow("⋯")
-
-        Base.showarray(io,V;header=false)
-    end
-end
-
-@compat function Base.show{T<:Functional}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
-    n = length(A)
-    header && for k=1:n println(io,summary(A[k])) end
-    M=Array{Any}(n,11)
-    for k=1:n
-        M[k,1:10] = A[k][1:10]
-        M[k,end]=PrintShow("⋯")
-    end
-    Base.with_output_limit(()->Base.print_matrix(io, M))
-end
 
 @compat function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
     nf = length(A)-1
-    if all(Ak -> isa(Ak,Functional), A[1:nf]) && isa(A[end],BandedOperator)
+    if all(Ak -> isafunctional(Ak), A[1:nf]) && isa(A[end],BandedOperator)
         header && for k=1:nf+1 println(io,summary(A[k])) end
         M=Array{Any}(11,11)
         fill!(M,PrintShow(""))

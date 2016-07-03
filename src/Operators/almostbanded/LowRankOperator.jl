@@ -4,9 +4,12 @@ abstract AbstractLowRankOperator{T} <: AlmostBandedOperator{T}
 
 immutable LowRankOperator{S<:Space,T} <: AbstractLowRankOperator{T}
     U::Vector{Fun{S,T}}
-    V::Vector{Functional{T}}
+    V::Vector{Operator{T}}
 
-    function LowRankOperator(U::Vector{Fun{S,T}},V::Vector{Functional{T}})
+    function LowRankOperator(U::Vector{Fun{S,T}},V::Vector{Operator{T}})
+        for v in V
+            @assert isafunctional(V)
+        end
         @assert length(U) == length(V)
         @assert length(U) > 0
         ds=domainspace(first(V))
@@ -23,16 +26,16 @@ end
 
 
 
-LowRankOperator{S,T}(U::Vector{Fun{S,T}},V::Vector{Functional{T}})=LowRankOperator{S,T}(U,V)
-LowRankOperator{S,T1,T2}(U::Vector{Fun{S,T1}},V::Vector{Functional{T2}})=LowRankOperator(convert(Vector{Fun{S,promote_type(T1,T2)}},U),
-                                                                                         convert(Vector{Functional{promote_type(T1,T2)}},V))
-LowRankOperator{FF<:Fun,FT<:Functional}(U::Vector{FF},V::Vector{FT})=LowRankOperator(U,convert(Vector{Functional{eltype(FT)}},V))
+LowRankOperator{S,T}(U::Vector{Fun{S,T}},V::Vector{Operator{T}})=LowRankOperator{S,T}(U,V)
+LowRankOperator{S,T1,T2}(U::Vector{Fun{S,T1}},V::Vector{Operator{T2}})=LowRankOperator(convert(Vector{Fun{S,promote_type(T1,T2)}},U),
+                                                                                         convert(Vector{Operator{promote_type(T1,T2)}},V))
+LowRankOperator{FF<:Fun,FT<:Operator}(U::Vector{FF},V::Vector{FT})=LowRankOperator(U,convert(Vector{Operator{eltype(FT)}},V))
 
 
 
-LowRankOperator(B::AbstractVector,S...)=LowRankOperator(convert(Vector{Functional{Float64}},B),S...)
+LowRankOperator(B::AbstractVector,S...)=LowRankOperator(convert(Vector{Operator{Float64}},B),S...)
 
-LowRankOperator(A::Fun,B::Functional)=LowRankOperator([A],[B])
+LowRankOperator(A::Fun,B::Operator)=LowRankOperator([A],[B])
 
 
 
