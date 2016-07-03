@@ -134,9 +134,12 @@ end
     g=C.args[1]
     @assert isa(g,Fun)
 
+    seriestype --> :scatter
     yscale --> :log10
-
-    abs(g.coefficients)
+    markersize := max(round(Int,5 - log10(ncoefficients(g))),1)
+    abscfs = abs(g.coefficients)
+    xlims --> (0,1.01ncoefficients(g))
+    abscfs
 end
 
 
@@ -228,6 +231,21 @@ end
         SV<:TensorSpace}(g::ProductFun{S,V,SV})
     g=chop(g,10e-10)
     g=pad(g,max(size(g,1),20),max(size(g,2),20))
+    vals=values(g)
+
+    seriestype --> :surface
+
+    if norm(imag(vals),Inf)>10e-9
+        warn("Imaginary part is non-neglible.  Only plotting real part.")
+    end
+
+    points(space(g,1),size(vals,1)),points(space(g,2),size(vals,2)),real(vals).'
+end
+
+@recipe function f{S<:UnivariateSpace,
+                    V<:UnivariateSpace,
+        SV<:TensorSpace}(g::LowRankFun{S,V,SV})
+    g=chop(g,10e-10)
     vals=values(g)
 
     seriestype --> :surface
