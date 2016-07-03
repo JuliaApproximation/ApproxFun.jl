@@ -37,15 +37,15 @@ domain(A::Operator)=domain(domainspace(A))
 
 
 ## Functionals
-isafunctional(A::Operator) = size(A,1)==1 && rangespace(A)==ConstantSpace()
+isafunctional(A::Operator) = size(A,1)==1 && isa(rangespace(A),ConstantSpace)
 
 macro functional(FF)
     quote
         Base.size(A::$FF,k::Integer) = k==1?1:∞
-        rangespace(::$FF) = ConstantSpace()
-        isafunctional(::$FF) = true
-        datalength(::$FF) = ∞
-        function defaultgetindex(f::$FF,k::Integer,j::Integer)
+        ApproxFun.rangespace(::$FF) = ConstantSpace()
+        ApproxFun.isafunctional(::$FF) = true
+        ApproxFun.datalength(::$FF) = ∞
+        function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
             f[j]
         end

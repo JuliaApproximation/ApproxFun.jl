@@ -21,10 +21,7 @@ function /(B::Operator,c::Number)
     @assert isafunctional(B)
     c==1?B:ConstantTimesFunctional(1.0/c,B)
 end
-function *(B::Operator,O::TimesOperator)
-    @assert isafunctional(B)
-    TimesFunctional(B,O)  # Needed to avoid ambiguity
-end
+
 function *(B::Operator,O::BandedOperator)
     @assert isafunctional(B)
     if isconstop(O)
@@ -32,15 +29,4 @@ function *(B::Operator,O::BandedOperator)
     else
         TimesFunctional(promotedomainspace(B,rangespace(O)),O)
     end
-end
-
-function -(B::Operator)
-    @assert isafunctional(B)
-    ConstantTimesFunctional(-1,B)
-end
-
-
-function -(A::Operator,B::Operator)
-    @assert isafunctional(B)
-    PlusFunctional([A,-B])
 end

@@ -63,6 +63,14 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     @test norm((f'-df).coefficients)<1000eps()
 end
 
+d=Circle()
+S=Taylor(d)
+D=Derivative(S)
+D-I
+ef=Fun(exp,S)
+@test norm((D*ef-ef).coefficients)<1000eps()
+@test norm((D^2*ef-ef).coefficients)<100000eps()
+u=[Evaluation(S,0.),D-I]\[1.]
 
 # check's Derivative constructor works
 D=Derivative(Taylor(PeriodicInterval()))

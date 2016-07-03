@@ -54,12 +54,6 @@ Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T})=Fu
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
 
 
-# functionals always map to Constant space
-function promoterangespace(P::Operator,A::ConstantSpace,cur::ConstantSpace)
-    @assert isafunctional(P)
-    domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
-end
-
 ## Promotion: Zero operators are the only operators that also make sense as functionals
 promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))
 
@@ -178,20 +172,11 @@ function *(f::Fun,A::Operator)
     end
 end
 
-Base.convert(::Type{BandedOperator},B::Operator) = FunctionalOperator(B)
-Base.convert(::Type{BandedBelowOperator},B::Operator) =
-    datalength(B)<Inf?convert(BandedOperator,B):Fun(1,ConstantSpace())*B
 
 
-
-for OP in (:+,:-)
-    @eval $OP(A::BandedOperator,B::Operator) = $OP(A,convert(BandedBelowOperator,B))
-    @eval $OP(A::Operator,B::BandedOperator) = $OP(convert(BandedBelowOperator,A),B)
-end
-
-*(A::BandedOperator,B::Operator) = A*convert(BandedBelowOperator,B)
-
-*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)
+*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},
+  M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) =
+    Fun(A.func*b)
 
 
 for op = (:*,:.*,:./,:/)
