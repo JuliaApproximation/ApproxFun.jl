@@ -218,7 +218,7 @@ function Base.show(io::IO,F::Functional;header::Bool=true)
     end
 end
 
-function Base.writemime{T<:Functional}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
+@compat function Base.show{T<:Functional}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
     n = length(A)
     header && for k=1:n println(io,summary(A[k])) end
     M=Array{Any}(n,11)
@@ -229,7 +229,7 @@ function Base.writemime{T<:Functional}(io::IO, ::MIME"text/plain", A::Vector{T};
     Base.with_output_limit(()->Base.print_matrix(io, M))
 end
 
-function Base.writemime{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
+@compat function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
     nf = length(A)-1
     if all(Ak -> isa(Ak,Functional), A[1:nf]) && isa(A[end],BandedOperator)
         header && for k=1:nf+1 println(io,summary(A[k])) end
