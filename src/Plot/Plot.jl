@@ -137,9 +137,8 @@ end
     seriestype --> :scatter
     yscale --> :log10
     markersize := max(round(Int,5 - log10(ncoefficients(g))),1)
-    abscfs = abs(g.coefficients)
     xlims --> (0,1.01ncoefficients(g))
-    abscfs
+    abs(g.coefficients)
 end
 
 

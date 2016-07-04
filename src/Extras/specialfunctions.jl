@@ -120,7 +120,7 @@ function ./(c::Fun,f::Fun)
     end
 
     r=roots(f)
-    tol=10eps()
+    tol=10eps(promote_type(eltype(c),eltype(f)))
     if length(r)==0 || norm(c(r))<tol
         linsolve(Multiplication(f,space(c)),c;tolerance=tol)
     else
@@ -130,7 +130,7 @@ end
 
 function ./(c::Number,f::Fun)
     r=roots(f)
-    tol=10eps()
+    tol=10eps(promote_type(typeof(c),eltype(f)))
     @assert length(r)==0
     linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
 end
@@ -149,7 +149,7 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
-    tol = 200eps()*norm(f.coefficients,1)
+    tol = 10eps(promote_type(typeof(c),eltype(f)))*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
     if ncoefficients(f)==1
