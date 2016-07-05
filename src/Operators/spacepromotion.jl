@@ -122,8 +122,10 @@ promoterangespace(P::Operator,sp::Space)=promoterangespace(P,sp,rangespace(P))
 promotedomainspace(P::Operator,sp::Space)=promotedomainspace(P,sp,domainspace(P))
 
 
-promoterangespace(P::BandedOperator,sp::Space,cursp::Space)=(sp==cursp)?P:Conversion(cursp,sp)*P
-promotedomainspace(P::Operator,sp::Space,cursp::Space)=(sp==cursp)?P:P*Conversion(sp,cursp)
+promoterangespace(P::Operator,sp::Space,cursp::Space) =
+    (sp==cursp)?P:Conversion(cursp,sp)*P
+promotedomainspace(P::Operator,sp::Space,cursp::Space) =
+    (sp==cursp)?P:P*Conversion(sp,cursp)
 
 
 
