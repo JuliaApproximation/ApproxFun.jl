@@ -122,6 +122,15 @@ end
 domainspace(M::MutableOperator)=domainspace(M.op)
 rangespace(M::MutableOperator)=rangespace(M.op)
 
+function MutableOperator{T<:Operator}(B::Vector{T})
+    bcs = Functional{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
+
+    @assert typeof(B[end]) <: BandedBelowOperator
+
+    MutableOperator(bcs,B[end])
+end
+
+MutableOperator{O<:Operator}(B::O)=MutableOperator(O[B])
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
@@ -142,16 +151,6 @@ function MutableOperator{R<:Functional}(bc::Vector{R},op::BandedOperator)
 
     MutableOperator(op,data,fl,nbc,nbc, br)
 end
-
-function MutableOperator{T<:Operator}(B::Vector{T})
-    bcs = Functional{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
-
-    @assert typeof(B[end]) <: BandedBelowOperator
-
-    MutableOperator(bcs,B[end])
-end
-
-MutableOperator{BO<:BandedOperator}(B::BO)=MutableOperator(BO[B])
 
 
 # for bandrange, we save room for changed entries during Givens
