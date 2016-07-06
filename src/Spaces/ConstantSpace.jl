@@ -157,6 +157,19 @@ for TYP in (:AnySpace,:UnsetSpace,:Space)
     @eval promotedomainspace(FT::FunctionalOperator,sp::$TYP)=FunctionalOperator(promotedomainspace(FT.func,sp))
 end
 
+# functionals always map to Constant space
+function promoterangespace(P::Operator,A::ConstantSpace,cur::ConstantSpace)
+    @assert isafunctional(P)
+    domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
+end
+
+
+function promoterangespace(P::Operator,sp::Space,cursp::ConstantSpace)
+    @assert isafunctional(P)
+    promoterangespace(FunctionalOperator(P),sp)
+end
+
+
 
 getindex(FO::FunctionalOperator,k::Integer,j::Integer) =
     k==1?FO.func[j]:zero(eltype(FO))

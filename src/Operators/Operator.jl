@@ -38,6 +38,7 @@ domain(A::Operator)=domain(domainspace(A))
 
 ## Functionals
 isafunctional(A::Operator) = size(A,1)==1 && isa(rangespace(A),ConstantSpace)
+isbanded(A::Operator) = isa(A,BandedOperator)
 
 macro functional(FF)
     quote
@@ -54,6 +55,7 @@ end
 
 
 Base.size(A::Operator) = (size(A,1),size(A,2))
+Base.size(A::BandedOperator,k::Integer) = ∞ #TODO: delte
 Base.size(A::Operator,k::Integer) = k==1?dimension(rangespace(A)):dimension(domainspace(A))
 
 # used to compute "end" for last index

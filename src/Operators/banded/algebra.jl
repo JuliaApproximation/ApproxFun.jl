@@ -61,7 +61,16 @@ for TYP in (:Operator,:BandedOperator)
 end
 
 promoteplus{T}(ops::Vector{BandedOperator{T}})=PlusOperator(promotespaces(ops))
-promoteplus{T}(ops::Vector{Operator{T}})=PlusFunctional(promotespaces(ops))
+function promoteplus{T}(opsin::Vector{Operator{T}})
+    ops=promotespaces(opsin)
+    if all(isafunctional,ops)
+        PlusFunctional(ops)
+    elseif all(isbanded,ops)
+        PlusOperator(ops)
+    else
+        error("Can only do Functionals/BandedOperators separately for now.")
+    end
+end
 
 
 

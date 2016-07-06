@@ -181,7 +181,7 @@ end
 
 
 #It's important that domain space is promoted first as it might impact range space
-promotespaces(ops::Vector)=promoterangespace(promotedomainspace(ops))
+promotespaces(ops::Vector) = promoterangespace(promotedomainspace(ops))
 function promotespaces(ops::Vector,b::Fun)
     A=promotespaces(ops)
     if isa(rangespace(A),AmbiguousSpace)
