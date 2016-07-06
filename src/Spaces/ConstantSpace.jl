@@ -165,8 +165,11 @@ end
 
 
 function promoterangespace(P::Operator,sp::Space,cursp::ConstantSpace)
-    @assert isafunctional(P)
-    promoterangespace(FunctionalOperator(P),sp)
+    if isafunctional(P)
+        promoterangespace(FunctionalOperator(P),sp)
+    else
+        Conversion(cursp,sp)*P
+    end
 end
 
 

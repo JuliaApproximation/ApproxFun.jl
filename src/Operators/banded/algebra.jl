@@ -49,6 +49,9 @@ immutable PlusOperator{T} <: BandedOperator{T}
     ops::Vector{BandedOperator{T}}
 end
 
+PlusOperator{T}(ops::Vector{Operator{T}}) =
+    PlusOperator(Vector{BandedOperator{T}}(ops))
+
 #Base.convert{OT<:PlusOperator}(::Type{OT},P::OT)=P
 for TYP in (:Operator,:BandedOperator)
     @eval function Base.convert{T}(::Type{$TYP{T}},P::PlusOperator)
