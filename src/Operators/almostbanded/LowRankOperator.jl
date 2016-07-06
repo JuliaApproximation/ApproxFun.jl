@@ -7,9 +7,8 @@ immutable LowRankOperator{S<:Space,T} <: AbstractLowRankOperator{T}
     V::Vector{Operator{T}}
 
     function LowRankOperator(U::Vector{Fun{S,T}},V::Vector{Operator{T}})
-        for v in V
-            @assert isafunctional(V)
-        end
+        @assert all(isafunctional,V)
+
         @assert length(U) == length(V)
         @assert length(U) > 0
         ds=domainspace(first(V))

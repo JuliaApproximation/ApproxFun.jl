@@ -577,7 +577,7 @@ end
     isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
--(A::Operator) = isafunctional(A)?ConstantTimesFunctional(-1,B):ConstantTimesOperator(-1,A)
+-(A::Operator) = isafunctional(A)?ConstantTimesFunctional(-1,A):ConstantTimesOperator(-1,A)
 -(A::Operator,B::Operator) = A+(-B)
 
 *(f::Fun,A::BandedOperator) = TimesOperator(Multiplication(f,rangespace(A)),A)
