@@ -149,14 +149,14 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
-    tol = 10eps(promote_type(typeof(c),eltype(f)))*norm(f.coefficients,1)
+    tol = 200eps(promote_type(typeof(c),eltype(f)))*norm(f.coefficients,1)
 
     # we prune out roots at the boundary first
     if ncoefficients(f)==1
         return Fun(c/f.coefficients[1],space(f))
     elseif ncoefficients(f)==2
         if isempty(roots(f))
-            return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
+            return linsolve(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
             # we check directly for f*(1+x)
             return Fun([c./fc.coefficients[1]],JacobiWeight(-1,0,space(f)))
@@ -183,7 +183,7 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
         r = roots(fc)
 
         if length(r) == 0
-            return linsolve(Multiplication(f,space(f)),c;tolerance=tol)
+            return linsolve(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif abs(last(r)+1.0)≤tol  # double check
             #left root
             g=divide_singularity((1,0),fc)
