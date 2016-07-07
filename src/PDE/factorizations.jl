@@ -38,7 +38,7 @@ function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Op
 
     for k=1:ny-nbcs
         ##TODO: Do block case
-        Rdiags[k]=SavedBandedOperator(PlusOperator(BandedOperator{RT}[getdiagonal(S,k,1)*Lx,getdiagonal(S,k,2)*Mx]))
+        Rdiags[k]=SavedBandedOperator(PlusOperator(Operator{RT}[getdiagonal(S,k,1)*Lx,getdiagonal(S,k,2)*Mx]))
         resizedata!(Rdiags[k],ny)
     end
 
@@ -64,7 +64,7 @@ PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::AbstractOperatorS
 PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,ConstantOperator(Lx.λ),Mx,S)
 
 
-function PDEOperatorSchur(Bx,By,A::BandedOperator,ny::Integer,indsBx,indsBy)
+function PDEOperatorSchur(Bx,By,A::Operator,ny::Integer,indsBx,indsBy)
     @assert iskronsumop(A)
     ops=sumops(A)
     @assert all(isproductop,ops)
@@ -193,7 +193,7 @@ rangespace(S::PDEProductOperatorSchur)=S.rangespace
 Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)=PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 Base.schurfact{LT<:Number,MT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::StrideOperatorSchur{ST},indsBx,indsBy)=PDEStrideOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 
-function Base.schurfact{T}(Bx,By,A::BandedOperator{BandedMatrix{T}},ny::Integer,indsBx,indsBy)
+function Base.schurfact{T}(Bx,By,A::Operator{BandedMatrix{T}},ny::Integer,indsBx,indsBy)
     @assert iskronsumop(A)
     opsx,opsy=simplifydekron(A)
     @assert length(opsx)==length(opsy)==2

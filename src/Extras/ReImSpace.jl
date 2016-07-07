@@ -99,11 +99,11 @@ end
 
 ## Operators
 
-immutable RealOperator{S} <: BandedOperator{Float64}
+immutable RealOperator{S} <: Operator{Float64}
     space::S
 end
 
-immutable ImagOperator{S} <: BandedOperator{Float64}
+immutable ImagOperator{S} <: Operator{Float64}
     space::S
 end
 
@@ -134,12 +134,12 @@ getindex{S<:RealSpace,T}(::ImagOperator{ReImSpace{S,T}},k::Integer,j::Integer) =
 
 
 # Converts an operator to one that applies on the real and imaginary parts
-immutable ReImOperator{O,T} <: BandedOperator{T}
+immutable ReImOperator{O,T} <: Operator{T}
     op::O
 end
 
 ReImOperator(op)=ReImOperator{typeof(op),Float64}(op)
-Base.convert{T}(::Type{BandedOperator{T}},R::ReImOperator)=ReImOperator{typeof(R.op),T}(R.op)
+Base.convert{T}(::Type{Operator{T}},R::ReImOperator)=ReImOperator{typeof(R.op),T}(R.op)
 
 bandinds(RI::ReImOperator)=2bandinds(RI.op,1),2bandinds(RI.op,2)
 
@@ -308,7 +308,7 @@ end
 
 
 ## just takes realpart of operator
-immutable ReOperator{O,T} <: BandedOperator{T}
+immutable ReOperator{O,T} <: Operator{T}
     op::O
 end
 
@@ -336,8 +336,8 @@ end
 
 
 # TODO: can't do this because UnsetSpace might change type
-#Base.real{T<:Real}(op::BandedOperator{T})=op
-Base.real(op::BandedOperator)=ReOperator(op)
+#Base.real{T<:Real}(op::Operator{T})=op
+Base.real(op::Operator)=ReOperator(op)
 
 
 
@@ -350,7 +350,7 @@ Base.real(op::BandedOperator)=ReOperator(op)
 #####
 
 
-immutable ReReOperator{S,V,T} <: BandedOperator{T}
+immutable ReReOperator{S,V,T} <: Operator{T}
     ops::Tuple{S,V}
     function ReReOperator(ops)
             #TODO: promotion
@@ -363,7 +363,7 @@ end
 
 ReReOperator{S,V}(ops::Tuple{S,V})=ReReOperator{S,V,Float64}(ops)
 ReReOperator(ops1,ops2)=ReReOperator((ops1,ops2))
-Base.real(S::BandedOperator,V::BandedOperator)=ReReOperator(S,V)
+Base.real(S::Operator,V::Operator)=ReReOperator(S,V)
 
 bandinds(R::ReReOperator)=min(2bandinds(R.ops[1],1)-1,2bandinds(R.ops[2],1)-2),max(2bandinds(R.ops[1],2)+1,2bandinds(R.ops[2],2))
 

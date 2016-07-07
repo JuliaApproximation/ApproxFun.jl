@@ -3,7 +3,7 @@ export FiniteOperator
 
 
 
-immutable FiniteOperator{AT<:AbstractMatrix,T<:Number} <: BandedOperator{T}
+immutable FiniteOperator{AT<:AbstractMatrix,T<:Number} <: Operator{T}
     matrix::AT
 end
 

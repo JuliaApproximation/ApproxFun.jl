@@ -218,7 +218,7 @@ end
 
 
 
-function resizedata!{T<:Matrix,M<:BandedOperator,R}(B::MutableOperator{T,M,R},n::Integer)
+function resizedata!{T<:Matrix,M<:Operator,R}(B::MutableOperator{T,M,R},n::Integer)
     resizedata!(B.fill,n)
 
     if n > B.datalength

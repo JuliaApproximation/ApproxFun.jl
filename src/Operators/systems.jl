@@ -4,7 +4,7 @@ for op in (:Derivative,:Integral)
     @eval begin
         function ($op){T<:IntervalDomain}(d::Vector{T})
             n=length(d)
-            R=zeros(BandedOperator{mapreduce(eltype,promote_type,d)},n,n)
+            R=zeros(Operator{mapreduce(eltype,promote_type,d)},n,n)
             for k=1:n
                 R[k,k]=$op(d[k])
             end

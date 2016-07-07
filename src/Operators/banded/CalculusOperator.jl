@@ -1,7 +1,7 @@
 export Derivative,Integral,Laplacian,Volterra
 
 
-abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
+abstract CalculusOperator{S,OT,T}<:Operator{T}
 
 
 ## Note that all functions called in calculus_operator must be exported
@@ -17,7 +17,7 @@ macro calculus_operator(Op)
             space::S        # the domain space
             order::OT
         end
-        immutable $WrappOp{BT<:BandedOperator,S<:Space,OT,T} <: $Op{S,OT,T}
+        immutable $WrappOp{BT<:Operator,S<:Space,OT,T} <: $Op{S,OT,T}
             op::BT
             order::OT
         end
@@ -58,7 +58,7 @@ macro calculus_operator(Op)
             end
         end
 
-        function Base.convert{T}(::Type{BandedOperator{T}},D::$ConcOp)
+        function Base.convert{T}(::Type{Operator{T}},D::$ConcOp)
             if T==eltype(D)
                 D
             else
@@ -66,24 +66,24 @@ macro calculus_operator(Op)
             end
         end
 
-        $WrappOp(op::BandedOperator,order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),eltype(op)}(op,order)
-        $WrappOp(op::BandedOperator)=$WrappOp(op,1)
+        $WrappOp(op::Operator,order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),eltype(op)}(op,order)
+        $WrappOp(op::Operator)=$WrappOp(op,1)
 
         function Base.convert{T}(::Type{Operator{T}},D::$WrappOp)
             if T==eltype(D)
                 D
             else
                 # work around typeinfernece bug
-                op=convert(BandedOperator{T},D.op)
+                op=convert(Operator{T},D.op)
                 $WrappOp{typeof(op),typeof(domainspace(op)),typeof(D.order),T}(op,D.order)
             end
         end
-        function Base.convert{T}(::Type{BandedOperator{T}},D::$WrappOp)
+        function Base.convert{T}(::Type{Operator{T}},D::$WrappOp)
             if T==eltype(D)
                 D
             else
                 # work around typeinfernece bug
-                op=convert(BandedOperator{T},D.op)
+                op=convert(Operator{T},D.op)
                 $WrappOp{typeof(op),typeof(domainspace(op)),typeof(D.order),T}(op,D.order)
             end
         end

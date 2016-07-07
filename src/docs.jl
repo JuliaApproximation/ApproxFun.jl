@@ -77,28 +77,6 @@ reverseorientation(f::Fun)
 ## Operator.jl docs
 
 doc"""
-    `Operator{T}` represents a general infinite operator
+    `Operator{T}` represents a general operator
 """
 Operator
-
-doc"""
-    `InfiniteOperator{T}` represents an operator with an infinite number of rows
-"""
-InfiniteOperator
-
-doc"""
-    `BandedBelowOperator{T}` represents an operator banded banded below.
-    The bandwidth can be found with bandinds(op,1).
-"""
-BandedBelowOperator
-
-doc"""
-    `AlmostBandedOperator{T}` represents an operator that is banded apart from
-    a finite number of dense rows. The bandwidth can be found with bandinds(op).
-"""
-AlmostBandedOperator
-
-doc"""
-    `BandedOperator{T}` represents a banded operator. The bandwidth can be found with bandinds(op).
-"""
-BandedOperator

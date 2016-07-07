@@ -55,7 +55,7 @@ end
 ## SavedBandedOperator
 
 
-type SavedBandedOperator{T<:Number,M<:BandedOperator} <: BandedOperator{T}
+type SavedBandedOperator{T<:Number,M<:Operator} <: Operator{T}
     op::M
     data::BandedMatrix{T}   #Shifted to encapsolate bandedness
     datalength::Int
@@ -70,7 +70,7 @@ function Base.convert{BT<:Operator}(::Type{BT},S::SavedBandedOperator)
     if isa(S,BT)
         S
     else
-        SavedBandedOperator(convert(BandedOperator{T},S.op),
+        SavedBandedOperator(convert(Operator{T},S.op),
                             convert(BandedMatrix{T},S.data),
                             S.datalength,S.bandinds)
     end
@@ -78,7 +78,7 @@ end
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
-function SavedBandedOperator{T<:Number}(op::BandedOperator{T})
+function SavedBandedOperator{T<:Number}(op::Operator{T})
     data = bzeros(T,0,:,bandinds(op))  # bzeros is needed to allocate top of array
     SavedBandedOperator(op,data,0,bandinds(op))
 end

@@ -7,7 +7,7 @@ export StrideOperator,StrideFunctional
 #S[rowstride*k + rowindex,colstride*j + colindex] == op[k,j]
 #S[k,j] == op[(k-rowindex)/rowstride,(j-colindex)/colstride]
 
-immutable StrideOperator{T<:Number,B<:Operator} <: BandedOperator{T}
+immutable StrideOperator{T<:Number,B<:Operator} <: Operator{T}
     op::B
     rowindex::Int
     colindex::Int
@@ -173,18 +173,18 @@ end
 
 ## Interlace operator
 
-immutable InterlaceOperator{T} <: BandedOperator{T}
-    ops::Matrix{BandedOperator{T}}
+immutable InterlaceOperator{T} <: Operator{T}
+    ops::Matrix{Operator{T}}
     function InterlaceOperator(os)
         @assert size(os,1)==size(os,2)
         new(promotespaces(os))
     end
 end
-InterlaceOperator{T}(ops::Matrix{BandedOperator{T}})=InterlaceOperator{T}(ops)
-InterlaceOperator{B<:BandedOperator}(ops::Matrix{B})=InterlaceOperator(convert(Matrix{BandedOperator{mapreduce(eltype,promote_type,ops)}},ops))
+InterlaceOperator{T}(ops::Matrix{Operator{T}})=InterlaceOperator{T}(ops)
+InterlaceOperator{B<:Operator}(ops::Matrix{B})=InterlaceOperator(convert(Matrix{Operator{mapreduce(eltype,promote_type,ops)}},ops))
 
 function Base.convert{BT<:Operator}(::Type{BT},S::InterlaceOperator)
-    ops=Array(BandedOperator{eltype(BT)},size(S.ops)...)
+    ops=Array(Operator{eltype(BT)},size(S.ops)...)
     for j=1:size(S.ops,2),k=1:size(S.ops,1)
         ops[k,j]=S.ops[k,j]
     end
@@ -231,7 +231,7 @@ rangespace(IO::InterlaceOperator)=rangespace(IO.ops[:,1])
 iscolop(op)=isconstop(op)
 iscolop(::Multiplication)=true
 
-function interlace{T<:BandedOperator}(A::Matrix{T})
+function interlace{T<:Operator}(A::Matrix{T})
     # Hack to use BlockOperator when appropriate
     if size(A,1)==1 && all(iscolop,A[1,1:end-1])
         BlockOperator(A)
@@ -249,7 +249,7 @@ function interlace{T<:Operator}(A::Matrix{T})
     # Use BlockOperator whenever the first columns are all constants
     if all(isconstop,A[1:end-1,1:end-1]) &&
             all(iscolop,A[end,1:end-1]) &&
-            all(a->isafunctional(a),A[1:end-1,end]) && isa(A[end,end],BandedOperator)
+            all(a->isafunctional(a),A[1:end-1,end]) && isbanded(A[end,end])
         return [Operator{TT}[BlockFunctional(map(Number,vec(A[k,1:end-1])),A[k,end]) for k=1:m-1]...;
                     BlockOperator(A[end:end,:])]
     end
@@ -290,7 +290,7 @@ function interlace{T<:Operator}(A::Matrix{T})
 
     if br < m
         Am=A[br+1:m,:]
-        S[br+1]=interlace(convert(Matrix{BandedOperator{TT}},Am))
+        S[br+1]=interlace(convert(Matrix{Operator{TT}},Am))
     end
 
     if(size(S,1) ==1)
@@ -302,7 +302,7 @@ end
 
 
 
-immutable DiagonalInterlaceOperator{OPS,DS,RS,T<:Number} <: BandedOperator{T}
+immutable DiagonalInterlaceOperator{OPS,DS,RS,T<:Number} <: Operator{T}
     ops::OPS
     domainspace::DS
     rangespace::RS
@@ -313,10 +313,9 @@ DiagonalInterlaceOperator(v::Tuple,ds::Space,rs::Space)=DiagonalInterlaceOperato
 DiagonalInterlaceOperator{ST<:Space}(v::Tuple,::Type{ST})=DiagonalInterlaceOperator(v,ST(map(domainspace,v)),ST(map(rangespace,v)))
 DiagonalInterlaceOperator(v::Vector,k...)=DiagonalInterlaceOperator(tuple(v...),k...)
 
-for TYP in (:BandedOperator,:Operator)
-    @eval Base.convert{T}(::Type{$TYP{T}},op::DiagonalInterlaceOperator)=
-        DiagonalInterlaceOperator(map($TYP{T},op.ops),op.domainspace,op.rangespace)
-end
+
+Base.convert{T}(::Type{Operator{T}},op::DiagonalInterlaceOperator)=
+        DiagonalInterlaceOperator(map(Operator{T},op.ops),op.domainspace,op.rangespace)
 
 
 function bandinds(S::DiagonalInterlaceOperator)

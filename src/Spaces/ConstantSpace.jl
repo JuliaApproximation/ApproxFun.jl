@@ -132,7 +132,7 @@ rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) =
 # FunctionalOperator treats a functional like an operator
 ###
 
-immutable FunctionalOperator{FT,T} <: BandedOperator{T}
+immutable FunctionalOperator{FT,T} <: Operator{T}
     func::FT
 end
 
@@ -181,7 +181,7 @@ getindex(FO::FunctionalOperator,k::Integer,j::Integer) =
 function *(f::Fun,A::Operator)
     @assert isafunctional(A)
     if datalength(A)<Inf
-        # We get a BandedOperator, so we take that into account
+        # We get a banded operator, so we take that into account
         TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
     else
         LowRankOperator(f,A)

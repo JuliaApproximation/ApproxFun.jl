@@ -29,7 +29,7 @@ iskronsumop(A::Union{WrapperOps,SpaceOperator,ConstantTimesOperator})=iskronsumo
 dekron(K::KroneckerOperator,k)=K.ops[k]
 
 dekron(S::WrapperOps,k)=dekron(S.op,k)
-dekron(S::TimesOperator,k)=TimesOperator(BandedOperator{eltype(eltype(S))}[dekron(op,k) for op in S.ops])
+dekron(S::TimesOperator,k)=TimesOperator(Operator{eltype(eltype(S))}[dekron(op,k) for op in S.ops])
 dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 #TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)
@@ -40,9 +40,9 @@ dekron(K)=dekron(K,1),dekron(K,2)
 
 sumops(A)=A.ops
 sumops(A::Union{SpaceOperator,WrapperOps})=sumops(A.op)
-sumops(A::ConstantTimesOperator)=BandedOperator{eltype(A)}[A.c*op for op in sumops(A.op)]
+sumops(A::ConstantTimesOperator)=Operator{eltype(A)}[A.c*op for op in sumops(A.op)]
 function dekron(T::Type,A,k,::Colon)
-    ret=Array(BandedOperator{T},0)
+    ret=Array(Operator{T},0)
     if iskronop(A)
         push!(ret,dekron(A,k))
     elseif iskronsumop(A)

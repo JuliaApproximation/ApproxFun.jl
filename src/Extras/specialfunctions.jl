@@ -752,6 +752,6 @@ expγ(x) = expγ_asy(x)
 
 for f in (:(Base.exp),:(Base.expm1),:expα,:expβ,:expγ)
     @eval begin
-        $f(op::BandedOperator) = OperatorFunction(op,$f)
+        $f(op::Operator) = OperatorFunction(op,$f)
     end
 end

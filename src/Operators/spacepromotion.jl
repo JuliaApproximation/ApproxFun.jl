@@ -34,7 +34,7 @@ rangespace(S::SpaceFunctional)=ConstantSpace(S.rangedomain)
 domain(S::SpaceFunctional)=domain(S.domainspace)
 
 ## Space Operator is used to wrap an AnySpace() operator
-immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: BandedOperator{T}
+immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: Operator{T}
     op::O
     domainspace::S
     rangespace::V
@@ -52,7 +52,7 @@ function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)
     if T==eltype(S)
         S
     else
-        op=convert(BandedOperator{T},S.op)
+        op=convert(Operator{T},S.op)
         SpaceOperator{typeof(op),typeof(S.domainspace),typeof(S.rangespace),T}(op,S.domainspace,S.rangespace)
     end
 end
@@ -112,9 +112,9 @@ end
 
 for op in (:promoterangespace,:promotedomainspace)
     @eval begin
-        ($op)(P::BandedOperator,::AnySpace)=P
-        ($op)(P::BandedOperator,::UnsetSpace)=P
-        ($op)(P::BandedOperator,sp::Space,::AnySpace)=SpaceOperator(P,sp)
+        ($op)(P::Operator,::AnySpace)=P
+        ($op)(P::Operator,::UnsetSpace)=P
+        ($op)(P::Operator,sp::Space,::AnySpace)=SpaceOperator(P,sp)
     end
 end
 
@@ -130,29 +130,26 @@ promotedomainspace(P::Operator,sp::Space,cursp::Space) =
 
 
 
-for TYP in (:Operator,:BandedOperator)
-  @eval begin
-    #TODO: better way of deciding type
-    function promoterangespace{O<:$TYP}(ops::Vector{O})
-      k=findmaxrangespace(ops)
-      #TODO: T might be incorrect
-      T=mapreduce(eltype,promote_type,ops)
-      $TYP{T}[promoterangespace(op,k) for op in ops]
-    end
-    function promotedomainspace{O<:$TYP}(ops::Vector{O})
-      k=findmindomainspace(ops)
-      #TODO: T might be incorrect
-      T=mapreduce(eltype,promote_type,ops)
-      $TYP{T}[promotedomainspace(op,k) for op in ops]
-    end
-    function promotedomainspace{O<:$TYP}(ops::Vector{O},S::Space)
-        k=conversion_type(findmindomainspace(ops),S)
-        #TODO: T might be incorrect
-        T=promote_type(mapreduce(eltype,promote_type,ops),eltype(S))
-        $TYP{T}[promotedomainspace(op,k) for op in ops]
-    end
-  end
+
+function promoterangespace{O<:Operator}(ops::Vector{O})
+    k=findmaxrangespace(ops)
+    #TODO: T might be incorrect
+    T=mapreduce(eltype,promote_type,ops)
+    Operator{T}[promoterangespace(op,k) for op in ops]
 end
+function promotedomainspace{O<:Operator}(ops::Vector{O})
+    k=findmindomainspace(ops)
+    #TODO: T might be incorrect
+    T=mapreduce(eltype,promote_type,ops)
+    Operator{T}[promotedomainspace(op,k) for op in ops]
+end
+function promotedomainspace{O<:Operator}(ops::Vector{O},S::Space)
+    k=conversion_type(findmindomainspace(ops),S)
+    #TODO: T might be incorrect
+    T=promote_type(mapreduce(eltype,promote_type,ops),eltype(S))
+    Operator{T}[promotedomainspace(op,k) for op in ops]
+end
+
 
 
 ####

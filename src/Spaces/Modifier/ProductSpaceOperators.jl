@@ -36,13 +36,13 @@ Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::Multiplication
 # represents an operator applied to all spaces in an array space
 
 
-immutable DiagonalArrayOperator{B<:BandedOperator,T<:Number} <: BandedOperator{T}
+immutable DiagonalArrayOperator{B<:Operator,T<:Number} <: Operator{T}
     op::B
     dimensions::Tuple{Vararg{Int}}
 end
 
-DiagonalArrayOperator{T}(op::BandedOperator{T},dms::Tuple{Vararg{Int}})=DiagonalArrayOperator{typeof(op),T}(op,dms)
-#DiagonalArrayOperator{T}(op::BandedOperator{T},dms::Int)=DiagonalArrayOperator(op,(dms,))
+DiagonalArrayOperator{T}(op::Operator{T},dms::Tuple{Vararg{Int}})=DiagonalArrayOperator{typeof(op),T}(op,dms)
+#DiagonalArrayOperator{T}(op::Operator{T},dms::Int)=DiagonalArrayOperator(op,(dms,))
 
 
 function bandinds(D::DiagonalArrayOperator)
@@ -266,7 +266,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->cho
 function Multiplication{S,T,DD}(f::Fun{MatrixSpace{S,T,DD,1}},sp::VectorSpace)
     @assert size(space(f),2)==length(sp)
     m=mat(f)
-    MultiplicationWrapper(f,interlace(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
+    MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
 end
 
 

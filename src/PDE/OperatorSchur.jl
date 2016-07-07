@@ -74,7 +74,7 @@ function DiagonalOperatorSchur{T1<:Number,T2<:Number}(R::Vector{T1},T::Vector{T2
     DiagonalOperatorSchur(A,d,r)
 end
 
-function DiagonalOperatorSchur(L::BandedOperator,M::BandedOperator,n::Integer)
+function DiagonalOperatorSchur(L::Operator,M::Operator,n::Integer)
     Yop=promotespaces([L,M])
     DiagonalOperatorSchur(diag(Yop[1][1:n,1:n]|>full),diag(Yop[2][1:n,1:n]|>full),domainspace(Yop[1]),rangespace(Yop[2]))
 end

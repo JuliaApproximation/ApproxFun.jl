@@ -14,7 +14,7 @@ function treeadd_edges!(str,ops,node,M,labels)
 end
 
 
-function introspect(A::Union{BandedOperator,Operator,Space})
+function introspect(A::Union{Operator,Space})
     @eval import TikzGraphs
     m=treecount(A)
 
@@ -72,7 +72,7 @@ end
 ## Operators
 
 
-treecount(::BandedOperator)=1
+treecount(::Operator)=1
 
 treecount(::Derivative)=1
 treecount(::ConstantOperator)=1
@@ -89,7 +89,7 @@ treecount(A::Union{PlusOperator,TimesOperator,InterlaceOperator,
 domainrangestr(A)=texname(domainspace(A))*"\$\\rightarrow\$"*texname(rangespace(A))
 
 
-texname(A::BandedOperator)=string(typeof(A))
+texname(A::Operator)=string(typeof(A))
 texname(D::ConcreteDerivative)=(D.order==1?"\$D":"\$D\^"*string(D.order))*"\$:"*domainrangestr(D)
 texname(A::ConstantOperator)=string(A.c)*"I"
 texname(C::ConcreteConversion)="C:"*domainrangestr(C)
@@ -102,7 +102,7 @@ texname(D::DerivativeWrapper)=(D.order==1?"\$(D":"\$(D\^"*string(D.order))*")\$"
 texname(A::SpaceOperator)="("*domainrangestr(A)*")"
 texname(A::ConstantTimesOperator)=string(A.c)
 
-add_edges!(A::BandedOperator,nd,M,labels)=(labels[nd]=string(nd)*":"*texname(A))
+add_edges!(A::Operator,nd,M,labels)=(labels[nd]=string(nd)*":"*texname(A))
 
 
 
