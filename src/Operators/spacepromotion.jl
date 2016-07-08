@@ -110,13 +110,6 @@ function promotedomainspace(P::Operator,sp::Space,::ZeroSpace)
     SpaceFunctional(P,sp)
 end
 
-for op in (:promoterangespace,:promotedomainspace)
-    @eval begin
-        ($op)(P::Operator,::AnySpace)=P
-        ($op)(P::Operator,::UnsetSpace)=P
-        ($op)(P::Operator,sp::Space,::AnySpace)=SpaceOperator(P,sp)
-    end
-end
 
 promoterangespace(P::Operator,sp::Space)=promoterangespace(P,sp,rangespace(P))
 promotedomainspace(P::Operator,sp::Space)=promotedomainspace(P,sp,domainspace(P))

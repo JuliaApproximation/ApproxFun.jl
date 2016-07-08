@@ -5,7 +5,7 @@ export ToeplitzOperator, HankelOperator, LaurentOperator
 
 
 
-type ToeplitzOperator{T<:Number} <: BandedOperator{T}
+type ToeplitzOperator{T<:Number} <: Operator{T}
     negative::Vector{T}
     nonnegative::Vector{T}
 end
@@ -82,7 +82,7 @@ end
 ## Hankel Operator
 
 
-type HankelOperator{T<:Number} <: BandedOperator{T}
+type HankelOperator{T<:Number} <: Operator{T}
     coefficients::Vector{T}
 end
 
@@ -91,9 +91,8 @@ HankelOperator(V::AbstractVector)=HankelOperator(collect(V))
 HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
 
-for TYP in (:Operator,:BandedOperator)
-    @eval Base.convert{TT}(::Type{$TYP{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
-end
+
+@eval Base.convert{TT}(::Type{Operator{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
 
 function hankel_getindex(v::AbstractVector,k::Integer,j::Integer)
    if k+j-1 ≤ length(v)
@@ -123,13 +122,13 @@ bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
 
 ## Laurent Operator
 
-type LaurentOperator{T<:Number} <: BandedOperator{T}
+type LaurentOperator{T<:Number} <: Operator{T}
     negative::Vector{T}
     nonnegative::Vector{T}
 end
 
-for ATYP in (:Operator,:BandedOperator), TYP in(:ToeplitzOperator,:LaurentOperator)
-    @eval Base.convert{TT}(::Type{$ATYP{TT}},T::$TYP)=$TYP(convert(Vector{TT},T.negative),
+for TYP in(:ToeplitzOperator,:LaurentOperator)
+    @eval Base.convert{TT}(::Type{Operator{TT}},T::$TYP)=$TYP(convert(Vector{TT},T.negative),
                                                                             convert(Vector{TT},T.nonnegative))
 end
 

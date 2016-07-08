@@ -45,25 +45,21 @@ datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
 promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Operator{T}[promotedomainspace(c,sp) for c in C.ops])
 
 
-immutable PlusOperator{T} <: BandedOperator{T}
-    ops::Vector{BandedOperator{T}}
+immutable PlusOperator{T} <: Operator{T}
+    ops::Vector{Operator{T}}
 end
 
-PlusOperator{T}(ops::Vector{Operator{T}}) =
-    PlusOperator(Vector{BandedOperator{T}}(ops))
 
 #Base.convert{OT<:PlusOperator}(::Type{OT},P::OT)=P
-for TYP in (:Operator,:BandedOperator)
-    @eval function Base.convert{T}(::Type{$TYP{T}},P::PlusOperator)
-        if T==eltype(P)
-            P
-        else
-            PlusOperator{T}(P.ops)
-        end
+function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
+    if T==eltype(P)
+        P
+    else
+        PlusOperator{T}(P.ops)
     end
 end
 
-promoteplus{T}(ops::Vector{BandedOperator{T}})=PlusOperator(promotespaces(ops))
+promoteplus{T}(ops::Vector{Operator{T}})=PlusOperator(promotespaces(ops))
 function promoteplus{T}(opsin::Vector{Operator{T}})
     ops=promotespaces(opsin)
     if all(isafunctional,ops)
@@ -71,7 +67,7 @@ function promoteplus{T}(opsin::Vector{Operator{T}})
     elseif all(isbanded,ops)
         PlusOperator(ops)
     else
-        error("Can only do Functionals/BandedOperators separately for now.")
+        error("Can only do Functionals/banded operators separately for now.")
     end
 end
 
@@ -79,7 +75,7 @@ end
 
 
 for (PLUS,TYP,ZER) in ((:PlusFunctional,:Operator,:ZeroFunctional),
-                       (:PlusOperator,:BandedOperator,:ZeroOperator))
+                       (:PlusOperator,:Operator,:ZeroOperator))
     @eval begin
         function domainspace(P::$PLUS)
             for op in P.ops
@@ -179,8 +175,8 @@ end
 -(A::Operator,f::Fun)=A+Multiplication(-f,domainspace(A))
 -(f::Fun,A::Operator)=Multiplication(f,domainspace(A))-A
 +(A::ZeroOperator,::ZeroOperator)=A
-+(A::BandedOperator,::ZeroOperator)=A
-+(::ZeroOperator,B::BandedOperator)=B
++(A::Operator,::ZeroOperator)=A
++(::ZeroOperator,B::Operator)=B
 +(A::ZeroFunctional,::ZeroFunctional)=A
 +(A::Operator,::ZeroFunctional)=A
 +(::ZeroFunctional,B::Operator)=B
@@ -234,7 +230,7 @@ promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional
 
 
 
-type TimesFunctional{T,A<:Operator,B<:BandedOperator} <: Operator{T}
+type TimesFunctional{T,A<:Operator,B<:Operator} <: Operator{T}
     functional::A
     op::B
 end
@@ -249,7 +245,7 @@ rangespace(C::TimesFunctional)=rangespace(C.functional)
 datalength(C::TimesFunctional)=datalength(C.functional)+bandinds(C.op,2)
 
 
-TimesFunctional{T,V}(A::Operator{T},B::BandedOperator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
+TimesFunctional{T,V}(A::Operator{T},B::Operator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
 
 getindex(f::TimesFunctional,j::Integer) =
     f[j:j][1]
@@ -270,21 +266,21 @@ function getindex(f::TimesFunctional,jr::Range)#j is columns
 end
 
 
-immutable ConstantTimesOperator{T,B,BT} <: BandedOperator{BT}
+immutable ConstantTimesOperator{T,B,BT} <: Operator{BT}
     c::T
     op::B
     ConstantTimesOperator(c,op)=new(c,op)
 end
 function ConstantTimesOperator{TT<:Number}(c::Number,op::Operator{TT})
     T=promote_type(typeof(c),eltype(op))
-    B=convert(BandedOperator{T},op)
+    B=convert(Operator{T},op)
     ConstantTimesOperator{T,typeof(B),T}(c,B)
 end
 function ConstantTimesOperator{BM<:BandedMatrix}(c::Number,op::Operator{BM})
     BT=eltype(BM)
     T=promote_type(typeof(c),BT)
 
-    B=convert(BandedOperator{BandedMatrix{T}},op)
+    B=convert(Operator{BandedMatrix{T}},op)
     ConstantTimesOperator{T,typeof(B),BandedMatrix{T}}(c,B)
 end
 
@@ -307,15 +303,14 @@ for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,
     end
 end
 
-for TYP in (:Operator,:BandedOperator)
-    @eval function Base.convert{T}(::Type{$TYP{T}},C::ConstantTimesOperator)
-        if T==eltype(C)
-            C
-        else
-            op=convert(BandedOperator{T},C.op)
-            ret=ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)
-            ret
-        end
+
+function Base.convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
+    if T==eltype(C)
+        C
+    else
+        op=convert(Operator{T},C.op)
+        ret=ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)
+        ret
     end
 end
 
@@ -333,10 +328,10 @@ BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubBandedMatrix{T,OP},A::AbstractM
 
 
 
-immutable TimesOperator{T} <: BandedOperator{T}
-    ops::Vector{BandedOperator{T}}
+immutable TimesOperator{T} <: Operator{T}
+    ops::Vector{Operator{T}}
 
-    function TimesOperator(ops::Vector{BandedOperator{T}})
+    function TimesOperator(ops::Vector{Operator{T}})
         hastimes=false
         for k=1:length(ops)-1
             @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() || spacescompatible(domainspace(ops[k]),rangespace(ops[k+1]))
@@ -344,7 +339,7 @@ immutable TimesOperator{T} <: BandedOperator{T}
         end
 
         if hastimes
-            newops=Array(BandedOperator{T},0)
+            newops=Array(Operator{T},0)
             for op in ops
                if isa(op,TimesOperator)
                     for op2 in op.ops
@@ -362,35 +357,29 @@ immutable TimesOperator{T} <: BandedOperator{T}
     end
 end
 
-TimesOperator{T}(ops::Vector{BandedOperator{T}})=TimesOperator{T}(ops)
-TimesOperator{OT<:Operator}(ops::Vector{OT})=TimesOperator(convert(Vector{BandedOperator{eltype(OT)}},ops))
+TimesOperator{T}(ops::Vector{Operator{T}})=TimesOperator{T}(ops)
+TimesOperator{OT<:Operator}(ops::Vector{OT})=TimesOperator(convert(Vector{Operator{eltype(OT)}},ops))
 
-TimesOperator(A::TimesOperator,B::TimesOperator)=TimesOperator(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
-TimesOperator(A::TimesOperator,B::BandedOperator)=TimesOperator(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
-TimesOperator(A::BandedOperator,B::TimesOperator)=TimesOperator(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
-TimesOperator(A::BandedOperator,B::BandedOperator)=TimesOperator(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B])
+TimesOperator(A::TimesOperator,B::TimesOperator)=TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
+TimesOperator(A::TimesOperator,B::Operator)=TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
+TimesOperator(A::Operator,B::TimesOperator)=TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
+TimesOperator(A::Operator,B::Operator)=TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A,B])
 
 
 ==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
 
-
-# Base.convert{OT<:TimesOperator}(::Type{OT},P::OT)=P
-for TYP in (:Operator,:BandedOperator)
-    @eval begin
-        function Base.convert{T}(::Type{$TYP{T}},P::TimesOperator)
-            if T==eltype(P)
-                P
-            else
-                TimesOperator(BandedOperator{T}[P.ops...])
-            end
-        end
+function Base.convert{T}(::Type{Operator{T}},P::TimesOperator)
+    if T==eltype(P)
+        P
+    else
+        TimesOperator(Operator{T}[P.ops...])
     end
 end
 
 
 
-function promotetimes{B<:BandedOperator}(opsin::Vector{B},dsp)
-    ops=Array(BandedOperator{mapreduce(eltype,promote_type,opsin)},0)
+function promotetimes{B<:Operator}(opsin::Vector{B},dsp)
+    ops=Array(Operator{mapreduce(eltype,promote_type,opsin)},0)
 
     for k=length(opsin):-1:1
         if !isa(opsin[k],Conversion)
@@ -417,7 +406,7 @@ function promotetimes{B<:BandedOperator}(opsin::Vector{B},dsp)
     end
 end
 
-promotetimes{B<:BandedOperator}(opsin::Vector{B})=promotetimes(opsin,domainspace(last(opsin)))
+promotetimes{B<:Operator}(opsin::Vector{B})=promotetimes(opsin,domainspace(last(opsin)))
 
 
 
@@ -536,28 +525,29 @@ for OP in (:(Base.ctranspose),:(Base.transpose))
     @eval $OP(A::TimesOperator)=TimesOperator(reverse!(map($OP,A.ops)))
 end
 
-*(A::TimesOperator,B::TimesOperator)=promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
-function *(A::TimesOperator,B::BandedOperator)
+*(A::TimesOperator,B::TimesOperator) =
+    promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
+function *(A::TimesOperator,B::Operator)
     if isconstop(B)
         promotedomainspace(A*convert(Number,B),domainspace(B))
     else
-        promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
+        promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
     end
 end
-function *(A::BandedOperator,B::TimesOperator)
+function *(A::Operator,B::TimesOperator)
     if isconstop(A)
         promoterangespace(convert(Number,A)*B,rangespace(A))
     else
-        promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
+        promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
     end
 end
-function *(A::BandedOperator,B::BandedOperator)
+function *(A::Operator,B::Operator)
     if isconstop(A)
         promoterangespace(convert(Number,A)*B,rangespace(A))
     elseif isconstop(B)
         promotedomainspace(A*convert(Number,B),domainspace(B))
     else
-        promotetimes(BandedOperator{promote_type(eltype(A),eltype(B))}[A,B])
+        promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A,B])
     end
 end
 
@@ -571,28 +561,28 @@ end
 *(A::Conversion,B::Conversion) = ConversionWrapper(TimesOperator(A,B))
 *(A::Conversion,B::TimesOperator) = TimesOperator(A,B)
 *(A::TimesOperator,B::Conversion) = TimesOperator(A,B)
-*(A::BandedOperator,B::Conversion) =
+*(A::Operator,B::Conversion) =
     isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
-*(A::Conversion,B::BandedOperator) =
+*(A::Conversion,B::Operator) =
     isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
 -(A::Operator) = isafunctional(A)?ConstantTimesFunctional(-1,A):ConstantTimesOperator(-1,A)
 -(A::Operator,B::Operator) = A+(-B)
 
-*(f::Fun,A::BandedOperator) = TimesOperator(Multiplication(f,rangespace(A)),A)
+*(f::Fun,A::Operator) = TimesOperator(Multiplication(f,rangespace(A)),A)
 
 for OP in (:*,:.*)
     @eval begin
-        $OP(c::Number,A::BandedOperator) =
+        $OP(c::Number,A::Operator) =
             c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
-        $OP(A::BandedOperator,c::Number) =
+        $OP(A::Operator,c::Number) =
             c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
     end
 end
 
-/(B::BandedOperator,c::Number) = c==1?B:ConstantTimesOperator(1.0/c,B)
-/(B::BandedOperator,c::Fun) = (1.0/c)*B
+/(B::Operator,c::Number) = c==1?B:ConstantTimesOperator(1.0/c,B)
+/(B::Operator,c::Fun) = (1.0/c)*B
 
 
 
@@ -612,7 +602,7 @@ for TYP in (:Vector,:Matrix)
         end
 
 
-        function *(A::BandedOperator,b::$TYP)
+        function *(A::Operator,b::$TYP)
             n=size(b,1)
 
             ret=if n>0
@@ -648,7 +638,7 @@ function *(A::PlusOperator,b::Fun)
 end
 =#
 
-for TYP in (:TimesOperator,:BandedOperator,:InfiniteOperator)
+for TYP in (:TimesOperator,:Operator,:InfiniteOperator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
         @assert size(b,1)==1
         C=A*coefficients(vec(b),domainspace(A))
@@ -683,7 +673,7 @@ for T in (:AnySpace,:Space)
             if sp==cursp
                 P
             else
-                promoteplus(BandedOperator{T}[promotedomainspace(op,sp) for op in P.ops])
+                promoteplus(Operator{T}[promotedomainspace(op,sp) for op in P.ops])
             end
         end
     end

@@ -1,4 +1,4 @@
-export Operator,BandedOperator,InfiniteOperator
+export Operator,InfiniteOperator
 export bandinds, bandrange, linsolve, periodic
 export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
@@ -10,7 +10,6 @@ abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
 abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
 abstract BandedBelowOperator{T} <: InfiniteOperator{T}
 abstract AlmostBandedOperator{T} <: BandedBelowOperator{T}
-abstract BandedOperator{T} <: AlmostBandedOperator{T}
 
 Base.eltype{T}(::Operator{T})=T
 Base.eltype{T}(::Type{Operator{T}})=T
@@ -55,11 +54,10 @@ end
 
 
 Base.size(A::Operator) = (size(A,1),size(A,2))
-Base.size(A::BandedOperator,k::Integer) = ∞ #TODO: delte
 Base.size(A::Operator,k::Integer) = k==1?dimension(rangespace(A)):dimension(domainspace(A))
 
 # used to compute "end" for last index
-function Base.trailingsize(A::BandedOperator, n::Integer)
+function Base.trailingsize(A::Operator, n::Integer)
     if n > 2
         1
     elseif n==2
@@ -81,7 +79,7 @@ datalength(F::Operator) = ∞        # use datalength to indicate a finite lengt
 
 ## bandrange and indexrange
 
-bandwidth(A::BandedOperator,k::Integer)=k==1?-bandinds(A,1):bandinds(A,2)
+bandwidth(A::Operator,k::Integer)=k==1?-bandinds(A,1):bandinds(A,2)
 bandinds(A,k::Integer)=bandinds(A)[k]
 bandrange(b::BandedBelowOperator)=UnitRange(bandinds(b)...)
 function bandrangelength(B::BandedBelowOperator)
@@ -103,10 +101,10 @@ end
 # A diagonal operator has essentially infinite stride
 # which we represent by a factorial, so that
 # the gcd with any number < 10 is the number
-Base.stride(A::BandedOperator)=isdiag(A)?factorial(10):1
-Base.stride(A::Operator)=1
+Base.stride(A::Operator) =
+    isdiag(A)?factorial(10):1
 
-Base.isdiag(A::BandedOperator)=bandinds(A)==(0,0)
+Base.isdiag(A::Operator) = bandinds(A)==(0,0)
 
 
 ## Construct operators
@@ -168,9 +166,6 @@ defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in 
 
 
 # Colon casdes
-defaultgetindex(L::BandedOperator,kr::Range,::Colon)=Operator{eltype(L)}[L[k,:] for k=kr]
-defaultgetindex(A::BandedOperator,k::Integer,::Colon) =
-    FiniteFunctional(vec(A[k,1:1+bandinds(A,2)]),domainspace(A))
 defaultgetindex(A::Operator,kr::Range,::Colon) = view(A,kr,:)
 defaultgetindex(A::Operator,::Colon,jr::Range) = view(A,:,jr)
 defaultgetindex(A::Operator,::Colon,::Colon) = A
@@ -288,20 +283,21 @@ mat_promote_type{T,B<:Number}(::Type{B},::Type{BandedMatrix{T}})=BandedMatrix{pr
 
 
 
-for OP in (:BandedOperator,:Operator)
-  @eval begin
-      Base.promote_rule{N<:Number}(::Type{N},::Type{$OP})=$OP{N}
-      Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{$OP})=$OP{N}
-      Base.promote_rule{S,N<:Number}(::Type{Fun{S,N}},::Type{$OP})=$OP{N}
-      Base.promote_rule{N<:Number,O<:$OP}(::Type{N},::Type{O})=$OP{mat_promote_type(N,eltype(O))}
-      Base.promote_rule{N<:Number,O<:$OP}(::Type{UniformScaling{N}},::Type{O})=$OP{mat_promote_type(N,eltype(O))}
-      Base.promote_rule{S,N<:Number,O<:$OP}(::Type{Fun{S,N}},::Type{O})=$OP{mat_promote_type(N,eltype(O))}
-  end
-end
 
-for OP in (:BandedOperator,:Operator)
-  @eval Base.promote_rule{BO1<:$OP,BO2<:$OP}(::Type{BO1},::Type{BO2})=$OP{mat_promote_type(eltype(BO1),eltype(BO2))}
-end
+Base.promote_rule{N<:Number}(::Type{N},::Type{Operator}) = Operator{N}
+Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{Operator}) =
+    Operator{N}
+Base.promote_rule{S,N<:Number}(::Type{Fun{S,N}},::Type{Operator}) = Operator{N}
+Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O}) =
+    Operator{mat_promote_type(N,eltype(O))}
+Base.promote_rule{N<:Number,O<:Operator}(::Type{UniformScaling{N}},::Type{O}) =
+    Operator{mat_promote_type(N,eltype(O))}
+Base.promote_rule{S,N<:Number,O<:Operator}(::Type{Fun{S,N}},::Type{O}) =
+    Operator{mat_promote_type(N,eltype(O))}
+
+Base.promote_rule{BO1<:Operator,BO2<:Operator}(::Type{BO1},::Type{BO2}) =
+    Operator{mat_promote_type(eltype(BO1),eltype(BO2))}
+
 
 
 

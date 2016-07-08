@@ -125,7 +125,7 @@ rangespace(M::MutableOperator)=rangespace(M.op)
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
-function MutableOperator{R<:Operator}(bc::Vector{R},op::BandedOperator)
+function MutableOperator{R<:Operator}(bc::Vector{R},op::Operator)
     bndinds=bandinds(op)
     bndindslength=bndinds[end]-bndinds[1]+1
     nbc = length(bc)
@@ -151,7 +151,7 @@ function MutableOperator{T<:Operator}(B::Vector{T})
     MutableOperator(bcs,B[end])
 end
 
-MutableOperator{BO<:BandedOperator}(B::BO)=MutableOperator(BO[B])
+MutableOperator{BO<:Operator}(B::BO)=MutableOperator(BO[B])
 
 
 # for bandrange, we save room for changed entries during Givens
@@ -201,7 +201,7 @@ end
 # getindex!(b::MutableOperator,kr::Range1,jr::Range1)=resizedata!(b,kr[end])[kr,jr]
 # getindex!(b::MutableOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,jr]
 
-function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableOperator{T,M,R},n::Integer)
+function resizedata!{T<:Number,M<:Operator,R}(B::MutableOperator{T,M,R},n::Integer)
     resizedata!(B.fill,n)
 
     if n > B.datalength

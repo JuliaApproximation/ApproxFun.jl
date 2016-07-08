@@ -2,7 +2,7 @@
 
 
 #assume dimension of kernel is range space
-Base.nullspace(A::BandedOperator)=nullspace(A,order(rangespace(A)))
+Base.nullspace(A::Operator)=nullspace(A,order(rangespace(A)))
 
 
 function applygivens!(a,b,Q1,Qk)
@@ -15,7 +15,7 @@ end
 
 #d is number of elements in the kernel
 
-function Base.nullspace{T<:Number}(A::BandedOperator{T},d;maxlength::Int=100000,
+function Base.nullspace{T<:Number}(A::Operator{T},d;maxlength::Int=100000,
                                                         tolerance::T=eps(T))
     M=MutableOperator(A')
     m=bandinds(A)[end]
@@ -67,9 +67,9 @@ function Base.nullspace{T<:Number}(A::BandedOperator{T},d;maxlength::Int=100000,
 end
 
 
-Base.nullspace{T<:BandedOperator}(A::Array{T,2},d)=nullspace(interlace(A),d)
+Base.nullspace{T<:Operator}(A::Array{T,2},d)=nullspace(interlace(A),d)
 
-function Base.nullspace{T<:BandedOperator}(A::Array{T,2})
+function Base.nullspace{T<:Operator}(A::Array{T,2})
     # We assume ultraspherical space gives dimension of kernel
     d = 0
     A=promotespaces(A)

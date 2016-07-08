@@ -9,7 +9,7 @@ immutable LowRankPertOperator{OO,LR,T} <: AlmostBandedOperator{T}
     end
 end
 
-function LowRankPertOperator(Bin::BandedOperator,Lin::LowRankOperator)
+function LowRankPertOperator(Bin::Operator,Lin::LowRankOperator)
     B,L2=promotedomainspace([Bin,Lin])
     rsp=rangespace(B)  # use rangespace of B because LowRankOperator only
                         # needs convert, and its unlikely that the rangespaces
@@ -80,19 +80,19 @@ end
 
 ## algebra
 
-+(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(B,L)
-+(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(B,L)
++(L::LowRankOperator,B::Operator)=LowRankPertOperator(B,L)
++(B::Operator,L::LowRankOperator)=LowRankPertOperator(B,L)
 
--(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(-B,L)
--(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(B,-L)
+-(L::LowRankOperator,B::Operator)=LowRankPertOperator(-B,L)
+-(B::Operator,L::LowRankOperator)=LowRankPertOperator(B,-L)
 
 for OP in (:+,:-)
     @eval $OP(A::LowRankPertOperator,B::LowRankPertOperator)=LowRankPertOperator($OP(A.op,B.op),$OP(A.pert,B.pert))
 end
 
 *(L::LowRankPertOperator,f::Fun)=L.op*f+L.pert*f
-*(L::LowRankPertOperator,B::BandedOperator)=LowRankPertOperator(L.op*B,L.pert*B)
-*(B::BandedOperator,L::LowRankPertOperator)=LowRankPertOperator(B*L.op,B*L.pert)
+*(L::LowRankPertOperator,B::Operator)=LowRankPertOperator(L.op*B,L.pert*B)
+*(B::Operator,L::LowRankPertOperator)=LowRankPertOperator(B*L.op,B*L.pert)
 
 *(L::LowRankPertOperator,B::LowRankOperator)=L.op*B+L.pert*B
 *(B::LowRankOperator,L::LowRankPertOperator)=B*L.op+B*L.pert

@@ -2,7 +2,7 @@ export ConstantOperator, BasisFunctional
 
 ##TODO: c->λ
 ##TODO: ConstantOperator->UniformScalingOperator?
-immutable ConstantOperator{T,V} <: BandedOperator{V}
+immutable ConstantOperator{T,V} <: Operator{V}
     c::T
     ConstantOperator(c::Number)=new(convert(T,c))
     ConstantOperator(L::UniformScaling)=new(convert(T,L.λ))
@@ -60,7 +60,7 @@ Base.getindex(op::FillFunctional,k::Range)=fill(op.c,length(k))
 
 ## Zero is a special operator: it makes sense on all spaces, and between all spaces
 
-immutable ZeroOperator{T,S,V} <: BandedOperator{T}
+immutable ZeroOperator{T,S,V} <: Operator{T}
     domainspace::S
     rangespace::V
 end
@@ -70,9 +70,9 @@ ZeroOperator{S,V}(d::S,v::V)=ZeroOperator(Float64,d,v)
 ZeroOperator()=ZeroOperator(AnySpace(),ZeroSpace())
 ZeroOperator{T}(::Type{T})=ZeroOperator(T,AnySpace(),ZeroSpace())
 
-for TYP in (:Operator,:BandedOperator)
-    @eval Base.convert{T}(::Type{$TYP{T}},Z::ZeroOperator)=ZeroOperator(T,Z.domainspace,Z.rangespace)
-end
+
+Base.convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
+    ZeroOperator(T,Z.domainspace,Z.rangespace)
 
 
 

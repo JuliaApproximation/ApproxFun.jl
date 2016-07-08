@@ -22,7 +22,7 @@ function /(B::Operator,c::Number)
     c==1?B:ConstantTimesFunctional(1.0/c,B)
 end
 
-function *(B::Operator,O::BandedOperator)
+function *(B::Operator,O::Operator)
     @assert isafunctional(B)
     if isconstop(O)
         promotedomainspace(B*convert(eltype(O),O),domainspace(O))

@@ -73,8 +73,8 @@ adaptiveqr!(B,v,tol)=adaptiveqr!(B,v,tol,Inf)
 
 
 convertvec{T<:Number,V<:Number,k}(::Operator{T},v::Array{V,k})=convert(Array{promote_type(T,V),k},v)
-convertvec{T<:AbstractMatrix,V<:Number,k}(::BandedOperator{T},v::Array{V,k})=totree(v)
-convertvec{T<:AbstractMatrix,V<:AbstractArray,k}(::BandedOperator{T},v::Array{V,k})=convert(Array{V(promote_type(eltype(T),eltype(V))),k},v)
+convertvec{T<:AbstractMatrix,V<:Number,k}(::Operator{T},v::Array{V,k})=totree(v)
+convertvec{T<:AbstractMatrix,V<:AbstractArray,k}(::Operator{T},v::Array{V,k})=convert(Array{V(promote_type(eltype(T),eltype(V))),k},v)
 
 adaptiveqr(B::Operator,v::Array,tol::Real,N) = adaptiveqr([B],v,tol,N)  #May need to copy v in the future
 adaptiveqr{T<:Operator}(B::Vector{T},v::Array,tol::Real,N) = adaptiveqr!(MutableOperator(B),convertvec(B[end],v),tol,N)  #May need to copy v in the future
