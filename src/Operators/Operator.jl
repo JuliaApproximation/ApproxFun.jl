@@ -34,7 +34,8 @@ domain(A::Operator)=domain(domainspace(A))
 
 ## Functionals
 isafunctional(A::Operator) = size(A,1)==1 && isa(rangespace(A),ConstantSpace)
-isbanded(A::Operator) = isfinite(bandinds(A,1)) && isfinite(bandinds(A,2))
+isbanded(A::Operator) = isinf(size(A,1)) && isinf(size(A,2)) &&
+                isfinite(bandinds(A,1)) && isfinite(bandinds(A,2))
 
 macro functional(FF)
     quote

@@ -136,6 +136,8 @@ immutable FunctionalOperator{FT,T} <: Operator{T}
     func::FT
 end
 
+Base.size(::FunctionalOperator,k::Integer) = ∞
+
 function FunctionalOperator(func::Operator)
     @assert isafunctional(func)
     FunctionalOperator{typeof(func),eltype(func)}(func)
