@@ -101,10 +101,6 @@ end
 Base.colon(A::Operator,b::Space)=promotedomainspace(A,b)
 
 
-function promotedomainspace(P::Operator,sp::Space,::AnySpace)
-    @assert isafunctional(P)
-    SpaceFunctional(P,sp)
-end
 function promotedomainspace(P::Operator,sp::Space,::ZeroSpace)
     @assert isafunctional(P)
     SpaceFunctional(P,sp)
@@ -114,6 +110,21 @@ end
 promoterangespace(P::Operator,sp::Space)=promoterangespace(P,sp,rangespace(P))
 promotedomainspace(P::Operator,sp::Space)=promotedomainspace(P,sp,domainspace(P))
 
+
+
+function promotedomainspace(P::Operator,sp::Space,::AnySpace)
+    if isafunctional(P)
+        SpaceFunctional(P,sp)
+    else
+        @assert isbanded(P)
+        SpaceOperator(P,sp)
+    end
+end
+
+function promoterangespace(P::Operator,sp::Space,::AnySpace)
+    @assert isbanded(P)
+    SpaceOperator(P,sp)
+end
 
 promoterangespace(P::Operator,sp::Space,cursp::Space) =
     (sp==cursp)?P:Conversion(cursp,sp)*P

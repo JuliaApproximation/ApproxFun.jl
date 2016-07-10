@@ -231,19 +231,18 @@ rangespace(IO::InterlaceOperator)=rangespace(IO.ops[:,1])
 iscolop(op)=isconstop(op)
 iscolop(::Multiplication)=true
 
+
 function interlace{T<:Operator}(A::Matrix{T})
-    # Hack to use BlockOperator when appropriate
-    if size(A,1)==1 && all(iscolop,A[1,1:end-1])
-        BlockOperator(A)
-    else
-        InterlaceOperator(A)
+    if all(isbanded,A)
+        # Hack to use BlockOperator when appropriate
+        if size(A,1)==1 && all(iscolop,A[1,1:end-1])
+            return BlockOperator(A)
+        else
+            return InterlaceOperator(A)
+        end
     end
-end
 
 
-# If the matrix is Operators, we assume it may contain
-# functionals as well
-function interlace{T<:Operator}(A::Matrix{T})
     m,n=size(A)
     TT=mapreduce(eltype,promote_type,A)
     # Use BlockOperator whenever the first columns are all constants
@@ -290,7 +289,7 @@ function interlace{T<:Operator}(A::Matrix{T})
 
     if br < m
         Am=A[br+1:m,:]
-        S[br+1]=interlace(convert(Matrix{Operator{TT}},Am))
+        S[br+1]=interlace(Am)
     end
 
     if(size(S,1) ==1)

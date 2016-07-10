@@ -76,9 +76,10 @@ datalength(F::Operator) = ∞        # use datalength to indicate a finite lengt
 
 ## bandrange and indexrange
 
-bandwidth(A::Operator,k::Integer)=k==1?-bandinds(A,1):bandinds(A,2)
-bandinds(A,k::Integer)=bandinds(A)[k]
-bandrange(b::Operator)=UnitRange(bandinds(b)...)
+bandwidth(A::Operator,k::Integer) = k==1?-bandinds(A,1):bandinds(A,2)
+bandinds(A::Operator) = (-∞,∞)
+bandinds(A,k::Integer) = bandinds(A)[k]
+bandrange(b::Operator) = UnitRange(bandinds(b)...)
 function bandrangelength(B::Operator)
     @assert isbanded(B)
     bndinds=bandinds(B)

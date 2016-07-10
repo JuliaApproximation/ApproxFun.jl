@@ -178,17 +178,6 @@ getindex(FO::FunctionalOperator,k::Integer,j::Integer) =
     k==1?FO.func[j]:zero(eltype(FO))
 
 
-function *(f::Fun,A::Operator)
-    @assert isafunctional(A)
-    if datalength(A)<Inf
-        # We get a banded operator, so we take that into account
-        TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
-    else
-        LowRankOperator(f,A)
-    end
-end
-
-
 
 *{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},
   M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) =

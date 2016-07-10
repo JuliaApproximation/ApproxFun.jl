@@ -76,8 +76,12 @@ end
 
 +(::PlusOperator,::PlusFunctional) = error("TODO: Delete")
 +(::PlusFunctional,::PlusOperator) = error("TODO: Delete")
++(::PlusFunctional,::ZeroOperator) = error("TODO: Delete")
++(::ZeroOperator,::PlusFunctional) = error("TODO: Delete")
 +(::ZeroFunctional,::PlusOperator) = error("TODO: Delete")
 +(::PlusOperator,::ZeroFunctional) = error("TODO: Delete")
++(::ZeroOperator,::ZeroFunctional) = error("TODO: Delete")
++(::ZeroFunctional,::ZeroOperator) = error("TODO: Delete")
 
 for (PLUS,TYP,ZER) in ((:PlusFunctional,:Operator,:ZeroFunctional),
                        (:PlusOperator,:Operator,:ZeroOperator))
@@ -551,10 +555,15 @@ function *(A::Operator,B::Operator)
         promoterangespace(convert(Number,A)*B,rangespace(A))
     elseif isconstop(B)
         promotedomainspace(A*convert(Number,B),domainspace(B))
+    elseif isafunctional(A)
+        TimesFunctional(promotedomainspace(A,rangespace(B)),B)
     else
+        @assert isbanded(A) && isbanded(B)
         promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A,B])
     end
 end
+
+
 
 # Conversions we always assume are intentional: no need to promote
 
@@ -575,18 +584,44 @@ end
 -(A::Operator) = isafunctional(A)?ConstantTimesFunctional(-1,A):ConstantTimesOperator(-1,A)
 -(A::Operator,B::Operator) = A+(-B)
 
-*(f::Fun,A::Operator) = TimesOperator(Multiplication(f,rangespace(A)),A)
 
-for OP in (:*,:.*)
-    @eval begin
-        $OP(c::Number,A::Operator) =
-            c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
-        $OP(A::Operator,c::Number) =
-            c==1?A:(c==0?ZeroOperator(domainspace(A),rangespace(A)):ConstantTimesOperator(c,A))
+function *(f::Fun,A::Operator)
+    if isafunctional(A)
+        if datalength(A)<Inf
+            # We get a banded operator, so we take that into account
+            TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
+        else
+            LowRankOperator(f,A)
+        end
+    else
+        @assert isbanded(A)
+        TimesOperator(Multiplication(f,rangespace(A)),A)
     end
 end
 
-/(B::Operator,c::Number) = c==1?B:ConstantTimesOperator(1.0/c,B)
+for OP in (:*,:.*)
+    @eval begin
+        function $OP(c::Number,A::Operator)
+            if c==1
+                A
+            elseif c==0 && isafunctional(A)
+                ZeroFunctional(domainspace(A))
+            elseif c==0
+                @assert isbanded(A)
+                ZeroOperator(domainspace(A),rangespace(A))
+            elseif isafunctional(A)
+                ConstantTimesFunctional(c,B)
+            else
+                @assert isbanded(A)
+                ConstantTimesOperator(c,A)
+            end
+        end
+        $OP(A::Operator,c::Number) = c*A
+    end
+end
+
+
+/(B::Operator,c::Number) = (1.0/c)*B
 /(B::Operator,c::Fun) = (1.0/c)*B
 
 

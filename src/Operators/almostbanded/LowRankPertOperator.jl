@@ -79,19 +79,11 @@ end
 
 ## algebra
 
-+(L::LowRankOperator,B::Operator)=LowRankPertOperator(B,L)
-+(B::Operator,L::LowRankOperator)=LowRankPertOperator(B,L)
-
--(L::LowRankOperator,B::Operator)=LowRankPertOperator(-B,L)
--(B::Operator,L::LowRankOperator)=LowRankPertOperator(B,-L)
-
 for OP in (:+,:-)
     @eval $OP(A::LowRankPertOperator,B::LowRankPertOperator)=LowRankPertOperator($OP(A.op,B.op),$OP(A.pert,B.pert))
 end
 
 *(L::LowRankPertOperator,f::Fun)=L.op*f+L.pert*f
-*(L::LowRankPertOperator,B::Operator)=LowRankPertOperator(L.op*B,L.pert*B)
-*(B::Operator,L::LowRankPertOperator)=LowRankPertOperator(B*L.op,B*L.pert)
 
 *(L::LowRankPertOperator,B::LowRankOperator)=L.op*B+L.pert*B
 *(B::LowRankOperator,L::LowRankPertOperator)=B*L.op+B*L.pert
@@ -99,3 +91,18 @@ end
 
 
 *(A::LowRankPertOperator,B::LowRankPertOperator)=A.op*B + A.pert*B
+
+# ambiguity
+for TYP in (:TimesOperator,:PlusFunctional,:ZeroOperator,:ZeroFunctional,
+            :PlusOperator,:Conversion,:Operator)
+    @eval begin
+        +(L::LowRankOperator,B::$TYP) = LowRankPertOperator(B,L)
+        +(B::$TYP,L::LowRankOperator) = LowRankPertOperator(B,L)
+
+        -(L::LowRankOperator,B::$TYP)=LowRankPertOperator(-B,L)
+        -(B::$TYP,L::LowRankOperator)=LowRankPertOperator(B,-L)
+
+        *(L::LowRankPertOperator,B::$TYP)=LowRankPertOperator(L.op*B,L.pert*B)
+        *(B::$TYP,L::LowRankPertOperator)=LowRankPertOperator(B*L.op,B*L.pert)
+    end
+end

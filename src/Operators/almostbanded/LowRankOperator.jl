@@ -59,16 +59,20 @@ end
 
 
 
-Base.rank(L::LowRankOperator)=length(L.U)
+Base.rank(L::LowRankOperator) = length(L.U)
 
 
--(L::LowRankOperator)=LowRankOperator(-L.U,L.V)
+-(L::LowRankOperator) = LowRankOperator(-L.U,L.V)
 
-*(L::LowRankOperator,f::Fun)=sum(map((u,v)->u*(v*f),L.U,L.V))
+*(L::LowRankOperator,f::Fun) = sum(map((u,v)->u*(v*f),L.U,L.V))
 
-*(L::LowRankOperator,B::Union{TimesOperator,Operator}) = LowRankOperator(L.U,map(v->v*B,L.V))
-*(B::Operator,L::LowRankOperator) = LowRankOperator(map(u->B*u,L.U),L.V)
+
 *(A::LowRankOperator,B::LowRankOperator) = LowRankOperator((A.V*B.U.').'*A.U,B.V)
+# avoid ambiguituy
+for TYP in (:TimesOperator,:PlusFunctional,:PlusOperator,:Conversion,:Operator)
+    @eval *(L::LowRankOperator,B::$TYP) = LowRankOperator(L.U,map(v->v*B,L.V))
+    @eval *(B::$TYP,L::LowRankOperator) = LowRankOperator(map(u->B*u,L.U),L.V)
+end
 
 +(A::LowRankOperator,B::LowRankOperator) = LowRankOperator([A.U;B.U],[A.V;B.V])
 -(A::LowRankOperator,B::LowRankOperator) = LowRankOperator([A.U;-B.U],[A.V;B.V])
