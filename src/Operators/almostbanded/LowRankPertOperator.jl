@@ -1,4 +1,4 @@
-immutable LowRankPertOperator{OO,LR,T} <: AlmostBandedOperator{T}
+immutable LowRankPertOperator{OO,LR,T} <: Operator{T}
     op::OO
     pert::LR
 
@@ -20,9 +20,8 @@ function LowRankPertOperator(Bin::Operator,Lin::LowRankOperator)
 end
 
 
-for TYP in (:BandedBelowOperator,:AlmostBandedOperator,:Operator)
-    @eval Base.convert{OT<:Operator}(::Type{$TYP},V::Vector{OT})=LowRankPertOperator(V)
-end
+
+Base.convert{OT<:Operator}(::Type{Operator},V::Vector{OT})=LowRankPertOperator(V)
 
 
 Base.getindex(L::LowRankPertOperator,k::Integer,j::Integer)=L.op[k,j]+L.pert[k,j]

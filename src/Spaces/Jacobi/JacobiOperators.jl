@@ -386,7 +386,7 @@ end
 
 
 # represents [b+(1+z)*d/dz] (false) or [a-(1-z)*d/dz] (true)
-immutable JacobiSD{T} <:BandedOperator{T}
+immutable JacobiSD{T} <:Operator{T}
     lr::Bool
     S::Jacobi
 end

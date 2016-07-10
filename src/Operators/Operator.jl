@@ -1,4 +1,4 @@
-export Operator,InfiniteOperator
+export Operator
 export bandinds, bandrange, linsolve, periodic
 export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
@@ -7,9 +7,6 @@ export domainspace,rangespace
 
 
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
-abstract InfiniteOperator{T} <: Operator{T}   #Infinite Operators have + range
-abstract BandedBelowOperator{T} <: InfiniteOperator{T}
-abstract AlmostBandedOperator{T} <: BandedBelowOperator{T}
 
 Base.eltype{T}(::Operator{T})=T
 Base.eltype{T}(::Type{Operator{T}})=T
@@ -81,14 +78,16 @@ datalength(F::Operator) = ∞        # use datalength to indicate a finite lengt
 
 bandwidth(A::Operator,k::Integer)=k==1?-bandinds(A,1):bandinds(A,2)
 bandinds(A,k::Integer)=bandinds(A)[k]
-bandrange(b::BandedBelowOperator)=UnitRange(bandinds(b)...)
-function bandrangelength(B::BandedBelowOperator)
+bandrange(b::Operator)=UnitRange(bandinds(b)...)
+function bandrangelength(B::Operator)
+    @assert isbanded(B)
     bndinds=bandinds(B)
     bndinds[end]-bndinds[1]+1
 end
 
 
-function columninds(b::BandedBelowOperator,k::Integer)
+function columninds(b::Operator,k::Integer)
+    @assert isbanded(b)
     ret = bandinds(b)
 
     (ret[1]  + k < 1) ? (1,(ret[end] + k)) : (ret[1]+k,ret[2]+k)

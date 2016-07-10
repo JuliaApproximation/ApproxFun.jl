@@ -74,6 +74,11 @@ end
 
 
 
++(::PlusOperator,::PlusFunctional) = error("TODO: Delete")
++(::PlusFunctional,::PlusOperator) = error("TODO: Delete")
++(::ZeroFunctional,::PlusOperator) = error("TODO: Delete")
++(::PlusOperator,::ZeroFunctional) = error("TODO: Delete")
+
 for (PLUS,TYP,ZER) in ((:PlusFunctional,:Operator,:ZeroFunctional),
                        (:PlusOperator,:Operator,:ZeroOperator))
     @eval begin
@@ -603,6 +608,12 @@ for TYP in (:Vector,:Matrix)
 
 
         function *(A::Operator,b::$TYP)
+            if isafunctional(A)
+                return dotu(A[1:length(b)],b)
+            end
+
+            @assert isbanded(A)
+
             n=size(b,1)
 
             ret=if n>0
@@ -617,7 +628,7 @@ for TYP in (:Vector,:Matrix)
     end
 end
 
-function *(A::InfiniteOperator,b::Fun)
+function *(A::Operator,b::Fun)
     dsp=domainspace(A)
     if isambiguous(dsp)
         promotedomainspace(A,space(b))*b
@@ -638,7 +649,7 @@ function *(A::PlusOperator,b::Fun)
 end
 =#
 
-for TYP in (:TimesOperator,:Operator,:InfiniteOperator)
+for TYP in (:TimesOperator,:Operator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
         @assert size(b,1)==1
         C=A*coefficients(vec(b),domainspace(A))

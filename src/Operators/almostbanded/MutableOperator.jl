@@ -107,7 +107,7 @@ end
 ## MutableOperator
 
 
-type MutableOperator{T,M,R} <: BandedBelowOperator{T}
+type MutableOperator{T,M,R} <: Operator{T}
     op::M                 # The underlying op that is modified
     data::BandedMatrix{T} # Data representing bands
     fill::FillMatrix{T,R}
@@ -146,7 +146,7 @@ end
 function MutableOperator{T<:Operator}(B::Vector{T})
     bcs = Operator{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
 
-    @assert typeof(B[end]) <: BandedBelowOperator
+    @assert isbanded(B[end])
 
     MutableOperator(bcs,B[end])
 end

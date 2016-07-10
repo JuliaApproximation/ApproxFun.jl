@@ -88,7 +88,7 @@ end
 ##############
 
 
-typealias BivariateOperator{T} BandedOperator{BandedMatrix{T}}
+typealias BivariateOperator{T} Operator{BandedMatrix{T}}
 
 
 ##########
@@ -149,18 +149,14 @@ end
 # end
 
 
-for TYP in (:Operator,:BandedOperator)
-    @eval begin
-        function Base.convert{T<:Number}(::Type{$TYP{BandedMatrix{T}}},K::KroneckerOperator)
-            if T==eltype(eltype(K))
-                K
-            else
-                ops=convert(Operator{T},K.ops[1]),convert(Operator{T},K.ops[2])
-                KroneckerOperator{typeof(ops[1]),typeof(ops[2]),typeof(K.domainspace),typeof(K.rangespace),T}(ops,
-                      K.domainspace,
-                      K.rangespace)
-            end
-        end
+function Base.convert{T<:Number}(::Type{Operator{BandedMatrix{T}}},K::KroneckerOperator)
+    if T==eltype(eltype(K))
+        K
+    else
+        ops=convert(Operator{T},K.ops[1]),convert(Operator{T},K.ops[2])
+        KroneckerOperator{typeof(ops[1]),typeof(ops[2]),typeof(K.domainspace),typeof(K.rangespace),T}(ops,
+              K.domainspace,
+              K.rangespace)
     end
 end
 
@@ -189,11 +185,11 @@ end
 
 blockbandinds(P::TimesOperator,k)=blockbandindssum(P.ops,1)
 
-blockbandinds{BT<:BandedMatrix}(K::BandedOperator{BT})=blockbandinds(K,1),blockbandinds(K,2)
+blockbandinds{BT<:BandedMatrix}(K::Operator{BT})=blockbandinds(K,1),blockbandinds(K,2)
 
 
 for OP in (:domainspace,:rangespace)
-    @eval $OP{BT<:BandedMatrix}(K::BandedOperator{BT},k::Integer)=$OP(K)[k]
+    @eval $OP{BT<:BandedMatrix}(K::Operator{BT},k::Integer)=$OP(K)[k]
 end
 domainspace(K::KroneckerOperator)=K.domainspace
 rangespace(K::KroneckerOperator)=K.rangespace
@@ -265,7 +261,7 @@ function *{BM<:AbstractArray,TT<:Number}(M::BandedMatrix{BM},v::Vector{TT})
     r
 end
 
-function *{BM<:BandedMatrix}(A::BandedOperator{BM},b::Vector)
+function *{BM<:BandedMatrix}(A::Operator{BM},b::Vector)
     n=size(b,1)
 
     ret=if n>0
@@ -359,7 +355,7 @@ function promotedomainspace{T,T2}(P::PlusOperator{T},sp::Space,cursp::TensorSpac
     if sp==cursp
         P
     else
-        promoteplus(BandedOperator{T}[promotedomainspace(op,sp) for op in P.ops])
+        promoteplus(Operator{T}[promotedomainspace(op,sp) for op in P.ops])
     end
 end
 
@@ -374,7 +370,7 @@ function promotedomainspace{T}(P::TimesOperator,sp::Space,cursp::TensorSpace{Any
 end
 
 for op in (:promotedomainspace,:promoterangespace)
-    @eval $op(P::BandedOperator,sp::Space,::TensorSpace{AnySpace,AnySpace})=SpaceOperator(P,sp)
+    @eval $op(P::Operator,sp::Space,::TensorSpace{AnySpace,AnySpace})=SpaceOperator(P,sp)
 end
 
 
@@ -406,7 +402,7 @@ end
 
 function transpose{T}(A::PlusOperator{BandedMatrix{T}})
     @assert all(map(iskronop,A.ops))
-    PlusOperator(BandedOperator{BandedMatrix{eltype(eltype(A))}}[op.' for op in A.ops])
+    PlusOperator(Operator{BandedMatrix{eltype(eltype(A))}}[op.' for op in A.ops])
 end
 
 

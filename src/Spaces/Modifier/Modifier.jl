@@ -153,7 +153,7 @@ for TYP in (:PiecewiseSpace,:TupleSpace)
         for k=1:length(A)-1
             @assert isafunctional(A[k])
         end
-        @assert isa(A[end],BandedOperator)
+        @assert isbanded(A[end])
         L=LowRankOperator(A[1:end-1],$TYP)
         BB=A[end]
         S=SpaceOperator(StrideOperator(BB,length(A)-1,0),domainspace(BB),

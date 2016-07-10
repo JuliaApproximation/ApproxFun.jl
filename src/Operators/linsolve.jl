@@ -23,7 +23,7 @@ function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01
         A=promotedomainspace(A,choosedomainspace(A))
     end
     # if length(A)==3&&
-    #         isa(A[end],BandedOperator) &&
+    #         isbanded(A[end]) &&
     #         isa(A[1],Evaluation)&&
     #         isa(A[2],Evaluation)&&
     #         isa(domainspace(A[1]),Chebyshev) &&

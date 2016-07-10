@@ -1,9 +1,5 @@
 ## Operations
-function *(A::Operator,b::Vector)
-    @assert isafunctional(A)
-    dotu(A[1:length(b)],b)
-end
-*(A::Operator,b::Fun) = promotedomainspace(A,space(b))*b.coefficients
+
 
 *{T,D<:DefiniteIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = bilinearform(A.op.f,b)
 *{T,D<:DefiniteLineIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = linebilinearform(A.op.f,b)
