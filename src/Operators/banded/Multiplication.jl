@@ -14,6 +14,8 @@ function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     ConcreteMultiplication{D,typeof(sp),T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 end
 
+#TODO: SPECIALOPS Remove
+Base.size(M::ConcreteMultiplication,k::Integer) = ∞
 
 
 # We do this in two stages to support Modifier spaces
