@@ -38,10 +38,13 @@ end
 
 
 function view(A::Operator,kr::UnitRange,jr::UnitRange)
-    @assert isbanded(A)
-    shft=first(kr)-first(jr)
-    l,u=max(bandwidth(A,1)-shft,0),max(bandinds(A,2)+shft,0)
-    SubBandedMatrix(A,(kr,jr),(length(kr),length(jr)),l,u)
+    if isbanded(A)
+        shft=first(kr)-first(jr)
+        l,u=max(bandwidth(A,1)-shft,0),max(bandinds(A,2)+shft,0)
+        SubBandedMatrix(A,(kr,jr),(length(kr),length(jr)),l,u)
+    else
+        SubMatrix(A,(kr,jr),(length(kr),length(jr)))
+    end
 end
 
 view(A::SubBandedMatrix,kr::UnitRange,jr::UnitRange) =

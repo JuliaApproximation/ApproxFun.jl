@@ -297,11 +297,12 @@ ConstantTimesOperator{T,B,BT}(c::Number,op::ConstantTimesOperator{T,B,BandedMatr
 ConstantTimesOperator(c::Number,op::ConstantTimesOperator)=ConstantTimesOperator(c*op.c,op.op)
 
 
-for OP in (:domainspace,:rangespace,:bandinds)
-    @eval $OP(C::ConstantTimesOperator)=$OP(C.op)
+for OP in (:domainspace,:rangespace,:bandinds,:isbanded,:isafunctional)
+    @eval $OP(C::ConstantTimesOperator) = $OP(C.op)
 end
-bandinds(C::ConstantTimesOperator,k::Integer)=bandinds(C.op,k)
-choosedomainspace(C::ConstantTimesOperator,sp::Space)=choosedomainspace(C.op,sp)
+Base.size(C::ConstantTimesOperator,k...) = size(C.op,k...)
+bandinds(C::ConstantTimesOperator,k::Integer) = bandinds(C.op,k)
+choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 
 
 for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,:Space)
@@ -612,7 +613,6 @@ for OP in (:*,:.*)
             elseif isafunctional(A)
                 ConstantTimesFunctional(c,B)
             else
-                @assert isbanded(A)
                 ConstantTimesOperator(c,A)
             end
         end
