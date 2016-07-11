@@ -63,9 +63,11 @@ end
 
 
 function *(B::Operator,f::ProductFun)
-    @assert isafunctional(B)
-    Fun(map(c->B*c,f.coefficients),space(f,2))
+    if isafunctional(B)
+        Fun(map(c->B*c,f.coefficients),space(f,2))
+    else
+        ProductFun(map(c->B*c,f.coefficients),space(f))
+    end
 end
-*(B::Operator,f::ProductFun)=ProductFun(map(c->B*c,f.coefficients),space(f))
 
 *(f::ProductFun,B::Operator)=(B*(f.')).'

@@ -47,8 +47,17 @@ promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Operator{T}
 
 immutable PlusOperator{T} <: Operator{T}
     ops::Vector{Operator{T}}
+    function PlusOperator(opsin::Vector{Operator{T}})
+        n,m=size(first(opsin))
+        for k=2:length(opsin)
+            @assert size(opsin[k],1)==n && size(opsin[k],2)==m
+        end
+        new(opsin)
+    end
 end
 
+
+PlusOperator{T}(opsin::Vector{Operator{T}}) = PlusOperator{T}(opsin)
 
 #Base.convert{OT<:PlusOperator}(::Type{OT},P::OT)=P
 function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
@@ -64,10 +73,8 @@ function promoteplus{T}(opsin::Vector{Operator{T}})
     ops=promotespaces(opsin)
     if all(isafunctional,ops)
         PlusFunctional(ops)
-    elseif all(isbanded,ops)
-        PlusOperator(ops)
     else
-        error("Can only do Functionals/banded operators separately for now.")
+        PlusOperator(ops)
     end
 end
 
@@ -595,7 +602,6 @@ function *(f::Fun,A::Operator)
             LowRankOperator(f,A)
         end
     else
-        @assert isbanded(A)
         TimesOperator(Multiplication(f,rangespace(A)),A)
     end
 end
