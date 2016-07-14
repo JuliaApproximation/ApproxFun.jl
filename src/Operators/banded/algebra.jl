@@ -40,7 +40,7 @@ function getindex{T}(op::PlusFunctional{T},k::Range)
 end
 
 
-datalength(C::PlusFunctional)=mapreduce(datalength,max,C.ops)
+bandwidth(C::PlusFunctional)=mapreduce(bandwidth,max,C.ops)
 
 promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Operator{T}[promotedomainspace(c,sp) for c in C.ops])
 
@@ -238,7 +238,7 @@ end
 
 
 getindex(op::ConstantTimesFunctional,k)=op.c*op.functional[k]
-datalength(C::ConstantTimesFunctional)=datalength(C.functional)
+bandwidth(C::ConstantTimesFunctional)=bandwidth(C.functional)
 promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.functional,sp))
 
 
@@ -258,7 +258,7 @@ promotedomainspace(C::TimesFunctional,sp::Space)=C.functional*promotedomainspace
 domainspace(T::TimesFunctional)=domainspace(T.op)
 rangespace(C::TimesFunctional)=rangespace(C.functional)
 
-datalength(C::TimesFunctional)=datalength(C.functional)+bandinds(C.op,2)
+bandwidth(C::TimesFunctional)=bandwidth(C.functional)+bandinds(C.op,2)
 
 
 TimesFunctional{T,V}(A::Operator{T},B::Operator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
@@ -595,7 +595,7 @@ end
 
 function *(f::Fun,A::Operator)
     if isafunctional(A)
-        if datalength(A)<Inf
+        if bandwidth(A)<Inf
             # We get a banded operator, so we take that into account
             TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
         else

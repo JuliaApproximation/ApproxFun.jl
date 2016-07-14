@@ -38,7 +38,7 @@ LowRankOperator(A::Fun,B::Operator)=LowRankOperator([A],[B])
 
 
 
-datasize(L::LowRankOperator,k)=k==1?mapreduce(ncoefficients,max,L.U):mapreduce(datalength,max,L.V)
+datasize(L::LowRankOperator,k)=k==1?mapreduce(ncoefficients,max,L.U):mapreduce(bandwidth,max,L.V)
 datasize(L::LowRankOperator)=datasize(L,1),datasize(L,2)
 
 

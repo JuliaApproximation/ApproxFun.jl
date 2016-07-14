@@ -11,7 +11,7 @@ end
 SpaceFunctional(o::Operator,s::Space,d::Domain)=SpaceFunctional{typeof(o),typeof(s),typeof(d),eltype(o)}(o,s,d)
 SpaceFunctional(o::Operator,s::Space)=SpaceFunctional(o,s,domain(s))
 
-datalength(S::SpaceFunctional)=datalength(S.op)
+bandwidth(S::SpaceFunctional) = bandwidth(S.op)
 
 
 

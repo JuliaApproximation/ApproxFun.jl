@@ -43,8 +43,8 @@ end
 Base.convert{T}(::Type{Operator{T}},S::FiniteFunctional)=FiniteFunctional(convert(Vector{T},S.data),S.domainspace)
 
 domainspace(S::FiniteFunctional)=S.domainspace
-datalength(S::FiniteFunctional)=length(S.data)
+bandwidth(S::FiniteFunctional) = length(S.data)
 
 
-Base.getindex{S,T}(B::FiniteFunctional{S,T},k::Integer)=k≤datalength(B)?B.data[k]:zero(T)
+Base.getindex{S,T}(B::FiniteFunctional{S,T},k::Integer)=k≤bandwidth(B)?B.data[k]:zero(T)
 Base.getindex{S,T}(B::FiniteFunctional{S,T},kr::Range)=T[B[k] for k=kr]

@@ -41,7 +41,7 @@ end
 
 BasisFunctional(k)=BasisFunctional{Float64}(k)
 
-datalength(B::BasisFunctional) = B.k
+bandwidth(B::BasisFunctional) = B.k
 
 
 Base.convert{T}(::Type{Operator{T}},B::BasisFunctional)=BasisFunctional{T}(B.k)

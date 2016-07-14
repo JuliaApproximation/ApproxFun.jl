@@ -151,7 +151,7 @@ function Base.convert{O<:Operator}(::Type{O},FO::FunctionalOperator)
     end
 end
 
-bandinds(FO::FunctionalOperator)=0,datalength(FO.func)-1
+bandinds(FO::FunctionalOperator) = 0,bandwidth(FO.func)-1
 domainspace(FO::FunctionalOperator)=domainspace(FO.func)
 rangespace(FO::FunctionalOperator)=ConstantSpace()
 

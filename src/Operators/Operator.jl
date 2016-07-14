@@ -42,7 +42,8 @@ macro functional(FF)
         Base.size(A::$FF,k::Integer) = k==1?1:∞
         ApproxFun.rangespace(::$FF) = ConstantSpace()
         ApproxFun.isafunctional(::$FF) = true
-        ApproxFun.datalength(::$FF) = ∞
+        ApproxFun.bandwidth(::$FF) = ∞   # override only bandwidth for finite length vectors
+        ApproxFun.bandinds(A::$FF) = (0,bandwidth(A)-1)
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
             f[j]
@@ -68,7 +69,6 @@ function Base.trailingsize(A::Operator, n::Integer)
 end
 
 Base.ndims(::Operator) = 2
-datalength(F::Operator) = ∞        # use datalength to indicate a finite length functional
 
 
 
@@ -76,7 +76,7 @@ datalength(F::Operator) = ∞        # use datalength to indicate a finite lengt
 
 
 ## bandrange and indexrange
-
+bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
 bandwidth(A::Operator,k::Integer) = k==1?-bandinds(A,1):bandinds(A,2)
 bandinds(A::Operator) = (-∞,∞)
 bandinds(A,k::Integer) = bandinds(A)[k]
