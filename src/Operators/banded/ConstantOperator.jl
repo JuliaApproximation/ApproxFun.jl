@@ -1,4 +1,4 @@
-export ConstantOperator, BasisFunctional
+export ConstantOperator, IdentityOperator, BasisFunctional
 
 ##TODO: c->λ
 ##TODO: ConstantOperator->UniformScalingOperator?

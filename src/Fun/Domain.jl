@@ -53,7 +53,7 @@ Base.intersect(a::Domain,b::Domain) = a==b?a:EmptyDomain()
 
 abstract IntervalDomain{T} <: UnivariateDomain{T}
 
-canonicaldomain(::IntervalDomain) = Interval()
+canonicaldomain(d::IntervalDomain) = Interval{real(eltype(eltype(d)))}()
 
 Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))

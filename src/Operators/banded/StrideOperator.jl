@@ -308,8 +308,11 @@ immutable DiagonalInterlaceOperator{OPS,DS,RS,T<:Number} <: BandedOperator{T}
     rangespace::RS
 end
 
-DiagonalInterlaceOperator(v::Tuple,ds::Space,rs::Space)=DiagonalInterlaceOperator{typeof(v),typeof(ds),
-                                                                                  typeof(rs),mapreduce(eltype,promote_type,v)}(v,ds,rs)
+function DiagonalInterlaceOperator(v::Tuple,ds::Space,rs::Space)
+    T=mapreduce(eltype,promote_type,v)
+    w=map(Operator{T},v)
+    DiagonalInterlaceOperator{typeof(w),typeof(ds),typeof(rs),T}(w,ds,rs)
+end
 DiagonalInterlaceOperator{ST<:Space}(v::Tuple,::Type{ST})=DiagonalInterlaceOperator(v,ST(map(domainspace,v)),ST(map(rangespace,v)))
 DiagonalInterlaceOperator(v::Vector,k...)=DiagonalInterlaceOperator(tuple(v...),k...)
 

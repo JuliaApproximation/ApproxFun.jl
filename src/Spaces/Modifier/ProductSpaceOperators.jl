@@ -203,6 +203,12 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
                 p=perm(cs1,cs2)
                 $OP($TYP(S1.spaces[p]),S2)
             elseif length(S1)==length(S2)==2  &&
+                    $OP(S1[1],S2[1])!=NoSpace() &&
+                    $OP(S1[2],S2[2])!=NoSpace()
+                #TODO: general length
+                $TYP($OP(S1[1],S2[1]),
+                     $OP(S1[2],S2[2]))                
+            elseif length(S1)==length(S2)==2  &&
                     $OP(S1[1],S2[2])!=NoSpace() &&
                     $OP(S1[2],S2[1])!=NoSpace()
                 #TODO: general length
