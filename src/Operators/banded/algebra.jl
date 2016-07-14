@@ -214,37 +214,6 @@ end
 
 ## Times Operator
 
-immutable ConstantTimesFunctional{T,B<:Operator} <: Operator{T}
-    c::T
-    functional::B
-    ConstantTimesFunctional(c,op)=new(c,op)
-end
-
-@functional ConstantTimesFunctional
-
-ConstantTimesFunctional(c::Number,op::Operator)=ConstantTimesFunctional{promote_type(typeof(c),eltype(op)),typeof(op)}(c,op)
-
-for OP in (:domainspace,:rangespace)
-    @eval $OP(C::ConstantTimesFunctional)=$OP(C.functional)
-end
-
-@eval function Base.convert{T}(::Type{Operator{T}},P::ConstantTimesFunctional)
-    if T==eltype(P)
-        P
-    else
-        ConstantTimesFunctional(convert(T,P.c),convert(Operator{T},P.functional))
-    end
-end
-
-
-getindex(op::ConstantTimesFunctional,k)=op.c*op.functional[k]
-bandwidth(C::ConstantTimesFunctional)=bandwidth(C.functional)
-promotedomainspace(C::ConstantTimesFunctional,sp::Space)=ConstantTimesFunctional(C.c,promotedomainspace(C.functional,sp))
-
-
-
-
-
 
 type TimesFunctional{T,A<:Operator,B<:Operator} <: Operator{T}
     functional::A
@@ -300,11 +269,13 @@ function ConstantTimesOperator{BM<:BandedMatrix}(c::Number,op::Operator{BM})
     ConstantTimesOperator{T,typeof(B),BandedMatrix{T}}(c,B)
 end
 
-ConstantTimesOperator{T,B,BT}(c::Number,op::ConstantTimesOperator{T,B,BandedMatrix{BT}})=ConstantTimesOperator(c*op.c,op.op)
-ConstantTimesOperator(c::Number,op::ConstantTimesOperator)=ConstantTimesOperator(c*op.c,op.op)
+ConstantTimesOperator{T,B,BT}(c::Number,op::ConstantTimesOperator{T,B,BandedMatrix{BT}}) =
+    ConstantTimesOperator(c*op.c,op.op)
+ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
+    ConstantTimesOperator(c*op.c,op.op)
 
 
-for OP in (:domainspace,:rangespace,:bandinds,:isbanded,:isafunctional)
+for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,:isafunctional)
     @eval $OP(C::ConstantTimesOperator) = $OP(C.op)
 end
 Base.size(C::ConstantTimesOperator,k...) = size(C.op,k...)
@@ -331,9 +302,8 @@ function Base.convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
     end
 end
 
-
-getindex(P::ConstantTimesOperator,k::Integer,j::Integer) =
-    P.c*P.op[k,j]
+getindex(P::ConstantTimesOperator,k::Integer...) =
+    P.c*P.op[k...]
 
 BLAS.copy{T,OP<:ConstantTimesOperator}(S::SubBandedMatrix{T,OP}) =
     copy_axpy!(S)
@@ -441,8 +411,8 @@ function bandindssum(P,k)
     ret
 end
 
-bandinds(P::TimesOperator)=(bandindssum(P.ops,1),bandindssum(P.ops,2))
-Base.stride(P::TimesOperator)=mapreduce(stride,gcd,P.ops)
+bandinds(P::TimesOperator) = (bandindssum(P.ops,1),bandindssum(P.ops,2))
+Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 
 
 getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
@@ -589,7 +559,7 @@ end
     isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
--(A::Operator) = isafunctional(A)?ConstantTimesFunctional(-1,A):ConstantTimesOperator(-1,A)
+-(A::Operator) = ConstantTimesOperator(-1,A)
 -(A::Operator,B::Operator) = A+(-B)
 
 
@@ -616,8 +586,6 @@ for OP in (:*,:.*)
             elseif c==0
                 @assert isbanded(A)
                 ZeroOperator(domainspace(A),rangespace(A))
-            elseif isafunctional(A)
-                ConstantTimesFunctional(c,B)
             else
                 ConstantTimesOperator(c,A)
             end

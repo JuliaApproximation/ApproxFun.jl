@@ -259,7 +259,8 @@ function getindex{T,D}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},kr::Range)
     end
 end
 
-datalength{D}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = isa(domain(Σ),PeriodicInterval)?1:3
+bandwidth{D}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) =
+    isa(domain(Σ),PeriodicInterval)?1:3
 
 DefiniteLineIntegral{D}(sp::Fourier{D}) =
     ConcreteDefiniteLineIntegral{typeof(sp),Float64}(sp)
@@ -272,7 +273,7 @@ getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer)
     k==1? domain(Σ).radius*π : zero(T)
 
 
-datalength{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 1
+bandwidth{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 1
 
 
 transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) =

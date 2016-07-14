@@ -407,6 +407,9 @@ const ∞ = Irrational{:∞}()
 
 Base.show(io::IO, x::Irrational{:∞}) = print(io, "∞")
 Base.convert{F<:AbstractFloat}(::Type{F},::Irrational{:∞}) = convert(F,Inf)
++(::BlasFloat,y::Irrational{:∞}) = y
++(y::Irrational{:∞},::BlasFloat) = y
+-(y::Irrational{:∞},::BlasFloat) = y
 
 ## My Count
 

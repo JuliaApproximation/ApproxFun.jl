@@ -9,10 +9,12 @@ w=1/sqrt(1-x^2)
 d=domain(x)
 
 Σ=DefiniteIntegral(d)
+bandinds(Σ)
 
 @test domainspace(Σ) == JacobiWeight{Chebyshev{Interval{Float64}},Interval{Float64}}(-0.5,-0.5,Chebyshev())
 
 L=I+Σ[exp(x)*w]
+bandinds(L)
 usol=sin(2x)
 f=L*usol
 u=L\f

@@ -306,4 +306,4 @@ Base.promote_rule{BO1<:Operator,BO2<:Operator}(::Type{BO1},::Type{BO2}) =
 
 #TODO: Should cases that modify be included?
 typealias WrapperOperator Union{SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
-                                    ConversionWrapper,ConstantTimesOperator,ConstantTimesFunctional,TransposeOperator}
+                                    ConversionWrapper,ConstantTimesOperator,TransposeOperator}
