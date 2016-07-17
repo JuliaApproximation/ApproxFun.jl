@@ -8,9 +8,9 @@ export domainspace,rangespace
 
 abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
 
-Base.eltype{T}(::Operator{T})=T
-Base.eltype{T}(::Type{Operator{T}})=T
-Base.eltype{OT<:Operator}(::Type{OT})=eltype(super(OT))
+Base.eltype{T}(::Operator{T}) = T
+Base.eltype{T}(::Type{Operator{T}}) = T
+Base.eltype{OT<:Operator}(::Type{OT}) = eltype(super(OT))
 
 
 # default entry type
@@ -18,17 +18,17 @@ Base.eltype{OT<:Operator}(::Type{OT})=eltype(super(OT))
 # realdomain case doesn't use
 
 
-op_eltype(sp::Space)=promote_type(eltype(sp),prectype(domain(sp)))
-op_eltype_realdomain(sp::Space)=promote_type(eltype(sp),real(prectype(domain(sp))))
+op_eltype(sp::Space) = promote_type(eltype(sp),prectype(domain(sp)))
+op_eltype_realdomain(sp::Space) = promote_type(eltype(sp),real(prectype(domain(sp))))
 
  #Operators are immutable
-Base.copy(A::Operator)=A
+Base.copy(A::Operator) = A
 
 
 ## We assume operators are T->T
-rangespace(A::Operator)=AnySpace()
-domainspace(A::Operator)=AnySpace()
-domain(A::Operator)=domain(domainspace(A))
+rangespace(A::Operator) = AnySpace()
+domainspace(A::Operator) = AnySpace()
+domain(A::Operator) = domain(domainspace(A))
 
 
 
@@ -154,7 +154,7 @@ defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override getindex fo
 # Ranges
 
 
-defaultgetindex(op::Operator,kr::Range)=eltype(op)[op[k] for k in kr]
+defaultgetindex(op::Operator,kr::Range) = eltype(op)[op[k] for k in kr]
 defaultgetindex(B::Operator,k::Range,j::Range) = copy(view(B,k,j))
 
 defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] for j in j],1,length(j))
@@ -181,9 +181,12 @@ defaultgetindex(B::Operator,::Colon,j::AbstractCount) = B[1:end,j]
 ## Composition with a Fun, LowRankFun, and ProductFun
 
 defaultgetindex{BT,S,T}(B::Operator{BT},f::Fun{S,T}) = B*Multiplication(domainspace(B),f)
-defaultgetindex{BT,S,M,SS,T}(B::Operator{BT},f::LowRankFun{S,M,SS,T}) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
+defaultgetindex{BT,S,M,SS,T}(B::Operator{BT},f::LowRankFun{S,M,SS,T}) =
+    mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
 defaultgetindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
-    mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1);one(promote_type(BT,T))],f.space[2])],+,1:length(f.coefficients))
+    mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1);
+                                            one(promote_type(BT,T))],f.space[2])],
+                +,1:length(f.coefficients))
 
 
 
@@ -194,8 +197,8 @@ iswrapper(::)=false
 
 macro wrappergetindex(Wrap)
     ret = quote
-        Base.getindex(OP::$Wrap,k::Integer,j::Integer) =
-            OP.op[k,j]
+        Base.getindex(OP::$Wrap,k...) =
+            OP.op[k...]
 
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubBandedMatrix{T,OP},A::AbstractMatrix) =
             ApproxFun.unwrap_axpy!(α,P,A)
@@ -212,7 +215,7 @@ macro wrapper(Wrap)
     ret = quote
         ApproxFun.@wrappergetindex($Wrap)
 
-        ApproxFun.iswrapper(::$Wrap)=true
+        ApproxFun.iswrapper(::$Wrap) = true
     end
     for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
                  :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride))
@@ -233,10 +236,9 @@ include("linsolve.jl")
 
 include("spacepromotion.jl")
 include("banded/banded.jl")
+include("algebra.jl")
 include("functionals/functionals.jl")
 include("almostbanded/almostbanded.jl")
-
-include("algebra.jl")
 
 include("systems.jl")
 
@@ -252,20 +254,23 @@ include("qrfact.jl")
 
 
 
-Base.zero{T<:Number}(::Type{Operator{T}})=ZeroOperator(T)
-Base.zero{O<:Operator}(::Type{O})=ZeroOperator(eltype(O))
+Base.zero{T<:Number}(::Type{Operator{T}}) = ZeroOperator(T)
+Base.zero{O<:Operator}(::Type{O}) = ZeroOperator(eltype(O))
 
 
-Base.eye(S::Space)=SpaceOperator(ConstantOperator(1.0),S,S)
-Base.eye(S::Domain)=eye(Space(S))
+Base.eye(S::Space) = SpaceOperator(ConstantOperator(1.0),S,S)
+Base.eye(S::Domain) = eye(Space(S))
 
 
 # TODO: can convert return different type?
 
 
-Base.convert{T<:Operator}(A::Type{T},n::Number)=n==0?zero(A):ConstantOperator(eltype(T),n)
-Base.convert{T<:Operator}(A::Type{T},n::UniformScaling)=n.λ==0?zero(A):ConstantOperator(eltype(T),n)
-Base.convert{T<:Operator}(A::Type{T},f::Fun)=norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
+Base.convert{T<:Operator}(A::Type{T},n::Number) =
+    n==0?zero(A):ConstantOperator(eltype(T),n)
+Base.convert{T<:Operator}(A::Type{T},n::UniformScaling) =
+    n.λ==0?zero(A):ConstantOperator(eltype(T),n)
+Base.convert{T<:Operator}(A::Type{T},f::Fun) =
+    norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
 
 
 
@@ -275,13 +280,19 @@ Base.convert{T<:Operator}(A::Type{T},f::Fun)=norm(f.coefficients)==0?zero(A):con
 
 
 mat_promote_type(A,B)=promote_type(A,B)
-mat_promote_type{T,B,n}(::Type{Array{T,n}},::Type{Array{B,n}})=Array{promote_type(T,B),n}
-mat_promote_type{T,B<:Number,n}(::Type{Array{T,n}},::Type{B})=Array{promote_type(T,B),n}
-mat_promote_type{T,B<:Number,n}(::Type{B},::Type{Array{T,n}})=Array{promote_type(T,B),n}
+mat_promote_type{T,B,n}(::Type{Array{T,n}},::Type{Array{B,n}}) =
+    Array{promote_type(T,B),n}
+mat_promote_type{T,B<:Number,n}(::Type{Array{T,n}},::Type{B}) =
+    Array{promote_type(T,B),n}
+mat_promote_type{T,B<:Number,n}(::Type{B},::Type{Array{T,n}}) =
+    Array{promote_type(T,B),n}
 
-mat_promote_type{T,B}(::Type{BandedMatrix{T}},::Type{BandedMatrix{B}})=BandedMatrix{promote_type(T,B)}
-mat_promote_type{T,B<:Number}(::Type{BandedMatrix{T}},::Type{B})=BandedMatrix{promote_type(T,B)}
-mat_promote_type{T,B<:Number}(::Type{B},::Type{BandedMatrix{T}})=BandedMatrix{promote_type(T,B)}
+mat_promote_type{T,B}(::Type{BandedMatrix{T}},::Type{BandedMatrix{B}}) =
+    BandedMatrix{promote_type(T,B)}
+mat_promote_type{T,B<:Number}(::Type{BandedMatrix{T}},::Type{B}) =
+    BandedMatrix{promote_type(T,B)}
+mat_promote_type{T,B<:Number}(::Type{B},::Type{BandedMatrix{T}}) =
+    BandedMatrix{promote_type(T,B)}
 
 
 

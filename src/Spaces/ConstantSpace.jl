@@ -176,12 +176,6 @@ getindex(FO::FunctionalOperator,k::Integer,j::Integer) =
     k==1?FO.func[j]:zero(eltype(FO))
 
 
-
-*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},
-  M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) =
-    Fun(A.func*b)
-
-
 for op = (:*,:.*,:./,:/)
     @eval $op{CS<:ConstantSpace}(f::Fun,c::Fun{CS}) = f*convert(Number,c)
 end

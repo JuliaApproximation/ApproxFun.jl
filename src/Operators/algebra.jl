@@ -151,43 +151,6 @@ end
 
 ## Times Operator
 
-
-type TimesFunctional{T,A<:Operator,B<:Operator} <: Operator{T}
-    functional::A
-    op::B
-end
-
-@functional TimesFunctional
-
-promotedomainspace(C::TimesFunctional,sp::Space)=C.functional*promotedomainspace(C.op,sp)
-
-domainspace(T::TimesFunctional)=domainspace(T.op)
-rangespace(C::TimesFunctional)=rangespace(C.functional)
-
-bandwidth(C::TimesFunctional)=bandwidth(C.functional)+bandinds(C.op,2)
-
-
-TimesFunctional{T,V}(A::Operator{T},B::Operator{V})=TimesFunctional{promote_type(T,V),typeof(A),typeof(B)}(A,B)
-
-getindex(f::TimesFunctional,j::Integer) =
-    f[j:j][1]
-
-
-function getindex(f::TimesFunctional,jr::Range)#j is columns
-    B=f.op
-    bi=bandinds(B)
-
-    r=zeros(eltype(f),length(jr))
-
-    k1=max(first(jr)-bi[end],1)
-    func=f.functional[k1:last(jr)-bi[1]]
-    for j in jr, k=max(j-bi[end],1):j-bi[1]
-        @inbounds r[j-jr[1]+1]+=func[k-k1+1]*B[k,j]
-    end
-    r
-end
-
-
 immutable ConstantTimesOperator{T,B,BT} <: Operator{BT}
     c::T
     op::B
@@ -256,6 +219,12 @@ immutable TimesOperator{T} <: Operator{T}
     ops::Vector{Operator{T}}
 
     function TimesOperator(ops::Vector{Operator{T}})
+        # check compatible
+        for k=1:length(ops)-1
+            @assert size(ops[k],2) == size(ops[k+1],1)
+        end
+
+        # remove TimesOperators buried inside ops
         hastimes = false
         for k=1:length(ops)-1
             @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() ||
@@ -282,13 +251,18 @@ immutable TimesOperator{T} <: Operator{T}
     end
 end
 
-TimesOperator{T}(ops::Vector{Operator{T}})=TimesOperator{T}(ops)
-TimesOperator{OT<:Operator}(ops::Vector{OT})=TimesOperator(convert(Vector{Operator{eltype(OT)}},ops))
+TimesOperator{T}(ops::Vector{Operator{T}}) = TimesOperator{T}(ops)
+TimesOperator{OT<:Operator}(ops::Vector{OT}) =
+    TimesOperator(convert(Vector{Operator{eltype(OT)}},ops))
 
-TimesOperator(A::TimesOperator,B::TimesOperator)=TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
-TimesOperator(A::TimesOperator,B::Operator)=TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
-TimesOperator(A::Operator,B::TimesOperator)=TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
-TimesOperator(A::Operator,B::Operator)=TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A,B])
+TimesOperator(A::TimesOperator,B::TimesOperator) =
+    TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
+TimesOperator(A::TimesOperator,B::Operator) =
+    TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
+TimesOperator(A::Operator,B::TimesOperator) =
+    TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
+TimesOperator(A::Operator,B::Operator) =
+    TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A,B])
 
 
 ==(A::TimesOperator,B::TimesOperator)=A.ops==B.ops
@@ -471,10 +445,7 @@ function *(A::Operator,B::Operator)
         promoterangespace(convert(Number,A)*B,rangespace(A))
     elseif isconstop(B)
         promotedomainspace(A*convert(Number,B),domainspace(B))
-    elseif isafunctional(A)
-        TimesFunctional(promotedomainspace(A,rangespace(B)),B)
     else
-        @assert isbanded(A) && isbanded(B)
         promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A,B])
     end
 end
