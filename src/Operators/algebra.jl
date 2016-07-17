@@ -118,19 +118,21 @@ function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedMatrix{T,PP},A::AbstractM
 end
 
 
-+(A::Operator,f::Fun)=A+Multiplication(f,domainspace(A))
-+(f::Fun,A::Operator)=Multiplication(f,domainspace(A))+A
--(A::Operator,f::Fun)=A+Multiplication(-f,domainspace(A))
--(f::Fun,A::Operator)=Multiplication(f,domainspace(A))-A
-function +(A::ZeroOperator,B::ZeroOperator)
-    @assert size(A) == size(B)
-    A
++(A::Operator,f::Fun) = A+Multiplication(f,domainspace(A))
++(f::Fun,A::Operator) = Multiplication(f,domainspace(A))+A
+-(A::Operator,f::Fun) = A+Multiplication(-f,domainspace(A))
+-(f::Fun,A::Operator) = Multiplication(f,domainspace(A))-A
+
+for TYP in (:ZeroOperator,:Operator)
+    @eval function +(A::$TYP,B::ZeroOperator)
+        if spacescompatible(A,B)
+            A
+        else
+            +(promotespaces(A,B)...)
+        end
+    end
 end
-function +(A::Operator,B::ZeroOperator)
-    @assert size(A) == size(B)
-    A
-end
-+(A::ZeroOperator,B::Operator) = A+B
++(A::ZeroOperator,B::Operator) = B+A
 
 
 
@@ -254,10 +256,11 @@ immutable TimesOperator{T} <: Operator{T}
     ops::Vector{Operator{T}}
 
     function TimesOperator(ops::Vector{Operator{T}})
-        hastimes=false
+        hastimes = false
         for k=1:length(ops)-1
-            @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() || spacescompatible(domainspace(ops[k]),rangespace(ops[k+1]))
-            hastimes=hastimes||isa(ops[k],TimesOperator)
+            @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() ||
+                        spacescompatible(domainspace(ops[k]),rangespace(ops[k+1]))
+            hastimes = hastimes || isa(ops[k],TimesOperator)
         end
 
         if hastimes
@@ -482,8 +485,10 @@ end
 
 *{TO1<:TimesOperator,TO<:TimesOperator}(A::ConversionWrapper{TO1},B::ConversionWrapper{TO}) =
     ConversionWrapper(TimesOperator(A.op,B.op))
-*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::Conversion) = ConversionWrapper(TimesOperator(A.op,B))
-*{TO<:TimesOperator}(A::Conversion,B::ConversionWrapper{TO}) = ConversionWrapper(TimesOperator(A,B.op))
+*{TO<:TimesOperator}(A::ConversionWrapper{TO},B::Conversion) =
+    ConversionWrapper(TimesOperator(A.op,B))
+*{TO<:TimesOperator}(A::Conversion,B::ConversionWrapper{TO}) =
+    ConversionWrapper(TimesOperator(A,B.op))
 
 *(A::Conversion,B::Conversion) = ConversionWrapper(TimesOperator(A,B))
 *(A::Conversion,B::TimesOperator) = TimesOperator(A,B)

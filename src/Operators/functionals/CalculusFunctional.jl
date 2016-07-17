@@ -79,8 +79,9 @@ function DefiniteIntegral(sp::Space)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         ConcreteDefiniteIntegral{typeof(sp),eltype(sp)}(sp)
     else
-        M=Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))
-        DefiniteIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
+        M = Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))
+        Op = DefiniteIntegral(rangespace(M))*M
+        DefiniteIntegralWrapper(SpaceOperator(Op,sp,rangespace(Op)))
     end
 end
 
@@ -88,7 +89,12 @@ function DefiniteLineIntegral(sp::Space)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         ConcreteDefiniteLineIntegral{typeof(sp),eltype(sp)}(sp)
     else
-        M=Multiplication(abs(fromcanonicalD(sp)),setcanonicaldomain(sp))
-        DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteLineIntegral(rangespace(M))*M,sp))
+        M = Multiplication(abs(fromcanonicalD(sp)),setcanonicaldomain(sp))
+        Op = DefiniteLineIntegral(rangespace(M))*M
+        DefiniteLineIntegralWrapper(SpaceFunctional(Op,sp,rangespace(Op)))
     end
 end
+
+
+*{T,D<:DefiniteIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = bilinearform(A.op.f,b)
+*{T,D<:DefiniteLineIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = linebilinearform(A.op.f,b)

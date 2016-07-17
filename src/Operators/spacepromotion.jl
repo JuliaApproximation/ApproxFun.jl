@@ -1,37 +1,5 @@
 export ↦
 
-immutable SpaceFunctional{O<:Operator,S<:Space,D<:Domain,T} <: Operator{T}
-    op::O
-    domainspace::S
-    rangedomain::D
-end
-
-@functional SpaceFunctional
-
-SpaceFunctional(o::Operator,s::Space,d::Domain)=SpaceFunctional{typeof(o),typeof(s),typeof(d),eltype(o)}(o,s,d)
-SpaceFunctional(o::Operator,s::Space)=SpaceFunctional(o,s,domain(s))
-
-bandwidth(S::SpaceFunctional) = bandwidth(S.op)
-
-
-
-function Base.convert{T}(::Type{Operator{T}},S::SpaceFunctional)
-    if T==eltype(S)
-        S
-    else
-        op=convert(Operator{T},S.op)
-        SpaceFunctional{typeof(op),typeof(S.domainspace),T}(op,S.domainspace,S.rangespace)
-    end
-end
-
-
-getindex(S::SpaceFunctional,k)=S.op[k]
-getindex(S::SpaceFunctional,k,j)=S.op[k,j]
-
-
-domainspace(S::SpaceFunctional)=S.domainspace
-rangespace(S::SpaceFunctional)=ConstantSpace(S.rangedomain)
-domain(S::SpaceFunctional)=domain(S.domainspace)
 
 ## Space Operator is used to wrap an AnySpace() operator
 immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: Operator{T}
@@ -42,11 +10,10 @@ end
 
 # The promote_type is needed to fix a bug in promotetimes
 # not sure if its the right long term solution
-SpaceOperator(o::Operator,s::Space,rs::Space)=SpaceOperator{typeof(o),
-                                                            typeof(s),
-                                                            typeof(rs),eltype(o)}(o,s,rs)
-SpaceOperator(o,s)=SpaceOperator(o,s,s)
-Base.convert{OT<:SpaceOperator}(::Type{OT},S::OT)=S  # Added to fix 0.4 bug
+SpaceOperator(o::Operator,s::Space,rs::Space) =
+    SpaceOperator{typeof(o),typeof(s),typeof(rs),eltype(o)}(o,s,rs)
+SpaceOperator(o,s) = SpaceOperator(o,s,s)
+Base.convert{OT<:SpaceOperator}(::Type{OT},S::OT) = S  # Added to fix 0.4 bug
 function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)
     T=eltype(OT)
     if T==eltype(S)
@@ -64,7 +31,7 @@ end
 @wrappergetindex SpaceOperator
 
 for func in (:(ApproxFun.bandinds),:(Base.stride))
-     @eval $func(D::SpaceOperator)=$func(D.op)
+     @eval $func(D::SpaceOperator) = $func(D.op)
 end
 
 domain(S::SpaceOperator)=domain(domainspace(S))
@@ -100,26 +67,13 @@ end
 ↦(A::Operator,b::Space)=promoterangespace(A,b)
 Base.colon(A::Operator,b::Space)=promotedomainspace(A,b)
 
-
-function promotedomainspace(P::Operator,sp::Space,::ZeroSpace)
-    @assert isafunctional(P)
-    SpaceFunctional(P,sp)
-end
-
-
 promoterangespace(P::Operator,sp::Space)=promoterangespace(P,sp,rangespace(P))
 promotedomainspace(P::Operator,sp::Space)=promotedomainspace(P,sp,domainspace(P))
 
 
 
-function promotedomainspace(P::Operator,sp::Space,::AnySpace)
-    if isafunctional(P)
-        SpaceFunctional(P,sp)
-    else
-        @assert isbanded(P)
+promotedomainspace(P::Operator,sp::Space,::AnySpace) =
         SpaceOperator(P,sp)
-    end
-end
 
 function promoterangespace(P::Operator,sp::Space,::AnySpace)
     @assert isbanded(P)
@@ -181,6 +135,10 @@ function choosedomainspace(ops::Vector,spin)
 end
 
 
+spacescompatible(A::Operator,B::Operator) =
+    domainspace(A)==domainspace(B) && rangespace(A)==rangespace(B)
+
+
 #It's important that domain space is promoted first as it might impact range space
 promotespaces(ops::Vector) = promoterangespace(promotedomainspace(ops))
 function promotespaces(ops::Vector,b::Fun)
@@ -194,12 +152,13 @@ end
 
 
 function promotespaces(A::Operator,B::Operator)
-    if domainspace(A)==domainspace(B) && rangespace(A)==rangespace(B)
+    if spacescompatible(A,B)
         A,B
     else
         tuple(promotespaces([A,B])...)
     end
 end
+
 
 
 

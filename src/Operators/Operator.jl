@@ -236,6 +236,8 @@ include("banded/banded.jl")
 include("functionals/functionals.jl")
 include("almostbanded/almostbanded.jl")
 
+include("algebra.jl")
+
 include("systems.jl")
 
 include("adaptiveqr.jl")
