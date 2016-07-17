@@ -64,20 +64,30 @@ end
 
 # The coolest definitions ever!!
 # supports Derivative():Chebyshev()↦Ultraspherical{1}()
-↦(A::Operator,b::Space)=promoterangespace(A,b)
-Base.colon(A::Operator,b::Space)=promotedomainspace(A,b)
+↦(A::Operator,b::Space) = promoterangespace(A,b)
+Base.colon(A::Operator,b::Space) = promotedomainspace(A,b)
 
-promoterangespace(P::Operator,sp::Space)=promoterangespace(P,sp,rangespace(P))
-promotedomainspace(P::Operator,sp::Space)=promotedomainspace(P,sp,domainspace(P))
+promoterangespace(P::Operator,sp::Space) = promoterangespace(P,sp,rangespace(P))
+promotedomainspace(P::Operator,sp::Space) = promotedomainspace(P,sp,domainspace(P))
 
 
 
-promotedomainspace(P::Operator,sp::Space,::AnySpace) =
-        SpaceOperator(P,sp)
+function promotedomainspace(P::Operator,sp::Space,::AnySpace)
+    rs = rangespace(P)
+    if isa(rs,AnySpace)
+        SpaceOperator(P,sp,sp)
+    else
+        SpaceOperator(P,sp,rs)
+    end
+end
 
 function promoterangespace(P::Operator,sp::Space,::AnySpace)
-    @assert isbanded(P)
-    SpaceOperator(P,sp)
+    ds = domainspace(P)
+    if isa(ds,AnySpace)
+        SpaceOperator(P,sp,sp)
+    else
+        SpaceOperator(P,ds,sp)
+    end
 end
 
 promoterangespace(P::Operator,sp::Space,cursp::Space) =

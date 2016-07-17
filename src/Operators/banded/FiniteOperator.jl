@@ -3,12 +3,17 @@ export FiniteOperator
 
 
 
-immutable FiniteOperator{AT<:AbstractMatrix,T<:Number} <: Operator{T}
+immutable FiniteOperator{AT<:AbstractMatrix,T<:Number,DS,RS} <: Operator{T}
     matrix::AT
+    domainspace::DS
+    rangespace::DS
 end
 
 
-FiniteOperator(M::AbstractMatrix)=FiniteOperator{typeof(M),eltype(M)}(M)
+FiniteOperator(M::AbstractMatrix,ds::Space,rs::Space) =
+    FiniteOperator{typeof(M),eltype(M),typeof(ds),typeof(rs)}(M)
+
+FiniteOperator(M::AbstractMatrix) = FiniteOperator(M,AnySpace(),AnySpace())
 
 
 getindex(F::FiniteOperator,k::Integer,j::Integer) =
@@ -26,25 +31,8 @@ end
 
 
 
-bandinds(T::FiniteOperator)=(1-size(T.matrix,1),size(T.matrix,2)-1)
-bandinds{AT<:BandedMatrix}(T::FiniteOperator{AT})=bandinds(T.matrix)
+bandinds(T::FiniteOperator) = (1-size(T.matrix,1),size(T.matrix,2)-1)
+bandinds{AT<:BandedMatrix}(T::FiniteOperator{AT}) = bandinds(T.matrix)
 
 
 Base.maximum(K::FiniteOperator)=maximum(K.matrix)
-
-
-immutable FiniteFunctional{S,T} <: Operator{T}
-    data::Vector{T}
-    domainspace::S
-end
-
-@functional FiniteFunctional
-
-Base.convert{T}(::Type{Operator{T}},S::FiniteFunctional)=FiniteFunctional(convert(Vector{T},S.data),S.domainspace)
-
-domainspace(S::FiniteFunctional)=S.domainspace
-bandwidth(S::FiniteFunctional) = length(S.data)
-
-
-Base.getindex{S,T}(B::FiniteFunctional{S,T},k::Integer)=k≤bandwidth(B)?B.data[k]:zero(T)
-Base.getindex{S,T}(B::FiniteFunctional{S,T},kr::Range)=T[B[k] for k=kr]
