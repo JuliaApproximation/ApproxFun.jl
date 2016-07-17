@@ -184,7 +184,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
     header && println(io,summary(B))
     dsp=domainspace(B)
 
-    if isa(dsp,AnySpace) || !isambiguous(domainspace(B))
+    if (isa(dsp,AnySpace) || !isambiguous(domainspace(B))) && isbanded(B)
         BM=B[1:10,1:10]
 
         M=Array(Any,11,11)

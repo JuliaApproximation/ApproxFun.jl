@@ -45,26 +45,41 @@ bandwidth(C::PlusFunctional)=mapreduce(bandwidth,max,C.ops)
 promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Operator{T}[promotedomainspace(c,sp) for c in C.ops])
 
 
-immutable PlusOperator{T} <: Operator{T}
+immutable PlusOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
-    function PlusOperator(opsin::Vector{Operator{T}})
+    bandinds::BI
+    function PlusOperator(opsin::Vector{Operator{T}},bi::BI)
         n,m=size(first(opsin))
         for k=2:length(opsin)
             @assert size(opsin[k],1)==n && size(opsin[k],2)==m
         end
-        new(opsin)
+        new(opsin,bi)
     end
 end
 
 
-PlusOperator{T}(opsin::Vector{Operator{T}}) = PlusOperator{T}(opsin)
+PlusOperator{T,UT<:Number,VT<:Number}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
+    PlusOperator{T,typeof(bi)}(opsin,bi)
+
+bandinds(P::PlusOperator) = P.bandinds    
+
+function PlusOperator(ops::Vector)
+    # calculate bandinds
+    b1,b2=0,0
+    for op in ops
+        br=bandinds(op)
+        b1=min(br[1],b1)
+        b2=max(br[end],b2)
+    end
+    PlusOperator(ops,(b1,b2))
+end
 
 #Base.convert{OT<:PlusOperator}(::Type{OT},P::OT)=P
 function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
     if T==eltype(P)
         P
     else
-        PlusOperator{T}(P.ops)
+        PlusOperator{T,eltype(P.bandinds)}(P.ops,P.bandinds)
     end
 end
 
@@ -146,17 +161,6 @@ function rangespace(P::PlusOperator)
     end
 
     AnySpace()
-end
-
-
-function bandinds(P::PlusOperator)
-    b1,b2=0,0
-    for op in P.ops
-        br=bandinds(op)
-        b1=min(br[1]::Int,b1)
-        b2=max(br[end]::Int,b2)
-    end
-    (b1,b2)
 end
 
 
