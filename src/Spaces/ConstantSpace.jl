@@ -54,10 +54,6 @@ Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T})=Fu
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
 
 
-## Promotion: Zero operators are the only operators that also make sense as functionals
-promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))
-
-
 # When the union of A and B is a ConstantSpace, then it contains a one
 conversion_rule(A::ConstantSpace,B::UnsetSpace)=NoSpace()
 conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()

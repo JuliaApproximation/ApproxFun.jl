@@ -93,8 +93,7 @@ end
 *(A::LowRankPertOperator,B::LowRankPertOperator)=A.op*B + A.pert*B
 
 # ambiguity
-for TYP in (:TimesOperator,:PlusFunctional,:ZeroOperator,:ZeroFunctional,
-            :PlusOperator,:Conversion,:Operator)
+for TYP in (:TimesOperator,:ZeroOperator,:PlusOperator,:Conversion,:Operator)
     @eval begin
         +(L::LowRankOperator,B::$TYP) = LowRankPertOperator(B,L)
         +(B::$TYP,L::LowRankOperator) = LowRankPertOperator(B,L)

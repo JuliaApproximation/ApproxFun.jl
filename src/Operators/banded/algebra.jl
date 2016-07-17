@@ -4,47 +4,6 @@ export PlusOperator,TimesOperator
 
 
 
-
-##PlusFunctional
-
-immutable PlusFunctional{T} <: Operator{T}
-    ops::Vector{Operator{T}}
-end
-
-function Base.convert{T}(::Type{Operator{T}},P::PlusFunctional)
-    if T==eltype(P)
-        P
-    else
-        PlusFunctional{T}(P.ops)
-    end
-end
-
-
-@functional PlusFunctional
-
-function getindex{T}(op::PlusFunctional{T},k::Integer)
-    ret = op.ops[1][k]::T
-    for j=2:length(op.ops)
-        ret+=op.ops[j][k]::T
-    end
-    ret::T
-end
-
-
-function getindex{T}(op::PlusFunctional{T},k::Range)
-    ret = convert(Vector{T},op.ops[1][k])
-    for j=2:length(op.ops)
-        ret+=convert(Vector{T},op.ops[j][k])
-    end
-    ret
-end
-
-
-bandwidth(C::PlusFunctional)=mapreduce(bandwidth,max,C.ops)
-
-promotedomainspace{T}(C::PlusFunctional{T},sp::Space)=PlusFunctional(Operator{T}[promotedomainspace(c,sp) for c in C.ops])
-
-
 immutable PlusOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
@@ -57,11 +16,13 @@ immutable PlusOperator{T,BI} <: Operator{T}
     end
 end
 
+Base.size(P::PlusOperator,k...) = size(first(P.ops),k...)
+
 
 PlusOperator{T,UT<:Number,VT<:Number}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
     PlusOperator{T,typeof(bi)}(opsin,bi)
 
-bandinds(P::PlusOperator) = P.bandinds    
+bandinds(P::PlusOperator) = P.bandinds
 
 function PlusOperator(ops::Vector)
     # calculate bandinds
@@ -83,72 +44,39 @@ function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
     end
 end
 
-promoteplus{T}(ops::Vector{Operator{T}})=PlusOperator(promotespaces(ops))
-function promoteplus{T}(opsin::Vector{Operator{T}})
-    ops=promotespaces(opsin)
-    if all(isafunctional,ops)
-        PlusFunctional(ops)
-    else
-        PlusOperator(ops)
-    end
-end
+promoteplus{T}(ops::Vector{Operator{T}}) = PlusOperator(promotespaces(ops))
 
-
-
-
-+(::PlusOperator,::PlusFunctional) = error("TODO: Delete")
-+(::PlusFunctional,::PlusOperator) = error("TODO: Delete")
-+(::PlusFunctional,::ZeroOperator) = error("TODO: Delete")
-+(::ZeroOperator,::PlusFunctional) = error("TODO: Delete")
-+(::ZeroFunctional,::PlusOperator) = error("TODO: Delete")
-+(::PlusOperator,::ZeroFunctional) = error("TODO: Delete")
-+(::ZeroOperator,::ZeroFunctional) = error("TODO: Delete")
-+(::ZeroFunctional,::ZeroOperator) = error("TODO: Delete")
-
-for (PLUS,TYP,ZER) in ((:PlusFunctional,:Operator,:ZeroFunctional),
-                       (:PlusOperator,:Operator,:ZeroOperator))
-    @eval begin
-        function domainspace(P::$PLUS)
-            for op in P.ops
-                sp = domainspace(op)
-
-                if !isa(sp,AnySpace)
-                    return sp
-                end
-            end
-
-            AnySpace()
-        end
-
-        domain(P::$PLUS)=commondomain(P.ops)
-
-
-        +(A::$PLUS,B::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
-        +(A::$PLUS,B::$PLUS,C::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B.ops...,C.ops...])
-        +(A::$PLUS,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A.ops...,B])
-        +(A::$PLUS,B::$ZER)=A
-        +(A::$PLUS,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B,C])
-        +(A::$TYP,B::$PLUS)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B.ops...])
-        +(A::$ZER,B::$PLUS)=B
-        +(A::$TYP,B::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B))}[A,B])
-        +(A::$TYP,B::$TYP,C::$TYP)=promoteplus($TYP{promote_type(eltype(A),eltype(B),eltype(C))}[A,B,C])
-        #TODO: Arbitrary number of summands
-    end
-end
-
-
-
-function rangespace(P::PlusFunctional)
+function domainspace(P::PlusOperator)
     for op in P.ops
-        sp = rangespace(op)
+        sp = domainspace(op)
 
-        if !isa(sp,ConstantSpace{AnyDomain})
+        if !isa(sp,AnySpace)
             return sp
         end
     end
 
-    ConstantSpace()
+    AnySpace()
 end
+
+domain(P::PlusOperator) = commondomain(P.ops)
+
+
++(A::PlusOperator,B::PlusOperator) =
+    promoteplus($Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
++(A::PlusOperator,B::PlusOperator,C::PlusOperator) =
+    promoteplus(Operator{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B.ops...,C.ops...])
++(A::PlusOperator,B::Operator) =
+    promoteplus(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
++(A::PlusOperator,B::ZeroOperator) = A
++(A::PlusOperator,B::Operator,C::Operator) =
+    promoteplus(Operator{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B,C])
++(A::Operator,B::PlusOperator) =
+    promoteplus(Operator{promote_type(eltype(A),eltype(B))}[A,B.ops...])
++(A::ZeroOperator,B::PlusOperator) = B
++(A::Operator,B::Operator) =
+    promoteplus(Operator{promote_type(eltype(A),eltype(B))}[A,B])
++(A::Operator,B::Operator,C::Operator) =
+    promoteplus(Operator{promote_type(eltype(A),eltype(B),eltype(C))}[A,B,C])
 
 
 function rangespace(P::PlusOperator)
@@ -194,12 +122,15 @@ end
 +(f::Fun,A::Operator)=Multiplication(f,domainspace(A))+A
 -(A::Operator,f::Fun)=A+Multiplication(-f,domainspace(A))
 -(f::Fun,A::Operator)=Multiplication(f,domainspace(A))-A
-+(A::ZeroOperator,::ZeroOperator)=A
-+(A::Operator,::ZeroOperator)=A
-+(::ZeroOperator,B::Operator)=B
-+(A::ZeroFunctional,::ZeroFunctional)=A
-+(A::Operator,::ZeroFunctional)=A
-+(::ZeroFunctional,B::Operator)=B
+function +(A::ZeroOperator,B::ZeroOperator)
+    @assert size(A) == size(B)
+    A
+end
+function +(A::Operator,B::ZeroOperator)
+    @assert size(A) == size(B)
+    A
+end
++(A::ZeroOperator,B::Operator) = A+B
 
 
 
@@ -585,10 +516,7 @@ for OP in (:*,:.*)
         function $OP(c::Number,A::Operator)
             if c==1
                 A
-            elseif c==0 && isafunctional(A)
-                ZeroFunctional(domainspace(A))
             elseif c==0
-                @assert isbanded(A)
                 ZeroOperator(domainspace(A),rangespace(A))
             else
                 ConstantTimesOperator(c,A)

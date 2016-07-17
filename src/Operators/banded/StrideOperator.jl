@@ -93,10 +93,9 @@ Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range)=T[((k-op.rowindex)â‰
 
 ##interlace block operators
 
-iszerooperator(::ZeroOperator)=true
-iszerooperator(::ZeroFunctional)=true
-iszerooperator(A::ConstantOperator)=A.c==0.
-iszerooperator(A)=false
+iszerooperator(::ZeroOperator) = true
+iszerooperator(A::ConstantOperator) = A.c==0.
+iszerooperator(A) = false
 function isboundaryrow(A,k)
     for j=1:size(A,2)
         if isafunctional(A[k,j])
