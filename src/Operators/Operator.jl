@@ -147,8 +147,8 @@ Base.getindex(B::Operator,k) = defaultgetindex(B,k)
 
 ## override getindex.
 
-defaultgetindex(B::Operator,k::Integer) = error("Override getindex for $(typeof(B))")
-defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override getindex for $(typeof(B))")
+defaultgetindex(B::Operator,k::Integer) = error("Override [k] for $(typeof(B))")
+defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override [k,j] for $(typeof(B))")
 
 
 # Ranges

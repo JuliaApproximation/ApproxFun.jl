@@ -128,7 +128,7 @@ for TYP in (:ZeroOperator,:Operator)
         if spacescompatible(A,B)
             A
         else
-            +(promotespaces(A,B)...)
+            promotespaces(A,B)[1]
         end
     end
 end
@@ -328,55 +328,58 @@ Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 
 
 getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
+getindex(P::TimesOperator,k::Integer) = P[k:k,k:k][1,1]
 
-function Base.copy{T,TO<:TimesOperator}(S::SubBandedMatrix{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
-    P=parent(S)
-    kr,jr=parentindexes(S)
+for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
+    @eval function Base.copy{T,TO<:TimesOperator}(S::$STyp{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
+        P=parent(S)
+        kr,jr=parentindexes(S)
 
-    @assert length(P.ops)≥2
-    if size(S,1)==0
-        return bzeros(S)
-    end
-
-
-    krl=Array(Int,length(P.ops),2)
-
-    krl[1,1],krl[1,2]=kr[1],kr[end]
-
-    # find minimal row/column range starting from left
-    for m=1:length(P.ops)-1
-        br=bandinds(P.ops[m])
-        krl[m+1,1]=max(1-mod(kr[1],1),br[1] + krl[m,1])  # no negative
-        krl[m+1,2]=br[end] + krl[m,2]
-    end
-
-    #find minimal row/column range starting from right
-    br=bandinds(P.ops[end])
-    krl[end,1]=max(krl[end,1],jr[1]-br[2])
-    krl[end,2]=min(krl[end,2],jr[end]-br[1])
-    for m=length(P.ops)-1:-1:2
-        br=bandinds(P.ops[m])
-        krl[m,1]=max(krl[m,1],krl[m+1,1]-br[2])
-        krl[m,2]=min(krl[m,2],krl[m+1,2]-br[1])
-    end
-
-    # Check if any range is invalid, in which case return zero
-    for m=1:length(P.ops)
-        if krl[m,1]>krl[m,2]
-            return bzeros(S)
+        @assert length(P.ops)≥2
+        if size(S,1)==0
+            return $Zer(S)
         end
+
+
+        krl=Array(Int,length(P.ops),2)
+
+        krl[1,1],krl[1,2]=kr[1],kr[end]
+
+        # find minimal row/column range starting from left
+        for m=1:length(P.ops)-1
+            br=bandinds(P.ops[m])
+            krl[m+1,1]=max(1-mod(kr[1],1),br[1] + krl[m,1])  # no negative
+            krl[m+1,2]=br[end] + krl[m,2]
+        end
+
+        #find minimal row/column range starting from right
+        br=bandinds(P.ops[end])
+        krl[end,1]=max(krl[end,1],jr[1]-br[2])
+        krl[end,2]=min(krl[end,2],jr[end]-br[1])
+        for m=length(P.ops)-1:-1:2
+            br=bandinds(P.ops[m])
+            krl[m,1]=max(krl[m,1],krl[m+1,1]-br[2])
+            krl[m,2]=min(krl[m,2],krl[m+1,2]-br[1])
+        end
+
+        # Check if any range is invalid, in which case return zero
+        for m=1:length(P.ops)
+            if krl[m,1]>krl[m,2]
+                return $Zer(S)
+            end
+        end
+
+
+
+        # The following returns a banded Matrix with all rows
+        # for large k its upper triangular
+        BA=P.ops[end][krl[end,1]:krl[end,2],jr]
+        for m=(length(P.ops)-1):-1:1
+            BA=P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]]*BA
+        end
+
+        BA
     end
-
-
-
-    # The following returns a banded Matrix with all rows
-    # for large k its upper triangular
-    BA=P.ops[end][krl[end,1]:krl[end,2],jr]
-    for m=(length(P.ops)-1):-1:1
-        BA=P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]]*BA
-    end
-
-    BA
 end
 
 

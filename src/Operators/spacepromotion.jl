@@ -146,7 +146,8 @@ end
 
 
 spacescompatible(A::Operator,B::Operator) =
-    domainspace(A)==domainspace(B) && rangespace(A)==rangespace(B)
+    spacescompatible(domainspace(A),domainspace(B)) &&
+    spacescompatible(rangespace(A),rangespace(B))
 
 
 #It's important that domain space is promoted first as it might impact range space

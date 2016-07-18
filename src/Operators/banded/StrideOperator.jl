@@ -124,7 +124,7 @@ function spacescompatible{T<:Operator}(A::Matrix{T})
     true
 end
 
-spacescompatible{T<:Operator}(A::Vector{T})=spacescompatible(map(domainspace,A))
+spacescompatible{T<:Operator}(A::Vector{T}) = spacescompatible(map(domainspace,A))
 
 function domainspace{T<:Operator}(A::Matrix{T})
     @assert spacescompatible(A)
