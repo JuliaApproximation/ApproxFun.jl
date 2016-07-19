@@ -22,9 +22,6 @@ macro calculus_operator(Op)
             order::OT
         end
 
-        #TODO: SPECIALOPS remove
-        Base.size(::$ConcOp,k::Integer) = ∞
-
         @wrapper $WrappOp
 
 

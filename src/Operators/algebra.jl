@@ -335,6 +335,11 @@ for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
         P=parent(S)
         kr,jr=parentindexes(S)
 
+        if maximum(kr) > size(P,1) || maximum(jr) > size(P,2) ||
+            minimum(kr) < 1 || minimum(jr) < 1
+            throw(BoundsError())
+        end
+
         @assert length(P.ops)≥2
         if size(S,1)==0
             return $Zer(S)
@@ -348,8 +353,8 @@ for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
         # find minimal row/column range starting from left
         for m=1:length(P.ops)-1
             br=bandinds(P.ops[m])
-            krl[m+1,1]=max(1-mod(kr[1],1),br[1] + krl[m,1])  # no negative
-            krl[m+1,2]=br[end] + krl[m,2]
+            krl[m+1,1]=max(1,br[1] + krl[m,1])  # no negative
+            krl[m+1,2]=min(br[end] + krl[m,2],size(P.ops[m],2))
         end
 
         #find minimal row/column range starting from right
@@ -481,7 +486,7 @@ function *(f::Fun,A::Operator)
     if isafunctional(A)
         if bandwidth(A)<Inf
             # We get a banded operator, so we take that into account
-            TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
+            TimesOperator(Multiplication(f,ConstantSpace()),A)
         else
             LowRankOperator(f,A)
         end
@@ -532,12 +537,10 @@ for TYP in (:Vector,:Matrix)
                 return dotu(A[1:length(b)],b)
             end
 
-            @assert isbanded(A)
-
             n=size(b,1)
 
             ret=if n>0
-                BandedMatrix(A,:,1:n)*b
+                A[1:min(size(A,1),n+bandwidth(A,1)),1:n]*b
             else
                 b
             end

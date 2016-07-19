@@ -8,9 +8,6 @@ immutable ConcreteConversion{S<:Space,V<:Space,T} <: Conversion{T}
 end
 
 
-#TODO: SPECIALOPS remove
-Base.size(C::ConcreteConversion,k::Integer) = ∞
-
 ConcreteConversion(a::Space,b::Space)=ConcreteConversion{typeof(a),typeof(b),
         promote_type(op_eltype_realdomain(a),op_eltype_realdomain(b))}(a,b)
 

@@ -75,6 +75,9 @@ Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2})=ConcreteConversion{typeof(a),t
 Conversion(a::ConstantSpace,b::Space)=ConcreteConversion(a,b)
 bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-ncoefficients(ones(rangespace(C))),0
 function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer)
+    if j != 1
+        throw(BoundsError())
+    end
     on=ones(rangespace(C))
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
@@ -123,57 +126,12 @@ rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) =
 
 
 
-
-###
-# FunctionalOperator treats a functional like an operator
-###
-
-immutable FunctionalOperator{FT,T} <: Operator{T}
-    func::FT
-end
-
-Base.size(::FunctionalOperator,k::Integer) = ∞
-
-function FunctionalOperator(func::Operator)
-    @assert isafunctional(func)
-    FunctionalOperator{typeof(func),eltype(func)}(func)
-end
-
-function Base.convert{O<:Operator}(::Type{O},FO::FunctionalOperator)
-    if eltype(O)==eltype(FO)
-        FO::O
-    else
-        FunctionalOperator{typeof(FO.func),eltype(O)}(FO.func)
-    end
-end
-
-bandinds(FO::FunctionalOperator) = 0,bandwidth(FO.func)-1
-domainspace(FO::FunctionalOperator)=domainspace(FO.func)
-rangespace(FO::FunctionalOperator)=ConstantSpace()
-
-for TYP in (:AnySpace,:UnsetSpace,:Space)
-    @eval promotedomainspace(FT::FunctionalOperator,sp::$TYP)=FunctionalOperator(promotedomainspace(FT.func,sp))
-end
-
 # functionals always map to Constant space
 function promoterangespace(P::Operator,A::ConstantSpace,cur::ConstantSpace)
     @assert isafunctional(P)
     domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
 end
 
-
-function promoterangespace(P::Operator,sp::Space,cursp::ConstantSpace)
-    if isafunctional(P)
-        promoterangespace(FunctionalOperator(P),sp)
-    else
-        Conversion(cursp,sp)*P
-    end
-end
-
-
-
-getindex(FO::FunctionalOperator,k::Integer,j::Integer) =
-    k==1?FO.func[j]:zero(eltype(FO))
 
 
 for op = (:*,:.*,:./,:/)

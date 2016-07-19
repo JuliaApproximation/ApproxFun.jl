@@ -15,7 +15,6 @@ function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
 end
 
 #TODO: SPECIALOPS Remove
-Base.size(M::ConcreteMultiplication,k::Integer) = ∞
 isbanded(A::ConcreteMultiplication) = true
 
 # We do this in two stages to support Modifier spaces
