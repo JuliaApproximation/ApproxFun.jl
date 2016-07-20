@@ -86,7 +86,9 @@ end
 StrideFunctional{T<:Number}(B::Operator{T},r,rs)=StrideFunctional{T,typeof(B)}(B,r,rs)
 
 
-Base.getindex{T<:Number}(op::StrideFunctional{T},kr::Range)=T[((k-op.rowindex)≥1 &&(k-op.rowindex)%op.stride==0)?op.op[fld(k-op.rowindex,op.stride)]:zero(T) for k=kr]
+Base.getindex{T<:Number}(op::StrideFunctional{T},k::Integer) =
+    ((k-op.rowindex)≥1 && (k-op.rowindex)%op.stride==0)  ?
+                op.op[fld(k-op.rowindex,op.stride)]       : zero(T)
 
 @eval Base.convert{T}(::Type{Operator{T}},S::StrideFunctional)=StrideFunctional(convert(Operator{T},S.op),S.rowindex,S.stride)
 
@@ -247,7 +249,8 @@ function interlace{T<:Operator}(A::Matrix{T})
     # Use BlockOperator whenever the first columns are all constants
     if all(isconstop,A[1:end-1,1:end-1]) &&
             all(iscolop,A[end,1:end-1]) &&
-            all(a->isafunctional(a),A[1:end-1,end]) && isbanded(A[end,end])
+            all(a->isafunctional(a),A[1:end-1,end]) && isbanded(A[end,end]) &&
+            isinf(size(A[end],1)) && isinf(size(A[end],2))
         return [Operator{TT}[BlockFunctional(map(Number,vec(A[k,1:end-1])),A[k,end]) for k=1:m-1]...;
                     BlockOperator(A[end:end,:])]
     end

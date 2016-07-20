@@ -38,9 +38,10 @@ LowRankOperator(A::Fun,B::Operator)=LowRankOperator([A],[B])
 
 
 
-datasize(L::LowRankOperator,k)=k==1?mapreduce(ncoefficients,max,L.U):mapreduce(bandwidth,max,L.V)
-datasize(L::LowRankOperator)=datasize(L,1),datasize(L,2)
-
+datasize(L::LowRankOperator,k) =
+    k==1?mapreduce(ncoefficients,max,L.U):mapreduce(bandwidth,max,L.V)
+datasize(L::LowRankOperator) = datasize(L,1),datasize(L,2)
+bandinds(L::LowRankOperator) = datasize(L,1)-1,datasize(L,2)-1
 
 domainspace(L::LowRankOperator)=domainspace(first(L.V))
 rangespace(L::LowRankOperator)=space(first(L.U))

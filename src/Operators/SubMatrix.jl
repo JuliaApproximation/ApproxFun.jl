@@ -103,7 +103,7 @@ end
 SubBandedOperator(A,inds,l,u) = SubBandedOperator{eltype(A),typeof(A),typeof(inds)}(A,inds,l,u)
 
 function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
-    @assert isbanded(A)
+    @assert isbanded(A) && isinf(size(A,1)) && isinf(size(A,2))
     st=step(kr)
     @assert st==step(jr)  # Otherwise, its not a banded operator
     kr1=first(kr)

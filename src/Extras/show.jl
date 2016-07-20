@@ -184,7 +184,8 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
     header && println(io,summary(B))
     dsp=domainspace(B)
 
-    if (isa(dsp,AnySpace) || !isambiguous(domainspace(B))) && isbanded(B)
+    if (isa(dsp,AnySpace) || !isambiguous(domainspace(B))) && isbanded(B) &&
+            isinf(size(B,1)) && isinf(size(B,2))
         BM=B[1:10,1:10]
 
         M=Array(Any,11,11)
@@ -207,7 +208,8 @@ end
 
 @compat function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
     nf = length(A)-1
-    if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end])
+    if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end]) &&
+            isinf(size(A[end],1)) && isinf(size(A[end],2))
         header && for k=1:nf+1 println(io,summary(A[k])) end
         M=Array{Any}(11,11)
         fill!(M,PrintShow(""))

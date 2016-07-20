@@ -146,7 +146,7 @@ end
 function MutableOperator{T<:Operator}(B::Vector{T})
     bcs = Operator{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
 
-    @assert isbanded(B[end])
+    @assert isbanded(B[end]) && isinf(size(B[end],1)) && isinf(size(B[end],2))
 
     MutableOperator(bcs,B[end])
 end

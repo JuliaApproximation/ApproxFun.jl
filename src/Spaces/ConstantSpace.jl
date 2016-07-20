@@ -129,7 +129,7 @@ rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) =
 # functionals always map to Constant space
 function promoterangespace(P::Operator,A::ConstantSpace,cur::ConstantSpace)
     @assert isafunctional(P)
-    domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
+    domain(A)==domain(cur)?P:SpaceOperator(P,domainspace(P),A)
 end
 
 

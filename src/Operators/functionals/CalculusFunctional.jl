@@ -91,7 +91,7 @@ function DefiniteLineIntegral(sp::Space)
     else
         M = Multiplication(abs(fromcanonicalD(sp)),setcanonicaldomain(sp))
         Op = DefiniteLineIntegral(rangespace(M))*M
-        DefiniteLineIntegralWrapper(SpaceFunctional(Op,sp,rangespace(Op)))
+        DefiniteLineIntegralWrapper(SpaceOperator(Op,sp,rangespace(Op)))
     end
 end
 

@@ -95,10 +95,10 @@ end
 Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 
-function getindex{T}(P::PlusOperator{T},k::Integer,j::Integer)
-    ret=P.ops[1][k,j]::T
+function getindex{T}(P::PlusOperator{T},k::Integer...)
+    ret=P.ops[1][k...]::T
     for op in rest(P.ops,2)
-        ret+=op[k,j]::T
+        ret+=op[k...]::T
     end
     ret
 end
@@ -215,10 +215,11 @@ BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubBandedMatrix{T,OP},A::AbstractM
 
 
 
-immutable TimesOperator{T} <: Operator{T}
+immutable TimesOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
+    bandinds::BI
 
-    function TimesOperator(ops::Vector{Operator{T}})
+    function TimesOperator(ops::Vector{Operator{T}},bi::BI)
         # check compatible
         for k=1:length(ops)-1
             @assert size(ops[k],2) == size(ops[k+1],1)
@@ -247,13 +248,27 @@ immutable TimesOperator{T} <: Operator{T}
         end
 
 
-        new(ops)
+        new(ops,bi)
     end
 end
 
-TimesOperator{T}(ops::Vector{Operator{T}}) = TimesOperator{T}(ops)
+
+function bandindssum(P,k)
+    ret=0
+    for op in P
+        ret+=bandinds(op)[k]
+    end
+    ret
+end
+
+bandindssum(P) = (bandindssum(P,1),bandindssum(P,2))
+
+TimesOperator{T,N1<:Number,N2<:Number}(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) =
+    TimesOperator{T,typeof(bi)}(ops,bi)
+
+TimesOperator{T}(ops::Vector{Operator{T}}) = TimesOperator(ops,bandindssum(ops))
 TimesOperator{OT<:Operator}(ops::Vector{OT}) =
-    TimesOperator(convert(Vector{Operator{eltype(OT)}},ops))
+    TimesOperator(convert(Vector{Operator{eltype(OT)}},ops),bandindssum(ops))
 
 TimesOperator(A::TimesOperator,B::TimesOperator) =
     TimesOperator(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
@@ -315,15 +330,7 @@ rangespace(P::TimesOperator)=rangespace(first(P.ops))
 domain(P::TimesOperator)=commondomain(P.ops)
 
 
-function bandindssum(P,k)
-    ret=0
-    for op in P
-        ret+=bandinds(op)[k]::Int
-    end
-    ret
-end
-
-bandinds(P::TimesOperator) = (bandindssum(P.ops,1),bandindssum(P.ops,2))
+bandinds(P::TimesOperator) = P.bandinds
 Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 
 
