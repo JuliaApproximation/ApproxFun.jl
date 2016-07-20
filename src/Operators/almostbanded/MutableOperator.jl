@@ -126,6 +126,8 @@ rangespace(M::MutableOperator)=rangespace(M.op)
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
 function MutableOperator{R<:Operator}(bc::Vector{R},op::Operator)
+    @assert isbanded(op)
+
     bndinds=bandinds(op)
     bndindslength=bndinds[end]-bndinds[1]+1
     nbc = length(bc)
@@ -146,7 +148,7 @@ end
 function MutableOperator{T<:Operator}(B::Vector{T})
     bcs = Operator{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
 
-    @assert isbanded(B[end]) && isinf(size(B[end],1)) && isinf(size(B[end],2))
+    @assert isinf(size(B[end],1)) && isinf(size(B[end],2))
 
     MutableOperator(bcs,B[end])
 end

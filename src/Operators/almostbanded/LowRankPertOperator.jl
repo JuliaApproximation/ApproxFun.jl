@@ -80,7 +80,8 @@ end
 ## algebra
 
 for OP in (:+,:-)
-    @eval $OP(A::LowRankPertOperator,B::LowRankPertOperator)=LowRankPertOperator($OP(A.op,B.op),$OP(A.pert,B.pert))
+    @eval $OP(A::LowRankPertOperator,B::LowRankPertOperator) =
+        LowRankPertOperator($OP(A.op,B.op),$OP(A.pert,B.pert))
 end
 
 *(L::LowRankPertOperator,f::Fun)=L.op*f+L.pert*f

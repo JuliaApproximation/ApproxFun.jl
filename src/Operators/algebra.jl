@@ -335,7 +335,10 @@ Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 
 
 getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
-getindex(P::TimesOperator,k::Integer) = P[k:k,k:k][1,1]
+function getindex(P::TimesOperator,k::Integer)
+    @assert isafunctional(P)
+    P[1:1,k:k][1,1]
+end
 
 for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
     @eval function Base.copy{T,TO<:TimesOperator}(S::$STyp{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
@@ -353,14 +356,16 @@ for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
         end
 
 
-        krl=Array(Int,length(P.ops),2)
+        krl = Array(promote_type(typeof(P.bandinds[1]),typeof(P.bandinds[2])),length(P.ops),2)
 
         krl[1,1],krl[1,2]=kr[1],kr[end]
 
         # find minimal row/column range starting from left
         for m=1:length(P.ops)-1
             br=bandinds(P.ops[m])
-            krl[m+1,1]=max(1,br[1] + krl[m,1])  # no negative
+            br2=bandinds(P.ops[m+1])
+
+            krl[m+1,1]=max(1,br[1] + krl[m,1] )  # no negative
             krl[m+1,2]=min(br[end] + krl[m,2],size(P.ops[m],2))
         end
 
@@ -373,6 +378,8 @@ for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
             krl[m,1]=max(krl[m,1],krl[m+1,1]-br[2])
             krl[m,2]=min(krl[m,2],krl[m+1,2]-br[1])
         end
+
+        krl = Matrix{Int}(krl)
 
         # Check if any range is invalid, in which case return zero
         for m=1:length(P.ops)
