@@ -62,7 +62,7 @@ domain(P::PlusOperator) = commondomain(P.ops)
 
 
 +(A::PlusOperator,B::PlusOperator) =
-    promoteplus($Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
+    promoteplus(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
 +(A::PlusOperator,B::PlusOperator,C::PlusOperator) =
     promoteplus(Operator{promote_type(eltype(A),eltype(B),eltype(C))}[A.ops...,B.ops...,C.ops...])
 +(A::PlusOperator,B::Operator) =
