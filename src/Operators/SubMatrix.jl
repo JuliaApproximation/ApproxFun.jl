@@ -91,16 +91,16 @@ copy_axpy!(S::SubBandedMatrix) =
 # end
 
 
-## SubBandedOperator
+## SubOperator
 
-immutable SubBandedOperator{T,B,I} <: Operator{T}
+immutable SubOperator{T,B,I,BI1,BI2} <: Operator{T}
     parent::B
     indexes::I
-    l::Int
-    u::Int
+    l::BI1
+    u::BI2
 end
 
-SubBandedOperator(A,inds,l,u) = SubBandedOperator{eltype(A),typeof(A),typeof(inds)}(A,inds,l,u)
+SubOperator(A,inds,l,u) = SubOperator{eltype(A),typeof(A),typeof(inds)}(A,inds,l,u)
 
 function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
     @assert isbanded(A) && isinf(size(A,1)) && isinf(size(A,2))
@@ -109,16 +109,16 @@ function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
     kr1=first(kr)
     jr1=first(jr)
     l,u=(bandinds(A,1)+kr1-jr1)÷st,(bandinds(A,2)+kr1-jr1)÷st
-    SubBandedOperator(A,(kr,jr),-l,u)
+    SubOperator(A,(kr,jr),-l,u)
 end
 
-bandwidth(S::SubBandedOperator,k::Integer) = ifelse(k==1,S.l,S.u)
-bandinds(S::SubBandedOperator) = (-S.l,S.u)
+bandwidth(S::SubOperator,k::Integer) = ifelse(k==1,S.l,S.u)
+bandinds(S::SubOperator) = (-S.l,S.u)
 
 
 
 
-for TYP in (:SubBandedMatrix,:SubMatrix,:SubBandedOperator)
+for TYP in (:SubBandedMatrix,:SubMatrix,:SubOperator)
     @eval begin
         size(V::$TYP) = V.dims
         unsafe_getindex(V::$TYP,k::Integer,j::Integer) = V.parent[V.indexes[1][k],V.indexes[2][j]]
@@ -132,6 +132,6 @@ for TYP in (:SubBandedMatrix,:SubMatrix,:SubBandedOperator)
 end
 
 
-function view(A::SubBandedOperator,kr::UnitRange,jr::UnitRange)
+function view(A::SubOperator,kr::UnitRange,jr::UnitRange)
     view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
 end
