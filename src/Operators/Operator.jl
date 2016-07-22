@@ -194,7 +194,7 @@ iswrapper(::)=false
 
 macro wrappergetindex(Wrap)
     ret = quote
-        Base.getindex(OP::$Wrap,k...) =
+        Base.getindex(OP::$Wrap,k::Integer...) =
             OP.op[k...]
 
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubBandedMatrix{T,OP},A::AbstractMatrix) =
