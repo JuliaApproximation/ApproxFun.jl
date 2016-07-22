@@ -145,6 +145,7 @@ function MutableOperator{R<:Operator}(bc::Vector{R},op::Operator)
     MutableOperator(op,data,fl,nbc,nbc, br)
 end
 
+
 function MutableOperator{T<:Operator}(B::Vector{T})
     bcs = Operator{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
 

@@ -357,3 +357,23 @@ end
 
 coefficients(g::Vector,::Ultraspherical{1},::Chebyshev)=ultraiconversion(g)
 coefficients(g::Vector,::Chebyshev,::Ultraspherical{1})=ultraconversion(g)
+
+## Clenshaw-Curtis functional
+
+for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
+    ConcFunc = parse("Concrete"*string(Func))
+    @eval begin
+        function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},k::Integer)
+            d = domain(Σ)
+            C = $Len(d)/2
+
+            isodd(k) ? 2C/(k*(2-k)) : zero(T)
+        end
+        function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},kr::Range)
+            d = domain(Σ)
+            C = $Len(d)/2
+
+            promote_type(T,typeof(C))[isodd(k) ? 2C/(k*(2-k)) : zero(T) for k in kr]
+        end
+    end
+end

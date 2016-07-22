@@ -163,8 +163,8 @@ end
 
 ## Manipulate length
 
-pad!(f::Fun,n::Integer)=pad!(f.coefficients,n)
-pad(f::Fun,n::Integer)=Fun(pad(f.coefficients,n),f.space)
+pad!(f::Fun,n::Integer) = (pad!(f.coefficients,n);f)
+pad(f::Fun,n::Integer) = Fun(pad(f.coefficients,n),f.space)
 
 
 function chop!{S,T}(f::Fun{S,T},tol::Real)

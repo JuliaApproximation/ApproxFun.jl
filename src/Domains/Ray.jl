@@ -56,7 +56,18 @@ Base.convert{IT<:Ray}(::Type{IT},::AnyDomain)=Ray(NaN,NaN)
 
 ## Map interval
 
+function mobiuspars(d::Ray)
+    s=(d.orientation?1:-1)
+    α=conj(cisangle(d))
+    c=d.center
+    s*α,-s*(1+α*c),α,1-α*c
+end
 
+tocanonical(d::Ray,x)=ray_tocanonical(d.orientation,conj(cisangle(d)).*(x-d.center))
+
+for OP in (:mobius,:mobiusinv,:mobiusD,:mobiusinvD)
+    @eval $OP(a::Ray,z) = $OP(mobiuspars(a)...,z)
+end
 
 ray_tocanonical(x)=(x==Inf)?1.:(x-1.)./(1+x)
 ray_tocanonicalD(x)=(x==Inf)?0.:2*(1./(1+x)).^2

@@ -35,16 +35,32 @@ function getindex(QR::QROperator,d::Symbol)
 end
 
 
-function Base.qrfact{OO<:Operator}(A::Vector{OO})
+function Base.qrfact{OO<:Operator}(A::Union{OO,Vector{OO}})
     R = MutableOperator(A)
-    M=R.data.l+1   # number of diag+subdiagonal bands
-    H=Array(mapreduce(eltype,promote_type,A),M,100)
+    M = R.data.l+1   # number of diag+subdiagonal bands
+    H = Array(eltype(R),M,100)
     QROperator(R,H,0)
 end
 
-function Base.qr{OO<:Operator}(A::Vector{OO})
-    QR=qrfact(A)
+function Base.qr{OO<:Operator}(A::Union{OO,Vector{OO}})
+    QR = qrfact(A)
     QR[:Q],QR[:R]
+end
+
+function Base.det{OO<:Operator}(A::OO)
+    QR = qrfact(A)
+    RD = QR.R.data
+    resizedata!(QR,1)
+    ret = -RD[1,1]
+    k = 2
+    while abs(abs(RD[k-1,k-1])-1) > eps(eltype(A))
+        resizedata!(QR,k)
+        ret *= -RD[k,k]
+        k+=1
+        k > 10_000 && error("Fredholm determinant unlikely to converge after 10_000 iterations.")
+    end
+
+    ret
 end
 
 

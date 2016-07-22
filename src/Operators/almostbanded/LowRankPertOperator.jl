@@ -51,7 +51,7 @@ function MutableOperator{R<:Operator}(bc::Vector{R},S::LowRankPertOperator)
     r=rank(S.pert)
 
     bndindslength=bndinds[end]-bndinds[1]+1
-    br=(bndinds[1]-lbc,bndindslength+dats-1)
+    br=(bndinds[1]-shift,bndindslength+dats-1)
 
     data = bzeros(S.op,shift+100-br[1],:,br)
 

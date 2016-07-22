@@ -60,7 +60,7 @@ function chebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
         if n == 1
             x
         else
-            ret = ifft([reverse(x),x[2:end-1]])[1:n]
+            ret = ifft([reverse(x);x[2:end-1]])[1:n]
             ret = T<:Real ? real(ret) : ret
             ret[2:n-1] *= 2
             ret
@@ -75,9 +75,9 @@ function ichebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
         if n == 1
             x
         else
-            w = exp(-im*convert(T,π)*[0:2n-1]/2n)/2
+            w = [exp(-im*convert(T,π)*k/2n)/2 for k=0:2n-1]
             w[1] *= 2;w[n+1] *= 0;w[n+2:end] *= -1
-            ret = fft(w.*[x,one(T),x[end:-1:2]])[n:-1:1]
+            ret = fft(w.*[x;one(T);x[end:-1:2]])[n:-1:1]
             ret = T<:Real ? real(ret) : ret
         end
     elseif kind == 2
@@ -111,7 +111,7 @@ end
 function plan_itransform{T<:BigFloat,D}(::Fourier{D},x::Vector{T})
     function plan(x)
         n = div(length(x),2)+1
-        v = complex([x[1:n],x[n-1:-1:2]],[0,-x[2n-2:-1:n+1],0,x[n+1:2n-2]])
+        v = complex([x[1:n];x[n-1:-1:2]],[0;-x[2n-2:-1:n+1];0;x[n+1:2n-2]])
         real(fft(v))
     end
     plan
@@ -121,14 +121,14 @@ end
 
 function plan_transform{T<:BigFloat}(::SinSpace,x::Vector{T})
     function plan(x)
-        imag(fft([zero(T),-x,zero(T),reverse(x)]))[2:length(x)+1]
+        imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
     end
     plan
 end
 
 function plan_itransform{T<:BigFloat}(::SinSpace,x::Vector{T})
     function plan(x)
-        imag(fft([zero(T),-x,zero(T),reverse(x)]))[2:length(x)+1]
+        imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
     end
     plan
 end

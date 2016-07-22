@@ -27,8 +27,10 @@ for TYP in (:plan_transform,:plan_itransform)
 end
 
 
-transform(sp::WeightSpace,vals::Vector,plan::WeightSpacePlan)=transform(sp.space,vals./(sp==plan.space?plan.weights:weight(sp,plan.points)),plan.plan)
-itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan)=itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight(sp,plan.points))
+transform(sp::WeightSpace,vals::Vector,plan::WeightSpacePlan) =
+    transform(sp.space,vals./(sp==plan.space?plan.weights:weight(sp,plan.points)),plan.plan)
+itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan) =
+    itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight(sp,plan.points))
 
 
 
@@ -52,3 +54,4 @@ include("JacobiWeightChebyshev.jl")
 include("HeavisideSpace.jl")
 include("DiracSpace.jl")
 include("LogWeight.jl")
+include("ExpWeight.jl")
