@@ -49,7 +49,7 @@ macro calculus_functional(Op)
         getindex(D::$WrappOp,k::Range) = D.func[k]
         getindex(D::$WrappOp,k::Integer) = D.func[k]
         domainspace(D::$WrappOp) = domainspace(D.func)
-        bandwidth(D::$WrappOp) = bandwidth(D.func)
+        bandinds(D::$WrappOp) = bandinds(D.func)
     end)
 end
 

@@ -63,11 +63,11 @@ Base.eltype{T}(::Space{T}) = eltype(T)
 Base.eltype{T,D,d}(::Type{Space{T,D,d}}) = eltype(T)
 basistype{T}(::Space{T}) = T
 basistype{T,D,d}(::Type{Space{T,D,d}}) = T
-basistype{FT<:Space}(::Type{FT}) = basistype(super(FT))
+basistype{FT<:Space}(::Type{FT}) = basistype(supertype(FT))
 
 domaintype{T,D}(::Space{T,D}) = D
 domaintype{T,D,d}(::Type{Space{T,D,d}}) = D
-domaintype{FT<:Space}(::Type{FT}) = domaintype(super(FT))
+domaintype{FT<:Space}(::Type{FT}) = domaintype(supertype(FT))
 
 coefficient_type{S}(::Space{S},T) = coefficient_type(S,T)
 

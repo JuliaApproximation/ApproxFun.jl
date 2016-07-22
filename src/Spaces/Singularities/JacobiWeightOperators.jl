@@ -248,7 +248,7 @@ for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
         function $OPrule(A::JacobiWeight,B::JacobiWeight)
             if domainscompatible(A,B) && isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
                 ms=$OP(A.space,B.space)
-                if min(A.α,B.α)==0.&&min(A.β,B.β)==0.
+                if min(A.α,B.α)==0.0 && min(A.β,B.β) == 0.0
                     return ms
                 else
                     return JacobiWeight(min(A.α,B.α),min(A.β,B.β),ms)
@@ -398,12 +398,12 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             end
         end
 
-        function bandwidth{λ,D<:Interval}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D}})
+        function bandinds{λ,D<:Interval}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D}})
             α,β = domainspace(Σ).α,domainspace(Σ).β
             if α==β && isapproxinteger(α-0.5-λ) && λ ≤ ceil(Int,α)
-                2*(ceil(Int,α)-λ)+1
+                0,2*(ceil(Int,α)-λ)
             else
-                ∞
+                0,∞
             end
         end
     end

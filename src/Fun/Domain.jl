@@ -17,7 +17,7 @@ Base.isreal{T<:Real}(::Domain{T})=true
 Base.isreal{T}(::Domain{T})=false
 Base.ndims{T,d}(::Domain{T,d})=d
 Base.ndims{T,d}(::Type{Domain{T,d}})=d
-Base.ndims{DT<:Domain}(::Type{DT})=ndims(super(DT))
+Base.ndims{DT<:Domain}(::Type{DT})=ndims(supertype(DT))
 
 Base.length(d::Domain) = 1
 

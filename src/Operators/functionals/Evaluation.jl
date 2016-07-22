@@ -12,7 +12,8 @@ immutable Evaluation{S,M,T} <: AbstractEvaluation{T}
     x::M
     order::Int
 end
-Evaluation{T}(::Type{T},sp::Space,x::Bool,order::Integer)=Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
+Evaluation{T}(::Type{T},sp::Space,x::Bool,order::Integer) =
+    Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
 function Evaluation{T}(::Type{T},sp::Space,x::Number,order::Integer)
     d=domain(sp)
     if isa(d,IntervalDomain) && isapprox(first(d),x)
@@ -24,9 +25,10 @@ function Evaluation{T}(::Type{T},sp::Space,x::Number,order::Integer)
     end
 end
 
-Evaluation(sp::UnsetSpace,x::Bool,k::Integer)=Evaluation{UnsetSpace,Bool,UnsetNumber}(sp,x,k)
-Evaluation(sp::Space{ComplexBasis},x,order::Integer)=Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
-Evaluation(sp::Space,x,order::Integer)=Evaluation(eltype(domain(sp)),sp,x,order)
+Evaluation(sp::UnsetSpace,x::Bool,k::Integer) = Evaluation{UnsetSpace,Bool,UnsetNumber}(sp,x,k)
+Evaluation(sp::Space{ComplexBasis},x,order::Integer) =
+    Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
+Evaluation(sp::Space,x,order::Integer) = Evaluation(eltype(domain(sp)),sp,x,order)
 
 #Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::Space,x::Union{Number,Bool})=Evaluation(d,x,0)
@@ -41,7 +43,13 @@ rangespace{S}(E::Evaluation{S,Bool})=ConstantSpace(Point(E.x?last(domain(E)):fir
 rangespace(E::Evaluation)=ConstantSpace(Point(E.x))
 
 
-Base.convert{T}(::Type{Operator{T}},E::Evaluation)=Evaluation(T,E.space,E.x,E.order)
+function Base.convert{T}(::Type{Operator{T}},E::Evaluation)
+    if T == eltype(E)
+        E
+    else
+        Evaluation{typeof(E.space),typeof(E.x),T}(E.space,E.x,E.order)
+    end
+end
 
 
 

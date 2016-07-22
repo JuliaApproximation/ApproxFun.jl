@@ -27,7 +27,7 @@ end
 Fun(c::Number)=Fun([c],ConstantSpace())
 Fun(c::Number,d::ConstantSpace)=Fun([c],d)
 
-dimension(::ConstantSpace)=1
+dimension(::ConstantSpace) = 1
 
 #TODO: Change
 setdomain{CS<:AnyDomain}(f::Fun{CS},d::Domain)=Number(f)*ones(d)

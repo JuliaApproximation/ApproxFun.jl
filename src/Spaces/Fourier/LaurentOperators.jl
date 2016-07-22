@@ -215,8 +215,8 @@ end
 getindex{T,DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD},T},kr::Range) =
     T[k == 2?  2domain(Σ).radius*π*im :zero(T) for k=kr]
 
-bandwidth{DD<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{DD}}) = 1
-bandwidth{DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD}})=2
+bandinds{DD<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{DD}}) = 0,0
+bandinds{DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD}}) = 0,1
 
 
 function getindex{T,DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},kr::Range)
@@ -226,8 +226,8 @@ end
 
 getindex{T,DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},kr::Range) =
     T[k == 1?  2domain(Σ).radius*π : zero(T) for k=kr]
-bandwidth{DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 1
-bandwidth{DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 2
+bandinds{DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 0,0
+bandinds{DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 0,1
 
 
 

@@ -58,26 +58,9 @@ macro calculus_operator(Op)
             end
         end
 
-        function Base.convert{T}(::Type{Operator{T}},D::$ConcOp)
-            if T==eltype(D)
-                D
-            else
-                $ConcOp{typeof(D.space),typeof(D.order),T}(D.space,D.order)
-            end
-        end
-
         $WrappOp(op::Operator,order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),eltype(op)}(op,order)
         $WrappOp(op::Operator)=$WrappOp(op,1)
 
-        function Base.convert{T}(::Type{Operator{T}},D::$WrappOp)
-            if T==eltype(D)
-                D
-            else
-                # work around typeinfernece bug
-                op=convert(Operator{T},D.op)
-                $WrappOp{typeof(op),typeof(domainspace(op)),typeof(D.order),T}(op,D.order)
-            end
-        end
         function Base.convert{T}(::Type{Operator{T}},D::$WrappOp)
             if T==eltype(D)
                 D

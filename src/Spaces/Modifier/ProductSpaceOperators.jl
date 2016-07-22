@@ -207,7 +207,7 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
                     $OP(S1[2],S2[2])!=NoSpace()
                 #TODO: general length
                 $TYP($OP(S1[1],S2[1]),
-                     $OP(S1[2],S2[2]))                
+                     $OP(S1[2],S2[2]))
             elseif length(S1)==length(S2)==2  &&
                     $OP(S1[1],S2[2])!=NoSpace() &&
                     $OP(S1[2],S2[1])!=NoSpace()
@@ -316,8 +316,8 @@ function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T}
     n = arclength(d)
     promote_type(T,eltype(d))[k ≤ n? one(T) : zero(T) for k=kr]
 end
-bandwidth{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T}) =
-    arclength(domain(Σ))
+bandinds{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T}) =
+    0,arclength(domain(Σ))-1
 ####### This is a hack to get the Faraday Cage working.
 
 ## TensorSpace of two PiecewiseSpaces

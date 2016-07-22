@@ -21,9 +21,6 @@ SubBandedMatrix(A,inds,d,l,u) =
 bandwidth(V::SubBandedMatrix,k::Integer) = k==1?V.l:V.u
 
 
-view(A::Operator,kr::Range,jr::Range) =
-    SubMatrix(A,(kr,jr),(length(kr),length(jr)))
-
 function view(A::Operator,kr::Range,jr::Range)
     st=step(kr)
     if isbanded(A) && st == step(jr)

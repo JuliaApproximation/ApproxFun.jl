@@ -319,6 +319,7 @@ end
 
 ## Mapped functions
 
+Base.transpose(f::Fun) = f  # default no-op
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
     @eval ($op){S<:Space{RealBasis}}(f::Fun{S}) = Fun(($op)(f.coefficients),f.space)

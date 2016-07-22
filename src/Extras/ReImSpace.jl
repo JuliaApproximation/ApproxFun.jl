@@ -178,7 +178,6 @@ for TYP in (:ReFunctional,:ImFunctional)
         $TYP{T}(func::Operator{T}) = $TYP{typeof(func),real(T)}(func)
 
         domainspace(RF::$TYP) = ReImSpace(domainspace(RF.functional))
-        rangespace(RF::$TYP) = ConstantSpace()
     end
 end
 

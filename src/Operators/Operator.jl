@@ -10,7 +10,7 @@ abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
 
 Base.eltype{T}(::Operator{T}) = T
 Base.eltype{T}(::Type{Operator{T}}) = T
-Base.eltype{OT<:Operator}(::Type{OT}) = eltype(super(OT))
+Base.eltype{OT<:Operator}(::Type{OT}) = eltype(supertype(OT))
 
 
 # default entry type
@@ -41,8 +41,6 @@ macro functional(FF)
         Base.size(A::$FF,k::Integer) = k==1?1:∞
         ApproxFun.rangespace(::$FF) = ConstantSpace()
         ApproxFun.isafunctional(::$FF) = true
-        ApproxFun.bandwidth(::$FF) = ∞   # override only bandwidth for finite length vectors
-        ApproxFun.bandinds(A::$FF) = (0,bandwidth(A)-1)
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
             f[j]

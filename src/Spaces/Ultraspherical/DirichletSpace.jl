@@ -142,9 +142,9 @@ conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 ## Evaluation Functional
 
 
-bandwidth{D}(B::Evaluation{ChebyshevDirichlet{1,0,D},Bool})=B.x?∞:1
-bandwidth{D}(B::Evaluation{ChebyshevDirichlet{0,1,D},Bool})=B.x?1:∞
-bandwidth{D}(B::Evaluation{ChebyshevDirichlet{1,1,D},Bool})=B.x?1:2
+bandinds{D}(B::Evaluation{ChebyshevDirichlet{1,0,D},Bool}) = 0,B.x?∞:0
+bandinds{D}(B::Evaluation{ChebyshevDirichlet{0,1,D},Bool}) = 0,B.x?0:∞
+bandinds{D}(B::Evaluation{ChebyshevDirichlet{1,1,D},Bool}) = 0,B.x?0:1
 
 function getindex{D}(B::Evaluation{ChebyshevDirichlet{1,0,D},Bool},kr::Range)
     d = domain(B)

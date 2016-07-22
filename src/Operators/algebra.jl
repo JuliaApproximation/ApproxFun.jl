@@ -16,7 +16,7 @@ immutable PlusOperator{T,BI} <: Operator{T}
     end
 end
 
-Base.size(P::PlusOperator,k...) = size(first(P.ops),k...)
+Base.size(P::PlusOperator,k::Integer) = size(first(P.ops),k)
 
 
 PlusOperator{T,UT<:Number,VT<:Number}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
@@ -178,7 +178,7 @@ ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
 for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,:isafunctional)
     @eval $OP(C::ConstantTimesOperator) = $OP(C.op)
 end
-Base.size(C::ConstantTimesOperator,k...) = size(C.op,k...)
+Base.size(C::ConstantTimesOperator,k::Integer) = size(C.op,k)
 bandinds(C::ConstantTimesOperator,k::Integer) = bandinds(C.op,k)
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 

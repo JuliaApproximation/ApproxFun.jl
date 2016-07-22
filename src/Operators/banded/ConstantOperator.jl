@@ -9,25 +9,30 @@ immutable ConstantOperator{T,V} <: Operator{V}
 end
 
 
-ConstantOperator(T::Type,c)=ConstantOperator{eltype(T),T}(c)
-ConstantOperator(c::Number)=ConstantOperator(typeof(c),c)
-ConstantOperator(L::UniformScaling)=ConstantOperator(L.λ)
-IdentityOperator()=ConstantOperator(1.0)
+ConstantOperator{T}(::Type{T},c) = ConstantOperator{eltype(T),T}(c)
+ConstantOperator(c::Number) = ConstantOperator(typeof(c),c)
+ConstantOperator(L::UniformScaling) = ConstantOperator(L.λ)
+IdentityOperator() = ConstantOperator(1.0)
 
-bandinds(T::ConstantOperator)=0,0
+bandinds(T::ConstantOperator) = 0,0
 
-getindex(C::ConstantOperator,k::Integer,j::Integer)=k==j?C.c:zero(eltype(C))
+getindex(C::ConstantOperator,k::Integer,j::Integer) = k==j?C.c:zero(eltype(C))
 
 
-==(C1::ConstantOperator,C2::ConstantOperator)=C1.c==C2.c
+==(C1::ConstantOperator,C2::ConstantOperator) = C1.c==C2.c
 
-Base.convert{BT<:ConstantOperator}(::Type{BT},C::ConstantOperator)=C
-Base.convert{BT<:Operator}(::Type{BT},C::ConstantOperator)=ConstantOperator(eltype(BT),C.c)
+function Base.convert{T}(::Type{Operator{T}},C::ConstantOperator)
+    if T == eltype(C)
+        C
+    else
+        ConstantOperator{typeof(C.c),T}(C.c)
+    end
+end
 
 ## Algebra
 
 for op in (:+,:-,:*)
-    @eval ($op)(A::ConstantOperator,B::ConstantOperator)=ConstantOperator($op(A.c,B.c))
+    @eval ($op)(A::ConstantOperator,B::ConstantOperator) = ConstantOperator($op(A.c,B.c))
 end
 
 
@@ -39,15 +44,15 @@ end
 
 @functional BasisFunctional
 
-BasisFunctional(k)=BasisFunctional{Float64}(k)
+BasisFunctional(k) = BasisFunctional{Float64}(k)
 
-bandwidth(B::BasisFunctional) = B.k
+bandinds(B::BasisFunctional) = 0,B.k-1
 
 
-Base.convert{T}(::Type{Operator{T}},B::BasisFunctional)=BasisFunctional{T}(B.k)
+Base.convert{T}(::Type{Operator{T}},B::BasisFunctional) = BasisFunctional{T}(B.k)
 
-Base.getindex(op::BasisFunctional,k::Integer)=(k==op.k)?1.:0.
-Base.getindex(op::BasisFunctional,k::Range)=convert(Vector{Float64},k.==op.k)
+Base.getindex(op::BasisFunctional,k::Integer) = (k==op.k)?1.:0.
+Base.getindex(op::BasisFunctional,k::Range) = convert(Vector{Float64},k.==op.k)
 
 immutable FillFunctional{T} <: Operator{T}
     c::T

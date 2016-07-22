@@ -18,7 +18,7 @@ curl{B<:BivariateFun}(u::Vector{B})=differentiate(u[2],1)-differentiate(u[1],2)
 Base.chop(f::MultivariateFun)=chop(f,10eps())
 Base.eltype{T}(::MultivariateFun{T})=T
 Base.eltype{T,N}(::Type{MultivariateFun{T,N}})=T
-Base.eltype{MF<:MultivariateFun}(::Type{MF})=eltype(super(MF))
+Base.eltype{MF<:MultivariateFun}(::Type{MF})=eltype(supertype(MF))
 
 
 include("VectorFun.jl")

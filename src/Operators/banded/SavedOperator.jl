@@ -23,8 +23,8 @@ SavedFunctional{T<:Number}(op::Operator{T})=SavedFunctional(op,Array(T,0),0)
 
 
 
-domainspace(F::SavedFunctional)=domainspace(F.op)
-bandwidth(S::SavedFunctional)=bandwidth(S.op)
+domainspace(F::SavedFunctional) = domainspace(F.op)
+bandinds(S::SavedFunctional) = bandinds(S.op)
 
 function Base.getindex(B::SavedFunctional,k::Integer)
     resizedata!(B,k)

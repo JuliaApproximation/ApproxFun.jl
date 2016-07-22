@@ -192,7 +192,6 @@ function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m=5
 end
 
 timeevolution(B::Vector,op,uin::MultivariateFun,h::Real,dat...)=timeevolution(B,op,zeros(length(B)),uin,h,dat...)
-timeevolution(B::Operator,dat...)=timeevolution([B],dat...)
 
 
 timeevolution(B::Vector,op,bcs::Vector,uin::Fun,dat...)=timeevolution(B,op,bcs,ProductFun(uin),dat...)

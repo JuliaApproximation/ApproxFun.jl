@@ -33,11 +33,3 @@ function Base.convert{T}(::Type{Operator{T}},D::ConcreteOperatorFunction)
         ConcreteOperatorFunction{typeof(D.op),T}(D.op,D.f)
     end
 end
-
-function Base.convert{T}(::Type{Operator{T}},D::ConcreteOperatorFunction)
-    if T==eltype(D)
-        D
-    else
-        ConcreteOperatorFunction{typeof(D.op),T}(D.op,D.f)
-    end
-end

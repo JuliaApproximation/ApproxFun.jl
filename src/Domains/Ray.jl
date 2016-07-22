@@ -63,7 +63,6 @@ function mobiuspars(d::Ray)
     s*α,-s*(1+α*c),α,1-α*c
 end
 
-tocanonical(d::Ray,x)=ray_tocanonical(d.orientation,conj(cisangle(d)).*(x-d.center))
 
 for OP in (:mobius,:mobiusinv,:mobiusD,:mobiusinvD)
     @eval $OP(a::Ray,z) = $OP(mobiuspars(a)...,z)
@@ -93,12 +92,14 @@ cisangle{a}(::Ray{a})=cis(a*π)
 cisangle(::Ray{false})=1
 cisangle(::Ray{true})=-1
 
-tocanonical(d::Ray,x)=ray_tocanonical(d.orientation,conj(cisangle(d)).*(x-d.center))
-tocanonicalD(d::Ray,x)=conj(cisangle(d)).*ray_tocanonicalD(d.orientation,conj(cisangle(d)).*(x-d.center))
-fromcanonical(d::Ray,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
-fromcanonical(d::Ray,x)=cisangle(d)*ray_fromcanonical(d.orientation,x)+d.center
-fromcanonicalD(d::Ray,x)=cisangle(d)*ray_fromcanonicalD(d.orientation,x)
-invfromcanonicalD(d::Ray,x)=conj(cisangle(d))*ray_invfromcanonicalD(d.orientation,x)
+tocanonical(d::Ray,x) =
+    ray_tocanonical(d.orientation,conj(cisangle(d)).*(x-d.center))
+tocanonicalD(d::Ray,x) =
+    conj(cisangle(d)).*ray_tocanonicalD(d.orientation,conj(cisangle(d)).*(x-d.center))
+fromcanonical(d::Ray,v::AbstractArray) = eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Ray,x) = cisangle(d)*ray_fromcanonical(d.orientation,x)+d.center
+fromcanonicalD(d::Ray,x) = cisangle(d)*ray_fromcanonicalD(d.orientation,x)
+invfromcanonicalD(d::Ray,x) = conj(cisangle(d))*ray_invfromcanonicalD(d.orientation,x)
 
 
 

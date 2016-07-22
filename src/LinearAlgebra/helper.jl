@@ -436,7 +436,7 @@ countfrom()                            = UnitCount(1)
 
 
 Base.eltype{S}(::Type{AbstractCount{S}}) = S
-Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(super(AS))
+Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(supertype(AS))
 
 Base.step(it::Count) = it.step
 Base.step(it::UnitCount) = 1
