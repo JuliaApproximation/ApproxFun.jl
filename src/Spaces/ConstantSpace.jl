@@ -54,13 +54,6 @@ Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T})=Fu
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
 
 
-# functionals always map to Constant space
-promoterangespace(P::Functional,A::ConstantSpace,cur::ConstantSpace)=domain(A)==domain(cur)?P:SpaceFunctional(P,domainspace(P),domain(A))
-
-## Promotion: Zero operators are the only operators that also make sense as functionals
-promoterangespace(op::ZeroOperator,::ConstantSpace)=ZeroFunctional(domainspace(op))
-
-
 # When the union of A and B is a ConstantSpace, then it contains a one
 conversion_rule(A::ConstantSpace,B::UnsetSpace)=NoSpace()
 conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
@@ -82,6 +75,9 @@ Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2})=ConcreteConversion{typeof(a),t
 Conversion(a::ConstantSpace,b::Space)=ConcreteConversion(a,b)
 bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-ncoefficients(ones(rangespace(C))),0
 function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer)
+    if j != 1
+        throw(BoundsError())
+    end
     on=ones(rangespace(C))
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
@@ -130,60 +126,12 @@ rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) =
 
 
 
-
-###
-# FunctionalOperator treats a functional like an operator
-###
-
-immutable FunctionalOperator{FT,T} <: BandedOperator{T}
-    func::FT
+# functionals always map to Constant space
+function promoterangespace(P::Operator,A::ConstantSpace,cur::ConstantSpace)
+    @assert isafunctional(P)
+    domain(A)==domain(cur)?P:SpaceOperator(P,domainspace(P),A)
 end
 
-FunctionalOperator(func::Functional)=FunctionalOperator{typeof(func),eltype(func)}(func)
-
-function Base.convert{O<:Operator}(::Type{O},FO::FunctionalOperator)
-    if eltype(O)==eltype(FO)
-        FO::O
-    else
-        FunctionalOperator{typeof(FO.func),eltype(O)}(FO.func)
-    end
-end
-
-bandinds(FO::FunctionalOperator)=0,datalength(FO.func)-1
-domainspace(FO::FunctionalOperator)=domainspace(FO.func)
-rangespace(FO::FunctionalOperator)=ConstantSpace()
-
-for TYP in (:AnySpace,:UnsetSpace,:Space)
-    @eval promotedomainspace(FT::FunctionalOperator,sp::$TYP)=FunctionalOperator(promotedomainspace(FT.func,sp))
-end
-
-
-getindex(FO::FunctionalOperator,k::Integer,j::Integer) =
-    k==1?FO.func[j]:zero(eltype(FO))
-
-
-function *(f::Fun,A::Functional)
-    if datalength(A)<Inf
-        # We get a BandedOperator, so we take that into account
-        TimesOperator(Multiplication(f,ConstantSpace()),FunctionalOperator(A))
-    else
-        LowRankOperator(f,A)
-    end
-end
-
-Base.convert(::Type{BandedOperator},B::Functional)=FunctionalOperator(B)
-Base.convert(::Type{BandedBelowOperator},B::Functional)=datalength(B)<Inf?convert(BandedOperator,B):Fun(1,ConstantSpace())*B
-
-
-
-for OP in (:+,:-)
-    @eval $OP(A::BandedOperator,B::Functional)=$OP(A,convert(BandedBelowOperator,B))
-    @eval $OP(A::Functional,B::BandedOperator)=$OP(convert(BandedBelowOperator,A),B)
-end
-
-*(A::BandedOperator,B::Functional)=A*convert(BandedBelowOperator,B)
-
-*{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) = Fun(A.func*b)
 
 
 for op = (:*,:.*,:./,:/)

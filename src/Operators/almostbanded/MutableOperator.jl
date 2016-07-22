@@ -107,7 +107,7 @@ end
 ## MutableOperator
 
 
-type MutableOperator{T,M,R} <: BandedBelowOperator{T}
+type MutableOperator{T,M,R} <: Operator{T}
     op::M                 # The underlying op that is modified
     data::BandedMatrix{T} # Data representing bands
     fill::FillMatrix{T,R}
@@ -122,19 +122,12 @@ end
 domainspace(M::MutableOperator)=domainspace(M.op)
 rangespace(M::MutableOperator)=rangespace(M.op)
 
-function MutableOperator{T<:Operator}(B::Vector{T})
-    bcs = Functional{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
-
-    @assert typeof(B[end]) <: BandedBelowOperator
-
-    MutableOperator(bcs,B[end])
-end
-
-MutableOperator{O<:Operator}(B::O)=MutableOperator(O[B])
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
-function MutableOperator{R<:Functional}(bc::Vector{R},op::BandedOperator)
+function MutableOperator{R<:Operator}(bc::Vector{R},op::Operator)
+    @assert isbanded(op)
+
     bndinds=bandinds(op)
     bndindslength=bndinds[end]-bndinds[1]+1
     nbc = length(bc)
@@ -151,6 +144,17 @@ function MutableOperator{R<:Functional}(bc::Vector{R},op::BandedOperator)
 
     MutableOperator(op,data,fl,nbc,nbc, br)
 end
+
+
+function MutableOperator{T<:Operator}(B::Vector{T})
+    bcs = Operator{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
+
+    @assert isinf(size(B[end],1)) && isinf(size(B[end],2))
+
+    MutableOperator(bcs,B[end])
+end
+
+MutableOperator{BO<:Operator}(B::BO)=MutableOperator(BO[B])
 
 
 # for bandrange, we save room for changed entries during Givens
@@ -200,7 +204,7 @@ end
 # getindex!(b::MutableOperator,kr::Range1,jr::Range1)=resizedata!(b,kr[end])[kr,jr]
 # getindex!(b::MutableOperator,kr::Integer,jr::Integer)=resizedata!(b,kr)[kr,jr]
 
-function resizedata!{T<:Number,M<:BandedOperator,R}(B::MutableOperator{T,M,R},n::Integer)
+function resizedata!{T<:Number,M<:Operator,R}(B::MutableOperator{T,M,R},n::Integer)
     resizedata!(B.fill,n)
 
     if n > B.datalength

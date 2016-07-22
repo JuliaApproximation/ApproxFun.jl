@@ -23,7 +23,7 @@ function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01
         A=promotedomainspace(A,choosedomainspace(A))
     end
     # if length(A)==3&&
-    #         isa(A[end],BandedOperator) &&
+    #         isbanded(A[end]) &&
     #         isa(A[1],Evaluation)&&
     #         isa(A[2],Evaluation)&&
     #         isa(domainspace(A[1]),Chebyshev) &&
@@ -46,7 +46,7 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};
                                tolerance=0.01eps2(eltype(A[end])),maxlength=1000000)
  #TODO: depends on ordering of A
     for k=1:length(A)-1
-        @assert isa(A[k],Functional)
+        @assert isafunctional(A[k])
     end
 
     for k=1:min(length(A)-1,size(b,1)),j=1:size(b,2)

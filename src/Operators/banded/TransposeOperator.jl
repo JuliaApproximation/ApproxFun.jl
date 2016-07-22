@@ -5,13 +5,13 @@ export TransposeOperator
 
 
 
-type TransposeOperator{T<:Number,B<:BandedOperator} <: BandedOperator{T}
+type TransposeOperator{T<:Number,B<:Operator} <: Operator{T}
     op::B
 end
 
-TransposeOperator{T<:Number}(B::BandedOperator{T})=TransposeOperator{T,typeof(B)}(B)
+TransposeOperator{T<:Number}(B::Operator{T})=TransposeOperator{T,typeof(B)}(B)
 
-Base.convert{T}(::Type{BandedOperator{T}},A::TransposeOperator)=TransposeOperator(convert(BandedOperator{T},A.op))
+Base.convert{T}(::Type{Operator{T}},A::TransposeOperator)=TransposeOperator(convert(Operator{T},A.op))
 
 domainspace(P::TransposeOperator)=rangespace(P.op)
 rangespace(P::TransposeOperator)=domainspace(P.op)
@@ -30,5 +30,5 @@ function Base.copy{T,TO<:TransposeOperator}(S::SubBandedMatrix{T,TO})
 end
 
 
-Base.transpose(A::BandedOperator)=TransposeOperator(A)
-Base.ctranspose{T<:Real}(A::BandedOperator{T})=TransposeOperator(A)
+Base.transpose(A::Operator)=TransposeOperator(A)
+Base.ctranspose{T<:Real}(A::Operator{T})=TransposeOperator(A)

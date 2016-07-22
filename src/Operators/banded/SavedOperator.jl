@@ -8,22 +8,23 @@ export SavedFunctional,SavedBandedOperator
 
 ## SavedFunctional
 
-type SavedFunctional{T<:Number,M<:Functional} <: Functional{T}
+type SavedFunctional{T<:Number,M<:Operator} <: Operator{T}
     op::M
     data::Vector{T}
     datalength::Int
 end
 
-SavedFunctional(op::Functional,data)=SavedFunctional(op,data,length(data))
-SavedFunctional{T<:Number}(op::Functional{T})=SavedFunctional(op,Array(T,0),0)
+@functional SavedFunctional
 
-for TYP in (:Functional,:Operator)
-    @eval Base.convert{T}(::Type{$TYP{T}},S::SavedFunctional)=SavedFunctional(convert(Functional{T},S.op))
-end
+SavedFunctional(op::Operator,data)=SavedFunctional(op,data,length(data))
+SavedFunctional{T<:Number}(op::Operator{T})=SavedFunctional(op,Array(T,0),0)
+
+@eval Base.convert{T}(::Type{Operator{T}},S::SavedFunctional)=SavedFunctional(convert(Operator{T},S.op))
+
 
 
 domainspace(F::SavedFunctional)=domainspace(F.op)
-datalength(S::SavedFunctional)=datalength(S.op)
+bandwidth(S::SavedFunctional)=bandwidth(S.op)
 
 function Base.getindex(B::SavedFunctional,k::Integer)
     resizedata!(B,k)
@@ -54,7 +55,7 @@ end
 ## SavedBandedOperator
 
 
-type SavedBandedOperator{T<:Number,M<:BandedOperator} <: BandedOperator{T}
+type SavedBandedOperator{T<:Number,M<:Operator} <: Operator{T}
     op::M
     data::BandedMatrix{T}   #Shifted to encapsolate bandedness
     datalength::Int
@@ -69,7 +70,7 @@ function Base.convert{BT<:Operator}(::Type{BT},S::SavedBandedOperator)
     if isa(S,BT)
         S
     else
-        SavedBandedOperator(convert(BandedOperator{T},S.op),
+        SavedBandedOperator(convert(Operator{T},S.op),
                             convert(BandedMatrix{T},S.data),
                             S.datalength,S.bandinds)
     end
@@ -77,7 +78,7 @@ end
 
 
 #TODO: index(op) + 1 -> length(bc) + index(op)
-function SavedBandedOperator{T<:Number}(op::BandedOperator{T})
+function SavedBandedOperator{T<:Number}(op::Operator{T})
     data = bzeros(T,0,:,bandinds(op))  # bzeros is needed to allocate top of array
     SavedBandedOperator(op,data,0,bandinds(op))
 end
@@ -89,7 +90,6 @@ for OP in (:domain,:domainspace,:rangespace,:(Base.stride))
 end
 
 bandinds(B::SavedBandedOperator)=B.bandinds
-datalength(B::SavedBandedOperator)=B.datalength
 
 
 

@@ -2,7 +2,9 @@ export Evaluation,ivp,bvp
 
 ## Evaluation constructors
 
-abstract AbstractEvaluation{T}<:Functional{T}
+abstract AbstractEvaluation{T}<:Operator{T}
+
+@functional AbstractEvaluation
 
 # M = Bool if endpoint
 immutable Evaluation{S,M,T} <: AbstractEvaluation{T}
@@ -38,9 +40,9 @@ rangespace{S<:AmbiguousSpace}(E::Evaluation{S,Bool})=ConstantSpace()
 rangespace{S}(E::Evaluation{S,Bool})=ConstantSpace(Point(E.x?last(domain(E)):first(domain(E))))
 rangespace(E::Evaluation)=ConstantSpace(Point(E.x))
 
-for TYP in (:Operator,:Functional)
-    @eval Base.convert{T}(::Type{$TYP{T}},E::Evaluation)=Evaluation(T,E.space,E.x,E.order)
-end
+
+Base.convert{T}(::Type{Operator{T}},E::Evaluation)=Evaluation(T,E.space,E.x,E.order)
+
 
 
 ## default getindex
@@ -61,14 +63,14 @@ end
 
 ## EvaluationWrapper
 
-immutable EvaluationWrapper{S<:Space,M<:Union{Number,Bool},FS<:Functional,T<:Number} <: AbstractEvaluation{T}
+immutable EvaluationWrapper{S<:Space,M<:Union{Number,Bool},FS<:Operator,T<:Number} <: AbstractEvaluation{T}
     space::S
     x::M
     order::Int
     functional::FS
 end
 
-EvaluationWrapper(sp::Space,x::Union{Number,Bool},order::Integer,func::Functional)=EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
+EvaluationWrapper(sp::Space,x::Union{Number,Bool},order::Integer,func::Operator)=EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
 getindex(E::EvaluationWrapper,k)=getindex(E.functional,k)
 
 domainspace(E::AbstractEvaluation)=E.space
@@ -92,10 +94,10 @@ rneumann(d) = rdiffbc(d,1)
 dirichlet(d) = diffbcs(d,0)
 neumann(d) = diffbcs(d,1)
 
-ivp(d,k) = Functional{eltype(d)}[ldiffbc(d,i) for i=0:k-1]
-bvp(d,k) = vcat(Functional{eltype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],Functional{eltype(d)}[rdiffbc(d,i) for i=0:div(k,2)-1])
+ivp(d,k) = Operator{eltype(d)}[ldiffbc(d,i) for i=0:k-1]
+bvp(d,k) = vcat(Operator{eltype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],Operator{eltype(d)}[rdiffbc(d,i) for i=0:div(k,2)-1])
 
-periodic(d,k) = Functional{eltype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
+periodic(d,k) = Operator{eltype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
 
 
 

@@ -398,6 +398,13 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             end
         end
 
-        datalength{λ,D<:Interval}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D}})=(domainspace(Σ).α==domainspace(Σ).β==λ-0.5)?1:Inf
+        function bandwidth{λ,D<:Interval}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D}})
+            α,β = domainspace(Σ).α,domainspace(Σ).β
+            if α==β && isapproxinteger(α-0.5-λ) && λ ≤ ceil(Int,α)
+                2*(ceil(Int,α)-λ)+1
+            else
+                ∞
+            end
+        end
     end
 end

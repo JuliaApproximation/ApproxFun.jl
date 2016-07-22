@@ -4,11 +4,11 @@
 
 
 isdiagop(::)=false
-isdiagop{T<:Number}(B::BandedOperator{T})=bandinds(B)==(0,0)
+isdiagop{T<:Number}(B::Operator{T})=bandinds(B)==(0,0)
 
 
 # multivariate case
-isdiagop{T<:BandedMatrix}(K::BandedOperator{T},k)=iskronop(K)?isdiagop(dekron(K,k)):false
+isdiagop{T<:BandedMatrix}(K::Operator{T},k)=iskronop(K)?isdiagop(dekron(K,k)):false
 isdiagop(K::KroneckerOperator,k)=isdiagop(K.ops[k])
 isdiagop(S::WrapperOperator,k)=isdiagop(S.op,k)
 isdiagop(A::Union{PlusOperator,TimesOperator},k)=all(op->isdiagop(op,k),A.ops)

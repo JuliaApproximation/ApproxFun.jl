@@ -1,6 +1,6 @@
 export Multiplication
 
-abstract Multiplication{T} <:BandedOperator{T}
+abstract Multiplication{T} <:Operator{T}
 
 immutable ConcreteMultiplication{D<:Space,S<:Space,V,T} <: Multiplication{T}
     f::Fun{D,V}
@@ -14,7 +14,8 @@ function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     ConcreteMultiplication{D,typeof(sp),T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 end
 
-
+#TODO: SPECIALOPS Remove
+isbanded(A::ConcreteMultiplication) = true
 
 # We do this in two stages to support Modifier spaces
 # without ambiguity errors
@@ -36,13 +37,12 @@ Multiplication(c::Number)=Multiplication(Fun(c) )
 # This covers right multiplication unless otherwise specified.
 Multiplication{D,T}(S::Space,f::Fun{D,T}) = Multiplication(f,S)
 
-for TYP in (:Operator,:BandedOperator)
-    @eval function Base.convert{S,V,TT,T}(::Type{$TYP{T}},C::ConcreteMultiplication{S,V,TT})
-        if T==eltype(C)
-            C
-        else
-            ConcreteMultiplication{S,V,TT,T}(C.f,C.space)
-        end
+
+function Base.convert{S,V,TT,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V,TT})
+    if T==eltype(C)
+        C
+    else
+        ConcreteMultiplication{S,V,TT,T}(C.f,C.space)
     end
 end
 
@@ -53,9 +53,9 @@ domain(T::ConcreteMultiplication)=domain(T.f)
 ## Default implementation: try converting to space of M.f
 
 # avoid ambiguity
-rangespace{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=UnsetSpace()
-bandinds{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
-getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer)=error("No range space attached to Multiplication")
+rangespace{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T}) = UnsetSpace()
+getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
+    error("No range space attached to Multiplication")
 
 
 
@@ -73,13 +73,13 @@ choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp)=sp  # we assume
 
 Base.diagm(a::Fun)=Multiplication(a)
 
-immutable MultiplicationWrapper{D<:Space,O<:BandedOperator,V,T} <: Multiplication{T}
+immutable MultiplicationWrapper{D<:Space,O<:Operator,V,T} <: Multiplication{T}
     f::Fun{D,V}
     op::O
 end
 
-MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
-MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
+MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::Operator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
+MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::Operator)=MultiplicationWrapper(eltype(op),f,op)
 
 @wrapper MultiplicationWrapper
 

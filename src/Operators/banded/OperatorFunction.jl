@@ -1,15 +1,15 @@
 export OperatorFunction
 
 
-abstract OperatorFunction{BT,T} <: BandedOperator{T}
+abstract OperatorFunction{BT,T} <: Operator{T}
 
-immutable ConcreteOperatorFunction{BT<:BandedOperator,T} <: OperatorFunction{BT,T}
+immutable ConcreteOperatorFunction{BT<:Operator,T} <: OperatorFunction{BT,T}
     op::BT
     f::Function
 end
 
-ConcreteOperatorFunction(op::BandedOperator,f::Function) = ConcreteOperatorFunction{typeof(op),eltype(op)}(op,f)
-OperatorFunction(op::BandedOperator,f::Function) = ConcreteOperatorFunction(op,f)
+ConcreteOperatorFunction(op::Operator,f::Function) = ConcreteOperatorFunction{typeof(op),eltype(op)}(op,f)
+OperatorFunction(op::Operator,f::Function) = ConcreteOperatorFunction(op,f)
 
 for op in (:domainspace,:rangespace,:domain,:bandinds)
     @eval begin
@@ -34,7 +34,7 @@ function Base.convert{T}(::Type{Operator{T}},D::ConcreteOperatorFunction)
     end
 end
 
-function Base.convert{T}(::Type{BandedOperator{T}},D::ConcreteOperatorFunction)
+function Base.convert{T}(::Type{Operator{T}},D::ConcreteOperatorFunction)
     if T==eltype(D)
         D
     else

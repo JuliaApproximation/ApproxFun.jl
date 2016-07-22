@@ -1,4 +1,4 @@
-immutable LowRankPertOperator{OO,LR,T} <: AlmostBandedOperator{T}
+immutable LowRankPertOperator{OO,LR,T} <: Operator{T}
     op::OO
     pert::LR
 
@@ -9,7 +9,7 @@ immutable LowRankPertOperator{OO,LR,T} <: AlmostBandedOperator{T}
     end
 end
 
-function LowRankPertOperator(Bin::BandedOperator,Lin::LowRankOperator)
+function LowRankPertOperator(Bin::Operator,Lin::LowRankOperator)
     B,L2=promotedomainspace([Bin,Lin])
     rsp=rangespace(B)  # use rangespace of B because LowRankOperator only
                         # needs convert, and its unlikely that the rangespaces
@@ -20,9 +20,8 @@ function LowRankPertOperator(Bin::BandedOperator,Lin::LowRankOperator)
 end
 
 
-for TYP in (:BandedBelowOperator,:AlmostBandedOperator,:Operator)
-    @eval Base.convert{OT<:Operator}(::Type{$TYP},V::Vector{OT})=LowRankPertOperator(V)
-end
+
+Base.convert{OT<:Operator}(::Type{Operator},V::Vector{OT})=LowRankPertOperator(V)
 
 
 Base.getindex(L::LowRankPertOperator,k::Integer,j::Integer)=L.op[k,j]+L.pert[k,j]
@@ -43,7 +42,7 @@ end
 
 
 
-function MutableOperator{R<:Functional}(bc::Vector{R},S::LowRankPertOperator)
+function MutableOperator{R<:Operator}(bc::Vector{R},S::LowRankPertOperator)
     bndinds=bandinds(S.op)
 
     dats= datasize(S,1)
@@ -80,19 +79,12 @@ end
 
 ## algebra
 
-+(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(B,L)
-+(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(B,L)
-
--(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(-B,L)
--(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(B,-L)
-
 for OP in (:+,:-)
-    @eval $OP(A::LowRankPertOperator,B::LowRankPertOperator)=LowRankPertOperator($OP(A.op,B.op),$OP(A.pert,B.pert))
+    @eval $OP(A::LowRankPertOperator,B::LowRankPertOperator) =
+        LowRankPertOperator($OP(A.op,B.op),$OP(A.pert,B.pert))
 end
 
 *(L::LowRankPertOperator,f::Fun)=L.op*f+L.pert*f
-*(L::LowRankPertOperator,B::BandedOperator)=LowRankPertOperator(L.op*B,L.pert*B)
-*(B::BandedOperator,L::LowRankPertOperator)=LowRankPertOperator(B*L.op,B*L.pert)
 
 *(L::LowRankPertOperator,B::LowRankOperator)=L.op*B+L.pert*B
 *(B::LowRankOperator,L::LowRankPertOperator)=B*L.op+B*L.pert
@@ -100,3 +92,17 @@ end
 
 
 *(A::LowRankPertOperator,B::LowRankPertOperator)=A.op*B + A.pert*B
+
+# ambiguity
+for TYP in (:TimesOperator,:ZeroOperator,:PlusOperator,:Conversion,:Operator)
+    @eval begin
+        +(L::LowRankOperator,B::$TYP) = LowRankPertOperator(B,L)
+        +(B::$TYP,L::LowRankOperator) = LowRankPertOperator(B,L)
+
+        -(L::LowRankOperator,B::$TYP)=LowRankPertOperator(-B,L)
+        -(B::$TYP,L::LowRankOperator)=LowRankPertOperator(B,-L)
+
+        *(L::LowRankPertOperator,B::$TYP)=LowRankPertOperator(L.op*B,L.pert*B)
+        *(B::$TYP,L::LowRankPertOperator)=LowRankPertOperator(B*L.op,B*L.pert)
+    end
+end

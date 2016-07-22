@@ -53,7 +53,7 @@ end
 
 Recurrence(sp)=Recurrence{typeof(sp),promote_type(eltype(sp),eltype(domain(sp)))}(sp)
 
-Base.convert{T,S}(::Type{BandedOperator{T}},J::Recurrence{S})=Recurrence{S,T}(J.space)
+Base.convert{T,S}(::Type{Operator{T}},J::Recurrence{S})=Recurrence{S,T}(J.space)
 
 
 #####
@@ -84,7 +84,7 @@ end
 
 JacobiZ(sp,z)=(T = promote_type(eltype(sp),eltype(domain(sp)),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
 
-Base.convert{T,S}(::Type{BandedOperator{T}},J::JacobiZ{S})=JacobiZ{S,T}(J.space,J.z)
+Base.convert{T,S}(::Type{Operator{T}},J::JacobiZ{S})=JacobiZ{S,T}(J.space,J.z)
 
 
 #####

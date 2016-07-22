@@ -2,7 +2,7 @@
 
 
 
-type QROperator{B,S,T}  <: Operator{T}
+type QROperator{B,S,T} <: Operator{T}
     R::MutableOperator{T,B,S}
     H::Matrix{T} # Contains the Householder reflections
     ncols::Int   # number of cols already upper triangularized

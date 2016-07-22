@@ -1,6 +1,6 @@
 # Creates a operator that permutes rows, in blocks of size
 # length(perm)
-immutable PermutationOperator{T} <: BandedOperator{T}
+immutable PermutationOperator{T} <: Operator{T}
     perm::Vector{Int}
 end
 PermutationOperator(prm)=PermutationOperator{Int}(prm)

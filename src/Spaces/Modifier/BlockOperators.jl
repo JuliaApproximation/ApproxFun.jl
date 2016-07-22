@@ -1,7 +1,7 @@
 
 # BlockOperator supports adding rows and columns.
 
-immutable BlockOperator{O,T} <: BandedOperator{T}
+immutable BlockOperator{O,T} <: Operator{T}
     mat11::Matrix{T}
     mat12::Matrix{T}
     mat21::Matrix{T}
@@ -14,19 +14,19 @@ immutable BlockOperator{O,T} <: BandedOperator{T}
     end
 end
 
-BlockOperator(mat11::Matrix,mat12::Matrix,mat21::Matrix,B::BandedOperator)=BlockOperator{typeof(B),
+BlockOperator(mat11::Matrix,mat12::Matrix,mat21::Matrix,B::Operator)=BlockOperator{typeof(B),
                                                                promote_type(eltype(mat11),eltype(mat12),eltype(mat21),
                                                                             eltype(B))}(mat11,mat12,mat21,B)
 
-BlockOperator(mat11::Matrix,B::BandedOperator)=BlockOperator(mat11,Array(eltype(mat11),size(mat11,1),0),
+BlockOperator(mat11::Matrix,B::Operator)=BlockOperator(mat11,Array(eltype(mat11),size(mat11,1),0),
                                                             Array(eltype(mat11),0,size(mat11,2)),B)
 
-function Base.hcat{S<:Number}(cols::Matrix{S},B::BandedOperator)
+function Base.hcat{S<:Number}(cols::Matrix{S},B::Operator)
     T = promote_type(S,eltype(B))
     BlockOperator{typeof(B),T}(Array(T,0,size(cols,2)),Array(T,0,0),cols,B)
 end
 
-Base.hcat{T<:Number}(cols::Vector{T},B::BandedOperator)=hcat(reshape(cols,length(cols),1),B)
+Base.hcat{T<:Number}(cols::Vector{T},B::Operator)=hcat(reshape(cols,length(cols),1),B)
 
 
 function BlockOperator{BO<:Operator}(A::Matrix{BO})
@@ -83,10 +83,9 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
     hcat(cols,B)
 end
 
-for OP in (:Operator,:BandedOperator)
-    @eval Base.convert{T}(::Type{$OP{T}},A::BlockOperator)=BlockOperator(convert(Matrix{T},A.mat11),
-                        convert(Matrix{T},A.mat12),convert(Matrix{T},A.mat21),convert($OP{T},A.op))
-end
+
+Base.convert{T}(::Type{Operator{T}},A::BlockOperator)=BlockOperator(convert(Matrix{T},A.mat11),
+                        convert(Matrix{T},A.mat12),convert(Matrix{T},A.mat21),convert(Operator{T},A.op))
 
 function rangespace(B::BlockOperator)
     rs=rangespace(B.op)
@@ -174,13 +173,15 @@ end
 
 ## BlockFunctional
 
-immutable BlockFunctional{T<:Number,B<:Functional} <: Functional{T}
+immutable BlockFunctional{T<:Number,B<:Operator} <: Operator{T}
     cols::Vector{T}
     op::B
 end
 
-BlockFunctional{T<:Number}(cols::Vector{T},op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
-BlockFunctional{T<:Number}(col::T,op::Functional) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
+@functional BlockFunctional
+
+BlockFunctional{T<:Number}(cols::Vector{T},op::Operator) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[cols],op)
+BlockFunctional{T<:Number}(col::T,op::Operator) = BlockFunctional{promote_type(T,eltype(op)),typeof(op)}(promote_type(T,eltype(op))[col],op)
 
 function domainspace(B::BlockFunctional)
     ds=domainspace(B.op)
@@ -212,6 +213,5 @@ function Base.getindex{T<:Number}(P::BlockFunctional{T},kr::Range)
     end
 end
 
-for TYP in (:Functional,:Operator)
-    @eval Base.convert{T}(::Type{$TYP{T}},P::BlockFunctional)=BlockFunctional(convert(Vector{T},P.cols),convert(Functional{T},P.op))
-end
+
+@eval Base.convert{T}(::Type{Operator{T}},P::BlockFunctional)=BlockFunctional(convert(Vector{T},P.cols),convert(Operator{T},P.op))

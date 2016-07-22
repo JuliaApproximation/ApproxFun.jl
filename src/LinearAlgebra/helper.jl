@@ -403,10 +403,20 @@ end
 
 ## New Inf
 
-const ∞ = Irrational{:∞}()
+typealias Infinity Irrational{:∞}
+const ∞ = Infinity()
 
-Base.show(io::IO, x::Irrational{:∞}) = print(io, "∞")
-Base.convert{F<:AbstractFloat}(::Type{F},::Irrational{:∞}) = convert(F,Inf)
+Base.show(io::IO, x::Infinity) = print(io, "∞")
+Base.convert{F<:AbstractFloat}(::Type{F},::Infinity) = convert(F,Inf)
++(::BlasFloat,y::Infinity) = y
++(y::Infinity,::BlasFloat) = y
+-(y::Infinity,::BlasFloat) = y
+Base.min(x::Infinity,::Infinity) = x
+Base.max(x::Infinity,::Infinity) = x
+Base.min(x::Real,::Infinity) = x
+Base.min(::Infinity,x::Real) = x
+Base.max(::Real,x::Infinity) = x
+Base.max(x::Infinity,::Real) = x
 
 ## My Count
 

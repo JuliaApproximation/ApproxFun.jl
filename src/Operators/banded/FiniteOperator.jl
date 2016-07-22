@@ -3,16 +3,40 @@ export FiniteOperator
 
 
 
-immutable FiniteOperator{AT<:AbstractMatrix,T<:Number} <: BandedOperator{T}
+immutable FiniteOperator{AT<:AbstractMatrix,T<:Number,DS,RS} <: Operator{T}
     matrix::AT
+    domainspace::DS
+    rangespace::RS
 end
 
 
-FiniteOperator(M::AbstractMatrix)=FiniteOperator{typeof(M),eltype(M)}(M)
+FiniteOperator(M::AbstractMatrix,ds::Space,rs::Space) =
+    FiniteOperator{typeof(M),eltype(M),typeof(ds),typeof(rs)}(M,ds,rs)
+
+FiniteOperator(M::AbstractMatrix) = FiniteOperator(M,AnySpace(),AnySpace())
+
+domainspace(F::FiniteOperator) = F.domainspace
+rangespace(F::FiniteOperator) = F.rangespace
+
+function getindex(F::FiniteOperator,k::Integer,j::Integer)
+    if k ≤ size(F.matrix,1) && j ≤ size(F.matrix,2)
+        F.matrix[k,j]
+    elseif k ≤ size(F,1) && j ≤ size(F,2)
+        zero(eltype(F))
+    else
+        throw(BoundsError())
+    end
+end
 
 
-getindex(F::FiniteOperator,k::Integer,j::Integer) =
-    k ≤ size(F.matrix,1) && j ≤ size(F.matrix,2) ? F.matrix[k,j] : zero(eltype(F))
+function getindex(F::FiniteOperator,k::Integer)
+    @assert size(F,1) == 1
+    if k ≤ length(F.matrix)
+        F.matrix[k]
+    else
+        zero(eltype(F))
+    end
+end
 
 function Base.copy{AT<:BandedMatrix,T}(S::SubBandedMatrix{T,FiniteOperator{AT,T}})
     kr,jr=parentindexes(S)
@@ -26,23 +50,8 @@ end
 
 
 
-bandinds(T::FiniteOperator)=(1-size(T.matrix,1),size(T.matrix,2)-1)
-bandinds{AT<:BandedMatrix}(T::FiniteOperator{AT})=bandinds(T.matrix)
+bandinds(T::FiniteOperator) = (1-size(T.matrix,1),size(T.matrix,2)-1)
+bandinds{AT<:BandedMatrix}(T::FiniteOperator{AT}) = bandinds(T.matrix)
 
 
-Base.maximum(K::FiniteOperator)=maximum(K.matrix)
-
-
-immutable FiniteFunctional{S,T} <: Functional{T}
-    data::Vector{T}
-    domainspace::S
-end
-
-Base.convert{T}(::Type{Functional{T}},S::FiniteFunctional)=FiniteFunctional(convert(Vector{T},S.data),S.domainspace)
-
-domainspace(S::FiniteFunctional)=S.domainspace
-datalength(S::FiniteFunctional)=length(S.data)
-
-
-Base.getindex{S,T}(B::FiniteFunctional{S,T},k::Integer)=k≤datalength(B)?B.data[k]:zero(T)
-Base.getindex{S,T}(B::FiniteFunctional{S,T},kr::Range)=T[B[k] for k=kr]
+Base.maximum(K::FiniteOperator) = maximum(K.matrix)
