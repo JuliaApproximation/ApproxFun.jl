@@ -83,13 +83,11 @@ MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::Operator)=MultiplicationWrappe
 
 @wrapper MultiplicationWrapper
 
-
-Base.convert{BT<:MultiplicationWrapper}(::Type{BT},C::BT)=C
-function Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper{S,V,VV,T})
-    if eltype(BT)==eltype(C)
+function Base.convert{TT,S,V,VV,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,VV,T})
+    if TT==eltype(C)
         C
     else
-        MultiplicationWrapper{S,V,VV,eltype(BT)}(C.f,C.op)
+        MultiplicationWrapper{S,V,VV,TT}(C.f,C.op)
     end
 end
 

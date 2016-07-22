@@ -13,6 +13,7 @@ ConstantOperator{T}(::Type{T},c) = ConstantOperator{eltype(T),T}(c)
 ConstantOperator(c::Number) = ConstantOperator(typeof(c),c)
 ConstantOperator(L::UniformScaling) = ConstantOperator(L.λ)
 IdentityOperator() = ConstantOperator(1.0)
+IdentityOperator(S::Space) = SpaceOperator(IdentityOperator(),S,S)
 
 bandinds(T::ConstantOperator) = 0,0
 

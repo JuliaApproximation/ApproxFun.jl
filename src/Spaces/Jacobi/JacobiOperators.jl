@@ -393,7 +393,7 @@ end
 
 JacobiSD(lr,S)=JacobiSD{Float64}(lr,S)
 
-Base.convert{BO<:Operator}(::Type{BO},SD::JacobiSD)=JacobiSD{eltype(BO)}(SD.lr,SD.S)
+Base.convert{T}(::Type{Operator{T}},SD::JacobiSD)=JacobiSD{T}(SD.lr,SD.S)
 
 domain(op::JacobiSD)=domain(op.S)
 domainspace(op::JacobiSD)=op.S

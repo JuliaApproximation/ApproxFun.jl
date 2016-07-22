@@ -35,7 +35,6 @@ function PlusOperator(ops::Vector)
     PlusOperator(ops,(b1,b2))
 end
 
-#Base.convert{OT<:PlusOperator}(::Type{OT},P::OT)=P
 function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
     if T==eltype(P)
         P

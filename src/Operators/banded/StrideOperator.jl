@@ -184,12 +184,16 @@ end
 InterlaceOperator{T}(ops::Matrix{Operator{T}})=InterlaceOperator{T}(ops)
 InterlaceOperator{B<:Operator}(ops::Matrix{B})=InterlaceOperator(convert(Matrix{Operator{mapreduce(eltype,promote_type,ops)}},ops))
 
-function Base.convert{BT<:Operator}(::Type{BT},S::InterlaceOperator)
-    ops=Array(Operator{eltype(BT)},size(S.ops)...)
-    for j=1:size(S.ops,2),k=1:size(S.ops,1)
-        ops[k,j]=S.ops[k,j]
+function Base.convert{T}(::Type{Operator{T}},S::InterlaceOperator)
+    if T == eltype(S)
+        S
+    else
+        ops=Array(Operator{T},size(S.ops)...)
+        for j=1:size(S.ops,2),k=1:size(S.ops,1)
+            ops[k,j]=S.ops[k,j]
+        end
+        InterlaceOperator(ops)
     end
-    InterlaceOperator(ops)
 end
 
 

@@ -5,7 +5,8 @@ immutable PermutationOperator{T} <: Operator{T}
 end
 PermutationOperator(prm)=PermutationOperator{Int}(prm)
 
-Base.convert{BT<:Operator}(::Type{BT},P::PermutationOperator)=PermutationOperator{eltype(BT)}(P.perm)
+Base.convert{T}(::Type{Operator{T}},P::PermutationOperator) =
+    PermutationOperator{T}(P.perm)
 
 function bandinds(P::PermutationOperator)
     dfs=P.perm-(1:length(P.perm))
