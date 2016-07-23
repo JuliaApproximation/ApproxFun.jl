@@ -201,7 +201,6 @@ end
     n=length(pts)
     ws=pad(g.coefficients,dimension(space(g)))
 
-    ylims --> (minimum(ws)-1.,maximum(ws)+1.)
     @series begin
         primary := true
         pts[1:2],ones(2)*ws[1]
