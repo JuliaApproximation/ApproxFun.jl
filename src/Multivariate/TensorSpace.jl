@@ -181,7 +181,7 @@ end
 # equivalent to sum of indices -1
 totensorblock(n)=floor(Integer,sqrt(2n) + 1/2)
 #gives the range corresponding to the block
-fromtensorblock(j)=div(j*(j-1),2)+(1:j)
+fromtensorblock(j)=((j*(j-1))÷2)+(1:j)
 
 function totensorind(n)
     m=totensorblock(n)
