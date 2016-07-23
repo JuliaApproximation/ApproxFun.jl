@@ -53,7 +53,7 @@ end
 
 
 immutable PDEOperatorKron{T}
-    op::BivariateOperator{T} #we need to remember the op to reduce DOFs
+    op::Operator{T} #we need to remember the op to reduce DOFs
     opsx::ReducedDiscreteOperators
     opsy::ReducedDiscreteOperators
     indsBx::Vector{Int}

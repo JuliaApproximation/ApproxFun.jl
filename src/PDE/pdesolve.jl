@@ -179,7 +179,7 @@ pdesolve{T<:Operator}(A::Vector{T},f::Union{Fun,MultivariateFun,Number},n...;opt
 pdesolve(A::Operator,f...;opts...)=pdesolve([A],f...;opts...)
 
 
+\(A::AbstractPDEOperatorSchur,f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
 
 \{BM<:BandedMatrix}(A::Vector{Operator{BM}},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
-\(A::AbstractPDEOperatorSchur,f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
 \{BM<:BandedMatrix}(A::Operator{BM},f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
