@@ -9,14 +9,18 @@ dimension(h::HeavisideSpace)=length(h.domain.points)-1
 
 Base.convert(::Type{HeavisideSpace},d::PiecewiseInterval)=HeavisideSpace{eltype(d)}(d)
 
-function Base.convert(::Type{HeavisideSpace},d::Vector)
+function Base.convert(::Type{HeavisideSpace},d::AbstractVector)
     d=sort(d)
-   HeavisideSpace(PiecewiseInterval(d))
+    HeavisideSpace(PiecewiseInterval(d))
 end
 
-spacescompatible(::HeavisideSpace,::HeavisideSpace)=true
-canonicalspace(sp::HeavisideSpace)=PiecewiseSpace(map(Chebyshev,pieces(domain(sp))))
+spacescompatible(::HeavisideSpace,::HeavisideSpace) = true
+canonicalspace(sp::HeavisideSpace) = PiecewiseSpace(map(Chebyshev,pieces(domain(sp))))
 
+function transform(S::HeavisideSpace,vals::Vector,plan...)
+    @assert length(vals) == dimension(S)
+    vals
+end
 
 conversion_rule{k,PS<:PolynomialSpace}(sp::HeavisideSpace,sp2::PiecewiseSpace{NTuple{k,PS}})=sp
 
@@ -49,3 +53,5 @@ function getindex{HS<:HeavisideSpace}(D::ConcreteDerivative{HS},k::Integer,j::In
         zero(eltype(D))
     end
 end
+
+Base.sum{HS<:HeavisideSpace}(f::Fun{HS}) = dotu(f.coefficients,diff(space(f).domain.points))
