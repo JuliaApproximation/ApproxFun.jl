@@ -17,7 +17,7 @@ typealias AffineDomain Union{Interval,PeriodicInterval,Ray,Line}
 
 
 # These are needed for spaces to auto-convert [a,b] to Interval
-function Base.convert{D<:Domain,T<:Number}(::Type{D},d::AbstractVector{T})
+function Base.convert{T<:Number}(::Type{Domain},d::AbstractVector{T})
     @assert length(d) >1
 
     if length(d) == 2
@@ -30,11 +30,11 @@ function Base.convert{D<:Domain,T<:Number}(::Type{D},d::AbstractVector{T})
         end
     else
         # TODO: convert to PiecewiseInterval
-        convert(D,d[1:2])∪convert(D,d[2:end])
+        Domain(d[1:2]) ∪ Domain(d[2:end])
     end
 end
 
-function Base.convert{D<:PeriodicDomain,T<:Number}(::Type{D},d::AbstractVector{T})
+function Base.convert{T<:Number}(::Type{PeriodicDomain},d::AbstractVector{T})
     @assert length(d) == 2
 
     if abs(d[1]) ==Inf

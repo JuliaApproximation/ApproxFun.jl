@@ -11,7 +11,7 @@ Base.convert(::Type{HeavisideSpace},d::PiecewiseInterval)=HeavisideSpace{eltype(
 
 function Base.convert(::Type{HeavisideSpace},d::AbstractVector)
     d=sort(d)
-   HeavisideSpace(PiecewiseInterval(d))
+    HeavisideSpace(PiecewiseInterval(d))
 end
 
 spacescompatible(::HeavisideSpace,::HeavisideSpace) = true
