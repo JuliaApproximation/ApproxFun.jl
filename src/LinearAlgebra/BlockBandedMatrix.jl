@@ -62,23 +62,85 @@ function Base.getindex(B::BlockBandedMatrix,k::Integer,j::Integer)
     end
 end
 
-function bbrand(rows,columns,l,u)
-    n = 0
-    for J=1:length(columns),K=max(1,J-u):min((J+l),length(rows))
-        n += rows[K]*columns[J]
+function Base.setindex!(B::BlockBandedMatrix,v,k::Integer,j::Integer)
+    if k > size(B,1) || j > size(B,2)
+        throw(BoundsError())
     end
-    BlockBandedMatrix(rand(n),rows,columns,l,u)
+
+    fr = B.firstrow[j]
+    nrws = j != size(B,2) ?
+            B.columnlookup[j+1] - B.columnlookup[j] :
+            length(B.data) - B.columnlookup[j] + 1
+
+    if k < fr || k > fr + nrws - 1
+        if v!=0
+            error("Cannot change entries outside block bands")
+        end
+    else
+        B.data[B.columnlookup[j] + k - fr] = v
+    end
+end
+
+
+for (op,bop) in ((:(Base.rand),:bbrand),(:(Base.zeros),:bbzeros),(:(Base.ones),:bbones))
+    @eval begin
+        function $bop{T}(::Type{T},rows,columns,l,u)
+            n = 0
+            for J=1:length(columns),K=max(1,J-u):min((J+l),length(rows))
+                n += rows[K]*columns[J]
+            end
+            BlockBandedMatrix($op(T,n),rows,columns,l,u)
+        end
+        $bop(rows,columns,l,u) = $bop(Float64,rows,columns,l,u)
+    end
 end
 
 
 
 
-rows=1:3
-columns=1:4
+rows=1:50
+columns=1:50
 l=u=1
 
-
 B=bbrand(rows,columns,l,u)
+
+
+sz=sizeof(eltype(B))
+
+v=pointer(B.data)
+α=1.0
+Z=bbzeros(rows,columns,l,u+l)
+    w=pointer(Z.data)
+    for k=1:4
+        N=B.columnlookup[k+1]-B.columnlookup[k]
+        BLAS.axpy!(N,α,v+(B.columnlookup[k]-1)*sz,1,w+(B.columnlookup[k]-1)*sz,1)
+    end
+
+
+B
+unsafe_load(v+1*sz)
+Z
+using SO
+B
+
+B[10,3]=5
+
+B
+
+v=B.data[1:3]
+norm(v)
+
+
+
+
+
+
+B.columnlookup[2]
+
+
+
+
+
 B.columnlookup
 
 B.firstrow
