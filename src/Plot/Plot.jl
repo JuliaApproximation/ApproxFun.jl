@@ -201,66 +201,46 @@ end
     n=length(pts)
     ws=pad(g.coefficients,dimension(space(g)))
 
-    @series begin
-        primary := true
-        pts[1:2],ones(2)*ws[1]
+    lnsx=Array(Float64,0)
+    lnsy=Array(Float64,0)
+    dtsx=Array(Float64,0)
+    dtsy=Array(Float64,0)
+    for k=1:n-1
+        push!(lnsx,pts[k])
+        push!(lnsy,ws[k])
+        push!(lnsx,pts[k+1])
+        push!(lnsy,ws[k])
+
+
+        if k != n-1
+            # dotted line, with NaN to separate
+            push!(dtsx,pts[k+1])
+            push!(dtsx,pts[k+1])
+            push!(dtsx,pts[k+1])
+
+            push!(dtsy,ws[k])
+            push!(dtsy,ws[k+1])
+            push!(dtsy,NaN)
+
+            # extra point for NaN
+            push!(lnsx,pts[k+1])
+            push!(lnsy,NaN)
+        end
     end
 
-    for k=2:length(ws)
-        @series begin
-           primary := false
-           linestyle --> :dot
-           ones(2)*pts[k],ws[k-1:k]
-        end
-        @series begin
-            primary := false
-            pts[k:k+1],ones(2)*ws[k]
-        end
+
+    @series begin
+        primary --> true
+        lnsx,lnsy
+    end
+
+    @series begin
+       primary := false
+       linestyle := :dot
+       fillrange := false
+       dtsx,dtsy
     end
 end
-
-
-# @recipe function f{S<:HeavisideSpace,T<:Real}(g::Fun{S,T})
-#     pts=domain(g).points
-#     n=length(pts)
-#     ws=pad(g.coefficients,dimension(space(g)))
-#
-#     lnsx=Array(Float64,0)
-#     lnsy=Array(Float64,0)
-#     dtsx=Array(Float64,0)
-#     dtsy=Array(Float64,0)
-#     for k=1:n-1
-#         if k != n-1
-#             # dotted line, with NaN to separate
-#             push!(dtsx,pts[k+1])
-#             push!(dtsx,pts[k+1])
-#             push!(dtsx,pts[k+1])
-#
-#             push!(dtsy,ws[k])
-#             push!(dtsy,ws[k+1])
-#             push!(dtsy,NaN)
-#         end
-#
-#         push!(lnsx,pts[k])
-#         push!(lnsy,ws[k])
-#         push!(lnsx,pts[k+1])
-#         push!(lnsy,ws[k])
-#         push!(lnsx,pts[k+1])  # extra point for NaN
-#         push!(lnsy,NaN)
-#     end
-#
-#
-#     @series begin
-#         primary --> true
-#         lnsx,lnsy
-#     end
-#
-#     @series begin
-#        primary := false
-#        linestyle := :dot
-#        dtsx,dtsy
-#     end
-# end
 
 ###
 # Multivariate

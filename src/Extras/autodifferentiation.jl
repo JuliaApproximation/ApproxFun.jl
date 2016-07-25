@@ -77,7 +77,7 @@ Operator(f)=Operator(f,Chebyshev())  #TODO: UnsetSpace
 
 # full operator should be
 # N=u->[B*u-bcs;...]
-function newton(N,u0;maxiterations=100,tolerance=1E-15)
+function newton(N,u0::Fun;maxiterations=100,tolerance=1E-15)
     u=u0
     for k=1:maxiterations
         DF=N(DualFun(u))
@@ -92,3 +92,10 @@ function newton(N,u0;maxiterations=100,tolerance=1E-15)
     end
     return u
 end
+
+
+newton(N,d::Domain;opts...) =
+    newton(N,zeros(d);opts...)
+
+newton{T<:Number}(N,d::AbstractVector{T};opts...) =
+    newton(N,Domain(d);opts...)
