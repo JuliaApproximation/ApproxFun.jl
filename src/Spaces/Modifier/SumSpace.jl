@@ -1,5 +1,52 @@
 export ⊕,depiece,pieces,PiecewiseSpace
 
+
+## Interlace interator
+# this interlaces the entries treating everything equally,
+# but will stop interlacing finite dimensional when it runs
+# out.
+# Dimensions are either Int or ∞
+
+immutable InterlaceIterator{DMS}
+    dimensions::DMS
+end
+
+Base.start(it::InterlaceIterator) = (findfirst(d-> d≠0,it.dimensions),1)
+function Base.next(it::InterlaceIterator,st)
+    if st[1] == length(it.dimensions)
+        k = 1
+        j = st[2]+1
+    else
+        k = st[1]+1
+        j = st[2]
+    end
+    nst=(k,j)
+    if done(it,nst)
+        (st,nst)
+    else
+        # call next if we are not done
+        (st,j > it.dimensions[k]?next(it,nst)[2]:nst)
+    end
+end
+
+# are all Ints, so finite dimensional
+function Base.done{N}(it::InterlaceIterator{NTuple{N,Int}},st)
+    for k=1:length(it.dimensions)
+        if st[2] ≤ it.dimensions[k] && k ≤ st[1]
+            return false
+        end
+    end
+    return true
+end
+
+# Are not all Ints, so ∞ dimensional
+Base.done(it::InterlaceIterator,st) = false
+Base.eltype(it::InterlaceIterator) = Tuple{Int,Int}
+
+
+
+
+
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
@@ -263,42 +310,28 @@ identity_fun(S::PiecewiseSpace)=depiece(map(identity_fun,S.spaces))
 
 # vec
 
-
 function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
-    sp=f.space
-    m=length(sp)
-    n=length(f.coefficients)
+    sp=space(f).spaces
+    it=InterlaceIterator(map(dimension,sp))
+    N=length(f.coefficients)
+    d=dimension(sp[k])
 
-    spk=sp[k]
-    dk=dimension(spk)
-
-    if k>n
-        return zero(spk)   # we infer that the coefficients are zero
-    end
-
-
-    j=k
-    row=1  # represents the row of ret to be added
-    ret=eltype(f)[]
-
-    # we only allow at most dimension
-    while row ≤ dk && j ≤ n
-        push!(ret,f.coefficients[j])  # this sets ret[row] to f.coefficients[j]
-        for λ = k+1:m
-            if dimension(sp[λ]) ≥ row # loop through the rest of the spaces
-                j+=1
-            end
+    # preallocate: we know we have at most N coefficients
+    ret=Array(eltype(f),N)
+    j=1  # current coefficient
+    p=0  # current length
+    for (n,m) in it
+        if j > N || m > d
+            break
         end
-        row += 1   # move on to the next row
-        for λ = 1:k-1
-            if dimension(sp[λ]) ≥ row # loop through the previous spaces
-                j+=1
-            end
+        if n==k
+            ret[m]=f.coefficients[j]
+            p+=1
         end
-        j+=1  # we always increment by 1 for the current space
+        j+=1
     end
-
-    Fun(ret,spk)
+    resize!(ret,p)  # through out extra coefficients
+    Fun(ret,sp[k])
 end
 
 
