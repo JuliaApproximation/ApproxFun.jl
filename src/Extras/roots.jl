@@ -275,7 +275,7 @@ for op in (:(Base.maxabs),:(Base.minabs))
     end
 end
 
-for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
+for op in (:(Base.maximum),:(Base.minimum),:(Base.maxabs),:(Base.minabs))
     @eval begin
         $op{SV,DD<:UnionDomain,d,T<:Real}(f::Fun{PiecewiseSpace{SV,RealBasis,DD,d},T}) =
             $op(map($op,vec(f)))

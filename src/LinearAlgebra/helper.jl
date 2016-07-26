@@ -464,3 +464,48 @@ Base.isinf(::Irrational{:∞}) = true
 
 pad!(A::BandedMatrix,n,::Colon) = pad!(A,n,n+A.u)  # Default is to get all columns
 columnrange(A,row::Integer) = max(1,row+bandinds(A,1)):row+bandinds(A,2)
+
+
+
+## Store iterator
+type CachedIterator{T,IT,ST}
+    iterator::IT
+    storage::Vector{T}
+    state::ST
+    length::Int
+
+    CachedIterator(it::IT) = new(it,Vector{it}(),start(it),0)
+end
+
+CachedIterator(it) = CachedIterator{eltype(it),typeof(it),typeof(start(it))}(it)
+
+function Base.resize!(it::CachedIterator,n::Integer)
+    m = it.length
+    if n > m
+        if n > length(it.storage)
+            resize!(it.storage,2n)
+        end
+
+        for k = m+1:n
+            if done(it.iterator,it.state)
+                it.length = k-1
+                return it
+            end
+            val,it.state = next(it.iterator,it.state)
+            @inbounds it.storage[k] = val
+        end
+
+        it.length = n
+    end
+    it
+end
+
+
+Base.eltype{T}(it::CachedIterator{T}) = T
+Base.start(it::CachedIterator) = 1
+Base.next(it::CachedIterator,st::Int) = (it[st],st+1)
+Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
+                                        done(it.iterator,it.state)
+
+
+Base.getindex(it::CachedIterator,k::Int) = resize!(it,k).storage[k]
