@@ -387,7 +387,7 @@ const ∞ = Infinity()
 Base.isinf(::Infinity) = true
 Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
 
-function Base.show{B<:Integer}(io::IO, x::Infinity{B})
+function Base.show{B<:Integer}(io::IO, y::Infinity{B})
     if sign(y) == 1
         print(io, "∞")
     else

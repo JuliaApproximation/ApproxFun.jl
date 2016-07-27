@@ -55,7 +55,8 @@ Base.eltype(it::InterlaceIterator) = Tuple{Int,Int}
 abstract DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d}
 
 InterlaceIterator(sp::DirectSumSpace) = InterlaceIterator(map(dimension,sp.spaces))
-
+interlacer(sp::DirectSumSpace) = InterlaceIterator(sp)
+interlacer(sp::Space) = InterlaceIterator(tuple(dimension(sp)))
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval begin

@@ -182,14 +182,10 @@ immutable InterlaceOperator{T,DS,RS,DI,RI,BI} <: Operator{T}
     rangeinterlacer::RI
     bandinds::BI
 end
-function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
-    ops=promotespaces(opsin)
-    ds=domainspace(ops)
-    rs=rangespace(ops[:,1])
-
+function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
     # calculate bandinds
     p=size(ops,1)
-    if size(ops,2) == p && all(isbanded,opsin)
+    if size(ops,2) == p && all(isbanded,ops)
         l,u = 0,0
         for k=1:p,j=1:p
             l=min(l,p*bandinds(ops[k,j],1)+j-k)
@@ -203,10 +199,21 @@ function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
 
 
     InterlaceOperator(ops,ds,rs,
-                        CachedIterator(InterlaceIterator(ds)),
-                        CachedIterator(InterlaceIterator(rs)),
+                        CachedIterator(interlacer(ds)),
+                        CachedIterator(interlacer(rs)),
                         (l,u))
 end
+
+function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
+    ops=promotespaces(opsin)
+    InterlaceOperator(ops,domainspace(ops),rangespace(ops[:,1]))
+end
+
+function InterlaceOperator{T}(opsin::Vector{Operator{T}})
+    ops=promotedomainspace(opsin)
+    InterlaceOperator(ops'',domainspace(first(ops)),rangespace(ops))
+end
+
 InterlaceOperator(ops::Matrix) =
     InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,ops)}}(ops))
 
