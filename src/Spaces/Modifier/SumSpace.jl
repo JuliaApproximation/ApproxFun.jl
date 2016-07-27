@@ -335,20 +335,41 @@ function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
 end
 
 
-Base.vec(S::DirectSumSpace)=S.spaces
-Base.vec{S<:DirectSumSpace}(f::Fun{S})=Fun[f[j] for j=1:length(space(f).spaces)]
-
-pieces{S<:PiecewiseSpace}(f::Fun{S})=vec(f)
-function depiece{F<:Fun}(v::Vector{F})
-    spaces=map(space,v)
-    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),PiecewiseSpace(spaces))
-end
-function depiece(v::Tuple)
-    spaces=map(space,v)
-    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),PiecewiseSpace(spaces))
+# interlace coefficients according to iterator
+function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::InterlaceIterator)
+    ret=Vector{T}()
+    for (n,m) in it
+        push!(ret,v[n][m])
+    end
+    ret
 end
 
-depiece(v::Vector{Any})=depiece([v...])
+interlace{V<:AbstractVector}(v::AbstractVector{V},it::InterlaceIterator) =
+    interlace(mapreduce(eltype,promote_type,v),v,it)
+
+
+
+Base.vec(S::DirectSumSpace) = S.spaces
+Base.vec{S<:DirectSumSpace}(f::Fun{S}) = Fun[f[j] for j=1:length(space(f).spaces)]
+
+pieces{S<:PiecewiseSpace}(f::Fun{S}) = vec(f)
+
+for (Dep,Sp) in ((:depiece,:PiecewiseSpace),(:detuple,:TupleSpace))
+    @eval begin
+        function depiece{F<:Fun}(v::Vector{F})
+            spaces=map(space,v)
+            Fun(interlace(map(coefficients,v),InterlaceIterator(map(dimension,spaces))),
+                $Sp(spaces))
+        end
+        function depiece(v::Tuple)
+            spaces=map(space,v)
+            Fun(interlace(map(coefficients,v),InterlaceIterator(map(dimension,spaces))),
+                $Sp(spaces))
+        end
+
+        depiece(v::Vector{Any})=depiece([v...])
+    end
+end
 
 
 function detuple{F<:Fun}(v::Vector{F})

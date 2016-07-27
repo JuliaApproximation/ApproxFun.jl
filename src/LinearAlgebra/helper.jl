@@ -281,34 +281,6 @@ function interlace(a::Vector,b::Vector)
 end
 
 
-# this limits the dimension of the padding to da and db
-# interlacing every other coefficient until then
-
-interlace(a::Union{Tuple,AbstractVector};dimensions=fill(Inf,length(a)))=dim_interlace(a,dimensions)
-dim_interlace(a,dimensions)=
-        dim_interlace(mapreduce(eltype,promote_type,a),a,dimensions)
-function dim_interlace{T}(::Type{T},a,d)
-    @assert length(d)==length(a)
-    m=length(a)
-    for j=1:m
-        @assert length(a[j])≤d[j]
-    end
-    ret=Array(T,0)
-    n=mapreduce(length,max,a)   # the max length
-    for k=1:n, j=1:m
-        if k ≤ length(a[j])
-            push!(ret,a[j][k])
-        elseif k ≤ d[j]
-            # only add zero if we are less than the dimension dictated by d
-            push!(ret,zero(T))
-        end
-    end
-
-    ret
-end
-
-
-
 
 
 ## svfft
