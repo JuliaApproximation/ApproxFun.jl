@@ -181,8 +181,9 @@ immutable InterlaceOperator{T} <: Operator{T}
         new(promotespaces(os))
     end
 end
-InterlaceOperator{T}(ops::Matrix{Operator{T}})=InterlaceOperator{T}(ops)
-InterlaceOperator{B<:Operator}(ops::Matrix{B})=InterlaceOperator(convert(Matrix{Operator{mapreduce(eltype,promote_type,ops)}},ops))
+InterlaceOperator{T}(ops::Matrix{Operator{T}}) = InterlaceOperator{T}(ops)
+InterlaceOperator{B<:Operator}(ops::Matrix{B}) =
+    InterlaceOperator(convert(Matrix{Operator{mapreduce(eltype,promote_type,ops)}},ops))
 
 function Base.convert{T}(::Type{Operator{T}},S::InterlaceOperator)
     if T == eltype(S)

@@ -52,18 +52,18 @@ Base.eltype(it::InterlaceIterator) = Tuple{Int,Int}
 
 abstract DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d}
 
-
+InterlaceIterator(sp::DirectSumSpace) = InterlaceIterator(map(dimension,sp.spaces))
 
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval begin
         immutable $TYP{SV,T,DD,d} <: DirectSumSpace{SV,T,DD,d}
             spaces::SV
-            $TYP(dom::Domain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
-            $TYP(sp::Tuple)=new(sp)
+            $TYP(dom::Domain) = new(tuple(map(typ->typ(dom),SV.parameters)...))
+            $TYP(sp::Tuple) = new(sp)
         end
 
-        $TYP(sp::Tuple)=$TYP{typeof(sp),mapreduce(basistype,promote_type,sp),
+        $TYP(sp::Tuple) = $TYP{typeof(sp),mapreduce(basistype,promote_type,sp),
                              typeof(domain(first(sp))),ndims(first(sp))}(sp)
     end
 end
@@ -243,7 +243,8 @@ for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace)
     for OP in (:differentiate,:integrate)
         @eval function $OP{D<:$TYP,T}(f::Fun{D,T})
             fs=map($OP,vec(f))
-            Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
+            sp=$TYP(map(space,fs))
+            Fun(interlace(fs,sp),sp)
         end
     end
     for OP in (:(Base.real),:(Base.imag),:(Base.conj))
@@ -251,7 +252,8 @@ for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace)
             $OP{SV,DD,d}(f::Fun{$TYP{SV,RealBasis,DD,d}}) = Fun($OP(f.coefficients),f.space)
             function $OP{SV,T,DD,d}(f::Fun{$TYP{SV,T,DD,d}})
                 fs=map($OP,vec(f))
-                Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
+                sp=$TYP(map(space,fs))
+                Fun(interlace(fs,sp),sp)
             end
         end
     end
@@ -261,7 +263,8 @@ end
 for TYP in (:SumSpace,:TupleSpace)
     @eval function Base.cumsum{D<:$TYP,T}(f::Fun{D,T})
         fs=map(cumsum,vec(f))
-        Fun(interlace(map(coefficients,fs)),$TYP(map(space,fs)))
+        sp=$TYP(map(space,fs))
+        Fun(interlace(fs,sp),sp)
     end
 end
 
@@ -306,7 +309,7 @@ Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V})=depiece(map(ones,S.
 Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 
 
-identity_fun(S::PiecewiseSpace)=depiece(map(identity_fun,S.spaces))
+identity_fun(S::PiecewiseSpace) = depiece(map(identity_fun,S.spaces))
 
 # vec
 
@@ -338,8 +341,17 @@ end
 # interlace coefficients according to iterator
 function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::InterlaceIterator)
     ret=Vector{T}()
+    N=mapreduce(length,max,v)
     for (n,m) in it
-        push!(ret,v[n][m])
+        if m > N
+            break
+        end
+
+        if m ≤ length(v[n])
+            push!(ret,v[n][m])
+        else
+            push!(ret,zero(T))
+        end
     end
     ret
 end
@@ -347,6 +359,16 @@ end
 interlace{V<:AbstractVector}(v::AbstractVector{V},it::InterlaceIterator) =
     interlace(mapreduce(eltype,promote_type,v),v,it)
 
+interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
+    interlace(map(coefficients,v),InterlaceIterator(sp))
+
+function interlace{F<:Fun}(v::Tuple{Vararg{F}},sp::DirectSumSpace)
+    V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
+    for k=1:length(v)
+        V[k]=coefficients(v[k])
+    end
+    interlace(V,InterlaceIterator(sp))
+end
 
 
 Base.vec(S::DirectSumSpace) = S.spaces
@@ -356,32 +378,20 @@ pieces{S<:PiecewiseSpace}(f::Fun{S}) = vec(f)
 
 for (Dep,Sp) in ((:depiece,:PiecewiseSpace),(:detuple,:TupleSpace))
     @eval begin
-        function depiece{F<:Fun}(v::Vector{F})
+        function $Dep{F<:Fun}(v::Vector{F})
             spaces=map(space,v)
-            Fun(interlace(map(coefficients,v),InterlaceIterator(map(dimension,spaces))),
-                $Sp(spaces))
+            sp=$Sp(spaces)
+            Fun(interlace(v,sp),sp)
         end
-        function depiece(v::Tuple)
+        function $Dep(v::Tuple)
             spaces=map(space,v)
-            Fun(interlace(map(coefficients,v),InterlaceIterator(map(dimension,spaces))),
-                $Sp(spaces))
+            sp=$Sp(spaces)
+            Fun(interlace(v,sp),sp)
         end
 
-        depiece(v::Vector{Any})=depiece([v...])
+        $Dep(v::Vector{Any})=depiece([v...])
     end
 end
-
-
-function detuple{F<:Fun}(v::Vector{F})
-    spaces=map(space,v)
-    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),TupleSpace(spaces))
-end
-function detuple(v::Tuple)
-    spaces=map(space,v)
-    Fun(interlace(map(coefficients,v);dimensions=map(dimension,spaces)),TupleSpace(spaces))
-end
-
-detuple(v::Vector{Any})=detuple([v...])
 
 
 
