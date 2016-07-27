@@ -375,20 +375,61 @@ end
 
 ## New Inf
 
-typealias Infinity Irrational{:∞}
+# angle is π*a where a is (false==0) and (true==1)
+immutable Infinity{T}
+    angle::T
+end
+
+Infinity() = Infinity(false)
 const ∞ = Infinity()
 
-Base.show(io::IO, x::Infinity) = print(io, "∞")
-Base.convert{F<:AbstractFloat}(::Type{F},::Infinity) = convert(F,Inf)
-+(::BlasFloat,y::Infinity) = y
-+(y::Infinity,::BlasFloat) = y
--(y::Infinity,::BlasFloat) = y
-Base.min(x::Infinity,::Infinity) = x
-Base.max(x::Infinity,::Infinity) = x
-Base.min(x::Real,::Infinity) = x
-Base.min(::Infinity,x::Real) = x
-Base.max(::Real,x::Infinity) = x
-Base.max(x::Infinity,::Real) = x
+
+Base.isinf(::Infinity) = true
+Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
+
+function Base.show{B<:Integer}(io::IO, x::Infinity{B})
+    if sign(y) == 1
+        print(io, "∞")
+    else
+        print(io, "-∞")
+    end
+end
+
+Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
+
+
+Base.promote_rule{F<:Number,B<:Integer}(::Type{F},::Type{Infinity{B}}) = promote_type(F,Float64)
+Base.promote_rule{F<:Number,B<:AbstractFloat}(::Type{F},::Type{Infinity{B}}) = promote_type(F,Complex128)
+
+Base.convert{F<:AbstractFloat,B<:Integer}(::Type{F},y::Infinity{B}) = convert(F,sign(y)==1?Inf:-Inf)
+Base.convert{F<:AbstractFloat,B<:AbstractFloat}(::Type{F},y::Infinity{B}) = convert(F,exp(im*π*y.angle)*Inf)
+
+-{B<:Integer}(y::Infinity{B}) = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
+
++(::Number,y::Infinity) = y
++(y::Infinity,::Number) = y
+-(y::Infinity,::Number) = y
+-(::Number,y::Infinity) = -y
+
+
+*(a::Real,y::Infinity) = a>0?y:(-y)
+*(y::Infinity,a::Real) = a*y
+
+Base.min{B<:Integer}(x::Infinity{B},y::Infinity{B}) = sign(x)==-1?x:y
+Base.max{B<:Integer}(x::Infinity{B},::Infinity{B}) = sign(x)==1?x:y
+Base.min{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1?x:y
+Base.min{B<:Integer}(x::Infinity{B},y::Real) = min(y,x)
+Base.max{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1?y:x
+Base.max{B<:Integer}(x::Infinity{B},y::Real) = max(y,x)
+
+for OP in (:<,:<=)
+    @eval $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1
+end
+
+for OP in (:>,:>=)
+    @eval $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==-1
+end
+
 
 ## My Count
 
@@ -409,6 +450,7 @@ countfrom()                            = UnitCount(1)
 
 Base.eltype{S}(::Type{AbstractCount{S}}) = S
 Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(supertype(AS))
+Base.eltype{S}(::AbstractCount{S}) = S
 
 Base.step(it::Count) = it.step
 Base.step(it::UnitCount) = 1
