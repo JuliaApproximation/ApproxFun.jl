@@ -174,16 +174,41 @@ end
 
 ## Interlace operator
 
-immutable InterlaceOperator{T} <: Operator{T}
+immutable InterlaceOperator{T,DS,RS,DI,RI,BI} <: Operator{T}
     ops::Matrix{Operator{T}}
-    function InterlaceOperator(os)
-        @assert size(os,1)==size(os,2)
-        new(promotespaces(os))
-    end
+    domainspace::DS
+    rangespace::RS
+    domaininterlacer::DI
+    rangeinterlacer::RI
+    bandinds::BI
 end
-InterlaceOperator{T}(ops::Matrix{Operator{T}}) = InterlaceOperator{T}(ops)
-InterlaceOperator{B<:Operator}(ops::Matrix{B}) =
-    InterlaceOperator(convert(Matrix{Operator{mapreduce(eltype,promote_type,ops)}},ops))
+function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
+    ops=promotespaces(opsin)
+    ds=domainspace(ops)
+    rs=rangespace(ops[:,1])
+
+    # calculate bandinds
+    p=size(ops,1)
+    if size(ops,2) == p && all(isbanded,opsin)
+        l,u = 0,0
+        for k=1:p,j=1:p
+            l=min(l,p*bandinds(ops[k,j],1)+j-k)
+        end
+        for k=1:p,j=1:p
+            u=max(u,p*bandinds(ops[k,j],2)+j-k)
+        end
+    else
+        l,u = (-∞,∞)  # not banded
+    end
+
+
+    InterlaceOperator(ops,ds,rs,
+                        CachedIterator(InterlaceIterator(ds)),
+                        CachedIterator(InterlaceIterator(rs)),
+                        (l,u))
+end
+InterlaceOperator(ops::Matrix) =
+    InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,ops)}}(ops))
 
 function Base.convert{T}(::Type{Operator{T}},S::InterlaceOperator)
     if T == eltype(S)
@@ -193,49 +218,28 @@ function Base.convert{T}(::Type{Operator{T}},S::InterlaceOperator)
         for j=1:size(S.ops,2),k=1:size(S.ops,1)
             ops[k,j]=S.ops[k,j]
         end
-        InterlaceOperator(ops)
+        InterlaceOperator(ops,domainspace(S),rangespace(S),
+                            S.domaininterlacer,S.rangeinterlacer,S.bandinds)
     end
 end
 
 
 
 #TODO: More efficient to save bandinds
-function bandinds(M::InterlaceOperator,N::Integer)
-    if N==1
-        p=size(M.ops,1)
-        ret=0
-        for k=1:p,j=1:p
-            ret=min(ret,p*bandinds(M.ops[k,j],1)+j-k)
-        end
-        ret
-    else #N==2
-        p=size(M.ops,1)
-        ret=0
-        for k=1:p,j=1:p
-            ret=max(ret,p*bandinds(M.ops[k,j],2)+j-k)
-        end
-        ret
-    end
-end
-bandinds(M::InterlaceOperator)=bandinds(M,1),bandinds(M,2)
+bandinds(M::InterlaceOperator) = M.bandinds
 
-function getindex(M::InterlaceOperator,k::Integer,j::Integer)
-    n,m=size(M.ops)
-    mk = n+mod(k,-n)
-    mj = m+mod(j,-m)
-    T=eltype(M)
-
-    k=(k-1)÷n+1  # map k and j to block coordinates
-    j=(j-1)÷m+1
-    M.ops[mk,mj][k,j]::T
+function getindex{T}(op::InterlaceOperator{T},k::Integer,j::Integer)
+    M,J = op.domaininterlacer[j]
+    N,K = op.rangeinterlacer[k]
+    op.ops[N,M][K,J]::T
 end
 
-domainspace(IO::InterlaceOperator)=domainspace(IO.ops)
-rangespace(IO::InterlaceOperator)=rangespace(IO.ops[:,1])
+domainspace(IO::InterlaceOperator) = IO.domainspace
+rangespace(IO::InterlaceOperator) = IO.rangespace
 
 #tests whether an operator can be made into a column
-iscolop(op)=isconstop(op)
-iscolop(::Multiplication)=true
+iscolop(op) = isconstop(op)
+iscolop(::Multiplication) = true
 
 
 function interlace{T<:Operator}(A::Matrix{T})

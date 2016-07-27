@@ -446,7 +446,7 @@ type CachedIterator{T,IT,ST}
     state::ST
     length::Int
 
-    CachedIterator(it::IT) = new(it,Vector{it}(),start(it),0)
+    CachedIterator(it::IT) = new(it,Vector{T}(),start(it),0)
 end
 
 CachedIterator(it) = CachedIterator{eltype(it),typeof(it),typeof(start(it))}(it)

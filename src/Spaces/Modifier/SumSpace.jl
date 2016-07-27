@@ -7,9 +7,11 @@ export ⊕,depiece,pieces,PiecewiseSpace
 # out.
 # Dimensions are either Int or ∞
 
-immutable InterlaceIterator{DMS}
+immutable InterlaceIterator{DMS<:Tuple}
     dimensions::DMS
 end
+
+InterlaceIterator(V::Vector) = InterlaceIterator(tuple(V...))
 
 Base.start(it::InterlaceIterator) = (findfirst(d-> d≠0,it.dimensions),1)
 function Base.next(it::InterlaceIterator,st)

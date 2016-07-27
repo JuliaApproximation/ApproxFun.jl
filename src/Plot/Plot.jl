@@ -237,7 +237,7 @@ end
     @series begin
        primary := false
        linestyle := :dot
-       fillrange := false
+       fillrange := nothing
        dtsx,dtsy
     end
 end
