@@ -355,7 +355,8 @@ for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
         end
 
 
-        krl = Array(promote_type(typeof(P.bandinds[1]),typeof(P.bandinds[2])),length(P.ops),2)
+        krl = Array(promote_type(Int,typeof(P.bandinds[1]),typeof(P.bandinds[2])),
+                    length(P.ops),2)
 
         krl[1,1],krl[1,2]=kr[1],kr[end]
 

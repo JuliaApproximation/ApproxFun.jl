@@ -376,7 +376,7 @@ end
 ## New Inf
 
 # angle is π*a where a is (false==0) and (true==1)
-immutable Infinity{T}
+immutable Infinity{T} <: Number
     angle::T
 end
 
@@ -385,6 +385,7 @@ const ∞ = Infinity()
 
 
 Base.isinf(::Infinity) = true
+Base.isfinite(::Infinity) = false
 Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
 
 function Base.show{B<:Integer}(io::IO, y::Infinity{B})
@@ -398,22 +399,36 @@ end
 Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
 
 
-Base.promote_rule{F<:Number,B<:Integer}(::Type{F},::Type{Infinity{B}}) = promote_type(F,Float64)
-Base.promote_rule{F<:Number,B<:AbstractFloat}(::Type{F},::Type{Infinity{B}}) = promote_type(F,Complex128)
+Base.promote_rule{F<:Number,B<:Integer}(::Type{Infinity{B}},::Type{F}) = promote_type(Float64,F)
+Base.promote_rule{F<:Number,B<:AbstractFloat}(::Type{Infinity{B}},::Type{F}) = promote_type(Complex128,F)
 
 Base.convert{F<:AbstractFloat,B<:Integer}(::Type{F},y::Infinity{B}) = convert(F,sign(y)==1?Inf:-Inf)
 Base.convert{F<:AbstractFloat,B<:AbstractFloat}(::Type{F},y::Infinity{B}) = convert(F,exp(im*π*y.angle)*Inf)
 
 -{B<:Integer}(y::Infinity{B}) = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 
-+(::Number,y::Infinity) = y
-+(y::Infinity,::Number) = y
--(y::Infinity,::Number) = y
--(::Number,y::Infinity) = -y
+function +{B}(x::Infinity{B},y::Infinity{B})
+    if x.angle != y.angle
+        error("Angles must be the same to add ∞")
+    end
+    x
+end
 
+for T in (:BlasFloat,:Integer,:(Complex{Int}))
+    @eval begin
+        +(::$T,y::Infinity) = y
+        +(y::Infinity,::$T) = y
+        -(y::Infinity,::$T) = y
+        -(::$T,y::Infinity) = -y
+    end
+end
 
-*(a::Real,y::Infinity) = a>0?y:(-y)
-*(y::Infinity,a::Real) = a*y
+for T in (:Bool,:Integer,:AbstractFloat)
+    @eval begin
+        *(a::$T,y::Infinity) = a>0?y:(-y)
+        *(y::Infinity,a::$T) = a*y
+    end
+end
 
 Base.min{B<:Integer}(x::Infinity{B},y::Infinity{B}) = sign(x)==-1?x:y
 Base.max{B<:Integer}(x::Infinity{B},::Infinity{B}) = sign(x)==1?x:y
@@ -423,11 +438,17 @@ Base.max{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1?y:x
 Base.max{B<:Integer}(x::Infinity{B},y::Real) = max(y,x)
 
 for OP in (:<,:<=)
-    @eval $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1
+    @eval begin
+        $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1
+        $OP{B<:Integer}(y::Infinity{B},x::Real) = sign(y)==-1
+    end
 end
 
 for OP in (:>,:>=)
-    @eval $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==-1
+    @eval begin
+        $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==-1
+        $OP{B<:Integer}(y::Infinity{B},x::Real) = sign(y)==1
+    end
 end
 
 
