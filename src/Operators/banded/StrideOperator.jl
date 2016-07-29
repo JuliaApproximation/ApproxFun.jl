@@ -1,6 +1,6 @@
 
 
-export StrideOperator,StrideFunctional
+export StrideOperator
 
 
 
@@ -34,7 +34,8 @@ function bandinds(S::StrideOperator)
     min(st*br[1]-S.rowindex+S.colindex,0),max(st*br[end]-S.rowindex+S.colindex,0)
 end
 
-Base.stride(S::StrideOperator)=mod(S.rowindex,S.rowstride)==mod(S.colindex,S.colstride)==0?S.rowstride:1
+Base.stride(S::StrideOperator) =
+    mod(S.rowindex,S.rowstride)==mod(S.colindex,S.colstride)==0?S.rowstride:1
 
 
 
@@ -70,27 +71,6 @@ getindex(S::StrideOperator,k::Integer,j::Integer) = stride_addentries!(S,k,j)
 domain(S::StrideOperator) = Any ##TODO: tensor product
 
 
-
-
-## StrideFunctional
-
-
-type StrideFunctional{T<:Number,B<:Operator} <: Operator{T}
-    op::B
-    rowindex::Int
-    stride::Int
-end
-
-@functional StrideFunctional
-
-StrideFunctional{T<:Number}(B::Operator{T},r,rs)=StrideFunctional{T,typeof(B)}(B,r,rs)
-
-
-Base.getindex{T<:Number}(op::StrideFunctional{T},k::Integer) =
-    ((k-op.rowindex)≥1 && (k-op.rowindex)%op.stride==0)  ?
-                op.op[fld(k-op.rowindex,op.stride)]       : zero(T)
-
-@eval Base.convert{T}(::Type{Operator{T}},S::StrideFunctional)=StrideFunctional(convert(Operator{T},S.op),S.rowindex,S.stride)
 
 
 ##interlace block operators
@@ -206,7 +186,13 @@ end
 
 function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
     ops=promotespaces(opsin)
-    InterlaceOperator(ops,domainspace(ops),rangespace(ops[:,1]))
+    # TODO: make consistent
+    # if its a row vector, we assume scalar
+    if size(ops,1) == 1
+        InterlaceOperator(ops,domainspace(ops),rangespace(ops[1]))
+    else
+        InterlaceOperator(ops,domainspace(ops),rangespace(ops[:,1]))
+    end
 end
 
 function InterlaceOperator{T}(opsin::Vector{Operator{T}})
@@ -241,6 +227,17 @@ function getindex{T}(op::InterlaceOperator{T},k::Integer,j::Integer)
     op.ops[N,M][K,J]::T
 end
 
+function getindex{T}(op::InterlaceOperator{T},k::Integer)
+    if size(op,1) == 1
+        op[1,k]
+    elseif size(op,2) == 1
+        op[k,1]
+    else
+        error("Only implemented for row/column operators.")
+    end
+end
+
+
 domainspace(IO::InterlaceOperator) = IO.domainspace
 rangespace(IO::InterlaceOperator) = IO.rangespace
 
@@ -274,8 +271,6 @@ function interlace{T<:Operator}(A::Matrix{T})
 
     A=promotespaces(A)
 
-    dsp=domainspace(A)
-
     br=0#num boundary rows
     for k=1:m
         if isboundaryrow(A,k)
@@ -289,25 +284,13 @@ function interlace{T<:Operator}(A::Matrix{T})
 
     S=Array(Operator{TT},br<m?br+1:br)
 
-    for k=1:br, j=1:n
-        if !iszerooperator(A[k,j])
-            op = StrideFunctional(A[k,j],j-n,n)
-
-            if !isdefined(S,k)
-                S[k] = op
-            else
-                S[k] = S[k] + op
-            end
-        end
-    end
-
     for k=1:br
-        S[k]=promotedomainspace(S[k],dsp)
+        S[k] = InterlaceOperator(A[k,:])
     end
 
     if br < m
         Am=A[br+1:m,:]
-        S[br+1]=interlace(Am)
+        S[br+1] = interlace(Am)
     end
 
     if(size(S,1) ==1)
