@@ -183,7 +183,8 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
     dsp=domainspace(B)
 
     if !isambiguous(domainspace(B))
-        if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2))
+        if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2)) &&
+                    eltype(B) <: Number
             BM=B[1:10,1:10]
 
             M=Array(Any,11,11)
