@@ -182,9 +182,8 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
     header && println(io,summary(B))
     dsp=domainspace(B)
 
-    if !isambiguous(domainspace(B))
-        if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2)) &&
-                    eltype(B) <: Number
+    if !isambiguous(domainspace(B)) && eltype(B) <: Number
+        if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
             M=Array(Any,11,11)
@@ -252,7 +251,7 @@ end
     nf = length(A)-1
     header && for k=1:nf+1 println(io,summary(A[k])) end
     if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end]) &&
-            isinf(size(A[end],1)) && isinf(size(A[end],2))
+            isinf(size(A[end],1)) && isinf(size(A[end],2)) && eltype(A[end]) <: Number
         M=Array{Any}(11,11)
         fill!(M,PrintShow(""))
         for k=1:nf

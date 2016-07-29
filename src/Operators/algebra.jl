@@ -43,7 +43,16 @@ function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
     end
 end
 
-promoteplus{T}(ops::Vector{Operator{T}}) = PlusOperator(promotespaces(ops))
+function promoteplus{T}(opsin::Vector{Operator{T}})
+    ops=Vector{Operator{T}}()
+    # prune zero ops
+    for op in opsin
+        if !iszerooperator(op)
+            push!(ops,op)
+        end
+    end
+    PlusOperator(promotespaces(ops))
+end
 
 for OP in (:domainspace,:rangespace)
     @eval $OP(P::PlusOperator) = $OP(first(P.ops))

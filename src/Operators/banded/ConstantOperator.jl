@@ -48,7 +48,7 @@ Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
     ConstantOperator(T,L.λ)
 
 Operator(n::Number) = Operator{typeof(n)}(n)
-Operator(L::UniformScaling) = Operator{eltype(L)}(n)
+Operator(L::UniformScaling) = Operator{eltype(L)}(L)
 
 
 ## Algebra
