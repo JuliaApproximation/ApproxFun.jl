@@ -40,6 +40,15 @@ function Base.convert{T}(::Type{Operator{T}},C::ConstantOperator)
     end
 end
 
+Base.convert{T}(::Type{Operator{T}},n::Number) =
+    n==0?ZeroOperator(A,ConstantSpace()):ConstantOperator(T,n,ConstantSpace())
+Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
+    ConstantOperator(T,L.λ)
+
+Operator(n::Number) = Operator{typeof(n)}(n)
+Operator(L::UniformScaling) = Operator{eltype(L)}(n)
+
+
 ## Algebra
 
 for op in (:+,:-,:*)

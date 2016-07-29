@@ -256,14 +256,6 @@ Base.zero{O<:Operator}(::Type{O}) = ZeroOperator(eltype(O))
 Base.eye(S::Space) = IdentityOperator(S)
 Base.eye(S::Domain) = eye(Space(S))
 
-
-# TODO: can convert return different type?
-
-
-Base.convert{T}(::Type{Operator{T}},n::Number) =
-    n==0?ZeroOperator(A,ConstantSpace()):ConstantOperator(T,n,ConstantSpace())
-Base.convert{T}(A::Type{Operator{T}},n::UniformScaling) =
-    n.λ==0?ZeroOperator(A,ConstantSpace()):ConstantOperator(T,n,ConstantSpace())
 Base.convert{T}(A::Type{Operator{T}},f::Fun) =
     norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
 

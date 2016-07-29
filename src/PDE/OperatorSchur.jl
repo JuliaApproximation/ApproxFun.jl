@@ -138,8 +138,10 @@ getdiagonal(S::OperatorSchur,k,j)=j==1?S.R[k,k]:S.T[k,k]
 
 
 
-OperatorSchur{FT<:Operator}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer)=OperatorSchur(B,ConstantOperator(L),M,n)
-OperatorSchur{FT<:Operator}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer)=OperatorSchur(B,L,ConstantOperator(M),n)
+OperatorSchur{FT<:Operator}(B::Vector{FT},L::UniformScaling,M::Operator,n::Integer) =
+    OperatorSchur(B,ConstantOperator(L),M,n)
+OperatorSchur{FT<:Operator}(B::Vector{FT},L::Operator,M::UniformScaling,n::Integer) =
+    OperatorSchur(B,L,ConstantOperator(M),n)
 
 
 
