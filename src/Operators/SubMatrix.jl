@@ -18,7 +18,7 @@ SubBandedMatrix(A,inds,d,l,u) =
     SubBandedMatrix{eltype(A),typeof(A),typeof(inds)}(A,inds,d,l,u)
 
 
-bandwidth(V::SubBandedMatrix,k) = k==1?V.l:V.u
+bandwidth(V::SubBandedMatrix,k::Integer) = k==1?V.l:V.u
 
 
 view(A::Operator,kr::Range,jr::Range) =

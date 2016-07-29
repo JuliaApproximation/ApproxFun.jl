@@ -1,7 +1,7 @@
 julia 0.4
 FastGaussQuadrature 0.0.3
 FastTransforms 0.0.4
-Plots 0.7.5
-Compat 0.8.4
+Plots 0.8.1
+Compat 0.8.6
 DualNumbers 0.2.2
-BandedMatrices 0.0.5
+BandedMatrices 0.0.6
