@@ -29,8 +29,8 @@ immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
     ConstantSpace(d::DD)=new(d)
 end
 
-ConstantSpace(d::Domain)=ConstantSpace{typeof(d)}(d)
-ConstantSpace()=ConstantSpace(AnyDomain())
+ConstantSpace(d::Domain) = ConstantSpace{typeof(d)}(d)
+ConstantSpace() = ConstantSpace(AnyDomain())
 
 # we override maxspace instead of maxspace_rule to avoid
 # domainscompatible check.

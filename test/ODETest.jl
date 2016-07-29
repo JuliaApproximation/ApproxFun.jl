@@ -116,7 +116,7 @@ d = Interval(0.,50.)
 D = Derivative(d)
 t = Fun(identity,d)
 
-F = D^2 +.5D + 1
+F = D^2 +.5D + I
 
 A= [0  ldirichlet(d);
     0    lneumann(d);

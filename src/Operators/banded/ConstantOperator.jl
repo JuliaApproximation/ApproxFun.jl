@@ -40,8 +40,10 @@ function Base.convert{T}(::Type{Operator{T}},C::ConstantOperator)
     end
 end
 
-Base.convert{T}(::Type{Operator{T}},n::Number) =
-    n==0?ZeroOperator(A,ConstantSpace()):ConstantOperator(T,n,ConstantSpace())
+# zero needs to be different since it can take a space to
+# a ConstantSpace, in creating functionals
+Base.convert{T}(::Type{Operator{T}},x::Number) =
+    x==0?ZeroOperator(T,UnsetSpace()):ConstantOperator(T,x,UnsetSpace())
 Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
     ConstantOperator(T,L.λ)
 
@@ -92,10 +94,13 @@ immutable ZeroOperator{T,S,V} <: Operator{T}
     rangespace::V
 end
 
-ZeroOperator{T,S,V}(::Type{T},d::S,v::V)=ZeroOperator{T,S,V}(d,v)
-ZeroOperator{S,V}(d::S,v::V)=ZeroOperator(Float64,d,v)
-ZeroOperator()=ZeroOperator(UnsetSpace(),ZeroSpace())
-ZeroOperator{T}(::Type{T})=ZeroOperator(T,UnsetSpace(),ZeroSpace())
+ZeroOperator{T}(::Type{T},d::Space,v::Space) = ZeroOperator{T,typeof(d),typeof(v)}(d,v)
+ZeroOperator{T}(::Type{T},d::Space) = ZeroOperator(T,d,ZeroSpace())
+ZeroOperator(d::Space,v::Space) = ZeroOperator(Float64,d,v)
+ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace())
+ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace())
+ZeroOperator() = ZeroOperator(UnsetSpace(),ZeroSpace())
+ZeroOperator{T}(::Type{T}) = ZeroOperator(T,UnsetSpace(),ZeroSpace())
 
 
 Base.convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
