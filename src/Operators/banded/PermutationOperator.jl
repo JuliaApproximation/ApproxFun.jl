@@ -5,6 +5,10 @@ immutable PermutationOperator{T} <: Operator{T}
 end
 PermutationOperator(prm)=PermutationOperator{Int}(prm)
 
+for OP in (:domainspace,:rangespace)
+    @eval $OP(T::PermutationOperator) = ℓ⁰
+end
+
 Base.convert{T}(::Type{Operator{T}},P::PermutationOperator) =
     PermutationOperator{T}(P.perm)
 

@@ -485,10 +485,8 @@ end
 # Sequence Space is the space of all sequences, i.e., infinite vectors
 # The p denotes the norm attached, with the 0 number being the number of
 # non-zero entries
-immutable SequenceSpace{p} <: Space{RealBasis,PositiveIntegers,0} end
-SequenceSpace(p) = SequenceSpace{p}()
-const ℓ⁰ = SequenceSpace{0}()
-const ℓ² = SequenceSpace{2}()
-
+immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
+const ℓ⁰ = SequenceSpace()
 dimension(::SequenceSpace) = ∞
 domain(::SequenceSpace) = ℕ
+spacescompatible(::SequenceSpace,::SequenceSpace) = true

@@ -311,7 +311,7 @@ function promotetimes{B<:Operator}(opsin::Vector{B},dsp)
         end
     end
     if isempty(ops)
-        SpaceOperator(ConstantOperator(1.0),dsp,dsp)
+        ConstantOperator(1.0,dsp)
     elseif length(ops)==1
         first(ops)
     else

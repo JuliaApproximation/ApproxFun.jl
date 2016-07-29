@@ -60,7 +60,7 @@ conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)=
 
 conversion_rule(A::ZeroSpace,B::Space)=A
 maxspace_rule(A::ZeroSpace,B::Space)=B
-Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(SpaceOperator(ZeroOperator(),A,B))
+Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(ZeroOperator(A,B))
 
 
 union_rule(A::ConstantSpace,B::Space)=ConstantSpace(domain(B))⊕B
