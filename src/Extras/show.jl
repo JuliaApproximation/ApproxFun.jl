@@ -42,13 +42,11 @@ end
 
 ## Spaces
 
-Base.show(io::IO,::AnySpace)=print(io,"AnySpace")
-
-Base.show(io::IO,::ConstantSpace{AnyDomain})=print(io,"ConstantSpace")
-Base.show(io::IO,S::ConstantSpace)=print(io,"ConstantSpace($(domain(S)))")
+Base.show(io::IO,::ConstantSpace{AnyDomain}) = print(io,"ConstantSpace")
+Base.show(io::IO,S::ConstantSpace) = print(io,"ConstantSpace($(domain(S)))")
 
 
-for typ in ("Chebyshev","Fourier","Laurent")
+for typ in ("Chebyshev","Fourier","Laurent","Taylor")
     TYP=parse(typ)
     @eval function Base.show{D}(io::IO,S::$TYP{D})
         print(io,$typ*"(")
@@ -184,7 +182,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
     header && println(io,summary(B))
     dsp=domainspace(B)
 
-    if (isa(dsp,AnySpace) || !isambiguous(domainspace(B)))
+    if !isambiguous(domainspace(B))
         if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 

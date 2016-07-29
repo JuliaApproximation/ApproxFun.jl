@@ -45,16 +45,8 @@ end
 
 promoteplus{T}(ops::Vector{Operator{T}}) = PlusOperator(promotespaces(ops))
 
-function domainspace(P::PlusOperator)
-    for op in P.ops
-        sp = domainspace(op)
-
-        if !isa(sp,AnySpace)
-            return sp
-        end
-    end
-
-    AnySpace()
+for OP in (:domainspace,:rangespace)
+    @eval $OP(P::PlusOperator) = $OP(first(P.ops))
 end
 
 domain(P::PlusOperator) = commondomain(P.ops)
@@ -78,17 +70,6 @@ domain(P::PlusOperator) = commondomain(P.ops)
     promoteplus(Operator{promote_type(eltype(A),eltype(B),eltype(C))}[A,B,C])
 
 
-function rangespace(P::PlusOperator)
-    for op in P.ops
-        sp = rangespace(op)
-
-        if !isa(sp,AnySpace)
-            return sp
-        end
-    end
-
-    AnySpace()
-end
 
 
 Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
@@ -182,7 +163,7 @@ bandinds(C::ConstantTimesOperator,k::Integer) = bandinds(C.op,k)
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 
 
-for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,:Space)
+for OP in (:promotedomainspace,:promoterangespace),SP in (:UnsetSpace,:Space)
     @eval function $OP(C::ConstantTimesOperator,k::$SP)
             op=$OP(C.op,k)
             # TODO: This assumes chnanging domainspace can't change the type
@@ -227,8 +208,7 @@ immutable TimesOperator{T,BI} <: Operator{T}
         # remove TimesOperators buried inside ops
         hastimes = false
         for k=1:length(ops)-1
-            @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() ||
-                        spacescompatible(domainspace(ops[k]),rangespace(ops[k+1]))
+            @assert spacescompatible(domainspace(ops[k]),rangespace(ops[k+1]))
             hastimes = hastimes || isa(ops[k],TimesOperator)
         end
 
@@ -615,20 +595,18 @@ end
 
 ## promotedomain
 
-for T in (:AnySpace,:Space)
-    @eval begin
-        function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::$T)
-            if sp==cursp
-                P
-            else
-                promoteplus(Operator{T}[promotedomainspace(op,sp) for op in P.ops])
-            end
-        end
+
+function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::Space)
+    if sp==cursp
+        P
+    else
+        promoteplus(Operator{T}[promotedomainspace(op,sp) for op in P.ops])
     end
 end
 
+
 function choosedomainspace(P::PlusOperator,sp)
-    ret=AnySpace()
+    ret=UnsetSpace()
     for op in P.ops
         sp2=choosedomainspace(op,sp)
         if !isa(sp2,AmbiguousSpace)  # we will ignore this result in hopes another opand
@@ -641,17 +619,13 @@ end
 
 
 
-for T in (:AnySpace,:Space)
-    @eval begin
-        function promotedomainspace(P::TimesOperator,sp::Space,cursp::$T)
-            if sp==cursp
-                P
-            elseif length(P.ops)==2
-                P.ops[1]*promotedomainspace(P.ops[end],sp)
-            else
-                promotetimes([P.ops[1:end-1];promotedomainspace(P.ops[end],sp)])
-            end
-        end
+function promotedomainspace(P::TimesOperator,sp::Space,cursp::Space)
+    if sp==cursp
+        P
+    elseif length(P.ops)==2
+        P.ops[1]*promotedomainspace(P.ops[end],sp)
+    else
+        promotetimes([P.ops[1:end-1];promotedomainspace(P.ops[end],sp)])
     end
 end
 

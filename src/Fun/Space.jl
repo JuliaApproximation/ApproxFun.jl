@@ -101,13 +101,12 @@ end
 setcanonicaldomain(s) = setdomain(s,canonicaldomain(s))
 reverseorientation(S::Space) = setdomain(S,reverse(domain(S)))
 
-# AnySpace dictates that an operator can act on any space
+
 # UnsetSpace dictates that an operator is not defined until
 #   its domainspace is promoted
 # NoSpace is used to indicate no space exists for, e.g.,
 # conversion_type
 
-immutable AnySpace <: AmbiguousSpace end
 immutable UnsetSpace <: AmbiguousSpace end
 immutable NoSpace <: AmbiguousSpace end
 immutable ZeroSpace <: AmbiguousSpace end   # ZeroSpace is compatible with all spaces
@@ -131,7 +130,6 @@ canonicaldomain(S::Space) = canonicaldomain(domain(S))
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
 spacescompatible{D<:Space}(f::D,g::D) = error("Override spacescompatible for "*string(D))
-spacescompatible(::AnySpace,::AnySpace) = true
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
 spacescompatible(::ZeroSpace,::ZeroSpace) = true
@@ -186,20 +184,11 @@ end
 
 for FUNC in (:conversion_type,:maxspace)
     @eval begin
-        $FUNC(::AnySpace,::UnsetSpace)=UnsetSpace()
-        $FUNC(::UnsetSpace,::AnySpace)=UnsetSpace()
-        $FUNC(::ZeroSpace,::UnsetSpace)=UnsetSpace()
-        $FUNC(::UnsetSpace,::ZeroSpace)=UnsetSpace()
-        $FUNC(::AnySpace,::ZeroSpace)=AnySpace()
-        $FUNC(::ZeroSpace,::AnySpace)=AnySpace()
-    end
-
-    for TYP in (:AnySpace,:UnsetSpace)
-        @eval begin
-            $FUNC(a::$TYP,b::$TYP)=a
-            $FUNC(a::$TYP,b::Space)=b
-            $FUNC(a::Space,b::$TYP)=a
-        end
+        $FUNC(::ZeroSpace,::UnsetSpace) = UnsetSpace()
+        $FUNC(::UnsetSpace,::ZeroSpace) = UnsetSpace()
+        $FUNC(a::UnsetSpace,b::UnsetSpace) = a
+        $FUNC(a::UnsetSpace,b::Space) = b
+        $FUNC(a::Space,b::UnsetSpace) = a
     end
 end
 
@@ -480,13 +469,3 @@ end
 for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
     @eval $OP(a::Space,b::Space)=$OP(string(a),string(b))
 end
-
-
-# Sequence Space is the space of all sequences, i.e., infinite vectors
-# The p denotes the norm attached, with the 0 number being the number of
-# non-zero entries
-immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
-const ℓ⁰ = SequenceSpace()
-dimension(::SequenceSpace) = ∞
-domain(::SequenceSpace) = ℕ
-spacescompatible(::SequenceSpace,::SequenceSpace) = true

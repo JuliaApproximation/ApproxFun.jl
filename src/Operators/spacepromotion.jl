@@ -1,7 +1,8 @@
 export ↦
 
 
-## Space Operator is used to wrap an AnySpace() operator
+## Space Operator is used to wrap other operators
+# and change the domain/range space
 immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: Operator{T}
     op::O
     domainspace::S
@@ -42,7 +43,7 @@ rangespace(S::SpaceOperator)=S.rangespace
 
 ##TODO: Do we need both max and min?
 function findmindomainspace(ops::Vector)
-    sp = AnySpace()
+    sp = UnsetSpace()
 
     for op in ops
         sp = conversion_type(sp,domainspace(op))
@@ -52,7 +53,7 @@ function findmindomainspace(ops::Vector)
 end
 
 function findmaxrangespace(ops::Vector)
-    sp = AnySpace()
+    sp = UnsetSpace()
 
     for op in ops
         sp = maxspace(sp,rangespace(op))
@@ -70,25 +71,6 @@ Base.colon(A::Operator,b::Space) = promotedomainspace(A,b)
 promoterangespace(P::Operator,sp::Space) = promoterangespace(P,sp,rangespace(P))
 promotedomainspace(P::Operator,sp::Space) = promotedomainspace(P,sp,domainspace(P))
 
-
-
-function promotedomainspace(P::Operator,sp::Space,::AnySpace)
-    rs = rangespace(P)
-    if isa(rs,AnySpace)
-        SpaceOperator(P,sp,sp)
-    else
-        SpaceOperator(P,sp,rs)
-    end
-end
-
-function promoterangespace(P::Operator,sp::Space,::AnySpace)
-    ds = domainspace(P)
-    if isa(ds,AnySpace)
-        SpaceOperator(P,sp,sp)
-    else
-        SpaceOperator(P,ds,sp)
-    end
-end
 
 promoterangespace(P::Operator,sp::Space,cursp::Space) =
     (sp==cursp)?P:Conversion(cursp,sp)*P
@@ -132,10 +114,10 @@ function choosedomainspace(A::Operator,sp)
     isambiguous(sp2)?sp:sp2
 end
 
-choosedomainspace(A)=choosedomainspace(A,AnySpace())
+choosedomainspace(A)=choosedomainspace(A,UnsetSpace())
 
 function choosedomainspace(ops::Vector,spin)
-    sp = AnySpace()
+    sp = UnsetSpace()
 
     for op in ops
         sp = conversion_type(sp,choosedomainspace(op,spin))

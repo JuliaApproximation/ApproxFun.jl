@@ -1,3 +1,22 @@
+# Sequence Space is the space of all sequences, i.e., infinite vectors
+# The p denotes the norm attached, with the 0 number being the number of
+# non-zero entries
+immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
+const ℓ⁰ = SequenceSpace()
+dimension(::SequenceSpace) = ∞
+domain(::SequenceSpace) = ℕ
+spacescompatible(::SequenceSpace,::SequenceSpace) = true
+
+
+# A Fun for SequenceSpace can be an iterator
+Base.start(::Fun{SequenceSpace}) = 1
+Base.next(f::Fun{SequenceSpace},st) = f[st],st+1
+Base.done(f::Fun{SequenceSpace},st) = false # infinite length
+
+getindex(f::Fun{SequenceSpace},k::Integer) =
+    k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
+getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
+
 
 
 """
@@ -36,8 +55,8 @@ canonicalspace(C::ConstantSpace)=C
 spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
 
 Base.ones(S::ConstantSpace)=Fun(ones(1),S)
-Base.ones(S::Union{AnyDomain,AnySpace,UnsetSpace})=ones(ConstantSpace())
-Base.zeros(S::Union{AnyDomain,AnySpace,UnsetSpace})=zeros(ConstantSpace())
+Base.ones(S::Union{AnyDomain,UnsetSpace})=ones(ConstantSpace())
+Base.zeros(S::Union{AnyDomain,UnsetSpace})=zeros(ConstantSpace())
 evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
 evaluate(f::AbstractVector,::ConstantSpace,x::Array)=f[1]*ones(x)
 
