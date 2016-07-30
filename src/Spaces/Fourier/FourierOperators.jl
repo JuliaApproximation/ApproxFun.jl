@@ -238,7 +238,7 @@ function Multiplication{T,D}(a::Fun{Fourier{D},T},sp::Fourier{D})
     c,s=vec(a)
     O=Operator{T}[Multiplication(c,CosSpace(d)) Multiplication(s,SinSpace(d));
                         Multiplication(s,CosSpace(d)) Multiplication(c,SinSpace(d))]
-    MultiplicationWrapper(a,SpaceOperator(InterlaceOperator(O),space(a),sp))
+    MultiplicationWrapper(a,InterlaceOperator(O,space(a),sp))
 end
 
 

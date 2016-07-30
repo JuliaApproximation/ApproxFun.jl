@@ -11,7 +11,7 @@ immutable FunctionBandedOperator{DS,RS,T} <: Operator{T}
 end
 
 FunctionBandedOperator(f,bi,ds,rs)=FunctionBandedOperator{typeof(ds),typeof(rs),typeof(f(1,1))}(f,bi,ds,rs)
-FunctionBandedOperator(f,bi)=FunctionBandedOperator(f,bi,AnySpace(),AnySpace())
+FunctionBandedOperator(f,bi)=FunctionBandedOperator(f,bi,ℓ⁰,ℓ⁰)
 
 
 Base.convert{T}(::Type{Operator{T}},F::FunctionBandedOperator)=FunctionBandedOperator{typeof(F.domainspace),

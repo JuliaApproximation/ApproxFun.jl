@@ -39,7 +39,7 @@ function linsolve{T<:Operator,N<:Number}(A::Vector{T},b::Array{N};tolerance=0.01
     ds=domainspace(A[end])
     # If ds is a ArraySpace and r is a matrix, then
     # the constructor in ArraySpace converts to matrix
-    isa(ds,AnySpace)?r:Fun(r,ds)
+    Fun(r,ds)
 end
 
 function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};

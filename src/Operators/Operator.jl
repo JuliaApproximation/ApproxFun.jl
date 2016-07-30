@@ -26,8 +26,8 @@ Base.copy(A::Operator) = A
 
 
 ## We assume operators are T->T
-rangespace(A::Operator) = AnySpace()
-domainspace(A::Operator) = AnySpace()
+rangespace(A::Operator) = error("Override rangespace for $(typeof(A))")
+domainspace(A::Operator) = error("Override domainspace for $(typeof(A))")
 domain(A::Operator) = domain(domainspace(A))
 
 
@@ -253,17 +253,9 @@ Base.zero{T<:Number}(::Type{Operator{T}}) = ZeroOperator(T)
 Base.zero{O<:Operator}(::Type{O}) = ZeroOperator(eltype(O))
 
 
-Base.eye(S::Space) = SpaceOperator(ConstantOperator(1.0),S,S)
+Base.eye(S::Space) = IdentityOperator(S)
 Base.eye(S::Domain) = eye(Space(S))
 
-
-# TODO: can convert return different type?
-
-
-Base.convert{T}(A::Type{Operator{T}},n::Number) =
-    n==0?zero(A):ConstantOperator(T,n)
-Base.convert{T}(A::Type{Operator{T}},n::UniformScaling) =
-    n.λ==0?zero(A):ConstantOperator(T,n)
 Base.convert{T}(A::Type{Operator{T}},f::Fun) =
     norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
 

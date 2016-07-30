@@ -42,13 +42,11 @@ end
 
 ## Spaces
 
-Base.show(io::IO,::AnySpace)=print(io,"AnySpace")
-
-Base.show(io::IO,::ConstantSpace{AnyDomain})=print(io,"ConstantSpace")
-Base.show(io::IO,S::ConstantSpace)=print(io,"ConstantSpace($(domain(S)))")
+Base.show(io::IO,::ConstantSpace{AnyDomain}) = print(io,"ConstantSpace")
+Base.show(io::IO,S::ConstantSpace) = print(io,"ConstantSpace($(domain(S)))")
 
 
-for typ in ("Chebyshev","Fourier","Laurent")
+for typ in ("Chebyshev","Fourier","Laurent","Taylor")
     TYP=parse(typ)
     @eval function Base.show{D}(io::IO,S::$TYP{D})
         print(io,$typ*"(")
@@ -184,24 +182,67 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
     header && println(io,summary(B))
     dsp=domainspace(B)
 
-    if (isa(dsp,AnySpace) || !isambiguous(domainspace(B))) && isbanded(B) &&
-            isinf(size(B,1)) && isinf(size(B,2))
-        BM=B[1:10,1:10]
+    if !isambiguous(domainspace(B)) && eltype(B) <: Number
+        if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2))
+            BM=B[1:10,1:10]
 
-        M=Array(Any,11,11)
-        fill!(M,PrintShow(""))
-        for (k,j)=eachbandedindex(BM)
-            M[k,j]=BM[k,j]
-        end
+            M=Array(Any,11,11)
+            fill!(M,PrintShow(""))
+            for (k,j)=eachbandedindex(BM)
+                M[k,j]=BM[k,j]
+            end
 
-        for k=max(1,11-bandinds(B,2)):11
-            M[k,end]=PrintShow("⋱")
-        end
-        for j=max(1,11+bandinds(B,1)):10
-            M[end,j]=PrintShow("⋱")
-        end
+            for k=max(1,11-bandinds(B,2)):11
+                M[k,end]=PrintShow("⋱")
+            end
+            for j=max(1,11+bandinds(B,1)):10
+                M[end,j]=PrintShow("⋱")
+            end
 
-        Base.showarray(io,M;header=false)
+            Base.showarray(io,M;header=false)
+        elseif isinf(size(B,1)) && isinf(size(B,2))
+            BM=B[1:10,1:10]
+
+            M=Array(Any,11,11)
+            for k=1:10,j=1:10
+                M[k,j]=BM[k,j]
+            end
+
+            M[1,end]=PrintShow("⋯")
+            M[end,1]=PrintShow("⋮")
+
+            for k=2:11
+                M[k,end]=M[end,k]=PrintShow("⋱")
+            end
+
+            Base.showarray(io,M;header=false)
+        elseif isinf(size(B,1))
+            BM=B[1:10,1:size(B,2)]
+
+            M=Array(Any,11,size(B,2))
+            for k=1:10,j=1:size(B,2)
+                M[k,j]=BM[k,j]
+            end
+            for k=1:size(B,2)
+                M[end,k]=PrintShow("⋮")
+            end
+
+            Base.showarray(io,M;header=false)
+        elseif isinf(size(B,2))
+            BM=B[1:size(B,1),1:10]
+
+            M=Array(Any,size(B,1),11)
+            for k=1:size(B,1),j=1:10
+                M[k,j]=BM[k,j]
+            end
+            for k=1:size(B,1)
+                M[k,end]=PrintShow("⋯")
+            end
+
+            Base.showarray(io,M;header=false)
+        else
+            Base.showarray(io,B[1:size(B,1),1:size(B,2)];header=false)
+        end
     end
 end
 
@@ -210,7 +251,7 @@ end
     nf = length(A)-1
     header && for k=1:nf+1 println(io,summary(A[k])) end
     if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end]) &&
-            isinf(size(A[end],1)) && isinf(size(A[end],2))
+            isinf(size(A[end],1)) && isinf(size(A[end],2)) && eltype(A[end]) <: Number
         M=Array{Any}(11,11)
         fill!(M,PrintShow(""))
         for k=1:nf

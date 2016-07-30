@@ -13,6 +13,9 @@ immutable ArraySpace{S,n,T,DD,dim} <: Space{T,DD,dim}
     ArraySpace(d::Domain,dims)=new(S(d),dims)
 end
 
+InterlaceIterator(sp::ArraySpace) = InterlaceIterator(fill(dimension(sp.space),length(sp)))
+interlacer(sp::ArraySpace) = InterlaceIterator(sp)
+
 typealias VectorSpace{S,T,DD,dim} ArraySpace{S,1,T,DD,dim}
 typealias MatrixSpace{S,T,DD,dim} ArraySpace{S,2,T,DD,dim}
 
@@ -21,6 +24,8 @@ ArraySpace(S::Space,n::Tuple{Vararg{Int}})=ArraySpace{typeof(S),length(n),basist
 ArraySpace(S::Space,n::Integer)=ArraySpace(S,(n,))
 ArraySpace(S::Space,n,m)=ArraySpace{typeof(S),2,basistype(S),domaintype(S),ndims(S)}(S,(n,m))
 ArraySpace(d::Domain,n...)=ArraySpace(Space(d),n...)
+
+
 Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
 Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
 Base.size(AS::ArraySpace)=AS.dimensions
@@ -29,6 +34,8 @@ function Base.reshape(AS::VectorSpace,k,j)
     @assert length(AS)==k*j
     ArraySpace(AS.space,(k,j))
 end
+
+dimension(AS::ArraySpace) = dimension(AS.space)*length(AS)
 
 domain(AS::ArraySpace)=domain(AS.space)
 
@@ -82,10 +89,10 @@ Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
 Base.getindex(S::ArraySpace,k...)=S.space
 Base.length(S::ArraySpace)=*(S.dimensions...)
 
-Base.start(S::ArraySpace)=1
-Base.next(S::ArraySpace,k)=S.space,k+1
-Base.done(S::ArraySpace,k)=k>length(S)
-Base.endof(S::ArraySpace)=length(S)
+Base.start(S::ArraySpace) = 1
+Base.next(S::ArraySpace,k) = S.space,k+1
+Base.done(S::ArraySpace,k) = k>length(S)
+Base.endof(S::ArraySpace) = length(S)
 
 
 #support tuple set

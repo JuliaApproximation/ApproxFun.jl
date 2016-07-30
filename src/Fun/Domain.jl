@@ -214,3 +214,12 @@ fromcanonical{V<:Vec}(d::Domain{V},p::AbstractArray) =
 for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
     @eval $OP(a::Domain,b::Domain)=$OP(string(a),string(b))
 end
+
+
+## Other special domains
+
+immutable PositiveIntegers <: Domain{Int,0} end
+immutable Integers <: Domain{Int,0} end
+
+const ℕ = PositiveIntegers()
+const ℤ = Integers()

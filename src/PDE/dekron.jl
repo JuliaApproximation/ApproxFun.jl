@@ -16,7 +16,8 @@ iskronop(::KroneckerOperator)=true
 
 iskronop(A::Union{WrapperOps,SpaceOperator,ConstantTimesOperator})=iskronop(A.op)
 iskronop(A::TimesOperator)=all(iskronop,A.ops)
-iskronop{V,T<:AbstractArray}(::ConstantOperator{V,T})=true
+iskronop{V,T<:AbstractArray}(::ConstantOperator{V,T}) = true
+iskronop{T<:AbstractArray}(::ZeroOperator{T}) = true
 
 
 iskronsumop(::)=false
@@ -33,7 +34,11 @@ dekron(S::TimesOperator,k)=TimesOperator(Operator{eltype(eltype(S))}[dekron(op,k
 dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 #TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)
-dekron{V,T<:AbstractArray}(C::ConstantOperator{V,T},k)=k==1?ConstantOperator(C.c):ConstantOperator(one(C.c))
+dekron{V,T<:AbstractArray}(C::ConstantOperator{V,T},k) =
+    k==1?ConstantOperator(C.c,C.space[1]):ConstantOperator(one(C.c),C.space[2])
+dekron{T<:AbstractArray}(C::ZeroOperator{T},k) =
+    k==1?ZeroOperator(C.domainspace[1],C.rangespace[1]):ZeroOperator(C.domainspace[2],C.rangespace[2])
+
 
 dekron(K)=dekron(K,1),dekron(K,2)
 

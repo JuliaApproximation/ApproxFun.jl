@@ -13,7 +13,7 @@ end
 FiniteOperator(M::AbstractMatrix,ds::Space,rs::Space) =
     FiniteOperator{typeof(M),eltype(M),typeof(ds),typeof(rs)}(M,ds,rs)
 
-FiniteOperator(M::AbstractMatrix) = FiniteOperator(M,AnySpace(),AnySpace())
+FiniteOperator(M::AbstractMatrix) = FiniteOperator(M,ℓ⁰,ℓ⁰)
 
 domainspace(F::FiniteOperator) = F.domainspace
 rangespace(F::FiniteOperator) = F.rangespace

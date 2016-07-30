@@ -43,18 +43,19 @@ function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
     end
 end
 
-promoteplus{T}(ops::Vector{Operator{T}}) = PlusOperator(promotespaces(ops))
-
-function domainspace(P::PlusOperator)
-    for op in P.ops
-        sp = domainspace(op)
-
-        if !isa(sp,AnySpace)
-            return sp
+function promoteplus{T}(opsin::Vector{Operator{T}})
+    ops=Vector{Operator{T}}()
+    # prune zero ops
+    for op in opsin
+        if !iszerooperator(op)
+            push!(ops,op)
         end
     end
+    PlusOperator(promotespaces(ops))
+end
 
-    AnySpace()
+for OP in (:domainspace,:rangespace)
+    @eval $OP(P::PlusOperator) = $OP(first(P.ops))
 end
 
 domain(P::PlusOperator) = commondomain(P.ops)
@@ -78,17 +79,6 @@ domain(P::PlusOperator) = commondomain(P.ops)
     promoteplus(Operator{promote_type(eltype(A),eltype(B),eltype(C))}[A,B,C])
 
 
-function rangespace(P::PlusOperator)
-    for op in P.ops
-        sp = rangespace(op)
-
-        if !isa(sp,AnySpace)
-            return sp
-        end
-    end
-
-    AnySpace()
-end
 
 
 Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
@@ -182,7 +172,7 @@ bandinds(C::ConstantTimesOperator,k::Integer) = bandinds(C.op,k)
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 
 
-for OP in (:promotedomainspace,:promoterangespace),SP in (:AnySpace,:UnsetSpace,:Space)
+for OP in (:promotedomainspace,:promoterangespace),SP in (:UnsetSpace,:Space)
     @eval function $OP(C::ConstantTimesOperator,k::$SP)
             op=$OP(C.op,k)
             # TODO: This assumes chnanging domainspace can't change the type
@@ -227,8 +217,7 @@ immutable TimesOperator{T,BI} <: Operator{T}
         # remove TimesOperators buried inside ops
         hastimes = false
         for k=1:length(ops)-1
-            @assert domainspace(ops[k])==AnySpace() || rangespace(ops[k+1])==AnySpace() ||
-                        spacescompatible(domainspace(ops[k]),rangespace(ops[k+1]))
+            @assert spacescompatible(domainspace(ops[k]),rangespace(ops[k+1]))
             hastimes = hastimes || isa(ops[k],TimesOperator)
         end
 
@@ -311,7 +300,7 @@ function promotetimes{B<:Operator}(opsin::Vector{B},dsp)
         end
     end
     if isempty(ops)
-        SpaceOperator(ConstantOperator(1.0),dsp,dsp)
+        ConstantOperator(1.0,dsp)
     elseif length(ops)==1
         first(ops)
     else
@@ -355,7 +344,8 @@ for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
         end
 
 
-        krl = Array(promote_type(typeof(P.bandinds[1]),typeof(P.bandinds[2])),length(P.ops),2)
+        krl = Array(promote_type(Int,typeof(P.bandinds[1]),typeof(P.bandinds[2])),
+                    length(P.ops),2)
 
         krl[1,1],krl[1,2]=kr[1],kr[end]
 
@@ -550,16 +540,18 @@ for TYP in (:Vector,:Matrix)
                 return dotu(A[1:length(b)],b)
             end
 
-            n=size(b,1)
+            rs=rangespace(A)
+            if isambiguous(rs)
+                error("Assign spaces to $A before multiplying.")
+            end
 
+            n=size(b,1)
             ret=if n>0
                 A[1:min(size(A,1),n+bandwidth(A,1)),1:n]*b
             else
                 b
             end
-
-            rs=rangespace(A)
-            isambiguous(rs)?ret:Fun(ret,rs)
+            Fun(ret,rs)
         end
     end
 end
@@ -614,20 +606,18 @@ end
 
 ## promotedomain
 
-for T in (:AnySpace,:Space)
-    @eval begin
-        function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::$T)
-            if sp==cursp
-                P
-            else
-                promoteplus(Operator{T}[promotedomainspace(op,sp) for op in P.ops])
-            end
-        end
+
+function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::Space)
+    if sp==cursp
+        P
+    else
+        promoteplus(Operator{T}[promotedomainspace(op,sp) for op in P.ops])
     end
 end
 
+
 function choosedomainspace(P::PlusOperator,sp)
-    ret=AnySpace()
+    ret=UnsetSpace()
     for op in P.ops
         sp2=choosedomainspace(op,sp)
         if !isa(sp2,AmbiguousSpace)  # we will ignore this result in hopes another opand
@@ -640,17 +630,13 @@ end
 
 
 
-for T in (:AnySpace,:Space)
-    @eval begin
-        function promotedomainspace(P::TimesOperator,sp::Space,cursp::$T)
-            if sp==cursp
-                P
-            elseif length(P.ops)==2
-                P.ops[1]*promotedomainspace(P.ops[end],sp)
-            else
-                promotetimes([P.ops[1:end-1];promotedomainspace(P.ops[end],sp)])
-            end
-        end
+function promotedomainspace(P::TimesOperator,sp::Space,cursp::Space)
+    if sp==cursp
+        P
+    elseif length(P.ops)==2
+        P.ops[1]*promotedomainspace(P.ops[end],sp)
+    else
+        promotetimes([P.ops[1:end-1];promotedomainspace(P.ops[end],sp)])
     end
 end
 

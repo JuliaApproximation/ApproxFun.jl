@@ -140,8 +140,6 @@ Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T}) =
 
 
 conversion_rule(a::TensorSpace,b::TensorSpace) = conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
-conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::TensorSpace) = a
-conversion_rule(b::TensorSpace{AnySpace,AnySpace},a::Space) = a
 maxspace(a::TensorSpace,b::TensorSpace) = maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
 
 # TODO: we explicetly state type to avoid type inference bug in 0.4
@@ -191,31 +189,6 @@ end
 
 Multiplication{D<:UnivariateSpace,SV,TT,T}(f::Fun{D,T},sp::SumSpace{SV,TT,AnyDomain,2})=Multiplication(f⊗1,sp)
 Multiplication{D<:UnivariateSpace,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication(f⊗1,sp)
-
-
-
-# from algebra
-function promotedomainspace{T,T2}(P::PlusOperator{T},sp::Space,cursp::TensorSpace{AnySpace,AnySpace,T2})
-    if sp==cursp
-        P
-    else
-        promoteplus(Operator{T}[promotedomainspace(op,sp) for op in P.ops])
-    end
-end
-
-function promotedomainspace{T}(P::TimesOperator,sp::Space,cursp::TensorSpace{AnySpace,AnySpace,T})
-    if sp==cursp
-        P
-    elseif length(P.ops)==2
-        P.ops[1]*promotedomainspace(P.ops[end],sp)
-    else
-        TimesOperator(P.ops[1:end-1])*promotedomainspace(P.ops[end],sp)
-    end
-end
-
-for op in (:promotedomainspace,:promoterangespace)
-    @eval $op(P::Operator,sp::Space,::TensorSpace{AnySpace,AnySpace})=SpaceOperator(P,sp)
-end
 
 
 ## PDE Factorization

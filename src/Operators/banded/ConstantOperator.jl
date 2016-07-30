@@ -2,22 +2,33 @@ export ConstantOperator, IdentityOperator, BasisFunctional
 
 ##TODO: c->λ
 ##TODO: ConstantOperator->UniformScalingOperator?
-immutable ConstantOperator{T,V} <: Operator{V}
+immutable ConstantOperator{T,V,DS} <: Operator{V}
     c::T
-    ConstantOperator(c::Number)=new(convert(T,c))
-    ConstantOperator(L::UniformScaling)=new(convert(T,L.λ))
+    space::DS
+    ConstantOperator(c::Number,sp::DS) = new(convert(T,c),sp)
+    ConstantOperator(L::UniformScaling,sp::DS) = new(convert(T,L.λ),sp)
 end
 
 
-ConstantOperator{T}(::Type{T},c) = ConstantOperator{eltype(T),T}(c)
+ConstantOperator{T}(::Type{T},c,sp::Space) = ConstantOperator{eltype(T),T,typeof(sp)}(c,sp)
+ConstantOperator{T}(::Type{T},c) = ConstantOperator(T,c,UnsetSpace())
+ConstantOperator(c::Number,sp::Space) = ConstantOperator(typeof(c),c,sp)
 ConstantOperator(c::Number) = ConstantOperator(typeof(c),c)
 ConstantOperator(L::UniformScaling) = ConstantOperator(L.λ)
+ConstantOperator(L::UniformScaling,sp::Space) = ConstantOperator(L.λ,sp)
 IdentityOperator() = ConstantOperator(1.0)
-IdentityOperator(S::Space) = SpaceOperator(IdentityOperator(),S,S)
+IdentityOperator(S::Space) = ConstantOperator(1.0,S)
+
+for OP in (:domainspace,:rangespace)
+    @eval $OP(C::ConstantOperator) = C.space
+end
+
+promotedomainspace(C::ConstantOperator,sp::Space) = ConstantOperator(C.c,sp)
 
 bandinds(T::ConstantOperator) = 0,0
 
-getindex(C::ConstantOperator,k::Integer,j::Integer) = k==j?C.c:zero(eltype(C))
+getindex(C::ConstantOperator,k::Integer,j::Integer) =
+    k==j?eltype(C)(C.c):zero(eltype(C))
 
 
 ==(C1::ConstantOperator,C2::ConstantOperator) = C1.c==C2.c
@@ -26,9 +37,20 @@ function Base.convert{T}(::Type{Operator{T}},C::ConstantOperator)
     if T == eltype(C)
         C
     else
-        ConstantOperator{typeof(C.c),T}(C.c)
+        ConstantOperator{typeof(C.c),T,typeof(C.space)}(C.c,C.space)
     end
 end
+
+# zero needs to be different since it can take a space to
+# a ConstantSpace, in creating functionals
+Base.convert{T}(::Type{Operator{T}},x::Number) =
+    x==0?ZeroOperator(T,UnsetSpace()):ConstantOperator(T,x,UnsetSpace())
+Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
+    ConstantOperator(T,L.λ)
+
+Operator(n::Number) = Operator{typeof(n)}(n)
+Operator(L::UniformScaling) = Operator{eltype(L)}(L)
+
 
 ## Algebra
 
@@ -48,7 +70,7 @@ end
 BasisFunctional(k) = BasisFunctional{Float64}(k)
 
 bandinds(B::BasisFunctional) = 0,B.k-1
-
+domainspace(B::BasisFunctional) = ℓ⁰
 
 Base.convert{T}(::Type{Operator{T}},B::BasisFunctional) = BasisFunctional{T}(B.k)
 
@@ -61,6 +83,8 @@ end
 
 @functional FillFunctional
 
+domainspace(B::FillFunctional) = ℓ⁰
+
 Base.getindex(op::FillFunctional,k::Integer)=op.c
 Base.getindex(op::FillFunctional,k::Range)=fill(op.c,length(k))
 
@@ -71,10 +95,13 @@ immutable ZeroOperator{T,S,V} <: Operator{T}
     rangespace::V
 end
 
-ZeroOperator{T,S,V}(::Type{T},d::S,v::V)=ZeroOperator{T,S,V}(d,v)
-ZeroOperator{S,V}(d::S,v::V)=ZeroOperator(Float64,d,v)
-ZeroOperator()=ZeroOperator(AnySpace(),ZeroSpace())
-ZeroOperator{T}(::Type{T})=ZeroOperator(T,AnySpace(),ZeroSpace())
+ZeroOperator{T}(::Type{T},d::Space,v::Space) = ZeroOperator{T,typeof(d),typeof(v)}(d,v)
+ZeroOperator{T}(::Type{T},d::Space) = ZeroOperator(T,d,ZeroSpace())
+ZeroOperator(d::Space,v::Space) = ZeroOperator(Float64,d,v)
+ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace())
+ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace())
+ZeroOperator() = ZeroOperator(UnsetSpace(),ZeroSpace())
+ZeroOperator{T}(::Type{T}) = ZeroOperator(T,UnsetSpace(),ZeroSpace())
 
 
 Base.convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
@@ -91,12 +118,10 @@ bandinds(T::ZeroOperator)=0,0
 
 getindex(C::ZeroOperator,k::Integer,j::Integer)=zero(eltype(C))
 
-promotedomainspace(Z::ZeroOperator,sp::AnySpace)=Z
-promoterangespace(Z::ZeroOperator,sp::AnySpace)=Z
-promotedomainspace(Z::ZeroOperator,sp::UnsetSpace)=Z
-promoterangespace(Z::ZeroOperator,sp::UnsetSpace)=Z
-promotedomainspace(Z::ZeroOperator,sp::Space)=ZeroOperator(sp,rangespace(Z))
-promoterangespace(Z::ZeroOperator,sp::Space)=ZeroOperator(domainspace(Z),sp)
+promotedomainspace(Z::ZeroOperator,sp::UnsetSpace) = Z
+promoterangespace(Z::ZeroOperator,sp::UnsetSpace) = Z
+promotedomainspace(Z::ZeroOperator,sp::Space) = ZeroOperator(sp,rangespace(Z))
+promoterangespace(Z::ZeroOperator,sp::Space) = ZeroOperator(domainspace(Z),sp)
 
 
 

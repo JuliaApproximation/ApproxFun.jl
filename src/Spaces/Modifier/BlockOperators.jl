@@ -37,7 +37,7 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
     rs=rangespace(B)
 
     if isa(rs,UnsetSpace)
-        rs=AnySpace()  # for the case of all constants
+        rs=UnsetSpace()  # for the case of all constants
 
         for k=1:size(A,2)-1
             if isa(A[1,k],Multiplication)

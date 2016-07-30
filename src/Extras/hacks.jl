@@ -191,18 +191,6 @@ end
 
 
 
-
-
-
-## ConstatnOPerators can always be promoted
-promotedomainspace{CO<:ConstantOperator}(S::SpaceOperator{CO},sp::AnySpace)=S
-promotedomainspace{CO<:ConstantOperator}(S::SpaceOperator{CO},sp::UnsetSpace)=S
-promotedomainspace{CO<:ConstantOperator}(S::SpaceOperator{CO},sp::Space)=SpaceOperator(S.op,sp,sp)
-
-
-
-
-
 ## These hacks support PDEs with block matrices
 
 
