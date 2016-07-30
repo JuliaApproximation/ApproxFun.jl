@@ -72,12 +72,12 @@ end
 ## Operators
 
 
-treecount(::Operator)=1
+treecount(::Operator) = 1
 
-treecount(::Derivative)=1
-treecount(::ConstantOperator)=1
-treecount(::Conversion)=1
-treecount(::ConcreteMultiplication)=1
+treecount(::Derivative) = 1
+treecount(::ConstantOperator) = 1
+treecount(::Conversion) = 1
+treecount(::ConcreteMultiplication) = 1
 
 
 treecount(M::Union{MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,LeftIntegralWrapper,RightIntegralWrapper,

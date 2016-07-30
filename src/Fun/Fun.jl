@@ -79,9 +79,7 @@ Base.eltype{S,T}(::Fun{S,T})=T
 
 
 setspace(v::AbstractVector,s::Space) = Fun(v,s)
-setspace(v::AbstractVector,s::AnySpace) = v
 setspace(f::Fun,s::Space) = Fun(f.coefficients,s)
-setspace(f::Fun,s::AnySpace) = f.coefficients
 
 
 ## domain

@@ -155,9 +155,9 @@ for TYP in (:PiecewiseSpace,:TupleSpace)
         end
         @assert isbanded(A[end])
         L=LowRankOperator(A[1:end-1],$TYP)
-        BB=A[end]
-        S=SpaceOperator(StrideOperator(BB,length(A)-1,0),domainspace(BB),
-                            $TYP(map(rangespace,A)))
+        # add zero functionals to shift down
+        BB=[fill(ZeroOperator(domainspace(BB),ConstantSpace()),length(A)-1);A[end]]
+        S=InterlaceOperator(BB,domainspace(BB),$TYP(map(rangespace,A)))
         L+S
     end
 end

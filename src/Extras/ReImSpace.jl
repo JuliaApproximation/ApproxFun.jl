@@ -326,9 +326,8 @@ getindex(RI::ReOperator,k::Integer,j::Integer) =
 choosedomainspace(R::ReOperator,sp)=choosedomainspace(R.op,sp)
 for OP in (:promotedomainspace,:promoterangespace)
     @eval begin
-        $OP(R::ReOperator,sp::UnsetSpace)=ReOperator($OP(R.op,sp))
-        $OP(R::ReOperator,sp::AnySpace)=ReOperator($OP(R.op,sp))
-        $OP(R::ReOperator,sp::Space)=ReOperator($OP(R.op,sp))
+        $OP(R::ReOperator,sp::UnsetSpace) = ReOperator($OP(R.op,sp))
+        $OP(R::ReOperator,sp::Space) = ReOperator($OP(R.op,sp))
     end
 end
 

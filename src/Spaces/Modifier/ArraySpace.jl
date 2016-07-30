@@ -89,10 +89,10 @@ Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
 Base.getindex(S::ArraySpace,k...)=S.space
 Base.length(S::ArraySpace)=*(S.dimensions...)
 
-Base.start(S::ArraySpace)=1
-Base.next(S::ArraySpace,k)=S.space,k+1
-Base.done(S::ArraySpace,k)=k>length(S)
-Base.endof(S::ArraySpace)=length(S)
+Base.start(S::ArraySpace) = 1
+Base.next(S::ArraySpace,k) = S.space,k+1
+Base.done(S::ArraySpace,k) = k>length(S)
+Base.endof(S::ArraySpace) = length(S)
 
 
 #support tuple set

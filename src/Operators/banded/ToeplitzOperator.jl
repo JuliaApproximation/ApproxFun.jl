@@ -19,7 +19,9 @@ function ToeplitzOperator(V::Vector)
     ToeplitzOperator(W,V)
 end
 
-
+for OP in (:domainspace,:rangespace)
+    @eval $OP(T::ToeplitzOperator) = ℓ⁰
+end
 
 getindex(T::ToeplitzOperator,k::Integer,j::Integer) =
     toeplitz_getindex(T.negative,T.nonnegative,k,j)
@@ -86,6 +88,10 @@ type HankelOperator{T<:Number} <: Operator{T}
     coefficients::Vector{T}
 end
 
+for OP in (:domainspace,:rangespace)
+    @eval $OP(T::HankelOperator) = ℓ⁰
+end
+
 HankelOperator(V::AbstractVector)=HankelOperator(collect(V))
 
 HankelOperator(f::Fun)=HankelOperator(f.coefficients)
@@ -130,6 +136,10 @@ end
 for TYP in(:ToeplitzOperator,:LaurentOperator)
     @eval Base.convert{TT}(::Type{Operator{TT}},T::$TYP)=$TYP(convert(Vector{TT},T.negative),
                                                                             convert(Vector{TT},T.nonnegative))
+end
+
+for OP in (:domainspace,:rangespace)
+    @eval $OP(T::LaurentOperator) = ℓ⁰
 end
 
 

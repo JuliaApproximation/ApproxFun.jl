@@ -98,22 +98,21 @@ end
 #     eval(parse(string(S.name.module)*"."*string(S.name)))(d)
 # end
 
-setcanonicaldomain(s)=setdomain(s,canonicaldomain(s))
-reverseorientation(S::Space)=setdomain(S,reverse(domain(S)))
+setcanonicaldomain(s) = setdomain(s,canonicaldomain(s))
+reverseorientation(S::Space) = setdomain(S,reverse(domain(S)))
 
-# AnySpace dictates that an operator can act on any space
+
 # UnsetSpace dictates that an operator is not defined until
 #   its domainspace is promoted
 # NoSpace is used to indicate no space exists for, e.g.,
 # conversion_type
 
-immutable AnySpace <: AmbiguousSpace end
 immutable UnsetSpace <: AmbiguousSpace end
 immutable NoSpace <: AmbiguousSpace end
 immutable ZeroSpace <: AmbiguousSpace end   # ZeroSpace is compatible with all spaces
 
 
-dimension(::ZeroSpace)=0
+dimension(::ZeroSpace) = 0
 
 
 isambiguous(::)=false
@@ -131,7 +130,6 @@ canonicaldomain(S::Space) = canonicaldomain(domain(S))
 # Check whether spaces are the same, override when you need to check parameters
 # This is used in place of == to support AnyDomain
 spacescompatible{D<:Space}(f::D,g::D) = error("Override spacescompatible for "*string(D))
-spacescompatible(::AnySpace,::AnySpace) = true
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
 spacescompatible(::ZeroSpace,::ZeroSpace) = true
@@ -186,20 +184,11 @@ end
 
 for FUNC in (:conversion_type,:maxspace)
     @eval begin
-        $FUNC(::AnySpace,::UnsetSpace)=UnsetSpace()
-        $FUNC(::UnsetSpace,::AnySpace)=UnsetSpace()
-        $FUNC(::ZeroSpace,::UnsetSpace)=UnsetSpace()
-        $FUNC(::UnsetSpace,::ZeroSpace)=UnsetSpace()
-        $FUNC(::AnySpace,::ZeroSpace)=AnySpace()
-        $FUNC(::ZeroSpace,::AnySpace)=AnySpace()
-    end
-
-    for TYP in (:AnySpace,:UnsetSpace)
-        @eval begin
-            $FUNC(a::$TYP,b::$TYP)=a
-            $FUNC(a::$TYP,b::Space)=b
-            $FUNC(a::Space,b::$TYP)=a
-        end
+        $FUNC(::ZeroSpace,::UnsetSpace) = UnsetSpace()
+        $FUNC(::UnsetSpace,::ZeroSpace) = UnsetSpace()
+        $FUNC(a::UnsetSpace,b::UnsetSpace) = a
+        $FUNC(a::UnsetSpace,b::Space) = b
+        $FUNC(a::Space,b::UnsetSpace) = a
     end
 end
 
@@ -223,7 +212,7 @@ end
 
 
 # gives a space c that has a banded conversion operator FROM a and b
-maxspace(a,b)=NoSpace()  # TODO: this fixes weird bug with Nothing
+maxspace(a,b) = NoSpace()  # TODO: this fixes weird bug with Nothing
 function maxspace(a::Space,b::Space)
     if spacescompatible(a,b)
         return a
@@ -317,11 +306,11 @@ end
 
 
 # tests whether a Conversion operator exists
-hasconversion(a,b)=maxspace(a,b)==b
+hasconversion(a,b) = maxspace(a,b)==b
 
 
 # tests whether a coefficients can be converted to b
-isconvertible(a,b)=hasconversion(a,b)
+isconvertible(a,b) = hasconversion(a,b)
 
 ## Conversion routines
 #       coefficients(v::Vector,a,b)
@@ -331,11 +320,12 @@ isconvertible(a,b)=hasconversion(a,b)
 #       coefficients(v::Vector,a,b,c)
 # uses an intermediate space b
 
-coefficients(f,sp1,sp2,sp3)=coefficients(coefficients(f,sp1,sp2),sp2,sp3)
+coefficients(f,sp1,sp2,sp3) = coefficients(coefficients(f,sp1,sp2),sp2,sp3)
 
-coefficients{T1<:Space,T2<:Space}(f::Vector,::Type{T1},::Type{T2})=coefficients(f,T1(),T2())
-coefficients{T1<:Space}(f::Vector,::Type{T1},sp2::Space)=coefficients(f,T1(),sp2)
-coefficients{T2<:Space}(f::Vector,sp1::Space,::Type{T2})=coefficients(f,sp1,T2())
+coefficients{T1<:Space,T2<:Space}(f::Vector,::Type{T1},::Type{T2}) =
+    coefficients(f,T1(),T2())
+coefficients{T1<:Space}(f::Vector,::Type{T1},sp2::Space) = coefficients(f,T1(),sp2)
+coefficients{T2<:Space}(f::Vector,sp1::Space,::Type{T2}) = coefficients(f,sp1,T2())
 
 ## coefficients defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
@@ -377,23 +367,23 @@ function defaultcoefficients(f,a,b)
     end
 end
 
-coefficients(f,a,b)=defaultcoefficients(f,a,b)
+coefficients(f,a,b) = defaultcoefficients(f,a,b)
 
 
 
 
 
 ## TODO: remove zeros
-Base.zero(S::Space)=zeros(S)
-Base.zero{T<:Number}(::Type{T},S::Space)=zeros(T,S)
-Base.zeros{T<:Number}(::Type{T},S::Space)=Fun(zeros(T,1),S)
-Base.zeros(S::Space)=Fun(zeros(1),S)
+Base.zero(S::Space) = zeros(S)
+Base.zero{T<:Number}(::Type{T},S::Space) = zeros(T,S)
+Base.zeros{T<:Number}(::Type{T},S::Space) = Fun(zeros(T,1),S)
+Base.zeros(S::Space) = Fun(zeros(1),S)
 
 # catch all
-Base.ones(S::Space)=Fun(x->1.0,S)
-Base.ones{T<:Number}(::Type{T},S::Space)=Fun(x->one(T),S)
+Base.ones(S::Space) = Fun(x->1.0,S)
+Base.ones{T<:Number}(::Type{T},S::Space) = Fun(x->one(T),S)
 
-identity_fun(S::Space)=identity_fun(domain(S))
+identity_fun(S::Space) = identity_fun(domain(S))
 
 function identity_fun(d::Domain)
     cd=canonicaldomain(d)

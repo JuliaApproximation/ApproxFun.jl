@@ -13,7 +13,7 @@ include("OperatorFunction.jl")
 include("SavedOperator.jl")
 
 include("TransposeOperator.jl")
-include("StrideOperator.jl")
+include("InterlaceOperator.jl")
 include("FiniteOperator.jl")
 
 

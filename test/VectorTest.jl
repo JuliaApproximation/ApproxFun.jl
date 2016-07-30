@@ -10,7 +10,7 @@ Bn=lneumann();
 A=[B 0;
    0 B;
    D-I 2I;
-   0 D+I];
+   0I D+I];
 
 f=Fun(x->[exp(x),cos(x)],d)
 

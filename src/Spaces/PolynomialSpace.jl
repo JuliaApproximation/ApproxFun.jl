@@ -82,10 +82,13 @@ immutable JacobiZ{S,T} <: TridiagonalOperator{T}
     z::T
 end
 
-JacobiZ(sp,z)=(T = promote_type(eltype(sp),eltype(domain(sp)),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
+JacobiZ(sp,z) =
+    (T = promote_type(eltype(sp),eltype(domain(sp)),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
 
-Base.convert{T,S}(::Type{Operator{T}},J::JacobiZ{S})=JacobiZ{S,T}(J.space,J.z)
+Base.convert{T,S}(::Type{Operator{T}},J::JacobiZ{S}) = JacobiZ{S,T}(J.space,J.z)
 
+domainspace(::JacobiZ) = ℓ⁰
+rangespace(::JacobiZ) = ℓ⁰
 
 #####
 # recα/β/γ are given by

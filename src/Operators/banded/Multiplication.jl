@@ -63,15 +63,15 @@ getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
 
 
 ##multiplication can always be promoted, range space is allowed to change
-promotedomainspace(D::Multiplication,sp::UnsetSpace)=D
-promotedomainspace(D::Multiplication,sp::AnySpace)=D
-promotedomainspace(D::Multiplication,sp::Space)=Multiplication(D.f,sp)
+promotedomainspace(D::Multiplication,sp::UnsetSpace) = D
+promotedomainspace(D::Multiplication,sp::Space) = Multiplication(D.f,sp)
 
-choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},::AnySpace)=space(M.f)
-choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp)=sp  # we assume multiplication maps spaces to themselves
+choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},::UnsetSpace) = space(M.f)
+# we assume multiplication maps spaces to themselves
+choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp) = sp
 
 
-Base.diagm(a::Fun)=Multiplication(a)
+Base.diagm(a::Fun) = Multiplication(a)
 
 immutable MultiplicationWrapper{D<:Space,O<:Operator,V,T} <: Multiplication{T}
     f::Fun{D,V}

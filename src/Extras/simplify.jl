@@ -9,10 +9,13 @@
 # to recognize M[f,C^(1)] Conversion(T,C^(1))==Conversion(T,C^(1))M[f,T]
 ##
 
-simplifytimes(A::Operator,B::Operator)=isconstop(A)||isconstop(B)?A*B:[A;B]
-simplifytimes(A::Operator,B::Vector)=[simplifytimes(A,B[1]);B[2:end]]
-simplifytimes(A::Vector,B::Operator)=[A[1:end-1];simplifytimes(A[end],B)]
-simplifytimes(A::ConstantOperator,B::ConstantOperator)=ConstantOperator(A.c*B.c)
+simplifytimes(A::Operator,B::Operator) = isconstop(A)||isconstop(B)?A*B:[A;B]
+simplifytimes(A::Operator,B::Vector) = [simplifytimes(A,B[1]);B[2:end]]
+simplifytimes(A::Vector,B::Operator) = [A[1:end-1];simplifytimes(A[end],B)]
+function simplifytimes(A::ConstantOperator,B::ConstantOperator)
+    @assert A.space == B.space
+    ConstantOperator(A.c*B.c,A.space)
+end
 function simplifytimes(A::SpaceOperator,B::SpaceOperator)
    @assert domainspace(A)==rangespace(B)
     SpaceOperator(simplifytimes(A.op,B.op),domainspace(B),rangespace(A))

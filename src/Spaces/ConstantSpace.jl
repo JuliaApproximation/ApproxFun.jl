@@ -1,3 +1,35 @@
+"""
+`SequenceSpace` is the space of all sequences, i.e., infinite vectors
+"""
+immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
+const ℓ⁰ = SequenceSpace()
+dimension(::SequenceSpace) = ∞
+domain(::SequenceSpace) = ℕ
+spacescompatible(::SequenceSpace,::SequenceSpace) = true
+
+
+# A Fun for SequenceSpace can be an iterator
+Base.start(::Fun{SequenceSpace}) = 1
+Base.next(f::Fun{SequenceSpace},st) = f[st],st+1
+Base.done(f::Fun{SequenceSpace},st) = false # infinite length
+
+getindex(f::Fun{SequenceSpace},k::Integer) =
+    k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
+getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
+
+
+dotu(f::Fun{SequenceSpace},g::Fun{SequenceSpace}) =
+    mindotu(f.coefficients,g.coefficients)
+dotu(f::Fun{SequenceSpace},g::AbstractVector) =
+    mindotu(f.coefficients,g)
+dotu(f::AbstractVector,g::Fun{SequenceSpace}) =
+    mindotu(f,g.coefficients)
+
+Base.norm(f::Fun{SequenceSpace}) = norm(f.coefficients)
+Base.norm(f::Fun{SequenceSpace},k::Int) = norm(f.coefficients,k)
+Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)    
+
+
 
 
 """
@@ -10,8 +42,8 @@ immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
     ConstantSpace(d::DD)=new(d)
 end
 
-ConstantSpace(d::Domain)=ConstantSpace{typeof(d)}(d)
-ConstantSpace()=ConstantSpace(AnyDomain())
+ConstantSpace(d::Domain) = ConstantSpace{typeof(d)}(d)
+ConstantSpace() = ConstantSpace(AnyDomain())
 
 # we override maxspace instead of maxspace_rule to avoid
 # domainscompatible check.
@@ -36,8 +68,8 @@ canonicalspace(C::ConstantSpace)=C
 spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
 
 Base.ones(S::ConstantSpace)=Fun(ones(1),S)
-Base.ones(S::Union{AnyDomain,AnySpace,UnsetSpace})=ones(ConstantSpace())
-Base.zeros(S::Union{AnyDomain,AnySpace,UnsetSpace})=zeros(ConstantSpace())
+Base.ones(S::Union{AnyDomain,UnsetSpace})=ones(ConstantSpace())
+Base.zeros(S::Union{AnyDomain,UnsetSpace})=zeros(ConstantSpace())
 evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
 evaluate(f::AbstractVector,::ConstantSpace,x::Array)=f[1]*ones(x)
 
@@ -60,7 +92,7 @@ conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)=
 
 conversion_rule(A::ZeroSpace,B::Space)=A
 maxspace_rule(A::ZeroSpace,B::Space)=B
-Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(SpaceOperator(ZeroOperator(),A,B))
+Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(ZeroOperator(A,B))
 
 
 union_rule(A::ConstantSpace,B::Space)=ConstantSpace(domain(B))⊕B

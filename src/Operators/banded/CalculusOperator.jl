@@ -58,8 +58,9 @@ macro calculus_operator(Op)
             end
         end
 
-        $WrappOp(op::Operator,order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),eltype(op)}(op,order)
-        $WrappOp(op::Operator)=$WrappOp(op,1)
+        $WrappOp(op::Operator,order) =
+            $WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),eltype(op)}(op,order)
+        $WrappOp(op::Operator) = $WrappOp(op,1)
 
         function Base.convert{T}(::Type{Operator{T}},D::$WrappOp)
             if T==eltype(D)
@@ -72,16 +73,16 @@ macro calculus_operator(Op)
         end
 
         ## Routines
-        domain(D::$ConcOp)=domain(D.space)
-        domainspace(D::$ConcOp)=D.space
+        domain(D::$ConcOp) = domain(D.space)
+        domainspace(D::$ConcOp) = D.space
 
-        getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer)=error("Spaces cannot be inferred for operator")
-        rangespace{T}(D::$ConcOp{UnsetSpace,T})=UnsetSpace()
+        getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer) =
+            error("Spaces cannot be inferred for operator")
+        rangespace{T}(D::$ConcOp{UnsetSpace,T}) = UnsetSpace()
 
         #promoting domain space is allowed to change range space
         # for integration, we fall back on existing conversion for now
-        promotedomainspace(D::$Op,sp::UnsetSpace)=D
-        promotedomainspace(D::$Op,sp::AnySpace)=D
+        promotedomainspace(D::$Op,sp::UnsetSpace) = D
 
 
         function promotedomainspace(D::$Op,sp::Space)
