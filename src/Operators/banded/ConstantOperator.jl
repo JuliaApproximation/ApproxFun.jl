@@ -27,7 +27,8 @@ promotedomainspace(C::ConstantOperator,sp::Space) = ConstantOperator(C.c,sp)
 
 bandinds(T::ConstantOperator) = 0,0
 
-getindex(C::ConstantOperator,k::Integer,j::Integer) = k==j?C.c:zero(eltype(C))
+getindex(C::ConstantOperator,k::Integer,j::Integer) =
+    k==j?eltype(C)(C.c):zero(eltype(C))
 
 
 ==(C1::ConstantOperator,C2::ConstantOperator) = C1.c==C2.c

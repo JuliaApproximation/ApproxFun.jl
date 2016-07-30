@@ -66,7 +66,9 @@ getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
 promotedomainspace(D::Multiplication,sp::UnsetSpace) = D
 promotedomainspace(D::Multiplication,sp::Space) = Multiplication(D.f,sp)
 
-choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp) = sp  # we assume multiplication maps spaces to themselves
+choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},::UnsetSpace) = space(M.f)
+# we assume multiplication maps spaces to themselves
+choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp) = sp
 
 
 Base.diagm(a::Fun) = Multiplication(a)

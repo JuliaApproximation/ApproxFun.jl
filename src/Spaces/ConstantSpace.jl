@@ -1,6 +1,6 @@
-# Sequence Space is the space of all sequences, i.e., infinite vectors
-# The p denotes the norm attached, with the 0 number being the number of
-# non-zero entries
+"""
+`SequenceSpace` is the space of all sequences, i.e., infinite vectors
+"""
 immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
 const ℓ⁰ = SequenceSpace()
 dimension(::SequenceSpace) = ∞
@@ -16,6 +16,19 @@ Base.done(f::Fun{SequenceSpace},st) = false # infinite length
 getindex(f::Fun{SequenceSpace},k::Integer) =
     k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
 getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
+
+
+dotu(f::Fun{SequenceSpace},g::Fun{SequenceSpace}) =
+    mindotu(f.coefficients,g.coefficients)
+dotu(f::Fun{SequenceSpace},g::AbstractVector) =
+    mindotu(f.coefficients,g)
+dotu(f::AbstractVector,g::Fun{SequenceSpace}) =
+    mindotu(f,g.coefficients)
+
+Base.norm(f::Fun{SequenceSpace}) = norm(f.coefficients)
+Base.norm(f::Fun{SequenceSpace},k::Int) = norm(f.coefficients,k)
+Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)    
+
 
 
 

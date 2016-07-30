@@ -540,16 +540,18 @@ for TYP in (:Vector,:Matrix)
                 return dotu(A[1:length(b)],b)
             end
 
-            n=size(b,1)
+            rs=rangespace(A)
+            if isambiguous(rs)
+                error("Assign spaces to $A before multiplying.")
+            end
 
+            n=size(b,1)
             ret=if n>0
                 A[1:min(size(A,1),n+bandwidth(A,1)),1:n]*b
             else
                 b
             end
-
-            rs=rangespace(A)
-            isambiguous(rs)?ret:Fun(ret,rs)
+            Fun(ret,rs)
         end
     end
 end
