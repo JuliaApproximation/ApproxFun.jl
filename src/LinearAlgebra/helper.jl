@@ -560,3 +560,24 @@ Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
 
 
 Base.getindex(it::CachedIterator,k::Int) = resize!(it,k).storage[k]
+function Base.findfirst(f::Function,A::CachedIterator)
+    k=1
+    for c in A
+        if f(c)
+            return k
+        end
+        k+=1
+    end
+    return 0
+end
+
+function Base.findfirst(A::CachedIterator,x)
+    k=1
+    for c in A
+        if c == x
+            return k
+        end
+        k+=1
+    end
+    return 0
+end

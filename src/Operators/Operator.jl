@@ -41,6 +41,7 @@ macro functional(FF)
         Base.size(A::$FF,k::Integer) = k==1?1:∞
         ApproxFun.rangespace(::$FF) = ConstantSpace()
         ApproxFun.isafunctional(::$FF) = true
+        ApproxFun.bandinds(::$FF) = (0,∞)  # functionals are banded below
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
             f[j]

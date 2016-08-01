@@ -83,6 +83,10 @@ end
 
 # which block of the tensor
 # equivalent to sum of indices -1
+
+tensorblock(it::TensorIterator,k) = sum(it[k])-length(it.dimensions)+1
+tensorblock(ci::CachedIterator,k) = sum(ci[k])-length(ci.iterator.dimensions)+1
+
 tensorblock(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
     floor(Integer,sqrt(2n) + 1/2)
 
@@ -93,7 +97,35 @@ function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
     j,m-j+1
 end
 
-tensorblockfirst(it::TensorIterator{NTuple{2,Infinity{Bool}}},K) = findfirst(it,(1,K))
+tensorblockfirst{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = findfirst(it,(1,K))
+
+function tensorblockfirst(it::TensorIterator,K)
+    ret=ones(length(it.dimensions))
+    for k=reverse(eachindex(ret))
+        ret[k]=min(K,it.dimensions[k])
+        K-=ret[k]
+        if K ≤ 0
+            return findfirst(it,tuple(ret...))
+        end
+    end
+    error("Above dimension")
+end
+
+function tensorblockfirst{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K)
+    it=ci.iterator
+    ret=ones(length(it.dimensions))
+    for k=reverse(eachindex(ret))
+        ret[k]=min(K,it.dimensions[k])
+        K-=ret[k]
+        if K ≤ 0
+            return findfirst(ci,tuple(ret...))
+        end
+    end
+    error("Above dimension")
+end
+
+
+
 
 
 # TensorSpace
@@ -270,6 +302,23 @@ function fromtensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Matrix{T}
     end
     ret
 end
+
+
+# function totensor{T1,T2,T}(it::TensorIterator{Tuple{T1,T2}},M::Vector{T})
+#     N=length(M)
+#     inds=it[N]
+#     m=inds[1]+inds[2]-1
+#     ret=zeros(T,min(it.dimensions[1],m),min(it.dimensions[2],m))
+#     k=1
+#     for c in it
+#         ret[c...] = M[k]
+#         k+=1
+#         if k > N
+#             break
+#         end
+#     end
+#     ret
+# end
 
 function totensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Vector{T})
     inds=it[length(M)]

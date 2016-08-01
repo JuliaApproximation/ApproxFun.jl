@@ -6,16 +6,21 @@ export KroneckerOperator
 # KroneckerOperator gives the kronecker product of two 1D operators
 #########
 
-immutable KroneckerOperator{S,V,DS,RS,T<:Number} <: Operator{T}
+immutable KroneckerOperator{S,V,DS,RS,DI,RI,T} <: Operator{T}
     ops::Tuple{S,V}
     domainspace::DS
     rangespace::RS
+    domaintensorizer::DI
+    rangetensorizer::RI
 end
 
 
-KroneckerOperator(A,B,ds,rs) =
-    KroneckerOperator{typeof(A),typeof(B),typeof(ds),typeof(rs),
-                        promote_type(eltype(A),eltype(B))}((A,B),ds,rs)
+KroneckerOperator(A,B,ds::Space,rs::Space,di,ri) =
+    KroneckerOperator{typeof(A),typeof(B),typeof(ds),typeof(rs),typeof(di),typeof(ri),
+                        promote_type(eltype(A),eltype(B))}((A,B),ds,rs,di,ri)
+
+KroneckerOperator(A,B,ds::Space,rs::Space) = KroneckerOperator(A,B,ds,rs,
+                    CachedIterator(tensorizer(ds)),CachedIterator(tensorizer(rs)))
 function KroneckerOperator(A,B)
     ds=domainspace(A)⊗domainspace(B)
     rs=rangespace(A)⊗rangespace(B)
@@ -55,20 +60,20 @@ function Base.convert{T<:Number}(::Type{Operator{T}},K::KroneckerOperator)
     else
         ops=convert(Operator{T},K.ops[1]),convert(Operator{T},K.ops[2])
         KroneckerOperator{typeof(ops[1]),typeof(ops[2]),typeof(K.domainspace),typeof(K.rangespace),T}(ops,
-              K.domainspace,
-              K.rangespace)
+              K.domainspace,K.rangespace,
+              K.domaintensorizer,K.rangetensorizer)
     end
 end
 
 
 function colstart(A::KroneckerOperator,k::Integer)
-    K=tensorblock(domainspace(A),k)
-    tensorblockfirst(rangespace(A),max(1,K-blockbandwidth(A,2)))
+    K=tensorblock(A.domaintensorizer,k)
+    tensorblockfirst(A.rangetensorizer,max(1,K-blockbandwidth(A,2)))
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
-    K=tensorblock(domainspace(A),k)
-    tensorblockfirst(rangespace(A),K+blockbandwidth(A,1)+1)-1
+    K=tensorblock(A.domaintensorizer,k)
+    tensorblockfirst(A.rangetensorizer,K+blockbandwidth(A,1)+1)-1
 end
 
 function rowstart(A::KroneckerOperator,k::Integer)
@@ -115,8 +120,8 @@ domainspace(K::KroneckerOperator) = K.domainspace
 rangespace(K::KroneckerOperator) = K.rangespace
 
 function getindex(KO::KroneckerOperator,kin::Integer,jin::Integer)
-    j,J=tensorizer(domainspace(KO))[jin]
-    k,K=tensorizer(rangespace(KO))[kin]
+    j,J=KO.domaintensorizer[jin]
+    k,K=KO.rangetensorizer[kin]
     KO.ops[1][k,j]*KO.ops[2][K,J]
 end
 
