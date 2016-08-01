@@ -92,27 +92,14 @@ domainspace(K::KroneckerOperator) = K.domainspace
 rangespace(K::KroneckerOperator) = K.rangespace
 
 function getindex(K::KroneckerOperator,kin::Integer,jin::Integer)
-    error("Reimplement")
-    # k=totensorblock(kin)
-    # j=totensorblock(jin)
-    # T=eltype(K)
-    #
-    # if bandinds(K,1) ≤ j-k ≤ bandinds(K,2)
-    #     A=K.ops[1][1:k,1:j]
-    #     B=K.ops[2][1:k,1:j]
-    #     nl=max(0,min(A.l,B.u+k-j));nu=max(0,min(A.u,B.l+j-k))
-    #     ret=BandedMatrix(T,k,j,nl,nu)
-    #     for (κ,ξ) in eachbandedindex(ret)
-    #         ret[κ,ξ]=A[κ,ξ]*B[k-κ+1,j-ξ+1]
-    #     end
-    #     ret
-    # else
-    #     bzeros(T,k,j,0,0)
-    # end
+    j,J=tensorizer(domainspace(K))[jin]
+    k,K=tensorizer(rangespace(K))[kin]
+    K.ops[1][k,j]*K.ops[2][K,J]
 end
 
 
-*(A::KroneckerOperator,B::KroneckerOperator)=KroneckerOperator(A.ops[1]*B.ops[1],A.ops[2]*B.ops[2])
+*(A::KroneckerOperator,B::KroneckerOperator) =
+    KroneckerOperator(A.ops[1]*B.ops[1],A.ops[2]*B.ops[2])
 
 
 
