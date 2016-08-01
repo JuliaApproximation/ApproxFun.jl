@@ -61,8 +61,31 @@ function Base.convert{T<:Number}(::Type{Operator{T}},K::KroneckerOperator)
 end
 
 
+function colstart(A::KroneckerOperator,k::Integer)
+    K=tensorblock(domainspace(A),k)
+    tensorblockfirst(rangespace(A),max(1,K-blockbandwidth(A,2)))
+end
+
+function colstop(A::KroneckerOperator,k::Integer)
+    K=tensorblock(domainspace(A),k)
+    tensorblockfirst(rangespace(A),K+blockbandwidth(A,1)+1)-1
+end
+
+function rowstart(A::KroneckerOperator,k::Integer)
+    K=tensorblock(rangespace(A),k)
+    tensorblockfirst(domainspace(A),max(1,K-blockbandwidth(A,2)))
+end
+
+function rowstop(A::KroneckerOperator,k::Integer)
+    K=tensorblock(rangespace(A),k)
+    tensorblockfirst(domainspace(A),K+blockbandwidth(A,1)+1)-1
+end
+
+
 blockbandinds(K::KroneckerOperator) =
     bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
+blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
+blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(K,k)
 subblockbandinds(K::KroneckerOperator,k::Integer) =
     k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer)=0
@@ -91,10 +114,10 @@ subblockbandinds(K::Operator)=subblockbandinds(K,1),subblockbandinds(K,2)
 domainspace(K::KroneckerOperator) = K.domainspace
 rangespace(K::KroneckerOperator) = K.rangespace
 
-function getindex(K::KroneckerOperator,kin::Integer,jin::Integer)
-    j,J=tensorizer(domainspace(K))[jin]
-    k,K=tensorizer(rangespace(K))[kin]
-    K.ops[1][k,j]*K.ops[2][K,J]
+function getindex(KO::KroneckerOperator,kin::Integer,jin::Integer)
+    j,J=tensorizer(domainspace(KO))[jin]
+    k,K=tensorizer(rangespace(KO))[kin]
+    KO.ops[1][k,j]*KO.ops[2][K,J]
 end
 
 

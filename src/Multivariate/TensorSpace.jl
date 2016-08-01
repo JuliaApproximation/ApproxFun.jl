@@ -30,14 +30,17 @@ Base.done(::TensorIterator,st) = false
 
 function Base.findfirst(::TensorIterator{2},kj::Tuple{Int,Int})
     k,j=kj
-    n=k+j-2
-    (n*(n+1))÷2+k
+    if k > 0 && j > 0
+        n=k+j-2
+        (n*(n+1))÷2+k
+    else
+        0
+    end
 end
 
 # which block of the tensor
 # equivalent to sum of indices -1
 tensorblock(::TensorIterator{2},n) = floor(Integer,sqrt(2n) + 1/2)
-
 
 function getindex(it::TensorIterator{2},n::Integer)
     m=tensorblock(it,n)
@@ -45,6 +48,8 @@ function getindex(it::TensorIterator{2},n::Integer)
     j=1+n-p
     j,m-j+1
 end
+
+tensorblockfirst(it::TensorIterator{2},K) = findfirst(it,(1,K))
 
 
 # TensorSpace
@@ -232,7 +237,7 @@ function totensor{T}(it::TensorIterator{2},M::Vector{T})
     ret
 end
 
-for OP in (:fromtensor,:totensor)
+for OP in (:fromtensor,:totensor,:tensorblock,:tensorblockfirst)
     @eval $OP(s::Space,M) = $OP(tensorizer(s),M)
 end
 
@@ -261,15 +266,15 @@ function transform(sp::TensorSpace,vals)
     m=round(Int,sqrt(length(vals)))
     M=reshape(copy(vals),m,m)
 
-    fromtensor(transform!(sp,M))
+    fromtensor(sp,transform!(sp,M))
 end
 
-evaluate(f::AbstractVector,S::AbstractProductSpace,x) = ProductFun(totensor(f),S)(x...)
-evaluate(f::AbstractVector,S::AbstractProductSpace,x,y) = ProductFun(totensor(f),S)(x,y)
+evaluate(f::AbstractVector,S::AbstractProductSpace,x) = ProductFun(totensor(S,f),S)(x...)
+evaluate(f::AbstractVector,S::AbstractProductSpace,x,y) = ProductFun(totensor(S,f),S)(x,y)
 
 
 
-coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(f.coefficients)
+coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(space(f),f.coefficients)
 
 Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace) = Fun(fromtree(v),S)
 

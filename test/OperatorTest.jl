@@ -180,11 +180,3 @@ A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
 QR=qrfact(A)
 
 @test norm((A\[1.])-(QR\[1.]))<100eps()
-
-# 2d derivative (issue #346)
-let d = Space([0,1]) * Space([0,2]),
-    D = Derivative(d, [0,1]),
-    f = Fun((x,y) -> sin(x) * cos(y), d),
-    fd = Fun((x,y) -> -sin(x) * sin(y), d)
-    @test (D*f)(0.2,0.3) ≈ fd(0.2,0.3)
-end

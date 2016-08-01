@@ -136,3 +136,24 @@ f=Fun(ff,[-4.,4.],[-4.,4.])
 @test_approx_eq sum(f,1)(0.1) 2.5162377980828357
 f=LowRankFun(f)
 @test_approx_eq evaluate(f.A,0.1) map(f->f(0.1),f.A)
+
+
+# 2d derivative (issue #346)
+let d = Space([0,1]) * Space([0,2]),
+    Dx = Derivative(d, [1,0])
+    f = Fun((x,y) -> sin(x) * cos(y), d)
+    fx = Fun((x,y) -> cos(x) * cos(y), d)
+    @test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
+    Dy = Derivative(d, [0,1])
+    f = Fun((x,y) -> sin(x) * cos(y), d)
+    fy = Fun((x,y) -> -sin(x) * sin(y), d)
+    @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
+end
+
+
+d = Space([0,1]) * Space([0,2])
+Dx=Derivative(d, [0,1])
+
+Dx[FiniteRange,1:10]
+
+Dx*[1,2,3]

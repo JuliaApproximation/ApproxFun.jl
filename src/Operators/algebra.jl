@@ -352,7 +352,6 @@ for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
         # find minimal row/column range starting from left
         for m=1:length(P.ops)-1
             br=bandinds(P.ops[m])
-            br2=bandinds(P.ops[m+1])
 
             krl[m+1,1]=max(1,br[1] + krl[m,1] )  # no negative
             krl[m+1,2]=min(br[end] + krl[m,2],size(P.ops[m],2))
@@ -547,7 +546,7 @@ for TYP in (:Vector,:Matrix)
 
             n=size(b,1)
             ret=if n>0
-                A[1:min(size(A,1),n+bandwidth(A,1)),1:n]*b
+                A[FiniteRange,1:n]*b
             else
                 b
             end

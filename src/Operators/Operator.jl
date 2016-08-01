@@ -172,6 +172,35 @@ defaultgetindex(B::Operator,::Colon,j::AbstractCount) = B[1:end,j]
 
 
 
+# FiniteRange gives the nonzero entries in a row/column
+immutable FiniteRange end
+
+
+# default is to use bandwidth
+# override for other shaped operators
+colstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,2), 1), size(A, 2))
+colstop(A::Operator, i::Integer) = min(i+bandwidth(A,1), size(A, 1))
+rowstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,1), 1), size(A, 1))
+rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
+
+
+
+function defaultgetindex(A::Operator,::Type{FiniteRange},::Type{FiniteRange})
+    if isfinite(size(A,1)) && isfinite(size(A,2))
+        A[1:size(A,1),1:size(A,2)]
+    else
+        error("Only exists for finite operators.")
+    end
+end
+defaultgetindex(A::Operator,::Type{FiniteRange},jr) =
+    A[1:colstop(A,maximum(jr)),jr]
+
+defaultgetindex(A::Operator,kr,::Type{FiniteRange}) =
+    A[kr,1:rowstop(A,maximum(kr))]
+
+
+
+
 
 ## Composition with a Fun, LowRankFun, and ProductFun
 
@@ -217,7 +246,15 @@ macro wrapper(Wrap)
         ret=quote
             $ret
 
-            $func(D::$Wrap)=$func(D.op)
+            $func(D::$Wrap) = $func(D.op)
+        end
+    end
+    for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
+                    :(ApproxFun.rowstart),:(ApproxFun.rowstop))
+        ret=quote
+            $ret
+
+            $func(D::$Wrap,k::Integer) = $func(D.op,k)
         end
     end
     esc(ret)
