@@ -73,12 +73,12 @@ end
 
 function rowstart(A::KroneckerOperator,k::Integer)
     K=tensorblock(rangespace(A),k)
-    tensorblockfirst(domainspace(A),max(1,K-blockbandwidth(A,2)))
+    tensorblockfirst(domainspace(A),max(1,K-blockbandwidth(A,1)))
 end
 
 function rowstop(A::KroneckerOperator,k::Integer)
     K=tensorblock(rangespace(A),k)
-    tensorblockfirst(domainspace(A),K+blockbandwidth(A,1)+1)-1
+    tensorblockfirst(domainspace(A),K+blockbandwidth(A,2)+1)-1
 end
 
 

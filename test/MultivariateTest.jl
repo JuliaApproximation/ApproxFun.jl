@@ -139,21 +139,30 @@ f=LowRankFun(f)
 
 
 # 2d derivative (issue #346)
-let d = Space([0,1]) * Space([0,2]),
+let d = Chebyshev()^2
+    f = Fun((x,y) -> sin(x) * cos(y), d)
+    C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical{1}()⊗Ultraspherical{1}())
+    @test_approx_eq (C*f)(0.1,0.2) f(0.1,0.2)
     Dx = Derivative(d, [1,0])
     f = Fun((x,y) -> sin(x) * cos(y), d)
     fx = Fun((x,y) -> cos(x) * cos(y), d)
     @test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
     Dy = Derivative(d, [0,1])
-    f = Fun((x,y) -> sin(x) * cos(y), d)
     fy = Fun((x,y) -> -sin(x) * sin(y), d)
     @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
+    L=Dx+Dy
+    @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 end
 
-
-d = Space([0,1]) * Space([0,2])
-Dx=Derivative(d, [0,1])
-
-Dx[FiniteRange,1:10]
-
-Dx*[1,2,3]
+let d = Space([0,1]) * Space([0,2])
+    Dx = Derivative(d, [1,0])
+    f = Fun((x,y) -> sin(x) * cos(y), d)
+    fx = Fun((x,y) -> cos(x) * cos(y), d)
+    @test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
+    Dy = Derivative(d, [0,1])
+    fy = Fun((x,y) -> -sin(x) * sin(y), d)
+    @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
+    L=Dx+Dy
+    @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
+    Dx*f - fx
+end

@@ -24,6 +24,17 @@ PlusOperator{T,UT<:Number,VT<:Number}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT
 
 bandinds(P::PlusOperator) = P.bandinds
 
+for (OP,mn) in ((:colstart,:min),(:colstop,:max),(:rowstart,:min),(:rowstop,:max))
+    defOP = parse("default_"*string(OP))
+    @eval function $OP(P::PlusOperator,k::Integer)
+        if isbanded(P)
+            $defOP(P,k)
+        else
+            mapreduce(op->$OP(op,k),$mn,P.ops)
+        end
+    end
+end
+
 function PlusOperator(ops::Vector)
     # calculate bandinds
     b1,b2=0,0
@@ -321,6 +332,31 @@ domain(P::TimesOperator)=commondomain(P.ops)
 bandinds(P::TimesOperator) = P.bandinds
 Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 
+for OP in (:rowstart,:rowstop)
+    defOP=parse("default_"*string(OP))
+    @eval function $OP(P::TimesOperator,k::Integer)
+        if isbanded(P)
+            return $defOP(P,k)
+        end
+        for j=eachindex(P.ops)
+            k=$OP(P.ops[j],k)
+        end
+        k
+    end
+end
+
+for OP in (:colstart,:colstop)
+    defOP=parse("default_"*string(OP))
+    @eval function $OP(P::TimesOperator,k::Integer)
+        if isbanded(P)
+            return $defOP(P,k)
+        end
+        for j=reverse(eachindex(P.ops))
+            k=$OP(P.ops[j],k)
+        end
+        k
+    end
+end
 
 getindex(P::TimesOperator,k::Integer,j::Integer) = P[k:k,j:j][1,1]
 function getindex(P::TimesOperator,k::Integer)
@@ -344,30 +380,25 @@ for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
         end
 
 
-        krl = Array(promote_type(Int,typeof(P.bandinds[1]),typeof(P.bandinds[2])),
+        # find optimal truncations for each operator
+        # by finding the non-zero entries
+        krlin = Array(Union{Int,Infinity{Bool}},
                     length(P.ops),2)
 
-        krl[1,1],krl[1,2]=kr[1],kr[end]
-
-        # find minimal row/column range starting from left
+        krlin[1,1],krlin[1,2]=kr[1],kr[end]
         for m=1:length(P.ops)-1
-            br=bandinds(P.ops[m])
-
-            krl[m+1,1]=max(1,br[1] + krl[m,1] )  # no negative
-            krl[m+1,2]=min(br[end] + krl[m,2],size(P.ops[m],2))
+            krlin[m+1,1]=rowstart(P.ops[m],krlin[m,1])
+            krlin[m+1,2]=rowstop(P.ops[m],krlin[m,2])
         end
-
-        #find minimal row/column range starting from right
-        br=bandinds(P.ops[end])
-        krl[end,1]=max(krl[end,1],jr[1]-br[2])
-        krl[end,2]=min(krl[end,2],jr[end]-br[1])
+        krlin[end,1]=max(krlin[end,1],colstart(P.ops[end],jr[1]))
+        krlin[end,2]=min(krlin[end,2],colstop(P.ops[end],jr[end]))
         for m=length(P.ops)-1:-1:2
-            br=bandinds(P.ops[m])
-            krl[m,1]=max(krl[m,1],krl[m+1,1]-br[2])
-            krl[m,2]=min(krl[m,2],krl[m+1,2]-br[1])
+            krlin[m,1]=max(krlin[m,1],colstart(P.ops[m],krlin[m+1,1]))
+            krlin[m,2]=min(krlin[m,2],colstop(P.ops[m],krlin[m+1,2]))
         end
 
-        krl = Matrix{Int}(krl)
+
+        krl = Matrix{Int}(krlin)
 
         # Check if any range is invalid, in which case return zero
         for m=1:length(P.ops)

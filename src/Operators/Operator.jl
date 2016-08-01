@@ -178,10 +178,16 @@ immutable FiniteRange end
 
 # default is to use bandwidth
 # override for other shaped operators
-colstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,2), 1), size(A, 2))
-colstop(A::Operator, i::Integer) = min(i+bandwidth(A,1), size(A, 1))
-rowstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,1), 1), size(A, 1))
-rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
+default_colstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,2), 1), size(A, 2))
+default_colstop(A::Operator, i::Integer) = min(i+bandwidth(A,1), size(A, 1))
+default_rowstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,1), 1), size(A, 1))
+default_rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
+
+for OP in (:colstart,:colstop,:rowstart,:rowstop)
+    defOP = parse("default_"*string(OP))
+    @eval $OP(A::Operator,i::Integer) = $defOP(A,i)
+end
+
 
 
 
