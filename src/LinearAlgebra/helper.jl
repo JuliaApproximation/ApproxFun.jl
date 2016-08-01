@@ -486,11 +486,27 @@ getindex(it::Count,k) = it.start + it.step*(k-1)
 getindex(it::UnitCount,k) = it.start + k - 1
 
 
-Base.colon(a::Real,b::Irrational{:∞}) = countfrom(a)
-Base.colon(::Irrational{:∞},::AbstractFloat,::Irrational{:∞}) = [∞]
-Base.colon(a::Real,st::Real,b::Irrational{:∞}) = countfrom(a,st)
-
-Base.isinf(::Irrational{:∞}) = true
+function Base.colon(a::Real,b::Infinity{Bool})
+    if b.angle
+        throw(ArgumentError("Cannot create $a:-∞"))
+    end
+    countfrom(a)
+end
+function Base.colon(a::Infinity{Bool},st::AbstractFloat,b::Infinity{Bool})
+    if a ≠ b
+        throw(ArgumentError("Cannot create $a:$st:$b"))
+    end
+    [a]
+end
+function Base.colon(a::Real,st::Real,b::Infinity{Bool})
+    if st == 0
+        throw(ArgumentError("step cannot be zero"))
+    elseif b.angle == st > 0
+        throw(ArgumentError("Cannot create $a:$st:$b"))
+    else
+        countfrom(a,st)
+    end
+end
 
 
 ## BandedMatrix
