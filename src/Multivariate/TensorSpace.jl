@@ -13,22 +13,65 @@ spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 # tensor entry of a tensor product of d spaces
 # findfirst is overriden to get efficient inverse
 
-immutable TensorIterator{d} end
+immutable TensorIterator{DMS<:Tuple}
+    dimensions::DMS
+end
 
 
-Base.eltype{d}(::TensorIterator{d}) = NTuple{d,Int}
+Base.eltype{d,T}(::TensorIterator{NTuple{d,T}}) = NTuple{d,Int}
+Base.eltype(it::TensorIterator) = NTuple{length(it.dimensions),Int}
 
 
-Base.start(::TensorIterator{2}) = (1,1)
-Base.start(::TensorIterator{3}) = (1,1,1)
-Base.start{d}(::TensorIterator{d}) = tuple(ones(Int,d)...)::NTuple{d,Int}
+Base.start{DMS<:NTuple{2}}(::TensorIterator{DMS}) = (1,1)
+Base.start{DMS<:NTuple{3}}(::TensorIterator{DMS}) = (1,1,1)
+Base.start(it::TensorIterator) = tuple(ones(Int,d)...)::eltype(it)
 
-Base.next(::TensorIterator{2},st::Tuple{Int,Int}) =
+
+function Base.next(it::TensorIterator,st)
+    for k=2:length(st)
+        if st[k] > 1
+            nst=tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::eltype(it)
+            if all(map(≤,nst,it.dimensions)) || done(it,nst)
+                return (st,nst)
+            else
+                return (st,next(it,nst)[2])
+            end
+        end
+    end
+    nst=tuple(ones(Int,length(it.dimensions)-1)...,st[1]+1)::eltype(it)
+    if all(map(≤,nst,it.dimensions)) || done(it,nst)
+        return (st,nst)
+    else
+        return (st,next(it,nst)[2])
+    end
+end
+
+function Base.done(it::TensorIterator,st)
+    for k=1:length(st)
+        if st[k] ≤ it.dimensions[k]
+            return false
+        end
+    end
+    return true
+end
+
+
+function Base.next{d}(it::TensorIterator{NTuple{d,Infinity{Bool}}},st)
+    for k=2:length(st)
+        if st[k] > 1
+            return (st,tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::NTuple{d,Int})
+        end
+    end
+    (st,tuple(ones(Int,d-1)...,st[1]+1)::NTuple{d,Int})
+end
+Base.done{d}(::TensorIterator{NTuple{d,Infinity{Bool}}},st) = false
+
+
+Base.next(::TensorIterator{NTuple{2,Infinity{Bool}}},st) =
     (st,st[2] == 1? (1,st[1]+1) : (st[1]+1,st[2]-1))
 
-Base.done(::TensorIterator,st) = false
 
-function Base.findfirst(::TensorIterator{2},kj::Tuple{Int,Int})
+function Base.findfirst(::TensorIterator{NTuple{2,Infinity{Bool}}},kj::Tuple{Int,Int})
     k,j=kj
     if k > 0 && j > 0
         n=k+j-2
@@ -40,16 +83,17 @@ end
 
 # which block of the tensor
 # equivalent to sum of indices -1
-tensorblock(::TensorIterator{2},n) = floor(Integer,sqrt(2n) + 1/2)
+tensorblock(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
+    floor(Integer,sqrt(2n) + 1/2)
 
-function getindex(it::TensorIterator{2},n::Integer)
+function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
     m=tensorblock(it,n)
     p=findfirst(it,(1,m))
     j=1+n-p
     j,m-j+1
 end
 
-tensorblockfirst(it::TensorIterator{2},K) = findfirst(it,(1,K))
+tensorblockfirst(it::TensorIterator{NTuple{2,Infinity{Bool}}},K) = findfirst(it,(1,K))
 
 
 # TensorSpace
@@ -59,7 +103,7 @@ immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
     spaces::SV
 end
 
-tensorizer{SV,T,d}(::TensorSpace{SV,T,d}) = TensorIterator{d}()
+tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = TensorIterator(map(dimension,sp.spaces))
 
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),mapreduce(ndims,+,sp)}(sp)
@@ -219,7 +263,7 @@ end
 
 ##  Fun routines
 
-function fromtensor{T}(it::TensorIterator{2},M::Matrix{T})
+function fromtensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Matrix{T})
     ret=zeros(T,findfirst(it,(size(M,1),size(M,2))))
     for k=1:size(M,1),j=1:size(M,2)
         ret[findfirst(it,(k,j))] = M[k,j]
@@ -227,7 +271,7 @@ function fromtensor{T}(it::TensorIterator{2},M::Matrix{T})
     ret
 end
 
-function totensor{T}(it::TensorIterator{2},M::Vector{T})
+function totensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Vector{T})
     inds=it[length(M)]
     m=inds[1]+inds[2]-1
     ret=zeros(T,m,m)
