@@ -8,11 +8,53 @@ abstract AbstractProductSpace{SV,T,d} <: Space{T,AnyDomain,d}
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 
 
+# TensorIterator
+# This gives the map from coefficients to the
+# tensor entry of a tensor product of d spaces
+# findfirst is overriden to get efficient inverse
 
+immutable TensorIterator{d} end
+
+
+Base.eltype{d}(::TensorIterator{d}) = NTuple{d,Int}
+
+
+Base.start(::TensorIterator{2}) = (1,1)
+Base.start(::TensorIterator{3}) = (1,1,1)
+Base.start{d}(::TensorIterator{d}) = tuple(ones(Int,d)...)::NTuple{d,Int}
+
+Base.next(::TensorIterator{2},st::Tuple{Int,Int}) =
+    (st,st[2] == 1? (1,st[1]+1) : (st[1]+1,st[2]-1))
+
+Base.done(::TensorIterator,st) = false
+
+function Base.findfirst(::TensorIterator{2},kj::Tuple{Int,Int})
+    k,j=kj
+    n=k+j-2
+    (n*(n+1))÷2+k
+end
+
+# which block of the tensor
+# equivalent to sum of indices -1
+tensorblock(::TensorIterator{2},n) = floor(Integer,sqrt(2n) + 1/2)
+
+
+function getindex(it::TensorIterator{2},n::Integer)
+    m=tensorblock(it,n)
+    p=findfirst(it,(1,m))
+    j=1+n-p
+    j,m-j+1
+end
+
+
+# TensorSpace
+# represents the tensor product of several subspaces
 
 immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
     spaces::SV
 end
+
+tensorizer{SV,T,d}(::TensorSpace{SV,T,d}) = TensorIterator{d}()
 
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),mapreduce(ndims,+,sp)}(sp)
@@ -22,7 +64,7 @@ for OP in (:spacescompatible,:(==))
         all(Bool[$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
 end
 
-canonicalspace(T::TensorSpace)=TensorSpace(map(canonicalspace,T.spaces))
+canonicalspace(T::TensorSpace) = TensorSpace(map(canonicalspace,T.spaces))
 
 
 
@@ -157,7 +199,8 @@ end
 
 ## points
 
-points(d::Union{BivariateDomain,BivariateSpace},n,m)=points(d,n,m,1),points(d,n,m,2)
+points(d::Union{BivariateDomain,BivariateSpace},n,m) =
+    points(d,n,m,1),points(d,n,m,2)
 
 function points(d::BivariateSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
@@ -171,46 +214,29 @@ end
 
 ##  Fun routines
 
-
-function fromtensorind(k,j)
-    n=k+j-2
-    div(n*(n+1),2)+k
-end
-
-# which block of the tensor
-# equivalent to sum of indices -1
-totensorblock(n)=floor(Integer,sqrt(2n) + 1/2)
-#gives the range corresponding to the block
-fromtensorblock(j)=((j*(j-1))÷2)+(1:j)
-
-function totensorind(n)
-    m=totensorblock(n)
-    p=fromtensorind(1,m)
-    j=1+n-p
-    j,m-j+1
-end
-
-
-function fromtensor{T}(M::Matrix{T})
-    ret=zeros(T,fromtensorind(size(M,1),size(M,2)))
-
+function fromtensor{T}(it::TensorIterator{2},M::Matrix{T})
+    ret=zeros(T,findfirst(it,(size(M,1),size(M,2))))
     for k=1:size(M,1),j=1:size(M,2)
-        ret[fromtensorind(k,j)]=M[k,j]
+        ret[findfirst(it,(k,j))] = M[k,j]
     end
     ret
 end
 
-function totensor{T}(M::Vector{T})
-    inds=totensorind(length(M))
+function totensor{T}(it::TensorIterator{2},M::Vector{T})
+    inds=it[length(M)]
     m=inds[1]+inds[2]-1
     ret=zeros(T,m,m)
     for k=1:length(M)
-        ret[totensorind(k)...]=M[k]
+        ret[it[k]...] = M[k]
     end
     ret
 end
 
+for OP in (:fromtensor,:totensor)
+    @eval $OP(s::Space,M) = $OP(tensorizer(s),M)
+end
 
+# TODO: remove
 function totree(v::Vector)
    m=totensorblock(length(v))
     r=Array(Vector{eltype(v)},m)
