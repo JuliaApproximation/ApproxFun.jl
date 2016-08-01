@@ -164,5 +164,4 @@ let d = Space([0,1]) * Space([0,2])
     @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
     L=Dx+Dy
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
-    Dx*f - fx
 end
