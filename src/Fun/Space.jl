@@ -45,7 +45,7 @@ Base.eltype(::Type{AnyBasis})=Number
 
 # T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
 # D is the domain
-# d is the domain dimension
+# d is the dimension
 abstract Space{T,D,d}
 
 
