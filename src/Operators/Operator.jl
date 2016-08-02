@@ -310,22 +310,6 @@ Base.convert{T}(A::Type{Operator{T}},f::Fun) =
 ## Promotion
 
 
-mat_promote_type(A,B)=promote_type(A,B)
-mat_promote_type{T,B,n}(::Type{Array{T,n}},::Type{Array{B,n}}) =
-    Array{promote_type(T,B),n}
-mat_promote_type{T,B<:Number,n}(::Type{Array{T,n}},::Type{B}) =
-    Array{promote_type(T,B),n}
-mat_promote_type{T,B<:Number,n}(::Type{B},::Type{Array{T,n}}) =
-    Array{promote_type(T,B),n}
-
-mat_promote_type{T,B}(::Type{BandedMatrix{T}},::Type{BandedMatrix{B}}) =
-    BandedMatrix{promote_type(T,B)}
-mat_promote_type{T,B<:Number}(::Type{BandedMatrix{T}},::Type{B}) =
-    BandedMatrix{promote_type(T,B)}
-mat_promote_type{T,B<:Number}(::Type{B},::Type{BandedMatrix{T}}) =
-    BandedMatrix{promote_type(T,B)}
-
-
 
 
 
@@ -334,14 +318,14 @@ Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{Operator}) =
     Operator{N}
 Base.promote_rule{S,N<:Number}(::Type{Fun{S,N}},::Type{Operator}) = Operator{N}
 Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O}) =
-    Operator{mat_promote_type(N,eltype(O))}
+    Operator{promote_type(N,eltype(O))}
 Base.promote_rule{N<:Number,O<:Operator}(::Type{UniformScaling{N}},::Type{O}) =
-    Operator{mat_promote_type(N,eltype(O))}
+    Operator{promote_type(N,eltype(O))}
 Base.promote_rule{S,N<:Number,O<:Operator}(::Type{Fun{S,N}},::Type{O}) =
-    Operator{mat_promote_type(N,eltype(O))}
+    Operator{promote_type(N,eltype(O))}
 
 Base.promote_rule{BO1<:Operator,BO2<:Operator}(::Type{BO1},::Type{BO2}) =
-    Operator{mat_promote_type(eltype(BO1),eltype(BO2))}
+    Operator{promote_type(eltype(BO1),eltype(BO2))}
 
 
 

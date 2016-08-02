@@ -141,9 +141,9 @@ end
 for OP in (:+,:-,:(.+),:(.-))
     @eval begin
         $OP(c::Union{UniformScaling,Number},A::Operator) =
-            $OP(convert(Operator{mat_promote_type(eltype(A),eltype(c))},c),A)
+            $OP(convert(Operator{promote_type(eltype(A),eltype(c))},c),A)
         $OP(A::Operator,c::Union{UniformScaling,Number}) =
-            $OP(A,convert(Operator{mat_promote_type(eltype(A),eltype(c))},c))
+            $OP(A,convert(Operator{promote_type(eltype(A),eltype(c))},c))
     end
 end
 

@@ -154,13 +154,16 @@ let d = Chebyshev()^2
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(d[1])⊗ldirichlet(d[2])
-    @test_approx_eq Number(B*f) f(-1.,-1.)
+    @test_approx_eq B*f f(-1.,-1.)
 
     B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
-    @test_approx_eq Number(B*f) f(0.1,-1.)
+    @test_approx_eq B*f f(0.1,-1.)
 
     B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
-    @test_approx_eq Number(B*f) f(0.1,0.3)
+    @test_approx_eq B*f f(0.1,0.3)
+
+    B=Evaluation(d,(0.1,0.3))
+    @test_approx_eq B*f f(0.1,0.3)
 end
 
 let d = Space([0,1]) * Space([0,2])
@@ -175,29 +178,14 @@ let d = Space([0,1]) * Space([0,2])
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(d[1])⊗ldirichlet(d[2])
-    @test abs(Number(B*f)-f(0.,0.)) ≤ 10eps()
+    @test abs(B*f-f(0.,0.)) ≤ 10eps()
 
     B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
-    @test_approx_eq Number(B*f) f(0.1,0.)
+    @test_approx_eq B*f f(0.1,0.)
 
     B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
-    @test_approx_eq Number(B*f) f(0.1,0.3)
+    @test_approx_eq B*f f(0.1,0.3)
+
+    B=Evaluation(d,(0.1,0.3))
+    @test_approx_eq B*f f(0.1,0.3)
 end
-
-
-using FixedSizeArrays
-
-sp = Chebyshev()^2
-x=Vec(0.1,0.2)
-
-Evaluation(sp::TensorSpace,x::Vec) = EvaluationWrapper(sp,x,zeros(Int,length(x)),⊗(map(Evaluation,sp.spaces,x)...))
-Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
-
-
-(TensorSpace(ConstantSpace(Interval()),ConstantSpace(Interval())) |>domain) == Interval()^2
-
-
-
-f=Fun((x,y)->exp(x*cos(y)),sp)
-
-f((0.1,0.2))
