@@ -6,7 +6,7 @@ Space(d::Circle)=Laurent(d)
 
 ## Evaluation
 
-Evaluation(d::PeriodicDomain,x::Number,n...)=Evaluation(Laurent(d),complex(x),n...)
+Evaluation(d::PeriodicDomain,x::Number,n...) = Evaluation(Laurent(d),complex(x),n...)
 
 ## Definite Integral
 
