@@ -32,6 +32,8 @@ domain(A::Operator) = domain(domainspace(A))
 
 
 
+isconstspace(::ConstantSpace) = true
+
 ## Functionals
 isafunctional(A::Operator) = size(A,1)==1 && isa(rangespace(A),ConstantSpace)
 isbanded(A::Operator) = isfinite(bandinds(A,1)) && isfinite(bandinds(A,2))

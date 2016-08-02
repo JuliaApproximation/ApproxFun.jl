@@ -183,3 +183,21 @@ let d = Space([0,1]) * Space([0,2])
     B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
     @test_approx_eq Number(B*f) f(0.1,0.3)
 end
+
+
+using FixedSizeArrays
+
+sp = Chebyshev()^2
+x=Vec(0.1,0.2)
+
+Evaluation(sp::TensorSpace,x::Vec) = EvaluationWrapper(sp,x,zeros(Int,length(x)),⊗(map(Evaluation,sp.spaces,x)...))
+Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
+
+
+(TensorSpace(ConstantSpace(Interval()),ConstantSpace(Interval())) |>domain) == Interval()^2
+
+
+
+f=Fun((x,y)->exp(x*cos(y)),sp)
+
+f((0.1,0.2))

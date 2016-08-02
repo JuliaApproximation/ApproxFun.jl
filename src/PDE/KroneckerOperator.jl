@@ -274,3 +274,8 @@ function Derivative{SV,TT}(S::TensorSpace{SV,TT,2},order::Vector{Int})
     # try to work around type inference
     DerivativeWrapper{typeof(K),typeof(domainspace(K)),Vector{Int},T}(K,order)
 end
+
+
+## Functionals
+Evaluation(sp::TensorSpace,x::Vec) = EvaluationWrapper(sp,x,zeros(Int,length(x)),⊗(map(Evaluation,sp.spaces,x)...))
+Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))

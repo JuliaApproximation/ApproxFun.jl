@@ -73,14 +73,14 @@ end
 
 ## EvaluationWrapper
 
-immutable EvaluationWrapper{S<:Space,M<:Union{Number,Bool},FS<:Operator,T<:Number} <: Evaluation{T}
+immutable EvaluationWrapper{S<:Space,M<:Union{Number,Bool},FS<:Operator,OT,T<:Number} <: Evaluation{T}
     space::S
     x::M
-    order::Int
+    order::OT
     functional::FS
 end
 
-EvaluationWrapper(sp::Space,x::Union{Number,Bool},order::Integer,func::Operator) =
+EvaluationWrapper(sp::Space,x::Union{Number,Bool},order,func::Operator) =
     EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
 getindex(E::EvaluationWrapper,k) = getindex(E.functional,k)
 
