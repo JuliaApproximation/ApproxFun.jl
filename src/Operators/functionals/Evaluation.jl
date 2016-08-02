@@ -7,25 +7,26 @@ abstract Evaluation{T}<:Operator{T}
 @functional Evaluation
 
 # M = Bool if endpoint
-immutable ConcreteEvaluation{S,M,T} <: Evaluation{T}
+immutable ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
     space::S
     x::M
-    order::Int
+    order::OT
 end
-Evaluation{T}(::Type{T},sp::Space,x::Bool,order::Integer) =
-    ConcreteEvaluation{typeof(sp),typeof(x),T}(sp,x,order)
-function Evaluation{T}(::Type{T},sp::Space,x::Number,order::Integer)
+Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order::Integer) =
+    ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
+function Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Number,order::Integer)
     d=domain(sp)
     if isa(d,IntervalDomain) && isapprox(first(d),x)
         Evaluation(T,sp,false,order)
     elseif isa(d,IntervalDomain) && isapprox(last(d),x)
         Evaluation(T,sp,true,order)
     else
-        ConcreteEvaluation{typeof(sp),typeof(x),T}(sp,x,order)
+        ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
     end
 end
 
-Evaluation(sp::UnsetSpace,x::Bool,k::Integer) = ConcreteEvaluation{UnsetSpace,Bool,UnsetNumber}(sp,x,k)
+Evaluation(sp::UnsetSpace,x::Bool,k::Integer) =
+    ConcreteEvaluation{UnsetSpace,Bool,typeof(k),UnsetNumber}(sp,x,k)
 Evaluation(sp::Space{ComplexBasis},x,order::Integer) =
     Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
 Evaluation(sp::Space,x,order::Integer) = Evaluation(eltype(domain(sp)),sp,x,order)
@@ -47,18 +48,19 @@ function Base.convert{T}(::Type{Operator{T}},E::ConcreteEvaluation)
     if T == eltype(E)
         E
     else
-        ConcreteEvaluation{typeof(E.space),typeof(E.x),T}(E.space,E.x,E.order)
+        ConcreteEvaluation{typeof(E.space),typeof(E.x),typeof(E.order),T}(E.space,E.x,E.order)
     end
 end
 
 
 
 ## default getindex
-getindex{S,M,T}(D::ConcreteEvaluation{S,M,T},k::Integer) =
-    differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)(D.x)
+getindex(D::ConcreteEvaluation,k::Integer) =
+    differentiate(Fun([zeros(eltype(D),k-1);one(eltype(D))],D.space),D.order)(D.x)
 
 
-function getindex{S,T}(D::ConcreteEvaluation{S,Bool,T},k::Integer)
+function getindex{S}(D::ConcreteEvaluation{S,Bool},k::Integer)
+    T=eltype(D)
     if !D.x
         first(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order))
     else

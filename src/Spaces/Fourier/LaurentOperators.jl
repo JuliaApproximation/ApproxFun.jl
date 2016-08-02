@@ -18,7 +18,7 @@ Multiplication{DD}(f::Fun{Taylor{DD}},sp::Taylor{DD}) =
 
 ## Evaluation
 
-getindex{DD}(T::ConcreteEvaluation{Taylor{DD},Complex{Float64},Complex{Float64}},cols::Range) =
+getindex{DD}(T::ConcreteEvaluation{Taylor{DD},Complex{Float64},Int,Complex{Float64}},cols::Range) =
     mappoint(domain(T),Circle(),T.x).^(cols-1)
 
 
