@@ -259,9 +259,6 @@ end
 Base.transpose(S::SpaceOperator) =
     SpaceOperator(transpose(S.op),domainspace(S).',rangespace(S).')
 Base.transpose(S::ConstantTimesOperator) = sp.c*S.op.'
-Base.transpose{V,T<:AbstractArray}(C::ConstantOperator{V,T},k) = C
-Base.transpose{V,T<:AbstractArray}(C::ZeroOperator{V,T},k) = C
-
 
 
 ### Calculus

@@ -17,7 +17,7 @@ iskronop(::KroneckerOperator) = true
 
 iskronop(A::Union{WrapperOps,SpaceOperator,ConstantTimesOperator})=iskronop(A.op)
 iskronop(A::TimesOperator)=all(iskronop,A.ops)
-iskronop{V,T,DS<:TensorSpace}(::ConstantOperator{V,T,DS}) = true
+iskronop{T,DS<:TensorSpace}(::ConstantOperator{T,DS}) = true
 iskronop{T,S<:TensorSpace,V<:TensorSpace}(::ZeroOperator{T,S,V}) = true
 
 
@@ -35,7 +35,7 @@ dekron(S::TimesOperator,k)=TimesOperator(Operator{eltype(eltype(S))}[dekron(op,k
 dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 #TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)
-dekron{V,T,DS<:TensorSpace}(C::ConstantOperator{V,T,DS},k) =
+dekron{T,DS<:TensorSpace}(C::ConstantOperator{T,DS},k) =
     k==1?ConstantOperator(C.c,C.space[1]):ConstantOperator(one(C.c),C.space[k])
 dekron{T,S<:TensorSpace,V<:TensorSpace}(C::ZeroOperator{T,S,V},k) =
     ZeroOperator(C.domainspace[k],C.rangespace[k])

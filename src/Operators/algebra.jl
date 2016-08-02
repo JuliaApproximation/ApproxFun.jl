@@ -152,7 +152,7 @@ end
 ## Times Operator
 
 immutable ConstantTimesOperator{T,B,BT} <: Operator{BT}
-    c::T
+    λ::T
     op::B
     ConstantTimesOperator(c,op)=new(c,op)
 end
@@ -170,9 +170,9 @@ function ConstantTimesOperator{BM<:BandedMatrix}(c::Number,op::Operator{BM})
 end
 
 ConstantTimesOperator{T,B,BT}(c::Number,op::ConstantTimesOperator{T,B,BandedMatrix{BT}}) =
-    ConstantTimesOperator(c*op.c,op.op)
+    ConstantTimesOperator(c*op.λ,op.op)
 ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
-    ConstantTimesOperator(c*op.c,op.op)
+    ConstantTimesOperator(c*op.λ,op.op)
 
 
 for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,:isafunctional)
@@ -187,7 +187,7 @@ for OP in (:promotedomainspace,:promoterangespace),SP in (:UnsetSpace,:Space)
     @eval function $OP(C::ConstantTimesOperator,k::$SP)
             op=$OP(C.op,k)
             # TODO: This assumes chnanging domainspace can't change the type
-            ConstantTimesOperator{eltype(C.c),typeof(op),eltype(C)}(C.c,op)
+            ConstantTimesOperator{eltype(C.λ),typeof(op),eltype(C)}(C.λ,op)
     end
 end
 
@@ -197,19 +197,19 @@ function Base.convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
         C
     else
         op=convert(Operator{T},C.op)
-        ret=ConstantTimesOperator{typeof(C.c),typeof(op),T}(C.c,op)
+        ret=ConstantTimesOperator{typeof(C.λ),typeof(op),T}(C.λ,op)
         ret
     end
 end
 
 getindex(P::ConstantTimesOperator,k::Integer...) =
-    P.c*P.op[k...]
+    P.λ*P.op[k...]
 
 BLAS.copy{T,OP<:ConstantTimesOperator}(S::SubBandedMatrix{T,OP}) =
     copy_axpy!(S)
 
 BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubBandedMatrix{T,OP},A::AbstractMatrix) =
-    unwrap_axpy!(α*parent(S).c,S,A)
+    unwrap_axpy!(α*parent(S).λ,S,A)
 
 
 
