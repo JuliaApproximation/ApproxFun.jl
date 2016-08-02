@@ -173,4 +173,13 @@ let d = Space([0,1]) * Space([0,2])
     @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
     L=Dx+Dy
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
+
+    B=ldirichlet(d[1])⊗ldirichlet(d[2])
+    @test abs(Number(B*f)-f(0.,0.)) ≤ 10eps()
+
+    B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
+    @test_approx_eq Number(B*f) f(0.1,0.)
+
+    B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
+    @test_approx_eq Number(B*f) f(0.1,0.3)
 end
