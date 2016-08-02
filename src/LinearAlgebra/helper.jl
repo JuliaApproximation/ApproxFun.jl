@@ -423,6 +423,11 @@ for T in (:BlasFloat,:Integer,:(Complex{Int}))
     end
 end
 
+
+# $ is xor
+*(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle $ b.angle)
+*(a::Infinity,b::Infinity) = Infinity(a.angle + b.angle)
+
 for T in (:Bool,:Integer,:AbstractFloat)
     @eval begin
         *(a::$T,y::Infinity) = a>0?y:(-y)

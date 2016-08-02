@@ -68,22 +68,26 @@ end
 
 function colstart(A::KroneckerOperator,k::Integer)
     K=tensorblock(A.domaintensorizer,k)
-    tensorblockfirst(A.rangetensorizer,max(1,K-blockbandwidth(A,2)))
+    tensorblockstart(A.rangetensorizer,max(1,K-blockbandwidth(A,2)))
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
     K=tensorblock(A.domaintensorizer,k)
-    tensorblockfirst(A.rangetensorizer,K+blockbandwidth(A,1)+1)-1
+    st=tensorblockstop(A.rangetensorizer,K+blockbandwidth(A,1))
+    # zero indicates above dimension
+    st==0?size(A,1):min(size(A,1),st)
 end
 
 function rowstart(A::KroneckerOperator,k::Integer)
     K=tensorblock(rangespace(A),k)
-    tensorblockfirst(domainspace(A),max(1,K-blockbandwidth(A,1)))
+    tensorblockstart(domainspace(A),max(1,K-blockbandwidth(A,1)))
 end
 
 function rowstop(A::KroneckerOperator,k::Integer)
     K=tensorblock(rangespace(A),k)
-    tensorblockfirst(domainspace(A),K+blockbandwidth(A,2)+1)-1
+    st=tensorblockstop(domainspace(A),K+blockbandwidth(A,2))
+    # zero indicates above dimension
+    st==0?size(A,2):min(size(A,2),st)
 end
 
 

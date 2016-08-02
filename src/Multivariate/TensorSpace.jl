@@ -97,32 +97,45 @@ function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
     j,m-j+1
 end
 
-tensorblockfirst{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = findfirst(it,(1,K))
 
-function tensorblockfirst(it::TensorIterator,K)
-    ret=ones(length(it.dimensions))
+tensorblockstarttuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (1,K)
+tensorblockstoptuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (K,1)
+
+# this is for general dimension case, so we need to construct it so that
+# each entry is less than the dimension
+function tensorblockstarttuple(it::TensorIterator,K)
+    ret=ones(Int,length(it.dimensions))
     for k=reverse(eachindex(ret))
         ret[k]=min(K,it.dimensions[k])
         K-=ret[k]
         if K ≤ 0
-            return findfirst(it,tuple(ret...))
+            return tuple(ret...)
         end
     end
-    error("Above dimension")
+    tuple(zeros(Int,length(it.dimensions))...)
 end
 
-function tensorblockfirst{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K)
-    it=ci.iterator
-    ret=ones(length(it.dimensions))
-    for k=reverse(eachindex(ret))
+function tensorblockstoptuple(it::TensorIterator,K)
+    ret=ones(Int,length(it.dimensions))
+    for k=eachindex(ret)
         ret[k]=min(K,it.dimensions[k])
         K-=ret[k]
         if K ≤ 0
-            return findfirst(ci,tuple(ret...))
+            return tuple(ret...)
         end
     end
-    error("Above dimension")
+    tuple(zeros(Int,length(it.dimensions))...)
 end
+
+
+
+tensorblockstart(it::TensorIterator,K) = findfirst(it,tensorblockstarttuple(it,K))
+tensorblockstop(it::TensorIterator,K) = findfirst(it,tensorblockstoptuple(it,K))
+tensorblockstart{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
+    findfirst(ci,tensorblockstarttuple(ci.iterator,K))
+tensorblockstop{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
+    findfirst(ci,tensorblockstoptuple(ci.iterator,K))
+
 
 
 
@@ -139,6 +152,9 @@ tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = TensorIterator(map(dimension,sp.sp
 
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),mapreduce(ndims,+,sp)}(sp)
+
+
+dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)
 
 for OP in (:spacescompatible,:(==))
     @eval $OP{SV,T,d}(A::TensorSpace{SV,T,d},B::TensorSpace{SV,T,d}) =
@@ -330,7 +346,7 @@ function totensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Vector{T})
     ret
 end
 
-for OP in (:fromtensor,:totensor,:tensorblock,:tensorblockfirst)
+for OP in (:fromtensor,:totensor,:tensorblock,:tensorblockstart,:tensorblockstop)
     @eval $OP(s::Space,M) = $OP(tensorizer(s),M)
 end
 

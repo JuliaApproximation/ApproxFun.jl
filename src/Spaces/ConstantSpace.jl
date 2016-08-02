@@ -27,7 +27,7 @@ dotu(f::AbstractVector,g::Fun{SequenceSpace}) =
 
 Base.norm(f::Fun{SequenceSpace}) = norm(f.coefficients)
 Base.norm(f::Fun{SequenceSpace},k::Int) = norm(f.coefficients,k)
-Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)    
+Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)
 
 
 
@@ -62,7 +62,7 @@ Fun(c::Number,d::ConstantSpace)=Fun([c],d)
 dimension(::ConstantSpace) = 1
 
 #TODO: Change
-setdomain{CS<:AnyDomain}(f::Fun{CS},d::Domain)=Number(f)*ones(d)
+setdomain{CS<:AnyDomain}(f::Fun{CS},d::Domain) = Number(f)*ones(d)
 
 canonicalspace(C::ConstantSpace)=C
 spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
@@ -77,13 +77,15 @@ evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
 evaluate(f::AbstractVector,::ZeroSpace,x::Array)=zeros(x)
 
 
-Base.convert{CS<:ConstantSpace,T<:Number}(::Type{T},f::Fun{CS})=convert(T,f.coefficients[1])
+Base.convert{CS<:ConstantSpace,T<:Number}(::Type{T},f::Fun{CS}) =
+    convert(T,f.coefficients[1])
 
 # promoting numbers to Fun
 # override promote_rule if the space type can represent constants
-Base.promote_rule{CS<:ConstantSpace,T<:Number}(::Type{Fun{CS}},::Type{T})=Fun{CS,T}
-Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T})=Fun{CS,promote_type(T,V)}
-Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T})=Fun
+Base.promote_rule{CS<:ConstantSpace,T<:Number}(::Type{Fun{CS}},::Type{T}) = Fun{CS,T}
+Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T}) =
+    Fun{CS,promote_type(T,V)}
+Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T}) = Fun
 
 
 # When the union of A and B is a ConstantSpace, then it contains a one
@@ -174,3 +176,15 @@ end
 
 ## Multivariate case
 union_rule(a::TensorSpace,b::ConstantSpace{AnyDomain})=TensorSpace(map(sp->union(sp,b),a.spaces))
+## Special spaces
+
+function Base.convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
+    if all(sp->isa(sp,ConstantSpace),space(f).spaces)
+        convert(T,f.coefficients[1])
+    else
+        error("Cannot convert $f to type $T")
+    end
+end
+
+Base.convert{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,TT,d}(::Type{T},f::Fun{TensorSpace{Tuple{CS1,CS2},TT,d}}) =
+    convert(T,f.coefficients[1])
