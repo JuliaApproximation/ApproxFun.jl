@@ -45,6 +45,8 @@ end
 ConstantSpace(d::Domain) = ConstantSpace{typeof(d)}(d)
 ConstantSpace() = ConstantSpace(AnyDomain())
 
+isconstspace(::ConstantSpace) = true
+
 # we override maxspace instead of maxspace_rule to avoid
 # domainscompatible check.
 for OP in (:maxspace,:(Base.union))
@@ -188,3 +190,5 @@ end
 
 Base.convert{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,TT,d}(::Type{T},f::Fun{TensorSpace{Tuple{CS1,CS2},TT,d}}) =
     convert(T,f.coefficients[1])
+
+isconstspace(sp::TensorSpace) = all(isconstspace,sp.spaces)

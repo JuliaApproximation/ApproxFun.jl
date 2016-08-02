@@ -129,6 +129,16 @@ function getindex(KO::KroneckerOperator,kin::Integer,jin::Integer)
     KO.ops[1][k,j]*KO.ops[2][K,J]
 end
 
+function getindex(KO::KroneckerOperator,k::Integer)
+    if size(KO,1) == 1
+        KO[1,k]
+    elseif size(KO,2) == 1
+        KO[k,1]
+    else
+        throw(ArgumentError("[k] only defined for 1 x ∞ and ∞ x 1 operators"))
+    end
+end
+
 
 *(A::KroneckerOperator,B::KroneckerOperator) =
     KroneckerOperator(A.ops[1]*B.ops[1],A.ops[2]*B.ops[2])
