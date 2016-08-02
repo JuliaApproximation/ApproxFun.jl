@@ -91,6 +91,8 @@ function rowstop(A::KroneckerOperator,k::Integer)
 end
 
 
+bandinds(K::KroneckerOperator) = all(isdiag,K.ops) ? (0,0) : (-∞,∞)
+
 blockbandinds(K::KroneckerOperator) =
     bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]

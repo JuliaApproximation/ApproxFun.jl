@@ -180,3 +180,4 @@ pdesolve(A::Operator,f...;opts...)=pdesolve([A],f...;opts...)
 
 
 \(A::AbstractPDEOperatorSchur,f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
+linsolve(A::Operator,b::MultivariateFun;kwds...) = pdesolve(A,b;kwds...)
