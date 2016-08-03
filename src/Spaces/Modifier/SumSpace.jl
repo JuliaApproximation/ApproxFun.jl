@@ -60,6 +60,8 @@ dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)
 InterlaceIterator(sp::DirectSumSpace) = InterlaceIterator(map(dimension,sp.spaces))
 interlacer(sp::DirectSumSpace) = InterlaceIterator(sp)
 interlacer(sp::Space) = InterlaceIterator(tuple(dimension(sp)))
+cache(Q::InterlaceIterator) = CachedIterator(Q)
+
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval begin

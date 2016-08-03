@@ -17,6 +17,8 @@ immutable TensorIterator{DMS<:Tuple}
     dimensions::DMS
 end
 
+cache(Q::TensorIterator) = CachedIterator(Q)
+
 
 Base.eltype{d,T}(::TensorIterator{NTuple{d,T}}) = NTuple{d,Int}
 Base.eltype(it::TensorIterator) = NTuple{length(it.dimensions),Int}

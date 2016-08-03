@@ -515,7 +515,7 @@ Base.done(it::AbstractCount, state) = false
 Base.length(it::AbstractCount) = ∞
 
 getindex(it::Count,k) = it.start + it.step*(k-1)
-getindex(it::UnitCount,k) = it.start + k - 1
+getindex(it::UnitCount,k) = (it.start-1) + k
 
 
 function Base.colon(a::Real,b::Infinity{Bool})
@@ -613,3 +613,9 @@ function Base.findfirst(A::CachedIterator,x)
     end
     return 0
 end
+
+
+# The following don't need caching
+cache(A::Vector) = A
+cache(A::Range) = A
+cache(A::AbstractCount) = A

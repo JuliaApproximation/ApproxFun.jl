@@ -99,13 +99,13 @@ function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
             u=max(u,p*bandinds(ops[k,j],2)+j-k)
         end
     else
-        l,u = (-∞,∞)  # not banded
+        l,u = (1-dimension(rs),dimension(ds)-1)  # not banded
     end
 
 
     InterlaceOperator(ops,ds,rs,
-                        CachedIterator(interlacer(ds)),
-                        CachedIterator(interlacer(rs)),
+                        cache(interlacer(ds)),
+                        cache(interlacer(rs)),
                         (l,u))
 end
 
@@ -122,7 +122,7 @@ end
 
 function InterlaceOperator{T}(opsin::Vector{Operator{T}})
     ops=promotedomainspace(opsin)
-    InterlaceOperator(reshape(ops,1,length(ops)),
+    InterlaceOperator(reshape(ops,length(ops),1),
                         domainspace(first(ops)),rangespace(ops))
 end
 
@@ -131,6 +131,7 @@ InterlaceOperator{OT<:Operator}(ops::Vector{OT}) =
 
 InterlaceOperator(ops::Matrix) =
     InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,ops)}}(ops))
+
 
 function Base.convert{T}(::Type{Operator{T}},S::InterlaceOperator)
     if T == eltype(S)
