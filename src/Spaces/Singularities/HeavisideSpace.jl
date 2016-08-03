@@ -50,11 +50,13 @@ end
 points(sp::SplineSpace{1},n) = sp.domain.points[1:n]
 
 for λ = [0,1]
-    @eval function transform{λ}(S::SplineSpace{λ},vals::Vector,plan...)
-        @assert length(vals) ≤ dimension(S)
-        vals
+    @eval begin
+        function transform(S::SplineSpace{$λ},vals::Vector,plan...)
+            @assert length(vals) ≤ dimension(S)
+            vals
+        end
+        itransform(S::SplineSpace{$λ},cfs::Vector,plan...) = pad(cfs,dimension(S))
     end
-    itransform{λ}(S::SplineSpace{λ},cfs::Vector,plan...) = pad(cfs,dimension(S))
 end
 
 conversion_rule{k,PS<:PolynomialSpace}(sp::HeavisideSpace,sp2::PiecewiseSpace{NTuple{k,PS}}) = sp

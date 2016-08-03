@@ -41,7 +41,6 @@ macro functional(FF)
         Base.size(A::$FF,k::Integer) = k==1?1:∞
         ApproxFun.rangespace(::$FF) = ConstantSpace()
         ApproxFun.isafunctional(::$FF) = true
-        ApproxFun.bandinds(::$FF) = (0,∞)  # functionals are banded below
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
             f[j]
@@ -76,7 +75,8 @@ Base.ndims(::Operator) = 2
 ## bandrange and indexrange
 bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
 bandwidth(A::Operator,k::Integer) = k==1?-bandinds(A,1):bandinds(A,2)
-bandinds(A::Operator) = (-∞,∞)
+# we are always banded by the size
+bandinds(A::Operator) = (1-size(A,1),size(A,2)-1)
 bandinds(A,k::Integer) = bandinds(A)[k]
 bandrange(b::Operator) = UnitRange(bandinds(b)...)
 function bandrangelength(B::Operator)

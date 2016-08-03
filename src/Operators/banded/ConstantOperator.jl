@@ -97,7 +97,6 @@ ZeroOperator{T}(::Type{T},d::Space,v::Space) = ZeroOperator{T,typeof(d),typeof(v
 ZeroOperator{T}(::Type{T},d::Space) = ZeroOperator(T,d,ZeroSpace())
 ZeroOperator(d::Space,v::Space) = ZeroOperator(Float64,d,v)
 ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace())
-ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace())
 ZeroOperator() = ZeroOperator(UnsetSpace(),ZeroSpace())
 ZeroOperator{T}(::Type{T}) = ZeroOperator(T,UnsetSpace(),ZeroSpace())
 
