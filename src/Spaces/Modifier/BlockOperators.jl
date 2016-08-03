@@ -213,5 +213,17 @@ function Base.getindex{T<:Number}(P::BlockFunctional{T},kr::Range)
     end
 end
 
+function Base.getindex{T<:Number}(P::BlockFunctional{T},k::Integer)
+    lcols = length(P.cols)
+    if k≤lcols
+        P.cols[k]
+    else
+        P.op[k-lcols]
+    end
+end
 
-@eval Base.convert{T}(::Type{Operator{T}},P::BlockFunctional)=BlockFunctional(convert(Vector{T},P.cols),convert(Operator{T},P.op))
+
+
+
+@eval Base.convert{T}(::Type{Operator{T}},P::BlockFunctional) =
+    BlockFunctional(convert(Vector{T},P.cols),convert(Operator{T},P.op))

@@ -52,10 +52,8 @@ function rangespace{T<:Operator}(A::Vector{T})
     spl=map(rangespace,A)
     if spacescompatible(spl)
         ArraySpace(first(spl),length(spl))
-    elseif domainscompatible(spl)
-        TupleSpace(spl)
     else
-        PiecewiseSpace(spl)
+        TupleSpace(spl)
     end
 end
 
