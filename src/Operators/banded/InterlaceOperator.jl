@@ -122,7 +122,8 @@ end
 
 function InterlaceOperator{T}(opsin::Vector{Operator{T}})
     ops=promotedomainspace(opsin)
-    InterlaceOperator(ops'',domainspace(first(ops)),rangespace(ops))
+    InterlaceOperator(reshape(ops,1,length(ops)),
+                        domainspace(first(ops)),rangespace(ops))
 end
 
 InterlaceOperator{OT<:Operator}(ops::Vector{OT}) =
