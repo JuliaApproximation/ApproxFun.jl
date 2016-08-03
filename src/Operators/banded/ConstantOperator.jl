@@ -128,6 +128,10 @@ isconstop(::Union{ZeroOperator,ConstantOperator})=true
 isconstop(S::SpaceOperator)=isconstop(S.op)
 isconstop(::)=false
 
+iszeroop(::ZeroOperator) = true
+iszeroop(A::ConstantOperator) = A.λ==0.
+iszeroop(A) = false
+
 Base.convert{T<:Number}(::Type{T},::ZeroOperator)=zero(T)
 Base.convert{T<:Number}(::Type{T},C::ConstantOperator)=convert(T,C.λ)
 Base.convert{T<:Number}(::Type{T},S::SpaceOperator)=convert(T,S.op)

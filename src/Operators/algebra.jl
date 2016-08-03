@@ -58,7 +58,7 @@ function promoteplus{T}(opsin::Vector{Operator{T}})
     ops=Vector{Operator{T}}()
     # prune zero ops
     for op in opsin
-        if !iszerooperator(op)
+        if !iszeroop(op)
             push!(ops,op)
         end
     end

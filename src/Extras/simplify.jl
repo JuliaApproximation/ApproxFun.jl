@@ -14,7 +14,7 @@ simplifytimes(A::Operator,B::Vector) = [simplifytimes(A,B[1]);B[2:end]]
 simplifytimes(A::Vector,B::Operator) = [A[1:end-1];simplifytimes(A[end],B)]
 function simplifytimes(A::ConstantOperator,B::ConstantOperator)
     @assert A.space == B.space
-    ConstantOperator(A.c*B.c,A.space)
+    ConstantOperator(Number(A)*Number(B),A.space)
 end
 function simplifytimes(A::SpaceOperator,B::SpaceOperator)
    @assert domainspace(A)==rangespace(B)

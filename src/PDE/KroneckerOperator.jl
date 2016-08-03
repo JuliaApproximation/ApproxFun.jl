@@ -58,8 +58,9 @@ function Base.convert{T<:Number}(::Type{Operator{T}},K::KroneckerOperator)
     if T == eltype(K)
         K
     else
-        ops=convert(Operator{T},K.ops[1]),convert(Operator{T},K.ops[2])
-        KroneckerOperator{typeof(ops[1]),typeof(ops[2]),typeof(K.domainspace),typeof(K.rangespace),T}(ops,
+        ops=Operator{T}(K.ops[1]),Operator{T}(K.ops[2])
+        KroneckerOperator{typeof(ops[1]),typeof(ops[2]),typeof(K.domainspace),typeof(K.rangespace),
+                            typeof(K.domaintensorizer),typeof(K.rangetensorizer),T}(ops,
               K.domainspace,K.rangespace,
               K.domaintensorizer,K.rangetensorizer)
     end
@@ -205,7 +206,7 @@ end
 Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace) =
     ConcreteMultiplication{D,typeof(sp),T,T}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 function Multiplication{CS<:ConstantSpace,T,V}(f::Fun{TensorSpace{Tuple{CS,V},T,2}},sp::TensorSpace)
-    a=Fun(vec(totensor(f.coefficients)[1,:]),space(f)[2])
+    a=Fun(f.coefficients,space(f)[2]) # coefficients are the same
     #Hack to avoid auto-typing bug.  TODO: incorporate basis
     MultiplicationWrapper(eltype(f),f,eye(sp[1])⊗Multiplication(a,sp[2]))
 end
@@ -213,7 +214,7 @@ function Multiplication{CS<:ConstantSpace,T,V}(f::Fun{TensorSpace{Tuple{V,CS},T,
     if isempty(f.coefficients)
         a=Fun(zeros(eltype(f),1),space(f)[1])
     else
-        a=Fun(totensor(f.coefficients)[:,1],space(f)[1])
+        a=Fun(f.coefficients,space(f)[1])
     end
     MultiplicationWrapper(eltype(f),f,Multiplication(a,sp[1])⊗eye(sp[2]))
 end

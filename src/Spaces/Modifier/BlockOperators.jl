@@ -65,9 +65,9 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
             @assert isa(ds,UnsetSpace) || isa(ds,ConstantSpace)
             @assert !isambiguous(rs)
             colsv[k]=coefficients(M[k].f,rs)
-        elseif isa(M[k],ConstantOperator)
+        elseif isconstop(M[k])
             # if rs is UnsetSpace this just generates constantspace
-            colsv[k]=M[k].c*ones(rs).coefficients
+            colsv[k]=Number(M[k])*ones(rs).coefficients
         else
             error("Not implemented")
         end
