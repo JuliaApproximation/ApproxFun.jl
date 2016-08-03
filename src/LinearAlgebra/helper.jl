@@ -103,6 +103,40 @@ function mindotu(a::Vector,b::Vector)
 end
 
 
+# efficiently resize a Matrix.  Note it doesn't change the input ptr
+function unsafe_resize!(W::Matrix,::Colon,m::Integer)
+    if m == size(W,2)
+        W
+    else
+        n=size(W,1)
+        reshape(resize!(vec(W),n*m),n,m)
+    end
+end
+
+function unsafe_resize!(W::Matrix,n::Integer,::Colon)
+    N=size(W,1)
+    if n == N
+        W
+    elseif n < N
+        W[1:n,:]
+    else
+        m=size(W,2)
+        ret=Array(eltype(W),n,m)
+        ret[1:N,:] = W
+        ret
+    end
+end
+
+function unsafe_resize!(W::Matrix,n::Integer,m::Integer)
+    N=size(W,1)
+    if n == N
+        unsafe_resize!(W,:,m)
+    else
+        unsafe_resize!(unsafe_resize!(W,n,:),:,m)
+    end
+end
+
+
 function pad!{T}(f::Vector{T},n::Integer)
 	if n > length(f)
 		append!(f,zeros(T,n - length(f)))
@@ -167,13 +201,6 @@ end
 
 pad(A::Matrix,::Colon,m::Integer)=pad(A,size(A,1),m)
 pad(A::Matrix,n::Integer,::Colon)=pad(A,n,size(A,2))
-
-
-function resizecols!(W::Matrix,m)
-    n=size(W,1)
-    reshape(resize!(vec(W),n*m),n,m)
-end
-
 
 #TODO:padleft!
 

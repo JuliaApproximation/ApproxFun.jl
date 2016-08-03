@@ -84,7 +84,7 @@ function resizedata!(QR::QROperator,col)
     end
 
     if col > size(W,2)
-        W=QR.H=resizecols!(W,2col)
+        W=QR.H=unsafe_resize!(W,:,2col)
     end
 
 

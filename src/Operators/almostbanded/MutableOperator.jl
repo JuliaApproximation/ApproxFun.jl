@@ -6,10 +6,11 @@ export MutableOperator
 
 ###
 # FillMatrix represents the filled-in rows of an almost-bande dmatrix
+# data*bc
 ###
 
-type FillMatrix{T,R}
-    bc::Vector{R}         # The boundary rows as functionals
+type FillMatrix{T,CO}
+    bc::CO                # The boundary rows as a cached operator
     data::Matrix{T}       # The combination of bcs
     datalength::Int
     numbcs::Int            # The length of bc.  We store this for quicker access, but maybe remove
@@ -30,32 +31,25 @@ function FillMatrix(bc::Vector,data::Matrix,pf)
     nbc=length(bc)
     data=pad(data,size(data,1)+50,:)  # pad now by 50 to save computational cost later
 
-    ##TODO Maybe better for user to do SavedFunctional?  That way it can be reused
-    sfuncs=Array(SavedFunctional{isempty(bc)?Float64:mapreduce(eltype,promote_type,bc)},nbc)
-
-    m=50
-    for k=1:nbc
-        if isa(bc[k],SavedFunctional)
-            sfuncs[k]=bc[k]
-        else
-            sfuncs[k]=SavedFunctional(bc[k])
-        end
-        resizedata!(sfuncs[k],m+pf)
+    if !isempty(bc)
+        sfuncs=cache(InterlaceOperator(bc))
+        resizedata!(sfuncs,nbc,size(data,1)+50)
+        FillMatrix(sfuncs,data,size(data,1),nbc,pf)
+    else
+        FillMatrix(nothing,data,size(data,1),nbc,pf)
     end
-    FillMatrix(sfuncs,data,size(data,1),nbc,pf)
 end
 
-FillMatrix{T}(::Type{T},bc,pf)=FillMatrix(bc,eye2(T,length(bc)),pf)
+FillMatrix{T}(::Type{T},bc,pf) = FillMatrix(bc,eye2(T,length(bc)),pf)
 
 
 function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret = zero(T)
+    resizedata!(B,k)
 
     for m=1:B.numbcs
-        @assert j <= B.bc[m].datalength #TODO: temporary for debugging
-
-         bcv = B.bc[m].data[j]
-        fd=B.data[k,m]
+        bcv = B.bc[m,j]
+        fd = B.data[k,m]
         ret += fd*bcv
     end
 
@@ -66,7 +60,7 @@ function unsafe_getindex{T,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret = zero(T)
 
     @simd for m=1:B.numbcs
-         @inbounds ret += B.data[k,m]*B.bc[m].data[j]
+         @inbounds ret += B.data[k,m]*B.bc.data[m,j]
     end
 
     ret
@@ -76,9 +70,7 @@ function getindex{T<:Number,R}(B::FillMatrix{T,R},kr::Range,j::Integer)
     ret = zeros(T,length(kr))
 
     for m=1:B.numbcs
-        @assert j <= B.bc[m].datalength #TODO: temporary for debugging
-
-        bcv = B.bc[m].data[j]
+        bcv = B.bc.data[m,j]
         fd=B.data[kr,m]
         ret += fd*bcv
     end
@@ -89,15 +81,8 @@ end
 function resizedata!{T}(B::FillMatrix{T},n)
     nbc=B.numbcs
     if nbc>0  && n > B.datalength
-        for bc in B.bc
-            #TODO: Why +10?
-            resizedata!(bc,2n+B.padbc)         ## do all columns in the row, +1 for the fill
-        end
-
-        newfilldata=zeros(T,2n,nbc)
-        newfilldata[1:B.datalength,:]=B.data[1:B.datalength,:]
-        B.data=newfilldata
-
+        resizedata!(B.bc,:,2n+B.padbc)         ## do all columns in the row, +1 for the fill
+        B.data=unsafe_resize!(B.data,2n,:)
         B.datalength=2n
     end
     B
@@ -139,7 +124,7 @@ function MutableOperator{R<:Operator}(bc::Vector{R},op::Operator)
     fl=FillMatrix(eltype(data),bc,br[end]+1)
 
     for k=1:nbc,j=columnrange(data,k)
-        data[k,j]=fl.bc[k][j]  # initialize data with the boundary rows
+        data[k,j]=fl.bc[k,j]  # initialize data with the boundary rows
     end
 
     MutableOperator(op,data,fl,nbc,nbc, br)

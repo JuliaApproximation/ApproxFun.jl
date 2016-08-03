@@ -125,6 +125,9 @@ function InterlaceOperator{T}(opsin::Vector{Operator{T}})
     InterlaceOperator(ops'',domainspace(first(ops)),rangespace(ops))
 end
 
+InterlaceOperator{OT<:Operator}(ops::Vector{OT}) =
+    InterlaceOperator(Vector{Operator{eltype(OT)}}(ops))
+
 InterlaceOperator(ops::Matrix) =
     InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,ops)}}(ops))
 
