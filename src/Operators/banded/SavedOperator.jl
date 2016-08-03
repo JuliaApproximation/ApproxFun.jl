@@ -1,6 +1,6 @@
 
 
-export SavedBandedOperator
+export SavedBandedOperator, cache
 
 
 
@@ -71,7 +71,15 @@ function resizedata!(B::CachedOperator,n::Integer,m::Integer)
     end
 
     # this does nothing if already in dimensions
-    B.data = unsafe_resize!(B.data,n,m)
+    N,M=size(B.data)
+    if n > N && m > M
+        B.data = unsafe_resize!(B.data,n,m)
+    elseif n > N
+        B.data = unsafe_resize!(B.data,n,:)
+    elseif m > M
+        B.data = unsafe_resize!(B.data,:,m)
+    end
+
     if n ≤ B.datasize[1] && m ≤ B.datasize[2]
         # do nothing
         B
