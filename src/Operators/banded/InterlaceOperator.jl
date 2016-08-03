@@ -210,7 +210,7 @@ function interlace{T<:Operator}(A::Matrix{T})
     S=Array(Operator{TT},br<m?br+1:br)
 
     for k=1:br
-        S[k] = InterlaceOperator(A[k,:])
+        S[k] = InterlaceOperator(A[k:k,:])
     end
 
     if br < m

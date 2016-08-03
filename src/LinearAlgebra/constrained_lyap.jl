@@ -109,8 +109,8 @@ function reduce_dofs( R,G, Mx, My, F )
     if length(R) > 0
         GM = G*My.'
         for k = 1:size(R,1)
-                F = F - Mx[:,k]*GM[k,:]
-                Mx = Mx - Mx[:,k]*R[k,:]
+            F = F - Mx[:,k]*GM[k:k,:]
+            Mx = Mx - Mx[:,k]*R[k:k,:]
         end
     end
 
