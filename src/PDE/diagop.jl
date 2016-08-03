@@ -2,16 +2,13 @@
 # isdiagop is used to inspect an operator to see if it is diagonal
 
 
-
-isdiagop(::)=false
-isdiagop{T<:Number}(B::Operator{T})=bandinds(B)==(0,0)
+Base.isdiag{T<:Number}(B::Operator{T}) = bandinds(B)==(0,0)
 
 
 # multivariate case
-isdiagop{T<:BandedMatrix}(K::Operator{T},k)=iskronop(K)?isdiagop(dekron(K,k)):false
-isdiagop(K::KroneckerOperator,k)=isdiagop(K.ops[k])
-isdiagop(S::WrapperOperator,k)=isdiagop(S.op,k)
-isdiagop(A::Union{PlusOperator,TimesOperator},k)=all(op->isdiagop(op,k),A.ops)
+isdiagop(K::KroneckerOperator,k) = isdiag(K.ops[k])
+isdiagop(S::WrapperOperator,k) = isdiagop(S.op,k)
+isdiagop(A::Union{PlusOperator,TimesOperator},k) = all(op->isdiagop(op,k),A.ops)
 
 
 # diagop gets out the op corresponding to the k-th column

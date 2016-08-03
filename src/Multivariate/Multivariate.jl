@@ -33,9 +33,9 @@ arglength(f)=length(Base.uncompressed_ast(f.code.def).args[1])
 
 
 ## Convert between Fun and MultivariateFun
-Fun(f::ProductFun)=Fun(fromtensor(coefficients(f)),space(f))
-Fun(f::ProductFun,sp::TensorSpace)=Fun(ProductFun(f,sp))
-Fun(f::LowRankFun)=Fun(ProductFun(f))
+Fun(f::ProductFun) = Fun(fromtensor(space(f),coefficients(f)),space(f))
+Fun(f::ProductFun,sp::TensorSpace) = Fun(ProductFun(f,sp))
+Fun(f::LowRankFun) = Fun(ProductFun(f))
 
 
 Fun(f::MultivariateFun,sp::Space)=Fun(Fun(f),sp)
@@ -76,6 +76,23 @@ Base.sum{TS<:TensorSpace}(f::Fun{TS})=sum(ProductFun(f))
 
 ## kron
 
-Base.kron(f::Fun,g::Fun)=Fun(LowRankFun([f],[g]))
-Base.kron(f::Fun,g::Number)=kron(f,Fun(g))
-Base.kron(f::Number,g::Fun)=kron(Fun(f),g)
+function Base.kron(f::Fun,g::Fun)
+    sp=space(f)⊗space(g)
+    it=tensorizer(sp)
+    N=ncoefficients(f);M=ncoefficients(g)
+    cfs=Vector{promote_type(eltype(f),eltype(g))}()
+    for (k,j) in it
+        # Tensor product is N x M, so if we are outside
+        # the (N+M)th diagonal we have no more entries
+        if k+j > N+M
+            break
+        elseif k ≤ N && j ≤ M
+            push!(cfs,f.coefficients[k]*g.coefficients[j])
+        else
+            push!(cfs,0)
+        end
+    end
+    Fun(cfs,sp)
+end
+Base.kron(f::Fun,g::Number) = kron(f,Fun(g))
+Base.kron(f::Number,g::Fun) = kron(Fun(f),g)

@@ -65,9 +65,8 @@ end
 
 
 # convert needs to throw away calculated data
-function Base.convert{BT<:Operator}(::Type{BT},S::SavedBandedOperator)
-    T=eltype(BT)
-    if isa(S,BT)
+function Base.convert{T}(::Type{Operator{T}},S::SavedBandedOperator)
+    if eltype(S) == T
         S
     else
         SavedBandedOperator(convert(Operator{T},S.op),

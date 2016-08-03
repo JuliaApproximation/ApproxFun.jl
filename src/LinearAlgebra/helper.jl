@@ -423,6 +423,11 @@ for T in (:BlasFloat,:Integer,:(Complex{Int}))
     end
 end
 
+
+# $ is xor
+*(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle $ b.angle)
+*(a::Infinity,b::Infinity) = Infinity(a.angle + b.angle)
+
 for T in (:Bool,:Integer,:AbstractFloat)
     @eval begin
         *(a::$T,y::Infinity) = a>0?y:(-y)
@@ -486,11 +491,27 @@ getindex(it::Count,k) = it.start + it.step*(k-1)
 getindex(it::UnitCount,k) = it.start + k - 1
 
 
-Base.colon(a::Real,b::Irrational{:∞}) = countfrom(a)
-Base.colon(::Irrational{:∞},::AbstractFloat,::Irrational{:∞}) = [∞]
-Base.colon(a::Real,st::Real,b::Irrational{:∞}) = countfrom(a,st)
-
-Base.isinf(::Irrational{:∞}) = true
+function Base.colon(a::Real,b::Infinity{Bool})
+    if b.angle
+        throw(ArgumentError("Cannot create $a:-∞"))
+    end
+    countfrom(a)
+end
+function Base.colon(a::Infinity{Bool},st::AbstractFloat,b::Infinity{Bool})
+    if a ≠ b
+        throw(ArgumentError("Cannot create $a:$st:$b"))
+    end
+    [a]
+end
+function Base.colon(a::Real,st::Real,b::Infinity{Bool})
+    if st == 0
+        throw(ArgumentError("step cannot be zero"))
+    elseif b.angle == st > 0
+        throw(ArgumentError("Cannot create $a:$st:$b"))
+    else
+        countfrom(a,st)
+    end
+end
 
 
 ## BandedMatrix
@@ -544,3 +565,24 @@ Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
 
 
 Base.getindex(it::CachedIterator,k::Int) = resize!(it,k).storage[k]
+function Base.findfirst(f::Function,A::CachedIterator)
+    k=1
+    for c in A
+        if f(c)
+            return k
+        end
+        k+=1
+    end
+    return 0
+end
+
+function Base.findfirst(A::CachedIterator,x)
+    k=1
+    for c in A
+        if c == x
+            return k
+        end
+        k+=1
+    end
+    return 0
+end

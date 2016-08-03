@@ -34,10 +34,12 @@ function addentries!{ind,st,S,T,DD,d}(C::ConcreteConversion{SliceSpace{ind,st,S,
 end
 
 
-getindex{ind,DS,T,DD,d}(E::Evaluation{SliceSpace{ind,1,DS,T,DD,d},Bool},kr::Range)=Evaluation(E.space.space,E.x,E.order)[kr+ind]
-getindex{ind,DS,T,DD,d}(E::Evaluation{SliceSpace{ind,1,DS,T,DD,d}},kr::Range)=Evaluation(E.space.space,E.x,E.order)[kr+ind]
+getindex{ind,DS,T,DD,d}(E::ConcreteEvaluation{SliceSpace{ind,1,DS,T,DD,d},Bool},kr::Range) =
+    Evaluation(E.space.space,E.x,E.order)[kr+ind]
+getindex{ind,DS,T,DD,d}(E::ConcreteEvaluation{SliceSpace{ind,1,DS,T,DD,d}},kr::Range) =
+    Evaluation(E.space.space,E.x,E.order)[kr+ind]
 
-=={n,st,S,T,DD,d}(a::SliceSpace{n,st,S,T,DD,d},b::SliceSpace{n,st,S,T,DD,d})=a.space==b.space
+=={n,st,S,T,DD,d}(a::SliceSpace{n,st,S,T,DD,d},b::SliceSpace{n,st,S,T,DD,d}) = a.space==b.space
 
 function conversion_rule{n,S<:Space,T}(a::SliceSpace{n,1,S,T},b::SliceSpace{n,1,S,T})
      if a==b

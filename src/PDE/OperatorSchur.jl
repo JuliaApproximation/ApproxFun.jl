@@ -209,8 +209,8 @@ function Base.schurfact{FT<:Operator,O<:Operator}(B::Vector{FT},A::Vector{O},n::
         L,M=promotespaces([A[1],A[2]])
 #         if length(B)==2 &&
 #                      gcd(stride(L),stride(M))==2 &&
-#                      isa(B[1],Evaluation{Ultraspherical{0},Bool,Float64}) &&
-#                      isa(B[2],Evaluation{Ultraspherical{0},Bool,Float64}) &&
+#                      isa(B[1],ConcreteEvaluation{Ultraspherical{0},Bool,Int,Float64}) &&
+#                      isa(B[2],ConcreteEvaluation{Ultraspherical{0},Bool,Int,Float64}) &&
 #                      !B[1].x && B[2].x
 #              StrideOperatorSchur(L,M,n)
 #         else

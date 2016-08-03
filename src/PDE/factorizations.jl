@@ -193,10 +193,12 @@ rangespace(S::PDEProductOperatorSchur)=S.rangespace
 ## Constructuor
 
 
-Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)=PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
-Base.schurfact{LT<:Number,MT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::StrideOperatorSchur{ST},indsBx,indsBy)=PDEStrideOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
+Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy) =
+    PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
+Base.schurfact{LT<:Number,MT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::StrideOperatorSchur{ST},indsBx,indsBy) =
+    PDEStrideOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 
-function Base.schurfact{T}(Bx,By,A::Operator{BandedMatrix{T}},ny::Integer,indsBx,indsBy)
+function Base.schurfact(Bx,By,A::Operator,ny::Integer,indsBx,indsBy)
     @assert iskronsumop(A)
     opsx,opsy=simplifydekron(A)
     @assert length(opsx)==length(opsy)==2
@@ -226,7 +228,7 @@ Base.schurfact{BT<:Operator}(A::Vector{BT},S::BivariateDomain,n::Integer)=PDEPro
 
 
 Base.schurfact{BT<:Operator}(A::Vector{BT},n::Integer)=schurfact(A,domain(A[end]),n)
-Base.schurfact{T}(A::BivariateOperator{T},n::Integer)=schurfact([A],n)
+Base.schurfact(A::Operator,n::Integer)=schurfact([A],n)
 
 function *(A::PDEProductOperatorSchur,F::ProductFun)
     ret=copy(F.coefficients)
@@ -250,4 +252,4 @@ function discretize{OT<:Operator}(A::Vector{OT},S...)
         kronfact(A,S...)
     end
 end
-discretize{T}(A::BivariateOperator{T},n::Integer)=discretize([A],n)
+discretize(A::Operator,n::Integer)=discretize([A],n)

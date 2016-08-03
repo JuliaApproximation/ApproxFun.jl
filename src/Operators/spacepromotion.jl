@@ -14,9 +14,8 @@ end
 SpaceOperator(o::Operator,s::Space,rs::Space) =
     SpaceOperator{typeof(o),typeof(s),typeof(rs),eltype(o)}(o,s,rs)
 SpaceOperator(o,s) = SpaceOperator(o,s,s)
-Base.convert{OT<:SpaceOperator}(::Type{OT},S::OT) = S  # Added to fix 0.4 bug
-function Base.convert{OT<:Operator}(::Type{OT},S::SpaceOperator)
-    T=eltype(OT)
+
+function Base.convert{T}(::Type{Operator{T}},S::SpaceOperator)
     if T==eltype(S)
         S
     else

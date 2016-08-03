@@ -8,16 +8,17 @@
 typealias WrapperOps Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,LaplacianWrapper}
 
 
-isproductop(a)=iskronop(a)  # all kron ops are product ops
+isproductop(a) = iskronop(a)  # all kron ops are product ops
 
 
-iskronop(::)=false
-iskronop(::KroneckerOperator)=true
+iskronop(::) = false
+iskronop(::KroneckerOperator) = true
+
 
 iskronop(A::Union{WrapperOps,SpaceOperator,ConstantTimesOperator})=iskronop(A.op)
 iskronop(A::TimesOperator)=all(iskronop,A.ops)
-iskronop{V,T<:AbstractArray}(::ConstantOperator{V,T}) = true
-iskronop{T<:AbstractArray}(::ZeroOperator{T}) = true
+iskronop{T,DS<:TensorSpace}(::ConstantOperator{T,DS}) = true
+iskronop{T,S<:TensorSpace,V<:TensorSpace}(::ZeroOperator{T,S,V}) = true
 
 
 iskronsumop(::)=false
@@ -33,11 +34,11 @@ dekron(S::WrapperOps,k)=dekron(S.op,k)
 dekron(S::TimesOperator,k)=TimesOperator(Operator{eltype(eltype(S))}[dekron(op,k) for op in S.ops])
 dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
 #TODO: dekron(S::SpaceOperator,k)=SpaceOperator(dekron(S.op,k),domainspace(S)[k],rangespace(S)[k])
-dekron(sp::ConstantTimesOperator,k)=k==1?sp.c*dekron(sp.op,k):dekron(sp.op,k)
-dekron{V,T<:AbstractArray}(C::ConstantOperator{V,T},k) =
-    k==1?ConstantOperator(C.c,C.space[1]):ConstantOperator(one(C.c),C.space[2])
-dekron{T<:AbstractArray}(C::ZeroOperator{T},k) =
-    k==1?ZeroOperator(C.domainspace[1],C.rangespace[1]):ZeroOperator(C.domainspace[2],C.rangespace[2])
+dekron(sp::ConstantTimesOperator,k)=k==1?sp.λ*dekron(sp.op,k):dekron(sp.op,k)
+dekron{T,DS<:TensorSpace}(C::ConstantOperator{T,DS},k) =
+    k==1?ConstantOperator(C.λ,C.space[1]):ConstantOperator(one(C.λ),C.space[k])
+dekron{T,S<:TensorSpace,V<:TensorSpace}(C::ZeroOperator{T,S,V},k) =
+    ZeroOperator(C.domainspace[k],C.rangespace[k])
 
 
 dekron(K)=dekron(K,1),dekron(K,2)
@@ -45,7 +46,7 @@ dekron(K)=dekron(K,1),dekron(K,2)
 
 sumops(A)=A.ops
 sumops(A::Union{SpaceOperator,WrapperOps})=sumops(A.op)
-sumops(A::ConstantTimesOperator)=Operator{eltype(A)}[A.c*op for op in sumops(A.op)]
+sumops(A::ConstantTimesOperator)=Operator{eltype(A)}[A.λ*op for op in sumops(A.op)]
 function dekron(T::Type,A,k,::Colon)
     ret=Array(Operator{T},0)
     if iskronop(A)

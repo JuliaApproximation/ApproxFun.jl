@@ -308,7 +308,7 @@ end
 
 Base.ones(S::SumSpace)=ones(Float64,S)
 
-Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V})=depiece(map(ones,S.spaces))
+Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V}) = depiece(map(ones,S.spaces))
 Base.ones(S::PiecewiseSpace)=ones(Float64,S)
 
 

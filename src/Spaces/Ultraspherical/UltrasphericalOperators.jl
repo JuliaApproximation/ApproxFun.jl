@@ -38,7 +38,7 @@ function evaluatechebyshev{T<:Number}(n::Integer,x::T)
 end
 
 
-function getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},j::Integer)
+function getindex{DD<:Interval}(op::ConcreteEvaluation{Chebyshev{DD},Bool},j::Integer)
     T=eltype(op)
     if op.order == 0
         ifelse(op.x || isodd(j),  # right rule
@@ -52,7 +52,7 @@ end
 
 
 
-function getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range)
+function getindex{DD<:Interval}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Range)
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -81,7 +81,7 @@ function getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range)
     scal!(cst,ret)
 end
 
-function getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},j::Integer)
+function getindex{DD<:Interval,M<:Real}(op::ConcreteEvaluation{Chebyshev{DD},M},j::Integer)
     if op.order == 0
         evaluatechebyshev(j,tocanonical(domain(op),op.x))[end]
     else
@@ -89,7 +89,7 @@ function getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},j::Integ
     end
 end
 
-function getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},k::Range)
+function getindex{DD<:Interval,M<:Real}(op::ConcreteEvaluation{Chebyshev{DD},M},k::Range)
     if op.order == 0
         evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
     else

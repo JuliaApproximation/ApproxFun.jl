@@ -332,7 +332,7 @@ defaultConversion{JS,D<:IntervalDomain}(A::JacobiWeight{JS,D},B::RealUnivariateS
 
 ## Evaluation
 
-function  Base.getindex{J<:JacobiWeight}(op::Evaluation{J,Bool},kr::Range)
+function  Base.getindex{J<:JacobiWeight}(op::ConcreteEvaluation{J,Bool},kr::Range)
     S=op.space
     @assert op.order<=1
     d=domain(op)
@@ -344,7 +344,8 @@ function  Base.getindex{J<:JacobiWeight}(op::Evaluation{J,Bool},kr::Range)
                 2^S.α*getindex(Evaluation(S.space,op.x),kr)
             else #op.order ===1
                 @assert isa(d,IntervalDomain)
-                2^S.α*getindex(Evaluation(S.space,op.x,1),kr)+(tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
+                2^S.α*getindex(Evaluation(S.space,op.x,1),kr)+
+                    (tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
             end
         else
             @assert op.order==0

@@ -11,7 +11,7 @@ end
 
 function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     @assert domainscompatible(space(f),sp)
-    ConcreteMultiplication{D,typeof(sp),T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+    ConcreteMultiplication{D,typeof(sp),T,promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 end
 
 #TODO: SPECIALOPS Remove

@@ -200,8 +200,6 @@ V=B+C*x
 ε=0.001
 f=Fun(x->exp(-20x^2),dx)
 u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
-
-
 @test_approx_eq u(.1,.2) 0.8148207991358946
 B=0.1
 C=0.2

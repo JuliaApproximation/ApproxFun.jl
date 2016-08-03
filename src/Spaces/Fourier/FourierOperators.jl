@@ -125,8 +125,10 @@ function getindex{CS<:SinSpace,OT,T}(D::ConcreteDerivative{CS,OT,T},k::Integer,j
     end
 end
 
-Integral(::CosSpace,m::Integer)=error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
+Integral(::CosSpace,m::Integer) =
+    error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
 
+Integral{DD<:PeriodicInterval}(sp::SinSpace{DD},m::Integer) = ConcreteIntegral(sp,m)
 
 bandinds{CS<:SinSpace}(D::ConcreteIntegral{CS})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::ConcreteIntegral{S})=iseven(D.order)?D.space:SinSpace(domain(D))

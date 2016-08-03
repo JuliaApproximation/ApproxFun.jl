@@ -2,63 +2,65 @@ export Evaluation,ivp,bvp
 
 ## Evaluation constructors
 
-abstract AbstractEvaluation{T}<:Operator{T}
+abstract Evaluation{T}<:Operator{T}
 
-@functional AbstractEvaluation
+@functional Evaluation
 
 # M = Bool if endpoint
-immutable Evaluation{S,M,T} <: AbstractEvaluation{T}
+immutable ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
     space::S
     x::M
-    order::Int
+    order::OT
 end
-Evaluation{T}(::Type{T},sp::Space,x::Bool,order::Integer) =
-    Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
-function Evaluation{T}(::Type{T},sp::Space,x::Number,order::Integer)
+Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order::Integer) =
+    ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
+function Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Number,order::Integer)
     d=domain(sp)
     if isa(d,IntervalDomain) && isapprox(first(d),x)
         Evaluation(T,sp,false,order)
     elseif isa(d,IntervalDomain) && isapprox(last(d),x)
         Evaluation(T,sp,true,order)
     else
-        Evaluation{typeof(sp),typeof(x),T}(sp,x,order)
+        ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
     end
 end
 
-Evaluation(sp::UnsetSpace,x::Bool,k::Integer) = Evaluation{UnsetSpace,Bool,UnsetNumber}(sp,x,k)
+Evaluation(sp::UnsetSpace,x::Bool,k::Integer) =
+    ConcreteEvaluation{UnsetSpace,Bool,typeof(k),UnsetNumber}(sp,x,k)
 Evaluation(sp::Space{ComplexBasis},x,order::Integer) =
     Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
 Evaluation(sp::Space,x,order::Integer) = Evaluation(eltype(domain(sp)),sp,x,order)
 
 #Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
-Evaluation(d::Space,x::Union{Number,Bool})=Evaluation(d,x,0)
+Evaluation(d::Space,x::Union{Number,Bool}) = Evaluation(d,x,0)
 
-Evaluation(d::Domain,x::Union{Number,Bool},n...)=Evaluation(Space(d),x,n...)
-Evaluation(x::Union{Number,Bool})=Evaluation(UnsetSpace(),x,0)
-Evaluation(x::Union{Number,Bool},k::Integer)=Evaluation(UnsetSpace(),x,k)
-Evaluation{T<:Number}(d::Vector{T},x::Union{Number,Bool},o::Integer)=Evaluation(Interval(d),x,o)
+Evaluation(d::Domain,x::Union{Number,Bool},n...) = Evaluation(Space(d),x,n...)
+Evaluation(x::Union{Number,Bool}) = Evaluation(UnsetSpace(),x,0)
+Evaluation(x::Union{Number,Bool},k::Integer) = Evaluation(UnsetSpace(),x,k)
+Evaluation{T<:Number}(d::Vector{T},x::Union{Number,Bool},o::Integer) = Evaluation(Interval(d),x,o)
 
-rangespace{S<:AmbiguousSpace}(E::Evaluation{S,Bool})=ConstantSpace()
-rangespace{S}(E::Evaluation{S,Bool})=ConstantSpace(Point(E.x?last(domain(E)):first(domain(E))))
-rangespace(E::Evaluation)=ConstantSpace(Point(E.x))
+rangespace{S<:AmbiguousSpace}(E::ConcreteEvaluation{S,Bool}) = ConstantSpace()
+rangespace{S}(E::ConcreteEvaluation{S,Bool}) = ConstantSpace(Point(E.x?last(domain(E)):first(domain(E))))
+rangespace(E::ConcreteEvaluation) = ConstantSpace(Point(E.x))
 
 
-function Base.convert{T}(::Type{Operator{T}},E::Evaluation)
+function Base.convert{T}(::Type{Operator{T}},E::ConcreteEvaluation)
     if T == eltype(E)
         E
     else
-        Evaluation{typeof(E.space),typeof(E.x),T}(E.space,E.x,E.order)
+        ConcreteEvaluation{typeof(E.space),typeof(E.x),typeof(E.order),T}(E.space,E.x,E.order)
     end
 end
 
 
 
 ## default getindex
-getindex{S,M,T}(D::Evaluation{S,M,T},k::Integer) =
-    differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)(D.x)
+getindex(D::ConcreteEvaluation,k::Integer) =
+    differentiate(Fun([zeros(eltype(D),k-1);one(eltype(D))],D.space),D.order)(D.x)
 
 
-function getindex{S,T}(D::Evaluation{S,Bool,T},k::Integer)
+function getindex{S}(D::ConcreteEvaluation{S,Bool},k::Integer)
+    T=eltype(D)
     if !D.x
         first(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order))
     else
@@ -71,19 +73,21 @@ end
 
 ## EvaluationWrapper
 
-immutable EvaluationWrapper{S<:Space,M<:Union{Number,Bool},FS<:Operator,T<:Number} <: AbstractEvaluation{T}
+immutable EvaluationWrapper{S<:Space,M,FS<:Operator,OT,T<:Number} <: Evaluation{T}
     space::S
     x::M
-    order::Int
+    order::OT
     functional::FS
 end
 
-EvaluationWrapper(sp::Space,x::Union{Number,Bool},order::Integer,func::Operator)=EvaluationWrapper{typeof(sp),typeof(x),typeof(func),eltype(sp)}(sp,x,order,func)
-getindex(E::EvaluationWrapper,k)=getindex(E.functional,k)
+EvaluationWrapper(sp::Space,x,order,func::Operator) =
+    EvaluationWrapper{typeof(sp),typeof(x),typeof(func),typeof(order),eltype(sp)}(sp,x,order,func)
+getindex(E::EvaluationWrapper,k) = E.functional[k]
 
-domainspace(E::AbstractEvaluation)=E.space
-domain(E::AbstractEvaluation)=domain(E.space)
-promotedomainspace{T}(E::AbstractEvaluation{T},sp::Space)=Evaluation(promote_type(T,eltype(sp)),sp,E.x,E.order)
+domainspace(E::Evaluation) = E.space
+domain(E::Evaluation) = domain(E.space)
+promotedomainspace{T}(E::Evaluation{T},sp::Space) =
+    Evaluation(promote_type(T,eltype(sp)),sp,E.x,E.order)
 Base.stride(E::EvaluationWrapper)=stride(E.functional)
 
 ## Convenience routines
@@ -103,7 +107,8 @@ dirichlet(d) = diffbcs(d,0)
 neumann(d) = diffbcs(d,1)
 
 ivp(d,k) = Operator{eltype(d)}[ldiffbc(d,i) for i=0:k-1]
-bvp(d,k) = vcat(Operator{eltype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],Operator{eltype(d)}[rdiffbc(d,i) for i=0:div(k,2)-1])
+bvp(d,k) = vcat(Operator{eltype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],
+                Operator{eltype(d)}[rdiffbc(d,i) for i=0:div(k,2)-1])
 
 periodic(d,k) = Operator{eltype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
 
