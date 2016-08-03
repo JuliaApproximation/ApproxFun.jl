@@ -32,7 +32,11 @@ function FillMatrix(bc::Vector,data::Matrix,pf)
     data=pad(data,size(data,1)+50,:)  # pad now by 50 to save computational cost later
 
     if !isempty(bc)
-        sfuncs=cache(InterlaceOperator(bc))
+        if length(bc)==1
+            sfuncs=cache(first(bc))
+        else
+            sfuncs=cache(InterlaceOperator(bc))
+        end
         resizedata!(sfuncs,nbc,size(data,1)+50)
         FillMatrix(sfuncs,data,size(data,1),nbc,pf)
     else
@@ -82,7 +86,7 @@ function resizedata!{T}(B::FillMatrix{T},n)
     nbc=B.numbcs
     if nbc>0  && n > B.datalength
         resizedata!(B.bc,:,2n+B.padbc)         ## do all columns in the row, +1 for the fill
-        B.data=unsafe_resize!(B.data,2n,:)
+        B.data=pad(B.data,2n,:)
         B.datalength=2n
     end
     B

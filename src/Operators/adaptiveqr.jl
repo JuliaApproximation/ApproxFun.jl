@@ -58,7 +58,7 @@ function givensreduce!(B::MutableOperator,v::Array,k1::Range,j1::Integer)
     B
 end
 
-givensreduce!(B::MutableOperator,v::Array,j::Integer)=givensreduce!(B,v,j:(j-bandinds(B)[1]),j)
+givensreduce!(B::MutableOperator,v::Array,j::Integer) = givensreduce!(B,v,j:(j-bandinds(B)[1]),j)
 
 
 
