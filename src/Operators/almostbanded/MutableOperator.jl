@@ -28,7 +28,7 @@ eye2{T}(::Type{T},n::Integer,m::Integer)=eye(T,n,m)
 eye2{T}(::Type{T},n::Integer)=eye(T,n,n)
 
 function FillMatrix(bc::Vector,data::Matrix,pf)
-    nbc=length(bc)
+    nbc=size(data,2)
     data=pad(data,size(data,1)+50,:)  # pad now by 50 to save computational cost later
 
     if !isempty(bc)
@@ -44,7 +44,7 @@ function FillMatrix(bc::Vector,data::Matrix,pf)
     end
 end
 
-FillMatrix{T}(::Type{T},bc,pf) = FillMatrix(bc,eye2(T,length(bc)),pf)
+FillMatrix{T}(::Type{T},bc,pf) = FillMatrix(bc,eye2(T,isempty(bc)?0:mapreduce(op->size(op,1),+,bc)),pf)
 
 
 function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
@@ -119,7 +119,7 @@ function MutableOperator{R<:Operator}(bc::Vector{R},op::Operator)
 
     bndinds=bandinds(op)
     bndindslength=bndinds[end]-bndinds[1]+1
-    nbc = length(bc)
+    nbc = isempty(bc)?0:mapreduce(op->size(op,1),+,bc)
 
     br=((bndinds[1]-nbc),(bndindslength-1))
     data = bzeros(op,nbc+100-br[1],:,br)

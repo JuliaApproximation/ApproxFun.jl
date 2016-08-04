@@ -59,10 +59,10 @@ for ν in (1.,.123,2.,3.5)
     L=(x^2)*D^2+x*D+(x^2-ν^2);
     u=linsolve([rdirichlet(S);rneumann(S);L],[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.))];
                 tolerance=1E-12)
-    @test_approx_eq_eps u(.1) bessely(ν,.1) eps(100000.)*max(abs(u(.1)),1)
+    @test_approx_eq_eps u(.1) bessely(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
     u=linsolve([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.))];
                 tolerance=1E-12)
-    @test_approx_eq_eps u(.1) besselj(ν,.1) eps(100000.)*max(abs(u(.1)),1)
+    @test_approx_eq_eps u(.1) besselj(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
 end
 
 
