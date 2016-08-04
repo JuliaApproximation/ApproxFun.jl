@@ -55,7 +55,7 @@ function linsolve{T<:Operator}(A::Vector{T},b::Array{Any};
 
  #TODO: depends on ordering of A
     for k=1:length(A)-1
-        @assert isafunctional(A[k])
+        @assert isfinite(size(A[k],1))
     end
 
     for k=1:min(length(A)-1,size(b,1)),j=1:size(b,2)
