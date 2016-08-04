@@ -1,6 +1,15 @@
 using ApproxFun, Base.Test
 
 
+
+
+
+
+@test_approx_eq Fun([1,1.,1.],Laurent([0,2π]))(0.1) 1+2cos(0.1+π)
+@test_approx_eq Fun([1,1.,1.],Laurent([-1,1]))(0.1) 1+2cos(π*0.1)
+@test_approx_eq Fun([1,1.,1.],Laurent([0,1]))(0.1) 1+2cos(2π*(0.1-1/2))
+
+
 @test abs(Fun(cos,Circle())(exp(0.1im))-cos(exp(0.1im)))<100eps()
 @test abs(Fun(cos,Circle())'(exp(0.1im))+sin(exp(0.1im)))<100eps()
 @test abs(Fun(cos,Circle())'(exp(0.1im))+Fun(sin,Circle())(exp(0.1im)))<100eps()

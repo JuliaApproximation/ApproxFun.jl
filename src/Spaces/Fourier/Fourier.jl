@@ -179,7 +179,7 @@ for TYP in (:Laurent,:Fourier)
     @eval begin
         @compat (::Type{$TYP})(d::Domain) = $TYP{typeof(d)}(d)
         @compat (::Type{$TYP})() = $TYP(PeriodicInterval())
-        @compat (::Type{$TYP}){T<:Number}(d::Vector{T}) = Fourier(PeriodicDomain(d))
+        @compat (::Type{$TYP}){T<:Number}(d::Vector{T}) = $TYP(PeriodicDomain(d))
 
         hasfasttransform{D}(::$TYP{D}) = true
     end
