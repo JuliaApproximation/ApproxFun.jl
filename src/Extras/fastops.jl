@@ -34,26 +34,6 @@ diagindrow(S::AbstractBandedMatrix,kr,jr) =
 diagindrow(S::SubBandedMatrix) =
     diagindrow(S,parentindexes(S)[1],parentindexes(S)[2])
 
-#####
-# Interlace
-# optimized routine for when there is a single domainspace
-# and no interlacing of the columns is necessary
-# this is especially important for \
-######
-
-function Base.copy{SS,PS,RI,BI,T}(S::SubMatrix{T,
-                InterlaceOperator{T,SS,PS,CachedIterator{Tuple{Int,Int},
-                                    InterlaceIterator{Tuple{Infinity{Bool}}},Tuple{Int,Int}},
-                                    RI,BI}})
-    kr,jr=parentindexes(S)
-    P=parent(S)
-    ret=similar(S)
-    for k in kr
-        K,κ=P.rangeinterlacer[k]
-        @inbounds ret[k,:]=P.ops[K][κ,jr]
-    end
-    ret
-end
 
 
 #####
