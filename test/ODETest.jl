@@ -126,3 +126,16 @@ A= [0  ldirichlet(d);
 u,x=A\[1.,0.,2.,0.]
 
 @test norm(F*x-u)<1000eps()
+
+
+
+
+S=Chebyshev()
+B=dirichlet(S)
+D=Derivative(S)
+
+Q,R=qr([B;D^2+I])
+u=R\(Q'*[cos(-1.0),cos(1.0)])
+
+
+@test_approx_eq u(0.) cos(0.0)

@@ -19,13 +19,20 @@ immutable QROperatorR{QRT,T} <: Operator{T}
 end
 
 QROperatorR(QR) = QROperatorR{typeof(QR),eltype(QR)}(QR)
-
+domainspace(R::QROperatorR) = domainspace(R.QR)
+rangespace(R::QROperatorR) = ℓ⁰
 
 immutable QROperatorQ{QRT,T} <: Operator{T}
     QR::QRT
 end
 
 QROperatorQ(QR) = QROperatorQ{typeof(QR),eltype(QR)}(QR)
+
+
+domainspace(Q::QROperatorQ) = ℓ⁰
+rangespace(Q::QROperatorQ) = rangespace(Q.QR)
+
+getindex(Q::QROperatorQ,k::Integer,j::Integer) = (Q'*[zeros(k-1);1])[j]
 
 function getindex(QR::QROperator,d::Symbol)
     d==:Q && return QROperatorQ(QR)
@@ -197,7 +204,7 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end
-    resize!(Y,k-1)  # chop off zeros
+    Fun(resize!(Y,k-1),domainspace(A))  # chop off zeros
 end
 
 
@@ -206,5 +213,7 @@ function linsolve{QR,T}(R::QROperatorR{QR,T},b::Vector{T})
         # upper triangularize columns
         resizedata!(R.QR,length(b))
     end
-    backsubstitution!(R.QR.R,copy(b))
+    Fun(backsubstitution!(R.QR.R,copy(b)),domainspace(R))
 end
+
+linsolve(R::QROperatorR,b::Fun{SequenceSpace}) = linsolve(R,b.coefficients)

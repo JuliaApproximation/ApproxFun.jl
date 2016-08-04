@@ -50,8 +50,12 @@ function Base.getindex(B::CachedOperator,k::Integer,j::Integer)
 end
 
 function Base.getindex(B::CachedOperator,k::Range,j::Range)
-    resizedata!(B,maximum(k),maximum(j))
-    B.data[k,j]
+    if !isempty(k) && !isempty(j)
+        resizedata!(B,maximum(k),maximum(j))
+        B.data[k,j]
+    else
+        Array(eltype(B),length(k),length(j))
+    end
 end
 
 function Base.getindex(B::CachedOperator,k::Integer)
