@@ -147,13 +147,13 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
     m=n  # max length
 
     rhs=Array(Any,size(Gx,1)+1)
-    TT=OS.Bx==nothing?eltype(OS):promote_type(eltype(OS),eltype(OS.Bx))
-    ops=Array(Operator{TT},2)
-    ops[1]=OS.Bx
+    TT=isempty(OS.Bx)?eltype(OS):promote_type(eltype(OS),mapreduce(eltype,promote_type,OS.Bx))
+    ops=Array(Operator{TT},length(OS.Bx)+1)
+    ops[1:length(OS.Bx)]=OS.Bx
 
-    blkops=Array(Operator{TT},4,2)
-    if OS.Bx ≠ nothing
-        blkops[1:2,:]=blkdiag(OS.Bx,OS.Bx)
+    blkops=Array(Operator{TT},2length(OS.Bx)+2,2)
+    if !isempty(OS.Bx)
+        blkops[1:2length(OS.Bx),:]=blkdiag(OS.Bx,OS.Bx)
     end
     blkrhs=Array(Any,2size(Gx,1)+2)
 

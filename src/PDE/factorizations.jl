@@ -9,8 +9,8 @@
 
 abstract AbstractPDEOperatorSchur
 
-immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number,FT} <: AbstractPDEOperatorSchur
-    Bx::FT
+immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number,FT<:Operator} <: AbstractPDEOperatorSchur
+    Bx::Vector{FT}
     Lx::Operator{LT}
     Mx::Operator{MT}
     S::OS
@@ -43,13 +43,13 @@ function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Op
     end
 
     if isempty(Bx)
-        funcs=nothing
-    elseif length(Bx)==1
-        funcs=cache(Bx[1])
-        resizedata!(funcs,:,ny)
+        funcs=Array(CachedOperator{Float64},0)
     else
-        funcs=cache(InterlaceOperator(Bx))
-        resizedata!(funcs,:,ny)
+        funcs=Array(CachedOperator{mapreduce(eltype,promote_type,Bx)},length(Bx))
+        for k=1:length(Bx)
+            funcs[k]=cache(Bx[k])
+            resizedata!(funcs[k],:,ny)
+        end
     end
 
 
