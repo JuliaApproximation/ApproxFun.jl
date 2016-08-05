@@ -25,8 +25,12 @@ domainspace(R::QROperatorR) = domainspace(R.QR)
 rangespace(R::QROperatorR) = ℓ⁰
 
 function getindex(R::QROperatorR,k::Integer,j::Integer)
-    resizedata!(R.QR,:,j)
-    R.QR.R[k,j]
+    if j < k
+        zero(eltype(R))
+    else
+        resizedata!(R.QR,:,j)
+        R.QR.R[k,j]
+    end
 end
 
 bandinds(R::QROperatorR) = 0,bandinds(R.QR.R,2)
@@ -229,3 +233,9 @@ function linsolve(R::QROperatorR,b::Vector)
 end
 
 linsolve(R::QROperatorR,b::Fun{SequenceSpace}) = linsolve(R,b.coefficients)
+
+
+function qrsolve(A,b;opts...)
+    QR=qrfact(A)
+    linsolve(QR,b;opts...)
+end
