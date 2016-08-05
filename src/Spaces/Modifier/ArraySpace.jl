@@ -83,6 +83,11 @@ function mat{S,V,T,DD,d}(f::Fun{MatrixSpace{S,V,DD,d},T},j::Integer)
     r
 end
 
+
+spaces(A::ArraySpace) = fill(A.space,A.dimensions)
+
+TupleSpace{SS}(A::ArraySpace{SS,1}) = TupleSpace(spaces(A))
+
 Base.getindex{S,V,DD,d}(f::Fun{VectorSpace{S,V,DD,d}},k...)=vec(f)[k...]
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
 

@@ -74,9 +74,9 @@ sp=space(x)
 D=Derivative(sp)
 
 u=[dirichlet(sp);
-    D^2-x]\[airyai(-10.)];
+    D^2-x]\[airyai(-20.)];
 @time u=[dirichlet(sp);
-    D^2-x]\[airyai(-10.)];
+    D^2-x]\[airyai(-20.)];
 
 println("Piecewise Airy: should be ~0.008")
 

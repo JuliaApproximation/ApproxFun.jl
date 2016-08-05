@@ -54,7 +54,7 @@ Base.convert(::Type{DualFun},b::Number)=DualFun(b,0)
 
 
 
-function Operator(f,ds::Space)
+function Operator(f::Function,ds::Space)
     if (isgeneric(f)&&applicable(f,0)) || (!isgeneric(f)&&arglength(f)==1)
         df=f(DualFun(zeros(ds)))
     elseif (isgeneric(f)&&applicable(f,0,0)) || (!isgeneric(f)&&arglength(f)==2)
@@ -70,8 +70,8 @@ function Operator(f,ds::Space)
     end
 end
 
-Operator(f,d)=Operator(f,Space(d))
-Operator(f)=Operator(f,Chebyshev())  #TODO: UnsetSpace
+Operator(f::Function,d)=Operator(f,Space(d))
+Operator(f::Function)=Operator(f,Chebyshev())  #TODO: UnsetSpace
 
 
 

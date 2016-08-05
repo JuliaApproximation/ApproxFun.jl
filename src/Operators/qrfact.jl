@@ -227,8 +227,11 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
     Fun(resize!(Y,k-1),domainspace(A))  # chop off zeros
 end
 
-Base.Ac_mul_B{QR,T,V}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) =
+Base.Ac_mul_B{QR,T,V<:Number}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) =
     Ac_mul_B(A,Vector{T}(B))
+
+Base.Ac_mul_B{QR,T}(A::QROperatorQ{QR,T},B::Fun;opts...) =
+    Ac_mul_B(A,coeficients(B,rangespace(A)))    
 
 
 function linsolve(R::QROperatorR,b::Vector)

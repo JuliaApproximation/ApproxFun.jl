@@ -57,6 +57,9 @@ abstract DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d}
 
 dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)
 
+spaces(s::Space) = (s,)
+spaces(sp::DirectSumSpace) = sp.spaces
+
 InterlaceIterator(sp::DirectSumSpace) = InterlaceIterator(map(dimension,sp.spaces))
 interlacer(sp::DirectSumSpace) = InterlaceIterator(sp)
 interlacer(sp::Space) = InterlaceIterator(tuple(dimension(sp)))
@@ -104,6 +107,7 @@ for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace)
         canonicalspace(A::$TYP)=$TYP(sort([A.spaces...]))
     end
 end
+
 
 for TYP in (:SumSpace,:TupleSpace)
     @eval setdomain(A::$TYP,d::Domain)=$TYP(map(sp->setdomain(sp,d),A.spaces))

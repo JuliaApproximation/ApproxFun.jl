@@ -321,3 +321,9 @@ end
 
 domainspace(D::DiagonalInterlaceOperator)=D.domainspace
 rangespace(D::DiagonalInterlaceOperator)=D.rangespace
+
+
+
+## Convert Matrix operator to operators
+
+Base.convert{OO<:Operator}(::Type{Operator},M::Array{OO}) = InterlaceOperator(M)

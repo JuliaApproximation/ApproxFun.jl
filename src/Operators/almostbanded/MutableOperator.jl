@@ -113,8 +113,8 @@ type MutableOperator{T,M,R} <: Operator{T}
     bandinds::Tuple{Int,Int}   # Encodes the bandrange of the banded part
 end
 
-domainspace(M::MutableOperator)=domainspace(M.op)
-rangespace(M::MutableOperator)=rangespace(M.op)
+domainspace(M::MutableOperator) = domainspace(M.op)
+rangespace(M::MutableOperator) = TupleSpace(tuple(spaces(rangespace(M.fill.bc))...,spaces(rangespace(M.op))...))
 
 
 
@@ -148,8 +148,8 @@ function MutableOperator{T<:Operator}(B::Vector{T})
     MutableOperator(bcs,B[end])
 end
 
-MutableOperator{BO<:Operator}(B::BO)=MutableOperator(BO[B])
-
+MutableOperator{BO<:Operator}(B::BO) = MutableOperator(BO[B])
+MutableOperator{T}(B::InterlaceOperator{T,1}) = MutableOperator(B.ops)
 
 # for bandrange, we save room for changed entries during Givens
 bandinds(B::MutableOperator) = B.bandinds[1],max(B.bandinds[2],bandinds(B.fill,2))

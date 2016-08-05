@@ -168,3 +168,20 @@ QR=qrfact(A)
 u=QR\[airyai(-2.)]
 
 @test_approx_eq u(0.0) airyai(0.)
+
+
+## Vector
+d=Interval()
+D=Derivative(d);
+B=ldirichlet();
+Bn=lneumann();
+
+f=Fun(x->[exp(x),cos(x)],d)
+A=[B 0;
+   Bn 0;
+   0 B;
+   D^2-I 2.0I;
+   0 D+I];
+
+u=A\Any[0.,0.,0.,f]
+@time u=A\Any[0.,0.,0.,f]
