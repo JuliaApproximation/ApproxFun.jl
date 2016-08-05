@@ -13,7 +13,7 @@ import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
 
 import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
                         unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix,
-                        dot, dotu, normalize!
+                        dot, dotu, normalize!, flipsign
 
 import BandedMatrices: colstart, colstop, colrange, rowstart, rowstop, rowrange
 

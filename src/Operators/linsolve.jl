@@ -162,9 +162,10 @@ linsolve{T<:Operator}(A::Array{T,2},b;kwds...) = linsolve(interlace(A),b;kwds...
 
 
 # Operator versions
-linsolve(A::Operator,b::Fun;kwds...) = linsolve([A],[b];kwds...)
-linsolve(A::Operator,b::Number;kwds...) = linsolve([A],b*ones(rangespace(A));kwds...)
 linsolve(A::Operator,b::Array;kwds...) = linsolve([A],b;kwds...)
+linsolve(A::Operator,b::Fun;kwds...) = linsolve(A,[b];kwds...)
+linsolve(A::Operator,b::Number;kwds...) = linsolve(A,b*ones(rangespace(A));kwds...)
+
 
 
 \(A::Operator,b) = linsolve(A,b)

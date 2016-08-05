@@ -160,17 +160,11 @@ QR=qrfact(A)
 @test norm((A\[1.])-(QR\[1.]))<100eps()
 
 
-
-x=Fun(identity,[-20.,-10.,-5.,0.,1.,15.])
+x=Fun(identity,[-2.,-1.,0.,15.])
 sp=space(x)
 D=Derivative(sp)
-QR=qrfact([dirichlet(sp);D^2-x])
-u=QR\[airyai(-10.)]
+A=[dirichlet(sp);D^2-x]
+QR=qrfact(A)
+u=QR\[airyai(-2.)]
 
-
-
-warn_handler(r::Test.Failure) = warn("Known failure: $(r.expr)")
-
-Test.with_handler(warn_handler) do
-    @test u(0.) ≈ airyai(0.)
-end
+@test_approx_eq u(0.0) airyai(0.)

@@ -67,9 +67,12 @@ function Base.qr{OO<:Operator}(A::Union{OO,Vector{OO}})
     QR[:Q],QR[:R]
 end
 
-function Base.det{OO<:Operator}(A::OO)
-    QR = qrfact(A)
-    RD = QR.R.data
+
+
+
+function Base.det(R::QROperatorR;maxiterations::Int=10_000)
+    QR = R.QR
+    RD = R.data
     resizedata!(QR,:,1)
     ret = -RD[1,1]
     k = 2
@@ -77,11 +80,15 @@ function Base.det{OO<:Operator}(A::OO)
         resizedata!(QR,:,k)
         ret *= -RD[k,k]
         k+=1
-        k > 10_000 && error("Fredholm determinant unlikely to converge after 10_000 iterations.")
+        k > maxiterations && error("Determinant unlikely to converge after 10_000 iterations.")
     end
 
     ret
 end
+Base.det(QR::QROperatorQ) = 1
+
+Base.det(QR::QROperator) = det(QR[:R])
+Base.det(A::Operator) = det(qrfact(A))
 
 
 
@@ -123,7 +130,7 @@ function resizedata!(QR::QROperator,::Colon,col)
         v=r+sz*(R.u + (k-1)*st)    # diagonal entry
         wp=w+stw*sz*(k-1)          # k-th column of W
         BLAS.blascopy!(M,v,1,wp,1)
-        W[1,k]+= sign(W[1,k])*BLAS.nrm2(M,wp,1)
+        W[1,k]+= flipsign(BLAS.nrm2(M,wp,1),W[1,k])
         normalize!(M,wp)
 
         for j=k:k+R.u
@@ -233,9 +240,3 @@ function linsolve(R::QROperatorR,b::Vector)
 end
 
 linsolve(R::QROperatorR,b::Fun{SequenceSpace}) = linsolve(R,b.coefficients)
-
-
-function qrsolve(A,b;opts...)
-    QR=qrfact(A)
-    linsolve(QR,b;opts...)
-end
