@@ -22,6 +22,11 @@ QROperatorR(QR) = QROperatorR{typeof(QR),eltype(QR)}(QR)
 domainspace(R::QROperatorR) = domainspace(R.QR)
 rangespace(R::QROperatorR) = ℓ⁰
 
+function getindex(R::QROperatorR,k::Integer,j::Integer)
+    resizedata!(R.QR,:,j)
+    R.QR.R[k,j]
+end
+
 immutable QROperatorQ{QRT,T} <: Operator{T}
     QR::QRT
 end
@@ -57,11 +62,11 @@ end
 function Base.det{OO<:Operator}(A::OO)
     QR = qrfact(A)
     RD = QR.R.data
-    resizedata!(QR,1)
+    resizedata!(QR,:,1)
     ret = -RD[1,1]
     k = 2
     while abs(abs(RD[k-1,k-1])-1) > eps(eltype(A))
-        resizedata!(QR,k)
+        resizedata!(QR,:,k)
         ret *= -RD[k,k]
         k+=1
         k > 10_000 && error("Fredholm determinant unlikely to converge after 10_000 iterations.")
@@ -75,7 +80,7 @@ end
 ## populate data
 
 
-function resizedata!(QR::QROperator,col)
+function resizedata!(QR::QROperator,::Colon,col)
     if col ≤ QR.ncols
         return QR
     end
@@ -166,7 +171,7 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
                                         maxlength::Int=1000000)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
-        resizedata!(A.QR,length(B)+size(A.QR.H,1)+10)
+        resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
     end
 
     H=A.QR.H
@@ -192,7 +197,7 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
         end
         if k > A.QR.ncols
             # upper triangularize extra columns to prepare for \
-            resizedata!(A.QR,2*(k+M))
+            resizedata!(A.QR,:,2*(k+M))
             H=A.QR.H
             h=pointer(H)
         end
@@ -208,10 +213,10 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
 end
 
 
-function linsolve{QR,T}(R::QROperatorR{QR,T},b::Vector{T})
+function linsolve(R::QROperatorR,b::Vector)
     if length(b) > R.QR.ncols
         # upper triangularize columns
-        resizedata!(R.QR,length(b))
+        resizedata!(R.QR,:,length(b))
     end
     Fun(backsubstitution!(R.QR.R,copy(b)),domainspace(R))
 end
