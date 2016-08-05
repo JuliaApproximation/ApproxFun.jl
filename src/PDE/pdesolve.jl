@@ -140,22 +140,6 @@ function pdesolve{T<:Operator}(A::Vector{T},f;tolerance::Float64=100000eps(),opt
     error("Maximum number of iterations " * string(maxit) * "reached")
 end
 
-
-function pdesolve(S::PDEStrideOperatorSchur,f::Vector;opts...)
-    @assert length(f)≤5
-
-    f=pad(f,5)
-    uo=pdesolve(S.odd,[f[1],f[2],f[3]+f[4],f[end]],nx;opts...)
-    ue=pdesolve(S.even,[f[1],f[2],f[4]-f[3],f[end]],nx;opts...)
-
-    ret=Array(typeof(first(uo.coefficients)),length(uo.coefficients)+length(ue.coefficients))
-    ret[1:2:end]=uo.coefficients
-    ret[2:2:end]=ue.coefficients
-
-    TensorFun(ret,domainspace(S.odd,2).space)
-end
-
-
 function pdesolve(A::AbstractPDEOperatorSchur,f::Vector;opts...)
     fx,fy,F=pde_standardize_rhs(A,f)
     ProductFun(cont_constrained_lyap(A,fx,fy,F;opts...),domainspace(A))

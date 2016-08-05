@@ -33,6 +33,15 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
 
 ## PiecewiseSPace
 
+x=Fun(identity,[-1.,0.,1.])
+sp=space(x)
+D=Derivative(sp)
+
+u=[dirichlet(sp);
+    D^2]\[1];
+u2=[dirichlet();Derivative(Chebyshev())^2]\[1.]
+@test_approx_eq u(0.) u2(0.)
+
 x=Fun(identity,[-10.,0.,1.,15.])
 sp=space(x)
 D=Derivative(sp)

@@ -59,6 +59,8 @@ function Base.blkdiag{T<:Operator}(d1::Vector{T},d2::Vector{T})
   D
 end
 
+Base.blkdiag(a::Operator,b::Operator) = blkdiag(Operator{promote_type(eltype(a),eltype(b))}[a],
+                                                Operator{promote_type(eltype(a),eltype(b))}[b])
 
 ## broadcase
 

@@ -1,54 +1,110 @@
 
 
-export SavedFunctional,SavedBandedOperator
+export SavedBandedOperator, cache
 
 
 
 
 
-## SavedFunctional
+## CachedOperator
 
-type SavedFunctional{T<:Number,M<:Operator} <: Operator{T}
+type CachedOperator{T<:Number,M<:Operator,DS,RS,BI} <: Operator{T}
     op::M
-    data::Vector{T}
-    datalength::Int
+    data::Matrix{T}
+    datasize::Tuple{Int,Int}
+    domainspace::DS
+    rangespace::RS
+    bandinds::BI
 end
 
-@functional SavedFunctional
-
-SavedFunctional(op::Operator,data)=SavedFunctional(op,data,length(data))
-SavedFunctional{T<:Number}(op::Operator{T})=SavedFunctional(op,Array(T,0),0)
-
-@eval Base.convert{T}(::Type{Operator{T}},S::SavedFunctional)=SavedFunctional(convert(Operator{T},S.op))
+CachedOperator(op::Operator,data,sz) =
+    CachedOperator(op,data,sz,domainspace(op),rangespace(op),bandinds(op))
+CachedOperator(op::Operator,data) = CachedOperator(op,data,size(data))
+CachedOperator(op::Operator) = CachedOperator(op,Array(eltype(op),0,0))
 
 
+cache(O::Operator) = CachedOperator(O)
 
-domainspace(F::SavedFunctional) = domainspace(F.op)
-bandinds(S::SavedFunctional) = bandinds(S.op)
+Base.convert{T}(::Type{Operator{T}},S::CachedOperator) =
+    CachedOperator(Operator{T}(S.op),Matrix{T}(S.data),
+                    S.datasize,S.domainspace,S.rangespace,S.bandinds)
 
-function Base.getindex(B::SavedFunctional,k::Integer)
-    resizedata!(B,k)
-    B.data[k]
+
+domainspace(C::CachedOperator) = C.domainspace
+rangespace(C::CachedOperator) = C.rangespace
+bandinds(C::CachedOperator) = C.bandinds
+Base.stride(C::CachedOperator) = stride(C.op)
+
+# when bandinds are infinite, use colstart/colstop from operator
+# TODO: cache this information as well
+for func in (:(ApproxFun.colstart),:(ApproxFun.colstop),
+                :(ApproxFun.rowstart),:(ApproxFun.rowstop))
+    @eval $func{T,M,DS,RS}(D::CachedOperator{T,M,DS,RS,Tuple{Infinity{Bool},Infinity{Bool}}},
+                         k::Integer) = $func(D.op,k)
 end
 
-function Base.getindex(B::SavedFunctional,k::Range)
-    resizedata!(B,k[end]+50)
-    B.data[k]
+
+function Base.getindex(B::CachedOperator,k::Integer,j::Integer)
+    resizedata!(B,k,j)
+    B.data[k,j]
 end
 
+function Base.getindex(B::CachedOperator,k::Range,j::Range)
+    if !isempty(k) && !isempty(j)
+        resizedata!(B,maximum(k),maximum(j))
+        B.data[k,j]
+    else
+        Array(eltype(B),length(k),length(j))
+    end
+end
+
+function Base.getindex(B::CachedOperator,k::Integer)
+    if size(B,1)==1
+        B[1,k]
+    elseif size(B,2)==1
+        B[k,1]
+    else
+        error("Not implemented")
+    end
+ end
 
 
-function resizedata!(B::SavedFunctional,n::Integer)
-    if n > B.datalength
-        resize!(B.data,2n)
-
-        B.data[B.datalength+1:n]=B.op[B.datalength+1:n]
-
-        B.datalength = n
+function resizedata!(B::CachedOperator,n::Integer,m::Integer)
+    if n > size(B,1) || m > size(B,2)
+        throw(ArgumentError("Cannot resize beyound size of operator"))
     end
 
-    B
+    # this does nothing if already in dimensions
+    N,M=size(B.data)
+    if n > N && m > M
+        B.data = unsafe_resize!(B.data,n,m)
+    elseif n > N
+        B.data = unsafe_resize!(B.data,n,:)
+    elseif m > M
+        B.data = unsafe_resize!(B.data,:,m)
+    end
+
+    if n ≤ B.datasize[1] && m ≤ B.datasize[2]
+        # do nothing
+        B
+    elseif n ≤ B.datasize[1]
+        kr,jr=1:B.datasize[1],B.datasize[2]+1:m
+        B.data[kr,jr] = B.op[kr,jr]
+        B.datasize = (B.datasize[1],m)
+        B
+    elseif m ≤ B.datasize[2]
+        kr,jr=1:B.datasize[1]+1:n,1:B.datasize[2]
+        B.data[kr,jr] = B.op[kr,jr]
+        B.datasize = (n,B.datasize[2])
+        B
+    else
+        # resize rows then columns
+        resizedata!(resizedata!(B,n,B.datasize[2]),n,m)
+    end
 end
+
+resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,B.datasize[1],m)
+resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,B.datasize[2])
 
 
 

@@ -469,3 +469,45 @@ end
 for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
     @eval $OP(a::Space,b::Space)=$OP(string(a),string(b))
 end
+
+
+
+## Important special spaces
+
+
+"""
+`ConstantSpace` Represents a single number.  The remaining
+coefficients are ignored.
+"""
+
+immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
+    domain::DD
+    ConstantSpace(d::DD)=new(d)
+end
+
+ConstantSpace(d::Domain) = ConstantSpace{typeof(d)}(d)
+ConstantSpace() = ConstantSpace(AnyDomain())
+
+isconstspace(::ConstantSpace) = true
+
+# we override maxspace instead of maxspace_rule to avoid
+# domainscompatible check.
+for OP in (:maxspace,:(Base.union))
+    @eval begin
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace{AnyDomain})=A
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
+        $OP(A::ConstantSpace,B::ConstantSpace{AnyDomain})=A
+        $OP(A::ConstantSpace,B::ConstantSpace)=ConstantSpace(domain(A) ∪ domain(B))
+    end
+end
+
+
+
+"""
+`SequenceSpace` is the space of all sequences, i.e., infinite vectors
+"""
+immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
+const ℓ⁰ = SequenceSpace()
+dimension(::SequenceSpace) = ∞
+domain(::SequenceSpace) = ℕ
+spacescompatible(::SequenceSpace,::SequenceSpace) = true

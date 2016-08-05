@@ -15,7 +15,7 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, 
                         unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix,
                         dot, dotu, normalize!
 
-import BandedMatrices: colstart, colstop, colrange, rowstart, rowstop, rowrange                        
+import BandedMatrices: colstart, colstop, colrange, rowstart, rowstop, rowrange
 
 import Compat: view
 

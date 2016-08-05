@@ -126,3 +126,51 @@ A= [0  ldirichlet(d);
 u,x=A\[1.,0.,2.,0.]
 
 @test norm(F*x-u)<1000eps()
+
+
+
+## QR tests
+
+
+S=Chebyshev()
+B=dirichlet(S)
+D=Derivative(S)
+
+Q,R=qr([B;D^2+I])
+u=R\(Q'*[cos(-1.0),cos(1.0)])
+
+
+@test_approx_eq u(0.) cos(0.0)
+
+
+
+
+S=Chebyshev()
+A=[dirichlet(S);Derivative(S)^2 - I]
+QR=qrfact(A)
+
+@test norm((QR\[1.])-(A\[1.]))<100eps()
+Q,R=qr(A)
+u=(R\(Q'*[1.]))
+@test norm(u-(A\[1.]))<100eps()
+
+x=Fun(S)
+A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
+QR=qrfact(A)
+@test norm((A\[1.])-(QR\[1.]))<100eps()
+
+
+
+x=Fun(identity,[-20.,-10.,-5.,0.,1.,15.])
+sp=space(x)
+D=Derivative(sp)
+QR=qrfact([dirichlet(sp);D^2-x])
+u=QR\[airyai(-10.)]
+
+
+
+warn_handler(r::Test.Failure) = warn("Known failure: $(r.expr)")
+
+Test.with_handler(warn_handler) do
+    @test u(0.) ≈ airyai(0.)
+end

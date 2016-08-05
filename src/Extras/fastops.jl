@@ -34,6 +34,8 @@ diagindrow(S::AbstractBandedMatrix,kr,jr) =
 diagindrow(S::SubBandedMatrix) =
     diagindrow(S,parentindexes(S)[1],parentindexes(S)[2])
 
+
+
 #####
 # Conversions
 #####

@@ -1,8 +1,8 @@
 
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
-    @eval $op(d::PiecewiseSpace,k...)=interlace($op(d.spaces,k...))
-    @eval $op(d::UnionDomain,k...)=interlace($op(d.domains,k...))
+    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...))
+    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...))
 end
 
 

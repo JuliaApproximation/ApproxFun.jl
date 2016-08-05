@@ -52,10 +52,8 @@ function rangespace{T<:Operator}(A::Vector{T})
     spl=map(rangespace,A)
     if spacescompatible(spl)
         ArraySpace(first(spl),length(spl))
-    elseif domainscompatible(spl)
-        TupleSpace(spl)
     else
-        PiecewiseSpace(spl)
+        TupleSpace(spl)
     end
 end
 
@@ -79,14 +77,20 @@ end
 
 ## Interlace operator
 
-immutable InterlaceOperator{T,DS,RS,DI,RI,BI} <: Operator{T}
-    ops::Matrix{Operator{T}}
+immutable InterlaceOperator{T,p,DS,RS,DI,RI,BI} <: Operator{T}
+    ops::Array{Operator{T},p}
     domainspace::DS
     rangespace::RS
     domaininterlacer::DI
     rangeinterlacer::RI
     bandinds::BI
 end
+
+
+InterlaceOperator{T,p}(ops::Array{T,p},ds,rs,di,ri,bi) =
+    InterlaceOperator{T,p,typeof(ds),typeof(rs),
+                        typeof(di),typeof(ri),typeof(bi)}(ops,ds,rs,di,ri,bi)
+
 function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
     # calculate bandinds
     p=size(ops,1)
@@ -99,13 +103,36 @@ function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
             u=max(u,p*bandinds(ops[k,j],2)+j-k)
         end
     else
-        l,u = (-∞,∞)  # not banded
+        l,u = (1-dimension(rs),dimension(ds)-1)  # not banded
     end
 
 
     InterlaceOperator(ops,ds,rs,
-                        CachedIterator(interlacer(ds)),
-                        CachedIterator(interlacer(rs)),
+                        cache(interlacer(ds)),
+                        cache(interlacer(rs)),
+                        (l,u))
+end
+
+
+function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
+    # calculate bandinds
+    p=size(ops,1)
+    if all(isbanded,ops)
+        l,u = 0,0
+        for k=1:p
+            l=min(l,p*bandinds(ops[k],1)+1-k)
+        end
+        for k=1:p
+            u=max(u,p*bandinds(ops[k],2)+1-k)
+        end
+    else
+        l,u = (1-dimension(rs),dimension(ds)-1)  # not banded
+    end
+
+
+    InterlaceOperator(ops,ds,rs,
+                        InterlaceIterator(tuple(dimension(ds))),
+                        cache(interlacer(rs)),
                         (l,u))
 end
 
@@ -122,11 +149,12 @@ end
 
 function InterlaceOperator{T}(opsin::Vector{Operator{T}})
     ops=promotedomainspace(opsin)
-    InterlaceOperator(ops'',domainspace(first(ops)),rangespace(ops))
+    InterlaceOperator(ops,domainspace(first(ops)),rangespace(ops))
 end
 
-InterlaceOperator(ops::Matrix) =
-    InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,ops)}}(ops))
+InterlaceOperator{T,p}(ops::Array{T,p}) =
+    InterlaceOperator(Array{Operator{mapreduce(eltype,promote_type,ops)},p}(ops))
+
 
 function Base.convert{T}(::Type{Operator{T}},S::InterlaceOperator)
     if T == eltype(S)
@@ -146,10 +174,16 @@ end
 #TODO: More efficient to save bandinds
 bandinds(M::InterlaceOperator) = M.bandinds
 
-function getindex{T}(op::InterlaceOperator{T},k::Integer,j::Integer)
+function getindex{T}(op::InterlaceOperator{T,2},k::Integer,j::Integer)
     M,J = op.domaininterlacer[j]
     N,K = op.rangeinterlacer[k]
     op.ops[N,M][K,J]::T
+end
+
+# the domain is not interlaced
+function getindex{T}(op::InterlaceOperator{T,1},k::Integer,j::Integer)
+    N,K = op.rangeinterlacer[k]
+    op.ops[N][K,j]::T
 end
 
 function getindex{T}(op::InterlaceOperator{T},k::Integer)
@@ -160,6 +194,23 @@ function getindex{T}(op::InterlaceOperator{T},k::Integer)
     else
         error("Only implemented for row/column operators.")
     end
+end
+
+#####
+# optimized copy routine for when there is a single domainspace
+# and no interlacing of the columns is necessary
+# this is especially important for \
+######
+
+function Base.copy{SS,PS,DI,RI,BI,T}(S::SubMatrix{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
+    kr,jr=parentindexes(S)
+    P=parent(S)
+    ret=similar(S)
+    for k in kr
+        K,κ=P.rangeinterlacer[k]
+        @inbounds ret[k,:]=P.ops[K][κ,jr]
+    end
+    ret
 end
 
 

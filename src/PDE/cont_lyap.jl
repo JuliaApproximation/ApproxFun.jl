@@ -128,26 +128,6 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
     Y
 end
 
-function cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::ProductFun;kwds...)
-    n = length(OS.Rdiags)
-    F=pad(F,size(F,1),n)
-    Gx=pad(coefficients(Gxin).',:,n)
-    TYP=promote_type(eltype(OS),eltype(F))
-    Y=Array(Fun{typeof(domainspace(OS.Rdiags[1])),TYP},n)
-
-
-    for k=1:n
-        op=OS.Rdiags[k]
-        rhs=Any[Gx[:,k]...;F.coefficients[k]]
-        Y[k]=chop!(linsolve([OS.Bx[k];op],rhs;kwds...),eps())
-    end
-
-    Y
-end
-
-cont_constrained_lyap(OS::PDEProductOperatorSchur,Gxin,Gyin,F::Fun;kwds...)=cont_constrained_lyap(OS,Gxin,Gyin,ProductFun(F);kwds...)
-
-
 
 function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOperatorSchur{OSS},Gx,F::ProductFun;kwds...)
     n = min(size(OS.S.T,2),max(size(F,2),size(Gx,2)))

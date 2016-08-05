@@ -106,7 +106,7 @@ function backsubstitution!(B::MutableOperator,u::Array)
        #filled rows
         for k=n-b-1:-1:1
             @simd for j=1:nbc
-                @inbounds pk[j] += u[k+b+1,c]*B.fill.bc[j].data[k+b+1]
+                @inbounds pk[j] += u[k+b+1,c]*B.fill.bc.data[j,k+b+1]
             end
 
             @simd for j=k+1:k+b
