@@ -164,14 +164,6 @@ QR=qrfact(A)
 x=Fun(identity,[-20.,-10.,-5.,0.,1.,15.])
 sp=space(x)
 D=Derivative(sp)
-
-u=[dirichlet(sp);
-    D^2-x]\[airyai(-10.)];
-@time u=[dirichlet(sp);
-    D^2-x]\[airyai(-10.)];
-
-println("Piecewise Airy: should be ~0.008")
-
 QR=qrfact([dirichlet(sp);D^2-x])
 u=QR\[airyai(-10.)]
 
