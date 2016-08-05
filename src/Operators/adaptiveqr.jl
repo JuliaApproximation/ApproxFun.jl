@@ -58,7 +58,7 @@ function givensreduce!(B::MutableOperator,v::Array,k1::Range,j1::Integer)
     B
 end
 
-givensreduce!(B::MutableOperator,v::Array,j::Integer) = givensreduce!(B,v,j:(j-bandinds(B)[1]),j)
+givensreduce!(B::MutableOperator,v::Array,j::Integer) = givensreduce!(B,v,j:(j-B.bandinds[1]),j)
 
 
 
@@ -162,7 +162,7 @@ function applyhouseholder!{T}(w::Vector{T},B::Matrix,kr::Range)
 end
 
 function householderreducevec!{T,M,R}(w::Vector{T}, B::MutableOperator{T,M,R},kr::Range,j1::Integer)
-    bnd=bandinds(B)[end]
+    bnd=B.bandinds[end]
     copy!(w,B.data[kr,j1])
     w[1]-= norm(w)
     # TODO: should be normalize!(w) below, since this is compatible with any type T.
@@ -181,7 +181,7 @@ function householderreduce!{T}(w::Vector{T},B::MutableOperator,v::Array,kr::Rang
     B
 end
 
-householderreduce!(w::Vector,B::MutableOperator,v::Array,j::Integer)=householderreduce!(w,B,v,j:(j-bandinds(B)[1]),j)
+householderreduce!(w::Vector,B::MutableOperator,v::Array,j::Integer)=householderreduce!(w,B,v,j:(j-B.bandinds[1]),j)
 
 function householderadaptiveqr!{T,M,R}(B::MutableOperator{T,M,R},v::Array,tol::Real,N)
     b=-B.bandinds[1]

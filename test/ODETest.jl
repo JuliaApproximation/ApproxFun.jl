@@ -129,6 +129,8 @@ u,x=A\[1.,0.,2.,0.]
 
 
 
+## QR tests
+
 
 S=Chebyshev()
 B=dirichlet(S)
@@ -139,3 +141,20 @@ u=R\(Q'*[cos(-1.0),cos(1.0)])
 
 
 @test_approx_eq u(0.) cos(0.0)
+
+
+
+
+S=Chebyshev()
+A=[dirichlet(S);Derivative(S)^2 - I]
+QR=qrfact(A)
+
+@test norm((QR\[1.])-(A\[1.]))<100eps()
+Q,R=qr(A)
+u=(R\(Q'*[1.]))
+@test norm(u-(A\[1.]))<100eps()
+
+x=Fun(S)
+A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
+QR=qrfact(A)
+@test norm((A\[1.])-(QR\[1.]))<100eps()

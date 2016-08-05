@@ -12,6 +12,8 @@ for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
 end
 
+getindex(QR::QROperator,k::Integer,j::Integer) = (QR[:Q]*QR[:R])[k,j]
+
 
 
 immutable QROperatorR{QRT,T} <: Operator{T}
@@ -26,6 +28,8 @@ function getindex(R::QROperatorR,k::Integer,j::Integer)
     resizedata!(R.QR,:,j)
     R.QR.R[k,j]
 end
+
+bandinds(R::QROperatorR) = 0,bandinds(R.QR.R,2)
 
 immutable QROperatorQ{QRT,T} <: Operator{T}
     QR::QRT
@@ -211,6 +215,9 @@ function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
     end
     Fun(resize!(Y,k-1),domainspace(A))  # chop off zeros
 end
+
+Base.Ac_mul_B{QR,T,V}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) =
+    Ac_mul_B(A,Vector{T}(B))
 
 
 function linsolve(R::QROperatorR,b::Vector)

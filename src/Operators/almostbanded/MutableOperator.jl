@@ -47,6 +47,11 @@ end
 FillMatrix{T}(::Type{T},bc,pf) = FillMatrix(bc,eye2(T,isempty(bc)?0:mapreduce(op->size(op,1),+,bc)),pf)
 
 
+# the bandinds move left as we do row manipulations, so the bandinds[2]
+# of F.bc will give the maximum
+bandinds(F::FillMatrix) = (-∞,bandinds(F.bc,2))
+
+
 function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret = zero(T)
     resizedata!(B,k)
@@ -105,7 +110,7 @@ type MutableOperator{T,M,R} <: Operator{T}
 
     datalength::Int       # How long data is.  We can't use the array length of data as we double the memory allocation but don't want to fill in
 
-    bandinds::Tuple{Int,Int}   # Encodes the bandrange
+    bandinds::Tuple{Int,Int}   # Encodes the bandrange of the banded part
 end
 
 domainspace(M::MutableOperator)=domainspace(M.op)
@@ -147,7 +152,7 @@ MutableOperator{BO<:Operator}(B::BO)=MutableOperator(BO[B])
 
 
 # for bandrange, we save room for changed entries during Givens
-bandinds(B::MutableOperator)=B.bandinds
+bandinds(B::MutableOperator) = B.bandinds[1],max(B.bandinds[2],bandinds(B.fill,2))
 
 
 function Base.getindex{T<:Number,M,R}(B::MutableOperator{T,M,R},kr::UnitRange,jr::UnitRange)
@@ -177,7 +182,7 @@ end
 
 
 function Base.getindex(B::MutableOperator,k::Integer,j::Integer)
-    ir = columninds(B,k)::Tuple{Int,Int}
+    ir = max(k+B.bandinds[1],1),k+B.bandinds[2]
     shift = B.shift
 
     if k <= B.datalength && j <= ir[end] && ir[1] <= j
