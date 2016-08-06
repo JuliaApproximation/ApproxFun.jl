@@ -111,6 +111,9 @@ cont_constrained_lyapuptriang{OSS,T}(OS::PDEOperatorSchur{OSS,T},Gx,F::ProductFu
 
 cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::Fun;kwds...)=cont_constrained_lyap(OS,Gxin,Gyin,ProductFun(F);kwds...)
 function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},Gxin,Gyin,F::ProductFun;kwds...)
+    if isempty(OS.Bx)
+        return cont_constrained_lyap_nobcs(OS,F;kwds...)
+    end
     n = size(OS.S,1)
     F=pad(F,size(F,1),n)
     Gx=pad(coefficients(Gxin).',:,n)
@@ -123,6 +126,23 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
         op=OS.Rdiags[k]
         rhs=Any[Gx[:,k]...;F.coefficients[k]]
         Y[k]=chop!(linsolve([OS.Bx;op],rhs;kwds...),eps())
+    end
+
+    Y
+end
+
+function cont_constrained_lyap_nobcs{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{OSS},F::ProductFun;kwds...)
+    n = size(OS.S,1)
+    F=pad(F,size(F,1),n)
+
+    TYP=promote_type(eltype(OS),eltype(F))
+    Y=Array(Fun{typeof(domainspace(OS,1)),TYP},n)
+
+
+    for k=1:n
+        op=OS.Rdiags[k]
+        rhs=F.coefficients[k]
+        Y[k]=chop!(linsolve(op,rhs;kwds...),eps())
     end
 
     Y

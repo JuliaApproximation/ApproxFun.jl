@@ -187,7 +187,14 @@ linsolve{S,B,T<:Complex,V<:Real}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
 
 
 linsolve(QR::QROperator,b::Fun;kwds...) = linsolve(QR,coefficients(b,rangespace(QR));kwds...)
-linsolve(QR::QROperator,b::Vector{Any};kwds...) = linsolve(QR,Fun(b,rangespace(QR));kwds...)
+function linsolve(QR::QROperator,b::Vector{Any};kwds...)
+    #TODO: PDEQR remove this is a hack
+    if length(b) == 1 && isa(b[1],Fun)
+        linsolve(QR,Fun(b[1],rangespace(QR));kwds...)
+    else
+        linsolve(QR,Fun(b,rangespace(QR));kwds...)
+    end
+end
 linsolve{FF<:Fun}(QR::QROperator,b::Vector{FF};kwds...) = linsolve(QR,Fun(b,rangespace(QR));kwds...)
 function linsolve(A::QROperator,B::Matrix;kwds...)
     ds=domainspace(A)

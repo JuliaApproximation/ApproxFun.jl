@@ -58,6 +58,7 @@ function rangespace{T<:Operator}(A::Vector{T})
 end
 
 function promotespaces{T<:Operator}(A::Matrix{T})
+    isempty(A) && return A
     A=copy(A)#TODO: promote might have different Array type
     for j=1:size(A,2)
         A[:,j]=promotedomainspace(A[:,j])
@@ -140,6 +141,8 @@ function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
 end
 
 function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
+    isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
+
     ops=promotespaces(opsin)
     # TODO: make consistent
     # if its a row vector, we assume scalar

@@ -194,7 +194,11 @@ function MutableOperator{T}(A::InterlaceOperator{T,2})
         end
     end
 
-    MutableOperator(InterlaceOperator(A.ops[1:nbc,:]),InterlaceOperator(A.ops[nbc+1:end,:]))
+    #TODO: Remove empty bc case
+
+    bc = nbc==0?Operator{T}[]:InterlaceOperator(A.ops[1:nbc,:])
+
+    MutableOperator(bc,InterlaceOperator(A.ops[nbc+1:end,:]))
 end
 
 

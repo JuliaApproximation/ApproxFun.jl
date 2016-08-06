@@ -81,18 +81,21 @@ promotedomainspace(P::Operator,sp::Space,cursp::Space) =
 
 
 function promoterangespace{O<:Operator}(ops::Vector{O})
+    isempty(ops) && return ops
     k=findmaxrangespace(ops)
     #TODO: T might be incorrect
     T=mapreduce(eltype,promote_type,ops)
     Operator{T}[promoterangespace(op,k) for op in ops]
 end
 function promotedomainspace{O<:Operator}(ops::Vector{O})
+    isempty(ops) && return ops
     k=findmindomainspace(ops)
     #TODO: T might be incorrect
     T=mapreduce(eltype,promote_type,ops)
     Operator{T}[promotedomainspace(op,k) for op in ops]
 end
 function promotedomainspace{O<:Operator}(ops::Vector{O},S::Space)
+    isempty(ops) && return ops
     k=conversion_type(findmindomainspace(ops),S)
     #TODO: T might be incorrect
     T=promote_type(mapreduce(eltype,promote_type,ops),eltype(S))
