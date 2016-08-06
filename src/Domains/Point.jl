@@ -27,13 +27,17 @@ for op in (:*,:+)
     end
 end
 
+
+isambiguous(d::Point) = isnan(d.x)
+Base.convert{PT<:Point}(::Type{PT},::AnyDomain) = PT(NaN)
+
 Base.norm(p::Point)=norm(p.x)
 
 Base.getindex(p::Point,k...)=p.x[k...]
 
-Base.in(x,d::Point)=isapprox(x,d.x)
+Base.in(x,d::Point) = isapprox(x,d.x)
 
-Base.isnan(d::Point)=false
+Base.isnan(d::Point) = false
 
 Base.issubset(a::Point,d::UnionDomain)=a.x in d
 Base.issubset(a::Point,b::Domain)=a.x in b
@@ -49,4 +53,3 @@ Base.reverse(a::Point)=a
 
 
 canonicaldomain(a::Point)=Point(0.)
-

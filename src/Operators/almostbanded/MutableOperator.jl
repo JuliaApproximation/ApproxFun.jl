@@ -28,23 +28,29 @@ eye2{T}(::Type{T},n::Integer,m::Integer)=eye(T,n,m)
 eye2{T}(::Type{T},n::Integer)=eye(T,n,n)
 
 function FillMatrix(bc::Vector,data::Matrix,pf)
-    nbc=size(data,2)
-    data=pad(data,size(data,1)+50,:)  # pad now by 50 to save computational cost later
-
-    if !isempty(bc)
-        if length(bc)==1
-            sfuncs=cache(first(bc))
-        else
-            sfuncs=cache(InterlaceOperator(bc))
-        end
-        resizedata!(sfuncs,nbc,size(data,1)+50)
-        FillMatrix(sfuncs,data,size(data,1),nbc,pf)
+    if isempty(bc)
+        FillMatrix(nothing,data,size(data,1),0,pf)
+    elseif length(bc)==1
+        FillMatrix(first(bc),data,pf)
     else
-        FillMatrix(nothing,data,size(data,1),nbc,pf)
+        FillMatrix(InterlaceOperator(bc),data,pf)
     end
 end
 
-FillMatrix{T}(::Type{T},bc,pf) = FillMatrix(bc,eye2(T,isempty(bc)?0:mapreduce(op->size(op,1),+,bc)),pf)
+function FillMatrix(bc::Operator,data::Matrix,pf)
+    @assert isfinite(size(bc,1))
+    nbc=size(data,2)
+    data=pad(data,size(data,1)+50,:)  # pad now by 50 to save computational cost later
+
+    sfuncs=cache(bc)
+    resizedata!(sfuncs,nbc,size(data,1)+50)
+    FillMatrix(sfuncs,data,size(data,1),nbc,pf)
+end
+
+FillMatrix{T,OO<:Operator}(::Type{T},bc::Vector{OO},pf) =
+    FillMatrix(bc,eye2(T,isempty(bc)?0:mapreduce(op->size(op,1),+,bc)),pf)
+FillMatrix{T}(::Type{T},bc::Operator,pf) = FillMatrix(bc,eye2(T,size(bc,1)),pf)
+
 
 
 # the bandinds move left as we do row manipulations, so the bandinds[2]
@@ -139,6 +145,28 @@ function MutableOperator{R<:Operator}(bc::Vector{R},op::Operator)
     MutableOperator(op,data,fl,nbc,nbc, br)
 end
 
+#TODO: index(op) + 1 -> length(bc) + index(op)
+function MutableOperator(bc::Operator,op::Operator)
+    @assert isbanded(op)
+    nbc = size(bc,1)
+    @assert isfinite(nbc)
+
+    bndinds=bandinds(op)
+    bndindslength=bndinds[end]-bndinds[1]+1
+
+    br=((bndinds[1]-nbc),(bndindslength-1))
+    data = bzeros(op,nbc+100-br[1],:,br)
+
+     # do all columns in the row, +1 for the fill
+    fl=FillMatrix(eltype(data),bc,br[end]+1)
+
+    for k=1:nbc,j=columnrange(data,k)
+        data[k,j]=fl.bc[k,j]  # initialize data with the boundary rows
+    end
+
+    MutableOperator(op,data,fl,nbc,nbc, br)
+end
+
 
 function MutableOperator{T<:Operator}(B::Vector{T})
     bcs = Operator{eltype(eltype(B))}[B[k] for k=1:length(B)-1]
@@ -150,6 +178,20 @@ end
 
 MutableOperator{BO<:Operator}(B::BO) = MutableOperator(BO[B])
 MutableOperator{T}(B::InterlaceOperator{T,1}) = MutableOperator(B.ops)
+
+function MutableOperator{T}(A::InterlaceOperator{T,2})
+    # determine number of bcs and split the operator in two
+    nbc=0; while isfinite(size(A.ops[nbc+1],1)) nbc+=1 end
+    for k=nbc+2:size(A.ops,2)
+        if isfinite(size(A.ops[k],1))
+            error("Only the case where all finite operators are at the top is currently supported.")
+        end
+    end
+
+    MutableOperator(InterlaceOperator(A.ops[1:nbc,:]),InterlaceOperator(A.ops[nbc+1:end,:]))
+end
+
+
 
 # for bandrange, we save room for changed entries during Givens
 bandinds(B::MutableOperator) = B.bandinds[1],max(B.bandinds[2],bandinds(B.fill,2))

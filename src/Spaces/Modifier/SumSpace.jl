@@ -374,7 +374,7 @@ interlace{V<:AbstractVector}(v::AbstractVector{V},it::InterlaceIterator) =
 interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
     interlace(map(coefficients,v),InterlaceIterator(sp))
 
-function interlace{F<:Fun}(v::Tuple{Vararg{F}},sp::DirectSumSpace)
+function interlace(v::Tuple,sp::DirectSumSpace)
     V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
     for k=1:length(v)
         V[k]=coefficients(v[k])
@@ -401,9 +401,13 @@ for (Dep,Sp) in ((:depiece,:PiecewiseSpace),(:detuple,:TupleSpace))
             Fun(interlace(v,sp),sp)
         end
 
-        $Dep(v::Vector{Any})=depiece([v...])
+        $Dep(v::Vector{Any})=$Dep(tuple(v...))
     end
 end
+
+# convert a vector to a Fun with TupleSpace
+Fun(v::Vector{Any},sp::TupleSpace) = detuple(map(Fun,v,sp.spaces))
+Fun{F<:Fun}(v::Vector{F},sp::TupleSpace) = detuple(map(Fun,v,sp.spaces))
 
 
 

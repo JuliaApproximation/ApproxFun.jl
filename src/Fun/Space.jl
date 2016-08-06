@@ -483,6 +483,7 @@ coefficients are ignored.
 immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
     domain::DD
     ConstantSpace(d::DD)=new(d)
+    ConstantSpace(d::AnyDomain)=new(DD(d))
 end
 
 ConstantSpace(d::Domain) = ConstantSpace{typeof(d)}(d)

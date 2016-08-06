@@ -22,8 +22,8 @@ end
 
 returns a Fun with coefficients in the space
 """
-Fun(coeff::Vector,sp::Space)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
-Fun{T<:Integer}(coeff::Vector{T},sp::Space)=Fun(1.0coeff,sp)
+Fun(coeff::Vector,sp::Space) = Fun{typeof(sp),eltype(coeff)}(coeff,sp)
+Fun{T<:Integer}(coeff::Vector{T},sp::Space) = Fun(1.0coeff,sp)
 
 function Fun(v::Vector{Any},sp::Space)
     @assert isempty(v)
