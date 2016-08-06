@@ -7,7 +7,8 @@ using ApproxFun, Base.Test
 
 x=Fun([0.,1.])
 Q=gamma(0.5)*LeftIntegral(0.5)
-u=Q\(2/105*sqrt(x)*(105-56x^2+48x^3))
+f=(2/105*sqrt(x)*(105-56x^2+48x^3))
+u=Q\f
 @test norm(u-(x^3-x^2+1))<100eps()
 
 
@@ -23,7 +24,7 @@ u=Q\(exp(x)-1)
 x=Fun([0.,1.])
 Q=gamma(1/5)*LeftIntegral(1/5)
 u=Q\(x+1)
-@test norm(u.-(1+1.25x)*sin(0.8π)/(π*x^(1/5))) < 10eps()
+@test norm(u-(1+1.25x)*sin(0.8π)/(π*x^(1/5))) < 10eps()
 
 # Example 4
 x=Fun([0.,1.])

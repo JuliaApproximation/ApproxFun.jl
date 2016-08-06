@@ -1,5 +1,6 @@
 ## Linear Solve
 
+choosedomainspace(A::Operator,b::Fun) = choosedomainspace(A,space(b))
 choosespaces(A::Operator,b) = promotedomainspace(A,choosedomainspace(A,b))
 
 
@@ -11,7 +12,7 @@ function linsolve(A::Operator,b;kwds...)
         if isambiguous(domainspace(A))
             error("Cannot infer spaces")
         end
-        linspace(A,b;kwds...)
+        linsolve(A,b;kwds...)
     else
         linsolve(qrfact(A),b;kwds...)
     end
