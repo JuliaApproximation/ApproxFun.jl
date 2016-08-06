@@ -56,6 +56,9 @@ end
 
 
 function Base.qrfact(A::Operator)
+    if isambiguous(domainspace(A)) || isambiguous(rangespace(A))
+        throw(ArgumentError("Only non-ambiguous operators can be factorized."))
+    end
     R = MutableOperator(A)
     M = R.data.l+1   # number of diag+subdiagonal bands
     H = Array(eltype(R),M,100)

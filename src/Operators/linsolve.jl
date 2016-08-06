@@ -1,9 +1,17 @@
 ## Linear Solve
 
+choosespaces(A::Operator,b) = promotedomainspace(A,choosedomainspace(A,b))
+
 
 function linsolve(A::Operator,b;kwds...)
     if ndims(domain(A)) > 1
         pdesolve(A,b;kwds...)
+    elseif isambiguous(domainspace(A))
+        A=choosespaces(A,b)
+        if isambiguous(domainspace(A))
+            error("Cannot infer spaces")
+        end
+        linspace(A,b;kwds...)
     else
         linsolve(qrfact(A),b;kwds...)
     end
