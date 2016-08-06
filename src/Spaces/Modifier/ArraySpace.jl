@@ -7,7 +7,7 @@ coefficients are of each entry are interlaced.
 """
 immutable ArraySpace{S,n,T,DD,dim} <: Space{T,DD,dim}
      space::S
-     dimensions::Tuple{Vararg{Int}}
+     dimensions::NTuple{n,Int}
 #      # for AnyDomain() usage
     ArraySpace(sp::S,dims)=new(sp,dims)
     ArraySpace(d::Domain,dims)=new(S(d),dims)

@@ -183,6 +183,14 @@ linsolve{S,B,T<:Complex,V<:Real}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
 linsolve(QR::QROperator,b::Fun;kwds...) = linsolve(QR,coefficients(b,rangespace(QR));kwds...)
 linsolve(QR::QROperator,b::Vector{Any};kwds...) = linsolve(QR,Fun(b,rangespace(QR));kwds...)
 linsolve{FF<:Fun}(QR::QROperator,b::Vector{FF};kwds...) = linsolve(QR,Fun(b,rangespace(QR));kwds...)
+function linsolve(A::QROperator,B::Matrix;kwds...)
+    ds=domainspace(A)
+    ret=Array(Fun{typeof(ds),promote_type(eltype(eltype(B)),eltype(ds))},1,size(B,2))
+    for j=1:size(B,2)
+        ret[:,j]=linsolve(A,B[:,j];kwds...)
+    end
+    demat(ret)
+end
 linsolve(A::QROperator,b;kwds...) = linsolve(A,Fun(b);kwds...)
 
 Base.Ac_mul_B(A::QROperatorQ,b::Vector{Any};kwds...) = Ac_mul_B(A,Fun(b,rangespace(A));kwds...)
