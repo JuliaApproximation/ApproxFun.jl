@@ -22,6 +22,7 @@ for OP in (:domainspace,:rangespace)
 end
 
 promotedomainspace(C::ConstantOperator,sp::Space) = ConstantOperator(C.λ,sp)
+promoterangespace{T}(C::ConstantOperator{T,UnsetSpace},sp::Space) = ConstantOperator(C.λ,sp)
 
 bandinds(T::ConstantOperator) = 0,0
 
@@ -42,7 +43,7 @@ end
 # zero needs to be different since it can take a space to
 # a ConstantSpace, in creating functionals
 Base.convert{T}(::Type{Operator{T}},x::Number) =
-    x==0?ZeroOperator(T,UnsetSpace()):ConstantOperator(T,x,UnsetSpace())
+    x==0?ZeroOperator(T,UnsetSpace()):ConstantOperator(T,x,ConstantSpace())
 Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
     ConstantOperator(T,L.λ)
 

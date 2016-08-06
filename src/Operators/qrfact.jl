@@ -188,9 +188,13 @@ Base.Ac_mul_B(A::QROperatorQ,b::Vector{Any};kwds...) = Ac_mul_B(A,Fun(b,rangespa
 Base.Ac_mul_B{FF<:Fun}(A::QROperatorQ,b::Vector{FF};kwds...) = Ac_mul_B(A,Fun(b,rangespace(A));kwds...)
 
 Base.At_mul_B{T<:Real}(A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B(A,B)
-function Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
-                                        tolerance::Float64=eps2(T)/10,
-                                        maxlength::Int=1000000)
+
+Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
+                                        tolerance=eps(T)/10,maxlength=1000000) =
+        Ac_mul_Bpars(A,B,tolerance,maxlength)
+
+function Ac_mul_Bpars{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T},
+                                        tolerance,maxlength)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
@@ -238,7 +242,7 @@ Base.Ac_mul_B{QR,T,V<:Number}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...)
     Ac_mul_B(A,Vector{T}(B))
 
 Base.Ac_mul_B{QR,T}(A::QROperatorQ{QR,T},B::Fun;opts...) =
-    Ac_mul_B(A,coeficients(B,rangespace(A)))
+    Ac_mul_B(A,coefficients(B,rangespace(A)))
 
 
 function linsolve(R::QROperatorR,b::Vector)

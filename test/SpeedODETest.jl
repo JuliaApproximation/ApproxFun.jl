@@ -110,6 +110,11 @@ u=nullspace(A)
 @time u=nullspace(A)
 println("Null Airy: 0.052730 seconds (75.21 k allocations: 56.736 MB)")
 
+Q,R=qr(A.')
+
+
+
+
 
 if OS_NAME == :Darwin
     gc_enable(true)

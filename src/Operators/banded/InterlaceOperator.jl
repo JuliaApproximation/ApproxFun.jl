@@ -92,7 +92,7 @@ InterlaceOperator{T,p}(ops::Array{T,p},ds,rs,di,ri,bi) =
                         typeof(di),typeof(ri),typeof(bi)}(ops,ds,rs,di,ri,bi)
 
 function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
-    # calculate bandinds
+    # calculate bandinds TODO: generalize
     p=size(ops,1)
     if size(ops,2) == p && all(isbanded,ops)
         l,u = 0,0
@@ -102,6 +102,9 @@ function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
         for k=1:p,j=1:p
             u=max(u,p*bandinds(ops[k,j],2)+j-k)
         end
+    elseif p == 1 && size(ops,2) == 2 && size(ops[1],2) == 1
+        # special case for example
+        l,u = min(bandinds(ops[1],1),bandinds(ops[2],1)+1),bandinds(ops[2],2)+1
     else
         l,u = (1-dimension(rs),dimension(ds)-1)  # not banded
     end

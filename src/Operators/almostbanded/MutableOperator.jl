@@ -56,6 +56,7 @@ FillMatrix{T}(::Type{T},bc::Operator,pf) = FillMatrix(bc,eye2(T,size(bc,1)),pf)
 # the bandinds move left as we do row manipulations, so the bandinds[2]
 # of F.bc will give the maximum
 bandinds(F::FillMatrix) = (-∞,bandinds(F.bc,2))
+bandinds{T}(F::FillMatrix{T,Void}) = (0,0)
 
 
 function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
@@ -120,7 +121,12 @@ type MutableOperator{T,M,R} <: Operator{T}
 end
 
 domainspace(M::MutableOperator) = domainspace(M.op)
-rangespace(M::MutableOperator) = TupleSpace(tuple(spaces(rangespace(M.fill.bc))...,spaces(rangespace(M.op))...))
+
+rangespace{T,MM}(M::MutableOperator{T,MM,Void}) = rangespace(M.op)
+
+rangespace(M::MutableOperator) =
+    TupleSpace(tuple(spaces(rangespace(M.fill.bc))...,
+                     spaces(rangespace(M.op))...))
 
 
 
