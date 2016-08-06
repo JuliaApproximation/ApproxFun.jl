@@ -221,7 +221,7 @@ complexlength(d::Union{Line,PeriodicLine})=Inf
 
 for typ in (:Line,:PeriodicLine)
     @eval function ($typ)(d::AbstractVector)
-        @assert length(d) ==2
+        @assert length(d) == 2
         @assert abs(d[1]) == abs(d[2]) == Inf
 
         if isa(d[1],Real) && isa(d[2],Real)

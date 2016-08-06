@@ -173,6 +173,9 @@ linsolve{S,B,T<:Real}(QR::QROperator{S,B,T},b::Vector{T};kwds...) =
 linsolve{S,B,T<:Complex}(QR::QROperator{S,B,T},b::Vector{T};kwds...) =
     Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
 
+linsolve{S,B,T,V<:Number}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
+    linsolve(QR,Vector{T}(b);kwds...)
+
 linsolve{S,B,T<:Real,V<:Complex}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
     linsolve(QR,real(b);kwds...)+im*linsolve(QR,imag(b);kwds...)
 linsolve{S,B,T<:Complex,V<:Real}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =

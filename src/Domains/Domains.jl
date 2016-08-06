@@ -37,7 +37,7 @@ end
 function Base.convert{T<:Number}(::Type{PeriodicDomain},d::AbstractVector{T})
     @assert length(d) == 2
 
-    if abs(d[1]) ==Inf
+    if abs(d[1]) == Inf
         PeriodicLine(d)
     else
         PeriodicInterval(d[1],d[2])
