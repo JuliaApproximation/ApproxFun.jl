@@ -1,8 +1,20 @@
 ## Linear Solve
 
 
-linsolve(A::Operator,b;kwds...) = linsolve(qrfact(A),b;kwds...)
-linsolve{OO<:Operator}(A::Array{OO},b;kwds...) = linsolve(qrfact(A),b;kwds...)
+function linsolve(A::Operator,b;kwds...)
+    if ndims(domain(A)) > 1
+        pdesolve(A,b;kwds...)
+    else
+        linsolve(qrfact(A),b;kwds...)
+    end
+end
+function linsolve{OO<:Operator}(A::Array{OO},b;kwds...)
+    if ndims(domain(A[end])) > 1
+        pdesolve(A,b;kwds...)
+    else
+        linsolve(qrfact(A),b;kwds...)
+    end
+end
 
 for p in (1,2)
     @eval begin

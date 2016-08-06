@@ -183,6 +183,7 @@ linsolve{S,B,T<:Complex,V<:Real}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
 linsolve(QR::QROperator,b::Fun;kwds...) = linsolve(QR,coefficients(b,rangespace(QR));kwds...)
 linsolve(QR::QROperator,b::Vector{Any};kwds...) = linsolve(QR,Fun(b,rangespace(QR));kwds...)
 linsolve{FF<:Fun}(QR::QROperator,b::Vector{FF};kwds...) = linsolve(QR,Fun(b,rangespace(QR));kwds...)
+linsolve(A::QROperator,b;kwds...) = linsolve(A,Fun(b);kwds...)
 
 Base.Ac_mul_B(A::QROperatorQ,b::Vector{Any};kwds...) = Ac_mul_B(A,Fun(b,rangespace(A));kwds...)
 Base.Ac_mul_B{FF<:Fun}(A::QROperatorQ,b::Vector{FF};kwds...) = Ac_mul_B(A,Fun(b,rangespace(A));kwds...)
@@ -254,3 +255,5 @@ function linsolve(R::QROperatorR,b::Vector)
 end
 
 linsolve(R::QROperatorR,b::Fun{SequenceSpace};kwds...) = linsolve(R,b.coefficients;kwds...)
+linsolve(A::QROperatorR,b::Fun;kwds...) = error("linsolve not implement for $(typeof(b)) right-hand sides")
+linsolve(A::QROperatorR,b;kwds...) = linsolve(A,Fun(b);kwds...)
