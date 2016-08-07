@@ -59,7 +59,7 @@ function MutableOperator{R<:Operator}(bc::Vector{R},S::LowRankPertOperator)
     bcdat=eye(shift,lbc)
     lowrdat=[zeros(lbc,r);coefficients(S.pert.U)]  # add zeros for first bc rows
     opdat=[zeros(lbc,dats);eye(dats)]
-    fl=FillMatrix([bc;S.pert.V;S.op[1:dats,:]],[bcdat lowrdat opdat],br[end]+1)
+    fl=FillOperator([bc;S.pert.V;S.op[1:dats,:]],[bcdat lowrdat opdat],br[end]+1)
 
 
     for k=1:lbc,j=columnrange(data,k)

@@ -137,7 +137,7 @@ end
 
 
 # Apply Householder(w) to the part of the operator both in and out of the bands
-function applyhouseholder!{T}(w::Vector{T},F::FillMatrix,B::BandedMatrix,kr::Range,jr::Range)
+function applyhouseholder!{T}(w::Vector{T},F::FillOperator,B::BandedMatrix,kr::Range,jr::Range)
     k1 = first(kr)-1
     k2 = last(kr)-first(kr)
     m=1

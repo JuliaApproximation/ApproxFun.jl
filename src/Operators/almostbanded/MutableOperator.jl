@@ -5,11 +5,11 @@ export MutableOperator
 
 
 ###
-# FillMatrix represents the filled-in rows of an almost-bande dmatrix
+# FillOperator represents the filled-in rows of an almost-bande dmatrix
 # data*bc
 ###
 
-type FillMatrix{T,CO}
+type FillOperator{T,CO}
     bc::CO                # The boundary rows as a cached operator
     data::Matrix{T}       # The combination of bcs
     datalength::Int
@@ -27,39 +27,39 @@ end
 eye2{T}(::Type{T},n::Integer,m::Integer)=eye(T,n,m)
 eye2{T}(::Type{T},n::Integer)=eye(T,n,n)
 
-function FillMatrix(bc::Vector,data::Matrix,pf)
+function FillOperator(bc::Vector,data::Matrix,pf)
     if isempty(bc)
-        FillMatrix(nothing,data,size(data,1),0,pf)
+        FillOperator(nothing,data,size(data,1),0,pf)
     elseif length(bc)==1
-        FillMatrix(first(bc),data,pf)
+        FillOperator(first(bc),data,pf)
     else
-        FillMatrix(InterlaceOperator(bc),data,pf)
+        FillOperator(InterlaceOperator(bc),data,pf)
     end
 end
 
-function FillMatrix(bc::Operator,data::Matrix,pf)
+function FillOperator(bc::Operator,data::Matrix,pf)
     @assert isfinite(size(bc,1))
     nbc=size(data,2)
     data=pad(data,size(data,1)+50,:)  # pad now by 50 to save computational cost later
 
     sfuncs=cache(bc)
     resizedata!(sfuncs,nbc,size(data,1)+50)
-    FillMatrix(sfuncs,data,size(data,1),nbc,pf)
+    FillOperator(sfuncs,data,size(data,1),nbc,pf)
 end
 
-FillMatrix{T,OO<:Operator}(::Type{T},bc::Vector{OO},pf) =
-    FillMatrix(bc,eye2(T,isempty(bc)?0:mapreduce(op->size(op,1),+,bc)),pf)
-FillMatrix{T}(::Type{T},bc::Operator,pf) = FillMatrix(bc,eye2(T,size(bc,1)),pf)
+FillOperator{T,OO<:Operator}(::Type{T},bc::Vector{OO},pf) =
+    FillOperator(bc,eye2(T,isempty(bc)?0:mapreduce(op->size(op,1),+,bc)),pf)
+FillOperator{T}(::Type{T},bc::Operator,pf) = FillOperator(bc,eye2(T,size(bc,1)),pf)
 
 
 
 # the bandinds move left as we do row manipulations, so the bandinds[2]
 # of F.bc will give the maximum
-bandinds(F::FillMatrix) = (-∞,bandinds(F.bc,2))
-bandinds{T}(F::FillMatrix{T,Void}) = (0,0)
+bandinds(F::FillOperator) = (-∞,bandinds(F.bc,2))
+bandinds{T}(F::FillOperator{T,Void}) = (0,0)
 
 
-function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
+function getindex{T<:Number,R}(B::FillOperator{T,R},k::Integer,j::Integer)
     ret = zero(T)
     resizedata!(B,k)
 
@@ -72,7 +72,7 @@ function getindex{T<:Number,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret
 end
 
-function unsafe_getindex{T,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
+function unsafe_getindex{T,R}(B::FillOperator{T,R},k::Integer,j::Integer)
     ret = zero(T)
 
     @simd for m=1:B.numbcs
@@ -82,7 +82,7 @@ function unsafe_getindex{T,R}(B::FillMatrix{T,R},k::Integer,j::Integer)
     ret
 end
 
-function getindex{T<:Number,R}(B::FillMatrix{T,R},kr::Range,j::Integer)
+function getindex{T<:Number,R}(B::FillOperator{T,R},kr::Range,j::Integer)
     ret = zeros(T,length(kr))
 
     for m=1:B.numbcs
@@ -94,7 +94,7 @@ function getindex{T<:Number,R}(B::FillMatrix{T,R},kr::Range,j::Integer)
     ret
 end
 
-function resizedata!{T}(B::FillMatrix{T},n)
+function resizedata!{T}(B::FillOperator{T},n)
     nbc=B.numbcs
     if nbc>0  && n > B.datalength
         resizedata!(B.bc,:,2n+B.padbc)         ## do all columns in the row, +1 for the fill
@@ -111,7 +111,7 @@ end
 type MutableOperator{T,M,R} <: Operator{T}
     op::M                 # The underlying op that is modified
     data::BandedMatrix{T} # Data representing bands
-    fill::FillMatrix{T,R}
+    fill::FillOperator{T,R}
 
     shift::Int            # How far down to shift the op
 
@@ -142,7 +142,7 @@ function MutableOperator{R<:Operator}(bc::Vector{R},op::Operator)
     data = bzeros(op,nbc+100-br[1],:,br)
 
      # do all columns in the row, +1 for the fill
-    fl=FillMatrix(eltype(data),bc,br[end]+1)
+    fl=FillOperator(eltype(data),bc,br[end]+1)
 
     for k=1:nbc,j=columnrange(data,k)
         data[k,j]=fl.bc[k,j]  # initialize data with the boundary rows
@@ -164,7 +164,7 @@ function MutableOperator(bc::Operator,op::Operator)
     data = bzeros(op,nbc+100-br[1],:,br)
 
      # do all columns in the row, +1 for the fill
-    fl=FillMatrix(eltype(data),bc,br[end]+1)
+    fl=FillOperator(eltype(data),bc,br[end]+1)
 
     for k=1:nbc,j=columnrange(data,k)
         data[k,j]=fl.bc[k,j]  # initialize data with the boundary rows
@@ -242,7 +242,7 @@ function Base.getindex(B::MutableOperator,k::Integer,j::Integer)
     elseif k <= B.datalength && j > ir[end]
         B.fill[k,j]
     else
-        B.op[k-shift,j]##TODO: Slow
+        B.op[k-shift,j]
     end
 end
 

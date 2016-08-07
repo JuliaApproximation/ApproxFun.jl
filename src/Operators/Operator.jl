@@ -275,7 +275,8 @@ include("linsolve.jl")
 
 include("spacepromotion.jl")
 include("banded/banded.jl")
-include("algebra.jl")
+include("general/general.jl")
+
 include("functionals/functionals.jl")
 include("almostbanded/almostbanded.jl")
 

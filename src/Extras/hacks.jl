@@ -52,7 +52,7 @@ function applygivens!(ca,cb,mb,a,B::BandedMatrix,k1::Integer,k2::Integer,jr::Ran
     B
 end
 
-function applygivens!(ca,cb,mb,a,F::FillMatrix,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
+function applygivens!(ca,cb,mb,a,F::FillOperator,B::BandedMatrix,k1::Integer,k2::Integer,jr::Range)
     for j = jr
         B1 = unsafe_getindex(F,k1,j)
         @inbounds B2 = B.data[k2-j+B.u+1,j]   #B[k2,j]

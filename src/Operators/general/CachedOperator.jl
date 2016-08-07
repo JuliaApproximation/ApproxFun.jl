@@ -1,6 +1,6 @@
 
 
-export SavedBandedOperator, cache
+export cache
 
 
 
@@ -8,19 +8,30 @@ export SavedBandedOperator, cache
 
 ## CachedOperator
 
-type CachedOperator{T<:Number,M<:Operator,DS,RS,BI} <: Operator{T}
+type CachedOperator{T<:Number,DM<:AbstractMatrix,M<:Operator,DS,RS,BI} <: Operator{T}
     op::M
-    data::Matrix{T}
+    data::DM
     datasize::Tuple{Int,Int}
     domainspace::DS
     rangespace::RS
     bandinds::BI
 end
 
+CachedOperator(op,data,sz,ds,rs,bi) =
+    CachedOperator{eltype(data),typeof(data),typeof(op),
+                    typeof(ds),typeof(rs),typeof(bi)}(op,data,sz,ds,rs,bi)
+
+
 CachedOperator(op::Operator,data,sz) =
     CachedOperator(op,data,sz,domainspace(op),rangespace(op),bandinds(op))
 CachedOperator(op::Operator,data) = CachedOperator(op,data,size(data))
-CachedOperator(op::Operator) = CachedOperator(op,Array(eltype(op),0,0))
+function CachedOperator(op::Operator)
+    if isbanded(op)
+        CachedOperator(op,BandedMatrix(eltype(op),0,0,bandwidth(op,1),bandwidth(op,2)))
+    else
+        CachedOperator(op,Array(eltype(op),0,0))
+    end
+end
 
 
 cache(O::Operator) = CachedOperator(O)
@@ -39,7 +50,7 @@ Base.stride(C::CachedOperator) = stride(C.op)
 # TODO: cache this information as well
 for func in (:(ApproxFun.colstart),:(ApproxFun.colstop),
                 :(ApproxFun.rowstart),:(ApproxFun.rowstop))
-    @eval $func{T,M,DS,RS}(D::CachedOperator{T,M,DS,RS,Tuple{Infinity{Bool},Infinity{Bool}}},
+    @eval $func{T,DM,M,DS,RS}(D::CachedOperator{T,DM,M,DS,RS,Tuple{Infinity{Bool},Infinity{Bool}}},
                          k::Integer) = $func(D.op,k)
 end
 
@@ -69,7 +80,7 @@ function Base.getindex(B::CachedOperator,k::Integer)
  end
 
 
-function resizedata!(B::CachedOperator,n::Integer,m::Integer)
+function resizedata!{T<:Number}(B::CachedOperator{T,Matrix{T}},n::Integer,m::Integer)
     if n > size(B,1) || m > size(B,2)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
@@ -103,67 +114,27 @@ function resizedata!(B::CachedOperator,n::Integer,m::Integer)
     end
 end
 
-resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,B.datasize[1],m)
-resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,B.datasize[2])
-
-
-
-## SavedBandedOperator
-
-
-type SavedBandedOperator{T<:Number,M<:Operator} <: Operator{T}
-    op::M
-    data::BandedMatrix{T}   #Shifted to encapsolate bandedness
-    datalength::Int
-    bandinds::Tuple{Int,Int}
-end
-
-
-
-# convert needs to throw away calculated data
-function Base.convert{T}(::Type{Operator{T}},S::SavedBandedOperator)
-    if eltype(S) == T
-        S
-    else
-        SavedBandedOperator(convert(Operator{T},S.op),
-                            convert(BandedMatrix{T},S.data),
-                            S.datalength,S.bandinds)
+function resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,::Colon)
+    if n > size(B,1) || m > size(B,2)
+        throw(ArgumentError("Cannot resize beyound size of operator"))
     end
-end
 
-
-#TODO: index(op) + 1 -> length(bc) + index(op)
-function SavedBandedOperator{T<:Number}(op::Operator{T})
-    data = bzeros(T,0,:,bandinds(op))  # bzeros is needed to allocate top of array
-    SavedBandedOperator(op,data,0,bandinds(op))
-end
-
-
-
-for OP in (:domain,:domainspace,:rangespace,:(Base.stride))
-    @eval $OP(S::SavedBandedOperator)=$OP(S.op)
-end
-
-bandinds(B::SavedBandedOperator)=B.bandinds
-
-
-
-
-function Base.getindex(B::SavedBandedOperator,k::Integer,j::Integer)
-    resizedata!(B,k)
-    B.data[k,j]
-end
-
-function resizedata!(B::SavedBandedOperator,n::Integer)
-    if n > B.datalength
+    if n > B.datasize[1]
         pad!(B.data,2n,:)
 
-        kr=B.datalength+1:n
-        jr=max(B.datalength+1-B.data.l,1):n+B.data.u
+        kr=B.datasize[1]+1:n
+        jr=max(B.datasize[1]+1-B.data.l,1):n+B.data.u
         BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
 
-        B.datalength = n
+        B.datasize = (n,n+B.data.u)
     end
 
     B
 end
+
+
+resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Integer) =
+    resizedata!(B,n,:)
+
+resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,B.datasize[1],m)
+resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,B.datasize[2])

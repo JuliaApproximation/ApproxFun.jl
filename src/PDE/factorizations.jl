@@ -18,7 +18,7 @@ immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:N
     indsBx::Vector{Int}
     indsBy::Vector{Int}
 
-    Rdiags::Vector{SavedBandedOperator{ST}}
+    Rdiags::Vector{CachedOperator{ST}}
 end
 
 #TODO: Functional type?
@@ -27,18 +27,18 @@ Base.eltype{OS,LT,MT,ST,FT}(PO::PDEOperatorSchur{OS,LT,MT,ST,FT})=promote_type(e
 
 function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)
     Xops=promotespaces([Lx,Mx])
-    Lx=SavedBandedOperator(Xops[1]);Mx=SavedBandedOperator(Xops[2])
+    Lx=cache(Xops[1]);Mx=cache(Xops[2])
 
     ny=size(S,1)
     nbcs=numbcs(S)
     RT=promote_type(LT,MT,BT,ST)
-    Rdiags=Array(SavedBandedOperator{RT},ny)
+    Rdiags=Array(CachedOperator{RT},ny)
     resizedata!(Lx,ny);resizedata!(Mx,ny)
 
 
     for k=1:ny-nbcs
         ##TODO: Do block case
-        Rdiags[k]=SavedBandedOperator(PlusOperator(Operator{RT}[getdiagonal(S,k,1)*Lx,getdiagonal(S,k,2)*Mx]))
+        Rdiags[k]=cache(PlusOperator(Operator{RT}[getdiagonal(S,k,1)*Lx,getdiagonal(S,k,2)*Mx]))
         resizedata!(Rdiags[k],ny)
     end
 
