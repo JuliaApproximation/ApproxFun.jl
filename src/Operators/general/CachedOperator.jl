@@ -115,7 +115,7 @@ function resizedata!{T<:Number}(B::CachedOperator{T,Matrix{T}},n::Integer,m::Int
 end
 
 function resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,::Colon)
-    if n > size(B,1) || m > size(B,2)
+    if n > size(B,1)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
 

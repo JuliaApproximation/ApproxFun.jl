@@ -44,8 +44,12 @@ function view(A::Operator,kr::UnitRange,jr::UnitRange)
     end
 end
 
+view(A::Operator,::Colon,jr::Range) = view(A,1:size(A,1),jr)
+view(A::Operator,kr::Range,::Colon) = view(A,kr,1:size(A,2))
+
 view(A::SubBandedMatrix,kr::UnitRange,jr::UnitRange) =
     view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
+
 
 
 

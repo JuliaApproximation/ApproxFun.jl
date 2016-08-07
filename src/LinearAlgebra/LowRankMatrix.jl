@@ -15,8 +15,6 @@ type LowRankMatrix{T} <: AbstractMatrix{T}
         m,r = size(U)
         n,rv = size(V)
         @assert r == rv
-        U,V = copy(U),copy(V)
-        balance!(U,V,m,n,r)
         new(U,V)
     end
 end
@@ -28,6 +26,9 @@ LowRankMatrix(U::Vector,V::Matrix)=LowRankMatrix(reshape(U,length(U),1),V)
 LowRankMatrix(U::Matrix,V::Vector)=LowRankMatrix(U,reshape(V,length(V),1))
 LowRankMatrix(U::Vector,V::Vector)=LowRankMatrix(reshape(U,length(U),1),reshape(V,length(V),1))
 LowRankMatrix(a::Number,m::Int,n::Int)=LowRankMatrix(a*ones(eltype(a),m),ones(eltype(a),n))
+
+LowRankMatrix{T}(::Type{T},m::Int,n::Int,r::Int) = LowRankMatrix(Array(T,m,r),Array(T,n,r))
+lrzeros{T}(::Type{T},m::Int,n::Int,r::Int) = LowRankMatrix(zeros(T,m,r),zeros(T,n,r))
 
 Base.similar(L::LowRankMatrix, T, dims::Dims) = (@assert length(dims) == 2;r = rank(L); LowRankMatrix(Array(T,dims[1],r),Array(T,dims[2],r)))
 Base.similar{T}(L::LowRankMatrix{T}) = ((m,n) = size(L); r = rank(L); LowRankMatrix(Array(T,m,r),Array(T,n,r)))
@@ -54,7 +55,7 @@ function balance!{T}(U::Matrix{T},V::Matrix{T},m::Int,n::Int,r::Int)
         end
         uk,vk = sqrt(uk),sqrt(vk)
         σk = sqrt(uk*vk)
-        if abs2(uk) ≥ eps2(T)^2 && abs2(vk) ≥ eps2(T)^2
+        if abs2(uk) ≥ eps(T)^2 && abs2(vk) ≥ eps(T)^2
             uk,vk = σk/uk,σk/vk
             for i=1:m
                 @inbounds U[i,k] *= uk
