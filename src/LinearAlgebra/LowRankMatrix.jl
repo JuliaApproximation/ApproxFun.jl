@@ -97,14 +97,18 @@ Base.ctranspose{T<:Real}(L::LowRankMatrix{T}) = LowRankMatrix(L.V,L.U)
 Base.ctranspose(L::LowRankMatrix) = LowRankMatrix(conj(L.V),conj(L.U))
 Base.fill!{T}(L::LowRankMatrix{T}, x::T) = (fill!(L.U, sqrt(abs(x)/rank(L)));fill!(L.V,sqrt(abs(x)/rank(L))/sign(x)); L)
 
+function unsafe_getindex(L::LowRankMatrix,i::Int,j::Int)
+    ret = zero(eltype(L))
+    for k=1:rank(L)
+        @inbounds ret = muladd(L.U[i,k],L.V[j,k],ret)
+    end
+    return ret
+end
+
 function Base.getindex(L::LowRankMatrix,i::Int,j::Int)
     m,n = size(L)
     if 1 ≤ i ≤ m && 1 ≤ j ≤ n
-        ret = zero(eltype(L))
-        for k=1:rank(L)
-            @inbounds ret = muladd(L.U[i,k],L.V[j,k],ret)
-        end
-        return ret
+        unsafe_getindex(L,i,j)
     else
         throw(BoundsError())
     end

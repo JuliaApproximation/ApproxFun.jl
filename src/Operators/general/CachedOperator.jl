@@ -17,14 +17,14 @@ type CachedOperator{T<:Number,DM<:AbstractMatrix,M<:Operator,DS,RS,BI} <: Operat
     bandinds::BI
 end
 
-CachedOperator(op,data,sz,ds,rs,bi) =
+CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},ds,rs,bi) =
     CachedOperator{eltype(data),typeof(data),typeof(op),
                     typeof(ds),typeof(rs),typeof(bi)}(op,data,sz,ds,rs,bi)
 
 
-CachedOperator(op::Operator,data,sz) =
+CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int}) =
     CachedOperator(op,data,sz,domainspace(op),rangespace(op),bandinds(op))
-CachedOperator(op::Operator,data) = CachedOperator(op,data,size(data))
+CachedOperator(op::Operator,data::AbstractMatrix) = CachedOperator(op,data,size(data))
 function CachedOperator(op::Operator)
     if isbanded(op)
         CachedOperator(op,BandedMatrix(eltype(op),0,0,bandwidth(op,1),bandwidth(op,2)))

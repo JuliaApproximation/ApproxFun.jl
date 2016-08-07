@@ -75,6 +75,7 @@ Base.ndims(::Operator) = 2
 ## bandrange and indexrange
 bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
 bandwidth(A::Operator,k::Integer) = k==1?-bandinds(A,1):bandinds(A,2)
+bandwidths(A::Operator) = (bandwidth(A,1),bandwidth(A,2))
 # we are always banded by the size
 bandinds(A::Operator) = (1-size(A,1),size(A,2)-1)
 bandinds(A,k::Integer) = bandinds(A)[k]

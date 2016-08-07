@@ -2,8 +2,8 @@
 
 
 
-type QROperator{B,S,T} <: Operator{T}
-    R::MutableOperator{T,B,S}
+type QROperator{CO,T} <: Operator{T}
+    R::CO
     H::Matrix{T} # Contains the Householder reflections
     ncols::Int   # number of cols already upper triangularized
 end
@@ -59,8 +59,8 @@ function Base.qrfact(A::Operator)
     if isambiguous(domainspace(A)) || isambiguous(rangespace(A))
         throw(ArgumentError("Only non-ambiguous operators can be factorized."))
     end
-    R = MutableOperator(A)
-    M = R.data.l+1   # number of diag+subdiagonal bands
+    R = CachedOperator(A;padding=true)
+    M = R.data.bands.l+1   # number of diag+subdiagonal bands
     H = Array(eltype(R),M,100)
     QROperator(R,H,0)
 end
@@ -109,19 +109,18 @@ function resizedata!(QR::QROperator,::Colon,col)
     W=QR.H
 
     T=eltype(QR)
-    M=MO.data.l+1   # number of diag+subdiagonal bands
+    R=MO.data.bands
+    M=R.l+1   # number of diag+subdiagonal bands
 
-    if col+M-1 ≥ MO.datalength
-        resizedata!(MO,(col+M-1)+100)  # double the last rows
+    if col+M-1 ≥ MO.datasize[2]
+        resizedata!(MO,(col+M-1)+100,:)  # double the last rows
     end
 
     if col > size(W,2)
         W=QR.H=unsafe_resize!(W,:,2col)
     end
 
-
-    R=MO.data
-    F=MO.fill.data
+    F=MO.data.fill.U
 
     f=pointer(F)
     m,n=size(R)
@@ -149,7 +148,7 @@ function resizedata!(QR::QROperator,::Colon,col)
             v=r+sz*((j-1)*st)  # shift down each time
             dt=dot(M-p,wp+p*sz,1,v,1)
             for ℓ=k:k+p-1
-                @inbounds dt+=conj(W[ℓ-k+1,k])*unsafe_getindex(MO.fill,ℓ,j)
+                @inbounds dt=muladd(conj(W[ℓ-k+1,k]),unsafe_getindex(MO.data.fill,ℓ,j),dt)
             end
             BLAS.axpy!(M-p,-2*dt,wp+p*sz,1,v,1)
         end
@@ -171,17 +170,17 @@ end
 
 ## Multiplication routines
 
-linsolve{S,B,T<:Real}(QR::QROperator{S,B,T},b::Vector{T};kwds...) =
+linsolve{CO,T<:Real}(QR::QROperator{CO,T},b::Vector{T};kwds...) =
     Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
-linsolve{S,B,T<:Complex}(QR::QROperator{S,B,T},b::Vector{T};kwds...) =
+linsolve{CO,T<:Complex}(QR::QROperator{CO,T},b::Vector{T};kwds...) =
     Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
 
-linsolve{S,B,T,V<:Number}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
+linsolve{CO,T,V<:Number}(QR::QROperator{CO,T},b::Vector{V};kwds...) =
     linsolve(QR,Vector{T}(b);kwds...)
 
-linsolve{S,B,T<:Real,V<:Complex}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
+linsolve{CO,T<:Real,V<:Complex}(QR::QROperator{CO,T},b::Vector{V};kwds...) =
     linsolve(QR,real(b);kwds...)+im*linsolve(QR,imag(b);kwds...)
-linsolve{S,B,T<:Complex,V<:Real}(QR::QROperator{S,B,T},b::Vector{V};kwds...) =
+linsolve{CO,T<:Complex,V<:Real}(QR::QROperator{CO,T},b::Vector{V};kwds...) =
     linsolve(QR,Vector{T}(b);kwds...)
 
 

@@ -142,7 +142,23 @@ u=R\(Q'*[cos(-1.0),cos(1.0)])
 
 @test_approx_eq u(0.) cos(0.0)
 
+A = qrfact([B;D^2+I])
+ApproxFun.resizedata!(A,:,3)
+A
 
+A\[
+
+io=ApproxFun.InterlaceOperator([B;D^2+I])
+
+bandinds(A[end])
+
+R = ApproxFun.CachedOperator(A)
+
+R-io
+
+M = R.data.l+1   # number of diag+subdiagonal bands
+H = Array(eltype(R),M,100)
+QROperator(R,H,0)
 
 
 S=Chebyshev()

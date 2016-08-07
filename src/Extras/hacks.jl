@@ -125,6 +125,49 @@ end
 
 
 
+function backsubstitution!{T}(B::CachedOperator{T,AlmostBandedMatrix{T}},u::Array)
+    n=size(u,1)
+    A=B.data.bands
+    F=B.data.fill
+    b=bandwidth(A,2)
+    nbc = rank(B.data.fill)
+    T=eltype(u)
+    pk = zeros(T,nbc)
+
+    for c=1:size(u,2)
+        fill!(pk,zero(T))
+
+        # before we get to filled rows
+        for k=n:-1:max(1,n-b)
+            @simd for j=k+1:n
+                @inbounds u[k,c]=muladd(-A.data[k-j+A.u+1,j],u[j,c],u[k,c])
+            end
+
+            @inbounds u[k,c] /= A.data[A.u+1,k]
+        end
+
+       #filled rows
+        for k=n-b-1:-1:1
+            @simd for j=1:nbc
+                @inbounds pk[j] = muladd(u[k+b+1,c],F.V[k+b+1,j],pk[j])
+            end
+
+            @simd for j=k+1:k+b
+                @inbounds u[k,c]=muladd(-A.data[k-j+A.u+1,j],u[j,c],u[k,c])
+            end
+
+            @simd for j=1:nbc
+                @inbounds u[k,c] = muladd(-F.U[k,j],pk[j],u[k,c])
+            end
+
+            @inbounds u[k,c] /= A.data[A.u+1,k]
+        end
+    end
+    u
+end
+
+
+
 
 
 

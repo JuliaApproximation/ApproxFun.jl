@@ -339,9 +339,7 @@ Base.convert{OO<:Operator}(::Type{Operator},M::Array{OO}) = InterlaceOperator(M)
 
 
 #### Caching
-
-
-function CachedOperator{T}(io::InterlaceOperator{T,1})
+function CachedOperator{T}(io::InterlaceOperator{T,1};padding::Bool=false)
     ds=domainspace(io)
     rs=rangespace(io)
 
@@ -351,6 +349,13 @@ function CachedOperator{T}(io::InterlaceOperator{T,1})
     end
     i=ind[1]
     bo=io.ops[i]
+    lin,uin=bandwidths(bo)
+    # add extra rows for QR
+    if padding
+        uin+=lin
+    end
+
+
 
     # calculate number of rows interlaced
     # each each row in the rangespace increases the lower bandwidth by 1
@@ -375,7 +380,7 @@ function CachedOperator{T}(io::InterlaceOperator{T,1})
     numoprows=isend?md-1:md
     n=nds+numoprows
 
-    (l,u) = (max(bandwidth(bo,1)+nds,n-1),max(0,bandinds(bo,2)+1-ind[1]))
+    (l,u) = (max(lin+nds,n-1),max(0,uin+1-ind[1]))
 
 
     ret=abzeros(T,n,n+u,l,u,nds)
@@ -417,7 +422,7 @@ function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBanded
     pad!(co.data,n,n+u)
 
     r=rank(co.data.fill)
-    ind=findfirst(op->isinf(size(op,1)),io.ops)
+    ind=findfirst(op->isinf(size(op,1)),co.op.ops)
 
     k=1
     for (K,J) in co.op.rangeinterlacer
@@ -433,7 +438,7 @@ function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBanded
 
     kr=co.datasize[1]+1:n
     jr=max(1,kr[1]-l):n+u
-    BLAS.axpy!(1.0,view(io.ops[ind],kr-r,jr),
+    BLAS.axpy!(1.0,view(co.op.ops[ind],kr-r,jr),
                     view(co.data.bands,kr,jr))
 
     co.datasize=(n,n+u)
