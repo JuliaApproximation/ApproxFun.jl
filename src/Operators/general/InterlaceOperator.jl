@@ -333,3 +333,113 @@ rangespace(D::DiagonalInterlaceOperator)=D.rangespace
 ## Convert Matrix operator to operators
 
 Base.convert{OO<:Operator}(::Type{Operator},M::Array{OO}) = InterlaceOperator(M)
+
+
+
+
+
+#### Caching
+
+
+function CachedOperator{T}(io::InterlaceOperator{T,1})
+    ds=domainspace(io)
+    rs=rangespace(io)
+
+    ind=find(op->isinf(size(op,1)),io.ops)
+    if length(ind) ≠ 1  || !isbanded(io.ops[ind[1]])  # is almost banded
+        return CachedOperator(op,Array(eltype(op),0,0))
+    end
+    i=ind[1]
+    bo=io.ops[i]
+
+    # calculate number of rows interlaced
+    # each each row in the rangespace increases the lower bandwidth by 1
+    nds=0
+    md=0
+    for k=1:length(io.ops)
+        if k ≠ i
+            d=dimension(rs[k])
+            nds+=d
+            md=max(md,d)
+        end
+    end
+
+
+    isend=true
+    for k=i+1:length(io.ops)
+        if dimension(rs[k]) == md
+            isend=false
+        end
+    end
+
+    numoprows=isend?md-1:md
+    n=nds+numoprows
+
+    (l,u) = (max(bandwidth(bo,1)+nds,n-1),max(0,bandinds(bo,2)+1-ind[1]))
+
+
+    ret=abzeros(T,n,n+u,l,u,nds)
+
+    # populate the finite rows
+    jr=1:n+u
+    bcrow=1
+    oprow=0
+    for k=1:n
+        K,J=io.rangeinterlacer[k]
+
+        if K ≠ i
+            # fill the fill matrix
+            ret.fill.V[:,bcrow] = view(io.ops[K],J:J,jr)
+            ret.fill.U[k,bcrow] = 1
+            bcrow += 1
+        else
+            oprow+=1
+        end
+
+
+        for j=rowrange(ret.bands,k)
+            ret[k,j] = io[k,j]
+        end
+    end
+
+
+    CachedOperator(io,ret,(n,n+u),ds,rs,(l,∞))
+end
+
+function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBandedMatrix{T},
+                                                        InterlaceOperator{T,1,DS,RS,DI,RI,BI}},
+                                     n::Integer,::Colon)
+    if n ≤ co.datasize[1]
+        return co
+    end
+
+    (l,u)=bandwidths(co.data.bands)
+    pad!(co.data,n,n+u)
+
+    r=rank(co.data.fill)
+    ind=findfirst(op->isinf(size(op,1)),io.ops)
+
+    k=1
+    for (K,J) in co.op.rangeinterlacer
+        if K ≠ ind
+            co.data.fill.V[co.datasize[2]:end,k] = co.op.ops[K][J,co.datasize[2]:n+u]
+            k += 1
+            if k > r
+                break
+            end
+        end
+    end
+
+
+    kr=co.datasize[1]+1:n
+    jr=max(1,kr[1]-l):n+u
+    BLAS.axpy!(1.0,view(io.ops[ind],kr-r,jr),
+                    view(co.data.bands,kr,jr))
+
+    co.datasize=(n,n+u)
+    co
+end
+
+resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBandedMatrix{T},
+                                                        InterlaceOperator{T,1,DS,RS,DI,RI,BI}},
+                     n::Integer,m::Integer) = resizedata!(co,max(n,m+bandwidth(co.data.bands,1)),:)

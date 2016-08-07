@@ -42,3 +42,10 @@ end
 function Base.setindex!(B::AlmostBandedMatrix,v,k::Integer,j::Integer)
         B.bands[k,j] = v
 end
+
+
+function pad!(B::AlmostBandedMatrix,n::Integer,m::Integer)
+    pad!(B.bands,n,m)
+    pad!(B.fill,n,m)
+    B
+end

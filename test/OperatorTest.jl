@@ -161,138 +161,50 @@ f=Fun(exp)
 ## Cached operator
 @test cache(Derivative(Chebyshev(),2))[1,1]==0
 
+
 S=Chebyshev()
-io=InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)])
-    cache2(io)
-
-io=InterlaceOperator([dirichlet(S);Derivative(Chebyshev())])
-    cache2(io)
-
-
-
-io
-import ApproxFun:AlmostBandedMatrix,abzeros,isbanded,dimension,∞,CachedOperator
-import BandedMatrices:eachbandedindex,bandwidth,rowrange
-
-kr=jr=1:10
-function cache2{T}(io::InterlaceOperator{T,1})
-    ds=domainspace(io)
-    rs=rangespace(io)
-
-    ind=find(op->isinf(size(op,1)),io.ops)
-    length(ind) == 1  && isbanded(io.ops[ind[1]])  # is almost banded
-    i=ind[1]
-    bo=io.ops[i]
-
-    # calculate number of rows interlaced
-    # each each row in the rangespace increases the lower bandwidth by 1
-    nds=0
-    md=0
-    for k=1:length(io.ops)
-        if k ≠ i
-            d=dimension(rs[k])
-            nds+=d
-            md=max(md,d)
-        end
-    end
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
 
 
-    isend=true
-    for k=i+1:length(io.ops)
-        if dimension(rs[k]) == md
-            isend=false
-        end
-    end
-
-    numoprows=isend?md-1:md
-    (l,u) = (bandwidth(bo,1)+nds,max(0,bandinds(bo,2)+1-ind[1]))
-    n=nds+numoprows
-
-    length(io.ops)
-    nds
-
-    ret=abzeros(T,n,n+u,l,u,nds)
-
-    # populate the finite rows
-    jr=1:n+u
-    bcrow=1
-    oprow=0
-    for k=1:n
-        K,J=io.rangeinterlacer[k]
-
-        if K ≠ i
-            # fill the fill matrix
-            ret.fill.V[:,bcrow] = view(io.ops[K],J:J,jr)
-            ret.fill.U[k,bcrow] = 1
-            bcrow += 1
-        else
-            oprow+=1
-        end
-
-
-        for j=rowrange(ret.bands,k)
-            ret[k,j] = io[k,j]
-        end
-    end
-
-
-    #co=CachedOperator(io,ret,(n,n+u),ds,rs,(l,∞))
-    ret
-end
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
 
 
 
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
 
 
-
-shft=k+oprow-1
-BLAS.axpy!(1.0,view(io.ops[i],max(oprow+1,kr[1]-shft):kr[end]-shft,jr),
-                view(ret.bands,kr[1]+shft:kr[end],jr))
-
-kr[1]
-
-shft
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
 
 
-
-
-1+oprow
-
-
-
-
-md
-
-
-ret.fill.U
-
-
-
-ret
-
-ind[1]
-
-
-view(io.ops[2],1:9,1:10)
-
-
-
-
-view(io.ops[2],1:9,1:10)
-BandedMatrices.bandwidth(view(ret.bands,2:10,1:10) ,2)
-
-
-@which MutableOperator(io)
-
-ret.bands
-
-view(ret.bands,2:10,1:10)
-
-ret.fill.U[1]=1
-ret.fill.V[:,1]=io.ops[1][1:10]
-
-ret
-
-ret.fill
-
-ret[1,2]
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]

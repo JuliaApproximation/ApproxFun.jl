@@ -21,11 +21,11 @@ end
 
 LowRankMatrix{T}(U::Matrix{T},V::Matrix{T})=LowRankMatrix{T}(U,V)
 
-LowRankMatrix(U::Matrix,V::Matrix)=LowRankMatrix(promote(U,V)...)
-LowRankMatrix(U::Vector,V::Matrix)=LowRankMatrix(reshape(U,length(U),1),V)
-LowRankMatrix(U::Matrix,V::Vector)=LowRankMatrix(U,reshape(V,length(V),1))
-LowRankMatrix(U::Vector,V::Vector)=LowRankMatrix(reshape(U,length(U),1),reshape(V,length(V),1))
-LowRankMatrix(a::Number,m::Int,n::Int)=LowRankMatrix(a*ones(eltype(a),m),ones(eltype(a),n))
+LowRankMatrix(U::Matrix,V::Matrix) = LowRankMatrix{promote_type(eltype(U),eltype(V))}(promote(U,V)...)
+LowRankMatrix(U::Vector,V::Matrix) = LowRankMatrix(reshape(U,length(U),1),V)
+LowRankMatrix(U::Matrix,V::Vector) = LowRankMatrix(U,reshape(V,length(V),1))
+LowRankMatrix(U::Vector,V::Vector) = LowRankMatrix(reshape(U,length(U),1),reshape(V,length(V),1))
+LowRankMatrix(a::Number,m::Int,n::Int) = LowRankMatrix(a*ones(eltype(a),m),ones(eltype(a),n))
 
 LowRankMatrix{T}(::Type{T},m::Int,n::Int,r::Int) = LowRankMatrix(Array(T,m,r),Array(T,n,r))
 lrzeros{T}(::Type{T},m::Int,n::Int,r::Int) = LowRankMatrix(zeros(T,m,r),zeros(T,n,r))
@@ -134,6 +134,17 @@ lrrandn(n::Int) = lrrandn(n,n)
 
 Base.copy(L::LowRankMatrix) = LowRankMatrix(copy(L.U),copy(L.V))
 Base.copy!(L::LowRankMatrix,N::LowRankMatrix) = (copy!(L.U,N.U);copy!(L.V,N.V);L)
+
+
+function pad!(L::LowRankMatrix,n::Integer,::Colon)
+    L.U=pad(L.U,n,:)
+    L
+end
+function pad!(L::LowRankMatrix,::Colon,m::Integer)
+    L.V=pad(L.V,m,:)
+    L
+end
+pad!(L::LowRankMatrix,n::Integer,m::Integer) = pad!(pad!(L,n,:),:,m)
 
 # algebra
 
