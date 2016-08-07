@@ -36,8 +36,9 @@ end
 
 cache(O::Operator) = CachedOperator(O)
 
+Base.convert{T}(::Type{Operator{T}},S::CachedOperator{T}) = S
 Base.convert{T}(::Type{Operator{T}},S::CachedOperator) =
-    CachedOperator(Operator{T}(S.op),Matrix{T}(S.data),
+    CachedOperator(Operator{T}(S.op),AbstractMatrix{T}(S.data),
                     S.datasize,S.domainspace,S.rangespace,S.bandinds)
 
 
@@ -104,7 +105,7 @@ function resizedata!{T<:Number}(B::CachedOperator{T,Matrix{T}},n::Integer,m::Int
         B.datasize = (B.datasize[1],m)
         B
     elseif m ≤ B.datasize[2]
-        kr,jr=1:B.datasize[1]+1:n,1:B.datasize[2]
+        kr,jr=B.datasize[1]+1:n,1:B.datasize[2]
         B.data[kr,jr] = B.op[kr,jr]
         B.datasize = (n,B.datasize[2])
         B

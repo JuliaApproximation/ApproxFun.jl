@@ -148,7 +148,8 @@ function resizedata!(QR::QROperator,::Colon,col)
             v=r+sz*((j-1)*st)  # shift down each time
             dt=dot(M-p,wp+p*sz,1,v,1)
             for ℓ=k:k+p-1
-                @inbounds dt=muladd(conj(W[ℓ-k+1,k]),unsafe_getindex(MO.data.fill,ℓ,j),dt)
+                @inbounds dt=muladd(conj(W[ℓ-k+1,k]),
+                                    unsafe_getindex(MO.data.fill,ℓ,j),dt)
             end
             BLAS.axpy!(M-p,-2*dt,wp+p*sz,1,v,1)
         end

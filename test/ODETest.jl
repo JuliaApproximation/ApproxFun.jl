@@ -142,13 +142,41 @@ u=R\(Q'*[cos(-1.0),cos(1.0)])
 
 @test_approx_eq u(0.) cos(0.0)
 
-A = qrfact([B;D^2+I])
+
+
+io
+
+
+S=Chebyshev()
+    B=dirichlet(S)
+    D=Derivative(S)
+    io=ApproxFun.InterlaceOperator([B;D^2+I])
+    A = qrfact([B;D^2+I])
+    A.R
+using SO
+io
+
+ApproxFun.resizedata!(Operator{Float64}(A.R) ,10,10)
+
+P.ops[1]
+
+io[3,1]
+
+
+A.R[3,1]
+
+B
+
+n,B.datasize[2]
+
+ApproxFun.resizedata!(,n,m)
+
 ApproxFun.resizedata!(A,:,3)
 A
 
 A\[
 
-io=ApproxFun.InterlaceOperator([B;D^2+I])
+
 
 bandinds(A[end])
 

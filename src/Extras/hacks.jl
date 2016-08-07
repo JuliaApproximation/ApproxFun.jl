@@ -125,7 +125,7 @@ end
 
 
 
-function backsubstitution!{T}(B::CachedOperator{T,AlmostBandedMatrix{T}},u::Array)
+function backsubstitution!{TT}(B::CachedOperator{TT,AlmostBandedMatrix{TT}},u::Array)
     n=size(u,1)
     A=B.data.bands
     F=B.data.fill

@@ -212,8 +212,8 @@ function Base.copy{SS,PS,DI,RI,BI,T}(S::SubMatrix{T,InterlaceOperator{T,1,SS,PS,
     kr,jr=parentindexes(S)
     P=parent(S)
     ret=similar(S)
-    for k in kr
-        K,κ=P.rangeinterlacer[k]
+    for k in eachindex(kr)
+        K,κ=P.rangeinterlacer[kr[k]]
         @inbounds ret[k,:]=P.ops[K][κ,jr]
     end
     ret
@@ -345,15 +345,11 @@ function CachedOperator{T}(io::InterlaceOperator{T,1};padding::Bool=false)
 
     ind=find(op->isinf(size(op,1)),io.ops)
     if length(ind) ≠ 1  || !isbanded(io.ops[ind[1]])  # is almost banded
-        return CachedOperator(op,Array(eltype(op),0,0))
+        return CachedOperator(io,Array(eltype(op),0,0))
     end
     i=ind[1]
     bo=io.ops[i]
     lin,uin=bandwidths(bo)
-    # add extra rows for QR
-    if padding
-        uin+=lin
-    end
 
 
 
@@ -381,6 +377,11 @@ function CachedOperator{T}(io::InterlaceOperator{T,1};padding::Bool=false)
     n=nds+numoprows
 
     (l,u) = (max(lin+nds,n-1),max(0,uin+1-ind[1]))
+
+    # add extra rows for QR
+    if padding
+        u+=l
+    end
 
 
     ret=abzeros(T,n,n+u,l,u,nds)
