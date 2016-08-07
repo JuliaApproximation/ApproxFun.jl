@@ -149,15 +149,17 @@ S=Chebyshev()
 A=[dirichlet(S);Derivative(S)^2 - I]
 QR=qrfact(A)
 
-@test norm((QR\[1.])-(A\[1.]))<100eps()
+@test_approx_eq (QR\[1.])(0.0) 0.3240271368319427
 Q,R=qr(A)
 u=(R\(Q'*[1.]))
-@test norm(u-(A\[1.]))<100eps()
+@test_approx_eq u(0.0)  0.3240271368319427
 
 x=Fun(S)
 A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
 QR=qrfact(A)
-@test norm((A\[1.])-(QR\[1.]))<100eps()
+
+u=(QR\[1.])
+@test_approx_eq u(0.0) (0.3329522068795961 + 0.024616008954634165im)
 
 
 x=Fun(identity,[-2.,-1.,0.,15.])
