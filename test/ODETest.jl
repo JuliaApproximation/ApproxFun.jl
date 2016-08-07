@@ -142,66 +142,23 @@ u=R\(Q'*[cos(-1.0),cos(1.0)])
 
 @test_approx_eq u(0.) cos(0.0)
 
-
-
-io
-
-
-S=Chebyshev()
-    B=dirichlet(S)
-    D=Derivative(S)
-    io=ApproxFun.InterlaceOperator([B;D^2+I])
-    A = qrfact([B;D^2+I])
-    A.R
-using SO
-io
-
-ApproxFun.resizedata!(Operator{Float64}(A.R) ,10,10)
-
-P.ops[1]
-
-io[3,1]
-
-
-A.R[3,1]
-
-B
-
-n,B.datasize[2]
-
-ApproxFun.resizedata!(,n,m)
-
-ApproxFun.resizedata!(A,:,3)
-A
-
-A\[
-
-
-
-bandinds(A[end])
-
-R = ApproxFun.CachedOperator(A)
-
-R-io
-
-M = R.data.l+1   # number of diag+subdiagonal bands
-H = Array(eltype(R),M,100)
-QROperator(R,H,0)
+using ApproxFun,Base.Test
 
 
 S=Chebyshev()
 A=[dirichlet(S);Derivative(S)^2 - I]
 QR=qrfact(A)
-
-@test norm((QR\[1.])-(A\[1.]))<100eps()
+@test_approx_eq (QR\[1.])(0.0) 0.3240271368319427
 Q,R=qr(A)
 u=(R\(Q'*[1.]))
-@test norm(u-(A\[1.]))<100eps()
+@test_approx_eq u(0.0)  0.3240271368319427
 
 x=Fun(S)
 A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
 QR=qrfact(A)
-@test norm((A\[1.])-(QR\[1.]))<100eps()
+
+u=(QR\[1.])
+@test_approx_eq u(0.0) (0.3329522068795961 + 0.024616008954634165im)
 
 
 x=Fun(identity,[-2.,-1.,0.,15.])
@@ -226,6 +183,7 @@ A=[B 0;
    0 B;
    D^2-I 2.0I;
    0 D+I];
+
 
 QR=qrfact(A)
 v=Any[0.,0.,0.,f...]

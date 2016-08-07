@@ -112,7 +112,7 @@ function resizedata!(QR::QROperator,::Colon,col)
     R=MO.data.bands
     M=R.l+1   # number of diag+subdiagonal bands
 
-    if col+M-1 ≥ MO.datasize[2]
+    if col+M-1 ≥ MO.datasize[1]
         resizedata!(MO,(col+M-1)+100,:)  # double the last rows
     end
 
