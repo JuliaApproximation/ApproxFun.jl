@@ -1,81 +1,47 @@
 
-
-
-#assume dimension of kernel is range space
-Base.nullspace(A::Operator)=nullspace(A,order(rangespace(A)))
-
-
-function applygivens!(a,b,Q1,Qk)
-    @simd for j=1:length(Q1)
-        @inbounds Q1[j],Qk[j]=a*Q1[j]+b*Qk[j],-b*Q1[j]+a*Qk[j]
-    end
-end
-
-
-
-#d is number of elements in the kernel
-
-function Base.nullspace{T<:Number}(A::Operator{T},d;maxlength::Int=100000,
-                                                        tolerance::T=eps(T))
-    M=MutableOperator(A')
-    m=bandinds(A)[end]
-    n=m+100
-    resizedata!(M,n)
-    Q=Vector{T}[zeros(T,n) for j=1:m]
-    for j=1:m
-        Q[j][j]=one(T)
-    end
-
-    Q1=Q[1]
-
-    k=0
-
-    while slnorm(M.data,k+1:k+d,:)>tolerance  && k <= maxlength
-        k+=1
-
-        if k+m+d >= n
-            n=2n
-            resizedata!(M,n)
-
-            for j=1:m
-                Q[j]=[Q[j];zeros(T,n)]
-            end
-        end
-
-        Q1=Q[1]
-
-        for j=1:m-1
-            a,b=givensreduceab!(M,k,k+j,k)
-            applygivens!(a,b,Q1,Q[1+j] )
-        end
-
-
-        for j=1:m-1
-            @inbounds Q[j]=Q[j+1]
-        end
-
-        a,b=givensreduceab!(M,k,k+m,k)
-
-        Q[m] = Q1
-        Q[m] *= -b
-        Q[m][k+m] += a
-    end
-
-
+function Base.nullspace(A::Operator;tolerance=100eps(),maxlength=1_000_000)
+    QR=qrfact(A')
     ds=domainspace(A)
-    Fun{typeof(ds),T}[Fun(Q[j][1:k],ds) for j=1:d]
-end
+    resizedata!(QR,:,100)
 
+    m=size(QR.H,1)
+    K=zeros(100,m-1)
+    K[1:m-1,1:m-1]=eye(m-1)
 
-Base.nullspace{T<:Operator}(A::Array{T,2},d)=nullspace(interlace(A),d)
+    for k=1:10
+        v=QR.H[:,k]
+        QQ=eye(m)-2v*v'
+        K=K*QQ[1:end-1,2:end]
+        K[k+m-1,:]=QQ[end,2:end]
+    end
+    k=11
+    while norm(K[k-10,:]) >tolerance
+        if k > maxlength
+            warn("Max length of $maxlength reached.")
+        end
 
-function Base.nullspace{T<:Operator}(A::Array{T,2})
-    # We assume ultraspherical space gives dimension of kernel
-    d = 0
-    A=promotespaces(A)
-    for k=1:size(A,1)
-        d += order(rangespace(A[k,1]))
+        if k ≥ QR.ncols
+            resizedata!(QR,:,k+100)
+        end
+
+        v=QR.H[:,k]
+        QQ=(eye(m)-2v*v')
+        K=K*QQ[1:end-1,2:end]
+
+        if k+m-1 > size(K,1)
+            K=pad(K,k+m+100,:)
+        end
+        K[k+m-1,:]=QQ[end,2:end]
+        k+=1
     end
 
-    nullspace(A,d)
+    # drop extra rows, and use QR to determine rank
+    K=K[1:k-10,:]
+    Q,R=qr(K,Val{true})
+    ind=findfirst(r->abs(r)≤tolerance,diag(R))
+    K=ind==0?Q:Q[:,1:ind-1]
+    Fun(vec(K'),ArraySpace(ds,1,size(K,2)))
 end
+
+
+Base.nullspace{OO<:Operator}(A::Array{OO};kwds...) = nullspace(interlace(A);kwds...)

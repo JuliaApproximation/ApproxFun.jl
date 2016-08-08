@@ -25,9 +25,12 @@ CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},ds,rs,bi) =
 CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int}) =
     CachedOperator(op,data,sz,domainspace(op),rangespace(op),bandinds(op))
 CachedOperator(op::Operator,data::AbstractMatrix) = CachedOperator(op,data,size(data))
-function CachedOperator(op::Operator)
+function CachedOperator(op::Operator;padding::Bool=false)
     if isbanded(op)
-        CachedOperator(op,BandedMatrix(eltype(op),0,0,bandwidth(op,1),bandwidth(op,2)))
+        l,u=bandwidths(op)
+        padding && (u+=l)
+        data=BandedMatrix(eltype(op),0,0,l,u)
+        CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u))
     else
         CachedOperator(op,Array(eltype(op),0,0))
     end

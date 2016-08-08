@@ -26,14 +26,23 @@ ArraySpace(S::Space,n,m)=ArraySpace{typeof(S),2,basistype(S),domaintype(S),ndims
 ArraySpace(d::Domain,n...)=ArraySpace(Space(d),n...)
 
 
-Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
-Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
+Base.length{SS}(AS::ArraySpace{SS,1}) = AS.dimensions[1]
+Base.length(AS::ArraySpace) = *(AS.dimensions...)
+
+Base.length{AS<:ArraySpace}(f::Fun{AS}) = length(space(f))
+
 Base.size(AS::ArraySpace)=AS.dimensions
 Base.size(AS::ArraySpace,k)=AS.dimensions[k]
+
+Base.size{AS<:ArraySpace}(f::Fun{AS},k...) = size(space(f),k...)
+
+
 function Base.reshape(AS::VectorSpace,k,j)
     @assert length(AS)==k*j
     ArraySpace(AS.space,(k,j))
 end
+
+
 
 dimension(AS::ArraySpace) = dimension(AS.space)*length(AS)
 
@@ -92,7 +101,6 @@ Base.getindex{S,V,DD,d}(f::Fun{VectorSpace{S,V,DD,d}},k...)=vec(f)[k...]
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
 
 Base.getindex(S::ArraySpace,k...)=S.space
-Base.length(S::ArraySpace)=*(S.dimensions...)
 
 Base.start(S::ArraySpace) = 1
 Base.next(S::ArraySpace,k) = S.space,k+1

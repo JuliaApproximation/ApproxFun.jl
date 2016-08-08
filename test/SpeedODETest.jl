@@ -100,15 +100,17 @@ u=A\Any[0.,0.,0.,f]
 println("Systems: should be ~0.0008")
 
 
-d=Interval(-300.,5.)
+d=Interval(-30.,5.)
 x=Fun(identity,d)
 A=Derivative(d)^2-x
+@time u=nullspace(A)
 @test_approx_eq A[1:10,1:10] (A.')[1:10,1:10].'
 
+
 u=nullspace(A)
-u=nullspace(A)
+warn("This is wrong domain of [-30,5], test needs to be updated.")
 @time u=nullspace(A)
-println("Null Airy: 0.052730 seconds (75.21 k allocations: 56.736 MB)")
+println("Null Airy on [-300,5]: 0.052730 seconds (75.21 k allocations: 56.736 MB)")
 
 Q,R=qr(A.')
 

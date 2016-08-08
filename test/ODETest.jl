@@ -102,16 +102,22 @@ u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 
 ## Null space
 
-d=Interval(-50.,5.)
+d=Interval()
 D=Derivative(d)
+A=D^2-I
+κ=nullspace(A)
+@test length(κ) == 2
+
+c=[κ(0.);κ'(0.)]\[exp(0.);exp(0.)]
+u=(κ*c)[1]
+@test_approx_eq u(1.0) e
+
+d=Interval(-50.,5.)
 x=Fun(identity,d)
+D=Derivative(d)
 u=nullspace(D^2-x)
-c=[evaluate(u,d.a)'; evaluate(u,d.b)']\[airyai(d.a),airyai(d.b)]
-@test norm(dot(c,u)-Fun(airyai,d))<eps(1000.)
-
-
-
-
+c=[u(d.a); u(d.b)]\[airyai(d.a),airyai(d.b)]
+@test norm((u*c)[1]-Fun(airyai,d))<eps(1000.)
 
 
 ## constant forcing

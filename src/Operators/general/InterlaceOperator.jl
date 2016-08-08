@@ -228,61 +228,7 @@ iscolop(op) = isconstop(op)
 iscolop(::Multiplication) = true
 
 
-function interlace{T<:Operator}(A::Matrix{T})
-    if all(isbanded,A)
-        # Hack to use BlockOperator when appropriate
-        if size(A,1)==1 && all(iscolop,A[1,1:end-1])
-            return BlockOperator(A)
-        else
-            return InterlaceOperator(A)
-        end
-    end
-
-
-    m,n=size(A)
-    TT=mapreduce(eltype,promote_type,A)
-    # Use BlockOperator whenever the first columns are all constants
-    if all(isconstop,A[1:end-1,1:end-1]) &&
-            all(iscolop,A[end,1:end-1]) &&
-            all(a->isafunctional(a),A[1:end-1,end]) && isbanded(A[end,end]) &&
-            isinf(size(A[end],1)) && isinf(size(A[end],2))
-        return [Operator{TT}[BlockFunctional(map(Number,vec(A[k,1:end-1])),A[k,end]) for k=1:m-1]...;
-                    BlockOperator(A[end:end,:])]
-    end
-
-
-    A=promotespaces(A)
-
-    br=0#num boundary rows
-    for k=1:m
-        if isboundaryrow(A,k)
-            br+=1
-        end
-    end
-
-    for k=1:br
-        @assert isboundaryrow(A,k)
-    end
-
-    S=Array(Operator{TT},br<m?br+1:br)
-
-    for k=1:br
-        S[k] = InterlaceOperator(A[k:k,:])
-    end
-
-    if br < m
-        Am=A[br+1:m,:]
-        S[br+1] = interlace(Am)
-    end
-
-    if(size(S,1) ==1)
-        S[1]
-    else
-        S
-    end
-end
-
-
+interlace{T<:Operator}(A::Array{T}) = InterlaceOperator(A)
 
 immutable DiagonalInterlaceOperator{OPS,DS,RS,T<:Number} <: Operator{T}
     ops::OPS
