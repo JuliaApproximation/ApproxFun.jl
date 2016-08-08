@@ -119,19 +119,17 @@ u=nullspace(D^2-x)
 c=[u(d.a); u(d.b)]\[airyai(d.a),airyai(d.b)]
 @test norm((u*c)[1]-Fun(airyai,d))<eps(1000.)
 
-
+using ApproxFun
 ## constant forcing
-
-
 d = Interval(0.,50.)
 D = Derivative(d)
 t = Fun(identity,d)
 
 F = D^2 +.5D + I
 
-A= [0  ldirichlet(d);
-    0    lneumann(d);
-    0    rdirichlet(d);
+A= [ 0    ldirichlet(d);
+     0    lneumann(d);
+     0    rdirichlet(d);
     -1    F; ]
 
 u,x=A\[1.,0.,2.,0.]
