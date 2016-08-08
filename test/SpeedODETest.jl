@@ -23,8 +23,8 @@ u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
 @time u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
 println("Airy: 0.014356 seconds (1.08 k allocations: 8.015 MB)")
 
-M=MutableOperator([dirichlet(d);Derivative(d)^2-x])
-@time ApproxFun.resizedata!(M,12500)
+M=cache(ApproxFun.InterlaceOperator([dirichlet(d);Derivative(d)^2-x]);padding=true)
+@time ApproxFun.resizedata!(M,12500,:)
 println("Airy construct op: 0.005417 seconds (81 allocations: 5.279 MB)")
 
 
@@ -64,7 +64,7 @@ rhs=ones(n+2)
 u=linsolve([B;L],rhs;maxlength=Inf)
 u=linsolve([B;L],rhs;maxlength=Inf)
 @time u=linsolve([B;L],rhs;maxlength=Inf)
-println("Sin: should be ~0.011")
+println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 
 
 ## Piecewise

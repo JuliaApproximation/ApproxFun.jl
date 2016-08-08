@@ -34,7 +34,7 @@ function CachedOperator(op::Operator)
 end
 
 
-cache(O::Operator) = CachedOperator(O)
+cache(O::Operator;kwds...) = CachedOperator(O;kwds...)
 
 Base.convert{T}(::Type{Operator{T}},S::CachedOperator{T}) = S
 Base.convert{T}(::Type{Operator{T}},S::CachedOperator) =

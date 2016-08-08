@@ -615,6 +615,6 @@ end
 
 
 # The following don't need caching
-cache(A::Vector) = A
+cache{T<:Number}(A::Vector{T}) = A
 cache(A::Range) = A
 cache(A::AbstractCount) = A
