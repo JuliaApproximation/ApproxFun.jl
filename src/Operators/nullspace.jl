@@ -1,12 +1,17 @@
 
 
-Base.nullspace{T}(A::Operator{T};tolerance=100eps(real(T)),maxlength=1_000_000) =
-    transpose_nullspace(qrfact(A'),tolerance,maxlength)
+function Base.nullspace{T}(A::Operator{T};tolerance=100eps(real(T)),maxlength=1_000_000)
+    K=transpose_nullspace(qrfact(A'),tolerance,maxlength)
+    # drop extra rows, and use QR to determine rank
+    Q,R=qr(K,Val{true})
+    ind=findfirst(r->abs(r)≤tolerance,diag(R))
+    Kret=ind==0?Q:Q[:,1:ind-1]
+    Fun(vec(Kret'),ArraySpace(domainspace(A),1,size(Kret,2)))
+end
 
 
 function transpose_nullspace(QR::QROperator,tolerance,maxlength)
     T=eltype(QR)
-    ds=domainspace(QR)
     resizedata!(QR,:,100)
 
     m=size(QR.H,1)
@@ -40,11 +45,7 @@ function transpose_nullspace(QR::QROperator,tolerance,maxlength)
         k+=1
     end
 
-    # drop extra rows, and use QR to determine rank
-    Q,R=qr(K[1:k-10,:],Val{true})
-    ind=findfirst(r->abs(r)≤tolerance,diag(R))
-    Kret=ind==0?Q:Q[:,1:ind-1]
-    Fun(vec(Kret'),ArraySpace(ds,1,size(K,2)))
+    K[1:k-10,:]
 end
 
 
