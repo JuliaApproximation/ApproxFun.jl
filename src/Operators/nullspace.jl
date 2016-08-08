@@ -1,7 +1,12 @@
 
-function Base.nullspace(A::Operator;tolerance=100eps(),maxlength=1_000_000)
-    QR=qrfact(A')
-    ds=domainspace(A)
+
+Base.nullspace{T}(A::Operator{T};tolerance=100eps(real(T)),maxlength=1_000_000) =
+    transpose_nullspace(qrfact(A'),tolerance,maxlength)
+
+
+function transpose_nullspace(QR::QROperator,tolerance,maxlength)
+    T=eltype(QR)
+    ds=domainspace(QR)
     resizedata!(QR,:,100)
 
     m=size(QR.H,1)
@@ -10,12 +15,12 @@ function Base.nullspace(A::Operator;tolerance=100eps(),maxlength=1_000_000)
 
     for k=1:10
         v=QR.H[:,k]
-        QQ=eye(m)-2v*v'
-        K=K*QQ[1:end-1,2:end]
+        QQ=eye(T,m)-2v*v'
+        K[:,:]=K*QQ[1:end-1,2:end]
         K[k+m-1,:]=QQ[end,2:end]
     end
     k=11
-    while norm(K[k-10,:]) >tolerance
+    while norm(K[k-10,:]) >tolerance*k
         if k > maxlength
             warn("Max length of $maxlength reached.")
         end
@@ -26,7 +31,7 @@ function Base.nullspace(A::Operator;tolerance=100eps(),maxlength=1_000_000)
 
         v=QR.H[:,k]
         QQ=(eye(m)-2v*v')
-        K=K*QQ[1:end-1,2:end]
+        K[:,:]=K*QQ[1:end-1,2:end]
 
         if k+m-1 > size(K,1)
             K=pad(K,k+m+100,:)
@@ -36,11 +41,10 @@ function Base.nullspace(A::Operator;tolerance=100eps(),maxlength=1_000_000)
     end
 
     # drop extra rows, and use QR to determine rank
-    K=K[1:k-10,:]
-    Q,R=qr(K,Val{true})
+    Q,R=qr(K[1:k-10,:],Val{true})
     ind=findfirst(r->abs(r)≤tolerance,diag(R))
-    K=ind==0?Q:Q[:,1:ind-1]
-    Fun(vec(K'),ArraySpace(ds,1,size(K,2)))
+    Kret=ind==0?Q:Q[:,1:ind-1]
+    Fun(vec(Kret'),ArraySpace(ds,1,size(K,2)))
 end
 
 
