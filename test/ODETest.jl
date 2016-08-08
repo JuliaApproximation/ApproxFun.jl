@@ -19,6 +19,12 @@ u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
 
 @test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
 
+u=[Bm;D2-X;Bp]\[airyai(d.a),0.,airyai(d.b)];
+@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
+
+u=[D2-X;Bm;Bp]\[0.,airyai(d.a),airyai(d.b)];
+@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
+
 
 
 d=Interval(-1000.,5.);
@@ -73,7 +79,6 @@ B=ApproxFun.SpaceOperator(BasisFunctional(floor(w)),Chebyshev(),ApproxFun.Consta
 A=[B;D+1im*w*I];
 u = A\[0.,f];
 @test_approx_eq (u(1.)exp(1im*w)-u(-1.)exp(-1im*w)) (-0.18575766879136255 + 0.17863980562549928im )
-
 
 
 ## Bessel
