@@ -207,7 +207,6 @@ function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBanded
     r∞=find(isinf,[rdims...])
     p=length(d∞)
 
-    @assert p==1
 
     (l,u)=bandwidths(co.data.bands)
     pad!(co.data,n,n+u)
@@ -229,15 +228,9 @@ function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBanded
 
     kr=co.datasize[1]+1:n
     jr=max(1,kr[1]-l):n+u
+    io∞=InterlaceOperator(io.ops[r∞,d∞])
 
-    shft=ncols-r
-
-    for k=1:p,j=1:p
-        BLAS.axpy!(1.0,view(co.op.ops[r∞[k],d∞[j]],
-                            kr-r,
-                            jr-ncols),
-        view(co.data.bands,kr,jr))
-    end
+    BLAS.axpy!(1.0,view(io∞,kr-r,jr-ncols),view(co.data.bands,kr,jr))
 
     co.datasize=(n,n+u)
     co
