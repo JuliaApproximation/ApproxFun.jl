@@ -1,9 +1,5 @@
 ## Linear Solve
 
-choosedomainspace(A::Operator,b::Fun) = choosedomainspace(A,space(b))
-choosespaces(A::Operator,b) = promotedomainspace(A,choosedomainspace(A,b))
-
-
 function linsolve(A::Operator,b;kwds...)
     if ndims(domain(A)) > 1
         pdesolve(A,b;kwds...)

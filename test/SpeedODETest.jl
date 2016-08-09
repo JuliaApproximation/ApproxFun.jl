@@ -1,11 +1,6 @@
 using ApproxFun, Base.Test
 
 
-# This avoids getting killed on Travis.cl
-if OS_NAME == :Darwin
-    gc_enable(false)
-end
-
 ## ODEs
 
 d=Interval(-20000.,20000.)
@@ -107,10 +102,3 @@ u=nullspace(A)
 @test_approx_eq A[1:10,1:10] (A.')[1:10,1:10].'
 @time u=nullspace(A)
 println("Nullspace Airy: 0.052730 seconds (75.21 k allocations: 56.736 MB)")
-
-
-
-
-if OS_NAME == :Darwin
-    gc_enable(true)
-end

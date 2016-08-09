@@ -418,6 +418,10 @@ Base.isinf(::Infinity) = true
 Base.isfinite(::Infinity) = false
 Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
 
+Base.zero{B}(::Infinity{B}) = zero(B)
+Base.one{B}(::Infinity{B}) = one(B)
+
+
 function Base.show{B<:Integer}(io::IO, y::Infinity{B})
     if sign(y) == 1
         print(io, "∞")

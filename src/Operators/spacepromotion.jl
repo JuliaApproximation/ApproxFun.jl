@@ -131,6 +131,8 @@ function choosedomainspace(ops::Vector,spin)
     sp
 end
 
+choosespaces(A::Operator,b) = promotedomainspace(A,choosedomainspace(A,b))
+
 
 spacescompatible(A::Operator,B::Operator) =
     spacescompatible(domainspace(A),domainspace(B)) &&
