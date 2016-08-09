@@ -85,7 +85,7 @@ function Base.qr(A::Operator)
 end
 
 for OP in (:(Base.qrfact),:(Base.qr))
-    @eval $OP{OO<:Operator}(A::Array{OO}) = $OP(InterlaceOperator(A))
+    @eval $OP{OO<:Operator}(A::Array{OO}) = $OP(interlace(A))
 end
 
 
@@ -141,7 +141,7 @@ end
 linsolve{FF<:Fun}(QR::QROperator,b::Vector{FF};kwds...) = linsolve(QR,Fun(b,rangespace(QR));kwds...)
 function linsolve(A::QROperator,B::Matrix;kwds...)
     ds=domainspace(A)
-    ret=Array(Fun{typeof(ds),promote_type(eltype(eltype(B)),eltype(ds))},1,size(B,2))
+    ret=Array(Fun{typeof(ds),promote_type(mapreduce(eltype,promote_type,B),eltype(ds))},1,size(B,2))
     for j=1:size(B,2)
         ret[:,j]=linsolve(A,B[:,j];kwds...)
     end

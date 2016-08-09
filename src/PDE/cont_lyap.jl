@@ -125,7 +125,7 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
     for k=1:n
         op=OS.Rdiags[k]
         rhs=Any[Gx[:,k]...;F.coefficients[k]]
-        Y[k]=chop!(linsolve([OS.Bx;op],rhs;kwds...),eps())
+        Y[k]=chop!(linsolve(op,rhs;kwds...),eps())
     end
 
     Y
@@ -168,8 +168,6 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
 
     rhs=Array(Any,size(Gx,1)+1)
     TT=isempty(OS.Bx)?eltype(OS):promote_type(eltype(OS),mapreduce(eltype,promote_type,OS.Bx))
-    ops=Array(Operator{TT},length(OS.Bx)+1)
-    ops[1:length(OS.Bx)]=OS.Bx
 
     blkops=Array(Operator{TT},2length(OS.Bx)+2,2)
     if !isempty(OS.Bx)
@@ -195,7 +193,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur}(::Type{N},OS::PDEOp
                 rhs[j]=Gx[j,k]
             end
 
-            ops[end]=OS.Rdiags[k]
+            ops=OS.Rdiags[k]
             chop!(rhs[end],eps())
             Y[k]=chop!(linsolve(ops,rhs;kwds...),eps())
 
@@ -267,8 +265,6 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Ty
 
     TT=isempty(OS.Bx)?eltype(OS):promote_type(eltype(OS),mapreduce(eltype,promote_type,OS.Bx))
 
-    ops=Array(Operator{TT},length(OS.Bx)+1)
-    ops[1:length(OS.Bx)]=OS.Bx
 
 
 
@@ -285,7 +281,7 @@ function cont_constrained_lyapuptriang{N,OSS<:OperatorSchur,PF<:ProductFun}(::Ty
                 end
             end
         end
-        ops[end]=OS.Rdiags[k]
+        ops=OS.Rdiags[k]
         Y[k,:]=vec(linsolve(ops,rhs;kwds...))
         for j=1:Fm
             chop!(Y[k,j],eps())

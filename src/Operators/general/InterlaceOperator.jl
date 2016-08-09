@@ -228,7 +228,7 @@ iscolop(op) = isconstop(op)
 iscolop(::Multiplication) = true
 
 
-interlace{T<:Operator}(A::Array{T}) = InterlaceOperator(A)
+interlace{T<:Operator}(A::Array{T}) = length(A)==1?A[1]:InterlaceOperator(A)
 
 immutable DiagonalInterlaceOperator{OPS,DS,RS,T<:Number} <: Operator{T}
     ops::OPS

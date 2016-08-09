@@ -14,9 +14,6 @@ function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     ConcreteMultiplication{D,typeof(sp),T,promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 end
 
-#TODO: SPECIALOPS Remove
-isbanded(A::ConcreteMultiplication) = true
-
 # We do this in two stages to support Modifier spaces
 # without ambiguity errors
 function defaultMultiplication(f::Fun,sp::Space)

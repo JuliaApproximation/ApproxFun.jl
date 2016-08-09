@@ -9,7 +9,7 @@
 
 abstract AbstractPDEOperatorSchur
 
-immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number,FT<:Operator} <: AbstractPDEOperatorSchur
+immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,FT<:Operator} <: AbstractPDEOperatorSchur
     Bx::Vector{FT}
     Lx::Operator{LT}
     Mx::Operator{MT}
@@ -18,11 +18,11 @@ immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:N
     indsBx::Vector{Int}
     indsBy::Vector{Int}
 
-    Rdiags::Vector{CachedOperator{ST}}
+    Rdiags::Vector{QROperator}
 end
 
 #TODO: Functional type?
-Base.eltype{OS,LT,MT,ST,FT}(PO::PDEOperatorSchur{OS,LT,MT,ST,FT})=promote_type(eltype(PO.S),LT,MT,ST)
+Base.eltype{OS,LT,MT,FT}(PO::PDEOperatorSchur{OS,LT,MT,FT})=promote_type(eltype(PO.S),LT,MT)
 
 
 function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)
@@ -32,14 +32,14 @@ function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Op
     ny=size(S,1)
     nbcs=numbcs(S)
     RT=promote_type(LT,MT,BT,ST)
-    Rdiags=Array(CachedOperator{RT},ny)
-    resizedata!(Lx,ny);resizedata!(Mx,ny)
+    Rdiags=Array(QROperator,ny)
+    resizedata!(Lx,ny,:);resizedata!(Mx,ny,:)
 
 
     for k=1:ny-nbcs
         ##TODO: Do block case
-        Rdiags[k]=cache(PlusOperator(Operator{RT}[getdiagonal(S,k,1)*Lx,getdiagonal(S,k,2)*Mx]))
-        resizedata!(Rdiags[k],ny)
+        Rdiags[k]=qrfact([Bx;PlusOperator(Operator{RT}[getdiagonal(S,k,1)*Lx,getdiagonal(S,k,2)*Mx])])
+        resizedata!(Rdiags[k],:,ny)
     end
 
     if isempty(Bx)
@@ -113,7 +113,10 @@ domain(P::PDEOperatorSchur)=domain(domainspace(P))
 ## Constructuor
 
 
-Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy) =
+Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,
+            Lx::Operator{LT},Mx::Operator{MT},
+            S::AbstractOperatorSchur{BT,ST},
+            indsBx,indsBy) =
     PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 
 function Base.schurfact(Bx,By,A::Operator,ny::Integer,indsBx,indsBy)
@@ -140,8 +143,8 @@ end
 
 
 
-Base.schurfact{BT<:Operator}(A::Vector{BT},n::Integer)=schurfact(A,domain(A[end]),n)
-Base.schurfact(A::Operator,n::Integer)=schurfact([A],n)
+Base.schurfact{BT<:Operator}(A::Vector{BT},n::Integer) = schurfact(A,domain(A[end]),n)
+Base.schurfact(A::Operator,n::Integer) = schurfact([A],n)
 
 
 

@@ -20,10 +20,12 @@ typealias VectorSpace{S,T,DD,dim} ArraySpace{S,1,T,DD,dim}
 typealias MatrixSpace{S,T,DD,dim} ArraySpace{S,2,T,DD,dim}
 
 
-ArraySpace(S::Space,n::Tuple{Vararg{Int}})=ArraySpace{typeof(S),length(n),basistype(S),domaintype(S),ndims(S)}(S,n)
-ArraySpace(S::Space,n::Integer)=ArraySpace(S,(n,))
-ArraySpace(S::Space,n,m)=ArraySpace{typeof(S),2,basistype(S),domaintype(S),ndims(S)}(S,(n,m))
-ArraySpace(d::Domain,n...)=ArraySpace(Space(d),n...)
+ArraySpace(S::Space,n::Tuple{Vararg{Int}}) =
+    ArraySpace{typeof(S),length(n),basistype(S),domaintype(S),ndims(S)}(S,n)
+ArraySpace(S::Space,n::Integer) = ArraySpace(S,(n,))
+ArraySpace(S::Space,n,m) =
+    ArraySpace{typeof(S),2,basistype(S),domaintype(S),ndims(S)}(S,(n,m))
+ArraySpace(d::Domain,n...) = ArraySpace(Space(d),n...)
 
 
 Base.length{SS}(AS::ArraySpace{SS,1}) = AS.dimensions[1]
@@ -157,6 +159,8 @@ end
 
 Fun{F<:Fun}(V::AbstractVector{F})=devec(V)
 Fun{F<:Fun}(V::AbstractMatrix{F})=demat(V)
+
+Fun(v::Vector{Any},sp::ArraySpace) = devec(map(f->Fun(f,sp.space),v))
 
 
 function union_rule{S,n,T,DD,dim,S2,T2,DD2}(a::ArraySpace{S,n,T,DD,dim},b::ArraySpace{S2,n,T2,DD2,dim})

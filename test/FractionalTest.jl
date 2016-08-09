@@ -17,7 +17,7 @@ u=Q\f
 x=Fun([0.,1.])
 Q=gamma(0.5)*LeftIntegral(0.5)
 u=Q\(exp(x)-1)
-@test norm(u-exp(x)*erf(sqrt(x))/sqrt(π)) < 10eps() # 5.0036177384681187e-14
+@test norm(u-exp(x)*erf(sqrt(x))/sqrt(π)) < 100eps() # 5.0036177384681187e-14
 
 
 # Example 3
