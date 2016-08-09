@@ -1,12 +1,12 @@
 
 
-function Base.nullspace{T}(A::Operator{T};tolerance=100eps(real(T)),maxlength=1_000_000)
-    K=transpose_nullspace(qrfact(A'),tolerance,maxlength)
+function Base.nullspace{T}(A::Operator{T};tolerance=10eps(real(T)),maxlength=1_000_000)
+   K=transpose_nullspace(qrfact(A'),tolerance,maxlength)
     # drop extra rows, and use QR to determine rank
     Q,R=qr(K,Val{true})
-    ind=findfirst(r->abs(r)≤tolerance,diag(R))
+    ind=findfirst(r->abs(r)≤100tolerance,diag(R))
     Kret=ind==0?Q:Q[:,1:ind-1]
-    Fun(vec(Kret'),ArraySpace(domainspace(A),1,size(Kret,2)))
+    Fun(vec(Kret'),ArraySpace(domainspace(A),1,ind-1))
 end
 
 
@@ -25,9 +25,12 @@ function transpose_nullspace(QR::QROperator,tolerance,maxlength)
         K[k+m-1,:]=QQ[end,2:end]
     end
     k=11
-    while norm(K[k-10,:]) >tolerance*k
+    α=0.9
+
+    while slnorm(K,floor(Int,k^α),:) >tolerance*k
         if k > maxlength
             warn("Max length of $maxlength reached.")
+            break
         end
 
         if k ≥ QR.ncols
@@ -45,7 +48,7 @@ function transpose_nullspace(QR::QROperator,tolerance,maxlength)
         k+=1
     end
 
-    K[1:k-10,:]
+    K[1:floor(Int,k^α),:]
 end
 
 
