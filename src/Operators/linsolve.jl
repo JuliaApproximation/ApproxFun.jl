@@ -21,7 +21,7 @@ function linsolve{OO<:Operator}(A::Array{OO},b;kwds...)
     if ndims(domain(A[end])) > 1
         pdesolve(A,b;kwds...)
     else
-        linsolve(qrfact(A),b;kwds...)
+        linsolve(interlace(A),b;kwds...)
     end
 end
 

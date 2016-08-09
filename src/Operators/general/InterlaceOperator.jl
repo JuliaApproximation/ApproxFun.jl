@@ -227,6 +227,12 @@ rangespace(IO::InterlaceOperator) = IO.rangespace
 iscolop(op) = isconstop(op)
 iscolop(::Multiplication) = true
 
+promotedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
+    InterlaceOperator(map(op->promotedomainspace(op,sp),A.ops))
+
+choosedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
+    filter(x->!isambiguous(x),map(s->choosedomainspace(s,sp),A.ops))[1]
+
 
 interlace{T<:Operator}(A::Array{T}) = length(A)==1?A[1]:InterlaceOperator(A)
 

@@ -111,10 +111,13 @@ end
 # it tries to decide a space.
 ###
 
-function choosedomainspace(A::Operator,sp)
+function choosedomainspace(A::Operator,sp::Space)
     sp2=domainspace(A)
     isambiguous(sp2)?sp:sp2
 end
+
+choosedomainspace(A::Operator,f::Fun) = choosedomainspace(A,space(f))
+choosedomainspace(A::Operator,::) = choosedomainspace(A)
 
 choosedomainspace(A) = choosedomainspace(A,UnsetSpace())
 
