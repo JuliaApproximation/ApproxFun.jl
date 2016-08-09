@@ -152,8 +152,6 @@ u=R\(Q'*[cos(-1.0),cos(1.0)])
 
 @test_approx_eq u(0.) cos(0.0)
 
-using ApproxFun,Base.Test
-
 
 S=Chebyshev()
 A=[dirichlet(S);Derivative(S)^2 - I]
@@ -194,6 +192,125 @@ A=[B 0;
    D^2-I 2.0I;
    0 D+I];
 
+
+io=ApproxFun.interlace(A)
+    co=cache(io)
+    n=10
+
+    io=co.op
+    ds=domainspace(io)
+    rs=rangespace(io)
+    di=io.domaininterlacer
+    ri=io.rangeinterlacer
+    ddims=di.iterator.dimensions
+    rdims=ri.iterator.dimensions
+
+    d∞=find(isinf,[ddims...])
+    r∞=find(isinf,[rdims...])
+    p=length(d∞)
+
+
+    (l,u)=bandwidths(co.data.bands)
+    pad!(co.data,n,n+u)
+    co.data
+    # r is number of extra rows, ncols is number of extra columns
+    r=rank(co.data.fill)
+    ncols=mapreduce(d->isfinite(d)?d:0,+,ddims)
+
+
+    # fill rows
+    K=k=1
+    while k ≤ r
+        if isfinite(dimension(rs[ri[K][1]]))
+            co.data.fill.V[co.datasize[2]:end,k] = co.op[K,co.datasize[2]:n+u]
+            k += 1
+        end
+        K += 1
+    end
+
+    kr=co.datasize[1]+1:n
+    jr=max(1,kr[1]-l):n+u
+    io∞=InterlaceOperator(io.ops[r∞,d∞])
+
+    BLAS.axpy!(1.0,view(io∞,kr-r,jr-ncols),view(co.data.bands,kr,jr))
+    co.data-io[1:10,1:16]
+
+
+
+view(co.op,kr,jr)
+
+bandwidth(view(co.data.bands,kr,jr),2)
+
+
+kr,jr
+
+
+
+kr-r
+    jr-ncols
+
+    k=j=1
+    njr=(jr[findfirst(ℓ->mod(ℓ-1,p)==j-1,jr-ncols)]:p:jr[end])
+    nkr=(kr[findfirst(ℓ->mod(ℓ-1,p)==k-1,kr-r)]:p:kr[end])
+    jr1=(njr[1]-ncols+1)÷p
+    kr1=(nkr[1]-r+1)÷p
+BandedMatrices.banded_axpy!(1.0,view(co.op.ops[r∞[k],d∞[j]],
+                    kr1:(kr1+length(nkr)-1),
+                    jr1:(jr1+length(njr)-1)),
+                    view(co.data.bands,nkr,njr))
+
+
+
+nkr
+njr
+
+
+(a,X,S)=(1.0,view(co.op.ops[r∞[k],d∞[j]],
+                                        kr1:(kr1+length(nkr)-1),
+                                        jr1:(jr1+length(njr)-1)),
+                                        view(co.data.bands,nkr,njr))
+
+y
+bandwidths(X)
+bandwidths(S.parent)
+shft=bandshift(S)
+
+bandwidth(view(co.op.ops[r∞[k],d∞[j]],
+                    kr1:(kr1+length(nkr)-1),
+                    jr1:(jr1+length(njr)-1)),2)
+
+
+bandwidth(view(co.data.bands,nkr,njr)
+
+view(co.data.bands,nkr,njr)
+
+
+nkr
+njr
+
+kr1
+jr1
+
+
+io.ops[r∞[k],d∞[j]]
+
+
+
+
+nkr
+
+
+view(co.data.bands,nkr,njr)
+
+
+for k=1:p,j=1:p
+    BLAS.axpy!(1.0,view(co.op.ops[r∞[k],d∞[j]],
+                        kr-r,
+                        jr-ncols),
+    view(co.data.bands,kr,jr))
+end
+
+co.datasize=(n,n+u)
 
 QR=qrfact(A)
 v=Any[0.,0.,0.,f...]
