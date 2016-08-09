@@ -154,59 +154,8 @@ Base.Ac_mul_B{FF<:Fun}(A::QROperatorQ,b::Vector{FF};kwds...) = Ac_mul_B(A,Fun(b,
 
 Base.At_mul_B{T<:Real}(A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B(A,B)
 
-Base.Ac_mul_B{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T};
-                                        tolerance=eps(T)/10,maxlength=1000000) =
+Base.Ac_mul_B(A::QROperatorQ,B::Vector;tolerance=eps(eltype(A))/10,maxlength=1000000) =
         Ac_mul_Bpars(A,B,tolerance,maxlength)
-
-function Ac_mul_Bpars{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T},
-                                        tolerance,maxlength)
-    if length(B) > A.QR.ncols
-        # upper triangularize extra columns to prepare for \
-        resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
-    end
-
-    H=A.QR.H
-    h=pointer(H)
-
-    M=size(H,1)
-
-    b=pointer(B)
-    st=stride(H,2)
-
-    sz=sizeof(T)
-
-    m=length(B)
-    Y=pad(B,m+M+10)
-    y=pointer(Y)
-
-    k=1
-    yp=y
-    while (k ≤ m+M || BLAS.nrm2(M,yp,1) > tolerance )
-        if k > maxlength
-            warn("Maximum length $maxlength reached.")
-            break
-        end
-
-        if k+M-1>length(Y)
-            pad!(Y,2*(k+M))
-            y=pointer(Y)
-        end
-        if k > A.QR.ncols
-            # upper triangularize extra columns to prepare for \
-            resizedata!(A.QR,:,2*(k+M))
-            H=A.QR.H
-            h=pointer(H)
-        end
-
-        wp=h+sz*st*(k-1)
-        yp=y+sz*(k-1)
-
-        dt=dot(M,wp,1,yp,1)
-        BLAS.axpy!(M,-2*dt,wp,1,yp,1)
-        k+=1
-    end
-    Fun(Y,domainspace(A))  # chop off zeros
-end
 
 Base.Ac_mul_B{QR,T,V<:Number}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) =
     Ac_mul_B(A,Vector{T}(B))

@@ -255,7 +255,122 @@ resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBandedMatrix{T}
 ## populate data
 
 
+
 function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
+                                                                 MM,DS,RS,BI}},
+                        ::Colon,col)
+    if col ≤ QR.ncols
+        return QR
+    end
+
+    MO=QR.R
+    W=QR.H
+
+    R=MO.data.bands
+    M=R.l+1   # number of diag+subdiagonal bands
+
+    if col+M-1 ≥ MO.datasize[1]
+        resizedata!(MO,(col+M-1)+100,:)  # double the last rows
+    end
+
+    if col > size(W,2)
+        W=QR.H=unsafe_resize!(W,:,2col)
+    end
+
+    F=MO.data.fill.U
+
+    for k=QR.ncols+1:col
+        W[:,k] = view(R.data,R.u+1:R.u+R.l+1,k) # diagonal and below
+        wp=view(W,:,k)
+        W[1,k]+= flipsign(norm(wp),W[1,k])
+        normalize!(wp)
+
+        # scale banded entries
+        for j=k:k+R.u
+            dind=R.u+1+k-j
+            v=view(R.data,dind:dind+M-1,j)
+            dt=dot(wp,v)
+            Base.axpy!(-2*dt,wp,v)
+        end
+
+        # scale banded/filled entries
+        for j=k+R.u+1:k+R.u+M-1
+            p=j-k-R.u
+            v=view(R.data,1:M-p,j)  # shift down each time
+            wp2=view(wp,p+1:M)
+            dt=dot(wp2,v)
+            for ℓ=k:k+p-1
+                @inbounds dt=muladd(conj(W[ℓ-k+1,k]),
+                                    unsafe_getindex(MO.data.fill,ℓ,j),dt)
+            end
+            Base.axpy!(-2*dt,wp2,v)
+        end
+
+        # scale filled entries
+
+        for j=1:size(F,2)
+            v=view(F,k:k+M-1,j) # the k,jth entry of F
+            dt=dot(wp,v)
+            Base.axpy!(-2*dt,wp,v)
+        end
+    end
+    QR.ncols=col
+    QR
+end
+
+
+function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,BandedMatrix{T},
+                                                                 MM,DS,RS,BI}},
+                        ::Colon,col)
+    if col ≤ QR.ncols
+        return QR
+    end
+
+    MO=QR.R
+    W=QR.H
+
+    R=MO.data
+    M=R.l+1   # number of diag+subdiagonal bands
+
+    if col+M-1 ≥ MO.datasize[1]
+        resizedata!(MO,(col+M-1)+100,:)  # double the last rows
+    end
+
+    if col > size(W,2)
+        W=QR.H=unsafe_resize!(W,:,2col)
+    end
+
+    for k=QR.ncols+1:col
+        W[:,k] = view(R.data,R.u+1:R.u+R.l+1,k) # diagonal and below
+        wp=view(W,:,k)
+        W[1,k]+= flipsign(norm(wp),W[1,k])
+        normalize!(wp)
+
+        # scale banded entries
+        for j=k:k+R.u
+            dind=R.u+1+k-j
+            v=view(R.data,dind:dind+M-1,j)
+            dt=dot(wp,v)
+            Base.axpy!(-2*dt,wp,v)
+        end
+
+        # scale banded/filled entries
+        for j=k+R.u+1:k+R.u+M-1
+            p=j-k-R.u
+            v=view(R.data,1:M-p,j)  # shift down each time
+            wp2=view(wp,p+1:M)
+            dt=dot(wp2,v)
+            Base.axpy!(-2*dt,wp2,v)
+        end
+    end
+    QR.ncols=col
+    QR
+end
+
+
+# BLAS versions, requires BlasFloat
+
+function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
                                                                  MM,DS,RS,BI}},
                         ::Colon,col)
     if col ≤ QR.ncols
@@ -324,7 +439,7 @@ end
 
 
 
-function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,BandedMatrix{T},
+function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,BandedMatrix{T},
                                                                  MM,DS,RS,BI}},
                         ::Colon,col)
     if col ≤ QR.ncols
@@ -435,4 +550,98 @@ function backsubstitution!(A::BandedMatrix,u::Array)
         end
     end
     u
+end
+
+
+
+## Ac_mul_B! for QROperatorQ
+
+function Ac_mul_Bpars(A::QROperatorQ,B::Vector,tolerance,maxlength)
+    if length(B) > A.QR.ncols
+        # upper triangularize extra columns to prepare for \
+        resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
+    end
+
+    H=A.QR.H
+    M=size(H,1)
+    m=length(B)
+    Y=pad(B,m+M+10)
+
+    k=1
+    yp=view(Y,1:M)
+    while (k ≤ m+M || norm(yp) > tolerance )
+        if k > maxlength
+            warn("Maximum length $maxlength reached.")
+            break
+        end
+
+        if k+M-1>length(Y)
+            pad!(Y,2*(k+M))
+        end
+        if k > A.QR.ncols
+            # upper triangularize extra columns to prepare for \
+            resizedata!(A.QR,:,2*(k+M))
+            H=A.QR.H
+        end
+
+        wp=view(H,:,k)
+        yp=view(Y,k:k+M-1)
+
+        dt=dot(wp,yp)
+        Base.axpy!(-2*dt,wp,yp)
+        k+=1
+    end
+    Fun(Y,domainspace(A))  # chop off zeros
+end
+
+# BLAS
+
+function Ac_mul_Bpars{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T},
+                                        tolerance,maxlength)
+    if length(B) > A.QR.ncols
+        # upper triangularize extra columns to prepare for \
+        resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
+    end
+
+    H=A.QR.H
+    h=pointer(H)
+
+    M=size(H,1)
+
+    b=pointer(B)
+    st=stride(H,2)
+
+    sz=sizeof(T)
+
+    m=length(B)
+    Y=pad(B,m+M+10)
+    y=pointer(Y)
+
+    k=1
+    yp=y
+    while (k ≤ m+M || BLAS.nrm2(M,yp,1) > tolerance )
+        if k > maxlength
+            warn("Maximum length $maxlength reached.")
+            break
+        end
+
+        if k+M-1>length(Y)
+            pad!(Y,2*(k+M))
+            y=pointer(Y)
+        end
+        if k > A.QR.ncols
+            # upper triangularize extra columns to prepare for \
+            resizedata!(A.QR,:,2*(k+M))
+            H=A.QR.H
+            h=pointer(H)
+        end
+
+        wp=h+sz*st*(k-1)
+        yp=y+sz*(k-1)
+
+        dt=dot(M,wp,1,yp,1)
+        BLAS.axpy!(M,-2*dt,wp,1,yp,1)
+        k+=1
+    end
+    Fun(Y,domainspace(A))  # chop off zeros
 end

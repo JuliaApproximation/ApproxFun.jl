@@ -1,4 +1,3 @@
-
 ## Intro
 
 using ApproxFun,Base.Test
