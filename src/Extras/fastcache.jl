@@ -88,7 +88,7 @@ function CachedOperator{T}(io::InterlaceOperator{T,2};padding::Bool=false)
         count(isinf,ddims) == count(isinf,rdims)
 
     if !isab
-        return CachedOperator(io,Array(eltype(op),0,0))
+        return CachedOperator(io,Array(T,0,0))
     end
 
 

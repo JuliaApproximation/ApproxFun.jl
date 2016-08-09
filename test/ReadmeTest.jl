@@ -58,7 +58,7 @@ B = dirichlet(d)
 L = D^2 - x
 u = [B;L] \ [airyai(d.a);airyai(d.b)]
 
-@test_approx_eq u(0.) airyai(0.)
+@test_approx_eq_eps u(0.) airyai(0.) 10000eps()
 
 
 ## Nonlinear BVPs
