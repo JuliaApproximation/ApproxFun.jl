@@ -283,7 +283,6 @@ include("almostbanded/almostbanded.jl")
 
 include("systems.jl")
 
-include("adaptiveqr.jl")
 include("qrfact.jl")
 include("nullspace.jl")
 
