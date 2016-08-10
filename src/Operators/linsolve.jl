@@ -1,7 +1,7 @@
 ## Linear Solve
 
 function linsolve(A::Operator,b;kwds...)
-    if ndims(domain(A)) > 1
+    if dimension(domain(A)) > 1
         pdesolve(A,b;kwds...)
     elseif isambiguous(domainspace(A))
         A=choosespaces(A,b)
@@ -14,7 +14,7 @@ function linsolve(A::Operator,b;kwds...)
     end
 end
 function linsolve{OO<:Operator}(A::Array{OO},b;kwds...)
-    if ndims(domain(A[end])) > 1
+    if dimension(domain(A[end])) > 1
         pdesolve(A,b;kwds...)
     else
         linsolve(interlace(A),b;kwds...)

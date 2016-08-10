@@ -153,7 +153,8 @@ end
 tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = TensorIterator(map(dimension,sp.spaces))
 
 TensorSpace(sp::Tuple) =
-    TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),mapreduce(ndims,+,sp)}(sp)
+    TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
+                mapreduce(domaindimension,+,sp)}(sp)
 
 
 dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)

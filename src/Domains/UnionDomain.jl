@@ -10,7 +10,8 @@ immutable UnionDomain{DD,T,d} <: Domain{T,d}
     domains::DD
 end
 
-UnionDomain(d::Tuple)=UnionDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(ndims,max,d)}(d)
+UnionDomain(d::Tuple) =
+    UnionDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(dimension,max,d)}(d)
 UnionDomain(d::AbstractVector)=UnionDomain(tuple(d...))
 
 
@@ -87,7 +88,7 @@ numpieces(d::UnionDomain) = length(d.domains)
 
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
-==(d1::UnionDomain,d2::UnionDomain) = 
+==(d1::UnionDomain,d2::UnionDomain) =
     length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
 
 

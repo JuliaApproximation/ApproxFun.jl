@@ -11,13 +11,13 @@ typealias UnivariateDomain{T} Domain{T,1}
 typealias BivariateDomain{T} Domain{T,2}
 
 
-Base.eltype{T}(::Domain{T})=T
-Base.eltype{T,d}(::Type{Domain{T,d}})=T
-Base.isreal{T<:Real}(::Domain{T})=true
-Base.isreal{T}(::Domain{T})=false
-Base.ndims{T,d}(::Domain{T,d})=d
-Base.ndims{T,d}(::Type{Domain{T,d}})=d
-Base.ndims{DT<:Domain}(::Type{DT})=ndims(supertype(DT))
+Base.eltype{T}(::Domain{T}) = T
+Base.eltype{T,d}(::Type{Domain{T,d}}) = T
+Base.isreal{T<:Real}(::Domain{T}) = true
+Base.isreal{T}(::Domain{T}) = false
+dimension{T,d}(::Domain{T,d}) = d
+dimension{T,d}(::Type{Domain{T,d}}) = d
+dimension{DT<:Domain}(::Type{DT}) = dimension(supertype(DT))
 
 Base.length(d::Domain) = 1
 
@@ -30,7 +30,7 @@ immutable AnyDomain <: Domain{UnsetNumber} end
 immutable EmptyDomain <: Domain{UnsetNumber} end
 
 isambiguous(::AnyDomain) = true
-Base.ndims(::AnyDomain) = 1
+dimension(::AnyDomain) = 1
 
 complexlength(::AnyDomain) = NaN
 arclength(::AnyDomain) = NaN

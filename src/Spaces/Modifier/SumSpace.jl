@@ -75,7 +75,7 @@ for TYP in (:SumSpace,:TupleSpace)
         end
 
         $TYP(sp::Tuple) = $TYP{typeof(sp),mapreduce(basistype,promote_type,sp),
-                             typeof(domain(first(sp))),ndims(first(sp))}(sp)
+                             typeof(domain(first(sp))),domaindimension(first(sp))}(sp)
     end
 end
 
@@ -90,7 +90,7 @@ function PiecewiseSpace(spin::Tuple)
     sp=tuple(union(spin)...)  # remove duplicates
 
     PiecewiseSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
-                               typeof(UnionDomain(map(domain,sp))),ndims(first(sp))}(sp)
+                               typeof(UnionDomain(map(domain,sp))),domaindimension(first(sp))}(sp)
 end
 
 

@@ -71,7 +71,7 @@ domaintype{FT<:Space}(::Type{FT}) = domaintype(supertype(FT))
 
 coefficient_type{S}(::Space{S},T) = coefficient_type(S,T)
 
-Base.ndims{S,D,d}(::Space{S,D,d}) = d
+domaindimension{S,D,d}(::Space{S,D,d}) = d
 dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 
 

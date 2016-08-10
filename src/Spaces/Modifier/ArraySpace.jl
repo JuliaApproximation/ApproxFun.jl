@@ -21,10 +21,12 @@ typealias MatrixSpace{S,T,DD,dim} ArraySpace{S,2,T,DD,dim}
 
 
 ArraySpace(S::Space,n::Tuple{Vararg{Int}}) =
-    ArraySpace{typeof(S),length(n),basistype(S),domaintype(S),ndims(S)}(S,n)
+    ArraySpace{typeof(S),length(n),basistype(S),
+               domaintype(S),domaindimension(S)}(S,n)
 ArraySpace(S::Space,n::Integer) = ArraySpace(S,(n,))
 ArraySpace(S::Space,n,m) =
-    ArraySpace{typeof(S),2,basistype(S),domaintype(S),ndims(S)}(S,(n,m))
+    ArraySpace{typeof(S),2,basistype(S),
+               domaintype(S),domaindimension(S)}(S,(n,m))
 ArraySpace(d::Domain,n...) = ArraySpace(Space(d),n...)
 
 

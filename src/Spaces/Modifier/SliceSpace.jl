@@ -13,7 +13,8 @@ spacescompatible{n,st,DS,T,DD,d}(S1::SliceSpace{n,st,DS,T,DD,d},S2::SliceSpace{n
 index{n}(::SliceSpace{n})=n
 Base.stride{n,st}(::SliceSpace{n,st})=st
 
-SliceSpace(sp::Space,n::Integer,st::Integer)=SliceSpace{n,st,typeof(sp),basistype(sp),domaintype(sp),ndims(sp)}(sp)
+SliceSpace(sp::Space,n::Integer,st::Integer)=SliceSpace{n,st,typeof(sp),basistype(sp),
+                                                        domaintype(sp),domaindimension(sp)}(sp)
 SliceSpace(sp,n::Integer)=SliceSpace(sp,n,1)
 
 domain(DS::SliceSpace)=domain(DS.space)
