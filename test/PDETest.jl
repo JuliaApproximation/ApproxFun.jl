@@ -39,7 +39,10 @@ A=lap(d)+.1I
 u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
-@static if is_apple() 
+
+println("    Kron tests")
+
+@static if is_apple()
     ## Kron
 
     dx=dy=Interval()
@@ -162,6 +165,7 @@ u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 @test_approx_eq u(.1,.2) exp(-20(0.1-0.2)^2)
 
 
+println("   Domain Decompositon tests")
 
 ## Domain Decomposition
 d=Interval(0,1)^2

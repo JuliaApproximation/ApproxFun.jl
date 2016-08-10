@@ -51,8 +51,9 @@ x=.1
 
 ## ODEs
 
+println("    Bessel tests")
 
-for ν in (1.,0.5,2.,3.5)
+@for ν in (1.,0.5,2.,3.5)
     S=JacobiWeight(-ν,0.,Chebyshev([0.,1.]))
     D=Derivative(S)
     x=Fun(identity,domain(S))
@@ -106,6 +107,7 @@ g=1/f
 @test_approx_eq g(.123) csc(10*.123)
 
 
+println("    Ray tests")
 
 ## Ray
 
