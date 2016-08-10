@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat, Base.Test
 
 ## Rectangle PDE
 
@@ -39,7 +39,7 @@ A=lap(d)+.1I
 u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
-@osx_only begin
+@static if is_apple() begin
     ## Kron
 
     dx=dy=Interval()
