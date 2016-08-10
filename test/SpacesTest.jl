@@ -11,7 +11,7 @@ B=dirichlet(sp)
 D=Derivative(d)
 L=D^2+I
 
-@test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <eps()
+@test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <10eps()
 
 f=Fun(t->cos(t)+cos(3t),CosSpace)
 

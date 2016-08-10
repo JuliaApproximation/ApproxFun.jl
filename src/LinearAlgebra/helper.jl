@@ -357,8 +357,8 @@ end
 
 ## slnorm gives the norm of a slice of a matrix
 
-function slnorm{T}(u::AbstractArray{T},r::Range,::Colon)
-    ret = zero(real(T))
+function slnorm(u::AbstractMatrix,r::Range,::Colon)
+    ret = zero(real(eltype(u)))
     for k=r
         @simd for j=1:size(u,2)
             #@inbounds
@@ -370,17 +370,19 @@ end
 
 
 function slnorm(m::AbstractMatrix,kr::Range,jr::Range)
-    ret=0.0
+    ret=zero(real(eltype(m)))
     for j=jr
+        nrm=zero(real(eltype(m)))
         for k=kr
-            @inbounds ret=ret+abs2(m[k,j])
+            @inbounds nrm+=abs2(m[k,j])
         end
+        ret=max(sqrt(nrm),ret)
     end
     ret
 end
 
-slnorm(m::Matrix,kr::Range,jr::Integer)=slnorm(m,kr,jr:jr)
-slnorm(m::Matrix,kr::Integer,jr::Range)=slnorm(m,kr:kr,jr)
+slnorm(m::Matrix,kr::Range,jr::Integer) = slnorm(m,kr,jr:jr)
+slnorm(m::Matrix,kr::Integer,jr::Range) = slnorm(m,kr:kr,jr)
 
 
 function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
@@ -396,7 +398,8 @@ function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
 end
 
 
-
+slnorm(m::AbstractMatrix,k::Integer,::Colon) = slnorm(m,k,1:size(m,2))
+slnorm(m::AbstractMatrix,::Colon,j::Integer) = slnorm(m,1:size(m,1),j)
 
 
 
@@ -414,6 +417,10 @@ const ∞ = Infinity()
 Base.isinf(::Infinity) = true
 Base.isfinite(::Infinity) = false
 Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
+
+Base.zero{B}(::Infinity{B}) = zero(B)
+Base.one{B}(::Infinity{B}) = one(B)
+
 
 function Base.show{B<:Integer}(io::IO, y::Infinity{B})
     if sign(y) == 1
@@ -589,9 +596,8 @@ Base.start(it::CachedIterator) = 1
 Base.next(it::CachedIterator,st::Int) = (it[st],st+1)
 Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
                                         done(it.iterator,it.state)
-
-
-Base.getindex(it::CachedIterator,k::Int) = resize!(it,k).storage[k]
+maximum(5)
+getindex(it::CachedIterator,k) = resize!(it,maximum(k)).storage[k]
 function Base.findfirst(f::Function,A::CachedIterator)
     k=1
     for c in A
@@ -616,6 +622,6 @@ end
 
 
 # The following don't need caching
-cache(A::Vector) = A
+cache{T<:Number}(A::Vector{T}) = A
 cache(A::Range) = A
 cache(A::AbstractCount) = A

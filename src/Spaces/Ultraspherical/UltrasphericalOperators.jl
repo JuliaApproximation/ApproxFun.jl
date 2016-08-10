@@ -304,7 +304,7 @@ function Conversion{a,b,DD}(A::Ultraspherical{a,DD},B::Ultraspherical{b,DD})
     @assert b >= a
 
     if b==a
-        eye(A)
+        ConversionWrapper(eye(A))
     elseif b==a+1
         ConcreteConversion(A,B)
     else

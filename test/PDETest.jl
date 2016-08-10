@@ -39,10 +39,6 @@ A=lap(d)+.1I
 u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
-@test_approx_eq real(f)(.1,.2) f(.1,.2)
-
-
-
 if OS_NAME==:Darwin
     ## Kron
 
@@ -168,9 +164,6 @@ u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
 
 ## Domain Decomposition
-
-
-
 d=Interval(0,1)^2
 n,m=20,80
 A=discretize([dirichlet(d);lap(d)],n)
@@ -287,8 +280,6 @@ Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
 u=pdesolve([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],Any[Fun(x->exp(-20(x+0.5)^2),s)],200)
 @test_approx_eq_eps u(-.1,.2) exp(-20(-.2-.1+0.5)^2) 0.00001
-
-
 
 ## Test error
 

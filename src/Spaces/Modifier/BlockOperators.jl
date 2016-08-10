@@ -127,7 +127,8 @@ function getindex(B::BlockOperator,k::Integer,j::Integer)
 end
 
 
-choosedomainspace(B::BlockOperator,f)=TupleSpace(fill(ConstantSpace(),size(B.mat11,2))...,choosedomainspace(B.op,f))
+choosedomainspace(B::BlockOperator,f::Space) =
+    TupleSpace(fill(ConstantSpace(),size(B.mat11,2))...,choosedomainspace(B.op,f))
 
 function promotedomainspace(P::BlockOperator,S::TupleSpace)
     m=size(P.mat11,2)

@@ -42,7 +42,7 @@ end
 # zero needs to be different since it can take a space to
 # a ConstantSpace, in creating functionals
 Base.convert{T}(::Type{Operator{T}},x::Number) =
-    x==0?ZeroOperator(T,UnsetSpace()):ConstantOperator(T,x,UnsetSpace())
+    x==0?ZeroOperator(T,UnsetSpace()):Multiplication(T(x))
 Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
     ConstantOperator(T,L.λ)
 
@@ -72,8 +72,8 @@ domainspace(B::BasisFunctional) = ℓ⁰
 
 Base.convert{T}(::Type{Operator{T}},B::BasisFunctional) = BasisFunctional{T}(B.k)
 
-Base.getindex(op::BasisFunctional,k::Integer) = (k==op.k)?1.:0.
-Base.getindex(op::BasisFunctional,k::Range) = convert(Vector{Float64},k.==op.k)
+Base.getindex{T}(op::BasisFunctional{T},k::Integer) = (k==op.k)?one(T):zero(T)
+Base.getindex{T}(op::BasisFunctional{T},k::Range) = convert(Vector{T},k.==op.k)
 
 immutable FillFunctional{T} <: Operator{T}
     λ::T

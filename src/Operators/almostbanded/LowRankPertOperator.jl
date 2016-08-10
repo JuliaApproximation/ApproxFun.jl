@@ -37,46 +37,6 @@ end
 
 
 
-
-
-
-
-
-function MutableOperator{R<:Operator}(bc::Vector{R},S::LowRankPertOperator)
-    bndinds=bandinds(S.op)
-
-    dats= datasize(S,1)
-    lbc=length(bc)
-    shift = lbc+dats
-    r=rank(S.pert)
-
-    bndindslength=bndinds[end]-bndinds[1]+1
-    br=(bndinds[1]-shift,bndindslength+dats-1)
-
-    data = bzeros(S.op,shift+100-br[1],:,br)
-
-    # do all columns in the row, +1 for the fill
-    bcdat=eye(shift,lbc)
-    lowrdat=[zeros(lbc,r);coefficients(S.pert.U)]  # add zeros for first bc rows
-    opdat=[zeros(lbc,dats);eye(dats)]
-    fl=FillMatrix([bc;S.pert.V;S.op[1:dats,:]],[bcdat lowrdat opdat],br[end]+1)
-
-
-    for k=1:lbc,j=columnrange(data,k)
-        data[k,j]=bc[k][j]  # initialize data with the boundary rows
-    end
-
-    for k=lbc+1:shift,j=columnrange(data,k)
-        data[k,j]=S[k-lbc,j]  # initialize data with the boundary rows end
-    end
-    M=MutableOperator(S.op[dats+1:end,1:end],data,fl,shift,shift, br)
-end
-
-
-
-
-
-
 ## algebra
 
 for OP in (:+,:-)

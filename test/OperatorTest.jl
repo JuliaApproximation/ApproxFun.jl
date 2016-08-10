@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test, Compat
-    import ApproxFun.Multiplication
+    import ApproxFun:Multiplication,InterlaceOperator
 
 import Compat.view
 
@@ -158,5 +158,53 @@ f=Fun(exp)
 
 
 
-## SavedBandedOperator
-@test SavedBandedOperator(Derivative(Chebyshev(),2))[1,1]==0
+## Cached operator
+@test cache(Derivative(Chebyshev(),2))[1,1]==0
+
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]

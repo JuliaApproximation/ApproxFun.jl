@@ -26,8 +26,11 @@ Fun(coeff::Vector,sp::Space) = Fun{typeof(sp),eltype(coeff)}(coeff,sp)
 Fun{T<:Integer}(coeff::Vector{T},sp::Space) = Fun(1.0coeff,sp)
 
 function Fun(v::Vector{Any},sp::Space)
-    @assert isempty(v)
-    Fun(Float64[],sp)
+    if isempty(v)  || all(x->isa(x,Number) && x==0,v)
+        Fun(Float64[],sp)
+    else
+        error("Cannot convert $v to a Fun of type $sp")
+    end
 end
 
 ##Coefficient routines

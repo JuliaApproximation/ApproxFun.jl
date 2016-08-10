@@ -27,6 +27,7 @@ include("simplify.jl")
 include("eigs.jl")
 include("hacks.jl")
 include("fastops.jl")
+include("fastcache.jl")
 
 include("autodifferentiation.jl")
 include("fractional.jl")

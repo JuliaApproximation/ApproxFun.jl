@@ -60,9 +60,11 @@ Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T}) = Fun
 conversion_rule(A::ConstantSpace,B::UnsetSpace)=NoSpace()
 conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
 
-conversion_rule(A::ZeroSpace,B::Space)=A
-maxspace_rule(A::ZeroSpace,B::Space)=B
-Conversion(A::ZeroSpace,B::Space)=ConversionWrapper(ZeroOperator(A,B))
+conversion_rule(A::ZeroSpace,B::Space) = A
+maxspace_rule(A::ZeroSpace,B::Space) = B
+
+Conversion(A::ZeroSpace,B::ZeroSpace) = ConversionWrapper(ZeroOperator(A,B))
+Conversion(A::ZeroSpace,B::Space) = ConversionWrapper(ZeroOperator(A,B))
 
 
 union_rule(A::ConstantSpace,B::Space)=ConstantSpace(domain(B))⊕B

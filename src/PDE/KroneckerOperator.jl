@@ -225,9 +225,9 @@ Multiplication{D<:UnivariateSpace,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplicat
 
 ## PDE Factorization
 
-isafunctional(::,k) = false
-isafunctional(B::KroneckerOperator,k::Integer) = isafunctional(B.ops[k])
-isafunctional(B::PlusOperator,k::Integer) = isafunctional(first(B.ops),k)
+isfiniterange(::,k) = false
+isfiniterange(B::KroneckerOperator,k::Integer) = isfinite(size(B.ops[k],1))
+isfiniterange(B::PlusOperator,k::Integer) = isfiniterange(first(B.ops),k)
 
 
 
@@ -235,7 +235,7 @@ isafunctional(B::PlusOperator,k::Integer) = isafunctional(first(B.ops),k)
 
 function findfunctionals(A::Vector,k::Integer)
     T=eltype(eltype(eltype(A)))
-    indsBx=find(f->isafunctional(f,k),A)
+    indsBx=find(f->isfiniterange(f,k),A)
     if k==1
         indsBx,Operator{T}[(@assert dekron(Ai,2)==ConstantOperator(Float64,1.0); dekron(Ai,1)) for Ai in A[indsBx]]
     else

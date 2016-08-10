@@ -81,18 +81,21 @@ promotedomainspace(P::Operator,sp::Space,cursp::Space) =
 
 
 function promoterangespace{O<:Operator}(ops::Vector{O})
+    isempty(ops) && return ops
     k=findmaxrangespace(ops)
     #TODO: T might be incorrect
     T=mapreduce(eltype,promote_type,ops)
     Operator{T}[promoterangespace(op,k) for op in ops]
 end
 function promotedomainspace{O<:Operator}(ops::Vector{O})
+    isempty(ops) && return ops
     k=findmindomainspace(ops)
     #TODO: T might be incorrect
     T=mapreduce(eltype,promote_type,ops)
     Operator{T}[promotedomainspace(op,k) for op in ops]
 end
 function promotedomainspace{O<:Operator}(ops::Vector{O},S::Space)
+    isempty(ops) && return ops
     k=conversion_type(findmindomainspace(ops),S)
     #TODO: T might be incorrect
     T=promote_type(mapreduce(eltype,promote_type,ops),eltype(S))
@@ -108,10 +111,13 @@ end
 # it tries to decide a space.
 ###
 
-function choosedomainspace(A::Operator,sp)
+function choosedomainspace(A::Operator,sp::Space)
     sp2=domainspace(A)
     isambiguous(sp2)?sp:sp2
 end
+
+choosedomainspace(A::Operator,f::Fun) = choosedomainspace(A,space(f))
+choosedomainspace(A::Operator,::) = choosedomainspace(A)
 
 choosedomainspace(A) = choosedomainspace(A,UnsetSpace())
 
@@ -124,6 +130,8 @@ function choosedomainspace(ops::Vector,spin)
 
     sp
 end
+
+choosespaces(A::Operator,b) = promotedomainspace(A,choosedomainspace(A,b))
 
 
 spacescompatible(A::Operator,B::Operator) =

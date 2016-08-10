@@ -58,6 +58,7 @@ function rangespace{T<:Operator}(A::Vector{T})
 end
 
 function promotespaces{T<:Operator}(A::Matrix{T})
+    isempty(A) && return A
     A=copy(A)#TODO: promote might have different Array type
     for j=1:size(A,2)
         A[:,j]=promotedomainspace(A[:,j])
@@ -92,7 +93,7 @@ InterlaceOperator{T,p}(ops::Array{T,p},ds,rs,di,ri,bi) =
                         typeof(di),typeof(ri),typeof(bi)}(ops,ds,rs,di,ri,bi)
 
 function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
-    # calculate bandinds
+    # calculate bandinds TODO: generalize
     p=size(ops,1)
     if size(ops,2) == p && all(isbanded,ops)
         l,u = 0,0
@@ -102,6 +103,9 @@ function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
         for k=1:p,j=1:p
             u=max(u,p*bandinds(ops[k,j],2)+j-k)
         end
+    elseif p == 1 && size(ops,2) == 2 && size(ops[1],2) == 1
+        # special case for example
+        l,u = min(bandinds(ops[1],1),bandinds(ops[2],1)+1),bandinds(ops[2],2)+1
     else
         l,u = (1-dimension(rs),dimension(ds)-1)  # not banded
     end
@@ -137,6 +141,8 @@ function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
 end
 
 function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
+    isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
+
     ops=promotespaces(opsin)
     # TODO: make consistent
     # if its a row vector, we assume scalar
@@ -206,8 +212,8 @@ function Base.copy{SS,PS,DI,RI,BI,T}(S::SubMatrix{T,InterlaceOperator{T,1,SS,PS,
     kr,jr=parentindexes(S)
     P=parent(S)
     ret=similar(S)
-    for k in kr
-        K,κ=P.rangeinterlacer[k]
+    for k in eachindex(kr)
+        K,κ=P.rangeinterlacer[kr[k]]
         @inbounds ret[k,:]=P.ops[K][κ,jr]
     end
     ret
@@ -221,62 +227,14 @@ rangespace(IO::InterlaceOperator) = IO.rangespace
 iscolop(op) = isconstop(op)
 iscolop(::Multiplication) = true
 
+promotedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
+    InterlaceOperator(map(op->promotedomainspace(op,sp),A.ops))
 
-function interlace{T<:Operator}(A::Matrix{T})
-    if all(isbanded,A)
-        # Hack to use BlockOperator when appropriate
-        if size(A,1)==1 && all(iscolop,A[1,1:end-1])
-            return BlockOperator(A)
-        else
-            return InterlaceOperator(A)
-        end
-    end
+choosedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
+    filter(x->!isambiguous(x),map(s->choosedomainspace(s,sp),A.ops))[1]
 
 
-    m,n=size(A)
-    TT=mapreduce(eltype,promote_type,A)
-    # Use BlockOperator whenever the first columns are all constants
-    if all(isconstop,A[1:end-1,1:end-1]) &&
-            all(iscolop,A[end,1:end-1]) &&
-            all(a->isafunctional(a),A[1:end-1,end]) && isbanded(A[end,end]) &&
-            isinf(size(A[end],1)) && isinf(size(A[end],2))
-        return [Operator{TT}[BlockFunctional(map(Number,vec(A[k,1:end-1])),A[k,end]) for k=1:m-1]...;
-                    BlockOperator(A[end:end,:])]
-    end
-
-
-    A=promotespaces(A)
-
-    br=0#num boundary rows
-    for k=1:m
-        if isboundaryrow(A,k)
-            br+=1
-        end
-    end
-
-    for k=1:br
-        @assert isboundaryrow(A,k)
-    end
-
-    S=Array(Operator{TT},br<m?br+1:br)
-
-    for k=1:br
-        S[k] = InterlaceOperator(A[k:k,:])
-    end
-
-    if br < m
-        Am=A[br+1:m,:]
-        S[br+1] = interlace(Am)
-    end
-
-    if(size(S,1) ==1)
-        S[1]
-    else
-        S
-    end
-end
-
-
+interlace{T<:Operator}(A::Array{T}) = length(A)==1?A[1]:InterlaceOperator(A)
 
 immutable DiagonalInterlaceOperator{OPS,DS,RS,T<:Number} <: Operator{T}
     ops::OPS

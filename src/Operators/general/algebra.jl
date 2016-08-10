@@ -646,7 +646,7 @@ function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::Space)
 end
 
 
-function choosedomainspace(P::PlusOperator,sp)
+function choosedomainspace(P::PlusOperator,sp::Space)
     ret=UnsetSpace()
     for op in P.ops
         sp2=choosedomainspace(op,sp)
@@ -672,7 +672,7 @@ end
 
 
 
-function choosedomainspace(P::TimesOperator,sp)
+function choosedomainspace(P::TimesOperator,sp::Space)
     for op in P.ops
         sp=choosedomainspace(op,sp)
     end
