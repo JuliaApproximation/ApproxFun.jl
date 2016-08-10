@@ -50,7 +50,7 @@ function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
     if T==eltype(P)
         P
     else
-        PlusOperator{T,eltype(P.bandinds)}(P.ops,P.bandinds)
+        PlusOperator{T,typeof(P.bandinds)}(P.ops,P.bandinds)
     end
 end
 

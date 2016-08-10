@@ -253,7 +253,7 @@ end
 Base.transpose(K::KroneckerOperator)=KroneckerOperator(K.ops[2],K.ops[1])
 
 for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper,:LaplacianWrapper)
-    @eval Base.transpose(S::$TYP)=$TYP(transpose(S.op))
+    @eval Base.transpose(S::$TYP) = $TYP(transpose(S.op))
 end
 
 

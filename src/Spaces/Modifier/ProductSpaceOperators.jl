@@ -311,10 +311,9 @@ DefiniteLineIntegral(d::UnionDomain) =
     ConcreteDefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
 
 ####### This is a hack to get the Faraday Cage working.
-function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},kr::Range)
-    d = domain(Σ)
-    n = arclength(d)
-    promote_type(T,eltype(d))[k ≤ n? one(T) : zero(T) for k=kr]
+function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},k::Integer)
+    n = length(domain(Σ))
+    k ≤ n? one(T) : zero(T)
 end
 bandinds{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T}) =
     0,arclength(domain(Σ))-1

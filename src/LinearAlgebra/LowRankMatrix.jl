@@ -30,7 +30,7 @@ LowRankMatrix(a::Number,m::Int,n::Int) = LowRankMatrix(a*ones(eltype(a),m),ones(
 LowRankMatrix{T}(::Type{T},m::Int,n::Int,r::Int) = LowRankMatrix(Array(T,m,r),Array(T,n,r))
 lrzeros{T}(::Type{T},m::Int,n::Int,r::Int) = LowRankMatrix(zeros(T,m,r),zeros(T,n,r))
 
-Base.similar(L::LowRankMatrix, T, dims::Dims) = (@assert length(dims) == 2;r = rank(L); LowRankMatrix(Array(T,dims[1],r),Array(T,dims[2],r)))
+Base.similar{T}(L::LowRankMatrix, ::Type{T}, dims::Dims) = (@assert length(dims) == 2;r = rank(L); LowRankMatrix(Array(T,dims[1],r),Array(T,dims[2],r)))
 Base.similar{T}(L::LowRankMatrix{T}) = ((m,n) = size(L); r = rank(L); LowRankMatrix(Array(T,m,r),Array(T,n,r)))
 Base.similar{T}(L::LowRankMatrix{T}, dims::Dims) = (@assert length(dims) == 2;r = rank(L); LowRankMatrix(Array(T,dims[1],r),Array(T,dims[2],r)))
 Base.similar{T}(L::LowRankMatrix{T}, m::Int) = Array(T, m)
