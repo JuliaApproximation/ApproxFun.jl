@@ -154,7 +154,7 @@ Base.Ac_mul_B{FF<:Fun}(A::QROperatorQ,b::Vector{FF};kwds...) = Ac_mul_B(A,Fun(b,
 
 Base.At_mul_B{T<:Real}(A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B(A,B)
 
-Base.Ac_mul_B(A::QROperatorQ,B::Vector;tolerance=eps(eltype(A)),maxlength=1000000) =
+Base.Ac_mul_B(A::QROperatorQ,B::Vector;tolerance=eps(eltype(A))/10,maxlength=1000000) =
         Ac_mul_Bpars(A,B,tolerance,maxlength)
 
 Base.Ac_mul_B{QR,T,V<:Number}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) =
