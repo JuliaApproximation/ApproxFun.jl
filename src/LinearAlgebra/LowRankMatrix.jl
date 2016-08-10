@@ -175,6 +175,9 @@ end
 .*(a::Number,L::LowRankMatrix) = a*L
 .*(L::LowRankMatrix,a::Number) = L*a
 
+# override default:
+Base.A_mul_Bc(A::LowRankMatrix,B::LowRankMatrix) = A*(B')
+
 function Base.A_mul_B!(b::AbstractVector,L::LowRankMatrix,x::AbstractVector)
     temp = zeros(promote_type(eltype(L),eltype(x)),rank(L))
     At_mul_B!(temp,L.V,x)
