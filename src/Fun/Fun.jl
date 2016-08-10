@@ -66,6 +66,14 @@ Base.convert{IF<:Fun}(::Type{IF},x::Number)=Fun(x)
 Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
 
 
+# promotion of * to fix 0.5 bug
+if VERSION ≥ v"0.5.0-rc1+1"
+    Base.promote_op{N,S,T}(::typeof(*),::Type{N},::Type{Fun{S,T}}) = Fun{S,promote_type(N,T)}
+    Base.promote_op{N,S,T}(::typeof(*),::Type{Matrix{N}},::Type{Matrix{Fun{S,T}}}) =
+        Matrix{Fun{S,promote_type(N,T)}}
+end
+
+
 Base.zero(::Type{Fun})=Fun(0.)
 Base.zero{T,S<:Space}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
 Base.one{T,S<:Space}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))

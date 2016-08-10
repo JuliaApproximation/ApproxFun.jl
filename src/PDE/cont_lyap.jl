@@ -99,7 +99,7 @@ end
 
 
 
-regularize_bcs(S::OperatorSchur,Gy)=length(Gy)==0?Gy:S.bcQ*Gy
+regularize_bcs(S::OperatorSchur,Gy) = length(Gy)==0?Gy:S.bcQ*Gy
 
 
 # Solve Bx*Y=Gx and P*Y*R' + S*Y*T' = F

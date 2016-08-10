@@ -39,7 +39,7 @@ A=lap(d)+.1I
 u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
-if OS_NAME==:Darwin
+@osx_only begin
     ## Kron
 
     dx=dy=Interval()
