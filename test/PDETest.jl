@@ -39,7 +39,7 @@ A=lap(d)+.1I
 u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
-@static if is_apple() begin
+@static if is_apple() 
     ## Kron
 
     dx=dy=Interval()
