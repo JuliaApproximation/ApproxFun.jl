@@ -591,7 +591,7 @@ function Ac_mul_Bpars(A::QROperatorQ,B::Vector,tolerance,maxlength)
         Base.axpy!(-2*dt,wp,yp)
         k+=1
     end
-    Fun(Y,domainspace(A))  # chop off zeros
+    Fun(resize!(Y,k),domainspace(A))  # chop off zeros
 end
 
 # BLAS
@@ -643,5 +643,5 @@ function Ac_mul_Bpars{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T},
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end
-    Fun(Y,domainspace(A))  # chop off zeros
+    Fun(resize!(Y,k),domainspace(A))  # chop off zeros
 end
