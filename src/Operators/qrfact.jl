@@ -45,7 +45,7 @@ QROperatorQ(QR) = QROperatorQ{typeof(QR),eltype(QR)}(QR)
 domainspace(Q::QROperatorQ) = ℓ⁰
 rangespace(Q::QROperatorQ) = rangespace(Q.QR)
 
-getindex(Q::QROperatorQ,k::Integer,j::Integer) = (Q'*[zeros(k-1);1])[j]
+getindex(Q::QROperatorQ,k::Integer,j::Integer) = (Q'*eltype(Q)[zeros(k-1);1])[j]
 
 function getindex(QR::QROperator,d::Symbol)
     d==:Q && return QROperatorQ(QR)

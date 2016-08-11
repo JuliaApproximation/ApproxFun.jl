@@ -23,6 +23,8 @@ u=A\G
 @test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-11
 
 
+println("    Poisson tests")
+
 ## Poisson
 
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2))  #default is [-1,1]^2
