@@ -557,6 +557,12 @@ end
 ## Ac_mul_B! for QROperatorQ
 
 function Ac_mul_Bpars(A::QROperatorQ,B::Vector,tolerance,maxlength)
+    T = promote_type(eltype(A),eltype(B))
+    Ac_mul_B(Operator{T}(A),Vector{T}(B),tolerance,maxlength)
+end
+
+
+function Ac_mul_Bpars{QR,T}(A::QROperatorQ{QR,T},B::Vector{T},tolerance,maxlength)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
