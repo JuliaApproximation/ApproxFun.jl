@@ -558,7 +558,7 @@ end
 
 function Ac_mul_Bpars(A::QROperatorQ,B::Vector,tolerance,maxlength)
     T = promote_type(eltype(A),eltype(B))
-    Ac_mul_B(Operator{T}(A),Vector{T}(B),tolerance,maxlength)
+    Ac_mul_Bpars(Operator{T}(A),Vector{T}(B),tolerance,maxlength)
 end
 
 
