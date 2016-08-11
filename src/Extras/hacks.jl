@@ -12,26 +12,6 @@ end
 # linear algebra
 
 
-# function toeplitz_addentries!(v::Vector,A::BandedMatrix,kr::UnitRange)
-#     if !isempty(v)
-#         @inbounds v1=v[1]
-#         @simd for k=kr
-#             @inbounds A.data[A.u+1,k]+=2v1
-#         end
-#
-#         for j=2:length(v)
-#             @inbounds vj=v[j]
-#             @simd for k = kr
-#                 @inbounds A.data[A.u-j+2,k+j-1] +=vj
-#             end
-#             @simd for k = max(kr[1],j):kr[end]
-#                 @inbounds A.data[A.u+j,k-j+1]+=vj
-#             end
-#         end
-#     end
-#     A
-# end
-
 ## Constructors that involve MultivariateFun
 
 function Fun(f::Function,d::BivariateSpace)

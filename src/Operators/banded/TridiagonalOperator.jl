@@ -1,5 +1,5 @@
 ## This makes implementing operators simpler
-# but overrided addentries! directly is likely to be faster
+# but overrided copy directly is likely to be faster
 
 
 abstract TridiagonalOperator{T} <: Operator{T}

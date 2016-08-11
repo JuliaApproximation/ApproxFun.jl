@@ -70,13 +70,6 @@ bandinds{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(::ConcreteConversion{HS,P
 getindex{HS<:HeavisideSpace,CC<:PolynomialSpace,DD,kk}(C::ConcreteConversion{HS,PiecewiseSpace{NTuple{kk,CC},RealBasis,DD,1}},k::Integer,j::Integer) =
     k ≤ dimension(domainspace(C)) && j==k? one(eltype(C)) : zero(eltype(C))
 
-# function addentries!{HS<:HeavisideSpace,CC<:PolynomialSpace,DD}(C::ConcreteConversion{PiecewiseSpace{CC,RealBasis,DD,1},HS},A,kr::Range,::Colon)
-#    for k=kr
-#         A[k,k]+=1
-#     end
-#     A
-# end
-
 
 bandinds{HS<:HeavisideSpace}(D::ConcreteDerivative{HS})=-1,0
 

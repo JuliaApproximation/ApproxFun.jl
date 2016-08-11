@@ -21,22 +21,16 @@ domain(DS::SliceSpace)=domain(DS.space)
 
 setdomain(DS::SliceSpace,d::Domain)=SliceSpace(setdomain(DS.space,d),index(DS),stride(DS))
 
-#Conversion{n,st,S<:Space,T,DD,d}(a::SliceSpace{n,st,S,T,DD,d},b::S)=ConcreteConversion(a,b)
-bandinds{n,st,S,T,DD,d}(C::ConcreteConversion{SliceSpace{n,st,S,T,DD,d},S})=-n,0
+Conversion{n,S<:Space,T,DD,d}(a::SliceSpace{n,1,S,T,DD,d},b::S) =
+    ConcreteConversion(a,b)
+bandinds{n,S,T,DD,d}(C::ConcreteConversion{SliceSpace{n,1,S,T,DD,d},S}) = -n,0
 
-function addentries!{ind,st,S,T,DD,d}(C::ConcreteConversion{SliceSpace{ind,st,S,T,DD,d},S},A,kr::Range,::Colon)
-    ds =domainspace(C)
-    @assert st==1
-
-    for k=max(kr[1],ind+1):kr[end]
-        A[k,k-ind]+=1
-    end
-    A
-end
+getindex{ind,S,T,DD,d}(C::ConcreteConversion{SliceSpace{ind,1,S,T,DD,d},S},k::Integer,j::Integer) =
+    j==k-ind?one(eltype(C)):zero(eltype(C))
 
 
-getindex{ind,DS,T,DD,d}(E::ConcreteEvaluation{SliceSpace{ind,1,DS,T,DD,d},Bool},kr::Range) =
-    Evaluation(E.space.space,E.x,E.order)[kr+ind]
+getindex{ind,DS,T,DD,d}(E::ConcreteEvaluation{SliceSpace{ind,1,DS,T,DD,d},Bool},k::Integer) =
+    Evaluation(E.space.space,E.x,E.order)[k+ind]
 getindex{ind,DS,T,DD,d}(E::ConcreteEvaluation{SliceSpace{ind,1,DS,T,DD,d}},kr::Range) =
     Evaluation(E.space.space,E.x,E.order)[kr+ind]
 

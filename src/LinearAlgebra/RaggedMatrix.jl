@@ -70,3 +70,18 @@ colns=[1,2,3]
 sum(colns),[1;cumsum(colns)]
 
 rrand(10,1:10)
+
+import ApproxFun: SliceSpace
+Z=SliceSpace(ChebyshevDirichlet(),2)
+
+f=Fun(x->(1-x^2)*exp(x),Z)
+Derivative(Z,2)*f - f''
+
+S=Z^2
+
+
+f=Fun((x,y)->(1-x^2)*(1-y^2)*exp(x*cos(y)),Z^2)
+lap(S)*f
+
+
+f2=Fun((x,y)->(1-x^2)*(1-y^2)*exp(x*cos(y)))
