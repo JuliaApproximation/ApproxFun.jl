@@ -135,7 +135,7 @@ rangespace(K::KroneckerOperator) = K.rangespace
 # TODO: arbitrary number of ops
 
 getindex(KO::KroneckerOperator,n::Integer,k::Integer,m::Integer,j::Integer) =
-    KO.ops[1][k,j]*KO.ops[2][K,J]
+    KO.ops[1][k,j]*KO.ops[2][n,m]
 
 function getindex(KO::KroneckerOperator,kin::Integer,jin::Integer)
     j,m=KO.domaintensorizer[jin]
