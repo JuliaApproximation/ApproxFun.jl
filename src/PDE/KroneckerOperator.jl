@@ -129,18 +129,18 @@ rangespace(K::KroneckerOperator) = K.rangespace
 
 # we suport 4-indexing with KroneckerOperator
 # If A is K x J and B is N x M, then w
-# index to match KO=reshape(kron(A,B),N,K,M,J)
+# index to match KO=reshape(kron(B,A),N,K,M,J)
 # that is
-# KO[n,k,m,j] = A[k,j]*B[n,m]
+# KO[k,n,j,m] = A[k,j]*B[n,m]
 # TODO: arbitrary number of ops
 
-getindex(KO::KroneckerOperator,n::Integer,k::Integer,m::Integer,j::Integer) =
+getindex(KO::KroneckerOperator,k::Integer,n::Integer,j::Integer,m::Integer) =
     KO.ops[1][k,j]*KO.ops[2][n,m]
 
 function getindex(KO::KroneckerOperator,kin::Integer,jin::Integer)
     j,m=KO.domaintensorizer[jin]
     k,n=KO.rangetensorizer[kin]
-    KO[n,k,m,j]
+    KO[k,n,j,m]
 end
 
 function getindex(KO::KroneckerOperator,k::Integer)
