@@ -237,6 +237,9 @@ macro wrappergetindex(Wrap)
 
         Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubBandedMatrix{T,OP}) =
             copy(view(parent(P).op,P.indexes[1],P.indexes[2]))
+
+        Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubMatrix{T,OP}) =
+            copy(view(parent(P).op,P.indexes[1],P.indexes[2]))
     end
 
     esc(ret)

@@ -184,24 +184,6 @@ Conversion(a::TensorSpace,b::TensorSpace) = ConversionWrapper(promote_type(eltyp
                 KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
 
 
-function Conversion(a::BivariateSpace,b::BivariateSpace)
-    if a==b
-        error("Don't call conversion to itself")
-    elseif conversion_type(a,b)==NoSpace()
-        sp=canonicalspace(a)
-        if typeof(sp) == typeof(a)
-            error("Implement Conversion from " * string(typeof(sp)) * " to " * string(typeof(b)))
-        elseif typeof(sp) == typeof(b)
-            error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(sp)))
-        else
-            Conversion(a,sp,b)
-        end
-    else
-        error("Implement Conversion from " * string(typeof(a)) * " to " * string(typeof(b)))
-    end
-end
-
-
 
 Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace) =
     ConcreteMultiplication{D,typeof(sp),T,T}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)

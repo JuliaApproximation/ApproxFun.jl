@@ -399,3 +399,4 @@ Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace) = Fun(fromtree(v),S)
 
 
 union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spaces))
+coefficients(v::Vector,a::TensorSpace,b::TensorSpace) = Fun(ProductFun(ProductFun(Fun(v,a)),b)).coefficients
