@@ -125,7 +125,7 @@ f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d),40)
 f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d))
 @test_approx_eq f(cos(0.1),sin(0.1)) exp(-cos(0.1)-2cos(sin(0.1)))
 
-
+println("    Calculus tests")
 
 ## Sum
 

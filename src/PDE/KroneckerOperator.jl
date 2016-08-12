@@ -126,10 +126,21 @@ subblockbandinds(K::Operator)=subblockbandinds(K,1),subblockbandinds(K,2)
 domainspace(K::KroneckerOperator) = K.domainspace
 rangespace(K::KroneckerOperator) = K.rangespace
 
-function getindex(KO::KroneckerOperator,kin::Integer,jin::Integer)
-    j,J=KO.domaintensorizer[jin]
-    k,K=KO.rangetensorizer[kin]
+
+# we suport 4-indexing with KroneckerOperator
+# If A is K x J and B is N x M, then w
+# index to match KO=reshape(kron(A,B),N,K,M,J)
+# that is
+# KO[n,k,m,j] = A[k,j]*B[n,m]
+# TODO: arbitrary number of ops
+
+getindex(KO::KroneckerOperator,n::Integer,k::Integer,m::Integer,j::Integer) =
     KO.ops[1][k,j]*KO.ops[2][K,J]
+
+function getindex(KO::KroneckerOperator,kin::Integer,jin::Integer)
+    j,m=KO.domaintensorizer[jin]
+    k,n=KO.rangetensorizer[kin]
+    KO[n,k,m,j]
 end
 
 function getindex(KO::KroneckerOperator,k::Integer)
