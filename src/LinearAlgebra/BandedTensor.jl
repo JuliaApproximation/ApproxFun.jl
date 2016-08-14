@@ -1,4 +1,6 @@
 
+
+
 # Represents a BandedTensor.  In this case a Tensor is identified with
 #  a block banded matrix.
 
@@ -10,7 +12,8 @@ getindex(A::AbstractTensor,k::Integer,j::Integer) =
 
 
 immutable BandedTensor{T} <: AbstractTensor{T}
-    data::Vector{T}
+    data::Matrix{T}
+    m::Int  # number of row blocks?
     l::Int  # block lower bandwidth
     u::Int  # block upper bandwidth
     λ::Int  # sub lower bandwidth
