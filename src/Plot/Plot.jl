@@ -168,7 +168,7 @@ end
 
     for k=1:length(pts)
         @series begin
-            primary -> (k==1)
+            primary --> (k==1)
             ones(2)*pts[k],[0,1]*ws[k]
         end
         @series begin
