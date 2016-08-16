@@ -39,7 +39,7 @@ BandedBlockBandedMatrix(data,l,u,λ,μ,rows,cols) =
 
 
 Base.size(A::BandedBlockBandedMatrix) = sum(A.rows),sum(A.cols)
-function getblock(A::BandedBlockBandedMatrix,K,J)
+function getblock(A::BandedBlockBandedMatrix,K::Int,J::Int)
     if K < J-A.u || K > J+A.l
         zeros(eltype(A),A.rows[K],A.cols[J])
     else
@@ -51,7 +51,7 @@ function getblock(A::BandedBlockBandedMatrix,K,J)
     end
 end
 
-function viewblock{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},K,J)
+function viewblock{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},K::Int,J::Int)
     if K < J-A.u || K > J+A.l
         error("Cannot view zero blocks")
     else
@@ -69,7 +69,7 @@ function viewblock{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},K,J)
 end
 
 
-function Base.getindex{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},k,j)
+function Base.getindex{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},k::Int,j::Int)
     K=A.rowblocks[k];J=A.colblocks[j]
     if K < J-A.u || K > J+A.l
         zero(eltype(A))
@@ -80,7 +80,7 @@ function Base.getindex{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},k,j)
     end
 end
 
-function Base.setindex!(A::BandedBlockBandedMatrix,v,k,j)
+function Base.setindex!(A::BandedBlockBandedMatrix,v,k::Int,j::Int)
     K=A.rowblocks[k];J=A.colblocks[j]
     k2=k-sum(rows[1:K-1])
     j2=j-sum(cols[1:J-1])
@@ -94,14 +94,65 @@ Base.linearindexing{BBBM<:BandedBlockBandedMatrix}(::Type{BBBM}) =
 
 l=u=1
 λ=μ=1
-N=M=50
+N=M=20
 cols=rows=1:N
 @time data=ones(λ+μ+1,(l+u+1)*sum(cols))
 data=1.0reshape(1:length(data)|>collect,size(data,1),size(data,2))
 @time A=BandedBlockBandedMatrix(data,l,u,λ,μ,rows,cols)
     rand(5,5)
 
-A[1,1]
+
+v=rand(size(A,1))
+
+
+B=viewblock(A,1,1)
+
+ret=zeros(v)
+BandedMatrices.gbmv!('N',1.0,B,view(v,1:1),1.0,view(ret,1:1))
+
+ret
+K,J=2,1;
+    S=sum(A.rows[1:K-1]);
+    kr=S+1:S+A.rows[K]
+    S=sum(A.cols[1:J-1]);
+    jr=S+1:S+A.cols[J]
+    B=viewblock(A,K,J)
+    BandedMatrices.gbmv!('N',1.0,B,view(v,jr),1.0,view(ret,kr))
+
+ret
+
+view(v,kr)
+
+
+B
+
+A*v
+
+
+
+B*v
+
+
+B.data
+
+
+
+
+
+size(B,2)
+A
+B.l
+B.u
+B*v[1:1]
+
+
+ret=similar(v)
+
+
+
+size(A)
+
+@time A[1:50,1:50]
 
 # skipped
 
