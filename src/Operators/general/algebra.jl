@@ -105,8 +105,8 @@ end
 
 
 
-Base.copy{T,PP<:PlusOperator}(P::SubBandedMatrix{T,PP}) =
-    copy_axpy!(P)   # use axpy! to copy
+Base.convert{T,PP<:PlusOperator}(::Type{BandedMatrix},P::SubOperator{T,PP}) =
+    banded_convert_axpy!(P)   # use axpy! to copy
 
 
 function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedMatrix{T,PP},A::AbstractMatrix)
@@ -205,10 +205,10 @@ end
 getindex(P::ConstantTimesOperator,k::Integer...) =
     P.λ*P.op[k...]
 
-BLAS.copy{T,OP<:ConstantTimesOperator}(S::SubBandedMatrix{T,OP}) =
-    copy_axpy!(S)
+Base.convert{T,OP<:ConstantTimesOperator}(::Type{BandedMatrix},S::SubOperator{T,OP}) =
+    banded_convert_axpy!(S)
 
-BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubBandedMatrix{T,OP},A::AbstractMatrix) =
+BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubOperator{T,OP},A::AbstractMatrix) =
     unwrap_axpy!(α*parent(S).λ,S,A)
 
 
@@ -364,8 +364,9 @@ function getindex(P::TimesOperator,k::Integer)
     P[1:1,k:k][1,1]
 end
 
-for (STyp,Zer) in ((:SubBandedMatrix,:bzeros),(:SubMatrix,:zeros))
-    @eval function Base.copy{T,TO<:TimesOperator}(S::$STyp{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
+for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros))
+    @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
+                        S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
         P=parent(S)
         kr,jr=parentindexes(S)
 

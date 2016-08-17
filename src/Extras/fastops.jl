@@ -1,5 +1,5 @@
 ###
-# This file contains BLAS/Base.copy overrides for operators
+# This file contains BLAS/BandedMatrix overrides for operators
 # that depend on the structure of BandedMatrix
 ####
 
@@ -7,18 +7,16 @@
 
 # default copy is to loop through
 # override this for most operators.
-function default_copy(S::SubBandedMatrix)
+function default_bandedmatrix(S::Operator)
     l,u = bandwidth(S,1),bandwidth(S,2)
     Y=BandedMatrix(eltype(S),size(S,1),size(S,2),l,u)
 
-    for (k,j) in eachbandedindex(S)
+    for j=1:size(S,2),k=colrange(S,j)
         @inbounds Y.data[k-j+u+1,j]=S[k,j]
     end
 
     Y
 end
-
-Base.copy(S::SubBandedMatrix) = default_copy(S)
 
 
 
@@ -28,10 +26,11 @@ Base.copy(S::SubBandedMatrix) = default_copy(S)
 # Banded matrix corresponding to the diagonal of the original operator
 
 
-diagindrow(S::AbstractBandedMatrix,kr,jr) =
+diagindrow(S,kr,jr) =
     bandwidth(S,2)+first(jr)-first(kr)+1
 
-diagindrow(S::SubBandedMatrix) =
+
+diagindrow(S::SubOperator) =
     diagindrow(S,parentindexes(S)[1],parentindexes(S)[2])
 
 
@@ -40,8 +39,8 @@ diagindrow(S::SubBandedMatrix) =
 # Conversions
 #####
 
-function Base.copy{T,C<:Chebyshev,U<:Ultraspherical{1}}(S::SubBandedMatrix{T,ConcreteConversion{C,U,T},
-                                                                              Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{T,C<:Chebyshev,U<:Ultraspherical{1}}(::Type{BandedMatrix},
+                        S::SubOperator{T,ConcreteConversion{C,U,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
     kr,jr=parentindexes(S)
 
@@ -65,7 +64,7 @@ function Base.copy{T,C<:Chebyshev,U<:Ultraspherical{1}}(S::SubBandedMatrix{T,Con
     ret
 end
 
-function Base.copy{T,m,λ,DD}(S::SubBandedMatrix{T,ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},
+function Base.convert{T,m,λ,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},
                                                                               Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
@@ -96,7 +95,7 @@ end
 
 
 
-function Base.copy{T,K,DD,λ}(S::SubBandedMatrix{T,ConcreteDerivative{Ultraspherical{λ,DD},K,T},
+function Base.convert{T,K,DD,λ}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{λ,DD},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
     D=parent(S)
     m=D.order

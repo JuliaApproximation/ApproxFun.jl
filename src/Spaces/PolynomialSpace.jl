@@ -124,7 +124,7 @@ end
 getindex{PS<:PolynomialSpace,T,C<:PolynomialSpace}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
 
 
-function Base.copy{PS<:PolynomialSpace,V,T,C<:PolynomialSpace}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
+function Base.convert{PS<:PolynomialSpace,V,T,C<:PolynomialSpace}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,PS,V,T},
                                                                             Tuple{UnitRange{Int},UnitRange{Int}}})
     M=parent(S)
     kr,jr=parentindexes(S)

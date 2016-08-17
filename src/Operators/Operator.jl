@@ -108,26 +108,9 @@ Base.isdiag(A::Operator) = bandinds(A)==(0,0)
 ## Construct operators
 
 
-include("SubMatrix.jl")
+include("SubOperator.jl")
 
 
-
-bzeros(B::Operator,n::Integer,m::Integer)=bzeros(eltype(B),n,m,bandinds(B))
-bzeros(B::Operator,n::Integer,m::Colon)=bzeros(eltype(B),n,m,bandinds(B))
-bzeros(B::Operator,n::Integer,m::Colon,br::Tuple{Int,Int})=bzeros(eltype(B),n,m,br)
-
-
-# The following support converting an Operator to a BandedMatrix
-#  In this case : is interpreted to mean all nonzero rows
-
-BandedMatrix(B::Operator,kr::Range,jr::Range) =
-    copy(view(B,kr,jr))
-
-BandedMatrix(B::Operator,rws::Range,::Colon) =
-    BandedMatrix(B,rws,1:last(rws)+bandwidth(B,2))
-
-BandedMatrix(B::Operator,kr::Colon,jr::UnitRange) =
-    BandedMatrix(B,max(1,jr[1]-bandinds(B,2)):jr[end]-bandinds(B,1),jr)
 #
 # Base.sparse(B::Operator,n::Integer)=sparse(BandedMatrix(B,n))
 # Base.sparse(B::Operator,n::Range,m::Range)=sparse(BandedMatrix(B,n,m))
@@ -152,7 +135,7 @@ defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override [k,j] for $
 
 
 defaultgetindex(op::Operator,kr::Range) = eltype(op)[op[k] for k in kr]
-defaultgetindex(B::Operator,k::Range,j::Range) = copy(view(B,k,j))
+defaultgetindex(B::Operator,k::Range,j::Range) = AbstractMatrix(view(B,k,j))
 
 defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] for j in j],1,length(j))
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
@@ -232,14 +215,11 @@ macro wrappergetindex(Wrap)
         Base.getindex(OP::$Wrap,k::Integer...) =
             OP.op[k...]
 
-        BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubBandedMatrix{T,OP},A::AbstractMatrix) =
+        BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) =
             ApproxFun.unwrap_axpy!(α,P,A)
 
-        Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubBandedMatrix{T,OP}) =
-            copy(view(parent(P).op,P.indexes[1],P.indexes[2]))
-
-        Base.copy{T,OP<:$Wrap}(P::ApproxFun.SubMatrix{T,OP}) =
-            copy(view(parent(P).op,P.indexes[1],P.indexes[2]))
+        Base.convert{AM<:AbstractMatrix,T,OP<:$Wrap}(::Type{AM},P::ApproxFun.SubOperator{T,OP}) =
+            AM(view(parent(P).op,P.indexes[1],P.indexes[2]))
     end
 
     esc(ret)
@@ -338,3 +318,48 @@ Base.promote_rule{BO1<:Operator,BO2<:Operator}(::Type{BO1},::Type{BO2}) =
 #TODO: Should cases that modify be included?
 typealias WrapperOperator Union{SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
                                     ConversionWrapper,ConstantTimesOperator,TransposeOperator}
+
+
+
+
+
+# The following support converting an Operator to a Matrix or BandedMatrix
+
+## BLAS and matrix routines
+# We assume that copy may be overriden
+
+BLAS.axpy!(a,X::Operator,Y::AbstractMatrix) = BLAS.axpy!(a,AbstractMatrix(X),Y)
+
+# this is for operators that implement copy via axpy!
+
+banded_convert_axpy!(S::Operator) =
+    BLAS.axpy!(one(eltype(S)),S,
+               bzeros(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2)))
+
+function Base.convert(::Type{Matrix},S::Operator)
+   if isinf(size(S,1)) || isinf(size(S,2))
+       error("Cannot convert $S to a AbstractVector")
+   end
+
+   eltype(S)[S[k,j] for k=1:size(S,1),j=1:size(S,2)]
+end
+
+Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
+
+function Base.convert(::Type{Vector},S::Operator)
+    if size(S,2) ≠ 1  || isinf(size(S,1))
+        error("Cannot convert $S to a AbstractVector")
+    end
+
+    eltype(S)[S[k] for k=1:size(S,1)]
+end
+
+
+
+Base.convert(::Type{AbstractMatrix},S::Operator) =
+    isbanded(S)?BandedMatrix(S):Matrix(S)
+
+Base.convert(::Type{AbstractVector},S::Operator) = Vector(S)
+
+Base.convert{AM<:AbstractMatrix}(::Type{AM},S::Operator) = convert(AM,AbstractMatrix(S))
+Base.convert{AM<:AbstractVector}(::Type{AM},S::Operator) = convert(AM,AbstractVector(S))

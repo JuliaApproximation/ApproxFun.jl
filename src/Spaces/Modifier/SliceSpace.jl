@@ -1,3 +1,17 @@
+
+immutable SubSpace{DS,IT,T,DD,dim}<: Space{T,DD,dim}
+    space::DS
+    indices::IT
+end
+
+SubSpace{T,DD,dim}(sp::Space{T,DD,dim},kr) =
+    SubSpace{typeof(sp),typeof(kr),T,DD,dim}(sp,kr)
+
+domain(DS::SubSpace) = domain(DS.space)
+
+
+
+
 ## Drop space drops the first n entries from a space
 
 immutable SliceSpace{index,stride,DS,T,DD,dim}<: Space{T,DD,dim}

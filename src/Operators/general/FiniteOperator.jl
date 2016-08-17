@@ -38,7 +38,7 @@ function getindex(F::FiniteOperator,k::Integer)
     end
 end
 
-function Base.copy{AT<:BandedMatrix,T}(S::SubBandedMatrix{T,FiniteOperator{AT,T}})
+function Base.convert{AT<:BandedMatrix,T}(::Type{BandedMatrix},S::SubOperator{T,FiniteOperator{AT,T}})
     kr,jr=parentindexes(S)
     if last(kr[1]) ≤ size(S.matrix,1) &&
         last(jr[2]) ≤ size(S.matrix,2)

@@ -48,7 +48,7 @@ function toeplitz_getindex{T}(cfs::AbstractVector{T},k::Integer,j::Integer)
     end
 end
 
-function Base.copy{T}(S::SubBandedMatrix{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{T}(::Type{BandedMatrix},S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -112,7 +112,7 @@ getindex(T::HankelOperator,k::Integer,j::Integer) =
     hankel_getindex(T.coefficients,k,j)
 
 
-function Base.copy{T}(S::SubBandedMatrix{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{T}(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)

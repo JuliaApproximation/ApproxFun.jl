@@ -208,7 +208,7 @@ end
 # this is especially important for \
 ######
 
-function Base.copy{SS,PS,DI,RI,BI,T}(S::SubMatrix{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
+function Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedMatrix},S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
     kr,jr=parentindexes(S)
     P=parent(S)
     ret=similar(S)

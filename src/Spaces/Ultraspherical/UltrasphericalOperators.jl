@@ -143,7 +143,7 @@ end
 getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
 
 
-function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication{C,C,V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{C<:Chebyshev,V,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -170,7 +170,7 @@ function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication
     ret
 end
 
-function Base.copy{C<:Chebyshev,D,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication{C,Ultraspherical{1,D},V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{C<:Chebyshev,D,V,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,Ultraspherical{1,D},V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -188,7 +188,7 @@ end
 
 
 
-function Base.copy{PS<:PolynomialSpace,V,T,C<:Chebyshev}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
+function Base.convert{PS<:PolynomialSpace,V,T,C<:Chebyshev}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,PS,V,T},
                                                                             Tuple{UnitRange{Int},UnitRange{Int}}})
     M=parent(S)
     kr,jr=parentindexes(S)
