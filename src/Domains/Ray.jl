@@ -56,7 +56,17 @@ Base.convert{IT<:Ray}(::Type{IT},::AnyDomain)=Ray(NaN,NaN)
 
 ## Map interval
 
+function mobiuspars(d::Ray)
+    s=(d.orientation?1:-1)
+    α=conj(cisangle(d))
+    c=d.center
+    s*α,-s*(1+α*c),α,1-α*c
+end
 
+
+for OP in (:mobius,:mobiusinv,:mobiusD,:mobiusinvD)
+    @eval $OP(a::Ray,z) = $OP(mobiuspars(a)...,z)
+end
 
 ray_tocanonical(x)=(x==Inf)?1.:(x-1.)./(1+x)
 ray_tocanonicalD(x)=(x==Inf)?0.:2*(1./(1+x)).^2
@@ -82,12 +92,14 @@ cisangle{a}(::Ray{a})=cis(a*π)
 cisangle(::Ray{false})=1
 cisangle(::Ray{true})=-1
 
-tocanonical(d::Ray,x)=ray_tocanonical(d.orientation,conj(cisangle(d)).*(x-d.center))
-tocanonicalD(d::Ray,x)=conj(cisangle(d)).*ray_tocanonicalD(d.orientation,conj(cisangle(d)).*(x-d.center))
-fromcanonical(d::Ray,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
-fromcanonical(d::Ray,x)=cisangle(d)*ray_fromcanonical(d.orientation,x)+d.center
-fromcanonicalD(d::Ray,x)=cisangle(d)*ray_fromcanonicalD(d.orientation,x)
-invfromcanonicalD(d::Ray,x)=conj(cisangle(d))*ray_invfromcanonicalD(d.orientation,x)
+tocanonical(d::Ray,x) =
+    ray_tocanonical(d.orientation,conj(cisangle(d)).*(x-d.center))
+tocanonicalD(d::Ray,x) =
+    conj(cisangle(d)).*ray_tocanonicalD(d.orientation,conj(cisangle(d)).*(x-d.center))
+fromcanonical(d::Ray,v::AbstractArray) = eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Ray,x) = cisangle(d)*ray_fromcanonical(d.orientation,x)+d.center
+fromcanonicalD(d::Ray,x) = cisangle(d)*ray_fromcanonicalD(d.orientation,x)
+invfromcanonicalD(d::Ray,x) = conj(cisangle(d))*ray_invfromcanonicalD(d.orientation,x)
 
 
 

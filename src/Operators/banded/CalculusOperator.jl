@@ -1,7 +1,7 @@
 export Derivative,Integral,Laplacian,Volterra
 
 
-abstract CalculusOperator{S,OT,T}<:BandedOperator{T}
+abstract CalculusOperator{S,OT,T}<:Operator{T}
 
 
 ## Note that all functions called in calculus_operator must be exported
@@ -17,7 +17,7 @@ macro calculus_operator(Op)
             space::S        # the domain space
             order::OT
         end
-        immutable $WrappOp{BT<:BandedOperator,S<:Space,OT,T} <: $Op{S,OT,T}
+        immutable $WrappOp{BT<:Operator,S<:Space,OT,T} <: $Op{S,OT,T}
             op::BT
             order::OT
         end
@@ -58,47 +58,31 @@ macro calculus_operator(Op)
             end
         end
 
-        function Base.convert{T}(::Type{BandedOperator{T}},D::$ConcOp)
-            if T==eltype(D)
-                D
-            else
-                $ConcOp{typeof(D.space),typeof(D.order),T}(D.space,D.order)
-            end
-        end
-
-        $WrappOp(op::BandedOperator,order)=$WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),eltype(op)}(op,order)
-        $WrappOp(op::BandedOperator)=$WrappOp(op,1)
+        $WrappOp(op::Operator,order) =
+            $WrappOp{typeof(op),typeof(domainspace(op)),typeof(order),eltype(op)}(op,order)
+        $WrappOp(op::Operator) = $WrappOp(op,1)
 
         function Base.convert{T}(::Type{Operator{T}},D::$WrappOp)
             if T==eltype(D)
                 D
             else
                 # work around typeinfernece bug
-                op=convert(BandedOperator{T},D.op)
-                $WrappOp{typeof(op),typeof(domainspace(op)),typeof(D.order),T}(op,D.order)
-            end
-        end
-        function Base.convert{T}(::Type{BandedOperator{T}},D::$WrappOp)
-            if T==eltype(D)
-                D
-            else
-                # work around typeinfernece bug
-                op=convert(BandedOperator{T},D.op)
+                op=convert(Operator{T},D.op)
                 $WrappOp{typeof(op),typeof(domainspace(op)),typeof(D.order),T}(op,D.order)
             end
         end
 
         ## Routines
-        domain(D::$ConcOp)=domain(D.space)
-        domainspace(D::$ConcOp)=D.space
+        domain(D::$ConcOp) = domain(D.space)
+        domainspace(D::$ConcOp) = D.space
 
-        getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer)=error("Spaces cannot be inferred for operator")
-        rangespace{T}(D::$ConcOp{UnsetSpace,T})=UnsetSpace()
+        getindex{OT,T}(::$ConcOp{UnsetSpace,OT,T},k::Integer,j::Integer) =
+            error("Spaces cannot be inferred for operator")
+        rangespace{T}(D::$ConcOp{UnsetSpace,T}) = UnsetSpace()
 
         #promoting domain space is allowed to change range space
         # for integration, we fall back on existing conversion for now
-        promotedomainspace(D::$Op,sp::UnsetSpace)=D
-        promotedomainspace(D::$Op,sp::AnySpace)=D
+        promotedomainspace(D::$Op,sp::UnsetSpace) = D
 
 
         function promotedomainspace(D::$Op,sp::Space)
@@ -115,7 +99,8 @@ macro calculus_operator(Op)
 #     end
 end
 
-choosedomainspace(M::CalculusOperator{UnsetSpace},sp)=iswrapper(M)?choosedomainspace(M.op,sp):sp  # we assume the space itself will work
+choosedomainspace(M::CalculusOperator{UnsetSpace},sp::Space) =
+    iswrapper(M)?choosedomainspace(M.op,sp):sp  # we assume the space itself will work
 
 
 

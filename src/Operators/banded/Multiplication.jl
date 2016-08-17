@@ -1,6 +1,6 @@
 export Multiplication
 
-abstract Multiplication{T} <:BandedOperator{T}
+abstract Multiplication{T} <:Operator{T}
 
 immutable ConcreteMultiplication{D<:Space,S<:Space,V,T} <: Multiplication{T}
     f::Fun{D,V}
@@ -11,10 +11,8 @@ end
 
 function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     @assert domainscompatible(space(f),sp)
-    ConcreteMultiplication{D,typeof(sp),T,mat_promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+    ConcreteMultiplication{D,typeof(sp),T,promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 end
-
-
 
 # We do this in two stages to support Modifier spaces
 # without ambiguity errors
@@ -36,13 +34,12 @@ Multiplication(c::Number)=Multiplication(Fun(c) )
 # This covers right multiplication unless otherwise specified.
 Multiplication{D,T}(S::Space,f::Fun{D,T}) = Multiplication(f,S)
 
-for TYP in (:Operator,:BandedOperator)
-    @eval function Base.convert{S,V,TT,T}(::Type{$TYP{T}},C::ConcreteMultiplication{S,V,TT})
-        if T==eltype(C)
-            C
-        else
-            ConcreteMultiplication{S,V,TT,T}(C.f,C.space)
-        end
+
+function Base.convert{S,V,TT,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V,TT})
+    if T==eltype(C)
+        C
+    else
+        ConcreteMultiplication{S,V,TT,T}(C.f,C.space)
     end
 end
 
@@ -53,9 +50,9 @@ domain(T::ConcreteMultiplication)=domain(T.f)
 ## Default implementation: try converting to space of M.f
 
 # avoid ambiguity
-rangespace{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=UnsetSpace()
-bandinds{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T})=error("No range space attached to Multiplication")
-getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer)=error("No range space attached to Multiplication")
+rangespace{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T}) = UnsetSpace()
+getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
+    error("No range space attached to Multiplication")
 
 
 
@@ -63,33 +60,31 @@ getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer)=e
 
 
 ##multiplication can always be promoted, range space is allowed to change
-promotedomainspace(D::Multiplication,sp::UnsetSpace)=D
-promotedomainspace(D::Multiplication,sp::AnySpace)=D
-promotedomainspace(D::Multiplication,sp::Space)=Multiplication(D.f,sp)
+promotedomainspace(D::Multiplication,sp::UnsetSpace) = D
+promotedomainspace(D::Multiplication,sp::Space) = Multiplication(D.f,sp)
 
-choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},::AnySpace)=space(M.f)
-choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp)=sp  # we assume multiplication maps spaces to themselves
+choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},::UnsetSpace) = space(M.f)
+# we assume multiplication maps spaces to themselves
+choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = sp
 
 
-Base.diagm(a::Fun)=Multiplication(a)
+Base.diagm(a::Fun) = Multiplication(a)
 
-immutable MultiplicationWrapper{D<:Space,O<:BandedOperator,V,T} <: Multiplication{T}
+immutable MultiplicationWrapper{D<:Space,O<:Operator,V,T} <: Multiplication{T}
     f::Fun{D,V}
     op::O
 end
 
-MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
-MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::BandedOperator)=MultiplicationWrapper(eltype(op),f,op)
+MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::Operator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
+MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::Operator)=MultiplicationWrapper(eltype(op),f,op)
 
 @wrapper MultiplicationWrapper
 
-
-Base.convert{BT<:MultiplicationWrapper}(::Type{BT},C::BT)=C
-function Base.convert{BT<:Operator,S,V,VV,T}(::Type{BT},C::MultiplicationWrapper{S,V,VV,T})
-    if eltype(BT)==eltype(C)
+function Base.convert{TT,S,V,VV,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,VV,T})
+    if TT==eltype(C)
         C
     else
-        MultiplicationWrapper{S,V,VV,eltype(BT)}(C.f,C.op)
+        MultiplicationWrapper{S,V,VV,TT}(C.f,C.op)
     end
 end
 

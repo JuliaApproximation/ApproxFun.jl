@@ -1,25 +1,22 @@
 export Conversion
 
-abstract Conversion{T}<:BandedOperator{T}
+abstract Conversion{T}<:Operator{T}
 
 immutable ConcreteConversion{S<:Space,V<:Space,T} <: Conversion{T}
     domainspace::S
     rangespace::V
 end
 
+
 ConcreteConversion(a::Space,b::Space)=ConcreteConversion{typeof(a),typeof(b),
         promote_type(op_eltype_realdomain(a),op_eltype_realdomain(b))}(a,b)
 
 
-for TYP in (:Operator,:BandedOperator)
-    @eval begin
-        function Base.convert{T,S,V}(::Type{$TYP{T}},C::ConcreteConversion{S,V})
-            if T==eltype(C)
-                C
-            else
-                ConcreteConversion{S,V,T}(C.domainspace,C.rangespace)
-            end
-        end
+function Base.convert{T,S,V}(::Type{Operator{T}},C::ConcreteConversion{S,V})
+    if T==eltype(C)
+        C
+    else
+        ConcreteConversion{S,V,T}(C.domainspace,C.rangespace)
     end
 end
 
@@ -56,7 +53,7 @@ Conversion()=ConversionWrapper(eye(UnsetSpace()))
 # the domain and range space
 # but continue to know its a derivative
 
-immutable ConversionWrapper{S<:BandedOperator,T} <: Conversion{T}
+immutable ConversionWrapper{S<:Operator,T} <: Conversion{T}
     op::S
 end
 
@@ -64,26 +61,20 @@ end
 
 
 ConversionWrapper{T}(::Type{T},op)=ConversionWrapper{typeof(op),T}(op)
-ConversionWrapper(B::BandedOperator)=ConversionWrapper{typeof(B),eltype(B)}(B)
+ConversionWrapper(B::Operator)=ConversionWrapper{typeof(B),eltype(B)}(B)
 Conversion(A::Space,B::Space,C::Space)=Conversion(B,C)*Conversion(A,B)
 
 ==(A::ConversionWrapper,B::ConversionWrapper)=A.op==B.op
 
-# Base.convert{S,T}(::Type{ConversionWrapper{S,T}},D::ConversionWrapper)=ConversionWrapper{S,T}(convert(S,D.op))
-# Base.convert{CW<:ConversionWrapper}(::Type{CW},D::CW)=D
-for TYP in (:Operator,:BandedOperator)
-    @eval begin
-        function Base.convert{T}(::Type{$TYP{T}},D::ConversionWrapper)
-            if T==eltype(D)
-                D
-            else
-                BO=convert(BandedOperator{T},D.op)
-                ConversionWrapper{typeof(BO),T}(BO)
-            end
-        end
+
+function Base.convert{T}(::Type{Operator{T}},D::ConversionWrapper)
+    if T==eltype(D)
+        D
+    else
+        BO=convert(Operator{T},D.op)
+        ConversionWrapper{typeof(BO),T}(BO)
     end
 end
 
 
 #promotedomainspace(P::Conversion,sp::Space)=ConversionWrapper(eye(sp))
-

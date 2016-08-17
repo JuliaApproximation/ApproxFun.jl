@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test, Compat
-    import ApproxFun.Multiplication
+    import ApproxFun:Multiplication,InterlaceOperator
 
 import Compat.view
 
@@ -69,9 +69,6 @@ d=Interval()
 
 
 A=Conversion(Chebyshev(d),Ultraspherical{2}(d))
-
-
-@test_approx_eq BandedMatrices.BandedMatrix(A,1:10,1:10)[5:10,5:10] BandedMatrices.BandedMatrix(A,5:10,5:10)
 
 
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
@@ -158,25 +155,53 @@ f=Fun(exp)
 
 
 
-## SavedBandedOperator
-@test SavedBandedOperator(Derivative(Chebyshev(),2))[1,1]==0
+## Cached operator
+@test cache(Derivative(Chebyshev(),2))[1,1]==0
 
-
-
-## QR
 
 S=Chebyshev()
-A=[dirichlet(S);Derivative(S)^2 - I]
-QR=qrfact(A)
-@test norm((QR\[1.])-(A\[1.]))<100eps()
-Q,R=qr(A)
-u=(R\(Q'*[1.]))
-@test norm(u-pad((A\[1.]).coefficients,length(u)))<100eps()
-
-x=Fun(S)
-A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
 
 
-QR=qrfact(A)
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
 
-@test norm((A\[1.])-(QR\[1.]))<100eps()
+
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+
+S=Chebyshev()
+io=ApproxFun.InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))])
+co=cache(io)
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[1:100,1:100] == io[1:100,1:100]
+@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]

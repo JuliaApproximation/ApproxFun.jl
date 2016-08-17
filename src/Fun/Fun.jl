@@ -22,12 +22,15 @@ end
 
 returns a Fun with coefficients in the space
 """
-Fun(coeff::Vector,sp::Space)=Fun{typeof(sp),eltype(coeff)}(coeff,sp)
-Fun{T<:Integer}(coeff::Vector{T},sp::Space)=Fun(1.0coeff,sp)
+Fun(coeff::Vector,sp::Space) = Fun{typeof(sp),eltype(coeff)}(coeff,sp)
+Fun{T<:Integer}(coeff::Vector{T},sp::Space) = Fun(1.0coeff,sp)
 
 function Fun(v::Vector{Any},sp::Space)
-    @assert isempty(v)
-    Fun(Float64[],sp)
+    if isempty(v)  || all(x->isa(x,Number) && x==0,v)
+        Fun(Float64[],sp)
+    else
+        error("Cannot convert $v to a Fun of type $sp")
+    end
 end
 
 ##Coefficient routines
@@ -63,6 +66,14 @@ Base.convert{IF<:Fun}(::Type{IF},x::Number)=Fun(x)
 Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
 
 
+# promotion of * to fix 0.5 bug
+if VERSION ≥ v"0.5.0-rc1+1"
+    Base.promote_op{N,S,T}(::typeof(*),::Type{N},::Type{Fun{S,T}}) = Fun{S,promote_type(N,T)}
+    Base.promote_op{N,S,T}(::typeof(*),::Type{Matrix{N}},::Type{Matrix{Fun{S,T}}}) =
+        Matrix{Fun{S,promote_type(N,T)}}
+end
+
+
 Base.zero(::Type{Fun})=Fun(0.)
 Base.zero{T,S<:Space}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
 Base.one{T,S<:Space}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
@@ -79,9 +90,7 @@ Base.eltype{S,T}(::Fun{S,T})=T
 
 
 setspace(v::AbstractVector,s::Space) = Fun(v,s)
-setspace(v::AbstractVector,s::AnySpace) = v
 setspace(f::Fun,s::Space) = Fun(f.coefficients,s)
-setspace(f::Fun,s::AnySpace) = f.coefficients
 
 
 ## domain
@@ -132,7 +141,7 @@ evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 @compat (f::Fun)(x...)=evaluate(f,x...)
 
 for op in (:(Base.first),:(Base.last))
-    @eval $op{S,T}(f::Fun{S,T})=f($op(domain(f)))
+    @eval $op{S,T}(f::Fun{S,T}) = f($op(domain(f)))
 end
 
 
@@ -163,8 +172,8 @@ end
 
 ## Manipulate length
 
-pad!(f::Fun,n::Integer)=pad!(f.coefficients,n)
-pad(f::Fun,n::Integer)=Fun(pad(f.coefficients,n),f.space)
+pad!(f::Fun,n::Integer) = (pad!(f.coefficients,n);f)
+pad(f::Fun,n::Integer) = Fun(pad(f.coefficients,n),f.space)
 
 
 function chop!{S,T}(f::Fun{S,T},tol::Real)
@@ -319,6 +328,7 @@ end
 
 ## Mapped functions
 
+Base.transpose(f::Fun) = f  # default no-op
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
     @eval ($op){S<:Space{RealBasis}}(f::Fun{S}) = Fun(($op)(f.coefficients),f.space)

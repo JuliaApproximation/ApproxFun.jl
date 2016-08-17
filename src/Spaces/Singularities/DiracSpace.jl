@@ -126,17 +126,17 @@ end
 
 # function Multiplication{PS<:PointSpace}(f::Fun{PS},PS2::PointSpace)
 #     @assert space(f).points==PS2.points
-#     SpaceOperator(FiniteOperator(diagm(f.coefficients)),PS2,PS2)
+#     FiniteOperator(diagm(f.coefficients),PS2,PS2)
 # end
 
 # function Multiplication{PS<:PointSpace}(f::Fun{PS},DS::DiracSpace)
 #     @assert space(f).points==DS.points
-#     SpaceOperator(FiniteOperator(diagm(f.coefficients)),DS,DS)
+#     FiniteOperator(diagm(f.coefficients),DS,DS)
 # end
 
 # function Multiplication{DS<:DiracSpace}(f::Fun{DS},PS::PointSpace)
 #     @assert space(f).points==PS.points
-#     SpaceOperator(FiniteOperator(diagm(f.coefficients)),PS,space(f))
+#     FiniteOperator(diagm(f.coefficients),PS,space(f))
 # end
 
 function coefficienttimes{PS<:PointSpace,DS<:DiracSpace}(f::Fun{PS},g::Fun{DS})
@@ -153,3 +153,6 @@ function coefficienttimes{PS<:PointSpace,PS2<:PointSpace}(f::Fun{PS},g::Fun{PS2}
     @assert space(f).points==space(g).points
     Fun(f.coefficients.*g.coefficients,space(g))
 end
+
+./{PS<:PointSpace}(f::Fun,g::Fun{PS}) = f.*inv(g)
+Base.inv{PS<:PointSpace}(f::Fun{PS}) = Fun(1./f.coefficients,space(f))

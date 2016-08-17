@@ -1,8 +1,8 @@
 ## This makes implementing operators simpler
-# but overrided addentries! directly is likely to be faster
+# but overrided BandedMatrix directly is likely to be faster
 
 
-abstract TridiagonalOperator{T} <: BandedOperator{T}
+abstract TridiagonalOperator{T} <: Operator{T}
 abstract SymTridiagonalOperator{T} <: TridiagonalOperator{T}
 abstract BidiagonalOperator{T} <: TridiagonalOperator{T}
 abstract DiagonalOperator{T} <: BidiagonalOperator{T}
@@ -35,7 +35,7 @@ immutable DiagonalInverseOperator{S,T} <: DiagonalOperator{T}
     op::S
 end
 
-function DiagonalInverseOperator(B::BandedOperator)
+function DiagonalInverseOperator(B::Operator)
     @assert bandinds(B)==(0,0)
     DiagonalInverseOperator{typeof(B),promote_type(Float64,eltype(B))}(B)
 end
@@ -45,10 +45,8 @@ rangespace(D::DiagonalInverseOperator)=domainspace(D.op)
 
 Base.getindex(D::DiagonalInverseOperator,k::Integer,j::Integer)=k==j?1./D.op[k,k]:zero(eltype(D))
 
-for TYP in (:BandedOperator,:Operator)
-    @eval Base.convert{T}(::Type{$TYP{T}},F::DiagonalInverseOperator)=DiagonalInverseOperator{typeof(F.op),
-                                                                                            T}(F.op)
-end
 
-Base.inv(B::BandedOperator)=DiagonalInverseOperator(B)
+@eval Base.convert{T}(::Type{Operator{T}},F::DiagonalInverseOperator)=DiagonalInverseOperator{typeof(F.op),
+                                                                                        T}(F.op)
 
+Base.inv(B::Operator)=DiagonalInverseOperator(B)

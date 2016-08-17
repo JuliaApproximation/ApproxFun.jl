@@ -39,8 +39,12 @@ Base.ones{O}(S::Ultraspherical{O}) = Fun(ones(1),S)
 
 ## Fast evaluation
 
-Base.first{O,D}(f::Fun{Ultraspherical{O,D}})=foldr(-,coefficients(f,Chebyshev))
-Base.last{O,D}(f::Fun{Ultraspherical{O,D}})=reduce(+,coefficients(f,Chebyshev))
+Base.first{O,D}(f::Fun{Ultraspherical{O,D}}) = isinteger(O)         ?
+                                foldr(-,coefficients(f,Chebyshev))  :
+                                f(first(domain(f)))
+Base.last{O,D}(f::Fun{Ultraspherical{O,D}}) = isinteger(O) ?
+                                reduce(+,coefficients(f,Chebyshev)) :
+                                f(last(domain(f)))
 identity_fun{m}(d::Ultraspherical{m})=Fun(identity_fun(domain(d)),d)
 
 

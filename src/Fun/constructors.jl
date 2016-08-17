@@ -234,9 +234,9 @@ Fun{T<:Number}(f,d::AbstractVector{T})=Fun(f,Domain(d))
 Fun{T<:Number}(f::Number,d::AbstractVector{T})=Fun(f,Domain(d))
 Fun(f::AbstractVector)=Fun(Domain(f))
 
-
-
 function Fun(cfs::AbstractVector{Any},s::Space)
     @assert isempty(cfs)
     Fun(Float64[],s)
 end
+
+Fun(f::Fun{SequenceSpace},s::Space) = Fun(f.coefficients,s)

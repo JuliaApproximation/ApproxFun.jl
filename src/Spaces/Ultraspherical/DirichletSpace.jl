@@ -142,11 +142,11 @@ conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 ## Evaluation Functional
 
 
-datalength{D}(B::Evaluation{ChebyshevDirichlet{1,0,D},Bool})=B.x?Inf:1
-datalength{D}(B::Evaluation{ChebyshevDirichlet{0,1,D},Bool})=B.x?1:Inf
-datalength{D}(B::Evaluation{ChebyshevDirichlet{1,1,D},Bool})=B.x?1:2
+bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D},Bool}) = 0,B.x?∞:0
+bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D},Bool}) = 0,B.x?0:∞
+bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D},Bool}) = 0,B.x?0:1
 
-function getindex{D}(B::Evaluation{ChebyshevDirichlet{1,0,D},Bool},kr::Range)
+function getindex{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D},Bool},kr::Range)
     d = domain(B)
 
     if B.x == false && B.order == 0
@@ -154,11 +154,11 @@ function getindex{D}(B::Evaluation{ChebyshevDirichlet{1,0,D},Bool},kr::Range)
     elseif B.x == true && B.order == 0
         Float64[k==1?1.0:2.0 for k=kr]
     else
-        getindex(Evaluation(d,B.x,B.order)*Conversion(domainspace(B)),kr)
+        (Evaluation(d,B.x,B.order)*Conversion(domainspace(B)))[kr]
     end
 end
 
-function getindex{D}(B::Evaluation{ChebyshevDirichlet{0,1,D},Bool},kr::Range)
+function getindex{D}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D},Bool},kr::Range)
     S = Space(domain(B))
 
 
@@ -167,11 +167,11 @@ function getindex{D}(B::Evaluation{ChebyshevDirichlet{0,1,D},Bool},kr::Range)
     elseif B.x == false && B.order == 0
         Float64[k==1?1.0:-(-1)^k*2.0 for k=kr]
     else
-        getindex(Evaluation(S,B.x,B.order)*Conversion(domainspace(B),S),kr)
+        (Evaluation(S,B.x,B.order)*Conversion(domainspace(B),S))[kr]
     end
 end
 
-function getindex{D}(B::Evaluation{ChebyshevDirichlet{1,1,D},Bool},kr::Range)
+function getindex{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D},Bool},kr::Range)
     S = Space(domain(B))
 
     if B.x == false && B.order == 0

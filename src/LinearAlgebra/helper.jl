@@ -103,6 +103,40 @@ function mindotu(a::Vector,b::Vector)
 end
 
 
+# efficiently resize a Matrix.  Note it doesn't change the input ptr
+function unsafe_resize!(W::Matrix,::Colon,m::Integer)
+    if m == size(W,2)
+        W
+    else
+        n=size(W,1)
+        reshape(resize!(vec(W),n*m),n,m)
+    end
+end
+
+function unsafe_resize!(W::Matrix,n::Integer,::Colon)
+    N=size(W,1)
+    if n == N
+        W
+    elseif n < N
+        W[1:n,:]
+    else
+        m=size(W,2)
+        ret=Array(eltype(W),n,m)
+        ret[1:N,:] = W
+        ret
+    end
+end
+
+function unsafe_resize!(W::Matrix,n::Integer,m::Integer)
+    N=size(W,1)
+    if n == N
+        unsafe_resize!(W,:,m)
+    else
+        unsafe_resize!(unsafe_resize!(W,n,:),:,m)
+    end
+end
+
+
 function pad!{T}(f::Vector{T},n::Integer)
 	if n > length(f)
 		append!(f,zeros(T,n - length(f)))
@@ -167,13 +201,6 @@ end
 
 pad(A::Matrix,::Colon,m::Integer)=pad(A,size(A,1),m)
 pad(A::Matrix,n::Integer,::Colon)=pad(A,n,size(A,2))
-
-
-function resizecols!(W::Matrix,m)
-    n=size(W,1)
-    reshape(resize!(vec(W),n*m),n,m)
-end
-
 
 #TODO:padleft!
 
@@ -281,34 +308,6 @@ function interlace(a::Vector,b::Vector)
 end
 
 
-# this limits the dimension of the padding to da and db
-# interlacing every other coefficient until then
-
-interlace(a::Union{Tuple,AbstractVector};dimensions=fill(Inf,length(a)))=dim_interlace(a,dimensions)
-dim_interlace(a,dimensions)=
-        dim_interlace(mapreduce(eltype,promote_type,a),a,dimensions)
-function dim_interlace{T}(::Type{T},a,d)
-    @assert length(d)==length(a)
-    m=length(a)
-    for j=1:m
-        @assert length(a[j])≤d[j]
-    end
-    ret=Array(T,0)
-    n=mapreduce(length,max,a)   # the max length
-    for k=1:n, j=1:m
-        if k ≤ length(a[j])
-            push!(ret,a[j][k])
-        elseif k ≤ d[j]
-            # only add zero if we are less than the dimension dictated by d
-            push!(ret,zero(T))
-        end
-    end
-
-    ret
-end
-
-
-
 
 
 ## svfft
@@ -358,8 +357,8 @@ end
 
 ## slnorm gives the norm of a slice of a matrix
 
-function slnorm{T}(u::AbstractArray{T},r::Range,::Colon)
-    ret = zero(real(T))
+function slnorm(u::AbstractMatrix,r::Range,::Colon)
+    ret = zero(real(eltype(u)))
     for k=r
         @simd for j=1:size(u,2)
             #@inbounds
@@ -371,17 +370,19 @@ end
 
 
 function slnorm(m::AbstractMatrix,kr::Range,jr::Range)
-    ret=0.0
+    ret=zero(real(eltype(m)))
     for j=jr
+        nrm=zero(real(eltype(m)))
         for k=kr
-            @inbounds ret=ret+abs2(m[k,j])
+            @inbounds nrm+=abs2(m[k,j])
         end
+        ret=max(sqrt(nrm),ret)
     end
     ret
 end
 
-slnorm(m::Matrix,kr::Range,jr::Integer)=slnorm(m,kr,jr:jr)
-slnorm(m::Matrix,kr::Integer,jr::Range)=slnorm(m,kr:kr,jr)
+slnorm(m::Matrix,kr::Range,jr::Integer) = slnorm(m,kr,jr:jr)
+slnorm(m::Matrix,kr::Integer,jr::Range) = slnorm(m,kr:kr,jr)
 
 
 function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
@@ -397,16 +398,98 @@ function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
 end
 
 
-
+slnorm(m::AbstractMatrix,k::Integer,::Colon) = slnorm(m,k,1:size(m,2))
+slnorm(m::AbstractMatrix,::Colon,j::Integer) = slnorm(m,1:size(m,1),j)
 
 
 
 ## New Inf
 
-const ∞ = Irrational{:∞}()
+# angle is π*a where a is (false==0) and (true==1)
+immutable Infinity{T} <: Number
+    angle::T
+end
 
-Base.show(io::IO, x::Irrational{:∞}) = print(io, "∞")
-Base.convert{F<:AbstractFloat}(::Type{F},::Irrational{:∞}) = convert(F,Inf)
+Infinity() = Infinity(false)
+const ∞ = Infinity()
+
+
+Base.isinf(::Infinity) = true
+Base.isfinite(::Infinity) = false
+Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
+
+Base.zero{B}(::Infinity{B}) = zero(B)
+Base.one{B}(::Infinity{B}) = one(B)
+
+
+function Base.show{B<:Integer}(io::IO, y::Infinity{B})
+    if sign(y) == 1
+        print(io, "∞")
+    else
+        print(io, "-∞")
+    end
+end
+
+Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
+
+
+Base.promote_rule{F<:Number,B<:Integer}(::Type{Infinity{B}},::Type{F}) = promote_type(Float64,F)
+Base.promote_rule{F<:Number,B<:AbstractFloat}(::Type{Infinity{B}},::Type{F}) = promote_type(Complex128,F)
+
+Base.convert{F<:AbstractFloat,B<:Integer}(::Type{F},y::Infinity{B}) = convert(F,sign(y)==1?Inf:-Inf)
+Base.convert{F<:AbstractFloat,B<:AbstractFloat}(::Type{F},y::Infinity{B}) = convert(F,exp(im*π*y.angle)*Inf)
+
+-{B<:Integer}(y::Infinity{B}) = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
+
+function +{B}(x::Infinity{B},y::Infinity{B})
+    if x.angle != y.angle
+        error("Angles must be the same to add ∞")
+    end
+    x
+end
+
+for T in (:BlasFloat,:Integer,:(Complex{Int}))
+    @eval begin
+        +(::$T,y::Infinity) = y
+        +(y::Infinity,::$T) = y
+        -(y::Infinity,::$T) = y
+        -(::$T,y::Infinity) = -y
+    end
+end
+
+
+# $ is xor
+*(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle $ b.angle)
+*(a::Infinity,b::Infinity) = Infinity(a.angle + b.angle)
+
+for T in (:Bool,:Integer,:AbstractFloat)
+    @eval begin
+        *(a::$T,y::Infinity) = a>0?y:(-y)
+        *(y::Infinity,a::$T) = a*y
+    end
+end
+
+Base.min{B<:Integer}(x::Infinity{B},y::Infinity{B}) = sign(x)==-1?x:y
+Base.max{B<:Integer}(x::Infinity{B},::Infinity{B}) = sign(x)==1?x:y
+Base.min{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1?x:y
+Base.min{B<:Integer}(x::Infinity{B},y::Real) = min(y,x)
+Base.max{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1?y:x
+Base.max{B<:Integer}(x::Infinity{B},y::Real) = max(y,x)
+
+for OP in (:<,:<=)
+    @eval begin
+        $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1
+        $OP{B<:Integer}(y::Infinity{B},x::Real) = sign(y)==-1
+    end
+end
+
+for OP in (:>,:>=)
+    @eval begin
+        $OP{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==-1
+        $OP{B<:Integer}(y::Infinity{B},x::Real) = sign(y)==1
+    end
+end
+
 
 ## My Count
 
@@ -426,7 +509,8 @@ countfrom()                            = UnitCount(1)
 
 
 Base.eltype{S}(::Type{AbstractCount{S}}) = S
-Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(super(AS))
+Base.eltype{AS<:AbstractCount}(::Type{AS}) = eltype(supertype(AS))
+Base.eltype{S}(::AbstractCount{S}) = S
 
 Base.step(it::Count) = it.step
 Base.step(it::UnitCount) = 1
@@ -438,14 +522,30 @@ Base.done(it::AbstractCount, state) = false
 Base.length(it::AbstractCount) = ∞
 
 getindex(it::Count,k) = it.start + it.step*(k-1)
-getindex(it::UnitCount,k) = it.start + k - 1
+getindex(it::UnitCount,k) = (it.start-1) + k
 
 
-Base.colon(a::Real,b::Irrational{:∞}) = countfrom(a)
-Base.colon(::Irrational{:∞},::AbstractFloat,::Irrational{:∞}) = [∞]
-Base.colon(a::Real,st::Real,b::Irrational{:∞}) = countfrom(a,st)
-
-Base.isinf(::Irrational{:∞}) = true
+function Base.colon(a::Real,b::Infinity{Bool})
+    if b.angle
+        throw(ArgumentError("Cannot create $a:-∞"))
+    end
+    countfrom(a)
+end
+function Base.colon(a::Infinity{Bool},st::AbstractFloat,b::Infinity{Bool})
+    if a ≠ b
+        throw(ArgumentError("Cannot create $a:$st:$b"))
+    end
+    [a]
+end
+function Base.colon(a::Real,st::Real,b::Infinity{Bool})
+    if st == 0
+        throw(ArgumentError("step cannot be zero"))
+    elseif b.angle == st > 0
+        throw(ArgumentError("Cannot create $a:$st:$b"))
+    else
+        countfrom(a,st)
+    end
+end
 
 
 ## BandedMatrix
@@ -454,3 +554,74 @@ Base.isinf(::Irrational{:∞}) = true
 
 pad!(A::BandedMatrix,n,::Colon) = pad!(A,n,n+A.u)  # Default is to get all columns
 columnrange(A,row::Integer) = max(1,row+bandinds(A,1)):row+bandinds(A,2)
+
+
+
+## Store iterator
+type CachedIterator{T,IT,ST}
+    iterator::IT
+    storage::Vector{T}
+    state::ST
+    length::Int
+
+    CachedIterator(it::IT) = new(it,Vector{T}(),start(it),0)
+end
+
+CachedIterator(it) = CachedIterator{eltype(it),typeof(it),typeof(start(it))}(it)
+
+function Base.resize!(it::CachedIterator,n::Integer)
+    m = it.length
+    if n > m
+        if n > length(it.storage)
+            resize!(it.storage,2n)
+        end
+
+        for k = m+1:n
+            if done(it.iterator,it.state)
+                it.length = k-1
+                return it
+            end
+            val,it.state = next(it.iterator,it.state)
+            @inbounds it.storage[k] = val
+        end
+
+        it.length = n
+    end
+    it
+end
+
+
+Base.eltype{T}(it::CachedIterator{T}) = T
+Base.start(it::CachedIterator) = 1
+Base.next(it::CachedIterator,st::Int) = (it[st],st+1)
+Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
+                                        done(it.iterator,it.state)
+maximum(5)
+getindex(it::CachedIterator,k) = resize!(it,maximum(k)).storage[k]
+function Base.findfirst(f::Function,A::CachedIterator)
+    k=1
+    for c in A
+        if f(c)
+            return k
+        end
+        k+=1
+    end
+    return 0
+end
+
+function Base.findfirst(A::CachedIterator,x)
+    k=1
+    for c in A
+        if c == x
+            return k
+        end
+        k+=1
+    end
+    return 0
+end
+
+
+# The following don't need caching
+cache{T<:Number}(A::Vector{T}) = A
+cache(A::Range) = A
+cache(A::AbstractCount) = A

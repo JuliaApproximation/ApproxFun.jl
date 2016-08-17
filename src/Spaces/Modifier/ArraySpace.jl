@@ -7,28 +7,48 @@ coefficients are of each entry are interlaced.
 """
 immutable ArraySpace{S,n,T,DD,dim} <: Space{T,DD,dim}
      space::S
-     dimensions::Tuple{Vararg{Int}}
+     dimensions::NTuple{n,Int}
 #      # for AnyDomain() usage
     ArraySpace(sp::S,dims)=new(sp,dims)
     ArraySpace(d::Domain,dims)=new(S(d),dims)
 end
 
+InterlaceIterator(sp::ArraySpace) = InterlaceIterator(fill(dimension(sp.space),length(sp)))
+interlacer(sp::ArraySpace) = InterlaceIterator(sp)
+
 typealias VectorSpace{S,T,DD,dim} ArraySpace{S,1,T,DD,dim}
 typealias MatrixSpace{S,T,DD,dim} ArraySpace{S,2,T,DD,dim}
 
 
-ArraySpace(S::Space,n::Tuple{Vararg{Int}})=ArraySpace{typeof(S),length(n),basistype(S),domaintype(S),ndims(S)}(S,n)
-ArraySpace(S::Space,n::Integer)=ArraySpace(S,(n,))
-ArraySpace(S::Space,n,m)=ArraySpace{typeof(S),2,basistype(S),domaintype(S),ndims(S)}(S,(n,m))
-ArraySpace(d::Domain,n...)=ArraySpace(Space(d),n...)
-Base.length{SS}(AS::ArraySpace{SS,1})=AS.dimensions[1]
-Base.length{SS}(AS::ArraySpace{SS,2})=*(AS.dimensions...)
+ArraySpace(S::Space,n::Tuple{Vararg{Int}}) =
+    ArraySpace{typeof(S),length(n),basistype(S),
+               domaintype(S),domaindimension(S)}(S,n)
+ArraySpace(S::Space,n::Integer) = ArraySpace(S,(n,))
+ArraySpace(S::Space,n,m) =
+    ArraySpace{typeof(S),2,basistype(S),
+               domaintype(S),domaindimension(S)}(S,(n,m))
+ArraySpace(d::Domain,n...) = ArraySpace(Space(d),n...)
+
+
+Base.length{SS}(AS::ArraySpace{SS,1}) = AS.dimensions[1]
+Base.length(AS::ArraySpace) = *(AS.dimensions...)
+
+Base.length{AS<:ArraySpace}(f::Fun{AS}) = length(space(f))
+
 Base.size(AS::ArraySpace)=AS.dimensions
 Base.size(AS::ArraySpace,k)=AS.dimensions[k]
+
+Base.size{AS<:ArraySpace}(f::Fun{AS},k...) = size(space(f),k...)
+
+
 function Base.reshape(AS::VectorSpace,k,j)
     @assert length(AS)==k*j
     ArraySpace(AS.space,(k,j))
 end
+
+
+
+dimension(AS::ArraySpace) = dimension(AS.space)*length(AS)
 
 domain(AS::ArraySpace)=domain(AS.space)
 
@@ -76,16 +96,20 @@ function mat{S,V,T,DD,d}(f::Fun{MatrixSpace{S,V,DD,d},T},j::Integer)
     r
 end
 
+
+spaces(A::ArraySpace) = fill(A.space,A.dimensions)
+
+TupleSpace{SS}(A::ArraySpace{SS,1}) = TupleSpace(spaces(A))
+
 Base.getindex{S,V,DD,d}(f::Fun{VectorSpace{S,V,DD,d}},k...)=vec(f)[k...]
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
 
 Base.getindex(S::ArraySpace,k...)=S.space
-Base.length(S::ArraySpace)=*(S.dimensions...)
 
-Base.start(S::ArraySpace)=1
-Base.next(S::ArraySpace,k)=S.space,k+1
-Base.done(S::ArraySpace,k)=k>length(S)
-Base.endof(S::ArraySpace)=length(S)
+Base.start(S::ArraySpace) = 1
+Base.next(S::ArraySpace,k) = S.space,k+1
+Base.done(S::ArraySpace,k) = k>length(S)
+Base.endof(S::ArraySpace) = length(S)
 
 
 #support tuple set
@@ -137,6 +161,8 @@ end
 
 Fun{F<:Fun}(V::AbstractVector{F})=devec(V)
 Fun{F<:Fun}(V::AbstractMatrix{F})=demat(V)
+
+Fun(v::Vector{Any},sp::ArraySpace) = devec(map(f->Fun(f,sp.space),v))
 
 
 function union_rule{S,n,T,DD,dim,S2,T2,DD2}(a::ArraySpace{S,n,T,DD,dim},b::ArraySpace{S2,n,T2,DD2,dim})
@@ -255,23 +281,6 @@ for OP in (:*,:.*)
     @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V})=demat($OP(mat(A),mat(f)))
 end
 
-
-
-
-
-## linsolve
-# special implementation to solve column by column
-# override for TimesOperator to avoid ambiguity
-for TYP in (:TimesOperator,:SpaceOperator,:BandedOperator)
-    @eval function linsolve{S,T,DD,Q}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,1},Q};kwds...)
-        rs=rangespace(A)
-        if isa(rs,ArraySpace) && size(rs)==size(space(b))
-            linsolve(A,[b];kwds...)
-        else
-            linsolve(A,mat(b,1);kwds...)
-        end
-    end
-end
 
 
 

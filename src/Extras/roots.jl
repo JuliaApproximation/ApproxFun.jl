@@ -259,25 +259,32 @@ function extremal_args(f::Fun)
 end
 
 for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base.minabs))
-    @eval begin
-        function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
-            pts = extremal_args(f)
+    @eval function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
+        pts = extremal_args(f)
 
-            $op(f(pts))
-        end
+        $op(f(pts))
     end
 end
 
 for op in (:(Base.maxabs),:(Base.minabs))
-    @eval begin
-        function $op{S,T}(f::Fun{S,T})
-            # complex spaces/types can have different extrema
-            pts = extremal_args(abs(f))
+    @eval function $op(f::Fun)
+        # complex spaces/types can have different extrema
+        pts = extremal_args(abs(f))
 
-            $op(f(pts))
-        end
+        $op(f(pts))
     end
 end
+
+for op in (:(Base.maximum),:(Base.minimum),:(Base.maxabs),:(Base.minabs))
+    @eval begin
+        $op{SV,DD<:UnionDomain,d,T<:Real}(f::Fun{PiecewiseSpace{SV,RealBasis,DD,d},T}) =
+            $op(map($op,vec(f)))
+    end
+end
+
+Base.extrema{SV,DD<:UnionDomain,d,T<:Real}(f::Fun{PiecewiseSpace{SV,RealBasis,DD,d},T}) =
+    mapreduce(extrema,(x,y)->extrema([x...;y...]),vec(f))
+
 
 
 
@@ -306,7 +313,7 @@ for op in (:(Base.findmax),:(Base.findmin))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             ext,ind = $op(f(pts))
-	    ext,pts[ind]
+	        ext,pts[ind]
         end
     end
 end

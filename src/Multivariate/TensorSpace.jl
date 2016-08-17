@@ -8,21 +8,174 @@ abstract AbstractProductSpace{SV,T,d} <: Space{T,AnyDomain,d}
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 
 
+# TensorIterator
+# This gives the map from coefficients to the
+# tensor entry of a tensor product of d spaces
+# findfirst is overriden to get efficient inverse
 
+immutable TensorIterator{DMS<:Tuple}
+    dimensions::DMS
+end
+
+cache(Q::TensorIterator) = CachedIterator(Q)
+
+
+Base.eltype{d,T}(::TensorIterator{NTuple{d,T}}) = NTuple{d,Int}
+Base.eltype(it::TensorIterator) = NTuple{length(it.dimensions),Int}
+
+
+Base.start{DMS<:NTuple{2}}(::TensorIterator{DMS}) = (1,1)
+Base.start{DMS<:NTuple{3}}(::TensorIterator{DMS}) = (1,1,1)
+Base.start(it::TensorIterator) = tuple(ones(Int,d)...)::eltype(it)
+
+
+function Base.next(it::TensorIterator,st)
+    for k=2:length(st)
+        if st[k] > 1
+            nst=tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::eltype(it)
+            if all(map(≤,nst,it.dimensions)) || done(it,nst)
+                return (st,nst)
+            else
+                return (st,next(it,nst)[2])
+            end
+        end
+    end
+    nst=tuple(ones(Int,length(it.dimensions)-1)...,st[1]+1)::eltype(it)
+    if all(map(≤,nst,it.dimensions)) || done(it,nst)
+        return (st,nst)
+    else
+        return (st,next(it,nst)[2])
+    end
+end
+
+function Base.done(it::TensorIterator,st)
+    for k=1:length(st)
+        if st[k] ≤ it.dimensions[k]
+            return false
+        end
+    end
+    return true
+end
+
+
+function Base.next{d}(it::TensorIterator{NTuple{d,Infinity{Bool}}},st)
+    for k=2:length(st)
+        if st[k] > 1
+            return (st,tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::NTuple{d,Int})
+        end
+    end
+    (st,tuple(ones(Int,d-1)...,st[1]+1)::NTuple{d,Int})
+end
+Base.done{d}(::TensorIterator{NTuple{d,Infinity{Bool}}},st) = false
+
+
+Base.next(::TensorIterator{NTuple{2,Infinity{Bool}}},st) =
+    (st,st[2] == 1? (1,st[1]+1) : (st[1]+1,st[2]-1))
+
+
+function Base.findfirst(::TensorIterator{NTuple{2,Infinity{Bool}}},kj::Tuple{Int,Int})
+    k,j=kj
+    if k > 0 && j > 0
+        n=k+j-2
+        (n*(n+1))÷2+k
+    else
+        0
+    end
+end
+
+# which block of the tensor
+# equivalent to sum of indices -1
+
+block(it::TensorIterator,k) = sum(it[k])-length(it.dimensions)+1
+block(ci::CachedIterator,k) = sum(ci[k])-length(ci.iterator.dimensions)+1
+
+block(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
+    floor(Integer,sqrt(2n) + 1/2)
+
+function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
+    m=block(it,n)
+    p=findfirst(it,(1,m))
+    j=1+n-p
+    j,m-j+1
+end
+
+
+blockstarttuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (1,K)
+blockstoptuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (K,1)
+
+# this is for general dimension case, so we need to construct it so that
+# each entry is less than the dimension
+function blockstarttuple(it::TensorIterator,K)
+    ret=ones(Int,length(it.dimensions))
+    for k=reverse(eachindex(ret))
+        ret[k]=min(K,it.dimensions[k])
+        K-=ret[k]
+        if K ≤ 0
+            return tuple(ret...)
+        end
+    end
+    tuple(zeros(Int,length(it.dimensions))...)
+end
+
+function blockstoptuple(it::TensorIterator,K)
+    ret=ones(Int,length(it.dimensions))
+    for k=eachindex(ret)
+        ret[k]=min(K,it.dimensions[k])
+        K-=ret[k]
+        if K ≤ 0
+            return tuple(ret...)
+        end
+    end
+    tuple(zeros(Int,length(it.dimensions))...)
+end
+
+
+
+blockstart(it::TensorIterator,K) = findfirst(it,blockstarttuple(it,K))
+blockstop(it::TensorIterator,K) = findfirst(it,blockstoptuple(it,K))
+blockstart{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
+    findfirst(ci,blockstarttuple(ci.iterator,K))
+blockstop{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
+    findfirst(ci,blockstoptuple(ci.iterator,K))
+
+
+blocklength(it,K::Int) = blockstop(it,K)-blockstart(it,K)+1
+blocklength(it,K::Range) = Int[blocklength(it,k) for k in K]
+blocklength{II}(it::CachedIterator{II,
+            TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},K::Int) = K
+blocklength(it::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K::Int) = K
+
+
+# convert from block, subblock to tensor
+subblock2tensor(rt::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K,k) =
+    (k,K-k+1)
+
+subblock2tensor{II}(rt::CachedIterator{II,TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},K,k) =
+    (k,K-k+1)
+
+
+# TensorSpace
+# represents the tensor product of several subspaces
 
 immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
     spaces::SV
 end
 
+tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = TensorIterator(map(dimension,sp.spaces))
+
 TensorSpace(sp::Tuple) =
-    TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),mapreduce(ndims,+,sp)}(sp)
+    TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
+                mapreduce(domaindimension,+,sp)}(sp)
+
+
+dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)
 
 for OP in (:spacescompatible,:(==))
     @eval $OP{SV,T,d}(A::TensorSpace{SV,T,d},B::TensorSpace{SV,T,d}) =
         all(Bool[$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
 end
 
-canonicalspace(T::TensorSpace)=TensorSpace(map(canonicalspace,T.spaces))
+canonicalspace(T::TensorSpace) = TensorSpace(map(canonicalspace,T.spaces))
 
 
 
@@ -157,7 +310,8 @@ end
 
 ## points
 
-points(d::Union{BivariateDomain,BivariateSpace},n,m)=points(d,n,m,1),points(d,n,m,2)
+points(d::Union{BivariateDomain,BivariateSpace},n,m) =
+    points(d,n,m,1),points(d,n,m,2)
 
 function points(d::BivariateSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
@@ -171,53 +325,53 @@ end
 
 ##  Fun routines
 
-
-function fromtensorind(k,j)
-    n=k+j-2
-    div(n*(n+1),2)+k
-end
-
-# which block of the tensor
-# equivalent to sum of indices -1
-totensorblock(n)=floor(Integer,sqrt(2n) + 1/2)
-#gives the range corresponding to the block
-fromtensorblock(j)=div(j*(j-1),2)+(1:j)
-
-function totensorind(n)
-    m=totensorblock(n)
-    p=fromtensorind(1,m)
-    j=1+n-p
-    j,m-j+1
-end
-
-
-function fromtensor{T}(M::Matrix{T})
-    ret=zeros(T,fromtensorind(size(M,1),size(M,2)))
-
+function fromtensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Matrix{T})
+    ret=zeros(T,findfirst(it,(size(M,1),size(M,2))))
     for k=1:size(M,1),j=1:size(M,2)
-        ret[fromtensorind(k,j)]=M[k,j]
+        ret[findfirst(it,(k,j))] = M[k,j]
     end
     ret
 end
 
-function totensor{T}(M::Vector{T})
-    inds=totensorind(length(M))
+
+# function totensor{T1,T2,T}(it::TensorIterator{Tuple{T1,T2}},M::Vector{T})
+#     N=length(M)
+#     inds=it[N]
+#     m=inds[1]+inds[2]-1
+#     ret=zeros(T,min(it.dimensions[1],m),min(it.dimensions[2],m))
+#     k=1
+#     for c in it
+#         ret[c...] = M[k]
+#         k+=1
+#         if k > N
+#             break
+#         end
+#     end
+#     ret
+# end
+
+function totensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Vector{T})
+    inds=it[length(M)]
     m=inds[1]+inds[2]-1
     ret=zeros(T,m,m)
     for k=1:length(M)
-        ret[totensorind(k)...]=M[k]
+        ret[it[k]...] = M[k]
     end
     ret
 end
 
+for OP in (:fromtensor,:totensor,:block,:blockstart,:blockstop)
+    @eval $OP(s::Space,M) = $OP(tensorizer(s),M)
+end
 
+# TODO: remove
 function totree(v::Vector)
-   m=totensorblock(length(v))
+   m=toblock(length(v))
     r=Array(Vector{eltype(v)},m)
     for k=1:m-1
-        r[k]=v[fromtensorblock(k)]
+        r[k]=v[fromblock(k)]
     end
-    r[m]=pad!(v[fromtensorblock(m)[1]:end],m)
+    r[m]=pad!(v[fromblock(m)[1]:end],m)
     r
 end
 
@@ -235,15 +389,15 @@ function transform(sp::TensorSpace,vals)
     m=round(Int,sqrt(length(vals)))
     M=reshape(copy(vals),m,m)
 
-    fromtensor(transform!(sp,M))
+    fromtensor(sp,transform!(sp,M))
 end
 
-evaluate(f::AbstractVector,S::AbstractProductSpace,x) = ProductFun(totensor(f),S)(x...)
-evaluate(f::AbstractVector,S::AbstractProductSpace,x,y) = ProductFun(totensor(f),S)(x,y)
+evaluate(f::AbstractVector,S::AbstractProductSpace,x) = ProductFun(totensor(S,f),S)(x...)
+evaluate(f::AbstractVector,S::AbstractProductSpace,x,y) = ProductFun(totensor(S,f),S)(x,y)
 
 
 
-coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(f.coefficients)
+coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(space(f),f.coefficients)
 
 Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace) = Fun(fromtree(v),S)
 

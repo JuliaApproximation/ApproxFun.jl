@@ -10,31 +10,25 @@ Bn=lneumann();
 A=[B 0;
    0 B;
    D-I 2I;
-   0 D+I];
+   0I D+I];
 
 f=Fun(x->[exp(x),cos(x)],d)
 
 
-b1=Any[0.,0.,f]
-f1=vec(f)[1];f2=vec(f)[2];
-b2=Any[0.,0.,f1,f2]
+b=Any[0.,0.,f...]
+f1,f2=vec(f)
+u=A\b
+u1=vec(u)[1];u2=vec(u)[2];
 
+@test norm(u1'-u1+2u2-f1)<10eps()
+@test norm(u2'+u2-f2)<10eps()
 
+Ai=Operator(A)
+u=Ai\b
+u1=vec(u)[1];u2=vec(u)[2];
 
-for b in (b1,b2)
-    u=A\b
-    u1=vec(u)[1];u2=vec(u)[2];
-
-    @test norm(u1'-u1+2u2-f1)<10eps()
-    @test norm(u2'+u2-f2)<10eps()
-
-    Ai=interlace(A)
-    u=Ai\b
-    u1=vec(u)[1];u2=vec(u)[2];
-
-    @test norm(u1'-u1+2u2-f1)<10eps()
-    @test norm(u2'+u2-f2)<10eps()
-end
+@test norm(u1'-u1+2u2-f1)<10eps()
+@test norm(u2'+u2-f2)<10eps()
 
 
 
@@ -47,28 +41,24 @@ A=[B 0;
    0 D+I];
 
 
-b1=Any[0.,0.,0.,f]
-f1=vec(f)[1];f2=vec(f)[2];
-b2=Any[0.,0.,0.,f1,f2]
+b=Any[0.,0.,0.,f...]
 
 
-
-for b in (b1,b2)
-    u=A\b
-    u1=vec(u)[1];u2=vec(u)[2];
+u=A\b
+u1=vec(u)[1];u2=vec(u)[2];
 
 
-    @test norm(differentiate(u1,2)-u1+2u2-f1)<2eps()
-    @test norm(u2'+u2-f2)<2eps()
+@test norm(differentiate(u1,2)-u1+2u2-f1)<2eps()
+@test norm(u2'+u2-f2)<2eps()
 
-    Ai=interlace(A)
-    u=Ai\b
-    u1=vec(u)[1];u2=vec(u)[2];
+Ai=Operator(A)
+u=Ai\b
+u1=vec(u)[1];u2=vec(u)[2];
 
 
-    @test norm(u1''-u1+2u2-f1)<2eps()
-    @test norm(u2'+u2-f2)<2eps()
-end
+@test norm(u1''-u1+2u2-f1)<2eps()
+@test norm(u2'+u2-f2)<2eps()
+
 
 
 

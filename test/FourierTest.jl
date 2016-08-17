@@ -1,6 +1,15 @@
 using ApproxFun, Base.Test
 
 
+
+
+
+
+@test_approx_eq Fun([1,1.,1.],Laurent([0,2π]))(0.1) 1+2cos(0.1+π)
+@test_approx_eq Fun([1,1.,1.],Laurent([-1,1]))(0.1) 1+2cos(π*0.1)
+@test_approx_eq Fun([1,1.,1.],Laurent([0,1]))(0.1) 1+2cos(2π*(0.1-1/2))
+
+
 @test abs(Fun(cos,Circle())(exp(0.1im))-cos(exp(0.1im)))<100eps()
 @test abs(Fun(cos,Circle())'(exp(0.1im))+sin(exp(0.1im)))<100eps()
 @test abs(Fun(cos,Circle())'(exp(0.1im))+Fun(sin,Circle())(exp(0.1im)))<100eps()
@@ -13,13 +22,22 @@ using ApproxFun, Base.Test
 @test norm(Fun(cos,Circle())'+Fun(sin,Circle()))<100eps()
 
 
-f=Fun(exp,Circle());
 
-@test norm(f'-f)<100eps()
-@test norm(integrate(f)+1-f)<100eps()
+for f in (Fun(θ->sin(sin(θ)),SinSpace()),Fun(θ->cos(θ)+cos(3θ),CosSpace()),
+            Fun(θ->sin(sin(θ)),Fourier()),Fun(θ->cos(θ)+cos(3θ),CosSpace()))
+    @test norm(integrate(f)'-f)<eps()
+end
 
-f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
-@test_approx_eq real(f)(.1) f(.1)
+
+
+let f=Fun(exp,Circle())
+    @test norm(f'-f)<100eps()
+    @test norm(integrate(f)+1-f)<100eps()
+end
+
+let f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
+    @test_approx_eq real(f)(.1) f(.1)
+end
 
 
 
@@ -28,18 +46,21 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
 
 ## Calculus
 
-f=Fun(t->cos(t),CosSpace)
-D=Derivative(space(f))
-@test_approx_eq (D*f)(.1) -sin(.1)
-@test_approx_eq f'(.1) -sin(.1)
+let f=Fun(t->cos(t),CosSpace)
+    D=Derivative(space(f))
+    @test_approx_eq (D*f)(.1) -sin(.1)
+    @test_approx_eq f'(.1) -sin(.1)
+end
 
-f=Fun(t->sin(t),SinSpace)
-D=Derivative(space(f))
-@test_approx_eq (D*f)(.1) cos(.1)
-@test_approx_eq f'(.1) cos(.1)
+let f=Fun(t->sin(t),SinSpace)
+    D=Derivative(space(f))
+    @test_approx_eq (D*f)(.1) cos(.1)
+    @test_approx_eq f'(.1) cos(.1)
+end
 
-f=Fun(cos,Fourier)
-@test norm((Derivative(space(f))^2)*f+f)<10eps()
+let f=Fun(cos,Fourier)
+    @test norm((Derivative(space(f))^2)*f+f)<10eps()
+end
 
 
 
@@ -63,6 +84,14 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     @test norm((f'-df).coefficients)<1000eps()
 end
 
+d=Circle()
+S=Taylor(d)
+D=Derivative(S)
+D-I
+ef=Fun(exp,S)
+@test norm((D*ef-ef).coefficients)<1000eps()
+@test norm((D^2*ef-ef).coefficients)<100000eps()
+u=[Evaluation(S,0.),D-I]\[1.]
 
 # check's Derivative constructor works
 D=Derivative(Taylor(PeriodicInterval()))

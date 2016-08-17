@@ -1,14 +1,14 @@
 ## Evaluation
 
 
-getindex{J<:Jacobi}(op::Evaluation{J,Bool},k::Integer) =
+getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},k::Integer) =
     op[k:k][1]
 
-getindex{J<:Jacobi}(op::Evaluation{J},k::Integer) =
+getindex{J<:Jacobi}(op::ConcreteEvaluation{J},k::Integer) =
     op[k:k][1]
 
 
-function getindex{J<:Jacobi}(op::Evaluation{J,Bool},kr::Range)
+function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
     @assert op.order <= 2
     sp=op.space
     a=sp.a;b=sp.b
@@ -34,7 +34,7 @@ function getindex{J<:Jacobi}(op::Evaluation{J,Bool},kr::Range)
         Float64[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
-function getindex{J<:Jacobi}(op::Evaluation{J,Float64},kr::Range)
+function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Float64},kr::Range)
     @assert op.order == 0
     jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
 end
@@ -386,14 +386,14 @@ end
 
 
 # represents [b+(1+z)*d/dz] (false) or [a-(1-z)*d/dz] (true)
-immutable JacobiSD{T} <:BandedOperator{T}
+immutable JacobiSD{T} <:Operator{T}
     lr::Bool
     S::Jacobi
 end
 
 JacobiSD(lr,S)=JacobiSD{Float64}(lr,S)
 
-Base.convert{BO<:Operator}(::Type{BO},SD::JacobiSD)=JacobiSD{eltype(BO)}(SD.lr,SD.S)
+Base.convert{T}(::Type{Operator{T}},SD::JacobiSD)=JacobiSD{T}(SD.lr,SD.S)
 
 domain(op::JacobiSD)=domain(op.S)
 domainspace(op::JacobiSD)=op.S

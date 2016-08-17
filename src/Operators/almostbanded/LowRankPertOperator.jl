@@ -1,4 +1,4 @@
-immutable LowRankPertOperator{OO,LR,T} <: AlmostBandedOperator{T}
+immutable LowRankPertOperator{OO,LR,T} <: Operator{T}
     op::OO
     pert::LR
 
@@ -9,20 +9,19 @@ immutable LowRankPertOperator{OO,LR,T} <: AlmostBandedOperator{T}
     end
 end
 
-function LowRankPertOperator(Bin::BandedOperator,Lin::LowRankOperator)
+function LowRankPertOperator(Bin::Operator,Lin::LowRankOperator)
     B,L2=promotedomainspace([Bin,Lin])
     rsp=rangespace(B)  # use rangespace of B because LowRankOperator only
                         # needs convert, and its unlikely that the rangespaces
                         # will be inferred from L
-    L=promoterangespace(L2,rsp)                                        
+    L=promoterangespace(L2,rsp)
 
     LowRankPertOperator{typeof(B),typeof(L),promote_type(eltype(L),eltype(B))}(B,L)
 end
 
 
-for TYP in (:BandedBelowOperator,:AlmostBandedOperator,:Operator)
-    @eval Base.convert{OT<:Operator}(::Type{$TYP},V::Vector{OT})=LowRankPertOperator(V)
-end
+
+Base.convert{OT<:Operator}(::Type{Operator},V::Vector{OT})=LowRankPertOperator(V)
 
 
 Base.getindex(L::LowRankPertOperator,k::Integer,j::Integer)=L.op[k,j]+L.pert[k,j]
@@ -38,61 +37,14 @@ end
 
 
 
-
-
-
-
-
-function MutableOperator{R<:Functional}(bc::Vector{R},S::LowRankPertOperator)
-    bndinds=bandinds(S.op)
-
-    dats= datasize(S,1)
-    lbc=length(bc)
-    shift = lbc+dats
-    r=rank(S.pert)
-
-    bndindslength=bndinds[end]-bndinds[1]+1
-    br=(bndinds[1]-lbc,bndindslength+dats-1)
-
-    data = bzeros(S.op,shift+100-br[1],:,br)
-
-    # do all columns in the row, +1 for the fill
-    bcdat=eye(shift,lbc)
-    lowrdat=[zeros(lbc,r);coefficients(S.pert.U)]  # add zeros for first bc rows
-    opdat=[zeros(lbc,dats);eye(dats)]
-    fl=FillMatrix([bc;S.pert.V;S.op[1:dats,:]],[bcdat lowrdat opdat],br[end]+1)
-
-
-    for k=1:lbc,j=columnrange(data,k)
-        data[k,j]=bc[k][j]  # initialize data with the boundary rows
-    end
-
-    for k=lbc+1:shift,j=columnrange(data,k)
-        data[k,j]=S[k-lbc,j]  # initialize data with the boundary rows end
-    end
-    M=MutableOperator(S.op[dats+1:end,1:end],data,fl,shift,shift, br)
-end
-
-
-
-
-
-
 ## algebra
 
-+(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(B,L)
-+(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(B,L)
-
--(L::LowRankOperator,B::BandedOperator)=LowRankPertOperator(-B,L)
--(B::BandedOperator,L::LowRankOperator)=LowRankPertOperator(B,-L)
-
 for OP in (:+,:-)
-    @eval $OP(A::LowRankPertOperator,B::LowRankPertOperator)=LowRankPertOperator($OP(A.op,B.op),$OP(A.pert,B.pert))
+    @eval $OP(A::LowRankPertOperator,B::LowRankPertOperator) =
+        LowRankPertOperator($OP(A.op,B.op),$OP(A.pert,B.pert))
 end
 
 *(L::LowRankPertOperator,f::Fun)=L.op*f+L.pert*f
-*(L::LowRankPertOperator,B::BandedOperator)=LowRankPertOperator(L.op*B,L.pert*B)
-*(B::BandedOperator,L::LowRankPertOperator)=LowRankPertOperator(B*L.op,B*L.pert)
 
 *(L::LowRankPertOperator,B::LowRankOperator)=L.op*B+L.pert*B
 *(B::LowRankOperator,L::LowRankPertOperator)=B*L.op+B*L.pert
@@ -100,3 +52,17 @@ end
 
 
 *(A::LowRankPertOperator,B::LowRankPertOperator)=A.op*B + A.pert*B
+
+# ambiguity
+for TYP in (:TimesOperator,:ZeroOperator,:PlusOperator,:Conversion,:Operator)
+    @eval begin
+        +(L::LowRankOperator,B::$TYP) = LowRankPertOperator(B,L)
+        +(B::$TYP,L::LowRankOperator) = LowRankPertOperator(B,L)
+
+        -(L::LowRankOperator,B::$TYP)=LowRankPertOperator(-B,L)
+        -(B::$TYP,L::LowRankOperator)=LowRankPertOperator(B,-L)
+
+        *(L::LowRankPertOperator,B::$TYP)=LowRankPertOperator(L.op*B,L.pert*B)
+        *(B::$TYP,L::LowRankPertOperator)=LowRankPertOperator(B*L.op,B*L.pert)
+    end
+end

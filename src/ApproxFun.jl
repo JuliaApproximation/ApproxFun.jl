@@ -13,9 +13,11 @@ import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
 
 import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
                         unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix,
-                        dot, dotu, normalize!
+                        dot, dotu, normalize!, flipsign,
+                        colstart, colstop, colrange, rowstart, rowstop, rowrange,
+                        bandwidths, gbmv!, gbmm!
 
-import Compat: view                        
+import Compat: view
 
 import FixedSizeArrays: Vec
 
@@ -58,9 +60,6 @@ function _precompile_()
     precompile(Base.exp,(Fun{Chebyshev{Interval{Float64}},Float64},))
     precompile(linsolve,(Vector{Operator{Float64}},Vector{Float64}))
     precompile(\,(Vector{Operator{Float64}},Vector{Float64}))
-    precompile(adaptiveqr,(Vector{Operator{Float64}},Vector{Float64},Float64,Int))
-    precompile(MutableOperator,(Vector{Operator{Float64}},))
-    precompile(adaptiveqr!,(MutableOperator,Vector{Float64},Float64,Int))
     precompile(+,(Int,Fun{Chebyshev{Interval{Float64}},Float64}))
     precompile(+,(Fun{Chebyshev{Interval{Float64}},Float64},Fun{Chebyshev{Interval{Float64}},Float64}))
     precompile(+,(Fun{ConstantSpace{AnyDomain},Float64},Fun{Chebyshev{Interval{Float64}},Float64}))

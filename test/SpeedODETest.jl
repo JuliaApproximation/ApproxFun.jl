@@ -1,11 +1,6 @@
 using ApproxFun, Base.Test
 
 
-# This avoids getting killed on Travis.cl
-if OS_NAME == :Darwin
-    gc_enable(false)
-end
-
 ## ODEs
 
 d=Interval(-20000.,20000.)
@@ -23,8 +18,8 @@ u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
 @time u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
 println("Airy: 0.014356 seconds (1.08 k allocations: 8.015 MB)")
 
-M=MutableOperator([dirichlet(d);Derivative(d)^2-x])
-@time ApproxFun.resizedata!(M,12500)
+M=cache(ApproxFun.InterlaceOperator([dirichlet(d);Derivative(d)^2-x]);padding=true)
+@time ApproxFun.resizedata!(M,12500,:)
 println("Airy construct op: 0.005417 seconds (81 allocations: 5.279 MB)")
 
 
@@ -64,7 +59,7 @@ rhs=ones(n+2)
 u=linsolve([B;L],rhs;maxlength=Inf)
 u=linsolve([B;L],rhs;maxlength=Inf)
 @time u=linsolve([B;L],rhs;maxlength=Inf)
-println("Sin: should be ~0.011")
+println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 
 
 ## Piecewise
@@ -74,9 +69,9 @@ sp=space(x)
 D=Derivative(sp)
 
 u=[dirichlet(sp);
-    D^2-x]\[airyai(-10.)];
+    D^2-x]\[airyai(-20.)];
 @time u=[dirichlet(sp);
-    D^2-x]\[airyai(-10.)];
+    D^2-x]\[airyai(-20.)];
 
 println("Piecewise Airy: should be ~0.008")
 
@@ -103,14 +98,7 @@ println("Systems: should be ~0.0008")
 d=Interval(-300.,5.)
 x=Fun(identity,d)
 A=Derivative(d)^2-x
+u=nullspace(A)
 @test_approx_eq A[1:10,1:10] (A.')[1:10,1:10].'
-
-u=nullspace(A)
-u=nullspace(A)
 @time u=nullspace(A)
-println("Null Airy: 0.052730 seconds (75.21 k allocations: 56.736 MB)")
-
-
-if OS_NAME == :Darwin
-    gc_enable(true)
-end
+println("Nullspace Airy: 0.052730 seconds (75.21 k allocations: 56.736 MB)")

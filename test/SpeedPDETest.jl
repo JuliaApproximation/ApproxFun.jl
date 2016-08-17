@@ -1,9 +1,5 @@
 using ApproxFun, Base.Test
 
-# This avoids getting killed on Travis.cl
-if OS_NAME == :Darwin
-    gc_enable(false)
-end
 
 ## PDEs
 
@@ -55,8 +51,3 @@ u=PO\u0
 @time    u=PO\u0
 
 println("Schrodinger: should be ~0.013,0.015")
-
-
-if OS_NAME == :Darwin
-    gc_enable(true)
-end

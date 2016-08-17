@@ -9,14 +9,3 @@ include("Conversion.jl")
 include("Multiplication.jl")
 include("CalculusOperator.jl")
 include("OperatorFunction.jl")
-
-include("SavedOperator.jl")
-
-include("TransposeOperator.jl")
-include("StrideOperator.jl")
-include("FiniteOperator.jl")
-
-
-include("algebra.jl")
-
-include("FunctionBandedOperator.jl")

@@ -12,3 +12,7 @@ include("ultraspherical.jl")
 include("fourier.jl")
 
 include("hesseneigs.jl")
+
+include("LowRankMatrix.jl")
+include("AlmostBandedMatrix.jl")
+include("BandedBlockBandedMatrix.jl")

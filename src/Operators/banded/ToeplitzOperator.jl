@@ -5,7 +5,7 @@ export ToeplitzOperator, HankelOperator, LaurentOperator
 
 
 
-type ToeplitzOperator{T<:Number} <: BandedOperator{T}
+type ToeplitzOperator{T<:Number} <: Operator{T}
     negative::Vector{T}
     nonnegative::Vector{T}
 end
@@ -19,7 +19,9 @@ function ToeplitzOperator(V::Vector)
     ToeplitzOperator(W,V)
 end
 
-
+for OP in (:domainspace,:rangespace)
+    @eval $OP(T::ToeplitzOperator) = ℓ⁰
+end
 
 getindex(T::ToeplitzOperator,k::Integer,j::Integer) =
     toeplitz_getindex(T.negative,T.nonnegative,k,j)
@@ -46,7 +48,7 @@ function toeplitz_getindex{T}(cfs::AbstractVector{T},k::Integer,j::Integer)
     end
 end
 
-function Base.copy{T}(S::SubBandedMatrix{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{T}(::Type{BandedMatrix},S::SubOperator{T,ToeplitzOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -82,8 +84,12 @@ end
 ## Hankel Operator
 
 
-type HankelOperator{T<:Number} <: BandedOperator{T}
+type HankelOperator{T<:Number} <: Operator{T}
     coefficients::Vector{T}
+end
+
+for OP in (:domainspace,:rangespace)
+    @eval $OP(T::HankelOperator) = ℓ⁰
 end
 
 HankelOperator(V::AbstractVector)=HankelOperator(collect(V))
@@ -91,9 +97,8 @@ HankelOperator(V::AbstractVector)=HankelOperator(collect(V))
 HankelOperator(f::Fun)=HankelOperator(f.coefficients)
 
 
-for TYP in (:Operator,:BandedOperator)
-    @eval Base.convert{TT}(::Type{$TYP{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
-end
+
+@eval Base.convert{TT}(::Type{Operator{TT}},T::HankelOperator)=HankelOperator(convert(Vector{TT},T.coefficients))
 
 function hankel_getindex(v::AbstractVector,k::Integer,j::Integer)
    if k+j-1 ≤ length(v)
@@ -107,7 +112,7 @@ getindex(T::HankelOperator,k::Integer,j::Integer) =
     hankel_getindex(T.coefficients,k,j)
 
 
-function Base.copy{T}(S::SubBandedMatrix{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{T}(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -123,14 +128,18 @@ bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
 
 ## Laurent Operator
 
-type LaurentOperator{T<:Number} <: BandedOperator{T}
+type LaurentOperator{T<:Number} <: Operator{T}
     negative::Vector{T}
     nonnegative::Vector{T}
 end
 
-for ATYP in (:Operator,:BandedOperator), TYP in(:ToeplitzOperator,:LaurentOperator)
-    @eval Base.convert{TT}(::Type{$ATYP{TT}},T::$TYP)=$TYP(convert(Vector{TT},T.negative),
+for TYP in(:ToeplitzOperator,:LaurentOperator)
+    @eval Base.convert{TT}(::Type{Operator{TT}},T::$TYP)=$TYP(convert(Vector{TT},T.negative),
                                                                             convert(Vector{TT},T.nonnegative))
+end
+
+for OP in (:domainspace,:rangespace)
+    @eval $OP(T::LaurentOperator) = ℓ⁰
 end
 
 

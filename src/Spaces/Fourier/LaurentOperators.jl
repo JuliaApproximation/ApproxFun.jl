@@ -18,7 +18,7 @@ Multiplication{DD}(f::Fun{Taylor{DD}},sp::Taylor{DD}) =
 
 ## Evaluation
 
-getindex{DD}(T::Evaluation{Taylor{DD},Complex{Float64},Complex{Float64}},cols::Range) =
+getindex{DD}(T::ConcreteEvaluation{Taylor{DD},Complex{Float64},Int,Complex{Float64}},cols::Range) =
     mappoint(domain(T),Circle(),T.x).^(cols-1)
 
 
@@ -215,8 +215,8 @@ end
 getindex{T,DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD},T},kr::Range) =
     T[k == 2?  2domain(Σ).radius*π*im :zero(T) for k=kr]
 
-datalength{DD<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{DD}}) = 1
-datalength{DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD}})=2
+bandinds{DD<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{DD}}) = 0,0
+bandinds{DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD}}) = 0,1
 
 
 function getindex{T,DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},kr::Range)
@@ -226,8 +226,8 @@ end
 
 getindex{T,DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},kr::Range) =
     T[k == 1?  2domain(Σ).radius*π : zero(T) for k=kr]
-datalength{DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 1
-datalength{DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 2
+bandinds{DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 0,0
+bandinds{DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 0,1
 
 
 

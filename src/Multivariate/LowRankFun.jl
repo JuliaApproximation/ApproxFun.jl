@@ -317,6 +317,7 @@ end
 
 
 evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x,y)=dotu(evaluate(A,x),evaluate(B,y))
+evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector)=evaluate(A,x).'*evaluate(B,y)
 
 evaluate(f::LowRankFun,x,y)=evaluate(f.A,f.B,x,y)
 evaluate(f::LowRankFun,::Colon,::Colon)=f
@@ -339,8 +340,16 @@ end
 
 ## Truncate
 #TODO: should reduce rank if needed
-Base.chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,tol),f.B))
+Base.chop(f::LowRankFun,tol)=LowRankFun(map(g->chop(g,tol),f.A),map(g->chop(g,tol),f.B),f.space)
+function pad(f::LowRankFun,m::Integer,n::Integer)
+    A,B = deepcopy(f.A),deepcopy(f.B)
 
+    for k=1:rank(f)
+        pad!(A[k],m);pad!(B[k],n)
+    end
+
+    LowRankFun(A,B,f.space)
+end
 
 
 ## Algebra

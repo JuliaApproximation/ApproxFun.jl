@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Compat, Base.Test
 
 ## Rectangle PDE
 
@@ -23,6 +23,8 @@ u=A\G
 @test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-11
 
 
+println("    Poisson tests")
+
 ## Poisson
 
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2))  #default is [-1,1]^2
@@ -39,11 +41,10 @@ A=lap(d)+.1I
 u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
-@test_approx_eq real(f)(.1,.2) f(.1,.2)
 
+println("    Kron tests")
 
-
-if OS_NAME==:Darwin
+@static if is_apple()
     ## Kron
 
     dx=dy=Interval()
@@ -166,11 +167,9 @@ u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 @test_approx_eq u(.1,.2) exp(-20(0.1-0.2)^2)
 
 
+println("   Domain Decompositon tests")
 
 ## Domain Decomposition
-
-
-
 d=Interval(0,1)^2
 n,m=20,80
 A=discretize([dirichlet(d);lap(d)],n)
@@ -200,8 +199,6 @@ V=B+C*x
 ε=0.001
 f=Fun(x->exp(-20x^2),dx)
 u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
-
-
 @test_approx_eq u(.1,.2) 0.8148207991358946
 B=0.1
 C=0.2
@@ -289,8 +286,6 @@ Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
 u=pdesolve([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],Any[Fun(x->exp(-20(x+0.5)^2),s)],200)
 @test_approx_eq_eps u(-.1,.2) exp(-20(-.2-.1+0.5)^2) 0.00001
-
-
 
 ## Test error
 

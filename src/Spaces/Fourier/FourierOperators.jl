@@ -125,8 +125,10 @@ function getindex{CS<:SinSpace,OT,T}(D::ConcreteDerivative{CS,OT,T},k::Integer,j
     end
 end
 
-Integral(::CosSpace,m::Integer)=error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
+Integral(::CosSpace,m::Integer) =
+    error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
 
+Integral{DD<:PeriodicInterval}(sp::SinSpace{DD},m::Integer) = ConcreteIntegral(sp,m)
 
 bandinds{CS<:SinSpace}(D::ConcreteIntegral{CS})=iseven(D.order)?(0,0):(-1,0)
 rangespace{S<:CosSpace}(D::ConcreteIntegral{S})=iseven(D.order)?D.space:SinSpace(domain(D))
@@ -236,9 +238,9 @@ rangespace{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS}) =
 function Multiplication{T,D}(a::Fun{Fourier{D},T},sp::Fourier{D})
     d=domain(a)
     c,s=vec(a)
-    O=BandedOperator{T}[Multiplication(c,CosSpace(d)) Multiplication(s,SinSpace(d));
+    O=Operator{T}[Multiplication(c,CosSpace(d)) Multiplication(s,SinSpace(d));
                         Multiplication(s,CosSpace(d)) Multiplication(c,SinSpace(d))]
-    MultiplicationWrapper(a,SpaceOperator(InterlaceOperator(O),space(a),sp))
+    MultiplicationWrapper(a,InterlaceOperator(O,space(a),sp))
 end
 
 
@@ -259,7 +261,8 @@ function getindex{T,D}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},kr::Range)
     end
 end
 
-datalength{D}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = isa(domain(Σ),PeriodicInterval)?1:3
+bandinds{D}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) =
+    0,isa(domain(Σ),PeriodicInterval)?0:2
 
 DefiniteLineIntegral{D}(sp::Fourier{D}) =
     ConcreteDefiniteLineIntegral{typeof(sp),Float64}(sp)
@@ -272,7 +275,7 @@ getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer)
     k==1? domain(Σ).radius*π : zero(T)
 
 
-datalength{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 1
+bandinds{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 0,0
 
 
 transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) =

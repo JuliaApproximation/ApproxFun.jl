@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-
+import Compat: view
 
 
 
@@ -125,7 +125,7 @@ f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d),40)
 f=Fun((x,y)->exp(-x-2cos(y)),Fourier(d))
 @test_approx_eq f(cos(0.1),sin(0.1)) exp(-cos(0.1)-2cos(sin(0.1)))
 
-
+println("    Calculus tests")
 
 ## Sum
 
@@ -136,3 +136,65 @@ f=Fun(ff,[-4.,4.],[-4.,4.])
 @test_approx_eq sum(f,1)(0.1) 2.5162377980828357
 f=LowRankFun(f)
 @test_approx_eq evaluate(f.A,0.1) map(f->f(0.1),f.A)
+
+
+## Kron operator
+Mx=Multiplication(Fun(cos),Chebyshev())
+My=Multiplication(Fun(sin),Chebyshev())
+K=Mx⊗My
+@test_approx_eq ApproxFun.BandedBlockBandedMatrix(view(K,1:10,1:10)) K[1:10,1:10]
+C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical{1}()⊗Ultraspherical{1}())
+@test_approx_eq C[1:100,1:100] Float64[C[k,j] for k=1:100,j=1:100]
+
+
+# 2d derivative (issue #346)
+let d = Chebyshev()^2
+    f = Fun((x,y) -> sin(x) * cos(y), d)
+    C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical{1}()⊗Ultraspherical{1}())
+    @test_approx_eq (C*f)(0.1,0.2) f(0.1,0.2)
+    Dx = Derivative(d, [1,0])
+    f = Fun((x,y) -> sin(x) * cos(y), d)
+    fx = Fun((x,y) -> cos(x) * cos(y), d)
+    @test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
+    Dy = Derivative(d, [0,1])
+    fy = Fun((x,y) -> -sin(x) * sin(y), d)
+    @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
+    L=Dx+Dy
+    @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
+
+    B=ldirichlet(d[1])⊗ldirichlet(d[2])
+    @test_approx_eq B*f f(-1.,-1.)
+
+    B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
+    @test_approx_eq B*f f(0.1,-1.)
+
+    B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
+    @test_approx_eq B*f f(0.1,0.3)
+
+    B=Evaluation(d,(0.1,0.3))
+    @test_approx_eq B*f f(0.1,0.3)
+end
+
+let d = Space([0,1]) * Space([0,2])
+    Dx = Derivative(d, [1,0])
+    f = Fun((x,y) -> sin(x) * cos(y), d)
+    fx = Fun((x,y) -> cos(x) * cos(y), d)
+    @test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
+    Dy = Derivative(d, [0,1])
+    fy = Fun((x,y) -> -sin(x) * sin(y), d)
+    @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
+    L=Dx+Dy
+    @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
+
+    B=ldirichlet(d[1])⊗ldirichlet(d[2])
+    @test abs(B*f-f(0.,0.)) ≤ 10eps()
+
+    B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
+    @test_approx_eq B*f f(0.1,0.)
+
+    B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
+    @test_approx_eq B*f f(0.1,0.3)
+
+    B=Evaluation(d,(0.1,0.3))
+    @test_approx_eq B*f f(0.1,0.3)
+end

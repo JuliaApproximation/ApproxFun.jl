@@ -1,8 +1,8 @@
 
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
-    @eval $op(d::PiecewiseSpace,k...)=interlace($op(d.spaces,k...))
-    @eval $op(d::UnionDomain,k...)=interlace($op(d.domains,k...))
+    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...))
+    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...))
 end
 
 
@@ -36,13 +36,13 @@ Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::Multiplication
 # represents an operator applied to all spaces in an array space
 
 
-immutable DiagonalArrayOperator{B<:BandedOperator,T<:Number} <: BandedOperator{T}
+immutable DiagonalArrayOperator{B<:Operator,T<:Number} <: Operator{T}
     op::B
     dimensions::Tuple{Vararg{Int}}
 end
 
-DiagonalArrayOperator{T}(op::BandedOperator{T},dms::Tuple{Vararg{Int}})=DiagonalArrayOperator{typeof(op),T}(op,dms)
-#DiagonalArrayOperator{T}(op::BandedOperator{T},dms::Int)=DiagonalArrayOperator(op,(dms,))
+DiagonalArrayOperator{T}(op::Operator{T},dms::Tuple{Vararg{Int}})=DiagonalArrayOperator{typeof(op),T}(op,dms)
+#DiagonalArrayOperator{T}(op::Operator{T},dms::Int)=DiagonalArrayOperator(op,(dms,))
 
 
 function bandinds(D::DiagonalArrayOperator)
@@ -203,6 +203,12 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
                 p=perm(cs1,cs2)
                 $OP($TYP(S1.spaces[p]),S2)
             elseif length(S1)==length(S2)==2  &&
+                    $OP(S1[1],S2[1])!=NoSpace() &&
+                    $OP(S1[2],S2[2])!=NoSpace()
+                #TODO: general length
+                $TYP($OP(S1[1],S2[1]),
+                     $OP(S1[2],S2[2]))
+            elseif length(S1)==length(S2)==2  &&
                     $OP(S1[1],S2[2])!=NoSpace() &&
                     $OP(S1[2],S2[1])!=NoSpace()
                 #TODO: general length
@@ -266,7 +272,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->cho
 function Multiplication{S,T,DD}(f::Fun{MatrixSpace{S,T,DD,1}},sp::VectorSpace)
     @assert size(space(f),2)==length(sp)
     m=mat(f)
-    MultiplicationWrapper(f,interlace(BandedOperator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
+    MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))
 end
 
 
@@ -299,16 +305,18 @@ coefficienttimes{S1<:PiecewiseSpace,S2<:PiecewiseSpace}(f::Fun{S1},g::Fun{S2})=d
 
 # This makes sure that the defaults from a given Domain are respected for the UnionDomain.
 
-DefiniteIntegral(d::UnionDomain) = ConcreteDefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
-DefiniteLineIntegral(d::UnionDomain) = ConcreteDefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
+DefiniteIntegral(d::UnionDomain) =
+    ConcreteDefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
+DefiniteLineIntegral(d::UnionDomain) =
+    ConcreteDefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
 
 ####### This is a hack to get the Faraday Cage working.
-function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},kr::Range)
-    d = domain(Σ)
-    n = arclength(d)
-    promote_type(T,eltype(d))[k ≤ n? one(T) : zero(T) for k=kr]
+function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},k::Integer)
+    n = length(domain(Σ))
+    k ≤ n? one(T) : zero(T)
 end
-datalength{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T})=arclength(domain(Σ))
+bandinds{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T}) =
+    0,arclength(domain(Σ))-1
 ####### This is a hack to get the Faraday Cage working.
 
 ## TensorSpace of two PiecewiseSpaces

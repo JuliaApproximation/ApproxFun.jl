@@ -134,8 +134,10 @@ end
     g=C.args[1]
     @assert isa(g,Fun)
 
+    seriestype --> :scatter
     yscale --> :log10
-
+    markersize := max(round(Int,5 - log10(ncoefficients(g))),1)
+    xlims --> (0,1.01ncoefficients(g))
     abs(g.coefficients)
 end
 
@@ -166,7 +168,7 @@ end
 
     for k=1:length(pts)
         @series begin
-            primary := (k==1)
+            primary --> (k==1)
             ones(2)*pts[k],[0,1]*ws[k]
         end
         @series begin
@@ -199,22 +201,44 @@ end
     n=length(pts)
     ws=pad(g.coefficients,dimension(space(g)))
 
-    ylims --> (minimum(ws)-1.,maximum(ws)+1.)
-    @series begin
-        primary := true
-        pts[1:2],ones(2)*ws[1]
+    lnsx=Array(Float64,0)
+    lnsy=Array(Float64,0)
+    dtsx=Array(Float64,0)
+    dtsy=Array(Float64,0)
+    for k=1:n-1
+        push!(lnsx,pts[k])
+        push!(lnsy,ws[k])
+        push!(lnsx,pts[k+1])
+        push!(lnsy,ws[k])
+
+
+        if k != n-1
+            # dotted line, with NaN to separate
+            push!(dtsx,pts[k+1])
+            push!(dtsx,pts[k+1])
+            push!(dtsx,pts[k+1])
+
+            push!(dtsy,ws[k])
+            push!(dtsy,ws[k+1])
+            push!(dtsy,NaN)
+
+            # extra point for NaN
+            push!(lnsx,pts[k+1])
+            push!(lnsy,NaN)
+        end
     end
 
-    for k=2:length(ws)
-        @series begin
-           primary := false
-           linestyle --> :dot
-           ones(2)*pts[k],ws[k-1:k]
-        end
-        @series begin
-            primary := false
-            pts[k:k+1],ones(2)*ws[k]
-        end
+
+    @series begin
+        primary --> true
+        lnsx,lnsy
+    end
+
+    @series begin
+       primary := false
+       linestyle := :dot
+       fillrange := nothing
+       dtsx,dtsy
     end
 end
 
@@ -228,6 +252,21 @@ end
         SV<:TensorSpace}(g::ProductFun{S,V,SV})
     g=chop(g,10e-10)
     g=pad(g,max(size(g,1),20),max(size(g,2),20))
+    vals=values(g)
+
+    seriestype --> :surface
+
+    if norm(imag(vals),Inf)>10e-9
+        warn("Imaginary part is non-neglible.  Only plotting real part.")
+    end
+
+    points(space(g,1),size(vals,1)),points(space(g,2),size(vals,2)),real(vals).'
+end
+
+@recipe function f{S<:UnivariateSpace,
+                    V<:UnivariateSpace,
+        SV<:TensorSpace}(g::LowRankFun{S,V,SV})
+    g=chop(g,10e-10)
     vals=values(g)
 
     seriestype --> :surface

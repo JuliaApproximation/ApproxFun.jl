@@ -6,7 +6,8 @@ immutable ProductDomain{D,T,dim} <: Domain{T,dim}
     domains::D
 end
 
-ProductDomain(d::Tuple)=ProductDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(ndims,+,d)}(d)
+ProductDomain(d::Tuple) =
+    ProductDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(dimension,+,d)}(d)
 
 fromcanonical(d::BivariateDomain,x::Tuple)=fromcanonical(d,x...)
 tocanonical(d::BivariateDomain,x::Tuple)=tocanonical(d,x...)

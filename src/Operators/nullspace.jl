@@ -1,81 +1,55 @@
 
 
-
-#assume dimension of kernel is range space
-Base.nullspace(A::BandedOperator)=nullspace(A,order(rangespace(A)))
-
-
-function applygivens!(a,b,Q1,Qk)
-    @simd for j=1:length(Q1)
-        @inbounds Q1[j],Qk[j]=a*Q1[j]+b*Qk[j],-b*Q1[j]+a*Qk[j]
-    end
+function Base.nullspace{T}(A::Operator{T};tolerance=10eps(real(T)),maxlength=1_000_000)
+   K=transpose_nullspace(qrfact(A'),tolerance,maxlength)
+    # drop extra rows, and use QR to determine rank
+    Q,R=qr(K,Val{true})
+    ind=findfirst(r->abs(r)≤100tolerance,diag(R))
+    Kret=ind==0?Q:Q[:,1:ind-1]
+    Fun(vec(Kret'),ArraySpace(domainspace(A),1,ind-1))
 end
 
 
+function transpose_nullspace(QR::QROperator,tolerance,maxlength)
+    T=eltype(QR)
+    resizedata!(QR,:,100)
 
-#d is number of elements in the kernel
+    m=size(QR.H,1)
+    K=zeros(100,m-1)
+    K[1:m-1,1:m-1]=eye(m-1)
 
-function Base.nullspace{T<:Number}(A::BandedOperator{T},d;maxlength::Int=100000,
-                                                        tolerance::T=eps(T))
-    M=MutableOperator(A')
-    m=bandinds(A)[end]
-    n=m+100
-    resizedata!(M,n)
-    Q=Vector{T}[zeros(T,n) for j=1:m]
-    for j=1:m
-        Q[j][j]=one(T)
+    for k=1:10
+        v=QR.H[:,k]
+        QQ=eye(T,m)-2v*v'
+        K[:,:]=K*QQ[1:end-1,2:end]
+        K[k+m-1,:]=QQ[end,2:end]
     end
+    k=11
+    α=0.9
 
-    Q1=Q[1]
+    while slnorm(K,floor(Int,k^α),:) >tolerance*k
+        if k > maxlength
+            warn("Max length of $maxlength reached.")
+            break
+        end
 
-    k=0
+        if k ≥ QR.ncols
+            resizedata!(QR,:,k+100)
+        end
 
-    while slnorm(M.data,k+1:k+d,:)>tolerance  && k <= maxlength
+        v=QR.H[:,k]
+        QQ=(eye(m)-2v*v')
+        K[:,:]=K*QQ[1:end-1,2:end]
+
+        if k+m-1 > size(K,1)
+            K=pad(K,k+m+100,:)
+        end
+        K[k+m-1,:]=QQ[end,2:end]
         k+=1
-
-        if k+m+d >= n
-            n=2n
-            resizedata!(M,n)
-
-            for j=1:m
-                Q[j]=[Q[j];zeros(T,n)]
-            end
-        end
-
-        Q1=Q[1]
-
-        for j=1:m-1
-            a,b=givensreduceab!(M,k,k+j,k)
-            applygivens!(a,b,Q1,Q[1+j] )
-        end
-
-
-        for j=1:m-1
-            @inbounds Q[j]=Q[j+1]
-        end
-
-        a,b=givensreduceab!(M,k,k+m,k)
-
-        Q[m] = Q1
-        Q[m] *= -b
-        Q[m][k+m] += a
     end
 
-
-    ds=domainspace(A)
-    Fun{typeof(ds),T}[Fun(Q[j][1:k],ds) for j=1:d]
+    K[1:floor(Int,k^α),:]
 end
 
 
-Base.nullspace{T<:BandedOperator}(A::Array{T,2},d)=nullspace(interlace(A),d)
-
-function Base.nullspace{T<:BandedOperator}(A::Array{T,2})
-    # We assume ultraspherical space gives dimension of kernel
-    d = 0
-    A=promotespaces(A)
-    for k=1:size(A,1)
-        d += order(rangespace(A[k,1]))
-    end
-
-    nullspace(A,d)
-end
+Base.nullspace{OO<:Operator}(A::Array{OO};kwds...) = nullspace(interlace(A);kwds...)

@@ -248,7 +248,7 @@ for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
         function $OPrule(A::JacobiWeight,B::JacobiWeight)
             if domainscompatible(A,B) && isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
                 ms=$OP(A.space,B.space)
-                if min(A.α,B.α)==0.&&min(A.β,B.β)==0.
+                if min(A.α,B.α)==0.0 && min(A.β,B.β) == 0.0
                     return ms
                 else
                     return JacobiWeight(min(A.α,B.α),min(A.β,B.β),ms)
@@ -332,7 +332,7 @@ defaultConversion{JS,D<:IntervalDomain}(A::JacobiWeight{JS,D},B::RealUnivariateS
 
 ## Evaluation
 
-function  Base.getindex{J<:JacobiWeight}(op::Evaluation{J,Bool},kr::Range)
+function  Base.getindex{J<:JacobiWeight}(op::ConcreteEvaluation{J,Bool},kr::Range)
     S=op.space
     @assert op.order<=1
     d=domain(op)
@@ -344,7 +344,8 @@ function  Base.getindex{J<:JacobiWeight}(op::Evaluation{J,Bool},kr::Range)
                 2^S.α*getindex(Evaluation(S.space,op.x),kr)
             else #op.order ===1
                 @assert isa(d,IntervalDomain)
-                2^S.α*getindex(Evaluation(S.space,op.x,1),kr)+(tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
+                2^S.α*getindex(Evaluation(S.space,op.x,1),kr)+
+                    (tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
             end
         else
             @assert op.order==0
@@ -398,6 +399,13 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             end
         end
 
-        datalength{λ,D<:Interval}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D}})=(domainspace(Σ).α==domainspace(Σ).β==λ-0.5)?1:Inf
+        function bandinds{λ,D<:Interval}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D}})
+            α,β = domainspace(Σ).α,domainspace(Σ).β
+            if α==β && isapproxinteger(α-0.5-λ) && λ ≤ ceil(Int,α)
+                0,2*(ceil(Int,α)-λ)
+            else
+                0,∞
+            end
+        end
     end
 end

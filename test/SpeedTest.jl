@@ -1,9 +1,5 @@
 using ApproxFun, Base.Test
 
-# This avoids getting killed on Travis.cl
-if OS_NAME == :Darwin
-    gc_enable(false)
-end
 
 c = rand(1000)
 x=rand(10000)
@@ -50,7 +46,3 @@ roots(f)
 roots(f)
 @time roots(f)
 println("Roots: Time should be ~0.13")
-
-if OS_NAME == :Darwin
-    gc_enable(true)
-end

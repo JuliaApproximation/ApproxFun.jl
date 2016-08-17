@@ -28,11 +28,11 @@ end
 
 Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
 
-AnyInterval{T}(::Type{T})=Interval{T}(NaN,NaN)
-AnyInterval()=AnyInterval(Float64)
-isambiguous(d::Interval)=all(isnan(d.a)) && all(isnan(d.b))
-Base.convert{T<:Number}(::Type{Interval{T}},::AnyDomain)=AnyInterval(T)
-Base.convert{IT<:Interval}(::Type{IT},::AnyDomain)=AnyInterval()
+AnyInterval{T}(::Type{T}) = Interval{T}(NaN,NaN)
+AnyInterval() = AnyInterval(Float64)
+isambiguous(d::Interval) = all(isnan(d.a)) && all(isnan(d.b))
+Base.convert{T<:Number}(::Type{Interval{T}},::AnyDomain) = AnyInterval(T)
+Base.convert(::Type{Interval},::AnyDomain) = AnyInterval()
 
 
 ## Information

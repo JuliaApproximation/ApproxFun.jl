@@ -1,6 +1,8 @@
 export DefiniteIntegral,DefiniteLineIntegral
 
-abstract CalculusFunctional{S,T} <: Functional{T}
+abstract CalculusFunctional{S,T} <: Operator{T}
+
+@functional CalculusFunctional
 
 ##TODO: Add ConcreteOp
 
@@ -12,7 +14,7 @@ macro calculus_functional(Op)
         immutable $ConcOp{S,T} <: $Op{S,T}
             domainspace::S
         end
-        immutable $WrappOp{BT<:Functional,S<:Space,T} <: $Op{S,T}
+        immutable $WrappOp{BT<:Operator,S<:Space,T} <: $Op{S,T}
             func::BT
         end
 
@@ -29,9 +31,6 @@ macro calculus_functional(Op)
 
         Base.convert{T}(::Type{Operator{T}},Σ::$ConcOp) =
             T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace)
-        Base.convert{T}(::Type{Functional{T}},Σ::$ConcOp) =
-            T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace)
-
 
         domain(Σ::$ConcOp) = domain(Σ.domainspace)
         domainspace(Σ::$ConcOp) = Σ.domainspace
@@ -39,21 +38,18 @@ macro calculus_functional(Op)
         getindex(::$ConcOp{UnsetSpace},kr::Range) =
             error("Spaces cannot be inferred for operator")
 
-        $WrappOp(op::Functional) =
+        $WrappOp(op::Operator) =
             $WrappOp{typeof(op),typeof(domainspace(op)),eltype(op)}(op)
 
 
         Base.convert{T}(::Type{Operator{T}},Σ::$WrappOp) =
             T==eltype(Σ)?Σ:$WrappOp(convert(Operator{T},Σ.func))
-        Base.convert{T}(::Type{Functional{T}},Σ::$WrappOp) =
-            T==eltype(Σ)?Σ:$WrappOp(convert(Functional{T},Σ.func))
-
 
         #Wrapper just adds the operator it wraps
         getindex(D::$WrappOp,k::Range) = D.func[k]
         getindex(D::$WrappOp,k::Integer) = D.func[k]
         domainspace(D::$WrappOp) = domainspace(D.func)
-        datalength(D::$WrappOp) = datalength(D.func)
+        bandinds(D::$WrappOp) = bandinds(D.func)
     end)
 end
 
@@ -83,8 +79,9 @@ function DefiniteIntegral(sp::Space)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         ConcreteDefiniteIntegral{typeof(sp),eltype(sp)}(sp)
     else
-        M=Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))
-        DefiniteIntegralWrapper(SpaceFunctional(DefiniteIntegral(rangespace(M))*M,sp))
+        M = Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))
+        Op = DefiniteIntegral(rangespace(M))*M
+        DefiniteIntegralWrapper(SpaceOperator(Op,sp,rangespace(Op)))
     end
 end
 
@@ -92,7 +89,16 @@ function DefiniteLineIntegral(sp::Space)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         ConcreteDefiniteLineIntegral{typeof(sp),eltype(sp)}(sp)
     else
-        M=Multiplication(abs(fromcanonicalD(sp)),setcanonicaldomain(sp))
-        DefiniteLineIntegralWrapper(SpaceFunctional(DefiniteLineIntegral(rangespace(M))*M,sp))
+        M = Multiplication(abs(fromcanonicalD(sp)),setcanonicaldomain(sp))
+        Op = DefiniteLineIntegral(rangespace(M))*M
+        DefiniteLineIntegralWrapper(SpaceOperator(Op,sp,rangespace(Op)))
     end
 end
+
+
+#TODO: Remove SPECIALOPS reimplement
+# *{T,D<:DefiniteIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = bilinearform(A.op.f,b)
+# *{T,D<:DefiniteLineIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = linebilinearform(A.op.f,b)
+# *{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},
+#   M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) =
+#     Fun(A.func*b)

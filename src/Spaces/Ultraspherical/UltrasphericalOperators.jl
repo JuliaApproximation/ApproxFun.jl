@@ -38,7 +38,7 @@ function evaluatechebyshev{T<:Number}(n::Integer,x::T)
 end
 
 
-function getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},j::Integer)
+function getindex{DD<:Interval}(op::ConcreteEvaluation{Chebyshev{DD},Bool},j::Integer)
     T=eltype(op)
     if op.order == 0
         ifelse(op.x || isodd(j),  # right rule
@@ -52,7 +52,7 @@ end
 
 
 
-function getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range)
+function getindex{DD<:Interval}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Range)
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -81,7 +81,7 @@ function getindex{DD<:Interval}(op::Evaluation{Chebyshev{DD},Bool},k::Range)
     scal!(cst,ret)
 end
 
-function getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},j::Integer)
+function getindex{DD<:Interval,M<:Real}(op::ConcreteEvaluation{Chebyshev{DD},M},j::Integer)
     if op.order == 0
         evaluatechebyshev(j,tocanonical(domain(op),op.x))[end]
     else
@@ -89,7 +89,7 @@ function getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},j::Integ
     end
 end
 
-function getindex{DD<:Interval,M<:Real}(op::Evaluation{Chebyshev{DD},M},k::Range)
+function getindex{DD<:Interval,M<:Real}(op::ConcreteEvaluation{Chebyshev{DD},M},k::Range)
     if op.order == 0
         evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
     else
@@ -143,7 +143,7 @@ end
 getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
 
 
-function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication{C,C,V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{C<:Chebyshev,V,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -170,7 +170,7 @@ function Base.copy{C<:Chebyshev,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication
     ret
 end
 
-function Base.copy{C<:Chebyshev,D,V,T}(S::SubBandedMatrix{T,ConcreteMultiplication{C,Ultraspherical{1,D},V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{C<:Chebyshev,D,V,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,Ultraspherical{1,D},V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -188,7 +188,7 @@ end
 
 
 
-function Base.copy{PS<:PolynomialSpace,V,T,C<:Chebyshev}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
+function Base.convert{PS<:PolynomialSpace,V,T,C<:Chebyshev}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,PS,V,T},
                                                                             Tuple{UnitRange{Int},UnitRange{Int}}})
     M=parent(S)
     kr,jr=parentindexes(S)
@@ -241,7 +241,8 @@ Derivative{λ,DD<:Interval}(sp::Ultraspherical{λ,DD},order::Integer)=ConcreteDe
 Integral{λ,DD<:Interval}(sp::Ultraspherical{λ,DD},order::Integer)=ConcreteIntegral(sp,order)
 
 
-rangespace{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=Ultraspherical{λ+D.order}(domain(D))
+rangespace{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}}) =
+    Ultraspherical{λ+D.order}(domain(D))
 bandinds{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=0,D.order
 bandinds{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}})=-D.order,0
 Base.stride{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}})=D.order
@@ -303,7 +304,7 @@ function Conversion{a,b,DD}(A::Ultraspherical{a,DD},B::Ultraspherical{b,DD})
     @assert b >= a
 
     if b==a
-        eye(A)
+        ConversionWrapper(eye(A))
     elseif b==a+1
         ConcreteConversion(A,B)
     else
@@ -356,3 +357,23 @@ end
 
 coefficients(g::Vector,::Ultraspherical{1},::Chebyshev)=ultraiconversion(g)
 coefficients(g::Vector,::Chebyshev,::Ultraspherical{1})=ultraconversion(g)
+
+## Clenshaw-Curtis functional
+
+for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
+    ConcFunc = parse("Concrete"*string(Func))
+    @eval begin
+        function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},k::Integer)
+            d = domain(Σ)
+            C = $Len(d)/2
+
+            isodd(k) ? 2C/(k*(2-k)) : zero(T)
+        end
+        function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},kr::Range)
+            d = domain(Σ)
+            C = $Len(d)/2
+
+            promote_type(T,typeof(C))[isodd(k) ? 2C/(k*(2-k)) : zero(T) for k in kr]
+        end
+    end
+end

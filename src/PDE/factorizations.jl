@@ -9,7 +9,7 @@
 
 abstract AbstractPDEOperatorSchur
 
-immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:Number,FT<:Functional} <: AbstractPDEOperatorSchur
+immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,FT<:Operator} <: AbstractPDEOperatorSchur
     Bx::Vector{FT}
     Lx::Operator{LT}
     Mx::Operator{MT}
@@ -18,37 +18,37 @@ immutable PDEOperatorSchur{OS<:AbstractOperatorSchur,LT<:Number,MT<:Number,ST<:N
     indsBx::Vector{Int}
     indsBy::Vector{Int}
 
-    Rdiags::Vector{SavedBandedOperator{ST}}
+    Rdiags::Vector{QROperator}
 end
 
 #TODO: Functional type?
-Base.eltype{OS,LT,MT,ST,FT}(PO::PDEOperatorSchur{OS,LT,MT,ST,FT})=promote_type(eltype(PO.S),LT,MT,ST)
+Base.eltype{OS,LT,MT,FT}(PO::PDEOperatorSchur{OS,LT,MT,FT})=promote_type(eltype(PO.S),LT,MT)
 
 
 function PDEOperatorSchur{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)
     Xops=promotespaces([Lx,Mx])
-    Lx=SavedBandedOperator(Xops[1]);Mx=SavedBandedOperator(Xops[2])
+    Lx=cache(Xops[1]);Mx=cache(Xops[2])
 
     ny=size(S,1)
     nbcs=numbcs(S)
     RT=promote_type(LT,MT,BT,ST)
-    Rdiags=Array(SavedBandedOperator{RT},ny)
-    resizedata!(Lx,ny);resizedata!(Mx,ny)
+    Rdiags=Array(QROperator,ny)
+    resizedata!(Lx,ny,:);resizedata!(Mx,ny,:)
 
 
     for k=1:ny-nbcs
         ##TODO: Do block case
-        Rdiags[k]=SavedBandedOperator(PlusOperator(BandedOperator{RT}[getdiagonal(S,k,1)*Lx,getdiagonal(S,k,2)*Mx]))
-        resizedata!(Rdiags[k],ny)
+        Rdiags[k]=qrfact([Bx;PlusOperator(Operator{RT}[getdiagonal(S,k,1)*Lx,getdiagonal(S,k,2)*Mx])])
+        resizedata!(Rdiags[k],:,ny)
     end
 
     if isempty(Bx)
-        funcs=Array(SavedFunctional{Float64},0)
+        funcs=Array(CachedOperator{Float64},0)
     else
-        funcs=Array(SavedFunctional{mapreduce(eltype,promote_type,Bx)},length(Bx))
+        funcs=Array(CachedOperator{mapreduce(eltype,promote_type,Bx)},length(Bx))
         for k=1:length(Bx)
-            funcs[k]=SavedFunctional(Bx[k])
-            resizedata!(funcs[k],ny)
+            funcs[k]=cache(Bx[k])
+            resizedata!(funcs[k],:,ny)
         end
     end
 
@@ -59,12 +59,15 @@ end
 
 
 
-PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::Operator,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,Lx,Mx,S,[1:length(Bx)],length(Bx)+[1:numbcs(S)])
-PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,Lx,ConstantOperator(Mx.λ),S)
-PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::AbstractOperatorSchur)=PDEOperatorSchur(Bx,ConstantOperator(Lx.λ),Mx,S)
+PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::Operator,S::AbstractOperatorSchur) =
+    PDEOperatorSchur(Bx,Lx,Mx,S,[1:length(Bx)],length(Bx)+[1:numbcs(S)])
+PDEOperatorSchur(Bx::Vector,Lx::Operator,Mx::UniformScaling,S::AbstractOperatorSchur) =
+    PDEOperatorSchur(Bx,Lx,ConstantOperator(Mx.λ),S)
+PDEOperatorSchur(Bx::Vector,Lx::UniformScaling,Mx::Operator,S::AbstractOperatorSchur) =
+    PDEOperatorSchur(Bx,ConstantOperator(Lx.λ),Mx,S)
 
 
-function PDEOperatorSchur(Bx,By,A::BandedOperator,ny::Integer,indsBx,indsBy)
+function PDEOperatorSchur(Bx,By,A::Operator,ny::Integer,indsBx,indsBy)
     @assert iskronsumop(A)
     ops=sumops(A)
     @assert all(isproductop,ops)
@@ -106,94 +109,17 @@ domain(P::PDEOperatorSchur)=domain(domainspace(P))
 
 
 
-#############
-# PDEStrideOperatorSchur
-#############
-
-
-immutable PDEStrideOperatorSchur  <: AbstractPDEOperatorSchur
-    odd
-    even
-end
-
-
-function PDEStrideOperatorSchur(Bx,Lx::Operator,Mx::Operator,S::StrideOperatorSchur,indsBx,indsBy)
-    @assert indsBy==[3,4]
-    Podd=PDEOperatorSchur(Bx,Lx,Mx,S.odd,indsBx,[indsBy[1]])
-    Peven=PDEOperatorSchur(Bx,Lx,Mx,S.even,indsBx,[indsBy[1]])
-
-    PDEStrideOperatorSchur(Podd,Peven)
-end
-
-###############
-# Product
-# Represents an operator on e.g. a Disk
-#############
-
-immutable PDEProductOperatorSchur{ST<:Number,
-                                  FT<:Functional,
-                                  DS<:AbstractProductSpace,
-                                  RS<:AbstractProductSpace,
-                                  S<:Space,
-                                  V<:Space} <: AbstractPDEOperatorSchur
-    Bx::Vector{Vector{FT}}
-    Rdiags::Vector{SavedBandedOperator{ST}}
-    domainspace::DS
-    rangespace::RS
-    indsBx::Vector{Int}
-end
-
-PDEProductOperatorSchur{ST,FT,S,V}(Bx::Vector{Vector{FT}},
-                                   Rdiags::Vector{SavedBandedOperator{ST}},
-                                   ds::AbstractProductSpace{Tuple{S,V}},rs,indsBx)=PDEProductOperatorSchur{ST,FT,
-                                                                                                    typeof(ds),typeof(rs),
-                                                                                                    S,V}(Bx,Rdiags,ds,rs,indsBx)
-
-Base.eltype{ST}(::PDEProductOperatorSchur{ST})=ST
-
-Base.length(S::PDEProductOperatorSchur)=length(S.Rdiags)
-
-domain(P::PDEProductOperatorSchur)=domain(domainspace(P))
-
-function PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::AbstractProductSpace,nt::Integer)
-    Bx=A[1:end-1]
-    L=A[end]
-
-    @assert isdiagop(L,2)
-
-    BxV=Array(Vector{SavedFunctional{Float64}},nt)
-    Rdiags=Array(SavedBandedOperator{Complex{Float64}},nt)
-    for k=1:nt
-        op=diagop(L,k)
-        csp=columnspace(sp,k)
-        Rdiags[k]=SavedBandedOperator(op)
-        #TODO: Type
-        BxV[k]=SavedFunctional{Float64}[SavedFunctional(diagop(Bxx,k)) for Bxx in Bx]
-        resizedata!(Rdiags[k],2nt+100)
-        for Bxx in BxV[k]
-            resizedata!(Bxx,2nt+100)
-        end
-    end
-    PDEProductOperatorSchur(BxV,Rdiags,sp,rangespace(L),1:length(Bx))
-end
-
-PDEProductOperatorSchur{OT<:Operator}(A::Vector{OT},sp::BivariateDomain,nt::Integer)=PDEProductOperatorSchur(A,Space(sp),nt)
-
-
-##TODO: Larger Bx
-bcinds(S::PDEProductOperatorSchur,k)=k==1?S.indsBx:[]
-domainspace(S::PDEProductOperatorSchur)=S.domainspace
-domainspace(S::PDEProductOperatorSchur,k)=S.domainspace[k]
-rangespace(S::PDEProductOperatorSchur)=S.rangespace
-
 
 ## Constructuor
 
 
-Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::AbstractOperatorSchur{BT,ST},indsBx,indsBy)=PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
-Base.schurfact{LT<:Number,MT<:Number,ST<:Number}(Bx,Lx::Operator{LT},Mx::Operator{MT},S::StrideOperatorSchur{ST},indsBx,indsBy)=PDEStrideOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
+Base.schurfact{LT<:Number,MT<:Number,BT<:Number,ST<:Number}(Bx,
+            Lx::Operator{LT},Mx::Operator{MT},
+            S::AbstractOperatorSchur{BT,ST},
+            indsBx,indsBy) =
+    PDEOperatorSchur(Bx,Lx,Mx,S,indsBx,indsBy)
 
-function Base.schurfact{T}(Bx,By,A::BandedOperator{BandedMatrix{T}},ny::Integer,indsBx,indsBy)
+function Base.schurfact(Bx,By,A::Operator,ny::Integer,indsBx,indsBy)
     @assert iskronsumop(A)
     opsx,opsy=simplifydekron(A)
     @assert length(opsx)==length(opsy)==2
@@ -217,21 +143,10 @@ end
 
 
 
+Base.schurfact{BT<:Operator}(A::Vector{BT},n::Integer) = schurfact(A,domain(A[end]),n)
+Base.schurfact(A::Operator,n::Integer) = schurfact([A],n)
 
 
-Base.schurfact{BT<:Operator}(A::Vector{BT},S::BivariateDomain,n::Integer)=PDEProductOperatorSchur(A,S,n)
-
-
-Base.schurfact{BT<:Operator}(A::Vector{BT},n::Integer)=schurfact(A,domain(A[end]),n)
-Base.schurfact{T}(A::BivariateOperator{T},n::Integer)=schurfact([A],n)
-
-function *(A::PDEProductOperatorSchur,F::ProductFun)
-    ret=copy(F.coefficients)
-    for k=1:length(ret)
-        ret[k]=A.Rdiags[k]*ret[k]
-    end
-    ProductFun(ret,space(F))
-end
 
 
 
@@ -247,6 +162,4 @@ function discretize{OT<:Operator}(A::Vector{OT},S...)
         kronfact(A,S...)
     end
 end
-discretize{T}(A::BivariateOperator{T},n::Integer)=discretize([A],n)
-
-
+discretize(A::Operator,n::Integer)=discretize([A],n)

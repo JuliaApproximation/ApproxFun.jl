@@ -1,7 +1,7 @@
 
 
 for OP in (:(Base.eigvals),:(Base.eigs))
-    @eval $OP(A::BandedOperator,n::Integer;tolerance::Float64=100eps())=$OP([A],n;tolerance=tolerance)
+    @eval $OP(A::Operator,n::Integer;tolerance::Float64=100eps())=$OP([A],n;tolerance=tolerance)
 end
 
 Base.eigvals{T<:Operator}(A::Vector{T},n::Integer;tolerance::Float64=100eps())=eigs(A,n;tolerance=tolerance)[1]
@@ -9,7 +9,7 @@ Base.eigvals{T<:Operator}(A::Vector{T},n::Integer;tolerance::Float64=100eps())=e
 function Base.eigs{T<:Operator}(A::Vector{T},n::Integer;tolerance::Float64=100eps())
     nf = length(A)-1
     for k=1:nf
-        @assert isa(A[k],Functional)
+        @assert isafunctional(A[k])
     end
     A = promotedomainspace(A,choosedomainspace(A))
     typ = mapreduce(eltype,promote_type,A)

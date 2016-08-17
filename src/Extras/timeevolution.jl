@@ -10,7 +10,7 @@ function RK(L,y,h)
     y+h*(k1+2k2+2k3+k4)/6.
 end
 
-function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp,tol=1000eps())
+function BDF2(B,A::Operator,g::Function,bcs,u0,h,m,glp,tol=1000eps())
     SBDF2 = [B;I-2.0/3.0*h*A]
 
     u1=u0
@@ -29,7 +29,7 @@ function BDF2(B,A::BandedOperator,g::Function,bcs,u0,h,m,glp,tol=1000eps())
     u2
 end
 
-function BDF2(L::BandedOperator,N::Function,u0,h,m,glp,tol=1000eps())
+function BDF2(L::Operator,N::Function,u0,h,m,glp,tol=1000eps())
     SBDF2 = I-2.0/3.0*h*L
 
     u1=u0
@@ -48,10 +48,10 @@ function BDF2(L::BandedOperator,N::Function,u0,h,m,glp,tol=1000eps())
     u2
 end
 
-function ETDRK4(L::BandedOperator,N::Function,u,t,h,m,glp,tol=10eps())
+function ETDRK4(L::Operator,N::Function,u,t,h,m,glp,tol=10eps())
     z = L*h
-    ez,ez2,h2ez2m1 = SavedBandedOperator(exp(z)),SavedBandedOperator(exp(z/2)),SavedBandedOperator(h/2*expm1(z/2))
-    hezα,h2ezβ,hezγ = SavedBandedOperator(h*expα(z)),SavedBandedOperator(2h*expβ(z)),SavedBandedOperator(h*expγ(z))
+    ez,ez2,h2ez2m1 = cache(exp(z)),cache(exp(z/2)),cache(h/2*expm1(z/2))
+    hezα,h2ezβ,hezγ = cache(h*expα(z)),cache(2h*expβ(z)),cache(h*expγ(z))
     push!(glp,u)
     yield()
 
@@ -78,7 +78,7 @@ end
 ## Multivariate
 
 
-function BDF4(B::Vector,op::BandedOperator,bcs::Vector,uin::MultivariateFun,h::Real,m::Integer,glp)
+function BDF4(B::Vector,op::Operator,bcs::Vector,uin::MultivariateFun,h::Real,m::Integer,glp)
     nt=size(uin,2)
     d=domain(uin)
     SBE   = discretize([B;I-h*op],d,nt)            # backward euler for first 2 time steps
@@ -106,10 +106,10 @@ function BDF4(B::Vector,op::BandedOperator,bcs::Vector,uin::MultivariateFun,h::R
     u4
 end
 
-BDF4(B::Vector,op::BandedOperator,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF4(B,op,zeros(length(B)),uin,h,m,glp)
+BDF4(B::Vector,op::Operator,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF4(B,op,zeros(length(B)),uin,h,m,glp)
 
 
-function BDF22(B::Vector,op::BandedOperator,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
+function BDF22(B::Vector,op::Operator,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
     nt=size(uin[1],2)
     SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
     SBDF = discretize([B;I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
@@ -131,7 +131,7 @@ function BDF22(B::Vector,op::BandedOperator,bcs::Vector,uin::Tuple{MultivariateF
     u4
 end
 
-function BDF22(B::Vector,op::BandedOperator,g::Function,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
+function BDF22(B::Vector,op::Operator,g::Function,bcs::Vector,uin::Tuple{MultivariateFun,MultivariateFun},h::Real,m::Integer,glp)
     nt=size(uin[1],2)
     SBE  = discretize([B;I-h^2*op],domain(uin[1]),nt)            # backward euler for first 2 time steps
     SBDF = discretize([B;I-4.0/9.0*h^2*op],domain(uin[1]),nt)    # BDF formula for subsequent itme steps
@@ -151,8 +151,8 @@ function BDF22(B::Vector,op::BandedOperator,g::Function,bcs::Vector,uin::Tuple{M
 end
 
 
-BDF22(B::Vector,op::BandedOperator,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF22(B,op,zeros(length(B)),(uin,uin),h,m,glp)
-BDF22(B::Vector,op::BandedOperator,g::Function,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF22(B,op,g,zeros(length(B)),(uin,uin),h,m,glp)
+BDF22(B::Vector,op::Operator,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF22(B,op,zeros(length(B)),(uin,uin),h,m,glp)
+BDF22(B::Vector,op::Operator,g::Function,uin::MultivariateFun,h::Real,m::Integer,glp)=BDF22(B,op,g,zeros(length(B)),(uin,uin),h,m,glp)
 
 
 ## GLPlot routines
@@ -192,7 +192,6 @@ function timeevolution(B::Vector,op,bcs::Vector,uin::MultivariateFun,h::Real,m=5
 end
 
 timeevolution(B::Vector,op,uin::MultivariateFun,h::Real,dat...)=timeevolution(B,op,zeros(length(B)),uin,h,dat...)
-timeevolution(B::BandedOperator,dat...)=timeevolution([B],dat...)
 
 
 timeevolution(B::Vector,op,bcs::Vector,uin::Fun,dat...)=timeevolution(B,op,bcs,ProductFun(uin),dat...)

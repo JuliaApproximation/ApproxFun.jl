@@ -53,7 +53,7 @@ end
 
 Recurrence(sp)=Recurrence{typeof(sp),promote_type(eltype(sp),eltype(domain(sp)))}(sp)
 
-Base.convert{T,S}(::Type{BandedOperator{T}},J::Recurrence{S})=Recurrence{S,T}(J.space)
+Base.convert{T,S}(::Type{Operator{T}},J::Recurrence{S})=Recurrence{S,T}(J.space)
 
 
 #####
@@ -82,10 +82,13 @@ immutable JacobiZ{S,T} <: TridiagonalOperator{T}
     z::T
 end
 
-JacobiZ(sp,z)=(T = promote_type(eltype(sp),eltype(domain(sp)),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
+JacobiZ(sp,z) =
+    (T = promote_type(eltype(sp),eltype(domain(sp)),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
 
-Base.convert{T,S}(::Type{BandedOperator{T}},J::JacobiZ{S})=JacobiZ{S,T}(J.space,J.z)
+Base.convert{T,S}(::Type{Operator{T}},J::JacobiZ{S}) = JacobiZ{S,T}(J.space,J.z)
 
+domainspace(::JacobiZ) = ℓ⁰
+rangespace(::JacobiZ) = ℓ⁰
 
 #####
 # recα/β/γ are given by
@@ -121,7 +124,7 @@ end
 getindex{PS<:PolynomialSpace,T,C<:PolynomialSpace}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
 
 
-function Base.copy{PS<:PolynomialSpace,V,T,C<:PolynomialSpace}(S::SubBandedMatrix{T,ConcreteMultiplication{C,PS,V,T},
+function Base.convert{PS<:PolynomialSpace,V,T,C<:PolynomialSpace}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,PS,V,T},
                                                                             Tuple{UnitRange{Int},UnitRange{Int}}})
     M=parent(S)
     kr,jr=parentindexes(S)
@@ -195,3 +198,12 @@ function clenshaw(sp::PolynomialSpace,c::AbstractVector,x)
     end
     muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[1])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[1])) # (A*x+B)*bk1+c[1]-C*bk2
 end
+
+
+
+
+
+# Supports constants in operators
+promoterangespace{CS<:ConstantSpace}(M::ConcreteMultiplication{CS,UnsetSpace},
+                                                ps::PolynomialSpace) =
+                        promoterangespace(Multiplication(M.f,space(M.f)),ps)
