@@ -13,10 +13,10 @@ import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
 
 import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
                         unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix,
-                        dot, dotu, normalize!, flipsign
-
-import BandedMatrices: colstart, colstop, colrange, rowstart, rowstop, rowrange, bandwidths
-
+                        dot, dotu, normalize!, flipsign,
+                        colstart, colstop, colrange, rowstart, rowstop, rowrange,
+                        bandwidths, gbmv!
+                        
 import Compat: view
 
 import FixedSizeArrays: Vec
