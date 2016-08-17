@@ -108,7 +108,7 @@ function gbmv!(α,A::BandedBlockBandedMatrix,x::Vector,β,y::Vector)
         throw(BoundsError())
     end
 
-    scale!(β,y)
+    BLAS.scal!(length(y),β,y,1)
     o=one(eltype(y))
 
     for J=1:blocksize(A,2)

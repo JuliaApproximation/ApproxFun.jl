@@ -146,6 +146,13 @@ blocklength{II}(it::CachedIterator{II,
 blocklength(it::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K::Int) = K
 
 
+# convert from block, subblock to tensor
+subblock2tensor(rt::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K,k) =
+    (k,K-k+1)
+
+subblock2tensor{II}(rt::CachedIterator{II,TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},K,k) =
+    (k,K-k+1)
+
 
 # TensorSpace
 # represents the tensor product of several subspaces
@@ -403,4 +410,3 @@ Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace) = Fun(fromtree(v),S)
 
 
 union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spaces))
-coefficients(v::Vector,a::TensorSpace,b::TensorSpace) = Fun(ProductFun(ProductFun(Fun(v,a)),b)).coefficients

@@ -35,6 +35,7 @@ isconstspace(::) = false
 ## Functionals
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 isbanded(A::Operator) = isfinite(bandinds(A,1)) && isfinite(bandinds(A,2))
+isbandedblockbanded(::) = false
 
 macro functional(FF)
     quote
@@ -240,7 +241,8 @@ macro wrapper(Wrap)
         ApproxFun.iswrapper(::$Wrap) = true
     end
     for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
-                 :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride))
+                 :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride),
+                 :isbandedblockbanded)
         ret = quote
             $ret
 
@@ -367,7 +369,19 @@ end
 
 
 
-Base.convert(::Type{AbstractMatrix},S::Operator) =
-    isbanded(S)?BandedMatrix(S):Matrix(S)
+Base.convert(::Type{AbstractMatrix},S::Operator) = Matrix(S)
+
+function Base.convert(::Type{AbstractMatrix},S::SubOperator)
+    if isinf(size(S,1)) || isinf(size(S,2))
+        throw(BoundsError())
+    end
+    if isbanded(parent(S))
+        BandedMatrix(S)
+    elseif isbandedblockbanded(parent(S))
+        BandedBlockBandedMatrix(S)
+    else
+        Matrix(S)
+    end
+end
 
 Base.convert(::Type{AbstractVector},S::Operator) = Vector(S)

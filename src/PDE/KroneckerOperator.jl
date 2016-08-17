@@ -94,6 +94,8 @@ end
 
 bandinds(K::KroneckerOperator) = all(isdiag,K.ops) ? (0,0) : (-∞,∞)
 
+isbandedblockbanded(K::KroneckerOperator) = all(isbanded,K.ops)
+
 blockbandinds(K::KroneckerOperator) =
     bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
 blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
@@ -324,6 +326,42 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
             kshft=kr[1]+blockstart(rt,K)-2
             for j=1:size(Bs,2),k=colrange(Bs,j)
                 Bs[k,j]=KO[k+kshft,j+jshft]
+            end
+        end
+    end
+
+    ret
+end
+
+
+function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},S::SubOperator{T,KKO})
+    kr,jr=parentindexes(S)
+    KO=parent(S)
+    l,u=blockbandinds(KO)
+    λ,μ=subblockbandinds(KO)
+
+    rt=rangetensorizer(KO)
+    dt=domaintensorizer(KO)
+    ret=bbbzeros(eltype(KO),-l,u,-λ,μ,
+                blocklengthrange(rt,kr),
+                blocklengthrange(dt,jr))
+
+    A,B=KO.ops
+    K=blockstop(rt,kr[end]);J=blockstop(dt,jr[end])
+    AA=A[1:K,1:J]
+    BB=B[1:K,1:J]
+
+
+
+    for J=1:blocksize(ret,2)
+        jshft=jr[1]+blockstart(dt,J)-2
+        for K=blockcolrange(ret,J)
+            Bs=viewblock(ret,K,J)
+            kshft=kr[1]+blockstart(rt,K)-2
+            for j=1:size(Bs,2),k=colrange(Bs,j)
+                κ,ν=subblock2tensor(rt,K,k)
+                ξ,μ=subblock2tensor(dt,J,j)
+                Bs[k,j]=AA[κ,ξ]*BB[ν,μ]
             end
         end
     end
