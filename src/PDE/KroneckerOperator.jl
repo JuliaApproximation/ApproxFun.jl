@@ -102,14 +102,31 @@ blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
 blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(K,k)
 subblockbandinds(K::KroneckerOperator,k::Integer) =
     k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
-subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer)=0
+subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 subblockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
-                       SpaceOperator,ConstantTimesOperator},k::Integer)=subblockbandinds(K.op,k)
+                       SpaceOperator,ConstantTimesOperator},k::Integer) = subblockbandinds(K.op,k)
 
 
+isbandedblockbanded(P::Union{PlusOperator,TimesOperator}) = all(isbandedblockbanded,P.ops)
+isbandedblockbanded(K::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
+                       SpaceOperator,ConstantTimesOperator}) = isbandedblockbanded(K.op)
 
+blockbandinds(P::PlusOperator,k::Int) =
+    mapreduce(op->blockbandinds(op,k),k==1?min:max,P.ops)
+blockbandinds(P::PlusOperator) = blockbandinds(P,1),blockbandinds(P,2)
 subblockbandinds(K::PlusOperator,k::Integer) =
     mapreduce(v->subblockbandinds(v,k),k==1?min:max,K.ops)
+
+blockbandinds(P::TimesOperator,k::Int) = mapreduce(op->blockbandinds(op,k),+,P.ops)
+subblockbandinds(P::TimesOperator,k::Int) = mapreduce(op->subblockbandinds(op,k),+,P.ops)
+blockbandinds(P::TimesOperator) = blockbandinds(P,1),blockbandinds(P,2)
+
+domaintensorizer(P::PlusOperator) = domaintensorizer(P.ops[1])
+rangetensorizer(P::PlusOperator) = rangetensorizer(P.ops[1])
+
+domaintensorizer(P::TimesOperator) = domaintensorizer(P.ops[end])
+rangetensorizer(P::TimesOperator) = rangetensorizer(P.ops[1])
+
 
 
 function subblockbandindssum(P,k)
@@ -252,7 +269,7 @@ Base.transpose(K::KroneckerOperator)=KroneckerOperator(K.ops[2],K.ops[1])
 
 for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper,:LaplacianWrapper),
     FUNC in (:domaintensorizer,:rangetensorizer,:blockbandinds,:subblockbandinds)
-    @eval $FUNC(S::$TYP) = $TYP($FUNC(S.op))
+    @eval $FUNC(S::$TYP) = $FUNC(S.op)
 end
 
 
@@ -314,9 +331,7 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
 
     rt=rangetensorizer(KO)
     dt=domaintensorizer(KO)
-    ret=bbbzeros(eltype(KO),-l,u,-λ,μ,
-                blocklengthrange(rt,kr),
-                blocklengthrange(dt,jr))
+    ret=bbbzeros(S)
 
 
     for J=1:blocksize(ret,2)
@@ -334,6 +349,7 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
 end
 
 
+#TODO: there's a bug here
 function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},S::SubOperator{T,KKO})
     kr,jr=parentindexes(S)
     KO=parent(S)

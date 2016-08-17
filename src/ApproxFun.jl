@@ -15,8 +15,8 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, 
                         unsafe_getindex, unsafe_setindex!, bandwidth, AbstractBandedMatrix,
                         dot, dotu, normalize!, flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
-                        bandwidths, gbmv!
-                        
+                        bandwidths, gbmv!, gbmm!
+
 import Compat: view
 
 import FixedSizeArrays: Vec

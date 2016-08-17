@@ -58,6 +58,18 @@ view(A::SubOperator,kr::UnitRange,jr::UnitRange) =
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
 bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
 
+function bbbzeros(S::SubOperator)
+    kr,jr=parentindexes(S)
+    KO=parent(S)
+    l,u=blockbandinds(KO)
+    λ,μ=subblockbandinds(KO)
+
+    rt=rangetensorizer(KO)
+    dt=domaintensorizer(KO)
+    bbbzeros(eltype(KO),-l,u,-λ,μ,
+            blocklengthrange(rt,kr),
+            blocklengthrange(dt,jr))
+end
 
 
 domainspace(S::SubOperator) = SubSpace(domainspace(parent(S)),parentindexes(S)[2])

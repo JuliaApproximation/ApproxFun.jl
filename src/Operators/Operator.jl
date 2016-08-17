@@ -342,10 +342,18 @@ BLAS.axpy!(a,X::Operator,Y::AbstractMatrix) = BLAS.axpy!(a,AbstractMatrix(X),Y)
 # this is for operators that implement copy via axpy!
 
 bzeros(S::Operator) = bzeros(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
+Base.zeros(S::Operator) = zeros(eltype(S),size(S,1),size(S,2))
+bbbzeros(S::Operator) = bbbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
+                    subblockbandwidth(S,1),subblockbandwidth(S,2),
+            blocklengthrange(rangetensorizer(S),1:size(S,1)),
+            blocklengthrange(domaintensorizer(S),1:size(S,2)))
 
 banded_convert_axpy!(S::Operator) =
     BLAS.axpy!(one(eltype(S)),S,bzeros(S))
-
+matrix_convert_axpy!(S::Operator) =
+    BLAS.axpy!(one(eltype(S)),S,zeros(S))
+bandedblockbanded_convert_axpy!(S::Operator) =
+        BLAS.axpy!(one(eltype(S)),S,bbbzeros(S))
 
 
 

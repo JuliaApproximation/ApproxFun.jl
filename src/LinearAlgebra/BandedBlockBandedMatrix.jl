@@ -38,8 +38,11 @@ BandedBlockBandedMatrix(data::Matrix,l,u,λ,μ,rows,cols) =
 BandedBlockBandedMatrix{T}(::Type{T},l,u,λ,μ,rows,cols) =
     BandedBlockBandedMatrix(Array(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
 
-bbbzeros{T}(::Type{T},l,u,λ,μ,rows,cols) =
-    BandedBlockBandedMatrix(zeros(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
+for FUNC in (:zeros,:rand,:ones)
+    BFUNC = parse("bbb"*string(FUNC))
+    @eval $BFUNC{T}(::Type{T},l,u,λ,μ,rows,cols) =
+        BandedBlockBandedMatrix($FUNC(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
+end
 
 
 Base.size(A::BandedBlockBandedMatrix) = sum(A.rows),sum(A.cols)
@@ -146,7 +149,47 @@ function Base.BLAS.axpy!(α,A::BandedBlockBandedMatrix,Y::Matrix)
     Y
 end
 
+function Base.BLAS.axpy!(α,A::BandedBlockBandedMatrix,Y::BandedBlockBandedMatrix)
+    if size(A) ≠ size(Y)
+        throw(BoundsError())
+    end
+
+    for J=1:blocksize(A,2), K=blockcolrange(A,J)
+        BLAS.axpy!(α,viewblock(A,K,J),viewblock(Y,K,J))
+    end
+    Y
+end
+
 Base.convert(::Type{Matrix},A::BandedBlockBandedMatrix) =
     BLAS.axpy!(one(eltype(A)),A,zeros(eltype(A),size(A,1),size(A,2)))
 
 Base.full(S::BandedBlockBandedMatrix) = convert(Matrix, S)
+
+
+
+## Algebra
+
+
+function Base.A_mul_B!(Y::BandedBlockBandedMatrix,
+                       A::BandedBlockBandedMatrix,
+                       B::BandedBlockBandedMatrix)
+    T=eltype(Y)
+    BLAS.scal!(length(Y.data),zero(T),Y.data,1)
+    o=one(T)
+    for J=1:blocksize(B,2),N=blockcolrange(B,J),K=blockcolrange(A,N)
+        gbmm!(o,viewblock(A,K,N),viewblock(B,N,J),o,viewblock(Y,K,J))
+    end
+    Y
+end
+
+function *{T<:Number,V<:Number}(A::BandedBlockBandedMatrix{T},
+                                B::BandedBlockBandedMatrix{V})
+    if A.cols ≠ B.rows
+        throw(DimensionMismatch("*"))
+    end
+    n,m=size(A,1),size(B,2)
+
+    A_mul_B!(BandedBlockBandedMatrix(promote_type(T,V),A.l+B.l,A.u+B.u,
+                                     A.λ+B.λ,A.μ+B.μ,A.rows,B.cols),
+             A,B)
+end

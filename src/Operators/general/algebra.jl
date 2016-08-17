@@ -108,6 +108,12 @@ end
 Base.convert{T,PP<:PlusOperator}(::Type{BandedMatrix},P::SubOperator{T,PP}) =
     banded_convert_axpy!(P)   # use axpy! to copy
 
+Base.convert{T,PP<:PlusOperator}(::Type{BandedBlockBandedMatrix},P::SubOperator{T,PP}) =
+    bandedblockbanded_convert_axpy!(P)   # use axpy! to copy
+
+Base.convert{T,PP<:PlusOperator}(::Type{Matrix},P::SubOperator{T,PP}) =
+    matrix_convert_axpy!(P)   # use axpy! to copy
+
 
 function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubOperator{T,PP},A::AbstractMatrix)
     for op in parent(P).ops
@@ -175,7 +181,8 @@ ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
     ConstantTimesOperator(c*op.λ,op.op)
 
 
-for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,:isafunctional)
+for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,
+           :isafunctional,:isbandedblockbanded)
     @eval $OP(C::ConstantTimesOperator) = $OP(C.op)
 end
 Base.size(C::ConstantTimesOperator,k::Integer) = size(C.op,k)
@@ -330,6 +337,7 @@ domain(P::TimesOperator)=commondomain(P.ops)
 
 
 bandinds(P::TimesOperator) = P.bandinds
+
 Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 
 for OP in (:rowstart,:rowstop)
@@ -364,7 +372,8 @@ function getindex(P::TimesOperator,k::Integer)
     P[1:1,k:k][1,1]
 end
 
-for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros))
+for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
+                    (:BandedBlockBandedMatrix,:bbbzeros))
     @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
         P=parent(S)
@@ -412,9 +421,9 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros))
 
         # The following returns a banded Matrix with all rows
         # for large k its upper triangular
-        BA=P.ops[end][krl[end,1]:krl[end,2],jr]
+        BA=$STyp(P.ops[end][krl[end,1]:krl[end,2],jr])
         for m=(length(P.ops)-1):-1:1
-            BA=P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]]*BA
+            BA=$STyp(P.ops[m][krl[m,1]:krl[m,2],krl[m+1,1]:krl[m+1,2]])*BA
         end
 
         BA
