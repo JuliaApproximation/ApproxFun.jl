@@ -220,8 +220,8 @@ macro wrappergetindex(Wrap)
             ApproxFun.unwrap_axpy!(α,P,A)
     end
 
-    for TYP in (:BandedMatrix,:BandedBlockBandedMatrix,:Matrix,
-                :AbstractMatrix,:Vector,:AbstractVector)
+    for TYP in (:(BandedMatrices.BandedMatrix),:(ApproxFun.BandedBlockBandedMatrix),
+                :Matrix,:AbstractMatrix,:Vector,:AbstractVector)
         ret = quote
             $ret
 
@@ -242,7 +242,7 @@ macro wrapper(Wrap)
     end
     for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
                  :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride),
-                 :isbandedblockbanded)
+                 :(ApproxFun.isbandedblockbanded))
         ret = quote
             $ret
 
