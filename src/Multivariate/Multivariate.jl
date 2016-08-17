@@ -33,7 +33,9 @@ arglength(f)=length(Base.uncompressed_ast(f.code.def).args[1])
 
 
 ## Convert between Fun and MultivariateFun
-Fun(f::ProductFun) = Fun(fromtensor(space(f),coefficients(f)),space(f))
+# need to chop extra zeros
+Fun(f::ProductFun) =
+    Fun(chop!(fromtensor(space(f),coefficients(f)),0),space(f))
 Fun(f::ProductFun,sp::TensorSpace) = Fun(ProductFun(f,sp))
 Fun(f::LowRankFun) = Fun(ProductFun(f))
 

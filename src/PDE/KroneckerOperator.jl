@@ -347,7 +347,7 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
                 blocklengthrange(dt,jr))
 
     A,B=KO.ops
-    K=blockstop(rt,kr[end]);J=blockstop(dt,jr[end])
+    K=block(rt,kr[end]);J=block(dt,jr[end])
     AA=A[1:K,1:J]
     BB=B[1:K,1:J]
 
