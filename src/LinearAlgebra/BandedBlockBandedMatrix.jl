@@ -3,8 +3,8 @@
 
 function blocklookup(rows)
     rowblocks=Array(Int,0)
-    for K in rows, k in 1:K
-        push!(rowblocks,K)
+    for ν in eachindex(rows), k in 1:rows[ν]
+        push!(rowblocks,ν)
     end
     rowblocks
 end
@@ -25,14 +25,21 @@ immutable BandedBlockBandedMatrix{T,RI,CI} <: AbstractMatrix{T}
     rowblocks::Vector{Int}
     colblocks::Vector{Int}
 
-    function BandedBlockBandedMatrix(data,l,u,λ,μ,rows,cols)
+    function BandedBlockBandedMatrix(data::Matrix{T},l,u,λ,μ,rows,cols)
         @assert size(data,1) == λ+μ+1
+        @assert size(data,2) == (l+u+1)*sum(cols)
         new(data,l,u,λ,μ,rows,cols,blocklookup(rows),blocklookup(cols))
     end
 end
 
-BandedBlockBandedMatrix(data,l,u,λ,μ,rows,cols) =
+BandedBlockBandedMatrix(data::Matrix,l,u,λ,μ,rows,cols) =
     BandedBlockBandedMatrix{eltype(data),typeof(rows),typeof(cols)}(data,l,u,λ,μ,rows,cols)
+
+BandedBlockBandedMatrix{T}(::Type{T},l,u,λ,μ,rows,cols) =
+    BandedBlockBandedMatrix(Array(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
+
+bbbzeros{T}(::Type{T},l,u,λ,μ,rows,cols) =
+    BandedBlockBandedMatrix(zeros(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
 
 
 Base.size(A::BandedBlockBandedMatrix) = sum(A.rows),sum(A.cols)
@@ -79,16 +86,16 @@ function Base.getindex{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},k::Int,j::Int
     if K < J-A.u || K > J+A.l
         zero(eltype(A))
     else
-        k2=k-sum(rows[1:K-1])
-        j2=j-sum(cols[1:J-1])
+        k2=k-sum(A.rows[1:K-1])
+        j2=j-sum(A.cols[1:J-1])
         viewblock(A,K,J)[k2,j2]
     end
 end
 
 function Base.setindex!(A::BandedBlockBandedMatrix,v,k::Int,j::Int)
     K=A.rowblocks[k];J=A.colblocks[j]
-    k2=k-sum(rows[1:K-1])
-    j2=j-sum(cols[1:J-1])
+    k2=k-sum(A.rows[1:K-1])
+    j2=j-sum(A.cols[1:J-1])
     setindex!(viewblock(A,K,J),v,k2,j2)
 end
 

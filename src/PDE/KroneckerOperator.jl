@@ -68,25 +68,25 @@ end
 
 
 function colstart(A::KroneckerOperator,k::Integer)
-    K=tensorblock(A.domaintensorizer,k)
-    tensorblockstart(A.rangetensorizer,max(1,K-blockbandwidth(A,2)))
+    K=block(A.domaintensorizer,k)
+    blockstart(A.rangetensorizer,max(1,K-blockbandwidth(A,2)))
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
-    K=tensorblock(A.domaintensorizer,k)
-    st=tensorblockstop(A.rangetensorizer,K+blockbandwidth(A,1))
+    K=block(A.domaintensorizer,k)
+    st=blockstop(A.rangetensorizer,K+blockbandwidth(A,1))
     # zero indicates above dimension
     st==0?size(A,1):min(size(A,1),st)
 end
 
 function rowstart(A::KroneckerOperator,k::Integer)
-    K=tensorblock(rangespace(A),k)
-    tensorblockstart(domainspace(A),max(1,K-blockbandwidth(A,1)))
+    K=block(rangespace(A),k)
+    blockstart(domainspace(A),max(1,K-blockbandwidth(A,1)))
 end
 
 function rowstop(A::KroneckerOperator,k::Integer)
-    K=tensorblock(rangespace(A),k)
-    st=tensorblockstop(domainspace(A),K+blockbandwidth(A,2))
+    K=block(rangespace(A),k)
+    st=blockstop(domainspace(A),K+blockbandwidth(A,2))
     # zero indicates above dimension
     st==0?size(A,2):min(size(A,2),st)
 end
@@ -125,6 +125,9 @@ subblockbandinds(K::Operator)=subblockbandinds(K,1),subblockbandinds(K,2)
 
 domainspace(K::KroneckerOperator) = K.domainspace
 rangespace(K::KroneckerOperator) = K.rangespace
+
+domaintensorizer(K::KroneckerOperator) = K.domaintensorizer
+rangetensorizer(K::KroneckerOperator) = K.rangetensorizer
 
 
 # we suport 4-indexing with KroneckerOperator
@@ -245,8 +248,9 @@ end
 
 Base.transpose(K::KroneckerOperator)=KroneckerOperator(K.ops[2],K.ops[1])
 
-for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper,:LaplacianWrapper)
-    @eval Base.transpose(S::$TYP) = $TYP(transpose(S.op))
+for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper,:LaplacianWrapper),
+    FUNC in (:domaintensorizer,:rangetensorizer,:blockbandinds,:subblockbandinds)
+    @eval $FUNC(S::$TYP) = $TYP($FUNC(S.op))
 end
 
 
@@ -282,3 +286,47 @@ end
 ## Functionals
 Evaluation(sp::TensorSpace,x::Vec) = EvaluationWrapper(sp,x,zeros(Int,length(x)),⊗(map(Evaluation,sp.spaces,x)...))
 Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
+
+
+
+
+### Copy
+
+# finds block lengths for a subrange
+function blocklengthrange(rt,kr)
+    KR=block(rt,first(kr)):block(rt,last(kr))
+    Klengths=Array(Int,length(KR))
+    for ν in eachindex(KR)
+        Klengths[ν]=blocklength(rt,KR[ν])
+    end
+    Klengths[1]+=blockstart(rt,KR[1])-kr[1]
+    Klengths[end]+=kr[end]-blockstop(rt,KR[end])
+    Klengths
+end
+
+function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
+    kr,jr=parentindexes(S)
+    KO=parent(S)
+    l,u=blockbandinds(KO)
+    λ,μ=subblockbandinds(KO)
+
+    rt=rangetensorizer(KO)
+    dt=domaintensorizer(KO)
+    ret=bbbzeros(eltype(KO),-l,u,-λ,μ,
+                blocklengthrange(rt,kr),
+                blocklengthrange(dt,jr))
+
+
+    for J=1:blocksize(ret,2)
+        jshft=jr[1]+blockstart(dt,J)-2
+        for K=blockcolrange(ret,J)
+            Bs=viewblock(ret,K,J)
+            kshft=kr[1]+blockstart(rt,K)-2
+            for j=1:size(Bs,2),k=colrange(Bs,j)
+                Bs[k,j]=KO[k+kshft,j+jshft]
+            end
+        end
+    end
+
+    ret
+end

@@ -138,6 +138,15 @@ f=LowRankFun(f)
 @test_approx_eq evaluate(f.A,0.1) map(f->f(0.1),f.A)
 
 
+## Kron operator
+Mx=Multiplication(Fun(cos),Chebyshev())
+My=Multiplication(Fun(sin),Chebyshev())
+K=Mx⊗My
+@test_approx_eq BandedBlockBandedMatrix(slice(K,1:10,1:10)) K[1:10,1:10]
+
+
+
+
 # 2d derivative (issue #346)
 let d = Chebyshev()^2
     f = Fun((x,y) -> sin(x) * cos(y), d)

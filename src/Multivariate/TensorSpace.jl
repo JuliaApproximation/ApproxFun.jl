@@ -86,26 +86,26 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-tensorblock(it::TensorIterator,k) = sum(it[k])-length(it.dimensions)+1
-tensorblock(ci::CachedIterator,k) = sum(ci[k])-length(ci.iterator.dimensions)+1
+block(it::TensorIterator,k) = sum(it[k])-length(it.dimensions)+1
+block(ci::CachedIterator,k) = sum(ci[k])-length(ci.iterator.dimensions)+1
 
-tensorblock(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
+block(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
     floor(Integer,sqrt(2n) + 1/2)
 
 function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
-    m=tensorblock(it,n)
+    m=block(it,n)
     p=findfirst(it,(1,m))
     j=1+n-p
     j,m-j+1
 end
 
 
-tensorblockstarttuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (1,K)
-tensorblockstoptuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (K,1)
+blockstarttuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (1,K)
+blockstoptuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (K,1)
 
 # this is for general dimension case, so we need to construct it so that
 # each entry is less than the dimension
-function tensorblockstarttuple(it::TensorIterator,K)
+function blockstarttuple(it::TensorIterator,K)
     ret=ones(Int,length(it.dimensions))
     for k=reverse(eachindex(ret))
         ret[k]=min(K,it.dimensions[k])
@@ -117,7 +117,7 @@ function tensorblockstarttuple(it::TensorIterator,K)
     tuple(zeros(Int,length(it.dimensions))...)
 end
 
-function tensorblockstoptuple(it::TensorIterator,K)
+function blockstoptuple(it::TensorIterator,K)
     ret=ones(Int,length(it.dimensions))
     for k=eachindex(ret)
         ret[k]=min(K,it.dimensions[k])
@@ -131,15 +131,19 @@ end
 
 
 
-tensorblockstart(it::TensorIterator,K) = findfirst(it,tensorblockstarttuple(it,K))
-tensorblockstop(it::TensorIterator,K) = findfirst(it,tensorblockstoptuple(it,K))
-tensorblockstart{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
-    findfirst(ci,tensorblockstarttuple(ci.iterator,K))
-tensorblockstop{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
-    findfirst(ci,tensorblockstoptuple(ci.iterator,K))
+blockstart(it::TensorIterator,K) = findfirst(it,blockstarttuple(it,K))
+blockstop(it::TensorIterator,K) = findfirst(it,blockstoptuple(it,K))
+blockstart{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
+    findfirst(ci,blockstarttuple(ci.iterator,K))
+blockstop{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
+    findfirst(ci,blockstoptuple(ci.iterator,K))
 
 
-
+blocklength(it,K::Int) = blockstop(it,K)-blockstart(it,K)+1
+blocklength(it,K::Range) = Int[blocklength(it,k) for k in K]
+blocklength{II}(it::CachedIterator{II,
+            TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},K::Int) = K
+blocklength(it::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K::Int) = K
 
 
 
@@ -349,18 +353,18 @@ function totensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Vector{T})
     ret
 end
 
-for OP in (:fromtensor,:totensor,:tensorblock,:tensorblockstart,:tensorblockstop)
+for OP in (:fromtensor,:totensor,:block,:blockstart,:blockstop)
     @eval $OP(s::Space,M) = $OP(tensorizer(s),M)
 end
 
 # TODO: remove
 function totree(v::Vector)
-   m=totensorblock(length(v))
+   m=toblock(length(v))
     r=Array(Vector{eltype(v)},m)
     for k=1:m-1
-        r[k]=v[fromtensorblock(k)]
+        r[k]=v[fromblock(k)]
     end
-    r[m]=pad!(v[fromtensorblock(m)[1]:end],m)
+    r[m]=pad!(v[fromblock(m)[1]:end],m)
     r
 end
 
