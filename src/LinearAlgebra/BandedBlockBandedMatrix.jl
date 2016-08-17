@@ -61,7 +61,7 @@ function viewblock{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},K::Int,J::Int)
         error("Cannot view zero blocks")
     else
         # column block K-J+A.u+1,J
-        S=sum(A.cols[1:J-1])*(l+u+1)  # number of columns before current block
+        S=sum(A.cols[1:J-1])*(A.l+A.u+1)  # number of columns before current block
         p=pointer(A.data)
         st=stride(A.data,2)
         sz=sizeof(p)
@@ -109,7 +109,7 @@ function gbmv!(α,A::BandedBlockBandedMatrix,x::Vector,β,y::Vector)
         for K=blockcolrange(A,J)
             kr=blockrows(A,K)
             B=viewblock(A,K,J)
-            gbmv!('N',α,B,view(v,jr),o,view(y,kr))
+            gbmv!('N',α,B,view(x,jr),o,view(y,kr))
         end
     end
     y

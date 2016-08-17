@@ -3,7 +3,7 @@ l=u=1
 N=M=10
 cols=rows=1:N
 data=ones(λ+μ+1,(l+u+1)*sum(cols))
-A=BandedBlockBandedMatrix(data,l,u,λ,μ,rows,cols)
-v=rand(size(A,1))
+A=ApproxFun.BandedBlockBandedMatrix(data,l,u,λ,μ,rows,cols)
+v=ones(size(A,1))
 M=full(A)
-    norm(A*v-M*v)
+@test norm(A*v-M*v) ≤ 100eps()
