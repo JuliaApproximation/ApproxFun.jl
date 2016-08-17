@@ -1,14 +1,16 @@
 
 immutable SubSpace{DS,IT,T,DD,dim}<: Space{T,DD,dim}
     space::DS
-    indices::IT
+    indexes::IT
 end
 
 SubSpace{T,DD,dim}(sp::Space{T,DD,dim},kr) =
     SubSpace{typeof(sp),typeof(kr),T,DD,dim}(sp,kr)
 
-domain(DS::SubSpace) = domain(DS.space)
+SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,sp.indexes[kr])
 
+domain(DS::SubSpace) = domain(DS.space)
+dimension(sp::SubSpace) = length(sp.indexes)
 
 
 

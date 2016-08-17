@@ -109,7 +109,7 @@ Base.convert{T,PP<:PlusOperator}(::Type{BandedMatrix},P::SubOperator{T,PP}) =
     banded_convert_axpy!(P)   # use axpy! to copy
 
 
-function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubBandedMatrix{T,PP},A::AbstractMatrix)
+function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubOperator{T,PP},A::AbstractMatrix)
     for op in parent(P).ops
         BLAS.axpy!(α,view(op,P.indexes[1],P.indexes[2]),A)
     end

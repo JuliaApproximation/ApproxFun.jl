@@ -217,9 +217,16 @@ macro wrappergetindex(Wrap)
 
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) =
             ApproxFun.unwrap_axpy!(α,P,A)
+    end
 
-        Base.convert{AM<:AbstractMatrix,T,OP<:$Wrap}(::Type{AM},P::ApproxFun.SubOperator{T,OP}) =
-            AM(view(parent(P).op,P.indexes[1],P.indexes[2]))
+    for TYP in (:BandedMatrix,:BandedBlockBandedMatrix,:Matrix,
+                :AbstractMatrix,:Vector,:AbstractVector)
+        ret = quote
+            $ret
+
+            Base.convert{T,OP<:$Wrap}(::Type{$TYP},P::ApproxFun.SubOperator{T,OP}) =
+                $TYP(view(parent(P).op,P.indexes[1],P.indexes[2]))
+        end
     end
 
     esc(ret)
@@ -234,7 +241,7 @@ macro wrapper(Wrap)
     end
     for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
                  :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride))
-        ret=quote
+        ret = quote
             $ret
 
             $func(D::$Wrap) = $func(D.op)
@@ -242,7 +249,7 @@ macro wrapper(Wrap)
     end
     for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
                     :(ApproxFun.rowstart),:(ApproxFun.rowstop))
-        ret=quote
+        ret = quote
             $ret
 
             $func(D::$Wrap,k::Integer) = $func(D.op,k)
@@ -332,9 +339,13 @@ BLAS.axpy!(a,X::Operator,Y::AbstractMatrix) = BLAS.axpy!(a,AbstractMatrix(X),Y)
 
 # this is for operators that implement copy via axpy!
 
+bzeros(S::Operator) = bzeros(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
+
 banded_convert_axpy!(S::Operator) =
-    BLAS.axpy!(one(eltype(S)),S,
-               bzeros(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2)))
+    BLAS.axpy!(one(eltype(S)),S,bzeros(S))
+
+
+
 
 function Base.convert(::Type{Matrix},S::Operator)
    if isinf(size(S,1)) || isinf(size(S,2))
@@ -360,6 +371,3 @@ Base.convert(::Type{AbstractMatrix},S::Operator) =
     isbanded(S)?BandedMatrix(S):Matrix(S)
 
 Base.convert(::Type{AbstractVector},S::Operator) = Vector(S)
-
-Base.convert{AM<:AbstractMatrix}(::Type{AM},S::Operator) = convert(AM,AbstractMatrix(S))
-Base.convert{AM<:AbstractVector}(::Type{AM},S::Operator) = convert(AM,AbstractVector(S))

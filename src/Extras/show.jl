@@ -148,7 +148,11 @@ function Base.show(io::IO,s::TensorSpace)
     show(io,s[d])
 end
 
-
+function Base.show(io::IO,s::SubSpace)
+    print(io,s.space)
+    print(io,"|")
+    show(io,s.indexes)
+end
 
 
 ## Fun
@@ -241,7 +245,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
 
             Base.showarray(io,M;header=false)
         else
-            Base.showarray(io,B[1:size(B,1),1:size(B,2)];header=false)
+            Base.showarray(io,AbstractMatrix(B)[1:size(B,1),1:size(B,2)];header=false)
         end
     end
 end

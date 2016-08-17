@@ -52,7 +52,7 @@ end
 view(A::Operator,::Colon,jr::Range) = view(A,1:size(A,1),jr)
 view(A::Operator,kr::Range,::Colon) = view(A,kr,1:size(A,2))
 
-view(A::SubOperator,kr,jr) =
+view(A::SubOperator,kr::UnitRange,jr::UnitRange) =
     view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
@@ -60,10 +60,11 @@ bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
 
 
 
-domainspace(S::SubOperator) = SubSpace(domainspace(S),parentindexes(S)[2])
-rangespace(S::SubOperator) = SubSpace(rangespace(S),parentindexes(S)[1])
+domainspace(S::SubOperator) = SubSpace(domainspace(parent(S)),parentindexes(S)[2])
+rangespace(S::SubOperator) = SubSpace(rangespace(parent(S)),parentindexes(S)[1])
 
 size(V::SubOperator) = V.dims
+size(V::SubOperator,k::Int) = V.dims[k]
 unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[V.indexes[1][k],V.indexes[2][j]]
 getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[V.indexes[1][k],V.indexes[2][j]]
 getindex(V::SubOperator,k::Integer,j::Range) = V.parent[V.indexes[1][k],V.indexes[2][j]]
