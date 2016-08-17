@@ -54,6 +54,7 @@ x=.1
 println("    Bessel tests")
 
 for ν in (1.,0.5,2.,3.5)
+    println("        ν = $ν")
     S=JacobiWeight(-ν,0.,Chebyshev([0.,1.]))
     D=Derivative(S)
     x=Fun(identity,domain(S))
@@ -72,6 +73,7 @@ for ν in (1.,0.5,2.,3.5)
 end
 
 for ν in (1.,0.5,0.123,3.5)
+    println("        ν = $ν")
     S=JacobiWeight(ν,0.,Chebyshev([0.,1.]))
     D=Derivative(S)
     x=Fun(identity,domain(S))
@@ -86,6 +88,8 @@ for ν in (1.,0.5,0.123,3.5)
 end
 
 ## f/g bugs
+
+println("    Jacobi singularity tests")
 
 x = Fun(identity)
 f = exp(x)./(1-x.^2)
