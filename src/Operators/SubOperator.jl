@@ -12,7 +12,7 @@ SubOperator(A,inds,dims,lu) =
                 typeof(dims),typeof(lu)}(A,inds,map(length,inds),lu)
 
 # cannot infer ranges
-SubOperator(A,inds,dims) = SubOperator(A,inds,(dims[1]-1,dims[2]-1))
+SubOperator(A,inds,dims) = SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
 SubOperator(A,inds) = SubOperator(A,inds,map(length,inds))
 
 function view(A::Operator,kr::AbstractCount,jr::AbstractCount)

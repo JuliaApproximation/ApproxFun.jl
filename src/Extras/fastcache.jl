@@ -55,7 +55,7 @@ function CachedOperator{T}(io::InterlaceOperator{T,1};padding::Bool=false)
 
         if K ≠ i
             # fill the fill matrix
-            ret.fill.V[:,bcrow] = view(io.ops[K],J:J,jr)
+            ret.fill.V[:,bcrow] = Matrix(view(io.ops[K],J:J,jr))
             ret.fill.U[k,bcrow] = 1
             bcrow += 1
         else
@@ -138,7 +138,7 @@ function CachedOperator{T}(io::InterlaceOperator{T,2};padding::Bool=false)
 
         if isfinite(rdims[K] )
             # fill the fill matrix
-            ret.fill.V[:,bcrow] = view(io,k:k,jr)
+            ret.fill.V[:,bcrow] = Matrix(view(io,k:k,jr))
             ret.fill.U[k,bcrow] = 1
             bcrow += 1
         else

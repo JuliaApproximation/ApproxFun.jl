@@ -208,13 +208,26 @@ end
 # this is especially important for \
 ######
 
-function Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedMatrix},S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
+function Base.convert{SS,PS,DI,RI,BI,T}(::Type{Matrix},
+                            S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
     kr,jr=parentindexes(S)
     P=parent(S)
-    ret=similar(S)
+    ret=Array(eltype(S),size(S,1),size(S,2))
     for k in eachindex(kr)
         K,κ=P.rangeinterlacer[kr[k]]
         @inbounds ret[k,:]=P.ops[K][κ,jr]
+    end
+    ret
+end
+
+function Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedMatrix},
+                            S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
+    kr,jr=parentindexes(S)
+    P=parent(S)
+    ret=BandedMatrix(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
+    for j=1:size(ret,2),k=colrange(ret,j)
+        K,κ=P.rangeinterlacer[kr[k]]
+        @inbounds ret[k,j]=P.ops[K][κ,jr[j]]
     end
     ret
 end
