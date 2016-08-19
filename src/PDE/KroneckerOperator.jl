@@ -103,13 +103,16 @@ blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(
 subblockbandinds(K::KroneckerOperator,k::Integer) =
     k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
-subblockbandinds(K::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
-                       SpaceOperator,ConstantTimesOperator},k::Integer) = subblockbandinds(K.op,k)
+
+
+typealias Wrappers Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
+                       SpaceOperator,ConstantTimesOperator}
+
 
 
 isbandedblockbanded(P::Union{PlusOperator,TimesOperator}) = all(isbandedblockbanded,P.ops)
-isbandedblockbanded(K::Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
-                       SpaceOperator,ConstantTimesOperator}) = isbandedblockbanded(K.op)
+
+
 
 blockbandinds(P::PlusOperator,k::Int) =
     mapreduce(op->blockbandinds(op,k),k==1?min:max,P.ops)
@@ -126,6 +129,12 @@ rangetensorizer(P::PlusOperator) = rangetensorizer(P.ops[1])
 
 domaintensorizer(P::TimesOperator) = domaintensorizer(P.ops[end])
 rangetensorizer(P::TimesOperator) = rangetensorizer(P.ops[1])
+
+
+subblockbandinds(K::Wrappers,k::Integer) = subblockbandinds(K.op,k)
+for FUNC in (:blockbandinds,:isbandedblockbanded,:domaintensorizer,:rangetensorizer)
+    @eval $FUNC(K::Wrappers) = $FUNC(K.op)
+end
 
 
 

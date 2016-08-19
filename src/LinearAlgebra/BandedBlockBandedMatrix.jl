@@ -47,6 +47,8 @@ end
 
 Base.size(A::BandedBlockBandedMatrix) = sum(A.rows),sum(A.cols)
 
+Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u
+
 blocksize(A::BandedBlockBandedMatrix) = length(A.rows),length(A.cols)
 blocksize(A::BandedBlockBandedMatrix,k::Int) = k==1?length(A.rows):length(A.cols)
 
@@ -185,7 +187,14 @@ end
 function *{T<:Number,V<:Number}(A::BandedBlockBandedMatrix{T},
                                 B::BandedBlockBandedMatrix{V})
     if A.cols ≠ B.rows
-        throw(DimensionMismatch("*"))
+        # diagonal matrices can be converted
+        if isdiag(B) && size(A,2) == size(B,1) == size(B,2)
+            B = BandedBlockBandedMatrix(B.data,0,0,0,0,A.cols,A.cols)
+        elseif isdiag(A) && size(A,2) == size(B,1) == size(A,1)
+            A = BandedBlockBandedMatrix(A.data,0,0,0,0,B.rows,B.rows)
+        else
+            throw(DimensionMismatch("*"))
+        end
     end
     n,m=size(A,1),size(B,2)
 
@@ -193,3 +202,12 @@ function *{T<:Number,V<:Number}(A::BandedBlockBandedMatrix{T},
                                      A.λ+B.λ,A.μ+B.μ,A.rows,B.cols),
              A,B)
 end
+
+
+
+Base.convert(::Type{BandedBlockBandedMatrix},B::BandedMatrix) =
+    if isdiag(B)
+        BandedBlockBandedMatrix(copy(B.data),0,0,0,0,ones(Int,size(B,1)),ones(Int,size(B,2)))
+    else
+        BandedBlockBandedMatrix(copy(B.data),0,0,B.l,B.u,[size(B,1)],[size(B,2)])
+    end

@@ -297,3 +297,14 @@ x=Fun(identity,dx)
 u=[I⊗ldirichlet(dt);Dt+x*Dx]\Fun(x->exp(-20x^2),dx)
 
 @test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
+
+
+dθ=PeriodicInterval();dt=Interval(0,10.)
+d=dθ*dt
+ε=.01
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
+
+# Parentheses are a hack to get rank 2 PDE
+u=[I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ]\Fun(θ->exp(-20θ^2),dθ)
+
+@test_approx_eq_eps u(0.1,0.2) 0.1967278179230314 1000eps()

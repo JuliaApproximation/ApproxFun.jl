@@ -242,7 +242,7 @@ macro wrapper(Wrap)
     end
     for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
                  :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride),
-                 :(ApproxFun.isbandedblockbanded))
+                 :(ApproxFun.isbandedblockbanded),:(ApproxFun.isconstop))
         ret = quote
             $ret
 

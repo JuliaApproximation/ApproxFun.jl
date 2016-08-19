@@ -21,6 +21,8 @@ function simplifytimes(A::SpaceOperator,B::SpaceOperator)
     SpaceOperator(simplifytimes(A.op,B.op),domainspace(B),rangespace(A))
 end
 
+simplifytimes(A::Conversion,B::Conversion) = Conversion(domainspace(B),rangespace(A))
+
 simplify(A)=A
 
 function simplify(A::TimesOperator)
