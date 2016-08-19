@@ -11,7 +11,7 @@ function default_bandedmatrix(S::Operator)
     l,u = bandwidth(S,1),bandwidth(S,2)
     Y=BandedMatrix(eltype(S),size(S,1),size(S,2),l,u)
 
-    for j=1:size(S,2),k=colrange(S,j)
+    for j=1:size(S,2),k=colrange(Y,j)
         @inbounds Y.data[k-j+u+1,j]=S[k,j]
     end
 
