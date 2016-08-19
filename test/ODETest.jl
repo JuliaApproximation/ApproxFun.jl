@@ -199,3 +199,26 @@ v=Any[0.,0.,0.,f...]
 Q,R=qr(A)
 v=Any[0.,0.,0.,f...]
 @test_approx_eq (QR\v)(0.0) [0.0826967758420519,0.5553968826533497]
+
+
+
+## Auto-space
+
+
+t=Fun(identity,[0.,1000.])
+L=𝒟^2+2I  # our differential operator, 𝒟 is equivalent to Derivative()
+
+u=[ivp();L]\[0.;0.;cos(100t)]
+@test_approx_eq u(1000.0) 0.00018788162639452911
+
+
+x=Fun(identity,[1.,2000.])
+d=domain(x)
+B=dirichlet()
+ν=100.
+L=x^2*𝒟^2 + x*𝒟 + (x^2 - ν^2)   # our differential operator
+
+u=[B;L]\[besselj(ν,first(d)),besselj(ν,last(d))]
+
+
+@test_approx_eq_eps u(1900.) besselj(ν,1900.) 1000eps()

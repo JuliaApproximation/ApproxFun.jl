@@ -273,7 +273,11 @@ Base.union(a::AmbiguousSpace,b::Space)=b
 Base.union(a::Space,b::AmbiguousSpace)=a
 function Base.union(a::Space,b::Space)
     if spacescompatible(a,b)
-        return a
+        if isambiguous(domain(a))
+            return b
+        else
+            return a
+        end
     end
 
     cr=union_rule(a,b)
@@ -303,6 +307,12 @@ function Base.union(a::Space,b::Space)
 
     a⊕b
 end
+
+Base.union(a::Space) = a
+
+Base.union(a::Space,b::Space,c::Space) = union(union(a,b),c)
+Base.union(a::Space,b::Space,c::Space,d::Space...) =
+    union(union(a,b),c,d...)
 
 
 # tests whether a Conversion operator exists

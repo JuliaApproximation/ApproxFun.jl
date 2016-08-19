@@ -405,6 +405,8 @@ for (Dep,Sp) in ((:depiece,:PiecewiseSpace),(:detuple,:TupleSpace))
     end
 end
 
+interlace{FF<:Fun}(f::AbstractVector{FF}) = detuple(f)
+
 # convert a vector to a Fun with TupleSpace
 Fun(v::Vector{Any},sp::TupleSpace) = detuple(map(Fun,v,sp.spaces))
 Fun{F<:Fun}(v::Vector{F},sp::TupleSpace) = detuple(map(Fun,v,sp.spaces))
@@ -464,3 +466,18 @@ itransform!(S::SumSpace,cfs,plan...)=(cfs[:]=Fun(cfs,S)(points(S,length(cfs))))
 # this space is special
 
 union_rule(P::PiecewiseSpace,C::ConstantSpace{AnyDomain})=PiecewiseSpace(map(sp->union(sp,C),P.spaces))
+
+
+
+## choosedomainspace
+
+function choosedomainspace{T}(A::InterlaceOperator{T,1},sp::TupleSpace)
+    # this ensures correct dispatch for unino
+    sps = Vector{Space}(
+        filter(x->!isambiguous(x),map(choosedomainspace,A.ops,sp.spaces)))
+    if isempty(sps)
+        UnsetSpace()
+    else
+        union(sps...)
+    end
+end
