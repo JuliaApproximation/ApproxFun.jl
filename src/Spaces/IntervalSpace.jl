@@ -21,7 +21,7 @@ for Func in (:DefiniteIntegral,:DefiniteLineIntegral)
             @assert α == β
             @assert round(Int,α+.5) == α+.5
             @assert round(Int,α+.5) >= 0
-            $Func(JacobiWeight(α,β,Ultraspherical(round(Int,α+.5,d))))
+            $Func(JacobiWeight(α,β,Ultraspherical(round(Int,α+.5),d)))
         end
         $Func(α::Number,β::Number) = $Func(α,β,Interval())
     end
