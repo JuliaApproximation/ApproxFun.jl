@@ -95,6 +95,31 @@ end
 
 
 
+function Base.convert{T,K,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebyshev{DD},K,T},
+                                                                Tuple{UnitRange{Int},UnitRange{Int}}})
+    D=parent(S)
+    m=D.order
+    d=domain(D)
+
+    ret=bzeros(S)
+    u=bandwidth(ret,2)
+
+    kr,jr=parentindexes(S)
+    dat=ret.data
+
+    shft = first(jr)-1
+
+    dg=diagindrow(S)-m   # mth superdiagonal
+
+    C=(.5pochhammer(one(T),m-1)*(4./(d.b-d.a)).^m)::T
+    @simd for j=max(m+1-shft,1):size(dat,2)
+        @inbounds dat[dg,j]=C*(j+shft-one(T))
+    end
+
+    ret
+end
+
+
 function Base.convert{T,K,DD,λ}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{λ,DD},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
     D=parent(S)
@@ -111,16 +136,9 @@ function Base.convert{T,K,DD,λ}(::Type{BandedMatrix},S::SubOperator{T,ConcreteD
 
     dg=diagindrow(S)-m   # mth superdiagonal
 
-    if λ == 0
-        C=(.5pochhammer(one(T),m-1)*(4./(d.b-d.a)).^m)::T
-        @simd for j=max(m+1-shft,1):size(dat,2)
-            @inbounds dat[dg,j]=C*(j+shft-one(T))
-        end
-    else
-        C=(pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
-        @simd for j=max(m+1-shft,1):size(dat,2)
-            @inbounds dat[dg,j]=C
-        end
+    C=(pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
+    @simd for j=max(m+1-shft,1):size(dat,2)
+        @inbounds dat[dg,j]=C
     end
 
     ret

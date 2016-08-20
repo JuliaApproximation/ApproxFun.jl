@@ -193,27 +193,26 @@ end
 
 # Assume m is compatible
 
-function Conversion{m}(A::Ultraspherical{m},B::Jacobi)
-    if isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
-        ConcreteConversion(A,B)
-    else
-        J=Jacobi(A)
-        ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
-    end
+function Conversion(A::PolynomialSpace,B::Jacobi)
+    J = Jacobi(A)
+    J == B ? ConcreteConversion(A,B) :
+             ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
 end
 
-function Conversion{m}(A::Jacobi,B::Ultraspherical{m})
-    if isapprox(A.a,m-0.5)&&isapprox(A.b,m-0.5)
-        ConcreteConversion(A,B)
-    else
-        J=Jacobi(B)
-        ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
-    end
+function Conversion(A::Jacobi,B::PolynomialSpace)
+    J = Jacobi(B)
+    J == A ? ConcreteConversion(A,B) :
+             ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
 end
 
 
-bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{US,J})=0,0
-bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{J,US})=0,0
+
+bandinds{US<:Chebyshev,J<:Jacobi}(C::ConcreteConversion{US,J}) = 0,0
+bandinds{US<:Chebyshev,J<:Jacobi}(C::ConcreteConversion{J,US}) = 0,0
+
+
+bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{US,J}) = 0,0
+bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{J,US}) = 0,0
 
 
 function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{CC,J,T},k::Integer,j::Integer)
@@ -270,10 +269,20 @@ end
 
 for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),(:union_rule,:(Base.union)))
     @eval begin
+        function $OPrule(A::Chebyshev,B::Jacobi)
+            if !isapproxinteger(-0.5-B.a) || !isapproxinteger(-0.5-B.b)
+                NoSpace()
+            elseif isapprox(B.a,-0.5)&&isapprox(B.b,-0.5)
+                # the spaces are the same
+                A
+            else
+                $OP(Jacobi(A),B)
+            end
+        end
         function $OPrule{m}(A::Ultraspherical{m},B::Jacobi)
             if !isapproxinteger(m-0.5-B.a) || !isapproxinteger(m-0.5-B.b)
                 NoSpace()
-            elseif isapprox(B.a+.5,m)&&isapprox(B.b+.5,m)
+            elseif isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
                 # the spaces are the same
                 A
             else
@@ -283,8 +292,11 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
     end
 end
 
-hasconversion(a::Jacobi,b::Ultraspherical)=hasconversion(a,Jacobi(b))
-hasconversion(a::Ultraspherical,b::Jacobi)=hasconversion(Jacobi(a),b)
+hasconversion(a::Jacobi,b::Chebyshev) = hasconversion(a,Jacobi(b))
+hasconversion(a::Chebyshev,b::Jacobi) = hasconversion(Jacobi(a),b)
+
+hasconversion(a::Jacobi,b::Ultraspherical) = hasconversion(a,Jacobi(b))
+hasconversion(a::Ultraspherical,b::Jacobi) = hasconversion(Jacobi(a),b)
 
 
 
@@ -318,7 +330,7 @@ function Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight
     end
 end
 
-Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight{C,DD}},S::Ultraspherical)=
+Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight{C,DD}},S::Union{Ultraspherical,Chebyshev}) =
     MultiplicationWrapper(f,Multiplication(f,Jacobi(S))*Conversion(S,Jacobi(S)))
 
 function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J})

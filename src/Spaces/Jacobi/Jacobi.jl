@@ -12,6 +12,7 @@ Jacobi(a,b,d::Domain)=Jacobi(promote(a,b)...,d)
 Jacobi(a,b,d)=Jacobi(a,b,Domain(d))
 Jacobi(a,b)=Jacobi(a,b,Interval())
 Jacobi{m}(A::Ultraspherical{m})=Jacobi(m-0.5,m-0.5,domain(A))
+Jacobi(A::Chebyshev)=Jacobi(-0.5,-0.5,domain(A))
 
 
 Base.promote_rule{T,V,D}(::Type{Jacobi{T,D}},::Type{Jacobi{V,D}})=Jacobi{promote_type(T,V),D}
