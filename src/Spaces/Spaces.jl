@@ -8,6 +8,7 @@ include("PeriodicSpace.jl")
 
 include("Modifier/Modifier.jl")
 
+include("Chebyshev/Chebyshev.jl")
 include("Ultraspherical/Ultraspherical.jl")
 include("Fourier/Fourier.jl")
 include("Singularities/Singularities.jl")

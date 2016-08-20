@@ -2,11 +2,32 @@
 export Chebyshev
 
 
-typealias Chebyshev{D<:Domain} Ultraspherical{0,D}
+immutable Chebyshev{D<:Domain} <: PolynomialSpace{D}
+    domain::D
+    Chebyshev(d) = new(d)
+    Chebyshev() = new(Interval())
+end
+
+Chebyshev() = Chebyshev{Interval{Float64}}()
+Chebyshev(d::Domain) = Chebyshev{typeof(d)}(d)
+Chebyshev(d::Vector) = Chebyshev(Domain(d))
 
 
-Space(d::Interval)=Chebyshev(d)
-canonicalspace(S::Ultraspherical)=Chebyshev(domain(S))
+Space(d::Interval) = Chebyshev(d)
+
+
+setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
+
+Base.ones{T<:Number}(::Type{T},S::Chebyshev) = Fun(ones(T,1),S)
+Base.ones(S::Chebyshev) = Fun(ones(1),S)
+
+Base.first{D}(f::Fun{Chebyshev{D}}) = foldr(-,coefficients(f))
+Base.last{D}(f::Fun{Chebyshev{D}}) = reduce(+,coefficients(f))
+identity_fun(d::Chebyshev) = identity_fun(domain(d))
+
+spacescompatible(a::Chebyshev,b::Chebyshev) = domainscompatible(a,b)
+hasfasttransform(::Chebyshev) = true
+
 
 function coefficients(g::Vector,::ConstantSpace,::Chebyshev)
     @assert length(g)==1
@@ -21,15 +42,15 @@ end
 
 ## Transform
 
-transform(::Chebyshev,vals::Vector,plan)=chebyshevtransform(vals,plan)
-itransform(::Chebyshev,cfs::Vector,plan)=ichebyshevtransform(cfs,plan)
-plan_transform(::Chebyshev,vals::Vector)=plan_chebyshevtransform(vals)
-plan_itransform(::Chebyshev,cfs::Vector)=plan_ichebyshevtransform(cfs)
+transform(::Chebyshev,vals::Vector,plan) = chebyshevtransform(vals,plan)
+itransform(::Chebyshev,cfs::Vector,plan) = ichebyshevtransform(cfs,plan)
+plan_transform(::Chebyshev,vals::Vector) = plan_chebyshevtransform(vals)
+plan_itransform(::Chebyshev,cfs::Vector) = plan_ichebyshevtransform(cfs)
 
 ## Evaluation
 
-clenshaw(sp::Chebyshev,c::AbstractVector,x::AbstractArray) = clenshaw(c,x,
-                                            ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,length(c),length(x)))
+clenshaw(sp::Chebyshev,c::AbstractVector,x::AbstractArray) =
+    clenshaw(c,x,ClenshawPlan(promote_type(eltype(c),eltype(x)),sp,length(c),length(x)))
 
 function clenshaw(::Chebyshev,c::AbstractVector,x)
     N,T = length(c),promote_type(eltype(c),typeof(x))
@@ -185,28 +206,14 @@ end
 
 
 # diff T -> U, then convert U -> T
-integrate{D<:Interval}(f::Fun{Chebyshev{D}})=Fun(fromcanonicalD(f,0)*
-                    ultraint!(ultraconversion(f.coefficients)),f.space)
-differentiate{D<:Interval}(f::Fun{Chebyshev{D}})=Fun(1/fromcanonicalD(f,0)*
-                                        ultraiconversion(ultradiff(f.coefficients)),f.space)
+integrate{D<:Interval}(f::Fun{Chebyshev{D}}) =
+    Fun(fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)),f.space)
+differentiate{D<:Interval}(f::Fun{Chebyshev{D}}) =
+    Fun(1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)),f.space)
 
 ## identity_fun
 
-identity_fun(d::Chebyshev)=identity_fun(domain(d))
 
-
-## Piecewise union
-
-# union_rule dictates how to create a space that both spaces can be converted to
-# in this case, it means
-function union_rule{S1<:Tuple{Vararg{Ultraspherical}},
-                    S2<:Tuple{Vararg{Ultraspherical}}}(s1::PiecewiseSpace{S1},s2::PiecewiseSpace{S2})
-    PiecewiseSpace(map(Chebyshev,merge(domain(s1),domain(s2)).domains))
-end
-
-function union_rule{S1<:Tuple{Vararg{Ultraspherical}}}(s1::PiecewiseSpace{S1},s2::Ultraspherical)
-    PiecewiseSpace(map(Chebyshev,merge(domain(s1),domain(s2)).domains))
-end
 
 
 
@@ -215,9 +222,14 @@ end
 
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))
-    @eval ($op){S<:Chebyshev,V<:Chebyshev}(f::ProductFun{S,V})=ProductFun(chebyshevtransform($op(values(f))),space(f))
+    @eval ($op){S<:Chebyshev,V<:Chebyshev}(f::ProductFun{S,V}) =
+        ProductFun(chebyshevtransform($op(values(f))),space(f))
 end
 
 
 
-reverseorientation{C<:Chebyshev}(f::Fun{C})=Fun(alternatesign!(copy(f.coefficients)),Chebyshev(reverse(domain(f))))
+reverseorientation{C<:Chebyshev}(f::Fun{C}) =
+    Fun(alternatesign!(copy(f.coefficients)),Chebyshev(reverse(domain(f))))
+
+
+include("ChebyshevOperators.jl")
