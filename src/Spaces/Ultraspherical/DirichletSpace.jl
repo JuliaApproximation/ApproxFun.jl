@@ -23,9 +23,9 @@ spacescompatible{l,r,D}(a::ChebyshevDirichlet{l,r,D},b::ChebyshevDirichlet{l,r,D
 
 ChebyshevDirichlet() = ChebyshevDirichlet{1,1,Interval{Float64}}()
 ZeroChebyshevDirichlet(d) =
-    SliceSpace(ChebyshevDirichlet{1,1,Interval{Float64}}(d),2)
+    ChebyshevDirichlet{1,1,Interval{Float64}}(d)|(3:∞)
 ZeroChebyshevDirichlet() =
-    SliceSpace(ChebyshevDirichlet{1,1,Interval{Float64}}(),2)
+    ChebyshevDirichlet{1,1,Interval{Float64}}()|(3:∞)
 
 canonicalspace(S::ChebyshevDirichlet) = Chebyshev(domain(S))
 

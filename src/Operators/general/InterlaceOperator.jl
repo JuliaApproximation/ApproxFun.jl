@@ -243,9 +243,6 @@ iscolop(::Multiplication) = true
 promotedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
     InterlaceOperator(map(op->promotedomainspace(op,sp),A.ops))
 
-choosedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
-    filter(x->!isambiguous(x),map(s->choosedomainspace(s,sp),A.ops))[1]
-
 
 interlace{T<:Operator}(A::Array{T}) = length(A)==1?A[1]:InterlaceOperator(A)
 
@@ -298,3 +295,15 @@ rangespace(D::DiagonalInterlaceOperator)=D.rangespace
 ## Convert Matrix operator to operators
 
 Base.convert{OO<:Operator}(::Type{Operator},M::Array{OO}) = InterlaceOperator(M)
+
+
+function choosedomainspace{T}(A::InterlaceOperator{T,1},sp::UnsetSpace)
+    # this ensures correct dispatch for unino
+    sps = Vector{Space}(
+        filter(x->!isambiguous(x),map(choosedomainspace,A.ops)))
+    if isempty(sps)
+        UnsetSpace()
+    else
+        union(sps...)
+    end
+end

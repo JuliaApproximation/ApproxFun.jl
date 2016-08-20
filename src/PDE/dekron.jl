@@ -85,7 +85,6 @@ function reducekronsum!(opsx,opsy)
 end
 
 function simplifydekron(A)
-    T=eltype(eltype(A))
     opsx,opsy=dekron(A,:,:)
     map!(simplify,opsx);map!(simplify,opsy)
     reducekronsum!(opsy,opsx)

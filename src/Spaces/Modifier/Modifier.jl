@@ -3,7 +3,7 @@ include("SumSpace.jl")
 include("ArraySpace.jl")
 include("ProductSpaceOperators.jl")
 include("BlockOperators.jl")
-include("SliceSpace.jl")
+include("SubSpace.jl")
 
 
 ⊕(A::Space,B::Space)=domainscompatible(A,B)?SumSpace(A,B):PiecewiseSpace(A,B)
@@ -28,34 +28,6 @@ function coefficients(f::Vector,a::VectorSpace,b::TupleSpace)
 end
 
 
-
-
-
-for TYP in (:SumSpace,:PiecewiseSpace,:Space) # Resolve conflict
-    @eval begin
-        function coefficients(v::Vector,sp::$TYP,dropsp::SliceSpace)
-            if sp==dropsp.space
-                n=index(dropsp)
-                st=stride(dropsp)
-                v[st+n:st:end]
-            else
-                coefficients(v,sp,canonicalspace(dropsp),dropsp)
-            end
-        end
-
-        function coefficients{V}(v::Vector{V},dropsp::SliceSpace,sp::$TYP)
-            if sp==dropsp.space
-                n=index(dropsp)
-                st=stride(dropsp)
-                ret=zeros(V,st*length(v)+n)
-                ret[st+n:st:end]=v
-                ret
-            else
-                coefficients(v,dropsp,canonicalspace(dropsp),sp)
-            end
-        end
-    end
-end
 
 #split the cfs into component spaces
 function coefficients(cfs::Vector,A::SumSpace,B::SumSpace)

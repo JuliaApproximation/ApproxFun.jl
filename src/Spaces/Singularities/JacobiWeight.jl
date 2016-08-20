@@ -58,8 +58,8 @@ weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
 dimension(sp::JacobiWeight)=dimension(sp.space)
 
 
-Base.first{JW<:JacobiWeight}(f::Fun{JW})=space(f).α>0?zero(eltype(f)):f(first(domain(f)))
-Base.last{JW<:JacobiWeight}(f::Fun{JW})=space(f).β>0?zero(eltype(f)):f(last(domain(f)))
+Base.first{JW<:JacobiWeight}(f::Fun{JW}) = space(f).α>0?zero(eltype(f)):f(first(domain(f)))
+Base.last{JW<:JacobiWeight}(f::Fun{JW}) = space(f).β>0?zero(eltype(f)):f(last(domain(f)))
 
 setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.space,d))
 
@@ -79,12 +79,18 @@ function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ
         defaultcoefficients(f,sp1,sp2)
     end
 end
-coefficients{SJ,S,n,st,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SliceSpace{n,st,S,RealBasis,DD,1})=error("Implement")
-coefficients{SJ,S,n,st,DD<:IntervalDomain}(f::Vector,S2::SliceSpace{n,st,S,RealBasis,DD,1},sp::JacobiWeight{SJ,DD})=error("Implement")
+coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},
+                                         S2::SubSpace{S,IT,RealBasis,DD,1}) = error("Implement")
+coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,
+                                         S2::SubSpace{S,IT,RealBasis,DD,1},
+                                         sp::JacobiWeight{SJ,DD}) = error("Implement")
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
-coefficients{SJ,SV,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1})=sumspacecoefficients(f,sp,S2)
-coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD})=coefficients(f,sp,JacobiWeight(0,0,S2))
-coefficients{SJ,DD<:IntervalDomain}(f::Vector,S2::RealUnivariateSpace{DD},sp::JacobiWeight{SJ,DD})=coefficients(f,JacobiWeight(0,0,S2),sp)
+coefficients{SJ,SV,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1}) =
+    sumspacecoefficients(f,sp,S2)
+coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD}) =
+    coefficients(f,sp,JacobiWeight(0,0,S2))
+coefficients{SJ,DD<:IntervalDomain}(f::Vector,S2::RealUnivariateSpace{DD},sp::JacobiWeight{SJ,DD}) =
+    coefficients(f,JacobiWeight(0,0,S2),sp)
 
 
 """
@@ -93,9 +99,9 @@ coefficients{SJ,DD<:IntervalDomain}(f::Vector,S2::RealUnivariateSpace{DD},sp::Ja
 `increase_jacobi_parameter(+1,f)` multiplies by `1-x` on the unit interval.
 On other domains this is accomplished by mapping to the unit interval.
 """
-increase_jacobi_parameter(f)=Fun(f,JacobiWeight(f.space.α+1,f.space.β+1,space(f).space))
-increase_jacobi_parameter(s,f)=s==-1?Fun(f,JacobiWeight(f.space.α+1,f.space.β,space(f).space)):
-                                     Fun(f,JacobiWeight(f.space.α,f.space.β+1,space(f).space))
+increase_jacobi_parameter(f) = Fun(f,JacobiWeight(f.space.α+1,f.space.β+1,space(f).space))
+increase_jacobi_parameter(s,f) = s==-1?Fun(f,JacobiWeight(f.space.α+1,f.space.β,space(f).space)):
+                                       Fun(f,JacobiWeight(f.space.α,f.space.β+1,space(f).space))
 
 
 
