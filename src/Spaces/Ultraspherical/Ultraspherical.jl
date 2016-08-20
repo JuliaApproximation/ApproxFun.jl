@@ -9,9 +9,9 @@ immutable Ultraspherical{T,D<:Domain} <: PolynomialSpace{D}
     order::T
     domain::D
     Ultraspherical(m::T,d::D) = (@assert m ≠ 0; new(m,d))
-    Ultraspherical(m::Number,d::Domain) = (@assert m ≠ 0; new(T(m),D(d)))
-    Ultraspherical(d::Domain) = new(one(T),D(d))
-    Ultraspherical(m::Number) = (@assert m ≠ 0; new(T(m),Interval()))
+    Ultraspherical(m::Number,d::Domain) = (@assert m ≠ 0; new(convert(T,m),convert(D,d)))
+    Ultraspherical(d::Domain) = new(one(T),convert(D,d))
+    Ultraspherical(m::Number) = (@assert m ≠ 0; new(T(m),D()))
 end
 
 Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d)}(m,d)

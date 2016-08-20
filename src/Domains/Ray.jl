@@ -12,9 +12,10 @@ export Ray
 immutable Ray{angle,T<:Number} <: IntervalDomain{T}
     center::T
     orientation::Bool
-    Ray(c,o)=new(c,o)
-    Ray(c)=new(c,true)
-    Ray()=new(zero(T),true)
+    Ray(c,o) = new(c,o)
+    Ray(c) = new(c,true)
+    Ray() = new(zero(T),true)
+    Ray(r::Ray{angle,T}) = r
 end
 
 typealias RealRay{T} Union{Ray{false,T},Ray{true,T}}
