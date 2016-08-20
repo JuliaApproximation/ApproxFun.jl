@@ -31,8 +31,6 @@ evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->evaluate(
 evaluate(f::AbstractVector,S::PolynomialSpace,x,y,z...)=
     evaluate(f,S,Vec(x,y,z...))
 
-#evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->evaluate(f,S,y),x)
-
 function evaluate(f::AbstractVector,S::PolynomialSpace,x::Fun)
     if issubset(Interval(minimum(x),maximum(x)),domain(S))
         clenshaw(S,f,tocanonical(S,x))
@@ -41,7 +39,10 @@ function evaluate(f::AbstractVector,S::PolynomialSpace,x::Fun)
     end
 end
 
+## Extrapolation
 
+extrapolate(f::AbstractVector,S::PolynomialSpace,x) = clenshaw(S,f,tocanonical(S,x))
+extrapolate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->extrapolate(f,S,y),x)
 
 ######
 # Recurrence encodes the recurrence coefficients
