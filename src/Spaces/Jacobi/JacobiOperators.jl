@@ -279,7 +279,8 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
                 $OP(Jacobi(A),B)
             end
         end
-        function $OPrule{m}(A::Ultraspherical{m},B::Jacobi)
+        function $OPrule(A::Ultraspherical,B::Jacobi)
+            m=order(A)
             if !isapproxinteger(m-0.5-B.a) || !isapproxinteger(m-0.5-B.b)
                 NoSpace()
             elseif isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)

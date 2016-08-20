@@ -5,23 +5,22 @@ export Ultraspherical
 
 
 
-immutable Ultraspherical{O,D<:Domain} <: PolynomialSpace{D}
+immutable Ultraspherical{T,D<:Domain} <: PolynomialSpace{D}
+    order::T
     domain::D
-    Ultraspherical(d) = new(d)
-    Ultraspherical() = new(Interval())
+    Ultraspherical(m::T,d::D) = (@assert m ≠ 0; new(d))
+    Ultraspherical(m::Number) = (@assert m ≠ 0; new(T(m),Interval()))
 end
 
-
-@compat (::Type{Ultraspherical{m}}){m}() = (@assert m ≠ 0;Ultraspherical{m,Interval{Float64}}())
-@compat (::Type{Ultraspherical{m}}){m}(d::Domain) = (@assert m ≠ 0;Ultraspherical{m,typeof(d)}(d))
-@compat (::Type{Ultraspherical{m}}){m}(d::Vector) = (@assert m ≠ 0;Ultraspherical{m}(Domain(d)))
+Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d)}(m,d)
+Ultraspherical(m::Number,d) = Ultraspherical(m,Domain(d))
 
 
-setdomain{s}(S::Ultraspherical{s},d::Domain) = Ultraspherical{s}(d)
+order(S::Ultraspherical) = S.order
+setdomain(S::Ultraspherical,d::Domain) = Ultraspherical(order(S),d)
 
 
-order{o}(::Ultraspherical{o}) = o
-order{o,D}(::Type{Ultraspherical{o,D}}) = o
+
 
 
 canonicalspace(S::Ultraspherical) = Chebyshev(domain(S))
@@ -31,20 +30,20 @@ canonicalspace(S::Ultraspherical) = Chebyshev(domain(S))
 
 #domain(S) may be any domain
 
-Base.ones{T<:Number,O}(::Type{T},S::Ultraspherical{O}) = Fun(ones(T,1),S)
-Base.ones{O}(S::Ultraspherical{O}) = Fun(ones(1),S)
+Base.ones{T<:Number}(::Type{T},S::Ultraspherical) = Fun(ones(T,1),S)
+Base.ones(S::Ultraspherical) = Fun(ones(1),S)
 
 
 
 ## Fast evaluation
 
-Base.first{O,D}(f::Fun{Ultraspherical{O,D}}) = isinteger(O)         ?
-                                foldr(-,coefficients(f,Chebyshev))  :
-                                f(first(domain(f)))
-Base.last{O,D}(f::Fun{Ultraspherical{O,D}}) = isinteger(O) ?
-                                reduce(+,coefficients(f,Chebyshev)) :
-                                f(last(domain(f)))
-identity_fun{m}(d::Ultraspherical{m}) = Fun(identity_fun(domain(d)),d)
+Base.first{D}(f::Fun{Ultraspherical{Int,D}}) = foldr(-,coefficients(f,Chebyshev))
+Base.last{D}(f::Fun{Ultraspherical{Int,D}}) = reduce(+,coefficients(f,Chebyshev))
+
+Base.first{O,D}(f::Fun{Ultraspherical{O,D}}) = f(first(domain(f)))
+Base.last{O,D}(f::Fun{Ultraspherical{O,D}}) = f(last(domain(f)))
+
+identity_fun(d::Ultraspherical) = Fun(identity_fun(domain(d)),d)
 
 
 ## Calculus
@@ -52,7 +51,8 @@ identity_fun{m}(d::Ultraspherical{m}) = Fun(identity_fun(domain(d)),d)
 
 
 
-spacescompatible{O}(a::Ultraspherical{O},b::Ultraspherical{O}) = domainscompatible(a,b)
+spacescompatible(a::Ultraspherical,b::Ultraspherical) =
+    order(a) == order(b) && domainscompatible(a,b)
 hasfasttransform(::Ultraspherical) = true
 
 

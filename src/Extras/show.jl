@@ -55,8 +55,8 @@ for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     end
 end
 
-function Base.show{λ,D}(io::IO,S::Ultraspherical{λ,D})
-    print(io,"Ultraspherical{$λ}(")
+function Base.show(io::IO,S::Ultraspherical)
+    print(io,"Ultraspherical($(order(S)),")
     show(io,domain(S))
     print(io,")")
 end

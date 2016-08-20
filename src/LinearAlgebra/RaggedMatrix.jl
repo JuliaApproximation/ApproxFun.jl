@@ -86,4 +86,4 @@ lap(S)*f
 f2=Fun((x,y)->(1-x^2)*(1-y^2)*exp(x*cos(y)))
 
 
-Conversion(Ultraspherical{1}(),Chebyshev())
+Conversion(Ultraspherical(1),Chebyshev())

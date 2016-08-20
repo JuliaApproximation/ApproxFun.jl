@@ -39,8 +39,10 @@ diagindrow(S::SubOperator) =
 # Conversions
 #####
 
-function Base.convert{T,C<:Chebyshev,U<:Ultraspherical{1}}(::Type{BandedMatrix},
-                        S::SubOperator{T,ConcreteConversion{C,U,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{T,DD}(::Type{BandedMatrix},
+                        S::SubOperator{T,ConcreteConversion{Chebyshev{DD},Ultraspherical{Int,DD},T},
+                                       Tuple{UnitRange{Int},UnitRange{Int}}})
+    # we can assume order is 1
     ret=bzeros(S)
     kr,jr=parentindexes(S)
 
@@ -64,8 +66,10 @@ function Base.convert{T,C<:Chebyshev,U<:Ultraspherical{1}}(::Type{BandedMatrix},
     ret
 end
 
-function Base.convert{T,m,λ,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{m,DD},Ultraspherical{λ,DD},T},
+function Base.convert{T,LT,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD},T},
                                                                               Tuple{UnitRange{Int},UnitRange{Int}}})
+    # we can assume order is
+    λ = order(rangespace(parent(S)))
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -120,8 +124,10 @@ function Base.convert{T,K,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDeri
 end
 
 
-function Base.convert{T,K,DD,λ}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{λ,DD},K,T},
+function Base.convert{T,K,DD,LT}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
+
+    λ = order(domainspace(parent(S)))
     D=parent(S)
     m=D.order
     d=domain(D)

@@ -3,7 +3,7 @@ using ApproxFun, Base.Test
 
 
 @test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})(.1) exp(.1)
-@test_approx_eq Fun(Fun(exp,ChebyshevDirichlet{1,1}),Ultraspherical{1})(.1) exp(.1)
+@test_approx_eq Fun(Fun(exp,ChebyshevDirichlet{1,1}),Ultraspherical(1))(.1) exp(.1)
 
 d=Interval()
 sp=ChebyshevDirichlet{1,1}(d)

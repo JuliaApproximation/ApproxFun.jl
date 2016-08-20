@@ -201,7 +201,7 @@ Derivative{DD<:Interval}(sp::Chebyshev{DD},order::Integer) =
 
 
 rangespace{DD<:Interval}(D::ConcreteDerivative{Chebyshev{DD}}) =
-    Ultraspherical{D.order}(domain(D))
+    Ultraspherical(D.order,domain(D))
 bandinds{DD<:Interval}(D::ConcreteDerivative{Chebyshev{DD}}) = 0,D.order
 Base.stride{DD<:Interval}(D::ConcreteDerivative{Chebyshev{DD}}) = D.order
 

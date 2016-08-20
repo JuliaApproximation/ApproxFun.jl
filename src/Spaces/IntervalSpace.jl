@@ -12,7 +12,7 @@ identity_fun(d::Interval)=Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],Chebyshev(d))
 
 
 # the default domain space is higher to avoid negative ultraspherical spaces
-Integral(d::IntervalDomain,n::Integer)=Integral(Ultraspherical{1}(d),n)
+Integral(d::IntervalDomain,n::Integer) = Integral(Ultraspherical(1,d),n)
 
 for Func in (:DefiniteIntegral,:DefiniteLineIntegral)
     @eval begin
@@ -21,7 +21,7 @@ for Func in (:DefiniteIntegral,:DefiniteLineIntegral)
             @assert α == β
             @assert round(Int,α+.5) == α+.5
             @assert round(Int,α+.5) >= 0
-            $Func(JacobiWeight(α,β,Ultraspherical{round(Int,α+.5)}(d)))
+            $Func(JacobiWeight(α,β,Ultraspherical(round(Int,α+.5,d))))
         end
         $Func(α::Number,β::Number) = $Func(α,β,Interval())
     end
