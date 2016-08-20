@@ -374,7 +374,6 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
     ConcFunc = parse("Concrete"*string(Func))
 
     @eval begin
-
         function getindex{λ,D<:Interval,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{λ,D},D},T},k::Integer)
             dsp = domainspace(Σ)
             d = domain(Σ)
@@ -403,6 +402,40 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             α,β = domainspace(Σ).α,domainspace(Σ).β
             if α==β && isapproxinteger(α-0.5-λ) && λ ≤ ceil(Int,α)
                 0,2*(ceil(Int,α)-λ)
+            else
+                0,∞
+            end
+        end
+
+
+        function getindex{D<:Interval,T}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D},D},T},k::Integer)
+            dsp = domainspace(Σ)
+            d = domain(Σ)
+            C = $Len(d)/2
+
+            if dsp.α==dsp.β==-0.5
+                k == 1? C*π : zero(T)
+            else
+                sum(Fun([zeros(k-1);1],dsp))
+            end
+        end
+
+        function getindex{D<:Interval,T}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D},D},T},kr::Range)
+            dsp = domainspace(Σ)
+            d = domain(Σ)
+            C = $Len(d)/2
+
+            if dsp.α==dsp.β==-0.5
+                promote_type(T,typeof(C))[k == 1? C*π : zero(T) for k=kr]
+            else
+                promote_type(T,typeof(C))[sum(Fun([zeros(k-1);1],dsp)) for k=kr]
+            end
+        end
+
+        function bandinds{D<:Interval}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D},D}})
+            α,β = domainspace(Σ).α,domainspace(Σ).β
+            if α==β && isapproxinteger(α-0.5) && 0 ≤ ceil(Int,α)
+                0,2ceil(Int,α)
             else
                 0,∞
             end

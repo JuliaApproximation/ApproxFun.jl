@@ -288,7 +288,7 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 ## First order functions
 
 
-Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
+Base.log(f::Fun) = cumsum(differentiate(f)/f)+log(first(f))
 
 # function Base.log{MS<:MappedSpace}(f::Fun{MS})
 #     g=log(Fun(f.coefficients,space(f).space))
@@ -297,7 +297,7 @@ Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
-function Base.log{US<:Ultraspherical}(f::Fun{US})
+function Base.log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
     if domain(f)==Interval()
         r = sort(roots(f))
         #TODO divideatroots
