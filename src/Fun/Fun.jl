@@ -1,4 +1,4 @@
-export Fun,evaluate,values,points
+export Fun,evaluate,values,points,extrapolate
 export coefficients,ncoefficients
 export integrate,differentiate,domain,space,linesum,linenorm
 
@@ -145,6 +145,16 @@ for op in (:(Base.first),:(Base.last))
 end
 
 
+
+## Extrapolation
+
+
+# Default extrapolation is evaluation. Override this function for extrapolation enabled spaces.
+extrapolate(f::AbstractVector,S::Space,x...)=evaluate(f,S,x...)
+
+# Do not override these
+extrapolate(f::Fun,x) = extrapolate(f.coefficients,f.space,x)
+extrapolate(f::Fun,x,y,z...) = extrapolate(f.coefficients,f.space,Vec(x,y,z...))
 
 
 ##Data routines
