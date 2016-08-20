@@ -30,7 +30,7 @@ differentiate{DD}(f::Fun{Fourier{DD}}) = Derivative(space(f))*f
 function integrate{D}(f::Fun{Hardy{false,D}})
     if isa(domain(f),Circle) # drop -1 term if zero and try again
         @assert ncoefficients(f)==0 || abs(f.coefficients[1])<100eps()
-        integrate(Fun(f,SliceSpace(space(f),1)))
+        integrate(Fun(f,space(f)|(2:∞)))
     else  # Probably periodic itnerval
         Integral(space(f))*f
     end
@@ -41,7 +41,7 @@ function integrate{D}(f::Fun{Taylor{D}})
         Integral(space(f))*f
     else  # Probably periodic itnerval  drop constant term if zero
         @assert ncoefficients(f)==0 || abs(f.coefficients[1])<100eps()
-        Fun(integrate(Fun(f,SliceSpace(space(f),1))),space(f))
+        Fun(integrate(Fun(f,space(f)|(2:∞))),space(f))
     end
 end
 
@@ -53,19 +53,19 @@ function integrate{CS<:CosSpace}(f::Fun{CS})
         tol=1E-14 #TODO: smart tolerance.  Here relative is a bit tricky
                   # since this is called by Fourier integrate
         if abs(f.coefficients[1])<tol
-            integrate(Fun(f,SliceSpace(space(f),1)))
+            integrate(Fun(f,space(f)|(2:∞)))
         else
             d=domain(f)
             @assert isa(d,PeriodicInterval)
             x=Fun(identity,[first(d),last(d)])
-            (f.coefficients[1]*x)⊕integrate(Fun(f,SliceSpace(space(f),1)))
+            (f.coefficients[1]*x)⊕integrate(Fun(f,space(f)|(2:∞)))
         end
     end
 end
 
 function integrate{SS<:SinSpace}(f::Fun{SS})
     if isa(domain(f),Circle) # drop term containing z^(-1)
-        integrate(Fun(f,SliceSpace(space(f),1)))
+        integrate(Fun(f,space(f)|(2:∞)))
     else  # Probably periodic itnerval\
         Integral(space(f))*f
     end

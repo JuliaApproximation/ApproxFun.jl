@@ -273,7 +273,7 @@ end
 
 
 # return the space that has banded Conversion to the other, or NoSpace
-conversion_rule{n,S<:Space}(A::SliceSpace{n,1,S,RealBasis},B::JacobiWeight)=error("Not implemented")
+
 function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     if isapproxinteger(A.α-B.α) && isapproxinteger(A.β-B.β)
         ct=conversion_type(A.space,B.space)

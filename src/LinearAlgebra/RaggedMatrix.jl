@@ -71,8 +71,7 @@ sum(colns),[1;cumsum(colns)]
 
 rrand(10,1:10)
 
-import ApproxFun: SliceSpace
-Z=SliceSpace(ChebyshevDirichlet(),2)
+Z=ChebyshevDirichlet()|(3:∞)
 
 f=Fun(x->(1-x^2)*exp(x),Z)
 Derivative(Z,2)*f - f''

@@ -126,7 +126,7 @@ function getindex{CS<:SinSpace,OT,T}(D::ConcreteDerivative{CS,OT,T},k::Integer,j
 end
 
 Integral(::CosSpace,m::Integer) =
-    error("Integral not defined for CosSpace.  Use Integral(SliceSpace(CosSpace(),1)) if first coefficient vanishes.")
+    error("Integral not defined for CosSpace.  Use Integral(CosSpace()|(2:∞)) if first coefficient vanishes.")
 
 Integral{DD<:PeriodicInterval}(sp::SinSpace{DD},m::Integer) = ConcreteIntegral(sp,m)
 
@@ -154,15 +154,18 @@ function getindex{CS<:SinSpace,OT,T}(D::ConcreteIntegral{CS,OT,T},k::Integer,j::
     end
 end
 
-function Integral{T,CS<:CosSpace,DD<:PeriodicInterval}(S::SliceSpace{1,1,CS,T,DD,1},k::Integer)
-    @assert isa(domain(S),PeriodicInterval)
+function Integral{T,CS<:CosSpace,DD<:PeriodicInterval}(S::SubSpace{CS,UnitCount{Int64},T,DD,1},k::Integer)
+    @assert first(S.indexes)==2
     ConcreteIntegral(S,k)
 end
 
-bandinds{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}})=(0,0)
-rangespace{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,T,DD,1}})=iseven(D.order)?D.space:SinSpace(domain(D))
+bandinds{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},T,DD,1}}) =
+    (0,0)
+rangespace{T,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},T,DD,1}}) =
+    iseven(D.order)?D.space:SinSpace(domain(D))
 
-function getindex{TT,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{1,1,CS,TT,DD,1}},k::Integer,j::Integer)
+function getindex{TT,CS<:CosSpace,DD<:PeriodicInterval}(D::ConcreteIntegral{SubSpace{CS,UnitCount{Int64},TT,DD,1}},
+                                                            k::Integer,j::Integer)
     d=domain(D)
     m=D.order
     T=eltype(D)
