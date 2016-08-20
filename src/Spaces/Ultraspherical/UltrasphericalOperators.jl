@@ -10,7 +10,7 @@ recC{T}(::Type{T},S::Ultraspherical,k) = (k-one(T)+2order(S))/(k+one(T))   # one
 # x p_k
 recα{T}(::Type{T},::Ultraspherical,::) = zero(T)
 recβ{T}(::Type{T},S::Ultraspherical,k) = k/(2*(k-one(T)+order(S)))   # one(T) ensures we get correct type
-recγ{T}(::Type{T},S::Ultraspherical,k) = (k-2+2λ)/(2*(k-one(T)+order(S)))   # one(T) ensures we get correct type
+recγ{T}(::Type{T},S::Ultraspherical,k) = (k-2+2order(S))/(2*(k-one(T)+order(S)))   # one(T) ensures we get correct type
 
 
 
@@ -28,8 +28,9 @@ Base.stride{U<:Ultraspherical,V<:Ultraspherical}(M::ConcreteMultiplication{U,V})
 
 function Multiplication{C<:Chebyshev}(f::Fun{C},sp::Ultraspherical{Int})
     if order(sp) == 1
+        cfs = f.coefficients
         MultiplicationWrapper(f,
-            SpaceOperator(SymmetricToeplitzOperator(cfs/2) +
+            SpaceOperator(SymToeplitzOperator(cfs/2) +
                                 HankelOperator(@compat(view(cfs,3:length(cfs)))/(-2)),
                           sp,sp))
 
@@ -46,17 +47,17 @@ end
 #Derivative(d::IntervalDomain)=Derivative(1,d)
 
 
-Derivative{λ,DD<:Interval}(sp::Ultraspherical{λ,DD},order::Integer) =
+Derivative{LT,DD<:Interval}(sp::Ultraspherical{LT,DD},order::Integer) =
     ConcreteDerivative(sp,order)
-Integral{λ,DD<:Interval}(sp::Ultraspherical{λ,DD},order::Integer) =
+Integral{LT,DD<:Interval}(sp::Ultraspherical{LT,DD},order::Integer) =
     ConcreteIntegral(sp,order)
 
 
-rangespace{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}}) =
+rangespace{LT,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) =
     Ultraspherical(order(domainspace(D))+D.order,domain(D))
-bandinds{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}}) = 0,D.order
-bandinds{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}}) = -D.order,0
-Base.stride{λ,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{λ,DD}}) = D.order
+bandinds{LT,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = 0,D.order
+bandinds{LT,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) = -D.order,0
+Base.stride{LT,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = D.order
 
 
 function getindex{TT,DD<:Interval,K,T}(D::ConcreteDerivative{Ultraspherical{TT,DD},K,T},
@@ -75,14 +76,14 @@ end
 
 ## Integral
 
-linesum{λ,DD<:Interval}(f::Fun{Ultraspherical{λ,DD}}) =
+linesum{LT,DD<:Interval}(f::Fun{Ultraspherical{LT,DD}}) =
     sum(setcanonicaldomain(f))*arclength(d)/2
 
 
 
 
 
-rangespace{λ,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{λ,DD}}) =
+rangespace{LT,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) =
     order(domainspace(D)) == 1 ? Chebyshev() : Ultraspherical(order(domainspace(D))-D.order,domain(D))
 
 function getindex{LT,DD<:Interval,T}(D::ConcreteIntegral{Ultraspherical{LT,DD},T},k::Integer,j::Integer)

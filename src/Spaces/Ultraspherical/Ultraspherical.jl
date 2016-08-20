@@ -8,12 +8,13 @@ export Ultraspherical
 immutable Ultraspherical{T,D<:Domain} <: PolynomialSpace{D}
     order::T
     domain::D
-    Ultraspherical(m::T,d::D) = (@assert m ≠ 0; new(d))
+    Ultraspherical(m::T,d::D) = (@assert m ≠ 0; new(m,d))
     Ultraspherical(m::Number) = (@assert m ≠ 0; new(T(m),Interval()))
 end
 
 Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d)}(m,d)
 Ultraspherical(m::Number,d) = Ultraspherical(m,Domain(d))
+Ultraspherical(m::Number) = Ultraspherical(m,Interval())
 
 
 order(S::Ultraspherical) = S.order
