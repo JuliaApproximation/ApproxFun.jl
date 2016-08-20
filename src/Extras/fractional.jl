@@ -112,7 +112,7 @@ end
 
 for (TYP,WRAP) in ((:LeftIntegral,:LeftIntegralWrapper),
                     (:RightIntegral,:RightIntegralWrapper))
-    @eval function $TYP{λ,DD}(S::JacobiWeight{Ultraspherical{λ,DD}},k)
+    @eval function $TYP{PS<:PolynomialSpace}(S::JacobiWeight{PS},k)
         JS = JacobiWeight(S.α,S.β,Jacobi(S.space))
         $WRAP($TYP(JS,k)*Conversion(S,JS),k)
     end

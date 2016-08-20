@@ -160,25 +160,35 @@ end
 
 # O(min(m,n)) Ultraspherical conjugated inner product
 
-function conjugatedinnerproduct{λ,D,S,V}(::Type{Ultraspherical{λ,D}},u::Vector{S},v::Vector{V})
-    T,mn = promote_type(S,V),min(length(u),length(v))
-    if mn > 1
-        wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
-        ret = u[1]*wi*v[1]
-        for i=2:mn
-          wi *= (i-2one(T)+2λ)/(i-one(T)+λ)*(i-2one(T)+λ)/(i-one(T))
-          ret += u[i]*wi*v[i]
+function conjugatedinnerproduct{S,V}(sp::Ultraspherical,u::Vector{S},v::Vector{V})
+    λ=order(sp)
+    if λ==1
+        mn = min(length(u),length(v))
+        if mn > 0
+            return dotu(u[1:mn],v[1:mn])*π/2
+        else
+            return zero(promote_type(eltype(u),eltype(v)))
         end
-        return ret
-    elseif mn > 0
-        wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
-        return u[1]*wi*v[1]
     else
-        return zero(promote_type(eltype(u),eltype(v)))
+        T,mn = promote_type(S,V),min(length(u),length(v))
+        if mn > 1
+            wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
+            ret = u[1]*wi*v[1]
+            for i=2:mn
+              wi *= (i-2one(T)+2λ)/(i-one(T)+λ)*(i-2one(T)+λ)/(i-one(T))
+              ret += u[i]*wi*v[i]
+            end
+            return ret
+        elseif mn > 0
+            wi = sqrt(convert(T,π))*gamma(λ+one(T)/2)/gamma(λ+one(T))
+            return u[1]*wi*v[1]
+        else
+            return zero(promote_type(eltype(u),eltype(v)))
+        end
     end
 end
 
-function conjugatedinnerproduct{C<:Chebyshev}(::Type{C},u::Vector,v::Vector)
+function conjugatedinnerproduct(::Chebyshev,u::Vector,v::Vector)
     mn = min(length(u),length(v))
     if mn > 1
         return (2u[1]*v[1]+dotu(u[2:mn],v[2:mn]))*π/2
@@ -189,64 +199,70 @@ function conjugatedinnerproduct{C<:Chebyshev}(::Type{C},u::Vector,v::Vector)
     end
 end
 
-function conjugatedinnerproduct{D}(::Type{Ultraspherical{1,D}},u::Vector,v::Vector)
-    mn = min(length(u),length(v))
-    if mn > 0
-        return dotu(u[1:mn],v[1:mn])*π/2
-    else
-        return zero(promote_type(eltype(u),eltype(v)))
-    end
-end
 
-function bilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
-    @assert domain(f) == domain(g)
-    if f.space.α == f.space.β == λ-0.5
-        return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
+function bilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::Fun{Ultraspherical{LT,D}})
+    d = domain(f)
+    @assert d == domain(g)
+    λ = order(space(f).space)
+    if order(space(g)) == λ && f.space.α == f.space.β == λ-0.5
+        return complexlength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultbilinearform(f,g)
     end
 end
 
-function bilinearform{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
-    @assert domain(f) == domain(g)
-    if g.space.α == g.space.β == λ-0.5
-        return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
+function bilinearform{LT,D}(f::Fun{Ultraspherical{LT,D}},
+                            g::Fun{JacobiWeight{Ultraspherical{LT,D},D}})
+    d = domain(f)
+    @assert d == domain(g)
+    λ = order(space(f))
+    if order(space(g).space) == λ && g.space.α == g.space.β == λ-0.5
+        return complexlength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultbilinearform(f,g)
     end
 end
 
-function bilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
-    @assert domain(f) == domain(g)
-    if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
-        return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
+function bilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},
+                            g::Fun{JacobiWeight{Ultraspherical{LT,D},D}})
+    d = domain(f)
+    @assert d == domain(g)
+    λ = order(space(f).space)
+    if order(space(g).space) == λ && f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
+        return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultbilinearform(f,g)
     end
 end
 
-function linebilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{Ultraspherical{λ,D}})
-    @assert domain(f) == domain(g)
-    if f.space.α == f.space.β == λ-0.5
-        return arclength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
+function linebilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::Fun{Ultraspherical{LT,D}})
+    d = domain(f)
+    @assert d == domain(g)
+    λ = order(space(f).space)
+    if order(space(g)) == λ && f.space.α == f.space.β == λ-0.5
+        return arclength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultlinebilinearform(f,g)
     end
 end
 
-function linebilinearform{λ,D}(f::Fun{Ultraspherical{λ,D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
-    @assert domain(f) == domain(g)
-    if g.space.α == g.space.β == λ-0.5
-        return arclength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
+function linebilinearform{LT,D}(f::Fun{Ultraspherical{LT,D}},g::Fun{JacobiWeight{Ultraspherical{LT,D},D}})
+    d = domain(f)
+    @assert d == domain(g)
+    λ = order(space(f))
+    if order(space(g).space) == λ &&  g.space.α == g.space.β == λ-0.5
+        return arclength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultlinebilinearform(f,g)
     end
 end
 
-function linebilinearform{λ,D}(f::Fun{JacobiWeight{Ultraspherical{λ,D},D}},g::Fun{JacobiWeight{Ultraspherical{λ,D},D}})
-    @assert domain(f) == domain(g)
-    if f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
-        return arclength(domain(f))/2*conjugatedinnerproduct(Ultraspherical{λ,D},f.coefficients,g.coefficients)
+function linebilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::Fun{JacobiWeight{Ultraspherical{LT,D},D}})
+    d = domain(f)
+    @assert d == domain(g)
+    λ = order(space(f).space)
+    if order(space(g).space) == λ &&  f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
+        return arclength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultlinebilinearform(f,g)
     end

@@ -143,14 +143,14 @@ Mx=Multiplication(Fun(cos),Chebyshev())
 My=Multiplication(Fun(sin),Chebyshev())
 K=Mx⊗My
 @test_approx_eq ApproxFun.BandedBlockBandedMatrix(view(K,1:10,1:10)) K[1:10,1:10]
-C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical{1}()⊗Ultraspherical{1}())
+C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
 @test_approx_eq C[1:100,1:100] Float64[C[k,j] for k=1:100,j=1:100]
 
 
 # 2d derivative (issue #346)
 let d = Chebyshev()^2
     f = Fun((x,y) -> sin(x) * cos(y), d)
-    C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical{1}()⊗Ultraspherical{1}())
+    C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
     @test_approx_eq (C*f)(0.1,0.2) f(0.1,0.2)
     Dx = Derivative(d, [1,0])
     f = Fun((x,y) -> sin(x) * cos(y), d)

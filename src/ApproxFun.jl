@@ -7,7 +7,7 @@ module ApproxFun
 
 import Base.LinAlg: BlasFloat
 
-import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,
+import Base: values,getindex,setindex!,*,.*,+,.+,-,.-,==,<,<=,>,|,
                 >=,./,/,.^,^,\,∪,transpose, size
 
 

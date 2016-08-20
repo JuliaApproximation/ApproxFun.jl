@@ -12,7 +12,7 @@ SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,sp.indexes[kr])
 domain(DS::SubSpace) = domain(DS.space)
 dimension(sp::SubSpace) = length(sp.indexes)
 
-Base.|(sp::Space,kr::Union{AbstractCount,Range}) = SubSpace(sp,kr)
+|(sp::Space,kr::Union{AbstractCount,Range}) = SubSpace(sp,kr)
 
 
 spacescompatible{DS,IT,T,DD,d}(S1::SubSpace{DS,IT,T,DD,d},S2::SubSpace{DS,IT,T,DD,d}) =

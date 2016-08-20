@@ -15,7 +15,7 @@ C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
                                      3.0 2.0 1.0 4.0 5.0
                                      0.0 3.0 2.0 1.0 4.0]
 
-C=Conversion(Ultraspherical{1}(),Ultraspherical{2}())
+C=Conversion(Ultraspherical(1),Ultraspherical(2))
 
 @test_approx_eq full(C[1:5,1:5])     [1.0 0.0 -0.3333333333333333 0.0  0.0
                                       0.0 0.5  0.0               -0.25 0.0
@@ -28,7 +28,7 @@ C=Conversion(Ultraspherical{1}(),Ultraspherical{2}())
 
 for M in (ToeplitzOperator([1.,2.,3.],[4.,5.,6.]),
                 HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
-                Conversion(Ultraspherical{1}(),Ultraspherical{2}()),
+                Conversion(Ultraspherical(1),Ultraspherical(2)),
                 Multiplication(Fun([1.,2.,3.],Chebyshev()),Chebyshev()))
     B=M[1:5,1:5]
 
@@ -46,11 +46,11 @@ d=Interval(-10.,5.);
 S=Chebyshev(d)
 
 
-@test norm(Fun(Fun(Fun(exp,S),Ultraspherical{2}(d)),S)-Fun(exp,S)) < 100eps()
+@test norm(Fun(Fun(Fun(exp,S),Ultraspherical(2,d)),S)-Fun(exp,S)) < 100eps()
 
 
-@test_approx_eq copy(@compat view(Derivative(Ultraspherical{1}()),1:2,1:2))[1,2] Derivative(Ultraspherical{1}())[1,2]
-@test_approx_eq exp(0.1) (Derivative()*Fun(exp,Ultraspherical{1}()))(0.1)
+@test_approx_eq copy(@compat view(Derivative(Ultraspherical(1)),1:2,1:2))[1,2] Derivative(Ultraspherical(1))[1,2]
+@test_approx_eq exp(0.1) (Derivative()*Fun(exp,Ultraspherical(1)))(0.1)
 
 
 T=Float64
@@ -68,16 +68,16 @@ X=Multiplication(x,space(x))
 d=Interval()
 
 
-A=Conversion(Chebyshev(d),Ultraspherical{2}(d))
+A=Conversion(Chebyshev(d),Ultraspherical(2,d))
 
 
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
 
-@test norm((Conversion(Chebyshev(d),Ultraspherical{2}(d))\(D^2*f))-f'') < 100eps()
+@test norm((Conversion(Chebyshev(d),Ultraspherical(2,d))\(D^2*f))-f'') < 100eps()
 
 @test norm(X*f-(x.*f)) < 100eps()
 
-A=Conversion(Chebyshev(d),Ultraspherical{2}(d))*X
+A=Conversion(Chebyshev(d),Ultraspherical(2,d))*X
 @test norm((A*f.coefficients).coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
 
 
