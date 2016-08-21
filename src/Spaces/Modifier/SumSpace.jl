@@ -35,7 +35,7 @@ function Base.next(it::BlockInterlacer,st)
         (rt,nst)
     else
         # call next if we are not done
-        (rt,st[end][st[1]] > length(it.blocks[N])?next(it,nst)[2]:nst)
+        (rt,nst[end][nst[1]] ≥ length(it.blocks[nst[1]])?next(it,nst)[2]:nst)
     end
 end
 
@@ -406,7 +406,7 @@ end
 
 
 # interlace coefficients according to iterator
-function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::InterlaceIterator)
+function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::Union{InterlaceIterator,BlockInterlacer})
     ret=Vector{T}()
     N=mapreduce(length,max,v)
     for (n,m) in it
@@ -423,7 +423,7 @@ function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::Inter
     ret
 end
 
-interlace{V<:AbstractVector}(v::AbstractVector{V},it::InterlaceIterator) =
+interlace{V<:AbstractVector}(v::AbstractVector{V},it::Union{InterlaceIterator,BlockInterlacer}) =
     interlace(mapreduce(eltype,promote_type,v),v,it)
 
 interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =

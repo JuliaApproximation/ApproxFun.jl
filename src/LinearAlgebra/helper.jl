@@ -517,7 +517,7 @@ getindex(it::Repeated,k::Range) = fill(it.x,length(k))
 
 repeated(x) = Repeated(x)
 repeated(x,::Infinity{Bool}) = Repeated(x)
-repeated(x,m::Integer) = Base.repeated(x,m)
+repeated(x,m::Integer) = fill(x,m)  #TODO: make a take
 
 
 abstract AbstractCount{S<:Number}
