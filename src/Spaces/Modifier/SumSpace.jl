@@ -1,6 +1,55 @@
 export ⊕,depiece,pieces,PiecewiseSpace
 
 
+
+## BlockInterlacer
+# interlaces coefficients by blocsk
+#
+
+immutable BlockInterlacer{DMS<:Tuple}
+    blocks::DMS
+end
+
+Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
+
+dimensions(b::BlockInterlacer) = map(length,b.blocks)
+
+# the state is always (whichblock,curblock,cursubblock,curcoefficients)
+Base.start(it::BlockInterlacer) = (findfirst(b-> length(b)≠0,it.blocks),1,1,
+                                   ntuple(zero,length(it.blocks)))
+function Base.next(it::BlockInterlacer,st)
+    N,b,m,inds=st
+    bl=it.blocks[N][b]
+
+
+    if N == length(it.blocks)  && m == bl
+        nst = (1,b+1,1,tuple(inds[1:end-1]...,inds[end]+1))
+    elseif m == bl
+        nst = (N+1,b,1,tuple(inds[1:N-1]...,inds[N]+1,inds[N+1:end]...))
+    else
+        nst = (N,b,m+1,tuple(inds[1:N-1]...,inds[N]+1,inds[N+1:end]...))
+    end
+
+    rt = (N,nst[end][N])
+    if done(it,nst)
+        (rt,nst)
+    else
+        # call next if we are not done
+        (rt,st[end][st[1]] > length(it.blocks[N])?next(it,nst)[2]:nst)
+    end
+end
+
+# are all Ints, so finite dimensional
+function Base.done(it::BlockInterlacer,st)
+    for k=1:length(it.blocks)
+        if st[end][k] ≤ length(it.blocks[k])
+            return false
+        end
+    end
+    return true
+end
+
+
 ## Interlace interator
 # this interlaces the entries treating everything equally,
 # but will stop interlacing finite dimensional when it runs
@@ -61,9 +110,15 @@ spaces(s::Space) = (s,)
 spaces(sp::DirectSumSpace) = sp.spaces
 
 InterlaceIterator(sp::DirectSumSpace) = InterlaceIterator(map(dimension,sp.spaces))
-interlacer(sp::DirectSumSpace) = InterlaceIterator(sp)
-interlacer(sp::Space) = InterlaceIterator(tuple(dimension(sp)))
+# interlacer(sp::DirectSumSpace) = InterlaceIterator(sp)
+# interlacer(sp::Space) = InterlaceIterator(tuple(dimension(sp)))
 cache(Q::InterlaceIterator) = CachedIterator(Q)
+
+BlockInterlacer(sp::DirectSumSpace) = BlockInterlacer(map(blocklengths,sp.spaces))
+interlacer(sp::DirectSumSpace) = BlockInterlacer(sp)
+interlacer(sp::Space) = BlockInterlacer(tuple(blocklengths(sp)))
+cache(Q::BlockInterlacer) = CachedIterator(Q)
+
 
 
 for TYP in (:SumSpace,:TupleSpace)
@@ -327,7 +382,7 @@ identity_fun(S::PiecewiseSpace) = depiece(map(identity_fun,S.spaces))
 
 function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
     sp=space(f).spaces
-    it=InterlaceIterator(map(dimension,sp))
+    it=interlacer(space(f))
     N=length(f.coefficients)
     d=dimension(sp[k])
 
@@ -372,14 +427,14 @@ interlace{V<:AbstractVector}(v::AbstractVector{V},it::InterlaceIterator) =
     interlace(mapreduce(eltype,promote_type,v),v,it)
 
 interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
-    interlace(map(coefficients,v),InterlaceIterator(sp))
+    interlace(map(coefficients,v),interlacer(sp))
 
 function interlace(v::Tuple,sp::DirectSumSpace)
     V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
     for k=1:length(v)
         V[k]=coefficients(v[k])
     end
-    interlace(V,InterlaceIterator(sp))
+    interlace(V,interlacer(sp))
 end
 
 

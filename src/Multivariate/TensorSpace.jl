@@ -154,6 +154,30 @@ subblock2tensor{II}(rt::CachedIterator{II,TensorIterator{Tuple{Infinity{Bool},In
     (k,K-k+1)
 
 
+
+# tensorblocklengths gives calculates the block sizes of each tensor product
+#  Tensor product degrees are taken to be the sum of the degrees
+#  a degree is which block you are in
+
+tensorblocklengths(a) = a   # a single block is not modified
+function tensorblocklengths(a::Repeated{Bool},b::Repeated{Bool})
+    @assert a.x && b.x
+    1:∞
+end
+
+function tensorblocklengths(a::Repeated{Bool},b)
+    @assert a.x
+    cumsum(b)
+end
+
+function tensorblocklengths(a,b::Repeated{Bool})
+    @assert b.x
+    cumsum(a)
+end
+
+tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d...)
+
+
 # TensorSpace
 # represents the tensor product of several subspaces
 
@@ -162,6 +186,7 @@ immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
 end
 
 tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = TensorIterator(map(dimension,sp.spaces))
+blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
@@ -361,7 +386,7 @@ function totensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Vector{T})
 end
 
 for OP in (:fromtensor,:totensor,:block,:blockstart,:blockstop)
-    @eval $OP(s::Space,M) = $OP(tensorizer(s),M)
+    @eval $OP(s::TensorSpace,M) = $OP(tensorizer(s),M)
 end
 
 # TODO: remove

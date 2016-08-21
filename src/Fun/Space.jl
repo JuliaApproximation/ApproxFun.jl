@@ -75,6 +75,9 @@ domaindimension{S,D,d}(::Space{S,D,d}) = d
 dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 
 
+# the default is all spaces have one-coefficient blocks
+blocklengths(S::Space) = repeated(true,dimension(S))
+
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
 

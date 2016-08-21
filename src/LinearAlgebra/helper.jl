@@ -491,7 +491,34 @@ for OP in (:>,:>=)
 end
 
 
-## My Count
+# Re-implementation of Base iterators
+# to use ∞ and allow getindex
+
+
+immutable Repeated{T}
+    x::T
+end
+
+Base.eltype{T}(::Type{Repeated{T}}) = T
+Base.eltype{T}(::Repeated{T}) = T
+
+Base.step(::Repeated) = 0
+
+Base.start(::Repeated) = nothing
+Base.next(it::Repeated,state) = it.x,nothing
+Base.done(::Repeated,state) = false
+
+Base.length(::Repeated) = ∞
+
+getindex(it::Repeated,k::Integer) = it.x
+getindex(it::Repeated,k::Range) = fill(it.x,length(k))
+
+.*(a::Repeated,b::Repeated) = Repeated(a.x,b.x)
+
+repeated(x) = Repeated(x)
+repeated(x,::Infinity{Bool}) = Repeated(x)
+repeated(x,m::Integer) = Base.repeated(x,m)
+
 
 abstract AbstractCount{S<:Number}
 
@@ -546,6 +573,9 @@ function Base.colon(a::Real,st::Real,b::Infinity{Bool})
         countfrom(a,st)
     end
 end
+
+Base.cumsum(r::Repeated) = r.x:r.x:∞
+Base.cumsum(r::Repeated{Bool}) = r.x?1:∞:r
 
 
 ## BandedMatrix
