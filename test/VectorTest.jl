@@ -1,6 +1,6 @@
 using ApproxFun,Base.Test
 
-import ApproxFun:interlace,Multiplication
+import ApproxFun:interlace,Multiplication,ConstantSpace,TupleSpace,PointSpace
 
 
 d=Interval()
@@ -120,3 +120,16 @@ u=M*G1
 f=Fun(t->[cos(t) 0;sin(t) 1],[-π,π])
 g=Fun(f,Space(PeriodicInterval(-π,π)))
 @test_approx_eq g(.1) f(.1)
+
+
+
+## Interlace test
+S1=Chebyshev()^2
+S2=Chebyshev()
+TS=TupleSpace((ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])))
+f=Fun(collect(1:10),TS)
+@test f[1] == Fun([1.],TS[1])
+@test f[2] == Fun([2.,6.,7.,10.],TS[2])
+@test f[3] == Fun([3.],TS[3])
+@test f[4] == Fun([4.,8.],TS[4])
+@test f[5] == Fun([5.,9.],TS[5])

@@ -15,29 +15,34 @@ Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
 dimensions(b::BlockInterlacer) = map(length,b.blocks)
 
 # the state is always (whichblock,curblock,cursubblock,curcoefficients)
-Base.start(it::BlockInterlacer) = (findfirst(b-> length(b)≠0,it.blocks),1,1,
-                                   ntuple(zero,length(it.blocks)))
+Base.start(it::BlockInterlacer) = (1,1,map(start,it.blocks),ntuple(zero,length(it.blocks)))
+
 function Base.next(it::BlockInterlacer,st)
-    N,b,m,inds=st
-    bl=it.blocks[N][b]
+    N,k,blkst,lngs = st
 
-
-    if N == length(it.blocks)  && m == bl
-        nst = (1,b+1,1,tuple(inds[1:end-1]...,inds[end]+1))
-    elseif m == bl
-        nst = (N+1,b,1,tuple(inds[1:N-1]...,inds[N]+1,inds[N+1:end]...))
-    else
-        nst = (N,b,m+1,tuple(inds[1:N-1]...,inds[N]+1,inds[N+1:end]...))
+    if N>length(it.blocks)
+        # increment to next block
+        blkst = map((blit,blst)->done(blit,blst)?blst:next(blit,blst)[2],it.blocks,blkst)
+        return next(it,(1,1,blkst,lngs))
     end
 
-    rt = (N,nst[end][N])
-    if done(it,nst)
-        (rt,nst)
-    else
-        # call next if we are not done
-        (rt,nst[end][nst[1]] ≥ length(it.blocks[nst[1]])?next(it,nst)[2]:nst)
+    if done(it.blocks[N],blkst[N])
+        # increment to next N
+        return next(it,(N+1,1,blkst,lngs))
     end
+
+    B,nxtb = next(it.blocks[N],blkst[N])  # B is block size
+
+    if k > B
+        #increment to next N
+        return next(it,(N+1,1,blkst,lngs))
+    end
+
+
+    lngs = tuple(lngs[1:N-1]...,lngs[N]+1,lngs[N+1:end]...)
+    return (N,lngs[N]),(N,k+1,blkst,lngs)
 end
+
 
 # are all Ints, so finite dimensional
 function Base.done(it::BlockInterlacer,st)
@@ -391,12 +396,16 @@ function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
     j=1  # current coefficient
     p=0  # current length
     for (n,m) in it
-        if j > N || m > d
+        if j > N
             break
         end
         if n==k
             ret[m]=f.coefficients[j]
             p+=1
+            if m ≥ d
+                # if we've reached the dimension, we are done
+                break
+            end
         end
         j+=1
     end
