@@ -10,6 +10,8 @@ immutable BlockInterlacer{DMS<:Tuple}
     blocks::DMS
 end
 
+BlockInterlacer(v::Vector) = BlockInterlacer(tuple(v...))
+
 Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
 
 dimensions(b::BlockInterlacer) = map(length,b.blocks)
