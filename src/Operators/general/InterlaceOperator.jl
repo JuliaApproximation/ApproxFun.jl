@@ -135,7 +135,7 @@ function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
 
 
     InterlaceOperator(ops,ds,rs,
-                        InterlaceIterator(tuple(dimension(ds))),
+                        BlockInterlacer(tuple(blocklengths(ds))),
                         cache(interlacer(rs)),
                         (l,u))
 end

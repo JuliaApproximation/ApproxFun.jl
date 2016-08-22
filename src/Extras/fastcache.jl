@@ -78,8 +78,8 @@ function CachedOperator{T}(io::InterlaceOperator{T,2};padding::Bool=false)
     rs=rangespace(io)
     di=io.domaininterlacer
     ri=io.rangeinterlacer
-    ddims=di.iterator.dimensions
-    rdims=ri.iterator.dimensions
+    ddims=dimensions(di.iterator)
+    rdims=dimensions(ri.iterator)
 
     # we are only almost banded if every operator is either finite
     # range or banded, and if the # of  ∞ spaces is the same
@@ -96,6 +96,13 @@ function CachedOperator{T}(io::InterlaceOperator{T,2};padding::Bool=false)
     d∞=find(isinf,[ddims...])
     r∞=find(isinf,[rdims...])
     p=length(d∞)
+
+    for k in d∞
+        @assert blocklengths(ds[k]) == Repeated(true)
+    end
+    for k in r∞
+        @assert blocklengths(rs[k]) == Repeated(true)
+    end
 
     l∞,u∞ = 0,0
     for k=1:p,j=1:p
@@ -200,13 +207,12 @@ function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBanded
     rs=rangespace(io)
     di=io.domaininterlacer
     ri=io.rangeinterlacer
-    ddims=di.iterator.dimensions
-    rdims=ri.iterator.dimensions
+    ddims=dimensions(di.iterator)
+    rdims=dimensions(ri.iterator)
 
     d∞=find(isinf,[ddims...])
     r∞=find(isinf,[rdims...])
     p=length(d∞)
-
 
     (l,u)=bandwidths(co.data.bands)
     pad!(co.data,n,n+u)

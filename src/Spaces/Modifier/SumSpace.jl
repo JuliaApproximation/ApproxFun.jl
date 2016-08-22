@@ -55,50 +55,6 @@ function Base.done(it::BlockInterlacer,st)
 end
 
 
-## Interlace interator
-# this interlaces the entries treating everything equally,
-# but will stop interlacing finite dimensional when it runs
-# out.
-# Dimensions are either Int or ∞
-
-immutable InterlaceIterator{DMS<:Tuple}
-    dimensions::DMS
-end
-
-InterlaceIterator(V::Vector) = InterlaceIterator(tuple(V...))
-
-Base.start(it::InterlaceIterator) = (findfirst(d-> d≠0,it.dimensions),1)
-function Base.next(it::InterlaceIterator,st)
-    if st[1] == length(it.dimensions)
-        k = 1
-        j = st[2]+1
-    else
-        k = st[1]+1
-        j = st[2]
-    end
-    nst=(k,j)
-    if done(it,nst)
-        (st,nst)
-    else
-        # call next if we are not done
-        (st,j > it.dimensions[k]?next(it,nst)[2]:nst)
-    end
-end
-
-# are all Ints, so finite dimensional
-function Base.done{N}(it::InterlaceIterator{NTuple{N,Int}},st)
-    for k=1:length(it.dimensions)
-        if st[2] ≤ it.dimensions[k] && k ≤ st[1]
-            return false
-        end
-    end
-    return true
-end
-
-# Are not all Ints, so ∞ dimensional
-Base.done(it::InterlaceIterator,st) = false
-Base.eltype(it::InterlaceIterator) = Tuple{Int,Int}
-
 
 
 
@@ -114,10 +70,6 @@ dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)
 spaces(s::Space) = (s,)
 spaces(sp::DirectSumSpace) = sp.spaces
 
-InterlaceIterator(sp::DirectSumSpace) = InterlaceIterator(map(dimension,sp.spaces))
-# interlacer(sp::DirectSumSpace) = InterlaceIterator(sp)
-# interlacer(sp::Space) = InterlaceIterator(tuple(dimension(sp)))
-cache(Q::InterlaceIterator) = CachedIterator(Q)
 
 BlockInterlacer(sp::DirectSumSpace) = BlockInterlacer(map(blocklengths,sp.spaces))
 interlacer(sp::DirectSumSpace) = BlockInterlacer(sp)
@@ -415,7 +367,7 @@ end
 
 
 # interlace coefficients according to iterator
-function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::Union{InterlaceIterator,BlockInterlacer})
+function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::BlockInterlacer)
     ret=Vector{T}()
     N=mapreduce(length,max,v)
     for (n,m) in it
@@ -432,7 +384,7 @@ function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::Union
     ret
 end
 
-interlace{V<:AbstractVector}(v::AbstractVector{V},it::Union{InterlaceIterator,BlockInterlacer}) =
+interlace{V<:AbstractVector}(v::AbstractVector{V},it::BlockInterlacer) =
     interlace(mapreduce(eltype,promote_type,v),v,it)
 
 interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =

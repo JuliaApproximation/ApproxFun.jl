@@ -13,8 +13,8 @@ immutable ArraySpace{S,n,T,DD,dim} <: Space{T,DD,dim}
     ArraySpace(d::Domain,dims)=new(S(d),dims)
 end
 
-InterlaceIterator(sp::ArraySpace) = InterlaceIterator(fill(dimension(sp.space),length(sp)))
-interlacer(sp::ArraySpace) = InterlaceIterator(sp)
+BlockInterlacer(sp::ArraySpace) = BlockInterlacer(fill(blocklengths(sp.space),length(sp)))
+interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
 typealias VectorSpace{S,T,DD,dim} ArraySpace{S,1,T,DD,dim}
 typealias MatrixSpace{S,T,DD,dim} ArraySpace{S,2,T,DD,dim}
