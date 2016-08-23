@@ -138,6 +138,8 @@ blockstart{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
 blockstop{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
     findfirst(ci,blockstoptuple(ci.iterator,K))
 
+blockrange(it,K) = blockstart(it,K):blockstop(it,K)
+
 
 blocklength(it,K::Int) = blockstop(it,K)-blockstart(it,K)+1
 blocklength(it,K::Range) = Int[blocklength(it,k) for k in K]
@@ -154,6 +156,21 @@ subblock2tensor{II}(rt::CachedIterator{II,TensorIterator{Tuple{Infinity{Bool},In
     (k,K-k+1)
 
 
+# gives the miminimum of the maximum of each index in a bloc
+# e.g. ((1,3),(2,2),(3,1)) has minmax 2
+blockminmax{IT,TI<:TensorIterator}(it::CachedIterator{IT,TI},K) =
+    mapreduce(k->maximum(it[k]),min,blockrange(it,K))
+
+
+blockminmax(it::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K) = K÷2+1
+findfirstblockminmax(it::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},k) = 2*(k-1)
+findlastblockminmax(it::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},k) =
+    findfirstblockminmax(it,k+1) - 1
+
+findfirstblockminmax{IT}(it::CachedIterator{IT,TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},k) =
+    findfirstblockminmax(it.iterator,k)
+findlastblockminmax{IT}(it::CachedIterator{IT,TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},k) =
+    findlastblockminmax(it.iterator,k)
 
 # tensorblocklengths gives calculates the block sizes of each tensor product
 #  Tensor product degrees are taken to be the sum of the degrees

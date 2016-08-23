@@ -73,10 +73,9 @@ function colstart(A::KroneckerOperator,k::Integer)
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
-    K=block(A.domaintensorizer,k)
-    st=blockstop(A.rangetensorizer,K+blockbandwidth(A,1))
-    # zero indicates above dimension
-    st==0?size(A,1):min(size(A,1),st)
+    d_inds = A.domaintensorizer[k]
+    cs = maximum(map(colstop,A.ops,d_inds))
+    min(findlastblockminmax(A.rangetensorizer,cs),size(A,1))
 end
 
 function rowstart(A::KroneckerOperator,k::Integer)
