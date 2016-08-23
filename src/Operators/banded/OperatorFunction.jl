@@ -1,14 +1,15 @@
 export OperatorFunction
 
 
-abstract OperatorFunction{BT,T} <: Operator{T}
+abstract OperatorFunction{BT,FF,T} <: Operator{T}
 
-immutable ConcreteOperatorFunction{BT<:Operator,T} <: OperatorFunction{BT,T}
+immutable ConcreteOperatorFunction{BT<:Operator,FF,T} <: OperatorFunction{BT,FF,T}
     op::BT
-    f::Function
+    f::FF
 end
 
-ConcreteOperatorFunction(op::Operator,f::Function) = ConcreteOperatorFunction{typeof(op),eltype(op)}(op,f)
+ConcreteOperatorFunction(op::Operator,f::Function) =
+    ConcreteOperatorFunction{typeof(op),typeof(f),eltype(op)}(op,f)
 OperatorFunction(op::Operator,f::Function) = ConcreteOperatorFunction(op,f)
 
 for op in (:domainspace,:rangespace,:domain,:bandinds)
@@ -33,3 +34,19 @@ function Base.convert{T}(::Type{Operator{T}},D::ConcreteOperatorFunction)
         ConcreteOperatorFunction{typeof(D.op),T}(D.op,D.f)
     end
 end
+
+
+for OP in (:(Base.inv),:(Base.sqrt))
+    @eval begin
+        $OP(D::DiagonalOperator) = OperatorFunction(D,$OP)
+        $OP(C::ConstantTimesOperator) = $OP(C.λ)*$OP(C.op)
+        function $OP(D::ConcreteOperatorFunction)
+            @assert isdiag(D)
+            OperatorFunction(D.op,x->$OP(D.f(x)))
+        end
+    end
+end
+
+
+Base.sqrt(S::SpaceOperator) = SpaceOperator(sqrt(S.op),S.domainspace,S.rangespace)
+Base.inv(S::SpaceOperator) = SpaceOperator(inv(S.op),S.rangespace,S.domainspace)

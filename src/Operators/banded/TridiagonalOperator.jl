@@ -31,22 +31,17 @@ function symmetrize{T}(J::TridiagonalOperator{T},n::Integer)
     T[J[k,k+1]*d[k+1]/d[k] for k=1:n-1])
 end
 
-immutable DiagonalInverseOperator{S,T} <: DiagonalOperator{T}
-    op::S
+
+immutable DiagIteratorOperator{IT,T} <: DiagonalOperator{T}
+    iterator::IT
 end
 
-function DiagonalInverseOperator(B::Operator)
-    @assert bandinds(B)==(0,0)
-    DiagonalInverseOperator{typeof(B),promote_type(Float64,eltype(B))}(B)
-end
+DiagIteratorOperator(it) = DiagIteratorOperator{typeof(it),eltype(it)}(it)
 
-domainspace(D::DiagonalInverseOperator)=rangespace(D.op)
-rangespace(D::DiagonalInverseOperator)=domainspace(D.op)
+getindex(D::DiagIteratorOperator,k::Integer,j::Integer) =
+    k==j? D.iterator[k] : zero(eltype(D))
 
-Base.getindex(D::DiagonalInverseOperator,k::Integer,j::Integer)=k==j?1./D.op[k,k]:zero(eltype(D))
+domainspace(D::DiagIteratorOperator) = ℓ⁰
+rangespace(D::DiagIteratorOperator) = ℓ⁰
 
-
-@eval Base.convert{T}(::Type{Operator{T}},F::DiagonalInverseOperator)=DiagonalInverseOperator{typeof(F.op),
-                                                                                        T}(F.op)
-
-Base.inv(B::Operator)=DiagonalInverseOperator(B)
+Base.diagm(c::AbstractCount) = DiagIteratorOperator(c)
