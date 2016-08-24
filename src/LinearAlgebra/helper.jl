@@ -686,35 +686,21 @@ flatten(itr) = Flatten(itr)
 
 Base.eltype(f::Flatten) = mapreduce(eltype,promote_type,f.it)
 
-function Base.start(f::Flatten)
-    local inner, s2
-    s = start(f.it)
-    d = done(f.it, s)
-    # this is a simple way to make this function type stable
-    d && throw(ArgumentError("argument to Flatten must contain at least one iterator"))
-    while !d
-        inner, s = next(f.it, s)
-        s2 = start(inner)
-        !done(inner, s2) && break
-        d = done(f.it, s)
+Base.start(f::Flatten) = 1, map(start,f.it)
+
+function Base.next(f::Flatten, state)
+    k, sts = state
+    if !done(f.it[k],sts[k])
+        a,nst = next(f.it[k],sts[k])
+        a, (k,(sts[1:k-1]...,nst,sts[k+1:end]...))
+    else
+        next(f,(k+1,sts))
     end
-    return s, inner, s2
 end
 
-@inline function Base.next(f::Flatten, state)
-    s, inner, s2 = state
-    val, s2 = next(inner, s2)
-    while done(inner, s2) && !done(f.it, s)
-        inner, s = next(f.it, s)
-        s2 = start(inner)
-    end
-    return val, (s, inner, s2)
-end
 
-@inline function Base.done(f::Flatten, state)
-    s, inner, s2 = state
-    return done(f.it, s) && done(inner, s2)
-end
+@inline Base.done(f::Flatten, state) =
+    state[1] == length(f) && done(f.its[end],state[2][end])
 
 Base.length(f::Flatten) = mapreduce(length,+,f.it)
 function getindex(f::Flatten,k::Int)
