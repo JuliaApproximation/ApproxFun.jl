@@ -132,11 +132,11 @@ immutable Dirichlet{S,T} <: Operator{T}
     space::S
     order::Int
 end
-Dirichlet(sp::Space)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,0)
-Dirichlet(d::Domain)=Dirichlet(Space(d))
-Neumann(sp::Space)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,1)
-Neumann(d::Domain)=Dirichlet(Space(d))
+Dirichlet(sp::Space) = Dirichlet{typeof(sp),eltype(sp)}(sp,0)
+Dirichlet(d::Domain) = Dirichlet(Space(d))
+Neumann(sp::Space) = Dirichlet{typeof(sp),eltype(sp)}(sp,1)
+Neumann(d::Domain) = Neumann(Space(d))
 
 
-domainspace(S::Dirichlet)=S.space
-rangespace(B::Dirichlet)=Space(∂(domain(B)))
+domainspace(S::Dirichlet) = S.space
+rangespace(B::Dirichlet) = Space(∂(domain(B)))

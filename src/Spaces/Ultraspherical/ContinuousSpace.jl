@@ -82,6 +82,14 @@ end
 canonicalspace(S::ContinuousSpace) = PiecewiseSpace(map(ChebyshevDirichlet{1,1},pieces(domain(S))))
 
 
+
+
+
+blocklengths(C::ContinuousSpace) = repeated(numpieces(C.domain))
+
+block(C::ContinuousSpace,k) = (k-1)÷numpieces(C.domain)+1
+
+
 ## pieces
 
 Base.vec{T}(f::Fun{ContinuousSpace{T}},j::Integer) = vec(Fun(f,canonicalspace(f)),j)
@@ -189,6 +197,65 @@ function getindex{T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},TT,
             one(T)/2
         elseif k>2K && j==k-K+1
             one(T)
+        else
+            zero(T)
+        end
+    end
+end
+
+
+
+# Dirichlet for Squares
+
+
+
+blockbandinds{CD<:ChebyshevDirichlet,RB}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}}) =
+    (0,2)
+
+colstop{CD<:ChebyshevDirichlet,RB}(B::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}},j::Integer) =
+    j ≤ 3 ? 4 : 4(block(domainspace(B),j)-1)
+
+
+function getindex{CD<:ChebyshevDirichlet,RB}(B::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}},
+                                             k::Integer,j::Integer)
+    T = eltype(B)
+    ds = domainspace(B)
+    rs = rangespace(B)
+    if j == 1 && k ≤ 4
+        one(T)
+    elseif j == 2 && k ≤ 2
+        -one(T)
+    elseif j == 2 && k ≤ 4
+        one(T)
+    elseif j == 3 && (k == 1 || k == 4)
+        -one(T)
+    elseif j == 3 && (k == 2 || k == 3)
+        one(T)
+    elseif j == 5 && (k == 2 || k == 4)
+        -one(T)
+    elseif j == 5 && (k == 1 || k == 3)
+        one(T)
+    elseif j == 5 || j ≤ 3
+        zero(T)
+    else
+        K = block(rs,k)
+        J = block(ds,j)
+        m = mod(k-1,4)
+        s,t =  blockstart(ds,J),  blockstop(ds,J)
+        if K == J-1 && (m == 1  && j == s ||
+                       (m == 0  && j == t))
+            one(T)
+        elseif K == J-1 && ((m == 3 && j == s) ||
+                            (m == 2 && j == t))
+            iseven(K)?one(T):-one(T)
+        elseif K == J-2 && m == 1 && j == s+1
+            one(T)
+        elseif K == J-2 && m == 2 && j == t-1
+            iseven(K)?one(T):-one(T)
+        elseif K == J-2 && m == 0 && j == t-1
+            -one(T)
+        elseif K == J-2 && m == 3 && j == s+1
+            iseven(K)?-one(T):one(T)
         else
             zero(T)
         end

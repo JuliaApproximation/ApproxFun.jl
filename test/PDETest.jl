@@ -1,5 +1,14 @@
 using ApproxFun, Compat, Base.Test
 
+## Check operators
+
+
+S=ChebyshevDirichlet()
+B=Dirichlet(S^2)
+f = Fun((x,y)->exp(x)*sin(y),S^2)
+@test norm((Fun((x,y)->exp(x)*sin(y),∂(domain(S^2))) - B*f).coefficients)
+
+
 ## Rectangle PDE
 
 dx=dy=Interval()
