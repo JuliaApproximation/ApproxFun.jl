@@ -655,3 +655,106 @@ end
 cache{T<:Number}(A::Vector{T}) = A
 cache(A::Range) = A
 cache(A::AbstractCount) = A
+
+
+
+## From Julia v0.5 code
+
+
+# flatten an iterator of iterators
+# we add indexing
+
+immutable Flatten{I}
+    it::I
+end
+
+"""
+    flatten(iter)
+
+Given an iterator that yields iterators, return an iterator that yields the
+elements of those iterators.
+Put differently, the elements of the argument iterator are concatenated. Example:
+
+    julia> collect(flatten((1:2, 8:9)))
+    4-element Array{Int64,1}:
+     1
+     2
+     8
+     9
+"""
+flatten(itr) = Flatten(itr)
+
+Base.eltype(f::Flatten) = mapreduce(eltype,promote_type,f.it)
+
+function Base.start(f::Flatten)
+    local inner, s2
+    s = start(f.it)
+    d = done(f.it, s)
+    # this is a simple way to make this function type stable
+    d && throw(ArgumentError("argument to Flatten must contain at least one iterator"))
+    while !d
+        inner, s = next(f.it, s)
+        s2 = start(inner)
+        !done(inner, s2) && break
+        d = done(f.it, s)
+    end
+    return s, inner, s2
+end
+
+@inline function Base.next(f::Flatten, state)
+    s, inner, s2 = state
+    val, s2 = next(inner, s2)
+    while done(inner, s2) && !done(f.it, s)
+        inner, s = next(f.it, s)
+        s2 = start(inner)
+    end
+    return val, (s, inner, s2)
+end
+
+@inline function Base.done(f::Flatten, state)
+    s, inner, s2 = state
+    return done(f.it, s) && done(inner, s2)
+end
+
+Base.length(f::Flatten) = mapreduce(length,+,f.it)
+function getindex(f::Flatten,k::Int)
+    sh = 0
+    for it in f.it
+        n = length(it)
+        if k ≤ sh + n
+            return it[k-sh]
+        else
+            sh += n
+        end
+    end
+
+    throw(BoundsError())
+end
+
+function getindex(f::Flatten,kr::UnitRange{Int})
+    @assert first(kr) == 1
+
+    k = last(kr)
+    ret=
+
+    sh = 0
+    for j in 1:length(f.it)
+        n = length(f.it[j])
+        if sh ≤ k ≤ sh + n
+            return flatten(tuple(f.it[1:j-1]...,f.it[j][1:(k-sh)]))
+        else
+            sh += n
+        end
+    end
+
+    throw(BoundsError())
+end
+
+
+Base.sum(f::Flatten) = mapreduce(sum,+,f.it)
+
+
+for OP in (:+,:-,:*,:/)
+    @eval $OP(f::Flatten,c::Number) = Flatten(map(it->$OP(it,c),f.it))
+    @eval $OP(c::Number,f::Flatten) = Flatten(map(it->$OP(c,it),f.it))
+end

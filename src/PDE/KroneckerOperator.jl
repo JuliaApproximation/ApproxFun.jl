@@ -73,9 +73,11 @@ function colstart(A::KroneckerOperator,k::Integer)
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
-    d_inds = A.domaintensorizer[k]
-    cs = maximum(map(colstop,A.ops,d_inds))
-    min(findlastblockminmax(A.rangetensorizer,cs),size(A,1))
+    inds = A.domaintensorizer[k]
+    # first block with all zeros
+    css=map(colstop,A.ops,inds)
+    blk=sum(css)
+    cs=blockstart(A.rangetensorizer,blk-1)+css[1]-1
 end
 
 function rowstart(A::KroneckerOperator,k::Integer)

@@ -92,6 +92,17 @@ block(ci::CachedIterator,k) = sum(ci[k])-length(ci.iterator.dimensions)+1
 block(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
     floor(Integer,sqrt(2n) + 1/2)
 
+blocklength(it,k) = blocklengths(it)[k]
+
+blocklengths(::TensorIterator{NTuple{2,Infinity{Bool}}}) = 1:∞
+
+function blocklengths(it::TensorIterator)
+    d = minimum(it.dimensions)
+    flatten((1:d,repeated(d)))
+end
+
+blocklengths(it::CachedIterator) = blocklengths(it.iterator)
+
 function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
     m=block(it,n)
     p=findfirst(it,(1,m))
@@ -101,18 +112,13 @@ end
 
 
 
-blockstart(it::TensorIterator,K) = cumsum(blocklengths(it)-1)[K]+1
-blockstop(it::TensorIterator,K) = cumsum(blocklengths(it))[K]
+blockstart(it,K) = K==1?1:sum(blocklengths(it)[1:K-1])+1
+blockstop(it,K) = sum(blocklengths(it)[1:K])
 
 
 blockrange(it,K) = blockstart(it,K):blockstop(it,K)
 
 
-blocklength(it,K::Int) = blockstop(it,K)-blockstart(it,K)+1
-blocklength(it,K::Range) = Int[blocklength(it,k) for k in K]
-blocklength{II}(it::CachedIterator{II,
-            TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},K::Int) = K
-blocklength(it::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K::Int) = K
 
 
 # convert from block, subblock to tensor
