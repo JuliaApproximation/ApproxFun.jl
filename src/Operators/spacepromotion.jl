@@ -171,6 +171,6 @@ linsolve(A::SpaceOperator,b::Fun;kwds...) =
     setspace(linsolve(A.op,coefficients(b,rangespace(A));kwds...),domainspace(A))
 
 linsolve{T<:Number}(A::SpaceOperator,b::Array{T};kwds...) =
-    setspace(linsolve(A.op,b;kwds...),rangespace(A))
+    setspace(linsolve(A.op,b;kwds...),domainspace(A))
 linsolve(A::SpaceOperator,b::Number;kwds...) =
-    setspace(linsolve(A.op,b;kwds...),rangespace(A))
+    setspace(linsolve(A.op,b;kwds...),domainspace(A))
