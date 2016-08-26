@@ -194,16 +194,22 @@ function *(L::LowRankMatrix,M::LowRankMatrix)
     LowRankMatrix(copy(L.U),V)
 end
 
-function *(L::LowRankMatrix,A::AbstractMatrix)
-    V = zeros(promote_type(eltype(L),eltype(A)),size(A,2),rank(L))
-    At_mul_B!(V,A,L.V)
-    LowRankMatrix(copy(L.U),V)
-end
 
-function *(A::AbstractMatrix,L::LowRankMatrix)
-    U = zeros(promote_type(eltype(A),eltype(L)),size(A,1),rank(L))
-    At_mul_B!(U,A,L.U)
-    LowRankMatrix(U,copy(L.V))
+for TYP in (:(ToeplitzMatrices.Hankel),:AbstractMatrix)
+    @eval begin
+        function *(L::LowRankMatrix,A::$TYP)
+            V = zeros(promote_type(eltype(L),eltype(A)),size(A,2),rank(L))
+            At_mul_B!(V,A,L.V)
+            LowRankMatrix(copy(L.U),V)
+        end
+
+
+        function *(A::$TYP,L::LowRankMatrix)
+            U = zeros(promote_type(eltype(A),eltype(L)),size(A,1),rank(L))
+            At_mul_B!(U,A,L.U)
+            LowRankMatrix(U,copy(L.V))
+        end
+    end
 end
 
 \(L::LowRankMatrix,b::AbstractVecOrMat) = full(L)\b
