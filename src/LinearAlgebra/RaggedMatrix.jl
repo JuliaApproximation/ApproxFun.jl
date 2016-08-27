@@ -1,6 +1,3 @@
-using ApproxFun
-import Base:getindex
-
 immutable RaggedMatrix{T} <: AbstractMatrix{T}
     data::Vector{T} # a Vector of non-zero entries
     cols::Vector{Int} # a Vector specifying the first index of each column
@@ -64,26 +61,3 @@ for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:ro
         $bop(m::Int,colns::AbstractVector{Int}) = $bop(Float64,m,colns)
     end
 end
-
-
-colns=[1,2,3]
-sum(colns),[1;cumsum(colns)]
-
-rrand(10,1:10)
-
-Z=ChebyshevDirichlet()|(3:∞)
-
-f=Fun(x->(1-x^2)*exp(x),Z)
-Derivative(Z,2)*f - f''
-
-S=Z^2
-
-
-f=Fun((x,y)->(1-x^2)*(1-y^2)*exp(x*cos(y)),Z^2)
-lap(S)*f
-
-
-f2=Fun((x,y)->(1-x^2)*(1-y^2)*exp(x*cos(y)))
-
-
-Conversion(Ultraspherical(1),Chebyshev())

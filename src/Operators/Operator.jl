@@ -171,7 +171,10 @@ default_rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
 
 for OP in (:colstart,:colstop,:rowstart,:rowstop)
     defOP = parse("default_"*string(OP))
-    @eval $OP(A::Operator,i::Integer) = $defOP(A,i)
+    @eval begin
+        $OP(A::Operator,i::Integer) = $defOP(A,i)
+        $OP(A::Operator,i::Infinity{Bool}) = ∞
+    end
 end
 
 
@@ -366,6 +369,7 @@ function Base.convert(::Type{Matrix},S::Operator)
 end
 
 Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
+Base.convert(::Type{RaggedMatrix},S::Operator) = default_raggedmatrix(S)
 
 function Base.convert(::Type{Vector},S::Operator)
     if size(S,2) ≠ 1  || isinf(size(S,1))
