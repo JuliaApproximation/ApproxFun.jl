@@ -47,10 +47,17 @@ end
 #Derivative(d::IntervalDomain)=Derivative(1,d)
 
 
-Derivative{LT,DD<:Interval}(sp::Ultraspherical{LT,DD},order::Integer) =
-    ConcreteDerivative(sp,order)
-Integral{LT,DD<:Interval}(sp::Ultraspherical{LT,DD},order::Integer) =
-    ConcreteIntegral(sp,order)
+Derivative{LT,DD<:Interval}(sp::Ultraspherical{LT,DD},m::Integer) =
+    ConcreteDerivative(sp,m)
+function Integral{LT,DD<:Interval}(sp::Ultraspherical{LT,DD},m::Integer)
+    λ = order(sp)
+    if m ≤ λ
+        ConcreteIntegral(sp,m)
+    else # Convert up
+        nsp = Ultraspherical(λ+1,domain(sp))
+        IntegralWrapper(Integral(nsp,m)*Conversion(sp,nsp),m)
+    end
+end
 
 
 rangespace{LT,DD<:Interval}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) =
@@ -107,24 +114,32 @@ end
 ## Conversion Operator
 
 
-function Conversion{DD}(A::Chebyshev,B::Ultraspherical{Int,DD})
-    if order(B) == 1
+function Conversion(A::Chebyshev,B::Ultraspherical)
+    if order(B) ≤ 1
         ConcreteConversion(A,B)
     else
         d=domain(A)
-        ConversionWrapper(TimesOperator(Conversion(Ultraspherical(1,d),B),
-                                        Conversion(Chebyshev(d),Ultraspherical(1,d))))
+        US=Ultraspherical(order(B)-1,d)
+        ConversionWrapper(TimesOperator(Conversion(US,B),
+                                        Conversion(Chebyshev(d),US)))
+    end
+end
+
+function Conversion(A::Ultraspherical,B::Chebyshev)
+    if order(A) == 1//2
+        ConcreteConversion(A,B)
+    else
+        error("Not implemented")
     end
 end
 
 
-function Conversion{LT,DD}(A::Ultraspherical{LT,DD},B::Ultraspherical{LT,DD})
-    a=order(A); b=order(B)
-    @assert b >= a
 
+function Conversion(A::Ultraspherical,B::Ultraspherical)
+    a=order(A); b=order(B)
     if b==a
         ConversionWrapper(eye(A))
-    elseif b==a+1
+    elseif a<b≤a+1  || b<a≤b+1
         ConcreteConversion(A,B)
     else
         d=domain(A)
@@ -149,7 +164,7 @@ function getindex{DD,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{Int,
 end
 
 
-function getindex{LT,DD,T}(M::ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD},T},
+function getindex{DD,T}(M::ConcreteConversion{Ultraspherical{Int,DD},Ultraspherical{Int,DD},T},
                             k::Integer,j::Integer)
     #  we can assume that λ==m+1
     λ=order(rangespace(M))
@@ -163,10 +178,34 @@ function getindex{LT,DD,T}(M::ConcreteConversion{Ultraspherical{LT,DD},Ultrasphe
     end
 end
 
+function getindex{LT,DD,T}(M::ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD},T},
+                            k::Integer,j::Integer)
+    λ=order(rangespace(M))
+    if order(domainspace(M))+1==λ
+        c=λ-one(T)  # this supports big types
+        if k==j
+            c/(k - 2 + λ)
+        elseif j==k+2
+            -c/(k + λ)
+        else
+            zero(T)
+        end
+    else
+        error("Not implemented")
+    end
+end
+
 
 bandinds{DD}(C::ConcreteConversion{Chebyshev{DD},Ultraspherical{Int,DD}}) = 0,2  # order == 1
+bandinds{DD}(C::ConcreteConversion{Ultraspherical{Int,DD},Ultraspherical{Int,DD}}) = 0,2
+
+bandinds{LT,DD}(C::ConcreteConversion{Chebyshev{DD},Ultraspherical{LT,DD}}) =
+    0,order(rangespace(C))==1?2:∞
+bandinds{LT,DD}(C::ConcreteConversion{Ultraspherical{LT,DD},Chebyshev{DD}}) =
+    0,order(domainspace(C))==1?2:∞
+
 bandinds{LT,DD}(C::ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD}}) =
-    0,2
+    0,order(domainspace(C))+1==order(rangespace(C))?2:∞
 
 Base.stride{DD}(C::ConcreteConversion{Chebyshev{DD},Ultraspherical{Int,DD}}) = 2
 Base.stride{LT,DD}(C::ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD}}) = 2
@@ -213,3 +252,66 @@ end
 Integral{DD<:Interval}(sp::Chebyshev{DD},m::Integer) =
     IntegralWrapper(TimesOperator([Integral(Ultraspherical(m,domain(sp)),m),
                                    Conversion(sp,Ultraspherical(m,domain(sp)))]),m)
+
+
+
+
+## Non-banded conversions
+
+function getindex{DD,LT,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{LT,DD},T},
+                                     k::Integer,j::Integer)
+    λ = order(rangespace(M))
+    if λ == 1
+        if k==j==1
+            one(T)
+        elseif k==j
+            one(T)/2
+        elseif j==k+2
+            -one(T)/2
+        else
+            zero(T)
+        end
+    elseif λ == 0.5
+        # Cheb-to-Leg
+        if j==k==1
+            one(T)
+        elseif j==k
+            T(sqrt(π)/(2FastTransforms.Λ(k-1)))
+        elseif k < j && iseven(k-j)
+            T(-(j-1)*(k-0.5)*(FastTransforms.Λ((j-k-2)/2)/(j-k))*
+                            (FastTransforms.Λ((j+k-3)/2)/(j+k-1)))
+        else
+            zero(T)
+        end
+    else
+        error("Not implemented")
+    end
+end
+
+
+function getindex{DD,LT,C<:Chebyshev,T}(M::ConcreteConversion{Ultraspherical{LT,DD},C,T},
+                                     k::Integer,j::Integer)
+    λ = order(domainspace(M))
+    if λ == 1
+        # order must be 1
+        if k==j==1
+            one(T)
+        elseif k==j
+            one(T)/2
+        elseif j==k+2
+            -one(T)/2
+        else
+            zero(T)
+        end
+    elseif λ == 0.5
+        if k==1 && isodd(j)
+            T(FastTransforms.Λ((j-1)/2)^2/π)
+        elseif k ≤ j && iseven(k-j)
+            T(FastTransforms.Λ((j-k)/2)*FastTransforms.Λ((k+j-2)/2)*2/π)
+        else
+            zero(T)
+        end
+    else
+        error("Not implemented")
+    end
+end

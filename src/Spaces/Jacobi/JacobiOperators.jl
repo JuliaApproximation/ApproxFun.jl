@@ -205,6 +205,41 @@ function Conversion(A::Jacobi,B::PolynomialSpace)
              ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
 end
 
+function Conversion(A::Jacobi,B::Chebyshev)
+    if A.a == A.b == 0
+        ConversionWrapper(
+            SpaceOperator(
+                Conversion(Ultraspherical(1//2),B),
+                A,B))
+    elseif A.a == A.b
+        ConversionWrapper(
+            SpaceOperator(
+                Conversion(Ultraspherical(A),B),
+                A,B))
+    else
+        J = Jacobi(B)
+        Conversion(J,B)*Conversion(A,J)
+    end
+end
+
+function Conversion(A::Chebyshev,B::Jacobi)
+    if B.a == B.b == 0
+        ConversionWrapper(
+            SpaceOperator(
+                Conversion(A,Ultraspherical(1//2,domain(B))),
+                A,B))
+    elseif B.a == B.b
+        ConversionWrapper(
+            SpaceOperator(
+                Conversion(Ultraspherical(B),B)*Conversion(A,Ultraspherical(B)),
+                A,B))
+    else
+        J = Jacobi(A)
+        Conversion(J,B)*Conversion(A,J)
+    end
+end
+
+
 
 
 bandinds{US<:Chebyshev,J<:Jacobi}(C::ConcreteConversion{US,J}) = 0,0

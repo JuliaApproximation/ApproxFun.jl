@@ -14,6 +14,13 @@ Jacobi(a,b)=Jacobi(a,b,Interval())
 Jacobi(A::Ultraspherical) = Jacobi(order(A)-0.5,order(A)-0.5,domain(A))
 Jacobi(A::Chebyshev)=Jacobi(-0.5,-0.5,domain(A))
 
+function Ultraspherical(J::Jacobi)
+    if J.a == J.b
+        Ultraspherical(J.a+0.5,domain(J))
+    else
+        error("Cannot construct Ultraspherical with a=$(J.a) and b=$(J.b)")
+    end
+end
 
 Base.promote_rule{T,V,D}(::Type{Jacobi{T,D}},::Type{Jacobi{V,D}})=Jacobi{promote_type(T,V),D}
 Base.convert{T,V,D}(::Type{Jacobi{T,D}},J::Jacobi{V,D})=Jacobi{T,D}(J.a,J.b,J.domain)
