@@ -204,11 +204,11 @@ bandinds{LT,DD}(C::ConcreteConversion{Chebyshev{DD},Ultraspherical{LT,DD}}) =
 bandinds{LT,DD}(C::ConcreteConversion{Ultraspherical{LT,DD},Chebyshev{DD}}) =
     0,order(domainspace(C))==1?2:∞
 
-bandinds{LT,DD}(C::ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD}}) =
+bandinds{LT1,LT2,DD}(C::ConcreteConversion{Ultraspherical{LT1,DD},Ultraspherical{LT2,DD}}) =
     0,order(domainspace(C))+1==order(rangespace(C))?2:∞
 
 Base.stride{DD}(C::ConcreteConversion{Chebyshev{DD},Ultraspherical{Int,DD}}) = 2
-Base.stride{LT,DD}(C::ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD}}) = 2
+Base.stride{LT1,LT2,DD}(C::ConcreteConversion{Ultraspherical{LT1,DD},Ultraspherical{LT2,DD}}) = 2
 
 
 ## coefficients
@@ -308,6 +308,26 @@ function getindex{DD,LT,C<:Chebyshev,T}(M::ConcreteConversion{Ultraspherical{LT,
             T(FastTransforms.Λ((j-1)/2)^2/π)
         elseif k ≤ j && iseven(k-j)
             T(FastTransforms.Λ((j-k)/2)*FastTransforms.Λ((k+j-2)/2)*2/π)
+        else
+            zero(T)
+        end
+    else
+        error("Not implemented")
+    end
+end
+
+
+
+function getindex{DD,LT,LT2,T}(M::ConcreteConversion{Ultraspherical{LT,DD},
+                                                     Ultraspherical{LT2,DD},T},
+                                     k::Integer,j::Integer)
+    λ1 = order(domainspace(M))
+    λ2 = order(rangespace(M))
+    if abs(λ1-λ2) < 1
+        if j ≥ k && iseven(k-j)
+            gamma(λ2)*(k-1+λ2)/(gamma(λ1)*gamma(λ1-λ2))*
+                (gamma((j-k)/2+λ1-λ2)/gamma((j-k)/2+1))*
+                (gamma((k+j-2)/2+λ1)/gamma((k+j-2)/2+λ2+1))
         else
             zero(T)
         end

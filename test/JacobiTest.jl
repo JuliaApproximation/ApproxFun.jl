@@ -141,4 +141,12 @@ C=Conversion(Chebyshev(),Jacobi(0,0))
 
 
 C=Conversion(Chebyshev(),Jacobi(1,1))
-@test norm(C*Fun(exp)  - Fun(exp,Jacobi(1,1))) < 100eps()
+@test norm(C*Fun(exp) - Fun(exp,Jacobi(1,1))) < 100eps()
+
+
+C=Conversion(Ultraspherical(1//2),Ultraspherical(1))
+@test norm(C*Fun(exp,Ultraspherical(1//2))-Fun(exp,Ultraspherical(1))) < 100eps()
+
+
+C=Conversion(Jacobi(0,0),Ultraspherical(1))
+@test norm(C*Fun(exp,Ultraspherical(1))-Fun(exp,Jacobi(0,0))) < 100eps()
