@@ -206,7 +206,9 @@ function Conversion(A::Jacobi,B::PolynomialSpace)
 end
 
 function Conversion(A::Jacobi,B::Chebyshev)
-    if A.a == A.b == 0
+    if A.a == A.b == -0.5
+        ConcreteConversion(A,B)
+    elseif A.a == A.b == 0
         ConversionWrapper(
             SpaceOperator(
                 Conversion(Ultraspherical(1//2),B),
@@ -223,7 +225,9 @@ function Conversion(A::Jacobi,B::Chebyshev)
 end
 
 function Conversion(A::Chebyshev,B::Jacobi)
-    if B.a == B.b == 0
+    if B.a == B.b == -0.5
+        ConcreteConversion(A,B)
+    elseif B.a == B.b == 0
         ConversionWrapper(
             SpaceOperator(
                 Conversion(A,Ultraspherical(1//2,domain(B))),
