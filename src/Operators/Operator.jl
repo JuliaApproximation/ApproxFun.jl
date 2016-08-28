@@ -34,8 +34,15 @@ domain(A::Operator) = domain(domainspace(A))
 isconstspace(::) = false
 ## Functionals
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
-isbanded(A::Operator) = isfinite(bandinds(A,1)) && isfinite(bandinds(A,2))
+
+isbandedbelow(A::Operator) = isfinite(bandinds(A,1))
+isbandedabove(A::Operator) = isfinite(bandinds(A,2))
+
+isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
 isbandedblockbanded(::) = false
+
+
+israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A)
 
 macro functional(FF)
     quote
@@ -391,6 +398,8 @@ function Base.convert(::Type{AbstractMatrix},S::SubOperator)
         BandedMatrix(S)
     elseif isbandedblockbanded(parent(S))
         BandedBlockBandedMatrix(S)
+    elseif israggedbelow(parent(S))
+        RaggedMatrix(S)
     else
         Matrix(S)
     end

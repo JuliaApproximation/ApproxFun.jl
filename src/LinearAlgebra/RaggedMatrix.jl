@@ -1,4 +1,4 @@
-immutable RaggedMatrix{T} <: AbstractMatrix{T}
+type RaggedMatrix{T} <: AbstractMatrix{T}
     data::Vector{T} # a Vector of non-zero entries
     cols::Vector{Int} # a Vector specifying the first index of each column
     m::Int #Number of rows
@@ -26,6 +26,8 @@ RaggedMatrix{T}(::Type{T},m::Int,colns::Vector{Int}) =
 RaggedMatrix(m::Int,collengths::Vector{Int}) = RaggedMatrix(Float64,m,collengths)
 
 Base.size(A::RaggedMatrix) = (A.m,length(A.cols)-1)
+
+colstop(A::RaggedMatrix,j::Integer) = A.cols[j+1]-A.cols[j]
 
 Base.linearindexing{RM<:RaggedMatrix}(::Type{RM}) = Base.LinearSlow()
 
@@ -60,4 +62,44 @@ for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:ro
             RaggedMatrix($op(T,sum(colns)),[1;1+cumsum(colns)],m)
         $bop(m::Int,colns::AbstractVector{Int}) = $bop(Float64,m,colns)
     end
+end
+
+function BLAS.axpy!(a,X::RaggedMatrix,Y::RaggedMatrix)
+    if size(X) ≠ size(Y)
+        throw(BoundsError())
+    end
+
+    if X.cols == Y.cols
+        BLAS.axpy!(a,X.data,Y.data)
+    else
+        error("Not implemented.")
+    end
+end
+
+colstop{T}(X::SubArray{T,2,RaggedMatrix{T},Tuple{UnitRange{Int},UnitRange{Int}}},
+        j::Integer) = min(colstop(parent(X),j + first(parentindexes(X)[2])-1) -
+                                            first(parentindexes(X)[1]) + 1,
+                            size(X,1))
+
+function BLAS.axpy!{T}(a,X::RaggedMatrix,
+                       Y::SubArray{T,2,RaggedMatrix{T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    if size(X) ≠ size(Y)
+        throw(BoundsError())
+    end
+
+    for j=1:size(X,2)
+        @assert colstop(X,j) == colstop(Y,j)
+    end
+
+    P = parent(Y)
+    ksh = first(parentindexes(Y)[1]) - 1  # how much to shift
+    jsh = first(parentindexes(Y)[2]) - 1  # how much to shift
+
+    for j=1:size(X,2)
+        kr = X.cols[j]:X.cols[j+1]-1
+        BLAS.axpy!(a,view(X.data,kr),
+                    view(P.data,(P.cols[j + jsh] + ksh-1) + (1:length(kr))))
+    end
+
+    Y
 end
