@@ -20,14 +20,15 @@ end
 RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
-RaggedMatrix{T}(::Type{T},m::Int,colns::Vector{Int}) =
+RaggedMatrix{T}(::Type{T},m::Int,colns::AbstractVector{Int}) =
     RaggedMatrix(Array(T,sum(colns)),[1;1+cumsum(colns)],m)
 
-RaggedMatrix(m::Int,collengths::Vector{Int}) = RaggedMatrix(Float64,m,collengths)
+RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix(Float64,m,collengths)
+
 
 Base.size(A::RaggedMatrix) = (A.m,length(A.cols)-1)
 
-colstop(A::RaggedMatrix,j::Integer) = A.cols[j+1]-A.cols[j]
+colstop(A::RaggedMatrix,j::Integer) = min(A.cols[j+1]-A.cols[j],size(A,1))
 
 Base.linearindexing{RM<:RaggedMatrix}(::Type{RM}) = Base.LinearSlow()
 
@@ -49,7 +50,7 @@ function Base.setindex!(A::RaggedMatrix,v,k::Int,j::Int)
     end
 
     if A.cols[j]+k-1 < A.cols[j+1]
-        A.data[A.cols[j]+k-1]
+        A.data[A.cols[j]+k-1]=v
     else
         throw(BoundsError(A,(k,j)))
     end
@@ -65,6 +66,16 @@ function Base.convert(::Type{Matrix},A::RaggedMatrix)
 end
 
 Base.full(A::RaggedMatrix) = convert(Matrix,A)
+
+function Base.convert(::Type{RaggedMatrix},B::BandedMatrix)
+    l = bandwidth(B,1)
+    ret = rzeros(eltype(B),size(B,1),l+(1:size(B,2)))
+    for j=1:size(B,2),k=colrange(B,j)
+        ret[k,j] = B[k,j]
+    end
+    ret
+end
+
 
 
 for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:rones))
