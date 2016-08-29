@@ -64,6 +64,25 @@ for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:ro
     end
 end
 
+
+## BLAS
+
+function Base.A_mul_B!(y::Vector,A::RaggedMatrix,b::Vector)
+    m=size(A,2)
+
+    if m ≠ length(b) || size(A,1) ≠ length(y)
+        throw(BoundsError())
+    end
+    T=eltype(y)
+    fill!(y,zero(T))
+    for j=1:m
+        kr=A.cols[j]:A.cols[j+1]-1
+        BLAS.axpy!(b[j],view(A.data,kr),view(y,1:length(kr)))
+    end
+    y
+end
+
+
 function BLAS.axpy!(a,X::RaggedMatrix,Y::RaggedMatrix)
     if size(X) ≠ size(Y)
         throw(BoundsError())

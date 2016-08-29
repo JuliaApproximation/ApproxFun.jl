@@ -141,6 +141,8 @@ C=Conversion(Chebyshev(),Jacobi(0,0))
 
 
 C=Conversion(Chebyshev(),Jacobi(1,1))
+ApproxFun.defaultgetindex(C.op.op,1:5,1:5)
+
 @test norm(C*Fun(exp) - Fun(exp,Jacobi(1,1))) < 100eps()
 
 
