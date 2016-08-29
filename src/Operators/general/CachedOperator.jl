@@ -145,7 +145,7 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
 
     if n > B.datasize[2]
         resize!(B.data.cols,n+1)
-        
+
         for j = B.datasize[2]+1:n-1
             B.data.cols[j+1] = B.data.cols[j] + colstop(B.op,j)
         end
@@ -154,7 +154,7 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
         pad!(B.data.data,B.data.cols[n+1]-1)
         B.data.m = K
 
-        jr=B.datasize[1]+1:n
+        jr=B.datasize[2]+1:n
         kr=1:K
         BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
 

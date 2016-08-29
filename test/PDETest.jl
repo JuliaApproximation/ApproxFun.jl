@@ -246,6 +246,16 @@ Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
 
 d=dt*dθ
+
+
+# Check bug in cache
+CO=cache(ldirichlet(dt))
+ApproxFun.resizedata!(CO,:,2)
+ApproxFun.resizedata!(CO,:,4)
+@test_approx_eq CO*Fun(exp,dt) 1.0
+
+
+
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
 f=Fun(θ->exp(-20θ^2),dθ)
