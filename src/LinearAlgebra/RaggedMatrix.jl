@@ -21,7 +21,7 @@ RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
 RaggedMatrix{T}(::Type{T},m::Int,colns::Vector{Int}) =
-    RaggedMatrix(Array(T,sum(colns)),[1;cumsum(colns)],m)
+    RaggedMatrix(Array(T,sum(colns)),[1;1+cumsum(colns)],m)
 
 RaggedMatrix(m::Int,collengths::Vector{Int}) = RaggedMatrix(Float64,m,collengths)
 
@@ -54,6 +54,17 @@ function Base.setindex!(A::RaggedMatrix,v,k::Int,j::Int)
         throw(BoundsError(A,(k,j)))
     end
 end
+
+
+function Base.convert(::Type{Matrix},A::RaggedMatrix)
+    ret = zeros(eltype(A),size(A,1),size(A,2))
+    for j=1:size(A,2)
+        ret[1:colstop(A,j),j] = view(A,1:colstop(A,j),j)
+    end
+    ret
+end
+
+Base.full(A::RaggedMatrix) = convert(Matrix,A)
 
 
 for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:rones))
@@ -121,4 +132,40 @@ function BLAS.axpy!{T}(a,X::RaggedMatrix,
     end
 
     Y
+end
+
+
+function *(A::RaggedMatrix,B::RaggedMatrix)
+    cols = zeros(Int,size(B,2))
+    T = promote_type(eltype(A),eltype(B))
+    for j=1:size(B,2),k=1:colstop(B,j)
+        cols[j] = max(cols[j],colstop(A,k))
+    end
+
+    unsafe_A_mul_B!(RaggedMatrix(T,size(A,1),cols),A,B)
+end
+
+function unsafe_A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
+    fill!(Y.data,0)
+
+    for j=1:size(B,2),k=1:colstop(B,j)
+        BLAS.axpy!(B[k,j],view(A,1:colstop(A,k),k),view(Y.data,Y.cols[j]-1+(1:colstop(A,k))))
+    end
+
+    Y
+end
+
+function A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
+    for j=1:size(B,2)
+        col = 0
+        for k=1:colstop(B,j)
+            col = max(col,colstop(A,k))
+        end
+
+        if col > colstop(Y,j)
+            throw(BoundsError())
+        end
+    end
+
+    unsafe_A_mul_B!(Y,A,B)
 end
