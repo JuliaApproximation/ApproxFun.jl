@@ -57,6 +57,15 @@ view(A::SubOperator,kr::UnitRange,jr::UnitRange) =
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
 bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
+colstop(S::SubOperator,j::Integer) =
+    findfirst(parentindexes(S)[1],colstop(parent(S),parentindexes(S)[2][j]))
+colstart(S::SubOperator,j::Integer) =
+    findfirst(parentindexes(S)[1],colstart(parent(S),parentindexes(S)[2][j]))
+rowstart(S::SubOperator,j::Integer) =
+    findfirst(parentindexes(S)[2],rowstart(parent(S),parentindexes(S)[1][j]))
+rowstop(S::SubOperator,j::Integer) =
+    findfirst(parentindexes(S)[2],rowstop(parent(S),parentindexes(S)[1][j]))    
+
 
 function bbbzeros(S::SubOperator)
     kr,jr=parentindexes(S)

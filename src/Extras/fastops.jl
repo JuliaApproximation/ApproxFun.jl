@@ -19,6 +19,27 @@ function default_bandedmatrix(S::Operator)
 end
 
 
+# default copy is to loop through
+# override this for most operators.
+function default_raggedmatrix(S::Operator)
+    data=Array(eltype(S),0)
+    cols=Array(Int,size(S,2)+1)
+    cols[1]=1
+    for j=1:size(S,2)
+        cs=colstop(S,j)
+        K=cols[j]-1
+        cols[j+1]=cs+cols[j]
+        resize!(data,cols[j+1]-1)
+
+        for k=1:cs
+            data[K+k]=S[k,j]
+        end
+    end
+
+    RaggedMatrix(data,cols,size(S,1))
+end
+
+
 
 
 # The diagonal of the operator may not be the diagonal of the sub

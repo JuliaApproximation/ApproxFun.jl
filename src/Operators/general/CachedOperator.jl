@@ -31,6 +31,8 @@ function CachedOperator(op::Operator;padding::Bool=false)
         padding && (u+=l)
         data=BandedMatrix(eltype(op),0,0,l,u)
         CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u))
+    elseif israggedbelow(op)
+        CachedOperator(op,RaggedMatrix(eltype(op),0,Int[]))
     else
         CachedOperator(op,Array(eltype(op),0,0))
     end
@@ -136,9 +138,39 @@ function resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,
     B
 end
 
+function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::Integer)
+    if n > size(B,2)
+        throw(ArgumentError("Cannot resize beyound size of operator"))
+    end
+
+    if n > B.datasize[2]
+        resize!(B.data.cols,n+1)
+
+        for j = B.datasize[2]+1:n-1
+            B.data.cols[j+1] = B.data.cols[j] + colstop(B.op,j)
+        end
+        K = colstop(B.op,n)
+        B.data.cols[n+1] = B.data.cols[n] + K
+        pad!(B.data.data,B.data.cols[n+1]-1)
+        B.data.m = K
+
+        jr=B.datasize[2]+1:n
+        kr=1:K
+        BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
+
+        B.datasize = (K,n)
+
+    end
+
+    B
+end
+
 
 resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Integer) =
     resizedata!(B,n,:)
 
-resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,B.datasize[1],m)
-resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,B.datasize[2])
+resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer) =
+    resizedata!(B,:,m)
+
+resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
+resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))
