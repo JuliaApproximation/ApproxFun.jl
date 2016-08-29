@@ -252,7 +252,8 @@ macro wrapper(Wrap)
     end
     for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
                  :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride),
-                 :(ApproxFun.isbandedblockbanded),:(ApproxFun.isconstop))
+                 :(ApproxFun.isbandedblockbanded),:(ApproxFun.isconstop),
+                 :(ApproxFun.israggedbelow))
         ret = quote
             $ret
 
@@ -358,7 +359,7 @@ bbbzeros(S::Operator) = bbbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,
             blocklengthrange(rangetensorizer(S),1:size(S,1)),
             blocklengthrange(domaintensorizer(S),1:size(S,2)))
 
-rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[colstop(S,j) for j=1:size(S,2)])            
+rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[colstop(S,j) for j=1:size(S,2)])
 
 banded_convert_axpy!(S::Operator) =
     BLAS.axpy!(one(eltype(S)),S,bzeros(S))
