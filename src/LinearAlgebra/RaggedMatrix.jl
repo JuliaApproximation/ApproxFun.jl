@@ -129,7 +129,7 @@ function BLAS.axpy!{T}(a,X::RaggedMatrix,
     end
 
     for j=1:size(X,2)
-        @assert colstop(X,j) == colstop(Y,j)
+        @assert colstop(Y,j) ≤ colstop(X,j)
     end
 
     P = parent(Y)
