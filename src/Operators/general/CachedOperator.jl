@@ -172,5 +172,5 @@ resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Intege
 resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer) =
     resizedata!(B,:,m)
 
-resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,B.datasize[1],m)
-resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,B.datasize[2])
+resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
+resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))

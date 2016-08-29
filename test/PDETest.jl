@@ -294,8 +294,19 @@ s=space(a)
 dt=Interval(0,2.)
 Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
+
+
+# test resize bug
+CO=cache(Bx[2])
+ApproxFun.resizedata!(CO,:,2)
+ApproxFun.resizedata!(CO,:,4)
+@test_approx_eq CO.data*collect(1:4) [3.,-1.]
+
+
 u=pdesolve([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],Any[Fun(x->exp(-20(x+0.5)^2),s)],200)
 @test_approx_eq_eps u(-.1,.2) exp(-20(-.2-.1+0.5)^2) 0.00001
+
+
 
 ## Test error
 
