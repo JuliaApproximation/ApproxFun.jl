@@ -166,7 +166,7 @@ function unsafe_A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
     Y
 end
 
-function A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
+function Base.A_mul_B!(Y::RaggedMatrix,A::RaggedMatrix,B::RaggedMatrix)
     for j=1:size(B,2)
         col = 0
         for k=1:colstop(B,j)

@@ -17,7 +17,7 @@ B=ApproxFun.bbbrand(Float64,1,1,1,1,1:10,1:10)
 
 
 cols=Int[rand(1:k+2) for k=1:5]
-B=rrand(Float64,maximum(cols),cols)
+B=ApproxFun.rrand(Float64,maximum(cols),cols)
 cols=Int[rand(1:k+2) for k=1:size(B,1)]
-A=rrand(Float64,maximum(cols),cols)
+A=ApproxFun.rrand(Float64,maximum(cols),cols)
 @test_approx_eq full(A)*full(B) full(A*B)
