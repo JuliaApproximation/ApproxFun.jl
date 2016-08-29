@@ -24,6 +24,8 @@ PlusOperator{T,UT<:Number,VT<:Number}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT
 
 bandinds(P::PlusOperator) = P.bandinds
 
+israggedbelow(P::PlusOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
+
 for (OP,mn) in ((:colstart,:min),(:colstop,:max),(:rowstart,:min),(:rowstop,:max))
     defOP = parse("default_"*string(OP))
     @eval function $OP(P::PlusOperator,k::Integer)
@@ -182,7 +184,7 @@ ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
 
 
 for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,
-           :isafunctional,:isbandedblockbanded)
+           :isafunctional,:isbandedblockbanded,:israggedbelow)
     @eval $OP(C::ConstantTimesOperator) = $OP(C.op)
 end
 Base.size(C::ConstantTimesOperator,k::Integer) = size(C.op,k)
@@ -337,6 +339,8 @@ domain(P::TimesOperator)=commondomain(P.ops)
 
 
 bandinds(P::TimesOperator) = P.bandinds
+
+israggedbelow(P::TimesOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
 
 Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 

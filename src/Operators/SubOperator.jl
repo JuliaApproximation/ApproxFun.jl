@@ -57,14 +57,18 @@ view(A::SubOperator,kr::UnitRange,jr::UnitRange) =
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
 bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
-colstop(S::SubOperator,j::Integer) =
-    findfirst(parentindexes(S)[1],colstop(parent(S),parentindexes(S)[2][j]))
+function colstop(S::SubOperator,j::Integer)
+    cs=findfirst(parentindexes(S)[1],colstop(parent(S),parentindexes(S)[2][j]))
+    cs==0?size(S,1):cs
+end
 colstart(S::SubOperator,j::Integer) =
-    findfirst(parentindexes(S)[1],colstart(parent(S),parentindexes(S)[2][j]))
+    max(findfirst(parentindexes(S)[1],colstart(parent(S),parentindexes(S)[2][j])),1)
 rowstart(S::SubOperator,j::Integer) =
-    findfirst(parentindexes(S)[2],rowstart(parent(S),parentindexes(S)[1][j]))
-rowstop(S::SubOperator,j::Integer) =
-    findfirst(parentindexes(S)[2],rowstop(parent(S),parentindexes(S)[1][j]))    
+    max(1,findfirst(parentindexes(S)[2],rowstart(parent(S),parentindexes(S)[1][j])))
+function rowstop(S::SubOperator,j::Integer)
+    rs=findfirst(parentindexes(S)[2],rowstop(parent(S),parentindexes(S)[1][j]))
+    rs==0?size(S,2):rs
+end
 
 
 function bbbzeros(S::SubOperator)
