@@ -29,6 +29,31 @@ setdomain(S::Ultraspherical,d::Domain) = Ultraspherical(order(S),d)
 canonicalspace(S::Ultraspherical) = Chebyshev(domain(S))
 
 
+immutable UltrasphericalPlan{CT,FT}
+    chebplan::CT
+    cheb2legplan::FT
+
+    UltrasphericalPlan(cp,c2lp) = new(cp,c2lp)
+end
+
+function UltrasphericalPlan(λ::Number,vals)
+    if λ == 0.5
+        cp=plan_transform(Chebyshev(),vals)
+        c2lp=FastTransforms.ChebyshevToLegendrePlan(eltype(vals),length(vals))
+        UltrasphericalPlan{typeof(cp),typeof(c2lp)}(cp,c2lp)
+    else
+        error("Not implemented")
+    end
+end
+
+*(UP::UltrasphericalPlan,v::AbstractVector) =
+    UP.cheb2legplan*transform(Chebyshev(),v,UP.chebplan)
+
+
+plan_transform(S::Ultraspherical{Int},vals::Vector) = plan_transform(canonicalspace(S),vals)
+plan_transform(S::Ultraspherical,vals::Vector) = UltrasphericalPlan(order(S),vals)
+transform(S::Ultraspherical,vals,pl::UltrasphericalPlan) = pl*vals
+
 ## Construction
 
 #domain(S) may be any domain

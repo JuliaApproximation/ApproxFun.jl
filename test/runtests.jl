@@ -5,7 +5,7 @@ using ApproxFun,Base.Test
 println("Domain tests")
 
 @test !in(0.45-0.65im,Interval())
-include("BandedBlockBandedTest.jl")
+include("MatrixTest.jl")
 
 
 println("Fun tests")

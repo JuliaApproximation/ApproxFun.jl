@@ -34,8 +34,15 @@ domain(A::Operator) = domain(domainspace(A))
 isconstspace(::) = false
 ## Functionals
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
-isbanded(A::Operator) = isfinite(bandinds(A,1)) && isfinite(bandinds(A,2))
+
+isbandedbelow(A::Operator) = isfinite(bandinds(A,1))
+isbandedabove(A::Operator) = isfinite(bandinds(A,2))
+
+isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
 isbandedblockbanded(::) = false
+
+
+israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A)
 
 macro functional(FF)
     quote
@@ -171,7 +178,10 @@ default_rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
 
 for OP in (:colstart,:colstop,:rowstart,:rowstop)
     defOP = parse("default_"*string(OP))
-    @eval $OP(A::Operator,i::Integer) = $defOP(A,i)
+    @eval begin
+        $OP(A::Operator,i::Integer) = $defOP(A,i)
+        $OP(A::Operator,i::Infinity{Bool}) = ∞
+    end
 end
 
 
@@ -348,6 +358,8 @@ bbbzeros(S::Operator) = bbbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,
             blocklengthrange(rangetensorizer(S),1:size(S,1)),
             blocklengthrange(domaintensorizer(S),1:size(S,2)))
 
+rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[colstop(S,j) for j=1:size(S,2)])            
+
 banded_convert_axpy!(S::Operator) =
     BLAS.axpy!(one(eltype(S)),S,bzeros(S))
 matrix_convert_axpy!(S::Operator) =
@@ -366,6 +378,7 @@ function Base.convert(::Type{Matrix},S::Operator)
 end
 
 Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
+Base.convert(::Type{RaggedMatrix},S::Operator) = default_raggedmatrix(S)
 
 function Base.convert(::Type{Vector},S::Operator)
     if size(S,2) ≠ 1  || isinf(size(S,1))
@@ -387,6 +400,8 @@ function Base.convert(::Type{AbstractMatrix},S::SubOperator)
         BandedMatrix(S)
     elseif isbandedblockbanded(parent(S))
         BandedBlockBandedMatrix(S)
+    elseif israggedbelow(parent(S))
+        RaggedMatrix(S)
     else
         Matrix(S)
     end

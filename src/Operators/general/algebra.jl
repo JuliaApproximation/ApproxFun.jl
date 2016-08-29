@@ -372,8 +372,11 @@ function getindex(P::TimesOperator,k::Integer)
     P[1:1,k:k][1,1]
 end
 
+
+
 for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
-                    (:BandedBlockBandedMatrix,:bbbzeros))
+                    (:BandedBlockBandedMatrix,:bbbzeros),
+                    (:RaggedMatrix,:rzeros))
     @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
         P=parent(S)

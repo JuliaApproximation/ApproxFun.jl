@@ -205,6 +205,80 @@ function Conversion(A::Jacobi,B::PolynomialSpace)
              ConversionWrapper(TimesOperator(Conversion(J,B),Conversion(A,J)))
 end
 
+function Conversion(A::Jacobi,B::Chebyshev)
+    if A.a == A.b == -0.5
+        ConcreteConversion(A,B)
+    elseif A.a == A.b == 0
+        ConversionWrapper(
+            SpaceOperator(
+                Conversion(Ultraspherical(1//2),B),
+                A,B))
+    elseif A.a == A.b
+        US = Ultraspherical(A)
+        ConversionWrapper(Conversion(US,B)*Conversion(A,US))
+    else
+        J = Jacobi(B)
+        Conversion(J,B)*Conversion(A,J)
+    end
+end
+
+function Conversion(A::Chebyshev,B::Jacobi)
+    if B.a == B.b == -0.5
+        ConcreteConversion(A,B)
+    elseif B.a == B.b == 0
+        ConversionWrapper(
+            SpaceOperator(
+                Conversion(A,Ultraspherical(1//2,domain(B))),
+                A,B))
+    elseif B.a == B.b
+        US = Ultraspherical(B)
+        ConversionWrapper(Conversion(US,B)*Conversion(A,US))
+    else
+        J = Jacobi(A)
+        Conversion(J,B)*Conversion(A,J)
+    end
+end
+
+
+function Conversion(A::Jacobi,B::Ultraspherical)
+    if A.a == A.b == -0.5
+        ConversionWrapper(Conversion(Chebyshev(domain(A)),B)*Conversion(A,Chebyshev(domain(A))))
+    elseif A.a == A.b == order(B)-0.5
+        ConcreteConversion(A,B)
+    elseif A.a == A.b == 0
+        ConversionWrapper(
+            SpaceOperator(
+                Conversion(Ultraspherical(1//2),B),
+                A,B))
+    elseif A.a == A.b
+        US = Ultraspherical(A)
+        ConversionWrapper(Conversion(US,B)*Conversion(A,US))
+    else
+        J = Jacobi(B)
+        Conversion(J,B)*Conversion(A,J)
+    end
+end
+
+function Conversion(A::Ultraspherical,B::Jacobi)
+    if B.a == B.b == -0.5
+        ConversionWrapper(Conversion(Chebyshev(domain(A)),B)*Conversion(A,Chebyshev(domain(A))))
+    elseif B.a == B.b == order(A)-0.5
+        ConcreteConversion(A,B)
+    elseif B.a == B.b == 0
+        ConversionWrapper(
+            SpaceOperator(
+                Conversion(A,Ultraspherical(1//2,domain(B))),
+                A,B))
+    elseif B.a == B.b
+        US = Ultraspherical(B)
+        ConversionWrapper(Conversion(US,B)*Conversion(A,US))
+    else
+        J = Jacobi(A)
+        Conversion(J,B)*Conversion(A,J)
+    end
+end
+
+
 
 
 bandinds{US<:Chebyshev,J<:Jacobi}(C::ConcreteConversion{US,J}) = 0,0
