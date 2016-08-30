@@ -51,9 +51,10 @@ function Base.setindex!(A::RaggedMatrix,v,k::Int,j::Int)
 
     if A.cols[j]+k-1 < A.cols[j+1]
         A.data[A.cols[j]+k-1]=v
-    else
+    elseif v ≠ 0
         throw(BoundsError(A,(k,j)))
     end
+    v
 end
 
 
@@ -70,6 +71,15 @@ Base.full(A::RaggedMatrix) = convert(Matrix,A)
 function Base.convert(::Type{RaggedMatrix},B::BandedMatrix)
     l = bandwidth(B,1)
     ret = rzeros(eltype(B),size(B,1),l+(1:size(B,2)))
+    for j=1:size(B,2),k=colrange(B,j)
+        ret[k,j] = B[k,j]
+    end
+    ret
+end
+
+function Base.convert(::Type{RaggedMatrix},B::AbstractMatrix)
+    l = bandwidth(B,1)
+    ret = rzeros(eltype(B),size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
