@@ -66,6 +66,14 @@ end
 
 ## Taylor
 
+
+@test Fun(Taylor())  == Fun([0.,1.],Taylor())
+
+@test Fun(Taylor())(1.0) ≈ 1.0
+@test Fun(Taylor(Circle(0.1,2.2)))(1.0) ≈ 1.0
+@test Fun(Taylor(Circle(0.1+0.1im,2.2)))(1.0) ≈ 1.0
+
+
 for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     S=Taylor(d)
     D=Derivative(S)
