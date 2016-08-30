@@ -287,8 +287,10 @@ function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     MultiplicationWrapper(f,DiagonalInterlaceOperator(map(Multiplication,vf,sp.spaces),PiecewiseSpace))
 end
 
-Multiplication{SV1,SV2,T2,T1,D,d}(f::Fun{SumSpace{SV1,T1,D,d}},sp::SumSpace{SV2,T2,D,d})=MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,vec(f)))
-Multiplication(f::Fun,sp::SumSpace)=MultiplicationWrapper(f,DiagonalInterlaceOperator(map(s->Multiplication(f,s),vec(sp)),SumSpace))
+Multiplication{SV1,SV2,T2,T1,D,d}(f::Fun{SumSpace{SV1,T1,D,d}},sp::SumSpace{SV2,T2,D,d}) =
+    MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,vec(f)))
+Multiplication(f::Fun,sp::SumSpace) =
+    MultiplicationWrapper(f,DiagonalInterlaceOperator(map(s->Multiplication(f,s),vec(sp)),SumSpace))
 
 
 # we override coefficienttimes to split the multiplication down to components as union may combine spaes

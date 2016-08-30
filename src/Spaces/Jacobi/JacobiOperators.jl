@@ -134,17 +134,26 @@ end
 # multiplies conversion operators to handle otherwise
 
 function Conversion(L::Jacobi,M::Jacobi)
-    @assert (isapprox(M.b,L.b)||M.b>=L.b) && (isapprox(M.a,L.a)||M.a>=L.a)
-    dm=domain(M)
-    D=typeof(dm)
-    if isapprox(M.a,L.a) && isapprox(M.b,L.b)
-        SpaceOperator(IdentityOperator(),L,M)
-    elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
-        ConcreteConversion(L,M)
-    elseif M.b > L.b+1
-        ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a,M.b-1,dm),M),Conversion(L,Jacobi(M.a,M.b-1,dm))))
-    else  #if M.a >= L.a+1
-        ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a-1,M.b,dm),M),Conversion(L,Jacobi(M.a-1,M.b,dm))))
+    if isapproxinteger(L.a-M.a) && isapproxinteger(L.b-M.b)
+        dm=domain(M)
+        D=typeof(dm)
+        if isapprox(M.a,L.a) && isapprox(M.b,L.b)
+            ConversionWrapper(eye(L))
+        elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
+            ConcreteConversion(L,M)
+        elseif M.b > L.b+1
+            ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a,M.b-1,dm),M),Conversion(L,Jacobi(M.a,M.b-1,dm))))
+        else  #if M.a >= L.a+1
+            ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a-1,M.b,dm),M),Conversion(L,Jacobi(M.a-1,M.b,dm))))
+        end
+    elseif L.a ≈ L.b ≈ 0. && M.a ≈ M.b ≈ 0.5
+        Conversion(L,Ultraspherical(L),Ultraspherical(M),M)
+    elseif L.a ≈ L.b ≈ 0. && M.a ≈ M.b ≈ -0.5
+        Conversion(L,Ultraspherical(L),Chebyshev(M),M)
+    elseif L.a ≈ L.b ≈ -0.5 && M.a ≈ M.b ≈ 0.5
+        Conversion(L,Chebyshev(L),Ultraspherical(M),M)
+    else # L.a - M.a ≈ L.b - M.b
+        error("Implement for $L ↦ $M")
     end
 end
 
@@ -332,21 +341,13 @@ end
 
 
 union_rule(A::Jacobi,B::Jacobi)=conversion_type(A,B)
-function maxspace_rule(A::Jacobi,B::Jacobi)
-    if !isapproxinteger(A.a-B.a) || !isapproxinteger(A.b-B.b)
-        NoSpace()
-    else
-        Jacobi(max(A.a,B.a),max(A.b,B.b),domain(A))
-    end
-end
+maxspace_rule(A::Jacobi,B::Jacobi) = Jacobi(max(A.a,B.a),max(A.b,B.b),domain(A))
 
 
 for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),(:union_rule,:(Base.union)))
     @eval begin
         function $OPrule(A::Chebyshev,B::Jacobi)
-            if !isapproxinteger(-0.5-B.a) || !isapproxinteger(-0.5-B.b)
-                NoSpace()
-            elseif isapprox(B.a,-0.5)&&isapprox(B.b,-0.5)
+            if isapprox(B.a,-0.5)&&isapprox(B.b,-0.5)
                 # the spaces are the same
                 A
             else
@@ -355,9 +356,7 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
         end
         function $OPrule(A::Ultraspherical,B::Jacobi)
             m=order(A)
-            if !isapproxinteger(m-0.5-B.a) || !isapproxinteger(m-0.5-B.b)
-                NoSpace()
-            elseif isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
+            if isapprox(B.a,m-0.5)&&isapprox(B.b,m-0.5)
                 # the spaces are the same
                 A
             else
