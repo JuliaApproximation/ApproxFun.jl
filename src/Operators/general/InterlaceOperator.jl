@@ -180,7 +180,7 @@ end
 #TODO: More efficient to save bandinds
 bandinds(M::InterlaceOperator) = M.bandinds
 
-function colstop(M::InterlaceOperator,j::Integer)
+function colstop{T}(M::InterlaceOperator{T,2},j::Integer)
     l = M.bandinds[1]
 
     if isinf(l)
@@ -200,9 +200,32 @@ function colstop(M::InterlaceOperator,j::Integer)
         end
         return ret
     else
-        return  j-l
+        return  min(size(M,1),j-l)
     end
 end
+
+# function colstop{T}(M::InterlaceOperator{T,1},j::Integer)
+#     l = M.bandinds[1]
+#
+#     if isinf(l)
+#         ret = j
+#
+#         for K=1:length(M.ops)
+#             cs=colstop(M.ops[K],j)
+#
+#             for k=j:size(M,1)
+#                 (KK,κ)=M.rangeinterlacer[k]
+#                 if K == KK && κ ≥ cs
+#                     ret = max(ret,k)
+#                     break
+#                 end
+#             end
+#         end
+#         return ret
+#     else
+#         return  min(size(M,1),j-l)
+#     end
+# end
 
 israggedbelow(M::InterlaceOperator) = all(isbandedbelow,M.ops)
 
