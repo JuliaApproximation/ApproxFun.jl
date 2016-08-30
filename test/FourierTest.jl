@@ -74,6 +74,8 @@ end
 @test Fun(Taylor(Circle(0.1+0.1im,2.2)))(1.0) ≈ 1.0
 
 
+@test Multiplication(Fun(Taylor()),Taylor())[1:3,1:3] == [0. 0. 0.; 1. 0. 0.; 0. 1. 0.]
+
 for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     S=Taylor(d)
     D=Derivative(S)

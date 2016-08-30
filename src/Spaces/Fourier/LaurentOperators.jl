@@ -11,8 +11,8 @@ LaurentOperator{DD}(f::Fun{Laurent{DD}})=LaurentOperator(f.coefficients[3:2:end]
 ##Taylor
 
 Multiplication{DD}(f::Fun{Taylor{DD}},sp::Taylor{DD}) =
-    MultiplicationWrapper(f,SpaceOperator(ToeplitzOperator(M.f.coefficients[2:end],
-                                                           [M.f.coefficients[1]]),
+    MultiplicationWrapper(f,SpaceOperator(ToeplitzOperator(f.coefficients[2:end],
+                                                           [f.coefficients[1]]),
                                           sp,sp))
 
 
