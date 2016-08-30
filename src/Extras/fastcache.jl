@@ -417,7 +417,7 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
     for k=QR.ncols+1:col
         cs = colstop(QR.R,k)
         W[1:cs-k+1,k] = view(MO.data,k:cs,k) # diagonal and below
-        wp=view(W,:,k)
+        wp=view(W,1:cs-k+1,k)
         W[1,k]+= flipsign(norm(wp),W[1,k])
         normalize!(wp)
 
