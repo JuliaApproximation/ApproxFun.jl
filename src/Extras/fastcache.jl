@@ -389,11 +389,11 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
         resizedata!(MO,:,col+100)  # double the last rows
 
         # apply previous Householders to new columns of R
-        for J=1:size(W,2)
-            wp=view(W,:,J)
+        for J=1:QR.ncols
+            wp=view(W,1:colstop(W,J),J)
             for j=m+1:MO.datasize[2]
                 kr=j:j+length(wp)-1
-                v=view(MO,kr,j)
+                v=view(MO.data,kr,j)
                 dt=dot(wp,v)
                 Base.axpy!(-2*dt,wp,v)
             end
@@ -702,21 +702,21 @@ function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
     Y=pad(B,m+M+10)
 
     k=1
-    yp=view(Y,1:M)
-    while (k ≤ m+M || norm(yp) > tolerance )
+    yp=view(Y,1:length(B))
+    while (k ≤ m || norm(yp) > tolerance )
         if k > maxlength
             warn("Maximum length $maxlength reached.")
             break
-        end
-
-        if k+M-1>length(Y)
-            pad!(Y,2*(k+M))
         end
         if k > A.QR.ncols
             # upper triangularize extra columns to prepare for \
             resizedata!(A.QR,:,2*(k+M))
             H=A.QR.H
             M=size(H,1)
+        end
+
+        if k+M-1>length(Y)
+            pad!(Y,2*(k+M))
         end
 
         cr=colrange(H,k)

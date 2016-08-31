@@ -80,11 +80,16 @@ function bbbzeros(S::SubOperator)
     rt=rangetensorizer(KO)
     dt=domaintensorizer(KO)
 
-    bl_sh = block(dt,jr[1])-block(rt,kr[1])
+    J=block(dt,jr[1])
+    K=block(rt,kr[1])
+    bl_sh = J-K
+
+    jsh=jr[1]-blockstart(dt,J)
+    ksh=kr[1]-blockstart(rt,K)
+    sbl_sh = jsh-ksh
 
 
-    # TODO: subblock shift
-    bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ,μ,
+    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,max(0,-λ+sbl_sh),max(0,μ-sbl_sh),
             blocklengthrange(rt,kr),
             blocklengthrange(dt,jr))
 end

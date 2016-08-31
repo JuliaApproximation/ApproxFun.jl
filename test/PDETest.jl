@@ -11,8 +11,6 @@ f = Fun((x,y)->exp(x)*sin(y),S^2)
 
 
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))
-
-
 Δ=Laplacian(S^2)
 KO=Δ.op.ops[1].ops[1].op
 
@@ -20,13 +18,313 @@ M=ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,1:4))
 @test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,2:4))-M[:,2:4]) < 10eps()
 @test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,3:4))-M[:,3:4]) < 10eps()
 
+M=ApproxFun.BandedBlockBandedMatrix(view(KO,1:112,1:112))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:112,112:112))-M[:,112]) < 10eps()
+
+
 M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,1:4))
 @test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,2:4))-M[:,2:4]) < 10eps()
 @test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,3:4))-M[:,3:4]) < 10eps()
 
+M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,1:112))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,112:112))-M[:,112]) < 10eps()
+
+ApproxFun.BandedBlockBandedMatrix(view(Δ.op.ops[1],1:112,112:112))+ApproxFun.BandedBlockBandedMatrix(view(Δ.op.ops[2],1:112,112:112))
 
 
 
+QR=qrfact(Δ)
+    QR[:Q]'*[1.0]
+
+
+
+
+@time ApproxFun.resizedata!(QR,:,11)
+     @time ApproxFun.resizedata!(QR,:,78)
+     #@which ApproxFun.resizedata!(QR,:,278)
+     col=278
+     if col ≤ QR.ncols
+         return QR
+     end
+
+     MO=QR.R
+     W=QR.H
+
+     @which resizedata!(MO,:,col+100)  # double the last rows
+
+
+
+
+
+
+
+S=view(KO,1:112,112:112)
+
+
+kr,jr=parentindexes(S)
+KO=parent(S)
+l,u=blockbandinds(KO)
+λ,μ=subblockbandinds(KO)
+
+rt=rangetensorizer(KO)
+dt=domaintensorizer(KO)
+ret=bbbzeros(S)
+
+J=block(dt,jr[1])
+K=block(rt,kr[1])
+bl_sh = J-K
+
+ret=bbbzeros(S)
+
+
+A,B=KO.ops
+K=block(rt,kr[end]);J=block(dt,jr[end])
+AA=A[1:K,1:J]
+BB=B[1:K,1:J]
+
+
+Jsh=block(dt,jr[1])-1
+Ksh=block(rt,kr[1])-1
+
+
+for J=1:blocksize(ret,2)
+    # only first block can be shifted inside block
+    jsh=J==1?jr[1]-blockstart(dt,J+Jsh):0
+    for K=blockcolrange(ret,J)
+        Bs=viewblock(ret,K,J)
+        ksh=K==1?kr[1]-blockstart(dt,K+Ksh):0
+        for j=1:size(Bs,2),k=colrange(Bs,j)
+            κ,ν=subblock2tensor(rt,K+Ksh,k+ksh)
+            ξ,μ=subblock2tensor(dt,J+Jsh,j+jsh)
+            Bs[k,j]=AA[κ,ξ]*BB[ν,μ]
+        end
+    end
+end
+
+ret
+
+KO[112,112]
+
+A,B=KO.ops
+K=block(rt,kr[end]);J=block(dt,jr[end])
+AA=A[1:K,1:J]
+BB=B[1:K,1:J]
+
+
+Jsh=block(dt,jr[1])-1
+Ksh=block(rt,kr[1])-1
+
+J=1
+# only first block can be shifted inside block
+jsh=J==1?jr[1]-blockstart(dt,J+Jsh):0
+K=blockcolrange(ret,J)[end]
+Bs=viewblock(ret,K,J)
+ksh=K==1?kr[1]-blockstart(dt,K+Ksh):0
+j=1
+k=colrange(Bs,j)[end]
+κ,ν=subblock2tensor(rt,K+Ksh,k+ksh)
+ξ,μ=subblock2tensor(dt,J+Jsh,j+jsh)
+Bs[k,j]=AA[κ,ξ]*BB[ν,μ]
+
+j+jsh
+
+viewblock(KO[1:112,1:112],K+Ksh,J+Jsh)
+kr
+
+KO[112,112]
+
+Δ[1:120,1:112][100:112,112]
+
+kr[end]
+
+
+KO[1:120,1:112][80:120,112]
+
+norm(Δ[1:100,1:112][:,112])
+
+
+normalize!([0.,0.,0.])
+norm(MO.data[:,112])
+
+col+100
+
+if col ≥ MO.datasize[2]
+ m = MO.datasize[2]
+ resizedata!(MO,:,col+100)  # double the last rows
+
+ # apply previous Householders to new columns of R
+ for J=1:QR.ncols
+     wp=view(W,1:colstop(W,J),J)
+     for j=m+1:MO.datasize[2]
+         kr=j:j+length(wp)-1
+         v=view(MO.data,kr,j)
+         dt=dot(wp,v)
+         Base.axpy!(-2*dt,wp,v)
+     end
+ end
+end
+
+MO.datasize
+MO.data[:,112]|>norm
+
+QR.H[:,112]
+
+
+
+5
+
+# @time ApproxFun.resizedata!(QR,:,10)
+    # @time ApproxFun.resizedata!(QR,:,20)
+    # @time ApproxFun.resizedata!(QR,:,100)
+    # @time ApproxFun.resizedata!(QR,:,100)
+    # @time ApproxFun.resizedata!(QR,:,201)
+#    @time ApproxFun.resizedata!(QR,:,1642)
+
+A,B,tolerance,maxlength=(QR[:Q],[1.0],10eps(),1000)
+    length(B) > A.QR.ncols
+    if length(B) > A.QR.ncols
+        # upper triangularize extra columns to prepare for \
+        println("$(length(B)+size(A.QR.H,1)+10)")
+        resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
+    end
+
+    H=A.QR.H
+    M=size(H,1)
+    m=length(B)
+    Y=pad(B,m+M+10)
+
+    k=1
+    yp=view(Y,1:length(B))
+    while (k ≤ m || norm(yp) > tolerance )
+        if k > maxlength
+            warn("Maximum length $maxlength reached.")
+            break
+        end
+        if k > A.QR.ncols
+            println("resize $(2*(k+M))")
+            # upper triangularize extra columns to prepare for \
+            resizedata!(A.QR,:,2*(k+M))
+            H=A.QR.H
+            M=size(H,1)
+        end
+
+        if k+M-1>length(Y)
+            pad!(Y,2*(k+M))
+        end
+
+        cr=colrange(H,k)
+        wp=view(H,cr,k)
+        yp=view(Y,k-1+(cr))
+
+        println("$k,$(norm(wp))")
+
+        dt=dot(wp,yp)
+        Base.axpy!(-2*dt,wp,yp)
+        k+=1
+    end
+
+
+k=584
+2*(k+M)
+
+
+A.QR.ncols
+
+
+Y|>norm
+
+chop(QR[:Q]'*[1.0],10eps())
+ncoefficients(chop(QR[:Q]'*[1.0],100eps()))
+
+col=201
+QR.ncols
+
+QR[:Q]'*[1.0]
+
+
+col=201
+if col ≤ QR.ncols
+    return QR
+end
+
+MO=QR.R
+W=QR.H
+
+]
+m = MO.datasize[2]
+resizedata!(MO,:,col+100)  # double the last rows
+
+# apply previous Householders to new columns of R
+for J=1:QR.ncols
+    print("$J,")
+    wp=view(W,1:colstop(W,J),J)
+    for j=m+1:MO.datasize[2]
+        kr=j:j+length(wp)-1
+        v=view(MO.data,kr,j)
+        dt=dot(wp,v)
+        Base.axpy!(-2*dt,wp,v)
+    end
+end
+
+
+
+col > size(W,2)
+if col > size(W,2)
+    m=size(W,2)
+    resize!(W.cols,2col+1)
+
+    for j=m+1:2col
+        cs=colstop(MO,j)
+        W.cols[j+1]=W.cols[j] + cs-j+1
+        W.m=max(W.m,cs-j+1)
+    end
+
+    resize!(W.data,W.cols[end]-1)
+end
+
+
+norm(W)
+
+for k=QR.ncols+1:col
+    cs = colstop(QR.R,k)
+    W[1:cs-k+1,k] = view(MO.data,k:cs,k) # diagonal and below
+    wp=view(W,1:cs-k+1,k)
+    W[1,k]+= flipsign(norm(wp),W[1,k])
+    normalize!(wp)
+
+    # scale rows entries
+    kr=k:k+length(wp)-1
+    for j=k:MO.datasize[2]
+        v=view(MO.data,kr,j)
+        dt=dot(wp,v)
+        Base.axpy!(-2*dt,wp,v)
+    end
+end
+QR.ncols=col
+QR
+
+
+
+QR.R.data|>norm
+
+QR.R.datasize
+
+QR.H |>norm
+@time ApproxFun.resizedata!(QR,:,100)
+    ApproxFun.resizedata!(QR,:,200)
+
+
+
+QR[:Q]'*[1.0]
+
+
+
+
+QR.ncols
+
+
+
+QR.R.datasize
 ## Rectangle PDE
 
 dx=dy=Interval()
