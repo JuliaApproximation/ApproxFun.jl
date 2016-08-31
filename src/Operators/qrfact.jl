@@ -15,7 +15,7 @@ for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
 end
 
-getindex(QR::QROperator,k::Integer,j::Integer) = (QR[:Q]*QR[:R])[k,j]
+getindex(QR::QROperator,k::Integer,j::Integer) = QR.R.op[k,j]
 
 
 

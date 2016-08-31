@@ -434,6 +434,9 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
 end
 
 
+
+
+
 # BLAS versions, requires BlasFloat
 
 function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
@@ -557,6 +560,80 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,B
     QR
 end
 
+
+function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
+                                                                 MM,DS,RS,BI}},
+                        ::Colon,col)
+    if col ≤ QR.ncols
+        return QR
+    end
+
+    MO=QR.R
+    W=QR.H
+
+    sz=sizeof(T)
+
+    w=pointer(W.data)
+    R=MO.data
+    r=pointer(R.data)
+
+    if col ≥ MO.datasize[2]
+        m = MO.datasize[2]
+        resizedata!(MO,:,col+100)  # double the last rows
+
+        R=MO.data
+        r=pointer(R.data)
+
+        # apply previous Householders to new columns of R
+        for k=1:QR.ncols
+            M=colstop(W,k)  # length of wp
+            wp=w+(W.cols[k]-1)*sz  # shift by first index of col J
+
+            for j=m+1:MO.datasize[2]
+                v=r+(R.cols[j]+k-2)*sz
+                dt=dot(M,wp,1,v,1)
+                BLAS.axpy!(M,-2*dt,wp,1,v,1)
+            end
+        end
+    end
+
+
+    if col > size(W,2)
+        m=size(W,2)
+        resize!(W.cols,2col+1)
+
+        for j=m+1:2col
+            cs=colstop(MO,j)
+            W.cols[j+1]=W.cols[j] + cs-j+1
+            W.m=max(W.m,cs-j+1)
+        end
+
+        resize!(W.data,W.cols[end]-1)
+        w=pointer(W.data)
+    end
+
+    for k=QR.ncols+1:col
+        cs= colstop(R,k)
+        M=cs-k+1
+
+        v=r+sz*(R.cols[k]+k-2)    # diagonal entry of R
+        wp=w+sz*(W.cols[k]-1)          # k-th column of W
+        BLAS.blascopy!(M,v,1,wp,1)
+        W.data[W.cols[k]] += flipsign(BLAS.nrm2(M,wp,1),W.data[W.cols[k]])
+        normalize!(M,wp)
+
+        # scale rows entries
+        for j=k:MO.datasize[2]
+            v=r+(R.cols[j]+k-2)*sz
+            dt=dot(M,wp,1,v,1)
+            BLAS.axpy!(M,-2*dt,wp,1,v,1)
+        end
+    end
+    QR.ncols=col
+    QR
+end
+
+
 # back substitution
 trtrs!(::Type{Val{'U'}},co::CachedOperator,u::Array) =
                 trtrs!(Val{'U'},resizedata!(co,size(u,1),size(u,1)).data,u)
@@ -601,6 +678,9 @@ function trtrs!(::Type{Val{'U'}},B::AlmostBandedMatrix,u::Array)
     end
     u
 end
+
+
+
 
 function trtrs!(::Type{Val{'U'}},A::BandedMatrix,u::Array)
     n=size(u,1)
