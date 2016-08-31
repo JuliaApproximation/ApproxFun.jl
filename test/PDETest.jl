@@ -35,11 +35,26 @@ f=2π^2*u
 
 
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))
-    Δ=Laplacian(S^2)
-    QR=qrfact(Δ)
-    @time linsolve(QR,f;tolerance=10000eps())  # 0.35s
-    @time v=linsolve(QR,f;tolerance=10000eps())  # 0.003s
+u=chop(Fun((x,y)->sin(π*x)*sin(π*y),S^2),1000eps())
+f=-2π^2*Fun(u,rangespace(Δ))
 
+Δ=Laplacian(S^2)
+QR=qrfact(Δ)
+@time linsolve(QR,f;tolerance=1E-13)  # 0.024s
+@time v=linsolve(QR,f;tolerance=1E-13)  # 0.0001s
+
+
+
+ncoefficients(u)
+
+
+@profile v=linsolve(QR,f;tolerance=1E-13)  # 0.003s
+
+Profile.print()
+
+f=Δ*u
+
+(v-u).coefficients |>norm
 
 
 QR=qrfact(Δ)
