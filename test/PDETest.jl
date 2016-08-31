@@ -16,15 +16,13 @@ S=JacobiWeight(1.,1.,Jacobi(1.,1.))
 Δ=Laplacian(S^2)
 KO=Δ.op.ops[1].ops[1].op
 
-M=BandedBlockBandedMatrix(view(KO,1:4,1:4))
-BandedBlockBandedMatrix(view(KO,1:4,2:4))-M[:,2:4] |>norm
-BandedBlockBandedMatrix(view(KO,1:4,3:4))-M[:,3:4] |>norm
+M=ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,1:4))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,2:4))-M[:,2:4]) < 10eps()
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,3:4))-M[:,3:4]) < 10eps()
 
-
-
-M=BandedBlockBandedMatrix(view(Δ,1:4,1:4))
-BandedBlockBandedMatrix(view(Δ,1:4,2:4))-M[:,2:4] |>norm
-BandedBlockBandedMatrix(view(Δ,1:4,3:4))-M[:,3:4] |>norm
+M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,1:4))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,2:4))-M[:,2:4]) < 10eps()
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,3:4))-M[:,3:4]) < 10eps()
 
 
 
