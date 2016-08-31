@@ -23,8 +23,10 @@ function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
     elseif op.order == 1
         d=domain(op)
         @assert isa(d,Interval)
-        if kr[1]==1
+        if kr[1]==1 && kr[end] ≥ 2
             0.5*tocanonicalD(d,d.a)*(a+b+kr).*[0.;jacobip(0:kr[end]-2,1+a,1+b,x?1.:-1.)]
+        elseif kr[1]==1  # kr[end] ≤ 1
+            zeros(eltype(op),length(kr))
         else
             0.5*tocanonicalD(d,d.a)*(a+b+kr).*jacobip(kr-1,1+a,1+b,x?1.:-1.)
         end

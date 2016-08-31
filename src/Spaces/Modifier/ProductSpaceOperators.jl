@@ -32,6 +32,12 @@ end
 Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
 
 
+
+Evaluation(S::TupleSpace,order::Number) =
+    DiagonalInterlaceOperator(map(s->Evaluation(s,order),S),TupleSpace)
+
+
+
 ## Vector
 # represents an operator applied to all spaces in an array space
 

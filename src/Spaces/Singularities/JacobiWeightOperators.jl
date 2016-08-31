@@ -241,7 +241,8 @@ end
 
 ## Conversion
 
-isapproxinteger(x)=isapprox(x,round(Int,x))
+# The second case handles zero
+isapproxinteger(x) = isapprox(x,round(Int,x))  || isapprox(x+1,round(Int,x+1))
 
 for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
     @eval begin
