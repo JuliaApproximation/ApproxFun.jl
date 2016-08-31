@@ -12,6 +12,50 @@ f = Fun((x,y)->exp(x)*sin(y),S^2)
 
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))
 Δ=Laplacian(S^2)
+
+
+
+
+
+(Δ*u+2π^2*u).coefficients |>norm
+
+
+
+u=chop(Fun((x,y)->sin(π*x)*sin(π*y),S^2),1000eps())
+f=2π^2*u
+
+
+S=JacobiWeight(1.,1.,Jacobi(1.,1.))
+    Δ=Laplacian(S^2)
+    QR=qrfact(Δ)
+    @time linsolve(QR,f;tolerance=10000eps())  # 0.35s
+    @time v=linsolve(QR,f;tolerance=10000eps())  # 0.003s
+
+
+
+
+ncoefficients(v)
+
+
+
+QR=qrfact(Δ)
+    col=319
+    @profile ApproxFun.resizedata!(QR.R,:,col+100)  # double the last rows
+
+
+Profile.print()
+Profile.clear()
+@time Δ[1:(col+100),1:(col+100)]-QR.R.data[1:(col+100),1:(col+100)]|>norm
+
+
+Profile.clear()
+
+
+(v+u).coefficients |>norm
+
+/10)
+ncoefficients(u)
+
 KO=Δ.op.ops[1].ops[1].op
 
 M=ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,1:4))

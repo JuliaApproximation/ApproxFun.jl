@@ -136,7 +136,7 @@ blockrows(A::BandedBlockBandedMatrix,K::Int) =
 blockcols(A::BandedBlockBandedMatrix,J::Int) =
     sum(A.cols[1:J-1]) + (1:A.cols[J])
 
-function Base.BLAS.axpy!(α,A::BandedBlockBandedMatrix,Y::Matrix)
+function Base.BLAS.axpy!(α,A::BandedBlockBandedMatrix,Y::AbstractMatrix)
     if size(A) ≠ size(Y)
         throw(BoundsError())
     end

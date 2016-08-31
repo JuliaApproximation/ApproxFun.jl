@@ -674,7 +674,7 @@ function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
         end
         if k > A.QR.ncols
             # upper triangularize extra columns to prepare for \
-            resizedata!(A.QR,:,2*(k+M))
+            resizedata!(A.QR,:,k+M+50)
             H=A.QR.H
         end
 
