@@ -1,5 +1,5 @@
 using ApproxFun, Compat, Base.Test
-
+    import Compat: view
 ## Check operators
 
 
@@ -7,6 +7,26 @@ S=ChebyshevDirichlet()
 B=Dirichlet(S^2)
 f = Fun((x,y)->exp(x)*sin(y),S^2)
 @test norm((Fun((x,y)->exp(x)*sin(y),∂(domain(S^2))) - B*f).coefficients)
+
+
+
+S=JacobiWeight(1.,1.,Jacobi(1.,1.))
+
+
+Δ=Laplacian(S^2)
+KO=Δ.op.ops[1].ops[1].op
+
+M=BandedBlockBandedMatrix(view(KO,1:4,1:4))
+BandedBlockBandedMatrix(view(KO,1:4,2:4))-M[:,2:4] |>norm
+BandedBlockBandedMatrix(view(KO,1:4,3:4))-M[:,3:4] |>norm
+
+
+
+M=BandedBlockBandedMatrix(view(Δ,1:4,1:4))
+BandedBlockBandedMatrix(view(Δ,1:4,2:4))-M[:,2:4] |>norm
+BandedBlockBandedMatrix(view(Δ,1:4,3:4))-M[:,3:4] |>norm
+
+
 
 
 ## Rectangle PDE

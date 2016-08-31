@@ -649,7 +649,8 @@ function Ac_mul_Bpars(A::QROperatorQ,B::Vector,tolerance,maxlength)
 end
 
 
-function Ac_mul_Bpars{QR,T}(A::QROperatorQ{QR,T},B::Vector{T},tolerance,maxlength)
+function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
+                            B::Vector{T},tolerance,maxlength)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
@@ -686,6 +687,50 @@ function Ac_mul_Bpars{QR,T}(A::QROperatorQ{QR,T},B::Vector{T},tolerance,maxlengt
     end
     Fun(resize!(Y,k),domainspace(A))  # chop off zeros
 end
+
+
+function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
+                            B::Vector{T},tolerance,maxlength)
+    if length(B) > A.QR.ncols
+        # upper triangularize extra columns to prepare for \
+        resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
+    end
+
+    H=A.QR.H
+    M=size(H,1)
+    m=length(B)
+    Y=pad(B,m+M+10)
+
+    k=1
+    yp=view(Y,1:M)
+    while (k ≤ m+M || norm(yp) > tolerance )
+        if k > maxlength
+            warn("Maximum length $maxlength reached.")
+            break
+        end
+
+        if k+M-1>length(Y)
+            pad!(Y,2*(k+M))
+        end
+        if k > A.QR.ncols
+            # upper triangularize extra columns to prepare for \
+            resizedata!(A.QR,:,2*(k+M))
+            H=A.QR.H
+            M=size(H,1)
+        end
+
+        cr=colrange(H,k)
+        wp=view(H,cr,k)
+        yp=view(Y,k-1+(cr))
+
+        dt=dot(wp,yp)
+        Base.axpy!(-2*dt,wp,yp)
+        k+=1
+    end
+    Fun(resize!(Y,k),domainspace(A))  # chop off zeros
+end
+
+
 
 # BLAS
 

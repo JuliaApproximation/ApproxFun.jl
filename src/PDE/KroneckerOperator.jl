@@ -368,9 +368,7 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 
     rt=rangetensorizer(KO)
     dt=domaintensorizer(KO)
-    ret=bbbzeros(eltype(KO),-l,u,-λ,μ,
-                blocklengthrange(rt,kr),
-                blocklengthrange(dt,jr))
+    ret=bbbzeros(S)
 
     A,B=KO.ops
     K=block(rt,kr[end]);J=block(dt,jr[end])
@@ -378,15 +376,19 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
     BB=B[1:K,1:J]
 
 
+    Jsh=block(dt,jr[1])-1
+    Ksh=block(rt,kr[1])-1
+
 
     for J=1:blocksize(ret,2)
-        jshft=jr[1]+blockstart(dt,J)-2
+        # only first block can be shifted inside block
+        jsh=J==1?jr[1]-blockstart(dt,J+Jsh):0
         for K=blockcolrange(ret,J)
             Bs=viewblock(ret,K,J)
-            kshft=kr[1]+blockstart(rt,K)-2
+            ksh=K==1?kr[1]-blockstart(dt,K+Ksh):0
             for j=1:size(Bs,2),k=colrange(Bs,j)
-                κ,ν=subblock2tensor(rt,K,k)
-                ξ,μ=subblock2tensor(dt,J,j)
+                κ,ν=subblock2tensor(rt,K+Ksh,k+ksh)
+                ξ,μ=subblock2tensor(dt,J+Jsh,j+jsh)
                 Bs[k,j]=AA[κ,ξ]*BB[ν,μ]
             end
         end
