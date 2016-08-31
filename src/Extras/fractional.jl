@@ -25,6 +25,19 @@ function LeftIntegral(S::Jacobi,k)
     end
 end
 
+function LeftIntegral(S::Ultraspherical,k)
+    if order(S) == 1/2
+        LeftIntegralWrapper(SpaceOperator(LeftIntegral(Jacobi(S),k),S,S),0.5)
+    else
+        J = Jacobi(S)
+        LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),0.5)
+    end
+end
+
+LeftIntegral(S::Chebyshev,k) = LeftIntegralWrapper(
+    LeftIntegral(Ultraspherical(1//2,domain(S)),k)*Conversion(S,Ultraspherical(1//2,domain(S))),
+    0.5)
+
 
 function rangespace{T,DD<:Interval}(Q::ConcreteLeftIntegral{Jacobi{T,DD},Float64})
     μ=Q.order

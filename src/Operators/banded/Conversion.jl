@@ -60,11 +60,15 @@ end
 @wrapper ConversionWrapper
 
 
-ConversionWrapper{T}(::Type{T},op)=ConversionWrapper{typeof(op),T}(op)
-ConversionWrapper(B::Operator)=ConversionWrapper{typeof(B),eltype(B)}(B)
-Conversion(A::Space,B::Space,C::Space)=Conversion(B,C)*Conversion(A,B)
+ConversionWrapper{T}(::Type{T},op) = ConversionWrapper{typeof(op),T}(op)
+ConversionWrapper(B::Operator) =
+    ConversionWrapper{typeof(B),eltype(B)}(B)
+Conversion(A::Space,B::Space,C::Space) =
+    ConversionWrapper(Conversion(B,C)*Conversion(A,B))
+Conversion(A::Space,B::Space,C::Space,D::Space...) =
+    ConversionWrapper(Conversion(C,D...)*Conversion(B,C)*Conversion(A,B))
 
-==(A::ConversionWrapper,B::ConversionWrapper)=A.op==B.op
+==(A::ConversionWrapper,B::ConversionWrapper) = A.op==B.op
 
 
 function Base.convert{T}(::Type{Operator{T}},D::ConversionWrapper)

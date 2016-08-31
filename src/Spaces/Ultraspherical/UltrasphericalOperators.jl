@@ -134,6 +134,8 @@ function Conversion(A::Ultraspherical,B::Chebyshev)
 end
 
 
+maxspace_rule(A::Ultraspherical,B::Chebyshev) = A
+
 
 function Conversion(A::Ultraspherical,B::Ultraspherical)
     a=order(A); b=order(B)
@@ -147,6 +149,8 @@ function Conversion(A::Ultraspherical,B::Ultraspherical)
                                         Conversion(A,Ultraspherical(b-1,d))))
     end
 end
+
+maxspace_rule(A::Ultraspherical,B::Ultraspherical) = order(A) > order(B) ? A : B
 
 
 function getindex{DD,C<:Chebyshev,T}(M::ConcreteConversion{C,Ultraspherical{Int,DD},T},

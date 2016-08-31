@@ -149,4 +149,8 @@ C=Conversion(Ultraspherical(1//2),Ultraspherical(1))
 
 
 C=Conversion(Jacobi(0,0),Ultraspherical(1))
+@test norm(C*Fun(exp,Jacobi(0,0))-Fun(exp,Ultraspherical(1))) < 100eps()
+
+
+C=Conversion(Ultraspherical(1),Jacobi(0,0))
 @test norm(C*Fun(exp,Ultraspherical(1))-Fun(exp,Jacobi(0,0))) < 100eps()

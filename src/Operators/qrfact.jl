@@ -176,7 +176,7 @@ function linsolve(R::QROperatorR,b::Vector)
         # upper triangularize columns
         resizedata!(R.QR,:,length(b))
     end
-    Fun(backsubstitution!(R.QR.R,copy(b)),domainspace(R))
+    Fun(trtrs!(Val{'U'},R.QR.R,copy(b)),domainspace(R))
 end
 
 linsolve(R::QROperatorR,b::Fun{SequenceSpace};kwds...) = linsolve(R,b.coefficients;kwds...)

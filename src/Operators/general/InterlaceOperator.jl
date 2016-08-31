@@ -180,29 +180,53 @@ end
 #TODO: More efficient to save bandinds
 bandinds(M::InterlaceOperator) = M.bandinds
 
-function colstop(M::InterlaceOperator,j::Integer)
-    l = M.bandinds[1]
 
-    if isinf(l)
-        (J,ξ) = M.domaininterlacer[j]
-        ret = j
+# function colstop{T}(M::InterlaceOperator{T,2},j::Integer)
+#     l = M.bandinds[1]
+#
+#     if isinf(l)
+#         (J,ξ) = M.domaininterlacer[j]
+#         ret = j
+#
+#         for K=1:size(M.ops,1)
+#             cs=colstop(M.ops[K,J],ξ)
+#
+#             for k=j:size(M,1)
+#                 (KK,κ)=M.rangeinterlacer[k]
+#                 if K == KK && κ ≥ cs
+#                     ret = max(ret,k)
+#                     break
+#                 end
+#             end
+#         end
+#         return ret
+#     else
+#         return  min(size(M,1),j-l)
+#     end
+# end
 
-        for K=1:size(M.ops,1)
-            cs=colstop(M.ops[K,J],ξ)
-
-            for k=j:size(M,1)
-                (KK,κ)=M.rangeinterlacer[k]
-                if K == KK && κ ≥ cs
-                    ret = max(ret,k)
-                    break
-                end
-            end
-        end
-        return ret
-    else
-        return  j-l
-    end
-end
+# function colstop{T}(M::InterlaceOperator{T,1},j::Integer)
+#     l = M.bandinds[1]
+#
+#     if isinf(l)
+#         ret = j
+#
+#         for K=1:length(M.ops)
+#             cs=colstop(M.ops[K],j)
+#
+#             for k=j:size(M,1)
+#                 (KK,κ)=M.rangeinterlacer[k]
+#                 if K == KK && κ ≥ cs
+#                     ret = max(ret,k)
+#                     break
+#                 end
+#             end
+#         end
+#         return ret
+#     else
+#         return  min(size(M,1),j-l)
+#     end
+# end
 
 israggedbelow(M::InterlaceOperator) = all(isbandedbelow,M.ops)
 
@@ -283,11 +307,12 @@ function DiagonalInterlaceOperator(v::Tuple,ds::Space,rs::Space)
     w=map(Operator{T},v)
     DiagonalInterlaceOperator{typeof(w),typeof(ds),typeof(rs),T}(w,ds,rs)
 end
-DiagonalInterlaceOperator{ST<:Space}(v::Tuple,::Type{ST})=DiagonalInterlaceOperator(v,ST(map(domainspace,v)),ST(map(rangespace,v)))
-DiagonalInterlaceOperator(v::Vector,k...)=DiagonalInterlaceOperator(tuple(v...),k...)
+DiagonalInterlaceOperator{ST<:Space}(v::Tuple,::Type{ST}) =
+    DiagonalInterlaceOperator(v,ST(map(domainspace,v)),ST(map(rangespace,v)))
+DiagonalInterlaceOperator(v::Vector,k...) = DiagonalInterlaceOperator(tuple(v...),k...)
 
 
-Base.convert{T}(::Type{Operator{T}},op::DiagonalInterlaceOperator)=
+Base.convert{T}(::Type{Operator{T}},op::DiagonalInterlaceOperator) =
         DiagonalInterlaceOperator(map(Operator{T},op.ops),op.domainspace,op.rangespace)
 
 
@@ -313,8 +338,8 @@ function getindex(D::DiagonalInterlaceOperator,k::Integer,j::Integer)
     end
 end
 
-domainspace(D::DiagonalInterlaceOperator)=D.domainspace
-rangespace(D::DiagonalInterlaceOperator)=D.rangespace
+domainspace(D::DiagonalInterlaceOperator) = D.domainspace
+rangespace(D::DiagonalInterlaceOperator) = D.rangespace
 
 
 

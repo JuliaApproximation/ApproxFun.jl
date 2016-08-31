@@ -422,8 +422,8 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
         normalize!(wp)
 
         # scale rows entries
+        kr=k:k+length(wp)-1
         for j=k:MO.datasize[2]
-            kr=j:j+length(wp)-1
             v=view(MO.data,kr,j)
             dt=dot(wp,v)
             Base.axpy!(-2*dt,wp,v)
@@ -557,10 +557,11 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,B
     QR
 end
 
+# back substitution
+trtrs!(::Type{Val{'U'}},co::CachedOperator,u::Array) =
+                trtrs!(Val{'U'},resizedata!(co,size(u,1),size(u,1)).data,u)
 
-backsubstitution!(co::CachedOperator,u::Array) = backsubstitution!(co.data,u)
-
-function backsubstitution!(B::AlmostBandedMatrix,u::Array)
+function trtrs!(::Type{Val{'U'}},B::AlmostBandedMatrix,u::Array)
     n=size(u,1)
     A=B.bands
     F=B.fill
@@ -601,7 +602,7 @@ function backsubstitution!(B::AlmostBandedMatrix,u::Array)
     u
 end
 
-function backsubstitution!(A::BandedMatrix,u::Array)
+function trtrs!(::Type{Val{'U'}},A::BandedMatrix,u::Array)
     n=size(u,1)
     b=bandwidth(A,2)
     T=eltype(u)
@@ -613,6 +614,26 @@ function backsubstitution!(A::BandedMatrix,u::Array)
             end
 
             @inbounds u[k,c] /= A.data[A.u+1,k]
+        end
+    end
+    u
+end
+
+
+function trtrs!(::Type{Val{'U'}},A::RaggedMatrix,u::Array)
+    if size(A,1) < size(u,1)
+        throw(BoundsError())
+    end
+
+    n=size(u,1)
+    b=bandwidth(A,2)
+    T=eltype(u)
+
+    for c=1:size(u,2)
+        for k=n:-1:1
+            @inbounds ck = A.cols[k]
+            @inbounds u[k,c] /= A.data[ck+k-1]
+            BLAS.axpy!(-u[k,c],view(A.data,ck:ck+k-2),view(u,1:k-1,c))
         end
     end
     u
