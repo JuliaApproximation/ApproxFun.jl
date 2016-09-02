@@ -2,8 +2,8 @@
 
 ## Counts
 
-Base.show(io::IO,c::UnitCount) = Base.show(io,"$(c.start):∞")
-Base.show(io::IO,c::Count) = Base.show(io,"$(c.start):$(c.step):∞")
+Base.show(io::IO,c::UnitCount) = print(io,"$(c.start):∞")
+Base.show(io::IO,c::Count) = print(io,"$(c.start):$(c.step):∞")
 
 
 ## Domains

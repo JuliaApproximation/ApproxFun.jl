@@ -572,31 +572,28 @@ function Base.colon(a::Real,st::Real,b::Infinity{Bool})
     end
 end
 
-Base.cumsum(r::Repeated) = r.x:r.x:∞
-Base.cumsum(r::Repeated{Bool}) = r.x?1:∞:r
 
 
-for OP in (:+,:-,:(.*))
-    @eval begin
-        $OP(a::Repeated,b::Repeated) = Repeated($OP(a.x,b.x))
-        $OP(a::AbstractCount,b::Repeated) = $OP(a,b.x)
-        $OP(a::Repeated,b::AbstractCount) = $OP(a.x,b)
-    end
+
+immutable CumSumIterator{CC}
+    iterator::CC
 end
 
-for OP in (:+,:-)
-    @eval begin
-        $OP(a::AbstractCount,b::AbstractCount) =
-            Count($OP(start(a),start(b)),$OP(step(a),step(b)))
-        $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
-        $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
-    end
-end
+Base.eltype{S}(::Type{CumSumIterator{S}}) = eltype(S)
+Base.eltype(CC::CumSumIterator) = eltype(CC.iterator)
 
-+(a::Number,b::UnitCount) = UnitCount(a+b.start)
-+(a::Number,b::Count) = Count(a+b.start,a.step)
--(a::Number,b::UnitCount) = Count(a-b.start,-1)
--(a::Number,b::Count) = Count(a-b.start,-a.step)
+Base.start(it::CumSumIterator) = (0,start(it.iterator))
+function Base.next(it::CumSumIterator, state)
+    a,nx_st=next(it.iterator,state[2])
+    cs=state[1]+a
+    (cs,(cs,nx_st))
+end
+Base.done(it::CumSumIterator, state) = done(it.iterator,state[2])
+
+Base.length(it::CumSumIterator) = length(it.iterator)
+
+getindex{AC<:UnitCount}(it::CumSumIterator{AC},k) = it.iterator.start*k + ((k*(k-1))÷2)
+
 
 
 
@@ -774,7 +771,50 @@ end
 Base.sum(f::Flatten) = mapreduce(sum,+,f.it)
 
 
+## Iterator Algebra
+
+
 for OP in (:+,:-,:*,:/)
     @eval $OP(f::Flatten,c::Number) = Flatten(map(it->$OP(it,c),f.it))
     @eval $OP(c::Number,f::Flatten) = Flatten(map(it->$OP(c,it),f.it))
+end
+
+for OP in (:+,:-,:(.*))
+    @eval begin
+        $OP(a::Repeated,b::Repeated) = Repeated($OP(a.x,b.x))
+        $OP(a::AbstractCount,b::Repeated) = $OP(a,b.x)
+        $OP(a::Repeated,b::AbstractCount) = $OP(a.x,b)
+    end
+end
+
+for OP in (:+,:-)
+    @eval begin
+        $OP(a::AbstractCount,b::AbstractCount) =
+            Count($OP(start(a),start(b)),$OP(step(a),step(b)))
+        $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
+        $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
+    end
+end
+
++(a::Number,b::UnitCount) = UnitCount(a+b.start)
++(a::Number,b::Count) = Count(a+b.start,a.step)
+-(a::Number,b::UnitCount) = Count(a-b.start,-1)
+-(a::Number,b::Count) = Count(a-b.start,-a.step)
+
+
+
+Base.cumsum(r::Repeated) = r.x:r.x:∞
+Base.cumsum(r::Repeated{Bool}) = r.x?1:∞:r
+Base.cumsum(r::AbstractCount) = CumSumIterator(r)
+
+
+function Base.cumsum(f::Flatten)
+    cs=zero(eltype(f))
+    its = Array(eltype(f.it),0)
+    for it in f.it
+        c=cumsum(cs+it)
+        push!(its,c)
+        cs=last(c)
+    end
+    Flatten(tuple(its...))
 end

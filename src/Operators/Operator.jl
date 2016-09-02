@@ -384,7 +384,15 @@ function Base.convert(::Type{Matrix},S::Operator)
 end
 
 Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
-Base.convert(::Type{RaggedMatrix},S::Operator) = default_raggedmatrix(S)
+function Base.convert(::Type{RaggedMatrix},S::Operator)
+    if isbanded(S)
+        RaggedMatrix(BandedMatrix(S))
+    elseif isbandedblockbanded(S)
+        RaggedMatrix(BandedBlockBandedMatrix(S))
+    else
+        default_raggedmatrix(S)
+    end
+end
 
 function Base.convert(::Type{Vector},S::Operator)
     if size(S,2) ≠ 1  || isinf(size(S,1))

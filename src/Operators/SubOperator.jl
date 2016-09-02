@@ -107,3 +107,16 @@ getindex(V::SubOperator,k::Range,j::Integer) = V.parent[V.indexes[1][k],V.indexe
 getindex(V::SubOperator,k::Range,j::Range) = V.parent[V.indexes[1][k],V.indexes[2][j]]
 Base.parent(S::SubOperator) = S.parent
 Base.parentindexes(S::SubOperator) = S.indexes
+
+
+
+
+function Base.convert(::Type{RaggedMatrix},S::SubOperator)
+    if isbanded(parent(S))
+        RaggedMatrix(BandedMatrix(S))
+    elseif isbandedblockbanded(parent(S))
+        RaggedMatrix(BandedBlockBandedMatrix(S))
+    else
+        default_raggedmatrix(S)
+    end
+end

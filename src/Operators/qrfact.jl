@@ -171,6 +171,8 @@ Base.Ac_mul_B{QR,T}(A::QROperatorQ{QR,T},B::Fun;opts...) =
     Ac_mul_B(A,coefficients(B,rangespace(A)))
 
 
+linsolve(A::QROperatorQ,B;opts...) = Ac_mul_B(A,B;opts...)
+
 function linsolve(R::QROperatorR,b::Vector)
     if length(b) > R.QR.ncols
         # upper triangularize columns

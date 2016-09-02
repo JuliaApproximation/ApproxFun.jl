@@ -57,7 +57,29 @@ function Base.done(it::BlockInterlacer,st)
 end
 
 
+#
+# immutable RestrictInterlacer{III}
+#     interlacer::III
+#     sub::Int
+# end
+#
+# Base.eltype{III}(R::Type{RestrictInterlacer{III}) = Int
+# Base.eltype(R::RestrictInterlacer) = Int
+# Base.start(R::RestrictInterlacer) = (1,start(R.interlacer))
+#
+# function Base.next(R::RestrictInterlacer,st)
+#     a,nx = next(R.interlacer,st[2])
+#     if a[1] == R.K
+#         st[1],(st[1]+1,nx)
+#     else
+#         next(st[
+#
+# end
 
+
+function findind(it::BlockInterlacer,K::Int,kr::Range)
+
+end
 
 
 
@@ -79,6 +101,8 @@ interlacer(sp::Space) = BlockInterlacer(tuple(blocklengths(sp)))
 cache(Q::BlockInterlacer) = CachedIterator(Q)
 
 blocklengths(sp::DirectSumSpace) = mapreduce(blocklengths,+,spaces(sp))
+block(sp::DirectSumSpace,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+
 
 
 for TYP in (:SumSpace,:TupleSpace)

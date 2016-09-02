@@ -300,6 +300,31 @@ function Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedMatrix},
 end
 
 
+function Base.convert{SS,PS,DI,RI,BI,T}(::Type{RaggedMatrix},
+                            S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
+
+    kr,jr=parentindexes(S)
+    L=parent(S)
+
+    ret=rzeros(S)
+
+    ds=domainspace(L)
+    rs=rangespace(L)
+    cr=cache(interlacer(rs))[kr]
+    for ν=1:length(L.ops)
+        # indicies of ret
+        ret_kr=find(x->x[1]==ν,cr)
+
+        # block indices
+        sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
+
+        ret[ret_kr,:]=L.ops[ν][sub_kr,jr]
+    end
+    ret
+end
+
+
+
 domainspace(IO::InterlaceOperator) = IO.domainspace
 rangespace(IO::InterlaceOperator) = IO.rangespace
 
