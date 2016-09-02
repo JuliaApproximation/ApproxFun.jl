@@ -208,6 +208,8 @@ end
 # Dirichlet for Squares
 
 
+isblockbanded{CD<:ChebyshevDirichlet,RB}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}}) =
+    true
 
 blockbandinds{CD<:ChebyshevDirichlet,RB}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}}) =
     (0,2)

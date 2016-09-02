@@ -39,10 +39,15 @@ isbandedbelow(A::Operator) = isfinite(bandinds(A,1))
 isbandedabove(A::Operator) = isfinite(bandinds(A,2))
 
 isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
-isbandedblockbanded(::) = false
 
 
-israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A)
+isbandedblockbandedbelow(::) = false
+isbandedblockbandedabove(::) = false
+
+isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockbandedbelow(A)
+isblockbanded(A) = isbandedblockbanded(A)
+
+israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isblockbanded(A)
 
 macro functional(FF)
     quote

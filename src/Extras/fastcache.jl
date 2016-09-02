@@ -5,7 +5,7 @@ function CachedOperator{T}(io::InterlaceOperator{T,1};padding::Bool=false)
 
     ind=find(op->isinf(size(op,1)),io.ops)
     if length(ind) ≠ 1  || !isbanded(io.ops[ind[1]])  # is almost banded
-        return CachedOperator(io,Array(eltype(op),0,0))
+        return default_CachedOperator(io;padding=padding)
     end
     i=ind[1]
     bo=io.ops[i]
@@ -824,10 +824,7 @@ function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,Matrix{T},T}
 
     H=A.QR.H
     h=pointer(H)
-
     M=size(H,1)
-
-    b=pointer(B)
     st=stride(H,2)
 
     sz=sizeof(T)

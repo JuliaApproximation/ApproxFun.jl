@@ -1,4 +1,4 @@
-export Evaluation,ivp,bvp
+export Evaluation,ivp,bvp,Dirichlet
 
 ## Evaluation constructors
 

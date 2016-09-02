@@ -180,7 +180,24 @@ end
 #TODO: More efficient to save bandinds
 bandinds(M::InterlaceOperator) = M.bandinds
 
+blockbandinds(M::InterlaceOperator) =
+    (mapreduce(op->blockbandinds(op,1),min,M.ops),
+     mapreduce(op->blockbandinds(op,2),max,M.ops))
 
+blockcolstop(M::InterlaceOperator,J::Integer) = J - blockbandinds(M,1)
+
+
+function colstop(M::InterlaceOperator,j::Integer)
+    b=bandwidth(M,1)
+    if isfinite(b)
+        j+b
+    else # assume block banded
+        J=block(domainspace(M),j)
+        blockstop(rangespace(M),blockcolstop(M,J))
+    end
+end
+
+#
 # function colstop{T}(M::InterlaceOperator{T,2},j::Integer)
 #     l = M.bandinds[1]
 #
@@ -228,7 +245,7 @@ bandinds(M::InterlaceOperator) = M.bandinds
 #     end
 # end
 
-israggedbelow(M::InterlaceOperator) = all(isbandedbelow,M.ops)
+israggedbelow(M::InterlaceOperator) = all(israggedbelow,M.ops)
 
 function getindex{T}(op::InterlaceOperator{T,2},k::Integer,j::Integer)
     M,J = op.domaininterlacer[j]

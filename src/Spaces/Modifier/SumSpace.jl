@@ -78,6 +78,7 @@ interlacer(sp::DirectSumSpace) = BlockInterlacer(sp)
 interlacer(sp::Space) = BlockInterlacer(tuple(blocklengths(sp)))
 cache(Q::BlockInterlacer) = CachedIterator(Q)
 
+blocklengths(sp::DirectSumSpace) = mapreduce(blocklengths,+,spaces(sp))
 
 
 for TYP in (:SumSpace,:TupleSpace)

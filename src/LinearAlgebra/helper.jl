@@ -513,8 +513,6 @@ Base.length(::Repeated) = ∞
 getindex(it::Repeated,k::Integer) = it.x
 getindex(it::Repeated,k::Range) = fill(it.x,length(k))
 
-.*(a::Repeated,b::Repeated) = Repeated(a.x,b.x)
-
 repeated(x) = Repeated(x)
 repeated(x,::Infinity{Bool}) = Repeated(x)
 repeated(x,m::Integer) = fill(x,m)  #TODO: make a take
@@ -576,6 +574,31 @@ end
 
 Base.cumsum(r::Repeated) = r.x:r.x:∞
 Base.cumsum(r::Repeated{Bool}) = r.x?1:∞:r
+
+
+for OP in (:+,:-,:(.*))
+    @eval begin
+        $OP(a::Repeated,b::Repeated) = Repeated($OP(a.x,b.x))
+        $OP(a::AbstractCount,b::Repeated) = $OP(a,b.x)
+        $OP(a::Repeated,b::AbstractCount) = $OP(a.x,b)
+    end
+end
+
+for OP in (:+,:-)
+    @eval begin
+        $OP(a::AbstractCount,b::AbstractCount) =
+            Count($OP(start(a),start(b)),$OP(step(a),step(b)))
+        $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
+        $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
+    end
+end
+
++(a::Number,b::UnitCount) = UnitCount(a+b.start)
++(a::Number,b::Count) = Count(a+b.start,a.step)
+-(a::Number,b::UnitCount) = Count(a-b.start,-1)
+-(a::Number,b::Count) = Count(a-b.start,-a.step)
+
+
 
 
 ## BandedMatrix

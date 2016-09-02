@@ -106,6 +106,9 @@ subblockbandinds(K::KroneckerOperator,k::Integer) =
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 
 
+blockcolstop(A::Operator,K::Integer) = K-blockbandinds(A,1)
+
+
 typealias Wrappers Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
                        SpaceOperator,ConstantTimesOperator}
 
