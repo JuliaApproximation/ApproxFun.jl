@@ -16,8 +16,9 @@ include("kron.jl")
 
 ## PDE
 
-lap(d)=Laplacian(d)
-
+lap(d::Space) = Laplacian(d)
+lap(d::Domain) = Laplacian(d)
+lap(f::Fun) = Laplacian()*f
 
 function Laplacian(d::Union{ProductDomain,TensorSpace},k::Integer)
     @assert length(d)==2

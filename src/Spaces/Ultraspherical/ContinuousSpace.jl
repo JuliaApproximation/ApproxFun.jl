@@ -208,6 +208,9 @@ end
 # Dirichlet for Squares
 
 
+Dirichlet{T<:Real}(d::ProductDomain{Tuple{Interval{T},Interval{T}}}) =
+    Dirichlet(ChebyshevDirichlet{1,1}(d[1])*ChebyshevDirichlet{1,1}(d[2]))
+
 isblockbanded{CD<:ChebyshevDirichlet,RB}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}}) =
     true
 

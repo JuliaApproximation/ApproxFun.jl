@@ -3,132 +3,30 @@ using ApproxFun, Compat, Base.Test
 ## Check operators
 
 
-S=ChebyshevDirichlet()
-B=ApproxFun.Dirichlet(S^2)
+S=ChebyshevDirichlet()^2
+B=Dirichlet(S)
 
-f = Fun((x,y)->exp(x)*sin(y),S^2)
-@test norm((Fun((x,y)->exp(x)*sin(y),∂(domain(S^2))) - B*f).coefficients)
-
-
-
-L=ApproxFun.interlace([B;Laplacian(S^2)])
-norm(L[5:100,5])
-
-ApproxFun.colstop(L,1)
+f = Fun((x,y)->exp(x)*sin(y),S)
+@test norm((Fun((x,y)->exp(x)*sin(y),∂(domain(S))) - B*f).coefficients) < 10eps()
 
 
-Laplacian(S^2)
+S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
+Δ=Laplacian(S)
+u=chop(Fun((x,y)->sin(π*x)*sin(π*y),S),1000eps())
 
-
-x*y
-
-L
-
-L[1:100,1:100]
-
-
-S=JacobiWeight(1.,1.,Jacobi(1.,1.))
-Δ=Laplacian(S^2)
-u=chop(Fun((x,y)->sin(π*x)*sin(π*y),S^2),1000eps())
-
-f=2π^2*u
-
-
-S=JacobiWeight(1.,1.,Jacobi(1.,1.))
-u=chop(Fun((x,y)->sin(π*x)*sin(π*y),S^2),1000eps())
-f=-2π^2*Fun(u,rangespace(Δ))
-
-Δ=Laplacian(S^2)
-QR=qrfact(Δ)
-@time linsolve(QR,f;tolerance=1E-13)  # 0.024s
-@time v=linsolve(QR,f;tolerance=1E-13)  # 0.0001s
-
-
-
-ncoefficients(u)
-
-
-@profile v=linsolve(QR,f;tolerance=1E-13)  # 0.003s
-
-Profile.print()
-
-f=Δ*u
-
-(v-u).coefficients |>norm
-
+f=-2π^2*u
 
 QR=qrfact(Δ)
-    @time v=linsolve(QR,f;tolerance=1E-13)
 
-
-
-
-
-
-S=JacobiWeight(1.,1.,Jacobi(1.,1.))
-    Δ=Laplacian(S^2)
-    QR=qrfact(Δ)
-    @time linsolve(QR,f;tolerance=10000eps())  # 0.35s
-    @time v=linsolve(QR,f;tolerance=10000eps())  # 0.003s
-
-
-@time v=linsolve(QR,[1.0];tolerance=999833eps())  # 0.003s
-
-@time v=linsolve(QR,[1.0];tolerance=1000000eps())  # 0.003s
+v=linsolve(Δ,f;tolerance=1E-13)
+@test norm((u-v).coefficients)<1E-12
 
 
 
 f=chop(Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ)),1000eps())  #default is [-1,1]^2
-ncoefficients(f)
+@time v=linsolve(Δ,f;tolerance=1E-12)
+@test norm((Δ*v-f).coefficients)<1E-10
 
-@time v=ApproxFun.Ac_mul_Bpars(QR[:Q],f.coefficients,1E-6,10000)
-    @time u=QR[:R]\v
-(Δ*u-Fun(f,rangespace(Δ))).coefficients|>abs|>findmax
-
-
-
-n=10000;
-    u=Fun(full(Δ[1:n,1:n])\[1.0;zeros(n-1)],domainspace(Δ))
-    findmax(abs((Δ*u-f).coefficients))
-
-f=Fun(1.0,rangespace(Δ))
-
-
-
-
-
-ncoefficients(u)
-
-(Δ*u).coefficients[470:500]
-
-v.coefficients
-
-QR.ncols
-
-1000000eps()
-
-
-ncoefficients(v)
-
-
-
-QR=qrfact(Δ)
-    col=319
-    @profile ApproxFun.resizedata!(QR.R,:,col+100)  # double the last rows
-
-
-Profile.print()
-Profile.clear()
-@time Δ[1:(col+100),1:(col+100)]-QR.R.data[1:(col+100),1:(col+100)]|>norm
-
-
-Profile.clear()
-
-
-(v+u).coefficients |>norm
-
-/10)
-ncoefficients(u)
 
 KO=Δ.op.ops[1].ops[1].op
 
@@ -147,202 +45,75 @@ M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,1:4))
 M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,1:112))
 @test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,112:112))-M[:,112]) < 10eps()
 
-ApproxFun.BandedBlockBandedMatrix(view(Δ.op.ops[1],1:112,112:112))+ApproxFun.BandedBlockBandedMatrix(view(Δ.op.ops[2],1:112,112:112))
-
-
-
-QR=qrfact(Δ)
-    QR[:Q]'*[1.0]
-
-
-
-
-@time ApproxFun.resizedata!(QR,:,11)
-     @time ApproxFun.resizedata!(QR,:,78)
-     #@which ApproxFun.resizedata!(QR,:,278)
-     col=278
-     if col ≤ QR.ncols
-         return QR
-     end
-
-     MO=QR.R
-     W=QR.H
-
-     @which resizedata!(MO,:,col+100)  # double the last rows
-
-
-
-
-
-
-
-S=view(KO,1:112,112:112)
-
-
-kr,jr=parentindexes(S)
-KO=parent(S)
-l,u=blockbandinds(KO)
-λ,μ=subblockbandinds(KO)
-
-rt=rangetensorizer(KO)
-dt=domaintensorizer(KO)
-ret=bbbzeros(S)
-
-J=block(dt,jr[1])
-K=block(rt,kr[1])
-bl_sh = J-K
-
-ret=bbbzeros(S)
-
-
-A,B=KO.ops
-K=block(rt,kr[end]);J=block(dt,jr[end])
-AA=A[1:K,1:J]
-BB=B[1:K,1:J]
-
-
-Jsh=block(dt,jr[1])-1
-Ksh=block(rt,kr[1])-1
-
-
-for J=1:blocksize(ret,2)
-    # only first block can be shifted inside block
-    jsh=J==1?jr[1]-blockstart(dt,J+Jsh):0
-    for K=blockcolrange(ret,J)
-        Bs=viewblock(ret,K,J)
-        ksh=K==1?kr[1]-blockstart(dt,K+Ksh):0
-        for j=1:size(Bs,2),k=colrange(Bs,j)
-            κ,ν=subblock2tensor(rt,K+Ksh,k+ksh)
-            ξ,μ=subblock2tensor(dt,J+Jsh,j+jsh)
-            Bs[k,j]=AA[κ,ξ]*BB[ν,μ]
-        end
-    end
-end
-
-ret
-
-KO[112,112]
 
 
 ## Rectangle PDE
 
 dx=dy=Interval()
 d=dx*dy
-x=Fun(identity,dx);y=Fun(identity,dy)
+g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
-#dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
-
-G=[real(exp(-1+1.0im*y));
-                        real(exp(1+1im*y));
-                        real(exp(x-1im));
-                        real(exp(x+1im));0.];
-
-A=[dirichlet(d);lap(d)]
-u=A\G
+A=[Dirichlet(d);Laplacian(d)]
+u=linsolve(A,[g,0.];tolerance=1E-10)
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
-A=[dirichlet(d);lap(d)+0.0I]
-u=A\G
-@test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-11
+A=[Dirichlet(d);Laplacian(d)+0.0I]
+u=linsolve(A,[g,0.];tolerance=1E-10)
+@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
 println("    Poisson tests")
 
 ## Poisson
 
-f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2))  #default is [-1,1]^2
+f=chop(Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2)),1000eps())  #default is [-1,1]^2
 d=domain(f)
-OS=S=schurfact([dirichlet(d);lap(d)],10)
-u=OS\[zeros(∂(d));f]
-@test_approx_eq u(.1,.2) -0.042393137972085826
+A=[Dirichlet(d);Laplacian(d)]
+u=linsolve(A,[zeros(∂(d));f];tolerance=1E-10)
+@test_approx_eq u(.1,.2) -0.04251891975068446
 
 
 
 d=PeriodicInterval()^2
-f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
-A=lap(d)+.1I
+f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
+A=Laplacian(d)+.1I
 u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
 
-println("    Kron tests")
-
-@static if is_apple()
-    ## Kron
-
-    dx=dy=Interval()
-    d=dx*dy
-    x=Fun(identity,dx);y=Fun(identity,dy)
-
-    #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
-
-    G=[real(exp(-1+1.0im*y));
-                            real(exp(1+1im*y));
-                            real(exp(x-1im));
-                            real(exp(x+1im));0.];
-
-    A=[dirichlet(d);lap(d)]
-
-    S=schurfact(A,40)
-
-    uex=A\G
-
-    nx=ny=40
-    K=kronfact(A,nx,ny)
-
-    uex2=K\G
-
-    @test (uex-uex2|>coefficients|>norm)<10000eps()
 
 
 
-    # dirichlet bcs
+# fourth order
+dx=dy=Interval()
+d=dx*dy
+Dx=Derivative(dx);Dy=Derivative(dy)
+L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
-    import ApproxFun.ChebyshevDirichlet
+S=ChebyshevDirichlet()^2
+Δ=Laplacian(S)
 
-    S=ChebyshevDirichlet()⊗ChebyshevDirichlet();
-    A=[dirichlet(S);lap(S)]
-    nx=ny=20;
-    KD=kronfact(A,nx,ny);
-
-
-    #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
-    x=Fun(identity);y=Fun(identity);
-    G=[Fun(real(exp(-1+1.0im*y)),S[2]);
-        Fun(real(exp(1+1im*y)),S[2]);
-        Fun(real(exp(x-1im)),S[1]);
-                            Fun(real(exp(x+1im)),S[1]);0.];
-
-    uD=KD\G;
-
-    @test_approx_eq uD(.1,.2) real(exp(.1+.2im))
+Δ^2
 
 
+K=kronfact([dirichlet(d);
+     neumann(d);
+     L],100,100)
 
-    # fourth order
-    dx=dy=Interval()
-    d=dx*dy
-    Dx=Derivative(dx);Dy=Derivative(dy)
-    L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
+x=Fun(identity,dx);y=Fun(identity,dy)
 
-    K=kronfact([dirichlet(d);
-         neumann(d);
-         L],100,100)
-
-    x=Fun(identity,dx);y=Fun(identity,dy)
-
-    G=[real(exp(-1+1.0im*y));
-                    real(exp(1+1im*y));
-                    real(exp(x-1im));
-                    real(exp(x+1im));
-                    real(exp(-1+1.0im*y));
-                    real(exp(1+1im*y));
-                    -imag(exp(x-1im));
-                    -imag(exp(x+1im))
-       ]
-    u=K\G
-    @test_approx_eq u(.1,.2) real(exp(.1+.2im))
+G=[real(exp(-1+1.0im*y));
+                real(exp(1+1im*y));
+                real(exp(x-1im));
+                real(exp(x+1im));
+                real(exp(-1+1.0im*y));
+                real(exp(1+1im*y));
+                -imag(exp(x-1im));
+                -imag(exp(x+1im))
+   ]
+u=K\G
+@test_approx_eq u(.1,.2) real(exp(.1+.2im))
 
 
     # mixed

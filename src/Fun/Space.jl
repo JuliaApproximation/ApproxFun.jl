@@ -525,3 +525,9 @@ const ℓ⁰ = SequenceSpace()
 dimension(::SequenceSpace) = ∞
 domain(::SequenceSpace) = ℕ
 spacescompatible(::SequenceSpace,::SequenceSpace) = true
+
+
+
+## Boundary
+
+∂(S::Space) = ∂(domain(S))
