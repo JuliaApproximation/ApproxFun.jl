@@ -53,3 +53,6 @@ Base.reverse(a::Point)=a
 
 
 canonicaldomain(a::Point)=Point(0.)
+
+points(a::Point,n) = eltype(a)[a.x]
+checkpoints(a::Point) = eltype(a)[a.x]

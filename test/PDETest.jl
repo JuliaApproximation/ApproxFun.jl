@@ -63,6 +63,72 @@ u=linsolve(A,[g,0.];tolerance=1E-10)
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
+A=ApproxFun.interlace([dirichlet(dx)⊗eye(dy);
+ eye(dx)⊗dirichlet(dy);
+ Laplacian(d)])
+
+u=linsolve(A,ones(4);tolerance=1E-12)
+
+
+rs=rangespace(A.ops[1])
+
+f=Fun((x,y)->exp(-x^2*y),rs)
+
+
+f=Fun((x,y)->exp(-x^2*y),d)
+f(0.1,0.2)
+pts=points(Space(d),20)
+
+
+vals=map(xy->xy[1],pts)
+sp=Space(d)
+NM=length(vals)
+if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
+    N,M=dimension(sp[1]),dimension(sp[2])
+elseif isfinite(dimension(sp[1]))
+    N=dimension(sp[1])
+    M=NM÷N
+elseif isfinite(dimension(sp[2]))
+    M=dimension(sp[2])
+    N=NM÷M
+else
+    N=M=round(Int,sqrt(length(vals)))
+end
+
+V=reshape(copy(vals),N,M)
+transform!(sp,V)
+
+
+
+
+
+
+
+
+
+@which transform(Space(d),v)
+
+
+cache(tensorizer(Space(d)))[2]
+
+f(0.1,0.2)
+
+exp(-0.1^2*0.2)
+
+Fun(ProductFun((x,y)->x,d))
+
+Fun((x,y)->x,rs)
+
+pts=points(rs,20)
+
+vals=map((xy)->xy[1],pts)
+
+transform(rs,vals)
+
+
+
+Fun(
+
 println("    Poisson tests")
 
 ## Poisson

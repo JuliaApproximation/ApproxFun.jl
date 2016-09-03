@@ -112,6 +112,8 @@ end
 
 
 
+
+
 blockstart(it,K) = K==1?1:sum(blocklengths(it)[1:K-1])+1
 blockstop(it,K) = sum(blocklengths(it)[1:K])
 
@@ -144,10 +146,13 @@ function tensorblocklengths(a::Repeated{Bool},b)
     cs = cumsum(b)
     if isinf(length(b))
         cs
+    elseif length(cs) == 1 && last(cs) == a.x
+        a
     else
         flatten((cs,repeated(last(cs))))
     end
 end
+
 
 tensorblocklengths(a,b::Repeated{Bool}) =
     tensorblocklengths(b,a)
@@ -326,13 +331,31 @@ end
 
 ##  Fun routines
 
-function fromtensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Matrix{T})
-    ret=zeros(T,findfirst(it,(size(M,1),size(M,2))))
-    for k=1:size(M,1),j=1:size(M,2)
-        ret[findfirst(it,(k,j))] = M[k,j]
+# function fromtensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Matrix{T})
+#     ret=zeros(T,findfirst(it,(size(M,1),size(M,2))))
+#     for k=1:size(M,1),j=1:size(M,2)
+#         ret[findfirst(it,(k,j))] = M[k,j]
+#     end
+#     ret
+# end
+
+
+function fromtensor(it::TensorIterator,M::Matrix)
+    n,m=size(M)
+    ret=zeros(eltype(M),blockstop(it,n+m-1))
+    k = 1
+    for (K,J) in it
+        if K ≤ n && J ≤ m
+            ret[k] = M[K,J]
+        elseif K+J≥n+m
+            break
+        end
+        k += 1
     end
     ret
 end
+
+
 
 
 # function totensor{T1,T2,T}(it::TensorIterator{Tuple{T1,T2}},M::Vector{T})
@@ -351,12 +374,13 @@ end
 #     ret
 # end
 
-function totensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Vector{T})
-    inds=it[length(M)]
-    m=inds[1]+inds[2]-1
-    ret=zeros(T,m,m)
-    for k=1:length(M)
-        ret[it[k]...] = M[k]
+function totensor(it::TensorIterator,M::Vector)
+    m=block(it,length(M))
+    ret=zeros(eltype(it),min(m,it.dimensions[1]),min(m,it.dimensions[2]))
+    k=1
+    for (K,J) in it
+        ret[K,J] = M[k]
+        k += 1
     end
     ret
 end
@@ -365,32 +389,45 @@ for OP in (:fromtensor,:totensor,:block,:blockstart,:blockstop)
     @eval $OP(s::TensorSpace,M) = $OP(tensorizer(s),M)
 end
 
-# TODO: remove
-function totree(v::Vector)
-   m=toblock(length(v))
-    r=Array(Vector{eltype(v)},m)
-    for k=1:m-1
-        r[k]=v[fromblock(k)]
-    end
-    r[m]=pad!(v[fromblock(m)[1]:end],m)
-    r
-end
-
-fromtree{T}(v::Vector{Vector{T}}) = vcat(v...)
 
 function points(sp::TensorSpace,n)
     pts=Array(Tuple{Float64,Float64},0)
-    for x in points(sp[1],round(Int,sqrt(n))), y in points(sp[2],round(Int,sqrt(n)))
+    if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
+        N,M=dimension(sp[1]),dimension(sp[2])
+    elseif isfinite(dimension(sp[1]))
+        N=dimension(sp[1])
+        M=n÷N
+    elseif isfinite(dimension(sp[2]))
+        M=dimension(sp[2])
+        N=n÷M
+    else
+        N=M=round(Int,sqrt(n))
+    end
+
+    for y in points(sp[2],M),
+        x in points(sp[1],N)
         push!(pts,(x,y))
     end
     pts
 end
 
-function transform(sp::TensorSpace,vals)
-    m=round(Int,sqrt(length(vals)))
-    M=reshape(copy(vals),m,m)
+function transform(sp::TensorSpace,vals,plan...)
+    NM=length(vals)
+    if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
+        N,M=dimension(sp[1]),dimension(sp[2])
+    elseif isfinite(dimension(sp[1]))
+        N=dimension(sp[1])
+        M=NM÷N
+    elseif isfinite(dimension(sp[2]))
+        M=dimension(sp[2])
+        N=NM÷M
+    else
+        N=M=round(Int,sqrt(length(vals)))
+    end
 
-    fromtensor(sp,transform!(sp,M))
+    V=reshape(copy(vals),N,M)
+
+    fromtensor(sp,transform!(sp,V))
 end
 
 evaluate(f::AbstractVector,S::AbstractProductSpace,x) = ProductFun(totensor(S,f),S)(x...)
@@ -400,7 +437,6 @@ evaluate(f::AbstractVector,S::AbstractProductSpace,x,y) = ProductFun(totensor(S,
 
 coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(space(f),f.coefficients)
 
-Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace) = Fun(fromtree(v),S)
 
 
 #TODO: Implement

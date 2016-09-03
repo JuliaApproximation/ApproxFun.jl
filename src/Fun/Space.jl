@@ -504,6 +504,11 @@ ConstantSpace() = ConstantSpace(AnyDomain())
 
 isconstspace(::ConstantSpace) = true
 
+function transform(sp::ConstantSpace,vals,plan...)
+    @assert length(vals)==1
+    vals
+end
+
 # we override maxspace instead of maxspace_rule to avoid
 # domainscompatible check.
 for OP in (:maxspace,:(Base.union))
