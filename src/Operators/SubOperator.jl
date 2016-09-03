@@ -89,7 +89,7 @@ function bbbzeros(S::SubOperator)
     sbl_sh = jsh-ksh
 
 
-    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,max(0,-λ+sbl_sh),max(0,μ-sbl_sh),
+    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,max(-λ,-λ+sbl_sh),max(μ,μ-sbl_sh),
             blocklengthrange(rt,kr),
             blocklengthrange(dt,jr))
 end

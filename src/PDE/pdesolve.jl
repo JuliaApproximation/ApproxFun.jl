@@ -164,7 +164,3 @@ pdesolve(A::Operator,f...;opts...)=pdesolve([A],f...;opts...)
 
 
 \(A::AbstractPDEOperatorSchur,f::Union{MultivariateFun,Number,Fun,Array})=pdesolve(A,f)
-
-linsolve(::QROperator,b::MultivariateFun;kwds...) = error("Not implemented")
-linsolve(::QROperatorR,b::MultivariateFun;kwds...) = error("Not implemented")
-linsolve(A::Operator,b::MultivariateFun;kwds...) = pdesolve(A,b;kwds...)
