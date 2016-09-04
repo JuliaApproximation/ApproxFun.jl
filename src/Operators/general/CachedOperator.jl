@@ -15,24 +15,29 @@ type CachedOperator{T<:Number,DM<:AbstractMatrix,M<:Operator,DS,RS,BI} <: Operat
     domainspace::DS
     rangespace::RS
     bandinds::BI
+    padding::Bool   # records whether the operator should be padded for QR operations
+                    #  note that BandedMatrix/AlmostBandedMatrix don't need this
+                    #  as the padding is done in the bandinds
 end
 
-CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},ds,rs,bi) =
+CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},ds,rs,bi,pd=false) =
     CachedOperator{eltype(data),typeof(data),typeof(op),
-                    typeof(ds),typeof(rs),typeof(bi)}(op,data,sz,ds,rs,bi)
+                    typeof(ds),typeof(rs),typeof(bi)}(op,data,sz,ds,rs,bi,pd)
 
 
-CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int}) =
-    CachedOperator(op,data,sz,domainspace(op),rangespace(op),bandinds(op))
-CachedOperator(op::Operator,data::AbstractMatrix) = CachedOperator(op,data,size(data))
+CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},pd=false) =
+    CachedOperator(op,data,sz,domainspace(op),rangespace(op),bandinds(op),pd)
+CachedOperator(op::Operator,data::AbstractMatrix,padding=false) = CachedOperator(op,data,size(data),padding)
 function CachedOperator(op::Operator;padding::Bool=false)
     if isbanded(op)
         l,u=bandwidths(op)
         padding && (u+=l)
         data=BandedMatrix(eltype(op),0,0,l,u)
-        CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u))
+        CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
+    elseif israggedbelow(op)
+        CachedOperator(op,RaggedMatrix(eltype(op),0,Int[]),padding)
     else
-        CachedOperator(op,Array(eltype(op),0,0))
+        CachedOperator(op,Array(eltype(op),0,0),padding)
     end
 end
 
@@ -136,9 +141,53 @@ function resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,
     B
 end
 
+function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::Integer)
+    if n > size(B,2)
+        throw(ArgumentError("Cannot resize beyound size of operator"))
+    end
+
+    if n > B.datasize[2]
+        resize!(B.data.cols,n+1)
+
+        if B.padding
+            # K is largest colstop.  We get previous largest by looking at precalulated
+            # cols
+            K = B.datasize[2]==0?0:B.data.cols[B.datasize[2]+1]-B.data.cols[B.datasize[2]]
+
+            for j = B.datasize[2]+1:n-1
+                K = max(K,colstop(B.op,j))
+                B.data.cols[j+1] = B.data.cols[j] + K
+            end
+            K = max(K,colstop(B.op,n))
+        else
+            for j = B.datasize[2]+1:n-1
+                B.data.cols[j+1] = B.data.cols[j] + colstop(B.op,j)
+            end
+            K = colstop(B.op,n)
+        end
+
+
+        B.data.cols[n+1] = B.data.cols[n] + K
+        pad!(B.data.data,B.data.cols[n+1]-1)
+        B.data.m = K
+
+        jr=B.datasize[2]+1:n
+        kr=1:K
+        BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
+
+        B.datasize = (K,n)
+
+    end
+
+    B
+end
+
 
 resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Integer) =
     resizedata!(B,n,:)
 
-resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,B.datasize[1],m)
-resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,B.datasize[2])
+resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer) =
+    resizedata!(B,:,m)
+
+resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
+resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))

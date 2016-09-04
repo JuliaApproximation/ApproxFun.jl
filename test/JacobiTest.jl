@@ -115,3 +115,42 @@ h = Fun(g,Chebyshev())
 @test norm(f.coefficients-h.coefficients,Inf) < 10eps()
 h = Fun(h,Legendre())
 @test norm(g.coefficients-h.coefficients,Inf) < 1000eps()
+
+
+
+
+## Legendre conversions
+
+@test norm(Fun(exp,Ultraspherical(1//2))-Fun(exp,Jacobi(0,0))) < 100eps()
+
+C=Conversion(Jacobi(0,0),Chebyshev())
+@test norm(C*Fun(exp,Jacobi(0,0))  - Fun(exp)) < 100eps()
+
+
+C=Conversion(Ultraspherical(1//2),Chebyshev())
+@test norm(C*Fun(exp,Ultraspherical(1//2))  - Fun(exp)) < 100eps()
+
+
+
+C=Conversion(Chebyshev(),Ultraspherical(1//2))
+@test norm(C*Fun(exp)-Fun(exp,Legendre())) < 100eps()
+
+
+C=Conversion(Chebyshev(),Jacobi(0,0))
+@test norm(C*Fun(exp)  - Fun(exp,Jacobi(0,0))) < 100eps()
+
+
+C=Conversion(Chebyshev(),Jacobi(1,1))
+@test norm(C*Fun(exp) - Fun(exp,Jacobi(1,1))) < 100eps()
+
+
+C=Conversion(Ultraspherical(1//2),Ultraspherical(1))
+@test norm(C*Fun(exp,Ultraspherical(1//2))-Fun(exp,Ultraspherical(1))) < 100eps()
+
+
+C=Conversion(Jacobi(0,0),Ultraspherical(1))
+@test norm(C*Fun(exp,Jacobi(0,0))-Fun(exp,Ultraspherical(1))) < 100eps()
+
+
+C=Conversion(Ultraspherical(1),Jacobi(0,0))
+@test norm(C*Fun(exp,Ultraspherical(1))-Fun(exp,Jacobi(0,0))) < 100eps()

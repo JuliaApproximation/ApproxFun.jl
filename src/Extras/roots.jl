@@ -342,7 +342,7 @@ end
 
 
 if isdir(Pkg.dir("AMVW"))
-    require("AMVW")
+    using AMVW
     function complexroots(coefficients::Vector)
         c=chop(coefficients,10eps())
 

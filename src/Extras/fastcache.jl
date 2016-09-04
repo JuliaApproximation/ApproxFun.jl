@@ -368,6 +368,66 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,BandedMatrix
 end
 
 
+function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
+                                                                 MM,DS,RS,BI}},
+                        ::Colon,col)
+    if col ≤ QR.ncols
+        return QR
+    end
+
+    MO=QR.R
+    W=QR.H
+
+    if col ≥ MO.datasize[2]
+        m = MO.datasize[2]
+        resizedata!(MO,:,col+100)  # double the last rows
+
+        # apply previous Householders to new columns of R
+        for J=1:size(W,2)
+            wp=view(W,:,J)
+            for j=m+1:MO.datasize[2]
+                kr=j:j+length(wp)-1
+                v=view(MO,kr,j)
+                dt=dot(wp,v)
+                Base.axpy!(-2*dt,wp,v)
+            end
+        end
+    end
+
+
+    if col > size(W,2)
+        m=size(W,2)
+        resize!(W.cols,2col+1)
+
+        for j=m+1:2col
+            cs=colstop(MO,j)
+            W.cols[j+1]=W.cols[j] + cs-j+1
+            W.m=max(W.m,cs-j+1)
+        end
+
+        resize!(W.data,W.cols[end]-1)
+    end
+
+    for k=QR.ncols+1:col
+        cs = colstop(QR.R,k)
+        W[1:cs-k+1,k] = view(MO.data,k:cs,k) # diagonal and below
+        wp=view(W,1:cs-k+1,k)
+        W[1,k]+= flipsign(norm(wp),W[1,k])
+        normalize!(wp)
+
+        # scale rows entries
+        kr=k:k+length(wp)-1
+        for j=k:MO.datasize[2]
+            v=view(MO.data,kr,j)
+            dt=dot(wp,v)
+            Base.axpy!(-2*dt,wp,v)
+        end
+    end
+    QR.ncols=col
+    QR
+end
+
+
 # BLAS versions, requires BlasFloat
 
 function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,AlmostBandedMatrix{T},
@@ -491,10 +551,11 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,B
     QR
 end
 
+# back substitution
+trtrs!(::Type{Val{'U'}},co::CachedOperator,u::Array) =
+                trtrs!(Val{'U'},resizedata!(co,size(u,1),size(u,1)).data,u)
 
-backsubstitution!(co::CachedOperator,u::Array) = backsubstitution!(co.data,u)
-
-function backsubstitution!(B::AlmostBandedMatrix,u::Array)
+function trtrs!(::Type{Val{'U'}},B::AlmostBandedMatrix,u::Array)
     n=size(u,1)
     A=B.bands
     F=B.fill
@@ -535,7 +596,7 @@ function backsubstitution!(B::AlmostBandedMatrix,u::Array)
     u
 end
 
-function backsubstitution!(A::BandedMatrix,u::Array)
+function trtrs!(::Type{Val{'U'}},A::BandedMatrix,u::Array)
     n=size(u,1)
     b=bandwidth(A,2)
     T=eltype(u)
@@ -547,6 +608,26 @@ function backsubstitution!(A::BandedMatrix,u::Array)
             end
 
             @inbounds u[k,c] /= A.data[A.u+1,k]
+        end
+    end
+    u
+end
+
+
+function trtrs!(::Type{Val{'U'}},A::RaggedMatrix,u::Array)
+    if size(A,1) < size(u,1)
+        throw(BoundsError())
+    end
+
+    n=size(u,1)
+    b=bandwidth(A,2)
+    T=eltype(u)
+
+    for c=1:size(u,2)
+        for k=n:-1:1
+            @inbounds ck = A.cols[k]
+            @inbounds u[k,c] /= A.data[ck+k-1]
+            BLAS.axpy!(-u[k,c],view(A.data,ck:ck+k-2),view(u,1:k-1,c))
         end
     end
     u
@@ -602,7 +683,8 @@ end
 
 # BLAS
 
-function Ac_mul_Bpars{QR,T<:BlasFloat}(A::QROperatorQ{QR,T},B::Vector{T},
+function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
+                                        B::Vector{T},
                                         tolerance,maxlength)
     if length(B) > A.QR.ncols
         # upper triangularize extra columns to prepare for \

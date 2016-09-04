@@ -11,8 +11,8 @@ LaurentOperator{DD}(f::Fun{Laurent{DD}})=LaurentOperator(f.coefficients[3:2:end]
 ##Taylor
 
 Multiplication{DD}(f::Fun{Taylor{DD}},sp::Taylor{DD}) =
-    MultiplicationWrapper(f,SpaceOperator(ToeplitzOperator(M.f.coefficients[2:end],
-                                                           [M.f.coefficients[1]]),
+    MultiplicationWrapper(f,SpaceOperator(ToeplitzOperator(f.coefficients[2:end],
+                                                           [f.coefficients[1]]),
                                           sp,sp))
 
 
@@ -133,15 +133,24 @@ function getindex{DD<:Circle}(D::ConcreteIntegral{Taylor{DD}},k::Integer,j::Inte
 end
 
 
-Integral{n,T,DD<:Circle}(S::SliceSpace{n,1,Hardy{false,DD},T,DD,1},k::Integer)=ConcreteIntegral(S,k)
-
-function bandinds{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})
-    @assert D.order==n
-    (0,0)
+function Integral{T,DD<:Circle}(S::SubSpace{Hardy{false,DD},UnitCount{Int64},T,DD,1},k::Integer)
+    if first(S.indexes) == k+1
+        ConcreteIntegral(S,k)
+    else
+        @assert first(S.index) > k+1
+        S2=S.space|(k+1:∞)
+        IntegralWrapper(ConcreteIntegral(S2,k)*Converion(S,S2),k)
+    end
 end
-rangespace{n,T,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1}})=D.space.space
 
-function getindex{n,T,OT,TT,DD<:Circle}(D::ConcreteIntegral{SliceSpace{n,1,Hardy{false,DD},T,DD,1},OT,TT},k::Integer,j::Integer)
+bandinds{T,DD<:Circle}(D::ConcreteIntegral{SubSpace{Hardy{false,DD},UnitCount{Int64},T,DD,1}}) =
+    (0,0)
+
+rangespace{T,DD<:Circle}(D::ConcreteIntegral{SubSpace{Hardy{false,DD},UnitCount{Int64},T,DD,1}}) =
+    D.space.space
+
+function getindex{T,OT,TT,DD<:Circle}(D::ConcreteIntegral{SubSpace{Hardy{false,DD},UnitCount{Int64},T,DD,1},OT,TT},
+                                      k::Integer,j::Integer)
     d=domain(D)
     m=D.order
 
@@ -160,8 +169,8 @@ end
 
 
 
-bandinds{DD<:PeriodicInterval}(D::ConcreteIntegral{Hardy{false,DD}})=(0,0)
-rangespace{DD<:PeriodicInterval}(D::ConcreteIntegral{Taylor{DD}})=D.space
+bandinds{DD<:PeriodicInterval}(D::ConcreteIntegral{Hardy{false,DD}}) = (0,0)
+rangespace{DD<:PeriodicInterval}(D::ConcreteIntegral{Taylor{DD}}) = D.space
 
 
 function getindex{DD<:PeriodicInterval}(D::ConcreteIntegral{Hardy{false,DD}},k::Integer,j::Integer)
@@ -178,10 +187,13 @@ end
 
 
 
-bandinds{n,T,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=(0,0)
-rangespace{n,T,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{n,1,Taylor{DD},T,DD,1}})=D.space
+bandinds{T,DD<:PeriodicInterval}(D::ConcreteIntegral{SubSpace{Taylor{DD},UnitCount{Int64},T,DD,1}}) =
+    (0,0)
+rangespace{T,DD<:PeriodicInterval}(D::ConcreteIntegral{SubSpace{Taylor{DD},UnitCount{Int64},T,DD,1}}) =
+    D.space
 
-function getindex{n,T,DD<:PeriodicInterval}(D::ConcreteIntegral{SliceSpace{n,1,Taylor{DD},T,DD,1}},k::Integer,j::Integer)
+function getindex{T,DD<:PeriodicInterval}(D::ConcreteIntegral{SubSpace{Taylor{DD},UnitCount{Int64},T,DD,1}},
+                                          k::Integer,j::Integer)
     d=domain(D)
     m=D.order
     TT=eltype(D)

@@ -24,6 +24,8 @@ PlusOperator{T,UT<:Number,VT<:Number}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT
 
 bandinds(P::PlusOperator) = P.bandinds
 
+israggedbelow(P::PlusOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
+
 for (OP,mn) in ((:colstart,:min),(:colstop,:max),(:rowstart,:min),(:rowstop,:max))
     defOP = parse("default_"*string(OP))
     @eval function $OP(P::PlusOperator,k::Integer)
@@ -182,7 +184,7 @@ ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
 
 
 for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,
-           :isafunctional,:isbandedblockbanded)
+           :isafunctional,:isbandedblockbanded,:israggedbelow)
     @eval $OP(C::ConstantTimesOperator) = $OP(C.op)
 end
 Base.size(C::ConstantTimesOperator,k::Integer) = size(C.op,k)
@@ -338,6 +340,8 @@ domain(P::TimesOperator)=commondomain(P.ops)
 
 bandinds(P::TimesOperator) = P.bandinds
 
+israggedbelow(P::TimesOperator) = isbandedbelow(P) || all(israggedbelow,P.ops)
+
 Base.stride(P::TimesOperator) = mapreduce(stride,gcd,P.ops)
 
 for OP in (:rowstart,:rowstop)
@@ -372,8 +376,11 @@ function getindex(P::TimesOperator,k::Integer)
     P[1:1,k:k][1,1]
 end
 
+
+
 for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
-                    (:BandedBlockBandedMatrix,:bbbzeros))
+                    (:BandedBlockBandedMatrix,:bbbzeros),
+                    (:RaggedMatrix,:rzeros))
     @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
         P=parent(S)

@@ -1,4 +1,4 @@
-export Fun,evaluate,values,points
+export Fun,evaluate,values,points,extrapolate
 export coefficients,ncoefficients
 export integrate,differentiate,domain,space,linesum,linenorm
 
@@ -60,8 +60,10 @@ coefficients(c::Number,sp::Space)=Fun(c,sp).coefficients
 Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(convert(Vector{T},f.coefficients),f.space)
 Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))  #TODO: this line is incompatible with space conversion
 
-Base.convert{T,S}(::Type{Fun{S,T}},x::Number)=x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
-Base.convert{S}(::Type{Fun{S}},x::Number)=x==0?zeros(S(AnyDomain())):x*ones(S(AnyDomain()))
+Base.convert{T,S}(::Type{Fun{S,T}},x::Number) =
+    x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
+Base.convert{S}(::Type{Fun{S}},x::Number) =
+    x==0?zeros(S(AnyDomain())):x*ones(S(AnyDomain()))
 Base.convert{IF<:Fun}(::Type{IF},x::Number)=Fun(x)
 Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
 
@@ -145,6 +147,16 @@ for op in (:(Base.first),:(Base.last))
 end
 
 
+
+## Extrapolation
+
+
+# Default extrapolation is evaluation. Override this function for extrapolation enabled spaces.
+extrapolate(f::AbstractVector,S::Space,x...)=evaluate(f,S,x...)
+
+# Do not override these
+extrapolate(f::Fun,x) = extrapolate(f.coefficients,f.space,x)
+extrapolate(f::Fun,x,y,z...) = extrapolate(f.coefficients,f.space,Vec(x,y,z...))
 
 
 ##Data routines

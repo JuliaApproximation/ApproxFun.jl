@@ -94,8 +94,8 @@ norm((u-1/(x+1)).coefficients) < 1000eps()   # 1.2011889731154679e-14
 
 ## Test for bug
 
-QL = LeftIntegral(0.5)	: Legendre()					↦	JacobiWeight(0.5,0.,Ultraspherical{1}())
-QU = LeftIntegral(0.5)	: JacobiWeight(0.5,0.,Ultraspherical{1}())	↦	Legendre()
+QL = LeftIntegral(0.5)	: Legendre()					↦	JacobiWeight(0.5,0.,Ultraspherical(1))
+QU = LeftIntegral(0.5)	: JacobiWeight(0.5,0.,Ultraspherical(1))	↦	Legendre()
 
 
 λ=0.25

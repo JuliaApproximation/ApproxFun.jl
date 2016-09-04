@@ -285,6 +285,15 @@ for sp in (:Fourier,:CosSpace,:Laurent,:Taylor)
 end
 
 
+function identity_fun{DD<:Circle}(S::Taylor{DD})
+    d=domain(S)
+    if d.orientation
+        Fun([d.center,d.radius],S)
+    else
+        error("Cannot create identity on $S")
+    end
+end
+
 reverseorientation{D}(f::Fun{Fourier{D}})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
 function reverseorientation{D}(f::Fun{Laurent{D}})
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z

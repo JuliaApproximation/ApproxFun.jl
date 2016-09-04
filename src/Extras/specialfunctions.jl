@@ -288,7 +288,7 @@ Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
 ## First order functions
 
 
-Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
+Base.log(f::Fun) = cumsum(differentiate(f)/f)+log(first(f))
 
 # function Base.log{MS<:MappedSpace}(f::Fun{MS})
 #     g=log(Fun(f.coefficients,space(f).space))
@@ -297,7 +297,7 @@ Base.log(f::Fun)=cumsum(differentiate(f)/f)+log(first(f))
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
-function Base.log{US<:Ultraspherical}(f::Fun{US})
+function Base.log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
     if domain(f)==Interval()
         r = sort(roots(f))
         #TODO divideatroots
@@ -469,8 +469,8 @@ Base.asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
 
 Base.sin{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
 Base.cos{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
-Base.sin{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
-Base.cos{S<:Ultraspherical,T<:Real}(f::Fun{S,T}) = real(exp(im*f))
+Base.sin{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
+Base.cos{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 
 
 
@@ -520,7 +520,7 @@ for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^
                             (:(Base.hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
-        function $op{S<:Ultraspherical,T}(ν,f::Fun{S,T})
+        function $op{S<:Union{Ultraspherical,Chebyshev},T}(ν,f::Fun{S,T})
             g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)

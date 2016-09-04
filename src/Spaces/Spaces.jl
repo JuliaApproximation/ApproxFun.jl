@@ -8,6 +8,23 @@ include("PeriodicSpace.jl")
 
 include("Modifier/Modifier.jl")
 
+## Union
+
+# union_rule dictates how to create a space that both spaces can be converted to
+# in this case, it means
+function union_rule{S1<:Tuple{Vararg{PolynomialSpace}},
+                    S2<:Tuple{Vararg{PolynomialSpace}}}(s1::PiecewiseSpace{S1},s2::PiecewiseSpace{S2})
+    PiecewiseSpace(map(Space,merge(domain(s1),domain(s2)).domains))
+end
+
+function union_rule{S1<:Tuple{Vararg{PolynomialSpace}}}(s1::PiecewiseSpace{S1},s2::PolynomialSpace)
+    PiecewiseSpace(map(Space,merge(domain(s1),domain(s2)).domains))
+end
+
+
+
+
+include("Chebyshev/Chebyshev.jl")
 include("Ultraspherical/Ultraspherical.jl")
 include("Fourier/Fourier.jl")
 include("Singularities/Singularities.jl")

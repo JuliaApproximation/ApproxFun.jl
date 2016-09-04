@@ -2,11 +2,14 @@
 
 
 
-type QROperator{CO,T} <: Operator{T}
+type QROperator{CO,MT,T} <: Operator{T}
     R::CO
-    H::Matrix{T} # Contains the Householder reflections
+    H::MT # Contains the Householder reflections
     ncols::Int   # number of cols already upper triangularized
 end
+
+QROperator(R::CachedOperator,H::AbstractArray,ncs::Int) =
+    QROperator{typeof(R),typeof(H),eltype(H)}(R,H,ncs)
 
 for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
@@ -67,7 +70,11 @@ function QROperator{T}(R::CachedOperator{T,BandedMatrix{T}})
     QROperator(R,H,0)
 end
 
-function QROperator{T}(R::CachedOperator{T,Matrix{T}})
+QROperator{T}(R::CachedOperator{T,RaggedMatrix{T}}) =
+    QROperator(R,RaggedMatrix(T,0,Int[]),0)
+
+
+function QROperator{T,AM<:AbstractMatrix}(R::CachedOperator{T,AM})
     error("Cannot create a QR factorization for $R")
 end
 
@@ -114,17 +121,17 @@ Base.det(A::Operator) = det(qrfact(A))
 
 ## Multiplication routines
 
-linsolve{CO,T<:Real}(QR::QROperator{CO,T},b::Vector{T};kwds...) =
+linsolve{CO,MT,T<:Real}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
     Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
-linsolve{CO,T<:Complex}(QR::QROperator{CO,T},b::Vector{T};kwds...) =
+linsolve{CO,MT,T<:Complex}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
     Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
 
-linsolve{CO,T,V<:Number}(QR::QROperator{CO,T},b::Vector{V};kwds...) =
+linsolve{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
     linsolve(QR,Vector{T}(b);kwds...)
 
-linsolve{CO,T<:Real,V<:Complex}(QR::QROperator{CO,T},b::Vector{V};kwds...) =
+linsolve{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
     linsolve(QR,real(b);kwds...)+im*linsolve(QR,imag(b);kwds...)
-linsolve{CO,T<:Complex,V<:Real}(QR::QROperator{CO,T},b::Vector{V};kwds...) =
+linsolve{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
     linsolve(QR,Vector{T}(b);kwds...)
 
 
@@ -169,7 +176,7 @@ function linsolve(R::QROperatorR,b::Vector)
         # upper triangularize columns
         resizedata!(R.QR,:,length(b))
     end
-    Fun(backsubstitution!(R.QR.R,copy(b)),domainspace(R))
+    Fun(trtrs!(Val{'U'},R.QR.R,copy(b)),domainspace(R))
 end
 
 linsolve(R::QROperatorR,b::Fun{SequenceSpace};kwds...) = linsolve(R,b.coefficients;kwds...)

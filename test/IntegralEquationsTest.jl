@@ -35,9 +35,9 @@ B=ldirichlet(d)
 Σ=DefiniteIntegral(.5,.5,d)
 
 @test domainspace(Σ) ==
-    JacobiWeight{Ultraspherical{1,Interval{Float64}},Interval{Float64}}(.5,.5,Ultraspherical{1}(d))
+    JacobiWeight{Ultraspherical{Int,Interval{Float64}},Interval{Float64}}(.5,.5,Ultraspherical(1,d))
 
-K=LowRankFun((x,y)->sin(y-x)*w(y),Ultraspherical{1}(d),domainspace(Σ))
+K=LowRankFun((x,y)->sin(y-x)*w(y),Ultraspherical(1,d),domainspace(Σ))
 
 L=D+x+Σ[K]
 usol=cospi(20x)

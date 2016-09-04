@@ -1,18 +1,18 @@
 export ToeplitzOperator, HankelOperator, LaurentOperator
 
 
-
-
-
-
 type ToeplitzOperator{T<:Number} <: Operator{T}
     negative::Vector{T}
     nonnegative::Vector{T}
 end
 
-ToeplitzOperator{T<:Number,Q<:Number}(V::Vector{T},W::Vector{Q})=ToeplitzOperator{promote_type(T,Q)}(V,W)
-ToeplitzOperator(V::AbstractVector,W::AbstractVector)=ToeplitzOperator(collect(V),collect(W))
-function ToeplitzOperator(V::Vector)
+
+ToeplitzOperator{T<:Number,Q<:Number}(V::Vector{T},W::Vector{Q}) =
+    ToeplitzOperator{promote_type(T,Q)}(V,W)
+ToeplitzOperator(V::AbstractVector,W::AbstractVector) =
+    ToeplitzOperator(collect(V),collect(W))
+
+function SymToeplitzOperator(V::Vector)
     W=V[2:end]
     V=copy(V)
     V[1]*=2

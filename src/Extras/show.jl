@@ -46,7 +46,7 @@ Base.show(io::IO,::ConstantSpace{AnyDomain}) = print(io,"ConstantSpace")
 Base.show(io::IO,S::ConstantSpace) = print(io,"ConstantSpace($(domain(S)))")
 
 
-for typ in ("Chebyshev","Fourier","Laurent","Taylor")
+for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     TYP=parse(typ)
     @eval function Base.show{D}(io::IO,S::$TYP{D})
         print(io,$typ*"(")
@@ -55,8 +55,8 @@ for typ in ("Chebyshev","Fourier","Laurent","Taylor")
     end
 end
 
-function Base.show{λ,D}(io::IO,S::Ultraspherical{λ,D})
-    print(io,"Ultraspherical{$λ}(")
+function Base.show(io::IO,S::Ultraspherical)
+    print(io,"Ultraspherical($(order(S)),")
     show(io,domain(S))
     print(io,")")
 end
