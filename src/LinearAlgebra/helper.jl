@@ -659,17 +659,6 @@ function Base.findfirst(f::Function,A::CachedIterator)
     return 0
 end
 
-function Base.findfirst(A::CachedIterator,v)
-    k=1
-    for c in A
-        if c==v
-            return k
-        end
-        k+=1
-    end
-    return 0
-end
-
 function Base.findfirst(A::CachedIterator,x)
     k=1
     for c in A

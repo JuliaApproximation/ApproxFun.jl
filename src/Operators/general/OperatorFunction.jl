@@ -44,6 +44,8 @@ for OP in (:(Base.inv),:(Base.sqrt))
             @assert isdiag(D)
             OperatorFunction(D.op,x->$OP(D.f(x)))
         end
+        $OP(A::Operator) = isdiag(A) ? OperatorFunction(A,$OP) :
+                                error("Not implemented.")
     end
 end
 
