@@ -92,6 +92,26 @@ block(ci::CachedIterator,k) = sum(ci[k])-length(ci.iterator.dimensions)+1
 block(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
     floor(Integer,sqrt(2n) + 1/2)
 
+function block(it::TensorIterator{Tuple{Int,Infinity{Bool}}},n)
+    m=it.dimensions[1]
+    N=(m*(m+1))÷2
+    if n < N
+        floor(Integer,sqrt(2n)+1/2)
+    else
+        m+(n-N)÷m
+    end
+end
+
+function block(it::TensorIterator{Tuple{Infinity{Bool},Int}},n)
+    m=it.dimensions[2]
+    N=(m*(m+1))÷2
+    if n < N
+        floor(Integer,sqrt(2n)+1/2)
+    else
+        m+(n-N)÷m
+    end
+end
+
 blocklength(it,k) = blocklengths(it)[k]
 
 blocklengths(::TensorIterator{NTuple{2,Infinity{Bool}}}) = 1:∞
@@ -375,10 +395,14 @@ end
 # end
 
 function totensor(it::TensorIterator,M::Vector)
-    m=block(it,length(M))
-    ret=zeros(eltype(it),min(m,it.dimensions[1]),min(m,it.dimensions[2]))
+    n=length(M)
+    m=block(it,n)
+    ret=zeros(eltype(M),min(m,it.dimensions[1]),min(m,it.dimensions[2]))
     k=1
     for (K,J) in it
+        if k > n
+            break
+        end
         ret[K,J] = M[k]
         k += 1
     end
