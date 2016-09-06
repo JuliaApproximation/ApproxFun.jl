@@ -69,7 +69,7 @@ bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
 bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
 function colstop(S::SubOperator,j::Integer)
     cs = colstop(parent(S),parentindexes(S)[2][j])
-    kr = parentindexes(S)[2]
+    kr = parentindexes(S)[1]
     n = size(S,1)
     if cs < first(kr)
         1

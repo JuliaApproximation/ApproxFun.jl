@@ -54,6 +54,12 @@ d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 A=[Dirichlet(d);Laplacian(d)]
+let co=cache(interlace(A))
+    resizedata!(co,:,100)
+    resizedata!(co,:,200)
+    @test norm(Ai[1:200,1:200]-co[1:200,1:200]) == 0
+end
+
 u=linsolve(A,[g,0.];tolerance=1E-10)
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
