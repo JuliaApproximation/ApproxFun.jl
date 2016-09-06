@@ -16,12 +16,15 @@ SubOperator(A,inds,dims) = SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
 SubOperator(A,inds) = SubOperator(A,inds,map(length,inds))
 
 function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
-    @assert isbanded(A) && isinf(size(A,1)) && isinf(size(A,2))
+    @assert isinf(size(A,1)) && isinf(size(A,2))
     st=step(kr)
-    @assert st==step(jr)  # Otherwise, its not a banded operator
-    kr1=first(kr)
-    jr1=first(jr)
-    l,u=(bandinds(A,1)+kr1-jr1)÷st,(bandinds(A,2)+kr1-jr1)÷st
+    if isbanded(A) && st==step(jr)  # Otherwise, its not a banded operator
+        kr1=first(kr)
+        jr1=first(jr)
+        l,u=(bandinds(A,1)+kr1-jr1)÷st,(bandinds(A,2)+kr1-jr1)÷st
+    else
+        l,u=-∞,∞
+    end
     SubOperator(A,(kr,jr),size(A),(-l,u))
 end
 

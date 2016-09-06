@@ -74,8 +74,63 @@ u=linsolve(A,ones(4);tolerance=1E-12)
 
 f=[[Fun((x,y)->exp(x)*cos(y),r) for r in rangespace(A)[1:4]];0.]
 linsolve(A,f;tolerance=1E-12)
+QR=qrfact(A)
+    ApproxFun.resizedata!(QR,:,700)
+g|>ncoefficients
 
+inv(QR[:R][1:100,1:100]|>full)|>norm
+
+QR.ncols
+Ai=ApproxFun.interlace(A)
+k=100
+    Ac_mul_B(QR[:Q],Ai[1:ApproxFun.colstop(Ai,k),k];
+             tolerance=1E-10,maxlength=200).coefficients[k+1:end]|>norm
+v=QR.H[1:100,1]
+    Q1=I-2v*v'
+    k=2
+    v=[zeros(k-1);QR.H[1:100-k+1,k]]
+    Q2=I-2v*v'
+    k=3
+    v=[zeros(k-1);QR.H[1:100-k+1,k]]
+    Q3=I-2v*v'
+    k=4
+    v=[zeros(k-1);QR.H[1:100-k+1,k]]
+    Q4=I-2v*v'
+    (Q4*Q3*Q2*Q1*full(Ai[1:100,k]))[5:end]  |>norm
+
+
+
+
+
+
+
+
+v[1:20]
+
+Ai[1:20,k]
+
+
+
+
+v
+z
+QR.H[1:100-k+1,k]
+Q3
+R=QR[:R][1:100,1:100]
+
+v
+
+
+r=ApproxFun.Ac_mul_Bpars(QR[:Q],g.coefficients,1E-12,700)
+
+QR[:R]\r
+
+QR[:R]*Fun((x,y)->exp(x)*cos(y),d)  |>ncoefficients
+
+QR.H[:,1:QR.ncols]  |>norm
 println("    Poisson tests")
+
+g=Fun(f,rangespace(QR))
 
 ## Poisson
 
