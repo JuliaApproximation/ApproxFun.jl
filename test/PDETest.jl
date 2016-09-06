@@ -62,9 +62,23 @@ A=[Dirichlet(d);Laplacian(d)+0.0I]
 u=linsolve(A,[g,0.];tolerance=1E-10)
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
+Bx=dirichlet(dx)⊗eye(dy)
+By=eye(dx)⊗dirichlet(dy)
+Bx[1]
 
-A=[dirichlet(dx)⊗eye(dy);
- eye(dx)⊗dirichlet(dy);
+ApproxFun.interlace(
+ [Bx[1][3:end,:];
+  Bx[2];
+  By[1][3:end,:];
+  By[2]])
+
+SubOperator(Bx[1],(kr,1:∞))
+view(SubOperator(Bx[1],(kr,1:∞)),1:5,2)
+
+kr[1:5]
+Bx[1][[2;1:end],:]
+A=[Bx;
+ By;
  Laplacian(d)]
 
 u=linsolve(A,ones(4);tolerance=1E-12)

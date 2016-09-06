@@ -52,11 +52,18 @@ function view(A::Operator,kr::UnitRange,jr::UnitRange)
     end
 end
 
-view(A::Operator,::Colon,jr::Range) = view(A,1:size(A,1),jr)
-view(A::Operator,kr::Range,::Colon) = view(A,kr,1:size(A,2))
+view(A::Operator,::Colon,::Colon) = view(A,1:size(A,1),1:size(A,2))
+view(A::Operator,::Colon,jr) = view(A,1:size(A,1),jr)
+view(A::Operator,kr,::Colon) = view(A,kr,1:size(A,2))
+
+view(A::Operator,k,j) = SubOperator(A,(k,j))
+
+
 
 view(A::SubOperator,kr::UnitRange,jr::UnitRange) =
     view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
+
+
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
 bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))

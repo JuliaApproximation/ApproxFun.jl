@@ -160,13 +160,7 @@ defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in 
 
 
 # Colon casdes
-defaultgetindex(A::Operator,kr::Range,::Colon) = view(A,kr,:)
-defaultgetindex(A::Operator,::Colon,jr::Range) = view(A,:,jr)
-defaultgetindex(A::Operator,::Colon,::Colon) = A
-
-defaultgetindex(A::Operator,kr::AbstractCount,jr::AbstractCount) = view(A,kr,jr)
-defaultgetindex(B::Operator,k::AbstractCount,::Colon) = B[k,1:end]
-defaultgetindex(B::Operator,::Colon,j::AbstractCount) = B[1:end,j]
+defaultgetindex(A::Operator,k,j) = view(A,k,j)
 
 
 
