@@ -154,7 +154,7 @@ function zerocfsFun(f, d::Space)
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
         if ncoefficients(cf) > 8 && maxabs(cf.coefficients[end-8:end]) < tol*maxabsc &&
-                all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
+                all(k->norm(cf(r[k])-fr[k],1)<tol*maxabsc*1000,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end
     end

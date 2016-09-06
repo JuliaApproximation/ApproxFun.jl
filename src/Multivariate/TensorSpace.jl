@@ -151,6 +151,8 @@ subblock2tensor{II}(rt::CachedIterator{II,TensorIterator{Tuple{Infinity{Bool},In
     (k,K-k+1)
 
 
+subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
+
 # tensorblocklengths gives calculates the block sizes of each tensor product
 #  Tensor product degrees are taken to be the sum of the degrees
 #  a degree is which block you are in

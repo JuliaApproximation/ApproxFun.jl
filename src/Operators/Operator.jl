@@ -193,8 +193,10 @@ function defaultgetindex(A::Operator,::Type{FiniteRange},::Type{FiniteRange})
         error("Only exists for finite operators.")
     end
 end
-defaultgetindex(A::Operator,::Type{FiniteRange},jr) =
-    A[1:colstop(A,maximum(jr)),jr]
+function defaultgetindex(A::Operator,::Type{FiniteRange},jr)
+    cs=mapreduce(j->colstop(A,j),max,jr)
+    A[1:cs,jr]
+end
 
 defaultgetindex(A::Operator,kr,::Type{FiniteRange}) =
     A[kr,1:rowstop(A,maximum(kr))]

@@ -62,8 +62,126 @@ A=[Dirichlet(d);Laplacian(d)+0.0I]
 u=linsolve(A,[g,0.];tolerance=1E-10)
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
-Bx=dirichlet(dx)⊗eye(dy)
-By=eye(dx)⊗dirichlet(dy)
+
+
+
+S=ChebyshevDirichlet()^2
+ff=(x,y)->exp(x)*cos(y)
+u=Fun(ff,S)
+
+KO=eye(S[1])⊗rdirichlet(S[1])
+@test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
+KO=rdirichlet(S[1])⊗eye(S[2])
+@test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
+
+B=[dirichlet(S[1])⊗eye(S[2]);
+   eye(S[1])⊗dirichlet(S[2]);
+   Laplacian()]
+
+interlace(B)
+
+
+dimension(S)
+ncoefficients(u)
+@which KO[1,2]
+kin,jin=1,2
+j,m=KO.domaintensorizer[jin]
+k,n=KO.rangetensorizer[kin]
+KO[k,n,j,m]
+
+
+S=view(KO,1:10,1:10)
+
+kr,jr=parentindexes(S)
+    KO=parent(S)
+    l,u=blockbandinds(KO)
+    λ,μ=subblockbandinds(KO)
+
+    rt=rangetensorizer(KO)
+    dt=domaintensorizer(KO)
+    ret=bbbzeros(S)
+    @which subblockbandinds(KO,1)
+
+A,B=KO.ops
+K=block(rt,kr[end]);J=block(dt,jr[end])
+AA=A[1:min(K,size(A,1)),1:min(J,size(A,2))]
+BB=B[1:min(K,size(B,1)),1:min(J,size(B,2))]
+
+
+
+
+
+
+Jsh=block(dt,jr[1])-1
+Ksh=block(rt,kr[1])-1
+
+J=3
+# only first block can be shifted inside block
+    jsh=J==1?jr[1]-blockstart(dt,J+Jsh):0
+    K=3
+    Bs=viewblock(ret,K,J)
+    ksh=K==1?kr[1]-blockstart(dt,K+Ksh):0
+    j=3
+    k=1
+    κ,ν=subblock2tensor(rt,K+Ksh,k+ksh)
+    ξ,μ=subblock2tensor(dt,J+Jsh,j+jsh)
+    AA[κ,ξ]*BB[ν,μ]
+
+
+
+
+subblock2tensor(rt,K+Ksh,k+ksh)
+subblock2tensor(dt,J+Jsh,j+jsh)
+
+AA
+
+
+
+
+Bs
+
+
+rt
+rt[1:20]
+
+
+Bs
+
+blockcolrange(ret,J)
+
+blocksize(ret,2)
+ret
+
+
+convert(AbstractMatrix,S)
+
+all(isdiag,Bx.ops)
+
+bandinds(Bx)
+
+
+
+kr,jr=parentindexes(S)
+KO=parent(S)
+l,u=blockbandinds(KO)
+λ,μ=subblockbandinds(KO)
+
+rt=rangetensorizer(KO)
+dt=domaintensorizer(KO)
+ret=bbbzeros(S)
+
+A,B=KO.ops
+K=block(rt,kr[end]);J=block(dt,jr[end])
+
+K
+
+A
+
+AA=A[1:K,1:J]
+BB=B[1:K,1:J]
+
+
+By=eye(S[1])⊗dirichlet(S[2])
 
 io=InterlaceOperator([
   Bx[1][2:end,:];

@@ -93,9 +93,10 @@ function rowstop(A::KroneckerOperator,k::Integer)
 end
 
 
-bandinds(K::KroneckerOperator) = all(isdiag,K.ops) ? (0,0) : (-∞,∞)
+bandinds(K::KroneckerOperator) = (-∞,∞)
 
-isbandedblockbanded(K::KroneckerOperator) = all(isbanded,K.ops)
+isbandedblockbanded(K::KroneckerOperator) =
+    all(op->isbanded(op) && isinf(size(op,1)) && isinf(size(op,2)),K.ops)
 israggedbelow(K::KroneckerOperator) = all(israggedbelow,K.ops)
 
 
@@ -152,9 +153,9 @@ function subblockbandindssum(P,k)
     ret
 end
 
-subblockbandinds(P::TimesOperator,k)=subblockbandindssum(P.ops,1)
+subblockbandinds(P::TimesOperator,k) = subblockbandindssum(P.ops,1)
 
-subblockbandinds(K::Operator)=subblockbandinds(K,1),subblockbandinds(K,2)
+subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
 
 
 domainspace(K::KroneckerOperator) = K.domainspace
@@ -364,7 +365,6 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
 end
 
 
-#TODO: there's a bug here
 function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},S::SubOperator{T,KKO})
     kr,jr=parentindexes(S)
     KO=parent(S)
@@ -377,8 +377,8 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 
     A,B=KO.ops
     K=block(rt,kr[end]);J=block(dt,jr[end])
-    AA=A[1:K,1:J]
-    BB=B[1:K,1:J]
+    AA=A[1:min(K,size(A,1)),1:min(J,size(A,2))]
+    BB=B[1:min(K,size(B,1)),1:min(J,size(B,2))]
 
 
     Jsh=block(dt,jr[1])-1
