@@ -184,7 +184,14 @@ blockbandinds(M::InterlaceOperator) =
     (mapreduce(op->blockbandinds(op,1),min,M.ops),
      mapreduce(op->blockbandinds(op,2),max,M.ops))
 
-blockcolstop(M::InterlaceOperator,J::Integer) = J - blockbandinds(M,1)
+function blockcolstop(M::InterlaceOperator,J::Integer)
+    if isblockbanded(M)
+        J - blockbandinds(M,1)
+    else
+        mapreduce(op->blockcolstop(op,J),max,M.ops)
+    end
+end
+
 
 
 function colstop(M::InterlaceOperator,j::Integer)

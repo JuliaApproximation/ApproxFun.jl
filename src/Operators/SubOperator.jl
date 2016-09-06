@@ -68,18 +68,30 @@ view(A::SubOperator,kr::UnitRange,jr::UnitRange) =
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
 bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
 function colstop(S::SubOperator,j::Integer)
-    cs=findfirst(parentindexes(S)[1],colstop(parent(S),parentindexes(S)[2][j]))
-    cs==0?size(S,1):cs
+    cs = colstop(parent(S),parentindexes(S)[2][j])
+    kr = parentindexes(S)[2]
+    n = size(S,1)
+    if cs < first(kr)
+        1
+    elseif cs ≥ last(kr)
+        n
+    else
+        min(n,findfirst(kr,cs))
+    end
 end
 colstart(S::SubOperator,j::Integer) =
     max(findfirst(parentindexes(S)[1],colstart(parent(S),parentindexes(S)[2][j])),1)
 rowstart(S::SubOperator,j::Integer) =
     max(1,findfirst(parentindexes(S)[2],rowstart(parent(S),parentindexes(S)[1][j])))
-function rowstop(S::SubOperator,j::Integer)
-    rs=findfirst(parentindexes(S)[2],rowstop(parent(S),parentindexes(S)[1][j]))
-    rs==0?size(S,2):rs
-end
+rowstop(S::SubOperator,j::Integer) =
+        findfirst(parentindexes(S)[2],rowstop(parent(S),parentindexes(S)[1][j]))
 
+
+# blocks don't change
+blockcolstop(S::SubOperator,J::Integer) = blockcolstop(parent(S),J)
+
+israggedbelow(S::SubOperator) = israggedbelow(parent(S))
+blockbandinds(S::SubOperator) = (-∞,∞)
 
 function bbbzeros(S::SubOperator)
     kr,jr=parentindexes(S)
@@ -105,8 +117,8 @@ function bbbzeros(S::SubOperator)
 end
 
 
-domainspace(S::SubOperator) = SubSpace(domainspace(parent(S)),parentindexes(S)[2])
-rangespace(S::SubOperator) = SubSpace(rangespace(parent(S)),parentindexes(S)[1])
+domainspace(S::SubOperator) = domainspace(parent(S))|parentindexes(S)[2]
+rangespace(S::SubOperator) = rangespace(parent(S))|parentindexes(S)[1]
 
 size(V::SubOperator) = V.dims
 size(V::SubOperator,k::Int) = V.dims[k]

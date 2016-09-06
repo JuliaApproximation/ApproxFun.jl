@@ -64,13 +64,46 @@ u=linsolve(A,[g,0.];tolerance=1E-10)
 
 Bx=dirichlet(dx)⊗eye(dy)
 By=eye(dx)⊗dirichlet(dy)
-Bx[1]
 
-ApproxFun.interlace(
- [Bx[1][3:end,:];
-  Bx[2];
-  By[1][3:end,:];
-  By[2]])
+io=InterlaceOperator([
+  Bx[1][2:end,:];
+  Bx[2][2:end,:];
+  By[1][2:end,:];
+  By[2][2:end,:];
+  Δ])
+
+
+co=cache(io)
+    resizedata!(co,:,10)
+    resizedata!(co,:,20)
+    resizedata!(co,:,40)
+
+RaggedMatrix(view(io,1:10,1:10))
+
+QR=qrfact(io)
+    resizedata!(QR,:,200)
+    linsolve(QR,[ones(4);0.];tolerance=1E-10,maxlength=40)
+
+
+norm(inv(full(QR[:R][1:100,1:100])))
+
+
+
+
+op
+op=io.ops[2]
+@which rowstop(op.ops[1],1)
+A=op.ops[1]
+k=1
+K=block(rangespace(A),k)
+
+J=K+blockbandwidth(A,2)
+
+blockstop(domainspace(A),J)
+# zero indicates above dimension
+st==0?size(A,2):min(size(A,2),st)
+
+@which io[2,1]
 
 SubOperator(Bx[1],(kr,1:∞))
 view(SubOperator(Bx[1],(kr,1:∞)),1:5,2)
