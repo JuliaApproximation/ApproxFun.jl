@@ -100,7 +100,11 @@ interlacer(sp::DirectSumSpace) = BlockInterlacer(sp)
 interlacer(sp::Space) = BlockInterlacer(tuple(blocklengths(sp)))
 cache(Q::BlockInterlacer) = CachedIterator(Q)
 
-blocklengths(sp::DirectSumSpace) = mapreduce(blocklengths,+,spaces(sp))
+function blocklengths(sp::DirectSumSpace)
+    bl=map(blocklengths,sp)
+    N=mapreduce(length,max,bl)
+    mapreduce(b->pad(b,N),+,bl)
+end
 block(sp::DirectSumSpace,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
 
 

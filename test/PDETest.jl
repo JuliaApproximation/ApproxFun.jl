@@ -69,239 +69,34 @@ u=linsolve(A,[g,0.];tolerance=1E-10)
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
-
-
 S=ChebyshevDirichlet()^2
 ff=(x,y)->exp(x)*cos(y)
 u=Fun(ff,S)
 
-KO=eye(S[1])⊗rdirichlet(S[1])
-@test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
-KO=rdirichlet(S[1])⊗eye(S[2])
-@test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
+for KO in [eye(S[1])⊗rdirichlet(S[1]),rdirichlet(S[1])⊗eye(S[2])]
+    @test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
+end
 
 B=[dirichlet(S[1])⊗eye(S[2]);
    eye(S[1])⊗dirichlet(S[2]);
    Laplacian()]
 
-interlace(B)
 
+u=linsolve(B,ones(4);tolerance=1E-12)
+@test norm((u-Fun([1.],S)).coefficients)<10eps()
 
-dimension(S)
-ncoefficients(u)
-@which KO[1,2]
-kin,jin=1,2
-j,m=KO.domaintensorizer[jin]
-k,n=KO.rangetensorizer[kin]
-KO[k,n,j,m]
+g=map(sp->Fun(ff,sp),map(rangespace,B[1:4]))
 
+u=linsolve(B,[g;0];tolerance=1E-10)
+u(0.1,0.2)-ff(0.1,0.2)
 
-S=view(KO,1:10,1:10)
 
-kr,jr=parentindexes(S)
-    KO=parent(S)
-    l,u=blockbandinds(KO)
-    λ,μ=subblockbandinds(KO)
 
-    rt=rangetensorizer(KO)
-    dt=domaintensorizer(KO)
-    ret=bbbzeros(S)
-    @which subblockbandinds(KO,1)
+S=ChebyshevDirichlet{2,2}()^2
 
-A,B=KO.ops
-K=block(rt,kr[end]);J=block(dt,jr[end])
-AA=A[1:min(K,size(A,1)),1:min(J,size(A,2))]
-BB=B[1:min(K,size(B,1)),1:min(J,size(B,2))]
 
-
-
-
-
-
-Jsh=block(dt,jr[1])-1
-Ksh=block(rt,kr[1])-1
-
-J=3
-# only first block can be shifted inside block
-    jsh=J==1?jr[1]-blockstart(dt,J+Jsh):0
-    K=3
-    Bs=viewblock(ret,K,J)
-    ksh=K==1?kr[1]-blockstart(dt,K+Ksh):0
-    j=3
-    k=1
-    κ,ν=subblock2tensor(rt,K+Ksh,k+ksh)
-    ξ,μ=subblock2tensor(dt,J+Jsh,j+jsh)
-    AA[κ,ξ]*BB[ν,μ]
-
-
-
-
-subblock2tensor(rt,K+Ksh,k+ksh)
-subblock2tensor(dt,J+Jsh,j+jsh)
-
-AA
-
-
-
-
-Bs
-
-
-rt
-rt[1:20]
-
-
-Bs
-
-blockcolrange(ret,J)
-
-blocksize(ret,2)
-ret
-
-
-convert(AbstractMatrix,S)
-
-all(isdiag,Bx.ops)
-
-bandinds(Bx)
-
-
-
-kr,jr=parentindexes(S)
-KO=parent(S)
-l,u=blockbandinds(KO)
-λ,μ=subblockbandinds(KO)
-
-rt=rangetensorizer(KO)
-dt=domaintensorizer(KO)
-ret=bbbzeros(S)
-
-A,B=KO.ops
-K=block(rt,kr[end]);J=block(dt,jr[end])
-
-K
-
-A
-
-AA=A[1:K,1:J]
-BB=B[1:K,1:J]
-
-
-By=eye(S[1])⊗dirichlet(S[2])
-
-io=InterlaceOperator([
-  Bx[1][2:end,:];
-  Bx[2][2:end,:];
-  By[1][2:end,:];
-  By[2][2:end,:];
-  Δ])
-
-
-co=cache(io)
-    resizedata!(co,:,10)
-    resizedata!(co,:,20)
-    resizedata!(co,:,40)
-
-RaggedMatrix(view(io,1:10,1:10))
-
-QR=qrfact(io)
-    resizedata!(QR,:,200)
-    linsolve(QR,[ones(4);0.];tolerance=1E-10,maxlength=40)
-
-
-norm(inv(full(QR[:R][1:100,1:100])))
-
-
-
-
-op
-op=io.ops[2]
-@which rowstop(op.ops[1],1)
-A=op.ops[1]
-k=1
-K=block(rangespace(A),k)
-
-J=K+blockbandwidth(A,2)
-
-blockstop(domainspace(A),J)
-# zero indicates above dimension
-st==0?size(A,2):min(size(A,2),st)
-
-@which io[2,1]
-
-SubOperator(Bx[1],(kr,1:∞))
-view(SubOperator(Bx[1],(kr,1:∞)),1:5,2)
-
-kr[1:5]
-Bx[1][[2;1:end],:]
-A=[Bx;
- By;
- Laplacian(d)]
-
-u=linsolve(A,ones(4);tolerance=1E-12)
-
-@test_approx_eq u(.1,.2) 1.0
-
-
-f=[[Fun((x,y)->exp(x)*cos(y),r) for r in rangespace(A)[1:4]];0.]
-linsolve(A,f;tolerance=1E-12)
-QR=qrfact(A)
-    ApproxFun.resizedata!(QR,:,700)
-g|>ncoefficients
-
-inv(QR[:R][1:100,1:100]|>full)|>norm
-
-QR.ncols
-Ai=ApproxFun.interlace(A)
-k=100
-    Ac_mul_B(QR[:Q],Ai[1:ApproxFun.colstop(Ai,k),k];
-             tolerance=1E-10,maxlength=200).coefficients[k+1:end]|>norm
-v=QR.H[1:100,1]
-    Q1=I-2v*v'
-    k=2
-    v=[zeros(k-1);QR.H[1:100-k+1,k]]
-    Q2=I-2v*v'
-    k=3
-    v=[zeros(k-1);QR.H[1:100-k+1,k]]
-    Q3=I-2v*v'
-    k=4
-    v=[zeros(k-1);QR.H[1:100-k+1,k]]
-    Q4=I-2v*v'
-    (Q4*Q3*Q2*Q1*full(Ai[1:100,k]))[5:end]  |>norm
-
-
-
-
-
-
-
-
-v[1:20]
-
-Ai[1:20,k]
-
-
-
-
-v
-z
-QR.H[1:100-k+1,k]
-Q3
-R=QR[:R][1:100,1:100]
-
-v
-
-
-r=ApproxFun.Ac_mul_Bpars(QR[:Q],g.coefficients,1E-12,700)
-
-QR[:R]\r
-
-QR[:R]*Fun((x,y)->exp(x)*cos(y),d)  |>ncoefficients
-
-QR.H[:,1:QR.ncols]  |>norm
 println("    Poisson tests")
 
-g=Fun(f,rangespace(QR))
 
 ## Poisson
 

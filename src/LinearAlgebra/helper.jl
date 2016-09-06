@@ -764,15 +764,29 @@ Base.sum(f::Flatten) = mapreduce(sum,+,f.it)
 
 
 for OP in (:+,:-,:*,:/)
-    @eval $OP(f::Flatten,c::Number) = Flatten(map(it->$OP(it,c),f.it))
-    @eval $OP(c::Number,f::Flatten) = Flatten(map(it->$OP(c,it),f.it))
+    @eval begin
+        $OP(f::Flatten,c::Number) = Flatten(map(it->$OP(it,c),f.it))
+        $OP(c::Number,f::Flatten) = Flatten(map(it->$OP(c,it),f.it))
+    end
 end
 
 for OP in (:+,:-,:(.*))
     @eval begin
         $OP(a::Repeated,b::Repeated) = Repeated($OP(a.x,b.x))
+        $OP(a::Number,b::Repeated) = Repeated($OP(a,b.x))
+        $OP(a::Repeated,b::Number) = Repeated($OP(a.x,b))
+
         $OP(a::AbstractCount,b::Repeated) = $OP(a,b.x)
         $OP(a::Repeated,b::AbstractCount) = $OP(a.x,b)
+
+        function $OP(a::Flatten,b::Repeated)
+            @assert isinf(length(a.it[end]))
+            flatten(map(it->$OP(it,b.x),a.it))
+        end
+        function $OP(a::Repeated,b::Flatten)
+            @assert isinf(length(b.it[end]))
+            flatten(map(it->$OP(a.x,it),b.it))
+        end
     end
 end
 
@@ -790,11 +804,33 @@ end
 -(a::Number,b::UnitCount) = Count(a-b.start,-1)
 -(a::Number,b::Count) = Count(a-b.start,-a.step)
 
+function +(a::Flatten,b::Flatten)
+    if isempty(a)
+        @assert isempty(b)
+        a
+    elseif length(a.it) == 1
+        a.it[1]+b
+    elseif length(b.it) == 1
+        a+b.it[1]
+    elseif length(a.it[1]) == length(b.it[1])
+        flatten((a.it[1]+b.it[1],(flatten(a.it[2:end])+flatten(b.it[2:end])).it...))
+    elseif length(a.it[1]) < length(b.it[1])
+        n=length(a.it[1])
+        flatten((a.it[1]+b.it[1][1:n],
+            (flatten(a.it[2:end])+flatten((b.it[1][n+1:end],b.it[2:end]...))).it...))
+    else #length(a.it[1]) > length(b.it[1])
+        n=length(a.it[2])
+        flatten((a.it[1][1:n]+b.it[1],
+            (flatten((a.it[1][n+1:end],b.it[2:end]...))+flatten(b.it[2:end])).it...))
+    end
+end
 
 
 Base.cumsum(r::Repeated) = r.x:r.x:∞
 Base.cumsum(r::Repeated{Bool}) = r.x?1:∞:r
 Base.cumsum(r::AbstractCount) = CumSumIterator(r)
+
+
 
 
 function Base.cumsum(f::Flatten)
@@ -806,4 +842,13 @@ function Base.cumsum(f::Flatten)
         cs=last(c)
     end
     Flatten(tuple(its...))
+end
+
+
+function pad(v,::Infinity{Bool})
+    if isinf(length(v))
+        v
+    else
+        flatten((v,repeated(0)))
+    end
 end
