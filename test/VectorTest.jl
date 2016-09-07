@@ -165,6 +165,22 @@ M[1:10,1:10]*G1.coefficients[1:10]  |>chopm
 M[5:8,1:4]*G1[1].coefficients[1:4]|>chopm
 
 
+
+
+
+
+G1[1].coefficients[5:end]
+
+cache(ApproxFun.interlacer(space(G1)))[1:8]
+
+@which G1[2]
+
+G1.coefficients
+
+M[5:8,5:8]*pad(G1[1].coefficients,100)[5:8]|>chopm
+
+
+
 (M*G1)[2].coefficients |>chopm
 (M11*G1[2])[1](z)
 

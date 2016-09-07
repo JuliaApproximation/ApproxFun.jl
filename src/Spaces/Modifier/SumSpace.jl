@@ -93,7 +93,8 @@ dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)
 
 spaces(s::Space) = (s,)
 spaces(sp::DirectSumSpace) = sp.spaces
-
+space(s::Space,k...) = spaces(s)[k...]
+space(f::Fun,k...) = space(space(f),k...)
 
 BlockInterlacer(sp::DirectSumSpace) = BlockInterlacer(map(blocklengths,sp.spaces))
 interlacer(sp::DirectSumSpace) = BlockInterlacer(sp)
@@ -369,10 +370,9 @@ identity_fun(S::PiecewiseSpace) = depiece(map(identity_fun,S.spaces))
 # vec
 
 function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
-    sp=space(f).spaces
     it=interlacer(space(f))
     N=length(f.coefficients)
-    d=dimension(sp[k])
+    d=dimension(space(f,k))
 
     # preallocate: we know we have at most N coefficients
     ret=Array(eltype(f),N)
@@ -393,7 +393,7 @@ function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
         j+=1
     end
     resize!(ret,p)  # through out extra coefficients
-    Fun(ret,sp[k])
+    Fun(ret,space(f,k))
 end
 
 
@@ -425,17 +425,24 @@ interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
     interlace(map(coefficients,v),sp)
 
 
-function interlace(v::Tuple,sp::DirectSumSpace)
-    V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
-    for k=1:length(v)
-        V[k]=coefficients(v[k])
+function interlace(v::Union{Tuple,Vector{Any}},sp::DirectSumSpace)
+    if all(vk->isa(vk,Fun),v)
+        V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
+        for k=1:length(v)
+            V[k]=coefficients(v[k])
+        end
+    else
+        V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
+        for k=1:length(v)
+            V[k]=v[k]
+        end
     end
-    interlace(V,interlacer(sp))
+    interlace(V,sp)
 end
 
 
 Base.vec(S::DirectSumSpace) = S.spaces
-Base.vec{S<:DirectSumSpace}(f::Fun{S}) = Fun[f[j] for j=1:length(space(f).spaces)]
+Base.vec{S<:DirectSumSpace}(f::Fun{S}) = Fun[f[j] for j=1:length(f.space)]
 
 pieces{S<:PiecewiseSpace}(f::Fun{S}) = vec(f)
 

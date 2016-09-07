@@ -15,7 +15,7 @@ Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
 
 
 Evaluation(S::TupleSpace,order::Number) =
-    InterlaceOperator(Diagonal(map(s->Evaluation(s,order),S)),TupleSpace)
+    InterlaceOperator(Diagonal([map(s->Evaluation(s,order),S)...]),TupleSpace)
 
 
 
@@ -107,7 +107,7 @@ function Conversion(a::TupleSpace,b::TupleSpace)
             a.spaces[1:m-1]==b.spaces[1:m-1]
 
     if m==0
-        ConversionWrapper(InterlaceOperator(Diagonal(map(Conversion,a.spaces,b.spaces)),TupleSpace))
+        ConversionWrapper(InterlaceOperator(Diagonal([map(Conversion,a.spaces,b.spaces)...]),TupleSpace))
     elseif length(a)==m
         SpaceOperator(FiniteOperator(eye(m)),a,b)
     elseif length(a)==m+1
@@ -133,7 +133,7 @@ for TYP in (:SumSpace,:PiecewiseSpace)
                           S1,S2))
         elseif all(map(hasconversion,S1.spaces,S2.spaces))
             # we can blocmk convert
-            ConversionWrapper(InterlaceOperator(Diagonal(map(Conversion,S1.spaces,S2.spaces)),$TYP))
+            ConversionWrapper(InterlaceOperator(Diagonal([map(Conversion,S1.spaces,S2.spaces)...]),$TYP))
         elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
             error("Not implemented")
         elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
@@ -237,14 +237,14 @@ end
 
 for TYP in (:PiecewiseSpace,:TupleSpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
                                                          (:Integral,:IntegralWrapper))
-    @eval $Op(S::$TYP,k::Integer)=$OpWrap(InterlaceOperator(Diagonal(map(s->$Op(s,k),S.spaces)),$TYP),k)
+    @eval $Op(S::$TYP,k::Integer)=$OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),S.spaces)...]),$TYP),k)
 end
 
 function Derivative(S::SumSpace,k::Integer)
     # we want to map before we decompose, as the map may introduce
     # mixed bases.
     if typeof(canonicaldomain(S))==typeof(domain(S))
-        DerivativeWrapper(InterlaceOperator(Diagonal(map(s->Derivative(s,k),S.spaces)),SumSpace),k)
+        DerivativeWrapper(InterlaceOperator(Diagonal([map(s->Derivative(s,k),S.spaces)...]),SumSpace),k)
     else
         defaultDerivative(S,k)
     end
@@ -277,7 +277,7 @@ end
 Multiplication{SV1,SV2,T2,T1,D,d}(f::Fun{SumSpace{SV1,T1,D,d}},sp::SumSpace{SV2,T2,D,d}) =
     MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,vec(f)))
 Multiplication(f::Fun,sp::SumSpace) =
-    MultiplicationWrapper(f,InterlaceOperator(Diagonal(map(s->Multiplication(f,s),vec(sp))),SumSpace))
+    MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(s->Multiplication(f,s),vec(sp))...]),SumSpace))
 
 
 # we override coefficienttimes to split the multiplication down to components as union may combine spaes
