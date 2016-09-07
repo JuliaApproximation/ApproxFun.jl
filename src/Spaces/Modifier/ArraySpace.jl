@@ -56,7 +56,8 @@ domain(AS::ArraySpace)=domain(AS.space)
 ## transforms
 
 
-transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}})=transform(AS,transpose(hcat(vals...)))
+transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}}) =
+    transform(AS,transpose(hcat(vals...)))
 
 function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
     n=length(AS)
@@ -74,7 +75,7 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
 end
 
 # transform of array is same order as vectorizing and then transforming
-transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}})=transform(vec(AS),map(vec,vals))
+transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}}) = transform(vec(AS),map(vec,vals))
 
 Base.vec(AS::ArraySpace)=ArraySpace(AS.space,length(AS))
 function Base.vec{S<:Space,V,T,DD,d}(f::Fun{VectorSpace{S,V,DD,d},T})

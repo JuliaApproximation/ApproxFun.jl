@@ -418,8 +418,12 @@ end
 interlace{V<:AbstractVector}(v::AbstractVector{V},it::BlockInterlacer) =
     interlace(mapreduce(eltype,promote_type,v),v,it)
 
+interlace{V<:AbstractVector}(v::AbstractVector{V},sp::DirectSumSpace) =
+    interlace(v,interlacer(sp))
+
 interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
-    interlace(map(coefficients,v),interlacer(sp))
+    interlace(map(coefficients,v),sp)
+
 
 function interlace(v::Tuple,sp::DirectSumSpace)
     V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
@@ -477,29 +481,27 @@ function transform(S::PiecewiseSpace,vals::Vector,plan...)
     k=div(n,K)
     PT=coefficient_type(S,eltype(vals))
     if k==0
-        ret=Array(PT,n)
+        M=Array(Vector{PT},n)
         for j=1:n
-            ret[j]=transform(S[j],[vals[j]])[1]
+            M[j]=transform(S[j],[vals[j]])
         end
-
-        ret
     else
         r=n-K*k
-        M=Array(PT,k+1,K)
+        M=Array(Vector{PT},K)
 
         for j=1:r
-            M[:,j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])
+            M[j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])
         end
         for j=r+1:length(S)
-            M[1:k,j]=transform(S[j],vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
-            M[k+1,j]=zero(PT)
+            M[j]=transform(S[j],vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
         end
-
-    vec(M.')
     end
+
+    interlace(M,S)
 end
 
-itransform(S::PiecewiseSpace,cfs::Vector,plan...)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
+itransform(S::PiecewiseSpace,cfs::Vector,plan...) =
+    vcat([itransform(S.spaces[j],Fun(cfs,S)[j].coefficients) for j=1:length(S)]...)
 
 
 

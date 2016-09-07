@@ -101,8 +101,20 @@ f = devec([t^2, sin(t)])
 ## Multiplication operator
 
 Γ=Circle()∪Circle(0.5)
+
+
+f=Fun(z->in(z,Γ[2])?1:z,Γ)
+@test_approx_eq f(exp(0.1im)) exp(0.1im)
+@test_approx_eq f(0.5exp(0.1im)) 1
+
+
 G=Fun(z->in(z,Γ[2])?[1 -z^(-1); 0 1]:
                    [z 0; 0 z^(-1)],Γ);
+
+
+@test_approx_eq G(exp(0.1im)) [exp(0.1im) 0 ; 0 exp(-0.1im)]
+@test_approx_eq G(0.5exp(0.1im)) [1 -2exp(-0.1im) ; 0 1]
+
 G1=demat(mat(G)[:,1])
 M=Multiplication(G,space(G1))
 u=M*G1
