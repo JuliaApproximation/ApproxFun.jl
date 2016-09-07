@@ -66,6 +66,18 @@ f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),[-1.0;-0.05;0.45;1.0])
 @test norm(f2(collect(linspace(-1,1,10)))-f3(collect(linspace(-1,1,10)))) < 2eps()
 
 x=Fun(identity,[im,0.,1.])
+@test_approx_eq x(0.5) 0.5
+@test_approx_eq x(0.5im) 0.5im
+
+@test Fun(Fun(1.0),space(x))(0.5) == 1.0
+@test Fun(Fun(1.0),space(x))(0.5im) == 1.0
+
+@test_approx_eq (x+1)(0.5) 1.5
+@test_approx_eq (x-1)(0.5) -0.5
+@test_approx_eq (1-x)(0.5) 0.5
+
+
+
 @test_approx_eq sqrt(1-x)(0.2im) sqrt(1-0.2im)
 @test_approx_eq sqrt(1-x)(0.2) sqrt(1-0.2)
 

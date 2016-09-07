@@ -17,6 +17,7 @@ include("SubSpace.jl")
 
 
 function coefficients(f::Vector,a::VectorSpace,b::TupleSpace)
+    error("Reimplement")
     A=a.space
     n=length(a)
     @assert n==length(b.spaces)
@@ -46,25 +47,39 @@ function coefficients(cfs::Vector,A::PiecewiseSpace,B::PiecewiseSpace)
 end
 
 
-for TYP in (:SumSpace,:PiecewiseSpace)
-    @eval begin
-        # we need to be able to call this to avoid confusion
-        function sumspacecoefficients(cfsin::Vector,A::Space,B::$TYP)
-            m=length(B.spaces)
 
-            for k=1:m
-                if isconvertible(A,B[k])
-                    cfs = coefficients(cfsin,A,B[k])
+function sumspacecoefficients(cfsin::Vector,A::Space,B::SumSpace)
+    m=length(B.spaces)
 
-                    return interlace([[zeros(B[j]) for j=1:k-1];Fun(cfs,B[k]);[zeros(B[j]) for j=k+1:length(B.spaces)]],
-                                        B)
-                end
-            end
+    for k=1:m
+        if isconvertible(A,B[k])
+            cfs = coefficients(cfsin,A,B[k])
 
-            defaultcoefficients(cfsin,A,B)
+            return interlace([[zeros(B[j]) for j=1:k-1];Fun(cfs,B[k]);[zeros(B[j]) for j=k+1:length(B.spaces)]],
+                                B)
         end
-        coefficients(cfsin::Vector,A::Space,B::$TYP) = sumspacecoefficients(cfsin,A,B)
     end
+
+    defaultcoefficients(cfsin,A,B)
+end
+
+function sumspacecoefficients(cfsin::Vector,A::Space,B::PiecewiseSpace)
+    m=length(B.spaces)
+
+    for k=1:m
+        if domain(B[k]) == domain(A) && isconvertible(A,B[k])
+            cfs = coefficients(cfsin,A,B[k])
+
+            return interlace([[zeros(B[j]) for j=1:k-1];Fun(cfs,B[k]);[zeros(B[j]) for j=k+1:length(B.spaces)]],
+                                B)
+        end
+    end
+
+    defaultcoefficients(cfsin,A,B)
+end
+
+for TYP in (:SumSpace,:PiecewiseSpace)
+    @eval coefficients(cfsin::Vector,A::Space,B::$TYP) = sumspacecoefficients(cfsin,A,B)
 end
 
 
