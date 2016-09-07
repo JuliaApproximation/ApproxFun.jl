@@ -146,14 +146,17 @@ function zerocfsFun(f, d::Space)
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
         cf = defaultFun(f, d, 2^logn)
-        maxabsc=maxabs(cf.coefficients)
-        if maxabsc==0 && maxabsfr==0
+        maxabsc = maxabs(cf.coefficients)
+        if maxabsc == 0 && maxabsfr == 0
             return(zeros(d))
         end
 
+        b = block(d,length(cf.coefficients))
+        bs = blockstart(d,max(b-2,1))
+
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if ncoefficients(cf) > 8 && maxabs(cf.coefficients[end-8:end]) < tol*maxabsc &&
+        if ncoefficients(cf) > 8 && maxabs(cf.coefficients[bs:end]) < tol*maxabsc &&
                 all(k->norm(cf(r[k])-fr[k],1)<tol*length(cf.coefficients)*maxabsfr*1000,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end

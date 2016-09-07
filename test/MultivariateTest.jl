@@ -130,8 +130,8 @@ println("    Calculus tests")
 ## Sum
 
 ff=(x,y)->(x-y)^2*exp(-x^2/2.-y^2/2)
-f=Fun(ff,[-4.,4.],[-4.,4.])
-
+f=Fun(ff,Domain([-4.,4.])^2)
+@test_approx_eq f(0.1,0.2) ff(0.1,0.2)
 
 @test_approx_eq sum(f,1)(0.1) 2.5162377980828357
 f=LowRankFun(f)

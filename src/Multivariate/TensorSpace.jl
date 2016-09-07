@@ -353,48 +353,21 @@ end
 
 ##  Fun routines
 
-# function fromtensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Matrix{T})
-#     ret=zeros(T,findfirst(it,(size(M,1),size(M,2))))
-#     for k=1:size(M,1),j=1:size(M,2)
-#         ret[findfirst(it,(k,j))] = M[k,j]
-#     end
-#     ret
-# end
-
-
+# we only copy upper triangular of coefficients
 function fromtensor(it::TensorIterator,M::Matrix)
     n,m=size(M)
-    ret=zeros(eltype(M),blockstop(it,n+m-1))
+    ret=zeros(eltype(M),blockstop(it,max(n,m)))
     k = 1
     for (K,J) in it
-        if K ≤ n && J ≤ m
-            ret[k] = M[K,J]
-        elseif K+J≥n+m
+        if k > length(ret)
             break
         end
+        ret[k] = M[K,J]
         k += 1
     end
     ret
 end
 
-
-
-
-# function totensor{T1,T2,T}(it::TensorIterator{Tuple{T1,T2}},M::Vector{T})
-#     N=length(M)
-#     inds=it[N]
-#     m=inds[1]+inds[2]-1
-#     ret=zeros(T,min(it.dimensions[1],m),min(it.dimensions[2],m))
-#     k=1
-#     for c in it
-#         ret[c...] = M[k]
-#         k+=1
-#         if k > N
-#             break
-#         end
-#     end
-#     ret
-# end
 
 function totensor(it::TensorIterator,M::Vector)
     n=length(M)
