@@ -5,14 +5,7 @@ export discretize,timedirichlet
 op_eltype{T,D}(sp::Space{T,D,2})=BandedMatrix{promote_type(eltype(sp),eltype(domain(sp)))}
 op_eltype_realdomain{T,D}(sp::Space{T,D,2})=BandedMatrix{promote_type(eltype(sp),real(eltype(domain(sp))))}
 
-include("OperatorSchur.jl")
 include("KroneckerOperator.jl")
-include("dekron.jl")
-include("diagop.jl")
-
-include("factorizations.jl")
-include("pdesolve.jl")
-include("kron.jl")
 
 ## PDE
 
