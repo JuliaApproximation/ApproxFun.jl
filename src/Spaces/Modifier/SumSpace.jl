@@ -361,8 +361,8 @@ end
 
 Base.ones(S::SumSpace)=ones(Float64,S)
 
-Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V}) = depiece(map(ones,S.spaces))
-Base.ones(S::PiecewiseSpace)=ones(Float64,S)
+Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V}) = depiece(map(ones,spaces(S)))
+Base.ones(S::PiecewiseSpace) = ones(Float64,S)
 
 
 identity_fun(S::PiecewiseSpace) = depiece(map(identity_fun,S.spaces))
@@ -401,13 +401,16 @@ end
 function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::BlockInterlacer)
     ret=Vector{T}()
     N=mapreduce(length,max,v)
+    cnts = map(length,v)
+
     for (n,m) in it
-        if m > N
+        if maximum(cnts) == 0
             break
         end
 
         if m ≤ length(v[n])
             push!(ret,v[n][m])
+            cnts[n] -= 1
         else
             push!(ret,zero(T))
         end

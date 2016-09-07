@@ -130,11 +130,15 @@ f=Fun([1.,2.,3.,4.,5.],dsp)
 
 
 ## Piecewise + Cosntant
+using Base.Test
 
 Γ=Circle()∪Circle(0.0,0.4)
-G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)   # Before the 80 wasn’t specified causing inconsistency
-@test_approx_eq (G-I)(1.) (G(1.)-I)
+o=ones(Γ)
+@test_approx_eq o(1.) 1.0
+@test_approx_eq o(0.4) 1.0
 
+G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
+@test_approx_eq (G-I)(1.) (G(1.)-I)
 
 
 ## Previoius seffdault

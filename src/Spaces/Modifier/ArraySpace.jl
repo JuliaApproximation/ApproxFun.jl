@@ -108,7 +108,7 @@ space(A::MatrixSpace,k::Integer,j::Integer) =
 TupleSpace{SS}(A::ArraySpace{SS,1}) = TupleSpace(spaces(A))
 
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k::Integer,j::Integer) =
-    f[k+stride(f,2)*j]
+    f[k+stride(f,2)*(j-1)]
 
 Base.getindex(S::ArraySpace,k...) = S.space
 
@@ -130,12 +130,12 @@ Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
 function devec{F<:Fun}(v::Vector{F})
     sps=map(space,v)
     if spacesequal(sps)
-        Fun(vec(coefficients(v).'),ArraySpace(first(sps),length(v)))
-    elseif domainscompatible(sps)
-        Fun(vec(coefficients(v).'),TupleSpace(sps))
+        S=ArraySpace(first(sps),length(v))
     else
-        Fun(vec(coefficients(v).'),PiecewiseSpace(sps))
+        S=TupleSpace(sps)
     end
+
+    Fun(interlace(v,S),S)
 end
 
 devec(v::Vector{Any})=devec([v...])
