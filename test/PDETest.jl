@@ -7,7 +7,7 @@ S=ChebyshevDirichlet()^2
 B=Dirichlet(S)
 
 f = Fun((x,y)->exp(x)*sin(y),S)
-@test norm((Fun((x,y)->exp(x)*sin(y),∂(domain(S))) - B*f).coefficients) < 10eps()
+@test norm((Fun((x,y)->exp(x)*sin(y),∂(domain(S))) - B*f).coefficients) < 100eps()
 
 
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
@@ -54,9 +54,9 @@ d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 A=[Dirichlet(d);Laplacian(d)]
-let co=cache(interlace(A))
-    resizedata!(co,:,100)
-    resizedata!(co,:,200)
+let co=cache(ApproxFun.interlace(A))
+    ApproxFun.resizedata!(co,:,100)
+    ApproxFun.resizedata!(co,:,200)
     @test norm(Ai[1:200,1:200]-co[1:200,1:200]) == 0
 end
 
