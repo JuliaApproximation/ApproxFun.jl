@@ -3,7 +3,7 @@
 export PeriodicInterval
 
 
-immutable PeriodicInterval{T<:Number} <: PeriodicDomain{T}
+immutable PeriodicInterval{T} <: PeriodicDomain{T}
     a::T
     b::T
     PeriodicInterval()=new(-convert(T,π),convert(T,π))
@@ -12,7 +12,8 @@ end
 
 PeriodicInterval()=PeriodicInterval{Float64}()
 PeriodicInterval(a::Int,b::Int) = PeriodicInterval(Float64(a),Float64(b)) #convenience method
-PeriodicInterval(a::Number,b::Number) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)
+PeriodicInterval(a,b) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)
+PeriodicInterval(a::Tuple,b::Tuple)=Interval(Vec(a...),Vec(b...))
 
 function PeriodicInterval{T<:Number}(d::AbstractVector{T})
     @assert length(d)==2
@@ -25,9 +26,9 @@ PeriodicInterval(d::Interval)=PeriodicInterval(d.a,d.b)
 
 Base.convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = PeriodicInterval{T}(d.a,d.b)
 
-isambiguous(d::PeriodicInterval)=isnan(d.a) && isnan(d.b)
-Base.convert{T<:Number}(::Type{PeriodicInterval{T}},::AnyDomain)=PeriodicInterval{T}(NaN,NaN)
-Base.convert{IT<:PeriodicInterval}(::Type{IT},::AnyDomain)=PeriodicInterval(NaN,NaN)
+isambiguous(d::PeriodicInterval) = all(isnan(d.a)) && all(isnan(d.b))
+Base.convert{T<:Number}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval{T}(NaN,NaN)
+Base.convert{IT<:PeriodicInterval}(::Type{IT},::AnyDomain) = PeriodicInterval(NaN,NaN)
 
 
 ## Information
@@ -43,15 +44,16 @@ Base.issubset(a::PeriodicInterval,b::PeriodicInterval)=first(a)∈b && last(a)�
 ## Map periodic interval
 
 
-tocanonical{T}(d::PeriodicInterval{T},x)=convert(T,π).*tocanonical(Interval(d),x)
-tocanonicalD{T}(d::PeriodicInterval{T},x)=convert(T,π).*tocanonicalD(Interval(d),x)
-fromcanonical(d::PeriodicInterval,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
+tocanonical{T}(d::PeriodicInterval{T},x)=π*tocanonical(Interval(d),x)
+tocanonicalD{T}(d::PeriodicInterval{T},x)=π*tocanonicalD(Interval(d),x)
+fromcanonical(d::PeriodicInterval,v::AbstractArray) = eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical{V<:Vec}(d::PeriodicInterval{V},p::AbstractArray) = V[fromcanonical(d,x) for x in p]
 fromcanonical(d::PeriodicInterval,θ)=fromcanonical(Interval(d),θ/π)
 fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Interval(d),θ/π)/π
 
 
 
-arclength(d::PeriodicInterval) = abs(d.b - d.a)
+arclength(d::PeriodicInterval) = norm(d.b - d.a)
 Base.angle(d::PeriodicInterval) = angle(d.b - d.a)
 Base.reverse(d::PeriodicInterval)=PeriodicInterval(d.b,d.a)
 

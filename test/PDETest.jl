@@ -188,8 +188,10 @@ u=linsolve(A,F;tolerance=1E-10)
 ## Test periodic x interval
 
 d=PeriodicInterval()*Interval()
-g=Fun(z->real(cos(z)),∂(d))  # boundary data
+g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 u=linsolve([Dirichlet(d);Laplacian(d)],g;tolerance=1E-10)
+Dirichlet(d)
+
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
