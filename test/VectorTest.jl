@@ -116,10 +116,104 @@ G=Fun(z->in(z,Γ[2])?[1 -z^(-1); 0 1]:
 @test_approx_eq G(0.5exp(0.1im)) [1 -2exp(-0.1im) ; 0 1]
 
 G1=demat(mat(G)[:,1])
+
+@test_approx_eq G1(exp(0.1im)) [exp(0.1im),0.]
+@test_approx_eq G1(0.5exp(0.1im)) [1,0.]
+
+vf=G[1,1]
+sp=space(G1)[1]
+ApproxFun.InterlaceOperator(Diagonal{Operator{Complex128}}(map(Multiplication,vf,sp.spaces)),PiecewiseSpace)
+
+Diagonal(map(Multiplication,vf,sp.spaces)),PiecewiseSpace
+sp=space(G1)[1]
+f=G[1,1]
+p=ApproxFun.perm(domain(f).domains,domain(sp).domains)  # sort f
+vf=pieces(f)[p]
+
+opsin=Diagonal([map(Multiplication,vf,sp.spaces)...])
+
+
+
+InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,opsin)}}(opsin),S...)
+
+
+ApproxFun.MultiplicationWrapper(f,ApproxFun.InterlaceOperator(Diagonal(map(Multiplication,vf,sp.spaces)),PiecewiseSpace))
+
+M11=Multiplication(G[2,2],space(G1)[2])
+
+(M11*G1[2])(1.0)
+(M11*G1[2])(0.5)
+
+@test_approx_eq (M.op.ops[1,1]*G1[1])(z) M.f[1,1](z)*G1[1](z)
+@test_approx_eq (M.op.ops[2,1]*G1[1])(z) M.f[2,1](z)*G1[1](z)
+@test_approx_eq (M.op.ops[1,2]*G1[2])(z) M.f[1,2](z)*G1[2](z)
+@test_approx_eq (M.op.ops[2,2]*G1[2])(z) M.f[2,2](z)*G1[2](z)
+
+
+
+(M.op.ops[2,1]*G1[1]+M.op.ops[2,2]*G1[2])(z)
+
+M
+
+cache(ApproxFun.interlacer(domainspace(M)))[1:10]
+cache(ApproxFun.interlacer(rangespace(M)))[1:10]
+
+(G*G1)[2].coefficients  |>chopm
+
+M[1:10,1:10]*G1.coefficients[1:10]  |>chopm
+
+M[5:8,1:4]*G1[1].coefficients[1:4]|>chopm
+
+
+(M*G1)[2].coefficients |>chopm
+(M11*G1[2])[1](z)
+
+G1[
+M.op.ops[1,1][1:4,1:4]|>chopm
+
+
+
+
+
+M[1:4,1:4]|>chopm
+
+
+using SO
+M.op.ops[1,1][1:10,1:10]|>chopm
+
+
+M.op.ops[1,2]*G1[2]
+
+G1[1](0.5)
+G[1,1](0.5)
+
+G
+
+z=0.5exp(0.1im);u(z)
+
+
 M=Multiplication(G,space(G1))
 u=M*G1
 @test norm(u(exp(.1im))-[exp(.2im),0])<100eps()
 @test norm(u(.5exp(.1im))-[1,0])<100eps()
+
+z=.5exp(.1im);(M.op.ops[1,1]*G1[1]+M.op.ops[1,2]*G1[2])(z)
+
+M.op.ops[1,1].op
+G1[1](z)
+(M.op.ops[1,1]*G1[1])(z)
+
+G1(z)
+
+M.op.ops
+
+space(G)
+u(.5exp(.1im))
+@which G*G1
+
+(G*G1)(0.5exp(0.1im))
+
+u(.5exp(.1im))
 
 # Vector operations
 @test_approx_eq (Fun(x->[1., 2.]) + [2, 2])(0.) [3., 4.]

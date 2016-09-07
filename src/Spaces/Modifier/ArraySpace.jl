@@ -5,7 +5,7 @@ doc"""
 `ArraySpace` used to represent array-valued expansions in `space`.  The
 coefficients are of each entry are interlaced.
 """
-immutable ArraySpace{S,n,T,DD,dim} <: Space{T,DD,dim}
+immutable ArraySpace{S,n,T,DD,dim} <: DirectSumSpace{NTuple{n,S},T,DD,dim}
      space::S
      dimensions::NTuple{n,Int}
 #      # for AnyDomain() usage
@@ -102,7 +102,6 @@ spaces(A::ArraySpace) = fill(A.space,A.dimensions)
 
 TupleSpace{SS}(A::ArraySpace{SS,1}) = TupleSpace(spaces(A))
 
-Base.getindex{S,V,DD,d}(f::Fun{VectorSpace{S,V,DD,d}},k...)=vec(f)[k...]
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
 
 Base.getindex(S::ArraySpace,k...)=S.space

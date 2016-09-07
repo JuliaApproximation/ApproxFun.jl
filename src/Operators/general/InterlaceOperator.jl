@@ -153,6 +153,21 @@ function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
     end
 end
 
+function InterlaceOperator{T,DS<:Space}(opsin::Matrix{Operator{T}},::Type{DS})
+    isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
+
+    ops=promotespaces(opsin)
+    # TODO: make consistent
+    # if its a row vector, we assume scalar
+    if size(ops,1) == 1
+        InterlaceOperator(ops,DS(domainspace(ops).spaces),DS(rangespace(ops[1]).spaces))
+    else
+        InterlaceOperator(ops,DS(domainspace(ops).spaces),DS(rangespace(ops[:,1]).spaces))
+    end
+end
+
+InterlaceOperator(opsin::AbstractMatrix,S...) = InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,opsin)}}(opsin),S...)
+
 function InterlaceOperator{T}(opsin::Vector{Operator{T}})
     ops=promotedomainspace(opsin)
     InterlaceOperator(ops,domainspace(first(ops)),rangespace(ops))
@@ -344,51 +359,6 @@ promotedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
 
 
 interlace{T<:Operator}(A::Array{T}) = length(A)==1?A[1]:InterlaceOperator(A)
-
-immutable DiagonalInterlaceOperator{OPS,DS,RS,T<:Number} <: Operator{T}
-    ops::OPS
-    domainspace::DS
-    rangespace::RS
-end
-
-function DiagonalInterlaceOperator(v::Tuple,ds::Space,rs::Space)
-    T=mapreduce(eltype,promote_type,v)
-    w=map(Operator{T},v)
-    DiagonalInterlaceOperator{typeof(w),typeof(ds),typeof(rs),T}(w,ds,rs)
-end
-DiagonalInterlaceOperator{ST<:Space}(v::Tuple,::Type{ST}) =
-    DiagonalInterlaceOperator(v,ST(map(domainspace,v)),ST(map(rangespace,v)))
-DiagonalInterlaceOperator(v::Vector,k...) = DiagonalInterlaceOperator(tuple(v...),k...)
-
-
-Base.convert{T}(::Type{Operator{T}},op::DiagonalInterlaceOperator) =
-        DiagonalInterlaceOperator(map(Operator{T},op.ops),op.domainspace,op.rangespace)
-
-
-function bandinds(S::DiagonalInterlaceOperator)
-    binds=map(bandinds,S.ops)
-    bra=mapreduce(first,min,binds)
-    brb=mapreduce(last,max,binds)
-    n=length(S.ops)
-    n*bra,n*brb
-end
-
-
-function getindex(D::DiagonalInterlaceOperator,k::Integer,j::Integer)
-    n=length(D.ops)
-    mk = n+mod(k,-n)
-    T=eltype(D)
-    if mk == n+mod(j,-n)  # same block
-        k=(k-1)÷n+1  # map k and j to block coordinates
-        j=(j-1)÷n+1
-        D.ops[mk][k,j]::T
-    else
-        zero(T)
-    end
-end
-
-domainspace(D::DiagonalInterlaceOperator) = D.domainspace
-rangespace(D::DiagonalInterlaceOperator) = D.rangespace
 
 
 
