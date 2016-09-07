@@ -124,55 +124,64 @@ d=dx*dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
-S=ChebyshevDirichlet()^2
-Δ=Laplacian(S)
 
-Δ^2
-
-
-K=kronfact([dirichlet(d);
-     neumann(d);
-     L],100,100)
-
-x=Fun(identity,dx);y=Fun(identity,dy)
-
-G=[real(exp(-1+1.0im*y));
-                real(exp(1+1im*y));
-                real(exp(x-1im));
-                real(exp(x+1im));
-                real(exp(-1+1.0im*y));
-                real(exp(1+1im*y));
-                -imag(exp(x-1im));
-                -imag(exp(x+1im))
-   ]
-u=K\G
-@test_approx_eq u(.1,.2) real(exp(.1+.2im))
+A=[dirichlet(dx)⊗eye(dy);
+        eye(dx)⊗dirichlet(dy);
+        neumann(dx)⊗eye(dy);
+        eye(dx)⊗neumann(dy);
+         L]
 
 
-    # mixed
+u=linsolve(A,ones(4);tolerance=1E-5)
+@test_approx_eq u(0.1,0.2) 1.0
 
-    K=kronfact([(ldirichlet(dx)+lneumann(dx))⊗I;
-            (rdirichlet(dx)+rneumann(dx))⊗I;
-            I⊗(ldirichlet(dy)+lneumann(dy));
-            I⊗(rdirichlet(dy)+rneumann(dy));
-            (ldirichlet(dx)-lneumann(dx))⊗I;
-            (rdirichlet(dx)-rneumann(dx))⊗I;
-            I⊗(ldirichlet(dy)-lneumann(dy));
-            I⊗(rdirichlet(dy)-rneumann(dy));
-             L],100,100)
-    G=[2real(exp(-1+1.0im*y));
-                    2real(exp(1+1im*y));
-                    real(exp(x-1im))-imag(exp(x-1im));
-                    real(exp(x+1im))-imag(exp(x+1im));
-                    0;
-                    0;
-                    real(exp(x-1im))+imag(exp(x-1im));
-                    real(exp(x+1im))+imag(exp(x+1im))
-       ]
-    u=K\G
 
-    @test_approx_eq u(.1,.2) real(exp(.1+.2im))
-end
+F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[3]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[4]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[5]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[6]));
+    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[7]));
+    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[8]));
+    0]
+
+u=linsolve(A,F;tolerance=1E-10)
+
+@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
+
+
+
+
+A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
+        (rdirichlet(dx)+rneumann(dx))⊗eye(dy);
+        eye(dx)⊗(ldirichlet(dy)+lneumann(dy));
+        eye(dx)⊗(rdirichlet(dy)+rneumann(dy));
+        (ldirichlet(dx)-lneumann(dx))⊗eye(dy);
+        (rdirichlet(dx)-rneumann(dx))⊗eye(dy);
+        eye(dx)⊗(ldirichlet(dy)-lneumann(dy));
+        eye(dx)⊗(rdirichlet(dy)-rneumann(dy));
+         L]
+
+
+u=linsolve(A,ones(8);tolerance=1E-5)
+@test_approx_eq u(0.1,0.2) 1.0
+
+
+
+F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
+    2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
+    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[3]));
+    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[4]));
+    0;
+    0;
+    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[7]));
+    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[8]));
+    0]
+
+u=linsolve(A,F;tolerance=1E-10)
+
+@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
 
 
 
@@ -180,7 +189,7 @@ end
 
 d=PeriodicInterval()*Interval()
 g=Fun(z->real(cos(z)),∂(d))  # boundary data
-u=[dirichlet(d);lap(d)]\g
+u=linsolve([Dirichlet(d);Laplacian(d)],g;tolerance=1E-10)
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
