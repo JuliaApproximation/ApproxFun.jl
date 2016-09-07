@@ -24,7 +24,7 @@ v=linsolve(Δ,f;tolerance=1E-13)
 
 
 f=chop(Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ)),1000eps())  #default is [-1,1]^2
-@time v=linsolve(Δ,f;tolerance=1E-12)
+v=linsolve(Δ,f;tolerance=1E-12)
 @test norm((Δ*v-f).coefficients)<1E-10
 
 
@@ -54,11 +54,12 @@ d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 A=[Dirichlet(d);Laplacian(d)]
-let co=cache(ApproxFun.interlace(A))
+let Ai=ApproxFun.interlace(A),co=cache(Ai)
     ApproxFun.resizedata!(co,:,100)
     ApproxFun.resizedata!(co,:,200)
     @test norm(Ai[1:200,1:200]-co[1:200,1:200]) == 0
 end
+
 
 u=linsolve(A,[g,0.];tolerance=1E-10)
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
