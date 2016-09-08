@@ -208,6 +208,9 @@ end
 # Dirichlet for Squares
 
 
+Dirichlet{T}(S::TensorSpace{ChebyshevDirichlet{1,1,Interval{T}},ChebyshevDirichlet{1,1,Interval{T}}}) =
+    ConcreteDirichlet(S)
+
 Dirichlet{T<:Real}(d::ProductDomain{Tuple{Interval{T},Interval{T}}}) =
     Dirichlet(ChebyshevDirichlet{1,1}(d[1])*ChebyshevDirichlet{1,1}(d[2]))
 

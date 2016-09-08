@@ -243,6 +243,24 @@ macro wrappergetindex(Wrap)
         end
     end
 
+    for func in (:(ApproxFun.bandinds),:(Base.stride),
+                 :(ApproxFun.isbandedblockbanded),
+                 :(ApproxFun.israggedbelow))
+        ret = quote
+            $ret
+
+            $func(D::$Wrap) = $func(D.op)
+        end
+    end
+
+     for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
+                     :(ApproxFun.rowstart),:(ApproxFun.rowstop))
+         ret = quote
+             $ret
+
+             $func(D::$Wrap,k::Integer) = $func(D.op,k)
+         end
+     end
     esc(ret)
 end
 
@@ -253,24 +271,15 @@ macro wrapper(Wrap)
 
         ApproxFun.iswrapper(::$Wrap) = true
     end
-    for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
-                 :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride),
-                 :(ApproxFun.isbandedblockbanded),:(ApproxFun.isconstop),
-                 :(ApproxFun.israggedbelow))
+    for func in (:(ApproxFun.rangespace),:(ApproxFun.domain),
+                 :(ApproxFun.domainspace),:(ApproxFun.isconstop),)
         ret = quote
             $ret
 
             $func(D::$Wrap) = $func(D.op)
         end
     end
-    for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
-                    :(ApproxFun.rowstart),:(ApproxFun.rowstop))
-        ret = quote
-            $ret
 
-            $func(D::$Wrap,k::Integer) = $func(D.op,k)
-        end
-    end
     esc(ret)
 end
 

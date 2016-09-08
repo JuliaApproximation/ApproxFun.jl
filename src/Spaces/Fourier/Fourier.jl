@@ -316,3 +316,21 @@ include("specialfunctions.jl")
 include("FourierOperators.jl")
 include("LaurentOperators.jl")
 include("LaurentDirichlet.jl")
+
+
+
+## Multivariate
+
+
+for TYP in (:Fourier,:Laurent,:CosSpace,:SinSpace,:Taylor)
+    @eval begin
+        function Dirichlet{PS,T}(S::TensorSpace{Tuple{Fourier{PeriodicInterval{T}},PS}})
+            op=interlace(eye(S[1])⊗dirichlet(S[2]))
+            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)
+        end
+        function Dirichlet{PS,T}(S::TensorSpace{Tuple{PS,Fourier{PeriodicInterval{T}}}})
+            op=interlace(eye(S[1])⊗dirichlet(S[2]))
+            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)
+        end
+    end
+end

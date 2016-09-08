@@ -189,7 +189,18 @@ u=linsolve(A,F;tolerance=1E-10)
 ## Test periodic x interval
 
 d=PeriodicInterval()*Interval()
-g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
+
+u_ex=Fun((x,y)->real(cos(x+im*y)),d)
+
+B=Dirichlet(Space(d))
+
+g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
+B*u_ex-g
+
+rangespace(B)
+
+
+
 u=linsolve([Dirichlet(d);Laplacian(d)],g;tolerance=1E-10)
 Dirichlet(d)
 

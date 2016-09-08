@@ -163,6 +163,49 @@ function tensorblocklengths(a::Repeated{Bool},b::Repeated{Bool})
     1:∞
 end
 
+
+function tensorblocklengths(a::Repeated,b::Repeated{Bool})
+    @assert b.x
+    a.x:a.x:∞
+end
+
+
+function tensorblocklengths(a::Repeated{Bool},b::Repeated)
+    @assert a.x
+    b.x:b.x:∞
+end
+
+
+function tensorblocklengths(a::Repeated,b::Repeated)
+    m=a.x*b.x
+    m:m:∞
+end
+
+function tensorblocklengths(a::Repeated{Bool},b)
+    @assert a.x
+    cs = cumsum(b)
+    if isinf(length(b))
+        cs
+    elseif length(cs) == 1 && last(cs) == a.x
+        a
+    else
+        flatten((cs,repeated(last(cs))))
+    end
+end
+
+function tensorblocklengths(a::Repeated,b)
+    cs = a.x*cumsum(b)
+    if isinf(length(b))
+        cs
+    elseif length(cs) == 1 && last(cs) == a.x
+        a
+    else
+        flatten((cs,repeated(last(cs))))
+    end
+end
+
+
+
 function tensorblocklengths(a::Repeated{Bool},b)
     @assert a.x
     cs = cumsum(b)
@@ -176,8 +219,10 @@ function tensorblocklengths(a::Repeated{Bool},b)
 end
 
 
-tensorblocklengths(a,b::Repeated{Bool}) =
+tensorblocklengths(a,b::Repeated) =
     tensorblocklengths(b,a)
+
+
 tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d...)
 
 
