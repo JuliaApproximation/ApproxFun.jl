@@ -199,8 +199,6 @@ B*u_ex-g
 
 rangespace(B)
 
-
-
 u=linsolve([Dirichlet(d);Laplacian(d)],g;tolerance=1E-10)
 Dirichlet(d)
 

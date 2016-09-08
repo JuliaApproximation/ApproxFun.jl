@@ -339,3 +339,7 @@ function getindex{DD,LT,LT2,T}(M::ConcreteConversion{Ultraspherical{LT,DD},
         error("Not implemented")
     end
 end
+
+
+ReverseOrientation(S::Ultraspherical) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
+Reverse(S::Ultraspherical) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))

@@ -241,3 +241,8 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
        end
    end
 end
+
+
+
+ReverseOrientation(S::Chebyshev) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
+Reverse(S::Chebyshev) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
