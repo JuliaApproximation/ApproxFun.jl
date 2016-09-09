@@ -420,8 +420,8 @@ end
 ## rand
 # checkpoints is used to give a list of points to double check
 # the expansion
-Base.rand(d::Space,k...)=rand(domain(d),k...)
-checkpoints(d::Space)=checkpoints(domain(d))
+Base.rand(d::Space,k...) = rand(domain(d),k...)
+checkpoints(d::Space) = checkpoints(domain(d))
 
 
 

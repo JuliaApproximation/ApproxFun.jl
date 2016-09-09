@@ -31,10 +31,12 @@ Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
 
 Base.first(d::ProductDomain)=(first(d[1]),first(d[2]))
 
+Base.in(x::Vec,d::ProductDomain) = all(map(in,x,d.domains))
+
 
 function pushappendpts!(ret,xx,pts)
     if isempty(pts)
-        push!(ret,xx)
+        push!(ret,Vec(xx...))
     else
         for x in pts[1]
             pushappendpts!(ret,(xx...,x),pts[2:end])
@@ -45,7 +47,8 @@ end
 
 function checkpoints(d::ProductDomain)
     pts=map(checkpoints,d.domains)
-    ret=Array(Tuple{map(eltype,d.domains)...},0)
+    ret=Array(Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)},0)
+
     pushappendpts!(ret,(),pts)
     ret
 end
@@ -53,8 +56,8 @@ end
 function points(d::ProductDomain,n::Tuple)
     @assert length(d.domains) == length(n)
     pts=map(points,d.domains,n)
-    ret=Array(Tuple{map(eltype,d.domains)...},0)
-    pushappendpts!(ret,(),pts)
+    ret=Array(Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)},0)
+    pushappendpts!(ret,Vec(x),pts)
     ret
 end
 

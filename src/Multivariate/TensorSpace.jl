@@ -436,9 +436,8 @@ for OP in (:fromtensor,:totensor,:block,:blockstart,:blockstop)
     end
 end
 
-
 function points(sp::TensorSpace,n)
-    pts=Array(Tuple{Float64,Float64},0)
+    pts=Array(Vec{2,Float64},0)
     if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
         N,M=dimension(sp[1]),dimension(sp[2])
     elseif isfinite(dimension(sp[1]))
@@ -453,7 +452,7 @@ function points(sp::TensorSpace,n)
 
     for y in points(sp[2],M),
         x in points(sp[1],N)
-        push!(pts,(x,y))
+        push!(pts,Vec(x,y))
     end
     pts
 end

@@ -293,5 +293,26 @@ transformtimes{SS<:SinSpace,D}(f::Fun{Fourier{D}},g::Fun{SS}) = transformtimes(g
 transformtimes{SS<:SinSpace,CS<:CosSpace}(f::Fun{SS},g::Fun{CS}) = transformtimes(g,f)
 
 
-ReverseOrientation(S::Fourier) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
-Reverse(S::Fourier) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
+ReverseOrientation{D}(S::Fourier{D}) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
+Reverse{D}(S::Fourier{D}) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
+
+
+
+
+## Multivariate
+
+
+for TYP in (:Fourier,:Laurent,:CosSpace,:SinSpace,:Taylor)
+    @eval begin
+        function Dirichlet{PS,T}(S::TensorSpace{Tuple{Fourier{PeriodicInterval{T}},PS}})
+            op = interlace([eye(S[1])⊗ldirichlet(S[2]);
+                            ReverseOrientation(S[1])⊗rdirichlet(S[2]) ])
+            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)
+        end
+        function Dirichlet{PS,T}(S::TensorSpace{Tuple{PS,Fourier{PeriodicInterval{T}}}})
+            op = interlace([ldirichlet(S[1])⊗eye(S[2]);
+                            rdirichlet(S[1])⊗ReverseOrientation(S[2]) ])
+            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)
+        end
+    end
+end

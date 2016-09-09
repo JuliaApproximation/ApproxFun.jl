@@ -9,6 +9,8 @@ for TYP in (:ReverseOrientation,:Reverse)
             op::OS
         end
 
+        $WRAP(op::Operator) = $WRAP{typeof(op),eltype(op)}(op)
+
         @wrapper $WRAP
     end
 end
