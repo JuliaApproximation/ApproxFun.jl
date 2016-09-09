@@ -625,7 +625,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,R
         # scale rows entries
         for j=k:MO.datasize[2]
             v=r+(R.cols[j]+k-2)*sz
-            dt=dot(M,wp,1,v,1)
+            dt=BLAS.dot(M,wp,1,v,1)
             BLAS.axpy!(M,-2*dt,wp,1,v,1)
         end
     end

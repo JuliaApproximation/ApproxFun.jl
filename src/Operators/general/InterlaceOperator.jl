@@ -340,7 +340,7 @@ function Base.convert{SS,PS,DI,RI,BI,T}(::Type{RaggedMatrix},
         # block indices
         sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
 
-        ret[ret_kr,:]=L.ops[ν][sub_kr,jr]
+        Base.axpy!(1.0,view(L.ops[ν],sub_kr,jr),view(ret,ret_kr,:))
     end
     ret
 end

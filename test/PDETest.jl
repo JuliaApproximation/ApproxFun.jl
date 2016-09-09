@@ -188,7 +188,6 @@ u=linsolve(A,F;tolerance=1E-10)
 
 ## Test periodic x interval
 
-using ApproxFun,Base.Test
 
 d=PeriodicInterval()*Interval()
 
@@ -204,14 +203,99 @@ u=[B;Laplacian(d)]\[g;0.]
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
 
-
+using ApproxFun, Base.Test
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-u=[I⊗ldirichlet(dt);Dt+Dθ]\[Fun(θ->exp(-20θ^2),dθ);0.]
+B=eye(d[1])⊗ldirichlet(dt)
+u=linsolve([B;Dt+Dθ],[Fun((θ,t)->exp(-20θ^2),rangespace(B));0.];tolerance=1E-7)
+
+
+QR=qrfact([B;Dt+Dθ])
+    @time resizedata!(QR.R,:,1000)
+
+
+QR=qrfact([B;Dt+Dθ])
+        @time resizedata!(QR,:,2000)
+
+
+Profile.print()
+
+
+@code_warntype resizedata!(QR,:,2^4*100)
+
+
+W=rand(10)
+R=rand(1000)
+
+function testdot(W,R,M)
+    w=pointer(W)
+    r=pointer(R)
+
+    sz=sizeof(Float64)
+    n=length(V)
+
+    for k=1:length(W)-M,j=1:n-M
+        v=r+(j-1)*sz
+        wp=w+(k-1)*sz
+        dt=BLAS.dot(M,wp,1,v,1)
+        BLAS.axpy!(M,-2*dt,wp,1,v,1)
+    end
+    R
+end
+
+Profile.clear()
+W,R=rand(10000),rand(100000000)
+@profile testdot(W,R,20)
+
+Profile.print()
+
+A=rand(10000,10000)
+@time qr(A)
+
+QR[:Q]
+
+ncoefficients(Fun((θ,t)->exp(-20θ^2),rangespace(B)))
+
+Ai = ApproxFun.interlace([B;Dt+Dθ])
+u_ex = Fun((θ,t)->exp(-20(mod(θ-t+2,4)-2)^2),d)
+
+
+@time Ai*u_ex
+
+
+QR=qrfact(Ai)
+    @time resizedata!(QR,:,200)
+F=chop(Fun([Fun((θ,t)->exp(-20θ^2),rangespace(B));0.],rangespace(QR)),1E-10)
+
+F.coefficients
+QR.ncols
+
+linsolve(QR,F.coefficients;tolerance=1E-2,maxlength=1500)
+πmod(x) =
+
+
+
+@time convert(RaggedMatrix,view(Ai,1:10000,1:10000))
+
+
+@profile Ai[1:1000,1:1000]
+u_ex(0.2,0.)
+
+@test norm((B*u_ex-F[1]).coefficients) < 1E-10
+err=Ai*u_ex-F
+
+norm(err.coefficients)
+
+ncoefficients(u_ex)`
+
+
+
+Fun(θ->exp(-20θ^2),d[1])  |>ncoefficients
 
 
 @test_approx_eq u(.1,.2) exp(-20(0.1-0.2)^2)
+
 
 
 println("   Domain Decompositon tests")
@@ -264,25 +348,23 @@ V=Fun(x->x^2,dx)
 Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 
 ϵ=1.
-u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
+u0=Fun((x,t)->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx*ApproxFun.Point(0.))
 L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
-ny=200;u=pdesolve([timedirichlet(d);L],u0,ny)
+u=linsolve([timedirichlet(d);L],[u0;0.];tolerance=1E-5)
 @test_approx_eq_eps u(.2,.1) (0.2937741918470843 + 0.22130344715160255im )  0.000001
-
-
 
 ## Periodic
 
 d=PeriodicInterval()^2
 f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
-A=lap(d)+.1I
+A=Laplacian(d)+.1I
 u=A\f
 @test_approx_eq u(.1,.2) u(.2,.1)
 
 
 d=PeriodicInterval()*Interval()
-g=Fun(z->real(cos(z)),∂(d))  # boundary data
-u=[dirichlet(d);lap(d)]\g
+g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
+u=[Dirichlet(d);Laplacian(d)]\[g;0.]
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
 
@@ -331,7 +413,7 @@ u=pdesolve([B;Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)
 # Screened Poisson
 
 d=Interval()^2
-u=[neumann(d);lap(d)-100.0I]\ones(∂(d))
+u=linsolve([neumann(d);Laplacian(d)-100.0I],ones(∂(d));tolerance=1E-10)
 @test_approx_eq u(.1,.9) 0.03679861429138079
 
 # PiecewisePDE
