@@ -199,9 +199,7 @@ g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
 @test norm((B*u_ex-g).coefficients) < 10eps()
 
 
-u=linsolve([Dirichlet(d);Laplacian(d)],g;tolerance=1E-10)
-
-
+u=[B;Laplacian(d)]\[g;0.]
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
@@ -210,7 +208,7 @@ u=linsolve([Dirichlet(d);Laplacian(d)],g;tolerance=1E-10)
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
+u=[I⊗ldirichlet(dt);Dt+Dθ]\[Fun(θ->exp(-20θ^2),dθ);0.]
 
 
 @test_approx_eq u(.1,.2) exp(-20(0.1-0.2)^2)

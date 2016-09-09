@@ -799,10 +799,12 @@ for OP in (:+,:-)
     end
 end
 
+*(a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
+*(b::AbstractCount,a::Number) = a*b
 +(a::Number,b::UnitCount) = UnitCount(a+b.start)
-+(a::Number,b::Count) = Count(a+b.start,a.step)
++(a::Number,b::Count) = Count(a+b.start,b.step)
 -(a::Number,b::UnitCount) = Count(a-b.start,-1)
--(a::Number,b::Count) = Count(a-b.start,-a.step)
+-(a::Number,b::Count) = Count(a-b.start,-b.step)
 
 function +(a::Flatten,b::Flatten)
     if isempty(a)

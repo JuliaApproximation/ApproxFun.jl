@@ -254,7 +254,7 @@ macro wrappergetindex(Wrap)
     end
 
      for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
-                     :(ApproxFun.rowstart),:(ApproxFun.rowstop))
+                     :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds))
          ret = quote
              $ret
 
