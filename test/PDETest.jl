@@ -5,7 +5,6 @@ using ApproxFun, Compat, Base.Test
 
 S=ChebyshevDirichlet()^2
 B=Dirichlet(S)
-
 f = Fun((x,y)->exp(x)*sin(y),S)
 @test norm((Fun((x,y)->exp(x)*sin(y),∂(domain(S))) - B*f).coefficients) < 100eps()
 
@@ -15,8 +14,6 @@ S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 u=chop(Fun((x,y)->sin(π*x)*sin(π*y),S),1000eps())
 
 f=-2π^2*u
-
-QR=qrfact(Δ)
 
 v=linsolve(Δ,f;tolerance=1E-13)
 @test norm((u-v).coefficients)<1E-12
@@ -63,7 +60,6 @@ end
 
 u=linsolve(A,[g,0.];tolerance=1E-10)
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
-
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
 u=linsolve(A,[g,0.];tolerance=1E-10)
@@ -204,97 +200,17 @@ u=[B;Laplacian(d)]\[g;0.]
 
 
 using ApproxFun, Base.Test
-dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
 d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 B=eye(d[1])⊗ldirichlet(dt)
-u=linsolve([B;Dt+Dθ],[Fun((θ,t)->exp(-20θ^2),rangespace(B));0.];tolerance=1E-7)
+
+u0=Fun((θ,t)->exp(-20θ^2),rangespace(B),20)
+@time u=linsolve([B;Dt+Dθ],[u0;0.];tolerance=1E-7)
 
 
-QR=qrfact([B;Dt+Dθ])
-    @time resizedata!(QR.R,:,1000)
+@test_approx_eq_eps u(.1,.2) u0(0.1-0.2,0.) 1E-7
 
-
-QR=qrfact([B;Dt+Dθ])
-        @time resizedata!(QR,:,2000)
-
-
-Profile.print()
-
-
-@code_warntype resizedata!(QR,:,2^4*100)
-
-
-W=rand(10)
-R=rand(1000)
-
-function testdot(W,R,M)
-    w=pointer(W)
-    r=pointer(R)
-
-    sz=sizeof(Float64)
-    n=length(V)
-
-    for k=1:length(W)-M,j=1:n-M
-        v=r+(j-1)*sz
-        wp=w+(k-1)*sz
-        dt=BLAS.dot(M,wp,1,v,1)
-        BLAS.axpy!(M,-2*dt,wp,1,v,1)
-    end
-    R
-end
-
-Profile.clear()
-W,R=rand(10000),rand(100000000)
-@profile testdot(W,R,20)
-
-Profile.print()
-
-A=rand(10000,10000)
-@time qr(A)
-
-QR[:Q]
-
-ncoefficients(Fun((θ,t)->exp(-20θ^2),rangespace(B)))
-
-Ai = ApproxFun.interlace([B;Dt+Dθ])
-u_ex = Fun((θ,t)->exp(-20(mod(θ-t+2,4)-2)^2),d)
-
-
-@time Ai*u_ex
-
-
-QR=qrfact(Ai)
-    @time resizedata!(QR,:,200)
-F=chop(Fun([Fun((θ,t)->exp(-20θ^2),rangespace(B));0.],rangespace(QR)),1E-10)
-
-F.coefficients
-QR.ncols
-
-linsolve(QR,F.coefficients;tolerance=1E-2,maxlength=1500)
-πmod(x) =
-
-
-
-@time convert(RaggedMatrix,view(Ai,1:10000,1:10000))
-
-
-@profile Ai[1:1000,1:1000]
-u_ex(0.2,0.)
-
-@test norm((B*u_ex-F[1]).coefficients) < 1E-10
-err=Ai*u_ex-F
-
-norm(err.coefficients)
-
-ncoefficients(u_ex)`
-
-
-
-Fun(θ->exp(-20θ^2),d[1])  |>ncoefficients
-
-
-@test_approx_eq u(.1,.2) exp(-20(0.1-0.2)^2)
 
 
 
