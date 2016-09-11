@@ -215,44 +215,6 @@ Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T}) =
     Operator{promote_type(eltype(T),eltype(A))}[kron(1.0A,b) for b in B]
 
 
-## Conversion
-
-
-
-
-conversion_rule(a::TensorSpace,b::TensorSpace) = conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
-maxspace(a::TensorSpace,b::TensorSpace) = maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
-
-# TODO: we explicetly state type to avoid type inference bug in 0.4
-
-ConcreteConversion(a::BivariateSpace,b::BivariateSpace) =
-    ConcreteConversion{typeof(a),typeof(b),
-                        promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
-
-Conversion(a::TensorSpace,b::TensorSpace) = ConversionWrapper(promote_type(eltype(a),eltype(b)),
-                KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
-
-
-
-Multiplication{D,T}(f::Fun{D,T},sp::BivariateSpace) =
-    ConcreteMultiplication{D,typeof(sp),T,T}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
-function Multiplication{CS<:ConstantSpace,T,V}(f::Fun{TensorSpace{Tuple{CS,V},T,2}},sp::TensorSpace)
-    a=Fun(f.coefficients,space(f)[2]) # coefficients are the same
-    #Hack to avoid auto-typing bug.  TODO: incorporate basis
-    MultiplicationWrapper(eltype(f),f,eye(sp[1])⊗Multiplication(a,sp[2]))
-end
-function Multiplication{CS<:ConstantSpace,T,V}(f::Fun{TensorSpace{Tuple{V,CS},T,2}},sp::TensorSpace)
-    if isempty(f.coefficients)
-        a=Fun(zeros(eltype(f),1),space(f)[1])
-    else
-        a=Fun(f.coefficients,space(f)[1])
-    end
-    MultiplicationWrapper(eltype(f),f,Multiplication(a,sp[1])⊗eye(sp[2]))
-end
-
-Multiplication{D<:UnivariateSpace,SV,TT,T}(f::Fun{D,T},sp::SumSpace{SV,TT,AnyDomain,2})=Multiplication(f⊗1,sp)
-Multiplication{D<:UnivariateSpace,T}(f::Fun{D,T},sp::BivariateSpace)=Multiplication(f⊗1,sp)
-
 
 ## PDE Factorization
 
@@ -294,6 +256,7 @@ Base.transpose(S::SpaceOperator) =
 Base.transpose(S::ConstantTimesOperator) = sp.c*S.op.'
 
 
+
 ### Calculus
 
 #TODO: general dimension
@@ -317,10 +280,6 @@ function Derivative{SV,TT}(S::TensorSpace{SV,TT,2},order::Vector{Int})
     DerivativeWrapper{typeof(K),typeof(domainspace(K)),Vector{Int},T}(K,order)
 end
 
-
-## Functionals
-Evaluation(sp::TensorSpace,x::Vec) = EvaluationWrapper(sp,x,zeros(Int,length(x)),⊗(map(Evaluation,sp.spaces,x)...))
-Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
 
 
 
@@ -401,3 +360,37 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 
     ret
 end
+
+
+
+## TensorSpace operators
+
+
+## Conversion
+
+
+
+
+conversion_rule(a::TensorSpace,b::TensorSpace) = conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
+maxspace(a::TensorSpace,b::TensorSpace) = maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
+
+# TODO: we explicetly state type to avoid type inference bug in 0.4
+
+ConcreteConversion(a::BivariateSpace,b::BivariateSpace) =
+    ConcreteConversion{typeof(a),typeof(b),
+                        promote_type(eltype(a),eltype(b),real(eltype(domain(a))),real(eltype(domain(b))))}(a,b)
+
+Conversion(a::TensorSpace,b::TensorSpace) = ConversionWrapper(promote_type(eltype(a),eltype(b)),
+                KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
+
+
+
+function Multiplication{TS<:TensorSpace}(f::Fun{TS},S::TensorSpace)
+    lr=LowRankFun(f)
+    ops=map(kron,map(a->Multiplication(a,S[1]),lr.A),map(a->Multiplication(a,S[2]),lr.B))
+    MultiplicationWrapper(f,+(ops...))
+end
+
+## Functionals
+Evaluation(sp::TensorSpace,x::Vec) = EvaluationWrapper(sp,x,zeros(Int,length(x)),⊗(map(Evaluation,sp.spaces,x)...))
+Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))

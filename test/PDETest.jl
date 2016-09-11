@@ -233,36 +233,30 @@ using ApproxFun
 dx=Interval();dt=Interval(0,1.)
 d=dx*dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-x,y=Fun(dx*dt)
+x,t=Fun(dx*dt)
 
-@test_approx_eq x(0.1,0.2) 0.1
-
-points(ArraySpace(Space(dx*dt),2),10)
-
-x,y=Fun(identity,Space(dx*dt),20)
-
-points(Space(dx*dt),10)
 
 B=0.0
 C=0.0
 V=B+C*x
-ε=0.001
-f=Fun(x->exp(-20x^2),dx)
-u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
+ε=0.1
+f=Fun(x->exp(-20x^2),dx,20)
+u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;0.];tolerance=1E-7)
 @test_approx_eq u(.1,.2) 0.8148207991358946
 B=0.1
 C=0.2
 V=B+C*x
-u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
+u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx,[f,0.];tolerance=1E-7)
 @test_approx_eq u(.1,.2) 0.7311625132209619
-
+2
 
 ## Schrodinger
 
 dx=Interval(0.,1.);dt=Interval(0.0,.1)
 d=dx*dt
 
-V=Fun(x->x^2,dx)
+x,y=Fun(d)
+V=x^2
 
 Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 

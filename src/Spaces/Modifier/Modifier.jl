@@ -78,8 +78,8 @@ function sumspacecoefficients(cfsin::Vector,A::Space,B::PiecewiseSpace)
     defaultcoefficients(cfsin,A,B)
 end
 
-for TYP in (:SumSpace,:PiecewiseSpace)
-    @eval coefficients(cfsin::Vector,A::Space,B::$TYP) = sumspacecoefficients(cfsin,A,B)
+for TYP in (:SumSpace,:PiecewiseSpace), ATYP in (:ConstantSpace,:Space)
+    @eval coefficients(cfsin::Vector,A::$ATYP,B::$TYP) = sumspacecoefficients(cfsin,A,B)
 end
 
 

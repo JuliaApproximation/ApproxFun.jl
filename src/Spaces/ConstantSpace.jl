@@ -32,7 +32,7 @@ dimension(::ConstantSpace) = 1
 #TODO: Change
 setdomain{CS<:AnyDomain}(f::Fun{CS},d::Domain) = Number(f)*ones(d)
 
-canonicalspace(C::ConstantSpace)=C
+canonicalspace(C::ConstantSpace) = C
 spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
 
 Base.ones(S::ConstantSpace)=Fun(ones(1),S)
@@ -85,6 +85,9 @@ function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k:
     on=ones(rangespace(C))
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
+
+
+coefficients(f::Vector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
 
 
 # this is identity operator, but we don't use MultiplicationWrapper to avoid

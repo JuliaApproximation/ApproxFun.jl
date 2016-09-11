@@ -503,6 +503,9 @@ isconvertible(sp::UnivariateSpace,ts::TensorSpace) = length(ts.spaces) == 2 &&
     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||
      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
 
+
+coefficients(f::Vector,sp::ConstantSpace,ts::TensorSpace) = f[1]*ones(ts).coefficients
+
 function coefficients(f::Vector,sp::UnivariateSpace,ts::TensorSpace)
     @assert length(ts.spaces) == 2
 

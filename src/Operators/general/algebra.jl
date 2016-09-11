@@ -491,6 +491,7 @@ end
     isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
 
 
++(A::Operator) = A
 -(A::Operator) = ConstantTimesOperator(-1,A)
 -(A::Operator,B::Operator) = A+(-B)
 
