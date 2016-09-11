@@ -198,3 +198,18 @@ let d = Space([0,1]) * Space([0,2])
     B=Evaluation(d,(0.1,0.3))
     @test_approx_eq B*f f(0.1,0.3)
 end
+
+
+
+## x,y constructor
+
+
+x,y=Fun(Interval()^2)
+@test_approx_eq x(0.1,0.2) 0.1
+@test_approx_eq y(0.1,0.2) 0.2
+
+f=Fun((x,y)->[exp(x*cos(y));cos(x*sin(y));2],Interval()^2)
+@test_approx_eq f(0.1,0.2) [exp(0.1*cos(0.2));cos(0.1*sin(0.2));2]
+
+f=Fun((x,y)->[exp(x*cos(y)) cos(x*sin(y)); 2 1],Interval()^2)
+@test_approx_eq f(0.1,0.2) [exp(0.1*cos(0.2)) cos(0.1*sin(0.2));2 1]

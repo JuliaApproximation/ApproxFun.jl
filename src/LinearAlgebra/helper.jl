@@ -593,6 +593,7 @@ Base.done(it::CumSumIterator, state) = done(it.iterator,state[2])
 Base.length(it::CumSumIterator) = length(it.iterator)
 
 getindex{AC<:UnitCount}(it::CumSumIterator{AC},k) = it.iterator.start*k + ((k*(k-1))÷2)
+getindex{AC<:Count}(it::CumSumIterator{AC},k) = it.iterator.start*k + step(it.iterator)*((k*(k-1))÷2)
 
 
 

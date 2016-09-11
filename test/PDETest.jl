@@ -216,28 +216,33 @@ println("   Domain Decompositon tests")
 
 ## Domain Decomposition
 d=Interval(0,1)^2
-n,m=20,80
-A=discretize([dirichlet(d);lap(d)],n)
+
+QR=qrfact([Dirichlet(d);Laplacian(d)])
 ∂d=∂(d)
-g=Fun(z->real(exp(z)),∂d)
-f=[Fun([zeros(k-1);1.0],∂d) for k=1:m].'
-U=A\f
+g=Fun((x,y)->real(exp(x+im*y)),∂d)
+m=10
+f=[detuple([Fun([zeros(k-1);1.0],∂d);0.]) for k=1:m].'
+@time U=linsolve(QR,f[5];tolerance=1E-10)
 @test_approx_eq dot(real(g.coefficients),U[1:ncoefficients(g)])(.1,.2) real(exp(.1+.2im))
-
-
-
-Rectangle(a,b,c,d)=Interval(a,b)*Interval(c,d)
-Γ=Rectangle(0,1,0,1)∪Rectangle(1,2,0,1)
-Fun(identity,∂(Γ))|>values
-
 
 
 ## Small diffusoion
 
+
+using ApproxFun
 dx=Interval();dt=Interval(0,1.)
 d=dx*dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-x=Fun(identity,dx)
+x,y=Fun(dx*dt)
+
+@test_approx_eq x(0.1,0.2) 0.1
+
+points(ArraySpace(Space(dx*dt),2),10)
+
+x,y=Fun(identity,Space(dx*dt),20)
+
+points(Space(dx*dt),10)
+
 B=0.0
 C=0.0
 V=B+C*x

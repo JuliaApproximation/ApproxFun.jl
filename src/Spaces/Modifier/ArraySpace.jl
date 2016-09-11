@@ -59,6 +59,9 @@ domain(AS::ArraySpace) = domain(AS.space)
 ## transforms
 
 
+points(d::ArraySpace,n) = points(d.space,n)
+
+
 transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}}) =
     transform(AS,transpose(hcat(vals...)))
 

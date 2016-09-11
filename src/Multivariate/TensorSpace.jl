@@ -514,3 +514,6 @@ function coefficients(f::Vector,sp::UnivariateSpace,ts::TensorSpace)
         error("Cannot convert coefficients from $sp to $ts")
     end
 end
+
+
+identity_fun(S::TensorSpace) = Fun(xyz->[xyz...],S)
