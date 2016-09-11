@@ -11,19 +11,17 @@ f = Fun((x,y)->exp(x)*sin(y),S)
 
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ=Laplacian(S)
-u=chop(Fun((x,y)->sin(π*x)*sin(π*y),S),1000eps())
+u=Fun((x,y)->sin(π*x)*sin(π*y),S)
 
 f=-2π^2*u
 
-v=linsolve(Δ,f;tolerance=1E-13)
-@test norm((u-v).coefficients)<1E-12
+v=Δ\f
+@test norm((u-v).coefficients)<1E-14
 
 
-
-f=chop(Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ)),1000eps())  #default is [-1,1]^2
-v=linsolve(Δ,f;tolerance=1E-12)
-@test norm((Δ*v-f).coefficients)<1E-10
-
+f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
+v=linsolve(Δ,f;tolerance=1E-14)
+@test norm((Δ*v-f).coefficients)<1E-14
 
 KO=Δ.op.ops[1].ops[1].op
 
@@ -45,7 +43,6 @@ M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,1:112))
 
 
 ## Rectangle PDE
-
 dx=dy=Interval()
 d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
@@ -57,12 +54,11 @@ let Ai=ApproxFun.interlace(A),co=cache(Ai)
     @test norm(Ai[1:200,1:200]-co[1:200,1:200]) == 0
 end
 
-
-u=linsolve(A,[g,0.];tolerance=1E-10)
+u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
-u=linsolve(A,[g,0.];tolerance=1E-10)
+u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
@@ -79,17 +75,14 @@ B=[dirichlet(S[1])⊗eye(S[2]);
    Laplacian()]
 
 
-u=linsolve(B,ones(4);tolerance=1E-12)
+u=linsolve(B,ones(4);tolerance=1E-14)
 @test norm((u-Fun([1.],S)).coefficients)<10eps()
 
 g=map(sp->Fun(ff,sp),map(rangespace,B[1:4]))
 
 u=linsolve(B,[g;0];tolerance=1E-10)
-u(0.1,0.2)-ff(0.1,0.2)
+@test_approx_eq u(0.1,0.2) ff(0.1,0.2)
 
-
-
-S=ChebyshevDirichlet{2,2}()^2
 
 
 println("    Poisson tests")
@@ -102,7 +95,6 @@ d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
 u=linsolve(A,[zeros(∂(d));f];tolerance=1E-10)
 @test_approx_eq u(.1,.2) -0.04251891975068446
-
 
 
 d=PeriodicInterval()^2

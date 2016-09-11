@@ -795,11 +795,12 @@ function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
             M=size(H,1)
         end
 
-        if k+M-1>length(Y)
+        cr=colrange(H,k)
+
+        if k+length(cr)-1>length(Y)
             pad!(Y,2*(k+M))
         end
 
-        cr=colrange(H,k)
         wp=view(H,cr,k)
         yp=view(Y,k-1+(cr))
 
@@ -895,12 +896,15 @@ function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,RaggedMatrix
             h=pointer(H.data)
         end
 
+
+        M=colstop(H,k)
+
         if k+M-1>length(Y)
             pad!(Y,2*(k+M))
             y=pointer(Y)
         end
 
-        M=colstop(H,k)
+
         wp=h + sz*(H.cols[k]-1)
         yp=y+sz*(k-1)
 
