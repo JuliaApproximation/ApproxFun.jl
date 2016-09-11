@@ -93,8 +93,10 @@ itransform(sp::SubSpace,cfs::Vector) =
 
 points(sp::SubSpace,n) = points(sp.space,n)
 
+coefficients{DS,IT,T,D}(v::Vector,::SubSpace{DS,IT,T,D,1},::TensorSpace) =
+    error("Not callable, only defined for ambiguity errors.")
 
-for TYP in (:SumSpace,:PiecewiseSpace,:Space) # Resolve conflict
+for TYP in (:SumSpace,:PiecewiseSpace,:TensorSpace,:Space) # Resolve conflict
     @eval begin
         function coefficients(v::Vector,sp::$TYP,dropsp::SubSpace)
             n=length(v)

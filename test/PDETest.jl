@@ -199,17 +199,15 @@ u=[B;Laplacian(d)]\[g;0.]
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
 
-using ApproxFun, Base.Test
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
 d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 B=eye(d[1])⊗ldirichlet(dt)
 
-u0=Fun((θ,t)->exp(-20θ^2),rangespace(B),20)
-@time u=linsolve([B;Dt+Dθ],[u0;0.];tolerance=1E-7)
+u0=Fun(θ->exp(-20θ^2),dθ,20)
+u=linsolve([B;Dt+Dθ],[u0;0.];tolerance=1E-7)
 
-
-@test_approx_eq_eps u(.1,.2) u0(0.1-0.2,0.) 1E-7
+@test_approx_eq_eps u(.1,.2) u0(0.1-0.2) 1E-7
 
 
 

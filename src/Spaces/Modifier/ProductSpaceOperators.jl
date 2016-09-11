@@ -97,8 +97,12 @@ ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(Toepli
 
 
 function coefficients(v::AbstractVector,a::TupleSpace,b::TupleSpace)
-    vs=vec(Fun(v,a))
-    coefficients(detuple(map((f,s)->Fun(f,s),vs,b)))
+    if a==b
+        v
+    else
+        vs=vec(Fun(v,a))
+        coefficients(detuple(map((f,s)->Fun(f,s),vs,b)))
+    end
 end
 
 function Conversion(a::TupleSpace,b::TupleSpace)

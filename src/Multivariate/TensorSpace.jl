@@ -493,3 +493,24 @@ coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(space(f),f.coef
 
 
 union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spaces))
+
+
+
+## Convert from 1D to 2D
+
+
+isconvertible(sp::UnivariateSpace,ts::TensorSpace) = length(ts.spaces) == 2 &&
+    ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||
+     (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
+
+function coefficients(f::Vector,sp::UnivariateSpace,ts::TensorSpace)
+    @assert length(ts.spaces) == 2
+
+    if domain(ts)[1] == Point(0.0)
+        coefficients(f,sp,ts[2])
+    elseif domain(ts)[2] == Point(0.0)
+        coefficients(f,sp,ts[1])
+    else
+        error("Cannot convert coefficients from $sp to $ts")
+    end
+end
