@@ -10,12 +10,15 @@ for T in (:CosSpace,:SinSpace)
         """
         immutable $T{D<:Domain} <: RealUnivariateSpace{D}
             domain::D
+            $T(d::Domain) = new(D(d))
+            $T(d::D) = new(d)
         end
-        $T()=$T(PeriodicInterval())
-        spacescompatible(a::$T,b::$T)=domainscompatible(a,b)
-        hasfasttransform(::$T)=true
-        canonicalspace(S::$T)=Fourier(domain(S))
-        setdomain(S::$T,d::Domain)=$T(d)
+        $T(d::Domain) = $T{typeof(d)}(d)
+        $T() = $T(PeriodicInterval())
+        spacescompatible(a::$T,b::$T) = domainscompatible(a,b)
+        hasfasttransform(::$T) = true
+        canonicalspace(S::$T) = Fourier(domain(S))
+        setdomain(S::$T,d::Domain) = $T(d)
     end
 end
 # s == true means analytic inside, taylor series

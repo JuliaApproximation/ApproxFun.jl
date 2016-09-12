@@ -108,6 +108,8 @@ u=A\f
 
 
 # fourth order
+
+println("    Bilaplacian tests")
 dx=dy=Interval()
 d=dx*dy
 Dx=Derivative(dx);Dy=Derivative(dy)
@@ -176,7 +178,7 @@ u=linsolve(A,F;tolerance=1E-10)
 
 ## Test periodic x interval
 
-
+println("    Periodic x Interval tests")
 d=PeriodicInterval()*Interval()
 
 u_ex=Fun((x,y)->real(cos(x+im*y)),d)
@@ -221,7 +223,9 @@ u=linsolve([B;Dt+Dθ],[u0;0.];tolerance=1E-7)
 ## Small diffusoion
 
 
-using ApproxFun
+println("    Time evolution tests")
+
+
 dx=Interval();dt=Interval(0,0.2)
 d=dx*dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
@@ -233,7 +237,7 @@ C=0.0
 V=B+C*x
 ε=0.1
 f=Fun(x->exp(-30x^2),dx)
-@time u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
+u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
 
 @test_approx_eq u(.1,.2) 0.496524222625512
 B=0.1
@@ -263,6 +267,8 @@ u=linsolve([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-1)
 
 ## Periodic
 
+println("    Periodic tests")
+
 d=PeriodicInterval()^2
 f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
 A=Laplacian(d)+.1I
@@ -272,7 +278,8 @@ u=A\f
 
 d=PeriodicInterval()*Interval()
 g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
-u=[Dirichlet(d);Laplacian(d)]\[g;0.]
+u=[Dirichlet(d);Laplacian(d)]\Any[g;0.]
+
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
 
@@ -292,7 +299,7 @@ d=dt*dθ
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
 u0=Fun(θ->exp(-20θ^2),dθ,20)
-@time ut=A\[u0;0.]
+ut=A\[u0;0.]
 
 @test_approx_eq ut(.1,.2) u0(.2-.1)
 
@@ -301,6 +308,8 @@ u0=Fun(θ->exp(-20θ^2),dθ,20)
 
 
 # Beam
+
+
 
 dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.01)
 d=dθ*dt
@@ -344,7 +353,7 @@ dx=Interval();dt=Interval(0,2.)
 d=dx*dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
-@time u=linsolve([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
+u=linsolve([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 
 @test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
 

@@ -28,7 +28,8 @@ Base.convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = Peri
 
 isambiguous(d::PeriodicInterval) = all(isnan(d.a)) && all(isnan(d.b))
 Base.convert{T<:Number}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval{T}(NaN,NaN)
-Base.convert{IT<:PeriodicInterval}(::Type{IT},::AnyDomain) = PeriodicInterval(NaN,NaN)
+Base.convert{d,T}(::Type{PeriodicInterval{Vec{d,T}}},::AnyDomain) = PeriodicInterval(Vec(fill(NaN,d)...),Vec(fill(NaN,d)...))
+Base.convert{T}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval(nan(T),nan(T))
 
 
 ## Information
