@@ -17,6 +17,7 @@ include("SubSpace.jl")
 
 
 function coefficients(f::Vector,a::VectorSpace,b::TupleSpace)
+    error("Reimplement")
     A=a.space
     n=length(a)
     @assert n==length(b.spaces)
@@ -46,70 +47,39 @@ function coefficients(cfs::Vector,A::PiecewiseSpace,B::PiecewiseSpace)
 end
 
 
-# add constant to each piece
-function coefficients(cfsin::Vector,A::ConstantSpace,B::PiecewiseSpace)
+
+function sumspacecoefficients(cfsin::Vector,A::Space,B::SumSpace)
     m=length(B.spaces)
 
-    #assume first that  each space needs 1 coefficient to rep constant
-    ret=zeros(eltype(cfsin),m)
-
     for k=1:m
-        cfs=coefficients(cfsin,A,B.spaces[k])
-        mm=m*(length(cfs)-1)+k  # max ret, should normally be k
-        ret=pad!(ret,max(length(ret),mm))
-        ret[k:m:mm]=cfs
+        if isconvertible(A,B[k])
+            cfs = coefficients(cfsin,A,B[k])
+
+            return interlace([[zeros(B[j]) for j=1:k-1];Fun(cfs,B[k]);[zeros(B[j]) for j=k+1:length(B.spaces)]],
+                                B)
+        end
     end
 
-    ret
+    defaultcoefficients(cfsin,A,B)
 end
 
-for TYP in (:SumSpace,:PiecewiseSpace)
-    @eval begin
-        # we need to be able to call this to avoid confusion
-        function sumspacecoefficients(cfsin::Vector,A::Space,B::$TYP)
-            m=length(B.spaces)
+function sumspacecoefficients(cfsin::Vector,A::Space,B::PiecewiseSpace)
+    m=length(B.spaces)
 
-            for k=1:m
-                if isconvertible(A,B[k])
-                    cfs=coefficients(cfsin,A,B[k])
-                    ret=zeros(eltype(cfs),k-1)  # all spaces have dimension at least 1,
-                                                # so there are k-1 zero coefficients
-                                                # corresponding to all spaces less than
-                                                # k
+    for k=1:m
+        if domain(B[k]) == domain(A) && isconvertible(A,B[k])
+            cfs = coefficients(cfsin,A,B[k])
 
-                    j=k    # represents the row of ret to be added
-                    row=1  # represents the row of cfs to be added
-
-                    @assert length(cfs) ≤ dimension(B[k])
-                    dk=length(cfs)
-
-                    # we only allow at most dimension
-                    while row ≤ dk
-                        push!(ret,cfs[row])  # this sets ret[j] to cfs[row]
-                        for λ = k+1:m
-                            if dimension(B[λ]) ≥ row # loop through the rest of the spaces
-                                push!(ret,0)
-                                j+=1
-                            end
-                        end
-                        row += 1   # move on to the next row
-                        for λ = 1:k-1
-                            if dimension(B[λ]) ≥ row # loop through the previous spaces
-                                push!(ret,0)
-                                j+=1
-                            end
-                        end
-                        j+=1  # we always increment by 1 for the current space
-                    end
-
-                    return ret
-                end
-            end
-
-            defaultcoefficients(cfsin,A,B)
+            return interlace([[zeros(B[j]) for j=1:k-1];Fun(cfs,B[k]);[zeros(B[j]) for j=k+1:length(B.spaces)]],
+                                B)
         end
-        coefficients(cfsin::Vector,A::Space,B::$TYP)=sumspacecoefficients(cfsin,A,B)
     end
+
+    defaultcoefficients(cfsin,A,B)
+end
+
+for TYP in (:SumSpace,:PiecewiseSpace), ATYP in (:ConstantSpace,:Space)
+    @eval coefficients(cfsin::Vector,A::$ATYP,B::$TYP) = sumspacecoefficients(cfsin,A,B)
 end
 
 

@@ -112,7 +112,7 @@ g=(D*Fun(f,domainspace(D)))
 f = Fun(x->cospi(1000x))
 g = Fun(f,Legendre())
 h = Fun(g,Chebyshev())
-@test norm(f.coefficients-h.coefficients,Inf) < 10eps()
+@test norm(f.coefficients-h.coefficients,Inf) < 100eps()
 h = Fun(h,Legendre())
 @test norm(g.coefficients-h.coefficients,Inf) < 1000eps()
 

@@ -1,3 +1,11 @@
+
+
+## Counts
+
+Base.show(io::IO,c::UnitCount) = print(io,"$(c.start):∞")
+Base.show(io::IO,c::Count) = print(io,"$(c.start):$(c.step):∞")
+
+
 ## Domains
 
 Base.show(io::IO,d::Interval)=print(io,"【$(d.a),$(d.b)】")

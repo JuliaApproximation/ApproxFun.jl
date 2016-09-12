@@ -205,3 +205,15 @@ co=cache(io)
 @test co[1:100,1:100] == io[1:100,1:100]
 @test co[1:100,1:100] == io[1:100,1:100]
 @test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+
+
+## Reverse
+
+
+@test ApproxFun.Reverse(Chebyshev())*Fun(exp) ≈ Fun(x->exp(-x))
+@test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,[1,-1])
+
+
+@test norm(ApproxFun.Reverse(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(-t-0.2)-0.1),Fourier())) < 10eps()
+@test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier([π,-π]))) < 10eps()

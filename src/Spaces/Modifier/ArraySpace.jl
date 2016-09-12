@@ -5,7 +5,7 @@ doc"""
 `ArraySpace` used to represent array-valued expansions in `space`.  The
 coefficients are of each entry are interlaced.
 """
-immutable ArraySpace{S,n,T,DD,dim} <: Space{T,DD,dim}
+immutable ArraySpace{S,n,T,DD,dim} <: DirectSumSpace{NTuple{n,S},T,DD,dim}
      space::S
      dimensions::NTuple{n,Int}
 #      # for AnyDomain() usage
@@ -13,8 +13,8 @@ immutable ArraySpace{S,n,T,DD,dim} <: Space{T,DD,dim}
     ArraySpace(d::Domain,dims)=new(S(d),dims)
 end
 
-InterlaceIterator(sp::ArraySpace) = InterlaceIterator(fill(dimension(sp.space),length(sp)))
-interlacer(sp::ArraySpace) = InterlaceIterator(sp)
+BlockInterlacer(sp::ArraySpace) = BlockInterlacer(fill(blocklengths(sp.space),length(sp)))
+interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
 typealias VectorSpace{S,T,DD,dim} ArraySpace{S,1,T,DD,dim}
 typealias MatrixSpace{S,T,DD,dim} ArraySpace{S,2,T,DD,dim}
@@ -35,10 +35,13 @@ Base.length(AS::ArraySpace) = *(AS.dimensions...)
 
 Base.length{AS<:ArraySpace}(f::Fun{AS}) = length(space(f))
 
-Base.size(AS::ArraySpace)=AS.dimensions
-Base.size(AS::ArraySpace,k)=AS.dimensions[k]
-
+Base.size(AS::ArraySpace) = AS.dimensions
+Base.size(AS::ArraySpace,k) = AS.dimensions[k]
 Base.size{AS<:ArraySpace}(f::Fun{AS},k...) = size(space(f),k...)
+
+Base.stride(AS::MatrixSpace,k::Int) = k==1?k:size(AS,1)
+Base.stride{S,T,DD,dim}(AS::Fun{MatrixSpace{S,T,DD,dim}},k::Int) =
+    k==1?k:size(AS,1)
 
 
 function Base.reshape(AS::VectorSpace,k,j)
@@ -50,13 +53,17 @@ end
 
 dimension(AS::ArraySpace) = dimension(AS.space)*length(AS)
 
-domain(AS::ArraySpace)=domain(AS.space)
+domain(AS::ArraySpace) = domain(AS.space)
 
 
 ## transforms
 
 
-transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}})=transform(AS,transpose(hcat(vals...)))
+points(d::ArraySpace,n) = points(d.space,n)
+
+
+transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}}) =
+    transform(AS,transpose(hcat(vals...)))
 
 function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
     n=length(AS)
@@ -65,25 +72,15 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
     plan = plan_transform(AS.space,M[:,1])
     cfs=Vector{V}[transform(AS.space,M[:,k],plan)  for k=1:size(M,2)]
 
-    C=zeros(coefficient_type(T,V),mapreduce(length,max,cfs)*size(M,2))
-
-    for k=1:size(M,2)
-        C[k:n:end]=cfs[k]
-    end
-    C
+    interlace(cfs,AS)
 end
 
 # transform of array is same order as vectorizing and then transforming
-transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}})=transform(vec(AS),map(vec,vals))
+transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}}) = transform(vec(AS),map(vec,vals))
 
 Base.vec(AS::ArraySpace)=ArraySpace(AS.space,length(AS))
-function Base.vec{S<:Space,V,T,DD,d}(f::Fun{VectorSpace{S,V,DD,d},T})
-    n=length(space(f))
-    Fun{S,T}[Fun(f.coefficients[j:n:end],space(f).space) for j=1:n]
-end
-Base.vec{AS<:ArraySpace,T}(f::Fun{AS,T})=vec(Fun(f.coefficients,vec(space(f))))
 
-mat{AS<:ArraySpace,T}(f::Fun{AS,T})=reshape(vec(f),size(space(f))...)
+mat{AS<:ArraySpace,T}(f::Fun{AS,T}) = reshape(vec(f),size(space(f))...)
 
 # mat(f,1) vectorizes columnwise
 function mat{S,V,T,DD,d}(f::Fun{MatrixSpace{S,V,DD,d},T},j::Integer)
@@ -98,13 +95,25 @@ end
 
 
 spaces(A::ArraySpace) = fill(A.space,A.dimensions)
+space(A::ArraySpace,k::Integer) =
+    if 1 ≤ k ≤ length(A)
+        A.space
+    else
+        throw(BoundsError())
+    end
+space(A::MatrixSpace,k::Integer,j::Integer) =
+    if 1 ≤ k ≤ size(A,1) && 1 ≤ j ≤ size(A,2)
+        A.space
+    else
+        throw(BoundsError())
+    end
 
 TupleSpace{SS}(A::ArraySpace{SS,1}) = TupleSpace(spaces(A))
 
-Base.getindex{S,V,DD,d}(f::Fun{VectorSpace{S,V,DD,d}},k...)=vec(f)[k...]
-Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k...)=mat(f)[k...]
+Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k::Integer,j::Integer) =
+    f[k+stride(f,2)*(j-1)]
 
-Base.getindex(S::ArraySpace,k...)=S.space
+Base.getindex(S::ArraySpace,k...) = S.space
 
 Base.start(S::ArraySpace) = 1
 Base.next(S::ArraySpace,k) = S.space,k+1
@@ -124,12 +133,12 @@ Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
 function devec{F<:Fun}(v::Vector{F})
     sps=map(space,v)
     if spacesequal(sps)
-        Fun(vec(coefficients(v).'),ArraySpace(first(sps),length(v)))
-    elseif domainscompatible(sps)
-        Fun(vec(coefficients(v).'),TupleSpace(sps))
+        S=ArraySpace(first(sps),length(v))
     else
-        Fun(vec(coefficients(v).'),PiecewiseSpace(sps))
+        S=TupleSpace(sps)
     end
+
+    Fun(interlace(v,S),S)
 end
 
 devec(v::Vector{Any})=devec([v...])
@@ -141,7 +150,7 @@ function devec{S<:Space}(spl::Vector{S})
 end
 
 
-function demat{S,T}(v::Array{Fun{S,T}})
+function demat{FF<:Fun}(v::Array{FF})
     ff=devec(vec(v))  # A vectorized version
     Fun(coefficients(ff),ArraySpace(space(ff).space,size(v)...))
 end
@@ -185,27 +194,18 @@ canonicalspace(AS::ArraySpace)=ArraySpace(canonicalspace(AS.space),size(AS))
 evaluate(f::AbstractVector,S::ArraySpace,x)=map(g->evaluate(g,x),mat(Fun(f,S)))
 
 for OP in (:(Base.transpose),)
-    @eval $OP{AS<:ArraySpace,T}(f::Fun{AS,T})=demat($OP(mat(f)))
+    @eval $OP{AS<:ArraySpace,T}(f::Fun{AS,T}) = demat($OP(mat(f)))
 end
 
 
-Base.reshape{AS<:ArraySpace}(f::Fun{AS},k...)=Fun(f.coefficients,reshape(space(f),k...))
+Base.reshape{AS<:ArraySpace}(f::Fun{AS},k...) = Fun(f.coefficients,reshape(space(f),k...))
 
-Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...)=demat(diff(mat(f),n...))
+Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...) = demat(diff(mat(f),n...))
 
 ## conversion
 
-function coefficients(f::Vector,a::VectorSpace,b::VectorSpace)
-    n=length(a)
-    @assert n==length(b)
-    A=a.space;B=b.space
-    ret=Array(eltype(f),length(f))
-    for k=1:n
-        ret[k:n:end]=coefficients(f[k:n:end],A,B)
-    end
-    ret
-end
-
+coefficients(f::Vector,a::VectorSpace,b::VectorSpace) =
+    interlace(map(coefficients,Fun(f,a),b),b)
 
 
 
@@ -216,15 +216,16 @@ end
 ## constructor
 
 # change to ArraySpace
-Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace)=Fun(coefficients(f,d),d)
-Fun{AS<:ArraySpace}(f::Fun{AS},d::Space)=Fun(f,ArraySpace(d,space(f).dimensions))
+Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = Fun(coefficients(f,d),d)
+Fun{AS<:ArraySpace}(f::Fun{AS},d::Space) = Fun(f,ArraySpace(d,space(f).dimensions))
 
 # columns are coefficients
-Fun{T<:Number}(M::Array{T,2},sp::Space)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
+Fun{T<:Number}(M::Array{T,2},sp::Space) = devec([Fun(M[:,k],sp) for k=1:size(M,2)])
 
 # Automatically change to ArraySpace
 # A is interpreted as coefficients
 function Fun{T<:Number}(A::Array{T,2},sp::VectorSpace)
+    error("Reimplement")
     n=length(sp)
     m=size(A,2)
 
@@ -239,13 +240,13 @@ function Fun{T<:Number}(A::Array{T,2},sp::VectorSpace)
     Fun(cfs,ArraySpace(sp.space,n,size(A,2)))
 end
 
-Base.ones{T<:Number}(::Type{T},A::ArraySpace)=demat(fill(ones(T,A.space),A.dimensions...))
-Base.ones(A::ArraySpace)=demat(fill(ones(A.space),A.dimensions...))
+Base.ones{T<:Number}(::Type{T},A::ArraySpace) = demat(fill(ones(T,A.space),A.dimensions...))
+Base.ones(A::ArraySpace) = demat(fill(ones(A.space),A.dimensions...))
 
 ## calculus
 
 for op in (:differentiate,:integrate,:(Base.cumsum))
-    @eval $op{V<:ArraySpace}(f::Fun{V})=demat(map($op,mat(f)))
+    @eval $op{V<:ArraySpace}(f::Fun{V}) = demat(map($op,mat(f)))
 end
 
 
@@ -265,20 +266,20 @@ end
 
 for OP in (:*,:.*,:+,:-)
     @eval begin
-        $OP{T<:Number,AS<:ArraySpace,V}(A::Array{T},f::Fun{AS,V})=demat($OP(A,mat(f)))
-        $OP{T<:Number,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{T})=demat($OP(mat(f),A))
-        $OP{T,S,AS<:ArraySpace,V}(A::Vector{Fun{S,T}},f::Fun{AS,V})=demat($OP(A,mat(f)))
-        $OP{T,S,AS<:ArraySpace,V}(f::Fun{AS,V},A::Vector{Fun{S,T}})=demat($OP(mat(f),A))
-        $OP{T,S,AS<:ArraySpace,V}(A::Array{Fun{S,T}},f::Fun{AS,V})=demat($OP(A,mat(f)))
-        $OP{T,S,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{Fun{S,T}})=demat($OP(mat(f),A))
-        $OP{AS<:ArraySpace,V}(A::UniformScaling,f::Fun{AS,V})=demat($OP(A,mat(f)))
-        $OP{AS<:ArraySpace,V}(f::Fun{AS,V},A::UniformScaling)=demat($OP(mat(f),A))
+        $OP{T<:Number,AS<:ArraySpace,V}(A::Array{T},f::Fun{AS,V}) = demat($OP(A,mat(f)))
+        $OP{T<:Number,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{T}) = demat($OP(mat(f),A))
+        $OP{T,S,AS<:ArraySpace,V}(A::Vector{Fun{S,T}},f::Fun{AS,V}) = demat($OP(A,mat(f)))
+        $OP{T,S,AS<:ArraySpace,V}(f::Fun{AS,V},A::Vector{Fun{S,T}}) = demat($OP(mat(f),A))
+        $OP{T,S,AS<:ArraySpace,V}(A::Array{Fun{S,T}},f::Fun{AS,V}) = demat($OP(A,mat(f)))
+        $OP{T,S,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{Fun{S,T}}) = demat($OP(mat(f),A))
+        $OP{AS<:ArraySpace,V}(A::UniformScaling,f::Fun{AS,V}) = demat($OP(A,mat(f)))
+        $OP{AS<:ArraySpace,V}(f::Fun{AS,V},A::UniformScaling) = demat($OP(mat(f),A))
     end
 end
 
 
 for OP in (:*,:.*)
-    @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V})=demat($OP(mat(A),mat(f)))
+    @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) = demat($OP(mat(A),mat(f)))
 end
 
 
@@ -301,4 +302,5 @@ function Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,D
 end
 
 
-Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T})=Any[vec(f,k) for k=1:length(space(f)[1])+1]
+Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T}) =
+    Any[vec(f,k) for k=1:length(space(f)[1])+1]

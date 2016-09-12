@@ -15,7 +15,7 @@ for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
 end
 
-getindex(QR::QROperator,k::Integer,j::Integer) = (QR[:Q]*QR[:R])[k,j]
+getindex(QR::QROperator,k::Integer,j::Integer) = QR.R.op[k,j]
 
 
 
@@ -170,6 +170,8 @@ Base.Ac_mul_B{QR,T,V<:Number}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...)
 Base.Ac_mul_B{QR,T}(A::QROperatorQ{QR,T},B::Fun;opts...) =
     Ac_mul_B(A,coefficients(B,rangespace(A)))
 
+
+linsolve(A::QROperatorQ,B;opts...) = Ac_mul_B(A,B;opts...)
 
 function linsolve(R::QROperatorR,b::Vector)
     if length(b) > R.QR.ncols

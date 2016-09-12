@@ -16,12 +16,15 @@ SubOperator(A,inds,dims) = SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
 SubOperator(A,inds) = SubOperator(A,inds,map(length,inds))
 
 function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
-    @assert isbanded(A) && isinf(size(A,1)) && isinf(size(A,2))
+    @assert isinf(size(A,1)) && isinf(size(A,2))
     st=step(kr)
-    @assert st==step(jr)  # Otherwise, its not a banded operator
-    kr1=first(kr)
-    jr1=first(jr)
-    l,u=(bandinds(A,1)+kr1-jr1)÷st,(bandinds(A,2)+kr1-jr1)÷st
+    if isbanded(A) && st==step(jr)  # Otherwise, its not a banded operator
+        kr1=first(kr)
+        jr1=first(jr)
+        l,u=(bandinds(A,1)+kr1-jr1)÷st,(bandinds(A,2)+kr1-jr1)÷st
+    else
+        l,u=-∞,∞
+    end
     SubOperator(A,(kr,jr),size(A),(-l,u))
 end
 
@@ -49,27 +52,46 @@ function view(A::Operator,kr::UnitRange,jr::UnitRange)
     end
 end
 
-view(A::Operator,::Colon,jr::Range) = view(A,1:size(A,1),jr)
-view(A::Operator,kr::Range,::Colon) = view(A,kr,1:size(A,2))
+view(A::Operator,::Colon,::Colon) = view(A,1:size(A,1),1:size(A,2))
+view(A::Operator,::Colon,jr) = view(A,1:size(A,1),jr)
+view(A::Operator,kr,::Colon) = view(A,kr,1:size(A,2))
+
+view(A::Operator,k,j) = SubOperator(A,(k,j))
+
+
 
 view(A::SubOperator,kr::UnitRange,jr::UnitRange) =
     view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
 
+
+
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
 bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
 function colstop(S::SubOperator,j::Integer)
-    cs=findfirst(parentindexes(S)[1],colstop(parent(S),parentindexes(S)[2][j]))
-    cs==0?size(S,1):cs
+    cs = colstop(parent(S),parentindexes(S)[2][j])
+    kr = parentindexes(S)[1]
+    n = size(S,1)
+    if cs < first(kr)
+        1
+    elseif cs ≥ last(kr)
+        n
+    else
+        min(n,findfirst(kr,cs))
+    end
 end
 colstart(S::SubOperator,j::Integer) =
     max(findfirst(parentindexes(S)[1],colstart(parent(S),parentindexes(S)[2][j])),1)
 rowstart(S::SubOperator,j::Integer) =
     max(1,findfirst(parentindexes(S)[2],rowstart(parent(S),parentindexes(S)[1][j])))
-function rowstop(S::SubOperator,j::Integer)
-    rs=findfirst(parentindexes(S)[2],rowstop(parent(S),parentindexes(S)[1][j]))
-    rs==0?size(S,2):rs
-end
+rowstop(S::SubOperator,j::Integer) =
+        findfirst(parentindexes(S)[2],rowstop(parent(S),parentindexes(S)[1][j]))
 
+
+# blocks don't change
+blockcolstop(S::SubOperator,J::Integer) = blockcolstop(parent(S),J)
+
+israggedbelow(S::SubOperator) = israggedbelow(parent(S))
+blockbandinds(S::SubOperator) = (-∞,∞)
 
 function bbbzeros(S::SubOperator)
     kr,jr=parentindexes(S)
@@ -79,14 +101,24 @@ function bbbzeros(S::SubOperator)
 
     rt=rangetensorizer(KO)
     dt=domaintensorizer(KO)
-    bbbzeros(eltype(KO),-l,u,-λ,μ,
+
+    J=block(dt,jr[1])
+    K=block(rt,kr[1])
+    bl_sh = J-K
+
+    jsh=jr[1]-blockstart(dt,J)
+    ksh=kr[1]-blockstart(rt,K)
+    sbl_sh = jsh-ksh
+
+
+    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,max(-λ,-λ+sbl_sh),max(μ,μ-sbl_sh),
             blocklengthrange(rt,kr),
             blocklengthrange(dt,jr))
 end
 
 
-domainspace(S::SubOperator) = SubSpace(domainspace(parent(S)),parentindexes(S)[2])
-rangespace(S::SubOperator) = SubSpace(rangespace(parent(S)),parentindexes(S)[1])
+domainspace(S::SubOperator) = domainspace(parent(S))|parentindexes(S)[2]
+rangespace(S::SubOperator) = rangespace(parent(S))|parentindexes(S)[1]
 
 size(V::SubOperator) = V.dims
 size(V::SubOperator,k::Int) = V.dims[k]
@@ -97,3 +129,16 @@ getindex(V::SubOperator,k::Range,j::Integer) = V.parent[V.indexes[1][k],V.indexe
 getindex(V::SubOperator,k::Range,j::Range) = V.parent[V.indexes[1][k],V.indexes[2][j]]
 Base.parent(S::SubOperator) = S.parent
 Base.parentindexes(S::SubOperator) = S.indexes
+
+
+
+
+function Base.convert(::Type{RaggedMatrix},S::SubOperator)
+    if isbanded(parent(S))
+        RaggedMatrix(BandedMatrix(S))
+    elseif isbandedblockbanded(parent(S))
+        RaggedMatrix(BandedBlockBandedMatrix(S))
+    else
+        default_raggedmatrix(S)
+    end
+end

@@ -1,4 +1,4 @@
-export Evaluation,ivp,bvp
+export Evaluation,ivp,bvp,Dirichlet
 
 ## Evaluation constructors
 
@@ -80,6 +80,8 @@ immutable EvaluationWrapper{S<:Space,M,FS<:Operator,OT,T<:Number} <: Evaluation{
     functional::FS
 end
 
+
+#TODO: @wrapper
 EvaluationWrapper(sp::Space,x,order,func::Operator) =
     EvaluationWrapper{typeof(sp),typeof(x),typeof(func),typeof(order),eltype(sp)}(sp,x,order,func)
 getindex(E::EvaluationWrapper,k) = E.functional[k]
@@ -127,16 +129,30 @@ end
 
 
 
+abstract Dirichlet{S,T} <: Operator{T}
 
-immutable Dirichlet{S,T} <: Operator{T}
+
+immutable ConcreteDirichlet{S,T} <: Dirichlet{S,T}
     space::S
     order::Int
 end
-Dirichlet(sp::Space)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,0)
-Dirichlet(d::Domain)=Dirichlet(Space(d))
-Neumann(sp::Space)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,1)
-Neumann(d::Domain)=Dirichlet(Space(d))
+ConcreteDirichlet(sp::Space,order) = ConcreteDirichlet{typeof(sp),eltype(sp)}(sp,order)
+
+immutable DirichletWrapper{S,T} <: Conversion{T}
+    op::S
+    order::Int
+end
+
+@wrapper DirichletWrapper
+
+DirichletWrapper(B::Operator,λ=0) = DirichletWrapper{typeof(B),eltype(B)}(B,λ)
 
 
-domainspace(S::Dirichlet)=S.space
-rangespace(B::Dirichlet)=Space(∂(domain(B)))
+Dirichlet(sp::Space,λ=0) = error("Override getindex for Dirichlet($sp,$λ)")
+Dirichlet(d::Domain,λ...) = Dirichlet(Space(d),λ...)
+Neumann(sp::Space) = Dirichlet(sp,1)
+Neumann(d::Domain) = Neumann(Space(d))
+
+
+domainspace(S::ConcreteDirichlet) = S.space
+rangespace(B::ConcreteDirichlet) = Space(∂(domain(B)))

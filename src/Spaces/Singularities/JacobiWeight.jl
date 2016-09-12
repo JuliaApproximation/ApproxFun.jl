@@ -89,6 +89,8 @@ coefficients{SJ,SV,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::Sum
     sumspacecoefficients(f,sp,S2)
 coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD}) =
     coefficients(f,sp,JacobiWeight(0,0,S2))
+coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) =
+    f.coefficients[1]*ones(ts).coefficients
 coefficients{SJ,DD<:IntervalDomain}(f::Vector,S2::RealUnivariateSpace{DD},sp::JacobiWeight{SJ,DD}) =
     coefficients(f,JacobiWeight(0,0,S2),sp)
 

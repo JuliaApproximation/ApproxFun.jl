@@ -491,7 +491,32 @@ for OP in (:>,:>=)
 end
 
 
-## My Count
+# Re-implementation of Base iterators
+# to use ∞ and allow getindex
+
+
+immutable Repeated{T}
+    x::T
+end
+
+Base.eltype{T}(::Type{Repeated{T}}) = T
+Base.eltype{T}(::Repeated{T}) = T
+
+Base.step(::Repeated) = 0
+
+Base.start(::Repeated) = nothing
+Base.next(it::Repeated,state) = it.x,nothing
+Base.done(::Repeated,state) = false
+
+Base.length(::Repeated) = ∞
+
+getindex(it::Repeated,k::Integer) = it.x
+getindex(it::Repeated,k::Range) = fill(it.x,length(k))
+
+repeated(x) = Repeated(x)
+repeated(x,::Infinity{Bool}) = Repeated(x)
+repeated(x,m::Integer) = fill(x,m)  #TODO: make a take
+
 
 abstract AbstractCount{S<:Number}
 
@@ -546,6 +571,32 @@ function Base.colon(a::Real,st::Real,b::Infinity{Bool})
         countfrom(a,st)
     end
 end
+
+
+
+
+immutable CumSumIterator{CC}
+    iterator::CC
+end
+
+Base.eltype{S}(::Type{CumSumIterator{S}}) = eltype(S)
+Base.eltype(CC::CumSumIterator) = eltype(CC.iterator)
+
+Base.start(it::CumSumIterator) = (0,start(it.iterator))
+function Base.next(it::CumSumIterator, state)
+    a,nx_st=next(it.iterator,state[2])
+    cs=state[1]+a
+    (cs,(cs,nx_st))
+end
+Base.done(it::CumSumIterator, state) = done(it.iterator,state[2])
+
+Base.length(it::CumSumIterator) = length(it.iterator)
+
+getindex{AC<:UnitCount}(it::CumSumIterator{AC},k) = it.iterator.start*k + ((k*(k-1))÷2)
+getindex{AC<:Count}(it::CumSumIterator{AC},k) = it.iterator.start*k + step(it.iterator)*((k*(k-1))÷2)
+
+
+
 
 
 ## BandedMatrix
@@ -625,3 +676,182 @@ end
 cache{T<:Number}(A::Vector{T}) = A
 cache(A::Range) = A
 cache(A::AbstractCount) = A
+
+
+
+## From Julia v0.5 code
+
+
+# flatten an iterator of iterators
+# we add indexing
+
+immutable Flatten{I}
+    it::I
+end
+
+"""
+    flatten(iter)
+
+Given an iterator that yields iterators, return an iterator that yields the
+elements of those iterators.
+Put differently, the elements of the argument iterator are concatenated. Example:
+
+    julia> collect(flatten((1:2, 8:9)))
+    4-element Array{Int64,1}:
+     1
+     2
+     8
+     9
+"""
+flatten(itr) = Flatten(itr)
+
+Base.eltype(f::Flatten) = mapreduce(eltype,promote_type,f.it)
+
+Base.start(f::Flatten) = 1, map(start,f.it)
+
+function Base.next(f::Flatten, state)
+    k, sts = state
+    if !done(f.it[k],sts[k])
+        a,nst = next(f.it[k],sts[k])
+        a, (k,(sts[1:k-1]...,nst,sts[k+1:end]...))
+    else
+        next(f,(k+1,sts))
+    end
+end
+
+
+@inline Base.done(f::Flatten, state) =
+    state[1] == length(f) && done(f.its[end],state[2][end])
+
+Base.length(f::Flatten) = mapreduce(length,+,f.it)
+function getindex(f::Flatten,k::Int)
+    sh = 0
+    for it in f.it
+        n = length(it)
+        if k ≤ sh + n
+            return it[k-sh]
+        else
+            sh += n
+        end
+    end
+
+    throw(BoundsError())
+end
+
+function getindex(f::Flatten,kr::UnitRange{Int})
+    @assert first(kr) == 1
+
+    k = last(kr)
+    ret=
+
+    sh = 0
+    for j in 1:length(f.it)
+        n = length(f.it[j])
+        if sh ≤ k ≤ sh + n
+            return flatten(tuple(f.it[1:j-1]...,f.it[j][1:(k-sh)]))
+        else
+            sh += n
+        end
+    end
+
+    throw(BoundsError())
+end
+
+
+Base.sum(f::Flatten) = mapreduce(sum,+,f.it)
+
+
+## Iterator Algebra
+
+
+for OP in (:+,:-,:*,:/)
+    @eval begin
+        $OP(f::Flatten,c::Number) = Flatten(map(it->$OP(it,c),f.it))
+        $OP(c::Number,f::Flatten) = Flatten(map(it->$OP(c,it),f.it))
+    end
+end
+
+for OP in (:+,:-,:(.*))
+    @eval begin
+        $OP(a::Repeated,b::Repeated) = Repeated($OP(a.x,b.x))
+        $OP(a::Number,b::Repeated) = Repeated($OP(a,b.x))
+        $OP(a::Repeated,b::Number) = Repeated($OP(a.x,b))
+
+        $OP(a::AbstractCount,b::Repeated) = $OP(a,b.x)
+        $OP(a::Repeated,b::AbstractCount) = $OP(a.x,b)
+
+        function $OP(a::Flatten,b::Repeated)
+            @assert isinf(length(a.it[end]))
+            flatten(map(it->$OP(it,b.x),a.it))
+        end
+        function $OP(a::Repeated,b::Flatten)
+            @assert isinf(length(b.it[end]))
+            flatten(map(it->$OP(a.x,it),b.it))
+        end
+    end
+end
+
+for OP in (:+,:-)
+    @eval begin
+        $OP(a::AbstractCount,b::AbstractCount) =
+            Count($OP(start(a),start(b)),$OP(step(a),step(b)))
+        $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
+        $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
+    end
+end
+
+*(a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
+*(b::AbstractCount,a::Number) = a*b
++(a::Number,b::UnitCount) = UnitCount(a+b.start)
++(a::Number,b::Count) = Count(a+b.start,b.step)
+-(a::Number,b::UnitCount) = Count(a-b.start,-1)
+-(a::Number,b::Count) = Count(a-b.start,-b.step)
+
+function +(a::Flatten,b::Flatten)
+    if isempty(a)
+        @assert isempty(b)
+        a
+    elseif length(a.it) == 1
+        a.it[1]+b
+    elseif length(b.it) == 1
+        a+b.it[1]
+    elseif length(a.it[1]) == length(b.it[1])
+        flatten((a.it[1]+b.it[1],(flatten(a.it[2:end])+flatten(b.it[2:end])).it...))
+    elseif length(a.it[1]) < length(b.it[1])
+        n=length(a.it[1])
+        flatten((a.it[1]+b.it[1][1:n],
+            (flatten(a.it[2:end])+flatten((b.it[1][n+1:end],b.it[2:end]...))).it...))
+    else #length(a.it[1]) > length(b.it[1])
+        n=length(a.it[2])
+        flatten((a.it[1][1:n]+b.it[1],
+            (flatten((a.it[1][n+1:end],b.it[2:end]...))+flatten(b.it[2:end])).it...))
+    end
+end
+
+
+Base.cumsum(r::Repeated) = r.x:r.x:∞
+Base.cumsum(r::Repeated{Bool}) = r.x?1:∞:r
+Base.cumsum(r::AbstractCount) = CumSumIterator(r)
+
+
+
+
+function Base.cumsum(f::Flatten)
+    cs=zero(eltype(f))
+    its = Array(eltype(f.it),0)
+    for it in f.it
+        c=cumsum(cs+it)
+        push!(its,c)
+        cs=last(c)
+    end
+    Flatten(tuple(its...))
+end
+
+
+function pad(v,::Infinity{Bool})
+    if isinf(length(v))
+        v
+    else
+        flatten((v,repeated(0)))
+    end
+end

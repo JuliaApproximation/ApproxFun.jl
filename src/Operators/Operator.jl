@@ -39,10 +39,17 @@ isbandedbelow(A::Operator) = isfinite(bandinds(A,1))
 isbandedabove(A::Operator) = isfinite(bandinds(A,2))
 
 isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
-isbandedblockbanded(::) = false
 
 
-israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A)
+isbandedblockbandedbelow(::) = false
+isbandedblockbandedabove(::) = false
+
+isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockbandedbelow(A)
+isblockbanded(A) = isbandedblockbanded(A)
+
+blockbandinds(S::Operator,k...) = bandinds(S,k...)
+
+israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isblockbanded(A)
 
 macro functional(FF)
     quote
@@ -155,13 +162,7 @@ defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in 
 
 
 # Colon casdes
-defaultgetindex(A::Operator,kr::Range,::Colon) = view(A,kr,:)
-defaultgetindex(A::Operator,::Colon,jr::Range) = view(A,:,jr)
-defaultgetindex(A::Operator,::Colon,::Colon) = A
-
-defaultgetindex(A::Operator,kr::AbstractCount,jr::AbstractCount) = view(A,kr,jr)
-defaultgetindex(B::Operator,k::AbstractCount,::Colon) = B[k,1:end]
-defaultgetindex(B::Operator,::Colon,j::AbstractCount) = B[1:end,j]
+defaultgetindex(A::Operator,k,j) = view(A,k,j)
 
 
 
@@ -194,8 +195,10 @@ function defaultgetindex(A::Operator,::Type{FiniteRange},::Type{FiniteRange})
         error("Only exists for finite operators.")
     end
 end
-defaultgetindex(A::Operator,::Type{FiniteRange},jr) =
-    A[1:colstop(A,maximum(jr)),jr]
+function defaultgetindex(A::Operator,::Type{FiniteRange},jr)
+    cs=mapreduce(j->colstop(A,j),max,jr)
+    A[1:cs,jr]
+end
 
 defaultgetindex(A::Operator,kr,::Type{FiniteRange}) =
     A[kr,1:rowstop(A,maximum(kr))]
@@ -240,6 +243,24 @@ macro wrappergetindex(Wrap)
         end
     end
 
+    for func in (:(ApproxFun.bandinds),:(Base.stride),
+                 :(ApproxFun.isbandedblockbanded),
+                 :(ApproxFun.israggedbelow))
+        ret = quote
+            $ret
+
+            $func(D::$Wrap) = $func(D.op)
+        end
+    end
+
+     for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
+                     :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds))
+         ret = quote
+             $ret
+
+             $func(D::$Wrap,k::Integer) = $func(D.op,k)
+         end
+     end
     esc(ret)
 end
 
@@ -250,24 +271,15 @@ macro wrapper(Wrap)
 
         ApproxFun.iswrapper(::$Wrap) = true
     end
-    for func in (:(ApproxFun.rangespace),:(ApproxFun.domainspace),
-                 :(ApproxFun.bandinds),:(ApproxFun.domain),:(Base.stride),
-                 :(ApproxFun.isbandedblockbanded),:(ApproxFun.isconstop),
-                 :(ApproxFun.israggedbelow))
+    for func in (:(ApproxFun.rangespace),:(ApproxFun.domain),
+                 :(ApproxFun.domainspace),:(ApproxFun.isconstop),)
         ret = quote
             $ret
 
             $func(D::$Wrap) = $func(D.op)
         end
     end
-    for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
-                    :(ApproxFun.rowstart),:(ApproxFun.rowstop))
-        ret = quote
-            $ret
 
-            $func(D::$Wrap,k::Integer) = $func(D.op,k)
-        end
-    end
     esc(ret)
 end
 
@@ -359,7 +371,7 @@ bbbzeros(S::Operator) = bbbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,
             blocklengthrange(rangetensorizer(S),1:size(S,1)),
             blocklengthrange(domaintensorizer(S),1:size(S,2)))
 
-rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[colstop(S,j) for j=1:size(S,2)])
+rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[max(0,colstop(S,j)) for j=1:size(S,2)])
 
 banded_convert_axpy!(S::Operator) =
     BLAS.axpy!(one(eltype(S)),S,bzeros(S))
@@ -379,7 +391,15 @@ function Base.convert(::Type{Matrix},S::Operator)
 end
 
 Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
-Base.convert(::Type{RaggedMatrix},S::Operator) = default_raggedmatrix(S)
+function Base.convert(::Type{RaggedMatrix},S::Operator)
+    if isbanded(S)
+        RaggedMatrix(BandedMatrix(S))
+    elseif isbandedblockbanded(S)
+        RaggedMatrix(BandedBlockBandedMatrix(S))
+    else
+        default_raggedmatrix(S)
+    end
+end
 
 function Base.convert(::Type{Vector},S::Operator)
     if size(S,2) ≠ 1  || isinf(size(S,1))

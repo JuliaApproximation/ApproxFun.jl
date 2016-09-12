@@ -75,6 +75,10 @@ domaindimension{S,D,d}(::Space{S,D,d}) = d
 dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 
 
+# the default is all spaces have one-coefficient blocks
+blocklengths(S::Space) = repeated(true,dimension(S))
+block(S::Space,k) = k
+
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
 
@@ -416,8 +420,8 @@ end
 ## rand
 # checkpoints is used to give a list of points to double check
 # the expansion
-Base.rand(d::Space,k...)=rand(domain(d),k...)
-checkpoints(d::Space)=checkpoints(domain(d))
+Base.rand(d::Space,k...) = rand(domain(d),k...)
+checkpoints(d::Space) = checkpoints(domain(d))
 
 
 
@@ -501,6 +505,11 @@ ConstantSpace() = ConstantSpace(AnyDomain())
 
 isconstspace(::ConstantSpace) = true
 
+function transform(sp::ConstantSpace,vals,plan...)
+    @assert length(vals)==1
+    vals
+end
+
 # we override maxspace instead of maxspace_rule to avoid
 # domainscompatible check.
 for OP in (:maxspace,:(Base.union))
@@ -522,3 +531,9 @@ const ℓ⁰ = SequenceSpace()
 dimension(::SequenceSpace) = ∞
 domain(::SequenceSpace) = ℕ
 spacescompatible(::SequenceSpace,::SequenceSpace) = true
+
+
+
+## Boundary
+
+∂(S::Space) = ∂(domain(S))

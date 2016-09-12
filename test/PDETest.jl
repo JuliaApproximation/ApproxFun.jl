@@ -1,251 +1,290 @@
 using ApproxFun, Compat, Base.Test
+    import Compat: view
+## Check operators
+
+
+S=ChebyshevDirichlet()^2
+B=Dirichlet(S)
+f = Fun((x,y)->exp(x)*sin(y),S)
+@test norm((Fun((x,y)->exp(x)*sin(y),∂(domain(S))) - B*f).coefficients) < 100eps()
+
+
+S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
+Δ=Laplacian(S)
+u=Fun((x,y)->sin(π*x)*sin(π*y),S)
+
+f=-2π^2*u
+
+v=Δ\f
+@test norm((u-v).coefficients)<1E-14
+
+
+f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
+v=linsolve(Δ,f;tolerance=1E-14)
+@test norm((Δ*v-f).coefficients)<1E-14
+
+KO=Δ.op.ops[1].ops[1].op
+
+M=ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,1:4))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,2:4))-M[:,2:4]) < 10eps()
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,3:4))-M[:,3:4]) < 10eps()
+
+M=ApproxFun.BandedBlockBandedMatrix(view(KO,1:112,1:112))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:112,112:112))-M[:,112]) < 10eps()
+
+
+M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,1:4))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,2:4))-M[:,2:4]) < 10eps()
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,3:4))-M[:,3:4]) < 10eps()
+
+M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,1:112))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,112:112))-M[:,112]) < 10eps()
+
+
 
 ## Rectangle PDE
-
 dx=dy=Interval()
 d=dx*dy
-x=Fun(identity,dx);y=Fun(identity,dy)
+g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
-#dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
+A=[Dirichlet(d);Laplacian(d)]
+let Ai=ApproxFun.interlace(A),co=cache(Ai)
+    ApproxFun.resizedata!(co,:,100)
+    ApproxFun.resizedata!(co,:,200)
+    @test norm(Ai[1:200,1:200]-co[1:200,1:200]) == 0
+end
 
-G=[real(exp(-1+1.0im*y));
-                        real(exp(1+1im*y));
-                        real(exp(x-1im));
-                        real(exp(x+1im));0.];
+u=A\[g,0.]
+@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
-A=[dirichlet(d);lap(d)]
-u=A\G
+A=[Dirichlet(d);Laplacian(d)+0.0I]
+u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
-A=[dirichlet(d);lap(d)+0.0I]
-u=A\G
-@test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-11
+S=ChebyshevDirichlet()^2
+ff=(x,y)->exp(x)*cos(y)
+u=Fun(ff,S)
+
+for KO in [eye(S[1])⊗rdirichlet(S[1]),rdirichlet(S[1])⊗eye(S[2])]
+    @test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
+end
+
+B=[dirichlet(S[1])⊗eye(S[2]);
+   eye(S[1])⊗dirichlet(S[2]);
+   Laplacian()]
+
+
+u=linsolve(B,ones(4);tolerance=1E-14)
+@test norm((u-Fun([1.],S)).coefficients)<10eps()
+
+g=map(sp->Fun(ff,sp),map(rangespace,B[1:4]))
+
+u=linsolve(B,[g;0];tolerance=1E-10)
+@test_approx_eq u(0.1,0.2) ff(0.1,0.2)
+
 
 
 println("    Poisson tests")
 
+
 ## Poisson
 
-f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2))  #default is [-1,1]^2
+f=chop(Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2)),1000eps())  #default is [-1,1]^2
 d=domain(f)
-OS=S=schurfact([dirichlet(d);lap(d)],10)
-u=OS\[zeros(∂(d));f]
-@test_approx_eq u(.1,.2) -0.042393137972085826
-
+A=[Dirichlet(d);Laplacian(d)]
+u=linsolve(A,[zeros(∂(d));f];tolerance=1E-10)
+@test_approx_eq u(.1,.2) -0.04251891975068446
 
 
 d=PeriodicInterval()^2
-f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
-A=lap(d)+.1I
+f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
+A=Laplacian(d)+.1I
 u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
 
-println("    Kron tests")
-
-@static if is_apple()
-    ## Kron
-
-    dx=dy=Interval()
-    d=dx*dy
-    x=Fun(identity,dx);y=Fun(identity,dy)
-
-    #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
-
-    G=[real(exp(-1+1.0im*y));
-                            real(exp(1+1im*y));
-                            real(exp(x-1im));
-                            real(exp(x+1im));0.];
-
-    A=[dirichlet(d);lap(d)]
-
-    S=schurfact(A,40)
-
-    uex=A\G
-
-    nx=ny=40
-    K=kronfact(A,nx,ny)
-
-    uex2=K\G
-
-    @test (uex-uex2|>coefficients|>norm)<10000eps()
 
 
 
-    # dirichlet bcs
+# fourth order
 
-    import ApproxFun.ChebyshevDirichlet
-
-    S=ChebyshevDirichlet()⊗ChebyshevDirichlet();
-    A=[dirichlet(S);lap(S)]
-    nx=ny=20;
-    KD=kronfact(A,nx,ny);
-
-
-    #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
-    x=Fun(identity);y=Fun(identity);
-    G=[Fun(real(exp(-1+1.0im*y)),S[2]);
-        Fun(real(exp(1+1im*y)),S[2]);
-        Fun(real(exp(x-1im)),S[1]);
-                            Fun(real(exp(x+1im)),S[1]);0.];
-
-    uD=KD\G;
-
-    @test_approx_eq uD(.1,.2) real(exp(.1+.2im))
+println("    Bilaplacian tests")
+dx=dy=Interval()
+d=dx*dy
+Dx=Derivative(dx);Dy=Derivative(dy)
+L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
 
-
-    # fourth order
-    dx=dy=Interval()
-    d=dx*dy
-    Dx=Derivative(dx);Dy=Derivative(dy)
-    L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
-
-    K=kronfact([dirichlet(d);
-         neumann(d);
-         L],100,100)
-
-    x=Fun(identity,dx);y=Fun(identity,dy)
-
-    G=[real(exp(-1+1.0im*y));
-                    real(exp(1+1im*y));
-                    real(exp(x-1im));
-                    real(exp(x+1im));
-                    real(exp(-1+1.0im*y));
-                    real(exp(1+1im*y));
-                    -imag(exp(x-1im));
-                    -imag(exp(x+1im))
-       ]
-    u=K\G
-    @test_approx_eq u(.1,.2) real(exp(.1+.2im))
+A=[dirichlet(dx)⊗eye(dy);
+        eye(dx)⊗dirichlet(dy);
+        neumann(dx)⊗eye(dy);
+        eye(dx)⊗neumann(dy);
+         L]
 
 
-    # mixed
+u=linsolve(A,ones(4);tolerance=1E-5)
+@test_approx_eq u(0.1,0.2) 1.0
 
-    K=kronfact([(ldirichlet(dx)+lneumann(dx))⊗I;
-            (rdirichlet(dx)+rneumann(dx))⊗I;
-            I⊗(ldirichlet(dy)+lneumann(dy));
-            I⊗(rdirichlet(dy)+rneumann(dy));
-            (ldirichlet(dx)-lneumann(dx))⊗I;
-            (rdirichlet(dx)-rneumann(dx))⊗I;
-            I⊗(ldirichlet(dy)-lneumann(dy));
-            I⊗(rdirichlet(dy)-rneumann(dy));
-             L],100,100)
-    G=[2real(exp(-1+1.0im*y));
-                    2real(exp(1+1im*y));
-                    real(exp(x-1im))-imag(exp(x-1im));
-                    real(exp(x+1im))-imag(exp(x+1im));
-                    0;
-                    0;
-                    real(exp(x-1im))+imag(exp(x-1im));
-                    real(exp(x+1im))+imag(exp(x+1im))
-       ]
-    u=K\G
 
-    @test_approx_eq u(.1,.2) real(exp(.1+.2im))
-end
+F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[3]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[4]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[5]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[6]));
+    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[7]));
+    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[8]));
+    0]
+
+u=linsolve(A,F;tolerance=1E-10)
+
+@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
+
+
+
+
+A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
+        (rdirichlet(dx)+rneumann(dx))⊗eye(dy);
+        eye(dx)⊗(ldirichlet(dy)+lneumann(dy));
+        eye(dx)⊗(rdirichlet(dy)+rneumann(dy));
+        (ldirichlet(dx)-lneumann(dx))⊗eye(dy);
+        (rdirichlet(dx)-rneumann(dx))⊗eye(dy);
+        eye(dx)⊗(ldirichlet(dy)-lneumann(dy));
+        eye(dx)⊗(rdirichlet(dy)-rneumann(dy));
+         L]
+
+
+u=linsolve(A,ones(8);tolerance=1E-5)
+@test_approx_eq u(0.1,0.2) 1.0
+
+
+
+F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
+    2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
+    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[3]));
+    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[4]));
+    0;
+    0;
+    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[7]));
+    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[8]));
+    0]
+
+u=linsolve(A,F;tolerance=1E-10)
+
+@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
 
 
 
 ## Test periodic x interval
 
+println("    Periodic x Interval tests")
 d=PeriodicInterval()*Interval()
-g=Fun(z->real(cos(z)),∂(d))  # boundary data
-u=[dirichlet(d);lap(d)]\g
+
+u_ex=Fun((x,y)->real(cos(x+im*y)),d)
+
+B=Dirichlet(Space(d))
+g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
+@test norm((B*u_ex-g).coefficients) < 10eps()
+
+
+u=[B;Laplacian(d)]\[g;0.]
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
 
-
-dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
 d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
+B=eye(d[1])⊗ldirichlet(dt)
 
+u0=Fun(θ->exp(-20θ^2),dθ,20)
+u=linsolve([B;Dt+Dθ],[u0;0.];tolerance=1E-7)
 
-@test_approx_eq u(.1,.2) exp(-20(0.1-0.2)^2)
-
-
-println("   Domain Decompositon tests")
-
-## Domain Decomposition
-d=Interval(0,1)^2
-n,m=20,80
-A=discretize([dirichlet(d);lap(d)],n)
-∂d=∂(d)
-g=Fun(z->real(exp(z)),∂d)
-f=[Fun([zeros(k-1);1.0],∂d) for k=1:m].'
-U=A\f
-@test_approx_eq dot(real(g.coefficients),U[1:ncoefficients(g)])(.1,.2) real(exp(.1+.2im))
+@test_approx_eq_eps u(.1,.2) u0(0.1-0.2) 1E-7
 
 
 
-Rectangle(a,b,c,d)=Interval(a,b)*Interval(c,d)
-Γ=Rectangle(0,1,0,1)∪Rectangle(1,2,0,1)
-Fun(identity,∂(Γ))|>values
 
+# println("   Domain Decompositon tests")
+#
+# ## Domain Decomposition
+# d=Interval(0,1)^2
+#
+# QR=qrfact([Dirichlet(d);Laplacian(d)])
+# ∂d=∂(d)
+# g=Fun((x,y)->real(exp(x+im*y)),∂d)
+# m=10
+# f=[detuple([Fun([zeros(k-1);1.0],∂d);0.]) for k=1:m].'
+# @time U=linsolve(QR,f[5];tolerance=1E-10)
+# @test_approx_eq dot(real(g.coefficients),U[1:ncoefficients(g)])(.1,.2) real(exp(.1+.2im))
 
 
 ## Small diffusoion
 
-dx=Interval();dt=Interval(0,1.)
+
+println("    Time evolution tests")
+
+
+dx=Interval();dt=Interval(0,0.2)
 d=dx*dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-x=Fun(identity,dx)
+x,t=Fun(dx*dt)
+
+
 B=0.0
 C=0.0
 V=B+C*x
-ε=0.001
-f=Fun(x->exp(-20x^2),dx)
-u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
-@test_approx_eq u(.1,.2) 0.8148207991358946
+ε=0.1
+f=Fun(x->exp(-30x^2),dx)
+u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
+
+@test_approx_eq u(.1,.2) 0.496524222625512
 B=0.1
 C=0.2
 V=B+C*x
-u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
-@test_approx_eq u(.1,.2) 0.7311625132209619
+u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-7)
+@test_approx_eq u(.1,.2) 0.46810331039791464
+
 
 
 ## Schrodinger
 
-dx=Interval(0.,1.);dt=Interval(0.0,.1)
+dx=Interval(0.,1.);dt=Interval(0.0,0.001)
 d=dx*dt
 
-V=Fun(x->x^2,dx)
+x,y=Fun(d)
+V=x^2
 
 Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 
 ϵ=1.
 u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
 L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
-ny=200;u=pdesolve([timedirichlet(d);L],u0,ny)
-@test_approx_eq_eps u(.2,.1) (0.2937741918470843 + 0.22130344715160255im )  0.000001
-
+u=linsolve([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-1)
+@test_approx_eq_eps u(.2,.001) (0.5270296652096698 + 0.5027510303539062im )  0.000001
 
 
 ## Periodic
 
+println("    Periodic tests")
+
 d=PeriodicInterval()^2
 f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
-A=lap(d)+.1I
+A=Laplacian(d)+.1I
 u=A\f
 @test_approx_eq u(.1,.2) u(.2,.1)
 
 
 d=PeriodicInterval()*Interval()
-g=Fun(z->real(cos(z)),∂(d))  # boundary data
-u=[dirichlet(d);lap(d)]\g
+g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
+u=[Dirichlet(d);Laplacian(d)]\Any[g;0.]
+
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
 
 
-dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
-d=dθ*dt
-Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-u=[I⊗ldirichlet(dt);Dt+Dθ]\Fun(θ->exp(-20θ^2),dθ)
-
-d=dt*dθ
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
 
 
 # Check bug in cache
@@ -254,37 +293,40 @@ ApproxFun.resizedata!(CO,:,2)
 ApproxFun.resizedata!(CO,:,4)
 @test_approx_eq CO*Fun(exp,dt) 1.0
 
+d=dt*dθ
 
 
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
-f=Fun(θ->exp(-20θ^2),dθ)
-ut=A\f
+u0=Fun(θ->exp(-20θ^2),dθ,20)
+ut=A\[u0;0.]
 
-@test_approx_eq u(.1,.2) ut(.2,.1)
+@test_approx_eq ut(.1,.2) u0(.2-.1)
+
 
 
 
 
 # Beam
 
-dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.03)
+
+
+dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.01)
 d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
 
 B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
-u=pdesolve([B;Dt^2+Dθ^4],Fun(θ->exp(-200(θ-.5).^2),dθ),200)
+u0=Fun(θ->exp(-200(θ-.5).^2),dθ)
+u=linsolve([B;Dt^2+Dθ^4],[u0;0.;0.];tolerance=1E-3)
 
-@test_approx_eq_eps u(.1,.01) -0.2479768394633227  1E-8 #empirical
-
-
+@test_approx_eq_eps u(.1,.01) -0.2479768394633227  1E-3 #empirical
 
 ## Rectangle PDEs
 
 # Screened Poisson
 
 d=Interval()^2
-u=[neumann(d);lap(d)-100.0I]\ones(∂(d))
+u=linsolve([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
 @test_approx_eq u(.1,.9) 0.03679861429138079
 
 # PiecewisePDE
@@ -300,11 +342,7 @@ Bx=[ldirichlet(s);continuity(s,0)]
 CO=cache(Bx[2])
 ApproxFun.resizedata!(CO,:,2)
 ApproxFun.resizedata!(CO,:,4)
-@test_approx_eq CO.data*collect(1:4) [3.,-1.]
-
-
-u=pdesolve([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],Any[Fun(x->exp(-20(x+0.5)^2),s)],200)
-@test_approx_eq_eps u(-.1,.2) exp(-20(-.2-.1+0.5)^2) 0.00001
+@test_approx_eq (CO*collect(1:4)).coefficients [3.,-1.]
 
 
 
@@ -314,18 +352,16 @@ u=pdesolve([I⊗ldirichlet(dt);Bx⊗I;I⊗Dt+(a*Dx)⊗I],Any[Fun(x->exp(-20(x+0.
 dx=Interval();dt=Interval(0,2.)
 d=dx*dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-x=Fun(identity,dx)
-u=[I⊗ldirichlet(dt);Dt+x*Dx]\Fun(x->exp(-20x^2),dx)
+x,y=Fun(identity,d)
+u=linsolve([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 
 @test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
 
 
-dθ=PeriodicInterval();dt=Interval(0,10.)
+dθ=PeriodicInterval();dt=Interval(0,1.)
 d=dθ*dt
-ε=.01
+ε=0.1
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-
-# Parentheses are a hack to get rank 2 PDE
-u=[I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ]\Fun(θ->exp(-20θ^2),dθ)
-
-@test_approx_eq_eps u(0.1,0.2) 0.1967278179230314 1000eps()
+u0=Fun(θ->exp(-20θ^2),dθ,20)
+u=linsolve([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
+@test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2

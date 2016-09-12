@@ -12,7 +12,12 @@ SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,sp.indexes[kr])
 domain(DS::SubSpace) = domain(DS.space)
 dimension(sp::SubSpace) = length(sp.indexes)
 
+
+|(sp::Space,kr::UnitCount) = first(kr)==1?sp:SubSpace(sp,kr)
 |(sp::Space,kr::Union{AbstractCount,Range}) = SubSpace(sp,kr)
+
+
+block(sp::SubSpace,k::Integer) = block(sp.space,sp.indexes[k])
 
 
 spacescompatible{DS,IT,T,DD,d}(S1::SubSpace{DS,IT,T,DD,d},S2::SubSpace{DS,IT,T,DD,d}) =
@@ -88,8 +93,10 @@ itransform(sp::SubSpace,cfs::Vector) =
 
 points(sp::SubSpace,n) = points(sp.space,n)
 
+coefficients{DS,IT,T,D}(v::Vector,::SubSpace{DS,IT,T,D,1},::TensorSpace) =
+    error("Not callable, only defined for ambiguity errors.")
 
-for TYP in (:SumSpace,:PiecewiseSpace,:Space) # Resolve conflict
+for TYP in (:SumSpace,:PiecewiseSpace,:TensorSpace,:ConstantSpace,:Space) # Resolve conflict
     @eval begin
         function coefficients(v::Vector,sp::$TYP,dropsp::SubSpace)
             n=length(v)

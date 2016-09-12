@@ -39,3 +39,20 @@ function PermutationOperator{T}(::Type{T},a::Vector,b::Vector)
     PermutationOperator{T}(perm(a,b))
 end
 PermutationOperator{T}(::Type{T},a::Tuple,b::Tuple)=PermutationOperator(T,[a...],[b...])
+
+
+immutable NegateEven{T} <: Operator{T} end
+
+NegateEven() = NegateEven{Float64}()
+
+for OP in (:domainspace,:rangespace)
+    @eval $OP(T::NegateEven) = ℓ⁰
+end
+
+Base.convert{T}(::Type{Operator{T}},P::NegateEven) =
+    NegateEven{T}()
+
+bandinds(P::NegateEven) = (0,0)
+
+
+getindex{T}(P::NegateEven{T},k::Integer,j::Integer) = k==j ? (iseven(k)?-one(T):one(T)) : zero(T)

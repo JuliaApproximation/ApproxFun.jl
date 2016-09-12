@@ -14,22 +14,22 @@ end
 
 ## Constructors that involve MultivariateFun
 
-function Fun(f::Function,d::BivariateSpace)
-    if f==zero
-        zeros(d)
-    elseif hasnumargs(f,2)
-        Fun(ProductFun(f,d))
-    else
-        Fun(ProductFun((x,y)->f((x,y)),d))
-    end
-end
-function Fun(f::Function,d::BivariateSpace,n::Integer)
-    if hasnumargs(f,2)
-        defaultFun(x->f(x...),d,n)
-    else
-        defaultFun(f,d,n)
-    end
-end
+# function Fun(f::Function,d::BivariateSpace)
+#     if f==zero
+#         zeros(d)
+#     elseif hasnumargs(f,2)
+#         Fun(ProductFun(f,d))
+#     else
+#         Fun(ProductFun((x,y)->f((x,y)),d))
+#     end
+# end
+# function Fun(f::Function,d::BivariateSpace,n::Integer)
+#     if hasnumargs(f,2)
+#         defaultFun(x->f(x...),d,n)
+#     else
+#         defaultFun(f,d,n)
+#     end
+# end
 
 function Fun(f::Function)
     if hasnumargs(f,1)

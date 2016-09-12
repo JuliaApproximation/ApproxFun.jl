@@ -158,9 +158,10 @@ end
 immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     center::T
     L::Float64
-    PeriodicLine(c,L)=new(c,L)
-    PeriodicLine(c)=new(c,1.)
-    PeriodicLine()=new(0.,1.)
+    PeriodicLine(c,L) = new(c,L)
+    PeriodicLine(c) = new(c,1.)
+    PeriodicLine(d::PeriodicLine) = new(d.center,d.L)
+    PeriodicLine() = new(0.,1.)
 end
 
 Base.convert{a}(::Type{PeriodicLine{a}},c,L)=PeriodicLine{a,typeof(c)}(c,L)

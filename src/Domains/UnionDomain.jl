@@ -106,8 +106,8 @@ function points(d::UnionDomain,n)
         vcat([points(d.domains[j],k) for j=r+1:length(d)]...)]
 end
 
-Base.rand(d::UnionDomain)=rand(d[rand(1:length(d))])
-checkpoints(d::UnionDomain)=mapreduce(checkpoints,union,d.domains)
+Base.rand(d::UnionDomain) = rand(d[rand(1:length(d))])
+checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)
 
 function Base.merge(d1::UnionDomain,m::Interval)
     ret=d1.domains

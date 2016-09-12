@@ -138,16 +138,25 @@ function BLAS.axpy!{T}(a,X::RaggedMatrix,
         throw(BoundsError())
     end
 
-    for j=1:size(X,2)
-        @assert colstop(Y,j) ≤ colstop(X,j)
-    end
-
     P = parent(Y)
     ksh = first(parentindexes(Y)[1]) - 1  # how much to shift
     jsh = first(parentindexes(Y)[2]) - 1  # how much to shift
 
     for j=1:size(X,2)
-        kr = X.cols[j]:X.cols[j+1]-1
+        cx=colstop(X,j)
+        cy=colstop(Y,j)
+        if cx > cy
+            for k=cy+1:cx
+                if X[k,j] ≠ 0
+                    throw(BoundsError("Trying to add a non-zero to a zero."))
+                end
+            end
+            kr = X.cols[j]:X.cols[j]+cy-1
+        else
+            kr = X.cols[j]:X.cols[j+1]-1
+        end
+
+
         BLAS.axpy!(a,view(X.data,kr),
                     view(P.data,(P.cols[j + jsh] + ksh-1) + (1:length(kr))))
     end

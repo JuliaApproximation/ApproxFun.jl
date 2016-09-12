@@ -3,7 +3,6 @@ include("helper.jl")
 include("chebyshevtransform.jl")
 
 include("lyap.jl")
-include("constrained_lyap.jl")
 
 
 include("bary.jl")
