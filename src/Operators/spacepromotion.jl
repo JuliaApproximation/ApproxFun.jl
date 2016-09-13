@@ -30,9 +30,6 @@ end
 
 @wrappergetindex SpaceOperator
 
-for func in (:(ApproxFun.bandinds),:(Base.stride))
-     @eval $func(D::SpaceOperator) = $func(D.op)
-end
 
 domain(S::SpaceOperator)=domain(domainspace(S))
 domainspace(S::SpaceOperator)=S.domainspace

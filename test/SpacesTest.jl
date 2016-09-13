@@ -2,6 +2,7 @@ using ApproxFun, Base.Test
     import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
 
 
+
 @test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})(.1) exp(.1)
 @test_approx_eq Fun(Fun(exp,ChebyshevDirichlet{1,1}),Ultraspherical(1))(.1) exp(.1)
 

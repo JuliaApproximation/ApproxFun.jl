@@ -181,18 +181,6 @@ function tensorblocklengths(a::Repeated,b::Repeated)
     m:m:∞
 end
 
-function tensorblocklengths(a::Repeated{Bool},b)
-    @assert a.x
-    cs = cumsum(b)
-    if isinf(length(b))
-        cs
-    elseif length(cs) == 1 && last(cs) == a.x
-        a
-    else
-        flatten((cs,repeated(last(cs))))
-    end
-end
-
 function tensorblocklengths(a::Repeated,b)
     cs = a.x*cumsum(b)
     if isinf(length(b))

@@ -55,7 +55,9 @@ function sumspacecoefficients(cfsin::Vector,A::Space,B::SumSpace)
         if isconvertible(A,B[k])
             cfs = coefficients(cfsin,A,B[k])
 
-            return interlace([[zeros(B[j]) for j=1:k-1];Fun(cfs,B[k]);[zeros(B[j]) for j=k+1:length(B.spaces)]],
+            return interlace([[zeros(B[j]) for j=1:k-1];
+                              Fun(cfs,B[k]);
+                              [zeros(B[j]) for j=k+1:length(B.spaces)]],
                                 B)
         end
     end
