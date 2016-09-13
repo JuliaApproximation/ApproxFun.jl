@@ -13,12 +13,6 @@ recγ{T}(::Type{T},::Chebyshev,k) = one(T)/2   # one(T) ensures we get correct t
 
 ## Evaluation
 
-Evaluation(S::Chebyshev,x::Bool,o::Integer) =
-    ConcreteEvaluation(S,x,o)
-
-Evaluation(S::Chebyshev,x::Number,o::Integer) =
-    o==0?ConcreteEvaluation(S,x,o):EvaluationWrapper(S,x,o,Evaluation(x,o)*Derivative(S,o))
-
 function evaluatechebyshev{T<:Number}(n::Integer,x::T)
     if n == 1
         [one(T)]
@@ -79,19 +73,17 @@ function getindex{DD<:Interval}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Ra
     scal!(cst,ret)
 end
 
-function getindex{DD<:Interval,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD},M,OT,T},
-                                             j::Integer)
+function getindex{DD<:Interval,M<:Real}(op::ConcreteEvaluation{Chebyshev{DD},M},j::Integer)
     if op.order == 0
-        T(evaluatechebyshev(j,tocanonical(domain(op),op.x))[end])
+        evaluatechebyshev(j,tocanonical(domain(op),op.x))[end]
     else
         error("Only zero–second order implemented")
     end
 end
 
-function getindex{DD<:Interval,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD},M,OT,T},
-                                             k::Range)
+function getindex{DD<:Interval,M<:Real}(op::ConcreteEvaluation{Chebyshev{DD},M},k::Range)
     if op.order == 0
-        Vector{T}(evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k])
+        evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
     else
         error("Only zero–second order implemented")
     end
