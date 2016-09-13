@@ -217,3 +217,31 @@ co=cache(io)
 
 @test norm(ApproxFun.Reverse(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(-t-0.2)-0.1),Fourier())) < 10eps()
 @test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier([π,-π]))) < 10eps()
+
+
+
+
+## Newton iteration bug
+S=Chebyshev([0.,7.])
+
+ω=2π
+
+
+N = u->Any[Fun(u(0.)-0.1);Fun(u(ω)-u(0.));Fun(u'(ω)-u'(0.));u''+u+u^3]
+
+u=0.1Fun(cos,S)
+
+D=Derivative(S)
+
+Z=ApproxFun.ZeroOperator(ApproxFun.ConstantSpace())
+
+A=ApproxFun.interlace([Z                      Evaluation(S,0);
+                     u'(ω)    Evaluation(S,ω)-Evaluation(S,0);
+                     u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
+                      0         D^2+I+3u^2])
+
+let C=cache(A)
+    ApproxFun.resizedata!(C,5,:)
+    ApproxFun.resizedata!(C,10,:)
+    @test norm(C.data-A[1:10,1:39]) == 0
+end

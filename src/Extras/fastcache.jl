@@ -233,7 +233,7 @@ function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBanded
     end
 
     kr=co.datasize[1]+1:n
-    jr=max(1,kr[1]-l):n+u
+    jr=max(ncols+1,kr[1]-l):n+u
     io∞=InterlaceOperator(io.ops[r∞,d∞])
 
     BLAS.axpy!(1.0,view(io∞,kr-r,jr-ncols),view(co.data.bands,kr,jr))

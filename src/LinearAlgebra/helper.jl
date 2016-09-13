@@ -839,11 +839,14 @@ Base.cumsum(r::AbstractCount) = CumSumIterator(r)
 function Base.cumsum(f::Flatten)
     cs=zero(eltype(f))
     its = Array(eltype(f.it),0)
-    for it in f.it
+    for it in f.it[1:end-1]
         c=cumsum(cs+it)
         push!(its,c)
         cs=last(c)
     end
+
+    c=cumsum(cs+f.it[end])
+    push!(its,c)
     Flatten(tuple(its...))
 end
 
