@@ -51,6 +51,12 @@ end
 end
 
 
+@recipe function f{S,V,T<:Real}(x::Fun{V,T},y::Fun{S,T})
+    M=3max(ncoefficients(x),ncoefficients(y))+50
+    values(pad(x,M)),values(pad(y,M))
+end
+
+
 @recipe function f{S,T<:Real}(x::AbstractVector{T},g::Fun{S,T})
     x,g(x)
 end

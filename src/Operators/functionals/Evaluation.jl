@@ -12,6 +12,10 @@ immutable ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
     x::M
     order::OT
 end
+
+ConcreteEvaluation(sp::Space{RealBasis},x::Number,o::Number) =
+    ConcreteEvaluation{typeof(sp),typeof(x),typeof(o),eltype(domain(sp))}(sp,x,o)
+
 Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order::Integer) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
 function Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Number,order::Integer)
@@ -56,15 +60,15 @@ end
 
 ## default getindex
 getindex(D::ConcreteEvaluation,k::Integer) =
-    differentiate(Fun([zeros(eltype(D),k-1);one(eltype(D))],D.space),D.order)(D.x)
+    eltype(D)(differentiate(Fun([zeros(eltype(D),k-1);one(eltype(D))],D.space),D.order)(D.x))
 
 
 function getindex{S}(D::ConcreteEvaluation{S,Bool},k::Integer)
     T=eltype(D)
     if !D.x
-        first(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order))
+        T(first(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)))
     else
-        last(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order))
+        T(last(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)))
     end
 end
 
@@ -86,8 +90,7 @@ getindex(E::EvaluationWrapper,k) = E.functional[k]
 
 domainspace(E::Evaluation) = E.space
 domain(E::Evaluation) = domain(E.space)
-promotedomainspace{T}(E::Evaluation{T},sp::Space) =
-    Evaluation(promote_type(T,eltype(sp)),sp,E.x,E.order)
+promotedomainspace(E::Evaluation,sp::Space) = Evaluation(sp,E.x,E.order)
 Base.stride(E::EvaluationWrapper)=stride(E.functional)
 
 ## Convenience routines
