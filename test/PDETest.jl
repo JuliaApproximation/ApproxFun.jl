@@ -90,12 +90,16 @@ println("    Poisson tests")
 
 ## Poisson
 
-f=chop(Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2)),1000eps())  #default is [-1,1]^2
+f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
 d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
-u=linsolve(A,[zeros(∂(d));f];tolerance=1E-10)
-@test_approx_eq u(.1,.2) -0.04251891975068446
+@time  u=linsolve(A,[zeros(∂(d));f];tolerance=1E-5)
+@test_approx_eq_eps u(.1,.2) -0.04251891975068446 1E-5
 
+
+println("    Periodic Poisson tests")
+
+using ApproxFun
 
 d=PeriodicInterval()^2
 f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
