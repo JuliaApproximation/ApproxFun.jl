@@ -266,7 +266,7 @@ Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
 L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
 u=linsolve([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-1)
-@test_approx_eq_eps u(.2,.001) (0.5270296652096698 + 0.5027510303539062im )  0.00001
+@test_approx_eq_eps u(.2,.001) (0.5270296652096698 + 0.5027510303539062im )  0.0001
 
 
 ## Periodic
