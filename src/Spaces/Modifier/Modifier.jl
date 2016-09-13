@@ -47,6 +47,26 @@ function coefficients(cfs::Vector,A::PiecewiseSpace,B::PiecewiseSpace)
 end
 
 
+# spread a single space into a sum space by placing
+# its coefficients depending on k
+function interlacewithzeros(cfs::Vector,k,it)
+    n = length(cfs)
+
+    ret = Array(eltype(cfs),0)
+    for (K,j) in it
+        if j > n
+            break
+        elseif K == k
+            push!(ret,cfs[j])
+        else
+            push!(ret,0)
+        end
+    end
+
+    ret
+end
+
+interlacewithzeros(cfs::Vector,k,B::DirectSumSpace) = interlacewithzeros(cfs,k,interlacer(B))
 
 function sumspacecoefficients(cfsin::Vector,A::Space,B::SumSpace)
     m=length(B.spaces)
@@ -54,11 +74,7 @@ function sumspacecoefficients(cfsin::Vector,A::Space,B::SumSpace)
     for k=1:m
         if isconvertible(A,B[k])
             cfs = coefficients(cfsin,A,B[k])
-
-            return interlace([[zeros(B[j]) for j=1:k-1];
-                              Fun(cfs,B[k]);
-                              [zeros(B[j]) for j=k+1:length(B.spaces)]],
-                                B)
+            return interlacewithzeros(cfs,k,B)
         end
     end
 
@@ -71,9 +87,7 @@ function sumspacecoefficients(cfsin::Vector,A::Space,B::PiecewiseSpace)
     for k=1:m
         if domain(B[k]) == domain(A) && isconvertible(A,B[k])
             cfs = coefficients(cfsin,A,B[k])
-
-            return interlace([[zeros(B[j]) for j=1:k-1];Fun(cfs,B[k]);[zeros(B[j]) for j=k+1:length(B.spaces)]],
-                                B)
+            return interlacewithzeros(cfs,k,B)
         end
     end
 
