@@ -211,7 +211,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
                 M[end,j]=PrintShow("⋱")
             end
 
-            Base.showarray(io,M;header=false)
+            showarray(io,M;header=false)
         elseif isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
@@ -227,7 +227,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
                 M[k,end]=M[end,k]=PrintShow("⋱")
             end
 
-            Base.showarray(io,M;header=false)
+            showarray(io,M;header=false)
         elseif isinf(size(B,1))
             BM=B[1:10,1:size(B,2)]
 
@@ -239,7 +239,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
                 M[end,k]=PrintShow("⋮")
             end
 
-            Base.showarray(io,M;header=false)
+            showarray(io,M;header=false)
         elseif isinf(size(B,2))
             BM=B[1:size(B,1),1:10]
 
@@ -251,9 +251,9 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
                 M[k,end]=PrintShow("⋯")
             end
 
-            Base.showarray(io,M;header=false)
+            showarray(io,M;header=false)
         else
-            Base.showarray(io,AbstractMatrix(B)[1:size(B,1),1:size(B,2)];header=false)
+            showarray(io,AbstractMatrix(B)[1:size(B,1),1:size(B,2)];header=false)
         end
     end
 end
