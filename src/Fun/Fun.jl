@@ -162,7 +162,7 @@ extrapolate(f::Fun,x,y,z...) = extrapolate(f.coefficients,f.space,Vec(x,y,z...))
 ##Data routines
 
 
-values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...)
+values(f::Fun,dat...) = itransform(f.space,f.coefficients,dat...)
 points(f::Fun)=points(f.space,ncoefficients(f))
 ncoefficients(f::Fun)=length(f.coefficients)
 

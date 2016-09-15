@@ -53,15 +53,15 @@ hasfasttransform(::Hardy) = true
 # The <: Domain is crucial for matching Basecall overrides
 typealias Taylor{D<:Domain} Hardy{true,D}
 
-plan_transform(::Taylor,x::Vector)=plan_fft(x)
-plan_itransform(::Taylor,x::Vector)=plan_ifft(x)
-transform(::Taylor,vals::Vector,plan)=alternatesign!(plan*vals/length(vals))
-itransform(::Taylor,cfs::Vector,plan)=plan*alternatesign!(cfs)*length(cfs)
+plan_transform(::Taylor,x::Vector) = plan_fft(x)
+plan_itransform(::Taylor,x::Vector) = plan_ifft(x)
+transform(::Taylor,vals::Vector,plan) = alternatesign!(plan*vals/length(vals))
+itransform(::Taylor,cfs::Vector,plan) = plan*alternatesign!(cfs)*length(cfs)
 
-plan_transform(::Hardy{false},x::Vector)=plan_fft(x)
-plan_itransform(::Hardy{false},x::Vector)=plan_ifft(x)
-transform(::Hardy{false},vals::Vector,plan)=-alternatesign!(flipdim(plan*vals,1)/length(vals))
-itransform(::Hardy{false},cfs::Vector,plan)=plan*flipdim(alternatesign!(-cfs),1)*length(cfs)
+plan_transform(::Hardy{false},x::Vector) = plan_fft(x)
+plan_itransform(::Hardy{false},x::Vector) = plan_ifft(x)
+transform(::Hardy{false},vals::Vector,plan) = -alternatesign!(flipdim(plan*vals,1)/length(vals))
+itransform(::Hardy{false},cfs::Vector,plan) = plan*flipdim(alternatesign!(-cfs),1)*length(cfs)
 
 evaluate{D<:Domain}(f::AbstractVector,S::Taylor{D},z) = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
 function evaluate{D<:Circle}(f::AbstractVector,S::Taylor{D},z)

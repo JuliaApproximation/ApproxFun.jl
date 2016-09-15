@@ -121,6 +121,8 @@ coefficienttimes(f::Fun,g::Fun) = Multiplication(f,space(g))*g
 
 function transformtimes(f::Fun,g::Fun,n)
     @assert spacescompatible(space(f),space(g))
+    isempty(f.coefficients) && return f
+    isempty(g.coefficients) && return g
     f2,g2,sp = pad(f,n),pad(g,n),space(f)
     hc = transform(sp,values(f2).*values(g2))
     chop!(Fun(hc,sp),10norm(hc,Inf)*eps(eltype(hc)))

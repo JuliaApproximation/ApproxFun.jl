@@ -196,8 +196,16 @@ Multiplication{CS<:CosSpace}(f::Fun{CS},sp::SinSpace) = ConcreteMultiplication(f
 function Multiplication{SS<:SinSpace}(f::Fun{SS},sp::CosSpace)
     @assert domain(f) == domain(sp)
     a=f.coefficients/2
-    A=ToeplitzOperator(a[2:end],[a[1];0.;-a]) + HankelOperator(a)
-    MultiplicationWrapper(f,SpaceOperator(A,sp,SinSpace(domain(sp))))
+    if length(a) == 0
+        A=ZeroOperator(sp,SinSpace(domain(sp)))
+        MultiplicationWrapper(f,A)
+    elseif length(a) == 1
+        A=ToeplitzOperator([0.],[a[1];0.;-a]) + HankelOperator(a)
+        MultiplicationWrapper(f,SpaceOperator(A,sp,SinSpace(domain(sp))))
+    else
+        A=ToeplitzOperator(a[2:end],[a[1];0.;-a]) + HankelOperator(a)
+        MultiplicationWrapper(f,SpaceOperator(A,sp,SinSpace(domain(sp))))
+    end
 end
 
 

@@ -198,3 +198,12 @@ end
 @test_approx_eq sum(Fun([0.,1.],SinSpace())^2)/π 0.5
 @test_approx_eq sum(Fun([0.,0.,1.],SinSpace())^2)/π 0.5
 @test_approx_eq sum(Fun([0.,0.,0.,1.],SinSpace())^2)/π 0.5
+
+
+## Bug in multiplicaiton
+
+@test Fun(Float64[],SinSpace())^2 == Fun(Float64[],SinSpace())
+@test Fun([1.],Fourier())^2 ≈ Fun([1.],Fourier())
+
+B=Evaluation(Laurent([0.,2π]),0,1)
+@test_approx_eq B*Fun(sin,domainspace(B)) 1.0

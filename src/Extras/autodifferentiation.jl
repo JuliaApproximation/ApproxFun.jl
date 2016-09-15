@@ -79,17 +79,20 @@ Operator(f::Function)=Operator(f,Chebyshev())  #TODO: UnsetSpace
 # N=u->[B*u-bcs;...]
 function newton(N,u0::Fun;maxiterations=100,tolerance=1E-15)
     u=u0
+    err=Inf
     for k=1:maxiterations
         DF=N(DualFun(u))
         J=map(jacobian,DF)
         F=map(d->d.f,DF)
         unew=u-J\F
-        if norm(unew-u)≤10tolerance
+        err=norm(unew-u)
+        if err≤10tolerance
             return unew
         else
             u=chop(unew,tolerance)
         end
     end
+    warn("Maximum number of iterations $maxiterations reached, with approximate accuracy of $err.")
     return u
 end
 

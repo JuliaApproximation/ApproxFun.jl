@@ -66,11 +66,18 @@ end
 # diff from Laurent -> Laurent
 
 function laurentdiff{T<:Number}(v::Vector{T})
-    w = Array{T}(length(v))
+    n = length(v)
+    w = Array{T}(n)
     w[1] = zero(T)
-    for k=1:length(v)÷2
+    n=length(v)
+
+    for k=1:(isodd(n)?n÷2:n÷2-1)
         @inbounds w[2k] = -k*v[2k]
         @inbounds w[2k+1] = k*v[2k+1]
+    end
+
+    if iseven(n)
+        @inbounds w[n] = -(n÷2)*v[n]
     end
 
     w
