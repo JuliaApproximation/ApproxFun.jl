@@ -48,6 +48,9 @@ function CachedOperator{T}(io::InterlaceOperator{T,1};padding::Bool=false)
 
     # populate the finite rows
     jr=1:n+u
+    ioM=io[1:n,jr]
+
+
     bcrow=1
     oprow=0
     for k=1:n
@@ -64,7 +67,7 @@ function CachedOperator{T}(io::InterlaceOperator{T,1};padding::Bool=false)
 
 
         for j=rowrange(ret.bands,k)
-            ret[k,j] = io[k,j]
+            ret[k,j] = ioM[k,j]
         end
     end
 

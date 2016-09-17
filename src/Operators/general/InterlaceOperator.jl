@@ -299,6 +299,7 @@ end
 
 function Base.convert{SS,PS,DI,RI,BI,T}(::Type{Matrix},
                             S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
+    warn("Developer TODO: Matrix for InterlaceOperator Needs to be optimize")
     kr,jr=parentindexes(S)
     P=parent(S)
     ret=Array(eltype(S),size(S,1),size(S,2))
@@ -311,6 +312,7 @@ end
 
 function Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedMatrix},
                             S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
+    warn("Developer TODO: BandedMatrix for InterlaceOperator Needs to be optimize")
     kr,jr=parentindexes(S)
     P=parent(S)
     ret=BandedMatrix(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
@@ -324,7 +326,6 @@ end
 
 function Base.convert{SS,PS,DI,RI,BI,T}(::Type{RaggedMatrix},
                             S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
-
     kr,jr=parentindexes(S)
     L=parent(S)
 
@@ -338,12 +339,44 @@ function Base.convert{SS,PS,DI,RI,BI,T}(::Type{RaggedMatrix},
         ret_kr=find(x->x[1]==ν,cr)
 
         # block indices
-        sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
+        if !isempty(ret_kr)
+            sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
 
-        Base.axpy!(1.0,view(L.ops[ν],sub_kr,jr),view(ret,ret_kr,:))
+            Base.axpy!(1.0,view(L.ops[ν],sub_kr,jr),view(ret,ret_kr,:))
+        end
     end
     ret
 end
+
+
+function Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedMatrix},
+                      S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI}})
+    kr,jr=parentindexes(S)
+    L=parent(S)
+
+    ret=bzeros(S)
+
+    ds=domainspace(L)
+    rs=rangespace(L)
+    cr=cache(interlacer(rs))[kr]
+    cd=cache(interlacer(ds))[jr]
+    for ν=1:size(L.ops,1),μ=1:size(L.ops,2)
+        # indicies of ret
+        ret_kr=find(x->x[1]==ν,cr)
+        ret_jr=find(x->x[1]==μ,cd)
+
+        # block indices
+        if !isempty(ret_kr) && !isempty(ret_jr)
+            sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
+            sub_jr=cd[ret_jr[1]][2]:cd[ret_jr[end]][2]
+
+            Base.axpy!(1.0,view(L.ops[ν,μ],sub_kr,sub_jr),
+                           view(ret,ret_kr,ret_jr))
+        end
+    end
+    ret
+end
+
 
 
 
