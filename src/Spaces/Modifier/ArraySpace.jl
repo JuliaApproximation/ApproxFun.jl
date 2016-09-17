@@ -216,7 +216,7 @@ coefficients(f::Vector,a::VectorSpace,b::VectorSpace) =
 ## constructor
 
 # change to ArraySpace
-Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = Fun(coefficients(f,d),d)
+Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = space(f)==d ? f : Fun(coefficients(f,d),d)
 Fun{AS<:ArraySpace}(f::Fun{AS},d::Space) = Fun(f,ArraySpace(d,space(f).dimensions))
 
 # columns are coefficients

@@ -122,9 +122,9 @@ Base.det(A::Operator) = det(qrfact(A))
 ## Multiplication routines
 
 linsolve{CO,MT,T<:Real}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
+    QR[:R]\Ac_mul_B(QR[:Q],b;kwds...)
 linsolve{CO,MT,T<:Complex}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
+    QR[:R]\Ac_mul_B(QR[:Q],b;kwds...)
 
 linsolve{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
     linsolve(QR,Vector{T}(b);kwds...)
