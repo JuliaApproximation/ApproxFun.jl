@@ -297,85 +297,64 @@ end
 # this is especially important for \
 ######
 
-function Base.convert{SS,PS,DI,RI,BI,T}(::Type{Matrix},
-                            S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
-    warn("Developer TODO: Matrix for InterlaceOperator Needs to be optimize")
-    kr,jr=parentindexes(S)
-    P=parent(S)
-    ret=Array(eltype(S),size(S,1),size(S,2))
-    for k in eachindex(kr)
-        K,κ=P.rangeinterlacer[kr[k]]
-        @inbounds ret[k,:]=P.ops[K][κ,jr]
-    end
-    ret
-end
+findsub(cr,ν) = find(x->x[1]==ν,cr)
 
-function Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedMatrix},
-                            S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
-    warn("Developer TODO: BandedMatrix for InterlaceOperator Needs to be optimize")
-    kr,jr=parentindexes(S)
-    P=parent(S)
-    ret=BandedMatrix(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
-    for j=1:size(ret,2),k=colrange(ret,j)
-        K,κ=P.rangeinterlacer[kr[k]]
-        @inbounds ret[k,j]=P.ops[K][κ,jr[j]]
-    end
-    ret
-end
+for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros))
+    @eval begin
+        function Base.convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
+                                S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
+            kr,jr=parentindexes(S)
+            L=parent(S)
 
+            ret=$ZER(S)
 
-function Base.convert{SS,PS,DI,RI,BI,T}(::Type{RaggedMatrix},
-                            S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})
-    kr,jr=parentindexes(S)
-    L=parent(S)
+            ds=domainspace(L)
+            rs=rangespace(L)
+            cr=cache(interlacer(rs))[kr]
+            for ν=1:length(L.ops)
+                # indicies of ret
+                ret_kr=findsub(cr,ν)
 
-    ret=rzeros(S)
+                # block indices
+                if !isempty(ret_kr)
+                    sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
 
-    ds=domainspace(L)
-    rs=rangespace(L)
-    cr=cache(interlacer(rs))[kr]
-    for ν=1:length(L.ops)
-        # indicies of ret
-        ret_kr=find(x->x[1]==ν,cr)
+                    Base.axpy!(1.0,view(L.ops[ν],sub_kr,jr),view(ret,ret_kr,:))
+                end
+            end
+            ret
+        end
+        function Base.convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
+                              S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI}})
+            kr,jr=parentindexes(S)
+            L=parent(S)
 
-        # block indices
-        if !isempty(ret_kr)
-            sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
+            ret=$ZER(S)
 
-            Base.axpy!(1.0,view(L.ops[ν],sub_kr,jr),view(ret,ret_kr,:))
+            ds=domainspace(L)
+            rs=rangespace(L)
+            cr=cache(interlacer(rs))[kr]
+            cd=cache(interlacer(ds))[jr]
+            for ν=1:size(L.ops,1),μ=1:size(L.ops,2)
+                # indicies of ret
+                ret_kr=findsub(cr,ν)
+                ret_jr=findsub(cd,μ)
+
+                # block indices
+                if !isempty(ret_kr) && !isempty(ret_jr)
+                    sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
+                    sub_jr=cd[ret_jr[1]][2]:cd[ret_jr[end]][2]
+
+                    Base.axpy!(1.0,view(L.ops[ν,μ],sub_kr,sub_jr),
+                                   view(ret,ret_kr,ret_jr))
+                end
+            end
+            ret
         end
     end
-    ret
 end
 
 
-function Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedMatrix},
-                      S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI}})
-    kr,jr=parentindexes(S)
-    L=parent(S)
-
-    ret=bzeros(S)
-
-    ds=domainspace(L)
-    rs=rangespace(L)
-    cr=cache(interlacer(rs))[kr]
-    cd=cache(interlacer(ds))[jr]
-    for ν=1:size(L.ops,1),μ=1:size(L.ops,2)
-        # indicies of ret
-        ret_kr=find(x->x[1]==ν,cr)
-        ret_jr=find(x->x[1]==μ,cd)
-
-        # block indices
-        if !isempty(ret_kr) && !isempty(ret_jr)
-            sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
-            sub_jr=cd[ret_jr[1]][2]:cd[ret_jr[end]][2]
-
-            Base.axpy!(1.0,view(L.ops[ν,μ],sub_kr,sub_jr),
-                           view(ret,ret_kr,ret_jr))
-        end
-    end
-    ret
-end
 
 
 

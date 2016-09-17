@@ -12,6 +12,14 @@ B=dirichlet(sp)
 D=Derivative(d)
 L=D^2+I
 
+@test_approx_eq B[1][1:3] [1.;-1.;0.]
+@test_approx_eq B[2][1:3] [1.;1.;0.]
+@test_approx_eq B[2][1:1,1:3] [1. 1. 0.]
+
+
+@test_approx_eq csc(2)sin(1 - 0.1)  ([dirichlet(d);L]\[1.])(0.1)
+@test_approx_eq csc(2)sin(1 - 0.1)  ([B;L]\[1.])(0.1)
+
 @test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <10eps()
 
 f=Fun(t->cos(t)+cos(3t),CosSpace)

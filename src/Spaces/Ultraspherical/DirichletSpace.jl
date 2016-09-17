@@ -144,7 +144,7 @@ conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 
 bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D},Bool}) = 0,B.x?∞:0
 bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D},Bool}) = 0,B.x?0:∞
-bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D},Bool}) = 0,B.x?0:1
+bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D},Bool}) = 0,1
 
 function getindex{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D},Bool},kr::Range)
     d = domain(B)
