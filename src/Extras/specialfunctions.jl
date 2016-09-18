@@ -77,21 +77,23 @@ end
 
 
 
-function Base.sign{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
-    d=domain(f)
+for OP in (:(Base.sign),:(Base.angle))
+    @eval function $OP{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
+        d=domain(f)
 
-    pts=roots(f)
+        pts=roots(f)
 
-    if isempty(pts)
-        sign(first(f))*one(f)
-    else
-        @assert isa(d,AffineDomain)
-        da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(arclength(d)))) ? pts[1] = da : unshift!(pts,da)
-        db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
-        midpts = .5(pts[1:end-1]+pts[2:end])
-        Fun(sign(f(midpts)),pts)
+        if isempty(pts)
+            sign(first(f))*one(f)
+        else
+            @assert isa(d,AffineDomain)
+            da=first(d)
+            isapprox(da,pts[1];atol=sqrt(eps(arclength(d)))) ? pts[1] = da : unshift!(pts,da)
+            db=last(d)
+            isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
+            midpts = .5(pts[1:end-1]+pts[2:end])
+            Fun(sign(f(midpts)),pts)
+        end
     end
 end
 
