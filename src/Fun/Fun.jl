@@ -437,9 +437,9 @@ end
 
 ## broadcasting
 
-Base.broadcast(op,f::Fun) = Fun(x -> f(x), domain(f))
-Base.broadcast(op,f::Fun,x::Number) = Fun(x -> op(f,x), domain(f))
-Base.broadcast(op,x::Number,f::Fun) = Fun(x -> op(x,f), domain(f))
+Base.broadcast(op,f::Fun) = Fun(x -> op(f(x)), domain(f))
+Base.broadcast(op,f::Fun,c::Number) = Fun(x -> op(f(x),c), domain(f))
+Base.broadcast(op,c::Number,f::Fun) = Fun(x -> op(c,f(x)), domain(f))
 
 
 include("constructors.jl")
