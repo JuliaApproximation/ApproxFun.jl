@@ -331,6 +331,10 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
 
             ret=$ZER(S)
 
+            if isempty(kr) || isempty(jr)
+                return ret
+            end
+
             ds=domainspace(L)
             rs=rangespace(L)
             cr=cache(interlacer(rs))[kr]

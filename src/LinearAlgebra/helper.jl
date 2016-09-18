@@ -648,7 +648,7 @@ Base.next(it::CachedIterator,st::Int) = (it[st],st+1)
 Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
                                         done(it.iterator,it.state)
 
-getindex(it::CachedIterator,k) = resize!(it,maximum(k)).storage[k]
+getindex(it::CachedIterator,k) = resize!(it,isempty(k)?0:maximum(k)).storage[k]
 function Base.findfirst(f::Function,A::CachedIterator)
     k=1
     for c in A
