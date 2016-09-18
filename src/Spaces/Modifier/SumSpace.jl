@@ -466,7 +466,7 @@ for (Dep,Sp) in ((:depiece,:PiecewiseSpace),(:detuple,:TupleSpace))
     end
 end
 
-interlace{FF<:Fun}(f::AbstractVector{FF}) = detuple(f)
+interlace{FF<:Fun}(f::AbstractVector{FF}) = vcat(f...)
 
 # convert a vector to a Fun with TupleSpace
 Fun(v::Vector{Any},sp::TupleSpace) = detuple(map(Fun,v,sp.spaces))

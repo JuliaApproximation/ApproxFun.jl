@@ -129,6 +129,17 @@ end
 Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
 
 
+function Base.vcat(v::Fun...)
+    sps=map(space,v)
+    if spacesequal(sps)
+        S=ArraySpace(first(sps),length(v))
+    else
+        S=TupleSpace(sps)
+    end
+
+    Fun(interlace(v,S),S)
+end
+
 
 function devec{F<:Fun}(v::Vector{F})
     sps=map(space,v)

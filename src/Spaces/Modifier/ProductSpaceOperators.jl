@@ -101,7 +101,7 @@ function coefficients(v::AbstractVector,a::TupleSpace,b::TupleSpace)
         v
     else
         vs=vec(Fun(v,a))
-        coefficients(detuple(map((f,s)->Fun(f,s),vs,b)))
+        coefficients(vcat(map((f,s)->Fun(f,s),vs,b)...))
     end
 end
 

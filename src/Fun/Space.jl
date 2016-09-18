@@ -142,18 +142,14 @@ spacescompatible(f,g) = false
 spacesequal(A::Space,B::Space) = A==B
 
 # check a list of spaces for compatibility
-for OP in (:spacescompatible,:domainscompatible,:spacesequal)
-    @eval begin
-        function $OP{T<:Space}(v::Vector{T})
-            for k=1:length(v)-1
-                if !$OP(v[k],v[k+1])
-                    return false
-                end
+for OP in (:spacescompatible,:domainscompatible,:spacesequal),TYP in (:Array,:Tuple)
+    @eval function $OP(v::$TYP)
+        for k=1:length(v)-1
+            if !$OP(v[k],v[k+1])
+                return false
             end
-            true
         end
-
-        $OP{T<:Space}(v::Array{T}) = $OP(vec(v))
+        true
     end
 end
 
