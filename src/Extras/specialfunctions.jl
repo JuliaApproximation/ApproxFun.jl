@@ -656,9 +656,9 @@ end
 ## PIecewiseSpace
 # map over pieces
 
-./{S<:PiecewiseSpace}(c::Number,f::Fun{S})=depiece(mapreduce(f->c./f,vcat,pieces(f)))
-.^{S<:PiecewiseSpace}(f::Fun{S},c::Integer)=depiece(mapreduce(f->f.^c,vcat,pieces(f)))
-.^{S<:PiecewiseSpace}(f::Fun{S},c::Number)=depiece(mapreduce(f->f.^c,vcat,pieces(f)))
+./{S<:PiecewiseSpace}(c::Number,f::Fun{S}) = depiece(map(f->c./f,pieces(f)))
+.^{S<:PiecewiseSpace}(f::Fun{S},c::Integer) = depiece(map(f->f.^c,pieces(f)))
+.^{S<:PiecewiseSpace}(f::Fun{S},c::Number) = depiece(map(f->f.^c,pieces(f)))
 
 
 
