@@ -118,3 +118,15 @@ f=Fun(x->cos(50acos(x)))
 @test_approx_eq Fun(Float64[],Chebyshev)([0.,1.]) [0.,0.]
 @test_approx_eq Fun([],Chebyshev)(0.) 0.
 @test_approx_eq Fun(x->[1.,0.])(0.) [1.,0.]
+
+
+
+## broadcast
+
+if VERSION ≥ v"0.5-"
+    f=Fun(exp)
+    @test norm(exp.(f) - exp(f)) < 100eps()
+    @test norm(besselj.(1,f)-besselj(1,f)) < 100eps()
+    @test_approx_eq atan2.(f,1)(0.1) atan2(f(0.1),1)
+    @test_approx_eq atan2.(f,f)(0.1) atan2(f(0.1),f(0.1))
+end
