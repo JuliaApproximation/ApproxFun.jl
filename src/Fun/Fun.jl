@@ -435,4 +435,11 @@ end
 /(c::Union{Number,Fun},g::Fun)=c./g
 
 
+## broadcasting
+
+Base.broadcast(op,f::Fun) = Fun(x -> f(x), domain(f))
+Base.broadcast(op,f::Fun,x::Number) = Fun(x -> op(f,x), domain(f))
+Base.broadcast(op,x::Number,f::Fun) = Fun(x -> op(x,f), domain(f))
+
+
 include("constructors.jl")

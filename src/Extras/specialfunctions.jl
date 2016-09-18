@@ -203,46 +203,6 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
     end
 end
 
-
-
-# function ./{S<:MappedSpace}(c::Number,f::Fun{S})
-#     g=c./Fun(coefficients(f),space(f).space)
-#     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
-# end
-# function .^{S<:Space,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
-#     g=Fun(coefficients(f),space(f).space).^k
-#     Fun(coefficients(g),MappedSpace(domain(f),space(g)))
-# end
-#
-#
-# #TODO: Unify following
-# function .^{S<:Chebyshev,D,T}(f::Fun{MappedSpace{S,D,T}},k::Float64)
-#     sp=space(f)
-#     # Need to think what to do if this is ever not the case..
-#     @assert isapprox(domain(sp.space),Interval())
-#     fc = Fun(f.coefficients,sp.space) #Project to interval
-#
-#     r = sort(roots(fc))
-#     @assert length(r) <= 2
-#
-#     if length(r) == 0
-#         Fun(Fun(x->fc(x)^k).coefficients,sp)
-#     elseif length(r) == 1
-#         @assert isapprox(abs(r[1]),1)
-#
-#         if isapprox(r[1],1.)
-#             Fun(coefficients(divide_singularity(true,fc)^k),MappedSpace(sp.domain,JacobiWeight(0.,k,sp.space)))
-#         else
-#             Fun(coefficients(divide_singularity(false,fc)^k),MappedSpace(sp.domain,JacobiWeight(k,0.,sp.space)))
-#         end
-#     else
-#         @assert isapprox(r[1],-1)
-#         @assert isapprox(r[2],1)
-#
-#         Fun(coefficients(divide_singularity(fc)^k),MappedSpace(sp.domain,JacobiWeight(k,k,sp.space)))
-#     end
-# end
-
 function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
@@ -280,8 +240,8 @@ function .^{S,T}(f::Fun{S,T},β)
     [B,A]\first(f)^β
 end
 
-Base.sqrt{S,T}(f::Fun{S,T})=f^0.5
-Base.cbrt{S,T}(f::Fun{S,T})=f^(1/3)
+Base.sqrt{S,T}(f::Fun{S,T}) = f^0.5
+Base.cbrt{S,T}(f::Fun{S,T}) = f^(1/3)
 
 ## We use \ as the Fun constructor might miss isolated features
 

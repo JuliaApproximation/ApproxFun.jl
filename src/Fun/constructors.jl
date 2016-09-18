@@ -162,7 +162,7 @@ function zerocfsFun(f, d::Space)
         end
     end
 
-    warn("Maximum number of coefficients "*string(2^20+1)*" reached")
+    warn("Maximum number of coefficients "*string(2^20+1)*" reached in constructing Fun.")
 
     Fun(f,d,2^21)
 end
