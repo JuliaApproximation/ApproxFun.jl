@@ -1,3 +1,7 @@
+
+CachedOperator(::Type{RaggedMatrix},op::Operator;padding::Bool=false) =
+    CachedOperator(op,RaggedMatrix(eltype(op),0,Int[]),padding)
+
 ## Grow cached operator
 
 function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::Integer)
@@ -48,6 +52,8 @@ resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Intege
 
 ## Grow QR
 
+QROperator{T}(R::CachedOperator{T,RaggedMatrix{T}}) =
+    QROperator(R,RaggedMatrix(T,0,Int[]),0)
 
 function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
                                                                  MM,DS,RS,BI}},

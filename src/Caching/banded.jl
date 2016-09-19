@@ -1,5 +1,14 @@
+function CachedOperator(::Type{BandedMatrix},op::Operator;padding::Bool=false)
+    l,u=bandwidths(op)
+    padding && (u+=l)
+    data=BandedMatrix(eltype(op),0,0,l,u)
+    CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
+end
+
+
 
 ## Grow cached operator
+
 
 function resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,::Colon)
     if n > size(B,1)
@@ -24,6 +33,13 @@ resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Intege
 
 
 ## Grow QR
+
+function QROperator{T}(R::CachedOperator{T,BandedMatrix{T}})
+    M = R.data.l+1   # number of diag+subdiagonal bands
+    H = Array(T,M,100)
+    QROperator(R,H,0)
+end
+
 
 function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,BandedMatrix{T},
                                                                  MM,DS,RS,BI}},

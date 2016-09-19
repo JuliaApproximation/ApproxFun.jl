@@ -1,3 +1,7 @@
+CachedOperator(::Type{Matrix},op::Operator;padding::Bool=false) =
+    CachedOperator(op,Array(eltype(op),0,0),padding)
+
+
 # Grow cached operator
 
 function resizedata!{T<:Number}(B::CachedOperator{T,Matrix{T}},n::Integer,m::Integer)

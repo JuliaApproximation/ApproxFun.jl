@@ -30,22 +30,16 @@ CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},pd=false) =
 CachedOperator(op::Operator,data::AbstractMatrix,padding=false) = CachedOperator(op,data,size(data),padding)
 
 
+
 function default_CachedOperator(op::Operator;padding::Bool=false)
     if isbanded(op)
-        l,u=bandwidths(op)
-        padding && (u+=l)
-        data=BandedMatrix(eltype(op),0,0,l,u)
-        CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
+        CachedOperator(BandedMatrix,op;padding=padding)
     elseif isbandedblock(op)
-        l,u=blockbandwidths(op)
-        padding=false
-        padding && (u+=l)
-        data=BandedBlockMatrix(eltype(op),l,u,1:0,1:0)  # TODO: type of rows/cols
-        CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
+        CachedOperator(BandedBlockMatrix,op;padding=padding)
     elseif israggedbelow(op)
-        CachedOperator(op,RaggedMatrix(eltype(op),0,Int[]),padding)
+        CachedOperator(RaggedMatrix,op;padding=padding)
     else
-        CachedOperator(op,Array(eltype(op),0,0),padding)
+        CachedOperator(Matrix,op;padding=padding)
     end
 end
 
