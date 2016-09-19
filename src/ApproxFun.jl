@@ -45,6 +45,7 @@ include("Spaces/Spaces.jl")
 ## Further extra features
 
 include("PDE/PDE.jl")
+include("Caching/caching.jl")
 include("Extras/Extras.jl")
 include("Plot/Plot.jl")
 
