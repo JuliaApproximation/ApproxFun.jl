@@ -17,8 +17,15 @@ Base.size(A::AbstractBlockMatrix) = sum(A.rows),sum(A.cols)
 blocksize(A::AbstractBlockMatrix) = length(A.rows),length(A.cols)
 blocksize(A::AbstractBlockMatrix,k::Int) = k==1?length(A.rows):length(A.cols)
 
+# these give the block rows corresponding to the J-th column block
+blockcolstart(A::AbstractBandedBlockMatrix,J::Int) = max(1,J-A.u)
+blockcolstop(A::AbstractBandedBlockMatrix,J::Int) = min(length(A.rows),J+A.l)
+blockcolrange(A::AbstractBandedBlockMatrix,J::Int) = blockcolstart(A,J):blockcolstop(A,J)
 
-blockcolrange(A::AbstractBandedBlockMatrix,J::Int) = max(1,J-A.u):min(length(A.rows),J+A.l)
+blockrowstart(A::AbstractBandedBlockMatrix,K::Int) = max(1,K-A.l)
+blockrowstop(A::AbstractBandedBlockMatrix,K::Int) = min(length(A.cols),K+A.u)
+blockrowrange(A::AbstractBandedBlockMatrix,K::Int) = blockrowstart(A,K):blockrowstop(A,K)
+
 
 # give the rows/columns of a block, as a range
 blockrows(A::AbstractBlockMatrix,K::Int) = sum(A.rows[1:K-1]) + (1:A.rows[K])
