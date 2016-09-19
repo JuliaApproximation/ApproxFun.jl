@@ -1,7 +1,6 @@
 
 function CachedOperator(::Type{BandedBlockMatrix},op::Operator;padding::Bool=false)
     l,u=blockbandwidths(op)
-    padding=false
     padding && (u+=l)
     data=BandedBlockMatrix(eltype(op),l,u,1:0,1:0)  # TODO: type of rows/cols
     CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
@@ -216,7 +215,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOper
         for J=BRS1+1:blockrowstop(R,CS)
             for j=1:R.cols[J]  # only do partial columns for first block
                 dt=zero(T)
-                Mpre=sum(R.rows[K1:K1+J-BRS1-1])  # number of rows in zero blocks
+                Mpre=M1 + sum(R.rows[K1+1:K1+J-BRS1-1]) # number of rows in zero blocks
                 M=Mpre
                 for K=K1+J-BRS1:CS
                     jshft = (j-1)*R.rows[K]  # shift by each column we are to the right

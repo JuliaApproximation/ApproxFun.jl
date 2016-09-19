@@ -20,330 +20,52 @@ u=Fun((x,y)->sin(π*x)*sin(π*y),S)
 @test_approx_eq cache(Δ;padding=true)[5:100,7:100]  Δ[5:100,7:100]
 
 
-for col in (1,2,3,10)
+for col in (1,2,3,10,11,40)
     QR=qrfact(Δ)
-    @time resizedata!(QR.R,col+200,:)
-    @time resizedata!(QR,:,col)
+    resizedata!(QR.R,col+200,:)
+    resizedata!(QR,:,col)
     QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
-    @time resizedata!(QR2.R,:,col+100)
-    @time resizedata!(QR2,:,col)
+    resizedata!(QR2.R,:,col+100)
+    resizedata!(QR2,:,col)
 
     @test_approx_eq QR.H[:,1:col] QR2.H[:,1:col]
-    @test_approx_eq QR[:R][1:col,1:col] QR2[:R][1:col,1:col]
+    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
+    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
 end
 
-
-
-col=3
-    QR=qrfact(Δ)
-    @time resizedata!(QR.R,col+200,:)
-    @time resizedata!(QR,:,col)
-    QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
-    @time resizedata!(QR2.R,:,col+100)
-    @time resizedata!(QR2,:,col)
-
+for col in (80,100,120)
+    resizedata!(QR,:,col)
+    resizedata!(QR2,:,col)
     @test_approx_eq QR.H[:,1:col] QR2.H[:,1:col]
-    @test_approx_eq QR.R.data[1:col+5,1:col] QR2.R.data[1:col+5,1:col]
-
-QR2.R.data[1:col+5,1:col]
-QR.R.data[1:col+10,1:col]
-
-R[1:12,1:3]
-
-QR2.R.data[1:12,1:3]
-
-col=3
-    QR=qrfact(Δ)
-    T=Float64
-
-    if col ≤ QR.ncols
-        return QR
-    end
-
-    MO=QR.R
-    W=QR.H
-
-    R=MO.data
-    cs=colstop(MO,col)
-    sz=sizeof(T)
-
-    if cs ≥ MO.datasize[1]
-        resizedata!(MO,cs+100,:)  # add 100 rows
-        R=MO.data
-    end
-
-    if col > size(W,2)
-        m=size(W,2)
-        resize!(W.cols,2col+1)
-
-        for j=m+1:2col
-            cs=colstop(MO,j)
-            W.cols[j+1]=W.cols[j] + cs-j+1
-            W.m=max(W.m,cs-j+1)
-        end
-
-        resize!(W.data,W.cols[end]-1)
-    end
-
-    w=pointer(W.data)
-    r=pointer(R.data)
-
-
-R[:,1:2]
-
-k=3
-J1=R.colblocks[k]
-CS=blockcolstop(R,J1)
-
-wp=w+sz*(W.cols[k]-1)          # k-th column of W
-
-
-
-K1=R.rowblocks[k]  # diagonal block
-br=blockrows(R,K1)  # the rows of the diagonal block
-bc=blockcols(R,J1) # the cols of the diagonal block
-
-# copy into W
-M1 = br[end]-k+1 # the number of entries in first block
-kshft = k-br[1]
-nrows1 = R.rows[K1]
-jshft = (k-bc[1])*nrows1  # shift by each column we are to the right
-BLAS.blascopy!(M1,r+sz*(R.blockstart[K1,J1]+kshft + jshft),1,wp,1)
-
-M = M1 # number of entries so far copied
-
-
-for K=K1+1:CS
-    jshft = (k-bc[1])*R.rows[K]  # shift by each column we are to the right
-    BLAS.blascopy!(R.rows[K],r+sz*(R.blockstart[K,J1] + jshft),1,wp+sz*M,1)
-    M += R.rows[K]    # copy all rows in K-th block
+    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
+    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
 end
 
-# M is now total entries in W
-W.data[W.cols[k]] += flipsign(BLAS.nrm2(M,wp,1),W.data[W.cols[k]])
-normalize!(M,wp)
-
-QR2.H[:,3]-W[:,3]|>norm
-R[3:end,2]|>norm
-# first block
-# scale banded entries
-BRS1=blockrowstop(R,K1)
-#for J=J1:BRS1
-
-J=J1
-j=2
-#for j=(J==J1?k-bc[1]+1:1):R.cols[J]  # only do partial columns for first block
-jshft = (j-1)*nrows1
-dt=dot(M1,wp,1,r+sz*(R.blockstart[K1,J]+kshft +jshft),1)
-M=M1
-for K=K1+1:CS
-    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
-    dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
-    M += R.rows[K]    # copy all rows in K-th block
-end
-
-jshft = (j-1)*nrows1
-BLAS.axpy!(M1,-2*dt,wp,1,r+sz*(R.blockstart[K1,J]+kshft +jshft),1)
-M=M1
-R[3:end,2]|>norm
-for K=K1+1:CS
-    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
-    BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
-    M += R.rows[K]    # copy all rows in K-th block
-end
-end
-end
-
-
-# now do the blocks where we have zeros
-for J=BRS1+1:blockrowstop(R,CS)
-    for j=1:R.cols[J]  # only do partial columns for first block
-        dt=zero(T)
-        Mpre=sum(R.rows[K1:K1+J-BRS1-1])  # number of rows in zero blocks
-        M=Mpre
-        for K=K1+J-BRS1:CS
-            jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
-            dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
-            M += R.rows[K]    # copy all rows in K-th block
-        end
-        M=Mpre
-        for K=K1+J-BRS1:CS
-            jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
-            BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
-            M += R.rows[K]    # copy all rows in K-th block
-        end
-    end
-end
-end
-QR.ncols=col
-QR
-
-if col ≤ QR.ncols
-    return QR
-end
-
-MO=QR.R
-W=QR.H
-
-R=MO.data
-cs=colstop(MO,col)
-sz=sizeof(T)
-
-if cs ≥ MO.datasize[1]
-    resizedata!(MO,cs+100,:)  # add 100 rows
-    R=MO.data
-end
-
-if col > size(W,2)
-    m=size(W,2)
-    resize!(W.cols,2col+1)
-
-    for j=m+1:2col
-        cs=colstop(MO,j)
-        W.cols[j+1]=W.cols[j] + cs-j+1
-        W.m=max(W.m,cs-j+1)
-    end
-
-    resize!(W.data,W.cols[end]-1)
-end
-
-w=pointer(W.data)
-r=pointer(R.data)
-
-
-k=3
-J1=R.colblocks[k]
-CS=blockcolstop(R,J1)
-
-wp=w+sz*(W.cols[k]-1)          # k-th column of W
-
-w2=R[k:colstop(R,k),k]
-# w2[1] +=flipsign(norm(w2),w2[1])
-# normalize!(w2)
-
-K1=R.rowblocks[k]  # diagonal block
-br=blockrows(R,K1)  # the rows of the diagonal block
-bc=blockcols(R,J1) # the cols of the diagonal block
-
-# copy into W
-M1 = br[end]-k+1 # the number of entries in first block
-kshft = k-br[1]
-nrows1 = R.rows[K1]
-jshft = (k-bc[1])*nrows1  # shift by each column we are to the right
-BLAS.blascopy!(M1,r+sz*(R.blockstart[K1,J1]+kshft + jshft),1,wp,1)
-
-W[:,3]
-
-M = M1 # number of entries so far copied
-
-
-for K=K1+1:CS
-    jshft = (k-bc[1])*R.rows[K]  # shift by each column we are to the right
-    BLAS.blascopy!(R.rows[K],r+sz*(R.blockstart[K,J1] + jshft),1,wp+sz*M,1)
-    M += R.rows[K]    # copy all rows in K-th block
-end
-
-viewblock(R,4,J1)
-
-W[1:length(w2),k]-w2
-
-# M is now total entries in W
-W.data[W.cols[k]] += flipsign(BLAS.nrm2(M,wp,1),W.data[W.cols[k]])
-normalize!(M,wp)
-
-# first block
-# scale banded entries
-BRS1=blockrowstop(R,K1)
-for J=J1:BRS1
-    for j=(J==J1?k-bc[1]+1:1):R.cols[J]  # only do partial columns for first block
-        jshft = (j-1)*nrows1
-        dt=dot(M1,wp,1,r+sz*(R.blockstart[K1,J]+kshft +jshft),1)
-        M=M1
-        for K=K1+1:CS
-            dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
-            M += R.rows[K]    # copy all rows in K-th block
-        end
-
-        BLAS.axpy!(M1,-2*dt,wp,1,r+sz*(R.blockstart[K1,J]+kshft +jshft),1)
-        M=M1
-        for K=K1+1:CS
-            BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
-            M += R.rows[K]    # copy all rows in K-th block
-        end
-    end
-end
-
-
-# now do the blocks where we have zeros
-for J=BRS1+1:blockrowstop(R,CS)
-    for j=1:R.cols[J]  # only do partial columns for first block
-        jshft = (j-1)*nrows1
-        dt=zero(T)
-        Mpre=sum(R.rows[K1:K1+J-BRS1-1])  # number of rows in zero blocks
-        M=Mpre
-        for K=K1+J-BRS1:CS
-            dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
-            M += R.rows[K]    # copy all rows in K-th block
-        end
-        M=Mpre
-        for K=K1+J-BRS1:CS
-            BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
-            M += R.rows[K]    # copy all rows in K-th block
-        end
-    end
-end
-
-
-
-
-QR.ncols=col
-QR
-
+QR=qrfact(Δ)
 QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
-@time resizedata!(QR2.R,:,col+100)
-@time resizedata!(QR2,:,col)
+@test norm((QR[:Q]'*f - QR2[:Q]'*f).coefficients) < 10eps()
 
-    @test_approx_eq QR.H[:,1:col] QR2.H[:,1:col]
-
-@time resizedata!(QR,:,col+1)
-@time resizedata!(QR2,:,col+1)
-
-@test_approx_eq QR.H[:,1:col] QR2.H[:,1:col]
-QR.H[:,1:col]-QR2.H[:,1:col]
+norm(QR.H[1:132,1:QR2.ncols]-QR2.H[1:132,1:QR2.ncols])
 
 
 
-QR[:
-using SO
-QR2.R[1:col+10,1:col+10]|>chopm
+QR[:Q]'*f |>ncoefficients
 
-QR2.R[1:col+10,1:col+10]-QR2.R[1:col+10,1:col+10]|>norm
-
-@test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
-
-col=5000
-    QR=qrfact(Δ)
-    @time resizedata!(QR.R,col+200,:)
-    @time resizedata!(QR,:,col)
-    QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
-    @time resizedata!(QR2.R,:,col+100)
-    @time resizedata!(QR2,:,col)
-
-
-col=125000
-    QR=qrfact(Δ)
-    @time resizedata!(QR.R,col+200,:)
-    @time resizedata!(QR,:,col)
-
-
-col=100
-    QR=qrfact(Δ)
-    @time resizedata!(QR.R,col+200,:)
-    @time resizedata!(QR,:,col)
-
-
+QR2[:Q]'*f  |>ncoefficients
 
 f=-2π^2*u
+
+QR=qrfact(Δ)
+    @time u=QR[:Q]'*f;
+
+
+QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
+    @time v=QR2[:Q]'*f;
+
+norm(u-v)
+
+QR.H[1:100,1:200]-QR2.H[1:100,1:200]  |>norm
+
 
 v=Δ\f
 @test norm((u-v).coefficients)<1E-14
