@@ -1,3 +1,5 @@
+# Grow cached interlace operator
+
 function resizedata!{T<:Number,DS,RS,DI,RI,BI}(co::CachedOperator{T,AlmostBandedMatrix{T},
                                                         InterlaceOperator{T,1,DS,RS,DI,RI,BI}},
                                      n::Integer,::Colon)

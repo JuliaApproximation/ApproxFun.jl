@@ -1,3 +1,30 @@
+
+## Grow cached operator
+
+function resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,::Colon)
+    if n > size(B,1)
+        throw(ArgumentError("Cannot resize beyound size of operator"))
+    end
+
+    if n > B.datasize[1]
+        pad!(B.data,2n,:)
+
+        kr=B.datasize[1]+1:n
+        jr=max(B.datasize[1]+1-B.data.l,1):n+B.data.u
+        BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
+
+        B.datasize = (n,n+B.data.u)
+    end
+
+    B
+end
+
+resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Integer) =
+    resizedata!(B,n,:)
+
+
+## Grow QR
+
 function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,BandedMatrix{T},
                                                                  MM,DS,RS,BI}},
                         ::Colon,col)

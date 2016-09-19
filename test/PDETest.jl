@@ -13,6 +13,50 @@ S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ=Laplacian(S)
 u=Fun((x,y)->sin(π*x)*sin(π*y),S)
 
+@which CachedOperator(Δ)
+
+
+op=Δ
+l,u=blockbandwidths(op)
+padding=false
+padding && (u+=l)
+
+data=BandedBlockMatrix(eltype(op),l,u,1:0,1:0)
+B=CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
+    resizedata!(B,10,:)
+    show(B)
+
+isbandedblock(Δ)
+
+n=10
+K=block(rangespace(B),n)
+
+rows=blocklengths(rangespace(B.op))[1:K]
+cols=blocklengths(domainspace(B.op))[1:K+B.data.u]
+
+pad!(B.data.data,bbm_numentries(rows,cols,l,u))
+B.data.rows=rows
+B.data.rowblocks=blocklookup(rows)
+B.data.cols=cols
+B.data.colblocks=blocklookup(cols)
+B.data.blockstart=bbm_blockstarts(rows,cols,l,u)
+
+kr=B.datasize[1]+1:n
+jr=max(B.datasize[1]+1-B.data.l,1):n+B.data.u
+BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
+
+jr=max(blockstart(domainspace(B),block(rangespace(B),B.datasize[1]+1)-B.data.l),1):blockstop(domainspace(B),K+B.data.u)
+
+@which convert(BandedBlockBandedMatrix,view(B.op.op,kr,jr))
+B.datasize = (n,n+B.data.u)
+
+B.data[1:10,1:13] - Δ[1:10,1:13
+
+
+AbstractMatrix(view(B.op,kr,jr))
+
+
+
 f=-2π^2*u
 
 v=Δ\f

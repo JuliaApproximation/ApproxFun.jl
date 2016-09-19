@@ -162,7 +162,7 @@ end
 
 #  A block matrix where only theb ands are nonzero
 #   isomorphic to BandedMatrix{Matrix{T}}
-immutable BandedBlockMatrix{T,RI,CI} <: AbstractBandedBlockMatrix{T}
+type BandedBlockMatrix{T,RI,CI} <: AbstractBandedBlockMatrix{T}
     data::Vector{T}
 
     l::Int  # block lower bandwidth
