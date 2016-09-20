@@ -241,36 +241,59 @@ end
 
 ## back substitution
 
-function trtrs!(::Type{Val{'U'}},A::BandedBlockMatrix,u::Array)
+function trtrs!(::Type{Val{'U'}},A::BandedBlockMatrix,u::Vector)
     if size(A,1) < size(u,1)
         throw(BoundsError())
     end
-    if size(A,1) > size(u,1)
-        u=pad(u,size(A,1),:)
-    end
-
     n=size(u,1)
-    b=bandwidth(A,2)
-    T=eltype(u)
-
     N=A.rowblocks[n]
 
+    kr1=blockrows(A,N)
+    b=n-kr1[1]+1
+    kr1=kr1[1]:n
 
+    LAPACK.trtrs!('U','N','N',view(viewblock(A,N,N),1:b,1:b),view(u,kr1))
 
-    for c=1:size(u,2)
-        for K=N:-1:1
-            kr=blockrowrange(A,K)
-            jr=blockcolrange(A,K)
-            u[kr,jr] = viewblock(A,K,K)\view(u,kr,jr)
-            for
-
-
-
-        for k=n:-1:1
-            @inbounds ck = A.cols[k]
-            @inbounds u[k,c] /= A.data[ck+k-1]
-            BLAS.axpy!(-u[k,c],view(A.data,ck:ck+k-2),view(u,1:k-1,c))
+    for K=N-1:-1:1
+        kr=blockrows(A,K)
+        for J=min(N,blockrowstop(A,K)):-1:K+1
+            if J==N  # need to take into account zeros
+                BLAS.gemv!('N',-1.0,view(viewblock(A,K,N),:,1:b),view(u,kr1),1.0,view(u,kr))
+            else
+                BLAS.gemv!('N',-1.0,viewblock(A,K,J),view(u,blockcols(A,J)),1.0,view(u,kr))
+            end
         end
+        LAPACK.trtrs!('U','N','N',viewblock(A,K,K),view(u,kr))
     end
+
+    u
+end
+
+
+function trtrs!(::Type{Val{'U'}},A::BandedBlockMatrix,u::Matrix)
+    if size(A,1) < size(u,1)
+        throw(BoundsError())
+    end
+    n=size(u,1)
+    N=A.rowblocks[n]
+
+    kr1=blockrows(A,N)
+    b=n-kr1[1]+1
+    kr1=kr1[1]:n
+
+    LAPACK.trtrs!('U','N','N',view(viewblock(A,N,N),1:b,1:b),view(u,kr1,:))
+
+    for K=N-1:-1:1
+        kr=blockrows(A,K)
+        for J=min(N,blockrowstop(A,K)):-1:K+1
+            if J==N  # need to take into account zeros
+                BLAS.gemm!('N',-1.0,view(viewblock(A,K,N),:,1:b),view(u,kr1,:),1.0,view(u,kr,:))
+            else
+                BLAS.gemm!('N',-1.0,viewblock(A,K,J),view(u,blockcols(A,J),:),1.0,view(u,kr,:))
+            end
+        end
+        LAPACK.trtrs!('U','N','N',viewblock(A,K,K),view(u,kr,:))
+    end
+
     u
 end

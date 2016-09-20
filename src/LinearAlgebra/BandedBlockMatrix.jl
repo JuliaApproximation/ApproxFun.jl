@@ -82,7 +82,7 @@ Base.linearindexing{BBBM<:AbstractBlockMatrix}(::Type{BBBM}) =
     Base.LinearSlow()
 
 
-function mv!(α,A::AbstractBlockMatrix,x::Vector,β,y::Vector)
+function αA_mul_B_plus_βC!(α,A::AbstractBlockMatrix,x::Vector,β,y::Vector)
     if length(x) != size(A,2) || length(y) != size(A,1)
         throw(BoundsError())
     end
@@ -95,14 +95,14 @@ function mv!(α,A::AbstractBlockMatrix,x::Vector,β,y::Vector)
         for K=blockcolrange(A,J)
             kr=blockrows(A,K)
             B=viewblock(A,K,J)
-            mv!(α,B,view(x,jr),o,view(y,kr))
+            αA_mul_B_plus_βC!(α,B,view(x,jr),o,view(y,kr))
         end
     end
     y
 end
 
 Base.A_mul_B!(y::Vector,A::AbstractBlockMatrix,b::Vector) =
-    mv!(one(eltype(A)),A,b,zero(eltype(y)),y)
+    αA_mul_B_plus_βC!(one(eltype(A)),A,b,zero(eltype(y)),y)
 
 
 function Base.BLAS.axpy!(α,A::AbstractBlockMatrix,Y::AbstractMatrix)
@@ -142,7 +142,7 @@ function Base.A_mul_B!(Y::AbstractBlockMatrix,A::AbstractBlockMatrix,B::Abstract
     BLAS.scal!(length(Y.data),zero(T),Y.data,1)
     o=one(T)
     for J=1:blocksize(B,2),N=blockcolrange(B,J),K=blockcolrange(A,N)
-        mm!(o,viewblock(A,K,N),viewblock(B,N,J),o,viewblock(Y,K,J))
+        αA_mul_B_plus_βC!(o,viewblock(A,K,N),viewblock(B,N,J),o,viewblock(Y,K,J))
     end
     Y
 end
