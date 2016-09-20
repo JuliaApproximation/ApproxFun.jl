@@ -19,7 +19,7 @@ u=Fun((x,y)->sin(π*x)*sin(π*y),S)
 @test_approx_eq cache(Δ)[5:100,7:100]  Δ[5:100,7:100]
 @test_approx_eq cache(Δ;padding=true)[5:100,7:100]  Δ[5:100,7:100]
 
-import ApproxFun: resizedata!, CachedOperator, RaggedMatrix
+
 for col in (1,2,3,10,11,40)
     QR=qrfact(Δ)
     resizedata!(QR.R,col+200,:)
@@ -48,15 +48,38 @@ end
 f=-2π^2*u
 
 QR=qrfact(Δ)
-    @time u=QR[:Q]'*f;
+resizedata!(QR,:,548)
+resizedata!(QR,:,430)
+
+QR=qrfact(Δ)
+u=QR[:Q]'*f;
 
 
 QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
-    @time v=QR2[:Q]'*f;
+v=QR2[:Q]'*f;
 
-norm(u-v)
+@test norm(u-v)<10eps()
 
-QR.H[1:100,1:200]-QR2.H[1:100,1:200]  |>norm
+ncoefficients(v)
+QR=qrfact(Δ)
+    @profile resizedata!(QR.R,2000,:)
+
+
+QR.R.data
+
+Profile.print()
+@time resizedata!(QR,:,1000)}
+@time u=QR[:Q]'*f;
+
+QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
+    @time resizedata!(QR2.R,:,2000)
+    @time resizedata!(QR2,:,1000)
+    @time u=QR2[:Q]'*f;
+
+
+QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
+v=QR2[:Q]'*f;
+
 
 
 v=Δ\f
