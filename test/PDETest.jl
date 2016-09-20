@@ -19,7 +19,7 @@ u=Fun((x,y)->sin(π*x)*sin(π*y),S)
 @test_approx_eq cache(Δ)[5:100,7:100]  Δ[5:100,7:100]
 @test_approx_eq cache(Δ;padding=true)[5:100,7:100]  Δ[5:100,7:100]
 
-
+import ApproxFun: resizedata!, CachedOperator, RaggedMatrix
 for col in (1,2,3,10,11,40)
     QR=qrfact(Δ)
     resizedata!(QR.R,col+200,:)
@@ -27,31 +27,23 @@ for col in (1,2,3,10,11,40)
     QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
     resizedata!(QR2.R,:,col+100)
     resizedata!(QR2,:,col)
-
-    @test_approx_eq QR.H[:,1:col] QR2.H[:,1:col]
-    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
-    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
-end
-
-for col in (80,100,120)
-    resizedata!(QR,:,col)
-    resizedata!(QR2,:,col)
-    @test_approx_eq QR.H[:,1:col] QR2.H[:,1:col]
+    n=min(size(QR.H,1),size(QR2.H,1))
+    @test_approx_eq QR.H[1:n,1:col] QR2.H[1:n,1:col]
     @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
     @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
 end
 
 QR=qrfact(Δ)
 QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
-@test norm((QR[:Q]'*f - QR2[:Q]'*f).coefficients) < 10eps()
+for col in (80,200)
+    resizedata!(QR,:,col)
+    resizedata!(QR2,:,col)
+    n=min(size(QR.H,1),size(QR2.H,1))
+    @test_approx_eq QR.H[1:n,1:col] QR2.H[1:n,1:col]
+    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
+    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
+end
 
-norm(QR.H[1:132,1:QR2.ncols]-QR2.H[1:132,1:QR2.ncols])
-
-
-
-QR[:Q]'*f |>ncoefficients
-
-QR2[:Q]'*f  |>ncoefficients
 
 f=-2π^2*u
 
