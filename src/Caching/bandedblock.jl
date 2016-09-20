@@ -129,7 +129,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOper
     W=QR.H
 
     R=MO.data
-    # last block
+    # last block, convoluted def to match blockbandedmatrix
     cs=blockstop(rangespace(MO),blockcolstop(MO,block(domainspace(MO),col)))
     sz=sizeof(T)
 
@@ -143,7 +143,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOper
         resize!(W.cols,2col+1)
 
         for j=m+1:2col
-            cs=colstop(R,j)
+            cs=blockstop(rangespace(MO),blockcolstop(MO,block(domainspace(MO),j)))
             W.cols[j+1]=W.cols[j] + cs-j+1
             W.m=max(W.m,cs-j+1)
         end
