@@ -235,3 +235,42 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOper
     QR.ncols=col
     QR
 end
+
+
+
+
+## back substitution
+
+function trtrs!(::Type{Val{'U'}},A::BandedBlockMatrix,u::Array)
+    if size(A,1) < size(u,1)
+        throw(BoundsError())
+    end
+    if size(A,1) > size(u,1)
+        u=pad(u,size(A,1),:)
+    end
+
+    n=size(u,1)
+    b=bandwidth(A,2)
+    T=eltype(u)
+
+    N=A.rowblocks[n]
+
+
+
+    for c=1:size(u,2)
+        for K=N:-1:1
+            kr=blockrowrange(A,K)
+            jr=blockcolrange(A,K)
+            u[kr,jr] = viewblock(A,K,K)\view(u,kr,jr)
+            for
+
+
+
+        for k=n:-1:1
+            @inbounds ck = A.cols[k]
+            @inbounds u[k,c] /= A.data[ck+k-1]
+            BLAS.axpy!(-u[k,c],view(A.data,ck:ck+k-2),view(u,1:k-1,c))
+        end
+    end
+    u
+end
