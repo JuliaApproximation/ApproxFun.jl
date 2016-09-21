@@ -11,7 +11,11 @@ end
 ## colstop, etc.
 
 for OP in (:colstop,:colstart,:rowstop,:rowstart)
-    @eval $OP{T,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI,DI}},k::Integer) = $OP(B.op,k)
+    @eval begin
+        $OP{T,RI,DI,M,DS,RS}(D::CachedOperator{T,BandedBlockMatrix{T,RI,DI},M,DS,RS,Tuple{Infinity{Bool},Infinity{Bool}}},
+                             k::Integer) = $OP(D.op,k)
+        $OP{T,RI,DI,M,DS,RS}(B::CachedOperator{T,BandedBlockMatrix{T,RI,DI},M,DS,RS},k::Integer) = $OP(B.op,k)
+    end
 end
 
 

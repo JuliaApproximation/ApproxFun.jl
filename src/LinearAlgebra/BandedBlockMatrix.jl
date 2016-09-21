@@ -35,7 +35,7 @@ colstop(A::AbstractBandedBlockMatrix,k::Int) = sum(A.rows[1:min(A.colblocks[k]+A
 colstart(A::AbstractBandedBlockMatrix,k::Int) = sum(A.rows[1:A.colblocks[k]-A.u-1])+1
 
 rowstop(A::AbstractBandedBlockMatrix,k::Int) = sum(A.cols[1:min(A.rowblocks[k]+A.u,length(A.cols))])
-colstart(A::AbstractBandedBlockMatrix,k::Int) = sum(A.cols[1:A.rowblocks[k]-A.l-1])+1
+rowstart(A::AbstractBandedBlockMatrix,k::Int) = sum(A.cols[1:A.rowblocks[k]-A.l-1])+1
 
 Base.convert(::Type{Matrix},A::AbstractBlockMatrix) =
     BLAS.axpy!(one(eltype(A)),A,zeros(eltype(A),size(A,1),size(A,2)))
