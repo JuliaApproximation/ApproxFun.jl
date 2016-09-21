@@ -1,5 +1,6 @@
 using ApproxFun, Compat, Base.Test
     import Compat: view
+    import ApproxFun: resizedata!, CachedOperator, RaggedMatrix
 ## Check operators
 
 
