@@ -28,16 +28,18 @@ CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},ds,rs,bi,pd=
 CachedOperator(op::Operator,data::AbstractMatrix,sz::Tuple{Int,Int},pd=false) =
     CachedOperator(op,data,sz,domainspace(op),rangespace(op),bandinds(op),pd)
 CachedOperator(op::Operator,data::AbstractMatrix,padding=false) = CachedOperator(op,data,size(data),padding)
+
+
+
 function default_CachedOperator(op::Operator;padding::Bool=false)
     if isbanded(op)
-        l,u=bandwidths(op)
-        padding && (u+=l)
-        data=BandedMatrix(eltype(op),0,0,l,u)
-        CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
+        CachedOperator(BandedMatrix,op;padding=padding)
+    elseif isbandedblock(op)
+        CachedOperator(BandedBlockMatrix,op;padding=padding)
     elseif israggedbelow(op)
-        CachedOperator(op,RaggedMatrix(eltype(op),0,Int[]),padding)
+        CachedOperator(RaggedMatrix,op;padding=padding)
     else
-        CachedOperator(op,Array(eltype(op),0,0),padding)
+        CachedOperator(Matrix,op;padding=padding)
     end
 end
 
@@ -54,7 +56,8 @@ Base.convert{T}(::Type{Operator{T}},S::CachedOperator) =
 
 domainspace(C::CachedOperator) = C.domainspace
 rangespace(C::CachedOperator) = C.rangespace
-bandinds(C::CachedOperator) = C.bandinds
+bandinds{T,BM<:BandedMatrix}(C::CachedOperator{T,BM}) = C.bandinds
+blockbandinds{T,BM<:BandedBlockMatrix}(C::CachedOperator{T,BM}) = C.bandinds
 Base.stride(C::CachedOperator) = stride(C.op)
 
 # when bandinds are infinite, use colstart/colstop from operator
@@ -90,106 +93,6 @@ function Base.getindex(B::CachedOperator,k::Integer)
     end
  end
 
-
-function resizedata!{T<:Number}(B::CachedOperator{T,Matrix{T}},n::Integer,m::Integer)
-    if n > size(B,1) || m > size(B,2)
-        throw(ArgumentError("Cannot resize beyound size of operator"))
-    end
-
-    # this does nothing if already in dimensions
-    N,M=size(B.data)
-    if n > N && m > M
-        B.data = unsafe_resize!(B.data,n,m)
-    elseif n > N
-        B.data = unsafe_resize!(B.data,n,:)
-    elseif m > M
-        B.data = unsafe_resize!(B.data,:,m)
-    end
-
-    if n ≤ B.datasize[1] && m ≤ B.datasize[2]
-        # do nothing
-        B
-    elseif n ≤ B.datasize[1]
-        kr,jr=1:B.datasize[1],B.datasize[2]+1:m
-        B.data[kr,jr] = B.op[kr,jr]
-        B.datasize = (B.datasize[1],m)
-        B
-    elseif m ≤ B.datasize[2]
-        kr,jr=B.datasize[1]+1:n,1:B.datasize[2]
-        B.data[kr,jr] = B.op[kr,jr]
-        B.datasize = (n,B.datasize[2])
-        B
-    else
-        # resize rows then columns
-        resizedata!(resizedata!(B,n,B.datasize[2]),n,m)
-    end
-end
-
-function resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,::Colon)
-    if n > size(B,1)
-        throw(ArgumentError("Cannot resize beyound size of operator"))
-    end
-
-    if n > B.datasize[1]
-        pad!(B.data,2n,:)
-
-        kr=B.datasize[1]+1:n
-        jr=max(B.datasize[1]+1-B.data.l,1):n+B.data.u
-        BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
-
-        B.datasize = (n,n+B.data.u)
-    end
-
-    B
-end
-
-function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::Integer)
-    if n > size(B,2)
-        throw(ArgumentError("Cannot resize beyound size of operator"))
-    end
-
-    if n > B.datasize[2]
-        resize!(B.data.cols,n+1)
-
-        if B.padding
-            # K is largest colstop.  We get previous largest by looking at precalulated
-            # cols
-            K = B.datasize[2]==0?0:B.data.cols[B.datasize[2]+1]-B.data.cols[B.datasize[2]]
-
-            for j = B.datasize[2]+1:n-1
-                K = max(K,colstop(B.op,j))
-                B.data.cols[j+1] = B.data.cols[j] + K
-            end
-            K = max(K,colstop(B.op,n))
-        else
-            for j = B.datasize[2]+1:n-1
-                B.data.cols[j+1] = B.data.cols[j] + colstop(B.op,j)
-            end
-            K = colstop(B.op,n)
-        end
-
-
-        B.data.cols[n+1] = B.data.cols[n] + K
-        pad!(B.data.data,B.data.cols[n+1]-1)
-        B.data.m = K
-
-        jr=B.datasize[2]+1:n
-        kr=1:K
-        BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
-
-        B.datasize = (K,n)
-
-    end
-
-    B
-end
-
-
-resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Integer) =
-    resizedata!(B,n,:)
-
-resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer) =
-    resizedata!(B,:,m)
 
 resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
 resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))

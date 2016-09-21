@@ -45,11 +45,12 @@ isbandedblockbandedbelow(::) = false
 isbandedblockbandedabove(::) = false
 
 isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockbandedbelow(A)
-isblockbanded(A) = isbandedblockbanded(A)
+isbandedblock(A) = isbandedblockbanded(A)
 
 blockbandinds(S::Operator,k...) = bandinds(S,k...)
+blockbandwidths(S::Operator) = -blockbandinds(S,1),blockbandinds(S,2)
 
-israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isblockbanded(A)
+israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isbandedblock(A)
 
 macro functional(FF)
     quote

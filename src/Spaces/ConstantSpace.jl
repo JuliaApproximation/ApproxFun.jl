@@ -9,6 +9,8 @@ getindex(f::Fun{SequenceSpace},k::Integer) =
     k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
 getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
 
+Base.length(f::Fun{SequenceSpace}) = ∞
+
 
 dotu(f::Fun{SequenceSpace},g::Fun{SequenceSpace}) =
     mindotu(f.coefficients,g.coefficients)

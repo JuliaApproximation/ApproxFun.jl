@@ -1,5 +1,6 @@
 using ApproxFun, Compat, Base.Test
     import Compat: view
+    import ApproxFun: resizedata!, CachedOperator, RaggedMatrix
 ## Check operators
 
 
@@ -11,12 +12,54 @@ f = Fun((x,y)->exp(x)*sin(y),S)
 
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ=Laplacian(S)
-u=Fun((x,y)->sin(π*x)*sin(π*y),S)
 
+@test_approx_eq cache(Δ)[1:100,1:100]  Δ[1:100,1:100]
+@test_approx_eq cache(Δ;padding=true)[1:100,1:100]  Δ[1:100,1:100]
+
+@test_approx_eq cache(Δ)[5:100,7:100]  Δ[5:100,7:100]
+@test_approx_eq cache(Δ;padding=true)[5:100,7:100]  Δ[5:100,7:100]
+
+# Check that QR is growing correctly
+for col in (1,2,3,10,11,40)
+    QR=qrfact(Δ)
+    resizedata!(QR.R,col+200,:)
+    resizedata!(QR,:,col)
+    QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
+    resizedata!(QR2.R,:,col+100)
+    resizedata!(QR2,:,col)
+    n=min(size(QR.H,1),size(QR2.H,1))
+    @test_approx_eq QR.H[1:n,1:col] QR2.H[1:n,1:col]
+    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
+    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
+end
+
+QR=qrfact(Δ)
+QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
+for col in (80,200)
+    resizedata!(QR,:,col)
+    resizedata!(QR2,:,col)
+    n=min(size(QR.H,1),size(QR2.H,1))
+    @test_approx_eq QR.H[1:n,1:col] QR2.H[1:n,1:col]
+    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
+    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
+end
+
+# this checks a bug
+QR=qrfact(Δ)
+resizedata!(QR,:,548)
+resizedata!(QR,:,430)
+
+
+u=Fun((x,y)->sin(π*x)*sin(π*y),S)
 f=-2π^2*u
 
+
+QR=qrfact(Δ)
+v=QR\f
+@test norm((u-v).coefficients)<100eps()
+
 v=Δ\f
-@test norm((u-v).coefficients)<1E-14
+@test norm((u-v).coefficients)<100eps()
 
 
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
@@ -53,6 +96,7 @@ let Ai=ApproxFun.interlace(A),co=cache(Ai)
     ApproxFun.resizedata!(co,:,200)
     @test norm(Ai[1:200,1:200]-co[1:200,1:200]) == 0
 end
+
 
 u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))

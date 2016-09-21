@@ -17,12 +17,25 @@ Base.size(A::AbstractBlockMatrix) = sum(A.rows),sum(A.cols)
 blocksize(A::AbstractBlockMatrix) = length(A.rows),length(A.cols)
 blocksize(A::AbstractBlockMatrix,k::Int) = k==1?length(A.rows):length(A.cols)
 
+# these give the block rows corresponding to the J-th column block
+blockcolstart(A::AbstractBandedBlockMatrix,J::Int) = max(1,J-A.u)
+blockcolstop(A::AbstractBandedBlockMatrix,J::Int) = min(length(A.rows),J+A.l)
+blockcolrange(A::AbstractBandedBlockMatrix,J::Int) = blockcolstart(A,J):blockcolstop(A,J)
 
-blockcolrange(A::AbstractBandedBlockMatrix,J::Int) = max(1,J-A.u):min(length(A.rows),J+A.l)
+blockrowstart(A::AbstractBandedBlockMatrix,K::Int) = max(1,K-A.l)
+blockrowstop(A::AbstractBandedBlockMatrix,K::Int) = min(length(A.cols),K+A.u)
+blockrowrange(A::AbstractBandedBlockMatrix,K::Int) = blockrowstart(A,K):blockrowstop(A,K)
+
 
 # give the rows/columns of a block, as a range
 blockrows(A::AbstractBlockMatrix,K::Int) = sum(A.rows[1:K-1]) + (1:A.rows[K])
 blockcols(A::AbstractBlockMatrix,J::Int) = sum(A.cols[1:J-1]) + (1:A.cols[J])
+
+colstop(A::AbstractBandedBlockMatrix,k::Int) = sum(A.rows[1:min(A.colblocks[k]+A.l,length(A.rows))])
+colstart(A::AbstractBandedBlockMatrix,k::Int) = sum(A.rows[1:A.colblocks[k]-A.u-1])+1
+
+rowstop(A::AbstractBandedBlockMatrix,k::Int) = sum(A.cols[1:min(A.rowblocks[k]+A.u,length(A.cols))])
+rowstart(A::AbstractBandedBlockMatrix,k::Int) = sum(A.cols[1:A.rowblocks[k]-A.l-1])+1
 
 Base.convert(::Type{Matrix},A::AbstractBlockMatrix) =
     BLAS.axpy!(one(eltype(A)),A,zeros(eltype(A),size(A,1),size(A,2)))
@@ -69,7 +82,7 @@ Base.linearindexing{BBBM<:AbstractBlockMatrix}(::Type{BBBM}) =
     Base.LinearSlow()
 
 
-function mv!(α,A::AbstractBlockMatrix,x::Vector,β,y::Vector)
+function αA_mul_B_plus_βC!(α,A::AbstractBlockMatrix,x::Vector,β,y::Vector)
     if length(x) != size(A,2) || length(y) != size(A,1)
         throw(BoundsError())
     end
@@ -82,14 +95,14 @@ function mv!(α,A::AbstractBlockMatrix,x::Vector,β,y::Vector)
         for K=blockcolrange(A,J)
             kr=blockrows(A,K)
             B=viewblock(A,K,J)
-            mv!(α,B,view(x,jr),o,view(y,kr))
+            αA_mul_B_plus_βC!(α,B,view(x,jr),o,view(y,kr))
         end
     end
     y
 end
 
 Base.A_mul_B!(y::Vector,A::AbstractBlockMatrix,b::Vector) =
-    mv!(one(eltype(A)),A,b,zero(eltype(y)),y)
+    αA_mul_B_plus_βC!(one(eltype(A)),A,b,zero(eltype(y)),y)
 
 
 function Base.BLAS.axpy!(α,A::AbstractBlockMatrix,Y::AbstractMatrix)
@@ -129,7 +142,7 @@ function Base.A_mul_B!(Y::AbstractBlockMatrix,A::AbstractBlockMatrix,B::Abstract
     BLAS.scal!(length(Y.data),zero(T),Y.data,1)
     o=one(T)
     for J=1:blocksize(B,2),N=blockcolrange(B,J),K=blockcolrange(A,N)
-        mm!(o,viewblock(A,K,N),viewblock(B,N,J),o,viewblock(Y,K,J))
+        αA_mul_B_plus_βC!(o,viewblock(A,K,N),viewblock(B,N,J),o,viewblock(Y,K,J))
     end
     Y
 end
@@ -162,7 +175,7 @@ end
 
 #  A block matrix where only theb ands are nonzero
 #   isomorphic to BandedMatrix{Matrix{T}}
-immutable BandedBlockMatrix{T,RI,CI} <: AbstractBandedBlockMatrix{T}
+type BandedBlockMatrix{T,RI,CI} <: AbstractBandedBlockMatrix{T}
     data::Vector{T}
 
     l::Int  # block lower bandwidth

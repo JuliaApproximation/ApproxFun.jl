@@ -58,32 +58,18 @@ function getindex(QR::QROperator,d::Symbol)
 end
 
 
-function QROperator{T}(R::CachedOperator{T,AlmostBandedMatrix{T}})
-    M = R.data.bands.l+1   # number of diag+subdiagonal bands
-    H = Array(T,M,100)
-    QROperator(R,H,0)
-end
-
-function QROperator{T}(R::CachedOperator{T,BandedMatrix{T}})
-    M = R.data.l+1   # number of diag+subdiagonal bands
-    H = Array(T,M,100)
-    QROperator(R,H,0)
-end
-
-QROperator{T}(R::CachedOperator{T,RaggedMatrix{T}}) =
-    QROperator(R,RaggedMatrix(T,0,Int[]),0)
-
-
-function QROperator{T,AM<:AbstractMatrix}(R::CachedOperator{T,AM})
+# override for custom data types
+QROperator{T,AM<:AbstractMatrix}(R::CachedOperator{T,AM}) =
     error("Cannot create a QR factorization for $R")
-end
 
+
+Base.qrfact!(A::CachedOperator) = QROperator(A)
 
 function Base.qrfact(A::Operator)
     if isambiguous(domainspace(A)) || isambiguous(rangespace(A))
         throw(ArgumentError("Only non-ambiguous operators can be factorized."))
     end
-    QROperator(cache(A;padding=true))
+    qrfact!(cache(A;padding=true))
 end
 
 function Base.qr(A::Operator)
