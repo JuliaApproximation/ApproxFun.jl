@@ -63,13 +63,19 @@ QROperator{T,AM<:AbstractMatrix}(R::CachedOperator{T,AM}) =
     error("Cannot create a QR factorization for $R")
 
 
-Base.qrfact!(A::CachedOperator) = QROperator(A)
+function Base.qrfact!(A::CachedOperator;cached::Int=0)
+    QR = QROperator(A)
+    if cached ≠ 0
+        resizedata!(QR,:,cached)
+    end
+    QR
+end
 
-function Base.qrfact(A::Operator)
+function Base.qrfact(A::Operator;cached::Int=0)
     if isambiguous(domainspace(A)) || isambiguous(rangespace(A))
         throw(ArgumentError("Only non-ambiguous operators can be factorized."))
     end
-    qrfact!(cache(A;padding=true))
+    qrfact!(cache(A;padding=true);cached=cached)
 end
 
 function Base.qr(A::Operator)
