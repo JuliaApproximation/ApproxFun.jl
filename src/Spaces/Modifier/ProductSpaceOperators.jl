@@ -271,11 +271,11 @@ end
 
 choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->choosedomainspace(M,s),union,sp.spaces)
 
-
+  
 
 ## Multiplcation for Array*Vector
 
-function Multiplication{S,T,DD}(f::Fun{MatrixSpace{S,T,DD,1}},sp::VectorSpace)
+function Multiplication{S,T,DD,S2,T2,DD2,dim}(f::Fun{MatrixSpace{S,T,DD,dim}},sp::VectorSpace{S2,T2,DD2,dim})
     @assert size(space(f),2)==length(sp)
     m=mat(f)
     MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp.space) for k=1:size(m,1),j=1:size(m,2)]))

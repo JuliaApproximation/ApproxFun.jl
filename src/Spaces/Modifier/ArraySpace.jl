@@ -124,11 +124,9 @@ Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
 function devec{F<:Fun}(v::Vector{F})
     sps=map(space,v)
     if spacesequal(sps)
-        Fun(vec(coefficients(v).'),ArraySpace(first(sps),length(v)))
-    elseif domainscompatible(sps)
-        Fun(vec(coefficients(v).'),TupleSpace(sps))
+        Fun(vec(coefficientmatrix(v).'),ArraySpace(first(sps),length(v)))
     else
-        Fun(vec(coefficients(v).'),PiecewiseSpace(sps))
+        Fun(vec(coefficientmatrix(v).'),TupleSpace(sps))
     end
 end
 
@@ -207,7 +205,13 @@ function coefficients(f::Vector,a::VectorSpace,b::VectorSpace)
 end
 
 
+coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) = vec(coefficientmatrix(Q,rs.space))
 
+
+
+
+Fun{FF<:Fun}(f::Vector{FF},d::VectorSpace) = coefficients(f,d)
+Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = coefficients(f,d)
 
 
 
@@ -218,6 +222,7 @@ end
 # change to ArraySpace
 Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace)=Fun(coefficients(f,d),d)
 Fun{AS<:ArraySpace}(f::Fun{AS},d::Space)=Fun(f,ArraySpace(d,space(f).dimensions))
+
 
 # columns are coefficients
 Fun{T<:Number}(M::Array{T,2},sp::Space)=devec([Fun(M[:,k],sp) for k=1:size(M,2)])
@@ -302,3 +307,24 @@ end
 
 
 Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T})=Any[vec(f,k) for k=1:length(space(f)[1])+1]
+
+
+
+## linsolve
+
+linsolve{S,T,DD,dim}(A::QROperator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
+    linsolve(A,mat(b);kwds...)
+
+function linsolve{S,T,DD,dim}(A::Operator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
+    if dimension(domain(A)) > 1
+        pdesolve(A,b;kwds...)
+    elseif isambiguous(domainspace(A))
+        A=choosespaces(A,b[:,1])  # use only first column
+        if isambiguous(domainspace(A))
+            error("Cannot infer spaces")
+        end
+        linsolve(A,b;kwds...)
+    else
+        linsolve(qrfact(A),b;kwds...)
+    end
+end

@@ -3,7 +3,7 @@
 
 ## Vector of fun routines
 
-function coefficients{N,F}(::Type{N},f::Vector{F},o...)
+function coefficientmatrix{N,F}(::Type{N},f::Vector{F},o...)
     if isempty(f)
         return Array(N,0,0)
     end
@@ -25,9 +25,8 @@ scalarorfuntype(b::Vector{Any})=promote_type(map(scalarorfuntype,b)...)
 scalarorfuntype{F<:Fun}(b::Vector{F})=promote_type(map(scalarorfuntype,b)...)
 
 
-coefficients{F<:Fun}(Q::Vector{F},o...)=coefficients(scalarorfuntype(Q),Q,o...)
-coefficients(Q::Vector{Any})=(@assert isempty(Q); zeros(0,0))
-
+coefficientmatrix{F<:Fun}(Q::Vector{F},o...)=coefficientmatrix(scalarorfuntype(Q),Q,o...)
+coefficientmatrix(Q::Vector{Any})=(@assert isempty(Q); zeros(0,0))
 
 
 function values{D,N}(f::Vector{Fun{D,N}})
@@ -84,7 +83,7 @@ end
  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
      @eval begin
          function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,V}})
-             cfs=$op(A,coefficients(p).')
+             cfs=$op(A,coefficientmatrix(p).')
              ret = Array(Fun{D,promote_type(T,V)},size(cfs,1))
              for i = 1:size(cfs,1)
                  ret[i] = chop!(Fun(vec(cfs[i,:]),first(p).space),eps())
@@ -93,7 +92,7 @@ end
          end
 
          function ($op){T<:Number,D}(p::Vector{Fun{D,T}},A::Array{T,2})
-             cfs=$op(A,coefficients(p).')
+             cfs=$op(A,coefficientmatrix(p).')
              ret = Array(Fun{D,T},size(cfs,1))
              for i = 1:size(cfs,1)
                  ret[i] = chop!(Fun(vec(cfs[i,:]),first(p).space),eps())
