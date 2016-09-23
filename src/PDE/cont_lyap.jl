@@ -116,7 +116,7 @@ function cont_constrained_lyap{OSS<:DiagonalOperatorSchur}(OS::PDEOperatorSchur{
     end
     n = size(OS.S,1)
     F=pad(F,size(F,1),n)
-    Gx=pad(coefficients(Gxin).',:,n)
+    Gx=pad(coefficientmatrix(Gxin).',:,n)
 
     TYP=promote_type(eltype(OS),eltype(F))
     Y=Array(Fun{typeof(domainspace(OS,1)),TYP},n)
@@ -337,7 +337,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},
 
     if !isempty(Gx)
         # bcP recombines boundary conditions
-        Gx=pad(coefficients(Gx).',:,ny)*OS.S.bcP
+        Gx=pad(coefficientmatrix(Gx).',:,ny)*OS.S.bcP
         # remove unused DOFs and rearrange columns
         Gx=Gx[:,Ky+1:end]*OS.S.Z
     else
@@ -374,7 +374,7 @@ function cont_constrained_lyap{OSS<:OperatorSchur,PF<:ProductFun}(OS::PDEOperato
         GxM=Array(Matrix{Float64},size(Gx,2))
         for k=1:size(Gx,2)
             # bcP recombines boundary conditions
-            GxM[k]=pad(coefficients(Gx[:,k]).',:,ny)*OS.S.bcP
+            GxM[k]=pad(coefficientmatrix(Gx[:,k]).',:,ny)*OS.S.bcP
             # remove unused DOFs and rearrange columns
             GxM[k]=GxM[k][:,Ky+1:end]*OS.S.Z
         end

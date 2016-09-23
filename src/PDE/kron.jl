@@ -48,7 +48,7 @@ function cont_reduce_dofs!{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::Vector,G::Ve
 end
 function cont_reduce_dofs!{T<:Fun}(Ax::ReducedDiscreteOperators,Ay::ReducedDiscreteOperators,G::Vector{T},F)
     G=regularize_bcs(Ax,G)
-    cont_reduce_dofs!(Ax.opcols,Ay.ops,coefficients(G)[numbcs(Ay)+1:end,:],F)
+    cont_reduce_dofs!(Ax.opcols,Ay.ops,coefficientmatrix(G)[numbcs(Ay)+1:end,:],F)
 end
 
 
@@ -104,8 +104,8 @@ function pdesolve(K::PDEOperatorKron,G)
     Kx,Ky=numbcs(K,1),numbcs(K,2) # doesn't include boundary rows...could be confusing
     nx,ny=size(K,1)+Kx,size(K,2)+Ky
 
-    Gx=pad(coefficients(regularize_bcs(K.opsx,fx)).',:,ny)
-    Gy=pad(coefficients(regularize_bcs(K.opsy,fy)).',:,nx)
+    Gx=pad(coefficientmatrix(regularize_bcs(K.opsx,fx)).',:,ny)
+    Gy=pad(coefficientmatrix(regularize_bcs(K.opsy,fy)).',:,nx)
     Rx,Ry=K.opsx.bcs,K.opsy.bcs
 
     Px,Py=K.opsx.bcP,K.opsy.bcP
