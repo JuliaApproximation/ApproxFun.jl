@@ -113,6 +113,9 @@ TupleSpace{SS}(A::ArraySpace{SS,1}) = TupleSpace(spaces(A))
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k::Integer,j::Integer) =
     f[k+stride(f,2)*(j-1)]
 
+Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k::Union{Integer,Range,Colon},j::Union{Integer,Range,Colon}) =
+    Fun(mat(f)[k,j])
+
 Base.getindex(S::ArraySpace,k...) = S.space
 
 Base.start(S::ArraySpace) = 1
