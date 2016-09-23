@@ -205,13 +205,13 @@ function coefficients(f::Vector,a::VectorSpace,b::VectorSpace)
 end
 
 
-coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) = vec(coefficientmatrix(Q,rs.space))
+coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) = vec(coefficientmatrix(Q,rs.space).')
 
 
 
 
-Fun{FF<:Fun}(f::Vector{FF},d::VectorSpace) = coefficients(f,d)
-Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = coefficients(f,d)
+Fun{FF<:Fun}(f::Vector{FF},d::VectorSpace) = Fun(coefficients(f,d),d)
+Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(coefficients(f,d),d)
 
 
 
@@ -319,7 +319,7 @@ function linsolve{S,T,DD,dim}(A::Operator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds..
     if dimension(domain(A)) > 1
         pdesolve(A,b;kwds...)
     elseif isambiguous(domainspace(A))
-        A=choosespaces(A,b[:,1])  # use only first column
+        A=choosespaces(A,Fun(b[:,1]))  # use only first column
         if isambiguous(domainspace(A))
             error("Cannot infer spaces")
         end

@@ -13,6 +13,8 @@ function linsolve(A::Operator,b;kwds...)
         linsolve(qrfact(A),b;kwds...)
     end
 end
+
+
 function linsolve{OO<:Operator}(A::Array{OO},b;kwds...)
     if dimension(domain(A[end])) > 1
         pdesolve(A,b;kwds...)

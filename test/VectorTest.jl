@@ -114,6 +114,25 @@ u=M*G1
 
 
 
+G=Fun(z->[-1 -3; -3 -1]/z +
+         [ 2  2;  1 -3] +
+         [ 2 -1;  1  2]*z,Circle())
+
+
+@test G[1,1](exp(0.1im)) == G(exp(0.1im))[1,1]
+
+F̃ = (G-I)[:,1]
+F=Fun((G-I)[:,1])
+
+@test_approx_eq F(exp(0.1im)) [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
+@test_approx_eq Fun(F̃,space(F))(exp(0.1im)) [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
+
+@test coefficients(F̃,space(F)) == F.coefficients
+@test Fun(F̃,space(F)) == F
+
+
+
+
 
 ## Check conversion
 

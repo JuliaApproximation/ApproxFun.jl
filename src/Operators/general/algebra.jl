@@ -575,6 +575,8 @@ function *(A::Operator,b::Fun)
     end
 end
 
+*{F<:Fun}(A::Operator,b::Vector{F}) = A*Fun(b)
+
 #=
 function *(A::PlusOperator,b::Fun)
     dsp=conversion_type(domainspace(A),space(b))
