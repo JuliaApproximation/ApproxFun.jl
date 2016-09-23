@@ -11,7 +11,9 @@ function linsolve(A::Operator,b;kwds...)
         linsolve(qrfact(A),b;kwds...)
     end
 end
+
 linsolve{OO<:Operator}(A::Array{OO},b;kwds...) = linsolve(interlace(A),b;kwds...)
+
 
 for p in (1,2)
     @eval begin

@@ -332,6 +332,7 @@ u=[Dirichlet(d);Laplacian(d)]\Any[g;0.]
 
 
 
+
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
 
 
@@ -341,9 +342,9 @@ ApproxFun.resizedata!(CO,:,2)
 ApproxFun.resizedata!(CO,:,4)
 @test_approx_eq CO*Fun(exp,dt) 1.0
 
+
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dt*dθ
-
-
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
 u0=Fun(θ->exp(-20θ^2),dθ,20)

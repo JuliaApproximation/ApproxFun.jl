@@ -115,7 +115,7 @@ end
 
 choosedomainspace(A::Operator,f::Fun) = choosedomainspace(A,space(f))
 choosedomainspace{FF<:Fun}(A::Operator,f::Vector{FF}) =
-    choosedomainspace(A,interlace(f))
+    choosedomainspace(A,devec(f))
 choosedomainspace(A::Operator,::) = choosedomainspace(A)
 
 choosedomainspace(A) = choosedomainspace(A,UnsetSpace())

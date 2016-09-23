@@ -218,7 +218,13 @@ Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...) = demat(diff(mat(f),n...))
 coefficients(f::Vector,a::VectorSpace,b::VectorSpace) =
     interlace(map(coefficients,Fun(f,a),b),b)
 
+coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) = vec(coefficientmatrix(Q,rs.space).')
 
+
+
+
+Fun{FF<:Fun}(f::Vector{FF},d::VectorSpace) = Fun(coefficients(f,d),d)
+Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(coefficients(f,d),d)
 
 
 
@@ -229,6 +235,7 @@ coefficients(f::Vector,a::VectorSpace,b::VectorSpace) =
 # change to ArraySpace
 Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = space(f)==d ? f : Fun(coefficients(f,d),d)
 Fun{AS<:ArraySpace}(f::Fun{AS},d::Space) = Fun(f,ArraySpace(d,space(f).dimensions))
+
 
 # columns are coefficients
 Fun{T<:Number}(M::Array{T,2},sp::Space) = devec([Fun(M[:,k],sp) for k=1:size(M,2)])
@@ -313,5 +320,23 @@ function Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,D
 end
 
 
+
 Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T}) =
     Any[vec(f,k) for k=1:length(space(f)[1])+1]
+
+
+
+linsolve{S,T,DD,dim}(A::QROperator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
+    linsolve(A,mat(b);kwds...)
+
+function linsolve{S,T,DD,dim}(A::Operator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
+    if isambiguous(domainspace(A))
+        A=choosespaces(A,Fun(b[:,1]))  # use only first column
+        if isambiguous(domainspace(A))
+            error("Cannot infer spaces")
+        end
+        linsolve(A,b;kwds...)
+    else
+        linsolve(qrfact(A),b;kwds...)
+    end
+end

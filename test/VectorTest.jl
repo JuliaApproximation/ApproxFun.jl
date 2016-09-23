@@ -144,12 +144,32 @@ u=M*G1
 
 
 
+G=Fun(z->[-1 -3; -3 -1]/z +
+         [ 2  2;  1 -3] +
+         [ 2 -1;  1  2]*z,Circle())
+
+
+@test G[1,1](exp(0.1im)) == G(exp(0.1im))[1,1]
+
+F̃ = (G-I)[:,1]
+F=Fun((G-I)[:,1])
+
+@test_approx_eq F(exp(0.1im)) [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
+@test_approx_eq Fun(F̃,space(F))(exp(0.1im)) [-exp(-0.1im)+1+2exp(0.1im);-3exp(-0.1im)+1+1exp(0.1im)]
+
+@test coefficients(F̃,space(F)) == F.coefficients
+@test Fun(F̃,space(F)) == F
+
+
+
+
 
 ## Check conversion
 
 f=Fun(t->[cos(t) 0;sin(t) 1],[-π,π])
 g=Fun(f,Space(PeriodicInterval(-π,π)))
 @test_approx_eq g(.1) f(.1)
+
 
 
 
@@ -163,3 +183,10 @@ f=Fun(collect(1:10),TS)
 @test f[3] == Fun([3.],TS[3])
 @test f[4] == Fun([4.,8.],TS[4])
 @test f[5] == Fun([5.,9.],TS[5])
+
+## Operator * Matrix
+
+D=Derivative()
+
+u=D*[Fun(exp) Fun(cos)]
+@test_approx_eq u(0.1) [exp(0.1) -sin(0.1)]
