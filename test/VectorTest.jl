@@ -120,3 +120,12 @@ u=M*G1
 f=Fun(t->[cos(t) 0;sin(t) 1],[-π,π])
 g=Fun(f,Space(PeriodicInterval(-π,π)))
 @test_approx_eq g(.1) f(.1)
+
+
+
+## Operator * Matrix
+
+D=Derivative()
+
+u=D*[Fun(exp) Fun(cos)]
+@test_approx_eq u(0.1) [exp(0.1) -sin(0.1)]

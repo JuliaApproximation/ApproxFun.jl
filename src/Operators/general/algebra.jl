@@ -590,8 +590,7 @@ end
 for TYP in (:TimesOperator,:Operator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
         @assert size(b,1)==1
-        C=A*coefficients(vec(b),domainspace(A))
-        reshape(C,1,length(space(C)))
+        demat([A*bk  for bk in b])
     end
 end
 
