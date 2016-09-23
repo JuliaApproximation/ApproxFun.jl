@@ -350,9 +350,13 @@ function cont_constrained_lyap{OSS<:OperatorSchur}(OS::PDEOperatorSchur{OSS},
 
     X22=OS.S.Z*Y  #think of it as transpose
 
-    X11=Gy-OS.S.bcs[:,Ky+1:end]*X22
-    X=[X11;X22]
-    X=OS.S.bcP*X        # this is equivalent to acting on columns by P'
+    if isempty(Gy)
+        OS.S.bcP*X22
+    else
+        X11=Gy-OS.S.bcs[:,Ky+1:end]*X22
+        X=[X11;X22]
+        OS.S.bcP*X        # this is equivalent to acting on columns by P'
+    end
 end
 
 function cont_constrained_lyap{OSS<:OperatorSchur,PF<:ProductFun}(OS::PDEOperatorSchur{OSS},
