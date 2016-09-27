@@ -18,46 +18,16 @@ Evaluation(S::TupleSpace,order::Number) =
     InterlaceOperator(Diagonal([map(s->Evaluation(s,order),S)...]),TupleSpace)
 
 
+diagonalarrayoperator(op,dims) =
+    InterlaceOperator(promotespaces(Diagonal(fill(op,prod(dims)))),
+                      ArraySpace(domainspace(op),dims),
+                      ArraySpace(rangespace(op),dims))
 
-## Vector
-# represents an operator applied to all spaces in an array space
 
-
-immutable DiagonalArrayOperator{B<:Operator,T<:Number} <: Operator{T}
-    op::B
-    dimensions::Tuple{Vararg{Int}}
+function Derivative(AS::ArraySpace,k::Integer)
+    D = Derivative(AS.space,k)
+    DerivativeWrapper(diagonalarrayoperator(D,size(AS)),k)
 end
-
-DiagonalArrayOperator{T}(op::Operator{T},dms::Tuple{Vararg{Int}})=DiagonalArrayOperator{typeof(op),T}(op,dms)
-#DiagonalArrayOperator{T}(op::Operator{T},dms::Int)=DiagonalArrayOperator(op,(dms,))
-
-
-function bandinds(D::DiagonalArrayOperator)
-    bra,brb=bandinds(D.op)
-    n=*(D.dimensions...)
-    n*bra,n*brb
-end
-
-
-function getindex{B,T}(D::DiagonalArrayOperator{B,T},k::Integer,j::Integer)
-    n=*(D.dimensions...)
-
-    if mod(k,n) == mod(j,n)  # same block
-        k=(k-1)÷n+1  # map k and j to block coordinates
-        j=(j-1)÷n+1
-        D.op[k,j]::T
-    else
-        zero(T)
-    end
-end
-
-
-for op in (:domainspace,:rangespace)
-    @eval $op(D::DiagonalArrayOperator)=ArraySpace($op(D.op),D.dimensions)
-end
-
-
-Derivative(AS::ArraySpace,k::Integer)=DerivativeWrapper(DiagonalArrayOperator(Derivative(AS.space,k),size(AS)),k)
 
 function conversion_rule(AS::ArraySpace,BS::ArraySpace)
     if size(AS)==size(BS)
@@ -80,10 +50,11 @@ end
 
 function Conversion(AS::ArraySpace,BS::ArraySpace)
     @assert size(AS)==size(BS)
-    ConversionWrapper(DiagonalArrayOperator(Conversion(AS.space,BS.space),size(AS)))
+    C = Conversion(AS.space,BS.space)
+    ConversionWrapper(diagonalarrayoperator(C,size(AS)))
 end
 
-ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(ToeplitzOperator,mat(G)))
+ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V}) = interlace(map(ToeplitzOperator,mat(G)))
 
 ## Sum Space
 

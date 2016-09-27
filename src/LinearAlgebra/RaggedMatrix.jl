@@ -21,7 +21,7 @@ RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
 RaggedMatrix{T}(::Type{T},m::Int,colns::AbstractVector{Int}) =
-    RaggedMatrix(Array(T,sum(colns)),[1;1+cumsum(colns)],m)
+    RaggedMatrix(Array(T,sum(colns)),Int[1;1+cumsum(colns)],m)
 
 RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix(Float64,m,collengths)
 
@@ -123,8 +123,17 @@ function BLAS.axpy!(a,X::RaggedMatrix,Y::RaggedMatrix)
     if X.cols == Y.cols
         BLAS.axpy!(a,X.data,Y.data)
     else
-        error("Not implemented.")
+        for j = 1:size(X,2)
+            @assert colstop(X,j) ≤ colstop(Y,j)  # check zeros otherwise
+        end
+
+        for j = 1:size(X,2)
+            cs = colstop(X,j)
+            BLAS.axpy!(a,view(X.data,X.cols[j]:X.cols[j]+cs-1),
+                         view(Y.data,Y.cols[j]:Y.cols[j]+cs-1))
+        end
     end
+    Y
 end
 
 colstop{T}(X::SubArray{T,2,RaggedMatrix{T},Tuple{UnitRange{Int},UnitRange{Int}}},

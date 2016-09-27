@@ -221,7 +221,8 @@ Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...) = demat(diff(mat(f),n...))
 coefficients(f::Vector,a::VectorSpace,b::VectorSpace) =
     interlace(map(coefficients,Fun(f,a),b),b)
 
-coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) = vec(coefficientmatrix(Q,rs.space).')
+coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) =
+    interlace(map(coefficients,Q,rs),rs)
 
 
 
@@ -280,7 +281,7 @@ end
 function Base.inv{A<:ArraySpace,T}(V::Fun{A,T})
     @assert size(space(V),1)==size(space(V),2)
     M=Multiplication(V,ArraySpace(space(V).space,size(space(V),1)))
-    M\eye(size(space(V),2))
+    M\eye(size(space(V),2))  # TODO: fix
 end
 
 ## Algebra
@@ -334,7 +335,7 @@ linsolve{S,T,DD,dim}(A::QROperator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
 
 function linsolve{S,T,DD,dim}(A::Operator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
     if isambiguous(domainspace(A))
-        A=choosespaces(A,Fun(b[:,1]))  # use only first column
+        A=choosespaces(A,b[:,1])  # use only first column
         if isambiguous(domainspace(A))
             error("Cannot infer spaces")
         end

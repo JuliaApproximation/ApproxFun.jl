@@ -55,6 +55,8 @@ function rangespace{T<:Operator}(A::Vector{T})
     end
 end
 
+promotespaces{T<:Operator}(A::AbstractMatrix{T}) = promotespaces(Matrix(A))
+
 function promotespaces{T<:Operator}(A::Matrix{T})
     isempty(A) && return A
     A=copy(A)#TODO: promote might have different Array type
@@ -93,7 +95,12 @@ InterlaceOperator{T,p}(ops::Array{T,p},ds,rs,di,ri,bi) =
 function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
     # calculate bandinds TODO: generalize
     p=size(ops,1)
-    if size(ops,2) == p && all(isbanded,ops)
+    dsi = interlacer(ds)
+    rsi = interlacer(rs)
+
+    if size(ops,2) == p && all(isbanded,ops) &&
+            all(i->i.x == 1, dsi.blocks) &&  # only support blocksize 1 for now
+            all(i->i.x == 1, rsi.blocks)
         l,u = 0,0
         for k=1:p,j=1:p
             l=min(l,p*bandinds(ops[k,j],1)+j-k)
@@ -110,8 +117,8 @@ function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
 
 
     InterlaceOperator(ops,ds,rs,
-                        cache(interlacer(ds)),
-                        cache(interlacer(rs)),
+                        cache(dsi),
+                        cache(rsi),
                         (l,u))
 end
 

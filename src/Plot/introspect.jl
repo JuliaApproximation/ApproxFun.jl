@@ -81,7 +81,7 @@ treecount(::ConcreteMultiplication) = 1
 
 
 treecount(M::Union{MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,LeftIntegralWrapper,RightIntegralWrapper,
-                   ConversionWrapper,SpaceOperator,DiagonalArrayOperator,ConstantTimesOperator})=1+treecount(M.op)
+                   ConversionWrapper,SpaceOperator,ConstantTimesOperator})=1+treecount(M.op)
 treecount(A::Union{PlusOperator,TimesOperator,InterlaceOperator,KroneckerOperator})=1+mapreduce(treecount,+,A.ops)
 
 domainrangestr(A)=texname(domainspace(A))*"\$\\rightarrow\$"*texname(rangespace(A))
@@ -106,7 +106,7 @@ add_edges!(A::Operator,nd,M,labels)=(labels[nd]=string(nd)*":"*texname(A))
 
 
 
-for (WRAP,STR) in ((:MultiplicationWrapper,:"(M)"),(:ConversionWrapper,"(C)"),(:DiagonalArrayOperator,:"DiagArray"))
+for (WRAP,STR) in ((:MultiplicationWrapper,:"(M)"),(:ConversionWrapper,"(C)"))
     @eval add_edges!(A::$WRAP,nd,M,labels)=treeadd_edges!(string(nd)*":"*$STR,[A.op],nd,M,labels)
 end
 

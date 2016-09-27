@@ -376,12 +376,13 @@ bbbzeros(S::Operator) = bbbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,
 
 rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[max(0,colstop(S,j)) for j=1:size(S,2)])
 
-banded_convert_axpy!(S::Operator) =
-    BLAS.axpy!(one(eltype(S)),S,bzeros(S))
-matrix_convert_axpy!(S::Operator) =
-    BLAS.axpy!(one(eltype(S)),S,zeros(S))
-bandedblockbanded_convert_axpy!(S::Operator) =
-        BLAS.axpy!(one(eltype(S)),S,bbbzeros(S))
+for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
+                   (:BandedBlockBandedMatrix,:bbbzeros),
+                   (:RaggedMatrix,:rzeros),(:BandedBlockMatrix,:bbzeros))
+    @eval convert_axpy!(::Type{$TYP},S::Operator) =
+        BLAS.axpy!(one(eltype(S)),S,$ZERS(S))
+end
+
 
 
 

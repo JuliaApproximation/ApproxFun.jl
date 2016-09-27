@@ -120,7 +120,7 @@ choosedomainspace(A::Operator,::) = choosedomainspace(A)
 
 choosedomainspace(A) = choosedomainspace(A,UnsetSpace())
 
-function choosedomainspace(ops::Vector,spin)
+function choosedomainspace(ops::AbstractVector,spin)
     sp = UnsetSpace()
 
     for op in ops
@@ -139,8 +139,8 @@ spacescompatible(A::Operator,B::Operator) =
 
 
 #It's important that domain space is promoted first as it might impact range space
-promotespaces(ops::Vector) = promoterangespace(promotedomainspace(ops))
-function promotespaces(ops::Vector,b::Fun)
+promotespaces(ops::AbstractVector) = promoterangespace(promotedomainspace(ops))
+function promotespaces(ops::AbstractVector,b::Fun)
     A=promotespaces(ops)
     if isa(rangespace(A),AmbiguousSpace)
         # try setting the domain space

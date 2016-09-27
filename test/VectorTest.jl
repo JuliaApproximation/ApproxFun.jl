@@ -160,7 +160,7 @@ F=Fun((G-I)[:,1])
 @test coefficients(F̃,space(F)) == F.coefficients
 @test Fun(F̃,space(F)) == F
 
-
+@test F==Fun(vec(F),space(F))
 
 
 

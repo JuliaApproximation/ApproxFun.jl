@@ -106,16 +106,11 @@ function getindex{T}(P::PlusOperator{T},k::Integer...)
 end
 
 
-
-Base.convert{T,PP<:PlusOperator}(::Type{BandedMatrix},P::SubOperator{T,PP}) =
-    banded_convert_axpy!(P)   # use axpy! to copy
-
-Base.convert{T,PP<:PlusOperator}(::Type{BandedBlockBandedMatrix},P::SubOperator{T,PP}) =
-    bandedblockbanded_convert_axpy!(P)   # use axpy! to copy
-
-Base.convert{T,PP<:PlusOperator}(::Type{Matrix},P::SubOperator{T,PP}) =
-    matrix_convert_axpy!(P)   # use axpy! to copy
-
+for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
+            :BandedBlockMatrix,:BandedBlockBandedMatrix)
+    @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP}) =
+        convert_axpy!($TYP,P)   # use axpy! to copy
+end
 
 function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubOperator{T,PP},A::AbstractMatrix)
     for op in parent(P).ops
@@ -187,6 +182,12 @@ for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,
            :isafunctional,:isbandedblockbanded,:israggedbelow)
     @eval $OP(C::ConstantTimesOperator) = $OP(C.op)
 end
+
+for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
+                :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds))
+    @eval $func(C::ConstantTimesOperator,k::Integer) = $func(C.op,k)
+end
+
 Base.size(C::ConstantTimesOperator,k::Integer) = size(C.op,k)
 bandinds(C::ConstantTimesOperator,k::Integer) = bandinds(C.op,k)
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
@@ -214,8 +215,12 @@ end
 getindex(P::ConstantTimesOperator,k::Integer...) =
     P.λ*P.op[k...]
 
-Base.convert{T,OP<:ConstantTimesOperator}(::Type{BandedMatrix},S::SubOperator{T,OP}) =
-    banded_convert_axpy!(S)
+for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
+                   (:BandedBlockBandedMatrix,:bbbzeros),
+                   (:RaggedMatrix,:rzeros),(:BandedBlockMatrix,:bbzeros))
+    @eval Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},S::SubOperator{T,OP}) =
+        convert_axpy!($TYP,S)
+end
 
 BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubOperator{T,OP},A::AbstractMatrix) =
     unwrap_axpy!(α*parent(S).λ,S,A)
