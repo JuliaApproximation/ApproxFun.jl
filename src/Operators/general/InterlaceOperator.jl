@@ -39,10 +39,8 @@ function domainspace{T<:Operator}(A::Matrix{T})
     spl=map(domainspace,vec(A[1,:]))
     if spacescompatible(spl)
         ArraySpace(first(spl),length(spl))
-    elseif domainscompatible(spl)
-        TupleSpace(spl)
     else
-        PiecewiseSpace(spl)
+        TupleSpace(spl)
     end
 end
 
@@ -153,18 +151,21 @@ function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
     end
 end
 
-function InterlaceOperator{T,DS<:Space}(opsin::Matrix{Operator{T}},::Type{DS})
+function InterlaceOperator{T,DS<:Space,RS<:Space}(opsin::Matrix{Operator{T}},::Type{DS},::Type{RS})
     isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
 
     ops=promotespaces(opsin)
     # TODO: make consistent
     # if its a row vector, we assume scalar
     if size(ops,1) == 1
-        InterlaceOperator(ops,DS(domainspace(ops).spaces),DS(rangespace(ops[1]).spaces))
+        InterlaceOperator(ops,DS(domainspace(ops).spaces),RS(rangespace(ops[1]).spaces))
     else
-        InterlaceOperator(ops,DS(domainspace(ops).spaces),DS(rangespace(ops[:,1]).spaces))
+        InterlaceOperator(ops,DS(domainspace(ops).spaces),RS(rangespace(ops[:,1]).spaces))
     end
 end
+
+InterlaceOperator{T,DS<:Space}(opsin::Matrix{Operator{T}},::Type{DS}) = 
+    InterlaceOperator(opsin,DS,DS)
 
 InterlaceOperator(opsin::AbstractMatrix,S...) = InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,opsin)}}(opsin),S...)
 

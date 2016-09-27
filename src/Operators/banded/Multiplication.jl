@@ -62,6 +62,9 @@ getindex{F,T}(D::ConcreteMultiplication{F,UnsetSpace,T},k::Integer,j::Integer) =
 ##multiplication can always be promoted, range space is allowed to change
 promotedomainspace(D::Multiplication,sp::UnsetSpace) = D
 promotedomainspace(D::Multiplication,sp::Space) = Multiplication(D.f,sp)
+promoterangespace{P}(D::ConcreteMultiplication{P,UnsetSpace},sp::UnsetSpace) = D
+promoterangespace{P}(D::ConcreteMultiplication{P,UnsetSpace},sp::Space) =
+    promoterangespace(Multiplication(D.f,ConstantSpace(domain(sp))), sp)
 
 choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},::UnsetSpace) = space(M.f)
 # we assume multiplication maps spaces to themselves

@@ -70,7 +70,7 @@ Base.full(A::RaggedMatrix) = convert(Matrix,A)
 
 function Base.convert(::Type{RaggedMatrix},B::BandedMatrix)
     l = bandwidth(B,1)
-    ret = rzeros(eltype(B),size(B,1),l+(1:size(B,2)))
+    ret = rzeros(eltype(B),size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end

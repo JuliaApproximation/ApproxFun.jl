@@ -788,6 +788,25 @@ for OP in (:+,:-,:(.*))
             @assert isinf(length(b.it[end]))
             flatten(map(it->$OP(a.x,it),b.it))
         end
+
+        function $OP(a::Flatten,b::AbstractCount)
+            K=0
+            it=tuple()
+            for k=1:length(a.it)
+                it=(it...,$OP(a.it[k],b[K+1:K+length(a.it[k])]))
+                K+=length(a.it[k])
+            end
+            flatten(it)
+        end
+        function $OP(a::AbstractCount,b::Flatten)
+            K=0
+            it=tuple()
+            for k=1:length(b.it)
+                it=(it...,$OP(a[K+1:K+length(it[k])],b.it[k]))
+                K+=length(b.it[k])
+            end
+            flatten(it)
+        end
     end
 end
 

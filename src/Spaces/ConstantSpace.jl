@@ -127,11 +127,9 @@ rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{CS,F,T}) = D.
 
 bandinds{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = 1-ncoefficients(D.f),0
 function getindex{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T},k::Integer,j::Integer)
-    Op = Multiplication(D.f,space(D.f))
-    k≤ncoefficients(D.f) && j==1?T(Op[k,1]):zero(T)
+    k≤ncoefficients(D.f) && j==1?T(D.f.coefficients[k]):zero(T)
 end
-rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) =
-    rangespace(Multiplication(D.f,space(D.f)))
+rangespace{CS<:ConstantSpace,F<:Space,T}(D::ConcreteMultiplication{F,CS,T}) = space(D.f)
 
 
 

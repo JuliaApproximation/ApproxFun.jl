@@ -1,8 +1,8 @@
 
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
-    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...))
-    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...))
+    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...),PiecewiseSpace,TupleSpace)
+    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...),PiecewiseSpace,TupleSpace)
 end
 
 
@@ -256,7 +256,7 @@ end
 
 choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->choosedomainspace(M,s),union,sp.spaces)
 
-  
+
 
 ## Multiplcation for Array*Vector
 
