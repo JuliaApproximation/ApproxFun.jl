@@ -164,7 +164,7 @@ function InterlaceOperator{T,DS<:Space,RS<:Space}(opsin::Matrix{Operator{T}},::T
     end
 end
 
-InterlaceOperator{T,DS<:Space}(opsin::Matrix{Operator{T}},::Type{DS}) = 
+InterlaceOperator{T,DS<:Space}(opsin::Matrix{Operator{T}},::Type{DS}) =
     InterlaceOperator(opsin,DS,DS)
 
 InterlaceOperator(opsin::AbstractMatrix,S...) = InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,opsin)}}(opsin),S...)
@@ -213,7 +213,7 @@ end
 function colstop(M::InterlaceOperator,j::Integer)
     b=bandwidth(M,1)
     if isfinite(b)
-        j+b
+        min(j+b,size(M,1))
     else # assume block banded
         J=block(domainspace(M),j)
         blockstop(rangespace(M),blockcolstop(M,J))

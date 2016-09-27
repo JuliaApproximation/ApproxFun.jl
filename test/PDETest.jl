@@ -386,9 +386,9 @@ dt=Interval(0,2.)
 Dx=Derivative(s);Dt=Derivative(dt)
 Bx=[ldirichlet(s);continuity(s,0)]
 
-
 # test resize bug
 CO=cache(Bx[2])
+@test ApproxFun.colstop(CO.op,2) == 2
 ApproxFun.resizedata!(CO,:,2)
 ApproxFun.resizedata!(CO,:,4)
 @test_approx_eq (CO*collect(1:4)).coefficients [3.,-1.]

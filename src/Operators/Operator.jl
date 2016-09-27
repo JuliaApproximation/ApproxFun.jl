@@ -67,6 +67,8 @@ end
 
 Base.size(A::Operator) = (size(A,1),size(A,2))
 Base.size(A::Operator,k::Integer) = k==1?dimension(rangespace(A)):dimension(domainspace(A))
+Base.length(A::Operator) = size(A,1) * size(A,2)
+
 
 # used to compute "end" for last index
 function Base.trailingsize(A::Operator, n::Integer)

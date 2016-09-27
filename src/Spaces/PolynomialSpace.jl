@@ -52,9 +52,12 @@ immutable Recurrence{S,T} <: TridiagonalOperator{T}
     space::S
 end
 
-Recurrence(sp)=Recurrence{typeof(sp),promote_type(eltype(sp),eltype(domain(sp)))}(sp)
+Recurrence(sp) = Recurrence{typeof(sp),promote_type(eltype(sp),eltype(domain(sp)))}(sp)
 
-Base.convert{T,S}(::Type{Operator{T}},J::Recurrence{S})=Recurrence{S,T}(J.space)
+Base.convert{T,S}(::Type{Operator{T}},J::Recurrence{S}) = Recurrence{S,T}(J.space)
+
+domainspace(R::Recurrence) = R.space
+rangespace(R::Recurrence) = R.space
 
 
 #####

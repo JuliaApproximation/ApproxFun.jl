@@ -7,9 +7,31 @@ immutable SubOperator{T,B,I,DI,BI} <: Operator{T}
     bandwidths::BI
 end
 
-SubOperator(A,inds,dims,lu) =
+checkbounds(A::Operator,kr::Colon) = nothing
+
+checkbounds(A::Operator,kr) =
+    (maximum(kr) > length(A) || minimum(kr) < 1) && throw(BoundsError(A,kr))
+
+
+checkbounds(A::Operator,kr::Colon,jr::Colon) = nothing
+
+checkbounds(A::Operator,kr::Colon,jr) =
+    (maximum(jr) > size(A,2) || minimum(jr) < 1) && throw(BoundsError(A,(kr,jr)))
+
+checkbounds(A::Operator,kr,jr::Colon) =
+    (maximum(kr) > size(A,1)  || minimum(kr) < 1 ) && throw(BoundsError(A,(kr,jr)))
+
+checkbounds(A::Operator,kr,jr) =
+    (maximum(kr) > size(A,1) || maximum(jr) > size(A,2) ||
+     minimum(kr) < 1 || minimum(jr) < 1) && throw(BoundsError(A,(kr,jr)))
+
+
+
+function SubOperator(A,inds,dims,lu)
+    checkbounds(A,inds...)
     SubOperator{eltype(A),typeof(A),typeof(inds),
                 typeof(dims),typeof(lu)}(A,inds,map(length,inds),lu)
+end
 
 # cannot infer ranges
 SubOperator(A,inds,dims) = SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))

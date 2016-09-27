@@ -57,6 +57,8 @@ function Base.done(it::TensorIterator,st)
     return true
 end
 
+Base.length(it::TensorIterator) = prod(it.dimensions)
+
 
 function Base.next{d}(it::TensorIterator{NTuple{d,Infinity{Bool}}},st)
     for k=2:length(st)

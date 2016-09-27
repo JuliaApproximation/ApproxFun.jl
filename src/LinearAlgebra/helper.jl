@@ -648,7 +648,13 @@ Base.next(it::CachedIterator,st::Int) = (it[st],st+1)
 Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
                                         done(it.iterator,it.state)
 
-getindex(it::CachedIterator,k) = resize!(it,isempty(k)?0:maximum(k)).storage[k]
+function getindex(it::CachedIterator,k)
+    mx = maximum(k)
+    if mx > length(it)
+        throw(BoundsError(it,k))
+    end
+    resize!(it,isempty(k)?0:mx).storage[k]
+end
 function Base.findfirst(f::Function,A::CachedIterator)
     k=1
     for c in A
@@ -670,6 +676,8 @@ function Base.findfirst(A::CachedIterator,x)
     end
     return 0
 end
+
+Base.length(A::CachedIterator) = length(A.iterator)
 
 
 # The following don't need caching
