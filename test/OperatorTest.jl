@@ -243,5 +243,5 @@ A=ApproxFun.interlace([Z                      Evaluation(S,0);
 let C=cache(A)
     ApproxFun.resizedata!(C,5,:)
     ApproxFun.resizedata!(C,10,:)
-    @test norm(C.data-A[1:10,1:39]) == 0
+    @test norm(C.data-A[1:10,1:39]) ≤ eps()
 end
