@@ -162,6 +162,11 @@ F=Fun((G-I)[:,1])
 
 @test F==Fun(vec(F),space(F))
 
+@test_approx_eq inv(G(exp(0.1im))) inv(G)(exp(0.1im))
+
+@test_approx_eq Fun(eye(2),space(G))(exp(0.1im)) eye(2)
+
+@test_approx_eq Fun(I,space(G))(exp(0.1im)) eye(2)
 
 
 ## Check conversion

@@ -4,5 +4,5 @@ FastTransforms 0.0.5
 Plots 0.8.2
 Compat 0.8.6
 DualNumbers 0.2.2
-BandedMatrices 0.0.8
+BandedMatrices 0.1
 ToeplitzMatrices 0.1.1

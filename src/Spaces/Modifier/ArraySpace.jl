@@ -242,6 +242,16 @@ Fun{AS<:ArraySpace}(f::Fun{AS},d::Space) = Fun(f,ArraySpace(d,space(f).dimension
 
 
 # columns are coefficients
+function Fun{T<:Number}(M::Array{T,2},sp::MatrixSpace)
+    if size(M) ≠ size(sp)
+        throw(DimensionMismatch())
+    end
+    demat(map(f->Fun(f,sp.space),M))
+end
+
+Fun(M::UniformScaling,sp::MatrixSpace) = Fun(M.λ*eye(size(sp)...),sp)
+
+
 Fun{T<:Number}(M::Array{T,2},sp::Space) = devec([Fun(M[:,k],sp) for k=1:size(M,2)])
 
 # Automatically change to ArraySpace
@@ -279,9 +289,13 @@ function Base.det{A<:ArraySpace,V}(f::Fun{A,V})
 end
 
 function Base.inv{A<:ArraySpace,T}(V::Fun{A,T})
-    @assert size(space(V),1)==size(space(V),2)
+    if size(space(V),1) ≠ size(space(V),2)
+        throw(DimensionMismatch("space $(space(V)) is not square"))
+    end
+
     M=Multiplication(V,ArraySpace(space(V).space,size(space(V),1)))
-    M\eye(size(space(V),2))  # TODO: fix
+    # convert I to the rangespace of M
+    M\Fun(eye(size(space(V),2)),ArraySpace(rangespace(M).space,size(space(V))))
 end
 
 ## Algebra
