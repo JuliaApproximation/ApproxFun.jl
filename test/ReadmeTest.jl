@@ -1,6 +1,6 @@
 ## Intro
 
-using ApproxFun,Base.Test
+using ApproxFun, Base.Test, Compat
 x = Fun(identity,[0.,10.])
 f = sin(x^2)
 g = cos(x)
@@ -62,7 +62,7 @@ u = [B;L] \ [airyai(d.a);airyai(d.b)]
 
 ## Nonlinear BVPs
 x=Fun()
-u0=0.x
+u0=0.0x
 
 N=u->[u(-1.)-1.,u(1.)+0.5,0.001u''+6*(1-x^2)*u'+u^2-1.]
 u=newton(N,u0)
@@ -119,7 +119,7 @@ h = 0.002
 
 
 
-with_bigfloat_precision(1000) do
+setprecision(1000) do
     d=Interval{BigFloat}(0,1)
     D=Derivative(d)
     u=[ldirichlet();D-I]\[1]

@@ -110,7 +110,7 @@ Solve a nonlinear boundary value problem satisfying the ODE `0.001u'' + 6*(1-x^2
 
 ```julia
 x=Fun()
-u0=0.x
+u0=0.0x
 
 N=u->[u(-1)-1,u(1)+0.5,0.001u''+6*(1-x^2)*u'+u^2-1]
 u=newton(N,u0)
@@ -210,7 +210,7 @@ timeevolution(B,L,u0,h)                    # Requires GLPlot
 Solving differential equations with high precision types is available.  The following calculates `e` to 300 digits by solving the ODE `u' = u`:
 
 ```julia
-with_bigfloat_precision(1000) do
+setprecision(1000) do
     d=Interval{BigFloat}(0,1)
     D=Derivative(d)
     u=[ldirichlet();D-I]\[1]
