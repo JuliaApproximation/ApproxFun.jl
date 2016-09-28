@@ -44,9 +44,6 @@ include("SpeedPDETest.jl")
 
 
 println("Example tests")
-if isdir(Pkg.dir("Gadfly"))
-    include("ExamplesTest.jl")
-    include("ReadmeTest.jl")
-else
-    warn("Unable to do Examples since Gadfly.jl is not installed")
-end
+
+include("ExamplesTest.jl")
+include("ReadmeTest.jl")

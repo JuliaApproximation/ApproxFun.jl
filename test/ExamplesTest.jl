@@ -2,7 +2,7 @@
 
 include("../examples/2D\ Cauchy\ Distribution.jl")
 include("../examples/Airy\ equation.jl")
-if isdir(Pkg.dir("RandomMatrices")) && isdir(Pkg.dir("PyPlot"))
+if isdir(Pkg.dir("RandomMatrices")) 
     include("../examples/GUE\ Sampling.jl")
 end
 include("../examples/Lanczos.jl")
