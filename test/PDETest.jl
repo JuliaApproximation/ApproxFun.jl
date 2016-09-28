@@ -320,13 +320,13 @@ println("    Periodic tests")
 d=PeriodicInterval()^2
 f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
 A=Laplacian(d)+.1I
-u=A\f
+@time u=A\f
 @test_approx_eq u(.1,.2) u(.2,.1)
 
 
 d=PeriodicInterval()*Interval()
 g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
-u=[Dirichlet(d);Laplacian(d)]\Any[g;0.]
+@time u=[Dirichlet(d);Laplacian(d)]\Any[g;0.]
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
@@ -348,7 +348,7 @@ d=dt*dθ
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
 u0=Fun(θ->exp(-20θ^2),dθ,20)
-ut=A\[u0;0.]
+@time ut=A\[u0;0.]
 
 @test_approx_eq ut(.1,.2) u0(.2-.1)
 
@@ -366,11 +366,13 @@ Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
 
 B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
 u0=Fun(θ->exp(-200(θ-.5).^2),dθ)
-u=linsolve([B;Dt^2+Dθ^4],[u0;0.;0.];tolerance=1E-3)
+@time u=linsolve([B;Dt^2+Dθ^4],[u0;0.;0.];tolerance=1E-3)
 
 @test_approx_eq_eps u(.1,.01) -0.2479768394633227  1E-3 #empirical
 
 ## Rectangle PDEs
+
+println("    Rectangle tests")
 
 # Screened Poisson
 
