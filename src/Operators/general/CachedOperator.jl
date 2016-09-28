@@ -47,6 +47,7 @@ CachedOperator(op::Operator;padding::Bool=false) = default_CachedOperator(op;pad
 
 
 cache(O::Operator;kwds...) = CachedOperator(O;kwds...)
+cache{MT<:AbstractMatrix}(::Type{MT},O::Operator;kwds...) = CachedOperator(MT,O;kwds...)
 
 Base.convert{T}(::Type{Operator{T}},S::CachedOperator{T}) = S
 Base.convert{T}(::Type{Operator{T}},S::CachedOperator) =

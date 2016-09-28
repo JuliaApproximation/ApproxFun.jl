@@ -207,6 +207,8 @@ blockbandinds(M::InterlaceOperator) =
     (mapreduce(op->blockbandinds(op,1),min,M.ops),
      mapreduce(op->blockbandinds(op,2),max,M.ops))
 
+isbandedblock(M::InterlaceOperator) = all(isbandedblock,M.ops)
+
 function blockcolstop(M::InterlaceOperator,J::Integer)
     if isbandedblock(M)
         J - blockbandinds(M,1)

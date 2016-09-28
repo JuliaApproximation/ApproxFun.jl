@@ -249,3 +249,137 @@ Base.convert(::Type{BandedBlockMatrix},B::BandedMatrix) =
     else
         BandedBlockMatrix(Matrix(B))
     end
+
+
+## back substitution
+#TODO: don't auto-pad
+function trtrs!(::Type{Val{'U'}},A::BandedBlockMatrix,u::Vector)
+    # When blocks are square, use LAPACK trtrs!
+    mn=min(length(A.rows),length(A.cols))
+    if A.rows[1:mn] == A.cols[1:mn]
+        bandedblock_squareblocks_trtrs!(A,u)
+    else
+        bandedblock_rectblocks_trtrs!(A,u)
+    end
+end
+
+
+
+function bandedblock_squareblocks_trtrs!(A::BandedBlockMatrix,u::Vector)
+    if size(A,1) < size(u,1)
+        throw(BoundsError())
+    end
+    n=size(u,1)
+    N=A.rowblocks[n]
+
+    kr1=blockrows(A,N)
+    b=n-kr1[1]+1
+    kr1=kr1[1]:n
+
+    LAPACK.trtrs!('U','N','N',view(viewblock(A,N,N),1:b,1:b),view(u,kr1))
+
+    for K=N-1:-1:1
+        kr=blockrows(A,K)
+        for J=min(N,blockrowstop(A,K)):-1:K+1
+            if J==N  # need to take into account zeros
+                BLAS.gemv!('N',-1.0,view(viewblock(A,K,N),:,1:b),view(u,kr1),1.0,view(u,kr))
+            else
+                BLAS.gemv!('N',-1.0,viewblock(A,K,J),view(u,blockcols(A,J)),1.0,view(u,kr))
+            end
+        end
+        LAPACK.trtrs!('U','N','N',viewblock(A,K,K),view(u,kr))
+    end
+
+    u
+end
+
+function bandedblock_rectblocks_trtrs!(R::BandedBlockMatrix,b::Vector)
+    n=n_end=length(b)
+    K_diag=N=R.rowblocks[n]
+    J_diag=M=R.colblocks[n]
+
+    while n > 0
+        B_diag = viewblock(R,K_diag,J_diag)
+
+        kr = blockrows(R,K_diag)
+        jr = blockcols(R,J_diag)
+
+
+        k = n-kr[1]+1
+        j = n-jr[1]+1
+
+        skr = max(1,k-j+1):k   # range in the sub block
+        sjr = max(1,j-k+1):j   # range in the sub block
+
+        kr2 = kr[skr]  # diagonal rows/cols we are working with
+
+        for J = min(M,blockrowstop(R,K_diag)):-1:J_diag+1
+            B=viewblock(R,K_diag,J)
+            Sjr = blockcols(R,J)
+
+            if J==M
+                Sjr = Sjr[1]:n_end  # The sub rows of the rhs we will multiply
+                BLAS.gemv!('N',-1.0,view(B,skr,1:length(Sjr)),
+                                    view(b,Sjr),1.0,view(b,kr2))
+            else  # can use all columns
+                BLAS.gemv!('N',-1.0,view(B,skr,:),
+                                    view(b,Sjr),1.0,view(b,kr2))
+            end
+        end
+
+        if J_diag ≠ M && sjr[end] ≠ size(B_diag,2)
+            # subtract non-triangular columns
+            sjr2 = sjr[end]+1:size(B_diag,2)
+            BLAS.gemv!('N',-1.0,view(B_diag,skr,sjr2),
+                            view(b,sjr2 + jr[1]-1),1.0,view(b,kr2))
+        elseif J_diag == M && sjr[end] ≠ size(B_diag,2)
+            # subtract non-triangular columns
+            Sjr = jr[1]+sjr[end]:n_end
+            BLAS.gemv!('N',-1.0,view(B_diag,skr,sjr[end]+1:sjr[end]+length(Sjr)),
+                            view(b,Sjr),1.0,view(b,kr2))
+        end
+
+        LAPACK.trtrs!('U','N','N',view(B_diag,skr,sjr),view(b,kr2))
+
+        if k == j
+            K_diag -= 1
+            J_diag -= 1
+        elseif j < k
+            J_diag -= 1
+        else # if k < j
+            K_diag -= 1
+        end
+
+        n = kr2[1]-1
+    end
+    b
+end
+
+
+function trtrs!(A::BandedBlockMatrix,u::Matrix)
+    if size(A,1) < size(u,1)
+        throw(BoundsError())
+    end
+    n=size(u,1)
+    N=A.rowblocks[n]
+
+    kr1=blockrows(A,N)
+    b=n-kr1[1]+1
+    kr1=kr1[1]:n
+
+    LAPACK.trtrs!('U','N','N',view(viewblock(A,N,N),1:b,1:b),view(u,kr1,:))
+
+    for K=N-1:-1:1
+        kr=blockrows(A,K)
+        for J=min(N,blockrowstop(A,K)):-1:K+1
+            if J==N  # need to take into account zeros
+                BLAS.gemm!('N',-1.0,view(viewblock(A,K,N),:,1:b),view(u,kr1,:),1.0,view(u,kr,:))
+            else
+                BLAS.gemm!('N',-1.0,viewblock(A,K,J),view(u,blockcols(A,J),:),1.0,view(u,kr,:))
+            end
+        end
+        LAPACK.trtrs!('U','N','N',viewblock(A,K,K),view(u,kr,:))
+    end
+
+    u
+end

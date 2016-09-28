@@ -135,11 +135,15 @@ end
 abstract Dirichlet{S,T} <: Operator{T}
 
 
-immutable ConcreteDirichlet{S,T} <: Dirichlet{S,T}
-    space::S
+immutable ConcreteDirichlet{S,V,T} <: Dirichlet{S,T}
+    domainspace::S
+    rangespace::V
     order::Int
 end
-ConcreteDirichlet(sp::Space,order) = ConcreteDirichlet{typeof(sp),eltype(sp)}(sp,order)
+
+ConcreteDirichlet(sp::Space,rs::Space,order) =
+    ConcreteDirichlet{typeof(sp),typeof(rs),eltype(sp)}(sp,rs,order)
+ConcreteDirichlet(sp::Space,order) = ConcreteDirichlet(sp,Space(∂(domain(sp))),order)
 
 immutable DirichletWrapper{S,T} <: Conversion{T}
     op::S
@@ -157,5 +161,5 @@ Neumann(sp::Space) = Dirichlet(sp,1)
 Neumann(d::Domain) = Neumann(Space(d))
 
 
-domainspace(S::ConcreteDirichlet) = S.space
-rangespace(B::ConcreteDirichlet) = Space(∂(domain(B)))
+domainspace(B::ConcreteDirichlet) = B.domainspace
+rangespace(B::ConcreteDirichlet) = B.rangespace

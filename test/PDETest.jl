@@ -91,7 +91,7 @@ d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 A=[Dirichlet(d);Laplacian(d)]
-let Ai=ApproxFun.interlace(A),co=cache(Ai)
+let Ai=ApproxFun.interlace(A),co=cache(RaggedMatrix,Ai)
     ApproxFun.resizedata!(co,:,100)
     ApproxFun.resizedata!(co,:,200)
     @test norm(Ai[1:200,1:200]-co[1:200,1:200]) == 0
@@ -99,11 +99,11 @@ end
 
 
 u=A\[g,0.]
-@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
+@test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-10
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
 u=A\[g,0.]
-@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
+@test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-10
 
 
 S=ChebyshevDirichlet()^2
@@ -137,13 +137,13 @@ println("    Poisson tests")
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
 d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
-@time  u=linsolve(A,[zeros(∂(d));f];tolerance=1E-5)
+@time  u=linsolve(A,[zeros(∂(d));f];tolerance=1E-7)
 @test_approx_eq_eps u(.1,.2) -0.04251891975068446 1E-5
 
 
 println("    Periodic Poisson tests")
 
-using ApproxFun
+
 
 d=PeriodicInterval()^2
 f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
