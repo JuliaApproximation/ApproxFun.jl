@@ -575,6 +575,7 @@ function *(A::Operator,b::Fun)
     end
 end
 
+*{F<:Fun}(A::TimesOperator,b::Vector{F}) = A*Fun(b)
 *{F<:Fun}(A::Operator,b::Vector{F}) = A*Fun(b)
 
 #=
