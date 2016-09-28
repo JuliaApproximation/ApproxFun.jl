@@ -32,3 +32,15 @@ P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
 
 λ,V = ApproxFun.eigs([A+P],100)
 @test_approx_eq_eps sort(real(filter(x->isreal(x),λ)))[5] 3.93759261234502 1E-3
+
+
+## Sampling
+
+ff=(x,y)->(x-y)^2*exp(-x^2/2-y^2/2)
+f=Fun(ff,[-4.,4.],[-4.,4.])
+r=ApproxFun.sample(f,5000)
+
+
+#We can compare the histogram to the 1-point correlation
+g=sum(f,1)/sum(f)
+@test_approx_eq  g(0.1) 0.2004758624973169
