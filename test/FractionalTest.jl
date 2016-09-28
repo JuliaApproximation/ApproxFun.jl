@@ -102,3 +102,23 @@ QU = LeftIntegral(0.5)	: JacobiWeight(0.5,0.,Ultraspherical(1))	↦	Legendre()
 A=[λ*I QU; QL λ*I]
 L=ApproxFun.interlace(A)
 @test_approx_eq L[2,5] 0.
+
+
+
+## Paper examples
+
+S=Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
+Q½=LeftIntegral(S,0.5)
+
+y=(I+Q½)\1
+
+x=Fun()
+@test norm(exp(1+x)*erfc(sqrt(1+x))-y) < 100eps()
+
+S=Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
+x=Fun()
+Q½=LeftIntegral(S,0.5)
+
+y=(I+exp(-(1+x)/2)*Q½[exp((1+x)/2)])\exp(-(1+x)/2)
+
+@test norm(y-exp((1+x)/2)*erfc(sqrt(1+x))) < 100eps()

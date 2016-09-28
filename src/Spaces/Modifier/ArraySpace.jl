@@ -283,7 +283,8 @@ end
 
 
 for OP in (:*,:.*)
-    @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V})=demat($OP(mat(A),mat(f)))
+    @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) =
+        demat($OP(mat(A),mat(f)))
 end
 
 
