@@ -3,9 +3,14 @@
 ## Space promotion for InterlaceOperator
 # It's here because we need DirectSumSpace
 
-function promotedomainspace{T}(A::InterlaceOperator{T,2},sp::DirectSumSpace)
-    @assert size(A.ops,2) == length(sp)
-    InterlaceOperator([promotedomainspace(A.ops[k,j],sp[j]) for k=1:size(A.ops,1),j=1:size(A.ops,2)])
+for TYP in (:TupleSpace,:PiecewiseSpace,:ArraySpace)
+    @eval function promotedomainspace{T}(A::InterlaceOperator{T,2},sp::$TYP)
+        if domainspace(A) == sp
+            return A
+        end
+        @assert size(A.ops,2) == length(sp)
+        InterlaceOperator([promotedomainspace(A.ops[k,j],sp[j]) for k=1:size(A.ops,1),j=1:size(A.ops,2)],$TYP)
+    end
 end
 
 

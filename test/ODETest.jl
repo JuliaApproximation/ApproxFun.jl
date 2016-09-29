@@ -171,10 +171,18 @@ u=(QR\[1.])
 
 x=Fun(identity,[-2.,-1.,0.,15.])
 sp=space(x)
+
+# Check bug in promote
+
+@which ApproxFun.promotedomainspace(dirichlet(sp),sp)
+@test domainspace(ApproxFun.promotedomainspace(dirichlet(sp),sp)) == sp
+
 D=Derivative(sp)
 A=[dirichlet(sp);D^2-x]
 QR=qrfact(A)
 u=QR\[airyai(-2.)]
+
+
 
 @test_approx_eq u(0.0) airyai(0.)
 

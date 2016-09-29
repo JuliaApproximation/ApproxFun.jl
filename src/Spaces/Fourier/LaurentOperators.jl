@@ -213,8 +213,8 @@ end
 DefiniteIntegral{DD<:Circle}(S::Laurent{DD}) =
     ConcreteDefiniteIntegral{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
 
-    DefiniteLineIntegral{DD<:Circle}(S::Laurent{DD}) =
-        ConcreteDefiniteLineIntegral{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
+DefiniteLineIntegral{DD<:Circle}(S::Laurent{DD}) =
+    ConcreteDefiniteLineIntegral{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
 
 
 
