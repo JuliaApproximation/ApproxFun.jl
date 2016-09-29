@@ -176,7 +176,7 @@ A=discretize([dirichlet(d);lap(d)],n)
 ∂d=∂(d)
 g=Fun(z->real(exp(z)),∂d)
 f=[Fun([zeros(k-1);1.0],∂d) for k=1:m].'
-U=A\f
+@time U=A\f
 @test_approx_eq dot(real(g.coefficients),U[1:ncoefficients(g)])(.1,.2) real(exp(.1+.2im))
 
 
@@ -188,6 +188,7 @@ Fun(identity,∂(Γ))|>values
 
 
 ## Small diffusoion
+println("   Small diffusion tests")
 
 dx=Interval();dt=Interval(0,1.)
 d=dx*dt
@@ -198,12 +199,12 @@ C=0.0
 V=B+C*x
 ε=0.001
 f=Fun(x->exp(-20x^2),dx)
-u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
+@time u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
 @test_approx_eq u(.1,.2) 0.8148207991358946
 B=0.1
 C=0.2
 V=B+C*x
-u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
+@time u=[timedirichlet(d);Dt-ε*Dx^2-V*Dx]\f
 @test_approx_eq u(.1,.2) 0.7311625132209619
 
 
