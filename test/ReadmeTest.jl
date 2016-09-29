@@ -100,7 +100,7 @@ f = Fun(t->exp(sin(10t)),s)
 uFourier = L\f
 
 
-@ test_approx_eq uChebyshev(0.) uFourier(0.)
+@test_approx_eq uChebyshev(0.) uFourier(0.)
 
 
 
