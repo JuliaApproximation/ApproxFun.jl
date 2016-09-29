@@ -315,7 +315,8 @@ end
 
 
 for OP in (:*,:.*)
-    @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) = demat($OP(mat(A),mat(f)))
+    @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) =
+        demat($OP(mat(A),mat(f)))
 end
 
 
@@ -347,14 +348,18 @@ Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T}) 
 linsolve{S,T,DD,dim}(A::QROperator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
     linsolve(A,mat(b);kwds...)
 
-function linsolve{S,T,DD,dim}(A::Operator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
-    if isambiguous(domainspace(A))
-        A=choosespaces(A,b[:,1])  # use only first column
+
+# avoid ambiguity
+for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:Operator)
+    @eval function linsolve{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
         if isambiguous(domainspace(A))
-            error("Cannot infer spaces")
+            A=choosespaces(A,b[:,1])  # use only first column
+            if isambiguous(domainspace(A))
+                error("Cannot infer spaces")
+            end
+            linsolve(A,b;kwds...)
+        else
+            linsolve(qrfact(A),b;kwds...)
         end
-        linsolve(A,b;kwds...)
-    else
-        linsolve(qrfact(A),b;kwds...)
     end
 end

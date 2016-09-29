@@ -195,3 +195,15 @@ D=Derivative()
 
 u=D*[Fun(exp) Fun(cos)]
 @test_approx_eq u(0.1) [exp(0.1) -sin(0.1)]
+
+
+## Check multiplication of matrices of Fun and Matrix fun
+
+x=Fun()
+
+A = [x x; x x]
+
+@test norm(map(norm,A*A-[2x^2 2x^2; 2x^2 2x^2])) <eps()
+
+@test norm((A*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
+@test norm((Fun(A)*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
