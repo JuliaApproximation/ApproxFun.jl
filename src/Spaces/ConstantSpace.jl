@@ -140,7 +140,6 @@ function promoterangespace(P::Operator,A::ConstantSpace,cur::ConstantSpace)
 end
 
 
-
 for op = (:*,:.*,:./,:/)
     @eval $op{CS<:ConstantSpace}(f::Fun,c::Fun{CS}) = f*convert(Number,c)
 end

@@ -34,7 +34,9 @@ end
 spacescompatible{T<:Operator}(A::Vector{T}) = spacescompatible(map(domainspace,A))
 
 function domainspace{T<:Operator}(A::Matrix{T})
-    @assert spacescompatible(A)
+    if !spacescompatible(A)
+        error("Cannot construct domainspace for $A as spaces are not compatible")
+    end
 
     spl=map(domainspace,vec(A[1,:]))
     if spacescompatible(spl)
@@ -45,7 +47,9 @@ function domainspace{T<:Operator}(A::Matrix{T})
 end
 
 function rangespace{T<:Operator}(A::Vector{T})
-    @assert spacescompatible(A)
+    if !spacescompatible(A)
+        error("Cannot construct rangespace for $A as domain spaces are not compatible")
+    end
 
     spl=map(rangespace,A)
     if spacescompatible(spl)
@@ -393,13 +397,35 @@ interlace{T<:Operator}(A::Array{T}) = length(A)==1?A[1]:InterlaceOperator(A)
 Base.convert{OO<:Operator}(::Type{Operator},M::Array{OO}) = InterlaceOperator(M)
 
 
-function choosedomainspace{T}(A::InterlaceOperator{T,1},sp::UnsetSpace)
+
+function interlace_choosedomainspace(ops,sp::UnsetSpace)
     # this ensures correct dispatch for unino
     sps = Vector{Space}(
-        filter(x->!isambiguous(x),map(choosedomainspace,A.ops)))
+        filter(x->!isambiguous(x),map(choosedomainspace,ops)))
     if isempty(sps)
         UnsetSpace()
     else
         union(sps...)
     end
 end
+
+
+function interlace_choosedomainspace(ops,sp::Space)
+    @assert length(ops) == 1  # TODO: implement RowVector for this case
+    # this ensures correct dispatch for unino
+    sps = Vector{Space}(
+        filter(x->!isambiguous(x),map((op)->choosedomainspace(op,sp),ops)))
+    if isempty(sps)
+        UnsetSpace()
+    else
+        union(sps...)
+    end
+end
+
+
+choosedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
+    interlace_choosedomainspace(A.ops,sp)
+
+
+choosedomainspace{T}(A::InterlaceOperator{T,2},sp::Space) =
+    TupleSpace(tuple([interlace_choosedomainspace(A.ops[:,k],sp) for k=1:size(A.ops,2)]...))

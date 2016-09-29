@@ -204,9 +204,15 @@ end
 Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{PiecewiseSpace{SV,B,DD,d},Float64},T)
 
 
-for OP in (:(Base.getindex),:(Base.length),:(Base.next),:(Base.start),:(Base.done),:(Base.endof))
-    @eval $OP(S::DirectSumSpace,k...)=$OP(S.spaces,k...)
+
+for OP in (:(Base.length),:(Base.start),:(Base.endof))
+    @eval $OP(S::DirectSumSpace)=$OP(spaces(S))
 end
+
+for OP in (:(Base.getindex),:(Base.next),:(Base.done))
+    @eval $OP(S::DirectSumSpace,k)=$OP(spaces(S),k)
+end
+
 
 #support tuple set
 for OP in (:(Base.start),:(Base.done),:(Base.endof))

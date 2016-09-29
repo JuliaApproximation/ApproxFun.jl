@@ -108,10 +108,12 @@ end
 # it tries to decide a space.
 ###
 
-function choosedomainspace(A::Operator,sp::Space)
+function default_choosedomainspace(A::Operator,sp::Space)
     sp2=domainspace(A)
     isambiguous(sp2)?sp:sp2
 end
+
+choosedomainspace(A::Operator,sp::Space) = default_choosedomainspace(A,sp)
 
 choosedomainspace(A::Operator,f::Fun) = choosedomainspace(A,space(f))
 choosedomainspace{FF<:Fun}(A::Operator,f::Vector{FF}) =

@@ -105,11 +105,11 @@ end
 
 @recipe function f(dd::Domain)
     x,y = complexplotvals(Fun(identity,dd))
-    @series (x,y)
-    @series begin
-        primary := false
-        ∂(dd)
-    end
+    # @series (x,y)
+    # @series begin
+    #     primary := false
+    #     ∂(dd)
+    # end
 end
 
 

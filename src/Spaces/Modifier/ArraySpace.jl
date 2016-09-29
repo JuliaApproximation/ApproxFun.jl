@@ -117,7 +117,8 @@ Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k::Integer,j::Integer) =
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k::Union{Integer,Range,Colon},j::Union{Integer,Range,Colon}) =
     Fun(mat(f)[k,j])
 
-Base.getindex(S::ArraySpace,k...) = S.space
+Base.getindex(S::ArraySpace,k::Integer) = S.space
+Base.getindex(S::ArraySpace,k::Integer,j::Integer) = S.space
 
 Base.start(S::ArraySpace) = 1
 Base.next(S::ArraySpace,k) = S.space,k+1

@@ -1,5 +1,29 @@
 
 
+## Space promotion for InterlaceOperator
+# It's here because we need DirectSumSpace
+
+function promotedomainspace{T}(A::InterlaceOperator{T,2},sp::DirectSumSpace)
+    @assert size(A.ops,2) == length(sp)
+    InterlaceOperator([promotedomainspace(A.ops[k,j],sp[j]) for k=1:size(A.ops,1),j=1:size(A.ops,2)])
+end
+
+
+
+function interlace_choosedomainspace(ops,sp::DirectSumSpace)
+    @assert length(ops) == length(sp)
+    # this ensures correct dispatch for unino
+    sps = Vector{Space}(
+        filter(x->!isambiguous(x),map((op,s)->choosedomainspace(op,s),ops,sp)))
+    if isempty(sps)
+        UnsetSpace()
+    else
+        union(sps...)
+    end
+end
+
+
+
 for op in (:dirichlet,:neumann,:continuity,:ivp)
     @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...),PiecewiseSpace,TupleSpace)
     @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...),PiecewiseSpace,TupleSpace)

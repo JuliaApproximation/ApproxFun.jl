@@ -75,6 +75,19 @@ domaindimension{S,D,d}(::Space{S,D,d}) = d
 dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 
 
+# add indexing for all spaces, not just DirectSumSpace
+# mimicking scalar vs vector
+
+# TODO: 0.5 iterator
+Base.start(s::Space) = false
+Base.next(s::Space,st) = (s,true)
+Base.done(s::Space,st) = st
+Base.length(s::Space) = 1
+getindex(s::Space,k) = k == 1 ? s : throw(BoundsError())
+Base.endof(s::Space) = 1
+
+
+
 # the default is all spaces have one-coefficient blocks
 blocklengths(S::Space) = repeated(true,dimension(S))
 block(S::Space,k) = k
