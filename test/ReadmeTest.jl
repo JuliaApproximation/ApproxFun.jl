@@ -1,6 +1,9 @@
 ## Intro
 
 using ApproxFun,Base.Test
+
+println("    Calculus and algebra tests")
+
 x = Fun(identity,[0.,10.])
 f = sin(x^2)
 g = cos(x)
@@ -48,6 +51,8 @@ f = erf(x)
 g = besselj(3,exp(f))
 h = airyai(10asin(f)+2g)
 
+println("    ODE tests")
+
 ## Solving ODEs
 
 x = Fun(identity,[-1000.,200.])
@@ -69,6 +74,8 @@ u=newton(N,u0)
 
 @test norm(N(u)[end]) ≤ 1000eps()
 
+
+println("    Periodic tests")
 ## Periodic Functions
 
 f = Fun(cos,Fourier([-π,π]))
@@ -94,12 +101,16 @@ uFourier = L\f
 @ test_approx_eq uChebyshev(0.) uFourier(0.)
 
 
+
+println("    Sampling tests")
 ## Sampling
 
 f = abs(Fun(sin,[-5,5]))
 x = ApproxFun.sample(f,10000)
 
 
+
+println("    PDE tests")
 ## PDEs
 
 d = Interval()^2                            # Defines a rectangle
@@ -118,6 +129,8 @@ L = (0.01D^2-4D)⊗I + I⊗(0.01D^2-3D)
 h = 0.002
 
 
+
+println("    BigFloat tests")
 
 with_bigfloat_precision(1000) do
     d=Interval{BigFloat}(0,1)
