@@ -55,7 +55,7 @@ dimension(AS::ArraySpace) = dimension(AS.space)*length(AS)
 
 domain(AS::ArraySpace) = domain(AS.space)
 
-
+isambiguous(AS::ArraySpace) = isambiguous(AS.space)
 ## transforms
 
 
@@ -79,6 +79,7 @@ end
 transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}}) = transform(vec(AS),map(vec,vals))
 
 Base.vec(AS::ArraySpace)=ArraySpace(AS.space,length(AS))
+Base.vec{AS<:ArraySpace}(f::Fun{AS}) = Fun{typeof(space(f).space),eltype(f)}[f[j] for j=1:length(f.space)]
 
 mat{AS<:ArraySpace,T}(f::Fun{AS,T}) = reshape(vec(f),size(space(f))...)
 
