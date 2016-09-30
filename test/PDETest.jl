@@ -106,6 +106,337 @@ u=A\[g,0.]
 @test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-10
 
 
+
+# Check resizing
+using ApproxFun,Base.Test
+d=Interval()^2
+A=ApproxFun.interlace([Dirichlet(d);Laplacian()+100I])
+QR = qrfact(A)
+@time ApproxFun.resizedata!(QR.R,2000,:)
+@test norm(QR.R.data[1:200,1:200] - A[1:200,1:200]) ==0
+
+@time ApproxFun.resizedata!(QR,:,200)
+j=56
+v=QR.R.op[1:100,j]
+norm(linsolve(QR[:Q],v;maxlength=300).coefficients[j+1:end]) < 1E-8
+
+using Atom
+
+j=194
+    v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
+    norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < 1E-8
+
+@test ApproxFun.colstop(QR.R.op,195)-194 == ApproxFun.colstop(QR.H,195)
+
+
+QR = qrfact(A)
+    @time ApproxFun.resizedata!(QR.R,2000,:)
+#    @time ApproxFun.resizedata!(QR,:,1000)
+    T=Float64
+    col =1000
+
+    if col ≤ QR.ncols
+        return QR
+    end
+
+    MO=QR.R
+    W=QR.H
+
+    R=MO.data
+    # last block, convoluted def to match blockbandedmatrix
+    cs=blockstop(rangespace(MO),blockcolstop(MO,block(domainspace(MO),col)))
+    sz=sizeof(T)
+
+    if cs ≥ MO.datasize[1]
+        resizedata!(MO,cs+100,:)  # add 100 rows
+        R=MO.data
+    end
+
+    if col > size(W,2)
+        m=size(W,2)
+        resize!(W.cols,2col+1)
+
+        for j=m+1:2col
+            cs=blockstop(rangespace(MO),blockcolstop(MO,block(domainspace(MO),j)))
+            W.cols[j+1]=W.cols[j] + cs-j+1
+            W.m=max(W.m,cs-j+1)
+        end
+
+        resize!(W.data,W.cols[end]-1)
+    end
+
+    w=pointer(W.data)
+    r=pointer(R.data)
+
+    COL=45
+    for k=1:COL
+        J1=R.colblocks[k]
+        CS=blockcolstop(R,J1)
+
+        wp=w+sz*(W.cols[k]-1)          # k-th column of W
+
+
+
+        K1=R.rowblocks[k]  # diagonal block
+        br=blockrows(R,K1)  # the rows of the diagonal block
+        bc=blockcols(R,J1) # the cols of the diagonal block
+
+        # copy into W
+        M1 = br[end]-k+1 # the number of entries in first block
+        kshft = k-br[1]
+        nrows1 = R.rows[K1]
+        jshft = (k-bc[1])*nrows1  # shift by each column we are to the right
+        BLAS.blascopy!(M1,r+sz*(R.blockstart[K1,J1]+kshft + jshft),1,wp,1)
+
+        M = M1 # number of entries so far copied
+
+
+        for K=K1+1:CS
+            jshft = (k-bc[1])*R.rows[K]  # shift by each column we are to the right
+            BLAS.blascopy!(R.rows[K],r+sz*(R.blockstart[K,J1] + jshft),1,wp+sz*M,1)
+            M += R.rows[K]    # copy all rows in K-th block
+        end
+
+        # M is now total entries in W
+        W.data[W.cols[k]] += flipsign(BLAS.nrm2(M,wp,1),W.data[W.cols[k]])
+        normalize!(M,wp)
+
+        # first block
+        # scale banded entries
+        BRS1=blockrowstop(R,K1)
+        for J=J1:BRS1
+            for j=(J==J1?k-bc[1]+1:1):R.cols[J]  # only do partial columns for first block
+                jshft = (j-1)*nrows1
+                dt=dot(M1,wp,1,r+sz*(R.blockstart[K1,J]+kshft +jshft),1)
+                M=M1
+                for K=K1+1:CS
+                    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
+                    dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
+                    M += R.rows[K]    # copy all rows in K-th block
+                end
+
+                jshft = (j-1)*nrows1
+                BLAS.axpy!(M1,-2*dt,wp,1,r+sz*(R.blockstart[K1,J]+kshft +jshft),1)
+                M=M1
+                for K=K1+1:CS
+                    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
+                    BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
+                    M += R.rows[K]    # copy all rows in K-th block
+                end
+            end
+        end
+
+
+        # now do the blocks where we have zeros
+        for J=BRS1+1:blockrowstop(R,CS)
+            for j=1:R.cols[J]  # only do partial columns for first block
+                dt=zero(T)
+                Mpre=M1 + sum(R.rows[K1+1:K1+J-BRS1-1]) # number of rows in zero blocks
+                M=Mpre
+                for K=K1+J-BRS1:CS
+                    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
+                    dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
+                    M += R.rows[K]    # copy all rows in K-th block
+                end
+                M=Mpre
+                for K=K1+J-BRS1:CS
+                    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
+                    BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
+                    M += R.rows[K]    # copy all rows in K-th block
+                end
+            end
+        end
+    end
+
+
+    j=195
+    r̃=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
+    n=length(r̃)
+    for k=1:COL
+        v=QR.H[1:n-k+1,k]
+        r̃[k:end]=r̃[k:end]-2v*dot(v,r̃[k:end])
+    end
+    norm(r̃-R[1:n,j])
+
+
+
+    COL=45
+    k=46
+
+    J1=R.colblocks[k]
+    CS=blockcolstop(R,J1)
+
+    wp=w+sz*(W.cols[k]-1)          # k-th column of W
+
+
+
+    K1=R.rowblocks[k]  # diagonal block
+    br=blockrows(R,K1)  # the rows of the diagonal block
+    bc=blockcols(R,J1) # the cols of the diagonal block
+
+    # copy into W
+    M1 = br[end]-k+1 # the number of entries in first block
+    kshft = k-br[1]
+    nrows1 = R.rows[K1]
+    jshft = (k-bc[1])*nrows1  # shift by each column we are to the right
+    BLAS.blascopy!(M1,r+sz*(R.blockstart[K1,J1]+kshft + jshft),1,wp,1)
+
+    M = M1 # number of entries so far copied
+
+
+    for K=K1+1:CS
+        jshft = (k-bc[1])*R.rows[K]  # shift by each column we are to the right
+        BLAS.blascopy!(R.rows[K],r+sz*(R.blockstart[K,J1] + jshft),1,wp+sz*M,1)
+        M += R.rows[K]    # copy all rows in K-th block
+    end
+
+    # M is now total entries in W
+    W.data[W.cols[k]] += flipsign(BLAS.nrm2(M,wp,1),W.data[W.cols[k]])
+    normalize!(M,wp)
+
+    # first block
+    # scale banded entries
+    BRS1=blockrowstop(R,K1)
+    for J=J1:BRS1
+        for j=(J==J1?k-bc[1]+1:1):R.cols[J]  # only do partial columns for first block
+            jshft = (j-1)*nrows1
+            dt=dot(M1,wp,1,r+sz*(R.blockstart[K1,J]+kshft +jshft),1)
+            M=M1
+            for K=K1+1:CS
+                jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
+                dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
+                M += R.rows[K]    # copy all rows in K-th block
+            end
+
+            jshft = (j-1)*nrows1
+            BLAS.axpy!(M1,-2*dt,wp,1,r+sz*(R.blockstart[K1,J]+kshft +jshft),1)
+            M=M1
+            for K=K1+1:CS
+                jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
+                BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
+                M += R.rows[K]    # copy all rows in K-th block
+            end
+        end
+    end
+
+    blockrowstop(R,CS)
+    J=BRS1+1
+    # now do the blocks where we have zeros
+#    for J=BRS1+1:blockrowstop(R,CS)
+
+
+    j=findfirst(blockcols(R,J),195)
+
+
+    dt=zero(T)
+    Mpre=M1 + sum(R.rows[K1+1:K1+J-BRS1-1]) # number of rows in zero blocks
+    M=Mpre
+    K1+J-BRS1:CS
+    for K=(K1+J-BRS1:CS)
+        jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
+        dt+=dot(R.rows[K],wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
+        M += R.rows[K]    # copy all rows in K-th block
+    end
+
+M=Mpre
+for K=(K1+J-BRS1:CS)
+    jshft = (j-1)*R.rows[K]  # shift by each column we are to the right
+    BLAS.axpy!(R.rows[K],-2*dt,wp+sz*M,1,r+sz*(R.blockstart[K,J] +jshft),1)
+    M += R.rows[K]    # copy all rows in K-th block
+    @show norm(R[blockrows(R,K),195]-qr̃[blockrows(R,K)])
+end
+
+dt
+v=W[1:n-k+1,k]
+n=colstop(R,195)
+dot(v,R[k:n,195])
+
+j=195
+qr̃=copy(r̃)
+v=QR.H[1:n-k+1,k]
+dt
+qr̃[k:end]=qr̃[k:end]-2v*dt
+blockrows(R,K)
+
+
+
+
+
+norm(R[1:n,195]-r̃)
+qr=
+
+k
+
+norm(r\vec
+
+n
+
+
+size(W,1)
+M1
+R[
+dt_ex
+v=W[1:290-k,k]
+v
+R.data[R.blockstart[K,J]+1+jshft + (0:R.rows[K]-1)]
+(r+sz*(R.blockstart[K,J] +jshft))
+R[
+
+R.blockstart[1,1]
+dt
+dot(v,qr[k:end])
+
+k
+r-R[1:290,195]|>norm
+
+qr = copy(r)
+    dt_ex=dot(v,qr[k:end])
+    qr[k:end]=qr[k:end]-2v*dt_ex
+v=QR.H[1:10,1]
+A[1:10,1]-2v*dot(v,A[1:10,1])
+
+
+
+
+A[1:10,1:10]|>full
+
+r
+
+QR.H[:,1]
+r
+r[j+1:end]
+
+
+r[195:end]-2QR.H[1:n-j+1,j]*dot(QR.H[1:n-j+1,j],r[195:end])
+
+
+@time ApproxFun.resizedata!(QR,:,500)
+
+
+v=QR.H[1:n,1]
+
+
+QR.R.data.colblocks[194]
+
+QR.H[:,195]
+
+
+(QR.H[:,j])
+
+
+QR1 = qrfact(A)
+@time ApproxFun.resizedata!(QR1,:,1000)
+QR2 = qrfact([Dirichlet(d);Laplacian()+100I])
+@time ApproxFun.resizedata!(QR2,:,500)
+@time ApproxFun.resizedata!(QR2,:,1000
+
+
+
+
+@test norm(QR1.H[1:225,1:1000]-QR2.H[1:225,1:1000]) ≤ 10eps()
+
+
+
 S=ChebyshevDirichlet()^2
 ff=(x,y)->exp(x)*cos(y)
 u=Fun(ff,S)

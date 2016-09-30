@@ -183,8 +183,8 @@ on a square
 ```julia
 d = Interval()^2                            # Defines a rectangle
 Δ = Laplacian(d)                            # Represent the Laplacian
-u = [dirichlet(d);Δ+100I]\ones(4)           # First four entries of rhs are
-    										#   boundary conditions
+f = ones(∂(d))                              # one at the boundary
+u = [Dirichlet(d);Δ+100I]\[f;0.]            # Solve the PDE
 surface(u)                                  # Surface plot
 ```
 
