@@ -305,11 +305,12 @@ DefiniteLineIntegral(d::UnionDomain) =
 
 ####### This is a hack to get the Faraday Cage working.
 function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},k::Integer)
-    n = length(domain(Σ))
-    k ≤ n? one(T) : zero(T)
+    d = domain(Σ)
+    n = length(d)
+    k ≤ n? T(π*arclength(d[k])/2) : zero(T)
 end
 bandinds{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T}) =
-    0,arclength(domain(Σ))-1
+    0,length(domain(Σ))-1
 ####### This is a hack to get the Faraday Cage working.
 
 ## TensorSpace of two PiecewiseSpaces

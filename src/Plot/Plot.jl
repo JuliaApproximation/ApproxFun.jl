@@ -112,6 +112,16 @@ end
     # end
 end
 
+@recipe function f(dd::UnionDomain)
+    @series dd[1]
+    for k=2:length(dd)
+        @series begin
+            primary := false
+            dd[k]
+        end
+    end
+end
+
 
 @recipe function f{F<:Domain}(G::AbstractVector{F})
     x=Vector{Float64}[]
