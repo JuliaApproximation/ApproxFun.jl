@@ -1,5 +1,26 @@
 using ApproxFun, Base.Test
 
+
+# checks bug for
+dom = Interval(-1.0,1) ∪ Interval(1.0+im,1+2im) ∪ Interval(-2.0+im,-1+2im)
+
+
+⨍ = DefiniteLineIntegral(dom)
+S = domainspace(⨍)
+@test ApproxFun.bandinds(⨍) == (0,2)
+
+f=Fun(rand(20),S)
+
+@test_approx_eq DefiniteLineIntegral(dom[1])*f[1] linesum(f[1])
+@test_approx_eq DefiniteLineIntegral(dom[2])*f[2] linesum(f[2])
+@test_approx_eq DefiniteLineIntegral(dom[3])*f[3] linesum(f[3])
+
+@test_approx_eq ⨍*f linesum(f)
+
+
+
+
+
 #The first test checks the solution of the integral equation
 # u(x) + \int_{-1}^{+1} \frac{e^{y} u(y)}{\sqrt{1-y^2}} dy = f
 # on the interval [-1,1].

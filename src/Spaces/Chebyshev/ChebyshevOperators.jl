@@ -226,7 +226,7 @@ function getindex{DD<:Interval,K,T}(D::ConcreteDerivative{Chebyshev{DD},K,T},k::
 end
 
 linesum{DD<:Interval}(f::Fun{Chebyshev{DD}}) =
-    sum(setcanonicaldomain(f))*arclength(d)/2
+    sum(setcanonicaldomain(f))*arclength(domain(f))/2
 
 
 
