@@ -1,7 +1,20 @@
 
+
+
+# diagblockshift gives the shift for the diagonal block of an operator
+
+
+diagblockshift(a,b) = error("Developer: Not implemented for blocklengths $a, $b")
+
+diagblockshift(a::UnitCount,b::UnitCount) = b.start-a.start
+
+diagblockshift(op::Operator) =
+    diagblockshift(blocklengths(domainspace(op)),blocklengths(rangespace(op)))
+
+
 function CachedOperator(::Type{BandedBlockMatrix},op::Operator;padding::Bool=false)
     l,u=blockbandwidths(op)
-    padding && (u+=l)
+    padding && (u+=l+diagblockshift(op))
     data=BandedBlockMatrix(eltype(op),l,u,1:0,1:0)  # TODO: type of rows/cols
     CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
 end
