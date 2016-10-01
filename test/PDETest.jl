@@ -22,7 +22,7 @@ S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 # Check that QR is growing correctly
 for col in (1,2,3,10,11,40)
     QR=qrfact(Δ)
-    resizedata!(QR.R,col+200,:)
+    resizedata!(QR.R,:,col+100)
     resizedata!(QR,:,col)
     QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
     resizedata!(QR2.R,:,col+100)
@@ -63,7 +63,7 @@ v=Δ\f
 
 
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
-v=linsolve(Δ,f;tolerance=1E-14)
+@time v=linsolve(Δ,f;tolerance=1E-14)
 @test norm((Δ*v-f).coefficients)<1E-14
 
 KO=Δ.op.ops[1].ops[1].op
@@ -99,20 +99,20 @@ end
 
 
 u=A\[g,0.]
-@test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-10
+@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
 u=A\[g,0.]
-@test_approx_eq_eps u(.1,.2) real(exp(0.1+0.2im)) 1E-10
+@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
 
 # Check resizing
-using ApproxFun,Base.Test
+
 d=Interval()^2
 A=ApproxFun.interlace([Dirichlet(d);Laplacian()+100I])
 QR = qrfact(A)
-@time ApproxFun.resizedata!(QR.R,2000,:)
+@time ApproxFun.resizedata!(QR.R,:,2000)
 @test norm(QR.R.data[1:200,1:200] - A[1:200,1:200]) ==0
 
 @time ApproxFun.resizedata!(QR,:,200)
@@ -131,6 +131,16 @@ v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
 
 @test ApproxFun.colstop(QR.R.op,195)-194 == ApproxFun.colstop(QR.H,195)
 
+
+QR1 = qrfact(A)
+@time ApproxFun.resizedata!(QR1.R,:,1000)
+QR2 = qrfact([Dirichlet(d);Laplacian()+100I])
+@time ApproxFun.resizedata!(QR2.R,:,500)
+n=450;QR1.R.data[1:n,1:n]-QR2.R.data[1:n,1:n]|>norm
+@time ApproxFun.resizedata!(QR2.R,:,1000)
+N=450;QR1.R.data[1:N,1:N]-QR2.R.data[1:N,1:N]|>norm
+N=1000;QR1.R.data[1:N,1:N]-QR2.R.data[1:N,1:N]|>norm
+
 QR1 = qrfact(A)
 @time ApproxFun.resizedata!(QR1,:,1000)
 QR2 = qrfact([Dirichlet(d);Laplacian()+100I])
@@ -143,8 +153,17 @@ QR1 = qrfact(A)
 @time ApproxFun.resizedata!(QR1,:,5000)
 @time u=linsolve(QR1,[ones(∂(d));0.];tolerance=1E-7)
 
-ncoefficients(u)
-norm((Dirichlet(d)*u-ones(∂(d))).coefficients)
+@test norm((Dirichlet(d)*u-ones(∂(d))).coefficients) < 1E-7
+@test norm((A*u-Fun([ones(∂(d));0.])).coefficients) < 1E-7
+@test norm(((A*u)[2]-(Laplacian()+100I)*u).coefficients) == 0
+@test norm((Laplacian()*u+100*u - (A*u)[2]).coefficients) < 1E-10
+@time v=linsolve(A,[ones(∂(d));0.];tolerance=1E-7)
+@test norm((u-v).coefficients) < 100eps()
+
+@test_approx_eq u(0.1,1.) 1.0
+@test_approx_eq u(0.1,-1.) 1.0
+@test_approx_eq u(1.,0.1) 1.0
+@test_approx_eq u(-1.,0.1) 1.0
 
 S=ChebyshevDirichlet()^2
 ff=(x,y)->exp(x)*cos(y)

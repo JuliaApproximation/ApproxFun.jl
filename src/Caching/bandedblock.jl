@@ -35,17 +35,17 @@ end
 
 ## Grow cached operator
 #
-function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI,DI}},n::Integer,::Colon)
-    if n > size(B,1)
+function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI,DI}},::Colon,col::Integer)
+    if col > size(B,2)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
 
-    if n > B.datasize[1]
+    if col > B.datasize[2]
         l=B.data.l; u=B.data.u
-        K=block(rangespace(B),n)
+        J=block(domainspace(B),col)
 
-        rows=blocklengths(rangespace(B.op))[1:K]
-        cols=blocklengths(domainspace(B.op))[1:K+B.data.u]
+        rows=blocklengths(rangespace(B.op))[1:J+l]
+        cols=blocklengths(domainspace(B.op))[1:J]
 
         pad!(B.data.data,bbm_numentries(rows,cols,l,u))
         B.data.rows=rows
@@ -54,18 +54,18 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI
         B.data.colblocks=blocklookup(cols)
         B.data.blockstart=bbm_blockstarts(rows,cols,l,u)
 
-        kr=B.datasize[1]+1:n
-        jr=max(blockstart(domainspace(B),block(rangespace(B),B.datasize[1]+1)-B.data.l),1):min(blockstop(domainspace(B),K+B.data.u),size(B,2))
+        jr=B.datasize[2]+1:col
+        kr=colstart(B.data,jr[1]):colstop(B.data,jr[end])
         BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
 
-        B.datasize = (n,jr[end])
+        B.datasize = (kr[end],col)
     end
 
     B
 end
 
 resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI,DI}},n::Integer,m::Integer) =
-    resizedata!(B,n,:)
+    resizedata!(B,:,m)
 
 
 ## QR
@@ -147,20 +147,25 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOper
 
     R=MO.data
     # last block, convoluted def to match blockbandedmatrix
-    cs=blockstop(rangespace(MO),blockcolstop(MO,block(domainspace(MO),col)))
+    J_col = block(domainspace(MO),col)
+    K_end = blockcolstop(MO,J_col)  # last row block in last column
+    J_end = blockrowstop(MO,K_end)  # QR will affect up to this column
+    rs=blockstop(rangespace(MO),J_end)  # we need to resize up this column
     sz=sizeof(T)
 
-    if cs ≥ MO.datasize[1]
-        resizedata!(MO,cs+100,:)  # add 100 rows
+    if rs ≥ MO.datasize[2]
+        # add columns up to column rs, which is last column affected by QR
+        resizedata!(MO,:,rs)
         R=MO.data
     end
 
     if col > size(W,2)
+        # resize Householder matrix
         m=size(W,2)
         resize!(W.cols,2col+1)
 
         for j=m+1:2col
-            cs=blockstop(rangespace(MO),blockcolstop(MO,block(domainspace(MO),j)))
+            cs = blockstop(rangespace(MO),blockcolstop(MO,block(domainspace(MO),j)))
             W.cols[j+1]=W.cols[j] + cs-j+1
             W.m=max(W.m,cs-j+1)
         end
