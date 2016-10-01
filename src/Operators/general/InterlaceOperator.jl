@@ -351,8 +351,8 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
 
             ds=domainspace(L)
             rs=rangespace(L)
-            cr=cache(interlacer(rs))[kr]
-            cd=cache(interlacer(ds))[jr]
+            cr=L.rangeinterlacer[kr]
+            cd=L.domaininterlacer[jr]
             for ν=1:size(L.ops,1),μ=1:size(L.ops,2)
                 # indicies of ret
                 ret_kr=findsub(cr,ν)

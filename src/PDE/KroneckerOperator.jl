@@ -109,8 +109,9 @@ subblockbandinds(K::KroneckerOperator,k::Integer) =
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 
 
+# TODO: finite dimensional blocks
 blockcolstop(A::Operator,K::Integer) = K-blockbandinds(A,1)
-
+blockrowstop(A::Operator,J::Integer) = J+blockbandinds(A,2)
 
 typealias Wrappers Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
                        SpaceOperator,ConstantTimesOperator}

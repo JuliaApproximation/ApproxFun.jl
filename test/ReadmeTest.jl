@@ -114,14 +114,50 @@ x = ApproxFun.sample(f,10000)
 
 println("    PDE tests")
 ## PDEs
-
+using ApproxFun
 d = Interval()^2                            # Defines a rectangle
 
-u = [dirichlet(d);Laplacian(d)+100I]\ones(4)      # First four entries of rhs are
+# @time u = linsolve([Dirichlet(d);Laplacian(d)+100I],
+#                     [ones(∂(d));0.];tolerance=1E-10)      # First four entries of rhs are
+#
+
+QR2.ncols
+
+size(QR1.H)
+size(QR2.H)
+
+QR = qrfact([Dirichlet(d);Laplacian()+100I])
+        @time ApproxFun.resizedata!(QR,:,22000)
+        @time u = linsolve(QR,
+                        [ones(∂(d));0.];tolerance=1E-10)
+        u(0.1,1.)
+
+u(0.1,1.)
+
+ApproxFun.isbandedblock(Dirichlet(d))
+ApproxFun.interlace([Dirichlet(d);Laplacian()+100I])[1:10,1:10]
+ncoefficients(u)
+
+@time u = linsolve(QR,
+                    [ones(∂(d));0.];tolerance=1E-15)
 
 
 
 
+
+
+
+QR.R
+
+linsolve(QR[:Q],v;maxlength=200).coefficients
+
+
+(Dirichlet(d)*u)(0.1,1.)
+
+norm(inv(QR.R.data[1:1000,1:1000]))
+
+ones(∂(d))
+u(1.,0.3)
 
 d = Interval()^2
 u0 = Fun((x,y)->exp(-40(x-.1)^2-40(y+.2)^2),d)
