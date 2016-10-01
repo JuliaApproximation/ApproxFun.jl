@@ -407,9 +407,9 @@ d=dt*dθ
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
 u0=Fun(θ->exp(-20θ^2),dθ,20)
-@time ut=A\[u0;0.]
-
-@test_approx_eq ut(.1,.2) u0(.2-.1)
+@time ut=linsolve(A,[u0;0.];tolerance=1E-5)
+ncoefficients(ut)
+@test_approx_eq_eps ut(.1,.2) u0(.2-.1) 1E-6
 
 
 
@@ -436,7 +436,7 @@ println("    Rectangle tests")
 # Screened Poisson
 
 d=Interval()^2
-u=linsolve([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
+@time u=linsolve([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
 @test_approx_eq u(.1,.9) 0.03679861429138079
 
 # PiecewisePDE
@@ -463,7 +463,7 @@ dx=Interval();dt=Interval(0,2.)
 d=dx*dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
-u=linsolve([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
+@time u=linsolve([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 
 @test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
 
@@ -473,5 +473,5 @@ d=dθ*dt
 ε=0.1
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ,20)
-u=linsolve([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
+@time u=linsolve([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
 @test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
