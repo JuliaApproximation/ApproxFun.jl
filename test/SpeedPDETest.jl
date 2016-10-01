@@ -28,7 +28,7 @@ A=[Dirichlet(d);Laplacian(d)]
 f=Fun((x,y)->real(exp(x+im*y)),∂(d))
 
 QR=qrfact(A)
-    @time resizedata!(QR.R,:,400)
+    @time ApproxFun.resizedata!(QR.R,:,400)
     @time ApproxFun.resizedata!(QR,:,200)
 
 
