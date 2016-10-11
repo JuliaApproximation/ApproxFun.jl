@@ -236,8 +236,8 @@ function getindex{T,DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laure
     T[k == 1?  d.b-d.a : zero(T) for k=kr]
 end
 
-getindex{T,DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},kr::Range) =
-    T[k == 1?  2domain(Σ).radius*π : zero(T) for k=kr]
+getindex{T,DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},k::Integer) =
+    k == 1?  T(2domain(Σ).radius*π) : zero(T)
 bandinds{DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 0,0
 bandinds{DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 0,1
 
