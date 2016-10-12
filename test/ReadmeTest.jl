@@ -121,50 +121,16 @@ d = Interval()^2                            # Defines a rectangle
 #                     [ones(∂(d));0.];tolerance=1E-10)      # First four entries of rhs are
 #
 
-QR2.ncols
 
-size(QR1.H)
-size(QR2.H)
 
 QR = qrfact([Dirichlet(d);Laplacian()+100I])
-        @time ApproxFun.resizedata!(QR,:,22000)
+        @time ApproxFun.resizedata!(QR,:,4000)
         @time u = linsolve(QR,
-                        [ones(∂(d));0.];tolerance=1E-10)
-        u(0.1,1.)
-
-u(0.1,1.)
-
-ApproxFun.isbandedblock(Dirichlet(d))
-ApproxFun.interlace([Dirichlet(d);Laplacian()+100I])[1:10,1:10]
-ncoefficients(u)
-
-@time u = linsolve(QR,
-                    [ones(∂(d));0.];tolerance=1E-15)
+                        [ones(∂(d));0.];tolerance=1E-7)
 
 
-
-
-
-
-
-QR.R
-
-linsolve(QR[:Q],v;maxlength=200).coefficients
-
-
-(Dirichlet(d)*u)(0.1,1.)
-
-norm(inv(QR.R.data[1:1000,1:1000]))
-
-ones(∂(d))
-u(1.,0.3)
-
-d = Interval()^2
-u0 = Fun((x,y)->exp(-40(x-.1)^2-40(y+.2)^2),d)
-B = dirichlet(d)
-D = Derivative(Interval())
-L = (0.01D^2-4D)⊗I + I⊗(0.01D^2-3D)
-h = 0.002
+@test_approx_eq u(0.1,1.) 1.0
+@test_approx_eq_eps u(0.1,0.2) -0.02768276827514463 1E-8
 
 
 
