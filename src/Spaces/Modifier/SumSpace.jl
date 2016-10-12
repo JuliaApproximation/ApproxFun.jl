@@ -248,6 +248,20 @@ function spacescompatible(A::Tuple,B::Tuple)
 end
 
 
+# avoids default ConstantSpace
+function union_rule(B::ConstantSpace,A::SumSpace)
+    if !domainscompatible(A,B)
+        NoSpace()
+    else
+        for sp in A.spaces
+            if isconvertible(B,sp)
+                return A
+            end
+        end
+        SumSpace(A,B)
+    end
+end
+
 function union_rule(A::SumSpace,B::Space)
     if !domainscompatible(A,B)
         NoSpace()

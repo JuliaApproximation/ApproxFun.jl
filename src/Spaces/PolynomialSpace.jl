@@ -202,15 +202,3 @@ function clenshaw(sp::PolynomialSpace,c::AbstractVector,x)
     end
     muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[1])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[1])) # (A*x+B)*bk1+c[1]-C*bk2
 end
-
-
-
-
-
-# Supports constants in operators
-promoterangespace{CS<:ConstantSpace}(M::ConcreteMultiplication{CS,UnsetSpace},
-                                                ps::PolynomialSpace) =
-                        promoterangespace(Multiplication(M.f,space(M.f)),ps)
-
-# Possible hack: we try uing constant space for [1 Operator()] \ z.
-choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::PolynomialSpace) = space(M.f)
