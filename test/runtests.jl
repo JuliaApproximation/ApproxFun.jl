@@ -5,6 +5,8 @@ using ApproxFun,Base.Test
 println("Domain tests")
 
 @test !in(0.45-0.65im,Interval())
+@test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2]==ApproxFun.Count(5,2)
+
 include("MatrixTest.jl")
 
 
