@@ -2,6 +2,11 @@ using ApproxFun, Base.Test
 
 
 
+Γ=Circle(1.1,2.2)
+z=Fun(Fourier(Γ))
+@test space(z)==Fourier(Γ)
+@test_approx_eq z(1.1+2.2exp(0.1im)) 1.1+2.2exp(0.1im)
+
 
 
 
