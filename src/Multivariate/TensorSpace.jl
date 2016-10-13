@@ -388,6 +388,9 @@ end
 
 ##  Fun routines
 
+fromtensor(S::Space,M::Matrix) = fromtensor(tensorizer(S),M)
+totensor(S::Space,M::Vector) = totensor(tensorizer(S),M)
+
 # we only copy upper triangular of coefficients
 function fromtensor(it::TensorIterator,M::Matrix)
     n,m=size(M)
@@ -397,7 +400,9 @@ function fromtensor(it::TensorIterator,M::Matrix)
         if k > length(ret)
             break
         end
-        ret[k] = M[K,J]
+        if K ≤ n && J ≤ m
+            ret[k] = M[K,J]
+        end
         k += 1
     end
     ret
