@@ -161,8 +161,10 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,R
 
         for j=m+1:2col
             cs=colstop(MO,j)
-            W.cols[j+1]=W.cols[j] + cs-j+1
-            W.m=max(W.m,cs-j+1)
+            q_len=cs-j+1  # number of entries in j-th column manipulated
+            @assert q_len > 0   # Otherwise, diagonal is not included
+            W.cols[j+1]=W.cols[j] + q_len
+            W.m=max(W.m,q_len)
         end
 
         resize!(W.data,W.cols[end]-1)

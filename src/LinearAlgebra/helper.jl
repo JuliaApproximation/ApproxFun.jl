@@ -872,7 +872,7 @@ function Base.cumsum(f::Flatten)
         cs=last(c)
     end
 
-    c=cumsum(cs+f.it[end])
+    c=cs+cumsum(f.it[end])
     push!(its,c)
     Flatten(tuple(its...))
 end

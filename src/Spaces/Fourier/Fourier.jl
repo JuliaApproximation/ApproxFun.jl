@@ -297,6 +297,10 @@ function identity_fun{DD<:Circle}(S::Taylor{DD})
     end
 end
 
+
+identity_fun{DD<:Circle}(S::Fourier{DD}) = Fun(identity_fun(Laurent(domain(S))),S)
+
+
 reverseorientation{D}(f::Fun{Fourier{D}})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
 function reverseorientation{D}(f::Fun{Laurent{D}})
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z

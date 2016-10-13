@@ -101,11 +101,16 @@ function CachedOperator{T}(io::InterlaceOperator{T,2};padding::Bool=false)
     r∞=find(isinf,[rdims...])
     p=length(d∞)
 
+    # we only support block size 1 for now
     for k in d∞
-        @assert blocklengths(ds[k]) == Repeated(true)
+        if blocklengths(ds[k]) ≠ Repeated(true)
+            return default_CachedOperator(io;padding=padding)
+        end
     end
     for k in r∞
-        @assert blocklengths(rs[k]) == Repeated(true)
+        if blocklengths(rs[k]) ≠ Repeated(true)
+            return default_CachedOperator(io;padding=padding)
+        end
     end
 
     l∞,u∞ = 0,0

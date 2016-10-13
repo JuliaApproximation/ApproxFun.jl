@@ -68,18 +68,18 @@ maxspace_rule(A::ZeroSpace,B::Space) = B
 Conversion(A::ZeroSpace,B::ZeroSpace) = ConversionWrapper(ZeroOperator(A,B))
 Conversion(A::ZeroSpace,B::Space) = ConversionWrapper(ZeroOperator(A,B))
 
-
-union_rule(A::ConstantSpace,B::Space)=ConstantSpace(domain(B))⊕B
+# TODO: this seems like it needs more thought
+union_rule(A::ConstantSpace,B::Space) = ConstantSpace(domain(B))⊕B
 
 
 ## Special Multiplication and Conversion for constantspace
 
 #  TODO: this is a special work around but really we want it to be blocks
-Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2})=ConcreteConversion{typeof(a),typeof(b),
+Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2}) = ConcreteConversion{typeof(a),typeof(b),
         promote_type(op_eltype_realdomain(a),eltype(op_eltype_realdomain(b)))}(a,b)
 
-Conversion(a::ConstantSpace,b::Space)=ConcreteConversion(a,b)
-bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S})=1-ncoefficients(ones(rangespace(C))),0
+Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
+bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S}) = 1-ncoefficients(ones(rangespace(C))),0
 function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer)
     if j != 1
         throw(BoundsError())
@@ -162,3 +162,14 @@ Base.convert{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,TT,d}(::Type{T},f::
     convert(T,f.coefficients[1])
 
 isconstspace(sp::TensorSpace) = all(isconstspace,sp.spaces)
+
+
+# Supports constants in operators
+promoterangespace{CS<:ConstantSpace}(M::ConcreteMultiplication{CS,UnsetSpace},
+                                                ps::UnsetSpace) = M
+promoterangespace{CS<:ConstantSpace}(M::ConcreteMultiplication{CS,UnsetSpace},
+                                                ps::Space) =
+                        promoterangespace(Multiplication(M.f,space(M.f)),ps)
+
+# Possible hack: we try uing constant space for [1 Operator()] \ z.
+choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = space(M.f)

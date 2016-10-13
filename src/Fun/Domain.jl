@@ -46,7 +46,11 @@ Base.in(x::Domain,::EmptyDomain) = false
 
 Base.isempty(::EmptyDomain) = true
 Base.isempty(::Domain) = false
-Base.intersect(a::Domain,b::Domain) = a==b?a:EmptyDomain()
+Base.intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
+
+
+# TODO: throw error for override
+Base.setdiff(a::Domain,b::Domain) = a == b ? EmptyDomain() : a
 \(a::Domain,b::Domain) = setdiff(a,b)
 
 ## Interval Domains

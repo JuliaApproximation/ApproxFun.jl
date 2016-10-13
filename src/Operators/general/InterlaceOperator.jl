@@ -100,11 +100,16 @@ function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
     # calculate bandinds TODO: generalize
     p=size(ops,1)
     dsi = interlacer(ds)
-    rsi = interlacer(rs)
 
-    if size(ops,2) == p && all(isbanded,ops) &&
-            all(i->i.x == 1, dsi.blocks) &&  # only support blocksize 1 for now
-            all(i->i.x == 1, rsi.blocks)
+    if p == 1  # Assume rs corresonds to a scalar space, so wrap in a TupleSpace to get right interlacing
+        rsi = interlacer(TupleSpace((rs,)))
+    else  # assume this is a correctly tupled
+        rsi = interlacer(rs)
+    end
+
+    if size(ops,2) == p && all(isbanded,ops) &&# only support blocksize 1 for now
+            all(i->isa(i,Repeated) && i.x == 1, dsi.blocks) &&
+            all(i->isa(i,Repeated) && i.x == 1, rsi.blocks)
         l,u = 0,0
         for k=1:p,j=1:p
             l=min(l,p*bandinds(ops[k,j],1)+j-k)
@@ -169,7 +174,7 @@ function InterlaceOperator{T,DS<:Space,RS<:Space}(opsin::Matrix{Operator{T}},::T
     # TODO: make consistent
     # if its a row vector, we assume scalar
     if size(ops,1) == 1
-        InterlaceOperator(ops,DS(domainspace(ops).spaces),RS(rangespace(ops[1]).spaces))
+        InterlaceOperator(ops,DS(domainspace(ops).spaces),rangespace(ops[1]))
     else
         InterlaceOperator(ops,DS(domainspace(ops).spaces),RS(rangespace(ops[:,1]).spaces))
     end
@@ -410,11 +415,10 @@ function interlace_choosedomainspace(ops,sp::UnsetSpace)
 end
 
 
-function interlace_choosedomainspace(ops,sp::Space)
-    @assert length(ops) == 1  # TODO: implement RowVector for this case
+function interlace_choosedomainspace(ops,rs::Space)
     # this ensures correct dispatch for unino
     sps = Vector{Space}(
-        filter(x->!isambiguous(x),map((op)->choosedomainspace(op,sp),ops)))
+        filter(x->!isambiguous(x),map((op)->choosedomainspace(op,rs),ops)))
     if isempty(sps)
         UnsetSpace()
     else
@@ -423,9 +427,9 @@ function interlace_choosedomainspace(ops,sp::Space)
 end
 
 
-choosedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
-    interlace_choosedomainspace(A.ops,sp)
+choosedomainspace{T}(A::InterlaceOperator{T,1},rs::Space) =
+    interlace_choosedomainspace(A.ops,rs)
 
 
-choosedomainspace{T}(A::InterlaceOperator{T,2},sp::Space) =
-    TupleSpace(tuple([interlace_choosedomainspace(A.ops[:,k],sp) for k=1:size(A.ops,2)]...))
+choosedomainspace{T}(A::InterlaceOperator{T,2},rs::Space) =
+    TupleSpace(tuple([interlace_choosedomainspace(A.ops[:,k],rs) for k=1:size(A.ops,2)]...))

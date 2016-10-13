@@ -4,28 +4,31 @@
 # It's here because we need DirectSumSpace
 
 for TYP in (:TupleSpace,:PiecewiseSpace,:ArraySpace)
-    @eval function promotedomainspace{T}(A::InterlaceOperator{T,2},sp::$TYP)
-        if domainspace(A) == sp
-            return A
+    @eval begin
+        function promotedomainspace{T}(A::InterlaceOperator{T,2},sp::$TYP)
+            if domainspace(A) == sp
+                return A
+            end
+            @assert size(A.ops,2) == length(sp)
+            InterlaceOperator([promotedomainspace(A.ops[k,j],sp[j]) for k=1:size(A.ops,1),j=1:size(A.ops,2)],$TYP)
         end
-        @assert size(A.ops,2) == length(sp)
-        InterlaceOperator([promotedomainspace(A.ops[k,j],sp[j]) for k=1:size(A.ops,1),j=1:size(A.ops,2)],$TYP)
+        function interlace_choosedomainspace(ops,rs::$TYP)
+            @assert length(ops) == length(rs)
+            # this ensures correct dispatch for unino
+            sps = Vector{Space}(
+                filter(x->!isambiguous(x),map((op,s)->choosedomainspace(op,s),ops,rs)))
+            if isempty(sps)
+                UnsetSpace()
+            else
+                union(sps...)
+            end
+        end
     end
 end
 
 
 
-function interlace_choosedomainspace(ops,sp::DirectSumSpace)
-    @assert length(ops) == length(sp)
-    # this ensures correct dispatch for unino
-    sps = Vector{Space}(
-        filter(x->!isambiguous(x),map((op,s)->choosedomainspace(op,s),ops,sp)))
-    if isempty(sps)
-        UnsetSpace()
-    else
-        union(sps...)
-    end
-end
+
 
 
 
