@@ -424,7 +424,7 @@ function totensor(it::TensorIterator,M::Vector)
     ret
 end
 
-for OP in (:fromtensor,:totensor,:block,:blockstart,:blockstop)
+for OP in (:block,:blockstart,:blockstop)
     @eval begin
         $OP(s::TensorSpace,::Infinity{Bool}) = ∞
         $OP(s::TensorSpace,M) = $OP(tensorizer(s),M)
