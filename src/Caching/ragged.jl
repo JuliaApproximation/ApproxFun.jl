@@ -26,7 +26,7 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
             for j = B.datasize[2]+1:n-1
                 B.data.cols[j+1] = B.data.cols[j] + colstop(B.op,j)
             end
-            K = colstop(B.op,n)
+            K = max(colstop(B.op,n),B.datasize[2])
         end
 
 
@@ -45,8 +45,12 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
     B
 end
 
-resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer) =
+function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer)
     resizedata!(B,:,m)
+    B.data.m = max(B.data.m,n)
+    
+    B
+end
 
 
 
