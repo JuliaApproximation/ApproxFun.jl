@@ -118,16 +118,16 @@ QR = qrfact(A)
 @time ApproxFun.resizedata!(QR,:,200)
 j=56
 v=QR.R.op[1:100,j]
-@test norm(linsolve(QR[:Q],v;maxlength=300).coefficients[j+1:end]) < 10eps()
+@test norm(linsolve(QR[:Q],v;maxlength=300).coefficients[j+1:end]) < 100eps()
 
 j=195
 v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < 10eps()
+@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < 100eps()
 
 
 j=300
 v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < j*eps()
+@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < j*10eps()
 
 @test ApproxFun.colstop(QR.R.op,195)-194 == ApproxFun.colstop(QR.H,195)
 
