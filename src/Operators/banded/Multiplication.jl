@@ -10,7 +10,9 @@ immutable ConcreteMultiplication{D<:Space,S<:Space,V,T} <: Multiplication{T}
 end
 
 function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
-    @assert domainscompatible(space(f),sp)
+    if !domainscompatible(space(f),sp)
+        error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
+    end
     ConcreteMultiplication{D,typeof(sp),T,promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 end
 
@@ -24,15 +26,15 @@ function defaultMultiplication(f::Fun,sp::Space)
     MultiplicationWrapper(f,Multiplication(f,csp)*Conversion(sp,csp))
 end
 
-Multiplication(f::Fun,sp::Space)=defaultMultiplication(f,sp)
+Multiplication(f::Fun,sp::Space) = defaultMultiplication(f,sp)
 
 
-Multiplication(f::Fun,sp::UnsetSpace)=ConcreteMultiplication(f,sp)
-Multiplication(f::Fun)=Multiplication(f,UnsetSpace())
-Multiplication(c::Number)=Multiplication(Fun(c) )
+Multiplication(f::Fun,sp::UnsetSpace) = ConcreteMultiplication(f,sp)
+Multiplication(f::Fun) = Multiplication(f,UnsetSpace())
+Multiplication(c::Number) = Multiplication(Fun(c) )
 
 # This covers right multiplication unless otherwise specified.
-Multiplication{D,T}(S::Space,f::Fun{D,T}) = Multiplication(f,S)
+Multiplication(S::Space,f::Fun) = Multiplication(f,S)
 
 
 function Base.convert{S,V,TT,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V,TT})
@@ -43,8 +45,8 @@ function Base.convert{S,V,TT,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,
     end
 end
 
-domainspace{D,S,T,V}(M::ConcreteMultiplication{D,S,T,V})=M.space
-domain(T::ConcreteMultiplication)=domain(T.f)
+domainspace{D,S,T,V}(M::ConcreteMultiplication{D,S,T,V}) = M.space
+domain(T::ConcreteMultiplication) = domain(T.f)
 
 
 ## Default implementation: try converting to space of M.f

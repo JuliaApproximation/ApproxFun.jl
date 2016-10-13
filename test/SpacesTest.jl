@@ -202,3 +202,14 @@ f=Fun(x->x+x^2,Hermite())
 
 z=Fun(identity,Arc(0.,.1,0.,π/2))
 @test_approx_eq exp(z)(0.1exp(0.2im)) exp(0.1exp(0.2im))
+
+
+
+## Extending function
+using ApproxFun, Base.Test
+Γ=Interval(-im,1.0-im)∪Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6)))∪Circle(2.0,0.2)
+
+@test isempty(Γ[1]\Γ[1])
+@test Γ\Γ[1] == Γ[2]∪Γ[3]
+
+@test norm(Fun(ones(Γ[1]),Γ) - Fun(x->x ∈ Γ[1]?1.0:0.0,Γ)) == 0

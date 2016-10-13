@@ -100,7 +100,12 @@ function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
     # calculate bandinds TODO: generalize
     p=size(ops,1)
     dsi = interlacer(ds)
-    rsi = interlacer(rs)
+
+    if p == 1  # Assume rs corresonds to a scalar space, so wrap in a TupleSpace to get right interlacing
+        rsi = interlacer(TupleSpace((rs,)))
+    else  # assume this is a correctly tupled
+        rsi = interlacer(rs)
+    end
 
     if size(ops,2) == p && all(isbanded,ops) &&# only support blocksize 1 for now
             all(i->isa(i,Repeated) && i.x == 1, dsi.blocks) &&
