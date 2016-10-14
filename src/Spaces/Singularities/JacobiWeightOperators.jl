@@ -371,12 +371,12 @@ end
 
 ## Definite Integral
 
-for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
+for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineIntegral,:arclength,:linesum))
     ConcFunc = parse("Concrete"*string(Func))
 
     @eval begin
         function getindex{LT,D<:Interval,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D},D},T},k::Integer)
-            λ = order(domainspace(Σ))
+            λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -384,12 +384,12 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             if dsp.α==dsp.β==λ-0.5
                 k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T)
             else
-                sum(Fun([zeros(k-1);1],dsp))
+                $Sum(Fun([zeros(k-1);1],dsp))
             end
         end
 
         function getindex{LT,D<:Interval,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D},D},T},kr::Range)
-            λ = order(domainspace(Σ))
+            λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -397,12 +397,12 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             if dsp.α==dsp.β==λ-0.5
                 promote_type(T,typeof(C))[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
             else
-                promote_type(T,typeof(C))[sum(Fun([zeros(k-1);1],dsp)) for k=kr]
+                promote_type(T,typeof(C))[$Sum(Fun([zeros(k-1);1],dsp)) for k=kr]
             end
         end
 
         function bandinds{LT,D<:Interval}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D},D}})
-            λ = order(domainspace(Σ))
+            λ = order(domainspace(Σ).space)
             α,β = domainspace(Σ).α,domainspace(Σ).β
             if α==β && isapproxinteger(α-0.5-λ) && λ ≤ ceil(Int,α)
                 0,2*(ceil(Int,α)-λ)
@@ -420,7 +420,7 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             if dsp.α==dsp.β==-0.5
                 k == 1? C*π : zero(T)
             else
-                sum(Fun([zeros(k-1);1],dsp))
+                $Sum(Fun([zeros(k-1);1],dsp))
             end
         end
 
@@ -432,7 +432,7 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             if dsp.α==dsp.β==-0.5
                 promote_type(T,typeof(C))[k == 1? C*π : zero(T) for k=kr]
             else
-                promote_type(T,typeof(C))[sum(Fun([zeros(k-1);1],dsp)) for k=kr]
+                promote_type(T,typeof(C))[$Sum(Fun([zeros(k-1);1],dsp)) for k=kr]
             end
         end
 

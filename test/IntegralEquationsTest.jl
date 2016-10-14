@@ -107,3 +107,18 @@ f = Fun(exp,d)
 @test bandrange(V) == -1:0
 u = L\f
 @test norm(L*u-f) ≤ 20eps()
+
+
+
+## Check DefiniteIntegral
+
+for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Interval(-2,-1))),
+          JacobiWeight(0.5,0.5,Ultraspherical(1,Interval(-2,-1+2im))),
+          JacobiWeight(1.5,1.5,Ultraspherical(2,Interval(-2,-1+2im))),
+          JacobiWeight(-0.5,-0.5,Chebyshev(Interval(-2,-1+2im))),
+          JacobiWeight(0.67,0.123,Chebyshev(Interval(-2,-1+2im))),
+          JacobiWeight(0.67,0.123,Ultraspherical(1,Interval(-2,-1+2im))))
+    f=Fun([1.,2.,3.],S)
+    @test_approx_eq DefiniteIntegral(space(f))*f sum(f)
+    @test_approx_eq DefiniteLineIntegral(space(f))*f linesum(f)
+end
