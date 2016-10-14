@@ -2,6 +2,9 @@ using ApproxFun, Base.Test
 
 
 
+@test sum(Fun(1,CosSpace())) ≈ π
+@test sum(Fun([1],SinSpace())) == 0
+
 Γ=Circle(1.1,2.2)
 z=Fun(Fourier(Γ))
 @test space(z)==Fourier(Γ)
