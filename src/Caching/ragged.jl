@@ -50,6 +50,8 @@ end
 function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer)
     resizedata!(B,:,m)
     B.data.m = max(B.data.m,n)   # make sure we have at least n rows
+
+    B
 end
 
 
