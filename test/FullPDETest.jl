@@ -1,8 +1,53 @@
-using ApproxFun, Base.Test, Compat, Base.Test
-
+using ApproxFun, Compat, Base.Test
+    import Compat: view
+    import ApproxFun: resizedata!, CachedOperator, RaggedMatrix
 ## Check operators
+
+
+S=ChebyshevDirichlet()^2
+B=Dirichlet(S)
+f = Fun((x,y)->exp(x)*sin(y),S)
+@test norm((Fun((x,y)->exp(x)*sin(y),∂(domain(S))) - B*f).coefficients) < 100eps()
+
+
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ=Laplacian(S)
+
+@test_approx_eq cache(Δ)[1:100,1:100]  Δ[1:100,1:100]
+@test_approx_eq cache(Δ;padding=true)[1:100,1:100]  Δ[1:100,1:100]
+
+@test_approx_eq cache(Δ)[5:100,7:100]  Δ[5:100,7:100]
+@test_approx_eq cache(Δ;padding=true)[5:100,7:100]  Δ[5:100,7:100]
+
+# Check that QR is growing correctly
+for col in (1,2,3,10,11,40)
+    QR=qrfact(Δ)
+    resizedata!(QR.R,:,col+100)
+    resizedata!(QR,:,col)
+    QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
+    resizedata!(QR2.R,:,col+100)
+    resizedata!(QR2,:,col)
+    n=min(size(QR.H,1),size(QR2.H,1))
+    @test_approx_eq QR.H[1:n,1:col] QR2.H[1:n,1:col]
+    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
+    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
+end
+
+QR=qrfact(Δ)
+QR2=qrfact!(CachedOperator(RaggedMatrix,Δ;padding=true))
+for col in (80,200)
+    resizedata!(QR,:,col)
+    resizedata!(QR2,:,col)
+    n=min(size(QR.H,1),size(QR2.H,1))
+    @test_approx_eq QR.H[1:n,1:col] QR2.H[1:n,1:col]
+    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
+    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
+end
+
+# this checks a bug
+QR=qrfact(Δ)
+resizedata!(QR,:,548)
+resizedata!(QR,:,430)
 
 
 u=Fun((x,y)->sin(π*x)*sin(π*y),S)
@@ -20,6 +65,23 @@ v=Δ\f
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
 @time v=linsolve(Δ,f;tolerance=1E-14)
 @test norm((Δ*v-f).coefficients)<1E-14
+
+KO=Δ.op.ops[1].ops[1].op
+
+M=ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,1:4))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,2:4))-M[:,2:4]) < 10eps()
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:4,3:4))-M[:,3:4]) < 10eps()
+
+M=ApproxFun.BandedBlockBandedMatrix(view(KO,1:112,1:112))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(KO,1:112,112:112))-M[:,112]) < 10eps()
+
+
+M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,1:4))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,2:4))-M[:,2:4]) < 10eps()
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:4,3:4))-M[:,3:4]) < 10eps()
+
+M=ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,1:112))
+@test norm(ApproxFun.BandedBlockBandedMatrix(view(Δ,1:112,112:112))-M[:,112]) < 10eps()
 
 
 
@@ -43,6 +105,86 @@ A=[Dirichlet(d);Laplacian(d)+0.0I]
 u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
+
+
+# Check resizing
+
+d=Interval()^2
+A=ApproxFun.interlace([Dirichlet(d);Laplacian()+100I])
+QR = qrfact(A)
+@time ApproxFun.resizedata!(QR.R,:,2000)
+@test norm(QR.R.data[1:200,1:200] - A[1:200,1:200]) ==0
+
+@time ApproxFun.resizedata!(QR,:,200)
+j=56
+v=QR.R.op[1:100,j]
+@test norm(linsolve(QR[:Q],v;maxlength=300).coefficients[j+1:end]) < 100eps()
+
+j=195
+v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
+@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < 100eps()
+
+
+j=300
+v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
+@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < j*10eps()
+
+@test ApproxFun.colstop(QR.R.op,195)-194 == ApproxFun.colstop(QR.H,195)
+
+
+QR1 = qrfact(A)
+@time ApproxFun.resizedata!(QR1.R,:,1000)
+QR2 = qrfact([Dirichlet(d);Laplacian()+100I])
+@time ApproxFun.resizedata!(QR2.R,:,500)
+n=450;QR1.R.data[1:n,1:n]-QR2.R.data[1:n,1:n]|>norm
+@time ApproxFun.resizedata!(QR2.R,:,1000)
+N=450;QR1.R.data[1:N,1:N]-QR2.R.data[1:N,1:N]|>norm
+N=1000;QR1.R.data[1:N,1:N]-QR2.R.data[1:N,1:N]|>norm
+
+QR1 = qrfact(A)
+@time ApproxFun.resizedata!(QR1,:,1000)
+QR2 = qrfact([Dirichlet(d);Laplacian()+100I])
+@time ApproxFun.resizedata!(QR2,:,500)
+@time ApproxFun.resizedata!(QR2,:,1000)
+
+@test norm(QR1.H[1:225,1:1000]-QR2.H[1:225,1:1000]) ≤ 10eps()
+
+QR1 = qrfact(A)
+@time ApproxFun.resizedata!(QR1,:,5000)
+@time u=linsolve(QR1,[ones(∂(d));0.];tolerance=1E-7)
+
+@test norm((Dirichlet(d)*u-ones(∂(d))).coefficients) < 1E-7
+@test norm((A*u-Fun([ones(∂(d));0.])).coefficients) < 1E-7
+@test norm(((A*u)[2]-(Laplacian()+100I)*u).coefficients) == 0
+@test norm((Laplacian()*u+100*u - (A*u)[2]).coefficients) < 1E-10
+@time v=linsolve(A,[ones(∂(d));0.];tolerance=1E-7)
+@test norm((u-v).coefficients) < 100eps()
+
+@test_approx_eq u(0.1,1.) 1.0
+@test_approx_eq u(0.1,-1.) 1.0
+@test_approx_eq u(1.,0.1) 1.0
+@test_approx_eq u(-1.,0.1) 1.0
+
+S=ChebyshevDirichlet()^2
+ff=(x,y)->exp(x)*cos(y)
+u=Fun(ff,S)
+
+for KO in [eye(S[1])⊗rdirichlet(S[1]),rdirichlet(S[1])⊗eye(S[2])]
+    @test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
+end
+
+B=[dirichlet(S[1])⊗eye(S[2]);
+   eye(S[1])⊗dirichlet(S[2]);
+   Laplacian()]
+
+
+u=linsolve(B,ones(4);tolerance=1E-14)
+@test norm((u-Fun([1.],S)).coefficients)<10eps()
+
+g=map(sp->Fun(ff,sp),map(rangespace,B[1:4]))
+
+u=linsolve(B,[g;0];tolerance=1E-10)
+@test_approx_eq u(0.1,0.2) ff(0.1,0.2)
 
 
 
@@ -205,6 +347,12 @@ f=Fun(x->exp(-30x^2),dx)
 u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
 
 @test_approx_eq u(.1,.2) 0.496524222625512
+B=0.1
+C=0.2
+V=B+C*x
+u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-7)
+@test_approx_eq u(.1,.2) 0.46810331039791464
+
 
 
 ## Schrodinger
@@ -235,6 +383,37 @@ A=Laplacian(d)+.1I
 @test_approx_eq u(.1,.2) u(.2,.1)
 
 
+d=PeriodicInterval()*Interval()
+g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
+@time u=[Dirichlet(d);Laplacian(d)]\Any[g;0.]
+
+@test_approx_eq u(.1,.2) real(cos(.1+.2im))
+
+
+
+
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
+
+
+# Check bug in cache
+CO=cache(ldirichlet(dt))
+ApproxFun.resizedata!(CO,:,2)
+ApproxFun.resizedata!(CO,:,4)
+@test_approx_eq CO*Fun(exp,dt) 1.0
+
+
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
+d=dt*dθ
+Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
+A=[ldirichlet(dt)⊗I;Dt+Dθ]
+u0=Fun(θ->exp(-20θ^2),dθ,20)
+@time ut=linsolve(A,[u0;0.];tolerance=1E-5)
+ncoefficients(ut)
+@test_approx_eq_eps ut(.1,.2) u0(.2-.1) 1E-6
+
+
+
+
 
 # Beam
 
@@ -259,6 +438,21 @@ println("    Rectangle tests")
 d=Interval()^2
 @time u=linsolve([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
 @test_approx_eq u(.1,.9) 0.03679861429138079
+
+# PiecewisePDE
+
+a=Fun([1,0.5,1],[-1.,0.,0.5,1.])
+s=space(a)
+dt=Interval(0,2.)
+Dx=Derivative(s);Dt=Derivative(dt)
+Bx=[ldirichlet(s);continuity(s,0)]
+
+# test resize bug
+CO=cache(Bx[2])
+@test ApproxFun.colstop(CO.op,2) == 2
+ApproxFun.resizedata!(CO,:,2)
+ApproxFun.resizedata!(CO,:,4)
+@test_approx_eq (CO*collect(1:4)).coefficients [3.,-1.]
 
 
 
