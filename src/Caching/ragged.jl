@@ -6,7 +6,7 @@ CachedOperator(::Type{RaggedMatrix},op::Operator;padding::Bool=false) =
 
 function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::Integer)
     if n > size(B,2)
-        throw(ArgumentError("Cannot resize beyound size of operator"))
+        throw(ArgumentError("Cannot resize beyond size of operator"))
     end
 
     if n > B.datasize[2]
@@ -21,15 +21,15 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
                 K = max(K,colstop(B.op,j))
                 B.data.cols[j+1] = B.data.cols[j] + K
             end
-            K = max(K,colstop(B.op,n))
         else
             for j = B.datasize[2]+1:n-1
-                B.data.cols[j+1] = B.data.cols[j] + colstop(B.op,j)
+                cs = colstop(B.op,j)
+                B.data.cols[j+1] = B.data.cols[j] + cs
+                K = max(K,cs)
             end
-            K = max(colstop(B.op,n),B.datasize[2])
         end
 
-
+        K = max(K,colstop(B.op,n))
         B.data.cols[n+1] = B.data.cols[n] + K
         pad!(B.data.data,B.data.cols[n+1]-1)
         B.data.m = K
@@ -47,11 +47,8 @@ end
 
 function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},n::Integer,m::Integer)
     resizedata!(B,:,m)
-    B.data.m = max(B.data.m,n)
-    
-    B
+    B.data.m = max(B.data.m,n)   # make sure we have at least n rows
 end
-
 
 
 ## Grow QR
@@ -62,7 +59,7 @@ QROperator{T}(R::CachedOperator{T,RaggedMatrix{T}}) =
 function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
                                                                  MM,DS,RS,BI}},
                         ::Colon,col)
-    if col ≤ QR.ncols
+    if col ≤ QR.ncols
         return QR
     end
 
@@ -125,7 +122,7 @@ end
 function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix{T},
                                                                  MM,DS,RS,BI}},
                         ::Colon,col)
-    if col ≤ QR.ncols
+    if col ≤ QR.ncols
         return QR
     end
 
@@ -240,7 +237,7 @@ function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
 
     k=1
     yp=view(Y,1:length(B))
-    while (k ≤ m || norm(yp) > tolerance )
+    while (k ≤ m || norm(yp) > tolerance )
         if k > maxlength
             warn("Maximum length $maxlength reached.")
             break
@@ -292,7 +289,7 @@ function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,RaggedMatrix
     y=pointer(Y)
 
     yp=y
-    while (k ≤ m || BLAS.nrm2(M,yp,1) > tolerance )
+    while (k ≤ m || BLAS.nrm2(M,yp,1) > tolerance )
         if k > maxlength
             warn("Maximum length $maxlength reached.")
             break
