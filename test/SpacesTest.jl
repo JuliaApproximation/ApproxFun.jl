@@ -213,3 +213,13 @@ using ApproxFun, Base.Test
 @test Γ\Γ[1] == Γ[2]∪Γ[3]
 
 @test norm(Fun(ones(Γ[1]),Γ) - Fun(x->x ∈ Γ[1]?1.0:0.0,Γ)) == 0
+
+
+## Line
+
+f=Fun(z->2exp(z^2),PeriodicLine(0.,π/2))
+@test_approx_eq f(1.1im) 2exp(-1.1^2)
+
+
+f=Fun(z->2exp(z^2),Line(0.,π/2))
+@test_approx_eq f(1.1im) 2exp(-1.1^2)

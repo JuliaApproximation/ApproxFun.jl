@@ -30,7 +30,10 @@ typealias RealLine{T} Union{Line{false,T},Line{true,T}}
 @compat (::Type{Line{a}}){a}() = Line{a,Float64}()
 
 Base.angle{a}(d::Line{a}) = a*π
-
+Base.eltype{T}(::Type{Line{true,T}}) = T
+Base.eltype{T}(::Type{Line{false,T}}) = T
+Base.eltype{a,T}(::Type{Line{a,T}}) = promote_type(T,Complex128)
+Base.eltype(d::Line) = eltype(typeof(d))
 
 
 Base.reverse(d::Line{true}) = Line{false}(d.center,d.β,d.α)
@@ -106,24 +109,27 @@ tocanonical(d::Line,x)=line_tocanonical(d.α,d.β,cis(-angle(d)).*(x-d.center))
 tocanonical(d::Line{false},x)=line_tocanonical(d.α,d.β,x-d.center)
 tocanonical(d::Line{true},x)=line_tocanonical(d.α,d.β,d.center-x)
 
-tocanonicalD(d::Line,x)=cis(-angle(d)).*line_tocanonicalD(d.α,d.β,cis(-angle(d)).*(x-d.center))
-tocanonicalD(d::Line{false},x)=line_tocanonicalD(d.α,d.β,x-d.center)
-tocanonicalD(d::Line{true},x)=-line_tocanonicalD(d.α,d.β,d.center-x)
+tocanonicalD(d::Line,x) = cis(-angle(d)).*line_tocanonicalD(d.α,d.β,cis(-angle(d)).*(x-d.center))
+tocanonicalD(d::Line{false},x) = line_tocanonicalD(d.α,d.β,x-d.center)
+tocanonicalD(d::Line{true},x) = -line_tocanonicalD(d.α,d.β,d.center-x)
 
-fromcanonical(d::Line,v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
-fromcanonical(d::Line{false},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
-fromcanonical(d::Line{true},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
-fromcanonical(d::Line,x)=cis(angle(d))*line_fromcanonical(d.α,d.β,x)+d.center
-fromcanonical(d::Line{false},x)=line_fromcanonical(d.α,d.β,x)+d.center
-fromcanonical(d::Line{true},x)=-line_fromcanonical(d.α,d.β,x)+d.center
+fromcanonical(d::Line,v::AbstractArray) =
+    [fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Line{false},v::AbstractArray) =
+    [fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Line{true},v::AbstractArray) =
+    [fromcanonical(d,vk) for vk in v]
+fromcanonical(d::Line,x) = cis(angle(d))*line_fromcanonical(d.α,d.β,x)+d.center
+fromcanonical(d::Line{false},x) = line_fromcanonical(d.α,d.β,x)+d.center
+fromcanonical(d::Line{true},x) = -line_fromcanonical(d.α,d.β,x)+d.center
 
-fromcanonicalD(d::Line,x)=cis(angle(d))*line_fromcanonicalD(d.α,d.β,x)
-fromcanonicalD(d::Line{false},x)=line_fromcanonicalD(d.α,d.β,x)
-fromcanonicalD(d::Line{true},x)=-line_fromcanonicalD(d.α,d.β,x)
+fromcanonicalD(d::Line,x) = cis(angle(d))*line_fromcanonicalD(d.α,d.β,x)
+fromcanonicalD(d::Line{false},x) = line_fromcanonicalD(d.α,d.β,x)
+fromcanonicalD(d::Line{true},x) = -line_fromcanonicalD(d.α,d.β,x)
 
-invfromcanonicalD(d::Line,x)=cis(-angle(d))*line_invfromcanonicalD(d.α,d.β,x)
-invfromcanonicalD(d::Line{false},x)=line_invfromcanonicalD(d.α,d.β,x)
-invfromcanonicalD(d::Line{true},x)=-line_invfromcanonicalD(d.α,d.β,x)
+invfromcanonicalD(d::Line,x) = cis(-angle(d))*line_invfromcanonicalD(d.α,d.β,x)
+invfromcanonicalD(d::Line{false},x) = line_invfromcanonicalD(d.α,d.β,x)
+invfromcanonicalD(d::Line{true},x) = -line_invfromcanonicalD(d.α,d.β,x)
 
 
 
@@ -135,14 +141,14 @@ invfromcanonicalD(d::Line{true},x)=-line_invfromcanonicalD(d.α,d.β,x)
 
 
 # algebra
-*(c::Real,d::Line{false})=Line{sign(c)>0?false:true}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
-*(c::Real,d::Line{true})=Line{sign(c)>0?true:false}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
-*(c::Number,d::Line)=Line(isapprox(d.center,0)?d.center:c*d.center,angle(d)+angle(c),d.α,d.β)
-*(d::Line,c::Number)=c*d
+*(c::Real,d::Line{false}) = Line{sign(c)>0?false:true}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
+*(c::Real,d::Line{true}) = Line{sign(c)>0?true:false}(isapprox(d.center,0)?d.center:c*d.center,d.α,d.β)
+*(c::Number,d::Line) = Line(isapprox(d.center,0)?d.center:c*d.center,angle(d)+angle(c),d.α,d.β)
+*(d::Line,c::Number) = c*d
 for OP in (:+,:-)
     @eval begin
-        $OP{a}(c::Number,d::Line{a})=Line{a}($OP(c,d.center),d.α,d.β)
-        $OP{a}(d::Line{a},c::Number)=Line{a}($OP(d.center,c),d.α,d.β)
+        $OP{a}(c::Number,d::Line{a}) = Line{a}($OP(c,d.center),d.α,d.β)
+        $OP{a}(d::Line{a},c::Number) = Line{a}($OP(d.center,c),d.α,d.β)
     end
 end
 
@@ -164,18 +170,23 @@ immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     PeriodicLine() = new(0.,1.)
 end
 
-Base.convert{a}(::Type{PeriodicLine{a}},c,L)=PeriodicLine{a,typeof(c)}(c,L)
+Base.convert{a}(::Type{PeriodicLine{a}},c,L) = PeriodicLine{a,typeof(c)}(c,L)
 
 
-PeriodicLine(c,a)=PeriodicLine{a/π,eltype(c)}(c,1.)
-PeriodicLine()=PeriodicLine{false,Float64}(0.,1.)
-PeriodicLine(b::Bool)=PeriodicLine{b,Float64}()
+PeriodicLine(c,a) = PeriodicLine{a/π,eltype(c)}(c,1.)
+PeriodicLine() = PeriodicLine{false,Float64}(0.,1.)
+PeriodicLine(b::Bool) = PeriodicLine{b,Float64}()
 
-isambiguous(d::PeriodicLine)=isnan(d.center) && isnan(d.angle)
-Base.convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain)=PeriodicLine{T,TT}(NaN,NaN)
-Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain)=PeriodicLine(NaN,NaN)
+isambiguous(d::PeriodicLine) = isnan(d.center) && isnan(d.angle)
+Base.convert{T<:Number,TT}(::Type{PeriodicLine{T,TT}},::AnyDomain) = PeriodicLine{T,TT}(NaN,NaN)
+Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain) = PeriodicLine(NaN,NaN)
 
 Base.angle{a}(d::PeriodicLine{a})=a*π
+
+Base.eltype{T}(::Type{PeriodicLine{true,T}}) = T
+Base.eltype{T}(::Type{PeriodicLine{false,T}}) = T
+Base.eltype{T,a}(::Type{PeriodicLine{a,T}}) = promote_type(T,Complex128)
+Base.eltype(d::PeriodicLine) = eltype(typeof(d))
 
 Base.reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
 Base.reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
@@ -186,8 +197,10 @@ fromcanonical(d::PeriodicLine{false},v::AbstractArray)=eltype(d)[fromcanonical(d
 fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.center
 
 tocanonical{a}(d::PeriodicLine{a},x)=tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))
-fromcanonical{a}(d::PeriodicLine{a},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
-fromcanonical{a}(d::PeriodicLine{a},x)=exp(π*im*a)*fromcanonical(PeriodicLine{false,Float64}(0.,d.L),x)+d.center
+fromcanonical{a}(d::PeriodicLine{a},v::AbstractArray) =
+    [fromcanonical(d,vk) for vk in v]
+fromcanonical{a}(d::PeriodicLine{a},x) =
+    exp(π*im*a)*fromcanonical(PeriodicLine{false,Float64}(0.,d.L),x)+d.center
 
 
 function invfromcanonicalD(d::PeriodicLine{false})
