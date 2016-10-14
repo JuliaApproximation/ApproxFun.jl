@@ -177,19 +177,9 @@ ConstantTimesOperator{T,B,BT}(c::Number,op::ConstantTimesOperator{T,B,BandedMatr
 ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
     ConstantTimesOperator(c*op.λ,op.op)
 
+@wrapperstructure ConstantTimesOperator
+@wrapperspaces ConstantTimesOperator
 
-for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,
-           :isafunctional,:isbandedblockbanded,:israggedbelow)
-    @eval $OP(C::ConstantTimesOperator) = $OP(C.op)
-end
-
-for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
-                :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds))
-    @eval $func(C::ConstantTimesOperator,k::Integer) = $func(C.op,k)
-end
-
-Base.size(C::ConstantTimesOperator,k::Integer) = size(C.op,k)
-bandinds(C::ConstantTimesOperator,k::Integer) = bandinds(C.op,k)
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 
 

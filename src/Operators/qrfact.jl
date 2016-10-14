@@ -60,7 +60,7 @@ end
 
 # override for custom data types
 QROperator{T,AM<:AbstractMatrix}(R::CachedOperator{T,AM}) =
-    error("Cannot create a QR factorization for $R")
+    error("Cannot create a QR factorization for $typeof(R)")
 
 
 function Base.qrfact!(A::CachedOperator;cached::Int=0)

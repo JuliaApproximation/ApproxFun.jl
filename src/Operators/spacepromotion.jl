@@ -31,9 +31,9 @@ end
 @wrappergetindex SpaceOperator
 
 
-domain(S::SpaceOperator)=domain(domainspace(S))
-domainspace(S::SpaceOperator)=S.domainspace
-rangespace(S::SpaceOperator)=S.rangespace
+domain(S::SpaceOperator) = domain(domainspace(S))
+domainspace(S::SpaceOperator) = S.domainspace
+rangespace(S::SpaceOperator) = S.rangespace
 
 
 

@@ -227,6 +227,42 @@ unwrap_axpy!(α,P,A) = BLAS.axpy!(α,view(parent(P).op,P.indexes[1],P.indexes[2]
 iswrapper(::)=false
 
 
+# use this for wrapper operators that have the same structure but
+# not necessarily the same entries
+#
+#  Ex: c*op or real(op)
+macro wrapperstructure(Wrap)
+    ret = quote end
+
+    for func in (:(ApproxFun.bandinds),:(Base.stride),
+                 :(ApproxFun.isbandedblockbanded),
+                 :(ApproxFun.israggedbelow),:(Base.size),:(ApproxFun.isbanded),
+                 :(ApproxFun.bandwidth),:(ApproxFun.bandwidths))
+        ret = quote
+            $ret
+
+            $func(D::$Wrap) = $func(D.op)
+        end
+    end
+
+     for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
+                     :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds),
+                     :(Base.size),:(ApproxFun.bandinds))
+         ret = quote
+             $ret
+
+             $func(D::$Wrap,k::Integer) = $func(D.op,k)
+         end
+     end
+
+    esc(ret)
+end
+
+
+
+# use this for wrapper operators that have the same entries but
+# not necessarily the same spaces
+#
 macro wrappergetindex(Wrap)
     ret = quote
         Base.getindex(OP::$Wrap,k::Integer...) =
@@ -246,9 +282,23 @@ macro wrappergetindex(Wrap)
         end
     end
 
-    for func in (:(ApproxFun.bandinds),:(Base.stride),
-                 :(ApproxFun.isbandedblockbanded),
-                 :(ApproxFun.israggedbelow))
+    ret = quote
+        $ret
+
+        ApproxFun.@wrapperstructure($Wrap) # structure is automatically inherited
+    end
+
+    esc(ret)
+end
+
+# use this for wrapper operators that have the same spaces but
+# not necessarily the same entries or structure
+#
+macro wrapperspaces(Wrap)
+    ret = quote  end
+
+    for func in (:(ApproxFun.rangespace),:(ApproxFun.domain),
+                 :(ApproxFun.domainspace),:(ApproxFun.isconstop))
         ret = quote
             $ret
 
@@ -256,32 +306,20 @@ macro wrappergetindex(Wrap)
         end
     end
 
-     for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
-                     :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds))
-         ret = quote
-             $ret
-
-             $func(D::$Wrap,k::Integer) = $func(D.op,k)
-         end
-     end
     esc(ret)
 end
 
 
+# use this for wrapper operators that have the same entries and same spaces
+#
 macro wrapper(Wrap)
     ret = quote
         ApproxFun.@wrappergetindex($Wrap)
+        ApproxFun.@wrapperspaces($Wrap)
 
         ApproxFun.iswrapper(::$Wrap) = true
     end
-    for func in (:(ApproxFun.rangespace),:(ApproxFun.domain),
-                 :(ApproxFun.domainspace),:(ApproxFun.isconstop),)
-        ret = quote
-            $ret
 
-            $func(D::$Wrap) = $func(D.op)
-        end
-    end
 
     esc(ret)
 end

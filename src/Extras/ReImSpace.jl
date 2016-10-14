@@ -9,9 +9,10 @@ end
 ReOperator(op)=ReOperator{typeof(op),Float64}(op)
 Base.convert{T}(::Type{Operator{T}},R::ReOperator) = ReOperator{typeof(R.op),T}(R.op)
 
-for OP in (:rangespace,:domainspace,:bandinds)
-    @eval $OP(R::ReOperator)=$OP(R.op)
-end
+@wrapperstructure ReOperator
+@wrapperspaces ReOperator
+
+
 
 
 
