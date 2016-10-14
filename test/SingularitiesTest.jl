@@ -274,3 +274,19 @@ f=Fun([1,2,3.],S1)
 C=Conversion(S1,S2)
 Cf=C*f
 @test_approx_eq Cf(0.1) f(0.1)
+
+
+
+## roots of log(abs(x-y))
+
+x=Fun([-2.,-1.])
+@test_approx_eq roots(abs(x+1.2)) [-1.2]
+
+f=abs(x+1.2)
+
+@test norm(abs(f)-f)<10eps()
+@test norm(sign(f)-Fun(1,space(f)))<10eps()
+
+
+@test_approx_eq log(f)(-1.3) log(abs(-1.3+1.2))
+@test_approx_eq log(f)(-1.1) log(abs(-1.1+1.2))

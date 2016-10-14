@@ -175,8 +175,9 @@ end
 
 ## All polynomial spaces can be converted provided spaces match
 
-isconvertible(a::PolynomialSpace,b::PolynomialSpace)=domain(a)==domain(b)
-union_rule{D}(a::PolynomialSpace{D},b::PolynomialSpace{D})=domainscompatible(a,b)?(a<b?a:b):NoSpace()   # the union of two polys is always a poly
+isconvertible(a::PolynomialSpace,b::PolynomialSpace) = domain(a)==domain(b)
+union_rule{D}(a::PolynomialSpace{D},b::PolynomialSpace{D}) =
+    domainscompatible(a,b)?(a<b?a:b):NoSpace()   # the union of two polys is always a poly
 
 
 ## General clenshaw
