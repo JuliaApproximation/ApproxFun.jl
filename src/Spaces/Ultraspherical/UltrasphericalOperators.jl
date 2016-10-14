@@ -143,10 +143,12 @@ function Conversion(A::Ultraspherical,B::Ultraspherical)
         ConversionWrapper(eye(A))
     elseif a<b≤a+1  || b<a≤b+1
         ConcreteConversion(A,B)
-    else
+    elseif b ≠ 1
         d=domain(A)
         ConversionWrapper(TimesOperator(Conversion(Ultraspherical(b-1,d),B),
                                         Conversion(A,Ultraspherical(b-1,d))))
+    else
+        error("Cannot convert from $A to $B")
     end
 end
 

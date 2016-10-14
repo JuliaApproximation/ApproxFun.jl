@@ -206,7 +206,7 @@ z=Fun(identity,Arc(0.,.1,0.,π/2))
 
 
 ## Extending function
-using ApproxFun, Base.Test
+
 Γ=Interval(-im,1.0-im)∪Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6)))∪Circle(2.0,0.2)
 
 @test isempty(Γ[1]\Γ[1])
