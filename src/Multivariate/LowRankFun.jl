@@ -108,7 +108,9 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Sym
 
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
-        if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
+        if (norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol) 
+            return LowRankFun(A,B),maxabsf
+        end
         A,B =[A;a/sqrt(abs(a(r[1])))],[B;b/(sqrt(abs(b(r[2])))*sign(b(r[2])))]
         r=findapproxmax!(A[k],B[k],X,ptsx,ptsy,gridx,gridy)
         Ar,Br=evaluate(A,r[1]),evaluate(B,r[2])
