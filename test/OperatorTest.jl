@@ -206,6 +206,19 @@ co=cache(io)
 @test co[1:100,1:100] == io[1:100,1:100]
 @test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
 
+S=Chebyshev()
+D=Derivative(S)
+co=ApproxFun.CachedOperator(D,ApproxFun.RaggedMatrix(Float64[],Int[1],0),(0,0),domainspace(D),rangespace(D),bandinds(D),false) #initialise with empty RaggedMatrix, no padding
+@test co[1:20,1:10] == D[1:20,1:10]
+@test size(co.data) == (20,10)
+ApproxFun.resizedata!(co,10,30)
+@test size(co.data)[2] == 30 && size(co.data)[1] ≥ 20
+
+co=ApproxFun.CachedOperator(D,ApproxFun.RaggedMatrix(Float64[],Int[1],0),(0,0),domainspace(D),rangespace(D),bandinds(D),true) #initialise with empty RaggedMatrix and padding
+@test co[1:20,1:10] == D[1:20,1:10]
+@test size(co.data) == (20,10)
+ApproxFun.resizedata!(co,10,30)
+@test size(co.data)[2] == 30 && size(co.data)[1] ≥ 20
 
 
 ## Reverse

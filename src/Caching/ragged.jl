@@ -22,6 +22,8 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
                 B.data.cols[j+1] = B.data.cols[j] + K
             end
         else
+            K = B.datasize[2]==0?0:B.data.m
+
             for j = B.datasize[2]+1:n-1
                 cs = colstop(B.op,j)
                 B.data.cols[j+1] = B.data.cols[j] + cs
