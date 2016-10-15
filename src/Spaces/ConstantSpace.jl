@@ -172,4 +172,5 @@ promoterangespace{CS<:ConstantSpace}(M::ConcreteMultiplication{CS,UnsetSpace},
                         promoterangespace(Multiplication(M.f,space(M.f)),ps)
 
 # Possible hack: we try uing constant space for [1 Operator()] \ z.
+choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::UnsetSpace) = space(M.f)
 choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = space(M.f)
