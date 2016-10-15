@@ -30,7 +30,7 @@ macro calculus_functional(Op)
 
 
         Base.convert{T}(::Type{Operator{T}},Σ::$ConcOp) =
-            T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace)
+            (T==eltype(Σ)?Σ:$ConcOp{typeof(Σ.domainspace),T}(Σ.domainspace))::Operator{T}
 
         domain(Σ::$ConcOp) = domain(Σ.domainspace)
         domainspace(Σ::$ConcOp) = Σ.domainspace
@@ -43,7 +43,7 @@ macro calculus_functional(Op)
 
 
         Base.convert{T}(::Type{Operator{T}},Σ::$WrappOp) =
-            T==eltype(Σ)?Σ:$WrappOp(convert(Operator{T},Σ.func))
+            (T==eltype(Σ)?Σ:$WrappOp(convert(Operator{T},Σ.func)))::Operator{T}
 
         #Wrapper just adds the operator it wraps
         getindex(D::$WrappOp,k::Range) = D.func[k]

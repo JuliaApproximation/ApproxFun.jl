@@ -42,13 +42,12 @@ end
 # zero needs to be different since it can take a space to
 # a ConstantSpace, in creating functionals
 Base.convert{T}(::Type{Operator{T}},x::Number) =
-    x==0?ZeroOperator(T,UnsetSpace()):Multiplication(T(x))
+    x==0 ? ZeroOperator(T,UnsetSpace()) : Multiplication(T(x))
 Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
     ConstantOperator(T,L.λ)
 
-Operator(n::Number) = Operator{typeof(n)}(n)
-Operator(L::UniformScaling) = Operator{eltype(L)}(L)
-
+Base.convert(::Type{Operator},n::Number) = ConstantOperator(n)
+Base.convert(::Type{Operator},L::UniformScaling) = ConstantOperator(L.λ)
 
 ## Algebra
 
