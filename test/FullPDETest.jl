@@ -37,7 +37,7 @@ u0=Fun(θ->exp(-20θ^2),dθ,20)
 
 
 
-printlin("    Bilaplacian Tests")
+println("    Bilaplacian Tests")
 
 A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
         (rdirichlet(dx)+rneumann(dx))⊗eye(dy);
