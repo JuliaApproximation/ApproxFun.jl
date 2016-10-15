@@ -154,7 +154,7 @@ end
 
 
 # Default extrapolation is evaluation. Override this function for extrapolation enabled spaces.
-extrapolate(f::AbstractVector,S::Space,x...)=evaluate(f,S,x...)
+extrapolate(f::AbstractVector,S::Space,x...) = evaluate(f,S,x...)
 
 # Do not override these
 extrapolate(f::Fun,x) = extrapolate(f.coefficients,f.space,x)
