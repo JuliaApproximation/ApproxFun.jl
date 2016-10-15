@@ -3,6 +3,74 @@ using ApproxFun, Compat, Base.Test
     import ApproxFun: resizedata!, CachedOperator, RaggedMatrix
 ## Check operators
 
+## Rectangle PDEs
+
+println("    Rectangle tests")
+
+# Screened Poisson
+
+d=Interval()^2
+@time u=linsolve([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
+@test_approx_eq u(.1,.9) 0.03679861429138079
+
+
+
+## Test error
+
+
+dx=Interval();dt=Interval(0,2.)
+d=dx*dt
+Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
+x,y=Fun(identity,d)
+@time u=linsolve([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
+
+@test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
+
+
+dθ=PeriodicInterval();dt=Interval(0,1.)
+d=dθ*dt
+ε=0.1
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
+u0=Fun(θ->exp(-20θ^2),dθ,20)
+@time u=linsolve([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
+@test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
+
+
+
+printlin("    Bilaplacian Tests")
+
+A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
+        (rdirichlet(dx)+rneumann(dx))⊗eye(dy);
+        eye(dx)⊗(ldirichlet(dy)+lneumann(dy));
+        eye(dx)⊗(rdirichlet(dy)+rneumann(dy));
+        (ldirichlet(dx)-lneumann(dx))⊗eye(dy);
+        (rdirichlet(dx)-rneumann(dx))⊗eye(dy);
+        eye(dx)⊗(ldirichlet(dy)-lneumann(dy));
+        eye(dx)⊗(rdirichlet(dy)-rneumann(dy));
+         L]
+
+
+u=linsolve(A,ones(8);tolerance=1E-5)
+@test_approx_eq u(0.1,0.2) 1.0
+
+
+
+F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
+    2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
+    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[3]));
+    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[4]));
+    0;
+    0;
+    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[7]));
+    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[8]));
+    0]
+
+u=linsolve(A,F;tolerance=1E-10)
+
+@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
+
+
+println("    Operator resize tests")
 
 S=ChebyshevDirichlet()^2
 B=Dirichlet(S)

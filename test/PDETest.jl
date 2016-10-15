@@ -102,39 +102,6 @@ u=linsolve(A,F;tolerance=1E-10)
 
 
 
-
-A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
-        (rdirichlet(dx)+rneumann(dx))⊗eye(dy);
-        eye(dx)⊗(ldirichlet(dy)+lneumann(dy));
-        eye(dx)⊗(rdirichlet(dy)+rneumann(dy));
-        (ldirichlet(dx)-lneumann(dx))⊗eye(dy);
-        (rdirichlet(dx)-rneumann(dx))⊗eye(dy);
-        eye(dx)⊗(ldirichlet(dy)-lneumann(dy));
-        eye(dx)⊗(rdirichlet(dy)-rneumann(dy));
-         L]
-
-
-u=linsolve(A,ones(8);tolerance=1E-5)
-@test_approx_eq u(0.1,0.2) 1.0
-
-
-
-F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
-    2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
-    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[3]));
-    Fun((x,y)->real(exp(x+1.0im*y))-imag(exp(x+1.0im*y)),rangespace(A[4]));
-    0;
-    0;
-    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[7]));
-    Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[8]));
-    0]
-
-u=linsolve(A,F;tolerance=1E-10)
-
-@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
-
-
-
 ## Test periodic x interval
 
 println("    Periodic x Interval tests")
@@ -162,21 +129,6 @@ u=linsolve([B;Dt+Dθ],[u0;0.];tolerance=1E-7)
 
 @test_approx_eq_eps u(.1,.2) u0(0.1-0.2) 1E-7
 
-
-
-
-# println("   Domain Decompositon tests")
-#
-# ## Domain Decomposition
-# d=Interval(0,1)^2
-#
-# QR=qrfact([Dirichlet(d);Laplacian(d)])
-# ∂d=∂(d)
-# g=Fun((x,y)->real(exp(x+im*y)),∂d)
-# m=10
-# f=[detuple([Fun([zeros(k-1);1.0],∂d);0.]) for k=1:m].'
-# @time U=linsolve(QR,f[5];tolerance=1E-10)
-# @test_approx_eq dot(real(g.coefficients),U[1:ncoefficients(g)])(.1,.2) real(exp(.1+.2im))
 
 
 ## Small diffusoion
@@ -243,35 +195,3 @@ u0=Fun(θ->exp(-200(θ-.5).^2),dθ)
 @time u=linsolve([B;Dt^2+Dθ^4],[u0;0.;0.];tolerance=1E-3)
 
 @test_approx_eq_eps u(.1,.01) -0.2479768394633227  1E-3 #empirical
-
-## Rectangle PDEs
-
-println("    Rectangle tests")
-
-# Screened Poisson
-
-d=Interval()^2
-@time u=linsolve([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
-@test_approx_eq u(.1,.9) 0.03679861429138079
-
-
-
-## Test error
-
-
-dx=Interval();dt=Interval(0,2.)
-d=dx*dt
-Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-x,y=Fun(identity,d)
-@time u=linsolve([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
-
-@test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
-
-
-dθ=PeriodicInterval();dt=Interval(0,1.)
-d=dθ*dt
-ε=0.1
-Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-u0=Fun(θ->exp(-20θ^2),dθ,20)
-@time u=linsolve([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
-@test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
