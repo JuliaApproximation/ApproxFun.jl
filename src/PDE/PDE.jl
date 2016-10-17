@@ -1,10 +1,5 @@
 export discretize,timedirichlet
 
-
-# Bivariate functions have BandedMatrix
-op_eltype{T,D}(sp::Space{T,D,2})=BandedMatrix{promote_type(eltype(sp),eltype(domain(sp)))}
-op_eltype_realdomain{T,D}(sp::Space{T,D,2})=BandedMatrix{promote_type(eltype(sp),real(eltype(domain(sp))))}
-
 include("KroneckerOperator.jl")
 
 ## PDE
@@ -25,7 +20,7 @@ function Laplacian(d::Union{ProductDomain,TensorSpace},k::Integer)
 end
 
 
-grad(d::ProductDomain)=[Derivative(d,[1,0]),Derivative(d,[0,1])]
+grad(d::ProductDomain) = [Derivative(d,[1,0]),Derivative(d,[0,1])]
 
 
 

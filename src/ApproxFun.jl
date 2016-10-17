@@ -80,8 +80,10 @@ function infoperatortest(A)
     @test_approx_eq A[1:5,1:5][2:5,1:5] A[2:5,1:5]
     @test_approx_eq A[1:5,2:5] A[1:5,1:5][:,2:end]
 
-    @test isfinite(colstart(A,1)) && colstart(A,1) > 0
-    @test isfinite(rowstart(A,1)) && colstart(A,2) > 0
+    for k=1:10
+        @test isfinite(colstart(A,k)) && colstart(A,k) > 0
+        @test isfinite(rowstart(A,k)) && colstart(A,k) > 0
+    end
 
     co=cache(A)
     @test co[1:100,1:100] == A[1:100,1:100]
@@ -125,6 +127,28 @@ function bandedoperatortest(A)
     for k=1:10
         @test rowstop(A,k) ≤ k + bandwidth(A,2)
     end
+
+    @test isa(A[1:10,1:10],BandedMatrix)
+end
+
+
+function bandedblockoperatortest(A)
+    raggedbelowoperatortest(A)
+    @test isfinite(blockbandwidth(A,2))
+    @test isfinite(blockbandwidth(A,1))
+
+    for K=1:10
+        @test K ≤ blockcolstop(A,K) ≤ K + blockbandwidth(A,1) < ∞
+        @test K ≤ blockrowstop(A,K) ≤ K + blockbandwidth(A,2) < ∞
+    end
+end
+
+function bandedblockbandedoperatortest(A)
+    bandedblockoperatortest(A)
+    @test isfinite(subblockbandwidth(A,1))
+    @test isfinite(subblockbandwidth(A,2))
+
+    @test isa(A[1:10,1:10],BandedBlockBandedMatrix)
 end
 
 
