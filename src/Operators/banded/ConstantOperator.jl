@@ -25,6 +25,10 @@ promotedomainspace(C::ConstantOperator,sp::Space) = ConstantOperator(C.λ,sp)
 
 bandinds(T::ConstantOperator) = 0,0
 
+isbandedblockbanded(::ConstantOperator) = true
+blockbandinds(::ConstantOperator) = 0,0
+subblockbandinds(::ConstantOperator,k::Integer) = 0
+
 getindex(C::ConstantOperator,k::Integer,j::Integer) =
     k==j?eltype(C)(C.λ):zero(eltype(C))
 

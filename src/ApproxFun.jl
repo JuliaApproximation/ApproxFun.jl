@@ -174,6 +174,7 @@ end
 
 
 function bandedblockoperatortest(A)
+    @test isbandedblock(A)
     raggedbelowoperatortest(A)
     @test isfinite(blockbandwidth(A,2))
     @test isfinite(blockbandwidth(A,1))
@@ -185,6 +186,7 @@ function bandedblockoperatortest(A)
 end
 
 function bandedblockbandedoperatortest(A)
+    @test isbandedblockbanded(A)
     bandedblockoperatortest(A)
     @test isfinite(subblockbandwidth(A,1))
     @test isfinite(subblockbandwidth(A,2))

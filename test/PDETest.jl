@@ -189,8 +189,8 @@ L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
 bandedblockbandedoperatortest(L)
 
 @time u=linsolve([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-5)
-@test_approx_eq_eps u(.2,.001) (0.5270296652096698 + 0.5027510303539062im )  0.0001
-ApproxFun.plot(real(u))
+@test_approx_eq u(0.5,0.001) 0.857215539785593+0.08694948835021317im  # empircal from schurfact
+
 
 ## Periodic
 
@@ -199,7 +199,6 @@ println("    Periodic tests")
 d=PeriodicInterval()^2
 f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
 A=Laplacian(d)+.1I
-
 bandedblockbandedoperatortest(A)
 
 @time u=A\f

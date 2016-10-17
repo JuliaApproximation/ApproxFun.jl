@@ -6,6 +6,10 @@
 
 diagblockshift(a,b) = error("Developer: Not implemented for blocklengths $a, $b")
 
+function diagblockshift(a::AbstractCount,b::AbstractCount)
+    @assert step(a) == step(b)
+    b.start-a.start
+end
 diagblockshift(a::UnitCount,b::UnitCount) = b.start-a.start
 
 diagblockshift(op::Operator) =
