@@ -469,7 +469,7 @@ end
 *(A::Operator,B::Conversion) =
     isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
 *(A::Conversion,B::Operator) =
-    isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
+    isconstop(B)?promotedomainspace(convert(Number,B)*A,domainspace(B)):TimesOperator(A,B)
 
 
 +(A::Operator) = A
@@ -501,7 +501,7 @@ for OP in (:*,:.*)
                 ConstantTimesOperator(c,A)
             end
         end
-        $OP(A::Operator,c::Number) = c*A
+        $OP(A::Operator,c::Number) = A*(c*ones(domainspace(A)))
     end
 end
 
