@@ -55,17 +55,39 @@ include("docs.jl")
 ## Testing
 # These routines are for the unit tests
 using Base.Test
-function functionaltest(A)
+function backend_functionaltest(A)
     @test rowstart(A,1) == 1
     @test colstop(A,1) == 1
-    @test A[1:10]' == A[1,1:10]
-    @test A[1:10][3:10] == A[3:10]
-    @test A[1:10] == [A[k] for k=1:10]
+    B=A[1:10]
+    eltype(B) == eltype(A)
+    for k=1:5
+        @test_approx_eq B[k] A[k]
+        @test isa(A[k],eltype(A))
+    end
+    @test B' == A[1,1:10]
+    @test B[3:10] == A[3:10]
+    @test B == [A[k] for k=1:10]
+
+
 
     co=cache(A)
     @test co[1:10] == A[1:10]
     @test co[1:10] == A[1:10]
     @test co[20:30] == A[1:30][20:30] == A[20:30]
+end
+
+# Check that the tests pass after conversion as well
+function functionaltest{T<:Real}(A::Operator{T})
+    backend_functionaltest(A)
+    backend_functionaltest(Operator{Float64}(A))
+    backend_functionaltest(Operator{Float32}(A))
+    backend_functionaltest(Operator{Complex128}(A))
+end
+
+function functionaltest{T<:Complex}(A::Operator{T})
+    backend_functionaltest(A)
+    backend_functionaltest(Operator{Complex64}(A))
+    backend_functionaltest(Operator{Complex128}(A))
 end
 
 function backend_infoperatortest(A)

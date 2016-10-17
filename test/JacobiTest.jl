@@ -52,9 +52,11 @@ ri=0.5./(1-x)
 
 ## Derivative
 
+D=Derivative(Jacobi(1.,0.,Interval(1.,0.)))
+bandedoperatortest(D)
+
 S=JacobiWeight(0.,0.,Jacobi(1.,0.,Interval(1.,0.)))
 D=Derivative(S)
-
 bandedoperatortest(D)
 
 f=Fun(exp,domainspace(D))

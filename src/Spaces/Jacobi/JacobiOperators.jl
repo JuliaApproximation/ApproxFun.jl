@@ -13,27 +13,28 @@ function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
     sp=op.space
     a=sp.a;b=sp.b
     x=op.x
+    T=eltype(op)
 
     if op.order == 0
         jacobip(kr-1,a,b,x?1.0:-1.0)
     elseif op.order == 1&& !x && b==0
         d=domain(op)
         @assert isa(d,Interval)
-        Float64[tocanonicalD(d,d.a)*.5*(a+k)*(k-1)*(-1)^k for k=kr]
+        T[tocanonicalD(d,d.a)/2*(a+k)*(k-1)*(-1)^k for k=kr]
     elseif op.order == 1
         d=domain(op)
         @assert isa(d,Interval)
         if kr[1]==1 && kr[end] ≥ 2
-            0.5*tocanonicalD(d,d.a)*(a+b+kr).*[0.;jacobip(0:kr[end]-2,1+a,1+b,x?1.:-1.)]
+            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(0:kr[end]-2,1+a,1+b,x?1.:-1.)]/2
         elseif kr[1]==1  # kr[end] ≤ 1
-            zeros(eltype(op),length(kr))
+            zeros(T,length(kr))
         else
-            0.5*tocanonicalD(d,d.a)*(a+b+kr).*jacobip(kr-1,1+a,1+b,x?1.:-1.)
+            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(kr-1,1+a,1+b,x?one(T):-one(T))/2
         end
     elseif op.order == 2
         @assert !x && b==0
         @assert domain(op)==Interval()
-        Float64[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
+        T[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
 function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Float64},kr::Range)
@@ -52,7 +53,7 @@ rangespace{J<:Jacobi}(D::ConcreteDerivative{J})=Jacobi(D.space.a+D.order,D.space
 bandinds{J<:Jacobi}(D::ConcreteDerivative{J})=0,D.order
 
 getindex{J<:Jacobi}(T::ConcreteDerivative{J},k::Integer,j::Integer) =
-    j==k+1? (k+1+T.space.a+T.space.b)./complexlength(domain(T)) : zero(eltype(T))
+    j==k+1? eltype(T)((k+1+T.space.a+T.space.b)/complexlength(domain(T))) : zero(eltype(T))
 
 
 
@@ -69,7 +70,7 @@ rangespace{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=Weight
 
 
 getindex{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}},k::Integer,j::Integer) =
-    j==k-1? -4(k-1)./complexlength(domain(D)) : zero(eltype(D))
+    j==k-1? eltype(D)(-4(k-1)./complexlength(domain(D))) : zero(eltype(D))
 
 
 ## Integral

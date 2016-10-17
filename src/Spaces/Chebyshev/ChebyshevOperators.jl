@@ -218,8 +218,8 @@ function getindex{DD<:Interval,K,T}(D::ConcreteDerivative{Chebyshev{DD},K,T},k::
     d=domain(D)
 
     if j==k+m
-        C=.5pochhammer(1.,m-1)*(4./(d.b-d.a)).^m
-        (C*(m+k-one(T)))::T
+        C=T(pochhammer(one(T),m-1)/2*(4/(d.b-d.a))^m)
+        T(C*(m+k-one(T)))
     else
         zero(T)
     end
@@ -239,13 +239,13 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
            d = domain(Σ)
            C = $Len(d)/2
 
-           isodd(k) ? 2C/(k*(2-k)) : zero(T)
+           isodd(k) ? T(2C/(k*(2-k))) : zero(T)
        end
        function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},kr::Range)
            d = domain(Σ)
            C = $Len(d)/2
 
-           promote_type(T,typeof(C))[isodd(k) ? 2C/(k*(2-k)) : zero(T) for k in kr]
+           T[isodd(k) ? 2C/(k*(2-k)) : zero(T) for k in kr]
        end
    end
 end
