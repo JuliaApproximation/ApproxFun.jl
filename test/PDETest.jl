@@ -45,8 +45,6 @@ u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
-
-
 println("    Poisson tests")
 
 
