@@ -1,6 +1,6 @@
 using ApproxFun, Compat, Base.Test
     import Compat: view
-    import ApproxFun: resizedata!, CachedOperator, RaggedMatrix
+    import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, bandedblockbandedoperatortest
 ## Check operators
 
 ## Rectangle PDEs
@@ -38,6 +38,13 @@ u0=Fun(θ->exp(-20θ^2),dθ,20)
 
 
 println("    Bilaplacian Tests")
+
+dx=dy=Interval()
+d=dx*dy
+Dx=Derivative(dx);Dy=Derivative(dy)
+L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
+
+bandedblockbandedoperatortest(L)
 
 A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
         (rdirichlet(dx)+rneumann(dx))⊗eye(dy);

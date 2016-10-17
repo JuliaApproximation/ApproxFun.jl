@@ -68,7 +68,7 @@ function functionaltest(A)
     @test co[200:300] == A[1:300][200:300] == A[200:300]
 end
 
-function infoperatortest(A)
+function backend_infoperatortest(A)
     @test isinf(size(A,1))
     @test isinf(size(A,2))
     B=A[1:5,1:5]
@@ -77,11 +77,11 @@ function infoperatortest(A)
         @test_approx_eq B[k,j] A[k,j]
     end
 
-    @test A[1:5,1:5][2:5,1:5] == A[2:5,1:5]
-    @test A[1:5,2:5] == A[1:5,1:5][:,2:end]
-    @test A[1:10,1:10][5:10,5:10] == [A[k,j] for k=5:10,j=5:10]
-    @test A[1:10,1:10][5:10,5:10] == A[5:10,5:10]
-    @test A[1:300,1:300][200:300,200:300] == A[200:300,200:300]
+    @test_approx_eq A[1:5,1:5][2:5,1:5] A[2:5,1:5]
+    @test_approx_eq A[1:5,2:5] A[1:5,1:5][:,2:end]
+    @test_approx_eq A[1:10,1:10][5:10,5:10] [A[k,j] for k=5:10,j=5:10]
+    @test_approx_eq A[1:10,1:10][5:10,5:10] A[5:10,5:10]
+    @test_approx_eq A[1:300,1:300][200:300,200:300] A[200:300,200:300]
 
     for k=1:10
         @test isfinite(colstart(A,k)) && colstart(A,k) > 0
@@ -89,15 +89,29 @@ function infoperatortest(A)
     end
 
     co=cache(A)
-    @test co[1:100,1:100] == A[1:100,1:100]
-    @test co[1:100,1:100] == A[1:100,1:100]
-    @test co[200:300,200:300] == A[1:300,1:300][200:300,200:300]
+    @test_approx_eq co[1:100,1:100] A[1:100,1:100]
+    @test_approx_eq co[1:100,1:100] A[1:100,1:100]
+    @test_approx_eq co[200:300,200:300] A[1:300,1:300][200:300,200:300]
 
     let C=cache(A)
         resizedata!(C,5,35)
         resizedata!(C,10,35)
         @test norm(C.data[1:10,1:C.datasize[2]]-A[1:10,1:C.datasize[2]]) ≤ eps()
     end
+end
+
+# Check that the tests pass after conversion as well
+function infoperatortest{T<:Real}(A::Operator{T})
+    backend_infoperatortest(A)
+    backend_infoperatortest(Operator{Float64}(A))
+    backend_infoperatortest(Operator{Float32}(A))
+    backend_infoperatortest(Operator{Complex128}(A))
+end
+
+function infoperatortest{T<:Complex}(A::Operator{T})
+    backend_infoperatortest(A)
+    backend_infoperatortest(Operator{Complex64}(A))
+    backend_infoperatortest(Operator{Complex128}(A))
 end
 
 function raggedbelowoperatortest(A)

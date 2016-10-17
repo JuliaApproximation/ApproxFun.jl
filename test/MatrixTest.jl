@@ -18,6 +18,21 @@ B=ApproxFun.bbbrand(Float64,1,1,1,1,1:10,1:10)
 @test_approx_eq A*B full(A)*full(B)
 
 
+# Tests bug in Complex
+ret=ApproxFun.bbbzeros(Float64,0,4,0,4,[1,2,2],[1,2,2])
+ApproxFun.viewblock(ret,3,3)[1,1]=2.0
+@test ret[3,5]==0.
+
+ret=ApproxFun.bbbzeros(Float32,0,4,0,4,[1,2,2],[1,2,2])
+ApproxFun.viewblock(ret,3,3)[1,1]=2.0
+@test ret[3,5]==0.
+
+
+ret=ApproxFun.bbbzeros(Complex128,0,4,0,4,[1,2,2],[1,2,2])
+ApproxFun.viewblock(ret,3,3)[1,1]=2.0
+@test ret[3,5]==0.
+
+
 #Ragged Matrix
 
 cols=Int[rand(1:k+2) for k=1:5]

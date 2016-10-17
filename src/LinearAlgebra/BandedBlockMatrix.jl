@@ -219,7 +219,7 @@ function viewblock{T<:BlasFloat}(A::BandedBlockMatrix{T},K::Int,J::Int)
         # column block K-J+A.u+1,J
         S=sum(A.cols[1:J-1])*(A.l+A.u+1)  # number of columns before current block
         p=pointer(A.data)
-        sz=sizeof(p)
+        sz=sizeof(T)
 
 
         p+=A.blockstart[K,J]*sz
