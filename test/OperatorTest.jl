@@ -2,58 +2,10 @@ using ApproxFun, Base.Test, Compat
     import ApproxFun:Multiplication,InterlaceOperator
 
 import Compat.view
+    import ApproxFun: functionaltest, bandedoperatortest, raggedbelowoperatortest, infoperatortest
 
 
 # test row/colstarts
-
-function functionaltest(A)
-    @test ApproxFun.rowstart(A,1) == 1
-    @test ApproxFun.colstop(A,1) == 1
-    @test A[1:10]' == A[1,1:10]
-    @test A[1:10][3:10] == A[3:10]
-    @test A[1:10] == [A[k] for k=1:10]
-
-    co=cache(A)
-    @test co[1:100] == A[1:100]
-    @test co[1:100] == A[1:100]
-    @test co[200:300] == A[1:300][200:300] == A[200:300]
-end
-
-function infoperatortest(A)
-    B=A[1:5,1:5]
-
-    for k=1:5,j=1:5
-        @test_approx_eq B[k,j] A[k,j]
-    end
-
-    @test_approx_eq A[1:5,1:5][2:5,1:5] A[2:5,1:5]
-    @test_approx_eq A[1:5,2:5] A[1:5,1:5][:,2:end]
-
-    @test isfinite(ApproxFun.colstart(A,1)) && ApproxFun.colstart(A,1) > 0
-    @test isfinite(ApproxFun.rowstart(A,1)) && ApproxFun.colstart(A,2) > 0
-
-    co=cache(A)
-    @test co[1:100,1:100] == A[1:100,1:100]
-    @test co[1:100,1:100] == A[1:100,1:100]
-    @test co[200:300,200:300] == A[1:300,1:300][200:300,200:300] == A[200:300,200:300]
-
-    let C=cache(A)
-        ApproxFun.resizedata!(C,5,:)
-        ApproxFun.resizedata!(C,10,:)
-        @test norm(C.data[1:10,1:C.datasize[2]]-A[1:10,1:C.datasize[2]]) ≤ eps()
-    end
-end
-
-
-function almostbandedoperatortest(A)
-    infoperatortest(A)
-    @test isfinite(ApproxFun.colstop(A,1))
-end
-
-function bandedoperatortest(A)
-    almostbandedoperatortest(A)
-    @test isfinite(ApproxFun.rowstop(A,1))
-end
 
 
 functionaltest(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
@@ -239,33 +191,32 @@ bandedoperatortest(A-C)
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)])
-
-almostbandedoperatortest(io)
+raggedbelowoperatortest(io)
 
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)])
 
-almostbandedoperatortest(io)
+raggedbelowoperatortest(io)
 
 
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())])
-almostbandedoperatortest(io)
+raggedbelowoperatortest(io)
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)])
-almostbandedoperatortest(io)
+raggedbelowoperatortest(io)
 
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))])
-almostbandedoperatortest(io)
+raggedbelowoperatortest(io)
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))])
-almostbandedoperatortest(io)
+raggedbelowoperatortest(io)
 
 
 
@@ -304,4 +255,4 @@ A=ApproxFun.interlace([Z                      Evaluation(S,0);
                      u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
                       0         D^2+I+3u^2])
 
-almostbandedoperatortest(A)
+raggedbelowoperatortest(A)

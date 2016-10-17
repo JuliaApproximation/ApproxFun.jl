@@ -236,27 +236,59 @@ unstructured_rowstart(A, i) = 1
 unstructured_rowstop(A, i) = size(A,2)
 
 
+function default_colstart(A::Operator, i::Integer)
+    if isbandedabove(A)
+        banded_colstart(A,i)
+    elseif isbandedblockbanded(A)
+        bandedblockbanded_colstart(A, i)
+    elseif isbandedblock(A)
+        bandedblock_colstart(A, i)
+    else
+        unstructured_colstart(A, i)
+    end
+end
+
+function default_colstop(A::Operator, i::Integer)
+    if isbandedbelow(A)
+        banded_colstop(A,i)
+    elseif isbandedblockbanded(A)
+        bandedblockbanded_colstop(A, i)
+    elseif isbandedblock(A)
+        bandedblock_colstop(A, i)
+    else
+        unstructured_colstop(A, i)
+    end
+end
+
+function default_rowstart(A::Operator, i::Integer)
+    if isbandedbelow(A)
+        banded_rowstart(A,i)
+    elseif isbandedblockbanded(A)
+        bandedblockbanded_rowstart(A, i)
+    elseif isbandedblock(A)
+        bandedblock_rowstart(A, i)
+    else
+        unstructured_rowstart(A, i)
+    end
+end
+
+function default_rowstop(A::Operator, i::Integer)
+    if isbandedabove(A)
+        banded_rowstop(A,i)
+    elseif isbandedblockbanded(A)
+        bandedblockbanded_rowstop(A, i)
+    elseif isbandedblock(A)
+        bandedblock_rowstop(A, i)
+    else
+        unstructured_rowstop(A, i)
+    end
+end
+
 
 
 for OP in (:colstart,:colstop,:rowstart,:rowstop)
     defOP = parse("default_"*string(OP))
-    bandOP = parse("banded_"*string(OP))
-    bandblockOP = parse("bandedblock_"*string(OP))
-    bandblockbandOP = parse("bandedblockbanded_"*string(OP))
-    unstructOP = parse("unstructured_"*string(OP))
     @eval begin
-        function $defOP(A::Operator, i::Integer)
-            if isbanded(A)
-                $bandOP(A,i)
-            elseif isbandedblockbanded(A)
-                $bandblockbandOP(A, i)
-            elseif isbandedblock(A)
-                $bandblockOP(A, i)
-            else
-                $unstructOP(A, i)
-            end
-        end
-
         $OP(A::Operator,i::Integer) = $defOP(A,i)
         $OP(A::Operator,i::Infinity{Bool}) = ∞
     end

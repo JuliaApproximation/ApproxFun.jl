@@ -27,6 +27,7 @@ println("Integral Equations tests")
 @time include("IntegralEquationsTest.jl")
 println("Spaces tests")
 @time include("SpacesTest.jl")
+println("Jacobi tests")
 @time include("JacobiTest.jl")
 
 

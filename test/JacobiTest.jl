@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-
+    import ApproxFun: bandedbelowoperatortest, bandedoperatortest
 
 f=Fun(exp,Jacobi(2.,.5))
 @test_approx_eq f(.1) exp(.1)
@@ -54,6 +54,9 @@ ri=0.5./(1-x)
 
 S=JacobiWeight(0.,0.,Jacobi(1.,0.,Interval(1.,0.)))
 D=Derivative(S)
+
+bandedoperatortest(D)
+
 f=Fun(exp,domainspace(D))
 @test (D*f-f).coefficients|>norm < eps(100000.)
 @test (f'-f).coefficients|>norm < eps(100000.)
@@ -104,6 +107,9 @@ g=Fun(exp,Legendre(a))
 x=Fun()
 f=exp(x)*sqrt(1-x^2)
 D=Derivative(WeightedJacobi(.5,.5))
+
+bandedoperatortest(D)
+
 g=(D*Fun(f,domainspace(D)))
 @test_approx_eq f'(0.1) g(0.1)
 
@@ -124,33 +130,55 @@ h = Fun(h,Legendre())
 @test norm(Fun(exp,Ultraspherical(1//2))-Fun(exp,Jacobi(0,0))) < 100eps()
 
 C=Conversion(Jacobi(0,0),Chebyshev())
+bandedbelowoperatortest(C)
 @test norm(C*Fun(exp,Jacobi(0,0))  - Fun(exp)) < 100eps()
 
 
 C=Conversion(Ultraspherical(1//2),Chebyshev())
+bandedbelowoperatortest(C)
 @test norm(C*Fun(exp,Ultraspherical(1//2))  - Fun(exp)) < 100eps()
 
 
 
 C=Conversion(Chebyshev(),Ultraspherical(1//2))
+bandedbelowoperatortest(C)
 @test norm(C*Fun(exp)-Fun(exp,Legendre())) < 100eps()
 
 
 C=Conversion(Chebyshev(),Jacobi(0,0))
+bandedbelowoperatortest(C)
 @test norm(C*Fun(exp)  - Fun(exp,Jacobi(0,0))) < 100eps()
 
 
 C=Conversion(Chebyshev(),Jacobi(1,1))
+bandedbelowoperatortest(C)
 @test norm(C*Fun(exp) - Fun(exp,Jacobi(1,1))) < 100eps()
 
 
 C=Conversion(Ultraspherical(1//2),Ultraspherical(1))
+bandedbelowoperatortest(C)
+
+λ1 = ApproxFun.order(domainspace(C))
+λ2 = ApproxFun.order(rangespace(C))
+
+# test against version that doesn't use lgamma
+Cex = [(if j ≥ k && iseven(k-j)
+        gamma(λ2)*(k-1+λ2)/(gamma(λ1)*gamma(λ1-λ2))*
+            (gamma((j-k)/2+λ1-λ2)/gamma((j-k)/2+1))*
+            (gamma((k+j-2)/2+λ1)/gamma((k+j-2)/2+λ2+1))
+    else
+        0.0
+    end) for k=1:20,j=1:20]
+
+@test norm(Cex - C[1:20,1:20]) < 100eps()
+
 @test norm(C*Fun(exp,Ultraspherical(1//2))-Fun(exp,Ultraspherical(1))) < 100eps()
 
-
 C=Conversion(Jacobi(0,0),Ultraspherical(1))
+bandedbelowoperatortest(C)
 @test norm(C*Fun(exp,Jacobi(0,0))-Fun(exp,Ultraspherical(1))) < 100eps()
 
 
 C=Conversion(Ultraspherical(1),Jacobi(0,0))
+bandedbelowoperatortest(C)
 @test norm(C*Fun(exp,Ultraspherical(1))-Fun(exp,Jacobi(0,0))) < 100eps()

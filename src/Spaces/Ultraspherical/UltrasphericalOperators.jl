@@ -331,9 +331,9 @@ function getindex{DD,LT,LT2,T}(M::ConcreteConversion{Ultraspherical{LT,DD},
     λ2 = order(rangespace(M))
     if abs(λ1-λ2) < 1
         if j ≥ k && iseven(k-j)
-            gamma(λ2)*(k-1+λ2)/(gamma(λ1)*gamma(λ1-λ2))*
-                (gamma((j-k)/2+λ1-λ2)/gamma((j-k)/2+1))*
-                (gamma((k+j-2)/2+λ1)/gamma((k+j-2)/2+λ2+1))
+            T((λ1 < λ2 && k ≠ j ? -1 : 1) *  # fix sign for lgamma
+                exp(lgamma(λ2)+log(k-1+λ2)-lgamma(λ1)-lgamma(λ1-λ2) + lgamma((j-k)/2+λ1-λ2)-
+                lgamma((j-k)/2+1)+lgamma((k+j-2)/2+λ1)-lgamma((k+j-2)/2+λ2+1)))
         else
             zero(T)
         end
