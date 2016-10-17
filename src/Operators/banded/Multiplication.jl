@@ -1,8 +1,8 @@
 export Multiplication
 
-abstract Multiplication{T} <:Operator{T}
+abstract Multiplication{D,S,T} <:Operator{T}
 
-immutable ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{T}
+immutable ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{D,S,T}
     f::Fun{D,T}
     space::S
 
@@ -75,17 +75,17 @@ choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = sp
 
 Base.diagm(a::Fun) = Multiplication(a)
 
-immutable MultiplicationWrapper{D<:Space,O<:Operator,T} <: Multiplication{T}
+immutable MultiplicationWrapper{D<:Space,S<:Space,O<:Operator,T} <: Multiplication{D,S,T}
     f::Fun{D,T}
     op::O
 end
 
-MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::Operator) = MultiplicationWrapper{D,typeof(op),T}(f,op)
+MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::Operator) = MultiplicationWrapper{D,typeof(domainspace(op)),typeof(op),T}(f,op)
 MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::Operator) = MultiplicationWrapper(eltype(op),f,op)
 
 @wrapper MultiplicationWrapper
 
-function Base.convert{TT,S,V,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,T})
+function Base.convert{TT,S,V,O,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,O,T})
     if TT==T
         C
     else

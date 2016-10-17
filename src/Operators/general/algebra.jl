@@ -560,17 +560,7 @@ end
 *{F<:Fun}(A::TimesOperator,b::Vector{F}) = A*Fun(b)
 *{F<:Fun}(A::Operator,b::Vector{F}) = A*Fun(b)
 
-#=
-function *(A::PlusOperator,b::Fun)
-    dsp=conversion_type(domainspace(A),space(b))
-    A=promotedomainspace(A,dsp)
-    ret = A.ops[1]*b
-    for k=2:length(A.ops)
-        ret += A.ops[k]*b
-    end
-    Fun(coefficients(ret),rangespace(A))
-end
-=#
+*(A::PlusOperator,b::Fun) = mapreduce(x->x*b,+,A.ops)
 
 for TYP in (:TimesOperator,:Operator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
