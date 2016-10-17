@@ -59,15 +59,10 @@ domainspace(C::CachedOperator) = C.domainspace
 rangespace(C::CachedOperator) = C.rangespace
 bandinds{T,BM<:BandedMatrix}(C::CachedOperator{T,BM}) = C.bandinds
 blockbandinds{T,BM<:BandedBlockMatrix}(C::CachedOperator{T,BM}) = C.bandinds
-Base.stride(C::CachedOperator) = stride(C.op)
 
-# when bandinds are infinite, use colstart/colstop from operator
+
 # TODO: cache this information as well
-for func in (:(ApproxFun.colstart),:(ApproxFun.colstop),
-                :(ApproxFun.rowstart),:(ApproxFun.rowstop))
-    @eval $func{T,DM,M,DS,RS}(D::CachedOperator{T,DM,M,DS,RS,Tuple{Infinity{Bool},Infinity{Bool}}},
-                         k::Integer) = $func(D.op,k)
-end
+@wrapperstructure CachedOperator
 
 
 function Base.getindex(B::CachedOperator,k::Integer,j::Integer)
