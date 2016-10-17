@@ -302,14 +302,18 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
     dt=domaintensorizer(KO)
     ret=bbbzeros(S)
 
+    Kshft = block(rt,kr[1])-1
+    Jshft = block(dt,jr[1])-1
+
+
 
     for J=1:blocksize(ret,2)
-        jshft=jr[1]+blockstart(dt,J)-2
+        jshft = (J==1 ? jr[1] : blockstart(dt,J+Jshft)) - 1
         for K=blockcolrange(ret,J)
             Bs=viewblock(ret,K,J)
-            kshft=kr[1]+blockstart(rt,K)-2
-            for j=1:size(Bs,2),k=colrange(Bs,j)
-                Bs[k,j]=KO[k+kshft,j+jshft]
+            kshft = (K==1 ? kr[1] : blockstart(rt,K+Kshft)) - 1
+            for ξ=1:size(Bs,2),κ=colrange(Bs,ξ)
+                Bs[κ,ξ]=KO[κ+kshft,ξ+jshft]
             end
         end
     end

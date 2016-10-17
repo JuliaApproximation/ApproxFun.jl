@@ -77,8 +77,11 @@ function infoperatortest(A)
         @test_approx_eq B[k,j] A[k,j]
     end
 
-    @test_approx_eq A[1:5,1:5][2:5,1:5] A[2:5,1:5]
-    @test_approx_eq A[1:5,2:5] A[1:5,1:5][:,2:end]
+    @test A[1:5,1:5][2:5,1:5] == A[2:5,1:5]
+    @test A[1:5,2:5] == A[1:5,1:5][:,2:end]
+    @test A[1:10,1:10][5:10,5:10] == [A[k,j] for k=5:10,j=5:10]
+    @test A[1:10,1:10][5:10,5:10] == A[5:10,5:10]
+    @test A[1:300,1:300][200:300,200:300] == A[200:300,200:300]
 
     for k=1:10
         @test isfinite(colstart(A,k)) && colstart(A,k) > 0
@@ -88,7 +91,7 @@ function infoperatortest(A)
     co=cache(A)
     @test co[1:100,1:100] == A[1:100,1:100]
     @test co[1:100,1:100] == A[1:100,1:100]
-    @test co[200:300,200:300] == A[1:300,1:300][200:300,200:300] == A[200:300,200:300]
+    @test co[200:300,200:300] == A[1:300,1:300][200:300,200:300]
 
     let C=cache(A)
         resizedata!(C,5,35)

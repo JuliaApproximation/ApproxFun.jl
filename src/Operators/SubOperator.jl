@@ -128,12 +128,12 @@ function bbbzeros(S::SubOperator)
     K=block(rt,kr[1])
     bl_sh = J-K
 
+    # each row/column that we differ from the the block start shifts
+    # the sub block inds
     jsh=jr[1]-blockstart(dt,J)
     ksh=kr[1]-blockstart(rt,K)
-    sbl_sh = jsh-ksh
 
-
-    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,max(-λ,-λ+sbl_sh),max(μ,μ-sbl_sh),
+    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ+jsh,μ+ksh,
             blocklengthrange(rt,kr),
             blocklengthrange(dt,jr))
 end
