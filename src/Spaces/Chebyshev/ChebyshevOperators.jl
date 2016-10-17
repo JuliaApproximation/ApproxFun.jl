@@ -134,7 +134,7 @@ getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k
     M[k:k,j:j][1,1]
 
 
-function Base.convert{C<:Chebyshev,V,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{C<:Chebyshev,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -162,7 +162,7 @@ function Base.convert{C<:Chebyshev,V,T}(::Type{BandedMatrix},S::SubOperator{T,Co
 end
 
 
-function Base.convert{PS<:PolynomialSpace,V,T,C<:Chebyshev}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,PS,V,T},
+function Base.convert{PS<:PolynomialSpace,T,C<:Chebyshev}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,PS,T},
                                                                             Tuple{UnitRange{Int},UnitRange{Int}}})
     M=parent(S)
     kr,jr=parentindexes(S)

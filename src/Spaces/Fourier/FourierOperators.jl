@@ -219,9 +219,9 @@ getindex{CS<:CosSpace}(M::ConcreteMultiplication{CS,CS},k::Integer,j::Integer) =
 
 function getindex{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS},k::Integer,j::Integer)
     a=M.f.coefficients
-    ret=0.5*toeplitz_getindex([0.;-a],a,k,j)
+    ret=toeplitz_getindex([zero(eltype(a));-a],a,k,j)/2
     if k ≥ 2
-        ret+=0.5*hankel_getindex(a,k,j)
+        ret+=hankel_getindex(a,k,j)/2
     end
     ret
 end
@@ -232,9 +232,9 @@ rangespace{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS})=CosSpace(domain(M))
 
 function getindex{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS},k::Integer,j::Integer)
     a=M.f.coefficients
-    ret=0.5*toeplitz_getindex(a,k,j)
+    ret=toeplitz_getindex(a,k,j)/2
     if length(a)>=3
-        ret-=0.5*hankel_getindex(@compat(view(a,3:length(a))),k,j)
+        ret-=hankel_getindex(@compat(view(a,3:length(a))),k,j)/2
     end
     ret
 end

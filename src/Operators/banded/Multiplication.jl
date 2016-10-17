@@ -2,18 +2,18 @@ export Multiplication
 
 abstract Multiplication{T} <:Operator{T}
 
-immutable ConcreteMultiplication{D<:Space,S<:Space,V,T} <: Multiplication{T}
-    f::Fun{D,V}
+immutable ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{T}
+    f::Fun{D,T}
     space::S
 
-    ConcreteMultiplication(f::Fun{D,V},sp::S)=new(f,sp)
+    ConcreteMultiplication(f::Fun{D,T},sp::S) = new(f,sp)
 end
 
 function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     if !domainscompatible(space(f),sp)
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
-    ConcreteMultiplication{D,typeof(sp),T,promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+    ConcreteMultiplication{D,typeof(sp),promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
 end
 
 # We do this in two stages to support Modifier spaces
@@ -37,15 +37,15 @@ Multiplication(c::Number) = Multiplication(Fun(c) )
 Multiplication(S::Space,f::Fun) = Multiplication(f,S)
 
 
-function Base.convert{S,V,TT,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V,TT})
+function Base.convert{S,V,T}(::Type{Operator{T}},C::ConcreteMultiplication{S,V})
     if T==eltype(C)
         C
     else
-        ConcreteMultiplication{S,V,TT,T}(C.f,C.space)
+        ConcreteMultiplication{S,V,T}(Fun{S,T}(C.f),C.space)
     end
 end
 
-domainspace{D,S,T,V}(M::ConcreteMultiplication{D,S,T,V}) = M.space
+domainspace{D,S,T}(M::ConcreteMultiplication{D,S,T}) = M.space
 domain(T::ConcreteMultiplication) = domain(T.f)
 
 
@@ -75,21 +75,21 @@ choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = sp
 
 Base.diagm(a::Fun) = Multiplication(a)
 
-immutable MultiplicationWrapper{D<:Space,O<:Operator,V,T} <: Multiplication{T}
-    f::Fun{D,V}
+immutable MultiplicationWrapper{D<:Space,O<:Operator,T} <: Multiplication{T}
+    f::Fun{D,T}
     op::O
 end
 
-MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::Operator)=MultiplicationWrapper{D,typeof(op),V,T}(f,op)
-MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::Operator)=MultiplicationWrapper(eltype(op),f,op)
+MultiplicationWrapper{D<:Space,V}(T::Type,f::Fun{D,V},op::Operator) = MultiplicationWrapper{D,typeof(op),T}(f,op)
+MultiplicationWrapper{D<:Space,V}(f::Fun{D,V},op::Operator) = MultiplicationWrapper(eltype(op),f,op)
 
 @wrapper MultiplicationWrapper
 
-function Base.convert{TT,S,V,VV,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,VV,T})
-    if TT==eltype(C)
+function Base.convert{TT,S,V,T}(::Type{Operator{TT}},C::MultiplicationWrapper{S,V,T})
+    if TT==T
         C
     else
-        MultiplicationWrapper{S,V,VV,TT}(C.f,C.op)
+        MultiplicationWrapper(Fun{S,TT}(C.f),Operator{TT}(C.op))::Operator{TT}
     end
 end
 

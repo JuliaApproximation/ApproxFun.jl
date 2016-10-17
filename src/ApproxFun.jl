@@ -63,25 +63,27 @@ function functionaltest(A)
     @test A[1:10] == [A[k] for k=1:10]
 
     co=cache(A)
-    @test co[1:100] == A[1:100]
-    @test co[1:100] == A[1:100]
-    @test co[200:300] == A[1:300][200:300] == A[200:300]
+    @test co[1:10] == A[1:10]
+    @test co[1:10] == A[1:10]
+    @test co[20:30] == A[1:30][20:30] == A[20:30]
 end
 
 function backend_infoperatortest(A)
     @test isinf(size(A,1))
     @test isinf(size(A,2))
     B=A[1:5,1:5]
+    eltype(B) == eltype(A)
 
     for k=1:5,j=1:5
         @test_approx_eq B[k,j] A[k,j]
+        @test isa(A[k,j],eltype(A))
     end
 
     @test_approx_eq A[1:5,1:5][2:5,1:5] A[2:5,1:5]
     @test_approx_eq A[1:5,2:5] A[1:5,1:5][:,2:end]
     @test_approx_eq A[1:10,1:10][5:10,5:10] [A[k,j] for k=5:10,j=5:10]
     @test_approx_eq A[1:10,1:10][5:10,5:10] A[5:10,5:10]
-    @test_approx_eq A[1:300,1:300][200:300,200:300] A[200:300,200:300]
+    @test_approx_eq A[1:30,1:30][20:30,20:30] A[20:30,20:30]
 
     for k=1:10
         @test isfinite(colstart(A,k)) && colstart(A,k) > 0
@@ -89,9 +91,9 @@ function backend_infoperatortest(A)
     end
 
     co=cache(A)
-    @test_approx_eq co[1:100,1:100] A[1:100,1:100]
-    @test_approx_eq co[1:100,1:100] A[1:100,1:100]
-    @test_approx_eq co[200:300,200:300] A[1:300,1:300][200:300,200:300]
+    @test_approx_eq co[1:10,1:10] A[1:10,1:10]
+    @test_approx_eq co[1:10,1:10] A[1:10,1:10]
+    @test_approx_eq co[20:30,20:30] A[1:30,1:30][20:30,20:30]
 
     let C=cache(A)
         resizedata!(C,5,35)

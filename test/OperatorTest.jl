@@ -1,7 +1,6 @@
 using ApproxFun, Base.Test, Compat
     import ApproxFun:Multiplication,InterlaceOperator
-
-import Compat.view
+    import Compat.view
     import ApproxFun: functionaltest, bandedoperatortest, raggedbelowoperatortest, infoperatortest
 
 
@@ -54,12 +53,10 @@ S=Chebyshev(d)
 @test_approx_eq exp(0.1) (Derivative()*Fun(exp,Ultraspherical(1)))(0.1)
 
 
-T=Float64
 f=Fun(exp)
 d=domain(f)
-D=Derivative(d)
-
 Q=Integral(d)
+D=Derivative(d)
 
 bandedoperatortest(Q)
 
@@ -109,6 +106,23 @@ bandedoperatortest(P)
 
 
 ## Periodic
+M=Multiplication(Fun([1.],CosSpace()),CosSpace())
+bandedoperatortest(M)
+
+M=Multiplication(Fun([1.],CosSpace()),SinSpace())
+bandedoperatortest(M)
+
+M=Multiplication(Fun([1.],SinSpace()),SinSpace())
+bandedoperatortest(M)
+
+M=Multiplication(Fun([1.],SinSpace()),CosSpace())
+bandedoperatortest(M)
+
+D=Derivative(SinSpace())
+bandedoperatortest(D)
+
+D=Derivative(CosSpace())
+bandedoperatortest(D)
 
 
 d=PeriodicInterval(0.,2π)
@@ -117,7 +131,8 @@ D=Derivative(d)
 L=D+a
 
 bandedoperatortest(D)
-bandedoperatortest(L)
+bandedoperatortest(Multiplication(a,Space(d)))
+
 
 f=Fun(t->exp(sin(t)),d)
 u=L\f

@@ -372,7 +372,7 @@ end
 macro wrappergetindex(Wrap)
     ret = quote
         Base.getindex(OP::$Wrap,k::Integer...) =
-            OP.op[k...]
+            OP.op[k...]::eltype(OP)
 
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) =
             ApproxFun.unwrap_axpy!(α,P,A)

@@ -93,17 +93,18 @@ linesum{LT,DD<:Interval}(f::Fun{Ultraspherical{LT,DD}}) =
 rangespace{LT,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) =
     order(domainspace(D)) == 1 ? Chebyshev() : Ultraspherical(order(domainspace(D))-D.order,domain(D))
 
-function getindex{LT,DD<:Interval,T}(D::ConcreteIntegral{Ultraspherical{LT,DD},T},k::Integer,j::Integer)
-    m=D.order
-    d=domain(D)
-    λ=order(domainspace(D))
+function getindex{LT,DD<:Interval}(Q::ConcreteIntegral{Ultraspherical{LT,DD}},k::Integer,j::Integer)
+    T=eltype(Q)
+    m=Q.order
+    d=domain(Q)
+    λ=order(domainspace(Q))
     @assert m<=λ
 
     if λ == 1 && k==j+1
-        C = .5(d.b-d.a)
-        C./(k-one(T))
+        C = (d.b-d.a)/2
+        T(C./(k-1))
     elseif λ > 1 && k==j+m
-        pochhammer(one(T)*λ,-m)*(.25(d.b-d.a))^m
+        T(pochhammer(one(T)*λ,-m)*((d.b-d.a)/4)^m)
     else
         zero(T)
     end

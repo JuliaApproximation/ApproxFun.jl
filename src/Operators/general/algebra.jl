@@ -52,7 +52,7 @@ function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
     if T==eltype(P)
         P
     else
-        PlusOperator{T,typeof(P.bandinds)}(P.ops,P.bandinds)
+        PlusOperator{T,typeof(P.bandinds)}(Vector{Operator{T}}(P.ops),P.bandinds)
     end
 end
 
@@ -154,7 +154,7 @@ end
 
 ## Times Operator
 
-immutable ConstantTimesOperator{T,B,BT} <: Operator{BT}
+immutable ConstantTimesOperator{B,T} <: Operator{T}
     λ::T
     op::B
     ConstantTimesOperator(c,op)=new(c,op)
@@ -162,18 +162,9 @@ end
 function ConstantTimesOperator{TT<:Number}(c::Number,op::Operator{TT})
     T=promote_type(typeof(c),eltype(op))
     B=convert(Operator{T},op)
-    ConstantTimesOperator{T,typeof(B),T}(c,B)
-end
-function ConstantTimesOperator{BM<:BandedMatrix}(c::Number,op::Operator{BM})
-    BT=eltype(BM)
-    T=promote_type(typeof(c),BT)
-
-    B=convert(Operator{BandedMatrix{T}},op)
-    ConstantTimesOperator{T,typeof(B),BandedMatrix{T}}(c,B)
+    ConstantTimesOperator{typeof(B),T}(T(c),B)
 end
 
-ConstantTimesOperator{T,B,BT}(c::Number,op::ConstantTimesOperator{T,B,BandedMatrix{BT}}) =
-    ConstantTimesOperator(c*op.λ,op.op)
 ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
     ConstantTimesOperator(c*op.λ,op.op)
 
@@ -184,11 +175,7 @@ choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,s
 
 
 for OP in (:promotedomainspace,:promoterangespace),SP in (:UnsetSpace,:Space)
-    @eval function $OP(C::ConstantTimesOperator,k::$SP)
-            op=$OP(C.op,k)
-            # TODO: This assumes chnanging domainspace can't change the type
-            ConstantTimesOperator{eltype(C.λ),typeof(op),eltype(C)}(C.λ,op)
-    end
+    @eval $OP(C::ConstantTimesOperator,k::$SP) = ConstantTimesOperator(C.λ,$OP(C.op,k))
 end
 
 
@@ -197,8 +184,7 @@ function Base.convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
         C
     else
         op=convert(Operator{T},C.op)
-        ret=ConstantTimesOperator{typeof(C.λ),typeof(op),T}(C.λ,op)
-        ret
+        ConstantTimesOperator{typeof(op),T}(T(C.λ),op)
     end
 end
 
