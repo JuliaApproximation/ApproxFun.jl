@@ -120,7 +120,7 @@ function backend_infoperatortest(A)
     let C=cache(A)
         resizedata!(C,5,35)
         resizedata!(C,10,35)
-        @test norm(C.data[1:10,1:C.datasize[2]]-A[1:10,1:C.datasize[2]]) ≤ eps(eltype(A))
+        @test_approx_eq C.data[1:10,1:C.datasize[2]] A[1:10,1:C.datasize[2]]
     end
 end
 
