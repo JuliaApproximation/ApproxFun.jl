@@ -154,6 +154,10 @@ ConcreteDirichlet(sp::Space,rs::Space,order) =
     ConcreteDirichlet{typeof(sp),typeof(rs),eltype(sp)}(sp,rs,order)
 ConcreteDirichlet(sp::Space,order) = ConcreteDirichlet(sp,Space(∂(domain(sp))),order)
 
+Base.convert{S,V,T}(::Type{Operator{T}},B::ConcreteDirichlet{S,V}) =
+    ConcreteDirichlet{S,V,T}(B.domainspace,B.rangespace,B.order)
+
+
 immutable DirichletWrapper{S,T} <: Conversion{T}
     op::S
     order::Int
@@ -162,6 +166,9 @@ end
 @wrapper DirichletWrapper
 
 DirichletWrapper(B::Operator,λ=0) = DirichletWrapper{typeof(B),eltype(B)}(B,λ)
+
+Base.convert{T}(::Type{Operator{T}},B::DirichletWrapper) =
+    DirichletWrapper(Operator{T}(B.op),B.order)::Operator{T}
 
 
 Dirichlet(sp::Space,λ=0) = error("Override getindex for Dirichlet($sp,$λ)")

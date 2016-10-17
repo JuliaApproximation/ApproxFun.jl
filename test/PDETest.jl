@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test, Compat, Base.Test
-    import ApproxFun: bandedblockbandedoperatortest
+    import ApproxFun: bandedblockbandedoperatortest, bandedblockoperatortest
 
 ## Check operators
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
@@ -31,7 +31,7 @@ d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 bandedblockbandedoperatortest(Laplacian(d))
-# bandedblockbandedoperatortest(Dirichlet(d))
+bandedblockoperatortest(Dirichlet(d))
 
 A=[Dirichlet(d);Laplacian(d)]
 
@@ -118,10 +118,12 @@ d=PeriodicInterval()*Interval()
 u_ex=Fun((x,y)->real(cos(x+im*y)),d)
 
 B=Dirichlet(Space(d))
+
 g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
 @test norm((B*u_ex-g).coefficients) < 10eps()
 
 bandedblockbandedoperatortest(Laplacian(d))
+
 u=[B;Laplacian(d)]\[g;0.]
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
@@ -186,9 +188,9 @@ u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
 L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
 bandedblockbandedoperatortest(L)
 
-u=linsolve([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-1)
+@time u=linsolve([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-5)
 @test_approx_eq_eps u(.2,.001) (0.5270296652096698 + 0.5027510303539062im )  0.0001
-
+ApproxFun.plot(real(u))
 
 ## Periodic
 
