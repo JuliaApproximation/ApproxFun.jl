@@ -1,3 +1,11 @@
+# FiniteRange gives the nonzero entries in a row/column
+immutable FiniteRange end
+
+getindex(A::AbstractMatrix,::Type{FiniteRange},j::Integer) = A[1:colstop(A,j),j]
+getindex(A::AbstractMatrix,k::Integer,::Type{FiniteRange}) = A[k,1:rowstop(A,k)]
+
+const ⤓ = FiniteRange
+
 type RaggedMatrix{T} <: AbstractMatrix{T}
     data::Vector{T} # a Vector of non-zero entries
     cols::Vector{Int} # a Vector specifying the first index of each column

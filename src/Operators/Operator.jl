@@ -35,22 +35,6 @@ isconstspace(::) = false
 ## Functionals
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 
-isbandedbelow(A::Operator) = isfinite(bandinds(A,1))
-isbandedabove(A::Operator) = isfinite(bandinds(A,2))
-
-isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
-
-
-isbandedblockbandedbelow(::) = false
-isbandedblockbandedabove(::) = false
-
-isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockbandedbelow(A)
-isbandedblock(A) = isbandedblockbanded(A)
-
-blockbandinds(S::Operator,k...) = bandinds(S,k...)
-blockbandwidths(S::Operator) = -blockbandinds(S,1),blockbandinds(S,2)
-
-israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isbandedblock(A)
 
 macro functional(FF)
     quote
@@ -91,6 +75,30 @@ Base.ndims(::Operator) = 2
 
 
 ## bandrange and indexrange
+isbandedbelow(A::Operator) = isfinite(bandinds(A,1))
+isbandedabove(A::Operator) = isfinite(bandinds(A,2))
+
+isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
+
+
+isbandedblockbandedbelow(::) = false
+isbandedblockbandedabove(::) = false
+
+isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockbandedbelow(A)
+isbandedblock(A) = isbandedblockbanded(A)
+
+#TODO: this is bad: we shouldn't assume block size 1
+blockbandinds(A::Operator) = bandinds(A)
+blockbandwidths(S::Operator) = -blockbandinds(S,1),blockbandinds(S,2)
+blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
+blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(K,k)
+subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
+subblockbandwidth(K::Operator,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
+
+
+israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isbandedblock(A)
+
+
 bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
 bandwidth(A::Operator,k::Integer) = k==1?-bandinds(A,1):bandinds(A,2)
 bandwidths(A::Operator) = (bandwidth(A,1),bandwidth(A,2))
@@ -98,17 +106,7 @@ bandwidths(A::Operator) = (bandwidth(A,1),bandwidth(A,2))
 bandinds(A::Operator) = (1-size(A,1),size(A,2)-1)
 bandinds(A,k::Integer) = bandinds(A)[k]
 bandrange(b::Operator) = UnitRange(bandinds(b)...)
-function bandrangelength(B::Operator)
-    bndinds=bandinds(B)
-    bndinds[end]-bndinds[1]+1
-end
 
-
-function columninds(b::Operator,k::Integer)
-    ret = bandinds(b)
-
-    (ret[1]  + k < 1) ? (1,(ret[end] + k)) : (ret[1]+k,ret[2]+k)
-end
 
 
 ## Strides
@@ -169,20 +167,96 @@ defaultgetindex(A::Operator,k,j) = view(A,k,j)
 
 
 
-# FiniteRange gives the nonzero entries in a row/column
-immutable FiniteRange end
+# TODO: finite dimensional blocks
+blockcolstop(A::Operator,K::Integer) = K-blockbandinds(A,1)
+blockrowstop(A::Operator,J::Integer) = J+blockbandinds(A,2)
+
 
 
 # default is to use bandwidth
 # override for other shaped operators
-default_colstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,2), 1), size(A, 2))
-default_colstop(A::Operator, i::Integer) = min(i+bandwidth(A,1), size(A, 1))
-default_rowstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,1), 1), size(A, 1))
-default_rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
+#TODO: Why size(A,2) in colstart?
+banded_colstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,2), 1), size(A, 2))
+banded_colstop(A::Operator, i::Integer) = min(i+bandwidth(A,1), size(A, 1))
+banded_rowstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,1), 1), size(A, 1))
+banded_rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
+
+bandedblock_colstart(A::Operator, i::Integer) =
+        blockstart(rangespace(A), block(domainspace(A),i)-blockbandwidth(A,2))
+bandedblock_colstop(A::Operator, i::Integer) =
+    min(blockstop(rangespace(A), block(domainspace(A),i)+blockbandwidth(A,1)),
+        size(A, 1))
+bandedblock_rowstart(A::Operator, i::Integer) =
+        blockstart(domainspace(A), block(rangespace(A),i)-blockbandwidth(A,1))
+bandedblock_rowstop(A::Operator, i::Integer) =
+    min(blockstop(domainspace(A), block(rangespace(A),i)+blockbandwidth(A,2)),
+        size(A, 2))
+
+
+function bandedblockbanded_colstart(A::Operator, i::Integer)
+    ds = domainspace(A)
+    B = block(ds,i)
+    ξ = i - blockstart(ds,B) + 1  # col in block
+    bs = blockstart(rangespace(A), B-blockbandwidth(A,2))
+    max(bs,bs + ξ - 1 - subblockbandwidth(A,2))
+end
+
+function bandedblockbanded_colstop(A::Operator, i::Integer)
+    ds = domainspace(A)
+    rs = rangespace(A)
+    B = block(ds,i)
+    ξ = i - blockstart(ds,B) + 1  # col in block
+    Bend = B+blockbandwidth(A,1)
+    bs = blockstart(rs, Bend)
+    min(blockstop(rs,Bend),bs + ξ - 1 + subblockbandwidth(A,1))
+end
+
+function bandedblockbanded_rowstart(A::Operator, i::Integer)
+    rs = rangespace(A)
+    B = block(rs,i)
+    ξ = i - blockstart(rs,B) + 1  # row in block
+    bs = blockstart(domainspace(A), B-blockbandwidth(A,1))
+    max(bs,bs + ξ - 1 - subblockbandwidth(A,1))
+end
+
+function bandedblockbanded_rowstop(A::Operator, i::Integer)
+    ds = domainspace(A)
+    rs = rangespace(A)
+    B = block(rs,i)
+    ξ = i - blockstart(rs,B) + 1  # row in block
+    Bend = B+blockbandwidth(A,2)
+    bs = blockstart(ds, Bend)
+    min(blockstop(ds,Bend),bs + ξ - 1 + subblockbandwidth(A,2))
+end
+
+
+unstructured_colstart(A, i) = 1
+unstructured_colstop(A, i) = size(A,1)
+unstructured_rowstart(A, i) = 1
+unstructured_rowstop(A, i) = size(A,2)
+
+
+
 
 for OP in (:colstart,:colstop,:rowstart,:rowstop)
     defOP = parse("default_"*string(OP))
+    bandOP = parse("banded_"*string(OP))
+    bandblockOP = parse("bandedblock_"*string(OP))
+    bandblockbandOP = parse("bandedblockbanded_"*string(OP))
+    unstructOP = parse("unstructured_"*string(OP))
     @eval begin
+        function $defOP(A::Operator, i::Integer)
+            if isbanded(A)
+                $bandOP(A,i)
+            elseif isbandedblockbanded(A)
+                $bandblockbandOP(A, i)
+            elseif isbandedblock(A)
+                $bandblockOP(A, i)
+            else
+                $unstructOP(A, i)
+            end
+        end
+
         $OP(A::Operator,i::Integer) = $defOP(A,i)
         $OP(A::Operator,i::Infinity{Bool}) = ∞
     end

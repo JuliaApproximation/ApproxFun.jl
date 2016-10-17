@@ -102,16 +102,10 @@ israggedbelow(K::KroneckerOperator) = all(israggedbelow,K.ops)
 
 blockbandinds(K::KroneckerOperator) =
     bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
-blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
-blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(K,k)
 subblockbandinds(K::KroneckerOperator,k::Integer) =
     k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 
-
-# TODO: finite dimensional blocks
-blockcolstop(A::Operator,K::Integer) = K-blockbandinds(A,1)
-blockrowstop(A::Operator,J::Integer) = J+blockbandinds(A,2)
 
 typealias Wrappers Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
                        SpaceOperator,ConstantTimesOperator}
@@ -156,7 +150,6 @@ end
 
 subblockbandinds(P::TimesOperator,k) = subblockbandindssum(P.ops,1)
 
-subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
 
 
 domainspace(K::KroneckerOperator) = K.domainspace

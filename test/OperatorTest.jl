@@ -4,10 +4,66 @@ using ApproxFun, Base.Test, Compat
 import Compat.view
 
 
+# test row/colstarts
+
+function functionaltest(A)
+    @test ApproxFun.rowstart(A,1) == 1
+    @test ApproxFun.colstop(A,1) == 1
+    @test A[1:10]' == A[1,1:10]
+    @test A[1:10][3:10] == A[3:10]
+    @test A[1:10] == [A[k] for k=1:10]
+
+    co=cache(A)
+    @test co[1:100] == A[1:100]
+    @test co[1:100] == A[1:100]
+    @test co[200:300] == A[1:300][200:300] == A[200:300]
+end
+
+function infoperatortest(A)
+    B=A[1:5,1:5]
+
+    for k=1:5,j=1:5
+        @test_approx_eq B[k,j] A[k,j]
+    end
+
+    @test_approx_eq A[1:5,1:5][2:5,1:5] A[2:5,1:5]
+    @test_approx_eq A[1:5,2:5] A[1:5,1:5][:,2:end]
+
+    @test isfinite(ApproxFun.colstart(A,1)) && ApproxFun.colstart(A,1) > 0
+    @test isfinite(ApproxFun.rowstart(A,1)) && ApproxFun.colstart(A,2) > 0
+
+    co=cache(A)
+    @test co[1:100,1:100] == A[1:100,1:100]
+    @test co[1:100,1:100] == A[1:100,1:100]
+    @test co[200:300,200:300] == A[1:300,1:300][200:300,200:300] == A[200:300,200:300]
+
+    let C=cache(A)
+        ApproxFun.resizedata!(C,5,:)
+        ApproxFun.resizedata!(C,10,:)
+        @test norm(C.data[1:10,1:C.datasize[2]]-A[1:10,1:C.datasize[2]]) ≤ eps()
+    end
+end
+
+
+function almostbandedoperatortest(A)
+    infoperatortest(A)
+    @test isfinite(ApproxFun.colstop(A,1))
+end
+
+function bandedoperatortest(A)
+    almostbandedoperatortest(A)
+    @test isfinite(ApproxFun.rowstop(A,1))
+end
+
+
+functionaltest(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
+
 # test fast copy is consistent with getindex
 
 
 C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
+
+bandedoperatortest(C)
 
 @test_approx_eq full(C[1:5,1:5])    [4.0 5.0 6.0 0.0 0.0
                                      1.0 4.0 5.0 6.0 0.0
@@ -16,6 +72,8 @@ C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
                                      0.0 3.0 2.0 1.0 4.0]
 
 C=Conversion(Ultraspherical(1),Ultraspherical(2))
+
+bandedoperatortest(C)
 
 @test_approx_eq full(C[1:5,1:5])     [1.0 0.0 -0.3333333333333333 0.0  0.0
                                       0.0 0.5  0.0               -0.25 0.0
@@ -26,18 +84,9 @@ C=Conversion(Ultraspherical(1),Ultraspherical(2))
 
 
 
-for M in (ToeplitzOperator([1.,2.,3.],[4.,5.,6.]),
-                HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
-                Conversion(Ultraspherical(1),Ultraspherical(2)),
-                Multiplication(Fun([1.,2.,3.],Chebyshev()),Chebyshev()))
-    B=M[1:5,1:5]
-
-    for k=1:5,j=1:5
-        @test_approx_eq B[k,j] M[k,j]
-    end
-
-    @test_approx_eq M[1:5,1:5][2:5,1:5] M[2:5,1:5]
-    @test_approx_eq M[1:5,2:5] M[1:5,1:5][:,2:end]
+for M in (HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
+            Multiplication(Fun([1.,2.,3.],Chebyshev()),Chebyshev()))
+    bandedoperatortest(M)
 end
 
 
@@ -58,18 +107,24 @@ f=Fun(exp)
 d=domain(f)
 D=Derivative(d)
 
-Q=integrate(d)
+Q=Integral(d)
+
+bandedoperatortest(Q)
 
 @test norm((Q+I)*f-(integrate(f)+f)) < 100eps()
 @test norm((Q)*f-(integrate(f))) < 100eps()
 
 x=Fun(identity)
 X=Multiplication(x,space(x))
+
+bandedoperatortest(X)
+
 d=Interval()
 
 
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))
 
+bandedoperatortest(A)
 
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
 
@@ -78,6 +133,9 @@ A=Conversion(Chebyshev(d),Ultraspherical(2,d))
 @test norm(X*f-(x.*f)) < 100eps()
 
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))*X
+
+bandedoperatortest(A)
+
 @test norm((A*f.coefficients).coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
 
 
@@ -91,6 +149,9 @@ x=Fun(identity)
 
 
 P=ApproxFun.PermutationOperator([2,1])
+
+bandedoperatortest(P)
+
 @test_approx_eq P[1:4,1:4] [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0]
 
 
@@ -102,6 +163,10 @@ d=PeriodicInterval(0.,2π)
 a=Fun(t-> 1+sin(cos(10t)),d)
 D=Derivative(d)
 L=D+a
+
+bandedoperatortest(D)
+bandedoperatortest(L)
+
 f=Fun(t->exp(sin(t)),d)
 u=L\f
 
@@ -113,7 +178,11 @@ a0=Fun(t->cos(12sin(t)),d)
 D=Derivative(d)
 L=D^2+a1*D+a0
 
+bandedoperatortest(L)
+
 f=Fun([1,2,3,4,5],space(a1))
+
+bandedoperatortest(Multiplication(a0,Fourier([0.,2π])))
 
 @test_approx_eq (Multiplication(a0,Fourier([0.,2π]))*f)(0.1)  (a0(0.1)*f(0.1))
 @test_approx_eq ((Multiplication(a1,Fourier([0.,2π]))*D)*f)(0.1)  (a1(0.1)*f'(0.1))
@@ -139,12 +208,21 @@ A=D*(x*D)
 B=D+x*D^2
 C=x*D^2+D
 
+bandedoperatortest(A)
+bandedoperatortest(B)
+bandedoperatortest(C)
+bandedoperatortest(x*D)
+
 f=Fun(exp)
 @test_approx_eq (A.ops[end]*f)(0.1) f'(0.1)
 @test_approx_eq ((x*D)*f)(0.1) 0.1*f'(0.1)
 @test_approx_eq (A*f)(0.1) f'(0.1)+0.1*f''(0.1)
 @test_approx_eq (B*f)(0.1) f'(0.1)+0.1*f''(0.1)
 @test_approx_eq (C*f)(0.1) f'(0.1)+0.1*f''(0.1)
+
+bandedoperatortest(A-B)
+bandedoperatortest(B-A)
+bandedoperatortest(A-C)
 
 @test norm((A-B)[1:10,1:10]|>full)<eps()
 @test norm((B-A)[1:10,1:10]|>full)<eps()
@@ -161,55 +239,41 @@ f=Fun(exp)
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)])
-co=cache(io)
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+almostbandedoperatortest(io)
 
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)])
-co=cache(io)
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+
+almostbandedoperatortest(io)
 
 
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())])
-co=cache(io)
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+almostbandedoperatortest(io)
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)])
-co=cache(io)
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+almostbandedoperatortest(io)
 
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))])
-co=cache(io)
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
-
+almostbandedoperatortest(io)
 
 S=Chebyshev()
 io=ApproxFun.InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))])
-co=cache(io)
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[1:100,1:100] == io[1:100,1:100]
-@test co[200:300,200:300] == io[1:300,1:300][200:300,200:300]
+almostbandedoperatortest(io)
 
 
 
 ## Reverse
 
+
+bandedoperatortest(ApproxFun.Reverse(Chebyshev()))
+bandedoperatortest(ApproxFun.ReverseOrientation(Chebyshev()))
 
 @test ApproxFun.Reverse(Chebyshev())*Fun(exp) ≈ Fun(x->exp(-x))
 @test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,[1,-1])
@@ -240,8 +304,4 @@ A=ApproxFun.interlace([Z                      Evaluation(S,0);
                      u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
                       0         D^2+I+3u^2])
 
-let C=cache(A)
-    ApproxFun.resizedata!(C,5,:)
-    ApproxFun.resizedata!(C,10,:)
-    @test norm(C.data-A[1:10,1:39]) ≤ eps()
-end
+almostbandedoperatortest(A)
