@@ -233,21 +233,15 @@ linesum{DD<:Interval}(f::Fun{Chebyshev{DD}}) =
 ## Clenshaw-Curtis functional
 
 for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
-   ConcFunc = parse("Concrete"*string(Func))
-   @eval begin
-       function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},k::Integer)
-           d = domain(Σ)
-           C = $Len(d)/2
+    ConcFunc = parse("Concrete"*string(Func))
+    @eval begin
+        function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},k::Integer)
+            d = domain(Σ)
+            C = $Len(d)/2
 
-           isodd(k) ? T(2C/(k*(2-k))) : zero(T)
-       end
-       function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},kr::Range)
-           d = domain(Σ)
-           C = $Len(d)/2
-
-           T[isodd(k) ? 2C/(k*(2-k)) : zero(T) for k in kr]
-       end
-   end
+            isodd(k) ? T(2C/(k*(2-k))) : zero(T)
+        end
+    end
 end
 
 

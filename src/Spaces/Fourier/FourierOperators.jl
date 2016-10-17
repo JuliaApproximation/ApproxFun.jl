@@ -257,35 +257,59 @@ end
 
 ## Definite integral
 
-DefiniteIntegral{D<:PeriodicInterval}(sp::Fourier{D}) =
-    ConcreteDefiniteIntegral{typeof(sp),Float64}(sp)
-DefiniteIntegral{D<:Circle}(sp::Fourier{D}) =
-    ConcreteDefiniteIntegral{typeof(sp),Complex{Float64}}(sp)
-
-function getindex{T,D}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},kr::Range)
-    d = domain(Σ)
-    if isa(d,PeriodicInterval)
-        T[k == 1?  d.b-d.a : zero(T) for k=kr]
-    else
-        @assert isa(d,Circle)
-        T[k == 2?  -d.radius*π : (k==3?d.radius*π*im :zero(T)) for k=kr]
+for SP in (:CosSpace,:SinSpace,:Fourier)
+    @eval begin
+        DefiniteIntegral{D}(S::$SP{D}) =
+            ConcreteDefiniteIntegral{typeof(S),promote_type(eltype(S),eltype(D))}(S)
+        DefiniteLineIntegral{D}(S::$SP{D}) =
+            ConcreteDefiniteLineIntegral{typeof(S),real(promote_type(eltype(S),eltype(D)))}(S)
     end
 end
 
-bandinds{D}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) =
-    0,isa(domain(Σ),PeriodicInterval)?0:2
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{CosSpace{D},T},k::Integer) =
+    k == 1? complexlength(domain(Σ)) : zero(T)
 
-DefiniteLineIntegral{D}(sp::Fourier{D}) =
-    ConcreteDefiniteLineIntegral{typeof(sp),Float64}(sp)
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{SinSpace{D},T},k::Integer) =
+    zero(T)
 
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},k::Integer) =
+    k == 1? complexlength(domain(Σ)) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{CosSpace{D},T},k::Integer) =
+    k==2? 0.5complexlength(domain(Σ)) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{SinSpace{D},T},k::Integer) =
+    k == 1? 0.5im*complexlength(domain(Σ)) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},k::Integer) =
+    k == 2? 0.5im*complexlength(domain(Σ)) : (k==3 ? 0.5complexlength(domain(Σ)) : zero(T))
+
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D},T},k::Integer) =
+    k==1? arclength(domain(Σ)) : zero(T)
+
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D},T},k::Integer) =
+    zero(T)
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
-    k==1? domain(Σ).b-domain(Σ).a : zero(T)
+    k==1? arclength(domain(Σ)) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D},T},k::Integer) =
+    k==1? 0.5arclength(domain(Σ)) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D},T},k::Integer) =
+    zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
-    k==1? domain(Σ).radius*π : zero(T)
+    k==1? 0.5arclength(domain(Σ)) : zero(T)
 
-
+bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{CosSpace{D}}) = 0,0
+bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{SinSpace{D}}) = 0,0
+bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = 0,0
+bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{CosSpace{D}}) = 0,1
+bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{SinSpace{D}}) = 0,0
+bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = 0,2
+bandinds{D}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D}}) = 0,0
+bandinds{D}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D}}) = 0,0
 bandinds{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 0,0
 
 

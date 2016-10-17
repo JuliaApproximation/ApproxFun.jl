@@ -209,39 +209,51 @@ end
 
 ## Definite integral
 
-
-DefiniteIntegral{DD<:Circle}(S::Laurent{DD}) =
-    ConcreteDefiniteIntegral{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
-
-DefiniteLineIntegral{DD<:Circle}(S::Laurent{DD}) =
-    ConcreteDefiniteLineIntegral{typeof(S),promote_type(eltype(S),eltype(DD))}(S)
-
-
-
-
-function getindex{T,DD<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{DD},T},kr::Range)
-    d = domain(Σ)
-    T[k == 1?  d.b-d.a : zero(T) for k=kr]
+for SP in (:Taylor,:(Hardy{false}),:Laurent)
+    @eval begin
+        DefiniteIntegral{D}(S::$SP{D}) =
+            ConcreteDefiniteIntegral{typeof(S),promote_type(eltype(S),eltype(D))}(S)
+        DefiniteLineIntegral{D}(S::$SP{D}) =
+            ConcreteDefiniteLineIntegral{typeof(S),real(promote_type(eltype(S),eltype(D)))}(S)
+    end
 end
 
-getindex{T,DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD},T},kr::Range) =
-    T[k == 2?  2domain(Σ).radius*π*im :zero(T) for k=kr]
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Taylor{D},T},k::Integer) =
+    k == 1? complexlength(domain(Σ)) : zero(T)
 
-bandinds{DD<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{DD}}) = 0,0
-bandinds{DD<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{DD}}) = 0,1
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Hardy{false,D},T},k::Integer) =
+    zero(T)
 
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{D},T},k::Integer) =
+    k == 1? complexlength(domain(Σ)) : zero(T)
 
-function getindex{T,DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},kr::Range)
-    d = domain(Σ)
-    T[k == 1?  d.b-d.a : zero(T) for k=kr]
-end
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Taylor{D},T},k::Integer) =
+    zero(T)
 
-getindex{T,DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD},T},k::Integer) =
-    k == 1?  T(2domain(Σ).radius*π) : zero(T)
-bandinds{DD<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 0,0
-bandinds{DD<:Circle}(Σ::ConcreteDefiniteLineIntegral{Laurent{DD}}) = 0,1
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Hardy{false,D},T},k::Integer) =
+    k == 1? complexlength(domain(Σ)) :zero(T)
 
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{D},T},k::Integer) =
+    k == 2? complexlength(domain(Σ)) :zero(T)
 
+getindex{T,D}(Σ::ConcreteDefiniteLineIntegral{Taylor{D},T},k::Integer) =
+    k == 1? arclength(domain(Σ)) : zero(T)
+
+getindex{T,D}(Σ::ConcreteDefiniteLineIntegral{Hardy{false,D},T},k::Integer) =
+    zero(T)
+
+getindex{T,D}(Σ::ConcreteDefiniteLineIntegral{Laurent{D},T},k::Integer) =
+    k == 1? arclength(domain(Σ)) : zero(T)
+
+bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Taylor{D}}) = 0,0
+bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Hardy{false,D}}) = 0,0
+bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{D}}) = 0,0
+bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{Taylor{D}}) = 0,0
+bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{Hardy{false,D}}) = 0,0
+bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{D}}) = 0,1
+bandinds{D}(Σ::ConcreteDefiniteLineIntegral{Taylor{D}}) = 0,0
+bandinds{D}(Σ::ConcreteDefiniteLineIntegral{Hardy{false,D}}) = 0,0
+bandinds{D}(Σ::ConcreteDefiniteLineIntegral{Laurent{D}}) = 0,0
 
 
 ## reverse orientation
