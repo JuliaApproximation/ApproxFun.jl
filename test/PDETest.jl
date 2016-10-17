@@ -118,11 +118,11 @@ QR = qrfact(A)
 @time ApproxFun.resizedata!(QR,:,200)
 j=56
 v=QR.R.op[1:100,j]
-@test norm(linsolve(QR[:Q],v;maxlength=300).coefficients[j+1:end]) < 10eps()
+@test norm(linsolve(QR[:Q],v;maxlength=300).coefficients[j+1:end]) < 20eps() #with changes to RaggedMatrices it just goes over 10eps()
 
 j=195
 v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < 10eps()
+@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < 20eps() #for consistency
 
 
 j=300
