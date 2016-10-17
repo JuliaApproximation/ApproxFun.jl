@@ -58,22 +58,16 @@ end
 
 
 #default implementation
-function getindex(B::ConcreteDefiniteIntegral,kr::Range)
+
+function getindex(B::ConcreteDefiniteIntegral,k::Integer)
     S=domainspace(B)
     Q=Integral(S)
     A=(Evaluation(S,true)-Evaluation(S,false))*Q
-    A[kr]
+    A[k]
 end
 
-function getindex(B::ConcreteDefiniteIntegral,kr::Integer)
-    S=domainspace(B)
-    Q=Integral(S)
-    A=(Evaluation(S,true)-Evaluation(S,false))*Q
-    A[kr]
-end
-
-
-
+getindex(B::ConcreteDefiniteIntegral,kr::Range) = [getindex(B,k) for k in kr]
+getindex(B::ConcreteDefiniteLineIntegral,kr::Range) = [getindex(B,k) for k in kr]
 
 function DefiniteIntegral(sp::Space)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
