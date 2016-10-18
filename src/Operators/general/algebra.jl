@@ -446,7 +446,7 @@ function *(A::Operator,B::Operator)
     if isconstop(A)
         promoterangespace(convert(Number,A)*B,rangespace(A))
     elseif isconstop(B)
-        promotedomainspace(A*convert(Number,B),domainspace(B))
+        promotedomainspace(convert(Number,B)*A,domainspace(B))
     else
         promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A,B])
     end

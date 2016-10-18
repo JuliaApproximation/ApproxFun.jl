@@ -137,8 +137,10 @@ include("SubOperator.jl")
 
 
 
-Base.getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
-Base.getindex(B::Operator,k) = defaultgetindex(B,k)
+getindex(B::Operator,k,j) = defaultgetindex(B,k,j)
+getindex(B::Operator,k) = defaultgetindex(B,k)
+
+
 
 
 ## override getindex.
@@ -157,6 +159,10 @@ defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] f
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
 
 
+defaultgetindex(A::Operator,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]
+defaultgetindex(A::Operator,K::Block,j) = A[blockrows(A,K),j]
+defaultgetindex(A::Operator,k,J::Block) = A[k,blockcols(A,J)]
+
 
 
 
@@ -171,6 +177,8 @@ defaultgetindex(A::Operator,k,j) = view(A,k,j)
 blockcolstop(A::Operator,K::Integer) = K-blockbandinds(A,1)
 blockrowstop(A::Operator,J::Integer) = J+blockbandinds(A,2)
 
+blockrows(A::Operator,K::Integer) = blockrange(rangespace(A),K)
+blockcols(A::Operator,J::Integer) = blockrange(domainspace(A),J)
 
 
 # default is to use bandwidth

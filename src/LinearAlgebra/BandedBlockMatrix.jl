@@ -1,3 +1,47 @@
+doc"""
+`Block` is used for get index of a block matrix.  For example,
+```julia
+A[Block(1),Block(2)]
+```
+retrieves the 1 x 2 block
+"""
+immutable Block
+    K::Int
+end
+
+Base.convert{T<:Integer}(::Type{T},B::Block) = convert(T,B.K)::T
+
+for OP in (:(Base.one),:(Base.zero),:(-))
+    @eval $OP(B::Block) = Block($OP(B.K))
+end
+
+for OP in (:(==),:(!=),:(Base.isless))
+    @eval $OP(A::Block,B::Block) = $OP(A.K,B.K)
+end
+
+
+for OP in (:(Base.rem),:(Base.div))
+    @eval begin
+        $OP(A::Block,B::Block) = Block($OP(A.K,B.K))
+        $OP(A::Integer,B::Block) = Block($OP(A,B.K))
+        $OP(A::Block,B::Integer) = Block($OP(A.K,B))
+    end
+end
+
+
+
+blockrows(A,K::Block) = blockrows(A,K.K)}
+blockcols(A,K::Block) = blockrows(A,K.K)
+
+for OP in (:+,:-,:*)
+    @eval begin
+        $OP(K::Block,J::Integer) = Block($OP(K.K,J))
+        $OP(J::Integer,K::Block) = Block($OP(J,K.K))
+        $OP(K::Block,J::Block) = Block($OP(K.K,J.K))
+        $OP(J::Block,K::Block) = Block($OP(J.K,K.K))
+    end
+end
+
 # Takes in a list of lengths, and allows lookup of which block an entry is in
 function blocklookup(rows)
     rowblocks=Array(Int,0)
@@ -10,6 +54,11 @@ end
 
 abstract AbstractBlockMatrix{T} <: AbstractMatrix{T}
 abstract AbstractBandedBlockMatrix{T} <: AbstractBlockMatrix{T}
+
+
+getindex(A::AbstractBlockMatrix,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]
+getindex(A::AbstractBlockMatrix,K::Block,j) = A[blockrows(A,K),j]
+getindex(A::AbstractBlockMatrix,k,J::Block) = A[k,blockcols(A,J)]
 
 Base.size(A::AbstractBlockMatrix) = sum(A.rows),sum(A.cols)
 
