@@ -7,6 +7,14 @@ println("Domain tests")
 @test !in(0.45-0.65im,Interval())
 @test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2]==ApproxFun.Count(5,2)
 
+import ApproxFun.Infinity
+
+@test Infinity(true)+Infinity(true) == Infinity(true)
+@test Infinity(false)+Infinity(false) == Infinity(false)
+@test Infinity(true)+1 == Infinity(true)
+@test Infinity(false)+1 == Infinity(false)
+
+
 @time include("MatrixTest.jl")
 
 
