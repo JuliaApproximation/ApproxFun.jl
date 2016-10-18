@@ -164,7 +164,7 @@ bandedbelowoperatortest(C)
 λ2 = ApproxFun.order(rangespace(C))
 
 # test against version that doesn't use lgamma
-Cex = [(if j ≥ k && iseven(k-j)
+Cex = Float64[(if j ≥ k && iseven(k-j)
         gamma(λ2)*(k-1+λ2)/(gamma(λ1)*gamma(λ1-λ2))*
             (gamma((j-k)/2+λ1-λ2)/gamma((j-k)/2+1))*
             (gamma((k+j-2)/2+λ1)/gamma((k+j-2)/2+λ2+1))

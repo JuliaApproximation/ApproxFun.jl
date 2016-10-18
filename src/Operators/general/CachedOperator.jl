@@ -57,8 +57,8 @@ Base.convert{T}(::Type{Operator{T}},S::CachedOperator) =
 
 domainspace(C::CachedOperator) = C.domainspace
 rangespace(C::CachedOperator) = C.rangespace
-bandinds{T,BM<:BandedMatrix}(C::CachedOperator{T,BM}) = C.bandinds
-blockbandinds{T,BM<:BandedBlockMatrix}(C::CachedOperator{T,BM}) = C.bandinds
+bandinds{T<:Number,BM<:BandedMatrix,M<:Operator}(C::CachedOperator{T,BM,M}) = C.bandinds
+blockbandinds{T<:Number,BM<:BandedMatrix,M<:Operator}(C::CachedOperator{T,BM,M}) = C.bandinds
 
 
 # TODO: cache this information as well
