@@ -312,11 +312,14 @@ function defaultgetindex(A::Operator,::Type{FiniteRange},::Type{FiniteRange})
         error("Only exists for finite operators.")
     end
 end
+
+defaultgetindex(A::Operator,k::Type{FiniteRange},J::Block) = A[k,blockcols(A,J)]
 function defaultgetindex(A::Operator,::Type{FiniteRange},jr)
     cs=mapreduce(j->colstop(A,j),max,jr)
     A[1:cs,jr]
 end
 
+defaultgetindex(A::Operator,K::Block,j::Type{FiniteRange}) = A[blockrows(A,K),j]
 defaultgetindex(A::Operator,kr,::Type{FiniteRange}) =
     A[kr,1:rowstop(A,maximum(kr))]
 

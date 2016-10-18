@@ -30,7 +30,7 @@ end
 
 
 
-blockrows(A,K::Block) = blockrows(A,K.K)}
+blockrows(A,K::Block) = blockrows(A,K.K)
 blockcols(A,K::Block) = blockrows(A,K.K)
 
 for OP in (:+,:-,:*)
@@ -38,7 +38,6 @@ for OP in (:+,:-,:*)
         $OP(K::Block,J::Integer) = Block($OP(K.K,J))
         $OP(J::Integer,K::Block) = Block($OP(J,K.K))
         $OP(K::Block,J::Block) = Block($OP(K.K,J.K))
-        $OP(J::Block,K::Block) = Block($OP(J.K,K.K))
     end
 end
 
