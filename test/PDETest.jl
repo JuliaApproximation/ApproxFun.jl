@@ -201,19 +201,3 @@ bandedblockbandedoperatortest(A)
 
 @time u=A\f
 @test_approx_eq u(.1,.2) u(.2,.1)
-
-
-
-# Beam
-
-
-
-dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.01)
-d=dθ*dt
-Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
-
-B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
-u0=Fun(θ->exp(-200(θ-.5).^2),dθ)
-@time u=linsolve([B;Dt^2+Dθ^4],[u0;0.;0.];tolerance=1E-3)
-
-@test_approx_eq_eps u(.1,.01) -0.2479768394633227  1E-3 #empirical

@@ -475,7 +475,6 @@ ncoefficients(ut)
 # Beam
 
 
-
 dθ=PeriodicInterval(0.0,1.0);dt=Interval(0,0.01)
 d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
