@@ -24,6 +24,15 @@ Base.transpose(d::DualFun)=differentiate(d)
 
 ^(d::DualFun,k::Integer)=DualFun(d.f^k,k*d.f^(k-1)*d.J)
 
+# from DualNumbers
+for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
+    @eval function $(funsym)(z::DualFun)
+        x = z.f
+        xp = z.J
+        DualFun($(funsym)(x),$exp*xp)
+    end
+end
+
 for OP in (:+,:-)
     @eval begin
         $OP(a::DualFun,b::Union{Number,Fun})=DualFun($OP(a.f,b),a.J)
@@ -77,7 +86,7 @@ Operator(f::Function)=Operator(f,Chebyshev())  #TODO: UnsetSpace
 
 # full operator should be
 # N=u->[B*u-bcs;...]
-function newton(N,u0::Fun;maxiterations=100,tolerance=1E-15)
+function newton(N,u0::Fun;maxiterations=15,tolerance=1E-15)
     u=u0
     err=Inf
     for k=1:maxiterations

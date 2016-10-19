@@ -54,7 +54,7 @@ function splitatroots(f::Fun)
     end
 end
 
-function Base.abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
+function abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
 
     pts=roots(f)
@@ -62,7 +62,7 @@ function Base.abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     splitmap(x->abs(f(x)),d,pts)
 end
 
-function Base.abs(f::Fun)
+function abs(f::Fun)
     d=domain(f)
 
     pts=roots(f)
@@ -77,7 +77,7 @@ end
 
 
 
-for OP in (:(Base.sign),:(Base.angle))
+for OP in (:(sign),:(angle))
     @eval function $OP{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
         d=domain(f)
 
@@ -97,7 +97,7 @@ for OP in (:(Base.sign),:(Base.angle))
     end
 end
 
-for op in (:(Base.max),:(Base.min))
+for op in (:(max),:(min))
     @eval begin
         function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T<:Real}(f::Fun{S,T},g::Fun{V,T})
             h=f-g
@@ -242,24 +242,24 @@ function .^{S,T}(f::Fun{S,T},β)
     [B,A]\first(f)^β
 end
 
-Base.sqrt{S,T}(f::Fun{S,T}) = f^0.5
-Base.cbrt{S,T}(f::Fun{S,T}) = f^(1/3)
+sqrt{S,T}(f::Fun{S,T}) = f^0.5
+cbrt{S,T}(f::Fun{S,T}) = f^(1/3)
 
 ## We use \ as the Fun constructor might miss isolated features
 
 ## First order functions
 
 
-Base.log(f::Fun) = cumsum(differentiate(f)/f)+log(first(f))
+log(f::Fun) = cumsum(differentiate(f)/f)+log(first(f))
 
-# function Base.log{MS<:MappedSpace}(f::Fun{MS})
+# function log{MS<:MappedSpace}(f::Fun{MS})
 #     g=log(Fun(f.coefficients,space(f).space))
 #     Fun(g.coefficients,MappedSpace(domain(f),space(g)))
 # end
 
 # project first to [-1,1] to avoid issues with
 # complex derivative
-function Base.log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
+function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
     if domain(f)==Interval()
         r = sort(roots(f))
         #TODO divideatroots
@@ -308,7 +308,7 @@ function Base.log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
 end
 
 
-function Base.log{T<:Real,D}(f::Fun{Fourier{D},T})
+function log{T<:Real,D}(f::Fun{Fourier{D},T})
     if isreal(domain(f))
         cumsum(differentiate(f)/f)+log(first(f))
     else
@@ -320,7 +320,7 @@ function Base.log{T<:Real,D}(f::Fun{Fourier{D},T})
 end
 
 
-Base.atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
+atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 
 
 # this is used to find a point in which to impose a boundary
@@ -340,12 +340,12 @@ end
 # ODE gives the first order ODE a special function op satisfies,
 # RHS is the right hand side
 # growth says what to use to choose a good point to impose an initial condition
-for (op,ODE,RHS,growth) in ((:(Base.exp),"D-f'","0",:(real)),
-                            (:(Base.asinh),"sqrt(f^2+1)*D","f'",:(real)),
-                            (:(Base.acosh),"sqrt(f^2-1)*D","f'",:(real)),
-                            (:(Base.atanh),"(1-f^2)*D","f'",:(real)),
-                            (:(Base.erfcx),"D-2f*f'","-2f'/sqrt(π)",:(real)),
-                            (:(Base.dawson),"D+2f*f'","f'",:(real)))
+for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
+                            (:(asinh),"sqrt(f^2+1)*D","f'",:(real)),
+                            (:(acosh),"sqrt(f^2-1)*D","f'",:(real)),
+                            (:(atanh),"(1-f^2)*D","f'",:(real)),
+                            (:(erfcx),"D-2f*f'","-2f'/sqrt(π)",:(real)),
+                            (:(dawson),"D+2f*f'","f'",:(real)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
         # depice before doing op
@@ -371,7 +371,7 @@ end
 
 # JacobiWeight explodes, we want to ensure the solution incorporates the fact
 # that exp decays rapidly
-function Base.exp{JW<:JacobiWeight}(f::Fun{JW})
+function exp{JW<:JacobiWeight}(f::Fun{JW})
     if !isa(domain(f),Interval)
         # project first to get better derivative behaviour
         return setdomain(exp(setdomain(f,Interval())),domain(f))
@@ -421,31 +421,31 @@ end
 
 
 
-Base.acos(f::Fun)=cumsum(-f'/sqrt(1-f^2))+acos(first(f))
-Base.asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
+acos(f::Fun)=cumsum(-f'/sqrt(1-f^2))+acos(first(f))
+asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
 
 
 
 ## Second order functions
 
 
-Base.sin{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
-Base.cos{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
-Base.sin{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
-Base.cos{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
+sin{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
+cos{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
+sin{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
+cos{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
 
 
 
-for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
-                            (:(Base.erfi),"f'*D^2-(2f*f'^2+f'')*D","0",:(real)),
-                            (:(Base.sin),"f'*D^2-f''*D+f'^3","0",:(imag)),
-                            (:(Base.cos),"f'*D^2-f''*D+f'^3","0",:(imag)),
-                            (:(Base.sinh),"f'*D^2-f''*D-f'^3","0",:(real)),
-                            (:(Base.cosh),"f'*D^2-f''*D-f'^3","0",:(real)),
-                            (:(Base.airyai),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
-                            (:(Base.airybi),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
-                            (:(Base.airyaiprime),"f'*D^2-f''*D-f*f'^3","airyai(f)*f'^3",:(imag)),
-                            (:(Base.airybiprime),"f'*D^2-f''*D-f*f'^3","airybi(f)*f'^3",:(imag)))
+for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
+                            (:(erfi),"f'*D^2-(2f*f'^2+f'')*D","0",:(real)),
+                            (:(sin),"f'*D^2-f''*D+f'^3","0",:(imag)),
+                            (:(cos),"f'*D^2-f''*D+f'^3","0",:(imag)),
+                            (:(sinh),"f'*D^2-f''*D-f'^3","0",:(real)),
+                            (:(cosh),"f'*D^2-f''*D-f'^3","0",:(real)),
+                            (:(airyai),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
+                            (:(airybi),"f'*D^2-f''*D-f*f'^3","0",:(imag)),
+                            (:(airyaiprime),"f'*D^2-f''*D-f*f'^3","airyai(f)*f'^3",:(imag)),
+                            (:(airybiprime),"f'*D^2-f''*D-f*f'^3","airybi(f)*f'^3",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
         function $op{S,T}(f::Fun{S,T})
@@ -467,19 +467,19 @@ for (op,ODE,RHS,growth) in ((:(Base.erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
     end
 end
 
-Base.erfc(f::Fun)=1-erf(f)
+erfc(f::Fun)=1-erf(f)
 
 ## Second order functions with parameter ν
 
-for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
-                            (:(Base.hankelh2),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
-                            (:(Base.besselj),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
-                            (:(Base.bessely),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
-                            (:(Base.besseli),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0",:(real)),
-                            (:(Base.besselk),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0",:(real)),
-                            (:(Base.besselkx),"f^2*f'*D^2+((-2f^2+f)*f'^2-f^2*f'')*D-(f+ν^2)*f'^3","0",:(real)),
-                            (:(Base.hankelh1x),"f^2*f'*D^2+((2im*f^2+f)*f'^2-f^2*f'')*D+(im*f-ν^2)*f'^3","0",:(imag)),
-                            (:(Base.hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0",:(imag)))
+for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(hankelh2),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(besselj),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(bessely),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^2)*f'^3","0",:(imag)),
+                            (:(besseli),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0",:(real)),
+                            (:(besselk),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D-(f^2+ν^2)*f'^3","0",:(real)),
+                            (:(besselkx),"f^2*f'*D^2+((-2f^2+f)*f'^2-f^2*f'')*D-(f+ν^2)*f'^3","0",:(real)),
+                            (:(hankelh1x),"f^2*f'*D^2+((2im*f^2+f)*f'^2-f^2*f'')*D+(im*f-ν^2)*f'^3","0",:(imag)),
+                            (:(hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
         function $op{S<:Union{Ultraspherical,Chebyshev},T}(ν,f::Fun{S,T})
@@ -500,21 +500,21 @@ for (op,ODE,RHS,growth) in ((:(Base.hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^
     end
 end
 
-Base.exp2(f::Fun) = exp(log(2)*f)
-Base.exp10(f::Fun) = exp(log(10)*f)
-Base.log2(f::Fun) = log(f)/log(2)
-Base.log10(f::Fun) = log(f)/log(10)
+exp2(f::Fun) = exp(log(2)*f)
+exp10(f::Fun) = exp(log(10)*f)
+log2(f::Fun) = log(f)/log(2)
+log10(f::Fun) = log(f)/log(10)
 
 ##TODO: the spacepromotion doesn't work for tan/tanh for a domain including zeros of cos/cosh inside.
-Base.tan(f::Fun) = sin(f)/cos(f) #This is inaccurate, but allows space promotion via division.
-Base.tanh(f::Fun) = sinh(f)/cosh(f) #This is inaccurate, but allows space promotion via division.
+tan(f::Fun) = sin(f)/cos(f) #This is inaccurate, but allows space promotion via division.
+tanh(f::Fun) = sinh(f)/cosh(f) #This is inaccurate, but allows space promotion via division.
 
-for (op,oprecip,opinv,opinvrecip) in ((:(Base.sin),:(Base.csc),:(Base.asin),:(Base.acsc)),
-                                      (:(Base.cos),:(Base.sec),:(Base.acos),:(Base.asec)),
-                                      (:(Base.tan),:(Base.cot),:(Base.atan),:(Base.acot)),
-                                      (:(Base.sinh),:(Base.csch),:(Base.asinh),:(Base.acsch)),
-                                      (:(Base.cosh),:(Base.sech),:(Base.acosh),:(Base.asech)),
-                                      (:(Base.tanh),:(Base.coth),:(Base.atanh),:(Base.acoth)))
+for (op,oprecip,opinv,opinvrecip) in ((:(sin),:(csc),:(asin),:(acsc)),
+                                      (:(cos),:(sec),:(acos),:(asec)),
+                                      (:(tan),:(cot),:(atan),:(acot)),
+                                      (:(sinh),:(csch),:(asinh),:(acsch)),
+                                      (:(cosh),:(sech),:(acosh),:(asech)),
+                                      (:(tanh),:(coth),:(atanh),:(acoth)))
     @eval begin
         $oprecip(f::Fun) = 1/$op(f)
         $opinvrecip(f::Fun) = $opinv(1/f)
@@ -524,12 +524,12 @@ end
 rad2deg(f::Fun) = 180*f/π
 deg2rad(f::Fun) = π*f/180
 
-for (op,opd,opinv,opinvd) in ((:(Base.sin),:(Base.sind),:(Base.asin),:(Base.asind)),
-                              (:(Base.cos),:(Base.cosd),:(Base.acos),:(Base.acosd)),
-                              (:(Base.tan),:(Base.tand),:(Base.atan),:(Base.atand)),
-                              (:(Base.sec),:(Base.secd),:(Base.asec),:(Base.asecd)),
-                              (:(Base.csc),:(Base.cscd),:(Base.acsc),:(Base.acscd)),
-                              (:(Base.cot),:(Base.cotd),:(Base.acot),:(Base.acotd)))
+for (op,opd,opinv,opinvd) in ((:(sin),:(sind),:(asin),:(asind)),
+                              (:(cos),:(cosd),:(acos),:(acosd)),
+                              (:(tan),:(tand),:(atan),:(atand)),
+                              (:(sec),:(secd),:(asec),:(asecd)),
+                              (:(csc),:(cscd),:(acsc),:(acscd)),
+                              (:(cot),:(cotd),:(acot),:(acotd)))
     @eval begin
         $opd(f::Fun) = $op(deg2rad(f))
         $opinvd(f::Fun) = rad2deg($opinv(f))
@@ -537,10 +537,10 @@ for (op,opd,opinv,opinvd) in ((:(Base.sin),:(Base.sind),:(Base.asin),:(Base.asin
 end
 
 #Won't get the zeros exactly 0 anyway so at least this way the length is smaller.
-Base.sinpi(f::Fun) = sin(π*f)
-Base.cospi(f::Fun) = cos(π*f)
+sinpi(f::Fun) = sin(π*f)
+cospi(f::Fun) = cos(π*f)
 
-function Base.airy(k::Number,f::Fun)
+function airy(k::Number,f::Fun)
     if k == 0
         airyai(f)
     elseif k == 1
@@ -554,7 +554,7 @@ function Base.airy(k::Number,f::Fun)
     end
 end
 
-Base.besselh(ν,k::Integer,f::Fun) = k == 1 ? hankelh1(ν,f) : k == 2 ? hankelh2(ν,f) : throw(Base.Math.AmosException(1))
+besselh(ν,k::Integer,f::Fun) = k == 1 ? hankelh1(ν,f) : k == 2 ? hankelh2(ν,f) : throw(Base.Math.AmosException(1))
 
 for jy in ("j","y"), ν in (0,1)
     bjy = Symbol(string("bessel",jy))
@@ -565,10 +565,10 @@ for jy in ("j","y"), ν in (0,1)
 end
 
 ## Miscellaneous
-for op in (:(Base.expm1),:(Base.log1p),:(Base.lfact),:(Base.sinc),:(Base.cosc),
-           :(Base.erfinv),:(Base.erfcinv),:(Base.beta),:(Base.lbeta),
-           :(Base.eta),:(Base.zeta),:(Base.gamma),:(Base.lgamma),
-           :(Base.polygamma),:(Base.invdigamma),:(Base.digamma),:(Base.trigamma))
+for op in (:(expm1),:(log1p),:(lfact),:(sinc),:(cosc),
+           :(erfinv),:(erfcinv),:(beta),:(lbeta),
+           :(eta),:(zeta),:(gamma),:(lgamma),
+           :(polygamma),:(invdigamma),:(digamma),:(trigamma))
     @eval begin
         $op{S,T}(f::Fun{S,T})=Fun(x->$op(f(x)),domain(f))
     end
@@ -662,7 +662,7 @@ end
 
 
 
-for OP in (:(Base.abs),:(Base.sign),:(Base.log))
+for OP in (:(abs),:(sign),:(log))
     @eval begin
         $OP{S,DD,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,DD,1},T}) = depiece(map($OP,pieces(f)))
         $OP{S,DD,B}(f::Fun{PiecewiseSpace{S,B,DD,1}}) = depiece(map($OP,pieces(f)))
@@ -671,11 +671,11 @@ end
 
 ## PointSpace
 
-for OP in (:(Base.abs),:(Base.sign))
+for OP in (:(abs),:(sign))
     # ambiguity warnings
     @eval $OP{S<:PointSpace,T<:Real}(f::Fun{S,T})=Fun(map($OP,f.coefficients),space(f))
 end
-for OP in (:(Base.exp),:(Base.abs),:(Base.sign))
+for OP in (:(exp),:(abs),:(sign))
     @eval $OP{S<:PointSpace}(f::Fun{S})=Fun(map($OP,f.coefficients),space(f))
 end
 
@@ -712,7 +712,7 @@ expγ(x) = expγ_asy(x)
 @vectorize_1arg Number expβ
 @vectorize_1arg Number expγ
 
-for f in (:(Base.exp),:(Base.expm1),:expα,:expβ,:expγ)
+for f in (:(exp),:(expm1),:expα,:expβ,:expγ)
     @eval begin
         $f(op::Operator) = OperatorFunction(op,$f)
     end

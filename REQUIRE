@@ -6,3 +6,4 @@ Compat 0.8.6
 DualNumbers 0.2.2
 BandedMatrices 0.1.1
 ToeplitzMatrices 0.1.1
+Calculus 0.1.15
