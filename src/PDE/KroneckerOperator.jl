@@ -38,9 +38,6 @@ KroneckerOperator(A::Fun,B) = KroneckerOperator(Multiplication(A),B)
 
 
 
-Base.eye{T,D}(S::Space{T,D,2}) = KroneckerOperator(IdentityOperator(),IdentityOperator(),S,S)
-
-
 function promotedomainspace(K::KroneckerOperator,ds::TensorSpace)
     A=promotedomainspace(K.ops[1],ds[1])
     B=promotedomainspace(K.ops[2],ds[2])
@@ -125,6 +122,9 @@ subblockbandinds(K::PlusOperator,k::Integer) =
 blockbandinds(P::TimesOperator,k::Int) = mapreduce(op->blockbandinds(op,k),+,P.ops)
 subblockbandinds(P::TimesOperator,k::Int) = mapreduce(op->subblockbandinds(op,k),+,P.ops)
 blockbandinds(P::TimesOperator) = blockbandinds(P,1),blockbandinds(P,2)
+
+domaintensorizer(R::Operator) = tensorizer(domainspace(R))
+rangetensorizer(R::Operator) = tensorizer(rangespace(R))
 
 domaintensorizer(P::PlusOperator) = domaintensorizer(P.ops[1])
 rangetensorizer(P::PlusOperator) = rangetensorizer(P.ops[1])
