@@ -361,18 +361,6 @@ u=linsolve(A,F;tolerance=1E-10)
 ## Test periodic x interval
 
 println("    Periodic x Interval tests")
-d=PeriodicInterval()*Interval()
-
-u_ex=Fun((x,y)->real(cos(x+im*y)),d)
-
-B=Dirichlet(Space(d))
-g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
-@test norm((B*u_ex-g).coefficients) < 10eps()
-
-
-u=[B;Laplacian(d)]\[g;0.]
-
-@test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
 
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)

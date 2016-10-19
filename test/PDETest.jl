@@ -12,7 +12,7 @@ f=-2π^2*u
 
 
 QR=qrfact(Δ)
-v=QR\f
+@time v=QR\f
 @test norm((u-v).coefficients)<100eps()
 
 v=Δ\f
@@ -35,13 +35,13 @@ bandedblockoperatortest(Dirichlet(d))
 
 A=[Dirichlet(d);Laplacian(d)]
 
-u=A\[g,0.]
+@time u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 bandedblockbandedoperatortest(Laplacian(d)+0.0I)
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
-u=A\[g,0.]
+@time u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
 
@@ -64,7 +64,7 @@ println("    Periodic Poisson tests")
 d=PeriodicInterval()^2
 f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 A=Laplacian(d)+.1I
-u=A\f
+@time u=A\f
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
 
@@ -88,7 +88,7 @@ A=[dirichlet(dx)⊗eye(dy);
          L]
 
 
-u=linsolve(A,ones(4);tolerance=1E-5)
+@time u=linsolve(A,ones(4);tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
 
@@ -102,7 +102,7 @@ F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
     Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[8]));
     0]
 
-u=linsolve(A,F;tolerance=1E-10)
+@time u=linsolve(A,F;tolerance=1E-10)
 
 @test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
 
@@ -122,22 +122,9 @@ g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
 
 bandedblockbandedoperatortest(Laplacian(d))
 
-u=[B;Laplacian(d)]\[g;0.]
+@time u=[B;Laplacian(d)]\[g;0.]
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
-
-
-dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
-d=dθ*dt
-Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-B=eye(d[1])⊗ldirichlet(dt)
-
-u0=Fun(θ->exp(-20θ^2),dθ,20)
-
-bandedblockbandedoperatortest(Dt+Dθ)
-u=linsolve([B;Dt+Dθ],[u0;0.];tolerance=1E-7)
-
-@test_approx_eq_eps u(.1,.2) u0(0.1-0.2) 1E-7
 
 
 
@@ -161,7 +148,7 @@ f=Fun(x->exp(-30x^2),dx)
 
 bandedblockbandedoperatortest(Dt-ε*Dx^2-V*Dx)
 
-u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
+@time u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
 
 @test_approx_eq u(.1,.2) 0.496524222625512
 
@@ -192,7 +179,7 @@ bandedblockbandedoperatortest(L)
 
 ## Periodic
 
-println("    Periodic tests")
+println("    Periodic x Periodic tests")
 
 d=PeriodicInterval()^2
 f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
