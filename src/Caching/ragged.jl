@@ -17,22 +17,20 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
             # cols
             K = B.datasize[2]==0?0:B.data.cols[B.datasize[2]+1]-B.data.cols[B.datasize[2]]
 
-            for j = B.datasize[2]+1:n-1
+            for j = B.datasize[2]+1:n
                 K = max(K,colstop(B.op,j))
                 B.data.cols[j+1] = B.data.cols[j] + K
             end
         else
-            K = B.datasize[2]==0?0:B.data.m
-
-            for j = B.datasize[2]+1:n-1
+            K = B.datasize[2]==0?0:B.data.m# more robust but slower: maximum(diff(B.data.cols))
+            
+            for j = B.datasize[2]+1:n
                 cs = colstop(B.op,j)
-                B.data.cols[j+1] = B.data.cols[j] + cs
                 K = max(K,cs)
+                B.data.cols[j+1] = B.data.cols[j] + cs
             end
         end
 
-        K = max(K,colstop(B.op,n))
-        B.data.cols[n+1] = B.data.cols[n] + K
         pad!(B.data.data,B.data.cols[n+1]-1)
         B.data.m = K
 
