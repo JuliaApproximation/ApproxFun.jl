@@ -4,16 +4,13 @@ immutable DualFun{F,T}
     f::F
     J::T
 end
-DualFun(f::Fun)=DualFun(f,
-                        SpaceOperator(IdentityOperator(),
-                              space(f),
-                              space(f)))
+DualFun(f::Fun) = DualFun(f,eye(space(f)))
 
 
-domain(df::DualFun)=domain(df.f)
+domain(df::DualFun) = domain(df.f)
 
-differentiate(d::DualFun)=DualFun(d.f',Derivative(rangespace(d.J))*d.J)
-integrate(d::DualFun)=DualFun(integrate(d.f),Integral(rangespace(d.J))*d.J)
+differentiate(d::DualFun) = DualFun(d.f',Derivative(rangespace(d.J))*d.J)
+integrate(d::DualFun) = DualFun(integrate(d.f),Integral(rangespace(d.J))*d.J)
 function Base.cumsum(d::DualFun)
     Q=Integral(rangespace(d.J))*d.J
     DualFun(cumsum(d.f),(I-Evaluation(rangespace(Q),false))*Q)
@@ -35,9 +32,9 @@ end
 
 for OP in (:+,:-)
     @eval begin
-        $OP(a::DualFun,b::Union{Number,Fun})=DualFun($OP(a.f,b),a.J)
-        $OP(a::Union{Number,Fun},b::DualFun)=DualFun($OP(a,b.f),b.J)
-        $OP(a::DualFun,b::DualFun)=DualFun($OP(a.f,b.f),$OP(a.J,b.J))
+        $OP(a::DualFun,b::Union{Number,Fun}) = DualFun($OP(a.f,b),a.J)
+        $OP(a::Union{Number,Fun},b::DualFun) = DualFun($OP(a,b.f),$OP(b.J))
+        $OP(a::DualFun,b::DualFun) = DualFun($OP(a.f,b.f),$OP(a.J,b.J))
     end
 end
 -(a::DualFun)=DualFun(-a.f,-a.J)

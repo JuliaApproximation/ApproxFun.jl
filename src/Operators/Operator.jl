@@ -543,7 +543,7 @@ end
 
 function Base.convert(::Type{Matrix},S::Operator)
    if isinf(size(S,1)) || isinf(size(S,2))
-       error("Cannot convert $S to a AbstractVector")
+       error("Cannot convert $S to a Matrix")
    end
 
    eltype(S)[S[k,j] for k=1:size(S,1),j=1:size(S,2)]

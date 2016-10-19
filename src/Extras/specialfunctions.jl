@@ -717,3 +717,17 @@ for f in (:(exp),:(expm1),:expα,:expβ,:expγ)
         $f(op::Operator) = OperatorFunction(op,$f)
     end
 end
+
+
+
+## ConstantSpace default overrides
+
+# from DualNumbers
+for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
+    @eval begin
+        $(funsym){CS<:ConstantSpace,T<:Real}(z::Fun{CS,T}) =
+            Fun($(funsym)(Number(z)),space(z))
+        $(funsym){CS<:ConstantSpace}(z::Fun{CS}) =
+            Fun($(funsym)(Number(z)),space(z))
+    end
+end
