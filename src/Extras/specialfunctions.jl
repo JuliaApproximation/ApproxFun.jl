@@ -722,6 +722,9 @@ end
 
 ## ConstantSpace default overrides
 
+# ambiguity
+Base.abs2{CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) = Fun(abs2(Number(z)),space(z))
+
 # from DualNumbers
 for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
     @eval begin
