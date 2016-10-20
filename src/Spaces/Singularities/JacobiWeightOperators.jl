@@ -174,7 +174,7 @@ function jacobiweightDerivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
         x=Fun()
 
         DD=S.α*(1-x) - S.β*(1+x) + w*Derivative(S.space)
-        rs=S.α==1&&s.β==1?rangespace(DD):JacobiWeight(S.α-1,S.β-1,rangespace(DD))
+        rs=S.α==1&&S.β==1?rangespace(DD):JacobiWeight(S.α-1,S.β-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     end
 end

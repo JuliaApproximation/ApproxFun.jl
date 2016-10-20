@@ -184,3 +184,12 @@ bandedbelowoperatortest(C)
 C=Conversion(Ultraspherical(1),Jacobi(0,0))
 bandedbelowoperatortest(C)
 @test norm(C*Fun(exp,Ultraspherical(1))-Fun(exp,Jacobi(0,0))) < 100eps()
+
+
+
+## Derivative
+
+S=JacobiWeight(1,1,Ultraspherical(1))
+
+f=Fun([1.,2.,3.],S)
+@test_approx_eq (Derivative(S,2)*f)(0.1) f''(0.1)
