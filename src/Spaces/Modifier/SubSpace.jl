@@ -17,6 +17,11 @@ dimension(sp::SubSpace) = length(sp.indexes)
 |(sp::Space,kr::Union{AbstractCount,Range}) = SubSpace(sp,kr)
 
 
+function |(f::Fun,kr::UnitCount)
+    @assert dimension(space(f)) == ∞
+    Fun(f.coefficients[kr[1]:end],space(f)|kr)
+end
+
 block(sp::SubSpace,k::Integer) = block(sp.space,sp.indexes[k])
 
 
@@ -69,13 +74,44 @@ function conversion_rule(a::SubSpace,b::Space)
 end
 
 
-function coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace)
+function subspace_coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace)
     if sp == dropsp
         v
     else
         coefficients(v,sp,canonicalspace(sp),dropsp)
     end
 end
+
+
+function subspace_coefficients(v::Vector,sp::Space,dropsp::SubSpace)
+    n=length(v)
+    if sp==dropsp.space
+        ret = Array(eltype(v),0)
+        for k in dropsp.indexes
+            if k > n
+                return ret
+            end
+            push!(ret,v[k])
+        end
+    else
+        coefficients(v,sp,canonicalspace(dropsp),dropsp)
+    end
+end
+
+function subspace_coefficients(v::Vector,dropsp::SubSpace,sp::Space)
+    if sp==dropsp.space
+        ret = zeros(eltype(v),dropsp.indexes[length(v)])
+        for k = eachindex(v)
+            ret[dropsp.indexes[k]] = v[k]
+        end
+        ret
+    else
+        coefficients(v,dropsp,canonicalspace(dropsp),sp)
+    end
+end
+
+
+coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
 
 
 
@@ -98,32 +134,8 @@ coefficients{DS,IT,T,D}(v::Vector,::SubSpace{DS,IT,T,D,1},::TensorSpace) =
 
 for TYP in (:SumSpace,:PiecewiseSpace,:TensorSpace,:ConstantSpace,:Space) # Resolve conflict
     @eval begin
-        function coefficients(v::Vector,sp::$TYP,dropsp::SubSpace)
-            n=length(v)
-            if sp==dropsp.space
-                ret = Array(eltype(v),0)
-                for k in dropsp.indexes
-                    if k > n
-                        return ret
-                    end
-                    push!(ret,v[k])
-                end
-            else
-                coefficients(v,sp,canonicalspace(dropsp),dropsp)
-            end
-        end
-
-        function coefficients(v::Vector,dropsp::SubSpace,sp::$TYP)
-            if sp==dropsp.space
-                ret = zeros(eltype(v),dropsp.indexes[length(v)])
-                for k = eachindex(v)
-                    ret[dropsp.indexes[k]] = v[k]
-                end
-                ret
-            else
-                coefficients(v,dropsp,canonicalspace(dropsp),sp)
-            end
-        end
+        coefficients(v::Vector,sp::$TYP,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
+        coefficients(v::Vector,dropsp::SubSpace,sp::$TYP) = subspace_coefficients(v,dropsp,sp)
     end
 end
 

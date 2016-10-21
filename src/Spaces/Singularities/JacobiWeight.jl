@@ -81,10 +81,10 @@ function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ
     end
 end
 coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},
-                                         S2::SubSpace{S,IT,RealBasis,DD,1}) = error("Implement")
+                                         S2::SubSpace{S,IT,RealBasis,DD,1}) = subspace_coefficients(f,sp,S2)
 coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,
                                          S2::SubSpace{S,IT,RealBasis,DD,1},
-                                         sp::JacobiWeight{SJ,DD}) = error("Implement")
+                                         sp::JacobiWeight{SJ,DD}) = subspace_coefficients(f,sp,S2)
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
 coefficients{SJ,SV,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1}) =
     sumspacecoefficients(f,sp,S2)
