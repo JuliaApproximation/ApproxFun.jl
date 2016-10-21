@@ -279,3 +279,18 @@ A=ApproxFun.interlace([Z                      Evaluation(S,0);
                       0         D^2+I+3u^2])
 
 raggedbelowoperatortest(A)
+
+
+## Sub interval
+f=Fun(exp)
+
+D = Derivative(Chebyshev())
+u = D[:,2:end] \ f
+@test norm(u'-f) < 10eps()
+
+
+u = D[1:end,2:end] \ f
+@test norm(u'-f) < 10eps()
+
+u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
+@test norm(u'-f) < 10eps()

@@ -13,40 +13,40 @@ else
 end
 
 
-isapprox(a...;kwds...)=Base.isapprox(a...;kwds...)
-isapprox(a::Vec,b::Vec;kwds...)=isapprox([a...],[b...];kwds...)
+isapprox(a...;kwds...) = Base.isapprox(a...;kwds...)
+isapprox(a::Vec,b::Vec;kwds...) = isapprox([a...],[b...];kwds...)
 
 # This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
 # which we override for default julia types
-real(x...)=Base.real(x...)
-real(::Type{UnsetNumber})=UnsetNumber
-real{T<:Real}(::Type{T})=T
-real{T<:Real}(::Type{Complex{T}})=T
-real{T<:Real,n}(::Type{Array{T,n}})=Array{T,n}
-real{T<:Complex,n}(::Type{Array{T,n}})=Array{real(T),n}
-real{N,T<:Real}(::Type{Vec{N,T}})=Vec{N,T}
-real{N,T<:Complex}(::Type{Vec{N,T}})=Vec{N,real(T)}
+real(x...) = Base.real(x...)
+real(::Type{UnsetNumber}) = UnsetNumber
+real{T<:Real}(::Type{T}) = T
+real{T<:Real}(::Type{Complex{T}}) = T
+real{T<:Real,n}(::Type{Array{T,n}}) = Array{T,n}
+real{T<:Complex,n}(::Type{Array{T,n}}) = Array{real(T),n}
+real{N,T<:Real}(::Type{Vec{N,T}}) = Vec{N,T}
+real{N,T<:Complex}(::Type{Vec{N,T}}) = Vec{N,real(T)}
 
 
-eps(x...)=Base.eps(x...)
-eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
-eps{T<:Real}(z::Complex{T})=eps(abs(z))
-eps{T<:Real}(::Type{Dual{Complex{T}}})=eps(real(T))
-eps{T<:Real}(z::Dual{Complex{T}})=eps(abs(z))
-eps{T<:Number}(::Type{Vector{T}})=eps(T)
-eps{k,T<:Number}(::Type{Vec{k,T}})=eps(T)
+eps(x...) = Base.eps(x...)
+eps{T<:Real}(::Type{Complex{T}}) = eps(real(T))
+eps{T<:Real}(z::Complex{T}) = eps(abs(z))
+eps{T<:Real}(::Type{Dual{Complex{T}}}) = eps(real(T))
+eps{T<:Real}(z::Dual{Complex{T}}) = eps(abs(z))
+eps{T<:Number}(::Type{Vector{T}}) = eps(T)
+eps{k,T<:Number}(::Type{Vec{k,T}}) = eps(T)
 
 
-isnan(x)=Base.isnan(x)
-isnan(x::Vec)=map(isnan,x)
+isnan(x) = Base.isnan(x)
+isnan(x::Vec) = map(isnan,x)
 
 
 # BLAS
 
 
 # implement muladd default
-muladd(a,b,c)=a*b+c
-muladd(a::Number,b::Number,c::Number)=Base.muladd(a,b,c)
+muladd(a,b,c) = a*b+c
+muladd(a::Number,b::Number,c::Number) = Base.muladd(a,b,c)
 
 
 for TYP in (:Float64,:Float32,:Complex128,:Complex64)
@@ -74,19 +74,19 @@ scal!(cst::Number,v::AbstractArray) = scal!(length(v),cst,v,1)
 alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
 
 function alternatesign!(v::Vector)
-    n=length(v)
-    for k=2:2:n
-        v[k]=-v[k]
+    n = length(v)
+    for k = 2:2:n
+        v[k] = -v[k]
     end
 
     v
 end
 
-alternatesign(v::Vector)=alternatesign!(copy(v))
+alternatesign(v::Vector) = alternatesign!(copy(v))
 
 function alternatingsum(v::Vector)
-    ret=zero(eltype(v))
-    s=1
+    ret = zero(eltype(v))
+    s = 1
     @inbounds for k=1:length(v)
         ret+=s*v[k]
         s*=-1
@@ -528,6 +528,8 @@ immutable Count{S<:Number} <: AbstractCount{S}
     start::S
     step::S
 end
+
+
 countfrom(start::Number, step::Number) = Count(promote(start, step)...)
 countfrom(start::Number)               = UnitCount(start)
 countfrom()                            = UnitCount(1)
@@ -549,6 +551,12 @@ Base.length(it::AbstractCount) = ∞
 getindex(it::Count,k) = it.start + it.step*(k-1)
 getindex(it::UnitCount,k) = (it.start-1) + k
 
+# special functions
+Base.maximum{S<:Real}(it::UnitCount{S}) = ∞
+Base.minimum{S<:Real}(it::UnitCount{S}) = it.start
+
+Base.maximum{S<:Real}(it::Count{S}) = it.step > 0 ? ∞ : it.start
+Base.minimum{S<:Real}(it::Count{S}) = it.step < 0 ? -∞ : it.start
 
 function Base.colon(a::Real,b::Infinity{Bool})
     if b.angle

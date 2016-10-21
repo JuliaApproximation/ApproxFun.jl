@@ -13,12 +13,12 @@ checkbounds(A::Operator,kr) =
     (maximum(kr) > length(A) || minimum(kr) < 1) && throw(BoundsError(A,kr))
 
 
-checkbounds(A::Operator,kr::Colon,jr::Colon) = nothing
+checkbounds(A::Operator,kr::Union{Colon,AbstractCount},jr::Union{Colon,AbstractCount}) = nothing
 
-checkbounds(A::Operator,kr::Colon,jr) =
+checkbounds(A::Operator,kr::Union{Colon,AbstractCount},jr) =
     (maximum(jr) > size(A,2) || minimum(jr) < 1) && throw(BoundsError(A,(kr,jr)))
 
-checkbounds(A::Operator,kr,jr::Colon) =
+checkbounds(A::Operator,kr,jr::Union{Colon,AbstractCount}) =
     (maximum(kr) > size(A,1)  || minimum(kr) < 1 ) && throw(BoundsError(A,(kr,jr)))
 
 checkbounds(A::Operator,kr,jr) =
