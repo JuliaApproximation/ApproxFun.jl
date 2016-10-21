@@ -287,10 +287,11 @@ f=Fun(exp)
 D = Derivative(Chebyshev())
 u = D[:,2:end] \ f
 @test norm(u'-f) < 10eps()
+@test_approx_eq u(0.1) exp(0.1)-f.coefficients[1]
 
 
 u = D[1:end,2:end] \ f
-@test norm(u'-f) < 10eps()
+@test_approx_eq u(0.1) exp(0.1)-f.coefficients[1]
 
 u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
-@test norm(u'-f) < 10eps()
+@test_approx_eq u(0.1) exp(0.1)-f.coefficients[1]
