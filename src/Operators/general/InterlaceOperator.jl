@@ -229,20 +229,12 @@ end
 
 
 function colstop(M::InterlaceOperator,j::Integer)
-#    b=bandwidth(M,1)
-    if isbandedbelow(M)
-        min(j+bandwidth(M,1),size(M,1))
-    elseif isbandedblock(M)
+    b=bandwidth(M,1)
+    if isfinite(b)
+        min(j+b,size(M,1))
+    else # assume block banded
         J=block(domainspace(M),j)
         blockstop(rangespace(M),blockcolstop(M,J))
-    else #assume is raggedbelow
-        @assert length(size(M.ops)) == 1 #assume domain is not interlaced
-#        opj,J = M.rangeinterlacer[j]
-        K = 0
-        for N = 1:size(M.ops,1)
-            K = max(K,findfirst(x->(x[1]==N && x[2]==colstop(M.ops[N],j)),M.rangeinterlacer))
-        end
-        K
     end
 end
 
