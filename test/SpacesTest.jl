@@ -223,3 +223,14 @@ f=Fun(z->2exp(z^2),PeriodicLine(0.,π/2))
 
 f=Fun(z->2exp(z^2),Line(0.,π/2))
 @test_approx_eq f(1.1im) 2exp(-1.1^2)
+
+
+
+## Exp for Γ
+
+a=1+10*im;b=2-6*im
+d=Curve(Fun(x->1+a*x+x^2+b*x^3))
+
+x=Fun(d)
+
+@test_approx_eq exp(x)(1+a*0.1+0.1^2+b*0.1^3) exp(1+a*0.1+0.1^2+b*0.1^3)

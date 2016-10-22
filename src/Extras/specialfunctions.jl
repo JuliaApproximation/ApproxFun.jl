@@ -356,7 +356,9 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
         #     g=exp(Fun(f.coefficients,space(f).space))
         #     Fun(g.coefficients,MappedSpace(domain(f),space(g)))
         # end
-        function $op{S,T}(f::Fun{S,T})
+        function $op{S,T}(fin::Fun{S,T})
+            f=setcanonicaldomain(fin)  # removes possible issues with roots
+
             xmax,opfxmax,opmax=specialfunctionnormalizationpoint($op,$growth,f)
             # we will assume the result should be smooth on the domain
             # even if f is not
@@ -364,7 +366,9 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
             D=Derivative(domain(f))
             B=Evaluation(domainspace(D),xmax)
             #([B,eval($L)]\[opfxmax/opmax,eval($R)/opmax])*opmax
-            linsolve([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
+            u=linsolve([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
+
+            setdomain(u,domain(fin))
         end
     end
 end
@@ -448,7 +452,9 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
                             (:(airybiprime),"f'*D^2-f''*D-f*f'^3","airybi(f)*f'^3",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
-        function $op{S,T}(f::Fun{S,T})
+        function $op{S,T}(fin::Fun{S,T})
+            f=setcanonicaldomain(fin)
+
             g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
@@ -461,13 +467,15 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            linsolve([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
+            u=linsolve([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
                         tolerance=10ncoefficients(f)*eps(T)*opmax)*opmax
+
+            setdomain(u,domain(fin))
         end
     end
 end
 
-erfc(f::Fun)=1-erf(f)
+erfc(f::Fun) = 1-erf(f)
 
 ## Second order functions with parameter ν
 
@@ -482,7 +490,9 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
                             (:(hankelh2x),"f^2*f'*D^2+((-2im*f^2+f)*f'^2-f^2*f'')*D+(-im*f-ν^2)*f'^3","0",:(imag)))
     L,R = parse(ODE),parse(RHS)
     @eval begin
-        function $op{S<:Union{Ultraspherical,Chebyshev},T}(ν,f::Fun{S,T})
+        function $op{S<:Union{Ultraspherical,Chebyshev},T}(ν,fin::Fun{S,T})
+            f=setcanonicaldomain(fin)
+
             g=chop($growth(f),eps(T))
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
@@ -495,7 +505,9 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            ([B;eval($L)]\[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax])*opmax
+            u=([B;eval($L)]\[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax])*opmax
+
+            setdomain(u,domain(fin))
         end
     end
 end

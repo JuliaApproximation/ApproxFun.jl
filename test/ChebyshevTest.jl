@@ -130,3 +130,12 @@ if VERSION ≥ v"0.5-"
     @test_approx_eq atan2.(f,1)(0.1) atan2(f(0.1),1)
     @test_approx_eq atan2.(f,f)(0.1) atan2(f(0.1),f(0.1))
 end
+
+
+
+## Fixes #121
+
+x = Fun(identity,[0.,10.])
+f = sin(x^2)
+g = cos(x)
+@test_approx_eq f(.1) sin(.1^2)
