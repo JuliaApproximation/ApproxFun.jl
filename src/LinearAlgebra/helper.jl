@@ -433,11 +433,11 @@ end
 Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
 
 
-Base.promote_rule{F<:Number,B<:Integer}(::Type{Infinity{B}},::Type{F}) = promote_type(Float64,F)
-Base.promote_rule{F<:Number,B<:AbstractFloat}(::Type{Infinity{B}},::Type{F}) = promote_type(Complex128,F)
+#Base.promote_rule{F<:Number,B<:Integer}(::Type{Infinity{B}},::Type{F}) = promote_type(Float64,F)
+#Base.promote_rule{F<:Number,B<:AbstractFloat}(::Type{Infinity{B}},::Type{F}) = promote_type(Complex128,F)
 
-Base.convert{F<:AbstractFloat,B<:Integer}(::Type{F},y::Infinity{B}) = convert(F,sign(y)==1?Inf:-Inf)
-Base.convert{F<:AbstractFloat,B<:AbstractFloat}(::Type{F},y::Infinity{B}) = convert(F,exp(im*π*y.angle)*Inf)
+#Base.convert{F<:AbstractFloat,B<:Integer}(::Type{F},y::Infinity{B}) = convert(F,sign(y)==1?Inf:-Inf)
+#Base.convert{F<:AbstractFloat,B<:AbstractFloat}(::Type{F},y::Infinity{B}) = convert(F,exp(im*π*y.angle)*Inf)
 
 -{B<:Integer}(y::Infinity{B}) = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 
