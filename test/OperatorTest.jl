@@ -14,7 +14,7 @@ functionaltest(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
 
 C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
-bandedoperatortest(C)
+@time bandedoperatortest(C)
 
 @test_approx_eq full(C[1:5,1:5])    [4.0 5.0 6.0 0.0 0.0
                                      1.0 4.0 5.0 6.0 0.0
@@ -35,7 +35,7 @@ bandedoperatortest(C)
 
 
 
-for M in (HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
+@time for M in (HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
             Multiplication(Fun([1.,2.,3.],Chebyshev()),Chebyshev()))
     bandedoperatortest(M)
 end
@@ -58,7 +58,7 @@ d=domain(f)
 Q=Integral(d)
 D=Derivative(d)
 
-bandedoperatortest(Q)
+@time bandedoperatortest(Q)
 
 @test norm((Q+I)*f-(integrate(f)+f)) < 100eps()
 @test norm((Q)*f-(integrate(f))) < 100eps()
@@ -83,7 +83,7 @@ bandedoperatortest(A)
 
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))*X
 
-bandedoperatortest(A)
+@time bandedoperatortest(A)
 
 @test norm((A*f.coefficients).coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
 
@@ -106,23 +106,6 @@ bandedoperatortest(P)
 
 
 ## Periodic
-M=Multiplication(Fun([1.],CosSpace()),CosSpace())
-bandedoperatortest(M)
-
-M=Multiplication(Fun([1.],CosSpace()),SinSpace())
-bandedoperatortest(M)
-
-M=Multiplication(Fun([1.],SinSpace()),SinSpace())
-bandedoperatortest(M)
-
-M=Multiplication(Fun([1.],SinSpace()),CosSpace())
-bandedoperatortest(M)
-
-D=Derivative(SinSpace())
-bandedoperatortest(D)
-
-D=Derivative(CosSpace())
-bandedoperatortest(D)
 
 
 d=PeriodicInterval(0.,2π)
@@ -130,8 +113,8 @@ a=Fun(t-> 1+sin(cos(10t)),d)
 D=Derivative(d)
 L=D+a
 
-bandedoperatortest(D)
-bandedoperatortest(Multiplication(a,Space(d)))
+@time bandedoperatortest(D)
+@time bandedoperatortest(Multiplication(a,Space(d)))
 
 
 f=Fun(t->exp(sin(t)),d)
@@ -145,7 +128,7 @@ a0=Fun(t->cos(12sin(t)),d)
 D=Derivative(d)
 L=D^2+a1*D+a0
 
-bandedoperatortest(L)
+@time bandedoperatortest(L)
 
 f=Fun([1,2,3,4,5],space(a1))
 
@@ -178,7 +161,7 @@ C=x*D^2+D
 bandedoperatortest(A)
 bandedoperatortest(B)
 bandedoperatortest(C)
-bandedoperatortest(x*D)
+@time bandedoperatortest(x*D)
 
 f=Fun(exp)
 @test_approx_eq (A.ops[end]*f)(0.1) f'(0.1)
@@ -205,37 +188,8 @@ bandedoperatortest(A-C)
 
 
 S=Chebyshev()
-io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)])
-raggedbelowoperatortest(io)
-
-
-S=Chebyshev()
-io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)])
-
-raggedbelowoperatortest(io)
-
-
-
-S=Chebyshev()
-io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())])
-raggedbelowoperatortest(io)
-
-S=Chebyshev()
-io=ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)])
-raggedbelowoperatortest(io)
-
-
-S=Chebyshev()
-io=ApproxFun.InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))])
-raggedbelowoperatortest(io)
-
-S=Chebyshev()
-io=ApproxFun.InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))])
-raggedbelowoperatortest(io)
-
-S=Chebyshev()
 D=Derivative(S)
-for padding = [true,false]
+@time for padding = [true,false]
   co=ApproxFun.CachedOperator(D,ApproxFun.RaggedMatrix(Float64[],Int[1],0),(0,0),domainspace(D),rangespace(D),bandinds(D),padding) #initialise with empty RaggedMatrix
   @test co[1:20,1:10] == D[1:20,1:10]
   @test size(co.data) == (20,10)
@@ -259,27 +213,6 @@ bandedoperatortest(ApproxFun.ReverseOrientation(Chebyshev()))
 
 
 
-## Newton iteration bug
-S=Chebyshev([0.,7.])
-
-ω=2π
-
-
-N = u->Any[Fun(u(0.)-0.1);Fun(u(ω)-u(0.));Fun(u'(ω)-u'(0.));u''+u+u^3]
-
-u=0.1Fun(cos,S)
-
-D=Derivative(S)
-
-Z=ApproxFun.ZeroOperator(ApproxFun.ConstantSpace())
-
-A=ApproxFun.interlace([Z                      Evaluation(S,0);
-                     u'(ω)    Evaluation(S,ω)-Evaluation(S,0);
-                     u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
-                      0         D^2+I+3u^2])
-
-raggedbelowoperatortest(A)
-
 
 ## Sub interval
 f=Fun(exp)
@@ -300,4 +233,4 @@ u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 DS=WeightedJacobi(0.1+1,0.2+1)
 D=Derivative(DS)[2:end,:]
 
-ApproxFun.bandedoperatortest(D)
+@time ApproxFun.bandedoperatortest(D)

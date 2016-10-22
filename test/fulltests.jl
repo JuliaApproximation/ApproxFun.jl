@@ -3,6 +3,47 @@
 
 include("runtests.jl")
 
+println("    Full Operator tests")
+
+@time for M in (Multiplication(Fun([1.],CosSpace()),CosSpace()),
+                Multiplication(Fun([1.],CosSpace()),SinSpace()),
+                Multiplication(Fun([1.],SinSpace()),SinSpace()),
+                Multiplication(Fun([1.],SinSpace()),CosSpace()),
+                Derivative(SinSpace()),Derivative(CosSpace()))
+      bandedoperatortest(M)
+end
+
+S=Chebyshev()
+@time for io in (
+        ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)]),
+        ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)]),
+        ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())]),
+        ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)]),
+        ApproxFun.InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))]),
+        ApproxFun.InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))]))
+    raggedbelowoperatortest(io)
+end
+
+## Newton iteration bug
+S=Chebyshev([0.,7.])
+
+ω=2π
+
+
+N = u->Any[Fun(u(0.)-0.1);Fun(u(ω)-u(0.));Fun(u'(ω)-u'(0.));u''+u+u^3]
+
+u=0.1Fun(cos,S)
+
+D=Derivative(S)
+
+Z=ApproxFun.ZeroOperator(ApproxFun.ConstantSpace())
+
+A=ApproxFun.interlace([Z                      Evaluation(S,0);
+                     u'(ω)    Evaluation(S,ω)-Evaluation(S,0);
+                     u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
+                      0         D^2+I+3u^2])
+
+@time raggedbelowoperatortest(A)
 
 println("    Bessel tests")
 
