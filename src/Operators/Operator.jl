@@ -352,7 +352,7 @@ macro wrapperstructure(Wrap)
     ret = quote end
 
     for func in (:(ApproxFun.bandinds),:(Base.stride),
-                 :(ApproxFun.isbandedblockbanded),
+                 :(ApproxFun.isbandedblockbanded),:(ApproxFun.isbandedblock),
                  :(ApproxFun.israggedbelow),:(Base.size),:(ApproxFun.isbanded),
                  :(ApproxFun.bandwidth),:(ApproxFun.bandwidths))
         ret = quote
