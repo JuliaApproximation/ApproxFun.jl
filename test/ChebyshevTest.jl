@@ -139,3 +139,7 @@ x = Fun(identity,[0.,10.])
 f = sin(x^2)
 g = cos(x)
 @test_approx_eq f(.1) sin(.1^2)
+
+x = Fun(identity,[0.,100.])
+f = sin(x^2)
+@test_approx_eq_eps f(.1) sin(.1^2) 1E-12

@@ -66,7 +66,7 @@ f=L*usol
 u=[B;L]\[1.;f]
 
 
-@test norm(u-usol) ≤ 100eps()
+@test norm(u-usol) ≤ 200eps()
 
 
 Σ = DefiniteIntegral()
