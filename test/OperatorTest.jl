@@ -228,9 +228,3 @@ u = D[1:end,2:end] \ f
 
 u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 @test_approx_eq u(0.1) exp(0.1)-f.coefficients[1]
-
-
-DS=WeightedJacobi(0.1+1,0.2+1)
-D=Derivative(DS)[2:end,:]
-
-@time ApproxFun.bandedoperatortest(D)

@@ -45,6 +45,15 @@ A=ApproxFun.interlace([Z                      Evaluation(S,0);
 
 @time raggedbelowoperatortest(A)
 
+
+# This is surprisingly slow...
+
+DS=WeightedJacobi(0.1+1,0.2+1)
+D=Derivative(DS)[2:end,:]
+
+@time ApproxFun.bandedoperatortest(D)
+
+
 println("    Bessel tests")
 
 @time for ν in (1.,0.5,2.,3.5)
