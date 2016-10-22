@@ -193,3 +193,17 @@ S=JacobiWeight(1,1,Ultraspherical(1))
 
 f=Fun([1.,2.,3.],S)
 @test_approx_eq (Derivative(S,2)*f)(0.1) f''(0.1)
+
+
+## == tests
+
+
+@test WeightedJacobi(0.1,0.2) == WeightedJacobi(0.1+eps(),0.2)
+
+# this tests a subspace bug
+f=Fun(rand(10),WeightedJacobi(0.1,0.2))  # convert to Legendre expansion
+
+g=(f|(2:ApproxFun.∞))
+
+@test ApproxFun.coefficients(g.coefficients,space(g),ApproxFun.canonicalspace(g))[1] ==0.
+@test norm((Fun(g,space(f))|(2:ApproxFun.∞)-g).coefficients) < 10eps()

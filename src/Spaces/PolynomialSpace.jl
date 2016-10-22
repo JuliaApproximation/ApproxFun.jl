@@ -81,12 +81,12 @@ end
 # JacobiZ encodes [BasisFunctional(1);(J-z*I)[2:end,:]]
 # where J is the Jacobi operator
 ######
-immutable JacobiZ{S,T} <: TridiagonalOperator{T}
+immutable JacobiZ{S<:PolynomialSpace,T} <: TridiagonalOperator{T}
     space::S
     z::T
 end
 
-JacobiZ(sp,z) =
+JacobiZ(sp::PolynomialSpace,z) =
     (T = promote_type(eltype(sp),eltype(domain(sp)),typeof(z)); JacobiZ{typeof(sp),T}(sp,T(z)))
 
 Base.convert{T,S}(::Type{Operator{T}},J::JacobiZ{S}) = JacobiZ{S,T}(J.space,J.z)

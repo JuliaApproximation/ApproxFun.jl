@@ -30,7 +30,7 @@ typealias WeightedJacobi{T,D} JacobiWeight{Jacobi{T,D},D}
 @compat (::Type{WeightedJacobi})(α,β,d::Domain) = JacobiWeight(α,β,Jacobi(β,α,d))
 @compat (::Type{WeightedJacobi})(α,β) = JacobiWeight(α,β,Jacobi(β,α))
 
-spacescompatible(a::Jacobi,b::Jacobi) = a.a==b.a && a.b==b.b
+spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b
 
 function canonicalspace(S::Jacobi)
     if isapproxinteger(S.a+0.5) && isapproxinteger(S.b+0.5)

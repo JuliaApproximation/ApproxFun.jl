@@ -1,12 +1,3 @@
-## SubOperator
-
-immutable SubOperator{T,B,I,DI,BI} <: Operator{T}
-    parent::B
-    indexes::I
-    dims::DI
-    bandwidths::BI
-end
-
 checkbounds(A::Operator,kr::Colon) = nothing
 
 checkbounds(A::Operator,kr) =
@@ -26,6 +17,16 @@ checkbounds(A::Operator,kr,jr) =
      minimum(kr) < 1 || minimum(jr) < 1) && throw(BoundsError(A,(kr,jr)))
 
 
+## SubOperator
+
+immutable SubOperator{T,B,I,DI,BI} <: Operator{T}
+    parent::B
+    indexes::I
+    dims::DI
+    bandwidths::BI
+end
+
+
 
 function SubOperator(A,inds,dims,lu)
     checkbounds(A,inds...)
@@ -36,6 +37,10 @@ end
 # cannot infer ranges
 SubOperator(A,inds,dims) = SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
 SubOperator(A,inds) = SubOperator(A,inds,map(length,inds))
+
+
+Base.convert{T}(::Type{Operator{T}},SO::SubOperator) =
+    SubOperator(Operator{T}(SO.parent),SO.indexes,SO.dims,SO.bandwidths)::Operator{T}
 
 function view(A::Operator,kr::AbstractCount,jr::AbstractCount)
     @assert isinf(size(A,1)) && isinf(size(A,2))

@@ -558,6 +558,11 @@ Base.minimum{S<:Real}(it::UnitCount{S}) = it.start
 Base.maximum{S<:Real}(it::Count{S}) = it.step > 0 ? ∞ : it.start
 Base.minimum{S<:Real}(it::Count{S}) = it.step < 0 ? -∞ : it.start
 
+Base.last{S<:Real}(it::UnitCount{S}) = ∞
+Base.last{S<:Real}(it::Count{S}) =
+    it.step > 0 ? ∞ : (it.step < 0 ? -∞ : error("zero step not supported"))
+
+
 function Base.colon(a::Real,b::Infinity{Bool})
     if b.angle
         throw(ArgumentError("Cannot create $a:-∞"))

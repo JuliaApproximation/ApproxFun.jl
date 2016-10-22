@@ -36,7 +36,7 @@ identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x
 order{T,D}(S::JacobiWeight{Ultraspherical{Int,T},D}) = order(S.space)
 
 
-spacescompatible(A::JacobiWeight,B::JacobiWeight)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
+spacescompatible(A::JacobiWeight,B::JacobiWeight)= A.α ≈ B.α && A.β ≈ B.β && spacescompatible(A.space,B.space)
 spacescompatible{DD<:IntervalDomain}(A::JacobiWeight,B::RealUnivariateSpace{DD})=spacescompatible(A,JacobiWeight(0,0,B))
 spacescompatible{DD<:IntervalDomain}(B::RealUnivariateSpace{DD},A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
@@ -84,7 +84,7 @@ coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},
                                          S2::SubSpace{S,IT,RealBasis,DD,1}) = subspace_coefficients(f,sp,S2)
 coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,
                                          S2::SubSpace{S,IT,RealBasis,DD,1},
-                                         sp::JacobiWeight{SJ,DD}) = subspace_coefficients(f,sp,S2)
+                                         sp::JacobiWeight{SJ,DD}) = subspace_coefficients(f,S2,sp)
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
 coefficients{SJ,SV,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1}) =
     sumspacecoefficients(f,sp,S2)
