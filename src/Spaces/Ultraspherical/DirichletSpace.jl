@@ -96,6 +96,11 @@ coefficients(v::Vector,::ChebyshevDirichlet{1,1},::Chebyshev)=idirichlettransfor
 coefficients(v::Vector,::ChebyshevDirichlet{0,1},::Chebyshev)=idirichlettransform!(true,copy(v))
 coefficients(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransform!(false,copy(v))
 
+# recurrence
+recα{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = zero(T)
+recβ{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = n==1 ? one(T) : one(T)/2
+recγ{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = n==2 ? one(T) : (n==3 ? zero(T) : one(T)/2)
+
 ## Dirichlet Conversion operators
 
 Conversion(D::ChebyshevDirichlet,C::Chebyshev)=ConcreteConversion(D,C)

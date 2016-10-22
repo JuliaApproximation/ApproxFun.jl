@@ -207,3 +207,13 @@ g=(f|(2:ApproxFun.∞))
 
 @test ApproxFun.coefficients(g.coefficients,space(g),ApproxFun.canonicalspace(g))[1] ==0.
 @test norm((Fun(g,space(f))|(2:ApproxFun.∞)-g).coefficients) < 10eps()
+
+
+## Check conversion for non-compatible paramters
+S=Jacobi(0.1,1.2)
+x=Fun()
+
+
+p=(S,k)->Fun([zeros(k);1.],S)
+n=1;
+@test norm(x*p(S,n-1)-(ApproxFun.recα(Float64,S,n)*p(S,n-1) + ApproxFun.recβ(Float64,S,n)*p(S,n))) < 10eps()

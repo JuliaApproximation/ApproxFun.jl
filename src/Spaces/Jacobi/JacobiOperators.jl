@@ -343,7 +343,13 @@ end
 
 
 
-union_rule(A::Jacobi,B::Jacobi)=conversion_type(A,B)
+function union_rule(A::Jacobi,B::Jacobi)
+    if domainscompatible(A,B)
+        Jacobi(min(A.a,B.a),min(A.b,B.b),domain(A))
+    else
+        NoSpace()
+    end
+end
 maxspace_rule(A::Jacobi,B::Jacobi) = Jacobi(max(A.a,B.a),max(A.b,B.b),domain(A))
 
 

@@ -234,3 +234,11 @@ d=Curve(Fun(x->1+a*x+x^2+b*x^3))
 x=Fun(d)
 
 @test_approx_eq exp(x)(1+a*0.1+0.1^2+b*0.1^3) exp(1+a*0.1+0.1^2+b*0.1^3)
+
+
+## ChebyshevDirichlet multiplication
+
+S=ChebyshevDirichlet()
+x=Fun()
+@test norm((ApproxFun.Recurrence(S)*Fun(exp,S)-Fun(x->x*exp(x),S)).coefficients) < 100eps()
+@test norm((x*Fun(exp,S)-Fun(x->x*exp(x),S)).coefficients) < 100eps()

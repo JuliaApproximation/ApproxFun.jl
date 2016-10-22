@@ -45,9 +45,12 @@ end
 # jacobirecA/B/C is from dlmf:
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
-jacobirecA{T}(::Type{T},α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+one(T):(2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
-jacobirecB{T}(::Type{T},α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α-β)*one(T):(α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
-jacobirecC{T}(::Type{T},α,β,k)=(one(T)*k+α)*(one(T)*k+β)*(2k+α+β+2one(T))/((k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
+jacobirecA{T}(::Type{T},α,β,k) =
+    k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+one(T):(2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
+jacobirecB{T}(::Type{T},α,β,k) =
+    k==0&&((α+β==0)||(α+β==-1))?.5*(α-β)*one(T):(α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
+jacobirecC{T}(::Type{T},α,β,k) =
+    (one(T)*k+α)*(one(T)*k+β)*(2k+α+β+2one(T))/((k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
 
 #####
 # jacobirecA/B/C is from dlmf:
