@@ -5,10 +5,10 @@
 abstract WeightSpace{S,T,DD,d} <: Space{T,DD,d}
 
 
-domain(S::WeightSpace)=domain(S.space)
+domain(S::WeightSpace) = domain(S.space)
 
 
-points(sp::WeightSpace,n)=points(sp.space,n)
+points(sp::WeightSpace,n) = points(sp.space,n)
 
 
 immutable WeightSpacePlan{S,P,T,V}
@@ -45,6 +45,10 @@ function evaluate(f::AbstractVector,S::WeightSpace,x...)
     end
 end
 
+# recurrence is inhereted
+for FUNC in (:recα,:recβ,:recγ)
+    @eval $FUNC(T,ws::WeightSpace,k) = $FUNC(T,ws.space,k)
+end
 
 
 include("divide_singularity.jl")

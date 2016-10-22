@@ -81,7 +81,7 @@ end
 # JacobiZ encodes [BasisFunctional(1);(J-z*I)[2:end,:]]
 # where J is the Jacobi operator
 ######
-immutable JacobiZ{S<:PolynomialSpace,T} <: TridiagonalOperator{T}
+immutable JacobiZ{S<:Space,T} <: TridiagonalOperator{T}
     space::S
     z::T
 end
