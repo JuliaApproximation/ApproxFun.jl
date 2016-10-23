@@ -7,7 +7,14 @@ println("Domain tests")
 @test !in(0.45-0.65im,Interval())
 @test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2]==ApproxFun.Count(5,2)
 
-import ApproxFun.Infinity
+import ApproxFun: Infinity, ∞
+
+@test exp(im*π/4)*∞ == Inf+im*Inf
+@test exp(im*π/4)+∞ == ∞
+@test ∞ ≠ 1
+
+@test maximum([1,∞]) == ∞
+@test minimum([1,∞]) == 1
 
 @test Infinity(true)+Infinity(true) == Infinity(true)
 @test Infinity(false)+Infinity(false) == Infinity(false)

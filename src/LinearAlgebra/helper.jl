@@ -3,7 +3,7 @@ import Base.chop
 
 # Used for spaces not defined yet
 immutable UnsetNumber <: Number  end
-Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
+Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N}) = N
 
 # Test the number of arguments a function takes
 if VERSION < v"0.5.0-dev"
@@ -417,6 +417,7 @@ const ∞ = Infinity()
 Base.isinf(::Infinity) = true
 Base.isfinite(::Infinity) = false
 Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
+Base.angle(x::Infinity) = π*x.angle
 
 Base.zero{B}(::Infinity{B}) = zero(B)
 Base.one{B}(::Infinity{B}) = one(B)
@@ -432,12 +433,19 @@ end
 
 Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
 
+Base.promote_rule{R<:Number,B}(::Type{R},::Type{Infinity{B}}) = Number
 
 #Base.promote_rule{F<:Number,B<:Integer}(::Type{Infinity{B}},::Type{F}) = promote_type(Float64,F)
 #Base.promote_rule{F<:Number,B<:AbstractFloat}(::Type{Infinity{B}},::Type{F}) = promote_type(Complex128,F)
 
 #Base.convert{F<:AbstractFloat,B<:Integer}(::Type{F},y::Infinity{B}) = convert(F,sign(y)==1?Inf:-Inf)
 #Base.convert{F<:AbstractFloat,B<:AbstractFloat}(::Type{F},y::Infinity{B}) = convert(F,exp(im*π*y.angle)*Inf)
+
+
+==(x::Infinity,y::Infinity) = x.angle == y.angle
+==(x::Infinity,y::Number) = isinf(y) && angle(y) == angle(x)
+==(y::Number,x::Infinity) = x == y
+
 
 -{B<:Integer}(y::Infinity{B}) = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 
@@ -468,6 +476,9 @@ for T in (:Bool,:Integer,:AbstractFloat)
         *(y::Infinity,a::$T) = a*y
     end
 end
+
+*(a::Number,y::Infinity) = Infinity(y.angle+angle(a)/π)
+*(y::Infinity,a::Number) = a*y
 
 Base.min{B<:Integer}(x::Infinity{B},y::Infinity{B}) = sign(x)==-1?x:y
 Base.max{B<:Integer}(x::Infinity{B},::Infinity{B}) = sign(x)==1?x:y
