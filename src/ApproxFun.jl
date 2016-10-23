@@ -22,7 +22,7 @@ import Base: sinpi, cospi, airy, besselh, exp,
                     expm1, log1p, lfact, sinc, cosc, erfinv, erfcinv, beta, lbeta,
                     eta, zeta, gamma,  lgamma, polygamma, invdigamma, digamma, trigamma,
                     abs, sign, log, expm1, tan, abs2, sqrt, angle, max, min, cbrt, log,
-                    atan, acos, asin, erfc
+                    atan, acos, asin, erfc, inv
 
 
 import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
@@ -35,7 +35,9 @@ import Compat: view
 
 import FixedSizeArrays: Vec
 
-export pad!,pad,sample,chop!,complexroots,roots,svfft, reverseorientation
+export pad!, pad, chop!, sample,
+       complexroots, roots, svfft, isvfft,
+       reverseorientation
 
 ##Testing
 export bisectioninv

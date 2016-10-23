@@ -70,19 +70,49 @@ scal!(cst::Number,v::AbstractArray) = scal!(length(v),cst,v,1)
 
 
 
-## Helper routines
-alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
+# Helper routines
 
-function alternatesign!(v::Vector)
-    n = length(v)
-    for k = 2:2:n
-        v[k] = -v[k]
+function reverseeven!(x::Vector)
+    n = length(x)
+    if iseven(n)
+        @inbounds @simd for k=2:2:n÷2
+            x[k],x[n+2-k] = x[n+2-k],x[k]
+        end
+    else
+        @inbounds @simd for k=2:2:n÷2
+            x[k],x[n+1-k] = x[n+1-k],x[k]
+        end
     end
-
-    v
+    x
 end
 
-alternatesign(v::Vector) = alternatesign!(copy(v))
+function negateeven!(x::Vector)
+    @inbounds @simd for k = 2:2:length(x)
+        x[k] *= -1
+    end
+    x
+end
+
+#checkerboard, same as applying negativeeven! to all rows then all columns
+function negateeven!(X::Matrix)
+    for j = 1:2:size(X,2)
+        @inbounds @simd for k = 2:2:size(X,1)
+            X[k,j] *= -1
+        end
+    end
+    for j = 2:2:size(X,2)
+        @inbounds @simd for k = 1:2:size(X,1)
+            X[k,j] *= -1
+        end
+    end
+    X
+end
+
+const alternatesign! = negateeven!
+
+alternatesign(v::Vector)=alternatesign!(copy(v))
+
+alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
 
 function alternatingsum(v::Vector)
     ret = zero(eltype(v))
@@ -308,7 +338,75 @@ function interlace(a::Vector,b::Vector)
 end
 
 
+### In-place O(n) interlacing
 
+function highestleader(n::Int)
+    i = 1
+    while 3i < n i *= 3 end
+    i
+end
+
+function nextindex(i::Int,n::Int)
+    i <<= 1
+    while i > n
+        i -= n + 1
+    end
+    i
+end
+
+function cycle_rotate!(v::Vector, leader::Int, it::Int, twom::Int)
+    i = nextindex(leader, twom)
+    while i != leader
+        idx1, idx2 = it + i - 1, it + leader - 1
+        @inbounds v[idx1], v[idx2] = v[idx2], v[idx1]
+        i = nextindex(i, twom)
+    end
+    v
+end
+
+function right_cyclic_shift!(v::Vector, it::Int, m::Int, n::Int)
+    itpm = it + m
+    itpmm1 = itpm - 1
+    itpmpnm1 = itpmm1 + n
+    reverse!(v, itpm, itpmpnm1)
+    reverse!(v, itpm, itpmm1 + m)
+    reverse!(v, itpm + m, itpmpnm1)
+    v
+end
+
+"""
+This function implements the algorithm described in:
+
+    P. Jain, "A simple in-place algorithm for in-shuffle," arXiv:0805.1598, 2008.
+"""
+function interlace!(v::Vector,offset::Int)
+    N = length(v)
+    if N < 2
+        return v
+    end
+
+    it = 1 + offset
+    m = 0
+    n = 1
+
+    while m < n
+        twom = N + 1 - it
+        h = highestleader(twom)
+        m = h > 1 ? h÷2 : 1
+        n = twom÷2
+
+        right_cyclic_shift!(v,it,m,n)
+
+        leader = 1
+        while leader < 2m
+            cycle_rotate!(v, leader, it, 2m)
+            leader *= 3
+        end
+
+        it += 2m
+    end
+    v
+end
 
 ## svfft
 
@@ -317,27 +415,18 @@ end
 plan_svfft(x::Vector) = plan_fft(x)
 plan_isvfft(x::Vector) = plan_ifft(x)
 
-function svfft(v::Vector,plan)
-    n=length(v)
-    v=plan*v/n
+function svfft{T}(v::Vector{T},plan)
+    n = length(v)
+    v = scale!(inv(T(n)),plan*v)
     if mod(n,2) == 0
-        ind=div(n,2)
-        v=alternatesign!(v)
-        interlace(v[1:ind],
-                  flipdim(v[ind+1:end],1))
-    elseif mod(n,4)==3
-        ind=div(n+1,2)
-        interlace(alternatesign!(v[1:ind]),
-                  -flipdim(alternatesign!(v[ind+1:end]),1))
-    else #mod(length(v),4)==1
-        ind=div(n+1,2)
-        interlace(alternatesign!(v[1:ind]),
-                  flipdim(alternatesign!(v[ind+1:end]),1))
+        reverseeven!(interlace!(alternatesign!(v),1))
+    else
+        negateeven!(reverseeven!(interlace!(alternatesign!(copy(v)),1)))
     end
 end
 
 function isvfft(sv::Vector,plan)
-    n=length(sv)
+    n = length(sv)
 
     if mod(n,2) == 0
         v=alternatesign!([sv[1:2:end];flipdim(sv[2:2:end],1)])
@@ -349,11 +438,8 @@ function isvfft(sv::Vector,plan)
            alternatesign!(flipdim(sv[2:2:end],1))]
     end
 
-    plan*(n*v)
+    plan*scale!(n,v)
 end
-
-
-
 
 ## slnorm gives the norm of a slice of a matrix
 

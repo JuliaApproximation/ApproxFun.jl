@@ -21,6 +21,8 @@ import ApproxFun: Infinity, ∞
 @test Infinity(true)+1 == Infinity(true)
 @test Infinity(false)+1 == Infinity(false)
 
+@test ApproxFun.interlace(collect(6:10),collect(1:5)) == ApproxFun.interlace!(collect(1:10),0)
+@test ApproxFun.interlace(collect(1:5),collect(6:10)) == ApproxFun.interlace!(collect(1:10),1)
 
 @time include("MatrixTest.jl")
 
