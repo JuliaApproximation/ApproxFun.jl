@@ -204,36 +204,27 @@ plan_transform{D}(::Fourier{D},x::Vector)=error("transform for Fourier only impl
 plan_itransform{D}(::Fourier{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
 
 function transform{T<:Number,D}(::Fourier{D},vals::Vector{T},plan)
-    n=length(vals)
-    cfs=2plan*vals/n
-    cfs[1]/=2
+    n = length(vals)
+    cfs = scale!(T(2)/n,plan*vals)
+    cfs[1] /= 2
     if iseven(n)
-        cfs[div(n,2)+1]/=2
+        cfs[div(n,2)+1] /= 2
     end
 
-    fouriermodalt!(cfs)
+    reverseeven!(interlace!(fouriermodalt!(cfs),1))
 
-    ret=Array(T,n)
-    if iseven(n)
-        ret[1:2:end]=cfs[1:div(n,2)]
-        ret[2:2:end]=cfs[end:-1:div(n,2)+1]
-    else
-        ret[1:2:end]=cfs[1:div(n+1,2)]
-        ret[2:2:end]=cfs[end:-1:div(n+3,2)]
-    end
-    ret
+    cfs
 end
 
 function itransform{T<:Number,D}(::Fourier{D},a::Vector{T},plan)
-    n=length(a)
-    cfs=[a[1:2:end];
-            flipdim(a[2:2:end],1)]
-    fouriermodalt!(cfs)
+    n = length(a)
+    cfs = [a[1:2:end];a[2:2:end]]
+    fouriermodalt!(reverseeven!(cfs))
     if iseven(n)
-        cfs[div(n,2)+1]*=2
+        cfs[div(n,2)+1] *= 2
     end
-    cfs[1]*=2
-    plan*cfs/2
+    cfs[1] *= 2
+    plan*scale!(inv(T(2)),cfs)
 end
 
 function fouriermodalt!(cfs)
