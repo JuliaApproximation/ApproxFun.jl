@@ -346,36 +346,38 @@ function highestleader(n::Int)
     i
 end
 
-function nextindex(j::Int,n::Int)
-    j *= 2
-    m = n + 1
-    while j ≥ m
-        j -= m
+function nextindex(i::Int,n::Int)
+    i <<= 1
+    while i > n
+        i -= n + 1
     end
-    j
+    i
 end
 
 function cycle_rotate!(v::Vector, leader::Int, it::Int, twom::Int)
     i = nextindex(leader, twom)
     while i != leader
-        @inbounds v[it + i-1],v[it + leader-1] = v[it + leader-1],v[it + i-1]
+        idx1, idx2 = it + i - 1, it + leader - 1
+        @inbounds v[idx1], v[idx2] = v[idx2], v[idx1]
         i = nextindex(i, twom)
     end
     v
 end
 
 function right_cyclic_shift!(v::Vector, it::Int, m::Int, n::Int)
-    itm1 = it-1
-    reverse!(v,m+it,m+n+itm1)
-    reverse!(v,m+it,2m+itm1)
-    reverse!(v,2m+it,m+n+itm1)
+    itpm = it + m
+    itpmm1 = itpm - 1
+    itpmpnm1 = itpmm1 + n
+    reverse!(v, itpm, itpmpnm1)
+    reverse!(v, itpm, itpmm1 + m)
+    reverse!(v, itpm + m, itpmpnm1)
     v
 end
 
 """
 This function implements the algorithm described in:
 
-    P. Jain, "A Simple In-Place Algorithm for In-Shuffle," arXiv:0805.1598, 2008.
+    P. Jain, "A simple in-place algorithm for in-shuffle," arXiv:0805.1598, 2008.
 """
 function interlace!(v::Vector,offset::Int)
     N = length(v)
@@ -383,12 +385,12 @@ function interlace!(v::Vector,offset::Int)
         return v
     end
 
-    it = 1+offset
+    it = 1 + offset
     m = 0
     n = 1
 
     while m < n
-        twom = N+1-it
+        twom = N + 1 - it
         h = highestleader(twom)
         m = h > 1 ? h÷2 : 1
         n = twom÷2
