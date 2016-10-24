@@ -122,26 +122,28 @@ horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,k
 
 ## Cos and Sin space
 
-points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
-plan_transform(::CosSpace,x::Vector)=plan_chebyshevtransform(x;kind=2)
-plan_itransform(::CosSpace,x::Vector)=plan_ichebyshevtransform(x;kind=2)
-transform(::CosSpace,vals,plan)=chebyshevtransform(vals,plan;kind=2)
-itransform(::CosSpace,cfs,plan)=ichebyshevtransform(cfs,plan;kind=2)
-evaluate(f::Vector,S::CosSpace,t)=clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
+points(sp::CosSpace,n) = points(domain(sp),2n-2)[1:n]
+plan_transform(::CosSpace,x::Vector) = plan_chebyshevtransform(x;kind=2)
+plan_itransform(::CosSpace,x::Vector) = plan_ichebyshevtransform(x;kind=2)
+transform(::CosSpace,vals,plan) = chebyshevtransform(vals,plan;kind=2)
+itransform(::CosSpace,cfs,plan) = ichebyshevtransform(cfs,plan;kind=2)
+evaluate(f::Vector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
-plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
-plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T}) = FFTW.plan_r2r(x,FFTW.RODFT00)
+plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T}) = FFTW.plan_r2r(x,FFTW.RODFT00)
 
-plan_transform{D}(::SinSpace{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
-plan_itransform{D}(::SinSpace{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
+plan_transform{D}(::SinSpace{D},x::Vector) =
+    error("transform for Fourier only implemented for fftwNumbers")
+plan_itransform{D}(::SinSpace{D},x::Vector) =
+    error("transform for Fourier only implemented for fftwNumbers")
 
 
 
-transform(::SinSpace,vals,plan)=plan*vals/(length(vals)+1)
-itransform(::SinSpace,cfs,plan)=plan*cfs/2
-evaluate(f::AbstractVector,S::SinSpace,t)=sineshaw(f,tocanonical(S,t))
+transform(::SinSpace,vals,plan) = plan*vals/(length(vals)+1)
+itransform(::SinSpace,cfs,plan) = plan*cfs/2
+evaluate(f::AbstractVector,S::SinSpace,t) = sineshaw(f,tocanonical(S,t))
 
 
 

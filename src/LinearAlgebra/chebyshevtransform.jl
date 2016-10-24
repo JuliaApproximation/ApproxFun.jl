@@ -8,6 +8,9 @@ function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=
     if kind == 1
         FFTW.plan_r2r(x, FFTW.REDFT10)
     elseif kind == 2
+        if length(x) ≤ 1
+            error("Cannot create a length $(length(x)) chebyshev transform")
+        end
         FFTW.plan_r2r(x, FFTW.REDFT00)
     end
 end
@@ -43,6 +46,10 @@ function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer
     if kind == 1
         FFTW.plan_r2r(x, FFTW.REDFT01)
     elseif kind == 2
+        if length(x) ≤ 1
+            error("Cannot create a length $(length(x)) chebyshev transform")
+        end
+
         FFTW.plan_r2r(x, FFTW.REDFT00)
     end
 end
