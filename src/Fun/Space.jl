@@ -439,8 +439,8 @@ checkpoints(d::Space) = checkpoints(domain(d))
 # transform converts from values at points(S,n) to coefficients
 # itransform converts from coefficients to values at points(S,n)
 
-transform(S::Space,vals)=transform(S,vals,plan_transform(S,vals))
-itransform(S::Space,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
+transform(S::Space,vals) = transform(S,vals,plan_transform(S,vals))
+itransform(S::Space,cfs) = itransform(S,cfs,plan_itransform(S,cfs))
 
 function transform(S::Space,vals,plan)
     csp=canonicalspace(S)

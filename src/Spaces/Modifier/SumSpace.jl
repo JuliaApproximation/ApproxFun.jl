@@ -537,8 +537,8 @@ itransform(S::PiecewiseSpace,cfs::Vector,plan...) =
 
 
 
-itransform(S::SumSpace,cfs,plan...)=Fun(cfs,S)(points(S,length(cfs)))
-itransform!(S::SumSpace,cfs,plan...)=(cfs[:]=Fun(cfs,S)(points(S,length(cfs))))
+itransform(S::SumSpace,cfs,plan...) = Fun(cfs,S)(points(S,length(cfs)))
+itransform!(S::SumSpace,cfs,plan...) = (cfs[:]=Fun(cfs,S)(points(S,length(cfs))))
 
 
 

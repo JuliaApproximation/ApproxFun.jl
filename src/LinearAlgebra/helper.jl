@@ -415,6 +415,8 @@ end
 plan_svfft(x::Vector) = plan_fft(x)
 plan_isvfft(x::Vector) = plan_ifft(x)
 
+svfft{T}(v::Vector{T}) = svfft(v,plan_svfft(v))
+
 function svfft{T}(v::Vector{T},plan)
     n = length(v)
     v = scale!(inv(T(n)),plan*v)
@@ -424,6 +426,8 @@ function svfft{T}(v::Vector{T},plan)
         negateeven!(reverseeven!(interlace!(alternatesign!(copy(v)),1)))
     end
 end
+
+isvfft{T}(v::Vector{T}) = isvfft(v,plan_isvfft(v))
 
 function isvfft(sv::Vector,plan)
     n = length(sv)
