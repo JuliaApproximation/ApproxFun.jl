@@ -535,6 +535,9 @@ Base.promote_rule{R<:Number,B}(::Type{R},::Type{Infinity{B}}) = Number
 ==(x::Infinity,y::Infinity) = x.angle == y.angle
 ==(x::Infinity,y::Number) = isinf(y) && angle(y) == angle(x)
 ==(y::Number,x::Infinity) = x == y
+Base.isless(x::Infinity{Bool},y::Infinity{Bool}) = x.angle && !y.angle
+Base.isless(x::Number,y::Infinity{Bool}) = y.angle && (x ≠ ∞)
+Base.isless(x::Infinity,y::Number) = !x.angle && (y ≠ -∞)
 
 
 -{B<:Integer}(y::Infinity{B}) = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
