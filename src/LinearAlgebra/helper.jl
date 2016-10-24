@@ -381,7 +381,7 @@ This function implements the algorithm described in:
 """
 function interlace!(v::Vector,offset::Int)
     N = length(v)
-    if N < 2
+    if N ≤ 2
         return v
     end
 

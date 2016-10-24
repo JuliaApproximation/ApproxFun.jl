@@ -4,7 +4,10 @@ using ApproxFun,Base.Test
 
 
 println("Helper tests")
-@test ApproxFun.interlace!([-1.0,-1.0],1) == [-1.0,-1.0]
+@test ApproxFun.interlace!([-1.0],1) == [-1.0]
+@test ApproxFun.interlace!([1.0,2.0],1) == [1.0,2.0]
+@test ApproxFun.interlace!([1,2,3],1) == [1,3,2]
+@test ApproxFun.interlace!([1,2,3,4],1) == [1,3,2,4]
 
 import ApproxFun: Infinity, ∞
 

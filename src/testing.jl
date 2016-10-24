@@ -17,7 +17,11 @@ function testspace(S::Space)
     @test itransform(S,v)  == itransform(S,v,iplan)
 
 
-    @test_approx_eq transform(S,itransform(S,[1.0])) == [1.0]
+    for k=1:5
+        v = [zeros(k-1);1.0]
+        @test_approx_eq transform(S,itransform(S,v)) v
+    end
+
     @test_approx_eq transform(S,itransform(S,v)) v
     @test_approx_eq itransform(S,transform(S,v)) v
 end
