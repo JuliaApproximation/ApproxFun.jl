@@ -2,10 +2,12 @@ versioninfo()
 
 using ApproxFun,Base.Test
 
-println("Domain tests")
 
-@test !in(0.45-0.65im,Interval())
-@test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2]==ApproxFun.Count(5,2)
+println("Helper tests")
+@test ApproxFun.interlace!([-1.0],1) == [-1.0]
+@test ApproxFun.interlace!([1.0,2.0],1) == [1.0,2.0]
+@test ApproxFun.interlace!([1,2,3],1) == [1,3,2]
+@test ApproxFun.interlace!([1,2,3,4],1) == [1,3,2,4]
 
 import ApproxFun: Infinity, ∞
 
@@ -20,6 +22,15 @@ import ApproxFun: Infinity, ∞
 @test Infinity(false)+Infinity(false) == Infinity(false)
 @test Infinity(true)+1 == Infinity(true)
 @test Infinity(false)+1 == Infinity(false)
+
+@test ApproxFun.interlace(collect(6:10),collect(1:5)) == ApproxFun.interlace!(collect(1:10),0)
+@test ApproxFun.interlace(collect(1:5),collect(6:10)) == ApproxFun.interlace!(collect(1:10),1)
+
+
+println("Domain tests")
+
+@test !in(0.45-0.65im,Interval())
+@test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2]==ApproxFun.Count(5,2)
 
 
 @time include("MatrixTest.jl")

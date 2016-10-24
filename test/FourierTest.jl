@@ -1,6 +1,16 @@
 using ApproxFun, Base.Test
+    import ApproxFun: testspace
 
+for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
+    testspace(CosSpace(d);minpoints=2)
+    testspace(SinSpace(d))
 
+    testspace(Taylor(d))
+    testspace(Hardy{false}(d))
+
+    testspace(Laurent(d))
+    testspace(Fourier(d);invertibletransform=false)
+end
 
 @test sum(Fun(1,CosSpace())) ≈ π
 @test sum(Fun([1],SinSpace())) == 0

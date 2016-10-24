@@ -54,9 +54,10 @@ hasfasttransform(::Hardy) = true
 typealias Taylor{D<:Domain} Hardy{true,D}
 
 plan_transform(::Taylor,x::Vector) = plan_fft(x)
-plan_itransform(::Taylor,x::Vector) = plan_ifft(x)
+plan_itransform{T<:Complex}(::Taylor,x::Vector{T}) = plan_ifft!(x) # we can reuse vector in itransform
+plan_itransform{T}(::Taylor,x::Vector{T}) = plan_ifft!(Array{Complex{T}}(length(x))) # we can reuse vector in itransform
 transform(::Taylor,vals::Vector,plan) = alternatesign!(plan*vals/length(vals))
-itransform(::Taylor,cfs::Vector,plan) = plan*alternatesign!(cfs)*length(cfs)
+itransform(::Taylor,cfs::Vector,plan) = plan*alternatesign!(cfs*length(cfs))
 
 plan_transform(::Hardy{false},x::Vector) = plan_fft(x)
 plan_itransform(::Hardy{false},x::Vector) = plan_ifft(x)
@@ -121,26 +122,28 @@ horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,k
 
 ## Cos and Sin space
 
-points(sp::CosSpace,n)=points(domain(sp),2n-2)[1:n]
-plan_transform(::CosSpace,x::Vector)=plan_chebyshevtransform(x;kind=2)
-plan_itransform(::CosSpace,x::Vector)=plan_ichebyshevtransform(x;kind=2)
-transform(::CosSpace,vals,plan)=chebyshevtransform(vals,plan;kind=2)
-itransform(::CosSpace,cfs,plan)=ichebyshevtransform(cfs,plan;kind=2)
-evaluate(f::Vector,S::CosSpace,t)=clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
+points(sp::CosSpace,n) = points(domain(sp),2n-2)[1:n]
+plan_transform(::CosSpace,x::Vector) = plan_chebyshevtransform(x;kind=2)
+plan_itransform(::CosSpace,x::Vector) = plan_ichebyshevtransform(x;kind=2)
+transform(::CosSpace,vals,plan) = chebyshevtransform(vals,plan;kind=2)
+itransform(::CosSpace,cfs,plan) = ichebyshevtransform(cfs,plan;kind=2)
+evaluate(f::Vector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
-plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
-plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T})=FFTW.plan_r2r(x,FFTW.RODFT00)
+plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T}) = FFTW.plan_r2r(x,FFTW.RODFT00)
+plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T}) = FFTW.plan_r2r(x,FFTW.RODFT00)
 
-plan_transform{D}(::SinSpace{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
-plan_itransform{D}(::SinSpace{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
+plan_transform{D}(::SinSpace{D},x::Vector) =
+    error("transform for Fourier only implemented for fftwNumbers")
+plan_itransform{D}(::SinSpace{D},x::Vector) =
+    error("transform for Fourier only implemented for fftwNumbers")
 
 
 
-transform(::SinSpace,vals,plan)=plan*vals/(length(vals)+1)
-itransform(::SinSpace,cfs,plan)=plan*cfs/2
-evaluate(f::AbstractVector,S::SinSpace,t)=sineshaw(f,tocanonical(S,t))
+transform(::SinSpace,vals,plan) = plan*vals/(length(vals)+1)
+itransform(::SinSpace,cfs,plan) = plan*cfs/2
+evaluate(f::AbstractVector,S::SinSpace,t) = sineshaw(f,tocanonical(S,t))
 
 
 
@@ -151,8 +154,8 @@ typealias Laurent{DD} SumSpace{Tuple{Hardy{true,DD},Hardy{false,DD}},ComplexBasi
 
 plan_transform{DD}(::Laurent{DD},x::Vector)=plan_svfft(x)
 plan_itransform{DD}(::Laurent{DD},x::Vector)=plan_isvfft(x)
-transform{DD}(::Laurent{DD},vals,plan)=svfft(vals,plan)
-itransform{DD}(::Laurent{DD},cfs,plan)=isvfft(cfs,plan)
+transform{DD}(::Laurent{DD},vals,plan...) = svfft(vals,plan...)
+itransform{DD}(::Laurent{DD},cfs,plan...) = isvfft(cfs,plan...)
 
 
 function evaluate{DD}(f::AbstractVector,S::Laurent{DD},z)
@@ -197,43 +200,44 @@ for T in (:CosSpace,:SinSpace)
 end
 
 points{D}(sp::Fourier{D},n)=points(domain(sp),n)
-plan_transform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = FFTW.plan_r2r(x, FFTW.R2HC)
-plan_itransform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) = FFTW.plan_r2r(x, FFTW.HC2R)
+plan_transform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) =
+    FFTW.plan_r2r(x, FFTW.R2HC)
+plan_itransform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) =
+    FFTW.plan_r2r(x, FFTW.HC2R)
 
-plan_transform{D}(::Fourier{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
-plan_itransform{D}(::Fourier{D},x::Vector)=error("transform for Fourier only implemented for fftwNumbers")
+plan_transform{D}(::Fourier{D},x::Vector) =
+    error("transform for Fourier only implemented for fftwNumbers")
+plan_itransform{D}(::Fourier{D},x::Vector) =
+    error("transform for Fourier only implemented for fftwNumbers")
+
+transform{T<:Number,D}(S::Fourier{D},vals::Vector{T}) =
+    transform(S,vals,plan_transform(S,vals))
 
 function transform{T<:Number,D}(::Fourier{D},vals::Vector{T},plan)
-    n=length(vals)
-    cfs=2plan*vals/n
-    cfs[1]/=2
+    n = length(vals)
+    cfs = scale!(T(2)/n,plan*vals)
+    cfs[1] /= 2
     if iseven(n)
-        cfs[div(n,2)+1]/=2
+        cfs[div(n,2)+1] /= 2
     end
 
-    fouriermodalt!(cfs)
+    reverseeven!(interlace!(fouriermodalt!(cfs),1))
 
-    ret=Array(T,n)
-    if iseven(n)
-        ret[1:2:end]=cfs[1:div(n,2)]
-        ret[2:2:end]=cfs[end:-1:div(n,2)+1]
-    else
-        ret[1:2:end]=cfs[1:div(n+1,2)]
-        ret[2:2:end]=cfs[end:-1:div(n+3,2)]
-    end
-    ret
+    cfs
 end
 
+itransform{T<:Number,D}(S::Fourier{D},vals::Vector{T}) =
+    itransform(S,vals,plan_itransform(S,vals))
+
 function itransform{T<:Number,D}(::Fourier{D},a::Vector{T},plan)
-    n=length(a)
-    cfs=[a[1:2:end];
-            flipdim(a[2:2:end],1)]
-    fouriermodalt!(cfs)
+    n = length(a)
+    cfs = [a[1:2:end];a[2:2:end]]
+    fouriermodalt!(reverseeven!(cfs))
     if iseven(n)
-        cfs[div(n,2)+1]*=2
+        cfs[div(n,2)+1] *= 2
     end
-    cfs[1]*=2
-    plan*cfs/2
+    cfs[1] *= 2
+    plan*scale!(inv(T(2)),cfs)
 end
 
 function fouriermodalt!(cfs)
