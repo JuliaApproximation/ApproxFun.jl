@@ -10,7 +10,7 @@ for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
     testspace(Hardy{false}(d))
 
     testspace(Laurent(d))
-    testspace(Fourier(d))
+    testspace(Fourier(d);invertibletransform=false)
 end
 
 @test sum(Fun(1,CosSpace())) ≈ π

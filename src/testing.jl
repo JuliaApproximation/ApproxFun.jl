@@ -7,7 +7,7 @@ using Base.Test
 ## Spaces Tests
 
 
-function testspace(S::Space;minpoints=1)
+function testspace(S::Space;minpoints=1,invertibletransform=true)
     # transform tests
     v = rand(max(minpoints,min(100,ApproxFun.dimension(S))))
     plan = plan_transform(S,v)
@@ -16,13 +16,15 @@ function testspace(S::Space;minpoints=1)
     iplan = plan_itransform(S,v)
     @test itransform(S,v)  == itransform(S,v,iplan)
 
-    for k=max(1,minpoints):min(5,dimension(S))
-        v = [zeros(k-1);1.0]
-        @test_approx_eq transform(S,itransform(S,v)) v
-    end
+    if invertibletransform
+        for k=max(1,minpoints):min(5,dimension(S))
+            v = [zeros(k-1);1.0]
+            @test_approx_eq transform(S,itransform(S,v)) v
+        end
 
-    @test_approx_eq transform(S,itransform(S,v)) v
-    @test_approx_eq itransform(S,transform(S,v)) v
+        @test_approx_eq transform(S,itransform(S,v)) v
+        @test_approx_eq itransform(S,transform(S,v)) v
+    end
 end
 
 
