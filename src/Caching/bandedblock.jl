@@ -12,6 +12,11 @@ function diagblockshift(a::AbstractCount,b::AbstractCount)
 end
 diagblockshift(a::UnitCount,b::UnitCount) = b.start-a.start
 
+function diagblockshift{T}(a::Repeated{T},b::Repeated{T})
+    @assert a.x == b.x #is this necessary?
+    0
+end
+
 diagblockshift(op::Operator) =
     diagblockshift(blocklengths(domainspace(op)),blocklengths(rangespace(op)))
 
