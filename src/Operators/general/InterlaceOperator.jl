@@ -239,9 +239,7 @@ function colstop{T}(M::InterlaceOperator{T,1},j::Integer)
 #        opj,J = M.rangeinterlacer[j]
         K = 0
         for N = 1:size(M.ops,1)
-            K = max(K,findfirst(x->(x[1]==N && 
-                                    x[2]==colstop(M.ops[N],j)),
-                                M.rangeinterlacer)::Int)
+            K = max(K,findfirst(M.rangeinterlacer,(N,colstop(M.ops[N],j)))::Int)
         end
         K
     end
