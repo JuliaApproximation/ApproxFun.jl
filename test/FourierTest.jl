@@ -2,7 +2,6 @@ using ApproxFun, Base.Test
     import ApproxFun: testspace
 
 for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
-    @show d
     testspace(CosSpace(d);minpoints=2)
     testspace(SinSpace(d))
 
