@@ -231,8 +231,8 @@ itransform{T<:Number,D}(S::Fourier{D},vals::Vector{T}) =
 
 function itransform{T<:Number,D}(::Fourier{D},a::Vector{T},plan)
     n = length(a)
-    cfs = [a[1:2:end];a[2:2:end]]
-    fouriermodalt!(reverseeven!(cfs))
+    cfs = [a[1:2:end];flipdim(a[2:2:end],1)]
+    fouriermodalt!(cfs)
     if iseven(n)
         cfs[div(n,2)+1] *= 2
     end
