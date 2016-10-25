@@ -36,7 +36,8 @@ isconstspace(::) = false
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 
 
-hastrivialblocks(A::Space) = isa(blocklengths(A),Repeated{Bool})
+isboolvec(A) = isa(A,Repeated{Bool}) || isa(A,AbstractVector{Bool})
+hastrivialblocks(A::Space) = isboolvec(blocklengths(A))
 hastrivialblocks(A::Operator) = hastrivialblocks(domainspace(A)) &&
                                 hastrivialblocks(rangespace(A))
 

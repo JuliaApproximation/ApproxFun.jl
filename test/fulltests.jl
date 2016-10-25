@@ -1,3 +1,5 @@
+using ApproxFun, Base.Test
+    import ApproxFun: bandedoperatortest, raggedbelowoperatortest, InterlaceOperator
 ## This includes extra tests that are too time consuming for Travis
 
 
@@ -15,12 +17,12 @@ end
 
 S=Chebyshev()
 @time for io in (
-        ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)]),
-        ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)]),
-        ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())]),
-        ApproxFun.InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)]),
-        ApproxFun.InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))]),
-        ApproxFun.InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))]))
+        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)]),
+        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)]),
+        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())]),
+        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)]),
+        InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))]),
+        InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))]))
     raggedbelowoperatortest(io)
 end
 
@@ -44,7 +46,6 @@ A=ApproxFun.interlace([Z                      Evaluation(S,0);
                       0         D^2+I+3u^2])
 
 @time raggedbelowoperatortest(A)
-
 
 # This is surprisingly slow...
 
