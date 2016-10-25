@@ -68,9 +68,9 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
     MO=QR.R
     W=QR.H
 
-    if col ≥ MO.datasize[2]
+    if col+100 ≥ MO.datasize[2]
         m = MO.datasize[2]
-        resizedata!(MO,:,col+100)  # double the last rows
+        resizedata!(MO,:,col+100)  # last rows plus a bunch more
 
         # apply previous Householders to new columns of R
         for J=1:QR.ncols
@@ -137,9 +137,9 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,R
     R=MO.data
     r=pointer(R.data)
 
-    if col ≥ MO.datasize[2]
+    if col+100 ≥ MO.datasize[2]
         m = MO.datasize[2]
-        resizedata!(MO,:,col+100)  # double the last rows
+        resizedata!(MO,:,col+100)  # last rows plus a bunch more
 
         R=MO.data
         r=pointer(R.data)
