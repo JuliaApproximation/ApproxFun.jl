@@ -23,7 +23,7 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
             end
         else
             K = B.datasize[2]==0?0:B.data.m# more robust but slower: maximum(diff(B.data.cols))
-            
+
             for j = B.datasize[2]+1:n
                 cs = colstop(B.op,j)
                 K = max(K,cs)
@@ -70,13 +70,13 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
 
     if col ≥ MO.datasize[2]
         m = MO.datasize[2]
-        resizedata!(MO,:,col+100)  # double the last rows
+        resizedata!(MO,:,2col+21)  # double the last rows
 
         # apply previous Householders to new columns of R
         for J=1:QR.ncols
             wp=view(W,1:colstop(W,J),J)
             for j=m+1:MO.datasize[2]
-                kr=j:j+length(wp)-1
+                kr=J:J+length(wp)-1
                 v=view(MO.data,kr,j)
                 dt=dot(wp,v)
                 Base.axpy!(-2*dt,wp,v)
@@ -90,7 +90,7 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
         resize!(W.cols,2col+1)
 
         for j=m+1:2col
-            cs=colstop(MO,j)
+            cs=colstop(MO.data,j)
             W.cols[j+1]=W.cols[j] + cs-j+1
             W.m=max(W.m,cs-j+1)
         end
@@ -99,7 +99,7 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
     end
 
     for k=QR.ncols+1:col
-        cs = colstop(QR.R,k)
+        cs = colstop(MO.data,k)
         W[1:cs-k+1,k] = view(MO.data,k:cs,k) # diagonal and below
         wp=view(W,1:cs-k+1,k)
         W[1,k]+= flipsign(norm(wp),W[1,k])
@@ -139,7 +139,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,R
 
     if col ≥ MO.datasize[2]
         m = MO.datasize[2]
-        resizedata!(MO,:,col+100)  # double the last rows
+        resizedata!(MO,:,2col+21)  # double the last rows
 
         R=MO.data
         r=pointer(R.data)
@@ -163,7 +163,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,R
         resize!(W.cols,2col+1)
 
         for j=m+1:2col
-            cs=colstop(MO,j)
+            cs=colstop(R,j)
             q_len=cs-j+1  # number of entries in j-th column manipulated
             @assert q_len > 0   # Otherwise, diagonal is not included
             W.cols[j+1]=W.cols[j] + q_len
