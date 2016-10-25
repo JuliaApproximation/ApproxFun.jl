@@ -374,6 +374,20 @@ macro wrapperstructure(Wrap)
         end
     end
 
+    if VERSION < v"0.5"
+        ret = quote
+            $ret
+
+            Base.issymmetric(D::$Wrap) = issymmetric(D.op)
+        end
+    else
+        ret = quote
+            $ret
+
+            Base.issym(D::$Wrap) = issym(D.op)
+        end
+    end
+
      for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
                      :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds),
                      :(Base.size),:(ApproxFun.bandinds))
