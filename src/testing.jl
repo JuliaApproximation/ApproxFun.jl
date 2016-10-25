@@ -36,6 +36,9 @@ end
 function backend_functionaltest(A)
     @test rowstart(A,1) == 1
     @test colstop(A,1) == 1
+    @test bandwidth(A,1) == 0
+    @test blockbandwidth(A,1) == 0
+
     B=A[1:10]
     eltype(B) == eltype(A)
     for k=1:5

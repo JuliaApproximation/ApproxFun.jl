@@ -125,6 +125,8 @@ G1=demat(mat(G)[:,1])
 
 M=Multiplication(G,space(G1))
 
+@test isfinite(ApproxFun.blockcolstop(M.op.ops[1].op,1))
+
 for z in (0.5exp(0.1im),exp(0.2im))
     @test_approx_eq G[1,1](z) G[1](z)
     @test_approx_eq (M.op.ops[1,1]*G1[1])(z) M.f[1,1](z)*G1[1](z)

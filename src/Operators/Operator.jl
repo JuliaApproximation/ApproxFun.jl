@@ -36,11 +36,16 @@ isconstspace(::) = false
 isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 
 
+hastrivialblocks(A::Space) = isa(blocklengths(A),Repeated{Bool})
+hastrivialblocks(A::Operator) = hastrivialblocks(domainspace(A)) &&
+                                hastrivialblocks(rangespace(A))
+
 macro functional(FF)
     quote
         Base.size(A::$FF,k::Integer) = k==1?1:∞
         ApproxFun.rangespace(::$FF) = ConstantSpace()
         ApproxFun.isafunctional(::$FF) = true
+        ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A))?bandinds(A,2):∞
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
             f[j]
@@ -77,7 +82,6 @@ Base.ndims(::Operator) = 2
 ## bandrange and indexrange
 isbandedbelow(A::Operator) = isfinite(bandinds(A,1))
 isbandedabove(A::Operator) = isfinite(bandinds(A,2))
-
 isbanded(A::Operator) = isbandedbelow(A) && isbandedabove(A)
 
 
@@ -85,18 +89,23 @@ isbandedblockbandedbelow(::) = false
 isbandedblockbandedabove(::) = false
 
 isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockbandedbelow(A)
-isbandedblock(A) = isbandedblockbanded(A)
+
+
+# this should be determinable at compile time
 
 #TODO: this is bad: we shouldn't assume block size 1
-blockbandinds(A::Operator) = bandinds(A)
+blockbandinds(A::Operator) = hastrivialblocks(A) && isbanded(A) ? bandinds(A) : (-∞,∞)
 blockbandwidths(S::Operator) = -blockbandinds(S,1),blockbandinds(S,2)
 blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
 blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(K,k)
 subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandwidth(K::Operator,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
 
+isbandedblockbelow(A) = isfinite(blockbandinds(A,1))
+isbandedblockabove(A) = isfinite(blockbandinds(A,2))
+isbandedblock(A::Operator) = isbandedblockbelow(A) && isbandedblockabove(A)
 
-israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isbandedblock(A)
+israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isbandedblockbelow(A)
 
 
 bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1

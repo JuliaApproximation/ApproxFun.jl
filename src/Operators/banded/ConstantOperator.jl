@@ -114,7 +114,12 @@ Base.convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
 domainspace(Z::ZeroOperator)=Z.domainspace
 rangespace(Z::ZeroOperator)=Z.rangespace
 
-bandinds(T::ZeroOperator)=0,0
+bandinds(T::ZeroOperator) = 0,0
+blockbandinds(T::ZeroOperator) = 0,0
+subblockbandinds(T::ZeroOperator,k...) = 0
+
+isbandedblockbandedabove(::ZeroOperator) = true
+isbandedblockbandedbelow(::ZeroOperator) = true
 
 getindex(C::ZeroOperator,k::Integer,j::Integer)=zero(eltype(C))
 
@@ -131,9 +136,9 @@ isconstop(S::SpaceOperator)=isconstop(S.op)
 isconstop(::)=false
 
 iszeroop(::ZeroOperator) = true
-iszeroop(A::ConstantOperator) = A.λ==0.
+iszeroop(A::ConstantOperator) = A.λ==0.0
 iszeroop(A) = false
 
-Base.convert{T<:Number}(::Type{T},::ZeroOperator)=zero(T)
-Base.convert{T<:Number}(::Type{T},C::ConstantOperator)=convert(T,C.λ)
-Base.convert{T<:Number}(::Type{T},S::SpaceOperator)=convert(T,S.op)
+Base.convert{T<:Number}(::Type{T},::ZeroOperator) = zero(T)
+Base.convert{T<:Number}(::Type{T},C::ConstantOperator) = convert(T,C.λ)
+Base.convert{T<:Number}(::Type{T},S::SpaceOperator) = convert(T,S.op)

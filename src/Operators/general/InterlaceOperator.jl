@@ -216,10 +216,10 @@ blockbandinds(M::InterlaceOperator) =
     (mapreduce(op->blockbandinds(op,1),min,M.ops),
      mapreduce(op->blockbandinds(op,2),max,M.ops))
 
-isbandedblock(M::InterlaceOperator) = all(x->isbandedblock(x)||isbanded(x),M.ops) #TODO: this is a hack...
+isbandedblock(M::InterlaceOperator) = all(isbandedblock,M.ops)
 
 function blockcolstop(M::InterlaceOperator,J::Integer)
-    if isbandedblock(M)
+    if isbandedblockbelow(M)
         J - blockbandinds(M,1)
     else
         mapreduce(op->blockcolstop(op,J),max,M.ops)

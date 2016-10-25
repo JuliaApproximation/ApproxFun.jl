@@ -137,6 +137,7 @@ end
 
 
 blockstart(it,K) = K==1?1:sum(blocklengths(it)[1:K-1])+1
+blockstop(it,::Infinity) = ∞
 blockstop(it,K) = sum(blocklengths(it)[1:K])
 
 
