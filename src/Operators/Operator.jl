@@ -351,14 +351,16 @@ defaultgetindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
 # Convenience for wrapper ops
 unwrap_axpy!(α,P,A) = BLAS.axpy!(α,view(parent(P).op,P.indexes[1],P.indexes[2]),A)
 iswrapper(::)=false
-
+haswrapperstructure(::)=false
 
 # use this for wrapper operators that have the same structure but
 # not necessarily the same entries
 #
 #  Ex: c*op or real(op)
 macro wrapperstructure(Wrap)
-    ret = quote end
+    ret = quote
+        iswrapperstructure(::$Wrap) = true
+    end
 
     for func in (:(ApproxFun.bandinds),:(Base.stride),
                  :(ApproxFun.isbandedblockbanded),:(ApproxFun.isbandedblock),
