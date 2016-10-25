@@ -126,8 +126,6 @@ bandedblockbandedoperatortest(Laplacian(d))
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
-
-
 ## Small diffusoion
 
 

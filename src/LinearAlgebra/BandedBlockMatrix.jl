@@ -330,9 +330,9 @@ function bandedblock_squareblocks_trtrs!(A::BandedBlockMatrix,u::Vector)
         kr=blockrows(A,K)
         for J=min(N,blockrowstop(A,K)):-1:K+1
             if J==N  # need to take into account zeros
-                BLAS.gemv!('N',-1.0,view(viewblock(A,K,N),:,1:b),view(u,kr1),1.0,view(u,kr))
+                BLAS.gemv!('N',-one(eltype(A)),view(viewblock(A,K,N),:,1:b),view(u,kr1),one(eltype(A)),view(u,kr))
             else
-                BLAS.gemv!('N',-1.0,viewblock(A,K,J),view(u,blockcols(A,J)),1.0,view(u,kr))
+                BLAS.gemv!('N',-one(eltype(A)),viewblock(A,K,J),view(u,blockcols(A,J)),one(eltype(A)),view(u,kr))
             end
         end
         LAPACK.trtrs!('U','N','N',viewblock(A,K,K),view(u,kr))

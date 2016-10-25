@@ -216,7 +216,7 @@ blockbandinds(M::InterlaceOperator) =
     (mapreduce(op->blockbandinds(op,1),min,M.ops),
      mapreduce(op->blockbandinds(op,2),max,M.ops))
 
-isbandedblock(M::InterlaceOperator) = all(isbandedblock,M.ops)
+isbandedblock(M::InterlaceOperator) = all(x->isbandedblock(x)||isbanded(x),M.ops) #TODO: this is a hack...
 
 function blockcolstop(M::InterlaceOperator,J::Integer)
     if isbandedblock(M)
@@ -228,7 +228,24 @@ end
 
 
 
-function colstop(M::InterlaceOperator,j::Integer)
+function colstop{T}(M::InterlaceOperator{T,1},j::Integer)
+#    b=bandwidth(M,1)
+    if isbandedbelow(M)
+        min(j+bandwidth(M,1)::Int,size(M,1)::Int)
+    elseif isbandedblock(M)
+        J=block(domainspace(M),j)::Int
+        blockstop(rangespace(M),blockcolstop(M,J)::Int)::Int
+    else #assume is raggedbelow
+#        opj,J = M.rangeinterlacer[j]
+        K = 0
+        for N = 1:size(M.ops,1)
+            K = max(K,findfirst(M.rangeinterlacer,(N,colstop(M.ops[N],j)))::Int)
+        end
+        K
+    end
+end
+
+function colstop{T}(M::InterlaceOperator{T,2},j::Integer)
     b=bandwidth(M,1)
     if isfinite(b)
         min(j+b,size(M,1))
