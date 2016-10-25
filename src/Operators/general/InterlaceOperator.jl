@@ -232,7 +232,7 @@ function colstop{T}(M::InterlaceOperator{T,1},j::Integer)
 #    b=bandwidth(M,1)
     if isbandedbelow(M)
         min(j+bandwidth(M,1)::Int,size(M,1)::Int)
-    elseif isbandedblock(M)
+    elseif isbandedblockbelow(M)
         J=block(domainspace(M),j)::Int
         blockstop(rangespace(M),blockcolstop(M,J)::Int)::Int
     else #assume is raggedbelow

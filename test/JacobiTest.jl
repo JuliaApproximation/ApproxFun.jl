@@ -27,7 +27,7 @@ f=Fun(x->((1-x)/2).^m.*exp(x),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
 
 
 m=10
-f=Fun(x->besselj(m,m*(1-x)),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
+@time f=Fun(x->besselj(m,m*(1-x)),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
 @test_approx_eq f(0.) besselj(m,m)
 
 
@@ -112,7 +112,7 @@ D=Derivative(WeightedJacobi(.5,.5))
 
 bandedoperatortest(D)
 
-g=(D*Fun(f,domainspace(D)))
+@time g=(D*Fun(f,domainspace(D)))
 @test_approx_eq f'(0.1) g(0.1)
 
 ## Test implementation of conversion between Chebyshev and Jacobi spaces using FastTransforms
@@ -121,7 +121,7 @@ f = Fun(x->cospi(1000x))
 g = Fun(f,Legendre())
 h = Fun(g,Chebyshev())
 @test norm(f.coefficients-h.coefficients,Inf) < 100eps()
-h = Fun(h,Legendre())
+@time h = Fun(h,Legendre())
 @test norm(g.coefficients-h.coefficients,Inf) < 1000eps()
 
 
