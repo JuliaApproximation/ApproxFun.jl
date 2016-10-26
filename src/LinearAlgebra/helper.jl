@@ -523,21 +523,18 @@ end
 
 Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
 
-Base.promote_rule{R<:Number,B}(::Type{R},::Type{Infinity{B}}) = Number
-
-#Base.promote_rule{F<:Number,B<:Integer}(::Type{Infinity{B}},::Type{F}) = promote_type(Float64,F)
-#Base.promote_rule{F<:Number,B<:AbstractFloat}(::Type{Infinity{B}},::Type{F}) = promote_type(Complex128,F)
-
-#Base.convert{F<:AbstractFloat,B<:Integer}(::Type{F},y::Infinity{B}) = convert(F,sign(y)==1?Inf:-Inf)
-#Base.convert{F<:AbstractFloat,B<:AbstractFloat}(::Type{F},y::Infinity{B}) = convert(F,exp(im*π*y.angle)*Inf)
-
+Base.promote_rule{R<:Number,B}(::Type{Infinity{B}},::Type{R}) = Number
 
 ==(x::Infinity,y::Infinity) = x.angle == y.angle
-==(x::Infinity,y::Number) = isinf(y) && angle(y) == angle(x)
-==(y::Number,x::Infinity) = x == y
+for TYP in (:Dual,:Number)
+    @eval begin
+        ==(x::Infinity,y::$TYP) = isinf(y) && angle(y) == angle(x)
+        ==(y::$TYP,x::Infinity) = x == y
+    end
+end
 Base.isless(x::Infinity{Bool},y::Infinity{Bool}) = x.angle && !y.angle
 Base.isless(x::Number,y::Infinity{Bool}) = y.angle && (x ≠ ∞)
-Base.isless(x::Infinity,y::Number) = !x.angle && (y ≠ -∞)
+Base.isless(x::Infinity{Bool},y::Number) = !x.angle && (y ≠ -∞)
 
 
 -{B<:Integer}(y::Infinity{B}) = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
@@ -563,7 +560,7 @@ end
 *(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle $ b.angle)
 *(a::Infinity,b::Infinity) = Infinity(a.angle + b.angle)
 
-for T in (:Bool,:Integer,:AbstractFloat)
+for T in (:Dual,:Bool,:Integer,:AbstractFloat)
     @eval begin
         *(a::$T,y::Infinity) = a>0?y:(-y)
         *(y::Infinity,a::$T) = a*y

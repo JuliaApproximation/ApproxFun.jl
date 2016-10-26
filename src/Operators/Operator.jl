@@ -374,7 +374,7 @@ macro wrapperstructure(Wrap)
         end
     end
 
-    if VERSION < v"0.5"
+    if VERSION ≥ v"0.5"
         ret = quote
             $ret
 

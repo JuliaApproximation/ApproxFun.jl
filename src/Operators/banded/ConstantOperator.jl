@@ -116,7 +116,7 @@ rangespace(Z::ZeroOperator)=Z.rangespace
 
 bandinds(T::ZeroOperator) = 0,0
 blockbandinds(T::ZeroOperator) = 0,0
-subblockbandinds(T::ZeroOperator,k...) = 0
+subblockbandinds(T::ZeroOperator,k::Integer) = 0
 
 isbandedblockbandedabove(::ZeroOperator) = true
 isbandedblockbandedbelow(::ZeroOperator) = true
