@@ -180,8 +180,8 @@ domain(::Number)=AnyDomain()
 Base.rand(d::IntervalDomain,k...)=fromcanonical(d,2rand(k...)-1)
 Base.rand(d::PeriodicDomain,k...)=fromcanonical(d,2π*rand(k...)-π)
 
-checkpoints(d::IntervalDomain)=fromcanonical(d,[-0.823972,0.3273484])
-checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
+checkpoints(d::IntervalDomain) = fromcanonical(d,[-0.823972,0.01,0.3273484])
+checkpoints(d::PeriodicDomain) = fromcanonical(d,[1.223972,0.01,-2.83273484])
 
 ## boundary
 

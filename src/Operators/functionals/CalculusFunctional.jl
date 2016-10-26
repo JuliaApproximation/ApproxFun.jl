@@ -66,8 +66,8 @@ function getindex(B::ConcreteDefiniteIntegral,k::Integer)
     A[k]
 end
 
-getindex(B::ConcreteDefiniteIntegral,kr::Range) = [getindex(B,k) for k in kr]
-getindex(B::ConcreteDefiniteLineIntegral,kr::Range) = [getindex(B,k) for k in kr]
+getindex(B::ConcreteDefiniteIntegral,kr::Range) = eltype(B)[getindex(B,k) for k in kr]
+getindex(B::ConcreteDefiniteLineIntegral,kr::Range) = eltype(B)[getindex(B,k) for k in kr]
 
 function DefiniteIntegral(sp::Space)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
