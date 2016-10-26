@@ -15,8 +15,6 @@ for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
 end
 
-@wrapperstructure QROperator
-
 getindex(QR::QROperator,k::Integer,j::Integer) = QR.R.op[k,j]
 
 
