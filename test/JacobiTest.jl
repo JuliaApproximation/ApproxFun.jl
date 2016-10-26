@@ -138,65 +138,6 @@ h = Fun(g,Chebyshev())
 testspace(Ultraspherical(1);haslineintegral=false)
 testspace(Ultraspherical(2);haslineintegral=false)
 testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)  # minpoints is a tempory fix a bug
-S=Ultraspherical(1//2)
-v=rand(100)
-
-ApproxFun.itransform(S,[1.0])
-FastTransforms.th_cheb2legplan(Float64,1)
-ApproxFun.transform(S,[1.0])
-p=ApproxFun.plan_itransform(S,v)
-ApproxFun.itransform(S,v,p)
-p*v
-
-n=1
-S=Float64
-t = zeros(S,n-1)
-import FastTransforms:Λ,half
-using ToeplitzMatrices
-Λ(0:one(S):div(n-2,2),-half(S),one(S))
-fld(n-2,2)
-fld(3,2)
-t[1:2:end] = Λ(0:one(S):fld(n-2,2),-half(S),one(S))
-T = TriangularToeplitz(Float64[],:U)
-h = Λ(1:half(S):n-1,zero(S),3half(S))
-H = Hankel(h[1:n-1],h[n-1:end])
-D = 1:one(S):n-1
-DL = (3half(S):n-half(S))./D
-DR = -(one(S):n-one(S))./4D
-T,H,D,DL,DR
-
-p=ApproxFun.plan_transform(S,v)
-@which ApproxFun.plan_transform(S,v)
-@which coefficients(v,S,Chebyshev())
-
-conversion_type(S,Chebyshev())
-
-ApproxFun.itransform(S,v)
-
-v=rand(100)
-coefficients(v,S,Chebyshev())
-QR=qrfact(Conversion(Ultraspherical(1),S))
-Ac_mul_B(QR[:Q],v)
-show(QR[:R])
-
-C=Conversion(Ultraspherical(1),S)
-show(C)
-QR.H
-
-iplan = ApproxFun.plan_itransform(S,v)
-ApproxFun.itransform(S,v)
-@which ApproxFun.itransform(S,v,iplan)
-cfs=v
-csp=ApproxFun.canonicalspace(S)
-@which coefficients(cfs,S,Ultraspherical(1))
-
-
-ApproxFun.Ac_mul_Bpars(QR[:Q],cfs,0.0001,1000)-cfs|>norm
-@which linsolve(QR,cfs)
-
-minimum(QR.H[1,1:100])
-
-@which \cfs
 
 @test norm(Fun(exp,Ultraspherical(1//2))-Fun(exp,Jacobi(0,0))) < 100eps()
 
