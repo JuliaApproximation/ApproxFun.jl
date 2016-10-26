@@ -71,7 +71,7 @@ getindex(B::ConcreteDefiniteLineIntegral,kr::Range) = [getindex(B,k) for k in kr
 
 function DefiniteIntegral(sp::Space)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
-        ConcreteDefiniteIntegral{typeof(sp),eltype(sp)}(sp)
+        ConcreteDefiniteIntegral{typeof(sp),op_eltype(sp)}(sp)
     else
         M = Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))
         Op = DefiniteIntegral(rangespace(M))*M

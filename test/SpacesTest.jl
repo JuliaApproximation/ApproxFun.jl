@@ -1,7 +1,8 @@
 using ApproxFun, Base.Test
-    import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
+    import ApproxFun: ChebyshevDirichlet,Ultraspherical,space,testspace,testbandedoperator,testcalculus,testtransforms
 
 
+testtransforms(ChebyshevDirichlet{1,1}())
 
 @test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})(.1) exp(.1)
 @test_approx_eq Fun(Fun(exp,ChebyshevDirichlet{1,1}),Ultraspherical(1))(.1) exp(.1)
@@ -22,21 +23,6 @@ L=D^2+I
 
 @test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <10eps()
 
-f=Fun(t->cos(t)+cos(3t),CosSpace)
-
-@test (f.*f-Fun(t->(cos(t)+cos(3t))^2,CosSpace)).coefficients|>norm <100eps()
-
-
-
-f=Fun(exp,Taylor(Circle()))
-g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
-@test_approx_eq (f(1.)+g(1.)) (exp(1.) + 1./(1-.1))
-
-
-## Periodic
-f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
-@test_approx_eq f(.5) (Conversion(space(f),Fourier(domain(f)))*f)(.5)
-@test_approx_eq f(.5) Fun(f,Fourier)(.5)
 
 
 
@@ -44,7 +30,10 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
 
 x=Fun(identity,[-1.,0.,1.])
 sp=space(x)
+testtransforms(sp;minpoints=2)
+
 D=Derivative(sp)
+testbandedoperator(D)
 
 u=[dirichlet(sp);
     D^2]\[1];
@@ -110,7 +99,11 @@ import ApproxFun: PiecewiseInterval,ContinuousSpace
 
 d=PiecewiseInterval(1.,2.,3.,4.)
 S=ContinuousSpace(d)
+testtransforms(S;minpoints=3,invertibletransform=false)
+
 D=Derivative(S)
+testbandedoperator(D)
+
 u=[ldirichlet(S),D-I]\[exp(1.)]
 
 
@@ -141,6 +134,9 @@ f=w+x
 
 dsp=JacobiWeight(1.,0.,Jacobi(0.,1.,[0.,1.]))⊕JacobiWeight(0.5,0.,Jacobi(-0.5,0.5,[0.,1.]))
 rsp=Legendre([0.,1.])⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,[0.,1.]))
+
+testcalculus(sp)
+
 C=Conversion(dsp,rsp)
 f=Fun([1.,2.,3.,4.,5.],dsp)
 @test_approx_eq f(0.1) (C*f)(0.1)

@@ -91,6 +91,15 @@ function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,Matrix{T},T}
         resizedata!(A.QR,:,length(B)+size(A.QR.H,1)+10)
     end
 
+    if size(A.QR.H,1) == 1  # diagonal scaling, avoid growing
+        diagv=view(A.QR.H,1,1:length(B))
+        ret=similar(B)
+        @simd for k=1:length(ret)
+            @inbounds ret[k]=(1-2A.QR.H[1,k]^2)*B[k]
+        end
+        return Fun(ret,domainspace(A))
+    end
+
     H=A.QR.H
     h=pointer(H)
     M=size(H,1)

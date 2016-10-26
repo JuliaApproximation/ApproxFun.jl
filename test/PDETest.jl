@@ -1,11 +1,11 @@
 using ApproxFun, Base.Test, Compat, Base.Test
-    import ApproxFun: bandedblockbandedoperatortest, bandedblockoperatortest
+    import ApproxFun: testbandedblockbandedoperator, testbandedblockoperator
 
 ## Check operators
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ=Laplacian(S)
 
-bandedblockbandedoperatortest(Δ)
+testbandedblockbandedoperator(Δ)
 
 u=Fun((x,y)->sin(π*x)*sin(π*y),S)
 f=-2π^2*u
@@ -30,15 +30,15 @@ dx=dy=Interval()
 d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
-bandedblockbandedoperatortest(Laplacian(d))
-bandedblockoperatortest(Dirichlet(d))
+testbandedblockbandedoperator(Laplacian(d))
+testbandedblockoperator(Dirichlet(d))
 
 A=[Dirichlet(d);Laplacian(d)]
 
 @time u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
-bandedblockbandedoperatortest(Laplacian(d)+0.0I)
+testbandedblockbandedoperator(Laplacian(d)+0.0I)
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
 @time u=A\[g,0.]
@@ -79,7 +79,7 @@ d=dx*dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
-bandedblockbandedoperatortest(L)
+testbandedblockbandedoperator(L)
 
 A=[dirichlet(dx)⊗eye(dy);
         eye(dx)⊗dirichlet(dy);
@@ -120,7 +120,7 @@ B=Dirichlet(Space(d))
 g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
 @test norm((B*u_ex-g).coefficients) < 10eps()
 
-bandedblockbandedoperatortest(Laplacian(d))
+testbandedblockbandedoperator(Laplacian(d))
 
 @time u=[B;Laplacian(d)]\[g;0.]
 
@@ -144,7 +144,7 @@ V=B+C*x
 ε=0.1
 f=Fun(x->exp(-30x^2),dx)
 
-bandedblockbandedoperatortest(Dt-ε*Dx^2-V*Dx)
+testbandedblockbandedoperator(Dt-ε*Dx^2-V*Dx)
 
 @time u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
 
@@ -155,8 +155,8 @@ bandedblockbandedoperatortest(Dt-ε*Dx^2-V*Dx)
 
 dx=Interval(0.,1.);dt=Interval(0.0,0.001)
 C=Conversion(Chebyshev(dx)*Ultraspherical(1,dt),Ultraspherical(2,dx)*Ultraspherical(1,dt))
-bandedblockbandedoperatortest(C)
-bandedblockbandedoperatortest(Operator{Complex128}(C))
+testbandedblockbandedoperator(C)
+testbandedblockbandedoperator(Operator{Complex128}(C))
 
 
 d=dx*dt
@@ -169,7 +169,7 @@ Dt=Derivative(d,[0,1]);Dx=Derivative(d,[1,0])
 ϵ=1.
 u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
 L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
-bandedblockbandedoperatortest(L)
+testbandedblockbandedoperator(L)
 
 @time u=linsolve([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-5)
 @test_approx_eq u(0.5,0.001) 0.857215539785593+0.08694948835021317im  # empircal from schurfact
@@ -182,7 +182,7 @@ println("    Periodic x Periodic tests")
 d=PeriodicInterval()^2
 f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
 A=Laplacian(d)+.1I
-bandedblockbandedoperatortest(A)
+testbandedblockbandedoperator(A)
 
 @time u=A\f
 @test_approx_eq u(.1,.2) u(.2,.1)

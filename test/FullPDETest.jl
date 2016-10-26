@@ -1,6 +1,6 @@
 using ApproxFun, Compat, Base.Test
     import Compat: view
-    import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, bandedblockbandedoperatortest
+    import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator
 ## Check operators
 
 ## Rectangle PDEs
@@ -44,7 +44,7 @@ d=dx*dy
 Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
-bandedblockbandedoperatortest(L)
+testbandedblockbandedoperator(L)
 
 A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
         (rdirichlet(dx)+rneumann(dx))⊗eye(dy);

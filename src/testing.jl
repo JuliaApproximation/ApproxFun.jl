@@ -7,7 +7,7 @@ using Base.Test
 ## Spaces Tests
 
 
-function testspace(S::Space;minpoints=1,invertibletransform=true)
+function testtransforms(S::Space;minpoints=1,invertibletransform=true)
     # transform tests
     v = rand(max(minpoints,min(100,ApproxFun.dimension(S))))
     plan = plan_transform(S,v)
@@ -27,13 +27,33 @@ function testspace(S::Space;minpoints=1,invertibletransform=true)
     end
 end
 
+function testcalculus(S::Space;haslineintegral=true)
+    for k=1:min(5,dimension(S))
+        v = [zeros(k-1);1.0]
+        f = Fun(v,S)
+        @test abs(DefiniteIntegral()*f-sum(f)) < 100eps()
+        if haslineintegral
+            @test_approx_eq DefiniteLineIntegral()*f linesum(f)
+        end
+        @test norm(Derivative()*f-f') < 100eps()
+        @test norm(differentiate(integrate(f))-f) < 100eps()
+        @test norm(differentiate(cumsum(f))-f) < 100eps()
+        @test norm(first(cumsum(f))) < 100eps()
+    end
+end
+
+function testspace(S::Space;minpoints=1,invertibletransform=true,haslineintegral=true)
+    testtransforms(S;minpoints=minpoints,invertibletransform=invertibletransform)
+    testcalculus(S;haslineintegral=haslineintegral)
+end
+
 
 
 
 
 ## Operator Tests
 
-function backend_functionaltest(A)
+function backend_testfunctional(A)
     @test rowstart(A,1) == 1
     @test colstop(A,1) == 1
     @test bandwidth(A,1) == 0
@@ -58,20 +78,20 @@ function backend_functionaltest(A)
 end
 
 # Check that the tests pass after conversion as well
-function functionaltest{T<:Real}(A::Operator{T})
-    backend_functionaltest(A)
-    backend_functionaltest(Operator{Float64}(A))
-    backend_functionaltest(Operator{Float32}(A))
-    backend_functionaltest(Operator{Complex128}(A))
+function testfunctional{T<:Real}(A::Operator{T})
+    backend_testfunctional(A)
+    backend_testfunctional(Operator{Float64}(A))
+    backend_testfunctional(Operator{Float32}(A))
+    backend_testfunctional(Operator{Complex128}(A))
 end
 
-function functionaltest{T<:Complex}(A::Operator{T})
-    backend_functionaltest(A)
-    backend_functionaltest(Operator{Complex64}(A))
-    backend_functionaltest(Operator{Complex128}(A))
+function testfunctional{T<:Complex}(A::Operator{T})
+    backend_testfunctional(A)
+    backend_testfunctional(Operator{Complex64}(A))
+    backend_testfunctional(Operator{Complex128}(A))
 end
 
-function backend_infoperatortest(A)
+function backend_testinfoperator(A)
     @test isinf(size(A,1))
     @test isinf(size(A,2))
     B=A[1:5,1:5]
@@ -106,31 +126,31 @@ function backend_infoperatortest(A)
 end
 
 # Check that the tests pass after conversion as well
-function infoperatortest{T<:Real}(A::Operator{T})
-    backend_infoperatortest(A)
-    backend_infoperatortest(Operator{Float64}(A))
-    backend_infoperatortest(Operator{Float32}(A))
-    backend_infoperatortest(Operator{Complex128}(A))
+function testinfoperator{T<:Real}(A::Operator{T})
+    backend_testinfoperator(A)
+    backend_testinfoperator(Operator{Float64}(A))
+    backend_testinfoperator(Operator{Float32}(A))
+    backend_testinfoperator(Operator{Complex128}(A))
 end
 
-function infoperatortest{T<:Complex}(A::Operator{T})
-    backend_infoperatortest(A)
-    backend_infoperatortest(Operator{Complex64}(A))
-    backend_infoperatortest(Operator{Complex128}(A))
+function testinfoperator{T<:Complex}(A::Operator{T})
+    backend_testinfoperator(A)
+    backend_testinfoperator(Operator{Complex64}(A))
+    backend_testinfoperator(Operator{Complex128}(A))
 end
 
-function raggedbelowoperatortest(A)
+function testraggedbelowoperator(A)
     @test israggedbelow(A)
     for k=1:20
         @test isfinite(colstop(A,k))
     end
-    infoperatortest(A)
+    testinfoperator(A)
 end
 
-function bandedbelowoperatortest(A)
+function testbandedbelowoperator(A)
     @test isbandedbelow(A)
     @test isfinite(bandwidth(A,1))
-    raggedbelowoperatortest(A)
+    testraggedbelowoperator(A)
 
     for k=1:10
         @test colstop(A,k) ≤ k + bandwidth(A,1)
@@ -138,14 +158,14 @@ function bandedbelowoperatortest(A)
 end
 
 
-function almostbandedoperatortest(A)
-    bandedbelowoperatortest(A)
+function testalmostbandedoperator(A)
+    testbandedbelowoperator(A)
 end
 
-function bandedoperatortest(A)
+function testbandedoperator(A)
     @test isbanded(A)
     @test isfinite(bandwidth(A,2))
-    almostbandedoperatortest(A)
+    testalmostbandedoperator(A)
     for k=1:10
         @test rowstop(A,k) ≤ k + bandwidth(A,2)
     end
@@ -154,9 +174,9 @@ function bandedoperatortest(A)
 end
 
 
-function bandedblockoperatortest(A)
+function testbandedblockoperator(A)
     @test isbandedblock(A)
-    raggedbelowoperatortest(A)
+    testraggedbelowoperator(A)
     @test isfinite(blockbandwidth(A,2))
     @test isfinite(blockbandwidth(A,1))
 
@@ -166,9 +186,9 @@ function bandedblockoperatortest(A)
     end
 end
 
-function bandedblockbandedoperatortest(A)
+function testbandedblockbandedoperator(A)
     @test isbandedblockbanded(A)
-    bandedblockoperatortest(A)
+    testbandedblockoperator(A)
     @test isfinite(subblockbandwidth(A,1))
     @test isfinite(subblockbandwidth(A,2))
 

@@ -1,5 +1,8 @@
 using ApproxFun, Base.Test
-    import ApproxFun: bandedbelowoperatortest, bandedoperatortest
+    import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms
+
+
+testspace(Jacobi(2.,.5);haslineintegral=false)
 
 f=Fun(exp,Jacobi(2.,.5))
 @test_approx_eq f(.1) exp(.1)
@@ -22,6 +25,7 @@ f4=Fun(exp,sp4)
 
 
 m=20
+testtransforms(JacobiWeight(0.,m,Jacobi(2m+1,0.)))
 f=Fun(x->((1-x)/2).^m.*exp(x),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
 @test abs(f(.1)-(x->((1-x)/2).^m.*exp(x))(.1))<10eps()
 
@@ -37,6 +41,7 @@ m=10
 
 ## Conversion
 
+testtransforms(Jacobi(-0.5,-0.5))
 @test norm(Fun(Fun(exp),Jacobi(-.5,-.5))-Fun(exp,Jacobi(-.5,-.5))) < 100eps()
 
 x=Fun(identity)
@@ -53,11 +58,11 @@ ri=0.5./(1-x)
 ## Derivative
 
 D=Derivative(Jacobi(1.,0.,Interval(1.,0.)))
-bandedoperatortest(D)
+testbandedoperator(D)
 
 S=JacobiWeight(0.,0.,Jacobi(1.,0.,Interval(1.,0.)))
 D=Derivative(S)
-bandedoperatortest(D)
+testbandedoperator(D)
 
 f=Fun(exp,domainspace(D))
 @test (D*f-f).coefficients|>norm < eps(100000.)
@@ -95,6 +100,7 @@ f=Fun(exp,Jacobi(0.213,0.590))
 
 ## Jacobi integrate and sum
 
+testtransforms(Legendre([0,2]))
 @test_approx_eq sum(Fun(exp,Legendre([0,2]))) sum(Fun(exp,[0,2]))
 
 a=Arc(0.,.1,0.,π/2)
@@ -110,7 +116,8 @@ x=Fun()
 f=exp(x)*sqrt(1-x^2)
 D=Derivative(WeightedJacobi(.5,.5))
 
-bandedoperatortest(D)
+testtransforms(WeightedJacobi(.5,.5))
+testbandedoperator(D)
 
 @time g=(D*Fun(f,domainspace(D)))
 @test_approx_eq f'(0.1) g(0.1)
@@ -128,37 +135,99 @@ h = Fun(g,Chebyshev())
 
 
 ## Legendre conversions
+testspace(Ultraspherical(1);haslineintegral=false)
+testspace(Ultraspherical(2);haslineintegral=false)
+testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)  # minpoints is a tempory fix a bug
+S=Ultraspherical(1//2)
+v=rand(100)
+
+ApproxFun.itransform(S,[1.0])
+FastTransforms.th_cheb2legplan(Float64,1)
+ApproxFun.transform(S,[1.0])
+p=ApproxFun.plan_itransform(S,v)
+ApproxFun.itransform(S,v,p)
+p*v
+
+n=1
+S=Float64
+t = zeros(S,n-1)
+import FastTransforms:Λ,half
+using ToeplitzMatrices
+Λ(0:one(S):div(n-2,2),-half(S),one(S))
+fld(n-2,2)
+fld(3,2)
+t[1:2:end] = Λ(0:one(S):fld(n-2,2),-half(S),one(S))
+T = TriangularToeplitz(Float64[],:U)
+h = Λ(1:half(S):n-1,zero(S),3half(S))
+H = Hankel(h[1:n-1],h[n-1:end])
+D = 1:one(S):n-1
+DL = (3half(S):n-half(S))./D
+DR = -(one(S):n-one(S))./4D
+T,H,D,DL,DR
+
+p=ApproxFun.plan_transform(S,v)
+@which ApproxFun.plan_transform(S,v)
+@which coefficients(v,S,Chebyshev())
+
+conversion_type(S,Chebyshev())
+
+ApproxFun.itransform(S,v)
+
+v=rand(100)
+coefficients(v,S,Chebyshev())
+QR=qrfact(Conversion(Ultraspherical(1),S))
+Ac_mul_B(QR[:Q],v)
+show(QR[:R])
+
+C=Conversion(Ultraspherical(1),S)
+show(C)
+QR.H
+
+iplan = ApproxFun.plan_itransform(S,v)
+ApproxFun.itransform(S,v)
+@which ApproxFun.itransform(S,v,iplan)
+cfs=v
+csp=ApproxFun.canonicalspace(S)
+@which coefficients(cfs,S,Ultraspherical(1))
+
+
+ApproxFun.Ac_mul_Bpars(QR[:Q],cfs,0.0001,1000)-cfs|>norm
+@which linsolve(QR,cfs)
+
+minimum(QR.H[1,1:100])
+
+@which \cfs
 
 @test norm(Fun(exp,Ultraspherical(1//2))-Fun(exp,Jacobi(0,0))) < 100eps()
 
 C=Conversion(Jacobi(0,0),Chebyshev())
-bandedbelowoperatortest(C)
+testbandedbelowoperator(C)
 @test norm(C*Fun(exp,Jacobi(0,0))  - Fun(exp)) < 100eps()
 
 
 C=Conversion(Ultraspherical(1//2),Chebyshev())
-bandedbelowoperatortest(C)
+testbandedbelowoperator(C)
 @test norm(C*Fun(exp,Ultraspherical(1//2))  - Fun(exp)) < 100eps()
 
 
 
 C=Conversion(Chebyshev(),Ultraspherical(1//2))
-bandedbelowoperatortest(C)
+testbandedbelowoperator(C)
 @test norm(C*Fun(exp)-Fun(exp,Legendre())) < 100eps()
 
 
 C=Conversion(Chebyshev(),Jacobi(0,0))
-bandedbelowoperatortest(C)
+testbandedbelowoperator(C)
 @test norm(C*Fun(exp)  - Fun(exp,Jacobi(0,0))) < 100eps()
 
 
 C=Conversion(Chebyshev(),Jacobi(1,1))
-bandedbelowoperatortest(C)
+testbandedbelowoperator(C)
 @test norm(C*Fun(exp) - Fun(exp,Jacobi(1,1))) < 100eps()
 
 
 C=Conversion(Ultraspherical(1//2),Ultraspherical(1))
-bandedbelowoperatortest(C)
+testbandedbelowoperator(C)
 
 λ1 = ApproxFun.order(domainspace(C))
 λ2 = ApproxFun.order(rangespace(C))
@@ -177,12 +246,12 @@ Cex = Float64[(if j ≥ k && iseven(k-j)
 @test norm(C*Fun(exp,Ultraspherical(1//2))-Fun(exp,Ultraspherical(1))) < 100eps()
 
 C=Conversion(Jacobi(0,0),Ultraspherical(1))
-bandedbelowoperatortest(C)
+testbandedbelowoperator(C)
 @test norm(C*Fun(exp,Jacobi(0,0))-Fun(exp,Ultraspherical(1))) < 100eps()
 
 
 C=Conversion(Ultraspherical(1),Jacobi(0,0))
-bandedbelowoperatortest(C)
+testbandedbelowoperator(C)
 @test norm(C*Fun(exp,Ultraspherical(1))-Fun(exp,Jacobi(0,0))) < 100eps()
 
 

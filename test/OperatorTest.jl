@@ -1,20 +1,20 @@
 using ApproxFun, Base.Test, Compat
     import ApproxFun:Multiplication,InterlaceOperator
     import Compat.view
-    import ApproxFun: functionaltest, bandedoperatortest, raggedbelowoperatortest, infoperatortest
+    import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator
 
 
 # test row/colstarts
 
 
-functionaltest(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
+testfunctional(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
 
 # test fast copy is consistent with getindex
 
 
 C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
-@time bandedoperatortest(C)
+@time testbandedoperator(C)
 
 @test_approx_eq full(C[1:5,1:5])    [4.0 5.0 6.0 0.0 0.0
                                      1.0 4.0 5.0 6.0 0.0
@@ -24,7 +24,7 @@ C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
 C=Conversion(Ultraspherical(1),Ultraspherical(2))
 
-bandedoperatortest(C)
+testbandedoperator(C)
 
 @test_approx_eq full(C[1:5,1:5])     [1.0 0.0 -0.3333333333333333 0.0  0.0
                                       0.0 0.5  0.0               -0.25 0.0
@@ -37,7 +37,7 @@ bandedoperatortest(C)
 
 @time for M in (HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
             Multiplication(Fun([1.,2.,3.],Chebyshev()),Chebyshev()))
-    bandedoperatortest(M)
+    testbandedoperator(M)
 end
 
 
@@ -58,7 +58,7 @@ d=domain(f)
 Q=Integral(d)
 D=Derivative(d)
 
-@time bandedoperatortest(Q)
+@time testbandedoperator(Q)
 
 @test norm((Q+I)*f-(integrate(f)+f)) < 100eps()
 @test norm((Q)*f-(integrate(f))) < 100eps()
@@ -66,14 +66,14 @@ D=Derivative(d)
 x=Fun(identity)
 X=Multiplication(x,space(x))
 
-bandedoperatortest(X)
+testbandedoperator(X)
 
 d=Interval()
 
 
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))
 
-bandedoperatortest(A)
+testbandedoperator(A)
 
 @test norm(A\Fun(x.*f,rangespace(A))-(x.*f)) < 100eps()
 
@@ -83,7 +83,7 @@ bandedoperatortest(A)
 
 A=Conversion(Chebyshev(d),Ultraspherical(2,d))*X
 
-@time bandedoperatortest(A)
+@time testbandedoperator(A)
 
 @test norm((A*f.coefficients).coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
 
@@ -99,7 +99,7 @@ x=Fun(identity)
 
 P=ApproxFun.PermutationOperator([2,1])
 
-bandedoperatortest(P)
+testbandedoperator(P)
 
 @test_approx_eq P[1:4,1:4] [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0]
 
@@ -113,8 +113,8 @@ a=Fun(t-> 1+sin(cos(10t)),d)
 D=Derivative(d)
 L=D+a
 
-@time bandedoperatortest(D)
-@time bandedoperatortest(Multiplication(a,Space(d)))
+@time testbandedoperator(D)
+@time testbandedoperator(Multiplication(a,Space(d)))
 
 
 f=Fun(t->exp(sin(t)),d)
@@ -128,11 +128,11 @@ a0=Fun(t->cos(12sin(t)),d)
 D=Derivative(d)
 L=D^2+a1*D+a0
 
-@time bandedoperatortest(L)
+@time testbandedoperator(L)
 
 f=Fun([1,2,3,4,5],space(a1))
 
-bandedoperatortest(Multiplication(a0,Fourier([0.,2π])))
+testbandedoperator(Multiplication(a0,Fourier([0.,2π])))
 
 @test_approx_eq (Multiplication(a0,Fourier([0.,2π]))*f)(0.1)  (a0(0.1)*f(0.1))
 @test_approx_eq ((Multiplication(a1,Fourier([0.,2π]))*D)*f)(0.1)  (a1(0.1)*f'(0.1))
@@ -158,10 +158,10 @@ A=D*(x*D)
 B=D+x*D^2
 C=x*D^2+D
 
-bandedoperatortest(A)
-bandedoperatortest(B)
-bandedoperatortest(C)
-@time bandedoperatortest(x*D)
+testbandedoperator(A)
+testbandedoperator(B)
+testbandedoperator(C)
+@time testbandedoperator(x*D)
 
 f=Fun(exp)
 @test_approx_eq (A.ops[end]*f)(0.1) f'(0.1)
@@ -170,9 +170,9 @@ f=Fun(exp)
 @test_approx_eq (B*f)(0.1) f'(0.1)+0.1*f''(0.1)
 @test_approx_eq (C*f)(0.1) f'(0.1)+0.1*f''(0.1)
 
-bandedoperatortest(A-B)
-bandedoperatortest(B-A)
-bandedoperatortest(A-C)
+testbandedoperator(A-B)
+testbandedoperator(B-A)
+testbandedoperator(A-C)
 
 @test norm((A-B)[1:10,1:10]|>full)<eps()
 @test norm((B-A)[1:10,1:10]|>full)<eps()
@@ -200,8 +200,8 @@ end
 ## Reverse
 
 
-bandedoperatortest(ApproxFun.Reverse(Chebyshev()))
-bandedoperatortest(ApproxFun.ReverseOrientation(Chebyshev()))
+testbandedoperator(ApproxFun.Reverse(Chebyshev()))
+testbandedoperator(ApproxFun.ReverseOrientation(Chebyshev()))
 
 @test ApproxFun.Reverse(Chebyshev())*Fun(exp) ≈ Fun(x->exp(-x))
 @test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,[1,-1])

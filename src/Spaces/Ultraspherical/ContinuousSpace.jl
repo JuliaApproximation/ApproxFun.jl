@@ -14,7 +14,9 @@ spacescompatible(a::ContinuousSpace,b::ContinuousSpace) = domainscompatible(a,b)
 conversion_rule{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(a::ContinuousSpace,
                                                             b::PiecewiseSpace{CD,RealBasis}) = a
 
-function transform(S::ContinuousSpace,vals::Vector)
+plan_transform(S::ContinuousSpace,vals::Vector) = identity  # TODO: implement plan
+
+function transform(S::ContinuousSpace,vals::Vector,plan...)
     n=length(vals)
     d=domain(S)
     K=numpieces(d)

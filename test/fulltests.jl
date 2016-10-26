@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-    import ApproxFun: bandedoperatortest, raggedbelowoperatortest, InterlaceOperator
+    import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator
 ## This includes extra tests that are too time consuming for Travis
 
 
@@ -12,7 +12,7 @@ println("    Full Operator tests")
                 Multiplication(Fun([1.],SinSpace()),SinSpace()),
                 Multiplication(Fun([1.],SinSpace()),CosSpace()),
                 Derivative(SinSpace()),Derivative(CosSpace()))
-      bandedoperatortest(M)
+      testbandedoperator(M)
 end
 
 S=Chebyshev()
@@ -23,7 +23,7 @@ S=Chebyshev()
         InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)]),
         InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))]),
         InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))]))
-    raggedbelowoperatortest(io)
+    testraggedbelowoperator(io)
 end
 
 ## Newton iteration bug
@@ -45,14 +45,14 @@ A=ApproxFun.interlace([Z                      Evaluation(S,0);
                      u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
                       0         D^2+I+3u^2])
 
-@time raggedbelowoperatortest(A)
+@time testraggedbelowoperator(A)
 
 # This is surprisingly slow...
 
 DS=WeightedJacobi(0.1+1,0.2+1)
 D=Derivative(DS)[2:end,:]
 
-@time ApproxFun.bandedoperatortest(D)
+@time ApproxFun.testbandedoperator(D)
 
 
 println("    Bessel tests")
