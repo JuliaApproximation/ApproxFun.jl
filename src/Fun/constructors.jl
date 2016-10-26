@@ -45,7 +45,7 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
 
     f1=f(pts[1])
 
-    if isa(f1,Array) && !isa(d,ArraySpace)
+    if (isa(f1,AbstractArray) || isa(f1,Vec)) && !isa(d,ArraySpace)
         return Fun(f,ArraySpace(d,size(f1)...),n)
     end
 

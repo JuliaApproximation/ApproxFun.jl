@@ -156,7 +156,23 @@ end
 
 ## x,y constructor
 
-
-x,y=Fun(Interval()^2)
+d=Interval()^2
+x,y=Fun(d)
 @test_approx_eq x(0.1,0.2) 0.1
 @test_approx_eq y(0.1,0.2) 0.2
+
+x,y=Fun(identity,d,20)
+@test_approx_eq x(0.1,0.2) 0.1
+@test_approx_eq y(0.1,0.2) 0.2
+
+
+## Boundary
+
+x,y=Fun(identity,∂(d),20)
+@test_approx_eq x(0.1,1.0) 0.1
+@test_approx_eq y(1.0,0.2) 0.2
+
+
+x,y=Fun(identity,∂(d))
+@test_approx_eq x(0.1,1.0) 0.1
+@test_approx_eq y(1.0,0.2) 0.2

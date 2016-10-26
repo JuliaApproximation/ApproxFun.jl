@@ -77,6 +77,8 @@ end
 
 # transform of array is same order as vectorizing and then transforming
 transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}}) = transform(vec(AS),map(vec,vals))
+transform{SS,AV<:AbstractVector}(AS::ArraySpace{SS,1},vals::Vector{AV}) = transform(AS,map(Vector,vals))
+transform{SS,n,V}(AS::ArraySpace{SS,1},vals::Vector{Vec{V,n}}) = transform(AS,map(Vector,vals))
 
 Base.vec(AS::ArraySpace)=ArraySpace(AS.space,length(AS))
 Base.vec{AS<:ArraySpace}(f::Fun{AS}) = Fun{typeof(space(f).space),eltype(f)}[f[j] for j=1:length(f.space)]

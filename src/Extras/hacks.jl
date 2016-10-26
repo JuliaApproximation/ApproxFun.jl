@@ -93,3 +93,15 @@ function dotu{T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,
     end
     ret
 end
+
+
+
+#TODO: Remove. This is a temporary fix while waiting for a pull request to be merged.
+function Base.norm{N, T}(a::Vec{N, T}, p)
+    isinf(p) && return maxabs(a)
+    ret = abs(a[1])^p
+    for k = 2:N
+        ret += abs(a[k])^p
+    end
+    ret^(1/p)
+end
