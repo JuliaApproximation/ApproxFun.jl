@@ -237,6 +237,5 @@ d=Interval(a,b)
 z=Fun(d)
 f=real(exp(z)/(sqrt(z-a)*sqrt(b-z)))
 S=space(f)
-testsies(S)
 x=4.0+2im;
 @test_approx_eq linesum(f*log(abs(x-z))) 13.740676344264614

@@ -100,10 +100,12 @@ isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockb
 
 
 # this should be determinable at compile time
-
+#TODO: I think it can be generalized to the case when the domainspace
+# blocklengths == rangespace blocklengths, in which case replace the definition
+# of p with maximum(blocklength(domainspace(A)))
 function blockbandinds(A::Operator)
     hastrivialblocks(A) && return bandinds(A)
-    
+
     if hasconstblocks(A)
         a,b = bandinds(A)
         p = blocklengths(domainspace(A)).x
