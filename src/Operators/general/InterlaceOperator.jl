@@ -174,9 +174,9 @@ function InterlaceOperator{T,DS<:Space,RS<:Space}(opsin::Matrix{Operator{T}},::T
     # TODO: make consistent
     # if its a row vector, we assume scalar
     if size(ops,1) == 1
-        InterlaceOperator(ops,DS(domainspace(ops).spaces),rangespace(ops[1]))
+        InterlaceOperator(ops,DS(spaces(domainspace(ops))),rangespace(ops[1]))
     else
-        InterlaceOperator(ops,DS(domainspace(ops).spaces),RS(rangespace(ops[:,1]).spaces))
+        InterlaceOperator(ops,DS(spaces(domainspace(ops))),RS(rangespace(ops[:,1]).spaces))
     end
 end
 

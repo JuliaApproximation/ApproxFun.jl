@@ -135,7 +135,6 @@ f=w+x
 dsp=JacobiWeight(1.,0.,Jacobi(0.,1.,[0.,1.]))⊕JacobiWeight(0.5,0.,Jacobi(-0.5,0.5,[0.,1.]))
 rsp=Legendre([0.,1.])⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,[0.,1.]))
 
-testcalculus(sp)
 
 C=Conversion(dsp,rsp)
 f=Fun([1.,2.,3.,4.,5.],dsp)
