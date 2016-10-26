@@ -14,7 +14,8 @@ valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type
 
 
 function choosefuneltype(ftype,Td)
-    if !( ftype<: Number || ( (ftype <: Array) && (ftype.parameters[1] <: Number) ) )
+    if !( ftype<: Number || ( ((ftype <: AbstractArray) || (ftype <: Vec)) &&
+                              (eltype(ftype) <: Number) ) )
         warn("Function outputs type $(ftype), which is not a Number")
     end
 
