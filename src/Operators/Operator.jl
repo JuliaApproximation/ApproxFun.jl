@@ -37,9 +37,16 @@ isafunctional(A::Operator) = size(A,1)==1 && isconstspace(rangespace(A))
 
 
 isboolvec(A) = isa(A,Repeated{Bool}) || isa(A,AbstractVector{Bool})
+# block lengths of a space are 1
 hastrivialblocks(A::Space) = isboolvec(blocklengths(A))
 hastrivialblocks(A::Operator) = hastrivialblocks(domainspace(A)) &&
                                 hastrivialblocks(rangespace(A))
+
+# blocklengths are constant lengths
+hasconstblocks(A::Space) = isa(blocklengths(A),Repeated)
+hasconstblocks(A::Operator) = hasconstblocks(domainspace(A)) && hasconstblocks(rangespace(A)) &&
+                                blocklengths(domainspace(A)).x == blocklengths(rangespace(A)).x
+
 
 macro functional(FF)
     quote
@@ -94,8 +101,17 @@ isbandedblockbanded(A::Operator) = isbandedblockbandedabove(A) && isbandedblockb
 
 # this should be determinable at compile time
 
-#TODO: this is bad: we shouldn't assume block size 1
-blockbandinds(A::Operator) = hastrivialblocks(A) && isbanded(A) ? bandinds(A) : (-∞,∞)
+function blockbandinds(A::Operator)
+    hastrivialblocks(A) && return bandinds(A)
+    
+    if hasconstblocks(A)
+        a,b = bandinds(A)
+        p = blocklengths(domainspace(A)).x
+        (fld(a,p),-fld(-b,p))
+    else
+        (-∞,∞)
+    end
+end
 blockbandwidths(S::Operator) = -blockbandinds(S,1),blockbandinds(S,2)
 blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
 blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(K,k)

@@ -227,3 +227,16 @@ x=Fun()
 p=(S,k)->Fun([zeros(k);1.],S)
 n=1;
 @test norm(x*p(S,n-1)-(ApproxFun.recα(Float64,S,n)*p(S,n-1) + ApproxFun.recβ(Float64,S,n)*p(S,n))) < 10eps()
+
+
+
+# Log with squareroot singularities
+
+a=1.0;b=2.0+im
+d=Interval(a,b)
+z=Fun(d)
+f=real(exp(z)/(sqrt(z-a)*sqrt(b-z)))
+S=space(f)
+testsies(S)
+x=4.0+2im;
+@test_approx_eq linesum(f*log(abs(x-z))) 13.740676344264614
