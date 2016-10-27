@@ -570,6 +570,10 @@ end
 *(a::Number,y::Infinity) = Infinity(y.angle+angle(a)/π)
 *(y::Infinity,a::Number) = a*y
 
+for OP in (:fld,:cld,:div)
+  @eval Base.$OP(y::Infinity,a::Number) = y*(1/sign(a))
+end
+
 Base.min{B<:Integer}(x::Infinity{B},y::Infinity{B}) = sign(x)==-1?x:y
 Base.max{B<:Integer}(x::Infinity{B},::Infinity{B}) = sign(x)==1?x:y
 Base.min{B<:Integer}(x::Real,y::Infinity{B}) = sign(y)==1?x:y
