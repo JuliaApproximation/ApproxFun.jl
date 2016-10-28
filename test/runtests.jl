@@ -31,6 +31,10 @@ import ApproxFun: Infinity, ∞
 @test ApproxFun.interlace(collect(6:10),collect(1:5)) == ApproxFun.interlace!(collect(1:10),0)
 @test ApproxFun.interlace(collect(1:5),collect(6:10)) == ApproxFun.interlace!(collect(1:10),1)
 
+@test maximum(ApproxFun.repeated(1)) == 1
+@test minimum(1:ApproxFun.∞) == 1
+@test minimum(ApproxFun.flatten(([2.0],1:ApproxFun.∞))) == 1
+
 
 println("Domain tests")
 

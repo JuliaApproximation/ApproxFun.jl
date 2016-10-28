@@ -2,7 +2,9 @@
 
 
 # diagblockshift gives the shift for the diagonal block of an operator
-
+# that is, trace an operator down the diagonal.  What blocks correspond to the
+# block diagonal?
+# these will be completed on a case-by-case until the general pattern is determined
 
 diagblockshift(a,b) = error("Developer: Not implemented for blocklengths $a, $b")
 
@@ -12,10 +14,25 @@ function diagblockshift(a::AbstractCount,b::AbstractCount)
 end
 diagblockshift(a::UnitCount,b::UnitCount) = b.start-a.start
 
-function diagblockshift{T}(a::Repeated{T},b::Repeated{T})
-    @assert a.x == b.x #is this necessary?
+#TODO: generalize
+function diagblockshift(a::Repeated{Int},b::Repeated{Int})
+    @assert a.x == b.x
     0
 end
+
+
+function diagblockshift(a::Flatten{Tuple{Vector{Int},Repeated{Int}}},b::Repeated{Int})
+    @assert a.it[end].x == b.x
+    @assert a[1] ≥ b.x
+    0
+end
+
+function diagblockshift(a::Flatten{Tuple{Vector{Int},Repeated{Int}}},b::Flatten{Tuple{Vector{Int},Repeated{Int}}})
+    @assert a.it[end].x == b.it[end].x
+    @assert a[1] ≥ b[1]
+    0
+end
+
 
 diagblockshift(op::Operator) =
     diagblockshift(blocklengths(domainspace(op)),blocklengths(rangespace(op)))

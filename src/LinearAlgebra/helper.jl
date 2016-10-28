@@ -615,6 +615,9 @@ Base.done(::Repeated,state) = false
 
 Base.length(::Repeated) = ∞
 
+Base.maximum(r::Repeated) = r.x
+Base.minimum(r::Repeated) = r.x
+
 getindex(it::Repeated,k::Integer) = it.x
 getindex(it::Repeated,k::Range) = fill(it.x,length(k))
 
@@ -833,6 +836,7 @@ flatten(itr) = Flatten(itr)
 
 Base.eltype(f::Flatten) = mapreduce(eltype,promote_type,f.it)
 
+
 Base.start(f::Flatten) = 1, map(start,f.it)
 
 function Base.next(f::Flatten, state)
@@ -847,9 +851,12 @@ end
 
 
 @inline Base.done(f::Flatten, state) =
-    state[1] == length(f) && done(f.its[end],state[2][end])
+    state[1] == length(f) && done(f.it[end],state[2][end])
 
 Base.length(f::Flatten) = mapreduce(length,+,f.it)
+
+Base.eachindex(f::Flatten) = 1:length(f)
+
 function getindex(f::Flatten,k::Int)
     sh = 0
     for it in f.it
@@ -874,7 +881,8 @@ function getindex(f::Flatten,kr::UnitRange{Int})
     for j in 1:length(f.it)
         n = length(f.it[j])
         if sh ≤ k ≤ sh + n
-            return flatten(tuple(f.it[1:j-1]...,f.it[j][1:(k-sh)]))
+            nls = map(it->it[1:0],f.it[j+1:end])  # this ensures type stability
+            return flatten(tuple(f.it[1:j-1]...,f.it[j][1:(k-sh)],nls...))
         else
             sh += n
         end
@@ -885,6 +893,10 @@ end
 
 
 Base.sum(f::Flatten) = mapreduce(sum,+,f.it)
+
+
+Base.maximum(f::Flatten) = mapreduce(maximum,max,f.it)
+Base.minimum(f::Flatten) = mapreduce(minimum,min,f.it)
 
 
 ## Iterator Algebra
