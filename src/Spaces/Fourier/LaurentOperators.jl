@@ -219,31 +219,31 @@ for SP in (:Taylor,:(Hardy{false}),:Laurent)
 end
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Taylor{D},T},k::Integer) =
-    k == 1? complexlength(domain(Σ)) : zero(T)
+    k == 1? T(complexlength(domain(Σ))) : zero(T)
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Hardy{false,D},T},k::Integer) =
     zero(T)
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Laurent{D},T},k::Integer) =
-    k == 1? complexlength(domain(Σ)) : zero(T)
+    k == 1? T(complexlength(domain(Σ))) : zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Taylor{D},T},k::Integer) =
     zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Hardy{false,D},T},k::Integer) =
-    k == 1? complexlength(domain(Σ)) :zero(T)
+    k == 1? T(complexlength(domain(Σ))) :zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Laurent{D},T},k::Integer) =
-    k == 2? complexlength(domain(Σ)) :zero(T)
+    k == 2? T(complexlength(domain(Σ))) :zero(T)
 
 getindex{T,D}(Σ::ConcreteDefiniteLineIntegral{Taylor{D},T},k::Integer) =
-    k == 1? arclength(domain(Σ)) : zero(T)
+    k == 1? T(arclength(domain(Σ))) : zero(T)
 
 getindex{T,D}(Σ::ConcreteDefiniteLineIntegral{Hardy{false,D},T},k::Integer) =
     zero(T)
 
 getindex{T,D}(Σ::ConcreteDefiniteLineIntegral{Laurent{D},T},k::Integer) =
-    k == 1? arclength(domain(Σ)) : zero(T)
+    k == 1? T(arclength(domain(Σ))) : zero(T)
 
 bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Taylor{D}}) = 0,0
 bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Hardy{false,D}}) = 0,0

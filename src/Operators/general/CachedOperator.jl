@@ -67,7 +67,11 @@ blockbandinds{T<:Number,BM<:BandedMatrix,M<:Operator}(C::CachedOperator{T,BM,M})
 
 function Base.getindex(B::CachedOperator,k::Integer,j::Integer)
     resizedata!(B,k,j)
-    B.data[k,j]
+    if k ≤ size(B.data,1) && j ≤ size(B.data,2)
+        B.data[k,j]
+    else
+        zero(eltype(B))
+    end
 end
 
 function Base.getindex(B::CachedOperator,k::Range,j::Range)

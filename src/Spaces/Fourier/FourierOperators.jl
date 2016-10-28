@@ -267,40 +267,40 @@ for SP in (:CosSpace,:SinSpace,:Fourier)
 end
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{CosSpace{D},T},k::Integer) =
-    k == 1? complexlength(domain(Σ)) : zero(T)
+    k == 1? T(complexlength(domain(Σ))) : zero(T)
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{SinSpace{D},T},k::Integer) =
     zero(T)
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},k::Integer) =
-    k == 1? complexlength(domain(Σ)) : zero(T)
+    k == 1? T(complexlength(domain(Σ))) : zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{CosSpace{D},T},k::Integer) =
-    k==2? 0.5complexlength(domain(Σ)) : zero(T)
+    k==2? T(complexlength(domain(Σ))/2) : zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{SinSpace{D},T},k::Integer) =
-    k == 1? 0.5im*complexlength(domain(Σ)) : zero(T)
+    k == 1? T(0.5im*complexlength(domain(Σ))) : zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},k::Integer) =
-    k == 2? 0.5im*complexlength(domain(Σ)) : (k==3 ? 0.5complexlength(domain(Σ)) : zero(T))
+    k == 2? T(0.5im*complexlength(domain(Σ))) : (k==3 ? T(complexlength(domain(Σ))/2) : zero(T))
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D},T},k::Integer) =
-    k==1? arclength(domain(Σ)) : zero(T)
+    k==1? T(arclength(domain(Σ))) : zero(T)
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D},T},k::Integer) =
     zero(T)
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
-    k==1? arclength(domain(Σ)) : zero(T)
+    k==1? T(arclength(domain(Σ))) : zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D},T},k::Integer) =
-    k==1? 0.5arclength(domain(Σ)) : zero(T)
+    k==1? T(arclength(domain(Σ))/2) : zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D},T},k::Integer) =
     zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
-    k==1? 0.5arclength(domain(Σ)) : zero(T)
+    k==1? T(arclength(domain(Σ))/2) : zero(T)
 
 bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{CosSpace{D}}) = 0,0
 bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{SinSpace{D}}) = 0,0

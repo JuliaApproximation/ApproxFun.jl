@@ -56,7 +56,7 @@ macro functional(FF)
         ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A))?bandinds(A,2):∞
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
             @assert k==1
-            f[j]
+            f[j]::eltype(f)
         end
     end
 end
@@ -109,10 +109,22 @@ function blockbandinds(A::Operator)
     if hasconstblocks(A)
         a,b = bandinds(A)
         p = blocklengths(domainspace(A)).x
-        (fld(a,p),-fld(-b,p))
-    else
-        (-∞,∞)
+        return (fld(a,p),-fld(-b,p))
     end
+
+    #TODO: Generalize to finite dimensional
+    if size(A,2) == 1
+        rs = rangespace(A)
+
+        if hasconstblocks(rs)
+            a = bandinds(A,1)
+            p = blocklengths(rs).x
+            return (fld(a,p),0)
+        end
+    end
+
+
+    return (-∞,∞)
 end
 blockbandwidths(S::Operator) = -blockbandinds(S,1),blockbandinds(S,2)
 blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]

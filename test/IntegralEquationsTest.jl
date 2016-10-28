@@ -1,4 +1,10 @@
 using ApproxFun, Base.Test
+    import ApproxFun: testfunctional
+
+for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
+            CosSpace(Circle()))
+    testfunctional(DefiniteLineIntegral(S))
+end
 
 
 # checks bug for
