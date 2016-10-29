@@ -7,7 +7,24 @@ using ApproxFun, Compat, Base.Test
 
 println("    Rectangle tests")
 
+
 # Screened Poisson
+
+dx=dy=Interval()
+d=dx*dy
+g=Fun((x,y)->exp(x)*cos(y),∂(d))
+
+
+testbandedblockoperator(Dirichlet(d))
+
+
+testbandedblockbandedoperator(Laplacian(d))
+A=[Dirichlet(d);Laplacian(d)]
+
+@time u=A\[g,0.]
+@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
+
+
 
 d=Interval()^2
 @time u=linsolve([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
@@ -26,14 +43,6 @@ x,y=Fun(identity,d)
 
 @test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
 
-
-dθ=PeriodicInterval();dt=Interval(0,1.)
-d=dθ*dt
-ε=0.1
-Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-u0=Fun(θ->exp(-20θ^2),dθ,20)
-@time u=linsolve([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
-@test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
 
 
 
@@ -362,6 +371,14 @@ u=linsolve(A,F;tolerance=1E-10)
 
 println("    Periodic x Interval tests")
 
+
+dθ=PeriodicInterval();dt=Interval(0,1.)
+d=dθ*dt
+ε=0.1
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
+u0=Fun(θ->exp(-20θ^2),dθ,20)
+@time u=linsolve([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
+@test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
 
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
 d=dθ*dt

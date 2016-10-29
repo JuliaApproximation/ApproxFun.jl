@@ -15,9 +15,6 @@ QR=qrfact(Δ)
 @time v=QR\f
 @test norm((u-v).coefficients)<100eps()
 
-v=Δ\f
-@test norm((u-v).coefficients)<100eps()
-
 
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
 @time v=linsolve(Δ,f;tolerance=1E-14)
@@ -30,14 +27,8 @@ dx=dy=Interval()
 d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
-testbandedblockbandedoperator(Laplacian(d))
+
 testbandedblockoperator(Dirichlet(d))
-
-A=[Dirichlet(d);Laplacian(d)]
-
-@time u=A\[g,0.]
-@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
-
 testbandedblockbandedoperator(Laplacian(d)+0.0I)
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
