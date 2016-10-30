@@ -2,8 +2,8 @@
 real{T}(::Type{Dual{T}}) = Dual{ApproxFun.real(T)}
 
 # Dual number support. Should there be realpart and dualpart of Space and Domain?
-DualNumbers.realpart(f::Fun) = Fun(realpart(coefficients(f)),space(f))
-DualNumbers.dualpart(f::Fun) = Fun(dualpart(coefficients(f)),space(f))
+DualNumbers.realpart{S,T<:Dual}(f::Fun{S,T}) = Fun(realpart(coefficients(f)),space(f))
+DualNumbers.dualpart{S,T<:Dual}(f::Fun{S,T}) = Fun(dualpart(coefficients(f)),space(f))
 
 
 DualNumbers.realpart{DD<:Dual}(d::Interval{DD}) = Interval(realpart(d.a),realpart(d.b))

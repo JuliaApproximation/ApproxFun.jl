@@ -60,7 +60,7 @@ function backend_testfunctional(A)
     @test blockbandwidth(A,1) == 0
 
     B=A[1:10]
-    eltype(B) == eltype(A)
+    @test eltype(B) == eltype(A)
     for k=1:5
         @test_approx_eq B[k] A[k]
         @test isa(A[k],eltype(A))

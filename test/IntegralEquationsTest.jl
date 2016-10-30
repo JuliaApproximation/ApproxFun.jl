@@ -2,9 +2,12 @@ using ApproxFun, Base.Test
     import ApproxFun: testfunctional
 
 for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
-            CosSpace(Circle()))
+            CosSpace(Circle()),JacobiWeight(-0.5,-0.5,Chebyshev()),
+            JacobiWeight(-0.5,-0.5,Chebyshev([1.0,2.0+im])),
+            JacobiWeight(0.5,0.5,Ultraspherical(1,[1.0,2.0+im])))
     testfunctional(DefiniteLineIntegral(S))
 end
+
 
 
 # checks bug for

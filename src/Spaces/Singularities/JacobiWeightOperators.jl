@@ -382,9 +382,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.α==dsp.β==λ-0.5
-                k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T)
+                k == 1? T(C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T))) : zero(T)
             else
-                $Sum(Fun([zeros(k-1);1],dsp))
+                T($Sum(Fun([zeros(T,k-1);1],dsp)))
             end
         end
 
@@ -395,9 +395,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.α==dsp.β==λ-0.5
-                promote_type(T,typeof(C))[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
+                T[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
             else
-                promote_type(T,typeof(C))[$Sum(Fun([zeros(k-1);1],dsp)) for k=kr]
+                T[$Sum(Fun([zeros(T,k-1);1],dsp)) for k=kr]
             end
         end
 
@@ -418,9 +418,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.α==dsp.β==-0.5
-                k == 1? C*π : zero(T)
+                k == 1? T(C*π) : zero(T)
             else
-                $Sum(Fun([zeros(k-1);1],dsp))
+                T($Sum(Fun([zeros(T,k-1);1],dsp)))
             end
         end
 
@@ -430,9 +430,9 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             C = $Len(d)/2
 
             if dsp.α==dsp.β==-0.5
-                promote_type(T,typeof(C))[k == 1? C*π : zero(T) for k=kr]
+                T[k == 1? C*π : zero(T) for k=kr]
             else
-                promote_type(T,typeof(C))[$Sum(Fun([zeros(k-1);1],dsp)) for k=kr]
+                T[$Sum(Fun([zeros(T,k-1);1],dsp)) for k=kr]
             end
         end
 
