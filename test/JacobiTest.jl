@@ -239,3 +239,22 @@ f=real(exp(z)/(sqrt(z-a)*sqrt(b-z)))
 S=space(f)
 x=4.0+2im;
 @test_approx_eq linesum(f*log(abs(x-z))) 13.740676344264614
+
+
+
+# Line sum for legendre
+
+x=Fun(Legendre())
+@test_approx_eq sum(x+1) linesum(x+1)
+
+x=Fun(Legendre([2,1]))
+@test_approx_eq sum(x+1) -linesum(x+1)
+
+x=Fun(Interval(1,1+im))
+@test_approx_eq sum(x+1) im*linesum(x+1)
+
+x=Fun(Legendre(Interval(1,1+im)))
+@test_approx_eq sum(x+1) im*linesum(x+1)
+
+x=Fun(Legendre(Interval(im,1)))
+sum(x+1), linesum(x+1)

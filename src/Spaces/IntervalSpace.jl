@@ -2,9 +2,9 @@ export continuity
 
 
 
-Space(d::IntervalDomain)=Chebyshev(d)
+Space(d::IntervalDomain) = Chebyshev(d)
 
-identity_fun(d::Interval)=Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],Chebyshev(d))
+identity_fun(d::Interval) = Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],Chebyshev(d))
 
 
 ## Calculus

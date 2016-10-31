@@ -160,7 +160,11 @@ end
 function linesum(f::Fun)
     cd=canonicaldomain(f)
     d=domain(f)
-    if typeof(cd)==typeof(d)  || isa(d,PeriodicDomain)
+
+    if isreal(d)
+        a,b=first(d),last(d)
+        sign(last(b)-first(a))*sum(f)
+    elseif typeof(cd)==typeof(d)  || isa(d,PeriodicDomain)
         error("override linesum for $(f.space)")
     else
         # map first
