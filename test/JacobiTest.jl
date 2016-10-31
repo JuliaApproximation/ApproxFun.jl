@@ -257,4 +257,4 @@ x=Fun(Legendre(Interval(1,1+im)))
 @test_approx_eq sum(x+1) im*linesum(x+1)
 
 x=Fun(Legendre(Interval(im,1)))
-sum(x+1), linesum(x+1)
+@test_approx_eq sum(x+1) (1-im)/sqrt(2)*linesum(x+1)

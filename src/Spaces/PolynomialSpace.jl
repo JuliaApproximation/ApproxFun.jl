@@ -5,15 +5,16 @@ abstract PolynomialSpace{D} <: RealUnivariateSpace{D}
 
 
 
-Multiplication{U<:PolynomialSpace}(f::Fun{U},sp::PolynomialSpace)=ConcreteMultiplication(f,sp)
-bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=(1-ncoefficients(M.f),ncoefficients(M.f)-1)
-rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V})=domainspace(M)
+Multiplication{U<:PolynomialSpace}(f::Fun{U},sp::PolynomialSpace) = ConcreteMultiplication(f,sp)
+bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) =
+    (1-ncoefficients(M.f),ncoefficients(M.f)-1)
+rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) = domainspace(M)
 
 
 # All polynomials contain constant
-union_rule(A::ConstantSpace,B::PolynomialSpace)=B
-Base.promote_rule{T<:Number,S<:PolynomialSpace,V}(::Type{Fun{S,V}},::Type{T})=Fun{S,promote_type(V,T)}
-Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T})=Fun{S,T}
+union_rule(A::ConstantSpace,B::PolynomialSpace) = B
+Base.promote_rule{T<:Number,S<:PolynomialSpace,V}(::Type{Fun{S,V}},::Type{T}) = Fun{S,promote_type(V,T)}
+Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T}) = Fun{S,T}
 
 ## Evaluation
 
@@ -25,10 +26,10 @@ function evaluate(f::AbstractVector,S::PolynomialSpace,x)
     end
 end
 
-evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->evaluate(f,S,y),x)
+evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray) = map(y->evaluate(f,S,y),x)
 
 # we need the ... for multi-dimensional
-evaluate(f::AbstractVector,S::PolynomialSpace,x,y,z...)=
+evaluate(f::AbstractVector,S::PolynomialSpace,x,y,z...) =
     evaluate(f,S,Vec(x,y,z...))
 
 function evaluate(f::AbstractVector,S::PolynomialSpace,x::Fun)
@@ -42,7 +43,7 @@ end
 ## Extrapolation
 
 extrapolate(f::AbstractVector,S::PolynomialSpace,x) = clenshaw(S,f,tocanonical(S,x))
-extrapolate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray)=map(y->extrapolate(f,S,y),x)
+extrapolate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray) = map(y->extrapolate(f,S,y),x)
 
 ######
 # Recurrence encodes the recurrence coefficients
@@ -128,8 +129,9 @@ end
 getindex{PS<:PolynomialSpace,T,C<:PolynomialSpace}(M::ConcreteMultiplication{C,PS,T},k::Integer,j::Integer) = M[k:k,j:j][1,1]
 
 
-function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,PS,T},
-                                                                            Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMatrix},
+                                                                S::SubOperator{T,ConcreteMultiplication{C,PS,T},
+                                                                               Tuple{UnitRange{Int},UnitRange{Int}}})
     M=parent(S)
     kr,jr=parentindexes(S)
 

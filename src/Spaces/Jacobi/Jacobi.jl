@@ -57,13 +57,13 @@ jacobirecC{T}(::Type{T},α,β,k) =
 # x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-jacobirecγ{T}(::Type{T},α,β,k)=jacobirecC(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
-jacobirecα{T}(::Type{T},α,β,k)=-jacobirecB(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
-jacobirecβ{T}(::Type{T},α,β,k)=1/jacobirecA(T,α,β,k-1)
+jacobirecγ{T}(::Type{T},α,β,k) = jacobirecC(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+jacobirecα{T}(::Type{T},α,β,k) = -jacobirecB(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+jacobirecβ{T}(::Type{T},α,β,k) = 1/jacobirecA(T,α,β,k-1)
 
 for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ),
                    (:recA,:jacobirecA),(:recB,:jacobirecB),(:recC,:jacobirecC))
-    @eval $REC{T}(::Type{T},sp::Jacobi,k)=$JREC(T,sp.a,sp.b,k)
+    @eval $REC{T}(::Type{T},sp::Jacobi,k) = $JREC(T,sp.a,sp.b,k)
 end
 
 
