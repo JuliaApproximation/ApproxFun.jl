@@ -171,6 +171,8 @@ ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
 @wrapperstructure ConstantTimesOperator
 @wrapperspaces ConstantTimesOperator
 
+Base.convert{T<:Number}(::Type{T},C::ConstantTimesOperator) = T(C.λ)*convert(T,C.op)
+
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 
 
