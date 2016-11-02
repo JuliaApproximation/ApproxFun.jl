@@ -23,6 +23,12 @@ f4=Fun(exp,sp4)
 @test norm((Fun(f,sp3)-f3).coefficients)<10eps()
 @test norm((Fun(f,sp4)-f4).coefficients)<20eps()
 
+M=Multiplication(f,sp2)
+testbandedoperator(M)
+
+
+
+
 
 m=20
 testtransforms(JacobiWeight(0.,m,Jacobi(2m+1,0.)))
