@@ -162,45 +162,6 @@ function Base.convert{C<:Chebyshev,T}(::Type{BandedMatrix},S::SubOperator{T,Conc
 end
 
 
-function Base.convert{PS<:PolynomialSpace,T,C<:Chebyshev}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,PS,T},
-                                                                            Tuple{UnitRange{Int},UnitRange{Int}}})
-    M=parent(S)
-    kr,jr=parentindexes(S)
-
-    A=bzeros(S)
-
-    a=coefficients(M.f)
-
-    shft=bandshift(A)
-
-    for k=kr ∩ jr
-        A[k-kr[1]+1,k-jr[1]+1]=a[1]
-    end
-
-    if length(a) > 1
-        sp=M.space
-        jkr=max(1,min(kr[1],jr[1])-length(a)+1):max(kr[end],jr[end])+length(a)-1
-
-        #Multiplication is transpose
-        J=Recurrence(sp)[jkr,jkr]
-        C1=J
-
-        # the sub ranges of jkr that correspond to kr, jr
-        kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
-
-        BLAS.axpy!(a[2],@compat(view(C1,kr2,jr2)),A)
-        C0=beye(size(J,1),size(J,2),0,0)
-
-
-        for k=1:length(a)-2
-            C1,C0=2J*C1-C0,C1
-            BLAS.axpy!(a[k+2],@compat(view(C1,kr2,jr2)),A)
-        end
-    end
-
-    A
-end
-
 
 ## Derivative
 
