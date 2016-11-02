@@ -16,9 +16,9 @@ end
 ConcreteEvaluation(sp::Space{RealBasis},x::Number,o::Number) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(o),eltype(domain(sp))}(sp,x,o)
 
-Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order::Integer) =
+Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
-function Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Number,order::Integer)
+function Evaluation{T}(::Type{T},sp::UnivariateSpace,x,order)
     d=domain(sp)
     if isa(d,IntervalDomain) && isapprox(first(d),x)
         Evaluation(T,sp,false,order)
@@ -29,11 +29,11 @@ function Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Number,order::Integer)
     end
 end
 
-Evaluation(sp::UnsetSpace,x::Bool,k::Integer) =
+Evaluation(sp::UnsetSpace,x::Bool,k) =
     ConcreteEvaluation{UnsetSpace,Bool,typeof(k),UnsetNumber}(sp,x,k)
-Evaluation(sp::Space{ComplexBasis},x,order::Integer) =
+Evaluation(sp::Space{ComplexBasis},x,order) =
     Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
-Evaluation(sp::Space,x,order::Integer) = Evaluation(eltype(domain(sp)),sp,x,order)
+Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
 
 #Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::Space,x::Union{Number,Bool}) = Evaluation(d,x,0)

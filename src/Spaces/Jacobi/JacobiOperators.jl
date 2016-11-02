@@ -11,12 +11,14 @@ getindex{J<:Jacobi}(op::ConcreteEvaluation{J},k::Integer) =
 function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
     @assert op.order <= 2
     sp=op.space
-    a=sp.a;b=sp.b
-    x=op.x
     T=eltype(op)
+    RT=real(T)
+    a=RT(sp.a);b=RT(sp.b)
+    x=op.x
+
 
     if op.order == 0
-        jacobip(kr-1,a,b,x?1.0:-1.0)
+        jacobip(T,kr-1,a,b,x?one(T):-one(T))
     elseif op.order == 1&& !x && b==0
         d=domain(op)
         @assert isa(d,Interval)
@@ -25,21 +27,21 @@ function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
         d=domain(op)
         @assert isa(d,Interval)
         if kr[1]==1 && kr[end] ≥ 2
-            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(0:kr[end]-2,1+a,1+b,x?1.:-1.)]/2
+            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,x?one(T):-one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
             zeros(T,length(kr))
         else
-            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(kr-1,1+a,1+b,x?one(T):-one(T))/2
+            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,x?one(T):-one(T))/2
         end
     elseif op.order == 2
         @assert !x && b==0
         @assert domain(op)==Interval()
-        T[-.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
+        T[-0.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
 function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Float64},kr::Range)
     @assert op.order == 0
-    jacobip(kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
+    jacobip(eltype(op),kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
 end
 
 
@@ -303,7 +305,7 @@ bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{J,US}) = 0,0
 
 function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{CC,J,T},k::Integer,j::Integer)
     if j==k
-        one(T)/jacobip(k-1,-one(T)/2,-one(T)/2,one(T))
+        one(T)/jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
     else
         zero(T)
     end
@@ -311,7 +313,7 @@ end
 
 function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{J,CC,T},k::Integer,j::Integer)
     if j==k
-        jacobip(k-1,-one(T)/2,-one(T)/2,one(T))
+        jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
     else
         zero(T)
     end
@@ -320,9 +322,9 @@ end
 function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{US,J,T},k::Integer,j::Integer)
     if j==k
         S=rangespace(C)
-        jp=jacobip(k-1,S.a,S.b,one(T))
+        jp=jacobip(T,k-1,S.a,S.b,one(T))
         um=Evaluation(setcanonicaldomain(domainspace(C)),one(T))[k]
-        um/jp
+        um/jp::T
     else
         zero(T)
     end
@@ -331,9 +333,9 @@ end
 function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{J,US,T},k::Integer,j::Integer)
     if j==k
         S=domainspace(C)
-        jp=jacobip(k-1,S.a,S.b,one(T))
+        jp=jacobip(T,k-1,S.a,S.b,one(T))
         um=Evaluation(setcanonicaldomain(rangespace(C)),one(T))[k]
-        jp/um
+        jp/um::T
     else
         zero(T)
     end

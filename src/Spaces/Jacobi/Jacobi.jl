@@ -85,20 +85,19 @@ function jacobip(r::Range,α,β,x)
 end
 
 
-function jacobip(r::Range,α,β,x::Number)
-    if x==1. && α==0.
-        ones(length(r))
-    elseif x==-1. && β==0.
-        (-1.).^r
+function jacobip{T}(::Type{T},r::Range,α,β,x::Number)
+    if x==1 && α==0
+        ones(T,length(r))
+    elseif x==-1 && β==0
+        (-one(T)).^r
     else
         n=r[end]+1
         if n<=2
-            v=[1.,.5*(α-β+(2+α+β)*x)]
+            v=T[1,(α-β+(2+α+β)*x)/2]
         else
-            T=promote_type(Float64,typeof(x))
             v=Vector{T}(n)  # x may be complex
-            v[1]=1.
-            v[2]=.5*(α-β+(2+α+β)*x)
+            v[1]=1
+            v[2]=(α-β+(2+α+β)*x)/2
 
             for k=2:n-1
                 v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
@@ -107,9 +106,16 @@ function jacobip(r::Range,α,β,x::Number)
         v[r+1]
     end
 end
+
+jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
+
+jacobip{T}(::Type{T},n::Integer,α,β,v)=jacobip(T,n:n,α,β,v)[1]
 jacobip(n::Integer,α,β,v)=jacobip(n:n,α,β,v)[1]
+jacobip{T}(::Type{T},n::Range,α,β,v::Vector)=transpose(hcat(map(x->jacobip(T,n,α,β,x),v)...))
 jacobip(n::Range,α,β,v::Vector)=transpose(hcat(map(x->jacobip(n,α,β,x),v)...))
+jacobip{T}(::Type{T},n::Integer,α,β,v::Vector)=map(x->jacobip(T,n,α,β,x),v)
 jacobip(n::Integer,α,β,v::Vector)=map(x->jacobip(n,α,β,x),v)
+jacobip{T}(::Type{T},n,S::Jacobi,v)=jacobip(T,n,S.a,S.b,v)
 jacobip(n,S::Jacobi,v)=jacobip(n,S.a,S.b,v)
 
 

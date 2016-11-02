@@ -46,8 +46,15 @@ Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
 
 
 
-Evaluation(S::TupleSpace,order::Number) =
-    InterlaceOperator(Diagonal([map(s->Evaluation(s,order),S)...]),TupleSpace)
+Evaluation(S::TupleSpace,x,order) =
+    EvaluationWrapper(S,x,order,
+        InterlaceOperator(Diagonal([map(s->Evaluation(s,x,order),S)...]),TupleSpace))
+
+
+Evaluation(S::SumSpace,x,order) =
+    EvaluationWrapper(S,x,order,
+        InterlaceOperator(hcat(map(s->Evaluation(s,x,order),S)...),SumSpace))
+
 
 
 diagonalarrayoperator(op,dims) =
