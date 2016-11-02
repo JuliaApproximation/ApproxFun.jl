@@ -190,10 +190,26 @@ function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMat
     sp=space(f)
     n=length(a)
 
+    if n==0
+        return bzeros(S)
+    elseif n==1
+        return a[1]*beye(S)
+    elseif n==2
+        # we have U_x = [1 α-x; 0 β]
+        # for e_1^⊤ U_x\a == a[1]*I-(α-J)*a[2]/β == (a[1]-α*a[2]/β)*I + J*a[2]/β
+        # implying
+        α,β=recα(T,sp,1),recβ(T,sp,1)
+        ret=Operator{T}(ApproxFun.Recurrence(M.space))[kr,jr]::BandedMatrix{T}
+        scale!(a[2]/β,ret)
+        shft=kr[1]-jr[1]
+        ret[band(shft)] += a[1]-α*a[2]/β
+        return ret::BandedMatrix{T}
+    end
+
     jkr=max(1,min(jr[1],kr[1])-(n-1)÷2):max(jr[end],kr[end])+(n-1)÷2
 
     #Multiplication is transpose
-    J=Operator{T}(ApproxFun.Recurrence(sp))[jkr,jkr]
+    J=Operator{T}(ApproxFun.Recurrence(M.space))[jkr,jkr]
 
     B=n-1  # final bandwidth
 
@@ -224,7 +240,7 @@ function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMat
     kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
 
     # TODO: reuse memory of Bk2, though profile suggests it's not too important
-    BandedMatrix(view(Bk2,kr2,jr2))
+    BandedMatrix(view(Bk2,kr2,jr2))::BandedMatrix{T}
 end
 
 
