@@ -311,6 +311,14 @@ function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{CC,J,T},k::In
     end
 end
 
+Base.convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
+                                        S::SubOperator{T,ConcreteConversion{CC,J,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+    ret[band(bandshift(S))] = one(T)./jacobip(T,parentindex(S)[2]-1,-one(T)/2,-one(T)/2,one(T))
+    ret
+end
+
+
 function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{J,CC,T},k::Integer,j::Integer)
     if j==k
         jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
@@ -318,6 +326,7 @@ function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{J,CC,T},k::In
         zero(T)
     end
 end
+
 
 function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{US,J,T},k::Integer,j::Integer)
     if j==k
@@ -340,6 +349,7 @@ function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{J,US,T},
         zero(T)
     end
 end
+
 
 
 
