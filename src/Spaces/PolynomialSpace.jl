@@ -193,7 +193,10 @@ function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMat
     if n==0
         return bzeros(S)
     elseif n==1
-        return a[1]*beye(S)
+        ret = bzeros(S)
+        shft=kr[1]-jr[1]
+        ret[band(shft)] = a[1]
+        return ret::BandedMatrix{T}
     elseif n==2
         # we have U_x = [1 α-x; 0 β]
         # for e_1^⊤ U_x\a == a[1]*I-(α-J)*a[2]/β == (a[1]-α*a[2]/β)*I + J*a[2]/β
