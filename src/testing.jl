@@ -65,7 +65,7 @@ function backend_testfunctional(A)
         @test_approx_eq B[k] A[k]
         @test isa(A[k],eltype(A))
     end
-    @test B.' == A[1,1:10]
+    @test B == vec(A[1,1:10])
     @test B[3:10] == A[3:10]
     @test B == [A[k] for k=1:10]
 
