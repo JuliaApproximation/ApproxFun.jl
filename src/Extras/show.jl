@@ -259,11 +259,12 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
 end
 
 
-@compat function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
+@compat function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T}; header::Bool=true)
     nf = length(A)-1
     header && for k=1:nf+1 println(io,summary(A[k])) end
     if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end]) &&
-            isinf(size(A[end],1)) && isinf(size(A[end],2)) && eltype(A[end]) <: Number
+            isinf(size(A[end],1)) && isinf(size(A[end],2)) && eltype(A[end]) <: Number &&
+            all(Ak -> !isambiguous(domainspace(Ak)), A)
         M=Array{Any}(11,11)
         fill!(M,PrintShow(""))
         for k=1:nf
