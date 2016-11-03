@@ -77,7 +77,7 @@ function jacobip(r::Range,α,β,x)
         v[1]=1.
         v[2]=.5*(α-β+(2+α+β)*x)
 
-        for k=2:n-1
+        @inbounds for k=2:n-1
             v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
         end
     end
@@ -99,7 +99,7 @@ function jacobip{T}(::Type{T},r::Range,α,β,x::Number)
             v[1]=1
             v[2]=(α-β+(2+α+β)*x)/2
 
-            for k=2:n-1
+            @inbounds for k=2:n-1
                 v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
             end
         end

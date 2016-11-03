@@ -1,6 +1,27 @@
 ## Evaluation
 
 
+function Evaluation(S::Jacobi,x::Bool,order)
+    if order ≤ 2
+        ConcreteEvaluation(S,x,order)
+    else
+        # assume Derivative is available
+        D = Derivative(S,order)
+        EvaluationWrapper(S,x,order,Evaluation(rangespace(D),x)*D)
+    end
+end
+
+function Evaluation(S::Jacobi,x,order)
+    if order == 0
+        ConcreteEvaluation(S,x,order)
+    else
+        # assume Derivative is available
+        D = Derivative(S,order)
+        EvaluationWrapper(S,x,order,Evaluation(rangespace(D),x)*D)
+    end
+end
+
+
 getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},k::Integer) =
     op[k:k][1]
 
