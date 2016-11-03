@@ -327,13 +327,61 @@ function getindex{T}(op::InterlaceOperator{T},k::Integer)
     end
 end
 
+
+findsub(cr,ν) = find(x->x[1]==ν,cr)
+
+function getindex{T}(L::InterlaceOperator{T},kr::UnitRange)
+    ret=zeros(T,length(kr))
+
+    if size(L,1) == 1
+        ds=domainspace(L)
+        cr=cache(interlacer(ds))[kr]
+    elseif size(L,2) == 1
+        rs=rangespace(L)
+        cr=cache(interlacer(rs))[kr]
+    else
+        error("Only implemented for row/column operators.")
+    end
+
+    for ν=1:length(L.ops)
+        # indicies of ret
+        ret_kr=findsub(cr,ν)
+
+        # block indices
+        if !isempty(ret_kr)
+            sub_kr=cr[ret_kr[1]][2]:cr[ret_kr[end]][2]
+
+            Base.axpy!(1.0,L.ops[ν][sub_kr],view(ret,ret_kr))
+        end
+    end
+    ret
+end
+
+# overwritten for functions
+# this won't work in 0.4 as expected, though the user
+# should call vec anyways for 0.5 compatibility
+function getindex(L::InterlaceOperator,k::Integer,j)
+    if k==1 && size(L,1) == 1
+        L[j]
+    else
+        defaultgetindex(L,k,j)
+    end
+end
+
+function getindex(L::InterlaceOperator,k,j::Integer)
+    if j==1 && size(L,2) == 1
+        L[k]
+    else
+        defaultgetindex(L,k,j)
+    end
+end
+
 #####
 # optimized copy routine for when there is a single domainspace
 # and no interlacing of the columns is necessary
 # this is especially important for \
 ######
 
-findsub(cr,ν) = find(x->x[1]==ν,cr)
 
 for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros))
     @eval begin

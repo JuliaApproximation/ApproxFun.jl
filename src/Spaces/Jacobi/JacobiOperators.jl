@@ -1,6 +1,27 @@
 ## Evaluation
 
 
+function Evaluation(S::Jacobi,x::Bool,order)
+    if order ≤ 2
+        ConcreteEvaluation(S,x,order)
+    else
+        # assume Derivative is available
+        D = Derivative(S,order)
+        EvaluationWrapper(S,x,order,Evaluation(rangespace(D),x)*D)
+    end
+end
+
+function Evaluation(S::Jacobi,x,order)
+    if order == 0
+        ConcreteEvaluation(S,x,order)
+    else
+        # assume Derivative is available
+        D = Derivative(S,order)
+        EvaluationWrapper(S,x,order,Evaluation(rangespace(D),x)*D)
+    end
+end
+
+
 getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},k::Integer) =
     op[k:k][1]
 
@@ -302,7 +323,7 @@ bandinds{US<:Chebyshev,J<:Jacobi}(C::ConcreteConversion{J,US}) = 0,0
 bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{US,J}) = 0,0
 bandinds{US<:Ultraspherical,J<:Jacobi}(C::ConcreteConversion{J,US}) = 0,0
 
-
+#TODO: Figure out how to unify these definitions
 function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{CC,J,T},k::Integer,j::Integer)
     if j==k
         one(T)/jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
@@ -310,6 +331,19 @@ function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{CC,J,T},k::In
         zero(T)
     end
 end
+
+function Base.convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
+                                        S::SubOperator{T,ConcreteConversion{CC,J,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+    kr,jr = parentindexes(S)
+    k=(kr ∩ jr)
+
+    vals = one(T)./jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
+
+    ret[band(bandshift(S))] = vals
+    ret
+end
+
 
 function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{J,CC,T},k::Integer,j::Integer)
     if j==k
@@ -319,27 +353,73 @@ function getindex{J<:Jacobi,CC<:Chebyshev,T}(C::ConcreteConversion{J,CC,T},k::In
     end
 end
 
+function Base.convert{J<:Jacobi,CC<:Chebyshev,T}(::Type{BandedMatrix},
+                                        S::SubOperator{T,ConcreteConversion{J,CC,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+    kr,jr = parentindexes(S)
+    k=(kr ∩ jr)
+
+    vals = jacobip(T,k-1,-one(T)/2,-one(T)/2,one(T))
+
+    ret[band(bandshift(S))] = vals
+    ret
+end
+
+
 function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{US,J,T},k::Integer,j::Integer)
     if j==k
         S=rangespace(C)
         jp=jacobip(T,k-1,S.a,S.b,one(T))
-        um=Evaluation(setcanonicaldomain(domainspace(C)),one(T))[k]
+        um=Evaluation(setcanonicaldomain(domainspace(C)),true,0)[k]
         um/jp::T
     else
         zero(T)
     end
 end
 
+function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
+                                        S::SubOperator{T,ConcreteConversion{US,J,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+    kr,jr = parentindexes(S)
+    k=(kr ∩ jr)
+
+    sp=rangespace(parent(S))
+    jp=jacobip(T,k-1,sp.a,sp.b,one(T))
+    um=Evaluation(T,setcanonicaldomain(domainspace(parent(S))),true,0)[k]
+    vals = um./jp
+
+    ret[band(bandshift(S))] = vals
+    ret
+end
+
+
+
 function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{J,US,T},k::Integer,j::Integer)
     if j==k
         S=domainspace(C)
         jp=jacobip(T,k-1,S.a,S.b,one(T))
-        um=Evaluation(setcanonicaldomain(rangespace(C)),one(T))[k]
+        um=Evaluation(T,setcanonicaldomain(rangespace(C)),true,0)[k]
         jp/um::T
     else
         zero(T)
     end
 end
+
+function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
+                                        S::SubOperator{T,ConcreteConversion{J,US,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+    ret=bzeros(S)
+    kr,jr = parentindexes(S)
+    k=(kr ∩ jr)
+
+    sp=domainspace(parent(S))
+    jp=jacobip(T,k-1,sp.a,sp.b,one(T))
+    um=Evaluation(T,setcanonicaldomain(rangespace(parent(S))),true,0)[k]
+    vals = jp./um
+
+    ret[band(bandshift(S))] = vals
+    ret
+end
+
 
 
 

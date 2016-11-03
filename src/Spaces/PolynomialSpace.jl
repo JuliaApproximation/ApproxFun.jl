@@ -279,3 +279,53 @@ function clenshaw(sp::PolynomialSpace,c::AbstractVector,x)
     end
     muladd(muladd(A,x,B),bk1,muladd(-C,bk2,c[1])) # muladd(-C,bk2,muladd(muladd(A,x,B),bk1,c[1])) # (A*x+B)*bk1+c[1]-C*bk2
 end
+
+
+
+# evaluate polynomial
+# indexing starts from 0
+function forwardrecurrence{T}(::Type{T},S::Space,r::Range,x::Number)
+    n=maximum(r)+1
+    v=Vector{T}(n)  # x may be complex
+    if n > 0
+        v[1]=1
+        if n > 1
+            v[2] = (x-recα(T,S,1))*v[1]/recβ(T,S,1)
+
+            @inbounds for k=2:n-1
+                v[k+1]=((x-recα(T,S,k))*v[k] - recγ(T,S,k)*v[k-1])/recβ(T,S,k)
+            end
+        end
+    end
+
+    return v[r+1]
+end
+
+
+function Evaluation(S::PolynomialSpace,x,order)
+    if order == 0
+        ConcreteEvaluation(S,x,order)
+    else
+        # assume Derivative is available
+        D = Derivative(S,order)
+        EvaluationWrapper(S,x,order,Evaluation(rangespace(D),x)*D)
+    end
+end
+
+
+function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,Bool},kr::Range)
+    sp=op.space
+    T=eltype(op)
+    x=op.x
+
+    forwardrecurrence(T,sp,kr-1,x?one(T):-one(T))
+end
+
+
+function getindex{J<:PolynomialSpace,TT<:Number}(op::ConcreteEvaluation{J,TT},kr::Range)
+    sp=op.space
+    T=eltype(op)
+    x=op.x
+
+    forwardrecurrence(T,sp,kr-1,x)
+end
