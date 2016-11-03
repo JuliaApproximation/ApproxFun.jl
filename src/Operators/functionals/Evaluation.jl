@@ -88,12 +88,12 @@ end
 @wrapper EvaluationWrapper
 EvaluationWrapper(sp::Space,x,order,func::Operator) =
     EvaluationWrapper{typeof(sp),typeof(x),typeof(func),typeof(order),eltype(func)}(sp,x,order,func)
-getindex(E::EvaluationWrapper,k) = E.op[k]
+
 
 domainspace(E::Evaluation) = E.space
 domain(E::Evaluation) = domain(E.space)
 promotedomainspace(E::Evaluation,sp::Space) = Evaluation(sp,E.x,E.order)
-Base.stride(E::EvaluationWrapper)=stride(E.op)
+
 
 
 function Base.convert{T}(::Type{Operator{T}},E::EvaluationWrapper)

@@ -390,7 +390,7 @@ haswrapperstructure(::)=false
 #  Ex: c*op or real(op)
 macro wrapperstructure(Wrap)
     ret = quote
-        iswrapperstructure(::$Wrap) = true
+        haswrapperstructure(::$Wrap) = true
     end
 
     for func in (:(ApproxFun.bandinds),:(Base.stride),
@@ -440,6 +440,8 @@ macro wrappergetindex(Wrap)
     ret = quote
         Base.getindex(OP::$Wrap,k::Integer...) =
             OP.op[k...]::eltype(OP)
+
+        Base.getindex(OP::$Wrap,k...) = OP.op[k...]                   
 
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) =
             ApproxFun.unwrap_axpy!(α,P,A)
