@@ -8,28 +8,36 @@ abstract AbstractProductSpace{SV,T,d} <: Space{T,AnyDomain,d}
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 
 
-# TensorIterator
+# Tensorizer
 # This gives the map from coefficients to the
 # tensor entry of a tensor product of d spaces
 # findfirst is overriden to get efficient inverse
+# blocklengths is a tuple of block lengths, e.g., Chebyshev()^2
+# would be Tensorizer((1:∞,1:∞))
+# ConstantSpace() ⊗ Chebyshev()
+# would be Tensorizer((1:1,1:∞))
+# and Chebyshev() ⊗ TupleSpace((Chebyshev(),Chebyshev()))
+# would be Tensorizer((1:∞,2:2:∞))
 
-immutable TensorIterator{DMS<:Tuple}
-    dimensions::DMS
+
+immutable Tensorizer{DMS<:Tuple}
+    blocklengths::DMS
 end
 
-cache(Q::TensorIterator) = CachedIterator(Q)
+cache(Q::Tensorizer) = CachedIterator(Q)
 
 
-Base.eltype{d,T}(::TensorIterator{NTuple{d,T}}) = NTuple{d,Int}
-Base.eltype(it::TensorIterator) = NTuple{length(it.dimensions),Int}
+Base.eltype{d,T}(::Tensorizer{NTuple{d,T}}) = NTuple{d,Int}
+Base.eltype(it::Tensorizer) = NTuple{length(it.blocklengths),Int}
+dimensions(it::tensorizer) = map(length,it.blocklengths)
 
 
-Base.start{DMS<:NTuple{2}}(::TensorIterator{DMS}) = (1,1)
-Base.start{DMS<:NTuple{3}}(::TensorIterator{DMS}) = (1,1,1)
-Base.start(it::TensorIterator) = tuple(ones(Int,d)...)::eltype(it)
+Base.start{DMS<:NTuple{2}}(::Tensorizer{DMS}) = (1,1)
+Base.start{DMS<:NTuple{3}}(::Tensorizer{DMS}) = (1,1,1)
+Base.start(it::Tensorizer) = tuple(ones(Int,d)...)::eltype(it)
 
 
-function Base.next(it::TensorIterator,st)
+function Base.next(it::Tensorizer,st)
     for k=2:length(st)
         if st[k] > 1
             nst=tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::eltype(it)
@@ -48,7 +56,7 @@ function Base.next(it::TensorIterator,st)
     end
 end
 
-function Base.done(it::TensorIterator,st)
+function Base.done(it::Tensorizer,st)
     for k=1:length(st)
         if st[k] ≤ it.dimensions[k]
             return false
@@ -57,10 +65,10 @@ function Base.done(it::TensorIterator,st)
     return true
 end
 
-Base.length(it::TensorIterator) = prod(it.dimensions)
+Base.length(it::Tensorizer) = prod(dimensions(it))
 
 
-function Base.next{d}(it::TensorIterator{NTuple{d,Infinity{Bool}}},st)
+function Base.next{d}(it::Tensorizer{NTuple{d,Repeated{Bool}}},st)
     for k=2:length(st)
         if st[k] > 1
             return (st,tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::NTuple{d,Int})
@@ -68,14 +76,14 @@ function Base.next{d}(it::TensorIterator{NTuple{d,Infinity{Bool}}},st)
     end
     (st,tuple(ones(Int,d-1)...,st[1]+1)::NTuple{d,Int})
 end
-Base.done{d}(::TensorIterator{NTuple{d,Infinity{Bool}}},st) = false
+Base.done{d}(::Tensorizer{NTuple{d,Repeated{Bool}}},st) = false
 
 
-Base.next(::TensorIterator{NTuple{2,Infinity{Bool}}},st) =
+Base.next(::Tensorizer{NTuple{2,Repeated{Bool}}},st) =
     (st,st[2] == 1? (1,st[1]+1) : (st[1]+1,st[2]-1))
 
 
-function Base.findfirst(::TensorIterator{NTuple{2,Infinity{Bool}}},kj::Tuple{Int,Int})
+function Base.findfirst(::Tensorizer{NTuple{2,Repeated{Bool}}},kj::Tuple{Int,Int})
     k,j=kj
     if k > 0 && j > 0
         n=k+j-2
@@ -88,14 +96,17 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-block(it::TensorIterator,k) = sum(it[k])-length(it.dimensions)+1
-block(ci::CachedIterator,k) = sum(ci[k])-length(ci.iterator.dimensions)+1
+block(it::Tensorizer{NTuple{2,Repeated{Bool}}},k) = sum(it[k])-length(it.blocklengths)+1
+block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k) = sum(ci[k])-length(ci.iterator.blocklengths)+1
 
-block(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
+block(::Tensorizer{NTuple{2,Repeated{Bool}}},n) =
     floor(Integer,sqrt(2n) + 1/2)
 
-function block(it::TensorIterator{Tuple{Int,Infinity{Bool}}},n)
-    m=it.dimensions[1]
+
+# 1:m x 1:∞
+function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n)
+    m=sum(it.blocklengths[1])
+    @assert m == length(it.blocklengths[2])
     N=(m*(m+1))÷2
     if n < N
         floor(Integer,sqrt(2n)+1/2)
@@ -104,8 +115,9 @@ function block(it::TensorIterator{Tuple{Int,Infinity{Bool}}},n)
     end
 end
 
-function block(it::TensorIterator{Tuple{Infinity{Bool},Int}},n)
-    m=it.dimensions[2]
+# 1:∞ x 1:m
+function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n)
+    m=length(it.blocklengths[2])  # assume all true
     N=(m*(m+1))÷2
     if n < N
         floor(Integer,sqrt(2n)+1/2)
@@ -116,16 +128,19 @@ end
 
 blocklength(it,k) = blocklengths(it)[k]
 
-blocklengths(::TensorIterator{NTuple{2,Infinity{Bool}}}) = 1:∞
+blocklengths(::Tensorizer{NTuple{2,Repeated{Bool}}}) = 1:∞
 
-function blocklengths(it::TensorIterator)
+
+
+function blocklengths(it::Tensorizer)
+    error("Re-implement")
     d = minimum(it.dimensions)
     flatten((1:d,repeated(d)))
 end
 
 blocklengths(it::CachedIterator) = blocklengths(it.iterator)
 
-function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
+function getindex(it::Tensorizer{NTuple{2,Repeated{Bool}}},n::Integer)
     m=block(it,n)
     p=findfirst(it,(1,m))
     j=1+n-p
@@ -147,10 +162,10 @@ blockrange(it,K) = blockstart(it,K):blockstop(it,K)
 
 
 # convert from block, subblock to tensor
-subblock2tensor(rt::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K,k) =
+subblock2tensor(rt::Tensorizer{Tuple{Infinity{Bool},Infinity{Bool}}},K,k) =
     (k,K-k+1)
 
-subblock2tensor{II}(rt::CachedIterator{II,TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},K,k) =
+subblock2tensor{II}(rt::CachedIterator{II,Tensorizer{Tuple{Infinity{Bool},Infinity{Bool}}}},K,k) =
     (k,K-k+1)
 
 
@@ -224,7 +239,7 @@ immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
     spaces::SV
 end
 
-tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = TensorIterator(map(dimension,sp.spaces))
+tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = Tensorizer(map(dimension,sp.spaces))
 blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
@@ -393,7 +408,7 @@ fromtensor(S::Space,M::Matrix) = fromtensor(tensorizer(S),M)
 totensor(S::Space,M::Vector) = totensor(tensorizer(S),M)
 
 # we only copy upper triangular of coefficients
-function fromtensor(it::TensorIterator,M::Matrix)
+function fromtensor(it::Tensorizer,M::Matrix)
     n,m=size(M)
     ret=zeros(eltype(M),blockstop(it,max(n,m)))
     k = 1
@@ -410,7 +425,7 @@ function fromtensor(it::TensorIterator,M::Matrix)
 end
 
 
-function totensor(it::TensorIterator,M::Vector)
+function totensor(it::Tensorizer,M::Vector)
     n=length(M)
     m=block(it,n)
     ret=zeros(eltype(M),min(m,it.dimensions[1]),min(m,it.dimensions[2]))

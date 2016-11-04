@@ -77,7 +77,7 @@ Base.sum{TS<:TensorSpace}(f::Fun{TS})=sum(ProductFun(f))
 
 
 ## kron
-
+# TODO: generalize
 function Base.kron(f::Fun,g::Fun)
     sp=space(f)⊗space(g)
     it=tensorizer(sp)
