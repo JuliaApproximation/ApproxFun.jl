@@ -21,15 +21,15 @@ spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 
 
 immutable Tensorizer{DMS<:Tuple}
-    blocklengths::DMS
+    blocks::DMS
 end
 
 cache(Q::Tensorizer) = CachedIterator(Q)
 
 
 Base.eltype{d,T}(::Tensorizer{NTuple{d,T}}) = NTuple{d,Int}
-Base.eltype(it::Tensorizer) = NTuple{length(it.blocklengths),Int}
-dimensions(it::Tensorizer) = map(length,it.blocklengths)
+Base.eltype(it::Tensorizer) = NTuple{length(it.blocks),Int}
+dimensions(it::Tensorizer) = map(length,it.blocks)
 
 
 Base.start{DMS<:NTuple{2}}(::Tensorizer{DMS}) = (1,1)
@@ -98,17 +98,17 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-# block(it::Tensorizer,k) = sum(it[k])-length(it.blocklengths)+1
-block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k) = sum(ci[k])-length(ci.iterator.blocklengths)+1
+# block(it::Tensorizer,k) = sum(it[k])-length(it.blocks)+1
+block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k) = sum(ci[k])-length(ci.iterator.blocks)+1
 
 block(::Tensorizer{NTuple{2,Repeated{Bool}}},n) =
     floor(Integer,sqrt(2n) + 1/2)
-
+block(sp::Tensorizer,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
 
 # 1:m x 1:∞
 function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n)
-    m=sum(it.blocklengths[1])
-    @assert m == length(it.blocklengths[2])
+    m=sum(it.blocks[1])
+    @assert m == length(it.blocks[2])
     N=(m*(m+1))÷2
     if n < N
         floor(Integer,sqrt(2n)+1/2)
@@ -119,7 +119,7 @@ end
 
 # 1:∞ x 1:m
 function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n)
-    m=length(it.blocklengths[2])  # assume all true
+    m=length(it.blocks[2])  # assume all true
     N=(m*(m+1))÷2
     if n < N
         floor(Integer,sqrt(2n)+1/2)
@@ -134,12 +134,7 @@ blocklengths(::Tensorizer{NTuple{2,Repeated{Bool}}}) = 1:∞
 
 
 
-function blocklengths(it::Tensorizer)
-    error("Re-implement for $it")
-    d = minimum(dimensions(it))
-    flatten((1:d,repeated(d)))
-end
-
+blocklengths(it::Tensorizer) = tensorblocklengths(it.blocks...)
 blocklengths(it::CachedIterator) = blocklengths(it.iterator)
 
 function getindex(it::Tensorizer{NTuple{2,Repeated{Bool}}},n::Integer)

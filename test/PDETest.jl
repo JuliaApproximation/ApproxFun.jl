@@ -53,6 +53,9 @@ println("    Periodic Poisson tests")
 
 
 d=PeriodicInterval()^2
+S=Space(d)
+
+
 f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 A=Laplacian(d)+.1I
 @time u=A\f
