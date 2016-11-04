@@ -29,7 +29,7 @@ cache(Q::Tensorizer) = CachedIterator(Q)
 
 Base.eltype{d,T}(::Tensorizer{NTuple{d,T}}) = NTuple{d,Int}
 Base.eltype(it::Tensorizer) = NTuple{length(it.blocklengths),Int}
-dimensions(it::tensorizer) = map(length,it.blocklengths)
+dimensions(it::Tensorizer) = map(length,it.blocklengths)
 
 
 Base.start{DMS<:NTuple{2}}(::Tensorizer{DMS}) = (1,1)
@@ -38,18 +38,19 @@ Base.start(it::Tensorizer) = tuple(ones(Int,d)...)::eltype(it)
 
 
 function Base.next(it::Tensorizer,st)
+    ds = dimensions(it)
     for k=2:length(st)
         if st[k] > 1
             nst=tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::eltype(it)
-            if all(map(≤,nst,it.dimensions)) || done(it,nst)
+            if all(map(≤,nst,ds)) || done(it,nst)
                 return (st,nst)
             else
                 return (st,next(it,nst)[2])
             end
         end
     end
-    nst=tuple(ones(Int,length(it.dimensions)-1)...,st[1]+1)::eltype(it)
-    if all(map(≤,nst,it.dimensions)) || done(it,nst)
+    nst=tuple(ones(Int,length(ds)-1)...,st[1]+1)::eltype(it)
+    if all(map(≤,nst,ds)) || done(it,nst)
         return (st,nst)
     else
         return (st,next(it,nst)[2])
@@ -57,8 +58,9 @@ function Base.next(it::Tensorizer,st)
 end
 
 function Base.done(it::Tensorizer,st)
+    ds = dimensions(it)
     for k=1:length(st)
-        if st[k] ≤ it.dimensions[k]
+        if st[k] ≤ ds[k]
             return false
         end
     end
@@ -96,7 +98,7 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-block(it::Tensorizer{NTuple{2,Repeated{Bool}}},k) = sum(it[k])-length(it.blocklengths)+1
+# block(it::Tensorizer,k) = sum(it[k])-length(it.blocklengths)+1
 block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k) = sum(ci[k])-length(ci.iterator.blocklengths)+1
 
 block(::Tensorizer{NTuple{2,Repeated{Bool}}},n) =
@@ -133,8 +135,8 @@ blocklengths(::Tensorizer{NTuple{2,Repeated{Bool}}}) = 1:∞
 
 
 function blocklengths(it::Tensorizer)
-    error("Re-implement")
-    d = minimum(it.dimensions)
+    error("Re-implement for $it")
+    d = minimum(dimensions(it))
     flatten((1:d,repeated(d)))
 end
 
@@ -239,7 +241,7 @@ immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
     spaces::SV
 end
 
-tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = Tensorizer(map(dimension,sp.spaces))
+tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = Tensorizer(map(blocklengths,sp.spaces))
 blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
@@ -428,7 +430,8 @@ end
 function totensor(it::Tensorizer,M::Vector)
     n=length(M)
     m=block(it,n)
-    ret=zeros(eltype(M),min(m,it.dimensions[1]),min(m,it.dimensions[2]))
+    ds = dimensions(it)
+    ret=zeros(eltype(M),min(m,ds[1]),min(m,ds[2]))
     k=1
     for (K,J) in it
         if k > n
