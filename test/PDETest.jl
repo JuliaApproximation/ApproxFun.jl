@@ -58,10 +58,10 @@ S=Space(d)
 
 f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 A=Laplacian(d)+.1I
+testbandedblockbandedoperator(A)
 @time u=A\f
+@test_approx_eq u(.1,.2) u(.2,.1)
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
-
-
 
 
 
@@ -169,56 +169,4 @@ testbandedblockbandedoperator(L)
 @test_approx_eq u(0.5,0.001) 0.857215539785593+0.08694948835021317im  # empircal from schurfact
 
 
-## Periodic
-
-println("    Periodic x Periodic tests")
-
-d=PeriodicInterval()^2
-f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
-A=Laplacian(d)+.1I
-testbandedblockbandedoperator(A)
-
-KO=A.ops[1].op.ops[1].op
-
-S=view(KO,1:5,1:5)
-ret=bbbzeros(S)
-
-A,B=KO.ops
-rt=rangetensorizer(KO)
-dt=domaintensorizer(KO)
-kr,jr=parentindexes(S)
-K=block(rt,kr[end]);J=block(dt,jr[end])
-AA=A[Block(1):Block(K),Block(1):Block(J)]
-BB=B[1:min(K,size(B,1)),1:min(J,size(B,2))]
-
-show(AA)
-
-
-Jsh=block(dt,jr[1])-1
-Ksh=block(rt,kr[1])-1
-
-
-for J=1:blocksize(ret,2)
-    # only first block can be shifted inside block
-    jsh=J==1?jr[1]-blockstart(dt,J+Jsh):0
-    for K=blockcolrange(ret,J)
-        Bs=viewblock(ret,K,J)
-        ksh=K==1?kr[1]-blockstart(dt,K+Ksh):0
-        for j=1:size(Bs,2),k=colrange(Bs,j)
-            κ,ν=subblock2tensor(rt,K+Ksh,k+ksh)
-            ξ,μ=subblock2tensor(dt,J+Jsh,j+jsh)
-            Bs[k,j]=AA[κ,ξ]*BB[ν,μ]
-        end
-    end
-end
-
-viewblock(ret,1,1)|>show
-
-
-
-ds=domainspace(A)
-
-ApproxFun.blockstart(ds,1)
-
-@time u=A\f
-@test_approx_eq u(.1,.2) u(.2,.1)
+#

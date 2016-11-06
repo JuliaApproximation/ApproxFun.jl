@@ -81,16 +81,20 @@ block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int) = su
 block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int) =
     floor(Integer,sqrt(2n) + 1/2)
 block(sp::Tensorizer,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
-# 1:m x 1:∞
+# [1,2,3] x 1:∞
 function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
     m=sum(it.blocks[1])
-    @assert m == length(it.blocks[2])
-    N=(m*(m+1))÷2
-    if n < N
-        floor(Integer,sqrt(2n)+1/2)
+    if m == length(it.blocks[2])  # trivial blocks
+        N=(m*(m+1))÷2
+        if n < N
+            return floor(Integer,sqrt(2n)+1/2)
+        else
+            return m+(n-N)÷m
+        end
     else
-        m+(n-N)÷m
+        return findfirst(x->x≥n,cumsum(blocklengths(it)))
     end
 end
 
