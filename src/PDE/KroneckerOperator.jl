@@ -334,8 +334,8 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 
     A,B=KO.ops
     K=block(rt,kr[end]);J=block(dt,jr[end])
-    AA=A[1:min(K,size(A,1)),1:min(J,size(A,2))]
-    BB=B[1:min(K,size(B,1)),1:min(J,size(B,2))]
+    AA=A[Block(1):Block(K),Block(1):Block(J)]
+    BB=B[Block(1):Block(K),Block(1):Block(J)]
 
 
     Jsh=block(dt,jr[1])-1

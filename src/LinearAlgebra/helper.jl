@@ -618,6 +618,8 @@ Base.length(::Repeated) = ∞
 Base.maximum(r::Repeated) = r.x
 Base.minimum(r::Repeated) = r.x
 
+Base.sum(r::Repeated) = r.x > 0 ? ∞ : -∞
+
 getindex(it::Repeated,k::Integer) = it.x
 getindex(it::Repeated,k::Range) = fill(it.x,length(k))
 
@@ -665,6 +667,9 @@ Base.minimum{S<:Real}(it::UnitCount{S}) = it.start
 
 Base.maximum{S<:Real}(it::Count{S}) = it.step > 0 ? ∞ : it.start
 Base.minimum{S<:Real}(it::Count{S}) = it.step < 0 ? -∞ : it.start
+
+Base.sum(it::UnitCount) = ∞
+Base.sum(it::Count) = it.step > 0 ? ∞ : -∞
 
 Base.last{S<:Real}(it::UnitCount{S}) = ∞
 Base.last{S<:Real}(it::Count{S}) =

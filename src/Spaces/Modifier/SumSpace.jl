@@ -58,29 +58,7 @@ function Base.done(it::BlockInterlacer,st)
 end
 
 
-#
-# immutable RestrictInterlacer{III}
-#     interlacer::III
-#     sub::Int
-# end
-#
-# Base.eltype{III}(R::Type{RestrictInterlacer{III}) = Int
-# Base.eltype(R::RestrictInterlacer) = Int
-# Base.start(R::RestrictInterlacer) = (1,start(R.interlacer))
-#
-# function Base.next(R::RestrictInterlacer,st)
-#     a,nx = next(R.interlacer,st[2])
-#     if a[1] == R.K
-#         st[1],(st[1]+1,nx)
-#     else
-#         next(st[
-#
-# end
 
-
-function findind(it::BlockInterlacer,K::Int,kr::Range)
-
-end
 
 
 
