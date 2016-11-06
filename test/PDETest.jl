@@ -86,6 +86,12 @@ A=[dirichlet(dx)⊗eye(dy);
 @test_approx_eq u(0.1,0.2) 1.0
 
 
+# Checks bug in constructor
+f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]),22)
+@test_approx_eq f(-1.,0.1) real(exp(-1.+0.1im))
+f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]))
+@test_approx_eq f(-1.,0.1) real(exp(-1.+0.1im))
+
 F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
     Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
     Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[3]));

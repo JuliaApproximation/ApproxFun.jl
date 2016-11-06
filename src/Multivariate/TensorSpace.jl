@@ -86,7 +86,7 @@ block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 # [1,2,3] x 1:∞
 function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
     m=sum(it.blocks[1])
-    if m == length(it.blocks[2])  # trivial blocks
+    if m == length(it.blocks[1])  # trivial blocks
         N=(m*(m+1))÷2
         if n < N
             return floor(Integer,sqrt(2n)+1/2)

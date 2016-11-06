@@ -599,32 +599,56 @@ end
 # Re-implementation of Base iterators
 # to use ∞ and allow getindex
 
+abstract AbstractRepeated{T}
 
-immutable Repeated{T}
+Base.eltype{T}(::Type{AbstractRepeated{T}}) = T
+Base.eltype{R<:AbstractRepeated}(::Type{R}) = eltype(super(R))
+Base.eltype{T}(::AbstractRepeated{T}) = T
+
+Base.step(::AbstractRepeated) = 0
+
+Base.start(::AbstractRepeated) = nothing
+Base.next(it::AbstractRepeated,state) = value(it),nothing
+Base.done(::AbstractRepeated,state) = false
+
+Base.length(::AbstractRepeated) = ∞
+
+getindex(it::AbstractRepeated,k::Integer) = value(it)
+getindex(it::AbstractRepeated,k::Range) = fill(value(it),length(k))
+
+Base.maximum(r::AbstractRepeated) = value(r)
+Base.minimum(r::AbstractRepeated) = value(r)
+
+immutable ZeroRepeated{T} <: AbstractRepeated{T} end
+
+ZeroRepeated{T}(::Type{T}) = ZeroRepeated{T}()
+
+value{T}(::ZeroRepeated{T}) = zero(T)
+Base.sum(r::ZeroRepeated) = value(r)
+
+immutable Repeated{T} <: AbstractRepeated{T}
     x::T
+    function Repeated(x::T)
+        # TODO: Add ZeroRepeated type.
+        if x == zero(T)
+            error("Zero repeated not supported to maintain type stability")
+        end
+
+        new(x)
+    end
 end
 
-Base.eltype{T}(::Type{Repeated{T}}) = T
-Base.eltype{T}(::Repeated{T}) = T
+Repeated(x) = Repeated{typeof(x)}(x)
 
-Base.step(::Repeated) = 0
 
-Base.start(::Repeated) = nothing
-Base.next(it::Repeated,state) = it.x,nothing
-Base.done(::Repeated,state) = false
-
-Base.length(::Repeated) = ∞
-
-Base.maximum(r::Repeated) = r.x
-Base.minimum(r::Repeated) = r.x
+value(r::Repeated) = r.x
 
 Base.sum(r::Repeated) = r.x > 0 ? ∞ : -∞
 
-getindex(it::Repeated,k::Integer) = it.x
-getindex(it::Repeated,k::Range) = fill(it.x,length(k))
 
-repeated(x) = Repeated(x)
-repeated(x,::Infinity{Bool}) = Repeated(x)
+
+repeated(x) = x==zero(x)?ZeroRepeated(eltype(x)):Repeated(x)
+repeated(x,::Infinity{Bool}) = repeated(x)
 repeated(x,m::Integer) = fill(x,m)  #TODO: make a take
 
 
@@ -916,20 +940,20 @@ end
 
 for OP in (:+,:-,:(.*))
     @eval begin
-        $OP(a::Repeated,b::Repeated) = Repeated($OP(a.x,b.x))
-        $OP(a::Number,b::Repeated) = Repeated($OP(a,b.x))
-        $OP(a::Repeated,b::Number) = Repeated($OP(a.x,b))
+        $OP(a::AbstractRepeated,b::AbstractRepeated) = repeated($OP(value(a),value(b)))
+        $OP(a::Number,b::AbstractRepeated) = repeated($OP(a,value(b)))
+        $OP(a::AbstractRepeated,b::Number) = repeated($OP(value(a),b))
 
-        $OP(a::AbstractCount,b::Repeated) = $OP(a,b.x)
-        $OP(a::Repeated,b::AbstractCount) = $OP(a.x,b)
+        $OP(a::AbstractCount,b::AbstractRepeated) = $OP(a,value(b))
+        $OP(a::AbstractRepeated,b::AbstractCount) = $OP(value(a),b)
 
-        function $OP(a::Flatten,b::Repeated)
+        function $OP(a::Flatten,b::AbstractRepeated)
             @assert isinf(length(a.it[end]))
-            flatten(map(it->$OP(it,b.x),a.it))
+            flatten(map(it->$OP(it,value(b)),a.it))
         end
-        function $OP(a::Repeated,b::Flatten)
+        function $OP(a::AbstractRepeated,b::Flatten)
             @assert isinf(length(b.it[end]))
-            flatten(map(it->$OP(a.x,it),b.it))
+            flatten(map(it->$OP(value(a),it),b.it))
         end
 
         function $OP(a::Flatten,b::AbstractCount)
@@ -991,8 +1015,9 @@ function +(a::Flatten,b::Flatten)
 end
 
 
-Base.cumsum(r::Repeated) = r.x:r.x:∞
-Base.cumsum(r::Repeated{Bool}) = r.x?1:∞:r
+Base.cumsum(r::Repeated) = r.x:r.x:(r.x>0?∞:-∞)
+Base.cumsum(r::Repeated{Bool}) = 1:∞
+Base.cumsum(r::ZeroRepeated) = r
 Base.cumsum(r::AbstractCount) = CumSumIterator(r)
 
 
