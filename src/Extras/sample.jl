@@ -182,7 +182,7 @@ function sample(f::LowRankFun,n::Integer)
     [rx ry]
 end
 
-function sample{C<:Chebyshev}(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},RealBasis,2},Float64},n::Integer)
+function sample{C<:Chebyshev,DD}(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},RealBasis,DD,2},Float64},n::Integer)
     ry=sample(sum(f,1),n)
     fA=evaluate(f.A,ry)
     CB=coefficientmatrix(f.B)
@@ -210,25 +210,3 @@ function sample{SS,DD<:Ray}(f::Fun{JacobiWeight{SS,DD},Float64},n::Integer)
         sample(Fun(x->f(x),JacobiWeight(space(f).α,1,domain(f))),n)
     end
 end
-
-# Line/Ray have unbounded endpoints so we map
-# for TYP in (:Line,:Ray)
-#     @eval bisectioninv{SS,DD<:$TYP,TT}(f::Fun{MappedSpace{SS,DD,TT},Float64},x::Vector)=fromcanonical(f,
-#                                                                                 bisectioninv(Fun(f.coefficients,space(f).space),x))
-# end
-
-
-
-# function sample{SS}(f::LowRankFun{LineSpace{SS},LineSpace{SS},TensorSpace{Tuple{LineSpace{SS},LineSpace{SS}},RealBasis,2},Float64},n::Integer)
-#     cf=normalizedcumsum(sum(f,1))
-#     CB=coefficients(map(cumsum,f.B))
-#
-#     ry=samplecdf(cf,n)
-#     fA=evaluate(f.A,ry)
-#     CBfA=CB*fA  #cumsums at points
-#     multiply_oneatright!(CBfA)
-#
-#     rx=fromcanonical(first(f.B),chebbisectioninv(CBfA,rand(n)))
-#
-#     [rx ry]
-# end

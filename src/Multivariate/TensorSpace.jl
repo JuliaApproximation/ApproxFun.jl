@@ -2,7 +2,7 @@
 export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
-abstract AbstractProductSpace{SV,T,d} <: Space{T,AnyDomain,d}
+abstract AbstractProductSpace{SV,T,DD,d} <: Space{T,DD,d}
 
 
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
@@ -216,7 +216,7 @@ tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d.
 # TensorSpace
 # represents the tensor product of several subspaces
 
-immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
+immutable TensorSpace{SV,T,DD,d} <:AbstractProductSpace{SV,T,DD,d}
     spaces::SV
 end
 
@@ -225,13 +225,14 @@ blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
+                typeof(mapreduce(domain,*,f.spaces)),
                 mapreduce(domaindimension,+,sp)}(sp)
 
 
 dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)
 
 for OP in (:spacescompatible,:(==))
-    @eval $OP{SV,T,d}(A::TensorSpace{SV,T,d},B::TensorSpace{SV,T,d}) =
+    @eval $OP{SV,T,DD,d}(A::TensorSpace{SV,T,DD,d},B::TensorSpace{SV,T,DD,d}) =
         all(Bool[$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
 end
 
@@ -264,7 +265,7 @@ Base.length(d::TensorSpace) = length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer) = d.spaces[k]
 
 
-immutable ProductSpace{S<:Space,V<:Space,T} <: AbstractProductSpace{Tuple{S,V},T,2}
+immutable ProductSpace{S<:Space,V<:Space,T} <: AbstractProductSpace{Tuple{S,V},T,AnyDomain,2}
     spacesx::Vector{S}
     spacey::V
 end
@@ -494,6 +495,15 @@ union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spa
 
 ## Convert from 1D to 2D
 
+
+# function isconvertible{T,TT}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace)
+#     d1 = domain(sp)
+#     d2 = domain(ts)
+#     if d2
+#     length(ts.spaces) == 2 &&
+#     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||
+#      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
+#  end
 
 isconvertible(sp::UnivariateSpace,ts::TensorSpace) = length(ts.spaces) == 2 &&
     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||

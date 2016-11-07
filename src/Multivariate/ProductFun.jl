@@ -10,10 +10,10 @@ immutable ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSp
     space::SS
 end
 
-ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{Tuple{S,V},P,2}) =
+ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{Tuple{S,V},P,DD,2}) =
     ProductFun{S,V,typeof(sp),T}(cfs,sp)
 ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
-         W<:UnivariateSpace,T<:Number,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{Tuple{W,V},P,2}) =
+         W<:UnivariateSpace,T<:Number,P,DD}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{Tuple{W,V},P,DD,2}) =
    ProductFun{W,V,typeof(sp),T}(Fun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 
 Base.size(f::ProductFun,k::Integer) =
@@ -22,7 +22,7 @@ Base.size(f::ProductFun) = (size(f,1),size(f,2))
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,P}(cfs::Matrix{T},sp::AbstractProductSpace{Tuple{S,V},P,2};
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD,P}(cfs::Matrix{T},sp::AbstractProductSpace{Tuple{S,V},P,DD,2};
                                                                        tol::Real=100eps(T),chopping::Bool=false)
     if chopping
         ncfs,kend=norm(cfs,Inf),size(cfs,2)

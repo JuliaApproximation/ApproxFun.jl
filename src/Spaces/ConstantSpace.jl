@@ -158,7 +158,7 @@ function Base.convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
     end
 end
 
-Base.convert{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,TT,d}(::Type{T},f::Fun{TensorSpace{Tuple{CS1,CS2},TT,d}}) =
+Base.convert{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,TT,DD,d}(::Type{T},f::Fun{TensorSpace{Tuple{CS1,CS2},TT,DD,d}}) =
     convert(T,f.coefficients[1])
 
 isconstspace(sp::TensorSpace) = all(isconstspace,sp.spaces)

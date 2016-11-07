@@ -217,17 +217,17 @@ Dirichlet{T}(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Interval{T}},
 Dirichlet{T<:Real}(d::ProductDomain{Tuple{Interval{T},Interval{T}}}) =
     Dirichlet(ChebyshevDirichlet{1,1}(d[1])*ChebyshevDirichlet{1,1}(d[2]))
 
-isbandedblock{CD<:ChebyshevDirichlet,RB}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}}) =
+isbandedblock{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}}) =
     true
 
-blockbandinds{CD<:ChebyshevDirichlet,RB}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}}) =
+blockbandinds{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}}) =
     (0,2)
 
-colstop{CD<:ChebyshevDirichlet,RB}(B::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}},j::Integer) =
+colstop{CD<:ChebyshevDirichlet,RB,DD}(B::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}},j::Integer) =
     j ≤ 3 ? 4 : 4(block(domainspace(B),j)-1)
 
 
-function getindex{CD<:ChebyshevDirichlet,RB}(B::Dirichlet{TensorSpace{Tuple{CD,CD},RB,2}},
+function getindex{CD<:ChebyshevDirichlet,RB,DD}(B::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}},
                                              k::Integer,j::Integer)
     T = eltype(B)
     ds = domainspace(B)
