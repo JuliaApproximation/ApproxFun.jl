@@ -22,7 +22,7 @@ function bisectioninv{S,T}(f::Fun{S,T},x::Float64;numits::Int=47)
     .5*(a+b)
 end
 
-bisectioninv{S,T}(f::Fun{S,T},x::Vector;opts...)=Float64[bisectioninv(f,xx;opts...) for xx in x]
+bisectioninv{S,T}(f::Fun{S,T},x::Vector;opts...) = Float64[bisectioninv(f,xx;opts...) for xx in x]
 
 
 ## Clenshaw bisection
@@ -159,14 +159,14 @@ normalizedcumsum!(f::Vector{Float64})=chebnormalizedcumsum!(f)
 
 ## Sampling
 
-sample(f::Fun,n::Integer)=samplecdf(normalizedcumsum(f),n)
+sample(f::Fun,n::Integer) = samplecdf(normalizedcumsum(f),n)
 
-samplecdf(cf::Fun,n::Integer)=bisectioninv(cf,rand(n))
+samplecdf(cf::Fun,n::Integer) = bisectioninv(cf,rand(n))
 
 
-sample(f::Fun)=sample(f,1)[1]
-samplecdf(f::Fun)=samplecdf(f,1)[1]
-samplecdf(v::Vector)=chebbisectioninv(v,rand())
+sample(f::Fun) = sample(f,1)[1]
+samplecdf(f::Fun) = samplecdf(f,1)[1]
+samplecdf(v::Vector) = chebbisectioninv(v,rand())
 
 
 

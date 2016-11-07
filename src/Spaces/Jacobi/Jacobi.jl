@@ -90,6 +90,8 @@ function jacobip{T}(::Type{T},r::Range,α,β,x::Number)
         ones(T,length(r))
     elseif x==-1 && β==0
         (-one(T)).^r
+    elseif isempty(r)
+        T[]
     else
         n=r[end]+1
         if n<=2

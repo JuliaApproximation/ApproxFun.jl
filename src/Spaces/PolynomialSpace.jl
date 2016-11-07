@@ -285,6 +285,9 @@ end
 # evaluate polynomial
 # indexing starts from 0
 function forwardrecurrence{T}(::Type{T},S::Space,r::Range,x::Number)
+    if isempty(r)
+        return T[]
+    end
     n=maximum(r)+1
     v=Vector{T}(n)  # x may be complex
     if n > 0

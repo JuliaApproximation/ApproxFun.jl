@@ -266,7 +266,7 @@ for OP in (:(Base.last),:(Base.first))
     end
 end
 
-evaluate(f::AbstractVector,S::SumSpace,x)=mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
+evaluate(f::AbstractVector,S::SumSpace,x) = mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
 
 
 function evaluate(f::AbstractVector,S::PiecewiseSpace,x)
