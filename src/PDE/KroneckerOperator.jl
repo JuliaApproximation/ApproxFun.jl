@@ -92,15 +92,47 @@ end
 
 bandinds(K::KroneckerOperator) = (-∞,∞)
 
+isbandedblock(K::KroneckerOperator) = all(isbandedblock,K.ops)
 isbandedblockbanded(K::KroneckerOperator) =
     all(op->isbanded(op) && isinf(size(op,1)) && isinf(size(op,2)),K.ops)
 israggedbelow(K::KroneckerOperator) = all(israggedbelow,K.ops)
 
 
 blockbandinds(K::KroneckerOperator) =
-    bandinds(K.ops[1],1)+bandinds(K.ops[2],1),bandinds(K.ops[1],2)+bandinds(K.ops[2],2)
-subblockbandinds(K::KroneckerOperator,k::Integer) =
-    k==1?min(bandinds(K.ops[1],1),-bandinds(K.ops[2],2)):max(bandinds(K.ops[1],2),-bandinds(K.ops[2],1))
+    (blockbandinds(K.ops[1],1)+blockbandinds(K.ops[2],1),
+    blockbandinds(K.ops[1],2)+blockbandinds(K.ops[2],2))
+
+# If each block were in turn BlockBandedMatrix, these would
+# be the    bandinds
+subblock_blockbandinds(K::KroneckerOperator) =
+    (min(blockbandinds(K.ops[1],1),-blockbandinds(K.ops[2],2)) ,
+           max(blockbandinds(K.ops[1],2),-blockbandinds(K.ops[2],1)))
+
+
+# If each block were in turn BandedMatrix, these are the bandinds
+function subblockbandinds(K::KroneckerOperator)
+    if all(hastrivialblocks,domainspace(K).spaces) &&
+            all(hastrivialblocks,rangespace(K).spaces)
+        subblock_blockbandinds(K)
+    else
+        dt = domaintensorizer(K).iterator
+        rt = rangetensorizer(K).iterator
+        # assume block size is repeated and square
+        @assert all(b->isa(b,Repeated),dt.blocks)
+        @assert rt.blocks == dt.blocks
+
+
+
+        sb = subblock_blockbandinds(K)
+        # divide by the size of each block
+        sb_sz = mapreduce(value,*,dt.blocks)
+        # spread by sub block szie
+        (sb[1]-1)*sb_sz+1,(sb[2]+1)*sb_sz-1
+    end
+end
+
+subblockbandinds(K::KroneckerOperator,k::Integer) = subblockbandinds(K)[k]
+
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 
 
