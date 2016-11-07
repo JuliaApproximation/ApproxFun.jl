@@ -305,6 +305,9 @@ end
 
 israggedbelow(M::InterlaceOperator) = all(israggedbelow,M.ops)
 
+getindex(op::InterlaceOperator,k::Integer,j::Integer) =
+    error("Higher tensor InterlaceOperators not supported")
+
 function getindex{T}(op::InterlaceOperator{T,2},k::Integer,j::Integer)
     M,J = op.domaininterlacer[j]
     N,K = op.rangeinterlacer[k]

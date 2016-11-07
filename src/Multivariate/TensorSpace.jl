@@ -427,6 +427,7 @@ end
 for OP in (:block,:blockstart,:blockstop)
     @eval begin
         $OP(s::TensorSpace,::Infinity{Bool}) = ∞
+        $OP(s::TensorSpace,M::Block) = $OP(tensorizer(s),M)
         $OP(s::TensorSpace,M) = $OP(tensorizer(s),M)
     end
 end
