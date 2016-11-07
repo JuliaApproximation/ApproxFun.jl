@@ -29,9 +29,9 @@ for OP in (:(Base.rem),:(Base.div))
 end
 
 
-
-blockrows(A,K::Block) = blockrows(A,K.K)
-blockcols(A,K::Block) = blockrows(A,K.K)
+for OP in (:blockrows, :blockcols, :blockrowstart, :blockrowstop, :blockcolstart, :blockcolstop)
+    @eval $OP(A,K::Block) = $OP(A,K.K)
+end
 
 for OP in (:+,:-,:*)
     @eval begin

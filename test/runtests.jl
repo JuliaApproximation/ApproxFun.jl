@@ -35,6 +35,9 @@ import ApproxFun: Infinity, ∞
 @test minimum(1:ApproxFun.∞) == 1
 @test minimum(ApproxFun.flatten(([2.0],1:ApproxFun.∞))) == 1
 
+cumsum(ApproxFun.repeated(true)) == 1:ApproxFun.∞
+cumsum(ApproxFun.repeated(2)) == 2:2:ApproxFun.∞
+
 
 println("Domain tests")
 

@@ -468,9 +468,10 @@ dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
 d=dt*dθ
 Dt=Derivative(d,[1,0]);Dθ=Derivative(d,[0,1])
 A=[ldirichlet(dt)⊗I;Dt+Dθ]
+testbandedblockbandedoperator(A[2])
+
 u0=Fun(θ->exp(-20θ^2),dθ,20)
 @time ut=linsolve(A,[u0;0.];tolerance=1E-5)
-ncoefficients(ut)
 @test_approx_eq_eps ut(.1,.2) u0(.2-.1) 1E-6
 
 

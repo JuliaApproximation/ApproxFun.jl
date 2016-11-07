@@ -53,12 +53,15 @@ println("    Periodic Poisson tests")
 
 
 d=PeriodicInterval()^2
+S=Space(d)
+
+
 f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 A=Laplacian(d)+.1I
+testbandedblockbandedoperator(A)
 @time u=A\f
+@test_approx_eq u(.1,.2) u(.2,.1)
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
-
-
 
 
 
@@ -82,6 +85,12 @@ A=[dirichlet(dx)⊗eye(dy);
 @time u=linsolve(A,ones(4);tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
+
+# Checks bug in constructor
+f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]),22)
+@test_approx_eq f(-1.,0.1) real(exp(-1.+0.1im))
+f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]))
+@test_approx_eq f(-1.,0.1) real(exp(-1.+0.1im))
 
 F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
     Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
@@ -116,6 +125,19 @@ testbandedblockbandedoperator(Laplacian(d))
 @time u=[B;Laplacian(d)]\[g;0.]
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
+
+
+# Transport equation
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
+d=dθ*dt
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
+u0=Fun(θ->exp(-20θ^2),dθ)
+A=Dt+Dθ
+
+testbandedblockbandedoperator(A)
+
+@time u=linsolve([I⊗ldirichlet(dt);Dt+Dθ],[u0;0.0];tolerance=1E-6)
+@test_approx_eq_eps u(0.2,0.1) u0(0.1) 1E-6
 
 ## Small diffusoion
 
@@ -166,14 +188,4 @@ testbandedblockbandedoperator(L)
 @test_approx_eq u(0.5,0.001) 0.857215539785593+0.08694948835021317im  # empircal from schurfact
 
 
-## Periodic
-
-println("    Periodic x Periodic tests")
-
-d=PeriodicInterval()^2
-f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
-A=Laplacian(d)+.1I
-testbandedblockbandedoperator(A)
-
-@time u=A\f
-@test_approx_eq u(.1,.2) u(.2,.1)
+#

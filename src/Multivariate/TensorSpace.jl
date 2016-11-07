@@ -8,74 +8,61 @@ abstract AbstractProductSpace{SV,T,d} <: Space{T,AnyDomain,d}
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 
 
-# TensorIterator
+# Tensorizer
 # This gives the map from coefficients to the
 # tensor entry of a tensor product of d spaces
 # findfirst is overriden to get efficient inverse
+# blocklengths is a tuple of block lengths, e.g., Chebyshev()^2
+# would be Tensorizer((1:∞,1:∞))
+# ConstantSpace() ⊗ Chebyshev()
+# would be Tensorizer((1:1,1:∞))
+# and Chebyshev() ⊗ TupleSpace((Chebyshev(),Chebyshev()))
+# would be Tensorizer((1:∞,2:2:∞))
 
-immutable TensorIterator{DMS<:Tuple}
-    dimensions::DMS
+
+immutable Tensorizer{DMS<:Tuple}
+    blocks::DMS
 end
 
-cache(Q::TensorIterator) = CachedIterator(Q)
+Base.eltype(a::Tensorizer) = NTuple{length(a.blocks),Int}
+Base.eltype{d,T}(::Tensorizer{NTuple{d,T}}) = NTuple{d,Int}
+dimensions(a::Tensorizer) = map(sum,a.blocks)
+Base.length(a::Tensorizer) = mapreduce(sum,*,a.blocks)
 
+# (blockrow,blockcol), (subrow,subcol), (rowshift,colshift), (numblockrows,numblockcols), (itemssofar, length)
+Base.start{DMS<:NTuple{2}}(a::Tensorizer{DMS}) = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
 
-Base.eltype{d,T}(::TensorIterator{NTuple{d,T}}) = NTuple{d,Int}
-Base.eltype(it::TensorIterator) = NTuple{length(it.dimensions),Int}
-
-
-Base.start{DMS<:NTuple{2}}(::TensorIterator{DMS}) = (1,1)
-Base.start{DMS<:NTuple{3}}(::TensorIterator{DMS}) = (1,1,1)
-Base.start(it::TensorIterator) = tuple(ones(Int,d)...)::eltype(it)
-
-
-function Base.next(it::TensorIterator,st)
-    for k=2:length(st)
-        if st[k] > 1
-            nst=tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::eltype(it)
-            if all(map(≤,nst,it.dimensions)) || done(it,nst)
-                return (st,nst)
-            else
-                return (st,next(it,nst)[2])
-            end
+function Base.next{DMS<:NTuple{2}}(a::Tensorizer{DMS},st)
+    (K,J), (k,j), (rsh,csh), (n,m), (i,tot) = st
+    ret = k+rsh,j+csh
+    if k==n && j==m  # end of block
+        if J == 1 || K == length(a.blocks[1])   # end of new block
+            B = K+J # next block
+            J = min(B, length(a.blocks[2]))  # don't go past new block
+            K = B-J+1   # K+J-1 == B
+        else
+            K,J = K+1,J-1
         end
-    end
-    nst=tuple(ones(Int,length(it.dimensions)-1)...,st[1]+1)::eltype(it)
-    if all(map(≤,nst,it.dimensions)) || done(it,nst)
-        return (st,nst)
+        k = j = 1
+        if i+1 < tot # not done yet
+            n,m = a.blocks[1][K], a.blocks[2][J]
+            rsh,csh = sum(a.blocks[1][1:K-1]), sum(a.blocks[2][1:J-1])
+        end
+    elseif k==n
+        k  = 1
+        j += 1
     else
-        return (st,next(it,nst)[2])
+        k += 1
     end
+    ret, ((K,J), (k,j), (rsh,csh), (n,m), (i+1,tot))
 end
 
-function Base.done(it::TensorIterator,st)
-    for k=1:length(st)
-        if st[k] ≤ it.dimensions[k]
-            return false
-        end
-    end
-    return true
-end
 
-Base.length(it::TensorIterator) = prod(it.dimensions)
+Base.done(a::Tensorizer,st) = st[end][1] ≥ st[end][2]
 
+cache(a::Tensorizer) = CachedIterator(a)
 
-function Base.next{d}(it::TensorIterator{NTuple{d,Infinity{Bool}}},st)
-    for k=2:length(st)
-        if st[k] > 1
-            return (st,tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::NTuple{d,Int})
-        end
-    end
-    (st,tuple(ones(Int,d-1)...,st[1]+1)::NTuple{d,Int})
-end
-Base.done{d}(::TensorIterator{NTuple{d,Infinity{Bool}}},st) = false
-
-
-Base.next(::TensorIterator{NTuple{2,Infinity{Bool}}},st) =
-    (st,st[2] == 1? (1,st[1]+1) : (st[1]+1,st[2]-1))
-
-
-function Base.findfirst(::TensorIterator{NTuple{2,Infinity{Bool}}},kj::Tuple{Int,Int})
+function Base.findfirst(::Tensorizer{NTuple{2,Repeated{Bool}}},kj::Tuple{Int,Int})
     k,j=kj
     if k > 0 && j > 0
         n=k+j-2
@@ -88,24 +75,32 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-block(it::TensorIterator,k) = sum(it[k])-length(it.dimensions)+1
-block(ci::CachedIterator,k) = sum(ci[k])-length(ci.iterator.dimensions)+1
+# block(it::Tensorizer,k) = sum(it[k])-length(it.blocks)+1
+block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int) = sum(ci[k])-length(ci.iterator.blocks)+1
 
-block(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
+block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int) =
     floor(Integer,sqrt(2n) + 1/2)
+block(sp::Tensorizer,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
-function block(it::TensorIterator{Tuple{Int,Infinity{Bool}}},n)
-    m=it.dimensions[1]
-    N=(m*(m+1))÷2
-    if n < N
-        floor(Integer,sqrt(2n)+1/2)
+# [1,2,3] x 1:∞
+function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
+    m=sum(it.blocks[1])
+    if m == length(it.blocks[1])  # trivial blocks
+        N=(m*(m+1))÷2
+        if n < N
+            return floor(Integer,sqrt(2n)+1/2)
+        else
+            return m+(n-N)÷m
+        end
     else
-        m+(n-N)÷m
+        return findfirst(x->x≥n,cumsum(blocklengths(it)))
     end
 end
 
-function block(it::TensorIterator{Tuple{Infinity{Bool},Int}},n)
-    m=it.dimensions[2]
+# 1:∞ x 1:m
+function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)
+    m=length(it.blocks[2])  # assume all true
     N=(m*(m+1))÷2
     if n < N
         floor(Integer,sqrt(2n)+1/2)
@@ -116,16 +111,14 @@ end
 
 blocklength(it,k) = blocklengths(it)[k]
 
-blocklengths(::TensorIterator{NTuple{2,Infinity{Bool}}}) = 1:∞
+blocklengths(::Tensorizer{NTuple{2,Repeated{Bool}}}) = 1:∞
 
-function blocklengths(it::TensorIterator)
-    d = minimum(it.dimensions)
-    flatten((1:d,repeated(d)))
-end
 
+
+blocklengths(it::Tensorizer) = tensorblocklengths(it.blocks...)
 blocklengths(it::CachedIterator) = blocklengths(it.iterator)
 
-function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
+function getindex(it::Tensorizer{NTuple{2,Repeated{Bool}}},n::Integer)
     m=block(it,n)
     p=findfirst(it,(1,m))
     j=1+n-p
@@ -140,6 +133,9 @@ blockstart(it,K) = K==1?1:sum(blocklengths(it)[1:K-1])+1
 blockstop(it,::Infinity{Bool}) = ∞
 blockstop(it,K) = sum(blocklengths(it)[1:K])
 
+blockstart(it,K::Block) = blockstart(it,K.K)
+blockstop(it,K::Block) = blockstop(it,K.K)
+
 
 blockrange(it,K) = blockstart(it,K):blockstop(it,K)
 
@@ -147,10 +143,10 @@ blockrange(it,K) = blockstart(it,K):blockstop(it,K)
 
 
 # convert from block, subblock to tensor
-subblock2tensor(rt::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K,k) =
+subblock2tensor(rt::Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},K,k) =
     (k,K-k+1)
 
-subblock2tensor{II}(rt::CachedIterator{II,TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},K,k) =
+subblock2tensor{II}(rt::CachedIterator{II,Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}}},K,k) =
     (k,K-k+1)
 
 
@@ -224,7 +220,7 @@ immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
     spaces::SV
 end
 
-tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = TensorIterator(map(dimension,sp.spaces))
+tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = Tensorizer(map(blocklengths,sp.spaces))
 blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
@@ -393,7 +389,7 @@ fromtensor(S::Space,M::Matrix) = fromtensor(tensorizer(S),M)
 totensor(S::Space,M::Vector) = totensor(tensorizer(S),M)
 
 # we only copy upper triangular of coefficients
-function fromtensor(it::TensorIterator,M::Matrix)
+function fromtensor(it::Tensorizer,M::Matrix)
     n,m=size(M)
     ret=zeros(eltype(M),blockstop(it,max(n,m)))
     k = 1
@@ -410,10 +406,13 @@ function fromtensor(it::TensorIterator,M::Matrix)
 end
 
 
-function totensor(it::TensorIterator,M::Vector)
+function totensor(it::Tensorizer,M::Vector)
     n=length(M)
-    m=block(it,n)
-    ret=zeros(eltype(M),min(m,it.dimensions[1]),min(m,it.dimensions[2]))
+    B=block(it,n)
+    ds = dimensions(it)
+
+    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B,length(it.blocks[1]))]),
+                        sum(it.blocks[2][1:min(B,length(it.blocks[2]))]))
     k=1
     for (K,J) in it
         if k > n
