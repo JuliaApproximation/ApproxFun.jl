@@ -126,6 +126,19 @@ testbandedblockbandedoperator(Laplacian(d))
 
 @test_approx_eq u(.1,.2) real(cos(.1+.2im))
 
+
+# Transport equation
+dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
+d=dθ*dt
+Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
+u0=Fun(θ->exp(-20θ^2),dθ)
+A=Dt+Dθ
+
+testbandedblockbandedoperator(A)
+
+@time u=linsolve([I⊗ldirichlet(dt);Dt+Dθ],[u0;0.0];tolerance=1E-6)
+@test_approx_eq_eps u(0.2,0.1) u0(0.1) 1E-6
+
 ## Small diffusoion
 
 
