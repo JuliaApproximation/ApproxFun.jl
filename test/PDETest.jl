@@ -118,7 +118,7 @@ u_ex=Fun((x,y)->real(cos(x+im*y)),d)
 B=Dirichlet(Space(d))
 
 g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
-@test norm((B*u_ex-g).coefficients) < 10eps()
+@test norm((B*u_ex-g).coefficients) < 100eps()
 
 testbandedblockbandedoperator(Laplacian(d))
 
