@@ -50,10 +50,12 @@ include("LinearAlgebra/LinearAlgebra.jl")
 
 
 include("Fun/Fun.jl")
+
+include("Domains/Domains.jl")
+
 include("Multivariate/Multivariate.jl")
 include("Operators/Operator.jl")
 
-include("Domains/Domains.jl")
 include("Spaces/Spaces.jl")
 
 

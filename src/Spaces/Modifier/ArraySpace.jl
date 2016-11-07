@@ -136,7 +136,19 @@ end
 Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
 
 
-function Base.vcat(v::Fun...)
+function Base.vcat(vin::Fun...)
+    #  remove tuple spaces
+    vins=Array(Fun,0)
+    for f in vin
+        if isa(space(f),TupleSpace)
+            push!(vins,vec(f)...)
+        else
+            push!(vins,f)
+        end
+    end
+    v=tuple(vins...)
+
+
     sps=map(space,v)
     if spacesequal(sps)
         S=ArraySpace(first(sps),length(v))
@@ -147,6 +159,7 @@ function Base.vcat(v::Fun...)
     Fun(interlace(v,S),S)
 end
 
+Base.vcat(v::Union{Fun,Number}...) = vcat(map(Fun,v)...)
 
 function devec{F<:Fun}(v::Vector{F})
     sps=map(space,v)

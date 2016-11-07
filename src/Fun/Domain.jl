@@ -62,7 +62,7 @@ canonicaldomain(d::IntervalDomain) = Interval{real(eltype(eltype(d)))}()
 Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
-                    isapprox(a,b) || isapprox(a,reverse(b))
+                    isapprox(a,b) 
 
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1

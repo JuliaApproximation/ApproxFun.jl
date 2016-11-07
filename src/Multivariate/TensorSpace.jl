@@ -225,7 +225,7 @@ blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
-                typeof(mapreduce(domain,*,f.spaces)),
+                typeof(mapreduce(domain,*,sp)),
                 mapreduce(domaindimension,+,sp)}(sp)
 
 
@@ -523,6 +523,41 @@ function coefficients(f::Vector,sp::UnivariateSpace,ts::TensorSpace)
         error("Cannot convert coefficients from $sp to $ts")
     end
 end
+
+
+function isconvertible{T,TT}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace)
+    d1 = domain(sp)
+    d2 = domain(ts)
+    if length(ts.spaces) ≠ 2
+        return false
+    end
+    if d1.a[2] ≈ d1.b[2]
+        isa(d2[2],Point) && d2[2].x ≈ d1.a[2] &&
+            isconvertible(setdomain(sp,Interval(d1.a[1],d1.b[1])),ts[1])
+    elseif d1.a[1] ≈ d1.b[1]
+        isa(d2[1],Point) && d2[1].x ≈ d1.a[1] &&
+            isconvertible(setdomain(sp,Interval(d1.a[2],d1.b[2])),ts[2])
+    else
+        return false
+    end
+end
+
+
+function coefficients{T,TT}(f::Vector,sp::UnivariateSpace{T,Interval{Vec{2,TT}}},
+                            ts::TensorSpace)
+    @assert length(ts.spaces) == 2
+    d1 = domain(sp)
+    d2 = domain(ts)
+    if d1.a[2] ≈ d1.b[2]
+        coefficients(f,setdomain(sp,Interval(d1.a[1],d1.b[1])),ts[1])
+    elseif d1.a[1] ≈ d1.b[1]
+        coefficients(f,setdomain(sp,Interval(d1.a[2],d1.b[2])),ts[2])
+    else
+        error("Cannot convert coefficients from $sp to $ts")
+    end
+end
+
+
 
 
 identity_fun(S::TensorSpace) = Fun(xyz->[xyz...],S)

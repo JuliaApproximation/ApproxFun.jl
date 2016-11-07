@@ -147,3 +147,10 @@ g = cos(x)
 x = Fun(identity,[0.,100.])
 f = sin(x^2)
 @test_approx_eq_eps f(.1) sin(.1^2) 1E-12
+
+
+## Reverse
+
+
+f=Fun(exp)
+@test_approx_eq Fun(f,Chebyshev([1,-1]))(0.1) f(0.1)

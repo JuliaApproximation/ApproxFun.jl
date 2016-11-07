@@ -181,3 +181,26 @@ x,y=Fun(identity,∂(d))
 x,y=Fun(∂(d))
 @test_approx_eq x(0.1,1.0) 0.1
 @test_approx_eq y(1.0,0.2) 0.2
+
+
+
+
+# test conversion between
+dx=dy=Interval()
+d=dx*dy
+
+x,y=Fun(∂(d))
+x,y=vec(x),vec(y)
+
+g=[real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
+B=[eye(dx)⊗ldirichlet(dy);ldirichlet(dx)⊗eye(dy);eye(dx)⊗rdirichlet(dy);rneumann(dx)⊗eye(dy)]
+
+@test_approx_eq Fun(g[1],rangespace(B[1]))(-0.1,-1.0) g[1](-0.1,-1.0)
+@test_approx_eq Fun(g[3],rangespace(B[3]))(-0.1,1.0)  g[3](-0.1,1.0)
+
+
+A=ApproxFun.interlace([B;Δ])
+g2=Fun([g;0.0],rangespace(A))
+
+@test_approx_eq g2[1](-0.1,-1.0) g[1](-0.1,-1.0)
+@test_approx_eq g2[3](-0.1,1.0)  g[3](-0.1,1.0)

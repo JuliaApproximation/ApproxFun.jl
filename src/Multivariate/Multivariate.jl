@@ -22,7 +22,6 @@ Base.eltype{MF<:MultivariateFun}(::Type{MF})=eltype(supertype(MF))
 
 
 include("VectorFun.jl")
-include("ProductDomain.jl")
 include("TensorSpace.jl")
 include("LowRankFun.jl")
 include("ProductFun.jl")
