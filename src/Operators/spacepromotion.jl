@@ -31,12 +31,9 @@ end
 @wrappergetindex SpaceOperator
 
 # SpaceOperator can change blocks, so we need to override this
-function getindex(A::SpaceOperator,KR::Range{Block},JR::Range{Block})
-    @assert step(KR) == step(JR) == Block(1)  # TODO: generalize
-    ds = domainspace(A)
-    rs = rangespace(A)
-    A[blockstart(rs,KR[1]):blockstop(rs,KR[end]),blockstart(ds,JR[1]):blockstop(ds,JR[end])]
-end
+getindex(A::SpaceOperator,KR::Range{Block},JR::Range{Block}) = defaultgetindex(A,KR,JR)
+getindex(A::SpaceOperator,f::Union{Fun,LowRankFun,ProductFun}) = defaultgetindex(A,f)
+
 
 getindex(A::SpaceOperator,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]
 getindex(A::SpaceOperator,K::Block,j) = A[blockrows(A,K),j]
