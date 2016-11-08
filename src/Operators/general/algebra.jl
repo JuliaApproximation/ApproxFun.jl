@@ -575,18 +575,6 @@ end
 
 
 
-for TYP in (:Vector,:Fun,:Number)
-    @eval function linsolve(A::TimesOperator,b::$TYP;kwds...)
-        ret = b
-        for op in A.ops
-            ret = linsolve(op,ret;kwds...)
-        end
-        ret
-    end
-end
-
-
-
 
 
 

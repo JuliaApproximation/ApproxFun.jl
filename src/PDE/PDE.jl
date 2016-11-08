@@ -14,7 +14,9 @@ function Laplacian{T,D}(d::Union{ProductDomain{T,2},Space{T,D,2}},k::Integer)
     if k==1
         LaplacianWrapper(Dx2+Dy2,k)
     else
-        LaplacianWrapper((Dx2+Dy2)^k,k)
+        @assert k > 0
+        Δ=Laplacian(d,1)
+        LaplacianWrapper(TimesOperator(Laplacian(rangespace(Δ),k-1),Δ),k)
     end
 end
 

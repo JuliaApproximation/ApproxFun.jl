@@ -108,15 +108,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::Space) =
 @calculus_operator(Integral)
 @calculus_operator(Volterra)
 
-for TYP in (:Derivative,:Integral)
-    @eval begin
-        function *(D1::$TYP,D2::$TYP)
-            @assert domain(D1) == domain(D2)
 
-            $TYP(domainspace(D2),D1.order+D2.order)
-        end
-    end
-end
 
 
 
@@ -204,7 +196,7 @@ end
 
 
 
-Derivative(sp::Space,order)=defaultDerivative(sp,order)
+Derivative(sp::Space,order) = defaultDerivative(sp,order)
 
 
 function Integral(sp::Space,k::Integer)
@@ -226,5 +218,16 @@ function Integral(sp::Space,k::Integer)
         M=Multiplication(fromcanonicalD(sp,x),csp)
         Q=Integral(rangespace(M))*M
         IntegralWrapper(SpaceOperator(Q,sp,setdomain(rangespace(Q),domain(sp))),1)
+    end
+end
+
+
+for TYP in (:Derivative,:Integral,:Laplacian)
+    @eval begin
+        function *(D1::$TYP,D2::$TYP)
+            @assert domain(D1) == domain(D2)
+
+            $TYP(domainspace(D2),D1.order+D2.order)
+        end
     end
 end
