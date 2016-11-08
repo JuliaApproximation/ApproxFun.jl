@@ -385,8 +385,8 @@ defaultgetindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
 
 # Convenience for wrapper ops
 unwrap_axpy!(α,P,A) = BLAS.axpy!(α,view(parent(P).op,P.indexes[1],P.indexes[2]),A)
-iswrapper(::)=false
-haswrapperstructure(::)=false
+iswrapper(::) = false
+haswrapperstructure(::) = false
 
 # use this for wrapper operators that have the same structure but
 # not necessarily the same entries
@@ -608,15 +608,28 @@ function Base.convert(::Type{Matrix},S::Operator)
        error("Cannot convert $S to a Matrix")
    end
 
-   eltype(S)[S[k,j] for k=1:size(S,1),j=1:size(S,2)]
+   if isbanded(S)
+       Matrix(BandedMatrix(S))
+   elseif isbandedblockbanded(S)
+       Matrix(BandedBlockBandedMatrix(S))
+   elseif isbandedblock(S)
+       Matrix(BandedBlockMatrix(S))
+   else
+       eltype(S)[S[k,j] for k=1:size(S,1),j=1:size(S,2)]
+   end
 end
 
 Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
+
+Base.convert(::Type{BandedBlockMatrix},S::Operator) = default_bandedblockmatrix(S)
+
 function Base.convert(::Type{RaggedMatrix},S::Operator)
     if isbanded(S)
         RaggedMatrix(BandedMatrix(S))
     elseif isbandedblockbanded(S)
         RaggedMatrix(BandedBlockBandedMatrix(S))
+    elseif isbandedblock(S)
+        RaggedMatrix(BandedBlockMatrix(S))
     else
         default_raggedmatrix(S)
     end
@@ -642,6 +655,8 @@ function Base.convert(::Type{AbstractMatrix},S::SubOperator)
         BandedMatrix(S)
     elseif isbandedblockbanded(parent(S))
         BandedBlockBandedMatrix(S)
+    elseif isbandedblock(parent(S))
+        BandedBlockMatrix(S)
     elseif israggedbelow(parent(S))
         RaggedMatrix(S)
     else

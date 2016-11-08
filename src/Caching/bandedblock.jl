@@ -1,6 +1,20 @@
 
 
 
+# # default copy is to loop through
+# # override this for most operators.
+function default_bandedblockmatrix(S::Operator)
+    ret=BandedBlockMatrix(eltype(S),blockbandwidth(B,1),blockbandwidth(B,2),
+            blocklengths(rangespace(S)),blocklengths(domainspace(S)))
+
+    @inbounds for j=1:size(ret,2),k=colrange(ret,j)
+        ret[k,j] = S[k,j]
+    end
+    ret
+end
+#
+
+
 # diagblockshift gives the shift for the diagonal block of an operator
 # that is, trace an operator down the diagonal.  What blocks correspond to the
 # block diagonal?

@@ -83,6 +83,17 @@ view(A::Operator,::Colon,::Colon) = view(A,1:size(A,1),1:size(A,2))
 view(A::Operator,::Colon,jr) = view(A,1:size(A,1),jr)
 view(A::Operator,kr,::Colon) = view(A,kr,1:size(A,2))
 
+
+view(A::Operator,K::Block,J::Block) = view(A,blockrows(A,K),blockcols(A,J))
+view(A::Operator,K::Block,j) = view(A,blockrows(A,K),j)
+view(A::Operator,k,J::Block) = view(A,k,blockcols(A,J))
+function view(A::Operator,KR::Range{Block},JR::Range{Block})
+    @assert step(KR) == step(JR) == Block(1)  # TODO: generalize
+    ds = domainspace(A)
+    rs = rangespace(A)
+    view(A,blockstart(rs,KR[1]):blockstop(rs,KR[end]),blockstart(ds,JR[1]):blockstop(ds,JR[end]))
+end
+
 view(A::Operator,k,j) = SubOperator(A,(k,j))
 
 
@@ -118,7 +129,9 @@ rowstop(S::SubOperator,j::Integer) =
 blockcolstop(S::SubOperator,J::Integer) = blockcolstop(parent(S),J)
 
 israggedbelow(S::SubOperator) = israggedbelow(parent(S))
-blockbandinds(S::SubOperator) = (-∞,∞)
+
+# since blocks don't change, neither do blockbandinds
+blockbandinds(S::SubOperator) = blockbandinds(parent(S))
 
 function bbbzeros(S::SubOperator)
     kr,jr=parentindexes(S)
@@ -165,6 +178,8 @@ function Base.convert(::Type{RaggedMatrix},S::SubOperator)
         RaggedMatrix(BandedMatrix(S))
     elseif isbandedblockbanded(parent(S))
         RaggedMatrix(BandedBlockBandedMatrix(S))
+    elseif isbandedblock(parent(S))
+        RaggedMatrix(BandedBlockMatrix(S))
     else
         default_raggedmatrix(S)
     end
