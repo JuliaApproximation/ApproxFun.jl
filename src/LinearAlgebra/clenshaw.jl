@@ -1,5 +1,11 @@
 export clenshaw, @clenshaw
 
+
+##
+# ClenshawPlan can be used for multiple evaluations with different functions
+# that have the same length
+##
+
 type ClenshawPlan{S,T}
     sp::S
     bk::Vector{T}

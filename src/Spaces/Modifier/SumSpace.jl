@@ -260,9 +260,9 @@ end
 
 for OP in (:(Base.last),:(Base.first))
     @eval begin
-        $OP{SS<:SumSpace}(f::Fun{SS})=mapreduce($OP,+,vec(f))
-        $OP{SS<:PiecewiseSpace}(f::Fun{SS})=$OP($OP(vec(f)))
-        $OP{SS<:TupleSpace}(f::Fun{SS})=$OP(vec(f))
+        $OP{SS<:SumSpace}(f::Fun{SS}) = mapreduce($OP,+,vec(f))
+        $OP{SS<:PiecewiseSpace}(f::Fun{SS}) = $OP($OP(vec(f)))
+        $OP{SS<:TupleSpace}(f::Fun{SS}) = $OP(vec(f))
     end
 end
 

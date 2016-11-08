@@ -6,9 +6,10 @@ include("BlockOperators.jl")
 include("SubSpace.jl")
 
 
-⊕(A::Space,B::Space)=domainscompatible(A,B)?SumSpace(A,B):PiecewiseSpace(A,B)
-⊕(f::Fun,g::Fun)=Fun(interlace(coefficients(f),coefficients(g)),space(f)⊕space(g))
+⊕(A::Space,B::Space) = domainscompatible(A,B) ? SumSpace(A,B) : PiecewiseSpace(A,B)
+⊕(f::Fun,g::Fun) = Fun(interlace(coefficients(f),coefficients(g)),space(f) ⊕ space(g))
 
++(A::Space,B::Space) = A ⊕ B
 
 
 # Conversion from Vector to Tuple
