@@ -386,7 +386,8 @@ end
 ######
 
 
-for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros))
+for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
+                    (:BandedBlockMatrix,:bbzeros))
     @eval begin
         function Base.convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
                                 S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI}})

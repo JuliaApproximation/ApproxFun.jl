@@ -1,6 +1,6 @@
 using ApproxFun,Base.Test
 
-import ApproxFun:interlace,Multiplication,ConstantSpace,TupleSpace,PointSpace
+import ApproxFun:interlace,Multiplication,ConstantSpace,TupleSpace,PointSpace,testbandedblockoperator
 
 
 d=Interval()

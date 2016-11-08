@@ -590,6 +590,8 @@ bbbzeros(S::Operator) = bbbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,
                     subblockbandwidth(S,1),subblockbandwidth(S,2),
             blocklengthrange(rangetensorizer(S),1:size(S,1)),
             blocklengthrange(domaintensorizer(S),1:size(S,2)))
+bbzeros(S::Operator) = bbzeros(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
+            blocklengths(rangespace(S)),blocklengths(domainspace(S)))
 
 rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[max(0,colstop(S,j)) for j=1:size(S,2)])
 
