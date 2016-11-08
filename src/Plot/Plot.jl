@@ -2,13 +2,6 @@ export domainplot, coefficientplot, complexplot
 
 
 
-if isdir(Pkg.dir("TikzGraphs"))
-    include("introspect.jl")
-end
-
-
-
-
 ## Fun routines
 
 
