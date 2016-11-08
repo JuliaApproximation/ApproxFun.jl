@@ -4,7 +4,7 @@
 # # default copy is to loop through
 # # override this for most operators.
 function default_bandedblockmatrix(S::Operator)
-    ret=BandedBlockMatrix(eltype(S),blockbandwidth(B,1),blockbandwidth(B,2),
+    ret=BandedBlockMatrix(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
             blocklengths(rangespace(S)),blocklengths(domainspace(S)))
 
     @inbounds for j=1:size(ret,2),k=colrange(ret,j)

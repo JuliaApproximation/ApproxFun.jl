@@ -80,7 +80,10 @@ blockrows(A::AbstractBlockMatrix,K::Int) = sum(A.rows[1:K-1]) + (1:A.rows[K])
 blockcols(A::AbstractBlockMatrix,J::Int) = sum(A.cols[1:J-1]) + (1:A.cols[J])
 
 colstop(A::AbstractBandedBlockMatrix,k::Int) = sum(A.rows[1:min(A.colblocks[k]+A.l,length(A.rows))])
-colstart(A::AbstractBandedBlockMatrix,k::Int) = sum(A.rows[1:A.colblocks[k]-A.u-1])+1
+function colstart(A::AbstractBandedBlockMatrix,k::Int)
+    lr = A.colblocks[k]-A.u-1
+    lr ≤ length(A.rows) ? sum(A.rows[1:lr])+1 : size(A,1)+1  # no columns
+end
 
 rowstop(A::AbstractBandedBlockMatrix,k::Int) = sum(A.cols[1:min(A.rowblocks[k]+A.u,length(A.cols))])
 rowstart(A::AbstractBandedBlockMatrix,k::Int) = sum(A.cols[1:A.rowblocks[k]-A.l-1])+1

@@ -27,6 +27,9 @@ block(sp::SubSpace,k::Integer) = block(sp.space,sp.indexes[k])
 function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
     B1=block(sp.space,sp.indexes[1])
     B2=block(sp.space,sp.indexes[end])
+    # if the blocks are equal, we have only one bvlock
+    B1 == B2 && return [zeros(Int,B1-1);length(sp.indexes)]
+
     [zeros(Int,B1-1);
          blockstop(sp.space,B1)-sp.indexes[1]+1;blocklengths(sp.space)[B1+1:B2-1];
         sp.indexes[end]-blockstart(sp.space,B2)+1]
