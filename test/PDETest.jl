@@ -32,6 +32,9 @@ testbandedblockoperator(Dirichlet(d))
 testbandedblockbandedoperator(Laplacian(d)+0.0I)
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
+
+testbandedblockoperator(ApproxFun.interlace(A))
+
 @time u=A\[g,0.]
 @test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
 
