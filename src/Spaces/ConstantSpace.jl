@@ -79,7 +79,8 @@ Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2}) = ConcreteConversion{typeof(a)
         promote_type(op_eltype_realdomain(a),eltype(op_eltype_realdomain(b)))}(a,b)
 
 Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
-bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S}) = 1-ncoefficients(ones(rangespace(C))),0
+bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S}) =
+    1-ncoefficients(ones(rangespace(C))),0
 function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k::Integer,j::Integer)
     if j != 1
         throw(BoundsError())
@@ -88,7 +89,8 @@ function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k:
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
 
-
+coefficients{TT,SV,T,DD}(f::Vector,sp::ConstantSpace{Interval{Vec{2,TT}}},ts::TensorSpace{SV,T,DD,2}) =
+    f[1]*ones(ts).coefficients
 coefficients(f::Vector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
 
 

@@ -267,8 +267,10 @@ for FUNC in (:hasconversion,:isconvertible)
         $FUNC{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D})=isapproxinteger(A.α-B.α) &&
             isapproxinteger(A.β-B.β) && A.α ≥ B.α && A.β ≥ B.β && $FUNC(A.space,B.space)
 
-        $FUNC{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::Space{T,D})=$FUNC(A,JacobiWeight(0.,0.,B))
-        $FUNC{T,S,D<:IntervalDomain}(B::Space{T,D},A::JacobiWeight{S,D})=$FUNC(JacobiWeight(0.,0.,B),A)
+        $FUNC{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::UnivariateSpace{T,D}) =
+            $FUNC(A,JacobiWeight(0.,0.,B))
+        $FUNC{T,S,D<:IntervalDomain}(B::UnivariateSpace{T,D},A::JacobiWeight{S,D}) =
+            $FUNC(JacobiWeight(0.,0.,B),A)
     end
 end
 

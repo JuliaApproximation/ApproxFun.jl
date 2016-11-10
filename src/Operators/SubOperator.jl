@@ -85,6 +85,8 @@ view(A::Operator,kr,::Colon) = view(A,kr,1:size(A,2))
 
 
 view(A::Operator,K::Block,J::Block) = view(A,blockrows(A,K),blockcols(A,J))
+view(A::Operator,K::Block,j::Colon) = view(A,blockrows(A,K),j)
+view(A::Operator,k::Colon,J::Block) = view(A,k,blockcols(A,J))
 view(A::Operator,K::Block,j) = view(A,blockrows(A,K),j)
 view(A::Operator,k,J::Block) = view(A,k,blockcols(A,J))
 function view(A::Operator,KR::Range{Block},JR::Range{Block})

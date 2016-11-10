@@ -505,14 +505,15 @@ union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spa
 #      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
 #  end
 
-isconvertible(sp::UnivariateSpace,ts::TensorSpace) = length(ts.spaces) == 2 &&
+isconvertible{SV,TTT,DD}(sp::UnivariateSpace,ts::TensorSpace{SV,TTT,DD,2}) = length(ts.spaces) == 2 &&
     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||
      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
 
 
-coefficients(f::Vector,sp::ConstantSpace,ts::TensorSpace) = f[1]*ones(ts).coefficients
+coefficients{SV,T,DD}(f::Vector,sp::ConstantSpace,ts::TensorSpace{SV,T,DD,2}) =
+    f[1]*ones(ts).coefficients
 
-function coefficients(f::Vector,sp::UnivariateSpace,ts::TensorSpace)
+function coefficients{SV,T,DD}(f::Vector,sp::UnivariateSpace,ts::TensorSpace{SV,T,DD,2})
     @assert length(ts.spaces) == 2
 
     if domain(ts)[1] == Point(0.0)
@@ -525,7 +526,7 @@ function coefficients(f::Vector,sp::UnivariateSpace,ts::TensorSpace)
 end
 
 
-function isconvertible{T,TT}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace)
+function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace{SV,TTT,DD,2})
     d1 = domain(sp)
     d2 = domain(ts)
     if length(ts.spaces) ≠ 2
@@ -543,8 +544,8 @@ function isconvertible{T,TT}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::Tens
 end
 
 
-function coefficients{T,TT}(f::Vector,sp::UnivariateSpace{T,Interval{Vec{2,TT}}},
-                            ts::TensorSpace)
+function coefficients{T,TT,SV,TTT,DD}(f::Vector,sp::UnivariateSpace{T,Interval{Vec{2,TT}}},
+                            ts::TensorSpace{SV,TTT,DD,2})
     @assert length(ts.spaces) == 2
     d1 = domain(sp)
     d2 = domain(ts)
