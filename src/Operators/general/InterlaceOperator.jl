@@ -149,7 +149,7 @@ function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
 
 
     InterlaceOperator(ops,ds,rs,
-                        BlockInterlacer(tuple(blocklengths(ds))),
+                        cache(BlockInterlacer(tuple(blocklengths(ds)))),
                         cache(interlacer(rs)),
                         (l,u))
 end
@@ -228,7 +228,7 @@ end
 
 
 
-function colstop{T}(M::InterlaceOperator{T,1},j::Integer)
+function colstop{T}(M::InterlaceOperator{T},j::Integer)
 #    b=bandwidth(M,1)
     if isbandedbelow(M)
         min(j+bandwidth(M,1)::Int,size(M,1)::Int)
@@ -236,24 +236,24 @@ function colstop{T}(M::InterlaceOperator{T,1},j::Integer)
         J=block(domainspace(M),j)::Int
         blockstop(rangespace(M),blockcolstop(M,J)::Int)::Int
     else #assume is raggedbelow
-#        opj,J = M.rangeinterlacer[j]
         K = 0
+        (J,jj) = M.domaininterlacer[j]
         for N = 1:size(M.ops,1)
-            K = max(K,findfirst(M.rangeinterlacer,(N,colstop(M.ops[N],j)))::Int)
+            K = max(K,findfirst(M.rangeinterlacer,(N,colstop(M.ops[N,J],jj)))::Int)
         end
         K
     end
 end
 
-function colstop{T}(M::InterlaceOperator{T,2},j::Integer)
-    b=bandwidth(M,1)
-    if isfinite(b)
-        min(j+b,size(M,1))
-    else # assume block banded
-        J=block(domainspace(M),j)
-        blockstop(rangespace(M),blockcolstop(M,J))
-    end
-end
+# function colstop{T}(M::InterlaceOperator{T,2},j::Integer)
+#     b=bandwidth(M,1)
+#     if isfinite(b)
+#         min(j+b,size(M,1))
+#     else # assume block banded
+#         J=block(domainspace(M),j)
+#         blockstop(rangespace(M),blockcolstop(M,J))
+#     end
+# end
 
 #
 # function colstop{T}(M::InterlaceOperator{T,2},j::Integer)
