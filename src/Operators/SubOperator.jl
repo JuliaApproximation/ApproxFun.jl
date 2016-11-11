@@ -159,8 +159,20 @@ function bbbzeros(S::SubOperator)
 end
 
 
-domainspace(S::SubOperator) = domainspace(parent(S))|parentindexes(S)[2]
-rangespace(S::SubOperator) = rangespace(parent(S))|parentindexes(S)[1]
+function domainspace(S::SubOperator)
+    P =parent(S)
+    sp=domainspace(P)
+    kr=parentindexes(S)[2]
+
+    SubSpace{typeof(sp),typeof(kr),basistype(sp),typeof(domain(P)),dimension(sp)}(sp,kr)
+end
+function rangespace(S::SubOperator)
+    P =parent(S)
+    sp=rangespace(P)
+    kr=parentindexes(S)[1]
+
+    SubSpace{typeof(sp),typeof(kr),basistype(sp),typeof(domain(P)),dimension(sp)}(sp,kr)
+end
 
 size(V::SubOperator) = V.dims
 size(V::SubOperator,k::Int) = V.dims[k]

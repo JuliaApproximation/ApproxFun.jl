@@ -100,7 +100,7 @@ f = devec([t^2, sin(t)])
 
 ## Multiplication operator
 
-Γ=Circle()∪Circle(0.5)
+Γ=Circle() ∪ Circle(0.5)
 
 
 f=Fun(z->in(z,Γ[2])?1:z,Γ)

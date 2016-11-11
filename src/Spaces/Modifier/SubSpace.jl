@@ -7,6 +7,9 @@ end
 SubSpace{T,DD,dim}(sp::Space{T,DD,dim},kr) =
     SubSpace{typeof(sp),typeof(kr),T,DD,dim}(sp,kr)
 
+SubSpace(sp::Space,kr) =
+    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),dimension(sp)}(sp,kr)    
+
 SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,sp.indexes[kr])
 
 domain(DS::SubSpace) = domain(DS.space)
