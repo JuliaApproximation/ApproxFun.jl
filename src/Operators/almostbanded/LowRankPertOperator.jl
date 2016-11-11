@@ -31,7 +31,7 @@ domainspace(L::LowRankPertOperator)=domainspace(L.op)
 rangespace(L::LowRankPertOperator)=rangespace(L.op)
 datasize(L::LowRankPertOperator,k...)=datasize(L.pert,k...)
 
-israggedbelow(L::LowRankPertOperator) = israggedbelow(L.op)
+colstop(L::LowRankPertOperator,k::Integer) = max(colstop(L.op,k::Integer),colstop(L.pert,k::Integer))
 
 for OP in (:promotedomainspace,:promoterangespace)
     @eval $OP(L::LowRankPertOperator,sp::Space)=LowRankPertOperator($OP(L.op,sp),$OP(L.pert,sp))
