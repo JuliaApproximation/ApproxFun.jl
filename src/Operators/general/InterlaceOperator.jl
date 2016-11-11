@@ -231,7 +231,7 @@ end
 function colstop{T}(M::InterlaceOperator{T},j::Integer)
 #    b=bandwidth(M,1)
     if isbandedbelow(M)
-        min(j+bandwidth(M,1)::Int,size(M,1)::Int)
+        min(j+bandwidth(M,1)::Int,size(M,1))::Int
     elseif isbandedblockbelow(M)
         J=block(domainspace(M),j)::Int
         blockstop(rangespace(M),blockcolstop(M,J)::Int)::Int
@@ -244,64 +244,6 @@ function colstop{T}(M::InterlaceOperator{T},j::Integer)
         K
     end
 end
-
-# function colstop{T}(M::InterlaceOperator{T,2},j::Integer)
-#     b=bandwidth(M,1)
-#     if isfinite(b)
-#         min(j+b,size(M,1))
-#     else # assume block banded
-#         J=block(domainspace(M),j)
-#         blockstop(rangespace(M),blockcolstop(M,J))
-#     end
-# end
-
-#
-# function colstop{T}(M::InterlaceOperator{T,2},j::Integer)
-#     l = M.bandinds[1]
-#
-#     if isinf(l)
-#         (J,ξ) = M.domaininterlacer[j]
-#         ret = j
-#
-#         for K=1:size(M.ops,1)
-#             cs=colstop(M.ops[K,J],ξ)
-#
-#             for k=j:size(M,1)
-#                 (KK,κ)=M.rangeinterlacer[k]
-#                 if K == KK && κ ≥ cs
-#                     ret = max(ret,k)
-#                     break
-#                 end
-#             end
-#         end
-#         return ret
-#     else
-#         return  min(size(M,1),j-l)
-#     end
-# end
-
-# function colstop{T}(M::InterlaceOperator{T,1},j::Integer)
-#     l = M.bandinds[1]
-#
-#     if isinf(l)
-#         ret = j
-#
-#         for K=1:length(M.ops)
-#             cs=colstop(M.ops[K],j)
-#
-#             for k=j:size(M,1)
-#                 (KK,κ)=M.rangeinterlacer[k]
-#                 if K == KK && κ ≥ cs
-#                     ret = max(ret,k)
-#                     break
-#                 end
-#             end
-#         end
-#         return ret
-#     else
-#         return  min(size(M,1),j-l)
-#     end
-# end
 
 israggedbelow(M::InterlaceOperator) = all(israggedbelow,M.ops)
 
