@@ -31,6 +31,8 @@ domainspace(L::LowRankPertOperator)=domainspace(L.op)
 rangespace(L::LowRankPertOperator)=rangespace(L.op)
 datasize(L::LowRankPertOperator,k...)=datasize(L.pert,k...)
 
+israggedbelow(L::LowRankPertOperator) = israggedbelow(L.op)
+
 for OP in (:promotedomainspace,:promoterangespace)
     @eval $OP(L::LowRankPertOperator,sp::Space)=LowRankPertOperator($OP(L.op,sp),$OP(L.pert,sp))
 end
