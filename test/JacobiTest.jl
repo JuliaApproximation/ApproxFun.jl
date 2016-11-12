@@ -23,9 +23,6 @@ f4=Fun(exp,sp4)
 @test norm((Fun(f,sp3)-f3).coefficients)<10eps()
 @test norm((Fun(f,sp4)-f4).coefficients)<20eps()
 
-M=Multiplication(f,sp2)
-@time testbandedoperator(M)
-
 
 
 

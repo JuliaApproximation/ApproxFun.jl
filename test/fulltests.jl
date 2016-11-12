@@ -93,6 +93,14 @@ end
 
 println("Full Jacobi tests")
 
+
+sp=Jacobi(2.124,.5)
+f=Fun(exp,sp)
+sp2=Jacobi(2.124,1.5)
+M=Multiplication(f,sp2)
+@time testbandedoperator(M)
+
+
 ## Legendre conversions
 testspace(Ultraspherical(1);haslineintegral=false)
 testspace(Ultraspherical(2);haslineintegral=false)
