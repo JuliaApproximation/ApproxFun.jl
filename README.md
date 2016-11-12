@@ -154,7 +154,7 @@ L = Derivative() + a
 f = Fun(t->exp(sin(10t)),s)
 uFourier = L\f
 
-length(uFourier)/length(uChebyshev),2/π
+ncoefficients(uFourier)/ncoefficients(uChebyshev),2/π
 plot(uFourier)
 ```
 
@@ -182,13 +182,16 @@ plot!(f/sum(f))
 
 
 We can solve PDEs, the following solves Helmholtz `Δu + 100u=0` with `u(±1,y)=u(x,±1)=1`
-on a square
+on a square.  This function has weak singularities at the corner,
+so we specify a lower tolerance to avoid resolving these singularities
+completely.
 
 ```julia
 d = Interval()^2                            # Defines a rectangle
 Δ = Laplacian(d)                            # Represent the Laplacian
 f = ones(∂(d))                              # one at the boundary
-u = [Dirichlet(d);Δ+100I]\[f;0.]            # Solve the PDE
+u = linsolve([Dirichlet(d);Δ+100I],[f;0.];  # Solve the PDE
+                tolerance=1E-5)             
 surface(u)                                  # Surface plot
 ```
 
