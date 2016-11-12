@@ -16,10 +16,6 @@ QR=qrfact(Δ)
 @test norm((u-v).coefficients)<100eps()
 
 
-f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
-@time v=linsolve(Δ,f;tolerance=1E-14)
-@test norm((Δ*v-f).coefficients)<1E-14
-
 
 
 ## Rectangle PDE
@@ -135,25 +131,6 @@ testbandedblockbandedoperator(Laplacian(d))
 
 
 println("    Time evolution tests")
-
-
-dx=Interval();dt=Interval(0,0.2)
-d=dx*dt
-Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
-x,t=Fun(dx*dt)
-
-
-B=0.0
-C=0.0
-V=B+C*x
-ε=0.1
-f=Fun(x->exp(-30x^2),dx)
-
-testbandedblockbandedoperator(Dt-ε*Dx^2-V*Dx)
-
-@time u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
-
-@test_approx_eq u(.1,.2) 0.496524222625512
 
 
 ## Schrodinger

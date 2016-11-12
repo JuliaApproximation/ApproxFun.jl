@@ -8,6 +8,15 @@ using ApproxFun, Compat, Base.Test
 println("    Rectangle tests")
 
 
+S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
+Δ=Laplacian(S)
+
+f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
+@time v=linsolve(Δ,f;tolerance=1E-14)
+@test norm((Δ*v-f).coefficients)<1E-14
+
+
+
 # Screened Poisson
 
 dx=dy=Interval()
@@ -412,7 +421,6 @@ testbandedblockbandedoperator(A)
 
 
 println("    Time evolution tests")
-
 
 dx=Interval();dt=Interval(0,0.2)
 d=dx*dt
