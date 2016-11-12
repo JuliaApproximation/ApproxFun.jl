@@ -91,6 +91,70 @@ end
     @test_approx_eq_eps u(.1) besselj(ν,.1) eps(10000.)*max(abs(u(.1)),1)
 end
 
+println("Full Jacobi tests")
+
+## Legendre conversions
+testspace(Ultraspherical(1);haslineintegral=false)
+testspace(Ultraspherical(2);haslineintegral=false)
+@time testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)  # minpoints is a tempory fix a bug
+
+@test norm(Fun(exp,Ultraspherical(1//2))-Fun(exp,Jacobi(0,0))) < 100eps()
+
+C=Conversion(Jacobi(0,0),Chebyshev())
+@time testbandedbelowoperator(C)
+@test norm(C*Fun(exp,Jacobi(0,0))  - Fun(exp)) < 100eps()
+
+
+C=Conversion(Ultraspherical(1//2),Chebyshev())
+@time testbandedbelowoperator(C)
+@test norm(C*Fun(exp,Ultraspherical(1//2))  - Fun(exp)) < 100eps()
+
+
+
+C=Conversion(Chebyshev(),Ultraspherical(1//2))
+@time testbandedbelowoperator(C)
+@test norm(C*Fun(exp)-Fun(exp,Legendre())) < 100eps()
+
+
+C=Conversion(Chebyshev(),Jacobi(0,0))
+@time testbandedbelowoperator(C)
+@test norm(C*Fun(exp)  - Fun(exp,Jacobi(0,0))) < 100eps()
+
+
+C=Conversion(Chebyshev(),Jacobi(1,1))
+@time testbandedbelowoperator(C)
+@test norm(C*Fun(exp) - Fun(exp,Jacobi(1,1))) < 100eps()
+
+
+C=Conversion(Ultraspherical(1//2),Ultraspherical(1))
+@time testbandedbelowoperator(C)
+
+λ1 = ApproxFun.order(domainspace(C))
+λ2 = ApproxFun.order(rangespace(C))
+
+# test against version that doesn't use lgamma
+Cex = Float64[(if j ≥ k && iseven(k-j)
+        gamma(λ2)*(k-1+λ2)/(gamma(λ1)*gamma(λ1-λ2))*
+            (gamma((j-k)/2+λ1-λ2)/gamma((j-k)/2+1))*
+            (gamma((k+j-2)/2+λ1)/gamma((k+j-2)/2+λ2+1))
+    else
+        0.0
+    end) for k=1:20,j=1:20]
+
+@test norm(Cex - C[1:20,1:20]) < 100eps()
+
+@test norm(C*Fun(exp,Ultraspherical(1//2))-Fun(exp,Ultraspherical(1))) < 100eps()
+
+C=Conversion(Jacobi(0,0),Ultraspherical(1))
+testbandedbelowoperator(C)
+@test norm(C*Fun(exp,Jacobi(0,0))-Fun(exp,Ultraspherical(1))) < 100eps()
+
+
+C=Conversion(Ultraspherical(1),Jacobi(0,0))
+testbandedbelowoperator(C)
+@test norm(C*Fun(exp,Ultraspherical(1))-Fun(exp,Jacobi(0,0))) < 100eps()
+
+
 println("Full multivariate tests")
 
 
