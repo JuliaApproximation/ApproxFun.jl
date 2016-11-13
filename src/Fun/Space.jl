@@ -53,7 +53,7 @@ abstract Space{T,D,d}
 typealias RealSpace{D,d} Space{RealBasis,D,d}
 typealias ComplexSpace{D,d} Space{ComplexBasis,D,d}
 typealias UnivariateSpace{T,D} Space{T,D,1}
-typealias BivariateSpace{T} Space{T,AnyDomain,2}
+typealias BivariateSpace{T,DD} Space{T,DD,2}
 typealias RealUnivariateSpace{D} RealSpace{D,1}
 
 
@@ -74,6 +74,23 @@ coefficient_type{S}(::Space{S},T) = coefficient_type(S,T)
 domaindimension{S,D,d}(::Space{S,D,d}) = d
 dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 
+
+# add indexing for all spaces, not just DirectSumSpace
+# mimicking scalar vs vector
+
+# TODO: 0.5 iterator
+Base.start(s::Space) = false
+Base.next(s::Space,st) = (s,true)
+Base.done(s::Space,st) = st
+Base.length(s::Space) = 1
+getindex(s::Space,k) = k == 1 ? s : throw(BoundsError())
+Base.endof(s::Space) = 1
+
+
+
+# the default is all spaces have one-coefficient blocks
+blocklengths(S::Space) = repeated(true,dimension(S))
+block(S::Space,k) = k
 
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
@@ -138,18 +155,14 @@ spacescompatible(f,g) = false
 spacesequal(A::Space,B::Space) = A==B
 
 # check a list of spaces for compatibility
-for OP in (:spacescompatible,:domainscompatible,:spacesequal)
-    @eval begin
-        function $OP{T<:Space}(v::Vector{T})
-            for k=1:length(v)-1
-                if !$OP(v[k],v[k+1])
-                    return false
-                end
+for OP in (:spacescompatible,:domainscompatible,:spacesequal),TYP in (:Array,:Tuple)
+    @eval function $OP(v::$TYP)
+        for k=1:length(v)-1
+            if !$OP(v[k],v[k+1])
+                return false
             end
-            true
         end
-
-        $OP{T<:Space}(v::Array{T}) = $OP(vec(v))
+        true
     end
 end
 
@@ -416,8 +429,8 @@ end
 ## rand
 # checkpoints is used to give a list of points to double check
 # the expansion
-Base.rand(d::Space,k...)=rand(domain(d),k...)
-checkpoints(d::Space)=checkpoints(domain(d))
+Base.rand(d::Space,k...) = rand(domain(d),k...)
+checkpoints(d::Space) = checkpoints(domain(d))
 
 
 
@@ -426,8 +439,8 @@ checkpoints(d::Space)=checkpoints(domain(d))
 # transform converts from values at points(S,n) to coefficients
 # itransform converts from coefficients to values at points(S,n)
 
-transform(S::Space,vals)=transform(S,vals,plan_transform(S,vals))
-itransform(S::Space,cfs)=itransform(S,cfs,plan_itransform(S,cfs))
+transform(S::Space,vals) = transform(S,vals,plan_transform(S,vals))
+itransform(S::Space,cfs) = itransform(S,cfs,plan_itransform(S,cfs))
 
 function transform(S::Space,vals,plan)
     csp=canonicalspace(S)
@@ -501,6 +514,11 @@ ConstantSpace() = ConstantSpace(AnyDomain())
 
 isconstspace(::ConstantSpace) = true
 
+function transform(sp::ConstantSpace,vals,plan...)
+    @assert length(vals)==1
+    vals
+end
+
 # we override maxspace instead of maxspace_rule to avoid
 # domainscompatible check.
 for OP in (:maxspace,:(Base.union))
@@ -522,3 +540,9 @@ const ℓ⁰ = SequenceSpace()
 dimension(::SequenceSpace) = ∞
 domain(::SequenceSpace) = ℕ
 spacescompatible(::SequenceSpace,::SequenceSpace) = true
+
+
+
+## Boundary
+
+∂(S::Space) = ∂(domain(S))

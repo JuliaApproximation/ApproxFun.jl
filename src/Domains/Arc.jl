@@ -42,6 +42,8 @@ Base.convert{T<:Number,V<:Real}(::Type{Arc{T,V}},::AnyDomain) =
 Base.convert{IT<:Arc}(::Type{IT},::AnyDomain) =
     Arc(NaN,NaN,(NaN,NaN))
 
+Base.reverse(a::Arc) = Arc(a.center,a.radius,reverse(a.angles))
+
 arclength(d::Arc) = d.radius*(d.angles[2]-d.angles[1])
 
 

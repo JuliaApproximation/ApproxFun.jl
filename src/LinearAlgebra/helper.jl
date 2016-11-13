@@ -3,7 +3,7 @@ import Base.chop
 
 # Used for spaces not defined yet
 immutable UnsetNumber <: Number  end
-Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N})=N
+Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N}) = N
 
 # Test the number of arguments a function takes
 if VERSION < v"0.5.0-dev"
@@ -13,40 +13,40 @@ else
 end
 
 
-isapprox(a...;kwds...)=Base.isapprox(a...;kwds...)
-isapprox(a::Vec,b::Vec;kwds...)=isapprox([a...],[b...];kwds...)
+isapprox(a...;kwds...) = Base.isapprox(a...;kwds...)
+isapprox(a::Vec,b::Vec;kwds...) = isapprox([a...],[b...];kwds...)
 
 # This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
 # which we override for default julia types
-real(x...)=Base.real(x...)
-real(::Type{UnsetNumber})=UnsetNumber
-real{T<:Real}(::Type{T})=T
-real{T<:Real}(::Type{Complex{T}})=T
-real{T<:Real,n}(::Type{Array{T,n}})=Array{T,n}
-real{T<:Complex,n}(::Type{Array{T,n}})=Array{real(T),n}
-real{N,T<:Real}(::Type{Vec{N,T}})=Vec{N,T}
-real{N,T<:Complex}(::Type{Vec{N,T}})=Vec{N,real(T)}
+real(x...) = Base.real(x...)
+real(::Type{UnsetNumber}) = UnsetNumber
+real{T<:Real}(::Type{T}) = T
+real{T<:Real}(::Type{Complex{T}}) = T
+real{T<:Real,n}(::Type{Array{T,n}}) = Array{T,n}
+real{T<:Complex,n}(::Type{Array{T,n}}) = Array{real(T),n}
+real{N,T<:Real}(::Type{Vec{N,T}}) = Vec{N,T}
+real{N,T<:Complex}(::Type{Vec{N,T}}) = Vec{N,real(T)}
 
 
-eps(x...)=Base.eps(x...)
-eps{T<:Real}(::Type{Complex{T}})=eps(real(T))
-eps{T<:Real}(z::Complex{T})=eps(abs(z))
-eps{T<:Real}(::Type{Dual{Complex{T}}})=eps(real(T))
-eps{T<:Real}(z::Dual{Complex{T}})=eps(abs(z))
-eps{T<:Number}(::Type{Vector{T}})=eps(T)
-eps{k,T<:Number}(::Type{Vec{k,T}})=eps(T)
+eps(x...) = Base.eps(x...)
+eps{T<:Real}(::Type{Complex{T}}) = eps(real(T))
+eps{T<:Real}(z::Complex{T}) = eps(abs(z))
+eps{T<:Real}(::Type{Dual{Complex{T}}}) = eps(real(T))
+eps{T<:Real}(z::Dual{Complex{T}}) = eps(abs(z))
+eps{T<:Number}(::Type{Vector{T}}) = eps(T)
+eps{k,T<:Number}(::Type{Vec{k,T}}) = eps(T)
 
 
-isnan(x)=Base.isnan(x)
-isnan(x::Vec)=map(isnan,x)
+isnan(x) = Base.isnan(x)
+isnan(x::Vec) = map(isnan,x)
 
 
 # BLAS
 
 
 # implement muladd default
-muladd(a,b,c)=a*b+c
-muladd(a::Number,b::Number,c::Number)=Base.muladd(a,b,c)
+muladd(a,b,c) = a*b+c
+muladd(a::Number,b::Number,c::Number) = Base.muladd(a,b,c)
 
 
 for TYP in (:Float64,:Float32,:Complex128,:Complex64)
@@ -70,23 +70,53 @@ scal!(cst::Number,v::AbstractArray) = scal!(length(v),cst,v,1)
 
 
 
-## Helper routines
-alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
+# Helper routines
 
-function alternatesign!(v::Vector)
-    n=length(v)
-    for k=2:2:n
-        v[k]=-v[k]
+function reverseeven!(x::Vector)
+    n = length(x)
+    if iseven(n)
+        @inbounds @simd for k=2:2:n÷2
+            x[k],x[n+2-k] = x[n+2-k],x[k]
+        end
+    else
+        @inbounds @simd for k=2:2:n÷2
+            x[k],x[n+1-k] = x[n+1-k],x[k]
+        end
     end
-
-    v
+    x
 end
+
+function negateeven!(x::Vector)
+    @inbounds @simd for k = 2:2:length(x)
+        x[k] *= -1
+    end
+    x
+end
+
+#checkerboard, same as applying negativeeven! to all rows then all columns
+function negateeven!(X::Matrix)
+    for j = 1:2:size(X,2)
+        @inbounds @simd for k = 2:2:size(X,1)
+            X[k,j] *= -1
+        end
+    end
+    for j = 2:2:size(X,2)
+        @inbounds @simd for k = 1:2:size(X,1)
+            X[k,j] *= -1
+        end
+    end
+    X
+end
+
+const alternatesign! = negateeven!
 
 alternatesign(v::Vector)=alternatesign!(copy(v))
 
+alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
+
 function alternatingsum(v::Vector)
-    ret=zero(eltype(v))
-    s=1
+    ret = zero(eltype(v))
+    s = 1
     @inbounds for k=1:length(v)
         ret+=s*v[k]
         s*=-1
@@ -308,7 +338,75 @@ function interlace(a::Vector,b::Vector)
 end
 
 
+### In-place O(n) interlacing
 
+function highestleader(n::Int)
+    i = 1
+    while 3i < n i *= 3 end
+    i
+end
+
+function nextindex(i::Int,n::Int)
+    i <<= 1
+    while i > n
+        i -= n + 1
+    end
+    i
+end
+
+function cycle_rotate!(v::Vector, leader::Int, it::Int, twom::Int)
+    i = nextindex(leader, twom)
+    while i != leader
+        idx1, idx2 = it + i - 1, it + leader - 1
+        @inbounds v[idx1], v[idx2] = v[idx2], v[idx1]
+        i = nextindex(i, twom)
+    end
+    v
+end
+
+function right_cyclic_shift!(v::Vector, it::Int, m::Int, n::Int)
+    itpm = it + m
+    itpmm1 = itpm - 1
+    itpmpnm1 = itpmm1 + n
+    reverse!(v, itpm, itpmpnm1)
+    reverse!(v, itpm, itpmm1 + m)
+    reverse!(v, itpm + m, itpmpnm1)
+    v
+end
+
+"""
+This function implements the algorithm described in:
+
+    P. Jain, "A simple in-place algorithm for in-shuffle," arXiv:0805.1598, 2008.
+"""
+function interlace!(v::Vector,offset::Int)
+    N = length(v)
+    if N < 2 + offset
+        return v
+    end
+
+    it = 1 + offset
+    m = 0
+    n = 1
+
+    while m < n
+        twom = N + 1 - it
+        h = highestleader(twom)
+        m = h > 1 ? h÷2 : 1
+        n = twom÷2
+
+        right_cyclic_shift!(v,it,m,n)
+
+        leader = 1
+        while leader < 2m
+            cycle_rotate!(v, leader, it, 2m)
+            leader *= 3
+        end
+
+        it += 2m
+    end
+    v
+end
 
 ## svfft
 
@@ -317,27 +415,22 @@ end
 plan_svfft(x::Vector) = plan_fft(x)
 plan_isvfft(x::Vector) = plan_ifft(x)
 
-function svfft(v::Vector,plan)
-    n=length(v)
-    v=plan*v/n
+svfft{T}(v::Vector{T}) = svfft(v,plan_svfft(v))
+
+function svfft{T}(v::Vector{T},plan)
+    n = length(v)
+    v = scale!(inv(T(n)),plan*v)
     if mod(n,2) == 0
-        ind=div(n,2)
-        v=alternatesign!(v)
-        interlace(v[1:ind],
-                  flipdim(v[ind+1:end],1))
-    elseif mod(n,4)==3
-        ind=div(n+1,2)
-        interlace(alternatesign!(v[1:ind]),
-                  -flipdim(alternatesign!(v[ind+1:end]),1))
-    else #mod(length(v),4)==1
-        ind=div(n+1,2)
-        interlace(alternatesign!(v[1:ind]),
-                  flipdim(alternatesign!(v[ind+1:end]),1))
+        reverseeven!(interlace!(alternatesign!(v),1))
+    else
+        negateeven!(reverseeven!(interlace!(alternatesign!(copy(v)),1)))
     end
 end
 
+isvfft{T}(v::Vector{T}) = isvfft(v,plan_isvfft(v))
+
 function isvfft(sv::Vector,plan)
-    n=length(sv)
+    n = length(sv)
 
     if mod(n,2) == 0
         v=alternatesign!([sv[1:2:end];flipdim(sv[2:2:end],1)])
@@ -349,11 +442,8 @@ function isvfft(sv::Vector,plan)
            alternatesign!(flipdim(sv[2:2:end],1))]
     end
 
-    plan*(n*v)
+    plan*scale!(n,v)
 end
-
-
-
 
 ## slnorm gives the norm of a slice of a matrix
 
@@ -417,6 +507,7 @@ const ∞ = Infinity()
 Base.isinf(::Infinity) = true
 Base.isfinite(::Infinity) = false
 Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
+Base.angle(x::Infinity) = π*x.angle
 
 Base.zero{B}(::Infinity{B}) = zero(B)
 Base.one{B}(::Infinity{B}) = one(B)
@@ -432,12 +523,19 @@ end
 
 Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
 
+Base.promote_rule{R<:Number,B}(::Type{Infinity{B}},::Type{R}) = Number
 
-Base.promote_rule{F<:Number,B<:Integer}(::Type{Infinity{B}},::Type{F}) = promote_type(Float64,F)
-Base.promote_rule{F<:Number,B<:AbstractFloat}(::Type{Infinity{B}},::Type{F}) = promote_type(Complex128,F)
+==(x::Infinity,y::Infinity) = x.angle == y.angle
+for TYP in (:Dual,:Number)
+    @eval begin
+        ==(x::Infinity,y::$TYP) = isinf(y) && angle(y) == angle(x)
+        ==(y::$TYP,x::Infinity) = x == y
+    end
+end
+Base.isless(x::Infinity{Bool},y::Infinity{Bool}) = x.angle && !y.angle
+Base.isless(x::Number,y::Infinity{Bool}) = y.angle && (x ≠ ∞)
+Base.isless(x::Infinity{Bool},y::Number) = !x.angle && (y ≠ -∞)
 
-Base.convert{F<:AbstractFloat,B<:Integer}(::Type{F},y::Infinity{B}) = convert(F,sign(y)==1?Inf:-Inf)
-Base.convert{F<:AbstractFloat,B<:AbstractFloat}(::Type{F},y::Infinity{B}) = convert(F,exp(im*π*y.angle)*Inf)
 
 -{B<:Integer}(y::Infinity{B}) = sign(y)==1?Infinity(one(B)):Infinity(zero(B))
 
@@ -462,11 +560,18 @@ end
 *(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle $ b.angle)
 *(a::Infinity,b::Infinity) = Infinity(a.angle + b.angle)
 
-for T in (:Bool,:Integer,:AbstractFloat)
+for T in (:Dual,:Bool,:Integer,:AbstractFloat)
     @eval begin
         *(a::$T,y::Infinity) = a>0?y:(-y)
         *(y::Infinity,a::$T) = a*y
     end
+end
+
+*(a::Number,y::Infinity) = Infinity(y.angle+angle(a)/π)
+*(y::Infinity,a::Number) = a*y
+
+for OP in (:fld,:cld,:div)
+  @eval Base.$OP(y::Infinity,a::Number) = y*(1/sign(a))
 end
 
 Base.min{B<:Integer}(x::Infinity{B},y::Infinity{B}) = sign(x)==-1?x:y
@@ -491,7 +596,61 @@ for OP in (:>,:>=)
 end
 
 
-## My Count
+# Re-implementation of Base iterators
+# to use ∞ and allow getindex
+
+abstract AbstractRepeated{T}
+
+Base.eltype{T}(::Type{AbstractRepeated{T}}) = T
+Base.eltype{R<:AbstractRepeated}(::Type{R}) = eltype(super(R))
+Base.eltype{T}(::AbstractRepeated{T}) = T
+
+Base.step(::AbstractRepeated) = 0
+
+Base.start(::AbstractRepeated) = nothing
+Base.next(it::AbstractRepeated,state) = value(it),nothing
+Base.done(::AbstractRepeated,state) = false
+
+Base.length(::AbstractRepeated) = ∞
+
+getindex(it::AbstractRepeated,k::Integer) = value(it)
+getindex(it::AbstractRepeated,k::Range) = fill(value(it),length(k))
+
+Base.maximum(r::AbstractRepeated) = value(r)
+Base.minimum(r::AbstractRepeated) = value(r)
+
+immutable ZeroRepeated{T} <: AbstractRepeated{T} end
+
+ZeroRepeated{T}(::Type{T}) = ZeroRepeated{T}()
+
+value{T}(::ZeroRepeated{T}) = zero(T)
+Base.sum(r::ZeroRepeated) = value(r)
+
+immutable Repeated{T} <: AbstractRepeated{T}
+    x::T
+    function Repeated(x::T)
+        # TODO: Add ZeroRepeated type.
+        if x == zero(T)
+            error("Zero repeated not supported to maintain type stability")
+        end
+
+        new(x)
+    end
+end
+
+Repeated(x) = Repeated{typeof(x)}(x)
+
+
+value(r::Repeated) = r.x
+
+Base.sum(r::Repeated) = r.x > 0 ? ∞ : -∞
+
+
+
+repeated(x) = x==zero(x)?ZeroRepeated(eltype(x)):Repeated(x)
+repeated(x,::Infinity{Bool}) = repeated(x)
+repeated(x,m::Integer) = fill(x,m)  #TODO: make a take
+
 
 abstract AbstractCount{S<:Number}
 
@@ -503,6 +662,8 @@ immutable Count{S<:Number} <: AbstractCount{S}
     start::S
     step::S
 end
+
+
 countfrom(start::Number, step::Number) = Count(promote(start, step)...)
 countfrom(start::Number)               = UnitCount(start)
 countfrom()                            = UnitCount(1)
@@ -523,6 +684,20 @@ Base.length(it::AbstractCount) = ∞
 
 getindex(it::Count,k) = it.start + it.step*(k-1)
 getindex(it::UnitCount,k) = (it.start-1) + k
+
+# special functions
+Base.maximum{S<:Real}(it::UnitCount{S}) = ∞
+Base.minimum{S<:Real}(it::UnitCount{S}) = it.start
+
+Base.maximum{S<:Real}(it::Count{S}) = it.step > 0 ? ∞ : it.start
+Base.minimum{S<:Real}(it::Count{S}) = it.step < 0 ? -∞ : it.start
+
+Base.sum(it::UnitCount) = ∞
+Base.sum(it::Count) = it.step > 0 ? ∞ : -∞
+
+Base.last{S<:Real}(it::UnitCount{S}) = ∞
+Base.last{S<:Real}(it::Count{S}) =
+    it.step > 0 ? ∞ : (it.step < 0 ? -∞ : error("zero step not supported"))
 
 
 function Base.colon(a::Real,b::Infinity{Bool})
@@ -546,6 +721,32 @@ function Base.colon(a::Real,st::Real,b::Infinity{Bool})
         countfrom(a,st)
     end
 end
+
+
+
+
+immutable CumSumIterator{CC}
+    iterator::CC
+end
+
+Base.eltype{S}(::Type{CumSumIterator{S}}) = eltype(S)
+Base.eltype(CC::CumSumIterator) = eltype(CC.iterator)
+
+Base.start(it::CumSumIterator) = (0,start(it.iterator))
+function Base.next(it::CumSumIterator, state)
+    a,nx_st=next(it.iterator,state[2])
+    cs=state[1]+a
+    (cs,(cs,nx_st))
+end
+Base.done(it::CumSumIterator, state) = done(it.iterator,state[2])
+
+Base.length(it::CumSumIterator) = length(it.iterator)
+
+getindex{AC<:UnitCount}(it::CumSumIterator{AC},k) = it.iterator.start*k + ((k*(k-1))÷2)
+getindex{AC<:Count}(it::CumSumIterator{AC},k) = it.iterator.start*k + step(it.iterator)*((k*(k-1))÷2)
+
+
+
 
 
 ## BandedMatrix
@@ -597,7 +798,13 @@ Base.next(it::CachedIterator,st::Int) = (it[st],st+1)
 Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
                                         done(it.iterator,it.state)
 
-getindex(it::CachedIterator,k) = resize!(it,maximum(k)).storage[k]
+function getindex(it::CachedIterator,k)
+    mx = maximum(k)
+    if mx > length(it)
+        throw(BoundsError(it,k))
+    end
+    resize!(it,isempty(k)?0:mx).storage[k]
+end
 function Base.findfirst(f::Function,A::CachedIterator)
     k=1
     for c in A
@@ -620,8 +827,221 @@ function Base.findfirst(A::CachedIterator,x)
     return 0
 end
 
+Base.length(A::CachedIterator) = length(A.iterator)
+
 
 # The following don't need caching
 cache{T<:Number}(A::Vector{T}) = A
 cache(A::Range) = A
 cache(A::AbstractCount) = A
+
+
+
+## From Julia v0.5 code
+
+
+# flatten an iterator of iterators
+# we add indexing
+
+immutable Flatten{I}
+    it::I
+end
+
+"""
+    flatten(iter)
+
+Given an iterator that yields iterators, return an iterator that yields the
+elements of those iterators.
+Put differently, the elements of the argument iterator are concatenated. Example:
+
+    julia> collect(flatten((1:2, 8:9)))
+    4-element Array{Int64,1}:
+     1
+     2
+     8
+     9
+"""
+flatten(itr) = Flatten(itr)
+
+Base.eltype(f::Flatten) = mapreduce(eltype,promote_type,f.it)
+
+
+Base.start(f::Flatten) = 1, map(start,f.it)
+
+function Base.next(f::Flatten, state)
+    k, sts = state
+    if !done(f.it[k],sts[k])
+        a,nst = next(f.it[k],sts[k])
+        a, (k,(sts[1:k-1]...,nst,sts[k+1:end]...))
+    else
+        next(f,(k+1,sts))
+    end
+end
+
+
+@inline Base.done(f::Flatten, state) =
+    state[1] == length(f) && done(f.it[end],state[2][end])
+
+Base.length(f::Flatten) = mapreduce(length,+,f.it)
+
+Base.eachindex(f::Flatten) = 1:length(f)
+
+function getindex(f::Flatten,k::Int)
+    sh = 0
+    for it in f.it
+        n = length(it)
+        if k ≤ sh + n
+            return it[k-sh]
+        else
+            sh += n
+        end
+    end
+
+    throw(BoundsError())
+end
+
+function getindex(f::Flatten,kr::UnitRange{Int})
+    @assert first(kr) == 1
+
+    k = last(kr)
+    ret=
+
+    sh = 0
+    for j in 1:length(f.it)
+        n = length(f.it[j])
+        if sh ≤ k ≤ sh + n
+            nls = map(it->it[1:0],f.it[j+1:end])  # this ensures type stability
+            return flatten(tuple(f.it[1:j-1]...,f.it[j][1:(k-sh)],nls...))
+        else
+            sh += n
+        end
+    end
+
+    throw(BoundsError())
+end
+
+
+Base.sum(f::Flatten) = mapreduce(sum,+,f.it)
+
+
+Base.maximum(f::Flatten) = mapreduce(maximum,max,f.it)
+Base.minimum(f::Flatten) = mapreduce(minimum,min,f.it)
+
+
+## Iterator Algebra
+
+
+for OP in (:+,:-,:*,:/)
+    @eval begin
+        $OP(f::Flatten,c::Number) = Flatten(map(it->$OP(it,c),f.it))
+        $OP(c::Number,f::Flatten) = Flatten(map(it->$OP(c,it),f.it))
+    end
+end
+
+for OP in (:+,:-,:(.*))
+    @eval begin
+        $OP(a::AbstractRepeated,b::AbstractRepeated) = repeated($OP(value(a),value(b)))
+        $OP(a::Number,b::AbstractRepeated) = repeated($OP(a,value(b)))
+        $OP(a::AbstractRepeated,b::Number) = repeated($OP(value(a),b))
+
+        $OP(a::AbstractCount,b::AbstractRepeated) = $OP(a,value(b))
+        $OP(a::AbstractRepeated,b::AbstractCount) = $OP(value(a),b)
+
+        function $OP(a::Flatten,b::AbstractRepeated)
+            @assert isinf(length(a.it[end]))
+            flatten(map(it->$OP(it,value(b)),a.it))
+        end
+        function $OP(a::AbstractRepeated,b::Flatten)
+            @assert isinf(length(b.it[end]))
+            flatten(map(it->$OP(value(a),it),b.it))
+        end
+
+        function $OP(a::Flatten,b::AbstractCount)
+            K=0
+            it=tuple()
+            for k=1:length(a.it)
+                it=(it...,$OP(a.it[k],b[K+1:K+length(a.it[k])]))
+                K+=length(a.it[k])
+            end
+            flatten(it)
+        end
+        function $OP(a::AbstractCount,b::Flatten)
+            K=0
+            it=tuple()
+            for k=1:length(b.it)
+                it=(it...,$OP(a[K+1:K+length(it[k])],b.it[k]))
+                K+=length(b.it[k])
+            end
+            flatten(it)
+        end
+    end
+end
+
+for OP in (:+,:-)
+    @eval begin
+        $OP(a::AbstractCount,b::AbstractCount) =
+            Count($OP(start(a),start(b)),$OP(step(a),step(b)))
+        $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
+        $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
+    end
+end
+
+*(a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
+*(b::AbstractCount,a::Number) = a*b
++(a::Number,b::UnitCount) = UnitCount(a+b.start)
++(a::Number,b::Count) = Count(a+b.start,b.step)
+-(a::Number,b::UnitCount) = Count(a-b.start,-1)
+-(a::Number,b::Count) = Count(a-b.start,-b.step)
+
+function +(a::Flatten,b::Flatten)
+    if isempty(a)
+        @assert isempty(b)
+        a
+    elseif length(a.it) == 1
+        a.it[1]+b
+    elseif length(b.it) == 1
+        a+b.it[1]
+    elseif length(a.it[1]) == length(b.it[1])
+        flatten((a.it[1]+b.it[1],(flatten(a.it[2:end])+flatten(b.it[2:end])).it...))
+    elseif length(a.it[1]) < length(b.it[1])
+        n=length(a.it[1])
+        flatten((a.it[1]+b.it[1][1:n],
+            (flatten(a.it[2:end])+flatten((b.it[1][n+1:end],b.it[2:end]...))).it...))
+    else #length(a.it[1]) > length(b.it[1])
+        n=length(a.it[2])
+        flatten((a.it[1][1:n]+b.it[1],
+            (flatten((a.it[1][n+1:end],b.it[2:end]...))+flatten(b.it[2:end])).it...))
+    end
+end
+
+
+Base.cumsum(r::Repeated) = r.x:r.x:(r.x>0?∞:-∞)
+Base.cumsum(r::Repeated{Bool}) = 1:∞
+Base.cumsum(r::ZeroRepeated) = r
+Base.cumsum(r::AbstractCount) = CumSumIterator(r)
+
+
+
+
+function Base.cumsum(f::Flatten)
+    cs=zero(eltype(f))
+    its = Array(eltype(f.it),0)
+    for it in f.it[1:end-1]
+        c=cumsum(cs+it)
+        push!(its,c)
+        cs=last(c)
+    end
+
+    c=cs+cumsum(f.it[end])
+    push!(its,c)
+    Flatten(tuple(its...))
+end
+
+
+function pad(v,::Infinity{Bool})
+    if isinf(length(v))
+        v
+    else
+        flatten((v,repeated(0)))
+    end
+end

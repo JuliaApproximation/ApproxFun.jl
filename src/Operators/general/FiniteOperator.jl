@@ -15,6 +15,9 @@ FiniteOperator(M::AbstractMatrix,ds::Space,rs::Space) =
 
 FiniteOperator(M::AbstractMatrix) = FiniteOperator(M,ℓ⁰,ℓ⁰)
 
+Base.convert{T}(::Type{Operator{T}},F::FiniteOperator) =
+    FiniteOperator(convert(AbstractMatrix{T},F.matrix),F.domainspace,F.rangespace)::Operator{T}
+
 domainspace(F::FiniteOperator) = F.domainspace
 rangespace(F::FiniteOperator) = F.rangespace
 

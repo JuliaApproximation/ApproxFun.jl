@@ -13,6 +13,12 @@ recγ{T}(::Type{T},::Chebyshev,k) = one(T)/2   # one(T) ensures we get correct t
 
 ## Evaluation
 
+Evaluation(S::Chebyshev,x::Bool,o::Integer) =
+    ConcreteEvaluation(S,x,o)
+
+Evaluation(S::Chebyshev,x::Number,o::Integer) =
+    o==0?ConcreteEvaluation(S,x,o):EvaluationWrapper(S,x,o,Evaluation(x,o)*Derivative(S,o))
+
 function evaluatechebyshev{T<:Number}(n::Integer,x::T)
     if n == 1
         [one(T)]
@@ -73,17 +79,19 @@ function getindex{DD<:Interval}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Ra
     scal!(cst,ret)
 end
 
-function getindex{DD<:Interval,M<:Real}(op::ConcreteEvaluation{Chebyshev{DD},M},j::Integer)
+function getindex{DD<:Interval,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD},M,OT,T},
+                                             j::Integer)
     if op.order == 0
-        evaluatechebyshev(j,tocanonical(domain(op),op.x))[end]
+        T(evaluatechebyshev(j,tocanonical(domain(op),op.x))[end])
     else
         error("Only zero–second order implemented")
     end
 end
 
-function getindex{DD<:Interval,M<:Real}(op::ConcreteEvaluation{Chebyshev{DD},M},k::Range)
+function getindex{DD<:Interval,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD},M,OT,T},
+                                             k::Range)
     if op.order == 0
-        evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k]
+        Vector{T}(evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k])
     else
         error("Only zero–second order implemented")
     end
@@ -126,7 +134,7 @@ getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k
     M[k:k,j:j][1,1]
 
 
-function Base.convert{C<:Chebyshev,V,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,V,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{C<:Chebyshev,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}})
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)
@@ -154,45 +162,6 @@ function Base.convert{C<:Chebyshev,V,T}(::Type{BandedMatrix},S::SubOperator{T,Co
 end
 
 
-function Base.convert{PS<:PolynomialSpace,V,T,C<:Chebyshev}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,PS,V,T},
-                                                                            Tuple{UnitRange{Int},UnitRange{Int}}})
-    M=parent(S)
-    kr,jr=parentindexes(S)
-
-    A=bzeros(S)
-
-    a=coefficients(M.f)
-
-    shft=bandshift(A)
-
-    for k=kr ∩ jr
-        A[k-kr[1]+1,k-jr[1]+1]=a[1]
-    end
-
-    if length(a) > 1
-        sp=M.space
-        jkr=max(1,min(kr[1],jr[1])-length(a)+1):max(kr[end],jr[end])+length(a)-1
-
-        #Multiplication is transpose
-        J=Recurrence(sp)[jkr,jkr]
-        C1=J
-
-        # the sub ranges of jkr that correspond to kr, jr
-        kr2,jr2=kr-jkr[1]+1,jr-jkr[1]+1
-
-        BLAS.axpy!(a[2],@compat(view(C1,kr2,jr2)),A)
-        C0=beye(size(J,1),size(J,2),0,0)
-
-
-        for k=1:length(a)-2
-            C1,C0=2J*C1-C0,C1
-            BLAS.axpy!(a[k+2],@compat(view(C1,kr2,jr2)),A)
-        end
-    end
-
-    A
-end
-
 
 ## Derivative
 
@@ -210,34 +179,33 @@ function getindex{DD<:Interval,K,T}(D::ConcreteDerivative{Chebyshev{DD},K,T},k::
     d=domain(D)
 
     if j==k+m
-        C=.5pochhammer(1.,m-1)*(4./(d.b-d.a)).^m
-        (C*(m+k-one(T)))::T
+        C=T(pochhammer(one(T),m-1)/2*(4/(d.b-d.a))^m)
+        T(C*(m+k-one(T)))
     else
         zero(T)
     end
 end
 
 linesum{DD<:Interval}(f::Fun{Chebyshev{DD}}) =
-    sum(setcanonicaldomain(f))*arclength(d)/2
+    sum(setcanonicaldomain(f))*arclength(domain(f))/2
 
 
 
 ## Clenshaw-Curtis functional
 
 for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
-   ConcFunc = parse("Concrete"*string(Func))
-   @eval begin
-       function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},k::Integer)
-           d = domain(Σ)
-           C = $Len(d)/2
+    ConcFunc = parse("Concrete"*string(Func))
+    @eval begin
+        function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},k::Integer)
+            d = domain(Σ)
+            C = $Len(d)/2
 
-           isodd(k) ? 2C/(k*(2-k)) : zero(T)
-       end
-       function getindex{D<:Interval,T}(Σ::$ConcFunc{Chebyshev{D},T},kr::Range)
-           d = domain(Σ)
-           C = $Len(d)/2
-
-           promote_type(T,typeof(C))[isodd(k) ? 2C/(k*(2-k)) : zero(T) for k in kr]
-       end
-   end
+            isodd(k) ? T(2C/(k*(2-k))) : zero(T)
+        end
+    end
 end
+
+
+
+ReverseOrientation(S::Chebyshev) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
+Reverse(S::Chebyshev) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))

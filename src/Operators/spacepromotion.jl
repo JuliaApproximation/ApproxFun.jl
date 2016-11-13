@@ -30,13 +30,20 @@ end
 
 @wrappergetindex SpaceOperator
 
-for func in (:(ApproxFun.bandinds),:(Base.stride))
-     @eval $func(D::SpaceOperator) = $func(D.op)
-end
+# SpaceOperator can change blocks, so we need to override this
+getindex(A::SpaceOperator,KR::Range{Block},JR::Range{Block}) = defaultgetindex(A,KR,JR)
+getindex(A::SpaceOperator,f::Union{Fun,LowRankFun,ProductFun}) = defaultgetindex(A,f)
 
-domain(S::SpaceOperator)=domain(domainspace(S))
-domainspace(S::SpaceOperator)=S.domainspace
-rangespace(S::SpaceOperator)=S.rangespace
+
+getindex(A::SpaceOperator,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]
+getindex(A::SpaceOperator,K::Block,j) = A[blockrows(A,K),j]
+getindex(A::SpaceOperator,k,J::Block) = A[k,blockcols(A,J)]
+
+
+
+domain(S::SpaceOperator) = domain(domainspace(S))
+domainspace(S::SpaceOperator) = S.domainspace
+rangespace(S::SpaceOperator) = S.rangespace
 
 
 
@@ -111,10 +118,12 @@ end
 # it tries to decide a space.
 ###
 
-function choosedomainspace(A::Operator,sp::Space)
+function default_choosedomainspace(A::Operator,sp::Space)
     sp2=domainspace(A)
     isambiguous(sp2)?sp:sp2
 end
+
+choosedomainspace(A::Operator,sp::Space) = default_choosedomainspace(A,sp)
 
 choosedomainspace(A::Operator,f::Fun) = choosedomainspace(A,space(f))
 choosedomainspace{FF<:Fun}(A::Operator,f::Vector{FF}) =
@@ -123,7 +132,7 @@ choosedomainspace(A::Operator,::) = choosedomainspace(A)
 
 choosedomainspace(A) = choosedomainspace(A,UnsetSpace())
 
-function choosedomainspace(ops::Vector,spin)
+function choosedomainspace(ops::AbstractVector,spin)
     sp = UnsetSpace()
 
     for op in ops
@@ -142,8 +151,8 @@ spacescompatible(A::Operator,B::Operator) =
 
 
 #It's important that domain space is promoted first as it might impact range space
-promotespaces(ops::Vector) = promoterangespace(promotedomainspace(ops))
-function promotespaces(ops::Vector,b::Fun)
+promotespaces(ops::AbstractVector) = promoterangespace(promotedomainspace(ops))
+function promotespaces(ops::AbstractVector,b::Fun)
     A=promotespaces(ops)
     if isa(rangespace(A),AmbiguousSpace)
         # try setting the domain space

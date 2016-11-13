@@ -136,7 +136,7 @@ function Base.convert{T,K,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDeri
 
     dg=diagindrow(S)-m   # mth superdiagonal
 
-    C=(.5pochhammer(one(T),m-1)*(4./(d.b-d.a)).^m)::T
+    C=T(pochhammer(one(T),m-1)/2*(4/(d.b-d.a))^m)
     @simd for j=max(m+1-shft,1):size(dat,2)
         @inbounds dat[dg,j]=C*(j+shft-one(T))
     end
@@ -163,7 +163,7 @@ function Base.convert{T,K,DD,LT}(::Type{BandedMatrix},S::SubOperator{T,ConcreteD
 
     dg=diagindrow(S)-m   # mth superdiagonal
 
-    C=(pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
+    C=T(pochhammer(one(T)*λ,m)*(4/(d.b-d.a))^m)
     @simd for j=max(m+1-shft,1):size(dat,2)
         @inbounds dat[dg,j]=C
     end

@@ -385,7 +385,7 @@ function roots{P<:PiecewiseSpace}(f::Fun{P})
     k=1
     while k < length(rts)
         if isapprox(rts[k],rts[k+1])
-            rts=rts[[1:k,k+2:end]]
+            rts=rts[[1:k;k+2:end]]
         else
             k+=1
         end

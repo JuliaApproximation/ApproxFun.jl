@@ -8,6 +8,9 @@ function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=
     if kind == 1
         FFTW.plan_r2r(x, FFTW.REDFT10)
     elseif kind == 2
+        if length(x) ≤ 1
+            error("Cannot create a length $(length(x)) chebyshev transform")
+        end
         FFTW.plan_r2r(x, FFTW.REDFT00)
     end
 end
@@ -20,7 +23,7 @@ function chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan;kind::Integer=
         else
             ret=negateeven!(plan*x)
             ret[1]/=2
-            ret/=n
+            scale!(inv(T(n)),ret)
         end
     elseif kind == 2
         n = length(x)
@@ -29,7 +32,8 @@ function chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan;kind::Integer=
         else
             ret = plan*x
             ret[1] /= 2;ret[end] /= 2
-            negateeven!(ret)./(n-1)
+            negateeven!(ret)
+            scale!(inv(T(n-1)),ret)
         end
     end
 end
@@ -40,8 +44,15 @@ chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)=chebyshevtr
 
 function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
     if kind == 1
+        if length(x) == 0
+            error("Cannot create a length 0 inverse chebyshev transform")
+        end
         FFTW.plan_r2r(x, FFTW.REDFT01)
     elseif kind == 2
+        if length(x) ≤ 1
+            error("Cannot create a length $(length(x)) inverse chebyshev transform")
+        end
+
         FFTW.plan_r2r(x, FFTW.REDFT00)
     end
 end
@@ -49,7 +60,7 @@ end
 function ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan;kind::Integer=1)
     if kind == 1
         x[1] *=2
-        ret = plan*negateeven!(x)/2
+        ret = scale!(T(0.5),plan*negateeven!(x))
         negateeven!(x)
         x[1]/=2
         ret
@@ -64,7 +75,7 @@ function ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan;kind::Integer
             x[1] /=2;x[end] /=2
             ret[1] *= 2;ret[end] *= 2
             negateeven!(ret)
-            ret *= .5*(n-1)
+            scale!(T(.5(n-1)),ret)
             reverse!(ret)
         end
     end
@@ -126,26 +137,4 @@ function ichebyshevtransform{T<:FFTW.fftwNumber}(X::Matrix{T};kind::Integer=1)
             flipud(fliplr(R))
         end
     end
-end
-
-
-# Helper routines
-
-
-function negateeven!(x::Vector)
-    for k =2:2:length(x)
-        x[k] = -x[k]
-    end
-    x
-end
-
-#checkerboard, same as applying negativeeven! to all rows then all columns
-function negateeven!(X::Matrix)
-    for k =2:2:size(X,1),j=1:2:size(X,2)
-        X[k,j] *= -1
-    end
-    for k =1:2:size(X,1),j=2:2:size(X,2)
-        X[k,j] *= -1
-    end
-    X
 end

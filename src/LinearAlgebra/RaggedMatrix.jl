@@ -1,3 +1,11 @@
+# FiniteRange gives the nonzero entries in a row/column
+immutable FiniteRange end
+
+getindex(A::AbstractMatrix,::Type{FiniteRange},j::Integer) = A[1:colstop(A,j),j]
+getindex(A::AbstractMatrix,k::Integer,::Type{FiniteRange}) = A[k,1:rowstop(A,k)]
+
+const ⤓ = FiniteRange
+
 type RaggedMatrix{T} <: AbstractMatrix{T}
     data::Vector{T} # a Vector of non-zero entries
     cols::Vector{Int} # a Vector specifying the first index of each column
@@ -21,7 +29,7 @@ RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
 RaggedMatrix{T}(::Type{T},m::Int,colns::AbstractVector{Int}) =
-    RaggedMatrix(Array(T,sum(colns)),[1;1+cumsum(colns)],m)
+    RaggedMatrix(Array(T,sum(colns)),Int[1;1+cumsum(colns)],m)
 
 RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix(Float64,m,collengths)
 
@@ -70,7 +78,7 @@ Base.full(A::RaggedMatrix) = convert(Matrix,A)
 
 function Base.convert(::Type{RaggedMatrix},B::BandedMatrix)
     l = bandwidth(B,1)
-    ret = rzeros(eltype(B),size(B,1),l+(1:size(B,2)))
+    ret = rzeros(eltype(B),size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]
     end
@@ -123,8 +131,17 @@ function BLAS.axpy!(a,X::RaggedMatrix,Y::RaggedMatrix)
     if X.cols == Y.cols
         BLAS.axpy!(a,X.data,Y.data)
     else
-        error("Not implemented.")
+        for j = 1:size(X,2)
+            @assert colstop(X,j) ≤ colstop(Y,j)  # check zeros otherwise
+        end
+
+        for j = 1:size(X,2)
+            cs = colstop(X,j)
+            BLAS.axpy!(a,view(X.data,X.cols[j]:X.cols[j]+cs-1),
+                         view(Y.data,Y.cols[j]:Y.cols[j]+cs-1))
+        end
     end
+    Y
 end
 
 colstop{T}(X::SubArray{T,2,RaggedMatrix{T},Tuple{UnitRange{Int},UnitRange{Int}}},
@@ -138,16 +155,25 @@ function BLAS.axpy!{T}(a,X::RaggedMatrix,
         throw(BoundsError())
     end
 
-    for j=1:size(X,2)
-        @assert colstop(Y,j) ≤ colstop(X,j)
-    end
-
     P = parent(Y)
     ksh = first(parentindexes(Y)[1]) - 1  # how much to shift
     jsh = first(parentindexes(Y)[2]) - 1  # how much to shift
 
     for j=1:size(X,2)
-        kr = X.cols[j]:X.cols[j+1]-1
+        cx=colstop(X,j)
+        cy=colstop(Y,j)
+        if cx > cy
+            for k=cy+1:cx
+                if X[k,j] ≠ 0
+                    throw(BoundsError("Trying to add a non-zero to a zero."))
+                end
+            end
+            kr = X.cols[j]:X.cols[j]+cy-1
+        else
+            kr = X.cols[j]:X.cols[j+1]-1
+        end
+
+
         BLAS.axpy!(a,view(X.data,kr),
                     view(P.data,(P.cols[j + jsh] + ksh-1) + (1:length(kr))))
     end

@@ -1,4 +1,34 @@
 using ApproxFun, Base.Test
+    import ApproxFun: testfunctional
+
+for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
+            CosSpace(Circle()),JacobiWeight(-0.5,-0.5,Chebyshev()),
+            JacobiWeight(-0.5,-0.5,Chebyshev([1.0,2.0+im])),
+            JacobiWeight(0.5,0.5,Ultraspherical(1,[1.0,2.0+im])))
+    testfunctional(DefiniteLineIntegral(S))
+end
+
+
+
+# checks bug for
+dom = Interval(-1.0,1) ∪ Interval(1.0+im,1+2im) ∪ Interval(-2.0+im,-1+2im)
+
+
+⨍ = DefiniteLineIntegral(dom)
+S = domainspace(⨍)
+@test ApproxFun.bandinds(⨍) == (0,2)
+
+f=Fun(rand(20),S)
+
+@test_approx_eq DefiniteLineIntegral(dom[1])*f[1] linesum(f[1])
+@test_approx_eq DefiniteLineIntegral(dom[2])*f[2] linesum(f[2])
+@test_approx_eq DefiniteLineIntegral(dom[3])*f[3] linesum(f[3])
+
+@test_approx_eq ⨍*f linesum(f)
+
+
+
+
 
 #The first test checks the solution of the integral equation
 # u(x) + \int_{-1}^{+1} \frac{e^{y} u(y)}{\sqrt{1-y^2}} dy = f
@@ -45,7 +75,7 @@ f=L*usol
 u=[B;L]\[1.;f]
 
 
-@test norm(u-usol) ≤ 100eps()
+@test norm(u-usol) ≤ 200eps()
 
 
 Σ = DefiniteIntegral()
@@ -86,3 +116,18 @@ f = Fun(exp,d)
 @test bandrange(V) == -1:0
 u = L\f
 @test norm(L*u-f) ≤ 20eps()
+
+
+
+## Check DefiniteIntegral
+
+for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Interval(-2,-1))),
+          JacobiWeight(0.5,0.5,Ultraspherical(1,Interval(-2,-1+2im))),
+          JacobiWeight(1.5,1.5,Ultraspherical(2,Interval(-2,-1+2im))),
+          JacobiWeight(-0.5,-0.5,Chebyshev(Interval(-2,-1+2im))),
+          JacobiWeight(0.67,0.123,Chebyshev(Interval(-2,-1+2im))),
+          JacobiWeight(0.67,0.123,Ultraspherical(1,Interval(-2,-1+2im))))
+    f=Fun([1.,2.,3.],S)
+    @test_approx_eq DefiniteIntegral(space(f))*f sum(f)
+    @test_approx_eq DefiniteLineIntegral(space(f))*f linesum(f)
+end

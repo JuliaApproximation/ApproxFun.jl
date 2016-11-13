@@ -36,6 +36,13 @@ immutable UltrasphericalPlan{CT,FT}
     UltrasphericalPlan(cp,c2lp) = new(cp,c2lp)
 end
 
+immutable UltrasphericalIPlan{CT,FT}
+    chebiplan::CT
+    leg2chebplan::FT
+
+    UltrasphericalIPlan(cp,c2lp) = new(cp,c2lp)
+end
+
 function UltrasphericalPlan(λ::Number,vals)
     if λ == 0.5
         cp=plan_transform(Chebyshev(),vals)
@@ -46,13 +53,29 @@ function UltrasphericalPlan(λ::Number,vals)
     end
 end
 
+function UltrasphericalIPlan(λ::Number,cfs)
+    if λ == 0.5
+        cp=plan_itransform(Chebyshev(),cfs)
+        c2lp=FastTransforms.th_leg2chebplan(eltype(cfs),length(cfs))
+        UltrasphericalIPlan{typeof(cp),typeof(c2lp)}(cp,c2lp)
+    else
+        error("Not implemented")
+    end
+end
+
 *(UP::UltrasphericalPlan,v::AbstractVector) =
     UP.cheb2legplan*transform(Chebyshev(),v,UP.chebplan)
+*(UP::UltrasphericalIPlan,v::AbstractVector) =
+    itransform(Chebyshev(),UP.leg2chebplan*v,UP.chebiplan)
 
 
 plan_transform(S::Ultraspherical{Int},vals::Vector) = plan_transform(canonicalspace(S),vals)
 plan_transform(S::Ultraspherical,vals::Vector) = UltrasphericalPlan(order(S),vals)
+plan_itransform(S::Ultraspherical{Int},cfs::Vector) = plan_itransform(canonicalspace(S),cfs)
+plan_itransform(S::Ultraspherical,cfs::Vector) = UltrasphericalIPlan(order(S),cfs)
+
 transform(S::Ultraspherical,vals,pl::UltrasphericalPlan) = pl*vals
+itransform(S::Ultraspherical,cfs,pl::UltrasphericalIPlan) = pl*cfs
 
 ## Construction
 

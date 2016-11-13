@@ -33,9 +33,10 @@ JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeigh
 
 identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x->x,S):Fun(identity,domain(S))
 
+order{T,D}(S::JacobiWeight{Ultraspherical{Int,T},D}) = order(S.space)
 
 
-spacescompatible(A::JacobiWeight,B::JacobiWeight)=A.α==B.α && A.β == B.β && spacescompatible(A.space,B.space)
+spacescompatible(A::JacobiWeight,B::JacobiWeight)= A.α ≈ B.α && A.β ≈ B.β && spacescompatible(A.space,B.space)
 spacescompatible{DD<:IntervalDomain}(A::JacobiWeight,B::RealUnivariateSpace{DD})=spacescompatible(A,JacobiWeight(0,0,B))
 spacescompatible{DD<:IntervalDomain}(B::RealUnivariateSpace{DD},A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
@@ -80,15 +81,20 @@ function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ
     end
 end
 coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},
-                                         S2::SubSpace{S,IT,RealBasis,DD,1}) = error("Implement")
+                                         S2::SubSpace{S,IT,RealBasis,DD,1}) = subspace_coefficients(f,sp,S2)
 coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,
                                          S2::SubSpace{S,IT,RealBasis,DD,1},
-                                         sp::JacobiWeight{SJ,DD}) = error("Implement")
+                                         sp::JacobiWeight{SJ,DD}) = subspace_coefficients(f,S2,sp)
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
 coefficients{SJ,SV,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1}) =
     sumspacecoefficients(f,sp,S2)
+coefficients{SJ,TT,SV,TTT,DD}(f::Vector,sp::JacobiWeight{SJ,Interval{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD,2}) =
+    coefficients(f,sp,JacobiWeight(0,0,S2))
+
 coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD}) =
     coefficients(f,sp,JacobiWeight(0,0,S2))
+coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) =
+    f.coefficients[1]*ones(ts).coefficients
 coefficients{SJ,DD<:IntervalDomain}(f::Vector,S2::RealUnivariateSpace{DD},sp::JacobiWeight{SJ,DD}) =
     coefficients(f,JacobiWeight(0,0,S2),sp)
 

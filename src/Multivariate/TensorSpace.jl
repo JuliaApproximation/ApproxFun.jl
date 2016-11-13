@@ -2,78 +2,67 @@
 export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
-abstract AbstractProductSpace{SV,T,d} <: Space{T,AnyDomain,d}
+abstract AbstractProductSpace{SV,T,DD,d} <: Space{T,DD,d}
 
 
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 
 
-# TensorIterator
+# Tensorizer
 # This gives the map from coefficients to the
 # tensor entry of a tensor product of d spaces
 # findfirst is overriden to get efficient inverse
+# blocklengths is a tuple of block lengths, e.g., Chebyshev()^2
+# would be Tensorizer((1:∞,1:∞))
+# ConstantSpace() ⊗ Chebyshev()
+# would be Tensorizer((1:1,1:∞))
+# and Chebyshev() ⊗ TupleSpace((Chebyshev(),Chebyshev()))
+# would be Tensorizer((1:∞,2:2:∞))
 
-immutable TensorIterator{DMS<:Tuple}
-    dimensions::DMS
+
+immutable Tensorizer{DMS<:Tuple}
+    blocks::DMS
 end
 
-cache(Q::TensorIterator) = CachedIterator(Q)
+Base.eltype(a::Tensorizer) = NTuple{length(a.blocks),Int}
+Base.eltype{d,T}(::Tensorizer{NTuple{d,T}}) = NTuple{d,Int}
+dimensions(a::Tensorizer) = map(sum,a.blocks)
+Base.length(a::Tensorizer) = mapreduce(sum,*,a.blocks)
 
+# (blockrow,blockcol), (subrow,subcol), (rowshift,colshift), (numblockrows,numblockcols), (itemssofar, length)
+Base.start{DMS<:NTuple{2}}(a::Tensorizer{DMS}) = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
 
-Base.eltype{d,T}(::TensorIterator{NTuple{d,T}}) = NTuple{d,Int}
-Base.eltype(it::TensorIterator) = NTuple{length(it.dimensions),Int}
-
-
-Base.start{DMS<:NTuple{2}}(::TensorIterator{DMS}) = (1,1)
-Base.start{DMS<:NTuple{3}}(::TensorIterator{DMS}) = (1,1,1)
-Base.start(it::TensorIterator) = tuple(ones(Int,d)...)::eltype(it)
-
-
-function Base.next(it::TensorIterator,st)
-    for k=2:length(st)
-        if st[k] > 1
-            nst=tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::eltype(it)
-            if all(map(≤,nst,it.dimensions)) || done(it,nst)
-                return (st,nst)
-            else
-                return (st,next(it,nst)[2])
-            end
+function Base.next{DMS<:NTuple{2}}(a::Tensorizer{DMS},st)
+    (K,J), (k,j), (rsh,csh), (n,m), (i,tot) = st
+    ret = k+rsh,j+csh
+    if k==n && j==m  # end of block
+        if J == 1 || K == length(a.blocks[1])   # end of new block
+            B = K+J # next block
+            J = min(B, length(a.blocks[2]))  # don't go past new block
+            K = B-J+1   # K+J-1 == B
+        else
+            K,J = K+1,J-1
         end
-    end
-    nst=tuple(ones(Int,length(it.dimensions)-1)...,st[1]+1)::eltype(it)
-    if all(map(≤,nst,it.dimensions)) || done(it,nst)
-        return (st,nst)
+        k = j = 1
+        if i+1 < tot # not done yet
+            n,m = a.blocks[1][K], a.blocks[2][J]
+            rsh,csh = sum(a.blocks[1][1:K-1]), sum(a.blocks[2][1:J-1])
+        end
+    elseif k==n
+        k  = 1
+        j += 1
     else
-        return (st,next(it,nst)[2])
+        k += 1
     end
-end
-
-function Base.done(it::TensorIterator,st)
-    for k=1:length(st)
-        if st[k] ≤ it.dimensions[k]
-            return false
-        end
-    end
-    return true
+    ret, ((K,J), (k,j), (rsh,csh), (n,m), (i+1,tot))
 end
 
 
-function Base.next{d}(it::TensorIterator{NTuple{d,Infinity{Bool}}},st)
-    for k=2:length(st)
-        if st[k] > 1
-            return (st,tuple(st[1:k-2]...,st[k-1]+1,st[k]-1,st[k+1:end]...)::NTuple{d,Int})
-        end
-    end
-    (st,tuple(ones(Int,d-1)...,st[1]+1)::NTuple{d,Int})
-end
-Base.done{d}(::TensorIterator{NTuple{d,Infinity{Bool}}},st) = false
+Base.done(a::Tensorizer,st) = st[end][1] ≥ st[end][2]
 
+cache(a::Tensorizer) = CachedIterator(a)
 
-Base.next(::TensorIterator{NTuple{2,Infinity{Bool}}},st) =
-    (st,st[2] == 1? (1,st[1]+1) : (st[1]+1,st[2]-1))
-
-
-function Base.findfirst(::TensorIterator{NTuple{2,Infinity{Bool}}},kj::Tuple{Int,Int})
+function Base.findfirst(::Tensorizer{NTuple{2,Repeated{Bool}}},kj::Tuple{Int,Int})
     k,j=kj
     if k > 0 && j > 0
         n=k+j-2
@@ -86,13 +75,50 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-block(it::TensorIterator,k) = sum(it[k])-length(it.dimensions)+1
-block(ci::CachedIterator,k) = sum(ci[k])-length(ci.iterator.dimensions)+1
+# block(it::Tensorizer,k) = sum(it[k])-length(it.blocks)+1
+block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int) = sum(ci[k])-length(ci.iterator.blocks)+1
 
-block(::TensorIterator{NTuple{2,Infinity{Bool}}},n) =
+block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int) =
     floor(Integer,sqrt(2n) + 1/2)
+block(sp::Tensorizer,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
-function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
+# [1,2,3] x 1:∞
+function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
+    m=sum(it.blocks[1])
+    if m == length(it.blocks[1])  # trivial blocks
+        N=(m*(m+1))÷2
+        if n < N
+            return floor(Integer,sqrt(2n)+1/2)
+        else
+            return m+(n-N)÷m
+        end
+    else
+        return findfirst(x->x≥n,cumsum(blocklengths(it)))
+    end
+end
+
+# 1:∞ x 1:m
+function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)
+    m=length(it.blocks[2])  # assume all true
+    N=(m*(m+1))÷2
+    if n < N
+        floor(Integer,sqrt(2n)+1/2)
+    else
+        m+(n-N)÷m
+    end
+end
+
+blocklength(it,k) = blocklengths(it)[k]
+
+blocklengths(::Tensorizer{NTuple{2,Repeated{Bool}}}) = 1:∞
+
+
+
+blocklengths(it::Tensorizer) = tensorblocklengths(it.blocks...)
+blocklengths(it::CachedIterator) = blocklengths(it.iterator)
+
+function getindex(it::Tensorizer{NTuple{2,Repeated{Bool}}},n::Integer)
     m=block(it,n)
     p=findfirst(it,(1,m))
     j=1+n-p
@@ -100,78 +126,113 @@ function getindex(it::TensorIterator{NTuple{2,Infinity{Bool}}},n::Integer)
 end
 
 
-blockstarttuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (1,K)
-blockstoptuple{II}(it::TensorIterator{Tuple{II,Infinity{Bool}}},K) = (K,1)
-
-# this is for general dimension case, so we need to construct it so that
-# each entry is less than the dimension
-function blockstarttuple(it::TensorIterator,K)
-    ret=ones(Int,length(it.dimensions))
-    for k=reverse(eachindex(ret))
-        ret[k]=min(K,it.dimensions[k])
-        K-=ret[k]
-        if K ≤ 0
-            return tuple(ret...)
-        end
-    end
-    tuple(zeros(Int,length(it.dimensions))...)
-end
-
-function blockstoptuple(it::TensorIterator,K)
-    ret=ones(Int,length(it.dimensions))
-    for k=eachindex(ret)
-        ret[k]=min(K,it.dimensions[k])
-        K-=ret[k]
-        if K ≤ 0
-            return tuple(ret...)
-        end
-    end
-    tuple(zeros(Int,length(it.dimensions))...)
-end
 
 
 
-blockstart(it::TensorIterator,K) = findfirst(it,blockstarttuple(it,K))
-blockstop(it::TensorIterator,K) = findfirst(it,blockstoptuple(it,K))
-blockstart{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
-    findfirst(ci,blockstarttuple(ci.iterator,K))
-blockstop{II,TI<:TensorIterator}(ci::CachedIterator{II,TI},K) =
-    findfirst(ci,blockstoptuple(ci.iterator,K))
+blockstart(it,K) = K==1?1:sum(blocklengths(it)[1:K-1])+1
+blockstop(it,::Infinity{Bool}) = ∞
+blockstop(it,K) = sum(blocklengths(it)[1:K])
+
+blockstart(it,K::Block) = blockstart(it,K.K)
+blockstop(it,K::Block) = blockstop(it,K.K)
 
 
-blocklength(it,K::Int) = blockstop(it,K)-blockstart(it,K)+1
-blocklength(it,K::Range) = Int[blocklength(it,k) for k in K]
-blocklength{II}(it::CachedIterator{II,
-            TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},K::Int) = K
-blocklength(it::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K::Int) = K
+blockrange(it,K) = blockstart(it,K):blockstop(it,K)
+
+
 
 
 # convert from block, subblock to tensor
-subblock2tensor(rt::TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}},K,k) =
+subblock2tensor(rt::Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},K,k) =
     (k,K-k+1)
 
-subblock2tensor{II}(rt::CachedIterator{II,TensorIterator{Tuple{Infinity{Bool},Infinity{Bool}}}},K,k) =
+subblock2tensor{II}(rt::CachedIterator{II,Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}}},K,k) =
     (k,K-k+1)
+
+
+subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
+
+# tensorblocklengths gives calculates the block sizes of each tensor product
+#  Tensor product degrees are taken to be the sum of the degrees
+#  a degree is which block you are in
+
+tensorblocklengths(a) = a   # a single block is not modified
+function tensorblocklengths(a::Repeated{Bool},b::Repeated{Bool})
+    @assert a.x && b.x
+    1:∞
+end
+
+
+function tensorblocklengths(a::Repeated,b::Repeated{Bool})
+    @assert b.x
+    a.x:a.x:∞
+end
+
+
+function tensorblocklengths(a::Repeated{Bool},b::Repeated)
+    @assert a.x
+    b.x:b.x:∞
+end
+
+
+function tensorblocklengths(a::Repeated,b::Repeated)
+    m=a.x*b.x
+    m:m:∞
+end
+
+function tensorblocklengths(a::Repeated,b)
+    cs = a.x*cumsum(b)
+    if isinf(length(b))
+        cs
+    elseif length(cs) == 1 && last(cs) == a.x
+        a
+    else
+        flatten((cs,repeated(last(cs))))
+    end
+end
+
+
+
+function tensorblocklengths(a::Repeated{Bool},b)
+    @assert a.x
+    cs = cumsum(b)
+    if isinf(length(b))
+        cs
+    elseif length(cs) == 1 && last(cs) == a.x
+        a
+    else
+        flatten((cs,repeated(last(cs))))
+    end
+end
+
+
+tensorblocklengths(a,b::Repeated) =
+    tensorblocklengths(b,a)
+
+
+tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d...)
 
 
 # TensorSpace
 # represents the tensor product of several subspaces
 
-immutable TensorSpace{SV,T,d} <:AbstractProductSpace{SV,T,d}
+immutable TensorSpace{SV,T,DD,d} <:AbstractProductSpace{SV,T,DD,d}
     spaces::SV
 end
 
-tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = TensorIterator(map(dimension,sp.spaces))
+tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = Tensorizer(map(blocklengths,sp.spaces))
+blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
+                typeof(mapreduce(domain,*,sp)),
                 mapreduce(domaindimension,+,sp)}(sp)
 
 
 dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)
 
 for OP in (:spacescompatible,:(==))
-    @eval $OP{SV,T,d}(A::TensorSpace{SV,T,d},B::TensorSpace{SV,T,d}) =
+    @eval $OP{SV,T,DD,d}(A::TensorSpace{SV,T,DD,d},B::TensorSpace{SV,T,DD,d}) =
         all(Bool[$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
 end
 
@@ -204,7 +265,7 @@ Base.length(d::TensorSpace) = length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer) = d.spaces[k]
 
 
-immutable ProductSpace{S<:Space,V<:Space,T} <: AbstractProductSpace{Tuple{S,V},T,2}
+immutable ProductSpace{S<:Space,V<:Space,T} <: AbstractProductSpace{Tuple{S,V},T,AnyDomain,2}
     spacesx::Vector{S}
     spacey::V
 end
@@ -325,71 +386,91 @@ end
 
 ##  Fun routines
 
-function fromtensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Matrix{T})
-    ret=zeros(T,findfirst(it,(size(M,1),size(M,2))))
-    for k=1:size(M,1),j=1:size(M,2)
-        ret[findfirst(it,(k,j))] = M[k,j]
+fromtensor(S::Space,M::Matrix) = fromtensor(tensorizer(S),M)
+totensor(S::Space,M::Vector) = totensor(tensorizer(S),M)
+
+# we only copy upper triangular of coefficients
+function fromtensor(it::Tensorizer,M::Matrix)
+    n,m=size(M)
+    ret=zeros(eltype(M),blockstop(it,max(n,m)))
+    k = 1
+    for (K,J) in it
+        if k > length(ret)
+            break
+        end
+        if K ≤ n && J ≤ m
+            ret[k] = M[K,J]
+        end
+        k += 1
     end
     ret
 end
 
 
-# function totensor{T1,T2,T}(it::TensorIterator{Tuple{T1,T2}},M::Vector{T})
-#     N=length(M)
-#     inds=it[N]
-#     m=inds[1]+inds[2]-1
-#     ret=zeros(T,min(it.dimensions[1],m),min(it.dimensions[2],m))
-#     k=1
-#     for c in it
-#         ret[c...] = M[k]
-#         k+=1
-#         if k > N
-#             break
-#         end
-#     end
-#     ret
-# end
+function totensor(it::Tensorizer,M::Vector)
+    n=length(M)
+    B=block(it,n)
+    ds = dimensions(it)
 
-function totensor{T}(it::TensorIterator{NTuple{2,Infinity{Bool}}},M::Vector{T})
-    inds=it[length(M)]
-    m=inds[1]+inds[2]-1
-    ret=zeros(T,m,m)
-    for k=1:length(M)
-        ret[it[k]...] = M[k]
+    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B,length(it.blocks[1]))]),
+                        sum(it.blocks[2][1:min(B,length(it.blocks[2]))]))
+    k=1
+    for (K,J) in it
+        if k > n
+            break
+        end
+        ret[K,J] = M[k]
+        k += 1
     end
     ret
 end
 
-for OP in (:fromtensor,:totensor,:block,:blockstart,:blockstop)
-    @eval $OP(s::Space,M) = $OP(tensorizer(s),M)
-end
-
-# TODO: remove
-function totree(v::Vector)
-   m=toblock(length(v))
-    r=Array(Vector{eltype(v)},m)
-    for k=1:m-1
-        r[k]=v[fromblock(k)]
+for OP in (:block,:blockstart,:blockstop)
+    @eval begin
+        $OP(s::TensorSpace,::Infinity{Bool}) = ∞
+        $OP(s::TensorSpace,M::Block) = $OP(tensorizer(s),M)
+        $OP(s::TensorSpace,M) = $OP(tensorizer(s),M)
     end
-    r[m]=pad!(v[fromblock(m)[1]:end],m)
-    r
 end
-
-fromtree{T}(v::Vector{Vector{T}}) = vcat(v...)
 
 function points(sp::TensorSpace,n)
-    pts=Array(Tuple{Float64,Float64},0)
-    for x in points(sp[1],round(Int,sqrt(n))), y in points(sp[2],round(Int,sqrt(n)))
-        push!(pts,(x,y))
+    pts=Array(Vec{2,Float64},0)
+    if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
+        N,M=dimension(sp[1]),dimension(sp[2])
+    elseif isfinite(dimension(sp[1]))
+        N=dimension(sp[1])
+        M=n÷N
+    elseif isfinite(dimension(sp[2]))
+        M=dimension(sp[2])
+        N=n÷M
+    else
+        N=M=round(Int,sqrt(n))
+    end
+
+    for y in points(sp[2],M),
+        x in points(sp[1],N)
+        push!(pts,Vec(x,y))
     end
     pts
 end
 
-function transform(sp::TensorSpace,vals)
-    m=round(Int,sqrt(length(vals)))
-    M=reshape(copy(vals),m,m)
+function transform(sp::TensorSpace,vals,plan...)
+    NM=length(vals)
+    if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
+        N,M=dimension(sp[1]),dimension(sp[2])
+    elseif isfinite(dimension(sp[1]))
+        N=dimension(sp[1])
+        M=NM÷N
+    elseif isfinite(dimension(sp[2]))
+        M=dimension(sp[2])
+        N=NM÷M
+    else
+        N=M=round(Int,sqrt(length(vals)))
+    end
 
-    fromtensor(sp,transform!(sp,M))
+    V=reshape(copy(vals),N,M)
+
+    fromtensor(sp,transform!(sp,V))
 end
 
 evaluate(f::AbstractVector,S::AbstractProductSpace,x) = ProductFun(totensor(S,f),S)(x...)
@@ -399,7 +480,6 @@ evaluate(f::AbstractVector,S::AbstractProductSpace,x,y) = ProductFun(totensor(S,
 
 coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(space(f),f.coefficients)
 
-Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace) = Fun(fromtree(v),S)
 
 
 #TODO: Implement
@@ -410,3 +490,75 @@ Fun{T<:Number}(v::Vector{Vector{T}},S::TensorSpace) = Fun(fromtree(v),S)
 
 
 union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spaces))
+
+
+
+## Convert from 1D to 2D
+
+
+# function isconvertible{T,TT}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace)
+#     d1 = domain(sp)
+#     d2 = domain(ts)
+#     if d2
+#     length(ts.spaces) == 2 &&
+#     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||
+#      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
+#  end
+
+isconvertible{SV,TTT,DD}(sp::UnivariateSpace,ts::TensorSpace{SV,TTT,DD,2}) = length(ts.spaces) == 2 &&
+    ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||
+     (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
+
+
+coefficients{SV,T,DD}(f::Vector,sp::ConstantSpace,ts::TensorSpace{SV,T,DD,2}) =
+    f[1]*ones(ts).coefficients
+
+function coefficients{SV,T,DD}(f::Vector,sp::UnivariateSpace,ts::TensorSpace{SV,T,DD,2})
+    @assert length(ts.spaces) == 2
+
+    if domain(ts)[1] == Point(0.0)
+        coefficients(f,sp,ts[2])
+    elseif domain(ts)[2] == Point(0.0)
+        coefficients(f,sp,ts[1])
+    else
+        error("Cannot convert coefficients from $sp to $ts")
+    end
+end
+
+
+function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace{SV,TTT,DD,2})
+    d1 = domain(sp)
+    d2 = domain(ts)
+    if length(ts.spaces) ≠ 2
+        return false
+    end
+    if d1.a[2] ≈ d1.b[2]
+        isa(d2[2],Point) && d2[2].x ≈ d1.a[2] &&
+            isconvertible(setdomain(sp,Interval(d1.a[1],d1.b[1])),ts[1])
+    elseif d1.a[1] ≈ d1.b[1]
+        isa(d2[1],Point) && d2[1].x ≈ d1.a[1] &&
+            isconvertible(setdomain(sp,Interval(d1.a[2],d1.b[2])),ts[2])
+    else
+        return false
+    end
+end
+
+
+function coefficients{T,TT,SV,TTT,DD}(f::Vector,sp::UnivariateSpace{T,Interval{Vec{2,TT}}},
+                            ts::TensorSpace{SV,TTT,DD,2})
+    @assert length(ts.spaces) == 2
+    d1 = domain(sp)
+    d2 = domain(ts)
+    if d1.a[2] ≈ d1.b[2]
+        coefficients(f,setdomain(sp,Interval(d1.a[1],d1.b[1])),ts[1])
+    elseif d1.a[1] ≈ d1.b[1]
+        coefficients(f,setdomain(sp,Interval(d1.a[2],d1.b[2])),ts[2])
+    else
+        error("Cannot convert coefficients from $sp to $ts")
+    end
+end
+
+
+
+
+identity_fun(S::TensorSpace) = Fun(xyz->[xyz...],S)

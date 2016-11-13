@@ -14,22 +14,22 @@ end
 
 ## Constructors that involve MultivariateFun
 
-function Fun(f::Function,d::BivariateSpace)
-    if f==zero
-        zeros(d)
-    elseif hasnumargs(f,2)
-        Fun(ProductFun(f,d))
-    else
-        Fun(ProductFun((x,y)->f((x,y)),d))
-    end
-end
-function Fun(f::Function,d::BivariateSpace,n::Integer)
-    if hasnumargs(f,2)
-        defaultFun(x->f(x...),d,n)
-    else
-        defaultFun(f,d,n)
-    end
-end
+# function Fun(f::Function,d::BivariateSpace)
+#     if f==zero
+#         zeros(d)
+#     elseif hasnumargs(f,2)
+#         Fun(ProductFun(f,d))
+#     else
+#         Fun(ProductFun((x,y)->f((x,y)),d))
+#     end
+# end
+# function Fun(f::Function,d::BivariateSpace,n::Integer)
+#     if hasnumargs(f,2)
+#         defaultFun(x->f(x...),d,n)
+#     else
+#         defaultFun(f,d,n)
+#     end
+# end
 
 function Fun(f::Function)
     if hasnumargs(f,1)
@@ -92,4 +92,16 @@ function dotu{T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,
         ret+=c[k]*f[k]
     end
     ret
+end
+
+
+
+#TODO: Remove. This is a temporary fix while waiting for a pull request to be merged.
+function Base.norm{N, T}(a::Vec{N, T}, p)
+    isinf(p) && return maxabs(a)
+    ret = abs(a[1])^p
+    for k = 2:N
+        ret += abs(a[k])^p
+    end
+    ret^(1/p)
 end

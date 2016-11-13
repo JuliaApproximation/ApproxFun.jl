@@ -100,7 +100,7 @@ f = Fun(t->exp(sin(10t)),s)
 uFourier = L\f
 
 
-@ test_approx_eq uChebyshev(0.) uFourier(0.)
+@test_approx_eq uChebyshev(0.) uFourier(0.)
 
 
 
@@ -114,21 +114,23 @@ x = ApproxFun.sample(f,10)
 
 println("    PDE tests")
 ## PDEs
-
+using ApproxFun
 d = Interval()^2                            # Defines a rectangle
 
-u = [dirichlet(d);lap(d)+100I]\ones(4)      # First four entries of rhs are
+# @time u = linsolve([Dirichlet(d);Laplacian(d)+100I],
+#                     [ones(∂(d));0.];tolerance=1E-10)      # First four entries of rhs are
+#
 
 
 
+QR = qrfact([Dirichlet(d);Laplacian()+100I])
+        @time ApproxFun.resizedata!(QR,:,4000)
+        @time u = linsolve(QR,
+                        [ones(∂(d));0.];tolerance=1E-7)
 
 
-d = Interval()^2
-u0 = Fun((x,y)->exp(-40(x-.1)^2-40(y+.2)^2),d)
-B = dirichlet(d)
-D = Derivative(Interval())
-L = (0.01D^2-4D)⊗I + I⊗(0.01D^2-3D)
-h = 0.002
+@test_approx_eq u(0.1,1.) 1.0
+@test_approx_eq_eps u(0.1,0.2) -0.02768276827514463 1E-8
 
 
 

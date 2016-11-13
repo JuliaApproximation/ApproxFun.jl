@@ -1,6 +1,43 @@
 using ApproxFun, Base.Test
+    import ApproxFun: testspace,testtransforms
+
+for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
+    testtransforms(CosSpace(d);minpoints=2)
+    testtransforms(SinSpace(d))
+
+    testtransforms(Taylor(d))
+    testtransforms(Hardy{false}(d))
+
+    testtransforms(Laurent(d))
+    testtransforms(Fourier(d);invertibletransform=false)
+end
+
+@test sum(Fun(1,CosSpace())) ≈ π
+@test sum(Fun([1],SinSpace())) == 0
 
 
+f=Fun(t->cos(t)+cos(3t),CosSpace)
+
+@test (f.*f-Fun(t->(cos(t)+cos(3t))^2,CosSpace)).coefficients|>norm <100eps()
+
+
+
+f=Fun(exp,Taylor(Circle()))
+g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
+@test_approx_eq (f(1.)+g(1.)) (exp(1.) + 1./(1-.1))
+
+
+## Periodic
+f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
+@test_approx_eq f(.5) (Conversion(space(f),Fourier(domain(f)))*f)(.5)
+@test_approx_eq f(.5) Fun(f,Fourier)(.5)
+
+
+
+Γ=Circle(1.1,2.2)
+z=Fun(Fourier(Γ))
+@test space(z)==Fourier(Γ)
+@test_approx_eq z(1.1+2.2exp(0.1im)) 1.1+2.2exp(0.1im)
 
 
 
@@ -198,3 +235,12 @@ end
 @test_approx_eq sum(Fun([0.,1.],SinSpace())^2)/π 0.5
 @test_approx_eq sum(Fun([0.,0.,1.],SinSpace())^2)/π 0.5
 @test_approx_eq sum(Fun([0.,0.,0.,1.],SinSpace())^2)/π 0.5
+
+
+## Bug in multiplicaiton
+
+@test Fun(Float64[],SinSpace())^2 == Fun(Float64[],SinSpace())
+@test Fun([1.],Fourier())^2 ≈ Fun([1.],Fourier())
+
+B=Evaluation(Laurent([0.,2π]),0,1)
+@test_approx_eq B*Fun(sin,domainspace(B)) 1.0

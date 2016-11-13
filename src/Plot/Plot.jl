@@ -2,13 +2,6 @@ export domainplot, coefficientplot, complexplot
 
 
 
-if isdir(Pkg.dir("TikzGraphs"))
-    include("introspect.jl")
-end
-
-
-
-
 ## Fun routines
 
 
@@ -48,6 +41,12 @@ end
 @recipe function f{S,T<:Real}(g::Fun{S,Complex{T}})
     x,v=plotptsvals(g)
     x,Vector{T}[real(v),imag(v)]
+end
+
+
+@recipe function f{S,V,T<:Real}(x::Fun{V,T},y::Fun{S,T})
+    M=3max(ncoefficients(x),ncoefficients(y))+50
+    values(pad(x,M)),values(pad(y,M))
 end
 
 
@@ -98,7 +97,22 @@ end
 end
 
 @recipe function f(dd::Domain)
-    complexplotvals(Fun(identity,dd))
+    x,y = complexplotvals(Fun(identity,dd))
+    # @series (x,y)
+    # @series begin
+    #     primary := false
+    #     ∂(dd)
+    # end
+end
+
+@recipe function f(dd::UnionDomain)
+    @series dd[1]
+    for k=2:length(dd)
+        @series begin
+            primary := false
+            dd[k]
+        end
+    end
 end
 
 

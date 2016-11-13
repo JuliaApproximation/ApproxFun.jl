@@ -1,82 +1,72 @@
 
 
-for op in (:dirichlet,:neumann,:continuity,:ivp)
-    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...))
-    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...))
-end
+## Space promotion for InterlaceOperator
+# It's here because we need DirectSumSpace
 
-
-
-## diag provides a way to convert between DiagonalInterlaceOperator and bacn
-# function blkdiagm{B<:Operator}(v::Vector{B})
-#     if spacescompatible(map(domainspace,v)) && spacescompatible(map(rangespace,v))
-#         # arrayspace
-#         DiagonalInterlaceOperator(v)
-#     elseif domainscompatible(map(domainspace,v)) && domainscompatible(map(rangespace,v))
-#         # tuplespace
-#         DiagonalInterlaceOperator(v)
-#     else
-#         DiagonalPiecewiseOperator(v)
-#     end
-# end
-
-Base.blkdiag(A::DiagonalInterlaceOperator)=A.ops
-Base.blkdiag(A::PlusOperator)=mapreduce(blkdiag,+,A.ops)
-Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
-
-# TODO: general wrappers
-for TYP in (:DerivativeWrapper,:ConversionWrapper)
-    @eval Base.blkdiag{DT<:DiagonalInterlaceOperator}(A::($TYP{DT}))=A.op.ops
-end
-
-Base.blkdiag{FT<:PiecewiseSpace,OT<:DiagonalInterlaceOperator}(A::MultiplicationWrapper{FT,OT})=A.op.ops
-
-
-
-Evaluation(S::TupleSpace,order::Number) =
-    DiagonalInterlaceOperator(map(s->Evaluation(s,order),S),TupleSpace)
-
-
-
-## Vector
-# represents an operator applied to all spaces in an array space
-
-
-immutable DiagonalArrayOperator{B<:Operator,T<:Number} <: Operator{T}
-    op::B
-    dimensions::Tuple{Vararg{Int}}
-end
-
-DiagonalArrayOperator{T}(op::Operator{T},dms::Tuple{Vararg{Int}})=DiagonalArrayOperator{typeof(op),T}(op,dms)
-#DiagonalArrayOperator{T}(op::Operator{T},dms::Int)=DiagonalArrayOperator(op,(dms,))
-
-
-function bandinds(D::DiagonalArrayOperator)
-    bra,brb=bandinds(D.op)
-    n=*(D.dimensions...)
-    n*bra,n*brb
-end
-
-
-function getindex{B,T}(D::DiagonalArrayOperator{B,T},k::Integer,j::Integer)
-    n=*(D.dimensions...)
-
-    if mod(k,n) == mod(j,n)  # same block
-        k=(k-1)÷n+1  # map k and j to block coordinates
-        j=(j-1)÷n+1
-        D.op[k,j]::T
-    else
-        zero(T)
+for TYP in (:TupleSpace,:PiecewiseSpace,:ArraySpace)
+    @eval begin
+        function promotedomainspace{T}(A::InterlaceOperator{T,2},sp::$TYP)
+            if domainspace(A) == sp
+                return A
+            end
+            @assert size(A.ops,2) == length(sp)
+            InterlaceOperator([promotedomainspace(A.ops[k,j],sp[j]) for k=1:size(A.ops,1),j=1:size(A.ops,2)],$TYP)
+        end
+        function interlace_choosedomainspace(ops,rs::$TYP)
+            @assert length(ops) == length(rs)
+            # this ensures correct dispatch for unino
+            sps = Vector{Space}(
+                filter(x->!isambiguous(x),map((op,s)->choosedomainspace(op,s),ops,rs)))
+            if isempty(sps)
+                UnsetSpace()
+            else
+                union(sps...)
+            end
+        end
     end
 end
 
 
-for op in (:domainspace,:rangespace)
-    @eval $op(D::DiagonalArrayOperator)=ArraySpace($op(D.op),D.dimensions)
+
+
+
+
+
+for op in (:dirichlet,:neumann,:continuity,:ivp)
+    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...),PiecewiseSpace,TupleSpace)
+    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...),PiecewiseSpace,TupleSpace)
 end
 
 
-Derivative(AS::ArraySpace,k::Integer)=DerivativeWrapper(DiagonalArrayOperator(Derivative(AS.space,k),size(AS)),k)
+
+Base.blkdiag(A::PlusOperator)=mapreduce(blkdiag,+,A.ops)
+Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
+
+# TODO: general wrappers
+
+
+
+Evaluation(S::TupleSpace,x,order) =
+    EvaluationWrapper(S,x,order,
+        InterlaceOperator(Diagonal([map(s->Evaluation(s,x,order),S)...]),TupleSpace))
+
+
+Evaluation(S::SumSpace,x,order) =
+    EvaluationWrapper(S,x,order,
+        InterlaceOperator(hcat(map(s->Evaluation(s,x,order),S)...),SumSpace))
+
+
+
+diagonalarrayoperator(op,dims) =
+    InterlaceOperator(promotespaces(Diagonal(fill(op,prod(dims)))),
+                      ArraySpace(domainspace(op),dims),
+                      ArraySpace(rangespace(op),dims))
+
+
+function Derivative(AS::ArraySpace,k::Integer)
+    D = Derivative(AS.space,k)
+    DerivativeWrapper(diagonalarrayoperator(D,size(AS)),k)
+end
 
 function conversion_rule(AS::ArraySpace,BS::ArraySpace)
     if size(AS)==size(BS)
@@ -99,10 +89,11 @@ end
 
 function Conversion(AS::ArraySpace,BS::ArraySpace)
     @assert size(AS)==size(BS)
-    ConversionWrapper(DiagonalArrayOperator(Conversion(AS.space,BS.space),size(AS)))
+    C = Conversion(AS.space,BS.space)
+    ConversionWrapper(diagonalarrayoperator(C,size(AS)))
 end
 
-ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(ToeplitzOperator,mat(G)))
+ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V}) = interlace(map(ToeplitzOperator,mat(G)))
 
 ## Sum Space
 
@@ -116,8 +107,12 @@ ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V})=interlace(map(Toepli
 
 
 function coefficients(v::AbstractVector,a::TupleSpace,b::TupleSpace)
-    vs=vec(Fun(v,a))
-    coefficients(detuple(map((f,s)->Fun(f,s),vs,b)))
+    if a==b
+        v
+    else
+        vs=vec(Fun(v,a))
+        coefficients(vcat(map((f,s)->Fun(f,s),vs,b)...))
+    end
 end
 
 function Conversion(a::TupleSpace,b::TupleSpace)
@@ -126,7 +121,7 @@ function Conversion(a::TupleSpace,b::TupleSpace)
             a.spaces[1:m-1]==b.spaces[1:m-1]
 
     if m==0
-        ConversionWrapper(DiagonalInterlaceOperator(map(Conversion,a.spaces,b.spaces),TupleSpace))
+        ConversionWrapper(InterlaceOperator(Diagonal([map(Conversion,a.spaces,b.spaces)...]),TupleSpace))
     elseif length(a)==m
         SpaceOperator(FiniteOperator(eye(m)),a,b)
     elseif length(a)==m+1
@@ -152,7 +147,7 @@ for TYP in (:SumSpace,:PiecewiseSpace)
                           S1,S2))
         elseif all(map(hasconversion,S1.spaces,S2.spaces))
             # we can blocmk convert
-            ConversionWrapper(DiagonalInterlaceOperator(map(Conversion,S1.spaces,S2.spaces),$TYP))
+            ConversionWrapper(InterlaceOperator(Diagonal([map(Conversion,S1.spaces,S2.spaces)...]),$TYP))
         elseif map(canonicalspace,S1.spaces)==map(canonicalspace,S2.spaces)
             error("Not implemented")
         elseif sort([map(canonicalspace,S1.spaces)...])==sort([map(canonicalspace,S2.spaces)...])
@@ -256,14 +251,14 @@ end
 
 for TYP in (:PiecewiseSpace,:TupleSpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
                                                          (:Integral,:IntegralWrapper))
-    @eval $Op(S::$TYP,k::Integer)=$OpWrap(DiagonalInterlaceOperator(map(s->$Op(s,k),S.spaces),$TYP),k)
+    @eval $Op(S::$TYP,k::Integer)=$OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),S.spaces)...]),$TYP),k)
 end
 
 function Derivative(S::SumSpace,k::Integer)
     # we want to map before we decompose, as the map may introduce
     # mixed bases.
     if typeof(canonicaldomain(S))==typeof(domain(S))
-        DerivativeWrapper(DiagonalInterlaceOperator(map(s->Derivative(s,k),S.spaces),SumSpace),k)
+        DerivativeWrapper(InterlaceOperator(Diagonal([map(s->Derivative(s,k),S.spaces)...]),SumSpace),k)
     else
         defaultDerivative(S,k)
     end
@@ -271,7 +266,7 @@ end
 
 choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->choosedomainspace(M,s),union,sp.spaces)
 
-  
+
 
 ## Multiplcation for Array*Vector
 
@@ -290,13 +285,13 @@ function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     p=perm(domain(f).domains,domain(sp).domains)  # sort f
     vf=pieces(f)[p]
 
-    MultiplicationWrapper(f,DiagonalInterlaceOperator(map(Multiplication,vf,sp.spaces),PiecewiseSpace))
+    MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(Multiplication,vf,sp.spaces)...]),PiecewiseSpace))
 end
 
 Multiplication{SV1,SV2,T2,T1,D,d}(f::Fun{SumSpace{SV1,T1,D,d}},sp::SumSpace{SV2,T2,D,d}) =
     MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,vec(f)))
 Multiplication(f::Fun,sp::SumSpace) =
-    MultiplicationWrapper(f,DiagonalInterlaceOperator(map(s->Multiplication(f,s),vec(sp)),SumSpace))
+    MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(s->Multiplication(f,s),vec(sp))...]),SumSpace))
 
 
 # we override coefficienttimes to split the multiplication down to components as union may combine spaes
@@ -320,11 +315,12 @@ DefiniteLineIntegral(d::UnionDomain) =
 
 ####### This is a hack to get the Faraday Cage working.
 function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},k::Integer)
-    n = length(domain(Σ))
-    k ≤ n? one(T) : zero(T)
+    d = domain(Σ)
+    n = length(d)
+    k ≤ n? T(π*arclength(d[k])/2) : zero(T)
 end
 bandinds{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T}) =
-    0,arclength(domain(Σ))-1
+    0,length(domain(Σ))-1
 ####### This is a hack to get the Faraday Cage working.
 
 ## TensorSpace of two PiecewiseSpaces

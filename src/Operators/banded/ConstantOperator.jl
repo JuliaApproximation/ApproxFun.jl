@@ -25,6 +25,10 @@ promotedomainspace(C::ConstantOperator,sp::Space) = ConstantOperator(C.λ,sp)
 
 bandinds(T::ConstantOperator) = 0,0
 
+isbandedblockbanded(::ConstantOperator) = true
+blockbandinds(::ConstantOperator) = 0,0
+subblockbandinds(::ConstantOperator,k::Integer) = 0
+
 getindex(C::ConstantOperator,k::Integer,j::Integer) =
     k==j?eltype(C)(C.λ):zero(eltype(C))
 
@@ -42,13 +46,12 @@ end
 # zero needs to be different since it can take a space to
 # a ConstantSpace, in creating functionals
 Base.convert{T}(::Type{Operator{T}},x::Number) =
-    x==0?ZeroOperator(T,UnsetSpace()):Multiplication(T(x))
+    x==0 ? ZeroOperator(T,UnsetSpace()) : Multiplication(T(x))
 Base.convert{T}(::Type{Operator{T}},L::UniformScaling) =
     ConstantOperator(T,L.λ)
 
-Operator(n::Number) = Operator{typeof(n)}(n)
-Operator(L::UniformScaling) = Operator{eltype(L)}(L)
-
+Base.convert(::Type{Operator},n::Number) = ConstantOperator(n)
+Base.convert(::Type{Operator},L::UniformScaling) = ConstantOperator(L.λ)
 
 ## Algebra
 
@@ -111,7 +114,12 @@ Base.convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
 domainspace(Z::ZeroOperator)=Z.domainspace
 rangespace(Z::ZeroOperator)=Z.rangespace
 
-bandinds(T::ZeroOperator)=0,0
+bandinds(T::ZeroOperator) = 0,0
+blockbandinds(T::ZeroOperator) = 0,0
+subblockbandinds(T::ZeroOperator,k::Integer) = 0
+
+isbandedblockbandedabove(::ZeroOperator) = true
+isbandedblockbandedbelow(::ZeroOperator) = true
 
 getindex(C::ZeroOperator,k::Integer,j::Integer)=zero(eltype(C))
 
@@ -128,9 +136,9 @@ isconstop(S::SpaceOperator)=isconstop(S.op)
 isconstop(::)=false
 
 iszeroop(::ZeroOperator) = true
-iszeroop(A::ConstantOperator) = A.λ==0.
+iszeroop(A::ConstantOperator) = A.λ==0.0
 iszeroop(A) = false
 
-Base.convert{T<:Number}(::Type{T},::ZeroOperator)=zero(T)
-Base.convert{T<:Number}(::Type{T},C::ConstantOperator)=convert(T,C.λ)
-Base.convert{T<:Number}(::Type{T},S::SpaceOperator)=convert(T,S.op)
+Base.convert{T<:Number}(::Type{T},::ZeroOperator) = zero(T)
+Base.convert{T<:Number}(::Type{T},C::ConstantOperator) = convert(T,C.λ)
+Base.convert{T<:Number}(::Type{T},S::SpaceOperator) = convert(T,S.op)

@@ -63,7 +63,6 @@ println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 
 
 ## Piecewise
-
 x=Fun(identity,[-20.,-10.,-5.,0.,1.,15.])
 sp=space(x)
 D=Derivative(sp)
@@ -72,6 +71,7 @@ u=[dirichlet(sp);
     D^2-x]\[airyai(-20.)];
 @time u=[dirichlet(sp);
     D^2-x]\[airyai(-20.)];
+
 
 println("Piecewise Airy: should be ~0.008")
 

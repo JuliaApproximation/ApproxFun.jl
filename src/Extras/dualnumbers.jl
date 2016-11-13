@@ -1,9 +1,9 @@
 # We need to implement some functionality for the ApproxFun constructor to work
-real{T}(::Type{Dual{T}})=Dual{ApproxFun.real(T)}
+real{T}(::Type{Dual{T}}) = Dual{ApproxFun.real(T)}
 
 # Dual number support. Should there be realpart and dualpart of Space and Domain?
-DualNumbers.realpart(f::Fun) = Fun(realpart(coefficients(f)),space(f))
-DualNumbers.dualpart(f::Fun) = Fun(dualpart(coefficients(f)),space(f))
+DualNumbers.realpart{S,T<:Dual}(f::Fun{S,T}) = Fun(realpart(coefficients(f)),space(f))
+DualNumbers.dualpart{S,T<:Dual}(f::Fun{S,T}) = Fun(dualpart(coefficients(f)),space(f))
 
 
 DualNumbers.realpart{DD<:Dual}(d::Interval{DD}) = Interval(realpart(d.a),realpart(d.b))
@@ -11,28 +11,39 @@ Base.in{DD<:Dual}(x::Number,d::Interval{DD}) = in(x,realpart(d))
 Base.in{DD<:Dual}(x::Dual,d::Interval{DD}) = in(realpart(x),d)
 
 
-valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{V})=Dual{promote_type(T,V)},promote_type(T,V)
-valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{V})=Dual{promote_type(T,V)},promote_type(real(T),V)
-valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{Complex{V}})=Dual{promote_type(T,V)},Complex{promote_type(T,V)}
-valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{Complex{V}})=Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
+valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{V}) =
+    Dual{promote_type(T,V)},promote_type(T,V)
+valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{V}) =
+    Dual{promote_type(T,V)},promote_type(real(T),V)
+valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{Complex{V}}) =
+    Dual{promote_type(T,V)},Complex{promote_type(T,V)}
+valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{Complex{V}}) =
+    Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
 
 
 for OP in (:plan_chebyshevtransform,:plan_ichebyshevtransform)
-    @eval $OP{D<:Dual}(v::Vector{D})=$OP(realpart(v))
+    @eval $OP{D<:Dual}(v::Vector{D}) = $OP(@compat(realpart.(v)))
 end
-chebyshevtransform{D<:Dual}(v::Vector{D},plan...)=dual(chebyshevtransform(realpart(v),plan...),
-                                                        chebyshevtransform(dualpart(v),plan...))
+
+if VERSION < v"0.5"
+    chebyshevtransform{D<:Dual}(v::Vector{D},plan...) =
+        dual(chebyshevtransform(realpart(v),plan...),chebyshevtransform(dualpart(v),plan...))
+else
+    chebyshevtransform{D<:Dual}(v::Vector{D},plan...) =
+        dual.(chebyshevtransform(realpart.(v),plan...),chebyshevtransform(dualpart.(v),plan...))
+end
 
 #TODO: Hardy{false}
 for OP in (:plan_transform,:plan_itransform)
     for TYP in  (:Fourier,:Laurent,:SinSpace)
-        @eval $OP{T<:Dual,D<:Domain}(S::$TYP{D},x::Vector{T})=$OP(S,realpart(x))
+        @eval $OP{T<:Dual,D<:Domain}(S::$TYP{D},x::Vector{T}) = $OP(S,@compat(realpart.(x)))
     end
 end
 
 for OP in (:transform,:itransform)
     for TYP in (:Fourier,:Laurent,:SinSpace)
-        @eval $OP{T<:Dual,D<:Domain}(S::$TYP{D},x::Vector{T},plan)=dual($OP(S,realpart(x),plan),$OP(S,dualpart(x),plan))
+        @eval $OP{T<:Dual,D<:Domain}(S::$TYP{D},x::Vector{T},plan) =
+            dual($OP(S,@compat(realpart.(x)),plan),$OP(S,@compat(dualpart.(x)),plan))
     end
 end
 
@@ -42,7 +53,7 @@ chop!(f::Fun,d::Dual)=chop!(f,realpart(d))
 
 function simplifycfs!{DD<:Dual}(cfs::Vector{DD},tol::Float64=4E-16)
     for k=length(cfs):-2:2
-        if maxabs(realpart(cfs[k-1:k]))>maxabs(dualpart(cfs[k-1:k]))*tol
+        if maxabs(@compat(realpart.(cfs[k-1:k]))) > maxabs(@compat(dualpart.(cfs[k-1:k])))*tol
             return resize!(cfs,k)
         end
     end
@@ -51,7 +62,7 @@ end
 
 
 function dualFun(f,S,n)
-    pts=points(S,n)+Dual{Float64}[dual(0.,rand(Bool)) for k=1:n]
+    pts=points(S,n) + Dual{Float64}[dual(0.,rand(Bool)) for k=1:n]
     Fun(transform(S,map(f,pts)),S)
 end
 

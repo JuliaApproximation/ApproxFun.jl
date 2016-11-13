@@ -9,7 +9,7 @@ immutable ChebyshevDirichlet{left,right,D} <: PolynomialSpace{D}
     ChebyshevDirichlet()=new(D())
 end
 
-for TYP in (:Number,:AbstractArray,:Fun)
+for TYP in (:Number,:AbstractArray,:Vec,:Fun)
     @eval evaluate(f::AbstractVector,S::ChebyshevDirichlet,x::$TYP) =
         evaluate(Fun(Fun(f,S),canonicalspace(S)),x)
 end
@@ -96,6 +96,11 @@ coefficients(v::Vector,::ChebyshevDirichlet{1,1},::Chebyshev)=idirichlettransfor
 coefficients(v::Vector,::ChebyshevDirichlet{0,1},::Chebyshev)=idirichlettransform!(true,copy(v))
 coefficients(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransform!(false,copy(v))
 
+# recurrence
+recα{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = zero(T)
+recβ{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = n==1 ? one(T) : one(T)/2
+recγ{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = n==2 ? one(T) : (n==3 ? zero(T) : one(T)/2)
+
 ## Dirichlet Conversion operators
 
 Conversion(D::ChebyshevDirichlet,C::Chebyshev)=ConcreteConversion(D,C)
@@ -144,7 +149,7 @@ conversion_rule(b::ChebyshevDirichlet,a::Chebyshev)=b
 
 bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D},Bool}) = 0,B.x?∞:0
 bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{0,1,D},Bool}) = 0,B.x?0:∞
-bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D},Bool}) = 0,B.x?0:1
+bandinds{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,1,D},Bool}) = 0,1
 
 function getindex{D}(B::ConcreteEvaluation{ChebyshevDirichlet{1,0,D},Bool},kr::Range)
     d = domain(B)

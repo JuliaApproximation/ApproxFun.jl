@@ -1,5 +1,11 @@
 using ApproxFun, Base.Test
+    import ApproxFun: testfunctional, testbandedoperator
 
+S=Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
+testfunctional(rdirichlet(S))
+B=rdirichlet(S)
+D=LeftDerivative(1.5) : S
+testbandedoperator(D)
 
 ## Avazzadev et al
 

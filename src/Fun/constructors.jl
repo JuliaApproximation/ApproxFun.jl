@@ -14,7 +14,8 @@ valsdomain_type_promote{T,V}(::Type{T},::Type{V})=promote_type(T,V),promote_type
 
 
 function choosefuneltype(ftype,Td)
-    if !( ftype<: Number || ( (ftype <: Array) && (ftype.parameters[1] <: Number) ) )
+    if !( ftype<: Number || ( ((ftype <: AbstractArray) || (ftype <: Vec)) &&
+                              (eltype(ftype) <: Number) ) )
         warn("Function outputs type $(ftype), which is not a Number")
     end
 
@@ -45,7 +46,7 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
 
     f1=f(pts[1])
 
-    if isa(f1,Array) && !isa(d,ArraySpace)
+    if (isa(f1,AbstractArray) || isa(f1,Vec)) && !isa(d,ArraySpace)
         return Fun(f,ArraySpace(d,size(f1)...),n)
     end
 
@@ -146,20 +147,23 @@ function zerocfsFun(f, d::Space)
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
         cf = defaultFun(f, d, 2^logn)
-        maxabsc=maxabs(cf.coefficients)
-        if maxabsc==0 && maxabsfr==0
+        maxabsc = maxabs(cf.coefficients)
+        if maxabsc == 0 && maxabsfr == 0
             return(zeros(d))
         end
 
+        b = block(d,length(cf.coefficients))
+        bs = blockstart(d,max(b-2,1))
+
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if ncoefficients(cf) > 8 && maxabs(cf.coefficients[end-8:end]) < tol*maxabsc &&
-                all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
+        if ncoefficients(cf) > 8 && maxabs(cf.coefficients[bs:end]) < tol*maxabsc &&
+                all(k->norm(cf(r[k])-fr[k],1)<tol*length(cf.coefficients)*maxabsfr*1000,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end
     end
 
-    warn("Maximum number of coefficients "*string(2^20+1)*" reached")
+    warn("Maximum number of coefficients "*string(2^20+1)*" reached in constructing Fun.")
 
     Fun(f,d,2^21)
 end
@@ -216,7 +220,7 @@ Fun(f,d::Domain;opts...)=Fun(f,Space(d);opts...)
 # this supports expanding a Fun to a larger or smaller domain.
 # we take the union and then intersection to get at any singularities
 # TODO: singularities in space(f)
-Fun(f::Fun,d::Domain;opts...)=Fun(f,Space((d ∪ domain(f)) ∩ d);opts...)
+Fun(f::Fun,d::Domain;opts...) = Fun(f,Space((d ∪ domain(f)) ∩ d);opts...)
 
 
 

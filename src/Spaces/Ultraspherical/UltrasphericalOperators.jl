@@ -93,17 +93,18 @@ linesum{LT,DD<:Interval}(f::Fun{Ultraspherical{LT,DD}}) =
 rangespace{LT,DD<:Interval}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) =
     order(domainspace(D)) == 1 ? Chebyshev() : Ultraspherical(order(domainspace(D))-D.order,domain(D))
 
-function getindex{LT,DD<:Interval,T}(D::ConcreteIntegral{Ultraspherical{LT,DD},T},k::Integer,j::Integer)
-    m=D.order
-    d=domain(D)
-    λ=order(domainspace(D))
+function getindex{LT,DD<:Interval}(Q::ConcreteIntegral{Ultraspherical{LT,DD}},k::Integer,j::Integer)
+    T=eltype(Q)
+    m=Q.order
+    d=domain(Q)
+    λ=order(domainspace(Q))
     @assert m<=λ
 
     if λ == 1 && k==j+1
-        C = .5(d.b-d.a)
-        C./(k-one(T))
+        C = (d.b-d.a)/2
+        T(C./(k-1))
     elseif λ > 1 && k==j+m
-        pochhammer(one(T)*λ,-m)*(.25(d.b-d.a))^m
+        T(pochhammer(one(T)*λ,-m)*((d.b-d.a)/4)^m)
     else
         zero(T)
     end
@@ -143,10 +144,12 @@ function Conversion(A::Ultraspherical,B::Ultraspherical)
         ConversionWrapper(eye(A))
     elseif a<b≤a+1  || b<a≤b+1
         ConcreteConversion(A,B)
-    else
+    elseif b ≠ 1
         d=domain(A)
         ConversionWrapper(TimesOperator(Conversion(Ultraspherical(b-1,d),B),
                                         Conversion(A,Ultraspherical(b-1,d))))
+    else
+        error("Cannot convert from $A to $B")
     end
 end
 
@@ -329,9 +332,9 @@ function getindex{DD,LT,LT2,T}(M::ConcreteConversion{Ultraspherical{LT,DD},
     λ2 = order(rangespace(M))
     if abs(λ1-λ2) < 1
         if j ≥ k && iseven(k-j)
-            gamma(λ2)*(k-1+λ2)/(gamma(λ1)*gamma(λ1-λ2))*
-                (gamma((j-k)/2+λ1-λ2)/gamma((j-k)/2+1))*
-                (gamma((k+j-2)/2+λ1)/gamma((k+j-2)/2+λ2+1))
+            T((λ1 < λ2 && k ≠ j ? -1 : 1) *  # fix sign for lgamma
+                exp(lgamma(λ2)+log(k-1+λ2)-lgamma(λ1)-lgamma(λ1-λ2) + lgamma((j-k)/2+λ1-λ2)-
+                lgamma((j-k)/2+1)+lgamma((k+j-2)/2+λ1)-lgamma((k+j-2)/2+λ2+1)))
         else
             zero(T)
         end
@@ -339,3 +342,7 @@ function getindex{DD,LT,LT2,T}(M::ConcreteConversion{Ultraspherical{LT,DD},
         error("Not implemented")
     end
 end
+
+
+ReverseOrientation(S::Ultraspherical) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
+Reverse(S::Ultraspherical) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))

@@ -1,9 +1,7 @@
 ## Linear Solve
 
 function linsolve(A::Operator,b;kwds...)
-    if dimension(domain(A)) > 1
-        pdesolve(A,b;kwds...)
-    elseif isambiguous(domainspace(A))
+    if isambiguous(domainspace(A))
         A=choosespaces(A,b)
         if isambiguous(domainspace(A))
             error("Cannot infer spaces")
@@ -14,14 +12,8 @@ function linsolve(A::Operator,b;kwds...)
     end
 end
 
+linsolve{OO<:Operator}(A::Array{OO},b;kwds...) = linsolve(interlace(A),b;kwds...)
 
-function linsolve{OO<:Operator}(A::Array{OO},b;kwds...)
-    if dimension(domain(A[end])) > 1
-        pdesolve(A,b;kwds...)
-    else
-        linsolve(interlace(A),b;kwds...)
-    end
-end
 
 for p in (1,2)
     @eval begin

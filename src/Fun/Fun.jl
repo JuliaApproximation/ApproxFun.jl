@@ -142,7 +142,7 @@ evaluate(f::Fun,x) = evaluate(f.coefficients,f.space,x)
 evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 
 
-@compat (f::Fun)(x...)=evaluate(f,x...)
+@compat (f::Fun)(x...) = evaluate(f,x...)
 
 for op in (:(Base.first),:(Base.last))
     @eval $op{S,T}(f::Fun{S,T}) = f($op(domain(f)))
@@ -154,7 +154,7 @@ end
 
 
 # Default extrapolation is evaluation. Override this function for extrapolation enabled spaces.
-extrapolate(f::AbstractVector,S::Space,x...)=evaluate(f,S,x...)
+extrapolate(f::AbstractVector,S::Space,x...) = evaluate(f,S,x...)
 
 # Do not override these
 extrapolate(f::Fun,x) = extrapolate(f.coefficients,f.space,x)
@@ -164,7 +164,7 @@ extrapolate(f::Fun,x,y,z...) = extrapolate(f.coefficients,f.space,Vec(x,y,z...))
 ##Data routines
 
 
-values(f::Fun,dat...)=itransform(f.space,f.coefficients,dat...)
+values(f::Fun,dat...) = itransform(f.space,f.coefficients,dat...)
 points(f::Fun)=points(f.space,ncoefficients(f))
 ncoefficients(f::Fun)=length(f.coefficients)
 
@@ -431,10 +431,18 @@ end
 
 ## non-vector notation
 
-*(f::Fun,g::Fun)=f.*g
-^(f::Fun,k::Integer)=f.^k
-^(f::Fun,k::Union{Number,Fun})=f.^k
-/(c::Union{Number,Fun},g::Fun)=c./g
+*(f::Fun,g::Fun) = f.*g
+^(f::Fun,k::Integer) = f.^k
+^(f::Fun,k::Union{Number,Fun}) = f.^k
+/(c::Union{Number,Fun},g::Fun) = c./g
+
+
+## broadcasting
+
+Base.broadcast(op,f::Fun) = Fun(x -> op(f(x)), domain(f))
+Base.broadcast(op,f::Fun,c::Number) = Fun(x -> op(f(x),c), domain(f))
+Base.broadcast(op,c::Number,f::Fun) = Fun(x -> op(c,f(x)), domain(f))
+Base.broadcast(op,f::Fun,g::Fun) = Fun(x -> op(f(x),g(x)), domain(f) ∪ domain(g))
 
 
 include("constructors.jl")

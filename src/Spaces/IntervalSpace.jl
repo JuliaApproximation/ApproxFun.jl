@@ -2,9 +2,9 @@ export continuity
 
 
 
-Space(d::IntervalDomain)=Chebyshev(d)
+Space(d::IntervalDomain) = Chebyshev(d)
 
-identity_fun(d::Interval)=Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],Chebyshev(d))
+identity_fun(d::Interval) = Fun(eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2],Chebyshev(d))
 
 
 ## Calculus
@@ -16,6 +16,7 @@ Integral(d::IntervalDomain,n::Integer) = Integral(Ultraspherical(1,d),n)
 
 for Func in (:DefiniteIntegral,:DefiniteLineIntegral)
     @eval begin
+        #TODO: this may be misleading
         $Func(d::IntervalDomain) = $Func(JacobiWeight(-.5,-.5,Chebyshev(d)))
         function $Func(α::Number,β::Number,d::IntervalDomain)
             @assert α == β

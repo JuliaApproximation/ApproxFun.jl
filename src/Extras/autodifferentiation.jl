@@ -4,16 +4,13 @@ immutable DualFun{F,T}
     f::F
     J::T
 end
-DualFun(f::Fun)=DualFun(f,
-                        SpaceOperator(IdentityOperator(),
-                              space(f),
-                              space(f)))
+DualFun(f::Fun) = DualFun(f,eye(space(f)))
 
 
-domain(df::DualFun)=domain(df.f)
+domain(df::DualFun) = domain(df.f)
 
-differentiate(d::DualFun)=DualFun(d.f',Derivative(rangespace(d.J))*d.J)
-integrate(d::DualFun)=DualFun(integrate(d.f),Integral(rangespace(d.J))*d.J)
+differentiate(d::DualFun) = DualFun(d.f',Derivative(rangespace(d.J))*d.J)
+integrate(d::DualFun) = DualFun(integrate(d.f),Integral(rangespace(d.J))*d.J)
 function Base.cumsum(d::DualFun)
     Q=Integral(rangespace(d.J))*d.J
     DualFun(cumsum(d.f),(I-Evaluation(rangespace(Q),false))*Q)
@@ -24,11 +21,20 @@ Base.transpose(d::DualFun)=differentiate(d)
 
 ^(d::DualFun,k::Integer)=DualFun(d.f^k,k*d.f^(k-1)*d.J)
 
+# from DualNumbers
+for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
+    @eval function $(funsym)(z::DualFun)
+        x = z.f
+        xp = z.J
+        DualFun($(funsym)(x),$exp*xp)
+    end
+end
+
 for OP in (:+,:-)
     @eval begin
-        $OP(a::DualFun,b::Union{Number,Fun})=DualFun($OP(a.f,b),a.J)
-        $OP(a::Union{Number,Fun},b::DualFun)=DualFun($OP(a,b.f),b.J)
-        $OP(a::DualFun,b::DualFun)=DualFun($OP(a.f,b.f),$OP(a.J,b.J))
+        $OP(a::DualFun,b::Union{Number,Fun}) = DualFun($OP(a.f,b),a.J)
+        $OP(a::Union{Number,Fun},b::DualFun) = DualFun($OP(a,b.f),$OP(b.J))
+        $OP(a::DualFun,b::DualFun) = DualFun($OP(a.f,b.f),$OP(a.J,b.J))
     end
 end
 -(a::DualFun)=DualFun(-a.f,-a.J)
@@ -77,19 +83,22 @@ Operator(f::Function)=Operator(f,Chebyshev())  #TODO: UnsetSpace
 
 # full operator should be
 # N=u->[B*u-bcs;...]
-function newton(N,u0::Fun;maxiterations=100,tolerance=1E-15)
+function newton(N,u0::Fun;maxiterations=15,tolerance=1E-15)
     u=u0
+    err=Inf
     for k=1:maxiterations
         DF=N(DualFun(u))
         J=map(jacobian,DF)
         F=map(d->d.f,DF)
         unew=u-J\F
-        if norm(unew-u)≤10tolerance
+        err=norm(unew-u)
+        if err≤10tolerance
             return unew
         else
             u=chop(unew,tolerance)
         end
     end
+    warn("Maximum number of iterations $maxiterations reached, with approximate accuracy of $err.")
     return u
 end
 

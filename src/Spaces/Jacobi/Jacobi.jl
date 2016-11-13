@@ -30,7 +30,7 @@ typealias WeightedJacobi{T,D} JacobiWeight{Jacobi{T,D},D}
 @compat (::Type{WeightedJacobi})(α,β,d::Domain) = JacobiWeight(α,β,Jacobi(β,α,d))
 @compat (::Type{WeightedJacobi})(α,β) = JacobiWeight(α,β,Jacobi(β,α))
 
-spacescompatible(a::Jacobi,b::Jacobi) = a.a==b.a && a.b==b.b
+spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b
 
 function canonicalspace(S::Jacobi)
     if isapproxinteger(S.a+0.5) && isapproxinteger(S.b+0.5)
@@ -45,22 +45,25 @@ end
 # jacobirecA/B/C is from dlmf:
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
-jacobirecA{T}(::Type{T},α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+one(T):(2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
-jacobirecB{T}(::Type{T},α,β,k)=k==0&&((α+β==0)||(α+β==-1))?.5*(α-β)*one(T):(α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
-jacobirecC{T}(::Type{T},α,β,k)=(one(T)*k+α)*(one(T)*k+β)*(2k+α+β+2one(T))/((k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
+jacobirecA{T}(::Type{T},α,β,k) =
+    k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+one(T):(2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
+jacobirecB{T}(::Type{T},α,β,k) =
+    k==0&&((α+β==0)||(α+β==-1))?.5*(α-β)*one(T):(α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
+jacobirecC{T}(::Type{T},α,β,k) =
+    (one(T)*k+α)*(one(T)*k+β)*(2k+α+β+2one(T))/((k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
 
 #####
 # jacobirecA/B/C is from dlmf:
 # x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-jacobirecγ{T}(::Type{T},α,β,k)=jacobirecC(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
-jacobirecα{T}(::Type{T},α,β,k)=-jacobirecB(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
-jacobirecβ{T}(::Type{T},α,β,k)=1/jacobirecA(T,α,β,k-1)
+jacobirecγ{T}(::Type{T},α,β,k) = jacobirecC(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+jacobirecα{T}(::Type{T},α,β,k) = -jacobirecB(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+jacobirecβ{T}(::Type{T},α,β,k) = 1/jacobirecA(T,α,β,k-1)
 
 for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ),
                    (:recA,:jacobirecA),(:recB,:jacobirecB),(:recC,:jacobirecC))
-    @eval $REC{T}(::Type{T},sp::Jacobi,k)=$JREC(T,sp.a,sp.b,k)
+    @eval $REC{T}(::Type{T},sp::Jacobi,k) = $JREC(T,sp.a,sp.b,k)
 end
 
 
@@ -74,7 +77,7 @@ function jacobip(r::Range,α,β,x)
         v[1]=1.
         v[2]=.5*(α-β+(2+α+β)*x)
 
-        for k=2:n-1
+        @inbounds for k=2:n-1
             v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
         end
     end
@@ -82,31 +85,39 @@ function jacobip(r::Range,α,β,x)
 end
 
 
-function jacobip(r::Range,α,β,x::Number)
-    if x==1. && α==0.
-        ones(length(r))
-    elseif x==-1. && β==0.
-        (-1.).^r
+function jacobip{T}(::Type{T},r::Range,α,β,x::Number)
+    if x==1 && α==0
+        ones(T,length(r))
+    elseif x==-1 && β==0
+        (-one(T)).^r
+    elseif isempty(r)
+        T[]
     else
         n=r[end]+1
         if n<=2
-            v=[1.,.5*(α-β+(2+α+β)*x)]
+            v=T[1,(α-β+(2+α+β)*x)/2]
         else
-            T=promote_type(Float64,typeof(x))
             v=Vector{T}(n)  # x may be complex
-            v[1]=1.
-            v[2]=.5*(α-β+(2+α+β)*x)
+            v[1]=1
+            v[2]=(α-β+(2+α+β)*x)/2
 
-            for k=2:n-1
+            @inbounds for k=2:n-1
                 v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
             end
         end
         v[r+1]
     end
 end
+
+jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
+
+jacobip{T}(::Type{T},n::Integer,α,β,v)=jacobip(T,n:n,α,β,v)[1]
 jacobip(n::Integer,α,β,v)=jacobip(n:n,α,β,v)[1]
+jacobip{T}(::Type{T},n::Range,α,β,v::Vector)=transpose(hcat(map(x->jacobip(T,n,α,β,x),v)...))
 jacobip(n::Range,α,β,v::Vector)=transpose(hcat(map(x->jacobip(n,α,β,x),v)...))
+jacobip{T}(::Type{T},n::Integer,α,β,v::Vector)=map(x->jacobip(T,n,α,β,x),v)
 jacobip(n::Integer,α,β,v::Vector)=map(x->jacobip(n,α,β,x),v)
+jacobip{T}(::Type{T},n,S::Jacobi,v)=jacobip(T,n,S.a,S.b,v)
 jacobip(n,S::Jacobi,v)=jacobip(n,S.a,S.b,v)
 
 

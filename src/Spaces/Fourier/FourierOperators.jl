@@ -196,8 +196,16 @@ Multiplication{CS<:CosSpace}(f::Fun{CS},sp::SinSpace) = ConcreteMultiplication(f
 function Multiplication{SS<:SinSpace}(f::Fun{SS},sp::CosSpace)
     @assert domain(f) == domain(sp)
     a=f.coefficients/2
-    A=ToeplitzOperator(a[2:end],[a[1];0.;-a]) + HankelOperator(a)
-    MultiplicationWrapper(f,SpaceOperator(A,sp,SinSpace(domain(sp))))
+    if length(a) == 0
+        A=ZeroOperator(sp,SinSpace(domain(sp)))
+        MultiplicationWrapper(f,A)
+    elseif length(a) == 1
+        A=ToeplitzOperator([0.],[a[1];0.;-a]) + HankelOperator(a)
+        MultiplicationWrapper(f,SpaceOperator(A,sp,SinSpace(domain(sp))))
+    else
+        A=ToeplitzOperator(a[2:end],[a[1];0.;-a]) + HankelOperator(a)
+        MultiplicationWrapper(f,SpaceOperator(A,sp,SinSpace(domain(sp))))
+    end
 end
 
 
@@ -211,9 +219,9 @@ getindex{CS<:CosSpace}(M::ConcreteMultiplication{CS,CS},k::Integer,j::Integer) =
 
 function getindex{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS},k::Integer,j::Integer)
     a=M.f.coefficients
-    ret=0.5*toeplitz_getindex([0.;-a],a,k,j)
+    ret=toeplitz_getindex([zero(eltype(a));-a],a,k,j)/2
     if k ≥ 2
-        ret+=0.5*hankel_getindex(a,k,j)
+        ret+=hankel_getindex(a,k,j)/2
     end
     ret
 end
@@ -224,9 +232,9 @@ rangespace{SS<:SinSpace}(M::ConcreteMultiplication{SS,SS})=CosSpace(domain(M))
 
 function getindex{SS<:SinSpace,Cs<:CosSpace}(M::ConcreteMultiplication{Cs,SS},k::Integer,j::Integer)
     a=M.f.coefficients
-    ret=0.5*toeplitz_getindex(a,k,j)
+    ret=toeplitz_getindex(a,k,j)/2
     if length(a)>=3
-        ret-=0.5*hankel_getindex(@compat(view(a,3:length(a))),k,j)
+        ret-=hankel_getindex(@compat(view(a,3:length(a))),k,j)/2
     end
     ret
 end
@@ -249,35 +257,59 @@ end
 
 ## Definite integral
 
-DefiniteIntegral{D<:PeriodicInterval}(sp::Fourier{D}) =
-    ConcreteDefiniteIntegral{typeof(sp),Float64}(sp)
-DefiniteIntegral{D<:Circle}(sp::Fourier{D}) =
-    ConcreteDefiniteIntegral{typeof(sp),Complex{Float64}}(sp)
-
-function getindex{T,D}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},kr::Range)
-    d = domain(Σ)
-    if isa(d,PeriodicInterval)
-        T[k == 1?  d.b-d.a : zero(T) for k=kr]
-    else
-        @assert isa(d,Circle)
-        T[k == 2?  -d.radius*π : (k==3?d.radius*π*im :zero(T)) for k=kr]
+for SP in (:CosSpace,:SinSpace,:Fourier)
+    @eval begin
+        DefiniteIntegral{D}(S::$SP{D}) =
+            ConcreteDefiniteIntegral{typeof(S),promote_type(eltype(S),eltype(D))}(S)
+        DefiniteLineIntegral{D}(S::$SP{D}) =
+            ConcreteDefiniteLineIntegral{typeof(S),real(promote_type(eltype(S),eltype(D)))}(S)
     end
 end
 
-bandinds{D}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) =
-    0,isa(domain(Σ),PeriodicInterval)?0:2
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{CosSpace{D},T},k::Integer) =
+    k == 1? T(complexlength(domain(Σ))) : zero(T)
 
-DefiniteLineIntegral{D}(sp::Fourier{D}) =
-    ConcreteDefiniteLineIntegral{typeof(sp),Float64}(sp)
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{SinSpace{D},T},k::Integer) =
+    zero(T)
 
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},k::Integer) =
+    k == 1? T(complexlength(domain(Σ))) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{CosSpace{D},T},k::Integer) =
+    k==2? T(complexlength(domain(Σ))/2) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{SinSpace{D},T},k::Integer) =
+    k == 1? T(0.5im*complexlength(domain(Σ))) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteIntegral{Fourier{D},T},k::Integer) =
+    k == 2? T(0.5im*complexlength(domain(Σ))) : (k==3 ? T(complexlength(domain(Σ))/2) : zero(T))
+
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D},T},k::Integer) =
+    k==1? T(arclength(domain(Σ))) : zero(T)
+
+getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D},T},k::Integer) =
+    zero(T)
 
 getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
-    k==1? domain(Σ).b-domain(Σ).a : zero(T)
+    k==1? T(arclength(domain(Σ))) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D},T},k::Integer) =
+    k==1? T(arclength(domain(Σ))/2) : zero(T)
+
+getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D},T},k::Integer) =
+    zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
-    k==1? domain(Σ).radius*π : zero(T)
+    k==1? T(arclength(domain(Σ))/2) : zero(T)
 
-
+bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{CosSpace{D}}) = 0,0
+bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{SinSpace{D}}) = 0,0
+bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = 0,0
+bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{CosSpace{D}}) = 0,1
+bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{SinSpace{D}}) = 0,0
+bandinds{D<:Circle}(Σ::ConcreteDefiniteIntegral{Fourier{D}}) = 0,2
+bandinds{D}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D}}) = 0,0
+bandinds{D}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D}}) = 0,0
 bandinds{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 0,0
 
 
@@ -291,3 +323,28 @@ transformtimes{CS<:CosSpace,SS<:SinSpace}(f::Fun{CS},g::Fun{SS}) =
 transformtimes{CS<:CosSpace,D}(f::Fun{Fourier{D}},g::Fun{CS}) = transformtimes(g,f)
 transformtimes{SS<:SinSpace,D}(f::Fun{Fourier{D}},g::Fun{SS}) = transformtimes(g,f)
 transformtimes{SS<:SinSpace,CS<:CosSpace}(f::Fun{SS},g::Fun{CS}) = transformtimes(g,f)
+
+
+ReverseOrientation{D}(S::Fourier{D}) = ReverseOrientationWrapper(SpaceOperator(NegateEven(),S,reverseorientation(S)))
+Reverse{D}(S::Fourier{D}) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
+
+
+
+
+## Multivariate
+
+
+for TYP in (:Fourier,:Laurent,:CosSpace,:SinSpace,:Taylor)
+    @eval begin
+        function Dirichlet{PS,T}(S::TensorSpace{Tuple{$TYP{PeriodicInterval{T}},PS}})
+            op = interlace([eye(S[1])⊗ldirichlet(S[2]);
+                            ReverseOrientation(S[1])⊗rdirichlet(S[2]) ])
+            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)
+        end
+        function Dirichlet{PS,T}(S::TensorSpace{Tuple{PS,$TYP{PeriodicInterval{T}}}})
+            op = interlace([ldirichlet(S[1])⊗eye(S[2]);
+                            rdirichlet(S[1])⊗ReverseOrientation(S[2]) ])
+            DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)
+        end
+    end
+end

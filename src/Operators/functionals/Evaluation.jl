@@ -1,4 +1,4 @@
-export Evaluation,ivp,bvp
+export Evaluation,ivp,bvp,Dirichlet
 
 ## Evaluation constructors
 
@@ -12,9 +12,13 @@ immutable ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
     x::M
     order::OT
 end
-Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order::Integer) =
+
+ConcreteEvaluation(sp::Space{RealBasis},x::Number,o::Number) =
+    ConcreteEvaluation{typeof(sp),typeof(x),typeof(o),eltype(domain(sp))}(sp,x,o)
+
+Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
-function Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Number,order::Integer)
+function Evaluation{T}(::Type{T},sp::UnivariateSpace,x,order)
     d=domain(sp)
     if isa(d,IntervalDomain) && isapprox(first(d),x)
         Evaluation(T,sp,false,order)
@@ -25,11 +29,11 @@ function Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Number,order::Integer)
     end
 end
 
-Evaluation(sp::UnsetSpace,x::Bool,k::Integer) =
+Evaluation(sp::UnsetSpace,x::Bool,k) =
     ConcreteEvaluation{UnsetSpace,Bool,typeof(k),UnsetNumber}(sp,x,k)
-Evaluation(sp::Space{ComplexBasis},x,order::Integer) =
+Evaluation(sp::Space{ComplexBasis},x,order) =
     Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
-Evaluation(sp::Space,x,order::Integer) = Evaluation(eltype(domain(sp)),sp,x,order)
+Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
 
 #Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::Space,x::Union{Number,Bool}) = Evaluation(d,x,0)
@@ -56,15 +60,15 @@ end
 
 ## default getindex
 getindex(D::ConcreteEvaluation,k::Integer) =
-    differentiate(Fun([zeros(eltype(D),k-1);one(eltype(D))],D.space),D.order)(D.x)
+    eltype(D)(differentiate(Fun([zeros(eltype(D),k-1);one(eltype(D))],D.space),D.order)(D.x))
 
 
 function getindex{S}(D::ConcreteEvaluation{S,Bool},k::Integer)
     T=eltype(D)
     if !D.x
-        first(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order))
+        T(first(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)))
     else
-        last(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order))
+        T(last(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)))
     end
 end
 
@@ -77,18 +81,28 @@ immutable EvaluationWrapper{S<:Space,M,FS<:Operator,OT,T<:Number} <: Evaluation{
     space::S
     x::M
     order::OT
-    functional::FS
+    op::FS
 end
 
+
+@wrapper EvaluationWrapper
 EvaluationWrapper(sp::Space,x,order,func::Operator) =
-    EvaluationWrapper{typeof(sp),typeof(x),typeof(func),typeof(order),eltype(sp)}(sp,x,order,func)
-getindex(E::EvaluationWrapper,k) = E.functional[k]
+    EvaluationWrapper{typeof(sp),typeof(x),typeof(func),typeof(order),eltype(func)}(sp,x,order,func)
+
 
 domainspace(E::Evaluation) = E.space
 domain(E::Evaluation) = domain(E.space)
-promotedomainspace{T}(E::Evaluation{T},sp::Space) =
-    Evaluation(promote_type(T,eltype(sp)),sp,E.x,E.order)
-Base.stride(E::EvaluationWrapper)=stride(E.functional)
+promotedomainspace(E::Evaluation,sp::Space) = Evaluation(sp,E.x,E.order)
+
+
+
+function Base.convert{T}(::Type{Operator{T}},E::EvaluationWrapper)
+    if T == eltype(E)
+        E
+    else
+        EvaluationWrapper(E.space,E.x,E.order,Operator{T}(E.op))::Operator{T}
+    end
+end
 
 ## Convenience routines
 
@@ -127,16 +141,41 @@ end
 
 
 
+abstract Dirichlet{S,T} <: Operator{T}
 
-immutable Dirichlet{S,T} <: Operator{T}
-    space::S
+
+immutable ConcreteDirichlet{S,V,T} <: Dirichlet{S,T}
+    domainspace::S
+    rangespace::V
     order::Int
 end
-Dirichlet(sp::Space)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,0)
-Dirichlet(d::Domain)=Dirichlet(Space(d))
-Neumann(sp::Space)=Dirichlet{typeof(sp),BandedMatrix{eltype(sp)}}(sp,1)
-Neumann(d::Domain)=Dirichlet(Space(d))
+
+ConcreteDirichlet(sp::Space,rs::Space,order) =
+    ConcreteDirichlet{typeof(sp),typeof(rs),eltype(sp)}(sp,rs,order)
+ConcreteDirichlet(sp::Space,order) = ConcreteDirichlet(sp,Space(∂(domain(sp))),order)
+
+Base.convert{S,V,T}(::Type{Operator{T}},B::ConcreteDirichlet{S,V}) =
+    ConcreteDirichlet{S,V,T}(B.domainspace,B.rangespace,B.order)
 
 
-domainspace(S::Dirichlet)=S.space
-rangespace(B::Dirichlet)=Space(∂(domain(B)))
+immutable DirichletWrapper{S,T} <: Conversion{T}
+    op::S
+    order::Int
+end
+
+@wrapper DirichletWrapper
+
+DirichletWrapper(B::Operator,λ=0) = DirichletWrapper{typeof(B),eltype(B)}(B,λ)
+
+Base.convert{T}(::Type{Operator{T}},B::DirichletWrapper) =
+    DirichletWrapper(Operator{T}(B.op),B.order)::Operator{T}
+
+
+Dirichlet(sp::Space,λ=0) = error("Override getindex for Dirichlet($sp,$λ)")
+Dirichlet(d::Domain,λ...) = Dirichlet(Space(d),λ...)
+Neumann(sp::Space) = Dirichlet(sp,1)
+Neumann(d::Domain) = Neumann(Space(d))
+
+
+domainspace(B::ConcreteDirichlet) = B.domainspace
+rangespace(B::ConcreteDirichlet) = B.rangespace

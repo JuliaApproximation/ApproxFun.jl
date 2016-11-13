@@ -1,3 +1,11 @@
+
+
+## Counts
+
+Base.show(io::IO,c::UnitCount) = print(io,"$(c.start):∞")
+Base.show(io::IO,c::Count) = print(io,"$(c.start):$(c.step):∞")
+
+
 ## Domains
 
 Base.show(io::IO,d::Interval)=print(io,"【$(d.a),$(d.b)】")
@@ -179,7 +187,7 @@ end
 
 ## Operator
 
-Base.summary(B::Operator)=string(typeof(B).name.name)*":"*string(domainspace(B))*"↦"*string(rangespace(B))
+Base.summary(B::Operator) = string(typeof(B).name.name)*":"*string(domainspace(B))*"↦"*string(rangespace(B))
 
 
 function Base.show(io::IO,B::Operator;header::Bool=true)
@@ -203,7 +211,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
                 M[end,j]=PrintShow("⋱")
             end
 
-            Base.showarray(io,M;header=false)
+            showarray(io,M;header=false)
         elseif isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
@@ -219,7 +227,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
                 M[k,end]=M[end,k]=PrintShow("⋱")
             end
 
-            Base.showarray(io,M;header=false)
+            showarray(io,M;header=false)
         elseif isinf(size(B,1))
             BM=B[1:10,1:size(B,2)]
 
@@ -231,7 +239,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
                 M[end,k]=PrintShow("⋮")
             end
 
-            Base.showarray(io,M;header=false)
+            showarray(io,M;header=false)
         elseif isinf(size(B,2))
             BM=B[1:size(B,1),1:10]
 
@@ -243,19 +251,20 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
                 M[k,end]=PrintShow("⋯")
             end
 
-            Base.showarray(io,M;header=false)
+            showarray(io,M;header=false)
         else
-            Base.showarray(io,AbstractMatrix(B)[1:size(B,1),1:size(B,2)];header=false)
+            showarray(io,AbstractMatrix(B)[1:size(B,1),1:size(B,2)];header=false)
         end
     end
 end
 
 
-@compat function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T};header::Bool=true)
+@compat function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T}; header::Bool=true)
     nf = length(A)-1
     header && for k=1:nf+1 println(io,summary(A[k])) end
     if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end]) &&
-            isinf(size(A[end],1)) && isinf(size(A[end],2)) && eltype(A[end]) <: Number
+            isinf(size(A[end],1)) && isinf(size(A[end],2)) && eltype(A[end]) <: Number &&
+            all(Ak -> !isambiguous(domainspace(Ak)), A)
         M=Array{Any}(11,11)
         fill!(M,PrintShow(""))
         for k=1:nf

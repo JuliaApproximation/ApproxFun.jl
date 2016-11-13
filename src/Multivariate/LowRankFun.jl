@@ -41,7 +41,7 @@ end
 
 ## Construction in a TensorSpace via a Vector of Funs
 
-function LowRankFun{S,T,SV}(X::Vector{Fun{S,T}},d::TensorSpace{SV,T,2})
+function LowRankFun{S,T,DD,SV}(X::Vector{Fun{S,T}},d::TensorSpace{SV,T,DD,2})
     @assert d[1] == space(X[1])
     LowRankFun(X,d[2])
 end
@@ -108,7 +108,9 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Sym
 
     # Eat, drink, subtract rank-one, repeat.
     for k=1:maxrank
-        if norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol return LowRankFun(A,B),maxabsf end
+        if (norm(a.coefficients,Inf) < tol || norm(b.coefficients,Inf) < tol)
+            return LowRankFun(A,B),maxabsf
+        end
         A,B =[A;a/sqrt(abs(a(r[1])))],[B;b/(sqrt(abs(b(r[2])))*sign(b(r[2])))]
         r=findapproxmax!(A[k],B[k],X,ptsx,ptsy,gridx,gridy)
         Ar,Br=evaluate(A,r[1]),evaluate(B,r[2])
@@ -177,7 +179,7 @@ end
 
 ## Construction via TensorSpaces and ProductDomains
 
-LowRankFun{SV,T}(f::Function,S::TensorSpace{SV,T,2};kwds...)=LowRankFun(f,S[1],S[2];kwds...)
+LowRankFun{SV,T,DD}(f::Function,S::TensorSpace{SV,T,DD,2};kwds...)=LowRankFun(f,S[1],S[2];kwds...)
 LowRankFun(f::Function,dx::Domain,dy::Domain;kwds...)=LowRankFun(f,Space(dx),Space(dy);kwds...)
 LowRankFun{D,T}(f::Function,d::ProductDomain{D,T,2};kwds...)=LowRankFun(f,d[1],d[2];kwds...)
 

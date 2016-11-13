@@ -14,7 +14,10 @@ immutable Interval{T} <: IntervalDomain{T}
 end
 
 Interval()=Interval{Float64}()
-Interval(a::Int,b::Int) = Interval(Float64(a),Float64(b)) #convenience method
+Interval{IT1<:Integer,IT2<:Integer}(a::Complex{IT1},b::Complex{IT2}) = Interval(Complex128(a),Complex128(b)) #convenience method
+Interval(a::Integer,b::Integer) = Interval(Float64(a),Float64(b)) #convenience method
+Interval{IT<:Integer}(a::Complex{IT},b) = Interval(Complex128(a),b) #convenience method
+Interval{IT<:Integer}(a,b::Complex{IT}) = Interval(a,Complex128(b)) #convenience method
 Interval(a,b) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
 Interval(a::Tuple,b::Tuple)=Interval(Vec(a...),Vec(b...))
 

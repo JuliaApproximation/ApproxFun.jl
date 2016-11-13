@@ -1,49 +1,62 @@
 export ⊕,depiece,pieces,PiecewiseSpace
 
 
-## Interlace interator
-# this interlaces the entries treating everything equally,
-# but will stop interlacing finite dimensional when it runs
-# out.
-# Dimensions are either Int or ∞
 
-immutable InterlaceIterator{DMS<:Tuple}
-    dimensions::DMS
+## BlockInterlacer
+# interlaces coefficients by blocsk
+#
+
+immutable BlockInterlacer{DMS<:Tuple}
+    blocks::DMS
 end
 
-InterlaceIterator(V::Vector) = InterlaceIterator(tuple(V...))
+BlockInterlacer(v::Vector) = BlockInterlacer(tuple(v...))
 
-Base.start(it::InterlaceIterator) = (findfirst(d-> d≠0,it.dimensions),1)
-function Base.next(it::InterlaceIterator,st)
-    if st[1] == length(it.dimensions)
-        k = 1
-        j = st[2]+1
-    else
-        k = st[1]+1
-        j = st[2]
+Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
+
+dimensions(b::BlockInterlacer) = map(length,b.blocks)
+Base.length(b::BlockInterlacer) = mapreduce(length,+,b.blocks)
+
+# the state is always (whichblock,curblock,cursubblock,curcoefficients)
+Base.start(it::BlockInterlacer) = (1,1,map(start,it.blocks),ntuple(zero,length(it.blocks)))
+
+function Base.next(it::BlockInterlacer,st)
+    N,k,blkst,lngs = st
+
+    if N>length(it.blocks)
+        # increment to next block
+        blkst = map((blit,blst)->done(blit,blst)?blst:next(blit,blst)[2],it.blocks,blkst)
+        return next(it,(1,1,blkst,lngs))
     end
-    nst=(k,j)
-    if done(it,nst)
-        (st,nst)
-    else
-        # call next if we are not done
-        (st,j > it.dimensions[k]?next(it,nst)[2]:nst)
+
+    if done(it.blocks[N],blkst[N])
+        # increment to next N
+        return next(it,(N+1,1,blkst,lngs))
     end
+
+    B,nxtb = next(it.blocks[N],blkst[N])  # B is block size
+
+    if k > B
+        #increment to next N
+        return next(it,(N+1,1,blkst,lngs))
+    end
+
+
+    lngs = tuple(lngs[1:N-1]...,lngs[N]+1,lngs[N+1:end]...)
+    return (N,lngs[N]),(N,k+1,blkst,lngs)
 end
+
 
 # are all Ints, so finite dimensional
-function Base.done{N}(it::InterlaceIterator{NTuple{N,Int}},st)
-    for k=1:length(it.dimensions)
-        if st[2] ≤ it.dimensions[k] && k ≤ st[1]
+function Base.done(it::BlockInterlacer,st)
+    for k=1:length(it.blocks)
+        if st[end][k] ≤ length(it.blocks[k])
             return false
         end
     end
     return true
 end
 
-# Are not all Ints, so ∞ dimensional
-Base.done(it::InterlaceIterator,st) = false
-Base.eltype(it::InterlaceIterator) = Tuple{Int,Int}
 
 
 
@@ -59,11 +72,21 @@ dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)
 
 spaces(s::Space) = (s,)
 spaces(sp::DirectSumSpace) = sp.spaces
+space(s::Space,k...) = spaces(s)[k...]
+space(f::Fun,k...) = space(space(f),k...)
 
-InterlaceIterator(sp::DirectSumSpace) = InterlaceIterator(map(dimension,sp.spaces))
-interlacer(sp::DirectSumSpace) = InterlaceIterator(sp)
-interlacer(sp::Space) = InterlaceIterator(tuple(dimension(sp)))
-cache(Q::InterlaceIterator) = CachedIterator(Q)
+BlockInterlacer(sp::DirectSumSpace) = BlockInterlacer(map(blocklengths,sp.spaces))
+interlacer(sp::DirectSumSpace) = BlockInterlacer(sp)
+interlacer(sp::Space) = BlockInterlacer(tuple(blocklengths(sp)))
+cache(Q::BlockInterlacer) = CachedIterator(Q)
+
+function blocklengths(sp::DirectSumSpace)
+    bl=map(blocklengths,sp)
+    N=mapreduce(length,max,bl)
+    mapreduce(b->pad(b,N),+,bl)
+end
+block(sp::DirectSumSpace,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+
 
 
 for TYP in (:SumSpace,:TupleSpace)
@@ -159,9 +182,15 @@ end
 Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{PiecewiseSpace{SV,B,DD,d},Float64},T)
 
 
-for OP in (:(Base.getindex),:(Base.length),:(Base.next),:(Base.start),:(Base.done),:(Base.endof))
-    @eval $OP(S::DirectSumSpace,k...)=$OP(S.spaces,k...)
+
+for OP in (:(Base.length),:(Base.start),:(Base.endof))
+    @eval $OP(S::DirectSumSpace)=$OP(spaces(S))
 end
+
+for OP in (:(Base.getindex),:(Base.next),:(Base.done))
+    @eval $OP(S::DirectSumSpace,k)=$OP(spaces(S),k)
+end
+
 
 #support tuple set
 for OP in (:(Base.start),:(Base.done),:(Base.endof))
@@ -197,6 +226,20 @@ function spacescompatible(A::Tuple,B::Tuple)
 end
 
 
+# avoids default ConstantSpace
+function union_rule(B::ConstantSpace,A::SumSpace)
+    if !domainscompatible(A,B)
+        NoSpace()
+    else
+        for sp in A.spaces
+            if isconvertible(B,sp)
+                return A
+            end
+        end
+        SumSpace(A,B)
+    end
+end
+
 function union_rule(A::SumSpace,B::Space)
     if !domainscompatible(A,B)
         NoSpace()
@@ -217,13 +260,13 @@ end
 
 for OP in (:(Base.last),:(Base.first))
     @eval begin
-        $OP{SS<:SumSpace}(f::Fun{SS})=mapreduce($OP,+,vec(f))
-        $OP{SS<:PiecewiseSpace}(f::Fun{SS})=$OP($OP(vec(f)))
-        $OP{SS<:TupleSpace}(f::Fun{SS})=$OP(vec(f))
+        $OP{SS<:SumSpace}(f::Fun{SS}) = mapreduce($OP,+,vec(f))
+        $OP{SS<:PiecewiseSpace}(f::Fun{SS}) = $OP($OP(vec(f)))
+        $OP{SS<:TupleSpace}(f::Fun{SS}) = $OP(vec(f))
     end
 end
 
-evaluate(f::AbstractVector,S::SumSpace,x)=mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
+evaluate(f::AbstractVector,S::SumSpace,x) = mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
 
 
 function evaluate(f::AbstractVector,S::PiecewiseSpace,x)
@@ -317,8 +360,8 @@ end
 
 Base.ones(S::SumSpace)=ones(Float64,S)
 
-Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V}) = depiece(map(ones,S.spaces))
-Base.ones(S::PiecewiseSpace)=ones(Float64,S)
+Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V}) = depiece(map(ones,spaces(S)))
+Base.ones(S::PiecewiseSpace) = ones(Float64,S)
 
 
 identity_fun(S::PiecewiseSpace) = depiece(map(identity_fun,S.spaces))
@@ -326,41 +369,47 @@ identity_fun(S::PiecewiseSpace) = depiece(map(identity_fun,S.spaces))
 # vec
 
 function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
-    sp=space(f).spaces
-    it=InterlaceIterator(map(dimension,sp))
+    it=interlacer(space(f))
     N=length(f.coefficients)
-    d=dimension(sp[k])
+    d=dimension(space(f,k))
 
     # preallocate: we know we have at most N coefficients
     ret=Array(eltype(f),N)
     j=1  # current coefficient
     p=0  # current length
     for (n,m) in it
-        if j > N || m > d
+        if j > N
             break
         end
         if n==k
             ret[m]=f.coefficients[j]
             p+=1
+            if m ≥ d
+                # if we've reached the dimension, we are done
+                break
+            end
         end
         j+=1
     end
     resize!(ret,p)  # through out extra coefficients
-    Fun(ret,sp[k])
+    Fun(ret,space(f,k))
 end
 
 
 # interlace coefficients according to iterator
-function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::InterlaceIterator)
+function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::BlockInterlacer)
     ret=Vector{T}()
     N=mapreduce(length,max,v)
+    cnts = map(length,v)
+
     for (n,m) in it
-        if m > N
+        if maximum(cnts) == 0
             break
         end
 
         if m ≤ length(v[n])
             push!(ret,v[n][m])
+            cnts[n] -= 1
         else
             push!(ret,zero(T))
         end
@@ -368,23 +417,34 @@ function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::Inter
     ret
 end
 
-interlace{V<:AbstractVector}(v::AbstractVector{V},it::InterlaceIterator) =
+interlace{V<:AbstractVector}(v::AbstractVector{V},it::BlockInterlacer) =
     interlace(mapreduce(eltype,promote_type,v),v,it)
 
-interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
-    interlace(map(coefficients,v),InterlaceIterator(sp))
+interlace{V<:AbstractVector}(v::AbstractVector{V},sp::DirectSumSpace) =
+    interlace(v,interlacer(sp))
 
-function interlace(v::Tuple,sp::DirectSumSpace)
-    V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
-    for k=1:length(v)
-        V[k]=coefficients(v[k])
+interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
+    interlace(map(coefficients,v),sp)
+
+
+function interlace(v::Union{Tuple,Vector{Any}},sp::DirectSumSpace)
+    if all(vk->isa(vk,Fun),v)
+        V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
+        for k=1:length(v)
+            V[k]=coefficients(v[k])
+        end
+    else
+        V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
+        for k=1:length(v)
+            V[k]=v[k]
+        end
     end
-    interlace(V,InterlaceIterator(sp))
+    interlace(V,sp)
 end
 
 
 Base.vec(S::DirectSumSpace) = S.spaces
-Base.vec{S<:DirectSumSpace}(f::Fun{S}) = Fun[f[j] for j=1:length(space(f).spaces)]
+Base.vec{S<:DirectSumSpace}(f::Fun{S}) = Fun[f[j] for j=1:length(f.space)]
 
 pieces{S<:PiecewiseSpace}(f::Fun{S}) = vec(f)
 
@@ -405,7 +465,7 @@ for (Dep,Sp) in ((:depiece,:PiecewiseSpace),(:detuple,:TupleSpace))
     end
 end
 
-interlace{FF<:Fun}(f::AbstractVector{FF}) = detuple(f)
+interlace{FF<:Fun}(f::AbstractVector{FF}) = vcat(f...)
 
 # convert a vector to a Fun with TupleSpace
 Fun(v::Vector{Any},sp::TupleSpace) = detuple(map(Fun,v,sp.spaces))
@@ -430,35 +490,33 @@ function transform(S::PiecewiseSpace,vals::Vector,plan...)
     k=div(n,K)
     PT=coefficient_type(S,eltype(vals))
     if k==0
-        ret=Array(PT,n)
+        M=Array(Vector{PT},n)
         for j=1:n
-            ret[j]=transform(S[j],[vals[j]])[1]
+            M[j]=transform(S[j],[vals[j]])
         end
-
-        ret
     else
         r=n-K*k
-        M=Array(PT,k+1,K)
+        M=Array(Vector{PT},K)
 
         for j=1:r
-            M[:,j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])
+            M[j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])
         end
         for j=r+1:length(S)
-            M[1:k,j]=transform(S[j],vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
-            M[k+1,j]=zero(PT)
+            M[j]=transform(S[j],vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
         end
-
-    vec(M.')
     end
+
+    interlace(M,S)
 end
 
-itransform(S::PiecewiseSpace,cfs::Vector,plan...)=vcat([itransform(S.spaces[j],cfs[j:length(S):end]) for j=1:length(S)]...)
+itransform(S::PiecewiseSpace,cfs::Vector,plan...) =
+    vcat([itransform(S.spaces[j],Fun(cfs,S)[j].coefficients) for j=1:length(S)]...)
 
 
 
 
-itransform(S::SumSpace,cfs,plan...)=Fun(cfs,S)(points(S,length(cfs)))
-itransform!(S::SumSpace,cfs,plan...)=(cfs[:]=Fun(cfs,S)(points(S,length(cfs))))
+itransform(S::SumSpace,cfs,plan...) = Fun(cfs,S)(points(S,length(cfs)))
+itransform!(S::SumSpace,cfs,plan...) = (cfs[:]=Fun(cfs,S)(points(S,length(cfs))))
 
 
 

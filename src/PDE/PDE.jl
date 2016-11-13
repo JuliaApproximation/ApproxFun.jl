@@ -1,37 +1,27 @@
 export discretize,timedirichlet
 
-
-# Bivariate functions have BandedMatrix
-op_eltype{T,D}(sp::Space{T,D,2})=BandedMatrix{promote_type(eltype(sp),eltype(domain(sp)))}
-op_eltype_realdomain{T,D}(sp::Space{T,D,2})=BandedMatrix{promote_type(eltype(sp),real(eltype(domain(sp))))}
-
-include("OperatorSchur.jl")
 include("KroneckerOperator.jl")
-include("dekron.jl")
-include("diagop.jl")
-
-include("factorizations.jl")
-include("pdesolve.jl")
-include("kron.jl")
 
 ## PDE
 
-lap(d)=Laplacian(d)
+lap(d::Space) = Laplacian(d)
+lap(d::Domain) = Laplacian(d)
+lap(f::Fun) = Laplacian()*f
 
-
-function Laplacian(d::Union{ProductDomain,TensorSpace},k::Integer)
-    @assert length(d)==2
+function Laplacian{T,D}(d::Union{ProductDomain{T,2},Space{T,D,2}},k::Integer)
     Dx2=Derivative(d,[2,0])
     Dy2=Derivative(d,[0,2])
     if k==1
         LaplacianWrapper(Dx2+Dy2,k)
     else
-        LaplacianWrapper((Dx2+Dy2)^k,k)
+        @assert k > 0
+        Δ=Laplacian(d,1)
+        LaplacianWrapper(TimesOperator(Laplacian(rangespace(Δ),k-1),Δ),k)
     end
 end
 
 
-grad(d::ProductDomain)=[Derivative(d,[1,0]),Derivative(d,[0,1])]
+grad(d::ProductDomain) = [Derivative(d,[1,0]),Derivative(d,[0,1])]
 
 
 

@@ -52,7 +52,7 @@ function Base.convert{T}(::Type{Operator{T}},P::PlusOperator)
     if T==eltype(P)
         P
     else
-        PlusOperator{T,typeof(P.bandinds)}(P.ops,P.bandinds)
+        PlusOperator{T,typeof(P.bandinds)}(Vector{Operator{T}}(P.ops),P.bandinds)
     end
 end
 
@@ -106,16 +106,11 @@ function getindex{T}(P::PlusOperator{T},k::Integer...)
 end
 
 
-
-Base.convert{T,PP<:PlusOperator}(::Type{BandedMatrix},P::SubOperator{T,PP}) =
-    banded_convert_axpy!(P)   # use axpy! to copy
-
-Base.convert{T,PP<:PlusOperator}(::Type{BandedBlockBandedMatrix},P::SubOperator{T,PP}) =
-    bandedblockbanded_convert_axpy!(P)   # use axpy! to copy
-
-Base.convert{T,PP<:PlusOperator}(::Type{Matrix},P::SubOperator{T,PP}) =
-    matrix_convert_axpy!(P)   # use axpy! to copy
-
+for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
+            :BandedBlockMatrix,:BandedBlockBandedMatrix)
+    @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP}) =
+        convert_axpy!($TYP,P)   # use axpy! to copy
+end
 
 function BLAS.axpy!{T,PP<:PlusOperator}(α,P::SubOperator{T,PP},A::AbstractMatrix)
     for op in parent(P).ops
@@ -159,7 +154,7 @@ end
 
 ## Times Operator
 
-immutable ConstantTimesOperator{T,B,BT} <: Operator{BT}
+immutable ConstantTimesOperator{B,T} <: Operator{T}
     λ::T
     op::B
     ConstantTimesOperator(c,op)=new(c,op)
@@ -167,37 +162,22 @@ end
 function ConstantTimesOperator{TT<:Number}(c::Number,op::Operator{TT})
     T=promote_type(typeof(c),eltype(op))
     B=convert(Operator{T},op)
-    ConstantTimesOperator{T,typeof(B),T}(c,B)
-end
-function ConstantTimesOperator{BM<:BandedMatrix}(c::Number,op::Operator{BM})
-    BT=eltype(BM)
-    T=promote_type(typeof(c),BT)
-
-    B=convert(Operator{BandedMatrix{T}},op)
-    ConstantTimesOperator{T,typeof(B),BandedMatrix{T}}(c,B)
+    ConstantTimesOperator{typeof(B),T}(T(c),B)
 end
 
-ConstantTimesOperator{T,B,BT}(c::Number,op::ConstantTimesOperator{T,B,BandedMatrix{BT}}) =
-    ConstantTimesOperator(c*op.λ,op.op)
 ConstantTimesOperator(c::Number,op::ConstantTimesOperator) =
     ConstantTimesOperator(c*op.λ,op.op)
 
+@wrapperstructure ConstantTimesOperator
+@wrapperspaces ConstantTimesOperator
 
-for OP in (:domainspace,:rangespace,:bandinds,:bandwidth,:isbanded,
-           :isafunctional,:isbandedblockbanded,:israggedbelow)
-    @eval $OP(C::ConstantTimesOperator) = $OP(C.op)
-end
-Base.size(C::ConstantTimesOperator,k::Integer) = size(C.op,k)
-bandinds(C::ConstantTimesOperator,k::Integer) = bandinds(C.op,k)
+Base.convert{T<:Number}(::Type{T},C::ConstantTimesOperator) = T(C.λ)*convert(T,C.op)
+
 choosedomainspace(C::ConstantTimesOperator,sp::Space) = choosedomainspace(C.op,sp)
 
 
 for OP in (:promotedomainspace,:promoterangespace),SP in (:UnsetSpace,:Space)
-    @eval function $OP(C::ConstantTimesOperator,k::$SP)
-            op=$OP(C.op,k)
-            # TODO: This assumes chnanging domainspace can't change the type
-            ConstantTimesOperator{eltype(C.λ),typeof(op),eltype(C)}(C.λ,op)
-    end
+    @eval $OP(C::ConstantTimesOperator,k::$SP) = ConstantTimesOperator(C.λ,$OP(C.op,k))
 end
 
 
@@ -206,16 +186,19 @@ function Base.convert{T}(::Type{Operator{T}},C::ConstantTimesOperator)
         C
     else
         op=convert(Operator{T},C.op)
-        ret=ConstantTimesOperator{typeof(C.λ),typeof(op),T}(C.λ,op)
-        ret
+        ConstantTimesOperator{typeof(op),T}(T(C.λ),op)
     end
 end
 
 getindex(P::ConstantTimesOperator,k::Integer...) =
     P.λ*P.op[k...]
 
-Base.convert{T,OP<:ConstantTimesOperator}(::Type{BandedMatrix},S::SubOperator{T,OP}) =
-    banded_convert_axpy!(S)
+for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
+                   (:BandedBlockBandedMatrix,:bbbzeros),
+                   (:RaggedMatrix,:rzeros),(:BandedBlockMatrix,:bbzeros))
+    @eval Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},S::SubOperator{T,OP}) =
+        convert_axpy!($TYP,S)
+end
 
 BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubOperator{T,OP},A::AbstractMatrix) =
     unwrap_axpy!(α*parent(S).λ,S,A)
@@ -465,7 +448,7 @@ function *(A::Operator,B::Operator)
     if isconstop(A)
         promoterangespace(convert(Number,A)*B,rangespace(A))
     elseif isconstop(B)
-        promotedomainspace(A*convert(Number,B),domainspace(B))
+        promotedomainspace(convert(Number,B)*A,domainspace(B))
     else
         promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A,B])
     end
@@ -488,9 +471,10 @@ end
 *(A::Operator,B::Conversion) =
     isconstop(A)?promoterangespace(convert(Number,A)*B,rangespace(A)):TimesOperator(A,B)
 *(A::Conversion,B::Operator) =
-    isconstop(B)?promotedomainspace(A*convert(Number,B),domainspace(B)):TimesOperator(A,B)
+    isconstop(B)?promotedomainspace(convert(Number,B)*A,domainspace(B)):TimesOperator(A,B)
 
 
++(A::Operator) = A
 -(A::Operator) = ConstantTimesOperator(-1,A)
 -(A::Operator,B::Operator) = A+(-B)
 
@@ -519,7 +503,7 @@ for OP in (:*,:.*)
                 ConstantTimesOperator(c,A)
             end
         end
-        $OP(A::Operator,c::Number) = c*A
+        $OP(A::Operator,c::Number) = A*(c*ones(domainspace(A)))
     end
 end
 
@@ -578,17 +562,7 @@ end
 *{F<:Fun}(A::TimesOperator,b::Vector{F}) = A*Fun(b)
 *{F<:Fun}(A::Operator,b::Vector{F}) = A*Fun(b)
 
-#=
-function *(A::PlusOperator,b::Fun)
-    dsp=conversion_type(domainspace(A),space(b))
-    A=promotedomainspace(A,dsp)
-    ret = A.ops[1]*b
-    for k=2:length(A.ops)
-        ret += A.ops[k]*b
-    end
-    Fun(coefficients(ret),rangespace(A))
-end
-=#
+*(A::PlusOperator,b::Fun) = mapreduce(x->x*b,+,A.ops)
 
 for TYP in (:TimesOperator,:Operator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
@@ -598,18 +572,6 @@ for TYP in (:TimesOperator,:Operator)
 end
 
 *{T<:Operator}(A::Vector{T},b::Fun) = map(a->a*b,convert(Array{Any,1},A))
-
-
-
-for TYP in (:Vector,:Fun,:Number)
-    @eval function linsolve(A::TimesOperator,b::$TYP;kwds...)
-        ret = b
-        for op in A.ops
-            ret = linsolve(op,ret;kwds...)
-        end
-        ret
-    end
-end
 
 
 

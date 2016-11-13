@@ -1,5 +1,9 @@
 using ApproxFun, Base.Test
+    import ApproxFun: testspace
 
+for d in (Interval(),Interval(1.,2.),Interval(1.0+im,2.0+2im))
+    testspace(Chebyshev(d))
+end
 
 ef = Fun(exp,Interval())
 
@@ -118,3 +122,35 @@ f=Fun(x->cos(50acos(x)))
 @test_approx_eq Fun(Float64[],Chebyshev)([0.,1.]) [0.,0.]
 @test_approx_eq Fun([],Chebyshev)(0.) 0.
 @test_approx_eq Fun(x->[1.,0.])(0.) [1.,0.]
+
+
+
+## broadcast
+
+if VERSION ≥ v"0.5-"
+    f=Fun(exp)
+    @test norm(exp.(f) - exp(f)) < 100eps()
+    @test norm(besselj.(1,f)-besselj(1,f)) < 100eps()
+    @test_approx_eq atan2.(f,1)(0.1) atan2(f(0.1),1)
+    @test_approx_eq atan2.(f,f)(0.1) atan2(f(0.1),f(0.1))
+end
+
+
+
+## Fixes #121
+
+x = Fun(identity,[0.,10.])
+f = sin(x^2)
+g = cos(x)
+@test_approx_eq f(.1) sin(.1^2)
+
+x = Fun(identity,[0.,100.])
+f = sin(x^2)
+@test_approx_eq_eps f(.1) sin(.1^2) 1E-12
+
+
+## Reverse
+
+
+f=Fun(exp)
+@test_approx_eq Fun(f,Chebyshev([1,-1]))(0.1) f(0.1)

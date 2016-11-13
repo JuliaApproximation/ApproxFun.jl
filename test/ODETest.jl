@@ -15,14 +15,14 @@ B=[Bm;Bp];
 D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
-u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
+@time u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
 
 @test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
 
-u=[Bm;D2-X;Bp]\[airyai(d.a),0.,airyai(d.b)];
+@time u=[Bm;D2-X;Bp]\[airyai(d.a),0.,airyai(d.b)];
 @test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
 
-u=[D2-X;Bm;Bp]\[0.,airyai(d.a),airyai(d.b)];
+@time u=[D2-X;Bm;Bp]\[0.,airyai(d.a),airyai(d.b)];
 @test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
 
 
@@ -43,7 +43,7 @@ B=neumann(d);
 A=[B;D2-X];
 b=[airyaiprime(d.a),airyaiprime(d.b),0.];
 
-u=A\b;
+@time u=A\b;
 
 @test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
 
@@ -77,7 +77,7 @@ D=Derivative(domain(f));
 w=10.;
 B=ApproxFun.SpaceOperator(BasisFunctional(floor(w)),Chebyshev(),ApproxFun.ConstantSpace());
 A=[B;D+1im*w*I];
-u = A\[0.,f];
+@time u = A\[0.,f];
 @test_approx_eq (u(1.)exp(1im*w)-u(-1.)exp(-1im*w)) (-0.18575766879136255 + 0.17863980562549928im )
 
 
@@ -116,7 +116,7 @@ u=(κ*c)[1]
 d=Interval(-50.,5.)
 x=Fun(identity,d)
 D=Derivative(d)
-u=nullspace(D^2-x)
+@time u=nullspace(D^2-x)
 c=[u(d.a); u(d.b)]\[airyai(d.a),airyai(d.b)]
 @test norm((u*c)[1]-Fun(airyai,d))<10000eps()
 
@@ -133,7 +133,7 @@ A= [ 0    ldirichlet(d);
      0    rdirichlet(d);
     -1    F; ]
 
-u,x=A\[1.,0.,2.,0.]
+@time u,x=A\[1.,0.,2.,0.]
 
 @test norm(F*x-u)<1000eps()
 
@@ -171,10 +171,18 @@ u=(QR\[1.])
 
 x=Fun(identity,[-2.,-1.,0.,15.])
 sp=space(x)
+
+# Check bug in promote
+
+@which ApproxFun.promotedomainspace(dirichlet(sp),sp)
+@test domainspace(ApproxFun.promotedomainspace(dirichlet(sp),sp)) == sp
+
 D=Derivative(sp)
 A=[dirichlet(sp);D^2-x]
 QR=qrfact(A)
-u=QR\[airyai(-2.)]
+@time u=QR\[airyai(-2.)]
+
+
 
 @test_approx_eq u(0.0) airyai(0.)
 
@@ -218,7 +226,7 @@ B=dirichlet()
 ν=100.
 L=x^2*𝒟^2 + x*𝒟 + (x^2 - ν^2)   # our differential operator
 
-u=[B;L]\[besselj(ν,first(d)),besselj(ν,last(d))]
+@time u=[B;L]\[besselj(ν,first(d)),besselj(ν,last(d))]
 
 
 @test_approx_eq_eps u(1900.) besselj(ν,1900.) 1000eps()

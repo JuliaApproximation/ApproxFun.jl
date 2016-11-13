@@ -7,12 +7,38 @@ end
 SubSpace{T,DD,dim}(sp::Space{T,DD,dim},kr) =
     SubSpace{typeof(sp),typeof(kr),T,DD,dim}(sp,kr)
 
+SubSpace(sp::Space,kr) =
+    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),dimension(sp)}(sp,kr)    
+
 SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,sp.indexes[kr])
 
 domain(DS::SubSpace) = domain(DS.space)
 dimension(sp::SubSpace) = length(sp.indexes)
 
+
+|(sp::Space,kr::UnitCount) = first(kr)==1?sp:SubSpace(sp,kr)
 |(sp::Space,kr::Union{AbstractCount,Range}) = SubSpace(sp,kr)
+
+
+function |(f::Fun,kr::UnitCount)
+    @assert dimension(space(f)) == ∞
+    Fun(f.coefficients[kr[1]:end],space(f)|kr)
+end
+
+block(sp::SubSpace,k::Integer) = block(sp.space,sp.indexes[k])
+
+function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
+    B1=block(sp.space,sp.indexes[1])
+    B2=block(sp.space,sp.indexes[end])
+    # if the blocks are equal, we have only one bvlock
+    B1 == B2 && return [zeros(Int,B1-1);length(sp.indexes)]
+
+    [zeros(Int,B1-1);
+         blockstop(sp.space,B1)-sp.indexes[1]+1;blocklengths(sp.space)[B1+1:B2-1];
+        sp.indexes[end]-blockstart(sp.space,B2)+1]
+end
+
+blocklengths(sp::SubSpace) = error("Not implemented for non-unitrange subspaces")
 
 
 spacescompatible{DS,IT,T,DD,d}(S1::SubSpace{DS,IT,T,DD,d},S2::SubSpace{DS,IT,T,DD,d}) =
@@ -64,13 +90,44 @@ function conversion_rule(a::SubSpace,b::Space)
 end
 
 
-function coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace)
+function subspace_coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace)
     if sp == dropsp
         v
     else
         coefficients(v,sp,canonicalspace(sp),dropsp)
     end
 end
+
+
+function subspace_coefficients(v::Vector,sp::Space,dropsp::SubSpace)
+    n=length(v)
+    if sp == dropsp.space
+        ret = Array(eltype(v),0)
+        for k in dropsp.indexes
+            if k > n
+                return ret
+            end
+            push!(ret,v[k])
+        end
+    else
+        coefficients(v,sp,canonicalspace(dropsp),dropsp)
+    end
+end
+
+function subspace_coefficients(v::Vector,dropsp::SubSpace,sp::Space)
+    if sp==dropsp.space
+        ret = zeros(eltype(v),dropsp.indexes[length(v)])
+        for k = eachindex(v)
+            ret[dropsp.indexes[k]] = v[k]
+        end
+        ret
+    else
+        coefficients(v,dropsp,canonicalspace(dropsp),sp)
+    end
+end
+
+
+coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
 
 
 
@@ -89,34 +146,15 @@ itransform(sp::SubSpace,cfs::Vector) =
 points(sp::SubSpace,n) = points(sp.space,n)
 
 
-for TYP in (:SumSpace,:PiecewiseSpace,:Space) # Resolve conflict
-    @eval begin
-        function coefficients(v::Vector,sp::$TYP,dropsp::SubSpace)
-            n=length(v)
-            if sp==dropsp.space
-                ret = Array(eltype(v),0)
-                for k in dropsp.indexes
-                    if k > n
-                        return ret
-                    end
-                    push!(ret,v[k])
-                end
-            else
-                coefficients(v,sp,canonicalspace(dropsp),dropsp)
-            end
-        end
+coefficients{DS,IT,T,TT,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,Interval{Vec{2,TT}},1},::TensorSpace{SV,TTT,DD,2}) =
+    error("Not callable, only defined for ambiguity errors.")
+coefficients{DS,IT,T,D,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,D,1},::TensorSpace{SV,TTT,DD,2}) =
+    error("Not callable, only defined for ambiguity errors.")
 
-        function coefficients(v::Vector,dropsp::SubSpace,sp::$TYP)
-            if sp==dropsp.space
-                ret = zeros(eltype(v),dropsp.indexes[length(v)])
-                for k = eachindex(v)
-                    ret[dropsp.indexes[k]] = v[k]
-                end
-                ret
-            else
-                coefficients(v,dropsp,canonicalspace(dropsp),sp)
-            end
-        end
+for TYP in (:SumSpace,:PiecewiseSpace,:TensorSpace,:ConstantSpace,:Space) # Resolve conflict
+    @eval begin
+        coefficients(v::Vector,sp::$TYP,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
+        coefficients(v::Vector,dropsp::SubSpace,sp::$TYP) = subspace_coefficients(v,dropsp,sp)
     end
 end
 

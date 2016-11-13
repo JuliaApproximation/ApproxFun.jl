@@ -1,6 +1,6 @@
 using ApproxFun,Base.Test
 
-import ApproxFun:interlace,Multiplication
+import ApproxFun:interlace,Multiplication,ConstantSpace,TupleSpace,PointSpace,testbandedblockoperator
 
 
 d=Interval()
@@ -100,14 +100,46 @@ f = devec([t^2, sin(t)])
 
 ## Multiplication operator
 
-Γ=Circle()∪Circle(0.5)
+Γ=Circle() ∪ Circle(0.5)
+
+
+f=Fun(z->in(z,Γ[2])?1:z,Γ)
+@test_approx_eq f(exp(0.1im)) exp(0.1im)
+@test_approx_eq f(0.5exp(0.1im)) 1
+
+
 G=Fun(z->in(z,Γ[2])?[1 -z^(-1); 0 1]:
                    [z 0; 0 z^(-1)],Γ);
+
+
+@test_approx_eq G(exp(0.1im)) [exp(0.1im) 0 ; 0 exp(-0.1im)]
+@test_approx_eq G(0.5exp(0.1im)) [1 -2exp(-0.1im) ; 0 1]
+
+
+
 G1=demat(mat(G)[:,1])
+
+@test_approx_eq G1(exp(0.1im)) [exp(0.1im),0.]
+@test_approx_eq G1(0.5exp(0.1im)) [1,0.]
+
+
 M=Multiplication(G,space(G1))
+
+testbandedblockoperator(M)
+
+for z in (0.5exp(0.1im),exp(0.2im))
+    @test_approx_eq G[1,1](z) G[1](z)
+    @test_approx_eq (M.op.ops[1,1]*G1[1])(z) M.f[1,1](z)*G1[1](z)
+    @test_approx_eq (M.op.ops[2,1]*G1[1])(z) M.f[2,1](z)*G1[1](z)
+    @test_approx_eq (M.op.ops[1,2]*G1[2])(z) M.f[1,2](z)*G1[2](z)
+    @test_approx_eq (M.op.ops[2,2]*G1[2])(z) M.f[2,2](z)*G1[2](z)
+end
+
+
 u=M*G1
 @test norm(u(exp(.1im))-[exp(.2im),0])<100eps()
 @test norm(u(.5exp(.1im))-[1,0])<100eps()
+
 
 # Vector operations
 @test_approx_eq (Fun(x->[1., 2.]) + [2, 2])(0.) [3., 4.]
@@ -130,8 +162,13 @@ F=Fun((G-I)[:,1])
 @test coefficients(F̃,space(F)) == F.coefficients
 @test Fun(F̃,space(F)) == F
 
+@test F==Fun(vec(F),space(F))
 
+@test_approx_eq inv(G(exp(0.1im))) inv(G)(exp(0.1im))
 
+@test_approx_eq Fun(eye(2),space(G))(exp(0.1im)) eye(2)
+
+@test_approx_eq Fun(I,space(G))(exp(0.1im)) eye(2)
 
 
 ## Check conversion
@@ -141,6 +178,18 @@ g=Fun(f,Space(PeriodicInterval(-π,π)))
 @test_approx_eq g(.1) f(.1)
 
 
+
+
+## Interlace test
+S1=Chebyshev()^2
+S2=Chebyshev()
+TS=TupleSpace((ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])))
+f=Fun(collect(1:10),TS)
+@test f[1] == Fun([1.],TS[1])
+@test f[2] == Fun([2.,6.,7.,10.],TS[2])
+@test f[3] == Fun([3.],TS[3])
+@test f[4] == Fun([4.,8.],TS[4])
+@test f[5] == Fun([5.,9.],TS[5])
 
 ## Operator * Matrix
 

@@ -1,6 +1,8 @@
 using ApproxFun, Base.Test
-    import ApproxFun: ChebyshevDirichlet,Ultraspherical,space
+    import ApproxFun: ChebyshevDirichlet,Ultraspherical,space,testspace,testbandedoperator,testcalculus,testtransforms
 
+
+testtransforms(ChebyshevDirichlet{1,1}())
 
 @test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})(.1) exp(.1)
 @test_approx_eq Fun(Fun(exp,ChebyshevDirichlet{1,1}),Ultraspherical(1))(.1) exp(.1)
@@ -11,23 +13,16 @@ B=dirichlet(sp)
 D=Derivative(d)
 L=D^2+I
 
+@test_approx_eq B[1][1:3] [1.;-1.;0.]
+@test_approx_eq B[2][1:3] [1.;1.;0.]
+@test_approx_eq B[2][1:1,1:3] [1. 1. 0.]
+
+
+@test_approx_eq csc(2)sin(1 - 0.1)  ([dirichlet(d);L]\[1.])(0.1)
+@test_approx_eq csc(2)sin(1 - 0.1)  ([B;L]\[1.])(0.1)
+
 @test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <10eps()
 
-f=Fun(t->cos(t)+cos(3t),CosSpace)
-
-@test (f.*f-Fun(t->(cos(t)+cos(3t))^2,CosSpace)).coefficients|>norm <100eps()
-
-
-
-f=Fun(exp,Taylor(Circle()))
-g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
-@test_approx_eq (f(1.)+g(1.)) (exp(1.) + 1./(1-.1))
-
-
-## Periodic
-f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
-@test_approx_eq f(.5) (Conversion(space(f),Fourier(domain(f)))*f)(.5)
-@test_approx_eq f(.5) Fun(f,Fourier)(.5)
 
 
 
@@ -35,7 +30,10 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
 
 x=Fun(identity,[-1.,0.,1.])
 sp=space(x)
+testtransforms(sp;minpoints=2)
+
 D=Derivative(sp)
+testbandedoperator(D)
 
 u=[dirichlet(sp);
     D^2]\[1];
@@ -66,6 +64,18 @@ f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),[-1.0;-0.05;0.45;1.0])
 @test norm(f2(collect(linspace(-1,1,10)))-f3(collect(linspace(-1,1,10)))) < 2eps()
 
 x=Fun(identity,[im,0.,1.])
+@test_approx_eq x(0.5) 0.5
+@test_approx_eq x(0.5im) 0.5im
+
+@test Fun(Fun(1.0),space(x))(0.5) == 1.0
+@test Fun(Fun(1.0),space(x))(0.5im) == 1.0
+
+@test_approx_eq (x+1)(0.5) 1.5
+@test_approx_eq (x-1)(0.5) -0.5
+@test_approx_eq (1-x)(0.5) 0.5
+
+
+
 @test_approx_eq sqrt(1-x)(0.2im) sqrt(1-0.2im)
 @test_approx_eq sqrt(1-x)(0.2) sqrt(1-0.2)
 
@@ -89,7 +99,11 @@ import ApproxFun: PiecewiseInterval,ContinuousSpace
 
 d=PiecewiseInterval(1.,2.,3.,4.)
 S=ContinuousSpace(d)
+testtransforms(S;minpoints=3,invertibletransform=false)
+
 D=Derivative(S)
+testbandedoperator(D)
+
 u=[ldirichlet(S),D-I]\[exp(1.)]
 
 
@@ -120,6 +134,8 @@ f=w+x
 
 dsp=JacobiWeight(1.,0.,Jacobi(0.,1.,[0.,1.]))⊕JacobiWeight(0.5,0.,Jacobi(-0.5,0.5,[0.,1.]))
 rsp=Legendre([0.,1.])⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,[0.,1.]))
+
+
 C=Conversion(dsp,rsp)
 f=Fun([1.,2.,3.,4.,5.],dsp)
 @test_approx_eq f(0.1) (C*f)(0.1)
@@ -130,11 +146,15 @@ f=Fun([1.,2.,3.,4.,5.],dsp)
 
 
 ## Piecewise + Cosntant
+using Base.Test
 
 Γ=Circle()∪Circle(0.0,0.4)
-G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)   # Before the 80 wasn’t specified causing inconsistency
-@test_approx_eq (G-I)(1.) (G(1.)-I)
+o=ones(Γ)
+@test_approx_eq o(1.) 1.0
+@test_approx_eq o(0.4) 1.0
 
+G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
+@test_approx_eq (G-I)(1.) (G(1.)-I)
 
 
 ## Previoius seffdault
@@ -177,3 +197,43 @@ f=Fun(x->x+x^2,Hermite())
 
 z=Fun(identity,Arc(0.,.1,0.,π/2))
 @test_approx_eq exp(z)(0.1exp(0.2im)) exp(0.1exp(0.2im))
+
+
+
+## Extending function
+
+Γ=Interval(-im,1.0-im)∪Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6)))∪Circle(2.0,0.2)
+
+@test isempty(Γ[1]\Γ[1])
+@test Γ\Γ[1] == Γ[2]∪Γ[3]
+
+@test norm(Fun(ones(Γ[1]),Γ) - Fun(x->x ∈ Γ[1]?1.0:0.0,Γ)) == 0
+
+
+## Line
+
+f=Fun(z->2exp(z^2),PeriodicLine(0.,π/2))
+@test_approx_eq f(1.1im) 2exp(-1.1^2)
+
+
+f=Fun(z->2exp(z^2),Line(0.,π/2))
+@test_approx_eq f(1.1im) 2exp(-1.1^2)
+
+
+
+## Exp for Γ
+
+a=1+10*im;b=2-6*im
+d=Curve(Fun(x->1+a*x+x^2+b*x^3))
+
+x=Fun(d)
+
+@test_approx_eq exp(x)(1+a*0.1+0.1^2+b*0.1^3) exp(1+a*0.1+0.1^2+b*0.1^3)
+
+
+## ChebyshevDirichlet multiplication
+
+S=ChebyshevDirichlet()
+x=Fun()
+@test norm((ApproxFun.Recurrence(S)*Fun(exp,S)-Fun(x->x*exp(x),S)).coefficients) < 100eps()
+@test norm((x*Fun(exp,S)-Fun(x->x*exp(x),S)).coefficients) < 100eps()

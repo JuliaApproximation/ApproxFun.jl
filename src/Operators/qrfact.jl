@@ -15,7 +15,7 @@ for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
 end
 
-getindex(QR::QROperator,k::Integer,j::Integer) = (QR[:Q]*QR[:R])[k,j]
+getindex(QR::QROperator,k::Integer,j::Integer) = QR.R.op[k,j]
 
 
 
@@ -58,32 +58,24 @@ function getindex(QR::QROperator,d::Symbol)
 end
 
 
-function QROperator{T}(R::CachedOperator{T,AlmostBandedMatrix{T}})
-    M = R.data.bands.l+1   # number of diag+subdiagonal bands
-    H = Array(T,M,100)
-    QROperator(R,H,0)
+# override for custom data types
+QROperator{T,AM<:AbstractMatrix}(R::CachedOperator{T,AM}) =
+    error("Cannot create a QR factorization for $typeof(R)")
+
+
+function Base.qrfact!(A::CachedOperator;cached::Int=0)
+    QR = QROperator(A)
+    if cached ≠ 0
+        resizedata!(QR,:,cached)
+    end
+    QR
 end
 
-function QROperator{T}(R::CachedOperator{T,BandedMatrix{T}})
-    M = R.data.l+1   # number of diag+subdiagonal bands
-    H = Array(T,M,100)
-    QROperator(R,H,0)
-end
-
-QROperator{T}(R::CachedOperator{T,RaggedMatrix{T}}) =
-    QROperator(R,RaggedMatrix(T,0,Int[]),0)
-
-
-function QROperator{T,AM<:AbstractMatrix}(R::CachedOperator{T,AM})
-    error("Cannot create a QR factorization for $R")
-end
-
-
-function Base.qrfact(A::Operator)
+function Base.qrfact(A::Operator;cached::Int=0)
     if isambiguous(domainspace(A)) || isambiguous(rangespace(A))
         throw(ArgumentError("Only non-ambiguous operators can be factorized."))
     end
-    QROperator(cache(A;padding=true))
+    qrfact!(cache(A;padding=true);cached=cached)
 end
 
 function Base.qr(A::Operator)
@@ -122,9 +114,9 @@ Base.det(A::Operator) = det(qrfact(A))
 ## Multiplication routines
 
 linsolve{CO,MT,T<:Real}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
+    QR[:R]\Ac_mul_B(QR[:Q],b;kwds...)
 linsolve{CO,MT,T<:Complex}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    Fun(QR[:R]\Ac_mul_B(QR[:Q],b;kwds...),domainspace(QR))
+    QR[:R]\Ac_mul_B(QR[:Q],b;kwds...)
 
 linsolve{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
     linsolve(QR,Vector{T}(b);kwds...)
@@ -170,6 +162,8 @@ Base.Ac_mul_B{QR,T,V<:Number}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...)
 Base.Ac_mul_B{QR,T}(A::QROperatorQ{QR,T},B::Fun;opts...) =
     Ac_mul_B(A,coefficients(B,rangespace(A)))
 
+
+linsolve(A::QROperatorQ,B;opts...) = Ac_mul_B(A,B;opts...)
 
 function linsolve(R::QROperatorR,b::Vector)
     if length(b) > R.QR.ncols

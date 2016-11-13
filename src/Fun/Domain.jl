@@ -46,7 +46,11 @@ Base.in(x::Domain,::EmptyDomain) = false
 
 Base.isempty(::EmptyDomain) = true
 Base.isempty(::Domain) = false
-Base.intersect(a::Domain,b::Domain) = a==b?a:EmptyDomain()
+Base.intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
+
+
+# TODO: throw error for override
+Base.setdiff(a::Domain,b::Domain) = a == b ? EmptyDomain() : a
 \(a::Domain,b::Domain) = setdiff(a,b)
 
 ## Interval Domains
@@ -58,7 +62,7 @@ canonicaldomain(d::IntervalDomain) = Interval{real(eltype(eltype(d)))}()
 Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
-                    isapprox(a,b) || isapprox(a,reverse(b))
+                    isapprox(a,b) 
 
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
@@ -176,8 +180,8 @@ domain(::Number)=AnyDomain()
 Base.rand(d::IntervalDomain,k...)=fromcanonical(d,2rand(k...)-1)
 Base.rand(d::PeriodicDomain,k...)=fromcanonical(d,2π*rand(k...)-π)
 
-checkpoints(d::IntervalDomain)=fromcanonical(d,[-0.823972,0.3273484])
-checkpoints(d::PeriodicDomain)=fromcanonical(d,[1.223972,-2.83273484])
+checkpoints(d::IntervalDomain) = fromcanonical(d,[-0.823972,0.01,0.3273484])
+checkpoints(d::PeriodicDomain) = fromcanonical(d,[1.223972,0.01,-2.83273484])
 
 ## boundary
 

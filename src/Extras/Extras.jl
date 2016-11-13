@@ -1,7 +1,7 @@
 include("specialfunctions.jl")
 include("roots.jl")
 include("sample.jl")
-include("timeevolution.jl")
+
 include("fftBigFloat.jl")
 include("fftGeneric.jl")
 
@@ -27,7 +27,6 @@ include("simplify.jl")
 include("eigs.jl")
 include("hacks.jl")
 include("fastops.jl")
-include("fastcache.jl")
 
 include("autodifferentiation.jl")
 include("fractional.jl")

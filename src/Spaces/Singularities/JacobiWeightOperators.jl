@@ -174,7 +174,7 @@ function jacobiweightDerivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
         x=Fun()
 
         DD=S.α*(1-x) - S.β*(1+x) + w*Derivative(S.space)
-        rs=S.α==1&&s.β==1?rangespace(DD):JacobiWeight(S.α-1,S.β-1,rangespace(DD))
+        rs=S.α==1&&S.β==1?rangespace(DD):JacobiWeight(S.α-1,S.β-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     end
 end
@@ -267,8 +267,10 @@ for FUNC in (:hasconversion,:isconvertible)
         $FUNC{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D})=isapproxinteger(A.α-B.α) &&
             isapproxinteger(A.β-B.β) && A.α ≥ B.α && A.β ≥ B.β && $FUNC(A.space,B.space)
 
-        $FUNC{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::Space{T,D})=$FUNC(A,JacobiWeight(0.,0.,B))
-        $FUNC{T,S,D<:IntervalDomain}(B::Space{T,D},A::JacobiWeight{S,D})=$FUNC(JacobiWeight(0.,0.,B),A)
+        $FUNC{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::UnivariateSpace{T,D}) =
+            $FUNC(A,JacobiWeight(0.,0.,B))
+        $FUNC{T,S,D<:IntervalDomain}(B::UnivariateSpace{T,D},A::JacobiWeight{S,D}) =
+            $FUNC(JacobiWeight(0.,0.,B),A)
     end
 end
 
@@ -284,7 +286,7 @@ function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     end
 end
 
-conversion_rule{T,D<:IntervalDomain}(A::JacobiWeight,B::UnivariateSpace{T,D})=conversion_type(A,JacobiWeight(0,0,B))
+conversion_rule{T,D<:IntervalDomain}(A::JacobiWeight,B::UnivariateSpace{T,D}) = conversion_type(A,JacobiWeight(0,0,B))
 
 
 # override defaultConversion instead of Conversion to avoid ambiguity errors
@@ -371,38 +373,38 @@ end
 
 ## Definite Integral
 
-for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:arclength))
+for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineIntegral,:arclength,:linesum))
     ConcFunc = parse("Concrete"*string(Func))
 
     @eval begin
         function getindex{LT,D<:Interval,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D},D},T},k::Integer)
-            λ = order(domainspace(Σ))
+            λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
 
             if dsp.α==dsp.β==λ-0.5
-                k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T)
+                k == 1? T(C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T))) : zero(T)
             else
-                sum(Fun([zeros(k-1);1],dsp))
+                T($Sum(Fun([zeros(T,k-1);1],dsp)))
             end
         end
 
         function getindex{LT,D<:Interval,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D},D},T},kr::Range)
-            λ = order(domainspace(Σ))
+            λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
 
             if dsp.α==dsp.β==λ-0.5
-                promote_type(T,typeof(C))[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
+                T[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
             else
-                promote_type(T,typeof(C))[sum(Fun([zeros(k-1);1],dsp)) for k=kr]
+                T[$Sum(Fun([zeros(T,k-1);1],dsp)) for k=kr]
             end
         end
 
         function bandinds{LT,D<:Interval}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D},D}})
-            λ = order(domainspace(Σ))
+            λ = order(domainspace(Σ).space)
             α,β = domainspace(Σ).α,domainspace(Σ).β
             if α==β && isapproxinteger(α-0.5-λ) && λ ≤ ceil(Int,α)
                 0,2*(ceil(Int,α)-λ)
@@ -418,9 +420,9 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             C = $Len(d)/2
 
             if dsp.α==dsp.β==-0.5
-                k == 1? C*π : zero(T)
+                k == 1? T(C*π) : zero(T)
             else
-                sum(Fun([zeros(k-1);1],dsp))
+                T($Sum(Fun([zeros(T,k-1);1],dsp)))
             end
         end
 
@@ -430,9 +432,9 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
             C = $Len(d)/2
 
             if dsp.α==dsp.β==-0.5
-                promote_type(T,typeof(C))[k == 1? C*π : zero(T) for k=kr]
+                T[k == 1? C*π : zero(T) for k=kr]
             else
-                promote_type(T,typeof(C))[sum(Fun([zeros(k-1);1],dsp)) for k=kr]
+                T[$Sum(Fun([zeros(T,k-1);1],dsp)) for k=kr]
             end
         end
 

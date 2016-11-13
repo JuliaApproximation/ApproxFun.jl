@@ -1,6 +1,10 @@
 # ApproxFun.jl
 
+<!-- [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaMatrices.github.io/BandedMatrices.jl/stable) -->
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://ApproxFun.github.io/ApproxFun.jl/latest)
 [![Build Status](https://travis-ci.org/ApproxFun/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/ApproxFun/ApproxFun.jl) [![Coverage Status](https://img.shields.io/coveralls/ApproxFun/ApproxFun.jl.svg)](https://coveralls.io/r/ApproxFun/ApproxFun.jl?branch=master) [![Join the chat at https://gitter.im/ApproxFun/ApproxFun.jl](https://badges.gitter.im/ApproxFun/ApproxFun.jl.svg)](https://gitter.im/ApproxFun/ApproxFun.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
+
 
 `ApproxFun` is a package for approximating functions. It is heavily influenced by the Matlab
 package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
@@ -150,7 +154,7 @@ L = Derivative() + a
 f = Fun(t->exp(sin(10t)),s)
 uFourier = L\f
 
-length(uFourier)/length(uChebyshev),2/π
+ncoefficients(uFourier)/ncoefficients(uChebyshev),2/π
 plot(uFourier)
 ```
 
@@ -178,13 +182,16 @@ plot!(f/sum(f))
 
 
 We can solve PDEs, the following solves Helmholtz `Δu + 100u=0` with `u(±1,y)=u(x,±1)=1`
-on a square
+on a square.  This function has weak singularities at the corner,
+so we specify a lower tolerance to avoid resolving these singularities
+completely.
 
 ```julia
 d = Interval()^2                            # Defines a rectangle
 Δ = Laplacian(d)                            # Represent the Laplacian
-u = [dirichlet(d);Δ+100I]\ones(4)           # First four entries of rhs are
-    										#   boundary conditions
+f = ones(∂(d))                              # one at the boundary
+u = linsolve([Dirichlet(d);Δ+100I],[f;0.];  # Solve the PDE
+                tolerance=1E-5)             
 surface(u)                                  # Surface plot
 ```
 
