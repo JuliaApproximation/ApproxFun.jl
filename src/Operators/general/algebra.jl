@@ -363,6 +363,7 @@ end
 
 for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                     (:BandedBlockBandedMatrix,:bbbzeros),
+                    (:BandedBlockMatrix,:bbzeros),
                     (:RaggedMatrix,:rzeros))
     @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
