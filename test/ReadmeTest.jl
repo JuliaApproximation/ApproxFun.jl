@@ -108,7 +108,7 @@ println("    Sampling tests")
 ## Sampling
 
 f = abs(Fun(sin,[-5,5]))
-x = ApproxFun.sample(f,10000)
+x = ApproxFun.sample(f,10)
 
 
 
