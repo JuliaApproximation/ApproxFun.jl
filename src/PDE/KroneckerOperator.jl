@@ -272,7 +272,7 @@ end
 Base.transpose(K::KroneckerOperator)=KroneckerOperator(K.ops[2],K.ops[1])
 
 for TYP in (:ConversionWrapper,:MultiplicationWrapper,:DerivativeWrapper,:IntegralWrapper,:LaplacianWrapper),
-    FUNC in (:domaintensorizer,:rangetensorizer,:blockbandinds,:subblockbandinds)
+    FUNC in (:domaintensorizer,:rangetensorizer)
     @eval $FUNC(S::$TYP) = $FUNC(S.op)
 end
 
