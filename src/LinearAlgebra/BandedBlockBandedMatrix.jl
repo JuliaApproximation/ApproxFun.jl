@@ -34,6 +34,16 @@ for FUNC in (:zeros,:rand,:ones)
 end
 
 
+function BandedMatrix(B::BandedBlockBandedMatrix)
+    if length(B.rows) == length(B.cols) == 1
+        copy(viewblock(B,1,1))
+    elseif all(x->x==1,B.rows) && all(x->x==1,B.cols)
+        BandedMatrix(B.data,length(B.rows),B.l,B.u)
+    else
+        error("$B is not a banded matrix")
+    end
+end
+
 
 Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u
 

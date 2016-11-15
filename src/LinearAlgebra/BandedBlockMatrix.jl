@@ -55,7 +55,7 @@ abstract AbstractBlockMatrix{T} <: AbstractMatrix{T}
 abstract AbstractBandedBlockMatrix{T} <: AbstractBlockMatrix{T}
 
 
-getindex(A::AbstractBlockMatrix,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]
+getindex(A::AbstractBlockMatrix,K::Block,J::Block) = copy(viewblock(A,K.K,J.K))
 getindex(A::AbstractBlockMatrix,K::Block,j) = A[blockrows(A,K),j]
 getindex(A::AbstractBlockMatrix,k,J::Block) = A[k,blockcols(A,J)]
 

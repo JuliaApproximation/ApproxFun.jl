@@ -371,7 +371,7 @@ end
 
 ## points
 
-points(d::Union{BivariateDomain,BivariateSpace},n,m) =
+points{T,DD}(d::Union{BivariateDomain,BivariateSpace{T,DD}},n,m) =
     points(d,n,m,1),points(d,n,m,2)
 
 function points(d::BivariateSpace,n,m,k)
