@@ -219,6 +219,26 @@ differentiate{D<:Interval}(f::Fun{Chebyshev{D}}) =
 
 ## Multivariate
 
+function points{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},N)
+    if domain(S) == Interval()^2
+        pts=paduapoints(real(eltype(eltype(D))),Int(cld(-3+sqrt(1+8N),2)))
+        T=eltype(pts)
+        ret=Array(Vec{2,T},size(pts,1))
+        @inbounds for k in eachindex(ret)
+            ret[k]=Vec{2,T}(pts[k,1],pts[k,2])
+        end
+        ret
+    else
+        fromcanonical(S,points(Chebyshev()^2,N))
+    end
+end
+
+plan_transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector) =
+    plan_paduatransform(v)
+
+transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector,
+             plan=plan_transform(S,v)) = plan*v
+
 
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))

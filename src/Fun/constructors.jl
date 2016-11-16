@@ -37,29 +37,42 @@ function choosefuneltype(ftype,Td)
     Tprom
 end
 
+# last argument is whether to splat or not
+defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::Vector,::Type{Val{true}}) =
+    Fun(transform(d,T[f(x...) for x in pts]),d)
 
-function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer)
+defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::Vector,::Type{Val{false}}) =
+    Fun(transform(d,T[f(x) for x in pts]),d)
+
+
+function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{false}})
     pts=points(d, n)
-    if !hasnumargs(f,1)  # Splat out Vec
-        return Fun(xy->f(xy...),d,n)
-    end
-
     f1=f(pts[1])
-
     if (isa(f1,AbstractArray) || isa(f1,Vec)) && !isa(d,ArraySpace)
         return Fun(f,ArraySpace(d,size(f1)...),n)
     end
 
+    # we need 3 eltype calls for the case Interval(Point([1.,1.]))
+    Tprom=choosefuneltype(typeof(f1),eltype(eltype(eltype(domain(d)))))
+    defaultFun(Tprom,f,d,pts,Val{false})
+end
+
+function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{true}})
+    pts=points(d, n)
+    f1=f(pts[1]...)
+    if (isa(f1,AbstractArray) || isa(f1,Vec)) && !isa(d,ArraySpace)
+        return Fun(f,ArraySpace(d,size(f1)...),n)
+    end
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
     Tprom=choosefuneltype(typeof(f1),eltype(eltype(eltype(domain(d)))))
-
-
-    vals=Tprom[f(x) for x in pts]
-    Fun(transform(d,vals),d)
+    defaultFun(Tprom,f,d,pts,Val{true})
 end
 
-Fun{ReComp}(f,d::Space{ReComp},n::Integer)=defaultFun(f,d,n)
+defaultFun{ReComp}(f,d::Space{ReComp},n::Integer) = defaultFun(f,d,n,Val{!hasnumargs(f,1)})
+
+
+Fun{ReComp}(f,d::Space{ReComp},n::Integer) = defaultFun(f,d,n)
 
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f(x),d)
