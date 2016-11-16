@@ -234,7 +234,7 @@ function points{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},N)
 end
 
 plan_transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector) =
-    plan_paduatransform(v)
+    plan_paduatransform(v,Val{false})
 
 transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector,
              plan=plan_transform(S,v)) = plan*v
