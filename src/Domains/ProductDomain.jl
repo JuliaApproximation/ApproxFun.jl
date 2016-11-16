@@ -7,22 +7,31 @@ immutable ProductDomain{D,T,dim} <: Domain{T,dim}
 end
 
 ProductDomain(d::Tuple) =
-    ProductDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(dimension,+,d)}(d)
+    ProductDomain{typeof(d),Vec{length(d),mapreduce(eltype,promote_type,d)},
+                   mapreduce(dimension,+,d)}(d)
 
-fromcanonical(d::BivariateDomain,x::Tuple)=fromcanonical(d,x...)
-tocanonical(d::BivariateDomain,x::Tuple)=tocanonical(d,x...)
+# TODO: Remove Tuple variants
+fromcanonical(d::BivariateDomain,x::Tuple) = fromcanonical(d,Vec(x...))
+tocanonical(d::BivariateDomain,x::Tuple) = tocanonical(d,Vec(x...))
+
+fromcanonical(d::BivariateDomain,x,y) = fromcanonical(d,Vec(x,y))
+tocanonical(d::BivariateDomain,x,y) = tocanonical(d,Vec(x,y))
+
+
+canonicaldomain(d::ProductDomain) = ProductDomain(map(canonicaldomain,d.domains))
 
 # product domains are their own canonical domain
 for OP in (:fromcanonical,:tocanonical)
-    @eval $OP(::ProductDomain,x,y)=(x,y)
+    @eval $OP{D,T}(d::ProductDomain{D,T,2},x::Vec) = Vec($OP(canonicaldomain(d[1]),x[1]),
+                                                         $OP(canonicaldomain(d[2]),x[2]))
 end
 
 
-ProductDomain(A,B)=ProductDomain((A,B))
-*(A::ProductDomain,B::ProductDomain)=ProductDomain(tuple(A.domains...,B.domains...))
-*(A::ProductDomain,B::Domain)=ProductDomain(tuple(A.domains...,B))
-*(A::Domain,B::ProductDomain)=ProductDomain(tuple(A,B.domains...))
-*(A::Domain,B::Domain)=ProductDomain(A,B)
+ProductDomain(A,B) = ProductDomain((A,B))
+*(A::ProductDomain,B::ProductDomain) = ProductDomain(tuple(A.domains...,B.domains...))
+*(A::ProductDomain,B::Domain) = ProductDomain(tuple(A.domains...,B))
+*(A::Domain,B::ProductDomain) = ProductDomain(tuple(A,B.domains...))
+*(A::Domain,B::Domain) = ProductDomain(A,B)
 
 Base.length(d::ProductDomain)=length(d.domains)
 Base.transpose(d::ProductDomain)=ProductDomain(d[2],d[1])

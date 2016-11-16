@@ -62,7 +62,7 @@ canonicaldomain(d::IntervalDomain) = Interval{real(eltype(eltype(d)))}()
 Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
-                    isapprox(a,b) 
+                    isapprox(a,b)
 
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
@@ -185,22 +185,22 @@ checkpoints(d::PeriodicDomain) = fromcanonical(d,[1.223972,0.01,-2.83273484])
 
 ## boundary
 
-∂(d::Domain)=EmptyDomain()   # This is meant to be overriden
-∂(d::IntervalDomain)=[first(d),last(d)] #TODO: Points domain
-∂(d::PeriodicDomain)=EmptyDomain()
+∂(d::Domain) = EmptyDomain()   # This is meant to be overriden
+∂(d::IntervalDomain) = [first(d),last(d)] #TODO: Points domain
+∂(d::PeriodicDomain) = EmptyDomain()
 
 
 
 
 ## map domains
 # we auto vectorize arguments
-tocanonical(d::Domain,x,y,z...)=tocanonical(d,Vec(x,y,z...))
+tocanonical(d::Domain,x,y,z...) = tocanonical(d,Vec(x,y,z...))
 fromcanonical(d::Domain,v::AbstractArray) =
     eltype(d)[fromcanonical(d,vk) for vk in v]
 
 
-mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
-invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
+mappoint(d1::Domain,d2::Domain,x...) = fromcanonical(d2,tocanonical(d1,x...))
+invfromcanonicalD(d::Domain,x...) = 1./fromcanonicalD(d,x...)
 
 
 
