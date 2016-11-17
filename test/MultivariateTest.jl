@@ -2,7 +2,24 @@ using ApproxFun, Base.Test
 import Compat: view
 
 
+for k=0:5,j=0:5
+    ff=(x,y)->cos(k*acos(x))*cos(j*acos(y))
+    f=Fun(ff,Interval()^2)
+    @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
+end
 
+for k=0:5,j=0:5
+    ff=(x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
+    f=Fun(ff,Interval(-2,2)^2)
+    @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
+end
+
+
+for k=0:5,j=0:5
+    ff=(x,y)->cos(k*acos(x-1))*cos(j*acos(y-1))
+    f=Fun(ff,Interval(0,2)^2)
+    @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
+end
 
 
 ## Try constructor variants

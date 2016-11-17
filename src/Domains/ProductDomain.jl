@@ -22,8 +22,7 @@ canonicaldomain(d::ProductDomain) = ProductDomain(map(canonicaldomain,d.domains)
 
 # product domains are their own canonical domain
 for OP in (:fromcanonical,:tocanonical)
-    @eval $OP{D,T}(d::ProductDomain{D,T,2},x::Vec) = Vec($OP(canonicaldomain(d[1]),x[1]),
-                                                         $OP(canonicaldomain(d[2]),x[2]))
+    @eval $OP(d::ProductDomain,x::Vec) = Vec(map($OP,d.domains,x)...)
 end
 
 

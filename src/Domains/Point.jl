@@ -2,7 +2,7 @@ immutable Point{T} <: Domain{T,0}
     x::T
 end
 
-==(a::Point,b::Point)=a.x==b.x
+==(a::Point,b::Point) = a.x==b.x
 
 for op in (:*,:+,:-,:.*,:.+,:.-,:.^)
     @eval begin
@@ -31,28 +31,30 @@ end
 isambiguous(d::Point) = isnan(d.x)
 Base.convert{PT<:Point}(::Type{PT},::AnyDomain) = PT(NaN)
 
-Base.norm(p::Point)=norm(p.x)
+Base.norm(p::Point) = norm(p.x)
 
-Base.getindex(p::Point,k...)=p.x[k...]
+Base.getindex(p::Point,k...) = p.x[k...]
 
 Base.in(x,d::Point) = isapprox(x,d.x)
 
 Base.isnan(d::Point) = false
 
-Base.issubset(a::Point,d::UnionDomain)=a.x in d
-Base.issubset(a::Point,b::Domain)=a.x in b
+Base.issubset(a::Point,d::UnionDomain) = a.x in d
+Base.issubset(a::Point,b::Domain) = a.x in b
 
-Base.intersect(a::Point,b::Point)=b.x in a?b:EmptyDomain()
-Base.intersect(a::UnionDomain,b::Point)=b.x in a?b:EmptyDomain()
-Base.intersect(a::Domain,b::Point)=b.x in a?b:EmptyDomain()
-Base.intersect(b::Point,a::UnionDomain)=b.x in a?b:EmptyDomain()
-Base.intersect(b::Point,a::Domain)=b.x in a?b:EmptyDomain()
+Base.intersect(a::Point,b::Point) = b.x in a?b:EmptyDomain()
+Base.intersect(a::UnionDomain,b::Point) = b.x in a?b:EmptyDomain()
+Base.intersect(a::Domain,b::Point) = b.x in a?b:EmptyDomain()
+Base.intersect(b::Point,a::UnionDomain) = b.x in a?b:EmptyDomain()
+Base.intersect(b::Point,a::Domain) = b.x in a?b:EmptyDomain()
 
-Base.setdiff(a::Point,b::Point)=a==b?EmptyDomain():a
-Base.reverse(a::Point)=a
+Base.setdiff(a::Point,b::Point) = a==b ? EmptyDomain() : a
+Base.reverse(a::Point) = a
 
 
-canonicaldomain(a::Point)=Point(0.)
+canonicaldomain(a::Point) = Point(0.)
+tocanonical(a::Point,x) = x-a.x
+fromcanonical(a::Point,x) = x+a.x
 
 points(a::Point,n) = eltype(a)[a.x]
 checkpoints(a::Point) = eltype(a)[a.x]
