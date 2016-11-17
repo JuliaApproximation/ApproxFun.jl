@@ -189,12 +189,14 @@ columnspace(f::ProductFun,k) = columnspace(space(f),k)
 
 domain(f::ProductFun) = domain(f.space)
 #domain(f::ProductFun,k)=domain(f.space,k)
+canonicaldomain(f::ProductFun) = canonicaldomain(space(f))
 
 
 
-
-canonicalevaluate{S,V,SS,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon) =
-    Fun(T[setcanonicaldomain(fc)(x) for fc in f.coefficients],setcanonicaldomain(space(f,2)))
+function canonicalevaluate{S,V,SS,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon)
+    cd = canonicaldomain(f)
+    Fun(T[setdomain(fc,cd[1])(x) for fc in f.coefficients],setdomain(space(f,2),cd[2]))
+end
 canonicalevaluate(f::ProductFun,x::Number,y::Number) = canonicalevaluate(f,x,:)(y)
 canonicalevaluate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},x::Colon,y::Number) =
     evaluate(f.',y,:)  # doesn't make sense For general product fon without specifying space
