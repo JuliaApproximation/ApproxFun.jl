@@ -61,3 +61,11 @@ ApproxFun.setdomain
 ```@docs
 Operator
 ```
+
+```@docs
+linsolve
+```
+
+```@docs
+qrfact(::Operator)
+```

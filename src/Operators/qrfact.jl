@@ -71,6 +71,13 @@ function Base.qrfact!(A::CachedOperator;cached::Int=0)
     QR
 end
 
+doc"""
+    `qrfact(A::Operator)`
+
+returns a cached QR factorization of the Operator `A`.  The result `QR`
+enables solving of linear equations: if `u=QR\b`, then `u`
+approximately satisfies `A*u = b`.
+"""
 function Base.qrfact(A::Operator;cached::Int=0)
     if isambiguous(domainspace(A)) || isambiguous(rangespace(A))
         throw(ArgumentError("Only non-ambiguous operators can be factorized."))
