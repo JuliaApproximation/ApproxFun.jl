@@ -1,4 +1,4 @@
-export Fun,evaluate,values,points,extrapolate
+export Fun,evaluate,values,points,extrapolate,setdomain
 export coefficients,ncoefficients
 export integrate,differentiate,domain,space,linesum,linenorm
 

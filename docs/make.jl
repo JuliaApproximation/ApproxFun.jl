@@ -16,5 +16,5 @@ deploydocs(
     julia  = "0.5",
     osname = "linux",
     deps = nothing,
-    maKE = NOTHING
+    make = nothing
 )

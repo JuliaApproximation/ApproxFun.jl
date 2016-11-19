@@ -6,6 +6,12 @@ export Interval
 
 ## Standard interval
 # T Must be a Vector space
+doc"""
+	Interval(a,b)
+
+represents an interval from `a` to `b`.  In the case where `a` and `b` are
+complex or 2-dimensional, it represents the line segment between `a` and ` b`.
+"""
 immutable Interval{T} <: IntervalDomain{T}
 	a::T
 	b::T

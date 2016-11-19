@@ -17,7 +17,7 @@ doc"""
 
 returns `fun` projected onto `domain`
 """
-domain(fun::Fun,domain::Domain)
+setdomain(fun::Fun,domain::Domain)
 
 
 doc"""
@@ -46,6 +46,13 @@ returns a grid of points that the fun can be transformed into values
 and back
 """
 points(fun::Fun)
+
+doc"""
+    extrapolate(fun,x)
+
+returns an extrapolation of `fun` from its domain to `x`.
+"""
+extrapolate(fun::Fun,x)
 
 
 doc"""
@@ -77,6 +84,8 @@ reverseorientation(f::Fun)
 ## Operator.jl docs
 
 doc"""
-    `Operator{T}` represents a general operator
+    Operator{T}
+
+is an abstract type to represent linear operators between spaces.
 """
 Operator

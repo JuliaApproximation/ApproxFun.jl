@@ -72,7 +72,7 @@ function Base.qrfact!(A::CachedOperator;cached::Int=0)
 end
 
 doc"""
-    `qrfact(A::Operator)`
+    qrfact(A::Operator)
 
 returns a cached QR factorization of the Operator `A`.  The result `QR`
 enables solving of linear equations: if `u=QR\b`, then `u`
