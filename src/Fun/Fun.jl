@@ -201,6 +201,7 @@ end
 chop(f::Fun,tol)=chop!(Fun(copy(f.coefficients),f.space),tol)
 chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
 
+Base.copy(f::Fun) = Fun(copy(f.coefficients),space(f))
 
 ## Addition and multiplication
 
