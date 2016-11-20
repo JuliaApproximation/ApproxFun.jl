@@ -7,7 +7,8 @@ makedocs(modules=[ApproxFun],
 			sitename = "ApproxFun.jl",
 			authors = "Sheehan Olver",
 			pages = Any[
-					"Home" => "index.md"
+					"Home" => "index.md",
+                                 "FAQ" => "FAQ.md"
 					]
 			)
 
