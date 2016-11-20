@@ -198,6 +198,13 @@ function chop!{S,T}(f::Fun{S,T},tol::Real)
 
     f
 end
+
+
+doc"""
+   chop(fun,tol)
+
+reduces the number of coefficients by dropping the tail that is below the specified tolerance.
+"""
 chop(f::Fun,tol)=chop!(Fun(copy(f.coefficients),f.space),tol)
 chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
 

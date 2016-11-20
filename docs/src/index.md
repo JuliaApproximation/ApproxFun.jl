@@ -55,6 +55,10 @@ reverseorientation
 ApproxFun.setdomain
 ```
 
+```@docs
+chop
+```
+
 
 ## Operators
 
@@ -68,4 +72,8 @@ linsolve
 
 ```@docs
 qrfact(::Operator)
+```
+
+```@docs
+cache(::Operator)
 ```

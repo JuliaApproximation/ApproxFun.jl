@@ -45,7 +45,11 @@ end
 
 CachedOperator(op::Operator;padding::Bool=false) = default_CachedOperator(op;padding=padding)
 
+doc"""
+    cache(operator)
 
+Caches the entries of an operator, to speed up multiplying a Fun by the operator.
+"""
 cache(O::Operator;kwds...) = CachedOperator(O;kwds...)
 cache{MT<:AbstractMatrix}(::Type{MT},O::Operator;kwds...) = CachedOperator(MT,O;kwds...)
 
