@@ -12,7 +12,7 @@ matrix:
 notifications:
   email: false
 after_script:
-  - ./docs/travis.sh
+  - bash ./docs/travis.sh
 
 
 # uncomment the following lines to override the default test script
