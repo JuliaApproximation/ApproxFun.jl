@@ -11,7 +11,7 @@ matrix:
     - julia: nightly
 notifications:
   email: false
-before_script:
+after_script:
   - bash ./docs/travis.sh
 
 
