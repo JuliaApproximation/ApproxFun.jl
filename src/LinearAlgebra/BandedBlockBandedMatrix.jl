@@ -1,6 +1,6 @@
 # Represents a block banded matrix with banded blocks
 #   similar to BandedMatrix{BandedMatrix{T}}
-immutable BandedBlockBandedMatrix{T,RI,CI} <: AbstractBandedBlockMatrix{T}
+type BandedBlockBandedMatrix{T,RI,CI} <: AbstractBandedBlockMatrix{T}
     data::Matrix{T}
 
     l::Int  # block lower bandwidth

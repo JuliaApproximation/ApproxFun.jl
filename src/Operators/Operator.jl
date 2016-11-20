@@ -129,6 +129,7 @@ end
 blockbandwidths(S::Operator) = -blockbandinds(S,1),blockbandinds(S,2)
 blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
 blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(K,k)
+subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandwidth(K::Operator,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
 
@@ -400,7 +401,8 @@ macro wrapperstructure(Wrap)
     for func in (:(ApproxFun.bandinds),:(Base.stride),
                  :(ApproxFun.isbandedblockbanded),:(ApproxFun.isbandedblock),
                  :(ApproxFun.israggedbelow),:(Base.size),:(ApproxFun.isbanded),
-                 :(ApproxFun.bandwidth),:(ApproxFun.bandwidths))
+                 :(ApproxFun.bandwidth),:(ApproxFun.bandwidths),:(ApproxFun.subblockbandinds),
+                 :(ApproxFun.blockbandinds))
         ret = quote
             $ret
 
@@ -424,7 +426,7 @@ macro wrapperstructure(Wrap)
 
      for func in (:(ApproxFun.bandwidth),:(ApproxFun.colstart),:(ApproxFun.colstop),
                      :(ApproxFun.rowstart),:(ApproxFun.rowstop),:(ApproxFun.blockbandinds),
-                     :(Base.size),:(ApproxFun.bandinds))
+                     :(Base.size),:(ApproxFun.bandinds),:(ApproxFun.subblockbandinds))
          ret = quote
              $ret
 

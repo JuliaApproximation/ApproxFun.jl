@@ -34,6 +34,8 @@ CachedOperator(op::Operator,data::AbstractMatrix,padding=false) = CachedOperator
 function default_CachedOperator(op::Operator;padding::Bool=false)
     if isbanded(op)
         CachedOperator(BandedMatrix,op;padding=padding)
+    elseif isbandedblockbanded(op) && !padding
+        CachedOperator(BandedBlockBandedMatrix,op)
     elseif isbandedblock(op)
         CachedOperator(BandedBlockMatrix,op;padding=padding)
     elseif israggedbelow(op)
