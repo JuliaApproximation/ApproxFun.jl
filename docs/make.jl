@@ -1,10 +1,11 @@
 using Documenter, ApproxFun
 
 makedocs(modules=[ApproxFun],
-			doctest=false, clean=true,
-			format=:html,
-			sitename="ApproxFun.jl",
-			authors="Sheehan Olver",
+			doctest = false,
+			clean = true,
+			format = :html,
+			sitename = "ApproxFun.jl",
+			authors = "Sheehan Olver",
 			pages = Any[
 					"Home" => "index.md"
 					]
@@ -16,5 +17,4 @@ deploydocs(
     julia  = "0.5",
     osname = "linux",
     deps = nothing,
-    make = nothing
-)
+    make = nothing)
