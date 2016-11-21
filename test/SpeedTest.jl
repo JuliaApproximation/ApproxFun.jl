@@ -3,7 +3,7 @@ using ApproxFun, Base.Test
 
 c = rand(1000)
 x=rand(10000)
-f=Fun(c,Chebyshev)
+f=Fun(Chebyshev,c)
 y=f(x)
 y=f(x)
 
