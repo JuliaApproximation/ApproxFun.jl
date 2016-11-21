@@ -77,27 +77,28 @@ Fun{ReComp}(f,d::Space{ReComp},n::Integer) = defaultFun(f,d,n)
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f(x),d)
 #TODO: fall back to Fun(x->f(x),d) if conversion not implemented?
-Fun(f::Fun,d::Space)=Fun(d,coefficients(f,d))
-Fun{T<:Space}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
+Fun(f::Fun,d::Space) = Fun(d,coefficients(f,d))
+Fun{T<:Space}(f::Fun,::Type{T}) = Fun(f,T(domain(f)))
 
 
 
-Fun(f::AbstractVector,T::Type)=Fun(f,T())
-Fun(T::Type,f) = Fun(T(),f)
-Fun(f,T::Type)=Fun(f,T())
-Fun(f,T::Type,n::Integer)=Fun(f,T(),n)
+Fun(f::AbstractVector,T::Type) = Fun(f,T())
+Fun(T::Type,f)  =  Fun(T(),f)
+Fun(f,T::Type) = Fun(f,T())
+Fun(f,T::Type,n::Integer) = Fun(f,T(),n)
 
-Fun(f::AbstractVector,d::Domain)=Fun(f,Space(d))
-Fun(d::Domain,f::AbstractVector)=Fun(Space(d),f)
+Fun(f::AbstractVector,d::Domain) = Fun(f,Space(d))
+Fun{T<:Number}(d::Domain,f::AbstractVector{T}) = Fun(Space(d),f)
+Fun(d::Domain,f::AbstractVector) = Fun(Space(d),f)
 
 
-Fun(f,d::Domain,n)=Fun(f,Space(d),n)
+Fun(f,d::Domain,n) = Fun(f,Space(d),n)
 
 
 # We do zero special since zero exists even when one doesn't
-Fun{T<:Space}(c::Number,::Type{T})=c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
-Fun(c::Number,d::Domain)=c==0?c*zeros(d):c*ones(d)
-Fun(c::Number,d::Space)=c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
+Fun{T<:Space}(c::Number,::Type{T}) = c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
+Fun(c::Number,d::Domain) = c==0?c*zeros(d):c*ones(d)
+Fun(c::Number,d::Space) = c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 
 
 ## List constructor
@@ -228,7 +229,7 @@ Fun(f,n::Integer) = Fun(f,Interval(),n)
 Fun{T<:Number}(f,d::AbstractVector{T},n::Integer) = Fun(f,Domain(d),n)
 Fun{T<:Number,M<:Number}(cfs::AbstractVector{M},d::AbstractVector{T}) =
     Fun(1.0*cfs,Domain(d))
-Fun{TT<:Number}(T::Type,d::AbstractVector{TT}) = Fun(T(),d)    
+Fun{TT<:Number}(T::Type,d::AbstractVector{TT}) = Fun(T(),d)
 Fun{T<:Number}(f,d::AbstractVector{T}) = Fun(f,Domain(d))
 Fun{T<:Number}(f::Number,d::AbstractVector{T})=Fun(f,Domain(d))
 Fun(f::AbstractVector)=Fun(Domain(f))

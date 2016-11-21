@@ -84,7 +84,7 @@ for OP in (:(sign),:(angle))
         pts=roots(f)
 
         if isempty(pts)
-            sign(first(f))*one(f)
+            $OP(first(f))*one(f)
         else
             @assert isa(d,AffineDomain)
             da=first(d)
@@ -92,8 +92,7 @@ for OP in (:(sign),:(angle))
             db=last(d)
             isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
             midpts = .5(pts[1:end-1]+pts[2:end])
-            error("Developer bug: What should the following be doing?")
-            Fun(sign(f(midpts)),pts)
+            Fun(Domain(pts),$OP(f(midpts)))
         end
     end
 end

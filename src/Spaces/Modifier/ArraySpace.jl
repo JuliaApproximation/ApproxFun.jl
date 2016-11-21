@@ -254,7 +254,7 @@ Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(d,coefficients(f,d))
 ## constructor
 
 # change to ArraySpace
-Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = space(f)==d ? f : Fun(coefficients(f,d),d)
+Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = space(f)==d ? f : Fun(d,coefficients(f,d))
 Fun{AS<:ArraySpace}(f::Fun{AS},d::Space) = Fun(f,ArraySpace(d,space(f).dimensions))
 
 

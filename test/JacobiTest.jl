@@ -152,7 +152,7 @@ f=Fun(S,[1.,2.,3.])
 @test WeightedJacobi(0.1,0.2) == WeightedJacobi(0.1+eps(),0.2)
 
 # this tests a subspace bug
-f=Fun(rand(10),WeightedJacobi(0.1,0.2))  # convert to Legendre expansion
+f=Fun(WeightedJacobi(0.1,0.2),rand(10))  # convert to Legendre expansion
 
 g=(f|(2:ApproxFun.∞))
 
