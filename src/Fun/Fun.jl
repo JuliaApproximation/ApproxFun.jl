@@ -51,9 +51,31 @@ function coefficients(f::Fun,msp::Space)
         coefficients(f.coefficients,space(f),msp)
     end
 end
-coefficients{T<:Space}(f::Fun,::Type{T})=coefficients(f,T(domain(f)))
-coefficients(f::Fun)=f.coefficients
-coefficients(c::Number,sp::Space)=Fun(c,sp).coefficients
+coefficients{T<:Space}(f::Fun,::Type{T}) = coefficients(f,T(domain(f)))
+coefficients(f::Fun) = f.coefficients
+coefficients(c::Number,sp::Space) = Fun(c,sp).coefficients
+
+function coefficient(f::Fun,k::Integer)
+    if k > dimension(space(f)) || k < 1
+        throw(BoundsError())
+    elseif k > ncoefficients(f)
+        zero(eltype(f))
+    else
+        f.coefficients[k]
+    end
+end
+
+function coefficient(f::Fun,kr::Range)
+    b = maximum(kr)
+
+    if b ≤ ncoefficients(f)
+        f.coefficients[kr]
+    else
+        [coefficient(f,k) for k in kr]
+    end
+end
+
+coefficient(f::Fun,K::Block) = coefficient(f,blockrange(space(f),K.K))
 
 
 ##Convert routines
