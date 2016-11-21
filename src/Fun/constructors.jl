@@ -83,6 +83,7 @@ Fun{T<:Space}(f::Fun,::Type{T}) = Fun(f,T(domain(f)))
 
 
 Fun(f::AbstractVector,T::Type) = Fun(f,T())
+Fun(T::Type,f::Type) = Fun(T(),f)
 Fun(T::Type,f)  =  Fun(T(),f)
 Fun(f,T::Type) = Fun(f,T())
 Fun(f,T::Type,n::Integer) = Fun(f,T(),n)
@@ -103,9 +104,11 @@ Fun(c::Number,d::Space) = c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 
 ## List constructor
 
-Fun{T<:Domain}(c::Number,dl::AbstractVector{T})=Fun(c,UnionDomain(dl))
-Fun{T<:Domain}(f,dl::AbstractVector{T})=Fun(f,UnionDomain(dl))
-Fun{T<:Domain}(f,dl::AbstractVector{T},n::Integer)=Fun(f,UnionDomain(dl),n)
+Fun{T<:Domain}(c::Number,dl::AbstractVector{T}) = Fun(c,UnionDomain(dl))
+Fun{T<:Domain}(f::Type,dl::AbstractVector{T}) = Fun(f,UnionDomain(dl))
+Fun{T<:Domain}(f::Domain,dl::AbstractVector{T}) = Fun(f,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::AbstractVector{T}) = Fun(f,UnionDomain(dl))
+Fun{T<:Domain}(f,dl::AbstractVector{T},n::Integer) = Fun(f,UnionDomain(dl),n)
 
 ## Adaptive constructors
 
@@ -186,7 +189,7 @@ function abszerocfsFun(f,d::Space)
     Fun(f,d,2^21)
 end
 
-
+Fun(f::Type, d::Space; method="zerocoefficients") = error("Not impleemnted")
 function Fun(f, d::Space; method="zerocoefficients")
     T = eltype(domain(d))
 
@@ -208,7 +211,8 @@ function Fun(f, d::Space; method="zerocoefficients")
         randomFun(f,d)
     end
 end
-Fun(f,d::Domain;opts...)=Fun(f,Space(d);opts...)
+Fun(f::Type,d::Domain;opts...) = Fun(f,Space(d);opts...)
+Fun(f,d::Domain;opts...) = Fun(f,Space(d);opts...)
 
 
 # this supports expanding a Fun to a larger or smaller domain.
@@ -224,7 +228,7 @@ Fun(f::Fun,d::Domain;opts...) = Fun(f,Space((d ∪ domain(f)) ∩ d);opts...)
 
 
 
-
+Fun(T::Type,n::Integer) = Fun(T(),n)
 Fun(f,n::Integer) = Fun(f,Interval(),n)
 Fun{T<:Number}(f,d::AbstractVector{T},n::Integer) = Fun(f,Domain(d),n)
 Fun{T<:Number,M<:Number}(cfs::AbstractVector{M},d::AbstractVector{T}) =
