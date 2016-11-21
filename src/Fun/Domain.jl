@@ -95,7 +95,7 @@ function Base.in(x,d::IntervalDomain)
     ry=real(y)
     iy=imag(y)
     sc=norm(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
-    isapprox(fromcanonical(d,y),x) &&
+    isapprox_atol(fromcanonical(d,y),x,abs(y)*Base.rtoldefault(typeof(ry))*sc) &&
         -one(T)-100eps(T)/sc≤ry≤one(T)+100eps(T)/sc &&
         -100eps(T)/sc≤iy≤100eps(T)/sc
 end
@@ -118,7 +118,7 @@ fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/
 
 function Base.in{T}(x,d::PeriodicDomain{T})
     y=tocanonical(d,x)
-    if !isapprox(fromcanonical(d,y),x)
+    if !isapprox_atol(fromcanonical(d,y),x,abs(y)*fromcanonicalD(d,y)*Base.rtoldefault(real(typeof(y))))
         return false
     end
 
