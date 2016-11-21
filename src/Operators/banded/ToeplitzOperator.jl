@@ -206,10 +206,10 @@ end
 
 function Fun(T::ToeplitzOperator)
    if length(T.nonnegative)==1
-      Fun([T.nonnegative;T.negative],Taylor())
+      Fun(Taylor(),[T.nonnegative;T.negative])
     elseif length(T.negative)==0
-        Fun(T.nonnegative,Hardy{false}())
+        Fun(Hardy{false}(),T.nonnegative)
     else
-        Fun(interlace(T.nonnegative,T.negative),Laurent(Circle()))
+        Fun(Laurent(Circle()),interlace(T.nonnegative,T.negative))
     end
 end

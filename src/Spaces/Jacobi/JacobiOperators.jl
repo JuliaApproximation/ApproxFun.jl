@@ -489,7 +489,7 @@ function Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight
         MultiplicationWrapper(f,Multiplication(jacobiweight(space(f).α,space(f).β-1,d),rangespace(M))*M)
     else
 # default JacobiWeight
-        M=Multiplication(Fun(f.coefficients,space(f).space),S)
+        M=Multiplication(Fun(space(f).space,f.coefficients),S)
         rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
         MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
     end

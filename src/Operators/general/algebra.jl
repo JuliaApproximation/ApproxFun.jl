@@ -547,7 +547,7 @@ for TYP in (:Vector,:Matrix)
             else
                 b
             end
-            Fun(ret,rs)
+            Fun(rs,ret)
         end
     end
 end

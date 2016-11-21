@@ -314,12 +314,12 @@ bandinds{D}(Σ::ConcreteDefiniteLineIntegral{Fourier{D}}) = 0,0
 
 
 transformtimes{CS<:CosSpace,D}(f::Fun{CS},g::Fun{Fourier{D}}) =
-    transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1)),Fourier(domain(f))),g)
+    transformtimes(Fun(Fourier(domain(f)),interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1))),g)
 transformtimes{SS<:SinSpace,D}(f::Fun{SS},g::Fun{Fourier{D}}) =
-    transformtimes(Fun(interlace(zeros(eltype(f),ncoefficients(f)+1),f.coefficients),Fourier(domain(f))),g)
+    transformtimes(Fun(Fourier(domain(f)),interlace(zeros(eltype(f),ncoefficients(f)+1),f.coefficients)),g)
 transformtimes{CS<:CosSpace,SS<:SinSpace}(f::Fun{CS},g::Fun{SS}) =
-    transformtimes(Fun(interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1)),Fourier(domain(f))),
-                    Fun(interlace(zeros(eltype(g),ncoefficients(g)+1),g.coefficients),Fourier(domain(g))))
+    transformtimes(Fun(Fourier(domain(f)),interlace(f.coefficients,zeros(eltype(f),ncoefficients(f)-1))),
+                    Fun(Fourier(domain(g)),interlace(zeros(eltype(g),ncoefficients(g)+1),g.coefficients)))
 transformtimes{CS<:CosSpace,D}(f::Fun{Fourier{D}},g::Fun{CS}) = transformtimes(g,f)
 transformtimes{SS<:SinSpace,D}(f::Fun{Fourier{D}},g::Fun{SS}) = transformtimes(g,f)
 transformtimes{SS<:SinSpace,CS<:CosSpace}(f::Fun{SS},g::Fun{CS}) = transformtimes(g,f)

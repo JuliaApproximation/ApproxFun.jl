@@ -100,9 +100,9 @@ end
 
 
 differentiate{T}(f::Fun{SplineSpace{1,T}}) =
-    Fun(diff(pad(f.coefficients,dimension(space(f))))./diff(space(f).domain.points),
-        HeavisideSpace(space(f).domain))
+    Fun(HeavisideSpace(space(f).domain),
+        diff(pad(f.coefficients,dimension(space(f))))./diff(space(f).domain.points))
 
 integrate{T}(f::Fun{HeavisideSpace{T}}) =
-    Fun([0;cumsum(f.coefficients).*diff(space(f).domain.points)],
-        SplineSpace{1,T}(space(f).domain))
+    Fun(SplineSpace{1,T}(space(f).domain),
+        [0;cumsum(f.coefficients).*diff(space(f).domain.points)])

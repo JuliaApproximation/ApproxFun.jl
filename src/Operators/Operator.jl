@@ -378,8 +378,8 @@ defaultgetindex(A::Operator,kr,::Type{FiniteRange}) =
 defaultgetindex(B::Operator,f::Fun) = B*Multiplication(domainspace(B),f)
 defaultgetindex(B::Operator,f::LowRankFun) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
 defaultgetindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
-    mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1);
-                                            one(promote_type(BT,T))],f.space[2])],
+    mapreduce(i->f.coefficients[i]*B[Fun(f.space[2],[zeros(promote_type(BT,T),i-1);
+                                            one(promote_type(BT,T))])],
                 +,1:length(f.coefficients))
 
 

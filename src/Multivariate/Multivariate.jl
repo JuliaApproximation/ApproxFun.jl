@@ -93,7 +93,7 @@ function Base.kron(f::Fun,g::Fun)
             push!(cfs,0)
         end
     end
-    Fun(cfs,sp)
+    Fun(sp,cfs)
 end
 Base.kron(f::Fun,g::Number) = kron(f,Fun(g))
 Base.kron(f::Number,g::Fun) = kron(Fun(f),g)

@@ -39,10 +39,10 @@ end
 
 # last argument is whether to splat or not
 defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::Vector,::Type{Val{true}}) =
-    Fun(transform(d,T[f(x...) for x in pts]),d)
+    Fun(d,transform(d,T[f(x...) for x in pts]))
 
 defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::Vector,::Type{Val{false}}) =
-    Fun(transform(d,T[f(x) for x in pts]),d)
+    Fun(d,transform(d,T[f(x) for x in pts]))
 
 
 function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{false}})
@@ -77,17 +77,18 @@ Fun{ReComp}(f,d::Space{ReComp},n::Integer) = defaultFun(f,d,n)
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f(x),d)
 #TODO: fall back to Fun(x->f(x),d) if conversion not implemented?
-Fun(f::Fun,d::Space)=Fun(coefficients(f,d),d)
+Fun(f::Fun,d::Space)=Fun(d,coefficients(f,d))
 Fun{T<:Space}(f::Fun,::Type{T})=Fun(f,T(domain(f)))
 
 
 
 Fun(f::AbstractVector,T::Type)=Fun(f,T())
-
+Fun(T::Type,f) = Fun(T(),f)
 Fun(f,T::Type)=Fun(f,T())
 Fun(f,T::Type,n::Integer)=Fun(f,T(),n)
 
 Fun(f::AbstractVector,d::Domain)=Fun(f,Space(d))
+Fun(d::Domain,f::AbstractVector)=Fun(Space(d),f)
 
 
 Fun(f,d::Domain,n)=Fun(f,Space(d),n)
@@ -112,29 +113,8 @@ function randomFun(f,d::IntervalDomain)
 
     #TODO: implement other domains
 
-    Fun(chebyshevtransform(randomadaptivebary(f)),d)
+    Fun(d,chebyshevtransform(randomadaptivebary(f)))
 end
-
-
-# function veczerocfsFun(f,d::IntervalDomain)
-#     #reuse function values
-#
-#     tol = 200*eps()
-#
-#     for logn = 4:20
-#         cf = Fun(f, d, 2^logn + 1)
-#         cfs=coefficients(cf)  ##TODO: general domain
-#
-#         if norm(cfs[:,end-8:end],Inf) < tol*norm(cfs[:,1:8],Inf)
-#             nrm=norm(cfs,Inf)
-#             return map!(g->chop!(g,10eps()*nrm),cf)
-#         end
-#     end
-#
-#     warn("Maximum number of coefficients reached")
-#
-#     Fun(f,d,2^21 + 1)
-# end
 
 
 
@@ -251,9 +231,9 @@ Fun{T<:Number}(f,d::AbstractVector{T})=Fun(f,Domain(d))
 Fun{T<:Number}(f::Number,d::AbstractVector{T})=Fun(f,Domain(d))
 Fun(f::AbstractVector)=Fun(Domain(f))
 
-function Fun(cfs::AbstractVector{Any},s::Space)
+function Fun(s::Space,cfs::AbstractVector{Any})
     @assert isempty(cfs)
-    Fun(Float64[],s)
+    Fun(s,Float64[])
 end
 
-Fun(f::Fun{SequenceSpace},s::Space) = Fun(f.coefficients,s)
+Fun(f::Fun{SequenceSpace},s::Space) = Fun(s,f.coefficients)

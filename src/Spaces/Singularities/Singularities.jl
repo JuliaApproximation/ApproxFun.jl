@@ -36,7 +36,7 @@ itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan) =
 
 function evaluate(f::AbstractVector,S::WeightSpace,x...)
     tol=1.0E-14
-    fv=Fun(f,S.space)(x...)
+    fv=Fun(S.space,f)(x...)
     if isa(fv,Number)&&abs(fv)<tol
         #TODO: Why this special case??
         zero(eltype(fv))

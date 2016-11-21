@@ -11,7 +11,7 @@ end
 
 for TYP in (:Number,:AbstractArray,:Vec,:Fun)
     @eval evaluate(f::AbstractVector,S::ChebyshevDirichlet,x::$TYP) =
-        evaluate(Fun(Fun(f,S),canonicalspace(S)),x)
+        evaluate(Fun(Fun(S,f),canonicalspace(S)),x)
 end
 @compat (::Type{ChebyshevDirichlet{l,r}}){l,r}() =
     ChebyshevDirichlet{l,r,Interval{Float64}}()

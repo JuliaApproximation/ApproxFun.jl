@@ -18,8 +18,8 @@ Space(d::Interval) = Chebyshev(d)
 
 setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
 
-Base.ones{T<:Number}(::Type{T},S::Chebyshev) = Fun(ones(T,1),S)
-Base.ones(S::Chebyshev) = Fun(ones(1),S)
+Base.ones{T<:Number}(::Type{T},S::Chebyshev) = Fun(S,ones(T,1))
+Base.ones(S::Chebyshev) = Fun(S,ones(1))
 
 Base.first{D}(f::Fun{Chebyshev{D}}) = foldr(-,coefficients(f))
 Base.last{D}(f::Fun{Chebyshev{D}}) = reduce(+,coefficients(f))
@@ -207,9 +207,9 @@ end
 
 # diff T -> U, then convert U -> T
 integrate{D<:Interval}(f::Fun{Chebyshev{D}}) =
-    Fun(fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)),f.space)
+    Fun(f.space,fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)))
 differentiate{D<:Interval}(f::Fun{Chebyshev{D}}) =
-    Fun(1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)),f.space)
+    Fun(f.space,1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)))
 
 ## identity_fun
 
@@ -249,7 +249,7 @@ end
 
 
 reverseorientation{C<:Chebyshev}(f::Fun{C}) =
-    Fun(alternatesign!(copy(f.coefficients)),Chebyshev(reverse(domain(f))))
+    Fun(Chebyshev(reverse(domain(f))),alternatesign!(copy(f.coefficients)))
 
 
 include("ChebyshevOperators.jl")

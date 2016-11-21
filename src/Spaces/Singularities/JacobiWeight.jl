@@ -41,18 +41,20 @@ spacescompatible{DD<:IntervalDomain}(A::JacobiWeight,B::RealUnivariateSpace{DD})
 spacescompatible{DD<:IntervalDomain}(B::RealUnivariateSpace{DD},A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
 transformtimes{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})=
-            Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),
-                                            Fun(g.coefficients,g.space.space))),
-                             JacobiWeight(f.space.α+g.space.α,f.space.β+g.space.β,f.space.space))
-transformtimes{JW<:JacobiWeight}(f::Fun{JW},g::Fun) = Fun(coefficients(transformtimes(Fun(f.coefficients,f.space.space),g)),f.space)
-transformtimes{JW<:JacobiWeight}(f::Fun,g::Fun{JW}) = Fun(coefficients(transformtimes(Fun(g.coefficients,g.space.space),f)),g.space)
+            Fun(JacobiWeight(f.space.α+g.space.α,f.space.β+g.space.β,f.space.space),
+                coefficients(transformtimes(Fun(f.space.space,f.coefficients),
+                                            Fun(g.space.space,g.coefficients))))
+transformtimes{JW<:JacobiWeight}(f::Fun{JW},g::Fun) =
+    Fun(f.space,coefficients(transformtimes(Fun(f.space.space,f.coefficients),g)))
+transformtimes{JW<:JacobiWeight}(f::Fun,g::Fun{JW}) =
+    Fun(g.space,coefficients(transformtimes(Fun(g.space.space,g.coefficients),f)))
 
 ##  α and β are opposite the convention for Jacobi polynomials
 # Here, α is the left algebraic singularity and β is the right algebraic singularity.
 
 
 jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
-jacobiweight(α,β,d::Domain)=Fun([1.],JacobiWeight(α,β,ConstantSpace(d)))
+jacobiweight(α,β,d::Domain)=Fun(JacobiWeight(α,β,ConstantSpace(d)),[1.])
 jacobiweight(α,β)=jacobiweight(α,β,Interval())
 
 weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
@@ -137,27 +139,27 @@ end
 for op in (:/,:./)
     @eval begin
         function ($op){JW<:JacobiWeight}(c::Number,f::Fun{JW})
-            g=($op)(c,Fun(f.coefficients,space(f).space))
-            Fun(g.coefficients,JacobiWeight(-f.space.α,-f.space.β,space(g)))
+            g=($op)(c,Fun(space(f).space,f.coefficients))
+            Fun(JacobiWeight(-f.space.α,-f.space.β,space(g)),g.coefficients)
         end
     end
 end
 
 function .^{JW<:JacobiWeight}(f::Fun{JW},k::Float64)
     S=space(f)
-    g=Fun(coefficients(f),S.space)^k
-    Fun(coefficients(g),JacobiWeight(k*S.α,k*S.β,space(g)))
+    g=Fun(S.space,coefficients(f))^k
+    Fun(JacobiWeight(k*S.α,k*S.β,space(g)),coefficients(g))
 end
 
 function .*{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})
     @assert domainscompatible(f,g)
     fα,fβ=f.space.α,f.space.β
     gα,gβ=g.space.α,g.space.β
-    m=(Fun(f.coefficients,space(f).space).*Fun(g.coefficients,space(g).space))
+    m=(Fun(space(f).space,f.coefficients).*Fun(space(g).space,g.coefficients))
     if isapprox(fα+gα,0)&&isapprox(fβ+gβ,0)
         m
     else
-        Fun(m.coefficients,JacobiWeight(fα+gα,fβ+gβ,space(m)))
+        Fun(JacobiWeight(fα+gα,fβ+gβ,space(m)),m.coefficients)
     end
 end
 

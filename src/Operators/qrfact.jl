@@ -141,7 +141,7 @@ function linsolve(QR::QROperator,b::Vector{Any};kwds...)
     if length(b) == 1 && isa(b[1],Fun)
         linsolve(QR,Fun(b[1],rangespace(QR));kwds...)
     else
-        linsolve(QR,Fun(b,rangespace(QR));kwds...)
+        linsolve(QR,Fun(rangespace(QR),b);kwds...)
     end
 end
 linsolve{FF<:Fun}(QR::QROperator,b::Vector{FF};kwds...) = linsolve(QR,Fun(b,rangespace(QR));kwds...)

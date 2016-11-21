@@ -60,15 +60,15 @@ end
 
 ## default getindex
 getindex(D::ConcreteEvaluation,k::Integer) =
-    eltype(D)(differentiate(Fun([zeros(eltype(D),k-1);one(eltype(D))],D.space),D.order)(D.x))
+    eltype(D)(differentiate(Fun(D.space,[zeros(eltype(D),k-1);one(eltype(D))]),D.order)(D.x))
 
 
 function getindex{S}(D::ConcreteEvaluation{S,Bool},k::Integer)
     T=eltype(D)
     if !D.x
-        T(first(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)))
+        T(first(differentiate(Fun(D.space,[zeros(T,k-1);one(T)]),D.order)))
     else
-        T(last(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)))
+        T(last(differentiate(Fun(D.space,[zeros(T,k-1);one(T)]),D.order)))
     end
 end
 

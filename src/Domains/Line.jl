@@ -210,7 +210,7 @@ fromcanonical{a}(d::PeriodicLine{a},x) =
 
 function invfromcanonicalD(d::PeriodicLine{false})
     @assert d.center==0  && d.L==1.0
-    a=Fun([1.,0,1],PeriodicInterval())
+    a=Fun(PeriodicInterval(),[1.,0,1])
 end
 
 mappoint(a::PeriodicLine{false},b::Circle,x)=b.radius*((a.L*im-(x-a.center))./(a.L*im+(x-a.center)))+b.center

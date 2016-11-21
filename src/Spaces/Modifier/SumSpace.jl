@@ -266,12 +266,12 @@ for OP in (:(Base.last),:(Base.first))
     end
 end
 
-evaluate(f::AbstractVector,S::SumSpace,x) = mapreduce(vf->evaluate(vf,x),+,vec(Fun(f,S)))
+evaluate(f::AbstractVector,S::SumSpace,x) = mapreduce(vf->evaluate(vf,x),+,vec(Fun(S,f)))
 
 
 function evaluate(f::AbstractVector,S::PiecewiseSpace,x)
     d=domain(S)
-    g=Fun(f,S)
+    g=Fun(S,f)
 
 #    ret=zero(promote_type(eltype(f),eltype(S)))
     for k=1:numpieces(d)
@@ -283,12 +283,12 @@ function evaluate(f::AbstractVector,S::PiecewiseSpace,x)
 end
 
 function evaluate(v::AbstractVector,S::PiecewiseSpace,x::AbstractVector)
-    f=Fun(v,S)
+    f=Fun(S,v)
     [f(xk) for xk in x]
 end
 
 function evaluate(v::AbstractVector,S::TupleSpace,x...)
-    f=Fun(v,S)
+    f=Fun(S,v)
     eltype(f)[f[k](x...) for k=1:length(f.space)]
 end
 
@@ -299,16 +299,16 @@ for TYP in (:SumSpace,:TupleSpace,:PiecewiseSpace)
         @eval function $OP{D<:$TYP,T}(f::Fun{D,T})
             fs=map($OP,vec(f))
             sp=$TYP(map(space,fs))
-            Fun(interlace(fs,sp),sp)
+            Fun(sp,interlace(fs,sp))
         end
     end
     for OP in (:(Base.real),:(Base.imag),:(Base.conj))
         @eval begin
-            $OP{SV,DD,d}(f::Fun{$TYP{SV,RealBasis,DD,d}}) = Fun($OP(f.coefficients),f.space)
+            $OP{SV,DD,d}(f::Fun{$TYP{SV,RealBasis,DD,d}}) = Fun(f.space,$OP(f.coefficients))
             function $OP{SV,T,DD,d}(f::Fun{$TYP{SV,T,DD,d}})
                 fs=map($OP,vec(f))
                 sp=$TYP(map(space,fs))
-                Fun(interlace(fs,sp),sp)
+                Fun(sp,interlace(fs,sp))
             end
         end
     end
@@ -319,7 +319,7 @@ for TYP in (:SumSpace,:TupleSpace)
     @eval function Base.cumsum{D<:$TYP,T}(f::Fun{D,T})
         fs=map(cumsum,vec(f))
         sp=$TYP(map(space,fs))
-        Fun(interlace(fs,sp),sp)
+        Fun(sp,interlace(fs,sp))
     end
 end
 
@@ -392,7 +392,7 @@ function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
         j+=1
     end
     resize!(ret,p)  # through out extra coefficients
-    Fun(ret,space(f,k))
+    Fun(space(f,k),ret)
 end
 
 
@@ -453,12 +453,12 @@ for (Dep,Sp) in ((:depiece,:PiecewiseSpace),(:detuple,:TupleSpace))
         function $Dep{F<:Fun}(v::Vector{F})
             spaces=map(space,v)
             sp=$Sp(spaces)
-            Fun(interlace(v,sp),sp)
+            Fun(sp,interlace(v,sp))
         end
         function $Dep(v::Tuple)
             spaces=map(space,v)
             sp=$Sp(spaces)
-            Fun(interlace(v,sp),sp)
+            Fun(sp,interlace(v,sp))
         end
 
         $Dep(v::Vector{Any})=$Dep(tuple(v...))
@@ -510,13 +510,13 @@ function transform(S::PiecewiseSpace,vals::Vector,plan...)
 end
 
 itransform(S::PiecewiseSpace,cfs::Vector,plan...) =
-    vcat([itransform(S.spaces[j],Fun(cfs,S)[j].coefficients) for j=1:length(S)]...)
+    vcat([itransform(S.spaces[j],Fun(S,cfs)[j].coefficients) for j=1:length(S)]...)
 
 
 
 
-itransform(S::SumSpace,cfs,plan...) = Fun(cfs,S)(points(S,length(cfs)))
-itransform!(S::SumSpace,cfs,plan...) = (cfs[:]=Fun(cfs,S)(points(S,length(cfs))))
+itransform(S::SumSpace,cfs,plan...) = Fun(S,cfs)(points(S,length(cfs)))
+itransform!(S::SumSpace,cfs,plan...) = (cfs[:]=Fun(S,cfs)(points(S,length(cfs))))
 
 
 

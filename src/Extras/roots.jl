@@ -364,7 +364,7 @@ complexroots{DD}(f::Fun{Taylor{DD}})=mappoint(Circle(),domain(f),complexroots(f.
 
 
 function roots{DD}(f::Fun{Laurent{DD}})
-    irts=filter!(z->in(z,Circle()),complexroots(Fun(f.coefficients,Laurent(Circle()))))
+    irts=filter!(z->in(z,Circle()),complexroots(Fun(Laurent(Circle()),f.coefficients)))
     if length(irts)==0
         Complex{Float64}[]
     else
@@ -402,7 +402,7 @@ end
 function roots{S<:JacobiWeight,T}(f::Fun{S,T})
     sp=space(f)
     d=domain(sp)
-    rts=roots(Fun(f.coefficients,sp.space))
+    rts=roots(Fun(sp.space,f.coefficients))
     if sp.α > 0
         rts=[first(d);rts]
     end

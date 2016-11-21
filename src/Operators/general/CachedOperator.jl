@@ -111,5 +111,5 @@ function *{T<:Number}(B::CachedOperator,v::Vector{T})
         return dotu(B.data[1:length(v)],v)
     end
 
-    Fun(B.data*pad(v,size(B.data,2)),rangespace(B))
+    Fun(rangespace(B),B.data*pad(v,size(B.data,2)))
 end
