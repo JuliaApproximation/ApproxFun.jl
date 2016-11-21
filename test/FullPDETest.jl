@@ -272,7 +272,7 @@ B=[dirichlet(S[1])⊗eye(S[2]);
 
 
 u=linsolve(B,ones(4);tolerance=1E-14)
-@test norm((u-Fun([1.],S)).coefficients)<10eps()
+@test norm((u-Fun(S,[1.])).coefficients)<10eps()
 
 g=map(sp->Fun(ff,sp),map(rangespace,B[1:4]))
 
@@ -403,20 +403,6 @@ testbandedblockbandedoperator(A)
 @test_approx_eq_eps u(0.2,0.1) u0(0.1) 1E-6
 
 
-# println("   Domain Decompositon tests")
-#
-# ## Domain Decomposition
-# d=Interval(0,1)^2
-#
-# QR=qrfact([Dirichlet(d);Laplacian(d)])
-# ∂d=∂(d)
-# g=Fun((x,y)->real(exp(x+im*y)),∂d)
-# m=10
-# f=[detuple([Fun([zeros(k-1);1.0],∂d);0.]) for k=1:m].'
-# @time U=linsolve(QR,f[5];tolerance=1E-10)
-# @test_approx_eq dot(real(g.coefficients),U[1:ncoefficients(g)])(.1,.2) real(exp(.1+.2im))
-
-
 ## Small diffusoion
 
 
@@ -512,7 +498,7 @@ d=Interval()^2
 
 # PiecewisePDE
 
-a=Fun([1,0.5,1],[-1.,0.,0.5,1.])
+a=Fun(Domain([-1.,0.,0.5,1.]),[1,0.5,1])
 s=space(a)
 dt=Interval(0,2.)
 Dx=Derivative(s);Dt=Derivative(dt)

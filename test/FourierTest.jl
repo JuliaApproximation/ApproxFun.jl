@@ -13,7 +13,7 @@ for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
 end
 
 @test sum(Fun(1,CosSpace())) ≈ π
-@test sum(Fun([1],SinSpace())) == 0
+@test sum(Fun(SinSpace(),[1])) == 0
 
 
 f=Fun(t->cos(t)+cos(3t),CosSpace)
@@ -42,9 +42,9 @@ z=Fun(Fourier(Γ))
 
 
 
-@test_approx_eq Fun([1,1.,1.],Laurent([0,2π]))(0.1) 1+2cos(0.1+π)
-@test_approx_eq Fun([1,1.,1.],Laurent([-1,1]))(0.1) 1+2cos(π*0.1)
-@test_approx_eq Fun([1,1.,1.],Laurent([0,1]))(0.1) 1+2cos(2π*(0.1-1/2))
+@test_approx_eq Fun(Laurent([0,2π]),[1,1.,1.])(0.1) 1+2cos(0.1+π)
+@test_approx_eq Fun(Laurent([-1,1]),[1,1.,1.])(0.1) 1+2cos(π*0.1)
+@test_approx_eq Fun(Laurent([0,1]),[1,1.,1.])(0.1) 1+2cos(2π*(0.1-1/2))
 
 
 @test abs(Fun(cos,Circle())(exp(0.1im))-cos(exp(0.1im)))<100eps()
@@ -104,7 +104,7 @@ end
 ## Taylor
 
 
-@test Fun(Taylor())  == Fun([0.,1.],Taylor())
+@test Fun(Taylor())  == Fun(Taylor(),[0.,1.])
 
 @test Fun(Taylor())(1.0) ≈ 1.0
 @test Fun(Taylor(Circle(0.1,2.2)))(1.0) ≈ 1.0
@@ -226,21 +226,21 @@ end
 ##  Norms
 
 
-@test_approx_eq sum(Fun([1.],CosSpace()))/π 1.
-@test_approx_eq sum(Fun([0.,1.],CosSpace())^2)/π 0.5
-@test_approx_eq sum(Fun([0.,0.,1.],CosSpace())^2)/π 0.5
-@test_approx_eq sum(Fun([0.,0.,0.,1.],CosSpace())^2)/π 0.5
+@test_approx_eq sum(Fun(CosSpace(),[1.]))/π 1.
+@test_approx_eq sum(Fun(CosSpace(),[0.,1.])^2)/π 0.5
+@test_approx_eq sum(Fun(CosSpace(),[0.,0.,1.])^2)/π 0.5
+@test_approx_eq sum(Fun(CosSpace(),[0.,0.,0.,1.])^2)/π 0.5
 
 
-@test_approx_eq sum(Fun([0.,1.],SinSpace())^2)/π 0.5
-@test_approx_eq sum(Fun([0.,0.,1.],SinSpace())^2)/π 0.5
-@test_approx_eq sum(Fun([0.,0.,0.,1.],SinSpace())^2)/π 0.5
+@test_approx_eq sum(Fun(SinSpace(),[0.,1.])^2)/π 0.5
+@test_approx_eq sum(Fun(SinSpace(),[0.,0.,1.])^2)/π 0.5
+@test_approx_eq sum(Fun(SinSpace(),[0.,0.,0.,1.])^2)/π 0.5
 
 
 ## Bug in multiplicaiton
 
-@test Fun(Float64[],SinSpace())^2 == Fun(Float64[],SinSpace())
-@test Fun([1.],Fourier())^2 ≈ Fun([1.],Fourier())
+@test Fun(SinSpace(),Float64[])^2 == Fun(SinSpace(),Float64[])
+@test Fun(Fourier(),[1.])^2 ≈ Fun(Fourier(),[1.])
 
 B=Evaluation(Laurent([0.,2π]),0,1)
 @test_approx_eq B*Fun(sin,domainspace(B)) 1.0

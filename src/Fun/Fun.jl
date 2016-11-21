@@ -26,10 +26,12 @@ Fun(sp::Space,coeff::Vector) = Fun{typeof(sp),eltype(coeff)}(sp,coeff)
 Fun{T<:Integer}(sp::Space,coeff::Vector{T}) = Fun(sp,1.0coeff)
 
 function Fun(sp::Space,v::Vector{Any})
-    if isempty(v)  || all(x->isa(x,Number) && x==0,v)
+    if isempty(v)
         Fun(sp,Float64[])
+    elseif all(x->isa(x,Number),v)
+        Fun(sp,Vector{mapreduce(typeof,promote_type,v)}(v))
     else
-        error("Cannot convert $v to a Fun of type $sp")
+        error("Cannot construct Fun with coefficients $v and space $sp")
     end
 end
 

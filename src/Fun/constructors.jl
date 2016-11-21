@@ -224,10 +224,12 @@ Fun(f::Fun,d::Domain;opts...) = Fun(f,Space((d ∪ domain(f)) ∩ d);opts...)
 
 
 
-Fun(f,n::Integer)=Fun(f,Interval(),n)
-Fun{T<:Number}(f,d::AbstractVector{T},n::Integer)=Fun(f,Domain(d),n)
-Fun{T<:Number,M<:Number}(cfs::AbstractVector{M},d::AbstractVector{T})=Fun(1.0*cfs,Domain(d))
-Fun{T<:Number}(f,d::AbstractVector{T})=Fun(f,Domain(d))
+Fun(f,n::Integer) = Fun(f,Interval(),n)
+Fun{T<:Number}(f,d::AbstractVector{T},n::Integer) = Fun(f,Domain(d),n)
+Fun{T<:Number,M<:Number}(cfs::AbstractVector{M},d::AbstractVector{T}) =
+    Fun(1.0*cfs,Domain(d))
+Fun{TT<:Number}(T::Type,d::AbstractVector{TT}) = Fun(T(),d)    
+Fun{T<:Number}(f,d::AbstractVector{T}) = Fun(f,Domain(d))
 Fun{T<:Number}(f::Number,d::AbstractVector{T})=Fun(f,Domain(d))
 Fun(f::AbstractVector)=Fun(Domain(f))
 

@@ -7,10 +7,10 @@ include("runtests.jl")
 
 println("    Full Operator tests")
 
-@time for M in (Multiplication(Fun([1.],CosSpace()),CosSpace()),
-                Multiplication(Fun([1.],CosSpace()),SinSpace()),
-                Multiplication(Fun([1.],SinSpace()),SinSpace()),
-                Multiplication(Fun([1.],SinSpace()),CosSpace()),
+@time for M in (Multiplication(Fun(CosSpace(),[1.]),CosSpace()),
+                Multiplication(Fun(CosSpace(),[1.]),SinSpace()),
+                Multiplication(Fun(SinSpace(),[1.]),SinSpace()),
+                Multiplication(Fun(SinSpace(),[1.]),CosSpace()),
                 Derivative(SinSpace()),Derivative(CosSpace()))
       testbandedoperator(M)
 end
