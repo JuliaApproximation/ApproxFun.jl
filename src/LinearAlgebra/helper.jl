@@ -906,26 +906,7 @@ function getindex(f::Flatten,k::Int)
     throw(BoundsError())
 end
 
-function getindex(f::Flatten,kr::UnitRange{Int})
-    @assert first(kr) == 1
-
-    k = last(kr)
-    ret=
-
-    sh = 0
-    for j in 1:length(f.it)
-        n = length(f.it[j])
-        if sh ≤ k ≤ sh + n
-            nls = map(it->it[1:0],f.it[j+1:end])  # this ensures type stability
-            return flatten(tuple(f.it[1:j-1]...,f.it[j][1:(k-sh)],nls...))
-        else
-            sh += n
-        end
-    end
-
-    throw(BoundsError())
-end
-
+getindex(f::Flatten,kr::UnitRange{Int}) = eltype(f)[f[k] for k in kr]
 
 Base.sum(f::Flatten) = mapreduce(sum,+,f.it)
 
