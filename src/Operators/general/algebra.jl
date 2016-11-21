@@ -531,6 +531,7 @@ for TYP in (:Vector,:Matrix)
 
 
         function *(A::Operator,b::$TYP)
+            #TODO: Remove
             if isafunctional(A)
                 return dotu(A[1:length(b)],b)
             end

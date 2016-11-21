@@ -9,6 +9,12 @@ export Ray
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1].  We use 1 as 1==true.
 #orientation true means oriented out
+doc"""
+    Ray{a}(c,o)
+
+represents a ray at angle `a` starting at `c`, with orientation out to
+infinity (`o = true`) or back from infinity (`o = false`).
+"""
 immutable Ray{angle,T<:Number} <: IntervalDomain{T}
     center::T
     orientation::Bool

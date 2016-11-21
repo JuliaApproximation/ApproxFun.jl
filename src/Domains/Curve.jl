@@ -2,9 +2,6 @@
 
 export Curve
 
-"""
-`Curve` Represents a domain defined by the image of a Fun
-"""
 
 
 immutable IntervalCurve{S<:Space,T} <: IntervalDomain{T}
@@ -15,6 +12,15 @@ immutable PeriodicCurve{S<:Space,T} <: PeriodicDomain{T}
     curve::Fun{S,T}
 end
 
+doc"""
+`Curve` Represents a domain defined by the image of a Fun.  Example
+usage would be
+
+```julia
+x=Fun([1,2])
+Curve(exp(im*x))  # represents an arc
+```
+"""
 typealias Curve{S,T} Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
 
 

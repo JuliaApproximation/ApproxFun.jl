@@ -1,7 +1,17 @@
 
 export ProductDomain
 
+doc"""
+    ProductDomain((d1,d2))
 
+represents the product of two domains, the set `{(x,y) : x ∈ d1 & y ∈ d2}`.
+
+Multiplication of domains is overrident to return a `ProductDomain`.
+For example, the following represents the rectangle `1 ≤ x ≤ 2 & 3 ≤ y ≤ 4`:
+```julia
+Interval(1,2)*(3,4)
+```
+"""
 immutable ProductDomain{D,T,dim} <: Domain{T,dim}
     domains::D
 end

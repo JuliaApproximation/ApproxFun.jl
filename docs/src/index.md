@@ -3,7 +3,47 @@
 
 ## Domains
 ```@docs
+Arc
+```
+
+```@docs
+Circle
+```
+
+```@docs
+Curve
+```
+
+```@docs
+Disk
+```
+
+```@docs
 Interval
+```
+
+```@docs
+Line
+```
+
+```@docs
+PeriodicInterval
+```
+
+```@docs
+ProductDomain
+```
+
+```@docs
+Ray
+```
+
+```@docs
+UnionDomain
+```
+
+```@docs
+∂
 ```
 
 ## Constructing a Fun

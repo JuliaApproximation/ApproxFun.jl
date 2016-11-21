@@ -3,8 +3,6 @@ repo_url:         https://github.com/ApproxFun/ApproxFun.jl
 site_description: Description...
 site_author:      dlfivefifty
 
-theme: readthedocs
-
 extra_css:
   - assets/Documenter.css
 

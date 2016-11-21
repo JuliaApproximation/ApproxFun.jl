@@ -12,6 +12,11 @@ export Line, PeriodicLine
 # angle is π*a where a is (false==0) and (true==1)
 # or ranges from (-1,1].  We use 1 as 1==true.
 
+doc"""
+    Line{a}(c)
+
+represents the line at angle `a` in the complex plane, centred at `c`.
+"""
 immutable Line{angle,T<:Number} <: IntervalDomain{T}
     center::T
     α::Float64

@@ -7,7 +7,11 @@ mobiusinv(a,b,c,d,z) = mobius(d,-b,-c,a,z)
 
 mobiusD(a,b,c,d,z) = (a*d-b*c)./(d+c*z).^2
 mobiusinvD(a,b,c,d,z) = mobiusD(d,-b,-c,a,z)
+doc"""
+    Arc(c,r,(θ₁,θ₂))
 
+represents the arc centred at `c` with radius `r` from angle `θ₁` to `θ₂`. 
+"""
 immutable Arc{T,V<:Real,TT} <: IntervalDomain{TT}
     center::T
     radius::V

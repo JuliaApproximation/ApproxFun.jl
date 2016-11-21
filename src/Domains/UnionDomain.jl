@@ -4,7 +4,9 @@ export UnionDomain
 
 
 """
-    UnionDomain represents a union of multiple subdomains.
+    UnionDomain((d1,d2,…,dn))
+
+represents a union of multiple subdomains: `{x : x ∈ d1 || … || x ∈ dn}`.
 """
 immutable UnionDomain{DD,T,d} <: Domain{T,d}
     domains::DD

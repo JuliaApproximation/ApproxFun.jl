@@ -1,3 +1,8 @@
+doc"""
+    Point(x)
+
+represents a single point at `x`.
+"""
 immutable Point{T} <: Domain{T,0}
     x::T
 end

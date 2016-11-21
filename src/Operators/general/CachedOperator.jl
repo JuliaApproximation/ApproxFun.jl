@@ -102,3 +102,14 @@ function Base.getindex(B::CachedOperator,k::Integer)
 
 resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
 resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))
+
+
+function *{T<:Number}(B::CachedOperator,v::Vector{T})
+    resizedata!(B,:,length(v))
+
+    if isafunctional(B)
+        return dotu(B.data[1:length(v)],v)
+    end
+
+    Fun(B.data*pad(v,size(B.data,2)),rangespace(B))
+end
