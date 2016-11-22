@@ -11,23 +11,23 @@ represents a periodic interval from `a` to `b`, that is, the point
 immutable PeriodicInterval{T} <: PeriodicDomain{T}
     a::T
     b::T
-    PeriodicInterval()=new(-convert(T,π),convert(T,π))
-    PeriodicInterval(a,b)=new(a,b)
+    PeriodicInterval() = new(-convert(T,π),convert(T,π))
+    PeriodicInterval(a,b) = new(a,b)
 end
 
 PeriodicInterval()=PeriodicInterval{Float64}()
 PeriodicInterval(a::Int,b::Int) = PeriodicInterval(Float64(a),Float64(b)) #convenience method
 PeriodicInterval(a,b) = PeriodicInterval{promote_type(typeof(a),typeof(b))}(a,b)
-PeriodicInterval(a::Tuple,b::Tuple)=Interval(Vec(a...),Vec(b...))
+PeriodicInterval(a::Tuple,b::Tuple) = Interval(Vec(a...),Vec(b...))
 
-function PeriodicInterval{T<:Number}(d::AbstractVector{T})
-    @assert length(d)==2
-    @assert isfinite(d[1]) && isfinite(d[2])
-    PeriodicInterval(d...)
+function Base.convert(::Type{PeriodicInterval},d::ClosedInterval)
+	a,b = d.left,d.right
+    @assert isfinite(a) && isfinite(b)
+    PeriodicInterval(a,b)
 end
 
-Interval(d::PeriodicInterval)=Interval(d.a,d.b)
-PeriodicInterval(d::Interval)=PeriodicInterval(d.a,d.b)
+Interval(d::PeriodicInterval) = Interval(d.a,d.b)
+PeriodicInterval(d::Interval) = PeriodicInterval(d.a,d.b)
 
 Base.convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = PeriodicInterval{T}(d.a,d.b)
 

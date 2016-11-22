@@ -79,10 +79,9 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
-
-points(d::AbstractVector,n::Integer)=points(convert(Domain,d),n)
-bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
+points{T}(d::IntervalDomain{T},n::Integer) =
+    fromcanonical(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
+bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
 Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
@@ -166,8 +165,8 @@ function commondomain(P::AbstractVector)
     ret
 end
 
-commondomain{T<:Number}(P::AbstractVector,g::Array{T})=commondomain(P)
-commondomain(P::AbstractVector,g)=commondomain([P;g])
+commondomain{T<:Number}(P::AbstractVector,g::Array{T}) = commondomain(P)
+commondomain(P::AbstractVector,g) = commondomain([P;g])
 
 
 domain(::Number)=AnyDomain()

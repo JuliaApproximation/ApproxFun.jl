@@ -64,3 +64,6 @@ fromcanonical(a::Point,x) = x+a.x
 
 points(a::Point,n) = eltype(a)[a.x]
 checkpoints(a::Point) = eltype(a)[a.x]
+
+
+Base.convert(::Type{Domain},a::Number) = Domain(a)

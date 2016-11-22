@@ -5,7 +5,7 @@ using ApproxFun, Base.Test
 
 
 f=Fun(exp,Interval(DualNumbers.dual(1.0,1),DualNumbers.dual(2.0)),20)
-@test_approx_eq Fun(h->Fun(exp,Interval(1.0+h,2.0)).coefficients[1],[0.,.1])'(0.) DualNumbers.epsilon(f.coefficients[1])
+@test_approx_eq Fun(h->Fun(exp,Interval(1.0+h,2.0)).coefficients[1],0..1)'(0.) DualNumbers.epsilon(f.coefficients[1])
 
 
 
@@ -38,7 +38,7 @@ P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
 
 ff=(x,y)->(x-y)^2*exp(-x^2/2-y^2/2)
 ApproxFun.tensorizer(Chebyshev()^2)
-f=Fun(ff,[-4.,4.],[-4.,4.])
+f=Fun(ff,-4..4,-4..4)
 r=ApproxFun.sample(f,5000)
 
 

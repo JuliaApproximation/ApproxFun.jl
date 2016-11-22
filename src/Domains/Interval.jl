@@ -15,27 +15,21 @@ complex or 2-dimensional, it represents the line segment between `a` and ` b`.
 immutable Interval{T} <: IntervalDomain{T}
 	a::T
 	b::T
-	Interval()=new(-one(T),one(T))
-	Interval(a,b)=new(a,b)
+	Interval() = new(-one(T),one(T))
+	Interval(a,b) = new(a,b)
 end
 
-Interval()=Interval{Float64}()
-Interval{IT1<:Integer,IT2<:Integer}(a::Complex{IT1},b::Complex{IT2}) = Interval(Complex128(a),Complex128(b)) #convenience method
+Interval() = Interval{Float64}()
+Interval{IT1<:Integer,IT2<:Integer}(a::Complex{IT1},b::Complex{IT2}) =
+	Interval(Complex128(a),Complex128(b)) #convenience method
 Interval(a::Integer,b::Integer) = Interval(Float64(a),Float64(b)) #convenience method
 Interval{IT<:Integer}(a::Complex{IT},b) = Interval(Complex128(a),b) #convenience method
 Interval{IT<:Integer}(a,b::Complex{IT}) = Interval(a,Complex128(b)) #convenience method
 Interval(a,b) = Interval{promote_type(typeof(a),typeof(b))}(a,b)
-Interval(a::Tuple,b::Tuple)=Interval(Vec(a...),Vec(b...))
-
-function Interval{T<:Number}(d::AbstractVector{T})
-    @assert length(d)==2
-    @assert isfinite(d[1]) && isfinite(d[2])
-    Interval(d...)
-end
-
-
+Interval(a::Tuple,b::Tuple) = Interval(Vec(a...),Vec(b...))
 
 Base.convert{T<:Number}(::Type{Interval{T}}, d::Interval) = Interval{T}(d.a,d.b)
+Base.convert(::Type{Interval},d::ClosedInterval) = Interval(d.left,d.right)
 
 AnyInterval{T}(::Type{T}) = Interval{T}(NaN,NaN)
 AnyInterval() = AnyInterval(Float64)
@@ -46,11 +40,11 @@ Base.convert(::Type{Interval},::AnyDomain) = AnyInterval()
 
 ## Information
 
-Base.first(d::Interval)=d.a
-Base.last(d::Interval)=d.b
-Base.isempty(d::Interval)=isapprox(d.a,d.b;atol=200eps(eltype(d)))
+Base.first(d::Interval) = d.a
+Base.last(d::Interval) = d.b
+Base.isempty(d::Interval) = isapprox(d.a,d.b;atol=200eps(eltype(d)))
 
-Base.issubset(a::Interval,b::Interval)=first(a)∈b && last(a)∈b
+Base.issubset(a::Interval,b::Interval) = first(a)∈b && last(a)∈b
 
 
 
@@ -73,8 +67,8 @@ fromcanonicalD(d::Interval,x) = (d.b- d.a) / 2
 
 
 arclength(d::Interval) = norm(d.b - d.a)
-Base.angle(d::Interval)=angle(d.b-d.a)
-complexlength(d::Interval)=d.b-d.a
+Base.angle(d::Interval) = angle(d.b-d.a)
+complexlength(d::Interval) = d.b-d.a
 
 
 ==(d::Interval,m::Interval) = d.a == m.a && d.b == m.b
