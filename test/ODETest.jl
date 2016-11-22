@@ -1,5 +1,5 @@
 using ApproxFun,Base.Test
-import ApproxFun.Multiplication
+    import ApproxFun.Multiplication
 
 
 ##Airy equation
@@ -193,3 +193,11 @@ L=x^2*𝒟^2 + x*𝒟 + (x^2 - ν^2)   # our differential operator
 
 
 @test_approx_eq_eps u(1900.) besselj(ν,1900.) 1000eps()
+
+
+# complex RHS for real operatorB=ldirichlet()
+D=Derivative(Chebyshev())
+B=ldirichlet()
+u1=[B;D]\[0.;Fun(exp)+0im]
+u2=[B;D]\[0.;Fun(exp)]
+@test_approx_eq u1(0.1) u2(0.1)
