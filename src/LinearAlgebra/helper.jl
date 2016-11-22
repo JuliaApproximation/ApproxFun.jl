@@ -16,6 +16,23 @@ end
 isapprox(a...;kwds...) = Base.isapprox(a...;kwds...)
 isapprox(a::Vec,b::Vec;kwds...) = isapprox([a...],[b...];kwds...)
 
+# fast implementation of isapprox with atol a non-keyword argument in most cases
+isapprox_atol(a,b,atol;kwds...) = isapprox(a,b;atol=atol,kwds...)
+isapprox_atol(a::Vec,b::Vec,atol::Real=0;kwds...) = isapprox_atol([a...],[b...],atol;kwds...)
+function isapprox_atol(x::Number, y::Number, atol::Real=0; rtol::Real=Base.rtoldefault(x,y))
+    x == y || (isfinite(x) && isfinite(y) && abs(x-y) <= atol + rtol*max(abs(x), abs(y)))
+end
+function isapprox_atol{T<:Number,S<:Number}(x::AbstractArray{T}, y::AbstractArray{S},atol::Real=0; rtol::Real=Base.rtoldefault(T,S), norm::Function=vecnorm)
+    d = norm(x - y)
+    if isfinite(d)
+        return d <= atol + rtol*max(norm(x), norm(y))
+    else
+        # Fall back to a component-wise approximate comparison
+        return all(ab -> isapprox(ab[1], ab[2]; rtol=rtol, atol=atol), zip(x, y))
+    end
+end
+
+
 # This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
 # which we override for default julia types
 real(x...) = Base.real(x...)
