@@ -18,7 +18,7 @@ dom = Interval(-1.0,1) ∪ Interval(1.0+im,1+2im) ∪ Interval(-2.0+im,-1+2im)
 S = domainspace(⨍)
 @test ApproxFun.bandinds(⨍) == (0,2)
 
-f=Fun(rand(20),S)
+f=Fun(S,rand(20))
 
 @test_approx_eq DefiniteLineIntegral(dom[1])*f[1] linesum(f[1])
 @test_approx_eq DefiniteLineIntegral(dom[2])*f[2] linesum(f[2])
@@ -127,7 +127,7 @@ for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Interval(-2,-1))),
           JacobiWeight(-0.5,-0.5,Chebyshev(Interval(-2,-1+2im))),
           JacobiWeight(0.67,0.123,Chebyshev(Interval(-2,-1+2im))),
           JacobiWeight(0.67,0.123,Ultraspherical(1,Interval(-2,-1+2im))))
-    f=Fun([1.,2.,3.],S)
+    f=Fun(S,[1.,2.,3.])
     @test_approx_eq DefiniteIntegral(space(f))*f sum(f)
     @test_approx_eq DefiniteLineIntegral(space(f))*f linesum(f)
 end

@@ -63,5 +63,5 @@ end
 Base.reverse(d::Curve) = Curve(reverseorientation(d.curve))
 
 isambiguous(d::Curve) = ncoefficients(d.curve)==0 && isambiguous(domain(d.curve))
-Base.convert{S,T}(::Type{IntervalCurve{S,T}},::AnyDomain)=Fun([NaN],S(AnyDomain()))
-Base.convert{S,T}(::Type{PeriodicCurve{S,T}},::AnyDomain)=Fun([NaN],S(AnyDomain()))
+Base.convert{S,T}(::Type{IntervalCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])
+Base.convert{S,T}(::Type{PeriodicCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])

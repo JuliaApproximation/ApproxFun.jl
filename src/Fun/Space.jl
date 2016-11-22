@@ -371,7 +371,7 @@ function defaultcoefficients(f,a,b)
         if spacescompatible(a,csp)||spacescompatible(b,csp)
             # b is csp too, so we are stuck, try Fun constructor
             if domain(b)⊆domain(a)
-                coefficients(Fun(x->Fun(f,a)(x),b))
+                coefficients(Fun(x->Fun(a,f)(x),b))
             else
                 # we set the value to be zero off the domain of definition
                 # but first ensure that domain(b) has a jump
@@ -382,7 +382,7 @@ function defaultcoefficients(f,a,b)
 #                     error("$(d) is not a subcomponent of $(domain(b))")
 #                 end
 
-                coefficients(Fun(x->x∈d?Fun(f,a)(x):zero(Fun(f,a)(x)),b))
+                coefficients(Fun(x->x∈d?Fun(a,f)(x):zero(Fun(a,f)(x)),b))
             end
         else
             coefficients(f,a,csp,b)
@@ -399,8 +399,8 @@ coefficients(f,a,b) = defaultcoefficients(f,a,b)
 ## TODO: remove zeros
 Base.zero(S::Space) = zeros(S)
 Base.zero{T<:Number}(::Type{T},S::Space) = zeros(T,S)
-Base.zeros{T<:Number}(::Type{T},S::Space) = Fun(zeros(T,1),S)
-Base.zeros(S::Space) = Fun(zeros(1),S)
+Base.zeros{T<:Number}(::Type{T},S::Space) = Fun(S,zeros(T,1))
+Base.zeros(S::Space) = Fun(S,zeros(1))
 
 # catch all
 Base.ones(S::Space) = Fun(x->1.0,S)
@@ -415,7 +415,7 @@ function identity_fun(d::Domain)
     else
         # this allows support for singularities, that the constructor doesn't
         sf=fromcanonical(d,Fun(identity,cd))
-        Fun(coefficients(sf),setdomain(space(sf),d))
+        Fun(setdomain(space(sf),d),coefficients(sf))
     end
 end
 

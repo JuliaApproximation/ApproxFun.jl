@@ -137,7 +137,7 @@ rsp=Legendre([0.,1.])⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,[0.,1.]))
 
 
 C=Conversion(dsp,rsp)
-f=Fun([1.,2.,3.,4.,5.],dsp)
+f=Fun(dsp,[1.,2.,3.,4.,5.])
 @test_approx_eq f(0.1) (C*f)(0.1)
 
 

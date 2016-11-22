@@ -16,7 +16,7 @@ u=sqrt(4-x.^2)/(2π)
 
 f=Fun(x->x.*cot(π*x/2))
 x=Fun(identity)
-u=Fun((f./(1-x.^2)).coefficients,JacobiWeight(1.,1.,Interval()))
+u=Fun(JacobiWeight(1.,1.,Interval()),(f./(1-x.^2)).coefficients)
 @test_approx_eq 1./(.1.*cot(π*.1/2)) (1./u)(.1)
 
 @test_approx_eq (x./u)(.1) tan(π*.1/2)
@@ -33,7 +33,7 @@ f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeight(-.5,-.5))
 S=JacobiWeight(-1.,-1.,Chebyshev([0.,1.]))
 D=Derivative(S)
 
-f=Fun(Fun(exp,[0.,1.]).coefficients,S)
+f=Fun(S,Fun(exp,[0.,1.]).coefficients)
 x=.1
 @test_approx_eq f(x) exp(x)*x^(-1).*(1-x)^(-1)/4
 @test_approx_eq (D*f)(x) -exp(x)*(1+(x-3)*x)/(4*(x-1)^2*x^2)
@@ -42,7 +42,7 @@ x=.1
 S=JacobiWeight(-1.,0.,Chebyshev([0.,1.]))
 D=Derivative(S)
 
-f=Fun(Fun(exp,[0.,1.]).coefficients,S)
+f=Fun(S,Fun(exp,[0.,1.]).coefficients)
 x=.1
 @test_approx_eq f(x) exp(x)*x^(-1)/2
 @test_approx_eq (D*f)(x) exp(x)*(x-1)/(2x^2)
@@ -227,14 +227,14 @@ x=Fun([0.,1.])
 
 
 S1,S2=JacobiWeight(3.,1.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(1.,0.))
-f=Fun([1,2,3.],S1)
+f=Fun(S1,[1,2,3.])
 C=Conversion(S1,S2)
 Cf=C*f
 @test_approx_eq Cf(0.1) f(0.1)
 
 
 S1,S2=JacobiWeight(3.,2.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(0.,0.))
-f=Fun([1,2,3.],S1)
+f=Fun(S1,[1,2,3.])
 C=Conversion(S1,S2)
 Cf=C*f
 @test_approx_eq Cf(0.1) f(0.1)

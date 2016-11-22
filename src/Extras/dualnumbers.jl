@@ -2,8 +2,8 @@
 real{T}(::Type{Dual{T}}) = Dual{ApproxFun.real(T)}
 
 # Dual number support. Should there be realpart and dualpart of Space and Domain?
-DualNumbers.realpart{S,T<:Dual}(f::Fun{S,T}) = Fun(realpart(coefficients(f)),space(f))
-DualNumbers.dualpart{S,T<:Dual}(f::Fun{S,T}) = Fun(dualpart(coefficients(f)),space(f))
+DualNumbers.realpart{S,T<:Dual}(f::Fun{S,T}) = Fun(space(f),realpart(coefficients(f)))
+DualNumbers.dualpart{S,T<:Dual}(f::Fun{S,T}) = Fun(space(f),dualpart(coefficients(f)))
 
 
 DualNumbers.realpart{DD<:Dual}(d::Interval{DD}) = Interval(realpart(d.a),realpart(d.b))
@@ -90,7 +90,7 @@ function dualcfsFun(f,S)
 
         if maxabs(realpart(cf.coefficients[end-8:end]))<maxabs(dualpart(cf.coefficients[end-8:end]))*tol &&
                                 all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
-            return Fun(realpart(simplifycfs!(cf.coefficients,tol*length(cf))),S)
+            return Fun(S,realpart(simplifycfs!(cf.coefficients,tol*length(cf))))
         end
     end
     warn("Maximum length "*string(2^20+1)*" reached")

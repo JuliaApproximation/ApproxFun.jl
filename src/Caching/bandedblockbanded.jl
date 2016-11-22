@@ -2,8 +2,8 @@ function CachedOperator(::Type{BandedBlockBandedMatrix},op::Operator)
     l,u=blockbandwidths(op)
     λ,μ=subblockbandwidths(op)
     data=BandedBlockBandedMatrix(eltype(op),l,u,λ,μ,
-                            ApproxFun.blocklengths(rangespace(op))[1:0],
-                            ApproxFun.blocklengths(domainspace(op))[1:0])
+                            blocklengths(rangespace(op))[1:0],
+                            blocklengths(domainspace(op))[1:0])
     CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),false)
 end
 

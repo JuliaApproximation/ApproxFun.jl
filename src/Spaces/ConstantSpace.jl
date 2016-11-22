@@ -26,8 +26,8 @@ Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)
 
 ## Constant space defintions
 
-Fun(c::Number)=Fun([c],ConstantSpace())
-Fun(c::Number,d::ConstantSpace)=Fun([c],d)
+Fun(c::Number) = Fun(ConstantSpace(),[c])
+Fun(c::Number,d::ConstantSpace) = Fun(d,[c])
 
 dimension(::ConstantSpace) = 1
 
@@ -37,7 +37,7 @@ setdomain{CS<:AnyDomain}(f::Fun{CS},d::Domain) = Number(f)*ones(d)
 canonicalspace(C::ConstantSpace) = C
 spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
 
-Base.ones(S::ConstantSpace)=Fun(ones(1),S)
+Base.ones(S::ConstantSpace)=Fun(S,ones(1))
 Base.ones(S::Union{AnyDomain,UnsetSpace})=ones(ConstantSpace())
 Base.zeros(S::Union{AnyDomain,UnsetSpace})=zeros(ConstantSpace())
 evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]

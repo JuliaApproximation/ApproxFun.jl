@@ -8,26 +8,26 @@ function coefficients{C<:Chebyshev,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeig
     if isapprox(c,α) && isapprox(d,β)
         f
     elseif c>α && d>β
-        g=Fun(f,sp1.space)
+        g=Fun(sp1.space,f)
         @assert abs(first(g))<tol && abs(last(g))<tol
         coefficients(divide_singularity(g).coefficients,JacobiWeight(α+1,β+1,sp1.space),sp2)
     elseif c>α
-        g=Fun(f,sp1.space)
+        g=Fun(sp1.space,f)
         @assert abs(first(g))<tol
         coefficients(divide_singularity(false,g).coefficients,JacobiWeight(α+1,β,sp1.space),sp2)
     elseif d>β
-        g=Fun(f,sp1.space)
+        g=Fun(sp1.space,f)
         @assert abs(last(g))<tol
         coefficients(divide_singularity(true,g).coefficients,JacobiWeight(α,β+1,sp1.space),sp2)
     elseif c<α && d<β
         x=Fun()
-        coefficients(((1-x^2)*Fun(f,Chebyshev())).coefficients,JacobiWeight(α-1,β-1,sp1.space),sp2)
+        coefficients(((1-x^2)*Fun(Chebyshev(),f)).coefficients,JacobiWeight(α-1,β-1,sp1.space),sp2)
     elseif d<β
         x=Fun()
-        coefficients(((1-x)*Fun(f,Chebyshev())).coefficients,JacobiWeight(α,β-1,sp1.space),sp2)
+        coefficients(((1-x)*Fun(Chebyshev(),f)).coefficients,JacobiWeight(α,β-1,sp1.space),sp2)
     elseif c<α
         x=Fun()
-        coefficients(((1+x)*Fun(f,Chebyshev())).coefficients,JacobiWeight(α-1,β,sp1.space),sp2)
+        coefficients(((1+x)*Fun(Chebyshev(),f)).coefficients,JacobiWeight(α-1,β,sp1.space),sp2)
     else
         error("Something has gone wrong")
     end

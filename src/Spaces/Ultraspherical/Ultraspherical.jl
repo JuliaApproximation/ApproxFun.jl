@@ -81,8 +81,8 @@ itransform(S::Ultraspherical,cfs,pl::UltrasphericalIPlan) = pl*cfs
 
 #domain(S) may be any domain
 
-Base.ones{T<:Number}(::Type{T},S::Ultraspherical) = Fun(ones(T,1),S)
-Base.ones(S::Ultraspherical) = Fun(ones(1),S)
+Base.ones{T<:Number}(::Type{T},S::Ultraspherical) = Fun(S,ones(T,1))
+Base.ones(S::Ultraspherical) = Fun(S,ones(1))
 
 
 

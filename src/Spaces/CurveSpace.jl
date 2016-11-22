@@ -15,8 +15,8 @@ Base.convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f
 
 
 
-identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(domain(d).curve.coefficients,
-                                              setdomain(space(domain(d).curve),domain(d)))
+identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(setdomain(space(domain(d).curve),domain(d)),
+                                                domain(d).curve.coefficients)
 
 # Bernstein polynomials are given by:
 #
@@ -48,7 +48,7 @@ spacescompatible{O,T}(a::Bernstein{O,T},b::Bernstein{O,T})=domainscompatible(a,b
 
 setdomain{O}(S::Bernstein{O},d::Domain)=Bernstein{O}(d)
 
-identity_fun{order,T}(B::Bernstein{order,T})=Fun(collect(-one(T):2one(T)/order:one(T)),B)
+identity_fun{order,T}(B::Bernstein{order,T})=Fun(B,collect(-one(T):2one(T)/order:one(T)))
 
 evaluate(f::AbstractVector,S::Bernstein,z) = decasteljau(f,S,tocanonical(S,z))
 
@@ -94,7 +94,8 @@ function splitbernstein(f::AbstractVector,S::Bernstein,z)
         β1[order(S)+2-i] = β[1]
         β2[i] = β[i]
     end
-    Fun(interlace(β1,β2),PiecewiseSpace(Bernstein{order(S)}(Interval(first(domain(S)),z)),Bernstein{order(S)}(Interval(z,last(domain(S))))))
+    Fun(PiecewiseSpace(Bernstein{order(S)}(Interval(first(domain(S)),z)),Bernstein{order(S)}(Interval(z,last(domain(S))))),
+        interlace(β1,β2))
 end
 
 Fun(f::Function,S::Bernstein) = Fun(Fun(f,canonicalspace(S),dimension(S)),S)

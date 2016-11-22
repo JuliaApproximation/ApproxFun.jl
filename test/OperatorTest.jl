@@ -36,7 +36,7 @@ testbandedoperator(C)
 
 
 @time for M in (HankelOperator([1.,2.,3.,4.,5.,6.,7.]),
-            Multiplication(Fun([1.,2.,3.],Chebyshev()),Chebyshev()))
+            Multiplication(Fun(Chebyshev(),[1.,2.,3.]),Chebyshev()))
     testbandedoperator(M)
 end
 
@@ -130,7 +130,7 @@ L=D^2+a1*D+a0
 
 @time testbandedoperator(L)
 
-f=Fun([1,2,3,4,5],space(a1))
+f=Fun(space(a1),[1,2,3,4,5])
 
 testbandedoperator(Multiplication(a0,Fourier([0.,2π])))
 

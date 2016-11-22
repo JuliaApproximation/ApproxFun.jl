@@ -184,12 +184,12 @@ g=Fun(f,Space(PeriodicInterval(-π,π)))
 S1=Chebyshev()^2
 S2=Chebyshev()
 TS=TupleSpace((ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])))
-f=Fun(collect(1:10),TS)
-@test f[1] == Fun([1.],TS[1])
-@test f[2] == Fun([2.,6.,7.,10.],TS[2])
-@test f[3] == Fun([3.],TS[3])
-@test f[4] == Fun([4.,8.],TS[4])
-@test f[5] == Fun([5.,9.],TS[5])
+f=Fun(TS,collect(1:10))
+@test f[1] == Fun(TS[1],[1.])
+@test f[2] == Fun(TS[2],[2.,6.,7.,10.])
+@test f[3] == Fun(TS[3],[3.])
+@test f[4] == Fun(TS[4],[4.,8.])
+@test f[5] == Fun(TS[5],[5.,9.])
 
 ## Operator * Matrix
 

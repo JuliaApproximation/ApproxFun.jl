@@ -47,11 +47,11 @@ include("CurveSpace.jl")
 function invfromcanonicalD(S::Laurent{PeriodicLine{false}})
     d=domain(S)
     @assert d.center==0  && d.L==1.0
-    a=Fun([1.,.5,.5],Laurent())
+    a=Fun(Laurent(),[1.,.5,.5])
 end
 
 function invfromcanonicalD(S::LaurentDirichlet{PeriodicLine{false}})
     d=domain(S)
     @assert d.center==0  && d.L==1.0
-    a=Fun([1.,.5,.5],Laurent())
+    a=Fun(Laurent(),[1.,.5,.5])
 end

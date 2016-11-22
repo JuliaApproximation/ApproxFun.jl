@@ -130,16 +130,16 @@ include("JacobiOperators.jl")
 
 
 for op in (:(Base.ones),:(Base.zeros))
-    @eval ($op){T<:Number}(::Type{T},S::Jacobi)=Fun(($op)(T,1),S)
-    @eval ($op)(S::Jacobi)=Fun(($op)(1),S)
+    @eval ($op){T<:Number}(::Type{T},S::Jacobi)=Fun(S,($op)(T,1))
+    @eval ($op)(S::Jacobi)=Fun(S,($op)(1))
 end
 
 function identity_fun(J::Jacobi)
     if domain(J)==Interval()
-        Fun([(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)],J)
+        Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])
     else
         d=domain(J)
-        complexlength(d)/2*(Fun([(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)],J)+1.)+first(d)
+        complexlength(d)/2*(Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])+1.)+first(d)
     end
 end
 

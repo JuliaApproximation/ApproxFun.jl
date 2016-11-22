@@ -156,7 +156,7 @@ function Base.vcat(vin::Fun...)
         S=TupleSpace(sps)
     end
 
-    Fun(interlace(v,S),S)
+    Fun(S,interlace(v,S))
 end
 
 Base.vcat(v::Union{Fun,Number}...) = vcat(map(Fun,v)...)
@@ -169,7 +169,7 @@ function devec{F<:Fun}(v::Vector{F})
         S=TupleSpace(sps)
     end
 
-    Fun(interlace(v,S),S)
+    Fun(S,interlace(v,S))
 end
 
 devec(v::Vector{Any})=devec([v...])
@@ -183,7 +183,7 @@ end
 
 function demat{FF<:Fun}(v::Array{FF})
     ff=devec(vec(v))  # A vectorized version
-    Fun(coefficients(ff),ArraySpace(space(ff).space,size(v)...))
+    Fun(ArraySpace(space(ff).space,size(v)...),coefficients(ff))
 end
 
 demat(v::Vector{Any})=devec(v)
@@ -222,21 +222,21 @@ end
 
 spacescompatible(AS::ArraySpace,BS::ArraySpace)=size(AS)==size(BS) && spacescompatible(AS.space,BS.space)
 canonicalspace(AS::ArraySpace)=ArraySpace(canonicalspace(AS.space),size(AS))
-evaluate(f::AbstractVector,S::ArraySpace,x)=map(g->evaluate(g,x),mat(Fun(f,S)))
+evaluate(f::AbstractVector,S::ArraySpace,x)=map(g->evaluate(g,x),mat(Fun(S,f)))
 
 for OP in (:(Base.transpose),)
     @eval $OP{AS<:ArraySpace,T}(f::Fun{AS,T}) = demat($OP(mat(f)))
 end
 
 
-Base.reshape{AS<:ArraySpace}(f::Fun{AS},k...) = Fun(f.coefficients,reshape(space(f),k...))
+Base.reshape{AS<:ArraySpace}(f::Fun{AS},k...) = Fun(reshape(space(f),k...),f.coefficients)
 
 Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...) = demat(diff(mat(f),n...))
 
 ## conversion
 
 coefficients(f::Vector,a::VectorSpace,b::VectorSpace) =
-    interlace(map(coefficients,Fun(f,a),b),b)
+    interlace(map(coefficients,Fun(a,f),b),b)
 
 coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) =
     interlace(map(coefficients,Q,rs),rs)
@@ -244,8 +244,8 @@ coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) =
 
 
 
-Fun{FF<:Fun}(f::Vector{FF},d::VectorSpace) = Fun(coefficients(f,d),d)
-Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(coefficients(f,d),d)
+Fun{FF<:Fun}(f::Vector{FF},d::VectorSpace) = Fun(d,coefficients(f,d))
+Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(d,coefficients(f,d))
 
 
 
@@ -254,7 +254,7 @@ Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(coefficients(f,d),d)
 ## constructor
 
 # change to ArraySpace
-Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = space(f)==d ? f : Fun(coefficients(f,d),d)
+Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = space(f)==d ? f : Fun(d,coefficients(f,d))
 Fun{AS<:ArraySpace}(f::Fun{AS},d::Space) = Fun(f,ArraySpace(d,space(f).dimensions))
 
 

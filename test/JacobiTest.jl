@@ -142,7 +142,7 @@ h = Fun(g,Chebyshev())
 
 S=JacobiWeight(1,1,Ultraspherical(1))
 
-f=Fun([1.,2.,3.],S)
+f=Fun(S,[1.,2.,3.])
 @test_approx_eq (Derivative(S,2)*f)(0.1) f''(0.1)
 
 
@@ -152,7 +152,7 @@ f=Fun([1.,2.,3.],S)
 @test WeightedJacobi(0.1,0.2) == WeightedJacobi(0.1+eps(),0.2)
 
 # this tests a subspace bug
-f=Fun(rand(10),WeightedJacobi(0.1,0.2))  # convert to Legendre expansion
+f=Fun(WeightedJacobi(0.1,0.2),rand(10))  # convert to Legendre expansion
 
 g=(f|(2:ApproxFun.∞))
 
@@ -165,7 +165,7 @@ S=Jacobi(0.1,1.2)
 x=Fun()
 
 
-p=(S,k)->Fun([zeros(k);1.],S)
+p=(S,k)->Fun(S,[zeros(k);1.])
 n=1;
 @test norm(x*p(S,n-1)-(ApproxFun.recα(Float64,S,n)*p(S,n-1) + ApproxFun.recβ(Float64,S,n)*p(S,n))) < 10eps()
 

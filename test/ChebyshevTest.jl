@@ -1,6 +1,10 @@
 using ApproxFun, Base.Test
     import ApproxFun: testspace
 
+testspace(Chebyshev())
+
+ApproxFun.identity_fun(Chebyshev())
+
 for d in (Interval(),Interval(1.,2.),Interval(1.0+im,2.0+2im))
     testspace(Chebyshev(d))
 end
@@ -119,8 +123,8 @@ f=Fun(x->cos(50acos(x)))
 @test_approx_eq Fun(x->2)(.1) 2
 
 
-@test_approx_eq Fun(Float64[],Chebyshev)([0.,1.]) [0.,0.]
-@test_approx_eq Fun([],Chebyshev)(0.) 0.
+@test_approx_eq Fun(Chebyshev,Float64[])([0.,1.]) [0.,0.]
+@test_approx_eq Fun(Chebyshev,[])(0.) 0.
 @test_approx_eq Fun(x->[1.,0.])(0.) [1.,0.]
 
 

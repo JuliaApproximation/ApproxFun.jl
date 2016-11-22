@@ -175,7 +175,7 @@ function Base.conj{DD}(f::Fun{Laurent{DD}})
     for k=3:2:ncoefficients(f)+1
         cfs[k]=conj(f.coefficients[k-1])
     end
-    Fun(cfs,space(f))
+    Fun(space(f),cfs)
 end
 
 ## Fourier space
@@ -287,8 +287,8 @@ end
 
 for sp in (:Fourier,:CosSpace,:Laurent,:Taylor)
     @eval begin
-        Base.ones{T<:Number,D}(::Type{T},S::$sp{D})=Fun(ones(T,1),S)
-        Base.ones{D}(S::$sp{D})=Fun(ones(1),S)
+        Base.ones{T<:Number,D}(::Type{T},S::$sp{D})=Fun(S,ones(T,1))
+        Base.ones{D}(S::$sp{D})=Fun(S,ones(1))
     end
 end
 
@@ -296,7 +296,7 @@ end
 function identity_fun{DD<:Circle}(S::Taylor{DD})
     d=domain(S)
     if d.orientation
-        Fun([d.center,d.radius],S)
+        Fun(S,[d.center,d.radius])
     else
         error("Cannot create identity on $S")
     end
@@ -306,7 +306,8 @@ end
 identity_fun{DD<:Circle}(S::Fourier{DD}) = Fun(identity_fun(Laurent(domain(S))),S)
 
 
-reverseorientation{D}(f::Fun{Fourier{D}})=Fun(alternatesign!(copy(f.coefficients)),Fourier(reverse(domain(f))))
+reverseorientation{D}(f::Fun{Fourier{D}}) =
+    Fun(Fourier(reverse(domain(f))),alternatesign!(copy(f.coefficients)))
 function reverseorientation{D}(f::Fun{Laurent{D}})
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
     n=ncoefficients(f)
@@ -320,7 +321,7 @@ function reverseorientation{D}(f::Fun{Laurent{D}})
     end
     iseven(n) && (ret[n] = 0)
 
-    Fun(ret,Laurent(reverse(domain(f))))
+    Fun(Laurent(reverse(domain(f))),ret)
 end
 
 include("calculus.jl")

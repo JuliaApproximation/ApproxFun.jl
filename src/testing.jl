@@ -30,7 +30,7 @@ end
 function testcalculus(S::Space;haslineintegral=true)
     for k=1:min(5,dimension(S))
         v = [zeros(k-1);1.0]
-        f = Fun(v,S)
+        f = Fun(S,v)
         @test abs(DefiniteIntegral()*f-sum(f)) < 100eps()
         if haslineintegral
             @test_approx_eq DefiniteLineIntegral()*f linesum(f)

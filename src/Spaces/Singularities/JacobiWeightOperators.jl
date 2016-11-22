@@ -11,13 +11,13 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
         function $Func{C<:Chebyshev,DD<:Interval}(f::Fun{JacobiWeight{C,DD}})
             tol=1e-10
             d,α,β,n=domain(f),f.space.α,f.space.β,ncoefficients(f)
-            g=Fun(f.coefficients,space(f).space)
+            g=Fun(space(f).space,f.coefficients)
             if α ≤ -1.0 && abs(first(g))≤tol
                 $Func(increase_jacobi_parameter(-1,f))
             elseif β ≤ -1.0 && abs(last(g))≤tol
                 $Func(increase_jacobi_parameter(+1,f))
             elseif α ≤ -1.0 || β ≤ -1.0
-                fs = Fun(f.coefficients,f.space.space)
+                fs = Fun(f.space.space,f.coefficients)
                 return Inf*0.5*$Len(d)*(sign(fs(d.a))+sign(fs(d.b)))/2
             elseif α == β == -0.5
                 return 0.5*$Len(d)*f.coefficients[1]*π
@@ -50,28 +50,28 @@ end
 function differentiate{J<:JacobiWeight,DD<:Interval}(f::Fun{J,DD})
     S=f.space
     d=domain(f)
-    ff=Fun(f.coefficients,S.space)
+    ff=Fun(S.space,f.coefficients)
     if S.α==S.β==0
         u=differentiate(ff)
-        Fun(u.coefficients,JacobiWeight(0.,0.,space(u)))
+        Fun(JacobiWeight(0.,0.,space(u)),u.coefficients)
     elseif S.α==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)
         u=-Mp*S.β*ff +(1-M).*differentiate(ff)
-        Fun(u.coefficients,JacobiWeight(0.,S.β-1,space(u)))
+        Fun(JacobiWeight(0.,S.β-1,space(u)),u.coefficients)
     elseif S.β==0
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)
         u=Mp*S.α*ff +(1+M).*differentiate(ff)
-        Fun(u.coefficients,JacobiWeight(S.α-1,0.,space(u)))
+        Fun(JacobiWeight(S.α-1,0.,space(u)),u.coefficients)
     else
         x=Fun(identity,d)
         M=tocanonical(d,x)
         Mp=tocanonicalD(d,d.a)
         u=(Mp*S.α)*(1-M).*ff- (Mp*S.β)*(1+M).*ff +(1-M.^2).*differentiate(ff)
-        Fun(u.coefficients,JacobiWeight(S.α-1,S.β-1,space(u)))
+        Fun(JacobiWeight(S.α-1,S.β-1,space(u)),u.coefficients)
     end
 end
 
@@ -82,7 +82,7 @@ function integrate{SS,DD<:Interval}(f::Fun{JacobiWeight{SS,DD}})
     # we integrate by solving u'=f
     D=Derivative(S)
     tol=1e-10
-    g=Fun(f.coefficients,S.space)
+    g=Fun(S.space,f.coefficients)
     if isapprox(S.α,0.) && isapprox(S.β,0.)
         integrate(g)
     elseif S.α ≤ -1.0 && abs(first(g))≤tol
@@ -93,19 +93,19 @@ function integrate{SS,DD<:Interval}(f::Fun{JacobiWeight{SS,DD}})
         error("Implement")
     elseif isapprox(S.α,-1) && isapprox(S.β,0)
         p=first(g)  # first value without weight
-        fp = Fun(f-Fun([p],S),S.space)  # Subtract out right value and divide singularity via conversion
+        fp = Fun(f-Fun(S,[p]),S.space)  # Subtract out right value and divide singularity via conversion
         d=domain(f)
         Mp=tocanonicalD(d,d.a)
-        integrate(fp)⊕Fun([p/Mp],LogWeight(1.,0.,S.space))
+        integrate(fp)⊕Fun(LogWeight(1.,0.,S.space),[p/Mp])
     elseif isapprox(S.α,-1) && S.β > 0 && isapproxinteger(S.β)
         # convert to zero case and integrate
         integrate(Fun(f,JacobiWeight(S.α,0.,S.space)))
     elseif isapprox(S.β,-1) && isapprox(S.α,0.)
         p=last(g)  # last value without weight
-        fp = Fun(f-Fun([p],S),S.space)  # Subtract out right value and divide singularity via conversion
+        fp = Fun(f-Fun(S,[p]),S.space)  # Subtract out right value and divide singularity via conversion
         d=domain(f)
         Mp=tocanonicalD(d,d.a)
-        integrate(fp)⊕Fun([-p/Mp],LogWeight(0.,1.,S.space))
+        integrate(fp)⊕Fun(LogWeight(0.,1.,S.space),[-p/Mp])
     elseif isapprox(S.β,-1) && S.α > 0 && isapproxinteger(S.α)
         # convert to zero case and integrate
         integrate(Fun(f,JacobiWeight(0.,S.β,S.space)))
@@ -118,7 +118,7 @@ function integrate{SS,DD<:Interval}(f::Fun{JacobiWeight{SS,DD}})
         else
             # we normalized so it sums to zero, and so backslash works
             w=Fun(x->exp(-40x^2),81)
-            w1=Fun(coefficients(w),S)
+            w1=Fun(S,coefficients(w))
             w2=Fun(x->w1(x),domain(w1))
             c=s/sum(w1)
             v=f-w1*c
@@ -158,19 +158,19 @@ function jacobiweightDerivative{SS,DDD<:Interval}(S::JacobiWeight{SS,DDD})
     if S.α==S.β==0
         DerivativeWrapper(SpaceOperator(Derivative(S.space),S,JacobiWeight(0.,0.,rangespace(Derivative(S.space)))),1)
     elseif S.α==0
-        w=Fun([1.],JacobiWeight(0,1,ConstantSpace(d)))
+        w=Fun(JacobiWeight(0,1,ConstantSpace(d)),[1.])
 
         DD=-S.β + w*Derivative(S.space)
         rs=S.β==1?rangespace(DD):JacobiWeight(0.,S.β-1,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     elseif S.β==0
-        w=Fun([1.],JacobiWeight(1,0,ConstantSpace(d)))
+        w=Fun(JacobiWeight(1,0,ConstantSpace(d)),[1.])
 
         DD=S.α + w*Derivative(S.space)
         rs=S.α==1?rangespace(DD):JacobiWeight(S.α-1,0.,rangespace(DD))
         DerivativeWrapper(SpaceOperator(DD,S,rs),1)
     else
-        w=Fun([1.],JacobiWeight(1,1,ConstantSpace(d)))
+        w=Fun(JacobiWeight(1,1,ConstantSpace(d)),[1.])
         x=Fun()
 
         DD=S.α*(1-x) - S.β*(1+x) + w*Derivative(S.space)
@@ -198,7 +198,7 @@ end
 #Left multiplication. Here, S is considered the domainspace and we determine rangespace accordingly.
 
 function Multiplication{S1,S2,DD<:IntervalDomain,T}(f::Fun{JacobiWeight{S1,DD},T},S::JacobiWeight{S2,DD})
-    M=Multiplication(Fun(f.coefficients,space(f).space),S.space)
+    M=Multiplication(Fun(space(f).space,f.coefficients),S.space)
     if space(f).α+S.α==space(f).β+S.β==0
         rsp=rangespace(M)
     else
@@ -214,7 +214,7 @@ function Multiplication{D,T,SS,DD<:IntervalDomain}(f::Fun{D,T},S::JacobiWeight{S
 end
 
 function Multiplication{SS,T,ID<:IntervalDomain}(f::Fun{JacobiWeight{SS,ID},T},S::PolynomialSpace{ID})
-    M=Multiplication(Fun(f.coefficients,space(f).space),S)
+    M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
@@ -222,7 +222,7 @@ end
 #Right multiplication. Here, S is considered the rangespace and we determine domainspace accordingly.
 
 function Multiplication{DD<:IntervalDomain,SS,S2,T}(S::JacobiWeight{SS,DD},f::Fun{JacobiWeight{S2,DD},T})
-    M=Multiplication(Fun(f.coefficients,space(f).space),S.space)
+    M=Multiplication(Fun(space(f).space,f.coefficients),S.space)
     dsp=canonicalspace(JacobiWeight(S.α-space(f).α,S.β-space(f).β,rangespace(M)))
     MultiplicationWrapper(f,SpaceOperator(M,dsp,S))
 end
@@ -386,7 +386,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             if dsp.α==dsp.β==λ-0.5
                 k == 1? T(C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T))) : zero(T)
             else
-                T($Sum(Fun([zeros(T,k-1);1],dsp)))
+                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
         end
 
@@ -399,7 +399,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             if dsp.α==dsp.β==λ-0.5
                 T[k == 1? C*gamma(λ+one(T)/2)*gamma(one(T)/2)/gamma(λ+one(T)) : zero(T) for k=kr]
             else
-                T[$Sum(Fun([zeros(T,k-1);1],dsp)) for k=kr]
+                T[$Sum(Fun(dsp,[zeros(T,k-1);1])) for k=kr]
             end
         end
 
@@ -422,7 +422,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             if dsp.α==dsp.β==-0.5
                 k == 1? T(C*π) : zero(T)
             else
-                T($Sum(Fun([zeros(T,k-1);1],dsp)))
+                T($Sum(Fun(dsp,[zeros(T,k-1);1])))
             end
         end
 
@@ -434,7 +434,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             if dsp.α==dsp.β==-0.5
                 T[k == 1? C*π : zero(T) for k=kr]
             else
-                T[$Sum(Fun([zeros(T,k-1);1],dsp)) for k=kr]
+                T[$Sum(Fun(dsp,[zeros(T,k-1);1])) for k=kr]
             end
         end
 

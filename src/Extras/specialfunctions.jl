@@ -84,7 +84,7 @@ for OP in (:(sign),:(angle))
         pts=roots(f)
 
         if isempty(pts)
-            sign(first(f))*one(f)
+            $OP(first(f))*one(f)
         else
             @assert isa(d,AffineDomain)
             da=first(d)
@@ -92,7 +92,7 @@ for OP in (:(sign),:(angle))
             db=last(d)
             isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
             midpts = .5(pts[1:end-1]+pts[2:end])
-            Fun(sign(f(midpts)),pts)
+            Fun(Domain(pts),$OP(f(midpts)))
         end
     end
 end
@@ -161,10 +161,10 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
             return linsolve(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
             # we check directly for f*(1+x)
-            return Fun([c./fc.coefficients[1]],JacobiWeight(-1,0,space(f)))
+            return Fun(JacobiWeight(-1,0,space(f)),[c./fc.coefficients[1]])
         elseif isapprox(fc.coefficients[1],-fc.coefficients[2])
             # we check directly for f*(1-x)
-            return Fun([c./fc.coefficients[1]],JacobiWeight(0,-1,space(f)))
+            return Fun(JacobiWeight(0,-1,space(f)),[c./fc.coefficients[1]])
         else
             # we need to split at the only root
             return c./splitatroots(f)
@@ -215,20 +215,20 @@ function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
     @assert length(r) <= 2
 
     if length(r) == 0
-        Fun(Fun(x->fc(x)^k).coefficients,sp)
+        Fun(sp,Fun(x->fc(x)^k).coefficients)
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(true,fc)^k),JacobiWeight(0.,k,sp))
+            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k))
         else
-            Fun(coefficients(divide_singularity(false,fc)^k),JacobiWeight(k,0.,sp))
+            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k))
         end
     else
         @assert isapprox(r[1],-1)
         @assert isapprox(r[2],1)
 
-        Fun(coefficients(divide_singularity(fc)^k),JacobiWeight(k,k,sp))
+        Fun(JacobiWeight(k,k,sp),coefficients(divide_singularity(fc)^k))
     end
 end
 
@@ -272,7 +272,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
 
             if isapprox(r[1],1.)
                 g=divide_singularity(true,f)
-                lg=Fun([1.],LogWeight(0.,1.,Chebyshev()))
+                lg=Fun(LogWeight(0.,1.,Chebyshev()),[1.])
                 if isapprox(g,1.)  # this means log(g)~0
                     lg
                 else # log((1-x)) + log(g)
@@ -280,7 +280,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
                 end
             else
                 g=divide_singularity(false,f)
-                lg=Fun([1.],LogWeight(1.,0.,Chebyshev()))
+                lg=Fun(LogWeight(1.,0.,Chebyshev()),[1.])
                 if isapprox(g,1.)  # this means log(g)~0
                     lg
                 else # log((1+x)) + log(g)
@@ -292,7 +292,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
             @assert isapprox(r[2],1)
 
             g=divide_singularity(f)
-            lg=Fun([1.],LogWeight(1.,1.,Chebyshev()))
+            lg=Fun(LogWeight(1.,1.,Chebyshev()),[1.])
             if isapprox(g,1.)  # this means log(g)~0
                 lg
             else # log((1+x)) + log(g)
@@ -382,7 +382,7 @@ function exp{JW<:JacobiWeight}(f::Fun{JW})
     end
 
     S=space(f)
-    q=Fun(f.coefficients,S.space)
+    q=Fun(S.space,f.coefficients)
     if isapprox(S.α,0.) && isapprox(S.β,0.)
         exp(q)
     elseif S.α < 0 && isapprox(first(q),0.)
@@ -685,10 +685,10 @@ end
 
 for OP in (:(abs),:(sign))
     # ambiguity warnings
-    @eval $OP{S<:PointSpace,T<:Real}(f::Fun{S,T})=Fun(map($OP,f.coefficients),space(f))
+    @eval $OP{S<:PointSpace,T<:Real}(f::Fun{S,T})=Fun(space(f),map($OP,f.coefficients))
 end
 for OP in (:(exp),:(abs),:(sign))
-    @eval $OP{S<:PointSpace}(f::Fun{S})=Fun(map($OP,f.coefficients),space(f))
+    @eval $OP{S<:PointSpace}(f::Fun{S})=Fun(space(f),map($OP,f.coefficients))
 end
 
 

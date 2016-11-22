@@ -59,6 +59,7 @@ Base.reverse(a::Point) = a
 
 canonicaldomain(a::Point) = Point(0.)
 tocanonical(a::Point,x) = x-a.x
+fromcanonical{V<:Vec}(a::Point{V},x::AbstractArray) = x+a.x
 fromcanonical(a::Point,x) = x+a.x
 
 points(a::Point,n) = eltype(a)[a.x]

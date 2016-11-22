@@ -16,12 +16,6 @@ end
 isapprox(a...;kwds...) = Base.isapprox(a...;kwds...)
 isapprox(a::Vec,b::Vec;kwds...) = isapprox([a...],[b...];kwds...)
 
-# fast implementation of isapprox with atol a non-keyword argument
-function isapprox_atol(x::Number, y::Number, atol::Real=0; rtol::Real=Base.rtoldefault(x,y))
-    x == y || (isfinite(x) && isfinite(y) && abs(x-y) <= atol + rtol*max(abs(x), abs(y)))
-end
-
-
 # This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
 # which we override for default julia types
 real(x...) = Base.real(x...)
