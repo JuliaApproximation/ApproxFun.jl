@@ -81,4 +81,6 @@ function Base.convert{T}(::Type{Operator{T}},D::ConversionWrapper)
 end
 
 
+Base.eye(A::Operator) = Conversion(domainspace(A),rangespace(A))
+
 #promotedomainspace(P::Conversion,sp::Space)=ConversionWrapper(eye(sp))

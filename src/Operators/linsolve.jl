@@ -18,7 +18,11 @@ function linsolve(A::Operator,b;kwds...)
     end
 end
 
+linsolve_coefficients(A::Operator,b;kwds...) = linsolve_coefficients(qrfact(A),b;kwds...)
+
+
 linsolve{OO<:Operator}(A::Array{OO},b;kwds...) = linsolve(interlace(A),b;kwds...)
+linsolve_coefficients{OO<:Operator}(A::Array{OO},b;kwds...) = linsolve_coefficients(interlace(A),b;kwds...)
 
 
 for p in (1,2)

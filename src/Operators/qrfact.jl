@@ -60,7 +60,7 @@ end
 
 # override for custom data types
 QROperator{T,AM<:AbstractMatrix}(R::CachedOperator{T,AM}) =
-    error("Cannot create a QR factorization for $typeof(R)")
+    error("Cannot create a QR factorization for $(typeof(R))")
 
 
 function Base.qrfact!(A::CachedOperator;cached::Int=0)
@@ -120,22 +120,57 @@ Base.det(A::Operator) = det(qrfact(A))
 
 ## Multiplication routines
 
-linsolve{CO,MT,T<:Real}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    QR[:R]\Ac_mul_B(QR[:Q],b;kwds...)
-linsolve{CO,MT,T<:Complex}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    QR[:R]\Ac_mul_B(QR[:Q],b;kwds...)
 
-linsolve{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
-    linsolve(QR,Vector{T}(b);kwds...)
+# Q
 
-linsolve{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
-    linsolve(QR,real(b);kwds...)+im*linsolve(QR,imag(b);kwds...)
-linsolve{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
-    linsolve(QR,Vector{T}(b);kwds...)
+At_mul_B_coefficients{T<:Real}(A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B(A,B)
+
+Ac_mul_B_coefficients(A::QROperatorQ,B::Vector;tolerance=eps(eltype(A))/10,maxlength=1000000) =
+        Ac_mul_Bpars(A,B,tolerance,maxlength)
+
+Ac_mul_B_coefficients{QR,T,V<:Number}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) =
+    Ac_mul_B_coefficients(A,Vector{T}(B);opts...)
+
+Base.Ac_mul_B(A::QROperatorQ,b;kwds...) =
+    Fun(domainspace(A),Ac_mul_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
+
+
+linsolve_coefficients(A::QROperatorQ,B;opts...) = Ac_mul_B_coefficients(A,B;opts...)
+linsolve(A::QROperatorQ,B;opts...) = Ac_mul_B(A,B;opts...)
+
+
+# R
+function linsolve_coefficients(R::QROperatorR,b::Vector)
+    if length(b) > R.QR.ncols
+        # upper triangularize columns
+        resizedata!(R.QR,:,length(b))
+    end
+    trtrs!(Val{'U'},R.QR.R,copy(b))
+end
+
+linsolve(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
+    Fun(domainspace(R),linsolve_coefficients(R,b.coefficients;kwds...))
+linsolve(A::QROperatorR,b::Fun;kwds...) = error("linsolve not implement for $(typeof(b)) right-hand sides")
+linsolve(A::QROperatorR,b;kwds...) = linsolve(A,Fun(b);kwds...)
 
 
 
-linsolve(QR::QROperator,b::Fun;kwds...) = linsolve(QR,coefficients(b,rangespace(QR));kwds...)
+# QR
+
+linsolve_coefficients{CO,MT,T<:Real}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
+    linsolve_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
+linsolve_coefficients{CO,MT,T<:Complex}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
+    linsolve_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
+
+linsolve_coefficients{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
+    linsolve_coefficients(QR,Vector{T}(b);kwds...)
+
+linsolve_coefficients{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
+    linsolve_coefficients(QR,real(b);kwds...)+im*linsolve_coefficients(QR,imag(b);kwds...)
+linsolve_coefficients{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
+    linsolve_coefficients(QR,Vector{T}(b);kwds...)
+
+
 function linsolve(QR::QROperator,b::Vector{Any};kwds...)
     #TODO: PDEQR remove this is a hack
     if length(b) == 1 && isa(b[1],Fun)
@@ -144,42 +179,14 @@ function linsolve(QR::QROperator,b::Vector{Any};kwds...)
         linsolve(QR,Fun(b,rangespace(QR));kwds...)
     end
 end
-linsolve{FF<:Fun}(QR::QROperator,b::Vector{FF};kwds...) = linsolve(QR,Fun(b,rangespace(QR));kwds...)
 function linsolve(A::QROperator,B::Matrix;kwds...)
     ds=domainspace(A)
-    ret=Array(Fun{typeof(ds),promote_type(mapreduce(eltype,promote_type,B),eltype(ds))},1,size(B,2))
+    ret=Array(Fun{typeof(ds),promote_type(mapreduce(eltype,promote_type,B),eltype(ds))},
+              1,size(B,2))
     for j=1:size(B,2)
         ret[:,j]=linsolve(A,B[:,j];kwds...)
     end
     demat(ret)
 end
-linsolve(A::QROperator,b;kwds...) = linsolve(A,Fun(b);kwds...)
-
-Base.Ac_mul_B(A::QROperatorQ,b::Vector{Any};kwds...) = Ac_mul_B(A,Fun(b,rangespace(A));kwds...)
-Base.Ac_mul_B{FF<:Fun}(A::QROperatorQ,b::Vector{FF};kwds...) = Ac_mul_B(A,Fun(b,rangespace(A));kwds...)
-
-Base.At_mul_B{T<:Real}(A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B(A,B)
-
-Base.Ac_mul_B(A::QROperatorQ,B::Vector;tolerance=eps(eltype(A))/10,maxlength=1000000) =
-        Ac_mul_Bpars(A,B,tolerance,maxlength)
-
-Base.Ac_mul_B{QR,T,V<:Number}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) =
-    Ac_mul_B(A,Vector{T}(B))
-
-Base.Ac_mul_B{QR,T}(A::QROperatorQ{QR,T},B::Fun;opts...) =
-    Ac_mul_B(A,coefficients(B,rangespace(A)))
-
-
-linsolve(A::QROperatorQ,B;opts...) = Ac_mul_B(A,B;opts...)
-
-function linsolve(R::QROperatorR,b::Vector)
-    if length(b) > R.QR.ncols
-        # upper triangularize columns
-        resizedata!(R.QR,:,length(b))
-    end
-    Fun(domainspace(R),trtrs!(Val{'U'},R.QR.R,copy(b)))
-end
-
-linsolve(R::QROperatorR,b::Fun{SequenceSpace};kwds...) = linsolve(R,b.coefficients;kwds...)
-linsolve(A::QROperatorR,b::Fun;kwds...) = error("linsolve not implement for $(typeof(b)) right-hand sides")
-linsolve(A::QROperatorR,b;kwds...) = linsolve(A,Fun(b);kwds...)
+linsolve(A::QROperator,b;kwds...) =
+    Fun(domainspace(A),linsolve_coefficients(A,coefficients(b,rangespace(A));kwds...))

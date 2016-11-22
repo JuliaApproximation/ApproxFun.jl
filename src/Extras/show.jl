@@ -167,9 +167,9 @@ end
 
 function Base.show(io::IO,f::Fun)
     print(io,"Fun(")
-    show(io,f.coefficients)
-    print(io,",")
     show(io,f.space)
+    print(io,",")
+    show(io,f.coefficients)
     print(io,")")
 end
 

@@ -1,6 +1,7 @@
 using ApproxFun, Compat, Base.Test
     import Compat: view
-    import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator
+    import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator,
+                        testbandedblockoperator, linsolve_coefficients
 ## Check operators
 
 ## Rectangle PDEs
@@ -109,7 +110,7 @@ A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
          L]
 
 
-u=linsolve(A,ones(8);tolerance=1E-5)
+u=linsolve(A,[ones(8);0];tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
 
@@ -245,16 +246,16 @@ QR = qrfact(A)
 @time ApproxFun.resizedata!(QR,:,200)
 j=56
 v=QR.R.op[1:100,j]
-@test norm(linsolve(QR[:Q],v;maxlength=300).coefficients[j+1:end]) < 100eps()
+@test norm(linsolve_coefficients(QR[:Q],v;maxlength=300)[j+1:end]) < 100eps()
 
 j=195
 v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < 100eps()
+@test norm(linsolve_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < 100eps()
 
 
 j=300
 v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-@test norm(linsolve(QR[:Q],v;maxlength=1000).coefficients[j+1:end]) < j*20eps()
+@test norm(linsolve_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < j*20eps()
 
 @test ApproxFun.colstop(QR.R.op,195)-194 == ApproxFun.colstop(QR.H,195)
 
@@ -305,7 +306,7 @@ B=[dirichlet(S[1])⊗eye(S[2]);
    Laplacian()]
 
 
-u=linsolve(B,ones(4);tolerance=1E-14)
+u=linsolve(B,[ones(4);0];tolerance=1E-14)
 @test norm((u-Fun(S,[1.])).coefficients)<10eps()
 
 g=map(sp->Fun(ff,sp),map(rangespace,B[1:4]))
@@ -357,7 +358,7 @@ A=[dirichlet(dx)⊗eye(dy);
          L]
 
 
-u=linsolve(A,ones(4);tolerance=1E-5)
+u=linsolve(A,[ones(4);zeros(5)];tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
 
@@ -389,7 +390,7 @@ A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
          L]
 
 
-u=linsolve(A,ones(8);tolerance=1E-5)
+u=linsolve(A,[ones(8);0];tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
 

@@ -62,7 +62,7 @@ d = domain(x)
 D = Derivative(d)
 B = dirichlet(d)
 L = D^2 - x
-u = [B;L] \ [airyai(d.a);airyai(d.b)]
+u = [B;L] \ [airyai(d.a);airyai(d.b);0]
 
 @test_approx_eq_eps u(0.) airyai(0.) 10000eps()
 
@@ -139,6 +139,6 @@ println("    BigFloat tests")
 setprecision(1000) do
     d=Interval{BigFloat}(0,1)
     D=Derivative(d)
-    u=[ldirichlet();D-I]\[1]
+    u=[ldirichlet();D-I]\[1;0]
     @test_approx_eq u(1) exp(BigFloat(1))
 end

@@ -81,7 +81,7 @@ A=[dirichlet(dx)⊗eye(dy);
          L]
 
 
-@time u=linsolve(A,ones(4);tolerance=1E-5)
+@time u=linsolve(A,[ones(4);zeros(5)];tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
 

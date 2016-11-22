@@ -361,7 +361,7 @@ function defaultcoefficients(f,a,b)
     elseif spacescompatible(ct,a)
         (Conversion(a,b)*f).coefficients
     elseif spacescompatible(ct,b)
-        (Conversion(b,a)\f).coefficients
+        linsolve_coefficients(Conversion(b,a),f)
     else
         csp=canonicalspace(a)
 

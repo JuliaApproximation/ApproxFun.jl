@@ -119,7 +119,7 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     ef=Fun(exp,S)
     @test norm((D*ef-ef).coefficients)<1000eps()
     @test norm((D^2*ef-ef).coefficients)<100000eps()
-    u=[Evaluation(S,0.),D-I]\[1.]
+    u=[Evaluation(S,0.),D-I]\[1.;0.]
     @test norm((u-ef).coefficients)<100eps()
     @test norm((Integral(S)*Fun(exp,S)+ef.coefficients[1]-ef).coefficients)<100eps()
 
@@ -138,7 +138,7 @@ D-I
 ef=Fun(exp,S)
 @test norm((D*ef-ef).coefficients)<1000eps()
 @test norm((D^2*ef-ef).coefficients)<100000eps()
-u=[Evaluation(S,0.),D-I]\[1.]
+u=[Evaluation(S,0.),D-I]\[1.;0.]
 
 # check's Derivative constructor works
 D=Derivative(Taylor(PeriodicInterval()))
