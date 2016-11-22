@@ -71,7 +71,6 @@ end
 
 # The coolest definitions ever!!
 # supports Derivative():Chebyshev()↦Ultraspherical(1)
-↦(A::Operator,b::Space) = promoterangespace(A,b)
 Base.colon(A::Operator,b::Space) = promotedomainspace(A,b)
 ↦(A::Operator,b::Space) = promoterangespace(A,b)
 Base.colon(A::UniformScaling,b::Space) = Operator(A) : b
