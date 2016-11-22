@@ -10,11 +10,11 @@ B=dirichlet()              # Dirichlet boundary conditions, [u(-100),u(15)]
 #Construct operator
 
 A=[B;D^2-x]                # This is dirichlet conditions and u'' - x u
-b=[airyai(first(d)),0.]         # We want it to equal airyai(-100) at -100, and 0 at
+b=[airyai(first(d)),0]     # We want it to equal airyai(-100) at -100, and 0 at
                            # 10, with 0 rhs
 #Solve ODE
 
-u=A\b                      # u satisfies A*u = b, or in other words,
+u=A\[b;0]                  # u satisfies A*u = b, or in other words,
                            # B*u = [airyai(-100.),0.] and (D2 - x)*u = 0.
 
 # Check the accuracy

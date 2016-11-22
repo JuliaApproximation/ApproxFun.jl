@@ -77,7 +77,7 @@ function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,Matrix{T},T},T},
         Base.axpy!(-2*dt,wp,yp)
         k+=1
     end
-    Fun(domainspace(A),resize!(Y,k))  # chop off zeros
+    resize!(Y,k)  # chop off zeros
 end
 
 
@@ -97,7 +97,7 @@ function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,Matrix{T},T}
         @simd for k=1:length(ret)
             @inbounds ret[k]=(1-2A.QR.H[1,k]^2)*B[k]
         end
-        return Fun(domainspace(A),ret)
+        return ret
     end
 
     H=A.QR.H
@@ -137,5 +137,5 @@ function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,Matrix{T},T}
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end
-    Fun(domainspace(A),resize!(Y,k))  # chop off zeros
+    resize!(Y,k)  # chop off zeros
 end

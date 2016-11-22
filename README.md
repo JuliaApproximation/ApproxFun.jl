@@ -101,7 +101,7 @@ d = domain(x)
 D = Derivative(d)
 B = dirichlet(d)
 L = D^2 - x
-u = [B;L] \ [airyai(d.a);airyai(d.b)]
+u = [B;L] \ [airyai(d.a);airyai(d.b);0]
 plot(u)
 ```
 
@@ -220,7 +220,7 @@ Solving differential equations with high precision types is available.  The foll
 setprecision(1000) do
     d=Interval{BigFloat}(0,1)
     D=Derivative(d)
-    u=[ldirichlet();D-I]\[1]
+    u=[ldirichlet();D-I]\[1;0]
     u(1)
 end
 ```
@@ -228,7 +228,7 @@ end
 
 # Further reading
 
-The [ApproxFun Documentation](https://github.com/ApproxFun/ApproxFun.jl/wiki/ApproxFun-Documentation) is a work-in-process Wiki documentating the internal workings of `ApproxFun`
+The [ApproxFun Documentation](https://github.com/ApproxFun/ApproxFun.jl/wiki/ApproxFun-Documentation) is a work-in-process Wiki documenting the internal workings of `ApproxFun`
 
 
 

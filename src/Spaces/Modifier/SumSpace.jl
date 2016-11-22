@@ -50,7 +50,7 @@ end
 # are all Ints, so finite dimensional
 function Base.done(it::BlockInterlacer,st)
     for k=1:length(it.blocks)
-        if st[end][k] ≤ length(it.blocks[k])
+        if st[end][k] < length(it.blocks[k])
             return false
         end
     end
@@ -468,9 +468,14 @@ end
 interlace{FF<:Fun}(f::AbstractVector{FF}) = vcat(f...)
 
 # convert a vector to a Fun with TupleSpace
-Fun(v::Vector{Any},sp::TupleSpace) = detuple(map(Fun,v,sp.spaces))
-Fun{F<:Fun}(v::Vector{F},sp::TupleSpace) = detuple(map(Fun,v,sp.spaces))
 
+function Fun(v::Vector,sp::TupleSpace)
+    if length(v) ≠ length(sp.spaces)
+        throw(DimensionMismatch("Cannot convert $v to a Fun in space $sp"))
+    end
+    detuple(map(Fun,v,sp.spaces))
+end
+coefficients(v::Vector,sp::TupleSpace) = coefficients(Fun(v,sp))
 
 
 ## transforms

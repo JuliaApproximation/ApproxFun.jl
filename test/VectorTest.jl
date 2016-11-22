@@ -72,7 +72,7 @@ B=Evaluation(d,0.)
 D=Derivative(d)
 A=rand(n,n)
 L=[B;D-A]
-u=L\eye(n)
+u=L\eye(2n,n)
 @test norm(evaluate(u,1.)-expm(A))<eps(1000.)
 
 
@@ -82,7 +82,7 @@ B=Evaluation(d,0.)
 D=Derivative(d)
 A=rand(n,n)
 L=[B;D-A]
-u=L\eye(2)
+u=L\eye(2n,2)
 @test norm(evaluate(u,1.)-expm(A)[:,1:2])<eps(1000.)
 
 

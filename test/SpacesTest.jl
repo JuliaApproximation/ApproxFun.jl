@@ -18,10 +18,10 @@ L=D^2+I
 @test_approx_eq B[2][1:1,1:3] [1. 1. 0.]
 
 
-@test_approx_eq csc(2)sin(1 - 0.1)  ([dirichlet(d);L]\[1.])(0.1)
-@test_approx_eq csc(2)sin(1 - 0.1)  ([B;L]\[1.])(0.1)
+@test_approx_eq csc(2)sin(1 - 0.1)  ([dirichlet(d);L]\[1.,0.,0.])(0.1)
+@test_approx_eq csc(2)sin(1 - 0.1)  ([B;L]\[1.,0.,0.])(0.1)
 
-@test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <10eps()
+@test norm(([B;L]\[1.,0,0])-([dirichlet(d);L]\[1.,0,0])) <10eps()
 
 
 
@@ -35,17 +35,18 @@ testtransforms(sp;minpoints=2)
 D=Derivative(sp)
 testbandedoperator(D)
 
-u=[dirichlet(sp);
-    D^2]\[1];
-u2=[dirichlet();Derivative(Chebyshev())^2]\[1.]
+B=dirichlet(sp)
+u=[B;
+    D^2]\Any[[1;zeros(size(B,1)-1)],0];
+u2=[dirichlet();Derivative(Chebyshev())^2]\[1.,0,0]
 @test_approx_eq u(0.) u2(0.)
 
 x=Fun(identity,[-10.,0.,1.,15.])
 sp=space(x)
 D=Derivative(sp)
-
-u=[dirichlet(sp);
-    D^2-x]\[airyai(-10.)];
+B=dirichlet(sp)
+u=[B;
+    D^2-x]\Any[[airyai(-10.);zeros(size(B,1)-1)],0];
 
 @test_approx_eq u(0.) airyai(0.)
 
@@ -104,7 +105,7 @@ testtransforms(S;minpoints=3,invertibletransform=false)
 D=Derivative(S)
 testbandedoperator(D)
 
-u=[ldirichlet(S),D-I]\[exp(1.)]
+u=[ldirichlet(S),D-I]\[exp(1.),0]
 
 
 @test_approx_eq u(1.1) exp(1.1)

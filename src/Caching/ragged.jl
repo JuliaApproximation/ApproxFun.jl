@@ -264,7 +264,7 @@ function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
         Base.axpy!(-2*dt,wp,yp)
         k+=1
     end
-    Fun(domainspace(A),resize!(Y,k))  # chop off zeros
+    resize!(Y,k)  # chop off zeros
 end
 
 
@@ -319,5 +319,5 @@ function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,RaggedMatrix
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end
-    Fun(domainspace(A),resize!(Y,k))  # chop off zeros
+    resize!(Y,k)  # chop off zeros
 end
