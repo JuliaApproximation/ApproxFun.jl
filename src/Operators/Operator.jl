@@ -401,8 +401,8 @@ macro wrapperstructure(Wrap)
     for func in (:(ApproxFun.bandinds),:(Base.stride),
                  :(ApproxFun.isbandedblockbanded),:(ApproxFun.isbandedblock),
                  :(ApproxFun.israggedbelow),:(Base.size),:(ApproxFun.isbanded),
-                 :(ApproxFun.bandwidth),:(ApproxFun.bandwidths),:(ApproxFun.subblockbandinds),
-                 :(ApproxFun.blockbandinds))
+                 :(ApproxFun.bandwidth),:(ApproxFun.bandwidths),
+                 :(ApproxFun.blockbandinds),:(ApproxFun.subblockbandinds))
         ret = quote
             $ret
 

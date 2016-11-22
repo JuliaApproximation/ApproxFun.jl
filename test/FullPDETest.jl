@@ -64,6 +64,40 @@ L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
 testbandedblockbandedoperator(L)
 
+A=[dirichlet(dx)⊗eye(dy);
+        eye(dx)⊗dirichlet(dy);
+        neumann(dx)⊗eye(dy);
+        eye(dx)⊗neumann(dy);
+         L]
+
+
+# Checks bug in constructor
+f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]),22)
+@test_approx_eq f(-1.,0.1) real(exp(-1.+0.1im))
+f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]))
+@test_approx_eq f(-1.,0.1) real(exp(-1.+0.1im))
+
+F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[3]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[4]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[5]));
+    Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[6]));
+    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[7]));
+    Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[8]));
+    0]
+
+@time u=linsolve(A,F;tolerance=1E-10)
+
+@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
+
+dx=dy=Interval()
+d=dx*dy
+Dx=Derivative(dx);Dy=Derivative(dy)
+L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
+
+testbandedblockbandedoperator(L)
+
 A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
         (rdirichlet(dx)+rneumann(dx))⊗eye(dy);
         eye(dx)⊗(ldirichlet(dy)+lneumann(dy));

@@ -100,44 +100,6 @@ u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 
 
 
-## Null space
-
-d=Interval()
-D=Derivative(d)
-A=D^2-I
-κ=nullspace(A)
-@test length(κ) == 2
-
-c=[κ(0.);κ'(0.)]\[exp(0.);exp(0.)]
-u=(κ*c)[1]
-@test_approx_eq u(1.0) e
-
-
-d=Interval(-50.,5.)
-x=Fun(identity,d)
-D=Derivative(d)
-@time u=nullspace(D^2-x)
-c=[u(d.a); u(d.b)]\[airyai(d.a),airyai(d.b)]
-@test norm((u*c)[1]-Fun(airyai,d))<10000eps()
-
-
-## constant forcing
-d = Interval(0.,50.)
-D = Derivative(d)
-t = Fun(identity,d)
-
-F = D^2 +.5D + I
-
-A= [ 0    ldirichlet(d);
-     0    lneumann(d);
-     0    rdirichlet(d);
-    -1    F; ]
-
-@time u,x=A\[1.,0.,2.,0.]
-
-@test norm(F*x-u)<1000eps()
-
-
 
 ## QR tests
 
