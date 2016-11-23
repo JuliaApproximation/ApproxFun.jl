@@ -2,7 +2,7 @@ using ApproxFun
 
 #The following solves the Airy ODE with dirichlet boundary conditions
 
-x=Fun(identity,[-1000.,15.])   # Fun corresponding to multiplication by x, on [-100,15]
+x=Fun(identity,-1000..15)   # Fun corresponding to multiplication by x, on [-100,15]
 d=domain(x)
 D=Derivative()             # The derivative operator
 B=dirichlet()              # Dirichlet boundary conditions, [u(-100),u(15)]

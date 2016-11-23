@@ -11,7 +11,7 @@ using Plots,ApproxFun
 
 # We begin with Blasius:
 #   solves 2u''' + uu'' = 0 ,  u(0.) = u'(0.) = 0, u'[∞] = 1
-x=Fun(identity,[0.,4π])
+x=Fun(identity,0..4π)
 d=domain(x)
 B=[ldirichlet(d),lneumann(d),rneumann(d)]
 D=Derivative(d)

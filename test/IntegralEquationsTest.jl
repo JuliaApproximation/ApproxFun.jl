@@ -3,8 +3,8 @@ using ApproxFun, Base.Test
 
 for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
             CosSpace(Circle()),JacobiWeight(-0.5,-0.5,Chebyshev()),
-            JacobiWeight(-0.5,-0.5,Chebyshev([1.0,2.0+im])),
-            JacobiWeight(0.5,0.5,Ultraspherical(1,[1.0,2.0+im])))
+            JacobiWeight(-0.5,-0.5,Chebyshev(1.0..2.0+im)),
+            JacobiWeight(0.5,0.5,Ultraspherical(1,1.0..2.0+im)))
     testfunctional(DefiniteLineIntegral(S))
 end
 
@@ -32,7 +32,7 @@ f=Fun(S,rand(20))
 
 #The first test checks the solution of the integral equation
 # u(x) + \int_{-1}^{+1} \frac{e^{y} u(y)}{\sqrt{1-y^2}} dy = f
-# on the interval [-1,1].
+# on the interval -1..1.
 
 x=Fun(identity)
 w=1/sqrt(1-x^2)
@@ -54,9 +54,9 @@ u=L\f
 
 #The second test checks the solution of the integro-differential equation
 # u'(x) + x u(x) + \int_{-2}^{+2} sin(y-x) u(y) \sqrt{4-y^2} dy = f
-# on the interval [-2,2], with u(-2) = 1.
+# on the interval -2..2, with u(-2) = 1.
 
-x=Fun(identity,[-2.,2.])
+x=Fun(identity,-2..2)
 w=sqrt(4-x^2)
 d=domain(x)
 
@@ -80,8 +80,8 @@ u=[B;L]\[1.;f]
 
 Σ = DefiniteIntegral()
 
-f1=Fun(t->cos(cos(t)),[-π,π])
-f=Fun(t->cos(cos(t)),Laurent([-π,π]))
+f1=Fun(t->cos(cos(t)),-π..π)
+f=Fun(t->cos(cos(t)),Laurent(-π..π))
 
 @test_approx_eq sum(f1) Σ*f
 
@@ -89,8 +89,8 @@ f1=Fun(t->cos(cos(t))/t,Laurent(Circle()))
 f2=Fun(t->cos(cos(t))/t,Fourier(Circle()))
 @test_approx_eq Σ*f1 Σ*f2
 
-f1=Fun(t->cos(cos(t)),Laurent([-π,π]))
-f2=Fun(t->cos(cos(t)),Fourier([-π,π]))
+f1=Fun(t->cos(cos(t)),Laurent(-π..π))
+f2=Fun(t->cos(cos(t)),Fourier(-π..π))
 @test_approx_eq Σ*f1 Σ*f2
 
 

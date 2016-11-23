@@ -6,7 +6,7 @@
 
 using DualNumbers, ApproxFun
 # What is the derivative of the function (without differentiating the Chebyshev expansion)?
-f=Fun(x->exp(dual(x,1)),[-1,1])
+f=Fun(x->exp(dual(x,1)),-1..1)
 dualpart(f)
 # check versus differentiate
 norm(realpart(f)'-dualpart(f))
@@ -21,7 +21,7 @@ h=0.00001;(Fun(exp,Interval(1.0+h,2.0)).coefficients[1]-Fun(exp,Interval(1.0,2.0
 Fun(h->Fun(exp,Interval(1.0+h,2.0)).coefficients[1],[0.,.1])'(0.)
 
 # What is the derivative of the first coefficient with respect to the exponential's constant?
-f=Fun(x->exp(dual(x,x)),[-1,1])
+f=Fun(x->exp(dual(x,x)),-1..1)
 dualpart(f.coefficients[1])
 # check versus finite difference calculation:
-h=0.00001;(Fun(x->exp((1+h)x),[-1,1]).coefficients[1]-Fun(exp,[-1,1]).coefficients[1])/h
+h=0.00001;(Fun(x->exp((1+h)x),-1..1).coefficients[1]-Fun(exp,-1..1).coefficients[1])/h

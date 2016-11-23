@@ -6,7 +6,7 @@ using ApproxFun, Base.Test, Compat
 println("    Calculus and algebra tests")
 
 
-x = Fun(identity,[0.,10.])
+x = Fun(identity,0..10)
 f = sin(x^2)
 g = cos(x)
 
@@ -25,7 +25,7 @@ rp = roots(differentiate(h))
 
 
 ## Differentiation and Integration
-f = Fun(x->exp(x),[-1.,1.])
+f = Fun(x->exp(x),-1..1)
 @test norm(f-f')<1000eps()
 
 g = cumsum(f)
@@ -57,7 +57,7 @@ println("    ODE tests")
 
 ## Solving ODEs
 
-x = Fun(identity,[-1000.,200.])
+x = Fun(identity,-1000..200)
 d = domain(x)
 D = Derivative(d)
 B = dirichlet(d)
@@ -80,20 +80,20 @@ u=newton(N,u0)
 println("    Periodic tests")
 ## Periodic Functions
 
-f = Fun(cos,Fourier([-π,π]))
-@test norm(differentiate(f) + Fun(sin,Fourier([-π,π])))<100eps()
+f = Fun(cos,Fourier(-π..π))
+@test norm(differentiate(f) + Fun(sin,Fourier(-π..π)))<100eps()
 
 
 
 
-s = Chebyshev([-π,π])
+s = Chebyshev(-π..π)
 a = Fun(t-> 1+sin(cos(2t)),s)
 L = Derivative() + a
 f = Fun(t->exp(sin(10t)),s)
 B = periodic(s,0)
 uChebyshev = [B;L]\[0.,f]
 
-s = Fourier([-π,π])
+s = Fourier(-π..π)
 a = Fun(t-> 1+sin(cos(2t)),s)
 L = Derivative() + a
 f = Fun(t->exp(sin(10t)),s)
@@ -107,7 +107,7 @@ uFourier = L\f
 println("    Sampling tests")
 ## Sampling
 
-f = abs(Fun(sin,[-5,5]))
+f = abs(Fun(sin,-5..5))
 x = ApproxFun.sample(f,10)
 
 

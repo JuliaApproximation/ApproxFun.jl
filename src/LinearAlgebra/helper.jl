@@ -1059,22 +1059,3 @@ end
 ClosedInterval(a,b) = ClosedInterval{promote_type(typeof(a),typeof(b))}(a,b)
 
 ..(a,b) = ClosedInterval(a,b)
-
-Base.in(v, I::ClosedInterval) = I.left ≤ I.right ? I.left ≤ v ≤ I.right : I.left ≥ v ≥ I.right
-
-\(a::ClosedInterval,x::Number) = x ∈ a ? (Domain(a.left..x) ∪ Domain(x..a.right)) : a
-function \(a::ClosedInterval,x::Vector)
-    length(x) == 1 && return a \ x[1]
-
-    x = sort(x)
-    a.left > a.right && reverse!(x)
-    filter!(p->p ∈ a,x)
-
-    ret = Array(Domain,length(x)+1)
-    ret[1] = Domain(a.left..x[1])
-    for k = 2:length(x)
-        ret[k] = Domain(x[k-1]..x[k])
-    end
-    ret[end] = Domain(x[end]..a.right)
-    UnionDomain(ret)
-end
