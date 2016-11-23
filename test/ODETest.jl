@@ -176,14 +176,14 @@ v=Any[0.,0.,0.,f...]
 ## Auto-space
 
 
-t=Fun(identity,[0.,1000.])
+t=Fun(identity,0..1000)
 L=𝒟^2+2I  # our differential operator, 𝒟 is equivalent to Derivative()
 
 u=[ivp();L]\[0.;0.;cos(100t)]
 @test_approx_eq_eps u(1000.0) 0.00018788162639452911 1000eps()
 
 
-x=Fun(identity,[1.,2000.])
+x=Fun(identity,1..2000)
 d=domain(x)
 B=dirichlet()
 ν=100.
