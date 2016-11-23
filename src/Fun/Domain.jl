@@ -50,8 +50,8 @@ Base.intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
 
 
 # TODO: throw error for override
-Base.setdiff(a::Domain,b::Domain) = a == b ? EmptyDomain() : a
-\(a::Domain,b::Domain) = setdiff(a,b)
+Base.setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
+\(a::Domain,b) = setdiff(a,b)
 
 ## Interval Domains
 

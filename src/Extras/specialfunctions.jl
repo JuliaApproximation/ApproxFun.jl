@@ -1,30 +1,5 @@
 ## abs
-
-function splitdomain(d::IntervalDomain,pts)
-    if isempty(pts)
-        d
-    elseif length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
-        d
-    elseif length(pts)==2 && isapprox(first(pts),first(d)) && isapprox(last(pts),last(d))
-        d
-    else
-        error("implement splitmap for "*string(typeof(d)))
-    end
-end
-
-function splitdomain(d::AffineDomain,pts)
-    isempty(pts) && return d
-    tol=sqrt(eps(arclength(d)))
-    da=first(d)
-    isapprox(da,pts[1];atol=tol) && shift!(pts)
-    isempty(pts) && return d
-    db=last(d)
-    isapprox(db,pts[end];atol=tol) && pop!(pts)
-    return (da..db) \ pts
-end
-
-
-splitmap(g,d::Domain,pts) = Fun(g,splitdomain(d,pts))
+splitmap(g,d::Domain,pts) = Fun(g,d \ pts)
 
 
 function splitatroots(f::Fun)
@@ -68,9 +43,9 @@ for OP in (:sign,:angle)
         if isempty(pts)
             $OP(first(f))*one(f)
         else
-            d=splitdomain(d,pts)
+            d_split= d \ pts
             midpts = [midpoints(d)...]
-            Fun(d,$OP(f(midpts)))
+            Fun(d_split,$OP(f(midpts)))
         end
     end
 end

@@ -72,9 +72,9 @@ end
 
 function Base.setdiff(b::Interval,a::Point)
     if !(a ⊆ b)
-        a
+        b
     elseif first(b) == a.x  || last(b) == a.x
-        a
+        b
     else
         Interval(first(b),a.x) ∪ Interval(a.x,last(b))
     end
@@ -86,7 +86,7 @@ Base.isless{T1<:Real,T2<:Real}(d1::Interval{T1},d2::Ray{false,T2}) = d1 ≤ d2.c
 Base.isless{T1<:Real,T2<:Real}(d2::Ray{true,T2},d1::Interval{T1}) = d2.center ≤ d1
 
 
-#union 
+#union
 Base.union(a::ClosedInterval,b::ClosedInterval) = union(Domain(a),Domain(b))
 Base.union(a::ClosedInterval,b) = union(Domain(a),b)
 Base.union(a,b::ClosedInterval) = union(a,Domain(b))
@@ -95,22 +95,35 @@ Base.union(a,b::ClosedInterval) = union(a,Domain(b))
 ## set minus
 \(d::ClosedInterval,x) = Domain(d) \ x
 \(d::Domain,x::Number) = d \ Point(x)
-function \(d::AffineDomain,x::Vector)
-    isempty(x) && return d
-    length(x) == 1 && return d \ x[1]
 
-    x = sort(x)
-    d.a > d.b && reverse!(x)
-    filter!(p->p ∈ d,x)
 
-    ret = Array(Domain,length(x)+1)
-    ret[1] = Domain(d.a..x[1])
-    for k = 2:length(x)
-        ret[k] = Domain(x[k-1]..x[k])
+function Base.setdiff(d::AffineDomain,ptsin::Vector)
+    pts=copy(ptsin)
+    isempty(pts) && return d
+    tol=sqrt(eps(arclength(d)))
+    da=first(d)
+    isapprox(da,pts[1];atol=tol) && shift!(pts)
+    isempty(pts) && return d
+    db=last(d)
+    isapprox(db,pts[end];atol=tol) && pop!(pts)
+
+    sort!(pts)
+    d.a > d.b && reverse!(pts)
+    filter!(p->p ∈ d,pts)
+
+    isempty(pts) && return d
+    length(pts) == 1 && return d \ pts[1]
+
+    ret = Array(Domain,length(pts)+1)
+    ret[1] = Domain(d.a..pts[1])
+    for k = 2:length(pts)
+        ret[k] = Domain(pts[k-1]..pts[k])
     end
-    ret[end] = Domain(x[end]..d.b)
+    ret[end] = Domain(pts[end]..d.b)
     UnionDomain(ret)
 end
+
+
 
 
 
