@@ -103,8 +103,8 @@ f=Fun(exp,Jacobi(0.213,0.590))
 
 ## Jacobi integrate and sum
 
-testtransforms(Legendre([0,2]))
-@test_approx_eq sum(Fun(exp,Legendre([0,2]))) sum(Fun(exp,[0,2]))
+testtransforms(Legendre(0..2))
+@test_approx_eq sum(Fun(exp,Legendre(0..2))) sum(Fun(exp,0..2))
 
 a=Arc(0.,.1,0.,π/2)
 g=Fun(exp,Legendre(a))
@@ -188,10 +188,10 @@ x=4.0+2im;
 x=Fun(Legendre())
 @test_approx_eq sum(x+1) linesum(x+1)
 
-x=Fun(Legendre([2,1]))
+x=Fun(Legendre(2..1))
 @test_approx_eq sum(x+1) -linesum(x+1)
 
-x=Fun(Interval(1,1+im))
+x=Fun(1..1+im)
 @test_approx_eq sum(x+1) im*linesum(x+1)
 
 x=Fun(Legendre(Interval(1,1+im)))

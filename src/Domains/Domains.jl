@@ -86,6 +86,11 @@ Base.isless{T1<:Real,T2<:Real}(d1::Interval{T1},d2::Ray{false,T2}) = d1 ≤ d2.c
 Base.isless{T1<:Real,T2<:Real}(d2::Ray{true,T2},d1::Interval{T1}) = d2.center ≤ d1
 
 
+# ^
+*(a::ClosedInterval,b::ClosedInterval) = Domain(a)*Domain(b)
+*(a::ClosedInterval,b) = Domain(a)*b
+*(a,b::ClosedInterval) = a*Domain(b)
+
 #union
 Base.union(a::ClosedInterval,b::ClosedInterval) = union(Domain(a),Domain(b))
 Base.union(a::ClosedInterval,b) = union(Domain(a),b)

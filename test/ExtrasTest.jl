@@ -38,7 +38,7 @@ P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
 
 ff=(x,y)->(x-y)^2*exp(-x^2/2-y^2/2)
 ApproxFun.tensorizer(Chebyshev()^2)
-f=Fun(ff,-4..4,-4..4)
+f=Fun(ff,(-4..4)^2)
 r=ApproxFun.sample(f,5000)
 
 
