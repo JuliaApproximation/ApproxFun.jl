@@ -130,8 +130,8 @@ QR=qrfact(A)
 u=(QR\[1.,0.0,0.0])
 @test_approx_eq u(0.0) (0.3329522068795961 + 0.024616008954634165im)
 
-
-x=Fun(identity,[-2.,-1.,0.,15.])
+# Union of intervals are constructed for now with \
+x=Fun(identity,(-2..15) \ [-1,0])
 sp=space(x)
 
 # Check bug in promote

@@ -132,10 +132,10 @@ L=D^2+a1*D+a0
 
 f=Fun(space(a1),[1,2,3,4,5])
 
-testbandedoperator(Multiplication(a0,Fourier([0.,2π])))
+testbandedoperator(Multiplication(a0,Fourier(0..2π)))
 
-@test_approx_eq (Multiplication(a0,Fourier([0.,2π]))*f)(0.1)  (a0(0.1)*f(0.1))
-@test_approx_eq ((Multiplication(a1,Fourier([0.,2π]))*D)*f)(0.1)  (a1(0.1)*f'(0.1))
+@test_approx_eq (Multiplication(a0,Fourier(0..2π))*f)(0.1)  (a0(0.1)*f(0.1))
+@test_approx_eq ((Multiplication(a1,Fourier(0..2π))*D)*f)(0.1)  (a1(0.1)*f'(0.1))
 @test_approx_eq (L.ops[1]*f)(0.1) f''(0.1)
 @test_approx_eq (L.ops[2]*f)(0.1) a1(0.1)*f'(0.1)
 @test_approx_eq (L.ops[3]*f)(0.1) a0(0.1)*f(0.1)
@@ -204,11 +204,11 @@ testbandedoperator(ApproxFun.Reverse(Chebyshev()))
 testbandedoperator(ApproxFun.ReverseOrientation(Chebyshev()))
 
 @test ApproxFun.Reverse(Chebyshev())*Fun(exp) ≈ Fun(x->exp(-x))
-@test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,[1,-1])
+@test ApproxFun.ReverseOrientation(Chebyshev())*Fun(exp) ≈ Fun(exp,1..(-1))
 
 
 @test norm(ApproxFun.Reverse(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(-t-0.2)-0.1),Fourier())) < 10eps()
-@test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier([π,-π]))) < 10eps()
+@test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier(π..(-π)))) < 10eps()
 
 
 
