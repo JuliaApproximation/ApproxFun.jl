@@ -14,7 +14,7 @@ Take your two favourite functions on an interval and create approximations to th
 
 ```julia
 using ApproxFun
-x = Fun(identity,[0.,10.])
+x = Fun(identity,0..10)
 f = sin(x^2)
 g = cos(x)
 ```
@@ -46,7 +46,7 @@ base functions are overridden for the purposes of calculus. Because the exponent
 derivative, the `norm` is small:
 
 ```julia
-f = Fun(x->exp(x),[-1,1])
+f = Fun(x->exp(x),-1..1)
 norm(f-f')
 ```
 
@@ -96,7 +96,7 @@ h = airyai(10asin(f)+2g)
 Solve the Airy ODE `u'' - x u = 0` as a BVP on `[-1000,200]`:
 
 ```julia
-x = Fun(identity,[-1000.,200.])
+x = Fun(identity,-1000..200)
 d = domain(x)
 D = Derivative(d)
 B = dirichlet(d)
@@ -132,8 +132,8 @@ There is also support for Fourier representations of functions on periodic inter
 Specify the space `Fourier` to ensure that the representation is periodic:
 
 ```julia
-f = Fun(cos,Fourier([-π,π]))
-norm(f' + Fun(sin,Fourier([-π,π]))
+f = Fun(cos,Fourier(-π..π))
+norm(f' + Fun(sin,Fourier(-π..π))
 ```
 
 Due to the periodicity, Fourier representations allow for the asymptotic savings of `2/π`
@@ -141,14 +141,14 @@ in the number of coefficients that need to be stored compared with a Chebyshev r
 ODEs can also be solved when the solution is periodic:
 
 ```julia
-s = Chebyshev([-π,π])
+s = Chebyshev(-π..π)
 a = Fun(t-> 1+sin(cos(2t)),s)
 L = Derivative() + a
 f = Fun(t->exp(sin(10t)),s)
 B = periodic(s,0)
 uChebyshev = [B;L]\[0.;f]
 
-s = Fourier([-π,π])
+s = Fourier(-π..π)
 a = Fun(t-> 1+sin(cos(2t)),s)
 L = Derivative() + a
 f = Fun(t->exp(sin(10t)),s)
@@ -169,7 +169,7 @@ Other operations including random number sampling using [Olver & Townsend 2013].
 following code samples 10,000 from a PDF given as the absolute value of the sine function on `[-5,5]`:
 
 ```julia
-f = abs(Fun(sin,[-5,5]))
+f = abs(Fun(sin,-5..5))
 x = ApproxFun.sample(f,10000)
 histogram(x;normed=true)
 plot!(f/sum(f))

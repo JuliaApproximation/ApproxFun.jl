@@ -1,7 +1,7 @@
 using ApproxFun,DualNumbers,Plots
     import ApproxFun: DualFun, jacobian
 
-x=Fun([-π,π])
+x=Fun(-π..π)
 N = (T,u) -> [u(-π)-1;u(π)-1;u'(π)-1;u'' - u - sin(T*x/π)]
 
 T0=Tk=0.

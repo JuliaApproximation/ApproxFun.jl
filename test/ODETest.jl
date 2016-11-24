@@ -130,8 +130,8 @@ QR=qrfact(A)
 u=(QR\[1.,0.0,0.0])
 @test_approx_eq u(0.0) (0.3329522068795961 + 0.024616008954634165im)
 
-
-x=Fun(identity,[-2.,-1.,0.,15.])
+# Union of intervals are constructed for now with \
+x=Fun(identity,(-2..15) \ [-1,0])
 sp=space(x)
 
 # Check bug in promote
@@ -176,14 +176,14 @@ v=Any[0.,0.,0.,f...]
 ## Auto-space
 
 
-t=Fun(identity,[0.,1000.])
+t=Fun(identity,0..1000)
 L=𝒟^2+2I  # our differential operator, 𝒟 is equivalent to Derivative()
 
 u=[ivp();L]\[0.;0.;cos(100t)]
 @test_approx_eq_eps u(1000.0) 0.00018788162639452911 1000eps()
 
 
-x=Fun(identity,[1.,2000.])
+x=Fun(identity,1..2000)
 d=domain(x)
 B=dirichlet()
 ν=100.

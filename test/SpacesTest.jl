@@ -1,7 +1,6 @@
 using ApproxFun, Base.Test
     import ApproxFun: ChebyshevDirichlet,Ultraspherical,space,testspace,testbandedoperator,testcalculus,testtransforms
 
-
 testtransforms(ChebyshevDirichlet{1,1}())
 
 @test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})(.1) exp(.1)
@@ -28,7 +27,7 @@ L=D^2+I
 
 ## PiecewiseSPace
 
-x=Fun(identity,[-1.,0.,1.])
+x=Fun(identity,(-1..1) \ 0)
 sp=space(x)
 testtransforms(sp;minpoints=2)
 
@@ -41,7 +40,7 @@ u=[B;
 u2=[dirichlet();Derivative(Chebyshev())^2]\[1.,0,0]
 @test_approx_eq u(0.) u2(0.)
 
-x=Fun(identity,[-10.,0.,1.,15.])
+x=Fun(identity,(-10..15) \ [0,1])
 sp=space(x)
 D=Derivative(sp)
 B=dirichlet(sp)
@@ -50,21 +49,27 @@ u=[B;
 
 @test_approx_eq u(0.) airyai(0.)
 
-s=Fun(sin,[-2.,2.])|>abs
-c=Fun(cos,[-2.,2.])|>abs
-sc=Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])
+s=Fun(sin,-2..2)|>abs
+c=Fun(cos,-2..2)|>abs
+sc=Fun(x->abs(sin(x))+abs(cos(x)),(-2..2) \ [-π/2,0,π/2])
 @test norm(sc-(c+s))<100eps()
 
 # max/min creates breakpoints
 
 x=Fun()
-g=4*(x-.2)
+g=4*(x-0.2)
 f=max(-1,g)
 f2=min(f,1)
-f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),[-1.0;-0.05;0.45;1.0])
+g=1
+h=f-g
+d=domain(h)
+pts=roots(h)
+
+
+f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),(-1..1) \ [-0.05,0.45])
 @test norm(f2(collect(linspace(-1,1,10)))-f3(collect(linspace(-1,1,10)))) < 2eps()
 
-x=Fun(identity,[im,0.,1.])
+x=Fun(identity, (im..0) ∪ (0..1))
 @test_approx_eq x(0.5) 0.5
 @test_approx_eq x(0.5im) 0.5im
 
@@ -133,8 +138,8 @@ f=w+x
 
 ## SumSpace bug
 
-dsp=JacobiWeight(1.,0.,Jacobi(0.,1.,[0.,1.]))⊕JacobiWeight(0.5,0.,Jacobi(-0.5,0.5,[0.,1.]))
-rsp=Legendre([0.,1.])⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,[0.,1.]))
+dsp=JacobiWeight(1.,0.,Jacobi(0.,1.,0..1))⊕JacobiWeight(0.5,0.,Jacobi(-0.5,0.5,0..1))
+rsp=Legendre(0..1)⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,0..1))
 
 
 C=Conversion(dsp,rsp)
@@ -147,9 +152,7 @@ f=Fun(dsp,[1.,2.,3.,4.,5.])
 
 
 ## Piecewise + Cosntant
-using Base.Test
-
-Γ=Circle()∪Circle(0.0,0.4)
+Γ=Circle() ∪ Circle(0.0,0.4)
 o=ones(Γ)
 @test_approx_eq o(1.) 1.0
 @test_approx_eq o(0.4) 1.0
@@ -160,14 +163,14 @@ G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
 
 ## Previoius seffdault
 
-x=Fun(identity,[-1.,1.])
+x=Fun(identity,-1..1)
 f=x+sin(2x)*sqrt(1-x^2)
 @test_approx_eq f(0.1) 0.1+sin(2*0.1)*sqrt(1-0.1^2)
 
 
 ## Check multiple piecewisesapce
 
-x=Fun(identity,[-3,-2])+Fun(identity,[2,3])
+x=Fun(identity,-3 .. -2)+Fun(identity,2..3)
 w=sqrt(9-x^2)
 f=w+Fun()
 @test_approx_eq (f+w)(2.5) 2w(2.5)
@@ -177,15 +180,15 @@ f=w+Fun()
 
 ## Check Jacobi recurrence bug
 
-S=Jacobi(-.5,.5)
+S=Jacobi(-0.5,0.5)
 f=Fun(exp,S)
 @test_approx_eq f(0.1) exp(0.1)
 
 
 ## Check cancel conversion works
-x=Fun([0.,1.])
+x=Fun(0..1)
 f=exp(x)-1
-Fun(f,JacobiWeight(1.,0.,[0.,1.]))
+Fun(f,JacobiWeight(1.,0.,0..1))
 
 
 ## Hermite
@@ -203,7 +206,7 @@ z=Fun(identity,Arc(0.,.1,0.,π/2))
 
 ## Extending function
 
-Γ=Interval(-im,1.0-im)∪Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6)))∪Circle(2.0,0.2)
+Γ=Interval(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
 
 @test isempty(Γ[1]\Γ[1])
 @test Γ\Γ[1] == Γ[2]∪Γ[3]

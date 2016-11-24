@@ -63,7 +63,7 @@ function integrate{CS<:CosSpace}(f::Fun{CS})
         else
             d=domain(f)
             @assert isa(d,PeriodicInterval)
-            x=Fun(identity,[first(d),last(d)])
+            x=Fun(identity,first(d)..last(d))
             (f.coefficients[1]*x)⊕integrate(Fun(f,space(f)|(2:∞)))
         end
     end

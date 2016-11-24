@@ -42,9 +42,9 @@ z=Fun(Fourier(Γ))
 
 
 
-@test_approx_eq Fun(Laurent([0,2π]),[1,1.,1.])(0.1) 1+2cos(0.1+π)
-@test_approx_eq Fun(Laurent([-1,1]),[1,1.,1.])(0.1) 1+2cos(π*0.1)
-@test_approx_eq Fun(Laurent([0,1]),[1,1.,1.])(0.1) 1+2cos(2π*(0.1-1/2))
+@test_approx_eq Fun(Laurent(0..2π),[1,1.,1.])(0.1) 1+2cos(0.1+π)
+@test_approx_eq Fun(Laurent(-1..1),[1,1.,1.])(0.1) 1+2cos(π*0.1)
+@test_approx_eq Fun(Laurent(0..1),[1,1.,1.])(0.1) 1+2cos(2π*(0.1-1/2))
 
 
 @test abs(Fun(cos,Circle())(exp(0.1im))-cos(exp(0.1im)))<100eps()
@@ -242,5 +242,5 @@ end
 @test Fun(SinSpace(),Float64[])^2 == Fun(SinSpace(),Float64[])
 @test Fun(Fourier(),[1.])^2 ≈ Fun(Fourier(),[1.])
 
-B=Evaluation(Laurent([0.,2π]),0,1)
+B=Evaluation(Laurent(0..2π),0,1)
 @test_approx_eq B*Fun(sin,domainspace(B)) 1.0

@@ -100,7 +100,7 @@ println("    Calculus tests")
 ## Sum
 
 ff=(x,y)->(x-y)^2*exp(-x^2/2.-y^2/2)
-f=Fun(ff,Domain([-4.,4.])^2)
+f=Fun(ff,Domain(-4..4)^2)
 @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
 
 @test_approx_eq sum(f,1)(0.1) 2.5162377980828357
@@ -145,7 +145,7 @@ let d = Chebyshev()^2
     @test_approx_eq B*f f(0.1,0.3)
 end
 
-let d = Space([0,1]) * Space([0,2])
+let d = Space(0..1) * Space(0..2)
     Dx = Derivative(d, [1,0])
     f = Fun((x,y) -> sin(x) * cos(y), d)
     fx = Fun((x,y) -> cos(x) * cos(y), d)

@@ -26,7 +26,7 @@ end
 
 JacobiWeight(a::Number,b::Number,d::RealUnivariateSpace)=JacobiWeight{typeof(d),typeof(domain(d))}(Float64(a),Float64(b),d)
 JacobiWeight(a::Number,b::Number,d::IntervalDomain)=JacobiWeight(Float64(a),Float64(b),Space(d))
-JacobiWeight(a::Number,b::Number,d::Vector)=JacobiWeight(Float64(a),Float64(b),Space(d))
+JacobiWeight(a::Number,b::Number,d)=JacobiWeight(Float64(a),Float64(b),Space(d))
 JacobiWeight(a::Number,b::Number)=JacobiWeight(a,b,Chebyshev())
 
 JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeight(a,b,vec(s)))

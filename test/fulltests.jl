@@ -28,7 +28,7 @@ S=Chebyshev()
 end
 
 ## Newton iteration bug
-S=Chebyshev([0.,7.])
+S=Chebyshev(0..7)
 
 ω=2π
 
@@ -99,7 +99,7 @@ println("    Bessel tests")
 
 @time for ν in (1.,0.5,2.,3.5)
     println("        ν = $ν")
-    S=JacobiWeight(-ν,0.,Chebyshev([0.,1.]))
+    S=JacobiWeight(-ν,0.,Chebyshev(0..1))
     D=Derivative(S)
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
@@ -118,7 +118,7 @@ end
 
 @time for ν in (1.,0.5,0.123,3.5)
     println("        ν = $ν")
-    S=JacobiWeight(ν,0.,Chebyshev([0.,1.]))
+    S=JacobiWeight(ν,0.,Chebyshev(0..1))
     D=Derivative(S)
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
@@ -207,7 +207,7 @@ println("Full multivariate tests")
 
 
 ## ProductFun
-u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5).^2-40(y+.2).^2))
+u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-0.1)^2)+.5exp(-30(x+0.5)^2-40(y+0.2)^2))
 
 
 @test values(u0)-values(u0|>LowRankFun)|>norm < 1000eps()
@@ -217,7 +217,7 @@ u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5)
 @test sin(u0)(.1,.2)-sin(u0(.1,.2))|>abs < 10e-4
 
 
-F = LowRankFun((x,y)->hankelh1(0,10abs(y-x)),Chebyshev([1.0,2.0]),Chebyshev([1.0im,2.0im]))
+F = LowRankFun((x,y)->hankelh1(0,10abs(y-x)),Chebyshev(1.0..2.0),Chebyshev(1.0im..2.0im))
 
 @test_approx_eq F(1.5,1.5im) hankelh1(0,10abs(1.5im-1.5))
 

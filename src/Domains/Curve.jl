@@ -17,7 +17,7 @@ doc"""
 usage would be
 
 ```julia
-x=Fun([1,2])
+x=Fun(1..2)
 Curve(exp(im*x))  # represents an arc
 ```
 """

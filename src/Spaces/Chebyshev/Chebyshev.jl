@@ -10,7 +10,7 @@ end
 
 Chebyshev() = Chebyshev{Interval{Float64}}()
 Chebyshev(d::Domain) = Chebyshev{typeof(d)}(d)
-Chebyshev(d::Vector) = Chebyshev(Domain(d))
+Chebyshev(d) = Chebyshev(Domain(d))
 
 
 Space(d::Interval) = Chebyshev(d)
