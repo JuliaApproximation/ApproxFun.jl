@@ -1,11 +1,14 @@
+immutable Point{T} <: Domain{T,0}
+    x::T
+end
+
 doc"""
     Point(x)
 
 represents a single point at `x`.
 """
-immutable Point{T} <: Domain{T,0}
-    x::T
-end
+Point(::)
+
 
 ==(a::Point,b::Point) = a.x==b.x
 

@@ -17,11 +17,6 @@ type Fun{S,T}
     end
 end
 
-"""
-    Fun(coefficients,space)
-
-returns a Fun with coefficients in the space
-"""
 Fun(sp::Space,coeff::Vector) = Fun{typeof(sp),eltype(coeff)}(sp,coeff)
 Fun{T<:Integer}(sp::Space,coeff::Vector{T}) = Fun(sp,1.0coeff)
 
@@ -38,11 +33,6 @@ end
 ##Coefficient routines
 #TODO: domainscompatible?
 
-"""
-    coefficients(fun,space)
-
-returns the coefficients of a fun in a possibly different space
-"""
 function coefficients(f::Fun,msp::Space)
     #zero can always be converted
     if ncoefficients(f)==1 && f.coefficients[1]==0
@@ -224,11 +214,6 @@ function chop!{S,T}(f::Fun{S,T},tol::Real)
 end
 
 
-doc"""
-   chop(fun,tol)
-
-reduces the number of coefficients by dropping the tail that is below the specified tolerance.
-"""
 chop(f::Fun,tol)=chop!(Fun(f.space,copy(f.coefficients)),tol)
 chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
 

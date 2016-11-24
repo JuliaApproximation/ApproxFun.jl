@@ -48,7 +48,7 @@ end
 CachedOperator(op::Operator;padding::Bool=false) = default_CachedOperator(op;padding=padding)
 
 doc"""
-    cache(operator)
+    cache(op::Operator)
 
 Caches the entries of an operator, to speed up multiplying a Fun by the operator.
 """

@@ -8,8 +8,12 @@ makedocs(modules=[ApproxFun],
 			authors = "Sheehan Olver",
 			pages = Any[
 					"Home" => "index.md",
-					"Frequently Asked Questions" => "faq.md"
-					]
+					"Usage" => Any[
+						"Constructors" => "usage/constructors.md"
+					],
+					"Frequently Asked Questions" => "faq.md",
+					"Library" => "library.md"
+				]
 			)
 
 

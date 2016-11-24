@@ -9,31 +9,7 @@ constructs a function on the rectangle `[-1,1]^2`.  Just as in the 1D case, `f.c
 ## TensorSpace
 
 In the example above, the resulting space is a
-```julia
-TensorSpace(Chebyshev(),Chebyshev())
-```
-A `TensorSpace` represents a tensor product of two 1D spaces.  The coefficients are interlaced in lexigraphical order.
 
-To see this in action, consider
-```julia
-TensorSpace(Fourier(),Chebyshev())
-```
-This represents functions on `[-π,π) x [-1,1]`, using the Fourier basis for the first argument and Chebyshev basis for the second argument, that is, `φ_k(x)T_j(y)` and `φ_k(x)T_j(y)`, where
-```julia
-φ_0(x) = 1,
-φ_1(x) = sin x,
-φ_2(x) = cos x,
-φ_3(x) = sin 2x,
-φ_4(x) = cos 2x
-…
-```
-By Choosing `(k,j)` appropriately, we obtain a single basis:
-```julia
-φ_0(x)T_0(y) (= 1),
-φ_0(x)T_1(y) (= y),
-φ_1(x)T_0(y) (= sin x),
-φ_0(x)T_2(y), …
-```
 
 ## AbstractProductSpace
 

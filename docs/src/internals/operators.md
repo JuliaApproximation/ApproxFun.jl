@@ -1,36 +1,7 @@
 
 # Functionals
 
-# Banded Operators
-
-Add new BandedOperators
-
-```julia
-immutable MyBandedOperator{T} <: BandedOperator{T}
-...
-end
-```
-
-Override routines to work with built-in functionality like `*` and `\`.
-
-```julia
-domainspace(op::MyBandedOperator)
-rangespace(op::MyBandedOperator)
-```
-
-Override to return the domain and range space of the operator:  The operator acts on coefficients in the domain space and returns coefficients in the range space.
-
-```julia
-bandinds(op::MyBandedOperator)
-```
-
-Override to return a tuple with the left and right bandwidths.
-
-```julia
-addentries!(op::MyBandedOperator,A,rows::Range)
-```
-
-Override to add the entries for the `rows` of `op` to the matrix data structure `A` (which may be a `BandedMatrix` or other `Matrix`-like data structure.)
+# Operators
 
 # Calculus operators
 

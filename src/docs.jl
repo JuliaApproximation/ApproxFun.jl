@@ -4,81 +4,244 @@
 
 ## Fun.jl docs
 
-doc"""
-    domain(::Fun)
+# Constructors
 
-returns the domain that a `Fun` is defined on
+doc"""
+    Fun(s::Space,coefficients::Vector)
+
+returns a `Fun` with the specified `coefficients` in the space `s`
+"""
+Fun(::Space,::Vector)
+
+doc"""
+    Fun(f,s::Space)
+
+return a `Fun` representing the function, number, or vector `f` in the
+space `s`.  If `f` is vector-valued, it returns a vector-valued analogue
+of `s`.
+"""
+Fun(::,::Space)
+
+doc"""
+    Fun(f,d::Domain)
+
+returns `Fun(f,Space(d))`, that is, it uses the default space for the specified
+domain.
+"""
+Fun(::,::Domain)
+
+
+doc"""
+    Fun(s::Space)
+
+returns `Fun(identity,s)`
+"""
+Fun(::Space)
+
+doc"""
+    Fun(f)
+
+returns `Fun(f,Chebyshev())`
+"""
+Fun(::)
+
+doc"""
+    Fun()
+
+returns `Fun(identity,Chebyshev())`.
+"""
+Fun()
+
+doc"""
+    ones(d::Space)
+
+Return the `Fun` that represents the function one on the specified space.
+"""
+Base.ones(::Space)
+
+doc"""
+    zeros(d::Space)
+
+Return the `Fun` that represents the function one on the specified space.
+"""
+Base.zeros(::Space)
+
+# accessors
+
+doc"""
+    domain(f::Fun)
+
+returns the domain that `f` is defined on
 """
 domain(fun::Fun)
 
 
 doc"""
-    setdomain(fun,domain)
+    setdomain(f::Fun,d::Domain)
 
-returns `fun` projected onto `domain`
+returns `f` projected onto `domain`
 """
-setdomain(fun::Fun,domain::Domain)
+setdomain(::Fun,::Domain)
 
 
 doc"""
-    space(fun)
+    space(f::Fun)
 
-returns the space of `fun`
+returns the space of `f`
 """
-space(fun::Fun)
-
-
-
-doc"""
-    values(fun)
-
-returns `fun` evaluated at `points(fun)`
-"""
-Base.values(fun::Fun)
-
+space(f::Fun)
 
 
 
 doc"""
-    points(fun)
+    values(f::Fun)
 
-returns a grid of points that the fun can be transformed into values
+returns `f` evaluated at `points(f)`
+"""
+Base.values(::Fun)
+
+
+
+
+doc"""
+    points(f::Fun)
+
+returns a grid of points that `f` can be transformed into values
 and back
 """
-points(fun::Fun)
+points(::Fun)
 
 doc"""
-    extrapolate(fun,x)
+    points(s::Space,n::Integer)
 
-returns an extrapolation of `fun` from its domain to `x`.
+returns a grid of approximately `n` points, for which a transform exists
+from values at the grid to coefficients in the space `s`.
 """
-extrapolate(fun::Fun,x)
+points(::Space,::Integer)
+
+doc"""
+    extrapolate(f::Fun,x)
+
+returns an extrapolation of `f` from its domain to `x`.
+"""
+extrapolate(::Fun,x)
 
 
 doc"""
-    ncoefficients(fun) -> Integer
+    coefficients(f::Fun) -> Vector
+
+returns the coefficients of `f`, corresponding to the space `space(f)`.
+"""
+coefficients(::Fun)
+
+
+"""
+    coefficients(f::Fun,s::Space) -> Vector
+
+returns the coefficients of `f` in the space `s`, which
+may not be the same as `space(f)`.
+"""
+coefficients(::Fun,::Space)
+
+"""
+    coefficients(cfs::Vector,fromspace::Space,tospace::Space) -> Vector
+
+converts coefficients in `fromspace` to coefficients in `tospace`
+"""
+coefficients(::Vector,::Space,::Space)
+
+
+doc"""
+    ncoefficients(f::Fun) -> Integer
 
 returns the number of coefficients of a fun
 """
-ncoefficients(fun::Fun)
+ncoefficients(::Fun)
 
 doc"""
-    stride(fun)
+    stride(f::Fun)
 
 returns the stride of the coefficients, checked
 numerically
 """
-Base.stride(fun::Fun)
+Base.stride(::Fun)
+
+
+
+## Modifiers
+
+doc"""
+   chop(f::Fun,tol) -> Fun
+
+reduces the number of coefficients by dropping the tail that is below the specified tolerance.
+"""
+chop(::Fun,::)
+
+doc"""
+    reverseorientation(f::Fun)
+
+return `f` on a reversed orientated contour.
+"""
+reverseorientation(::Fun)
+
+
+## Spaces
+
+doc"""
+    canonicalspace(s::Space)
+
+returns a space that is used as a default to implement missing functionality,
+e.g., evaluation.  Implement a `Conversion` operator or override `coefficients` to support this.
+"""
+ApproxFun.canonicalspace(::Space)
+
+doc"""
+    transform(s::Space,vals::Vector)
+
+Transform values on the grid specified by `points(s,length(vals))` to coefficients in the space `s`.
+Defaults to `coefficients(transform(canonicalspace(space),values),canonicalspace(space),space)`
+"""
+transform(::Space,::Vector)
+
+doc"""
+    itransform(s::Space,coefficients::Vector)
+
+Transform coefficients back to values.  Defaults to using `canonicalspace` as in `transform`.
+"""
+itransform(::Space,::Vector)
+
+
+doc"""
+    evaluate(sp::Space,coefficients::Vector,x)
+
+Evaluates the expansion at a point `x`.
+If `x` is in the domain, then this should return zero.
+"""
+evaluate(::Space,::Vector,::)
 
 
 
 doc"""
-    reverseorientation(fun)
+    spacescompatible
 
-return `fun` on a reversed orientated contour
+Specifies equality of spaces while also supporting `AnyDomain`.
 """
-reverseorientation(f::Fun)
+spacescompatible(::Space,::Space)
 
+doc"""
+    conversion_type(a::Space,b::Space)
+
+returns a `Space` that has a banded conversion operator to both `a` and `b`.
+Override `ApproxFun.conversion_rule` when adding new `Conversion` operators.
+"""
+conversion_type(::Space,::Space)
+
+doc"""
+    dimension(s::Space)
+
+returns the dimension of `s`, which is the maximum number of coefficients.
+"""
+dimension(::Space)
 
 
 ## Operator.jl docs
@@ -89,3 +252,45 @@ doc"""
 is an abstract type to represent linear operators between spaces.
 """
 Operator
+
+doc"""
+    domainspace(op::Operator)
+
+gives the domain space of `op`.  That is, `op*f` will first convert `f` to
+a `Fun` in the space `domainspace(op)` before applying the operator.
+"""
+domainspace(::Operator)
+
+doc"""
+    rangespace(op::Operator)
+
+gives the range space of `op`.  That is, `op*f` will return a `Fun` in the
+space `rangespace(op)`, provided `f` can be converted to a `Fun` in
+`domainspace(op)`.
+"""
+rangespace(::Operator)
+
+
+doc"""
+    bandwidths(op::Operator)
+
+returns the bandwidth of `op` in the form `(l,u)`, where `l ≥ 0` represents
+the number of subdiagonals and `u ≥ 0` represents the number of superdiagonals.
+"""
+bandwidths(::Operator)
+
+doc"""
+    op[k,j]
+
+returns the `k`th coefficient of `op*Fun([zeros(j-1);1],domainspace(op))`.
+"""
+Base.getindex(::Operator,::,::)
+
+
+
+doc"""
+    Conversion(fromspace::Space,tospace::Space)
+
+represents a conversion operator between `fromspace` and `tospace`, when available.
+"""
+Conversion(::Space,::Space)

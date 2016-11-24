@@ -185,9 +185,9 @@ checkpoints(d::PeriodicDomain) = fromcanonical(d,[1.223972,0.01,-2.83273484])
 ## boundary
 
 doc"""
-    ∂(domain)
+    ∂(d::Domain)
 
-returns the boundary of `domain`.  For example, the boundary of a `Disk()`
+returns the boundary of `d`.  For example, the boundary of a `Disk()`
 is a `Circle()`, and the boundary of `Interval()^2` is a piecewise interval
 that sketches the boundary of a rectangle.
 """

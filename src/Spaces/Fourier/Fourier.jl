@@ -4,10 +4,6 @@ export Fourier,Taylor,Hardy,CosSpace,SinSpace,Laurent
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
-        doc"""
-            `CosSpace` is the basis `[1,cos θ,cos 2θ,...]`
-            `SinSpace` is the basis `[sin θ,sin 2θ,...]`
-        """
         immutable $T{D<:Domain} <: RealUnivariateSpace{D}
             domain::D
             $T(d::Domain) = new(D(d))
@@ -21,18 +17,40 @@ for T in (:CosSpace,:SinSpace)
         setdomain(S::$T,d::Domain) = $T(d)
     end
 end
-# s == true means analytic inside, taylor series
-# s == false means anlytic outside and decaying at infinity
 
 doc"""
-    `Hardy{true}` is the basis `[1,z,z^2,...]`
-    `Hardy{false}` is the basis `[1/z,1/z^2,...]`
+`CosSpace()` is the space spanned by `[1,cos θ,cos 2θ,...]`
 """
+CosSpace()
+
+doc"""
+`SinSpace()` is the space spanned by `[sin θ,sin 2θ,...]`
+"""
+SinSpace()
+
+# s == true means analytic inside, taylor series
+# s == false means anlytic outside and decaying at infinity
 immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
     domain::D
     Hardy(d)=new(d)
     Hardy()=new(D())
 end
+
+# The <: Domain is crucial for matching Basecall overrides
+typealias Taylor{D<:Domain} Hardy{true,D}
+
+
+doc"""
+`Taylor()` is the space spanned by `[1,z,z^2,...]`.  This is a type alias for `Hardy{true}`.
+
+"""
+Taylor()
+
+doc"""
+`Hardy{false}()` is the space spanned by `[1/z,1/z^2,...]`
+"""
+Hardy{False}()
+
 
 
 Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},::Type{T}) =
@@ -50,8 +68,7 @@ setdomain{s}(S::Hardy{s},d::Domain) = Hardy{s}(d)
 spacescompatible{s}(a::Hardy{s},b::Hardy{s}) = domainscompatible(a,b)
 hasfasttransform(::Hardy) = true
 
-# The <: Domain is crucial for matching Basecall overrides
-typealias Taylor{D<:Domain} Hardy{true,D}
+
 
 plan_transform(::Taylor,x::Vector) = plan_fft(x)
 plan_itransform{T<:Complex}(::Taylor,x::Vector{T}) = plan_ifft!(x) # we can reuse vector in itransform
@@ -148,7 +165,13 @@ evaluate(f::AbstractVector,S::SinSpace,t) = sineshaw(f,tocanonical(S,t))
 
 
 ## Laurent space
-
+doc"""
+`Laurent()` is the space spanned by the complex exponentials
+```
+    1,exp(-im*θ),exp(im*θ),exp(-2im*θ),…
+```
+See also `Fourier`.
+"""
 typealias Laurent{DD} SumSpace{Tuple{Hardy{true,DD},Hardy{false,DD}},ComplexBasis,DD,1}
 
 
@@ -180,6 +203,13 @@ end
 
 ## Fourier space
 
+doc"""
+`Fourier()` is the space spanned by the trigonemtric polynomials
+```
+    1,sin(θ),cos(θ),sin(2θ),cos(2θ),…
+```
+See also `Laurent`.
+"""
 typealias Fourier{DD} SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
 
 for TYP in (:Laurent,:Fourier)

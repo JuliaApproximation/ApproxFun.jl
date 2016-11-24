@@ -1,6 +1,7 @@
 
 
-export Space, domainspace, rangespace, maxspace,Space,conversion_type
+export Space, domainspace, rangespace, maxspace,Space,conversion_type, transform,
+            itransform, SequenceSpace, ConstantSpace
 
 
 ##
@@ -499,8 +500,7 @@ end
 
 
 """
-`ConstantSpace` Represents a single number.  The remaining
-coefficients are ignored.
+`ConstantSpace` is the 1-dimensional scalar space.
 """
 
 immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
@@ -532,10 +532,15 @@ end
 
 
 
-"""
-`SequenceSpace` is the space of all sequences, i.e., infinite vectors
-"""
 immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
+
+doc"""
+`SequenceSpace` is the space of all sequences, i.e., infinite vectors.
+Also denoted ℓ⁰.
+"""
+SequenceSpace()
+
+
 const ℓ⁰ = SequenceSpace()
 dimension(::SequenceSpace) = ∞
 domain(::SequenceSpace) = ℕ

@@ -6,7 +6,7 @@
 
 
 
-`ApproxFun` is a package for approximating functions. It is heavily influenced by the Matlab
+ApproxFun is a package for approximating functions. It is heavily influenced by the Matlab
 package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
 
 

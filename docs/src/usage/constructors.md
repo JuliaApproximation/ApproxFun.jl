@@ -1,15 +1,11 @@
+# Constructors
 
-This page details the basics of how a `Fun` is constructed from a callable function,
-either named or anonymous.  A `Fun` is a data type that contains two field:
-`space` and `coefficients`.  The field `space` is of type `Space`, and `coefficients` is a `Vector` that gives the coefficients in a basis, specified by `space`, which is a subtype of `Space`, see [[Spaces]].  
-
-
-`Fun`s in `ApproxFun` are instances of `Julia` types with one field to store coefficients and another
+`Fun`s in ApproxFun are instances of Julia types with one field to store coefficients and another
 to describe the function space. Similarly, each function space has one field describing
 its domain, or another function space. Let's explore:
 
 ```julia
-x = Fun(identity)
+x = Fun(identity,-1..1)
 f = exp(x)
 g = f/sqrt(1-x^2)
 space(f)   # Chebyshev(Interval(-1.0,1.0))
@@ -20,7 +16,7 @@ The absolute value is
 another case where the space of the output is inferred from the operation:
 
 ```julia
-f = Fun(x->cospi(5x))
+f = Fun(x->cospi(5x),-1..1)
 g = abs(f)
 space(f)   # Chebyshev(Interval(-1.0,1.0))
 space(g)   # PiecewiseSpace((Chebyshev(Interval(-1.0,-0.9)),...))
@@ -28,25 +24,46 @@ space(g)   # PiecewiseSpace((Chebyshev(Interval(-1.0,-0.9)),...))
 
 ## Convenience constructors
 
-The default space is `Chebyshev`, which can represent non-periodic functions on intervals.  Each `Space` type has a default domain: for `Chebyshev` this is [-1,1], for Fourier and Laurent this is [-π,π].
+The default space is `Chebyshev`, which can represent non-periodic functions on intervals.  Each `Space` type has a default domain: for `Chebyshev` this is `-1..1`, for Fourier and Laurent this is `-π..π`.  Thus the following
+are synonyms:
+```julia
+Fun(exp,Chebyshev(Interval(-1,1)))
+Fun(exp,Chebyshev(Interval()))
+Fun(exp,Chebyshev(-1..1))
+Fun(exp,Chebyshev())
+Fun(exp,-1..1)
+Fun(exp,Interval())
+Fun(exp,Interval(-1,1))
+Fun(exp)
+```
+If a function is not specified, then it is taken to be `identity`.  Thus we have the
+following synonyms:
+```julia
+x = Fun(identity,-1..1)
+x = Fun(-1..1)
+x = Fun(identity)
+x = Fun()
+```
+
+
 
 ## Using ApproxFun for “manual” interpolation
 
 The ApproxFun package for Julia implements all of the necessary operations for Chebyshev interpolation and operations (like differentiation or integration) on Chebyshev interpolants.
 
-Normally, you give it a function f and a domain d, and construct the Chebyshev interpolant by fc = Fun(f, d). The ApproxFun package figures out the necessary number of Chebyshev points (i.e., the polynomial order) required to interpolate f to nearly machine precision, so that subsequent operations on fc can be viewed as "exact".
+Normally, you give it a function f and a domain d, and construct the Chebyshev interpolant by `fc = Fun(f, d)`. The ApproxFun package figures out the necessary number of Chebyshev points (i.e., the polynomial order) required to interpolate f to nearly machine precision, so that subsequent operations on fc can be viewed as "exact".
 
-However, in cases where the function to be interpolated is extremely expensive, and possibly even is evaluated by an external program, it is convenient to be able to decide on the desired Chebyshev order in advance, evaluate the function at those points "manually", and then construct the Chebyshev interpolant. However, this procedure isn't documented in the ApproxFun manual. In this notebook, we show how to do that for the example f(x) = exp(2x) on the domain [0,1].
+However, in cases where the function to be interpolated is extremely expensive, and possibly even is evaluated by an external program, it is convenient to be able to decide on the desired Chebyshev order in advance, evaluate the function at those points "manually", and then construct the Chebyshev interpolant. However, this procedure isn't documented in the ApproxFun manual. In this notebook, we show how to do that for the example `f(x) = exp(2x)` on the domain `0..1`.
 
 ### Manually constructing the Chebyshev interpolant
 
 ```julia
 using ApproxFun
 f(x) = exp(2x) # the function to be interpolated
-d = Space([0,1]) # the domain to interpolate in
+d = Space(0..1) # the domain to interpolate in
 ```
 
-Let's interpolate using only N = 10 points. We'll start by using the ApproxFun.points function to get the x coordinates to interpolate at:
+Let's interpolate using only `N = 10` points. We'll start by using the ApproxFun.points function to get the x coordinates to interpolate at:
 
 ```julia
 N = 10
