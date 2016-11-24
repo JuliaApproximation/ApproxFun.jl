@@ -165,8 +165,12 @@ linsolve_coefficients{CO,MT,T<:Complex}(QR::QROperator{CO,MT,T},b::Vector{T};kwd
 linsolve_coefficients{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
     linsolve_coefficients(QR,Vector{T}(b);kwds...)
 
-linsolve_coefficients{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
-    linsolve_coefficients(QR,real(b);kwds...)+im*linsolve_coefficients(QR,imag(b);kwds...)
+function linsolve_coefficients{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...)
+    a=linsolve_coefficients(QR,real(b);kwds...)
+    b=im*linsolve_coefficients(QR,imag(b);kwds...)
+    n=max(length(a),length(b))
+    pad!(a,n)+pad!(b,n)
+end
 linsolve_coefficients{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
     linsolve_coefficients(QR,Vector{T}(b);kwds...)
 

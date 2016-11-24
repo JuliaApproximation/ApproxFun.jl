@@ -4,7 +4,7 @@ export continuity
 
 Space(d::IntervalDomain) = Chebyshev(d)
 
-identity_fun(d::Interval) = Fun(Chebyshev(d),eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2])
+identity_fun{T<:Number}(d::Interval{T}) = Fun(Chebyshev(d),eltype(d)[(d.b+d.a)/2,(d.b-d.a)/2])
 
 
 ## Calculus

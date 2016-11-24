@@ -93,8 +93,8 @@ Base.isless{T1<:Real,T2<:Real}(d2::Ray{true,T2},d1::Interval{T1}) = d2.center â‰
 
 #union
 Base.union(a::ClosedInterval,b::ClosedInterval) = union(Domain(a),Domain(b))
-Base.union(a::ClosedInterval,b) = union(Domain(a),b)
-Base.union(a,b::ClosedInterval) = union(a,Domain(b))
+Base.union(a::ClosedInterval,b::Domain) = union(Domain(a),b)
+Base.union(a::Domain,b::ClosedInterval) = union(a,Domain(b))
 
 
 ## set minus

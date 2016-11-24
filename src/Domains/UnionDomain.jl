@@ -35,6 +35,7 @@ Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain)=UnionDomain(tuple())
 
 Base.union(d::Domain) = d
 Base.union{D<:Domain}(d::AbstractVector{D}) = UnionDomain(d)
+#TODO: Deprecate these
 function Base.union{D<:Domain}(::Type{D},x)
     out = map(D,x)
     length(out) > 1 ? ∪(out) : out[1]
@@ -70,8 +71,10 @@ Base.intersect(d1::UnionDomain,d2::Domain)=mapreduce(d->d2∩d,∪,d1.domains)
 
 
 Base.setdiff(a::UnionDomain,b::UnionDomain) = mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a::UnionDomain,b) = mapreduce(d->setdiff(d,b),∪,a.domains)
-Base.setdiff(a,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
+Base.setdiff(a::UnionDomain,b::Domain) = mapreduce(d->setdiff(d,b),∪,a.domains)
+Base.setdiff(a::Domain,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
+Base.setdiff(a::UnionDomain,b::ClosedInterval) = mapreduce(d->setdiff(d,b),∪,a.domains)
+Base.setdiff(a::ClosedInterval,b::UnionDomain) = mapreduce(d->setdiff(a,d),∩,b.domains)
 
 Base.sort(d::UnionDomain;opts...) = UnionDomain(sort([d.domains...];opts...))
 
