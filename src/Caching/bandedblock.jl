@@ -121,7 +121,7 @@ function resizedata!{T,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOperator{T,Band
     cs=colstop(MO,col)
 
     if cs ≥ MO.datasize[1]
-        resizedata!(MO,cs+100,:)  # add 100 rows
+        resizedata!(MO,cs+10,:)  # add 10 rows
         R=MO.data
     end
 

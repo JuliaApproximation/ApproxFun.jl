@@ -68,9 +68,9 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
     MO=QR.R
     W=QR.H
 
-    if col+100 ≥ MO.datasize[2]
+    if col+10 ≥ MO.datasize[2]
         m = MO.datasize[2]
-        resizedata!(MO,:,col+100)  # last rows plus a bunch more
+        resizedata!(MO,:,col+10)  # last rows plus a bunch more
 
         # apply previous Householders to new columns of R
         for J=1:QR.ncols
@@ -87,9 +87,9 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
 
     if col > size(W,2)
         m=size(W,2)
-        resize!(W.cols,col+101)
+        resize!(W.cols,col+11)
 
-        for j=m+1:col+100
+        for j=m+1:col+10
             cs=colstop(MO.data,j)
             W.cols[j+1]=W.cols[j] + cs-j+1
             W.m=max(W.m,cs-j+1)
@@ -137,9 +137,9 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,R
     R=MO.data
     r=pointer(R.data)
 
-    if col+100 ≥ MO.datasize[2]
+    if col+10 ≥ MO.datasize[2]
         m = MO.datasize[2]
-        resizedata!(MO,:,col+100)  # last rows plus a bunch more
+        resizedata!(MO,:,col+10)  # last rows plus a bunch more
 
         R=MO.data
         r=pointer(R.data)
@@ -160,9 +160,9 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,R
 
     if col > size(W,2)
         m=size(W,2)
-        resize!(W.cols,col+101)
+        resize!(W.cols,col+11)
 
-        for j=m+1:col+100
+        for j=m+1:col+10
             cs=colstop(R,j)
             q_len=cs-j+1  # number of entries in j-th column manipulated
             @assert q_len > 0   # Otherwise, diagonal is not included
