@@ -58,28 +58,6 @@ g = g + f(-1)
 norm(f-g)
 ```
 
-`Fun`s in `ApproxFun` are instances of `Julia` types with one field to store coefficients and another
-to describe the function space. Similarly, each function space has one field describing
-its domain, or another function space. Let's explore:
-
-```julia
-x = Fun(identity)
-f = exp(x)
-g = f/sqrt(1-x^2)
-space(f)   # Chebyshev(Interval(-1.0,1.0))
-space(g)   # JacobiWeight(-0.5,-0.5,Interval(-1.0,1.0))
-```
-
-The absolute value is
-another case where the space of the output is inferred from the operation:
-
-```julia
-f = Fun(x->cospi(5x))
-g = abs(f)
-space(f)   # Chebyshev(Interval(-1.0,1.0))
-space(g)   # PiecewiseSpace((Chebyshev(Interval(-1.0,-0.9)),...))
-```
-
 Algebraic and differential operations are also implemented where possible, and most of Julia's built-in functions are overridden to accept `Fun`s:
 
 ```julia
@@ -224,11 +202,6 @@ setprecision(1000) do
     u(1)
 end
 ```
-
-
-# Further reading
-
-The [ApproxFun Documentation](https://github.com/ApproxFun/ApproxFun.jl/wiki/ApproxFun-Documentation) is a work-in-process Wiki documenting the internal workings of `ApproxFun`
 
 
 
