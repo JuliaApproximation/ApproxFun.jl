@@ -1,5 +1,5 @@
 export Fun,evaluate,values,points,extrapolate,setdomain
-export coefficients,ncoefficients
+export coefficients,ncoefficients,coefficient
 export integrate,differentiate,domain,space,linesum,linenorm
 
 include("Domain.jl")

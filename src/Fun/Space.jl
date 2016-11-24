@@ -540,7 +540,6 @@ const ℓ⁰ = SequenceSpace()
 dimension(::SequenceSpace) = ∞
 domain(::SequenceSpace) = ℕ
 spacescompatible(::SequenceSpace,::SequenceSpace) = true
-coefficients(cfs::Vector,::SequenceSpace) = cfs  # all vectors are convertible to SequenceSpace
 
 
 ## Boundary

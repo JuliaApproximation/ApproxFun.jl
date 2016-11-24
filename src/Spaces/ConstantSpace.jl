@@ -24,6 +24,11 @@ Base.norm(f::Fun{SequenceSpace},k::Int) = norm(f.coefficients,k)
 Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)
 
 
+Fun(cfs::Vector,S::SequenceSpace) = Fun(S,cfs)
+coefficients(cfs::Vector,::SequenceSpace) = cfs  # all vectors are convertible to SequenceSpace
+
+
+
 ## Constant space defintions
 
 Fun(c::Number) = Fun(ConstantSpace(),[c])
