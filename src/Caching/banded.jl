@@ -36,7 +36,7 @@ resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Intege
 
 function QROperator{T}(R::CachedOperator{T,BandedMatrix{T}})
     M = R.data.l+1   # number of diag+subdiagonal bands
-    H = Array(T,M,10)
+    H = Array(T,M,100)
     QROperator(R,H,0)
 end
 
@@ -55,7 +55,7 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,BandedMatrix
     M=R.l+1   # number of diag+subdiagonal bands
 
     if col+M-1 ≥ MO.datasize[1]
-        resizedata!(MO,(col+M-1)+10,:)  # double the last rows
+        resizedata!(MO,(col+M-1)+100,:)  # double the last rows
     end
 
     if col > size(W,2)
@@ -108,7 +108,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,B
     M=R.l+1   # number of diag+subdiagonal bands
 
     if col+M-1 ≥ MO.datasize[1]
-        resizedata!(MO,(col+M-1)+10,:)  # double the last rows
+        resizedata!(MO,(col+M-1)+100,:)  # double the last rows
     end
 
     if col > size(W,2)
