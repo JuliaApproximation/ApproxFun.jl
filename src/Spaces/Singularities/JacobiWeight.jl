@@ -7,19 +7,19 @@ export JacobiWeight
 
 """
 `JacobiWeight`
-weights a basis on `[-1,1]` weighted by `(1+x)^α*(1-x)^β`.
+weights a basis on `[-1,1]` weighted by `(1+x)^β*(1-x)^α`.
 Note the inconsistency of the parameters with `Jacobi`.
 when the domain is `[a,b]` the weight is inferred by mapping to `[-1,1]`
 """
 immutable JacobiWeight{S,DD} <: WeightSpace{S,RealBasis,DD,1}
-    α::Float64
     β::Float64
+    α::Float64
     space::S
-    function JacobiWeight(α::Float64,β::Float64,space::S)
+    function JacobiWeight(β::Float64,α::Float64,space::S)
         if isa(space,JacobiWeight)
-            JacobiWeight(α+space.α,β+space.β,space.space)
+            JacobiWeight(β+space.β,α+space.α,space.space)
         else
-            new(α,β,space)
+            new(β,α,space)
         end
     end
 end
@@ -31,17 +31,17 @@ JacobiWeight(a::Number,b::Number)=JacobiWeight(a,b,Chebyshev())
 
 JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeight(a,b,vec(s)))
 
-identity_fun(S::JacobiWeight)=isapproxinteger(S.α)&&isapproxinteger(S.β)?Fun(x->x,S):Fun(identity,domain(S))
+identity_fun(S::JacobiWeight)=isapproxinteger(S.β)&&isapproxinteger(S.α)?Fun(x->x,S):Fun(identity,domain(S))
 
 order{T,D}(S::JacobiWeight{Ultraspherical{Int,T},D}) = order(S.space)
 
 
-spacescompatible(A::JacobiWeight,B::JacobiWeight)= A.α ≈ B.α && A.β ≈ B.β && spacescompatible(A.space,B.space)
+spacescompatible(A::JacobiWeight,B::JacobiWeight)= A.β ≈ B.β && A.α ≈ B.α && spacescompatible(A.space,B.space)
 spacescompatible{DD<:IntervalDomain}(A::JacobiWeight,B::RealUnivariateSpace{DD})=spacescompatible(A,JacobiWeight(0,0,B))
 spacescompatible{DD<:IntervalDomain}(B::RealUnivariateSpace{DD},A::JacobiWeight)=spacescompatible(A,JacobiWeight(0,0,B))
 
 transformtimes{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})=
-            Fun(JacobiWeight(f.space.α+g.space.α,f.space.β+g.space.β,f.space.space),
+            Fun(JacobiWeight(f.space.β+g.space.β,f.space.α+g.space.α,f.space.space),
                 coefficients(transformtimes(Fun(f.space.space,f.coefficients),
                                             Fun(g.space.space,g.coefficients))))
 transformtimes{JW<:JacobiWeight}(f::Fun{JW},g::Fun) =
@@ -49,32 +49,28 @@ transformtimes{JW<:JacobiWeight}(f::Fun{JW},g::Fun) =
 transformtimes{JW<:JacobiWeight}(f::Fun,g::Fun{JW}) =
     Fun(g.space,coefficients(transformtimes(Fun(g.space.space,g.coefficients),f)))
 
-##  α and β are opposite the convention for Jacobi polynomials
-# Here, α is the left algebraic singularity and β is the right algebraic singularity.
+jacobiweight(β,α,x) = (1+x).^β.*(1-x).^α
+jacobiweight(β,α,d::Domain) = Fun(JacobiWeight(β,α,ConstantSpace(d)),[1.])
+jacobiweight(β,α) = jacobiweight(β,α,Interval())
+
+weight(sp::JacobiWeight,x) = jacobiweight(sp.β,sp.α,tocanonical(sp,x))
+dimension(sp::JacobiWeight) = dimension(sp.space)
 
 
-jacobiweight(α,β,x)=(1+x).^α.*(1-x).^β
-jacobiweight(α,β,d::Domain)=Fun(JacobiWeight(α,β,ConstantSpace(d)),[1.])
-jacobiweight(α,β)=jacobiweight(α,β,Interval())
+Base.first{JW<:JacobiWeight}(f::Fun{JW}) = space(f).β>0?zero(eltype(f)):f(first(domain(f)))
+Base.last{JW<:JacobiWeight}(f::Fun{JW}) = space(f).α>0?zero(eltype(f)):f(last(domain(f)))
 
-weight(sp::JacobiWeight,x)=jacobiweight(sp.α,sp.β,tocanonical(sp,x))
-dimension(sp::JacobiWeight)=dimension(sp.space)
-
-
-Base.first{JW<:JacobiWeight}(f::Fun{JW}) = space(f).α>0?zero(eltype(f)):f(first(domain(f)))
-Base.last{JW<:JacobiWeight}(f::Fun{JW}) = space(f).β>0?zero(eltype(f)):f(last(domain(f)))
-
-setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.α,sp.β,setdomain(sp.space,d))
+setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.β,sp.α,setdomain(sp.space,d))
 
 # we assume that points avoids singularities
 
 
 ##TODO: paradigm for same space
 function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD})
-    α,β=sp1.α,sp1.β
-    c,d=sp2.α,sp2.β
+    β,α=sp1.β,sp1.α
+    c,d=sp2.β,sp2.α
 
-    if isapprox(c,α) && isapprox(d,β)
+    if isapprox(c,β) && isapprox(d,α)
         # remove wrapper spaces and then convert
         coefficients(f,sp1.space,sp2.space)
     else
@@ -107,18 +103,18 @@ coefficients{SJ,DD<:IntervalDomain}(f::Vector,S2::RealUnivariateSpace{DD},sp::Ja
 `increase_jacobi_parameter(+1,f)` multiplies by `1-x` on the unit interval.
 On other domains this is accomplished by mapping to the unit interval.
 """
-increase_jacobi_parameter(f) = Fun(f,JacobiWeight(f.space.α+1,f.space.β+1,space(f).space))
-increase_jacobi_parameter(s,f) = s==-1?Fun(f,JacobiWeight(f.space.α+1,f.space.β,space(f).space)):
-                                       Fun(f,JacobiWeight(f.space.α,f.space.β+1,space(f).space))
+increase_jacobi_parameter(f) = Fun(f,JacobiWeight(f.space.β+1,f.space.α+1,space(f).space))
+increase_jacobi_parameter(s,f) = s==-1?Fun(f,JacobiWeight(f.space.β+1,f.space.α,space(f).space)):
+                                       Fun(f,JacobiWeight(f.space.β,f.space.α+1,space(f).space))
 
 
 
 function canonicalspace(S::JacobiWeight)
-    if isapprox(S.α,0) && isapprox(S.β,0)
+    if isapprox(S.β,0) && isapprox(S.α,0)
         canonicalspace(S.space)
     else
         #TODO: promote singularities?
-        JacobiWeight(S.α,S.β,canonicalspace(S.space))
+        JacobiWeight(S.β,S.α,canonicalspace(S.space))
     end
 end
 
@@ -126,8 +122,8 @@ function union_rule{P<:PolynomialSpace}(A::ConstantSpace,B::JacobiWeight{P})
     # we can convert to a space that contains contants provided
     # that the parameters are integers
     # when the parameters are -1 we keep them
-    if isapproxinteger(B.α) && isapproxinteger(B.β)
-        JacobiWeight(min(B.α,0.),min(B.β,0.),B.space)
+    if isapproxinteger(B.β) && isapproxinteger(B.α)
+        JacobiWeight(min(B.β,0.),min(B.α,0.),B.space)
     else
         NoSpace()
     end
@@ -140,7 +136,7 @@ for op in (:/,:./)
     @eval begin
         function ($op){JW<:JacobiWeight}(c::Number,f::Fun{JW})
             g=($op)(c,Fun(space(f).space,f.coefficients))
-            Fun(JacobiWeight(-f.space.α,-f.space.β,space(g)),g.coefficients)
+            Fun(JacobiWeight(-f.space.β,-f.space.α,space(g)),g.coefficients)
         end
     end
 end
@@ -148,18 +144,18 @@ end
 function .^{JW<:JacobiWeight}(f::Fun{JW},k::Float64)
     S=space(f)
     g=Fun(S.space,coefficients(f))^k
-    Fun(JacobiWeight(k*S.α,k*S.β,space(g)),coefficients(g))
+    Fun(JacobiWeight(k*S.β,k*S.α,space(g)),coefficients(g))
 end
 
 function .*{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})
     @assert domainscompatible(f,g)
-    fα,fβ=f.space.α,f.space.β
-    gα,gβ=g.space.α,g.space.β
+    fβ,fα=f.space.β,f.space.α
+    gβ,gα=g.space.β,g.space.α
     m=(Fun(space(f).space,f.coefficients).*Fun(space(g).space,g.coefficients))
-    if isapprox(fα+gα,0)&&isapprox(fβ+gβ,0)
+    if isapprox(fβ+gβ,0)&&isapprox(fα+gα,0)
         m
     else
-        Fun(JacobiWeight(fα+gα,fβ+gβ,space(m)),m.coefficients)
+        Fun(JacobiWeight(fβ+gβ,fα+gα,space(m)),m.coefficients)
     end
 end
 
@@ -212,7 +208,7 @@ function bilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::Fun{
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f).space)
-    if order(space(g)) == λ && f.space.α == f.space.β == λ-0.5
+    if order(space(g)) == λ && f.space.β == f.space.α == λ-0.5
         return complexlength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultbilinearform(f,g)
@@ -224,7 +220,7 @@ function bilinearform{LT,D}(f::Fun{Ultraspherical{LT,D}},
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f))
-    if order(space(g).space) == λ && g.space.α == g.space.β == λ-0.5
+    if order(space(g).space) == λ && g.space.β == g.space.α == λ-0.5
         return complexlength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultbilinearform(f,g)
@@ -236,7 +232,7 @@ function bilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f).space)
-    if order(space(g).space) == λ && f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
+    if order(space(g).space) == λ && f.space.β+g.space.β == f.space.α+g.space.α == λ-0.5
         return complexlength(domain(f))/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultbilinearform(f,g)
@@ -247,7 +243,7 @@ function linebilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f).space)
-    if order(space(g)) == λ && f.space.α == f.space.β == λ-0.5
+    if order(space(g)) == λ && f.space.β == f.space.α == λ-0.5
         return arclength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultlinebilinearform(f,g)
@@ -258,7 +254,7 @@ function linebilinearform{LT,D}(f::Fun{Ultraspherical{LT,D}},g::Fun{JacobiWeight
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f))
-    if order(space(g).space) == λ &&  g.space.α == g.space.β == λ-0.5
+    if order(space(g).space) == λ &&  g.space.β == g.space.α == λ-0.5
         return arclength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultlinebilinearform(f,g)
@@ -269,7 +265,7 @@ function linebilinearform{LT,D}(f::Fun{JacobiWeight{Ultraspherical{LT,D},D}},g::
     d = domain(f)
     @assert d == domain(g)
     λ = order(space(f).space)
-    if order(space(g).space) == λ &&  f.space.α+g.space.α == f.space.β+g.space.β == λ-0.5
+    if order(space(g).space) == λ &&  f.space.β+g.space.β == f.space.α+g.space.α == λ-0.5
         return arclength(d)/2*conjugatedinnerproduct(Ultraspherical(λ,d),f.coefficients,g.coefficients)
     else
         return defaultlinebilinearform(f,g)

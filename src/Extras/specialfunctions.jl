@@ -338,15 +338,15 @@ function exp{JW<:JacobiWeight}(f::Fun{JW})
     q=Fun(S.space,f.coefficients)
     if isapprox(S.α,0.) && isapprox(S.β,0.)
         exp(q)
-    elseif S.α < 0 && isapprox(first(q),0.)
+    elseif S.β < 0 && isapprox(first(q),0.)
         # this case can remove the exponential decay
-        exp(Fun(f,JacobiWeight(S.α+1,S.β,S.space)))
-    elseif S.β < 0 && isapprox(last(q),0.)
-        exp(Fun(f,JacobiWeight(S.α,S.β+1,S.space)))
-    elseif S.α > 0 && isapproxinteger(S.α)
-        exp(Fun(f,JacobiWeight(0.,S.β,S.space)))
+        exp(Fun(f,JacobiWeight(S.β+1,S.α,S.space)))
+    elseif S.α < 0 && isapprox(last(q),0.)
+        exp(Fun(f,JacobiWeight(S.β,S.α+1,S.space)))
     elseif S.β > 0 && isapproxinteger(S.β)
-        exp(Fun(f,JacobiWeight(S.α,0.,S.space)))
+        exp(Fun(f,JacobiWeight(0.,S.α,S.space)))
+    elseif S.α > 0 && isapproxinteger(S.α)
+        exp(Fun(f,JacobiWeight(S.β,0.,S.space)))
     else
         #find normalization point
         xmax,opfxmax,opmax=specialfunctionnormalizationpoint(exp,real,f)
@@ -355,10 +355,10 @@ function exp{JW<:JacobiWeight}(f::Fun{JW})
             # provided both are negative, we get exponential decay on both ends
             @assert real(first(q)) < 0 && real(last(q)) < 0
             s=JacobiWeight(2.,2.,domain(f))
-        elseif S.α < 0 && isapprox(S.β,0.)
+        elseif S.β < 0 && isapprox(S.α,0.)
             @assert real(first(q)) < 0
             s=JacobiWeight(2.,0.,domain(f))
-        elseif S.β < 0 && isapprox(S.α,0.)
+        elseif S.α < 0 && isapprox(S.β,0.)
             @assert real(last(q)) < 0
             s=JacobiWeight(0.,2.,domain(f))
         else

@@ -2,22 +2,24 @@ using ApproxFun, Base.Test
     import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms
 
 
-testspace(Jacobi(2.,.5);haslineintegral=false)
+@test_approx_eq ApproxFun.jacobip(0:5,2,0.5,0.1) [1.,0.975,-0.28031249999999996,-0.8636328125,-0.0022111816406250743,0.7397117980957031]
 
-f=Fun(exp,Jacobi(2.,.5))
+testspace(Jacobi(.5,2.);haslineintegral=false)
+
+f=Fun(exp,Jacobi(.5,2.))
 @test_approx_eq f(.1) exp(.1)
 
-f=Fun(x->cos(100x),Jacobi(2.124,.5),500)
+f=Fun(x->cos(100x),Jacobi(.5,2.124),500)
 @test_approx_eq f(.1) cos(100*.1)
 
 
-sp=Jacobi(2.124,.5)
+sp=Jacobi(.5,2.124)
 @time f=Fun(exp,sp)
-sp2=Jacobi(2.124,1.5)
+sp2=Jacobi(1.5,2.124)
 f2=Fun(exp,sp2)
-sp3=Jacobi(3.124,1.5)
+sp3=Jacobi(1.5,3.124)
 f3=Fun(exp,sp3)
-sp4=Jacobi(4.124,2.5)
+sp4=Jacobi(2.5,4.124)
 f4=Fun(exp,sp4)
 @test norm((Fun(f,sp2)-f2).coefficients)<10eps()
 @test norm((Fun(f,sp3)-f3).coefficients)<10eps()
@@ -28,13 +30,13 @@ f4=Fun(exp,sp4)
 
 
 m=20
-@time testtransforms(JacobiWeight(0.,m,Jacobi(2m+1,0.)))
-f=Fun(x->((1-x)/2).^m.*exp(x),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
+@time testtransforms(JacobiWeight(0.,m,Jacobi(0.,2m+1)))
+f=Fun(x->((1-x)/2).^m.*exp(x),JacobiWeight(0.,m,Jacobi(0.,2m+1)))
 @test abs(f(.1)-(x->((1-x)/2).^m.*exp(x))(.1))<10eps()
 
 
 m=10
-@time f=Fun(x->besselj(m,m*(1-x)),JacobiWeight(0.,m,Jacobi(2m+1,0.)))
+@time f=Fun(x->besselj(m,m*(1-x)),JacobiWeight(0.,m,Jacobi(0.,2m+1)))
 @test_approx_eq f(0.) besselj(m,m)
 
 
@@ -49,21 +51,21 @@ testtransforms(Jacobi(-0.5,-0.5))
 
 x=Fun(identity)
 ri=0.5./(1-x)
-@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(1.,0.))))(.1) (1-.1)./2*exp(.1)
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) (1-.1)./2*exp(.1)
 
 
-@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(1.,0.))))(.1) (1-.1)./2*exp(.1)
+@test_approx_eq ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) (1-.1)./2*exp(.1)
 
 
-@test_approx_eq (ri.*Fun(exp,JacobiWeight(0.,0.,Jacobi(1.,0.))))(.1) .5/(1-.1)*exp(.1)
+@test_approx_eq (ri.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) .5/(1-.1)*exp(.1)
 
 
 ## Derivative
 
-D=Derivative(Jacobi(1.,0.,Interval(1.,0.)))
+D=Derivative(Jacobi(0.,1.,Interval(1.,0.)))
 @time testbandedoperator(D)
 
-S=JacobiWeight(0.,0.,Jacobi(1.,0.,Interval(1.,0.)))
+S=JacobiWeight(0.,0.,Jacobi(0.,1.,Interval(1.,0.)))
 D=Derivative(S)
 testbandedoperator(D)
 
@@ -84,19 +86,19 @@ f=Fun(exp,Jacobi(0.,0.))
 
 @test_approx_eq (x*f)(.1) .1exp(.1)
 
-x=Fun(identity,Jacobi(0.123,12.324))
+x=Fun(identity,Jacobi(12.324,0.123))
 f=Fun(exp,Jacobi(0.,0.))
 
 @test_approx_eq (x*f)(.1) .1exp(.1)
 
 
-x=Fun(identity,Jacobi(0.123,12.324))
-f=Fun(exp,Jacobi(0.213,0.590))
+x=Fun(identity,Jacobi(12.324,0.123))
+f=Fun(exp,Jacobi(0.590,0.213))
 
 @test_approx_eq (x*f)(.1) .1exp(.1)
 
-g=Fun(cos,Jacobi(0.123,12.324))
-f=Fun(exp,Jacobi(0.213,0.590))
+g=Fun(cos,Jacobi(12.324,0.123))
+f=Fun(exp,Jacobi(0.590,0.213))
 
 @test_approx_eq (g*f)(.1) cos(.1)*exp(.1)
 
@@ -161,7 +163,7 @@ g=(f|(2:ApproxFun.∞))
 
 
 ## Check conversion for non-compatible paramters
-S=Jacobi(0.1,1.2)
+S=Jacobi(1.2,0.1)
 x=Fun()
 
 

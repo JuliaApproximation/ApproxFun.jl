@@ -133,7 +133,7 @@ f=w+x
 
 ## SumSpace bug
 
-dsp=JacobiWeight(1.,0.,Jacobi(0.,1.,0..1))⊕JacobiWeight(0.5,0.,Jacobi(-0.5,0.5,0..1))
+dsp=JacobiWeight(1.,0.,Jacobi(1.,0.,0..1))⊕JacobiWeight(0.5,0.,Jacobi(0.5,-0.5,0..1))
 rsp=Legendre(0..1)⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,0..1))
 
 
@@ -175,7 +175,7 @@ f=w+Fun()
 
 ## Check Jacobi recurrence bug
 
-S=Jacobi(-0.5,0.5)
+S=Jacobi(0.5,-0.5)
 f=Fun(exp,S)
 @test_approx_eq f(0.1) exp(0.1)
 

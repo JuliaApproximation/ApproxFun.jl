@@ -226,7 +226,7 @@ x=Fun(0..1)
 
 
 
-S1,S2=JacobiWeight(3.,1.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(1.,0.))
+S1,S2=JacobiWeight(3.,1.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(0.,1.))
 f=Fun(S1,[1,2,3.])
 C=Conversion(S1,S2)
 Cf=C*f
