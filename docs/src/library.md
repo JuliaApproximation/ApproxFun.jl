@@ -123,6 +123,11 @@ SinSpace
 ```
 
 ```@docs
+Jacobi
+```
+
+
+```@docs
 JacobiWeight
 ```
 
