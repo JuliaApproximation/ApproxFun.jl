@@ -175,7 +175,7 @@ f=w+Fun()
 
 ## Check Jacobi recurrence bug
 
-S=Jacobi(-0.5,0.5)
+S=Jacobi(0.5,-0.5)
 f=Fun(exp,S)
 @test_approx_eq f(0.1) exp(0.1)
 

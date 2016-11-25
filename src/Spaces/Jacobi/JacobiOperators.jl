@@ -68,11 +68,11 @@ end
 
 ## Derivative
 
-Derivative(J::Jacobi,k::Integer)=k==1?ConcreteDerivative(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.a+1,J.b+1,J.domain),k-1),ConcreteDerivative(J,1)),k)
+Derivative(J::Jacobi,k::Integer)=k==1?ConcreteDerivative(J,1):DerivativeWrapper(TimesOperator(Derivative(Jacobi(J.b+1,J.a+1,J.domain),k-1),ConcreteDerivative(J,1)),k)
 
 
 
-rangespace{J<:Jacobi}(D::ConcreteDerivative{J})=Jacobi(D.space.a+D.order,D.space.b+D.order,domain(D))
+rangespace{J<:Jacobi}(D::ConcreteDerivative{J})=Jacobi(D.space.b+D.order,D.space.a+D.order,domain(D))
 bandinds{J<:Jacobi}(D::ConcreteDerivative{J})=0,D.order
 
 getindex{J<:Jacobi}(T::ConcreteDerivative{J},k::Integer,j::Integer) =
@@ -105,7 +105,7 @@ function Integral(J::Jacobi,k::Integer)
     elseif J.a > 0 && J.b > 0   # we have a simple definition
         ConcreteIntegral(J,1)
     else   # convert and then integrate
-        sp=Jacobi(J.a+1,J.b+1,domain(J))
+        sp=Jacobi(J.b+1,J.a+1,domain(J))
         C=Conversion(J,sp)
         Q=Integral(sp,1)
         IntegralWrapper(TimesOperator(Q,C),1)
@@ -113,7 +113,7 @@ function Integral(J::Jacobi,k::Integer)
 end
 
 
-rangespace{J<:Jacobi}(D::ConcreteIntegral{J})=Jacobi(D.space.a-D.order,D.space.b-D.order,domain(D))
+rangespace{J<:Jacobi}(D::ConcreteIntegral{J})=Jacobi(D.space.b-D.order,D.space.a-D.order,domain(D))
 bandinds{J<:Jacobi}(D::ConcreteIntegral{J})=-D.order,0
 
 function getindex{J<:Jacobi}(T::ConcreteIntegral{J},k::Integer,j::Integer)
@@ -135,7 +135,7 @@ function Volterra(S::Jacobi,order::Integer)
     ConcreteVolterra(S,order)
 end
 
-rangespace{J<:Jacobi}(V::ConcreteVolterra{J})=Jacobi(0.0,-1.0,domain(V))
+rangespace{J<:Jacobi}(V::ConcreteVolterra{J})=Jacobi(-1.0,0.0,domain(V))
 bandinds{J<:Jacobi}(V::ConcreteVolterra{J})=-1,0
 
 function getindex{J<:Jacobi}(V::ConcreteVolterra{J},k::Integer,j::Integer)
@@ -168,9 +168,9 @@ function Conversion(L::Jacobi,M::Jacobi)
         elseif (isapprox(M.b,L.b+1) && isapprox(M.a,L.a)) || (isapprox(M.b,L.b) && isapprox(M.a,L.a+1))
             ConcreteConversion(L,M)
         elseif M.b > L.b+1
-            ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a,M.b-1,dm),M),Conversion(L,Jacobi(M.a,M.b-1,dm))))
+            ConversionWrapper(TimesOperator(Conversion(Jacobi(M.b-1,M.a,dm),M),Conversion(L,Jacobi(M.b-1,M.a,dm))))
         else  #if M.a >= L.a+1
-            ConversionWrapper(TimesOperator(Conversion(Jacobi(M.a-1,M.b,dm),M),Conversion(L,Jacobi(M.a-1,M.b,dm))))
+            ConversionWrapper(TimesOperator(Conversion(Jacobi(M.b,M.a-1,dm),M),Conversion(L,Jacobi(M.b,M.a-1,dm))))
         end
     elseif L.a ≈ L.b ≈ 0. && M.a ≈ M.b ≈ 0.5
         Conversion(L,Ultraspherical(L),Ultraspherical(M),M)
@@ -218,7 +218,7 @@ function conversion_rule(A::Jacobi,B::Jacobi)
     if !isapproxinteger(A.a-B.a) || !isapproxinteger(A.b-B.b)
         NoSpace()
     else
-        Jacobi(min(A.a,B.a),min(A.b,B.b),domain(A))
+        Jacobi(min(A.b,B.b),min(A.a,B.a),domain(A))
     end
 end
 
@@ -427,12 +427,12 @@ end
 
 function union_rule(A::Jacobi,B::Jacobi)
     if domainscompatible(A,B)
-        Jacobi(min(A.a,B.a),min(A.b,B.b),domain(A))
+        Jacobi(min(A.b,B.b),min(A.a,B.a),domain(A))
     else
         NoSpace()
     end
 end
-maxspace_rule(A::Jacobi,B::Jacobi) = Jacobi(max(A.a,B.a),max(A.b,B.b),domain(A))
+maxspace_rule(A::Jacobi,B::Jacobi) = Jacobi(max(A.b,B.b),max(A.a,B.a),domain(A))
 
 
 for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),(:union_rule,:(Base.union)))
@@ -502,10 +502,10 @@ function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMu
     S=domainspace(M)
     if space(M.f).α==1
         # multiply by (1+x)
-        Jacobi(S.a,S.b-1,domain(S))
+        Jacobi(S.b-1,S.a,domain(S))
     elseif space(M.f).β == 1
         # multiply by (1-x)
-        Jacobi(S.a-1,S.b,domain(S))
+        Jacobi(S.b,S.a-1,domain(S))
     else
         error("Not implemented")
     end
@@ -549,9 +549,9 @@ end
 for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
     @eval function $FUNC{T,DD<:Interval}(A::WeightedJacobi{T,DD},B::Jacobi)
         if A.α==A.β+1 && A.space.b>0
-            $FUNC(Jacobi(A.space.a,A.space.b-1,domain(A)),B)
+            $FUNC(Jacobi(A.space.b-1,A.space.a,domain(A)),B)
         elseif A.β==A.α+1 && A.space.a>0
-            $FUNC(Jacobi(A.space.a-1,A.space.b,domain(A)),B)
+            $FUNC(Jacobi(A.space.b,A.space.a-1,domain(A)),B)
         else
             $FUNC(A,JacobiWeight(0.,0.,B))
         end
@@ -574,7 +574,7 @@ Base.convert{T}(::Type{Operator{T}},SD::JacobiSD)=JacobiSD{T}(SD.lr,SD.S)
 
 domain(op::JacobiSD)=domain(op.S)
 domainspace(op::JacobiSD)=op.S
-rangespace(op::JacobiSD)=op.lr?Jacobi(op.S.a-1,op.S.b+1,domain(op.S)):Jacobi(op.S.a+1,op.S.b-1,domain(op.S))
+rangespace(op::JacobiSD)=op.lr?Jacobi(op.S.b+1,op.S.a-1,domain(op.S)):Jacobi(op.S.b-1,op.S.a+1,domain(op.S))
 bandinds(::JacobiSD)=0,0
 
 function getindex(op::JacobiSD,A,k::Integer,j::Integer)

@@ -134,9 +134,9 @@ end
 println("Full Jacobi tests")
 
 
-sp=Jacobi(2.124,.5)
+sp=Jacobi(.5,2.124)
 f=Fun(exp,sp)
-sp2=Jacobi(2.124,1.5)
+sp2=Jacobi(1.5,2.124)
 M=Multiplication(f,sp2)
 @time testbandedoperator(M)
 

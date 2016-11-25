@@ -2,17 +2,17 @@ export Jacobi, Legendre, WeightedJacobi
 
 
 immutable Jacobi{T,D<:Domain} <: PolynomialSpace{D}
-    a::T
     b::T
+    a::T
     domain::D
 end
-Legendre(domain)=Jacobi(0.,0.,domain)
-Legendre()=Legendre(Interval())
-Jacobi(a,b,d::Domain)=Jacobi(promote(a,b)...,d)
-Jacobi(a,b,d)=Jacobi(a,b,Domain(d))
-Jacobi(a,b)=Jacobi(a,b,Interval())
+Legendre(domain) = Jacobi(0.,0.,domain)
+Legendre() = Legendre(Interval())
+Jacobi(b,a,d::Domain) = Jacobi(promote(b,a)...,d)
+Jacobi(b,a,d) = Jacobi(b,a,Domain(d))
+Jacobi(b,a) = Jacobi(b,a,Interval())
 Jacobi(A::Ultraspherical) = Jacobi(order(A)-0.5,order(A)-0.5,domain(A))
-Jacobi(A::Chebyshev)=Jacobi(-0.5,-0.5,domain(A))
+Jacobi(A::Chebyshev) = Jacobi(-0.5,-0.5,domain(A))
 
 function Ultraspherical(J::Jacobi)
     if J.a == J.b
@@ -22,8 +22,8 @@ function Ultraspherical(J::Jacobi)
     end
 end
 
-Base.promote_rule{T,V,D}(::Type{Jacobi{T,D}},::Type{Jacobi{V,D}})=Jacobi{promote_type(T,V),D}
-Base.convert{T,V,D}(::Type{Jacobi{T,D}},J::Jacobi{V,D})=Jacobi{T,D}(J.a,J.b,J.domain)
+Base.promote_rule{T,V,D}(::Type{Jacobi{T,D}},::Type{Jacobi{V,D}}) = Jacobi{promote_type(T,V),D}
+Base.convert{T,V,D}(::Type{Jacobi{T,D}},J::Jacobi{V,D}) = Jacobi{T,D}(J.b,J.a,J.domain)
 
 typealias WeightedJacobi{T,D} JacobiWeight{Jacobi{T,D},D}
 
@@ -37,7 +37,7 @@ function canonicalspace(S::Jacobi)
         Chebyshev(domain(S))
     else
         # return space with parameters in (-1,0.]
-        Jacobi(mod(S.a,-1),mod(S.b,-1),domain(S))
+        Jacobi(mod(S.b,-1),mod(S.a,-1),domain(S))
     end
 end
 
@@ -144,7 +144,7 @@ function identity_fun(J::Jacobi)
 end
 
 
-setdomain(S::Jacobi,d::Domain)=Jacobi(S.a,S.b,d)
+setdomain(S::Jacobi,d::Domain)=Jacobi(S.b,S.a,d)
 
 
 # O(min(m,n)) Jacobi conjugated inner product
