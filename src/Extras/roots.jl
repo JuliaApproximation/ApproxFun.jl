@@ -403,10 +403,10 @@ function roots{S<:JacobiWeight,T}(f::Fun{S,T})
     sp=space(f)
     d=domain(sp)
     rts=roots(Fun(sp.space,f.coefficients))
-    if sp.α > 0
+    if sp.β > 0
         rts=[first(d);rts]
     end
-    if sp.β > 0
+    if sp.α > 0
         rts=[rts;last(d)]
     end
     rts

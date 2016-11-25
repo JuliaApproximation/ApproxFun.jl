@@ -81,7 +81,7 @@ getindex{J<:Jacobi}(T::ConcreteDerivative{J},k::Integer,j::Integer) =
 
 
 function Derivative{T,DDD<:Interval}(S::WeightedJacobi{T,DDD})
-    if S.α>0 && S.β>0 && S.α==S.space.b && S.β==S.space.a
+    if S.β>0 && S.β>0 && S.β==S.space.b && S.α==S.space.a
         ConcreteDerivative(S,1)
     else
         jacobiweightDerivative(S)
@@ -89,7 +89,7 @@ function Derivative{T,DDD<:Interval}(S::WeightedJacobi{T,DDD})
 end
 
 bandinds{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=-1,0
-rangespace{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=WeightedJacobi(domainspace(D).α-1,domainspace(D).β-1,domain(D))
+rangespace{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=WeightedJacobi(domainspace(D).β-1,domainspace(D).α-1,domain(D))
 
 
 getindex{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}},k::Integer,j::Integer) =
@@ -476,21 +476,21 @@ function Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight
     # this implements (1+x)*P and (1-x)*P special case
     # see DLMF (18.9.6)
     d=domain(f)
-    if ((space(f).α==1 && space(f).β==0 && S.b >0) ||
-                        (space(f).α==0 && space(f).β==1 && S.a >0))
+    if ((space(f).β==1 && space(f).α==0 && S.b >0) ||
+                        (space(f).β==0 && space(f).α==1 && S.a >0))
         ConcreteMultiplication(f,S)
-    elseif isapproxinteger(space(f).α) && space(f).α ≥ 1 && S.b >0
-        # decrement α and multiply again
-        M=Multiplication(f.coefficients[1]*jacobiweight(1.,0.,d),S)
-        MultiplicationWrapper(f,Multiplication(jacobiweight(space(f).α-1,space(f).β,d),rangespace(M))*M)
-    elseif isapproxinteger(space(f).β) && space(f).β ≥ 1 && S.a >0
+    elseif isapproxinteger(space(f).β) && space(f).β ≥ 1 && S.b >0
         # decrement β and multiply again
+        M=Multiplication(f.coefficients[1]*jacobiweight(1.,0.,d),S)
+        MultiplicationWrapper(f,Multiplication(jacobiweight(space(f).β-1,space(f).α,d),rangespace(M))*M)
+    elseif isapproxinteger(space(f).α) && space(f).α ≥ 1 && S.a >0
+        # decrement α and multiply again
         M=Multiplication(f.coefficients[1]*jacobiweight(0.,1.,d),S)
-        MultiplicationWrapper(f,Multiplication(jacobiweight(space(f).α,space(f).β-1,d),rangespace(M))*M)
+        MultiplicationWrapper(f,Multiplication(jacobiweight(space(f).β,space(f).α-1,d),rangespace(M))*M)
     else
 # default JacobiWeight
         M=Multiplication(Fun(space(f).space,f.coefficients),S)
-        rsp=JacobiWeight(space(f).α,space(f).β,rangespace(M))
+        rsp=JacobiWeight(space(f).β,space(f).α,rangespace(M))
         MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
     end
 end
@@ -500,10 +500,10 @@ Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight{C,DD}},S
 
 function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J})
     S=domainspace(M)
-    if space(M.f).α==1
+    if space(M.f).β==1
         # multiply by (1+x)
         Jacobi(S.b-1,S.a,domain(S))
-    elseif space(M.f).β == 1
+    elseif space(M.f).α == 1
         # multiply by (1-x)
         Jacobi(S.b,S.a-1,domain(S))
     else
@@ -517,8 +517,8 @@ function getindex{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMult
     @assert ncoefficients(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     c=M.f.coefficients[1]
-    if space(M.f).α==1
-        @assert space(M.f).β==0
+    if space(M.f).β==1
+        @assert space(M.f).α==0
         # multiply by (1+x)
         if j==k
             c*2(k+b-1)/(2k+a+b-1)
@@ -527,8 +527,8 @@ function getindex{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMult
         else
             zero(eltype(M))
         end
-    elseif space(M.f).β == 1
-        @assert space(M.f).α==0
+    elseif space(M.f).α == 1
+        @assert space(M.f).β==0
         # multiply by (1-x)
         if j==k
             c*2(k+a-1)/(2k+a+b-1)
@@ -548,9 +548,9 @@ end
 
 for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
     @eval function $FUNC{T,DD<:Interval}(A::WeightedJacobi{T,DD},B::Jacobi)
-        if A.α==A.β+1 && A.space.b>0
+        if A.β==A.α+1 && A.space.b>0
             $FUNC(Jacobi(A.space.b-1,A.space.a,domain(A)),B)
-        elseif A.β==A.α+1 && A.space.a>0
+        elseif A.α==A.β+1 && A.space.a>0
             $FUNC(Jacobi(A.space.b,A.space.a-1,domain(A)),B)
         else
             $FUNC(A,JacobiWeight(0.,0.,B))
