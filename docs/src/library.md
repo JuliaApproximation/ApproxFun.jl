@@ -103,6 +103,14 @@ Chebyshev
 ```
 
 ```@docs
+Jacobi
+```
+
+```@docs
+Ultraspherical
+```
+
+```@docs
 Taylor
 ```
 
@@ -126,9 +134,7 @@ CosSpace
 SinSpace
 ```
 
-```@docs
-Jacobi
-```
+
 
 
 ```@docs

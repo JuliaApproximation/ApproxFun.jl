@@ -9,6 +9,8 @@ makedocs(modules=[ApproxFun],
 			pages = Any[
 					"Home" => "index.md",
 					"Usage" => Any[
+						"Domains" => "usage/domains.md",
+						"Spaces" => "usage/spaces.md",
 						"Constructors" => "usage/constructors.md"
 					],
 					"Frequently Asked Questions" => "faq.md",

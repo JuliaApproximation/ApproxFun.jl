@@ -46,6 +46,15 @@ x = Fun()
 ```
 
 
+## Specifying coefficients explicitly
+
+It is sometimes necessary to specify coefficients explicitly.  This is possible
+via specifying the space followed by a vector of coefficients:
+```julia
+f = Fun(Taylor(),[1,2,3])  # represents 1 + 2z + 3z^2
+```
+
+
 
 ## Using ApproxFun for “manual” interpolation
 
