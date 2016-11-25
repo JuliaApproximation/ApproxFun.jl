@@ -280,6 +280,30 @@ the number of subdiagonals and `u ≥ 0` represents the number of superdiagonals
 bandwidths(::Operator)
 
 doc"""
+    promotedomainspace(S::Operator,sp::Space)
+
+returns the operator `S` but acting on the space `sp`.
+"""
+promotedomainspace(::Operator,::Space)
+
+doc"""
+    promoterangespace(S::Operator,sp::Space)
+
+returns the operator `S` acting on the same space, but now return
+functions in the specified range space `sp`
+"""
+promoterangespace(::Operator,::Space)
+
+doc"""
+    choosedomainspace(S::Operator,rangespace::Space)
+
+returns a space `ret` so that `promotedomainspace(S,ret)` has the
+specified range space.
+"""
+choosedomainspace(::Operator,::Space)
+
+
+doc"""
     op[k,j]
 
 returns the `k`th coefficient of `op*Fun([zeros(j-1);1],domainspace(op))`.

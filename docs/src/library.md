@@ -46,6 +46,10 @@ PeriodicInterval
 ```
 
 ```@docs
+ApproxFun.Point
+```
+
+```@docs
 ProductDomain
 ```
 
@@ -84,7 +88,7 @@ ApproxFun.dimension(::Space)
 ```
 
 
-## Included spaces
+## Inbuilt spaces
 
 ```@docs
 SequenceSpace
@@ -215,13 +219,32 @@ linsolve
 ```
 
 ```@docs
-Conversion
-```
-
-```@docs
 qrfact(::Operator)
 ```
 
 ```@docs
 cache(::Operator)
+```
+
+
+## Inbuilt operators
+
+```@docs
+Conversion
+```
+
+```@docs
+Derivative
+```
+
+```@docs
+Integral
+```
+
+```@docs
+Laplacian
+```
+
+```@docs
+Multiplication
 ```

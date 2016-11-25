@@ -133,3 +133,21 @@ function transformtimes(f::Fun,g::Fun,n)
     chop!(Fun(sp,hc),10norm(hc,Inf)*eps(eltype(hc)))
 end
 transformtimes(f::Fun,g::Fun)=transformtimes(f,g,ncoefficients(f) + ncoefficients(g) - 1)
+
+
+
+
+## docs
+
+doc"""
+`Multiplication(f::Fun,sp::Space)` is the operator representing multiplication by
+`f` on functions in the space `sp`.
+"""
+Multiplication(::Fun,::Space)
+
+doc"""
+`Multiplication(f::Fun)` is the operator representing multiplication by
+`f` on an unset space of functions.  Spaces will be inferred when applying or
+manipulating the operator.
+"""
+Multiplication(::Fun)
