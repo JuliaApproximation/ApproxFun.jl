@@ -6,10 +6,11 @@ export JacobiWeight
 
 
 """
-`JacobiWeight`
-weights a basis on `[-1,1]` weighted by `(1+x)^β*(1-x)^α`.
-Note the inconsistency of the parameters with `Jacobi`.
-when the domain is `[a,b]` the weight is inferred by mapping to `[-1,1]`
+    JacobiWeight(β,α,s::Space)
+
+weights a space `s` by a Jacobi weight, which on `-1..1`
+is `(1+x)^β*(1-x)^α`.
+For other domains, the weight is inferred by mapping to `-1..1`.
 """
 immutable JacobiWeight{S,DD} <: WeightSpace{S,RealBasis,DD,1}
     β::Float64

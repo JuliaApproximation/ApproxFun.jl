@@ -179,7 +179,7 @@ function Conversion(L::Jacobi,M::Jacobi)
     elseif L.a ≈ L.b ≈ -0.5 && M.a ≈ M.b ≈ 0.5
         Conversion(L,Chebyshev(L),Ultraspherical(M),M)
     else # L.a - M.a ≈ L.b - M.b
-        error("Implement for $L ↦ $M")
+        error("Implement for $L → $M")
     end
 end
 

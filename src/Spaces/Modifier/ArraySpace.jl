@@ -2,8 +2,16 @@ export devec,demat,mat
 
 
 doc"""
-`ArraySpace` used to represent array-valued expansions in `space`.  The
+    ArraySpace(s::Space,dims...)
+
+is used to represent array-valued expansions in a space `s`.  The
 coefficients are of each entry are interlaced.
+
+For example,
+```julia
+f = Fun(x->[exp(x),sin(x)],-1..1)
+space(f) == ArraySpace(Chebyshev(),2)
+```
 """
 immutable ArraySpace{S,n,T,DD,dim} <: DirectSumSpace{NTuple{n,S},T,DD,dim}
      space::S

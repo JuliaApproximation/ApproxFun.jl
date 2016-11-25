@@ -187,7 +187,7 @@ end
 
 ## Operator
 
-Base.summary(B::Operator) = string(typeof(B).name.name)*":"*string(domainspace(B))*"↦"*string(rangespace(B))
+Base.summary(B::Operator) = string(typeof(B).name.name)*":"*string(domainspace(B))*"→"*string(rangespace(B))
 
 
 function Base.show(io::IO,B::Operator;header::Bool=true)

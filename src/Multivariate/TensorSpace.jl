@@ -216,12 +216,12 @@ tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d.
 # TensorSpace
 # represents the tensor product of several subspaces
 doc"""
-    TensorSpace(Chebyshev(),Chebyshev())
+    TensorSpace(a::Space,b::Space)
 
-represents a tensor product of two 1D spaces.  The coefficients are interlaced in
-lexigraphical order.
+represents a tensor product of two 1D spaces `a` and `b`.
+The coefficients are interlaced in lexigraphical order.
 
-To see this in action, consider
+For example, consider
 ```julia
 Fourier()*Chebyshev()  # returns TensorSpace(Fourier(),Chebyshev())
 ```

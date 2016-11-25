@@ -1,4 +1,4 @@
-export ↦
+export →
 
 
 ## Space Operator is used to wrap other operators
@@ -70,11 +70,11 @@ end
 
 
 # The coolest definitions ever!!
-# supports Derivative():Chebyshev()↦Ultraspherical(1)
+# supports Derivative():Chebyshev()→Ultraspherical(1)
 Base.colon(A::Operator,b::Space) = promotedomainspace(A,b)
-↦(A::Operator,b::Space) = promoterangespace(A,b)
+→(A::Operator,b::Space) = promoterangespace(A,b)
 Base.colon(A::UniformScaling,b::Space) = Operator(A) : b
-↦(A::UniformScaling,b::Space) = Operator(A) ↦ b
+→(A::UniformScaling,b::Space) = Operator(A) → b
 
 
 promoterangespace(P::Operator,sp::Space) = promoterangespace(P,sp,rangespace(P))

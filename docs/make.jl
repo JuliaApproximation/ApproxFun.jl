@@ -11,7 +11,8 @@ makedocs(modules=[ApproxFun],
 					"Usage" => Any[
 						"Domains" => "usage/domains.md",
 						"Spaces" => "usage/spaces.md",
-						"Constructors" => "usage/constructors.md"
+						"Constructors" => "usage/constructors.md",
+						"Operators" => "usage/operators.md"
 					],
 					"Frequently Asked Questions" => "faq.md",
 					"Library" => "library.md"

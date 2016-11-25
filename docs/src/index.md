@@ -10,6 +10,7 @@ and for solving differential and integral equations.
 Pages = ["usage/constructors.md",
          "usage/domains.md",
          "usage/spaces.md",
+         "usage/operators.md",
          "faq.md",
          "library.md"]
 ```
