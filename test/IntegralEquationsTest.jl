@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-    import ApproxFun: testfunctional
+    import ApproxFun: testfunctional, testbandedbelowoperator, testbandedoperator
 
 for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
             CosSpace(Circle()),JacobiWeight(-0.5,-0.5,Chebyshev()),
@@ -110,6 +110,9 @@ d = Interval(0.0,1.0)
 V = Volterra(d)
 K = LowRankFun((x,y)->sin(y-x),d^2)
 L = I-V[K]
+
+testbandedoperator(L)
+
 f = Fun(exp,d)
 @test domainspace(L) == Legendre(d)
 @test rangespace(L) == Legendre(d)
@@ -131,3 +134,11 @@ for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Interval(-2,-1))),
     @test_approx_eq DefiniteIntegral(space(f))*f sum(f)
     @test_approx_eq DefiniteLineIntegral(space(f))*f linesum(f)
 end
+
+
+
+## Fredholm integral
+
+K=LowRankFun((x,y)->cos(x-y),Interval()^2)
+Σ=DefiniteIntegral(Chebyshev())
+testbandedbelowoperator(Σ[K])
