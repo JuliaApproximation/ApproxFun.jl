@@ -34,12 +34,12 @@ arglength(f)=length(Base.uncompressed_ast(f.code.def).args[1])
 ## Convert between Fun and MultivariateFun
 # need to chop extra zeros
 Fun(f::ProductFun) =
-    Fun(chop!(fromtensor(space(f),coefficients(f)),0),space(f))
+    Fun(space(f),chop!(fromtensor(space(f),coefficients(f)),0))
 Fun(f::ProductFun,sp::TensorSpace) = Fun(ProductFun(f,sp))
 Fun(f::LowRankFun) = Fun(ProductFun(f))
 
 
-Fun(f::MultivariateFun,sp::Space)=Fun(Fun(f),sp)
+Fun(f::MultivariateFun,sp::Space) = Fun(Fun(f),sp)
 
 Fun(f,d1::Domain,d2::Domain) = Fun(f,d1*d2)
 Fun{T<:Number,V<:Number}(f,d1::Vector{T},d2::Vector{V}) = Fun(f,convert(Domain,d1),convert(Domain,d2))

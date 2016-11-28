@@ -45,7 +45,6 @@ Base.length{AS<:ArraySpace}(f::Fun{AS}) = length(space(f))
 
 Base.size(AS::ArraySpace) = AS.dimensions
 Base.size(AS::ArraySpace,k) = AS.dimensions[k]
-Base.size{AS<:ArraySpace}(f::Fun{AS},k...) = size(space(f),k...)
 
 Base.stride(AS::MatrixSpace,k::Int) = k==1?k:size(AS,1)
 Base.stride{S,T,DD,dim}(AS::Fun{MatrixSpace{S,T,DD,dim}},k::Int) =

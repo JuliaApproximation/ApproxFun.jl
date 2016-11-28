@@ -1,6 +1,6 @@
-export Fun,evaluate,values,points,extrapolate,setdomain
-export coefficients,ncoefficients,coefficient
-export integrate,differentiate,domain,space,linesum,linenorm
+export Fun, evaluate, values, points, extrapolate, setdomain
+export coefficients, ncoefficients, coefficient, nblocks
+export integrate, differentiate, domain, space, linesum, linenorm
 
 include("Domain.jl")
 include("Space.jl")
@@ -102,7 +102,12 @@ end
 Base.zero(f::Fun)=zeros(f)
 Base.one(f::Fun)=ones(f)
 
-Base.eltype{S,T}(::Fun{S,T})=T
+Base.eltype{S,T}(::Fun{S,T}) = T
+
+#supports broadcasting
+Base.size(f::Fun,k...) = size(space(f),k...)
+Base.getindex(f::Fun,::CartesianIndex{0}) = f
+
 
 
 
@@ -179,9 +184,9 @@ extrapolate(f::Fun,x,y,z...) = extrapolate(f.coefficients,f.space,Vec(x,y,z...))
 
 
 values(f::Fun,dat...) = itransform(f.space,f.coefficients,dat...)
-points(f::Fun)=points(f.space,ncoefficients(f))
-ncoefficients(f::Fun)=length(f.coefficients)
-
+points(f::Fun) = points(f.space,ncoefficients(f))
+ncoefficients(f::Fun) = length(f.coefficients)
+nblocks(f::Fun) = block(space(f),ncoefficients(f))
 
 function Base.stride(f::Fun)
     # Check only for stride 2 at the moment
