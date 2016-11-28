@@ -10,7 +10,7 @@ export Laguerre, LaguerreWeight, WeightedLaguerre
 #####
 
 #####
-# jacobirecA/B/C is from dlmf:
+# laguerrerecA/B/C is from dlmf:
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
 
@@ -26,14 +26,92 @@ canonicaldomain(::Laguerre) = Ray()
 domain(::Laguerre) = Ray()
 tocanonical(::Laguerre,x) = x
 
-recα{T}(::Type{T},L::Laguerre,k) = T(2k+L.α-1)
-recβ{T}(::Type{T},L::Laguerre,k) = T(-k)
-recγ{T}(::Type{T},L::Laguerre,k) = T(-(k-1+L.α))
+@inline laguerrerecα{T}(::Type{T},α,k) = T(2k+α-1)
+@inline laguerrerecβ{T}(::Type{T},::,k) = T(-k)
+@inline laguerrerecγ{T}(::Type{T},α,k) = T(-(k-1+α))
 
 
-recA{T}(::Type{T},L::Laguerre,k) = T(-1/(k+1))
-recB{T}(::Type{T},L::Laguerre,k) = T((2k+L.α+1)/(k+1))
-recC{T}(::Type{T},L::Laguerre,k) = T((k+L.α)/(k+1))
+@inline laguerrerecA{T}(::Type{T},::,k) = T(-1/(k+1))
+@inline laguerrerecB{T}(::Type{T},α,k) = T((2k+α+1)/(k+1))
+@inline laguerrerecC{T}(::Type{T},α,k) = T((k+α)/(k+1))
+
+for (REC,JREC) in ((:recα,:laguerrerecα),(:recβ,:laguerrerecβ),(:recγ,:laguerrerecγ),
+                   (:recA,:laguerrerecA),(:recB,:laguerrerecB),(:recC,:laguerrerecC))
+    @eval @inline $REC{T}(::Type{T},sp::Laguerre,k) = $JREC(T,sp.α,k)
+end
+
+
+identity_fun(L::Laguerre) = Fun(L,[1+L.α,-1.0])
+
+
+function laguerrel(r::Range,α,x)
+    n=r[end]+1
+    if n<=2
+        v=[1.,1.0-x+α]
+    else
+        T=promote_type(Float64,typeof(x))
+        v=Vector{T}(n)  # x may be complex
+        v[1]=1.
+        v[2]=1.0-x+α
+
+        @inbounds for k=2:n-1
+            v[k+1]=((x-laguerrerecα(T,α,k))*v[k] - laguerrerecγ(T,α,k)*v[k-1])/laguerrerecβ(T,α,k)
+        end
+    end
+    v[r+1]
+end
+
+
+function laguerrel{T}(::Type{T},r::Range,α,x::Number)
+    if isempty(r)
+        T[]
+    else
+        n=r[end]+1
+        if n<=2
+            v=T[1,1.0-x+α]
+        else
+            v=Vector{T}(n)  # x may be complex
+            v[1]=1
+            v[2]=1.0-x+α
+
+            @inbounds for k=2:n-1
+                v[k+1]=((x-laguerrerecα(T,α,k))*v[k] - laguerrerecγ(T,α,k)*v[k-1])/laguerrerecβ(T,α,k)
+            end
+        end
+        v[r+1]
+    end
+end
+
+laguerrel(r::Range,α,x::Number) = laguerrel(promote_type(typeof(α),typeof(x)),r,α,x)
+
+laguerrel{T}(::Type{T},n::Integer,α,v) = laguerrel(T,n:n,α,v)[1]
+laguerrel(n::Integer,α,v) = laguerrel(n:n,α,v)[1]
+laguerrel{T}(::Type{T},n::Range,α,v::Vector) = transpose(hcat(map(x->laguerrel(T,n,α,x),v)...))
+laguerrel(n::Range,α,v::Vector) = transpose(hcat(map(x->laguerrel(n,α,x),v)...))
+laguerrel{T}(::Type{T},n::Integer,α,v::Vector) = map(x->laguerrel(T,n,α,x),v)
+laguerrel(n::Integer,α,v::Vector) = map(x->laguerrel(n,α,x),v)
+laguerrel{T}(::Type{T},n,S::Laguerre,v) = laguerrel(T,n,S.a,S.b,v)
+laguerrel(n,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
+
+
+immutable LaguerreTransformPlan{T,TT}
+    space::Laguerre{TT}
+    points::Vector{T}
+    weights::Vector{T}
+end
+
+plan_transform(S::Laguerre,v::Vector) = LaguerreTransformPlan(S,gausslaguerre(length(v),1.0S.α)...)
+function transform(S::Laguerre,vals,plan::LaguerreTransformPlan)
+#    @assert S==plan.space
+    x,w = plan.points, plan.weights
+    V=laguerrel(0:length(vals)-1,S.α,x)'
+    w2=w.*x.^(S.α-plan.space.α)   # need to weight if plan is different
+    nrm=(V.^2)*w2
+    V*(w2.*vals)./nrm
+end
+
+
+points(L::Laguerre,n) = gausslaguerre(n,1.0L.α)[1]
 
 
 
@@ -43,7 +121,7 @@ Derivative(L::Laguerre,k) =
 
 
 union_rule(A::Laguerre,B::Laguerre) = Laguerre(min(A.α,B.α))
-maxspace_rule(A::Jacobi,B::Jacobi) = Laguerre(max(A.α,B.α))
+maxspace_rule(A::Laguerre,B::Laguerre) = Laguerre(max(A.α,B.α))
 function conversion_rule(A::Laguerre,B::Laguerre)
     if !isapproxinteger(A.α-B.α)
         NoSpace()
@@ -70,14 +148,18 @@ end
 
 # x^α*exp(-L*x)
 immutable LaguerreWeight{S,T} <: WeightSpace{S,RealBasis,Ray{false,Float64},1}
-    space::S
     α::T
     L::T
+    space::S
 end
 
-LaguerreWeight(space,α) = LaguerreWeight(space,α,1.0)
+LaguerreWeight(α,space) = LaguerreWeight(α,1.0,space)
 
-WeightedLaguerre(α) = LaguerreWeight(Laguerre(α),α)
+WeightedLaguerre(α) = LaguerreWeight(α,Laguerre(α))
+
+@inline laguerreweight(α,L,x) = x.^α.*exp(-L*x)
+@inline weight(L::LaguerreWeight,x) = laguerreweight(L.α,L.L,x)
+
 
 spacescompatible(a::LaguerreWeight,b::LaguerreWeight) =
     spacescompatible(a.space,b.space) && isapprox(a.α,b.α) && isapprox(a.L,b.L)
@@ -87,11 +169,66 @@ function Derivative(sp::LaguerreWeight,k)
     if k==1
         D=Derivative(sp.space)
         D2=D-sp.L*I
-        DerivativeWrapper(SpaceOperator(D2,sp,LaguerreWeight(rangespace(D2),sp.α,sp.L)),1)
+        DerivativeWrapper(SpaceOperator(D2,sp,LaguerreWeight(sp.α,sp.L,rangespace(D2))),1)
     else
         D=Derivative(sp)
         DerivativeWrapper(TimesOperator(Derivative(rangespace(D),k-1).op,D.op),k)
     end
 end
 
-weight(L::LaguerreWeight,x) = x.^L.α.*exp(-L.L*x)
+function Multiplication(f::Fun,S::LaguerreWeight)
+    M=Multiplication(f,S.space)
+    rsp=LaguerreWeight(S.α,S.L,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+end
+
+
+function conversion_rule(A::LaguerreWeight,B::LaguerreWeight)
+    if isapproxinteger(A.α-B.α) && A.L == B.L
+        ct=conversion_type(A.space,B.space)
+        ct==NoSpace()?NoSpace():LaguerreWeight(max(A.α,B.α),A.L,ct)
+    else
+        NoSpace()
+    end
+end
+
+
+conversion_rule{T,D<:Ray}(A::LaguerreWeight,B::UnivariateSpace{T,D}) = conversion_type(A,LaguerreWeight(0,0,B))
+
+
+function Conversion(A::LaguerreWeight,B::LaguerreWeight)
+    @assert isapproxinteger(A.α-B.α) && A.L == B.L
+
+    if isapprox(A.α,B.α)
+        ConversionWrapper(SpaceOperator(Conversion(A.space,B.space),A,B))
+    else
+        @assert A.α≥B.α
+        # first check if a multiplication by LaguerreWeight times B.space is overloaded
+        # this is currently designed for Laguerre multiplied by (1-x), etc.
+        αdif=round(Int,A.α-B.α)
+
+        M=Multiplication(laguerreweight(αdif,A.L,d),
+                         A.space)
+
+        if rangespace(M) == LaguerreWeight(αdif,A.L,A.space)
+            # M is the default, so we should use multiplication by polynomials instead
+            x=Fun(identity,A.space)
+            m=x^αdif
+            MC=promoterangespace(Multiplication(m,A.space),B.space)
+
+            ConversionWrapper(SpaceOperator(MC,A,B))# Wrap the operator with the correct spaces
+        else
+            ConversionWrapper(SpaceOperator(promoterangespace(M,B.space),
+                                            A,B))
+        end
+    end
+end
+
+Conversion{D<:Ray}(A::RealUnivariateSpace{D},B::LaguerreWeight) = ConversionWrapper(
+    SpaceOperator(
+        Conversion(LaguerreWeight(0,0,A),B),
+        A,B))
+Conversion{D<:Ray}(A::LaguerreWeight,B::RealUnivariateSpace{D})=ConversionWrapper(
+    SpaceOperator(
+        Conversion(A,LaguerreWeight(0,0,B)),
+        A,B))

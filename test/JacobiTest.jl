@@ -207,9 +207,6 @@ x=Fun(Legendre(Interval(im,1)))
 
 ## Laguerre and Hermite
 
-using ApproxFun,Base.Test
-
-
 f=Fun(Laguerre(0.),[1,2,3])
 @test_approx_eq f(0.1) 5.215
 
@@ -236,10 +233,9 @@ B=Evaluation(LaguerreWeight(Laguerre(0.1),0.),false)
 @test_approx_eq B*f 151.53223385808576
 
 
-# f=Fun(x->exp(-x),WeightedLaguerre(0.))
+x=Fun(Laguerre(0.0))
+S=WeightedLaguerre(0.0)
+D=Derivative(S)
+u=[ldirichlet();D^2-x]\[airyai(0.0);0.0]
+@test_approx_eq u(1.0) airyai(1.0)
 #
-#
-# D=Derivative(LaguerreWeight(Laguerre(0.),0.))
-#
-#
-# [ldirichlet();D^2 - (x-2)

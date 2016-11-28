@@ -48,11 +48,11 @@ end
 # jacobirecA/B/C is from dlmf:
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
-jacobirecA{T}(::Type{T},α,β,k) =
+@inline jacobirecA{T}(::Type{T},α,β,k) =
     k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+one(T):(2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
-jacobirecB{T}(::Type{T},α,β,k) =
+@inline jacobirecB{T}(::Type{T},α,β,k) =
     k==0&&((α+β==0)||(α+β==-1))?.5*(α-β)*one(T):(α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
-jacobirecC{T}(::Type{T},α,β,k) =
+@inline jacobirecC{T}(::Type{T},α,β,k) =
     (one(T)*k+α)*(one(T)*k+β)*(2k+α+β+2one(T))/((k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
 
 #####
@@ -60,13 +60,13 @@ jacobirecC{T}(::Type{T},α,β,k) =
 # x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
 #####
 
-jacobirecγ{T}(::Type{T},α,β,k) = jacobirecC(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
-jacobirecα{T}(::Type{T},α,β,k) = -jacobirecB(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
-jacobirecβ{T}(::Type{T},α,β,k) = 1/jacobirecA(T,α,β,k-1)
+@inline jacobirecγ{T}(::Type{T},α,β,k) = jacobirecC(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+@inline jacobirecα{T}(::Type{T},α,β,k) = -jacobirecB(T,α,β,k-1)/jacobirecA(T,α,β,k-1)
+@inline jacobirecβ{T}(::Type{T},α,β,k) = 1/jacobirecA(T,α,β,k-1)
 
 for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ),
                    (:recA,:jacobirecA),(:recB,:jacobirecB),(:recC,:jacobirecC))
-    @eval $REC{T}(::Type{T},sp::Jacobi,k) = $JREC(T,sp.a,sp.b,k)
+    @eval @inline $REC{T}(::Type{T},sp::Jacobi,k) = $JREC(T,sp.a,sp.b,k)
 end
 
 
@@ -114,14 +114,14 @@ end
 
 jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),typeof(x)),r,α,β,x)
 
-jacobip{T}(::Type{T},n::Integer,α,β,v)=jacobip(T,n:n,α,β,v)[1]
-jacobip(n::Integer,α,β,v)=jacobip(n:n,α,β,v)[1]
-jacobip{T}(::Type{T},n::Range,α,β,v::Vector)=transpose(hcat(map(x->jacobip(T,n,α,β,x),v)...))
-jacobip(n::Range,α,β,v::Vector)=transpose(hcat(map(x->jacobip(n,α,β,x),v)...))
-jacobip{T}(::Type{T},n::Integer,α,β,v::Vector)=map(x->jacobip(T,n,α,β,x),v)
-jacobip(n::Integer,α,β,v::Vector)=map(x->jacobip(n,α,β,x),v)
-jacobip{T}(::Type{T},n,S::Jacobi,v)=jacobip(T,n,S.a,S.b,v)
-jacobip(n,S::Jacobi,v)=jacobip(n,S.a,S.b,v)
+jacobip{T}(::Type{T},n::Integer,α,β,v) = jacobip(T,n:n,α,β,v)[1]
+jacobip(n::Integer,α,β,v) = jacobip(n:n,α,β,v)[1]
+jacobip{T}(::Type{T},n::Range,α,β,v::Vector) = transpose(hcat(map(x->jacobip(T,n,α,β,x),v)...))
+jacobip(n::Range,α,β,v::Vector) = transpose(hcat(map(x->jacobip(n,α,β,x),v)...))
+jacobip{T}(::Type{T},n::Integer,α,β,v::Vector) = map(x->jacobip(T,n,α,β,x),v)
+jacobip(n::Integer,α,β,v::Vector) = map(x->jacobip(n,α,β,x),v)
+jacobip{T}(::Type{T},n,S::Jacobi,v) = jacobip(T,n,S.a,S.b,v)
+jacobip(n,S::Jacobi,v) = jacobip(n,S.a,S.b,v)
 
 
 
