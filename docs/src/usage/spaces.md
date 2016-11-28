@@ -16,10 +16,21 @@ Note that there is an intrinsic link between `Chebyshev` and `CosSpace`:
 $$g(\theta) = f(\cos \theta) = \sum_{k=0}^\infty f_k \cos k \theta$$
 
 In other words:
-```julia
-f=Fun(exp,Chebyshev())
-g=Fun(CosSpace(),f.coefficients) # specify the coefficients directly
-f(cos(0.1)) ≈ g(0.1)
+```@meta
+DocTestSetup = quote
+    using ApproxFun
+end
+```
+```jldoctest
+julia> f=Fun(exp,Chebyshev());
+
+julia> g=Fun(CosSpace(),f.coefficients); # specify the coefficients directly
+
+julia> f(cos(0.1))
+2.70473560723178
+
+julia> g(0.1)
+2.70473560723178
 ```
 
 ## Ultraspherical spaces
@@ -64,9 +75,14 @@ $$f(\theta) = f_0 + \sum_{k=1}^\infty f_k^{\rm c} \cos k \theta + f_k^{\rm s} \s
 then the coefficients of the resulting `Fun` are order as $[f_0,f_1^{\rm s},f_1^{\rm c},…]$.
 For example:
 
-```julia
-f = Fun(Fourier(),[1,2,3,4])
-f(0.1) ≈ 1 + 2sin(0.1) + 3cos(0.1) + 4sin(2*0.1)
+```jldoctest
+julia> f = Fun(Fourier(),[1,2,3,4]);
+
+julia> f(0.1)
+4.979356652307978
+
+julia> 1 + 2sin(0.1) + 3cos(0.1) + 4sin(2*0.1)
+4.979356652307979
 ```
 
 `Laurent` represents functions that are sums of complex exponentials.  Note that
@@ -77,9 +93,14 @@ $$f(\theta) = \sum_{k=-\infty}^\infty f_k {\rm e}^{{\rm i} k \theta}$$
 then the coefficients of the resulting `Fun` are order as $[f_0,f_{-1},f_1,…]$.
 For example:
 
-```julia
-f = Fun(Fourier(),[1,2,3,4])
-f(0.1) ≈ 1 + 2exp(-im*0.1) + 3exp(im*0.1) + 4exp(-2im*0.1)
+```jldoctest
+julia> f = Fun(Laurent(),[1,2,3,4]);
+
+julia> f(0.1)
+9.895287137755096 - 0.6948439065334164im
+
+julia> 1 + 2exp(-im*0.1) + 3exp(im*0.1) + 4exp(-2im*0.1)
+9.895287137755094 - 0.6948439065334167im
 ```
 
 
