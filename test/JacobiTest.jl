@@ -201,3 +201,45 @@ x=Fun(Legendre(Interval(1,1+im)))
 
 x=Fun(Legendre(Interval(im,1)))
 @test_approx_eq sum(x+1) (1-im)/sqrt(2)*linesum(x+1)
+
+
+
+
+## Laguerre and Hermite
+
+using ApproxFun,Base.Test
+
+
+f=Fun(Laguerre(0.),[1,2,3])
+@test_approx_eq f(0.1) 5.215
+
+
+f = Fun(Laguerre(0.1),ones(100))
+@test_approx_eq f(0.2) 8.840040924281498
+
+
+@test_approx_eq (Derivative(Laguerre(0.1))*f)(0.2) -71.44556705957386
+f = Fun(Laguerre(0.2),ones(100))
+@test_approx_eq (Derivative(Laguerre(0.2))*f)(0.3) -137.05785783078218
+
+
+@test_approx_eq (Conversion(Laguerre(0.2),Laguerre(1.2))*f)(0.1) f(0.1)
+@test_approx_eq (Conversion(Laguerre(0.2),Laguerre(2.2))*f)(0.1) f(0.1)
+
+
+
+f=Fun(LaguerreWeight(Laguerre(0.1),0.),ones(100))
+@test_approx_eq f'(0.2) -65.7322962859456
+
+
+B=Evaluation(LaguerreWeight(Laguerre(0.1),0.),false)
+@test_approx_eq B*f 151.53223385808576
+
+
+# f=Fun(x->exp(-x),WeightedLaguerre(0.))
+#
+#
+# D=Derivative(LaguerreWeight(Laguerre(0.),0.))
+#
+#
+# [ldirichlet();D^2 - (x-2)

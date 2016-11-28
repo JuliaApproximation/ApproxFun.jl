@@ -30,6 +30,7 @@ include("Fourier/Fourier.jl")
 include("Singularities/Singularities.jl")
 include("Jacobi/Jacobi.jl")
 include("Hermite/Hermite.jl")
+include("Laguerre/Laguerre.jl")
 include("CurveSpace.jl")
 #include("Mapped/Mapped.jl")
 
