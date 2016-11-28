@@ -90,7 +90,9 @@ function Base.qr(A::Operator)
     QR[:Q],QR[:R]
 end
 
-for OP in (:(Base.qrfact),:(Base.qr))
+Base.factorize(A::Operator) = qrfact(A)
+
+for OP in (:(Base.qrfact),:(Base.qr),:(Base.factorize))
     @eval $OP{OO<:Operator}(A::Array{OO}) = $OP(interlace(A))
 end
 
