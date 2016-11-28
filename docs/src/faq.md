@@ -106,3 +106,8 @@ julia> f(0.1,0.2)
 julia> exp(0.1*cos(0.2))
 1.1029701284210731
 ```
+
+
+```@meta
+DocTestSetup = nothing
+```
