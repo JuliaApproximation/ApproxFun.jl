@@ -146,7 +146,7 @@ itransform(sp::SubSpace,cfs::Vector) =
 points(sp::SubSpace,n) = points(sp.space,n)
 
 
-coefficients{DS,IT,T,TT,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,Interval{Vec{2,TT}},1},::TensorSpace{SV,TTT,DD,2}) =
+coefficients{DS,IT,T,TT,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,Segment{Vec{2,TT}},1},::TensorSpace{SV,TTT,DD,2}) =
     error("Not callable, only defined for ambiguity errors.")
 coefficients{DS,IT,T,D,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,D,1},::TensorSpace{SV,TTT,DD,2}) =
     error("Not callable, only defined for ambiguity errors.")

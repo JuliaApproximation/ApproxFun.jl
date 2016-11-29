@@ -6,9 +6,9 @@ DualNumbers.realpart{S,T<:Dual}(f::Fun{S,T}) = Fun(space(f),realpart(coefficient
 DualNumbers.dualpart{S,T<:Dual}(f::Fun{S,T}) = Fun(space(f),dualpart(coefficients(f)))
 
 
-DualNumbers.realpart{DD<:Dual}(d::Interval{DD}) = Interval(realpart(d.a),realpart(d.b))
-Base.in{DD<:Dual}(x::Number,d::Interval{DD}) = in(x,realpart(d))
-Base.in{DD<:Dual}(x::Dual,d::Interval{DD}) = in(realpart(x),d)
+DualNumbers.realpart{DD<:Dual}(d::Segment{DD}) = Segment(realpart(d.a),realpart(d.b))
+Base.in{DD<:Dual}(x::Number,d::Segment{DD}) = in(x,realpart(d))
+Base.in{DD<:Dual}(x::Dual,d::Segment{DD}) = in(realpart(x),d)
 
 
 valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{V}) =

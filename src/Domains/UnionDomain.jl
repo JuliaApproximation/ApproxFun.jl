@@ -114,7 +114,7 @@ end
 Base.rand(d::UnionDomain) = rand(d[rand(1:length(d))])
 checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)
 
-function Base.merge(d1::UnionDomain,m::Interval)
+function Base.merge(d1::UnionDomain,m::Segment)
     ret=d1.domains
 
     for k=length(ret):-1:1

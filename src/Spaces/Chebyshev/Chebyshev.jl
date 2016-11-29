@@ -13,15 +13,15 @@ can be easily resolved.
 immutable Chebyshev{D<:Domain} <: PolynomialSpace{D}
     domain::D
     Chebyshev(d) = new(d)
-    Chebyshev() = new(Interval())
+    Chebyshev() = new(Segment())
 end
 
-Chebyshev() = Chebyshev{Interval{Float64}}()
+Chebyshev() = Chebyshev{Segment{Float64}}()
 Chebyshev(d::Domain) = Chebyshev{typeof(d)}(d)
 Chebyshev(d) = Chebyshev(Domain(d))
 
 
-Space(d::Interval) = Chebyshev(d)
+Space(d::Segment) = Chebyshev(d)
 
 
 setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
@@ -214,9 +214,9 @@ end
 
 
 # diff T -> U, then convert U -> T
-integrate{D<:Interval}(f::Fun{Chebyshev{D}}) =
+integrate{D<:Segment}(f::Fun{Chebyshev{D}}) =
     Fun(f.space,fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)))
-differentiate{D<:Interval}(f::Fun{Chebyshev{D}}) =
+differentiate{D<:Segment}(f::Fun{Chebyshev{D}}) =
     Fun(f.space,1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)))
 
 ## identity_fun
@@ -228,7 +228,7 @@ differentiate{D<:Interval}(f::Fun{Chebyshev{D}}) =
 ## Multivariate
 
 function points{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},N)
-    if domain(S) == Interval()^2
+    if domain(S) == Segment()^2
         pts=paduapoints(real(eltype(eltype(D))),Int(cld(-3+sqrt(1+8N),2)))
         T=eltype(pts)
         ret=Array(Vec{2,T},size(pts,1))

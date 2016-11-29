@@ -7,6 +7,7 @@ Base.done(f::Fun{SequenceSpace},st) = false # infinite length
 
 getindex(f::Fun{SequenceSpace},k::Integer) =
     k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
+getindex(f::Fun{SequenceSpace},K::CartesianIndex{0}) = f[1]    
 getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
 
 Base.length(f::Fun{SequenceSpace}) = ∞
@@ -94,7 +95,7 @@ function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k:
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
 
-coefficients{TT,SV,T,DD}(f::Vector,sp::ConstantSpace{Interval{Vec{2,TT}}},ts::TensorSpace{SV,T,DD,2}) =
+coefficients{TT,SV,T,DD}(f::Vector,sp::ConstantSpace{Segment{Vec{2,TT}}},ts::TensorSpace{SV,T,DD,2}) =
     f[1]*ones(ts).coefficients
 coefficients(f::Vector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
 

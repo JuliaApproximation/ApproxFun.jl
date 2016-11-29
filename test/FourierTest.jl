@@ -12,7 +12,7 @@ for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
     testtransforms(Fourier(d);invertibletransform=false)
 end
 
-@test sum(Fun(1,CosSpace())) ≈ π
+@test sum(Fun(1,CosSpace())) ≈ 2π
 @test sum(Fun(SinSpace(),[1])) == 0
 
 
@@ -62,7 +62,7 @@ z=Fun(Fourier(Γ))
 
 for f in (Fun(θ->sin(sin(θ)),SinSpace()),Fun(θ->cos(θ)+cos(3θ),CosSpace()),
             Fun(θ->sin(sin(θ)),Fourier()),Fun(θ->cos(θ)+cos(3θ),CosSpace()))
-    @test norm(integrate(f)'-f)<eps()
+    @test norm(integrate(f)'-f)<10eps()
 end
 
 
@@ -226,15 +226,15 @@ end
 ##  Norms
 
 
-@test_approx_eq sum(Fun(CosSpace(),[1.]))/π 1.
-@test_approx_eq sum(Fun(CosSpace(),[0.,1.])^2)/π 0.5
-@test_approx_eq sum(Fun(CosSpace(),[0.,0.,1.])^2)/π 0.5
-@test_approx_eq sum(Fun(CosSpace(),[0.,0.,0.,1.])^2)/π 0.5
+@test_approx_eq sum(Fun(CosSpace(),[1.]))/(2π) 1.
+@test_approx_eq sum(Fun(CosSpace(),[0.,1.])^2)/(2π) 0.5
+@test_approx_eq sum(Fun(CosSpace(),[0.,0.,1.])^2)/(2π) 0.5
+@test_approx_eq sum(Fun(CosSpace(),[0.,0.,0.,1.])^2)/(2π) 0.5
 
 
-@test_approx_eq sum(Fun(SinSpace(),[0.,1.])^2)/π 0.5
-@test_approx_eq sum(Fun(SinSpace(),[0.,0.,1.])^2)/π 0.5
-@test_approx_eq sum(Fun(SinSpace(),[0.,0.,0.,1.])^2)/π 0.5
+@test_approx_eq sum(Fun(SinSpace(),[0.,1.])^2)/(2π) 0.5
+@test_approx_eq sum(Fun(SinSpace(),[0.,0.,1.])^2)/(2π) 0.5
+@test_approx_eq sum(Fun(SinSpace(),[0.,0.,0.,1.])^2)/(2π) 0.5
 
 
 ## Bug in multiplicaiton

@@ -10,10 +10,10 @@ immutable Jacobi{T,D<:Domain} <: PolynomialSpace{D}
     domain::D
 end
 Legendre(domain) = Jacobi(0.,0.,domain)
-Legendre() = Legendre(Interval())
+Legendre() = Legendre(Segment())
 Jacobi(b,a,d::Domain) = Jacobi(promote(b,a)...,d)
 Jacobi(b,a,d) = Jacobi(b,a,Domain(d))
-Jacobi(b,a) = Jacobi(b,a,Interval())
+Jacobi(b,a) = Jacobi(b,a,Segment())
 Jacobi(A::Ultraspherical) = Jacobi(order(A)-0.5,order(A)-0.5,domain(A))
 Jacobi(A::Chebyshev) = Jacobi(-0.5,-0.5,domain(A))
 
@@ -138,7 +138,7 @@ for op in (:(Base.ones),:(Base.zeros))
 end
 
 function identity_fun(J::Jacobi)
-    if domain(J)==Interval()
+    if domain(J)==Segment()
         Fun(J,[(J.b-J.a)/(2+J.a+J.b),2.0/(2+J.a+J.b)])
     else
         d=domain(J)
@@ -180,7 +180,7 @@ function bilinearform{J<:Jacobi}(f::Fun{J},g::Fun{J})
     end
 end
 
-function bilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
+function bilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
@@ -189,7 +189,7 @@ function bilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{
     end
 end
 
-function bilinearform{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
+function bilinearform{J<:Jacobi,DD<:Segment}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
@@ -198,7 +198,7 @@ function bilinearform{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD
     end
 end
 
-function bilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
+function bilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return complexlength(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)
@@ -216,7 +216,7 @@ function linebilinearform{J<:Jacobi}(f::Fun{J},g::Fun{J})
     end
 end
 
-function linebilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
+function linebilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{J})
     @assert domain(f) == domain(g)
     if f.space.β == f.space.space.a == g.space.a && f.space.α == f.space.space.b == g.space.b
         return arclength(domain(f))/2*conjugatedinnerproduct(g.space,f.coefficients,g.coefficients)
@@ -225,7 +225,7 @@ function linebilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::
     end
 end
 
-function linebilinearform{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
+function linebilinearform{J<:Jacobi,DD<:Segment}(f::Fun{J},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if g.space.β == g.space.space.a == f.space.a && g.space.α == g.space.space.b == f.space.b
         return arclength(domain(f))/2*conjugatedinnerproduct(f.space,f.coefficients,g.coefficients)
@@ -234,7 +234,7 @@ function linebilinearform{J<:Jacobi,DD<:Interval}(f::Fun{J},g::Fun{JacobiWeight{
     end
 end
 
-function linebilinearform{J<:Jacobi,DD<:Interval}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
+function linebilinearform{J<:Jacobi,DD<:Segment}(f::Fun{JacobiWeight{J,DD}},g::Fun{JacobiWeight{J,DD}})
     @assert domain(f) == domain(g)
     if f.space.β + g.space.β == f.space.space.a == g.space.space.a && f.space.α + g.space.α == f.space.space.b == g.space.space.b
         return arclength(domain(f))/2*conjugatedinnerproduct(f.space.space,f.coefficients,g.coefficients)

@@ -68,7 +68,7 @@ G = LowRankFun((x,y)->besselj0(10(y-x));method=:Cholesky)
 
 ## 1D in 2D
 
-d=Interval((0.,0.),(1.,1.))
+d=Segment((0.,0.),(1.,1.))
 f=Fun(xy->exp(-xy[1]-2cos(xy[2])),d)
 @test_approx_eq f(0.5,0.5) exp(-0.5-2cos(0.5))
 @test_approx_eq f(FixedSizeArrays.Vec(0.5,0.5)) exp(-0.5-2cos(0.5))

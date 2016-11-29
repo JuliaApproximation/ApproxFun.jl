@@ -30,7 +30,7 @@ PyPlot.savefig("airy.png",dpi=300)
 println("Second image done")
 
 
-d = Interval([-π,π])
+d = Interval(-π,π)
 a = Fun(t-> 1+sin(cos(2t)),d)
 D = Derivative(d)
 L = D + a

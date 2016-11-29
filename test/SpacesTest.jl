@@ -96,9 +96,9 @@ w=2/(sqrt(1-x)*sqrt(1+im*x))
 
 ## ContinuousSpace
 
-import ApproxFun: PiecewiseInterval,ContinuousSpace
+import ApproxFun: PiecewiseSegment,ContinuousSpace
 
-d=PiecewiseInterval(1.,2.,3.,4.)
+d=PiecewiseSegment(1.,2.,3.,4.)
 S=ContinuousSpace(d)
 testtransforms(S;minpoints=3,invertibletransform=false)
 
@@ -113,7 +113,7 @@ u=[ldirichlet(S),D-I]\[exp(1.),0]
 @test_approx_eq last(u) exp(4)
 
 
-d=PiecewiseInterval(0,1.,1.+im,im,0.)
+d=PiecewiseSegment(0,1.,1.+im,im,0.)
 @test_approx_eq Fun(exp,d)(.1) exp(.1)
 
 
@@ -201,7 +201,7 @@ z=Fun(identity,Arc(0.,.1,0.,π/2))
 
 ## Extending function
 
-Γ=Interval(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
+Γ=Segment(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
 
 @test isempty(Γ[1]\Γ[1])
 @test Γ\Γ[1] == Γ[2]∪Γ[3]

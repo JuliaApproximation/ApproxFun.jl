@@ -20,7 +20,7 @@ macro calculus_functional(Op)
 
 
         # We expect the operator to be real/complex if the basis is real/complex
-        $ConcOp(dsp::Space) = $ConcOp{typeof(dsp),eltype(dsp)}(dsp)
+        $ConcOp(dsp::Space) = $ConcOp{typeof(dsp),op_eltype(dsp)}(dsp)
 
         $Op() = $Op(UnsetSpace())
         $Op(dsp) = $ConcOp(dsp)
@@ -59,20 +59,17 @@ end
 
 #default implementation
 
-function getindex(B::ConcreteDefiniteIntegral,k::Integer)
-    S=domainspace(B)
-    Q=Integral(S)
-    A=(Evaluation(S,true)-Evaluation(S,false))*Q
-    A[k]
-end
-
-getindex(B::ConcreteDefiniteIntegral,kr::Range) = eltype(B)[getindex(B,k) for k in kr]
-getindex(B::ConcreteDefiniteLineIntegral,kr::Range) = eltype(B)[getindex(B,k) for k in kr]
+DefiniteIntegral(sp::UnsetSpace) = ConcreteDefiniteIntegral(sp)
+DefiniteLineIntegral(sp::UnsetSpace) = ConcreteDefiniteLineIntegral(sp)
 
 function DefiniteIntegral(sp::Space)
-    if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
-        ConcreteDefiniteIntegral{typeof(sp),op_eltype(sp)}(sp)
+    if typeof(canonicaldomain(sp)) == typeof(domain(sp))
+        # try using `Integral`
+        Q = Integral(sp)
+        rsp = rangespace(Q)
+        DefiniteIntegralWrapper((Evaluation(rsp,true)-Evaluation(rsp,false))*Q)
     else
+        # try mapping to canonical domain
         M = Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))
         Op = DefiniteIntegral(rangespace(M))*M
         DefiniteIntegralWrapper(SpaceOperator(Op,sp,rangespace(Op)))
@@ -80,13 +77,13 @@ function DefiniteIntegral(sp::Space)
 end
 
 function DefiniteLineIntegral(sp::Space)
-    if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
-        ConcreteDefiniteLineIntegral{typeof(sp),eltype(sp)}(sp)
-    else
-        M = Multiplication(abs(fromcanonicalD(sp)),setcanonicaldomain(sp))
-        Op = DefiniteLineIntegral(rangespace(M))*M
-        DefiniteLineIntegralWrapper(SpaceOperator(Op,sp,rangespace(Op)))
+    if typeof(canonicaldomain(sp)) == typeof(domain(sp))
+        error("Override DefiniteLineIntegral for $sp")
     end
+
+    M = Multiplication(abs(fromcanonicalD(sp)),setcanonicaldomain(sp))
+    Op = DefiniteLineIntegral(rangespace(M))*M
+    DefiniteLineIntegralWrapper(SpaceOperator(Op,sp,rangespace(Op)))
 end
 
 

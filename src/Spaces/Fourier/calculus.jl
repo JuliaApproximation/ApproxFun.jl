@@ -52,6 +52,14 @@ function integrate{D}(f::Fun{Taylor{D}})
 end
 
 
+Base.sum{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) =
+    f.coefficients[1]*complexlength(domain(f))
+
+linesum{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) =
+    f.coefficients[1]*arclength(domain(f))
+
+
+
 function integrate{CS<:CosSpace}(f::Fun{CS})
     if isa(domain(f),Circle)
         error("Integrate not implemented for CosSpace on Circle")

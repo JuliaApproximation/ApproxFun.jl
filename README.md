@@ -196,10 +196,10 @@ Solving differential equations with high precision types is available.  The foll
 
 ```julia
 setprecision(1000) do
-    d=Interval{BigFloat}(0,1)
+    d=BigFloat(0)..BigFloat(1)
     D=Derivative(d)
     u=[ldirichlet();D-I]\[1;0]
-    u(1)
+    @test_approx_eq u(1) exp(BigFloat(1))
 end
 ```
 

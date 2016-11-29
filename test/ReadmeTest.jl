@@ -137,7 +137,7 @@ QR = qrfact([Dirichlet(d);Laplacian()+100I])
 println("    BigFloat tests")
 
 setprecision(1000) do
-    d=Interval{BigFloat}(0,1)
+    d=BigFloat(0)..BigFloat(1)
     D=Derivative(d)
     u=[ldirichlet();D-I]\[1;0]
     @test_approx_eq u(1) exp(BigFloat(1))

@@ -42,11 +42,11 @@ function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
         jacobip(T,kr-1,a,b,x?one(T):-one(T))
     elseif op.order == 1&& !x && b==0
         d=domain(op)
-        @assert isa(d,Interval)
+        @assert isa(d,Segment)
         T[tocanonicalD(d,d.a)/2*(a+k)*(k-1)*(-1)^k for k=kr]
     elseif op.order == 1
         d=domain(op)
-        @assert isa(d,Interval)
+        @assert isa(d,Segment)
         if kr[1]==1 && kr[end] ≥ 2
             tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,x?one(T):-one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
@@ -56,7 +56,7 @@ function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
         end
     elseif op.order == 2
         @assert !x && b==0
-        @assert domain(op)==Interval()
+        @assert domain(op)==Segment()
         T[-0.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
     end
 end
@@ -80,7 +80,7 @@ getindex{J<:Jacobi}(T::ConcreteDerivative{J},k::Integer,j::Integer) =
 
 
 
-function Derivative{T,DDD<:Interval}(S::WeightedJacobi{T,DDD})
+function Derivative{T,DDD<:Segment}(S::WeightedJacobi{T,DDD})
     if S.β>0 && S.β>0 && S.β==S.space.b && S.α==S.space.a
         ConcreteDerivative(S,1)
     else
@@ -88,11 +88,11 @@ function Derivative{T,DDD<:Interval}(S::WeightedJacobi{T,DDD})
     end
 end
 
-bandinds{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=-1,0
-rangespace{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=WeightedJacobi(domainspace(D).β-1,domainspace(D).α-1,domain(D))
+bandinds{T,DDD<:Segment}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=-1,0
+rangespace{T,DDD<:Segment}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=WeightedJacobi(domainspace(D).β-1,domainspace(D).α-1,domain(D))
 
 
-getindex{T,DDD<:Interval}(D::ConcreteDerivative{WeightedJacobi{T,DDD}},k::Integer,j::Integer) =
+getindex{T,DDD<:Segment}(D::ConcreteDerivative{WeightedJacobi{T,DDD}},k::Integer,j::Integer) =
     j==k-1? eltype(D)(-4(k-1)./complexlength(domain(D))) : zero(eltype(D))
 
 
@@ -128,7 +128,7 @@ end
 
 ## Volterra Integral operator
 
-Volterra(d::Interval) = Volterra(Legendre(d))
+Volterra(d::Segment) = Volterra(Legendre(d))
 function Volterra(S::Jacobi,order::Integer)
     @assert S.a == S.b == 0.0
     @assert order==1
@@ -547,7 +547,7 @@ end
 
 
 for FUNC in (:maxspace_rule,:union_rule,:hasconversion)
-    @eval function $FUNC{T,DD<:Interval}(A::WeightedJacobi{T,DD},B::Jacobi)
+    @eval function $FUNC{T,DD<:Segment}(A::WeightedJacobi{T,DD},B::Jacobi)
         if A.β==A.α+1 && A.space.b>0
             $FUNC(Jacobi(A.space.b-1,A.space.a,domain(A)),B)
         elseif A.α==A.β+1 && A.space.a>0

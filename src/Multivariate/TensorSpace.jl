@@ -510,7 +510,7 @@ coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(space(f),f.coef
 
 
 #TODO: Implement
-# function ∂(d::TensorSpace{Interval{Float64}})
+# function ∂(d::TensorSpace{Segment{Float64}})
 #     @assert length(d.spaces) ==2
 #     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
 # end
@@ -523,7 +523,7 @@ union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spa
 ## Convert from 1D to 2D
 
 
-# function isconvertible{T,TT}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace)
+# function isconvertible{T,TT}(sp::UnivariateSpace{T,Segment{Vec{2,TT}}},ts::TensorSpace)
 #     d1 = domain(sp)
 #     d2 = domain(ts)
 #     if d2
@@ -553,7 +553,7 @@ function coefficients{SV,T,DD}(f::Vector,sp::UnivariateSpace,ts::TensorSpace{SV,
 end
 
 
-function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace{SV,TTT,DD,2})
+function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Segment{Vec{2,TT}}},ts::TensorSpace{SV,TTT,DD,2})
     d1 = domain(sp)
     d2 = domain(ts)
     if length(ts.spaces) ≠ 2
@@ -561,25 +561,25 @@ function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}
     end
     if d1.a[2] ≈ d1.b[2]
         isa(d2[2],Point) && d2[2].x ≈ d1.a[2] &&
-            isconvertible(setdomain(sp,Interval(d1.a[1],d1.b[1])),ts[1])
+            isconvertible(setdomain(sp,Segment(d1.a[1],d1.b[1])),ts[1])
     elseif d1.a[1] ≈ d1.b[1]
         isa(d2[1],Point) && d2[1].x ≈ d1.a[1] &&
-            isconvertible(setdomain(sp,Interval(d1.a[2],d1.b[2])),ts[2])
+            isconvertible(setdomain(sp,Segment(d1.a[2],d1.b[2])),ts[2])
     else
         return false
     end
 end
 
 
-function coefficients{T,TT,SV,TTT,DD}(f::Vector,sp::UnivariateSpace{T,Interval{Vec{2,TT}}},
+function coefficients{T,TT,SV,TTT,DD}(f::Vector,sp::UnivariateSpace{T,Segment{Vec{2,TT}}},
                             ts::TensorSpace{SV,TTT,DD,2})
     @assert length(ts.spaces) == 2
     d1 = domain(sp)
     d2 = domain(ts)
     if d1.a[2] ≈ d1.b[2]
-        coefficients(f,setdomain(sp,Interval(d1.a[1],d1.b[1])),ts[1])
+        coefficients(f,setdomain(sp,Segment(d1.a[1],d1.b[1])),ts[1])
     elseif d1.a[1] ≈ d1.b[1]
-        coefficients(f,setdomain(sp,Interval(d1.a[2],d1.b[2])),ts[2])
+        coefficients(f,setdomain(sp,Segment(d1.a[2],d1.b[2])),ts[2])
     else
         error("Cannot convert coefficients from $sp to $ts")
     end

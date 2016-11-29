@@ -25,16 +25,16 @@ identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(setdomain(space(domain(d).curve),d
 export Bernstein, Bézier
 
 immutable Bernstein{order,T} <: RealUnivariateSpace{T}
-    domain::Interval{T}
+    domain::Segment{T}
     Bernstein(d) = new(d)
-    Bernstein() = new(Interval{T}())
+    Bernstein() = new(Segment{T}())
 end
 
 const Bézier = Bernstein # option+e e gives é
 
 @compat (::Type{Bernstein{O}}){O}() = Bernstein{O,Float64}()
 @compat (::Type{Bernstein{O}}){O}(d::Domain) = Bernstein{O,eltype(d)}(d)
-@compat (::Type{Bernstein{O}}){O}(d::Vector) = Bernstein{O}(Interval(d))
+@compat (::Type{Bernstein{O}}){O}(d::Vector) = Bernstein{O}(Segment(d))
 
 order{O}(::Bernstein{O}) = O
 order{O,T}(::Type{Bernstein{O,T}}) = O
@@ -42,7 +42,7 @@ dimension{O}(::Bernstein{O}) = O+1
 dimension{O,T}(::Type{Bernstein{O,T}}) = O+1
 
 canonicalspace(B::Bernstein) = Chebyshev(domain(B))
-canonicaldomain{O,T}(B::Bernstein{O,T}) = Interval{T}()
+canonicaldomain{O,T}(B::Bernstein{O,T}) = Segment{T}()
 
 spacescompatible{O,T}(a::Bernstein{O,T},b::Bernstein{O,T})=domainscompatible(a,b)
 
@@ -94,7 +94,7 @@ function splitbernstein(f::AbstractVector,S::Bernstein,z)
         β1[order(S)+2-i] = β[1]
         β2[i] = β[i]
     end
-    Fun(PiecewiseSpace(Bernstein{order(S)}(Interval(first(domain(S)),z)),Bernstein{order(S)}(Interval(z,last(domain(S))))),
+    Fun(PiecewiseSpace(Bernstein{order(S)}(Segment(first(domain(S)),z)),Bernstein{order(S)}(Segment(z,last(domain(S))))),
         interlace(β1,β2))
 end
 
