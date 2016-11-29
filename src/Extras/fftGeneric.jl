@@ -90,9 +90,8 @@ function ichebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
             ret = chebyshevtransform(x;kind=kind)
             x[1] /=2;x[end] /=2
             ret[1] *= 2;ret[end] *= 2
-            negateeven!(ret)
             ret *= .5*(n-1)
-            reverse!(ret)
+            ret
         end
     end
 end
