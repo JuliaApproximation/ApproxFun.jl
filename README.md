@@ -2,7 +2,7 @@
 
 <!-- [![](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaMatrices.github.io/BandedMatrices.jl/stable) -->
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://ApproxFun.github.io/ApproxFun.jl/latest)
-[![Build Status](https://travis-ci.org/ApproxFun/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/ApproxFun/ApproxFun.jl) [![Coverage Status](https://img.shields.io/coveralls/ApproxFun/ApproxFun.jl.svg)](https://coveralls.io/r/ApproxFun/ApproxFun.jl?branch=master) [![Join the chat at https://gitter.im/ApproxFun/ApproxFun.jl](https://badges.gitter.im/ApproxFun/ApproxFun.jl.svg)](https://gitter.im/ApproxFun/ApproxFun.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/JuliaApproximation/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/JuliaApproximation/ApproxFun.jl) [![Coverage Status](https://img.shields.io/coveralls/JuliaApproximation/ApproxFun.jl.svg)](https://coveralls.io/r/JuliaApproximation/ApproxFun.jl?branch=master) [![Join the chat at https://gitter.im/JuliaApproximation/ApproxFun.jl](https://badges.gitter.im/JuliaApproximation/ApproxFun.jl.svg)](https://gitter.im/JuliaApproximation/ApproxFun.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
 
@@ -35,7 +35,7 @@ scatter!(r,h(r))
 scatter!(rp,h(rp))
 ```
 
-<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/extrema.png width=500 height=400>
+<img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/extrema.png width=500 height=400>
 
 
 # Differentiation and integration
@@ -83,7 +83,7 @@ u = [B;L] \ [airyai(d.a);airyai(d.b);0]
 plot(u)
 ```
 
-<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/airy.png width=500 height=400>
+<img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/airy.png width=500 height=400>
 
 
 # Nonlinear Boundary Value problems
@@ -99,7 +99,7 @@ u=newton(N,u0)
 plot(u)
 ```
 
-<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/nbvp.png width=500 height=400>
+<img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/nbvp.png width=500 height=400>
 
 
 
@@ -136,7 +136,7 @@ ncoefficients(uFourier)/ncoefficients(uChebyshev),2/π
 plot(uFourier)
 ```
 
-<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/periodic.png width=500 height=400>
+<img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/periodic.png width=500 height=400>
 
 
 
@@ -153,7 +153,7 @@ histogram(x;normed=true)
 plot!(f/sum(f))
 ```
 
-<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/sample.png width=500 height=400>
+<img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/sample.png width=500 height=400>
 
 
 # Solving partial differential equations
@@ -173,7 +173,7 @@ u = linsolve([Dirichlet(d);Δ+100I],[f;0.];  # Solve the PDE
 surface(u)                                  # Surface plot
 ```
 
-<img src=https://github.com/ApproxFun/ApproxFun.jl/raw/master/images/helmholtz.png width=500 height=400>
+<img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/helmholtz.png width=500 height=400>
 
 
 <!-- We can also evolve PDEs.  The following solves advection—diffusion

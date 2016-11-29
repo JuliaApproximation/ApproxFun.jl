@@ -135,9 +135,12 @@ function transformtimes(f::Fun,g::Fun,n)
     hc = transform(sp,values(f2).*values(g2))
     chop!(Fun(sp,hc),10norm(hc,Inf)*eps(eltype(hc)))
 end
-transformtimes(f::Fun,g::Fun)=transformtimes(f,g,ncoefficients(f) + ncoefficients(g) - 1)
+transformtimes(f::Fun,g::Fun) = transformtimes(f,g,ncoefficients(f) + ncoefficients(g) - 1)
 
 
+
+*(a::Fun,L::UniformScaling) = Multiplication(a*L.λ,UnsetSpace())
+*(L::UniformScaling,a::Fun) = L.λ*a
 
 
 ## docs

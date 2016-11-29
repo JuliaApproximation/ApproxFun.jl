@@ -540,6 +540,9 @@ Base.eye(S::Domain) = eye(Space(S))
 Base.convert{T}(A::Type{Operator{T}},f::Fun) =
     norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
 
+Base.convert(A::Type{Operator},f::Fun) =
+    norm(f.coefficients)==0?ZeroOperator():Multiplication(f)
+
 
 
 

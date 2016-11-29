@@ -21,7 +21,7 @@ makedocs(modules=[ApproxFun],
 
 
 deploydocs(
-    repo   = "github.com/ApproxFun/ApproxFun.jl.git",
+    repo   = "github.com/JuliaApproximation/ApproxFun.jl.git",
     latest = "development",
     julia  = "0.5",
     osname = "linux",
