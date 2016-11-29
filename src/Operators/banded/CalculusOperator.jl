@@ -26,13 +26,13 @@ macro calculus_operator(Op)
 
 
         ## Constructors
-        $ConcOp(sp::Space,k)=$ConcOp{typeof(sp),typeof(k),op_eltype(sp)}(sp,k)
+        $ConcOp(sp::Space,k) = $ConcOp{typeof(sp),typeof(k),op_eltype(sp)}(sp,k)
 
-        $Op(sp::UnsetSpace,k)=$ConcOp(sp,k)
-        $Op(sp::UnsetSpace,k::Real)=$ConcOp(sp,k)
-        $Op(sp::UnsetSpace,k::Integer)=$ConcOp(sp,k)
+        $Op(sp::UnsetSpace,k) = $ConcOp(sp,k)
+        $Op(sp::UnsetSpace,k::Real) = $ConcOp(sp,k)
+        $Op(sp::UnsetSpace,k::Integer) = $ConcOp(sp,k)
 
-        function $Op(sp,k)
+        function $Op(sp::Space,k)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
                error("Implement $(string($Op))($(string(sp)),$k)")
@@ -40,15 +40,12 @@ macro calculus_operator(Op)
             $WrappOp(TimesOperator([$Op(csp,k),Conversion(sp,csp)]),k)
         end
 
-        $Op(sp)=$Op(sp,1)
-        $Op()=$Op(UnsetSpace())
-        $Op(k::Number)=$Op(UnsetSpace(),k)
+        $Op(d,k) = $Op(Space(d),k)
 
-        $Op(d::Domain,n)=$Op(Space(d),n)
-        $Op(d::Domain)=$Op(d,1)
-        $Op(d::Vector)=$Op(Space(d),1)
-        $Op(d::Vector,n)=$Op(Space(d),n)
-        $ConcOp(S::Space)=$ConcOp(S,1)
+        $Op(sp) = $Op(sp,1)
+        $Op() = $Op(UnsetSpace())
+        $Op(k::Number) = $Op(UnsetSpace(),k)
+        $ConcOp(S::Space) = $ConcOp(S,1)
 
         function Base.convert{T}(::Type{Operator{T}},D::$ConcOp)
             if T==eltype(D)
