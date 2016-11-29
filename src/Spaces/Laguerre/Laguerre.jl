@@ -44,23 +44,6 @@ end
 identity_fun(L::Laguerre) = Fun(L,[1+L.α,-1.0])
 
 
-function laguerrel(r::Range,α,x)
-    n=r[end]+1
-    if n<=2
-        v=[1.,1.0-x+α]
-    else
-        T=promote_type(Float64,typeof(x))
-        v=Vector{T}(n)  # x may be complex
-        v[1]=1.
-        v[2]=1.0-x+α
-
-        @inbounds for k=2:n-1
-            v[k+1]=((x-laguerrerecα(T,α,k))*v[k] - laguerrerecγ(T,α,k)*v[k-1])/laguerrerecβ(T,α,k)
-        end
-    end
-    v[r+1]
-end
-
 
 function laguerrel{T}(::Type{T},r::Range,α,x)
     if isempty(r)

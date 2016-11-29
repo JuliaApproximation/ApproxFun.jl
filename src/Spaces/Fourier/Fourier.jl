@@ -46,12 +46,12 @@ if VERSION ≥ v"0.5"
     `Taylor()` is the space spanned by `[1,z,z^2,...]`.  This is a type alias for `Hardy{true}`.
 
     """
-    Taylor()
+    Taylor
 
     doc"""
     `Hardy{false}()` is the space spanned by `[1/z,1/z^2,...]`
     """
-    Hardy{false}()
+    Hardy{false}
 end
 
 
