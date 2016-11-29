@@ -89,7 +89,7 @@ DiracDelta(x::Number)=Fun(DiracSpace(x),[1.])
 DiracDelta()=DiracDelta(0.)
 
 
-function Base.cumsum{S<:DiracSpace,T<:Real}(f::Fun{S},d::Interval{T})
+function Base.cumsum{S<:DiracSpace,T<:Real}(f::Fun{S},d::Segment{T})
     pts=space(f).points
     @assert pts ==sort(pts)
     cfs=cumsum(f.coefficients)

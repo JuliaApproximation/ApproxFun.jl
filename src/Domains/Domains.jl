@@ -1,4 +1,4 @@
-include("Interval.jl")
+include("Segment.jl")
 include("PeriodicInterval.jl")
 include("Ray.jl")
 include("Circle.jl")
@@ -12,12 +12,12 @@ include("Curve.jl")
 include("Point.jl")
 
 
-typealias AffineDomain Union{Interval,PeriodicInterval,Ray,Line}
+typealias AffineDomain Union{Segment,PeriodicInterval,Ray,Line}
 
 
 points(d::ClosedInterval,n) = points(Domain(d),n)
 
-# These are needed for spaces to auto-convert [a,b] to Interval
+# These are needed for spaces to auto-convert [a,b] to Segment
 function Base.convert(::Type{Domain},d::ClosedInterval)
     a,b=d.left,d.right
     if abs(a) == Inf && abs(b) == Inf
@@ -25,7 +25,7 @@ function Base.convert(::Type{Domain},d::ClosedInterval)
     elseif abs(a) == Inf || abs(b) == Inf
         Ray(d)
     else
-        Interval(d)
+        Segment(d)
     end
 end
 
@@ -46,22 +46,22 @@ Base.convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
 
 #issubset between domains
 
-Base.issubset(a::PeriodicInterval,b::Interval) = Interval(a.a,a.b)⊆b
-Base.issubset(a::Interval,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
-Base.issubset{T<:Real}(a::Interval{T},b::PiecewiseInterval{T}) =
-    a⊆Interval(first(b.points),last(b.points))
-Base.issubset(a::Interval,b::Line) = first(a)∈b && last(a)∈b
+Base.issubset(a::PeriodicInterval,b::Segment) = Segment(a.a,a.b)⊆b
+Base.issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
+Base.issubset{T<:Real}(a::Segment{T},b::PiecewiseInterval{T}) =
+    a⊆Segment(first(b.points),last(b.points))
+Base.issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
 
 
-function Base.intersect(a::Interval,b::Line)
+function Base.intersect(a::Segment,b::Line)
     @assert a ⊆ b
     a
 end
 
-Base.intersect(b::Line,a::Interval) = intersect(a,b)
+Base.intersect(b::Line,a::Segment) = intersect(a,b)
 
 
-function Base.setdiff(b::Line,a::Interval)
+function Base.setdiff(b::Line,a::Segment)
     @assert a ⊆ b
     if first(a)>last(a)
         b\reverse(a)
@@ -70,20 +70,20 @@ function Base.setdiff(b::Line,a::Interval)
     end
 end
 
-function Base.setdiff(b::Interval,a::Point)
+function Base.setdiff(b::Segment,a::Point)
     if !(a ⊆ b)
         b
     elseif first(b) == a.x  || last(b) == a.x
         b
     else
-        Interval(first(b),a.x) ∪ Interval(a.x,last(b))
+        Segment(first(b),a.x) ∪ Segment(a.x,last(b))
     end
 end
 
 # sort
 
-Base.isless{T1<:Real,T2<:Real}(d1::Interval{T1},d2::Ray{false,T2}) = d1 ≤ d2.center
-Base.isless{T1<:Real,T2<:Real}(d2::Ray{true,T2},d1::Interval{T1}) = d2.center ≤ d1
+Base.isless{T1<:Real,T2<:Real}(d1::Segment{T1},d2::Ray{false,T2}) = d1 ≤ d2.center
+Base.isless{T1<:Real,T2<:Real}(d2::Ray{true,T2},d1::Segment{T1}) = d2.center ≤ d1
 
 
 # ^

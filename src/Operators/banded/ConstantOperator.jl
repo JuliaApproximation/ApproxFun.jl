@@ -108,7 +108,7 @@ Base.convert{T}(::Type{Operator{T}},Z::ZeroOperator) =
     ZeroOperator(T,Z.domainspace,Z.rangespace)
 
 
-
+Base.zero(A::Operator) = ZeroOperator(domainspace(A),rangespace(A))
 
 
 domainspace(Z::ZeroOperator)=Z.domainspace

@@ -26,8 +26,9 @@ function Base.convert(::Type{PeriodicInterval},d::ClosedInterval)
     PeriodicInterval(a,b)
 end
 
+Segment(d::PeriodicInterval) = Segment(d.a,d.b)
 Interval(d::PeriodicInterval) = Interval(d.a,d.b)
-PeriodicInterval(d::Interval) = PeriodicInterval(d.a,d.b)
+PeriodicInterval(d::Segment) = PeriodicInterval(d.a,d.b)
 
 Base.convert{T<:Number}(::Type{PeriodicInterval{T}}, d::PeriodicInterval) = PeriodicInterval{T}(d.a,d.b)
 
@@ -39,23 +40,22 @@ Base.convert{T}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval(nan(
 
 ## Information
 
-Base.first(d::PeriodicInterval)=d.a
+Base.first(d::PeriodicInterval) = d.a
 
-Base.issubset(a::PeriodicInterval,b::PeriodicInterval)=first(a)∈b && last(a)∈b
+Base.issubset(a::PeriodicInterval,b::PeriodicInterval) = first(a)∈b && a.b∈b
 
 # we disable last since the domain is "periodic"
-#Base.last(d::Interval)=d.b
 
 
 ## Map periodic interval
 
 
-tocanonical{T}(d::PeriodicInterval{T},x)=π*tocanonical(Interval(d),x)
-tocanonicalD{T}(d::PeriodicInterval{T},x)=π*tocanonicalD(Interval(d),x)
+tocanonical{T}(d::PeriodicInterval{T},x)=π*tocanonical(Segment(d),x)
+tocanonicalD{T}(d::PeriodicInterval{T},x)=π*tocanonicalD(Segment(d),x)
 fromcanonical(d::PeriodicInterval,v::AbstractArray) = eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical{V<:Vec}(d::PeriodicInterval{V},p::AbstractArray) = V[fromcanonical(d,x) for x in p]
-fromcanonical(d::PeriodicInterval,θ)=fromcanonical(Interval(d),θ/π)
-fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Interval(d),θ/π)/π
+fromcanonical(d::PeriodicInterval,θ)=fromcanonical(Segment(d),θ/π)
+fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Segment(d),θ/π)/π
 
 
 

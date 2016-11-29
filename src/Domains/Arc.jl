@@ -10,7 +10,7 @@ mobiusinvD(a,b,c,d,z) = mobiusD(d,-b,-c,a,z)
 doc"""
     Arc(c,r,(θ₁,θ₂))
 
-represents the arc centred at `c` with radius `r` from angle `θ₁` to `θ₂`. 
+represents the arc centred at `c` with radius `r` from angle `θ₁` to `θ₂`.
 """
 immutable Arc{T,V<:Real,TT} <: IntervalDomain{TT}
     center::T
@@ -105,8 +105,8 @@ for op in (:+,:-,:.+,:.-)
     end
 end
 
-# allow exp(im*Interval(0,1)) for constructing arc
-function Base.exp{CMP<:Complex}(d::Interval{CMP})
+# allow exp(im*Segment(0,1)) for constructing arc
+function Base.exp{CMP<:Complex}(d::Segment{CMP})
     @assert isapprox(real(d.a),0) && isapprox(real(d.b),0)
     Arc(0,1,(imag(d.a),imag(d.b)))
 end

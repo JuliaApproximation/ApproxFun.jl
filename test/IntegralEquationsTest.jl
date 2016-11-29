@@ -11,7 +11,7 @@ end
 
 
 # checks bug for
-dom = Interval(-1.0,1) ∪ Interval(1.0+im,1+2im) ∪ Interval(-2.0+im,-1+2im)
+dom = Segment(-1.0,1) ∪ Segment(1.0+im,1+2im) ∪ Segment(-2.0+im,-1+2im)
 
 
 ⨍ = DefiniteLineIntegral(dom)
@@ -42,7 +42,7 @@ d=domain(x)
 bandinds(Σ)
 
 @test domainspace(Σ) ==
-    JacobiWeight{Chebyshev{Interval{Float64}},Interval{Float64}}(-0.5,-0.5,Chebyshev())
+    JacobiWeight{Chebyshev{Segment{Float64}},Segment{Float64}}(-0.5,-0.5,Chebyshev())
 
 L=I+Σ[exp(x)*w]
 bandinds(L)
@@ -65,7 +65,7 @@ B=ldirichlet(d)
 Σ=DefiniteIntegral(.5,.5,d)
 
 @test domainspace(Σ) ==
-    JacobiWeight{Ultraspherical{Int,Interval{Float64}},Interval{Float64}}(.5,.5,Ultraspherical(1,d))
+    JacobiWeight{Ultraspherical{Int,Segment{Float64}},Segment{Float64}}(.5,.5,Ultraspherical(1,d))
 
 K=LowRankFun((x,y)->sin(y-x)*w(y),Ultraspherical(1,d),domainspace(Σ))
 
@@ -124,12 +124,12 @@ u = L\f
 
 ## Check DefiniteIntegral
 
-for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Interval(-2,-1))),
-          JacobiWeight(0.5,0.5,Ultraspherical(1,Interval(-2,-1+2im))),
-          JacobiWeight(1.5,1.5,Ultraspherical(2,Interval(-2,-1+2im))),
-          JacobiWeight(-0.5,-0.5,Chebyshev(Interval(-2,-1+2im))),
-          JacobiWeight(0.67,0.123,Chebyshev(Interval(-2,-1+2im))),
-          JacobiWeight(0.67,0.123,Ultraspherical(1,Interval(-2,-1+2im))))
+for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(-2,-1))),
+          JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(-2,-1+2im))),
+          JacobiWeight(1.5,1.5,Ultraspherical(2,Segment(-2,-1+2im))),
+          JacobiWeight(-0.5,-0.5,Chebyshev(Segment(-2,-1+2im))),
+          JacobiWeight(0.67,0.123,Chebyshev(Segment(-2,-1+2im))),
+          JacobiWeight(0.67,0.123,Ultraspherical(1,Segment(-2,-1+2im))))
     f=Fun(S,[1.,2.,3.])
     @test_approx_eq DefiniteIntegral(space(f))*f sum(f)
     @test_approx_eq DefiniteLineIntegral(space(f))*f linesum(f)

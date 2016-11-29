@@ -433,7 +433,7 @@ end
     promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
 function *(A::TimesOperator,B::Operator)
     if isconstop(B)
-        promotedomainspace(A*convert(Number,B),domainspace(B))
+        promotedomainspace(convert(Number,B)*A,domainspace(B))
     else
         promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
     end

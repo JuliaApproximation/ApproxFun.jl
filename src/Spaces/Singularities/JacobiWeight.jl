@@ -87,7 +87,7 @@ coefficients{SJ,S,IT,DD<:IntervalDomain}(f::Vector,
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
 coefficients{SJ,SV,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,RealBasis,DD,1}) =
     sumspacecoefficients(f,sp,S2)
-coefficients{SJ,TT,SV,TTT,DD}(f::Vector,sp::JacobiWeight{SJ,Interval{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD,2}) =
+coefficients{SJ,TT,SV,TTT,DD}(f::Vector,sp::JacobiWeight{SJ,Segment{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD,2}) =
     coefficients(f,sp,JacobiWeight(0,0,S2))
 
 coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD}) =

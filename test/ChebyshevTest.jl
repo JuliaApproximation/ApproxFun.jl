@@ -3,14 +3,12 @@ using ApproxFun, Base.Test
 
 testspace(Chebyshev())
 
-ApproxFun.identity_fun(Chebyshev())
-
-for d in (Interval(),Interval(1.,2.),Interval(1.0+im,2.0+2im))
+for d in (Interval(),Interval(1.,2.),Segment(1.0+im,2.0+2im))
     testspace(Chebyshev(d))
 end
 
-ef = Fun(exp,Interval())
 
+ef = Fun(exp,Interval())
 
 @test ef == -(-ef)
 @test ef == (ef-1) + 1

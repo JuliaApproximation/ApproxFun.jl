@@ -62,10 +62,10 @@ ri=0.5./(1-x)
 
 ## Derivative
 
-D=Derivative(Jacobi(0.,1.,Interval(1.,0.)))
+D=Derivative(Jacobi(0.,1.,Segment(1.,0.)))
 @time testbandedoperator(D)
 
-S=JacobiWeight(0.,0.,Jacobi(0.,1.,Interval(1.,0.)))
+S=JacobiWeight(0.,0.,Jacobi(0.,1.,Segment(1.,0.)))
 D=Derivative(S)
 testbandedoperator(D)
 
@@ -176,7 +176,7 @@ n=1;
 # Log with squareroot singularities
 
 a=1.0;b=2.0+im
-d=Interval(a,b)
+d=Segment(a,b)
 z=Fun(d)
 f=real(exp(z)/(sqrt(z-a)*sqrt(b-z)))
 S=space(f)
@@ -196,10 +196,10 @@ x=Fun(Legendre(2..1))
 x=Fun(1..1+im)
 @test_approx_eq sum(x+1) im*linesum(x+1)
 
-x=Fun(Legendre(Interval(1,1+im)))
+x=Fun(Legendre(Segment(1,1+im)))
 @test_approx_eq sum(x+1) im*linesum(x+1)
 
-x=Fun(Legendre(Interval(im,1)))
+x=Fun(Legendre(Segment(im,1)))
 @test_approx_eq sum(x+1) (1-im)/sqrt(2)*linesum(x+1)
 
 
@@ -225,11 +225,11 @@ f = Fun(Laguerre(0.2),ones(100))
 
 
 
-f=Fun(LaguerreWeight(Laguerre(0.1),0.),ones(100))
+f=Fun(LaguerreWeight(0.,Laguerre(0.1)),ones(100))
 @test_approx_eq f'(0.2) -65.7322962859456
 
 
-B=Evaluation(LaguerreWeight(Laguerre(0.1),0.),false)
+B=Evaluation(LaguerreWeight(0.,Laguerre(0.1)),false)
 @test_approx_eq B*f 151.53223385808576
 
 

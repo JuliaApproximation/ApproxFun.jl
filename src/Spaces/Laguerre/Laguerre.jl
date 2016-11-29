@@ -153,7 +153,7 @@ immutable LaguerreWeight{S,T} <: WeightSpace{S,RealBasis,Ray{false,Float64},1}
     space::S
 end
 
-LaguerreWeight(α,space) = LaguerreWeight(α,1.0,space)
+LaguerreWeight(α,space::Space) = LaguerreWeight(α,1.0,space)
 
 WeightedLaguerre(α) = LaguerreWeight(α,Laguerre(α))
 

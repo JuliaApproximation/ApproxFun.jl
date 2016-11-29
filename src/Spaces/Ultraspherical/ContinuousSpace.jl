@@ -210,11 +210,11 @@ end
 # Dirichlet for Squares
 
 
-Dirichlet{T}(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Interval{T}},
-                                  ChebyshevDirichlet{1,1,Interval{T}}}}) =
+Dirichlet{T}(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Segment{T}},
+                                  ChebyshevDirichlet{1,1,Segment{T}}}}) =
     ConcreteDirichlet(S,0)
 
-Dirichlet{T<:Real}(d::ProductDomain{Tuple{Interval{T},Interval{T}}}) =
+Dirichlet{T<:Real}(d::ProductDomain{Tuple{Segment{T},Segment{T}}}) =
     Dirichlet(ChebyshevDirichlet{1,1}(d[1])*ChebyshevDirichlet{1,1}(d[2]))
 
 isbandedblock{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}}) =

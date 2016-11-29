@@ -57,7 +57,7 @@ Base.setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
 
 abstract IntervalDomain{T} <: UnivariateDomain{T}
 
-canonicaldomain(d::IntervalDomain) = Interval{real(eltype(eltype(d)))}()
+canonicaldomain(d::IntervalDomain) = Segment{real(eltype(eltype(d)))}()
 
 Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))

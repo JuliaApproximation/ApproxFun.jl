@@ -31,6 +31,9 @@ Multiplication(f::Fun,sp::Space) = defaultMultiplication(f,sp)
 
 Multiplication(f::Fun,sp::UnsetSpace) = ConcreteMultiplication(f,sp)
 Multiplication(f::Fun) = Multiplication(f,UnsetSpace())
+
+Multiplication(c::Number,sp::Space) = Multiplication(Fun(c),sp)
+Multiplication(sp::Space,c::Number) = Multiplication(sp,Fun(c))
 Multiplication(c::Number) = Multiplication(Fun(c) )
 
 # This covers right multiplication unless otherwise specified.

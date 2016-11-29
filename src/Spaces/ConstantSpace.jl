@@ -94,7 +94,7 @@ function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k:
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
 
-coefficients{TT,SV,T,DD}(f::Vector,sp::ConstantSpace{Interval{Vec{2,TT}}},ts::TensorSpace{SV,T,DD,2}) =
+coefficients{TT,SV,T,DD}(f::Vector,sp::ConstantSpace{Segment{Vec{2,TT}}},ts::TensorSpace{SV,T,DD,2}) =
     f[1]*ones(ts).coefficients
 coefficients(f::Vector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
 

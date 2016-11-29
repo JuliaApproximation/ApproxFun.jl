@@ -30,7 +30,7 @@ function abs(f::Fun)
 end
 
 
-midpoints(d::Interval) = (d.b+d.a)/2
+midpoints(d::Segment) = (d.b+d.a)/2
 midpoints(d::UnionDomain) = map(midpoints,d.domains)
 
 
@@ -100,7 +100,7 @@ scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
 ./{DD}(c::Number,f::Fun{Jacobi{DD}}) = c./Fun(f,Chebyshev(domain(f)))
 
 ./{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c./setcanonicaldomain(f),domain(f))
-function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
+function ./{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
@@ -161,7 +161,7 @@ end
 function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
-    fc = setdomain(f,Interval()) #Project to interval
+    fc = setdomain(f,Segment()) #Project to interval
 
     r = sort(roots(fc))
     #TODO divideatroots
@@ -213,7 +213,7 @@ log(f::Fun) = cumsum(differentiate(f)/f)+log(first(f))
 # project first to [-1,1] to avoid issues with
 # complex derivative
 function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
-    if domain(f)==Interval()
+    if domain(f)==Segment()
         r = sort(roots(f))
         #TODO divideatroots
         @assert length(r) <= 2
@@ -255,7 +255,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
     else
         # this makes sure differentiate doesn't
         # make the function complex
-        g=log(setdomain(f,Interval()))
+        g=log(setdomain(f,Segment()))
         setdomain(g,domain(f))
     end
 end
@@ -329,9 +329,9 @@ end
 # JacobiWeight explodes, we want to ensure the solution incorporates the fact
 # that exp decays rapidly
 function exp{JW<:JacobiWeight}(f::Fun{JW})
-    if !isa(domain(f),Interval)
+    if !isa(domain(f),Segment)
         # project first to get better derivative behaviour
-        return setdomain(exp(setdomain(f,Interval())),domain(f))
+        return setdomain(exp(setdomain(f,Segment())),domain(f))
     end
 
     S=space(f)
