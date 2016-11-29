@@ -1,18 +1,18 @@
 # SplineSpace represents a Spline, right now piecewise constant HeavisideSpace is only implemented case
-immutable SplineSpace{order,T} <: RealUnivariateSpace{PiecewiseInterval{T}}
-    domain::PiecewiseInterval{T}
+immutable SplineSpace{order,T} <: RealUnivariateSpace{PiecewiseSegment{T}}
+    domain::PiecewiseSegment{T}
 end
 
-@compat (::Type{SplineSpace{m}}){m,T}(d::PiecewiseInterval{T}) = SplineSpace{m,T}(d)
-@compat (::Type{SplineSpace{m}}){m}(d::AbstractVector) = SplineSpace{m}(PiecewiseInterval(sort(d)))
+@compat (::Type{SplineSpace{m}}){m,T}(d::PiecewiseSegment{T}) = SplineSpace{m,T}(d)
+@compat (::Type{SplineSpace{m}}){m}(d::AbstractVector) = SplineSpace{m}(PiecewiseSegment(sort(d)))
 
 typealias HeavisideSpace{T} SplineSpace{0,T}
 dimension{λ}(h::SplineSpace{λ}) = length(h.domain.points)+λ-1
 
-Base.convert(::Type{HeavisideSpace},d::PiecewiseInterval)=HeavisideSpace{eltype(d)}(d)
+Base.convert(::Type{HeavisideSpace},d::PiecewiseSegment)=HeavisideSpace{eltype(d)}(d)
 
 Base.convert(::Type{HeavisideSpace},d::AbstractVector) =
-    HeavisideSpace(PiecewiseInterval(sort(d)))
+    HeavisideSpace(PiecewiseSegment(sort(d)))
 
 spacescompatible{λ}(a::SplineSpace{λ},b::SplineSpace{λ}) = domainscompatible(a,b)
 canonicalspace(sp::HeavisideSpace) = PiecewiseSpace(map(Chebyshev,pieces(domain(sp))))

@@ -96,9 +96,9 @@ w=2/(sqrt(1-x)*sqrt(1+im*x))
 
 ## ContinuousSpace
 
-import ApproxFun: PiecewiseInterval,ContinuousSpace
+import ApproxFun: PiecewiseSegment,ContinuousSpace
 
-d=PiecewiseInterval(1.,2.,3.,4.)
+d=PiecewiseSegment(1.,2.,3.,4.)
 S=ContinuousSpace(d)
 testtransforms(S;minpoints=3,invertibletransform=false)
 
@@ -113,7 +113,7 @@ u=[ldirichlet(S),D-I]\[exp(1.),0]
 @test_approx_eq last(u) exp(4)
 
 
-d=PiecewiseInterval(0,1.,1.+im,im,0.)
+d=PiecewiseSegment(0,1.,1.+im,im,0.)
 @test_approx_eq Fun(exp,d)(.1) exp(.1)
 
 

@@ -6,7 +6,7 @@ include("Line.jl")
 include("Arc.jl")
 
 include("UnionDomain.jl")
-include("PiecewiseInterval.jl")
+include("PiecewiseSegment.jl")
 include("Curve.jl")
 
 include("Point.jl")
@@ -48,7 +48,7 @@ Base.convert(::Type{Space},d::ClosedInterval) = Space(Domain(d))
 
 Base.issubset(a::PeriodicInterval,b::Segment) = Segment(a.a,a.b)⊆b
 Base.issubset(a::Segment,b::PeriodicInterval) = PeriodicInterval(a.a,a.b)⊆b
-Base.issubset{T<:Real}(a::Segment{T},b::PiecewiseInterval{T}) =
+Base.issubset{T<:Real}(a::Segment{T},b::PiecewiseSegment{T}) =
     a⊆Segment(first(b.points),last(b.points))
 Base.issubset(a::Segment,b::Line) = first(a)∈b && last(a)∈b
 

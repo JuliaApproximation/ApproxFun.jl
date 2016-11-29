@@ -1,12 +1,12 @@
 
 
-immutable ContinuousSpace{T} <: Space{RealBasis,PiecewiseInterval{T},1}
-    domain::PiecewiseInterval{T}
+immutable ContinuousSpace{T} <: Space{RealBasis,PiecewiseSegment{T},1}
+    domain::PiecewiseSegment{T}
 end
 
 
 
-Space(d::PiecewiseInterval) = ContinuousSpace(d)
+Space(d::PiecewiseSegment) = ContinuousSpace(d)
 
 isperiodic(C::ContinuousSpace) = isperiodic(domain(C))
 

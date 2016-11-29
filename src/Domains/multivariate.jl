@@ -4,7 +4,7 @@ include("ProductDomain.jl")
 ## boundary
 
 ∂{A<:Segment,B<:Segment}(d::ProductDomain{Tuple{A,B}}) =
-    PiecewiseInterval([Vec(d[1].a,d[2].a),
+    PiecewiseSegment([Vec(d[1].a,d[2].a),
                       Vec(d[1].b,d[2].a),
                       Vec(d[1].b,d[2].b),
                       Vec(d[1].a,d[2].b),
@@ -36,5 +36,5 @@ end
 
 function ∂{PD1<:ProductDomain,PD2<:ProductDomain}(d::UnionDomain{Tuple{PD1,PD2}})
     bnd=map(d->pieces(∂(d)),d.domains)
-    PiecewiseInterval(reduce(join,bnd))
+    PiecewiseSegment(reduce(join,bnd))
 end

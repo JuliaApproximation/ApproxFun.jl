@@ -7,6 +7,7 @@ Base.done(f::Fun{SequenceSpace},st) = false # infinite length
 
 getindex(f::Fun{SequenceSpace},k::Integer) =
     k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
+getindex(f::Fun{SequenceSpace},K::CartesianIndex{0}) = f[1]    
 getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
 
 Base.length(f::Fun{SequenceSpace}) = ∞
