@@ -21,16 +21,25 @@ valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{Complex{V}}) 
     Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
 
 
-for OP in (:plan_chebyshevtransform,:plan_ichebyshevtransform)
-    @eval $OP{D<:Dual}(v::Vector{D}) = $OP(@compat(realpart.(v)))
+function plan_chebyshevtransform{D<:Dual}(v::Vector{D})
+    plan = plan_chebyshevtransform(@compat(realpart.(v)))
+    ChebyshevTransformPlan{1,D,typeof(plan)}(plan)
 end
 
+function plan_ichebyshevtransform{D<:Dual}(v::Vector{D})
+    plan = plan_ichebyshevtransform(@compat(realpart.(v)))
+    IChebyshevTransformPlan{1,D,typeof(plan)}(plan)
+end
+
+
+
+
 if VERSION < v"0.5"
-    chebyshevtransform{D<:Dual}(v::Vector{D},plan...) =
-        dual(chebyshevtransform(realpart(v),plan...),chebyshevtransform(dualpart(v),plan...))
+    *{k,D<:Dual}(P::ChebyshevTransformPlan{k,D},v::Vector{D}) =
+        dual(P.plan*realpart(v),P.plan*dualpart(v))
 else
-    chebyshevtransform{D<:Dual}(v::Vector{D},plan...) =
-        dual.(chebyshevtransform(realpart.(v),plan...),chebyshevtransform(dualpart.(v),plan...))
+    *{k,D<:Dual}(P::ChebyshevTransformPlan{k,D},v::Vector{D}) =
+        dual.(P.plan*realpart.(v),P.plan*dualpart.(v))
 end
 
 #TODO: Hardy{false}

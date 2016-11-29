@@ -144,8 +144,8 @@ horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,k
 points(sp::CosSpace,n) = points(domain(sp),2n-2)[n:-1:1]  #TODO: reorder Fourier
 plan_transform(::CosSpace,x::Vector) = plan_chebyshevtransform(x;kind=2)
 plan_itransform(::CosSpace,x::Vector) = plan_ichebyshevtransform(x;kind=2)
-transform(::CosSpace,vals,plan) = chebyshevtransform(vals,plan;kind=2)
-itransform(::CosSpace,cfs,plan) = ichebyshevtransform(cfs,plan;kind=2)
+transform(::CosSpace,vals,plan) = plan*vals
+itransform(::CosSpace,cfs,plan) = plan*cfs
 evaluate(f::Vector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 
 

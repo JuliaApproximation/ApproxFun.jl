@@ -4,81 +4,102 @@ export plan_chebyshevtransform, plan_ichebyshevtransform, chebyshevtransform, ic
 
 #TODO confirm that this can handle T=Complex{Float64} looks like this is a real-to-real transform
 
+
+immutable ChebyshevTransformPlan{kind,T,P}
+    plan::P
+end
+
+
+
 function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
     if kind == 1
-        FFTW.plan_r2r(x, FFTW.REDFT10)
+        plan = FFTW.plan_r2r(x, FFTW.REDFT10)
+        ChebyshevTransformPlan{1,T,typeof(plan)}(plan)
     elseif kind == 2
         if length(x) ≤ 1
             error("Cannot create a length $(length(x)) chebyshev transform")
         end
-        FFTW.plan_r2r(x, FFTW.REDFT00)
+        plan = FFTW.plan_r2r(x, FFTW.REDFT00)
+        ChebyshevTransformPlan{2,T,typeof(plan)}(plan)
     end
 end
 
-function chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan;kind::Integer=1)
-    if kind == 1
+function *{T}(P::ChebyshevTransformPlan{1},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        ret = P.plan*x
+        ret[1]/=2
+        scale!(inv(T(n)),ret)
+    end
+end
+
+function *{T}(P::ChebyshevTransformPlan{2},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
         n = length(x)
         if n == 1
             x
         else
-            ret=plan*x
-            ret[1]/=2
-            scale!(inv(T(n)),ret)
-        end
-    elseif kind == 2
-        n = length(x)
-        if n == 1
-            x
-        else
-            ret = plan*x
+            ret = P.plan*x
             ret[1] /= 2;ret[end] /= 2
             scale!(inv(T(n-1)),ret)
         end
     end
 end
+
 chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1) =
-    chebyshevtransform(x,plan_chebyshevtransform(x;kind=kind);kind=kind)
+    plan_chebyshevtransform(x;kind=kind)*x
 
 ## Inverse transforms take Chebyshev coefficients and produce values at Chebyshev points of the first and second kinds
 
+
+immutable IChebyshevTransformPlan{kind,T,P}
+    plan::P
+end
 
 function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
     if kind == 1
         if length(x) == 0
             error("Cannot create a length 0 inverse chebyshev transform")
         end
-        FFTW.plan_r2r(x, FFTW.REDFT01)
+        plan = FFTW.plan_r2r(x, FFTW.REDFT01)
+        IChebyshevTransformPlan{1,T,typeof(plan)}(plan)
     elseif kind == 2
         if length(x) ≤ 1
             error("Cannot create a length $(length(x)) inverse chebyshev transform")
         end
-
-        FFTW.plan_r2r(x, FFTW.REDFT00)
+        plan = plan_chebyshevtransform(x;kind=2)
+        IChebyshevTransformPlan{2,T,typeof(plan)}(plan)
     end
 end
 
-function ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T},plan;kind::Integer=1)
-    if kind == 1
-        x[1] *=2
-        ret = scale!(T(0.5),plan*x)
-        x[1]/=2
-        ret
-    elseif kind == 2
-        n = length(x)
-        if n == 1
-            x
-        else
-            ##TODO: make thread safe
-            x[1] *= 2;x[end] *= 2
-            ret = chebyshevtransform(x,plan;kind=kind)
-            x[1] /=2;x[end] /=2
-            ret[1] *= 2;ret[end] *= 2
-            scale!(T(.5(n-1)),ret)
-        end
+function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{1},x::Vector{T})
+    x[1] *=2
+    ret = scale!(T(0.5),P.plan*x)
+    x[1]/=2
+    ret
+end
+
+function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{2},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        ##TODO: make thread safe
+        x[1] *= 2;x[end] *= 2
+        ret = P.plan*x
+        x[1] /=2;x[end] /=2
+        ret[1] *= 2;ret[end] *= 2
+        scale!(T(.5(n-1)),ret)
     end
 end
+
 ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1) =
-    ichebyshevtransform(x,plan_ichebyshevtransform(x;kind=kind);kind=kind)
+    plan_ichebyshevtransform(x;kind=kind)*x
 
 ## Code generation for integer inputs
 

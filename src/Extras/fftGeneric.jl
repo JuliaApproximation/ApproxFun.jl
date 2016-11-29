@@ -38,61 +38,62 @@ Base.plan_ifft{F<:Fun}(x::Vector{F}) = ifft
 Base.plan_ifft!{F<:Fun}(x::Vector{F}) = ifft
 
 # Chebyshev transforms and plans for BigFloats
-
-plan_chebyshevtransform{T<:BigFloats}(x::Vector{T};kwds...) = identity
-plan_ichebyshevtransform{T<:BigFloats}(x::Vector{T};kwds...) = identity
+# no plan exists at the moment, so we make a dummy plan
+plan_chebyshevtransform{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
+    ChebyshevTransformPlan{kind,T,Void}(nothing)
+plan_ichebyshevtransform{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
+    IChebyshevTransformPlan{kind,T,Void}(nothing)
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function chebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
-    if kind == 1
-        n = length(x)
-        if n == 1
-            x
-        else
-            w = [2exp(im*convert(T,π)*k/2n) for k=0:n-1]
-            ret = w.*ifft([reverse(x);x])[1:n]
-            ret = T<:Real ? real(ret) : ret
-            ret[1] /= 2
-            ret
-        end
-    elseif kind == 2
-        n = length(x)
-        if n == 1
-            x
-        else
-            ret = ifft([reverse(x);x[2:end-1]])[1:n]
-            ret = T<:Real ? real(ret) : ret
-            ret[2:n-1] *= 2
-            ret
-        end
+function *{T<:BigFloats}(P::ChebyshevTransformPlan{1,T},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        w = [2exp(im*convert(T,π)*k/2n) for k=0:n-1]
+        ret = w.*ifft([x;reverse(x)])[1:n]
+        ret = T<:Real ? real(ret) : ret
+        ret[1] /= 2
+        ret
+    end
+end
+
+function *{T<:BigFloats}(P::ChebyshevTransformPlan{2,T},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        ret = ifft([x;x[end:-1:2]])[1:n]
+        ret = T<:Real ? real(ret) : ret
+        ret[2:n-1] *= 2
+        ret
     end
 end
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function ichebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
-    if kind == 1
-        n = length(x)
-        if n == 1
-            x
-        else
-            w = [exp(-im*convert(T,π)*k/2n)/2 for k=0:2n-1]
-            w[1] *= 2;w[n+1] *= 0;w[n+2:end] *= -1
-            ret = fft(w.*[x;one(T);x[end:-1:2]])[n:-1:1]
-            ret = T<:Real ? real(ret) : ret
-        end
-    elseif kind == 2
-        n = length(x)
-        if n == 1
-            x
-        else
-            ##TODO: make thread safe
-            x[1] *= 2;x[end] *= 2
-            ret = chebyshevtransform(x;kind=kind)
-            x[1] /=2;x[end] /=2
-            ret[1] *= 2;ret[end] *= 2
-            ret *= .5*(n-1)
-            ret
-        end
+function *{T<:BigFloats}(P::IChebyshevTransformPlan{1,T},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        w = [exp(-im*convert(T,π)*k/2n)/2 for k=0:2n-1]
+        w[1] *= 2;w[n+1] *= 0;w[n+2:end] *= -1
+        ret = fft(w.*[x;one(T);x[end:-1:2]])
+        ret = T<:Real ? real(ret) : ret
+    end
+end
+function *{T<:BigFloats}(P::IChebyshevTransformPlan{2,T},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        ##TODO: make thread safe
+        x[1] *= 2;x[end] *= 2
+        ret = chebyshevtransform(x;kind=kind)
+        x[1] /=2;x[end] /=2
+        ret[1] *= 2;ret[end] *= 2
+        ret *= .5*(n-1)
+        ret
     end
 end
 
