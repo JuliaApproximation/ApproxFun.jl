@@ -71,17 +71,43 @@ spacescompatible{s}(a::Hardy{s},b::Hardy{s}) = domainscompatible(a,b)
 hasfasttransform(::Hardy) = true
 
 
+for Typ in (:HardyTransformPlan,:IHardyTransformPlan)
+    @eval begin
+        immutable $Typ{T,s,inplace,PL} <: FFTW.Plan{T}
+            plan::PL
+        end
+        @compat (::Type{$Typ{s,inp}}){s,inp}(plan) =
+            $Typ{eltype(plan),s,inp,typeof(plan)}(plan)
+    end
+end
 
-plan_transform(::Taylor,x::Vector) = plan_fft(x)
-plan_itransform{T<:Complex}(::Taylor,x::Vector{T}) = plan_ifft!(x) # we can reuse vector in itransform
-plan_itransform{T}(::Taylor,x::Vector{T}) = plan_ifft!(Array{Complex{T}}(length(x))) # we can reuse vector in itransform
-transform(::Taylor,vals::Vector,plan) = plan*vals/length(vals)
-itransform(::Taylor,cfs::Vector,plan) = plan*cfs*length(cfs)
+for (Typ,Plfft!,Plfft,Pltr!,Pltr) in ((:HardyTransformPlan,:plan_fft!,:plan_fft,:plan_transform!,:plan_transform),
+                           (:IHardyTransformPlan,:plan_ifft!,:plan_ifft,:plan_itransform!,:plan_itransform))
+    @eval begin
+        $Pltr!{s,T<:Complex}(::Hardy{s},x::Vector{T}) = $Typ{s,true}($Plfft!(x))
+        $Pltr!{s,T<:Real}(::Hardy{s},x::Vector{T}) =
+            error("In place variants not possible with real data.")
 
-plan_transform(::Hardy{false},x::Vector) = plan_fft(x)
-plan_itransform(::Hardy{false},x::Vector) = plan_ifft(x)
-transform(::Hardy{false},vals::Vector,plan) = flipdim(plan*vals,1)/length(vals)
-itransform(::Hardy{false},cfs::Vector,plan) = plan*flipdim(cfs,1)*length(cfs)
+        $Pltr{s,T<:Complex}(sp::Hardy{s},x::Vector{T}) = $Typ{s,false}($Pltr!(sp,x))
+        function $Pltr{s,T}(sp::Hardy{s},x::Vector{T})
+            plan = $Pltr(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+            $Typ{T,s,false,typeof(plan)}(plan)
+        end
+
+        *{T<:Complex,s}(P::$Typ{T,s,false},vals::Vector{T}) = P.plan*copy(vals)
+        *{T,s}(P::$Typ{T,s,false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
+    end
+end
+
+
+*{T}(P::HardyTransformPlan{T,true,true},vals::Vector{T}) = scale!(one(T)/length(vals),P.plan*vals)
+*{T}(P::IHardyTransformPlan{T,true,true},cfs::Vector{T}) = scale!(length(cfs),P.plan*cfs)
+*{T}(P::HardyTransformPlan{T,false,true},vals::Vector{T}) = scale!(one(T)/length(vals),reverse!(P.plan*vals))
+*{T}(P::IHardyTransformPlan{T,false,true},cfs::Vector{T}) = scale!(length(cfs),P.plan*reverse!(cfs))
+
+
+transform(sp::Hardy,vals::Vector,plan) = plan*vals
+itransform(sp::Hardy,vals::Vector,plan) = plan*vals
 
 evaluate{D<:Domain}(f::AbstractVector,S::Taylor{D},z) = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
 function evaluate{D<:Circle}(f::AbstractVector,S::Taylor{D},z)
@@ -214,13 +240,13 @@ See also `Laurent`.
 """
 typealias Fourier{DD} SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
 
-for TYP in (:Laurent,:Fourier)
+for Typ in (:Laurent,:Fourier)
     @eval begin
-        @compat (::Type{$TYP})(d::Domain) = $TYP{typeof(d)}(d)
-        @compat (::Type{$TYP})() = $TYP(PeriodicInterval())
-        @compat (::Type{$TYP})(d) = $TYP(PeriodicDomain(d))
+        @compat (::Type{$Typ})(d::Domain) = $Typ{typeof(d)}(d)
+        @compat (::Type{$Typ})() = $Typ(PeriodicInterval())
+        @compat (::Type{$Typ})(d) = $Typ(PeriodicDomain(d))
 
-        hasfasttransform{D}(::$TYP{D}) = true
+        hasfasttransform{D}(::$Typ{D}) = true
     end
 end
 
@@ -276,8 +302,8 @@ canonicalspace{DD<:PeriodicInterval}(S::Laurent{DD})=Fourier(domain(S))
 canonicalspace{DD<:Circle}(S::Fourier{DD})=Laurent(domain(S))
 canonicalspace{DD<:PeriodicLine}(S::Laurent{DD})=S
 
-for TYP in (:CosSpace,:Taylor)
-    @eval union_rule(A::ConstantSpace,B::$TYP)=B
+for Typ in (:CosSpace,:Taylor)
+    @eval union_rule(A::ConstantSpace,B::$Typ)=B
 end
 
 ## Ones and zeros

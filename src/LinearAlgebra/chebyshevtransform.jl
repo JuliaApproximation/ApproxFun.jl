@@ -9,24 +9,27 @@ immutable ChebyshevTransformPlan{T,kind,inplace,P} <: FFTW.Plan{T}
     plan::P
 end
 
+@compat (::Type{ChebyshevTransformPlan{k,inp}}){k,inp}(plan) =
+    ChebyshevTransformPlan{eltype(plan),k,inp,typeof(plan)}(plan)
+
 
 
 function plan_chebyshevtransform!{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
     if kind == 1
         plan = FFTW.plan_r2r!(x, FFTW.REDFT10)
-        ChebyshevTransformPlan{T,1,true,typeof(plan)}(plan)
+        ChebyshevTransformPlan{1,true}(plan)
     elseif kind == 2
         if length(x) ≤ 1
             error("Cannot create a length $(length(x)) chebyshev transform")
         end
         plan = FFTW.plan_r2r!(x, FFTW.REDFT00)
-        ChebyshevTransformPlan{T,2,true,typeof(plan)}(plan)
+        ChebyshevTransformPlan{2,true}(plan)
     end
 end
 
 function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
     plan = plan_chebyshevtransform!(x;kind=kind)
-    ChebyshevTransformPlan{T,kind,false,typeof(plan)}(plan)
+    ChebyshevTransformPlan{kind,false}(plan)
 end
 
 function *{T}(P::ChebyshevTransformPlan{T,1,true},x::Vector{T})
