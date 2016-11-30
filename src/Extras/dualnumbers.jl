@@ -21,29 +21,44 @@ valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{Complex{V}}) 
     Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
 
 
-for OP in (:plan_chebyshevtransform,:plan_ichebyshevtransform)
-    @eval $OP{D<:Dual}(v::Vector{D}) = $OP(@compat(realpart.(v)))
+plan_chebyshevtransform!{T<:Dual}(x::Vector{T};kind::Integer=1) =
+    error("In-place variant not implemented for Dual")
+
+plan_ichebyshevtransform!{T<:Dual}(x::Vector{T};kind::Integer=1) =
+    error("In-place variant not implemented for Dual")
+
+
+function plan_chebyshevtransform{D<:Dual}(v::Vector{D};kind::Integer=1)
+    plan = plan_chebyshevtransform(@compat(realpart.(v));kind=kind)
+    ChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
 end
 
+function plan_ichebyshevtransform{D<:Dual}(v::Vector{D};kind::Integer=1)
+    plan = plan_ichebyshevtransform(@compat(realpart.(v));kind=kind)
+    IChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
+end
+
+
+
+
 if VERSION < v"0.5"
-    chebyshevtransform{D<:Dual}(v::Vector{D},plan...) =
-        dual(chebyshevtransform(realpart(v),plan...),chebyshevtransform(dualpart(v),plan...))
+    *{k,D<:Dual}(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) =
+        dual(P.plan*realpart(v),P.plan*dualpart(v))
 else
-    chebyshevtransform{D<:Dual}(v::Vector{D},plan...) =
-        dual.(chebyshevtransform(realpart.(v),plan...),chebyshevtransform(dualpart.(v),plan...))
+    *{k,D<:Dual}(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) =
+        dual.(P.plan*realpart.(v),P.plan*dualpart.(v))
 end
 
 #TODO: Hardy{false}
-for OP in (:plan_transform,:plan_itransform)
-    for TYP in  (:Fourier,:Laurent,:SinSpace)
-        @eval $OP{T<:Dual,D<:Domain}(S::$TYP{D},x::Vector{T}) = $OP(S,@compat(realpart.(x)))
-    end
-end
-
-for OP in (:transform,:itransform)
-    for TYP in (:Fourier,:Laurent,:SinSpace)
-        @eval $OP{T<:Dual,D<:Domain}(S::$TYP{D},x::Vector{T},plan) =
-            dual($OP(S,@compat(realpart.(x)),plan),$OP(S,@compat(dualpart.(x)),plan))
+for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITransformPlan)),
+        TYP in  (:Fourier,:Laurent,:SinSpace)
+    @eval begin
+        function $OP{T<:Dual,D<:Domain}(sp::$TYP{D},x::Vector{T})
+            plan = $OP(sp,@compat(realpart.(x)))
+            $TransPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
+        end
+        *{T<:Dual,D<:Domain}(P::$TransPlan{T,$TYP{D},false},x::Vector{T}) =
+            dual(P.plan*@compat(realpart.(x)),P.plan*@compat(dualpart.(x)))
     end
 end
 

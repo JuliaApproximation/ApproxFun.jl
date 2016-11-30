@@ -32,8 +32,8 @@ SinSpace()
 # s == false means anlytic outside and decaying at infinity
 immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
     domain::D
-    Hardy(d)=new(d)
-    Hardy()=new(D())
+    Hardy(d) = new(d)
+    Hardy() = new(D())
 end
 
 # The <: Domain is crucial for matching Basecall overrides
@@ -71,17 +71,37 @@ spacescompatible{s}(a::Hardy{s},b::Hardy{s}) = domainscompatible(a,b)
 hasfasttransform(::Hardy) = true
 
 
+for (Typ,Plfft!,Plfft,Pltr!,Pltr) in ((:TransformPlan,:plan_fft!,:plan_fft,:plan_transform!,:plan_transform),
+                           (:ITransformPlan,:plan_ifft!,:plan_ifft,:plan_itransform!,:plan_itransform))
+    @eval begin
+        $Pltr!{T<:Complex}(sp::Hardy,x::Vector{T}) = $Typ(sp,$Plfft!(x),Val{true})
+        $Pltr!{T<:Real}(::Hardy,x::Vector{T}) =
+            error("In place variants not possible with real data.")
 
-plan_transform(::Taylor,x::Vector) = plan_fft(x)
-plan_itransform{T<:Complex}(::Taylor,x::Vector{T}) = plan_ifft!(x) # we can reuse vector in itransform
-plan_itransform{T}(::Taylor,x::Vector{T}) = plan_ifft!(Array{Complex{T}}(length(x))) # we can reuse vector in itransform
-transform(::Taylor,vals::Vector,plan) = alternatesign!(plan*vals/length(vals))
-itransform(::Taylor,cfs::Vector,plan) = plan*alternatesign!(cfs*length(cfs))
+        $Pltr{T<:Complex}(sp::Hardy,x::Vector{T}) = $Typ(sp,$Pltr!(sp,x),Val{false})
+        function $Pltr{T}(sp::Hardy,x::Vector{T})
+            plan = $Pltr(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+            $Typ{T,typeof(sp),false,typeof(plan)}(sp,plan)
+        end
 
-plan_transform(::Hardy{false},x::Vector) = plan_fft(x)
-plan_itransform(::Hardy{false},x::Vector) = plan_ifft(x)
-transform(::Hardy{false},vals::Vector,plan) = -alternatesign!(flipdim(plan*vals,1)/length(vals))
-itransform(::Hardy{false},cfs::Vector,plan) = plan*flipdim(alternatesign!(-cfs),1)*length(cfs)
+        *{T<:Complex,HS<:Hardy}(P::$Typ{T,HS,false},vals::Vector{T}) = P.plan*copy(vals)
+        *{T,HS<:Hardy}(P::$Typ{T,HS,false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
+    end
+end
+
+
+*{T,DD}(P::TransformPlan{T,Hardy{true,DD},true},vals::Vector{T}) =
+    scale!(one(T)/length(vals),P.plan*vals)
+*{T,DD}(P::ITransformPlan{T,Hardy{true,DD},true},cfs::Vector{T}) =
+    scale!(length(cfs),P.plan*cfs)
+*{T,DD}(P::TransformPlan{T,Hardy{false,DD},true},vals::Vector{T}) =
+    scale!(one(T)/length(vals),reverse!(P.plan*vals))
+*{T,DD}(P::ITransformPlan{T,Hardy{false,DD},true},cfs::Vector{T}) =
+    scale!(length(cfs),P.plan*reverse!(cfs))
+
+
+transform(sp::Hardy,vals::Vector,plan) = plan*vals
+itransform(sp::Hardy,vals::Vector,plan) = plan*vals
 
 evaluate{D<:Domain}(f::AbstractVector,S::Taylor{D},z) = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
 function evaluate{D<:Circle}(f::AbstractVector,S::Taylor{D},z)
@@ -142,26 +162,46 @@ horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,k
 ## Cos and Sin space
 
 points(sp::CosSpace,n) = points(domain(sp),2n-2)[1:n]
+
+
+
+
 plan_transform(::CosSpace,x::Vector) = plan_chebyshevtransform(x;kind=2)
 plan_itransform(::CosSpace,x::Vector) = plan_ichebyshevtransform(x;kind=2)
-transform(::CosSpace,vals,plan) = chebyshevtransform(vals,plan;kind=2)
-itransform(::CosSpace,cfs,plan) = ichebyshevtransform(cfs,plan;kind=2)
+transform(::CosSpace,vals,plan) = plan*vals
+itransform(::CosSpace,cfs,plan) = plan*cfs
+
 evaluate(f::Vector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 
 
-points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
-plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T}) = FFTW.plan_r2r(x,FFTW.RODFT00)
-plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T}) = FFTW.plan_r2r(x,FFTW.RODFT00)
+points(sp::SinSpace,n)=points(domain(sp),2n+2)[2:n+1]
 
-plan_transform{D}(::SinSpace{D},x::Vector) =
-    error("transform for Fourier only implemented for fftwNumbers")
-plan_itransform{D}(::SinSpace{D},x::Vector) =
-    error("transform for Fourier only implemented for fftwNumbers")
+for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
+                         (:ITransformPlan,:plan_itransform!,:plan_itransform))
+    @eval begin
+        $Pltr!{DD,T<:FFTW.fftwNumber}(sp::SinSpace{DD},x::Vector{T}) =
+            $Typ(sp,FFTW.plan_r2r!(x,FFTW.RODFT00),Val{true})
+        $Pltr{DD,T<:FFTW.fftwNumber}(sp::SinSpace{DD},x::Vector{T}) =
+            $Typ(sp,$Pltr!(sp,x),Val{false})
+        $Pltr!{DD,T}(sp::SinSpace{DD},x::Vector{T}) =
+            error("transform for SinSpace only implemented for fftwNumbers")
+        $Pltr{DD,T}(sp::SinSpace{DD},x::Vector{T}) =
+            error("transform for SinSpace only implemented for fftwNumbers")
+
+        *{T,D}(P::$Typ{T,SinSpace{D},false},vals::Vector{T}) = P.plan*copy(vals)
+    end
+end
 
 
+*{T,DD}(P::TransformPlan{T,SinSpace{DD},true},vals::Vector{T}) =
+    scale!(one(T)/(length(vals)+1),P.plan*vals)
+*{T,DD}(P::ITransformPlan{T,SinSpace{DD},true},cfs::Vector{T}) =
+    scale!(one(T)/2,P.plan*cfs)
 
-transform(::SinSpace,vals,plan) = plan*vals/(length(vals)+1)
-itransform(::SinSpace,cfs,plan) = plan*cfs/2
+
+transform(sp::SinSpace,vals::Vector,plan) = plan*vals
+itransform(sp::SinSpace,vals::Vector,plan) = plan*vals
+
 evaluate(f::AbstractVector,S::SinSpace,t) = sineshaw(f,tocanonical(S,t))
 
 
@@ -177,10 +217,63 @@ See also `Fourier`.
 typealias Laurent{DD} SumSpace{Tuple{Hardy{true,DD},Hardy{false,DD}},ComplexBasis,DD,1}
 
 
-plan_transform{DD}(::Laurent{DD},x::Vector)=plan_svfft(x)
-plan_itransform{DD}(::Laurent{DD},x::Vector)=plan_isvfft(x)
-transform{DD}(::Laurent{DD},vals,plan...) = svfft(vals,plan...)
-itransform{DD}(::Laurent{DD},cfs,plan...) = isvfft(cfs,plan...)
+##FFT That interlaces coefficients
+
+plan_transform!{DD,T<:Complex}(sp::Laurent{DD},x::Vector{T}) =
+    TransformPlan(sp,plan_fft!(x),Val{true})
+plan_itransform!{DD,T<:Complex}(sp::Laurent{DD},x::Vector{T}) =
+    ITransformPlan(sp,plan_ifft!(x),Val{true})
+
+plan_transform!{DD,T}(sp::Laurent{DD},x::Vector{T}) =
+    error("In place variants not possible with real data.")
+plan_itransform!{DD,T}(sp::Laurent{DD},x::Vector{T}) =
+    error("In place variants not possible with real data.")
+
+
+plan_transform{T<:Complex,DD}(sp::Laurent{DD},x::Vector{T}) =
+    TransformPlan(sp,plan_transform!(sp,x),Val{false})
+plan_itransform{T<:Complex,DD}(sp::Laurent{DD},x::Vector{T}) =
+    ITransformPlan(sp,plan_itransform!(sp,x),Val{false})
+
+function plan_transform{T,DD}(sp::Laurent{DD},x::Vector{T})
+    plan = plan_transform(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+    TransformPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
+end
+function plan_itransform{T,DD}(sp::Laurent{DD},x::Vector{T})
+    plan = plan_itransform(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
+    ITransformPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
+end
+
+function *{T,DD}(P::TransformPlan{T,Laurent{DD},true},vals::Vector{T})
+    n = length(vals)
+    vals = scale!(inv(T(n)),P.plan*vals)
+    reverseeven!(interlace!(vals,1))
+end
+
+function *{T,DD}(P::ITransformPlan{T,Laurent{DD},true},cfs::Vector{T})
+    n = length(cfs)
+    reverseeven!(cfs)
+    cfs[:]=[cfs[1:2:end];cfs[2:2:end]]  # TODO: deinterlace!
+    scale!(n,cfs)
+    P.plan*cfs
+end
+
+*{T<:Complex,DD}(P::TransformPlan{T,Laurent{DD},false},vals::Vector{T}) = P.plan*copy(vals)
+*{T,DD}(P::TransformPlan{T,Laurent{DD},false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
+*{T<:Complex,DD}(P::ITransformPlan{T,Laurent{DD},false},vals::Vector{T}) = P.plan*copy(vals)
+*{T,DD}(P::ITransformPlan{T,Laurent{DD},false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
+
+
+
+transform{DD}(::Laurent{DD},vals,plan) = plan*vals
+itransform{DD}(::Laurent{DD},cfs,plan) = plan*cfs
+
+transform{DD}(sp::Laurent{DD},vals::Vector) = plan_transform(sp,vals)*vals
+itransform{DD}(sp::Laurent{DD},cfs::Vector) = plan_itransform(sp,cfs)*cfs
+
+
+
+
 
 
 function evaluate{DD}(f::AbstractVector,S::Laurent{DD},z)
@@ -214,13 +307,13 @@ See also `Laurent`.
 """
 typealias Fourier{DD} SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
 
-for TYP in (:Laurent,:Fourier)
+for Typ in (:Laurent,:Fourier)
     @eval begin
-        @compat (::Type{$TYP})(d::Domain) = $TYP{typeof(d)}(d)
-        @compat (::Type{$TYP})() = $TYP(PeriodicInterval())
-        @compat (::Type{$TYP})(d) = $TYP(PeriodicDomain(d))
+        @compat (::Type{$Typ})(d::Domain) = $Typ{typeof(d)}(d)
+        @compat (::Type{$Typ})() = $Typ(PeriodicInterval())
+        @compat (::Type{$Typ})(d) = $Typ(PeriodicDomain(d))
 
-        hasfasttransform{D}(::$TYP{D}) = true
+        hasfasttransform{D}(::$Typ{D}) = true
     end
 end
 
@@ -233,77 +326,57 @@ for T in (:CosSpace,:SinSpace)
 end
 
 points{D}(sp::Fourier{D},n)=points(domain(sp),n)
-plan_transform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) =
-    FFTW.plan_r2r(x, FFTW.R2HC)
-plan_itransform{T<:FFTW.fftwNumber,D}(::Fourier{D},x::Vector{T}) =
-    FFTW.plan_r2r(x, FFTW.HC2R)
 
-plan_transform{D}(::Fourier{D},x::Vector) =
-    error("transform for Fourier only implemented for fftwNumbers")
-plan_itransform{D}(::Fourier{D},x::Vector) =
-    error("transform for Fourier only implemented for fftwNumbers")
+plan_transform!{T<:FFTW.fftwNumber,D}(sp::Fourier{D},x::Vector{T}) =
+    TransformPlan(sp,FFTW.plan_r2r!(x, FFTW.R2HC),Val{true})
+plan_itransform!{T<:FFTW.fftwNumber,D}(sp::Fourier{D},x::Vector{T}) =
+    ITransformPlan(sp,FFTW.plan_r2r!(x, FFTW.HC2R),Val{true})
 
-transform{T<:Number,D}(S::Fourier{D},vals::Vector{T}) =
-    transform(S,vals,plan_transform(S,vals))
+for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
+                         (:ITransformPlan,:plan_itransform!,:plan_itransform))
+    @eval begin
+        $Pltr{T<:FFTW.fftwNumber,DD}(sp::Fourier{DD},x::Vector{T}) =
+            $Typ(sp,$Pltr!(sp,x),Val{false})
+        $Pltr!{T,DD}(sp::Fourier{DD},x::Vector{T}) =
+            error("transform for Fourier only implemented for fftwNumbers")
+        $Pltr{T,DD}(sp::Fourier{DD},x::Vector{T}) =
+            error("transform for Fourier only implemented for fftwNumbers")
 
-function transform{T<:Number,D}(::Fourier{D},vals::Vector{T},plan)
+        *{T,DD}(P::$Typ{T,Fourier{DD},false},vals::Vector{T}) = P.plan*copy(vals)
+    end
+end
+
+
+function *{T,DD}(P::TransformPlan{T,Fourier{DD},true},vals::Vector{T})
     n = length(vals)
-    cfs = scale!(T(2)/n,plan*vals)
+    cfs = scale!(T(2)/n,P.plan*vals)
     cfs[1] /= 2
     if iseven(n)
-        cfs[div(n,2)+1] /= 2
+        cfs[n÷2+1] /= 2
     end
 
-    reverseeven!(interlace!(fouriermodalt!(cfs),1))
-
-    cfs
+    negateeven!(reverseeven!(interlace!(cfs,1)))
 end
 
-itransform{T<:Number,D}(S::Fourier{D},vals::Vector{T}) =
-    itransform(S,vals,plan_itransform(S,vals))
-
-function itransform{T<:Number,D}(::Fourier{D},a::Vector{T},plan)
-    n = length(a)
-    cfs = [a[1:2:end];flipdim(a[2:2:end],1)]
-    fouriermodalt!(cfs)
+function *{T,DD}(P::ITransformPlan{T,Fourier{DD},true},cfs::Vector{T})
+    n = length(cfs)
+    reverseeven!(negateeven!(cfs))
+    cfs[:] = [cfs[1:2:end];cfs[2:2:end]]
     if iseven(n)
-        cfs[div(n,2)+1] *= 2
+        cfs[n÷2+1] *= 2
     end
     cfs[1] *= 2
-    plan*scale!(inv(T(2)),cfs)
+    P.plan*scale!(inv(T(2)),cfs)
 end
 
-function fouriermodalt!(cfs)
-    n=length(cfs)
-    if iseven(n)
-        for k=2:2:div(n,2)+1
-            cfs[k]*=-1
-        end
-    else
-        for k=2:2:div(n+1,2)
-            cfs[k]*=-1
-        end
-    end
 
-    if mod(n,4)==0
-        for k=div(n,2)+3:2:n
-            cfs[k]*=-1
-        end
-    elseif mod(n,4)==2
-        for k=div(n,2)+2:2:n
-            cfs[k]*=-1
-        end
-    elseif mod(n,4)==1
-        for k=div(n+3,2):2:n
-            cfs[k]*=-1
-        end
-    else #mod(n,4)==3
-        for k=div(n+5,2):2:n
-            cfs[k]*=-1
-        end
-    end
-    cfs
-end
+transform{DD}(sp::Fourier{DD},vals::Vector,plan) = plan*vals
+itransform{DD}(sp::Fourier{DD},cfs::Vector,plan) = plan*cfs
+
+transform{DD}(sp::Fourier{DD},vals::Vector) = plan_transform(sp,vals)*vals
+itransform{DD}(sp::Fourier{DD},cfs::Vector) = plan_itransform(sp,cfs)*cfs
+
+
 
 
 
@@ -311,8 +384,8 @@ canonicalspace{DD<:PeriodicInterval}(S::Laurent{DD})=Fourier(domain(S))
 canonicalspace{DD<:Circle}(S::Fourier{DD})=Laurent(domain(S))
 canonicalspace{DD<:PeriodicLine}(S::Laurent{DD})=S
 
-for TYP in (:CosSpace,:Taylor)
-    @eval union_rule(A::ConstantSpace,B::$TYP)=B
+for Typ in (:CosSpace,:Taylor)
+    @eval union_rule(A::ConstantSpace,B::$Typ)=B
 end
 
 ## Ones and zeros

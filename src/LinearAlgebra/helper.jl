@@ -425,43 +425,6 @@ function interlace!(v::Vector,offset::Int)
     v
 end
 
-## svfft
-
-##FFT That interlaces coefficients
-
-plan_svfft(x::Vector) = plan_fft(x)
-plan_isvfft(x::Vector) = plan_ifft(x)
-
-svfft{T}(v::Vector{T}) = svfft(v,plan_svfft(v))
-
-function svfft{T}(v::Vector{T},plan)
-    n = length(v)
-    v = scale!(inv(T(n)),plan*v)
-    if mod(n,2) == 0
-        reverseeven!(interlace!(alternatesign!(v),1))
-    else
-        negateeven!(reverseeven!(interlace!(alternatesign!(copy(v)),1)))
-    end
-end
-
-isvfft{T}(v::Vector{T}) = isvfft(v,plan_isvfft(v))
-
-function isvfft(sv::Vector,plan)
-    n = length(sv)
-
-    if mod(n,2) == 0
-        v=alternatesign!([sv[1:2:end];flipdim(sv[2:2:end],1)])
-    elseif mod(n,4)==3
-        v=[alternatesign!(sv[1:2:end]);
-           -alternatesign!(flipdim(sv[2:2:end],1))]
-    else #mod(length(v),4)==1
-        v=[alternatesign!(sv[1:2:end]);
-           alternatesign!(flipdim(sv[2:2:end],1))]
-    end
-
-    plan*scale!(n,v)
-end
-
 ## slnorm gives the norm of a slice of a matrix
 
 function slnorm(u::AbstractMatrix,r::Range,::Colon)

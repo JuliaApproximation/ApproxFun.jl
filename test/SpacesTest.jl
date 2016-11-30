@@ -153,7 +153,7 @@ o=ones(Γ)
 @test_approx_eq o(0.4) 1.0
 
 G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
-@test_approx_eq (G-I)(1.) (G(1.)-I)
+@test_approx_eq (G-I)(exp(0.1im)) (G(exp(0.1im))-I)
 
 
 ## Previoius seffdault

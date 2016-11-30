@@ -18,19 +18,31 @@ immutable WeightSpacePlan{S,P,T,V}
     weights::Vector{V}
 end
 
-
-for TYP in (:plan_transform,:plan_itransform)
-    @eval function $TYP(S::WeightSpace,vals::Vector)
-        pts=points(S,length(vals))
-        WeightSpacePlan(S,$TYP(S.space,vals),pts,weight(S,pts))
-    end
+immutable IWeightSpacePlan{S,P,T,V}
+    space::S
+    plan::P
+    points::Vector{T}
+    weights::Vector{V}
 end
 
+function plan_transform(S::WeightSpace,vals::Vector)
+    pts=points(S,length(vals))
+    WeightSpacePlan(S,plan_transform(S.space,vals),pts,weight(S,pts))
+end
 
-transform(sp::WeightSpace,vals::Vector,plan::WeightSpacePlan) =
-    transform(sp.space,vals./(sp==plan.space?plan.weights:weight(sp,plan.points)),plan.plan)
-itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan) =
-    itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight(sp,plan.points))
+function plan_itransform(S::WeightSpace,vals::Vector)
+    pts=points(S,length(vals))
+    IWeightSpacePlan(S,plan_itransform(S.space,vals),pts,weight(S,pts))
+end
+
+*(P::WeightSpacePlan,vals::Vector) = P.plan*(vals./P.weights)
+*(P::IWeightSpacePlan,cfs::Vector) = P.weights.*(P.plan*cfs)
+
+
+# transform(sp::WeightSpace,vals::Vector,plan::WeightSpacePlan) =
+#     transform(sp.space,vals./(sp==plan.space?plan.weights:weight(sp,plan.points)),plan.plan)
+# itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan) =
+#     itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight(sp,plan.points))
 
 
 

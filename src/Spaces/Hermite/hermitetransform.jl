@@ -1,12 +1,16 @@
 points(H::Hermite,n)=gausshermite(n)[1]
 
-plan_transform(H::Hermite,v::Vector) = gausshermite(length(v))
-plan_itransform(H::Hermite,cfs::Vector) = points(H,length(cfs))
-function transform(H::Hermite,vals,plan::Tuple{Vector,Vector})
-    x,w = plan
+plan_transform(H::Hermite,v::Vector) = TransformPlan(H,gausshermite(length(v)),Val{false})
+plan_itransform(H::Hermite,cfs::Vector) = ITransformPlan(H,points(H,length(cfs)),Val{false})
+
+
+
+function *{T,HH<:Hermite}(P::TransformPlan{T,HH,false},vals::AbstractVector)
+    x,w = P.plan
     V=hermitep(0:length(vals)-1,x)'
     nrm=(V.^2)*w
-
     V*(w.*vals)./nrm
 end
-itransform(H::Hermite,cfs,plan::Vector) = hermitep(0:length(cfs)-1,tocanonical(H,plan))*cfs
+
+*{T,HH<:Hermite}(P::ITransformPlan{T,HH,false},cfs::AbstractVector) =
+    hermitep(0:length(cfs)-1,tocanonical(H,P.plan))*cfs

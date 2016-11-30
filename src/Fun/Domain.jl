@@ -66,12 +66,12 @@ domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
 
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
-        T[sinpi((n-2k-one(T))/2n) for k=n-1:-1:0]
+        T[sinpi((n-2k-one(T))/2n) for k=0:n-1]
     elseif kind == 2
         if n==1
             zeros(T,1)
         else
-            T[cospi(k/(n-one(T))) for k=n-1:-1:0]
+            T[cospi(k/(n-one(T))) for k=0:n-1]
         end
     end
 end
@@ -109,10 +109,11 @@ abstract PeriodicDomain{T} <: UnivariateDomain{T}
 
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
-points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(real(eltype(eltype(T))),n))
+points{T}(d::PeriodicDomain{T},n::Integer) =
+    fromcanonical(d, fourierpoints(real(eltype(eltype(T))),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
-fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/n
+fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(0:2:2n-2)/n
 
 
 function Base.in{T}(x,d::PeriodicDomain{T})
@@ -123,17 +124,17 @@ function Base.in{T}(x,d::PeriodicDomain{T})
 
     l=arclength(d)
     if isinf(l)
-        abs(imag(y))<20eps(T) && -π-2eps(T)<real(y)<π+2eps(T)
+        abs(imag(y))<20eps(T) && -2eps(T)<real(y)<2π+2eps(T)
     else
-        abs(imag(y))/l<20eps(T) && -π-2l*eps(T)<real(y)<π+2l*eps(T)
+        abs(imag(y))/l<20eps(T) && -2l*eps(T)<real(y)<2π+2l*eps(T)
     end
 end
 
 Base.issubset(a::Domain,b::Domain)=a==b
 
 
-Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
-Base.last(d::PeriodicDomain)=fromcanonical(d,π)
+Base.first(d::PeriodicDomain) = fromcanonical(d,0)
+Base.last(d::PeriodicDomain) = fromcanonical(d,2π)
 
 
 immutable AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
@@ -180,7 +181,7 @@ Base.rand(d::IntervalDomain,k...)=fromcanonical(d,2rand(k...)-1)
 Base.rand(d::PeriodicDomain,k...)=fromcanonical(d,2π*rand(k...)-π)
 
 checkpoints(d::IntervalDomain) = fromcanonical(d,[-0.823972,0.01,0.3273484])
-checkpoints(d::PeriodicDomain) = fromcanonical(d,[1.223972,0.01,-2.83273484])
+checkpoints(d::PeriodicDomain) = fromcanonical(d,[1.223972,3.14,5.83273484])
 
 ## boundary
 

@@ -440,55 +440,72 @@ checkpoints(d::Space) = checkpoints(domain(d))
 
 ## default transforms
 
+# These plans are use to wrap another plan
+for Typ in (:TransformPlan,:ITransformPlan)
+    @eval begin
+        immutable $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
+            space::SP
+            plan::PL
+        end
+        $Typ{inplace}(space,plan,::Type{Val{inplace}}) =
+            $Typ{eltype(plan),typeof(space),inplace,typeof(plan)}(space,plan)
+    end
+end
+
+for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
+    @eval begin
+        immutable $Typ{T,SP,PL,CSP} <: FFTW.Plan{T}
+            space::SP
+            plan::PL
+            canonicalspace::CSP
+        end
+        $Typ(space,plan,csp) =
+            $Typ{eltype(plan),typeof(space),typeof(plan),typeof(csp)}(space,plan,csp)
+        $Typ{T}(::Type{T},space,plan,csp) =
+            $Typ{T,typeof(space),typeof(plan),typeof(csp)}(space,plan,csp)
+    end
+end
+
+
+# Canonical plan uses coefficients
+for (pl,CTransPlan) in ((:plan_transform,:CanonicalTransformPlan),
+                             (:plan_itransform,:ICanonicalTransformPlan))
+    @eval begin
+        function $CTransPlan(space,v)
+            csp = canonicalspace(space)
+            $CTransPlan(eltype(v),space,$pl(csp,v),csp)
+        end
+        function $pl(sp::Space,vals)
+            csp = canonicalspace(sp)
+            if sp == csp
+                error("Override for $sp")
+            end
+            $CTransPlan(sp,$pl(csp,vals),csp)
+        end
+    end
+end
+
+plan_transform!(sp::Space,vals) = error("Override for $sp")
+plan_itransform!(sp::Space,cfs) = error("Override for $sp")
+
+
+
 # transform converts from values at points(S,n) to coefficients
 # itransform converts from coefficients to values at points(S,n)
 
-transform(S::Space,vals) = transform(S,vals,plan_transform(S,vals))
-itransform(S::Space,cfs) = itransform(S,cfs,plan_itransform(S,cfs))
+transform(S::Space,vals) = plan_transform(S,vals)*vals
+itransform(S::Space,cfs) = plan_itransform(S,cfs)*cfs
 
-function transform(S::Space,vals,plan)
-    csp=canonicalspace(S)
-    if S==csp
-        error("Override transform(::"*string(typeof(S))*",vals,plan)")
-    end
-
-    coefficients(transform(csp,vals,plan),csp,S)
-end
-
-function itransform(S::Space,cfs,plan)
-    csp=canonicalspace(S)
-    if S==csp
-        error("Override itransform(::"*string(typeof(S))*",cfs,plan)")
-    end
-
-    itransform(csp,coefficients(cfs,S,csp),plan)
-end
+*(P::CanonicalTransformPlan,vals::Vector) = coefficients(P.plan*vals,P.canonicalspace,P.space)
+*(P::ICanonicalTransformPlan,cfs::Vector) = P.plan*coefficients(cfs,P.space,P.canonicalspace)
 
 
-for OP in (:plan_transform,:plan_itransform)
+
+for OP in (:plan_transform,:plan_itransform,:plan_transform!,:plan_itransform!)
     # plan transform expects a vector
     # this passes an empty Float64 array
-    @eval $OP(S::Space,n::Integer)=$OP(S,Array(Float64,n))
+    @eval $OP(S::Space,n::Integer) = $OP(S,Array(Float64,n))
 end
-
-function plan_transform(S::Space,vals)
-    csp=canonicalspace(S)
-    if S==csp
-        identity #TODO: why identity?
-    else
-        plan_transform(csp,vals)
-    end
-end
-
-function plan_itransform(S::Space,cfs)
-    csp=canonicalspace(S)
-    if S==csp
-        identity #TODO: why identity?
-    else
-        plan_itransform(csp,cfs)
-    end
-end
-
 
 ## sorting
 # we sort spaces lexigraphically by default
@@ -517,9 +534,8 @@ ConstantSpace() = ConstantSpace(AnyDomain())
 
 isconstspace(::ConstantSpace) = true
 
-function transform(sp::ConstantSpace,vals,plan...)
-    @assert length(vals)==1
-    vals
+for pl in (:plan_transform,:plan_transform!,:plan_itransform,:plan_itransform!)
+    @eval $pl(sp::ConstantSpace,vals) = I
 end
 
 # we override maxspace instead of maxspace_rule to avoid
