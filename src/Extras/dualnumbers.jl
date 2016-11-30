@@ -42,10 +42,10 @@ end
 
 
 if VERSION < v"0.5"
-    *{k,D<:Dual}(P::ChebyshevTransformPlan{D,k},v::Vector{D}) =
+    *{k,D<:Dual}(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) =
         dual(P.plan*realpart(v),P.plan*dualpart(v))
 else
-    *{k,D<:Dual}(P::ChebyshevTransformPlan{D,k},v::Vector{D}) =
+    *{k,D<:Dual}(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) =
         dual.(P.plan*realpart.(v),P.plan*dualpart.(v))
 end
 
