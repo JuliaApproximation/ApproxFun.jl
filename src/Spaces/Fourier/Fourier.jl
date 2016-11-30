@@ -179,13 +179,13 @@ points(sp::SinSpace,n)=points(domain(sp),2n+2)[2:n+1]
 for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
                          (:ITransformPlan,:plan_itransform!,:plan_itransform))
     @eval begin
-        $Pltr!{T<:FFTW.fftwNumber}(sp::SinSpace,x::Vector{T}) =
+        $Pltr!{DD,T<:FFTW.fftwNumber}(sp::SinSpace{DD},x::Vector{T}) =
             $Typ(sp,FFTW.plan_r2r!(x,FFTW.RODFT00),Val{true})
-        $Pltr{T<:FFTW.fftwNumber}(sp::SinSpace,x::Vector{T}) =
+        $Pltr{DD,T<:FFTW.fftwNumber}(sp::SinSpace{DD},x::Vector{T}) =
             $Typ(sp,$Pltr!(sp,x),Val{false})
-        $Pltr!{T}(sp::SinSpace,x::Vector{T}) =
+        $Pltr!{DD,T}(sp::SinSpace{DD},x::Vector{T}) =
             error("transform for SinSpace only implemented for fftwNumbers")
-        $Pltr{T}(sp::SinSpace,x::Vector{T}) =
+        $Pltr{DD,T}(sp::SinSpace{DD},x::Vector{T}) =
             error("transform for SinSpace only implemented for fftwNumbers")
 
         *{T,D}(P::$Typ{T,SinSpace{D},false},vals::Vector{T}) = P.plan*copy(vals)

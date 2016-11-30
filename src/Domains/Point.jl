@@ -42,6 +42,8 @@ Base.convert{PT<:Point}(::Type{PT},::AnyDomain) = PT(NaN)
 Base.norm(p::Point) = norm(p.x)
 
 Base.getindex(p::Point,k...) = p.x[k...]
+Base.first(p::Point) = p.x
+Base.last(p::Point) = p.x
 
 Base.in(x,d::Point) = isapprox(x,d.x)
 

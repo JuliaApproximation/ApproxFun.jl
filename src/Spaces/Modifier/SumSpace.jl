@@ -489,7 +489,16 @@ function points(d::PiecewiseSpace,n)
         vcat([points(d.spaces[j],k) for j=r+1:length(d)]...)]
 end
 
-function transform(S::PiecewiseSpace,vals::Vector,plan...)
+plan_transform(sp::PiecewiseSpace,vals::Vector) =
+    TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
+
+plan_itransform(sp::PiecewiseSpace,vals::Vector) =
+    ITransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
+
+
+
+function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::Vector{T})
+    S=P.space
     n=length(vals)
     K=length(S)
     k=div(n,K)
@@ -514,21 +523,21 @@ function transform(S::PiecewiseSpace,vals::Vector,plan...)
     interlace(M,S)
 end
 
-itransform(S::PiecewiseSpace,cfs::Vector,plan...) =
-    vcat([itransform(S.spaces[j],Fun(S,cfs)[j].coefficients) for j=1:length(S)]...)
+*{T,PS<:PiecewiseSpace}(P::ITransformPlan{T,PS,false},cfs::Vector{T}) =
+    vcat([itransform(P.space.spaces[j],Fun(P.space,cfs)[j].coefficients) for j=1:length(P.space)]...)
 
 
 
-
-itransform(S::SumSpace,cfs,plan...) = Fun(S,cfs)(points(S,length(cfs)))
-itransform!(S::SumSpace,cfs,plan...) = (cfs[:]=Fun(S,cfs)(points(S,length(cfs))))
+itransform(S::SumSpace,cfs) = Fun(S,cfs)(points(S,length(cfs)))
+itransform!(S::SumSpace,cfs) = (cfs[:]=Fun(S,cfs)(points(S,length(cfs))))
 
 
 
 ## SumSpace{ConstantSpace}
 # this space is special
 
-union_rule(P::PiecewiseSpace,C::ConstantSpace{AnyDomain})=PiecewiseSpace(map(sp->union(sp,C),P.spaces))
+union_rule(P::PiecewiseSpace,C::ConstantSpace{AnyDomain}) =
+    PiecewiseSpace(map(sp->union(sp,C),P.spaces))
 
 
 

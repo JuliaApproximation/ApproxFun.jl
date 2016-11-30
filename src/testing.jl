@@ -11,10 +11,10 @@ function testtransforms(S::Space;minpoints=1,invertibletransform=true)
     # transform tests
     v = rand(max(minpoints,min(100,ApproxFun.dimension(S))))
     plan = plan_transform(S,v)
-    @test transform(S,v)  == transform(S,v,plan)
+    @test transform(S,v)  == plan*v
 
     iplan = plan_itransform(S,v)
-    @test itransform(S,v)  == itransform(S,v,iplan)
+    @test itransform(S,v)  == iplan*v
 
     if invertibletransform
         for k=max(1,minpoints):min(5,dimension(S))

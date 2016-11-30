@@ -77,7 +77,7 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
 
     @assert size(M,2)==n
     plan = plan_transform(AS.space,M[:,1])
-    cfs=Vector{V}[transform(AS.space,M[:,k],plan)  for k=1:size(M,2)]
+    cfs=Vector{V}[plan*M[:,k]  for k=1:size(M,2)]
 
     interlace(cfs,AS)
 end

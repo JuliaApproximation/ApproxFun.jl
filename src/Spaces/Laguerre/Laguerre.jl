@@ -94,11 +94,12 @@ immutable LaguerreTransformPlan{T,TT}
 end
 
 plan_transform(S::Laguerre,v::Vector) = LaguerreTransformPlan(S,gausslaguerre(length(v),1.0S.α)...)
-function transform(S::Laguerre,vals,plan::LaguerreTransformPlan)
+function *(plan::LaguerreTransformPlan,vals)
 #    @assert S==plan.space
     x,w = plan.points, plan.weights
-    V=laguerrel(0:length(vals)-1,S.α,x)'
-    w2=w.*x.^(S.α-plan.space.α)   # need to weight if plan is different
+    V=laguerrel(0:length(vals)-1,plan.space.α,x)'
+    #w2=w.*x.^(S.α-plan.space.α)   # need to weight if plan is different
+    w2=w
     nrm=(V.^2)*w2
     V*(w2.*vals)./nrm
 end

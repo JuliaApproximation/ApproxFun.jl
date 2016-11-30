@@ -50,16 +50,15 @@ else
 end
 
 #TODO: Hardy{false}
-for OP in (:plan_transform,:plan_itransform)
-    for TYP in  (:Fourier,:Laurent,:SinSpace)
-        @eval $OP{T<:Dual,D<:Domain}(S::$TYP{D},x::Vector{T}) = $OP(S,@compat(realpart.(x)))
-    end
-end
-
-for OP in (:transform,:itransform)
-    for TYP in (:Fourier,:Laurent,:SinSpace)
-        @eval $OP{T<:Dual,D<:Domain}(S::$TYP{D},x::Vector{T},plan) =
-            dual($OP(S,@compat(realpart.(x)),plan),$OP(S,@compat(dualpart.(x)),plan))
+for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITransformPlan)),
+        TYP in  (:Fourier,:Laurent,:SinSpace)
+    @eval begin
+        function $OP{T<:Dual,D<:Domain}(sp::$TYP{D},x::Vector{T})
+            plan = $OP(sp,@compat(realpart.(x)))
+            $TransPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
+        end
+        *{T<:Dual,D<:Domain}(P::$TransPlan{T,$TYP{D},false},x::Vector{T}) =
+            dual(P.plan*@compat(realpart.(x)),P.plan*@compat(dualpart.(x)))
     end
 end
 

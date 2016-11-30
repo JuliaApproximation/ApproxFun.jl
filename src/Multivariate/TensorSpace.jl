@@ -330,12 +330,12 @@ function itransform!(S::TensorSpace,M::Matrix)
 
     planc=plan_itransform(space(S,1),M[:,1])
     for k=1:size(M,2)
-        M[:,k]=itransform(space(S,1),M[:,k],planc)
+        M[:,k] = planc*M[:,k]
     end
 
     planr=plan_itransform(space(S,2),vec(M[1,:]))
     for k=1:n
-        M[k,:]=itransform(space(S,2),vec(M[k,:]),planr)
+        M[k,:]=planr*vec(M[k,:])
     end
     M
 end
@@ -360,12 +360,12 @@ function transform!(S::TensorSpace,M::Matrix)
 
     planc=plan_transform(space(S,1),M[:,1])
     for k=1:size(M,2)
-        M[:,k]=transform(space(S,1),M[:,k],planc)
+        M[:,k]=planc*M[:,k]
     end
 
     planr=plan_transform(space(S,2),vec(M[1,:]))
     for k=1:n
-        M[k,:]=transform(space(S,2),vec(M[k,:]),planr)
+        M[k,:]=planr*vec(M[k,:])
     end
     M
 end
@@ -481,7 +481,7 @@ function points(sp::TensorSpace,n)
     pts
 end
 
-function transform(sp::TensorSpace,vals,plan...)
+function transform(sp::TensorSpace,vals)
     NM=length(vals)
     if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
         N,M=dimension(sp[1]),dimension(sp[2])

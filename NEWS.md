@@ -8,6 +8,7 @@
 
 
 #### 0.4.1
+- `transform(sp::Space,v,plan)` -> `plan*v`
 - `PeriodicInterval()` now defaults to `PeriodicInterval(0,2π)`
 - `points(::Chebyshev,n)` has reversed the order
 - `Fun(cfs::Vector,sp::Space)` --> `Fun(sp::Space,cfs::Vector)`
