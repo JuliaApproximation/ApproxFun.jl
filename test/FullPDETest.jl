@@ -416,7 +416,7 @@ u=linsolve(A,F;tolerance=1E-10)
 println("    Periodic x Interval tests")
 
 
-dθ=PeriodicInterval();dt=Interval(0,1.)
+dθ=PeriodicInterval(-π,π);dt=Interval(0,1.)
 d=dθ*dt
 ε=0.1
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
@@ -430,6 +430,7 @@ dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
 d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ)
+
 A=Dt+Dθ
 
 testbandedblockbandedoperator(A)
@@ -468,7 +469,7 @@ u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-7)
 
 println("    Periodic tests")
 
-d=PeriodicInterval()^2
+d=PeriodicInterval(-π,π)^2
 f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
 A=Laplacian(d)+.1I
 @time u=A\f

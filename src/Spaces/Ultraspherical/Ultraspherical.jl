@@ -77,9 +77,9 @@ end
 
 
 plan_transform(sp::Ultraspherical{Int},vals::Vector) = CanonicalTransformPlan(sp,vals)
-plan_transform(S::Ultraspherical,vals::Vector) = UltrasphericalPlan(order(S),vals)
-plan_itransform(S::Ultraspherical{Int},cfs::Vector) = ICanonicalTransformPlan(sp,vals)
-plan_itransform(S::Ultraspherical,cfs::Vector) = UltrasphericalIPlan(order(S),cfs)
+plan_transform(sp::Ultraspherical,vals::Vector) = UltrasphericalPlan(order(sp),vals)
+plan_itransform(sp::Ultraspherical{Int},cfs::Vector) = ICanonicalTransformPlan(sp,cfs)
+plan_itransform(sp::Ultraspherical,cfs::Vector) = UltrasphericalIPlan(order(sp),cfs)
 
 ## Construction
 
