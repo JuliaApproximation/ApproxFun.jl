@@ -39,13 +39,20 @@ Base.plan_ifft!{F<:Fun}(x::Vector{F}) = ifft
 
 # Chebyshev transforms and plans for BigFloats
 # no plan exists at the moment, so we make a dummy plan
+plan_chebyshevtransform!{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
+    error("In-place variant not implemented for BigFloat")
+
+plan_ichebyshevtransform!{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
+    error("In-place variant not implemented for BigFloat")
+
+
 plan_chebyshevtransform{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
-    ChebyshevTransformPlan{kind,T,Void}(nothing)
+    ChebyshevTransformPlan{T,kind,false,Void}(nothing)
 plan_ichebyshevtransform{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
-    IChebyshevTransformPlan{kind,T,Void}(nothing)
+    IChebyshevTransformPlan{T,kind,false,Void}(nothing)
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function *{T<:BigFloats}(P::ChebyshevTransformPlan{1,T},x::Vector{T})
+function *{T<:BigFloats}(P::ChebyshevTransformPlan{T,1,false},x::Vector{T})
     n = length(x)
     if n == 1
         x
@@ -58,7 +65,7 @@ function *{T<:BigFloats}(P::ChebyshevTransformPlan{1,T},x::Vector{T})
     end
 end
 
-function *{T<:BigFloats}(P::ChebyshevTransformPlan{2,T},x::Vector{T})
+function *{T<:BigFloats}(P::ChebyshevTransformPlan{T,2,false},x::Vector{T})
     n = length(x)
     if n == 1
         x
@@ -71,7 +78,7 @@ function *{T<:BigFloats}(P::ChebyshevTransformPlan{2,T},x::Vector{T})
 end
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function *{T<:BigFloats}(P::IChebyshevTransformPlan{1,T},x::Vector{T})
+function *{T<:BigFloats}(P::IChebyshevTransformPlan{T,1,false},x::Vector{T})
     n = length(x)
     if n == 1
         x
@@ -82,7 +89,7 @@ function *{T<:BigFloats}(P::IChebyshevTransformPlan{1,T},x::Vector{T})
         ret = T<:Real ? real(ret) : ret
     end
 end
-function *{T<:BigFloats}(P::IChebyshevTransformPlan{2,T},x::Vector{T})
+function *{T<:BigFloats}(P::IChebyshevTransformPlan{T,2,false},x::Vector{T})
     n = length(x)
     if n == 1
         x
