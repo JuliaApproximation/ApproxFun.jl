@@ -11,7 +11,7 @@ represents a periodic interval from `a` to `b`, that is, the point
 immutable PeriodicInterval{T} <: PeriodicDomain{T}
     a::T
     b::T
-    PeriodicInterval() = new(-convert(T,π),convert(T,π))
+    PeriodicInterval() = new(0,2convert(T,π))
     PeriodicInterval(a,b) = new(a,b)
 end
 
@@ -50,12 +50,12 @@ Base.issubset(a::PeriodicInterval,b::PeriodicInterval) = first(a)∈b && a.b∈b
 ## Map periodic interval
 
 
-tocanonical{T}(d::PeriodicInterval{T},x)=π*tocanonical(Segment(d),x)
+tocanonical{T}(d::PeriodicInterval{T},x)=π*(tocanonical(Segment(d),x)+1)
 tocanonicalD{T}(d::PeriodicInterval{T},x)=π*tocanonicalD(Segment(d),x)
 fromcanonical(d::PeriodicInterval,v::AbstractArray) = eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical{V<:Vec}(d::PeriodicInterval{V},p::AbstractArray) = V[fromcanonical(d,x) for x in p]
-fromcanonical(d::PeriodicInterval,θ)=fromcanonical(Segment(d),θ/π)
-fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Segment(d),θ/π)/π
+fromcanonical(d::PeriodicInterval,θ)=fromcanonical(Segment(d),θ/π-1)
+fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Segment(d),θ/π-1)/π
 
 
 

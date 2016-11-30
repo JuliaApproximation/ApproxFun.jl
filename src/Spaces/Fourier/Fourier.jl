@@ -32,8 +32,8 @@ SinSpace()
 # s == false means anlytic outside and decaying at infinity
 immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
     domain::D
-    Hardy(d)=new(d)
-    Hardy()=new(D())
+    Hardy(d) = new(d)
+    Hardy() = new(D())
 end
 
 # The <: Domain is crucial for matching Basecall overrides
@@ -75,13 +75,13 @@ hasfasttransform(::Hardy) = true
 plan_transform(::Taylor,x::Vector) = plan_fft(x)
 plan_itransform{T<:Complex}(::Taylor,x::Vector{T}) = plan_ifft!(x) # we can reuse vector in itransform
 plan_itransform{T}(::Taylor,x::Vector{T}) = plan_ifft!(Array{Complex{T}}(length(x))) # we can reuse vector in itransform
-transform(::Taylor,vals::Vector,plan) = alternatesign!(plan*vals/length(vals))
-itransform(::Taylor,cfs::Vector,plan) = plan*alternatesign!(cfs*length(cfs))
+transform(::Taylor,vals::Vector,plan) = plan*vals/length(vals)
+itransform(::Taylor,cfs::Vector,plan) = plan*cfs*length(cfs)
 
 plan_transform(::Hardy{false},x::Vector) = plan_fft(x)
 plan_itransform(::Hardy{false},x::Vector) = plan_ifft(x)
-transform(::Hardy{false},vals::Vector,plan) = -alternatesign!(flipdim(plan*vals,1)/length(vals))
-itransform(::Hardy{false},cfs::Vector,plan) = plan*flipdim(alternatesign!(-cfs),1)*length(cfs)
+transform(::Hardy{false},vals::Vector,plan) = flipdim(plan*vals,1)/length(vals)
+itransform(::Hardy{false},cfs::Vector,plan) = plan*flipdim(cfs,1)*length(cfs)
 
 evaluate{D<:Domain}(f::AbstractVector,S::Taylor{D},z) = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
 function evaluate{D<:Circle}(f::AbstractVector,S::Taylor{D},z)
@@ -141,7 +141,7 @@ horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,k
 
 ## Cos and Sin space
 
-points(sp::CosSpace,n) = points(domain(sp),2n-2)[n:-1:1]  #TODO: reorder Fourier
+points(sp::CosSpace,n) = points(domain(sp),2n-2)[1:n]  #TODO: reorder Fourier
 plan_transform(::CosSpace,x::Vector) = plan_chebyshevtransform(x;kind=2)
 plan_itransform(::CosSpace,x::Vector) = plan_ichebyshevtransform(x;kind=2)
 transform(::CosSpace,vals,plan) = plan*vals
@@ -149,7 +149,7 @@ itransform(::CosSpace,cfs,plan) = plan*cfs
 evaluate(f::Vector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 
 
-points(sp::SinSpace,n)=points(domain(sp),2n+2)[n+3:2n+2]
+points(sp::SinSpace,n)=points(domain(sp),2n+2)[2:n+1]
 plan_transform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T}) = FFTW.plan_r2r(x,FFTW.RODFT00)
 plan_itransform{T<:FFTW.fftwNumber}(::SinSpace,x::Vector{T}) = FFTW.plan_r2r(x,FFTW.RODFT00)
 
@@ -177,8 +177,8 @@ See also `Fourier`.
 typealias Laurent{DD} SumSpace{Tuple{Hardy{true,DD},Hardy{false,DD}},ComplexBasis,DD,1}
 
 
-plan_transform{DD}(::Laurent{DD},x::Vector)=plan_svfft(x)
-plan_itransform{DD}(::Laurent{DD},x::Vector)=plan_isvfft(x)
+plan_transform{DD}(::Laurent{DD},x::Vector) = plan_svfft(x)
+plan_itransform{DD}(::Laurent{DD},x::Vector) = plan_isvfft(x)
 transform{DD}(::Laurent{DD},vals,plan...) = svfft(vals,plan...)
 itransform{DD}(::Laurent{DD},cfs,plan...) = isvfft(cfs,plan...)
 
@@ -254,9 +254,7 @@ function transform{T<:Number,D}(::Fourier{D},vals::Vector{T},plan)
         cfs[div(n,2)+1] /= 2
     end
 
-    reverseeven!(interlace!(fouriermodalt!(cfs),1))
-
-    cfs
+    negateeven!(reverseeven!(interlace!(cfs,1)))
 end
 
 itransform{T<:Number,D}(S::Fourier{D},vals::Vector{T}) =
@@ -264,45 +262,12 @@ itransform{T<:Number,D}(S::Fourier{D},vals::Vector{T}) =
 
 function itransform{T<:Number,D}(::Fourier{D},a::Vector{T},plan)
     n = length(a)
-    cfs = [a[1:2:end];flipdim(a[2:2:end],1)]
-    fouriermodalt!(cfs)
+    cfs = [a[1:2:end];-flipdim(a[2:2:end],1)]
     if iseven(n)
-        cfs[div(n,2)+1] *= 2
+        cfs[n÷2+1] *= 2
     end
     cfs[1] *= 2
     plan*scale!(inv(T(2)),cfs)
-end
-
-function fouriermodalt!(cfs)
-    n=length(cfs)
-    if iseven(n)
-        for k=2:2:div(n,2)+1
-            cfs[k]*=-1
-        end
-    else
-        for k=2:2:div(n+1,2)
-            cfs[k]*=-1
-        end
-    end
-
-    if mod(n,4)==0
-        for k=div(n,2)+3:2:n
-            cfs[k]*=-1
-        end
-    elseif mod(n,4)==2
-        for k=div(n,2)+2:2:n
-            cfs[k]*=-1
-        end
-    elseif mod(n,4)==1
-        for k=div(n+3,2):2:n
-            cfs[k]*=-1
-        end
-    else #mod(n,4)==3
-        for k=div(n+5,2):2:n
-            cfs[k]*=-1
-        end
-    end
-    cfs
 end
 
 

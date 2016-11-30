@@ -438,9 +438,9 @@ function svfft{T}(v::Vector{T},plan)
     n = length(v)
     v = scale!(inv(T(n)),plan*v)
     if mod(n,2) == 0
-        reverseeven!(interlace!(alternatesign!(v),1))
+        reverseeven!(interlace!(v,1))
     else
-        negateeven!(reverseeven!(interlace!(alternatesign!(copy(v)),1)))
+        reverseeven!(interlace!(copy(v),1))
     end
 end
 
@@ -450,13 +450,13 @@ function isvfft(sv::Vector,plan)
     n = length(sv)
 
     if mod(n,2) == 0
-        v=alternatesign!([sv[1:2:end];flipdim(sv[2:2:end],1)])
+        v=[sv[1:2:end];flipdim(sv[2:2:end],1)]
     elseif mod(n,4)==3
-        v=[alternatesign!(sv[1:2:end]);
-           -alternatesign!(flipdim(sv[2:2:end],1))]
+        v=[sv[1:2:end];
+           -flipdim(sv[2:2:end],1)]
     else #mod(length(v),4)==1
-        v=[alternatesign!(sv[1:2:end]);
-           alternatesign!(flipdim(sv[2:2:end],1))]
+        v=[sv[1:2:end];
+           flipdim(sv[2:2:end],1)]
     end
 
     plan*scale!(n,v)

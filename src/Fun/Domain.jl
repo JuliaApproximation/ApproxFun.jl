@@ -109,10 +109,11 @@ abstract PeriodicDomain{T} <: UnivariateDomain{T}
 
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
-points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(real(eltype(eltype(T))),n))
+points{T}(d::PeriodicDomain{T},n::Integer) =
+    fromcanonical(d, fourierpoints(real(eltype(eltype(T))),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
-fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/n
+fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(0:2:2n-2)/n
 
 
 function Base.in{T}(x,d::PeriodicDomain{T})
@@ -132,8 +133,8 @@ end
 Base.issubset(a::Domain,b::Domain)=a==b
 
 
-Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
-Base.last(d::PeriodicDomain)=fromcanonical(d,π)
+Base.first(d::PeriodicDomain) = fromcanonical(d,0)
+Base.last(d::PeriodicDomain) = fromcanonical(d,2π)
 
 
 immutable AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
