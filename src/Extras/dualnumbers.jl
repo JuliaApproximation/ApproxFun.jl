@@ -21,14 +21,21 @@ valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{Complex{V}}) 
     Dual{promote_type(T,Complex{V})},Complex{promote_type(real(T),V)}
 
 
-function plan_chebyshevtransform{D<:Dual}(v::Vector{D})
-    plan = plan_chebyshevtransform(@compat(realpart.(v)))
-    ChebyshevTransformPlan{D,1,typeof(plan)}(plan)
+plan_chebyshevtransform!{T<:Dual}(x::Vector{T};kind::Integer=1) =
+    error("In-place variant not implemented for Dual")
+
+plan_ichebyshevtransform!{T<:Dual}(x::Vector{T};kind::Integer=1) =
+    error("In-place variant not implemented for Dual")
+
+
+function plan_chebyshevtransform{D<:Dual}(v::Vector{D};kind::Integer=1)
+    plan = plan_chebyshevtransform(@compat(realpart.(v));kind=kind)
+    ChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
 end
 
-function plan_ichebyshevtransform{D<:Dual}(v::Vector{D})
-    plan = plan_ichebyshevtransform(@compat(realpart.(v)))
-    IChebyshevTransformPlan{D,1,typeof(plan)}(plan)
+function plan_ichebyshevtransform{D<:Dual}(v::Vector{D};kind::Integer=1)
+    plan = plan_ichebyshevtransform(@compat(realpart.(v));kind=kind)
+    IChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
 end
 
 
