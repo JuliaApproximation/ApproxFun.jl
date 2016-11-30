@@ -144,7 +144,8 @@ M=Multiplication(f,sp2)
 ## Legendre conversions
 testspace(Ultraspherical(1);haslineintegral=false)
 testspace(Ultraspherical(2);haslineintegral=false)
-@time testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)  # minpoints is a tempory fix a bug
+# minpoints is a tempory fix a bug
+@time testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)
 
 @test norm(Fun(exp,Ultraspherical(1//2))-Fun(exp,Jacobi(0,0))) < 100eps()
 

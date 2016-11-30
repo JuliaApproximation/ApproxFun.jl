@@ -461,29 +461,27 @@ for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
         end
         $Typ(space,plan,csp) =
             $Typ{eltype(plan),typeof(space),typeof(plan),typeof(csp)}(space,plan,csp)
+        $Typ{T}(::Type{T},space,plan,csp) =
+            $Typ{T,typeof(space),typeof(plan),typeof(csp)}(space,plan,csp)
     end
-end
-
-function CanonicalTransformPlan(space,vals)
-    csp = canonicalspace(space)
-    CanonicalTransformPlan(space,plan_transform(csp,vals),csp)
-end
-
-function ICanonicalTransformPlan(space,vals)
-    csp = canonicalspace(space)
-    CanonicalTransformPlan(space,plan_itransform(csp,vals),csp)
 end
 
 
 # Canonical plan uses coefficients
 for (pl,CTransPlan) in ((:plan_transform,:CanonicalTransformPlan),
                              (:plan_itransform,:ICanonicalTransformPlan))
-    @eval function $pl(sp::Space,vals)
-        csp = canonicalspace(sp)
-        if sp == csp
-            error("Override for $sp")
+    @eval begin
+        function $CTransPlan(space,v)
+            csp = canonicalspace(space)
+            $CTransPlan(eltype(v),space,$pl(csp,v),csp)
         end
-        $CTransPlan(sp,$pl(csp,vals),csp)
+        function $pl(sp::Space,vals)
+            csp = canonicalspace(sp)
+            if sp == csp
+                error("Override for $sp")
+            end
+            $CTransPlan(sp,$pl(csp,vals),csp)
+        end
     end
 end
 

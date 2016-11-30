@@ -330,7 +330,7 @@ points{D}(sp::Fourier{D},n)=points(domain(sp),n)
 plan_transform!{T<:FFTW.fftwNumber,D}(sp::Fourier{D},x::Vector{T}) =
     TransformPlan(sp,FFTW.plan_r2r!(x, FFTW.R2HC),Val{true})
 plan_itransform!{T<:FFTW.fftwNumber,D}(sp::Fourier{D},x::Vector{T}) =
-    TransformPlan(sp,FFTW.plan_r2r!(x, FFTW.HC2R),Val{true})
+    ITransformPlan(sp,FFTW.plan_r2r!(x, FFTW.HC2R),Val{true})
 
 for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
                          (:ITransformPlan,:plan_itransform!,:plan_itransform))
@@ -360,7 +360,7 @@ end
 
 function *{T,DD}(P::ITransformPlan{T,Fourier{DD},true},cfs::Vector{T})
     n = length(cfs)
-    reverseeven!(negativeeven!(cfs))
+    reverseeven!(negateeven!(cfs))
     cfs[:] = [cfs[1:2:end];cfs[2:2:end]]
     if iseven(n)
         cfs[n÷2+1] *= 2
