@@ -440,6 +440,20 @@ checkpoints(d::Space) = checkpoints(domain(d))
 
 ## default transforms
 
+# These plans are use to wrap another plan
+for Typ in (:TransformPlan,:ITransformPlan)
+    @eval begin
+        immutable $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
+            space::SP
+            plan::PL
+        end
+        $Typ{inplace}(space,plan,::Type{Val{inplace}}) =
+            $Typ{eltype(plan),typeof(space),inplace,typeof(plan)}(space,plan)
+    end
+end
+
+
+
 # transform converts from values at points(S,n) to coefficients
 # itransform converts from coefficients to values at points(S,n)
 

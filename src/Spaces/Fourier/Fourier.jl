@@ -71,39 +71,33 @@ spacescompatible{s}(a::Hardy{s},b::Hardy{s}) = domainscompatible(a,b)
 hasfasttransform(::Hardy) = true
 
 
-for Typ in (:HardyTransformPlan,:IHardyTransformPlan)
+for (Typ,Plfft!,Plfft,Pltr!,Pltr) in ((:TransformPlan,:plan_fft!,:plan_fft,:plan_transform!,:plan_transform),
+                           (:ITransformPlan,:plan_ifft!,:plan_ifft,:plan_itransform!,:plan_itransform))
     @eval begin
-        immutable $Typ{T,s,inplace,PL} <: FFTW.Plan{T}
-            plan::PL
-        end
-        @compat (::Type{$Typ{s,inp}}){s,inp}(plan) =
-            $Typ{eltype(plan),s,inp,typeof(plan)}(plan)
-    end
-end
-
-for (Typ,Plfft!,Plfft,Pltr!,Pltr) in ((:HardyTransformPlan,:plan_fft!,:plan_fft,:plan_transform!,:plan_transform),
-                           (:IHardyTransformPlan,:plan_ifft!,:plan_ifft,:plan_itransform!,:plan_itransform))
-    @eval begin
-        $Pltr!{s,T<:Complex}(::Hardy{s},x::Vector{T}) = $Typ{s,true}($Plfft!(x))
-        $Pltr!{s,T<:Real}(::Hardy{s},x::Vector{T}) =
+        $Pltr!{T<:Complex}(sp::Hardy,x::Vector{T}) = $Typ(sp,$Plfft!(x),Val{true})
+        $Pltr!{T<:Real}(::Hardy,x::Vector{T}) =
             error("In place variants not possible with real data.")
 
-        $Pltr{s,T<:Complex}(sp::Hardy{s},x::Vector{T}) = $Typ{s,false}($Pltr!(sp,x))
-        function $Pltr{s,T}(sp::Hardy{s},x::Vector{T})
+        $Pltr{T<:Complex}(sp::Hardy,x::Vector{T}) = $Typ(sp,$Pltr!(sp,x),Val{false})
+        function $Pltr{T}(sp::Hardy,x::Vector{T})
             plan = $Pltr(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
-            $Typ{T,s,false,typeof(plan)}(plan)
+            $Typ{T,typeof(sp),false,typeof(plan)}(sp,plan)
         end
 
-        *{T<:Complex,s}(P::$Typ{T,s,false},vals::Vector{T}) = P.plan*copy(vals)
-        *{T,s}(P::$Typ{T,s,false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
+        *{T<:Complex,HS<:Hardy}(P::$Typ{T,HS,false},vals::Vector{T}) = P.plan*copy(vals)
+        *{T,HS<:Hardy}(P::$Typ{T,HS,false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
     end
 end
 
 
-*{T}(P::HardyTransformPlan{T,true,true},vals::Vector{T}) = scale!(one(T)/length(vals),P.plan*vals)
-*{T}(P::IHardyTransformPlan{T,true,true},cfs::Vector{T}) = scale!(length(cfs),P.plan*cfs)
-*{T}(P::HardyTransformPlan{T,false,true},vals::Vector{T}) = scale!(one(T)/length(vals),reverse!(P.plan*vals))
-*{T}(P::IHardyTransformPlan{T,false,true},cfs::Vector{T}) = scale!(length(cfs),P.plan*reverse!(cfs))
+*{T,DD}(P::TransformPlan{T,Hardy{true,DD},true},vals::Vector{T}) =
+    scale!(one(T)/length(vals),P.plan*vals)
+*{T,DD}(P::ITransformPlan{T,Hardy{true,DD},true},cfs::Vector{T}) =
+    scale!(length(cfs),P.plan*cfs)
+*{T,DD}(P::TransformPlan{T,Hardy{false,DD},true},vals::Vector{T}) =
+    scale!(one(T)/length(vals),reverse!(P.plan*vals))
+*{T,DD}(P::ITransformPlan{T,Hardy{false,DD},true},cfs::Vector{T}) =
+    scale!(length(cfs),P.plan*reverse!(cfs))
 
 
 transform(sp::Hardy,vals::Vector,plan) = plan*vals
@@ -167,7 +161,11 @@ horner(c::AbstractVector,kr::Range{Int64},x::AbstractArray) = reshape(horner(c,k
 
 ## Cos and Sin space
 
-points(sp::CosSpace,n) = points(domain(sp),2n-2)[1:n]  #TODO: reorder Fourier
+points(sp::CosSpace,n) = points(domain(sp),2n-2)[1:n]
+
+
+
+
 plan_transform(::CosSpace,x::Vector) = plan_chebyshevtransform(x;kind=2)
 plan_itransform(::CosSpace,x::Vector) = plan_ichebyshevtransform(x;kind=2)
 transform(::CosSpace,vals,plan) = plan*vals
