@@ -124,9 +124,9 @@ function Base.in{T}(x,d::PeriodicDomain{T})
 
     l=arclength(d)
     if isinf(l)
-        abs(imag(y))<20eps(T) && -π-2eps(T)<real(y)<π+2eps(T)
+        abs(imag(y))<20eps(T) && -2eps(T)<real(y)<2π+2eps(T)
     else
-        abs(imag(y))/l<20eps(T) && -π-2l*eps(T)<real(y)<π+2l*eps(T)
+        abs(imag(y))/l<20eps(T) && -2l*eps(T)<real(y)<2π+2l*eps(T)
     end
 end
 
