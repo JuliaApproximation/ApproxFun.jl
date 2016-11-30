@@ -68,7 +68,7 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
     MO=QR.R
     W=QR.H
 
-    if col+100 ≥ MO.datasize[2]
+    if col > MO.datasize[2]
         m = MO.datasize[2]
         resizedata!(MO,:,col+100)  # last rows plus a bunch more
 
@@ -137,7 +137,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,R
     R=MO.data
     r=pointer(R.data)
 
-    if col+100 ≥ MO.datasize[2]
+    if col > MO.datasize[2]
         m = MO.datasize[2]
         resizedata!(MO,:,col+100)  # last rows plus a bunch more
 
