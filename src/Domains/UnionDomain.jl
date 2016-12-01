@@ -35,15 +35,6 @@ Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain)=UnionDomain(tuple())
 
 Base.union(d::Domain) = d
 Base.union{D<:Domain}(d::AbstractVector{D}) = UnionDomain(d)
-#TODO: Deprecate these
-function Base.union{D<:Domain}(::Type{D},x)
-    out = map(D,x)
-    length(out) > 1 ? ∪(out) : out[1]
-end
-function Base.union{D<:Domain}(::Type{D},x,y)
-    out = map(D,x,y)
-    length(out) > 1 ? ∪(out) : out[1]
-end
 #TODO Check for intersection
 
 

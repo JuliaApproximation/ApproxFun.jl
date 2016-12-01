@@ -34,6 +34,10 @@ Disk
 ```
 
 ```@docs
+Segment
+```
+
+```@docs
 Interval
 ```
 
@@ -115,7 +119,7 @@ Taylor
 ```
 
 ```@docs
-Hardy{false}
+Hardy
 ```
 
 ```@docs
@@ -185,6 +189,10 @@ space
 ApproxFun.values
 ```
 
+```@docs
+Base.stride(::Fun)
+```
+
 
 ## Modify a Fun
 
@@ -206,6 +214,10 @@ chop
 
 ```@docs
 Operator
+```
+
+```@docs
+BandedMatrices.bandwidths(::Operator)
 ```
 
 ```@docs
@@ -253,4 +265,10 @@ Laplacian
 
 ```@docs
 Multiplication
+```
+
+## Bivariate
+
+```@docs
+LowRankFun
 ```

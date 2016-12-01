@@ -22,6 +22,12 @@ A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b
 
 
 #TODO: Remove these when interlace is automatic
-\{OO<:Operator}(A::Array{OO},b::AbstractArray;kwds...) = \(interlace(A),b;kwds...)
-\{OO<:Operator}(A::Array{OO},b;kwds...) = \(interlace(A),b;kwds...)
-A_ldiv_B_coefficients{OO<:Operator}(A::Array{OO},b;kwds...) = A_ldiv_B_coefficients(interlace(A),b;kwds...)
+for TYP in (:Vector,:Matrix)
+    @eval begin
+        \{OO<:Operator,T}(A::$TYP{OO},b::AbstractVecOrMat{T};kwds...) =
+            \(interlace(A),b;kwds...)
+        \{OO<:Operator}(A::$TYP{OO},b;kwds...) = \(interlace(A),b;kwds...)
+    end
+end
+A_ldiv_B_coefficients{OO<:Operator}(A::Array{OO},b;kwds...) =
+    A_ldiv_B_coefficients(interlace(A),b;kwds...)

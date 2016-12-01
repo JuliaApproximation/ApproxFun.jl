@@ -30,6 +30,10 @@ SinSpace()
 
 # s == true means analytic inside, taylor series
 # s == false means anlytic outside and decaying at infinity
+doc"""
+`Hardy{false}()` is the space spanned by `[1/z,1/z^2,...]`.
+`Hardy{true}()` is the space spanned by `[1,z,z^2,...]`.
+"""
 immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
     domain::D
     Hardy(d) = new(d)
@@ -37,22 +41,12 @@ immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
 end
 
 # The <: Domain is crucial for matching Basecall overrides
+doc"""
+`Taylor()` is the space spanned by `[1,z,z^2,...]`.
+This is a type alias for `Hardy{true}`.
+"""
 typealias Taylor{D<:Domain} Hardy{true,D}
 
-
-# Following is broken in 0.4
-if VERSION ≥ v"0.5"
-    doc"""
-    `Taylor()` is the space spanned by `[1,z,z^2,...]`.  This is a type alias for `Hardy{true}`.
-
-    """
-    Taylor
-
-    doc"""
-    `Hardy{false}()` is the space spanned by `[1/z,1/z^2,...]`
-    """
-    Hardy{false}
-end
 
 
 Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},::Type{T}) =

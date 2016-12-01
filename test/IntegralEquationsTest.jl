@@ -142,3 +142,8 @@ end
 K=LowRankFun((x,y)->cos(x-y),Interval()^2)
 Σ=DefiniteIntegral(Chebyshev())
 testbandedbelowoperator(Σ[K])
+
+
+Σ = DefiniteIntegral(Chebyshev()); x=Fun();
+L=I+exp(x)*Σ[cos(x)]
+testbandedbelowoperator(L)
