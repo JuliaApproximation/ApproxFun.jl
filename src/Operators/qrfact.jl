@@ -139,7 +139,7 @@ Base.Ac_mul_B(A::QROperatorQ,b;kwds...) =
 
 
 A_ldiv_B_coefficients(A::QROperatorQ,B;opts...) = Ac_mul_B_coefficients(A,B;opts...)
-\(A::QROperatorQ,B;opts...) = Ac_mul_B(A,B;opts...)
+\(A::QROperatorQ,B::Fun;opts...) = Ac_mul_B(A,B;opts...)
 
 
 # R
@@ -154,6 +154,8 @@ end
 \(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
     Fun(domainspace(R),A_ldiv_B_coefficients(R,b.coefficients;kwds...))
 \(A::QROperatorR,b::Fun;kwds...) = error("\ not implement for $(typeof(b)) right-hand sides")
+\(A::QROperatorR,b::StridedVecOrMat;kwds...) = \(A,Fun(b);kwds...)
+\(A::QROperatorR,b::AbstractVecOrMat;kwds...) = \(A,Fun(b);kwds...)
 \(A::QROperatorR,b;kwds...) = \(A,Fun(b);kwds...)
 
 
@@ -195,5 +197,8 @@ function \(A::QROperator,B::Matrix;kwds...)
     end
     demat(ret)
 end
-\(A::QROperator,b;kwds...) =
+\(A::QROperator,b::Fun;kwds...) =
     Fun(domainspace(A),A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
+\(A::QROperator,b::StridedVecOrMat;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
+\(A::QROperator,b::AbstractVecOrMat;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
+\(A::QROperator,b;kwds...) = \(A,Fun(b,rangespace(A));kwds...)

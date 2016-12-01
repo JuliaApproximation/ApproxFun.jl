@@ -535,7 +535,7 @@ ConstantSpace() = ConstantSpace(AnyDomain())
 isconstspace(::ConstantSpace) = true
 
 for pl in (:plan_transform,:plan_transform!,:plan_itransform,:plan_itransform!)
-    @eval $pl(sp::ConstantSpace,vals) = I
+    @eval $pl(sp::ConstantSpace,vals::Vector) = I
 end
 
 # we override maxspace instead of maxspace_rule to avoid
