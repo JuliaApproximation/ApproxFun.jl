@@ -77,7 +77,7 @@ function ./(c::Fun,f::Fun)
     r=roots(f)
     tol=10eps(promote_type(eltype(c),eltype(f)))
     if length(r)==0 || norm(c(r))<tol
-        linsolve(Multiplication(f,space(c)),c;tolerance=tol)
+        \(Multiplication(f,space(c)),c;tolerance=tol)
     else
         c.*(1./f)
     end
@@ -87,7 +87,7 @@ function ./(c::Number,f::Fun)
     r=roots(f)
     tol=10eps(promote_type(typeof(c),eltype(f)))
     @assert length(r)==0
-    linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
+    \(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
 end
 
 # project to interval if we are not on the interview
@@ -111,7 +111,7 @@ function ./{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
         return Fun(c/f.coefficients[1],space(f))
     elseif ncoefficients(f)==2
         if isempty(roots(f))
-            return linsolve(Multiplication(f,space(f)),c;tolerance=0.05tol)
+            return \(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
             # we check directly for f*(1+x)
             return Fun(JacobiWeight(-1,0,space(f)),[c./fc.coefficients[1]])
@@ -138,7 +138,7 @@ function ./{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
         r = roots(fc)
 
         if length(r) == 0
-            return linsolve(Multiplication(f,space(f)),c;tolerance=0.05tol)
+            return \(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif abs(last(r)+1.0)≤tol  # double check
             #left root
             g=divide_singularity((1,0),fc)
@@ -319,7 +319,7 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
             D=Derivative(domain(f))
             B=Evaluation(domainspace(D),xmax)
             #([B,eval($L)]\[opfxmax/opmax,eval($R)/opmax])*opmax
-            u=linsolve([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
+            u=\([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
 
             setdomain(u,domain(fin))
         end
@@ -368,7 +368,7 @@ function exp{JW<:JacobiWeight}(f::Fun{JW})
         D=Derivative(s)
         B=Evaluation(s,xmax)
 
-        linsolve([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
+        \([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
     end
 end
 
@@ -420,7 +420,7 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            u=linsolve([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
+            u=\([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
                         tolerance=10ncoefficients(f)*eps(T)*opmax)*opmax
 
             setdomain(u,domain(fin))

@@ -117,7 +117,7 @@ println("    PDE tests")
 using ApproxFun
 d = Interval()^2                            # Defines a rectangle
 
-# @time u = linsolve([Dirichlet(d);Laplacian(d)+100I],
+# @time u = \([Dirichlet(d);Laplacian(d)+100I],
 #                     [ones(∂(d));0.];tolerance=1E-10)      # First four entries of rhs are
 #
 
@@ -125,7 +125,7 @@ d = Interval()^2                            # Defines a rectangle
 
 QR = qrfact([Dirichlet(d);Laplacian()+100I])
         @time ApproxFun.resizedata!(QR,:,4000)
-        @time u = linsolve(QR,
+        @time u = \(QR,
                         [ones(∂(d));0.];tolerance=1E-7)
 
 

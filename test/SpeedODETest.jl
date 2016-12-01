@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-    import ApproxFun: linsolve_coefficients
+    import ApproxFun: A_ldiv_B_coefficients
 
 ## ODEs
 
@@ -31,9 +31,9 @@ L=D^2+(7+2x+6x^2)
 B=dirichlet(S)
 n=20000
 rhs=ones(n+2)
-u=linsolve_coefficients([B;L],rhs)
-u=linsolve_coefficients([B;L],rhs)
-@time u=linsolve_coefficients([B;L],rhs)
+u=A_ldiv_B_coefficients([B;L],rhs)
+u=A_ldiv_B_coefficients([B;L],rhs)
+@time u=A_ldiv_B_coefficients([B;L],rhs)
 println("Poly: should be ~0.025")
 
 
@@ -44,9 +44,9 @@ L=D^2+cos(x)
 B=dirichlet(S)
 n=2000
 rhs=ones(n+2)
-u=linsolve_coefficients([B;L],rhs;maxlength=Inf)
-u=linsolve_coefficients([B;L],rhs;maxlength=Inf)
-@time u=linsolve_coefficients([B;L],rhs;maxlength=Inf)
+u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+@time u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 println("Cos: should be ~0.0075")
 
 S=Chebyshev()
@@ -56,9 +56,9 @@ L=D^2+sin(x)
 B=dirichlet(S)
 n=2000
 rhs=ones(n+2)
-u=linsolve_coefficients([B;L],rhs;maxlength=Inf)
-u=linsolve_coefficients([B;L],rhs;maxlength=Inf)
-@time u=linsolve_coefficients([B;L],rhs;maxlength=Inf)
+u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+@time u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 
 

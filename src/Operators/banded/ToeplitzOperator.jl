@@ -200,7 +200,7 @@ end
 
 function Base.inv(T::ToeplitzOperator)
     @assert length(T.nonnegative)==1
-    ai=linsolve(T,[1.0];maxlength=100000)
+    ai=\(T,[1.0];maxlength=100000)
     ToeplitzOperator(ai[2:end],ai[1:1])
 end
 

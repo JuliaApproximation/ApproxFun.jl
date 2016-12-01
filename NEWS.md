@@ -8,6 +8,7 @@
 
 
 #### 0.4.1
+- `linsolve(A,b;kwds...)` -> `\(A,b;kwds...)`
 - `transform(sp::Space,v,plan)` -> `plan*v`
 - `PeriodicInterval()` now defaults to `PeriodicInterval(0,2π)`
 - `points(::Chebyshev,n)` has reversed the order

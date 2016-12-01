@@ -369,21 +369,21 @@ Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T}) 
 
 
 
-linsolve{S,T,DD,dim}(A::QROperator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
-    linsolve(A,mat(b);kwds...)
+\{S,T,DD,dim}(A::QROperator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
+    \(A,mat(b);kwds...)
 
 
 # avoid ambiguity
 for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:Operator)
-    @eval function linsolve{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
+    @eval function \{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
         if isambiguous(domainspace(A))
             A=choosespaces(A,b[:,1])  # use only first column
             if isambiguous(domainspace(A))
                 error("Cannot infer spaces")
             end
-            linsolve(A,b;kwds...)
+            \(A,b;kwds...)
         else
-            linsolve(qrfact(A),b;kwds...)
+            \(qrfact(A),b;kwds...)
         end
     end
 end

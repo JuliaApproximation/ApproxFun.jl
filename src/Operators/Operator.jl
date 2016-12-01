@@ -1,5 +1,5 @@
 export Operator
-export bandinds, bandrange, linsolve, periodic
+export bandinds, bandrange, \, periodic
 export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
@@ -509,7 +509,7 @@ end
 
 
 
-include("linsolve.jl")
+include("A_ldiv_B.jl")
 
 include("spacepromotion.jl")
 include("banded/banded.jl")

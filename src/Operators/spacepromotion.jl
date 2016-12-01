@@ -179,6 +179,6 @@ end
 ## algebra
 
 
-linsolve(A::SpaceOperator,b;kwds...) =
-    setspace(linsolve(A.op,setspace(Fun(b,rangespace(A)),rangespace(A.op));kwds...),
+\(A::SpaceOperator,b;kwds...) =
+    setspace(\(A.op,setspace(Fun(b,rangespace(A)),rangespace(A.op));kwds...),
              domainspace(A))

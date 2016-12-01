@@ -221,7 +221,7 @@ Base.getindex(::Operator,::,::)
 ```
 
 ```@docs
-linsolve
+\(::Operator,::)
 ```
 
 ```@docs

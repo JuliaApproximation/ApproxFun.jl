@@ -1,7 +1,7 @@
 using ApproxFun, Compat, Base.Test
     import Compat: view
     import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator,
-                        testbandedblockoperator, linsolve_coefficients
+                        testbandedblockoperator, A_ldiv_B_coefficients
 ## Check operators
 
 ## Rectangle PDEs
@@ -13,7 +13,7 @@ S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ=Laplacian(S)
 
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
-@time v=linsolve(Δ,f;tolerance=1E-14)
+@time v=\(Δ,f;tolerance=1E-14)
 @test norm((Δ*v-f).coefficients)<1E-14
 
 
@@ -37,7 +37,7 @@ A=[Dirichlet(d);Laplacian(d)]
 
 
 d=Interval()^2
-@time u=linsolve([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
+@time u=\([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
 @test_approx_eq u(.1,.9) 0.03679861429138079
 
 
@@ -49,7 +49,7 @@ dx=Interval();dt=Interval(0,2.)
 d=dx*dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
-@time u=linsolve([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
+@time u=\([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 
 @test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
 
@@ -88,7 +88,7 @@ F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
     Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[8]));
     0]
 
-@time u=linsolve(A,F;tolerance=1E-10)
+@time u=\(A,F;tolerance=1E-10)
 
 @test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
 
@@ -110,7 +110,7 @@ A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
          L]
 
 
-u=linsolve(A,[ones(8);0];tolerance=1E-5)
+u=\(A,[ones(8);0];tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
 
@@ -125,7 +125,7 @@ F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
     Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[8]));
     0]
 
-u=linsolve(A,F;tolerance=1E-10)
+u=\(A,F;tolerance=1E-10)
 
 @test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
 
@@ -191,7 +191,7 @@ v=Δ\f
 
 
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),rangespace(Δ))  #default is [-1,1]^2
-@time v=linsolve(Δ,f;tolerance=1E-14)
+@time v=\(Δ,f;tolerance=1E-14)
 @test norm((Δ*v-f).coefficients)<1E-14
 
 KO=Δ.op.ops[1].ops[1].op
@@ -246,16 +246,16 @@ QR = qrfact(A)
 @time ApproxFun.resizedata!(QR,:,200)
 j=56
 v=QR.R.op[1:100,j]
-@test norm(linsolve_coefficients(QR[:Q],v;maxlength=300)[j+1:end]) < 100eps()
+@test norm(A_ldiv_B_coefficients(QR[:Q],v;maxlength=300)[j+1:end]) < 100eps()
 
 j=195
 v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-@test norm(linsolve_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < 100eps()
+@test norm(A_ldiv_B_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < 100eps()
 
 
 j=300
 v=QR.R.op[1:ApproxFun.colstop(QR.R.op,j),j]
-@test norm(linsolve_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < j*20eps()
+@test norm(A_ldiv_B_coefficients(QR[:Q],v;maxlength=1000)[j+1:end]) < j*20eps()
 
 @test ApproxFun.colstop(QR.R.op,195)-194 == ApproxFun.colstop(QR.H,195)
 
@@ -279,13 +279,13 @@ QR2 = qrfact([Dirichlet(d);Laplacian()+100I])
 
 QR1 = qrfact(A)
 @time ApproxFun.resizedata!(QR1,:,5000)
-@time u=linsolve(QR1,[ones(∂(d));0.];tolerance=1E-7)
+@time u=\(QR1,[ones(∂(d));0.];tolerance=1E-7)
 
 @test norm((Dirichlet(d)*u-ones(∂(d))).coefficients) < 1E-7
 @test norm((A*u-Fun([ones(∂(d));0.])).coefficients) < 1E-7
 @test norm(((A*u)[2]-(Laplacian()+100I)*u).coefficients) < 1E-10
 @test norm((Laplacian()*u+100*u - (A*u)[2]).coefficients) < 1E-10
-@time v=linsolve(A,[ones(∂(d));0.];tolerance=1E-7)
+@time v=\(A,[ones(∂(d));0.];tolerance=1E-7)
 @test norm((u-v).coefficients) < 100eps()
 
 @test_approx_eq u(0.1,1.) 1.0
@@ -306,12 +306,12 @@ B=[dirichlet(S[1])⊗eye(S[2]);
    Laplacian()]
 
 
-u=linsolve(B,[ones(4);0];tolerance=1E-14)
+u=\(B,[ones(4);0];tolerance=1E-14)
 @test norm((u-Fun(S,[1.])).coefficients)<10eps()
 
 g=map(sp->Fun(ff,sp),map(rangespace,B[1:4]))
 
-u=linsolve(B,[g;0];tolerance=1E-10)
+u=\(B,[g;0];tolerance=1E-10)
 @test_approx_eq u(0.1,0.2) ff(0.1,0.2)
 
 
@@ -324,7 +324,7 @@ println("    Poisson tests")
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
 d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
-@time  u=linsolve(A,[zeros(∂(d));f];tolerance=1E-7)
+@time  u=\(A,[zeros(∂(d));f];tolerance=1E-7)
 @test_approx_eq_eps u(.1,.2) -0.04251891975068446 1E-5
 
 
@@ -358,7 +358,7 @@ A=[dirichlet(dx)⊗eye(dy);
          L]
 
 
-u=linsolve(A,[ones(4);zeros(5)];tolerance=1E-5)
+u=\(A,[ones(4);zeros(5)];tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
 
@@ -372,7 +372,7 @@ F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
     Fun((x,y)->-imag(exp(x+1.0im*y)),rangespace(A[8]));
     0]
 
-u=linsolve(A,F;tolerance=1E-10)
+u=\(A,F;tolerance=1E-10)
 
 @test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
 
@@ -390,7 +390,7 @@ A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
          L]
 
 
-u=linsolve(A,[ones(8);0];tolerance=1E-5)
+u=\(A,[ones(8);0];tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
 
@@ -405,7 +405,7 @@ F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
     Fun((x,y)->real(exp(x+1.0im*y))+imag(exp(x+1.0im*y)),rangespace(A[8]));
     0]
 
-u=linsolve(A,F;tolerance=1E-10)
+u=\(A,F;tolerance=1E-10)
 
 @test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
 
@@ -421,7 +421,7 @@ d=dθ*dt
 ε=0.1
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ,20)
-@time u=linsolve([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
+@time u=\([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
 @test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
 
 
@@ -435,7 +435,7 @@ A=Dt+Dθ
 
 testbandedblockbandedoperator(A)
 
-@time u=linsolve([I⊗ldirichlet(dt);Dt+Dθ],[u0;0.0];tolerance=1E-6)
+@time u=\([I⊗ldirichlet(dt);Dt+Dθ],[u0;0.0];tolerance=1E-6)
 @test_approx_eq_eps u(0.2,0.1) u0(0.1) 1E-6
 
 
@@ -455,13 +455,13 @@ C=0.0
 V=B+C*x
 ε=0.1
 f=Fun(x->exp(-30x^2),dx)
-u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
+u=\([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
 
 @test_approx_eq u(.1,.2) 0.496524222625512
 B=0.1
 C=0.2
 V=B+C*x
-u=linsolve([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-7)
+u=\([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-7)
 @test_approx_eq u(.1,.2) 0.46810331039791464
 
 
@@ -502,7 +502,7 @@ A=[ldirichlet(dt)⊗I;Dt+Dθ]
 testbandedblockbandedoperator(A[2])
 
 u0=Fun(θ->exp(-20θ^2),dθ,20)
-@time ut=linsolve(A,[u0;0.];tolerance=1E-5)
+@time ut=\(A,[u0;0.];tolerance=1E-5)
 @test_approx_eq_eps ut(.1,.2) u0(.2-.1) 1E-6
 
 
@@ -518,7 +518,7 @@ Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1]);
 
 B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
 u0=Fun(θ->exp(-200(θ-.5).^2),dθ)
-@time u=linsolve([B;Dt^2+Dθ^4],[u0;0.;0.];tolerance=1E-3)
+@time u=\([B;Dt^2+Dθ^4],[u0;0.;0.];tolerance=1E-3)
 
 @test_approx_eq_eps u(.1,.01) -0.2479768394633227  1E-3 #empirical
 
@@ -529,7 +529,7 @@ println("    Rectangle tests")
 # Screened Poisson
 
 d=Interval()^2
-@time u=linsolve([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
+@time u=\([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
 @test_approx_eq u(.1,.9) 0.03679861429138079
 
 # PiecewisePDE
@@ -556,7 +556,7 @@ dx=Interval();dt=Interval(0,2.)
 d=dx*dt
 Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
-@time u=linsolve([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
+@time u=\([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 
 @test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
 
@@ -566,5 +566,5 @@ d=dθ*dt
 ε=0.1
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ,20)
-@time u=linsolve([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
+@time u=\([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
 @test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
