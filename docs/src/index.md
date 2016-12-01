@@ -11,6 +11,7 @@ Pages = ["usage/constructors.md",
          "usage/domains.md",
          "usage/spaces.md",
          "usage/operators.md",
+         "usage/equations.md",
          "faq.md",
          "library.md"]
 ```

@@ -368,22 +368,8 @@ Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T}) 
     Any[vec(f,k) for k=1:length(space(f)[1])+1]
 
 
-
-\{S,T,DD,dim}(A::QROperator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
-    \(A,mat(b);kwds...)
-
-
 # avoid ambiguity
-for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:Operator)
-    @eval function \{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
-        if isambiguous(domainspace(A))
-            A=choosespaces(A,b[:,1])  # use only first column
-            if isambiguous(domainspace(A))
-                error("Cannot infer spaces")
-            end
-            \(A,b;kwds...)
-        else
-            \(qrfact(A),b;kwds...)
-        end
-    end
+for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:QROperator,:Operator)
+    @eval \{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
+        \(A,mat(b);kwds...)
 end

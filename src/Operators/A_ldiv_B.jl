@@ -14,13 +14,25 @@ function \(A::Operator,b::Fun;kwds...)
         end
         \(A,b;kwds...)
     else
-        Fun(domainspace(A),A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
+        Fun(domainspace(A),
+            A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
     end
 end
 
-\(A::Operator,b::StridedVecOrMat;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
-\(A::Operator,b::AbstractVecOrMat;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
+\(A::Operator,b::StridedVector;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
+\(A::Operator,b::AbstractVector;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
 \(A::Operator,b;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
+
+# Solve each column separately
+function \(A::Operator,B::AbstractMatrix;kwds...)
+    ds=domainspace(A)
+    ret=Array(Fun{typeof(ds),promote_type(mapreduce(eltype,promote_type,B),eltype(ds))},
+              1,size(B,2))
+    for j=1:size(B,2)
+        ret[:,j]=\(A,B[:,j];kwds...)
+    end
+    demat(ret)
+end
 
 A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b;kwds...)
 

@@ -154,10 +154,6 @@ end
 \(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
     Fun(domainspace(R),A_ldiv_B_coefficients(R,b.coefficients;kwds...))
 \(A::QROperatorR,b::Fun;kwds...) = error("\ not implement for $(typeof(b)) right-hand sides")
-\(A::QROperatorR,b::StridedVecOrMat;kwds...) = \(A,Fun(b);kwds...)
-\(A::QROperatorR,b::AbstractVecOrMat;kwds...) = \(A,Fun(b);kwds...)
-\(A::QROperatorR,b;kwds...) = \(A,Fun(b);kwds...)
-
 
 
 # QR
@@ -180,25 +176,5 @@ A_ldiv_B_coefficients{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::Vecto
     A_ldiv_B_coefficients(QR,Vector{T}(b);kwds...)
 
 
-function \(QR::QROperator,b::Vector{Any};kwds...)
-    #TODO: PDEQR remove this is a hack
-    if length(b) == 1 && isa(b[1],Fun)
-        \(QR,Fun(b[1],rangespace(QR));kwds...)
-    else
-        \(QR,Fun(b,rangespace(QR));kwds...)
-    end
-end
-function \(A::QROperator,B::Matrix;kwds...)
-    ds=domainspace(A)
-    ret=Array(Fun{typeof(ds),promote_type(mapreduce(eltype,promote_type,B),eltype(ds))},
-              1,size(B,2))
-    for j=1:size(B,2)
-        ret[:,j]=\(A,B[:,j];kwds...)
-    end
-    demat(ret)
-end
 \(A::QROperator,b::Fun;kwds...) =
     Fun(domainspace(A),A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
-\(A::QROperator,b::StridedVecOrMat;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
-\(A::QROperator,b::AbstractVecOrMat;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
-\(A::QROperator,b;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
