@@ -237,9 +237,8 @@ function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::Clens
 end
 
 
-function extremal_args{S<:PiecewiseSpace}(f::Fun{S})
-    return cat(1,[extremal_args(fp) for fp in vec(f)]...)
-end
+extremal_args{S<:PiecewiseSpace}(f::Fun{S}) = cat(1,[extremal_args(fp) for fp in vec(f)]...)
+
 
 function extremal_args(f::Fun)
     d=domain(f)

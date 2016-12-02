@@ -245,6 +245,7 @@ f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 d=Interval()
 B=ldirichlet(d)
 f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
+
 @test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<20000eps()
 @test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<20000eps()
 

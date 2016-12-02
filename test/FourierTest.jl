@@ -34,7 +34,6 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
 @test_approx_eq f(.5) Fun(f,Fourier)(.5)
 
 
-
 Γ=Circle(1.1,2.2)
 z=Fun(Fourier(Γ))
 @test space(z)==Fourier(Γ)

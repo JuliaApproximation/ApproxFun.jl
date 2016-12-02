@@ -133,17 +133,18 @@ let d = Chebyshev()^2
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(d[1])⊗ldirichlet(d[2])
-    @test_approx_eq B*f f(-1.,-1.)
+    @test_approx_eq Number(B*f) f(-1.,-1.)
 
     B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
-    @test_approx_eq B*f f(0.1,-1.)
+    @test_approx_eq Number(B*f) f(0.1,-1.)
 
     B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
-    @test_approx_eq B*f f(0.1,0.3)
+    @test_approx_eq Number(B*f) f(0.1,0.3)
 
     B=Evaluation(d,(0.1,0.3))
-    @test_approx_eq B*f f(0.1,0.3)
+    @test_approx_eq Number(B*f) f(0.1,0.3)
 end
+
 
 let d = Space(0..1) * Space(0..2)
     Dx = Derivative(d, [1,0])
@@ -157,16 +158,16 @@ let d = Space(0..1) * Space(0..2)
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(d[1])⊗ldirichlet(d[2])
-    @test abs(B*f-f(0.,0.)) ≤ 10eps()
+    @test abs(Number(B*f)-f(0.,0.)) ≤ 10eps()
 
     B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
-    @test_approx_eq B*f f(0.1,0.)
+    @test_approx_eq Number(B*f) f(0.1,0.)
 
     B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
-    @test_approx_eq B*f f(0.1,0.3)
+    @test_approx_eq Number(B*f) f(0.1,0.3)
 
     B=Evaluation(d,(0.1,0.3))
-    @test_approx_eq B*f f(0.1,0.3)
+    @test_approx_eq Number(B*f) f(0.1,0.3)
 end
 
 

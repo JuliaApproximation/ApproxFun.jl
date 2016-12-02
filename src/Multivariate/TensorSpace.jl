@@ -209,6 +209,11 @@ end
 tensorblocklengths(a,b::Repeated) =
     tensorblocklengths(b,a)
 
+function tensorblocklengths(a::Vector{Bool},b::Vector{Bool})
+    @assert length(a) == length(b) && a[1] && b[1]
+    a
+end
+
 
 tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d...)
 

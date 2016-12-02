@@ -233,7 +233,7 @@ Base.getindex(::Operator,::,::)
 ```
 
 ```@docs
-\(::Operator,::)
+\(::Operator,::Fun)
 ```
 
 ```@docs

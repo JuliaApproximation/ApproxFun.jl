@@ -7,7 +7,7 @@ Base.done(f::Fun{SequenceSpace},st) = false # infinite length
 
 getindex(f::Fun{SequenceSpace},k::Integer) =
     k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
-getindex(f::Fun{SequenceSpace},K::CartesianIndex{0}) = f[1]    
+getindex(f::Fun{SequenceSpace},K::CartesianIndex{0}) = f[1]
 getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
 
 Base.length(f::Fun{SequenceSpace}) = ∞
@@ -183,5 +183,4 @@ promoterangespace{CS<:ConstantSpace}(M::ConcreteMultiplication{CS,UnsetSpace},
 choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::UnsetSpace) = space(M.f)
 choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = space(M.f)
 
-
-*{D}(A::Multiplication{D,ConstantSpace},b::Fun{ConstantSpace}) = A.f*Number(b)
+Base.isfinite{CS<:ConstantSpace}(f::Fun{CS}) = isfinite(Number(f))

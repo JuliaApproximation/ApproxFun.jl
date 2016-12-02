@@ -41,8 +41,6 @@ include("CurveSpace.jl")
 
 
 
-
-
 ## Derivative
 
 function invfromcanonicalD(S::Laurent{PeriodicLine{false}})

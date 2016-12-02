@@ -10,9 +10,7 @@ end
 
 function abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
-
     pts=roots(f)
-
     splitmap(x->abs(f(x)),d,pts)
 end
 
@@ -52,7 +50,7 @@ end
 
 for op in (:(max),:(min))
     @eval begin
-        function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T<:Real}(f::Fun{S,T},g::Fun{V,T})
+        function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}(f::Fun{S,T1},g::Fun{V,T2})
             h=f-g
             d=domain(h)
             pts=roots(h)
@@ -62,6 +60,8 @@ for op in (:(max),:(min))
         $op{S<:RealUnivariateSpace,T<:Real}(f::Real,g::Fun{S,T}) = $op(Fun(f,domain(g)),g)
     end
 end
+
+Base.isfinite(f::Fun) = isfinite(maxabs(f)) && isfinite(minabs(f))
 
 # division by fun
 
@@ -687,13 +687,44 @@ end
 
 ## ConstantSpace default overrides
 
+
 # ambiguity
-Base.abs2{CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) = Fun(abs2(Number(z)),space(z))
+for OP in (:(Base.abs),)
+    @eval begin
+        $OP{CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) =
+            Fun($OP(Number(z)),space(z))
+        $OP{CS<:ConstantSpace,T<:Real}(z::Fun{CS,T}) =
+            Fun($OP(Number(z)),space(z))
+        $OP{CS<:ConstantSpace,T}(z::Fun{CS,T}) =
+            Fun($OP(Number(z)),space(z))
+    end
+end
+
+for OP in (:(Base.max),:(Base.min))
+    @eval begin
+        $OP{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Real,V<:Real}(a::Fun{CS1,T},b::Fun{CS2,V}) =
+            Fun($OP(Number(a),Number(b)),space(a) ∪ space(b))
+        $OP{CS<:ConstantSpace,T<:Real}(a::Fun{CS,T},b::Real) =
+            Fun($OP(Number(a),b),space(a))
+        $OP{CS<:ConstantSpace,T<:Real}(a::Real,b::Fun{CS,T}) =
+            Fun($OP(a,Number(b)),space(b))
+    end
+end
+
+for OP in (:<,:(Base.isless),:(<=),:>,:(>=))
+    @eval begin
+        $OP{CS<:ConstantSpace}(a::Fun{CS},b::Fun{CS}) = $OP(Number(a),Number(b))
+        $OP{CS<:ConstantSpace}(a::Fun{CS},b::Number) = $OP(Number(a),b)
+        $OP{CS<:ConstantSpace}(a::Number,b::Fun{CS}) = $OP(a,Number(b))
+    end
+end
 
 # from DualNumbers
 for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
     @eval begin
         $(funsym){CS<:ConstantSpace,T<:Real}(z::Fun{CS,T}) =
+            Fun($(funsym)(Number(z)),space(z))
+        $(funsym){CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) =
             Fun($(funsym)(Number(z)),space(z))
         $(funsym){CS<:ConstantSpace}(z::Fun{CS}) =
             Fun($(funsym)(Number(z)),space(z))

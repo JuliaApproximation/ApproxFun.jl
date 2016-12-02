@@ -109,7 +109,7 @@ julia> 1 + 2exp(-im*0.1) + 3exp(im*0.1) + 4exp(-2im*0.1)
 
 Some spaces are built out of other spaces.  A simple example is `JacobiWeight(β,α,space)`
 which weights `space`, which is typically `Chebyshev()` or `Jacobi(b,a)`,
- by a Jacobi weight `(1+x)^β*(1-x)^a`.
+ by a Jacobi weight `(1+x)^b*(1-x)^a`.
 
 
  ```@meta

@@ -4,6 +4,13 @@
 using Base.Test
 
 
+## Supports @test_approx_eq
+
+
+Base.Test.approx_full(f::Fun) = f
+
+
+
 ## Spaces Tests
 
 

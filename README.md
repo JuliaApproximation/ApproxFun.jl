@@ -6,8 +6,12 @@
 
 
 
-ApproxFun is a package for approximating functions. It is heavily influenced by the Matlab
-package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).
+ApproxFun is a package for approximating functions. It is in a similar vein to the Matlab
+package [`Chebfun`](http://www.chebfun.org) and the Mathematica package [`RHPackage`](http://www.maths.usyd.edu.au/u/olver/projects/RHPackage.html).  
+
+The  [`ApproxFun Documentation`](https://JuliaApproximation.github.io/ApproxFun.jl/latest) contains detailed information, or read on for a brief overview of the package.
+
+## Introduction
 
 
 Take your two favourite functions on an interval and create approximations to them as simply as:
@@ -38,7 +42,7 @@ scatter!(rp,h(rp))
 <img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/extrema.png width=500 height=400>
 
 
-# Differentiation and integration
+## Differentiation and integration
 
 
 Notice from above that to find the extrema, we used `'` overridden for the `differentiate` function. Several other `Julia`
@@ -68,7 +72,7 @@ h = airyai(10asin(f)+2g)
 ```
 
 
-# Solving ordinary differential equations
+## Solving ordinary differential equations
 
 
 Solve the Airy ODE `u'' - x u = 0` as a BVP on `[-1000,200]`:
@@ -86,7 +90,7 @@ plot(u)
 <img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/airy.png width=500 height=400>
 
 
-# Nonlinear Boundary Value problems
+## Nonlinear Boundary Value problems
 
 Solve a nonlinear boundary value problem satisfying the ODE `0.001u'' + 6*(1-x^2)*u' + u^2 = 1` with boundary conditions `u(-1)==1`, `u(1)==-0.5` on `[-1,1]`:
 
@@ -103,7 +107,7 @@ plot(u)
 
 
 
-# Periodic functions
+## Periodic functions
 
 
 There is also support for Fourier representations of functions on periodic intervals.
@@ -140,7 +144,7 @@ plot(uFourier)
 
 
 
-# Sampling
+## Sampling
 
 
 Other operations including random number sampling using [Olver & Townsend 2013].  The
@@ -156,7 +160,7 @@ plot!(f/sum(f))
 <img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/sample.png width=500 height=400>
 
 
-# Solving partial differential equations
+## Solving partial differential equations
 
 
 We can solve PDEs, the following solves Helmholtz `Δu + 100u=0` with `u(±1,y)=u(x,±1)=1`
@@ -190,7 +194,7 @@ timeevolution(B,L,u0,h)                    # Requires GLPlot
 ``` -->
 
 
-# High precision
+## High precision
 
 Solving differential equations with high precision types is available.  The following calculates `e` to 300 digits by solving the ODE `u' = u`:
 
@@ -205,7 +209,7 @@ end
 
 
 
-# References
+## References
 
 S. Olver & A. Townsend (2014), A practical framework for infinite-dimensional linear algebra, Proceedings of the 1st First Workshop for High Performance Technical Computing in Dynamic Languages, 57–62
 

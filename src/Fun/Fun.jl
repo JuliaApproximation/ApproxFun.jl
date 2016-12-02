@@ -104,9 +104,16 @@ Base.one(f::Fun)=ones(f)
 
 Base.eltype{S,T}(::Fun{S,T}) = T
 
-#supports broadcasting
+#supports broadcasting and scalar iterator
 Base.size(f::Fun,k...) = size(space(f),k...)
 Base.getindex(f::Fun,::CartesianIndex{0}) = f
+Base.getindex(f::Fun,k::Integer) = k == 1 ? f : throw(BoundsError())
+Base.length(f::Fun) = length(space(f))
+Base.start(f::Fun) = false
+Base.next(x::Fun, state) = (x, true)
+Base.done(x::Fun, state) = state
+Base.isempty(x::Fun) = false
+Base.in(x::Fun, y::Fun) = x == y
 
 
 

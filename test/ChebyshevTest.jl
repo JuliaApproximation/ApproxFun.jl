@@ -1,8 +1,6 @@
 using ApproxFun, Base.Test
     import ApproxFun: testspace
 
-testspace(Chebyshev())
-
 for d in (Interval(),Interval(1.,2.),Segment(1.0+im,2.0+2im))
     testspace(Chebyshev(d))
 end

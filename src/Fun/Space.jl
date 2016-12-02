@@ -363,7 +363,7 @@ function defaultcoefficients(f,a,b)
     if spacescompatible(a,b)
         f
     elseif spacescompatible(ct,a)
-        (Conversion(a,b)*f).coefficients
+        A_mul_B_coefficients(Conversion(a,b),f)
     elseif spacescompatible(ct,b)
         A_ldiv_B_coefficients(Conversion(b,a),f)
     else
