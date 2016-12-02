@@ -229,7 +229,7 @@ LowRankPertOperator:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
 julia> u = cos(10x^2);
 
 julia> (L*u)(0.1)
-1.3777980523127333
+1.3777980523127336
 
 julia> u(0.1) + exp(0.1)*sum(u)
 1.3777980523127336
@@ -285,7 +285,7 @@ infer it when the operator is used.  For example, we can construct `Derivative()
 which has the alias `𝒟`, and represents the first derivative on any space:
 ```jldoctest
 julia> f = Fun(cos,Chebyshev(0..1)); (𝒟*f)(0.1)
--0.09983341664681707
+-0.09983341664681705
 
 julia> f = Fun(cos,Fourier()); (𝒟*f)(0.1)
 -0.09983341664682804
