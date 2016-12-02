@@ -20,12 +20,12 @@ function plotptsvals{S<:JacobiWeight}(f::Fun{S})
     pts,vals=points(f),values(f)
     # add endpoints so that singularity is viewable
     if s.β ≥ 0
-        pts=insert!(pts,1,first(domain(f)))
-        vals=insert!(vals,1,first(f))
+        pts=push!(pts,first(domain(f)))
+        vals=push!(vals,first(f))
     end
     if s.α ≥ 0
-        pts=push!(pts,last(domain(f)))
-        vals=push!(vals,last(f))
+        pts=insert!(pts,1,last(domain(f)))
+        vals=insert!(vals,1,last(f))
     end
 
     pts,vals
