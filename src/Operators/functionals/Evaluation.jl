@@ -31,6 +31,7 @@ end
 
 Evaluation(sp::UnsetSpace,x::Bool,k) =
     ConcreteEvaluation{UnsetSpace,Bool,typeof(k),UnsetNumber}(sp,x,k)
+
 Evaluation(sp::Space{ComplexBasis},x,order) =
     Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
 Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
@@ -38,7 +39,7 @@ Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
 #Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::Space,x::Union{Number,Bool}) = Evaluation(d,x,0)
 
-Evaluation(d::Domain,x::Union{Number,Bool},n...) = Evaluation(Space(d),x,n...)
+Evaluation(d,n...) = Evaluation(Space(d),n...)
 Evaluation(x::Union{Number,Bool}) = Evaluation(UnsetSpace(),x,0)
 Evaluation(x::Union{Number,Bool},k::Integer) = Evaluation(UnsetSpace(),x,k)
 Evaluation{T<:Number}(d::Vector{T},x::Union{Number,Bool},o::Integer) = Evaluation(Interval(d),x,o)

@@ -89,11 +89,8 @@ function complexplotvals(f::Fun)
     end
 end
 
-@userplot ComplexPlot
-
-@recipe function f(h::ComplexPlot)
-    @assert length(h.args)==1
-    complexplotvals(h.args[1])
+@recipe function f(::Type{Val{:complexplot}},h)
+    complexplotvals(h)
 end
 
 @recipe function f(dd::Domain)
