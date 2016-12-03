@@ -7,6 +7,7 @@ Base.done(f::Fun{SequenceSpace},st) = false # infinite length
 
 getindex(f::Fun{SequenceSpace},k::Integer) =
     k ≤ ncoefficients(f) ? f.coefficients[k] : zero(eltype(f))
+getindex(f::Fun{SequenceSpace},K::CartesianIndex{0}) = f[1]
 getindex(f::Fun{SequenceSpace},K) = eltype(f)[f[k] for k in K]
 
 Base.length(f::Fun{SequenceSpace}) = ∞
@@ -24,10 +25,15 @@ Base.norm(f::Fun{SequenceSpace},k::Int) = norm(f.coefficients,k)
 Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)
 
 
+Fun(cfs::Vector,S::SequenceSpace) = Fun(S,cfs)
+coefficients(cfs::Vector,::SequenceSpace) = cfs  # all vectors are convertible to SequenceSpace
+
+
+
 ## Constant space defintions
 
-Fun(c::Number)=Fun([c],ConstantSpace())
-Fun(c::Number,d::ConstantSpace)=Fun([c],d)
+Fun(c::Number) = Fun(ConstantSpace(),[c])
+Fun(c::Number,d::ConstantSpace) = Fun(d,[c])
 
 dimension(::ConstantSpace) = 1
 
@@ -37,7 +43,7 @@ setdomain{CS<:AnyDomain}(f::Fun{CS},d::Domain) = Number(f)*ones(d)
 canonicalspace(C::ConstantSpace) = C
 spacescompatible(a::ConstantSpace,b::ConstantSpace)=domainscompatible(a,b)
 
-Base.ones(S::ConstantSpace)=Fun(ones(1),S)
+Base.ones(S::ConstantSpace)=Fun(S,ones(1))
 Base.ones(S::Union{AnyDomain,UnsetSpace})=ones(ConstantSpace())
 Base.zeros(S::Union{AnyDomain,UnsetSpace})=zeros(ConstantSpace())
 evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
@@ -89,7 +95,7 @@ function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k:
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
 
-coefficients{TT,SV,T,DD}(f::Vector,sp::ConstantSpace{Interval{Vec{2,TT}}},ts::TensorSpace{SV,T,DD,2}) =
+coefficients{TT,SV,T,DD}(f::Vector,sp::ConstantSpace{Segment{Vec{2,TT}}},ts::TensorSpace{SV,T,DD,2}) =
     f[1]*ones(ts).coefficients
 coefficients(f::Vector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
 
@@ -177,5 +183,4 @@ promoterangespace{CS<:ConstantSpace}(M::ConcreteMultiplication{CS,UnsetSpace},
 choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::UnsetSpace) = space(M.f)
 choosedomainspace{D<:ConstantSpace}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = space(M.f)
 
-
-*{D}(A::Multiplication{D,ConstantSpace},b::Fun{ConstantSpace}) = A.f*Number(b)
+Base.isfinite{CS<:ConstantSpace}(f::Fun{CS}) = isfinite(Number(f))

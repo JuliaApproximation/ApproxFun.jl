@@ -9,6 +9,12 @@ export Ray
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1].  We use 1 as 1==true.
 #orientation true means oriented out
+doc"""
+    Ray{a}(c,o)
+
+represents a ray at angle `a` starting at `c`, with orientation out to
+infinity (`o = true`) or back from infinity (`o = false`).
+"""
 immutable Ray{angle,T<:Number} <: IntervalDomain{T}
     center::T
     orientation::Bool
@@ -36,21 +42,21 @@ Ray() = Ray{false}()
 
 ##deal with vector
 
-function Ray(d::AbstractVector)
-    @assert length(d)==2
-    @assert abs(d[1])==Inf|| abs(d[2])==Inf
+function Base.convert(::Type{Ray},d::ClosedInterval)
+    a,b=d.left,d.right
+    @assert abs(a)==Inf || abs(b)==Inf
 
-    if abs(d[2])==Inf
-        Ray(d[1],angle(d[2]),true)
-    else #d[1]==Inf
-        Ray(d[2],angle(d[1]),false)
+    if abs(b)==Inf
+        Ray(a,angle(b),true)
+    else #abs(a)==Inf
+        Ray(b,angle(a),false)
     end
 end
 
 
 isambiguous(d::Ray)=isnan(d.center)
-Base.convert{a,T<:Number}(::Type{Ray{a,T}},::AnyDomain)=Ray{a,T}(NaN,true)
-Base.convert{IT<:Ray}(::Type{IT},::AnyDomain)=Ray(NaN,NaN)
+Base.convert{a,T<:Number}(::Type{Ray{a,T}},::AnyDomain) = Ray{a,T}(NaN,true)
+Base.convert{IT<:Ray}(::Type{IT},::AnyDomain) = Ray(NaN,NaN)
 
 
 

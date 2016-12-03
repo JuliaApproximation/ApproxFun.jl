@@ -1,6 +1,6 @@
-export Fun,evaluate,values,points,extrapolate
-export coefficients,ncoefficients
-export integrate,differentiate,domain,space,linesum,linenorm
+export Fun, evaluate, values, points, extrapolate, setdomain
+export coefficients, ncoefficients, coefficient, nblocks
+export integrate, differentiate, domain, space, linesum, linenorm
 
 include("Domain.jl")
 include("Space.jl")
@@ -9,38 +9,30 @@ include("Space.jl")
 
 
 type Fun{S,T}
-    coefficients::Vector{T}
     space::S
-    function Fun(coeff::Vector{T},sp::S)
+    coefficients::Vector{T}
+    function Fun(sp::S,coeff::Vector{T})
         @assert length(coeff)≤dimension(sp)
-        new(coeff,sp)
+        new(sp,coeff)
     end
 end
 
-"""
-    Fun(coefficients,space)
+Fun(sp::Space,coeff::Vector) = Fun{typeof(sp),eltype(coeff)}(sp,coeff)
+Fun{T<:Integer}(sp::Space,coeff::Vector{T}) = Fun(sp,1.0coeff)
 
-returns a Fun with coefficients in the space
-"""
-Fun(coeff::Vector,sp::Space) = Fun{typeof(sp),eltype(coeff)}(coeff,sp)
-Fun{T<:Integer}(coeff::Vector{T},sp::Space) = Fun(1.0coeff,sp)
-
-function Fun(v::Vector{Any},sp::Space)
-    if isempty(v)  || all(x->isa(x,Number) && x==0,v)
-        Fun(Float64[],sp)
+function Fun(sp::Space,v::Vector{Any})
+    if isempty(v)
+        Fun(sp,Float64[])
+    elseif all(x->isa(x,Number),v)
+        Fun(sp,Vector{mapreduce(typeof,promote_type,v)}(v))
     else
-        error("Cannot convert $v to a Fun of type $sp")
+        error("Cannot construct Fun with coefficients $v and space $sp")
     end
 end
 
 ##Coefficient routines
 #TODO: domainscompatible?
 
-"""
-    coefficients(fun,space)
-
-returns the coefficients of a fun in a possibly different space
-"""
 function coefficients(f::Fun,msp::Space)
     #zero can always be converted
     if ncoefficients(f)==1 && f.coefficients[1]==0
@@ -49,16 +41,38 @@ function coefficients(f::Fun,msp::Space)
         coefficients(f.coefficients,space(f),msp)
     end
 end
-coefficients{T<:Space}(f::Fun,::Type{T})=coefficients(f,T(domain(f)))
-coefficients(f::Fun)=f.coefficients
-coefficients(c::Number,sp::Space)=Fun(c,sp).coefficients
+coefficients{T<:Space}(f::Fun,::Type{T}) = coefficients(f,T(domain(f)))
+coefficients(f::Fun) = f.coefficients
+coefficients(c::Number,sp::Space) = Fun(c,sp).coefficients
+
+function coefficient(f::Fun,k::Integer)
+    if k > dimension(space(f)) || k < 1
+        throw(BoundsError())
+    elseif k > ncoefficients(f)
+        zero(eltype(f))
+    else
+        f.coefficients[k]
+    end
+end
+
+function coefficient(f::Fun,kr::Range)
+    b = maximum(kr)
+
+    if b ≤ ncoefficients(f)
+        f.coefficients[kr]
+    else
+        [coefficient(f,k) for k in kr]
+    end
+end
+
+coefficient(f::Fun,K::Block) = coefficient(f,blockrange(space(f),K.K))
 
 
 ##Convert routines
 
 
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(convert(Vector{T},f.coefficients),f.space)
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(convert(Vector{T},f.coefficients),f.space),S(domain(f)))  #TODO: this line is incompatible with space conversion
+Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(f.space,convert(Vector{T},f.coefficients))
+Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(f.space,convert(Vector{T},f.coefficients)),S(domain(f)))  #TODO: this line is incompatible with space conversion
 
 Base.convert{T,S}(::Type{Fun{S,T}},x::Number) =
     x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
@@ -88,13 +102,25 @@ end
 Base.zero(f::Fun)=zeros(f)
 Base.one(f::Fun)=ones(f)
 
-Base.eltype{S,T}(::Fun{S,T})=T
+Base.eltype{S,T}(::Fun{S,T}) = T
+
+#supports broadcasting and scalar iterator
+Base.size(f::Fun,k...) = size(space(f),k...)
+Base.getindex(f::Fun,::CartesianIndex{0}) = f
+Base.getindex(f::Fun,k::Integer) = k == 1 ? f : throw(BoundsError())
+Base.length(f::Fun) = length(space(f))
+Base.start(f::Fun) = false
+Base.next(x::Fun, state) = (x, true)
+Base.done(x::Fun, state) = state
+Base.isempty(x::Fun) = false
+Base.in(x::Fun, y::Fun) = x == y
 
 
 
 
-setspace(v::AbstractVector,s::Space) = Fun(v,s)
-setspace(f::Fun,s::Space) = Fun(f.coefficients,s)
+
+setspace(v::AbstractVector,s::Space) = Fun(s,v)
+setspace(f::Fun,s::Space) = Fun(s,f.coefficients)
 
 
 ## domain
@@ -107,7 +133,7 @@ domain(f::Fun) = domain(f.space)
 domain{T<:Fun}(v::AbstractMatrix{T}) = map(domain,v)
 
 
-setdomain(f::Fun,d::Domain) = Fun(f.coefficients,setdomain(space(f),d))
+setdomain(f::Fun,d::Domain) = Fun(setdomain(space(f),d),f.coefficients)
 
 for op in (:tocanonical,:tocanonicalD,:fromcanonical,:fromcanonicalD,:invfromcanonicalD)
     @eval $op(f::Fun,x...) = $op(domain(f),x...)
@@ -124,7 +150,7 @@ end
 space(f::Fun) = f.space
 spacescompatible(f::Fun,g::Fun) = spacescompatible(space(f),space(g))
 canonicalspace(f::Fun) = canonicalspace(space(f))
-canonicaldomain(f::Fun) = canonicaldomain(domain(f))
+canonicaldomain(f::Fun) = canonicaldomain(space(f))
 
 
 ##Evaluation
@@ -165,9 +191,9 @@ extrapolate(f::Fun,x,y,z...) = extrapolate(f.coefficients,f.space,Vec(x,y,z...))
 
 
 values(f::Fun,dat...) = itransform(f.space,f.coefficients,dat...)
-points(f::Fun)=points(f.space,ncoefficients(f))
-ncoefficients(f::Fun)=length(f.coefficients)
-
+points(f::Fun) = points(f.space,ncoefficients(f))
+ncoefficients(f::Fun) = length(f.coefficients)
+nblocks(f::Fun) = block(space(f),ncoefficients(f))
 
 function Base.stride(f::Fun)
     # Check only for stride 2 at the moment
@@ -187,7 +213,7 @@ end
 ## Manipulate length
 
 pad!(f::Fun,n::Integer) = (pad!(f.coefficients,n);f)
-pad(f::Fun,n::Integer) = Fun(pad(f.coefficients,n),f.space)
+pad(f::Fun,n::Integer) = Fun(f.space,pad(f.coefficients,n))
 
 
 function chop!{S,T}(f::Fun{S,T},tol::Real)
@@ -198,9 +224,12 @@ function chop!{S,T}(f::Fun{S,T},tol::Real)
 
     f
 end
-chop(f::Fun,tol)=chop!(Fun(copy(f.coefficients),f.space),tol)
+
+
+chop(f::Fun,tol)=chop!(Fun(f.space,copy(f.coefficients)),tol)
 chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
 
+Base.copy(f::Fun) = Fun(space(f),copy(f.coefficients))
 
 ## Addition and multiplication
 
@@ -211,7 +240,7 @@ for op in (:+,:-,:(.+),:(.-))
                 n = max(ncoefficients(f),ncoefficients(g))
                 f2 = pad(f,n); g2 = pad(g,n)
 
-                Fun(($op)(f2.coefficients,g2.coefficients),isambiguous(domain(f))?g.space:f.space)
+                Fun(isambiguous(domain(f))?g.space:f.space,($op)(f2.coefficients,g2.coefficients))
             else
                 m=union(f.space,g.space)
                 if isa(m,NoSpace)
@@ -220,7 +249,7 @@ for op in (:+,:-,:(.+),:(.-))
                 $op(Fun(f,m),Fun(g,m)) # convert to same space
             end
         end
-        $op{S,T<:Number}(f::Fun{S,T},c::T)=c==0?f:$op(f,Fun(c))
+        $op{S,T<:Number}(f::Fun{S,T},c::T) = c==0?f:$op(f,Fun(c))
         $op(f::Fun,c::Number)=$op(f,Fun(c))
         $op(f::Fun,c::UniformScaling)=$op(f,c.λ)
         $op(c::UniformScaling,f::Fun)=$op(c.λ,f)
@@ -254,19 +283,19 @@ end
 
 
 
--(f::Fun)=Fun(-f.coefficients,f.space)
+-(f::Fun)=Fun(f.space,-f.coefficients)
 for op in (:-,:(.-))
     @eval $op(c::Number,f::Fun)=-$op(f,c)
 end
 
 
 for op = (:*,:.*,:./,:/)
-    @eval $op(f::Fun,c::Number) = Fun($op(f.coefficients,c),f.space)
+    @eval $op(f::Fun,c::Number) = Fun(f.space,$op(f.coefficients,c))
 end
 
 
 for op = (:*,:.*,:+,:(.+))
-    @eval $op(c::Number,f::Fun)=$op(f,c)
+    @eval $op(c::Number,f::Fun) = $op(f,c)
 end
 
 
@@ -282,7 +311,7 @@ function .^{S,T}(f::Fun{S,T},k::Integer)
     end
 end
 
-Base.inv{S,T}(f::Fun{S,T})=1./f
+Base.inv{S,T}(f::Fun{S,T}) = 1./f
 
 # Integrals over two Funs, which are fast with the orthogonal weight.
 
@@ -345,13 +374,13 @@ end
 Base.transpose(f::Fun) = f  # default no-op
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op){S<:Space{RealBasis}}(f::Fun{S}) = Fun(($op)(f.coefficients),f.space)
+    @eval ($op){S<:Space{RealBasis}}(f::Fun{S}) = Fun(f.space,($op)(f.coefficients))
 end
 
-Base.conj(f::Fun)=error("Override conj for $(typeof(f))")
+Base.conj(f::Fun) = error("Override conj for $(typeof(f))")
 
-Base.abs2{S<:Space{RealBasis},T<:Real}(f::Fun{S,T})=f^2
-Base.abs2{S<:Space{RealBasis},T<:Complex}(f::Fun{S,T})=real(f)^2+imag(f)^2
+Base.abs2{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = f^2
+Base.abs2{S<:Space{RealBasis},T<:Complex}(f::Fun{S,T}) = real(f)^2+imag(f)^2
 Base.abs2(f::Fun)=f*conj(f)
 
 ##  integration

@@ -1,6 +1,6 @@
 
 
-export PlusOperator,TimesOperator
+export PlusOperator, TimesOperator, A_mul_B_coefficients
 
 
 
@@ -433,7 +433,7 @@ end
     promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B.ops...])
 function *(A::TimesOperator,B::Operator)
     if isconstop(B)
-        promotedomainspace(A*convert(Number,B),domainspace(B))
+        promotedomainspace(convert(Number,B)*A,domainspace(B))
     else
         promotetimes(Operator{promote_type(eltype(A),eltype(B))}[A.ops...,B])
     end
@@ -517,53 +517,36 @@ end
 
 
 ## Operations
-
-for TYP in (:Vector,:Matrix)
-    @eval begin
-        function *(A::TimesOperator,b::$TYP)
-            ret = b
-            for k=length(A.ops):-1:1
-                ret = A.ops[k]*ret
-            end
-
-            ret
-        end
-
-
-        function *(A::Operator,b::$TYP)
-            if isafunctional(A)
-                return dotu(A[1:length(b)],b)
-            end
-
-            rs=rangespace(A)
-            if isambiguous(rs)
-                error("Assign spaces to $A before multiplying.")
-            end
-
-            n=size(b,1)
-            ret=if n>0
-                A[FiniteRange,1:n]*b
-            else
-                b
-            end
-            Fun(ret,rs)
-        end
+function A_mul_B_coefficients(A::TimesOperator,b)
+    ret = b
+    for k=length(A.ops):-1:1
+        ret = A_mul_B_coefficients(A.ops[k],ret)
     end
+
+    ret
 end
 
-function *(A::Operator,b::Fun)
-    dsp=domainspace(A)
-    if isambiguous(dsp)
+
+function A_mul_B_coefficients(A::Operator,b)
+    n=size(b,1)
+    ret = n>0 ? A[FiniteRange,1:n]*b : b
+end
+
+function *(A::Operator,b)
+    ds = domainspace(A)
+    rs = rangespace(A)
+    if isambiguous(ds)
         promotedomainspace(A,space(b))*b
+    elseif isambiguous(rs)
+        error("Assign spaces to $A before multiplying.")
     else
-        A*coefficients(b,dsp)
+        Fun(rs,
+            A_mul_B_coefficients(A,coefficients(b,ds)))
     end
 end
 
-*{F<:Fun}(A::TimesOperator,b::Vector{F}) = A*Fun(b)
-*{F<:Fun}(A::Operator,b::Vector{F}) = A*Fun(b)
-
-*(A::PlusOperator,b::Fun) = mapreduce(x->x*b,+,A.ops)
+A_mul_B_coefficients(A::PlusOperator,b::Fun) =
+    mapreduce(x->A_mul_B_coefficients(x,b),+,A.ops)
 
 for TYP in (:TimesOperator,:Operator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})

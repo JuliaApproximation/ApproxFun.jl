@@ -36,7 +36,7 @@ function pruneeigs(λ,V,ds,tolerance)
     for k=1:n
         if slnorm(V,n-3:n,k)≤tolerance
             push!(retλ,λ[k])
-            push!(retV,Fun(V[:,k],ds))
+            push!(retV,Fun(ds,V[:,k]))
         end
     end
     retλ,retV

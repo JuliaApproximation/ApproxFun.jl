@@ -19,7 +19,7 @@ f=Fun(x->exp(im.*x))
 ##Check other real domains
 
 
-f=Fun(x->exp(im.*x),[1,2])
+f=Fun(x->exp(im.*x),1..2)
 
 
 @test norm(f'-im*f) < 1000eps()
@@ -36,7 +36,7 @@ f=Fun(x->exp(im.*x),[1,2])
 ##Check complex domains
 
 
-f=Fun(x->exp(im.*x),[1im,2+.5im])
+f=Fun(x->exp(im.*x),1im..(2+.5im))
 
 #@assert f([f.domain.a,f.domain.b])      ##TODO: Currently crashes
 

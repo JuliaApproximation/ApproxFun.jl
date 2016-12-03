@@ -15,8 +15,8 @@ Base.convert(::Type{Curve},f::Fun)=isa(domain(f),IntervalDomain)?IntervalCurve(f
 
 
 
-identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(domain(d).curve.coefficients,
-                                              setdomain(space(domain(d).curve),domain(d)))
+identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(setdomain(space(domain(d).curve),domain(d)),
+                                                domain(d).curve.coefficients)
 
 # Bernstein polynomials are given by:
 #
@@ -25,16 +25,16 @@ identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(domain(d).curve.coefficients,
 export Bernstein, Bézier
 
 immutable Bernstein{order,T} <: RealUnivariateSpace{T}
-    domain::Interval{T}
+    domain::Segment{T}
     Bernstein(d) = new(d)
-    Bernstein() = new(Interval{T}())
+    Bernstein() = new(Segment{T}())
 end
 
 const Bézier = Bernstein # option+e e gives é
 
 @compat (::Type{Bernstein{O}}){O}() = Bernstein{O,Float64}()
 @compat (::Type{Bernstein{O}}){O}(d::Domain) = Bernstein{O,eltype(d)}(d)
-@compat (::Type{Bernstein{O}}){O}(d::Vector) = Bernstein{O}(Interval(d))
+@compat (::Type{Bernstein{O}}){O}(d::Vector) = Bernstein{O}(Segment(d))
 
 order{O}(::Bernstein{O}) = O
 order{O,T}(::Type{Bernstein{O,T}}) = O
@@ -42,13 +42,13 @@ dimension{O}(::Bernstein{O}) = O+1
 dimension{O,T}(::Type{Bernstein{O,T}}) = O+1
 
 canonicalspace(B::Bernstein) = Chebyshev(domain(B))
-canonicaldomain{O,T}(B::Bernstein{O,T}) = Interval{T}()
+canonicaldomain{O,T}(B::Bernstein{O,T}) = Segment{T}()
 
 spacescompatible{O,T}(a::Bernstein{O,T},b::Bernstein{O,T})=domainscompatible(a,b)
 
 setdomain{O}(S::Bernstein{O},d::Domain)=Bernstein{O}(d)
 
-identity_fun{order,T}(B::Bernstein{order,T})=Fun(collect(-one(T):2one(T)/order:one(T)),B)
+identity_fun{order,T}(B::Bernstein{order,T})=Fun(B,collect(-one(T):2one(T)/order:one(T)))
 
 evaluate(f::AbstractVector,S::Bernstein,z) = decasteljau(f,S,tocanonical(S,z))
 
@@ -94,7 +94,8 @@ function splitbernstein(f::AbstractVector,S::Bernstein,z)
         β1[order(S)+2-i] = β[1]
         β2[i] = β[i]
     end
-    Fun(interlace(β1,β2),PiecewiseSpace(Bernstein{order(S)}(Interval(first(domain(S)),z)),Bernstein{order(S)}(Interval(z,last(domain(S))))))
+    Fun(PiecewiseSpace(Bernstein{order(S)}(Segment(first(domain(S)),z)),Bernstein{order(S)}(Segment(z,last(domain(S))))),
+        interlace(β1,β2))
 end
 
 Fun(f::Function,S::Bernstein) = Fun(Fun(f,canonicalspace(S),dimension(S)),S)

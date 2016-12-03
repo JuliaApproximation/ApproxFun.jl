@@ -30,6 +30,7 @@ include("Fourier/Fourier.jl")
 include("Singularities/Singularities.jl")
 include("Jacobi/Jacobi.jl")
 include("Hermite/Hermite.jl")
+include("Laguerre/Laguerre.jl")
 include("CurveSpace.jl")
 #include("Mapped/Mapped.jl")
 
@@ -40,18 +41,16 @@ include("CurveSpace.jl")
 
 
 
-
-
 ## Derivative
 
 function invfromcanonicalD(S::Laurent{PeriodicLine{false}})
     d=domain(S)
     @assert d.center==0  && d.L==1.0
-    a=Fun([1.,.5,.5],Laurent())
+    a=Fun(Laurent(),[1.,.5,.5])
 end
 
 function invfromcanonicalD(S::LaurentDirichlet{PeriodicLine{false}})
     d=domain(S)
     @assert d.center==0  && d.L==1.0
-    a=Fun([1.,.5,.5],Laurent())
+    a=Fun(Laurent(),[1.,.5,.5])
 end

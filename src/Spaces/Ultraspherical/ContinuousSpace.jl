@@ -1,12 +1,12 @@
 
 
-immutable ContinuousSpace{T} <: Space{RealBasis,PiecewiseInterval{T},1}
-    domain::PiecewiseInterval{T}
+immutable ContinuousSpace{T} <: Space{RealBasis,PiecewiseSegment{T},1}
+    domain::PiecewiseSegment{T}
 end
 
 
 
-Space(d::PiecewiseInterval) = ContinuousSpace(d)
+Space(d::PiecewiseSegment) = ContinuousSpace(d)
 
 isperiodic(C::ContinuousSpace) = isperiodic(domain(C))
 
@@ -14,9 +14,11 @@ spacescompatible(a::ContinuousSpace,b::ContinuousSpace) = domainscompatible(a,b)
 conversion_rule{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(a::ContinuousSpace,
                                                             b::PiecewiseSpace{CD,RealBasis}) = a
 
-plan_transform(S::ContinuousSpace,vals::Vector) = identity  # TODO: implement plan
+plan_transform(sp::ContinuousSpace,vals::Vector) =
+    TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
 
-function transform(S::ContinuousSpace,vals::Vector,plan...)
+function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
+    S = P.space
     n=length(vals)
     d=domain(S)
     K=numpieces(d)
@@ -210,11 +212,11 @@ end
 # Dirichlet for Squares
 
 
-Dirichlet{T}(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Interval{T}},
-                                  ChebyshevDirichlet{1,1,Interval{T}}}}) =
+Dirichlet{T}(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Segment{T}},
+                                  ChebyshevDirichlet{1,1,Segment{T}}}}) =
     ConcreteDirichlet(S,0)
 
-Dirichlet{T<:Real}(d::ProductDomain{Tuple{Interval{T},Interval{T}}}) =
+Dirichlet{T<:Real}(d::ProductDomain{Tuple{Segment{T},Segment{T}}}) =
     Dirichlet(ChebyshevDirichlet{1,1}(d[1])*ChebyshevDirichlet{1,1}(d[2]))
 
 isbandedblock{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}}) =

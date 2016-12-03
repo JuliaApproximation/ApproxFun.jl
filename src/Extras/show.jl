@@ -8,7 +8,7 @@ Base.show(io::IO,c::Count) = print(io,"$(c.start):$(c.step):∞")
 
 ## Domains
 
-Base.show(io::IO,d::Interval)=print(io,"【$(d.a),$(d.b)】")
+Base.show(io::IO,d::Segment)=print(io,"【$(d.a),$(d.b)】")
 function Base.show(io::IO,d::Line)
     if d.center == angle(d) == 0 && d.α == d.β == -1.
         print(io,"ℝ")
@@ -52,7 +52,11 @@ end
 
 Base.show(io::IO,::ConstantSpace{AnyDomain}) = print(io,"ConstantSpace")
 Base.show(io::IO,S::ConstantSpace) = print(io,"ConstantSpace($(domain(S)))")
+Base.show(io::IO,f::Fun{ConstantSpace{AnyDomain}}) =
+    print(io,"$(Number(f)) anywhere")
 
+Base.show{DD}(io::IO,f::Fun{ConstantSpace{DD}}) =
+    print(io,"$(Number(f)) on $(domain(f))")    
 
 for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     TYP=parse(typ)
@@ -82,12 +86,12 @@ function Base.show(io::IO,s::JacobiWeight)
     #TODO: Get shift and weights right
     if s.α==s.β
         print(io,"(1-x^2)^$(s.α)[")
-    elseif s.α==0
-        print(io,"(1-x)^$(s.β)[")
     elseif s.β==0
-        print(io,"(1+x)^$(s.α)[")
+        print(io,"(1-x)^$(s.α)[")
+    elseif s.α==0
+        print(io,"(1+x)^$(s.β)[")
     else
-        print(io,"(1+x)^$(s.α)*(1-x)^$(s.β)[")
+        print(io,"(1+x)^$(s.β)*(1-x)^$(s.α)[")
     end
 
     show(io,s.space)
@@ -167,9 +171,9 @@ end
 
 function Base.show(io::IO,f::Fun)
     print(io,"Fun(")
-    show(io,f.coefficients)
-    print(io,",")
     show(io,f.space)
+    print(io,",")
+    show(io,f.coefficients)
     print(io,")")
 end
 
@@ -187,7 +191,7 @@ end
 
 ## Operator
 
-Base.summary(B::Operator) = string(typeof(B).name.name)*":"*string(domainspace(B))*"↦"*string(rangespace(B))
+Base.summary(B::Operator) = string(typeof(B).name.name)*":"*string(domainspace(B))*"→"*string(rangespace(B))
 
 
 function Base.show(io::IO,B::Operator;header::Bool=true)

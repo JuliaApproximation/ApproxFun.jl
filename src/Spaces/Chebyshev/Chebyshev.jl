@@ -1,25 +1,33 @@
 
 export Chebyshev
 
-
+doc"""
+`Chebyshev()` is the space spanned by the Chebyshev polynomials
+```
+    T_0(x),T_1(x),T_2(x),…
+```
+where `T_k(x) = cos(k*acos(x))`.  This is the default space
+as there exists a fast transform and general smooth functions on `[-1,1]`
+can be easily resolved.
+"""
 immutable Chebyshev{D<:Domain} <: PolynomialSpace{D}
     domain::D
     Chebyshev(d) = new(d)
-    Chebyshev() = new(Interval())
+    Chebyshev() = new(Segment())
 end
 
-Chebyshev() = Chebyshev{Interval{Float64}}()
+Chebyshev() = Chebyshev{Segment{Float64}}()
 Chebyshev(d::Domain) = Chebyshev{typeof(d)}(d)
-Chebyshev(d::Vector) = Chebyshev(Domain(d))
+Chebyshev(d) = Chebyshev(Domain(d))
 
 
-Space(d::Interval) = Chebyshev(d)
+Space(d::Segment) = Chebyshev(d)
 
 
 setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
 
-Base.ones{T<:Number}(::Type{T},S::Chebyshev) = Fun(ones(T,1),S)
-Base.ones(S::Chebyshev) = Fun(ones(1),S)
+Base.ones{T<:Number}(::Type{T},S::Chebyshev) = Fun(S,ones(T,1))
+Base.ones(S::Chebyshev) = Fun(S,ones(1))
 
 Base.first{D}(f::Fun{Chebyshev{D}}) = foldr(-,coefficients(f))
 Base.last{D}(f::Fun{Chebyshev{D}}) = reduce(+,coefficients(f))
@@ -42,8 +50,8 @@ end
 
 ## Transform
 
-transform(::Chebyshev,vals::Vector,plan) = chebyshevtransform(vals,plan)
-itransform(::Chebyshev,cfs::Vector,plan) = ichebyshevtransform(cfs,plan)
+transform(::Chebyshev,vals::Vector,plan) = plan*vals
+itransform(::Chebyshev,cfs::Vector,plan) = plan*cfs
 plan_transform(::Chebyshev,vals::Vector) = plan_chebyshevtransform(vals)
 plan_itransform(::Chebyshev,cfs::Vector) = plan_ichebyshevtransform(cfs)
 
@@ -206,10 +214,10 @@ end
 
 
 # diff T -> U, then convert U -> T
-integrate{D<:Interval}(f::Fun{Chebyshev{D}}) =
-    Fun(fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)),f.space)
-differentiate{D<:Interval}(f::Fun{Chebyshev{D}}) =
-    Fun(1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)),f.space)
+integrate{D<:Segment}(f::Fun{Chebyshev{D}}) =
+    Fun(f.space,fromcanonicalD(f,0)*ultraint!(ultraconversion(f.coefficients)))
+differentiate{D<:Segment}(f::Fun{Chebyshev{D}}) =
+    Fun(f.space,1/fromcanonicalD(f,0)*ultraiconversion(ultradiff(f.coefficients)))
 
 ## identity_fun
 
@@ -218,6 +226,26 @@ differentiate{D<:Interval}(f::Fun{Chebyshev{D}}) =
 
 
 ## Multivariate
+
+function points{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},N)
+    if domain(S) == Segment()^2
+        pts=paduapoints(real(eltype(eltype(D))),Int(cld(-3+sqrt(1+8N),2)))
+        T=eltype(pts)
+        ret=Array(Vec{2,T},size(pts,1))
+        @inbounds for k in eachindex(ret)
+            ret[k]=Vec{2,T}(pts[k,1],pts[k,2])
+        end
+        ret
+    else
+        fromcanonical(S,points(Chebyshev()^2,N))
+    end
+end
+
+plan_transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector) =
+    plan_paduatransform!(v,Val{false})
+
+transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector,
+             plan=plan_transform(S,v)) = plan*copy(v)
 
 
 #TODO: adaptive
@@ -229,7 +257,7 @@ end
 
 
 reverseorientation{C<:Chebyshev}(f::Fun{C}) =
-    Fun(alternatesign!(copy(f.coefficients)),Chebyshev(reverse(domain(f))))
+    Fun(Chebyshev(reverse(domain(f))),alternatesign!(copy(f.coefficients)))
 
 
 include("ChebyshevOperators.jl")

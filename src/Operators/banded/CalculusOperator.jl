@@ -9,6 +9,7 @@ abstract CalculusOperator{S,OT,T}<:Operator{T}
 macro calculus_operator(Op)
     ConcOp=parse("Concrete"*string(Op))
     WrappOp=parse(string(Op)*"Wrapper")
+    DefaultOp=parse("Default"*string(Op))
     return esc(quote
         # The SSS, TTT are to work around #9312
         abstract $Op{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
@@ -26,13 +27,13 @@ macro calculus_operator(Op)
 
 
         ## Constructors
-        $ConcOp(sp::Space,k)=$ConcOp{typeof(sp),typeof(k),op_eltype(sp)}(sp,k)
+        $ConcOp(sp::Space,k) = $ConcOp{typeof(sp),typeof(k),op_eltype(sp)}(sp,k)
 
-        $Op(sp::UnsetSpace,k)=$ConcOp(sp,k)
-        $Op(sp::UnsetSpace,k::Real)=$ConcOp(sp,k)
-        $Op(sp::UnsetSpace,k::Integer)=$ConcOp(sp,k)
+        $Op(sp::UnsetSpace,k) = $ConcOp(sp,k)
+        $Op(sp::UnsetSpace,k::Real) = $ConcOp(sp,k)
+        $Op(sp::UnsetSpace,k::Integer) = $ConcOp(sp,k)
 
-        function $Op(sp,k)
+        function $DefaultOp(sp::Space,k)
             csp=canonicalspace(sp)
             if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
                error("Implement $(string($Op))($(string(sp)),$k)")
@@ -40,15 +41,14 @@ macro calculus_operator(Op)
             $WrappOp(TimesOperator([$Op(csp,k),Conversion(sp,csp)]),k)
         end
 
-        $Op(sp)=$Op(sp,1)
-        $Op()=$Op(UnsetSpace())
-        $Op(k::Number)=$Op(UnsetSpace(),k)
+        $DefaultOp(d,k) = $Op(Space(d),k)
 
-        $Op(d::Domain,n)=$Op(Space(d),n)
-        $Op(d::Domain)=$Op(d,1)
-        $Op(d::Vector)=$Op(Space(d),1)
-        $Op(d::Vector,n)=$Op(Space(d),n)
-        $ConcOp(S::Space)=$ConcOp(S,1)
+        $DefaultOp(sp) = $Op(sp,1)
+        $DefaultOp() = $Op(UnsetSpace())
+        $DefaultOp(k::Number) = $Op(UnsetSpace(),k)
+
+        $Op(x...) = $DefaultOp(x...)
+        $ConcOp(S::Space) = $ConcOp(S,1)
 
         function Base.convert{T}(::Type{Operator{T}},D::$ConcOp)
             if T==eltype(D)
@@ -121,7 +121,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::Space) =
 ## Convenience routines
 
 
-integrate(d::Domain)=Integral(d,1)
+integrate(d::Domain) = Integral(d,1)
 
 
 # Default is to use ops
@@ -175,7 +175,7 @@ end
 
 
 ## Map to canonical
-function defaultDerivative(sp::Space,order::Integer)
+function DefaultDerivative(sp::Space,order::Integer)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         # this is the normal default constructor
         csp=canonicalspace(sp)
@@ -195,11 +195,7 @@ function defaultDerivative(sp::Space,order::Integer)
 end
 
 
-
-Derivative(sp::Space,order) = defaultDerivative(sp,order)
-
-
-function Integral(sp::Space,k::Integer)
+function DefaultIntegral(sp::Space,k::Integer)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         # this is the normal default constructor
         csp=canonicalspace(sp)
@@ -231,3 +227,72 @@ for TYP in (:Derivative,:Integral,:Laplacian)
         end
     end
 end
+
+
+doc"""
+`Derivative(sp::Space,k::Int)` represents the `k`-th derivative on `sp`.
+"""
+Derivative(::Space,::Int)
+
+doc"""
+`Derivative(sp::Space,k::Vector{Int})` represents a partial derivative on a multivariate space.
+For example,
+```julia
+Dx = Derivative(Chebyshev()^2,[1,0]) # ∂/∂x
+Dy = Derivative(Chebyshev()^2,[0,1]) # ∂/∂y
+```
+"""
+Derivative(::Space,::Vector{Int})
+
+doc"""
+`Derivative(sp::Space)` represents the first derivative `Derivative(sp,1)`.
+"""
+Derivative(::Space)
+
+doc"""
+`Derivative(k)` represents the `k`-th derivative, acting on an unset space.
+Spaces will be inferred when applying or manipulating the operator.
+"""
+Derivative(::)
+
+doc"""
+`Derivative()` represents the first derivative on an unset space.
+Spaces will be inferred when applying or manipulating the operator.
+"""
+Derivative()
+
+
+doc"""
+`Integral(sp::Space,k::Int)` represents a `k`-th integral on `sp`.
+There is no guarantee on normalization.
+"""
+Integral(::Space,::Int)
+
+
+doc"""
+`Integral(sp::Space)` represents the first integral `Integral(sp,1)`.
+"""
+Integral(::Space)
+
+doc"""
+Integral(k)` represents the `k`-th integral, acting on an unset space.
+Spaces will be inferred when applying or manipulating the operator.
+"""
+Integral(::)
+
+doc"""
+`Intergral()` represents the first integral on an unset space.
+Spaces will be inferred when applying or manipulating the operator.
+"""
+Integral()
+
+doc"""
+`Laplacian(sp::Space)` represents the laplacian on space `sp`.
+"""
+Laplacian(::Space)
+
+doc"""
+`Laplacian()` represents the laplacian on an unset space.
+Spaces will be inferred when applying or manipulating the operator.
+"""
+Laplacian()

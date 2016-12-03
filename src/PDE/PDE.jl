@@ -54,9 +54,9 @@ end
 
 function *(B::Operator,f::ProductFun)
     if isafunctional(B)
-        Fun(map(c->B*c,f.coefficients),space(f,2))
+        Fun(space(f,2),map(c->Number(B*c),f.coefficients))
     else
-        ProductFun(map(c->B*c,f.coefficients),space(f))
+        ProductFun(space(f),map(c->B*c,f.coefficients))
     end
 end
 

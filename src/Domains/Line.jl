@@ -12,6 +12,11 @@ export Line, PeriodicLine
 # angle is π*a where a is (false==0) and (true==1)
 # or ranges from (-1,1].  We use 1 as 1==true.
 
+doc"""
+    Line{a}(c)
+
+represents the line at angle `a` in the complex plane, centred at `c`.
+"""
 immutable Line{angle,T<:Number} <: IntervalDomain{T}
     center::T
     α::Float64
@@ -205,7 +210,7 @@ fromcanonical{a}(d::PeriodicLine{a},x) =
 
 function invfromcanonicalD(d::PeriodicLine{false})
     @assert d.center==0  && d.L==1.0
-    a=Fun([1.,0,1],PeriodicInterval())
+    a=Fun(PeriodicInterval(),[1.,0,1])
 end
 
 mappoint(a::PeriodicLine{false},b::Circle,x)=b.radius*((a.L*im-(x-a.center))./(a.L*im+(x-a.center)))+b.center
@@ -234,38 +239,38 @@ complexlength(d::Union{Line,PeriodicLine})=Inf
 ## vectorized
 
 for typ in (:Line,:PeriodicLine)
-    @eval function ($typ)(d::AbstractVector)
-        @assert length(d) == 2
-        @assert abs(d[1]) == abs(d[2]) == Inf
+    @eval function Base.convert(::Type{$typ},d::ClosedInterval)
+        a,b=d.left,d.right
+        @assert abs(a) == abs(b) == Inf
 
-        if isa(d[1],Real) && isa(d[2],Real)
-            if d[1]==Inf
-                @assert d[2]==-Inf
+        if isa(a,Real) && isa(b,Real)
+            if a==Inf
+                @assert b==-Inf
                 $typ(true)
             else
-                @assert d[1]==-Inf&&d[2]==Inf
+                @assert a==-Inf&&b==Inf
                 $typ(false)
             end
-        elseif abs(real(d[1])) < Inf
-            @assert real(d[1])==real(d[2])
-            @assert sign(imag(d[1]))==-sign(imag(d[2]))
+        elseif abs(real(a)) < Inf
+            @assert real(a)==real(b)
+            @assert sign(imag(a))==-sign(imag(b))
 
-            $typ(real(d[2]),angle(d[2]))
-        elseif isnan(real(d[1])) && isnan(real(d[2]))  # hack for -im*Inf
-            $typ([imag(d[1])*im,imag(d[2])*im])
-        elseif isnan(real(d[1]))  # hack for -im*Inf
-            $typ([real(d[2])+imag(d[1])*im,d[2]])
-        elseif isnan(real(d[2]))  # hack for -im*Inf
-            $typ([d[1],real(d[1])+imag(d[2])*im])
-        elseif abs(imag(d[1])) < Inf
-            @assert imag(d[1])==imag(d[2])
-            @assert sign(real(d[1]))==-sign(real(d[2]))
+            $typ(real(b),angle(b))
+        elseif isnan(real(a)) && isnan(real(b))  # hack for -im*Inf
+            $typ([imag(a)*im,imag(b)*im])
+        elseif isnan(real(a))  # hack for -im*Inf
+            $typ([real(b)+imag(a)*im,b])
+        elseif isnan(real(b))  # hack for -im*Inf
+            $typ([a,real(a)+imag(b)*im])
+        elseif abs(imag(a)) < Inf
+            @assert imag(a)==imag(b)
+            @assert sign(real(a))==-sign(real(b))
 
-            $typ(imag(d[2]),angle(d[2]))
+            $typ(imag(b),angle(b))
         else
-            @assert angle(d[2]) == -angle(d[1])
+            @assert angle(b) == -angle(a)
 
-            $typ(0.,angle(d[2]))
+            $typ(0.,angle(b))
         end
     end
 end

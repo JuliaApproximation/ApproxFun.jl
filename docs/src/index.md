@@ -1,63 +1,17 @@
 # ApproxFun.jl Documentation
 
 
-## Domains
-```@docs
-Interval
-```
 
-## Constructing a Fun
-
-```@docs
-Fun
-```
-
-## Accessing information about a Fun
-
-```@docs
-domain
-```
-
-```@docs
-coefficients
-```
-
-```@docs
-extrapolate
-```
-
-```@docs
-ncoefficients
-```
-
-```@docs
-points
-```
+ApproxFun is a package for approximating and manipulating functions,
+and for solving differential and integral equations.  
 
 
-```@docs
-space
-```
-
-```@docs
-ApproxFun.values
-```
-
-
-## Modify a Fun
-
-
-```@docs
-reverseorientation
-```
-
-```@docs
-ApproxFun.setdomain
-```
-
-
-## Operators
-
-```@docs
-Operator
+```@contents
+Pages = ["usage/constructors.md",
+         "usage/domains.md",
+         "usage/spaces.md",
+         "usage/operators.md",
+         "usage/equations.md",
+         "faq.md",
+         "library.md"]
 ```

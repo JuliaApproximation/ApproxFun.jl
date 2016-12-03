@@ -222,13 +222,13 @@ function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::Clens
         # Evaluate the polynomial at Chebyshev grids on both intervals:
         #(clenshaw! overwrites points, which only makes sence if c is real)
 
-        v1 = isa(c,Vector{Float64})?clenshaw!( c, points([-1,splitPoint],n),clplan):clenshaw( c, points([-1,splitPoint],n),clplan)
-        v2 = isa(c,Vector{Float64})?clenshaw!( c, points([splitPoint,1] ,n),clplan):clenshaw( c, points([splitPoint,1] ,n),clplan)
+        v1 = isa(c,Vector{Float64})?clenshaw!( c, points(-1..splitPoint,n),clplan):clenshaw( c, points(-1..splitPoint,n),clplan)
+        v2 = isa(c,Vector{Float64})?clenshaw!( c, points(splitPoint..1 ,n),clplan):clenshaw( c, points(splitPoint..1 ,n),clplan)
 
         # Recurse (and map roots back to original interval):
         p = plan_chebyshevtransform( v1 )
-        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( chebyshevtransform(v1,p), 2*htol,clplan) ;
-                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( chebyshevtransform(v2,p), 2*htol,clplan) ]
+        r = [ (splitPoint - 1)/2 + (splitPoint + 1)/2*rootsunit_coeffs( p*v1, 2*htol,clplan) ;
+                 (splitPoint + 1)/2 + (1 - splitPoint)/2*rootsunit_coeffs( p*v2, 2*htol,clplan) ]
 
     end
 
@@ -237,9 +237,8 @@ function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::Clens
 end
 
 
-function extremal_args{S<:PiecewiseSpace}(f::Fun{S})
-    return cat(1,[extremal_args(fp) for fp in vec(f)]...)
-end
+extremal_args{S<:PiecewiseSpace}(f::Fun{S}) = cat(1,[extremal_args(fp) for fp in vec(f)]...)
+
 
 function extremal_args(f::Fun)
     d=domain(f)
@@ -364,7 +363,7 @@ complexroots{DD}(f::Fun{Taylor{DD}})=mappoint(Circle(),domain(f),complexroots(f.
 
 
 function roots{DD}(f::Fun{Laurent{DD}})
-    irts=filter!(z->in(z,Circle()),complexroots(Fun(f.coefficients,Laurent(Circle()))))
+    irts=filter!(z->in(z,Circle()),complexroots(Fun(Laurent(Circle()),f.coefficients)))
     if length(irts)==0
         Complex{Float64}[]
     else
@@ -402,11 +401,11 @@ end
 function roots{S<:JacobiWeight,T}(f::Fun{S,T})
     sp=space(f)
     d=domain(sp)
-    rts=roots(Fun(f.coefficients,sp.space))
-    if sp.α > 0
+    rts=roots(Fun(sp.space,f.coefficients))
+    if sp.β > 0
         rts=[first(d);rts]
     end
-    if sp.β > 0
+    if sp.α > 0
         rts=[rts;last(d)]
     end
     rts

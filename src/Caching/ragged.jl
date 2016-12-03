@@ -68,7 +68,7 @@ function resizedata!{T,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,RaggedMatrix
     MO=QR.R
     W=QR.H
 
-    if col+100 ≥ MO.datasize[2]
+    if col > MO.datasize[2]
         m = MO.datasize[2]
         resizedata!(MO,:,col+100)  # last rows plus a bunch more
 
@@ -137,7 +137,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,BI}(QR::QROperator{CachedOperator{T,R
     R=MO.data
     r=pointer(R.data)
 
-    if col+100 ≥ MO.datasize[2]
+    if col > MO.datasize[2]
         m = MO.datasize[2]
         resizedata!(MO,:,col+100)  # last rows plus a bunch more
 
@@ -264,7 +264,7 @@ function Ac_mul_Bpars{RR,T}(A::QROperatorQ{QROperator{RR,RaggedMatrix{T},T},T},
         Base.axpy!(-2*dt,wp,yp)
         k+=1
     end
-    Fun(resize!(Y,k),domainspace(A))  # chop off zeros
+    resize!(Y,k)  # chop off zeros
 end
 
 
@@ -319,5 +319,5 @@ function Ac_mul_Bpars{RR,T<:BlasFloat}(A::QROperatorQ{QROperator{RR,RaggedMatrix
         BLAS.axpy!(M,-2*dt,wp,1,yp,1)
         k+=1
     end
-    Fun(resize!(Y,k),domainspace(A))  # chop off zeros
+    resize!(Y,k)  # chop off zeros
 end

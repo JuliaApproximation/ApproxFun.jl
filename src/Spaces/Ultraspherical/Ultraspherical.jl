@@ -4,7 +4,14 @@ export Ultraspherical
 #Ultraspherical Spaces
 
 
-
+doc"""
+`Ultraspherical(λ)` is the space spanned by the ultraspherical polynomials
+```
+    C_0^{(λ)}(x),C_1^{(λ)}(x),C_2^{(λ)}(x),…
+```
+Note that `λ=1` this reduces to Chebyshev polynomials of the second kind:
+`C_k^{(1)}(x) = U_k(x)`.
+"""
 immutable Ultraspherical{T,D<:Domain} <: PolynomialSpace{D}
     order::T
     domain::D
@@ -45,8 +52,8 @@ end
 
 function UltrasphericalPlan(λ::Number,vals)
     if λ == 0.5
-        cp=plan_transform(Chebyshev(),vals)
-        c2lp=FastTransforms.th_cheb2legplan(eltype(vals),length(vals))
+        cp = plan_transform(Chebyshev(),vals)
+        c2lp = FastTransforms.th_cheb2legplan(eltype(vals),length(vals))
         UltrasphericalPlan{typeof(cp),typeof(c2lp)}(cp,c2lp)
     else
         error("Not implemented")
@@ -64,25 +71,22 @@ function UltrasphericalIPlan(λ::Number,cfs)
 end
 
 *(UP::UltrasphericalPlan,v::AbstractVector) =
-    UP.cheb2legplan*transform(Chebyshev(),v,UP.chebplan)
+    UP.cheb2legplan*(UP.chebplan*v)
 *(UP::UltrasphericalIPlan,v::AbstractVector) =
-    itransform(Chebyshev(),UP.leg2chebplan*v,UP.chebiplan)
+    UP.chebiplan*(UP.leg2chebplan*v)
 
 
-plan_transform(S::Ultraspherical{Int},vals::Vector) = plan_transform(canonicalspace(S),vals)
-plan_transform(S::Ultraspherical,vals::Vector) = UltrasphericalPlan(order(S),vals)
-plan_itransform(S::Ultraspherical{Int},cfs::Vector) = plan_itransform(canonicalspace(S),cfs)
-plan_itransform(S::Ultraspherical,cfs::Vector) = UltrasphericalIPlan(order(S),cfs)
-
-transform(S::Ultraspherical,vals,pl::UltrasphericalPlan) = pl*vals
-itransform(S::Ultraspherical,cfs,pl::UltrasphericalIPlan) = pl*cfs
+plan_transform(sp::Ultraspherical{Int},vals::Vector) = CanonicalTransformPlan(sp,vals)
+plan_transform(sp::Ultraspherical,vals::Vector) = UltrasphericalPlan(order(sp),vals)
+plan_itransform(sp::Ultraspherical{Int},cfs::Vector) = ICanonicalTransformPlan(sp,cfs)
+plan_itransform(sp::Ultraspherical,cfs::Vector) = UltrasphericalIPlan(order(sp),cfs)
 
 ## Construction
 
 #domain(S) may be any domain
 
-Base.ones{T<:Number}(::Type{T},S::Ultraspherical) = Fun(ones(T,1),S)
-Base.ones(S::Ultraspherical) = Fun(ones(1),S)
+Base.ones{T<:Number}(::Type{T},S::Ultraspherical) = Fun(S,ones(T,1))
+Base.ones(S::Ultraspherical) = Fun(S,ones(1))
 
 
 

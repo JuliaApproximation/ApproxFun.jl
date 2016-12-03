@@ -4,6 +4,13 @@
 using Base.Test
 
 
+## Supports @test_approx_eq
+
+
+Base.Test.approx_full(f::Fun) = f
+
+
+
 ## Spaces Tests
 
 
@@ -11,10 +18,10 @@ function testtransforms(S::Space;minpoints=1,invertibletransform=true)
     # transform tests
     v = rand(max(minpoints,min(100,ApproxFun.dimension(S))))
     plan = plan_transform(S,v)
-    @test transform(S,v)  == transform(S,v,plan)
+    @test transform(S,v)  == plan*v
 
     iplan = plan_itransform(S,v)
-    @test itransform(S,v)  == itransform(S,v,iplan)
+    @test itransform(S,v)  == iplan*v
 
     if invertibletransform
         for k=max(1,minpoints):min(5,dimension(S))
@@ -30,7 +37,7 @@ end
 function testcalculus(S::Space;haslineintegral=true)
     for k=1:min(5,dimension(S))
         v = [zeros(k-1);1.0]
-        f = Fun(v,S)
+        f = Fun(S,v)
         @test abs(DefiniteIntegral()*f-sum(f)) < 100eps()
         if haslineintegral
             @test_approx_eq DefiniteLineIntegral()*f linesum(f)

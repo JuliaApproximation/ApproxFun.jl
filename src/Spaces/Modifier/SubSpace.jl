@@ -8,7 +8,7 @@ SubSpace{T,DD,dim}(sp::Space{T,DD,dim},kr) =
     SubSpace{typeof(sp),typeof(kr),T,DD,dim}(sp,kr)
 
 SubSpace(sp::Space,kr) =
-    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),dimension(sp)}(sp,kr)    
+    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),dimension(sp)}(sp,kr)
 
 SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,sp.indexes[kr])
 
@@ -22,7 +22,7 @@ dimension(sp::SubSpace) = length(sp.indexes)
 
 function |(f::Fun,kr::UnitCount)
     @assert dimension(space(f)) == ∞
-    Fun(f.coefficients[kr[1]:end],space(f)|kr)
+    Fun(space(f)|kr,f.coefficients[kr[1]:end])
 end
 
 block(sp::SubSpace,k::Integer) = block(sp.space,sp.indexes[k])
@@ -146,7 +146,7 @@ itransform(sp::SubSpace,cfs::Vector) =
 points(sp::SubSpace,n) = points(sp.space,n)
 
 
-coefficients{DS,IT,T,TT,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,Interval{Vec{2,TT}},1},::TensorSpace{SV,TTT,DD,2}) =
+coefficients{DS,IT,T,TT,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,Segment{Vec{2,TT}},1},::TensorSpace{SV,TTT,DD,2}) =
     error("Not callable, only defined for ambiguity errors.")
 coefficients{DS,IT,T,D,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,D,1},::TensorSpace{SV,TTT,DD,2}) =
     error("Not callable, only defined for ambiguity errors.")

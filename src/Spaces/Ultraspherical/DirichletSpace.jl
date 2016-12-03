@@ -2,7 +2,7 @@
 
 export ChebyshevDirichlet
 
-#TODO: Type of Interval
+#TODO: Type of Segment
 immutable ChebyshevDirichlet{left,right,D} <: PolynomialSpace{D}
     domain::D
     ChebyshevDirichlet(d)=new(d)
@@ -11,21 +11,21 @@ end
 
 for TYP in (:Number,:AbstractArray,:Vec,:Fun)
     @eval evaluate(f::AbstractVector,S::ChebyshevDirichlet,x::$TYP) =
-        evaluate(Fun(Fun(f,S),canonicalspace(S)),x)
+        evaluate(Fun(Fun(S,f),canonicalspace(S)),x)
 end
 @compat (::Type{ChebyshevDirichlet{l,r}}){l,r}() =
-    ChebyshevDirichlet{l,r,Interval{Float64}}()
+    ChebyshevDirichlet{l,r,Segment{Float64}}()
 @compat (::Type{ChebyshevDirichlet{l,r}}){l,r}(d::Domain) =
     ChebyshevDirichlet{l,r,typeof(d)}(d)
 
 spacescompatible{l,r,D}(a::ChebyshevDirichlet{l,r,D},b::ChebyshevDirichlet{l,r,D}) =
     domainscompatible(a,b)
 
-ChebyshevDirichlet() = ChebyshevDirichlet{1,1,Interval{Float64}}()
+ChebyshevDirichlet() = ChebyshevDirichlet{1,1,Segment{Float64}}()
 ZeroChebyshevDirichlet(d) =
-    ChebyshevDirichlet{1,1,Interval{Float64}}(d)|(3:∞)
+    ChebyshevDirichlet{1,1,Segment{Float64}}(d)|(3:∞)
 ZeroChebyshevDirichlet() =
-    ChebyshevDirichlet{1,1,Interval{Float64}}()|(3:∞)
+    ChebyshevDirichlet{1,1,Segment{Float64}}()|(3:∞)
 
 canonicalspace(S::ChebyshevDirichlet) = Chebyshev(domain(S))
 

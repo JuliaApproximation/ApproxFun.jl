@@ -1,12 +1,12 @@
 using ApproxFun, Base.Test
     import ApproxFun: testspace
 
-for d in (Interval(),Interval(1.,2.),Interval(1.0+im,2.0+2im))
+for d in (Interval(),Interval(1.,2.),Segment(1.0+im,2.0+2im))
     testspace(Chebyshev(d))
 end
 
-ef = Fun(exp,Interval())
 
+ef = Fun(exp,Interval())
 
 @test ef == -(-ef)
 @test ef == (ef-1) + 1
@@ -59,11 +59,11 @@ r=2.*rand(100) .- 1
 ##Check other domains
 
 
-ef = Fun(exp,[1,2])
-cf = Fun(cos,[1,2])
+ef = Fun(exp,1..2)
+cf = Fun(cos,1..2)
 
-ecf = Fun(x->cos(x).*exp(x),[1,2])
-eocf = Fun(x->cos(x)./exp(x),[1,2])
+ecf = Fun(x->cos(x).*exp(x),1..2)
+eocf = Fun(x->cos(x)./exp(x),1..2)
 
 
 r=rand(100) .+ 1
@@ -119,8 +119,8 @@ f=Fun(x->cos(50acos(x)))
 @test_approx_eq Fun(x->2)(.1) 2
 
 
-@test_approx_eq Fun(Float64[],Chebyshev)([0.,1.]) [0.,0.]
-@test_approx_eq Fun([],Chebyshev)(0.) 0.
+@test_approx_eq Fun(Chebyshev,Float64[])([0.,1.]) [0.,0.]
+@test_approx_eq Fun(Chebyshev,[])(0.) 0.
 @test_approx_eq Fun(x->[1.,0.])(0.) [1.,0.]
 
 
@@ -139,12 +139,12 @@ end
 
 ## Fixes #121
 
-x = Fun(identity,[0.,10.])
+x = Fun(identity,0..10)
 f = sin(x^2)
 g = cos(x)
 @test_approx_eq f(.1) sin(.1^2)
 
-x = Fun(identity,[0.,100.])
+x = Fun(identity,0..100)
 f = sin(x^2)
 @test_approx_eq_eps f(.1) sin(.1^2) 1E-12
 
@@ -153,4 +153,4 @@ f = sin(x^2)
 
 
 f=Fun(exp)
-@test_approx_eq Fun(f,Chebyshev([1,-1]))(0.1) f(0.1)
+@test_approx_eq Fun(f,Chebyshev(1..(-1)))(0.1) f(0.1)

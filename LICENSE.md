@@ -1,6 +1,6 @@
 Copyright (c) 2013-2015: Sheehan Olver, Gustavo Goretkin, Richard Mikael Slevinsky, Alex Townsend, and other contributors:
 
-https://github.com/ApproxFun/ApproxFun.jl/graphs/contributors
+https://github.com/JuliaApproximation/ApproxFun.jl/graphs/contributors
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
 

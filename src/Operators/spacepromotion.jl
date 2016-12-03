@@ -1,4 +1,4 @@
-export ↦
+export →
 
 
 ## Space Operator is used to wrap other operators
@@ -70,9 +70,12 @@ end
 
 
 # The coolest definitions ever!!
-# supports Derivative():Chebyshev()↦Ultraspherical(1)
-↦(A::Operator,b::Space) = promoterangespace(A,b)
+# supports Derivative():Chebyshev()→Ultraspherical(1)
 Base.colon(A::Operator,b::Space) = promotedomainspace(A,b)
+→(A::Operator,b::Space) = promoterangespace(A,b)
+Base.colon(A::UniformScaling,b::Space) = Operator(A) : b
+→(A::UniformScaling,b::Space) = Operator(A) → b
+
 
 promoterangespace(P::Operator,sp::Space) = promoterangespace(P,sp,rangespace(P))
 promotedomainspace(P::Operator,sp::Space) = promotedomainspace(P,sp,domainspace(P))
@@ -176,10 +179,5 @@ end
 ## algebra
 
 
-linsolve(A::SpaceOperator,b::Fun;kwds...) =
-    setspace(linsolve(A.op,coefficients(b,rangespace(A));kwds...),domainspace(A))
-
-linsolve{T<:Number}(A::SpaceOperator,b::Array{T};kwds...) =
-    setspace(linsolve(A.op,b;kwds...),domainspace(A))
-linsolve(A::SpaceOperator,b::Number;kwds...) =
-    setspace(linsolve(A.op,b;kwds...),domainspace(A))
+A_ldiv_B_coefficients(A::SpaceOperator,b;kwds...) =
+    A_ldiv_B_coefficients(A.op,b;kwds...)

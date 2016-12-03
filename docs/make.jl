@@ -1,11 +1,32 @@
 using Documenter, ApproxFun
 
-makedocs()
+makedocs(modules=[ApproxFun],
+			doctest = true,
+			clean = true,
+			format = :html,
+			sitename = "ApproxFun.jl",
+			authors = "Sheehan Olver",
+			pages = Any[
+					"Home" => "index.md",
+					"Usage" => Any[
+						"Domains" => "usage/domains.md",
+						"Spaces" => "usage/spaces.md",
+						"Constructors" => "usage/constructors.md",
+						"Operators" => "usage/operators.md",
+						"Linear Equations" => "usage/equations.md"
+					],
+					"Frequently Asked Questions" => "faq.md",
+					"Library" => "library.md"
+				]
+			)
+
 
 deploydocs(
-    deps   = Deps.pip("mkdocs", "python-markdown-math"),
-    repo   = "github.com/ApproxFun/ApproxFun.jl.git",
+    repo   = "github.com/JuliaApproximation/ApproxFun.jl.git",
     latest = "development",
     julia  = "0.5",
-    osname = "linux"
-)
+    osname = "linux",
+    target = "build",
+    deps   = nothing,
+    make   = nothing
+    )

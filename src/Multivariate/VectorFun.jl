@@ -86,7 +86,7 @@ end
              cfs=$op(A,coefficientmatrix(p).')
              ret = Array(Fun{D,promote_type(T,V)},size(cfs,1))
              for i = 1:size(cfs,1)
-                 ret[i] = chop!(Fun(vec(cfs[i,:]),first(p).space),eps())
+                 ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
              end
              ret
          end
@@ -95,7 +95,7 @@ end
              cfs=$op(A,coefficientmatrix(p).')
              ret = Array(Fun{D,T},size(cfs,1))
              for i = 1:size(cfs,1)
-                 ret[i] = chop!(Fun(vec(cfs[i,:]),first(p).space),eps())
+                 ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
              end
              ret
          end

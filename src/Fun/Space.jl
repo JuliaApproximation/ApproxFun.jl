@@ -1,6 +1,7 @@
 
 
-export Space, domainspace, rangespace, maxspace,Space,conversion_type
+export Space, domainspace, rangespace, maxspace,Space,conversion_type, transform,
+            itransform, SequenceSpace, ConstantSpace
 
 
 ##
@@ -86,6 +87,9 @@ Base.length(s::Space) = 1
 getindex(s::Space,k) = k == 1 ? s : throw(BoundsError())
 Base.endof(s::Space) = 1
 
+
+#supports broadcasting, overloaded for ArraySpace
+Base.size(::Space) = ()
 
 
 # the default is all spaces have one-coefficient blocks
@@ -359,9 +363,9 @@ function defaultcoefficients(f,a,b)
     if spacescompatible(a,b)
         f
     elseif spacescompatible(ct,a)
-        (Conversion(a,b)*f).coefficients
+        A_mul_B_coefficients(Conversion(a,b),f)
     elseif spacescompatible(ct,b)
-        (Conversion(b,a)\f).coefficients
+        A_ldiv_B_coefficients(Conversion(b,a),f)
     else
         csp=canonicalspace(a)
 
@@ -371,7 +375,7 @@ function defaultcoefficients(f,a,b)
         if spacescompatible(a,csp)||spacescompatible(b,csp)
             # b is csp too, so we are stuck, try Fun constructor
             if domain(b)⊆domain(a)
-                coefficients(Fun(x->Fun(f,a)(x),b))
+                coefficients(Fun(x->Fun(a,f)(x),b))
             else
                 # we set the value to be zero off the domain of definition
                 # but first ensure that domain(b) has a jump
@@ -382,7 +386,7 @@ function defaultcoefficients(f,a,b)
 #                     error("$(d) is not a subcomponent of $(domain(b))")
 #                 end
 
-                coefficients(Fun(x->x∈d?Fun(f,a)(x):zero(Fun(f,a)(x)),b))
+                coefficients(Fun(x->x∈d?Fun(a,f)(x):zero(Fun(a,f)(x)),b))
             end
         else
             coefficients(f,a,csp,b)
@@ -399,8 +403,8 @@ coefficients(f,a,b) = defaultcoefficients(f,a,b)
 ## TODO: remove zeros
 Base.zero(S::Space) = zeros(S)
 Base.zero{T<:Number}(::Type{T},S::Space) = zeros(T,S)
-Base.zeros{T<:Number}(::Type{T},S::Space) = Fun(zeros(T,1),S)
-Base.zeros(S::Space) = Fun(zeros(1),S)
+Base.zeros{T<:Number}(::Type{T},S::Space) = Fun(S,zeros(T,1))
+Base.zeros(S::Space) = Fun(S,zeros(1))
 
 # catch all
 Base.ones(S::Space) = Fun(x->1.0,S)
@@ -415,7 +419,7 @@ function identity_fun(d::Domain)
     else
         # this allows support for singularities, that the constructor doesn't
         sf=fromcanonical(d,Fun(identity,cd))
-        Fun(coefficients(sf),setdomain(space(sf),d))
+        Fun(setdomain(space(sf),d),coefficients(sf))
     end
 end
 
@@ -436,55 +440,72 @@ checkpoints(d::Space) = checkpoints(domain(d))
 
 ## default transforms
 
+# These plans are use to wrap another plan
+for Typ in (:TransformPlan,:ITransformPlan)
+    @eval begin
+        immutable $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
+            space::SP
+            plan::PL
+        end
+        $Typ{inplace}(space,plan,::Type{Val{inplace}}) =
+            $Typ{eltype(plan),typeof(space),inplace,typeof(plan)}(space,plan)
+    end
+end
+
+for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
+    @eval begin
+        immutable $Typ{T,SP,PL,CSP} <: FFTW.Plan{T}
+            space::SP
+            plan::PL
+            canonicalspace::CSP
+        end
+        $Typ(space,plan,csp) =
+            $Typ{eltype(plan),typeof(space),typeof(plan),typeof(csp)}(space,plan,csp)
+        $Typ{T}(::Type{T},space,plan,csp) =
+            $Typ{T,typeof(space),typeof(plan),typeof(csp)}(space,plan,csp)
+    end
+end
+
+
+# Canonical plan uses coefficients
+for (pl,CTransPlan) in ((:plan_transform,:CanonicalTransformPlan),
+                             (:plan_itransform,:ICanonicalTransformPlan))
+    @eval begin
+        function $CTransPlan(space,v)
+            csp = canonicalspace(space)
+            $CTransPlan(eltype(v),space,$pl(csp,v),csp)
+        end
+        function $pl(sp::Space,vals)
+            csp = canonicalspace(sp)
+            if sp == csp
+                error("Override for $sp")
+            end
+            $CTransPlan(sp,$pl(csp,vals),csp)
+        end
+    end
+end
+
+plan_transform!(sp::Space,vals) = error("Override for $sp")
+plan_itransform!(sp::Space,cfs) = error("Override for $sp")
+
+
+
 # transform converts from values at points(S,n) to coefficients
 # itransform converts from coefficients to values at points(S,n)
 
-transform(S::Space,vals) = transform(S,vals,plan_transform(S,vals))
-itransform(S::Space,cfs) = itransform(S,cfs,plan_itransform(S,cfs))
+transform(S::Space,vals) = plan_transform(S,vals)*vals
+itransform(S::Space,cfs) = plan_itransform(S,cfs)*cfs
 
-function transform(S::Space,vals,plan)
-    csp=canonicalspace(S)
-    if S==csp
-        error("Override transform(::"*string(typeof(S))*",vals,plan)")
-    end
-
-    coefficients(transform(csp,vals,plan),csp,S)
-end
-
-function itransform(S::Space,cfs,plan)
-    csp=canonicalspace(S)
-    if S==csp
-        error("Override itransform(::"*string(typeof(S))*",cfs,plan)")
-    end
-
-    itransform(csp,coefficients(cfs,S,csp),plan)
-end
+*(P::CanonicalTransformPlan,vals::Vector) = coefficients(P.plan*vals,P.canonicalspace,P.space)
+*(P::ICanonicalTransformPlan,cfs::Vector) = P.plan*coefficients(cfs,P.space,P.canonicalspace)
 
 
-for OP in (:plan_transform,:plan_itransform)
+
+for OP in (:plan_transform,:plan_itransform,:plan_transform!,:plan_itransform!)
     # plan transform expects a vector
     # this passes an empty Float64 array
-    @eval $OP(S::Space,n::Integer)=$OP(S,Array(Float64,n))
+    @eval $OP(S::Space,n::Integer) = $OP(S,Array(Float64,n))
 end
-
-function plan_transform(S::Space,vals)
-    csp=canonicalspace(S)
-    if S==csp
-        identity #TODO: why identity?
-    else
-        plan_transform(csp,vals)
-    end
-end
-
-function plan_itransform(S::Space,cfs)
-    csp=canonicalspace(S)
-    if S==csp
-        identity #TODO: why identity?
-    else
-        plan_itransform(csp,cfs)
-    end
-end
-
 
 ## sorting
 # we sort spaces lexigraphically by default
@@ -499,8 +520,7 @@ end
 
 
 """
-`ConstantSpace` Represents a single number.  The remaining
-coefficients are ignored.
+`ConstantSpace` is the 1-dimensional scalar space.
 """
 
 immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
@@ -514,9 +534,8 @@ ConstantSpace() = ConstantSpace(AnyDomain())
 
 isconstspace(::ConstantSpace) = true
 
-function transform(sp::ConstantSpace,vals,plan...)
-    @assert length(vals)==1
-    vals
+for pl in (:plan_transform,:plan_transform!,:plan_itransform,:plan_itransform!)
+    @eval $pl(sp::ConstantSpace,vals::Vector) = I
 end
 
 # we override maxspace instead of maxspace_rule to avoid
@@ -532,15 +551,19 @@ end
 
 
 
-"""
-`SequenceSpace` is the space of all sequences, i.e., infinite vectors
-"""
 immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
+
+doc"""
+`SequenceSpace` is the space of all sequences, i.e., infinite vectors.
+Also denoted ℓ⁰.
+"""
+SequenceSpace()
+
+
 const ℓ⁰ = SequenceSpace()
 dimension(::SequenceSpace) = ∞
 domain(::SequenceSpace) = ℕ
 spacescompatible(::SequenceSpace,::SequenceSpace) = true
-
 
 
 ## Boundary

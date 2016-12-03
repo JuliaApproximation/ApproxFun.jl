@@ -5,7 +5,7 @@ x=Fun(identity);
 @test_approx_eq sqrt(cos(π/2*x))(.1) sqrt(cos(.1π/2))
 
 
-x=Fun(identity,[-2.,2.])
+x=Fun(identity,-2..2)
 u=sqrt(4-x.^2)/(2π)
 @test_approx_eq u(.1) sqrt(4-.1^2)/(2π)
 @test_approx_eq sum(u) 1
@@ -16,7 +16,7 @@ u=sqrt(4-x.^2)/(2π)
 
 f=Fun(x->x.*cot(π*x/2))
 x=Fun(identity)
-u=Fun((f./(1-x.^2)).coefficients,JacobiWeight(1.,1.,Interval()))
+u=Fun(JacobiWeight(1.,1.,Interval()),(f./(1-x.^2)).coefficients)
 @test_approx_eq 1./(.1.*cot(π*.1/2)) (1./u)(.1)
 
 @test_approx_eq (x./u)(.1) tan(π*.1/2)
@@ -30,19 +30,19 @@ f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeight(-.5,-.5))
 
 
 
-S=JacobiWeight(-1.,-1.,Chebyshev([0.,1.]))
+S=JacobiWeight(-1.,-1.,Chebyshev(0..1))
 D=Derivative(S)
 
-f=Fun(Fun(exp,[0.,1.]).coefficients,S)
+f=Fun(S,Fun(exp,0..1).coefficients)
 x=.1
 @test_approx_eq f(x) exp(x)*x^(-1).*(1-x)^(-1)/4
 @test_approx_eq (D*f)(x) -exp(x)*(1+(x-3)*x)/(4*(x-1)^2*x^2)
 
 
-S=JacobiWeight(-1.,0.,Chebyshev([0.,1.]))
+S=JacobiWeight(-1.,0.,Chebyshev(0..1))
 D=Derivative(S)
 
-f=Fun(Fun(exp,[0.,1.]).coefficients,S)
+f=Fun(S,Fun(exp,0..1).coefficients)
 x=.1
 @test_approx_eq f(x) exp(x)*x^(-1)/2
 @test_approx_eq (D*f)(x) exp(x)*(x-1)/(2x^2)
@@ -81,7 +81,7 @@ println("    Ray tests")
 
 @test Inf in Ray()   # this was a bug
 
-f=Fun(x->exp(-x),[0,Inf])
+f=Fun(x->exp(-x),0..Inf)
 @test_approx_eq f'(.1) -f(.1)
 
 x=Fun(identity,Ray())
@@ -96,7 +96,7 @@ f=x^(-0.123)*exp(-x)
 @test_approx_eq integrate(f)'(1.) f(1.)
 
 
-@test_approx_eq_eps sum(Fun(sech,[0,Inf])) sum(Fun(sech,[0,40.])) 1000000eps()
+@test_approx_eq_eps sum(Fun(sech,0..Inf)) sum(Fun(sech,0..40)) 1000000eps()
 
 
 #Ei (Exp Integral)
@@ -131,22 +131,22 @@ f=Fun(x->sech(x-.1),d)
 
 ## LogWeight
 
-x=Fun(identity,[-1.,1.])
+x=Fun(identity,-1..1)
 f=exp(x+1)-1
 @test_approx_eq log(f)(0.1) log(f(0.1))
 
 
-x=Fun(identity,[0.,1.])
+x=Fun(identity,0..1)
 f=exp(x)-1
 @test_approx_eq log(f)(0.1) log(f(0.1))
 
 
 ## Test divide sing
 
-x=Fun(identity,[0,1])
+x=Fun(identity,0..1)
 @test_approx_eq Fun(exp(x)/x-1/x,Chebyshev)(0.1) (exp(0.1)-1)/0.1
 
-x=Fun(identity,[0,1])
+x=Fun(identity,0..1)
 f=1/x
 p=integrate(f)
 @test_approx_eq (p-p(1.))(0.5) log(0.5)
@@ -199,7 +199,7 @@ w+δ
 
 
 ## multiplicities
-x=Fun(identity,[-1,1.])
+x=Fun(identity,-1..1)
 @test_approx_eq (1/x^2)(0.1) 100.
 @test_approx_eq (1/x^2)(-0.1) 100.
 
@@ -211,14 +211,14 @@ fc=x*(1-x)^2
 
 ## erf(sqrt(x))
 
-x=Fun([0.,1.])
+x=Fun(0..1)
 @test_approx_eq erf(sqrt(x))(0.1) erf(sqrt(0.1))
 @test_approx_eq erfc(sqrt(x))(0.1) erfc(sqrt(0.1))
 
 
 ## norm(u-x)
 
-@test_approx_eq norm(Fun(exp,Legendre([0,1]))+sqrt(x)) 2.491141949903508
+@test_approx_eq norm(Fun(exp,Legendre(0..1))+sqrt(x)) 2.491141949903508
 
 
 
@@ -226,15 +226,15 @@ x=Fun([0.,1.])
 
 
 
-S1,S2=JacobiWeight(3.,1.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(1.,0.))
-f=Fun([1,2,3.],S1)
+S1,S2=JacobiWeight(3.,1.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(0.,1.))
+f=Fun(S1,[1,2,3.])
 C=Conversion(S1,S2)
 Cf=C*f
 @test_approx_eq Cf(0.1) f(0.1)
 
 
 S1,S2=JacobiWeight(3.,2.,Jacobi(1.,1.)),JacobiWeight(1.,1.,Jacobi(0.,0.))
-f=Fun([1,2,3.],S1)
+f=Fun(S1,[1,2,3.])
 C=Conversion(S1,S2)
 Cf=C*f
 @test_approx_eq Cf(0.1) f(0.1)
@@ -243,7 +243,7 @@ Cf=C*f
 
 ## roots of log(abs(x-y))
 
-x=Fun([-2.,-1.])
+x=Fun(-2..(-1))
 @test_approx_eq roots(abs(x+1.2)) [-1.2]
 
 f=abs(x+1.2)

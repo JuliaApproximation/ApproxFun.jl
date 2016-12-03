@@ -2,8 +2,16 @@ export devec,demat,mat
 
 
 doc"""
-`ArraySpace` used to represent array-valued expansions in `space`.  The
+    ArraySpace(s::Space,dims...)
+
+is used to represent array-valued expansions in a space `s`.  The
 coefficients are of each entry are interlaced.
+
+For example,
+```julia
+f = Fun(x->[exp(x),sin(x)],-1..1)
+space(f) == ArraySpace(Chebyshev(),2)
+```
 """
 immutable ArraySpace{S,n,T,DD,dim} <: DirectSumSpace{NTuple{n,S},T,DD,dim}
      space::S
@@ -37,7 +45,6 @@ Base.length{AS<:ArraySpace}(f::Fun{AS}) = length(space(f))
 
 Base.size(AS::ArraySpace) = AS.dimensions
 Base.size(AS::ArraySpace,k) = AS.dimensions[k]
-Base.size{AS<:ArraySpace}(f::Fun{AS},k...) = size(space(f),k...)
 
 Base.stride(AS::MatrixSpace,k::Int) = k==1?k:size(AS,1)
 Base.stride{S,T,DD,dim}(AS::Fun{MatrixSpace{S,T,DD,dim}},k::Int) =
@@ -70,7 +77,7 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
 
     @assert size(M,2)==n
     plan = plan_transform(AS.space,M[:,1])
-    cfs=Vector{V}[transform(AS.space,M[:,k],plan)  for k=1:size(M,2)]
+    cfs=Vector{V}[plan*M[:,k]  for k=1:size(M,2)]
 
     interlace(cfs,AS)
 end
@@ -156,7 +163,7 @@ function Base.vcat(vin::Fun...)
         S=TupleSpace(sps)
     end
 
-    Fun(interlace(v,S),S)
+    Fun(S,interlace(v,S))
 end
 
 Base.vcat(v::Union{Fun,Number}...) = vcat(map(Fun,v)...)
@@ -169,7 +176,7 @@ function devec{F<:Fun}(v::Vector{F})
         S=TupleSpace(sps)
     end
 
-    Fun(interlace(v,S),S)
+    Fun(S,interlace(v,S))
 end
 
 devec(v::Vector{Any})=devec([v...])
@@ -183,7 +190,7 @@ end
 
 function demat{FF<:Fun}(v::Array{FF})
     ff=devec(vec(v))  # A vectorized version
-    Fun(coefficients(ff),ArraySpace(space(ff).space,size(v)...))
+    Fun(ArraySpace(space(ff).space,size(v)...),coefficients(ff))
 end
 
 demat(v::Vector{Any})=devec(v)
@@ -222,21 +229,21 @@ end
 
 spacescompatible(AS::ArraySpace,BS::ArraySpace)=size(AS)==size(BS) && spacescompatible(AS.space,BS.space)
 canonicalspace(AS::ArraySpace)=ArraySpace(canonicalspace(AS.space),size(AS))
-evaluate(f::AbstractVector,S::ArraySpace,x)=map(g->evaluate(g,x),mat(Fun(f,S)))
+evaluate(f::AbstractVector,S::ArraySpace,x)=map(g->evaluate(g,x),mat(Fun(S,f)))
 
 for OP in (:(Base.transpose),)
     @eval $OP{AS<:ArraySpace,T}(f::Fun{AS,T}) = demat($OP(mat(f)))
 end
 
 
-Base.reshape{AS<:ArraySpace}(f::Fun{AS},k...) = Fun(f.coefficients,reshape(space(f),k...))
+Base.reshape{AS<:ArraySpace}(f::Fun{AS},k...) = Fun(reshape(space(f),k...),f.coefficients)
 
 Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...) = demat(diff(mat(f),n...))
 
 ## conversion
 
 coefficients(f::Vector,a::VectorSpace,b::VectorSpace) =
-    interlace(map(coefficients,Fun(f,a),b),b)
+    interlace(map(coefficients,Fun(a,f),b),b)
 
 coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) =
     interlace(map(coefficients,Q,rs),rs)
@@ -244,8 +251,8 @@ coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) =
 
 
 
-Fun{FF<:Fun}(f::Vector{FF},d::VectorSpace) = Fun(coefficients(f,d),d)
-Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(coefficients(f,d),d)
+Fun{FF<:Fun}(f::Vector{FF},d::VectorSpace) = Fun(d,coefficients(f,d))
+Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(d,coefficients(f,d))
 
 
 
@@ -254,7 +261,7 @@ Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(coefficients(f,d),d)
 ## constructor
 
 # change to ArraySpace
-Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = space(f)==d ? f : Fun(coefficients(f,d),d)
+Fun{AS<:ArraySpace}(f::Fun{AS},d::ArraySpace) = space(f)==d ? f : Fun(d,coefficients(f,d))
 Fun{AS<:ArraySpace}(f::Fun{AS},d::Space) = Fun(f,ArraySpace(d,space(f).dimensions))
 
 
@@ -361,22 +368,8 @@ Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T}) 
     Any[vec(f,k) for k=1:length(space(f)[1])+1]
 
 
-
-linsolve{S,T,DD,dim}(A::QROperator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
-    linsolve(A,mat(b);kwds...)
-
-
 # avoid ambiguity
-for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:Operator)
-    @eval function linsolve{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
-        if isambiguous(domainspace(A))
-            A=choosespaces(A,b[:,1])  # use only first column
-            if isambiguous(domainspace(A))
-                error("Cannot infer spaces")
-            end
-            linsolve(A,b;kwds...)
-        else
-            linsolve(qrfact(A),b;kwds...)
-        end
-    end
+for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:QROperator,:Operator)
+    @eval \{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
+        \(A,mat(b);kwds...)
 end

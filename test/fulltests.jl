@@ -1,5 +1,6 @@
 using ApproxFun, Base.Test
-    import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator
+    import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
+                        testbandedbelowoperator
 ## This includes extra tests that are too time consuming for Travis
 
 
@@ -7,10 +8,10 @@ include("runtests.jl")
 
 println("    Full Operator tests")
 
-@time for M in (Multiplication(Fun([1.],CosSpace()),CosSpace()),
-                Multiplication(Fun([1.],CosSpace()),SinSpace()),
-                Multiplication(Fun([1.],SinSpace()),SinSpace()),
-                Multiplication(Fun([1.],SinSpace()),CosSpace()),
+@time for M in (Multiplication(Fun(CosSpace(),[1.]),CosSpace()),
+                Multiplication(Fun(CosSpace(),[1.]),SinSpace()),
+                Multiplication(Fun(SinSpace(),[1.]),SinSpace()),
+                Multiplication(Fun(SinSpace(),[1.]),CosSpace()),
                 Derivative(SinSpace()),Derivative(CosSpace()))
       testbandedoperator(M)
 end
@@ -27,7 +28,7 @@ S=Chebyshev()
 end
 
 ## Newton iteration bug
-S=Chebyshev([0.,7.])
+S=Chebyshev(0..7)
 
 ω=2π
 
@@ -98,14 +99,14 @@ println("    Bessel tests")
 
 @time for ν in (1.,0.5,2.,3.5)
     println("        ν = $ν")
-    S=JacobiWeight(-ν,0.,Chebyshev([0.,1.]))
+    S=JacobiWeight(-ν,0.,Chebyshev(0..1))
     D=Derivative(S)
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
-    u=linsolve([rdirichlet(S);rneumann(S);L],[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.))];
+    u=\([rdirichlet(S);rneumann(S);L],[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test_approx_eq_eps u(.1) bessely(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
-    u=linsolve([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.))];
+    u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test_approx_eq_eps u(.1) besselj(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
 
@@ -117,12 +118,12 @@ end
 
 @time for ν in (1.,0.5,0.123,3.5)
     println("        ν = $ν")
-    S=JacobiWeight(ν,0.,Chebyshev([0.,1.]))
+    S=JacobiWeight(ν,0.,Chebyshev(0..1))
     D=Derivative(S)
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
 
-    u=linsolve([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.))];
+    u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test_approx_eq_eps u(.1) besselj(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
 
@@ -133,9 +134,9 @@ end
 println("Full Jacobi tests")
 
 
-sp=Jacobi(2.124,.5)
+sp=Jacobi(.5,2.124)
 f=Fun(exp,sp)
-sp2=Jacobi(2.124,1.5)
+sp2=Jacobi(1.5,2.124)
 M=Multiplication(f,sp2)
 @time testbandedoperator(M)
 
@@ -143,7 +144,8 @@ M=Multiplication(f,sp2)
 ## Legendre conversions
 testspace(Ultraspherical(1);haslineintegral=false)
 testspace(Ultraspherical(2);haslineintegral=false)
-@time testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)  # minpoints is a tempory fix a bug
+# minpoints is a tempory fix a bug
+@time testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)
 
 @test norm(Fun(exp,Ultraspherical(1//2))-Fun(exp,Jacobi(0,0))) < 100eps()
 
@@ -206,7 +208,7 @@ println("Full multivariate tests")
 
 
 ## ProductFun
-u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5).^2-40(y+.2).^2))
+u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-0.1)^2)+.5exp(-30(x+0.5)^2-40(y+0.2)^2))
 
 
 @test values(u0)-values(u0|>LowRankFun)|>norm < 1000eps()
@@ -216,7 +218,7 @@ u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-.1).^2)+.5exp(-30(x+.5)
 @test sin(u0)(.1,.2)-sin(u0(.1,.2))|>abs < 10e-4
 
 
-F = LowRankFun((x,y)->hankelh1(0,10abs(y-x)),Chebyshev([1.0,2.0]),Chebyshev([1.0im,2.0im]))
+F = LowRankFun((x,y)->hankelh1(0,10abs(y-x)),Chebyshev(1.0..2.0),Chebyshev(1.0im..2.0im))
 
 @test_approx_eq F(1.5,1.5im) hankelh1(0,10abs(1.5im-1.5))
 
@@ -243,6 +245,7 @@ f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 d=Interval()
 B=ldirichlet(d)
 f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
+
 @test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<20000eps()
 @test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<20000eps()
 

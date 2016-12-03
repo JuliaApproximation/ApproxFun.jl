@@ -12,17 +12,18 @@ for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
     testtransforms(Fourier(d);invertibletransform=false)
 end
 
-@test sum(Fun(1,CosSpace())) ≈ π
-@test sum(Fun([1],SinSpace())) == 0
+@test sum(Fun(1,CosSpace())) ≈ 2π
+@test sum(Fun(SinSpace(),[1])) == 0
 
 
 f=Fun(t->cos(t)+cos(3t),CosSpace)
-
+@test_approx_eq f(0.1) cos(0.1)+cos(3*0.1)
 @test (f.*f-Fun(t->(cos(t)+cos(3t))^2,CosSpace)).coefficients|>norm <100eps()
 
 
 
 f=Fun(exp,Taylor(Circle()))
+@test_approx_eq f(exp(0.1im)) exp(exp(0.1im))
 g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
 @test_approx_eq (f(1.)+g(1.)) (exp(1.) + 1./(1-.1))
 
@@ -33,7 +34,6 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
 @test_approx_eq f(.5) Fun(f,Fourier)(.5)
 
 
-
 Γ=Circle(1.1,2.2)
 z=Fun(Fourier(Γ))
 @test space(z)==Fourier(Γ)
@@ -42,9 +42,9 @@ z=Fun(Fourier(Γ))
 
 
 
-@test_approx_eq Fun([1,1.,1.],Laurent([0,2π]))(0.1) 1+2cos(0.1+π)
-@test_approx_eq Fun([1,1.,1.],Laurent([-1,1]))(0.1) 1+2cos(π*0.1)
-@test_approx_eq Fun([1,1.,1.],Laurent([0,1]))(0.1) 1+2cos(2π*(0.1-1/2))
+@test_approx_eq Fun(Laurent(0..2π),[1,1.,1.])(0.1) 1+2cos(0.1)
+@test_approx_eq Fun(Laurent(-1..1),[1,1.,1.])(0.1) 1+2cos(π*(0.1+1))
+@test_approx_eq Fun(Laurent(0..1),[1,1.,1.])(0.1) 1+2cos(2π*0.1)
 
 
 @test abs(Fun(cos,Circle())(exp(0.1im))-cos(exp(0.1im)))<100eps()
@@ -62,7 +62,7 @@ z=Fun(Fourier(Γ))
 
 for f in (Fun(θ->sin(sin(θ)),SinSpace()),Fun(θ->cos(θ)+cos(3θ),CosSpace()),
             Fun(θ->sin(sin(θ)),Fourier()),Fun(θ->cos(θ)+cos(3θ),CosSpace()))
-    @test norm(integrate(f)'-f)<eps()
+    @test norm(integrate(f)'-f)<10eps()
 end
 
 
@@ -104,7 +104,7 @@ end
 ## Taylor
 
 
-@test Fun(Taylor())  == Fun([0.,1.],Taylor())
+@test Fun(Taylor())  == Fun(Taylor(),[0.,1.])
 
 @test Fun(Taylor())(1.0) ≈ 1.0
 @test Fun(Taylor(Circle(0.1,2.2)))(1.0) ≈ 1.0
@@ -119,7 +119,7 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     ef=Fun(exp,S)
     @test norm((D*ef-ef).coefficients)<1000eps()
     @test norm((D^2*ef-ef).coefficients)<100000eps()
-    u=[Evaluation(S,0.),D-I]\[1.]
+    u=[Evaluation(S,0.),D-I]\[1.;0.]
     @test norm((u-ef).coefficients)<100eps()
     @test norm((Integral(S)*Fun(exp,S)+ef.coefficients[1]-ef).coefficients)<100eps()
 
@@ -138,7 +138,7 @@ D-I
 ef=Fun(exp,S)
 @test norm((D*ef-ef).coefficients)<1000eps()
 @test norm((D^2*ef-ef).coefficients)<100000eps()
-u=[Evaluation(S,0.),D-I]\[1.]
+u=[Evaluation(S,0.),D-I]\[1.;0.]
 
 # check's Derivative constructor works
 D=Derivative(Taylor(PeriodicInterval()))
@@ -226,21 +226,21 @@ end
 ##  Norms
 
 
-@test_approx_eq sum(Fun([1.],CosSpace()))/π 1.
-@test_approx_eq sum(Fun([0.,1.],CosSpace())^2)/π 0.5
-@test_approx_eq sum(Fun([0.,0.,1.],CosSpace())^2)/π 0.5
-@test_approx_eq sum(Fun([0.,0.,0.,1.],CosSpace())^2)/π 0.5
+@test_approx_eq sum(Fun(CosSpace(),[1.]))/(2π) 1.
+@test_approx_eq sum(Fun(CosSpace(),[0.,1.])^2)/(2π) 0.5
+@test_approx_eq sum(Fun(CosSpace(),[0.,0.,1.])^2)/(2π) 0.5
+@test_approx_eq sum(Fun(CosSpace(),[0.,0.,0.,1.])^2)/(2π) 0.5
 
 
-@test_approx_eq sum(Fun([0.,1.],SinSpace())^2)/π 0.5
-@test_approx_eq sum(Fun([0.,0.,1.],SinSpace())^2)/π 0.5
-@test_approx_eq sum(Fun([0.,0.,0.,1.],SinSpace())^2)/π 0.5
+@test_approx_eq sum(Fun(SinSpace(),[0.,1.])^2)/(2π) 0.5
+@test_approx_eq sum(Fun(SinSpace(),[0.,0.,1.])^2)/(2π) 0.5
+@test_approx_eq sum(Fun(SinSpace(),[0.,0.,0.,1.])^2)/(2π) 0.5
 
 
 ## Bug in multiplicaiton
 
-@test Fun(Float64[],SinSpace())^2 == Fun(Float64[],SinSpace())
-@test Fun([1.],Fourier())^2 ≈ Fun([1.],Fourier())
+@test Fun(SinSpace(),Float64[])^2 == Fun(SinSpace(),Float64[])
+@test Fun(Fourier(),[1.])^2 ≈ Fun(Fourier(),[1.])
 
-B=Evaluation(Laurent([0.,2π]),0,1)
+B=Evaluation(Laurent(0..2π),0,1)
 @test_approx_eq B*Fun(sin,domainspace(B)) 1.0

@@ -64,8 +64,8 @@ end
 
 Space(d::Point)=PointSpace(d)
 
-identity_fun(S::PointSpace)=Fun(S.points,S)
-identity_fun(S::DiracSpace)=Fun(S.points,PointSpace(S.points))
+identity_fun(S::PointSpace)=Fun(S,S.points)
+identity_fun(S::DiracSpace)=Fun(PointSpace(S.points),S.points)
 transform(S::PointSpace,v::Vector,plan...)=v
 
 
@@ -85,22 +85,22 @@ Base.sum{DS<:DiracSpace}(f::Fun{DS})=sum(f.coefficients[1:dimension(space(f))])
 
 
 
-DiracDelta(x::Number)=Fun([1.],DiracSpace(x))
+DiracDelta(x::Number)=Fun(DiracSpace(x),[1.])
 DiracDelta()=DiracDelta(0.)
 
 
-function Base.cumsum{S<:DiracSpace,T<:Real}(f::Fun{S},d::Interval{T})
+function Base.cumsum{S<:DiracSpace,T<:Real}(f::Fun{S},d::Segment{T})
     pts=space(f).points
     @assert pts ==sort(pts)
     cfs=cumsum(f.coefficients)
     if first(d) < first(pts) && last(d) > last(pts)
-        Fun([0;cfs],HeavisideSpace([first(d);pts;last(d)]))
+        Fun(HeavisideSpace([first(d);pts;last(d)]),[0;cfs])
     elseif first(d) == first(pts) && last(d) > last(pts)
-        Fun(cfs,HeavisideSpace([pts;last(d)]))
+        Fun(HeavisideSpace([pts;last(d)]),cfs)
     elseif first(d) < first(pts) && last(d) == last(pts)
-        Fun([0;cfs],HeavisideSpace([first(d);pts]))
+        Fun(HeavisideSpace([first(d);pts]),[0;cfs])
     elseif first(d) == first(pts) && last(d) == last(pts)
-        Fun(cfs[1:end-1],HeavisideSpace(pts))
+        Fun(HeavisideSpace(pts),cfs[1:end-1])
     else
         error("Implement")
     end
@@ -141,18 +141,18 @@ end
 
 function coefficienttimes{PS<:PointSpace,DS<:DiracSpace}(f::Fun{PS},g::Fun{DS})
     @assert space(f).points==space(g).points
-    Fun(f.coefficients.*g.coefficients,space(g))
+    Fun(space(g),f.coefficients.*g.coefficients)
 end
 
 function coefficienttimes{PS<:PointSpace,DS<:DiracSpace}(f::Fun{DS},g::Fun{PS})
     @assert space(f).points==space(g).points
-    Fun(f.coefficients.*g.coefficients,space(f))
+    Fun(space(f),f.coefficients.*g.coefficients)
 end
 
 function coefficienttimes{PS<:PointSpace,PS2<:PointSpace}(f::Fun{PS},g::Fun{PS2})
     @assert space(f).points==space(g).points
-    Fun(f.coefficients.*g.coefficients,space(g))
+    Fun(space(g),f.coefficients.*g.coefficients)
 end
 
 ./{PS<:PointSpace}(f::Fun,g::Fun{PS}) = f.*inv(g)
-Base.inv{PS<:PointSpace}(f::Fun{PS}) = Fun(1./f.coefficients,space(f))
+Base.inv{PS<:PointSpace}(f::Fun{PS}) = Fun(space(f),1./f.coefficients)

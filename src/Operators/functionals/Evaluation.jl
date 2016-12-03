@@ -31,6 +31,7 @@ end
 
 Evaluation(sp::UnsetSpace,x::Bool,k) =
     ConcreteEvaluation{UnsetSpace,Bool,typeof(k),UnsetNumber}(sp,x,k)
+
 Evaluation(sp::Space{ComplexBasis},x,order) =
     Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
 Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
@@ -38,7 +39,7 @@ Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
 #Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::Space,x::Union{Number,Bool}) = Evaluation(d,x,0)
 
-Evaluation(d::Domain,x::Union{Number,Bool},n...) = Evaluation(Space(d),x,n...)
+Evaluation(d,n...) = Evaluation(Space(d),n...)
 Evaluation(x::Union{Number,Bool}) = Evaluation(UnsetSpace(),x,0)
 Evaluation(x::Union{Number,Bool},k::Integer) = Evaluation(UnsetSpace(),x,k)
 Evaluation{T<:Number}(d::Vector{T},x::Union{Number,Bool},o::Integer) = Evaluation(Interval(d),x,o)
@@ -60,15 +61,15 @@ end
 
 ## default getindex
 getindex(D::ConcreteEvaluation,k::Integer) =
-    eltype(D)(differentiate(Fun([zeros(eltype(D),k-1);one(eltype(D))],D.space),D.order)(D.x))
+    eltype(D)(differentiate(Fun(D.space,[zeros(eltype(D),k-1);one(eltype(D))]),D.order)(D.x))
 
 
 function getindex{S}(D::ConcreteEvaluation{S,Bool},k::Integer)
     T=eltype(D)
     if !D.x
-        T(first(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)))
+        T(first(differentiate(Fun(D.space,[zeros(T,k-1);one(T)]),D.order)))
     else
-        T(last(differentiate(Fun([zeros(T,k-1);one(T)],D.space),D.order)))
+        T(last(differentiate(Fun(D.space,[zeros(T,k-1);one(T)]),D.order)))
     end
 end
 

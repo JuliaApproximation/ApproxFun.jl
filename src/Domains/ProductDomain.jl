@@ -1,35 +1,53 @@
 
 export ProductDomain
 
+doc"""
+    ProductDomain((d1,d2))
 
+represents the product of two domains, the set `{(x,y) : x ∈ d1 & y ∈ d2}`.
+
+Multiplication of domains is overrident to return a `ProductDomain`.
+For example, the following represents the rectangle `1 ≤ x ≤ 2 & 3 ≤ y ≤ 4`:
+```julia
+Interval(1,2)*(3,4)
+```
+"""
 immutable ProductDomain{D,T,dim} <: Domain{T,dim}
     domains::D
 end
 
 ProductDomain(d::Tuple) =
-    ProductDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(dimension,+,d)}(d)
+    ProductDomain{typeof(d),Vec{length(d),mapreduce(eltype,promote_type,d)},
+                   mapreduce(dimension,+,d)}(d)
 
-fromcanonical(d::BivariateDomain,x::Tuple)=fromcanonical(d,x...)
-tocanonical(d::BivariateDomain,x::Tuple)=tocanonical(d,x...)
+# TODO: Remove Tuple variants
+fromcanonical(d::BivariateDomain,x::Tuple) = fromcanonical(d,Vec(x...))
+tocanonical(d::BivariateDomain,x::Tuple) = tocanonical(d,Vec(x...))
+
+fromcanonical(d::BivariateDomain,x,y) = fromcanonical(d,Vec(x,y))
+tocanonical(d::BivariateDomain,x,y) = tocanonical(d,Vec(x,y))
+
+
+canonicaldomain(d::ProductDomain) = ProductDomain(map(canonicaldomain,d.domains))
 
 # product domains are their own canonical domain
 for OP in (:fromcanonical,:tocanonical)
-    @eval $OP(::ProductDomain,x,y)=(x,y)
+    @eval $OP(d::ProductDomain,x::Vec) = Vec(map($OP,d.domains,x)...)
 end
 
 
-ProductDomain(A,B)=ProductDomain((A,B))
-*(A::ProductDomain,B::ProductDomain)=ProductDomain(tuple(A.domains...,B.domains...))
-*(A::ProductDomain,B::Domain)=ProductDomain(tuple(A.domains...,B))
-*(A::Domain,B::ProductDomain)=ProductDomain(tuple(A,B.domains...))
-*(A::Domain,B::Domain)=ProductDomain(A,B)
+ProductDomain(A,B) = ProductDomain((A,B))
+*(A::ProductDomain,B::ProductDomain) = ProductDomain(tuple(A.domains...,B.domains...))
+*(A::ProductDomain,B::Domain) = ProductDomain(tuple(A.domains...,B))
+*(A::Domain,B::ProductDomain) = ProductDomain(tuple(A,B.domains...))
+*(A::Domain,B::Domain) = ProductDomain(A,B)
 
 Base.length(d::ProductDomain)=length(d.domains)
 Base.transpose(d::ProductDomain)=ProductDomain(d[2],d[1])
 Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
 ==(d1::ProductDomain,d2::ProductDomain)=d1.domains==d2.domains
 
-Base.first(d::ProductDomain)=(first(d[1]),first(d[2]))
+Base.first(d::ProductDomain) = (first(d[1]),first(d[2]))
 
 Base.in(x::Vec,d::ProductDomain) = reduce(&,map(in,x,d.domains))
 

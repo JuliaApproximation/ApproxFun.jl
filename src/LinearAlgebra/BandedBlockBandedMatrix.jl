@@ -1,6 +1,6 @@
 # Represents a block banded matrix with banded blocks
 #   similar to BandedMatrix{BandedMatrix{T}}
-immutable BandedBlockBandedMatrix{T,RI,CI} <: AbstractBandedBlockMatrix{T}
+type BandedBlockBandedMatrix{T,RI,CI} <: AbstractBandedBlockMatrix{T}
     data::Matrix{T}
 
     l::Int  # block lower bandwidth
@@ -33,6 +33,16 @@ for FUNC in (:zeros,:rand,:ones)
         BandedBlockBandedMatrix($FUNC(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
 end
 
+
+function BandedMatrix(B::BandedBlockBandedMatrix)
+    if length(B.rows) == length(B.cols) == 1
+        copy(viewblock(B,1,1))
+    elseif all(x->x==1,B.rows) && all(x->x==1,B.cols)
+        BandedMatrix(B.data,length(B.rows),B.l,B.u)
+    else
+        error("$B is not a banded matrix")
+    end
+end
 
 
 Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u

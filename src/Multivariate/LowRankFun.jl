@@ -33,8 +33,8 @@ function LowRankFun{S<:Space,M<:Space,T<:Number}(X::Array{T},dx::S,dy::M)
     U,Σ,V=svd(X)
     m=max(1,count(s->s>10eps(T),Σ))
 
-    A=Fun{S,T}[Fun(U[:,k].*sqrt(Σ[k]),dx) for k=1:m]
-    B=Fun{M,T}[Fun(conj(V[:,k]).*sqrt(Σ[k]),dy) for k=1:m]
+    A=Fun{S,T}[Fun(dx,U[:,k].*sqrt(Σ[k])) for k=1:m]
+    B=Fun{M,T}[Fun(dy,conj(V[:,k]).*sqrt(Σ[k])) for k=1:m]
 
     LowRankFun(A,B)
 end
@@ -83,7 +83,7 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Sym
     ptsx,ptsy=points(dx,gridx),points(dy,gridy)
     X = zeros(T,gridx,gridy)
     maxabsf,r=findapproxmax!(f,X,ptsx,ptsy,gridx,gridy)
-    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun([zero(T)],dx)],[Fun([zero(T)],dy)]),maxabsf end
+    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun(dx,[zero(T)])],[Fun(dy,[zero(T)])]),maxabsf end
     a,b=Fun(x->f(x,r[2]),dx),Fun(y->f(r[1],y),dy)
 
     # If necessary, we resize the grid to be at least as large as the
@@ -120,7 +120,7 @@ function standardLowRankFun(f::Function,dx::Space,dy::Space;tolerance::Union{Sym
         for j=1:gridy
             @inbounds Bvals[j] = f(r[1],ptsy[j])
         end
-        a,b = Fun(transform(dx,Avals,p₁),dx) - dotu(Br,A),Fun(transform(dy,Bvals,p₂),dy) - dotu(Ar,B)
+        a,b = Fun(dx,p₁*Avals) - dotu(Br,A),Fun(dy,p₂*Bvals) - dotu(Ar,B)
         chop!(a,tol10),chop!(b,tol10)
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
@@ -137,7 +137,7 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{
     pts=points(dx,grid)
     X = zeros(T,grid)
     maxabsf,r=findcholeskyapproxmax!(f,X,pts,grid)
-    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun([zero(T)],dx)],[Fun([zero(T)],dx)]),maxabsf end
+    if maxabsf < eps(zero(T))/eps(T) return LowRankFun([Fun(dx,[zero(T)])],[Fun(dx,[zero(T)])]),maxabsf end
     a=Fun(x->f(x,r),dx)
 
     # If necessary, we resize the grid to be at least as large as the
@@ -169,7 +169,7 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{
         for i=1:grid
             @inbounds Avals[i] = f(pts[i],r)
         end
-        a = Fun(transform(dx,Avals,p₁),dx) - dotu(Br,A)
+        a = Fun(dx,p₁*Avals) - dotu(Br,A)
         chop!(a,tol10)
     end
     warn("Maximum rank of " * string(maxrank) * " reached")
@@ -193,7 +193,7 @@ LowRankFun(c::Number,etc...)=LowRankFun((x,y)->c,etc...)
 
 ## Construction from other LowRankFuns
 
-LowRankFun(f::LowRankFun,d1::IntervalDomain,d2::IntervalDomain)=LowRankFun(map(g->Fun(g.coefficients,d1),f.A),map(g->Fun(g.coefficients,d2),f.B))
+LowRankFun(f::LowRankFun,d1::IntervalDomain,d2::IntervalDomain)=LowRankFun(map(g->Fun(d1,g.coefficients),f.A),map(g->Fun(d2,g.coefficients),f.B))
 LowRankFun(f::LowRankFun)=LowRankFun(f,Interval(),Interval())
 
 
@@ -336,7 +336,7 @@ function evaluate(f::LowRankFun,::Colon,y::Number)
         end
     end
 
-    Fun(ret,first(f.A).space)
+    Fun(first(f.A).space,ret)
 end
 
 
@@ -383,7 +383,7 @@ function Base.qr(f::LowRankFun)
     sp,r = space(f),rank(f)
     Q,R = qr(coefficients(f.A))
     BR = coefficients(f.B)*R.'
-    LowRankFun(map(i->Fun(Q[:,i],sp[1]),1:r),map(i->Fun(BR[:,i],sp[2]),1:r),sp)
+    LowRankFun(map(i->Fun(sp[1],Q[:,i]),1:r),map(i->Fun(sp[2],BR[:,i]),1:r),sp)
 end
 
 ## Special functions

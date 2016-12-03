@@ -1,5 +1,5 @@
 export Operator
-export bandinds, bandrange, linsolve, periodic
+export bandinds, bandrange, \, periodic
 export dirichlet, neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
@@ -129,6 +129,7 @@ end
 blockbandwidths(S::Operator) = -blockbandinds(S,1),blockbandinds(S,2)
 blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
 blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(K,k)
+subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandwidth(K::Operator,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
 
@@ -377,8 +378,8 @@ defaultgetindex(A::Operator,kr,::Type{FiniteRange}) =
 defaultgetindex(B::Operator,f::Fun) = B*Multiplication(domainspace(B),f)
 defaultgetindex(B::Operator,f::LowRankFun) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
 defaultgetindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
-    mapreduce(i->f.coefficients[i]*B[Fun([zeros(promote_type(BT,T),i-1);
-                                            one(promote_type(BT,T))],f.space[2])],
+    mapreduce(i->f.coefficients[i]*B[Fun(f.space[2],[zeros(promote_type(BT,T),i-1);
+                                            one(promote_type(BT,T))])],
                 +,1:length(f.coefficients))
 
 
@@ -508,7 +509,7 @@ end
 
 
 
-include("linsolve.jl")
+include("A_ldiv_B.jl")
 
 include("spacepromotion.jl")
 include("banded/banded.jl")
@@ -538,6 +539,9 @@ Base.eye(S::Domain) = eye(Space(S))
 
 Base.convert{T}(A::Type{Operator{T}},f::Fun) =
     norm(f.coefficients)==0?zero(A):convert(A,Multiplication(f))
+
+Base.convert(A::Type{Operator},f::Fun) =
+    norm(f.coefficients)==0?ZeroOperator():Multiplication(f)
 
 
 

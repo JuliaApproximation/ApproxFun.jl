@@ -2,6 +2,11 @@ export Disk,𝔻
 
 # T is Real or Complex
 # TT is (Real,Real) or Complex
+doc"""
+    Disk(c,r)
+
+represents the disk centred at `c` with radius `r`.
+"""
 immutable Disk{T,TT} <: BivariateDomain{T}
     center::TT
     radius::Float64
@@ -32,4 +37,4 @@ checkpoints(d::Disk)=[fromcanonical(d,(.1,.2243));fromcanonical(d,(-.212423,-.3)
 # end
 
 
-∂(d::Disk)=Circle(Complex(d.center...),d.radius)
+∂(d::Disk) = Circle(Complex(d.center...),d.radius)

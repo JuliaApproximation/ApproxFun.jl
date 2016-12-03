@@ -16,13 +16,19 @@ linesum{DD<:Circle}(f::Fun{Fourier{DD}})=sum(setcanonicaldomain(f))*d.radius
 linesum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}})=sum(f) #TODO: Complex periodic interval
 
 
-differentiate{DD<:PeriodicInterval}(f::Fun{Taylor{DD}}) = Fun(im*tocanonicalD(f,0)*taylor_diff(f.coefficients),f.space)
-differentiate{DD<:PeriodicInterval}(f::Fun{Hardy{false,DD}}) = Fun(im*tocanonicalD(f,0)*hardyfalse_diff(f.coefficients),f.space)
-differentiate{DD<:PeriodicInterval}(f::Fun{Laurent{DD}}) = Fun(im*tocanonicalD(f,0)*laurentdiff(f.coefficients),f.space)
+differentiate{DD<:PeriodicInterval}(f::Fun{Taylor{DD}}) =
+    Fun(f.space,im*tocanonicalD(f,0)*taylor_diff(f.coefficients))
+differentiate{DD<:PeriodicInterval}(f::Fun{Hardy{false,DD}}) =
+    Fun(f.space,im*tocanonicalD(f,0)*hardyfalse_diff(f.coefficients))
+differentiate{DD<:PeriodicInterval}(f::Fun{Laurent{DD}}) =
+    Fun(f.space,im*tocanonicalD(f,0)*laurentdiff(f.coefficients))
 
-differentiate{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) = Fun(tocanonicalD(f,0)*cosspacediff(f.coefficients),SinSpace(domain(f)))
-differentiate{DD<:PeriodicInterval}(f::Fun{SinSpace{DD}}) = Fun(tocanonicalD(f,0)*sinspacediff(f.coefficients),CosSpace(domain(f)))
-differentiate{DD<:PeriodicInterval}(f::Fun{Fourier{DD}}) = Fun(tocanonicalD(f,0)*fourierdiff(f.coefficients),f.space)
+differentiate{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) =
+    Fun(SinSpace(domain(f)),tocanonicalD(f,0)*cosspacediff(f.coefficients))
+differentiate{DD<:PeriodicInterval}(f::Fun{SinSpace{DD}}) =
+    Fun(CosSpace(domain(f)),tocanonicalD(f,0)*sinspacediff(f.coefficients))
+differentiate{DD<:PeriodicInterval}(f::Fun{Fourier{DD}}) =
+    Fun(f.space,tocanonicalD(f,0)*fourierdiff(f.coefficients))
 
 differentiate{DD}(f::Fun{Laurent{DD}}) = Derivative(space(f))*f
 differentiate{DD}(f::Fun{Fourier{DD}}) = Derivative(space(f))*f
@@ -46,6 +52,14 @@ function integrate{D}(f::Fun{Taylor{D}})
 end
 
 
+Base.sum{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) =
+    f.coefficients[1]*complexlength(domain(f))
+
+linesum{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) =
+    f.coefficients[1]*arclength(domain(f))
+
+
+
 function integrate{CS<:CosSpace}(f::Fun{CS})
     if isa(domain(f),Circle)
         error("Integrate not implemented for CosSpace on Circle")
@@ -57,7 +71,7 @@ function integrate{CS<:CosSpace}(f::Fun{CS})
         else
             d=domain(f)
             @assert isa(d,PeriodicInterval)
-            x=Fun(identity,[first(d),last(d)])
+            x=Fun(identity,first(d)..last(d))
             (f.coefficients[1]*x)⊕integrate(Fun(f,space(f)|(2:∞)))
         end
     end

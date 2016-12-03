@@ -1,5 +1,5 @@
 using ApproxFun,Base.Test
-import ApproxFun.Multiplication
+    import ApproxFun.Multiplication
 
 
 ##Airy equation
@@ -109,7 +109,7 @@ B=dirichlet(S)
 D=Derivative(S)
 
 Q,R=qr([B;D^2+I])
-u=R\(Q'*[cos(-1.0),cos(1.0)])
+u=R\(Q'*[cos(-1.0);cos(1.0);0.0])
 
 
 @test_approx_eq u(0.) cos(0.0)
@@ -118,20 +118,20 @@ u=R\(Q'*[cos(-1.0),cos(1.0)])
 S=Chebyshev()
 A=[dirichlet(S);Derivative(S)^2 - I]
 QR=qrfact(A)
-@test_approx_eq (QR\[1.])(0.0) 0.3240271368319427
+@test_approx_eq (QR\[1.,0,0])(0.0) 0.3240271368319427
 Q,R=qr(A)
-u=(R\(Q'*[1.]))
+u=(R\(Q'*[1.,0.0,0.0]))
 @test_approx_eq u(0.0)  0.3240271368319427
 
 x=Fun(S)
 A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
 QR=qrfact(A)
 
-u=(QR\[1.])
+u=(QR\[1.,0.0,0.0])
 @test_approx_eq u(0.0) (0.3329522068795961 + 0.024616008954634165im)
 
-
-x=Fun(identity,[-2.,-1.,0.,15.])
+# Union of intervals are constructed for now with \
+x=Fun(identity,(-2..15) \ [-1,0])
 sp=space(x)
 
 # Check bug in promote
@@ -140,9 +140,10 @@ sp=space(x)
 @test domainspace(ApproxFun.promotedomainspace(dirichlet(sp),sp)) == sp
 
 D=Derivative(sp)
-A=[dirichlet(sp);D^2-x]
+B=dirichlet(sp)
+A=[B;D^2-x]
 QR=qrfact(A)
-@time u=QR\[airyai(-2.)]
+@time u=QR\Any[[airyai(-2.);zeros(size(B,1)-1)],0.0]
 
 
 
@@ -175,20 +176,28 @@ v=Any[0.,0.,0.,f...]
 ## Auto-space
 
 
-t=Fun(identity,[0.,1000.])
+t=Fun(identity,0..1000)
 L=𝒟^2+2I  # our differential operator, 𝒟 is equivalent to Derivative()
 
 u=[ivp();L]\[0.;0.;cos(100t)]
 @test_approx_eq_eps u(1000.0) 0.00018788162639452911 1000eps()
 
 
-x=Fun(identity,[1.,2000.])
+x=Fun(identity,1..2000)
 d=domain(x)
 B=dirichlet()
 ν=100.
 L=x^2*𝒟^2 + x*𝒟 + (x^2 - ν^2)   # our differential operator
 
-@time u=[B;L]\[besselj(ν,first(d)),besselj(ν,last(d))]
+@time u=[B;L]\[besselj(ν,first(d)),besselj(ν,last(d)),0.]
 
 
 @test_approx_eq_eps u(1900.) besselj(ν,1900.) 1000eps()
+
+
+# complex RHS for real operatorB=ldirichlet()
+D=Derivative(Chebyshev())
+B=ldirichlet()
+u1=[B;D]\[0.;Fun(exp)+0im]
+u2=[B;D]\[0.;Fun(exp)]
+@test_approx_eq u1(0.1) u2(0.1)

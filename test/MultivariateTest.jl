@@ -2,7 +2,24 @@ using ApproxFun, Base.Test
 import Compat: view
 
 
+for k=0:5,j=0:5
+    ff=(x,y)->cos(k*acos(x))*cos(j*acos(y))
+    f=Fun(ff,Interval()^2)
+    @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
+end
 
+for k=0:5,j=0:5
+    ff=(x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
+    f=Fun(ff,Interval(-2,2)^2)
+    @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
+end
+
+
+for k=0:5,j=0:5
+    ff=(x,y)->cos(k*acos(x-1))*cos(j*acos(y-1))
+    f=Fun(ff,Interval(0,2)^2)
+    @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
+end
 
 
 ## Try constructor variants
@@ -51,7 +68,7 @@ G = LowRankFun((x,y)->besselj0(10(y-x));method=:Cholesky)
 
 ## 1D in 2D
 
-d=Interval((0.,0.),(1.,1.))
+d=Segment((0.,0.),(1.,1.))
 f=Fun(xy->exp(-xy[1]-2cos(xy[2])),d)
 @test_approx_eq f(0.5,0.5) exp(-0.5-2cos(0.5))
 @test_approx_eq f(FixedSizeArrays.Vec(0.5,0.5)) exp(-0.5-2cos(0.5))
@@ -83,7 +100,7 @@ println("    Calculus tests")
 ## Sum
 
 ff=(x,y)->(x-y)^2*exp(-x^2/2.-y^2/2)
-f=Fun(ff,Domain([-4.,4.])^2)
+f=Fun(ff,Domain(-4..4)^2)
 @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
 
 @test_approx_eq sum(f,1)(0.1) 2.5162377980828357
@@ -116,19 +133,20 @@ let d = Chebyshev()^2
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(d[1])⊗ldirichlet(d[2])
-    @test_approx_eq B*f f(-1.,-1.)
+    @test_approx_eq Number(B*f) f(-1.,-1.)
 
     B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
-    @test_approx_eq B*f f(0.1,-1.)
+    @test_approx_eq Number(B*f) f(0.1,-1.)
 
     B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
-    @test_approx_eq B*f f(0.1,0.3)
+    @test_approx_eq Number(B*f) f(0.1,0.3)
 
     B=Evaluation(d,(0.1,0.3))
-    @test_approx_eq B*f f(0.1,0.3)
+    @test_approx_eq Number(B*f) f(0.1,0.3)
 end
 
-let d = Space([0,1]) * Space([0,2])
+
+let d = Space(0..1) * Space(0..2)
     Dx = Derivative(d, [1,0])
     f = Fun((x,y) -> sin(x) * cos(y), d)
     fx = Fun((x,y) -> cos(x) * cos(y), d)
@@ -140,16 +158,16 @@ let d = Space([0,1]) * Space([0,2])
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(d[1])⊗ldirichlet(d[2])
-    @test abs(B*f-f(0.,0.)) ≤ 10eps()
+    @test abs(Number(B*f)-f(0.,0.)) ≤ 10eps()
 
     B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
-    @test_approx_eq B*f f(0.1,0.)
+    @test_approx_eq Number(B*f) f(0.1,0.)
 
     B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
-    @test_approx_eq B*f f(0.1,0.3)
+    @test_approx_eq Number(B*f) f(0.1,0.3)
 
     B=Evaluation(d,(0.1,0.3))
-    @test_approx_eq B*f f(0.1,0.3)
+    @test_approx_eq Number(B*f) f(0.1,0.3)
 end
 
 

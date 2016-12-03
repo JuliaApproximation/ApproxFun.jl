@@ -27,10 +27,10 @@ function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD,P}(cfs::M
     if chopping
         ncfs,kend=norm(cfs,Inf),size(cfs,2)
         if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
-        ret=Fun{S,T}[Fun(chop(cfs[:,k],ncfs*tol),columnspace(sp,k)) for k=1:max(kend,1)]
+        ret=Fun{S,T}[Fun(columnspace(sp,k),chop(cfs[:,k],ncfs*tol)) for k=1:max(kend,1)]
         ProductFun{S,V,typeof(sp),T}(ret,sp)
     else
-        ret=Fun{S,T}[Fun(cfs[:,k],columnspace(sp,k)) for k=1:size(cfs,2)]
+        ret=Fun{S,T}[Fun(columnspace(sp,k),cfs[:,k]) for k=1:size(cfs,2)]
         ProductFun{S,V,typeof(sp),T}(ret,sp)
     end
 end
@@ -189,12 +189,14 @@ columnspace(f::ProductFun,k) = columnspace(space(f),k)
 
 domain(f::ProductFun) = domain(f.space)
 #domain(f::ProductFun,k)=domain(f.space,k)
+canonicaldomain(f::ProductFun) = canonicaldomain(space(f))
 
 
 
-
-canonicalevaluate{S,V,SS,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon) =
-    Fun(T[fc(x) for fc in f.coefficients],space(f,2))
+function canonicalevaluate{S,V,SS,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon)
+    cd = canonicaldomain(f)
+    Fun(setdomain(space(f,2),cd[2]),T[setdomain(fc,cd[1])(x) for fc in f.coefficients])
+end
 canonicalevaluate(f::ProductFun,x::Number,y::Number) = canonicalevaluate(f,x,:)(y)
 canonicalevaluate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},x::Colon,y::Number) =
     evaluate(f.',y,:)  # doesn't make sense For general product fon without specifying space
@@ -213,7 +215,7 @@ evaluate(f::ProductFun,x) = evaluate(f,x...)
 function chop{S}(f::ProductFun{S},es...)
     kend=size(f,2)
     if kend > 1 while isempty(chop(f.coefficients[kend].coefficients,es...)) kend-=1 end end
-    ret=Fun{S,eltype(f)}[Fun(chop(f.coefficients[k].coefficients,es...),space(f.coefficients[k])) for k=1:max(kend,1)]
+    ret=Fun{S,eltype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients,es...)) for k=1:max(kend,1)]
 
     typeof(f)(ret,f.space)
 end
@@ -278,11 +280,11 @@ Base.transpose{S,V,SS,T}(f::ProductFun{S,V,SS,T}) =
 
 for op in (:(Base.sin),:(Base.cos))
     @eval ($op)(f::ProductFun) =
-        Fun(transform!(space(f),$op(values(pad(f,size(f,1)+20,size(f,2))))),space(f))
+        Fun(space(f),transform!(space(f),$op(values(pad(f,size(f,1)+20,size(f,2))))))
 end
 
 .^(f::ProductFun,k::Integer) =
-    Fun(transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k),space(f))
+    Fun(space(f),transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k))
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
     @eval ($op){S,V<:Space{RealBasis},SS<:TensorSpace}(f::ProductFun{S,V,SS}) =

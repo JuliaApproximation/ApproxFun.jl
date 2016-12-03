@@ -17,14 +17,14 @@ f=Fun(x->[exp(x),cos(x)],d)
 
 b=Any[0.,0.,f...]
 f1,f2=vec(f)
-u=A\b
+@time u=A\b
 u1=vec(u)[1];u2=vec(u)[2];
 
 @test norm(u1'-u1+2u2-f1)<10eps()
 @test norm(u2'+u2-f2)<10eps()
 
 Ai=Operator(A)
-u=Ai\b
+@time u=Ai\b
 u1=vec(u)[1];u2=vec(u)[2];
 
 @test norm(u1'-u1+2u2-f1)<10eps()
@@ -44,7 +44,7 @@ A=[B 0;
 b=Any[0.,0.,0.,f...]
 
 
-u=A\b
+@time u=A\b
 u1=vec(u)[1];u2=vec(u)[2];
 
 
@@ -52,7 +52,7 @@ u1=vec(u)[1];u2=vec(u)[2];
 @test norm(u2'+u2-f2)<2eps()
 
 Ai=Operator(A)
-u=Ai\b
+@time u=Ai\b
 u1=vec(u)[1];u2=vec(u)[2];
 
 
@@ -72,7 +72,7 @@ B=Evaluation(d,0.)
 D=Derivative(d)
 A=rand(n,n)
 L=[B;D-A]
-u=L\eye(n)
+@time u=L\eye(2n,n)
 @test norm(evaluate(u,1.)-expm(A))<eps(1000.)
 
 
@@ -82,7 +82,7 @@ B=Evaluation(d,0.)
 D=Derivative(d)
 A=rand(n,n)
 L=[B;D-A]
-u=L\eye(2)
+@time u=L\eye(2n,2)
 @test norm(evaluate(u,1.)-expm(A)[:,1:2])<eps(1000.)
 
 
@@ -165,18 +165,15 @@ F=Fun((G-I)[:,1])
 @test F==Fun(vec(F),space(F))
 
 @test_approx_eq inv(G(exp(0.1im))) inv(G)(exp(0.1im))
-
 @test_approx_eq Fun(eye(2),space(G))(exp(0.1im)) eye(2)
-
 @test_approx_eq Fun(I,space(G))(exp(0.1im)) eye(2)
 
 
 ## Check conversion
 
-f=Fun(t->[cos(t) 0;sin(t) 1],[-π,π])
+f=Fun(t->[cos(t) 0;sin(t) 1],-π..π)
 g=Fun(f,Space(PeriodicInterval(-π,π)))
 @test_approx_eq g(.1) f(.1)
-
 
 
 
@@ -184,12 +181,12 @@ g=Fun(f,Space(PeriodicInterval(-π,π)))
 S1=Chebyshev()^2
 S2=Chebyshev()
 TS=TupleSpace((ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])))
-f=Fun(collect(1:10),TS)
-@test f[1] == Fun([1.],TS[1])
-@test f[2] == Fun([2.,6.,7.,10.],TS[2])
-@test f[3] == Fun([3.],TS[3])
-@test f[4] == Fun([4.,8.],TS[4])
-@test f[5] == Fun([5.,9.],TS[5])
+f=Fun(TS,collect(1:10))
+@test f[1] == Fun(TS[1],[1.])
+@test f[2] == Fun(TS[2],[2.,6.,7.,10.])
+@test f[3] == Fun(TS[3],[3.])
+@test f[4] == Fun(TS[4],[4.,8.])
+@test f[5] == Fun(TS[5],[5.,9.])
 
 ## Operator * Matrix
 

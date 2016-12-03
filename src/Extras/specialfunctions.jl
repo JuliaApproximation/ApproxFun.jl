@@ -1,64 +1,16 @@
 ## abs
-
-function splitmap(g,d::IntervalDomain,pts)
-    if isempty(pts)
-        Fun(g,d)
-    elseif length(pts)==1 && (isapprox(first(pts),first(d))  ||  isapprox(last(pts),last(d)))
-        Fun(g,d)
-    elseif length(pts)==2 && isapprox(first(pts),first(d)) && isapprox(last(pts),last(d))
-        Fun(g,d)
-    else
-        error("implement splitmap for "*string(typeof(d)))
-    end
-end
-
-function splitmap(g,d::AffineDomain,pts)
-    if isempty(pts)
-        Fun(g,d)
-    else
-        da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(arclength(d)))) ? pts[1] = da : unshift!(pts,da)
-        db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
-        Fun(g,pts)
-    end
-end
-
-## TODO: type to ensure each dom in d.domains ::IntervalDomain
-function splitmap(g,d::UnionDomain,pts)
-    if isempty(pts)
-        Fun(g,d)
-    else
-        dpts = ∂(d)
-        pts = sort!(∪(pts,dpts),by=real)
-        da=first(d)
-        isapprox(da,pts[1];atol=sqrt(eps(mapreduce(arclength,+,d.domains)))) ? pts[1] = da : unshift!(pts,da)
-        db=last(d)
-        isapprox(db,pts[end];atol=sqrt(eps(mapreduce(arclength,+,d.domains)))) ? pts[end] = db : push!(pts,db)
-        Fun(g,pts)
-    end
-end
+splitmap(g,d::Domain,pts) = Fun(g,d \ pts)
 
 
 function splitatroots(f::Fun)
     d=domain(f)
     pts=union(roots(f)) # union removes multiplicities
-    if isempty(pts)
-        f# : splitmap(f,d,pts)
-    else
-        da=first(d)
-        isapprox(da,pts[1]) ? pts[1] = da : unshift!(pts,da)
-        db=last(d)
-        isapprox(db,pts[end]) ? pts[end] = db : push!(pts,db)
-        Fun(x->f(x),pts)
-    end
+    splitmap(x->f(x),d,pts)
 end
 
 function abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
-
     pts=roots(f)
-
     splitmap(x->abs(f(x)),d,pts)
 end
 
@@ -76,30 +28,29 @@ function abs(f::Fun)
 end
 
 
+midpoints(d::Segment) = (d.b+d.a)/2
+midpoints(d::UnionDomain) = map(midpoints,d.domains)
 
-for OP in (:(sign),:(angle))
+
+for OP in (:sign,:angle)
     @eval function $OP{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
         d=domain(f)
 
         pts=roots(f)
 
         if isempty(pts)
-            sign(first(f))*one(f)
+            $OP(first(f))*one(f)
         else
-            @assert isa(d,AffineDomain)
-            da=first(d)
-            isapprox(da,pts[1];atol=sqrt(eps(arclength(d)))) ? pts[1] = da : unshift!(pts,da)
-            db=last(d)
-            isapprox(db,pts[end];atol=sqrt(eps(arclength(d)))) ? pts[end] = db : push!(pts,db)
-            midpts = .5(pts[1:end-1]+pts[2:end])
-            Fun(sign(f(midpts)),pts)
+            d_split= d \ pts
+            midpts = [midpoints(d)...]
+            Fun(d_split,$OP(f(midpts)))
         end
     end
 end
 
 for op in (:(max),:(min))
     @eval begin
-        function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T<:Real}(f::Fun{S,T},g::Fun{V,T})
+        function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}(f::Fun{S,T1},g::Fun{V,T2})
             h=f-g
             d=domain(h)
             pts=roots(h)
@@ -109,6 +60,8 @@ for op in (:(max),:(min))
         $op{S<:RealUnivariateSpace,T<:Real}(f::Real,g::Fun{S,T}) = $op(Fun(f,domain(g)),g)
     end
 end
+
+Base.isfinite(f::Fun) = isfinite(maxabs(f)) && isfinite(minabs(f))
 
 # division by fun
 
@@ -124,7 +77,7 @@ function ./(c::Fun,f::Fun)
     r=roots(f)
     tol=10eps(promote_type(eltype(c),eltype(f)))
     if length(r)==0 || norm(c(r))<tol
-        linsolve(Multiplication(f,space(c)),c;tolerance=tol)
+        \(Multiplication(f,space(c)),c;tolerance=tol)
     else
         c.*(1./f)
     end
@@ -134,7 +87,7 @@ function ./(c::Number,f::Fun)
     r=roots(f)
     tol=10eps(promote_type(typeof(c),eltype(f)))
     @assert length(r)==0
-    linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
+    \(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
 end
 
 # project to interval if we are not on the interview
@@ -147,7 +100,7 @@ scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
 ./{DD}(c::Number,f::Fun{Jacobi{DD}}) = c./Fun(f,Chebyshev(domain(f)))
 
 ./{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c./setcanonicaldomain(f),domain(f))
-function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
+function ./{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
@@ -158,13 +111,13 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
         return Fun(c/f.coefficients[1],space(f))
     elseif ncoefficients(f)==2
         if isempty(roots(f))
-            return linsolve(Multiplication(f,space(f)),c;tolerance=0.05tol)
+            return \(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
             # we check directly for f*(1+x)
-            return Fun([c./fc.coefficients[1]],JacobiWeight(-1,0,space(f)))
+            return Fun(JacobiWeight(-1,0,space(f)),[c./fc.coefficients[1]])
         elseif isapprox(fc.coefficients[1],-fc.coefficients[2])
             # we check directly for f*(1-x)
-            return Fun([c./fc.coefficients[1]],JacobiWeight(0,-1,space(f)))
+            return Fun(JacobiWeight(0,-1,space(f)),[c./fc.coefficients[1]])
         else
             # we need to split at the only root
             return c./splitatroots(f)
@@ -185,7 +138,7 @@ function ./{DD<:Interval}(c::Number,f::Fun{Chebyshev{DD}})
         r = roots(fc)
 
         if length(r) == 0
-            return linsolve(Multiplication(f,space(f)),c;tolerance=0.05tol)
+            return \(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif abs(last(r)+1.0)≤tol  # double check
             #left root
             g=divide_singularity((1,0),fc)
@@ -208,27 +161,27 @@ end
 function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
-    fc = setdomain(f,Interval()) #Project to interval
+    fc = setdomain(f,Segment()) #Project to interval
 
     r = sort(roots(fc))
     #TODO divideatroots
     @assert length(r) <= 2
 
     if length(r) == 0
-        Fun(Fun(x->fc(x)^k).coefficients,sp)
+        Fun(sp,Fun(x->fc(x)^k).coefficients)
     elseif length(r) == 1
         @assert isapprox(abs(r[1]),1)
 
         if isapprox(r[1],1.)
-            Fun(coefficients(divide_singularity(true,fc)^k),JacobiWeight(0.,k,sp))
+            Fun(JacobiWeight(0.,k,sp),coefficients(divide_singularity(true,fc)^k))
         else
-            Fun(coefficients(divide_singularity(false,fc)^k),JacobiWeight(k,0.,sp))
+            Fun(JacobiWeight(k,0.,sp),coefficients(divide_singularity(false,fc)^k))
         end
     else
         @assert isapprox(r[1],-1)
         @assert isapprox(r[2],1)
 
-        Fun(coefficients(divide_singularity(fc)^k),JacobiWeight(k,k,sp))
+        Fun(JacobiWeight(k,k,sp),coefficients(divide_singularity(fc)^k))
     end
 end
 
@@ -260,7 +213,7 @@ log(f::Fun) = cumsum(differentiate(f)/f)+log(first(f))
 # project first to [-1,1] to avoid issues with
 # complex derivative
 function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
-    if domain(f)==Interval()
+    if domain(f)==Segment()
         r = sort(roots(f))
         #TODO divideatroots
         @assert length(r) <= 2
@@ -272,7 +225,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
 
             if isapprox(r[1],1.)
                 g=divide_singularity(true,f)
-                lg=Fun([1.],LogWeight(0.,1.,Chebyshev()))
+                lg=Fun(LogWeight(0.,1.,Chebyshev()),[1.])
                 if isapprox(g,1.)  # this means log(g)~0
                     lg
                 else # log((1-x)) + log(g)
@@ -280,7 +233,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
                 end
             else
                 g=divide_singularity(false,f)
-                lg=Fun([1.],LogWeight(1.,0.,Chebyshev()))
+                lg=Fun(LogWeight(1.,0.,Chebyshev()),[1.])
                 if isapprox(g,1.)  # this means log(g)~0
                     lg
                 else # log((1+x)) + log(g)
@@ -292,7 +245,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
             @assert isapprox(r[2],1)
 
             g=divide_singularity(f)
-            lg=Fun([1.],LogWeight(1.,1.,Chebyshev()))
+            lg=Fun(LogWeight(1.,1.,Chebyshev()),[1.])
             if isapprox(g,1.)  # this means log(g)~0
                 lg
             else # log((1+x)) + log(g)
@@ -302,7 +255,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
     else
         # this makes sure differentiate doesn't
         # make the function complex
-        g=log(setdomain(f,Interval()))
+        g=log(setdomain(f,Segment()))
         setdomain(g,domain(f))
     end
 end
@@ -366,7 +319,7 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
             D=Derivative(domain(f))
             B=Evaluation(domainspace(D),xmax)
             #([B,eval($L)]\[opfxmax/opmax,eval($R)/opmax])*opmax
-            u=linsolve([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
+            u=\([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
 
             setdomain(u,domain(fin))
         end
@@ -376,24 +329,24 @@ end
 # JacobiWeight explodes, we want to ensure the solution incorporates the fact
 # that exp decays rapidly
 function exp{JW<:JacobiWeight}(f::Fun{JW})
-    if !isa(domain(f),Interval)
+    if !isa(domain(f),Segment)
         # project first to get better derivative behaviour
-        return setdomain(exp(setdomain(f,Interval())),domain(f))
+        return setdomain(exp(setdomain(f,Segment())),domain(f))
     end
 
     S=space(f)
-    q=Fun(f.coefficients,S.space)
+    q=Fun(S.space,f.coefficients)
     if isapprox(S.α,0.) && isapprox(S.β,0.)
         exp(q)
-    elseif S.α < 0 && isapprox(first(q),0.)
+    elseif S.β < 0 && isapprox(first(q),0.)
         # this case can remove the exponential decay
-        exp(Fun(f,JacobiWeight(S.α+1,S.β,S.space)))
-    elseif S.β < 0 && isapprox(last(q),0.)
-        exp(Fun(f,JacobiWeight(S.α,S.β+1,S.space)))
-    elseif S.α > 0 && isapproxinteger(S.α)
-        exp(Fun(f,JacobiWeight(0.,S.β,S.space)))
+        exp(Fun(f,JacobiWeight(S.β+1,S.α,S.space)))
+    elseif S.α < 0 && isapprox(last(q),0.)
+        exp(Fun(f,JacobiWeight(S.β,S.α+1,S.space)))
     elseif S.β > 0 && isapproxinteger(S.β)
-        exp(Fun(f,JacobiWeight(S.α,0.,S.space)))
+        exp(Fun(f,JacobiWeight(0.,S.α,S.space)))
+    elseif S.α > 0 && isapproxinteger(S.α)
+        exp(Fun(f,JacobiWeight(S.β,0.,S.space)))
     else
         #find normalization point
         xmax,opfxmax,opmax=specialfunctionnormalizationpoint(exp,real,f)
@@ -402,10 +355,10 @@ function exp{JW<:JacobiWeight}(f::Fun{JW})
             # provided both are negative, we get exponential decay on both ends
             @assert real(first(q)) < 0 && real(last(q)) < 0
             s=JacobiWeight(2.,2.,domain(f))
-        elseif S.α < 0 && isapprox(S.β,0.)
+        elseif S.β < 0 && isapprox(S.α,0.)
             @assert real(first(q)) < 0
             s=JacobiWeight(2.,0.,domain(f))
-        elseif S.β < 0 && isapprox(S.α,0.)
+        elseif S.α < 0 && isapprox(S.β,0.)
             @assert real(last(q)) < 0
             s=JacobiWeight(0.,2.,domain(f))
         else
@@ -415,7 +368,7 @@ function exp{JW<:JacobiWeight}(f::Fun{JW})
         D=Derivative(s)
         B=Evaluation(s,xmax)
 
-        linsolve([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
+        \([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
     end
 end
 
@@ -467,7 +420,7 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            u=linsolve([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
+            u=\([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
                         tolerance=10ncoefficients(f)*eps(T)*opmax)*opmax
 
             setdomain(u,domain(fin))
@@ -685,10 +638,10 @@ end
 
 for OP in (:(abs),:(sign))
     # ambiguity warnings
-    @eval $OP{S<:PointSpace,T<:Real}(f::Fun{S,T})=Fun(map($OP,f.coefficients),space(f))
+    @eval $OP{S<:PointSpace,T<:Real}(f::Fun{S,T})=Fun(space(f),map($OP,f.coefficients))
 end
 for OP in (:(exp),:(abs),:(sign))
-    @eval $OP{S<:PointSpace}(f::Fun{S})=Fun(map($OP,f.coefficients),space(f))
+    @eval $OP{S<:PointSpace}(f::Fun{S})=Fun(space(f),map($OP,f.coefficients))
 end
 
 
@@ -734,13 +687,44 @@ end
 
 ## ConstantSpace default overrides
 
+
 # ambiguity
-Base.abs2{CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) = Fun(abs2(Number(z)),space(z))
+for OP in (:(Base.abs),)
+    @eval begin
+        $OP{CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) =
+            Fun($OP(Number(z)),space(z))
+        $OP{CS<:ConstantSpace,T<:Real}(z::Fun{CS,T}) =
+            Fun($OP(Number(z)),space(z))
+        $OP{CS<:ConstantSpace,T}(z::Fun{CS,T}) =
+            Fun($OP(Number(z)),space(z))
+    end
+end
+
+for OP in (:(Base.max),:(Base.min))
+    @eval begin
+        $OP{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Real,V<:Real}(a::Fun{CS1,T},b::Fun{CS2,V}) =
+            Fun($OP(Number(a),Number(b)),space(a) ∪ space(b))
+        $OP{CS<:ConstantSpace,T<:Real}(a::Fun{CS,T},b::Real) =
+            Fun($OP(Number(a),b),space(a))
+        $OP{CS<:ConstantSpace,T<:Real}(a::Real,b::Fun{CS,T}) =
+            Fun($OP(a,Number(b)),space(b))
+    end
+end
+
+for OP in (:<,:(Base.isless),:(<=),:>,:(>=))
+    @eval begin
+        $OP{CS<:ConstantSpace}(a::Fun{CS},b::Fun{CS}) = $OP(Number(a),Number(b))
+        $OP{CS<:ConstantSpace}(a::Fun{CS},b::Number) = $OP(Number(a),b)
+        $OP{CS<:ConstantSpace}(a::Number,b::Fun{CS}) = $OP(a,Number(b))
+    end
+end
 
 # from DualNumbers
 for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
     @eval begin
         $(funsym){CS<:ConstantSpace,T<:Real}(z::Fun{CS,T}) =
+            Fun($(funsym)(Number(z)),space(z))
+        $(funsym){CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) =
             Fun($(funsym)(Number(z)),space(z))
         $(funsym){CS<:ConstantSpace}(z::Fun{CS}) =
             Fun($(funsym)(Number(z)),space(z))

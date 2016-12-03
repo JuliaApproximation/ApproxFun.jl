@@ -50,28 +50,28 @@ Base.intersect(a::Domain,b::Domain) = a==b ? a : EmptyDomain()
 
 
 # TODO: throw error for override
-Base.setdiff(a::Domain,b::Domain) = a == b ? EmptyDomain() : a
-\(a::Domain,b::Domain) = setdiff(a,b)
+Base.setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
+\(a::Domain,b) = setdiff(a,b)
 
 ## Interval Domains
 
 abstract IntervalDomain{T} <: UnivariateDomain{T}
 
-canonicaldomain(d::IntervalDomain) = Interval{real(eltype(eltype(d)))}()
+canonicaldomain(d::IntervalDomain) = Segment{real(eltype(eltype(d)))}()
 
 Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
 domainscompatible(a::Domain,b::Domain) = isambiguous(a) || isambiguous(b) ||
-                    isapprox(a,b) 
+                    isapprox(a,b)
 
 function chebyshevpoints{T<:Number}(::Type{T},n::Integer;kind::Integer=1)
     if kind == 1
-        T[sinpi((n-2k-one(T))/2n) for k=n-1:-1:0]
+        T[sinpi((n-2k-one(T))/2n) for k=0:n-1]
     elseif kind == 2
         if n==1
             zeros(T,1)
         else
-            T[cospi(k/(n-one(T))) for k=n-1:-1:0]
+            T[cospi(k/(n-one(T))) for k=0:n-1]
         end
     end
 end
@@ -79,10 +79,9 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 
 ##TODO: Should fromcanonical be fromcanonical!?
 
-points{T}(d::IntervalDomain{T},n::Integer) = fromcanonical(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
-
-points(d::AbstractVector,n::Integer)=points(convert(Domain,d),n)
-bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64)=bary(v,tocanonical(d,x))
+points{T}(d::IntervalDomain{T},n::Integer) =
+    fromcanonical(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
+bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
 Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
@@ -110,10 +109,11 @@ abstract PeriodicDomain{T} <: UnivariateDomain{T}
 
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
-points{T}(d::PeriodicDomain{T},n::Integer) = fromcanonical(d, fourierpoints(real(eltype(eltype(T))),n))
+points{T}(d::PeriodicDomain{T},n::Integer) =
+    fromcanonical(d, fourierpoints(real(eltype(eltype(T))),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
-fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(-n:2:n-2)/n
+fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(0:2:2n-2)/n
 
 
 function Base.in{T}(x,d::PeriodicDomain{T})
@@ -124,17 +124,17 @@ function Base.in{T}(x,d::PeriodicDomain{T})
 
     l=arclength(d)
     if isinf(l)
-        abs(imag(y))<20eps(T) && -π-2eps(T)<real(y)<π+2eps(T)
+        abs(imag(y))<20eps(T) && -2eps(T)<real(y)<2π+2eps(T)
     else
-        abs(imag(y))/l<20eps(T) && -π-2l*eps(T)<real(y)<π+2l*eps(T)
+        abs(imag(y))/l<20eps(T) && -2l*eps(T)<real(y)<2π+2l*eps(T)
     end
 end
 
 Base.issubset(a::Domain,b::Domain)=a==b
 
 
-Base.first(d::PeriodicDomain)=fromcanonical(d,-π)
-Base.last(d::PeriodicDomain)=fromcanonical(d,π)
+Base.first(d::PeriodicDomain) = fromcanonical(d,0)
+Base.last(d::PeriodicDomain) = fromcanonical(d,2π)
 
 
 immutable AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
@@ -166,8 +166,8 @@ function commondomain(P::AbstractVector)
     ret
 end
 
-commondomain{T<:Number}(P::AbstractVector,g::Array{T})=commondomain(P)
-commondomain(P::AbstractVector,g)=commondomain([P;g])
+commondomain{T<:Number}(P::AbstractVector,g::Array{T}) = commondomain(P)
+commondomain(P::AbstractVector,g) = commondomain([P;g])
 
 
 domain(::Number)=AnyDomain()
@@ -181,26 +181,33 @@ Base.rand(d::IntervalDomain,k...)=fromcanonical(d,2rand(k...)-1)
 Base.rand(d::PeriodicDomain,k...)=fromcanonical(d,2π*rand(k...)-π)
 
 checkpoints(d::IntervalDomain) = fromcanonical(d,[-0.823972,0.01,0.3273484])
-checkpoints(d::PeriodicDomain) = fromcanonical(d,[1.223972,0.01,-2.83273484])
+checkpoints(d::PeriodicDomain) = fromcanonical(d,[1.223972,3.14,5.83273484])
 
 ## boundary
 
-∂(d::Domain)=EmptyDomain()   # This is meant to be overriden
-∂(d::IntervalDomain)=[first(d),last(d)] #TODO: Points domain
-∂(d::PeriodicDomain)=EmptyDomain()
+doc"""
+    ∂(d::Domain)
+
+returns the boundary of `d`.  For example, the boundary of a `Disk()`
+is a `Circle()`, and the boundary of `Interval()^2` is a piecewise interval
+that sketches the boundary of a rectangle.
+"""
+∂(d::Domain) = EmptyDomain()   # This is meant to be overriden
+∂(d::IntervalDomain) = [first(d),last(d)] #TODO: Points domain
+∂(d::PeriodicDomain) = EmptyDomain()
 
 
 
 
 ## map domains
 # we auto vectorize arguments
-tocanonical(d::Domain,x,y,z...)=tocanonical(d,Vec(x,y,z...))
+tocanonical(d::Domain,x,y,z...) = tocanonical(d,Vec(x,y,z...))
 fromcanonical(d::Domain,v::AbstractArray) =
     eltype(d)[fromcanonical(d,vk) for vk in v]
 
 
-mappoint(d1::Domain,d2::Domain,x...)=fromcanonical(d2,tocanonical(d1,x...))
-invfromcanonicalD(d::Domain,x...)=1./fromcanonicalD(d,x...)
+mappoint(d1::Domain,d2::Domain,x...) = fromcanonical(d2,tocanonical(d1,x...))
+invfromcanonicalD(d::Domain,x...) = 1./fromcanonicalD(d,x...)
 
 
 

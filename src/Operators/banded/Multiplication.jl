@@ -31,6 +31,9 @@ Multiplication(f::Fun,sp::Space) = defaultMultiplication(f,sp)
 
 Multiplication(f::Fun,sp::UnsetSpace) = ConcreteMultiplication(f,sp)
 Multiplication(f::Fun) = Multiplication(f,UnsetSpace())
+
+Multiplication(c::Number,sp::Space) = Multiplication(Fun(c),sp)
+Multiplication(sp::Space,c::Number) = Multiplication(sp,Fun(c))
 Multiplication(c::Number) = Multiplication(Fun(c) )
 
 # This covers right multiplication unless otherwise specified.
@@ -130,6 +133,27 @@ function transformtimes(f::Fun,g::Fun,n)
     isempty(g.coefficients) && return g
     f2,g2,sp = pad(f,n),pad(g,n),space(f)
     hc = transform(sp,values(f2).*values(g2))
-    chop!(Fun(hc,sp),10norm(hc,Inf)*eps(eltype(hc)))
+    chop!(Fun(sp,hc),10norm(hc,Inf)*eps(eltype(hc)))
 end
-transformtimes(f::Fun,g::Fun)=transformtimes(f,g,ncoefficients(f) + ncoefficients(g) - 1)
+transformtimes(f::Fun,g::Fun) = transformtimes(f,g,ncoefficients(f) + ncoefficients(g) - 1)
+
+
+
+*(a::Fun,L::UniformScaling) = Multiplication(a*L.λ,UnsetSpace())
+*(L::UniformScaling,a::Fun) = L.λ*a
+
+
+## docs
+
+doc"""
+`Multiplication(f::Fun,sp::Space)` is the operator representing multiplication by
+`f` on functions in the space `sp`.
+"""
+Multiplication(::Fun,::Space)
+
+doc"""
+`Multiplication(f::Fun)` is the operator representing multiplication by
+`f` on an unset space of functions.  Spaces will be inferred when applying or
+manipulating the operator.
+"""
+Multiplication(::Fun)

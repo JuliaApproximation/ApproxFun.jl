@@ -38,110 +38,114 @@ Base.plan_ifft{F<:Fun}(x::Vector{F}) = ifft
 Base.plan_ifft!{F<:Fun}(x::Vector{F}) = ifft
 
 # Chebyshev transforms and plans for BigFloats
+# no plan exists at the moment, so we make a dummy plan
+plan_chebyshevtransform!{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
+    error("In-place variant not implemented for BigFloat")
 
-plan_chebyshevtransform{T<:BigFloats}(x::Vector{T};kwds...) = identity
-plan_ichebyshevtransform{T<:BigFloats}(x::Vector{T};kwds...) = identity
+plan_ichebyshevtransform!{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
+    error("In-place variant not implemented for BigFloat")
+
+
+plan_chebyshevtransform{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
+    ChebyshevTransformPlan{T,kind,false,Void}(nothing)
+plan_ichebyshevtransform{T<:BigFloats}(x::Vector{T};kind::Integer=1) =
+    IChebyshevTransformPlan{T,kind,false,Void}(nothing)
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function chebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
-    if kind == 1
-        n = length(x)
-        if n == 1
-            x
-        else
-            w = [2exp(im*convert(T,π)*k/2n) for k=0:n-1]
-            ret = w.*ifft([reverse(x);x])[1:n]
-            ret = T<:Real ? real(ret) : ret
-            ret[1] /= 2
-            ret
-        end
-    elseif kind == 2
-        n = length(x)
-        if n == 1
-            x
-        else
-            ret = ifft([reverse(x);x[2:end-1]])[1:n]
-            ret = T<:Real ? real(ret) : ret
-            ret[2:n-1] *= 2
-            ret
-        end
+function *{T<:BigFloats}(P::ChebyshevTransformPlan{T,1,false},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        w = [2exp(im*convert(T,π)*k/2n) for k=0:n-1]
+        ret = w.*ifft([x;reverse(x)])[1:n]
+        ret = T<:Real ? real(ret) : ret
+        ret[1] /= 2
+        ret
+    end
+end
+
+function *{T<:BigFloats}(P::ChebyshevTransformPlan{T,2,false},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        ret = ifft([x;x[end:-1:2]])[1:n]
+        ret = T<:Real ? real(ret) : ret
+        ret[2:n-1] *= 2
+        ret
     end
 end
 
 #following Chebfun's @Chebtech1/vals2coeffs.m and @Chebtech2/vals2coeffs.m
-function ichebyshevtransform{T<:BigFloats}(x::Vector{T},plan;kind::Integer=1)
-    if kind == 1
-        n = length(x)
-        if n == 1
-            x
-        else
-            w = [exp(-im*convert(T,π)*k/2n)/2 for k=0:2n-1]
-            w[1] *= 2;w[n+1] *= 0;w[n+2:end] *= -1
-            ret = fft(w.*[x;one(T);x[end:-1:2]])[n:-1:1]
-            ret = T<:Real ? real(ret) : ret
-        end
-    elseif kind == 2
-        n = length(x)
-        if n == 1
-            x
-        else
-            ##TODO: make thread safe
-            x[1] *= 2;x[end] *= 2
-            ret = chebyshevtransform(x;kind=kind)
-            x[1] /=2;x[end] /=2
-            ret[1] *= 2;ret[end] *= 2
-            negateeven!(ret)
-            ret *= .5*(n-1)
-            reverse!(ret)
-        end
+function *{T<:BigFloats}(P::IChebyshevTransformPlan{T,1,false},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        w = [exp(-im*convert(T,π)*k/2n)/2 for k=0:2n-1]
+        w[1] *= 2;w[n+1] *= 0;w[n+2:end] *= -1
+        ret = fft(w.*[x;one(T);x[end:-1:2]])
+        ret = T<:Real ? real(ret) : ret
+    end
+end
+function *{T<:BigFloats}(P::IChebyshevTransformPlan{T,2,false},x::Vector{T})
+    n = length(x)
+    if n == 1
+        x
+    else
+        ##TODO: make thread safe
+        x[1] *= 2;x[end] *= 2
+        ret = chebyshevtransform(x;kind=kind)
+        x[1] /=2;x[end] /=2
+        ret[1] *= 2;ret[end] *= 2
+        ret *= .5*(n-1)
+        ret
     end
 end
 
 # Fourier space plans for BigFloat
 
-function plan_transform{T<:BigFloat,D}(::Fourier{D},x::Vector{T})
-    function plan(x)
-        v = fft(x)
-        n = div(length(x),2)+1
-        [real(v[1:n]);imag(v[n-1:-1:2])]
-    end
-    plan
+plan_transform{T<:BigFloat,D}(sp::Fourier{D},x::Vector{T}) =
+    TransformPlan{T,typeof(sp),false,Void}(sp,nothing)
+plan_itransform{T<:BigFloat,D}(sp::Fourier{D},x::Vector{T}) =
+    ITransformPlan{T,typeof(sp),false,Void}(sp,nothing)
+
+function *{T<:BigFloat,D}(::TransformPlan{T,Fourier{D},false},x::Vector{T})
+    v = fft(x)
+    n = div(length(x),2)+1
+    [real(v[1:n]);imag(v[n-1:-1:2])]
 end
 
-function plan_itransform{T<:BigFloat,D}(::Fourier{D},x::Vector{T})
-    function plan(x)
-        n = div(length(x),2)+1
-        v = complex([x[1:n];x[n-1:-1:2]],[0;-x[2n-2:-1:n+1];0;x[n+1:2n-2]])
-        real(fft(v))
-    end
-    plan
+function *{T<:BigFloat,D}(::ITransformPlan{T,Fourier{D},false},x::Vector{T})
+    n = div(length(x),2)+1
+    v = complex([x[1:n];x[n-1:-1:2]],[0;-x[2n-2:-1:n+1];0;x[n+1:2n-2]])
+    real(fft(v))
 end
 
 # SinSpace plans for BigFloat
 
-function plan_transform{T<:BigFloat}(::SinSpace,x::Vector{T})
-    function plan(x)
-        imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
-    end
-    plan
-end
+plan_transform{T<:BigFloat,D}(sp::SinSpace{D},x::Vector{T}) =
+    TransformPlan{T,typeof(sp),false,Void}(sp,nothing)
+plan_itransform{T<:BigFloat,D}(sp::SinSpace{D},x::Vector{T}) =
+    ITransformPlan{T,typeof(sp),false,Void}(sp,nothing)
 
-function plan_itransform{T<:BigFloat}(::SinSpace,x::Vector{T})
-    function plan(x)
-        imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
-    end
-    plan
-end
+
+*{T<:BigFloat,D}(::TransformPlan{T,SinSpace{D},false},x::Vector{T}) =
+    imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
+
+*{T<:BigFloat,D}(::ITransformPlan{T,SinSpace{D},false},x::Vector{T}) =
+    imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
+
 
 # Fourier space & SinSpace plans for Complex{BigFloat}
 
-for SP in (:Fourier,:SinSpace), pl in (:plan_transform,:plan_itransform)
+for SP in (:Fourier,:SinSpace), (pl,TransPlan) in ((:plan_transform,:TransformPlan),
+                                                    (:plan_itransform,:ITransformPlan))
     @eval begin
-        function $pl{T<:Complex{BigFloat},D}(::$SP{D},x::Vector{T})
-            function plan(x)
-                complex($pl($SP(),real(x))(real(x)),$pl($SP(),imag(x))(imag(x)))
-            end
-            plan
-        end
+        $pl{T<:Complex{BigFloat},D}(sp::$SP{D},x::Vector{T}) =
+                $TransPlan(sp,$pl(sp,Array(T,length(x))),Val{false})
+        *{T<:Complex{BigFloat},D}(P::$TransPlan{T,$SP{D},false},x::Vector{T}) =
+            complex(P.plan*real(x),P.plan*imag(x))
     end
 end

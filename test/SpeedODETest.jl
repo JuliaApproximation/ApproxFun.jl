@@ -1,21 +1,21 @@
 using ApproxFun, Base.Test
-
+    import ApproxFun: A_ldiv_B_coefficients
 
 ## ODEs
 
 d=Interval(-20000.,20000.)
 x=Fun(identity,d)
-u=[dirichlet(d);Derivative(d)^2+I]\[1.,0.]
-u=[dirichlet(d);Derivative(d)^2+I]\[1.,0.]
-@time u=[dirichlet(d);Derivative(d)^2+I]\[1.,0.]
+u=[dirichlet(d);Derivative(d)^2+I]\[1,0,0]
+u=[dirichlet(d);Derivative(d)^2+I]\[1,0,0]
+@time u=[dirichlet(d);Derivative(d)^2+I]\[1,0,0]
 println("Cos/Sin: should be ~0.017")
 
 
 d=Interval(-1000.,5.)
 x=Fun(identity,d)
-u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
-u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
-@time u=[dirichlet(d);Derivative(d)^2-x]\[1.,0.]
+u=[dirichlet(d);Derivative(d)^2-x]\[1,0,0]
+u=[dirichlet(d);Derivative(d)^2-x]\[1,0,0]
+@time u=[dirichlet(d);Derivative(d)^2-x]\[1,0,0]
 println("Airy: 0.014356 seconds (1.08 k allocations: 8.015 MB)")
 
 M=cache(ApproxFun.InterlaceOperator([dirichlet(d);Derivative(d)^2-x]);padding=true)
@@ -31,9 +31,9 @@ L=D^2+(7+2x+6x^2)
 B=dirichlet(S)
 n=20000
 rhs=ones(n+2)
-u=[B;L]\rhs
-u=[B;L]\rhs
-@time u=[B;L]\rhs
+u=A_ldiv_B_coefficients([B;L],rhs)
+u=A_ldiv_B_coefficients([B;L],rhs)
+@time u=A_ldiv_B_coefficients([B;L],rhs)
 println("Poly: should be ~0.025")
 
 
@@ -44,9 +44,9 @@ L=D^2+cos(x)
 B=dirichlet(S)
 n=2000
 rhs=ones(n+2)
-u=linsolve([B;L],rhs;maxlength=Inf)
-u=linsolve([B;L],rhs;maxlength=Inf)
-@time u=linsolve([B;L],rhs;maxlength=Inf)
+u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+@time u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 println("Cos: should be ~0.0075")
 
 S=Chebyshev()
@@ -56,21 +56,21 @@ L=D^2+sin(x)
 B=dirichlet(S)
 n=2000
 rhs=ones(n+2)
-u=linsolve([B;L],rhs;maxlength=Inf)
-u=linsolve([B;L],rhs;maxlength=Inf)
-@time u=linsolve([B;L],rhs;maxlength=Inf)
+u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
+@time u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
 println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 
 
 ## Piecewise
-x=Fun(identity,[-20.,-10.,-5.,0.,1.,15.])
+x=Fun(identity,(-20..15) \ [-10.,-5.,0.,1.])
 sp=space(x)
 D=Derivative(sp)
-
-u=[dirichlet(sp);
-    D^2-x]\[airyai(-20.)];
+B=dirichlet(sp)
+u=[B;
+    D^2-x]\Any[[airyai(-20.);zeros(size(B,1)-1)],0];
 @time u=[dirichlet(sp);
-    D^2-x]\[airyai(-20.)];
+    D^2-x]\Any[[airyai(-20.);zeros(size(B,1)-1)],0]
 
 
 println("Piecewise Airy: should be ~0.008")
@@ -90,8 +90,8 @@ A=[B 0;
    D^2-I 2.0I;
    0 D+I];
 
-u=A\Any[0.,0.,0.,f]
-@time u=A\Any[0.,0.,0.,f]
+u=A\Any[0.,0.,0.,f...]
+@time u=A\Any[0.,0.,0.,f...]
 println("Systems: should be ~0.0008")
 
 

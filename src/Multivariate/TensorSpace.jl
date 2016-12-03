@@ -209,13 +209,45 @@ end
 tensorblocklengths(a,b::Repeated) =
     tensorblocklengths(b,a)
 
+function tensorblocklengths(a::Vector{Bool},b::Vector{Bool})
+    @assert length(a) == length(b) && a[1] && b[1]
+    a
+end
+
 
 tensorblocklengths(a,b,c,d...) = tensorblocklengths(tensorblocklengths(a,b),c,d...)
 
 
 # TensorSpace
 # represents the tensor product of several subspaces
+doc"""
+    TensorSpace(a::Space,b::Space)
 
+represents a tensor product of two 1D spaces `a` and `b`.
+The coefficients are interlaced in lexigraphical order.
+
+For example, consider
+```julia
+Fourier()*Chebyshev()  # returns TensorSpace(Fourier(),Chebyshev())
+```
+This represents functions on `[-π,π) x [-1,1]`, using the Fourier basis for the first argument
+and Chebyshev basis for the second argument, that is, `φ_k(x)T_j(y)`, where
+```
+φ_0(x) = 1,
+φ_1(x) = sin x,
+φ_2(x) = cos x,
+φ_3(x) = sin 2x,
+φ_4(x) = cos 2x
+…
+```
+By Choosing `(k,j)` appropriately, we obtain a single basis:
+```
+φ_0(x)T_0(y) (= 1),
+φ_0(x)T_1(y) (= y),
+φ_1(x)T_0(y) (= sin x),
+φ_0(x)T_2(y), …
+```
+"""
 immutable TensorSpace{SV,T,DD,d} <:AbstractProductSpace{SV,T,DD,d}
     spaces::SV
 end
@@ -303,12 +335,12 @@ function itransform!(S::TensorSpace,M::Matrix)
 
     planc=plan_itransform(space(S,1),M[:,1])
     for k=1:size(M,2)
-        M[:,k]=itransform(space(S,1),M[:,k],planc)
+        M[:,k] = planc*M[:,k]
     end
 
     planr=plan_itransform(space(S,2),vec(M[1,:]))
     for k=1:n
-        M[k,:]=itransform(space(S,2),vec(M[k,:]),planr)
+        M[k,:]=planr*vec(M[k,:])
     end
     M
 end
@@ -333,12 +365,12 @@ function transform!(S::TensorSpace,M::Matrix)
 
     planc=plan_transform(space(S,1),M[:,1])
     for k=1:size(M,2)
-        M[:,k]=transform(space(S,1),M[:,k],planc)
+        M[:,k]=planc*M[:,k]
     end
 
     planr=plan_transform(space(S,2),vec(M[1,:]))
     for k=1:n
-        M[k,:]=transform(space(S,2),vec(M[k,:]),planr)
+        M[k,:]=planr*vec(M[k,:])
     end
     M
 end
@@ -371,7 +403,7 @@ end
 
 ## points
 
-points(d::Union{BivariateDomain,BivariateSpace},n,m) =
+points{T,DD}(d::Union{BivariateDomain,BivariateSpace{T,DD}},n,m) =
     points(d,n,m,1),points(d,n,m,2)
 
 function points(d::BivariateSpace,n,m,k)
@@ -454,7 +486,7 @@ function points(sp::TensorSpace,n)
     pts
 end
 
-function transform(sp::TensorSpace,vals,plan...)
+function transform(sp::TensorSpace,vals)
     NM=length(vals)
     if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
         N,M=dimension(sp[1]),dimension(sp[2])
@@ -483,7 +515,7 @@ coefficientmatrix{S<:AbstractProductSpace}(f::Fun{S}) = totensor(space(f),f.coef
 
 
 #TODO: Implement
-# function ∂(d::TensorSpace{Interval{Float64}})
+# function ∂(d::TensorSpace{Segment{Float64}})
 #     @assert length(d.spaces) ==2
 #     PiecewiseSpace([d[1].a+im*d[2],d[1].b+im*d[2],d[1]+im*d[2].a,d[1]+im*d[2].b])
 # end
@@ -496,7 +528,7 @@ union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spa
 ## Convert from 1D to 2D
 
 
-# function isconvertible{T,TT}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace)
+# function isconvertible{T,TT}(sp::UnivariateSpace{T,Segment{Vec{2,TT}}},ts::TensorSpace)
 #     d1 = domain(sp)
 #     d2 = domain(ts)
 #     if d2
@@ -526,7 +558,7 @@ function coefficients{SV,T,DD}(f::Vector,sp::UnivariateSpace,ts::TensorSpace{SV,
 end
 
 
-function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}},ts::TensorSpace{SV,TTT,DD,2})
+function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Segment{Vec{2,TT}}},ts::TensorSpace{SV,TTT,DD,2})
     d1 = domain(sp)
     d2 = domain(ts)
     if length(ts.spaces) ≠ 2
@@ -534,25 +566,25 @@ function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Interval{Vec{2,TT}}
     end
     if d1.a[2] ≈ d1.b[2]
         isa(d2[2],Point) && d2[2].x ≈ d1.a[2] &&
-            isconvertible(setdomain(sp,Interval(d1.a[1],d1.b[1])),ts[1])
+            isconvertible(setdomain(sp,Segment(d1.a[1],d1.b[1])),ts[1])
     elseif d1.a[1] ≈ d1.b[1]
         isa(d2[1],Point) && d2[1].x ≈ d1.a[1] &&
-            isconvertible(setdomain(sp,Interval(d1.a[2],d1.b[2])),ts[2])
+            isconvertible(setdomain(sp,Segment(d1.a[2],d1.b[2])),ts[2])
     else
         return false
     end
 end
 
 
-function coefficients{T,TT,SV,TTT,DD}(f::Vector,sp::UnivariateSpace{T,Interval{Vec{2,TT}}},
+function coefficients{T,TT,SV,TTT,DD}(f::Vector,sp::UnivariateSpace{T,Segment{Vec{2,TT}}},
                             ts::TensorSpace{SV,TTT,DD,2})
     @assert length(ts.spaces) == 2
     d1 = domain(sp)
     d2 = domain(ts)
     if d1.a[2] ≈ d1.b[2]
-        coefficients(f,setdomain(sp,Interval(d1.a[1],d1.b[1])),ts[1])
+        coefficients(f,setdomain(sp,Segment(d1.a[1],d1.b[1])),ts[1])
     elseif d1.a[1] ≈ d1.b[1]
-        coefficients(f,setdomain(sp,Interval(d1.a[2],d1.b[2])),ts[2])
+        coefficients(f,setdomain(sp,Segment(d1.a[2],d1.b[2])),ts[2])
     else
         error("Cannot convert coefficients from $sp to $ts")
     end

@@ -16,6 +16,23 @@ end
 isapprox(a...;kwds...) = Base.isapprox(a...;kwds...)
 isapprox(a::Vec,b::Vec;kwds...) = isapprox([a...],[b...];kwds...)
 
+# fast implementation of isapprox with atol a non-keyword argument in most cases
+isapprox_atol(a,b,atol;kwds...) = isapprox(a,b;atol=atol,kwds...)
+isapprox_atol(a::Vec,b::Vec,atol::Real=0;kwds...) = isapprox_atol([a...],[b...],atol;kwds...)
+function isapprox_atol(x::Number, y::Number, atol::Real=0; rtol::Real=Base.rtoldefault(x,y))
+    x == y || (isfinite(x) && isfinite(y) && abs(x-y) <= atol + rtol*max(abs(x), abs(y)))
+end
+function isapprox_atol{T<:Number,S<:Number}(x::AbstractArray{T}, y::AbstractArray{S},atol::Real=0; rtol::Real=Base.rtoldefault(T,S), norm::Function=vecnorm)
+    d = norm(x - y)
+    if isfinite(d)
+        return d <= atol + rtol*max(norm(x), norm(y))
+    else
+        # Fall back to a component-wise approximate comparison
+        return all(ab -> isapprox(ab[1], ab[2]; rtol=rtol, atol=atol), zip(x, y))
+    end
+end
+
+
 # This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
 # which we override for default julia types
 real(x...) = Base.real(x...)
@@ -406,43 +423,6 @@ function interlace!(v::Vector,offset::Int)
         it += 2m
     end
     v
-end
-
-## svfft
-
-##FFT That interlaces coefficients
-
-plan_svfft(x::Vector) = plan_fft(x)
-plan_isvfft(x::Vector) = plan_ifft(x)
-
-svfft{T}(v::Vector{T}) = svfft(v,plan_svfft(v))
-
-function svfft{T}(v::Vector{T},plan)
-    n = length(v)
-    v = scale!(inv(T(n)),plan*v)
-    if mod(n,2) == 0
-        reverseeven!(interlace!(alternatesign!(v),1))
-    else
-        negateeven!(reverseeven!(interlace!(alternatesign!(copy(v)),1)))
-    end
-end
-
-isvfft{T}(v::Vector{T}) = isvfft(v,plan_isvfft(v))
-
-function isvfft(sv::Vector,plan)
-    n = length(sv)
-
-    if mod(n,2) == 0
-        v=alternatesign!([sv[1:2:end];flipdim(sv[2:2:end],1)])
-    elseif mod(n,4)==3
-        v=[alternatesign!(sv[1:2:end]);
-           -alternatesign!(flipdim(sv[2:2:end],1))]
-    else #mod(length(v),4)==1
-        v=[alternatesign!(sv[1:2:end]);
-           alternatesign!(flipdim(sv[2:2:end],1))]
-    end
-
-    plan*scale!(n,v)
 end
 
 ## slnorm gives the norm of a slice of a matrix
@@ -1026,3 +1006,19 @@ function pad(v,::Infinity{Bool})
         flatten((v,repeated(0)))
     end
 end
+
+
+
+## ClosedInterval
+# TODO: Use IntervalSets after 0.4 is deprecated
+export ..
+
+
+immutable ClosedInterval{T}
+    left::T
+    right::T
+end
+
+ClosedInterval(a,b) = ClosedInterval{promote_type(typeof(a),typeof(b))}(a,b)
+
+..(a,b) = ClosedInterval(a,b)

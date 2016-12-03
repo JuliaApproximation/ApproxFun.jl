@@ -1,7 +1,6 @@
 using ApproxFun, Base.Test
     import ApproxFun: ChebyshevDirichlet,Ultraspherical,space,testspace,testbandedoperator,testcalculus,testtransforms
 
-
 testtransforms(ChebyshevDirichlet{1,1}())
 
 @test_approx_eq Fun(exp,ChebyshevDirichlet{1,1})(.1) exp(.1)
@@ -18,52 +17,54 @@ L=D^2+I
 @test_approx_eq B[2][1:1,1:3] [1. 1. 0.]
 
 
-@test_approx_eq csc(2)sin(1 - 0.1)  ([dirichlet(d);L]\[1.])(0.1)
-@test_approx_eq csc(2)sin(1 - 0.1)  ([B;L]\[1.])(0.1)
+@test_approx_eq csc(2)sin(1 - 0.1)  ([dirichlet(d);L]\[1.,0.,0.])(0.1)
+@test_approx_eq csc(2)sin(1 - 0.1)  ([B;L]\[1.,0.,0.])(0.1)
 
-@test norm(([B;L]\[1.])-([dirichlet(d);L]\[1.])) <10eps()
+@test norm(([B;L]\[1.,0,0])-([dirichlet(d);L]\[1.,0,0])) <10eps()
 
 
 
 
 ## PiecewiseSPace
 
-x=Fun(identity,[-1.,0.,1.])
+x=Fun(identity,(-1..1) \ 0)
 sp=space(x)
 testtransforms(sp;minpoints=2)
 
 D=Derivative(sp)
 testbandedoperator(D)
 
-u=[dirichlet(sp);
-    D^2]\[1];
-u2=[dirichlet();Derivative(Chebyshev())^2]\[1.]
+B=dirichlet(sp)
+u=[B;
+    D^2]\Any[[1;zeros(size(B,1)-1)],0];
+u2=[dirichlet();Derivative(Chebyshev())^2]\[1.,0,0]
 @test_approx_eq u(0.) u2(0.)
 
-x=Fun(identity,[-10.,0.,1.,15.])
+x=Fun(identity,(-10..15) \ [0,1])
 sp=space(x)
 D=Derivative(sp)
-
-u=[dirichlet(sp);
-    D^2-x]\[airyai(-10.)];
+B=dirichlet(sp)
+u=[B;
+    D^2-x]\Any[[airyai(-10.);zeros(size(B,1)-1)],0];
 
 @test_approx_eq u(0.) airyai(0.)
 
-s=Fun(sin,[-2.,2.])|>abs
-c=Fun(cos,[-2.,2.])|>abs
-sc=Fun(x->abs(sin(x))+abs(cos(x)),[-2,-π/2,0,π/2,2])
+s=Fun(sin,-2..2)|>abs
+c=Fun(cos,-2..2)|>abs
+sc=Fun(x->abs(sin(x))+abs(cos(x)),(-2..2) \ [-π/2,0,π/2])
 @test norm(sc-(c+s))<100eps()
 
 # max/min creates breakpoints
 
 x=Fun()
-g=4*(x-.2)
+g=4*(x-0.2)
 f=max(-1,g)
 f2=min(f,1)
-f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),[-1.0;-0.05;0.45;1.0])
+
+f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),(-1..1) \ [-0.05,0.45])
 @test norm(f2(collect(linspace(-1,1,10)))-f3(collect(linspace(-1,1,10)))) < 2eps()
 
-x=Fun(identity,[im,0.,1.])
+x=Fun(identity, (im..0) ∪ (0..1))
 @test_approx_eq x(0.5) 0.5
 @test_approx_eq x(0.5im) 0.5im
 
@@ -95,16 +96,16 @@ w=2/(sqrt(1-x)*sqrt(1+im*x))
 
 ## ContinuousSpace
 
-import ApproxFun: PiecewiseInterval,ContinuousSpace
+import ApproxFun: PiecewiseSegment,ContinuousSpace
 
-d=PiecewiseInterval(1.,2.,3.,4.)
+d=PiecewiseSegment(1.,2.,3.,4.)
 S=ContinuousSpace(d)
 testtransforms(S;minpoints=3,invertibletransform=false)
 
 D=Derivative(S)
 testbandedoperator(D)
 
-u=[ldirichlet(S),D-I]\[exp(1.)]
+u=[ldirichlet(S),D-I]\[exp(1.),0]
 
 
 @test_approx_eq u(1.1) exp(1.1)
@@ -112,7 +113,7 @@ u=[ldirichlet(S),D-I]\[exp(1.)]
 @test_approx_eq last(u) exp(4)
 
 
-d=PiecewiseInterval(0,1.,1.+im,im,0.)
+d=PiecewiseSegment(0,1.,1.+im,im,0.)
 @test_approx_eq Fun(exp,d)(.1) exp(.1)
 
 
@@ -132,12 +133,12 @@ f=w+x
 
 ## SumSpace bug
 
-dsp=JacobiWeight(1.,0.,Jacobi(0.,1.,[0.,1.]))⊕JacobiWeight(0.5,0.,Jacobi(-0.5,0.5,[0.,1.]))
-rsp=Legendre([0.,1.])⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,[0.,1.]))
+dsp=JacobiWeight(1.,0.,Jacobi(1.,0.,0..1))⊕JacobiWeight(0.5,0.,Jacobi(0.5,-0.5,0..1))
+rsp=Legendre(0..1)⊕JacobiWeight(0.5,0.,Jacobi(0.5,0.5,0..1))
 
 
 C=Conversion(dsp,rsp)
-f=Fun([1.,2.,3.,4.,5.],dsp)
+f=Fun(dsp,[1.,2.,3.,4.,5.])
 @test_approx_eq f(0.1) (C*f)(0.1)
 
 
@@ -146,27 +147,25 @@ f=Fun([1.,2.,3.,4.,5.],dsp)
 
 
 ## Piecewise + Cosntant
-using Base.Test
-
-Γ=Circle()∪Circle(0.0,0.4)
+Γ=Circle() ∪ Circle(0.0,0.4)
 o=ones(Γ)
 @test_approx_eq o(1.) 1.0
 @test_approx_eq o(0.4) 1.0
 
 G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
-@test_approx_eq (G-I)(1.) (G(1.)-I)
+@test_approx_eq (G-I)(exp(0.1im)) (G(exp(0.1im))-I)
 
 
 ## Previoius seffdault
 
-x=Fun(identity,[-1.,1.])
+x=Fun(identity,-1..1)
 f=x+sin(2x)*sqrt(1-x^2)
 @test_approx_eq f(0.1) 0.1+sin(2*0.1)*sqrt(1-0.1^2)
 
 
 ## Check multiple piecewisesapce
 
-x=Fun(identity,[-3,-2])+Fun(identity,[2,3])
+x=Fun(identity,-3 .. -2)+Fun(identity,2..3)
 w=sqrt(9-x^2)
 f=w+Fun()
 @test_approx_eq (f+w)(2.5) 2w(2.5)
@@ -176,15 +175,15 @@ f=w+Fun()
 
 ## Check Jacobi recurrence bug
 
-S=Jacobi(-.5,.5)
+S=Jacobi(0.5,-0.5)
 f=Fun(exp,S)
 @test_approx_eq f(0.1) exp(0.1)
 
 
 ## Check cancel conversion works
-x=Fun([0.,1.])
+x=Fun(0..1)
 f=exp(x)-1
-Fun(f,JacobiWeight(1.,0.,[0.,1.]))
+Fun(f,JacobiWeight(1.,0.,0..1))
 
 
 ## Hermite
@@ -202,7 +201,7 @@ z=Fun(identity,Arc(0.,.1,0.,π/2))
 
 ## Extending function
 
-Γ=Interval(-im,1.0-im)∪Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6)))∪Circle(2.0,0.2)
+Γ=Segment(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
 
 @test isempty(Γ[1]\Γ[1])
 @test Γ\Γ[1] == Γ[2]∪Γ[3]

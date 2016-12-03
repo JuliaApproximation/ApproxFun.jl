@@ -34,6 +34,8 @@ CachedOperator(op::Operator,data::AbstractMatrix,padding=false) = CachedOperator
 function default_CachedOperator(op::Operator;padding::Bool=false)
     if isbanded(op)
         CachedOperator(BandedMatrix,op;padding=padding)
+    elseif isbandedblockbanded(op) && !padding
+        CachedOperator(BandedBlockBandedMatrix,op)
     elseif isbandedblock(op)
         CachedOperator(BandedBlockMatrix,op;padding=padding)
     elseif israggedbelow(op)
@@ -45,7 +47,11 @@ end
 
 CachedOperator(op::Operator;padding::Bool=false) = default_CachedOperator(op;padding=padding)
 
+doc"""
+    cache(op::Operator)
 
+Caches the entries of an operator, to speed up multiplying a Fun by the operator.
+"""
 cache(O::Operator;kwds...) = CachedOperator(O;kwds...)
 cache{MT<:AbstractMatrix}(::Type{MT},O::Operator;kwds...) = CachedOperator(MT,O;kwds...)
 
@@ -96,3 +102,14 @@ function Base.getindex(B::CachedOperator,k::Integer)
 
 resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
 resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))
+
+
+function *{T<:Number}(B::CachedOperator,v::Vector{T})
+    resizedata!(B,:,length(v))
+
+    if isafunctional(B)
+        return dotu(B.data[1:length(v)],v)
+    end
+
+    Fun(rangespace(B),B.data*pad(v,size(B.data,2)))
+end

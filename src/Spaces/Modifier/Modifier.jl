@@ -7,7 +7,7 @@ include("SubSpace.jl")
 
 
 ⊕(A::Space,B::Space) = domainscompatible(A,B) ? SumSpace(A,B) : PiecewiseSpace(A,B)
-⊕(f::Fun,g::Fun) = Fun(interlace(coefficients(f),coefficients(g)),space(f) ⊕ space(g))
+⊕(f::Fun,g::Fun) = Fun(space(f) ⊕ space(g), interlace(coefficients(f),coefficients(g)))
 
 +(A::Space,B::Space) = A ⊕ B
 
@@ -36,14 +36,14 @@ function coefficients(cfs::Vector,A::SumSpace,B::SumSpace)
     if spacescompatible(A,B)
         cfs
     else
-        mapreduce(f->Fun(f,B),+,vec(Fun(cfs,A))).coefficients
+        mapreduce(f->Fun(f,B),+,vec(Fun(A,cfs))).coefficients
     end
 end
 function coefficients(cfs::Vector,A::PiecewiseSpace,B::PiecewiseSpace)
     if spacescompatible(A,B)
         cfs
     else
-        mapreduce(f->Fun(f,B),+,pieces(Fun(cfs,A))).coefficients
+        mapreduce(f->Fun(f,B),+,pieces(Fun(A,cfs))).coefficients
     end
 end
 
@@ -127,7 +127,7 @@ function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{PiecewiseSpace})
     B=promotedomainspace(Bin)
     rsp=PiecewiseSpace(map(rangespace,B))
     LowRankOperator(
-        Fun{typeof(rsp),Float64}[Fun([zeros(k-1);1],rsp) for k=1:length(B)],
+        Fun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
         B)
 end
 
@@ -135,7 +135,7 @@ function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{TupleSpace})
     B=promotedomainspace(Bin)
     rsp=TupleSpace(tuple(map(rangespace,B)...,ZeroSpace()))  #TODO: Why the hack?
     LowRankOperator(
-        Fun{typeof(rsp),Float64}[Fun([zeros(k-1);1],rsp) for k=1:length(B)],
+        Fun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
         B)
 end
 

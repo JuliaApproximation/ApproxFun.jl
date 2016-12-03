@@ -10,10 +10,10 @@ S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 f = Fun((x,y)->sin(π*x)*sin(π*y),S)
 QR=qrfact(Δ)
     @time ApproxFun.resizedata!(QR,:,400)
-    @time linsolve(QR,f;tolerance=1E-10)
+    @time \(QR,f;tolerance=1E-10)
 QR=qrfact(Δ)
     @time ApproxFun.resizedata!(QR,:,400)
-    @time linsolve(QR,f;tolerance=1E-10)
+    @time \(QR,f;tolerance=1E-10)
 
 
 
@@ -32,18 +32,18 @@ QR=qrfact(A)
     @time ApproxFun.resizedata!(QR,:,200)
 
 
-@time linsolve(QR,[f;0.];tolerance=1E-10)
+@time \(QR,[f;0.];tolerance=1E-10)
 QR=qrfact(A)
     @time ApproxFun.resizedata!(QR,:,150)
-    @time u=linsolve(QR,[f;0.];tolerance=1E-10)
+    @time u=\(QR,[f;0.];tolerance=1E-10)
 
 println("Laplace: should be ~0.06, 0.001")
 
 
 
 d=Interval()^2
-@time [neumann(d);lap(d)+100I]\ones(4)
-@time [neumann(d);lap(d)+100I]\ones(4)
+@time [neumann(d);lap(d)+100I]\[ones(4);0]
+@time [neumann(d);lap(d)+100I]\[ones(4);0]
 println("Neumann Helmholtz: should be ~0.032")
 
 

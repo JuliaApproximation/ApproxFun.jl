@@ -20,7 +20,7 @@ function LeftIntegral(S::Jacobi,k)
     if S.b==0
         ConcreteLeftIntegral(S,k)
     else
-        J=Jacobi(S.a,0.,domain(S))
+        J=Jacobi(0.,S.a,domain(S))
         LeftIntegralWrapper(LeftIntegral(J,k)*Conversion(S,J),k)
     end
 end
@@ -39,46 +39,46 @@ LeftIntegral(S::Chebyshev,k) = LeftIntegralWrapper(
     0.5)
 
 
-function rangespace{T,DD<:Interval}(Q::ConcreteLeftIntegral{Jacobi{T,DD},Float64})
+function rangespace{T,DD<:Segment}(Q::ConcreteLeftIntegral{Jacobi{T,DD},Float64})
     μ=Q.order
     S=domainspace(Q)
 
-    JacobiWeight(S.b+μ,0.,Jacobi(S.a-μ,S.b+μ,domain(S)))
+    JacobiWeight(S.b+μ,0.,Jacobi(S.b+μ,S.a-μ,domain(S)))
 end
 
 function RightIntegral(S::Jacobi,k)
     if S.a==0
         ConcreteRightIntegral(S,k)
     else
-        J=Jacobi(0.,S.b,domain(S))
+        J=Jacobi(S.b,0.,domain(S))
         RightIntegralWrapper(RightIntegral(J,k)*Conversion(S,J),k)
     end
 end
 
-function rangespace{T,DD<:Interval}(Q::ConcreteRightIntegral{Jacobi{T,DD},Float64})
+function rangespace{T,DD<:Segment}(Q::ConcreteRightIntegral{Jacobi{T,DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     @assert S.a==0
 
-    JacobiWeight(0.,S.a+μ,Jacobi(S.a+μ,S.b-μ,domain(S)))
+    JacobiWeight(0.,S.a+μ,Jacobi(S.b-μ,S.a+μ,domain(S)))
 end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
     @eval begin
-        bandinds{T,DD<:Interval}(Q::$TYP{Jacobi{T,DD},Float64})=(0,0)
-        getindex{T,DD<:Interval}(Q::$TYP{Jacobi{T,DD},Float64},k::Integer,j::Integer) =
+        bandinds{T,DD<:Segment}(Q::$TYP{Jacobi{T,DD},Float64})=(0,0)
+        getindex{T,DD<:Segment}(Q::$TYP{Jacobi{T,DD},Float64},k::Integer,j::Integer) =
             jacobi_frac_getindex(domain(Q),0.,Q.order,k,j)
     end
 end
 
 
-jacobi_frac_getindex(d::Interval,α,μ,k::Integer,j::Integer) =
+jacobi_frac_getindex(d::Segment,α,μ,k::Integer,j::Integer) =
     jacobi_frac_getindex((arclength(d)/2)^μ,α,μ,k,j)
 jacobi_frac_getindex(c::Number,α,μ,k::Integer,j::Integer) =
     k==j ? c*exp(lgamma(α+k)-lgamma(α+μ+k)) : zero(promote_type(typeof(c),typeof(α),typeof(μ)))
 
 
-# jacobi_frac_addentries!(d::Interval,α,μ,A,kr::UnitRange)=
+# jacobi_frac_addentries!(d::Segment,α,μ,A,kr::UnitRange)=
 #     jacobi_frac_addentries!((arclength(d)/2)^μ,α,μ,A,kr)
 # function jacobi_frac_addentries!(c::Number,α,μ,A,kr::UnitRange)
 #     γ=c*gamma(α+1)/gamma(α+1+μ)
@@ -97,15 +97,15 @@ jacobi_frac_getindex(c::Number,α,μ,k::Integer,j::Integer) =
 
 function LeftIntegral{T,DD}(S::JacobiWeight{Jacobi{T,DD}},k)
     J=S.space
-    @assert S.β==0
-    @assert S.α==J.b
+    @assert S.α==0
+    @assert S.β==J.b
     ConcreteLeftIntegral(S,k)
 end
 
 function RightIntegral{T,DD}(S::JacobiWeight{Jacobi{T,DD}},k)
     J=S.space
-    @assert S.β==J.a
-    @assert S.α==0
+    @assert S.α==J.a
+    @assert S.β==0
     ConcreteRightIntegral(S,k)
 end
 
@@ -113,67 +113,67 @@ end
 
 function LeftIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
     # convert to Jacobi
-    Q=LeftIntegral(JacobiWeight(S.α,S.β,Jacobi(S.space)),k)
+    Q=LeftIntegral(JacobiWeight(S.β,S.α,Jacobi(S.space)),k)
     LeftIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
 end
 
 function RightIntegral{DD}(S::JacobiWeight{Chebyshev{DD}},k)
     # convert to Jacobi
-    Q=RightIntegral(JacobiWeight(S.α,S.β,Jacobi(S.space)),k)
+    Q=RightIntegral(JacobiWeight(S.β,S.α,Jacobi(S.space)),k)
     RightIntegralWrapper(Q*Conversion(S,domainspace(Q)),k)
 end
 
 for (TYP,WRAP) in ((:LeftIntegral,:LeftIntegralWrapper),
                     (:RightIntegral,:RightIntegralWrapper))
     @eval function $TYP{PS<:PolynomialSpace}(S::JacobiWeight{PS},k)
-        JS = JacobiWeight(S.α,S.β,Jacobi(S.space))
+        JS = JacobiWeight(S.β,S.α,Jacobi(S.space))
         $WRAP($TYP(JS,k)*Conversion(S,JS),k)
     end
 end
 
 
 #DLMF18.17.9
-function rangespace{T,DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64})
+function rangespace{T,DD<:Segment}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     J=S.space
-    if isapprox(S.α,-μ)
-        Jacobi(J.a-μ,J.b+μ,domain(J))
+    if isapprox(S.β,-μ)
+        Jacobi(J.b+μ,J.a-μ,domain(J))
     else
-        JacobiWeight(S.α+μ,0.,Jacobi(J.a-μ,J.b+μ,domain(J)))
+        JacobiWeight(S.β+μ,0.,Jacobi(J.b+μ,J.a-μ,domain(J)))
     end
 end
 
-function rangespace{T,DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64})
+function rangespace{T,DD<:Segment}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64})
     μ=Q.order
     S=domainspace(Q)
     J=S.space
-    @assert S.β==J.a
-    @assert S.α==0
+    @assert S.α==J.a
+    @assert S.β==0
     if isapprox(S.β,-μ)
-        Jacobi(J.a+μ,J.b-μ,domain(J))
+        Jacobi(J.b-μ,J.a+μ,domain(J))
     else
-        JacobiWeight(0.,S.β+μ,Jacobi(J.a+μ,J.b-μ,domain(J)))
+        JacobiWeight(0.,S.α+μ,Jacobi(J.b-μ,J.a+μ,domain(J)))
     end
 end
 
 for TYP in (:ConcreteLeftIntegral,:ConcreteRightIntegral)
-    @eval bandinds{T,DD<:Interval}(Q::$TYP{JacobiWeight{Jacobi{T,DD},DD},Float64})=(0,0)
+    @eval bandinds{T,DD<:Segment}(Q::$TYP{JacobiWeight{Jacobi{T,DD},DD},Float64})=(0,0)
 end
 
-getindex{T,DD<:Interval}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64},k::Integer,j::Integer) =
-    jacobi_frac_getindex(domain(Q),domainspace(Q).α,Q.order,k,j)
-
-getindex{T,DD<:Interval}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64},k::Integer,j::Integer) =
+getindex{T,DD<:Segment}(Q::ConcreteLeftIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64},k::Integer,j::Integer) =
     jacobi_frac_getindex(domain(Q),domainspace(Q).β,Q.order,k,j)
 
-function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::JacobiWeight)
-    @assert sp.α>0 && isapproxinteger(sp.β)
+getindex{T,DD<:Segment}(Q::ConcreteRightIntegral{JacobiWeight{Jacobi{T,DD},DD},Float64},k::Integer,j::Integer) =
+    jacobi_frac_getindex(domain(Q),domainspace(Q).α,Q.order,k,j)
 
-    if isapprox(Q.order,sp.α)
+function choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::JacobiWeight)
+    @assert sp.β>0 && isapproxinteger(sp.α)
+
+    if isapprox(Q.order,sp.β)
         Legendre(domain(sp))
     else
-        JacobiWeight(sp.α-Q.order,0.,Jacobi(0.,sp.α-Q.order,domain(sp)))
+        JacobiWeight(sp.β-Q.order,0.,Jacobi(sp.β-Q.order,0.,domain(sp)))
     end
 end
 
@@ -183,12 +183,12 @@ choosedomainspace{T<:Float64}(Q::LeftIntegral{UnsetSpace,T},sp::PolynomialSpace)
 
 
 function choosedomainspace{T<:Float64}(Q::RightIntegral{UnsetSpace,T},sp::JacobiWeight)
-    @assert sp.β>0  && isapproxinteger(sp.α)
+    @assert sp.α>0  && isapproxinteger(sp.β)
 
-    if isapprox(Q.order,sp.β)
+    if isapprox(Q.order,sp.α)
         Legendre(domain(sp))
     else
-        JacobiWeight(0.,sp.β-Q.order,Jacobi(sp.β-Q.order,0.))
+        JacobiWeight(0.,sp.α-Q.order,Jacobi(0.,sp.α-Q.order))
     end
 end
 choosedomainspace{T<:Float64}(Q::RightIntegral{UnsetSpace,T},sp::PolynomialSpace)=

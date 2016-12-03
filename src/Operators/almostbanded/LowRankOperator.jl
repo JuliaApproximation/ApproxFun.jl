@@ -25,28 +25,34 @@ end
 
 
 
-LowRankOperator{S,T}(U::Vector{Fun{S,T}},V::Vector{Operator{T}})=LowRankOperator{S,T}(U,V)
-LowRankOperator{S,T1,T2}(U::Vector{Fun{S,T1}},V::Vector{Operator{T2}})=LowRankOperator(convert(Vector{Fun{S,promote_type(T1,T2)}},U),
-                                                                                         convert(Vector{Operator{promote_type(T1,T2)}},V))
-LowRankOperator{FF<:Fun,FT<:Operator}(U::Vector{FF},V::Vector{FT})=LowRankOperator(U,convert(Vector{Operator{eltype(FT)}},V))
+LowRankOperator{S,T}(U::Vector{Fun{S,T}},V::Vector{Operator{T}}) = LowRankOperator{S,T}(U,V)
+LowRankOperator{S,T1,T2}(U::Vector{Fun{S,T1}},V::Vector{Operator{T2}}) =
+    LowRankOperator(convert(Vector{Fun{S,promote_type(T1,T2)}},U),
+                    convert(Vector{Operator{promote_type(T1,T2)}},V))
+LowRankOperator{FF<:Fun,FT<:Operator}(U::Vector{FF},V::Vector{FT}) =
+    LowRankOperator(U,convert(Vector{Operator{eltype(FT)}},V))
 
 
 
-LowRankOperator(B::AbstractVector,S...)=LowRankOperator(convert(Vector{Operator{Float64}},B),S...)
+LowRankOperator(B::AbstractVector,S...) = LowRankOperator(convert(Vector{Operator{Float64}},B),S...)
 
-LowRankOperator(A::Fun,B::Operator)=LowRankOperator([A],[B])
+LowRankOperator(A::Fun,B::Operator) = LowRankOperator([A],[B])
 
+
+Base.convert{S,T}(::Type{Operator{T}},L::LowRankOperator{S}) =
+    LowRankOperator{S,T}(convert(Vector{Fun{S,T}},L.U),
+                         convert(Vector{Operator{T}},L.V))
 
 
 datasize(L::LowRankOperator,k) =
     k==1?mapreduce(ncoefficients,max,L.U):mapreduce(bandwidth,max,L.V)
 datasize(L::LowRankOperator) = datasize(L,1),datasize(L,2)
-bandinds(L::LowRankOperator) = datasize(L,1)-1,datasize(L,2)-1
+bandinds(L::LowRankOperator) = 1-datasize(L,1),datasize(L,2)-1
 
-domainspace(L::LowRankOperator)=domainspace(first(L.V))
-rangespace(L::LowRankOperator)=space(first(L.U))
-promoterangespace(L::LowRankOperator,sp::Space)=LowRankOperator(map(u->Fun(u,sp),L.U),L.V)
-promotedomainspace(L::LowRankOperator,sp::Space)=LowRankOperator(L.U,map(v->promotedomainspace(v,sp),L.V))
+domainspace(L::LowRankOperator) = domainspace(first(L.V))
+rangespace(L::LowRankOperator) = space(first(L.U))
+promoterangespace(L::LowRankOperator,sp::Space) = LowRankOperator(map(u->Fun(u,sp),L.U),L.V)
+promotedomainspace(L::LowRankOperator,sp::Space) = LowRankOperator(L.U,map(v->promotedomainspace(v,sp),L.V))
 
 function Base.getindex(L::LowRankOperator,k::Integer,j::Integer)
     ret=zero(eltype(L))

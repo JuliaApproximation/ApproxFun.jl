@@ -55,7 +55,7 @@ hermitep(n::Range,v::Vector)=transpose(hcat(map(x->hermitep(n,x),v)...))
 hermitep(n::Integer,v::Vector)=map(x->hermitep(n,x),v)
 
 
-identity_fun(sp::Hermite)=Fun([0.,0.5],sp)
+identity_fun(sp::Hermite)=Fun(sp,[0.,0.5])
 
 
 # exp(-Lx^2)
@@ -104,9 +104,7 @@ function Multiplication{H<:Hermite}(f::Fun{H},S::GaussWeight{H})
 end
 
 function Multiplication{H<:Hermite,T}(f::Fun{GaussWeight{H,T}},S::Hermite)
-    M=Multiplication(Fun(f.coefficients,space(f).space),S)
+    M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rs=rangespace(M)
     MultiplicationWrapper(f,SpaceOperator(M,S,GaussWeight(rs,rs.L)))
 end
-
-

@@ -2,9 +2,6 @@
 
 export Curve
 
-"""
-`Curve` Represents a domain defined by the image of a Fun
-"""
 
 
 immutable IntervalCurve{S<:Space,T} <: IntervalDomain{T}
@@ -15,6 +12,15 @@ immutable PeriodicCurve{S<:Space,T} <: PeriodicDomain{T}
     curve::Fun{S,T}
 end
 
+doc"""
+`Curve` Represents a domain defined by the image of a Fun.  Example
+usage would be
+
+```julia
+x=Fun(1..2)
+Curve(exp(im*x))  # represents an arc
+```
+"""
 typealias Curve{S,T} Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
 
 
@@ -57,5 +63,5 @@ end
 Base.reverse(d::Curve) = Curve(reverseorientation(d.curve))
 
 isambiguous(d::Curve) = ncoefficients(d.curve)==0 && isambiguous(domain(d.curve))
-Base.convert{S,T}(::Type{IntervalCurve{S,T}},::AnyDomain)=Fun([NaN],S(AnyDomain()))
-Base.convert{S,T}(::Type{PeriodicCurve{S,T}},::AnyDomain)=Fun([NaN],S(AnyDomain()))
+Base.convert{S,T}(::Type{IntervalCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])
+Base.convert{S,T}(::Type{PeriodicCurve{S,T}},::AnyDomain)=Fun(S(AnyDomain()),[NaN])

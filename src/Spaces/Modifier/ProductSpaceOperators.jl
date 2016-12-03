@@ -110,7 +110,7 @@ function coefficients(v::AbstractVector,a::TupleSpace,b::TupleSpace)
     if a==b
         v
     else
-        vs=vec(Fun(v,a))
+        vs=vec(Fun(a,v))
         coefficients(vcat(map((f,s)->Fun(f,s),vs,b)...))
     end
 end
@@ -260,7 +260,7 @@ function Derivative(S::SumSpace,k::Integer)
     if typeof(canonicaldomain(S))==typeof(domain(S))
         DerivativeWrapper(InterlaceOperator(Diagonal([map(s->Derivative(s,k),S.spaces)...]),SumSpace),k)
     else
-        defaultDerivative(S,k)
+        DefaultDerivative(S,k)
     end
 end
 
@@ -312,6 +312,10 @@ DefiniteIntegral(d::UnionDomain) =
     ConcreteDefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
 DefiniteLineIntegral(d::UnionDomain) =
     ConcreteDefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
+
+
+DefiniteIntegral(sp::PiecewiseSpace) = ConcreteDefiniteIntegral(sp)
+DefiniteLineIntegral(sp::PiecewiseSpace) = ConcreteDefiniteLineIntegral(sp)    
 
 ####### This is a hack to get the Faraday Cage working.
 function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},k::Integer)

@@ -21,3 +21,5 @@ examples/.ipynb_checkpoints/Time Evolution PDEs on Square (PlotlyJS)-checkpoint.
 examples/gks.svg
 examples/.ipynb_checkpoints/Fractional Integral Equations-checkpoint.ipynb
 docs/build/index.md
+docs/build
+
