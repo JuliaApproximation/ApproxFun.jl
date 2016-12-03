@@ -1,31 +1,35 @@
 ## Linear Solve
+for TYP in (:Fun,:StridedVector,:AbstractVector,:Any)
+    @eval function \(A::Operator,b::$TYP;kwds...)
+        if isambiguous(domainspace(A))
+            A=choosespaces(A,b)
+            if isambiguous(domainspace(A))
+                error("Cannot infer spaces")
+            end
+            \(A,b;kwds...)
+        else
+            Fun(domainspace(A),
+                A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
+        end
+    end
+end
+
 doc"""
-    \(A,b;tolerance=tol,maxlength=n)
+    \(A::Operator,b;tolerance=tol,maxlength=n)
 
 solves a linear equation, usually differential equation, where `A` is an operator
 or array of operators and `b` is a `Fun` or array of funs.  The result `u`
 will approximately satisfy `A*u = b`.
 """
-function \(A::Operator,b::Fun;kwds...)
-    if isambiguous(domainspace(A))
-        A=choosespaces(A,b)
-        if isambiguous(domainspace(A))
-            error("Cannot infer spaces")
-        end
-        \(A,b;kwds...)
-    else
-        Fun(domainspace(A),
-            A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
-    end
-end
-
-\(A::Operator,b::StridedVector;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
-\(A::Operator,b::AbstractVector;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
-\(A::Operator,b;kwds...) = \(A,Fun(b,rangespace(A));kwds...)
+\(::Operator,::)
 
 # Solve each column separately
 function \(A::Operator,B::AbstractMatrix;kwds...)
     ds=domainspace(A)
+    if isambiguous(ds)
+        return choosespaces(A,B[:,1])\B
+    end
+
     ret=Array(Fun{typeof(ds),promote_type(mapreduce(eltype,promote_type,B),eltype(ds))},
               1,size(B,2))
     for j=1:size(B,2)
