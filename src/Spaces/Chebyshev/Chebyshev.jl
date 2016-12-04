@@ -237,7 +237,7 @@ function points{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},N)
         end
         ret
     else
-        fromcanonical(S,points(Chebyshev()^2,N))
+        fromcanonical.(S,points(Chebyshev()^2,N))
     end
 end
 
