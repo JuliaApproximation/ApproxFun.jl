@@ -54,8 +54,8 @@ Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},:
 Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace}}(::Type{Fun{S}},::Type{T}) =
     Fun{S,T}
 
-@compat (H::Type{Hardy{s}}){s}(d::Domain) = Hardy{s,typeof(d)}(d)
-@compat (H::Type{Hardy{s}}){s}() = Hardy{s}(Circle())
+(H::Type{Hardy{s}}){s}(d::Domain) = Hardy{s,typeof(d)}(d)
+(H::Type{Hardy{s}}){s}() = Hardy{s}(Circle())
 
 canonicalspace(S::Hardy) = S
 setdomain{s}(S::Hardy{s},d::Domain) = Hardy{s}(d)
@@ -303,9 +303,9 @@ typealias Fourier{DD} SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
 
 for Typ in (:Laurent,:Fourier)
     @eval begin
-        @compat (::Type{$Typ})(d::Domain) = $Typ{typeof(d)}(d)
-        @compat (::Type{$Typ})() = $Typ(PeriodicInterval())
-        @compat (::Type{$Typ})(d) = $Typ(PeriodicDomain(d))
+        (::Type{$Typ})(d::Domain) = $Typ{typeof(d)}(d)
+        (::Type{$Typ})() = $Typ(PeriodicInterval())
+        (::Type{$Typ})(d) = $Typ(PeriodicDomain(d))
 
         hasfasttransform{D}(::$Typ{D}) = true
     end

@@ -31,7 +31,7 @@ function Multiplication{C<:Chebyshev}(f::Fun{C},sp::Ultraspherical{Int})
         cfs = f.coefficients
         MultiplicationWrapper(f,
             SpaceOperator(SymToeplitzOperator(cfs/2) +
-                                HankelOperator(@compat(view(cfs,3:length(cfs)))/(-2)),
+                                HankelOperator(view(cfs,3:length(cfs))/(-2)),
                           sp,sp))
 
     else

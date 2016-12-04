@@ -9,7 +9,7 @@ immutable ChebyshevTransformPlan{T,kind,inplace,P} <: FFTW.Plan{T}
     plan::P
 end
 
-@compat (::Type{ChebyshevTransformPlan{k,inp}}){k,inp}(plan) =
+(::Type{ChebyshevTransformPlan{k,inp}}){k,inp}(plan) =
     ChebyshevTransformPlan{eltype(plan),k,inp,typeof(plan)}(plan)
 
 

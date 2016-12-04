@@ -263,7 +263,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
 end
 
 
-@compat function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T}; header::Bool=true)
+function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T}; header::Bool=true)
     nf = length(A)-1
     header && for k=1:nf+1 println(io,summary(A[k])) end
     if all(Ak -> isafunctional(Ak), A[1:nf]) && isbanded(A[end]) &&

@@ -30,9 +30,9 @@ end
 
 typealias RealLine{T} Union{Line{false,T},Line{true,T}}
 
-@compat (::Type{Line{a}}){a}(c,α,β) = Line{a,typeof(c)}(c,α,β)
-@compat (::Type{Line{a}}){a}(c::Number) = Line{a,typeof(c)}(c)
-@compat (::Type{Line{a}}){a}() = Line{a,Float64}()
+(::Type{Line{a}}){a}(c,α,β) = Line{a,typeof(c)}(c,α,β)
+(::Type{Line{a}}){a}(c::Number) = Line{a,typeof(c)}(c)
+(::Type{Line{a}}){a}() = Line{a,Float64}()
 
 Base.angle{a}(d::Line{a}) = a*π
 Base.eltype{T}(::Type{Line{true,T}}) = T

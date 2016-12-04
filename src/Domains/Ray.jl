@@ -26,9 +26,9 @@ end
 
 typealias RealRay{T} Union{Ray{false,T},Ray{true,T}}
 
-@compat (::Type{Ray{a}}){a}(c,o) = Ray{a,typeof(c)}(c,o)
-@compat (::Type{Ray{a}}){a}(c::Number) = Ray{a,typeof(c)}(c)
-@compat (::Type{Ray{a}}){a}() = Ray{a,Float64}()
+(::Type{Ray{a}}){a}(c,o) = Ray{a,typeof(c)}(c,o)
+(::Type{Ray{a}}){a}(c::Number) = Ray{a,typeof(c)}(c)
+(::Type{Ray{a}}){a}() = Ray{a,Float64}()
 
 Base.angle{a}(d::Ray{a}) = a*π
 

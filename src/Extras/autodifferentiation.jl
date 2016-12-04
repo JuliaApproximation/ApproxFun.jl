@@ -48,7 +48,7 @@ end
 /(a::DualFun,b::DualFun)=DualFun(a.f/b.f,a.J/b.f-a.f/b.f^2*b.J)
 
 
-@compat (d::DualFun)(x) = DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
+(d::DualFun)(x) = DualFun(d.f(x),Evaluation(rangespace(d.J),x)*d.J)
 Base.first(d::DualFun) = DualFun(first(d.f),Evaluation(rangespace(d.J),false)*d.J)
 Base.last(d::DualFun) = DualFun(last(d.f),Evaluation(rangespace(d.J),true)*d.J)
 

@@ -32,9 +32,9 @@ end
 
 const Bézier = Bernstein # option+e e gives é
 
-@compat (::Type{Bernstein{O}}){O}() = Bernstein{O,Float64}()
-@compat (::Type{Bernstein{O}}){O}(d::Domain) = Bernstein{O,eltype(d)}(d)
-@compat (::Type{Bernstein{O}}){O}(d::Vector) = Bernstein{O}(Segment(d))
+(::Type{Bernstein{O}}){O}() = Bernstein{O,Float64}()
+(::Type{Bernstein{O}}){O}(d::Domain) = Bernstein{O,eltype(d)}(d)
+(::Type{Bernstein{O}}){O}(d::Vector) = Bernstein{O}(Segment(d))
 
 order{O}(::Bernstein{O}) = O
 order{O,T}(::Type{Bernstein{O,T}}) = O

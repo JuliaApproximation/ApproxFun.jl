@@ -3,8 +3,8 @@ immutable SplineSpace{order,T} <: RealUnivariateSpace{PiecewiseSegment{T}}
     domain::PiecewiseSegment{T}
 end
 
-@compat (::Type{SplineSpace{m}}){m,T}(d::PiecewiseSegment{T}) = SplineSpace{m,T}(d)
-@compat (::Type{SplineSpace{m}}){m}(d::AbstractVector) = SplineSpace{m}(PiecewiseSegment(sort(d)))
+(::Type{SplineSpace{m}}){m,T}(d::PiecewiseSegment{T}) = SplineSpace{m,T}(d)
+(::Type{SplineSpace{m}}){m}(d::AbstractVector) = SplineSpace{m}(PiecewiseSegment(sort(d)))
 
 typealias HeavisideSpace{T} SplineSpace{0,T}
 dimension{λ}(h::SplineSpace{λ}) = length(h.domain.points)+λ-1

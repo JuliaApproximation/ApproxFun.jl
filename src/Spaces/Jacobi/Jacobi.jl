@@ -30,8 +30,8 @@ Base.convert{T,V,D}(::Type{Jacobi{T,D}},J::Jacobi{V,D}) = Jacobi{T,D}(J.b,J.a,J.
 
 typealias WeightedJacobi{T,D} JacobiWeight{Jacobi{T,D},D}
 
-@compat (::Type{WeightedJacobi})(β,α,d::Domain) = JacobiWeight(β,α,Jacobi(β,α,d))
-@compat (::Type{WeightedJacobi})(β,α) = JacobiWeight(β,α,Jacobi(β,α))
+(::Type{WeightedJacobi})(β,α,d::Domain) = JacobiWeight(β,α,Jacobi(β,α,d))
+(::Type{WeightedJacobi})(β,α) = JacobiWeight(β,α,Jacobi(β,α))
 
 spacescompatible(a::Jacobi,b::Jacobi) = a.a ≈ b.a && a.b ≈ b.b
 

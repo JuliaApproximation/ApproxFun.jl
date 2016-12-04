@@ -168,7 +168,7 @@ evaluate(f::Fun,x) = evaluate(f.coefficients,f.space,x)
 evaluate(f::Fun,x,y,z...) = evaluate(f.coefficients,f.space,Vec(x,y,z...))
 
 
-@compat (f::Fun)(x...) = evaluate(f,x...)
+(f::Fun)(x...) = evaluate(f,x...)
 
 for op in (:(Base.first),:(Base.last))
     @eval $op{S,T}(f::Fun{S,T}) = f($op(domain(f)))

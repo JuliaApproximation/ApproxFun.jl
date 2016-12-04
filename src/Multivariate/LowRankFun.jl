@@ -267,7 +267,7 @@ function findmaxabs(a)
     return (m, mi)
 end
 
-@compat (f::LowRankFun)(x,y)=evaluate(f,x,y)
+(f::LowRankFun)(x,y)=evaluate(f,x,y)
 
 domain(f::LowRankFun,k::Integer)=k==1? domain(first(f.A)) : domain(first(f.B))
 space(f::LowRankFun,k::Integer)=k==1? space(first(f.A)) : space(first(f.B))

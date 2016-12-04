@@ -49,7 +49,7 @@ S=Chebyshev(d)
 @test norm(Fun(Fun(Fun(exp,S),Ultraspherical(2,d)),S)-Fun(exp,S)) < 100eps()
 
 
-@test_approx_eq copy(@compat view(Derivative(Ultraspherical(1)),1:2,1:2))[1,2] Derivative(Ultraspherical(1))[1,2]
+@test_approx_eq copy(view(Derivative(Ultraspherical(1)),1:2,1:2))[1,2] Derivative(Ultraspherical(1))[1,2]
 @test_approx_eq exp(0.1) (Derivative()*Fun(exp,Ultraspherical(1)))(0.1)
 
 

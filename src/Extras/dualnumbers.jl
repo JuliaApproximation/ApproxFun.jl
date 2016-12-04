@@ -29,12 +29,12 @@ plan_ichebyshevtransform!{T<:Dual}(x::Vector{T};kind::Integer=1) =
 
 
 function plan_chebyshevtransform{D<:Dual}(v::Vector{D};kind::Integer=1)
-    plan = plan_chebyshevtransform(@compat(realpart.(v));kind=kind)
+    plan = plan_chebyshevtransform(realpart.(v);kind=kind)
     ChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
 end
 
 function plan_ichebyshevtransform{D<:Dual}(v::Vector{D};kind::Integer=1)
-    plan = plan_ichebyshevtransform(@compat(realpart.(v));kind=kind)
+    plan = plan_ichebyshevtransform(realpart.(v);kind=kind)
     IChebyshevTransformPlan{D,kind,false,typeof(plan)}(plan)
 end
 
@@ -54,11 +54,11 @@ for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITran
         TYP in  (:Fourier,:Laurent,:SinSpace)
     @eval begin
         function $OP{T<:Dual,D<:Domain}(sp::$TYP{D},x::Vector{T})
-            plan = $OP(sp,@compat(realpart.(x)))
+            plan = $OP(sp,realpart.(x))
             $TransPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
         end
         *{T<:Dual,D<:Domain}(P::$TransPlan{T,$TYP{D},false},x::Vector{T}) =
-            dual(P.plan*@compat(realpart.(x)),P.plan*@compat(dualpart.(x)))
+            dual(P.plan*realpart.(x),P.plan*dualpart.(x))
     end
 end
 
@@ -68,7 +68,7 @@ chop!(f::Fun,d::Dual)=chop!(f,realpart(d))
 
 function simplifycfs!{DD<:Dual}(cfs::Vector{DD},tol::Float64=4E-16)
     for k=length(cfs):-2:2
-        if maxabs(@compat(realpart.(cfs[k-1:k]))) > maxabs(@compat(dualpart.(cfs[k-1:k])))*tol
+        if maxabs(realpart.(cfs[k-1:k])) > maxabs(dualpart.(cfs[k-1:k]))*tol
             return resize!(cfs,k)
         end
     end
