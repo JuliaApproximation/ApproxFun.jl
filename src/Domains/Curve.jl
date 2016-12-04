@@ -39,7 +39,6 @@ end
 
 canonicaldomain(c::Curve)=domain(c.curve)
 
-fromcanonical{S<:Space,T<:Number}(d::Curve{S,T},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical{S<:Space,T<:Number}(c::Curve{S,T},x) = c.curve(x)
 function tocanonical(c::Curve,x)
     rts=roots(c.curve-x)

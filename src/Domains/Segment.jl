@@ -76,12 +76,9 @@ mobius(S::Space,x...) = mobius(domain(S),x...)
 
 tocanonical{T}(d::Segment{T},x::T) = 2norm(x-d.a)/arclength(d)-1
 tocanonical{T<:Complex}(d::Segment{T},x::Number) = 2norm(x-d.a)/arclength(d)-1
-tocanonical{T}(d::Segment{T},x::AbstractVector{T}) = map(x->tocanonical(d,x),x)
 mobius(d::Segment,x) = (d.a + d.b - 2x)/(d.a - d.b)
-tocanonical{T<:Real}(d::Segment{T},x::AbstractVector{T}) = mobius(d,x)
 tocanonical{T<:Real}(d::Segment{T},x) = mobius(d,x)
 tocanonicalD{T<:Real}(d::Segment{T},x) = 2/(d.b- d.a)
-fromcanonical{T<:Number}(d::Segment{T},v::AbstractArray)=promote_type(T,eltype(v))[fromcanonical(d,vk) for vk in v]
 fromcanonical{T<:Number}(d::Segment{T},x) = (d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonical{T<:Vec}(d::Segment{T},x::Number) = (d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonicalD(d::Segment,x) = (d.b- d.a) / 2

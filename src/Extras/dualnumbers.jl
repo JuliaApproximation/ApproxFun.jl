@@ -41,13 +41,8 @@ end
 
 
 
-if VERSION < v"0.5"
-    *{k,D<:Dual}(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) =
-        dual(P.plan*realpart(v),P.plan*dualpart(v))
-else
-    *{k,D<:Dual}(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) =
-        dual.(P.plan*realpart.(v),P.plan*dualpart.(v))
-end
+*{k,D<:Dual}(P::ChebyshevTransformPlan{D,k,false},v::Vector{D}) =
+    dual.(P.plan*realpart.(v),P.plan*dualpart.(v))
 
 #TODO: Hardy{false}
 for (OP,TransPlan) in ((:plan_transform,:TransformPlan),(:plan_itransform,:ITransformPlan)),

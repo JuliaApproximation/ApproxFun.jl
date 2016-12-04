@@ -67,8 +67,6 @@ end
 
 tocanonical{T<:Number}(a::Arc{T},x) = real(mobius(a,x))
 tocanonicalD{T<:Number}(a::Arc{T},x) = mobiusD(a,x)
-fromcanonical{T<:Number,V<:Real,TT<:Complex}(d::Arc{T,V,TT},v::AbstractArray) =
-    eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical{T<:Number,V<:Real,TT<:Complex}(a::Arc{T,V,TT},x) =
     mobiusinv(a,x)
 fromcanonicalD{T<:Number}(a::Arc{T},x) = mobiusinvD(a,x)

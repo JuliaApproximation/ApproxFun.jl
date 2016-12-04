@@ -402,25 +402,12 @@ macro wrapperstructure(Wrap)
                  :(ApproxFun.isbandedblockbanded),:(ApproxFun.isbandedblock),
                  :(ApproxFun.israggedbelow),:(Base.size),:(ApproxFun.isbanded),
                  :(ApproxFun.bandwidth),:(ApproxFun.bandwidths),
-                 :(ApproxFun.blockbandinds),:(ApproxFun.subblockbandinds))
+                 :(ApproxFun.blockbandinds),:(ApproxFun.subblockbandinds),
+                 :(Base.issymmetric))
         ret = quote
             $ret
 
             $func(D::$Wrap) = $func(D.op)
-        end
-    end
-
-    if VERSION ≥ v"0.5"
-        ret = quote
-            $ret
-
-            Base.issymmetric(D::$Wrap) = issymmetric(D.op)
-        end
-    else
-        ret = quote
-            $ret
-
-            Base.issym(D::$Wrap) = issym(D.op)
         end
     end
 

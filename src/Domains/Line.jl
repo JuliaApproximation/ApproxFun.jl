@@ -118,12 +118,6 @@ tocanonicalD(d::Line,x) = cis(-angle(d)).*line_tocanonicalD(d.α,d.β,cis(-angle
 tocanonicalD(d::Line{false},x) = line_tocanonicalD(d.α,d.β,x-d.center)
 tocanonicalD(d::Line{true},x) = -line_tocanonicalD(d.α,d.β,d.center-x)
 
-fromcanonical(d::Line,v::AbstractArray) =
-    [fromcanonical(d,vk) for vk in v]
-fromcanonical(d::Line{false},v::AbstractArray) =
-    [fromcanonical(d,vk) for vk in v]
-fromcanonical(d::Line{true},v::AbstractArray) =
-    [fromcanonical(d,vk) for vk in v]
 fromcanonical(d::Line,x) = cis(angle(d))*line_fromcanonical(d.α,d.β,x)+d.center
 fromcanonical(d::Line{false},x) = line_fromcanonical(d.α,d.β,x)+d.center
 fromcanonical(d::Line{true},x) = -line_fromcanonical(d.α,d.β,x)+d.center

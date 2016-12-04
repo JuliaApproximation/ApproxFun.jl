@@ -53,8 +53,7 @@ function tocanonical{T<:Vec}(d::Circle{T},ζ)
     atan2(v[2]-0.0,v[1])  # -0.0 to get branch cut right
 end
 
-fromcanonical{T<:Number,V<:Real}(d::Circle{T,V,Complex{V}},v::AbstractArray) =
-	eltype(d)[fromcanonical(d,vk) for vk in v]
+
 fromcanonical{T<:Number,V<:Real}(d::Circle{T,V,Complex{V}},θ) =
 	d.radius*exp((d.orientation?1:-1)*1.0im*θ) + d.center
 fromcanonicalD{T<:Number}(d::Circle{T},θ) =

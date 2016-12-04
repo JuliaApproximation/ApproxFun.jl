@@ -19,7 +19,22 @@ dimension{T,d}(::Domain{T,d}) = d
 dimension{T,d}(::Type{Domain{T,d}}) = d
 dimension{DT<:Domain}(::Type{DT}) = dimension(supertype(DT))
 
-Base.length(d::Domain) = 1
+# add indexing for all spaces, not just DirectSumSpace
+# mimicking scalar vs vector
+
+# TODO: 0.5 iterator
+Base.start(s::Domain) = false
+Base.next(s::Domain,st) = (s,true)
+Base.done(s::Domain,st) = st
+Base.length(s::Domain) = 1
+Base.getindex(s::Domain,::CartesianIndex{0}) = s
+getindex(s::Domain,k) = k == 1 ? s : throw(BoundsError())
+Base.endof(s::Domain) = 1
+
+
+#supports broadcasting, overloaded for ArraySpace
+Base.size(::Domain) = ()
+
 
 # prectype gives the precision, including for Vec
 prectype(d::Domain) = eltype(eltype(d))
@@ -80,7 +95,7 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 ##TODO: Should fromcanonical be fromcanonical!?
 
 points{T}(d::IntervalDomain{T},n::Integer) =
-    fromcanonical(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
+    fromcanonical.(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
@@ -110,7 +125,7 @@ abstract PeriodicDomain{T} <: UnivariateDomain{T}
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
 points{T}(d::PeriodicDomain{T},n::Integer) =
-    fromcanonical(d, fourierpoints(real(eltype(eltype(T))),n))
+    fromcanonical.(d, fourierpoints(real(eltype(eltype(T))),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(0:2:2n-2)/n
@@ -177,11 +192,12 @@ domain(::Number)=AnyDomain()
 
 ## rand
 
-Base.rand(d::IntervalDomain,k...)=fromcanonical(d,2rand(k...)-1)
-Base.rand(d::PeriodicDomain,k...)=fromcanonical(d,2π*rand(k...)-π)
 
-checkpoints(d::IntervalDomain) = fromcanonical(d,[-0.823972,0.01,0.3273484])
-checkpoints(d::PeriodicDomain) = fromcanonical(d,[1.223972,3.14,5.83273484])
+Base.rand(d::IntervalDomain,k...) = fromcanonical.(d,2rand(k...)-1)
+Base.rand(d::PeriodicDomain,k...) = fromcanonical.(d,2π*rand(k...)-π)
+
+checkpoints(d::IntervalDomain) = fromcanonical.(d,[-0.823972,0.01,0.3273484])
+checkpoints(d::PeriodicDomain) = fromcanonical.(d,[1.223972,3.14,5.83273484])
 
 ## boundary
 
@@ -202,8 +218,6 @@ that sketches the boundary of a rectangle.
 ## map domains
 # we auto vectorize arguments
 tocanonical(d::Domain,x,y,z...) = tocanonical(d,Vec(x,y,z...))
-fromcanonical(d::Domain,v::AbstractArray) =
-    eltype(d)[fromcanonical(d,vk) for vk in v]
 
 
 mappoint(d1::Domain,d2::Domain,x...) = fromcanonical(d2,tocanonical(d1,x...))
@@ -213,11 +227,6 @@ invfromcanonicalD(d::Domain,x...) = 1./fromcanonicalD(d,x...)
 
 ## domains in higher dimensions
 
-fromcanonical{V<:Vec}(d::Domain{V},p::AbstractArray) =
-    V[fromcanonical(d,x) for x in p]
-
-# points{T<:Array}(d::IntervalDomain{T},n::Integer) = T[fromcanonical(d,x) for x in chebyshevpoints(real(eltype(T)),n)]
-# points{T<:Array}(d::PeriodicDomain{T},n::Integer) = T[fromcanonical(d,x) for x in fourierpoints(real(eltype(T)),n)]
 
 ## sorting
 # we sort spaces lexigraphically by default

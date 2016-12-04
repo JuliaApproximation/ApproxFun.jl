@@ -106,5 +106,5 @@ end
 newton(N,d::Domain;opts...) =
     newton(N,zeros(d);opts...)
 
-newton{T<:Number}(N,d::AbstractVector{T};opts...) =
+newton(N,d;opts...) =
     newton(N,Domain(d);opts...)

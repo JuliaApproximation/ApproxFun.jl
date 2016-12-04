@@ -84,6 +84,7 @@ Base.start(s::Space) = false
 Base.next(s::Space,st) = (s,true)
 Base.done(s::Space,st) = st
 Base.length(s::Space) = 1
+Base.getindex(s::Space,::CartesianIndex{0}) = s
 getindex(s::Space,k) = k == 1 ? s : throw(BoundsError())
 Base.endof(s::Space) = 1
 

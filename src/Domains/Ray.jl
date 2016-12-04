@@ -81,12 +81,6 @@ ray_fromcanonical(x)=(1+x)./(1-x)
 ray_fromcanonicalD(x)=2*(1./(x-1.)).^2
 ray_invfromcanonicalD(x)=(x-1.).^2/2
 
-# atomatically vectorize over vector arg
-@vectorize_1arg Number ray_tocanonical
-@vectorize_1arg Number ray_tocanonicalD
-@vectorize_1arg Number ray_fromcanonical
-@vectorize_1arg Number ray_fromcanonicalD
-
 
 for op in (:ray_tocanonical,:ray_tocanonicalD)
     @eval $op(o,x)=(o?1:-1)*$op(x)
@@ -103,7 +97,6 @@ tocanonical(d::Ray,x) =
     ray_tocanonical(d.orientation,conj(cisangle(d)).*(x-d.center))
 tocanonicalD(d::Ray,x) =
     conj(cisangle(d)).*ray_tocanonicalD(d.orientation,conj(cisangle(d)).*(x-d.center))
-fromcanonical(d::Ray,v::AbstractArray) = eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::Ray,x) = cisangle(d)*ray_fromcanonical(d.orientation,x)+d.center
 fromcanonicalD(d::Ray,x) = cisangle(d)*ray_fromcanonicalD(d.orientation,x)
 invfromcanonicalD(d::Ray,x) = conj(cisangle(d))*ray_invfromcanonicalD(d.orientation,x)
