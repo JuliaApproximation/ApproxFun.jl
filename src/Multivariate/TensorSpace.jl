@@ -75,16 +75,17 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-# block(it::Tensorizer,k) = sum(it[k])-length(it.blocks)+1
-block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int) = sum(ci[k])-length(ci.iterator.blocks)+1
+# block(it::Tensorizer,k)::Block = sum(it[k])-length(it.blocks)+1
+block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int)::Block =
+    sum(ci[k])-length(ci.iterator.blocks)+1
 
-block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int) =
+block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int)::Block =
     floor(Integer,sqrt(2n) + 1/2)
-block(sp::Tensorizer,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+block(sp::Tensorizer,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths(sp)))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
 # [1,2,3] x 1:∞
-function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
+function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)::Block
     m=sum(it.blocks[1])
     if m == length(it.blocks[1])  # trivial blocks
         N=(m*(m+1))÷2
@@ -99,7 +100,7 @@ function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
 end
 
 # 1:∞ x 1:m
-function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)
+function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)::Block
     m=length(it.blocks[2])  # assume all true
     N=(m*(m+1))÷2
     if n < N

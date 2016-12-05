@@ -36,6 +36,7 @@ RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix(Float64,m,co
 
 Base.size(A::RaggedMatrix) = (A.m,length(A.cols)-1)
 
+colstart(A::RaggedMatrix,j::Integer) = 1
 colstop(A::RaggedMatrix,j::Integer) = min(A.cols[j+1]-A.cols[j],size(A,1))
 
 Base.linearindexing{RM<:RaggedMatrix}(::Type{RM}) = Base.LinearSlow()
@@ -86,7 +87,6 @@ function Base.convert(::Type{RaggedMatrix},B::BandedMatrix)
 end
 
 function Base.convert(::Type{RaggedMatrix},B::AbstractMatrix)
-    l = bandwidth(B,1)
     ret = rzeros(eltype(B),size(B,1),Int[colstop(B,j) for j=1:size(B,2)])
     for j=1:size(B,2),k=colrange(B,j)
         ret[k,j] = B[k,j]

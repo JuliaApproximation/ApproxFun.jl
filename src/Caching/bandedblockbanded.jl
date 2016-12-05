@@ -17,7 +17,7 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatri
 
     if col > B.datasize[2]
         l=B.data.l; u=B.data.u
-        J=block(domainspace(B),col)
+        J=block(domainspace(B),col).K
 
         rows=blocklengths(rangespace(B.op))[1:J+l]
         cols=blocklengths(domainspace(B.op))[1:J]

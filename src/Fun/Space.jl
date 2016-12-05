@@ -95,7 +95,7 @@ Base.size(::Space) = ()
 
 # the default is all spaces have one-coefficient blocks
 blocklengths(S::Space) = repeated(true,dimension(S))
-block(S::Space,k) = k
+block(S::Space,k) = Block(k)
 
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 

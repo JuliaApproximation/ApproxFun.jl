@@ -1,5 +1,7 @@
 include("helper.jl")
 
+include("blas.jl")
+
 include("chebyshevtransform.jl")
 
 include("lyap.jl")

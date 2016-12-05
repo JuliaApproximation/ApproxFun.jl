@@ -127,13 +127,12 @@ f=Fun(x->cos(50acos(x)))
 
 ## broadcast
 
-if VERSION ≥ v"0.5-"
-    f=Fun(exp)
-    @test norm(exp.(f) - exp(f)) < 100eps()
-    @test norm(besselj.(1,f)-besselj(1,f)) < 100eps()
-    @test_approx_eq atan2.(f,1)(0.1) atan2(f(0.1),1)
-    @test_approx_eq atan2.(f,f)(0.1) atan2(f(0.1),f(0.1))
-end
+f=Fun(exp)
+@test norm(exp.(f) - exp(f)) < 100eps()
+@test norm(besselj.(1,f)-besselj(1,f)) < 100eps()
+@test_approx_eq atan2.(f,1)(0.1) atan2(f(0.1),1)
+@test_approx_eq atan2.(f,f)(0.1) atan2(f(0.1),f(0.1))
+
 
 
 
