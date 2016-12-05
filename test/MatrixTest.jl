@@ -47,7 +47,7 @@ A=ApproxFun.rrand(Float64,maximum(cols),cols)
 
 
 ## BandedBlockMatrix
-
+N=10
 A=ApproxFun.bbones(Float64,1,1,1:N,1:N)
 @test A[1,1] == 1
 A[1,1]=2
@@ -70,3 +70,21 @@ M=full(A)
 # Check bug
 A=ApproxFun.bbzeros(Float64,4,1,[4],[1])
 A[2,1] = 3.0
+
+
+
+## view
+
+N=10
+A=ApproxFun.bbones(Float64,1,1,1:N,1:N)
+
+view(A,Block(1),Block(1))[1,1]=2
+@test A[1,1] == 2
+view(A,Block(1)[1:1],Block(1))[1,1]=3
+@test A[1,1] == 3
+view(A,Block(1),Block(1)[1:1])[1,1]=4
+@test A[1,1] == 4
+view(A,Block(1)[1:1],Block(1)[1:1])[1,1]=5
+@test A[1,1] == 5
+
+strides(view(A,Block(2),Block(3)))  == (1,2)

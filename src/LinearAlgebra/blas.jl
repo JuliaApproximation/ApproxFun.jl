@@ -1,5 +1,5 @@
 import Base.BLAS: @blasfunc, libblas
-
+import Base.LAPACK: liblapack
 # Level 2
 ## mv
 ### gemv
@@ -97,6 +97,51 @@ for (gemm, elty) in
                     pointer(B), max(1,stride(B,2)), beta,
                     pointer(C), max(1,stride(C,2)))
             C
+        end
+    end
+end
+
+
+## LAPack
+
+## (TR) triangular matrices: solver and inverse
+for (trtri, trtrs, elty) in
+    ((:dtrtri_,:dtrtrs_,:Float64),
+     (:strtri_,:strtrs_,:Float32),
+     (:ztrtri_,:ztrtrs_,:Complex128),
+     (:ctrtri_,:ctrtrs_,:Complex64))
+    @eval begin
+        #      SUBROUTINE DTRTRS( UPLO, TRANS, DIAG, N, NRHS, A, LDA, B, LDB, INFO )
+        # *     .. Scalar Arguments ..
+        #       CHARACTER          DIAG, TRANS, UPLO
+        #       INTEGER            INFO, LDA, LDB, N, NRHS
+        # *     .. Array Arguments ..
+        #       DOUBLE PRECISION   A( LDA, * ), B( LDB, * )
+        function trtrs!(uplo::Char, trans::Char, diag::Char,
+                        n::Int, m::Int, A::Ptr{$elty}, stA::Int, B::Ptr{$elty}, stB::Int)
+            info = Ref{BlasInt}()
+            ccall((@blasfunc($trtrs), liblapack), Void,
+                  (Ptr{UInt8}, Ptr{UInt8}, Ptr{UInt8}, Ptr{BlasInt}, Ptr{BlasInt},
+                   Ptr{$elty}, Ptr{BlasInt}, Ptr{$elty}, Ptr{BlasInt}, Ptr{BlasInt}),
+                  &uplo, &trans, &diag, &n, &m, A, &stA,
+                  B, &stB, info)
+            LAPACK.chklapackerror(info[])
+            B
+        end
+
+        function trtrs!(uplo::Char, trans::Char, diag::Char,
+                        A::AbstractMatrix{$elty}, B::StridedVecOrMat{$elty})
+            LAPACK.chktrans(trans)
+            LAPACK.chkdiag(diag)
+            LAPACK.chkstride1(A)
+            n = LAPACK.checksquare(A)
+            LAPACK.chkuplo(uplo)
+            if n != size(B,1)
+                throw(DimensionMismatch("B has first dimension $(size(B,1)) but needs $n"))
+            end
+            trtrs!(uplo, trans, diag, n, size(B,2), pointer(A), max(1,stride(A,2)),
+                    pointer(B), max(1,stride(B,2)))
+            B
         end
     end
 end

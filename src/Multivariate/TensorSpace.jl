@@ -445,8 +445,8 @@ function totensor(it::Tensorizer,M::Vector)
     B=block(it,n)
     ds = dimensions(it)
 
-    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B,length(it.blocks[1]))]),
-                        sum(it.blocks[2][1:min(B,length(it.blocks[2]))]))
+    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B.K,length(it.blocks[1]))]),
+                        sum(it.blocks[2][1:min(B.K,length(it.blocks[2]))]))
     k=1
     for (K,J) in it
         if k > n

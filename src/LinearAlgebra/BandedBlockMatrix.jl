@@ -9,6 +9,8 @@ immutable Block
     K::Int
 end
 
+block(B::Block) = B
+
 Base.convert{T<:Integer}(::Type{T},B::Block) = convert(T,B.K)::T
 Base.convert(::Type{Block},K::Integer) = Block(K)
 
@@ -20,6 +22,9 @@ for OP in (:(==),:(!=),:(Base.isless))
     @eval $OP(A::Block,B::Block) = $OP(A.K,B.K)
 end
 
+Base.isless(::Block,::Infinity{Bool}) = true
+Base.isless(::Infinity{Bool},::Block) = false
+
 
 for OP in (:(Base.rem),:(Base.div))
     @eval begin
@@ -28,6 +33,25 @@ for OP in (:(Base.rem),:(Base.div))
         $OP(A::Block,B::Integer) = Block($OP(A.K,B))
     end
 end
+
+
+doc"""
+`SubBlock` is used for get subindices of a block.  For example,
+```julia
+A[Block(1)[1:3],Block(2)[3:4]]
+```
+retrieves 1:3 × 3:4 entries of the 1 × 2 block
+"""
+immutable SubBlock{R}
+    block::Block
+    sub::R
+end
+
+block(B::SubBlock) = B.block
+getindex(A::Block,k) = SubBlock(A,k)
+
+
+
 
 
 for OP in (:blockrows, :blockcols, :blockrowstart, :blockrowstop, :blockcolstart, :blockcolstop)
@@ -260,43 +284,87 @@ end
 
 ## View
 
-typealias BandedBlockSubBlock{T,U,V} SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,Block},false}
-typealias StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BandedBlockMatrix},I<:Tuple{Vararg{Union{Base.RangeIndex, Base.AbstractCartesianIndex, Block}}}}  Union{DenseArray{T,2}, SubArray{T,2,A,I}, Base.StridedReshapedArray{T,2}}
-
-Base.view(A::BandedBlockMatrix,K::Block,J::Block) =
-    SubArray(A, (K,J), (A.rows[K.K],A.cols[J.K]))
-Base.indices{T,U,V}(S::BandedBlockSubBlock{T,U,V}) =
-    (Base.OneTo(parent(S).rows[parentindexes(S)[1].K]),
-     Base.OneTo(parent(S).cols[parentindexes(S)[2].K]))
+typealias SubBandedBlockSubBlock{T,BBM<:BandedBlockMatrix,II<:Union{Block,SubBlock},JJ<:Union{Block,SubBlock}} SubArray{T,2,BBM,Tuple{II,JJ},false}
+typealias StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BandedBlockMatrix},I<:Tuple{Vararg{Union{Base.RangeIndex, Base.AbstractCartesianIndex, Block,SubBlock}}}}  Union{DenseArray{T,2}, SubArray{T,2,A,I}, Base.StridedReshapedArray{T,2}}
 
 
-function getindex{T,U,V,N}(S::BandedBlockSubBlock{T,U,V}, I::Vararg{Real,N})
+subblocksize(A::BandedBlockMatrix,K::Block,J::Block) =
+    (A.rows[K.K],A.cols[J.K])
+subblocksize(A::BandedBlockMatrix,K::Block,J::SubBlock) =
+    (A.rows[K.K],length(J.sub))
+subblocksize(A::BandedBlockMatrix,K::SubBlock,J::Block) =
+    (length(K.sub),A.cols[J.K])
+subblocksize(A::BandedBlockMatrix,K::SubBlock,J::SubBlock) =
+    (length(K.sub),length(J.sub))
+
+Base.view(A::BandedBlockMatrix,K::Union{Block,SubBlock},J::Union{Block,SubBlock}) =
+    SubArray(A, (K,J), subblocksize(A,K,J))
+function Base.indices(S::SubBandedBlockSubBlock)
+    sz = subblocksize(parent(S),parentindexes(S)...)
+    (Base.OneTo(sz[1]),
+     Base.OneTo(sz[2]))
+ end
+
+parentblock(S::SubBandedBlockSubBlock) =
+     view(parent(S),block(parentindexes(S)[1]),block(parentindexes(S)[2]))
+
+
+# returns a view of the data corresponding to the block
+function blockview(S::SubBandedBlockSubBlock)
     A = parent(S)
     K,J = parentindexes(S)
-    st = A.blockstart[K.K,J.K]
+    st = A.blockstart[block(K).K,block(J).K]
     sz = size(S)
-    reshape(view(A.data,st+1:st+sz[1]*sz[2]),sz[1],sz[2])[I...]
+    reshape(view(A.data,st+1:st+sz[1]*sz[2]),sz[1],sz[2])
 end
 
-function setindex!{T,U,V,N}(S::BandedBlockSubBlock{T,U,V}, v, I::Vararg{Real,N})
-    A = parent(S)
-    K,J = parentindexes(S)
-    st = A.blockstart[K.K,J.K]
-    sz = size(S)
-    reshape(view(A.data,st+1:st+sz[1]*sz[2]),sz[1],sz[2])[I...] = v
+# returns a view of the data
+dataview{T,U,V}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,Block},false}) =
+    blockview(S)
+dataview{T,U,V,II}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},Block},false}) =
+    view(blockview(S),parentindexes(S)[1].sub,:)
+dataview{T,U,V,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,SubBlock{JJ}},false}) =
+    view(blockview(S),:,parentindexes(S)[2].sub)
+dataview{T,U,V,II,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},SubBlock{JJ}},false}) =
+    view(blockview(S),parentindexes(S)[1].sub,parentindexes(S)[2].sub)
+
+getindex{N}(S::SubBandedBlockSubBlock, I::Vararg{Real,N}) =
+    dataview(S)[I...]
+
+function setindex!{N}(S::SubBandedBlockSubBlock, v, I::Vararg{Real,N})
+    dataview(S)[I...] = v
 end
 
 
-Base.strides{T,U,V}(S::BandedBlockSubBlock{T,U,V}) = (1,size(S,1))
-function Base.pointer{T<:BlasFloat,U,V}(S::BandedBlockSubBlock{T,U,V})
+Base.strides(S::SubBandedBlockSubBlock) =
+    (1,parent(S).rows[block(parentindexes(S)[1]).K])
+
+
+## TODO: SubBlock
+function Base.pointer{T<:BlasFloat,U,V}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,Block},false})
     A = parent(S)
     K,J = parentindexes(S)
     pointer(A.data)+A.blockstart[K.K,J.K]*sizeof(T)
 end
 
-αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockSubBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) = gemv!('N',α,A,x,β,y)
+αA_mul_B_plus_βC!(α,A::SubBandedBlockSubBlock,x::AbstractVector,β,y::AbstractVector) =
+    gemv!('N',α,A,x,β,y)
 αA_mul_B_plus_βC!(α,A::StridedMatrix2,B::StridedMatrix2,β,C::StridedMatrix2) =
     gemm!('N','N',α,A,B,β,C)
+
+
+Base.pointer{T<:BlasFloat,U,V,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,SubBlock{JJ}},false}) =
+    pointer(parentblock(S))
+
+function Base.pointer{T<:BlasFloat,U,V,II}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},Block},false})
+    @assert parentindexes(S)[1].sub[1] == 1
+    pointer(parentblock(S))
+end
+
+function Base.pointer{T<:BlasFloat,U,V,II,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},SubBlock{JJ}},false})
+    @assert parentindexes(S)[1].sub[1] == 1
+    pointer(parentblock(S))
+end
 
 ## algebra
 
@@ -349,18 +417,18 @@ function bandedblock_squareblocks_trtrs!(A::BandedBlockMatrix,u::Vector)
     b=n-kr1[1]+1
     kr1=kr1[1]:n
 
-    LAPACK.trtrs!('U','N','N',view(view(A,N,N),1:b,1:b),view(u,kr1))
+    trtrs!('U','N','N',view(A,N[1:b],N[1:b]),view(u,kr1))
 
     for K=N-1:-1:Block(1)
         kr=blockrows(A,K)
         for J=min(N,blockrowstop(A,K)):-1:K+1
             if J==N  # need to take into account zeros
-                BLAS.gemv!('N',-one(eltype(A)),view(view(A,K,N),:,1:b),view(u,kr1),one(eltype(A)),view(u,kr))
+                gemv!('N',-one(eltype(A)),view(A,K,N[1:b]),view(u,kr1),one(eltype(A)),view(u,kr))
             else
-                BLAS.gemv!('N',-one(eltype(A)),view(A,K,J),view(u,blockcols(A,J)),one(eltype(A)),view(u,kr))
+                gemv!('N',-one(eltype(A)),view(A,K,J),view(u,blockcols(A,J)),one(eltype(A)),view(u,kr))
             end
         end
-        LAPACK.trtrs!('U','N','N',view(A,K,K),view(u,kr))
+        trtrs!('U','N','N',view(A,K,K),view(u,kr))
     end
 
     u
@@ -392,10 +460,10 @@ function bandedblock_rectblocks_trtrs!{T}(R::BandedBlockMatrix{T},b::Vector)
 
             if J==M
                 Sjr = Sjr[1]:n_end  # The sub rows of the rhs we will multiply
-                BLAS.gemv!('N',-one(T),view(B,skr,1:length(Sjr)),
+                gemv!('N',-one(T),view(B,skr,1:length(Sjr)),
                                     view(b,Sjr),one(T),view(b,kr2))
             else  # can use all columns
-                BLAS.gemv!('N',-one(T),view(B,skr,:),
+                gemv!('N',-one(T),view(B,skr,:),
                                     view(b,Sjr),one(T),view(b,kr2))
             end
         end
@@ -403,16 +471,16 @@ function bandedblock_rectblocks_trtrs!{T}(R::BandedBlockMatrix{T},b::Vector)
         if J_diag ≠ M && sjr[end] ≠ size(B_diag,2)
             # subtract non-triangular columns
             sjr2 = sjr[end]+1:size(B_diag,2)
-            BLAS.gemv!('N',-one(T),view(B_diag,skr,sjr2),
+            gemv!('N',-one(T),view(B_diag,skr,sjr2),
                             view(b,sjr2 + jr[1]-1),one(T),view(b,kr2))
         elseif J_diag == M && sjr[end] ≠ size(B_diag,2)
             # subtract non-triangular columns
             Sjr = jr[1]+sjr[end]:n_end
-            BLAS.gemv!('N',-one(T),view(B_diag,skr,sjr[end]+1:sjr[end]+length(Sjr)),
+            gemv!('N',-one(T),view(B_diag,skr,sjr[end]+1:sjr[end]+length(Sjr)),
                             view(b,Sjr),one(T),view(b,kr2))
         end
 
-        LAPACK.trtrs!('U','N','N',view(B_diag,skr,sjr),view(b,kr2))
+        trtrs!('U','N','N',view(B_diag,skr,sjr),view(b,kr2))
 
         if k == j
             K_diag -= 1
@@ -440,18 +508,18 @@ function trtrs!{T}(A::BandedBlockMatrix{T},u::Matrix)
     b=n-kr1[1]+1
     kr1=kr1[1]:n
 
-    LAPACK.trtrs!('U','N','N',view(view(A,N,N),1:b,1:b),view(u,kr1,:))
+    trtrs!('U','N','N',view(A,N[1:b],N[1:b]),view(u,kr1,:))
 
     for K=N-1:-1:Block(1)
         kr=blockrows(A,K)
         for J=min(N,blockrowstop(A,K)):-1:K+1
             if J==N  # need to take into account zeros
-                BLAS.gemm!('N',-one(T),view(view(A,K,N),:,1:b),view(u,kr1,:),one(T),view(u,kr,:))
+                gemm!('N',-one(T),view(A,K,N[1:b]),view(u,kr1,:),one(T),view(u,kr,:))
             else
-                BLAS.gemm!('N',-one(T),view(A,K,J),view(u,blockcols(A,J),:),one(T),view(u,kr,:))
+                gemm!('N',-one(T),view(A,K,J),view(u,blockcols(A,J),:),one(T),view(u,kr,:))
             end
         end
-        LAPACK.trtrs!('U','N','N',view(A,K,K),view(u,kr,:))
+        trtrs!('U','N','N',view(A,K,K),view(u,kr,:))
     end
 
     u

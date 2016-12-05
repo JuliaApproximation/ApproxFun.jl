@@ -49,20 +49,20 @@ Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u
 
 
 
-typealias BandedBlockBandedSubBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
-typealias BLASBandedMatrix2{T,A,I} Union{BandedBlockBandedSubBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
+typealias BandedBlockBandedBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
+typealias BLASBandedMatrix2{T,A,I} Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
 
 
 Base.view(A::BandedBlockBandedMatrix,K::Block,J::Block) =
     SubArray(A, (K,J), (A.rows[K.K],A.cols[J.K]))
-Base.indices{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}) =
+Base.indices{T,U,V}(S::BandedBlockBandedBlock{T,U,V}) =
     (Base.OneTo(parent(S).rows[parentindexes(S)[1].K]),
      Base.OneTo(parent(S).cols[parentindexes(S)[2].K]))
 
 
 
-@inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}) = stride(parent(S).data,2)
-BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, k::Int) = k==1 ? parent(S).λ : parent(S).μ
+@inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedBlock{T,U,V}) = stride(parent(S).data,2)
+BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int) = k==1 ? parent(S).λ : parent(S).μ
 
 function block_pointer{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},K::Int,J::Int)
     if K < J-A.u || K > J+A.l
@@ -78,7 +78,7 @@ function block_pointer{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},K::Int,J::Int
 end
 
 
-function getindex{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, k::Int, j::Int)
+function getindex{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int, j::Int)
     A = parent(S)
     K,J = parentindexes(S)
     m = A.cols[J.K]
@@ -89,7 +89,7 @@ function getindex{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, k::Int, j::Int)
     BandedMatrices.banded_getindex(view(A.data,:,col:col+m-1),A.λ,A.μ,k,j)
 end
 
-function setindex!{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, v, k::Int, j::Int)
+function setindex!{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, v, k::Int, j::Int)
     A = parent(S)
     K,J = parentindexes(S)
     m = A.cols[J.K]
@@ -100,7 +100,7 @@ function setindex!{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, v, k::Int, j::Int
     BandedMatrices.banded_setindex!(view(A.data,:,col:col+m-1),A.λ,A.μ,v,k,j)
 end
 
-function Base.convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedSubBlock{T,U,V})
+function Base.convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
     A = parent(S)
     K,J = parentindexes(S)
     m = A.cols[J.K]
@@ -110,21 +110,21 @@ function Base.convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedSubBloc
     BandedMatrix(A.data[:,col:col+m-1],A.rows[K.K],A.λ,A.μ)
 end
 
-function Base.pointer{T<:BlasFloat,U,V}(S::BandedBlockBandedSubBlock{T,U,V})
+function Base.pointer{T<:BlasFloat,U,V}(S::BandedBlockBandedBlock{T,U,V})
     A = parent(S)
     K,J = parentindexes(S)
     block_pointer(A,K.K,J.K)
 end
 
 
-*{T,U,V}(A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedSubBlock{T,U,V}) = BandedMatrices.banded_A_mul_B(A,b)
-*{T,U,V}(A::BandedBlockBandedSubBlock{T,U,V},b::AbstractVector{T}) = BandedMatrices.banded_A_mul_B!(Array(T,length(b)),A,b)
+*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) = BandedMatrices.banded_A_mul_B(A,b)
+*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) = BandedMatrices.banded_A_mul_B!(Array(T,length(b)),A,b)
 
 
-Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedSubBlock{T,U,V},b::AbstractVector) =
+Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::AbstractVector) =
     banded_A_mul_B!(c,A,b)
 
-αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedSubBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
+αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
     BandedMatrices.gbmv!('N',α,A,x,β,y)
 αA_mul_B_plus_βC!{T,U,V}(α,A::BLASBandedMatrix2{T,U,V},B::BLASBandedMatrix2{T,U,V},β,C::BLASBandedMatrix2{T,U,V}) =
     BandedMatrices.gbmm!(α,A,B,β,C)
