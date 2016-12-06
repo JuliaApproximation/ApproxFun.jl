@@ -66,7 +66,7 @@ end
 
 function colstart(A::KroneckerOperator,k::Integer)
     K=block(A.domaintensorizer,k)
-    blockstart(A.rangetensorizer,max(1,K-blockbandwidth(A,2)))
+    blockstart(A.rangetensorizer,max(Block(1),K-blockbandwidth(A,2)))
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
@@ -79,7 +79,7 @@ end
 
 function rowstart(A::KroneckerOperator,k::Integer)
     K=block(rangespace(A),k)
-    blockstart(domainspace(A),max(1,K-blockbandwidth(A,1)))
+    blockstart(domainspace(A),max(Block(1),K-blockbandwidth(A,1)))
 end
 
 function rowstop(A::KroneckerOperator,k::Integer)
@@ -318,11 +318,11 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
 
 
 
-    for J=1:blocksize(ret,2)
-        jshft = (J==1 ? jr[1] : blockstart(dt,J+Jshft)) - 1
+    for J=Block(1):Block(blocksize(ret,2))
+        jshft = (J==Block(1) ? jr[1] : blockstart(dt,J+Jshft)) - 1
         for K=blockcolrange(ret,J)
-            Bs=viewblock(ret,K,J)
-            kshft = (K==1 ? kr[1] : blockstart(rt,K+Kshft)) - 1
+            Bs=view(ret,K,J)
+            kshft = (K==Block(1) ? kr[1] : blockstart(rt,K+Kshft)) - 1
             for ξ=1:size(Bs,2),κ=colrange(Bs,ξ)
                 Bs[κ,ξ]=KO[κ+kshft,ξ+jshft]
             end
@@ -353,12 +353,12 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
     Ksh=block(rt,kr[1])-1
 
 
-    for J=1:blocksize(ret,2)
+    for J=Block(1):Block(blocksize(ret,2))
         # only first block can be shifted inside block
-        jsh=J==1?jr[1]-blockstart(dt,J+Jsh):0
+        jsh = J==Block(1)?jr[1]-blockstart(dt,J+Jsh):0
         for K=blockcolrange(ret,J)
-            Bs=viewblock(ret,K,J)
-            ksh=K==1?kr[1]-blockstart(dt,K+Ksh):0
+            Bs=view(ret,K,J)
+            ksh=K==Block(1)?kr[1]-blockstart(dt,K+Ksh):0
             for j=1:size(Bs,2),k=colrange(Bs,j)
                 κ,ν=subblock2tensor(rt,K+Ksh,k+ksh)
                 ξ,μ=subblock2tensor(dt,J+Jsh,j+jsh)

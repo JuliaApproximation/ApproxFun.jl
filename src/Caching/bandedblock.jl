@@ -74,7 +74,7 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI
 
     if col > B.datasize[2]
         l=B.data.l; u=B.data.u
-        J=block(domainspace(B),col)
+        J=block(domainspace(B),col).K
 
         rows=blocklengths(rangespace(B.op))[1:J+l]
         cols=blocklengths(domainspace(B.op))[1:J]
@@ -179,9 +179,9 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOper
 
     R=MO.data
     # last block, convoluted def to match blockbandedmatrix
-    J_col = block(domainspace(MO),col)
-    K_end = blockcolstop(MO,J_col)  # last row block in last column
-    J_end = blockrowstop(MO,K_end)  # QR will affect up to this column
+    J_col = block(domainspace(MO),col).K
+    K_end = blockcolstop(MO,J_col).K  # last row block in last column
+    J_end = blockrowstop(MO,K_end).K  # QR will affect up to this column
     rs=blockstop(rangespace(MO),J_end)  # we need to resize up this column
     sz=sizeof(T)
 
@@ -210,7 +210,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOper
 
     for k=QR.ncols+1:col
         J1=R.colblocks[k]
-        CS=blockcolstop(R,J1)
+        CS=blockcolstop(R,J1).K
 
         wp=w+sz*(W.cols[k]-1)          # k-th column of W
 
@@ -242,7 +242,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOper
 
         # first block
         # scale banded entries
-        BRS1=blockrowstop(R,K1)
+        BRS1=blockrowstop(R,K1).K
         for J=J1:BRS1
             for j=(J==J1?k-bc[1]+1:1):R.cols[J]  # only do partial columns for first block
                 jshft = (j-1)*nrows1
@@ -267,7 +267,7 @@ function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOper
 
 
         # now do the blocks where we have zeros
-        for J=BRS1+1:blockrowstop(R,CS)
+        for J=BRS1+1:blockrowstop(R,CS).K
             for j=1:R.cols[J]  # only do partial columns for first block
                 dt=zero(T)
                 Mpre=M1 + sum(R.rows[K1+1:K1+J-BRS1-1]) # number of rows in zero blocks

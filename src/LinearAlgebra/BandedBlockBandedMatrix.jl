@@ -36,7 +36,7 @@ end
 
 function BandedMatrix(B::BandedBlockBandedMatrix)
     if length(B.rows) == length(B.cols) == 1
-        copy(viewblock(B,1,1))
+        BandedMatrix(view(B,Block(1),Block(1)))
     elseif all(x->x==1,B.rows) && all(x->x==1,B.cols)
         BandedMatrix(B.data,length(B.rows),B.l,B.u)
     else
@@ -48,22 +48,90 @@ end
 Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u
 
 
-function viewblock{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},K::Int,J::Int)
+
+typealias BandedBlockBandedBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
+typealias BLASBandedMatrix2{T,A,I} Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
+
+
+Base.view(A::BandedBlockBandedMatrix,K::Block,J::Block) =
+    SubArray(A, (K,J), (A.rows[K.K],A.cols[J.K]))
+Base.indices{T,U,V}(S::BandedBlockBandedBlock{T,U,V}) =
+    (Base.OneTo(parent(S).rows[parentindexes(S)[1].K]),
+     Base.OneTo(parent(S).cols[parentindexes(S)[2].K]))
+
+
+
+@inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedBlock{T,U,V}) = stride(parent(S).data,2)
+BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int) = k==1 ? parent(S).λ : parent(S).μ
+
+function block_pointer{T<:BlasFloat}(A::BandedBlockBandedMatrix{T},K::Int,J::Int)
     if K < J-A.u || K > J+A.l
         error("Cannot view zero blocks")
-    else
-        # column block K-J+A.u+1,J
-        S=sum(A.cols[1:J-1])*(A.l+A.u+1)  # number of columns before current block
-        p=pointer(A.data)
-        st=stride(A.data,2)
-        sz=sizeof(T)
-        cols=S+(K-J+A.u)A.cols[J]+1:S+(K-J+A.u+1)A.cols[J]
-
-        p+=(first(cols)-1)*st*sz
-        BandedMatrix(unsafe_wrap(Array,p,(st,length(cols))),
-                        A.rows[K],A.λ,A.μ)
     end
+    # column block K-J+A.u+1,J
+    S=sum(A.cols[1:J-1])*(A.l+A.u+1)  # number of columns before current block
+    p=pointer(A.data)
+    st=stride(A.data,2)
+    sz=sizeof(T)
+    col=S+(K-J+A.u)A.cols[J]+1
+    p+(col-1)*st*sz
 end
+
+
+function getindex{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int, j::Int)
+    A = parent(S)
+    K,J = parentindexes(S)
+    m = A.cols[J.K]
+
+    S = sum(A.cols[1:J.K-1])*(A.l+A.u+1)  # number of columns before current block
+    col = S+(K.K-J.K+A.u)*m+1
+
+    BandedMatrices.banded_getindex(view(A.data,:,col:col+m-1),A.λ,A.μ,k,j)
+end
+
+function setindex!{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, v, k::Int, j::Int)
+    A = parent(S)
+    K,J = parentindexes(S)
+    m = A.cols[J.K]
+
+    S = sum(A.cols[1:J.K-1])*(A.l+A.u+1)  # number of columns before current block
+    col = S+(K.K-J.K+A.u)*m+1
+
+    BandedMatrices.banded_setindex!(view(A.data,:,col:col+m-1),A.λ,A.μ,v,k,j)
+end
+
+function Base.convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
+    A = parent(S)
+    K,J = parentindexes(S)
+    m = A.cols[J.K]
+
+    S = sum(A.cols[1:J.K-1])*(A.l+A.u+1)  # number of columns before current block
+    col = S+(K.K-J.K+A.u)*m+1
+    BandedMatrix(A.data[:,col:col+m-1],A.rows[K.K],A.λ,A.μ)
+end
+
+function Base.pointer{T<:BlasFloat,U,V}(S::BandedBlockBandedBlock{T,U,V})
+    A = parent(S)
+    K,J = parentindexes(S)
+    block_pointer(A,K.K,J.K)
+end
+
+
+*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) = BandedMatrices.banded_A_mul_B(A,b)
+*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) = BandedMatrices.banded_A_mul_B!(Array(T,length(b)),A,b)
+
+
+Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::AbstractVector) =
+    banded_A_mul_B!(c,A,b)
+
+αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
+    BandedMatrices.gbmv!('N',α,A,x,β,y)
+αA_mul_B_plus_βC!{T,U,V}(α,A::BLASBandedMatrix2{T,U,V},B::BLASBandedMatrix2{T,U,V},β,C::BLASBandedMatrix2{T,U,V}) =
+    BandedMatrices.gbmm!(α,A,B,β,C)
+
+
+## Algebra
+
 
 
 function *{T<:Number,V<:Number}(A::BandedBlockBandedMatrix{T},

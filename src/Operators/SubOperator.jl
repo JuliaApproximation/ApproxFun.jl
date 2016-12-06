@@ -146,7 +146,7 @@ function bbbzeros(S::SubOperator)
 
     J=block(dt,jr[1])
     K=block(rt,kr[1])
-    bl_sh = J-K
+    bl_sh = J.K-K.K
 
     # each row/column that we differ from the the block start shifts
     # the sub block inds

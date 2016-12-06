@@ -220,8 +220,8 @@ defaultgetindex(A::Operator,k,j) = view(A,k,j)
 
 
 # TODO: finite dimensional blocks
-blockcolstop(A::Operator,K::Integer) = K-blockbandinds(A,1)
-blockrowstop(A::Operator,J::Integer) = J+blockbandinds(A,2)
+blockcolstop(A::Operator,K::Integer) = Block(K-blockbandinds(A,1))
+blockrowstop(A::Operator,J::Integer) = Block(J+blockbandinds(A,2))
 
 blockrows(A::Operator,K::Integer) = blockrange(rangespace(A),K)
 blockcols(A::Operator,J::Integer) = blockrange(domainspace(A),J)

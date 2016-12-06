@@ -150,7 +150,7 @@ function zerocfsFun(f, d::Space)
         end
 
         b = block(d,length(cf.coefficients))
-        bs = blockstart(d,max(b-2,1))
+        bs = blockstart(d,max(b-2,Block(1)))
 
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?

@@ -85,7 +85,7 @@ function blocklengths(sp::DirectSumSpace)
     N=mapreduce(length,max,bl)
     mapreduce(b->pad(b,N),+,bl)
 end
-block(sp::DirectSumSpace,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+block(sp::DirectSumSpace,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths(sp)))
 
 
 

@@ -75,16 +75,17 @@ end
 # which block of the tensor
 # equivalent to sum of indices -1
 
-# block(it::Tensorizer,k) = sum(it[k])-length(it.blocks)+1
-block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int) = sum(ci[k])-length(ci.iterator.blocks)+1
+# block(it::Tensorizer,k)::Block = sum(it[k])-length(it.blocks)+1
+block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int)::Block =
+    sum(ci[k])-length(ci.iterator.blocks)+1
 
-block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int) =
+block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int)::Block =
     floor(Integer,sqrt(2n) + 1/2)
-block(sp::Tensorizer,k::Int) = findfirst(x->x≥k,cumsum(blocklengths(sp)))
+block(sp::Tensorizer,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths(sp)))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
 # [1,2,3] x 1:∞
-function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
+function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)::Block
     m=sum(it.blocks[1])
     if m == length(it.blocks[1])  # trivial blocks
         N=(m*(m+1))÷2
@@ -99,7 +100,7 @@ function block(it::Tensorizer{Tuple{Vector{Bool},Repeated{Bool}}},n::Int)
 end
 
 # 1:∞ x 1:m
-function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)
+function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)::Block
     m=length(it.blocks[2])  # assume all true
     N=(m*(m+1))÷2
     if n < N
@@ -144,10 +145,10 @@ blockrange(it,K) = blockstart(it,K):blockstop(it,K)
 
 # convert from block, subblock to tensor
 subblock2tensor(rt::Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},K,k) =
-    (k,K-k+1)
+    (k,K.K-k+1)
 
 subblock2tensor{II}(rt::CachedIterator{II,Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}}},K,k) =
-    (k,K-k+1)
+    (k,K.K-k+1)
 
 
 subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]
@@ -444,8 +445,8 @@ function totensor(it::Tensorizer,M::Vector)
     B=block(it,n)
     ds = dimensions(it)
 
-    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B,length(it.blocks[1]))]),
-                        sum(it.blocks[2][1:min(B,length(it.blocks[2]))]))
+    ret=zeros(eltype(M),sum(it.blocks[1][1:min(B.K,length(it.blocks[1]))]),
+                        sum(it.blocks[2][1:min(B.K,length(it.blocks[2]))]))
     k=1
     for (K,J) in it
         if k > n

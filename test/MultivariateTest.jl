@@ -1,4 +1,5 @@
 using ApproxFun, Base.Test
+    import ApproxFun: testbandedblockbandedoperator
 import Compat: view
 
 
@@ -130,6 +131,7 @@ let d = Chebyshev()^2
     fy = Fun((x,y) -> -sin(x) * sin(y), d)
     @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
     L=Dx+Dy
+    testbandedblockbandedoperator(L)
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(d[1])⊗ldirichlet(d[2])
