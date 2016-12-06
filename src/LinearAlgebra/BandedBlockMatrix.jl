@@ -38,6 +38,12 @@ for OP in (:(Base.rem),:(Base.div))
     end
 end
 
+done(1,true)
+
+# broadcasting
+Base.broadcast(Int,r::StepRange{Block,Block}) = Int(r.start):Int(r.step):Int(r.stop)
+Base.broadcast(Int,B::Block) = Int(B)
+
 
 doc"""
 `SubBlock` is used for get subindices of a block.  For example,
@@ -258,8 +264,8 @@ type BandedBlockMatrix{T,RI,CI} <: AbstractBandedBlockMatrix{T}
     rows::RI   # the size of the row blocks
     cols::CI  # the size of the column blocks
 
-    rowblocks::Vector{Int}
-    colblocks::Vector{Int}
+    rowblocks::Vector{Int}   # lookup the row block given the row
+    colblocks::Vector{Int}   # lookup col row block given the row
 
     blockstart::BandedMatrix{Int}  # gives shift of first entry of data for each block
 
@@ -290,6 +296,7 @@ end
 ## View
 
 typealias SubBandedBlockSubBlock{T,BBM<:BandedBlockMatrix,II<:Union{Block,SubBlock},JJ<:Union{Block,SubBlock}} SubArray{T,2,BBM,Tuple{II,JJ},false}
+typealias SubBandedBlockRange{T,BBM<:BandedBlockMatrix} SubArray{T,2,BBM,Tuple{StepRange{Block,Block},StepRange{Block,Block}},false}
 typealias StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BandedBlockMatrix},I<:Tuple{Vararg{Union{Base.RangeIndex, Base.AbstractCartesianIndex, Block,SubBlock}}}}  Union{DenseArray{T,2}, SubArray{T,2,A,I}, Base.StridedReshapedArray{T,2}}
 
 
@@ -302,7 +309,10 @@ subblocksize(A::BandedBlockMatrix,K::SubBlock,J::Block) =
 subblocksize(A::BandedBlockMatrix,K::SubBlock,J::SubBlock) =
     (length(K.sub),length(J.sub))
 
-Base.view(A::BandedBlockMatrix,K::Union{Block,SubBlock},J::Union{Block,SubBlock}) =
+subblocksize(A::BandedBlockMatrix,K::StepRange{Block,Block},J::StepRange{Block,Block}) =
+    (sum(A.rows[Int.(K)]),sum(A.rows[Int.(J)]))
+
+Base.view(A::BandedBlockMatrix,K::Union{Block,SubBlock,StepRange{Block,Block}},J::Union{Block,SubBlock,StepRange{Block,Block}}) =
     SubArray(A, (K,J), subblocksize(A,K,J))
 
 Base.view(A::SubBandedBlockSubBlock,::Colon,::Colon) =
@@ -316,7 +326,14 @@ Base.view(A::SubBandedBlockSubBlock,K::Union{AbstractArray,Real},J::Union{Abstra
 Base.view(A::SubBandedBlockSubBlock,K,J) =
     view(parent(A),parentindexes(A)[1][K],parentindexes(A)[2][J])
 
-function Base.indices(S::SubBandedBlockSubBlock)
+rowblocklengths(A::SubBandedBlockRange) = parent(A).rows[parentindexes(A)[1]]
+colblocklengths(A::SubBandedBlockRange) = parent(A).cols[parentindexes(A)[2]]
+
+Base.view(A::SubBandedBlockRange,K::Union{Block,SubBlock,StepRange{Block,Block}},J::Union{Block,SubBlock,StepRange{Block,Block}}) =
+    view(parent(A),parentindexes(A)[1][Int.(K)],parentindexes(A)[2][Int.(J)])
+
+
+function Base.indices(S::Union{SubBandedBlockSubBlock,SubBandedBlockRange})
     sz = subblocksize(parent(S),parentindexes(S)...)
     (Base.OneTo(sz[1]),
      Base.OneTo(sz[2]))
@@ -348,26 +365,33 @@ dataview{T,U,V,II,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II
 getindex{N}(S::SubBandedBlockSubBlock, I::Vararg{Real,N}) =
     dataview(S)[I...]
 
+function getindex(S::SubBandedBlockRange, k::Integer, j::Integer)
+    KR,JR = parentindexes(S)
+    @assert step(KR) == step(JR) == Block(1)
+    A = parent(S)
+    A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])]
+end
+
 function setindex!{N}(S::SubBandedBlockSubBlock, v, I::Vararg{Real,N})
     dataview(S)[I...] = v
+end
+
+function setindex!(S::SubBandedBlockRange, v, k::Integer, j::Integer)
+    KR,JR = parentindexes(S)
+    @assert step(KR) == step(JR) == Block(1)
+    A = parent(S)
+    A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])] = v
 end
 
 
 Base.strides(S::SubBandedBlockSubBlock) =
     (1,parent(S).rows[block(parentindexes(S)[1]).K])
 
-
-## TODO: SubBlock
 function Base.pointer{T<:BlasFloat,U,V}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,Block},false})
     A = parent(S)
     K,J = parentindexes(S)
     pointer(A.data)+A.blockstart[K.K,J.K]*sizeof(T)
 end
-
-αA_mul_B_plus_βC!(α,A::SubBandedBlockSubBlock,x::AbstractVector,β,y::AbstractVector) =
-    gemv!('N',α,A,x,β,y)
-αA_mul_B_plus_βC!(α,A::StridedMatrix2,B::StridedMatrix2,β,C::StridedMatrix2) =
-    gemm!('N','N',α,A,B,β,C)
 
 
 Base.pointer{T<:BlasFloat,U,V,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,SubBlock{JJ}},false}) =
@@ -380,8 +404,13 @@ Base.pointer{T<:BlasFloat,U,V,II,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tu
     pointer(parentblock(S)) + sizeof(T)*(first(parentindexes(S)[1].sub)-1) +
         sizeof(T)*stride(S,2)*(first(parentindexes(S)[2].sub)-1)
 
+
 ## algebra
 
+αA_mul_B_plus_βC!(α,A::SubBandedBlockSubBlock,x::AbstractVector,β,y::AbstractVector) =
+    gemv!('N',α,A,x,β,y)
+αA_mul_B_plus_βC!(α,A::StridedMatrix2,B::StridedMatrix2,β,C::StridedMatrix2) =
+    gemm!('N','N',α,A,B,β,C)
 
 function *{T<:Number,V<:Number}(A::BandedBlockMatrix{T},
                                 B::BandedBlockMatrix{V})

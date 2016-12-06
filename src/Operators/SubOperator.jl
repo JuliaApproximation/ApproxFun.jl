@@ -17,6 +17,11 @@ checkbounds(A::Operator,kr,jr) =
      minimum(kr) < 1 || minimum(jr) < 1) && throw(BoundsError(A,(kr,jr)))
 
 
+ checkbounds(A::Operator,K::Block,J::Block) =
+     1 ≤ K.K ≤ length(blocklengths(rangespace(A))) && 1 ≤ J.K ≤ length(blocklengths(domainspace(A)))
+
+
+
 ## SubOperator
 
 immutable SubOperator{T,B,I,DI,BI} <: Operator{T}
@@ -32,6 +37,12 @@ function SubOperator(A,inds,dims,lu)
     checkbounds(A,inds...)
     SubOperator{eltype(A),typeof(A),typeof(inds),
                 typeof(dims),typeof(lu)}(A,inds,map(length,inds),lu)
+end
+
+function SubOperator(A,inds::Tuple{Block,Block},dims,lu)
+    checkbounds(A,inds...)
+    SubOperator{eltype(A),typeof(A),typeof(inds),
+                typeof(dims),typeof(lu)}(A,inds,(blocklengths(rangespace(A))[inds[1].K],blocklengths(domainspace(A))[inds[2].K]),lu)
 end
 
 # cannot infer ranges
