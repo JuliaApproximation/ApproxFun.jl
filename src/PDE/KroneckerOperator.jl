@@ -66,7 +66,7 @@ end
 
 function colstart(A::KroneckerOperator,k::Integer)
     K=block(A.domaintensorizer,k)
-    blockstart(A.rangetensorizer,max(1,K-blockbandwidth(A,2)))
+    blockstart(A.rangetensorizer,max(Block(1),K-blockbandwidth(A,2)))
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
@@ -79,7 +79,7 @@ end
 
 function rowstart(A::KroneckerOperator,k::Integer)
     K=block(rangespace(A),k)
-    blockstart(domainspace(A),max(1,K-blockbandwidth(A,1)))
+    blockstart(domainspace(A),max(Block(1),K-blockbandwidth(A,1)))
 end
 
 function rowstop(A::KroneckerOperator,k::Integer)

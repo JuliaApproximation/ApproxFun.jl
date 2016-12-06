@@ -145,10 +145,10 @@ blockrange(it,K) = blockstart(it,K):blockstop(it,K)
 
 # convert from block, subblock to tensor
 subblock2tensor(rt::Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},K,k) =
-    (k,K-k+1)
+    (k,K.K-k+1)
 
 subblock2tensor{II}(rt::CachedIterator{II,Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}}},K,k) =
-    (k,K-k+1)
+    (k,K.K-k+1)
 
 
 subblock2tensor(rt::CachedIterator,K,k) = rt[blockstart(rt,K)+k-1]

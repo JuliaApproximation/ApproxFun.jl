@@ -22,6 +22,10 @@ for OP in (:(==),:(!=),:(Base.isless))
     @eval $OP(A::Block,B::Block) = $OP(A.K,B.K)
 end
 
+for OP in (:(Base.iseven),:(Base.isodd))
+    @eval $OP(A::Block) = $OP(A.K)
+end
+
 Base.isless(::Block,::Infinity{Bool}) = true
 Base.isless(::Infinity{Bool},::Block) = false
 
@@ -49,6 +53,7 @@ end
 
 block(B::SubBlock) = B.block
 getindex(A::Block,k) = SubBlock(A,k)
+getindex(A::SubBlock,k) = SubBlock(A.block,A.sub[k])
 
 
 
@@ -299,6 +304,18 @@ subblocksize(A::BandedBlockMatrix,K::SubBlock,J::SubBlock) =
 
 Base.view(A::BandedBlockMatrix,K::Union{Block,SubBlock},J::Union{Block,SubBlock}) =
     SubArray(A, (K,J), subblocksize(A,K,J))
+
+Base.view(A::SubBandedBlockSubBlock,::Colon,::Colon) =
+    view(parent(A),parentindexes(A)[1],parentindexes(A)[2])
+Base.view(A::SubBandedBlockSubBlock,::Colon,J::Union{AbstractArray,Real}) =
+    view(parent(A),parentindexes(A)[1],parentindexes(A)[2][J])
+Base.view(A::SubBandedBlockSubBlock,K::Union{AbstractArray,Real},::Colon) =
+    view(parent(A),parentindexes(A)[1][K],parentindexes(A)[2])
+Base.view(A::SubBandedBlockSubBlock,K::Union{AbstractArray,Real},J::Union{AbstractArray,Real}) =
+    view(parent(A),parentindexes(A)[1][K],parentindexes(A)[2][J])
+Base.view(A::SubBandedBlockSubBlock,K,J) =
+    view(parent(A),parentindexes(A)[1][K],parentindexes(A)[2][J])
+
 function Base.indices(S::SubBandedBlockSubBlock)
     sz = subblocksize(parent(S),parentindexes(S)...)
     (Base.OneTo(sz[1]),
@@ -310,7 +327,7 @@ parentblock(S::SubBandedBlockSubBlock) =
 
 
 # returns a view of the data corresponding to the block
-function blockview(S::SubBandedBlockSubBlock)
+function blockview{T,U,V}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,Block},false})
     A = parent(S)
     K,J = parentindexes(S)
     st = A.blockstart[block(K).K,block(J).K]
@@ -322,11 +339,11 @@ end
 dataview{T,U,V}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,Block},false}) =
     blockview(S)
 dataview{T,U,V,II}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},Block},false}) =
-    view(blockview(S),parentindexes(S)[1].sub,:)
+    view(blockview(parentblock(S)),parentindexes(S)[1].sub,:)
 dataview{T,U,V,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,SubBlock{JJ}},false}) =
-    view(blockview(S),:,parentindexes(S)[2].sub)
+    view(blockview(parentblock(S)),:,parentindexes(S)[2].sub)
 dataview{T,U,V,II,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},SubBlock{JJ}},false}) =
-    view(blockview(S),parentindexes(S)[1].sub,parentindexes(S)[2].sub)
+    view(blockview(parentblock(S)),parentindexes(S)[1].sub,parentindexes(S)[2].sub)
 
 getindex{N}(S::SubBandedBlockSubBlock, I::Vararg{Real,N}) =
     dataview(S)[I...]
@@ -356,15 +373,12 @@ end
 Base.pointer{T<:BlasFloat,U,V,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{Block,SubBlock{JJ}},false}) =
     pointer(parentblock(S))
 
-function Base.pointer{T<:BlasFloat,U,V,II}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},Block},false})
-    @assert parentindexes(S)[1].sub[1] == 1
-    pointer(parentblock(S))
-end
+Base.pointer{T<:BlasFloat,U,V,II}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},Block},false}) =
+    pointer(parentblock(S)) + sizeof(T)*(first(parentindexes(S)[1].sub)-1)
 
-function Base.pointer{T<:BlasFloat,U,V,II,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},SubBlock{JJ}},false})
-    @assert parentindexes(S)[1].sub[1] == 1
-    pointer(parentblock(S))
-end
+Base.pointer{T<:BlasFloat,U,V,II,JJ}(S::SubArray{T,2,BandedBlockMatrix{T,U,V},Tuple{SubBlock{II},SubBlock{JJ}},false}) =
+    pointer(parentblock(S)) + sizeof(T)*(first(parentindexes(S)[1].sub)-1) +
+        sizeof(T)*stride(S,2)*(first(parentindexes(S)[2].sub)-1)
 
 ## algebra
 

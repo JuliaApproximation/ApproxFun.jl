@@ -226,7 +226,7 @@ blockbandinds{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD}
     (0,2)
 
 colstop{CD<:ChebyshevDirichlet,RB,DD}(B::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}},j::Integer) =
-    j ≤ 3 ? 4 : 4(block(domainspace(B),j)-1)
+    j ≤ 3 ? 4 : 4(block(domainspace(B),j).K-1)
 
 
 function getindex{CD<:ChebyshevDirichlet,RB,DD}(B::ConcreteDirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}},
@@ -324,73 +324,73 @@ function Base.convert{T,CD<:ChebyshevDirichlet,RB,DD,CSP,TT}(::Type{BandedBlockM
         k_sh ≤ 2 && (B[3-k_sh,2-j_sh]=1)
         B[4-k_sh,2-j_sh]=-1
     end
-    for K=2:2:min(length(ret.rows),length(ret.cols)-1)
+    for K=Block(2):2:Block(min(length(ret.rows),length(ret.cols)-1))
         J = K+1  # super-diagonal block
-        N = ret.rows[K]
-        M = ret.cols[J]
+        N = ret.rows[K.K]
+        M = ret.cols[J.K]
         if N ≠ 0 && M ≠ 0
             # calculate shift
             k_sh = K == K1 ? kr[1]-Kr1 : 0
             j_sh = J == J1 ? jr[1]-Jr1 : 0
-            B = view(ret,Block(K),Block(J))
+            B = view(ret,K,J)
 
             1 ≤ 2-k_sh ≤ N && j_sh == 0 && (B[2-k_sh,1-j_sh]=1)
             1 ≤ 4-k_sh ≤ N && j_sh == 0 && (B[4-k_sh,1-j_sh]=1)
-            k_sh == 0 && 1 ≤ J-j_sh ≤ M && (B[1-k_sh,J-j_sh]=1)
-            k_sh ≤ 2 &&  1 ≤ J-j_sh ≤ M && (B[3-k_sh,J-j_sh]=1)
+            k_sh == 0 && 1 ≤ J.K-j_sh ≤ M && (B[1-k_sh,J.K-j_sh]=1)
+            k_sh ≤ 2 &&  1 ≤ J.K-j_sh ≤ M && (B[3-k_sh,J.K-j_sh]=1)
         end
     end
-    for K=3:2:min(length(ret.rows),length(ret.cols)-1)
+    for K=Block(3):2:Block(min(length(ret.rows),length(ret.cols)-1))
         J = K+1  # super-diagonal block
-        N = ret.rows[K]
-        M = ret.cols[J]
+        N = ret.rows[K.K]
+        M = ret.cols[J.K]
         if N ≠ 0 && M ≠ 0
             # calculate shift
             k_sh = K == K1 ? kr[1]-Kr1 : 0
             j_sh = J == J1 ? jr[1]-Jr1 : 0
-            B = view(ret,Block(K),Block(J))
+            B = view(ret,K,J)
 
             1 ≤ 2-k_sh ≤ N && j_sh == 0 && (B[2-k_sh,1-j_sh]=1)
             1 ≤ 4-k_sh ≤ N && j_sh == 0 && (B[4-k_sh,1-j_sh]=-1)
-            k_sh == 0 && 1 ≤ J-j_sh ≤ M && (B[1-k_sh,J-j_sh]=1)
-            1 ≤ 3-k_sh ≤ N &&  1 ≤ J-j_sh ≤ M && (B[3-k_sh,J-j_sh]=-1)
+            k_sh == 0 && 1 ≤ J.K-j_sh ≤ M && (B[1-k_sh,J.K-j_sh]=1)
+            1 ≤ 3-k_sh ≤ N &&  1 ≤ J.K-j_sh ≤ M && (B[3-k_sh,J.K-j_sh]=-1)
         end
     end
-    for K=2:2:min(length(ret.rows),length(ret.cols)-2)
+    for K=Block(2):2:Block(min(length(ret.rows),length(ret.cols)-2))
         J = K+2  # super-diagonal block
-        N = ret.rows[K]
-        M = ret.cols[J]
+        N = ret.rows[K.K]
+        M = ret.cols[J.K]
 
         if N ≠ 0 && M ≠ 0
-            B=view(ret,Block(K),Block(J))
+            B=view(ret,K,J)
             # calculate shift
             k_sh = K == K1 ? kr[1]-Kr1 : 0
             j_sh = J == J1 ? jr[1]-Jr1 : 0
-            B = view(ret,Block(K),Block(J))
+            B = view(ret,K,J)
 
             1 ≤ 2-k_sh ≤ N && 1 ≤ 2-j_sh ≤ M && (B[2-k_sh,2-j_sh]=1)
             1 ≤ 4-k_sh ≤ N && 1 ≤ 2-j_sh ≤ M && (B[4-k_sh,2-j_sh]=-1)
-            k_sh == 0 && 1 ≤ J-j_sh-1 ≤ M && (B[1,J-j_sh-1]=-1)
-            1 ≤ 3-k_sh ≤ N &&  1 ≤ J-j_sh-1 ≤ M && (B[3-k_sh,J-j_sh-1]=1)
+            k_sh == 0 && 1 ≤ J.K-j_sh-1 ≤ M && (B[1,J.K-j_sh-1]=-1)
+            1 ≤ 3-k_sh ≤ N &&  1 ≤ J.K-j_sh-1 ≤ M && (B[3-k_sh,J.K-j_sh-1]=1)
         end
     end
-    for K=3:2:min(length(ret.rows),length(ret.cols)-2)
+    for K=Block(3):2:Block(min(length(ret.rows),length(ret.cols)-2))
         J = K+2
-        B=view(ret,Block(K),Block(J))
-        N = ret.rows[K]
-        M = ret.cols[J]
+        B=view(ret,K,J)
+        N = ret.rows[K.K]
+        M = ret.cols[J.K]
 
         if N ≠ 0 && M ≠ 0
-            B=view(ret,Block(K),Block(J))
+            B=view(ret,K,J)
             # calculate shift
             k_sh = K == K1 ? kr[1]-Kr1 : 0
             j_sh = J == J1 ? jr[1]-Jr1 : 0
-            B = view(ret,Block(K),Block(J))
+            B = view(ret,K,J)
 
             1 ≤ 2-k_sh ≤ N && 1 ≤ 2-j_sh ≤ M && (B[2-k_sh,2-j_sh]=1)
             1 ≤ 4-k_sh ≤ N && 1 ≤ 2-j_sh ≤ M && (B[4-k_sh,2-j_sh]=1)
-            k_sh == 0 && 1 ≤ J-j_sh-1 ≤ M && (B[1,J-j_sh-1]=-1)
-            1 ≤ 3-k_sh ≤ N &&  1 ≤ J-j_sh-1 ≤ M && (B[3-k_sh,J-j_sh-1]=-1)
+            k_sh == 0 && 1 ≤ J.K-j_sh-1 ≤ M && (B[1,J.K-j_sh-1]=-1)
+            1 ≤ 3-k_sh ≤ N &&  1 ≤ J.K-j_sh-1 ≤ M && (B[3-k_sh,J.K-j_sh-1]=-1)
         end
     end
 

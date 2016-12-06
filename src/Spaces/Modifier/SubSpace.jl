@@ -34,7 +34,7 @@ function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
     B1 == B2 && return [zeros(Int,B1.K-1);length(sp.indexes)]
 
     [zeros(Int,B1.K-1);
-         blockstop(sp.space,B1)-sp.indexes[1]+1;blocklengths(sp.space)[B1+1:B2-1];
+         blockstop(sp.space,B1)-sp.indexes[1]+1;blocklengths(sp.space)[B1.K+1:B2.K-1];
         sp.indexes[end]-blockstart(sp.space,B2)+1]
 end
 

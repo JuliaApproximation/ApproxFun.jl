@@ -207,7 +207,6 @@ function trtrs!(::Type{Val{'U'}},A::RaggedMatrix,u::Array)
     end
 
     n=size(u,1)
-    b=bandwidth(A,2)
     T=eltype(u)
 
     for c=1:size(u,2)

@@ -88,3 +88,25 @@ view(A,Block(1)[1:1],Block(1)[1:1])[1,1]=5
 @test A[1,1] == 5
 
 strides(view(A,Block(2),Block(3)))  == (1,2)
+
+
+@test view(view(A,Block(4),Block(5)),1:2,1:3) == ones(2,3)
+@test view(A,Block(4)[2:3],Block(5)[3:5]) == ones(2,3)
+
+
+view(A,Block(3),Block(3))[2,1] = 2
+
+@test unsafe_load(pointer(view(A,Block(3)[2:3],Block(3)[1:3]))) == 2
+view(A,Block(3),Block(3))[2,2] = 3
+@test unsafe_load(pointer(view(A,Block(3)[2:3],Block(3)[2:3]))) == 3
+
+
+view(A,Block(3),Block(4))[2,3]=6
+@test view(A,Block(3)[2:3],Block(4)[3:4])[1] == 6
+@test unsafe_load(pointer(view(A,Block(3)[2:3],Block(4)[3:4]))) == 6
+
+N=10
+A=ApproxFun.bbones(Float64,1,1,1:N,1:N)
+
+@test view(view(A,Block(3),Block(4)),2:3,:) == ones(2,4)
+@test view(view(A,Block(3),Block(4)),:,2:3) == ones(3,2)
