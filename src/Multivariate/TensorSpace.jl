@@ -111,6 +111,8 @@ function block(it::Tensorizer{Tuple{Repeated{Bool},Vector{Bool}}},n::Int)::Block
 end
 
 blocklength(it,k) = blocklengths(it)[k]
+blocklength(it,k::Block) = blocklength(it,k.K)
+blocklength(it,k::Range{Block}) = blocklength(it,Int.(k))
 
 blocklengths(::Tensorizer{NTuple{2,Repeated{Bool}}}) = 1:∞
 

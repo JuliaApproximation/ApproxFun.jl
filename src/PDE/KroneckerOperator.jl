@@ -292,6 +292,8 @@ end
 ### Copy
 
 # finds block lengths for a subrange
+blocklengthrange(rt,B::Block) = [blocklength(rt,B)]
+blocklengthrange(rt,B::Range{Block}) = blocklength(rt,B)
 function blocklengthrange(rt,kr)
     KR=block(rt,first(kr)):block(rt,last(kr))
     Klengths=Array(Int,length(KR))
@@ -313,16 +315,18 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
     dt=domaintensorizer(KO)
     ret=bbbzeros(S)
 
-    Kshft = block(rt,kr[1])-1
-    Jshft = block(dt,jr[1])-1
+    kr1,jr1 = reindex(S,(1,1))
+
+    Kshft = block(rt,kr1)-1
+    Jshft = block(dt,jr1)-1
 
 
 
     for J=Block(1):Block(blocksize(ret,2))
-        jshft = (J==Block(1) ? jr[1] : blockstart(dt,J+Jshft)) - 1
+        jshft = (J==Block(1) ? jr1 : blockstart(dt,J+Jshft)) - 1
         for K=blockcolrange(ret,J)
             Bs=view(ret,K,J)
-            kshft = (K==Block(1) ? kr[1] : blockstart(rt,K+Kshft)) - 1
+            kshft = (K==Block(1) ? kr1 : blockstart(rt,K+Kshft)) - 1
             for ξ=1:size(Bs,2),κ=colrange(Bs,ξ)
                 Bs[κ,ξ]=KO[κ+kshft,ξ+jshft]
             end
@@ -333,7 +337,7 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
 end
 
 
-function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},S::SubOperator{T,KKO})
+function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
     kr,jr=parentindexes(S)
     KO=parent(S)
     l,u=blockbandinds(KO)

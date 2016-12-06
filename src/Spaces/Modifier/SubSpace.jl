@@ -10,10 +10,11 @@ SubSpace{T,DD,dim}(sp::Space{T,DD,dim},kr) =
 SubSpace(sp::Space,kr) =
     SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),dimension(sp)}(sp,kr)
 
-SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,sp.indexes[kr])
+SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,reindex(sp,kr))
 
 domain(DS::SubSpace) = domain(DS.space)
 dimension(sp::SubSpace) = length(sp.indexes)
+reindex(sp::SubSpace, ks) = sp.indexes[ks]
 
 
 |(sp::Space,kr::UnitCount) = first(kr)==1?sp:SubSpace(sp,kr)
@@ -25,7 +26,7 @@ function |(f::Fun,kr::UnitCount)
     Fun(space(f)|kr,f.coefficients[kr[1]:end])
 end
 
-block(sp::SubSpace,k::Integer) = block(sp.space,sp.indexes[k])
+block(sp::SubSpace,k::Integer) = block(sp.space,reindex(sp,k))
 
 function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
     B1=block(sp.space,sp.indexes[1])
@@ -39,6 +40,28 @@ function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
 end
 
 blocklengths(sp::SubSpace) = error("Not implemented for non-unitrange subspaces")
+
+
+## Block
+blocklengths{DS}(sp::SubSpace{DS,Block}) = [blocklengths(sp.space)[sp.indexes.K]]
+reindex{DS}(sp::SubSpace{DS,Block}, ks) = blockstart(sp.space,sp.indexes)+ks-1
+dimension{DS}(sp::SubSpace{DS,Block}) = blocklengths(sp.space)[sp.indexes.K]
+
+
+blocklengths{DS}(sp::SubSpace{DS,StepRange{Block,Block}}) = blocklengths(sp.space)[Int.(sp.indexes)]
+function reindex{DS}(sp::SubSpace{DS,StepRange{Block,Block}}, ks)
+    @assert step(sp.indexes) == Block(1)
+    blockstart(sp.space,sp.indexes[1])+ks-1
+end
+dimension{DS}(sp::SubSpace{DS,Block}) = sum(blocklengths(sp.space)[Int.(sp.indexes)])
+
+
+block(::,B::Block) = B
+block(::,B::SubBlock) = B.block
+
+
+
+##
 
 
 spacescompatible{DS,IT,T,DD,d}(S1::SubSpace{DS,IT,T,DD,d},S2::SubSpace{DS,IT,T,DD,d}) =

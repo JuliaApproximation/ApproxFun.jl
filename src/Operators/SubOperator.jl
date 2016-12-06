@@ -17,8 +17,11 @@ checkbounds(A::Operator,kr,jr) =
      minimum(kr) < 1 || minimum(jr) < 1) && throw(BoundsError(A,(kr,jr)))
 
 
- checkbounds(A::Operator,K::Block,J::Block) =
+checkbounds(A::Operator,K::Block,J::Block) =
      1 ≤ K.K ≤ length(blocklengths(rangespace(A))) && 1 ≤ J.K ≤ length(blocklengths(domainspace(A)))
+
+checkbounds(A::Operator,K::Range{Block},J::Range{Block}) =
+     checkbounds(A,maximum(K),maximum(J))
 
 
 
@@ -36,13 +39,18 @@ end
 function SubOperator(A,inds,dims,lu)
     checkbounds(A,inds...)
     SubOperator{eltype(A),typeof(A),typeof(inds),
-                typeof(dims),typeof(lu)}(A,inds,map(length,inds),lu)
+                typeof(dims),typeof(lu)}(A,inds,dims,lu)
 end
 
-function SubOperator(A,inds::Tuple{Block,Block},dims,lu)
+function SubOperator(A,inds::Tuple{Block,Block},lu)
     checkbounds(A,inds...)
-    SubOperator{eltype(A),typeof(A),typeof(inds),
-                typeof(dims),typeof(lu)}(A,inds,(blocklengths(rangespace(A))[inds[1].K],blocklengths(domainspace(A))[inds[2].K]),lu)
+    SubOperator(A,inds,(blocklengths(rangespace(A))[inds[1].K],blocklengths(domainspace(A))[inds[2].K]),lu)
+end
+
+function SubOperator(A,inds::Tuple{StepRange{Block,Block},StepRange{Block,Block}})
+    checkbounds(A,inds...)
+    dims = (sum(blocklengths(rangespace(A))[Int.(inds[1])]),sum(blocklengths(domainspace(A))[Int.(inds[2])]))
+    SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
 end
 
 # cannot infer ranges
@@ -95,7 +103,7 @@ view(A::Operator,::Colon,jr) = view(A,1:size(A,1),jr)
 view(A::Operator,kr,::Colon) = view(A,kr,1:size(A,2))
 
 
-view(A::Operator,K::Block,J::Block) = view(A,blockrows(A,K),blockcols(A,J))
+view(A::Operator,K::Block,J::Block) = SubOperator(A,(K,J),subblockbandwidths(A))
 view(A::Operator,K::Block,j::Colon) = view(A,blockrows(A,K),j)
 view(A::Operator,k::Colon,J::Block) = view(A,k,blockcols(A,J))
 view(A::Operator,K::Block,j) = view(A,blockrows(A,K),j)
@@ -155,14 +163,15 @@ function bbbzeros(S::SubOperator)
     rt=rangetensorizer(KO)
     dt=domaintensorizer(KO)
 
-    J=block(dt,jr[1])
-    K=block(rt,kr[1])
+    k1,j1=reindex(S,(1,1))
+    J=block(dt,j1)
+    K=block(rt,k1)
     bl_sh = J.K-K.K
 
     # each row/column that we differ from the the block start shifts
     # the sub block inds
-    jsh=jr[1]-blockstart(dt,J)
-    ksh=kr[1]-blockstart(rt,K)
+    jsh=j1-blockstart(dt,J)
+    ksh=k1-blockstart(rt,K)
 
     ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ+jsh,μ+ksh,
             blocklengthrange(rt,kr),
@@ -187,11 +196,12 @@ end
 
 size(V::SubOperator) = V.dims
 size(V::SubOperator,k::Int) = V.dims[k]
-unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[V.indexes[1][k],V.indexes[2][j]]
-getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[V.indexes[1][k],V.indexes[2][j]]
-getindex(V::SubOperator,k::Integer,j::Range) = V.parent[V.indexes[1][k],V.indexes[2][j]]
-getindex(V::SubOperator,k::Range,j::Integer) = V.parent[V.indexes[1][k],V.indexes[2][j]]
-getindex(V::SubOperator,k::Range,j::Range) = V.parent[V.indexes[1][k],V.indexes[2][j]]
+reindex(V::SubOperator,kj) = reindex(rangespace(V),kj[1]),reindex(domainspace(V),kj[2])
+unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,(k,j))...]
+getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,(k,j))...]
+getindex(V::SubOperator,k::Integer,j::Range) = V.parent[reindex(V,(k,j))...]
+getindex(V::SubOperator,k::Range,j::Integer) = V.parent[reindex(V,(k,j))...]
+getindex(V::SubOperator,k::Range,j::Range) = V.parent[reindex(V,(k,j))...]
 Base.parent(S::SubOperator) = S.parent
 Base.parentindexes(S::SubOperator) = S.indexes
 
