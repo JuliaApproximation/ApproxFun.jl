@@ -337,7 +337,8 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
 end
 
 
-function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
+function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
+                                                S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
     kr,jr=parentindexes(S)
     KO=parent(S)
     l,u=blockbandinds(KO)

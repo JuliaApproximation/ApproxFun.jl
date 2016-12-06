@@ -47,7 +47,8 @@ function SubOperator(A,inds::Tuple{Block,Block},lu)
     SubOperator(A,inds,(blocklengths(rangespace(A))[inds[1].K],blocklengths(domainspace(A))[inds[2].K]),lu)
 end
 
-function SubOperator(A,inds::Tuple{StepRange{Block,Block},StepRange{Block,Block}})
+SubOperator(A,inds::Tuple{Block,Block}) = SubOperator(A,inds,subblockbandwidths(A))
+function SubOperator(A,inds::Tuple{UnitRange{Block},UnitRange{Block}})
     checkbounds(A,inds...)
     dims = (sum(blocklengths(rangespace(A))[Int.(inds[1])]),sum(blocklengths(domainspace(A))[Int.(inds[2])]))
     SubOperator(A,inds,dims,(dims[1]-1,dims[2]-1))
@@ -103,17 +104,12 @@ view(A::Operator,::Colon,jr) = view(A,1:size(A,1),jr)
 view(A::Operator,kr,::Colon) = view(A,kr,1:size(A,2))
 
 
-view(A::Operator,K::Block,J::Block) = SubOperator(A,(K,J),subblockbandwidths(A))
+view(A::Operator,K::Block,J::Block) = SubOperator(A,(K,J))
 view(A::Operator,K::Block,j::Colon) = view(A,blockrows(A,K),j)
 view(A::Operator,k::Colon,J::Block) = view(A,k,blockcols(A,J))
 view(A::Operator,K::Block,j) = view(A,blockrows(A,K),j)
 view(A::Operator,k,J::Block) = view(A,k,blockcols(A,J))
-function view(A::Operator,KR::Range{Block},JR::Range{Block})
-    @assert step(KR) == step(JR) == Block(1)  # TODO: generalize
-    ds = domainspace(A)
-    rs = rangespace(A)
-    view(A,blockstart(rs,KR[1]):blockstop(rs,KR[end]),blockstart(ds,JR[1]):blockstop(ds,JR[end]))
-end
+view(A::Operator,KR::UnitRange{Block},JR::UnitRange{Block}) = SubOperator(A,(KR,JR))
 
 view(A::Operator,k,j) = SubOperator(A,(k,j))
 

@@ -48,12 +48,10 @@ reindex{DS}(sp::SubSpace{DS,Block}, ks) = blockstart(sp.space,sp.indexes)+ks-1
 dimension{DS}(sp::SubSpace{DS,Block}) = blocklengths(sp.space)[sp.indexes.K]
 
 
-blocklengths{DS}(sp::SubSpace{DS,StepRange{Block,Block}}) = blocklengths(sp.space)[Int.(sp.indexes)]
-function reindex{DS}(sp::SubSpace{DS,StepRange{Block,Block}}, ks)
-    @assert step(sp.indexes) == Block(1)
-    blockstart(sp.space,sp.indexes[1])+ks-1
-end
-dimension{DS}(sp::SubSpace{DS,Block}) = sum(blocklengths(sp.space)[Int.(sp.indexes)])
+blocklengths{DS}(sp::SubSpace{DS,UnitRange{Block}}) = blocklengths(sp.space)[Int.(sp.indexes)]
+reindex{DS}(sp::SubSpace{DS,UnitRange{Block}}, ks) = blockstart(sp.space,sp.indexes[1])+ks-1
+
+dimension{DS}(sp::SubSpace{DS,UnitRange{Block}}) = sum(blocklengths(sp.space)[Int.(sp.indexes)])
 
 
 block(::,B::Block) = B

@@ -5,20 +5,21 @@ A[Block(1),Block(2)]
 ```
 retrieves the 1 x 2 block
 """
-immutable Block
+immutable Block <: Real
     K::Int
 end
 
 block(B::Block) = B
 
 Base.convert{T<:Integer}(::Type{T},B::Block) = convert(T,B.K)::T
+Base.convert(::Type{Block},K::Block) = K
 Base.convert(::Type{Block},K::Integer) = Block(K)
 
-for OP in (:(Base.one),:(Base.zero),:(-))
+for OP in (:(Base.one),:(Base.zero),:(-),:(Base.floor))
     @eval $OP(B::Block) = Block($OP(B.K))
 end
 
-for OP in (:(==),:(!=),:(Base.isless))
+for OP in (:(==),:(!=),:(Base.isless),:(<=),:(>=),:(<),:(>))
     @eval $OP(A::Block,B::Block) = $OP(A.K,B.K)
 end
 
@@ -41,6 +42,7 @@ end
 done(1,true)
 
 # broadcasting
+Base.broadcast(Int,r::UnitRange{Block}) = Int(r.start):Int(r.stop)
 Base.broadcast(Int,r::StepRange{Block,Block}) = Int(r.start):Int(r.step):Int(r.stop)
 Base.broadcast(Int,B::Block) = Int(B)
 
@@ -296,7 +298,7 @@ end
 ## View
 
 typealias SubBandedBlockSubBlock{T,BBM<:BandedBlockMatrix,II<:Union{Block,SubBlock},JJ<:Union{Block,SubBlock}} SubArray{T,2,BBM,Tuple{II,JJ},false}
-typealias SubBandedBlockRange{T,BBM<:BandedBlockMatrix} SubArray{T,2,BBM,Tuple{StepRange{Block,Block},StepRange{Block,Block}},false}
+typealias SubBandedBlockRange{T,BBM<:BandedBlockMatrix} SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
 typealias StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BandedBlockMatrix},I<:Tuple{Vararg{Union{Base.RangeIndex, Base.AbstractCartesianIndex, Block,SubBlock}}}}  Union{DenseArray{T,2}, SubArray{T,2,A,I}, Base.StridedReshapedArray{T,2}}
 
 
@@ -309,10 +311,10 @@ subblocksize(A::BandedBlockMatrix,K::SubBlock,J::Block) =
 subblocksize(A::BandedBlockMatrix,K::SubBlock,J::SubBlock) =
     (length(K.sub),length(J.sub))
 
-subblocksize(A::BandedBlockMatrix,K::StepRange{Block,Block},J::StepRange{Block,Block}) =
+subblocksize(A::BandedBlockMatrix,K::UnitRange{Block},J::UnitRange{Block}) =
     (sum(A.rows[Int.(K)]),sum(A.rows[Int.(J)]))
 
-Base.view(A::BandedBlockMatrix,K::Union{Block,SubBlock,StepRange{Block,Block}},J::Union{Block,SubBlock,StepRange{Block,Block}}) =
+Base.view(A::BandedBlockMatrix,K::Union{Block,SubBlock,UnitRange{Block}},J::Union{Block,SubBlock,UnitRange{Block}}) =
     SubArray(A, (K,J), subblocksize(A,K,J))
 
 Base.view(A::SubBandedBlockSubBlock,::Colon,::Colon) =
@@ -329,7 +331,7 @@ Base.view(A::SubBandedBlockSubBlock,K,J) =
 rowblocklengths(A::SubBandedBlockRange) = parent(A).rows[parentindexes(A)[1]]
 colblocklengths(A::SubBandedBlockRange) = parent(A).cols[parentindexes(A)[2]]
 
-Base.view(A::SubBandedBlockRange,K::Union{Block,SubBlock,StepRange{Block,Block}},J::Union{Block,SubBlock,StepRange{Block,Block}}) =
+Base.view(A::SubBandedBlockRange,K::Union{Block,SubBlock,UnitRange{Block}},J::Union{Block,SubBlock,UnitRange{Block}}) =
     view(parent(A),parentindexes(A)[1][Int.(K)],parentindexes(A)[2][Int.(J)])
 
 
@@ -367,7 +369,6 @@ getindex{N}(S::SubBandedBlockSubBlock, I::Vararg{Real,N}) =
 
 function getindex(S::SubBandedBlockRange, k::Integer, j::Integer)
     KR,JR = parentindexes(S)
-    @assert step(KR) == step(JR) == Block(1)
     A = parent(S)
     A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])]
 end
@@ -378,7 +379,6 @@ end
 
 function setindex!(S::SubBandedBlockRange, v, k::Integer, j::Integer)
     KR,JR = parentindexes(S)
-    @assert step(KR) == step(JR) == Block(1)
     A = parent(S)
     A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])] = v
 end

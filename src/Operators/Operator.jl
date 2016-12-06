@@ -203,8 +203,7 @@ defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in 
 defaultgetindex(A::Operator,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]
 defaultgetindex(A::Operator,K::Block,j) = A[blockrows(A,K),j]
 defaultgetindex(A::Operator,k,J::Block) = A[k,blockcols(A,J)]
-function defaultgetindex(A::Operator,KR::Range{Block},JR::Range{Block})
-    @assert step(KR) == step(JR) == Block(1)  # TODO: generalize
+function defaultgetindex(A::Operator,KR::Range{Block},JR::UnitRange{Block})
     ds = domainspace(A)
     rs = rangespace(A)
     A[blockstart(rs,KR[1]):blockstop(rs,KR[end]),blockstart(ds,JR[1]):blockstop(ds,JR[end])]
