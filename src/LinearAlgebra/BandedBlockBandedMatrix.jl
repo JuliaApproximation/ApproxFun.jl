@@ -99,6 +99,15 @@ function setindex!{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, v, k::Int, j::Int)
     BandedMatrices.banded_setindex!(view(A.data,:,col:col+S.stride1-1),A.λ,A.μ,v,k,j)
 end
 
+
+
+## algebra
+
+BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) =
+    BandedMatrices.banded_axpy!(α,A,B)
+
+## Convert routines
+
 function Base.convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
     A = parent(S)
     col = S.offset1 # first col of current block
