@@ -132,9 +132,9 @@ end
 
 
 
-blockstart(it,K) = K==1?1:sum(blocklengths(it)[1:K-1])+1
+blockstart(it,K)::Int = K==1?1:sum(blocklengths(it)[1:K-1])+1
 blockstop(it,::Infinity{Bool}) = ∞
-blockstop(it,K) = sum(blocklengths(it)[1:K])
+blockstop(it,K)::Int = sum(blocklengths(it)[1:K])
 
 blockstart(it,K::Block) = blockstart(it,K.K)
 blockstop(it,K::Block) = blockstop(it,K.K)

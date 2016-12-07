@@ -192,7 +192,7 @@ end
 
 size(V::SubOperator) = V.dims
 size(V::SubOperator,k::Int) = V.dims[k]
-reindex(V::SubOperator,kj) = reindex(rangespace(V),kj[1]),reindex(domainspace(V),kj[2])
+reindex(V::SubOperator,kj) = (reindex(rangespace(V),kj[1])::Int,reindex(domainspace(V),kj[2])::Int)
 unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,(k,j))...]
 getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,(k,j))...]
 getindex(V::SubOperator,k::Integer,j::Range) = V.parent[reindex(V,(k,j))...]

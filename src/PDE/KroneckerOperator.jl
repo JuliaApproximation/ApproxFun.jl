@@ -305,15 +305,8 @@ function blocklengthrange(rt,kr)
     Klengths
 end
 
-function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
+function bandedblockbanded_convert!(ret,S::SubOperator,KO,rt,dt)
     kr,jr=parentindexes(S)
-    KO=parent(S)
-    l,u=blockbandinds(KO)
-    λ,μ=subblockbandinds(KO)
-
-    rt=rangetensorizer(KO)
-    dt=domaintensorizer(KO)
-    ret=bbbzeros(S)
 
     kr1,jr1 = reindex(S,(1,1))
 
@@ -334,6 +327,16 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
     end
 
     ret
+end
+
+
+
+function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
+    KO = parent(S)
+    rt=rangetensorizer(KO)
+    dt=domaintensorizer(KO)
+    ret=bbbzeros(S)
+    bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
 end
 
 

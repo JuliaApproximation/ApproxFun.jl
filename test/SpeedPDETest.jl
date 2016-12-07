@@ -15,8 +15,35 @@ QR=qrfact(Δ)
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f;tolerance=1E-10)
 
+import ApproxFun:Block
+@time Δ[Block(1):Block(5),Block(1):Block(5)]
+@time convert(ApproxFun.BandedBlockBandedMatrix,)
+P = Δ.op.ops[1]
+    S=view(P,Block(1):Block(10),Block(1):Block(10))
+    @time convert(BandedBlockBandedMatrix,S)
 
 
+KO = parent(S)
+rt=ApproxFun.rangetensorizer(KO)
+dt=ApproxFun.domaintensorizer(KO)
+ret=ApproxFun.bbbzeros(S)
+    @profile ApproxFun.bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
+
+
+Profile.print()
+
+@code_warntype reindex(S,(1,1))
+
+@which ApproxFun.reindex(rangespace(S),1)
+
+@which ApproxFun.blockstart(rangespace(S),1)
+
+ApproxFun.rangetensorizer(parent(Δ.op.ops[1]))
+
+@time convert(ApproxFun.BandedBlockBandedMatrix,
+        view(Δ.op.ops[1].ops[1].op,Block(1):Block(40),Block(1):Block(40)))
+Δ.op.ops[1].ops[1].op
+@time Δ[1:820,1:820]
 println("Laplace Dirichlet: should be ~0.05, 0.003")
 
 

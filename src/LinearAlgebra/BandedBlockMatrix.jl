@@ -108,11 +108,11 @@ blocksize(A::AbstractBlockMatrix,k::Int) = k==1?length(A.rows):length(A.cols)
 # these give the block rows corresponding to the J-th column block
 blockcolstart(A::AbstractBandedBlockMatrix,J::Int) = Block(max(1,J-A.u))
 blockcolstop(A::AbstractBandedBlockMatrix,J::Int) = Block(min(length(A.rows),J+A.l))
-blockcolrange(A::AbstractBandedBlockMatrix,J) = blockcolstart(A,J):blockcolstop(A,J)
+blockcolrange(A,J) = blockcolstart(A,J):blockcolstop(A,J)
 
 blockrowstart(A::AbstractBandedBlockMatrix,K::Int) = Block(max(1,K-A.l))
 blockrowstop(A::AbstractBandedBlockMatrix,K::Int) = Block(min(length(A.cols),K+A.u))
-blockrowrange(A::AbstractBandedBlockMatrix,K) = blockrowstart(A,K):blockrowstop(A,K)
+blockrowrange(A,K) = blockrowstart(A,K):blockrowstop(A,K)
 
 # give the rows/columns of a block, as a range
 blockrows(A::AbstractBlockMatrix,K::Int) = sum(A.rows[1:K-1]) + (1:A.rows[K])
