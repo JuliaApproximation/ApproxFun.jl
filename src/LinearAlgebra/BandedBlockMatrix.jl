@@ -15,6 +15,8 @@ Base.convert{T<:Integer}(::Type{T},B::Block) = convert(T,B.K)::T
 Base.convert(::Type{Block},K::Block) = K
 Base.convert(::Type{Block},K::Integer) = Block(K)
 
+Base.promote_rule(::Type{Block},::Type{Int}) = Block
+
 for OP in (:(Base.one),:(Base.zero),:(-),:(Base.floor))
     @eval $OP(B::Block) = Block($OP(B.K))
 end

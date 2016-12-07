@@ -376,6 +376,41 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 end
 
 
+typealias Trivial2DTensorizer CachedIterator{Tuple{Int64,Int64},
+                                             Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},
+                                             Tuple{Tuple{Int64,Int64},Tuple{Int64,Int64},
+                                                   Tuple{Int64,Int64},Tuple{Bool,Bool},
+                                                   Tuple{Int64,Infinity{Bool}}}}
+
+# This routine is an efficient version of KroneckerOperator for the case of
+# tensor product of trivial blocks
+
+function Base.convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
+                                    S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
+                                                   Trivial2DTensorizer,Trivial2DTensorizer,T},
+                                                   Tuple{UnitRange{Block},UnitRange{Block}}})
+    KR,JR=parentindexes(S)
+    KO=parent(S)
+
+    ret=bbbzeros(S)
+
+    A,B=KO.ops
+    AA=A[KR,JR]::BandedMatrix{eltype(S)}
+    Al,Au = bandwidths(AA)
+    BB=B[KR,JR]::BandedMatrix{eltype(S)}
+    Bl,Bu = bandwidths(BB)
+
+    for J in JR, K in blockcolrange(ret,J)
+        n,m=K.K,J.K
+        Bs = view(ret,K,J)
+        l = min(Al,Bu+n-m)
+        u = min(Au,Bl+m-n)
+        @inbounds for j=1:m, k=max(1,j-u):min(n,j+l)
+            inbands_setindex!(Bs,inbands_getindex(AA,k,j)*inbands_getindex(BB,n-k+1,m-j+1),k,j)
+        end
+    end
+    ret
+end
 
 ## TensorSpace operators
 
