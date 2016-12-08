@@ -136,6 +136,7 @@ blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(
 subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandwidth(K::Operator,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
+subblockbandinds(K::Operator,k) = k==1 ? -∞ : ∞  # assume dense blocks
 
 isbandedblockbelow(A) = isfinite(blockbandinds(A,1))
 isbandedblockabove(A) = isfinite(blockbandinds(A,2))

@@ -24,7 +24,6 @@ checkbounds(A::Operator,K::Range{Block},J::Range{Block}) =
      checkbounds(A,maximum(K),maximum(J))
 
 
-
 ## SubOperator
 
 immutable SubOperator{T,B,I,DI,BI} <: Operator{T}
@@ -115,8 +114,17 @@ view(A::Operator,k,j) = SubOperator(A,(k,j))
 
 
 
-view(A::SubOperator,kr::UnitRange,jr::UnitRange) =
-    view(A.parent,A.indexes[1][kr],A.indexes[2][jr])
+reindex{II<:Union{Block,UnitRange{Block},StepRange{Block}}}(A::Operator, B::Tuple{II,Any}, kj) =
+    (reindex(rangespace(A),(B[1],), (kj[1],)), reindex(domainspace(A),tail(B), tail(kj)))
+# always reindex left-to-right, so if we have only a single tuple, then
+# we must be the domainspace
+reindex{II<:Union{Block,UnitRange{Block},StepRange{Block}}}(A::Operator, B::Tuple{II}, kj) =
+    (reindex(domainspace(A),B,kj),)
+
+
+
+
+view(A::SubOperator,kr,jr) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
 
 
 
@@ -159,7 +167,7 @@ function bbbzeros(S::SubOperator)
     rt=rangetensorizer(KO)
     dt=domaintensorizer(KO)
 
-    k1,j1=reindex(S,(1,1))
+    k1,j1=reindex(S,parentindexes(S),(1,1))
     J=block(dt,j1)
     K=block(rt,k1)
     bl_sh = J.K-K.K
@@ -192,15 +200,12 @@ end
 
 size(V::SubOperator) = V.dims
 size(V::SubOperator,k::Int) = V.dims[k]
-reindex(V::SubOperator,kj::Tuple{Int,Int}) =
-    (reindex(rangespace(V),kj[1])::Int,reindex(domainspace(V),kj[2])::Int)
-reindex(V::SubOperator,kj) = (reindex(rangespace(V),kj[1]),reindex(domainspace(V),kj[2]))
-    
-unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,(k,j))...]
-getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,(k,j))...]
-getindex(V::SubOperator,k::Integer,j::Range) = V.parent[reindex(V,(k,j))...]
-getindex(V::SubOperator,k::Range,j::Integer) = V.parent[reindex(V,(k,j))...]
-getindex(V::SubOperator,k::Range,j::Range) = V.parent[reindex(V,(k,j))...]
+
+unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
+getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
+getindex(V::SubOperator,k::Integer,j::Range) = V.parent[reindex(V,parentindexes(V),(k,j))...]
+getindex(V::SubOperator,k::Range,j::Integer) = V.parent[reindex(V,parentindexes(V),(k,j))...]
+getindex(V::SubOperator,k::Range,j::Range) = V.parent[reindex(V,parentindexes(V),(k,j))...]
 Base.parent(S::SubOperator) = S.parent
 Base.parentindexes(S::SubOperator) = S.indexes
 
@@ -208,7 +213,7 @@ Base.parentindexes(S::SubOperator) = S.indexes
 
 for OP in (:isbandedblock,:isbandedblockabove,:isbandedblockbelow,
                 :isbandedblockbanded,:isbandedblockbandedabove,
-                :isbandedblockbelow)
+                :isbandedblockbandedbelow)
     @eval $OP(S::SubOperator) = $OP(parent(S))
 end
 

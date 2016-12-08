@@ -95,9 +95,20 @@ abstract AbstractBlockMatrix{T} <: AbstractMatrix{T}
 abstract AbstractBandedBlockMatrix{T} <: AbstractBlockMatrix{T}
 
 
-getindex(A::AbstractBlockMatrix,K::Block,J::Block) = copy(view(A,K,J))
+function getindex(A::AbstractBlockMatrix,K::Block,J::Block)
+    if A.l ≤ J-K ≤ A.u
+        copy(view(A,K,J))
+    else
+        zeroblock(A,K,J)
+    end
+end
 getindex(A::AbstractBlockMatrix,K::Block,j) = A[blockrows(A,K),j]
 getindex(A::AbstractBlockMatrix,k,J::Block) = A[k,blockcols(A,J)]
+
+setindex!(A::AbstractBlockMatrix,V,K::Block,J::Block) = (view(A,K,J) .= V)
+setindex!(A::AbstractBlockMatrix,V,K::Block,j) = (view(A,blockrows(A,K),j) .= V)
+setindex!(A::AbstractBlockMatrix,V,k,J::Block) = (view(A,k,blockcols(A,J)) .= V)
+
 
 Base.size(A::AbstractBlockMatrix) = sum(A.rows),sum(A.cols)
 
@@ -302,6 +313,9 @@ function Base.convert(::Type{BandedBlockMatrix},Y::AbstractBlockMatrix)
     BLAS.axpy!(one(eltype(Y)),Y,ret)
     ret
 end
+
+
+zeroblock(X::BandedBlockMatrix,K::Block,J::Block) = zeros(eltype(X),X.rows[K.K],X.cols[J.K])
 
 
 

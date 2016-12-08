@@ -7,8 +7,8 @@ function default_bandedblockmatrix(S::Operator)
     ret=BandedBlockMatrix(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
             blocklengths(rangespace(S)),blocklengths(domainspace(S)))
 
-    @inbounds for j=1:size(ret,2),k=colrange(ret,j)
-        ret[k,j] = S[k,j]
+    @inbounds for J=Block(1):Block(blocksize(ret,2)),K=blockcolrange(ret,J)
+        ret[K,J] = S[K,J]
     end
     ret
 end

@@ -308,7 +308,7 @@ end
 function bandedblockbanded_convert!(ret,S::SubOperator,KO,rt,dt)
     kr,jr=parentindexes(S)
 
-    kr1,jr1 = reindex(S,(1,1))
+    kr1,jr1 = reindex(S,parentindexes(S),(1,1))
 
     Kshft = block(rt,kr1)-1
     Jshft = block(dt,jr1)-1

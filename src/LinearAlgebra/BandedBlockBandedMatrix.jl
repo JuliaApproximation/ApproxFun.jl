@@ -48,6 +48,8 @@ end
 Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u
 
 
+zeroblock(X::BandedBlockBandedMatrix,K::Block,J::Block) = bzeros(eltype(X),X.rows[K.K],X.cols[J.K],X.λ,X.μ)
+
 
 typealias BandedBlockBandedBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
 typealias SubBandedBlockBandedRange{T,BBM<:BandedBlockBandedMatrix} SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
