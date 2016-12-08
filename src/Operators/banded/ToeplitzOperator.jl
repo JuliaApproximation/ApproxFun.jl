@@ -1,4 +1,4 @@
-export ToeplitzOperator, HankelOperator, LaurentOperator
+export ToeplitzOperator, HankelOperator
 
 
 type ToeplitzOperator{T<:Number} <: Operator{T}
@@ -126,52 +126,6 @@ bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
 
 
 
-## Laurent Operator
-
-type LaurentOperator{T<:Number} <: Operator{T}
-    negative::Vector{T}
-    nonnegative::Vector{T}
-end
-
-for TYP in(:ToeplitzOperator,:LaurentOperator)
-    @eval Base.convert{TT}(::Type{Operator{TT}},T::$TYP)=$TYP(convert(Vector{TT},T.negative),
-                                                                            convert(Vector{TT},T.nonnegative))
-end
-
-for OP in (:domainspace,:rangespace)
-    @eval $OP(T::LaurentOperator) = ℓ⁰
-end
-
-
-
-
-function laurent_getindex{T}(negative::AbstractVector{T},nonnegative::AbstractVector{T},k::Integer,j::Integer)
-    # switch to double-infinite indices
-    k=iseven(k)?-div(k,2):div(k-1,2)
-    j=iseven(j)?-div(j,2):div(j-1,2)
-
-    if 0<k-j≤length(negative)
-        negative[k-j]
-    elseif 0≤j-k≤length(nonnegative)-1
-        nonnegative[j-k+1]
-    else
-        zero(T)
-    end
-end
-
-
-
-
-
-getindex(T::LaurentOperator,k::Integer,j::Integer)=laurent_getindex(T.negative,T.nonnegative,k,j)
-
-shiftbandinds(T::LaurentOperator)=-length(T.negative),length(T.nonnegative)-1
-function bandinds(T::LaurentOperator)
-    sbi=shiftbandinds(T)
-    min(2sbi[1],-2sbi[end]),max(2sbi[end],-2sbi[1])
-end
-
-
 ## algebra
 
 
@@ -185,12 +139,8 @@ function Base.maximum(T::ToeplitzOperator)
     end
 end
 
-for TYP in (:ToeplitzOperator,:LaurentOperator)
-    @eval begin
-        -(T::$TYP)=$TYP(-T.negative,-T.nonnegative)
-        *(c::Number,T::$TYP)=$TYP(c*T.negative,c*T.nonnegative)
-    end
-end
+-(T::ToeplitzOperator)=ToeplitzOperator(-T.negative,-T.nonnegative)
+*(c::Number,T::ToeplitzOperator)=ToeplitzOperator(c*T.negative,c*T.nonnegative)
 
 -(H::HankelOperator)=HankelOperator(-H.coefficients)
 *(c::Number,H::HankelOperator)=HankelOperator(c*H.coefficients)

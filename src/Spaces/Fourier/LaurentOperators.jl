@@ -3,8 +3,6 @@
 
 ToeplitzOperator{DD}(f::Fun{Laurent{DD}})=ToeplitzOperator(f.coefficients[2:2:end],
                                                     f.coefficients[1:2:end])
-LaurentOperator{DD}(f::Fun{Laurent{DD}})=LaurentOperator(f.coefficients[3:2:end],
-                                                    f.coefficients[[1;2:2:end]])
 
 
 
@@ -24,8 +22,30 @@ getindex{DD}(T::ConcreteEvaluation{Taylor{DD},Complex{Float64},Int,Complex{Float
 
 ## Multiplication
 
-Multiplication{DD}(f::Fun{Laurent{DD}},sp::Laurent{DD}) =
-    MultiplicationWrapper(f,SpaceOperator(LaurentOperator(f),sp,sp))
+Multiplication{DD}(f::Fun{Laurent{DD}},sp::Laurent{DD}) = ConcreteMultiplication(f,sp)
+
+function laurent_getindex{T}(negative::AbstractVector{T},nonnegative::AbstractVector{T},k::Integer,j::Integer)
+    # switch to double-infinite indices
+    k=iseven(k)?-k÷2:(k-1)÷2
+    j=iseven(j)?-j÷2:(j-1)÷2
+
+    if 0<k-j≤length(negative)
+        negative[k-j]
+    elseif 0≤j-k≤length(nonnegative)-1
+        nonnegative[j-k+1]
+    else
+        zero(T)
+    end
+end
+
+getindex{DD}(T::ConcreteMultiplication{Laurent{DD},Laurent{DD}},k::Integer,j::Integer) =
+    laurent_getindex(f.coefficients[3:2:end],f.coefficients[[1;2:2:end]],k,j)
+
+shiftbandinds(T::LaurentOperator)=-length(T.negative),length(T.nonnegative)-1
+function bandinds(T::LaurentOperator)
+    sbi=shiftbandinds(T)
+    min(2sbi[1],-2sbi[end]),max(2sbi[end],-2sbi[1])
+end
 
 
 Multiplication{DD}(f::Fun{Fourier{DD}},sp::Laurent{DD}) = Multiplication(Fun(f,sp),sp)
