@@ -142,3 +142,12 @@ iszeroop(A) = false
 Base.convert{T<:Number}(::Type{T},::ZeroOperator) = zero(T)
 Base.convert{T<:Number}(::Type{T},C::ConstantOperator) = convert(T,C.λ)
 Base.convert{T<:Number}(::Type{T},S::SpaceOperator) = convert(T,S.op)
+
+
+
+## SubOperator convert
+## Special case for ZeroOperator
+for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
+                    (:BandedBlockMatrix,:bbzeros))
+    @eval Base.convert{T,ZO<:ZeroOperator}(::Type{$TYP},S::SubOperator{T,ZO}) = $ZER(S)
+end

@@ -400,7 +400,7 @@ function bandedblock_interlace_convert!(S,ret)
 
     M=map(op->BandedBlockMatrix(view(op,KR,JR)),parent(S).ops)
 
-    for J=JR,K=max(KR[1],J-u):min(KR[end],J+l)
+    for J=Block(1):Block(blocksize(ret,2)),K=blockcolrange(ret,J)
         Bs=view(ret,K,J)
         j = 0
         for ξ=1:size(M,2)

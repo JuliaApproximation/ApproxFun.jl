@@ -162,8 +162,14 @@ blockcolstop(S::SubOperator,J::Integer) = blockcolstop(parent(S),J)
 
 israggedbelow(S::SubOperator) = israggedbelow(parent(S))
 
-# since blocks don't change, neither do blockbandinds
+# since blocks don't change with indexex, neither do blockbandinds
 blockbandinds(S::SubOperator) = blockbandinds(parent(S))
+function blockbandinds{T,B}(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
+    KR,JR = parentindexes(S)
+    l,u = blockbandinds(parent(S))
+    sh = first(KR).K-first(JR).K
+    l+sh,u+sh
+end
 
 function bbbzeros(S::SubOperator)
     kr,jr=parentindexes(S)

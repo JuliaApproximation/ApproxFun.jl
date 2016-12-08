@@ -331,13 +331,15 @@ end
 
 
 
-function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
+function default_bandedblockbandedmatrix(S)
     KO = parent(S)
     rt=rangetensorizer(KO)
     dt=domaintensorizer(KO)
     ret=bbbzeros(S)
     bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
 end
+
+Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockbandedmatrix(S)
 
 
 function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},

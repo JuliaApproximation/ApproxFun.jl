@@ -96,7 +96,7 @@ abstract AbstractBandedBlockMatrix{T} <: AbstractBlockMatrix{T}
 
 
 function getindex(A::AbstractBlockMatrix,K::Block,J::Block)
-    if A.l ≤ J-K ≤ A.u
+    if -A.l ≤ J-K ≤ A.u
         copy(view(A,K,J))
     else
         zeroblock(A,K,J)

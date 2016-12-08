@@ -435,8 +435,7 @@ macro wrappergetindex(Wrap)
             ApproxFun.unwrap_axpy!(α,P,A)
     end
 
-    for TYP in (:(BandedMatrices.BandedMatrix),:(ApproxFun.BandedBlockBandedMatrix),
-                :Matrix,:AbstractMatrix,:Vector,:AbstractVector)
+    for TYP in (:(BandedMatrices.BandedMatrix),:Matrix,:AbstractMatrix,:Vector,:AbstractVector)
         ret = quote
             $ret
 
@@ -447,6 +446,27 @@ macro wrappergetindex(Wrap)
 
     ret = quote
         $ret
+
+        # if the spaces change, then we need to be smarter
+        function Base.convert{T,OP<:$Wrap}(::Type{BandedBlockMatrix},S::ApproxFun.SubOperator{T,OP})
+            P = parent(S)
+            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+                BandedBlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
+            else
+                default_bandedblockmatrix(S)
+            end
+        end
+
+        function Base.convert{T,OP<:$Wrap}(::Type{BandedBlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
+            P = parent(S)
+            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+                BandedBlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
+            else
+                default_bandedblockbandedmatrix(S)
+            end
+        end
 
         ApproxFun.@wrapperstructure($Wrap) # structure is automatically inherited
     end
