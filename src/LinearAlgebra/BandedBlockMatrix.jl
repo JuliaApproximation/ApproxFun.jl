@@ -336,7 +336,7 @@ subblocksize(A::BandedBlockMatrix,K::SubBlock,J::SubBlock) =
     (length(K.sub),length(J.sub))
 
 subblocksize(A::BandedBlockMatrix,K::UnitRange{Block},J::UnitRange{Block}) =
-    (sum(A.rows[Int.(K)]),sum(A.rows[Int.(J)]))
+    (sum(A.rows[Int.(K)]),sum(A.cols[Int.(J)]))
 
 Base.view(A::BandedBlockMatrix,K::Union{Block,SubBlock,UnitRange{Block}},J::Union{Block,SubBlock,UnitRange{Block}}) =
     SubArray(A, (K,J), subblocksize(A,K,J))

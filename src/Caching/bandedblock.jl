@@ -58,7 +58,7 @@ function CachedOperator(::Type{BandedBlockMatrix},op::Operator;padding::Bool=fal
     data=BandedBlockMatrix(eltype(op),l,u,
                             blocklengths(rangespace(op))[1:0],
                             blocklengths(domainspace(op))[1:0])
-    CachedOperator(op,data,size(data),domainspace(op),rangespace(op),(-l,u),padding)
+    CachedOperator(op,data,(0,0),domainspace(op),rangespace(op),(-l,u),padding)
 end
 
 
@@ -74,12 +74,15 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI
 
     if col > B.datasize[2]
         datablocksize = block(domainspace(B),B.datasize[2])
-        @assert blockstop(domainspace(B),datablocksize) == B.datasize[2]
+        bs =  blockstop(domainspace(B),datablocksize)
+        if B.datasize[2] ≠ 0 && bs ≠ B.datasize[2]
+            error("Developer: $(B.datasize) is not lined up with the block $datablocksize as the last column doesn't end at $bs")
+        end
 
 
         l=B.data.l; u=B.data.u
         J=block(domainspace(B),col)
-        col = blockstop(domainspace(B),J.K)  # pad to end of block
+        col = blockstop(domainspace(B),J)  # pad to end of block
 
         rows = blocklengths(rangespace(B.op))[1:J.K+l]
         cols = blocklengths(domainspace(B.op))[1:J.K]

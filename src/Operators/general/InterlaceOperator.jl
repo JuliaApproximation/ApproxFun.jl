@@ -354,6 +354,7 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
             end
             ret
         end
+
         function Base.convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
                               S::SubOperator{T,InterlaceOperator{T,2,SS,PS,DI,RI,BI}})
             kr,jr=parentindexes(S)
@@ -388,6 +389,41 @@ for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzero
     end
 end
 
+
+
+
+## Build block-by-block
+function bandedblock_interlace_convert!(S,ret)
+    T = eltype(S)
+    KR,JR = parentindexes(S)
+    l,u=blockbandwidths(S)::Tuple{Int,Int}
+
+    M=map(op->BandedBlockMatrix(view(op,KR,JR)),parent(S).ops)
+
+    for J=JR,K=max(KR[1],J-u):min(KR[end],J+l)
+        Bs=view(ret,K,J)
+        j = 0
+        for ξ=1:size(M,2)
+            k = 0
+            m = 0
+            for κ=1:size(M,1)
+                MKJ = M[κ,ξ][K,J]::Matrix{T}
+                n,m = size(MKJ)
+                Bs[k+1:k+n,j+1:j+m] = MKJ
+                k += n
+            end
+            j += m
+        end
+    end
+    ret
+end
+
+for d in (:1,:2)
+    @eval Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedBlockMatrix},
+                            S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
+                                            Tuple{UnitRange{Block},UnitRange{Block}}}) =
+    bandedblock_interlace_convert!(S,bbzeros(S))
+end
 
 
 

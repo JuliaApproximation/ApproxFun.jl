@@ -114,16 +114,23 @@ view(A::Operator,k,j) = SubOperator(A,(k,j))
 
 
 
-reindex{II<:Union{Block,UnitRange{Block},StepRange{Block}}}(A::Operator, B::Tuple{II,Any}, kj) =
+reindex(A::Operator, B::Tuple{Block,Any}, kj::Tuple{Any,Any}) =
     (reindex(rangespace(A),(B[1],), (kj[1],)), reindex(domainspace(A),tail(B), tail(kj)))
 # always reindex left-to-right, so if we have only a single tuple, then
 # we must be the domainspace
-reindex{II<:Union{Block,UnitRange{Block},StepRange{Block}}}(A::Operator, B::Tuple{II}, kj) =
+reindex(A::Operator, B::Tuple{Block}, kj::Tuple{Any}) = (reindex(domainspace(A),B,kj),)
+
+reindex(A::Operator, B::Tuple{AbstractVector{Block},Any}, kj::Tuple{Any,Any}) =
+    (reindex(rangespace(A),(B[1],), (kj[1],)), reindex(domainspace(A),tail(B), tail(kj)))
+# always reindex left-to-right, so if we have only a single tuple, then
+# we must be the domainspace
+reindex(A::Operator, B::Tuple{AbstractVector{Block}}, kj::Tuple{Any}) =
     (reindex(domainspace(A),B,kj),)
 
 
 
-
+view(A::SubOperator,kr::UnitRange,jr::UnitRange) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
+view(A::SubOperator,K::Block,J::Block) = view(A.parent,reindex(A,parentindexes(A),(K,J))...)
 view(A::SubOperator,kr,jr) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
 
 
@@ -229,4 +236,15 @@ function Base.convert(::Type{RaggedMatrix},S::SubOperator)
     else
         default_raggedmatrix(S)
     end
+end
+
+# fast converts to banded matrices would be based on indices, not blocks
+function Base.convert{T,B}(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
+    A = parent(S)
+    ds = domainspace(A)
+    rs = rangespace(A)
+    KR,JR = parentindexes(S)
+    BandedMatrix(view(A,
+                      blockstart(rs,KR[1]):blockstop(rs,KR[end]),
+                      blockstart(ds,JR[1]):blockstop(ds,JR[end])))
 end

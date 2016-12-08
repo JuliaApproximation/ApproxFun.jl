@@ -205,20 +205,9 @@ defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] f
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
 
 
-defaultgetindex(A::Operator,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]
-defaultgetindex(A::Operator,K::Block,j) = A[blockrows(A,K),j]
-defaultgetindex(A::Operator,k,J::Block) = A[k,blockcols(A,J)]
-function defaultgetindex(A::Operator,KR::Range{Block},JR::UnitRange{Block})
-    ds = domainspace(A)
-    rs = rangespace(A)
-    A[blockstart(rs,KR[1]):blockstop(rs,KR[end]),blockstart(ds,JR[1]):blockstop(ds,JR[end])]
-end
-
-
-
-
-
 # Colon casdes
+defaultgetindex(A::Operator,kj::CartesianIndex{2}) = A[kj[1],kj[2]]
+defaultgetindex(A::Operator,kj::CartesianIndex{1}) = A[kj[1]]
 defaultgetindex(A::Operator,k,j) = view(A,k,j)
 
 
