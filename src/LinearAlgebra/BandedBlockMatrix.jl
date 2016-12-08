@@ -205,7 +205,7 @@ function Base.BLAS.axpy!(α,A::AbstractBlockMatrix,Y::AbstractMatrix)
     Y
 end
 
-function Base.BLAS.axpy!(α,A::AbstractBlockMatrix,Y::AbstractBlockMatrix)
+function block_axpy!(α,A,Y)
     if size(A) ≠ size(Y)
         throw(BoundsError())
     end
@@ -216,6 +216,7 @@ function Base.BLAS.axpy!(α,A::AbstractBlockMatrix,Y::AbstractBlockMatrix)
     Y
 end
 
+Base.BLAS.axpy!(α,A::AbstractBlockMatrix,Y::AbstractBlockMatrix) = block_axpy!(α,A,Y)
 
 
 
@@ -293,6 +294,13 @@ for FUNC in (:zeros,:rand,:ones)
     BFUNC = parse("bb"*string(FUNC))
     @eval $BFUNC{T}(::Type{T},l,u,rows,cols) =
         BandedBlockMatrix($FUNC(T,bbm_numentries(rows,cols,l,u)),l,u,rows,cols)
+end
+
+
+function Base.convert(::Type{BandedBlockMatrix},Y::AbstractBlockMatrix)
+    ret = bbzeros(eltype(Y),Y.l,Y.u,Y.rows,Y.cols)
+    BLAS.axpy!(one(eltype(Y)),Y,ret)
+    ret
 end
 
 
@@ -384,6 +392,10 @@ function setindex!(S::SubBandedBlockRange, v, k::Integer, j::Integer)
     A = parent(S)
     A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])] = v
 end
+
+Base.BLAS.axpy!(α,A::SubBandedBlockRange,Y::SubBandedBlockRange) = block_axpy!(α,A,Y)
+Base.BLAS.axpy!(α,A::SubBandedBlockRange,Y::AbstractBlockMatrix) = block_axpy!(α,A,Y)
+Base.BLAS.axpy!(α,A::AbstractBlockMatrix,Y::SubBandedBlockRange) = block_axpy!(α,A,Y)
 
 
 Base.strides(S::SubBandedBlockSubBlock) =

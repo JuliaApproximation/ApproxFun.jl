@@ -50,6 +50,7 @@ Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u
 
 
 typealias BandedBlockBandedBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
+typealias SubBandedBlockBandedRange{T,BBM<:BandedBlockBandedMatrix} SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
 typealias BLASBandedMatrix2{T,A,I} Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
 
 BandedMatrices.isbanded{T,U,V}(::BandedBlockBandedBlock{T,U,V}) = true
@@ -105,6 +106,19 @@ end
 
 BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) =
     BandedMatrices.banded_axpy!(α,A,B)
+
+BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::SubBandedBlockSubBlock) =
+    BandedMatrices.banded_dense_axpy!(α,A,blockview(B))
+
+BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::AbstractMatrix) =
+    BandedMatrices.banded_dense_axpy!(α,A,B)
+
+Base.BLAS.axpy!(α,A::SubBandedBlockBandedRange,Y::SubBandedBlockBandedRange) = block_axpy!(α,A,Y)
+Base.BLAS.axpy!(α,A::SubBandedBlockBandedRange,Y::AbstractBlockMatrix) = block_axpy!(α,A,Y)
+Base.BLAS.axpy!(α,A::AbstractBlockMatrix,Y::SubBandedBlockBandedRange) = block_axpy!(α,A,Y)
+Base.BLAS.axpy!(α,A::SubBandedBlockBandedRange,Y::SubBandedBlockRange) = block_axpy!(α,A,Y)
+Base.BLAS.axpy!(α,A::SubBandedBlockRange,Y::SubBandedBlockBandedRange) = block_axpy!(α,A,Y)
+
 
 ## Convert routines
 

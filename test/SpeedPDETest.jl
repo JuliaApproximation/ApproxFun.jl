@@ -12,8 +12,14 @@ QR=qrfact(Δ)
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f;tolerance=1E-10)
 QR=qrfact(Δ)
-    @time ApproxFun.resizedata!(QR,:,400)
-    @time \(QR,f;tolerance=1E-10)
+    @time ApproxFun.resizedata!(QR.R,:,6000)
+    @time ApproxFun.resizedata!(QR,:,5000)
+
+
+
+size(view(B.op,KR,JR))
+
+size(view(B.data,KR,JR))
 
 println("Laplace Dirichlet: should be ~0.05, 0.003")
 

@@ -620,7 +620,13 @@ end
 
 Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
 
-Base.convert(::Type{BandedBlockMatrix},S::Operator) = default_bandedblockmatrix(S)
+function Base.convert(::Type{BandedBlockMatrix},S::Operator)
+    if isbandedblockbanded(S)
+        BandedBlockMatrix(BandedBlockBandedMatrix(S))
+    else
+        default_bandedblockmatrix(S)
+    end
+end
 
 function Base.convert(::Type{RaggedMatrix},S::Operator)
     if isbanded(S)

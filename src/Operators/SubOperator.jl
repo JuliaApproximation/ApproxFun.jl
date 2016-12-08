@@ -192,7 +192,10 @@ end
 
 size(V::SubOperator) = V.dims
 size(V::SubOperator,k::Int) = V.dims[k]
-reindex(V::SubOperator,kj) = (reindex(rangespace(V),kj[1])::Int,reindex(domainspace(V),kj[2])::Int)
+reindex(V::SubOperator,kj::Tuple{Int,Int}) =
+    (reindex(rangespace(V),kj[1])::Int,reindex(domainspace(V),kj[2])::Int)
+reindex(V::SubOperator,kj) = (reindex(rangespace(V),kj[1]),reindex(domainspace(V),kj[2]))
+    
 unsafe_getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,(k,j))...]
 getindex(V::SubOperator,k::Integer,j::Integer) = V.parent[reindex(V,(k,j))...]
 getindex(V::SubOperator,k::Integer,j::Range) = V.parent[reindex(V,(k,j))...]
@@ -203,7 +206,14 @@ Base.parentindexes(S::SubOperator) = S.indexes
 
 
 
+for OP in (:isbandedblock,:isbandedblockabove,:isbandedblockbelow,
+                :isbandedblockbanded,:isbandedblockbandedabove,
+                :isbandedblockbelow)
+    @eval $OP(S::SubOperator) = $OP(parent(S))
+end
 
+# TODO: These should be removed as the general purpose case will work,
+# once the notion of bandedness of finite dimensional operators is made sense of
 function Base.convert(::Type{RaggedMatrix},S::SubOperator)
     if isbanded(parent(S))
         RaggedMatrix(BandedMatrix(S))
