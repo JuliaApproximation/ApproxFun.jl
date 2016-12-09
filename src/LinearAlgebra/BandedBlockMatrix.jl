@@ -105,6 +105,9 @@ end
 getindex(A::AbstractBlockMatrix,K::Block,j) = A[blockrows(A,K),j]
 getindex(A::AbstractBlockMatrix,k,J::Block) = A[k,blockcols(A,J)]
 
+getindex(A::AbstractBlockMatrix,KR::UnitRange{Block},JR::UnitRange{Block}) =
+    Matrix(view(A,KR,JR))
+
 setindex!(A::AbstractBlockMatrix,V,K::Block,J::Block) = (view(A,K,J) .= V)
 setindex!(A::AbstractBlockMatrix,V,K::Block,j) = (view(A,blockrows(A,K),j) .= V)
 setindex!(A::AbstractBlockMatrix,V,k,J::Block) = (view(A,k,blockcols(A,J)) .= V)

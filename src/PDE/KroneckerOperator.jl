@@ -400,13 +400,13 @@ function Base.convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
     ret=bbbzeros(S)
 
     A,B=KO.ops
-    AA=A[KR,JR]::BandedMatrix{eltype(S)}
+    AA=A[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}
     Al,Au = bandwidths(AA)
-    BB=B[KR,JR]::BandedMatrix{eltype(S)}
+    BB=B[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}
     Bl,Bu = bandwidths(BB)
 
-    for J in JR, K in blockcolrange(ret,J)
-        n,m=K.K,J.K
+    for J in Block(1):Block(blocksize(ret,2)), K in blockcolrange(ret,J)
+        n,m=KR[K.K].K,JR[J.K].K
         Bs = view(ret,K,J)
         l = min(Al,Bu+n-m)
         u = min(Au,Bl+m-n)
