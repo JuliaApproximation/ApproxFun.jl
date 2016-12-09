@@ -177,8 +177,8 @@ function bbbzeros(S::SubOperator)
     l,u=blockbandinds(KO)
     λ,μ=subblockbandinds(KO)
 
-    rt=rangetensorizer(KO)
-    dt=domaintensorizer(KO)
+    rt=rangespace(KO)
+    dt=domainspace(KO)
 
     k1,j1=reindex(S,parentindexes(S),(1,1))
     J=block(dt,j1)
@@ -193,6 +193,23 @@ function bbbzeros(S::SubOperator)
     ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ+jsh,μ+ksh,
             blocklengthrange(rt,kr),
             blocklengthrange(dt,jr))
+end
+
+function bbbzeros{T,B}(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
+    KR,JR=parentindexes(S)
+    KO=parent(S)
+    l,u=blockbandinds(KO)
+    λ,μ=subblockbandinds(KO)
+
+    rt=rangespace(KO)
+    dt=domainspace(KO)
+    J=JR[1]
+    K=KR[1]
+    bl_sh = J.K-K.K
+
+    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ,μ,
+            blocklengthrange(rt,KR),
+            blocklengthrange(dt,JR))
 end
 
 

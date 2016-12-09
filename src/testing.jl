@@ -49,9 +49,26 @@ function testcalculus(S::Space;haslineintegral=true)
     end
 end
 
-function testspace(S::Space;minpoints=1,invertibletransform=true,haslineintegral=true)
+function testmultiplication(spa,spb)
+    for k=1:10
+        a = Fun(spa,[zeros(k-1);1.])
+        M = Multiplication(a,spb)
+        pts = ApproxFun.checkpoints(rangespace(M))
+        for j=1:10
+            b = Fun(spb,[zeros(j-1);1.])
+            @test_approx_eq (M*b).(pts) a.(pts).*b.(pts)
+        end
+    end
+end
+
+function testspace(S::Space;
+                    minpoints=1,invertibletransform=true,haslineintegral=true,
+                    dualspace=S)
     testtransforms(S;minpoints=minpoints,invertibletransform=invertibletransform)
     testcalculus(S;haslineintegral=haslineintegral)
+    if dualspace ≠ nothing
+        testmultiplication(dualspace,S)
+    end
 end
 
 

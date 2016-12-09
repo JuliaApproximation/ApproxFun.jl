@@ -136,7 +136,8 @@ blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(
 subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandwidth(K::Operator,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
-subblockbandinds(K::Operator,k) = k==1 ? -∞ : ∞  # assume dense blocks
+# assume dense blocks
+subblockbandinds(K::Operator,k) = k==1 ? 1-maximum(blocklengths(rangespace(K))) : maximum(blocklengths(domainspace(K)))-1
 
 isbandedblockbelow(A) = isfinite(blockbandinds(A,1))
 isbandedblockabove(A) = isfinite(blockbandinds(A,2))
@@ -452,7 +453,7 @@ macro wrappergetindex(Wrap)
             P = parent(S)
             if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
-                BandedBlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
+                BandedBlockMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
                 default_bandedblockmatrix(S)
             end

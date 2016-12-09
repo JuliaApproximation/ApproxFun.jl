@@ -251,7 +251,8 @@ end
 function bbm_blockstarts(rows,cols,l,u)
     numentries = 0
     N=length(rows)
-    bs=BandedMatrix(Int,length(rows),length(cols),l,u)
+    # TODO: remove max when BandedMatrix allows negative indices
+    bs=BandedMatrix(Int,length(rows),length(cols),max(0,l),max(0,u))
     for J = eachindex(cols), K = max(1,J-u):min(J+l,N)
         bs[K,J] = numentries
         numentries += cols[J]*rows[K]

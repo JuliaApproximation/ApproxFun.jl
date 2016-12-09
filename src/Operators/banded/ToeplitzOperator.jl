@@ -12,6 +12,9 @@ ToeplitzOperator{T<:Number,Q<:Number}(V::Vector{T},W::Vector{Q}) =
 ToeplitzOperator(V::AbstractVector,W::AbstractVector) =
     ToeplitzOperator(collect(V),collect(W))
 
+Base.convert{TT}(::Type{Operator{TT}},T::ToeplitzOperator) =
+    ToeplitzOperator(convert(Vector{TT},T.negative),convert(Vector{TT},T.nonnegative))
+
 function SymToeplitzOperator(V::Vector)
     W=V[2:end]
     V=copy(V)

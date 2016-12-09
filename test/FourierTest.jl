@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-    import ApproxFun: testspace,testtransforms
+    import ApproxFun: testspace, testtransforms, testmultiplication
 
 for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
     testtransforms(CosSpace(d);minpoints=2)
@@ -12,6 +12,8 @@ for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
     testtransforms(Fourier(d);invertibletransform=false)
 end
 
+
+testmultiplication(Laurent(),Laurent())
 @test sum(Fun(1,CosSpace())) ≈ 2π
 @test sum(Fun(SinSpace(),[1])) == 0
 

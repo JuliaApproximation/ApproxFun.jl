@@ -333,8 +333,8 @@ end
 
 function default_bandedblockbandedmatrix(S)
     KO = parent(S)
-    rt=rangetensorizer(KO)
-    dt=domaintensorizer(KO)
+    rt=rangespace(KO)
+    dt=domainspace(KO)
     ret=bbbzeros(S)
     bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
 end

@@ -22,7 +22,7 @@ getindex{DD}(T::ConcreteEvaluation{Taylor{DD},Complex{Float64},Int,Complex{Float
 
 ## Multiplication
 
-Multiplication{DD}(f::Fun{Laurent{DD}},sp::Laurent{DD}) = ConcreteMultiplication(f,sp)
+Multiplication{DD}(f::Fun{Laurent{DD}},sp::Laurent{DD}) = ConcreteMultiplication(eltype(f),f,sp)
 
 function laurent_getindex{T}(negative::AbstractVector{T},nonnegative::AbstractVector{T},k::Integer,j::Integer)
     # switch to double-infinite indices
@@ -38,13 +38,18 @@ function laurent_getindex{T}(negative::AbstractVector{T},nonnegative::AbstractVe
     end
 end
 
+rangespace{DD}(T::ConcreteMultiplication{Laurent{DD},Laurent{DD}}) = domainspace(T)
 getindex{DD}(T::ConcreteMultiplication{Laurent{DD},Laurent{DD}},k::Integer,j::Integer) =
-    laurent_getindex(f.coefficients[3:2:end],f.coefficients[[1;2:2:end]],k,j)
+    laurent_getindex(T.f.coefficients[3:2:end],T.f.coefficients[[1;2:2:end]],k,j)
 
-shiftbandinds(T::LaurentOperator)=-length(T.negative),length(T.nonnegative)-1
-function bandinds(T::LaurentOperator)
-    sbi=shiftbandinds(T)
-    min(2sbi[1],-2sbi[end]),max(2sbi[end],-2sbi[1])
+function bandinds{DD}(T::ConcreteMultiplication{Laurent{DD},Laurent{DD}})
+    bbi = blockbandinds(T)
+    (2bbi[1]-1,2bbi[2]+1)
+end
+
+function blockbandinds{DD}(T::ConcreteMultiplication{Laurent{DD},Laurent{DD}})
+    m = ncoefficients(T.f)÷2
+    (-m,m)
 end
 
 
