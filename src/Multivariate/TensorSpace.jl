@@ -141,6 +141,7 @@ blockstop(it,K::Block) = blockstop(it,K.K)
 
 
 blockrange(it,K) = blockstart(it,K):blockstop(it,K)
+blockrange(it,K::UnitRange{Block}) = blockstart(it,K[1]):blockstop(it,K[end])
 
 
 

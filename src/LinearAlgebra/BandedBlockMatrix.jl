@@ -48,6 +48,11 @@ Base.broadcast(Int,r::UnitRange{Block}) = Int(r.start):Int(r.stop)
 Base.broadcast(Int,r::StepRange{Block,Block}) = Int(r.start):Int(r.step):Int(r.stop)
 Base.broadcast(Int,B::Block) = Int(B)
 
+Base.broadcast(Block,r::UnitRange{Int}) = Block(r.start):Block(r.stop)
+Base.broadcast(Block,r::StepRange{Int,Int}) = Block(r.start):Block(r.step):Block(r.stop)
+Base.broadcast(Block,B::Int) = Block(B)
+
+
 
 doc"""
 `SubBlock` is used for get subindices of a block.  For example,

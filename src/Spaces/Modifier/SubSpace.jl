@@ -10,7 +10,7 @@ SubSpace{T,DD,dim}(sp::Space{T,DD,dim},kr) =
 SubSpace(sp::Space,kr) =
     SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),dimension(sp)}(sp,kr)
 
-SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,reindex(sp,sp.indexes,to_indexes(kr)))
+SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,reindex(sp,sp.indexes,to_indexes(kr))[1])
 
 domain(DS::SubSpace) = domain(DS.space)
 dimension(sp::SubSpace) = length(sp.indexes)
@@ -25,7 +25,7 @@ function |(f::Fun,kr::UnitCount)
     Fun(space(f)|kr,f.coefficients[kr[1]:end])
 end
 
-block(sp::SubSpace,k::Integer) = block(sp.space,reindex(sp,sp.indexes,to_index(k)))
+block(sp::SubSpace,k::Integer) = block(sp.space,reindex(sp,sp.indexes,to_index(k))[1])
 
 function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
     B1=block(sp.space,sp.indexes[1])
@@ -38,13 +38,32 @@ function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
         sp.indexes[end]-blockstart(sp.space,B2)+1]
 end
 
+function blocklengths{DS}(sp::SubSpace{DS,UnitCount{Int}})
+    B1=block(sp.space,sp.indexes[1])
+
+    flatten(([zeros(Int,B1.K-1);blockstop(sp.space,B1)-sp.indexes[1]+1],
+            blocklengths(sp.space)[B1.K+1:∞]))
+end
+
 blocklengths(sp::SubSpace) = error("Not implemented for non-unitrange subspaces")
 
 
 ## Block reindexing for SubSpace
-reindex(sp::SubSpace, b::Tuple{Block}, ks::Tuple{Any}) = blockstart(sp.space,b[1])+ks[1]-1
-reindex(sp::SubSpace, br::Tuple{UnitRange{Block}}, ks::Tuple{Block}) = br[1][ks[1].K]
-reindex(sp::SubSpace, br::Tuple{UnitRange{Block}}, ks::Tuple{Any}) = blockstart(sp.space,first(br[1]))+ks[1]-1
+reindex(sp::SubSpace, b::Tuple{Block}, ks::Tuple{Any}) = (blockstart(sp.space,b[1])+ks[1]-1,)
+reindex(sp::SubSpace, br::Tuple{UnitRange{Block}}, ks::Tuple{Block}) = (br[1][ks[1].K],)
+reindex(sp::SubSpace, br::Tuple{UnitRange{Block}}, ks::Tuple{Any}) = (blockstart(sp.space,first(br[1]))+ks[1]-1,)
+
+# blocks stay the same with unit range indices
+reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{Block}) =
+    reindex(sp, br, (blockrange(sp,first(ks)),))
+reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{Block}) =
+    reindex(sp, br, (blockrange(sp,first(ks)),))
+reindex(sp::SubSpace, br::Tuple{AbstractVector{Int}}, ks::Tuple{UnitRange{Block}}) =
+    reindex(sp, br, (blockrange(sp,first(ks)),))
+reindex(sp::SubSpace, br::Tuple{AbstractCount{Int}}, ks::Tuple{UnitRange{Block}}) =
+    reindex(sp, br, (blockrange(sp,first(ks)),))
+
+
 ## Block
 blocklengths{DS}(sp::SubSpace{DS,Block}) = [blocklengths(sp.space)[sp.indexes.K]]
 dimension{DS}(sp::SubSpace{DS,Block}) = blocklengths(sp.space)[sp.indexes.K]

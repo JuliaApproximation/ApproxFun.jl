@@ -592,6 +592,7 @@ Base.length(::AbstractRepeated) = ∞
 getindex(it::AbstractRepeated,k::Integer) = value(it)
 getindex(it::AbstractRepeated,k::Range) = fill(value(it),length(k))
 
+
 Base.maximum(r::AbstractRepeated) = value(r)
 Base.minimum(r::AbstractRepeated) = value(r)
 
@@ -660,7 +661,7 @@ Base.length(it::AbstractCount) = ∞
 
 getindex(it::Count,k) = it.start + it.step*(k-1)
 getindex(it::UnitCount,k) = (it.start-1) + k
-
+getindex(it::AbstractRepeated,k::AbstractCount) = it
 
 # use reindex, copied from Base
 reindex(V, idxs::Tuple{AbstractCount, Vararg{Any}}, subidxs::Tuple{Any, Vararg{Any}}) =

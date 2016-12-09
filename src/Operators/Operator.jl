@@ -436,7 +436,7 @@ macro wrappergetindex(Wrap)
             ApproxFun.unwrap_axpy!(α,P,A)
     end
 
-    for TYP in (:(BandedMatrices.BandedMatrix),:Matrix,:AbstractMatrix,:Vector,:AbstractVector)
+    for TYP in (:(BandedMatrices.BandedMatrix),:Matrix,:Vector,:AbstractVector)
         ret = quote
             $ret
 
@@ -447,6 +447,19 @@ macro wrappergetindex(Wrap)
 
     ret = quote
         $ret
+
+        # fast converts to banded matrices would be based on indices, not blocks
+        function Base.convert{T,OP<:$Wrap}(::Type{BandedMatrix},
+                                S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}})
+            A = parent(S)
+            ds = domainspace(A)
+            rs = rangespace(A)
+            KR,JR = parentindexes(S)
+            BandedMatrix(view(A,
+                              blockstart(rs,KR[1]):blockstop(rs,KR[end]),
+                              blockstart(ds,JR[1]):blockstop(ds,JR[end])))
+        end
+
 
         # if the spaces change, then we need to be smarter
         function Base.convert{T,OP<:$Wrap}(::Type{BandedBlockMatrix},S::ApproxFun.SubOperator{T,OP})

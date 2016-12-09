@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test
-    import ApproxFun: testspace, testtransforms, testmultiplication
+    import ApproxFun: testspace, testtransforms, testmultiplication, testbandedoperator
 
 for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
     testtransforms(CosSpace(d);minpoints=2)
@@ -246,3 +246,9 @@ end
 
 B=Evaluation(Laurent(0..2π),0,1)
 @test_approx_eq B*Fun(sin,domainspace(B)) 1.0
+
+
+
+## Conversion between reverse
+C = Conversion(SinSpace()⊕CosSpace(),Fourier())
+testbandedoperator(C)
