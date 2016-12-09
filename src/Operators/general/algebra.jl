@@ -196,8 +196,14 @@ getindex(P::ConstantTimesOperator,k::Integer...) =
 for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                    (:BandedBlockBandedMatrix,:bbbzeros),
                    (:RaggedMatrix,:rzeros),(:BandedBlockMatrix,:bbzeros))
-    @eval Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},S::SubOperator{T,OP}) =
-        convert_axpy!($TYP,S)
+    @eval begin
+        # avoid ambiugity
+        Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},
+                                                  S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
+            convert_axpy!($TYP,S)
+        Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},S::SubOperator{T,OP}) =
+            convert_axpy!($TYP,S)
+    end
 end
 
 BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubOperator{T,OP},A::AbstractMatrix) =
