@@ -3,7 +3,9 @@ export ⊕,depiece,pieces,PiecewiseSpace
 
 
 ## BlockInterlacer
-# interlaces coefficients by blocsk
+# interlaces coefficients by blocks
+# this has the property that all the coefficients of a block of a subspace
+# are grouped together, starting with the first bloc
 #
 
 immutable BlockInterlacer{DMS<:Tuple}

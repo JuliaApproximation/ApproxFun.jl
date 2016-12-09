@@ -12,7 +12,7 @@ function default_bandedmatrix(S::Operator)
     Y=BandedMatrix(eltype(S),size(S,1),size(S,2),l,u)
 
     for j=1:size(S,2),k=colrange(Y,j)
-        @inbounds Y.data[k-j+u+1,j]=S[k,j]
+        @inbounds inbands_setindex!(Y,S[k,j],k,j)
     end
 
     Y
@@ -47,12 +47,13 @@ end
 # Banded matrix corresponding to the diagonal of the original operator
 
 
-diagindrow(S,kr,jr) =
-    bandwidth(S,2)+first(jr)-first(kr)+1
+diagindshift(S,kr,jr) = first(kr)-first(jr)
+diagindshift(S::SubOperator) = diagindshift(S,parentindexes(S)[1],parentindexes(S)[2])
 
 
-diagindrow(S::SubOperator) =
-    diagindrow(S,parentindexes(S)[1],parentindexes(S)[2])
+#TODO: Remove
+diagindrow(S,kr,jr) = bandwidth(S,2)+first(jr)-first(kr)+1
+diagindrow(S::SubOperator) = diagindrow(S,parentindexes(S)[1],parentindexes(S)[2])
 
 
 
@@ -64,24 +65,18 @@ function Base.convert{T,DD}(::Type{BandedMatrix},
                         S::SubOperator{T,ConcreteConversion{Chebyshev{DD},Ultraspherical{Int,DD},T},
                                        Tuple{UnitRange{Int},UnitRange{Int}}})
     # we can assume order is 1
-    ret=bzeros(S)
-    kr,jr=parentindexes(S)
+    ret = bzeros(S)
+    kr,jr = parentindexes(S)
+    dg = diagindshift(S)
+    
+    @assert -bandwidth(ret,1) ≤ dg ≤ bandwidth(ret,2)-2
 
+    ret[band(dg)] = 0.5
+    ret[band(dg+2)] = -0.5
 
-    dat=ret.data
-    dg1=diagindrow(S)
-    dg3=dg1-2
-
-    @assert 1 ≤ dg1 ≤ size(dat,1)
-    @assert 1 ≤ dg3 ≤ size(dat,1)
-
-    @simd for j=1:size(dat,2)
-        @inbounds dat[dg1,j]=0.5
-        @inbounds dat[dg3,j]=-0.5
-    end
-
+    # correct first entry
     if 1 in kr && 1 in jr
-        dat[dg1,1]=1.0
+        ret[1,1] = 1.0
     end
 
     ret

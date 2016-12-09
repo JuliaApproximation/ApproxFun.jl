@@ -121,10 +121,9 @@ G1=demat(mat(G)[:,1])
 @test_approx_eq G1(exp(0.1im)) [exp(0.1im),0.]
 @test_approx_eq G1(0.5exp(0.1im)) [1,0.]
 
-
 M=Multiplication(G,space(G1))
-
 testbandedblockoperator(M)
+
 
 for z in (0.5exp(0.1im),exp(0.2im))
     @test_approx_eq G[1,1](z) G[1](z)

@@ -292,6 +292,8 @@ end
 ### Copy
 
 # finds block lengths for a subrange
+blocklengthrange(rt,B::Block) = [blocklength(rt,B)]
+blocklengthrange(rt,B::Range{Block}) = blocklength(rt,B)
 function blocklengthrange(rt,kr)
     KR=block(rt,first(kr)):block(rt,last(kr))
     Klengths=Array(Int,length(KR))
@@ -303,26 +305,21 @@ function blocklengthrange(rt,kr)
     Klengths
 end
 
-function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
+function bandedblockbanded_convert!(ret,S::SubOperator,KO,rt,dt)
     kr,jr=parentindexes(S)
-    KO=parent(S)
-    l,u=blockbandinds(KO)
-    λ,μ=subblockbandinds(KO)
 
-    rt=rangetensorizer(KO)
-    dt=domaintensorizer(KO)
-    ret=bbbzeros(S)
+    kr1,jr1 = reindex(S,parentindexes(S),(1,1))
 
-    Kshft = block(rt,kr[1])-1
-    Jshft = block(dt,jr[1])-1
+    Kshft = block(rt,kr1)-1
+    Jshft = block(dt,jr1)-1
 
 
 
     for J=Block(1):Block(blocksize(ret,2))
-        jshft = (J==Block(1) ? jr[1] : blockstart(dt,J+Jshft)) - 1
+        jshft = (J==Block(1) ? jr1 : blockstart(dt,J+Jshft)) - 1
         for K=blockcolrange(ret,J)
             Bs=view(ret,K,J)
-            kshft = (K==Block(1) ? kr[1] : blockstart(rt,K+Kshft)) - 1
+            kshft = (K==Block(1) ? kr1 : blockstart(rt,K+Kshft)) - 1
             for ξ=1:size(Bs,2),κ=colrange(Bs,ξ)
                 Bs[κ,ξ]=KO[κ+kshft,ξ+jshft]
             end
@@ -333,7 +330,20 @@ function Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator)
 end
 
 
-function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},S::SubOperator{T,KKO})
+
+function default_bandedblockbandedmatrix(S)
+    KO = parent(S)
+    rt=rangespace(KO)
+    dt=domainspace(KO)
+    ret=bbbzeros(S)
+    bandedblockbanded_convert!(ret,S,parent(S),rt,dt)
+end
+
+Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblockbandedmatrix(S)
+
+
+function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
+                                                S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
     kr,jr=parentindexes(S)
     KO=parent(S)
     l,u=blockbandinds(KO)
@@ -371,6 +381,41 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 end
 
 
+typealias Trivial2DTensorizer CachedIterator{Tuple{Int64,Int64},
+                                             Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},
+                                             Tuple{Tuple{Int64,Int64},Tuple{Int64,Int64},
+                                                   Tuple{Int64,Int64},Tuple{Bool,Bool},
+                                                   Tuple{Int64,Infinity{Bool}}}}
+
+# This routine is an efficient version of KroneckerOperator for the case of
+# tensor product of trivial blocks
+
+function Base.convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
+                                    S::SubOperator{T,KroneckerOperator{SS,V,DS,RS,
+                                                   Trivial2DTensorizer,Trivial2DTensorizer,T},
+                                                   Tuple{UnitRange{Block},UnitRange{Block}}})
+    KR,JR=parentindexes(S)
+    KO=parent(S)
+
+    ret=bbbzeros(S)
+
+    A,B=KO.ops
+    AA=A[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}
+    Al,Au = bandwidths(AA)
+    BB=B[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}
+    Bl,Bu = bandwidths(BB)
+
+    for J in Block(1):Block(blocksize(ret,2)), K in blockcolrange(ret,J)
+        n,m=KR[K.K].K,JR[J.K].K
+        Bs = view(ret,K,J)
+        l = min(Al,Bu+n-m)
+        u = min(Au,Bl+m-n)
+        @inbounds for j=1:m, k=max(1,j-u):min(n,j+l)
+            inbands_setindex!(Bs,inbands_getindex(AA,k,j)*inbands_getindex(BB,n-k+1,m-j+1),k,j)
+        end
+    end
+    ret
+end
 
 ## TensorSpace operators
 

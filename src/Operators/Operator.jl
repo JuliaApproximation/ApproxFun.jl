@@ -62,8 +62,12 @@ macro functional(FF)
 end
 
 
+blocksize(A::Operator,k) = k==1 ? length(blocklengths(rangespace(A))) : length(blocklengths(domainspace(A)))
+blocksize(A::Operator) = (blocksize(A,1),blocksize(A,2))
+
+
 Base.size(A::Operator) = (size(A,1),size(A,2))
-Base.size(A::Operator,k::Integer) = k==1?dimension(rangespace(A)):dimension(domainspace(A))
+Base.size(A::Operator,k::Integer) = k==1 ? dimension(rangespace(A)) : dimension(domainspace(A))
 Base.length(A::Operator) = size(A,1) * size(A,2)
 
 
@@ -132,6 +136,8 @@ blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(
 subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandwidth(K::Operator,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
+# assume dense blocks
+subblockbandinds(K::Operator,k) = k==1 ? 1-maximum(blocklengths(rangespace(K))) : maximum(blocklengths(domainspace(K)))-1
 
 isbandedblockbelow(A) = isfinite(blockbandinds(A,1))
 isbandedblockabove(A) = isfinite(blockbandinds(A,2))
@@ -200,28 +206,18 @@ defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] f
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
 
 
-defaultgetindex(A::Operator,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]
-defaultgetindex(A::Operator,K::Block,j) = A[blockrows(A,K),j]
-defaultgetindex(A::Operator,k,J::Block) = A[k,blockcols(A,J)]
-function defaultgetindex(A::Operator,KR::Range{Block},JR::Range{Block})
-    @assert step(KR) == step(JR) == Block(1)  # TODO: generalize
-    ds = domainspace(A)
-    rs = rangespace(A)
-    A[blockstart(rs,KR[1]):blockstop(rs,KR[end]),blockstart(ds,JR[1]):blockstop(ds,JR[end])]
-end
-
-
-
-
-
 # Colon casdes
+defaultgetindex(A::Operator,kj::CartesianIndex{2}) = A[kj[1],kj[2]]
+defaultgetindex(A::Operator,kj::CartesianIndex{1}) = A[kj[1]]
 defaultgetindex(A::Operator,k,j) = view(A,k,j)
 
 
 
 # TODO: finite dimensional blocks
-blockcolstop(A::Operator,K::Integer) = Block(K-blockbandinds(A,1))
-blockrowstop(A::Operator,J::Integer) = Block(J+blockbandinds(A,2))
+blockcolstart(A::Operator,J::Integer) = Block(max(1,J-blockbandwidth(A,2)))
+blockrowstart(A::Operator,K::Integer) = Block(max(1,K-blockbandwidth(A,1)))
+blockcolstop(A::Operator,J::Integer) = Block(J+blockbandwidth(A,1))
+blockrowstop(A::Operator,K::Integer) = Block(K+blockbandwidth(A,2))
 
 blockrows(A::Operator,K::Integer) = blockrange(rangespace(A),K)
 blockcols(A::Operator,J::Integer) = blockrange(domainspace(A),J)
@@ -440,8 +436,7 @@ macro wrappergetindex(Wrap)
             ApproxFun.unwrap_axpy!(α,P,A)
     end
 
-    for TYP in (:(BandedMatrices.BandedMatrix),:(ApproxFun.BandedBlockBandedMatrix),
-                :Matrix,:AbstractMatrix,:Vector,:AbstractVector)
+    for TYP in (:(BandedMatrices.BandedMatrix),:Matrix,:Vector,:AbstractVector)
         ret = quote
             $ret
 
@@ -452,6 +447,40 @@ macro wrappergetindex(Wrap)
 
     ret = quote
         $ret
+
+        # fast converts to banded matrices would be based on indices, not blocks
+        function Base.convert{T,OP<:$Wrap}(::Type{BandedMatrix},
+                                S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}})
+            A = parent(S)
+            ds = domainspace(A)
+            rs = rangespace(A)
+            KR,JR = parentindexes(S)
+            BandedMatrix(view(A,
+                              blockstart(rs,KR[1]):blockstop(rs,KR[end]),
+                              blockstart(ds,JR[1]):blockstop(ds,JR[end])))
+        end
+
+
+        # if the spaces change, then we need to be smarter
+        function Base.convert{T,OP<:$Wrap}(::Type{BandedBlockMatrix},S::ApproxFun.SubOperator{T,OP})
+            P = parent(S)
+            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+                BandedBlockMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
+            else
+                default_bandedblockmatrix(S)
+            end
+        end
+
+        function Base.convert{T,OP<:$Wrap}(::Type{BandedBlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
+            P = parent(S)
+            if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
+                    blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
+                BandedBlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
+            else
+                default_bandedblockbandedmatrix(S)
+            end
+        end
 
         ApproxFun.@wrapperstructure($Wrap) # structure is automatically inherited
     end
@@ -615,7 +644,13 @@ end
 
 Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
 
-Base.convert(::Type{BandedBlockMatrix},S::Operator) = default_bandedblockmatrix(S)
+function Base.convert(::Type{BandedBlockMatrix},S::Operator)
+    if isbandedblockbanded(S)
+        BandedBlockMatrix(BandedBlockBandedMatrix(S))
+    else
+        default_bandedblockmatrix(S)
+    end
+end
 
 function Base.convert(::Type{RaggedMatrix},S::Operator)
     if isbanded(S)

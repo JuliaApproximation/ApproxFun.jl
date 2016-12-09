@@ -49,9 +49,26 @@ function testcalculus(S::Space;haslineintegral=true)
     end
 end
 
-function testspace(S::Space;minpoints=1,invertibletransform=true,haslineintegral=true)
+function testmultiplication(spa,spb)
+    for k=1:10
+        a = Fun(spa,[zeros(k-1);1.])
+        M = Multiplication(a,spb)
+        pts = ApproxFun.checkpoints(rangespace(M))
+        for j=1:10
+            b = Fun(spb,[zeros(j-1);1.])
+            @test_approx_eq (M*b).(pts) a.(pts).*b.(pts)
+        end
+    end
+end
+
+function testspace(S::Space;
+                    minpoints=1,invertibletransform=true,haslineintegral=true,
+                    dualspace=S)
     testtransforms(S;minpoints=minpoints,invertibletransform=invertibletransform)
     testcalculus(S;haslineintegral=haslineintegral)
+    if dualspace ≠ nothing
+        testmultiplication(dualspace,S)
+    end
 end
 
 
@@ -114,6 +131,9 @@ function backend_testinfoperator(A)
     @test_approx_eq A[1:10,1:10][5:10,5:10] [A[k,j] for k=5:10,j=5:10]
     @test_approx_eq A[1:10,1:10][5:10,5:10] A[5:10,5:10]
     @test_approx_eq A[1:30,1:30][20:30,20:30] A[20:30,20:30]
+
+    @test_approx_eq A[Block(1):Block(3),Block(1):Block(3)] A[blockstart(rangespace(A),1):blockstop(rangespace(A),3),blockstart(domainspace(A),1):blockstop(domainspace(A),3)]
+    @test_approx_eq A[Block(3):Block(4),Block(2):Block(4)] A[blockstart(rangespace(A),3):blockstop(rangespace(A),4),blockstart(domainspace(A),2):blockstop(domainspace(A),4)]
 
     for k=1:10
         @test isfinite(colstart(A,k)) && colstart(A,k) > 0

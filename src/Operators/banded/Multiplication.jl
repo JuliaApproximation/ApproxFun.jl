@@ -9,11 +9,21 @@ immutable ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{D,S,T}
     ConcreteMultiplication(f::Fun{D,T},sp::S) = new(f,sp)
 end
 
+function ConcreteMultiplication{V,D,T}(::Type{V},f::Fun{D,T},sp::Space)
+    if !domainscompatible(space(f),sp)
+        error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
+    end
+    ConcreteMultiplication{D,typeof(sp),V}(
+        convert(Fun{D,V},chop(f,maxabs(f.coefficients)*40*eps(eltype(f)))),sp)
+end
+
+
 function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     if !domainscompatible(space(f),sp)
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
-    ConcreteMultiplication{D,typeof(sp),promote_type(T,eltype(sp))}(chop(f,maxabs(f.coefficients)*40*eps(eltype(f))),sp)
+    V = promote_type(T,eltype(sp))
+    ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,maxabs(f.coefficients)*40*eps(eltype(f)))),sp)
 end
 
 # We do this in two stages to support Modifier spaces

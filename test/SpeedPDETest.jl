@@ -15,24 +15,18 @@ QR=qrfact(Δ)
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f;tolerance=1E-10)
 
-
-
-println("Laplace Dirichlet: should be ~0.05, 0.003")
+println("Laplace Dirichlet: should be ~0.03, 0.003")
 
 
 d=Interval()^2
-
-
 #dirichlet(d) is u[-1,:],u[1,:],u[:,-1],u[:,1]
 A=[Dirichlet(d);Laplacian(d)]
 f=Fun((x,y)->real(exp(x+im*y)),∂(d))
 
+
 QR=qrfact(A)
-    @time ApproxFun.resizedata!(QR.R,:,400)
-    @time ApproxFun.resizedata!(QR,:,200)
-
-
-@time \(QR,[f;0.];tolerance=1E-10)
+    @time ApproxFun.resizedata!(QR,:,150)
+    @time \(QR,[f;0.];tolerance=1E-10)
 QR=qrfact(A)
     @time ApproxFun.resizedata!(QR,:,150)
     @time u=\(QR,[f;0.];tolerance=1E-10)

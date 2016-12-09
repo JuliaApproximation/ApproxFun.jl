@@ -421,6 +421,10 @@ d=dθ*dt
 ε=0.1
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ,20)
+A=Dt-ε*Dθ^2-Dθ
+
+
+testbandedblockbandedoperator(A)
 @time u=\([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
 @test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
 
