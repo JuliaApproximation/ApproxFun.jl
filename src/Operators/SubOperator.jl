@@ -137,7 +137,7 @@ view(A::SubOperator,kr,jr) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))..
 
 bandwidth(S::SubOperator,k::Int) = S.bandwidths[k]
 bandinds(S::SubOperator) = (-bandwidth(S,1),bandwidth(S,2))
-function colstop(S::SubOperator,j::Integer)
+function colstop{T,OP}(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer)
     cs = colstop(parent(S),parentindexes(S)[2][j])
     kr = parentindexes(S)[1]
     n = size(S,1)
@@ -149,21 +149,23 @@ function colstop(S::SubOperator,j::Integer)
         min(n,findfirst(kr,cs))
     end
 end
-colstart(S::SubOperator,j::Integer) =
+colstart{T,OP}(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer) =
     max(findfirst(parentindexes(S)[1],colstart(parent(S),parentindexes(S)[2][j])),1)
-rowstart(S::SubOperator,j::Integer) =
+rowstart{T,OP}(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer) =
     max(1,findfirst(parentindexes(S)[2],rowstart(parent(S),parentindexes(S)[1][j])))
-rowstop(S::SubOperator,j::Integer) =
+rowstop{T,OP}(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},j::Integer) =
         findfirst(parentindexes(S)[2],rowstop(parent(S),parentindexes(S)[1][j]))
 
 
 # blocks don't change
-blockcolstop(S::SubOperator,J::Integer) = blockcolstop(parent(S),J)
+blockcolstop{T,OP,II<:Range{Int},JJ<:Range{Int}}(S::SubOperator{T,OP,Tuple{II,JJ}},J::Integer) =
+    blockcolstop(parent(S),J)
 
 israggedbelow(S::SubOperator) = israggedbelow(parent(S))
 
 # since blocks don't change with indexex, neither do blockbandinds
-blockbandinds(S::SubOperator) = blockbandinds(parent(S))
+blockbandinds{T,OP,II<:Range{Int},JJ<:Range{Int}}(S::SubOperator{T,OP,Tuple{II,JJ}}) =
+    blockbandinds(parent(S))
 function blockbandinds{T,B}(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
     KR,JR = parentindexes(S)
     l,u = blockbandinds(parent(S))

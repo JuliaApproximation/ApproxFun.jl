@@ -108,6 +108,8 @@ end
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
             :BandedBlockMatrix,:BandedBlockBandedMatrix)
+    @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
+        convert_axpy!($TYP,P)   # use axpy! to copy
     @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP}) =
         convert_axpy!($TYP,P)   # use axpy! to copy
 end
