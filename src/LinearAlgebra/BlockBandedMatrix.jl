@@ -160,20 +160,7 @@ Base.A_mul_B!(y::Vector,A::AbstractBlockMatrix,b::Vector) =
     αA_mul_B_plus_βC!(one(eltype(A)),A,b,zero(eltype(y)),y)
 
 
-function Base.BLAS.axpy!(α,A::AbstractBlockMatrix,Y::AbstractMatrix)
-    if size(A) ≠ size(Y)
-        throw(BoundsError())
-    end
 
-    for J=1:blocksize(A,2)
-        jr=blockcols(A,J)
-        for K=blockcolrange(A,J)
-            kr=blockrows(A,K)
-            BLAS.axpy!(α,view(A,Block(K),Block(J)),view(Y,kr,jr))
-        end
-    end
-    Y
-end
 
 function block_axpy!(α,A,Y)
     if size(A) ≠ size(Y)
@@ -248,6 +235,23 @@ end
 
 typealias AllBlockMatrix{T,BBM<:AbstractBlockMatrix,II<:Union{UnitRange{Int},UnitRange{Block}},JJ<:Union{UnitRange{Int},UnitRange{Block}}}
     Union{AbstractBlockMatrix,SubArray{T,2,BBM,Tuple{II,JJ}}}
+
+function Base.BLAS.axpy!(α,A::AllBlockMatrix,Y::AbstractMatrix)
+    if size(A) ≠ size(Y)
+        throw(BoundsError())
+    end
+
+    for J=1:blocksize(A,2)
+        jr=blockcols(A,J)
+        for K=blockcolrange(A,J)
+            kr=blockrows(A,K)
+            BLAS.axpy!(α,view(A,Block(K),Block(J)),view(Y,kr,jr))
+        end
+    end
+    Y
+end
+
+
 Base.BLAS.axpy!(α,A::AllBlockMatrix,Y::AllBlockMatrix) = block_axpy!(α,A,Y)
 
 
