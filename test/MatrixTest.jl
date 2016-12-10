@@ -46,7 +46,7 @@ A=ApproxFun.rrand(Float64,maximum(cols),cols)
 @test_approx_eq full(A)*full(B) full(A*B)
 
 
-## BandedBlockMatrix
+## BlockBandedMatrix
 N=10
 A=ApproxFun.bbones(Float64,1,1,1:N,1:N)
 @test A[1,1] == 1

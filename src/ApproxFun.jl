@@ -7,7 +7,7 @@ module ApproxFun
 import Base.LinAlg: BlasFloat
 
 import Base: values, getindex, setindex!, *, .*, +, .+, -, .-, ==, <, <=, >, |, !, !=,
-                >=, ./, /, .^, ^, \, ∪, transpose, size, to_indexes, reindex, tail
+                >=, ./, /, .^, ^, \, ∪, transpose, size, to_indexes, reindex, tail, index_shape_dim
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
 # we can't do importall Base as we replace some Base definitions

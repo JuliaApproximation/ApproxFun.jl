@@ -130,20 +130,18 @@ function blockbandinds(A::Operator)
 
     return (-∞,∞)
 end
-blockbandwidths(S::Operator) = -blockbandinds(S,1),blockbandinds(S,2)
-blockbandinds(K::Operator,k::Integer) = blockbandinds(K)[k]
-blockbandwidth(K::Operator,k::Integer) = k==1?-blockbandinds(K,k):blockbandinds(K,k)
+
 subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandwidth(K::Operator,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
 # assume dense blocks
 subblockbandinds(K::Operator,k) = k==1 ? 1-maximum(blocklengths(rangespace(K))) : maximum(blocklengths(domainspace(K)))-1
 
-isbandedblockbelow(A) = isfinite(blockbandinds(A,1))
-isbandedblockabove(A) = isfinite(blockbandinds(A,2))
-isbandedblock(A::Operator) = isbandedblockbelow(A) && isbandedblockabove(A)
+isblockbandedbelow(A) = isfinite(blockbandinds(A,1))
+isblockbandedabove(A) = isfinite(blockbandinds(A,2))
+isblockbanded(A::Operator) = isblockbandedbelow(A) && isblockbandedabove(A)
 
-israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isbandedblockbelow(A)
+israggedbelow(A::Operator) = isbandedbelow(A) || isbandedblockbanded(A) || isblockbandedbelow(A)
 
 
 bandwidth(A::Operator) = bandwidth(A,1) + bandwidth(A,2) + 1
@@ -231,14 +229,14 @@ banded_colstop(A::Operator, i::Integer) = min(i+bandwidth(A,1), size(A, 1))
 banded_rowstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,1), 1), size(A, 1))
 banded_rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
 
-bandedblock_colstart(A::Operator, i::Integer) =
+blockbanded_colstart(A::Operator, i::Integer) =
         blockstart(rangespace(A), block(domainspace(A),i)-blockbandwidth(A,2))
-bandedblock_colstop(A::Operator, i::Integer) =
+blockbanded_colstop(A::Operator, i::Integer) =
     min(blockstop(rangespace(A), block(domainspace(A),i)+blockbandwidth(A,1)),
         size(A, 1))
-bandedblock_rowstart(A::Operator, i::Integer) =
+blockbanded_rowstart(A::Operator, i::Integer) =
         blockstart(domainspace(A), block(rangespace(A),i)-blockbandwidth(A,1))
-bandedblock_rowstop(A::Operator, i::Integer) =
+blockbanded_rowstop(A::Operator, i::Integer) =
     min(blockstop(domainspace(A), block(rangespace(A),i)+blockbandwidth(A,2)),
         size(A, 2))
 
@@ -291,8 +289,8 @@ function default_colstart(A::Operator, i::Integer)
         banded_colstart(A,i)
     elseif isbandedblockbanded(A)
         bandedblockbanded_colstart(A, i)
-    elseif isbandedblock(A)
-        bandedblock_colstart(A, i)
+    elseif isblockbanded(A)
+        blockbanded_colstart(A, i)
     else
         unstructured_colstart(A, i)
     end
@@ -303,8 +301,8 @@ function default_colstop(A::Operator, i::Integer)
         banded_colstop(A,i)
     elseif isbandedblockbanded(A)
         bandedblockbanded_colstop(A, i)
-    elseif isbandedblock(A)
-        bandedblock_colstop(A, i)
+    elseif isblockbanded(A)
+        blockbanded_colstop(A, i)
     else
         unstructured_colstop(A, i)
     end
@@ -315,8 +313,8 @@ function default_rowstart(A::Operator, i::Integer)
         banded_rowstart(A,i)
     elseif isbandedblockbanded(A)
         bandedblockbanded_rowstart(A, i)
-    elseif isbandedblock(A)
-        bandedblock_rowstart(A, i)
+    elseif isblockbanded(A)
+        blockbanded_rowstart(A, i)
     else
         unstructured_rowstart(A, i)
     end
@@ -327,8 +325,8 @@ function default_rowstop(A::Operator, i::Integer)
         banded_rowstop(A,i)
     elseif isbandedblockbanded(A)
         bandedblockbanded_rowstop(A, i)
-    elseif isbandedblock(A)
-        bandedblock_rowstop(A, i)
+    elseif isblockbanded(A)
+        blockbanded_rowstop(A, i)
     else
         unstructured_rowstop(A, i)
     end
@@ -395,7 +393,7 @@ macro wrapperstructure(Wrap)
     end
 
     for func in (:(ApproxFun.bandinds),:(Base.stride),
-                 :(ApproxFun.isbandedblockbanded),:(ApproxFun.isbandedblock),
+                 :(ApproxFun.isbandedblockbanded),:(ApproxFun.isblockbanded),
                  :(ApproxFun.israggedbelow),:(Base.size),:(ApproxFun.isbanded),
                  :(ApproxFun.bandwidth),:(ApproxFun.bandwidths),
                  :(ApproxFun.blockbandinds),:(ApproxFun.subblockbandinds),
@@ -462,13 +460,13 @@ macro wrappergetindex(Wrap)
 
 
         # if the spaces change, then we need to be smarter
-        function Base.convert{T,OP<:$Wrap}(::Type{BandedBlockMatrix},S::ApproxFun.SubOperator{T,OP})
+        function Base.convert{T,OP<:$Wrap}(::Type{BlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
             P = parent(S)
             if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
-                BandedBlockMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
+                BlockBandedMatrix(view(parent(S).op,S.indexes[1],S.indexes[2]))
             else
-                default_bandedblockmatrix(S)
+                default_blockbandedmatrix(S)
             end
         end
 
@@ -618,7 +616,7 @@ rzeros(S::Operator) = rzeros(eltype(S),size(S,1),Int[max(0,colstop(S,j)) for j=1
 
 for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                    (:BandedBlockBandedMatrix,:bbbzeros),
-                   (:RaggedMatrix,:rzeros),(:BandedBlockMatrix,:bbzeros))
+                   (:RaggedMatrix,:rzeros),(:BlockBandedMatrix,:bbzeros))
     @eval convert_axpy!(::Type{$TYP},S::Operator) =
         BLAS.axpy!(one(eltype(S)),S,$ZERS(S))
 end
@@ -635,8 +633,8 @@ function Base.convert(::Type{Matrix},S::Operator)
        Matrix(BandedMatrix(S))
    elseif isbandedblockbanded(S)
        Matrix(BandedBlockBandedMatrix(S))
-   elseif isbandedblock(S)
-       Matrix(BandedBlockMatrix(S))
+   elseif isblockbanded(S)
+       Matrix(BlockBandedMatrix(S))
    else
        eltype(S)[S[k,j] for k=1:size(S,1),j=1:size(S,2)]
    end
@@ -644,11 +642,11 @@ end
 
 Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
 
-function Base.convert(::Type{BandedBlockMatrix},S::Operator)
+function Base.convert(::Type{BlockBandedMatrix},S::Operator)
     if isbandedblockbanded(S)
-        BandedBlockMatrix(BandedBlockBandedMatrix(S))
+        BlockBandedMatrix(BandedBlockBandedMatrix(S))
     else
-        default_bandedblockmatrix(S)
+        default_blockbandedmatrix(S)
     end
 end
 
@@ -657,8 +655,8 @@ function Base.convert(::Type{RaggedMatrix},S::Operator)
         RaggedMatrix(BandedMatrix(S))
     elseif isbandedblockbanded(S)
         RaggedMatrix(BandedBlockBandedMatrix(S))
-    elseif isbandedblock(S)
-        RaggedMatrix(BandedBlockMatrix(S))
+    elseif isblockbanded(S)
+        RaggedMatrix(BlockBandedMatrix(S))
     else
         default_raggedmatrix(S)
     end
@@ -684,8 +682,8 @@ function Base.convert(::Type{AbstractMatrix},S::SubOperator)
         BandedMatrix(S)
     elseif isbandedblockbanded(parent(S))
         BandedBlockBandedMatrix(S)
-    elseif isbandedblock(parent(S))
-        BandedBlockMatrix(S)
+    elseif isblockbanded(parent(S))
+        BlockBandedMatrix(S)
     elseif israggedbelow(parent(S))
         RaggedMatrix(S)
     else

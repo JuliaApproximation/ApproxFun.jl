@@ -127,18 +127,16 @@ reindex(A::Operator, B::Tuple{AbstractVector{Block},Any}, kj::Tuple{Any,Any}) =
 reindex(A::Operator, B::Tuple{AbstractVector{Block}}, kj::Tuple{Any}) =
     reindex(domainspace(A),B,kj)
 # Blocks are preserved under ranges
-for TYP in (:Block,:(AbstractVector{Block}),:(AbstractCount{Block}))
+for TYP in (:Block,:(AbstractVector{Block}),:(AbstractCount{Block})),
+        VTYP in (:AbstractVector,:AbstractCount)
     @eval begin
-        reindex(A::Operator, B::Tuple{AbstractVector{Int},Any}, kj::Tuple{$TYP,Any}) =
+        reindex(A::Operator, B::Tuple{$VTYP{Int},Any}, kj::Tuple{$TYP,Any}) =
             (reindex(rangespace(A), (B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
-        reindex(A::Operator, B::Tuple{AbstractVector{Int}}, kj::Tuple{$TYP}) =
-            reindex(domainspace(A),B,kj)
-        reindex(A::Operator, B::Tuple{AbstractCount{Int},Any}, kj::Tuple{$TYP,Any}) =
-            (reindex(rangespace(A), (B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
-        reindex(A::Operator, B::Tuple{AbstractCount{Int}}, kj::Tuple{$TYP}) =
+        reindex(A::Operator, B::Tuple{$VTYP{Int}}, kj::Tuple{$TYP}) =
             reindex(domainspace(A),B,kj)
     end
 end
+
 
 
 view(A::SubOperator,kr::UnitRange,jr::UnitRange) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
@@ -255,7 +253,7 @@ Base.parentindexes(S::SubOperator) = S.indexes
 
 
 
-for OP in (:isbandedblock,:isbandedblockabove,:isbandedblockbelow,
+for OP in (:isblockbanded,:isblockbandedabove,:isblockbandedbelow,
                 :isbandedblockbanded,:isbandedblockbandedabove,
                 :isbandedblockbandedbelow)
     @eval $OP(S::SubOperator) = $OP(parent(S))
@@ -268,8 +266,8 @@ function Base.convert(::Type{RaggedMatrix},S::SubOperator)
         RaggedMatrix(BandedMatrix(S))
     elseif isbandedblockbanded(parent(S))
         RaggedMatrix(BandedBlockBandedMatrix(S))
-    elseif isbandedblock(parent(S))
-        RaggedMatrix(BandedBlockMatrix(S))
+    elseif isblockbanded(parent(S))
+        RaggedMatrix(BlockBandedMatrix(S))
     else
         default_raggedmatrix(S)
     end

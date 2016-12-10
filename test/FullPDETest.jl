@@ -1,7 +1,7 @@
 using ApproxFun, Compat, Base.Test
     import Compat: view
     import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator,
-                        testbandedblockoperator, A_ldiv_B_coefficients
+                        testblockbandedoperator, A_ldiv_B_coefficients
 ## Check operators
 
 ## Rectangle PDEs
@@ -25,7 +25,7 @@ d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
 
-testbandedblockoperator(Dirichlet(d))
+testblockbandedoperator(Dirichlet(d))
 
 
 testbandedblockbandedoperator(Laplacian(d))

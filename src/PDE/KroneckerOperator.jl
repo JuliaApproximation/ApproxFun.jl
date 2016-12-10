@@ -92,7 +92,7 @@ end
 
 bandinds(K::KroneckerOperator) = (-∞,∞)
 
-isbandedblock(K::KroneckerOperator) = all(isbandedblock,K.ops)
+isblockbanded(K::KroneckerOperator) = all(isblockbanded,K.ops)
 isbandedblockbanded(K::KroneckerOperator) =
     all(op->isbanded(op) && isinf(size(op,1)) && isinf(size(op,2)),K.ops)
 israggedbelow(K::KroneckerOperator) = all(israggedbelow,K.ops)

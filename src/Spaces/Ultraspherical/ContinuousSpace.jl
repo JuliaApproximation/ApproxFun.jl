@@ -219,7 +219,7 @@ Dirichlet{T}(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Segment{T}},
 Dirichlet{T<:Real}(d::ProductDomain{Tuple{Segment{T},Segment{T}}}) =
     Dirichlet(ChebyshevDirichlet{1,1}(d[1])*ChebyshevDirichlet{1,1}(d[2]))
 
-isbandedblock{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}}) =
+isblockbanded{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}}) =
     true
 
 blockbandinds{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}}) =
@@ -276,7 +276,7 @@ function getindex{CD<:ChebyshevDirichlet,RB,DD}(B::ConcreteDirichlet{TensorSpace
 end
 
 
-function Base.convert{T,CD<:ChebyshevDirichlet,RB,DD,CSP,TT}(::Type{BandedBlockMatrix},
+function Base.convert{T,CD<:ChebyshevDirichlet,RB,DD,CSP,TT}(::Type{BlockBandedMatrix},
                             S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2},
                                                                 CSP,TT},
                                             Tuple{UnitRange{Int},UnitRange{Int}}})

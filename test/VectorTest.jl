@@ -1,5 +1,5 @@
 using ApproxFun,Base.Test
-    import ApproxFun:interlace,Multiplication,ConstantSpace,TupleSpace,PointSpace,testbandedblockoperator
+    import ApproxFun:interlace,Multiplication,ConstantSpace,TupleSpace,PointSpace,testblockbandedoperator
 
 
 d=Interval()
@@ -122,7 +122,7 @@ G1=demat(mat(G)[:,1])
 @test_approx_eq G1(0.5exp(0.1im)) [1,0.]
 
 M=Multiplication(G,space(G1))
-testbandedblockoperator(M)
+testblockbandedoperator(M)
 
 
 for z in (0.5exp(0.1im),exp(0.2im))
