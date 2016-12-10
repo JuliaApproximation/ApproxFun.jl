@@ -15,6 +15,22 @@ QR=qrfact(Δ)
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f;tolerance=1E-10)
 
+#
+# M = Δ[Block.(1:5),Block.(1:5)]
+#
+# S = view(M,2:10,9:10)
+#     S2 = view(S,Block(2),Block(4))
+#
+#
+#
+#
+# M[Block(2),Block(4)]
+# S2.indexes
+# reindex(S2,S2.indexes,(1,1))
+#
+#
+# Base.checkbounds(Bool,S2,1,1)
+# indices(S2)
 println("Laplace Dirichlet: should be ~0.03, 0.003")
 
 

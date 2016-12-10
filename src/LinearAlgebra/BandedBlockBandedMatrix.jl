@@ -62,11 +62,11 @@ function Base.view(A::BandedBlockBandedMatrix,K::Block,J::Block)
     SubArray{eltype(A),2,typeof(A),Tuple{Block,Block},false}(A, (K,J),
                 sum(A.cols[1:J.K-1])*(A.l+A.u+1)+(K.K-J.K+A.u)*m+1,m)
 end
-Base.indices{T,U,V}(S::BandedBlockBandedBlock{T,U,V}) =
-    (Base.OneTo(parent(S).rows[parentindexes(S)[1].K]),
-     Base.OneTo(parent(S).cols[parentindexes(S)[2].K]))
 
 
+
+
+## Bandedmatrix support
 
 @inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedBlock{T,U,V}) = stride(parent(S).data,2)
 BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int) = k==1 ? parent(S).λ : parent(S).μ

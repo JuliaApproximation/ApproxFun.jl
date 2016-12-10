@@ -193,18 +193,17 @@ function bbbzeros(S::SubOperator)
     dt=domainspace(KO)
 
     k1,j1=reindex(S,parentindexes(S),(1,1))
-    J=block(dt,j1)
-    K=block(rt,k1)
-    bl_sh = J.K-K.K
 
     # each row/column that we differ from the the block start shifts
     # the sub block inds
+    J = block(dt,j1)
+    K = block(rt,k1)
     jsh=j1-blockstart(dt,J)
     ksh=k1-blockstart(rt,K)
 
-    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ+jsh,μ+ksh,
-            blocklengthrange(rt,kr),
-            blocklengthrange(dt,jr))
+    ret=bbbzeros(eltype(KO),-l,u,-λ+jsh,μ+ksh,
+            blocklengths(rangespace(S)),
+            blocklengths(domainspace(S)))
 end
 
 function bbbzeros{T,B}(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})

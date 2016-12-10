@@ -119,7 +119,7 @@ C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
 
 
 # 2d derivative (issue #346)
-let d = Chebyshev()^2
+d = Chebyshev()^2
     f = Fun((x,y) -> sin(x) * cos(y), d)
     C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
     @test_approx_eq (C*f)(0.1,0.2) f(0.1,0.2)
@@ -131,20 +131,69 @@ let d = Chebyshev()^2
     fy = Fun((x,y) -> -sin(x) * sin(y), d)
     @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
     L=Dx+Dy
-    testbandedblockbandedoperator(L)
-    @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 
-    B=ldirichlet(d[1])⊗ldirichlet(d[2])
-    @test_approx_eq Number(B*f) f(-1.,-1.)
+view(C[Block.(1:5),Block.(1:5)],1:5,1:5)
+BlockBandedMatrix(view(C[Block.(1:5),Block.(1:5)],1:5,1:5))
 
-    B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
-    @test_approx_eq Number(B*f) f(0.1,-1.)
+backend_testinfoperator(L)
+[L[1:5,1:5][k,j] for k=1:5,j=1:5]
+L.ops[1].ops[1].op[1:1,2:2]
+for k=1:5,j=1:5
+    @show k,j
+    L[k,j]
+end
+@test_approx_eq co[20:30,20:30] A[1:30,1:30][20:30,20:30]
+A=L;co=cache(A)
+    co[1:10,1:10]
+    col = 30
+    B = co
+    l=B.data.l; u=B.data.u
+    J=block(domainspace(B),col).K
 
-    B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
-    @test_approx_eq Number(B*f) f(0.1,0.3)
+    rows=blocklengths(rangespace(B.op))[1:J+l]
+    cols=blocklengths(domainspace(B.op))[1:J]
 
-    B=Evaluation(d,(0.1,0.3))
-    @test_approx_eq Number(B*f) f(0.1,0.3)
+    B.data.data=pad(B.data.data,:,(l+u+1)*sum(cols))
+    B.data.rows=rows
+    B.data.rowblocks=blocklookup(rows)
+    B.data.cols=cols
+    B.data.colblocks=blocklookup(cols)
+
+    jr=B.datasize[2]+1:col
+    kr=colstart(B.data,jr[1]):colstop(B.data,jr[end])
+    colblocklengths(bbbzeros(view(B.op.ops[1],kr,jr)))
+
+
+colblocklengths(view(B.data,kr,jr))
+
+
+
+
+-l,u
+ops[1],kr,jr))|>blocklengths
+
+
+BLAS.axpy!(1.0,M,view(B.data,kr,jr))
+
+B.datasize = (kr[end],col)
+co[20:30,20:30]
+
+-A[1:30,1:30][20:30,20:30]
+L[1:30,1:30][20:30,20:30]
+
+@test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
+
+B=ldirichlet(d[1])⊗ldirichlet(d[2])
+@test_approx_eq Number(B*f) f(-1.,-1.)
+
+B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
+@test_approx_eq Number(B*f) f(0.1,-1.)
+
+B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
+@test_approx_eq Number(B*f) f(0.1,0.3)
+
+B=Evaluation(d,(0.1,0.3))
+@test_approx_eq Number(B*f) f(0.1,0.3)
 end
 
 

@@ -448,12 +448,19 @@ rowblocklengths(A::SubBandedBlockRange) = parent(A).rows[parentindexes(A)[1]]
 colblocklengths(A::SubBandedBlockRange) = parent(A).cols[parentindexes(A)[2]]
 
 
-
+ ## Indices
 function Base.indices(S::Union{SubBandedBlockSubBlock,SubBandedBlockRange})
     sz = subblocksize(parent(S),parentindexes(S)...)
     (Base.OneTo(sz[1]),
      Base.OneTo(sz[2]))
  end
+ Base.indices{T,BB<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BB,Tuple{Block,Block},false}) =
+     (Base.OneTo(parent(S).rows[parentindexes(S)[1].K]),
+      Base.OneTo(parent(S).cols[parentindexes(S)[2].K]))
+Base.indices{T,BB<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BB,Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}) =
+  (Base.OneTo(length(parentindexes(S)[1].sub)),
+   Base.OneTo(length(parentindexes(S)[2].sub)))
+
 
 parentblock(S::SubBandedBlockSubBlock) =
      view(parent(S),block(parentindexes(S)[1]),block(parentindexes(S)[2]))
@@ -707,6 +714,26 @@ function reindex{T}(A::SubArray{T,2}, B::Tuple{UnitRange{Int}}, j::Tuple{Block})
     J = first(j)
     cols = blockcols(parent(A),J)
     (SubBlock(J,(cols ∩ first(B)) - first(cols) + 1),)
+end
+
+function reindex{T,SSB<:SubBlock}(A::SubArray{T,2}, B::Tuple{UnitRange{Int},Any}, kj::Tuple{SSB,Any})
+    SB = reindex(A,B,(block(kj[1]),kj[2]))
+    (SubBlock(block(SB[1]),SB[1].sub[kj[1].sub]),SB[2])
+end
+function reindex{T,SSB<:SubBlock}(A::SubArray{T,2}, B::Tuple{UnitRange{Int}}, j::Tuple{SSB})
+    SB = reindex(A,B,(block(j[1]),))
+    (SubBlock(block(SB[1]),SB[1].sub[kj[1].sub]),)
+end
+
+function reindex{T,SSB<:SubBlock}(A::SubArray{T,2}, B::Tuple{SSB,Any}, kj::Tuple{Int,Any})
+    SB = first(B)
+    k2 = reindex(nothing,(SB.sub,),(first(kj),))[1]
+    (blockrows(parent(A),block(SB))[1]+k2-1,reindex(A,tail(B),tail(kj))[1])
+end
+function reindex{T,SSB<:SubBlock}(A::SubArray{T,2}, B::Tuple{SSB}, j::Tuple{Int})
+    SB = first(B)
+    j2 = reindex(nothing,(SB.sub,),(first(j),))[1]
+    (blockcols(parent(A),block(SB))[1]+j2-1,)
 end
 
 
