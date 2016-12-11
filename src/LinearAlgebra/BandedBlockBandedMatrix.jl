@@ -117,7 +117,7 @@ BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int) = k==1
 
 @inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}) = stride(parent(S).data,2)
 function BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, k::Int)
-    sh = parentindexes(S)[1].sub[1]-parentindexes(S)[2].sub[1]
+    sh = first(parentindexes(S)[1].sub)-first(parentindexes(S)[2].sub)
     k==1 ? parent(S).λ-sh : parent(S).μ+sh
 end
 
