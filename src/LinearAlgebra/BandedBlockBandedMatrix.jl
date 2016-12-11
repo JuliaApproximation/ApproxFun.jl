@@ -65,6 +65,7 @@ zeroblock(X::BandedBlockBandedMatrix,K::Block,J::Block) = bzeros(eltype(X),X.row
 
 
 typealias BandedBlockBandedBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
+typealias BandedBlockBandedSubBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}
 typealias SubBandedBlockBandedRange{T,BBM<:BandedBlockBandedMatrix} SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
 typealias BLASBandedMatrix2{T,A,I} Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
 
@@ -72,11 +73,12 @@ isbandedblockbanded(::SubBandedBlockBandedRange) = true
 isbandedblockbanded{T,BBM<:BandedBlockBandedMatrix}(::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false}) = true
 
 BandedMatrices.isbanded{T,U,V}(::BandedBlockBandedBlock{T,U,V}) = true
-function Base.view(A::BandedBlockBandedMatrix,K::Block,J::Block)
-    m = A.cols[J.K]
+
+function Base.view(A::BandedBlockBandedMatrix,K::Union{Block,SubBlock},J::Union{Block,SubBlock})
+    m = A.cols[block(J).K]
     # we obuse the extra variables to store some data
-    SubArray{eltype(A),2,typeof(A),Tuple{Block,Block},false}(A, (K,J),
-                sum(A.cols[1:J.K-1])*(A.l+A.u+1)+(K.K-J.K+A.u)*m+1,m)
+    SubArray{eltype(A),2,typeof(A),Tuple{typeof(K),typeof(J)},false}(A, (K,J),
+                sum(A.cols[1:block(J).K-1])*(A.l+A.u+1)+(block(K).K-block(J).K+A.u)*m+1,m)
 end
 
 
@@ -105,16 +107,27 @@ end
 
 
 
+
+
 ## Bandedmatrix support
 
 @inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedBlock{T,U,V}) = stride(parent(S).data,2)
 BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int) = k==1 ? parent(S).λ : parent(S).μ
 
 
+@inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}) = stride(parent(S).data,2)
+function BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, k::Int)
+    sh = parentindexes(S)[1].sub[1]-parentindexes(S)[2].sub[1]
+    k==1 ? parent(S).λ-sh : parent(S).μ+sh
+end
+
+
 subblockbandwidths(K) = -subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandinds(K) = subblockbandinds(K,1),subblockbandinds(K,2)
 subblockbandwidth(K,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
 subblockbandinds(K::BandedBlockBandedMatrix,k::Integer) = k==1 ? -K.λ : K.μ
+
+
 
 
 
@@ -135,6 +148,28 @@ end
     v
 end
 
+@inline function inbands_getindex{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, k::Int, j::Int)
+    A = parent(S)
+    col = S.offset1 # first col of current block
+    u=A.μ
+    SK,SJ = parentindexes(S)
+    k,j = SK.sub[k],SJ.sub[j]
+    j_sh  = j+col-1  # shift column to get correct column
+    A.data[u + k - j + 1, j_sh]
+end
+
+@inline function inbands_setindex!{T,U,V}(S::BandedBlockBandedSubBlock{T,U,V}, v, k::Int, j::Int)
+    A = parent(S)
+    col = S.offset1 # first col of current block
+    u=A.μ
+    SK,SJ = parentindexes(S)
+    k,j = SK.sub[k],SJ.sub[j]
+    j_sh  = j+col-1  # shift column to get correct column
+    @inbounds A.data[u + k - j + 1, j_sh] = convert(T, v)::T
+    v
+end
+
+
 function getindex{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int, j::Int)
     A = parent(S)
     col = S.offset1 # first col of current block
@@ -154,8 +189,17 @@ getindex(A::BandedBlockBandedMatrix,kr::UnitRange{Int},jr::UnitRange{Int}) =
 
 ## algebra
 
-BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) =
+
+
+BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) =
     BandedMatrices.banded_axpy!(α,A,B)
+
+BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedBlock{T2,U2,V2}) =
+    BandedMatrices.banded_axpy!(α,A,B)
+
+BLAS.axpy!{T,U,V,T2,U2,V2}(α,A::BandedBlockBandedSubBlock{T,U,V},B::BandedBlockBandedSubBlock{T2,U2,V2}) =
+    BandedMatrices.banded_axpy!(α,A,B)
+
 
 BLAS.axpy!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},B::SubBandedBlockSubBlock) =
     BandedMatrices.banded_dense_axpy!(α,A,blockview(B))

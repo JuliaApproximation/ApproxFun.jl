@@ -128,10 +128,8 @@ setindex!(A::AbstractBlockMatrix,V,k,J::Block) = (view(A,k,blockcols(A,J)) .= V)
 
 Base.size(A::AbstractBlockMatrix) = sum(A.rows),sum(A.cols)
 
-
-blocksize(A::AbstractMatrix) = length(rowblocklengths(A)),length(colblocklengths(A))
 blocksize(A::AbstractMatrix,k::Int) = k==1?length(rowblocklengths(A)):length(colblocklengths(A))
-
+blocksize(A::AbstractMatrix) = blocksize(A,1),blocksize(A,2)
 
 
 function blockmatrix_αA_mul_B_plus_βC!(α,A,x,β,y)
@@ -167,8 +165,8 @@ function block_axpy!(α,A,Y)
         throw(BoundsError())
     end
 
-    for J=1:blocksize(A,2), K=blockcolrange(A,J)
-        BLAS.axpy!(α,view(A,Block(K),Block(J)),view(Y,Block(K),Block(J)))
+    for J=Block.(1:blocksize(A,2)), K=blockcolrange(A,J)
+        BLAS.axpy!(α,view(A,K,J),view(Y,K,J))
     end
     Y
 end
@@ -192,18 +190,25 @@ end
 
 ## Sub Block
 
+blocksize{T,BBM<:AbstractBlockMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}}},k::Int) =
+    k == 1 ? parent(S).rowblocks[last(parentindexes(S)[1])] : parent(S).colblocks[last(parentindexes(S)[2])]
+
 function rowblocklengths{T,BBM<:AbstractBlockMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}}})
     P = parent(S)
     kr = parentindexes(S)[1]
     B1=P.rowblocks[kr[1]]
     B2=P.rowblocks[kr[end]]
-    # if the blocks are equal, we have only one bvlock
-    B1 == B2 && return [zeros(Int,B1-1);length(kr)]
 
-    [zeros(Int,B1-1);
-        blockrows(P,B1)[end]-kr[1]+1;
-        P.rows[B1+1:B2-1];
-        kr[end]-blockrows(P,B2)[1]+1]
+    ret = zeros(Int,B2)
+    # if the blocks are equal, we have only one bvlock
+    if B1 == B2
+        ret[end] = length(kr)
+    else
+        ret[B1] = blockrows(P,B1)[end]-kr[1]+1
+        ret[B1+1:B2-1] = view(P.rows,B1+1:B2-1)
+        ret[end] = kr[end]-blockrows(P,B2)[1]+1
+    end
+    ret
 end
 
 function colblocklengths{T,BBM<:AbstractBlockMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}}})
@@ -211,13 +216,17 @@ function colblocklengths{T,BBM<:AbstractBlockMatrix}(S::SubArray{T,2,BBM,Tuple{U
     jr = parentindexes(S)[2]
     B1=P.colblocks[jr[1]]
     B2=P.colblocks[jr[end]]
-    # if the blocks are equal, we have only one bvlock
-    B1 == B2 && return [zeros(Int,B1-1);length(jr)]
 
-    [zeros(Int,B1-1);
-        blockcols(P,B1)[end]-jr[1]+1;
-        P.cols[B1+1:B2-1];
-        jr[end]-blockcols(P,B2)[1]+1]
+    ret = zeros(Int,B2)
+    # if the blocks are equal, we have only one bvlock
+    if B1 == B2
+        ret[end] = length(jr)
+    else
+        ret[B1] = blockcols(P,B1)[end]-jr[1]+1
+        ret[B1+1:B2-1] = view(P.cols,B1+1:B2-1)
+        ret[end] = jr[end]-blockcols(P,B2)[1]+1
+    end
+    ret
 end
 
 
@@ -274,7 +283,7 @@ blockbandwidth(K,k::Integer) = k==1 ? -blockbandinds(K,k) : blockbandinds(K,k)
 blockcolstart(A::AbstractBlockBandedMatrix,J::Int) = Block(max(1,J-A.u))
 blockcolstop(A::AbstractBlockBandedMatrix,J::Int) = Block(min(length(A.rows),J+A.l))
 blockcolstart(A::AbstractMatrix,J::Int) = Block(max(1,J-blockbandwidth(A,2)))
-blockcolstop(A::AbstractMatrix,J::Int) = Block(min(length(rowblocklengths(A)),J+blockbandwidth(A,1)))
+blockcolstop(A::AbstractMatrix,J::Int) = Block(min(blocksize(A,1),J+blockbandwidth(A,1)))
 blockcolrange(A,J) = blockcolstart(A,J):blockcolstop(A,J)
 
 blockrowstart(A::AbstractBlockBandedMatrix,K::Int) = Block(max(1,K-A.l))
