@@ -127,18 +127,16 @@ reindex(A::Operator, B::Tuple{AbstractVector{Block},Any}, kj::Tuple{Any,Any}) =
 reindex(A::Operator, B::Tuple{AbstractVector{Block}}, kj::Tuple{Any}) =
     reindex(domainspace(A),B,kj)
 # Blocks are preserved under ranges
-for TYP in (:Block,:(AbstractVector{Block}),:(AbstractCount{Block}))
+for TYP in (:Block,:(AbstractVector{Block}),:(AbstractCount{Block})),
+        VTYP in (:AbstractVector,:AbstractCount)
     @eval begin
-        reindex(A::Operator, B::Tuple{AbstractVector{Int},Any}, kj::Tuple{$TYP,Any}) =
+        reindex(A::Operator, B::Tuple{$VTYP{Int},Any}, kj::Tuple{$TYP,Any}) =
             (reindex(rangespace(A), (B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
-        reindex(A::Operator, B::Tuple{AbstractVector{Int}}, kj::Tuple{$TYP}) =
-            reindex(domainspace(A),B,kj)
-        reindex(A::Operator, B::Tuple{AbstractCount{Int},Any}, kj::Tuple{$TYP,Any}) =
-            (reindex(rangespace(A), (B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
-        reindex(A::Operator, B::Tuple{AbstractCount{Int}}, kj::Tuple{$TYP}) =
+        reindex(A::Operator, B::Tuple{$VTYP{Int}}, kj::Tuple{$TYP}) =
             reindex(domainspace(A),B,kj)
     end
 end
+
 
 
 view(A::SubOperator,kr::UnitRange,jr::UnitRange) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
@@ -195,18 +193,17 @@ function bbbzeros(S::SubOperator)
     dt=domainspace(KO)
 
     k1,j1=reindex(S,parentindexes(S),(1,1))
-    J=block(dt,j1)
-    K=block(rt,k1)
-    bl_sh = J.K-K.K
 
     # each row/column that we differ from the the block start shifts
     # the sub block inds
+    J = block(dt,j1)
+    K = block(rt,k1)
     jsh=j1-blockstart(dt,J)
     ksh=k1-blockstart(rt,K)
 
-    ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ+jsh,μ+ksh,
-            blocklengthrange(rt,kr),
-            blocklengthrange(dt,jr))
+    ret=bbbzeros(eltype(KO),-l,u,-λ+jsh,μ+ksh,
+            blocklengths(rangespace(S)),
+            blocklengths(domainspace(S)))
 end
 
 function bbbzeros{T,B}(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
@@ -255,7 +252,7 @@ Base.parentindexes(S::SubOperator) = S.indexes
 
 
 
-for OP in (:isbandedblock,:isbandedblockabove,:isbandedblockbelow,
+for OP in (:isblockbanded,:isblockbandedabove,:isblockbandedbelow,
                 :isbandedblockbanded,:isbandedblockbandedabove,
                 :isbandedblockbandedbelow)
     @eval $OP(S::SubOperator) = $OP(parent(S))
@@ -268,8 +265,8 @@ function Base.convert(::Type{RaggedMatrix},S::SubOperator)
         RaggedMatrix(BandedMatrix(S))
     elseif isbandedblockbanded(parent(S))
         RaggedMatrix(BandedBlockBandedMatrix(S))
-    elseif isbandedblock(parent(S))
-        RaggedMatrix(BandedBlockMatrix(S))
+    elseif isblockbanded(parent(S))
+        RaggedMatrix(BlockBandedMatrix(S))
     else
         default_raggedmatrix(S)
     end

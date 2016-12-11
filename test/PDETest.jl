@@ -1,5 +1,5 @@
 using ApproxFun, Base.Test, Compat, Base.Test
-    import ApproxFun: testbandedblockbandedoperator, testbandedblockoperator
+    import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator
 
 ## Check operators
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
@@ -37,12 +37,12 @@ dx=dy=Interval()
 d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
-testbandedblockoperator(Dirichlet(d))
+testblockbandedoperator(Dirichlet(d))
 testbandedblockbandedoperator(Laplacian(d)+0.0I)
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
 
-testbandedblockoperator(ApproxFun.interlace(A))
+testblockbandedoperator(ApproxFun.interlace(A))
 
 @time u=A\[g,0.]
 

@@ -216,10 +216,10 @@ blockbandinds(M::InterlaceOperator) =
     (mapreduce(op->blockbandinds(op,1),min,M.ops),
      mapreduce(op->blockbandinds(op,2),max,M.ops))
 
-isbandedblock(M::InterlaceOperator) = all(isbandedblock,M.ops)
+isblockbanded(M::InterlaceOperator) = all(isblockbanded,M.ops)
 
 function blockcolstop(M::InterlaceOperator,J::Integer)
-    if isbandedblockbelow(M)
+    if isblockbandedbelow(M)
         Block(J - blockbandinds(M,1))
     else
         mapreduce(op->blockcolstop(op,J),max,M.ops)
@@ -232,7 +232,7 @@ function colstop{T}(M::InterlaceOperator{T},j::Integer)
 #    b=bandwidth(M,1)
     if isbandedbelow(M)
         min(j+bandwidth(M,1)::Int,size(M,1))::Int
-    elseif isbandedblockbelow(M)
+    elseif isblockbandedbelow(M)
         J=block(domainspace(M),j)::Block
         blockstop(rangespace(M),blockcolstop(M,J)::Block)::Int
     else #assume is raggedbelow
@@ -330,7 +330,7 @@ end
 
 
 for (TYP,ZER) in ((:Matrix,:zeros),(:BandedMatrix,:bzeros),(:RaggedMatrix,:rzeros),
-                    (:BandedBlockMatrix,:bbzeros))
+                    (:BlockBandedMatrix,:bbzeros))
     @eval begin
         function Base.convert{SS,PS,DI,RI,BI,T}(::Type{$TYP},
                                 S::SubOperator{T,InterlaceOperator{T,1,SS,PS,DI,RI,BI},
@@ -396,12 +396,12 @@ end
 
 
 ## Build block-by-block
-function bandedblock_interlace_convert!(S,ret)
+function blockbanded_interlace_convert!(S,ret)
     T = eltype(S)
     KR,JR = parentindexes(S)
     l,u=blockbandwidths(S)::Tuple{Int,Int}
 
-    M=map(op->BandedBlockMatrix(view(op,KR,JR)),parent(S).ops)
+    M=map(op->BlockBandedMatrix(view(op,KR,JR)),parent(S).ops)
 
     for J=Block(1):Block(blocksize(ret,2)),K=blockcolrange(ret,J)
         Bs=view(ret,K,J)
@@ -422,10 +422,10 @@ function bandedblock_interlace_convert!(S,ret)
 end
 
 for d in (:1,:2)
-    @eval Base.convert{SS,PS,DI,RI,BI,T}(::Type{BandedBlockMatrix},
+    @eval Base.convert{SS,PS,DI,RI,BI,T}(::Type{BlockBandedMatrix},
                             S::SubOperator{T,InterlaceOperator{T,$d,SS,PS,DI,RI,BI},
                                             Tuple{UnitRange{Block},UnitRange{Block}}}) =
-    bandedblock_interlace_convert!(S,bbzeros(S))
+    blockbanded_interlace_convert!(S,bbzeros(S))
 end
 
 

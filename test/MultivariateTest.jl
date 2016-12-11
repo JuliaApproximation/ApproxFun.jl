@@ -1,6 +1,5 @@
 using ApproxFun, Base.Test
     import ApproxFun: testbandedblockbandedoperator
-import Compat: view
 
 
 for k=0:5,j=0:5
@@ -113,7 +112,8 @@ f=LowRankFun(f)
 Mx=Multiplication(Fun(cos),Chebyshev())
 My=Multiplication(Fun(sin),Chebyshev())
 K=Mx⊗My
-@test_approx_eq ApproxFun.BandedBlockBandedMatrix(view(K,1:10,1:10)) K[1:10,1:10]
+
+@test_approx_eq ApproxFun.BandedBlockBandedMatrix(view(K,1:10,1:10)) [K[k,j] for k=1:10,j=1:10]
 C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
 @test_approx_eq C[1:100,1:100] Float64[C[k,j] for k=1:100,j=1:100]
 
@@ -132,6 +132,7 @@ let d = Chebyshev()^2
     @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
     L=Dx+Dy
     testbandedblockbandedoperator(L)
+
     @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(d[1])⊗ldirichlet(d[2])

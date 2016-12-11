@@ -107,7 +107,7 @@ end
 
 
 for TYP in (:RaggedMatrix,:Matrix,:BandedMatrix,
-            :BandedBlockMatrix,:BandedBlockBandedMatrix)
+            :BlockBandedMatrix,:BandedBlockBandedMatrix)
     @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP,Tuple{UnitRange{Block},UnitRange{Block}}}) =
         convert_axpy!($TYP,P)   # use axpy! to copy
     @eval Base.convert{T,PP<:PlusOperator}(::Type{$TYP},P::SubOperator{T,PP}) =
@@ -197,7 +197,7 @@ getindex(P::ConstantTimesOperator,k::Integer...) =
 
 for (TYP,ZERS) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                    (:BandedBlockBandedMatrix,:bbbzeros),
-                   (:RaggedMatrix,:rzeros),(:BandedBlockMatrix,:bbzeros))
+                   (:RaggedMatrix,:rzeros),(:BlockBandedMatrix,:bbzeros))
     @eval begin
         # avoid ambiugity
         Base.convert{T,OP<:ConstantTimesOperator}(::Type{$TYP},
@@ -371,7 +371,7 @@ end
 
 for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
                     (:BandedBlockBandedMatrix,:bbbzeros),
-                    (:BandedBlockMatrix,:bbzeros),
+                    (:BlockBandedMatrix,:bbzeros),
                     (:RaggedMatrix,:rzeros))
     @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Int},UnitRange{Int}}})
@@ -431,7 +431,7 @@ end
 
 
 for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
-                    (:BandedBlockMatrix,:bbzeros))
+                    (:BlockBandedMatrix,:bbzeros))
     @eval function Base.convert{T,TO<:TimesOperator}(::Type{$STyp},
                         S::SubOperator{T,TO,Tuple{UnitRange{Block},UnitRange{Block}}})
         P=parent(S)

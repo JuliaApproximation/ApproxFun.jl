@@ -7,7 +7,7 @@ module ApproxFun
 import Base.LinAlg: BlasFloat
 
 import Base: values, getindex, setindex!, *, .*, +, .+, -, .-, ==, <, <=, >, |, !, !=,
-                >=, ./, /, .^, ^, \, ∪, transpose, size, to_indexes, reindex, tail
+                >=, ./, /, .^, ^, \, ∪, transpose, size, to_indexes, reindex, tail, index_shape_dim
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
 # we can't do importall Base as we replace some Base definitions
@@ -25,7 +25,7 @@ import Base: sinpi, cospi, airy, besselh, exp,
                     atan, acos, asin, erfc, inv
 
 
-import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
+import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
                         dot, dotu, normalize!, flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,

@@ -92,7 +92,7 @@ end
 
 bandinds(K::KroneckerOperator) = (-∞,∞)
 
-isbandedblock(K::KroneckerOperator) = all(isbandedblock,K.ops)
+isblockbanded(K::KroneckerOperator) = all(isblockbanded,K.ops)
 isbandedblockbanded(K::KroneckerOperator) =
     all(op->isbanded(op) && isinf(size(op,1)) && isinf(size(op,2)),K.ops)
 israggedbelow(K::KroneckerOperator) = all(israggedbelow,K.ops)
@@ -344,38 +344,29 @@ Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblo
 
 function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
                                                 S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
-    kr,jr=parentindexes(S)
-    KO=parent(S)
-    l,u=blockbandinds(KO)
-    λ,μ=subblockbandinds(KO)
+    kr,jr = parentindexes(S)
+    KO = parent(S)
 
-    rt=rangetensorizer(KO)
-    dt=domaintensorizer(KO)
-    ret=bbbzeros(S)
+    rt = rangetensorizer(KO)
+    dt = domaintensorizer(KO)
 
-    A,B=KO.ops
-    K=block(rt,kr[end]);J=block(dt,jr[end])
-    AA=A[Block(1):Block(K),Block(1):Block(J)]
-    BB=B[Block(1):Block(K),Block(1):Block(J)]
+    KR = block(rt,kr[1]):block(rt,kr[end])
+    JR = block(dt,jr[1]):block(dt,jr[end])
 
+    # use fast block version
+    M = BandedBlockBandedMatrix(view(KO,KR,JR))
+    k_st = kr[1]-blockstart(rt,KR[1])+1
+    j_st = jr[1]-blockstart(dt,JR[1])+1
+    ret = M[k_st:k_st+length(kr)-1,j_st:j_st+length(jr)-1]
 
-    Jsh=block(dt,jr[1])-1
-    Ksh=block(rt,kr[1])-1
-
-
-    for J=Block(1):Block(blocksize(ret,2))
-        # only first block can be shifted inside block
-        jsh = J==Block(1)?jr[1]-blockstart(dt,J+Jsh):0
-        for K=blockcolrange(ret,J)
-            Bs=view(ret,K,J)
-            ksh=K==Block(1)?kr[1]-blockstart(dt,K+Ksh):0
-            for j=1:size(Bs,2),k=colrange(Bs,j)
-                κ,ν=subblock2tensor(rt,K+Ksh,k+ksh)
-                ξ,μ=subblock2tensor(dt,J+Jsh,j+jsh)
-                Bs[k,j]=AA[κ,ξ]*BB[ν,μ]
-            end
-        end
-    end
+    # add zero blocks
+    prepend!(ret.rows,zeros(Int,KR[1].K-1))
+    prepend!(ret.cols,zeros(Int,JR[1].K-1))
+    ret.rowblocks[:] += KR[1].K-1
+    ret.colblocks[:] += JR[1].K-1
+    BSH = (JR[1].K-1) - (KR[1].K-1)
+    ret.l -= BSH
+    ret.u += BSH
 
     ret
 end

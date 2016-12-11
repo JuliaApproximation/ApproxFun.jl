@@ -3,8 +3,8 @@
 
 # # default copy is to loop through
 # # override this for most operators.
-function default_bandedblockmatrix(S::Operator)
-    ret=BandedBlockMatrix(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
+function default_blockbandedmatrix(S::Operator)
+    ret=BlockBandedMatrix(eltype(S),blockbandwidth(S,1),blockbandwidth(S,2),
             blocklengths(rangespace(S)),blocklengths(domainspace(S)))
 
     @inbounds for J=Block(1):Block(blocksize(ret,2)),K=blockcolrange(ret,J)
@@ -52,10 +52,10 @@ diagblockshift(op::Operator) =
     diagblockshift(blocklengths(domainspace(op)),blocklengths(rangespace(op)))
 
 
-function CachedOperator(::Type{BandedBlockMatrix},op::Operator;padding::Bool=false)
+function CachedOperator(::Type{BlockBandedMatrix},op::Operator;padding::Bool=false)
     l,u=blockbandwidths(op)
     padding && (u+=l+diagblockshift(op))
-    data=BandedBlockMatrix(eltype(op),l,u,
+    data=BlockBandedMatrix(eltype(op),l,u,
                             blocklengths(rangespace(op))[1:0],
                             blocklengths(domainspace(op))[1:0])
     CachedOperator(op,data,(0,0),domainspace(op),rangespace(op),(-l,u),padding)
@@ -67,7 +67,7 @@ end
 
 ## Grow cached operator
 #
-function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI,DI}},::Colon,col::Integer)
+function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},::Colon,col::Integer)
     if col > size(B,2)
         throw(ArgumentError("Cannot resize beyound size of operator"))
     end
@@ -108,18 +108,18 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI
     B
 end
 
-resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockMatrix{T,RI,DI}},n::Integer,m::Integer) =
+resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer) =
     resizedata!(B,:,m)
 
 
 ## QR
 # we use a RaggedMatrix to represent the growing lengths of the
 # householder reflections
-QROperator{T,DDS,RRS}(R::CachedOperator{T,BandedBlockMatrix{T,DDS,RRS}}) =
+QROperator{T,DDS,RRS}(R::CachedOperator{T,BlockBandedMatrix{T,DDS,RRS}}) =
     QROperator(R,RaggedMatrix(T,0,Int[]),0)
 
 
-function resizedata!{T,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOperator{T,BandedBlockMatrix{T,DDS,RRS},
+function resizedata!{T,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T,DDS,RRS},
                                                                  MM,DS,RS,BI}},
                         ::Colon,col)
     if col ≤ QR.ncols
@@ -179,7 +179,7 @@ end
 
 
 
-function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOperator{T,BandedBlockMatrix{T,DDS,RRS},
+function resizedata!{T<:BlasFloat,MM,DS,RS,DDS,RRS,BI}(QR::QROperator{CachedOperator{T,BlockBandedMatrix{T,DDS,RRS},
                                                                  MM,DS,RS,BI}},
                         ::Colon,col)
     if col ≤ QR.ncols

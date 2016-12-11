@@ -201,8 +201,8 @@ function testbandedoperator(A)
 end
 
 
-function testbandedblockoperator(A)
-    @test isbandedblock(A)
+function testblockbandedoperator(A)
+    @test isblockbanded(A)
     testraggedbelowoperator(A)
     @test isfinite(blockbandwidth(A,2))
     @test isfinite(blockbandwidth(A,1))
@@ -215,7 +215,7 @@ end
 
 function testbandedblockbandedoperator(A)
     @test isbandedblockbanded(A)
-    testbandedblockoperator(A)
+    testblockbandedoperator(A)
     @test isfinite(subblockbandwidth(A,1))
     @test isfinite(subblockbandwidth(A,2))
 
