@@ -56,7 +56,7 @@ Base.show(io::IO,f::Fun{ConstantSpace{AnyDomain}}) =
     print(io,"$(Number(f)) anywhere")
 
 Base.show{DD}(io::IO,f::Fun{ConstantSpace{DD}}) =
-    print(io,"$(Number(f)) on $(domain(f))")    
+    print(io,"$(Number(f)) on $(domain(f))")
 
 for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     TYP=parse(typ)
@@ -204,7 +204,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
 
             M=Array(Any,11,11)
             fill!(M,PrintShow(""))
-            for (k,j)=eachbandedindex(BM)
+            for j = 1:size(BM,2),k = colrange(BM,j)
                 M[k,j]=BM[k,j]
             end
 
@@ -282,7 +282,7 @@ function Base.show{T<:Operator}(io::IO, ::MIME"text/plain", A::Vector{T}; header
         B = A[end]
         BM=B[1:10-nf,1:10]
 
-        for (k,j)=eachbandedindex(BM)
+        for j = 1:size(BM,2), k = colrange(BM,j)
             MM[k,j]=BM[k,j]
         end
 

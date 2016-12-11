@@ -357,7 +357,18 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
     M = BandedBlockBandedMatrix(view(KO,KR,JR))
     k_st = kr[1]-blockstart(rt,KR[1])+1
     j_st = jr[1]-blockstart(dt,JR[1])+1
-    M[k_st:k_st+length(kr)-1,j_st:j_st+length(jr)-1]
+    ret = M[k_st:k_st+length(kr)-1,j_st:j_st+length(jr)-1]
+
+    # add zero blocks
+    prepend!(ret.rows,zeros(Int,KR[1].K-1))
+    prepend!(ret.cols,zeros(Int,JR[1].K-1))
+    ret.rowblocks[:] += KR[1].K-1
+    ret.colblocks[:] += JR[1].K-1
+    BSH = (JR[1].K-1) - (KR[1].K-1)
+    ret.l -= BSH
+    ret.u += BSH
+
+    ret
 end
 
 

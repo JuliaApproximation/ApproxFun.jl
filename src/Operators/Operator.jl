@@ -131,9 +131,6 @@ function blockbandinds(A::Operator)
     return (-∞,∞)
 end
 
-subblockbandwidths(K::Operator) = -subblockbandinds(K,1),subblockbandinds(K,2)
-subblockbandinds(K::Operator) = subblockbandinds(K,1),subblockbandinds(K,2)
-subblockbandwidth(K::Operator,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
 # assume dense blocks
 subblockbandinds(K::Operator,k) = k==1 ? 1-maximum(blocklengths(rangespace(K))) : maximum(blocklengths(domainspace(K)))-1
 

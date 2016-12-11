@@ -25,7 +25,7 @@ import Base: sinpi, cospi, airy, besselh, exp,
                     atan, acos, asin, erfc, inv
 
 
-import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, eachbandedindex, bandshift,
+import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
                         inbands_getindex, inbands_setindex!, bandwidth, AbstractBandedMatrix,
                         dot, dotu, normalize!, flipsign,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,

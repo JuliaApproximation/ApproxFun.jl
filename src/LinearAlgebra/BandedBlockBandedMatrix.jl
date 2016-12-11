@@ -33,6 +33,16 @@ for FUNC in (:zeros,:rand,:ones)
         BandedBlockBandedMatrix($FUNC(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
 end
 
+function Base.convert(::Type{BandedBlockBandedMatrix},Y::AbstractMatrix)
+    if !isbandedblockbanded(Y)
+        error("$(typeof(Y)) is not banded block banded")
+    end
+    ret = bbbzeros(eltype(Y),blockbandwidth(Y,1),blockbandwidth(Y,2),
+                        subblockbandwidth(Y,1),subblockbandwidth(Y,2),
+                        rowblocklengths(Y),colblocklengths(Y))
+    BLAS.axpy!(one(eltype(Y)),Y,ret)
+end
+
 
 function BandedMatrix(B::BandedBlockBandedMatrix)
     if length(B.rows) == length(B.cols) == 1
@@ -43,6 +53,9 @@ function BandedMatrix(B::BandedBlockBandedMatrix)
         error("$B is not a banded matrix")
     end
 end
+
+isbandedblockbanded(::) = false
+isbandedblockbanded(::BandedBlockBandedMatrix) = true
 
 
 Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u
@@ -55,6 +68,9 @@ typealias BandedBlockBandedBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U
 typealias SubBandedBlockBandedRange{T,BBM<:BandedBlockBandedMatrix} SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
 typealias BLASBandedMatrix2{T,A,I} Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
 
+isbandedblockbanded(::SubBandedBlockBandedRange) = true
+isbandedblockbanded{T,BBM<:BandedBlockBandedMatrix}(::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false}) = true
+
 BandedMatrices.isbanded{T,U,V}(::BandedBlockBandedBlock{T,U,V}) = true
 function Base.view(A::BandedBlockBandedMatrix,K::Block,J::Block)
     m = A.cols[J.K]
@@ -65,11 +81,40 @@ end
 
 
 
+function subblockbandinds{T,BBM<:BandedBlockBandedMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false},k)
+    P = parent(S)
+    kr,jr = parentindexes(S)
+    if k == 1
+        JR1 = P.colblocks[jr[1]]
+        j_st = jr[1]-blockcols(P,JR1)[1]+1
+        λ = subblockbandwidth(P,1)
+        -(λ + j_st - 1)
+    else
+        KR1 = P.rowblocks[kr[1]]
+        # amount that a block is shift
+        k_st = kr[1]-blockrows(P,KR1)[1]+1
+        μ = subblockbandwidth(P,2)
+        μ + k_st - 1
+    end
+end
+
+# the bandwidths will grow from a truncated matrix
+
+
+
+
+
 
 ## Bandedmatrix support
 
 @inline BandedMatrices.leadingdimension{T,U,V}(S::BandedBlockBandedBlock{T,U,V}) = stride(parent(S).data,2)
 BandedMatrices.bandwidth{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, k::Int) = k==1 ? parent(S).λ : parent(S).μ
+
+
+subblockbandwidths(K) = -subblockbandinds(K,1),subblockbandinds(K,2)
+subblockbandinds(K) = subblockbandinds(K,1),subblockbandinds(K,2)
+subblockbandwidth(K,k::Integer) = k==1?-subblockbandinds(K,k):subblockbandinds(K,k)
+subblockbandinds(K::BandedBlockBandedMatrix,k::Integer) = k==1 ? -K.λ : K.μ
 
 
 
@@ -102,6 +147,9 @@ function setindex!{T,U,V}(S::BandedBlockBandedBlock{T,U,V}, v, k::Int, j::Int)
     BandedMatrices.banded_setindex!(view(A.data,:,col:col+S.stride1-1),A.λ,A.μ,v,k,j)
 end
 
+
+getindex(A::BandedBlockBandedMatrix,kr::UnitRange{Int},jr::UnitRange{Int}) =
+    BandedBlockBandedMatrix(view(A,kr,jr))
 
 
 ## algebra
@@ -180,6 +228,11 @@ function *{T<:Number,V<:Number}(A::BandedBlockBandedMatrix{T},
                                      A.λ+B.λ,A.μ+B.μ,A.rows,B.cols),
              A,B)
 end
+
+
+
+# convert
+
 
 
 
