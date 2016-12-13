@@ -584,6 +584,11 @@ end
 
 
 ## Operations
+function A_mul_B_coefficients(A::Operator,b)
+    n=size(b,1)
+    ret = n>0 ? A_mul_B_coefficients(view(A,FiniteRange,1:n),b) : b
+end
+
 function A_mul_B_coefficients(A::TimesOperator,b)
     ret = b
     for k=length(A.ops):-1:1
@@ -593,11 +598,6 @@ function A_mul_B_coefficients(A::TimesOperator,b)
     ret
 end
 
-
-function A_mul_B_coefficients(A::Operator,b)
-    n=size(b,1)
-    ret = n>0 ? A[FiniteRange,1:n]*b : b
-end
 
 function *(A::Operator,b)
     ds = domainspace(A)

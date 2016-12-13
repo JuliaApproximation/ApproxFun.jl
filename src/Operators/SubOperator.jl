@@ -209,8 +209,8 @@ end
 function bbbzeros{T,B}(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block}}})
     KR,JR=parentindexes(S)
     KO=parent(S)
-    l,u=blockbandinds(KO)
-    λ,μ=subblockbandinds(KO)
+    l,u=blockbandinds(KO)::Tuple{Int,Int}
+    λ,μ=subblockbandinds(KO)::Tuple{Int,Int}
 
     rt=rangespace(KO)
     dt=domainspace(KO)
@@ -218,9 +218,11 @@ function bbbzeros{T,B}(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{Block
     K=KR[1]
     bl_sh = J.K-K.K
 
+    KBR = blocklengthrange(rt,KR)
+    KJR = blocklengthrange(dt,JR)
+
     ret=bbbzeros(eltype(KO),-l+bl_sh,u-bl_sh,-λ,μ,
-            blocklengthrange(rt,KR),
-            blocklengthrange(dt,JR))
+            KBR,KJR)
 end
 
 
@@ -281,4 +283,15 @@ function Base.convert{T,B}(::Type{BandedMatrix},S::SubOperator{T,B,Tuple{UnitRan
     BandedMatrix(view(A,
                       blockstart(rs,KR[1]):blockstop(rs,KR[end]),
                       blockstart(ds,JR[1]):blockstop(ds,JR[end])))
+end
+
+
+
+
+function A_mul_B_coefficients{T,B}(A::SubOperator{T,B,Tuple{UnitRange{Int},UnitRange{Int}}},b)
+    if size(A,2) == length(b)
+        AbstractMatrix(A)*b
+    else
+        view(A,:,1:length(b))*b
+    end
 end

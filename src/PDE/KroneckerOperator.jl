@@ -402,7 +402,10 @@ function Base.convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
         l = min(Al,Bu+n-m)
         u = min(Au,Bl+m-n)
         @inbounds for j=1:m, k=max(1,j-u):min(n,j+l)
-            inbands_setindex!(Bs,inbands_getindex(AA,k,j)*inbands_getindex(BB,n-k+1,m-j+1),k,j)
+            a = inbands_getindex(AA,k,j)
+            b = inbands_getindex(BB,n-k+1,m-j+1)
+            c = a*b
+            inbands_setindex!(Bs,c,k,j)
         end
     end
     ret
@@ -439,3 +442,15 @@ end
 ## Functionals
 Evaluation(sp::TensorSpace,x::Vec) = EvaluationWrapper(sp,x,zeros(Int,length(x)),⊗(map(Evaluation,sp.spaces,x)...))
 Evaluation(sp::TensorSpace,x::Tuple) = Evaluation(sp,Vec(x...))
+
+
+
+# it's faster to build the operators to the last b
+function A_mul_B_coefficients{T,KKO<:KroneckerOperator}(A::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}},b)
+    P = parent(A)
+    kr,jr = parentindexes(A)
+    dt,rt = domaintensorizer(P),rangetensorizer(P)
+    KR,JR = Block(1):block(rt,kr[end]),Block(1):block(dt,jr[end])
+    M = P[KR,JR]
+    view(M,kr,jr)*b
+end

@@ -351,10 +351,26 @@ function defaultgetindex(A::Operator,::Type{FiniteRange},::Type{FiniteRange})
 end
 
 defaultgetindex(A::Operator,k::Type{FiniteRange},J::Block) = A[k,blockcols(A,J)]
-function defaultgetindex(A::Operator,::Type{FiniteRange},jr)
-    cs=mapreduce(j->colstop(A,j),max,jr)
+function defaultgetindex(A::Operator,::Type{FiniteRange},jr::AbstractVector{Int})
+    cs = (isbanded(A) || isblockbandedbelow(A)) ? colstop(A,maximum(jr)) : mapreduce(j->colstop(A,j),max,jr)
     A[1:cs,jr]
 end
+
+function defaultgetindex(A::Operator,::Type{FiniteRange},jr::AbstractVector{Block})
+    cs = (isbanded(A) || isblockbandedbelow(A)) ? blockcolstop(A,maximum(jr)) : mapreduce(j->blockcolstop(A,j),max,jr)
+    A[Block(1):cs,jr]
+end
+
+function Base.view(A::Operator,::Type{FiniteRange},jr::AbstractVector{Int})
+    cs = (isbanded(A) || isblockbandedbelow(A)) ? colstop(A,maximum(jr)) : mapreduce(j->colstop(A,j),max,jr)
+    view(A,1:cs,jr)
+end
+
+function Base.view(A::Operator,::Type{FiniteRange},jr::AbstractVector{Block})
+    cs = (isbanded(A) || isblockbandedbelow(A)) ? blockcolstop(A,maximum(jr)) : mapreduce(j->blockcolstop(A,j),max,jr)
+    view(A,Block(1):cs,jr)
+end
+
 
 defaultgetindex(A::Operator,K::Block,j::Type{FiniteRange}) = A[blockrows(A,K),j]
 defaultgetindex(A::Operator,kr,::Type{FiniteRange}) =
@@ -429,6 +445,12 @@ macro wrappergetindex(Wrap)
 
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) =
             ApproxFun.unwrap_axpy!(α,P,A)
+
+        A_mul_B_coefficients(A::$Wrap,b) = A_mul_B_coefficients(A.op,b)
+        A_mul_B_coefficients{T,OP<:$Wrap}(A::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) =
+            A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
+        A_mul_B_coefficients{T,OP<:$Wrap}(A::SubOperator{T,OP},b) =
+            A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
     end
 
     for TYP in (:(BandedMatrices.BandedMatrix),:Matrix,:Vector,:AbstractVector)

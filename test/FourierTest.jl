@@ -9,7 +9,7 @@ for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
     testtransforms(Hardy{false}(d))
 
     testtransforms(Laurent(d))
-    testtransforms(Fourier(d);invertibletransform=false)
+    testtransforms(Fourier(d))
 end
 
 

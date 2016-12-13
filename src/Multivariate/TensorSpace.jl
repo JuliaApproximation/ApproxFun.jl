@@ -38,7 +38,7 @@ function Base.next{DMS<:NTuple{2}}(a::Tensorizer{DMS},st)
     if k==n && j==m  # end of block
         if J == 1 || K == length(a.blocks[1])   # end of new block
             B = K+J # next block
-            J = min(B, length(a.blocks[2]))  # don't go past new block
+            J = min(B, length(a.blocks[2]))::Int  # don't go past new block
             K = B-J+1   # K+J-1 == B
         else
             K,J = K+1,J-1
@@ -58,7 +58,10 @@ function Base.next{DMS<:NTuple{2}}(a::Tensorizer{DMS},st)
 end
 
 
-Base.done(a::Tensorizer,st) = st[end][1] ≥ st[end][2]
+function Base.done(a::Tensorizer,st)
+    (K,J), (k,j), (rsh,csh), (n,m), (i,tot) = st
+    i ≥ tot
+end
 
 cache(a::Tensorizer) = CachedIterator(a)
 

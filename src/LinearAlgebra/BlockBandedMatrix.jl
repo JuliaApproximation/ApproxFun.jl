@@ -471,8 +471,7 @@ Base.indices{T,BB<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BB,Tuple{SubBlock{
    Base.OneTo(length(parentindexes(S)[2].sub)))
 
 
-parentblock(S::SubBandedBlockSubBlock) =
-     view(parent(S),block(parentindexes(S)[1]),block(parentindexes(S)[2]))
+parentblock(S) = view(parent(S),block(parentindexes(S)[1]),block(parentindexes(S)[2]))
 
 
 # returns a view of the data corresponding to the block

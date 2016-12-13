@@ -15,7 +15,7 @@ QR=qrfact(Δ)
     @time ApproxFun.resizedata!(QR,:,400)
     @time \(QR,f;tolerance=1E-10)
 
-println("Laplace Dirichlet: should be ~0.03, 0.003")
+println("Laplace Dirichlet: should be ~0.015, 0.001")
 
 
 d=Interval()^2

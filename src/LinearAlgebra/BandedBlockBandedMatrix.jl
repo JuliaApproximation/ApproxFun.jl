@@ -236,6 +236,14 @@ function Base.pointer{T<:BlasFloat,U,V}(S::BandedBlockBandedBlock{T,U,V})
     p+(col-1)*st*sz
 end
 
+leadingdimension{T<:BlasFloat,U,V}(B::BandedBlockBandedSubBlock{T,U,V}) =
+    stride(parent(B).data,2)
+
+function Base.pointer{T<:BlasFloat,U,V}(B::BandedBlockBandedSubBlock{T,U,V})
+    p = pointer(parentblock(B))
+    p+leadingdimension(B)*(first(parentindexes(B)[2].sub)-1)*sizeof(T)
+end
+
 
 *{T,U,V}(A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) = BandedMatrices.banded_A_mul_B(A,b)
 *{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) = BandedMatrices.banded_A_mul_B!(Array(T,length(b)),A,b)
@@ -246,9 +254,21 @@ Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::Abstr
 
 αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
     BandedMatrices.gbmv!('N',α,A,x,β,y)
+
+αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedSubBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
+    BandedMatrices.gbmv!('N',α,A,x,β,y)
+
+
 αA_mul_B_plus_βC!{T,U,V}(α,A::BLASBandedMatrix2{T,U,V},B::BLASBandedMatrix2{T,U,V},β,C::BLASBandedMatrix2{T,U,V}) =
     BandedMatrices.gbmm!(α,A,B,β,C)
 
+
+αA_mul_B_plus_βC!{T,BBM<:BandedBlockBandedMatrix}(α,A::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false},
+                                                  x::AbstractVector,β,y::AbstractVector) =
+    blockmatrix_αA_mul_B_plus_βC!(α,A,x,β,y)
+
+Base.A_mul_B!{T,BBM<:BandedBlockBandedMatrix}(y::Vector,A::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false},b::Vector) =
+    αA_mul_B_plus_βC!(one(eltype(A)),A,b,zero(eltype(y)),y)
 
 ## Algebra
 

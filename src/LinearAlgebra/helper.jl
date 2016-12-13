@@ -572,6 +572,82 @@ for OP in (:>,:>=)
 end
 
 
+# Take -- iterate through the first n elements
+
+immutable Take{I,T} <: AbstractVector{T}
+    xs::I
+    n::Int
+    function Take(xs,n)
+        @assert n ≤ length(xs)
+        new(xs,n)
+    end
+end
+
+Take(xs,n) = Take{typeof(xs),eltype(xs)}(xs,n)
+
+"""
+    take(iter, n)
+
+An iterator that generates at most the first `n` elements of `iter`.
+
+```jldoctest
+julia> a = 1:2:11
+1:2:11
+
+julia> collect(a)
+6-element Array{Int64,1}:
+  1
+  3
+  5
+  7
+  9
+ 11
+
+julia> collect(take(a,3))
+3-element Array{Int64,1}:
+ 1
+ 3
+ 5
+```
+"""
+take(xs, n::Int) = Take(xs, n)
+
+eltype{I}(::Type{Take{I}}) = eltype(I)
+Base.length(t::Take) = t.n
+Base.size(t::Take) = (length(t),)
+start(it::Take) = (it.n, start(it.xs))
+function next(it::Take, state)
+    n, xs_state = state
+    v, xs_state = next(it.xs, xs_state)
+    return v, (n - 1, xs_state)
+end
+
+function done(it::Take, state)
+    n, xs_state = state
+    return n <= 0 || done(it.xs, xs_state)
+end
+
+
+function getindex(it::Take,k)
+    !isempty(k) && maximum(k) > it.n && throw(BoundsError())
+
+    it.xs[k]
+end
+
+getindex(it::Take,k::CartesianIndex{1}) = it[k[1]]
+
+function Base.sum(it::Take)
+    ret = zero(eltype(it))
+    for a in it
+        ret += a
+    end
+    ret
+end
+
+pad(it::Take,n::Integer) = pad!(collect(it),n)
+
+
+
 # Re-implementation of Base iterators
 # to use ∞ and allow getindex
 
@@ -590,11 +666,13 @@ Base.done(::AbstractRepeated,state) = false
 Base.length(::AbstractRepeated) = ∞
 
 getindex(it::AbstractRepeated,k::Integer) = value(it)
-getindex(it::AbstractRepeated,k::Range) = fill(value(it),length(k))
+getindex(it::AbstractRepeated,k::Range) = take(it,length(k))
 
 
 Base.maximum(r::AbstractRepeated) = value(r)
 Base.minimum(r::AbstractRepeated) = value(r)
+
+Base.sum{AR<:AbstractRepeated}(it::Take{AR}) = it.n*value(it.xs)
 
 immutable ZeroRepeated{T} <: AbstractRepeated{T} end
 
@@ -624,9 +702,14 @@ Base.sum(r::Repeated) = r.x > 0 ? ∞ : -∞
 
 
 
-repeated(x) = x==zero(x)?ZeroRepeated(eltype(x)):Repeated(x)
+function repeated(x)
+    if x == zero(x)
+        error("Use ZeroRepeated to repeat zeros")
+    end
+    Repeated(x)
+end
 repeated(x,::Infinity{Bool}) = repeated(x)
-repeated(x,m::Integer) = fill(x,m)  #TODO: make a take
+repeated(x,m::Integer) = take(repeated(x),m)
 
 
 abstract AbstractCount{S<:Number}
@@ -894,14 +977,14 @@ Base.minimum(f::Flatten) = mapreduce(minimum,min,f.it)
 ## Iterator Algebra
 
 
-for OP in (:+,:-,:*,:/)
+for OP in (:(.+),:(.-),:(.*),:(./))
     @eval begin
         $OP(f::Flatten,c::Number) = Flatten(map(it->$OP(it,c),f.it))
         $OP(c::Number,f::Flatten) = Flatten(map(it->$OP(c,it),f.it))
     end
 end
 
-for OP in (:+,:-,:(.*))
+for OP in (:(.+),:(.-),:(.*))
     @eval begin
         $OP(a::AbstractRepeated,b::AbstractRepeated) = repeated($OP(value(a),value(b)))
         $OP(a::Number,b::AbstractRepeated) = repeated($OP(a,value(b)))
@@ -937,26 +1020,69 @@ for OP in (:+,:-,:(.*))
             end
             flatten(it)
         end
+
+        function $OP(a::Take,b::Take)
+            n = length(a)
+            @assert n == length(b)
+            take($OP(a.xs,b.xs),n)
+        end
+
+        function $OP(a::Take,b::Number)
+            n = length(a)
+            take($OP(a.xs,b),n)
+        end
+        function $OP(a::Number,b::Take)
+            n = length(b)
+            take($OP(a,b.xs),n)
+        end
     end
 end
 
-for OP in (:+,:-)
+for (OP,sOP) in ((:(.+),:+),(:(.-),:-))
     @eval begin
+        $OP(a::ZeroRepeated,b::ZeroRepeated) = a
+        $OP(a::Number,b::ZeroRepeated) = repeated(a)
+        $OP(a::ZeroRepeated,b::Number) = repeated($sOP(b))
+
+        $OP(a::Flatten,b::ZeroRepeated) = a
+        $OP(a::ZeroRepeated,b::Flatten) = $sOP(b)
+
         $OP(a::AbstractCount,b::AbstractCount) =
             Count($OP(start(a),start(b)),$OP(step(a),step(b)))
         $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
         $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
+
+        $OP(a::Number,b::AbstractCount) = $sOP(b) .+ a
     end
 end
 
-*(a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
-*(b::AbstractCount,a::Number) = a*b
-+(a::Number,b::UnitCount) = UnitCount(a+b.start)
-+(a::Number,b::Count) = Count(a+b.start,b.step)
--(a::Number,b::UnitCount) = Count(a-b.start,-1)
--(a::Number,b::Count) = Count(a-b.start,-b.step)
+.*(a::ZeroRepeated,b::ZeroRepeated) = a
+.*(a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
+.*(b::AbstractCount,a::Number) = a*b
 
-function +(a::Flatten,b::Flatten)
+
+for TYP1 in (:AbstractRepeated, :AbstractCount,:Flatten)
+    @eval +(a::$TYP1) = a
+
+    for (OP,BOP) in ((:+,:(.+)),(:-,:(.-)),(:*,:(.*)))
+        @eval begin
+            $OP(a::$TYP1,b::Number) = $BOP(a,b)
+            $OP(a::Number,b::$TYP1) = $BOP(a,b)
+        end
+        for TYP2 in (:AbstractRepeated, :AbstractCount,:Flatten)
+            @eval $OP(a::$TYP1,b::$TYP2) = $BOP(a,b)
+        end
+    end
+ end
+
+.+(a::Number,b::UnitCount) = UnitCount(a+b.start)
+.+(a::Number,b::Count) = Count(a+b.start,b.step)
+.-(a::Number,b::UnitCount) = Count(a-b.start,-1)
+.-(a::Number,b::Count) = Count(a-b.start,-b.step)
+
+
+
+function .+(a::Flatten,b::Flatten)
     if isempty(a)
         @assert isempty(b)
         a
@@ -1005,7 +1131,7 @@ function pad(v,::Infinity{Bool})
     if isinf(length(v))
         v
     else
-        flatten((v,repeated(0)))
+        flatten((v,ZeroRepeated(Int)))
     end
 end
 
