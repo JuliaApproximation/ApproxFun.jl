@@ -70,11 +70,10 @@ function colstart(A::KroneckerOperator,k::Integer)
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
-    inds = A.domaintensorizer[k]
-    # first block with all zeros
-    css=map(colstop,A.ops,inds)
-    blk=sum(css)
-    cs=blockstart(A.rangetensorizer,blk-1)+css[1]-1
+    K=block(A.domaintensorizer,k)
+    st=blockstop(A.rangetensorizer,K+blockbandwidth(A,1))
+    # zero indicates above dimension
+    st==0 ? size(A,1) : min(size(A,1),st)
 end
 
 function rowstart(A::KroneckerOperator,k::Integer)

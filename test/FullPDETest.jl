@@ -298,13 +298,14 @@ ff=(x,y)->exp(x)*cos(y)
 u=Fun(ff,S)
 
 for KO in [eye(S[1])⊗rdirichlet(S[1]),rdirichlet(S[1])⊗eye(S[2])]
+    testblockbandedoperator(KO)
     @test norm((KO*u-Fun(ff,rangespace(KO))).coefficients) ≤ 1E-10
 end
+
 
 B=[dirichlet(S[1])⊗eye(S[2]);
    eye(S[1])⊗dirichlet(S[2]);
    Laplacian()]
-
 
 u=\(B,[ones(4);0];tolerance=1E-14)
 @test norm((u-Fun(S,[1.])).coefficients)<10eps()

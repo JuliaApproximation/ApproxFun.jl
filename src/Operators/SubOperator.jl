@@ -13,8 +13,9 @@ checkbounds(A::Operator,kr,jr::Union{Colon,AbstractCount}) =
     (maximum(kr) > size(A,1)  || minimum(kr) < 1 ) && throw(BoundsError(A,(kr,jr)))
 
 checkbounds(A::Operator,kr,jr) =
-    (maximum(kr) > size(A,1) || maximum(jr) > size(A,2) ||
-     minimum(kr) < 1 || minimum(jr) < 1) && throw(BoundsError(A,(kr,jr)))
+    (!isempty(kr) && (maximum(kr) > size(A,1) || minimum(kr) < 1)) ||
+    (!isempty(jr) && (maximum(jr) > size(A,2) || minimum(jr) < 1)) &&
+    throw(BoundsError(A,(kr,jr)))
 
 
 checkbounds(A::Operator,K::Block,J::Block) =

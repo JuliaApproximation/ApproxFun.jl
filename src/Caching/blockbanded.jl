@@ -108,8 +108,11 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BlockBandedMatrix{T,RI
     B
 end
 
-resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer) =
-    resizedata!(B,:,m)
+function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer)
+    N = block(rangespace(B),n)
+    m̃ = blockstart(domainspace(B),N)
+    resizedata!(B,:,max(m,m̃))
+end
 
 
 ## QR
