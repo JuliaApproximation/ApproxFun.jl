@@ -71,7 +71,7 @@ end
 
 function colstop(A::KroneckerOperator,k::Integer)
     K=block(A.domaintensorizer,k)
-    st=blockstop(A.rangetensorizer,K+blockbandwidth(A,1))
+    st=blockstop(A.rangetensorizer,blockcolstop(A,K))
     # zero indicates above dimension
     st==0 ? size(A,1) : min(size(A,1),st)
 end
