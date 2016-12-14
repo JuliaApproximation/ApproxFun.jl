@@ -39,10 +39,11 @@ end
 *(P::IWeightSpacePlan,cfs::Vector) = P.weights.*(P.plan*cfs)
 
 
-# transform(sp::WeightSpace,vals::Vector,plan::WeightSpacePlan) =
-#     transform(sp.space,vals./(sp==plan.space?plan.weights:weight(sp,plan.points)),plan.plan)
-# itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan) =
-#     itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight(sp,plan.points))
+# used for ProductFun
+transform(sp::WeightSpace,vals::Vector,plan::WeightSpacePlan) =
+    transform(sp.space,vals./(sp==plan.space?plan.weights:weight(sp,plan.points)),plan.plan)
+itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan) =
+    itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight(sp,plan.points))
 
 
 

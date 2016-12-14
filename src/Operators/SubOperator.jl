@@ -22,7 +22,8 @@ checkbounds(A::Operator,K::Block,J::Block) =
      1 ≤ K.K ≤ length(blocklengths(rangespace(A))) && 1 ≤ J.K ≤ length(blocklengths(domainspace(A)))
 
 checkbounds(A::Operator,K::Range{Block},J::Range{Block}) =
-     checkbounds(A,maximum(K),maximum(J))
+    isempty(K) || isempty(J) || checkbounds(A,maximum(K),maximum(J))
+
 
 
 ## SubOperator

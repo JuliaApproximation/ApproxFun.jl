@@ -733,6 +733,18 @@ function reindex{T,SSB<:SubBlock}(A::SubArray{T,2}, B::Tuple{UnitRange{Int}}, j:
     (SubBlock(block(SB[1]),SB[1].sub[kj[1].sub]),)
 end
 
+
+function reindex{T}(A::SubArray{T,2}, B::Tuple{Block,Any}, kj::Tuple{Int,Any})
+    SB = first(B)
+    k2 = first(kj)
+    (blockrows(parent(A),block(SB))[1]+k2-1,reindex(A,tail(B),tail(kj))[1])
+end
+function reindex{T}(A::SubArray{T,2}, B::Tuple{Block}, j::Tuple{Int})
+    SB = first(B)
+    j2 = first(j)
+    (blockcols(parent(A),block(SB))[1]+j2-1,)
+end
+
 function reindex{T,SSB<:SubBlock}(A::SubArray{T,2}, B::Tuple{SSB,Any}, kj::Tuple{Int,Any})
     SB = first(B)
     k2 = reindex(nothing,(SB.sub,),(first(kj),))[1]

@@ -195,6 +195,9 @@ defaultgetindex(B::Operator,k::Integer,j::Integer) = error("Override [k,j] for $
 
 
 defaultgetindex(op::Operator,kr::Range) = eltype(op)[op[k] for k in kr]
+defaultgetindex(B::Operator,k::Block,j::Block) = AbstractMatrix(view(B,k,j))
+defaultgetindex(B::Operator,k::Range,j::Block) = AbstractMatrix(view(B,k,j))
+defaultgetindex(B::Operator,k::Block,j::Range) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::Range,j::Range) = AbstractMatrix(view(B,k,j))
 
 defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] for j in j],1,length(j))
@@ -466,8 +469,8 @@ macro wrappergetindex(Wrap)
         $ret
 
         # fast converts to banded matrices would be based on indices, not blocks
-        function Base.convert{T,OP<:$Wrap}(::Type{BandedMatrix},
-                                S::SubOperator{T,OP,Tuple{UnitRange{Block},UnitRange{Block}}})
+        function Base.convert{T,OP<:$Wrap}(::Type{BandedMatrices.BandedMatrix},
+                                S::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{ApproxFun.Block},UnitRange{ApproxFun.Block}}})
             A = parent(S)
             ds = domainspace(A)
             rs = rangespace(A)
@@ -479,7 +482,7 @@ macro wrappergetindex(Wrap)
 
 
         # if the spaces change, then we need to be smarter
-        function Base.convert{T,OP<:$Wrap}(::Type{BlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
+        function Base.convert{T,OP<:$Wrap}(::Type{ApproxFun.BlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
             P = parent(S)
             if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
@@ -489,7 +492,7 @@ macro wrappergetindex(Wrap)
             end
         end
 
-        function Base.convert{T,OP<:$Wrap}(::Type{BandedBlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
+        function Base.convert{T,OP<:$Wrap}(::Type{ApproxFun.BandedBlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
             P = parent(S)
             if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))

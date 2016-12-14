@@ -437,14 +437,14 @@ for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
         P=parent(S)
         KR,JR=parentindexes(S)
 
+        @assert length(P.ops)≥2
+        if size(S,1)==0 || isempty(KR) || isempty(JR)
+            return $Zer(S)
+        end
+
         if maximum(KR) > blocksize(P,1) || maximum(JR) > blocksize(P,2) ||
             minimum(KR) < 1 || minimum(JR) < 1
             throw(BoundsError())
-        end
-
-        @assert length(P.ops)≥2
-        if size(S,1)==0
-            return $Zer(S)
         end
 
 

@@ -74,7 +74,7 @@ function Base.show(io::IO,S::Ultraspherical)
 end
 
 function Base.show(io::IO,S::Jacobi)
-    S.a == S.b == 0 ? print(io,"Legendre(") : print(io,"Jacobi($(S.a),$(S.b),")
+    S.a == S.b == 0 ? print(io,"Legendre(") : print(io,"Jacobi($(S.b),$(S.a),")
     show(io,domain(S))
     print(io,")")
 end

@@ -246,7 +246,8 @@ end
 
 
 *{T,U,V}(A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) = BandedMatrices.banded_A_mul_B(A,b)
-*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) = BandedMatrices.banded_A_mul_B!(Array(T,length(b)),A,b)
+*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) = 
+    BandedMatrices.banded_A_mul_B!(Array(T,size(A,1)),A,b)
 
 
 Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::AbstractVector) =
