@@ -8,7 +8,7 @@ function default_blockbandedmatrix(S::Operator)
             blocklengths(rangespace(S)),blocklengths(domainspace(S)))
 
     @inbounds for J=Block(1):Block(blocksize(ret,2)),K=blockcolrange(ret,J)
-        ret[K,J] = S[K,J]
+        ret[K,J] = view(S,K,J)
     end
     ret
 end

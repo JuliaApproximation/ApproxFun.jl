@@ -185,6 +185,11 @@ function blockbandinds{T,B}(S::SubOperator{T,B,Tuple{UnitRange{Block},UnitRange{
     l+sh,u+sh
 end
 
+isblockbanded{T,B}(S::SubOperator{T,B,Tuple{Block,Block}}) = false
+isbanded{T,B}(S::SubOperator{T,B,Tuple{Block,Block}}) = isbandedblockbanded(parent(S))
+bandinds{T,B}(S::SubOperator{T,B,Tuple{Block,Block}}) = subblockbandinds(parent(S))
+blockbandinds{T,B}(S::SubOperator{T,B,Tuple{Block,Block}}) = 0,0
+
 function bbbzeros(S::SubOperator)
     kr,jr=parentindexes(S)
     KO=parent(S)

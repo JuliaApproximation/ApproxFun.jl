@@ -37,7 +37,8 @@ dx=dy=Interval()
 d=dx*dy
 g=Fun((x,y)->exp(x)*cos(y),∂(d))
 
-testblockbandedoperator(Dirichlet(d))
+B=Dirichlet(d)
+testblockbandedoperator(B)
 testbandedblockbandedoperator(Laplacian(d)+0.0I)
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
