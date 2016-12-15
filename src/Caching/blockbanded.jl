@@ -41,7 +41,8 @@ function diagblockshift(a::Flatten{Tuple{Vector{Int},Repeated{Int}}},b::Repeated
     0
 end
 
-function diagblockshift(a::Flatten{Tuple{Vector{Int},Repeated{Int}}},b::Flatten{Tuple{Vector{Int},Repeated{Int}}})
+function diagblockshift{V1 <: AbstractVector{Int},V2 <: AbstractVector{Int}}(a::Flatten{Tuple{V1,Repeated{Int}}},
+                                                                             b::Flatten{Tuple{V2,Repeated{Int}}})
     @assert a.it[end].x == b.it[end].x
     @assert a[1] ≥ b[1]
     0
