@@ -18,7 +18,8 @@ end
 # diagblockshift gives the shift for the diagonal block of an operator
 # that is, trace an operator down the diagonal.  What blocks correspond to the
 # block diagonal?
-# these will be completed on a case-by-case until the general pattern is determined
+# this is used to determine how many blocks to pad in the QR decomposition, as
+# every lower block gets added to the upper daigonal
 
 diagblockshift(a,b) = error("Developer: Not implemented for blocklengths $a, $b")
 
@@ -34,18 +35,32 @@ function diagblockshift(a::Repeated{Int},b::Repeated{Int})
     0
 end
 
+diagblockshift{V1 <: AbstractVector{Int}}(a::Repeated{Int},b::Flatten{Tuple{V1,Repeated{Int}}}) =
+    max(0,-diagblockshift(b,a))
 
-function diagblockshift(a::Flatten{Tuple{Vector{Int},Repeated{Int}}},b::Repeated{Int})
+
+function diagblockshift{V1 <: AbstractVector{Int}}(a::Flatten{Tuple{V1,Repeated{Int}}},b::Repeated{Int})
     @assert a.it[end].x == b.x
-    @assert a[1] ≥ b.x
-    0
+    isempty(a.it[1]) && return diagblockshift(a.it[2],b)
+    a1, b1 = a[1],b[1]
+    a1 == b1 && return diagblockshift(flatten((a.it[1][2:end],a.it[2])),b)
+    a1 >  b1 && length(a.it[1]) == 1 && return 0
+    a1 >  b1 && return max(0,-1+diagblockshift(flatten(([a1-b1;a.it[1][2:end]],a.it[2]),b)))
+    a1 <  b1 && length(a.it[1]) == 1 && return 1
+    # a1 <  b1 &&
+    return 1+diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten(([b1-a1],b)))
 end
 
 function diagblockshift{V1 <: AbstractVector{Int},V2 <: AbstractVector{Int}}(a::Flatten{Tuple{V1,Repeated{Int}}},
                                                                              b::Flatten{Tuple{V2,Repeated{Int}}})
-    @assert a.it[end].x == b.it[end].x
-    @assert a[1] ≥ b[1]
-    0
+    isempty(a.it[1]) && return diagblockshift(a.it[2],b)
+    isempty(b.it[1]) && return diagblockshift(a,b.it[2])
+    a1, b1 = a[1],b[1]
+    a1 == b1 && return diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten((b.it[1][2:end],b.it[2])))
+    a1 >  b1 && return max(0,-1+diagblockshift(flatten(([a1-b1;a.it[1][2:end]],a.it[2])),
+                                               flatten((b.it[1][2:end],b.it[2]))))
+    # a1 <  b1 &&
+    return 1+diagblockshift(flatten((a.it[1][2:end],a.it[2])),flatten(([b1-a1;b.it[1][2:end]],b.it[2])))
 end
 
 
