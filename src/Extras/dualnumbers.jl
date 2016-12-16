@@ -11,6 +11,17 @@ Base.in{DD<:Dual}(x::Number,d::Segment{DD}) = in(x,realpart(d))
 Base.in{DD<:Dual}(x::Dual,d::Segment{DD}) = in(realpart(x),d)
 
 
+sign(dual(0.0,1.0))
+
+# for QR Factorization.  These have been submitted to DualNumbers
+# but we need these duplicates so that they call ApproxFun.flipsign
+flipsign(x::Dual,y::Dual) = y == 0 ? flipsign(x, epsilon(y)) : flipsign(x, value(y))
+flipsign(x, y::Dual) = y == 0 ? flipsign(x, epsilon(y)) : flipsign(x, value(y))
+flipsign(x::Dual, y::Complex) = y==0 ? x : x*sign(y)
+flipsign(x::Dual, y) = dual(flipsign(value(x), y), flipsign(epsilon(x), y))
+
+
+
 valsdomain_type_promote{T<:Real,V<:Real}(::Type{Dual{T}},::Type{V}) =
     Dual{promote_type(T,V)},promote_type(T,V)
 valsdomain_type_promote{T<:Complex,V<:Real}(::Type{Dual{T}},::Type{V}) =
