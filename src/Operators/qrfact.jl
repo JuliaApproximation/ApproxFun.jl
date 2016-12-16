@@ -158,10 +158,11 @@ end
 
 # QR
 
-A_ldiv_B_coefficients{CO,MT,T<:Real}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    A_ldiv_B_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
-A_ldiv_B_coefficients{CO,MT,T<:Complex}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    A_ldiv_B_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
+for TYP in (:Real,:Complex,:Number)
+    @eval A_ldiv_B_coefficients{CO,MT,T<:$TYP}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
+        A_ldiv_B_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
+end
+
 
 A_ldiv_B_coefficients{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
     A_ldiv_B_coefficients(QR,Vector{T}(b);kwds...)
