@@ -33,8 +33,6 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
 
 import Compat: view
 
-import DualNumbers: value
-
 import FixedSizeArrays: Vec
 
 export pad!, pad, chop!, sample,

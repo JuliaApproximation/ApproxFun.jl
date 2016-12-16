@@ -15,10 +15,10 @@ sign(dual(0.0,1.0))
 
 # for QR Factorization.  These have been submitted to DualNumbers
 # but we need these duplicates so that they call ApproxFun.flipsign
-flipsign(x::Dual,y::Dual) = y == 0 ? flipsign(x, epsilon(y)) : flipsign(x, value(y))
-flipsign(x, y::Dual) = y == 0 ? flipsign(x, epsilon(y)) : flipsign(x, value(y))
+flipsign(x::Dual,y::Dual) = y == 0 ? flipsign(x, epsilon(y)) : flipsign(x, realpart(y))
+flipsign(x, y::Dual) = y == 0 ? flipsign(x, epsilon(y)) : flipsign(x, realpart(y))
 flipsign(x::Dual, y::Complex) = y==0 ? x : x*sign(y)
-flipsign(x::Dual, y) = dual(flipsign(value(x), y), flipsign(epsilon(x), y))
+flipsign(x::Dual, y) = dual(flipsign(realpart(x), y), flipsign(epsilon(x), y))
 
 
 
