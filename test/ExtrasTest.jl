@@ -1,11 +1,48 @@
-using ApproxFun, Base.Test
+using ApproxFun, Base.Test, DualNumbers
 
 
 ## Dual Numbers
 
 
-f=Fun(exp,Segment(DualNumbers.dual(1.0,1),DualNumbers.dual(2.0)),20)
+f=Fun(exp,Segment(dual(1.0,1),dual(2.0)),20)
 @test_approx_eq Fun(h->Fun(exp,Segment(1.0+h,2.0)).coefficients[1],0..1)'(0.) DualNumbers.epsilon(f.coefficients[1])
+
+ud=let d=dual(0.0,1.0)..1.0
+    B = ldirichlet(d)
+    D = Derivative(d)
+    a = Fun(exp,d)
+    u = [B;D+dual(1.0,4.0)*a] \ [dual(1.0,2.0),0.0]
+    u(0.5)
+end
+
+u0=let d=0.0..1.0
+    B = ldirichlet(d)
+    D = Derivative(d)
+    a = Fun(exp,d)
+    u = [B;D+a] \ [1.0,0.0]
+    u(0.5)
+end
+h=0.00001
+uh=let d=h..1.0
+    B = ldirichlet(d)
+    D = Derivative(d)
+    a = Fun(exp,d)
+    u = [B;D+(1+4h)*a] \ [1.0+2h,0.0]
+    u(0.5)
+end
+
+@test_approx_eq_eps ud dual(u0,(uh-u0)/h) h
+
+let d=0.0..1.0
+    B = ldirichlet(d)
+    D = Derivative(d)
+    a = Fun(exp,d)
+    u = [B;D+a] \ [dual(1.0,2.0),0.0]
+    ur = [B;D+a] \ [1.0,0.0]
+    ud = [B;D+a] \ [2.0,0.0]
+    @test_approx_eq u(0.5)  dual(ur(0.5),ud(0.5))
+end
+
 
 
 

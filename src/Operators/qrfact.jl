@@ -11,6 +11,10 @@ end
 QROperator(R::CachedOperator,H::AbstractArray,ncs::Int) =
     QROperator{typeof(R),typeof(H),eltype(H)}(R,H,ncs)
 
+
+Base.convert{T}(::Type{Operator{T}},QR::QROperator) =
+    QROperator(Operator{T}(QR.R),AbstractArray{T}(QR.H),QR.ncols)
+
 for OP in (:domainspace,:rangespace)
     @eval $OP(QR::QROperator) = $OP(QR.R)
 end
@@ -164,8 +168,10 @@ for TYP in (:Real,:Complex,:Number)
 end
 
 
-A_ldiv_B_coefficients{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
-    A_ldiv_B_coefficients(QR,Vector{T}(b);kwds...)
+function A_ldiv_B_coefficients{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...)
+    TV = promote_type(T,V)
+    A_ldiv_B_coefficients(Operator{TV}(QR),Vector{TV}(b);kwds...)
+end
 
 function A_ldiv_B_coefficients{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...)
     a=A_ldiv_B_coefficients(QR,real(b);kwds...)

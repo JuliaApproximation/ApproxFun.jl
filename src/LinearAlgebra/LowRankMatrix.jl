@@ -85,7 +85,10 @@ function refactorsvd!{S,T}(U::Matrix{S},Σ::Vector{T},V::Matrix{S})
     r
 end
 
-Base.convert{T}(::Type{LowRankMatrix{T}},L::LowRankMatrix) = LowRankMatrix{T}(convert(Matrix{T},L.U),convert(Matrix{T},L.V))
+for MAT in (:LowRankMatrix, :AbstractMatrix, :AbstractArray)
+    @eval Base.convert{T}(::Type{$MAT{T}},L::LowRankMatrix) =
+        LowRankMatrix{T}(convert(Matrix{T},L.U),convert(Matrix{T},L.V))
+end
 Base.convert{T}(::Type{Matrix{T}},L::LowRankMatrix) = convert(Matrix{T},full(L))
 Base.promote_rule{T,V}(::Type{LowRankMatrix{T}},::Type{LowRankMatrix{V}})=LowRankMatrix{promote_type(T,V)}
 Base.promote_rule{T,V}(::Type{LowRankMatrix{T}},::Type{Matrix{V}})=Matrix{promote_type(T,V)}

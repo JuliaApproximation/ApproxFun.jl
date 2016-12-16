@@ -74,7 +74,7 @@ Base.issubset(a::Segment,b::Segment) = first(a)∈b && last(a)∈b
 
 mobius(S::Space,x...) = mobius(domain(S),x...)
 
-tocanonical{T}(d::Segment{T},x::T) = 2norm(x-d.a)/arclength(d)-1
+tocanonical{T}(d::Segment{T},x) = 2norm(x-d.a)/arclength(d)-1
 tocanonical{T<:Complex}(d::Segment{T},x::Number) = 2norm(x-d.a)/arclength(d)-1
 mobius(d::Segment,x) = (d.a + d.b - 2x)/(d.a - d.b)
 tocanonical{T<:Real}(d::Segment{T},x) = mobius(d,x)

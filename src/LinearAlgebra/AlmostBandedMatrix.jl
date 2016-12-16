@@ -24,6 +24,11 @@ abzeros{T}(::Type{T},n::Integer,m::Integer,l::Integer,u::Integer,r::Integer) =
     AlmostBandedMatrix(bzeros(T,n,m,l,u),lrzeros(T,n,m,r))
 
 
+for MAT in (:AlmostBandedMatrix, :AbstractMatrix, :AbstractArray)
+    @eval Base.convert{T}(::Type{$MAT{T}},A::AlmostBandedMatrix) =
+        AlmostBandedMatrix(AbstractMatrix{T}(A.bands),AbstractMatrix{T}(A.fill))
+end
+
 
 Base.size(A::AlmostBandedMatrix) = size(A.bands)
 Base.linearindexing{ABM<:AlmostBandedMatrix}(::Type{ABM}) =
