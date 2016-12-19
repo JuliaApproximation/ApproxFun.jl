@@ -544,8 +544,10 @@ Base.pointer{T<:BlasFloat,U,V,II,JJ}(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tu
 
 ## algebra
 
-αA_mul_B_plus_βC!(α,A::SubBandedBlockSubBlock,x::AbstractVector,β,y::AbstractVector) =
+αA_mul_B_plus_βC!{T}(α::T,A::SubBandedBlockSubBlock{T},x::AbstractVector{T},β::T,y::AbstractVector{T}) =
     gemv!('N',α,A,x,β,y)
+αA_mul_B_plus_βC!{T}(α,A::SubBandedBlockSubBlock{T},x::AbstractVector,β,y::AbstractVector{T}) =
+    gemv!('N',T(α),A,Vector{T}(x),T(β),y)    
 αA_mul_B_plus_βC!(α,A::StridedMatrix2,B::StridedMatrix2,β,C::StridedMatrix2) =
     gemm!('N','N',α,A,B,β,C)
 

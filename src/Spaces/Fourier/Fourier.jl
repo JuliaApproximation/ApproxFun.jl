@@ -311,6 +311,10 @@ for Typ in (:Laurent,:Fourier)
     end
 end
 
+
+Laurent{DD}(S::Fourier{DD}) = Laurent(domain(S))
+Fourier{DD}(S::Laurent{DD}) = Fourier(domain(S))
+
 for T in (:CosSpace,:SinSpace)
     @eval begin
         # override default as canonicalspace must be implemented

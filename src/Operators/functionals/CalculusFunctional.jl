@@ -15,8 +15,10 @@ macro calculus_functional(Op)
             domainspace::S
         end
         immutable $WrappOp{BT<:Operator,S<:Space,T} <: $Op{S,T}
-            func::BT
+            op::BT
         end
+
+        @wrapper $WrappOp
 
 
         # We expect the operator to be real/complex if the basis is real/complex
@@ -43,13 +45,7 @@ macro calculus_functional(Op)
 
 
         Base.convert{T}(::Type{Operator{T}},Σ::$WrappOp) =
-            (T==eltype(Σ)?Σ:$WrappOp(convert(Operator{T},Σ.func)))::Operator{T}
-
-        #Wrapper just adds the operator it wraps
-        getindex(D::$WrappOp,k::Range) = D.func[k]
-        getindex(D::$WrappOp,k::Integer) = D.func[k]
-        domainspace(D::$WrappOp) = domainspace(D.func)
-        bandinds(D::$WrappOp) = bandinds(D.func)
+            (T==eltype(Σ)?Σ:$WrappOp(convert(Operator{T},Σ.op)))::Operator{T}
     end)
 end
 
@@ -92,4 +88,4 @@ end
 # *{T,D<:DefiniteLineIntegral,M<:Multiplication}(A::TimesFunctional{T,D,M},b::Fun) = linebilinearform(A.op.f,b)
 # *{T,D<:Union{DefiniteIntegral,DefiniteLineIntegral},
 #   M<:Multiplication,V}(A::FunctionalOperator{TimesFunctional{T,D,M},V},b::Fun) =
-#     Fun(A.func*b)
+#     Fun(A.op*b)

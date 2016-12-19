@@ -34,7 +34,7 @@ function testtransforms(S::Space;minpoints=1,invertibletransform=true)
     end
 end
 
-function testcalculus(S::Space;haslineintegral=true)
+function testcalculus(S::Space;haslineintegral=true,hasintegral=true)
     for k=1:min(5,dimension(S))
         v = [zeros(k-1);1.0]
         f = Fun(S,v)
@@ -43,9 +43,11 @@ function testcalculus(S::Space;haslineintegral=true)
             @test_approx_eq DefiniteLineIntegral()*f linesum(f)
         end
         @test norm(Derivative()*f-f') < 100eps()
-        @test norm(differentiate(integrate(f))-f) < 100eps()
-        @test norm(differentiate(cumsum(f))-f) < 100eps()
-        @test norm(first(cumsum(f))) < 100eps()
+        if hasintegral
+            @test norm(differentiate(integrate(f))-f) < 100eps()
+            @test norm(differentiate(cumsum(f))-f) < 100eps()
+            @test norm(first(cumsum(f))) < 100eps()
+        end
     end
 end
 
@@ -62,10 +64,10 @@ function testmultiplication(spa,spb)
 end
 
 function testspace(S::Space;
-                    minpoints=1,invertibletransform=true,haslineintegral=true,
+                    minpoints=1,invertibletransform=true,haslineintegral=true,hasintegral=true,
                     dualspace=S)
     testtransforms(S;minpoints=minpoints,invertibletransform=invertibletransform)
-    testcalculus(S;haslineintegral=haslineintegral)
+    testcalculus(S;haslineintegral=haslineintegral,hasintegral=hasintegral)
     if dualspace ≠ nothing
         testmultiplication(dualspace,S)
     end

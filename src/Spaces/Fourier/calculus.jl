@@ -1,7 +1,14 @@
 ##Differentiation and integration
 
-Base.sum{DD}(f::Fun{Laurent{DD}})=fouriersum(domain(f),f.coefficients)
-Base.sum{DD}(f::Fun{Fourier{DD}})=fouriersum(domain(f),f.coefficients)
+
+Base.sum{DD<:PeriodicInterval}(f::Fun{Laurent{DD}}) = coefficient(f,1).*arclength(domain(f))
+Base.sum{DD<:Circle}(f::Fun{Laurent{DD}}) = coefficient(f,2).*complexlength(domain(f))
+
+
+Base.sum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}}) = coefficient(f,1).*arclength(domain(f))
+Base.sum{DD<:Circle}(f::Fun{Fourier{DD}}) =
+    (im*coefficient(f,2) + coefficient(f,3))/2*complexlength(domain(f))
+
 
 function linesum{DD}(f::Fun{Laurent{DD}})
     d=domain(f)
@@ -12,8 +19,8 @@ function linesum{DD}(f::Fun{Laurent{DD}})
     end
 end
 
-linesum{DD<:Circle}(f::Fun{Fourier{DD}})=sum(setcanonicaldomain(f))*d.radius
-linesum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}})=sum(f) #TODO: Complex periodic interval
+linesum{DD<:Circle}(f::Fun{Fourier{DD}}) = sum(setcanonicaldomain(f))*domain(f).radius
+linesum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}}) = sum(f) #TODO: Complex periodic interval
 
 
 differentiate{DD<:PeriodicInterval}(f::Fun{Taylor{DD}}) =
@@ -95,17 +102,6 @@ for OP in (:differentiate,:integrate)
 end
 
 
-
-
-fouriersum(d::PeriodicInterval,cfs)=cfs[1].*arclength(d)
-
-function fouriersum{T}(d::Circle,cfs::Vector{T})
-    if length(cfs)≥2
-        2π*im*cfs[2]*d.radius
-    else
-        im*zero(T)
-    end
-end
 
 
 # O(min(m,n)) Laurent line integral

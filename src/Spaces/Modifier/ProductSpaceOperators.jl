@@ -309,28 +309,22 @@ coefficienttimes{S1<:PiecewiseSpace,S2<:PiecewiseSpace}(f::Fun{S1},g::Fun{S2})=d
 # This makes sure that the defaults from a given Domain are respected for the UnionDomain.
 
 DefiniteIntegral(d::UnionDomain) =
-    ConcreteDefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
+    DefiniteIntegral(PiecewiseSpace(map(domainspace,map(DefiniteIntegral,d.domains))))
 DefiniteLineIntegral(d::UnionDomain) =
-    ConcreteDefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
+    DefiniteLineIntegral(PiecewiseSpace(map(domainspace,map(DefiniteLineIntegral,d.domains))))
 
 
-DefiniteIntegral(sp::PiecewiseSpace) = ConcreteDefiniteIntegral(sp)
-DefiniteLineIntegral(sp::PiecewiseSpace) = ConcreteDefiniteLineIntegral(sp)    
-
-####### This is a hack to get the Faraday Cage working.
-function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},k::Integer)
-    d = domain(Σ)
-    n = length(d)
-    k ≤ n? T(π*arclength(d[k])/2) : zero(T)
-end
-bandinds{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T}) =
-    0,length(domain(Σ))-1
-####### This is a hack to get the Faraday Cage working.
+DefiniteIntegral(sp::PiecewiseSpace) =
+    DefiniteIntegralWrapper(InterlaceOperator(hcat(map(DefiniteIntegral,sp.spaces)...),sp,ConstantSpace()))
+DefiniteLineIntegral(sp::PiecewiseSpace) =
+    DefiniteLineIntegralWrapper(InterlaceOperator(hcat(map(DefiniteLineIntegral,sp.spaces)...),sp,ConstantSpace()))
 
 ## TensorSpace of two PiecewiseSpaces
 
-Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{Tuple{PWS1,PWS2}},i::Integer,j::Integer)=d[1][i]⊗d[2][j]
-Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{Tuple{PWS1,PWS2}},i::Range,j::Range)=PiecewiseSpace(d[1][i])⊗PiecewiseSpace(d[2][j])
+Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{Tuple{PWS1,PWS2}},i::Integer,j::Integer) =
+    d[1][i]⊗d[2][j]
+Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{Tuple{PWS1,PWS2}},i::Range,j::Range) =
+    PiecewiseSpace(d[1][i])⊗PiecewiseSpace(d[2][j])
 
 ## ProductFun
 

@@ -50,9 +50,16 @@ bandinds{DD}(::ConcreteConversion{Laurent{DD},Fourier{DD}})=-1,1
 bandinds{DD}(::ConcreteConversion{Fourier{DD},Laurent{DD}})=-1,1
 
 for RULE in (:conversion_rule,:maxspace_rule,:union_rule)
-    @eval function $RULE{DD}(A::Laurent{DD},B::Fourier{DD})
-        @assert domainscompatible(A,B)
-        B
+    @eval begin
+        # override both to avoid SumSpace overrides
+        function $RULE{DD}(A::Laurent{DD},B::Fourier{DD})
+            @assert domainscompatible(A,B)
+            B
+        end
+        function $RULE{DD}(A::Fourier{DD},B::Laurent{DD})
+            @assert domainscompatible(A,B)
+            A
+        end
     end
 end
 
@@ -85,10 +92,10 @@ function Derivative(S::Union{CosSpace,SinSpace},order)
 end
 
 
-bandinds{CS<:CosSpace}(D::ConcreteDerivative{CS})=iseven(D.order)?(0,0):(0,1)
-bandinds{S<:SinSpace}(D::ConcreteDerivative{S})=iseven(D.order)?(0,0):(-1,0)
-rangespace{S<:CosSpace}(D::ConcreteDerivative{S})=iseven(D.order)?D.space:SinSpace(domain(D))
-rangespace{S<:SinSpace}(D::ConcreteDerivative{S})=iseven(D.order)?D.space:CosSpace(domain(D))
+bandinds{CS<:CosSpace}(D::ConcreteDerivative{CS}) = iseven(D.order)?(0,0):(0,1)
+bandinds{S<:SinSpace}(D::ConcreteDerivative{S}) = iseven(D.order)?(0,0):(-1,0)
+rangespace{S<:CosSpace}(D::ConcreteDerivative{S}) = iseven(D.order)?D.space:SinSpace(domain(D))
+rangespace{S<:SinSpace}(D::ConcreteDerivative{S}) = iseven(D.order)?D.space:CosSpace(domain(D))
 
 
 function getindex{CS<:CosSpace,OT,T}(D::ConcreteDerivative{CS,OT,T},k::Integer,j::Integer)
@@ -127,13 +134,18 @@ function getindex{CS<:SinSpace,OT,T}(D::ConcreteDerivative{CS,OT,T},k::Integer,j
     end
 end
 
+
+# Use Laurent derivative
+Derivative{DD<:Circle}(S::Fourier{DD},k::Integer) =
+    DerivativeWrapper(Derivative(Laurent(S),k)*Conversion(S,Laurent(S)),k)
+
 Integral(::CosSpace,m::Integer) =
     error("Integral not defined for CosSpace.  Use Integral(CosSpace()|(2:∞)) if first coefficient vanishes.")
 
 Integral{DD<:PeriodicInterval}(sp::SinSpace{DD},m::Integer) = ConcreteIntegral(sp,m)
 
-bandinds{CS<:SinSpace}(D::ConcreteIntegral{CS})=iseven(D.order)?(0,0):(-1,0)
-rangespace{S<:CosSpace}(D::ConcreteIntegral{S})=iseven(D.order)?D.space:SinSpace(domain(D))
+bandinds{CS<:SinSpace}(D::ConcreteIntegral{CS}) = iseven(D.order)?(0,0):(-1,0)
+rangespace{S<:CosSpace}(D::ConcreteIntegral{S}) = iseven(D.order)?D.space:SinSpace(domain(D))
 rangespace{S<:SinSpace}(D::ConcreteIntegral{S})=iseven(D.order)?D.space:CosSpace(domain(D))
 
 function getindex{CS<:SinSpace,OT,T}(D::ConcreteIntegral{CS,OT,T},k::Integer,j::Integer)
@@ -296,13 +308,13 @@ getindex{T,D<:PeriodicInterval}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k
     k==1? T(arclength(domain(Σ))) : zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{CosSpace{D},T},k::Integer) =
-    k==1? T(arclength(domain(Σ))/2) : zero(T)
+    k==1? T(arclength(domain(Σ))) : zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{SinSpace{D},T},k::Integer) =
     zero(T)
 
 getindex{T,D<:Circle}(Σ::ConcreteDefiniteLineIntegral{Fourier{D},T},k::Integer) =
-    k==1? T(arclength(domain(Σ))/2) : zero(T)
+    k==1? T(arclength(domain(Σ))) : zero(T)
 
 bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{CosSpace{D}}) = 0,0
 bandinds{D<:PeriodicInterval}(Σ::ConcreteDefiniteIntegral{SinSpace{D}}) = 0,0

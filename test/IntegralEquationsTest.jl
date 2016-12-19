@@ -16,7 +16,7 @@ dom = Segment(-1.0,1) ∪ Segment(1.0+im,1+2im) ∪ Segment(-2.0+im,-1+2im)
 
 ⨍ = DefiniteLineIntegral(dom)
 S = domainspace(⨍)
-@test ApproxFun.bandinds(⨍) == (0,2)
+@test ApproxFun.blockbandinds(⨍) == (0,0)
 
 f=Fun(S,rand(20))
 
@@ -147,3 +147,23 @@ testbandedbelowoperator(Σ[K])
 Σ = DefiniteIntegral(Chebyshev()); x=Fun();
 L=I+exp(x)*Σ[cos(x)]
 testbandedbelowoperator(L)
+
+
+
+
+
+
+# Piecewise space definite integral
+
+
+Γ=Segment(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
+    z=Fun(Γ)
+
+S=PiecewiseSpace(map(d->isa(d,Circle) ? Fourier(d) : JacobiWeight(0.5,0.5,Ultraspherical(1,d)),Γ))
+
+
+B=DefiniteLineIntegral(S)
+
+srand(0)
+f=Fun(S,rand(20))
+@test_approx_eq B*f linesum(f[1])+linesum(f[2])+linesum(f[3])
