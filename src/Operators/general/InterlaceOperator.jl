@@ -401,7 +401,7 @@ function blockbanded_interlace_convert!(S,ret)
     KR,JR = parentindexes(S)
     l,u=blockbandwidths(S)::Tuple{Int,Int}
 
-    M=map(op->BlockBandedMatrix(view(op,KR[1]:min(KR[end],blocksize(op,1)),JR[1]:min(JR[end],blocksize(op,2)))),parent(S).ops)
+    M=map(op->BlockBandedMatrix(view(op,first(KR):min(last(KR),blocksize(op,1)),first(JR):min(last(JR),blocksize(op,2)))),parent(S).ops)
 
     for J=Block(1):Block(blocksize(ret,2)),K=blockcolrange(ret,J)
         Bs=view(ret,K,J)
