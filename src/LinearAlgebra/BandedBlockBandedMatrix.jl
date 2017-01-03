@@ -29,8 +29,10 @@ BandedBlockBandedMatrix{T}(::Type{T},l,u,λ,μ,rows,cols) =
 
 for FUNC in (:zeros,:rand,:ones)
     BFUNC = parse("bbb"*string(FUNC))
-    @eval $BFUNC{T}(::Type{T},l,u,λ,μ,rows,cols) =
-        BandedBlockBandedMatrix($FUNC(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
+    @eval function $BFUNC{T}(::Type{T},l,u,λ,μ,rows,cols)
+        data = $FUNC(T,λ+μ+1,(l+u+1)*sum(cols))::Matrix{T}
+        BandedBlockBandedMatrix(data,l,u,λ,μ,rows,cols)
+    end
 end
 
 function Base.convert(::Type{BandedBlockBandedMatrix},Y::AbstractMatrix)
@@ -246,7 +248,7 @@ end
 
 
 *{T,U,V}(A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) = BandedMatrices.banded_A_mul_B(A,b)
-*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) = 
+*{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) =
     BandedMatrices.banded_A_mul_B!(Array(T,size(A,1)),A,b)
 
 
