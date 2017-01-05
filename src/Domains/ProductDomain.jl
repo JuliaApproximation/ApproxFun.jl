@@ -20,6 +20,9 @@ ProductDomain(d::Tuple) =
     ProductDomain{typeof(d),Vec{length(d),mapreduce(eltype,promote_type,d)},
                    mapreduce(dimension,+,d)}(d)
 
+Base.issubset(a::ProductDomain,b::ProductDomain) =
+  length(a) == length(b) && all(issubset(a.domains[i],b.domains[i]) for i in eachindex(a.domains))
+
 # TODO: Remove Tuple variants
 fromcanonical(d::BivariateDomain,x::Tuple) = fromcanonical(d,Vec(x...))
 tocanonical(d::BivariateDomain,x::Tuple) = tocanonical(d,Vec(x...))

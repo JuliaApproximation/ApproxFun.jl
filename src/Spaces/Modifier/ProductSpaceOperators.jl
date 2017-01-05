@@ -266,8 +266,6 @@ end
 
 choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->choosedomainspace(M,s),union,sp.spaces)
 
-
-
 ## Multiplcation for Array*Vector
 
 function Multiplication{S,T,DD,S2,T2,DD2,dim}(f::Fun{MatrixSpace{S,T,DD,dim}},sp::VectorSpace{S2,T2,DD2,dim})
@@ -315,7 +313,7 @@ DefiniteLineIntegral(d::UnionDomain) =
 
 
 DefiniteIntegral(sp::PiecewiseSpace) = ConcreteDefiniteIntegral(sp)
-DefiniteLineIntegral(sp::PiecewiseSpace) = ConcreteDefiniteLineIntegral(sp)    
+DefiniteLineIntegral(sp::PiecewiseSpace) = ConcreteDefiniteLineIntegral(sp)
 
 ####### This is a hack to get the Faraday Cage working.
 function getindex{PWS<:PiecewiseSpace,T}(Σ::ConcreteDefiniteLineIntegral{PWS,T},k::Integer)
