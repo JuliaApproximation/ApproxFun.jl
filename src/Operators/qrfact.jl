@@ -138,12 +138,12 @@ Base.Ac_mul_B(A::QROperatorQ,b;kwds...) =
     Fun(domainspace(A),Ac_mul_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
 
 
-linsolve_coefficients(A::QROperatorQ,B;opts...) = Ac_mul_B_coefficients(A,B;opts...)
-linsolve(A::QROperatorQ,B;opts...) = Ac_mul_B(A,B;opts...)
+A_ldiv_B_coefficients(A::QROperatorQ,B;opts...) = Ac_mul_B_coefficients(A,B;opts...)
+\(A::QROperatorQ,B::Fun;opts...) = Ac_mul_B(A,B;opts...)
 
 
 # R
-function linsolve_coefficients(R::QROperatorR,b::Vector)
+function A_ldiv_B_coefficients(R::QROperatorR,b::Vector)
     if length(b) > R.QR.ncols
         # upper triangularize columns
         resizedata!(R.QR,:,length(b))
@@ -151,49 +151,30 @@ function linsolve_coefficients(R::QROperatorR,b::Vector)
     trtrs!(Val{'U'},R.QR.R,copy(b))
 end
 
-linsolve(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
-    Fun(domainspace(R),linsolve_coefficients(R,b.coefficients;kwds...))
-linsolve(A::QROperatorR,b::Fun;kwds...) = error("linsolve not implement for $(typeof(b)) right-hand sides")
-linsolve(A::QROperatorR,b;kwds...) = linsolve(A,Fun(b);kwds...)
-
+\(R::QROperatorR,b::Fun{SequenceSpace};kwds...) =
+    Fun(domainspace(R),A_ldiv_B_coefficients(R,b.coefficients;kwds...))
+\(A::QROperatorR,b::Fun;kwds...) = error("\ not implement for $(typeof(b)) right-hand sides")
 
 
 # QR
 
-linsolve_coefficients{CO,MT,T<:Real}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    linsolve_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
-linsolve_coefficients{CO,MT,T<:Complex}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
-    linsolve_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
+A_ldiv_B_coefficients{CO,MT,T<:Real}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
+    A_ldiv_B_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
+A_ldiv_B_coefficients{CO,MT,T<:Complex}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
+    A_ldiv_B_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
 
-linsolve_coefficients{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
-    linsolve_coefficients(QR,Vector{T}(b);kwds...)
+A_ldiv_B_coefficients{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
+    A_ldiv_B_coefficients(QR,Vector{T}(b);kwds...)
 
-function linsolve_coefficients{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...)
-    a=linsolve_coefficients(QR,real(b);kwds...)
-    b=im*linsolve_coefficients(QR,imag(b);kwds...)
+function A_ldiv_B_coefficients{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...)
+    a=A_ldiv_B_coefficients(QR,real(b);kwds...)
+    b=im*A_ldiv_B_coefficients(QR,imag(b);kwds...)
     n=max(length(a),length(b))
     pad!(a,n)+pad!(b,n)
 end
-linsolve_coefficients{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
-    linsolve_coefficients(QR,Vector{T}(b);kwds...)
+A_ldiv_B_coefficients{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
+    A_ldiv_B_coefficients(QR,Vector{T}(b);kwds...)
 
 
-function linsolve(QR::QROperator,b::Vector{Any};kwds...)
-    #TODO: PDEQR remove this is a hack
-    if length(b) == 1 && isa(b[1],Fun)
-        linsolve(QR,Fun(b[1],rangespace(QR));kwds...)
-    else
-        linsolve(QR,Fun(b,rangespace(QR));kwds...)
-    end
-end
-function linsolve(A::QROperator,B::Matrix;kwds...)
-    ds=domainspace(A)
-    ret=Array(Fun{typeof(ds),promote_type(mapreduce(eltype,promote_type,B),eltype(ds))},
-              1,size(B,2))
-    for j=1:size(B,2)
-        ret[:,j]=linsolve(A,B[:,j];kwds...)
-    end
-    demat(ret)
-end
-linsolve(A::QROperator,b;kwds...) =
-    Fun(domainspace(A),linsolve_coefficients(A,coefficients(b,rangespace(A));kwds...))
+\(A::QROperator,b::Fun;kwds...) =
+    Fun(domainspace(A),A_ldiv_B_coefficients(A,coefficients(b,rangespace(A));kwds...))

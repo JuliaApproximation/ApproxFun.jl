@@ -10,9 +10,7 @@ end
 
 function abs{S<:RealUnivariateSpace,T<:Real}(f::Fun{S,T})
     d=domain(f)
-
     pts=roots(f)
-
     splitmap(x->abs(f(x)),d,pts)
 end
 
@@ -52,7 +50,7 @@ end
 
 for op in (:(max),:(min))
     @eval begin
-        function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T<:Real}(f::Fun{S,T},g::Fun{V,T})
+        function $op{S<:RealUnivariateSpace,V<:RealUnivariateSpace,T1<:Real,T2<:Real}(f::Fun{S,T1},g::Fun{V,T2})
             h=f-g
             d=domain(h)
             pts=roots(h)
@@ -62,6 +60,8 @@ for op in (:(max),:(min))
         $op{S<:RealUnivariateSpace,T<:Real}(f::Real,g::Fun{S,T}) = $op(Fun(f,domain(g)),g)
     end
 end
+
+Base.isfinite(f::Fun) = isfinite(maxabs(f)) && isfinite(minabs(f))
 
 # division by fun
 
@@ -77,7 +77,7 @@ function ./(c::Fun,f::Fun)
     r=roots(f)
     tol=10eps(promote_type(eltype(c),eltype(f)))
     if length(r)==0 || norm(c(r))<tol
-        linsolve(Multiplication(f,space(c)),c;tolerance=tol)
+        \(Multiplication(f,space(c)),c;tolerance=tol)
     else
         c.*(1./f)
     end
@@ -87,7 +87,7 @@ function ./(c::Number,f::Fun)
     r=roots(f)
     tol=10eps(promote_type(typeof(c),eltype(f)))
     @assert length(r)==0
-    linsolve(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
+    \(Multiplication(f,space(f)),c*ones(space(f));tolerance=tol)
 end
 
 # project to interval if we are not on the interview
@@ -111,7 +111,7 @@ function ./{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
         return Fun(c/f.coefficients[1],space(f))
     elseif ncoefficients(f)==2
         if isempty(roots(f))
-            return linsolve(Multiplication(f,space(f)),c;tolerance=0.05tol)
+            return \(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
             # we check directly for f*(1+x)
             return Fun(JacobiWeight(-1,0,space(f)),[c./fc.coefficients[1]])
@@ -138,7 +138,7 @@ function ./{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
         r = roots(fc)
 
         if length(r) == 0
-            return linsolve(Multiplication(f,space(f)),c;tolerance=0.05tol)
+            return \(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif abs(last(r)+1.0)≤tol  # double check
             #left root
             g=divide_singularity((1,0),fc)
@@ -319,7 +319,7 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
             D=Derivative(domain(f))
             B=Evaluation(domainspace(D),xmax)
             #([B,eval($L)]\[opfxmax/opmax,eval($R)/opmax])*opmax
-            u=linsolve([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
+            u=\([B,eval($L)],Any[opfxmax/opmax,eval($R)/opmax];tolerance=eps(T))*opmax
 
             setdomain(u,domain(fin))
         end
@@ -368,7 +368,7 @@ function exp{JW<:JacobiWeight}(f::Fun{JW})
         D=Derivative(s)
         B=Evaluation(s,xmax)
 
-        linsolve([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
+        \([B,D-f'],Any[opfxmax/opmax,0.];tolerance=eps(eltype(f)))*opmax
     end
 end
 
@@ -420,7 +420,7 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
-            u=linsolve([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
+            u=\([B;eval($L)],[opfxmin/opmax;opfxmax/opmax;eval($R)/opmax];
                         tolerance=10ncoefficients(f)*eps(T)*opmax)*opmax
 
             setdomain(u,domain(fin))
@@ -687,13 +687,44 @@ end
 
 ## ConstantSpace default overrides
 
+
 # ambiguity
-Base.abs2{CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) = Fun(abs2(Number(z)),space(z))
+for OP in (:(Base.abs),)
+    @eval begin
+        $OP{CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) =
+            Fun($OP(Number(z)),space(z))
+        $OP{CS<:ConstantSpace,T<:Real}(z::Fun{CS,T}) =
+            Fun($OP(Number(z)),space(z))
+        $OP{CS<:ConstantSpace,T}(z::Fun{CS,T}) =
+            Fun($OP(Number(z)),space(z))
+    end
+end
+
+for OP in (:(Base.max),:(Base.min))
+    @eval begin
+        $OP{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Real,V<:Real}(a::Fun{CS1,T},b::Fun{CS2,V}) =
+            Fun($OP(Number(a),Number(b)),space(a) ∪ space(b))
+        $OP{CS<:ConstantSpace,T<:Real}(a::Fun{CS,T},b::Real) =
+            Fun($OP(Number(a),b),space(a))
+        $OP{CS<:ConstantSpace,T<:Real}(a::Real,b::Fun{CS,T}) =
+            Fun($OP(a,Number(b)),space(b))
+    end
+end
+
+for OP in (:<,:(Base.isless),:(<=),:>,:(>=))
+    @eval begin
+        $OP{CS<:ConstantSpace}(a::Fun{CS},b::Fun{CS}) = $OP(Number(a),Number(b))
+        $OP{CS<:ConstantSpace}(a::Fun{CS},b::Number) = $OP(Number(a),b)
+        $OP{CS<:ConstantSpace}(a::Number,b::Fun{CS}) = $OP(a,Number(b))
+    end
+end
 
 # from DualNumbers
 for (funsym, exp) in Calculus.symbolic_derivatives_1arg()
     @eval begin
         $(funsym){CS<:ConstantSpace,T<:Real}(z::Fun{CS,T}) =
+            Fun($(funsym)(Number(z)),space(z))
+        $(funsym){CS<:ConstantSpace,T<:Complex}(z::Fun{CS,T}) =
             Fun($(funsym)(Number(z)),space(z))
         $(funsym){CS<:ConstantSpace}(z::Fun{CS}) =
             Fun($(funsym)(Number(z)),space(z))

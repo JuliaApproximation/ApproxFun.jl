@@ -43,7 +43,7 @@ println("    Poisson tests")
 f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
 d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
-@time  u=linsolve(A,[zeros(∂(d));f];tolerance=1E-7)
+@time  u=\(A,[zeros(∂(d));f];tolerance=1E-7)
 @test_approx_eq_eps u(.1,.2) -0.04251891975068446 1E-5
 
 
@@ -81,7 +81,7 @@ A=[dirichlet(dx)⊗eye(dy);
          L]
 
 
-@time u=linsolve(A,[ones(4);zeros(5)];tolerance=1E-5)
+@time u=\(A,[ones(4);zeros(5)];tolerance=1E-5)
 @test_approx_eq u(0.1,0.2) 1.0
 
 
@@ -133,7 +133,7 @@ u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
 L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
 testbandedblockbandedoperator(L)
 
-@time u=linsolve([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-5)
+@time u=\([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-5)
 @test_approx_eq u(0.5,0.001) 0.857215539785593+0.08694948835021317im  # empircal from schurfact
 
 

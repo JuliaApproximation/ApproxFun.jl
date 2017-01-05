@@ -21,16 +21,16 @@ Differential and integral operators are perhaps the most useful type of operator
 in mathematics.  Consider the derivative operator on `CosSpace`:
 ```jldoctest
 julia> D = Derivative(CosSpace())
-ConcreteDerivative:CosSpace(【-3.141592653589793,3.141592653589793❫)→SinSpace(【-3.141592653589793,3.141592653589793❫)
- 0.0  -1.0                                                   
-       0.0  -2.0                                             
-             0.0  -3.0                                       
-                   0.0  -4.0                                 
-                         0.0  -5.0                           
-                               0.0  -6.0                     
-                                     0.0  -7.0               
-                                           0.0  -8.0         
-                                                 0.0  -9.0   
+ConcreteDerivative:CosSpace(【0.0,6.283185307179586❫)→SinSpace(【0.0,6.283185307179586❫)
+ 0.0  -1.0
+       0.0  -2.0
+             0.0  -3.0
+                   0.0  -4.0
+                         0.0  -5.0
+                               0.0  -6.0
+                                     0.0  -7.0
+                                           0.0  -8.0
+                                                 0.0  -9.0
                                                        0.0  ⋱
                                                             ⋱
 
@@ -102,7 +102,7 @@ on `CosSpace` has the form:
 
 ```jldoctest
 julia> B = Evaluation(CosSpace(),0)
-ConcreteEvaluation:CosSpace(【-3.141592653589793,3.141592653589793❫)→ConstantSpace(Point(0))
+ConcreteEvaluation:CosSpace(【0.0,6.283185307179586❫)→ConstantSpace(Point(0))
  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  1.0  ⋯
 
 julia> B*f ≈ f(0)
@@ -119,7 +119,7 @@ As a simple example, we can add the second derivative of a Fourier space to the
 identity operator:
 ```jldoctest
 julia> D2 = Derivative(Fourier(),2)
-DerivativeWrapper:Fourier(【-3.141592653589793,3.141592653589793❫)→Fourier(【-3.141592653589793,3.141592653589793❫)
+DerivativeWrapper:Fourier(【0.0,6.283185307179586❫)→Fourier(【0.0,6.283185307179586❫)
  0.0   0.0                                                      
  0.0  -1.0   0.0                                                
        0.0  -1.0   0.0                                          
@@ -133,7 +133,7 @@ DerivativeWrapper:Fourier(【-3.141592653589793,3.141592653589793❫)→Fourier(
                                                            ⋱   ⋱
 
 julia> D2 + I
-PlusOperator:Fourier(【-3.141592653589793,3.141592653589793❫)→Fourier(【-3.141592653589793,3.141592653589793❫)
+PlusOperator:Fourier(【0.0,6.283185307179586❫)→Fourier(【0.0,6.283185307179586❫)
  1.0  0.0                                                     
  0.0  0.0  0.0                                                
       0.0  0.0   0.0                                          
@@ -208,11 +208,11 @@ We can construct this using
 ```jldoctest
 julia> x = Fun();
 
-julia> Q = DefiniteIntegral(Chebyshev())
+julia> Σ = DefiniteIntegral(Chebyshev())
 ConcreteDefiniteIntegral:Chebyshev(【-1.0,1.0】)→ConstantSpace
  2.0  0.0  -0.666667  0.0  -0.133333  0.0  -0.0571429  0.0  -0.031746  0.0  ⋯
 
-julia> L = I + exp(x)*Q
+julia> L = I + exp(x)*Σ
 LowRankPertOperator:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
  3.53213     0.0  -0.844044     0.0  …  0.0  -0.0401926    0.0  ⋯
  2.26064     1.0  -0.753545     0.0     0.0  -0.0358831    0.0  ⋱
@@ -229,7 +229,7 @@ LowRankPertOperator:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
 julia> u = cos(10x^2);
 
 julia> (L*u)(0.1)
-1.3777980523127333
+1.3777980523127336
 
 julia> u(0.1) + exp(0.1)*sum(u)
 1.3777980523127336
@@ -277,6 +277,49 @@ TimesOperator:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
  2.20735e-8  0.0  -7.35785e-9   0.0     0.0  -3.50374e-10  0.0  ⋱
   ⋮           ⋱     ⋱            ⋱   …   ⋱     ⋱            ⋱   ⋱
 ```
+
+## Operators and space promotion
+
+It is often more convenient to not specify a space explicitly, but rather
+infer it when the operator is used.  For example, we can construct `Derivative()`,
+which has the alias `𝒟`, and represents the first derivative on any space:
+```jldoctest
+julia> f = Fun(cos,Chebyshev(0..1)); (𝒟*f)(0.1)
+-0.09983341664681705
+
+julia> f = Fun(cos,Fourier()); (𝒟*f)(0.1)
+-0.09983341664682804
+```
+Behind the scenes, `Derivative()` is equivalent to `Derivative(UnsetSpace(),1)`.
+When multiplying a function `f`, the domain space is promoted before multiplying,
+that is, `Derivative()*f` is equivalent to `Derivative(space(f))*f`.  
+
+This promotion of the domain space happens even when operators have spaces attached.
+This facilitates the following construction:
+```jldoctest
+julia> D = Derivative(Chebyshev());
+
+julia> D^2
+ConcreteDerivative:Chebyshev(【-1.0,1.0】)→Ultraspherical(2,【-1.0,1.0】)
+ 0.0  0.0  4.0                                           
+      0.0  0.0  6.0                                      
+           0.0  0.0  8.0                                 
+                0.0  0.0  10.0                           
+                     0.0   0.0  12.0                     
+                           0.0   0.0  14.0               
+                                 0.0   0.0  16.0         
+                                       0.0   0.0  18.0   
+                                             0.0   0.0  ⋱
+                                                   0.0  ⋱
+                                                        ⋱
+```
+Note that `rangespace(D) ≠ Chebyshev()`, hence the operators are not compatible.
+Therefore, it has thrown away its domain space, and thus this is equivalent to
+`Derivative(rangespace(D))*D`.
+
+
+
+
 
 ```@meta
 DocTestSetup = nothing

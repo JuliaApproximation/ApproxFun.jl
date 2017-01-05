@@ -52,7 +52,11 @@ end
 
 Base.show(io::IO,::ConstantSpace{AnyDomain}) = print(io,"ConstantSpace")
 Base.show(io::IO,S::ConstantSpace) = print(io,"ConstantSpace($(domain(S)))")
+Base.show(io::IO,f::Fun{ConstantSpace{AnyDomain}}) =
+    print(io,"$(Number(f)) anywhere")
 
+Base.show{DD}(io::IO,f::Fun{ConstantSpace{DD}}) =
+    print(io,"$(Number(f)) on $(domain(f))")    
 
 for typ in ("Chebyshev","Fourier","Laurent","Taylor","SinSpace","CosSpace")
     TYP=parse(typ)

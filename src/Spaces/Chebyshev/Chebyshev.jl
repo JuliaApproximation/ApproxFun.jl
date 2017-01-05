@@ -50,8 +50,8 @@ end
 
 ## Transform
 
-transform(::Chebyshev,vals::Vector,plan) = chebyshevtransform(vals,plan)
-itransform(::Chebyshev,cfs::Vector,plan) = ichebyshevtransform(cfs,plan)
+transform(::Chebyshev,vals::Vector,plan) = plan*vals
+itransform(::Chebyshev,cfs::Vector,plan) = plan*cfs
 plan_transform(::Chebyshev,vals::Vector) = plan_chebyshevtransform(vals)
 plan_itransform(::Chebyshev,cfs::Vector) = plan_ichebyshevtransform(cfs)
 

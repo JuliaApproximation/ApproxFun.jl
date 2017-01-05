@@ -17,12 +17,13 @@ end
 
 
 f=Fun(t->cos(t)+cos(3t),CosSpace)
-
+@test_approx_eq f(0.1) cos(0.1)+cos(3*0.1)
 @test (f.*f-Fun(t->(cos(t)+cos(3t))^2,CosSpace)).coefficients|>norm <100eps()
 
 
 
 f=Fun(exp,Taylor(Circle()))
+@test_approx_eq f(exp(0.1im)) exp(exp(0.1im))
 g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
 @test_approx_eq (f(1.)+g(1.)) (exp(1.) + 1./(1-.1))
 
@@ -33,7 +34,6 @@ f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
 @test_approx_eq f(.5) Fun(f,Fourier)(.5)
 
 
-
 Γ=Circle(1.1,2.2)
 z=Fun(Fourier(Γ))
 @test space(z)==Fourier(Γ)
@@ -42,9 +42,9 @@ z=Fun(Fourier(Γ))
 
 
 
-@test_approx_eq Fun(Laurent(0..2π),[1,1.,1.])(0.1) 1+2cos(0.1+π)
-@test_approx_eq Fun(Laurent(-1..1),[1,1.,1.])(0.1) 1+2cos(π*0.1)
-@test_approx_eq Fun(Laurent(0..1),[1,1.,1.])(0.1) 1+2cos(2π*(0.1-1/2))
+@test_approx_eq Fun(Laurent(0..2π),[1,1.,1.])(0.1) 1+2cos(0.1)
+@test_approx_eq Fun(Laurent(-1..1),[1,1.,1.])(0.1) 1+2cos(π*(0.1+1))
+@test_approx_eq Fun(Laurent(0..1),[1,1.,1.])(0.1) 1+2cos(2π*0.1)
 
 
 @test abs(Fun(cos,Circle())(exp(0.1im))-cos(exp(0.1im)))<100eps()

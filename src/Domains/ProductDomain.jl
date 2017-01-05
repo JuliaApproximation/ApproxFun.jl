@@ -50,7 +50,7 @@ Base.transpose(d::ProductDomain)=ProductDomain(d[2],d[1])
 Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
 ==(d1::ProductDomain,d2::ProductDomain)=d1.domains==d2.domains
 
-Base.first(d::ProductDomain)=(first(d[1]),first(d[2]))
+Base.first(d::ProductDomain) = (first(d[1]),first(d[2]))
 
 Base.in(x::Vec,d::ProductDomain) = reduce(&,map(in,x,d.domains))
 

@@ -12,7 +12,8 @@ makedocs(modules=[ApproxFun],
 						"Domains" => "usage/domains.md",
 						"Spaces" => "usage/spaces.md",
 						"Constructors" => "usage/constructors.md",
-						"Operators" => "usage/operators.md"
+						"Operators" => "usage/operators.md",
+						"Linear Equations" => "usage/equations.md"
 					],
 					"Frequently Asked Questions" => "faq.md",
 					"Library" => "library.md"

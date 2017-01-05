@@ -11,7 +11,7 @@ represents a periodic interval from `a` to `b`, that is, the point
 immutable PeriodicInterval{T} <: PeriodicDomain{T}
     a::T
     b::T
-    PeriodicInterval() = new(-convert(T,π),convert(T,π))
+    PeriodicInterval() = new(0,2convert(T,π))
     PeriodicInterval(a,b) = new(a,b)
 end
 
@@ -50,19 +50,19 @@ Base.issubset(a::PeriodicInterval,b::PeriodicInterval) = first(a)∈b && a.b∈b
 ## Map periodic interval
 
 
-tocanonical{T}(d::PeriodicInterval{T},x)=π*tocanonical(Segment(d),x)
-tocanonicalD{T}(d::PeriodicInterval{T},x)=π*tocanonicalD(Segment(d),x)
+tocanonical{T}(d::PeriodicInterval{T},x) = π*(tocanonical(Segment(d),x)+1)
+tocanonicalD{T}(d::PeriodicInterval{T},x) = π*tocanonicalD(Segment(d),x)
 fromcanonical(d::PeriodicInterval,v::AbstractArray) = eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical{V<:Vec}(d::PeriodicInterval{V},p::AbstractArray) = V[fromcanonical(d,x) for x in p]
-fromcanonical(d::PeriodicInterval,θ)=fromcanonical(Segment(d),θ/π)
-fromcanonicalD(d::PeriodicInterval,θ)=fromcanonicalD(Segment(d),θ/π)/π
+fromcanonical(d::PeriodicInterval,θ) = fromcanonical(Segment(d),θ/π-1)
+fromcanonicalD(d::PeriodicInterval,θ) = fromcanonicalD(Segment(d),θ/π-1)/π
 
 
 
 arclength(d::PeriodicInterval) = norm(d.b - d.a)
 Base.angle(d::PeriodicInterval) = angle(d.b - d.a)
-complexlength(d::PeriodicInterval)=d.b-d.a
-Base.reverse(d::PeriodicInterval)=PeriodicInterval(d.b,d.a)
+complexlength(d::PeriodicInterval) = d.b-d.a
+Base.reverse(d::PeriodicInterval) = PeriodicInterval(d.b,d.a)
 
 
 
@@ -76,14 +76,14 @@ Base.reverse(d::PeriodicInterval)=PeriodicInterval(d.b,d.a)
 
 for op in (:*,:+,:-,:.*,:.+,:.-)
     @eval begin
-        $op(c::Number,d::PeriodicInterval)=PeriodicInterval($op(c,d.a),$op(c,d.b))
-        $op(d::PeriodicInterval,c::Number)=PeriodicInterval($op(d.a,c),$op(d.b,c))
+        $op(c::Number,d::PeriodicInterval) = PeriodicInterval($op(c,d.a),$op(c,d.b))
+        $op(d::PeriodicInterval,c::Number) = PeriodicInterval($op(d.a,c),$op(d.b,c))
     end
 end
 
 for op in (:/,:./)
-    @eval $op(d::PeriodicInterval,c::Number)=PeriodicInterval($op(d.a,c),$op(d.b,c))
+    @eval $op(d::PeriodicInterval,c::Number) = PeriodicInterval($op(d.a,c),$op(d.b,c))
 end
 
 
-+(d1::PeriodicInterval,d2::PeriodicInterval)=PeriodicInterval(d1.a+d2.a,d1.b+d2.b)
++(d1::PeriodicInterval,d2::PeriodicInterval) = PeriodicInterval(d1.a+d2.a,d1.b+d2.b)

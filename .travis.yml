@@ -9,10 +9,13 @@ julia:
 matrix:
   allow_failures:
     - julia: nightly
+    - os: osx
 notifications:
   email: false
 after_script:
   - bash ./docs/travis.sh
+after_success:
+  - julia -e 'cd(Pkg.dir("ApproxFun")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
 
 
 # uncomment the following lines to override the default test script

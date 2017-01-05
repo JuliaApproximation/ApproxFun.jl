@@ -77,7 +77,7 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
 
     @assert size(M,2)==n
     plan = plan_transform(AS.space,M[:,1])
-    cfs=Vector{V}[transform(AS.space,M[:,k],plan)  for k=1:size(M,2)]
+    cfs=Vector{V}[plan*M[:,k]  for k=1:size(M,2)]
 
     interlace(cfs,AS)
 end
@@ -368,22 +368,8 @@ Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T}) 
     Any[vec(f,k) for k=1:length(space(f)[1])+1]
 
 
-
-linsolve{S,T,DD,dim}(A::QROperator,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
-    linsolve(A,mat(b);kwds...)
-
-
 # avoid ambiguity
-for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:Operator)
-    @eval function linsolve{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...)
-        if isambiguous(domainspace(A))
-            A=choosespaces(A,b[:,1])  # use only first column
-            if isambiguous(domainspace(A))
-                error("Cannot infer spaces")
-            end
-            linsolve(A,b;kwds...)
-        else
-            linsolve(qrfact(A),b;kwds...)
-        end
-    end
+for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:QROperator,:Operator)
+    @eval \{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
+        \(A,mat(b);kwds...)
 end

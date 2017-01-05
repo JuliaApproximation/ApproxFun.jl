@@ -21,6 +21,8 @@ end
 
 
 
+Base.convert{T}(::Type{Operator{T}},L::LowRankPertOperator) = 
+    LowRankPertOperator(Operator{T}(L.op),Operator{T}(L.pert))::Operator{T}
 Base.convert{OT<:Operator}(::Type{Operator},V::Vector{OT})=LowRankPertOperator(V)
 
 
@@ -30,6 +32,9 @@ Base.getindex(L::LowRankPertOperator,k::Integer,j::Integer)=L.op[k,j]+L.pert[k,j
 domainspace(L::LowRankPertOperator)=domainspace(L.op)
 rangespace(L::LowRankPertOperator)=rangespace(L.op)
 datasize(L::LowRankPertOperator,k...)=datasize(L.pert,k...)
+
+israggedbelow(P::LowRankPertOperator) = israggedbelow(P.op) && israggedbelow(P.pert)
+bandinds(P::LowRankPertOperator) = bandinds(P.op,1)+bandinds(P.pert,1) , bandinds(P.op,2)+bandinds(P.pert,2)
 
 colstop(L::LowRankPertOperator,k::Integer) = max(colstop(L.op,k),colstop(L.pert,k))
 

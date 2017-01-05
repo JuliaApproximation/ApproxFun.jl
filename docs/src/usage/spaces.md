@@ -30,7 +30,7 @@ julia> f(cos(0.1))
 2.70473560723178
 
 julia> g(0.1)
-2.70473560723178
+2.7047356072317794
 ```
 
 ## Ultraspherical spaces
@@ -97,7 +97,7 @@ For example:
 julia> f = Fun(Laurent(),[1,2,3,4]);
 
 julia> f(0.1)
-9.895287137755096 - 0.6948439065334164im
+9.895287137755096 - 0.694843906533417im
 
 julia> 1 + 2exp(-im*0.1) + 3exp(im*0.1) + 4exp(-2im*0.1)
 9.895287137755094 - 0.6948439065334167im
@@ -109,9 +109,15 @@ julia> 1 + 2exp(-im*0.1) + 3exp(im*0.1) + 4exp(-2im*0.1)
 
 Some spaces are built out of other spaces.  A simple example is `JacobiWeight(β,α,space)`
 which weights `space`, which is typically `Chebyshev()` or `Jacobi(b,a)`,
- by a Jacobi weight `(1+x)^β*(1-x)^a`.
+ by a Jacobi weight `(1+x)^b*(1-x)^a`.
 
 
  ```@meta
  DocTestSetup = nothing
  ```
+
+
+## Unset space
+
+`UnsetSpace` is a special space that is used as a stand in when a
+space has not yet been determined, particularly by operators.  

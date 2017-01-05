@@ -103,10 +103,10 @@ println("    Bessel tests")
     D=Derivative(S)
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
-    u=linsolve([rdirichlet(S);rneumann(S);L],[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.)),0];
+    u=\([rdirichlet(S);rneumann(S);L],[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test_approx_eq_eps u(.1) bessely(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
-    u=linsolve([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
+    u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test_approx_eq_eps u(.1) besselj(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
 
@@ -123,7 +123,7 @@ end
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
 
-    u=linsolve([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
+    u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test_approx_eq_eps u(.1) besselj(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
 
@@ -144,7 +144,8 @@ M=Multiplication(f,sp2)
 ## Legendre conversions
 testspace(Ultraspherical(1);haslineintegral=false)
 testspace(Ultraspherical(2);haslineintegral=false)
-@time testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)  # minpoints is a tempory fix a bug
+# minpoints is a tempory fix a bug
+@time testspace(Ultraspherical(1//2);haslineintegral=false,minpoints=2)
 
 @test norm(Fun(exp,Ultraspherical(1//2))-Fun(exp,Jacobi(0,0))) < 100eps()
 
@@ -244,6 +245,7 @@ f=ProductFun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 d=Interval()
 B=ldirichlet(d)
 f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
+
 @test norm(B*f-Fun(y->cos(cos(-1)*sin(y)),d))<20000eps()
 @test norm(f*B-Fun(x->cos(cos(x)*sin(-1)),d))<20000eps()
 

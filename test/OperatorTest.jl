@@ -85,7 +85,7 @@ A=Conversion(Chebyshev(d),Ultraspherical(2,d))*X
 
 @time testbandedoperator(A)
 
-@test norm((A*f.coefficients).coefficients-coefficients(x.*f,rangespace(A))) < 100eps()
+@test norm((A_mul_B_coefficients(A,f.coefficients))-coefficients(x.*f,rangespace(A))) < 100eps()
 
 
 ## Special functions
@@ -208,7 +208,7 @@ testbandedoperator(ApproxFun.ReverseOrientation(Chebyshev()))
 
 
 @test norm(ApproxFun.Reverse(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(-t-0.2)-0.1),Fourier())) < 10eps()
-@test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier(PeriodicInterval(π,-π)))) < 10eps()
+@test norm(ApproxFun.ReverseOrientation(Fourier())*Fun(t->cos(cos(t-0.2)-0.1),Fourier()) - Fun(t->cos(cos(t-0.2)-0.1),Fourier(PeriodicInterval(2π,0)))) < 10eps()
 
 
 

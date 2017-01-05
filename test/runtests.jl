@@ -44,6 +44,7 @@ println("Domain tests")
 @test !in(0.45-0.65im,Interval())
 @test cumsum(ApproxFun.Flatten(([3],ApproxFun.repeated(2)))).it[2]==ApproxFun.Count(5,2)
 @test reverse(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
+@test in(0.1,PeriodicInterval(2π,0))
 
 @time include("MatrixTest.jl")
 

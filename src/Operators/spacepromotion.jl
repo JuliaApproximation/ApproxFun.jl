@@ -179,6 +179,5 @@ end
 ## algebra
 
 
-linsolve(A::SpaceOperator,b;kwds...) =
-    setspace(linsolve(A.op,setspace(Fun(b,rangespace(A)),rangespace(A.op));kwds...),
-             domainspace(A))
+A_ldiv_B_coefficients(A::SpaceOperator,b;kwds...) =
+    A_ldiv_B_coefficients(A.op,b;kwds...)

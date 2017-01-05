@@ -14,42 +14,38 @@ end
 
 UnionDomain(d::Tuple) =
     UnionDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(dimension,max,d)}(d)
-UnionDomain(d::AbstractVector)=UnionDomain(tuple(d...))
+UnionDomain(d::AbstractVector) = UnionDomain(tuple(d...))
 
 
-UnionDomain(d1::UnionDomain,d2::UnionDomain)=UnionDomain((d1.domains...,d2.domains...))
-UnionDomain(d1::Domain,d2::UnionDomain)=UnionDomain((d1,d2.domains...))
-UnionDomain(d1::UnionDomain,d2::Domain)=UnionDomain((d1.domains...,d2))
+UnionDomain(d1::UnionDomain,d2::UnionDomain) = UnionDomain((d1.domains...,d2.domains...))
+UnionDomain(d1::Domain,d2::UnionDomain) = UnionDomain((d1,d2.domains...))
+UnionDomain(d1::UnionDomain,d2::Domain) = UnionDomain((d1.domains...,d2))
 
-UnionDomain(d1::Domain,d2::Domain)=UnionDomain((d1,d2))
+UnionDomain(d1::Domain,d2::Domain) = UnionDomain((d1,d2))
 
 
 
-canonicaldomain(d::UnionDomain)=d  # we could map all to canonical, but then there would be overlap
+canonicaldomain(d::UnionDomain) = d  # we could map all to canonical, but then there would be overlap
 
-isambiguous(d::UnionDomain)=isempty(d.domains)
-Base.convert{DD,T,d}(::Type{UnionDomain{DD,T,d}},::AnyDomain)=UnionDomain{DD,T,d}(map(D->D(AnyDomain()),DD.parameters))
-Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain)=UnionDomain(tuple())
+isambiguous(d::UnionDomain) = isempty(d.domains)
+Base.convert{DD,T,d}(::Type{UnionDomain{DD,T,d}},::AnyDomain) =
+    UnionDomain{DD,T,d}(map(D->D(AnyDomain()),DD.parameters))
+Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain) = UnionDomain(tuple())
 
 
 
 Base.union(d::Domain) = d
-Base.union{D<:Domain}(d::AbstractVector{D}) = UnionDomain(d)
-#TODO: Deprecate these
-function Base.union{D<:Domain}(::Type{D},x)
-    out = map(D,x)
-    length(out) > 1 ? ∪(out) : out[1]
-end
-function Base.union{D<:Domain}(::Type{D},x,y)
-    out = map(D,x,y)
-    length(out) > 1 ? ∪(out) : out[1]
+function Base.union{D<:Domain}(d::AbstractVector{D})
+    isempty(d) && return EmptyDomain()
+    length(d)==1 && return d[1]
+    UnionDomain(d)
 end
 #TODO Check for intersection
 
 
-Base.union(d1::EmptyDomain,d2::EmptyDomain)=d1
-Base.union(d1::EmptyDomain,d2::Domain)=d2
-Base.union(d1::Domain,d2::EmptyDomain)=d1
+Base.union(d1::EmptyDomain,d2::EmptyDomain) = d1
+Base.union(d1::EmptyDomain,d2::Domain) = d2
+Base.union(d1::Domain,d2::EmptyDomain) = d1
 
 function Base.union(d1::Domain,d2::Domain)
     if d1==d2
@@ -65,9 +61,9 @@ function Base.union(d1::Domain,d2::Domain)
 end
 
 
-Base.intersect(d1::UnionDomain,d2::UnionDomain)=mapreduce(d->d1∩d,∪,d2.domains)
-Base.intersect(d1::Domain,d2::UnionDomain)=mapreduce(d->d1∩d,∪,d2.domains)
-Base.intersect(d1::UnionDomain,d2::Domain)=mapreduce(d->d2∩d,∪,d1.domains)
+Base.intersect(d1::UnionDomain,d2::UnionDomain) = mapreduce(d->d1∩d,∪,d2.domains)
+Base.intersect(d1::Domain,d2::UnionDomain) = mapreduce(d->d1∩d,∪,d2.domains)
+Base.intersect(d1::UnionDomain,d2::Domain) = mapreduce(d->d2∩d,∪,d1.domains)
 
 
 Base.setdiff(a::UnionDomain,b::UnionDomain) = mapreduce(d->setdiff(d,b),∪,a.domains)
