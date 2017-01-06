@@ -450,9 +450,9 @@ macro wrappergetindex(Wrap)
             ApproxFun.unwrap_axpy!(α,P,A)
 
         A_mul_B_coefficients(A::$Wrap,b) = A_mul_B_coefficients(A.op,b)
-        A_mul_B_coefficients{T,OP<:$Wrap}(A::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) =
+        A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}},b) =
             A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
-        A_mul_B_coefficients{T,OP<:$Wrap}(A::SubOperator{T,OP},b) =
+        A_mul_B_coefficients{T,OP<:$Wrap}(A::ApproxFun.SubOperator{T,OP},b) =
             A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
     end
 
