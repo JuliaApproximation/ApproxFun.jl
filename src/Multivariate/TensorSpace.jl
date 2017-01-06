@@ -75,6 +75,20 @@ function Base.findfirst(::Tensorizer{NTuple{2,Repeated{Bool}}},kj::Tuple{Int,Int
     end
 end
 
+function Base.findfirst{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},kj::Tuple{Int,Int})
+    k,j=kj
+
+    if k > 0 && j > 0
+        a,b = sp.blocks[1].x,sp.blocks[2].x
+        kb1,kr = fldmod(k-1,a)
+        jb1,jr = fldmod(j-1,b)
+        nb=kb1+jb1
+        a*b*(nb*(nb+1)÷2+kb1)+a*jr+kr+1
+    else
+        0
+    end
+end
+
 # which block of the tensor
 # equivalent to sum of indices -1
 
@@ -84,6 +98,9 @@ block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int)::Blo
 
 block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int)::Block =
     floor(Integer,sqrt(2n) + 1/2)
+
+block{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int)::Block =
+    floor(Integer,sqrt(2floor(Integer,(n-1)/(sp.blocks[1].x*sp.blocks[2].x))+1) + 1/2)
 block(sp::Tensorizer,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths(sp)))
 block(sp::CachedIterator,k::Int) = block(sp.iterator,k)
 
@@ -131,8 +148,15 @@ function getindex(it::Tensorizer{NTuple{2,Repeated{Bool}}},n::Integer)
     j,m-j+1
 end
 
-
-
+function getindex{S,T}(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer)
+    a,b = it.blocks[1].x,it.blocks[2].x
+    nb1,nr = fldmod(n-1,a*b) # nb1 = "nb" - 1, i.e. using zero-base
+    m1=block(it,n)-1
+    pb1=fld(findfirst(it,(1,b*m1+1))-1,a*b)
+    jb1=nb1-pb1
+    kr1,jr1 = fldmod(nr,a)
+    b*jb1+jr1+1,a*(m1-jb1)+kr1+1
+end
 
 
 blockstart(it,K)::Int = K==1?1:sum(blocklengths(it)[1:K-1])+1
