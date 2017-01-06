@@ -42,7 +42,7 @@ Base.convert{T}(::Type{PeriodicInterval{T}},::AnyDomain) = PeriodicInterval(nan(
 
 Base.first(d::PeriodicInterval) = d.a
 
-Base.issubset(a::PeriodicInterval,b::PeriodicInterval) = first(a)∈b && a.b∈b
+Base.issubset(a::PeriodicInterval,b::PeriodicInterval) = first(a)∈b && (a.b∈b || a.b == b.b)
 
 # we disable last since the domain is "periodic"
 
