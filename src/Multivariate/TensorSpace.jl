@@ -148,10 +148,11 @@ function getindex(it::Tensorizer{NTuple{2,Repeated{Bool}}},n::Integer)
     j,m-j+1
 end
 
+# could be cleaned up using blocks
 function getindex{S,T}(it::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Integer)
     a,b = it.blocks[1].x,it.blocks[2].x
     nb1,nr = fldmod(n-1,a*b) # nb1 = "nb" - 1, i.e. using zero-base
-    m1=block(it,n)-1
+    m1=block(it,n).K-1
     pb1=fld(findfirst(it,(1,b*m1+1))-1,a*b)
     jb1=nb1-pb1
     kr1,jr1 = fldmod(nr,a)
