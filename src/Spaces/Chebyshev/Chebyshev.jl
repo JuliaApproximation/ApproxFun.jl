@@ -247,6 +247,12 @@ plan_transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector) =
 transform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector,
              plan=plan_transform(S,v)) = plan*copy(v)
 
+plan_itransform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector) =
+     plan_ipaduatransform!(eltype(v),sum(1:nblocks(Fun(S,v))),Val{false})
+
+itransform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector,
+              plan=plan_itransform(S,v)) = plan*pad(v,sum(1:nblocks(Fun(S,v))))
+
 
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))

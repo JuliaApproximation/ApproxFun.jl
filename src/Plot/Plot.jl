@@ -296,8 +296,11 @@ end
 end
 
 
-@recipe function f{TS<:AbstractProductSpace,T<:Real}(g::Fun{TS,T})
-    ProductFun(g)
+@recipe function f{TS<:BivariateSpace,T<:Real}(g::Fun{TS,T})
+    g = pad(g,ncoefficients(g)+100)
+    pts = points(g)
+    seriestype --> :surface
+    first.(pts),last.(pts),values(g)
 end
 
 @recipe function f{TS<:AbstractProductSpace,T<:Complex}(g::Fun{TS,T})
