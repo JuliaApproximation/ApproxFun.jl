@@ -303,6 +303,10 @@ end
     first.(pts),last.(pts),values(g)
 end
 
+@recipe function f{TS<:AbstractProductSpace,T<:Real}(g::Fun{TS,T})
+    ProductFun(g)
+end
+
 @recipe function f{TS<:AbstractProductSpace,T<:Complex}(g::Fun{TS,T})
     ProductFun(g)
 end
