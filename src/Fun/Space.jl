@@ -92,6 +92,9 @@ Base.endof(s::Space) = 1
 #supports broadcasting, overloaded for ArraySpace
 Base.size(::Space) = ()
 
+# but broadcasts like Number (even for overloaded ArraySpace)
+# TODO for v0.6: remove this
+Base.broadcast(f,x::Union{Number,Domain,Space}...) = f(x...)
 
 # the default is all spaces have one-coefficient blocks
 blocklengths(S::Space) = repeated(true,dimension(S))
