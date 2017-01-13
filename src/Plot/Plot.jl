@@ -126,31 +126,31 @@ end
 
 
 
-@userplot DomainPlot
-
-@recipe function f(D::DomainPlot)
-    @assert length(D.args)==1
-    g=D.args[1]
-    @assert isa(g,Fun)
-
-    domain(g)
-end
-
-
-
-@userplot CoefficientPlot
-
-@recipe function f(C::CoefficientPlot)
-    @assert length(C.args)==1
-    g=C.args[1]
-    @assert isa(g,Fun)
-
-    seriestype --> :scatter
-    yscale --> :log10
-    markersize := max(round(Int,5 - log10(ncoefficients(g))),1)
-    xlims --> (0,1.01ncoefficients(g))
-    abs(g.coefficients)
-end
+# @userplot DomainPlot
+#
+# @recipe function f(D::DomainPlot)
+#     @assert length(D.args)==1
+#     g=D.args[1]
+#     @assert isa(g,Fun)
+#
+#     domain(g)
+# end
+#
+#
+#
+# @userplot CoefficientPlot
+#
+# @recipe function f(C::CoefficientPlot)
+#     @assert length(C.args)==1
+#     g=C.args[1]
+#     @assert isa(g,Fun)
+#
+#     seriestype --> :scatter
+#     yscale --> :log10
+#     markersize := max(round(Int,5 - log10(ncoefficients(g))),1)
+#     xlims --> (0,1.01ncoefficients(g))
+#     abs(g.coefficients)
+# end
 
 
 
