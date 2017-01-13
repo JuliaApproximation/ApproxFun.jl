@@ -94,7 +94,7 @@ function Base.convert(::Type{RaggedMatrix},B::AbstractMatrix)
     ret
 end
 
-Base.similar{T}(::Type{RaggedMatrix{T}},B::RaggedMatrix) = RaggedMatrix(Array(T,length(B.data),copy(B.cols),B.m))
+Base.similar{T}(B::RaggedMatrix,::Type{T}) = RaggedMatrix(Array(T,length(B.data)),copy(B.cols),B.m)
 
 for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:rones))
     @eval begin
