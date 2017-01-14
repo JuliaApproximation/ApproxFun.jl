@@ -197,6 +197,19 @@ w=sqrt(1-x^2)
 w+δ
 
 
+## PointSpace
+
+f=Fun(x->(x-0.1),ApproxFun.PointSpace([0,0.1,1]))
+@test roots(f) == [0.1]
+
+a=Fun(exp,space(f))
+@test f/a == Fun(x->(x-0.1)*exp(-x),space(f))
+
+g = f + Fun(2..3)
+h = a + Fun(2..3)
+
+@test g/h ≈ ((f/a) + Fun(1,2..3))
+
 
 ## multiplicities
 x=Fun(identity,-1..1)

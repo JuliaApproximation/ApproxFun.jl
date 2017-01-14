@@ -66,7 +66,7 @@ function coefficient(f::Fun,kr::Range)
 end
 
 coefficient(f::Fun,K::Block) = coefficient(f,blockrange(space(f),K.K))
-
+coefficient(f::Fun,::Colon) = coefficient(f,1:dimension(space(f)))
 
 ##Convert routines
 

@@ -410,3 +410,8 @@ function roots{S<:JacobiWeight,T}(f::Fun{S,T})
     end
     rts
 end
+
+
+## PointSpace
+
+roots{S<:PointSpace,T}(f::Fun{S,T}) = space(f).points[values(f) .== 0]

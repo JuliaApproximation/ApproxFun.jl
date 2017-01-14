@@ -62,12 +62,12 @@ for TYP in (:DiracSpace,:PointSpace)
     end
 end
 
-Space(d::Point)=PointSpace(d)
+Space(d::Point) = PointSpace(d)
 
-identity_fun(S::PointSpace)=Fun(S,S.points)
-identity_fun(S::DiracSpace)=Fun(PointSpace(S.points),S.points)
-transform(S::PointSpace,v::Vector,plan...)=v
-
+identity_fun(S::PointSpace) = Fun(S,S.points)
+identity_fun(S::DiracSpace) = Fun(PointSpace(S.points),S.points)
+transform(S::PointSpace,v::Vector,plan...) = v
+values{S<:PointSpace}(f::Fun{S}) = coefficient(f,:)
 
 function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     p = findfirst(y->isapprox(x,y),PS.points)
@@ -124,20 +124,20 @@ end
 # end
 
 
-# function Multiplication{PS<:PointSpace}(f::Fun{PS},PS2::PointSpace)
-#     @assert space(f).points==PS2.points
-#     FiniteOperator(diagm(f.coefficients),PS2,PS2)
-# end
+function Multiplication{PS<:PointSpace}(f::Fun{PS},PS2::PointSpace)
+    @assert space(f).points==PS2.points
+    FiniteOperator(diagm(values(f)),PS2,PS2)
+end
 
-# function Multiplication{PS<:PointSpace}(f::Fun{PS},DS::DiracSpace)
-#     @assert space(f).points==DS.points
-#     FiniteOperator(diagm(f.coefficients),DS,DS)
-# end
+function Multiplication{PS<:PointSpace}(f::Fun{PS},DS::DiracSpace)
+    @assert space(f).points==DS.points
+    FiniteOperator(diagm(values(f)),DS,DS)
+end
 
-# function Multiplication{DS<:DiracSpace}(f::Fun{DS},PS::PointSpace)
-#     @assert space(f).points==PS.points
-#     FiniteOperator(diagm(f.coefficients),PS,space(f))
-# end
+function Multiplication{DS<:DiracSpace}(f::Fun{DS},PS::PointSpace)
+    @assert space(f).points==PS.points
+    FiniteOperator(diagm(coefficient(f,:)),PS,space(f))
+end
 
 function coefficienttimes{PS<:PointSpace,DS<:DiracSpace}(f::Fun{PS},g::Fun{DS})
     @assert space(f).points==space(g).points
