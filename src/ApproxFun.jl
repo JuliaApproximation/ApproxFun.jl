@@ -73,21 +73,7 @@ include("docs.jl")
 include("testing.jl")
 
 
-## precompile
-function _precompile_()
-    precompile(Chebyshev,tuple())
-    precompile(Fun,tuple())
-    precompile(Base.exp,(Fun{Chebyshev{Segment{Float64}},Float64},))
-    precompile(\,(Vector{Operator{Float64}},Vector{Float64}))
-    precompile(\,(Vector{Operator{Float64}},Vector{Float64}))
-    precompile(+,(Int,Fun{Chebyshev{Segment{Float64}},Float64}))
-    precompile(+,(Fun{Chebyshev{Segment{Float64}},Float64},Fun{Chebyshev{Segment{Float64}},Float64}))
-    precompile(+,(Fun{ConstantSpace{AnyDomain},Float64},Fun{Chebyshev{Segment{Float64}},Float64}))
-    precompile(union,(ConstantSpace{AnyDomain},Chebyshev{Segment{Float64}}))
-    precompile(union,(Chebyshev{Segment{Float64}},ConstantSpace{AnyDomain}))
-    precompile(Fun,(Fun{ConstantSpace{AnyDomain},Float64},Chebyshev{Segment{Float64}}))
-end
-
+include("precompile.jl")
 _precompile_()
 
 end #module
