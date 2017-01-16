@@ -105,8 +105,6 @@ spaces(A::ArraySpace) = A.spaces
 space(A::ArraySpace,k::Integer) = A.spaces[k]
 space(A::MatrixSpace,k::Integer,j::Integer) = A.spaces[k,j]
 
-TupleSpace{SS}(A::ArraySpace{SS,1}) = TupleSpace(spaces(A))
-
 Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k::Integer,j::Integer) =
     f[k+stride(f,2)*(j-1)]
 
@@ -134,7 +132,7 @@ function Base.vcat(vin::Fun...)
     #  remove tuple spaces
     v=Array(Fun,0)
     for f in vin
-        if isa(space(f),TupleSpace)
+        if isa(space(f),VectorSpace)
             push!(v,vec(f)...)
         else
             push!(v,f)

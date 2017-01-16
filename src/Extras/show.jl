@@ -112,18 +112,6 @@ function Base.show(io::IO,s::LogWeight)
 end
 
 
-function Base.show(io::IO,s::VectorSpace)
-    print(io,"[")
-    show(io,s.space)
-    print(io,"]_"*string(s.dimensions[1]))
-end
-
-function Base.show(io::IO,s::MatrixSpace)
-    print(io,"[")
-    show(io,s.space)
-    print(io,"]_("*string(s.dimensions[1])*","*string(s.dimensions[2])*")")
-end
-
 
 function Base.show(io::IO,s::SumSpace)
     show(io,s[1])
@@ -133,15 +121,6 @@ function Base.show(io::IO,s::SumSpace)
     end
 end
 
-function Base.show(io::IO,s::TupleSpace)
-    print(io,"⟨")
-    show(io,s[1])
-    for sp in s[2:end]
-        print(io,",")
-        show(io,sp)
-    end
-    print(io,"⟩")
-end
 
 function Base.show(io::IO,s::PiecewiseSpace)
     show(io,s[1])

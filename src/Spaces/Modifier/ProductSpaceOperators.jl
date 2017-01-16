@@ -3,7 +3,7 @@
 ## Space promotion for InterlaceOperator
 # It's here because we need DirectSumSpace
 
-for TYP in (:TupleSpace,:PiecewiseSpace,:ArraySpace)
+for TYP in (:PiecewiseSpace,:ArraySpace)
     @eval begin
         function promotedomainspace{T}(A::InterlaceOperator{T,2},sp::$TYP)
             if domainspace(A) == sp
@@ -33,8 +33,8 @@ end
 
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
-    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...),PiecewiseSpace,TupleSpace)
-    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...),PiecewiseSpace,TupleSpace)
+    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...),PiecewiseSpace,VectorSpace)
+    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...),PiecewiseSpace,VectorSpace)
 end
 
 
@@ -43,13 +43,6 @@ Base.blkdiag(A::PlusOperator)=mapreduce(blkdiag,+,A.ops)
 Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
 
 # TODO: general wrappers
-
-
-
-Evaluation(S::TupleSpace,x,order) =
-    EvaluationWrapper(S,x,order,
-        InterlaceOperator(Diagonal([map(s->Evaluation(s,x,order),S)...]),TupleSpace))
-
 
 Evaluation(S::SumSpace,x,order) =
     EvaluationWrapper(S,x,order,
