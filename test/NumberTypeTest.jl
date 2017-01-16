@@ -17,3 +17,12 @@ single_double_err = coefficients(single_sin-double_sin)[1:ncoefficients(single_s
 
 single_double_err = coefficients(double_sin-big_sin)[1:ncoefficients(double_sin)]
 @test norm(single_double_err) < 10eps(Float64)
+
+
+# roots
+a = Fun(Segment{BigFloat}(),BigFloat[1,2,3])
+@test norm(a.(roots(a))) == 0
+
+
+a = Fun(Taylor(Circle(BigFloat)),BigFloat[0.5,2,3])
+@test norm(a.(complexroots(a)))  ≤ eps(BigFloat)

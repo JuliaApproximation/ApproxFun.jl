@@ -27,7 +27,7 @@ L=D^2+I
 
 ## PiecewiseSPace
 
-x=Fun(identity,(-1..1) \ 0)
+x=Fun(identity,Domain(-1..1) \ 0)
 sp=space(x)
 testtransforms(sp;minpoints=2)
 
@@ -40,7 +40,7 @@ u=[B;
 u2=[dirichlet();Derivative(Chebyshev())^2]\[1.,0,0]
 @test_approx_eq u(0.) u2(0.)
 
-x=Fun(identity,(-10..15) \ [0,1])
+x=Fun(identity,Domain(-10..15) \ [0,1])
 sp=space(x)
 D=Derivative(sp)
 B=dirichlet(sp)
@@ -51,7 +51,7 @@ u=[B;
 
 s=Fun(sin,-2..2)|>abs
 c=Fun(cos,-2..2)|>abs
-sc=Fun(x->abs(sin(x))+abs(cos(x)),(-2..2) \ [-π/2,0,π/2])
+sc=Fun(x->abs(sin(x))+abs(cos(x)),Domain(-2..2) \ [-π/2,0,π/2])
 @test norm(sc-(c+s))<100eps()
 
 # max/min creates breakpoints
@@ -61,10 +61,10 @@ g=4*(x-0.2)
 f=max(-1,g)
 f2=min(f,1)
 
-f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),(-1..1) \ [-0.05,0.45])
+f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),Domain(-1..1) \ [-0.05,0.45])
 @test norm(f2(collect(linspace(-1,1,10)))-f3(collect(linspace(-1,1,10)))) < 2eps()
 
-x=Fun(identity, (im..0) ∪ (0..1))
+x=Fun(identity, Segment(im,0) ∪ Segment(0,1))
 @test_approx_eq x(0.5) 0.5
 @test_approx_eq x(0.5im) 0.5im
 

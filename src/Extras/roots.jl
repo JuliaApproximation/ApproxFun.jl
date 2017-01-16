@@ -65,7 +65,38 @@ function roots(f::Fun)
 end
 
 
-function roots{C<:Chebyshev}( f::Fun{C} )
+for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
+    @eval function roots{C<:Chebyshev}( f::Fun{C,$BF} )
+    # FIND THE ROOTS OF AN IFUN.
+
+        d = domain(f)
+        c = f.coefficients
+        vscale = maxabs(values(f))
+        if vscale == 0
+            warn("Tried to take roots of a zero function.  Returning [].")
+            return eltype(domain(f))[]
+        end
+
+        hscale = maximum( [abs(first(d)), abs(last(d))] )
+        htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
+
+        # calculate Flaot64 roots
+        r = Vector{$BF}(rootsunit_coeffs(convert(Vector{$FF},c./vscale), Float64(htol)))
+        # Map roots from [-1,1] to domain of f:
+        rts = fromcanonical(d,r)
+        fp = differentiate(f)
+
+        # do Newton 3 time
+        for _ = 1:3
+            rts .-=f(rts)./fp(rts)
+        end
+
+        return rts
+    end
+end
+
+
+function roots{C<:Chebyshev,TT<:Union{Float64,Complex128}}( f::Fun{C,TT} )
 # FIND THE ROOTS OF AN IFUN.
 
     d = domain(f)
@@ -79,40 +110,22 @@ function roots{C<:Chebyshev}( f::Fun{C} )
     hscale = maximum( [abs(first(d)), abs(last(d))] )
     htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
-    if eltype(f) == BigFloat
-        r = rootsunit_coeffs(convert(Vector{Float64},c./vscale), Float64(htol))
-        # Map roots from [-1,1] to domain of f:
-        rts = fromcanonical(d,r)
-        fp = differentiate(f)
-        while norm(f(rts)) > 1000eps(eltype(f))
-            rts .-=f(rts)./fp(rts)
-        end
-    elseif eltype(f) == Complex{BigFloat}
-        r = rootsunit_coeffs(convert(Vector{Complex{Float64}},c./vscale), Float64(htol))
-        # Map roots from [-1,1] to domain of f:
-        rts = fromcanonical(d,r)
-        fp = differentiate(f)
-        while norm(f(rts)) > 1000eps(eltype(f))
-            rts .-=f(rts)./fp(rts)
-        end
-    else
-        cvscale=c./vscale
-        r = rootsunit_coeffs(cvscale, Float64(htol))
 
-        # Check endpoints, as these are prone to inaccuracy
-        # which can be deadly.
-        if (isempty(r) || !isapprox(last(r),1.)) && abs(sum(cvscale)) < htol
-            push!(r,1.)
-        end
-        if (isempty(r) || !isapprox(first(r),-1.)) && abs(alternatingsum(cvscale)) < htol
-            insert!(r,1,-1.)
-        end
+    cvscale=c./vscale
+    r = rootsunit_coeffs(cvscale, Float64(htol))
 
-
-        # Map roots from [-1,1] to domain of f:
-        rts = fromcanonical(d,r)
+    # Check endpoints, as these are prone to inaccuracy
+    # which can be deadly.
+    if (isempty(r) || !isapprox(last(r),1.)) && abs(sum(cvscale)) < htol
+        push!(r,1.)
     end
-    return rts
+    if (isempty(r) || !isapprox(first(r),-1.)) && abs(alternatingsum(cvscale)) < htol
+        insert!(r,1,-1.)
+    end
+
+
+    # Map roots from [-1,1] to domain of f:
+    return fromcanonical(d,r)
 end
 
 
@@ -174,7 +187,8 @@ function PruneOptions( r, htol::Float64 )
     return r
 end
 
-rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64)=rootsunit_coeffs(c,htol,ClenshawPlan(T,Chebyshev(),length(c),length(c)))
+rootsunit_coeffs{T<:Number}(c::Vector{T}, htol::Float64) =
+    rootsunit_coeffs(c,htol,ClenshawPlan(T,Chebyshev(),length(c),length(c)))
 function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::ClenshawPlan{S,T})
 # Computes the roots of the polynomial given by the coefficients c on the unit interval.
 
@@ -342,8 +356,8 @@ end
 
 if isdir(Pkg.dir("AMVW"))
     using AMVW
-    function complexroots(coefficients::Vector)
-        c=chop(coefficients,10eps())
+    function complexroots(cfs::Vector)
+        c=chop(cfs,10eps())
 
         # Only use special routine for large roots
         if length(c)≥70
@@ -353,12 +367,27 @@ if isdir(Pkg.dir("AMVW"))
         end
     end
 else
-    complexroots(coefficients::Vector)=hesseneigvals(companion_matrix(chop(coefficients,10eps())))
+    complexroots{T<:Union{Float64,Complex128}}(cfs::Vector{T}) =
+        hesseneigvals(companion_matrix(chop(cfs,10eps())))
 end
 
-complexroots(neg::Vector,pos::Vector)=complexroots([flipdim(chop(neg,10eps()),1);pos])
-complexroots{DD}(f::Fun{Laurent{DD}})=mappoint(Circle(),domain(f),complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
-complexroots{DD}(f::Fun{Taylor{DD}})=mappoint(Circle(),domain(f),complexroots(f.coefficients))
+function complexroots{T<:Union{BigFloat,Complex{BigFloat}}}(cfs::Vector{T})
+    a = Fun(Taylor(Circle(BigFloat)),cfs)
+    ap = a'
+    rts = Vector{Complex{BigFloat}}(complexroots(Vector{Complex128}(cfs)))
+    # Do 3 Newton steps
+    for _ = 1:3
+        rts .-= a.(rts)./ap.(rts)
+    end
+    rts
+end
+
+complexroots(neg::Vector,pos::Vector) =
+    complexroots([flipdim(chop(neg,10eps()),1);pos])
+complexroots{DD}(f::Fun{Laurent{DD}}) =
+    mappoint(Circle(),domain(f),complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
+complexroots{DD}(f::Fun{Taylor{DD}}) =
+    mappoint(Circle(),domain(f),complexroots(f.coefficients))
 
 
 

@@ -87,18 +87,15 @@ Base.isless{T1<:Real,T2<:Real}(d2::Ray{true,T2},d1::Segment{T1}) = d2.center ≤
 
 
 # ^
-*(a::ClosedInterval,b::ClosedInterval) = Domain(a)*Domain(b)
 *(a::ClosedInterval,b::Domain) = Domain(a)*b
 *(a::Domain,b::ClosedInterval) = a*Domain(b)
 
 #union
-Base.union(a::ClosedInterval,b::ClosedInterval) = union(Domain(a),Domain(b))
 Base.union(a::ClosedInterval,b::Domain) = union(Domain(a),b)
 Base.union(a::Domain,b::ClosedInterval) = union(a,Domain(b))
 
 
 ## set minus
-\(d::ClosedInterval,x) = Domain(d) \ x
 \(d::Domain,x::Number) = d \ Point(x)
 
 

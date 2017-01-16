@@ -1134,19 +1134,3 @@ function pad(v,::Infinity{Bool})
         flatten((v,ZeroRepeated(Int)))
     end
 end
-
-
-
-## ClosedInterval
-# TODO: Use IntervalSets after 0.4 is deprecated
-export ..
-
-
-immutable ClosedInterval{T}
-    left::T
-    right::T
-end
-
-ClosedInterval(a,b) = ClosedInterval{promote_type(typeof(a),typeof(b))}(a,b)
-
-..(a,b) = ClosedInterval(a,b)

@@ -1,7 +1,7 @@
 __precompile__()
 
 module ApproxFun
-    using Base, Compat, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices
+    using Base, Compat, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets
     import FixedSizeArrays, ToeplitzMatrices, Calculus
 
 import Base.LinAlg: BlasFloat
@@ -42,7 +42,7 @@ export pad!, pad, chop!, sample,
 ##Testing
 export bisectioninv
 
-
+export ..
 
 
 

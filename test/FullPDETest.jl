@@ -539,7 +539,7 @@ d=Interval()^2
 
 # PiecewisePDE
 
-a=Fun((-1..1) \ [0,0.5],[1,0.5,1])
+a=Fun(Domain(-1..1) \ [0,0.5],[1,0.5,1])
 s=space(a)
 dt=Interval(0,2.)
 Dx=Derivative(s);Dt=Derivative(dt)
