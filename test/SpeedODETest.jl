@@ -63,7 +63,7 @@ println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 
 
 ## Piecewise
-x=Fun(identity,(-20..15) \ [-10.,-5.,0.,1.])
+x=Fun(identity,Domain(-20..15) \ [-10.,-5.,0.,1.])
 sp=space(x)
 D=Derivative(sp)
 B=dirichlet(sp)
