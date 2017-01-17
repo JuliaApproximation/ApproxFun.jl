@@ -154,7 +154,7 @@ function colstop{T,OP}(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}}
     kr = parentindexes(S)[1]
     n = size(S,1)
     if cs < first(kr)
-        1
+        0
     elseif cs ≥ last(kr)
         n
     else
