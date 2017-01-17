@@ -378,6 +378,8 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
         P=parent(S)
         kr,jr=parentindexes(S)
 
+        (isempty(kr) || isempty(jr)) && return $Zer(S)
+
         if maximum(kr) > size(P,1) || maximum(jr) > size(P,2) ||
             minimum(kr) < 1 || minimum(jr) < 1
             throw(BoundsError())
