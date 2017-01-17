@@ -93,7 +93,7 @@ end
 function view(A::Operator,kr::UnitRange,jr::UnitRange)
     if isbanded(A)
         shft=first(kr)-first(jr)
-        l,u=max(bandwidth(A,1)-shft,0),max(bandinds(A,2)+shft,0)
+        l,u=bandwidth(A,1)-shft,bandinds(A,2)+shft
         SubOperator(A,(kr,jr),(length(kr),length(jr)),(l,u))
     else
         SubOperator(A,(kr,jr))
