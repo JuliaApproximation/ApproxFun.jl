@@ -33,8 +33,8 @@ end
 
 
 for op in (:dirichlet,:neumann,:continuity,:ivp)
-    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...),PiecewiseSpace,VectorSpace)
-    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...),PiecewiseSpace,VectorSpace)
+    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...),PiecewiseSpace,ArraySpace)
+    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...),PiecewiseSpace,ArraySpace)
 end
 
 
@@ -49,43 +49,6 @@ Evaluation(S::SumSpace,x,order) =
         InterlaceOperator(hcat(map(s->Evaluation(s,x,order),S)...),SumSpace))
 
 
-
-diagonalarrayoperator(op,dims) =
-    InterlaceOperator(promotespaces(Diagonal(fill(op,prod(dims)))),
-                      ArraySpace(domainspace(op),dims),
-                      ArraySpace(rangespace(op),dims))
-
-
-function Derivative(AS::ArraySpace,k::Integer)
-    D = Derivative(AS.space,k)
-    DerivativeWrapper(diagonalarrayoperator(D,size(AS)),k)
-end
-
-function conversion_rule(AS::ArraySpace,BS::ArraySpace)
-    if size(AS)==size(BS)
-        ArraySpace(conversion_type(AS.space,BS.space),size(AS))
-    else
-        NoSpace()
-    end
-end
-
-for OP in (:maxspace,:conversion_type)
-    @eval function $OP(AS::ArraySpace,BS::ArraySpace)
-        if size(AS)==size(BS)
-            ArraySpace($OP(AS.space,BS.space),size(AS))
-        else
-            NoSpace()
-        end
-    end
-end
-
-
-function Conversion(AS::ArraySpace,BS::ArraySpace)
-    @assert size(AS)==size(BS)
-    C = Conversion(AS.space,BS.space)
-    ConversionWrapper(diagonalarrayoperator(C,size(AS)))
-end
-
 ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V}) = interlace(map(ToeplitzOperator,mat(G)))
 
 ## Sum Space
@@ -95,37 +58,13 @@ ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V}) = interlace(map(Toep
 
 ## Conversion
 
-
-# TupleSpace maps down
-
-
-function coefficients(v::AbstractVector,a::TupleSpace,b::TupleSpace)
+function coefficients(v::AbstractVector,a::ArraySpace,b::ArraySpace)
     if a==b
         v
     else
-        vs=vec(Fun(a,v))
-        coefficients(vcat(map((f,s)->Fun(f,s),vs,b)...))
+        interlace(map((f,s)->Fun(f,s),Fun(a,v),b),b)
     end
 end
-
-function Conversion(a::TupleSpace,b::TupleSpace)
-    m=findlast(s->dimension(s)==1,a.spaces)
-    @assert all(s->dimension(s)==1,a.spaces[1:m-1]) &&
-            a.spaces[1:m-1]==b.spaces[1:m-1]
-
-    if m==0
-        ConversionWrapper(InterlaceOperator(Diagonal([map(Conversion,a.spaces,b.spaces)...]),TupleSpace))
-    elseif length(a)==m
-        SpaceOperator(FiniteOperator(eye(m)),a,b)
-    elseif length(a)==m+1
-        ConversionWrapper(BlockOperator(eye(m),zeros(m,0),zeros(0,m),Conversion(a[end],b[end])))
-    else
-        ConversionWrapper(BlockOperator(eye(m),zeros(m,0),zeros(0,m),Conversion(TupleSpace(a[m+1:end]),TupleSpace(b[m+1:end]))))
-    end
-end
-
-
-
 
 
 # Sum Space and PiecewiseSpace need to allow permutation of space orders
@@ -213,26 +152,6 @@ for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspac
             end
         end
     end
-
-    # TupleSpace doesn't allow reordering
-    @eval function $OPrule(S1::TupleSpace,S2::TupleSpace)
-        K=findfirst(s->!isa(s,ConstantSpace),S1)-1
-
-        if length(S1)==length(S2)  &&
-                all(s->isa(s,ConstantSpace),S2[1:K]) &&
-                all(s->!isa(s,ConstantSpace),S2[K+1:end])
-            newspaces=[$OP(S1[k],S2[k]) for k=K+1:length(S1)]
-
-            if any(b->b==NoSpace(),newspaces)
-                NoSpace()
-            else
-                TupleSpace(tuple(S1[1:K]...,newspaces...))
-            end
-        else
-            NoSpace()
-        end
-    end
-
 end
 
 
@@ -242,9 +161,10 @@ end
 
 #TODO: do in @calculus_operator?
 
-for TYP in (:PiecewiseSpace,:TupleSpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
+for TYP in (:PiecewiseSpace,:ArraySpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
                                                          (:Integral,:IntegralWrapper))
-    @eval $Op(S::$TYP,k::Integer)=$OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),S.spaces)...]),$TYP),k)
+    @eval $Op(S::$TYP,k::Integer) =
+        $OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),S.spaces)...]),$TYP),k)
 end
 
 function Derivative(S::SumSpace,k::Integer)

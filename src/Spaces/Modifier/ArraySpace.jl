@@ -159,7 +159,7 @@ devec{S<:Space}(spl::Vector{S}) = ArraySpace(spl)
 #TODO: rewrite
 function demat{FF<:Fun}(v::Array{FF})
     ff=devec(vec(v))  # A vectorized version
-    Fun(ArraySpace(space.(ff)),coefficients(ff))
+    Fun(ArraySpace(map(space,ff)),coefficients(ff))
 end
 
 demat(v::Vector{Any}) = devec(v)
@@ -178,35 +178,57 @@ end
 Fun{F<:Fun}(V::AbstractVector{F}) = devec(V)
 Fun{F<:Fun}(V::AbstractMatrix{F}) = demat(V)
 
-Fun(v::Vector{Any},sp::ArraySpace) = devec(map(f->Fun(f,sp.space),v))
+Fun{SS,n}(v::Array{Any,n},sp::ArraySpace{SS,n}) = devec(map((f,s)->Fun(f,s),v,sp))
 
 
-function union_rule{S,n,T,DD,dim,S2,T2,DD2}(a::ArraySpace{S,n,T,DD,dim},b::ArraySpace{S2,n,T2,DD2,dim})
-    if size(a) == size(b)
-        sps = union.(a.spaces,b.spaces)
-        for sp in sps
-            if isa(sp,NoSpace)
+# convert a vector to a Fun with TupleSpace
+
+function Fun{TT,SS,n}(v::Array{TT,n},sp::ArraySpace{SS,n})
+    if size(v) ≠ size(sp)
+        throw(DimensionMismatch("Cannot convert $v to a Fun in space $sp"))
+    end
+    demat(map(Fun,v,sp.spaces))
+end
+coefficients{TT,SS,n}(v::Array{TT,n},sp::ArraySpace{SS,n}) = coefficients(Fun(v,sp))
+
+
+for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),
+                        (:union_rule,:union))
+    # ArraySpace doesn't allow reordering
+    @eval function $OPrule(S1::ArraySpace,S2::ArraySpace)
+        sps = map($OP,S1.spaces,S2.spaces)
+        for s in sps
+            if isa(s,NoSpace)
                 return NoSpace()
             end
         end
         ArraySpace(sps)
     end
-
-    NoSpace()
 end
-
-
 
 ## routines
 
 spacescompatible(AS::ArraySpace,BS::ArraySpace) =
     size(AS) == size(BS) && all(spacescompatible.(AS.spaces,BS.spaces))
 canonicalspace(AS::ArraySpace) = ArraySpace(canonicalspace.(AS.spaces))
-evaluate(f::AbstractVector,S::ArraySpace,x) =
-    map(g->evaluate(g,x),mat(Fun(S,f)))
+evaluate(f::AbstractVector,S::ArraySpace,x) = map(g->g(x),Fun(S,f))
 
 for OP in (:(Base.transpose),)
     @eval $OP{AS<:ArraySpace,T}(f::Fun{AS,T}) = demat($OP(mat(f)))
+end
+
+
+## choosedomainspace
+
+function choosedomainspace{T}(A::InterlaceOperator{T,1},sp::ArraySpace)
+    # this ensures correct dispatch for unino
+    sps = Vector{Space}(
+        filter(x->!isambiguous(x),map(choosedomainspace,A.ops,sp.spaces)))
+    if isempty(sps)
+        UnsetSpace()
+    else
+        union(sps...)
+    end
 end
 
 
@@ -259,10 +281,9 @@ Base.ones(A::ArraySpace) = demat(ones.(spaces(A)))
 
 ## calculus
 
-for op in (:differentiate,:integrate,:(Base.cumsum))
-    @eval $op{V<:ArraySpace}(f::Fun{V}) = demat(map($op,mat(f)))
+for op in (:differentiate,:integrate,:(Base.cumsum),:(Base.real),:(Base.imag),:(Base.conj))
+    @eval $op{V<:ArraySpace}(f::Fun{V}) = demat(map($op,f))
 end
-
 
 function Base.det{A<:ArraySpace,V}(f::Fun{A,V})
     @assert size(space(f))==(2,2)

@@ -74,7 +74,6 @@ L=[B;D-A]
 @time u=L\eye(2n,n)
 @test norm(evaluate(u,1.)-expm(A))<eps(1000.)
 
-
 n=4
 d=fill(Interval(0.,1.),n)
 B=Evaluation(d,0.)
