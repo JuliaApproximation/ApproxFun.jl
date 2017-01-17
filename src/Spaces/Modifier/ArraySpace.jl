@@ -85,7 +85,7 @@ transform{SS,n,V}(AS::ArraySpace{SS,1},vals::Vector{Vec{V,n}}) =
 
 Base.vec(AS::ArraySpace) = ArraySpace(vec(AS.spaces))
 Base.vec{S,n,T,DD,dim}(f::Fun{ArraySpace{S,n,T,DD,dim}}) =
-    Fun{S,eltype(f)}[f[j] for j=1:length(f.space)]
+    [f[j] for j=1:length(f.space)]
 
 mat{AS<:ArraySpace,T}(f::Fun{AS,T}) = reshape(vec(f),size(space(f))...)
 
