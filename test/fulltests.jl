@@ -6,6 +6,9 @@ using ApproxFun, Base.Test
 
 include("runtests.jl")
 
+println("Fractional tests")
+@time include("FractionalTest.jl")
+
 println("    Full Operator tests")
 
 @time for M in (Multiplication(Fun(CosSpace(),[1.]),CosSpace()),
