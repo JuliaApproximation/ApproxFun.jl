@@ -396,12 +396,13 @@ function Base.convert{SS,V,DS,RS,T}(::Type{BandedBlockBandedMatrix},
     Al,Au = bandwidths(AA)
     BB=B[Block(1):KR[end],Block(1):JR[end]]::BandedMatrix{eltype(S)}
     Bl,Bu = bandwidths(BB)
+    λ,μ = subblockbandwidths(ret)
 
     for J in Block(1):Block(blocksize(ret,2)), K in blockcolrange(ret,J)
         n,m=KR[K.K].K,JR[J.K].K
         Bs = view(ret,K,J)
-        l = min(Al,Bu+n-m)
-        u = min(Au,Bl+m-n)
+        l = min(Al,Bu+n-m,λ)
+        u = min(Au,Bl+m-n,μ)
         @inbounds for j=1:m, k=max(1,j-u):min(n,j+l)
             a = inbands_getindex(AA,k,j)
             b = inbands_getindex(BB,n-k+1,m-j+1)
