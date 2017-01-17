@@ -2,20 +2,20 @@ using ApproxFun, Base.Test
     import ApproxFun: testbandedblockbandedoperator
 
 
-for k=0:5,j=0:5
+@time for k=0:5,j=0:5
     ff=(x,y)->cos(k*acos(x))*cos(j*acos(y))
     f=Fun(ff,Interval()^2)
     @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
 end
 
-for k=0:5,j=0:5
+@time for k=0:5,j=0:5
     ff=(x,y)->cos(k*acos(x/2))*cos(j*acos(y/2))
     f=Fun(ff,Interval(-2,2)^2)
     @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
 end
 
 
-for k=0:5,j=0:5
+@time for k=0:5,j=0:5
     ff=(x,y)->cos(k*acos(x-1))*cos(j*acos(y-1))
     f=Fun(ff,Interval(0,2)^2)
     @test_approx_eq f(0.1,0.2) ff(0.1,0.2)
@@ -54,11 +54,11 @@ f=Fun((x,y)->exp(x)*cos(y))
 
 ## LowRankFun
 
-F = LowRankFun((x,y)->besselj0(10(y-x)),Chebyshev(),Chebyshev())
+@time F = LowRankFun((x,y)->besselj0(10(y-x)),Chebyshev(),Chebyshev())
 
 @test_approx_eq F(.123,.456) besselj0(10(.456-.123))
 
-G = LowRankFun((x,y)->besselj0(10(y-x));method=:Cholesky)
+@time G = LowRankFun((x,y)->besselj0(10(y-x));method=:Cholesky)
 
 @test_approx_eq G(.357,.246) besselj0(10(.246-.357))
 
@@ -119,7 +119,7 @@ C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
 
 
 # 2d derivative (issue #346)
-let d = Chebyshev()^2
+@time let d = Chebyshev()^2
     f = Fun((x,y) -> sin(x) * cos(y), d)
     C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
     @test_approx_eq (C*f)(0.1,0.2) f(0.1,0.2)
@@ -149,7 +149,7 @@ let d = Chebyshev()^2
 end
 
 
-let d = Space(0..1) * Space(0..2)
+@time let d = Space(0..1) * Space(0..2)
     Dx = Derivative(d, [1,0])
     f = Fun((x,y) -> sin(x) * cos(y), d)
     fx = Fun((x,y) -> cos(x) * cos(y), d)
@@ -177,32 +177,32 @@ end
 
 ## x,y constructor
 
-d=Interval()^2
-x,y=Fun(d)
-@test_approx_eq x(0.1,0.2) 0.1
-@test_approx_eq y(0.1,0.2) 0.2
+@time let d=Interval()^2
+    x,y=Fun(d)
+    @test_approx_eq x(0.1,0.2) 0.1
+    @test_approx_eq y(0.1,0.2) 0.2
 
-x,y=Fun(identity,d,20)
-@test_approx_eq x(0.1,0.2) 0.1
-@test_approx_eq y(0.1,0.2) 0.2
-
-
-# Boundary
-
-x,y=Fun(identity,∂(d),20)
-@test_approx_eq x(0.1,1.0) 0.1
-@test_approx_eq y(1.0,0.2) 0.2
+    x,y=Fun(identity,d,20)
+    @test_approx_eq x(0.1,0.2) 0.1
+    @test_approx_eq y(0.1,0.2) 0.2
 
 
-x,y=Fun(identity,∂(d))
-@test_approx_eq x(0.1,1.0) 0.1
-@test_approx_eq y(1.0,0.2) 0.2
+    # Boundary
+
+    x,y=Fun(identity,∂(d),20)
+    @test_approx_eq x(0.1,1.0) 0.1
+    @test_approx_eq y(1.0,0.2) 0.2
 
 
-x,y=Fun(∂(d))
-@test_approx_eq x(0.1,1.0) 0.1
-@test_approx_eq y(1.0,0.2) 0.2
+    x,y=Fun(identity,∂(d))
+    @test_approx_eq x(0.1,1.0) 0.1
+    @test_approx_eq y(1.0,0.2) 0.2
 
+
+    x,y=Fun(∂(d))
+    @test_approx_eq x(0.1,1.0) 0.1
+    @test_approx_eq y(1.0,0.2) 0.2
+end
 
 
 
