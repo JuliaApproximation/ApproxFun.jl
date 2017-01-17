@@ -208,7 +208,12 @@ a=Fun(exp,space(f))
 g = f + Fun(2..3)
 h = a + Fun(2..3)
 
-@test g/h ≈ ((f/a) + Fun(1,2..3))
+@test norm((g/h - ((f/a) + Fun(1,2..3))).coefficients) ≤ 10eps()
+
+
+
+
+
 
 
 ## multiplicities
