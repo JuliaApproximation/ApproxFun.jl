@@ -100,6 +100,10 @@ function mat{S,V,T,DD,d}(f::Fun{MatrixSpace{S,V,DD,d},T},j::Integer)
     r
 end
 
+Base.map{AS<:ArraySpace}(f,A::Fun{AS}) = Base.collect_similar(A, Base.Generator(f,A))
+
+Base.similar{SS,T,DD,dim}(a::Fun{ArraySpace{SS,1,T,DD,dim}}, S::Type) = Array{S,1}(size(a,1))
+Base.similar{SS,T,DD,dim}(a::Fun{ArraySpace{SS,2,T,DD,dim}}, S::Type) = Array{S,2}(size(a,1), size(a,2))
 
 spaces(A::ArraySpace) = A.spaces
 space(A::ArraySpace,k::Integer) = A.spaces[k]
@@ -159,7 +163,7 @@ devec{S<:Space}(spl::Vector{S}) = ArraySpace(spl)
 #TODO: rewrite
 function demat{FF<:Fun}(v::Array{FF})
     ff=devec(vec(v))  # A vectorized version
-    Fun(ArraySpace(map(space,ff)),coefficients(ff))
+    Fun(ArraySpace(map(space,v)),coefficients(ff))
 end
 
 demat(v::Vector{Any}) = devec(v)
