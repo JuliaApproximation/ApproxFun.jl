@@ -1,5 +1,5 @@
 using ApproxFun,Base.Test
-    import ApproxFun:interlace,Multiplication,ConstantSpace,TupleSpace,PointSpace,testblockbandedoperator
+    import ApproxFun:interlace,Multiplication,ConstantSpace,PointSpace,ArraySpace,testblockbandedoperator
 
 
 d=Interval()
@@ -177,7 +177,7 @@ g=Fun(f,Space(PeriodicInterval(-π,π)))
 ## Interlace test
 S1=Chebyshev()^2
 S2=Chebyshev()
-TS=TupleSpace((ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])))
+TS=ArraySpace([ConstantSpace(),S1,ConstantSpace(),S2,PointSpace([1.,2.])])
 f=Fun(TS,collect(1:10))
 @test f[1] == Fun(TS[1],[1.])
 @test f[2] == Fun(TS[2],[2.,6.,7.,10.])

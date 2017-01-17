@@ -1,5 +1,5 @@
 using ApproxFun,Base.Test
-    import ApproxFun.Multiplication
+    import ApproxFun: Multiplication, testraggedbelowoperator, interlace
 
 
 ##Airy equation
@@ -142,6 +142,10 @@ sp=space(x)
 D=Derivative(sp)
 B=dirichlet(sp)
 A=[B;D^2-x]
+
+Ai = ApproxFun.interlace(A)
+ApproxFun.testraggedbelowoperator(Ai)
+
 QR=qrfact(A)
 @time u=QR\Any[[airyai(-2.);zeros(size(B,1)-1)],0.0]
 

@@ -49,7 +49,7 @@ Base.stride{S,T,DD,dim}(AS::Fun{MatrixSpace{S,T,DD,dim}},k::Int) =
 
 
 Base.reshape(AS::ArraySpace,k...) = ArraySpace(reshape(AS.spaces,k...))
-dimension(AS::ArraySpace) = mapreduce(dimension,*,AS.spaces)
+dimension(AS::ArraySpace) = mapreduce(dimension,+,AS.spaces)
 
 # TODO: union domain
 domain(AS::ArraySpace) = domain(AS.spaces[1])
@@ -104,6 +104,8 @@ Base.map{AS<:ArraySpace}(f,A::Fun{AS}) = Base.collect_similar(A, Base.Generator(
 
 Base.similar{SS,T,DD,dim}(a::Fun{ArraySpace{SS,1,T,DD,dim}}, S::Type) = Array{S,1}(size(a,1))
 Base.similar{SS,T,DD,dim}(a::Fun{ArraySpace{SS,2,T,DD,dim}}, S::Type) = Array{S,2}(size(a,1), size(a,2))
+
+Base.repmat(A::ArraySpace,n,m) = ArraySpace(repmat(A.spaces,n,m))
 
 spaces(A::ArraySpace) = A.spaces
 space(A::ArraySpace,k::Integer) = A.spaces[k]
@@ -296,14 +298,15 @@ function Base.det{A<:ArraySpace,V}(f::Fun{A,V})
 end
 
 function Base.inv{A<:ArraySpace,T}(V::Fun{A,T})
-    if size(space(V),1) ≠ size(space(V),2)
+    n,m = size(space(V))
+    if n ≠ m
         throw(DimensionMismatch("space $(space(V)) is not square"))
     end
 
     # TODO: This assumes other columns have same spaces
     M=Multiplication(V,ArraySpace(space(V).spaces[:,1]))
     # convert I to the rangespace of M
-    M\Fun(eye(size(space(V),2)),ArraySpace(rangespace(M).space,size(space(V))))
+    M\Fun(eye(m),repmat(rangespace(M),1,m))
 end
 
 ## Algebra
