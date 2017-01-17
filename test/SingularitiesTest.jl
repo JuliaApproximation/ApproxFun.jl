@@ -209,7 +209,7 @@ g = f + Fun(2..3)
 h = a + Fun(2..3)
 
 # for some reason this test is broken only on Travis
-@test_broken g/h ≈ f/a + Fun(1,2..3)
+@test_skip g/h ≈ f/a + Fun(1,2..3)
 
 
 
