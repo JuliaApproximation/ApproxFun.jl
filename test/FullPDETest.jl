@@ -334,11 +334,15 @@ println("    Periodic Poisson tests")
 
 
 d=PeriodicInterval()^2
+S=Space(d)
+
+
 f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 A=Laplacian(d)+.1I
-u=A\f
+testbandedblockbandedoperator(A)
+@time u=A\f
+@test_approx_eq u(.1,.2) u(.2,.1)
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
-
 
 
 
