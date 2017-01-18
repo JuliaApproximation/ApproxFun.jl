@@ -118,37 +118,6 @@ C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
 @test_approx_eq C[1:100,1:100] Float64[C[k,j] for k=1:100,j=1:100]
 
 
-# 2d derivative (issue #346)
-@time let d = Chebyshev()^2
-    f = Fun((x,y) -> sin(x) * cos(y), d)
-    C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
-    @test_approx_eq (C*f)(0.1,0.2) f(0.1,0.2)
-    Dx = Derivative(d, [1,0])
-    f = Fun((x,y) -> sin(x) * cos(y), d)
-    fx = Fun((x,y) -> cos(x) * cos(y), d)
-    @test (Dx*f)(0.2,0.3) ≈ fx(0.2,0.3)
-    Dy = Derivative(d, [0,1])
-    fy = Fun((x,y) -> -sin(x) * sin(y), d)
-    @test (Dy*f)(0.2,0.3) ≈ fy(0.2,0.3)
-    L=Dx+Dy
-    testbandedblockbandedoperator(L)
-
-    @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
-
-    B=ldirichlet(d[1])⊗ldirichlet(d[2])
-    @test_approx_eq Number(B*f) f(-1.,-1.)
-
-    B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
-    @test_approx_eq Number(B*f) f(0.1,-1.)
-
-    B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
-    @test_approx_eq Number(B*f) f(0.1,0.3)
-
-    B=Evaluation(d,(0.1,0.3))
-    @test_approx_eq Number(B*f) f(0.1,0.3)
-end
-
-
 @time let d = Space(0..1) * Space(0..2)
     Dx = Derivative(d, [1,0])
     f = Fun((x,y) -> sin(x) * cos(y), d)
