@@ -104,12 +104,8 @@ resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
 resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))
 
 
-function *{T<:Number}(B::CachedOperator,v::Vector{T})
+function A_mul_B_coefficients{T<:Number}(B::CachedOperator,v::Vector{T})
     resizedata!(B,:,length(v))
 
-    if isafunctional(B)
-        return dotu(B.data[1:length(v)],v)
-    end
-
-    Fun(rangespace(B),B.data*pad(v,size(B.data,2)))
+    B.data*pad(v,size(B.data,2))
 end
