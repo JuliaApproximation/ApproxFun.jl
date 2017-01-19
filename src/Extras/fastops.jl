@@ -122,14 +122,14 @@ function Base.convert{T,K,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDeri
     dg = diagindshift(S)
 
     D = parent(S)
-    λ = D.order
+    k = D.order
     d = domain(D)
-    C=T(pochhammer(one(T),λ-1)/2*(4/(d.b-d.a))^λ)
+    C=T(pochhammer(one(T),k-1)/2*(4/(d.b-d.a))^k)
 
     # need to drop columns
 
 
-    ret[band(dg+λ)] .= C.*(jr[max(0,dg+λ)+1:min(n+dg+λ,m)] .- one(T))
+    ret[band(dg+k)] .= C.*(jr[max(0,dg+k)+1:min(n+dg+k,m)] .- one(T))
 
     ret
 end
@@ -137,26 +137,18 @@ end
 
 function Base.convert{T,K,DD,LT}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
+    n,m = size(S)
+    ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
+    kr,jr = parentindexes(S)
+    dg = diagindshift(S)
 
-    λ = order(domainspace(parent(S)))
-    D=parent(S)
-    m=D.order
-    d=domain(D)
+    D = parent(S)
+    k = D.order
+    λ = order(domainspace(D))
+    d = domain(D)
 
-    ret=bzeros(S)
-    u=bandwidth(ret,2)
-
-    kr,jr=parentindexes(S)
-    dat=ret.data
-
-    shft = first(jr)-1
-
-    dg=diagindrow(S)-m   # mth superdiagonal
-
-    C=T(pochhammer(one(T)*λ,m)*(4/(d.b-d.a))^m)
-    @simd for j=max(m+1-shft,1):size(dat,2)
-        @inbounds dat[dg,j]=C
-    end
+    C = T(pochhammer(one(T)*λ,m)*(4/(d.b-d.a))^m)
+    ret[band(dg+k)] = C
 
     ret
 end

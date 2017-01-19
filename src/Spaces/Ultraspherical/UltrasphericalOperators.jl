@@ -62,8 +62,8 @@ end
 
 rangespace{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) =
     Ultraspherical(order(domainspace(D))+D.order,domain(D))
-bandinds{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = 0,D.order
-bandinds{LT,DD<:Segment}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) = -D.order,0
+bandinds{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = D.order,D.order
+bandinds{LT,DD<:Segment}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) = -D.order,-D.order
 Base.stride{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = D.order
 
 

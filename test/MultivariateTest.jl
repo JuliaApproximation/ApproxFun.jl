@@ -148,7 +148,6 @@ let d = Chebyshev()^2
     @test_approx_eq Number(B*f) f(0.1,0.3)
 end
 
-
 let d = Space(0..1) * Space(0..2)
     Dx = Derivative(d, [1,0])
     f = Fun((x,y) -> sin(x) * cos(y), d)

@@ -38,5 +38,18 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatri
     B
 end
 
-resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer) =
+function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer)
     resizedata!(B,:,m)
+    if n < B.datasize[1]
+        return B
+    end
+
+    # make sure we have enough rows
+    K=block(rangespace(B),n).K
+    rows=blocklengths(rangespace(B.op))[1:K]
+    B.data.rows=rows
+    B.data.rowblocks=blocklookup(rows)
+    B.datasize=(n,B.datasize[2])
+
+    B
+end
