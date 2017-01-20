@@ -1,5 +1,5 @@
 using ApproxFun,Base.Test
-    import ApproxFun: Multiplication, testraggedbelowoperator, interlace
+    import ApproxFun: Multiplication, testraggedbelowoperator, testbandedoperator, interlace
 
 
 ##Airy equation
@@ -87,7 +87,13 @@ d=Interval()
 D=Derivative(d)
 x=Fun(identity,d)
 A=x^2*D^2+x*D+x^2
+testbandedoperator(x^2*D^2)
+testbandedoperator(ToeplitzOperator([0.5],[0.0,0.5]))
+testbandedoperator(HankelOperator(Float64[]))
+testbandedoperator(A)
 u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
+
+
 
 @test_approx_eq u(0.1) besselj(0.,0.1)
 @test norm(A*u)<10eps()

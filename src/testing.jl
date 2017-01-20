@@ -80,10 +80,10 @@ end
 ## Operator Tests
 
 function backend_testfunctional(A)
-    @test rowstart(A,1) == 1
-    @test colstop(A,1) == 1
-    @test bandwidth(A,1) == 0
-    @test blockbandwidth(A,1) == 0
+    @test rowstart(A,1) ≥ 1
+    @test colstop(A,1) ≤ 1
+    @test bandwidth(A,1) ≤ 0
+    @test blockbandwidth(A,1) ≤ 0
 
     B=A[1:10]
     @test eltype(B) == eltype(A)
@@ -91,16 +91,17 @@ function backend_testfunctional(A)
         @test_approx_eq B[k] A[k]
         @test isa(A[k],eltype(A))
     end
-    @test B == vec(A[1,1:10])
-    @test B[3:10] == A[3:10]
-    @test B == [A[k] for k=1:10]
+    @test B ≈ A[1,1:10]
+    @test B.' ≈ A[1:1,1:10]
+    @test B[3:10] ≈ A[3:10]
+    @test B ≈ [A[k] for k=1:10]
 
 
 
     co=cache(A)
-    @test co[1:10] == A[1:10]
-    @test co[1:10] == A[1:10]
-    @test co[20:30] == A[1:30][20:30] == A[20:30]
+    @test co[1:10] ≈ A[1:10]
+    @test co[1:10] ≈ A[1:10]
+    @test co[20:30] ≈ A[1:30][20:30] ≈ A[20:30]
 end
 
 # Check that the tests pass after conversion as well
@@ -210,8 +211,8 @@ function testblockbandedoperator(A)
     @test isfinite(blockbandwidth(A,1))
 
     for K=1:10
-        @test K ≤ blockcolstop(A,K).K ≤ K + blockbandwidth(A,1) < ∞
-        @test K ≤ blockrowstop(A,K).K ≤ K + blockbandwidth(A,2) < ∞
+        @test K - blockbandwidth(A,2) ≤ blockcolstop(A,K).K ≤ K + blockbandwidth(A,1) < ∞
+        @test K - blockbandwidth(A,1) ≤ blockrowstop(A,K).K ≤ K + blockbandwidth(A,2) < ∞
     end
 end
 

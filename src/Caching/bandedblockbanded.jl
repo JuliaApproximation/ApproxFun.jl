@@ -30,13 +30,27 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatri
 
         jr=B.datasize[2]+1:col
         kr=colstart(B.data,jr[1]):colstop(B.data,jr[end])
-        BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
 
-        B.datasize = (kr[end],col)
+        isempty(kr) || BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
+
+        B.datasize = (last(kr),col)
     end
 
     B
 end
 
-resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer) =
+function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatrix{T,RI,DI}},n::Integer,m::Integer)
     resizedata!(B,:,m)
+    if n < B.datasize[1]
+        return B
+    end
+
+    # make sure we have enough rows
+    K=block(rangespace(B),n).K
+    rows=blocklengths(rangespace(B.op))[1:K]
+    B.data.rows=rows
+    B.data.rowblocks=blocklookup(rows)
+    B.datasize=(n,B.datasize[2])
+
+    B
+end

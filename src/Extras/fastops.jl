@@ -65,13 +65,14 @@ function Base.convert{T,DD}(::Type{BandedMatrix},
                         S::SubOperator{T,ConcreteConversion{Chebyshev{DD},Ultraspherical{Int,DD},T},
                                        Tuple{UnitRange{Int},UnitRange{Int}}})
     # we can assume order is 1
-    ret = bzeros(S)
+    ret = BandedMatrix(eltype(S),size(S,1),size(S,2),bandwidth(S,1),bandwidth(S,2))
     kr,jr = parentindexes(S)
     dg = diagindshift(S)
-    
+
     @assert -bandwidth(ret,1) ≤ dg ≤ bandwidth(ret,2)-2
 
     ret[band(dg)] = 0.5
+    ret[band(dg+1)] = 0.0
     ret[band(dg+2)] = -0.5
 
     # correct first entry
@@ -84,26 +85,23 @@ end
 
 function Base.convert{T,LT,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteConversion{Ultraspherical{LT,DD},Ultraspherical{LT,DD},T},
                                                                               Tuple{UnitRange{Int},UnitRange{Int}}})
-    # we can assume order is
+
+    n,m = size(S)
+    ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
+    kr,jr = parentindexes(S)
+    dg = diagindshift(S)
+
+
     λ = order(rangespace(parent(S)))
-    ret=bzeros(S)
+    c = λ-one(T)
 
-    kr,jr=parentindexes(S)
-    dat=ret.data
+    # need to drop columns
 
-    shft = first(jr)-1
 
-    dg1=diagindrow(S)
-    dg3=dg1-2
 
-    c=λ-one(T)  # this supports big types
-    @simd for j=1:size(dat,2)
-        @inbounds dat[dg1,j]=c/(j+shft - 2 + λ)
-    end
-
-    @simd for j=max(1,3-shft):size(dat,2)
-        @inbounds dat[dg3,j]=-c/(j+shft - 2 + λ)
-    end
+    ret[band(dg)] .= c./(jr[max(0,dg)+1:min(n+dg,m)] .- 2 .+ λ)
+    ret[band(dg+1)] = 0
+    ret[band(dg+2)] .= c./(2 .- λ .- jr[max(0,dg+2)+1:min(n+dg+2,m)])
 
     ret
 end
@@ -117,24 +115,21 @@ end
 
 function Base.convert{T,K,DD}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Chebyshev{DD},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
-    D=parent(S)
-    m=D.order
-    d=domain(D)
 
-    ret=bzeros(S)
-    u=bandwidth(ret,2)
+    n,m = size(S)
+    ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
+    kr,jr = parentindexes(S)
+    dg = diagindshift(S)
 
-    kr,jr=parentindexes(S)
-    dat=ret.data
+    D = parent(S)
+    k = D.order
+    d = domain(D)
+    C=T(pochhammer(one(T),k-1)/2*(4/(d.b-d.a))^k)
 
-    shft = first(jr)-1
+    # need to drop columns
 
-    dg=diagindrow(S)-m   # mth superdiagonal
 
-    C=T(pochhammer(one(T),m-1)/2*(4/(d.b-d.a))^m)
-    @simd for j=max(m+1-shft,1):size(dat,2)
-        @inbounds dat[dg,j]=C*(j+shft-one(T))
-    end
+    ret[band(dg+k)] .= C.*(jr[max(0,dg+k)+1:min(n+dg+k,m)] .- one(T))
 
     ret
 end
@@ -142,26 +137,18 @@ end
 
 function Base.convert{T,K,DD,LT}(::Type{BandedMatrix},S::SubOperator{T,ConcreteDerivative{Ultraspherical{LT,DD},K,T},
                                                                 Tuple{UnitRange{Int},UnitRange{Int}}})
+    n,m = size(S)
+    ret = BandedMatrix(eltype(S),n,m,bandwidth(S,1),bandwidth(S,2))
+    kr,jr = parentindexes(S)
+    dg = diagindshift(S)
 
-    λ = order(domainspace(parent(S)))
-    D=parent(S)
-    m=D.order
-    d=domain(D)
+    D = parent(S)
+    k = D.order
+    λ = order(domainspace(D))
+    d = domain(D)
 
-    ret=bzeros(S)
-    u=bandwidth(ret,2)
-
-    kr,jr=parentindexes(S)
-    dat=ret.data
-
-    shft = first(jr)-1
-
-    dg=diagindrow(S)-m   # mth superdiagonal
-
-    C=T(pochhammer(one(T)*λ,m)*(4/(d.b-d.a))^m)
-    @simd for j=max(m+1-shft,1):size(dat,2)
-        @inbounds dat[dg,j]=C
-    end
+    C = T(pochhammer(one(T)*λ,k)*(4/(d.b-d.a))^k)
+    ret[band(dg+k)] = C
 
     ret
 end

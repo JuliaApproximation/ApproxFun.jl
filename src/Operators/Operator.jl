@@ -200,7 +200,7 @@ defaultgetindex(B::Operator,k::Range,j::Block) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::Block,j::Range) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::Range,j::Range) = AbstractMatrix(view(B,k,j))
 
-defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] for j in j],1,length(j))
+defaultgetindex(op::Operator,k::Integer,j::Range) = eltype(op)[op[k,j] for j in j]
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
 
 
@@ -225,9 +225,9 @@ blockcols(A::Operator,J::Integer) = blockrange(domainspace(A),J)
 # override for other shaped operators
 #TODO: Why size(A,2) in colstart?
 banded_colstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,2), 1), size(A, 2))
-banded_colstop(A::Operator, i::Integer) = min(i+bandwidth(A,1), size(A, 1))
+banded_colstop(A::Operator, i::Integer) = max(0,min(i+bandwidth(A,1), size(A, 1)))
 banded_rowstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,1), 1), size(A, 1))
-banded_rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
+banded_rowstop(A::Operator, i::Integer) = max(0,min(i+bandwidth(A,2), size(A, 2)))
 
 blockbanded_colstart(A::Operator, i::Integer) =
         blockstart(rangespace(A), block(domainspace(A),i)-blockbandwidth(A,2))

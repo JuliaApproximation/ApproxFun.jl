@@ -865,7 +865,7 @@ Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
 
 function getindex(it::CachedIterator,k)
     mx = maximum(k)
-    if mx > length(it)
+    if mx > length(it) || mx < 1
         throw(BoundsError(it,k))
     end
     resize!(it,isempty(k)?0:mx).storage[k]

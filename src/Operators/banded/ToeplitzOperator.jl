@@ -125,7 +125,7 @@ function Base.convert{T}(::Type{BandedMatrix},S::SubOperator{T,HankelOperator{T}
 end
 
 
-bandinds(T::HankelOperator)=(1-length(T.coefficients),length(T.coefficients)-1)
+bandinds(T::HankelOperator) = (min(0,1-length(T.coefficients)),max(0,length(T.coefficients)-1))
 
 
 

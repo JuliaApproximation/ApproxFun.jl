@@ -73,7 +73,6 @@ println("Jacobi tests")
 println("Extras tests")
 @time include("ETDRK4Test.jl")
 @time include("ExtrasTest.jl")
-@time include("FractionalTest.jl")
 
 println("Multivariate tests")
 @time include("MultivariateTest.jl")

@@ -93,7 +93,7 @@ end
 function view(A::Operator,kr::UnitRange,jr::UnitRange)
     if isbanded(A)
         shft=first(kr)-first(jr)
-        l,u=max(bandwidth(A,1)-shft,0),max(bandinds(A,2)+shft,0)
+        l,u=bandwidth(A,1)-shft,bandinds(A,2)+shft
         SubOperator(A,(kr,jr),(length(kr),length(jr)),(l,u))
     else
         SubOperator(A,(kr,jr))
@@ -154,7 +154,7 @@ function colstop{T,OP}(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}}
     kr = parentindexes(S)[1]
     n = size(S,1)
     if cs < first(kr)
-        1
+        0
     elseif cs ≥ last(kr)
         n
     else
@@ -198,8 +198,8 @@ function bbbzeros(S::SubOperator)
 
     rt=rangespace(KO)
     dt=domainspace(KO)
-
-    k1,j1=reindex(S,parentindexes(S),(1,1))
+    k1,j1=isempty(kr) || isempty(jr) ? (first(kr),first(jr)) :
+                                        reindex(S,parentindexes(S),(1,1))
 
     # each row/column that we differ from the the block start shifts
     # the sub block inds
