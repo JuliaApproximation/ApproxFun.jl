@@ -346,6 +346,7 @@ Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblo
 function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
                                                 S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
     kr,jr = parentindexes(S)
+    (isempty(kr) || isempty(jr)) && return bbbzeros(S)
     KO = parent(S)
 
     rt = rangetensorizer(KO)

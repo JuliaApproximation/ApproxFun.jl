@@ -198,8 +198,8 @@ function bbbzeros(S::SubOperator)
 
     rt=rangespace(KO)
     dt=domainspace(KO)
-
-    k1,j1=reindex(S,parentindexes(S),(1,1))
+    k1,j1=isempty(kr) || isempty(jr) ? (first(kr),first(jr)) :
+                                        reindex(S,parentindexes(S),(1,1))
 
     # each row/column that we differ from the the block start shifts
     # the sub block inds

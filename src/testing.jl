@@ -91,16 +91,16 @@ function backend_testfunctional(A)
         @test_approx_eq B[k] A[k]
         @test isa(A[k],eltype(A))
     end
-    @test B == vec(A[1,1:10])
-    @test B[3:10] == A[3:10]
-    @test B == [A[k] for k=1:10]
+    @test B ≈ vec(A[1,1:10])
+    @test B[3:10] ≈ A[3:10]
+    @test B ≈ [A[k] for k=1:10]
 
 
 
     co=cache(A)
-    @test co[1:10] == A[1:10]
-    @test co[1:10] == A[1:10]
-    @test co[20:30] == A[1:30][20:30] == A[20:30]
+    @test co[1:10] ≈ A[1:10]
+    @test co[1:10] ≈ A[1:10]
+    @test co[20:30] ≈ A[1:30][20:30] ≈ A[20:30]
 end
 
 # Check that the tests pass after conversion as well

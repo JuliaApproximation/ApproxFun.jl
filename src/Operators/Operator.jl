@@ -225,9 +225,9 @@ blockcols(A::Operator,J::Integer) = blockrange(domainspace(A),J)
 # override for other shaped operators
 #TODO: Why size(A,2) in colstart?
 banded_colstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,2), 1), size(A, 2))
-banded_colstop(A::Operator, i::Integer) = min(i+bandwidth(A,1), size(A, 1))
+banded_colstop(A::Operator, i::Integer) = max(0,min(i+bandwidth(A,1), size(A, 1)))
 banded_rowstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,1), 1), size(A, 1))
-banded_rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
+banded_rowstop(A::Operator, i::Integer) = max(0,min(i+bandwidth(A,2), size(A, 2)))
 
 blockbanded_colstart(A::Operator, i::Integer) =
         blockstart(rangespace(A), block(domainspace(A),i)-blockbandwidth(A,2))

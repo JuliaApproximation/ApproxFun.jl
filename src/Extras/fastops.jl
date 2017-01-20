@@ -147,7 +147,7 @@ function Base.convert{T,K,DD,LT}(::Type{BandedMatrix},S::SubOperator{T,ConcreteD
     λ = order(domainspace(D))
     d = domain(D)
 
-    C = T(pochhammer(one(T)*λ,m)*(4/(d.b-d.a))^m)
+    C = T(pochhammer(one(T)*λ,k)*(4/(d.b-d.a))^k)
     ret[band(dg+k)] = C
 
     ret

@@ -5,6 +5,9 @@ using ApproxFun, Base.Test, Compat
 
 
 # test row/colstarts
+testfunctional(Evaluation(Ultraspherical(1),0.1))
+testbandedoperator(Derivative(Ultraspherical(1)))
+testfunctional(Evaluation(Chebyshev(),0.1,1))
 testfunctional(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
 
 # test fast copy is consistent with getindex

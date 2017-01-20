@@ -31,6 +31,11 @@ function resizedata!{T<:Number}(B::CachedOperator{T,RaggedMatrix{T}},::Colon,n::
             end
         end
 
+        # avoid padding with negative length
+        if B.data.cols[n+1] ≤ 0
+            return B
+        end
+
         pad!(B.data.data,B.data.cols[n+1]-1)
         B.data.m = K
 
