@@ -311,6 +311,14 @@ returns the `k`th coefficient of `op*Fun([zeros(j-1);1],domainspace(op))`.
 Base.getindex(::Operator,::,::)
 
 
+doc"""
+    op[f::Fun]
+
+constructs the operator `op*Multiplication(f)`, that is, it multiplies on the right
+by `f` first.  Note that `op*f` is different: it applies `op` to `f`.
+"""
+Base.getindex(::Operator,::Fun)
+
 
 doc"""
     Conversion(fromspace::Space,tospace::Space)

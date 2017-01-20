@@ -40,6 +40,7 @@ julia> u = (I+exp(x)*Σ[cos(x)])\cos(exp(x));
 julia> u(0.1)
 0.21864294855628802
 ```
+Note that we used the syntax `op[f::Fun]`, which is a shorthand for `op*Multiplication(f)`.
 
 ## Boundary conditions
 
@@ -92,7 +93,7 @@ functionals.  For example, we can solve the system
 
 $$\begin{align*}
     u'' - u + 2v &= {\rm e}^x  \cr
-    v' + v &= {\rm e}^x  \cr
+    v' + v &= cos(x) \cr
     u(-1) &= u'(-1) = v(-1) = 0
 \end{align*}$$
 
