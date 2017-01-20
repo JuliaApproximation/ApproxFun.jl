@@ -92,7 +92,7 @@ functionals.  For example, we can solve the system
 
 $$\begin{align*}
     u'' - u + 2v &= {\rm e}^x  \cr
-    v' + v &= {\rm e}^x  \cr
+    v' + v &= cos(x) \cr
     u(-1) &= u'(-1) = v(-1) = 0
 \end{align*}$$
 
