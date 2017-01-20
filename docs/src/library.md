@@ -233,6 +233,11 @@ Base.getindex(::Operator,::,::)
 ```
 
 ```@docs
+Base.getindex(::Operator,::Fun)
+```
+
+
+```@docs
 \(::Operator,::)
 ```
 
@@ -243,6 +248,7 @@ qrfact(::Operator)
 ```@docs
 cache(::Operator)
 ```
+
 
 
 ## Inbuilt operators

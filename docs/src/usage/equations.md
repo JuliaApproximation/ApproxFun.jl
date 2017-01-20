@@ -40,6 +40,7 @@ julia> u = (I+exp(x)*Σ[cos(x)])\cos(exp(x));
 julia> u(0.1)
 0.21864294855628802
 ```
+Note that we used the syntax `op[f::Fun]`, which is a shorthand for `op*Multiplication(f)`.
 
 ## Boundary conditions
 
