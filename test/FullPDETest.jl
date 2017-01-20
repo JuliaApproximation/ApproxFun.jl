@@ -1,7 +1,7 @@
 using ApproxFun, Compat, Base.Test
     import Compat: view
     import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator,
-                        testblockbandedoperator, A_ldiv_B_coefficients
+                        testblockbandedoperator, A_ldiv_B_coefficients, A_mul_B_coefficients
 ## Check operators
 
 ## Rectangle PDEs
@@ -554,7 +554,7 @@ CO=cache(Bx[2])
 @test ApproxFun.colstop(CO.op,2) == 2
 ApproxFun.resizedata!(CO,:,2)
 ApproxFun.resizedata!(CO,:,4)
-@test_approx_eq (CO*collect(1:4)).coefficients [3.,-1.]
+@test_approx_eq A_mul_B_coefficients(CO,collect(1:4)) [3.,-1.]
 
 
 
