@@ -1,7 +1,7 @@
 using Documenter, ApproxFun
 
 makedocs(modules=[ApproxFun],
-			doctest = true,
+			doctest = false,
 			clean = true,
 			format = :html,
 			sitename = "ApproxFun.jl",
