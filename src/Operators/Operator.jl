@@ -200,7 +200,7 @@ defaultgetindex(B::Operator,k::Range,j::Block) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::Block,j::Range) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::Range,j::Range) = AbstractMatrix(view(B,k,j))
 
-defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] for j in j],1,length(j))
+defaultgetindex(op::Operator,k::Integer,j::Range) = eltype(op)[op[k,j] for j in j]
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
 
 
