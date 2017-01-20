@@ -30,9 +30,10 @@ function resizedata!{T<:Number,RI,DI}(B::CachedOperator{T,BandedBlockBandedMatri
 
         jr=B.datasize[2]+1:col
         kr=colstart(B.data,jr[1]):colstop(B.data,jr[end])
-        BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
 
-        B.datasize = (kr[end],col)
+        isempty(kr) || BLAS.axpy!(1.0,view(B.op,kr,jr),view(B.data,kr,jr))
+
+        B.datasize = (last(kr),col)
     end
 
     B
