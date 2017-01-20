@@ -73,7 +73,7 @@ function colstop(A::KroneckerOperator,k::Integer)
     K=block(A.domaintensorizer,k)
     st=blockstop(A.rangetensorizer,blockcolstop(A,K))
     # zero indicates above dimension
-    st==0 ? size(A,1) : min(size(A,1),st)
+    min(size(A,1),st)
 end
 
 function rowstart(A::KroneckerOperator,k::Integer)
@@ -346,6 +346,7 @@ Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblo
 function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
                                                 S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
     kr,jr = parentindexes(S)
+    (isempty(kr) || isempty(jr)) && return bbbzeros(S)
     KO = parent(S)
 
     rt = rangetensorizer(KO)

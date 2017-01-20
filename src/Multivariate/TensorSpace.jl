@@ -94,7 +94,7 @@ end
 
 # block(it::Tensorizer,k)::Block = sum(it[k])-length(it.blocks)+1
 block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int)::Block =
-    sum(ci[k])-length(ci.iterator.blocks)+1
+    k == 0 ? 0 : sum(ci[k])-length(ci.iterator.blocks)+1
 
 block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int)::Block =
     floor(Integer,sqrt(2n) + 1/2)

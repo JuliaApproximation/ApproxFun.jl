@@ -44,6 +44,8 @@ D=Derivative(S)
 
 Z=ApproxFun.ZeroOperator(ApproxFun.ConstantSpace())
 
+testfunctional(Evaluation(S,ω,1)-Evaluation(S,0,1))
+
 A=ApproxFun.interlace([Z                      Evaluation(S,0);
                      u'(ω)    Evaluation(S,ω)-Evaluation(S,0);
                      u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);

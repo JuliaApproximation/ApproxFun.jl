@@ -171,7 +171,7 @@ Derivative{DD<:Segment}(sp::Chebyshev{DD},order::Integer) =
 
 rangespace{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) =
     Ultraspherical(D.order,domain(D))
-bandinds{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = 0,D.order
+bandinds{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = D.order,D.order
 Base.stride{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = D.order
 
 function getindex{DD<:Segment,K,T}(D::ConcreteDerivative{Chebyshev{DD},K,T},k::Integer,j::Integer)
