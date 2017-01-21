@@ -175,7 +175,8 @@ end
 InterlaceOperator{T,DS<:Space}(opsin::Matrix{Operator{T}},::Type{DS}) =
     InterlaceOperator(opsin,DS,DS)
 
-InterlaceOperator(opsin::AbstractMatrix,S...) = InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,opsin)}}(opsin),S...)
+InterlaceOperator(opsin::AbstractMatrix,S...) =
+    InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,opsin)}}(promotespaces(opsin)),S...)
 
 function InterlaceOperator{T}(opsin::Vector{Operator{T}})
     ops=promotedomainspace(opsin)

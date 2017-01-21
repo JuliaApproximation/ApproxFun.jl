@@ -3,8 +3,15 @@
 
 #### notes on release changes, ongoing development, and future planned work
 
+## 0.5 (current master/development)
 
-## 0.4 (current master/development)
+#### 0.5.0
+- Drops support for Julia v0.5
+- Uses IntervalSets.jl to support a..b
+- Uses Padua points for `Chebyshev()^2` transform
+
+
+## 0.4
 
 
 #### 0.4.1
@@ -18,3 +25,5 @@
 
 #### 0.4.0
 - Revamped PDE solving to use `qrfact`
+
+
