@@ -39,11 +39,7 @@ function domainspace{T<:Operator}(A::Matrix{T})
     end
 
     spl=map(domainspace,vec(A[1,:]))
-    if spacescompatible(spl)
-        ArraySpace(first(spl),length(spl))
-    else
-        TupleSpace(spl)
-    end
+    ArraySpace(spl)
 end
 
 function rangespace{T<:Operator}(A::Vector{T})
@@ -52,11 +48,7 @@ function rangespace{T<:Operator}(A::Vector{T})
     end
 
     spl=map(rangespace,A)
-    if spacescompatible(spl)
-        ArraySpace(first(spl),length(spl))
-    else
-        TupleSpace(spl)
-    end
+    ArraySpace(spl)
 end
 
 promotespaces{T<:Operator}(A::AbstractMatrix{T}) = promotespaces(Matrix(A))
@@ -101,8 +93,8 @@ function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
     p=size(ops,1)
     dsi = interlacer(ds)
 
-    if p == 1  # Assume rs corresonds to a scalar space, so wrap in a TupleSpace to get right interlacing
-        rsi = interlacer(TupleSpace((rs,)))
+    if p == 1  # Assume rs corresonds to a scalar space, so wrap in a ArraySpace to get right interlacing
+        rsi = interlacer(ArraySpace(rs,1))
     else  # assume this is a correctly tupled
         rsi = interlacer(rs)
     end
@@ -183,7 +175,8 @@ end
 InterlaceOperator{T,DS<:Space}(opsin::Matrix{Operator{T}},::Type{DS}) =
     InterlaceOperator(opsin,DS,DS)
 
-InterlaceOperator(opsin::AbstractMatrix,S...) = InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,opsin)}}(opsin),S...)
+InterlaceOperator(opsin::AbstractMatrix,S...) =
+    InterlaceOperator(Matrix{Operator{mapreduce(eltype,promote_type,opsin)}}(promotespaces(opsin)),S...)
 
 function InterlaceOperator{T}(opsin::Vector{Operator{T}})
     ops=promotedomainspace(opsin)
@@ -484,4 +477,4 @@ choosedomainspace{T}(A::InterlaceOperator{T,1},rs::Space) =
 
 
 choosedomainspace{T}(A::InterlaceOperator{T,2},rs::Space) =
-    TupleSpace(tuple([interlace_choosedomainspace(A.ops[:,k],rs) for k=1:size(A.ops,2)]...))
+    ArraySpace([interlace_choosedomainspace(A.ops[:,k],rs) for k=1:size(A.ops,2)])

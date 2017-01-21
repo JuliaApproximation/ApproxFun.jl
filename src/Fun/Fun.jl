@@ -71,8 +71,10 @@ coefficient(f::Fun,::Colon) = coefficient(f,1:dimension(space(f)))
 ##Convert routines
 
 
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S})=Fun(f.space,convert(Vector{T},f.coefficients))
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun)=Fun(Fun(f.space,convert(Vector{T},f.coefficients)),S(domain(f)))  #TODO: this line is incompatible with space conversion
+Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S}) =
+    Fun(f.space,convert(Vector{T},f.coefficients))
+Base.convert{T,S}(::Type{Fun{S,T}},f::Fun) =
+    Fun(Fun(f.space,convert(Vector{T},f.coefficients)),convert(S,space(f)))
 
 Base.convert{T,S}(::Type{Fun{S,T}},x::Number) =
     x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))

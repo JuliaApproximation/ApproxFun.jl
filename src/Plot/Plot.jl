@@ -154,7 +154,7 @@ end
 
 
 
-@recipe function f{S<:Union{ArraySpace,TupleSpace},T<:Real}(g::Fun{S,T})
+@recipe function f{S<:ArraySpace,T<:Real}(g::Fun{S,T})
     vec(g)
 end
 

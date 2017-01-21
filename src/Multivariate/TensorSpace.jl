@@ -16,7 +16,7 @@ spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 # would be Tensorizer((1:∞,1:∞))
 # ConstantSpace() ⊗ Chebyshev()
 # would be Tensorizer((1:1,1:∞))
-# and Chebyshev() ⊗ TupleSpace((Chebyshev(),Chebyshev()))
+# and Chebyshev() ⊗ ArraySpace([Chebyshev(),Chebyshev()])
 # would be Tensorizer((1:∞,2:2:∞))
 
 
