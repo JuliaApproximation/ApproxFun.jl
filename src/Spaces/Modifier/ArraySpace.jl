@@ -187,7 +187,7 @@ Fun{F<:Fun}(V::AbstractMatrix{F}) = demat(V)
 Fun{SS,n}(v::Array{Any,n},sp::ArraySpace{SS,n}) = devec(map((f,s)->Fun(f,s),v,sp))
 
 
-# convert a vector to a Fun with TupleSpace
+# convert a vector to a Fun with ArraySpace
 
 function Fun{TT,SS,n}(v::Array{TT,n},sp::ArraySpace{SS,n})
     if size(v) ≠ size(sp)

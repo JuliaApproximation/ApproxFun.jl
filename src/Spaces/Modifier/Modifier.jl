@@ -87,7 +87,7 @@ end
 
 # convert a vector of functionals and an operator to a LowRnakPertOperator
 # the rangespace is a DirectSumSpace specified by ST of the input rangespaces
-# the default is a  TupleSpace, but support is there for PiecewiseSpace
+# the default is a  ArraySpace, but support is there for PiecewiseSpace
 # for bcs
 for TYP in (:PiecewiseSpace,:VectorSpace)
     @eval function LowRankPertOperator{OT<:Operator}(A::Vector{OT},::Type{$TYP})
