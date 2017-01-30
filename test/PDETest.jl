@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test, Compat, Base.Test
+using ApproxFun, Base.Test, Base.Test
     import ApproxFun: testbandedblockbandedoperator, testblockbandedoperator
 
 ## Check operators

@@ -2,7 +2,6 @@ julia 0.5
 FastGaussQuadrature 0.1
 FastTransforms 0.0.7
 RecipesBase 0.1
-Compat 0.12
 DualNumbers 0.2.2
 BandedMatrices 0.2
 ToeplitzMatrices 0.1.1
