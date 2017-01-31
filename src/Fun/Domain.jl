@@ -41,8 +41,8 @@ prectype(d::Domain) = eltype(eltype(d))
 
 
 #TODO: bivariate AnyDomain
-immutable AnyDomain <: Domain{UnsetNumber} end
-immutable EmptyDomain <: Domain{UnsetNumber} end
+immutable AnyDomain <: Domain{UnsetNumber,Any} end
+immutable EmptyDomain <: Domain{UnsetNumber,0} end
 
 isambiguous(::AnyDomain) = true
 dimension(::AnyDomain) = 1
