@@ -1,5 +1,4 @@
-using ApproxFun, Compat, Base.Test
-    import Compat: view
+using ApproxFun, Base.Test
     import ApproxFun: resizedata!, CachedOperator, RaggedMatrix, testbandedblockbandedoperator,
                         testblockbandedoperator, A_ldiv_B_coefficients, A_mul_B_coefficients
 ## Check operators

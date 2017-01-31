@@ -1,6 +1,5 @@
-using ApproxFun, Base.Test, Compat
-    import ApproxFun:Multiplication,InterlaceOperator
-    import Compat.view
+using ApproxFun, Base.Test
+    import ApproxFun: Multiplication,InterlaceOperator
     import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator
 
 

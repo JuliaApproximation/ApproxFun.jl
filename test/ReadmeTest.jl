@@ -1,7 +1,7 @@
 ## Intro
 
 
-using ApproxFun, Base.Test, Compat
+using ApproxFun, Base.Test
 
 println("    Calculus and algebra tests")
 

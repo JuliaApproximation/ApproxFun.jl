@@ -1,7 +1,7 @@
 __precompile__()
 
 module ApproxFun
-    using Base, Compat, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets
+    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets
     import FixedSizeArrays, ToeplitzMatrices, Calculus
 
 import Base.LinAlg: BlasFloat
@@ -31,7 +31,7 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
                         colstart, colstop, colrange, rowstart, rowstop, rowrange,
                         bandwidths, αA_mul_B_plus_βC!, showarray
 
-import Compat: view
+import Base: view
 
 import FixedSizeArrays: Vec
 
