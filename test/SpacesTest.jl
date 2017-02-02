@@ -190,6 +190,8 @@ Fun(f,JacobiWeight(1.,0.,0..1))
 f=Fun(x->x+x^2,Hermite())
 @test_approx_eq f(1.) 2.
 
+g=Derivative(Hermite()) * f
+@test_approx_eq g(1.) 3.
 
 
 ## Arc exp
