@@ -78,7 +78,7 @@ w=10.;
 B=ApproxFun.SpaceOperator(BasisFunctional(floor(w)),Chebyshev(),ApproxFun.ConstantSpace());
 A=[B;D+1im*w*I];
 @time u = A\[0.,f];
-@test_approx_eq (u(1.)exp(1im*w)-u(-1.)exp(-1im*w)) (-0.18575766879136255 + 0.17863980562549928im )
+@test (u(1.)exp(1im*w)-u(-1.)exp(-1im*w)) (-0.18575766879136255 + 0.17863980562549928im ≈ )
 
 
 ## Bessel
@@ -95,7 +95,7 @@ u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 
 
 
-@test_approx_eq u(0.1) besselj(0.,0.1)
+@test u(0.1) ≈ besselj(0.,0.1)
 @test norm(A*u)<10eps()
 @test norm(Fun(A.ops[1]*u,d)-x.^2.*differentiate(u,2))<eps()
 @test norm(Fun(A.ops[2]*u,d)-x.*u') < eps()
@@ -118,23 +118,23 @@ Q,R=qr([B;D^2+I])
 u=R\(Q'*[cos(-1.0);cos(1.0);0.0])
 
 
-@test_approx_eq u(0.) cos(0.0)
+@test u(0.) ≈ cos(0.0)
 
 
 S=Chebyshev()
 A=[dirichlet(S);Derivative(S)^2 - I]
 QR=qrfact(A)
-@test_approx_eq (QR\[1.,0,0])(0.0) 0.3240271368319427
+@test (QR\[1.,0,0])(0.0) ≈ 0.3240271368319427
 Q,R=qr(A)
 u=(R\(Q'*[1.,0.0,0.0]))
-@test_approx_eq u(0.0)  0.3240271368319427
+@test u(0.0)  ≈ 0.3240271368319427
 
 x=Fun(S)
 A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
 QR=qrfact(A)
 
 u=(QR\[1.,0.0,0.0])
-@test_approx_eq u(0.0) (0.3329522068795961 + 0.024616008954634165im)
+@test u(0.0) (0.3329522068795961 + ≈ 0.024616008954634165im)
 
 # Union of intervals are constructed for now with \
 x=Fun(identity,Domain(-2..15) \ [-1,0])
@@ -157,7 +157,7 @@ QR=qrfact(A)
 
 
 
-@test_approx_eq u(0.0) airyai(0.)
+@test u(0.0) ≈ airyai(0.)
 
 
 ## Vector
@@ -174,12 +174,12 @@ A=[B 0;
    0 D+I];
 QR=qrfact(A)
 v=Any[0.,0.,0.,f...]
-@test_approx_eq (QR\v)(0.0) [0.0826967758420519,0.5553968826533497]
+@test (QR\v)(0.0) ≈ [0.0826967758420519,0.5553968826533497]
 
 
 Q,R=qr(A)
 v=Any[0.,0.,0.,f...]
-@test_approx_eq (QR\v)(0.0) [0.0826967758420519,0.5553968826533497]
+@test (QR\v)(0.0) ≈ [0.0826967758420519,0.5553968826533497]
 
 
 
@@ -210,4 +210,4 @@ D=Derivative(Chebyshev())
 B=ldirichlet()
 u1=[B;D]\[0.;Fun(exp)+0im]
 u2=[B;D]\[0.;Fun(exp)]
-@test_approx_eq u1(0.1) u2(0.1)
+@test u1(0.1) ≈ u2(0.1)
