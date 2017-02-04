@@ -20,11 +20,11 @@ S = domainspace(⨍)
 
 f=Fun(S,rand(20))
 
-@test DefiniteLineIntegral(dom[1])*f[1] ≈ linesum(f[1])
-@test DefiniteLineIntegral(dom[2])*f[2] ≈ linesum(f[2])
-@test DefiniteLineIntegral(dom[3])*f[3] ≈ linesum(f[3])
+@test_approx_eq DefiniteLineIntegral(dom[1])*f[1] linesum(f[1])
+@test_approx_eq DefiniteLineIntegral(dom[2])*f[2] linesum(f[2])
+@test_approx_eq DefiniteLineIntegral(dom[3])*f[3] linesum(f[3])
 
-@test ⨍*f ≈ linesum(f)
+@test_approx_eq ⨍*f linesum(f)
 
 
 
@@ -83,15 +83,15 @@ u=[B;L]\[1.;f]
 f1=Fun(t->cos(cos(t)),-π..π)
 f=Fun(t->cos(cos(t)),Laurent(-π..π))
 
-@test sum(f1) ≈ Σ*f
+@test_approx_eq sum(f1) Σ*f
 
 f1=Fun(t->cos(cos(t))/t,Laurent(Circle()))
 f2=Fun(t->cos(cos(t))/t,Fourier(Circle()))
-@test Σ*f1 ≈ Σ*f2
+@test_approx_eq Σ*f1 Σ*f2
 
 f1=Fun(t->cos(cos(t)),Laurent(-π..π))
 f2=Fun(t->cos(cos(t)),Fourier(-π..π))
-@test Σ*f1 ≈ Σ*f2
+@test_approx_eq Σ*f1 Σ*f2
 
 
 ## test over arcs
@@ -101,7 +101,7 @@ d=exp(im*Interval(0.1,0.2))
 x=Fun(d)
 w=1/(sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x)))
 
-@test linesum(w) ≈ DefiniteLineIntegral()*w
+@test_approx_eq linesum(w) DefiniteLineIntegral()*w
 
 
 ## Volterra integral equation
@@ -131,8 +131,8 @@ for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(-2,-1))),
           JacobiWeight(0.67,0.123,Chebyshev(Segment(-2,-1+2im))),
           JacobiWeight(0.67,0.123,Ultraspherical(1,Segment(-2,-1+2im))))
     f=Fun(S,[1.,2.,3.])
-    @test DefiniteIntegral(space(f))*f ≈ sum(f)
-    @test DefiniteLineIntegral(space(f))*f ≈ linesum(f)
+    @test_approx_eq DefiniteIntegral(space(f))*f sum(f)
+    @test_approx_eq DefiniteLineIntegral(space(f))*f linesum(f)
 end
 
 
@@ -166,4 +166,4 @@ B=DefiniteLineIntegral(S)
 
 srand(0)
 f=Fun(S,rand(20))
-@test B*f ≈ linesum(f[1])+linesum(f[2])+linesum(f[3])
+@test_approx_eq B*f linesum(f[1])+linesum(f[2])+linesum(f[3])

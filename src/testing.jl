@@ -26,11 +26,11 @@ function testtransforms(S::Space;minpoints=1,invertibletransform=true)
     if invertibletransform
         for k=max(1,minpoints):min(5,dimension(S))
             v = [zeros(k-1);1.0]
-            @test transform(S,itransform(S,v)) ≈ v
+            @test_approx_eq transform(S,itransform(S,v)) v
         end
 
-        @test transform(S,itransform(S,v)) ≈ v
-        @test itransform(S,transform(S,v)) ≈ v
+        @test_approx_eq transform(S,itransform(S,v)) v
+        @test_approx_eq itransform(S,transform(S,v)) v
     end
 end
 
@@ -40,7 +40,7 @@ function testcalculus(S::Space;haslineintegral=true,hasintegral=true)
         f = Fun(S,v)
         @test abs(DefiniteIntegral()*f-sum(f)) < 100eps()
         if haslineintegral
-            @test DefiniteLineIntegral()*f ≈ linesum(f)
+            @test_approx_eq DefiniteLineIntegral()*f linesum(f)
         end
         @test norm(Derivative()*f-f') < 100eps()
         if hasintegral
@@ -58,7 +58,7 @@ function testmultiplication(spa,spb)
         pts = ApproxFun.checkpoints(rangespace(M))
         for j=1:10
             b = Fun(spb,[zeros(j-1);1.])
-            @test (M*b).(pts) ≈ a.(pts).*b.(pts)
+            @test_approx_eq (M*b).(pts) a.(pts).*b.(pts)
         end
     end
 end
@@ -88,7 +88,7 @@ function backend_testfunctional(A)
     B=A[1:10]
     @test eltype(B) == eltype(A)
     for k=1:5
-        @test B[k] ≈ A[k]
+        @test_approx_eq B[k] A[k]
         @test isa(A[k],eltype(A))
     end
     @test B ≈ A[1,1:10]
@@ -125,18 +125,18 @@ function backend_testinfoperator(A)
     eltype(B) == eltype(A)
 
     for k=1:5,j=1:5
-        @test B[k,j] ≈ A[k,j]
+        @test_approx_eq B[k,j] A[k,j]
         @test isa(A[k,j],eltype(A))
     end
 
-    @test A[1:5,1:5][2:5,1:5] ≈ A[2:5,1:5]
-    @test A[1:5,2:5] ≈ A[1:5,1:5][:,2:end]
-    @test A[1:10,1:10][5:10,5:10] [A[k,j] for ≈ k=5:10,j=5:10]
-    @test A[1:10,1:10][5:10,5:10] ≈ A[5:10,5:10]
-    @test A[1:30,1:30][20:30,20:30] ≈ A[20:30,20:30]
+    @test_approx_eq A[1:5,1:5][2:5,1:5] A[2:5,1:5]
+    @test_approx_eq A[1:5,2:5] A[1:5,1:5][:,2:end]
+    @test_approx_eq A[1:10,1:10][5:10,5:10] [A[k,j] for k=5:10,j=5:10]
+    @test_approx_eq A[1:10,1:10][5:10,5:10] A[5:10,5:10]
+    @test_approx_eq A[1:30,1:30][20:30,20:30] A[20:30,20:30]
 
-    @test A[Block(1):Block(3),Block(1):Block(3)] ≈ A[blockstart(rangespace(A),1):blockstop(rangespace(A),3),blockstart(domainspace(A),1):blockstop(domainspace(A),3)]
-    @test A[Block(3):Block(4),Block(2):Block(4)] ≈ A[blockstart(rangespace(A),3):blockstop(rangespace(A),4),blockstart(domainspace(A),2):blockstop(domainspace(A),4)]
+    @test_approx_eq A[Block(1):Block(3),Block(1):Block(3)] A[blockstart(rangespace(A),1):blockstop(rangespace(A),3),blockstart(domainspace(A),1):blockstop(domainspace(A),3)]
+    @test_approx_eq A[Block(3):Block(4),Block(2):Block(4)] A[blockstart(rangespace(A),3):blockstop(rangespace(A),4),blockstart(domainspace(A),2):blockstop(domainspace(A),4)]
 
     for k=1:10
         @test isfinite(colstart(A,k)) && colstart(A,k) > 0
@@ -144,14 +144,14 @@ function backend_testinfoperator(A)
     end
 
     co=cache(A)
-    @test co[1:10,1:10] ≈ A[1:10,1:10]
-    @test co[1:10,1:10] ≈ A[1:10,1:10]
-    @test co[20:30,20:30] ≈ A[1:30,1:30][20:30,20:30]
+    @test_approx_eq co[1:10,1:10] A[1:10,1:10]
+    @test_approx_eq co[1:10,1:10] A[1:10,1:10]
+    @test_approx_eq co[20:30,20:30] A[1:30,1:30][20:30,20:30]
 
     let C=cache(A)
         resizedata!(C,5,35)
         resizedata!(C,10,35)
-        @test C.data[1:10,1:C.datasize[2]] ≈ A[1:10,1:C.datasize[2]]
+        @test_approx_eq C.data[1:10,1:C.datasize[2]] A[1:10,1:C.datasize[2]]
     end
 end
 
