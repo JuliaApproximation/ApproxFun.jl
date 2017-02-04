@@ -100,7 +100,7 @@ f = Fun(t->exp(sin(10t)),s)
 uFourier = L\f
 
 
-@test_approx_eq uChebyshev(0.) uFourier(0.)
+@test uChebyshev(0.) ≈ uFourier(0.)
 
 
 
@@ -129,7 +129,7 @@ QR = qrfact([Dirichlet(d);Laplacian()+100I])
                         [ones(∂(d));0.];tolerance=1E-7)
 
 
-@test_approx_eq u(0.1,1.) 1.0
+@test u(0.1,1.) ≈ 1.0
 @test_approx_eq_eps u(0.1,0.2) -0.02768276827514463 1E-8
 
 
@@ -140,5 +140,5 @@ setprecision(1000) do
     d=BigFloat(0)..BigFloat(1)
     D=Derivative(d)
     u=[ldirichlet();D-I]\[1;0]
-    @test_approx_eq u(1) exp(BigFloat(1))
+    @test u(1) ≈ exp(BigFloat(1))
 end
