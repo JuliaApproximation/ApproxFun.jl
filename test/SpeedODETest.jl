@@ -99,6 +99,6 @@ d=Interval(-300.,5.)
 x=Fun(identity,d)
 A=Derivative(d)^2-x
 u=nullspace(A)
-@test A[1:10,1:10] ≈ (A.')[1:10,1:10].'
+@test_approx_eq A[1:10,1:10] (A.')[1:10,1:10].'
 @time u=nullspace(A)
 println("Nullspace Airy: 0.052730 seconds (75.21 k allocations: 56.736 MB)")
