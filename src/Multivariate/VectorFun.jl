@@ -105,9 +105,9 @@ end
 
 #Allow vecfun + constvec, etc
 #can't just promote constant vector to a vector-valued fun because don't know the domain.
-for op = (:+,:-,:.*,:./)
+for op = (:+,:-)
     @eval begin
-        ($op){T<:Number,S,V}(f::Fun{S,V},c::AbstractArray{T})=devec($op(vec(f),c))
-        ($op){T<:Number,S,V}(c::AbstractArray{T},f::Fun{S,V})=devec($op(c,vec(f)))
+        ($op){T<:Number,S,V}(f::Fun{S,V},c::AbstractArray{T}) = devec($op(vec(f),c))
+        ($op){T<:Number,S,V}(c::AbstractArray{T},f::Fun{S,V}) = devec($op(c,vec(f)))
     end
 end

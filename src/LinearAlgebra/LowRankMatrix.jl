@@ -155,7 +155,7 @@ pad!(L::LowRankMatrix,n::Integer,m::Integer) = pad!(pad!(L,n,:),:,m)
 
 # algebra
 
-for op in (:+,:-,:.+,:.-)
+for op in (:+,:-)
     @eval begin
         $op(L::LowRankMatrix) = LowRankMatrix($op(L.U),L.V)
 
@@ -175,8 +175,6 @@ end
 
 *(a::Number,L::LowRankMatrix) = LowRankMatrix(a*L.U,L.V)
 *(L::LowRankMatrix,a::Number) = LowRankMatrix(L.U,L.V*a)
-.*(a::Number,L::LowRankMatrix) = a*L
-.*(L::LowRankMatrix,a::Number) = L*a
 
 # override default:
 Base.A_mul_Bc(A::LowRankMatrix,B::LowRankMatrix) = A*ctranspose(B)

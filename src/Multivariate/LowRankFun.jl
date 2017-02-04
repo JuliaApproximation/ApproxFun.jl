@@ -19,6 +19,8 @@ type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: Bivaria
     end
 end
 
+
+println("x")
 LowRankFun{S,M,SS,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS)=LowRankFun{S,M,SS,T}(A,B,space)
 LowRankFun{S,M,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}})=LowRankFun(A,B,space(first(A))⊗space(first(B)))
 LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}})=LowRankFun(convert(Vector{Fun{S,promote_type(T,V)}},A),convert(Vector{Fun{M,promote_type(T,V)}},B),space(first(A))⊗space(first(B)))
@@ -356,7 +358,7 @@ end
 
 ## Algebra
 
-for op = (:*,:.*,:./,:/)
+for op = (:*,:/)
     @eval ($op){T<:Fun}(A::Array{T,1},c::Number)=map(f->($op)(f,c),A)
     @eval ($op)(f::LowRankFun,c::Number) = LowRankFun(($op)(f.A,c),f.B)
     @eval ($op)(c::Number,f::LowRankFun) = LowRankFun(($op)(c,f.A),f.B)
@@ -366,16 +368,16 @@ end
 # op(f,K) acts as operating in the x variable, and
 # op(K,f) acts as operating in the y variable.
 
-for op = (:*,:.*,:./,:/)
+for op = (:*,:/)
     @eval ($op){S,T,U,V}(f::Fun{S,T},A::Vector{Fun{U,V}})=map(a->($op)(f,a),A)
     @eval ($op)(f::Fun,K::LowRankFun) = LowRankFun(($op)(f,K.A),K.B)
     @eval ($op){S,T,U,V}(B::Vector{Fun{U,V}},f::Fun{S,T})=map(b->($op)(b,f),B)
     @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op)(K.B,f))
 end
 
-+(f::LowRankFun,g::LowRankFun)=LowRankFun([f.A;g.A],[f.B;g.B])
--(f::LowRankFun)=LowRankFun(-f.A,f.B)
--(f::LowRankFun,g::LowRankFun)=f+(-g)
++(f::LowRankFun,g::LowRankFun) = LowRankFun([f.A;g.A],[f.B;g.B])
+-(f::LowRankFun) = LowRankFun(-f.A,f.B)
+-(f::LowRankFun,g::LowRankFun) = f+(-g)
 
 ## QR factorization of a LowRankFun
 

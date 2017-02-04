@@ -72,16 +72,14 @@ Base.reverse(d::PeriodicInterval) = PeriodicInterval(d.b,d.a)
 
 ## algebra
 
-for op in (:*,:+,:-,:.*,:.+,:.-)
+for op in (:*,:+,:-)
     @eval begin
         $op(c::Number,d::PeriodicInterval) = PeriodicInterval($op(c,d.a),$op(c,d.b))
         $op(d::PeriodicInterval,c::Number) = PeriodicInterval($op(d.a,c),$op(d.b,c))
     end
 end
 
-for op in (:/,:./)
-    @eval $op(d::PeriodicInterval,c::Number) = PeriodicInterval($op(d.a,c),$op(d.b,c))
-end
 
+@eval /(d::PeriodicInterval,c::Number) = PeriodicInterval(/(d.a,c),/(d.b,c))
 
 +(d1::PeriodicInterval,d2::PeriodicInterval) = PeriodicInterval(d1.a+d2.a,d1.b+d2.b)

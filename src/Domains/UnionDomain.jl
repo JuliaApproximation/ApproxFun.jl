@@ -141,10 +141,10 @@ function Base.merge(d1::UnionDomain,d2::UnionDomain)
 end
 
 
-for op in (:*,:+,:-,:.*,:.+,:.-)
+for op in (:*,:+,:-)
     @eval begin
-        $op(c::Number,d::UnionDomain)=UnionDomain(map(a->$op(c,a),d.domains))
-        $op(d::UnionDomain,c::Number)=UnionDomain(map(a->$op(a,c),d.domains))
+        $op(c::Number,d::UnionDomain) = UnionDomain(map(a->$op(c,a),d.domains))
+        $op(d::UnionDomain,c::Number) = UnionDomain(map(a->$op(a,c),d.domains))
     end
 end
 /(d::UnionDomain,c::Number) = UnionDomain(map(a->a/c,d.domains))

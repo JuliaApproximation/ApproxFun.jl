@@ -6,8 +6,12 @@ module ApproxFun
 
 import Base.LinAlg: BlasInt, BlasFloat
 
-import Base: values, getindex, setindex!, *, .*, +, .+, -, .-, ==, <, <=, >, |, !, !=, eltype, start, next, done,
-                >=, ./, /, .^, ^, \, ∪, transpose, size, to_indexes, reindex, tail, index_shape_dim
+import Base: values, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
+                >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast
+
+if VERSION < v"0.6.0-dev"
+    import Base: .*, .+, .-, .^, ./
+end
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
 # we can't do importall Base as we replace some Base definitions
@@ -51,11 +55,15 @@ include("LinearAlgebra/LinearAlgebra.jl")
 
 include("Fun/Fun.jl")
 
+println("Domains")
 include("Domains/Domains.jl")
-
+#
+println("Multivariate")
 include("Multivariate/Multivariate.jl")
+println("Operators")
 include("Operators/Operator.jl")
 
+println("Spaces")
 include("Spaces/Spaces.jl")
 
 
@@ -63,17 +71,21 @@ include("Spaces/Spaces.jl")
 
 ## Further extra features
 
+println("PDE")
 include("PDE/PDE.jl")
+println("Caching")
 include("Caching/caching.jl")
+println("Extras")
 include("Extras/Extras.jl")
+println("Plot")
 include("Plot/Plot.jl")
-
+println("docs")
 include("docs.jl")
-
+println("testing")
 include("testing.jl")
 
 
 #include("precompile.jl")
-_precompile_()
+#_precompile_()
 
 end #module

@@ -154,5 +154,5 @@ function coefficienttimes{PS<:PointSpace,PS2<:PointSpace}(f::Fun{PS},g::Fun{PS2}
     Fun(space(g),f.coefficients.*g.coefficients)
 end
 
-./{PS<:PointSpace}(f::Fun,g::Fun{PS}) = f.*inv(g)
+/{PS<:PointSpace}(f::Fun,g::Fun{PS}) = f*inv(g)
 Base.inv{PS<:PointSpace}(f::Fun{PS}) = Fun(space(f),1./f.coefficients)

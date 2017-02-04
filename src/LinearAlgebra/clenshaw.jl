@@ -34,10 +34,7 @@ macro clenshaw(x, c...)
 end
 
 for TYP in (:AbstractVector,:AbstractMatrix)
-    @eval begin
-        clenshaw(c::$TYP,x::AbstractArray,plan::ClenshawPlan) = reshape(clenshaw(c,vec(x),plan),size(x))
-        clenshaw(c::$TYP,x,plan::ClenshawPlan) = reshape(clenshaw(c,x,plan),size(c,2))
-    end
+    @eval clenshaw(c::$TYP,x::AbstractArray,plan::ClenshawPlan) = reshape(clenshaw(c,vec(x),plan),size(x))
 end
 
 

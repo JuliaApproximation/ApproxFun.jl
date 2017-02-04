@@ -88,20 +88,17 @@ Base.issubset(a::Arc,b::Arc) =
 
 # Algebra
 
-for op in (:*,:.*)
-    @eval begin
-        $op(c::Real,d::Arc) =
-            Arc(c*d.center,c*d.radius,(sign(c)*d.angles[1],sign(c)*d.angles[2]))
-        $op(d::Arc,c::Real) = $op(c,d)
-    end
-end
+*(c::Real,d::Arc) =
+    Arc(c*d.center,c*d.radius,(sign(c)*d.angles[1],sign(c)*d.angles[2]))
+*(d::Arc,c::Real) = $op(c,d)
 
-for op in (:+,:-,:.+,:.-)
+for op in (:+,:-)
     @eval begin
         $op(c::Number,d::Arc) = Arc($op(c,d.center),d.radius,d.angles)
         $op(d::Arc,c::Number) = Arc($op(d.center,c),d.radius,d.angles)
     end
 end
+
 
 # allow exp(im*Segment(0,1)) for constructing arc
 function Base.exp{CMP<:Complex}(d::Segment{CMP})

@@ -562,20 +562,16 @@ function *(f::Fun,A::Operator)
     end
 end
 
-for OP in (:*,:.*)
-    @eval begin
-        function $OP(c::Number,A::Operator)
-            if c==1
-                A
-            elseif c==0
-                ZeroOperator(domainspace(A),rangespace(A))
-            else
-                ConstantTimesOperator(c,A)
-            end
-        end
-        $OP(A::Operator,c::Number) = A*(c*ones(domainspace(A)))
+function *(c::Number,A::Operator)
+    if c==1
+        A
+    elseif c==0
+        ZeroOperator(domainspace(A),rangespace(A))
+    else
+        ConstantTimesOperator(c,A)
     end
 end
+*(A::Operator,c::Number) = A*(c*ones(domainspace(A)))
 
 
 /(B::Operator,c::Number) = (1.0/c)*B

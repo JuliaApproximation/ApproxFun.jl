@@ -39,7 +39,7 @@ conversion_rule{DD}(b::LaurentDirichlet,a::Laurent{DD})=b
 
 differentiate{DD}(f::Fun{LaurentDirichlet{DD}}) = differentiate(Fun(f,Laurent))
 
-for op in (:+,:-,:(.+),:(.-),:(.*))
+for op in (:+,:-,:*)
     @eval begin
         $op{DD}(f::Fun{Laurent{DD}},g::Fun{LaurentDirichlet{DD}}) = $op(f,Fun(g,Laurent))
         $op{DD}(f::Fun{LaurentDirichlet{DD}},g::Fun{Laurent{DD}}) = $op(Fun(f,Laurent),g)

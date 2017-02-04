@@ -133,22 +133,18 @@ end
 
 ## Algebra
 
-for op in (:/,:./)
-    @eval begin
-        function ($op){JW<:JacobiWeight}(c::Number,f::Fun{JW})
-            g=($op)(c,Fun(space(f).space,f.coefficients))
-            Fun(JacobiWeight(-f.space.β,-f.space.α,space(g)),g.coefficients)
-        end
-    end
+function /{JW<:JacobiWeight}(c::Number,f::Fun{JW})
+    g=c/Fun(space(f).space,f.coefficients)
+    Fun(JacobiWeight(-f.space.β,-f.space.α,space(g)),g.coefficients)
 end
 
-function .^{JW<:JacobiWeight}(f::Fun{JW},k::Float64)
+function ^{JW<:JacobiWeight}(f::Fun{JW},k::Float64)
     S=space(f)
     g=Fun(S.space,coefficients(f))^k
     Fun(JacobiWeight(k*S.β,k*S.α,space(g)),coefficients(g))
 end
 
-function .*{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})
+function *{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})
     @assert domainscompatible(f,g)
     fβ,fα=f.space.β,f.space.α
     gβ,gα=g.space.β,g.space.α
@@ -161,7 +157,7 @@ function .*{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})
 end
 
 
-./{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})=f*(1/g)
+/{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})=f*(1/g)
 
 # O(min(m,n)) Ultraspherical conjugated inner product
 

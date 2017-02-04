@@ -133,3 +133,36 @@ end
 
 include("multivariate.jl")
 include("Disk.jl")
+
+
+
+## broadcasting in 0.5
+if VERSION < v"0.6.0-dev"
+    for TYP in (:Circle,:Arc,:PeriodicInterval,:Point,:UnionDomain)
+        for op in (:+,:-,:*)
+            dop = parse("."*string(op))
+            @eval begin
+                $dop(c::Number,d::$TYP) = $op(c,d)
+                $dop(d::$TYP,c::Number) = $op(d,c)
+            end
+        end
+        for op in (:+,:-)
+            dop = parse("."*string(op))
+            @eval begin
+                $dop(a::$TYP,b::$TYP) = $op(a,b)
+            end
+        end
+        for op in (:/,)
+            dop = parse("."*string(op))
+            @eval begin
+                $dop(d::$TYP,c::Number) = $op(d,c)
+            end
+        end
+        for op in (:^,)
+            dop = parse("."*string(op))
+            @eval begin
+                $dop(d::$TYP,c::Number) = broadcast($op,d,c)
+            end
+        end
+    end
+end

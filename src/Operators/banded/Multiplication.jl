@@ -117,7 +117,7 @@ hasfasttransformtimes(f,g)=spacescompatible(f,g) && hasfasttransform(f) && hasfa
 
 
 # This should be overriden whenever the multiplication space is different
-function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
+function *{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     # When the spaces differ we promote and multiply
     if domainscompatible(space(f),space(g))
         m,n = ncoefficients(f),ncoefficients(g)
@@ -131,7 +131,7 @@ function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
         end
     else
         sp=union(space(f),space(g))
-        Fun(f,sp).*Fun(g,sp)
+        Fun(f,sp)*Fun(g,sp)
     end
 end
 

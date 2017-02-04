@@ -976,113 +976,104 @@ Base.minimum(f::Flatten) = mapreduce(minimum,min,f.it)
 
 ## Iterator Algebra
 
+broadcast(op,f::Flatten,c...) = Flatten(map(it->op(it,c...),f.it))
 
-for OP in (:(.+),:(.-),:(.*),:(./))
-    @eval begin
-        $OP(f::Flatten,c::Number) = Flatten(map(it->$OP(it,c),f.it))
-        $OP(c::Number,f::Flatten) = Flatten(map(it->$OP(c,it),f.it))
-    end
-end
-
-for OP in (:(.+),:(.-),:(.*))
-    @eval begin
-        $OP(a::AbstractRepeated,b::AbstractRepeated) = repeated($OP(value(a),value(b)))
-        $OP(a::Number,b::AbstractRepeated) = repeated($OP(a,value(b)))
-        $OP(a::AbstractRepeated,b::Number) = repeated($OP(value(a),b))
-
-        $OP(a::AbstractCount,b::AbstractRepeated) = $OP(a,value(b))
-        $OP(a::AbstractRepeated,b::AbstractCount) = $OP(value(a),b)
-
-        function $OP(a::Flatten,b::AbstractRepeated)
-            @assert isinf(length(a.it[end]))
-            flatten(map(it->$OP(it,value(b)),a.it))
-        end
-        function $OP(a::AbstractRepeated,b::Flatten)
-            @assert isinf(length(b.it[end]))
-            flatten(map(it->$OP(value(a),it),b.it))
-        end
-
-        function $OP(a::Flatten,b::AbstractCount)
-            K=0
-            it=tuple()
-            for k=1:length(a.it)
-                it=(it...,$OP(a.it[k],b[K+1:K+length(a.it[k])]))
-                K+=length(a.it[k])
-            end
-            flatten(it)
-        end
-        function $OP(a::AbstractCount,b::Flatten)
-            K=0
-            it=tuple()
-            for k=1:length(b.it)
-                it=(it...,$OP(a[K+1:K+length(it[k])],b.it[k]))
-                K+=length(b.it[k])
-            end
-            flatten(it)
-        end
-
-        function $OP(a::Take,b::Take)
-            n = length(a)
-            @assert n == length(b)
-            take($OP(a.xs,b.xs),n)
-        end
-
-        function $OP(a::Take,b::Number)
-            n = length(a)
-            take($OP(a.xs,b),n)
-        end
-        function $OP(a::Number,b::Take)
-            n = length(b)
-            take($OP(a,b.xs),n)
+if VERSION < v"0.6.0-dev"
+    for TYP in (:Flatten, :AbstractRepeated), op in (:+,:-,:*,:/)
+        dop = parse("."*string(op))
+        @eval begin
+            $dop(a::$TYP,b::$TYP) = broadcst($op,a,b)
+            $dop(f::$TYP,c::Number) = broadcast($op,f,c)
+            $dop(c::Number,f::$TYP) = broadcast($op,c,f)
         end
     end
 end
 
-for (OP,sOP) in ((:(.+),:+),(:(.-),:-))
+
+broadcast(op,a::AbstractRepeated,b::AbstractRepeated) = repeated(op.(value(a),value(b)))
+broadcast(op,a::AbstractRepeated,b::Number) = repeated(op.(value(a),b))
+broadcast(op,a::Number,b::AbstractRepeated) = repeated(op.(a,value(b)))
+
+broadcast(op,a::AbstractCount,b::AbstractRepeated) = op.(a,value(b))
+broadcast(op,a::AbstractRepeated,b::AbstractCount) = op.(value(a),b)
+
+function broadcast(op,a::Flatten,b::AbstractRepeated)
+    @assert isinf(length(a.it[end]))
+    flatten(map(it->op.(it,value(b)),a.it))
+end
+function broadcast(op,a::AbstractRepeated,b::Flatten)
+    @assert isinf(length(b.it[end]))
+    flatten(map(it->op.(value(a),it),b.it))
+end
+function broadcast(op,a::Flatten,b::AbstractCount)
+    K=0
+    it=tuple()
+    for k=1:length(a.it)
+        it=(it...,op.(a.it[k],b[K+1:K+length(a.it[k])]))
+        K+=length(a.it[k])
+    end
+    flatten(it)
+end
+function broadcast(op,a::AbstractCount,b::Flatten)
+    K=0
+    it=tuple()
+    for k=1:length(b.it)
+        it=(it...,op.(a[K+1:K+length(it[k])],b.it[k]))
+        K+=length(b.it[k])
+    end
+    flatten(it)
+end
+function broadcast(op,a::Take,b::Take)
+    n = length(a)
+    @assert n == length(b)
+    take(op.(a.xs,b.xs),n)
+end
+function broadcast(op,a::Take,b::Number)
+    n = length(a)
+    take(op.(a.xs,b),n)
+end
+function broadcast(op,a::Number,b::Take)
+    n = length(b)
+    take(op.(a,b.xs),n)
+end
+
+typealias InfiniteIterators Union{AbstractRepeated,AbstractCount,Flatten}
+
+for OP in (:+,:-)
     @eval begin
         $OP(a::ZeroRepeated,b::ZeroRepeated) = a
         $OP(a::Number,b::ZeroRepeated) = repeated(a)
-        $OP(a::ZeroRepeated,b::Number) = repeated($sOP(b))
+        $OP(a::ZeroRepeated,b::Number) = repeated($OP(b))
 
         $OP(a::Flatten,b::ZeroRepeated) = a
-        $OP(a::ZeroRepeated,b::Flatten) = $sOP(b)
+        $OP(a::ZeroRepeated,b::Flatten) = $OP(b)
 
         $OP(a::AbstractCount,b::AbstractCount) =
             Count($OP(start(a),start(b)),$OP(step(a),step(b)))
         $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
         $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
 
-        $OP(a::Number,b::AbstractCount) = $sOP(b) .+ a
+        $OP(a::Number,b::AbstractCount) = $OP(b) + a
+
+        broadcast(::typeof($OP),a::InfiniteIterators,b::InfiniteIterators) = $OP(a,b)
+        broadcast(::typeof($OP),a::Number,b::InfiniteIterators) = $OP(a,b)
+        broadcast(::typeof($OP),a::InfiniteIterators,b::Number) = $OP(a,b)
     end
 end
 
-.*(a::ZeroRepeated,b::ZeroRepeated) = a
-.*(a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
-.*(b::AbstractCount,a::Number) = a*b
+broadcast(::typeof(*),a::ZeroRepeated,b::ZeroRepeated) = a
+broadcast(::typeof(*),a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
+broadcast(::typeof(*),b::AbstractCount,a::Number) = a*b
 
 
-for TYP1 in (:AbstractRepeated, :AbstractCount,:Flatten)
-    @eval +(a::$TYP1) = a
-
-    for (OP,BOP) in ((:+,:(.+)),(:-,:(.-)),(:*,:(.*)))
-        @eval begin
-            $OP(a::$TYP1,b::Number) = $BOP(a,b)
-            $OP(a::Number,b::$TYP1) = $BOP(a,b)
-        end
-        for TYP2 in (:AbstractRepeated, :AbstractCount,:Flatten)
-            @eval $OP(a::$TYP1,b::$TYP2) = $BOP(a,b)
-        end
-    end
- end
-
-.+(a::Number,b::UnitCount) = UnitCount(a+b.start)
-.+(a::Number,b::Count) = Count(a+b.start,b.step)
-.-(a::Number,b::UnitCount) = Count(a-b.start,-1)
-.-(a::Number,b::Count) = Count(a-b.start,-b.step)
++(a::Number,b::UnitCount) = UnitCount(a+b.start)
++(a::Number,b::Count) = Count(a+b.start,b.step)
+-(a::Number,b::UnitCount) = Count(a-b.start,-1)
+-(a::Number,b::Count) = Count(a-b.start,-b.step)
 
 
 
-function .+(a::Flatten,b::Flatten)
+function +(a::Flatten,b::Flatten)
     if isempty(a)
         @assert isempty(b)
         a

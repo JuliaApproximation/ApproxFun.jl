@@ -311,7 +311,7 @@ end
 
 ## Algebra
 
-for OP in (:*,:.*,:+,:-)
+for OP in (:*,:+)
     @eval begin
         $OP{T<:Number,AS<:ArraySpace,V}(A::Array{T},f::Fun{AS,V}) = demat($OP(A,mat(f)))
         $OP{T<:Number,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{T}) = demat($OP(mat(f),A))
@@ -325,10 +325,10 @@ for OP in (:*,:.*,:+,:-)
 end
 
 
-for OP in (:*,:.*)
-    @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) =
-        demat($OP(mat(A),mat(f)))
-end
+
+*{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) =
+    demat(mat(A)*mat(f))
+
 
 
 
