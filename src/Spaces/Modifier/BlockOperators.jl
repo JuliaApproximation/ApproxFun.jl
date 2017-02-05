@@ -157,6 +157,7 @@ end
 immutable BlockFunctional{T<:Number,B<:Operator} <: Operator{T}
     cols::Vector{T}
     op::B
+    BlockFunctional(c::Vector{T},op::B) = new(c,op)
 end
 
 @functional BlockFunctional

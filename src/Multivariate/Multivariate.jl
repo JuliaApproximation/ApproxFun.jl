@@ -22,13 +22,9 @@ Base.eltype{T}(::MultivariateFun{T}) = T
 Base.eltype{T,N}(::Type{MultivariateFun{T,N}}) = T
 Base.eltype{MF<:MultivariateFun}(::Type{MF}) = eltype(supertype(MF))
 
-println("VectorFun")
 include("VectorFun.jl")
-println("TensorSpace")
 include("TensorSpace.jl")
-println("LowRankFun")
 include("LowRankFun.jl")
-println("ProductFun")
 include("ProductFun.jl")
 
 

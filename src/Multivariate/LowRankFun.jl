@@ -20,19 +20,14 @@ type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: Bivaria
 end
 
 
-println("x")
 LowRankFun{S,M,SS,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS) = LowRankFun{S,M,SS,T}(A,B,space)
-println("x")
 LowRankFun{S,M,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}}) = LowRankFun(A,B,space(first(A))⊗space(first(B)))
-println("x")
 LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}}) =
     LowRankFun(convert(Vector{Fun{S,promote_type(T,V)}},A),convert(Vector{Fun{M,promote_type(T,V)}},B),space(first(A))⊗space(first(B)))
-println("x")
 Base.rank(f::LowRankFun) = length(f.A)
 Base.size(f::LowRankFun,k::Integer) = k==1?mapreduce(length,max,f.A):mapreduce(length,max,f.B)
 Base.size(f::LowRankFun) = size(f,1),size(f,2)
 
-println("x")
 ## Construction via a Matrix of coefficients
 
 function LowRankFun{S<:Space,M<:Space,T<:Number}(X::Array{T},dx::S,dy::M)
@@ -62,7 +57,6 @@ function LowRankFun{S,T}(X::Vector{Fun{S,T}},dy::Space)
     LowRankFun(M,space(X[1]),dy)
 end
 
-println("x")
 
 ## Adaptive constructor selector
 
@@ -184,7 +178,6 @@ function CholeskyLowRankFun(f::Function,dx::Space;tolerance::Union{Symbol,Tuple{
     return LowRankFun(A,B),maxabsf
 end
 
-println("x")
 
 ## Construction via TensorSpaces and ProductDomains
 
@@ -325,7 +318,6 @@ function vecpoints(f::LowRankFun,k::Integer)
     end
 end
 
-println("x")
 
 evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x,y)=dotu(evaluate(A,x),evaluate(B,y))
 evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector)=evaluate(A,x).'*evaluate(B,y)

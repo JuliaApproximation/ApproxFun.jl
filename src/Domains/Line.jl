@@ -70,9 +70,9 @@ function line_tocanonical(α,β,x)
     @assert α==β==-1. || α==β==-.5
 
     if α==β==-1.
-        2x./(1+sqrt(1+4x.^2))
+        2x/(1+sqrt(1+4x^2))
     elseif α==β==-.5
-        x./sqrt(1 + x.^2)
+        x/sqrt(1 + x^2)
     end
 end
 
@@ -80,32 +80,32 @@ function line_tocanonicalD(α,β,x)
     @assert α==β==-1. || α==β==-.5
 
     if α==β==-1.
-        2./(1+4x.^2+sqrt(1+4x.^2))
-    elseif α==β==-.5
-        (1 + x.^2).^(-3/2)
+        2/(1+4x^2+sqrt(1+4x^2))
+    elseif α==β==-0.5
+        (1 + x^2)^(-3/2)
     end
 end
 function line_fromcanonical(α,β,x)
     #TODO: why is this consistent?
     if α==β==-1.
-        x./(1-x.^2)
+        x/(1-x^2)
     else
-        x.*(1 + x).^α.*(1 - x).^β
+        x*(1 + x)^α*(1 - x)^β
     end
 end
 function line_fromcanonicalD(α,β,x)
     if α==β==-1.
-        (1+x.^2)./(1-x.^2).^2
+        (1+x^2)/(1-x^2)^2
     else
-        (1 - (β-α)x - (β+α+1)x.^2).*(1+x).^(α-1).*(1-x).^(β-1)
+        (1 - (β-α)x - (β+α+1)x^2)*(1+x)^(α-1)*(1-x)^(β-1)
     end
 end
 
 function line_invfromcanonicalD(α,β,x)
     if α==β==-1.
-        (1-x.^2).^2./(1+x.^2)
+        (1-x^2)^2/(1+x^2)
     else
-        1./(1 - (β-α)x - (β+α+1)x.^2).*(1+x).^(1-α).*(1-x).^(1-β)
+        1/(1 - (β-α)x - (β+α+1)x^2)*(1+x)^(1-α)*(1-x)^(1-β)
     end
 end
 

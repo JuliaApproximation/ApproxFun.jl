@@ -95,11 +95,10 @@ end
 #TODO: This is a hack to make sure Fourier maps to Fourier
 # we don't have banded differentiate from CosSpace/SinSpace on a circle
 for OP in (:differentiate,:integrate)
-    @eval begin
-        $OP{T,D<:PeriodicInterval}(f::Fun{Fourier{D},T})=$OP(f[2])⊕$OP(f[1])
-        $OP{T,D<:Circle}(f::Fun{Fourier{D},T})=$OP(Fun(f,Laurent))
-    end
+    @eval $OP{T,D<:Circle}(f::Fun{Fourier{D},T}) = $OP(Fun(f,Laurent))
 end
+
+integrate{T,D<:PeriodicInterval}(f::Fun{Fourier{D},T}) = $OP(f[2])⊕$OP(f[1])
 
 
 

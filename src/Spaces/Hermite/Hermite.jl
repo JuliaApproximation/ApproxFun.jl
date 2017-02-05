@@ -84,7 +84,7 @@ function Derivative(sp::GaussWeight,k::Integer)
     end
 end
 
-weight(H::GaussWeight,x)=exp(-H.L*x.^2)
+weight(H::GaussWeight,x) = exp(-H.L*x^2)
 
 function Base.sum{H<:Hermite,T}(f::Fun{GaussWeight{H,T}})
     @assert space(f).space.L==space(f).L  # only implemented with matching weight

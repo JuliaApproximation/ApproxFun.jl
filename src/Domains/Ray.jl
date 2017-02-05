@@ -76,10 +76,10 @@ for OP in (:mobius,:mobiusinv,:mobiusD,:mobiusinvD)
 end
 
 ray_tocanonical(x)=(x==Inf)?1.:(x-1.)./(1+x)
-ray_tocanonicalD(x)=(x==Inf)?0.:2*(1./(1+x)).^2
+ray_tocanonicalD(x)=(x==Inf)?0.:2*(1./(1+x))^2
 ray_fromcanonical(x)=(1+x)./(1-x)
-ray_fromcanonicalD(x)=2*(1./(x-1.)).^2
-ray_invfromcanonicalD(x)=(x-1.).^2/2
+ray_fromcanonicalD(x)=2*(1./(x-1.))^2
+ray_invfromcanonicalD(x)=(x-1.)^2/2
 
 
 for op in (:ray_tocanonical,:ray_tocanonicalD)

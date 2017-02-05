@@ -55,15 +55,11 @@ include("LinearAlgebra/LinearAlgebra.jl")
 
 include("Fun/Fun.jl")
 
-println("Domains")
+
 include("Domains/Domains.jl")
-#
-println("Multivariate")
 include("Multivariate/Multivariate.jl")
-println("Operators")
 include("Operators/Operator.jl")
 
-println("Spaces")
 include("Spaces/Spaces.jl")
 
 
@@ -71,17 +67,11 @@ include("Spaces/Spaces.jl")
 
 ## Further extra features
 
-println("PDE")
 include("PDE/PDE.jl")
-println("Caching")
 include("Caching/caching.jl")
-println("Extras")
 include("Extras/Extras.jl")
-println("Plot")
 include("Plot/Plot.jl")
-println("docs")
 include("docs.jl")
-println("testing")
 include("testing.jl")
 
 #include("precompile.jl")

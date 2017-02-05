@@ -283,7 +283,7 @@ for op in (:(Base.sin),:(Base.cos))
         Fun(space(f),transform!(space(f),$op(values(pad(f,size(f,1)+20,size(f,2))))))
 end
 
-.^(f::ProductFun,k::Integer) =
+^(f::ProductFun,k::Integer) =
     Fun(space(f),transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k))
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))

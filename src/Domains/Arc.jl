@@ -1,11 +1,11 @@
 export Arc
 
-mobius(a,b,c,d,z) = (a*z+b)./(c*z+d)
-mobius(a,b,c,d,z::Number) = isinf(z)?a/c:(a*z+b)./(c*z+d)
+mobius(a,b,c,d,z) = (a*z+b)/(c*z+d)
+mobius(a,b,c,d,z::Number) = isinf(z)?a/c:(a*z+b)/(c*z+d)
 mobiusinv(a,b,c,d,z) = mobius(d,-b,-c,a,z)
 
 
-mobiusD(a,b,c,d,z) = (a*d-b*c)./(d+c*z).^2
+mobiusD(a,b,c,d,z) = (a*d-b*c)/(d+c*z)^2
 mobiusinvD(a,b,c,d,z) = mobiusD(d,-b,-c,a,z)
 doc"""
     Arc(c,r,(θ₁,θ₂))
