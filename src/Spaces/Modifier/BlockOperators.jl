@@ -58,7 +58,7 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
 
 
     T=mapreduce(eltype,promote_type,M)
-    colsv=Array(Vector{T},length(M))
+    colsv=Vector{Vector{T}}(length(M))
     for k=1:length(M)
         if isa(M[k],Multiplication)
             ds=domainspace(M[k])

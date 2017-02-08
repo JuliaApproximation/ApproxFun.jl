@@ -25,7 +25,7 @@ BandedBlockBandedMatrix(data::Matrix,l,u,λ,μ,rows,cols) =
     BandedBlockBandedMatrix{eltype(data),typeof(rows),typeof(cols)}(data,l,u,λ,μ,rows,cols)
 
 BandedBlockBandedMatrix{T}(::Type{T},l,u,λ,μ,rows,cols) =
-    BandedBlockBandedMatrix(Array(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
+    BandedBlockBandedMatrix(Matrix{T}(λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
 
 for FUNC in (:zeros,:rand,:ones)
     BFUNC = parse("bbb"*string(FUNC))
@@ -249,7 +249,7 @@ end
 
 *{T,U,V}(A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) = BandedMatrices.banded_A_mul_B(A,b)
 *{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) =
-    BandedMatrices.banded_A_mul_B!(Array(T,size(A,1)),A,b)
+    BandedMatrices.banded_A_mul_B!(Vector{T}(size(A,1)),A,b)
 
 
 Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::AbstractVector) =

@@ -295,7 +295,7 @@ blocklengthrange(rt,B::Block) = [blocklength(rt,B)]
 blocklengthrange(rt,B::Range{Block}) = blocklength(rt,B)
 function blocklengthrange(rt,kr)
     KR=block(rt,first(kr)):block(rt,last(kr))
-    Klengths=Array(Int,length(KR))
+    Klengths=Vector{Int}(length(KR))
     for ν in eachindex(KR)
         Klengths[ν]=blocklength(rt,KR[ν])
     end

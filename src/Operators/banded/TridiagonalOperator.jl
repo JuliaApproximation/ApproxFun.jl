@@ -20,7 +20,7 @@ T[J.β(k) for k=1:n-1])
 
 
 function symmetrize{T}(J::TridiagonalOperator{T},n::Integer)
-    d=Array(T,n)
+    d=Vector{T}(n)
     d[1]=1
     for k=2:n
         d[k]=sqrt(J[k,k-1]/J[k-1,k])*d[k-1]

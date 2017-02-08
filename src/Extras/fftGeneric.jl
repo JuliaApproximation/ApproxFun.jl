@@ -144,7 +144,7 @@ for SP in (:Fourier,:SinSpace), (pl,TransPlan) in ((:plan_transform,:TransformPl
                                                     (:plan_itransform,:ITransformPlan))
     @eval begin
         $pl{T<:Complex{BigFloat},D}(sp::$SP{D},x::Vector{T}) =
-                $TransPlan(sp,$pl(sp,Array(T,length(x))),Val{false})
+                $TransPlan(sp,$pl(sp,Array{T}(length(x))),Val{false})
         *{T<:Complex{BigFloat},D}(P::$TransPlan{T,$SP{D},false},x::Vector{T}) =
             complex(P.plan*real(x),P.plan*imag(x))
     end

@@ -36,7 +36,7 @@ resizedata!{T<:Number}(B::CachedOperator{T,BandedMatrix{T}},n::Integer,m::Intege
 
 function QROperator{T}(R::CachedOperator{T,BandedMatrix{T}})
     M = R.data.l+1   # number of diag+subdiagonal bands
-    H = Array(T,M,100)
+    H = Array{T}(M,100)
     QROperator(R,H,0)
 end
 

@@ -5,7 +5,7 @@
 
 function coefficientmatrix{N,F}(::Type{N},f::Vector{F},o...)
     if isempty(f)
-        return Array(N,0,0)
+        return Matrix{N}(0,0)
     end
 
     n=mapreduce(ncoefficients,max,f)
@@ -84,7 +84,7 @@ end
      @eval begin
          function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,V}})
              cfs=$op(A,coefficientmatrix(p).')
-             ret = Array(Fun{D,promote_type(T,V)},size(cfs,1))
+             ret = Vector{Fun{D,promote_type(T,V)}}(size(cfs,1))
              for i = 1:size(cfs,1)
                  ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
              end

@@ -1,5 +1,5 @@
 CachedOperator(::Type{Matrix},op::Operator;padding::Bool=false) =
-    CachedOperator(op,Array(eltype(op),0,0),padding)
+    CachedOperator(op,Array{eltype(op)}(0,0),padding)
 
 
 # Grow cached operator

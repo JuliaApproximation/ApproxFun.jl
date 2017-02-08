@@ -423,12 +423,12 @@ interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
 
 function interlace(v::Union{Tuple,Vector{Any}},sp::DirectSumSpace)
     if all(vk->isa(vk,Fun),v)
-        V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
+        V=Vector{Vector{mapreduce(eltype,promote_type,v)}}(length(v))
         for k=1:length(v)
             V[k]=coefficients(v[k])
         end
     else
-        V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
+        V=Vector{Vector{mapreduce(eltype,promote_type,v)}}(length(v))
         for k=1:length(v)
             V[k]=v[k]
         end
@@ -488,13 +488,13 @@ function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::Vector{T})
     k=div(n,K)
     PT=coefficient_type(S,eltype(vals))
     if k==0
-        M=Array(Vector{PT},n)
+        M=Vector{Vector{PT}}(n)
         for j=1:n
             M[j]=transform(S[j],[vals[j]])
         end
     else
         r=n-K*k
-        M=Array(Vector{PT},K)
+        M=Vector{Vector{PT}}(K)
 
         for j=1:r
             M[j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])

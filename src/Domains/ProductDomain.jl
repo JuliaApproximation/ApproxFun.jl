@@ -68,7 +68,7 @@ end
 
 function checkpoints(d::ProductDomain)
     pts=map(checkpoints,d.domains)
-    ret=Array(Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)},0)
+    ret=Vector{Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)}}(0)
 
     pushappendpts!(ret,(),pts)
     ret
@@ -77,12 +77,12 @@ end
 function points(d::ProductDomain,n::Tuple)
     @assert length(d.domains) == length(n)
     pts=map(points,d.domains,n)
-    ret=Array(Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)},0)
+    ret=Vector{Vec{length(d.domains),mapreduce(eltype,promote_type,d.domains)}}(0)
     pushappendpts!(ret,Vec(x),pts)
     ret
 end
 
-Base.reverse(d::ProductDomain)=ProductDomain(map(reverse,d.domains))
+Base.reverse(d::ProductDomain) = ProductDomain(map(reverse,d.domains))
 
 domainscompatible(a::ProductDomain,b::ProductDomain) =
                         length(a.domains)==length(b.domains) &&

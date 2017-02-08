@@ -61,7 +61,7 @@ function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Ran
     if x
         ret = ones(T,n)
     else
-        ret = Array(T,n)
+        ret = Vector{T}(n)
         k1=1-first(k)
         @simd for j=k
             @inbounds ret[j+k1]=(-1)^(p+1)*(-one(T))^j

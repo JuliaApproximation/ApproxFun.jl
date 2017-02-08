@@ -233,7 +233,7 @@ immutable TimesOperator{T,BI} <: Operator{T}
         end
 
         if hastimes
-            newops=Array(Operator{T},0)
+            newops=Vector{Operator{T}}(0)
             for op in ops
                if isa(op,TimesOperator)
                     for op2 in op.ops
@@ -292,7 +292,7 @@ end
 
 
 function promotetimes{B<:Operator}(opsin::Vector{B},dsp)
-    ops=Array(Operator{mapreduce(eltype,promote_type,opsin)},0)
+    ops=Vector{Operator{mapreduce(eltype,promote_type,opsin)}}(0)
 
     for k=length(opsin):-1:1
         if !isa(opsin[k],Conversion)
@@ -393,8 +393,7 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        krlin = Array(Union{Int,Infinity{Bool}},
-                    length(P.ops),2)
+        krlin = Matrix{Union{Int,Infinity{Bool}}}(length(P.ops),2)
 
         krlin[1,1],krlin[1,2]=kr[1],kr[end]
         for m=1:length(P.ops)-1
@@ -452,8 +451,7 @@ for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        KRlin = Array(Union{Block,Infinity{Bool}},
-                    length(P.ops),2)
+        KRlin = Matrix{Union{Block,Infinity{Bool}}}(length(P.ops),2)
 
         KRlin[1,1],KRlin[1,2]=KR[1],KR[end]
         for m=1:length(P.ops)-1

@@ -136,7 +136,7 @@ Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
 
 function Base.vcat(vin::Fun...)
     #  remove tuple spaces
-    v=Array(Fun,0)
+    v=Vector{Fun}(0)
     for f in vin
         if isa(space(f),VectorSpace)
             push!(v,vec(f)...)
@@ -174,7 +174,7 @@ demat(v::Vector{Any}) = devec(v)
 function demat{S,T,V,DD,d}(A::Array{Fun{VectorSpace{S,T,DD,d},V},2})
     @assert size(A,1)==1
 
-    M=Array(Fun{S,V},length(space(A[1])),size(A,2))
+    M=Matrix{Fun{S,V}}(length(space(A[1])),size(A,2))
     for k=1:size(A,2)
         M[:,k]=vec(A[k])
     end

@@ -191,7 +191,7 @@ end
 
 function pad{T}(f::Vector{T},n::Integer)
 	if n > length(f)
-	   ret=Array(T,n)
+	   ret=Vector{T}(n)
 	   ret[1:length(f)]=f
 	   for j=length(f)+1:n
 	       ret[j]=zero(T)
@@ -220,9 +220,9 @@ function pad(A::Matrix,n::Integer,m::Integer)
 	if n <= size(A,1) && m <= size(A,2)
         A[1:n,1:m]
 	elseif n==0 || m==0
-	   Array(T,n,m)  #fixes weird julia bug when T==None
+	   Matrix{T}(n,m)  #fixes weird julia bug when T==None
     else
-        ret = Array(T,n,m)
+        ret = Matrix{T}(n,m)
         minn=min(n,size(A,1))
         minm=min(m,size(A,2))
         for k=1:minn,j=1:minm
@@ -307,7 +307,7 @@ function interlace(v::Union{Vector{Any},Tuple})
             T=Complex{Float64}
         end
     end
-    b=Array(Vector{T},length(v))
+    b=Vector{Vector{T}}(length(v))
     for k=1:length(v)
         b[k]=v[k]
     end
@@ -336,12 +336,12 @@ function interlace(a::Vector,b::Vector)
     na=length(a);nb=length(b)
     T=promote_type(eltype(a),eltype(b))
     if nb≥na
-        ret=Array(T,2nb)
+        ret=Vector{T}(2nb)
         ret[1:2:1+2*(na-1)]=a
         ret[2:2:end]=b
         ret
     else
-        ret=Array(T,2na-1)
+        ret=Vector{T}(2na-1)
         ret[1:2:end]=a
         if !isempty(b)
             ret[2:2:2+2*(nb-1)]=b
@@ -1105,7 +1105,7 @@ Base.cumsum(r::AbstractCount) = CumSumIterator(r)
 
 function Base.cumsum(f::Flatten)
     cs=zero(eltype(f))
-    its = Array(eltype(f.it),0)
+    its = Vector{eltype(f.it)}(0)
     for it in f.it[1:end-1]
         c=cumsum(cs+it)
         push!(its,c)

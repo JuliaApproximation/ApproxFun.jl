@@ -29,7 +29,7 @@ RaggedMatrix(dat::Vector,cols::Vector{Int},m::Int) =
     RaggedMatrix{eltype(dat)}(dat,cols,m)
 
 RaggedMatrix{T}(::Type{T},m::Int,colns::AbstractVector{Int}) =
-    RaggedMatrix(Array(T,sum(colns)),Int[1;1+cumsum(colns)],m)
+    RaggedMatrix(Vector{T}(sum(colns)),Int[1;1+cumsum(colns)],m)
 
 RaggedMatrix(m::Int,collengths::AbstractVector{Int}) = RaggedMatrix(Float64,m,collengths)
 
@@ -94,7 +94,7 @@ function Base.convert(::Type{RaggedMatrix},B::AbstractMatrix)
     ret
 end
 
-Base.similar{T}(B::RaggedMatrix,::Type{T}) = RaggedMatrix(Array(T,length(B.data)),copy(B.cols),B.m)
+Base.similar{T}(B::RaggedMatrix,::Type{T}) = RaggedMatrix(Vector{T}(length(B.data)),copy(B.cols),B.m)
 
 for (op,bop) in ((:(Base.rand),:rrand),(:(Base.zeros),:rzeros),(:(Base.ones),:rones))
     @eval begin

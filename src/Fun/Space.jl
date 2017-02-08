@@ -508,7 +508,7 @@ itransform(S::Space,cfs) = plan_itransform(S,cfs)*cfs
 for OP in (:plan_transform,:plan_itransform,:plan_transform!,:plan_itransform!)
     # plan transform expects a vector
     # this passes an empty Float64 array
-    @eval $OP(S::Space,n::Integer) = $OP(S,Array(Float64,n))
+    @eval $OP(S::Space,n::Integer) = $OP(S,Vector{Float64}(n))
 end
 
 ## sorting
