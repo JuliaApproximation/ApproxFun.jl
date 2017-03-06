@@ -239,3 +239,10 @@ D=Derivative(S)
 u=[ldirichlet();D^2-x]\[airyai(0.0);0.0]
 @test_approx_eq u(1.0) airyai(1.0)
 #
+
+
+
+## Test vector valued case
+
+f=Fun((x,y)->real(exp(x+im*y)),Legendre(Vec(0.,0)..Vec(1.,1.)))
+@test f(0.1,0.1) ≈ real(exp(0.1+0.1im))
