@@ -1,4 +1,4 @@
-using ApproxFun, Base.Test
+using ApproxFun, Base.Test, FixedSizeArrays
     import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms
 
 
