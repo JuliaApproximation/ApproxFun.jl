@@ -468,7 +468,7 @@ function Base.indices(S::Union{SubBandedBlockSubBlock,SubBandedBlockRange})
       Base.OneTo(Int(parent(S).cols[parentindexes(S)[2].K])))
 Base.indices{T,BB<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BB,Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}) =
   (Base.OneTo(length(parentindexes(S)[1].sub)::Int),
-   Base.OneTo(length(parentindexes(S)[2].sub))::Int)
+   Base.OneTo(length(parentindexes(S)[2].sub)::Int))
 
 
 parentblock(S) = view(parent(S),block(parentindexes(S)[1]),block(parentindexes(S)[2]))
