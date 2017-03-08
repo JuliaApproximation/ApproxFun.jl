@@ -43,6 +43,9 @@ function SubOperator(A,inds,dims,lu)
                 typeof(dims),typeof(lu)}(A,inds,dims,lu)
 end
 
+# work around strange bug with bool size
+SubOperator(A,inds,dims::Tuple{Bool,Bool},lu) = SubOperator(A,inds,Int.(dims),lu)
+
 function SubOperator(A,inds::Tuple{Block,Block},lu)
     checkbounds(A,inds...)
     SubOperator(A,inds,(blocklengths(rangespace(A))[inds[1].K],blocklengths(domainspace(A))[inds[2].K]),lu)
