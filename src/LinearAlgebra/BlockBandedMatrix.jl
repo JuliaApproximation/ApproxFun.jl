@@ -441,16 +441,16 @@ typealias StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BlockBa
 isblockbanded(::SubBandedBlockRange) = true
 isblockbanded{T,BBM<:AbstractBlockBandedMatrix}(::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false}) = true
 
-subblocksize(A::AbstractBlockBandedMatrix,K::Block,J::Block) =
+subblocksize(A::AbstractBlockBandedMatrix,K::Block,J::Block)::Tuple{Int,Int} =
     (A.rows[K.K],A.cols[J.K])
-subblocksize(A::AbstractBlockBandedMatrix,K::Block,J::SubBlock) =
+subblocksize(A::AbstractBlockBandedMatrix,K::Block,J::SubBlock)::Tuple{Int,Int} =
     (A.rows[K.K],length(J.sub))
-subblocksize(A::AbstractBlockBandedMatrix,K::SubBlock,J::Block) =
+subblocksize(A::AbstractBlockBandedMatrix,K::SubBlock,J::Block)::Tuple{Int,Int} =
     (length(K.sub),A.cols[J.K])
-subblocksize(A::AbstractBlockBandedMatrix,K::SubBlock,J::SubBlock) =
+subblocksize(A::AbstractBlockBandedMatrix,K::SubBlock,J::SubBlock)::Tuple{Int,Int} =
     (length(K.sub),length(J.sub))
 
-subblocksize(A::AbstractBlockBandedMatrix,K::UnitRange{Block},J::UnitRange{Block}) =
+subblocksize(A::AbstractBlockBandedMatrix,K::UnitRange{Block},J::UnitRange{Block})::Tuple{Int,Int} =
     (sum(A.rows[Int.(K)]),sum(A.cols[Int.(J)]))
 
 rowblocklengths(A::SubBandedBlockRange) = parent(A).rows[parentindexes(A)[1]]
@@ -459,16 +459,16 @@ colblocklengths(A::SubBandedBlockRange) = parent(A).cols[parentindexes(A)[2]]
 
  ## Indices
 function Base.indices(S::Union{SubBandedBlockSubBlock,SubBandedBlockRange})
-    sz = subblocksize(parent(S),parentindexes(S)...)
+    sz = subblocksize(parent(S),parentindexes(S)...)::Tuple{Int,Int}
     (Base.OneTo(sz[1]),
      Base.OneTo(sz[2]))
  end
  Base.indices{T,BB<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BB,Tuple{Block,Block},false}) =
-     (Base.OneTo(parent(S).rows[parentindexes(S)[1].K]),
-      Base.OneTo(parent(S).cols[parentindexes(S)[2].K]))
+     (Base.OneTo(Int(parent(S).rows[parentindexes(S)[1].K])),
+      Base.OneTo(Int(parent(S).cols[parentindexes(S)[2].K])))
 Base.indices{T,BB<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BB,Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}) =
-  (Base.OneTo(length(parentindexes(S)[1].sub)),
-   Base.OneTo(length(parentindexes(S)[2].sub)))
+  (Base.OneTo(length(parentindexes(S)[1].sub)::Int),
+   Base.OneTo(length(parentindexes(S)[2].sub)::Int))
 
 
 parentblock(S) = view(parent(S),block(parentindexes(S)[1]),block(parentindexes(S)[2]))

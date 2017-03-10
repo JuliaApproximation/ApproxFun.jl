@@ -1,5 +1,5 @@
 
-points(S::Jacobi,n) = fromcanonical(S,gaussjacobi(n,S.a,S.b)[1])
+points(S::Jacobi,n) = fromcanonical.(S,gaussjacobi(n,S.a,S.b)[1])
 
 immutable JacobiTransformPlan{DD,T,TT}
     space::Jacobi{TT,DD}
