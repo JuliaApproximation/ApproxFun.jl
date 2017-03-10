@@ -46,6 +46,7 @@ macro calculus_operator(Op)
         $DefaultOp(sp) = $Op(sp,1)
         $DefaultOp() = $Op(UnsetSpace())
         $DefaultOp(k::Number) = $Op(UnsetSpace(),k)
+        $DefaultOp(k::Vector) = $Op(UnsetSpace(),k)
 
         $Op(x...) = $DefaultOp(x...)
         $ConcOp(S::Space) = $ConcOp(S,1)
