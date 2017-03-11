@@ -16,7 +16,7 @@ immutable Arc{T,V<:Real,TT} <: IntervalDomain{TT}
     center::T
     radius::V
     angles::Tuple{V,V}
-    Arc(c,r,a) = new(T(c),V(r),Tuple{V,V}(a))
+    (::Type{Arc{T,V,TT}}){T,V,TT}(c,r,a) = new{T,V,TT}(T(c),V(r),Tuple{V,V}(a))
 end
 
 

@@ -101,7 +101,7 @@ function blocklookup(rows)
 end
 
 # AbstractBlockMatrix`
-abstract AbstractBlockMatrix{T} <: AbstractMatrix{T}
+@compat abstract type AbstractBlockMatrix{T} <: AbstractMatrix{T} end
 
 
 rowblocklengths(A::AbstractBlockMatrix) = A.rows
@@ -242,7 +242,7 @@ function blockcols{T,BBM<:AbstractBlockMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRan
     max(1,br[1]):min(length(jr),br[end])
 end
 
-typealias AllBlockMatrix{T,BBM<:AbstractBlockMatrix,II<:Union{UnitRange{Int},UnitRange{Block}},JJ<:Union{UnitRange{Int},UnitRange{Block}}}
+const AllBlockMatrix{T,BBM<:AbstractBlockMatrix,II<:Union{UnitRange{Int},UnitRange{Block}},JJ<:Union{UnitRange{Int},UnitRange{Block}}} =
     Union{AbstractBlockMatrix,SubArray{T,2,BBM,Tuple{II,JJ}}}
 
 function Base.BLAS.axpy!(α,A::AllBlockMatrix,Y::AbstractMatrix)
@@ -268,7 +268,7 @@ Base.BLAS.axpy!(α,A::AllBlockMatrix,Y::AllBlockMatrix) = block_axpy!(α,A,Y)
 
 ## AbstractBlockBandedMatrix
 
-abstract AbstractBlockBandedMatrix{T} <: AbstractBlockMatrix{T}
+@compat abstract type AbstractBlockBandedMatrix{T} <: AbstractBlockMatrix{T} end
 
 isblockbanded(::) = false
 isblockbanded(::AbstractBlockBandedMatrix) = true
@@ -341,8 +341,8 @@ function Base.setindex!(A::AbstractBlockBandedMatrix,v,k::Int,j::Int)
     end
 end
 
-Base.linearindexing{BBBM<:AbstractBlockMatrix}(::Type{BBBM}) =
-    Base.LinearSlow()
+@compat Base.IndexStyle{BBBM<:AbstractBlockMatrix}(::Type{BBBM}) =
+    IndexCartesian()
 
 
 
@@ -388,8 +388,8 @@ type BlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T}
 
     blockstart::BandedMatrix{Int}  # gives shift of first entry of data for each block
 
-    function BlockBandedMatrix(data::Vector{T},l,u,rows,cols)
-        new(data,l,u,rows,cols,blocklookup(rows),blocklookup(cols),bbm_blockstarts(rows,cols,l,u))
+    function (::Type{BlockBandedMatrix{T,RI,CI}}){T,RI,CI}(data::Vector{T},l,u,rows,cols)
+        new{T,RI,CI}(data,l,u,rows,cols,blocklookup(rows),blocklookup(cols),bbm_blockstarts(rows,cols,l,u))
     end
 end
 
@@ -433,9 +433,9 @@ zeroblock(X::BlockBandedMatrix,K::Block,J::Block) = zeros(eltype(X),X.rows[K.K],
 
 ## View
 
-typealias SubBandedBlockSubBlock{T,BBM<:BlockBandedMatrix,II<:Union{Block,SubBlock},JJ<:Union{Block,SubBlock}} SubArray{T,2,BBM,Tuple{II,JJ},false}
-typealias SubBandedBlockRange{T,BBM<:BlockBandedMatrix} SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
-typealias StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BlockBandedMatrix},I<:Tuple{Vararg{Union{Base.RangeIndex, Base.AbstractCartesianIndex, Block,SubBlock}}}}  Union{DenseArray{T,2}, SubArray{T,2,A,I}, Base.StridedReshapedArray{T,2}}
+const SubBandedBlockSubBlock{T,BBM<:BlockBandedMatrix,II<:Union{Block,SubBlock},JJ<:Union{Block,SubBlock}} = SubArray{T,2,BBM,Tuple{II,JJ},false}
+const SubBandedBlockRange{T,BBM<:BlockBandedMatrix} = SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
+const StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BlockBandedMatrix},I<:Tuple{Vararg{Union{Base.RangeIndex,Base.AbstractCartesianIndex,Block,SubBlock}}}} = Union{DenseArray{T,2}, SubArray{T,2,A,I}, Base.StridedReshapedArray{T,2}}
 
 
 isblockbanded(::SubBandedBlockRange) = true

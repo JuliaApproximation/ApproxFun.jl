@@ -11,11 +11,11 @@ type LowRankMatrix{T} <: AbstractMatrix{T}
     U::Matrix{T} # m x r Matrix
     V::Matrix{T} # n x r Matrix
 
-    function LowRankMatrix(U::Matrix{T},V::Matrix{T})
+    function (::Type{LowRankMatrix{T}}){T}(U::Matrix{T},V::Matrix{T})
         m,r = size(U)
         n,rv = size(V)
         @assert r == rv
-        new(U,V)
+        new{T}(U,V)
     end
 end
 

@@ -2,10 +2,10 @@
 # but overrided BandedMatrix directly is likely to be faster
 
 
-abstract TridiagonalOperator{T} <: Operator{T}
-abstract SymTridiagonalOperator{T} <: TridiagonalOperator{T}
-abstract BidiagonalOperator{T} <: TridiagonalOperator{T}
-abstract DiagonalOperator{T} <: BidiagonalOperator{T}
+abstract type TridiagonalOperator{T} <: Operator{T} end
+abstract type SymTridiagonalOperator{T} <: TridiagonalOperator{T} end
+abstract type BidiagonalOperator{T} <: TridiagonalOperator{T} end
+abstract type DiagonalOperator{T} <: BidiagonalOperator{T} end
 # override getindex
 
 bandinds(::TridiagonalOperator)=-1,1

@@ -1,12 +1,12 @@
 export AbstractLowRankOperator, LowRankOperator
 
-abstract AbstractLowRankOperator{T} <: Operator{T}
+abstract type AbstractLowRankOperator{T} <: Operator{T} end
 
 immutable LowRankOperator{S<:Space,T} <: AbstractLowRankOperator{T}
     U::Vector{Fun{S,T}}
     V::Vector{Operator{T}}
 
-    function LowRankOperator(U::Vector{Fun{S,T}},V::Vector{Operator{T}})
+    function (::Type{LowRankOperator{S,T}}){S,T}(U::Vector{Fun{S,T}},V::Vector{Operator{T}})
         @assert all(isafunctional,V)
 
         @assert length(U) == length(V)
@@ -19,7 +19,7 @@ immutable LowRankOperator{S<:Space,T} <: AbstractLowRankOperator{T}
         for k=2:length(U)
             @assert space(U[k])==rs
         end
-        new(U,V)
+        new{S,T}(U,V)
     end
 end
 

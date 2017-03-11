@@ -23,12 +23,12 @@ immutable Line{angle,T<:Number} <: IntervalDomain{T}
     β::Float64
 
     #TODO get this inner constructor working again.
-    Line(c,α,β)=new(c,α,β)
-    Line(c)=new(c,-1.,-1.)
-    Line()=new(zero(T),-1.,-1.)
+    (::Type{Line{angle,T}}){angle,T}(c,α,β) = new{angle,T}(c,α,β)
+    (::Type{Line{angle,T}}){angle,T}(c) = new{angle,T}(c,-1.,-1.)
+    (::Type{Line{angle,T}}){angle,T}() = new{angle,T}(zero(T),-1.,-1.)
 end
 
-typealias RealLine{T} Union{Line{false,T},Line{true,T}}
+const RealLine{T} = Union{Line{false,T},Line{true,T}}
 
 (::Type{Line{a}}){a}(c,α,β) = Line{a,typeof(c)}(c,α,β)
 (::Type{Line{a}}){a}(c::Number) = Line{a,typeof(c)}(c)
@@ -163,10 +163,10 @@ end
 immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     center::T
     L::Float64
-    PeriodicLine(c,L) = new(c,L)
-    PeriodicLine(c) = new(c,1.)
-    PeriodicLine(d::PeriodicLine) = new(d.center,d.L)
-    PeriodicLine() = new(0.,1.)
+    (::Type{PeriodicLine{angle,T}}){angle,T}(c,L) = new{angle,T}(c,L)
+    (::Type{PeriodicLine{angle,T}}){angle,T}(c) = new{angle,T}(c,1.)
+    (::Type{PeriodicLine{angle,T}}){angle,T}(d::PeriodicLine) = new{angle,T}(d.center,d.L)
+    (::Type{PeriodicLine{angle,T}}){angle,T}() = new{angle,T}(0.,1.)
 end
 
 Base.convert{a}(::Type{PeriodicLine{a}},c,L) = PeriodicLine{a,typeof(c)}(c,L)

@@ -12,8 +12,8 @@ can be easily resolved.
 """
 immutable Chebyshev{D<:Domain} <: PolynomialSpace{D}
     domain::D
-    Chebyshev(d) = new(d)
-    Chebyshev() = new(Segment())
+    (::Type{Chebyshev{D}}){D}(d) = new{D}(d)
+    (::Type{Chebyshev{D}}){D}() = new{D}(Segment())
 end
 
 Chebyshev() = Chebyshev{Segment{Float64}}()

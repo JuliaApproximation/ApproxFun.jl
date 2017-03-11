@@ -6,7 +6,7 @@ export ldiffbc,rdiffbc,diffbcs
 export domainspace,rangespace
 
 
-abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
+abstract type Operator{T} end #T is the entry type, Float64 or Complex{Float64}
 
 Base.eltype{T}(::Operator{T}) = T
 Base.eltype{T}(::Type{Operator{T}}) = T
@@ -609,7 +609,7 @@ Base.promote_rule{BO1<:Operator,BO2<:Operator}(::Type{BO1},::Type{BO2}) =
 ## Wrapper
 
 #TODO: Should cases that modify be included?
-typealias WrapperOperator Union{SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
+const WrapperOperator = Union{SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
                                     ConversionWrapper,ConstantTimesOperator,TransposeOperator}
 
 

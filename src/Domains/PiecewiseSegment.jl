@@ -1,6 +1,6 @@
 immutable PiecewiseSegment{T} <: UnivariateDomain{T}
     points::Vector{T}
-    PiecewiseSegment(d::Vector{T})=new(d)
+    (::Type{PiecewiseSegment{T}}){T}(d::Vector{T}) = new{T}(d)
 end
 PiecewiseSegment(d::AbstractVector) = PiecewiseSegment{eltype(d)}(collect(d))
 PiecewiseSegment(d...) = PiecewiseSegment([d...])

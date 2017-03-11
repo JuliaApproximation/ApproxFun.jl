@@ -1,6 +1,6 @@
 export DefiniteIntegral,DefiniteLineIntegral
 
-abstract CalculusFunctional{S,T} <: Operator{T}
+abstract type CalculusFunctional{S,T} <: Operator{T} end
 
 @functional CalculusFunctional
 
@@ -10,7 +10,7 @@ macro calculus_functional(Op)
     ConcOp=parse("Concrete"*string(Op))
     WrappOp=parse(string(Op)*"Wrapper")
     return esc(quote
-        abstract $Op{SSS,TTT} <: CalculusFunctional{SSS,TTT}
+        abstract type $Op{SSS,TTT} <: CalculusFunctional{SSS,TTT} end
         immutable $ConcOp{S,T} <: $Op{S,T}
             domainspace::S
         end

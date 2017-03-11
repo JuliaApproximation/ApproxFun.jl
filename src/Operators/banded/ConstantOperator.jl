@@ -3,8 +3,8 @@ export ConstantOperator, IdentityOperator, BasisFunctional
 immutable ConstantOperator{T,DS} <: Operator{T}
     λ::T
     space::DS
-    ConstantOperator(c::Number,sp::DS) = new(convert(T,c),sp)
-    ConstantOperator(L::UniformScaling,sp::DS) = new(convert(T,L.λ),sp)
+    (::Type{ConstantOperator{T,DS}}){T,DS}(c::Number,sp::DS) = new{T,DS}(convert(T,c),sp)
+    (::Type{ConstantOperator{T,DS}}){T,DS}(L::UniformScaling,sp::DS) = new{T,DS}(convert(T,L.λ),sp)
 end
 
 

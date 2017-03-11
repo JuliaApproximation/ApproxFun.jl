@@ -7,10 +7,10 @@ immutable BlockOperator{O,T} <: Operator{T}
     mat21::Matrix{T}
     op::O
 
-    function BlockOperator(mat11::Matrix{T},mat12::Matrix{T},mat21::Matrix{T},op::O)
+    function (::Type{BlockOperator{O,T}}){O,T}(mat11::Matrix{T},mat12::Matrix{T},mat21::Matrix{T},op::O)
         @assert size(mat11,1)==size(mat12,1)
         @assert size(mat11,2)==size(mat21,2)
-        new(mat11,mat12,mat21,op)
+        new{O,T}(mat11,mat12,mat21,op)
     end
 end
 
@@ -157,7 +157,7 @@ end
 immutable BlockFunctional{T<:Number,B<:Operator} <: Operator{T}
     cols::Vector{T}
     op::B
-    BlockFunctional(c::Vector{T},op::B) = new(c,op)
+    (::Type{BlockFunctional{T,B}}){T,B}(c::Vector{T},op::B) = new{T,B}(c,op)
 end
 
 @functional BlockFunctional

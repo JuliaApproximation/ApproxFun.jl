@@ -15,8 +15,8 @@ are real and `a < b`, then this is is equivalent to an `Interval(a,b)`.
 immutable Segment{T} <: IntervalDomain{T}
 	a::T
 	b::T
-	Segment() = new(-one(T),one(T))
-	Segment(a,b) = new(a,b)
+	(::Type{Segment{T}}){T}() = new{T}(-one(T),one(T))
+	(::Type{Segment{T}}){T}(a,b) = new{T}(a,b)
 end
 
 

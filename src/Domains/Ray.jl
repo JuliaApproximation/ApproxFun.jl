@@ -18,13 +18,13 @@ infinity (`o = true`) or back from infinity (`o = false`).
 immutable Ray{angle,T<:Number} <: IntervalDomain{T}
     center::T
     orientation::Bool
-    Ray(c,o) = new(c,o)
-    Ray(c) = new(c,true)
-    Ray() = new(zero(T),true)
-    Ray(r::Ray{angle,T}) = r
+    (::Type{Ray{angle,T}}){angle,T}(c,o) = new{angle,T}(c,o)
+    (::Type{Ray{angle,T}}){angle,T}(c) = new{angle,T}(c,true)
+    (::Type{Ray{angle,T}}){angle,T}() = new{angle,T}(zero(T),true)
+    (::Type{Ray{angle,T}}){angle,T}(r::Ray{angle,T}) = r
 end
 
-typealias RealRay{T} Union{Ray{false,T},Ray{true,T}}
+const RealRay{T} = Union{Ray{false,T},Ray{true,T}}
 
 (::Type{Ray{a}}){a}(c,o) = Ray{a,typeof(c)}(c,o)
 (::Type{Ray{a}}){a}(c::Number) = Ray{a,typeof(c)}(c)

@@ -2,7 +2,7 @@
 export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
-abstract AbstractProductSpace{SV,T,DD,d} <: Space{T,DD,d}
+abstract type AbstractProductSpace{SV,T,DD,d} <: Space{T,DD,d} end
 
 
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]

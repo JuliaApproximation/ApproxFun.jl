@@ -11,7 +11,7 @@ export LaurentDirichlet
 
 immutable LaurentDirichlet{DD} <: UnivariateSpace{ComplexBasis,DD}
     domain::DD
-    LaurentDirichlet(d::DD)=new(d)
+    (::Type{LaurentDirichlet{DD}}){DD}(d::DD) = new{DD}(d)
 end
 LaurentDirichlet{T<:Number}(d::Vector{T})=LaurentDirichlet(PeriodicDomain(d))
 LaurentDirichlet(d::Domain)=LaurentDirichlet{typeof(d)}(d)

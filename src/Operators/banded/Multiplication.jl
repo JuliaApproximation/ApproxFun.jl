@@ -1,12 +1,12 @@
 export Multiplication
 
-abstract Multiplication{D,S,T} <:Operator{T}
+abstract type Multiplication{D,S,T} <:Operator{T} end
 
 immutable ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{D,S,T}
     f::Fun{D,T}
     space::S
 
-    ConcreteMultiplication(f::Fun{D,T},sp::S) = new(f,sp)
+    (::Type{ConcreteMultiplication{D,S,T}}){D,S,T}(f::Fun{D,T},sp::S) = new{D,S,T}(f,sp)
 end
 
 function ConcreteMultiplication{V,D,T}(::Type{V},f::Fun{D,T},sp::Space)

@@ -135,7 +135,7 @@ subblockbandinds(K::KroneckerOperator,k::Integer) = subblockbandinds(K)[k]
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 
 
-typealias Wrappers Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
+const Wrappers = Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
                        SpaceOperator,ConstantTimesOperator}
 
 
@@ -374,7 +374,7 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 end
 
 
-typealias Trivial2DTensorizer CachedIterator{Tuple{Int64,Int64},
+const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
                                              Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},
                                              Tuple{Tuple{Int64,Int64},Tuple{Int64,Int64},
                                                    Tuple{Int64,Int64},Tuple{Bool,Bool},

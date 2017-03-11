@@ -11,8 +11,8 @@ represents a periodic interval from `a` to `b`, that is, the point
 immutable PeriodicInterval{T} <: PeriodicDomain{T}
     a::T
     b::T
-    PeriodicInterval() = new(0,2convert(T,π))
-    PeriodicInterval(a,b) = new(a,b)
+    (::Type{PeriodicInterval{T}}){T}() = new{T}(0,2convert(T,π))
+    (::Type{PeriodicInterval{T}}){T}(a,b) = new{T}(a,b)
 end
 
 PeriodicInterval()=PeriodicInterval{Float64}()

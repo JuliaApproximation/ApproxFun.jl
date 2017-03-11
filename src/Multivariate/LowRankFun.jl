@@ -12,10 +12,10 @@ type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: Bivaria
     B::Vector{Fun{M,T}}
     space::SS
 
-    function LowRankFun(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS)
+    function (::Type{LowRankFun{S,M,SS,T}}){S,M,SS,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS)
         @assert length(A) == length(B)
         @assert length(A) > 0
-        new(A,B,space)
+        new{S,M,SS,T}(A,B,space)
     end
 end
 

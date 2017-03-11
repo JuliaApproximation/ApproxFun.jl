@@ -36,7 +36,7 @@ include("CurveSpace.jl")
 
 
 
-#typealias MappedChebyshev Union{Chebyshev{Interval{Float64}},MappedSpace{Chebyshev{Interval{Float64}}}}
+#const MappedChebyshev = Union{Chebyshev{Interval{Float64}},MappedSpace{Chebyshev{Interval{Float64}}}}
 
 
 

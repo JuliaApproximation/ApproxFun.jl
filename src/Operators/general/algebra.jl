@@ -7,12 +7,12 @@ export PlusOperator, TimesOperator, A_mul_B_coefficients
 immutable PlusOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
-    function PlusOperator(opsin::Vector{Operator{T}},bi::BI)
+    function (::Type{PlusOperator{T,BI}}){T,BI}(opsin::Vector{Operator{T}},bi::BI)
         n,m=size(first(opsin))
         for k=2:length(opsin)
             @assert size(opsin[k],1)==n && size(opsin[k],2)==m
         end
-        new(opsin,bi)
+        new{T,BI}(opsin,bi)
     end
 end
 
@@ -159,7 +159,7 @@ end
 immutable ConstantTimesOperator{B,T} <: Operator{T}
     λ::T
     op::B
-    ConstantTimesOperator(c,op)=new(c,op)
+    (::Type{ConstantTimesOperator{B,T}}){B,T}(c,op) = new{B,T}(c,op)
 end
 function ConstantTimesOperator{TT<:Number}(c::Number,op::Operator{TT})
     T=promote_type(typeof(c),eltype(op))
@@ -219,7 +219,7 @@ immutable TimesOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
 
-    function TimesOperator(ops::Vector{Operator{T}},bi::BI)
+    function (::Type{TimesOperator{T,BI}}){T,BI}(ops::Vector{Operator{T}},bi::BI)
         # check compatible
         for k=1:length(ops)-1
             @assert size(ops[k],2) == size(ops[k+1],1)
@@ -247,7 +247,7 @@ immutable TimesOperator{T,BI} <: Operator{T}
         end
 
 
-        new(ops,bi)
+        new{T,BI}(ops,bi)
     end
 end
 

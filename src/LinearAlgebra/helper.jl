@@ -577,9 +577,9 @@ end
 immutable Take{I,T} <: AbstractVector{T}
     xs::I
     n::Int
-    function Take(xs,n)
+    function (::Type{Take{I,T}}){I,T}(xs,n)
         @assert n ≤ length(xs)
-        new(xs,n)
+        new{I,T}(xs,n)
     end
 end
 
@@ -651,7 +651,7 @@ pad(it::Take,n::Integer) = pad!(collect(it),n)
 # Re-implementation of Base iterators
 # to use ∞ and allow getindex
 
-abstract AbstractRepeated{T}
+@compat abstract type AbstractRepeated{T} end
 
 Base.eltype{T}(::Type{AbstractRepeated{T}}) = T
 Base.eltype{R<:AbstractRepeated}(::Type{R}) = eltype(super(R))
@@ -683,13 +683,13 @@ Base.sum(r::ZeroRepeated) = value(r)
 
 immutable Repeated{T} <: AbstractRepeated{T}
     x::T
-    function Repeated(x::T)
+    function (::Type{Repeated{T}}){T}(x::T)
         # TODO: Add ZeroRepeated type.
         if x == zero(T)
             error("Zero repeated not supported to maintain type stability")
         end
 
-        new(x)
+        new{T}(x)
     end
 end
 
@@ -712,7 +712,7 @@ repeated(x,::Infinity{Bool}) = repeated(x)
 repeated(x,m::Integer) = take(repeated(x),m)
 
 
-abstract AbstractCount{S<:Number}
+@compat abstract type AbstractCount{S<:Number} end
 
 immutable UnitCount{S<:Number} <: AbstractCount{S}
     start::S
@@ -830,7 +830,7 @@ type CachedIterator{T,IT,ST}
     state::ST
     length::Int
 
-    CachedIterator(it::IT) = new(it,Vector{T}(),start(it),0)
+    (::Type{CachedIterator{T,IT,ST}}){T,IT,ST}(it::IT) = new{T,IT,ST}(it,Vector{T}(),start(it),0)
 end
 
 CachedIterator(it) = CachedIterator{eltype(it),typeof(it),typeof(start(it))}(it)
@@ -1037,7 +1037,7 @@ function broadcast(op,a::Number,b::Take)
     take(op.(a,b.xs),n)
 end
 
-typealias InfiniteIterators Union{AbstractRepeated,AbstractCount,Flatten}
+const InfiniteIterators = Union{AbstractRepeated,AbstractCount,Flatten}
 
 for OP in (:+,:-)
     @eval begin

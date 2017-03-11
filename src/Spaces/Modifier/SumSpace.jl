@@ -67,7 +67,7 @@ end
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-abstract DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d}
+abstract type DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d} end
 
 
 dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)
@@ -94,8 +94,8 @@ block(sp::DirectSumSpace,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths
 
 immutable SumSpace{SV,T,DD,d} <: DirectSumSpace{SV,T,DD,d}
     spaces::SV
-    SumSpace(dom::Domain) = new(tuple(map(typ->typ(dom),SV.parameters)...))
-    SumSpace(sp::Tuple) = new(sp)
+    (::Type{SumSpace{SV,T,DD,d}}){SV,T,DD,d}(dom::Domain) = new{SV,T,DD,d}(tuple(map(typ->typ(dom),SV.parameters)...))
+    (::Type{SumSpace{SV,T,DD,d}}){SV,T,DD,d}(sp::Tuple) = new{SV,T,DD,d}(sp)
 end
 
 SumSpace(sp::Tuple) = SumSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
@@ -104,9 +104,9 @@ SumSpace(sp::Tuple) = SumSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
 
 immutable PiecewiseSpace{SV,T,DD<:UnionDomain,d} <: DirectSumSpace{SV,T,DD,d}
     spaces::SV
-    PiecewiseSpace(dom::AnyDomain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
-    PiecewiseSpace(dom::UnionDomain)=new(tuple(map((typ,dom)->typ(dom),SV.parameters,dom.domains)...))
-    PiecewiseSpace(sp::Tuple)=new(sp)
+    (::Type{PiecewiseSpace{SV,T,DD,d}}){SV,T,DD,d}(dom::AnyDomain) = new{SV,T,DD,d}(tuple(map(typ->typ(dom),SV.parameters)...))
+    (::Type{PiecewiseSpace{SV,T,DD,d}}){SV,T,DD,d}(dom::UnionDomain) = new{SV,T,DD,d}(tuple(map((typ,dom)->typ(dom),SV.parameters,dom.domains)...))
+    (::Type{PiecewiseSpace{SV,T,DD,d}}){SV,T,DD,d}(sp::Tuple) = new{SV,T,DD,d}(sp)
 end
 
 function PiecewiseSpace(spin::Tuple)

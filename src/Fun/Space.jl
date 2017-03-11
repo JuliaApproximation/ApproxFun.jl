@@ -47,15 +47,15 @@ Base.eltype(::Type{AnyBasis})=Number
 # T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
 # D is the domain
 # d is the dimension
-abstract Space{T,D,d}
+abstract type Space{T,D,d} end
 
 
 
-typealias RealSpace{D,d} Space{RealBasis,D,d}
-typealias ComplexSpace{D,d} Space{ComplexBasis,D,d}
-typealias UnivariateSpace{T,D} Space{T,D,1}
-typealias BivariateSpace{T,DD} Space{T,DD,2}
-typealias RealUnivariateSpace{D} RealSpace{D,1}
+const RealSpace{D,d} = Space{RealBasis,D,d}
+const ComplexSpace{D,d} = Space{ComplexBasis,D,d}
+const UnivariateSpace{T,D} = Space{T,D,1}
+const BivariateSpace{T,DD} = Space{T,DD,2}
+const RealUnivariateSpace{D} = RealSpace{D,1}
 
 
 
@@ -103,7 +103,7 @@ block(S::Space,k) = Block(k)
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
 
-abstract AmbiguousSpace <: Space{RealBasis,AnyDomain,1}
+abstract type AmbiguousSpace <: Space{RealBasis,AnyDomain,1} end
 
 domain(::AmbiguousSpace) = AnyDomain()
 
@@ -529,8 +529,8 @@ end
 
 immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
     domain::DD
-    ConstantSpace(d::DD)=new(d)
-    ConstantSpace(d::AnyDomain)=new(DD(d))
+    (::Type{ConstantSpace{DD}}){DD}(d::DD) = new{DD}(d)
+    (::Type{ConstantSpace{DD}}){DD}(d::AnyDomain) = new{DD}(DD(d))
 end
 
 ConstantSpace(d::Domain) = ConstantSpace{typeof(d)}(d)

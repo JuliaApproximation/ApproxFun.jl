@@ -1,7 +1,7 @@
 __precompile__()
 
 module ApproxFun
-    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets
+    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat
     import FixedSizeArrays, ToeplitzMatrices, Calculus
 
 import Base.LinAlg: BlasInt, BlasFloat
