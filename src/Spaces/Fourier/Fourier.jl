@@ -45,7 +45,7 @@ doc"""
 `Taylor()` is the space spanned by `[1,z,z^2,...]`.
 This is a type alias for `Hardy{true}`.
 """
-const Taylor{D<:Domain} = Hardy{true,D}
+@compat const Taylor{D<:Domain} = Hardy{true,D}
 
 
 
@@ -208,7 +208,7 @@ doc"""
 ```
 See also `Fourier`.
 """
-const Laurent{DD} = SumSpace{Tuple{Hardy{true,DD},Hardy{false,DD}},ComplexBasis,DD,1}
+@compat const Laurent{DD} = SumSpace{Tuple{Hardy{true,DD},Hardy{false,DD}},ComplexBasis,DD,1}
 
 
 ##FFT That interlaces coefficients
@@ -299,7 +299,7 @@ doc"""
 ```
 See also `Laurent`.
 """
-const Fourier{DD} = SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
+@compat const Fourier{DD} = SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
 
 for Typ in (:Laurent,:Fourier)
     @eval begin

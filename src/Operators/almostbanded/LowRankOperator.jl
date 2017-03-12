@@ -1,6 +1,6 @@
 export AbstractLowRankOperator, LowRankOperator
 
-abstract type AbstractLowRankOperator{T} <: Operator{T} end
+@compat abstract type AbstractLowRankOperator{T} <: Operator{T} end
 
 immutable LowRankOperator{S<:Space,T} <: AbstractLowRankOperator{T}
     U::Vector{Fun{S,T}}

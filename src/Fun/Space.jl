@@ -47,15 +47,15 @@ Base.eltype(::Type{AnyBasis})=Number
 # T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
 # D is the domain
 # d is the dimension
-abstract type Space{T,D,d} end
+@compat abstract type Space{T,D,d} end
 
 
 
-const RealSpace{D,d} = Space{RealBasis,D,d}
-const ComplexSpace{D,d} = Space{ComplexBasis,D,d}
-const UnivariateSpace{T,D} = Space{T,D,1}
-const BivariateSpace{T,DD} = Space{T,DD,2}
-const RealUnivariateSpace{D} = RealSpace{D,1}
+@compat const RealSpace{D,d} = Space{RealBasis,D,d}
+@compat const ComplexSpace{D,d} = Space{ComplexBasis,D,d}
+@compat const UnivariateSpace{T,D} = Space{T,D,1}
+@compat const BivariateSpace{T,DD} = Space{T,DD,2}
+@compat const RealUnivariateSpace{D} = RealSpace{D,1}
 
 
 
@@ -103,7 +103,7 @@ block(S::Space,k) = Block(k)
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
 
-abstract type AmbiguousSpace <: Space{RealBasis,AnyDomain,1} end
+@compat abstract type AmbiguousSpace <: Space{RealBasis,AnyDomain,1} end
 
 domain(::AmbiguousSpace) = AnyDomain()
 

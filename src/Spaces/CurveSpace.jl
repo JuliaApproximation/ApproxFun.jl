@@ -30,7 +30,7 @@ immutable Bernstein{order,T} <: RealUnivariateSpace{T}
     (::Type{Bernstein{order,T}}){order,T}() = new{order,T}(Segment{T}())
 end
 
-const Bézier = Bernstein # option+e e gives é
+@compat const Bézier = Bernstein # option+e e gives é
 
 (::Type{Bernstein{O}}){O}() = Bernstein{O,Float64}()
 (::Type{Bernstein{O}}){O}(d::Domain) = Bernstein{O,eltype(d)}(d)

@@ -1037,13 +1037,15 @@ function broadcast(op,a::Number,b::Take)
     take(op.(a,b.xs),n)
 end
 
-const InfiniteIterators = Union{AbstractRepeated,AbstractCount,Flatten}
+@compat const InfiniteIterators = Union{AbstractRepeated,AbstractCount,Flatten}
 
 for OP in (:+,:-)
     @eval begin
         $OP(a::ZeroRepeated,b::ZeroRepeated) = a
         $OP(a::Number,b::ZeroRepeated) = repeated(a)
         $OP(a::ZeroRepeated,b::Number) = repeated($OP(b))
+
+        $OP(a::AbstractRepeated,b::AbstractRepeated) = repeated($OP(value(a),value(b)))
 
         $OP(a::Flatten,b::ZeroRepeated) = a
         $OP(a::ZeroRepeated,b::Flatten) = $OP(b)

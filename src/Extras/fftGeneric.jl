@@ -1,4 +1,4 @@
-const BigFloats = Union{BigFloat,Complex{BigFloat}}
+@compat const BigFloats = Union{BigFloat,Complex{BigFloat}}
 
 function Base.fft{F<:Fun}(x::Vector{F})
     n,T = length(x),mapreduce(eltype,promote_type,x)

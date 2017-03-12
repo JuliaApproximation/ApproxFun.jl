@@ -1,6 +1,6 @@
 export Multiplication
 
-abstract type Multiplication{D,S,T} <:Operator{T} end
+@compat abstract type Multiplication{D,S,T} <:Operator{T} end
 
 immutable ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{D,S,T}
     f::Fun{D,T}

@@ -100,9 +100,11 @@ function blocklookup(rows)
     rowblocks
 end
 
-# 0.6 index routines
-@inline Base.index_dimsum(::Block, I...) = (true, Base.index_dimsum(I...)...)
-@inline Base.index_dimsum(::SubBlock, I...) = (true, Base.index_dimsum(I...)...)
+if VERSION ≥ v"0.6-"
+    # 0.6 index routines
+    @inline Base.index_dimsum(::Block, I...) = (true, Base.index_dimsum(I...)...)
+    @inline Base.index_dimsum(::SubBlock, I...) = (true, Base.index_dimsum(I...)...)
+end
 
 
 # AbstractBlockMatrix`
@@ -247,7 +249,7 @@ function blockcols{T,BBM<:AbstractBlockMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRan
     max(1,br[1]):min(length(jr),br[end])
 end
 
-const AllBlockMatrix{T,BBM<:AbstractBlockMatrix,II<:Union{UnitRange{Int},UnitRange{Block}},JJ<:Union{UnitRange{Int},UnitRange{Block}}} =
+@compat const AllBlockMatrix{T,BBM<:AbstractBlockMatrix,II<:Union{UnitRange{Int},UnitRange{Block}},JJ<:Union{UnitRange{Int},UnitRange{Block}}} =
     Union{AbstractBlockMatrix,SubArray{T,2,BBM,Tuple{II,JJ}}}
 
 function Base.BLAS.axpy!(α,A::AllBlockMatrix,Y::AbstractMatrix)
@@ -441,9 +443,9 @@ zeroblock(X::BlockBandedMatrix,K::Block,J::Block) = zeros(eltype(X),X.rows[K.K],
 
 ## View
 
-const SubBandedBlockSubBlock{T,BBM<:BlockBandedMatrix,II<:Union{Block,SubBlock},JJ<:Union{Block,SubBlock}} = SubArray{T,2,BBM,Tuple{II,JJ},false}
-const SubBandedBlockRange{T,BBM<:BlockBandedMatrix} = SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
-const StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BlockBandedMatrix},I<:Tuple{Vararg{Union{Base.RangeIndex,Base.AbstractCartesianIndex,Block,SubBlock}}}} = Union{DenseArray{T,2}, SubArray{T,2,A,I}, Base.StridedReshapedArray{T,2}}
+@compat const SubBandedBlockSubBlock{T,BBM<:BlockBandedMatrix,II<:Union{Block,SubBlock},JJ<:Union{Block,SubBlock}} = SubArray{T,2,BBM,Tuple{II,JJ},false}
+@compat const SubBandedBlockRange{T,BBM<:BlockBandedMatrix} = SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
+@compat const StridedMatrix2{T,A<:Union{DenseArray,Base.StridedReshapedArray,BlockBandedMatrix},I<:Tuple{Vararg{Union{Base.RangeIndex,Base.AbstractCartesianIndex,Block,SubBlock}}}} = Union{DenseArray{T,2}, SubArray{T,2,A,I}, Base.StridedReshapedArray{T,2}}
 
 
 isblockbanded(::SubBandedBlockRange) = true
@@ -770,8 +772,13 @@ end
 ## view
 
 
-Base.view(A::AbstractBlockBandedMatrix,K::Union{Block,SubBlock,UnitRange{Block}},J::Union{Block,SubBlock,UnitRange{Block}}) =
-    SubArray(A, (K,J))
+if VERSION ≥ v"0.6-"
+    Base.view(A::AbstractBlockBandedMatrix,K::Union{Block,SubBlock,UnitRange{Block}},J::Union{Block,SubBlock,UnitRange{Block}}) =
+        SubArray(A, (K,J))
+else
+    Base.view(A::AbstractBlockBandedMatrix,K::Union{Block,SubBlock,UnitRange{Block}},J::Union{Block,SubBlock,UnitRange{Block}}) =
+        SubArray(A, (K,J), subblocksize(A,K,J))
+end
 
 Base.view(A::SubBandedBlockSubBlock,::Colon,::Colon) =
     view(parent(A),parentindexes(A)[1],parentindexes(A)[2])

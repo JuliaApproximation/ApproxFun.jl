@@ -6,7 +6,7 @@ export ldiffbc,rdiffbc,diffbcs
 export domainspace,rangespace
 
 
-abstract type Operator{T} end #T is the entry type, Float64 or Complex{Float64}
+@compat abstract type Operator{T} end #T is the entry type, Float64 or Complex{Float64}
 
 Base.eltype{T}(::Operator{T}) = T
 Base.eltype{T}(::Type{Operator{T}}) = T

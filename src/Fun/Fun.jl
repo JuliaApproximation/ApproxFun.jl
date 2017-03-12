@@ -479,29 +479,12 @@ include("constructors.jl")
 
 
 if VERSION < v"0.6.0-dev"
-    for op in (:+,:-,:*)
+    for op in (:+,:-,:*,:/,:^)
         dop = parse("."*string(op))
         @eval begin
             $dop(c::Number,d::Fun) = $op(c,d)
             $dop(d::Fun,c::Number) = $op(d,c)
-        end
-    end
-    for op in (:+,:-)
-        dop = parse("."*string(op))
-        @eval begin
             $dop(a::Fun,b::Fun) = $op(a,b)
-        end
-    end
-    for op in (:/,)
-        dop = parse("."*string(op))
-        @eval begin
-            $dop(d::Fun,c::Number) = $op(d,c)
-        end
-    end
-    for op in (:^,)
-        dop = parse("."*string(op))
-        @eval begin
-            $dop(d::Fun,c::Number) = broadcast($op,d,c)
         end
     end
 end

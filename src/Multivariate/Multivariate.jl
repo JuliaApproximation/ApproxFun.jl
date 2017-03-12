@@ -1,5 +1,5 @@
-abstract type MultivariateFun{T,N} end
-const BivariateFun{T} = MultivariateFun{T,2}
+@compat abstract type MultivariateFun{T,N} end
+@compat const BivariateFun{T} = MultivariateFun{T,2}
 
 export grad, lap, curl
 

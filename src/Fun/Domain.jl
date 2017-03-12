@@ -6,9 +6,9 @@ export chebyshevpoints,fourierpoints,isambiguous,arclength
 
 # T is the numeric type used to represent the domain
 # d is the dimension
-abstract type Domain{T,d} end
-const UnivariateDomain{T} = Domain{T,1}
-const BivariateDomain{T} = Domain{T,2}
+@compat abstract type Domain{T,d} end
+@compat const UnivariateDomain{T} = Domain{T,1}
+@compat const BivariateDomain{T} = Domain{T,2}
 
 
 Base.eltype{T}(::Domain{T}) = T
@@ -70,7 +70,7 @@ Base.setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
 
 ## Interval Domains
 
-abstract type IntervalDomain{T} <: UnivariateDomain{T} end
+@compat abstract type IntervalDomain{T} <: UnivariateDomain{T} end
 
 canonicaldomain(d::IntervalDomain) = Segment{real(eltype(eltype(d)))}()
 
@@ -119,7 +119,7 @@ issubcomponent(a::Domain,b::Domain)=a in pieces(b)
 
 ###### Periodic domains
 
-abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
+@compat abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
 
 
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()

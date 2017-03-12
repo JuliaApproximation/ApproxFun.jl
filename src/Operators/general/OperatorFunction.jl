@@ -1,7 +1,7 @@
 export OperatorFunction
 
 
-abstract type OperatorFunction{BT,FF,T} <: Operator{T} end
+@compat abstract type OperatorFunction{BT,FF,T} <: Operator{T} end
 
 immutable ConcreteOperatorFunction{BT<:Operator,FF,T} <: OperatorFunction{BT,FF,T}
     op::BT
