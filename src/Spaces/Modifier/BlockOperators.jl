@@ -18,12 +18,12 @@ BlockOperator(mat11::Matrix,mat12::Matrix,mat21::Matrix,B::Operator)=BlockOperat
                                                                promote_type(eltype(mat11),eltype(mat12),eltype(mat21),
                                                                             eltype(B))}(mat11,mat12,mat21,B)
 
-BlockOperator(mat11::Matrix,B::Operator)=BlockOperator(mat11,Array(eltype(mat11),size(mat11,1),0),
-                                                            Array(eltype(mat11),0,size(mat11,2)),B)
+BlockOperator(mat11::Matrix,B::Operator)=BlockOperator(mat11,Array{eltype(mat11)}(size(mat11,1),0),
+                                                            Array{eltype(mat11)}(0,size(mat11,2)),B)
 
 function Base.hcat{S<:Number}(cols::Matrix{S},B::Operator)
     T = promote_type(S,eltype(B))
-    BlockOperator{typeof(B),T}(Array(T,0,size(cols,2)),Array(T,0,0),cols,B)
+    BlockOperator{typeof(B),T}(Array{T}(0,size(cols,2)),Array{T}(0,0),cols,B)
 end
 
 Base.hcat{T<:Number}(cols::Vector{T},B::Operator)=hcat(reshape(cols,length(cols),1),B)

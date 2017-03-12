@@ -6,8 +6,8 @@ for T in (:CosSpace,:SinSpace)
     @eval begin
         immutable $T{D<:Domain} <: RealUnivariateSpace{D}
             domain::D
-            $T(d::Domain) = new(D(d))
-            $T(d::D) = new(d)
+            (::Type{$T{D}}){D}(d::Domain) = new{D}(D(d))
+            (::Type{$T{D}}){D}(d::D) = new{D}(d)
         end
         $T(d::Domain) = $T{typeof(d)}(d)
         $T() = $T(PeriodicInterval())
@@ -36,8 +36,8 @@ doc"""
 """
 immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
     domain::D
-    Hardy(d) = new(d)
-    Hardy() = new(D())
+    (::Type{Hardy{s,D}}){s,D}(d) = new{s,D}(d)
+    (::Type{Hardy{s,D}}){s,D}() = new{s,D}(D())
 end
 
 # The <: Domain is crucial for matching Basecall overrides
@@ -278,7 +278,7 @@ end
 
 
 function Base.conj{DD}(f::Fun{Laurent{DD}})
-    cfs=Array(eltype(f),iseven(ncoefficients(f))?ncoefficients(f)+1:ncoefficients(f))
+    cfs=Array{eltype(f)}(iseven(ncoefficients(f))?ncoefficients(f)+1:ncoefficients(f))
     cfs[1]=conj(f.coefficients[1])
     cfs[ncoefficients(f)] = 0
     for k=2:2:ncoefficients(f)-1
@@ -414,7 +414,7 @@ reverseorientation{D}(f::Fun{Fourier{D}}) =
 function reverseorientation{D}(f::Fun{Laurent{D}})
     # exp(im*k*x) -> exp(-im*k*x), or equivalentaly z -> 1/z
     n=ncoefficients(f)
-    ret=Array(eltype(f),iseven(n)?n+1:n)  # since z -> 1/z we get one more coefficient
+    ret=Array{eltype(f)}(iseven(n)?n+1:n)  # since z -> 1/z we get one more coefficient
     ret[1]=f.coefficients[1]
     for k=2:2:length(ret)-1
         ret[k+1]=f.coefficients[k]

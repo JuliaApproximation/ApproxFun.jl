@@ -368,7 +368,7 @@ function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
     d=dimension(space(f,k))
 
     # preallocate: we know we have at most N coefficients
-    ret=Array(eltype(f),N)
+    ret=Array{eltype(f)}(N)
     j=1  # current coefficient
     p=0  # current length
     for (n,m) in it

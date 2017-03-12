@@ -164,7 +164,7 @@ function unsafe_resize!(W::Matrix,n::Integer,::Colon)
         W[1:n,:]
     else
         m=size(W,2)
-        ret=Array(eltype(W),n,m)
+        ret=Matrix{eltype(W)}(n,m)
         ret[1:N,:] = W
         ret
     end

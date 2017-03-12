@@ -214,7 +214,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
         elseif isinf(size(B,1))
             BM=B[1:10,1:size(B,2)]
 
-            M=Array(Any,11,size(B,2))
+            M=Matrix{Any}(11,size(B,2))
             for k=1:10,j=1:size(B,2)
                 M[k,j]=BM[k,j]
             end

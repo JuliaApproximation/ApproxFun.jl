@@ -28,7 +28,7 @@ function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
     if k==0
         vals
     elseif isperiodic(d)
-        ret=Array(PT,max(K,n-K))
+        ret=Array{PT}(max(K,n-K))
         r=n-K*k
 
         for j=1:r

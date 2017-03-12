@@ -93,7 +93,7 @@ mat{AS<:ArraySpace,T}(f::Fun{AS,T}) = reshape(vec(f),size(space(f))...)
 function mat{S,V,T,DD,d}(f::Fun{MatrixSpace{S,V,DD,d},T},j::Integer)
     @assert j==1
     m=mat(f)
-    r=Array(Fun{VectorSpace{S,V,DD,d},T},1,size(m,2))
+    r=Array{Fun{VectorSpace{S,V,DD,d},T}}(1,size(m,2))
     for k=1:size(m,2)
         r[1,k]=devec(m[:,k])
     end

@@ -2,7 +2,7 @@
 immutable SubSpace{DS,IT,T,DD,dim} <: Space{T,DD,dim}
     space::DS
     indexes::IT
-    SubSpace(sp::DS,ind::IT) = new(sp,ind)
+    (::Type{SubSpace{DS,IT,T,DD,dim}}){DS,IT,T,DD,dim}(sp::DS,ind::IT) = new{DS,IT,T,DD,dim}(sp,ind)
 end
 
 SubSpace(sp::Space,kr) =

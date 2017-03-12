@@ -60,7 +60,7 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 
 function evaluate{T<:Fun}(A::AbstractVector{T},x::AbstractVector)
     n=length(x)
-    ret=Array(promote_type(eltype(x),mapreduce(eltype,promote_type,A)),length(A),n)
+    ret=Matrix{promote_type(eltype(x),mapreduce(eltype,promote_type,A))}(length(A),n)
 
     for k=1:length(A)
         bkr=evaluate(A[k],x)
@@ -93,7 +93,7 @@ end
 
          function ($op){T<:Number,D}(p::Vector{Fun{D,T}},A::Array{T,2})
              cfs=$op(A,coefficientmatrix(p).')
-             ret = Array(Fun{D,T},size(cfs,1))
+             ret = Vector{Fun{D,T}}(size(cfs,1))
              for i = 1:size(cfs,1)
                  ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
              end

@@ -100,17 +100,22 @@ function blocklookup(rows)
     rowblocks
 end
 
+# 0.6 index routines
+@inline Base.index_dimsum(::Block, I...) = (true, Base.index_dimsum(I...)...)
+@inline Base.index_dimsum(::SubBlock, I...) = (true, Base.index_dimsum(I...)...)
+
+
 # AbstractBlockMatrix`
-@compat abstract type AbstractBlockMatrix{T} <: AbstractMatrix{T} end
+@compat abstract type AbstractBlockMatrix{T,BT} <: AbstractMatrix{T} end
 
 
 rowblocklengths(A::AbstractBlockMatrix) = A.rows
 colblocklengths(A::AbstractBlockMatrix) = A.cols
 
 
-function getindex(A::AbstractBlockMatrix,K::Block,J::Block)
+function getindex{T,BT}(A::AbstractBlockMatrix{T,BT},K::Block,J::Block)
     if -A.l ≤ J-K ≤ A.u
-        copy(view(A,K,J))
+        BT(view(A,K,J))
     else
         zeroblock(A,K,J)
     end
@@ -268,7 +273,7 @@ Base.BLAS.axpy!(α,A::AllBlockMatrix,Y::AllBlockMatrix) = block_axpy!(α,A,Y)
 
 ## AbstractBlockBandedMatrix
 
-@compat abstract type AbstractBlockBandedMatrix{T} <: AbstractBlockMatrix{T} end
+@compat abstract type AbstractBlockBandedMatrix{T,BT} <: AbstractBlockMatrix{T,BT} end
 
 isblockbanded(::) = false
 isblockbanded(::AbstractBlockBandedMatrix) = true
@@ -341,6 +346,9 @@ function Base.setindex!(A::AbstractBlockBandedMatrix,v,k::Int,j::Int)
     end
 end
 
+Base.getindex(A::AbstractBlockBandedMatrix,kj::CartesianIndex{2}) =
+    A[kj[1],kj[2]]
+
 @compat Base.IndexStyle{BBBM<:AbstractBlockMatrix}(::Type{BBBM}) =
     IndexCartesian()
 
@@ -375,7 +383,7 @@ end
 
 #  A block matrix where only theb ands are nonzero
 #   isomorphic to BandedMatrix{Matrix{T}}
-type BlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T}
+type BlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T,Matrix{T}}
     data::Vector{T}
 
     l::Int  # block lower bandwidth
@@ -402,7 +410,7 @@ BlockBandedMatrix(data::Vector,l,u,rows,cols) =
     BlockBandedMatrix{eltype(data),typeof(rows),typeof(cols)}(data,l,u,rows,cols)
 
 BlockBandedMatrix{T}(::Type{T},l,u,rows,cols) =
-    BlockBandedMatrix(Array(T,bbm_numentries(rows,cols,l,u)),l,u,rows,cols)
+    BlockBandedMatrix(Vector{T}(bbm_numentries(rows,cols,l,u)),l,u,rows,cols)
 
 for FUNC in (:zeros,:rand,:ones)
     BFUNC = parse("bb"*string(FUNC))
@@ -497,7 +505,7 @@ dataview{T,U,V,II,JJ}(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tuple{SubBlock{II
 blockbandinds{T,BBM<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}}}) =
     blockbandinds(parent(S))
 
-getindex{N}(S::SubBandedBlockSubBlock, I::Vararg{Real,N}) =
+getindex{N}(S::SubBandedBlockSubBlock, I::Vararg{Int,N}) =
     dataview(S)[I...]
 
 function getindex(S::SubBandedBlockRange, k::Integer, j::Integer)
@@ -506,7 +514,7 @@ function getindex(S::SubBandedBlockRange, k::Integer, j::Integer)
     A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])]
 end
 
-function setindex!{N}(S::SubBandedBlockSubBlock, v, I::Vararg{Real,N})
+function setindex!{N}(S::SubBandedBlockSubBlock, v, I::Vararg{Int,N})
     dataview(S)[I...] = v
 end
 

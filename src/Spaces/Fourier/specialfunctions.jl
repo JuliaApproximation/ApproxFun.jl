@@ -2,7 +2,7 @@ function Base.real{DD}(f::Fun{Laurent{DD}})
     n=ncoefficients(f)
     cfs=f.coefficients
 
-    ret=Array(real(eltype(f)),iseven(n)?n+1:n)
+    ret=Array{real(eltype(f))}(iseven(n)?n+1:n)
     ret[1]=real(cfs[1])
 
     for k=2:2:n
@@ -25,7 +25,7 @@ function Base.imag{DD}(f::Fun{Laurent{DD}})
     n=ncoefficients(f)
     cfs=f.coefficients
 
-    ret=Array(real(eltype(f)),iseven(n)?n+1:n)
+    ret=Array{real(eltype(f))}(iseven(n)?n+1:n)
     ret[1]=imag(cfs[1])
 
     for k=2:2:n

@@ -4,7 +4,7 @@ for TYP in (:DiracSpace,:PointSpace)
     @eval begin
         immutable $TYP{T}<:RealUnivariateSpace{AnyDomain}
           points::Vector{T}
-          $TYP(pts::Vector{T})=new(sort(pts))
+          (::Type{$TYP{T}}){T}(pts::Vector{T}) = new{T}(sort(pts))
         end
 
         $TYP(points::AbstractVector) = $TYP{eltype(points)}(points)
