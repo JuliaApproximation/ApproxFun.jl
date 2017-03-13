@@ -63,7 +63,7 @@ function evaluate{T<:Fun}(A::AbstractVector{T},x::AbstractVector)
     ret=Matrix{promote_type(eltype(x),mapreduce(eltype,promote_type,A))}(length(A),n)
 
     for k=1:length(A)
-        bkr=evaluate(A[k],x)
+        bkr=A[k].(x)
 
         for j=1:n
             ret[k,j]=bkr[j]

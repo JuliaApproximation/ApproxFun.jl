@@ -1,6 +1,6 @@
 using ApproxFun, Base.Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
-                        testbandedbelowoperator
+                        testbandedbelowoperator, testbandedblockbandedoperator
 ## This includes extra tests that are too time consuming for Travis
 
 
@@ -259,7 +259,7 @@ f=Fun((x,y)->[exp(x*cos(y));cos(x*sin(y));2],Interval()^2)
 @test f(0.1,0.2) ≈ [exp(0.1*cos(0.2));cos(0.1*sin(0.2));2]
 
 f=Fun((x,y)->[exp(x*cos(y)) cos(x*sin(y)); 2 1],Interval()^2)
-@test f(0.1,0.2) [exp(0.1*cos(0.2)) cos(0.1*sin(0.2));2 ≈ 1]
+@test f(0.1,0.2) ≈ [exp(0.1*cos(0.2)) cos(0.1*sin(0.2));2 1]
 
 
 ## Cauchy fun

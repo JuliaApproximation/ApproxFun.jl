@@ -40,10 +40,8 @@ let d=0.0..1.0
     u = [B;D+a] \ [dual(1.0,2.0),0.0]
     ur = [B;D+a] \ [1.0,0.0]
     ud = [B;D+a] \ [2.0,0.0]
-    @test u(0.5)  ≈ dual(ur(0.5),ud(0.5))
+    @test absdual(u(0.5)  - dual(ur(0.5),ud(0.5))) < 10eps()
 end
-
-
 
 
 ## Eig test #336

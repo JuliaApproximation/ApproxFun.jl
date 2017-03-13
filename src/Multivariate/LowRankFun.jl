@@ -215,7 +215,7 @@ function findapproxmax!(f::Function,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gr
 end
 
 function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
-    Ax,By = A(ptsx),B(ptsy)
+    Ax,By = A.(ptsx),B.(ptsy)
     subtractrankone!(Ax,By,X,gridx,gridy)
     maxabsf,impt = findmaxabs(X)
     imptple = ind2sub((gridx,gridy),impt)

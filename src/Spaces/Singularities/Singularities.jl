@@ -27,12 +27,12 @@ end
 
 function plan_transform(S::WeightSpace,vals::Vector)
     pts=points(S,length(vals))
-    WeightSpacePlan(S,plan_transform(S.space,vals),pts,weight(S,pts))
+    WeightSpacePlan(S,plan_transform(S.space,vals),pts,weight.(S,pts))
 end
 
 function plan_itransform(S::WeightSpace,vals::Vector)
     pts=points(S,length(vals))
-    IWeightSpacePlan(S,plan_itransform(S.space,vals),pts,weight(S,pts))
+    IWeightSpacePlan(S,plan_itransform(S.space,vals),pts,weight.(S,pts))
 end
 
 *(P::WeightSpacePlan,vals::Vector) = P.plan*(vals./P.weights)
@@ -41,9 +41,9 @@ end
 
 # used for ProductFun
 transform(sp::WeightSpace,vals::Vector,plan::WeightSpacePlan) =
-    transform(sp.space,vals./(sp==plan.space?plan.weights:weight(sp,plan.points)),plan.plan)
+    transform(sp.space,vals./(sp==plan.space?plan.weights:weight.(sp,plan.points)),plan.plan)
 itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan) =
-    itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight(sp,plan.points))
+    itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight.(sp,plan.points))
 
 
 
