@@ -50,7 +50,7 @@ Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
 @time u=\([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 
-@test u(0.1,0.2) 0.8745340845783758  # ≈ empirical
+@test u(0.1,0.2) ≈ 0.8745340845783758  # empirical
 
 
 
@@ -566,7 +566,7 @@ Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
 @time u=\([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 
-@test u(0.1,0.2) 0.8745340845783758  # ≈ empirical
+@test u(0.1,0.2) ≈ 0.8745340845783758  # empirical
 
 
 dθ=PeriodicInterval();dt=Interval(0,1.)
