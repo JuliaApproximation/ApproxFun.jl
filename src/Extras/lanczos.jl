@@ -8,8 +8,8 @@ function lanczos(w,N)
     f1=Fun(1./sqrt(sum(w)),space(x))
 
     P = Array{Fun}(N + 1)
-    β = Vector{eltype(w)}(N)
-    γ = Vector{eltype(w)}(N)
+    β = Array{eltype(w)}(N)
+    γ = Array{eltype(w)}(N)
 
     P[1] = f1
 

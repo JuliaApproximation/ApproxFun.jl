@@ -41,7 +41,7 @@ f=Fun(x->exp(im.*x),1im..(2+.5im))
 #@assert f([f.domain.a,f.domain.b])      ##TODO: Currently crashes
 
 
-@test sum(f)  (0.5515167681675808 + ≈ 0.6202852564797062im)
+@test sum(f) ≈ (0.5515167681675808 + 0.6202852564797062im)
 
 @test f(1im) ≈ exp(im.*im)
 

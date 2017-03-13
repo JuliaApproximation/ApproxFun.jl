@@ -17,7 +17,7 @@ C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
 @time testbandedoperator(C)
 
-@test full(C[1:5,1:5])    [4.0 5.0 6.0 0.0 ≈ 0.0
+@test full(C[1:5,1:5])  ≈  [4.0 5.0 6.0 0.0  0.0
                                      1.0 4.0 5.0 6.0 0.0
                                      2.0 1.0 4.0 5.0 6.0
                                      3.0 2.0 1.0 4.0 5.0
@@ -27,7 +27,7 @@ C=Conversion(Ultraspherical(1),Ultraspherical(2))
 
 testbandedoperator(C)
 
-@test full(C[1:5,1:5])     [1.0 0.0 -0.3333333333333333 0.0  ≈ 0.0
+@test full(C[1:5,1:5])  ≈   [1.0 0.0 -0.3333333333333333 0.0  0.0
                                       0.0 0.5  0.0               -0.25 0.0
                                       0.0 0.0  0.3333333333333333 0.0 -0.2
                                       0.0 0.0  0.0                0.25 0.0
@@ -102,7 +102,7 @@ P=ApproxFun.PermutationOperator([2,1])
 
 testbandedoperator(P)
 
-@test P[1:4,1:4] [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 ≈ 0]
+@test P[1:4,1:4] ≈ [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0]
 
 
 

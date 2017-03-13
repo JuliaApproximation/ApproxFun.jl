@@ -87,7 +87,7 @@ ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp?f:ProductFun(coefficients
 ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp::ProductDomain)=ProductFun(f,Space(sp))
 
 function ProductFun(f::ProductFun,sp::AbstractProductSpace)
-    u=Vector{Fun{typeof(columnspace(sp,1)),eltype(f)}}(length(f.coefficients))
+    u=Array{Fun{typeof(columnspace(sp,1)),eltype(f)}}(length(f.coefficients))
 
     for k=1:length(f.coefficients)
         u[k]=Fun(f.coefficients[k],columnspace(sp,k))
@@ -121,7 +121,7 @@ end
 
 
 function pad{S,V,SS,T}(f::ProductFun{S,V,SS,T},n::Integer,m::Integer)
-    ret=Vector{Fun{S,T}}(m)
+    ret=Array{Fun{S,T}}(m)
     cm=min(length(f.coefficients),m)
     for k=1:cm
         ret[k]=pad(f.coefficients[k],n)

@@ -25,7 +25,7 @@ f=Fun(t->cos(t)+cos(3t),CosSpace)
 f=Fun(exp,Taylor(Circle()))
 @test f(exp(0.1im)) ≈ exp(exp(0.1im))
 g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
-@test (f(1.)+g(1.)) (exp(1.) + ≈ 1./(1-.1))
+@test (f(1.)+g(1.)) ≈ (exp(1.) + 1./(1-.1))
 
 
 ## Periodic

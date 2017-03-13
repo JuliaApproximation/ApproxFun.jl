@@ -40,7 +40,7 @@ function hermitep(r::Range,x::Number)
     if n≤2
         v=[1.,2x]
     else
-        v=Vector{promote_type(Float64,typeof(x))}(n)  # x may be complex
+        v=Array{promote_type(Float64,typeof(x))}(n)  # x may be complex
         v[1]=1.
         v[2]=2x
 

@@ -110,8 +110,8 @@ G=Fun(z->in(z,Γ[2])?[1 -z^(-1); 0 1]:
                    [z 0; 0 z^(-1)],Γ);
 
 
-@test G(exp(0.1im)) [exp(0.1im) 0 ; 0 ≈ exp(-0.1im)]
-@test G(0.5exp(0.1im)) [1 -2exp(-0.1im) ; 0 ≈ 1]
+@test G(exp(0.1im)) ≈ [exp(0.1im) 0 ; 0 exp(-0.1im)]
+@test G(0.5exp(0.1im)) ≈ [1 -2exp(-0.1im) ; 0 1]
 
 
 
@@ -139,7 +139,7 @@ u=M*G1
 
 
 # Vector operations
-@test (Fun(x->[1., 2.]) + [2, 2])(0.) [3., ≈ 4.]
+@test (Fun(x->[1., 2.]) + [2, 2])(0.) ≈ [3., 4.]
 
 
 

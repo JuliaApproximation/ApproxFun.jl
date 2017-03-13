@@ -82,7 +82,7 @@ function Base.kron(f::Fun,g::Fun)
     sp=space(f)⊗space(g)
     it=tensorizer(sp)
     N=ncoefficients(f);M=ncoefficients(g)
-    cfs=Vector{promote_type(eltype(f),eltype(g))}()
+    cfs=Array{promote_type(eltype(f),eltype(g))}(0)
     for (k,j) in it
         # Tensor product is N x M, so if we are outside
         # the (N+M)th diagonal we have no more entries

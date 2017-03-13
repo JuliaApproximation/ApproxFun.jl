@@ -12,7 +12,7 @@ trtrs!(::Type{Val{'U'}},co::CachedOperator,u::Array) =
 
 function Ac_mul_Bpars(A::QROperatorQ,B::Vector,tolerance,maxlength)
     T = promote_type(eltype(A),eltype(B))
-    Ac_mul_Bpars(Operator{T}(A),Vector{T}(B),tolerance,maxlength)
+    Ac_mul_Bpars(Operator{T}(A),Array{T}(B),tolerance,maxlength)
 end
 
 

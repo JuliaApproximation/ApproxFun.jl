@@ -48,7 +48,7 @@ end
 # Convert from U -> T
 function ultraiconversion{T<:Number}(v::Vector{T})
     n = length(v)
-    w = Vector{T}(n)
+    w = Array{T}(n)
 
     if n == 1
         w[1] = v[1]
@@ -73,7 +73,7 @@ end
 # Convert T -> U
 function ultraconversion{T<:Number}(v::Vector{T})
     n = length(v)
-    w = Vector{T}(n)
+    w = Array{T}(n)
 
     if n == 1
         w[1] = v[1]

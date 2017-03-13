@@ -93,7 +93,7 @@ end
 
 # Takes in a list of lengths, and allows lookup of which block an entry is in
 function blocklookup(rows)
-    rowblocks=Vector{Int}(0)
+    rowblocks=Array{Int}(0)
     for ν in eachindex(rows), k in 1:rows[ν]
         push!(rowblocks,ν)
     end
@@ -412,7 +412,7 @@ BlockBandedMatrix(data::Vector,l,u,rows,cols) =
     BlockBandedMatrix{eltype(data),typeof(rows),typeof(cols)}(data,l,u,rows,cols)
 
 BlockBandedMatrix{T}(::Type{T},l,u,rows,cols) =
-    BlockBandedMatrix(Vector{T}(bbm_numentries(rows,cols,l,u)),l,u,rows,cols)
+    BlockBandedMatrix(Array{T}(bbm_numentries(rows,cols,l,u)),l,u,rows,cols)
 
 for FUNC in (:zeros,:rand,:ones)
     BFUNC = parse("bb"*string(FUNC))
@@ -557,7 +557,7 @@ Base.pointer{T<:BlasFloat,U,V,II,JJ}(S::SubArray{T,2,BlockBandedMatrix{T,U,V},Tu
 αA_mul_B_plus_βC!{T}(α::T,A::SubBandedBlockSubBlock{T},x::AbstractVector{T},β::T,y::AbstractVector{T}) =
     gemv!('N',α,A,x,β,y)
 αA_mul_B_plus_βC!{T}(α,A::SubBandedBlockSubBlock{T},x::AbstractVector,β,y::AbstractVector{T}) =
-    gemv!('N',T(α),A,Vector{T}(x),T(β),y)
+    gemv!('N',T(α),A,Array{T}(x),T(β),y)
 αA_mul_B_plus_βC!(α,A::StridedMatrix2,B::StridedMatrix2,β,C::StridedMatrix2) =
     gemm!('N','N',α,A,B,β,C)
 

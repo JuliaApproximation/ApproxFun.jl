@@ -81,7 +81,7 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
         htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
         # calculate Flaot64 roots
-        r = Vector{$BF}(rootsunit_coeffs(convert(Vector{$FF},c./vscale), Float64(htol)))
+        r = Array{$BF}(rootsunit_coeffs(convert(Vector{$FF},c./vscale), Float64(htol)))
         # Map roots from [-1,1] to domain of f:
         rts = fromcanonical(d,r)
         fp = differentiate(f)
@@ -374,7 +374,7 @@ end
 function complexroots{T<:Union{BigFloat,Complex{BigFloat}}}(cfs::Vector{T})
     a = Fun(Taylor(Circle(BigFloat)),cfs)
     ap = a'
-    rts = Vector{Complex{BigFloat}}(complexroots(Vector{Complex128}(cfs)))
+    rts = Array{Complex{BigFloat}}(complexroots(Vector{Complex128}(cfs)))
     # Do 3 Newton steps
     for _ = 1:3
         rts .-= a.(rts)./ap.(rts)

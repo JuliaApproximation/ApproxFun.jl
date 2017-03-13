@@ -22,8 +22,8 @@ end
 # default copy is to loop through
 # override this for most operators.
 function default_raggedmatrix(S::Operator)
-    data=Vector{eltype(S)}(0)
-    cols=Vector{Int}(size(S,2)+1)
+    data=Array{eltype(S)}(0)
+    cols=Array{Int}(size(S,2)+1)
     cols[1]=1
     for j=1:size(S,2)
         cs=colstop(S,j)

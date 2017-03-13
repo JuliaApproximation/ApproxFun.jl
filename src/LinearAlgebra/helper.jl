@@ -982,7 +982,7 @@ if VERSION < v"0.6.0-dev"
     for TYP in (:Flatten, :AbstractRepeated), op in (:+,:-,:*,:/)
         dop = parse("."*string(op))
         @eval begin
-            $dop(a::$TYP,b::$TYP) = broadcst($op,a,b)
+            $dop(a::$TYP,b::$TYP) = broadcast($op,a,b)
             $dop(f::$TYP,c::Number) = broadcast($op,f,c)
             $dop(c::Number,f::$TYP) = broadcast($op,c,f)
         end
@@ -1039,13 +1039,81 @@ end
 
 @compat const InfiniteIterators = Union{AbstractRepeated,AbstractCount,Flatten}
 
++(a::InfiniteIterators) = a
+-(a::ZeroRepeated) = a
+-(a::Repeated) = Repeated(-value(a))
+-(a::Flatten) = Flatten(map(-,a.it))
+
+for OP in (:+,:-)
+    @eval begin
+        $OP(a::AbstractRepeated,b::AbstractRepeated) = repeated($OP(value(a),value(b)))
+        $OP(a::Number,b::AbstractRepeated) = repeated($OP(a,value(b)))
+        $OP(a::AbstractRepeated,b::Number) = repeated($OP(value(a),b))
+
+        $OP(a::AbstractCount,b::AbstractRepeated) = $OP(a,value(b))
+        $OP(a::AbstractRepeated,b::AbstractCount) = $OP(value(a),b)
+
+        function $OP(a::Flatten,b::AbstractRepeated)
+            @assert isinf(length(a.it[end]))
+            flatten(map(it->$OP(it,value(b)),a.it))
+        end
+        function $OP(a::AbstractRepeated,b::Flatten)
+            @assert isinf(length(b.it[end]))
+            flatten(map(it->$OP(value(a),it),b.it))
+        end
+
+        function $OP(a::Flatten,b::AbstractCount)
+            K=0
+            it=tuple()
+            for k=1:length(a.it)
+                it=(it...,$OP(a.it[k],b[K+1:K+length(a.it[k])]))
+                K+=length(a.it[k])
+            end
+            flatten(it)
+        end
+        function $OP(a::AbstractCount,b::Flatten)
+            K=0
+            it=tuple()
+            for k=1:length(b.it)
+                it=(it...,$OP(a[K+1:K+length(it[k])],b.it[k]))
+                K+=length(b.it[k])
+            end
+            flatten(it)
+        end
+
+        function $OP(a::Take,b::Take)
+            n = length(a)
+            @assert n == length(b)
+            take($OP(a.xs,b.xs),n)
+        end
+
+        function $OP(a::Take,b::Bool)
+            n = length(a)
+            take($OP(a.xs,b),n)
+        end
+        function $OP(a::Bool,b::Take)
+            n = length(b)
+            take($OP(a,b.xs),n)
+        end
+
+        function $OP(a::Take,b::Number)
+            n = length(a)
+            take($OP(a.xs,b),n)
+        end
+        function $OP(a::Number,b::Take)
+            n = length(b)
+            take($OP(a,b.xs),n)
+        end
+    end
+end
+
+
 for OP in (:+,:-)
     @eval begin
         $OP(a::ZeroRepeated,b::ZeroRepeated) = a
         $OP(a::Number,b::ZeroRepeated) = repeated(a)
         $OP(a::ZeroRepeated,b::Number) = repeated($OP(b))
 
-        $OP(a::AbstractRepeated,b::AbstractRepeated) = repeated($OP(value(a),value(b)))
 
         $OP(a::Flatten,b::ZeroRepeated) = a
         $OP(a::ZeroRepeated,b::Flatten) = $OP(b)

@@ -78,7 +78,7 @@ w=10.;
 B=ApproxFun.SpaceOperator(BasisFunctional(floor(w)),Chebyshev(),ApproxFun.ConstantSpace());
 A=[B;D+1im*w*I];
 @time u = A\[0.,f];
-@test (u(1.)exp(1im*w)-u(-1.)exp(-1im*w)) (-0.18575766879136255 + 0.17863980562549928im ≈ )
+@test (u(1.)exp(1im*w)-u(-1.)exp(-1im*w)) ≈ (-0.18575766879136255 + 0.17863980562549928im)
 
 
 ## Bessel
