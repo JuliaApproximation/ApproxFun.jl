@@ -134,7 +134,7 @@ A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
 QR=qrfact(A)
 
 u=(QR\[1.,0.0,0.0])
-@test u(0.0) (0.3329522068795961 + ≈ 0.024616008954634165im)
+@test u(0.0) ≈ (0.3329522068795961 + 0.024616008954634165im)
 
 # Union of intervals are constructed for now with \
 x=Fun(identity,Domain(-2..15) \ [-1,0])

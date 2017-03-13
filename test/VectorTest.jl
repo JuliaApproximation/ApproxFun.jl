@@ -150,6 +150,7 @@ G=Fun(z->[-1 -3; -3 -1]/z +
 
 @test G[1,1](exp(0.1im)) == G(exp(0.1im))[1,1]
 
+
 F̃ = (G-I)[:,1]
 F=Fun((G-I)[:,1])
 
@@ -190,7 +191,7 @@ f=Fun(TS,collect(1:10))
 D=Derivative()
 
 u=D*[Fun(exp) Fun(cos)]
-@test u(0.1) [exp(0.1) ≈ -sin(0.1)]
+@test u(0.1) ≈ [exp(0.1) -sin(0.1)]
 
 
 ## Check multiplication of matrices of Fun and Matrix fun

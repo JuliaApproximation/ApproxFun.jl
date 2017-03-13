@@ -32,7 +32,7 @@ end
 
 Base.size(A::AlmostBandedMatrix) = size(A.bands)
 @compat Base.IndexStyle{ABM<:AlmostBandedMatrix}(::Type{ABM}) =
-    Base.IndexCartesian()
+    IndexCartesian()
 
 
 function getindex(B::AlmostBandedMatrix,k::Integer,j::Integer)

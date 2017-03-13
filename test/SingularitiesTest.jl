@@ -89,8 +89,6 @@ f=exp(-x)
 u=integrate(f)
 @test (u(1.)-u(0)-1) ≈ -f(1)
 
-
-
 x=Fun(identity,Ray())
 f=x^(-0.123)*exp(-x)
 @test integrate(f)'(1.) ≈ f(1.)

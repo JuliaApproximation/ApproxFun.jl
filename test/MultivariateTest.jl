@@ -113,9 +113,9 @@ Mx=Multiplication(Fun(cos),Chebyshev())
 My=Multiplication(Fun(sin),Chebyshev())
 K=Mx⊗My
 
-@test ApproxFun.BandedBlockBandedMatrix(view(K,1:10,1:10)) [K[k,j] for ≈ k=1:10,j=1:10]
+@test ApproxFun.BandedBlockBandedMatrix(view(K,1:10,1:10)) ≈ [K[k,j] for k=1:10,j=1:10]
 C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
-@test C[1:100,1:100] Float64[C[k,j] for ≈ k=1:100,j=1:100]
+@test C[1:100,1:100] ≈ Float64[C[k,j] for k=1:100,j=1:100]
 
 
 @time let d = Space(0..1) * Space(0..2)

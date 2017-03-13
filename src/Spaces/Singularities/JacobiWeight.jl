@@ -18,17 +18,17 @@ immutable JacobiWeight{S,DD} <: WeightSpace{S,RealBasis,DD,1}
     space::S
     function (::Type{JacobiWeight{S,DD}}){S,DD}(β::Float64,α::Float64,space::S)
         if isa(space,JacobiWeight)
-            new{S,DD}(β+space.β,α+space.α,space.space)
-        else
+            new{S,DD}(β+space.β,α+space.α,space.space) else
             new{S,DD}(β,α,space)
         end
     end
 end
 
-JacobiWeight(a::Number,b::Number,d::RealUnivariateSpace)=JacobiWeight{typeof(d),typeof(domain(d))}(Float64(a),Float64(b),d)
-JacobiWeight(a::Number,b::Number,d::IntervalDomain)=JacobiWeight(Float64(a),Float64(b),Space(d))
-JacobiWeight(a::Number,b::Number,d)=JacobiWeight(Float64(a),Float64(b),Space(d))
-JacobiWeight(a::Number,b::Number)=JacobiWeight(a,b,Chebyshev())
+JacobiWeight(a::Number,b::Number,d::RealUnivariateSpace) = JacobiWeight{typeof(d),typeof(domain(d))}(Float64(a),Float64(b),d)
+JacobiWeight(β::Number,α::Number,d::JacobiWeight) =  JacobiWeight(β+d.β,α+d.α,d.space)
+JacobiWeight(a::Number,b::Number,d::IntervalDomain) = JacobiWeight(Float64(a),Float64(b),Space(d))
+JacobiWeight(a::Number,b::Number,d) = JacobiWeight(Float64(a),Float64(b),Space(d))
+JacobiWeight(a::Number,b::Number) = JacobiWeight(a,b,Chebyshev())
 
 JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeight(a,b,vec(s)))
 
