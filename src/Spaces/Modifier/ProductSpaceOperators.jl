@@ -15,7 +15,7 @@ for TYP in (:PiecewiseSpace,:ArraySpace)
         function interlace_choosedomainspace(ops,rs::$TYP)
             @assert length(ops) == length(rs)
             # this ensures correct dispatch for unino
-            sps = Vector{Space}(
+            sps = Array{Space}(
                 filter(x->!isambiguous(x),map((op,s)->choosedomainspace(op,s),ops,rs)))
             if isempty(sps)
                 UnsetSpace()

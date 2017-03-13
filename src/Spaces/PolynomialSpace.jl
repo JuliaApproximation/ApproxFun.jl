@@ -1,7 +1,7 @@
 
 ## Orthogonal polynomials
 
-abstract PolynomialSpace{D} <: RealUnivariateSpace{D}
+@compat abstract type PolynomialSpace{D} <: RealUnivariateSpace{D} end
 
 
 

@@ -17,34 +17,34 @@ end
 
 
 f=Fun(t->cos(t)+cos(3t),CosSpace)
-@test_approx_eq f(0.1) cos(0.1)+cos(3*0.1)
+@test f(0.1) ≈ cos(0.1)+cos(3*0.1)
 @test (f.*f-Fun(t->(cos(t)+cos(3t))^2,CosSpace)).coefficients|>norm <100eps()
 
 
 
 f=Fun(exp,Taylor(Circle()))
-@test_approx_eq f(exp(0.1im)) exp(exp(0.1im))
+@test f(exp(0.1im)) ≈ exp(exp(0.1im))
 g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
-@test_approx_eq (f(1.)+g(1.)) (exp(1.) + 1./(1-.1))
+@test (f(1.)+g(1.)) ≈ (exp(1.) + 1./(1-.1))
 
 
 ## Periodic
 f=Fun(x->exp(-10sin((x-.1)/2)^2),Laurent)
-@test_approx_eq f(.5) (Conversion(space(f),Fourier(domain(f)))*f)(.5)
-@test_approx_eq f(.5) Fun(f,Fourier)(.5)
+@test f(.5) ≈ (Conversion(space(f),Fourier(domain(f)))*f)(.5)
+@test f(.5) ≈ Fun(f,Fourier)(.5)
 
 
 Γ=Circle(1.1,2.2)
 z=Fun(Fourier(Γ))
 @test space(z)==Fourier(Γ)
-@test_approx_eq z(1.1+2.2exp(0.1im)) 1.1+2.2exp(0.1im)
+@test z(1.1+2.2exp(0.1im)) ≈ 1.1+2.2exp(0.1im)
 
 
 
 
-@test_approx_eq Fun(Laurent(0..2π),[1,1.,1.])(0.1) 1+2cos(0.1)
-@test_approx_eq Fun(Laurent(-1..1),[1,1.,1.])(0.1) 1+2cos(π*(0.1+1))
-@test_approx_eq Fun(Laurent(0..1),[1,1.,1.])(0.1) 1+2cos(2π*0.1)
+@test Fun(Laurent(0..2π),[1,1.,1.])(0.1) ≈ 1+2cos(0.1)
+@test Fun(Laurent(-1..1),[1,1.,1.])(0.1) ≈ 1+2cos(π*(0.1+1))
+@test Fun(Laurent(0..1),[1,1.,1.])(0.1) ≈ 1+2cos(2π*0.1)
 
 
 @test abs(Fun(cos,Circle())(exp(0.1im))-cos(exp(0.1im)))<100eps()
@@ -73,7 +73,7 @@ let f=Fun(exp,Circle())
 end
 
 let f=Fun(x->exp(-10sin((x-.1)/2)^2),Fourier)
-    @test_approx_eq real(f)(.1) f(.1)
+    @test real(f)(.1) ≈ f(.1)
 end
 
 
@@ -85,14 +85,14 @@ end
 
 let f=Fun(t->cos(t),CosSpace)
     D=Derivative(space(f))
-    @test_approx_eq (D*f)(.1) -sin(.1)
-    @test_approx_eq f'(.1) -sin(.1)
+    @test (D*f)(.1) ≈ -sin(.1)
+    @test f'(.1) ≈ -sin(.1)
 end
 
 let f=Fun(t->sin(t),SinSpace)
     D=Derivative(space(f))
-    @test_approx_eq (D*f)(.1) cos(.1)
-    @test_approx_eq f'(.1) cos(.1)
+    @test (D*f)(.1) ≈ cos(.1)
+    @test f'(.1) ≈ cos(.1)
 end
 
 let f=Fun(cos,Fourier)
@@ -152,42 +152,42 @@ D=Derivative(Taylor(PeriodicInterval()))
 s=Fun(t->(sin(t)+sin(2t))*cos(sin(t)),SinSpace)
 b=Fun(t->(sin(t)+sin(3t)),SinSpace)
 
-@test_approx_eq (s*s)(.1) s(.1)^2
-@test_approx_eq (s*b)(.1) s(.1)*b(.1)
+@test (s*s)(.1) ≈ s(.1)^2
+@test (s*b)(.1) ≈ s(.1)*b(.1)
 
 s=Fun(t->(cos(t)+cos(2t))*cos(cos(t)),CosSpace)
 b=Fun(t->(1+cos(t)+cos(3t)),CosSpace)
 
-@test_approx_eq (s*s)(.1) s(.1)^2
-@test_approx_eq (s*b)(.1) s(.1)*b(.1)
+@test (s*s)(.1) ≈ s(.1)^2
+@test (s*b)(.1) ≈ s(.1)*b(.1)
 
 s=Fun(t->(cos(t)+cos(2t))*cos(cos(t)),CosSpace)
 b=Fun(t->(sin(t)+sin(3t)),SinSpace)
 
-@test_approx_eq (s*b)(.1) s(.1)*b(.1)
+@test (s*b)(.1) ≈ s(.1)*b(.1)
 
 
 s=Fun(t->(sin(t)+sin(2t))*cos(sin(t)),SinSpace)
 b=Fun(t->(1+cos(t)+cos(3t)),CosSpace)
 
-@test_approx_eq (s*b)(.1) s(.1)*b(.1)
+@test (s*b)(.1) ≈ s(.1)*b(.1)
 
 
 
 a=Fun(t->exp(cos(t)+sin(t)),Fourier)
 b=Fun(t->sin(t)+cos(3t)+1,Fourier)
 
-@test_approx_eq (a*b)(.1) a(.1)*b(.1)
+@test (a*b)(.1) ≈ a(.1)*b(.1)
 
 a=Fun(t->exp(cos(t)),CosSpace)
 b=Fun(t->sin(t)+cos(3t)+1,Fourier)
 
-@test_approx_eq (a*b)(.1) a(.1)*b(.1)
+@test (a*b)(.1) ≈ a(.1)*b(.1)
 
 a=Fun(t->sin(sin(t)),SinSpace)
 b=Fun(t->sin(t)+cos(3t)+1,Fourier)
 
-@test_approx_eq (a*b)(.1) a(.1)*b(.1)
+@test (a*b)(.1) ≈ a(.1)*b(.1)
 
 
 
@@ -197,20 +197,20 @@ c2=-0.1+.2im;r2=0.3;
 d2=Circle(c2,r2)
 z=Fun(identity,d2)
 
-@test_approx_eq z(-0.1+.2im+0.3*exp(0.1im)) (-0.1+.2im+0.3*exp(0.1im))
+@test z(-0.1+.2im+0.3*exp(0.1im)) ≈ (-0.1+.2im+0.3*exp(0.1im))
 
 
 
 # false Circle
-@test_approx_eq Fun(exp,Fourier(Circle(0.,1.,false)))(exp(0.1im)) exp(exp(.1im))
-@test_approx_eq Fun(exp,Laurent(Circle(0.,1.,false)))(exp(0.1im)) exp(exp(.1im))
+@test Fun(exp,Fourier(Circle(0.,1.,false)))(exp(0.1im)) ≈ exp(exp(.1im))
+@test Fun(exp,Laurent(Circle(0.,1.,false)))(exp(0.1im)) ≈ exp(exp(.1im))
 
 
 
 ## Reverse orientation
 
 f=Fun(z->1/z,Taylor(1/Circle()))
-@test_approx_eq f(exp(0.1im)) exp(-0.1im)
+@test f(exp(0.1im)) ≈ exp(-0.1im)
 
 
 
@@ -226,15 +226,15 @@ end
 ##  Norms
 
 
-@test_approx_eq sum(Fun(CosSpace(),[1.]))/(2π) 1.
-@test_approx_eq sum(Fun(CosSpace(),[0.,1.])^2)/(2π) 0.5
-@test_approx_eq sum(Fun(CosSpace(),[0.,0.,1.])^2)/(2π) 0.5
-@test_approx_eq sum(Fun(CosSpace(),[0.,0.,0.,1.])^2)/(2π) 0.5
+@test sum(Fun(CosSpace(),[1.]))/(2π) ≈ 1.
+@test sum(Fun(CosSpace(),[0.,1.])^2)/(2π) ≈ 0.5
+@test sum(Fun(CosSpace(),[0.,0.,1.])^2)/(2π) ≈ 0.5
+@test sum(Fun(CosSpace(),[0.,0.,0.,1.])^2)/(2π) ≈ 0.5
 
 
-@test_approx_eq sum(Fun(SinSpace(),[0.,1.])^2)/(2π) 0.5
-@test_approx_eq sum(Fun(SinSpace(),[0.,0.,1.])^2)/(2π) 0.5
-@test_approx_eq sum(Fun(SinSpace(),[0.,0.,0.,1.])^2)/(2π) 0.5
+@test sum(Fun(SinSpace(),[0.,1.])^2)/(2π) ≈ 0.5
+@test sum(Fun(SinSpace(),[0.,0.,1.])^2)/(2π) ≈ 0.5
+@test sum(Fun(SinSpace(),[0.,0.,0.,1.])^2)/(2π) ≈ 0.5
 
 
 ## Bug in multiplicaiton
@@ -243,7 +243,7 @@ end
 @test Fun(Fourier(),[1.])^2 ≈ Fun(Fourier(),[1.])
 
 B=Evaluation(Laurent(0..2π),0,1)
-@test_approx_eq B*Fun(sin,domainspace(B)) 1.0
+@test B*Fun(sin,domainspace(B)) ≈ 1.0
 
 
 

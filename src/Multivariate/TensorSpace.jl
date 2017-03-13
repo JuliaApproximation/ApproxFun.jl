@@ -2,7 +2,7 @@
 export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
-abstract AbstractProductSpace{SV,T,DD,d} <: Space{T,DD,d}
+@compat abstract type AbstractProductSpace{SV,T,DD,d} <: Space{T,DD,d} end
 
 
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
@@ -498,7 +498,7 @@ for OP in (:block,:blockstart,:blockstop)
 end
 
 function points(sp::TensorSpace,n)
-    pts=Array(Vec{2,Float64},0)
+    pts=Array{Vec{2,Float64}}(0)
     if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
         N,M=dimension(sp[1]),dimension(sp[2])
     elseif isfinite(dimension(sp[1]))

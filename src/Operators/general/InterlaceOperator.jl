@@ -191,7 +191,7 @@ function Base.convert{T}(::Type{Operator{T}},S::InterlaceOperator)
     if T == eltype(S)
         S
     else
-        ops=Array(Operator{T},size(S.ops)...)
+        ops=Array{Operator{T}}(size(S.ops)...)
         for j=1:size(S.ops,2),k=1:size(S.ops,1)
             ops[k,j]=S.ops[k,j]
         end

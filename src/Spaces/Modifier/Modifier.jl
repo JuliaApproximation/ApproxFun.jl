@@ -36,7 +36,7 @@ end
 function interlacewithzeros(cfs::Vector,k,it)
     n = length(cfs)
 
-    ret = Array(eltype(cfs),0)
+    ret = Array{eltype(cfs)}(0)
     for (K,j) in it
         if j > n
             break

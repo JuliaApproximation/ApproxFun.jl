@@ -23,12 +23,12 @@ immutable Line{angle,T<:Number} <: IntervalDomain{T}
     β::Float64
 
     #TODO get this inner constructor working again.
-    Line(c,α,β)=new(c,α,β)
-    Line(c)=new(c,-1.,-1.)
-    Line()=new(zero(T),-1.,-1.)
+    (::Type{Line{angle,T}}){angle,T}(c,α,β) = new{angle,T}(c,α,β)
+    (::Type{Line{angle,T}}){angle,T}(c) = new{angle,T}(c,-1.,-1.)
+    (::Type{Line{angle,T}}){angle,T}() = new{angle,T}(zero(T),-1.,-1.)
 end
 
-typealias RealLine{T} Union{Line{false,T},Line{true,T}}
+@compat const RealLine{T} = Union{Line{false,T},Line{true,T}}
 
 (::Type{Line{a}}){a}(c,α,β) = Line{a,typeof(c)}(c,α,β)
 (::Type{Line{a}}){a}(c::Number) = Line{a,typeof(c)}(c)
@@ -70,9 +70,9 @@ function line_tocanonical(α,β,x)
     @assert α==β==-1. || α==β==-.5
 
     if α==β==-1.
-        2x./(1+sqrt(1+4x.^2))
+        2x/(1+sqrt(1+4x^2))
     elseif α==β==-.5
-        x./sqrt(1 + x.^2)
+        x/sqrt(1 + x^2)
     end
 end
 
@@ -80,32 +80,32 @@ function line_tocanonicalD(α,β,x)
     @assert α==β==-1. || α==β==-.5
 
     if α==β==-1.
-        2./(1+4x.^2+sqrt(1+4x.^2))
-    elseif α==β==-.5
-        (1 + x.^2).^(-3/2)
+        2/(1+4x^2+sqrt(1+4x^2))
+    elseif α==β==-0.5
+        (1 + x^2)^(-3/2)
     end
 end
 function line_fromcanonical(α,β,x)
     #TODO: why is this consistent?
     if α==β==-1.
-        x./(1-x.^2)
+        x/(1-x^2)
     else
-        x.*(1 + x).^α.*(1 - x).^β
+        x*(1 + x)^α*(1 - x)^β
     end
 end
 function line_fromcanonicalD(α,β,x)
     if α==β==-1.
-        (1+x.^2)./(1-x.^2).^2
+        (1+x^2)/(1-x^2)^2
     else
-        (1 - (β-α)x - (β+α+1)x.^2).*(1+x).^(α-1).*(1-x).^(β-1)
+        (1 - (β-α)x - (β+α+1)x^2)*(1+x)^(α-1)*(1-x)^(β-1)
     end
 end
 
 function line_invfromcanonicalD(α,β,x)
     if α==β==-1.
-        (1-x.^2).^2./(1+x.^2)
+        (1-x^2)^2/(1+x^2)
     else
-        1./(1 - (β-α)x - (β+α+1)x.^2).*(1+x).^(1-α).*(1-x).^(1-β)
+        1/(1 - (β-α)x - (β+α+1)x^2)*(1+x)^(1-α)*(1-x)^(1-β)
     end
 end
 
@@ -163,10 +163,10 @@ end
 immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     center::T
     L::Float64
-    PeriodicLine(c,L) = new(c,L)
-    PeriodicLine(c) = new(c,1.)
-    PeriodicLine(d::PeriodicLine) = new(d.center,d.L)
-    PeriodicLine() = new(0.,1.)
+    (::Type{PeriodicLine{angle,T}}){angle,T}(c,L) = new{angle,T}(c,L)
+    (::Type{PeriodicLine{angle,T}}){angle,T}(c) = new{angle,T}(c,1.)
+    (::Type{PeriodicLine{angle,T}}){angle,T}(d::PeriodicLine) = new{angle,T}(d.center,d.L)
+    (::Type{PeriodicLine{angle,T}}){angle,T}() = new{angle,T}(0.,1.)
 end
 
 Base.convert{a}(::Type{PeriodicLine{a}},c,L) = PeriodicLine{a,typeof(c)}(c,L)

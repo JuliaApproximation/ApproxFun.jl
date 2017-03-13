@@ -11,11 +11,11 @@ type LowRankMatrix{T} <: AbstractMatrix{T}
     U::Matrix{T} # m x r Matrix
     V::Matrix{T} # n x r Matrix
 
-    function LowRankMatrix(U::Matrix{T},V::Matrix{T})
+    function (::Type{LowRankMatrix{T}}){T}(U::Matrix{T},V::Matrix{T})
         m,r = size(U)
         n,rv = size(V)
         @assert r == rv
-        new(U,V)
+        new{T}(U,V)
     end
 end
 
@@ -27,14 +27,14 @@ LowRankMatrix(U::Matrix,V::Vector) = LowRankMatrix(U,reshape(V,length(V),1))
 LowRankMatrix(U::Vector,V::Vector) = LowRankMatrix(reshape(U,length(U),1),reshape(V,length(V),1))
 LowRankMatrix(a::Number,m::Int,n::Int) = LowRankMatrix(a*ones(eltype(a),m),ones(eltype(a),n))
 
-LowRankMatrix{T}(::Type{T},m::Int,n::Int,r::Int) = LowRankMatrix(Array(T,m,r),Array(T,n,r))
+LowRankMatrix{T}(::Type{T},m::Int,n::Int,r::Int) = LowRankMatrix(Matrix{T}(m,r),Matrix{T}(n,r))
 lrzeros{T}(::Type{T},m::Int,n::Int,r::Int) = LowRankMatrix(zeros(T,m,r),zeros(T,n,r))
 
-Base.similar{T}(L::LowRankMatrix, ::Type{T}, dims::Dims) = (@assert length(dims) == 2;r = rank(L); LowRankMatrix(Array(T,dims[1],r),Array(T,dims[2],r)))
-Base.similar{T}(L::LowRankMatrix{T}) = ((m,n) = size(L); r = rank(L); LowRankMatrix(Array(T,m,r),Array(T,n,r)))
-Base.similar{T}(L::LowRankMatrix{T}, dims::Dims) = (@assert length(dims) == 2;r = rank(L); LowRankMatrix(Array(T,dims[1],r),Array(T,dims[2],r)))
-Base.similar{T}(L::LowRankMatrix{T}, m::Int) = Array(T, m)
-Base.similar{T}(L::LowRankMatrix{T}, S) = ((m,n) = size(L); r = rank(L); LowRankMatrix(Array(S,m,r),Array(S,n,r)))
+Base.similar{T}(L::LowRankMatrix, ::Type{T}, dims::Dims) = (@assert length(dims) == 2;r = rank(L); LowRankMatrix(Matrix{T}(dims[1],r),Matrix{T}(dims[2],r)))
+Base.similar{T}(L::LowRankMatrix{T}) = ((m,n) = size(L); r = rank(L); LowRankMatrix(Matrix{T}(m,r),Matrix{T}(n,r)))
+Base.similar{T}(L::LowRankMatrix{T}, dims::Dims) = (@assert length(dims) == 2;r = rank(L); LowRankMatrix(Matrix{T}(dims[1],r),Matrix{T}(dims[2],r)))
+Base.similar{T}(L::LowRankMatrix{T}, m::Int) = Vector{T}( m)
+Base.similar{T}(L::LowRankMatrix{T}, S) = ((m,n) = size(L); r = rank(L); LowRankMatrix(Matrix{S}(m,r),Matrix{S}(n,r)))
 
 function LowRankMatrix(A::Matrix)
     U,Σ,V = svd(A)
@@ -155,7 +155,7 @@ pad!(L::LowRankMatrix,n::Integer,m::Integer) = pad!(pad!(L,n,:),:,m)
 
 # algebra
 
-for op in (:+,:-,:.+,:.-)
+for op in (:+,:-)
     @eval begin
         $op(L::LowRankMatrix) = LowRankMatrix($op(L.U),L.V)
 
@@ -175,8 +175,6 @@ end
 
 *(a::Number,L::LowRankMatrix) = LowRankMatrix(a*L.U,L.V)
 *(L::LowRankMatrix,a::Number) = LowRankMatrix(L.U,L.V*a)
-.*(a::Number,L::LowRankMatrix) = a*L
-.*(L::LowRankMatrix,a::Number) = L*a
 
 # override default:
 Base.A_mul_Bc(A::LowRankMatrix,B::LowRankMatrix) = A*ctranspose(B)

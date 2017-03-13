@@ -48,7 +48,7 @@ testblockbandedoperator(ApproxFun.interlace(A))
 @time u=A\[g,0.]
 
 
-@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
+@test u(.1,.2) ≈ real(exp(0.1+0.2im))
 
 
 println("    Poisson tests")
@@ -82,7 +82,7 @@ A=[dirichlet(dx)⊗eye(dy);
 
 
 @time u=\(A,[ones(4);zeros(5)];tolerance=1E-5)
-@test_approx_eq u(0.1,0.2) 1.0
+@test u(0.1,0.2) ≈ 1.0
 
 
 
@@ -103,7 +103,7 @@ testbandedblockbandedoperator(Laplacian(d))
 
 @time u=[B;Laplacian(d)]\[g;0.]
 
-@test_approx_eq u(.1,.2) real(cos(.1+.2im))
+@test u(.1,.2) ≈ real(cos(.1+.2im))
 
 
 
@@ -134,7 +134,7 @@ L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
 testbandedblockbandedoperator(L)
 
 @time u=\([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-5)
-@test_approx_eq u(0.5,0.001) 0.857215539785593+0.08694948835021317im  # empircal from schurfact
+@test u(0.5,0.001) ≈ 0.857215539785593+0.08694948835021317im  # empircal from ≈ schurfact
 
 
 #

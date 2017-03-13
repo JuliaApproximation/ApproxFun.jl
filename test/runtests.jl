@@ -1,6 +1,6 @@
 versioninfo()
 
-using ApproxFun,Base.Test
+using ApproxFun, Base.Test
 
 
 println("Helper tests")

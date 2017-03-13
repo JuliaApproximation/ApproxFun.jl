@@ -41,11 +41,11 @@ f=Fun(x->exp(im.*x),1im..(2+.5im))
 #@assert f([f.domain.a,f.domain.b])      ##TODO: Currently crashes
 
 
-@test_approx_eq sum(f)  (0.5515167681675808 + 0.6202852564797062im)
+@test sum(f) ≈ (0.5515167681675808 + 0.6202852564797062im)
 
-@test_approx_eq f(1im) exp(im.*im)
+@test f(1im) ≈ exp(im.*im)
 
-@test_approx_eq f(1+.75im) exp(im.*(1+.75im))
+@test f(1+.75im) ≈ exp(im.*(1+.75im))
 
 
 @test norm(f'-im*f) < 1000eps()

@@ -5,7 +5,7 @@
 
 function coefficientmatrix{N,F}(::Type{N},f::Vector{F},o...)
     if isempty(f)
-        return Array(N,0,0)
+        return Matrix{N}(0,0)
     end
 
     n=mapreduce(ncoefficients,max,f)
@@ -60,10 +60,10 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 
 function evaluate{T<:Fun}(A::AbstractVector{T},x::AbstractVector)
     n=length(x)
-    ret=Array(promote_type(eltype(x),mapreduce(eltype,promote_type,A)),length(A),n)
+    ret=Matrix{promote_type(eltype(x),mapreduce(eltype,promote_type,A))}(length(A),n)
 
     for k=1:length(A)
-        bkr=evaluate(A[k],x)
+        bkr=A[k].(x)
 
         for j=1:n
             ret[k,j]=bkr[j]
@@ -84,7 +84,7 @@ end
      @eval begin
          function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,V}})
              cfs=$op(A,coefficientmatrix(p).')
-             ret = Array(Fun{D,promote_type(T,V)},size(cfs,1))
+             ret = Vector{Fun{D,promote_type(T,V)}}(size(cfs,1))
              for i = 1:size(cfs,1)
                  ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
              end
@@ -93,7 +93,7 @@ end
 
          function ($op){T<:Number,D}(p::Vector{Fun{D,T}},A::Array{T,2})
              cfs=$op(A,coefficientmatrix(p).')
-             ret = Array(Fun{D,T},size(cfs,1))
+             ret = Vector{Fun{D,T}}(size(cfs,1))
              for i = 1:size(cfs,1)
                  ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
              end
@@ -105,9 +105,9 @@ end
 
 #Allow vecfun + constvec, etc
 #can't just promote constant vector to a vector-valued fun because don't know the domain.
-for op = (:+,:-,:.*,:./)
+for op = (:+,:-)
     @eval begin
-        ($op){T<:Number,S,V}(f::Fun{S,V},c::AbstractArray{T})=devec($op(vec(f),c))
-        ($op){T<:Number,S,V}(c::AbstractArray{T},f::Fun{S,V})=devec($op(c,vec(f)))
+        ($op){T<:Number,S,V}(f::Fun{S,V},c::AbstractArray{T}) = devec($op(vec(f),c))
+        ($op){T<:Number,S,V}(c::AbstractArray{T},f::Fun{S,V}) = devec($op(c,vec(f)))
     end
 end

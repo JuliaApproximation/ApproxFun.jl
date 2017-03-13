@@ -67,7 +67,7 @@ end
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-abstract DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d}
+@compat abstract type DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d} end
 
 
 dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)
@@ -94,8 +94,8 @@ block(sp::DirectSumSpace,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths
 
 immutable SumSpace{SV,T,DD,d} <: DirectSumSpace{SV,T,DD,d}
     spaces::SV
-    SumSpace(dom::Domain) = new(tuple(map(typ->typ(dom),SV.parameters)...))
-    SumSpace(sp::Tuple) = new(sp)
+    (::Type{SumSpace{SV,T,DD,d}}){SV,T,DD,d}(dom::Domain) = new{SV,T,DD,d}(tuple(map(typ->typ(dom),SV.parameters)...))
+    (::Type{SumSpace{SV,T,DD,d}}){SV,T,DD,d}(sp::Tuple) = new{SV,T,DD,d}(sp)
 end
 
 SumSpace(sp::Tuple) = SumSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
@@ -104,9 +104,9 @@ SumSpace(sp::Tuple) = SumSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
 
 immutable PiecewiseSpace{SV,T,DD<:UnionDomain,d} <: DirectSumSpace{SV,T,DD,d}
     spaces::SV
-    PiecewiseSpace(dom::AnyDomain)=new(tuple(map(typ->typ(dom),SV.parameters)...))
-    PiecewiseSpace(dom::UnionDomain)=new(tuple(map((typ,dom)->typ(dom),SV.parameters,dom.domains)...))
-    PiecewiseSpace(sp::Tuple)=new(sp)
+    (::Type{PiecewiseSpace{SV,T,DD,d}}){SV,T,DD,d}(dom::AnyDomain) = new{SV,T,DD,d}(tuple(map(typ->typ(dom),SV.parameters)...))
+    (::Type{PiecewiseSpace{SV,T,DD,d}}){SV,T,DD,d}(dom::UnionDomain) = new{SV,T,DD,d}(tuple(map((typ,dom)->typ(dom),SV.parameters,dom.domains)...))
+    (::Type{PiecewiseSpace{SV,T,DD,d}}){SV,T,DD,d}(sp::Tuple) = new{SV,T,DD,d}(sp)
 end
 
 function PiecewiseSpace(spin::Tuple)
@@ -368,7 +368,7 @@ function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
     d=dimension(space(f,k))
 
     # preallocate: we know we have at most N coefficients
-    ret=Array(eltype(f),N)
+    ret=Array{eltype(f)}(N)
     j=1  # current coefficient
     p=0  # current length
     for (n,m) in it
@@ -392,7 +392,7 @@ end
 
 # interlace coefficients according to iterator
 function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::BlockInterlacer)
-    ret=Vector{T}()
+    ret=Array{T}(0)
     N=mapreduce(length,max,v)
     cnts = map(length,v)
 
@@ -423,12 +423,12 @@ interlace{F<:Fun}(v::AbstractVector{F},sp::DirectSumSpace) =
 
 function interlace(v::Union{Tuple,Vector{Any}},sp::DirectSumSpace)
     if all(vk->isa(vk,Fun),v)
-        V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
+        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(length(v))
         for k=1:length(v)
             V[k]=coefficients(v[k])
         end
     else
-        V=Array(Vector{mapreduce(eltype,promote_type,v)},length(v))
+        V=Array{Vector{mapreduce(eltype,promote_type,v)}}(length(v))
         for k=1:length(v)
             V[k]=v[k]
         end
@@ -488,13 +488,13 @@ function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::Vector{T})
     k=div(n,K)
     PT=coefficient_type(S,eltype(vals))
     if k==0
-        M=Array(Vector{PT},n)
+        M=Array{Vector{PT}}(n)
         for j=1:n
             M[j]=transform(S[j],[vals[j]])
         end
     else
         r=n-K*k
-        M=Array(Vector{PT},K)
+        M=Array{Vector{PT}}(K)
 
         for j=1:r
             M[j]=transform(S[j],vals[(j-1)*(k+1)+1:j*(k+1)])

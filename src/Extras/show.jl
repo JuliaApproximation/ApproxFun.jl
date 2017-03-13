@@ -181,7 +181,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
         if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
-            M=Array(Any,11,11)
+            M=Matrix{Any}(11,11)
             fill!(M,PrintShow(""))
             for j = 1:size(BM,2),k = colrange(BM,j)
                 M[k,j]=BM[k,j]
@@ -198,7 +198,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
         elseif isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
-            M=Array(Any,11,11)
+            M=Matrix{Any}(11,11)
             for k=1:10,j=1:10
                 M[k,j]=BM[k,j]
             end
@@ -214,7 +214,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
         elseif isinf(size(B,1))
             BM=B[1:10,1:size(B,2)]
 
-            M=Array(Any,11,size(B,2))
+            M=Matrix{Any}(11,size(B,2))
             for k=1:10,j=1:size(B,2)
                 M[k,j]=BM[k,j]
             end
@@ -226,7 +226,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
         elseif isinf(size(B,2))
             BM=B[1:size(B,1),1:10]
 
-            M=Array(Any,size(B,1),11)
+            M=Matrix{Any}(size(B,1),11)
             for k=1:size(B,1),j=1:10
                 M[k,j]=BM[k,j]
             end

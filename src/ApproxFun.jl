@@ -1,13 +1,17 @@
 __precompile__()
 
 module ApproxFun
-    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets
+    using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat
     import FixedSizeArrays, ToeplitzMatrices, Calculus
 
 import Base.LinAlg: BlasInt, BlasFloat
 
-import Base: values, getindex, setindex!, *, .*, +, .+, -, .-, ==, <, <=, >, |, !, !=, eltype, start, next, done,
-                >=, ./, /, .^, ^, \, ∪, transpose, size, to_indexes, reindex, tail, index_shape_dim
+import Base: values, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
+                >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast
+
+if VERSION < v"0.6.0-dev"
+    import Base: .*, .+, .-, .^, ./
+end
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
 # we can't do importall Base as we replace some Base definitions
@@ -51,8 +55,8 @@ include("LinearAlgebra/LinearAlgebra.jl")
 
 include("Fun/Fun.jl")
 
-include("Domains/Domains.jl")
 
+include("Domains/Domains.jl")
 include("Multivariate/Multivariate.jl")
 include("Operators/Operator.jl")
 
@@ -67,13 +71,10 @@ include("PDE/PDE.jl")
 include("Caching/caching.jl")
 include("Extras/Extras.jl")
 include("Plot/Plot.jl")
-
 include("docs.jl")
-
 include("testing.jl")
 
-
-include("precompile.jl")
-_precompile_()
+#include("precompile.jl")
+#_precompile_()
 
 end #module

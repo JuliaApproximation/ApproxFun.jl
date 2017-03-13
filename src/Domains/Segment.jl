@@ -15,8 +15,8 @@ are real and `a < b`, then this is is equivalent to an `Interval(a,b)`.
 immutable Segment{T} <: IntervalDomain{T}
 	a::T
 	b::T
-	Segment() = new(-one(T),one(T))
-	Segment(a,b) = new(a,b)
+	(::Type{Segment{T}}){T}() = new{T}(-one(T),one(T))
+	(::Type{Segment{T}}){T}(a,b) = new{T}(a,b)
 end
 
 
@@ -99,16 +99,18 @@ end
 
 ## algebra
 
-for op in (:*,:+,:-,:.*,:.+,:.-,:.^)
+for op in (:*,:+,:-)
     @eval begin
-        $op(c::Number,d::Segment)=Segment($op(c,d.a),$op(c,d.b))
-        $op(d::Segment,c::Number)=Segment($op(d.a,c),$op(d.b,c))
+        $op(c::Number,d::Segment) = Segment($op(c,d.a),$op(c,d.b))
+        $op(d::Segment,c::Number) = Segment($op(d.a,c),$op(d.b,c))
     end
 end
 
-for op in (:/,:./)
-    @eval $op(d::Segment,c::Number)=Segment($op(d.a,c),$op(d.b,c))
-end
+broadcast(::typeof(^),c::Number,d::Segment) = Segment(c^d.a,c^d.b)
+broadcast(::typeof(^),d::Segment,c::Number) = Segment(d.a^c,d.b^c)
+
+/(d::Segment,c::Number) = Segment(d.a/c,d.b/c)
+
 
 Base.sqrt(d::Segment)=Segment(sqrt(d.a),sqrt(d.b))
 

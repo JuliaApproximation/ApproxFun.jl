@@ -87,7 +87,7 @@ ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp?f:ProductFun(coefficients
 ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp::ProductDomain)=ProductFun(f,Space(sp))
 
 function ProductFun(f::ProductFun,sp::AbstractProductSpace)
-    u=Array(Fun{typeof(columnspace(sp,1)),eltype(f)},length(f.coefficients))
+    u=Array{Fun{typeof(columnspace(sp,1)),eltype(f)}}(length(f.coefficients))
 
     for k=1:length(f.coefficients)
         u[k]=Fun(f.coefficients[k],columnspace(sp,k))
@@ -121,7 +121,7 @@ end
 
 
 function pad{S,V,SS,T}(f::ProductFun{S,V,SS,T},n::Integer,m::Integer)
-    ret=Array(Fun{S,T},m)
+    ret=Array{Fun{S,T}}(m)
     cm=min(length(f.coefficients),m)
     for k=1:cm
         ret[k]=pad(f.coefficients[k],n)
@@ -149,7 +149,7 @@ coefficients(f::ProductFun)=funlist2coefficients(f.coefficients)
 function coefficients(f::ProductFun,ox::Space,oy::Space)
     T=eltype(f)
     m=size(f,1)
-    B=Array(T,m,length(f.coefficients))
+    B=Matrix{T}(m,length(f.coefficients))
     # convert in x direction
     #TODO: adaptively grow in x?
     for k=1:length(f.coefficients)
@@ -283,7 +283,7 @@ for op in (:(Base.sin),:(Base.cos))
         Fun(space(f),transform!(space(f),$op(values(pad(f,size(f,1)+20,size(f,2))))))
 end
 
-.^(f::ProductFun,k::Integer) =
+^(f::ProductFun,k::Integer) =
     Fun(space(f),transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k))
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
@@ -311,7 +311,7 @@ end
 # function transform{ST<:Space,N<:Number}(::Type{N},S::Vector{ST},T::Space,V::Matrix)
 #     @assert length(S)==size(V,2)
 #     # We assume all S spaces have same domain/points
-#     C=Array(N,size(V)...)
+#     C=Vector{N}(size(V)...)
 #     for k=1:size(V,1)
 #         C[k,:]=transform(T,vec(V[k,:]))
 #     end

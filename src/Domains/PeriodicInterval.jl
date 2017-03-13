@@ -11,8 +11,8 @@ represents a periodic interval from `a` to `b`, that is, the point
 immutable PeriodicInterval{T} <: PeriodicDomain{T}
     a::T
     b::T
-    PeriodicInterval() = new(0,2convert(T,π))
-    PeriodicInterval(a,b) = new(a,b)
+    (::Type{PeriodicInterval{T}}){T}() = new{T}(0,2convert(T,π))
+    (::Type{PeriodicInterval{T}}){T}(a,b) = new{T}(a,b)
 end
 
 PeriodicInterval()=PeriodicInterval{Float64}()
@@ -72,16 +72,14 @@ Base.reverse(d::PeriodicInterval) = PeriodicInterval(d.b,d.a)
 
 ## algebra
 
-for op in (:*,:+,:-,:.*,:.+,:.-)
+for op in (:*,:+,:-)
     @eval begin
         $op(c::Number,d::PeriodicInterval) = PeriodicInterval($op(c,d.a),$op(c,d.b))
         $op(d::PeriodicInterval,c::Number) = PeriodicInterval($op(d.a,c),$op(d.b,c))
     end
 end
 
-for op in (:/,:./)
-    @eval $op(d::PeriodicInterval,c::Number) = PeriodicInterval($op(d.a,c),$op(d.b,c))
-end
 
+@eval /(d::PeriodicInterval,c::Number) = PeriodicInterval(/(d.a,c),/(d.b,c))
 
 +(d1::PeriodicInterval,d2::PeriodicInterval) = PeriodicInterval(d1.a+d2.a,d1.b+d2.b)

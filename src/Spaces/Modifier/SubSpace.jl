@@ -1,14 +1,12 @@
 
-immutable SubSpace{DS,IT,T,DD,dim}<: Space{T,DD,dim}
+immutable SubSpace{DS,IT,T,DD,dim} <: Space{T,DD,dim}
     space::DS
     indexes::IT
+    (::Type{SubSpace{DS,IT,T,DD,dim}}){DS,IT,T,DD,dim}(sp::DS,ind::IT) = new{DS,IT,T,DD,dim}(sp,ind)
 end
 
-SubSpace{T,DD,dim}(sp::Space{T,DD,dim},kr) =
-    SubSpace{typeof(sp),typeof(kr),T,DD,dim}(sp,kr)
-
 SubSpace(sp::Space,kr) =
-    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),dimension(sp)}(sp,kr)
+    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),domaindimension(sp)}(sp,kr)
 
 SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,reindex(sp,sp.indexes,to_indexes(kr))[1])
 

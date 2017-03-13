@@ -14,7 +14,7 @@ LogWeight(β,α,space)=LogWeight{typeof(space),typeof(domain(space))}(β,α,spac
 spacescompatible(A::LogWeight,B::LogWeight)=A.β==B.β && A.α == B.α && spacescompatible(A.space,B.space)
 canonicalspace(A::LogWeight)=A
 
-logweight(β,α,x)=log((1+x).^β.*(1-x).^α)
+logweight(β,α,x)=log((1+x)^β*(1-x)^α)
 weight(sp::LogWeight,x)=logweight(sp.β,sp.α,tocanonical(sp,x))
 
 

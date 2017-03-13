@@ -1,7 +1,7 @@
 export Derivative,Integral,Laplacian,Volterra
 
 
-abstract CalculusOperator{S,OT,T}<:Operator{T}
+@compat abstract type CalculusOperator{S,OT,T}<:Operator{T} end
 
 
 ## Note that all functions called in calculus_operator must be exported
@@ -12,7 +12,7 @@ macro calculus_operator(Op)
     DefaultOp=parse("Default"*string(Op))
     return esc(quote
         # The SSS, TTT are to work around #9312
-        abstract $Op{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT}
+        @compat abstract type $Op{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT} end
 
         immutable $ConcOp{S<:Space,OT,T} <: $Op{S,OT,T}
             space::S        # the domain space

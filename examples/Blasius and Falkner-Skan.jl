@@ -16,7 +16,7 @@ d=domain(x)
 B=[ldirichlet(d),lneumann(d),rneumann(d)]
 D=Derivative(d)
 κ = 0.33205733621519630     # This is diff(u,2)(0.), due to Boyd.
-u0 = (1//2) * κ * x.^2      # First-order approximation
+u0 = (1//2) * κ * x^2      # First-order approximation
 u = 0.5x^2                  # Other initial solutions may fail to converge
 
 f = (u)->(2.0*D^3*u + u*D^2*u)

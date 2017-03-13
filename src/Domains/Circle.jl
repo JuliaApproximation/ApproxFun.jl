@@ -94,19 +94,17 @@ Base.reverse(d::Circle) = Circle(d.center,d.radius,!d.orientation)
 Base.conj(d::Circle) = Circle(conj(d.center),d.radius,!d.orientation)
 
 
-for op in (:+,:-,:.+,:.-)
+for op in (:+,:-)
     @eval begin
         $op(c::Number,d::Circle) = Circle($op(c,d.center),d.radius,d.orientation)
         $op(d::Circle,c::Number) = Circle($op(d.center,c),d.radius,d.orientation)
     end
 end
 
-for op in (:*,:.*)
-    @eval begin
-        $op(c::Real,d::Circle) = Circle($op(c,d.center),$op(abs(c),d.radius),sign(c)<0?!d.orientation:d.orientation)
-        $op(d::Circle,c::Real) = Circle($op(c,d.center),$op(abs(c),d.radius),sign(c)<0?!d.orientation:d.orientation)
-    end
-end
+
+*(c::Real,d::Circle) = Circle(*(c,d.center),*(abs(c),d.radius),sign(c)<0?!d.orientation:d.orientation)
+*(d::Circle,c::Real) = Circle(*(c,d.center),*(abs(c),d.radius),sign(c)<0?!d.orientation:d.orientation)
+
 
 
 /(c::Number,d::Circle) =

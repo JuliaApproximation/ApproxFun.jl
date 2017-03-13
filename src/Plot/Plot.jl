@@ -212,10 +212,10 @@ end
     n=length(pts)
     ws=pad(g.coefficients,dimension(space(g)))
 
-    lnsx=Array(Float64,0)
-    lnsy=Array(Float64,0)
-    dtsx=Array(Float64,0)
-    dtsy=Array(Float64,0)
+    lnsx=Vector{Float64}(0)
+    lnsy=Vector{Float64}(0)
+    dtsx=Vector{Float64}(0)
+    dtsy=Vector{Float64}(0)
     for k=1:n-1
         push!(lnsx,pts[k])
         push!(lnsy,ws[k])

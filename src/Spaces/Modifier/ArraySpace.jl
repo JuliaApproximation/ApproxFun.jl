@@ -20,8 +20,8 @@ end
 BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(vec(sp.spaces)))
 interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
-typealias VectorSpace{S,T,DD,dim} ArraySpace{S,1,T,DD,dim}
-typealias MatrixSpace{S,T,DD,dim} ArraySpace{S,2,T,DD,dim}
+@compat const VectorSpace{S,T,DD,dim} = ArraySpace{S,1,T,DD,dim}
+@compat const MatrixSpace{S,T,DD,dim} = ArraySpace{S,2,T,DD,dim}
 
 #TODO: Think through domain/domaindominsion
 ArraySpace{SS<:Space,N}(sp::Array{SS,N}) =
@@ -93,7 +93,7 @@ mat{AS<:ArraySpace,T}(f::Fun{AS,T}) = reshape(vec(f),size(space(f))...)
 function mat{S,V,T,DD,d}(f::Fun{MatrixSpace{S,V,DD,d},T},j::Integer)
     @assert j==1
     m=mat(f)
-    r=Array(Fun{VectorSpace{S,V,DD,d},T},1,size(m,2))
+    r=Array{Fun{VectorSpace{S,V,DD,d},T}}(1,size(m,2))
     for k=1:size(m,2)
         r[1,k]=devec(m[:,k])
     end
@@ -136,7 +136,7 @@ Base.next{SS<:ArraySpace}(f::Fun{SS},k)=f[k],k+1
 
 function Base.vcat(vin::Fun...)
     #  remove tuple spaces
-    v=Array(Fun,0)
+    v=Vector{Fun}(0)
     for f in vin
         if isa(space(f),VectorSpace)
             push!(v,vec(f)...)
@@ -174,7 +174,7 @@ demat(v::Vector{Any}) = devec(v)
 function demat{S,T,V,DD,d}(A::Array{Fun{VectorSpace{S,T,DD,d},V},2})
     @assert size(A,1)==1
 
-    M=Array(Fun{S,V},length(space(A[1])),size(A,2))
+    M=Matrix{Fun{S,V}}(length(space(A[1])),size(A,2))
     for k=1:size(A,2)
         M[:,k]=vec(A[k])
     end
@@ -311,7 +311,7 @@ end
 
 ## Algebra
 
-for OP in (:*,:.*,:+,:-)
+for OP in (:*,:+,:-)
     @eval begin
         $OP{T<:Number,AS<:ArraySpace,V}(A::Array{T},f::Fun{AS,V}) = demat($OP(A,mat(f)))
         $OP{T<:Number,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{T}) = demat($OP(mat(f),A))
@@ -325,10 +325,10 @@ for OP in (:*,:.*,:+,:-)
 end
 
 
-for OP in (:*,:.*)
-    @eval $OP{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) =
-        demat($OP(mat(A),mat(f)))
-end
+
+*{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) =
+    demat(mat(A)*mat(f))
+
 
 
 
@@ -337,7 +337,7 @@ end
 ## ConstantVectorSpace
 
 
-typealias ConstantVectorSpace VectorSpace{ConstantSpace{AnyDomain},RealBasis,AnyDomain,1}
+@compat const ConstantVectorSpace = VectorSpace{ConstantSpace{AnyDomain},RealBasis,AnyDomain,1}
 
 
 function Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T},k)

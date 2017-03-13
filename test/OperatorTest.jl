@@ -17,7 +17,7 @@ C=ToeplitzOperator([1.,2.,3.],[4.,5.,6.])
 
 @time testbandedoperator(C)
 
-@test_approx_eq full(C[1:5,1:5])    [4.0 5.0 6.0 0.0 0.0
+@test full(C[1:5,1:5])  ≈  [4.0 5.0 6.0 0.0  0.0
                                      1.0 4.0 5.0 6.0 0.0
                                      2.0 1.0 4.0 5.0 6.0
                                      3.0 2.0 1.0 4.0 5.0
@@ -27,7 +27,7 @@ C=Conversion(Ultraspherical(1),Ultraspherical(2))
 
 testbandedoperator(C)
 
-@test_approx_eq full(C[1:5,1:5])     [1.0 0.0 -0.3333333333333333 0.0  0.0
+@test full(C[1:5,1:5])  ≈   [1.0 0.0 -0.3333333333333333 0.0  0.0
                                       0.0 0.5  0.0               -0.25 0.0
                                       0.0 0.0  0.3333333333333333 0.0 -0.2
                                       0.0 0.0  0.0                0.25 0.0
@@ -50,8 +50,8 @@ S=Chebyshev(d)
 @test norm(Fun(Fun(Fun(exp,S),Ultraspherical(2,d)),S)-Fun(exp,S)) < 100eps()
 
 
-@test_approx_eq copy(view(Derivative(Ultraspherical(1)),1:2,1:2))[1,2] Derivative(Ultraspherical(1))[1,2]
-@test_approx_eq exp(0.1) (Derivative()*Fun(exp,Ultraspherical(1)))(0.1)
+@test copy(view(Derivative(Ultraspherical(1)),1:2,1:2))[1,2] ≈ Derivative(Ultraspherical(1))[1,2]
+@test exp(0.1) ≈ (Derivative()*Fun(exp,Ultraspherical(1)))(0.1)
 
 
 f=Fun(exp)
@@ -102,7 +102,7 @@ P=ApproxFun.PermutationOperator([2,1])
 
 testbandedoperator(P)
 
-@test_approx_eq P[1:4,1:4] [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0]
+@test P[1:4,1:4] ≈ [0 1 0 0; 1 0 0 0; 0 0 0 1; 0 0 1 0]
 
 
 
@@ -135,12 +135,12 @@ f=Fun(space(a1),[1,2,3,4,5])
 
 testbandedoperator(Multiplication(a0,Fourier(0..2π)))
 
-@test_approx_eq (Multiplication(a0,Fourier(0..2π))*f)(0.1)  (a0(0.1)*f(0.1))
-@test_approx_eq ((Multiplication(a1,Fourier(0..2π))*D)*f)(0.1)  (a1(0.1)*f'(0.1))
-@test_approx_eq (L.ops[1]*f)(0.1) f''(0.1)
-@test_approx_eq (L.ops[2]*f)(0.1) a1(0.1)*f'(0.1)
-@test_approx_eq (L.ops[3]*f)(0.1) a0(0.1)*f(0.1)
-@test_approx_eq (L*f)(0.1) f''(0.1)+a1(0.1)*f'(0.1)+a0(0.1)*f(0.1)
+@test (Multiplication(a0,Fourier(0..2π))*f)(0.1)  ≈ (a0(0.1)*f(0.1))
+@test ((Multiplication(a1,Fourier(0..2π))*D)*f)(0.1)  ≈ (a1(0.1)*f'(0.1))
+@test (L.ops[1]*f)(0.1) ≈ f''(0.1)
+@test (L.ops[2]*f)(0.1) ≈ a1(0.1)*f'(0.1)
+@test (L.ops[3]*f)(0.1) ≈ a0(0.1)*f(0.1)
+@test (L*f)(0.1) ≈ f''(0.1)+a1(0.1)*f'(0.1)+a0(0.1)*f(0.1)
 
 f=Fun(t->exp(cos(2t)),d)
 u=L\f
@@ -165,11 +165,11 @@ testbandedoperator(C)
 @time testbandedoperator(x*D)
 
 f=Fun(exp)
-@test_approx_eq (A.ops[end]*f)(0.1) f'(0.1)
-@test_approx_eq ((x*D)*f)(0.1) 0.1*f'(0.1)
-@test_approx_eq (A*f)(0.1) f'(0.1)+0.1*f''(0.1)
-@test_approx_eq (B*f)(0.1) f'(0.1)+0.1*f''(0.1)
-@test_approx_eq (C*f)(0.1) f'(0.1)+0.1*f''(0.1)
+@test (A.ops[end]*f)(0.1) ≈ f'(0.1)
+@test ((x*D)*f)(0.1) ≈ 0.1*f'(0.1)
+@test (A*f)(0.1) ≈ f'(0.1)+0.1*f''(0.1)
+@test (B*f)(0.1) ≈ f'(0.1)+0.1*f''(0.1)
+@test (C*f)(0.1) ≈ f'(0.1)+0.1*f''(0.1)
 
 testbandedoperator(A-B)
 testbandedoperator(B-A)
@@ -221,11 +221,11 @@ f=Fun(exp)
 D = Derivative(Chebyshev())
 u = D[:,2:end] \ f
 @test norm(u'-f) < 10eps()
-@test_approx_eq u(0.1) exp(0.1)-f.coefficients[1]
+@test u(0.1) ≈ exp(0.1)-f.coefficients[1]
 
 
 u = D[1:end,2:end] \ f
-@test_approx_eq u(0.1) exp(0.1)-f.coefficients[1]
+@test u(0.1) ≈ exp(0.1)-f.coefficients[1]
 
 u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
-@test_approx_eq u(0.1) exp(0.1)-f.coefficients[1]
+@test u(0.1) ≈ exp(0.1)-f.coefficients[1]

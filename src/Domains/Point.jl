@@ -12,19 +12,18 @@ Point(::)
 
 ==(a::Point,b::Point) = a.x==b.x
 
-for op in (:*,:+,:-,:.*,:.+,:.-,:.^)
+for op in (:*,:+,:-)
     @eval begin
         $op(c::Number,d::Point)=Point($op(c,d.x))
         $op(d::Point,c::Number)=Point($op(d.x,c))
     end
 end
 
-for op in (:/,:./)
-    @eval $op(d::Point,c::Number)=Point($op(d.x,c))
-end
 
-for op in (:+,:-,:.+,:.-)
-    @eval $op(a::Point,b::Point)=Point($op(a.x,b.x))
+/(d::Point,c::Number) = Point(d.x/c)
+
+for op in (:+,:-)
+    @eval $op(a::Point,b::Point) = Point($op(a.x,b.x))
 end
 
 

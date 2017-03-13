@@ -5,11 +5,11 @@
 immutable AlmostBandedMatrix{T} <: AbstractMatrix{T}
     bands::BandedMatrix{T}
     fill::LowRankMatrix{T}
-    function AlmostBandedMatrix(bands::BandedMatrix{T},fill::LowRankMatrix{T})
+    function (::Type{AlmostBandedMatrix{T}}){T}(bands::BandedMatrix{T},fill::LowRankMatrix{T})
         if size(bands) ≠ size(fill)
             error("Data and fill must be compatible size")
         end
-        new(bands,fill)
+        new{T}(bands,fill)
     end
 end
 
@@ -31,8 +31,8 @@ end
 
 
 Base.size(A::AlmostBandedMatrix) = size(A.bands)
-Base.linearindexing{ABM<:AlmostBandedMatrix}(::Type{ABM}) =
-    Base.LinearSlow()
+@compat Base.IndexStyle{ABM<:AlmostBandedMatrix}(::Type{ABM}) =
+    IndexCartesian()
 
 
 function getindex(B::AlmostBandedMatrix,k::Integer,j::Integer)

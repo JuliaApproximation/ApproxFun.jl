@@ -26,11 +26,11 @@ export Bernstein, Bézier
 
 immutable Bernstein{order,T} <: RealUnivariateSpace{T}
     domain::Segment{T}
-    Bernstein(d) = new(d)
-    Bernstein() = new(Segment{T}())
+    (::Type{Bernstein{order,T}}){order,T}(d) = new{order,T}(d)
+    (::Type{Bernstein{order,T}}){order,T}() = new{order,T}(Segment{T}())
 end
 
-const Bézier = Bernstein # option+e e gives é
+@compat const Bézier = Bernstein # option+e e gives é
 
 (::Type{Bernstein{O}}){O}() = Bernstein{O,Float64}()
 (::Type{Bernstein{O}}){O}(d::Domain) = Bernstein{O,eltype(d)}(d)

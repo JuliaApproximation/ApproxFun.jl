@@ -31,13 +31,13 @@ testbandedblockbandedoperator(Laplacian(d))
 A=[Dirichlet(d);Laplacian(d)]
 
 @time u=A\[g,0.]
-@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
+@test u(.1,.2) ≈ real(exp(0.1+0.2im))
 
 
 
 d=Interval()^2
 @time u=\([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
-@test_approx_eq u(.1,.9) 0.03679861429138079
+@test u(.1,.9) ≈ 0.03679861429138079
 
 
 
@@ -50,7 +50,7 @@ Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
 @time u=\([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 
-@test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
+@test u(0.1,0.2) ≈ 0.8745340845783758  # empirical
 
 
 
@@ -73,9 +73,9 @@ A=[dirichlet(dx)⊗eye(dy);
 
 # Checks bug in constructor
 f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]),22)
-@test_approx_eq f(-1.,0.1) real(exp(-1.+0.1im))
+@test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
 f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]))
-@test_approx_eq f(-1.,0.1) real(exp(-1.+0.1im))
+@test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
 
 F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
     Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));
@@ -89,7 +89,7 @@ F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
 
 @time u=\(A,F;tolerance=1E-10)
 
-@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
+@test u(0.1,0.2)  ≈ exp(0.1)*cos(0.2)
 
 dx=dy=Interval()
 d=dx*dy
@@ -110,7 +110,7 @@ A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
 
 
 u=\(A,[ones(8);0];tolerance=1E-5)
-@test_approx_eq u(0.1,0.2) 1.0
+@test u(0.1,0.2) ≈ 1.0
 
 
 
@@ -126,7 +126,7 @@ F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
 
 u=\(A,F;tolerance=1E-10)
 
-@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
+@test u(0.1,0.2)  ≈ exp(0.1)*cos(0.2)
 
 
 println("    Operator resize tests")
@@ -140,11 +140,11 @@ f = Fun((x,y)->exp(x)*sin(y),S)
 S=JacobiWeight(1.,1.,Jacobi(1.,1.))^2
 Δ=Laplacian(S)
 
-@test_approx_eq cache(Δ)[1:100,1:100]  Δ[1:100,1:100]
-@test_approx_eq cache(Δ;padding=true)[1:100,1:100]  Δ[1:100,1:100]
+@test cache(Δ)[1:100,1:100]  ≈ Δ[1:100,1:100]
+@test cache(Δ;padding=true)[1:100,1:100]  ≈ Δ[1:100,1:100]
 
-@test_approx_eq cache(Δ)[5:100,7:100]  Δ[5:100,7:100]
-@test_approx_eq cache(Δ;padding=true)[5:100,7:100]  Δ[5:100,7:100]
+@test cache(Δ)[5:100,7:100]  ≈ Δ[5:100,7:100]
+@test cache(Δ;padding=true)[5:100,7:100]  ≈ Δ[5:100,7:100]
 
 # Check that QR is growing correctly
 for col in (1,2,3,10,11,40)
@@ -155,9 +155,9 @@ for col in (1,2,3,10,11,40)
     resizedata!(QR2.R,:,col+100)
     resizedata!(QR2,:,col)
     n=min(size(QR.H,1),size(QR2.H,1))
-    @test_approx_eq QR.H[1:n,1:col] QR2.H[1:n,1:col]
-    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
-    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
+    @test QR.H[1:n,1:col] ≈ QR2.H[1:n,1:col]
+    @test QR.R[1:col,1:col] ≈ QR2.R[1:col,1:col]
+    @test QR.R[1:col+10,1:col+10] ≈ QR2.R[1:col+10,1:col+10]
 end
 
 QR=qrfact(Δ)
@@ -166,9 +166,9 @@ for col in (80,200)
     resizedata!(QR,:,col)
     resizedata!(QR2,:,col)
     n=min(size(QR.H,1),size(QR2.H,1))
-    @test_approx_eq QR.H[1:n,1:col] QR2.H[1:n,1:col]
-    @test_approx_eq QR.R[1:col,1:col] QR2.R[1:col,1:col]
-    @test_approx_eq QR.R[1:col+10,1:col+10] QR2.R[1:col+10,1:col+10]
+    @test QR.H[1:n,1:col] ≈ QR2.H[1:n,1:col]
+    @test QR.R[1:col,1:col] ≈ QR2.R[1:col,1:col]
+    @test QR.R[1:col+10,1:col+10] ≈ QR2.R[1:col+10,1:col+10]
 end
 
 # this checks a bug
@@ -226,11 +226,11 @@ end
 
 
 u=A\[g,0.]
-@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
+@test u(.1,.2) ≈ real(exp(0.1+0.2im))
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
 u=A\[g,0.]
-@test_approx_eq u(.1,.2) real(exp(0.1+0.2im))
+@test u(.1,.2) ≈ real(exp(0.1+0.2im))
 
 
 
@@ -287,10 +287,10 @@ QR1 = qrfact(A)
 @time v=\(A,[ones(∂(d));0.];tolerance=1E-7)
 @test norm((u-v).coefficients) < 100eps()
 
-@test_approx_eq u(0.1,1.) 1.0
-@test_approx_eq u(0.1,-1.) 1.0
-@test_approx_eq u(1.,0.1) 1.0
-@test_approx_eq u(-1.,0.1) 1.0
+@test u(0.1,1.) ≈ 1.0
+@test u(0.1,-1.) ≈ 1.0
+@test u(1.,0.1) ≈ 1.0
+@test u(-1.,0.1) ≈ 1.0
 
 S=ChebyshevDirichlet()^2
 ff=(x,y)->exp(x)*cos(y)
@@ -312,7 +312,7 @@ u=\(B,[ones(4);0];tolerance=1E-14)
 g=map(sp->Fun(ff,sp),map(rangespace,B[1:4]))
 
 u=\(B,[g;0];tolerance=1E-10)
-@test_approx_eq u(0.1,0.2) ff(0.1,0.2)
+@test u(0.1,0.2) ≈ ff(0.1,0.2)
 
 
 
@@ -340,7 +340,7 @@ f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
 A=Laplacian(d)+.1I
 testbandedblockbandedoperator(A)
 @time u=A\f
-@test_approx_eq u(.1,.2) u(.2,.1)
+@test u(.1,.2) ≈ u(.2,.1)
 @test (lap(u)+.1u-f)|>coefficients|>norm < 1000000eps()
 
 
@@ -363,7 +363,7 @@ A=[dirichlet(dx)⊗eye(dy);
 
 
 u=\(A,[ones(4);zeros(5)];tolerance=1E-5)
-@test_approx_eq u(0.1,0.2) 1.0
+@test u(0.1,0.2) ≈ 1.0
 
 
 F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
@@ -378,7 +378,7 @@ F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
 
 u=\(A,F;tolerance=1E-10)
 
-@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
+@test u(0.1,0.2)  ≈ exp(0.1)*cos(0.2)
 
 
 
@@ -395,7 +395,7 @@ A=[(ldirichlet(dx)+lneumann(dx))⊗eye(dy);
 
 
 u=\(A,[ones(8);0];tolerance=1E-5)
-@test_approx_eq u(0.1,0.2) 1.0
+@test u(0.1,0.2) ≈ 1.0
 
 
 
@@ -411,7 +411,7 @@ F=[2Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
 
 u=\(A,F;tolerance=1E-10)
 
-@test_approx_eq u(0.1,0.2)  exp(0.1)*cos(0.2)
+@test u(0.1,0.2)  ≈ exp(0.1)*cos(0.2)
 
 
 
@@ -465,12 +465,12 @@ V=B+C*x
 f=Fun(x->exp(-30x^2),dx)
 u=\([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-6)
 
-@test_approx_eq u(.1,.2) 0.496524222625512
+@test u(.1,.2) ≈ 0.496524222625512
 B=0.1
 C=0.2
 V=B+C*x
 u=\([timedirichlet(d);Dt-ε*Dx^2-V*Dx],[f;zeros(3)];tolerance=1E-7)
-@test_approx_eq u(.1,.2) 0.46810331039791464
+@test u(.1,.2) ≈ 0.46810331039791464
 
 
 ## Periodic
@@ -481,14 +481,14 @@ d=PeriodicInterval(-π,π)^2
 f=Fun((θ,ϕ)->exp(-10(sin(θ/2)^2+sin(ϕ/2)^2)),d)
 A=Laplacian(d)+.1I
 @time u=A\f
-@test_approx_eq u(.1,.2) u(.2,.1)
+@test u(.1,.2) ≈ u(.2,.1)
 
 
 d=PeriodicInterval()*Interval()
 g=Fun((x,y)->real(cos(x+im*y)),∂(d))  # boundary data
 @time u=[Dirichlet(d);Laplacian(d)]\Any[g;0.]
 
-@test_approx_eq u(.1,.2) real(cos(.1+.2im))
+@test u(.1,.2) ≈ real(cos(.1+.2im))
 
 
 
@@ -500,7 +500,7 @@ dθ=PeriodicInterval(-2.,2.);dt=Interval(0,1.)
 CO=cache(ldirichlet(dt))
 ApproxFun.resizedata!(CO,:,2)
 ApproxFun.resizedata!(CO,:,4)
-@test_approx_eq CO*Fun(exp,dt) 1.0
+@test CO*Fun(exp,dt) ≈ 1.0
 
 
 dθ=PeriodicInterval(-2.,2.);dt=Interval(0,3.)
@@ -538,7 +538,7 @@ println("    Rectangle tests")
 
 d=Interval()^2
 @time u=\([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
-@test_approx_eq u(.1,.9) 0.03679861429138079
+@test u(.1,.9) ≈ 0.03679861429138079
 
 # PiecewisePDE
 
@@ -553,7 +553,7 @@ CO=cache(Bx[2])
 @test ApproxFun.colstop(CO.op,2) == 2
 ApproxFun.resizedata!(CO,:,2)
 ApproxFun.resizedata!(CO,:,4)
-@test_approx_eq A_mul_B_coefficients(CO,collect(1:4)) [3.,-1.]
+@test A_mul_B_coefficients(CO,collect(1:4)) ≈ [3.,-1.]
 
 
 
@@ -566,7 +566,7 @@ Dx=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 x,y=Fun(identity,d)
 @time u=\([I⊗ldirichlet(dt);Dt+x*Dx],[Fun(x->exp(-20x^2),dx);0.];tolerance=1E-12)
 
-@test_approx_eq u(0.1,0.2) 0.8745340845783758  # empirical
+@test u(0.1,0.2) ≈ 0.8745340845783758  # empirical
 
 
 dθ=PeriodicInterval();dt=Interval(0,1.)

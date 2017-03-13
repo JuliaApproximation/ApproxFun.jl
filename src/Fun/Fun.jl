@@ -11,9 +11,9 @@ include("Space.jl")
 type Fun{S,T}
     space::S
     coefficients::Vector{T}
-    function Fun(sp::S,coeff::Vector{T})
+    function (::Type{Fun{S,T}}){S,T}(sp::S,coeff::Vector{T})
         @assert length(coeff)≤dimension(sp)
-        new(sp,coeff)
+        new{S,T}(sp,coeff)
     end
 end
 
@@ -233,7 +233,7 @@ Base.copy(f::Fun) = Fun(space(f),copy(f.coefficients))
 
 ## Addition and multiplication
 
-for op in (:+,:-,:(.+),:(.-))
+for op in (:+,:-)
     @eval begin
         function $op(f::Fun,g::Fun)
             if spacescompatible(f,g)
@@ -250,9 +250,9 @@ for op in (:+,:-,:(.+),:(.-))
             end
         end
         $op{S,T<:Number}(f::Fun{S,T},c::T) = c==0?f:$op(f,Fun(c))
-        $op(f::Fun,c::Number)=$op(f,Fun(c))
-        $op(f::Fun,c::UniformScaling)=$op(f,c.λ)
-        $op(c::UniformScaling,f::Fun)=$op(c.λ,f)
+        $op(f::Fun,c::Number) = $op(f,Fun(c))
+        $op(f::Fun,c::UniformScaling) = $op(f,c.λ)
+        $op(c::UniformScaling,f::Fun) = $op(c.λ,f)
     end
 end
 
@@ -283,35 +283,33 @@ end
 
 
 
--(f::Fun)=Fun(f.space,-f.coefficients)
-for op in (:-,:(.-))
-    @eval $op(c::Number,f::Fun)=-$op(f,c)
-end
+-(f::Fun) = Fun(f.space,-f.coefficients)
+-(c::Number,f::Fun) = -(f-c)
 
 
-for op = (:*,:.*,:./,:/)
+for op = (:*,:/)
     @eval $op(f::Fun,c::Number) = Fun(f.space,$op(f.coefficients,c))
 end
 
 
-for op = (:*,:.*,:+,:(.+))
+for op = (:*,:+)
     @eval $op(c::Number,f::Fun) = $op(f,c)
 end
 
 
-function .^{S,T}(f::Fun{S,T},k::Integer)
+function ^{S,T}(f::Fun{S,T},k::Integer)
     if k == 0
         ones(space(f))
     elseif k==1
         f
     elseif k > 1
-        f.*f.^(k-1)
+        f*f^(k-1)
     else
-        1./f.^(-k)
+        1/f^(-k)
     end
 end
 
-Base.inv{S,T}(f::Fun{S,T}) = 1./f
+Base.inv{S,T}(f::Fun{S,T}) = 1/f
 
 # Integrals over two Funs, which are fast with the orthogonal weight.
 
@@ -319,8 +317,8 @@ export bilinearform, linebilinearform, innerproduct, lineinnerproduct
 
 # Having fallbacks allow for the fast implementations.
 
-defaultbilinearform(f::Fun,g::Fun)=sum(f.*g)
-defaultlinebilinearform(f::Fun,g::Fun)=linesum(f.*g)
+defaultbilinearform(f::Fun,g::Fun)=sum(f*g)
+defaultlinebilinearform(f::Fun,g::Fun)=linesum(f*g)
 
 bilinearform(f::Fun,g::Fun)=defaultbilinearform(f,g)
 bilinearform(c::Number,g::Fun)=sum(c*g)
@@ -460,18 +458,33 @@ end
 
 ## non-vector notation
 
-*(f::Fun,g::Fun) = f.*g
-^(f::Fun,k::Integer) = f.^k
-^(f::Fun,k::Union{Number,Fun}) = f.^k
-/(c::Union{Number,Fun},g::Fun) = c./g
-
+for op in (:+,:-,:*,:/,:^)
+    @eval begin
+        broadcast(::typeof($op),a::Fun,b::Fun) = $op(a,b)
+        broadcast(::typeof($op),a::Fun,b::Number) = $op(a,b)
+        broadcast(::typeof($op),a::Number,b::Fun) = $op(a,b)
+    end
+end
 
 ## broadcasting
 
-Base.broadcast(op,f::Fun) = Fun(x -> op(f(x)), domain(f))
-Base.broadcast(op,f::Fun,c::Number) = Fun(x -> op(f(x),c), domain(f))
-Base.broadcast(op,c::Number,f::Fun) = Fun(x -> op(c,f(x)), domain(f))
-Base.broadcast(op,f::Fun,g::Fun) = Fun(x -> op(f(x),g(x)), domain(f) ∪ domain(g))
+broadcast(op,f::Fun) = Fun(x -> op(f(x)), domain(f))
+broadcast(op,f::Fun,c::Number) = Fun(x -> op(f(x),c), domain(f))
+broadcast(op,c::Number,f::Fun) = Fun(x -> op(c,f(x)), domain(f))
+broadcast(op,f::Fun,g::Fun) = Fun(x -> op(f(x),g(x)), domain(f) ∪ domain(g))
 
 
 include("constructors.jl")
+
+
+
+if VERSION < v"0.6.0-dev"
+    for op in (:+,:-,:*,:/,:^)
+        dop = parse("."*string(op))
+        @eval begin
+            $dop(c::Number,d::Fun) = $op(c,d)
+            $dop(d::Fun,c::Number) = $op(d,c)
+            $dop(a::Fun,b::Fun) = $op(a,b)
+        end
+    end
+end

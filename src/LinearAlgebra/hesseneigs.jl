@@ -19,8 +19,8 @@ for (hseqr,elty) in ((:zhseqr_,:Complex128),)
         ilo = 1; ihi = N; ldh=N;ldz=N;lwork = N
 
         z=zero($elty)
-        work  = Array($elty, N*N)
-        w=Array($elty,N)
+        work  = Array{$elty}( N*N)
+        w=Array{$elty}(N)
 
         Ec='E'
         Nc='N'
@@ -51,9 +51,9 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
         lwork = -1
 
         z=zero($elty)
-        work  = Array($elty, 1)
-        wr=Array($elty,N)
-        wi=Array($elty,N)
+        work  = Array{$elty}( 1)
+        wr=Array{$elty}(N)
+        wi=Array{$elty}(N)
 
         Ec='E'
         Nc='N'
@@ -68,7 +68,7 @@ for (hseqr,elty) in ((:dhseqr_,:Float64),)
 
             if lwork < 0
                 lwork=Int(real(work[1]))
-                work=Array($elty,lwork)
+                work=Array{$elty}(lwork)
             end
         end
 

@@ -32,14 +32,6 @@ include("Jacobi/Jacobi.jl")
 include("Hermite/Hermite.jl")
 include("Laguerre/Laguerre.jl")
 include("CurveSpace.jl")
-#include("Mapped/Mapped.jl")
-
-
-
-#typealias MappedChebyshev Union{Chebyshev{Interval{Float64}},MappedSpace{Chebyshev{Interval{Float64}}}}
-
-
-
 
 ## Derivative
 

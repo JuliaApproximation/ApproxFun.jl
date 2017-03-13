@@ -7,10 +7,10 @@ immutable BlockOperator{O,T} <: Operator{T}
     mat21::Matrix{T}
     op::O
 
-    function BlockOperator(mat11::Matrix{T},mat12::Matrix{T},mat21::Matrix{T},op::O)
+    function (::Type{BlockOperator{O,T}}){O,T}(mat11::Matrix{T},mat12::Matrix{T},mat21::Matrix{T},op::O)
         @assert size(mat11,1)==size(mat12,1)
         @assert size(mat11,2)==size(mat21,2)
-        new(mat11,mat12,mat21,op)
+        new{O,T}(mat11,mat12,mat21,op)
     end
 end
 
@@ -18,12 +18,12 @@ BlockOperator(mat11::Matrix,mat12::Matrix,mat21::Matrix,B::Operator)=BlockOperat
                                                                promote_type(eltype(mat11),eltype(mat12),eltype(mat21),
                                                                             eltype(B))}(mat11,mat12,mat21,B)
 
-BlockOperator(mat11::Matrix,B::Operator)=BlockOperator(mat11,Array(eltype(mat11),size(mat11,1),0),
-                                                            Array(eltype(mat11),0,size(mat11,2)),B)
+BlockOperator(mat11::Matrix,B::Operator)=BlockOperator(mat11,Array{eltype(mat11)}(size(mat11,1),0),
+                                                            Array{eltype(mat11)}(0,size(mat11,2)),B)
 
 function Base.hcat{S<:Number}(cols::Matrix{S},B::Operator)
     T = promote_type(S,eltype(B))
-    BlockOperator{typeof(B),T}(Array(T,0,size(cols,2)),Array(T,0,0),cols,B)
+    BlockOperator{typeof(B),T}(Array{T}(0,size(cols,2)),Array{T}(0,0),cols,B)
 end
 
 Base.hcat{T<:Number}(cols::Vector{T},B::Operator)=hcat(reshape(cols,length(cols),1),B)
@@ -58,7 +58,7 @@ function BlockOperator{BO<:Operator}(A::Matrix{BO})
 
 
     T=mapreduce(eltype,promote_type,M)
-    colsv=Array(Vector{T},length(M))
+    colsv=Vector{Vector{T}}(length(M))
     for k=1:length(M)
         if isa(M[k],Multiplication)
             ds=domainspace(M[k])
@@ -157,6 +157,7 @@ end
 immutable BlockFunctional{T<:Number,B<:Operator} <: Operator{T}
     cols::Vector{T}
     op::B
+    (::Type{BlockFunctional{T,B}}){T,B}(c::Vector{T},op::B) = new{T,B}(c,op)
 end
 
 @functional BlockFunctional

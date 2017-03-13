@@ -21,7 +21,7 @@ x=Fun(1..2)
 Curve(exp(im*x))  # represents an arc
 ```
 """
-typealias Curve{S,T} Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
+@compat const Curve{S,T} = Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
 
 
 ==(a::Curve,b::Curve)=a.curve==b.curve

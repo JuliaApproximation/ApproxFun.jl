@@ -1,11 +1,11 @@
 export Arc
 
-mobius(a,b,c,d,z) = (a*z+b)./(c*z+d)
-mobius(a,b,c,d,z::Number) = isinf(z)?a/c:(a*z+b)./(c*z+d)
+mobius(a,b,c,d,z) = (a*z+b)/(c*z+d)
+mobius(a,b,c,d,z::Number) = isinf(z)?a/c:(a*z+b)/(c*z+d)
 mobiusinv(a,b,c,d,z) = mobius(d,-b,-c,a,z)
 
 
-mobiusD(a,b,c,d,z) = (a*d-b*c)./(d+c*z).^2
+mobiusD(a,b,c,d,z) = (a*d-b*c)/(d+c*z)^2
 mobiusinvD(a,b,c,d,z) = mobiusD(d,-b,-c,a,z)
 doc"""
     Arc(c,r,(θ₁,θ₂))
@@ -16,7 +16,7 @@ immutable Arc{T,V<:Real,TT} <: IntervalDomain{TT}
     center::T
     radius::V
     angles::Tuple{V,V}
-    Arc(c,r,a) = new(T(c),V(r),Tuple{V,V}(a))
+    (::Type{Arc{T,V,TT}}){T,V,TT}(c,r,a) = new{T,V,TT}(T(c),V(r),Tuple{V,V}(a))
 end
 
 
@@ -88,20 +88,17 @@ Base.issubset(a::Arc,b::Arc) =
 
 # Algebra
 
-for op in (:*,:.*)
-    @eval begin
-        $op(c::Real,d::Arc) =
-            Arc(c*d.center,c*d.radius,(sign(c)*d.angles[1],sign(c)*d.angles[2]))
-        $op(d::Arc,c::Real) = $op(c,d)
-    end
-end
+*(c::Real,d::Arc) =
+    Arc(c*d.center,c*d.radius,(sign(c)*d.angles[1],sign(c)*d.angles[2]))
+*(d::Arc,c::Real) = $op(c,d)
 
-for op in (:+,:-,:.+,:.-)
+for op in (:+,:-)
     @eval begin
         $op(c::Number,d::Arc) = Arc($op(c,d.center),d.radius,d.angles)
         $op(d::Arc,c::Number) = Arc($op(d.center,c),d.radius,d.angles)
     end
 end
+
 
 # allow exp(im*Segment(0,1)) for constructing arc
 function Base.exp{CMP<:Complex}(d::Segment{CMP})

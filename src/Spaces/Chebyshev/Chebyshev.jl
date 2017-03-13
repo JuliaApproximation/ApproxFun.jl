@@ -12,8 +12,8 @@ can be easily resolved.
 """
 immutable Chebyshev{D<:Domain} <: PolynomialSpace{D}
     domain::D
-    Chebyshev(d) = new(d)
-    Chebyshev() = new(Segment())
+    (::Type{Chebyshev{D}}){D}(d) = new{D}(d)
+    (::Type{Chebyshev{D}}){D}() = new{D}(Segment())
 end
 
 Chebyshev() = Chebyshev{Segment{Float64}}()
@@ -231,7 +231,7 @@ function points{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},N)
     if domain(S) == Segment()^2
         pts=paduapoints(real(eltype(eltype(D))),Int(cld(-3+sqrt(1+8N),2)))
         T=eltype(pts)
-        ret=Array(Vec{2,T},size(pts,1))
+        ret=Array{Vec{2,T}}(size(pts,1))
         @inbounds for k in eachindex(ret)
             ret[k]=Vec{2,T}(pts[k,1],pts[k,2])
         end

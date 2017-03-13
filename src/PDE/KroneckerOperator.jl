@@ -135,7 +135,7 @@ subblockbandinds(K::KroneckerOperator,k::Integer) = subblockbandinds(K)[k]
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 
 
-typealias Wrappers Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
+@compat const Wrappers = Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
                        SpaceOperator,ConstantTimesOperator}
 
 
@@ -295,7 +295,7 @@ blocklengthrange(rt,B::Block) = [blocklength(rt,B)]
 blocklengthrange(rt,B::Range{Block}) = blocklength(rt,B)
 function blocklengthrange(rt,kr)
     KR=block(rt,first(kr)):block(rt,last(kr))
-    Klengths=Array(Int,length(KR))
+    Klengths=Vector{Int}(length(KR))
     for ν in eachindex(KR)
         Klengths[ν]=blocklength(rt,KR[ν])
     end
@@ -374,7 +374,7 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 end
 
 
-typealias Trivial2DTensorizer CachedIterator{Tuple{Int64,Int64},
+@compat const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
                                              Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},
                                              Tuple{Tuple{Int64,Int64},Tuple{Int64,Int64},
                                                    Tuple{Int64,Int64},Tuple{Bool,Bool},
