@@ -1,7 +1,7 @@
 using ApproxFun, Base.Test
     import ApproxFun: testfunctional, testbandedbelowoperator, testbandedoperator
 
-for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
+@time for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
             CosSpace(Circle()),JacobiWeight(-0.5,-0.5,Chebyshev()),
             JacobiWeight(-0.5,-0.5,Chebyshev(1.0..2.0+im)),
             JacobiWeight(0.5,0.5,Ultraspherical(1,1.0..2.0+im)))
@@ -48,7 +48,7 @@ L=I+Σ[exp(x)*w]
 bandinds(L)
 usol=sin(2x)
 f=L*usol
-u=L\f
+@time u=L\f
 @test norm(u-usol) <= 10eps()
 
 
@@ -72,7 +72,7 @@ K=LowRankFun((x,y)->sin(y-x)*w(y),Ultraspherical(1,d),domainspace(Σ))
 L=D+x+Σ[K]
 usol=cospi(20x)
 f=L*usol
-u=[B;L]\[1.;f]
+@time u=[B;L]\[1.;f]
 
 
 @test norm(u-usol) ≤ 200eps()
@@ -117,14 +117,14 @@ f = Fun(exp,d)
 @test domainspace(L) == Legendre(d)
 @test rangespace(L) == Legendre(d)
 @test bandrange(V) == -1:0
-u = L\f
+@time u = L\f
 @test norm(L*u-f) ≤ 20eps()
 
 
 
 ## Check DefiniteIntegral
 
-for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(-2,-1))),
+@time for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(-2,-1))),
           JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(-2,-1+2im))),
           JacobiWeight(1.5,1.5,Ultraspherical(2,Segment(-2,-1+2im))),
           JacobiWeight(-0.5,-0.5,Chebyshev(Segment(-2,-1+2im))),
