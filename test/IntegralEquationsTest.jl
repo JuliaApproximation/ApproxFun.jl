@@ -99,7 +99,7 @@ f2=Fun(t->cos(cos(t)),Fourier(-π..π))
 
 d=exp(im*Interval(0.1,0.2))
 x=Fun(d)
-w=1/(sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x)))
+@time w=1/(sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x)))
 
 @test linesum(w) ≈ DefiniteLineIntegral()*w
 
@@ -111,7 +111,7 @@ V = Volterra(d)
 K = LowRankFun((x,y)->sin(y-x),d^2)
 L = I-V[K]
 
-testbandedoperator(L)
+@time testbandedoperator(L)
 
 f = Fun(exp,d)
 @test domainspace(L) == Legendre(d)
