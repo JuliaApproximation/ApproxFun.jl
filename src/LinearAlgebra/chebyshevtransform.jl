@@ -123,7 +123,7 @@ ichebyshevtransform(x;kind::Integer=1) = ichebyshevtransform!(copy(x);kind=kind)
 ## Code generation for integer inputs
 
 for func in (:chebyshevtransform,:ichebyshevtransform)
-    @eval $func{T<:Integer}(x::Vector{T};kind::Integer=1) = $func(float64(x);kind=kind)
+    @eval $func{T<:Integer}(x::Vector{T};kind::Integer=1) = $func(convert(Float64,x);kind=kind)
 end
 
 
