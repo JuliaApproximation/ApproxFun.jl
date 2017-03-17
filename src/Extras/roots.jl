@@ -71,7 +71,7 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
 
         d = domain(f)
         c = f.coefficients
-        vscale = maxabs(values(f))
+        vscale = maximum(abs,values(f))
         if vscale == 0
             warn("Tried to take roots of a zero function.  Returning [].")
             return eltype(domain(f))[]
@@ -101,7 +101,7 @@ function roots{C<:Chebyshev,TT<:Union{Float64,Complex128}}( f::Fun{C,TT} )
 
     d = domain(f)
     c = f.coefficients
-    vscale = maxabs(values(f))
+    vscale = maximum(abs,values(f))
     if vscale == 0
         warn("Tried to take roots of a zero function.  Returning [].")
         return eltype(domain(f))[]

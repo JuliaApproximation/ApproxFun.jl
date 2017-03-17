@@ -198,7 +198,7 @@ nblocks(f::Fun) = block(space(f),ncoefficients(f)).K
 function Base.stride(f::Fun)
     # Check only for stride 2 at the moment
     # as higher stride is very rare anyways
-    M=maxabs(f.coefficients)
+    M=maximum(abs,f.coefficients)
     for k=2:2:ncoefficients(f)
         if abs(f.coefficients[k])>40*M*eps()
             return 1
@@ -352,7 +352,7 @@ for (OP,SUM) in ((:(Base.norm),:(Base.sum)),(:linenorm,:linesum))
             elseif 1 ≤ p < Inf
                 return abs($SUM(abs2(f)^(p/2)))^(1/p)
             else
-                return maxabs(f)
+                return maximum(abs,f)
             end
         end
 

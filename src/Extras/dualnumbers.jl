@@ -74,7 +74,7 @@ chop!(f::Fun,d::Dual)=chop!(f,realpart(d))
 
 function simplifycfs!{DD<:Dual}(cfs::Vector{DD},tol::Float64=4E-16)
     for k=length(cfs):-2:2
-        if maxabs(realpart.(cfs[k-1:k])) > maxabs(dualpart.(cfs[k-1:k]))*tol
+        if maximum(abs,realpart.(cfs[k-1:k])) > maximum(abs,dualpart.(cfs[k-1:k]))*tol
             return resize!(cfs,k)
         end
     end
@@ -109,7 +109,7 @@ function dualcfsFun(f,S)
 
         cf=dualFun(f,S,n)
 
-        if maxabs(realpart(cf.coefficients[end-8:end]))<maxabs(dualpart(cf.coefficients[end-8:end]))*tol &&
+        if maximum(abs,realpart(cf.coefficients[end-8:end]))<maximum(abs,dualpart(cf.coefficients[end-8:end]))*tol &&
                                 all(k->norm(cf(r[k])-fr[k],1)<1E-4,1:length(r))
             return Fun(S,realpart(simplifycfs!(cf.coefficients,tol*length(cf))))
         end
