@@ -19,7 +19,7 @@ end
 Base.size(P::PlusOperator,k::Integer) = size(first(P.ops),k)
 
 
-PlusOperator{T,UT<:Number,VT<:Number}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
+PlusOperator{T,UT,VT}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
     PlusOperator{T,typeof(bi)}(opsin,bi)
 
 bandinds(P::PlusOperator) = P.bandinds
@@ -262,7 +262,7 @@ end
 
 bandindssum(P) = (bandindssum(P,1),bandindssum(P,2))
 
-TimesOperator{T,N1<:Number,N2<:Number}(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) =
+TimesOperator{T,N1,N2}(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) =
     TimesOperator{T,typeof(bi)}(ops,bi)
 
 TimesOperator{T}(ops::Vector{Operator{T}}) = TimesOperator(ops,bandindssum(ops))

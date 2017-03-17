@@ -78,8 +78,8 @@ end
 
 
 
-@test_approx_eq((Fun(z->sin(z)*cos(1/z),Circle())*Fun(z->exp(z)*airyai(1/z),Circle()))(exp(.1im)),
-                (z->sin(z)*cos(1/z)*exp(z)*airyai(1/z))(exp(.1im)))
+@test (Fun(z->sin(z)*cos(1/z),Circle())*Fun(z->exp(z)*airyai(1/z),Circle()))(exp(.1im)) ≈
+                (z->sin(z)*cos(1/z)*exp(z)*airyai(1/z))(exp(.1im))
 
 ## Calculus
 
@@ -219,7 +219,7 @@ f=Fun(z->1/z,Taylor(1/Circle()))
 z=Fun(identity,Circle())
 cfs=exp(z).coefficients[1:2:end]
 for k=1:length(cfs)
-    @test_approx_eq_eps cfs[k] 1/factorial(1.0(k-1)) 1E-10
+    @test abs(cfs[k]-1/factorial(1.0(k-1))) ≤ 1E-10
 end
 
 

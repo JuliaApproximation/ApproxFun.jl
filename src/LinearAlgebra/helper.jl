@@ -472,7 +472,7 @@ slnorm(m::AbstractMatrix,::Colon,j::Integer) = slnorm(m,1:size(m,1),j)
 ## New Inf
 
 # angle is π*a where a is (false==0) and (true==1)
-immutable Infinity{T} <: Number
+immutable Infinity{T}
     angle::T
 end
 
@@ -485,10 +485,6 @@ Base.isfinite(::Infinity) = false
 Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
 Base.angle(x::Infinity) = π*x.angle
 
-Base.zero{B}(::Infinity{B}) = zero(B)
-Base.one{B}(::Infinity{B}) = one(B)
-
-
 function Base.show{B<:Integer}(io::IO, y::Infinity{B})
     if sign(y) == 1
         print(io, "∞")
@@ -498,8 +494,6 @@ function Base.show{B<:Integer}(io::IO, y::Infinity{B})
 end
 
 Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
-
-Base.promote_rule{R<:Number,B}(::Type{Infinity{B}},::Type{R}) = Number
 
 ==(x::Infinity,y::Infinity) = x.angle == y.angle
 for TYP in (:Dual,:Number)

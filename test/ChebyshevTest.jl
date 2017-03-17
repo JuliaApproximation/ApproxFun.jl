@@ -145,10 +145,10 @@ g = cos(x)
 
 x = Fun(identity,0..100)
 f = sin(x^2)
-@test_approx_eq_eps f(.1) sin(.1^2) 1E-12
+@test ≈(f(.1),sin(.1^2);atol=1E-12)
 
 
-## Reverse
+##) Reverse
 
 
 f=Fun(exp)

@@ -11,6 +11,7 @@ end
 
 block(B::Block) = B
 
+Base.convert(::Type{Integer},B::Block) = B.K
 Base.convert{T<:Integer}(::Type{T},B::Block) = convert(T,B.K)::T
 Base.convert(::Type{Block},K::Block) = K
 Base.convert(::Type{Block},K::Integer) = Block(K)

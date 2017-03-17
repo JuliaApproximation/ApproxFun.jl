@@ -94,10 +94,10 @@ f=x^(-0.123)*exp(-x)
 @test integrate(f)'(1.) ≈ f(1.)
 
 
-@test_approx_eq_eps sum(Fun(sech,0..Inf)) sum(Fun(sech,0..40)) 1000000eps()
+@test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps()
 
 
-#Ei (Exp Integral)
+#Ei) (Exp Integral)
 
 y=Fun(Ray())
 q=integrate(exp(-y)/y)
@@ -122,8 +122,8 @@ D=Derivative(d)
 f=Fun(x->sech(x-.1),d)
 
 
-@test_approx_eq_eps (D*f)(.2) -0.0991717226583897  100000eps()
-@test_approx_eq_eps (D^2*f)(.2) -0.9752522555114987  1000000eps()
+@test ≈((D*f)(.2),-0.0991717226583897;atol=100000eps())
+@test ≈((D^2*f)(.2),-0.9752522555114987;atol=1000000eps())
 
 
 
