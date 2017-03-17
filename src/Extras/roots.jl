@@ -396,7 +396,7 @@ function roots{DD}(f::Fun{Laurent{DD}})
     if length(irts)==0
         Complex{Float64}[]
     else
-        rts=fromcanonical(f,tocanonical(Circle(),irts))
+        rts=fromcanonical.(f,tocanonical.(Circle(),irts))
         if isa(domain(f),PeriodicInterval)
             sort!(real(rts))  # Make type safe?
         else

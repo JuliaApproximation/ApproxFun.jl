@@ -35,7 +35,7 @@ D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
 u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
-@test_approx_eq_eps) u(0.) airyai(0.) 10ncoefficients(u)*eps()
+@test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
 
 
@@ -197,12 +197,12 @@ x=Fun(identity,1..2000)
 d=domain(x)
 B=dirichlet()
 ν=100.
-L=x^2*𝒟^2) + x*𝒟 + (x^2 - ν^2)   # our differential operator
+L=(x^2*𝒟^2) + x*𝒟 + (x^2 - ν^2)   # our differential operator
 
 @time u=[B;L]\[besselj(ν,first(d)),besselj(ν,last(d)),0.]
 
 
-@test ≈(u(1900.),besselj(ν,1900.);atol=1000eps()
+@test ≈(u(1900.),besselj(ν,1900.);atol=1000eps())
 
 
 #) complex RHS for real operatorB=ldirichlet()
