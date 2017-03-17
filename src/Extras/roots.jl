@@ -177,11 +177,11 @@ function PruneOptions( r, htol::Float64 )
 # ONLY KEEP ROOTS IN THE INTERVAL
 
     # Remove dangling imaginary parts:
-    r = real( r[ abs(imag(r)) .< htol ] )
+    r = real( r[ abs.(imag.(r)) .< htol ] )
     # Keep roots inside [-1 1]:
-    r = sort( r[ abs(r) .<= 1+htol ] )
+    r = sort( r[ abs.(r) .<= 1+htol ] )
     # Put roots near ends onto the domain:
-    r = min( max( r, -1 ), 1)
+    r = min.( max.( r, -1 ), 1)
 
     # Return the pruned roots:
     return r
