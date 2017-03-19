@@ -94,10 +94,10 @@ f=x^(-0.123)*exp(-x)
 @test integrate(f)'(1.) ≈ f(1.)
 
 
-@test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps()
+@test ≈(sum(Fun(sech,0..Inf)),sum(Fun(sech,0..40));atol=1000000eps())
 
 
-#Ei) (Exp Integral)
+#Ei (Exp Integral)
 
 y=Fun(Ray())
 q=integrate(exp(-y)/y)

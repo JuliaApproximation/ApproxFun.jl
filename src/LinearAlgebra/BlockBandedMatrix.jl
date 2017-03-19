@@ -520,7 +520,7 @@ end
 function setindex!{N}(S::SubBandedBlockSubBlock, v, I::Vararg{Int,N})
     dataview(S)[I...] = v
 end
-
+ 
 function setindex!(S::SubBandedBlockRange, v, k::Integer, j::Integer)
     KR,JR = parentindexes(S)
     A = parent(S)
