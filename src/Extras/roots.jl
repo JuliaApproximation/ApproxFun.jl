@@ -38,7 +38,7 @@ function complexroots{C<:Chebyshev}(f::Fun{C})
     elseif ncoefficients(f)==2
         Complex128[-f.coefficients[1]/f.coefficients[2]]
     else
-        fromcanonical(f,colleague_eigvals(f.coefficients))
+        fromcanonical.(f,colleague_eigvals(f.coefficients))
     end
 end
 
@@ -125,7 +125,7 @@ function roots{C<:Chebyshev,TT<:Union{Float64,Complex128}}( f::Fun{C,TT} )
 
 
     # Map roots from [-1,1] to domain of f:
-    return fromcanonical(d,r)
+    return fromcanonical.(d,r)
 end
 
 
@@ -260,7 +260,7 @@ function extremal_args(f::Fun)
         roots(differentiate(f))
     elseif isa(d,PeriodicDomain)  # avoid complex domains
         S=typeof(space(f))
-        fromcanonical(f,extremal_args(setcanonicaldomain(f)))
+        fromcanonical.(f,extremal_args(setcanonicaldomain(f)))
     else
         dab=∂(domain(f))
         if ncoefficients(f) <=2 #TODO this is only relevant for Polynomial bases
