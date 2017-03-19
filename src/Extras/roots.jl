@@ -83,12 +83,12 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
         # calculate Flaot64 roots
         r = Array{$BF}(rootsunit_coeffs(convert(Vector{$FF},c./vscale), Float64(htol)))
         # Map roots from [-1,1] to domain of f:
-        rts = fromcanonical(d,r)
+        rts = fromcanonical.(d,r)
         fp = differentiate(f)
 
         # do Newton 3 time
         for _ = 1:3
-            rts .-=f(rts)./fp(rts)
+            rts .-=f.(rts)./fp.(rts)
         end
 
         return rts
@@ -107,7 +107,7 @@ function roots{C<:Chebyshev,TT<:Union{Float64,Complex128}}( f::Fun{C,TT} )
         return eltype(domain(f))[]
     end
 
-    hscale = maximum( [abs(first(d)), abs(last(d))] )
+    hscale = max(abs(first(d)), abs(last(d)) )
     htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
 
@@ -307,13 +307,13 @@ for op in (:(Base.indmax),:(Base.indmin))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             # the extra real avoids issues with complex round-off
-            pts[$op(real(f(pts)))]
+            pts[$op(real(f.(pts)))]
         end
 
         function $op{S,T}(f::Fun{S,T})
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
-            fp=f(pts)
+            fp=f.(pts)
             @assert norm(imag(fp))<100eps()
             pts[$op(real(fp))]
         end

@@ -104,7 +104,7 @@ x=1.5
 ##Roots
 
 f=Fun(x->sin(10(x-.1)))
-@test norm(f(roots(f)))< 1000eps()
+@test norm(f.(roots(f)))< 1000eps()
 
 
 ## ALiasing
@@ -119,7 +119,7 @@ f=Fun(x->cos(50acos(x)))
 @test Fun(x->2)(.1) ≈ 2
 
 
-@test Fun(Chebyshev,Float64[])([0.,1.]) ≈ [0.,0.]
+@test Fun(Chebyshev,Float64[]).([0.,1.]) ≈ [0.,0.]
 @test Fun(Chebyshev,[])(0.) ≈ 0.
 @test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
 

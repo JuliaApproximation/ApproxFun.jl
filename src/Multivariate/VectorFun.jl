@@ -58,22 +58,6 @@ end
 evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for Akj in A]
 
 
-function evaluate{T<:Fun}(A::AbstractVector{T},x::AbstractVector)
-    n=length(x)
-    ret=Matrix{promote_type(eltype(x),mapreduce(eltype,promote_type,A))}(length(A),n)
-
-    for k=1:length(A)
-        bkr=A[k].(x)
-
-        for j=1:n
-            ret[k,j]=bkr[j]
-        end
-    end
-
-    ret
-end
-
-
 
 ## Algebra
 

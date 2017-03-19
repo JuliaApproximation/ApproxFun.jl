@@ -26,8 +26,6 @@ function evaluate(f::AbstractVector,S::PolynomialSpace,x)
     end
 end
 
-evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray) = map(y->evaluate(f,S,y),x)
-
 # we need the ... for multi-dimensional
 evaluate(f::AbstractVector,S::PolynomialSpace,x,y,z...) =
     evaluate(f,S,Vec(x,y,z...))
@@ -41,9 +39,7 @@ function evaluate(f::AbstractVector,S::PolynomialSpace,x::Fun)
 end
 
 ## Extrapolation
-
 extrapolate(f::AbstractVector,S::PolynomialSpace,x) = clenshaw(S,f,tocanonical(S,x))
-extrapolate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray) = map(y->extrapolate(f,S,y),x)
 
 ######
 # Recurrence encodes the recurrence coefficients

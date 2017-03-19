@@ -106,13 +106,13 @@ end
 
 function evaluate{D<:Domain}(f::AbstractVector,S::Hardy{false,D},z)
     z=mappoint(S,𝕌,z)
-    z=1./z
-    z.*horner(f,z)
+    z=1/z
+    z*horner(f,z)
 end
 function evaluate{D<:Circle}(f::AbstractVector,S::Hardy{false,D},z)
     z=mappoint(S,𝕌,z)
-    z=1./z
-    z.*horner(f,z)
+    z=1/z
+    z*horner(f,z)
 end
 
 
@@ -165,7 +165,7 @@ plan_itransform(::CosSpace,x::Vector) = plan_ichebyshevtransform(x;kind=2)
 transform(::CosSpace,vals,plan) = plan*vals
 itransform(::CosSpace,cfs,plan) = plan*cfs
 
-evaluate(f::Vector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos.(tocanonical.(S,t)))
+evaluate(f::Vector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[2:n+1]
