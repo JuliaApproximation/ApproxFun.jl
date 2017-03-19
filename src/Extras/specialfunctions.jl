@@ -76,7 +76,7 @@ function /(c::Fun,f::Fun)
 
     r=roots(f)
     tol=10eps(promote_type(eltype(c),eltype(f)))
-    if length(r)==0 || norm(c(r))<tol
+    if length(r)==0 || norm(c.(r))<tol
         \(Multiplication(f,space(c)),c;tolerance=tol)
     else
         c*(1/f)
