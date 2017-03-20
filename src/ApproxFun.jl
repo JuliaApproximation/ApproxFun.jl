@@ -2,7 +2,7 @@ __precompile__()
 
 module ApproxFun
     using Base, RecipesBase, FastGaussQuadrature, FastTransforms, DualNumbers, BandedMatrices, IntervalSets, Compat
-    import FixedSizeArrays, ToeplitzMatrices, Calculus
+    import StaticArrays, ToeplitzMatrices, Calculus
 
 import Base.LinAlg: BlasInt, BlasFloat
 
@@ -37,7 +37,9 @@ import BandedMatrices: bzeros, bandinds, bandrange, PrintShow, bandshift,
 
 import Base: view
 
-import FixedSizeArrays: Vec
+import StaticArrays: SVector
+
+@compat const Vec{d,T} = SVector{d,T}
 
 export pad!, pad, chop!, sample,
        complexroots, roots, svfft, isvfft,
