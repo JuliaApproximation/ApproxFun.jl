@@ -14,15 +14,15 @@ u=sqrt(4-x.^2)/(2π)
 @test length(values(u))==1
 
 
-f=Fun(x->x.*cot(π*x/2))
+f=Fun(x->x*cot(π*x/2))
 x=Fun(identity)
-u=Fun(JacobiWeight(1.,1.,Interval()),(f./(1-x.^2)).coefficients)
-@test 1./(.1.*cot(π*.1/2)) ≈ (1./u)(.1)
+u=Fun(JacobiWeight(1.,1.,Interval()),(f/(1-x^2)).coefficients)
+@test 1/(0.1*cot(π*.1/2)) ≈ (1/u)(.1)
 
-@test (x./u)(.1) ≈ tan(π*.1/2)
+@test (x/u)(.1) ≈ tan(π*.1/2)
 
 
-f=Fun(x->exp(-x.^2),Line(0.,0.,-.5,-.5),400)
+f=Fun(x->exp(-x^2),Line(0.,0.,-.5,-.5),400)
 @test sum(f) ≈ sqrt(π)
 
 f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeight(-.5,-.5))
@@ -35,7 +35,7 @@ D=Derivative(S)
 
 f=Fun(S,Fun(exp,0..1).coefficients)
 x=.1
-@test f(x) ≈ exp(x)*x^(-1).*(1-x)^(-1)/4
+@test f(x) ≈ exp(x)*x^(-1)*(1-x)^(-1)/4
 @test (D*f)(x) ≈ -exp(x)*(1+(x-3)*x)/(4*(x-1)^2*x^2)
 
 
@@ -56,13 +56,13 @@ x=.1
 println("    Jacobi singularity tests")
 
 x = Fun(identity)
-f = exp(x)./(1-x.^2)
+f = exp(x)/(1-x.^2)
 
-@test f(.1) ≈ exp(.1)./(1-.1^2)
-f = exp(x)./(1-x.^2).^1
-@test f(.1) ≈ exp(.1)./(1-.1^2)
-f = exp(x)./(1-x.^2).^1.0
-@test f(.1) ≈ exp(.1)./(1-.1^2)
+@test f(.1) ≈ exp(.1)/(1-.1^2)
+f = exp(x)/(1-x.^2).^1
+@test f(.1) ≈ exp(.1)/(1-.1^2)
+f = exp(x)/(1-x.^2).^1.0
+@test f(.1) ≈ exp(.1)/(1-.1^2)
 
 
 
