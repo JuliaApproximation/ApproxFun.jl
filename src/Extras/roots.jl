@@ -275,7 +275,7 @@ for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base
     @eval function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
         pts = extremal_args(f)
 
-        $op(f(pts))
+        $op(f.(pts))
     end
 end
 
@@ -284,7 +284,7 @@ for op in (:(Base.maxabs),:(Base.minabs))
         # complex spaces/types can have different extrema
         pts = extremal_args(abs(f))
 
-        $op(f(pts))
+        $op(f.(pts))
     end
 end
 

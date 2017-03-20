@@ -153,3 +153,10 @@ f = sin(x^2)
 
 f=Fun(exp)
 @test Fun(f,Chebyshev(1..(-1)))(0.1) ≈ f(0.1)
+
+
+
+## minimum/maximum
+x=Fun()
+@test minimum(x) == -1
+@test maximum(x) == 1

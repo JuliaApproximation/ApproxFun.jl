@@ -526,8 +526,8 @@ for T in (:BlasFloat,:Integer,:(Complex{Int}))
 end
 
 
-# $ is xor
-*(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle $ b.angle)
+# ⊻ is xor
+*(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle ⊻ b.angle)
 *(a::Infinity,b::Infinity) = Infinity(a.angle + b.angle)
 
 for T in (:Dual,:Bool,:Integer,:AbstractFloat)

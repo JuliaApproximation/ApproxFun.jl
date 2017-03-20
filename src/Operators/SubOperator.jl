@@ -119,6 +119,11 @@ view(A::Operator,k,j) = SubOperator(A,(k,j))
 
 
 
+## Needed for Broadcast
+if VERSION ≥ v"0.6-"
+    Base.Broadcast.containertype(::SubOperator) = Array
+end
+
 reindex(A::Operator, B::Tuple{Block,Any}, kj::Tuple{Any,Any}) =
     (reindex(rangespace(A),(B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
 # always reindex left-to-right, so if we have only a single tuple, then

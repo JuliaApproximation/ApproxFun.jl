@@ -43,7 +43,7 @@ for OP in (:sign,:angle)
         else
             d_split= d \ pts
             midpts = [midpoints(d)...]
-            Fun(d_split,$OP(f(midpts)))
+            Fun(d_split,$OP(f.(midpts)))
         end
     end
 end

@@ -85,6 +85,11 @@ Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T
 
 
 # promotion of * to fix 0.5 bug
+if VERSION > v"0.6-"
+    Base.promote_op{N,V,S,T}(::typeof(Base.LinAlg.matprod),::Type{Fun{N,V}},::Type{Fun{S,T}}) =
+        Fun{promote_type(N,S),promote_type(T,V)}
+end
+
 Base.promote_op{N,V,S,T}(::typeof(*),::Type{Fun{N,V}},::Type{Fun{S,T}}) =
     Fun{promote_type(N,S),promote_type(T,V)}
 Base.promote_op{N,S,T}(::typeof(*),::Type{N},::Type{Fun{S,T}}) = Fun{S,promote_type(N,T)}
