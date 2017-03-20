@@ -60,11 +60,11 @@ f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
 d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
 @time  u=\(A,[zeros(∂(d));f];tolerance=1E-7)
-@test ≈(u(.1,.2),-0.04251891975068446;atol=1E-5
+@test ≈(u(.1,.2),-0.04251891975068446;atol=1E-5)
 
 
 
-#) fourth order
+# fourth order
 
 println("    Bilaplacian tests")
 dx=dy=Interval()

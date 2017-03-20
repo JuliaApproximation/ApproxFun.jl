@@ -34,6 +34,11 @@ Base.endof(s::Domain) = 1
 
 #supports broadcasting, overloaded for ArraySpace
 Base.size(::Domain) = ()
+if VERSION < v"0.6-"
+    # works around bug due to eltype
+    Base.promote_eltype_op{T}(op, A::Domain, ::AbstractArray{T}) =
+    (Base.@_pure_meta; Base.promote_op(op, typeof(A), T))
+end
 
 
 # prectype gives the precision, including for Vec

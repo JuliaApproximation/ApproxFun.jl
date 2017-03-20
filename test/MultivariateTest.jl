@@ -173,8 +173,6 @@ end
     @test y(1.0,0.2) ≈ 0.2
 end
 
-
-
 # test conversion between
 dx=dy=Interval()
 d=dx*dy
