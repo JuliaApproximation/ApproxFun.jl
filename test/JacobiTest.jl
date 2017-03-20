@@ -1,5 +1,5 @@
-using ApproxFun, Base.Test, FixedSizeArrays
-    import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms
+using ApproxFun, Base.Test, StaticArrays
+    import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec
 
 
 @test ApproxFun.jacobip(0:5,2,0.5,0.1) ≈ [1.,0.975,-0.28031249999999996,-0.8636328125,-0.0022111816406250743,0.7397117980957031]

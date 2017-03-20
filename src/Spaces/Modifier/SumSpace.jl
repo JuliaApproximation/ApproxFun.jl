@@ -281,12 +281,6 @@ function evaluate(f::AbstractVector,S::PiecewiseSpace,x)
     return 0*first(g)
 end
 
-function evaluate(v::AbstractVector,S::PiecewiseSpace,x::AbstractVector)
-    f=Fun(S,v)
-    [f(xk) for xk in x]
-end
-
-
 
 ## calculus
 for TYP in (:SumSpace,:PiecewiseSpace)

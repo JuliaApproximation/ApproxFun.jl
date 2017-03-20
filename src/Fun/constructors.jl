@@ -124,10 +124,8 @@ end
 
 function zerocfsFun(f, d::Space)
     #TODO: reuse function values?
-    T = eltype(domain(d))
-    if T <: Complex
-        T = T.parameters[1] #get underlying real representation
-    end
+    T = real(eltype(domain(d)))
+
     r=checkpoints(d)
     f0=f(first(r))
 

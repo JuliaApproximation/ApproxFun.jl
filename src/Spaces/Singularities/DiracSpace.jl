@@ -78,9 +78,6 @@ function evaluate(f::AbstractVector,PS::PointSpace,x::Number)
     end
 end
 
-evaluate(f::AbstractVector,PS::PointSpace,x::AbstractVector)=
-    map(y->evaluate(f,PS,y),x)
-
 Base.sum{DS<:DiracSpace}(f::Fun{DS})=sum(f.coefficients[1:dimension(space(f))])
 
 

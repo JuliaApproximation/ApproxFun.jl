@@ -231,7 +231,7 @@ function findcholeskyapproxmax!(f::Function,X::Vector,pts::Vector,grid)
 end
 
 function findcholeskyapproxmax!(A::Fun,B::Fun,X::Vector,pts::Vector,grid)
-    Ax,By = A(pts),B(pts)
+    Ax,By = A.(pts),B.(pts)
     subtractrankone!(Ax,By,X,grid)
     maxabsf,impt = findmaxabs(X)
     pts[impt]
