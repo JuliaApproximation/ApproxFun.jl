@@ -1,3 +1,8 @@
+struct F <: Function
+    f
+end
+(f::F)(args...) = f.f(args...)
+
 valsdomain_type_promote{T<:Complex}(::Type{T},::Type{T})=T,T
 valsdomain_type_promote{T<:Real}(::Type{T},::Type{T})=T,T
 valsdomain_type_promote(::Type{Int},::Type{Int})=Float64,Int
@@ -83,9 +88,12 @@ Fun{T<:Space}(f::Fun,::Type{T}) = Fun(f,T(domain(f)))
 
 
 Fun(f::AbstractVector,T::Type) = Fun(f,T())
+Fun(T::Type,f::Function) = Fun(T,F(f))
 Fun(T::Type,f::Type) = Fun(T(),f)
 Fun(T::Type,f)  =  Fun(T(),f)
+Fun(f::Function,T::Type) = Fun(F(f),T())
 Fun(f,T::Type) = Fun(f,T())
+Fun(f::Function,T::Type,n::Integer) = Fun(F(f),T(),n)
 Fun(f,T::Type,n::Integer) = Fun(f,T(),n)
 
 Fun(f::AbstractVector,d::Domain) = Fun(f,Space(d))
@@ -93,6 +101,7 @@ Fun{T<:Number}(d::Domain,f::AbstractVector{T}) = Fun(Space(d),f)
 Fun(d::Domain,f::AbstractVector) = Fun(Space(d),f)
 
 
+Fun(f::Function,d::Domain,n) = Fun(F(f),Space(d),n)
 Fun(f,d::Domain,n) = Fun(f,Space(d),n)
 
 
@@ -105,6 +114,7 @@ Fun(c::Number,d::Space) = c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
 ## List constructor
 
 Fun{T<:Domain}(c::Number,dl::AbstractVector{T}) = Fun(c,UnionDomain(dl))
+Fun{T<:Domain}(f::Function,dl::AbstractVector{T}) = Fun(F(f),UnionDomain(dl))
 Fun{T<:Domain}(f::Type,dl::AbstractVector{T}) = Fun(f,UnionDomain(dl))
 Fun{T<:Domain}(f::Domain,dl::AbstractVector{T}) = Fun(f,UnionDomain(dl))
 Fun{T<:Domain}(f,dl::AbstractVector{T}) = Fun(f,UnionDomain(dl))
@@ -188,7 +198,8 @@ function abszerocfsFun(f,d::Space)
 end
 
 Fun(f::Type, d::Space; method="zerocoefficients") = error("Not impleemnted")
-function Fun(f, d::Space; method="zerocoefficients")
+Fun(f::Function, d::Space; method = "zerocoefficients") = Fun(F(f), d; method = method)
+function Fun(f::F, d::Space; method="zerocoefficients")
     T = eltype(domain(d))
 
     if f==identity
@@ -210,8 +221,8 @@ function Fun(f, d::Space; method="zerocoefficients")
     end
 end
 Fun(f::Type,d::Domain;opts...) = Fun(f,Space(d);opts...)
-Fun(f,d::Domain;opts...) = Fun(f,Space(d);opts...)
-
+Fun(f::F,d::Domain;opts...) = Fun(f,Space(d);opts...)
+Fun(f::Function,d::Domain;opts...) = Fun(F(f),d;opts...)
 
 # this supports expanding a Fun to a larger or smaller domain.
 # we take the union and then intersection to get at any singularities
@@ -230,6 +241,7 @@ Fun(T::Type,n::Integer) = Fun(T(),n)
 Fun(f,n::Integer) = Fun(f,Interval(),n)
 Fun(f,d::ClosedInterval,n::Integer) = Fun(f,Domain(d),n)
 Fun{M<:Number}(d::ClosedInterval,cfs::AbstractVector{M}) = Fun(Domain(d),1.0*cfs)
+Fun(f::Function,d::ClosedInterval) = Fun(F(f),Domain(d))
 Fun(f::Type,d::ClosedInterval) = Fun(f,Domain(d))
 Fun(f,d::ClosedInterval) = Fun(f,Domain(d))
 Fun(f::Number,d::ClosedInterval) = Fun(f,Domain(d))
