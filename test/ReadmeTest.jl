@@ -13,13 +13,13 @@ g = cos(x)
 
 @test ≈(f(.1),sin(.1^2);atol=1000eps())
 
-h) = f + g^2
+h = f + g^2
 r = roots(h)
 rp = roots(differentiate(h))
 
-@test norm(h(r))<1000eps()
+@test norm(h.(r))<1000eps()
 
-@test norm(h'(rp))<100000eps()
+@test norm(h'.(rp))<100000eps()
 
 
 
@@ -130,11 +130,11 @@ QR = qrfact([Dirichlet(d);Laplacian()+100I])
 
 
 @test u(0.1,1.) ≈ 1.0
-@test ≈(u(0.1,0.2),-0.02768276827514463;atol=1E-8
+@test ≈(u(0.1,0.2),-0.02768276827514463;atol=1E-8)
 
 
 
-println(")    BigFloat tests")
+println("    BigFloat tests")
 
 setprecision(1000) do
     d=BigFloat(0)..BigFloat(1)

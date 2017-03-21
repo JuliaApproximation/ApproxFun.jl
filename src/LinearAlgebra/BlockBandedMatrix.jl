@@ -511,7 +511,7 @@ blockbandinds{T,BBM<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRa
 getindex{N}(S::SubBandedBlockSubBlock, I::Vararg{Int,N}) =
     dataview(S)[I...]
 
-function getindex(S::SubBandedBlockRange, k::Integer, j::Integer)
+function getindex(S::SubBandedBlockRange, k::Int, j::Int)
     KR,JR = parentindexes(S)
     A = parent(S)
     A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])]
@@ -521,7 +521,7 @@ function setindex!{N}(S::SubBandedBlockSubBlock, v, I::Vararg{Int,N})
     dataview(S)[I...] = v
 end
 
-function setindex!(S::SubBandedBlockRange, v, k::Integer, j::Integer)
+function setindex!(S::SubBandedBlockRange, v, k::Int, j::Int)
     KR,JR = parentindexes(S)
     A = parent(S)
     A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])] = v

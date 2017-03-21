@@ -35,8 +35,8 @@ rp = roots(h')
 
 using Plots
 plot(h)
-scatter!(r,h(r))
-scatter!(rp,h(rp))
+scatter!(r,h.(r))
+scatter!(rp,h.(rp))
 ```
 
 <img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/extrema.png width=500 height=400>

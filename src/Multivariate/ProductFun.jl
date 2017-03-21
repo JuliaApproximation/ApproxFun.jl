@@ -206,6 +206,15 @@ canonicalevaluate(f::ProductFun,xx::AbstractVector,yy::AbstractVector) =
 
 
 evaluate(f::ProductFun,x,y) = canonicalevaluate(f,tocanonical(f,x,y)...)
+
+# TensorSpace does not use map
+evaluate{S<:UnivariateSpace,V<:UnivariateSpace,SS<:TensorSpace,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon) =
+    Fun(space(f,2),T[g(x) for g in f.coefficients])
+
+evaluate{S<:UnivariateSpace,V<:UnivariateSpace,SS<:TensorSpace,T}(f::ProductFun{S,V,SS,T},x::Number,y::Number) =
+    evaluate(f,x,:)(y)
+
+
 evaluate(f::ProductFun,x) = evaluate(f,x...)
 
 *{F<:ProductFun}(c::Number,f::F) = F(c*f.coefficients,f.space)
