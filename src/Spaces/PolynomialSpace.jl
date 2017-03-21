@@ -232,7 +232,7 @@ function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMat
     α,γ=recα(T,sp,1),recγ(T,sp,2)
     scale!(-γ,Bk2)
     Base.axpy!(a[1],I,Bk2)
-    jac_gbmm!(1.0,J,Bk1,1.0,Bk2,b)
+    jac_gbmm!(one(T),J,Bk1,one(T),Bk2,b)
     Base.axpy!(-α,Bk1,Bk2)
 
     # relationship between jkr and kr, jr

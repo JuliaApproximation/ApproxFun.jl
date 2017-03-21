@@ -472,22 +472,32 @@ end
 
 
 # Canonical plan uses coefficients
-for (pl,CTransPlan) in ((:plan_transform,:CanonicalTransformPlan),
-                             (:plan_itransform,:ICanonicalTransformPlan))
-    @eval begin
-        function $CTransPlan(space,v)
-            csp = canonicalspace(space)
-            $CTransPlan(eltype(v),space,$pl(csp,v),csp)
-        end
-        function $pl(sp::Space,vals)
-            csp = canonicalspace(sp)
-            if sp == csp
-                error("Override for $sp")
-            end
-            $CTransPlan(sp,$pl(csp,vals),csp)
-        end
-    end
+function CanonicalTransformPlan(space,v)
+    csp = canonicalspace(space)
+    CanonicalTransformPlan(eltype(v),space,plan_transform(csp,v),csp)
 end
+function plan_transform(sp::Space,vals)
+    csp = canonicalspace(sp)
+    if sp == csp
+        error("Override for $sp")
+    end
+    CanonicalTransformPlan(sp,plan_transform(csp,vals),csp)
+end
+
+function ICanonicalTransformPlan(space,v)
+    csp = canonicalspace(space)
+    cfs = coefficients(v,space,csp)
+    ICanonicalTransformPlan(eltype(v),space,plan_itransform(csp,cfs),csp)
+end
+function plan_itransform(sp::Space,v)
+    csp = canonicalspace(sp)
+    if sp == csp
+        error("Override for $sp")
+    end
+    cfs = coefficients(v,sp,csp)
+    ICanonicalTransformPlan(sp,plan_itransform(csp,cfs),csp)
+end
+
 
 plan_transform!(sp::Space,vals) = error("Override for $sp")
 plan_itransform!(sp::Space,cfs) = error("Override for $sp")
