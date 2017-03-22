@@ -325,7 +325,7 @@ f=Fun((x,y)->exp(-10(x+.2)^2-20(y-.1)^2),Interval()^2,500)  #default is [-1,1]^2
 d=domain(f)
 A=[Dirichlet(d);Laplacian(d)]
 @time  u=\(A,[zeros(∂(d));f];tolerance=1E-7)
-@test_approx_eq_eps u(.1,.2) -0.04251891975068446 1E-5
+@test ≈(u(.1,.2),-0.04251891975068446;atol=1E-5)
 
 
 println("    Periodic Poisson tests")
@@ -430,7 +430,7 @@ A=Dt-ε*Dθ^2-Dθ
 
 testbandedblockbandedoperator(A)
 @time u=\([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
-@test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
+@test ≈(u(0.1,0.2),0.3103472600253807;atol=1E-2)
 
 
 # Transport equation
@@ -444,7 +444,7 @@ A=Dt+Dθ
 testbandedblockbandedoperator(A)
 
 @time u=\([I⊗ldirichlet(dt);Dt+Dθ],[u0;0.0];tolerance=1E-6)
-@test_approx_eq_eps u(0.2,0.1) u0(0.1) 1E-6
+@test ≈(u(0.2,0.1),u0(0.1);atol=1E-6)
 
 
 ## Small diffusoion
@@ -511,7 +511,7 @@ testbandedblockbandedoperator(A[2])
 
 u0=Fun(θ->exp(-20θ^2),dθ,20)
 @time ut=\(A,[u0;0.];tolerance=1E-5)
-@test_approx_eq_eps ut(.1,.2) u0(.2-.1) 1E-6
+@test ≈(ut(.1,.2),u0(.2-.1);atol=1E-6)
 
 
 
@@ -528,7 +528,7 @@ B=[I⊗ldirichlet(dt),I⊗lneumann(dt)]
 u0=Fun(θ->exp(-200(θ-.5).^2),dθ)
 @time u=\([B;Dt^2+Dθ^4],[u0;0.;0.];tolerance=1E-3)
 
-@test_approx_eq_eps u(.1,.01) -0.2479768394633227  1E-3 #empirical
+@test ≈(u(.1,.01),-0.2479768394633227;atol=1E-3) #empirical
 
 ## Rectangle PDEs
 
@@ -575,4 +575,4 @@ d=dθ*dt
 Dθ=Derivative(d,[1,0]);Dt=Derivative(d,[0,1])
 u0=Fun(θ->exp(-20θ^2),dθ,20)
 @time u=\([I⊗ldirichlet(dt);Dt-ε*Dθ^2-Dθ],[u0;0.];tolerance=1E-4)
-@test_approx_eq_eps u(0.1,0.2) 0.3103472600253807 1E-2
+@test ≈(u(0.1,0.2),0.3103472600253807;atol=1E-2)

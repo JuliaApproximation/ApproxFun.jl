@@ -231,7 +231,7 @@ function findcholeskyapproxmax!(f::Function,X::Vector,pts::Vector,grid)
 end
 
 function findcholeskyapproxmax!(A::Fun,B::Fun,X::Vector,pts::Vector,grid)
-    Ax,By = A(pts),B(pts)
+    Ax,By = A.(pts),B.(pts)
     subtractrankone!(Ax,By,X,grid)
     maxabsf,impt = findmaxabs(X)
     pts[impt]
@@ -320,12 +320,12 @@ end
 
 
 evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x,y)=dotu(evaluate(A,x),evaluate(B,y))
-evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector)=evaluate(A,x).'*evaluate(B,y)
+evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractVector)=evaluate.(A.',x)*evaluate.(B,y.')
 
 evaluate(f::LowRankFun,x,y)=evaluate(f.A,f.B,x,y)
 evaluate(f::LowRankFun,::Colon,::Colon)=f
 evaluate(f::LowRankFun,x::Number,::Colon)=dotu(f.B,evaluate(f.A,x))
-evaluate{T<:Number}(f::LowRankFun,x::Vector{T},::Colon)=f.B.'*evaluate(f.A,x)
+evaluate{T<:Number}(f::LowRankFun,x::Vector{T},::Colon)=f.B.'*evaluate.(f.A,x.')
 function evaluate(f::LowRankFun,::Colon,y::Number)
     m = maximum(map(ncoefficients,f.A))
     r=rank(f)

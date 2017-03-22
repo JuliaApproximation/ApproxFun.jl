@@ -43,7 +43,7 @@ for OP in (:sign,:angle)
         else
             d_split= d \ pts
             midpts = [midpoints(d)...]
-            Fun(d_split,$OP(f(midpts)))
+            Fun(d_split,$OP.(f.(midpts)))
         end
     end
 end
@@ -61,7 +61,7 @@ for op in (:(max),:(min))
     end
 end
 
-Base.isfinite(f::Fun) = isfinite(maxabs(f)) && isfinite(minabs(f))
+Base.isfinite(f::Fun) = isfinite(maximum(abs,f)) && isfinite(minabs(f))
 
 # division by fun
 
@@ -76,7 +76,7 @@ function /(c::Fun,f::Fun)
 
     r=roots(f)
     tol=10eps(promote_type(eltype(c),eltype(f)))
-    if length(r)==0 || norm(c(r))<tol
+    if length(r)==0 || norm(c.(r))<tol
         \(Multiplication(f,space(c)),c;tolerance=tol)
     else
         c*(1/f)
@@ -283,7 +283,7 @@ function specialfunctionnormalizationpoint(op,growth,f)
     xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
     xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
     opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
-    opmax = maxabs((opfxmin,opfxmax))
+    opmax = maximum(abs,(opfxmin,opfxmax))
     if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
     xmax,opfxmax,opmax
 end
@@ -412,11 +412,11 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
             opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
-            opmax = maxabs((opfxmin,opfxmax))
+            opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
                 xmin,xmax = rand(domain(f)),rand(domain(f))
                 opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
-                opmax = maxabs((opfxmin,opfxmax))
+                opmax = maximum(abs,(opfxmin,opfxmax))
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
@@ -450,11 +450,11 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
             opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
-            opmax = maxabs((opfxmin,opfxmax))
+            opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
                 xmin,xmax = rand(domain(f)),rand(domain(f))
                 opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
-                opmax = maxabs((opfxmin,opfxmax))
+                opmax = maximum(abs,(opfxmin,opfxmax))
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]

@@ -11,15 +11,15 @@ f = sin(x^2)
 g = cos(x)
 
 
-@test_approx_eq_eps f(.1) sin(.1^2) 1000eps()
+@test ≈(f(.1),sin(.1^2);atol=1000eps())
 
 h = f + g^2
 r = roots(h)
 rp = roots(differentiate(h))
 
-@test norm(h(r))<1000eps()
+@test norm(h.(r))<1000eps()
 
-@test norm(h'(rp))<100000eps()
+@test norm(h'.(rp))<100000eps()
 
 
 
@@ -64,10 +64,10 @@ B = dirichlet(d)
 L = D^2 - x
 u = [B;L] \ [airyai(d.a);airyai(d.b);0]
 
-@test_approx_eq_eps u(0.) airyai(0.) 10000eps()
+@test ≈(u(0.),airyai(0.);atol=10000eps())
 
 
-## Nonlinear BVPs
+##) Nonlinear BVPs
 x=Fun()
 u0=0.0x
 
@@ -130,7 +130,7 @@ QR = qrfact([Dirichlet(d);Laplacian()+100I])
 
 
 @test u(0.1,1.) ≈ 1.0
-@test_approx_eq_eps u(0.1,0.2) -0.02768276827514463 1E-8
+@test ≈(u(0.1,0.2),-0.02768276827514463;atol=1E-8)
 
 
 

@@ -143,7 +143,7 @@ end
 function subspace_coefficients(v::Vector,sp::Space,dropsp::SubSpace)
     n=length(v)
     if sp == dropsp.space
-        ret = Array(eltype(v),0)
+        ret = Array{eltype(v)}(0)
         for k in dropsp.indexes
             if k > n
                 return ret

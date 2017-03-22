@@ -11,6 +11,7 @@ end
 
 block(B::Block) = B
 
+Base.convert(::Type{Integer},B::Block) = B.K
 Base.convert{T<:Integer}(::Type{T},B::Block) = convert(T,B.K)::T
 Base.convert(::Type{Block},K::Block) = K
 Base.convert(::Type{Block},K::Integer) = Block(K)
@@ -46,13 +47,13 @@ end
 
 
 # broadcasting
-Base.broadcast(Int,r::UnitRange{Block}) = Int(r.start):Int(r.stop)
-Base.broadcast(Int,r::StepRange{Block,Block}) = Int(r.start):Int(r.step):Int(r.stop)
-Base.broadcast(Int,B::Block) = Int(B)
-
-Base.broadcast(Block,r::UnitRange{Int}) = Block(r.start):Block(r.stop)
-Base.broadcast(Block,r::StepRange{Int,Int}) = Block(r.start):Block(r.step):Block(r.stop)
-Base.broadcast(Block,B::Int) = Block(B)
+Base.broadcast(::Type{Int},r::UnitRange{Block}) = Int(r.start):Int(r.stop)
+Base.broadcast(::Type{Int},r::StepRange{Block,Block}) = Int(r.start):Int(r.step):Int(r.stop)
+Base.broadcast(::Type{Int},B::Block) = Int(B)
+#
+Base.broadcast(::Type{Block},r::UnitRange{Int}) = Block(r.start):Block(r.stop)
+Base.broadcast(::Type{Block},r::StepRange{Int,Int}) = Block(r.start):Block(r.step):Block(r.stop)
+Base.broadcast(::Type{Block},B::Int) = Block(B)
 
 
 
@@ -510,7 +511,7 @@ blockbandinds{T,BBM<:AbstractBlockBandedMatrix}(S::SubArray{T,2,BBM,Tuple{UnitRa
 getindex{N}(S::SubBandedBlockSubBlock, I::Vararg{Int,N}) =
     dataview(S)[I...]
 
-function getindex(S::SubBandedBlockRange, k::Integer, j::Integer)
+function getindex(S::SubBandedBlockRange, k::Int, j::Int)
     KR,JR = parentindexes(S)
     A = parent(S)
     A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])]
@@ -520,7 +521,7 @@ function setindex!{N}(S::SubBandedBlockSubBlock, v, I::Vararg{Int,N})
     dataview(S)[I...] = v
 end
 
-function setindex!(S::SubBandedBlockRange, v, k::Integer, j::Integer)
+function setindex!(S::SubBandedBlockRange, v, k::Int, j::Int)
     KR,JR = parentindexes(S)
     A = parent(S)
     A[k + sum(A.rows[1:first(KR).K-1]),j + sum(A.rows[1:first(JR).K-1])] = v

@@ -220,6 +220,7 @@ Base.BLAS.axpy!(α,A::SubBandedBlockRange,Y::SubBandedBlockBandedRange) = block_
 
 function Base.convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
     A = parent(S)
+    K = parentindexes(S)[1]
     col = S.offset1 # first col of current block
     BandedMatrix(A.data[:,col:col+S.stride1-1],A.rows[K.K],A.λ,A.μ)
 end
@@ -253,7 +254,7 @@ end
 
 
 Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::AbstractVector) =
-    banded_A_mul_B!(c,A,b)
+    BandedMatrices.banded_A_mul_B!(c,A,b)
 
 αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
     BandedMatrices.gbmv!('N',α,A,x,β,y)

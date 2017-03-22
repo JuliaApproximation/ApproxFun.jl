@@ -31,7 +31,7 @@ uh=let d=h..1.0
     u(0.5)
 end
 
-@test_approx_eq_eps ud dual(u0,(uh-u0)/h) h
+@test absdual(ud - dual(u0,(uh-u0)/h)) ≤ h
 
 let d=0.0..1.0
     B = ldirichlet(d)
@@ -66,7 +66,7 @@ P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
 @test norm(sort(real(filter(x->isreal(x),λ)))[1:5]-(0:4)) ≤ 100000eps()
 
 λ,V = ApproxFun.eigs([A+P],100)
-@test_approx_eq_eps sort(real(filter(x->isreal(x),λ)))[5] 3.93759261234502 1E-3
+@test ≈(sort(real(filter(x->isreal(x),λ)))[5],3.93759261234502;atol=1E-3)
 
 
 ## Sampling

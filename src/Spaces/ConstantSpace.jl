@@ -47,10 +47,7 @@ Base.ones(S::ConstantSpace)=Fun(S,ones(1))
 Base.ones(S::Union{AnyDomain,UnsetSpace})=ones(ConstantSpace())
 Base.zeros(S::Union{AnyDomain,UnsetSpace})=zeros(ConstantSpace())
 evaluate(f::AbstractVector,::ConstantSpace,x...)=f[1]
-evaluate(f::AbstractVector,::ConstantSpace,x::Array)=f[1]*ones(x)
-
 evaluate(f::AbstractVector,::ZeroSpace,x...)=zero(eltype(f))
-evaluate(f::AbstractVector,::ZeroSpace,x::Array)=zeros(x)
 
 
 Base.convert{CS<:ConstantSpace,T<:Number}(::Type{T},f::Fun{CS}) =

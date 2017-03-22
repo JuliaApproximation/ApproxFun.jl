@@ -106,13 +106,13 @@ end
 
 function evaluate{D<:Domain}(f::AbstractVector,S::Hardy{false,D},z)
     z=mappoint(S,𝕌,z)
-    z=1./z
-    z.*horner(f,z)
+    z=1/z
+    z*horner(f,z)
 end
 function evaluate{D<:Circle}(f::AbstractVector,S::Hardy{false,D},z)
     z=mappoint(S,𝕌,z)
-    z=1./z
-    z.*horner(f,z)
+    z=1/z
+    z*horner(f,z)
 end
 
 

@@ -185,7 +185,7 @@ end
 
 function sample{C<:Chebyshev,DD}(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},RealBasis,DD,2},Float64},n::Integer)
     ry=sample(sum(f,1),n)
-    fA=evaluate(f.A,ry)
+    fA=evaluate.(f.A,ry')
     CB=coefficientmatrix(f.B)
     AB=CB*fA
     chebnormalizedcumsum!(AB)

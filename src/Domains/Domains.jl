@@ -20,9 +20,9 @@ points(d::ClosedInterval,n) = points(Domain(d),n)
 # These are needed for spaces to auto-convert [a,b] to Segment
 function Base.convert(::Type{Domain},d::ClosedInterval)
     a,b=d.left,d.right
-    if abs(a) == Inf && abs(b) == Inf
+    if isinf(norm(a)) && isinf(norm(b))
         Line(d)
-    elseif abs(a) == Inf || abs(b) == Inf
+    elseif isinf(norm(a)) || isinf(norm(b))
         Ray(d)
     else
         Segment(d)
@@ -32,9 +32,9 @@ end
 # These are needed for spaces to auto-convert [a,b] to Interval
 function Base.convert(::Type{PeriodicDomain},d::ClosedInterval)
     a,b=d.left,d.right
-    if abs(a) == Inf && abs(b) == Inf
+    if isinf(norm(a)) && isinf(norm(b))
         PeriodicLine(d)
-    elseif abs(a) == Inf || abs(b) == Inf
+    elseif isinf(norm(a)) || isinf(norm(b))
         error("PeriodicRay not implemented")
     else
         PeriodicInterval(d)

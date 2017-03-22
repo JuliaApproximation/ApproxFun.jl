@@ -85,6 +85,11 @@ Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T
 
 
 # promotion of * to fix 0.5 bug
+if VERSION > v"0.6-"
+    Base.promote_op{N,V,S,T}(::typeof(Base.LinAlg.matprod),::Type{Fun{N,V}},::Type{Fun{S,T}}) =
+        Fun{promote_type(N,S),promote_type(T,V)}
+end
+
 Base.promote_op{N,V,S,T}(::typeof(*),::Type{Fun{N,V}},::Type{Fun{S,T}}) =
     Fun{promote_type(N,S),promote_type(T,V)}
 Base.promote_op{N,S,T}(::typeof(*),::Type{N},::Type{Fun{S,T}}) = Fun{S,promote_type(N,T)}
@@ -198,7 +203,7 @@ nblocks(f::Fun) = block(space(f),ncoefficients(f)).K
 function Base.stride(f::Fun)
     # Check only for stride 2 at the moment
     # as higher stride is very rare anyways
-    M=maxabs(f.coefficients)
+    M=maximum(abs,f.coefficients)
     for k=2:2:ncoefficients(f)
         if abs(f.coefficients[k])>40*M*eps()
             return 1
@@ -352,7 +357,7 @@ for (OP,SUM) in ((:(Base.norm),:(Base.sum)),(:linenorm,:linesum))
             elseif 1 ≤ p < Inf
                 return abs($SUM(abs2(f)^(p/2)))^(1/p)
             else
-                return maxabs(f)
+                return maximum(abs,f)
             end
         end
 

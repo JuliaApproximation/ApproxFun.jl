@@ -62,7 +62,7 @@ f=max(-1,g)
 f2=min(f,1)
 
 f3=Fun(x->x<-0.05?-1.0:(x<0.45?4*(x-.2):1),Domain(-1..1) \ [-0.05,0.45])
-@test norm(f2(collect(linspace(-1,1,10)))-f3(collect(linspace(-1,1,10)))) < 2eps()
+@test norm(f2.(linspace(-1,1,10))-f3.(linspace(-1,1,10))) < 2eps()
 
 x=Fun(identity, Segment(im,0) ∪ Segment(0,1))
 @test x(0.5) ≈ 0.5

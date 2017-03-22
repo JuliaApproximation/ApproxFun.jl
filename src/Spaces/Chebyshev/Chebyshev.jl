@@ -29,7 +29,13 @@ setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
 Base.ones{T<:Number}(::Type{T},S::Chebyshev) = Fun(S,ones(T,1))
 Base.ones(S::Chebyshev) = Fun(S,ones(1))
 
-Base.first{D}(f::Fun{Chebyshev{D}}) = foldr(-,coefficients(f))
+function Base.first{D,T}(f::Fun{Chebyshev{D},T})
+    n = ncoefficients(f)
+    n == 0 && return zero(T)
+    n == 1 && return f.coefficients[1]
+    foldr(-,coefficients(f))
+end
+
 Base.last{D}(f::Fun{Chebyshev{D}}) = reduce(+,coefficients(f))
 identity_fun(d::Chebyshev) = identity_fun(domain(d))
 

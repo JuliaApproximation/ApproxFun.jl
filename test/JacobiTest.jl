@@ -1,5 +1,5 @@
-using ApproxFun, Base.Test, FixedSizeArrays
-    import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms
+using ApproxFun, Base.Test, StaticArrays
+    import ApproxFun: testbandedbelowoperator, testbandedoperator, testspace, testtransforms, Vec
 
 
 @test ApproxFun.jacobip(0:5,2,0.5,0.1) ≈ [1.,0.975,-0.28031249999999996,-0.8636328125,-0.0022111816406250743,0.7397117980957031]
@@ -50,14 +50,14 @@ testtransforms(Jacobi(-0.5,-0.5))
 @test norm(Fun(Fun(exp),Jacobi(-.5,-.5))-Fun(exp,Jacobi(-.5,-.5))) < 100eps()
 
 x=Fun(identity)
-ri=0.5./(1-x)
-@test ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
+ri=0.5/(1-x)
+@test ((1-x)/2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
 
 
-@test ((1-x)./2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
+@test ((1-x)/2.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ (1-.1)./2*exp(.1)
 
 
-@test (ri.*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ .5/(1-.1)*exp(.1)
+@test (ri*Fun(exp,JacobiWeight(0.,0.,Jacobi(0.,1.))))(.1) ≈ .5/(1-.1)*exp(.1)
 
 
 ## Derivative
@@ -244,5 +244,5 @@ u=[ldirichlet();D^2-x]\[airyai(0.0);0.0]
 
 ## Test vector valued case
 
-f=Fun((x,y)->real(exp(x+im*y)),Legendre(Vec(0.,0)..Vec(1.,1.)))
+f=Fun((x,y)->real(exp(x+im*y)),Legendre(Vec(0.,0.)..Vec(1.,1.)))
 @test f(0.1,0.1) ≈ real(exp(0.1+0.1im))

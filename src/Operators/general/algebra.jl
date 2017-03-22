@@ -19,7 +19,7 @@ end
 Base.size(P::PlusOperator,k::Integer) = size(first(P.ops),k)
 
 
-PlusOperator{T,UT<:Number,VT<:Number}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
+PlusOperator{T,UT,VT}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
     PlusOperator{T,typeof(bi)}(opsin,bi)
 
 bandinds(P::PlusOperator) = P.bandinds
@@ -99,8 +99,8 @@ Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 function getindex{T}(P::PlusOperator{T},k::Integer...)
     ret=P.ops[1][k...]::T
-    for op in rest(P.ops,2)
-        ret+=op[k...]::T
+    for j=2:length(P.ops)
+        ret+=P.ops[j][k...]::T
     end
     ret
 end
@@ -262,7 +262,7 @@ end
 
 bandindssum(P) = (bandindssum(P,1),bandindssum(P,2))
 
-TimesOperator{T,N1<:Number,N2<:Number}(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) =
+TimesOperator{T,N1,N2}(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) =
     TimesOperator{T,typeof(bi)}(ops,bi)
 
 TimesOperator{T}(ops::Vector{Operator{T}}) = TimesOperator(ops,bandindssum(ops))

@@ -10,6 +10,6 @@ import ApproxFun: expα, expβ, expγ
 
 x = logspace(-15,2,18)
 
-@test norm(expα.(x)./expα.(big(x))-1,Inf) < eps()
-@test norm(expβ.(x)./expβ.(big(x))-1,Inf) < eps()
-@test norm(expγ.(x)./expγ.(big(x))-1,Inf) < eps()
+@test norm(expα.(x)./expα.(big.(x)).-1,Inf) < eps()
+@test norm(expβ.(x)./expβ.(big.(x)).-1,Inf) < eps()
+@test norm(expγ.(x)./expγ.(big.(x)).-1,Inf) < eps()

@@ -17,13 +17,13 @@ X=Multiplication(Fun(x->x,d));
 
 @time u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
 
-@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
+@test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
 @time u=[Bm;D2-X;Bp]\[airyai(d.a),0.,airyai(d.b)];
-@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
+@test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
 @time u=[D2-X;Bm;Bp]\[0.,airyai(d.a),airyai(d.b)];
-@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
+@test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
 
 
@@ -35,7 +35,7 @@ D2=Derivative(d,2);
 X=Multiplication(Fun(x->x,d));
 
 u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
-@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
+@test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
 
 
@@ -45,9 +45,9 @@ b=[airyaiprime(d.a),airyaiprime(d.b),0.];
 
 @time u=A\b;
 
-@test_approx_eq_eps u(0.) airyai(0.) 10ncoefficients(u)*eps()
+@test ≈(u(0.),airyai(0.);atol=10ncoefficients(u)*eps())
 
-## Neumann condition
+##) Neumann condition
 
 
 
@@ -190,22 +190,22 @@ t=Fun(identity,0..1000)
 L=𝒟^2+2I  # our differential operator, 𝒟 is equivalent to Derivative()
 
 u=[ivp();L]\[0.;0.;cos(100t)]
-@test_approx_eq_eps u(1000.0) 0.00018788162639452911 1000eps()
+@test ≈(u(1000.0),0.00018788162639452911;atol=1000eps())
 
 
 x=Fun(identity,1..2000)
 d=domain(x)
 B=dirichlet()
 ν=100.
-L=x^2*𝒟^2 + x*𝒟 + (x^2 - ν^2)   # our differential operator
+L=(x^2*𝒟^2) + x*𝒟 + (x^2 - ν^2)   # our differential operator
 
 @time u=[B;L]\[besselj(ν,first(d)),besselj(ν,last(d)),0.]
 
 
-@test_approx_eq_eps u(1900.) besselj(ν,1900.) 1000eps()
+@test ≈(u(1900.),besselj(ν,1900.);atol=1000eps())
 
 
-# complex RHS for real operatorB=ldirichlet()
+#) complex RHS for real operatorB=ldirichlet()
 D=Derivative(Chebyshev())
 B=ldirichlet()
 u1=[B;D]\[0.;Fun(exp)+0im]

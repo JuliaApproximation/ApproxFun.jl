@@ -124,10 +124,8 @@ end
 
 function zerocfsFun(f, d::Space)
     #TODO: reuse function values?
-    T = eltype(domain(d))
-    if T <: Complex
-        T = T.parameters[1] #get underlying real representation
-    end
+    T = real(eltype(domain(d)))
+
     r=checkpoints(d)
     f0=f(first(r))
 
@@ -144,7 +142,7 @@ function zerocfsFun(f, d::Space)
     for logn = 4:20
         #cf = Fun(f, d, 2^logn + 1)
         cf = defaultFun(f, d, 2^logn)
-        maxabsc = maxabs(cf.coefficients)
+        maxabsc = maximum(abs,cf.coefficients)
         if maxabsc == 0 && maxabsfr == 0
             return(zeros(d))
         end
@@ -154,7 +152,7 @@ function zerocfsFun(f, d::Space)
 
         # we allow for transformed coefficients being a different size
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
-        if ncoefficients(cf) > 8 && maxabs(cf.coefficients[bs:end]) < tol*maxabsc &&
+        if ncoefficients(cf) > 8 && maximum(abs,cf.coefficients[bs:end]) < tol*maxabsc &&
                 all(k->norm(cf(r[k])-fr[k],1)<tol*length(cf.coefficients)*maxabsfr*1000,1:length(r))
             return chop!(cf,tol*maxabsc/10)
         end
@@ -179,7 +177,7 @@ function abszerocfsFun(f,d::Space)
         #cf = Fun(f, d, 2^logn + 1)
         cf = Fun(f, d, 2^logn)
 
-        if maxabs(cf.coefficients[end-8:end]) < tol
+        if maximum(abs,cf.coefficients[end-8:end]) < tol
             return chop!(cf,10eps(T))
         end
     end

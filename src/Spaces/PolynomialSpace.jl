@@ -26,8 +26,6 @@ function evaluate(f::AbstractVector,S::PolynomialSpace,x)
     end
 end
 
-evaluate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray) = map(y->evaluate(f,S,y),x)
-
 # we need the ... for multi-dimensional
 evaluate(f::AbstractVector,S::PolynomialSpace,x,y,z...) =
     evaluate(f,S,Vec(x,y,z...))
@@ -41,9 +39,7 @@ function evaluate(f::AbstractVector,S::PolynomialSpace,x::Fun)
 end
 
 ## Extrapolation
-
 extrapolate(f::AbstractVector,S::PolynomialSpace,x) = clenshaw(S,f,tocanonical(S,x))
-extrapolate(f::AbstractVector,S::PolynomialSpace,x::AbstractArray) = map(y->extrapolate(f,S,y),x)
 
 ######
 # Recurrence encodes the recurrence coefficients
@@ -222,7 +218,7 @@ function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMat
     α,β = recα(T,sp,n-1),recβ(T,sp,n-2)
     Bk1 = (-α/β)*Bk2
     Base.axpy!(a[n-1]/β,I,Bk1)
-    jac_gbmm!(1/β,J,Bk2,one(T),Bk1,0)
+    jac_gbmm!(one(T)/β,J,Bk2,one(T),Bk1,0)
     b=1  # we keep track of bandwidths manually to reuse memory
     for k=n-2:-1:2
         α,β,γ=recα(T,sp,k),recβ(T,sp,k-1),recγ(T,sp,k+1)
@@ -236,7 +232,7 @@ function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMat
     α,γ=recα(T,sp,1),recγ(T,sp,2)
     scale!(-γ,Bk2)
     Base.axpy!(a[1],I,Bk2)
-    jac_gbmm!(1.0,J,Bk1,1.0,Bk2,b)
+    jac_gbmm!(one(T),J,Bk1,one(T),Bk2,b)
     Base.axpy!(-α,Bk1,Bk2)
 
     # relationship between jkr and kr, jr
