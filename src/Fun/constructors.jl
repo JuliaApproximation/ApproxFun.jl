@@ -1,4 +1,4 @@
-struct F <: Function
+immutable F <: Function
     f
 end
 (f::F)(args...) = f.f(args...)
