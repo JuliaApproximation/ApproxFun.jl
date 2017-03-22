@@ -48,13 +48,15 @@ end
 # jacobirecA/B/C is from dlmf:
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
-@inline jacobirecA{T}(::Type{T},α,β,k) =
-    k==0&&((α+β==0)||(α+β==-1))?.5*(α+β)+one(T):(2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
-@inline jacobirecB{T}(::Type{T},α,β,k) =
-    k==0&&((α+β==0)||(α+β==-1))?.5*(α-β)*one(T):(α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
-@inline jacobirecC{T}(::Type{T},α,β,k) =
+@inline function jacobirecA{T}(::Type{T},α,β,k)::T
+    k==0&&((α+β==0)||(α+β==-1))?(α+β)/2+one(T):(2k+α+β+one(T))*(2k+α+β+2one(T))/(2*(k+one(T))*(k+α+β+one(T)))
+end
+@inline function jacobirecB{T}(::Type{T},α,β,k)::T
+    k==0&&((α+β==0)||(α+β==-1))?(α-β)*one(T)/2:(α-β)*(α+β)*(2k+α+β+one(T))/(2*(k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
+end
+@inline function jacobirecC{T}(::Type{T},α,β,k)::T
     (one(T)*k+α)*(one(T)*k+β)*(2k+α+β+2one(T))/((k+one(T))*(k+α+β+one(T))*(2one(T)*k+α+β))
-
+end
 #####
 # jacobirecA/B/C is from dlmf:
 # x p_{n-1} =γ_n p_{n-2} + α_n p_{n-1} +  p_n β_n
@@ -66,7 +68,7 @@ end
 
 for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobirecγ),
                    (:recA,:jacobirecA),(:recB,:jacobirecB),(:recC,:jacobirecC))
-    @eval @inline $REC{T}(::Type{T},sp::Jacobi,k) = $JREC(T,sp.a,sp.b,k)
+    @eval @inline $REC{T}(::Type{T},sp::Jacobi,k) = $JREC(T,sp.a,sp.b,k)::T
 end
 
 
