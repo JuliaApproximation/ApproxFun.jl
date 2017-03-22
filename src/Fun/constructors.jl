@@ -74,10 +74,11 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{true}})
     defaultFun(Tprom,f,d,pts,Val{true})
 end
 
-defaultFun{ReComp}(f,d::Space{ReComp},n::Integer) = defaultFun(f,d,n,Val{!hasnumargs(f,1)})
+defaultFun{ReComp}(f::F,d::Space{ReComp},n::Integer) = defaultFun(f,d,n,Val{!hasnumargs(f.f,1)})
 
 
-Fun{ReComp}(f,d::Space{ReComp},n::Integer) = defaultFun(f,d,n)
+Fun{ReComp}(f::Function,d::Space{ReComp},n::Integer) = Fun(F(f),d,n)
+Fun{ReComp}(f::F,d::Space{ReComp},n::Integer) = defaultFun(f,d,n)
 
 # the following is to avoid ambiguity
 # Fun(f::Fun,d) should be equivalent to Fun(x->f(x),d)
