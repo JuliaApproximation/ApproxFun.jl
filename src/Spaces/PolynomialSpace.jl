@@ -218,7 +218,7 @@ function Base.convert{PS<:PolynomialSpace,T,C<:PolynomialSpace}(::Type{BandedMat
     α,β = recα(T,sp,n-1),recβ(T,sp,n-2)
     Bk1 = (-α/β)*Bk2
     Base.axpy!(a[n-1]/β,I,Bk1)
-    jac_gbmm!(1/β,J,Bk2,one(T),Bk1,0)
+    jac_gbmm!(one(T)/β,J,Bk2,one(T),Bk1,0)
     b=1  # we keep track of bandwidths manually to reuse memory
     for k=n-2:-1:2
         α,β,γ=recα(T,sp,k),recβ(T,sp,k-1),recγ(T,sp,k+1)

@@ -254,7 +254,7 @@ end
 
 
 Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::AbstractVector) =
-    banded_A_mul_B!(c,A,b)
+    BandedMatrices.banded_A_mul_B!(c,A,b)
 
 αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
     BandedMatrices.gbmv!('N',α,A,x,β,y)
