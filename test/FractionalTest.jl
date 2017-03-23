@@ -1,6 +1,14 @@
 using ApproxFun, Base.Test
     import ApproxFun: testfunctional, testbandedoperator
 
+## Jupyer example
+
+S=Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
+Q½=LeftIntegral(S,0.5)
+
+y=(I+Q½)\1
+@test values(y)[1] ≈ 0.33627096683893143
+
 S=Legendre()⊕JacobiWeight(0.5,0.,Ultraspherical(1))
 testfunctional(rdirichlet(S))
 B=rdirichlet(S)

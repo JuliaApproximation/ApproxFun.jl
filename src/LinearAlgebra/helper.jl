@@ -1135,7 +1135,8 @@ broadcast(::typeof(*),b::AbstractCount,a::Number) = a*b
 -(a::Number,b::UnitCount) = Count(a-b.start,-1)
 -(a::Number,b::Count) = Count(a-b.start,-b.step)
 
-
+*(a::Number,b::AbstractCount) = Count(a*start(b),a*step(b))
+*(a::AbstractCount,b::Number) = b*a
 
 function +(a::Flatten,b::Flatten)
     if isempty(a)

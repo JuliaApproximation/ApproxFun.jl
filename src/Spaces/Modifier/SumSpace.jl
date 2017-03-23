@@ -506,8 +506,11 @@ end
 
 
 
-itransform(S::SumSpace,cfs) = Fun(S,cfs)(points(S,length(cfs)))
-itransform!(S::SumSpace,cfs) = (cfs[:]=Fun(S,cfs)(points(S,length(cfs))))
+itransform(S::SumSpace,cfs) = Fun(S,cfs).(points(S,length(cfs)))
+function itransform!(S::SumSpace,cfs)
+    f    = Fun(S,cfs)
+    cfs .= f.(points(S,length(cfs)))
+end
 
 
 

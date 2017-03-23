@@ -51,11 +51,11 @@ end
 
 
 @recipe function f{S,T<:Real}(x::AbstractVector{T},g::Fun{S,T})
-    x,g(x)
+    x,g.(x)
 end
 
 @recipe function f{S,T<:Real}(x::AbstractVector{T},g::Fun{S,Complex{T}})
-    v=g(x)
+    v=g.(x)
     x,Vector{T}[real(v),imag(v)]
 end
 
@@ -74,7 +74,7 @@ end
 @recipe function f{T<:Real,F<:Fun}(x::AbstractVector{T},G::AbstractVector{F})
     v=Vector{Float64}[]
     for g in G
-        push!(v,g(x))
+        push!(v,g.(x))
     end
     x,v
 end
@@ -292,7 +292,7 @@ end
 
 @recipe function f(x::AbstractVector,y::AbstractVector,g::MultivariateFun)
     seriestype --> :surface
-    x,y,real(g(x,y)).'
+    x,y,real(g.(x,y.'))
 end
 
 
