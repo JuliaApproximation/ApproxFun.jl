@@ -92,7 +92,13 @@ Base.ones(S::Ultraspherical) = Fun(S,ones(1))
 
 ## Fast evaluation
 
-Base.first{D}(f::Fun{Ultraspherical{Int,D}}) = isempty(f.coefficients) ? zero(eltype(f)) : foldr(-,coefficients(f,Chebyshev))
+function Base.first{D}(f::Fun{Ultraspherical{Int,D}})
+    n = length(f.coefficients)
+    n == 0 && return zero(eltype(f))
+    n == 1 && return first(f.coefficients)
+    foldr(-,coefficients(f,Chebyshev))
+end
+
 Base.last{D}(f::Fun{Ultraspherical{Int,D}}) = reduce(+,coefficients(f,Chebyshev))
 
 Base.first{O,D}(f::Fun{Ultraspherical{O,D}}) = f(first(domain(f)))

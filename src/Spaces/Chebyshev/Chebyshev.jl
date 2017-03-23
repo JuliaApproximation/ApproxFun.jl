@@ -263,7 +263,7 @@ itransform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector,
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))
     @eval ($op){S<:Chebyshev,V<:Chebyshev}(f::ProductFun{S,V}) =
-        ProductFun(chebyshevtransform($op(values(f))),space(f))
+        ProductFun(chebyshevtransform($op.(values(f))),space(f))
 end
 
 
