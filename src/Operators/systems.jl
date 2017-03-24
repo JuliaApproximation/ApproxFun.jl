@@ -64,5 +64,6 @@ Base.blkdiag(a::Operator,b::Operator) = blkdiag(Operator{promote_type(eltype(a),
 
 ## broadcase
 
-.*{N<:Number}(A::Array{N},D::Operator)=Operator{promote_type(N,eltype(D))}[A[k,j]*D for k=1:size(A,1),j=1:size(A,2)]
-.*{N<:Number}(D::Operator,A::Array{N})=A.*D
+broadcast{N<:Number}(::typeof(*),A::Array{N},D::Operator) =
+    Operator{promote_type(N,eltype(D))}[A[k,j]*D for k=1:size(A,1),j=1:size(A,2)]
+broadcast{N<:Number}(::typeof(*),D::Operator,A::Array{N})=A.*D

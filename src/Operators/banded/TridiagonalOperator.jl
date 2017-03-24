@@ -2,10 +2,10 @@
 # but overrided BandedMatrix directly is likely to be faster
 
 
-abstract TridiagonalOperator{T} <: Operator{T}
-abstract SymTridiagonalOperator{T} <: TridiagonalOperator{T}
-abstract BidiagonalOperator{T} <: TridiagonalOperator{T}
-abstract DiagonalOperator{T} <: BidiagonalOperator{T}
+@compat abstract type TridiagonalOperator{T} <: Operator{T} end
+@compat abstract type SymTridiagonalOperator{T} <: TridiagonalOperator{T} end
+@compat abstract type BidiagonalOperator{T} <: TridiagonalOperator{T} end
+@compat abstract type DiagonalOperator{T} <: BidiagonalOperator{T} end
 # override getindex
 
 bandinds(::TridiagonalOperator)=-1,1
@@ -20,7 +20,7 @@ T[J.β(k) for k=1:n-1])
 
 
 function symmetrize{T}(J::TridiagonalOperator{T},n::Integer)
-    d=Array(T,n)
+    d=Array{T}(n)
     d[1]=1
     for k=2:n
         d[k]=sqrt(J[k,k-1]/J[k-1,k])*d[k-1]

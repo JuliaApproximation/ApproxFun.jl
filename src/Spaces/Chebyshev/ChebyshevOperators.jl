@@ -61,7 +61,7 @@ function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Ran
     if x
         ret = ones(T,n)
     else
-        ret = Array(T,n)
+        ret = Array{T}(n)
         k1=1-first(k)
         @simd for j=k
             @inbounds ret[j+k1]=(-1)^(p+1)*(-one(T))^j
@@ -91,7 +91,7 @@ end
 function getindex{DD<:Segment,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD},M,OT,T},
                                              k::Range)
     if op.order == 0
-        Vector{T}(evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k])
+        Array{T}(evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k])
     else
         error("Only zero–second order implemented")
     end
@@ -171,7 +171,7 @@ Derivative{DD<:Segment}(sp::Chebyshev{DD},order::Integer) =
 
 rangespace{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) =
     Ultraspherical(D.order,domain(D))
-bandinds{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = 0,D.order
+bandinds{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = D.order,D.order
 Base.stride{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = D.order
 
 function getindex{DD<:Segment,K,T}(D::ConcreteDerivative{Chebyshev{DD},K,T},k::Integer,j::Integer)

@@ -5,7 +5,7 @@ using ApproxFun, Base.Test, DualNumbers
 
 
 f=Fun(exp,Segment(dual(1.0,1),dual(2.0)),20)
-@test_approx_eq Fun(h->Fun(exp,Segment(1.0+h,2.0)).coefficients[1],0..1)'(0.) DualNumbers.epsilon(f.coefficients[1])
+@test Fun(h->Fun(exp,Segment(1.0+h,2.0)).coefficients[1],0..1)'(0.) ≈ DualNumbers.epsilon(f.coefficients[1])
 
 ud=let d=dual(0.0,1.0)..1.0
     B = ldirichlet(d)
@@ -31,7 +31,7 @@ uh=let d=h..1.0
     u(0.5)
 end
 
-@test_approx_eq_eps ud dual(u0,(uh-u0)/h) h
+@test absdual(ud - dual(u0,(uh-u0)/h)) ≤ h
 
 let d=0.0..1.0
     B = ldirichlet(d)
@@ -40,10 +40,8 @@ let d=0.0..1.0
     u = [B;D+a] \ [dual(1.0,2.0),0.0]
     ur = [B;D+a] \ [1.0,0.0]
     ud = [B;D+a] \ [2.0,0.0]
-    @test_approx_eq u(0.5)  dual(ur(0.5),ud(0.5))
+    @test absdual(u(0.5)  - dual(ur(0.5),ud(0.5))) < 10eps()
 end
-
-
 
 
 ## Eig test #336
@@ -51,7 +49,7 @@ end
 d = Interval(0.,π)
 A=Derivative(d)^2
 λ=eigvals([dirichlet(d);A],100)
-@test_approx_eq sort(λ)[end-5:end] -(-6:-1).^2
+@test sort(λ)[end-5:end] ≈ -(-6:-1).^2
 
 
 F = x->x.^8
@@ -68,7 +66,7 @@ P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
 @test norm(sort(real(filter(x->isreal(x),λ)))[1:5]-(0:4)) ≤ 100000eps()
 
 λ,V = ApproxFun.eigs([A+P],100)
-@test_approx_eq_eps sort(real(filter(x->isreal(x),λ)))[5] 3.93759261234502 1E-3
+@test ≈(sort(real(filter(x->isreal(x),λ)))[5],3.93759261234502;atol=1E-3)
 
 
 ## Sampling
@@ -81,4 +79,4 @@ r=ApproxFun.sample(f,5000)
 
 #We can compare the histogram to the 1-point correlation
 g=sum(f,1)/sum(f)
-@test_approx_eq  g(0.1) 0.2004758624973169
+@test  g(0.1) ≈ 0.2004758624973169

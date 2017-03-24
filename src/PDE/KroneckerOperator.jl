@@ -73,7 +73,7 @@ function colstop(A::KroneckerOperator,k::Integer)
     K=block(A.domaintensorizer,k)
     st=blockstop(A.rangetensorizer,blockcolstop(A,K))
     # zero indicates above dimension
-    st==0 ? size(A,1) : min(size(A,1),st)
+    min(size(A,1),st)
 end
 
 function rowstart(A::KroneckerOperator,k::Integer)
@@ -135,7 +135,7 @@ subblockbandinds(K::KroneckerOperator,k::Integer) = subblockbandinds(K)[k]
 subblockbandinds(::Union{ConstantOperator,ZeroOperator},::Integer) = 0
 
 
-typealias Wrappers Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
+@compat const Wrappers = Union{ConversionWrapper,MultiplicationWrapper,DerivativeWrapper,LaplacianWrapper,
                        SpaceOperator,ConstantTimesOperator}
 
 
@@ -295,7 +295,7 @@ blocklengthrange(rt,B::Block) = [blocklength(rt,B)]
 blocklengthrange(rt,B::Range{Block}) = blocklength(rt,B)
 function blocklengthrange(rt,kr)
     KR=block(rt,first(kr)):block(rt,last(kr))
-    Klengths=Array(Int,length(KR))
+    Klengths=Vector{Int}(length(KR))
     for ν in eachindex(KR)
         Klengths[ν]=blocklength(rt,KR[ν])
     end
@@ -346,6 +346,7 @@ Base.convert(::Type{BandedBlockBandedMatrix},S::SubOperator) = default_bandedblo
 function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
                                                 S::SubOperator{T,KKO,Tuple{UnitRange{Int},UnitRange{Int}}})
     kr,jr = parentindexes(S)
+    (isempty(kr) || isempty(jr)) && return bbbzeros(S)
     KO = parent(S)
 
     rt = rangetensorizer(KO)
@@ -373,7 +374,7 @@ function Base.convert{KKO<:KroneckerOperator,T}(::Type{BandedBlockBandedMatrix},
 end
 
 
-typealias Trivial2DTensorizer CachedIterator{Tuple{Int64,Int64},
+@compat const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
                                              Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},
                                              Tuple{Tuple{Int64,Int64},Tuple{Int64,Int64},
                                                    Tuple{Int64,Int64},Tuple{Bool,Bool},

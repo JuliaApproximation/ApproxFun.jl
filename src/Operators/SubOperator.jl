@@ -96,7 +96,7 @@ end
 function view(A::Operator,kr::UnitRange,jr::UnitRange)
     if isbanded(A)
         shft=first(kr)-first(jr)
-        l,u=max(bandwidth(A,1)-shft,0),max(bandinds(A,2)+shft,0)
+        l,u=bandwidth(A,1)-shft,bandinds(A,2)+shft
         SubOperator(A,(kr,jr),(length(kr),length(jr)),(l,u))
     else
         SubOperator(A,(kr,jr))
@@ -118,6 +118,11 @@ view(A::Operator,KR::UnitRange{Block},JR::UnitRange{Block}) = SubOperator(A,(KR,
 view(A::Operator,k,j) = SubOperator(A,(k,j))
 
 
+
+## Needed for Broadcast
+if VERSION ≥ v"0.6-"
+    Base.Broadcast.containertype(::SubOperator) = Array
+end
 
 reindex(A::Operator, B::Tuple{Block,Any}, kj::Tuple{Any,Any}) =
     (reindex(rangespace(A),(B[1],), (kj[1],))[1], reindex(domainspace(A),tail(B), tail(kj))[1])
@@ -146,6 +151,10 @@ end
 
 view(A::SubOperator,kr::UnitRange,jr::UnitRange) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
 view(A::SubOperator,K::Block,J::Block) = view(A.parent,reindex(A,parentindexes(A),(K,J))...)
+function Base.view(A::SubOperator,::Type{FiniteRange},jr::AbstractVector{Int})
+    cs = (isbanded(A) || isblockbandedbelow(A)) ? colstop(A,maximum(jr)) : mapreduce(j->colstop(A,j),max,jr)
+    view(A,1:cs,jr)
+end
 view(A::SubOperator,kr,jr) = view(A.parent,reindex(A,parentindexes(A),(kr,jr))...)
 
 
@@ -157,7 +166,7 @@ function colstop{T,OP}(S::SubOperator{T,OP,Tuple{UnitRange{Int},UnitRange{Int}}}
     kr = parentindexes(S)[1]
     n = size(S,1)
     if cs < first(kr)
-        1
+        0
     elseif cs ≥ last(kr)
         n
     else
@@ -201,8 +210,8 @@ function bbbzeros(S::SubOperator)
 
     rt=rangespace(KO)
     dt=domainspace(KO)
-
-    k1,j1=reindex(S,parentindexes(S),(1,1))
+    k1,j1=isempty(kr) || isempty(jr) ? (first(kr),first(jr)) :
+                                        reindex(S,parentindexes(S),(1,1))
 
     # each row/column that we differ from the the block start shifts
     # the sub block inds

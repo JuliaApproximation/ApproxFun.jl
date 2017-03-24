@@ -1,10 +1,18 @@
 
 # ApproxFun.jl NEWS
 
-#### notes on release changes, ongoing development, and future planned work
+### notes on release changes, ongoing development, and future planned work
+
+#### 0.6.0 (current master/development)
+- Adds support for Julia v0.6
+- Replaces FixedSizeArrays.jl dependancy with StaticArrays.jl
+- Auto-vectorization `f([1,2,3])` is removed in favour of broadcasting `f.([1,2,3])`
 
 
-## 0.4 (current master/development)
+#### 0.5.0
+- Drops support for Julia v0.4
+- Uses IntervalSets.jl to support a..b
+- Uses Padua points for `Chebyshev()^2` transform
 
 
 #### 0.4.1

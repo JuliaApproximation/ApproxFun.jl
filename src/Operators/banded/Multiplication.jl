@@ -1,12 +1,12 @@
 export Multiplication
 
-abstract Multiplication{D,S,T} <:Operator{T}
+@compat abstract type Multiplication{D,S,T} <:Operator{T} end
 
 immutable ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{D,S,T}
     f::Fun{D,T}
     space::S
 
-    ConcreteMultiplication(f::Fun{D,T},sp::S) = new(f,sp)
+    (::Type{ConcreteMultiplication{D,S,T}}){D,S,T}(f::Fun{D,T},sp::S) = new{D,S,T}(f,sp)
 end
 
 function ConcreteMultiplication{V,D,T}(::Type{V},f::Fun{D,T},sp::Space)
@@ -14,7 +14,7 @@ function ConcreteMultiplication{V,D,T}(::Type{V},f::Fun{D,T},sp::Space)
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
     ConcreteMultiplication{D,typeof(sp),V}(
-        convert(Fun{D,V},chop(f,maxabs(f.coefficients)*40*eps(eltype(f)))),sp)
+        convert(Fun{D,V},chop(f,maximum(abs,f.coefficients)*40*eps(eltype(f)))),sp)
 end
 
 
@@ -23,7 +23,7 @@ function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
     V = promote_type(T,eltype(sp))
-    ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,maxabs(f.coefficients)*40*eps(eltype(f)))),sp)
+    ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,maximum(abs,f.coefficients)*40*eps(eltype(f)))),sp)
 end
 
 # We do this in two stages to support Modifier spaces
@@ -117,7 +117,7 @@ hasfasttransformtimes(f,g)=spacescompatible(f,g) && hasfasttransform(f) && hasfa
 
 
 # This should be overriden whenever the multiplication space is different
-function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
+function *{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
     # When the spaces differ we promote and multiply
     if domainscompatible(space(f),space(g))
         m,n = ncoefficients(f),ncoefficients(g)
@@ -131,7 +131,7 @@ function .*{T,N,S,V}(f::Fun{S,T},g::Fun{V,N})
         end
     else
         sp=union(space(f),space(g))
-        Fun(f,sp).*Fun(g,sp)
+        Fun(f,sp)*Fun(g,sp)
     end
 end
 

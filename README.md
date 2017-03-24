@@ -1,6 +1,6 @@
 # ApproxFun.jl
 
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/stable) 
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/stable)
 [![](https://img.shields.io/badge/docs-latest-blue.svg)](https://JuliaApproximation.github.io/ApproxFun.jl/latest)
 [![Build Status](https://travis-ci.org/JuliaApproximation/ApproxFun.jl.svg?branch=master)](https://travis-ci.org/JuliaApproximation/ApproxFun.jl) [![Coverage Status](https://img.shields.io/coveralls/JuliaApproximation/ApproxFun.jl.svg)](https://coveralls.io/r/JuliaApproximation/ApproxFun.jl?branch=master) [![Join the chat at https://gitter.im/JuliaApproximation/ApproxFun.jl](https://badges.gitter.im/JuliaApproximation/ApproxFun.jl.svg)](https://gitter.im/JuliaApproximation/ApproxFun.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -35,8 +35,8 @@ rp = roots(h')
 
 using Plots
 plot(h)
-scatter!(r,h(r))
-scatter!(rp,h(rp))
+scatter!(r,h.(r))
+scatter!(rp,h.(rp))
 ```
 
 <img src=https://github.com/JuliaApproximation/ApproxFun.jl/raw/master/images/extrema.png width=500 height=400>
@@ -203,7 +203,7 @@ setprecision(1000) do
     d=BigFloat(0)..BigFloat(1)
     D=Derivative(d)
     u=[ldirichlet();D-I]\[1;0]
-    @test_approx_eq u(1) exp(BigFloat(1))
+    @test u(1) ≈ exp(BigFloat(1))
 end
 ```
 

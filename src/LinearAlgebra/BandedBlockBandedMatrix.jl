@@ -1,6 +1,6 @@
 # Represents a block banded matrix with banded blocks
 #   similar to BandedMatrix{BandedMatrix{T}}
-type BandedBlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T}
+type BandedBlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T,BandedMatrix{T}}
     data::Matrix{T}
 
     l::Int  # block lower bandwidth
@@ -14,10 +14,10 @@ type BandedBlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T}
     rowblocks::Vector{Int}
     colblocks::Vector{Int}
 
-    function BandedBlockBandedMatrix(data::Matrix{T},l,u,λ,μ,rows,cols)
+    function (::Type{BandedBlockBandedMatrix{T,RI,CI}}){T,RI,CI}(data::Matrix{T},l,u,λ,μ,rows,cols)
         @assert size(data,1) == λ+μ+1
         @assert size(data,2) == (l+u+1)*sum(cols)
-        new(data,l,u,λ,μ,rows,cols,blocklookup(rows),blocklookup(cols))
+        new{T,RI,CI}(data,l,u,λ,μ,rows,cols,blocklookup(rows),blocklookup(cols))
     end
 end
 
@@ -25,7 +25,7 @@ BandedBlockBandedMatrix(data::Matrix,l,u,λ,μ,rows,cols) =
     BandedBlockBandedMatrix{eltype(data),typeof(rows),typeof(cols)}(data,l,u,λ,μ,rows,cols)
 
 BandedBlockBandedMatrix{T}(::Type{T},l,u,λ,μ,rows,cols) =
-    BandedBlockBandedMatrix(Array(T,λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
+    BandedBlockBandedMatrix(Matrix{T}(λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
 
 for FUNC in (:zeros,:rand,:ones)
     BFUNC = parse("bbb"*string(FUNC))
@@ -66,10 +66,10 @@ Base.isdiag(A::BandedBlockBandedMatrix) = A.λ == A.μ == A.l == A.u
 zeroblock(X::BandedBlockBandedMatrix,K::Block,J::Block) = bzeros(eltype(X),X.rows[K.K],X.cols[J.K],X.λ,X.μ)
 
 
-typealias BandedBlockBandedBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
-typealias BandedBlockBandedSubBlock{T,U,V} SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}
-typealias SubBandedBlockBandedRange{T,BBM<:BandedBlockBandedMatrix} SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
-typealias BLASBandedMatrix2{T,A,I} Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
+@compat const BandedBlockBandedBlock{T,U,V} = SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{Block,Block},false}
+@compat const BandedBlockBandedSubBlock{T,U,V} = SubArray{T,2,BandedBlockBandedMatrix{T,U,V},Tuple{SubBlock{UnitRange{Int}},SubBlock{UnitRange{Int}}},false}
+@compat const SubBandedBlockBandedRange{T,BBM<:BandedBlockBandedMatrix} = SubArray{T,2,BBM,Tuple{UnitRange{Block},UnitRange{Block}},false}
+@compat const BLASBandedMatrix2{T,A,I} = Union{BandedBlockBandedBlock{T,A,I},BandedMatrices.BLASBandedMatrix{T}}
 
 isbandedblockbanded(::SubBandedBlockBandedRange) = true
 isbandedblockbanded{T,BBM<:BandedBlockBandedMatrix}(::SubArray{T,2,BBM,Tuple{UnitRange{Int},UnitRange{Int}},false}) = true
@@ -220,6 +220,7 @@ Base.BLAS.axpy!(α,A::SubBandedBlockRange,Y::SubBandedBlockBandedRange) = block_
 
 function Base.convert{T,U,V}(::Type{BandedMatrix{T}},S::BandedBlockBandedBlock{T,U,V})
     A = parent(S)
+    K = parentindexes(S)[1]
     col = S.offset1 # first col of current block
     BandedMatrix(A.data[:,col:col+S.stride1-1],A.rows[K.K],A.λ,A.μ)
 end
@@ -249,11 +250,11 @@ end
 
 *{T,U,V}(A::BandedBlockBandedBlock{T,U,V},B::BandedBlockBandedBlock{T,U,V}) = BandedMatrices.banded_A_mul_B(A,b)
 *{T,U,V}(A::BandedBlockBandedBlock{T,U,V},b::AbstractVector{T}) =
-    BandedMatrices.banded_A_mul_B!(Array(T,size(A,1)),A,b)
+    BandedMatrices.banded_A_mul_B!(Vector{T}(size(A,1)),A,b)
 
 
 Base.A_mul_B!{T,U,V}(c::AbstractVector,A::BandedBlockBandedBlock{T,U,V},b::AbstractVector) =
-    banded_A_mul_B!(c,A,b)
+    BandedMatrices.banded_A_mul_B!(c,A,b)
 
 αA_mul_B_plus_βC!{T,U,V}(α,A::BandedBlockBandedBlock{T,U,V},x::AbstractVector,β,y::AbstractVector) =
     BandedMatrices.gbmv!('N',α,A,x,β,y)

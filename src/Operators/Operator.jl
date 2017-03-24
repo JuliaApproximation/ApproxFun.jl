@@ -6,7 +6,7 @@ export ldiffbc,rdiffbc,diffbcs
 export domainspace,rangespace
 
 
-abstract Operator{T} #T is the entry type, Float64 or Complex{Float64}
+@compat abstract type Operator{T} end #T is the entry type, Float64 or Complex{Float64}
 
 Base.eltype{T}(::Operator{T}) = T
 Base.eltype{T}(::Type{Operator{T}}) = T
@@ -200,7 +200,7 @@ defaultgetindex(B::Operator,k::Range,j::Block) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::Block,j::Range) = AbstractMatrix(view(B,k,j))
 defaultgetindex(B::Operator,k::Range,j::Range) = AbstractMatrix(view(B,k,j))
 
-defaultgetindex(op::Operator,k::Integer,j::Range) = reshape(eltype(op)[op[k,j] for j in j],1,length(j))
+defaultgetindex(op::Operator,k::Integer,j::Range) = eltype(op)[op[k,j] for j in j]
 defaultgetindex(op::Operator,k::Range,j::Integer) = eltype(op)[op[k,j] for k in k]
 
 
@@ -225,9 +225,9 @@ blockcols(A::Operator,J::Integer) = blockrange(domainspace(A),J)
 # override for other shaped operators
 #TODO: Why size(A,2) in colstart?
 banded_colstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,2), 1), size(A, 2))
-banded_colstop(A::Operator, i::Integer) = min(i+bandwidth(A,1), size(A, 1))
+banded_colstop(A::Operator, i::Integer) = max(0,min(i+bandwidth(A,1), size(A, 1)))
 banded_rowstart(A::Operator, i::Integer) = min(max(i-bandwidth(A,1), 1), size(A, 1))
-banded_rowstop(A::Operator, i::Integer) = min(i+bandwidth(A,2), size(A, 2))
+banded_rowstop(A::Operator, i::Integer) = max(0,min(i+bandwidth(A,2), size(A, 2)))
 
 blockbanded_colstart(A::Operator, i::Integer) =
         blockstart(rangespace(A), block(domainspace(A),i)-blockbandwidth(A,2))
@@ -609,7 +609,7 @@ Base.promote_rule{BO1<:Operator,BO2<:Operator}(::Type{BO1},::Type{BO2}) =
 ## Wrapper
 
 #TODO: Should cases that modify be included?
-typealias WrapperOperator Union{SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
+const WrapperOperator = Union{SpaceOperator,MultiplicationWrapper,DerivativeWrapper,IntegralWrapper,
                                     ConversionWrapper,ConstantTimesOperator,TransposeOperator}
 
 

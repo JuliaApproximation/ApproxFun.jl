@@ -1,7 +1,7 @@
 using ApproxFun, Base.Test
     import ApproxFun: testfunctional, testbandedbelowoperator, testbandedoperator
 
-for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
+@time for S in (Fourier(Circle()),Laurent(Circle()),Taylor(Circle()),
             CosSpace(Circle()),JacobiWeight(-0.5,-0.5,Chebyshev()),
             JacobiWeight(-0.5,-0.5,Chebyshev(1.0..2.0+im)),
             JacobiWeight(0.5,0.5,Ultraspherical(1,1.0..2.0+im)))
@@ -20,11 +20,11 @@ S = domainspace(⨍)
 
 f=Fun(S,rand(20))
 
-@test_approx_eq DefiniteLineIntegral(dom[1])*f[1] linesum(f[1])
-@test_approx_eq DefiniteLineIntegral(dom[2])*f[2] linesum(f[2])
-@test_approx_eq DefiniteLineIntegral(dom[3])*f[3] linesum(f[3])
+@test DefiniteLineIntegral(dom[1])*f[1] ≈ linesum(f[1])
+@test DefiniteLineIntegral(dom[2])*f[2] ≈ linesum(f[2])
+@test DefiniteLineIntegral(dom[3])*f[3] ≈ linesum(f[3])
 
-@test_approx_eq ⨍*f linesum(f)
+@test ⨍*f ≈ linesum(f)
 
 
 
@@ -48,7 +48,7 @@ L=I+Σ[exp(x)*w]
 bandinds(L)
 usol=sin(2x)
 f=L*usol
-u=L\f
+@time u=L\f
 @test norm(u-usol) <= 10eps()
 
 
@@ -72,7 +72,7 @@ K=LowRankFun((x,y)->sin(y-x)*w(y),Ultraspherical(1,d),domainspace(Σ))
 L=D+x+Σ[K]
 usol=cospi(20x)
 f=L*usol
-u=[B;L]\[1.;f]
+@time u=[B;L]\[1.;f]
 
 
 @test norm(u-usol) ≤ 200eps()
@@ -83,15 +83,15 @@ u=[B;L]\[1.;f]
 f1=Fun(t->cos(cos(t)),-π..π)
 f=Fun(t->cos(cos(t)),Laurent(-π..π))
 
-@test_approx_eq sum(f1) Σ*f
+@test sum(f1) ≈ Σ*f
 
 f1=Fun(t->cos(cos(t))/t,Laurent(Circle()))
 f2=Fun(t->cos(cos(t))/t,Fourier(Circle()))
-@test_approx_eq Σ*f1 Σ*f2
+@test Σ*f1 ≈ Σ*f2
 
 f1=Fun(t->cos(cos(t)),Laurent(-π..π))
 f2=Fun(t->cos(cos(t)),Fourier(-π..π))
-@test_approx_eq Σ*f1 Σ*f2
+@test Σ*f1 ≈ Σ*f2
 
 
 ## test over arcs
@@ -99,9 +99,9 @@ f2=Fun(t->cos(cos(t)),Fourier(-π..π))
 
 d=exp(im*Interval(0.1,0.2))
 x=Fun(d)
-w=1/(sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x)))
+@time w=1/(sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x)))
 
-@test_approx_eq linesum(w) DefiniteLineIntegral()*w
+@test linesum(w) ≈ DefiniteLineIntegral()*w
 
 
 ## Volterra integral equation
@@ -111,28 +111,28 @@ V = Volterra(d)
 K = LowRankFun((x,y)->sin(y-x),d^2)
 L = I-V[K]
 
-testbandedoperator(L)
+@time testbandedoperator(L)
 
 f = Fun(exp,d)
 @test domainspace(L) == Legendre(d)
 @test rangespace(L) == Legendre(d)
 @test bandrange(V) == -1:0
-u = L\f
+@time u = L\f
 @test norm(L*u-f) ≤ 20eps()
 
 
 
 ## Check DefiniteIntegral
 
-for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(-2,-1))),
+@time for S in (JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(-2,-1))),
           JacobiWeight(0.5,0.5,Ultraspherical(1,Segment(-2,-1+2im))),
           JacobiWeight(1.5,1.5,Ultraspherical(2,Segment(-2,-1+2im))),
           JacobiWeight(-0.5,-0.5,Chebyshev(Segment(-2,-1+2im))),
           JacobiWeight(0.67,0.123,Chebyshev(Segment(-2,-1+2im))),
           JacobiWeight(0.67,0.123,Ultraspherical(1,Segment(-2,-1+2im))))
     f=Fun(S,[1.,2.,3.])
-    @test_approx_eq DefiniteIntegral(space(f))*f sum(f)
-    @test_approx_eq DefiniteLineIntegral(space(f))*f linesum(f)
+    @test DefiniteIntegral(space(f))*f ≈ sum(f)
+    @test DefiniteLineIntegral(space(f))*f ≈ linesum(f)
 end
 
 
@@ -166,4 +166,4 @@ B=DefiniteLineIntegral(S)
 
 srand(0)
 f=Fun(S,rand(20))
-@test_approx_eq B*f linesum(f[1])+linesum(f[2])+linesum(f[3])
+@test B*f ≈ linesum(f[1])+linesum(f[2])+linesum(f[3])

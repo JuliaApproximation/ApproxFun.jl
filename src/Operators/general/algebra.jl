@@ -7,19 +7,19 @@ export PlusOperator, TimesOperator, A_mul_B_coefficients
 immutable PlusOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
-    function PlusOperator(opsin::Vector{Operator{T}},bi::BI)
+    function (::Type{PlusOperator{T,BI}}){T,BI}(opsin::Vector{Operator{T}},bi::BI)
         n,m=size(first(opsin))
         for k=2:length(opsin)
             @assert size(opsin[k],1)==n && size(opsin[k],2)==m
         end
-        new(opsin,bi)
+        new{T,BI}(opsin,bi)
     end
 end
 
 Base.size(P::PlusOperator,k::Integer) = size(first(P.ops),k)
 
 
-PlusOperator{T,UT<:Number,VT<:Number}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
+PlusOperator{T,UT,VT}(opsin::Vector{Operator{T}},bi::Tuple{UT,VT}) =
     PlusOperator{T,typeof(bi)}(opsin,bi)
 
 bandinds(P::PlusOperator) = P.bandinds
@@ -99,8 +99,8 @@ Base.stride(P::PlusOperator)=mapreduce(stride,gcd,P.ops)
 
 function getindex{T}(P::PlusOperator{T},k::Integer...)
     ret=P.ops[1][k...]::T
-    for op in rest(P.ops,2)
-        ret+=op[k...]::T
+    for j=2:length(P.ops)
+        ret+=P.ops[j][k...]::T
     end
     ret
 end
@@ -143,7 +143,7 @@ end
 
 
 # We need to support A+1 in addition to A+I primarily for matrix case: A+eye(2)
-for OP in (:+,:-,:(.+),:(.-))
+for OP in (:+,:-)
     @eval begin
         $OP(c::Union{UniformScaling,Number},A::Operator) =
             $OP(convert(Operator{promote_type(eltype(A),eltype(c))},c),A)
@@ -159,7 +159,7 @@ end
 immutable ConstantTimesOperator{B,T} <: Operator{T}
     λ::T
     op::B
-    ConstantTimesOperator(c,op)=new(c,op)
+    (::Type{ConstantTimesOperator{B,T}}){B,T}(c,op) = new{B,T}(c,op)
 end
 function ConstantTimesOperator{TT<:Number}(c::Number,op::Operator{TT})
     T=promote_type(typeof(c),eltype(op))
@@ -219,7 +219,7 @@ immutable TimesOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
 
-    function TimesOperator(ops::Vector{Operator{T}},bi::BI)
+    function (::Type{TimesOperator{T,BI}}){T,BI}(ops::Vector{Operator{T}},bi::BI)
         # check compatible
         for k=1:length(ops)-1
             @assert size(ops[k],2) == size(ops[k+1],1)
@@ -233,7 +233,7 @@ immutable TimesOperator{T,BI} <: Operator{T}
         end
 
         if hastimes
-            newops=Array(Operator{T},0)
+            newops=Vector{Operator{T}}(0)
             for op in ops
                if isa(op,TimesOperator)
                     for op2 in op.ops
@@ -247,7 +247,7 @@ immutable TimesOperator{T,BI} <: Operator{T}
         end
 
 
-        new(ops,bi)
+        new{T,BI}(ops,bi)
     end
 end
 
@@ -262,7 +262,7 @@ end
 
 bandindssum(P) = (bandindssum(P,1),bandindssum(P,2))
 
-TimesOperator{T,N1<:Number,N2<:Number}(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) =
+TimesOperator{T,N1,N2}(ops::Vector{Operator{T}},bi::Tuple{N1,N2}) =
     TimesOperator{T,typeof(bi)}(ops,bi)
 
 TimesOperator{T}(ops::Vector{Operator{T}}) = TimesOperator(ops,bandindssum(ops))
@@ -292,7 +292,7 @@ end
 
 
 function promotetimes{B<:Operator}(opsin::Vector{B},dsp)
-    ops=Array(Operator{mapreduce(eltype,promote_type,opsin)},0)
+    ops=Vector{Operator{mapreduce(eltype,promote_type,opsin)}}(0)
 
     for k=length(opsin):-1:1
         if !isa(opsin[k],Conversion)
@@ -378,6 +378,8 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
         P=parent(S)
         kr,jr=parentindexes(S)
 
+        (isempty(kr) || isempty(jr)) && return $Zer(S)
+
         if maximum(kr) > size(P,1) || maximum(jr) > size(P,2) ||
             minimum(kr) < 1 || minimum(jr) < 1
             throw(BoundsError())
@@ -391,8 +393,7 @@ for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        krlin = Array(Union{Int,Infinity{Bool}},
-                    length(P.ops),2)
+        krlin = Matrix{Union{Int,Infinity{Bool}}}(length(P.ops),2)
 
         krlin[1,1],krlin[1,2]=kr[1],kr[end]
         for m=1:length(P.ops)-1
@@ -450,8 +451,7 @@ for (STyp,Zer) in ((:BandedBlockBandedMatrix,:bbbzeros),
 
         # find optimal truncations for each operator
         # by finding the non-zero entries
-        KRlin = Array(Union{Block,Infinity{Bool}},
-                    length(P.ops),2)
+        KRlin = Matrix{Union{Block,Infinity{Bool}}}(length(P.ops),2)
 
         KRlin[1,1],KRlin[1,2]=KR[1],KR[end]
         for m=1:length(P.ops)-1
@@ -560,20 +560,16 @@ function *(f::Fun,A::Operator)
     end
 end
 
-for OP in (:*,:.*)
-    @eval begin
-        function $OP(c::Number,A::Operator)
-            if c==1
-                A
-            elseif c==0
-                ZeroOperator(domainspace(A),rangespace(A))
-            else
-                ConstantTimesOperator(c,A)
-            end
-        end
-        $OP(A::Operator,c::Number) = A*(c*ones(domainspace(A)))
+function *(c::Number,A::Operator)
+    if c==1
+        A
+    elseif c==0
+        ZeroOperator(domainspace(A),rangespace(A))
+    else
+        ConstantTimesOperator(c,A)
     end
 end
+*(A::Operator,c::Number) = A*(c*ones(domainspace(A)))
 
 
 /(B::Operator,c::Number) = (1.0/c)*B

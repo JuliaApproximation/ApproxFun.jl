@@ -29,7 +29,7 @@ Derivative(H::Hermite,order)=ConcreteDerivative(H,order)
 bandinds{H<:Hermite}(D::ConcreteDerivative{H})=0,D.order
 rangespace{H<:Hermite}(D::ConcreteDerivative{H})=domainspace(D)
 getindex{H<:Hermite}(D::ConcreteDerivative{H},k::Integer,j::Integer) =
-        j==k+D.order?one(eltype(D))*2^m*pochhammer(k,D.order):zero(eltype(D))
+        j==k+D.order?one(eltype(D))*2^D.order*pochhammer(k,D.order):zero(eltype(D))
 
 
 
@@ -40,7 +40,7 @@ function hermitep(r::Range,x::Number)
     if n≤2
         v=[1.,2x]
     else
-        v=Array(promote_type(Float64,typeof(x)),n)  # x may be complex
+        v=Array{promote_type(Float64,typeof(x))}(n)  # x may be complex
         v[1]=1.
         v[2]=2x
 
@@ -84,7 +84,7 @@ function Derivative(sp::GaussWeight,k::Integer)
     end
 end
 
-weight(H::GaussWeight,x)=exp(-H.L*x.^2)
+weight(H::GaussWeight,x) = exp(-H.L*x^2)
 
 function Base.sum{H<:Hermite,T}(f::Fun{GaussWeight{H,T}})
     @assert space(f).space.L==space(f).L  # only implemented with matching weight

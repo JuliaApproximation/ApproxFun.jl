@@ -44,7 +44,7 @@ end
 
 ## Adaptive construction
 
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace}(f::Function,sp::AbstractProductSpace{Tuple{S,V}};tol=100eps())
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace}(f::F,sp::AbstractProductSpace{Tuple{S,V}};tol=100eps())
     for n = 50:100:5000
         X = coefficients(ProductFun(f,sp,n,n;tol=tol))
         if size(X,1)<n && size(X,2)<n
@@ -57,24 +57,26 @@ end
 
 ## ProductFun values to coefficients
 
-function ProductFun(f::Function,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
+function ProductFun(f::F,S::AbstractProductSpace,M::Integer,N::Integer;tol=100eps())
     xy = checkpoints(S)
     T = promote_type(eltype(f(first(xy)...)),eltype(S))
     ptsx,ptsy=points(S,M,N)
     vals=T[f(ptsx[k,j],ptsy[k,j]) for k=1:size(ptsx,1), j=1:size(ptsx,2)]
     ProductFun(transform!(S,vals),S;tol=tol,chopping=true)
 end
-ProductFun(f::Function,S::TensorSpace) = ProductFun(LowRankFun(f,S))
+ProductFun(f::F,S::TensorSpace) = ProductFun(LowRankFun(f,S))
 
 ProductFun(f,dx::Space,dy::Space)=ProductFun(f,TensorSpace(dx,dy))
 
+ProductFun(f::Function,dx::Space,dy::Space)=ProductFun(F(f),TensorSpace(dx,dy))
+ProductFun(f::Function,args...;kwds...) = ProductFun(F(f),args...;kwds...)
 
 ## Domains promoted to Spaces
 
-ProductFun(f::Function,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
-ProductFun(f,d::Domain)=ProductFun(f,Space(d))
-ProductFun(f,dx::UnivariateDomain,dy::UnivariateDomain)=ProductFun(f,Space(dx),Space(dy))
-ProductFun(f::Function) = ProductFun(f,Interval(),Interval())
+ProductFun(f::F,D::BivariateDomain,M::Integer,N::Integer)=ProductFun(f,Space(D),M,N)
+ProductFun(f::F,d::Domain)=ProductFun(f,Space(d))
+ProductFun(f::F,dx::UnivariateDomain,dy::UnivariateDomain)=ProductFun(f,Space(dx),Space(dy))
+ProductFun(f::F) = ProductFun(f,Interval(),Interval())
 
 ## Conversion from other 2D Funs
 
@@ -87,7 +89,7 @@ ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp?f:ProductFun(coefficients
 ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp::ProductDomain)=ProductFun(f,Space(sp))
 
 function ProductFun(f::ProductFun,sp::AbstractProductSpace)
-    u=Array(Fun{typeof(columnspace(sp,1)),eltype(f)},length(f.coefficients))
+    u=Array{Fun{typeof(columnspace(sp,1)),eltype(f)}}(length(f.coefficients))
 
     for k=1:length(f.coefficients)
         u[k]=Fun(f.coefficients[k],columnspace(sp,k))
@@ -98,7 +100,7 @@ end
 
 ## For specifying spaces by anonymous function
 
-ProductFun(f::Function,SF::Function,T::Space,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
+ProductFun(f::F,SF::Function,T::Space,M::Integer,N::Integer)=ProductFun(f,typeof(SF(1))[SF(k) for k=1:N],T,M)
 
 ## Conversion of a constant to a ProductFun
 
@@ -121,7 +123,7 @@ end
 
 
 function pad{S,V,SS,T}(f::ProductFun{S,V,SS,T},n::Integer,m::Integer)
-    ret=Array(Fun{S,T},m)
+    ret=Array{Fun{S,T}}(m)
     cm=min(length(f.coefficients),m)
     for k=1:cm
         ret[k]=pad(f.coefficients[k],n)
@@ -149,7 +151,7 @@ coefficients(f::ProductFun)=funlist2coefficients(f.coefficients)
 function coefficients(f::ProductFun,ox::Space,oy::Space)
     T=eltype(f)
     m=size(f,1)
-    B=Array(T,m,length(f.coefficients))
+    B=Matrix{T}(m,length(f.coefficients))
     # convert in x direction
     #TODO: adaptively grow in x?
     for k=1:length(f.coefficients)
@@ -206,6 +208,15 @@ canonicalevaluate(f::ProductFun,xx::AbstractVector,yy::AbstractVector) =
 
 
 evaluate(f::ProductFun,x,y) = canonicalevaluate(f,tocanonical(f,x,y)...)
+
+# TensorSpace does not use map
+evaluate{S<:UnivariateSpace,V<:UnivariateSpace,SS<:TensorSpace,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon) =
+    Fun(space(f,2),T[g(x) for g in f.coefficients])
+
+evaluate{S<:UnivariateSpace,V<:UnivariateSpace,SS<:TensorSpace,T}(f::ProductFun{S,V,SS,T},x::Number,y::Number) =
+    evaluate(f,x,:)(y)
+
+
 evaluate(f::ProductFun,x) = evaluate(f,x...)
 
 *{F<:ProductFun}(c::Number,f::F) = F(c*f.coefficients,f.space)
@@ -283,7 +294,7 @@ for op in (:(Base.sin),:(Base.cos))
         Fun(space(f),transform!(space(f),$op(values(pad(f,size(f,1)+20,size(f,2))))))
 end
 
-.^(f::ProductFun,k::Integer) =
+^(f::ProductFun,k::Integer) =
     Fun(space(f),transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k))
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
@@ -311,7 +322,7 @@ end
 # function transform{ST<:Space,N<:Number}(::Type{N},S::Vector{ST},T::Space,V::Matrix)
 #     @assert length(S)==size(V,2)
 #     # We assume all S spaces have same domain/points
-#     C=Array(N,size(V)...)
+#     C=Vector{N}(size(V)...)
 #     for k=1:size(V,1)
 #         C[k,:]=transform(T,vec(V[k,:]))
 #     end

@@ -62,8 +62,8 @@ end
 
 rangespace{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) =
     Ultraspherical(order(domainspace(D))+D.order,domain(D))
-bandinds{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = 0,D.order
-bandinds{LT,DD<:Segment}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) = -D.order,0
+bandinds{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = D.order,D.order
+bandinds{LT,DD<:Segment}(D::ConcreteIntegral{Ultraspherical{LT,DD}}) = -D.order,-D.order
 Base.stride{LT,DD<:Segment}(D::ConcreteDerivative{Ultraspherical{LT,DD}}) = D.order
 
 
@@ -74,7 +74,7 @@ function getindex{TT,DD<:Segment,K,T}(D::ConcreteDerivative{Ultraspherical{TT,DD
     λ=order(domainspace(D))
 
     if j==k+m
-        (pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m)::T
+        T((pochhammer(one(T)*λ,m)*(4./(d.b-d.a)).^m))
     else
         zero(T)
     end

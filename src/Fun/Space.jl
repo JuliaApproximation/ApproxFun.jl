@@ -47,15 +47,15 @@ Base.eltype(::Type{AnyBasis})=Number
 # T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
 # D is the domain
 # d is the dimension
-abstract Space{T,D,d}
+@compat abstract type Space{T,D,d} end
 
 
 
-typealias RealSpace{D,d} Space{RealBasis,D,d}
-typealias ComplexSpace{D,d} Space{ComplexBasis,D,d}
-typealias UnivariateSpace{T,D} Space{T,D,1}
-typealias BivariateSpace{T,DD} Space{T,DD,2}
-typealias RealUnivariateSpace{D} RealSpace{D,1}
+@compat const RealSpace{D,d} = Space{RealBasis,D,d}
+@compat const ComplexSpace{D,d} = Space{ComplexBasis,D,d}
+@compat const UnivariateSpace{T,D} = Space{T,D,1}
+@compat const BivariateSpace{T,DD} = Space{T,DD,2}
+@compat const RealUnivariateSpace{D} = RealSpace{D,1}
 
 
 
@@ -103,7 +103,7 @@ block(S::Space,k) = Block(k)
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
 
-abstract AmbiguousSpace <: Space{RealBasis,AnyDomain,1}
+@compat abstract type AmbiguousSpace <: Space{RealBasis,AnyDomain,1} end
 
 domain(::AmbiguousSpace) = AnyDomain()
 
@@ -472,22 +472,32 @@ end
 
 
 # Canonical plan uses coefficients
-for (pl,CTransPlan) in ((:plan_transform,:CanonicalTransformPlan),
-                             (:plan_itransform,:ICanonicalTransformPlan))
-    @eval begin
-        function $CTransPlan(space,v)
-            csp = canonicalspace(space)
-            $CTransPlan(eltype(v),space,$pl(csp,v),csp)
-        end
-        function $pl(sp::Space,vals)
-            csp = canonicalspace(sp)
-            if sp == csp
-                error("Override for $sp")
-            end
-            $CTransPlan(sp,$pl(csp,vals),csp)
-        end
-    end
+function CanonicalTransformPlan(space,v)
+    csp = canonicalspace(space)
+    CanonicalTransformPlan(eltype(v),space,plan_transform(csp,v),csp)
 end
+function plan_transform(sp::Space,vals)
+    csp = canonicalspace(sp)
+    if sp == csp
+        error("Override for $sp")
+    end
+    CanonicalTransformPlan(sp,plan_transform(csp,vals),csp)
+end
+
+function ICanonicalTransformPlan(space,v)
+    csp = canonicalspace(space)
+    cfs = coefficients(v,space,csp)
+    ICanonicalTransformPlan(eltype(v),space,plan_itransform(csp,cfs),csp)
+end
+function plan_itransform(sp::Space,v)
+    csp = canonicalspace(sp)
+    if sp == csp
+        error("Override for $sp")
+    end
+    cfs = coefficients(v,sp,csp)
+    ICanonicalTransformPlan(sp,plan_itransform(csp,cfs),csp)
+end
+
 
 plan_transform!(sp::Space,vals) = error("Override for $sp")
 plan_itransform!(sp::Space,cfs) = error("Override for $sp")
@@ -508,7 +518,7 @@ itransform(S::Space,cfs) = plan_itransform(S,cfs)*cfs
 for OP in (:plan_transform,:plan_itransform,:plan_transform!,:plan_itransform!)
     # plan transform expects a vector
     # this passes an empty Float64 array
-    @eval $OP(S::Space,n::Integer) = $OP(S,Array(Float64,n))
+    @eval $OP(S::Space,n::Integer) = $OP(S,Vector{Float64}(n))
 end
 
 ## sorting
@@ -529,8 +539,8 @@ end
 
 immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
     domain::DD
-    ConstantSpace(d::DD)=new(d)
-    ConstantSpace(d::AnyDomain)=new(DD(d))
+    (::Type{ConstantSpace{DD}}){DD}(d::DD) = new{DD}(d)
+    (::Type{ConstantSpace{DD}}){DD}(d::AnyDomain) = new{DD}(DD(d))
 end
 
 ConstantSpace(d::Domain) = ConstantSpace{typeof(d)}(d)

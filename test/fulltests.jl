@@ -1,6 +1,6 @@
 using ApproxFun, Base.Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
-                        testbandedbelowoperator
+                        testbandedbelowoperator, testbandedblockbandedoperator
 ## This includes extra tests that are too time consuming for Travis
 
 
@@ -44,6 +44,8 @@ D=Derivative(S)
 
 Z=ApproxFun.ZeroOperator(ApproxFun.ConstantSpace())
 
+testfunctional(Evaluation(S,ω,1)-Evaluation(S,0,1))
+
 A=ApproxFun.interlace([Z                      Evaluation(S,0);
                      u'(ω)    Evaluation(S,ω)-Evaluation(S,0);
                      u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
@@ -69,7 +71,7 @@ A=D^2-I
 
 c=[κ(0.);κ'(0.)]\[exp(0.);exp(0.)]
 u=(κ*c)[1]
-@test_approx_eq u(1.0) e
+@test u(1.0) ≈ e
 
 
 d=Interval(-50.,5.)
@@ -107,15 +109,14 @@ println("    Bessel tests")
     L=(x^2)*D^2+x*D+(x^2-ν^2);
     u=\([rdirichlet(S);rneumann(S);L],[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.)),0];
                 tolerance=1E-10)
-    @test_approx_eq_eps u(.1) bessely(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
+    @test ≈(u(.1),bessely(ν,.1);atol=eps(1000000.)*max(abs(u(.1)),1))
     u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
                 tolerance=1E-10)
-    @test_approx_eq_eps u(.1) besselj(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
-
+    @test ≈(u(.1),besselj(ν,.1);atol=eps(1000000.)*max(abs(u(.1)),1))
     u=Fun(x->bessely(ν,x),S)
-    @test_approx_eq_eps u(.1) bessely(ν,.1) eps(10000.)*max(abs(u(.1)),1)
+    @test ≈(u(.1),bessely(ν,.1);atol=eps(10000.)*max(abs(u(.1)),1))
     u=Fun(x->besselj(ν,x),S)
-    @test_approx_eq_eps u(.1) besselj(ν,.1) eps(10000.)*max(abs(u(.1)),1)
+    @test ≈(u(.1),besselj(ν,.1);atol=eps(10000.)*max(abs(u(.1)),1))
 end
 
 @time for ν in (1.,0.5,0.123,3.5)
@@ -127,10 +128,9 @@ end
 
     u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
                 tolerance=1E-10)
-    @test_approx_eq_eps u(.1) besselj(ν,.1) eps(1000000.)*max(abs(u(.1)),1)
-
+    @test ≈(u(.1),besselj(ν,.1);atol=eps(1000000.)*max(abs(u(.1)),1))
     u=Fun(x->besselj(ν,x),S)
-    @test_approx_eq_eps u(.1) besselj(ν,.1) eps(10000.)*max(abs(u(.1)),1)
+    @test ≈(u(.1),besselj(ν,.1);atol=eps(10000.)*max(abs(u(.1)),1))
 end
 
 println("Full Jacobi tests")
@@ -222,19 +222,19 @@ u0   = ProductFun((x,y)->cos(x)+sin(y) +exp(-50x.^2-40(y-0.1)^2)+.5exp(-30(x+0.5
 
 F = LowRankFun((x,y)->hankelh1(0,10abs(y-x)),Chebyshev(1.0..2.0),Chebyshev(1.0im..2.0im))
 
-@test_approx_eq F(1.5,1.5im) hankelh1(0,10abs(1.5im-1.5))
+@test F(1.5,1.5im) ≈ hankelh1(0,10abs(1.5im-1.5))
 
 
 ## Periodic
 f=LowRankFun((x,y)->cos(x)*sin(y),PeriodicInterval(),PeriodicInterval())
-@test_approx_eq f(.1,.2) cos(.1)*sin(.2)
+@test f(.1,.2) ≈ cos(.1)*sin(.2)
 
 f=LowRankFun((x,y)->cos(cos(x)+sin(y)),PeriodicInterval(),PeriodicInterval())
-@test_approx_eq f(.1,.2) cos(cos(.1)+sin(.2))
+@test f(.1,.2) ≈ cos(cos(.1)+sin(.2))
 @test norm(Float64[cos(cos(x)+sin(y)) for x=ApproxFun.vecpoints(f,1),y=ApproxFun.vecpoints(f,2)]-values(f))<10000eps()
 
 f=ProductFun((x,y)->cos(cos(x)+sin(y)),PeriodicInterval()^2)
-@test_approx_eq f(.1,.2) cos(cos(.1)+sin(.2))
+@test f(.1,.2) ≈ cos(cos(.1)+sin(.2))
 x,y=points(f)
 @test norm(Float64[cos(cos(x[k,j])+sin(y[k,j])) for k=1:size(f,1),j=1:size(f,2)]-values(f))<10000eps()
 
@@ -254,21 +254,21 @@ f=ProductFun((x,y)->cos(cos(x)*sin(y)),d^2)
 ## matrix
 
 f=Fun((x,y)->[exp(x*cos(y));cos(x*sin(y));2],Interval()^2)
-@test_approx_eq f(0.1,0.2) [exp(0.1*cos(0.2));cos(0.1*sin(0.2));2]
+@test f(0.1,0.2) ≈ [exp(0.1*cos(0.2));cos(0.1*sin(0.2));2]
 
 f=Fun((x,y)->[exp(x*cos(y)) cos(x*sin(y)); 2 1],Interval()^2)
-@test_approx_eq f(0.1,0.2) [exp(0.1*cos(0.2)) cos(0.1*sin(0.2));2 1]
+@test f(0.1,0.2) ≈ [exp(0.1*cos(0.2)) cos(0.1*sin(0.2));2 1]
 
 
 ## Cauchy fun
 
 f = Fun((x,y)->1/(2π*(x^2+y^2+1)^(3/2)),Line()^2)
-@test_approx_eq f(0.1,0.2) 1/(2π*(0.1^2+0.2^2+1)^(3/2))
+@test f(0.1,0.2) ≈ 1/(2π*(0.1^2+0.2^2+1)^(3/2))
 
 
 #TODO: improve tolerance
 f = LowRankFun((x,y)->1/(2π*(x^2+y^2+1)^(3/2)),JacobiWeight(2.,2.,Line())^2)
-@test_approx_eq_eps f(0.1,0.2) 1/(2π*(0.1^2+0.2^2+1)^(3/2)) 1E-4
+@test ≈(f(0.1,0.2),1/(2π*(0.1^2+0.2^2+1)^(3/2));atol=1E-4)
 
 
 
@@ -276,7 +276,7 @@ f = LowRankFun((x,y)->1/(2π*(x^2+y^2+1)^(3/2)),JacobiWeight(2.,2.,Line())^2)
 @time let d = Chebyshev()^2
     f = Fun((x,y) -> sin(x) * cos(y), d)
     C=Conversion(Chebyshev()⊗Chebyshev(),Ultraspherical(1)⊗Ultraspherical(1))
-    @test_approx_eq (C*f)(0.1,0.2) f(0.1,0.2)
+    @test (C*f)(0.1,0.2) ≈ f(0.1,0.2)
     Dx = Derivative(d, [1,0])
     f = Fun((x,y) -> sin(x) * cos(y), d)
     fx = Fun((x,y) -> cos(x) * cos(y), d)
@@ -287,19 +287,19 @@ f = LowRankFun((x,y)->1/(2π*(x^2+y^2+1)^(3/2)),JacobiWeight(2.,2.,Line())^2)
     L=Dx+Dy
     testbandedblockbandedoperator(L)
 
-    @test_approx_eq (L*f)(0.2,0.3) (fx(0.2,0.3)+fy(0.2,0.3))
+    @test (L*f)(0.2,0.3) ≈ (fx(0.2,0.3)+fy(0.2,0.3))
 
     B=ldirichlet(d[1])⊗ldirichlet(d[2])
-    @test_approx_eq Number(B*f) f(-1.,-1.)
+    @test Number(B*f) ≈ f(-1.,-1.)
 
     B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
-    @test_approx_eq Number(B*f) f(0.1,-1.)
+    @test Number(B*f) ≈ f(0.1,-1.)
 
     B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
-    @test_approx_eq Number(B*f) f(0.1,0.3)
+    @test Number(B*f) ≈ f(0.1,0.3)
 
     B=Evaluation(d,(0.1,0.3))
-    @test_approx_eq Number(B*f) f(0.1,0.3)
+    @test Number(B*f) ≈ f(0.1,0.3)
 end
 
 

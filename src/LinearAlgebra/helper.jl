@@ -164,7 +164,7 @@ function unsafe_resize!(W::Matrix,n::Integer,::Colon)
         W[1:n,:]
     else
         m=size(W,2)
-        ret=Array(eltype(W),n,m)
+        ret=Matrix{eltype(W)}(n,m)
         ret[1:N,:] = W
         ret
     end
@@ -191,7 +191,7 @@ end
 
 function pad{T}(f::Vector{T},n::Integer)
 	if n > length(f)
-	   ret=Array(T,n)
+	   ret=Vector{T}(n)
 	   ret[1:length(f)]=f
 	   for j=length(f)+1:n
 	       ret[j]=zero(T)
@@ -220,9 +220,9 @@ function pad(A::Matrix,n::Integer,m::Integer)
 	if n <= size(A,1) && m <= size(A,2)
         A[1:n,1:m]
 	elseif n==0 || m==0
-	   Array(T,n,m)  #fixes weird julia bug when T==None
+	   Matrix{T}(n,m)  #fixes weird julia bug when T==None
     else
-        ret = Array(T,n,m)
+        ret = Matrix{T}(n,m)
         minn=min(n,size(A,1))
         minm=min(m,size(A,2))
         for k=1:minn,j=1:minm
@@ -307,7 +307,7 @@ function interlace(v::Union{Vector{Any},Tuple})
             T=Complex{Float64}
         end
     end
-    b=Array(Vector{T},length(v))
+    b=Vector{Vector{T}}(length(v))
     for k=1:length(v)
         b[k]=v[k]
     end
@@ -336,12 +336,12 @@ function interlace(a::Vector,b::Vector)
     na=length(a);nb=length(b)
     T=promote_type(eltype(a),eltype(b))
     if nb≥na
-        ret=Array(T,2nb)
+        ret=Vector{T}(2nb)
         ret[1:2:1+2*(na-1)]=a
         ret[2:2:end]=b
         ret
     else
-        ret=Array(T,2na-1)
+        ret=Vector{T}(2na-1)
         ret[1:2:end]=a
         if !isempty(b)
             ret[2:2:2+2*(nb-1)]=b
@@ -472,7 +472,7 @@ slnorm(m::AbstractMatrix,::Colon,j::Integer) = slnorm(m,1:size(m,1),j)
 ## New Inf
 
 # angle is π*a where a is (false==0) and (true==1)
-immutable Infinity{T} <: Number
+immutable Infinity{T}
     angle::T
 end
 
@@ -485,10 +485,6 @@ Base.isfinite(::Infinity) = false
 Base.sign{B<:Integer}(y::Infinity{B}) = mod(y.angle,2)==0?1:-1
 Base.angle(x::Infinity) = π*x.angle
 
-Base.zero{B}(::Infinity{B}) = zero(B)
-Base.one{B}(::Infinity{B}) = one(B)
-
-
 function Base.show{B<:Integer}(io::IO, y::Infinity{B})
     if sign(y) == 1
         print(io, "∞")
@@ -498,8 +494,6 @@ function Base.show{B<:Integer}(io::IO, y::Infinity{B})
 end
 
 Base.show(io::IO,x::Infinity) = print(io,"$(exp(im*π*x.angle))∞")
-
-Base.promote_rule{R<:Number,B}(::Type{Infinity{B}},::Type{R}) = Number
 
 ==(x::Infinity,y::Infinity) = x.angle == y.angle
 for TYP in (:Dual,:Number)
@@ -532,8 +526,8 @@ for T in (:BlasFloat,:Integer,:(Complex{Int}))
 end
 
 
-# $ is xor
-*(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle $ b.angle)
+# ⊻ is xor
+*(a::Infinity{Bool},b::Infinity{Bool}) = Infinity(a.angle ⊻ b.angle)
 *(a::Infinity,b::Infinity) = Infinity(a.angle + b.angle)
 
 for T in (:Dual,:Bool,:Integer,:AbstractFloat)
@@ -577,9 +571,9 @@ end
 immutable Take{I,T} <: AbstractVector{T}
     xs::I
     n::Int
-    function Take(xs,n)
+    function (::Type{Take{I,T}}){I,T}(xs,n)
         @assert n ≤ length(xs)
-        new(xs,n)
+        new{I,T}(xs,n)
     end
 end
 
@@ -651,7 +645,7 @@ pad(it::Take,n::Integer) = pad!(collect(it),n)
 # Re-implementation of Base iterators
 # to use ∞ and allow getindex
 
-abstract AbstractRepeated{T}
+@compat abstract type AbstractRepeated{T} end
 
 Base.eltype{T}(::Type{AbstractRepeated{T}}) = T
 Base.eltype{R<:AbstractRepeated}(::Type{R}) = eltype(super(R))
@@ -683,13 +677,13 @@ Base.sum(r::ZeroRepeated) = value(r)
 
 immutable Repeated{T} <: AbstractRepeated{T}
     x::T
-    function Repeated(x::T)
+    function (::Type{Repeated{T}}){T}(x::T)
         # TODO: Add ZeroRepeated type.
         if x == zero(T)
             error("Zero repeated not supported to maintain type stability")
         end
 
-        new(x)
+        new{T}(x)
     end
 end
 
@@ -712,7 +706,7 @@ repeated(x,::Infinity{Bool}) = repeated(x)
 repeated(x,m::Integer) = take(repeated(x),m)
 
 
-abstract AbstractCount{S<:Number}
+@compat abstract type AbstractCount{S<:Number} end
 
 immutable UnitCount{S<:Number} <: AbstractCount{S}
     start::S
@@ -830,7 +824,7 @@ type CachedIterator{T,IT,ST}
     state::ST
     length::Int
 
-    CachedIterator(it::IT) = new(it,Vector{T}(),start(it),0)
+    (::Type{CachedIterator{T,IT,ST}}){T,IT,ST}(it::IT) = new{T,IT,ST}(it,Vector{T}(),start(it),0)
 end
 
 CachedIterator(it) = CachedIterator{eltype(it),typeof(it),typeof(start(it))}(it)
@@ -865,7 +859,7 @@ Base.done(it::CachedIterator,st::Int) = st == it.length + 1 &&
 
 function getindex(it::CachedIterator,k)
     mx = maximum(k)
-    if mx > length(it)
+    if mx > length(it) || mx < 1
         throw(BoundsError(it,k))
     end
     resize!(it,isempty(k)?0:mx).storage[k]
@@ -976,15 +970,75 @@ Base.minimum(f::Flatten) = mapreduce(minimum,min,f.it)
 
 ## Iterator Algebra
 
+broadcast(op,f::Flatten,c...) = Flatten(map(it->op(it,c...),f.it))
 
-for OP in (:(.+),:(.-),:(.*),:(./))
-    @eval begin
-        $OP(f::Flatten,c::Number) = Flatten(map(it->$OP(it,c),f.it))
-        $OP(c::Number,f::Flatten) = Flatten(map(it->$OP(c,it),f.it))
+if VERSION < v"0.6.0-dev"
+    for TYP in (:Flatten, :AbstractRepeated), op in (:+,:-,:*,:/)
+        dop = parse("."*string(op))
+        @eval begin
+            $dop(a::$TYP,b::$TYP) = broadcast($op,a,b)
+            $dop(f::$TYP,c::Number) = broadcast($op,f,c)
+            $dop(c::Number,f::$TYP) = broadcast($op,c,f)
+        end
     end
 end
 
-for OP in (:(.+),:(.-),:(.*))
+
+broadcast(op,a::AbstractRepeated,b::AbstractRepeated) = repeated(op.(value(a),value(b)))
+broadcast(op,a::AbstractRepeated,b::Number) = repeated(op.(value(a),b))
+broadcast(op,a::Number,b::AbstractRepeated) = repeated(op.(a,value(b)))
+
+broadcast(op,a::AbstractCount,b::AbstractRepeated) = op.(a,value(b))
+broadcast(op,a::AbstractRepeated,b::AbstractCount) = op.(value(a),b)
+
+function broadcast(op,a::Flatten,b::AbstractRepeated)
+    @assert isinf(length(a.it[end]))
+    flatten(map(it->op.(it,value(b)),a.it))
+end
+function broadcast(op,a::AbstractRepeated,b::Flatten)
+    @assert isinf(length(b.it[end]))
+    flatten(map(it->op.(value(a),it),b.it))
+end
+function broadcast(op,a::Flatten,b::AbstractCount)
+    K=0
+    it=tuple()
+    for k=1:length(a.it)
+        it=(it...,op.(a.it[k],b[K+1:K+length(a.it[k])]))
+        K+=length(a.it[k])
+    end
+    flatten(it)
+end
+function broadcast(op,a::AbstractCount,b::Flatten)
+    K=0
+    it=tuple()
+    for k=1:length(b.it)
+        it=(it...,op.(a[K+1:K+length(it[k])],b.it[k]))
+        K+=length(b.it[k])
+    end
+    flatten(it)
+end
+function broadcast(op,a::Take,b::Take)
+    n = length(a)
+    @assert n == length(b)
+    take(op.(a.xs,b.xs),n)
+end
+function broadcast(op,a::Take,b::Number)
+    n = length(a)
+    take(op.(a.xs,b),n)
+end
+function broadcast(op,a::Number,b::Take)
+    n = length(b)
+    take(op.(a,b.xs),n)
+end
+
+@compat const InfiniteIterators = Union{AbstractRepeated,AbstractCount,Flatten}
+
++(a::InfiniteIterators) = a
+-(a::ZeroRepeated) = a
+-(a::Repeated) = Repeated(-value(a))
+-(a::Flatten) = Flatten(map(-,a.it))
+
+for OP in (:+,:-)
     @eval begin
         $OP(a::AbstractRepeated,b::AbstractRepeated) = repeated($OP(value(a),value(b)))
         $OP(a::Number,b::AbstractRepeated) = repeated($OP(a,value(b)))
@@ -1027,6 +1081,15 @@ for OP in (:(.+),:(.-),:(.*))
             take($OP(a.xs,b.xs),n)
         end
 
+        function $OP(a::Take,b::Bool)
+            n = length(a)
+            take($OP(a.xs,b),n)
+        end
+        function $OP(a::Bool,b::Take)
+            n = length(b)
+            take($OP(a,b.xs),n)
+        end
+
         function $OP(a::Take,b::Number)
             n = length(a)
             take($OP(a.xs,b),n)
@@ -1038,51 +1101,44 @@ for OP in (:(.+),:(.-),:(.*))
     end
 end
 
-for (OP,sOP) in ((:(.+),:+),(:(.-),:-))
+
+for OP in (:+,:-)
     @eval begin
         $OP(a::ZeroRepeated,b::ZeroRepeated) = a
         $OP(a::Number,b::ZeroRepeated) = repeated(a)
-        $OP(a::ZeroRepeated,b::Number) = repeated($sOP(b))
+        $OP(a::ZeroRepeated,b::Number) = repeated($OP(b))
+
 
         $OP(a::Flatten,b::ZeroRepeated) = a
-        $OP(a::ZeroRepeated,b::Flatten) = $sOP(b)
+        $OP(a::ZeroRepeated,b::Flatten) = $OP(b)
 
         $OP(a::AbstractCount,b::AbstractCount) =
             Count($OP(start(a),start(b)),$OP(step(a),step(b)))
         $OP(a::UnitCount,b::Number) = UnitCount($OP(a.start,b))
         $OP(a::Count,b::Number) = Count($OP(a.start,b),a.step)
 
-        $OP(a::Number,b::AbstractCount) = $sOP(b) .+ a
+        $OP(a::Number,b::AbstractCount) = $OP(b) + a
+
+        broadcast(::typeof($OP),a::InfiniteIterators,b::InfiniteIterators) = $OP(a,b)
+        broadcast(::typeof($OP),a::Number,b::InfiniteIterators) = $OP(a,b)
+        broadcast(::typeof($OP),a::InfiniteIterators,b::Number) = $OP(a,b)
     end
 end
 
-.*(a::ZeroRepeated,b::ZeroRepeated) = a
-.*(a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
-.*(b::AbstractCount,a::Number) = a*b
+broadcast(::typeof(*),a::ZeroRepeated,b::ZeroRepeated) = a
+broadcast(::typeof(*),a::Number,b::AbstractCount) = Count(start(b)*a,step(b)*a)
+broadcast(::typeof(*),b::AbstractCount,a::Number) = a*b
 
 
-for TYP1 in (:AbstractRepeated, :AbstractCount,:Flatten)
-    @eval +(a::$TYP1) = a
++(a::Number,b::UnitCount) = UnitCount(a+b.start)
++(a::Number,b::Count) = Count(a+b.start,b.step)
+-(a::Number,b::UnitCount) = Count(a-b.start,-1)
+-(a::Number,b::Count) = Count(a-b.start,-b.step)
 
-    for (OP,BOP) in ((:+,:(.+)),(:-,:(.-)),(:*,:(.*)))
-        @eval begin
-            $OP(a::$TYP1,b::Number) = $BOP(a,b)
-            $OP(a::Number,b::$TYP1) = $BOP(a,b)
-        end
-        for TYP2 in (:AbstractRepeated, :AbstractCount,:Flatten)
-            @eval $OP(a::$TYP1,b::$TYP2) = $BOP(a,b)
-        end
-    end
- end
+*(a::Number,b::AbstractCount) = Count(a*start(b),a*step(b))
+*(a::AbstractCount,b::Number) = b*a
 
-.+(a::Number,b::UnitCount) = UnitCount(a+b.start)
-.+(a::Number,b::Count) = Count(a+b.start,b.step)
-.-(a::Number,b::UnitCount) = Count(a-b.start,-1)
-.-(a::Number,b::Count) = Count(a-b.start,-b.step)
-
-
-
-function .+(a::Flatten,b::Flatten)
+function +(a::Flatten,b::Flatten)
     if isempty(a)
         @assert isempty(b)
         a
@@ -1114,7 +1170,7 @@ Base.cumsum(r::AbstractCount) = CumSumIterator(r)
 
 function Base.cumsum(f::Flatten)
     cs=zero(eltype(f))
-    its = Array(eltype(f.it),0)
+    its = Vector{eltype(f.it)}(0)
     for it in f.it[1:end-1]
         c=cumsum(cs+it)
         push!(its,c)

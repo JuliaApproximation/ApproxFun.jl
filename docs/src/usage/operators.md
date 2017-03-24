@@ -277,6 +277,8 @@ TimesOperator:Chebyshev(【-1.0,1.0】)→Chebyshev(【-1.0,1.0】)
  2.20735e-8  0.0  -7.35785e-9   0.0     0.0  -3.50374e-10  0.0  ⋱
   ⋮           ⋱     ⋱            ⋱   …   ⋱     ⋱            ⋱   ⋱
 ```
+Note that `Q*exp(x)` applies the operator to a function.  To construct the operator that first multiplies by `exp(x)`, use `Q[exp(x)]`.  This is equivalent to `Q*Multiplication(exp(x),Chebyshev())`.
+
 
 ## Operators and space promotion
 

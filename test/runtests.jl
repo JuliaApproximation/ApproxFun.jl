@@ -1,6 +1,6 @@
 versioninfo()
 
-using ApproxFun,Base.Test
+using ApproxFun, Base.Test
 
 
 println("Helper tests")
@@ -32,12 +32,14 @@ import ApproxFun: Infinity, ∞
 @test ApproxFun.interlace(collect(1:5),collect(6:10)) == ApproxFun.interlace!(collect(1:10),1)
 
 @test maximum(ApproxFun.repeated(1)) == 1
-@test minimum(1:ApproxFun.∞) == 1
+@test minimum(1:∞) == 1
 @test minimum(ApproxFun.flatten(([2.0],1:ApproxFun.∞))) == 1
 
 cumsum(ApproxFun.repeated(true)) == 1:ApproxFun.∞
 cumsum(ApproxFun.repeated(2)) == 2:2:ApproxFun.∞
 
+@test 2*(1:∞) == 2:2:∞
+@test 2+(1:∞) == 3:∞
 
 println("Domain tests")
 

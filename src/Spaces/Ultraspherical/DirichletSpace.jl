@@ -5,8 +5,8 @@ export ChebyshevDirichlet
 #TODO: Type of Segment
 immutable ChebyshevDirichlet{left,right,D} <: PolynomialSpace{D}
     domain::D
-    ChebyshevDirichlet(d)=new(d)
-    ChebyshevDirichlet()=new(D())
+    (::Type{ChebyshevDirichlet{left,right,D}}){left,right,D}(d) = new{left,right,D}(d)
+    (::Type{ChebyshevDirichlet{left,right,D}}){left,right,D}()=new{left,right,D}(D())
 end
 
 for TYP in (:Number,:AbstractArray,:Vec,:Fun)

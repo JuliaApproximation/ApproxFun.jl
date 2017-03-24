@@ -6,7 +6,7 @@ end
 (::Type{SplineSpace{m}}){m,T}(d::PiecewiseSegment{T}) = SplineSpace{m,T}(d)
 (::Type{SplineSpace{m}}){m}(d::AbstractVector) = SplineSpace{m}(PiecewiseSegment(sort(d)))
 
-typealias HeavisideSpace{T} SplineSpace{0,T}
+@compat const HeavisideSpace{T} = SplineSpace{0,T}
 dimension{λ}(h::SplineSpace{λ}) = length(h.domain.points)+λ-1
 
 Base.convert(::Type{HeavisideSpace},d::PiecewiseSegment)=HeavisideSpace{eltype(d)}(d)

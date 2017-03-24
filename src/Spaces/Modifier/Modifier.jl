@@ -12,23 +12,6 @@ include("SubSpace.jl")
 +(A::Space,B::Space) = A ⊕ B
 
 
-# Conversion from Vector to Tuple
-# If a Vector fun has different spaces in each component we represenent
-#  it by a Tuple fun, so this allows conversion.
-
-
-function coefficients(f::Vector,a::VectorSpace,b::TupleSpace)
-    error("Reimplement")
-    A=a.space
-    n=length(a)
-    @assert n==length(b.spaces)
-    ret=copy(f)
-    for k=1:n
-        ret[k:n:end]=coefficients(ret[k:n:end],A,b.spaces[k])
-    end
-    ret
-end
-
 
 
 #split the cfs into component spaces
@@ -53,7 +36,7 @@ end
 function interlacewithzeros(cfs::Vector,k,it)
     n = length(cfs)
 
-    ret = Array(eltype(cfs),0)
+    ret = Array{eltype(cfs)}(0)
     for (K,j) in it
         if j > n
             break
@@ -104,9 +87,9 @@ end
 
 # convert a vector of functionals and an operator to a LowRnakPertOperator
 # the rangespace is a DirectSumSpace specified by ST of the input rangespaces
-# the default is a  TupleSpace, but support is there for PiecewiseSpace
+# the default is a  ArraySpace, but support is there for PiecewiseSpace
 # for bcs
-for TYP in (:PiecewiseSpace,:TupleSpace)
+for TYP in (:PiecewiseSpace,:VectorSpace)
     @eval function LowRankPertOperator{OT<:Operator}(A::Vector{OT},::Type{$TYP})
         A=promotedomainspace(A)
         for k=1:length(A)-1
@@ -121,7 +104,7 @@ for TYP in (:PiecewiseSpace,:TupleSpace)
     end
 end
 
-LowRankPertOperator{OT<:Operator}(A::Vector{OT})=LowRankPertOperator(A,TupleSpace)
+LowRankPertOperator{OT<:Operator}(A::Vector{OT})=LowRankPertOperator(A,VectorSpace)
 
 function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{PiecewiseSpace})
     B=promotedomainspace(Bin)
@@ -131,9 +114,9 @@ function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{PiecewiseSpace})
         B)
 end
 
-function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{TupleSpace})
+function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{VectorSpace})
     B=promotedomainspace(Bin)
-    rsp=TupleSpace(tuple(map(rangespace,B)...,ZeroSpace()))  #TODO: Why the hack?
+    rsp=ArraySpace([map(rangespace,B);ZeroSpace()])  #TODO: Why the hack?
     LowRankOperator(
         Fun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
         B)
@@ -141,4 +124,4 @@ end
 
 
 
-LowRankOperator{FT<:Operator}(Bin::Vector{FT})=LowRankOperator(Bin,TupleSpace)
+LowRankOperator{FT<:Operator}(Bin::Vector{FT})=LowRankOperator(Bin,VectorSpace)

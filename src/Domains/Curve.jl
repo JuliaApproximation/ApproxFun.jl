@@ -21,23 +21,23 @@ x=Fun(1..2)
 Curve(exp(im*x))  # represents an arc
 ```
 """
-typealias Curve{S,T} Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
+@compat const Curve{S,T} = Union{IntervalCurve{S,T},PeriodicCurve{S,T}}
 
 
 ==(a::Curve,b::Curve)=a.curve==b.curve
 
 for TYP in (:IntervalCurve,:PeriodicCurve)
-    @eval points(c::$TYP,n::Integer)=c.curve(points(domain(c.curve),n))
+    @eval points(c::$TYP,n::Integer) = c.curve.(points(domain(c.curve),n))
 end
 
-checkpoints(d::Curve) = fromcanonical(d,checkpoints(domain(d.curve)))
+checkpoints(d::Curve) = fromcanonical.(d,checkpoints(domain(d.curve)))
 
 for op in (:(Base.first),:(Base.last),:(Base.rand))
     @eval $op(c::Curve)=c.curve($op(domain(c.curve)))
 end
 
 
-canonicaldomain(c::Curve)=domain(c.curve)
+canonicaldomain(c::Curve) = domain(c.curve)
 
 fromcanonical{S<:Space,T<:Number}(c::Curve{S,T},x) = c.curve(x)
 function tocanonical(c::Curve,x)

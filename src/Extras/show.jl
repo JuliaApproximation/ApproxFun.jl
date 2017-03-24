@@ -8,7 +8,7 @@ Base.show(io::IO,c::Count) = print(io,"$(c.start):$(c.step):∞")
 
 ## Domains
 
-Base.show(io::IO,d::Segment)=print(io,"【$(d.a),$(d.b)】")
+Base.show(io::IO,d::Segment) = print(io,"【$(d.a),$(d.b)】")
 function Base.show(io::IO,d::Line)
     if d.center == angle(d) == 0 && d.α == d.β == -1.
         print(io,"ℝ")
@@ -112,18 +112,6 @@ function Base.show(io::IO,s::LogWeight)
 end
 
 
-function Base.show(io::IO,s::VectorSpace)
-    print(io,"[")
-    show(io,s.space)
-    print(io,"]_"*string(s.dimensions[1]))
-end
-
-function Base.show(io::IO,s::MatrixSpace)
-    print(io,"[")
-    show(io,s.space)
-    print(io,"]_("*string(s.dimensions[1])*","*string(s.dimensions[2])*")")
-end
-
 
 function Base.show(io::IO,s::SumSpace)
     show(io,s[1])
@@ -133,15 +121,6 @@ function Base.show(io::IO,s::SumSpace)
     end
 end
 
-function Base.show(io::IO,s::TupleSpace)
-    print(io,"⟨")
-    show(io,s[1])
-    for sp in s[2:end]
-        print(io,",")
-        show(io,sp)
-    end
-    print(io,"⟩")
-end
 
 function Base.show(io::IO,s::PiecewiseSpace)
     show(io,s[1])
@@ -202,7 +181,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
         if isbanded(B) && isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
-            M=Array(Any,11,11)
+            M=Matrix{Any}(11,11)
             fill!(M,PrintShow(""))
             for j = 1:size(BM,2),k = colrange(BM,j)
                 M[k,j]=BM[k,j]
@@ -219,7 +198,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
         elseif isinf(size(B,1)) && isinf(size(B,2))
             BM=B[1:10,1:10]
 
-            M=Array(Any,11,11)
+            M=Matrix{Any}(11,11)
             for k=1:10,j=1:10
                 M[k,j]=BM[k,j]
             end
@@ -235,7 +214,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
         elseif isinf(size(B,1))
             BM=B[1:10,1:size(B,2)]
 
-            M=Array(Any,11,size(B,2))
+            M=Matrix{Any}(11,size(B,2))
             for k=1:10,j=1:size(B,2)
                 M[k,j]=BM[k,j]
             end
@@ -247,7 +226,7 @@ function Base.show(io::IO,B::Operator;header::Bool=true)
         elseif isinf(size(B,2))
             BM=B[1:size(B,1),1:10]
 
-            M=Array(Any,size(B,1),11)
+            M=Matrix{Any}(size(B,1),11)
             for k=1:size(B,1),j=1:10
                 M[k,j]=BM[k,j]
             end

@@ -2,10 +2,10 @@ immutable LowRankPertOperator{OO,LR,T} <: Operator{T}
     op::OO
     pert::LR
 
-    function LowRankPertOperator(a::OO,b::LR)
+    function (::Type{LowRankPertOperator{OO,LR,T}}){OO,LR,T}(a::OO,b::LR)
         @assert domainspace(a)==domainspace(b)
         @assert rangespace(a)==rangespace(b)
-        new(a,b)
+        new{OO,LR,T}(a,b)
     end
 end
 
@@ -21,7 +21,7 @@ end
 
 
 
-Base.convert{T}(::Type{Operator{T}},L::LowRankPertOperator) = 
+Base.convert{T}(::Type{Operator{T}},L::LowRankPertOperator) =
     LowRankPertOperator(Operator{T}(L.op),Operator{T}(L.pert))::Operator{T}
 Base.convert{OT<:Operator}(::Type{Operator},V::Vector{OT})=LowRankPertOperator(V)
 

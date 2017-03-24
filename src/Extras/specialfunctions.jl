@@ -43,7 +43,7 @@ for OP in (:sign,:angle)
         else
             d_split= d \ pts
             midpts = [midpoints(d)...]
-            Fun(d_split,$OP(f(midpts)))
+            Fun(d_split,$OP.(f.(midpts)))
         end
     end
 end
@@ -61,29 +61,29 @@ for op in (:(max),:(min))
     end
 end
 
-Base.isfinite(f::Fun) = isfinite(maxabs(f)) && isfinite(minabs(f))
+Base.isfinite(f::Fun) = isfinite(maximum(abs,f)) && isfinite(minabs(f))
 
 # division by fun
 
-function ./(c::Fun,f::Fun)
+function /(c::Fun,f::Fun)
     d=domain(f)
     @assert domain(c)==d
     cd=canonicaldomain(d)
     if typeof(d)!=typeof(cd)
         # project first to simplify
-        return setdomain(setdomain(c,cd)./setdomain(f,cd),d)
+        return setdomain(setdomain(c,cd)/setdomain(f,cd),d)
     end
 
     r=roots(f)
     tol=10eps(promote_type(eltype(c),eltype(f)))
-    if length(r)==0 || norm(c(r))<tol
+    if length(r)==0 || norm(c.(r))<tol
         \(Multiplication(f,space(c)),c;tolerance=tol)
     else
-        c.*(1./f)
+        c*(1/f)
     end
 end
 
-function ./(c::Number,f::Fun)
+function /(c::Number,f::Fun)
     r=roots(f)
     tol=10eps(promote_type(typeof(c),eltype(f)))
     @assert length(r)==0
@@ -96,11 +96,11 @@ end
 
 scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
 
-./{λ,DD}(c::Number,f::Fun{Ultraspherical{λ,DD}}) = c./Fun(f,Chebyshev(domain(f)))
-./{DD}(c::Number,f::Fun{Jacobi{DD}}) = c./Fun(f,Chebyshev(domain(f)))
+/{λ,DD}(c::Number,f::Fun{Ultraspherical{λ,DD}}) = c/Fun(f,Chebyshev(domain(f)))
+/{DD}(c::Number,f::Fun{Jacobi{DD}}) = c/Fun(f,Chebyshev(domain(f)))
 
-./{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c./setcanonicaldomain(f),domain(f))
-function ./{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
+/{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c/setcanonicaldomain(f),domain(f))
+function /{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
@@ -114,24 +114,24 @@ function ./{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
             return \(Multiplication(f,space(f)),c;tolerance=0.05tol)
         elseif isapprox(fc.coefficients[1],fc.coefficients[2])
             # we check directly for f*(1+x)
-            return Fun(JacobiWeight(-1,0,space(f)),[c./fc.coefficients[1]])
+            return Fun(JacobiWeight(-1,0,space(f)),[c/fc.coefficients[1]])
         elseif isapprox(fc.coefficients[1],-fc.coefficients[2])
             # we check directly for f*(1-x)
-            return Fun(JacobiWeight(0,-1,space(f)),[c./fc.coefficients[1]])
+            return Fun(JacobiWeight(0,-1,space(f)),[c/fc.coefficients[1]])
         else
             # we need to split at the only root
-            return c./splitatroots(f)
+            return c/splitatroots(f)
         end
     elseif abs(first(fc))≤tol
         #left root
         g=divide_singularity((1,0),fc)
-        p=c./g
+        p=c/g
         x=identity_fun(domain(p))
         return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
     elseif abs(last(fc))≤tol
         #right root
         g=divide_singularity((0,1),fc)
-        p=c./g
+        p=c/g
         x=identity_fun(domain(p))
         return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
     else
@@ -142,23 +142,23 @@ function ./{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
         elseif abs(last(r)+1.0)≤tol  # double check
             #left root
             g=divide_singularity((1,0),fc)
-            p=c./g
+            p=c/g
             x=identity_fun(domain(p))
             return scaleshiftdomain(p/(1+x),(d.b - d.a)/2,(d.a + d.b)/2 )
         elseif abs(last(r)-1.0)≤tol  # double check
             #right root
             g=divide_singularity((0,1),fc)
-            p=c./g
+            p=c/g
             x=identity_fun(domain(p))
             return scaleshiftdomain(p/(1-x),(d.b - d.a)/2,(d.a + d.b)/2 )
         else
             # no roots on the boundary
-            return c./splitatroots(f)
+            return c/splitatroots(f)
         end
     end
 end
 
-function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
+function ^{C<:Chebyshev}(f::Fun{C},k::Float64)
     # Need to think what to do if this is ever not the case..
     sp = space(f)
     fc = setdomain(f,Segment()) #Project to interval
@@ -186,10 +186,10 @@ function .^{C<:Chebyshev}(f::Fun{C},k::Float64)
 end
 
 #TODO: implement
-.^(f::Fun{Jacobi},k::Float64)=Fun(f,Chebyshev).^k
+^(f::Fun{Jacobi},k::Float64) = Fun(f,Chebyshev)^k
 
 # Default is just try solving ODE
-function .^{S,T}(f::Fun{S,T},β)
+function ^{S,T}(f::Fun{S,T},β)
     A=Derivative()-β*differentiate(f)/f
     B=Evaluation(first(domain(f)))
     [B,A]\first(f)^β
@@ -283,7 +283,7 @@ function specialfunctionnormalizationpoint(op,growth,f)
     xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
     xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
     opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
-    opmax = maxabs((opfxmin,opfxmax))
+    opmax = maximum(abs,(opfxmin,opfxmax))
     if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
     xmax,opfxmax,opmax
 end
@@ -412,11 +412,11 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
             opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
-            opmax = maxabs((opfxmin,opfxmax))
+            opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
                 xmin,xmax = rand(domain(f)),rand(domain(f))
                 opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
-                opmax = maxabs((opfxmin,opfxmax))
+                opmax = maximum(abs,(opfxmin,opfxmax))
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
@@ -450,11 +450,11 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
             xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
             xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
             opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
-            opmax = maxabs((opfxmin,opfxmax))
+            opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
                 xmin,xmax = rand(domain(f)),rand(domain(f))
                 opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
-                opmax = maxabs((opfxmin,opfxmax))
+                opmax = maximum(abs,(opfxmin,opfxmax))
             end
             D=Derivative(space(f))
             B=[Evaluation(space(f),xmin),Evaluation(space(f),xmax)]
@@ -621,9 +621,9 @@ end
 ## PIecewiseSpace
 # map over pieces
 
-./{S<:PiecewiseSpace}(c::Number,f::Fun{S}) = depiece(map(f->c./f,pieces(f)))
-.^{S<:PiecewiseSpace}(f::Fun{S},c::Integer) = depiece(map(f->f.^c,pieces(f)))
-.^{S<:PiecewiseSpace}(f::Fun{S},c::Number) = depiece(map(f->f.^c,pieces(f)))
+/{S<:PiecewiseSpace}(c::Number,f::Fun{S}) = depiece(map(f->c/f,pieces(f)))
+^{S<:PiecewiseSpace}(f::Fun{S},c::Integer) = depiece(map(f->f^c,pieces(f)))
+^{S<:PiecewiseSpace}(f::Fun{S},c::Number) = depiece(map(f->f^c,pieces(f)))
 
 
 
@@ -673,14 +673,9 @@ expα(x) = expα_asy(x)
 expβ(x) = expβ_asy(x)
 expγ(x) = expγ_asy(x)
 
-@vectorize_1arg Number expα
-@vectorize_1arg Number expβ
-@vectorize_1arg Number expγ
 
 for f in (:(exp),:(expm1),:expα,:expβ,:expγ)
-    @eval begin
-        $f(op::Operator) = OperatorFunction(op,$f)
-    end
+    @eval $f(op::Operator) = OperatorFunction(op,$f)
 end
 
 

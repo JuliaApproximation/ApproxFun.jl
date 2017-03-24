@@ -15,10 +15,10 @@ Note that `λ=1` this reduces to Chebyshev polynomials of the second kind:
 immutable Ultraspherical{T,D<:Domain} <: PolynomialSpace{D}
     order::T
     domain::D
-    Ultraspherical(m::T,d::D) = (@assert m ≠ 0; new(m,d))
-    Ultraspherical(m::Number,d::Domain) = (@assert m ≠ 0; new(convert(T,m),convert(D,d)))
-    Ultraspherical(d::Domain) = new(one(T),convert(D,d))
-    Ultraspherical(m::Number) = (@assert m ≠ 0; new(T(m),D()))
+    (::Type{Ultraspherical{T,D}}){T,D}(m::T,d::D) = (@assert m ≠ 0; new{T,D}(m,d))
+    (::Type{Ultraspherical{T,D}}){T,D}(m::Number,d::Domain) = (@assert m ≠ 0; new{T,D}(convert(T,m),convert(D,d)))
+    (::Type{Ultraspherical{T,D}}){T,D}(d::Domain) = new{T,D}(one(T),convert(D,d))
+    (::Type{Ultraspherical{T,D}}){T,D}(m::Number) = (@assert m ≠ 0; new{T,D}(T(m),D()))
 end
 
 Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d)}(m,d)
@@ -40,14 +40,14 @@ immutable UltrasphericalPlan{CT,FT}
     chebplan::CT
     cheb2legplan::FT
 
-    UltrasphericalPlan(cp,c2lp) = new(cp,c2lp)
+    (::Type{UltrasphericalPlan{CT,FT}}){CT,FT}(cp,c2lp) = new{CT,FT}(cp,c2lp)
 end
 
 immutable UltrasphericalIPlan{CT,FT}
     chebiplan::CT
     leg2chebplan::FT
 
-    UltrasphericalIPlan(cp,c2lp) = new(cp,c2lp)
+    (::Type{UltrasphericalIPlan{CT,FT}}){CT,FT}(cp,c2lp) = new{CT,FT}(cp,c2lp)
 end
 
 function UltrasphericalPlan(λ::Number,vals)
@@ -92,7 +92,13 @@ Base.ones(S::Ultraspherical) = Fun(S,ones(1))
 
 ## Fast evaluation
 
-Base.first{D}(f::Fun{Ultraspherical{Int,D}}) = foldr(-,coefficients(f,Chebyshev))
+function Base.first{D}(f::Fun{Ultraspherical{Int,D}})
+    n = length(f.coefficients)
+    n == 0 && return zero(eltype(f))
+    n == 1 && return first(f.coefficients)
+    foldr(-,coefficients(f,Chebyshev))
+end
+
 Base.last{D}(f::Fun{Ultraspherical{Int,D}}) = reduce(+,coefficients(f,Chebyshev))
 
 Base.first{O,D}(f::Fun{Ultraspherical{O,D}}) = f(first(domain(f)))

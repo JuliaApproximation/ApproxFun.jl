@@ -1,6 +1,6 @@
 export Conversion
 
-abstract Conversion{T}<:Operator{T}
+@compat abstract type Conversion{T}<:Operator{T} end
 
 immutable ConcreteConversion{S<:Space,V<:Space,T} <: Conversion{T}
     domainspace::S

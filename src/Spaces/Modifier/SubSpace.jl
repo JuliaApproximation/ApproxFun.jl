@@ -1,14 +1,12 @@
 
-immutable SubSpace{DS,IT,T,DD,dim}<: Space{T,DD,dim}
+immutable SubSpace{DS,IT,T,DD,dim} <: Space{T,DD,dim}
     space::DS
     indexes::IT
+    (::Type{SubSpace{DS,IT,T,DD,dim}}){DS,IT,T,DD,dim}(sp::DS,ind::IT) = new{DS,IT,T,DD,dim}(sp,ind)
 end
 
-SubSpace{T,DD,dim}(sp::Space{T,DD,dim},kr) =
-    SubSpace{typeof(sp),typeof(kr),T,DD,dim}(sp,kr)
-
 SubSpace(sp::Space,kr) =
-    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),dimension(sp)}(sp,kr)
+    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),domaindimension(sp)}(sp,kr)
 
 SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,reindex(sp,sp.indexes,to_indexes(kr))[1])
 
@@ -28,20 +26,23 @@ end
 block(sp::SubSpace,k::Integer) = block(sp.space,reindex(sp,sp.indexes,to_index(k))[1])
 
 function blocklengths{DS}(sp::SubSpace{DS,UnitRange{Int}})
-    B1=block(sp.space,sp.indexes[1])
-    B2=block(sp.space,sp.indexes[end])
+    N = first(sp.indexes)
+    M = last(sp.indexes)
+    B1=block(sp.space,N)
+    B2=block(sp.space,M)
     # if the blocks are equal, we have only one bvlock
     B1 == B2 && return [zeros(Int,B1.K-1);length(sp.indexes)]
 
     [zeros(Int,B1.K-1);
-         blockstop(sp.space,B1)-sp.indexes[1]+1;blocklengths(sp.space)[B1.K+1:B2.K-1];
-        sp.indexes[end]-blockstart(sp.space,B2)+1]
+         blockstop(sp.space,B1)-N+1;blocklengths(sp.space)[B1.K+1:B2.K-1];
+        M-blockstart(sp.space,B2)+1]
 end
 
 function blocklengths{DS}(sp::SubSpace{DS,UnitCount{Int}})
-    B1=block(sp.space,sp.indexes[1])
+    N = first(sp.indexes)
+    B1=block(sp.space,N)
 
-    flatten(([zeros(Int,B1.K-1);blockstop(sp.space,B1)-sp.indexes[1]+1],
+    flatten(([zeros(Int,B1.K-1);blockstop(sp.space,B1)-N+1],
             blocklengths(sp.space)[B1.K+1:∞]))
 end
 
@@ -142,7 +143,7 @@ end
 function subspace_coefficients(v::Vector,sp::Space,dropsp::SubSpace)
     n=length(v)
     if sp == dropsp.space
-        ret = Array(eltype(v),0)
+        ret = Array{eltype(v)}(0)
         for k in dropsp.indexes
             if k > n
                 return ret

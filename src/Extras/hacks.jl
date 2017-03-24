@@ -31,8 +31,10 @@ end
 #     end
 # end
 
-function Fun(f::Function)
-    if hasnumargs(f,1)
+Fun(f::Function) = Fun(F(f))
+
+function Fun(f::F)
+    if hasnumargs(f.f,1)
         # check for tuple
         try
             f(0)
@@ -46,7 +48,7 @@ function Fun(f::Function)
         end
 
         Fun(f,Interval())
-    elseif hasnumargs(f,2)
+    elseif hasnumargs(f.f,2)
             Fun(f,Interval()^2)
     else
         error("Function not defined on interval or square")
@@ -92,16 +94,4 @@ function dotu{T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,
         ret+=c[k]*f[k]
     end
     ret
-end
-
-
-
-#TODO: Remove. This is a temporary fix while waiting for a pull request to be merged.
-function Base.norm{N, T}(a::Vec{N, T}, p)
-    isinf(p) && return maxabs(a)
-    ret = abs(a[1])^p
-    for k = 2:N
-        ret += abs(a[k])^p
-    end
-    ret^(1/p)
 end

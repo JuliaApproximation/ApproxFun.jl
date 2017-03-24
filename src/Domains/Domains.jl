@@ -12,7 +12,7 @@ include("Curve.jl")
 include("Point.jl")
 
 
-typealias AffineDomain Union{Segment,PeriodicInterval,Ray,Line}
+@compat const AffineDomain = Union{Segment,PeriodicInterval,Ray,Line}
 
 
 points(d::ClosedInterval,n) = points(Domain(d),n)
@@ -20,9 +20,9 @@ points(d::ClosedInterval,n) = points(Domain(d),n)
 # These are needed for spaces to auto-convert [a,b] to Segment
 function Base.convert(::Type{Domain},d::ClosedInterval)
     a,b=d.left,d.right
-    if abs(a) == Inf && abs(b) == Inf
+    if isinf(norm(a)) && isinf(norm(b))
         Line(d)
-    elseif abs(a) == Inf || abs(b) == Inf
+    elseif isinf(norm(a)) || isinf(norm(b))
         Ray(d)
     else
         Segment(d)
@@ -32,9 +32,9 @@ end
 # These are needed for spaces to auto-convert [a,b] to Interval
 function Base.convert(::Type{PeriodicDomain},d::ClosedInterval)
     a,b=d.left,d.right
-    if abs(a) == Inf && abs(b) == Inf
+    if isinf(norm(a)) && isinf(norm(b))
         PeriodicLine(d)
-    elseif abs(a) == Inf || abs(b) == Inf
+    elseif isinf(norm(a)) || isinf(norm(b))
         error("PeriodicRay not implemented")
     else
         PeriodicInterval(d)
@@ -116,7 +116,7 @@ function Base.setdiff(d::AffineDomain,ptsin::Vector)
     isempty(pts) && return d
     length(pts) == 1 && return d \ pts[1]
 
-    ret = Array(Domain,length(pts)+1)
+    ret = Array{Domain}(length(pts)+1)
     ret[1] = Domain(d.a..pts[1])
     for k = 2:length(pts)
         ret[k] = Domain(pts[k-1]..pts[k])
@@ -133,3 +133,36 @@ end
 
 include("multivariate.jl")
 include("Disk.jl")
+
+
+
+## broadcasting in 0.5
+if VERSION < v"0.6.0-dev"
+    for TYP in (:Circle,:Arc,:PeriodicInterval,:Point,:UnionDomain)
+        for op in (:+,:-,:*)
+            dop = parse("."*string(op))
+            @eval begin
+                $dop(c::Number,d::$TYP) = $op(c,d)
+                $dop(d::$TYP,c::Number) = $op(d,c)
+            end
+        end
+        for op in (:+,:-)
+            dop = parse("."*string(op))
+            @eval begin
+                $dop(a::$TYP,b::$TYP) = $op(a,b)
+            end
+        end
+        for op in (:/,)
+            dop = parse("."*string(op))
+            @eval begin
+                $dop(d::$TYP,c::Number) = $op(d,c)
+            end
+        end
+        for op in (:^,)
+            dop = parse("."*string(op))
+            @eval begin
+                $dop(d::$TYP,c::Number) = broadcast($op,d,c)
+            end
+        end
+    end
+end

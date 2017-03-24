@@ -38,7 +38,7 @@ function complexroots{C<:Chebyshev}(f::Fun{C})
     elseif ncoefficients(f)==2
         Complex128[-f.coefficients[1]/f.coefficients[2]]
     else
-        fromcanonical(f,colleague_eigvals(f.coefficients))
+        fromcanonical.(f,colleague_eigvals(f.coefficients))
     end
 end
 
@@ -71,7 +71,7 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
 
         d = domain(f)
         c = f.coefficients
-        vscale = maxabs(values(f))
+        vscale = maximum(abs,values(f))
         if vscale == 0
             warn("Tried to take roots of a zero function.  Returning [].")
             return eltype(domain(f))[]
@@ -81,14 +81,14 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
         htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
         # calculate Flaot64 roots
-        r = Vector{$BF}(rootsunit_coeffs(convert(Vector{$FF},c./vscale), Float64(htol)))
+        r = Array{$BF}(rootsunit_coeffs(convert(Vector{$FF},c./vscale), Float64(htol)))
         # Map roots from [-1,1] to domain of f:
-        rts = fromcanonical(d,r)
+        rts = fromcanonical.(d,r)
         fp = differentiate(f)
 
         # do Newton 3 time
         for _ = 1:3
-            rts .-=f(rts)./fp(rts)
+            rts .-=f.(rts)./fp.(rts)
         end
 
         return rts
@@ -101,13 +101,13 @@ function roots{C<:Chebyshev,TT<:Union{Float64,Complex128}}( f::Fun{C,TT} )
 
     d = domain(f)
     c = f.coefficients
-    vscale = maxabs(values(f))
+    vscale = maximum(abs,values(f))
     if vscale == 0
         warn("Tried to take roots of a zero function.  Returning [].")
         return eltype(domain(f))[]
     end
 
-    hscale = maximum( [abs(first(d)), abs(last(d))] )
+    hscale = max(abs(first(d)), abs(last(d)) )
     htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
 
 
@@ -125,7 +125,7 @@ function roots{C<:Chebyshev,TT<:Union{Float64,Complex128}}( f::Fun{C,TT} )
 
 
     # Map roots from [-1,1] to domain of f:
-    return fromcanonical(d,r)
+    return fromcanonical.(d,r)
 end
 
 
@@ -177,11 +177,11 @@ function PruneOptions( r, htol::Float64 )
 # ONLY KEEP ROOTS IN THE INTERVAL
 
     # Remove dangling imaginary parts:
-    r = real( r[ abs(imag(r)) .< htol ] )
+    r = real( r[ abs.(imag.(r)) .< htol ] )
     # Keep roots inside [-1 1]:
-    r = sort( r[ abs(r) .<= 1+htol ] )
+    r = sort( r[ abs.(r) .<= 1+htol ] )
     # Put roots near ends onto the domain:
-    r = min( max( r, -1 ), 1)
+    r = min.( max.( r, -1 ), 1)
 
     # Return the pruned roots:
     return r
@@ -260,7 +260,7 @@ function extremal_args(f::Fun)
         roots(differentiate(f))
     elseif isa(d,PeriodicDomain)  # avoid complex domains
         S=typeof(space(f))
-        fromcanonical(f,extremal_args(setcanonicaldomain(f)))
+        fromcanonical.(f,extremal_args(setcanonicaldomain(f)))
     else
         dab=∂(domain(f))
         if ncoefficients(f) <=2 #TODO this is only relevant for Polynomial bases
@@ -275,7 +275,7 @@ for op in (:(Base.maximum),:(Base.minimum),:(Base.extrema),:(Base.maxabs),:(Base
     @eval function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
         pts = extremal_args(f)
 
-        $op(f(pts))
+        $op(f.(pts))
     end
 end
 
@@ -284,7 +284,7 @@ for op in (:(Base.maxabs),:(Base.minabs))
         # complex spaces/types can have different extrema
         pts = extremal_args(abs(f))
 
-        $op(f(pts))
+        $op(f.(pts))
     end
 end
 
@@ -307,13 +307,13 @@ for op in (:(Base.indmax),:(Base.indmin))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             # the extra real avoids issues with complex round-off
-            pts[$op(real(f(pts)))]
+            pts[$op(real(f.(pts)))]
         end
 
         function $op{S,T}(f::Fun{S,T})
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
-            fp=f(pts)
+            fp=f.(pts)
             @assert norm(imag(fp))<100eps()
             pts[$op(real(fp))]
         end
@@ -374,7 +374,7 @@ end
 function complexroots{T<:Union{BigFloat,Complex{BigFloat}}}(cfs::Vector{T})
     a = Fun(Taylor(Circle(BigFloat)),cfs)
     ap = a'
-    rts = Vector{Complex{BigFloat}}(complexroots(Vector{Complex128}(cfs)))
+    rts = Array{Complex{BigFloat}}(complexroots(Vector{Complex128}(cfs)))
     # Do 3 Newton steps
     for _ = 1:3
         rts .-= a.(rts)./ap.(rts)
@@ -396,7 +396,7 @@ function roots{DD}(f::Fun{Laurent{DD}})
     if length(irts)==0
         Complex{Float64}[]
     else
-        rts=fromcanonical(f,tocanonical(Circle(),irts))
+        rts=fromcanonical.(f,tocanonical.(Circle(),irts))
         if isa(domain(f),PeriodicInterval)
             sort!(real(rts))  # Make type safe?
         else

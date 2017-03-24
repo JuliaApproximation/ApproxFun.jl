@@ -20,7 +20,7 @@ function ClenshawPlan{T}(::Type{T},sp,N::Int,n::Int)
     A = T[recA(T,sp,k) for k=0:N-1]
     B = T[recB(T,sp,k) for k=0:N-1]
     C = T[recC(T,sp,k) for k=1:N]
-    ClenshawPlan(sp,Array(T,n),Array(T,n),Array(T,n),A,B,C)
+    ClenshawPlan(sp,Array{T}(n),Array{T}(n),Array{T}(n),A,B,C)
 end
 
 macro clenshaw(x, c...)
@@ -34,10 +34,7 @@ macro clenshaw(x, c...)
 end
 
 for TYP in (:AbstractVector,:AbstractMatrix)
-    @eval begin
-        clenshaw(c::$TYP,x::AbstractArray,plan::ClenshawPlan) = reshape(clenshaw(c,vec(x),plan),size(x))
-        clenshaw(c::$TYP,x,plan::ClenshawPlan) = reshape(clenshaw(c,x,plan),size(c,2))
-    end
+    @eval clenshaw(c::$TYP,x::AbstractArray,plan::ClenshawPlan) = reshape(clenshaw(c,vec(x),plan),size(x))
 end
 
 

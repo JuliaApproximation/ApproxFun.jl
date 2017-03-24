@@ -23,20 +23,20 @@ cf = Fun(cos)
 ecf = Fun(x->cos(x).*exp(x))
 eocf = Fun(x->cos(x)./exp(x))
 
-@test_approx_eq ef(.5) exp(.5)
-@test_approx_eq ecf(.123456) cos(.123456).*exp(.123456)
+@test ef(.5) ≈ exp(.5)
+@test ecf(.123456) ≈ cos(.123456).*exp(.123456)
 
 r=2.*rand(100) .- 1
 
-@test maximum(abs(ef(r)-exp(r)))<100eps()
-@test maximum(abs(ecf(r)-cos(r).*exp(r)))<100eps()
+@test maximum(abs,ef.(r)-exp.(r))<100eps()
+@test maximum(abs,ecf.(r).-cos.(r).*exp.(r))<100eps()
 
 
 @test norm((ecf-cf.*ef).coefficients)<100eps()
 
 
 
-@test maximum(abs((eocf-cf./ef).coefficients))<1000eps()
+@test maximum(abs,(eocf-cf./ef).coefficients)<1000eps()
 
 
 @test norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
@@ -50,9 +50,9 @@ r=2.*rand(100) .- 1
 @test norm((ef - cumsum(ef)').coefficients) < 20eps()
 @test norm((cf - cumsum(cf)').coefficients) < 20eps()
 
-@test_approx_eq sum(ef)  2.3504023872876028
+@test sum(ef)  ≈ 2.3504023872876028
 
-@test_approx_eq norm(ef)  1.90443178083307
+@test norm(ef)  ≈ 1.90443178083307
 
 
 
@@ -71,18 +71,18 @@ x=1.5
 
 
 
-@test_approx_eq ef(x) exp(x)
+@test ef(x) ≈ exp(x)
 
 
 
-@test maximum(abs(ef(r)-exp(r)))<100eps()
-@test maximum(abs(ecf(r)-cos(r).*exp(r)))<100eps()
+@test maximum(abs,ef.(r)-exp.(r))<100eps()
+@test maximum(abs,ecf.(r).-cos.(r).*exp.(r))<100eps()
 
 
 @test norm((ecf-cf.*ef).coefficients)<100eps()
 
 
-@test maximum(abs((eocf-cf./ef).coefficients))<1000eps()
+@test maximum(abs,(eocf-cf./ef).coefficients)<1000eps()
 
 
 @test norm(((ef/3).*(3/ef)-1).coefficients)<1000eps()
@@ -96,15 +96,15 @@ x=1.5
 @test norm((ef - cumsum(ef)').coefficients) < 10eps()
 @test norm((cf - cumsum(cf)').coefficients) < 10eps()
 
-@test_approx_eq sum(ef) 4.670774270471604
+@test sum(ef) ≈ 4.670774270471604
 
-@test_approx_eq norm(ef) 4.858451087240335
+@test norm(ef) ≈ 4.858451087240335
 
 
 ##Roots
 
 f=Fun(x->sin(10(x-.1)))
-@test norm(f(roots(f)))< 1000eps()
+@test norm(f.(roots(f)))< 1000eps()
 
 
 ## ALiasing
@@ -115,13 +115,13 @@ f=Fun(x->cos(50acos(x)))
 
 ## Int values
 
-@test_approx_eq Fun(x->2,10)(.1) 2
-@test_approx_eq Fun(x->2)(.1) 2
+@test Fun(x->2,10)(.1) ≈ 2
+@test Fun(x->2)(.1) ≈ 2
 
 
-@test_approx_eq Fun(Chebyshev,Float64[])([0.,1.]) [0.,0.]
-@test_approx_eq Fun(Chebyshev,[])(0.) 0.
-@test_approx_eq Fun(x->[1.,0.])(0.) [1.,0.]
+@test Fun(Chebyshev,Float64[]).([0.,1.]) ≈ [0.,0.]
+@test Fun(Chebyshev,[])(0.) ≈ 0.
+@test Fun(x->[1.,0.])(0.) ≈ [1.,0.]
 
 
 
@@ -130,8 +130,8 @@ f=Fun(x->cos(50acos(x)))
 f=Fun(exp)
 @test norm(exp.(f) - exp(f)) < 100eps()
 @test norm(besselj.(1,f)-besselj(1,f)) < 100eps()
-@test_approx_eq atan2.(f,1)(0.1) atan2(f(0.1),1)
-@test_approx_eq atan2.(f,f)(0.1) atan2(f(0.1),f(0.1))
+@test atan2.(f,1)(0.1) ≈ atan2(f(0.1),1)
+@test atan2.(f,f)(0.1) ≈ atan2(f(0.1),f(0.1))
 
 
 
@@ -141,15 +141,22 @@ f=Fun(exp)
 x = Fun(identity,0..10)
 f = sin(x^2)
 g = cos(x)
-@test_approx_eq f(.1) sin(.1^2)
+@test f(.1) ≈ sin(.1^2)
 
 x = Fun(identity,0..100)
 f = sin(x^2)
-@test_approx_eq_eps f(.1) sin(.1^2) 1E-12
+@test ≈(f(.1),sin(.1^2);atol=1E-12)
 
 
-## Reverse
+##) Reverse
 
 
 f=Fun(exp)
-@test_approx_eq Fun(f,Chebyshev(1..(-1)))(0.1) f(0.1)
+@test Fun(f,Chebyshev(1..(-1)))(0.1) ≈ f(0.1)
+
+
+
+## minimum/maximum
+x=Fun()
+@test minimum(x) == -1
+@test maximum(x) == 1

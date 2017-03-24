@@ -12,8 +12,8 @@ can be easily resolved.
 """
 immutable Chebyshev{D<:Domain} <: PolynomialSpace{D}
     domain::D
-    Chebyshev(d) = new(d)
-    Chebyshev() = new(Segment())
+    (::Type{Chebyshev{D}}){D}(d) = new{D}(d)
+    (::Type{Chebyshev{D}}){D}() = new{D}(Segment())
 end
 
 Chebyshev() = Chebyshev{Segment{Float64}}()
@@ -29,7 +29,13 @@ setdomain(S::Chebyshev,d::Domain) = Chebyshev(d)
 Base.ones{T<:Number}(::Type{T},S::Chebyshev) = Fun(S,ones(T,1))
 Base.ones(S::Chebyshev) = Fun(S,ones(1))
 
-Base.first{D}(f::Fun{Chebyshev{D}}) = foldr(-,coefficients(f))
+function Base.first{D,T}(f::Fun{Chebyshev{D},T})
+    n = ncoefficients(f)
+    n == 0 && return zero(T)
+    n == 1 && return f.coefficients[1]
+    foldr(-,coefficients(f))
+end
+
 Base.last{D}(f::Fun{Chebyshev{D}}) = reduce(+,coefficients(f))
 identity_fun(d::Chebyshev) = identity_fun(domain(d))
 
@@ -231,7 +237,7 @@ function points{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},N)
     if domain(S) == Segment()^2
         pts=paduapoints(real(eltype(eltype(D))),Int(cld(-3+sqrt(1+8N),2)))
         T=eltype(pts)
-        ret=Array(Vec{2,T},size(pts,1))
+        ret=Array{Vec{2,T}}(size(pts,1))
         @inbounds for k in eachindex(ret)
             ret[k]=Vec{2,T}(pts[k,1],pts[k,2])
         end
@@ -257,7 +263,7 @@ itransform{D}(S::TensorSpace{Tuple{Chebyshev{D},Chebyshev{D}}},v::Vector,
 #TODO: adaptive
 for op in (:(Base.sin),:(Base.cos))
     @eval ($op){S<:Chebyshev,V<:Chebyshev}(f::ProductFun{S,V}) =
-        ProductFun(chebyshevtransform($op(values(f))),space(f))
+        ProductFun(chebyshevtransform($op.(values(f))),space(f))
 end
 
 

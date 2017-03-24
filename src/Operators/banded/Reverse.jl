@@ -3,7 +3,7 @@
 for TYP in (:ReverseOrientation,:Reverse)
     WRAP = parse(string(TYP)*"Wrapper")
     @eval begin
-        abstract $TYP{T} <: Operator{T}
+        @compat abstract type $TYP{T} <: Operator{T} end
 
         immutable $WRAP{OS,T} <: Operator{T}
             op::OS

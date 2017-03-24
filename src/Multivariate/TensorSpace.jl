@@ -2,7 +2,7 @@
 export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
-abstract AbstractProductSpace{SV,T,DD,d} <: Space{T,DD,d}
+@compat abstract type AbstractProductSpace{SV,T,DD,d} <: Space{T,DD,d} end
 
 
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
@@ -16,7 +16,7 @@ spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 # would be Tensorizer((1:∞,1:∞))
 # ConstantSpace() ⊗ Chebyshev()
 # would be Tensorizer((1:1,1:∞))
-# and Chebyshev() ⊗ TupleSpace((Chebyshev(),Chebyshev()))
+# and Chebyshev() ⊗ ArraySpace([Chebyshev(),Chebyshev()])
 # would be Tensorizer((1:∞,2:2:∞))
 
 
@@ -30,9 +30,9 @@ dimensions(a::Tensorizer) = map(sum,a.blocks)
 Base.length(a::Tensorizer) = mapreduce(sum,*,a.blocks)
 
 # (blockrow,blockcol), (subrow,subcol), (rowshift,colshift), (numblockrows,numblockcols), (itemssofar, length)
-Base.start{DMS<:NTuple{2}}(a::Tensorizer{DMS}) = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
+Base.start{AA,BB}(a::Tensorizer{Tuple{AA,BB}}) = (1,1), (1,1), (0,0), (a.blocks[1][1],a.blocks[2][1]), (0,length(a))
 
-function Base.next{DMS<:NTuple{2}}(a::Tensorizer{DMS},st)
+function Base.next{AA,BB}(a::Tensorizer{Tuple{AA,BB}},st)
     (K,J), (k,j), (rsh,csh), (n,m), (i,tot) = st
     ret = k+rsh,j+csh
     if k==n && j==m  # end of block
@@ -94,7 +94,7 @@ end
 
 # block(it::Tensorizer,k)::Block = sum(it[k])-length(it.blocks)+1
 block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int)::Block =
-    sum(ci[k])-length(ci.iterator.blocks)+1
+    k == 0 ? 0 : sum(ci[k])-length(ci.iterator.blocks)+1
 
 block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int)::Block =
     floor(Integer,sqrt(2n) + 1/2)
@@ -498,7 +498,7 @@ for OP in (:block,:blockstart,:blockstop)
 end
 
 function points(sp::TensorSpace,n)
-    pts=Array(Vec{2,Float64},0)
+    pts=Array{eltype(domain(sp))}(0)
     if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
         N,M=dimension(sp[1]),dimension(sp[2])
     elseif isfinite(dimension(sp[1]))

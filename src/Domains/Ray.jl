@@ -18,13 +18,13 @@ infinity (`o = true`) or back from infinity (`o = false`).
 immutable Ray{angle,T<:Number} <: IntervalDomain{T}
     center::T
     orientation::Bool
-    Ray(c,o) = new(c,o)
-    Ray(c) = new(c,true)
-    Ray() = new(zero(T),true)
-    Ray(r::Ray{angle,T}) = r
+    (::Type{Ray{angle,T}}){angle,T}(c,o) = new{angle,T}(c,o)
+    (::Type{Ray{angle,T}}){angle,T}(c) = new{angle,T}(c,true)
+    (::Type{Ray{angle,T}}){angle,T}() = new{angle,T}(zero(T),true)
+    (::Type{Ray{angle,T}}){angle,T}(r::Ray{angle,T}) = r
 end
 
-typealias RealRay{T} Union{Ray{false,T},Ray{true,T}}
+@compat const RealRay{T} = Union{Ray{false,T},Ray{true,T}}
 
 (::Type{Ray{a}}){a}(c,o) = Ray{a,typeof(c)}(c,o)
 (::Type{Ray{a}}){a}(c::Number) = Ray{a,typeof(c)}(c)
@@ -75,11 +75,11 @@ for OP in (:mobius,:mobiusinv,:mobiusD,:mobiusinvD)
     @eval $OP(a::Ray,z) = $OP(mobiuspars(a)...,z)
 end
 
-ray_tocanonical(x)=(x==Inf)?1.:(x-1.)./(1+x)
-ray_tocanonicalD(x)=(x==Inf)?0.:2*(1./(1+x)).^2
-ray_fromcanonical(x)=(1+x)./(1-x)
-ray_fromcanonicalD(x)=2*(1./(x-1.)).^2
-ray_invfromcanonicalD(x)=(x-1.).^2/2
+ray_tocanonical(x) = isinf(x) ? one(x) : (x-1)/(1+x)
+ray_tocanonicalD(x) = isinf(x) ? zero(x) : 2*(1/(1+x))^2
+ray_fromcanonical(x) = (1+x)/(1-x)
+ray_fromcanonicalD(x) = 2*(1/(x-1))^2
+ray_invfromcanonicalD(x) = (x-1)^2/2
 
 
 for op in (:ray_tocanonical,:ray_tocanonicalD)
