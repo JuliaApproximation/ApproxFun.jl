@@ -104,10 +104,10 @@ function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
             all(i->isa(i,Repeated) && i.x == 1, rsi.blocks)
         l,u = 0,0
         for k=1:p,j=1:p
-            l=min(l,p*bandinds(ops[k,j],1)+j-k)
+            l=min(l,p*bandinds(ops[k,j],1)+j-k+1)
         end
         for k=1:p,j=1:p
-            u=max(u,p*bandinds(ops[k,j],2)+j-k)
+            u=max(u,p*bandinds(ops[k,j],2)+j-k-1)
         end
     elseif p == 1 && size(ops,2) == 2 && size(ops[1],2) == 1
         # special case for example
