@@ -104,11 +104,11 @@ end
 
 function Base.det(R::QROperatorR;maxiterations::Int=10_000)
     QR = R.QR
-    RD = R.data
+    RD = R.QR.R
     resizedata!(QR,:,1)
     ret = -RD[1,1]
     k = 2
-    while abs(abs(RD[k-1,k-1])-1) > eps(eltype(A))
+    while abs(abs(RD[k-1,k-1])-1) > eps(eltype(R))
         resizedata!(QR,:,k)
         ret *= -RD[k,k]
         k+=1
