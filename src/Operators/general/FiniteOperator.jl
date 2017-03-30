@@ -13,10 +13,15 @@ end
 FiniteOperator(M::AbstractMatrix,ds::Space,rs::Space) =
     FiniteOperator{typeof(M),eltype(M),typeof(ds),typeof(rs)}(M,ds,rs)
 
-FiniteOperator(M::AbstractMatrix) = FiniteOperator(M,ℓ⁰,ℓ⁰)
+FiniteOperator(M::AbstractMatrix) = FiniteOperator(M,EuclideanSpace(size(M,2)),EuclideanSpace(size(M,1)))
 
 Base.convert{T}(::Type{Operator{T}},F::FiniteOperator) =
     FiniteOperator(convert(AbstractMatrix{T},F.matrix),F.domainspace,F.rangespace)::Operator{T}
+
+
+Base.promote_rule{OT<:Operator,MT<:Matrix}(::Type{OT},::Type{MT}) = Operator{promote_type(eltype(OT),eltype(MT))}
+
+Base.convert{T}(::Type{Operator{T}},M::AbstractMatrix) = FiniteOperator(AbstractMatrix{T}(M))
 
 domainspace(F::FiniteOperator) = F.domainspace
 rangespace(F::FiniteOperator) = F.rangespace
@@ -52,9 +57,7 @@ function Base.convert{AT<:BandedMatrix,T}(::Type{BandedMatrix},S::SubOperator{T,
 end
 
 
-
-bandinds(T::FiniteOperator) = (1-size(T.matrix,1),size(T.matrix,2)-1)
-bandinds{AT<:BandedMatrix}(T::FiniteOperator{AT}) = bandinds(T.matrix)
+bandinds(T::FiniteOperator) = bandinds(T.matrix)
 
 
 Base.maximum(K::FiniteOperator) = maximum(K.matrix)

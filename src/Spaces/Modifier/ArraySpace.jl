@@ -360,3 +360,11 @@ for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:QROperator,
     @eval \{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
         \(A,mat(b);kwds...)
 end
+
+
+
+
+## EuclideanSpace
+
+@compat const EuclideanSpace = ArraySpace{ConstantSpace{AnyDomain},1,RealBasis,AnyDomain,0}
+EuclideanSpace(n) = ArraySpace(ConstantSpace(),n)

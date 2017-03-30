@@ -287,6 +287,6 @@ conversion_type{DD<:Circle}(A::Laurent{DD},B::Laurent{DD})=domain(A).orientation
 function Conversion{DD}(A::Laurent{DD},B::Laurent{DD})
     @assert domain(A) == reverse(domain(B))
     ConversionWrapper(SpaceOperator(
-        BlockOperator(eye(1),PermutationOperator([2,1]))
+        InterlaceOperator(Diagonal([eye(1),PermutationOperator([2,1])]))
     ,A,B))
 end
