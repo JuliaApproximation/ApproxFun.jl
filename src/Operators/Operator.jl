@@ -58,6 +58,18 @@ macro functional(FF)
             @assert k==1
             f[j]::eltype(f)
         end
+        function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Range)
+            @assert k==1
+            f[j]
+        end
+        function ApproxFun.defaultgetindex(f::$FF,k::Integer,j)
+            @assert k==1
+            f[j]
+        end
+        function ApproxFun.defaultgetindex(f::$FF,k::Range,j)
+            @assert k==1:1
+            f[j].'
+        end
     end
 end
 
