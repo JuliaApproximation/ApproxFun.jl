@@ -1,6 +1,6 @@
 using ApproxFun, Base.Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
-                        testbandedbelowoperator, testbandedblockbandedoperator
+                        testbandedbelowoperator, testbandedblockbandedoperator, testfunctional
 ## This includes extra tests that are too time consuming for Travis
 
 
@@ -44,6 +44,9 @@ D=Derivative(S)
 
 Z=ApproxFun.ZeroOperator(ApproxFun.ConstantSpace())
 
+
+testfunctional(Evaluation(S,0))
+testfunctional(Evaluation(S,ω)-Evaluation(S,0))
 testfunctional(Evaluation(S,ω,1)-Evaluation(S,0,1))
 
 A=ApproxFun.interlace([Z                      Evaluation(S,0);
@@ -51,7 +54,7 @@ A=ApproxFun.interlace([Z                      Evaluation(S,0);
                      u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
                       0         D^2+I+3u^2])
 
-@time testraggedbelowoperator(A)
+ApproxFun.backend_testinfoperator(A)
 
 # This is surprisingly slow...
 
