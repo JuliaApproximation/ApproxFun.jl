@@ -366,5 +366,5 @@ end
 
 ## EuclideanSpace
 
-@compat const EuclideanSpace = ArraySpace{ConstantSpace{AnyDomain},1,RealBasis,AnyDomain,0}
-EuclideanSpace(n) = ArraySpace(ConstantSpace(),n)
+@compat const EuclideanSpace = ArraySpace{ConstantSpace{AnyDomain},1,RealBasis,AnyDomain,1}
+EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(),n)

@@ -14,23 +14,6 @@ end
 
 ## Constructors that involve MultivariateFun
 
-# function Fun(f::Function,d::BivariateSpace)
-#     if f==zero
-#         zeros(d)
-#     elseif hasnumargs(f,2)
-#         Fun(ProductFun(f,d))
-#     else
-#         Fun(ProductFun((x,y)->f((x,y)),d))
-#     end
-# end
-# function Fun(f::Function,d::BivariateSpace,n::Integer)
-#     if hasnumargs(f,2)
-#         defaultFun(x->f(x...),d,n)
-#     else
-#         defaultFun(f,d,n)
-#     end
-# end
-
 Fun(f::Function) = Fun(F(f))
 
 function Fun(f::F)
@@ -74,19 +57,6 @@ function Base.dot{T<:Union{Number,Fun,MultivariateFun},F<:Union{Fun,Multivariate
 end
 
 
-# for TYP in (:Real,:Number)
-#     @eval begin
-#         function dotu{T<:$TYP,F<:Union{Fun,MultivariateFun}}(c::Vector{T},f::Vector{F})
-#             @assert length(c)==length(f)
-#             ret=first(c)*first(f)
-#             for k=2:length(c)
-#                 ret+=c[k]*f[k]
-#             end
-#             ret
-#         end
-#     end
-# end
-
 function dotu{T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,Number}}(c::Vector{T},f::Vector{F})
     @assert length(c)==length(f)
     ret=first(c)*first(f)
@@ -95,3 +65,11 @@ function dotu{T<:Union{Fun,MultivariateFun,Number},F<:Union{Fun,MultivariateFun,
     end
     ret
 end
+
+
+
+## Gets blockbandinds working for SpectralMeasures
+
+# TODO: Is this a good definition?
+blockbandinds{AT,TT,SS1<:Union{EuclideanSpace,SequenceSpace},
+              SS2<:Union{EuclideanSpace,SequenceSpace}}(T::FiniteOperator{AT,TT,SS1,SS2}) = bandinds(T)

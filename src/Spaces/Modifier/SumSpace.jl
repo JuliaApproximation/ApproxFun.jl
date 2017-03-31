@@ -16,7 +16,7 @@ BlockInterlacer(v::Vector) = BlockInterlacer(tuple(v...))
 
 Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
 
-dimensions(b::BlockInterlacer) = map(length,b.blocks)
+dimensions(b::BlockInterlacer) = map(sum,b.blocks)
 Base.length(b::BlockInterlacer) = mapreduce(length,+,b.blocks)
 
 # the state is always (whichblock,curblock,cursubblock,curcoefficients)

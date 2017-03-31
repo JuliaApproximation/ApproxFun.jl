@@ -13,7 +13,8 @@ end
 FiniteOperator(M::AbstractMatrix,ds::Space,rs::Space) =
     FiniteOperator{typeof(M),eltype(M),typeof(ds),typeof(rs)}(M,ds,rs)
 
-FiniteOperator(M::AbstractMatrix) = FiniteOperator(M,EuclideanSpace(size(M,2)),EuclideanSpace(size(M,1)))
+FiniteOperator(M::AbstractMatrix) =
+    FiniteOperator(M,EuclideanSpace(size(M,2)),EuclideanSpace(size(M,1)))
 
 Base.convert{T}(::Type{Operator{T}},F::FiniteOperator) =
     FiniteOperator(convert(AbstractMatrix{T},F.matrix),F.domainspace,F.rangespace)::Operator{T}
@@ -58,6 +59,5 @@ end
 
 
 bandinds(T::FiniteOperator) = bandinds(T.matrix)
-
-
+# TODO: What should the blockbandinds be?
 Base.maximum(K::FiniteOperator) = maximum(K.matrix)
