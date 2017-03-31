@@ -250,3 +250,9 @@ B=Evaluation(Laurent(0..2π),0,1)
 ## Conversion between reverse
 C = Conversion(SinSpace()⊕CosSpace(),Fourier())
 testbandedoperator(C)
+
+
+
+## Diagonal Derivative
+D = Derivative(Laurent())
+@test isdiag(D)
