@@ -354,22 +354,22 @@ function companion_matrix{T}(c::Vector{T})
 end
 
 
-if isdir(Pkg.dir("AMVW"))
-    using AMVW
-    function complexroots(cfs::Vector)
-        c=chop(cfs,10eps())
-
-        # Only use special routine for large roots
-        if length(c)≥70
-            Main.AMVW.rootsAMVW(c)
-        else
-            hesseneigvals(companion_matrix(c))
-        end
-    end
-else
-    complexroots{T<:Union{Float64,Complex128}}(cfs::Vector{T}) =
-        hesseneigvals(companion_matrix(chop(cfs,10eps())))
-end
+# if isdir(Pkg.dir("AMVW"))
+#     using AMVW
+#     function complexroots(cfs::Vector)
+#         c=chop(cfs,10eps())
+#
+#         # Only use special routine for large roots
+#         if length(c)≥70
+#             Main.AMVW.rootsAMVW(c)
+#         else
+#             hesseneigvals(companion_matrix(c))
+#         end
+#     end
+# else
+complexroots{T<:Union{Float64,Complex128}}(cfs::Vector{T}) =
+    hesseneigvals(companion_matrix(chop(cfs,10eps())))
+# end
 
 function complexroots{T<:Union{BigFloat,Complex{BigFloat}}}(cfs::Vector{T})
     a = Fun(Taylor(Circle(BigFloat)),cfs)
