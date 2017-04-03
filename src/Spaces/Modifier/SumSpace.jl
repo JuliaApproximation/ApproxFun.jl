@@ -136,7 +136,8 @@ end
 setdomain(A::SumSpace,d::Domain) = SumSpace(map(sp->setdomain(sp,d),A.spaces))
 
 
-setdomain(A::PiecewiseSpace,d::UnionDomain)=PiecewiseSpace(map((sp,dd)->setdomain(sp,dd),A.spaces,d.domains))
+setdomain(A::PiecewiseSpace,d::UnionDomain) =
+    PiecewiseSpace(map((sp,dd)->setdomain(sp,dd),A.spaces,d.domains))
 
 
 

@@ -129,6 +129,7 @@ function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
     p=size(ops,1)
     if all(isbanded,ops)
         l,u = 0,0
+        #TODO: this code assumes an interlace strategy that might not be right
         for k=1:p
             l=min(l,p*bandinds(ops[k],1)+1-k)
         end
