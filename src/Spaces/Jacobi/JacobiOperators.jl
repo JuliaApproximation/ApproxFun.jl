@@ -183,11 +183,11 @@ function Conversion(L::Jacobi,M::Jacobi)
     end
 end
 
-bandinds{J<:Jacobi}(C::ConcreteConversion{J,J})=(0,1)
+bandinds{J1<:Jacobi,J2<:Jacobi}(C::ConcreteConversion{J1,J2})=(0,1)
 
 
 
-function Base.getindex{J<:Jacobi,T}(C::ConcreteConversion{J,J,T},k::Integer,j::Integer)
+function Base.getindex{J1<:Jacobi,J2<:Jacobi,T}(C::ConcreteConversion{J1,J2,T},k::Integer,j::Integer)
     L=C.domainspace
     if L.b+1==C.rangespace.b
         if j==k

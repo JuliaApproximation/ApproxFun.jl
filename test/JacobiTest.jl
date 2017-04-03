@@ -246,3 +246,10 @@ u=[ldirichlet();D^2-x]\[airyai(0.0);0.0]
 
 f=Fun((x,y)->real(exp(x+im*y)),Legendre(Vec(0.,0.)..Vec(1.,1.)))
 @test f(0.1,0.1) ≈ real(exp(0.1+0.1im))
+
+
+
+## Test integer, float mixed
+
+C=Conversion(Legendre(),Jacobi(1,0))
+testbandedoperator(C)
