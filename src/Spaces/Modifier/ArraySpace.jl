@@ -17,7 +17,7 @@ immutable ArraySpace{S,n,T,DD,dim} <: DirectSumSpace{NTuple{n,S},T,DD,dim}
      spaces::Array{S,n}
 end
 
-BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(vec(sp.spaces)))
+BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
 interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
 @compat const VectorSpace{S,T,DD,dim} = ArraySpace{S,1,T,DD,dim}
