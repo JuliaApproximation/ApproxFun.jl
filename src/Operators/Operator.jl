@@ -72,11 +72,11 @@ macro functional(FF)
         end
         function ApproxFun.defaultgetindex(f::$FF,k::Range,j::Range)
             @assert k==1:1
-            f[j].'
+            reshape(f[j],1,length(j))
         end
         function ApproxFun.defaultgetindex(f::$FF,k::Range,j)
             @assert k==1:1
-            f[j].'
+            reshape(f[j],1,length(j))
         end
     end
 end
