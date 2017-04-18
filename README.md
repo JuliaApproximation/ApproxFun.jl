@@ -44,6 +44,8 @@ scatter!(rp,h.(rp))
 
 ## Differentiation and integration
 
+[![Join the chat at https://gitter.im/ApproxFun/ApproxFun.jl](https://badges.gitter.im/ApproxFun/ApproxFun.jl.svg)](https://gitter.im/ApproxFun/ApproxFun.jl?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 
 Notice from above that to find the extrema, we used `'` overridden for the `differentiate` function. Several other `Julia`
 base functions are overridden for the purposes of calculus. Because the exponential is its own
