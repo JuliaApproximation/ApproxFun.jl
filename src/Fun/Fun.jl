@@ -108,6 +108,7 @@ Base.zero(f::Fun)=zeros(f)
 Base.one(f::Fun)=ones(f)
 
 Base.eltype{S,T}(::Fun{S,T}) = T
+Base.eltype{S,T}(::Type{Fun{S,T}}) = T
 
 #supports broadcasting and scalar iterator
 Base.size(f::Fun,k...) = size(space(f),k...)
