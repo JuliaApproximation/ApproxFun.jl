@@ -41,7 +41,17 @@ function standardchoplength(coeffs, tol)
     n = length(coeffs)
 
     if  n < 17
-        return n
+        # resort to naive chop
+        mx = maximum(abs,coeffs)
+        if mx == 0
+            return 0
+        end
+        for k=n:-1:1
+            if abs(coeffs[k]) > tol*mx
+                return k
+            end
+        end
+        return 0
     end
 
     # Step 1: Convert COEFFS to a new monotonically nonincreasing

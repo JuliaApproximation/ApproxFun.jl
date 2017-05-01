@@ -1,6 +1,16 @@
 using ApproxFun, Base.Test
 
 
+
+## broadcast
+
+f=Fun(exp)
+@test norm(exp.(f) - exp(f)) < 100eps()
+@test norm(besselj.(1,f)-besselj(1,f)) < 100eps()
+@test atan2.(f,1)(0.1) ≈ atan2(f(0.1),1)
+@test atan2.(f,f)(0.1) ≈ atan2(f(0.1),f(0.1))
+
+
 x = Fun()
 @test ≈(exp(x),exp.(x);atol=10eps())
 

@@ -434,6 +434,9 @@ Base.isapprox(g::Number,f::Fun)=isapprox(g*ones(space(f)),f)
 Base.isreal{S,T<:Real}(f::Fun{S,T})=basistype(S)<:RealBasis
 Base.isreal(f::Fun)=false
 
+iszero(x::Number) = x == 0
+iszero(f::Fun)    = all(iszero,f.coefficients)
+
 
 
 # sum, integrate, and idfferentiate are in CalculusOperator
