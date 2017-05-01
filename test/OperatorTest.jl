@@ -235,3 +235,31 @@ u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 
 A = InterlaceOperator(Diagonal([eye(2),Derivative(Chebyshev())]))
 testblockbandedoperator(A)
+
+
+## Projection
+
+
+## SubSpace test
+
+S=Chebyshev()
+C=eye(S)[3:end,:]
+@test ApproxFun.domaindimension(domainspace(C)) == 1
+
+B=dirichlet(S)
+
+Ai=ApproxFun.interlace([B;C])
+@test ApproxFun.colstop(Ai,1) == 2
+
+x=Fun()
+f=exp(x)
+u=[B;C]\[0.;0.;f]
+
+@test abs(u(-1)) ≤ 10eps()
+@test abs(u(1)) ≤ 10eps()
+
+
+f=(1-x^2)*exp(x)
+u=[B;C]\[0.;0.;f]
+
+@test u ≈ f

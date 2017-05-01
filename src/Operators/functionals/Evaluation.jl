@@ -16,7 +16,7 @@ end
 ConcreteEvaluation(sp::Space{RealBasis},x::Number,o::Number) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(o),eltype(domain(sp))}(sp,x,o)
 
-Evaluation{T}(::Type{T},sp::Space,x::Bool,order) =
+Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
 function Evaluation{T}(::Type{T},sp::UnivariateSpace,x,order)
     d=domain(sp)
@@ -38,6 +38,7 @@ Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
 
 #Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::Space,x::Union{Number,Bool}) = Evaluation(d,x,0)
+Evaluation{T}(::Type{T},d::Space,n...) = error("Override Evaluation for $(typeof(d))")
 Evaluation{T}(::Type{T},d,n...) = Evaluation(T,Space(d),n...)
 Evaluation(d,n...) = Evaluation(Space(d),n...)
 Evaluation(x::Union{Number,Bool}) = Evaluation(UnsetSpace(),x,0)
