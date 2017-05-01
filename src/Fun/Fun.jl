@@ -408,34 +408,24 @@ end
 
 
 ==(f::Fun,g::Fun) =  (f.coefficients == g.coefficients && f.space == g.space)
-function Base.isapprox(f::Fun,g::Fun)
+
+coefficientnorm(f::Fun,p::Real=2) = norm(f.coefficients,p)
+
+function Base.isapprox{S1,S2,T,S}(f::Fun{S1,T},g::Fun{S2,S};rtol::Real=Base.rtoldefault(T,S), atol::Real=0, norm::Function=coefficientnorm)
     if spacescompatible(f,g)
-        m=min(ncoefficients(f),ncoefficients(g))
-        tol=100eps()  # TODO: normalize by norm of f/g
-
-        for k=1:m
-            if !isapprox(f.coefficients[k],g.coefficients[k])
-                return false
-            end
+        d = norm(f - g)
+        if isfinite(d)
+            return d <= atol + rtol*max(norm(f), norm(g))
+        else
+            # Fall back to a component-wise approximate comparison
+            return false
         end
-        for k=m+1:ncoefficients(f)
-            if abs(f.coefficients[k])>tol
-                return false
-            end
-        end
-        for k=m+1:ncoefficients(g)
-            if abs(g.coefficients[k])>tol
-                return false
-            end
-        end
-
-        true
     else
         sp=union(f.space,g.space)
         if isa(sp,NoSpace)
             false
         else
-            isapprox(Fun(f,sp),Fun(g,sp))
+            isapprox(Fun(f,sp),Fun(g,sp);rtol=rtol,atol=atol,norm=norm)
         end
     end
 end
@@ -479,6 +469,27 @@ broadcast(op,f::Fun,c::Number) = Fun(x -> op(f(x),c), domain(f))
 broadcast(op,c::Number,f::Fun) = Fun(x -> op(c,f(x)), domain(f))
 broadcast(op,f::Fun,g::Fun) = Fun(x -> op(f(x),g(x)), domain(f) ∪ domain(g))
 
+
+function broadcast!(op,dest::Fun,f::Fun)
+    if domain(f) ≠ domain(dest)
+        throw(ArgumentError("Domain of right-hand side incompatible with destination"))
+    end
+    ret = Fun(x -> op(f(x)), space(dest))
+    cfs = ret.coefficients
+    resize!(dest.coefficients,length(cfs))
+    dest.coefficients[:] = cfs
+    dest
+end
+function broadcast!(op,dest::Fun,As...)
+    ret = op.(As...)
+    if domain(ret) ≠ domain(dest)
+        throw(ArgumentError("Domain of right-hand side incompatible with destination"))
+    end
+    cfs = coefficients(ret,space(dest))
+    resize!(dest.coefficients,length(cfs))
+    dest.coefficients[:] = cfs
+    dest
+end
 
 include("constructors.jl")
 
