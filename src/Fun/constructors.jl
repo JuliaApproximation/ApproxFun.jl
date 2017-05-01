@@ -165,7 +165,7 @@ function zerocfsFun(f, d::Space)
         ##TODO: how to do scaling for unnormalized bases like Jacobi?
         if ncoefficients(cf) > 8 && maximum(abs,cf.coefficients[bs:end]) < tol*maxabsc &&
                 all(k->norm(cf(r[k])-fr[k],1)<tol*length(cf.coefficients)*maxabsfr*1000,1:length(r))
-            return chop!(cf,tol*maxabsc/10)
+            return chop!(cf,tol)
         end
     end
 

@@ -223,17 +223,14 @@ pad(f::Fun,n::Integer) = Fun(f.space,pad(f.coefficients,n))
 
 
 function chop!{S,T}(f::Fun{S,T},tol::Real)
-    chop!(f.coefficients,tol)
-    if length(f.coefficients) == 0
-        f.coefficients = [zero(T)]
-    end
-
+    n=standardchoplength(f.coefficients,tol)
+    resize!(f.coefficients,n)
     f
 end
+chop!(f::Fun)=chop!(f,10eps(eltype(f.coefficients)))
 
-
-chop(f::Fun,tol)=chop!(Fun(f.space,copy(f.coefficients)),tol)
-chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
+chop(f::Fun,tol) = chop!(Fun(f.space,copy(f.coefficients)),tol)
+chop(f::Fun) = chop!(Fun(f.space,copy(f.coefficients)))
 
 Base.copy(f::Fun) = Fun(space(f),copy(f.coefficients))
 
