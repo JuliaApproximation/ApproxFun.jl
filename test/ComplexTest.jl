@@ -3,9 +3,10 @@ using ApproxFun, Base.Test
 ## Diff
 
 
-f=Fun(x->exp(im.*x))
+f=Fun(x->exp(im*x))
+    ncoefficients(f)
 
-@test norm(f'-im*f) < 1000eps()
+@test norm(f'-im*f) < ncoefficients(f)*100*eps()
 
 
 @test norm(integrate(f)+im*f-f.coefficients[1]*im) < 100eps()

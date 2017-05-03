@@ -117,7 +117,7 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     S=Taylor(d)
     D=Derivative(S)
     ef=Fun(exp,S)
-    @test norm((D*ef-ef).coefficients)<2000eps()
+    @test norm((D*ef-ef).coefficients)<4000eps()
     @test norm((D^2*ef-ef).coefficients)<200000eps()
     u=[Evaluation(S,0.),D-I]\[1.;0.]
     @test norm((u-ef).coefficients)<200eps()

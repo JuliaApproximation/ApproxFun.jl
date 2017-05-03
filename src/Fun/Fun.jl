@@ -229,6 +229,7 @@ function chop!(sp::UnivariateSpace,cfs,tol::Real)
 end
 
 chop!(sp::Space,cfs,tol::Real) = chop!(cfs,maximum(abs,cfs)*tol)
+chop!(sp::Space,cfs) = chop!(sp,cfs,10eps())
 
 function chop!(f::Fun,tol...)
     chop!(space(f),f.coefficients,tol...)
