@@ -222,12 +222,18 @@ pad!(f::Fun,n::Integer) = (pad!(f.coefficients,n);f)
 pad(f::Fun,n::Integer) = Fun(f.space,pad(f.coefficients,n))
 
 
-function chop!{S,T}(f::Fun{S,T},tol::Real)
-    n=standardchoplength(f.coefficients,tol)
-    resize!(f.coefficients,n)
+function chop!(sp::UnivariateSpace,cfs,tol::Real)
+    n=standardchoplength(cfs,tol)
+    resize!(cfs,n)
+    cfs
+end
+
+chop!(sp::Space,cfs,tol::Real) = chop!(cfs,maximum(abs,cfs)*tol)
+
+function chop!(f::Fun,tol...)
+    chop!(space(f),f.coefficients,tol...)
     f
 end
-chop!(f::Fun)=chop!(f,10eps(eltype(f.coefficients)))
 
 chop(f::Fun,tol) = chop!(Fun(f.space,copy(f.coefficients)),tol)
 chop(f::Fun) = chop!(Fun(f.space,copy(f.coefficients)))
