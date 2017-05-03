@@ -143,7 +143,7 @@ function transformtimes(f::Fun,g::Fun,n)
     isempty(g.coefficients) && return g
     f2,g2,sp = pad(f,n),pad(g,n),space(f)
     hc = transform(sp,values(f2).*values(g2))
-    chop!(Fun(sp,hc),10norm(hc,Inf)*eps(eltype(hc)))
+    chop!(Fun(sp,hc),10eps(eltype(hc)))
 end
 transformtimes(f::Fun,g::Fun) = transformtimes(f,g,ncoefficients(f) + ncoefficients(g) - 1)
 

@@ -222,18 +222,22 @@ pad!(f::Fun,n::Integer) = (pad!(f.coefficients,n);f)
 pad(f::Fun,n::Integer) = Fun(f.space,pad(f.coefficients,n))
 
 
-function chop!{S,T}(f::Fun{S,T},tol::Real)
-    chop!(f.coefficients,tol)
-    if length(f.coefficients) == 0
-        f.coefficients = [zero(T)]
-    end
+function chop!(sp::UnivariateSpace,cfs,tol::Real)
+    n=standardchoplength(cfs,tol)
+    resize!(cfs,n)
+    cfs
+end
 
+chop!(sp::Space,cfs,tol::Real) = chop!(cfs,maximum(abs,cfs)*tol)
+chop!(sp::Space,cfs) = chop!(sp,cfs,10eps())
+
+function chop!(f::Fun,tol...)
+    chop!(space(f),f.coefficients,tol...)
     f
 end
 
-
-chop(f::Fun,tol)=chop!(Fun(f.space,copy(f.coefficients)),tol)
-chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
+chop(f::Fun,tol) = chop!(Fun(f.space,copy(f.coefficients)),tol)
+chop(f::Fun) = chop!(Fun(f.space,copy(f.coefficients)))
 
 Base.copy(f::Fun) = Fun(space(f),copy(f.coefficients))
 
@@ -436,6 +440,9 @@ Base.isapprox(g::Number,f::Fun)=isapprox(g*ones(space(f)),f)
 
 Base.isreal{S,T<:Real}(f::Fun{S,T})=basistype(S)<:RealBasis
 Base.isreal(f::Fun)=false
+
+iszero(x::Number) = x == 0
+iszero(f::Fun)    = all(iszero,f.coefficients)
 
 
 

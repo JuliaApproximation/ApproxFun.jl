@@ -31,8 +31,7 @@
 
 function complexroots{C<:Chebyshev}(f::Fun{C})
     if ncoefficients(f)==0 || (ncoefficients(f)==1 && isapprox(f.coefficients[1],0))
-        warn("Tried to take roots of a zero function.  Returning [].")
-        Complex128[]
+        throw(ArgumentError("Tried to take roots of a zero function."))
     elseif ncoefficients(f)==1
         Complex128[]
     elseif ncoefficients(f)==2
@@ -73,8 +72,7 @@ for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
         c = f.coefficients
         vscale = maximum(abs,values(f))
         if vscale == 0
-            warn("Tried to take roots of a zero function.  Returning [].")
-            return eltype(domain(f))[]
+            throw(ArgumentError("Tried to take roots of a zero function."))
         end
 
         hscale = maximum( [abs(first(d)), abs(last(d))] )
@@ -98,14 +96,13 @@ end
 
 function roots{C<:Chebyshev,TT<:Union{Float64,Complex128}}( f::Fun{C,TT} )
 # FIND THE ROOTS OF AN IFUN.
+    if iszero(f)
+        throw(ArgumentError("Tried to take roots of a zero function."))
+    end
 
     d = domain(f)
     c = f.coefficients
     vscale = maximum(abs,values(f))
-    if vscale == 0
-        warn("Tried to take roots of a zero function.  Returning [].")
-        return eltype(domain(f))[]
-    end
 
     hscale = max(abs(first(d)), abs(last(d)) )
     htol = eps(2000.)*max(hscale, 1)  # TODO: choose tolerance better
@@ -304,6 +301,8 @@ Base.extrema{SV,DD<:UnionDomain,d,T<:Real}(f::Fun{PiecewiseSpace{SV,RealBasis,DD
 for op in (:(Base.indmax),:(Base.indmin))
     @eval begin
         function $op{S<:RealSpace,T<:Real}(f::Fun{S,T})
+            # need to check for zero as extremal_args is not defined otherwise
+            iszero(f) && return first(domain(f))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             # the extra real avoids issues with complex round-off
@@ -311,6 +310,8 @@ for op in (:(Base.indmax),:(Base.indmin))
         end
 
         function $op{S,T}(f::Fun{S,T})
+            # need to check for zero as extremal_args is not defined otherwise
+            iszero(f) && return first(domain(f))
             # the following avoids warning when differentiate(f)==0
             pts = extremal_args(f)
             fp=f.(pts)
