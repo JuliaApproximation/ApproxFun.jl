@@ -176,21 +176,21 @@ end
 
 
 ## Map to canonical
-function DefaultDerivative(sp::Space,order::Integer)
+function DefaultDerivative(sp::Space,k::Integer)
     if typeof(canonicaldomain(sp)).name==typeof(domain(sp)).name
         # this is the normal default constructor
         csp=canonicalspace(sp)
         if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
-           error("Implement Derivative($(string(sp)),$order)")
+           error("Implement Derivative($(string(sp)),$k)")
         end
-        DerivativeWrapper(TimesOperator([Derivative(csp,order),Conversion(sp,csp)]),order)
+        DerivativeWrapper(TimesOperator([Derivative(csp,k),Conversion(sp,csp)]),k)
     else
         D1=invfromcanonicalD(sp)*Derivative(setdomain(sp,canonicaldomain(sp)))
         D=DerivativeWrapper(SpaceOperator(D1,sp,setdomain(rangespace(D1),domain(sp))),1)
-        if order==1
+        if k==1
             D
         else
-            DerivativeWrapper(TimesOperator(Derivative(rangespace(D),order-1),D),order)
+            DerivativeWrapper(TimesOperator(Derivative(rangespace(D),k-1),D),k)
         end
     end
 end
@@ -202,9 +202,9 @@ function DefaultIntegral(sp::Space,k::Integer)
         csp=canonicalspace(sp)
         if conversion_type(csp,sp)==csp   # Conversion(sp,csp) is not banded, or sp==csp
             # we require that Integral is overridden
-            error("Implement Integral($(string(sp)),$order)")
+            error("Implement Integral($(string(sp)),$k)")
         end
-        IntegralWrapper(TimesOperator([Integral(csp,order),Conversion(sp,csp)]),order)
+        IntegralWrapper(TimesOperator([Integral(csp,k),Conversion(sp,csp)]),k)
     elseif k > 1
         Q=Integral(sp,1)
         IntegralWrapper(TimesOperator(Integral(rangespace(Q),k-1),Q),k)

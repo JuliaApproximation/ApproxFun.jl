@@ -314,7 +314,7 @@ end
 
 
 for TYP in (:SumSpace,:PiecewiseSpace), OP in (:(Base.sum),:linesum)
-    @eval $OP{V<:$TYP}(f::Fun{V})=mapreduce($OP,+,vec(f))
+    @eval $OP{V<:$TYP}(f::Fun{V}) = mapreduce($OP,+,vec(f))
 end
 
 function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})

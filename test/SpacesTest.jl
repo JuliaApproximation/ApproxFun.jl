@@ -238,3 +238,7 @@ S=ChebyshevDirichlet()
 x=Fun()
 @test norm((ApproxFun.Recurrence(S)*Fun(exp,S)-Fun(x->x*exp(x),S)).coefficients) < 100eps()
 @test norm((x*Fun(exp,S)-Fun(x->x*exp(x),S)).coefficients) < 100eps()
+
+
+## ChebyshevDirichlet Integral
+@test Integral(S,1)*Fun(S,[1.,2.,3.]) ≈ integrate(Fun(Fun(S,[1.,2.,3.]),Chebyshev()))
