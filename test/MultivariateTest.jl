@@ -198,3 +198,16 @@ g2=Fun([g;0.0],rangespace(A))
 S=WeightedJacobi(1,1)^2
 L=Laplacian(S)
 testbandedblockbandedoperator(L)
+
+
+
+## Bug in Multiplication
+
+dom = Interval(0.001, 1) * PeriodicInterval(-pi, pi)
+sp = Space(dom)
+Dr = Derivative(sp, [1,0])
+Dθ = Derivative(sp, [0,1])
+Mr = Multiplication(Fun( (r, θ) -> r, sp ), sp)
+rDr = Mr * Dr
+
+testbandedblockbandedoperator(rDr)
