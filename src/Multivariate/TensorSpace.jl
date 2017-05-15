@@ -357,7 +357,60 @@ Base.transpose(d::TensorSpace) = TensorSpace(d[2],d[1])
 
 
 
-##Transforms
+## Transforms
+plan_transform!(S::TensorSpace,M::Matrix) = TransformPlan(S,((plan_transform(S[1],size(M,1)),size(M,1)),
+                                                             (plan_transform(S[2],size(M,2)),size(M,2))),
+                                                             Val{true})
+
+
+function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},M::Matrix)
+    n=size(M,1)
+
+    for k=1:size(M,2)
+        M[:,k]=T.plan[1][1]*M[:,k]
+    end
+    for k=1:n
+        M[k,:]=T.plan[2][1]*vec(M[k,:])
+    end
+    M
+end
+
+function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},v::Vector)
+    N,M = T.plan[1][2],T.plan[2][2]
+    V=reshape(v,N,M)
+    fromtensor(T.space,T*V)
+end
+
+function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,false},v::Vector)
+    P = TransformPlan(T.space,T.plan,Val{true})
+    P*copy(v)
+end
+
+
+function plan_transform(sp::TensorSpace,n::Integer)
+    NM=n
+    if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
+        N,M=dimension(sp[1]),dimension(sp[2])
+    elseif isfinite(dimension(sp[1]))
+        N=dimension(sp[1])
+        M=NM÷N
+    elseif isfinite(dimension(sp[2]))
+        M=dimension(sp[2])
+        N=NM÷M
+    else
+        N=M=round(Int,sqrt(n))
+    end
+
+    TransformPlan(sp,((plan_transform(sp[1],N),N),(plan_transform(sp[2],M),M)),
+                Val{false})
+end
+
+
+plan_transform(sp::TensorSpace,v::Vector) = plan_transform(sp,length(v))
+
+
+
+# Old
 
 plan_column_transform(S,v) = plan_transform(columnspace(S,1),v)
 plan_column_itransform(S,v) = plan_itransform(columnspace(S,1),v)
@@ -392,20 +445,6 @@ function itransform!(S::AbstractProductSpace,M::Matrix)
     M
 end
 
-function transform!(S::TensorSpace,M::Matrix)
-    n=size(M,1)
-
-    planc=plan_transform(space(S,1),M[:,1])
-    for k=1:size(M,2)
-        M[:,k]=planc*M[:,k]
-    end
-
-    planr=plan_transform(space(S,2),vec(M[1,:]))
-    for k=1:n
-        M[k,:]=planr*vec(M[k,:])
-    end
-    M
-end
 
 function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
     n=size(M,1)
@@ -518,24 +557,6 @@ function points(sp::TensorSpace,n)
     pts
 end
 
-function transform(sp::TensorSpace,vals)
-    NM=length(vals)
-    if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
-        N,M=dimension(sp[1]),dimension(sp[2])
-    elseif isfinite(dimension(sp[1]))
-        N=dimension(sp[1])
-        M=NM÷N
-    elseif isfinite(dimension(sp[2]))
-        M=dimension(sp[2])
-        N=NM÷M
-    else
-        N=M=round(Int,sqrt(length(vals)))
-    end
-
-    V=reshape(copy(vals),N,M)
-
-    fromtensor(sp,transform!(sp,V))
-end
 
 itransform(sp::TensorSpace,cfs) = vec(itransform!(sp,coefficientmatrix(Fun(sp,cfs))))
 
