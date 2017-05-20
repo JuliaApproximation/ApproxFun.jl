@@ -6,7 +6,7 @@ using ApproxFun, Base.Test
 
 f=Fun(exp)
 @test norm(exp.(f) - exp(f)) < 100eps()
-@test norm(besselj.(1,f)-besselj(1,f)) < 100eps()
+@test norm(besselj.(1,f)-besselj(1,f)) < 1000eps()
 @test atan2.(f,1)(0.1) ≈ atan2(f(0.1),1)
 @test atan2.(f,f)(0.1) ≈ atan2(f(0.1),f(0.1))
 
