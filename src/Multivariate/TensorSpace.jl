@@ -446,6 +446,32 @@ function itransform!(S::AbstractProductSpace,M::Matrix)
 end
 
 
+function transform!{T}(S::TensorSpace,M::Matrix{T})
+    n=size(M,1)
+
+    ## The order matters!!
+    # For Disk Space, this is due to requiring decay
+    # in function
+    for k=1:n
+        M[k,:]=transform(space(S,2),vec(M[k,:]))
+    end
+
+    pln=plan_column_transform(S,n)
+    for k=1:size(M,2)
+        # col may not be full length
+        col=pln*M[:,k]
+        M[1:length(col),k]=col
+        for j=length(col)+1:n
+            M[j,k]=zero(T) # fill rest with zeros
+        end
+    end
+
+
+    M
+end
+
+
+
 function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
     n=size(M,1)
 
