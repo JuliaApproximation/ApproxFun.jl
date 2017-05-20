@@ -3,7 +3,11 @@
 
 ### notes on release changes, ongoing development, and future planned work
 
-#### 0.6.0 (current master/development)
+
+#### 0.6.1 (current master)
+- Uses more sophisticated chopping algorithm from [Aurentz & Trefethen 2016](https://people.maths.ox.ac.uk/trefethen/aurentz_trefethen_toms_final.pdf)
+
+#### 0.6.0
 - Adds support for Julia v0.6
 - Replaces FixedSizeArrays.jl dependancy with StaticArrays.jl
 - Auto-vectorization `f([1,2,3])` is removed in favour of broadcasting `f.([1,2,3])`
