@@ -21,9 +21,9 @@ sp3=Jacobi(1.5,3.124)
 f3=Fun(exp,sp3)
 sp4=Jacobi(2.5,4.124)
 f4=Fun(exp,sp4)
-@test norm((Fun(f,sp2)-f2).coefficients)<10eps()
-@test norm((Fun(f,sp3)-f3).coefficients)<10eps()
-@test norm((Fun(f,sp4)-f4).coefficients)<20eps()
+@test norm((Fun(f,sp2)-f2).coefficients)<100eps()
+@test norm((Fun(f,sp3)-f3).coefficients)<100eps()
+@test norm((Fun(f,sp4)-f4).coefficients)<200eps()
 
 
 
@@ -47,7 +47,7 @@ m=10
 ## Conversion
 
 testtransforms(Jacobi(-0.5,-0.5))
-@test norm(Fun(Fun(exp),Jacobi(-.5,-.5))-Fun(exp,Jacobi(-.5,-.5))) < 100eps()
+@test norm(Fun(Fun(exp),Jacobi(-.5,-.5))-Fun(exp,Jacobi(-.5,-.5))) < 300eps()
 
 x=Fun(identity)
 ri=0.5/(1-x)
@@ -246,3 +246,10 @@ u=[ldirichlet();D^2-x]\[airyai(0.0);0.0]
 
 f=Fun((x,y)->real(exp(x+im*y)),Legendre(Vec(0.,0.)..Vec(1.,1.)))
 @test f(0.1,0.1) ≈ real(exp(0.1+0.1im))
+
+
+
+## Test integer, float mixed
+
+C=Conversion(Legendre(),Jacobi(1,0))
+testbandedoperator(C)

@@ -17,7 +17,7 @@ immutable ArraySpace{S,n,T,DD,dim} <: DirectSumSpace{NTuple{n,S},T,DD,dim}
      spaces::Array{S,n}
 end
 
-BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(vec(sp.spaces)))
+BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
 interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
 @compat const VectorSpace{S,T,DD,dim} = ArraySpace{S,1,T,DD,dim}
@@ -360,3 +360,11 @@ for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:QROperator,
     @eval \{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
         \(A,mat(b);kwds...)
 end
+
+
+
+
+## EuclideanSpace
+
+@compat const EuclideanSpace = ArraySpace{ConstantSpace{AnyDomain},1,RealBasis,AnyDomain,1}
+EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(),n)

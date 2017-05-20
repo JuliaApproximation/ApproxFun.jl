@@ -129,6 +129,7 @@ function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
     p=size(ops,1)
     if all(isbanded,ops)
         l,u = 0,0
+        #TODO: this code assumes an interlace strategy that might not be right
         for k=1:p
             l=min(l,p*bandinds(ops[k],1)+1-k)
         end
@@ -232,7 +233,10 @@ function colstop{T}(M::InterlaceOperator{T},j::Integer)
         K = 0
         (J,jj) = M.domaininterlacer[j]
         for N = 1:size(M.ops,1)
-            K = max(K,findfirst(M.rangeinterlacer,(N,colstop(M.ops[N,J],jj)))::Int)
+            cs = colstop(M.ops[N,J],jj)::Int
+            if cs > 0
+                K = max(K,findfirst(M.rangeinterlacer,(N,cs))::Int)
+            end
         end
         K
     end

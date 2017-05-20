@@ -367,6 +367,11 @@ function getindex(P::TimesOperator,k::Integer)
     P[1:1,k:k][1,1]
 end
 
+function getindex(P::TimesOperator,k::AbstractVector)
+    @assert isafunctional(P)
+    vec(Matrix(P[1:1,k]))
+end
+
 
 
 for (STyp,Zer) in ((:BandedMatrix,:bzeros),(:Matrix,:zeros),

@@ -58,6 +58,26 @@ macro functional(FF)
             @assert k==1
             f[j]::eltype(f)
         end
+        function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Range)
+            @assert k==1
+            f[j]
+        end
+        function ApproxFun.defaultgetindex(f::$FF,k::Integer,j)
+            @assert k==1
+            f[j]
+        end
+        function ApproxFun.defaultgetindex(f::$FF,k::Range,j::Integer)
+            @assert k==1:1
+            f[j]
+        end
+        function ApproxFun.defaultgetindex(f::$FF,k::Range,j::Range)
+            @assert k==1:1
+            reshape(f[j],1,length(j))
+        end
+        function ApproxFun.defaultgetindex(f::$FF,k::Range,j)
+            @assert k==1:1
+            reshape(f[j],1,length(j))
+        end
     end
 end
 
@@ -385,9 +405,9 @@ defaultgetindex(A::Operator,kr,::Type{FiniteRange}) =
 
 ## Composition with a Fun, LowRankFun, and ProductFun
 
-defaultgetindex(B::Operator,f::Fun) = B*Multiplication(domainspace(B),f)
-defaultgetindex(B::Operator,f::LowRankFun) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
-defaultgetindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
+getindex(B::Operator,f::Fun) = B*Multiplication(domainspace(B),f)
+getindex{S,M,SS,T}(B::Operator,f::LowRankFun{S,M,SS,T}) = mapreduce(i->f.A[i]*B[f.B[i]],+,1:rank(f))
+getindex{BT,S,V,SS,T}(B::Operator{BT},f::ProductFun{S,V,SS,T}) =
     mapreduce(i->f.coefficients[i]*B[Fun(f.space[2],[zeros(promote_type(BT,T),i-1);
                                             one(promote_type(BT,T))])],
                 +,1:length(f.coefficients))
@@ -444,7 +464,7 @@ macro wrappergetindex(Wrap)
         Base.getindex(OP::$Wrap,k::Integer...) =
             OP.op[k...]::eltype(OP)
 
-        Base.getindex(OP::$Wrap,k...) = OP.op[k...]
+        Base.getindex(OP::$Wrap,k::Union{Number,AbstractArray,Colon}...) = OP.op[k...]
 
         BLAS.axpy!{T,OP<:$Wrap}(α,P::ApproxFun.SubOperator{T,OP},A::AbstractMatrix) =
             ApproxFun.unwrap_axpy!(α,P,A)

@@ -96,7 +96,7 @@ let f=Fun(t->sin(t),SinSpace)
 end
 
 let f=Fun(cos,Fourier)
-    @test norm((Derivative(space(f))^2)*f+f)<10eps()
+    @test norm((Derivative(space(f))^2)*f+f)<100eps()
 end
 
 
@@ -117,10 +117,10 @@ for d in (Circle(),Circle(0.5),Circle(-0.1,2.))
     S=Taylor(d)
     D=Derivative(S)
     ef=Fun(exp,S)
-    @test norm((D*ef-ef).coefficients)<1000eps()
-    @test norm((D^2*ef-ef).coefficients)<100000eps()
+    @test norm((D*ef-ef).coefficients)<4000eps()
+    @test norm((D^2*ef-ef).coefficients)<200000eps()
     u=[Evaluation(S,0.),D-I]\[1.;0.]
-    @test norm((u-ef).coefficients)<100eps()
+    @test norm((u-ef).coefficients)<200eps()
     @test norm((Integral(S)*Fun(exp,S)+ef.coefficients[1]-ef).coefficients)<100eps()
 
 
@@ -250,3 +250,9 @@ B=Evaluation(Laurent(0..2π),0,1)
 ## Conversion between reverse
 C = Conversion(SinSpace()⊕CosSpace(),Fourier())
 testbandedoperator(C)
+
+
+
+## Diagonal Derivative
+D = Derivative(Laurent())
+@test isdiag(D)

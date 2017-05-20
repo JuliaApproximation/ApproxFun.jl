@@ -112,15 +112,22 @@ plan_itransform{T<:BigFloat,D}(sp::Fourier{D},x::Vector{T}) =
     ITransformPlan{T,typeof(sp),false,Void}(sp,nothing)
 
 function *{T<:BigFloat,D}(::TransformPlan{T,Fourier{D},false},x::Vector{T})
+    l = length(x); n = div(l+1,2)
     v = fft(x)
-    n = div(length(x),2)+1
-    [real(v[1:n]);imag(v[n-1:-1:2])]
+    scale!(v,T(2)/l)
+    v[1] /= 2
+    mod(l,2) == 1 ? interlace(real(v[1:n]),-imag(v[2:n])) :
+      [interlace(real(v[1:n]),-imag(v[2:n]));-real(v[n+1])/2]
 end
 
 function *{T<:BigFloat,D}(::ITransformPlan{T,Fourier{D},false},x::Vector{T})
-    n = div(length(x),2)+1
-    v = complex([x[1:n];x[n-1:-1:2]],[0;-x[2n-2:-1:n+1];0;x[n+1:2n-2]])
-    real(fft(v))
+    l = length(x); n = div(l+1,2)
+    # v = complex([x[1:n];x[n-1:-1:2]],[0;-x[2n-2:-1:n+1];0;x[n+1:2n-2]])
+    v = mod(l,2) == 1 ?
+        complex([2x[1];x[3:2:end];x[end:-2:3]],[0;-x[2:2:end];x[end-1:-2:2]]) :
+        complex([2x[1];x[3:2:end-1];-2x[end];x[end-1:-2:3]],[0;-x[2:2:end];x[end-2:-2:2]])
+    scale!(v,T(l)/2)
+     real(ifft(v))
 end
 
 # SinSpace plans for BigFloat
@@ -131,11 +138,14 @@ plan_itransform{T<:BigFloat,D}(sp::SinSpace{D},x::Vector{T}) =
     ITransformPlan{T,typeof(sp),false,Void}(sp,nothing)
 
 
-*{T<:BigFloat,D}(::TransformPlan{T,SinSpace{D},false},x::Vector{T}) =
-    imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
+function *{T<:BigFloat,D}(::TransformPlan{T,SinSpace{D},false},x::Vector{T})
+    v=imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
+    scale!(v,T(1)/(length(x)+1))
+    v
+end
 
 *{T<:BigFloat,D}(::ITransformPlan{T,SinSpace{D},false},x::Vector{T}) =
-    imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]
+    imag(fft([0;-x;0;reverse(x)]))[2:length(x)+1]/2
 
 
 # Fourier space & SinSpace plans for Complex{BigFloat}

@@ -1,6 +1,6 @@
 using ApproxFun, Base.Test
     import ApproxFun: Multiplication,InterlaceOperator
-    import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator
+    import ApproxFun: testfunctional, testbandedoperator, testraggedbelowoperator, testinfoperator, testblockbandedoperator
 
 
 # test row/colstarts
@@ -229,3 +229,37 @@ u = D[1:end,2:end] \ f
 
 u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 @test u(0.1) ≈ exp(0.1)-f.coefficients[1]
+
+
+
+
+A = InterlaceOperator(Diagonal([eye(2),Derivative(Chebyshev())]))
+testblockbandedoperator(A)
+
+
+## Projection
+
+
+## SubSpace test
+
+S=Chebyshev()
+C=eye(S)[3:end,:]
+@test ApproxFun.domaindimension(domainspace(C)) == 1
+
+B=dirichlet(S)
+
+Ai=ApproxFun.interlace([B;C])
+@test ApproxFun.colstop(Ai,1) == 2
+
+x=Fun()
+f=exp(x)
+u=[B;C]\[0.;0.;f]
+
+@test abs(u(-1)) ≤ 10eps()
+@test abs(u(1)) ≤ 10eps()
+
+
+f=(1-x^2)*exp(x)
+u=[B;C]\[0.;0.;f]
+
+@test u ≈ f

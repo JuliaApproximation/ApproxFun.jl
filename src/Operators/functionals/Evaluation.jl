@@ -38,7 +38,8 @@ Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
 
 #Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::Space,x::Union{Number,Bool}) = Evaluation(d,x,0)
-
+Evaluation{T}(::Type{T},d::Space,n...) = error("Override Evaluation for $(typeof(d))")
+Evaluation{T}(::Type{T},d,n...) = Evaluation(T,Space(d),n...)
 Evaluation(d,n...) = Evaluation(Space(d),n...)
 Evaluation(x::Union{Number,Bool}) = Evaluation(UnsetSpace(),x,0)
 Evaluation(x::Union{Number,Bool},k::Integer) = Evaluation(UnsetSpace(),x,k)

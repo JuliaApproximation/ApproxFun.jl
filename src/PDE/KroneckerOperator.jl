@@ -70,6 +70,7 @@ function colstart(A::KroneckerOperator,k::Integer)
 end
 
 function colstop(A::KroneckerOperator,k::Integer)
+    k == 0 && return 0
     K=block(A.domaintensorizer,k)
     st=blockstop(A.rangetensorizer,blockcolstop(A,K))
     # zero indicates above dimension

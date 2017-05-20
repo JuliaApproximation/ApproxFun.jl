@@ -32,7 +32,6 @@ end
 
 # SpaceOperator can change blocks, so we need to override this
 getindex(A::SpaceOperator,KR::Range{Block},JR::Range{Block}) = defaultgetindex(A,KR,JR)
-getindex(A::SpaceOperator,f::Union{Fun,LowRankFun,ProductFun}) = defaultgetindex(A,f)
 
 
 getindex(A::SpaceOperator,K::Block,J::Block) = A[blockrows(A,K),blockcols(A,J)]

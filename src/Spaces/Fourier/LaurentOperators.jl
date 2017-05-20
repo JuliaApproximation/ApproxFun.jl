@@ -39,8 +39,10 @@ function laurent_getindex{T}(negative::AbstractVector{T},nonnegative::AbstractVe
 end
 
 rangespace{DD}(T::ConcreteMultiplication{Laurent{DD},Laurent{DD}}) = domainspace(T)
-getindex{DD}(T::ConcreteMultiplication{Laurent{DD},Laurent{DD}},k::Integer,j::Integer) =
+function getindex{DD}(T::ConcreteMultiplication{Laurent{DD},Laurent{DD}},k::Integer,j::Integer)
+    isempty(T.f.coefficients) && return zero(eltype(T))
     laurent_getindex(T.f.coefficients[3:2:end],T.f.coefficients[[1;2:2:end]],k,j)
+end
 
 function bandinds{DD}(T::ConcreteMultiplication{Laurent{DD},Laurent{DD}})
     bbi = blockbandinds(T)
@@ -287,6 +289,6 @@ conversion_type{DD<:Circle}(A::Laurent{DD},B::Laurent{DD})=domain(A).orientation
 function Conversion{DD}(A::Laurent{DD},B::Laurent{DD})
     @assert domain(A) == reverse(domain(B))
     ConversionWrapper(SpaceOperator(
-        BlockOperator(eye(1),PermutationOperator([2,1]))
+        InterlaceOperator(Diagonal([eye(1),PermutationOperator([2,1])]))
     ,A,B))
 end

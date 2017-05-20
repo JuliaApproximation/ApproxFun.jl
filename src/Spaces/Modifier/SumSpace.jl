@@ -16,7 +16,7 @@ BlockInterlacer(v::Vector) = BlockInterlacer(tuple(v...))
 
 Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
 
-dimensions(b::BlockInterlacer) = map(length,b.blocks)
+dimensions(b::BlockInterlacer) = map(sum,b.blocks)
 Base.length(b::BlockInterlacer) = mapreduce(length,+,b.blocks)
 
 # the state is always (whichblock,curblock,cursubblock,curcoefficients)
@@ -136,7 +136,8 @@ end
 setdomain(A::SumSpace,d::Domain) = SumSpace(map(sp->setdomain(sp,d),A.spaces))
 
 
-setdomain(A::PiecewiseSpace,d::UnionDomain)=PiecewiseSpace(map((sp,dd)->setdomain(sp,dd),A.spaces,d.domains))
+setdomain(A::PiecewiseSpace,d::UnionDomain) =
+    PiecewiseSpace(map((sp,dd)->setdomain(sp,dd),A.spaces,d.domains))
 
 
 
@@ -313,7 +314,7 @@ end
 
 
 for TYP in (:SumSpace,:PiecewiseSpace), OP in (:(Base.sum),:linesum)
-    @eval $OP{V<:$TYP}(f::Fun{V})=mapreduce($OP,+,vec(f))
+    @eval $OP{V<:$TYP}(f::Fun{V}) = mapreduce($OP,+,vec(f))
 end
 
 function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})

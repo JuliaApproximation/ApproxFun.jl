@@ -114,9 +114,9 @@ Base.zero(A::Operator) = ZeroOperator(domainspace(A),rangespace(A))
 domainspace(Z::ZeroOperator)=Z.domainspace
 rangespace(Z::ZeroOperator)=Z.rangespace
 
-bandinds(T::ZeroOperator) = 0,0
-blockbandinds(T::ZeroOperator) = 0,0
-subblockbandinds(T::ZeroOperator,k::Integer) = 0
+bandinds(T::ZeroOperator) = 720,-720   # 6!
+blockbandinds(T::ZeroOperator) = 720,-720   # 6!
+subblockbandinds(T::ZeroOperator,k::Integer) = k == 1 ? 720 : -720
 
 isbandedblockbandedabove(::ZeroOperator) = true
 isbandedblockbandedbelow(::ZeroOperator) = true

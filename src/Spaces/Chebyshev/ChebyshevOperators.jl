@@ -140,6 +140,8 @@ function Base.convert{C<:Chebyshev,T}(::Type{BandedMatrix},S::SubOperator{T,Conc
     kr,jr=parentindexes(S)
     cfs=parent(S).f.coefficients
 
+    isempty(cfs) && return ret
+
     # Toeplitz part
     sym_toeplitz_axpy!(1.0,0.5,cfs,kr,jr,ret)
 

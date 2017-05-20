@@ -8,13 +8,14 @@ for TYP in (:DiracSpace,:PointSpace)
         end
 
         $TYP(points::AbstractVector) = $TYP{eltype(points)}(points)
+        $TYP(points::Tuple) = $TYP([points...])
         $TYP() = $TYP(Float64[])
         $TYP(point::Number) = $TYP([point])
         $TYP(p::Point)=$TYP(p.x)
         dimension(d::$TYP)=length(d.points)
 
         domain(DS::$TYP)=mapreduce(Point,union,DS.points)
-        setdomain(DS::$TYP,d::UnionDomain)=$TYP(map(d->d.x,d.domains))
+        setdomain(DS::$TYP,d::UnionDomain) = $TYP(map(d->d.x,d))
         points(sp::$TYP,n::Integer)=sp.points[1:n]
 
         spacescompatible(a::$TYP,b::$TYP)=a.points==b.points

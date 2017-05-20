@@ -108,6 +108,7 @@ Base.zero(f::Fun)=zeros(f)
 Base.one(f::Fun)=ones(f)
 
 Base.eltype{S,T}(::Fun{S,T}) = T
+Base.eltype{S,T}(::Type{Fun{S,T}}) = T
 
 #supports broadcasting and scalar iterator
 Base.size(f::Fun,k...) = size(space(f),k...)
@@ -221,18 +222,22 @@ pad!(f::Fun,n::Integer) = (pad!(f.coefficients,n);f)
 pad(f::Fun,n::Integer) = Fun(f.space,pad(f.coefficients,n))
 
 
-function chop!{S,T}(f::Fun{S,T},tol::Real)
-    chop!(f.coefficients,tol)
-    if length(f.coefficients) == 0
-        f.coefficients = [zero(T)]
-    end
+function chop!(sp::UnivariateSpace,cfs,tol::Real)
+    n=standardchoplength(cfs,tol)
+    resize!(cfs,n)
+    cfs
+end
 
+chop!(sp::Space,cfs,tol::Real) = chop!(cfs,maximum(abs,cfs)*tol)
+chop!(sp::Space,cfs) = chop!(sp,cfs,10eps())
+
+function chop!(f::Fun,tol...)
+    chop!(space(f),f.coefficients,tol...)
     f
 end
 
-
-chop(f::Fun,tol)=chop!(Fun(f.space,copy(f.coefficients)),tol)
-chop!(f::Fun)=chop!(f,eps(eltype(f.coefficients)))
+chop(f::Fun,tol) = chop!(Fun(f.space,copy(f.coefficients)),tol)
+chop(f::Fun) = chop!(Fun(f.space,copy(f.coefficients)))
 
 Base.copy(f::Fun) = Fun(space(f),copy(f.coefficients))
 
@@ -407,34 +412,24 @@ end
 
 
 ==(f::Fun,g::Fun) =  (f.coefficients == g.coefficients && f.space == g.space)
-function Base.isapprox(f::Fun,g::Fun)
+
+coefficientnorm(f::Fun,p::Real=2) = norm(f.coefficients,p)
+
+function Base.isapprox{S1,S2,T,S}(f::Fun{S1,T},g::Fun{S2,S};rtol::Real=Base.rtoldefault(T,S), atol::Real=0, norm::Function=coefficientnorm)
     if spacescompatible(f,g)
-        m=min(ncoefficients(f),ncoefficients(g))
-        tol=100eps()  # TODO: normalize by norm of f/g
-
-        for k=1:m
-            if !isapprox(f.coefficients[k],g.coefficients[k])
-                return false
-            end
+        d = norm(f - g)
+        if isfinite(d)
+            return d <= atol + rtol*max(norm(f), norm(g))
+        else
+            # Fall back to a component-wise approximate comparison
+            return false
         end
-        for k=m+1:ncoefficients(f)
-            if abs(f.coefficients[k])>tol
-                return false
-            end
-        end
-        for k=m+1:ncoefficients(g)
-            if abs(g.coefficients[k])>tol
-                return false
-            end
-        end
-
-        true
     else
         sp=union(f.space,g.space)
         if isa(sp,NoSpace)
             false
         else
-            isapprox(Fun(f,sp),Fun(g,sp))
+            isapprox(Fun(f,sp),Fun(g,sp);rtol=rtol,atol=atol,norm=norm)
         end
     end
 end
@@ -445,6 +440,9 @@ Base.isapprox(g::Number,f::Fun)=isapprox(g*ones(space(f)),f)
 
 Base.isreal{S,T<:Real}(f::Fun{S,T})=basistype(S)<:RealBasis
 Base.isreal(f::Fun)=false
+
+iszero(x::Number) = x == 0
+iszero(f::Fun)    = all(iszero,f.coefficients)
 
 
 
@@ -478,6 +476,27 @@ broadcast(op,f::Fun,c::Number) = Fun(x -> op(f(x),c), domain(f))
 broadcast(op,c::Number,f::Fun) = Fun(x -> op(c,f(x)), domain(f))
 broadcast(op,f::Fun,g::Fun) = Fun(x -> op(f(x),g(x)), domain(f) ∪ domain(g))
 
+
+function broadcast!(op,dest::Fun,f::Fun)
+    if domain(f) ≠ domain(dest)
+        throw(ArgumentError("Domain of right-hand side incompatible with destination"))
+    end
+    ret = Fun(x -> op(f(x)), space(dest))
+    cfs = ret.coefficients
+    resize!(dest.coefficients,length(cfs))
+    dest.coefficients[:] = cfs
+    dest
+end
+function broadcast!(op,dest::Fun,As...)
+    ret = op.(As...)
+    if domain(ret) ≠ domain(dest)
+        throw(ArgumentError("Domain of right-hand side incompatible with destination"))
+    end
+    cfs = coefficients(ret,space(dest))
+    resize!(dest.coefficients,length(cfs))
+    dest.coefficients[:] = cfs
+    dest
+end
 
 include("constructors.jl")
 

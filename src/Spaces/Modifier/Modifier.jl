@@ -2,7 +2,6 @@
 include("SumSpace.jl")
 include("ArraySpace.jl")
 include("ProductSpaceOperators.jl")
-include("BlockOperators.jl")
 include("SubSpace.jl")
 
 

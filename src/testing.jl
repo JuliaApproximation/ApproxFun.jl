@@ -91,6 +91,8 @@ function backend_testfunctional(A)
         @test B[k] ≈ A[k]
         @test isa(A[k],eltype(A))
     end
+    @test isa(A[1,1:10],Vector)
+    @test isa(A[1:1,1:10],AbstractMatrix)
     @test B ≈ A[1,1:10]
     @test B.' ≈ A[1:1,1:10]
     @test B[3:10] ≈ A[3:10]
