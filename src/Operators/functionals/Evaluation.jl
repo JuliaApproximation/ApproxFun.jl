@@ -2,7 +2,7 @@ export Evaluation,ivp,bvp,Dirichlet
 
 ## Evaluation constructors
 
-@compat abstract type Evaluation{T}<:Operator{T} end
+abstract type Evaluation{T}<:Operator{T} end
 
 @functional Evaluation
 
@@ -143,7 +143,7 @@ end
 
 
 
-@compat abstract type Dirichlet{S,T} <: Operator{T} end
+abstract type Dirichlet{S,T} <: Operator{T} end
 
 
 immutable ConcreteDirichlet{S,V,T} <: Dirichlet{S,T}

@@ -645,7 +645,7 @@ pad(it::Take,n::Integer) = pad!(collect(it),n)
 # Re-implementation of Base iterators
 # to use ∞ and allow getindex
 
-@compat abstract type AbstractRepeated{T} end
+abstract type AbstractRepeated{T} end
 
 Base.eltype{T}(::Type{AbstractRepeated{T}}) = T
 Base.eltype{R<:AbstractRepeated}(::Type{R}) = eltype(super(R))
@@ -706,7 +706,7 @@ repeated(x,::Infinity{Bool}) = repeated(x)
 repeated(x,m::Integer) = take(repeated(x),m)
 
 
-@compat abstract type AbstractCount{S<:Number} end
+abstract type AbstractCount{S<:Number} end
 
 immutable UnitCount{S<:Number} <: AbstractCount{S}
     start::S
@@ -972,17 +972,6 @@ Base.minimum(f::Flatten) = mapreduce(minimum,min,f.it)
 
 broadcast(op,f::Flatten,c...) = Flatten(map(it->op(it,c...),f.it))
 
-if VERSION < v"0.6.0-dev"
-    for TYP in (:Flatten, :AbstractRepeated), op in (:+,:-,:*,:/)
-        dop = parse("."*string(op))
-        @eval begin
-            $dop(a::$TYP,b::$TYP) = broadcast($op,a,b)
-            $dop(f::$TYP,c::Number) = broadcast($op,f,c)
-            $dop(c::Number,f::$TYP) = broadcast($op,c,f)
-        end
-    end
-end
-
 
 broadcast(op,a::AbstractRepeated,b::AbstractRepeated) = repeated(op.(value(a),value(b)))
 broadcast(op,a::AbstractRepeated,b::Number) = repeated(op.(value(a),b))
@@ -1031,7 +1020,7 @@ function broadcast(op,a::Number,b::Take)
     take(op.(a,b.xs),n)
 end
 
-@compat const InfiniteIterators = Union{AbstractRepeated,AbstractCount,Flatten}
+const InfiniteIterators = Union{AbstractRepeated,AbstractCount,Flatten}
 
 +(a::InfiniteIterators) = a
 -(a::ZeroRepeated) = a

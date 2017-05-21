@@ -6,9 +6,9 @@ export chebyshevpoints,fourierpoints,isambiguous,arclength
 
 # T is the numeric type used to represent the domain
 # d is the dimension
-@compat abstract type Domain{T,d} end
-@compat const UnivariateDomain{T} = Domain{T,1}
-@compat const BivariateDomain{T} = Domain{T,2}
+abstract type Domain{T,d} end
+const UnivariateDomain{T} = Domain{T,1}
+const BivariateDomain{T} = Domain{T,2}
 
 
 Base.eltype{T}(::Domain{T}) = T
@@ -34,11 +34,6 @@ Base.endof(s::Domain) = 1
 
 #supports broadcasting, overloaded for ArraySpace
 Base.size(::Domain) = ()
-if VERSION < v"0.6-"
-    # works around bug due to eltype
-    Base.promote_eltype_op{T}(op, A::Domain, ::AbstractArray{T}) =
-    (Base.@_pure_meta; Base.promote_op(op, typeof(A), T))
-end
 
 
 # prectype gives the precision, including for Vec
@@ -75,7 +70,7 @@ Base.setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
 
 ## Interval Domains
 
-@compat abstract type IntervalDomain{T} <: UnivariateDomain{T} end
+abstract type IntervalDomain{T} <: UnivariateDomain{T} end
 
 canonicaldomain(d::IntervalDomain) = Segment{real(eltype(eltype(d)))}()
 
@@ -124,7 +119,7 @@ issubcomponent(a::Domain,b::Domain)=a in pieces(b)
 
 ###### Periodic domains
 
-@compat abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
+abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
 
 
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()

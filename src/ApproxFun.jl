@@ -9,9 +9,6 @@ import Base.LinAlg: BlasInt, BlasFloat
 import Base: values, getindex, setindex!, *, +, -, ==, <, <=, >, |, !, !=, eltype, start, next, done,
                 >=, /, ^, \, ∪, transpose, size, to_indexes, reindex, tail, broadcast, broadcast!
 
-if VERSION < v"0.6.0-dev"
-    import Base: .*, .+, .-, .^, ./
-end
 
 # we need to import all special functions to use Calculus.symbolic_derivatives_1arg
 # we can't do importall Base as we replace some Base definitions
@@ -39,7 +36,7 @@ import Base: view
 
 import StaticArrays: SVector
 
-@compat const Vec{d,T} = SVector{d,T}
+const Vec{d,T} = SVector{d,T}
 
 export pad!, pad, chop!, sample,
        complexroots, roots, svfft, isvfft,

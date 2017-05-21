@@ -39,7 +39,7 @@ Base.size(A::RaggedMatrix) = (A.m,length(A.cols)-1)
 colstart(A::RaggedMatrix,j::Integer) = 1
 colstop(A::RaggedMatrix,j::Integer) = min(A.cols[j+1]-A.cols[j],size(A,1))
 
-@compat Base.IndexStyle{RM<:RaggedMatrix}(::Type{RM}) = IndexCartesian()
+Base.IndexStyle{RM<:RaggedMatrix}(::Type{RM}) = IndexCartesian()
 
 function getindex(A::RaggedMatrix,k::Int,j::Int)
     if k>size(A,1) || k < 1 || j>size(A,2) || j < 1

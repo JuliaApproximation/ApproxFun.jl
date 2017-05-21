@@ -84,12 +84,6 @@ Base.convert{IF<:Fun}(::Type{IF},x::Number)=Fun(x)
 Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
 
 
-# promotion of * to fix 0.5 bug
-if VERSION > v"0.6-"
-    Base.promote_op{N,V,S,T}(::typeof(Base.LinAlg.matprod),::Type{Fun{N,V}},::Type{Fun{S,T}}) =
-        Fun{promote_type(N,S),promote_type(T,V)}
-end
-
 Base.promote_op{N,V,S,T}(::typeof(*),::Type{Fun{N,V}},::Type{Fun{S,T}}) =
     Fun{promote_type(N,S),promote_type(T,V)}
 Base.promote_op{N,S,T}(::typeof(*),::Type{N},::Type{Fun{S,T}}) = Fun{S,promote_type(N,T)}
@@ -499,16 +493,3 @@ function broadcast!(op,dest::Fun,As...)
 end
 
 include("constructors.jl")
-
-
-
-if VERSION < v"0.6.0-dev"
-    for op in (:+,:-,:*,:/,:^)
-        dop = parse("."*string(op))
-        @eval begin
-            $dop(c::Number,d::Fun) = $op(c,d)
-            $dop(d::Fun,c::Number) = $op(d,c)
-            $dop(a::Fun,b::Fun) = $op(a,b)
-        end
-    end
-end

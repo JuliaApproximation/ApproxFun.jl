@@ -28,7 +28,7 @@ end
 Base.promote_rule{T,V,D}(::Type{Jacobi{T,D}},::Type{Jacobi{V,D}}) = Jacobi{promote_type(T,V),D}
 Base.convert{T,V,D}(::Type{Jacobi{T,D}},J::Jacobi{V,D}) = Jacobi{T,D}(J.b,J.a,J.domain)
 
-@compat const WeightedJacobi{T,D} = JacobiWeight{Jacobi{T,D},D}
+const WeightedJacobi{T,D} = JacobiWeight{Jacobi{T,D},D}
 
 (::Type{WeightedJacobi})(β,α,d::Domain) = JacobiWeight(β,α,Jacobi(β,α,d))
 (::Type{WeightedJacobi})(β,α) = JacobiWeight(β,α,Jacobi(β,α))

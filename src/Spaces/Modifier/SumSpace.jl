@@ -67,7 +67,7 @@ end
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-@compat abstract type DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d} end
+abstract type DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d} end
 
 
 dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)

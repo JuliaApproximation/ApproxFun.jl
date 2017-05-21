@@ -28,7 +28,7 @@ immutable Line{angle,T<:Number} <: IntervalDomain{T}
     (::Type{Line{angle,T}}){angle,T}() = new{angle,T}(zero(T),-1.,-1.)
 end
 
-@compat const RealLine{T} = Union{Line{false,T},Line{true,T}}
+const RealLine{T} = Union{Line{false,T},Line{true,T}}
 
 (::Type{Line{a}}){a}(c,α,β) = Line{a,typeof(c)}(c,α,β)
 (::Type{Line{a}}){a}(c::Number) = Line{a,typeof(c)}(c)

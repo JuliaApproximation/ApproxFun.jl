@@ -20,8 +20,8 @@ end
 BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
 interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
-@compat const VectorSpace{S,T,DD,dim} = ArraySpace{S,1,T,DD,dim}
-@compat const MatrixSpace{S,T,DD,dim} = ArraySpace{S,2,T,DD,dim}
+const VectorSpace{S,T,DD,dim} = ArraySpace{S,1,T,DD,dim}
+const MatrixSpace{S,T,DD,dim} = ArraySpace{S,2,T,DD,dim}
 
 #TODO: Think through domain/domaindominsion
 ArraySpace{SS<:Space,N}(sp::Array{SS,N}) =
@@ -337,7 +337,7 @@ end
 ## ConstantVectorSpace
 
 
-@compat const ConstantVectorSpace = VectorSpace{ConstantSpace{AnyDomain},RealBasis,AnyDomain,1}
+const ConstantVectorSpace = VectorSpace{ConstantSpace{AnyDomain},RealBasis,AnyDomain,1}
 
 
 function Base.vec{V,TT,DD,d,T}(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T},k)
@@ -366,5 +366,5 @@ end
 
 ## EuclideanSpace
 
-@compat const EuclideanSpace = ArraySpace{ConstantSpace{AnyDomain},1,RealBasis,AnyDomain,1}
+const EuclideanSpace = ArraySpace{ConstantSpace{AnyDomain},1,RealBasis,AnyDomain,1}
 EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(),n)

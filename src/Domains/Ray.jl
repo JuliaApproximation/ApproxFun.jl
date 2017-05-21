@@ -24,7 +24,7 @@ immutable Ray{angle,T<:Number} <: IntervalDomain{T}
     (::Type{Ray{angle,T}}){angle,T}(r::Ray{angle,T}) = r
 end
 
-@compat const RealRay{T} = Union{Ray{false,T},Ray{true,T}}
+const RealRay{T} = Union{Ray{false,T},Ray{true,T}}
 
 (::Type{Ray{a}}){a}(c,o) = Ray{a,typeof(c)}(c,o)
 (::Type{Ray{a}}){a}(c::Number) = Ray{a,typeof(c)}(c)

@@ -2,7 +2,7 @@
  WeightSpace represents a space that weights another space.
  Overload weight(S,x).
 """
-@compat abstract type WeightSpace{S,T,DD,d} <: Space{T,DD,d} end
+abstract type WeightSpace{S,T,DD,d} <: Space{T,DD,d} end
 
 
 domain(S::WeightSpace) = domain(S.space)
