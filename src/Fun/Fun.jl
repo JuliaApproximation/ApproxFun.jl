@@ -8,19 +8,19 @@ include("Space.jl")
 ##  Constructors
 
 
-type Fun{S,T}
+type Fun{S,T,VT}
     space::S
-    coefficients::Vector{T}
-    function (::Type{Fun{S,T}}){S,T}(sp::S,coeff::Vector{T})
-        @assert length(coeff)≤dimension(sp)
-        new{S,T}(sp,coeff)
+    coefficients::VT
+    function Fun{S,T,VT}(sp::S,coeff::VT) where {S,T,VT}
+        @assert length(coeff) ≤ dimension(sp)
+        new{S,T,VT}(sp,coeff)
     end
 end
 
-Fun(sp::Space,coeff::Vector) = Fun{typeof(sp),eltype(coeff)}(sp,coeff)
-Fun{T<:Integer}(sp::Space,coeff::Vector{T}) = Fun(sp,1.0coeff)
+Fun(sp::Space,coeff::AbstractVector) = Fun{typeof(sp),eltype(coeff),typeof(coeff)}(sp,coeff)
+Fun{T<:Integer}(sp::Space,coeff::AbstractVector{T}) = Fun(sp,1.0coeff)
 
-function Fun(sp::Space,v::Vector{Any})
+function Fun(sp::Space,v::AbstractVector{Any})
     if isempty(v)
         Fun(sp,Float64[])
     elseif all(x->isa(x,Number),v)
@@ -71,38 +71,43 @@ coefficient(f::Fun,::Colon) = coefficient(f,1:dimension(space(f)))
 ##Convert routines
 
 
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun{S}) =
-    Fun(f.space,convert(Vector{T},f.coefficients))
-Base.convert{T,S}(::Type{Fun{S,T}},f::Fun) =
-    Fun(Fun(f.space,convert(Vector{T},f.coefficients)),convert(S,space(f)))
+Base.convert(::Type{Fun{S,T,VT}},f::Fun{S}) where {T,S,VT} =
+    Fun(f.space,convert(VT,f.coefficients))
+Base.convert(::Type{Fun{S,T,VT}},f::Fun) where {T,S,VT} =
+    Fun(Fun(f.space,convert(VT,f.coefficients)),convert(S,space(f)))
 
-Base.convert{T,S}(::Type{Fun{S,T}},x::Number) =
+Base.convert(::Type{Fun{S,T}},x::Number) where {T,S} =
     x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
 Base.convert{S}(::Type{Fun{S}},x::Number) =
     x==0?zeros(S(AnyDomain())):x*ones(S(AnyDomain()))
 Base.convert{IF<:Fun}(::Type{IF},x::Number)=Fun(x)
-Base.promote_rule{T,V,S}(::Type{Fun{S,T}},::Type{Fun{S,V}})=Fun{S,promote_type(T,V)}
+Base.promote_rule(::Type{Fun{S,T,VT1}},::Type{Fun{S,V,VT2}}) where {T,V,S,VT1,VT2} =
+    Fun{S,promote_type(T,V),promote_type(VT1,VT2)}
 
 
-Base.promote_op{N,V,S,T}(::typeof(*),::Type{Fun{N,V}},::Type{Fun{S,T}}) =
-    Fun{promote_type(N,S),promote_type(T,V)}
-Base.promote_op{N,S,T}(::typeof(*),::Type{N},::Type{Fun{S,T}}) = Fun{S,promote_type(N,T)}
-Base.promote_op{N,S,T}(::typeof(*),::Type{Matrix{N}},::Type{Matrix{Fun{S,T}}}) =
-    Matrix{Fun{S,promote_type(N,T)}}
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{N,V,VT1}},::Type{Fun{S,T,VT2}}) where {N,V,S,T,VT1,VT2} =
+            Fun{promote_type(N,S),promote_type(T,V),promote_type(VT1,VT2)}
+
+Base.promote_op(::typeof(*),::Type{Fun{N,V,VT1}},::Type{Fun{S,T,VT2}}) where {N,V,S,T,VT1,VT2} =
+    Fun{promote_type(N,S),promote_type(T,V),promote_type(VT1,VT2)}
+Base.promote_op(::typeof(*),::Type{N},::Type{Fun{S,T,VT2}}) where {N,S,T,VT2} =
+    promote_op(*,Fun{S,N,Vector{N}},Fun{S,T,VT2})
+Base.promote_op(::typeof(*),::Type{Matrix{N}},::Type{Matrix{Fun{S,T,VT2}}}) where {N,S,T,VT2}  =
+    Matrix{promote_op(*,N,Fun{S,T,VT2})}
 
 
-Base.zero(::Type{Fun})=Fun(0.)
-Base.zero{T,S<:Space}(::Type{Fun{S,T}})=zeros(T,S(AnyDomain()))
-Base.one{T,S<:Space}(::Type{Fun{S,T}})=ones(T,S(AnyDomain()))
+Base.zero(::Type{Fun}) = Fun(0.)
+Base.zero{T,S<:Space,VT}(::Type{Fun{S,T,VT}}) = zeros(T,S(AnyDomain()))
+Base.one{T,S<:Space,VT}(::Type{Fun{S,T,VT}}) = ones(T,S(AnyDomain()))
 for op in (:(Base.zeros),:(Base.ones))
-    @eval ($op){S,T}(f::Fun{S,T})=$op(T,f.space)
+    @eval ($op){S,T}(f::Fun{S,T}) = $op(T,f.space)
 end
 
 Base.zero(f::Fun)=zeros(f)
 Base.one(f::Fun)=ones(f)
 
 Base.eltype{S,T}(::Fun{S,T}) = T
-Base.eltype{S,T}(::Type{Fun{S,T}}) = T
+Base.eltype{S,T,VT}(::Type{Fun{S,T,VT}}) = T
 
 #supports broadcasting and scalar iterator
 Base.size(f::Fun,k...) = size(space(f),k...)
@@ -301,7 +306,7 @@ for op = (:*,:+)
 end
 
 
-function ^{S,T}(f::Fun{S,T},k::Integer)
+function ^(f::Fun,k::Integer)
     if k == 0
         ones(space(f))
     elseif k==1
@@ -313,7 +318,7 @@ function ^{S,T}(f::Fun{S,T},k::Integer)
     end
 end
 
-Base.inv{S,T}(f::Fun{S,T}) = 1/f
+Base.inv(f::Fun) = 1/f
 
 # Integrals over two Funs, which are fast with the orthogonal weight.
 
@@ -376,7 +381,7 @@ end
 Base.transpose(f::Fun) = f  # default no-op
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op){S<:Space{RealBasis}}(f::Fun{S}) = Fun(f.space,($op)(f.coefficients))
+    @eval ($op)(f::Fun{S}) where {S<:Space{RealBasis}} = Fun(f.space,($op)(f.coefficients))
 end
 
 Base.conj(f::Fun) = error("Override conj for $(typeof(f))")
@@ -432,7 +437,7 @@ Base.isapprox(f::Fun,g::Number)=isapprox(f,g*ones(space(f)))
 Base.isapprox(g::Number,f::Fun)=isapprox(g*ones(space(f)),f)
 
 
-Base.isreal{S,T<:Real}(f::Fun{S,T})=basistype(S)<:RealBasis
+Base.isreal{S,T<:Real}(f::Fun{S,T}) = basistype(S)<:RealBasis
 Base.isreal(f::Fun)=false
 
 iszero(x::Number) = x == 0

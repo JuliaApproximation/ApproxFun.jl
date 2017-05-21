@@ -250,9 +250,4 @@ Fun(d::ClosedInterval) = Fun(Domain(d))
 
 Fun{TT<:Number}(T::Type,d::AbstractVector{TT}) = Fun(T(),d)
 
-function Fun(s::Space,cfs::AbstractVector{Any})
-    @assert isempty(cfs)
-    Fun(s,Float64[])
-end
-
 Fun(f::Fun{SequenceSpace},s::Space) = Fun(s,f.coefficients)
