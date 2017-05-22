@@ -51,7 +51,7 @@ b=[airyaiprime(d.a),airyaiprime(d.b),0.];
 
 
 
-f=Fun(x->x.^2)
+f=Fun(x->x^2)
 D=Derivative(domain(f))
 @test norm(D*f-f')<100eps()
 

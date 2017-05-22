@@ -72,7 +72,7 @@ D=Derivative(d)
 A=rand(n,n)
 L=[B;D-A]
 @time u=L\eye(2n,n)
-@test norm(evaluate(u,1.)-expm(A))<eps(1000.)
+@test norm(u(1.)-expm(A))<eps(1000.)
 
 n=4
 d=fill(Interval(0.,1.),n)
@@ -81,7 +81,7 @@ D=Derivative(d)
 A=rand(n,n)
 L=[B;D-A]
 @time u=L\eye(2n,2)
-@test norm(evaluate(u,1.)-expm(A)[:,1:2])<eps(1000.)
+@test norm(u(1.)-expm(A)[:,1:2])<eps(1000.)
 
 
 

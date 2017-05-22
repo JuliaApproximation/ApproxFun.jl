@@ -3,10 +3,10 @@ export AbstractLowRankOperator, LowRankOperator
 abstract type AbstractLowRankOperator{T} <: Operator{T} end
 
 immutable LowRankOperator{S<:Space,T} <: AbstractLowRankOperator{T}
-    U::Vector{Fun{S,T}}
+    U::Vector{VFun{S,T}}
     V::Vector{Operator{T}}
 
-    function (::Type{LowRankOperator{S,T}}){S,T}(U::Vector{Fun{S,T}},V::Vector{Operator{T}})
+    function LowRankOperator{S,T}(U::Vector{VFun{S,T}},V::Vector{Operator{T}}) where {S,T}
         @assert all(isafunctional,V)
 
         @assert length(U) == length(V)
@@ -25,9 +25,9 @@ end
 
 
 
-LowRankOperator{S,T}(U::Vector{Fun{S,T}},V::Vector{Operator{T}}) = LowRankOperator{S,T}(U,V)
-LowRankOperator{S,T1,T2}(U::Vector{Fun{S,T1}},V::Vector{Operator{T2}}) =
-    LowRankOperator(convert(Vector{Fun{S,promote_type(T1,T2)}},U),
+LowRankOperator{S,T}(U::Vector{VFun{S,T}},V::Vector{Operator{T}}) = LowRankOperator{S,T}(U,V)
+LowRankOperator{S,T1,T2}(U::Vector{VFun{S,T1}},V::Vector{Operator{T2}}) =
+    LowRankOperator(convert(Vector{VFun{S,promote_type(T1,T2)}},U),
                     convert(Vector{Operator{promote_type(T1,T2)}},V))
 LowRankOperator{FF<:Fun,FT<:Operator}(U::Vector{FF},V::Vector{FT}) =
     LowRankOperator(U,convert(Vector{Operator{eltype(FT)}},V))
@@ -40,7 +40,7 @@ LowRankOperator(A::Fun,B::Operator) = LowRankOperator([A],[B])
 
 
 Base.convert{S,T}(::Type{Operator{T}},L::LowRankOperator{S}) =
-    LowRankOperator{S,T}(convert(Vector{Fun{S,T}},L.U),
+    LowRankOperator{S,T}(convert(Vector{VFun{S,T}},L.U),
                          convert(Vector{Operator{T}},L.V))
 
 

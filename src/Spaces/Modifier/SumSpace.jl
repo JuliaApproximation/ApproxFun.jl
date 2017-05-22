@@ -155,32 +155,34 @@ function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
     end
 end
 
-function Base.promote_rule{SV,B,DD,d,V,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d},V}},::Type{T})
+function Base.promote_rule{SV,B,DD,d,V,T<:Number,VV}(::Type{Fun{SumSpace{SV,B,DD,d},V,VV}},::Type{T})
     for k=1:length(SV.parameters)
-        pt=promote_type(Fun{SV.parameters[k],V},T)
+        pt=promote_type(VFun{SV.parameters[k],V},T)
         if pt != Fun
-            return Fun{SumSpace{Tuple{SV.parameters[1:k-1]...,pt.parameters[1],SV.parameters[k+1:end]...},
+            return VFun{SumSpace{Tuple{SV.parameters[1:k-1]...,pt.parameters[1],SV.parameters[k+1:end]...},
                        B,DD,d},promote_type(V,T)}
         end
     end
     Fun
 end
 
-Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{SumSpace{SV,B,DD,d},Float64},T)
+Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d}}},::Type{T}) =
+    promote_rule(VFun{SumSpace{SV,B,DD,d},Float64},T)
 
-function Base.promote_rule{SV,B,DD,d,V,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d},V}},::Type{T})
+function Base.promote_rule{SV,B,DD,d,V,VV,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d},V,VV}},::Type{T})
     # if any doesn't support promoting, just leave unpromoted
 
-    newfsp=map(s->promote_type(Fun{s,V},T),SV.parameters)
+    newfsp=map(s->promote_type(VFun{s,V},T),SV.parameters)
     if any(s->s==Fun,newfsp)
         Fun
     else
         newsp=map(s->s.parameters[1],newfsp)
-        Fun{PiecewiseSpace{Tuple{newsp...},B,DD,d},promote_type(V,T)}
+        VFun{PiecewiseSpace{Tuple{newsp...},B,DD,d},promote_type(V,T)}
     end
 end
 
-Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d}}},::Type{T})=promote_rule(Fun{PiecewiseSpace{SV,B,DD,d},Float64},T)
+Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d}}},::Type{T}) =
+    promote_rule(VFun{PiecewiseSpace{SV,B,DD,d},Float64},T)
 
 
 

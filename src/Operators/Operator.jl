@@ -612,12 +612,12 @@ Base.convert(A::Type{Operator},f::Fun) =
 Base.promote_rule{N<:Number}(::Type{N},::Type{Operator}) = Operator{N}
 Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{Operator}) =
     Operator{N}
-Base.promote_rule{S,N<:Number}(::Type{Fun{S,N}},::Type{Operator}) = Operator{N}
+Base.promote_rule{S,N<:Number,VN}(::Type{Fun{S,N,VN}},::Type{Operator}) = Operator{N}
 Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O}) =
     Operator{promote_type(N,eltype(O))}
 Base.promote_rule{N<:Number,O<:Operator}(::Type{UniformScaling{N}},::Type{O}) =
     Operator{promote_type(N,eltype(O))}
-Base.promote_rule{S,N<:Number,O<:Operator}(::Type{Fun{S,N}},::Type{O}) =
+Base.promote_rule{S,N<:Number,O<:Operator,VN}(::Type{Fun{S,N,VN}},::Type{O}) =
     Operator{promote_type(N,eltype(O))}
 
 Base.promote_rule{BO1<:Operator,BO2<:Operator}(::Type{BO1},::Type{BO2}) =

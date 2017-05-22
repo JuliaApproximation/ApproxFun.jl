@@ -3,10 +3,10 @@ export Multiplication
 abstract type Multiplication{D,S,T} <:Operator{T} end
 
 immutable ConcreteMultiplication{D<:Space,S<:Space,T} <: Multiplication{D,S,T}
-    f::Fun{D,T}
+    f::VFun{D,T}
     space::S
 
-    (::Type{ConcreteMultiplication{D,S,T}}){D,S,T}(f::Fun{D,T},sp::S) = new{D,S,T}(f,sp)
+    ConcreteMultiplication{D,S,T}(f::Fun{D,T},sp::S) where {D,S,T} = new{D,S,T}(f,sp)
 end
 
 function ConcreteMultiplication{V,D,T}(::Type{V},f::Fun{D,T},sp::Space)
@@ -89,7 +89,7 @@ choosedomainspace{D}(M::ConcreteMultiplication{D,UnsetSpace},sp::Space) = sp
 Base.diagm(a::Fun) = Multiplication(a)
 
 immutable MultiplicationWrapper{D<:Space,S<:Space,O<:Operator,T} <: Multiplication{D,S,T}
-    f::Fun{D,T}
+    f::VFun{D,T}
     op::O
 end
 

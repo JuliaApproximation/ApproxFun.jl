@@ -17,6 +17,8 @@ type Fun{S,T,VT}
     end
 end
 
+const VFun{S,T} = Fun{S,T,Vector{T}}
+
 Fun(sp::Space,coeff::AbstractVector) = Fun{typeof(sp),eltype(coeff),typeof(coeff)}(sp,coeff)
 Fun{T<:Integer}(sp::Space,coeff::AbstractVector{T}) = Fun(sp,1.0coeff)
 
@@ -76,11 +78,15 @@ Base.convert(::Type{Fun{S,T,VT}},f::Fun{S}) where {T,S,VT} =
 Base.convert(::Type{Fun{S,T,VT}},f::Fun) where {T,S,VT} =
     Fun(Fun(f.space,convert(VT,f.coefficients)),convert(S,space(f)))
 
-Base.convert(::Type{Fun{S,T}},x::Number) where {T,S} =
-    x==0?zeros(T,S(AnyDomain())):x*ones(T,S(AnyDomain()))
+Base.convert(::Type{Fun{S,T}},f::Fun{S}) where {T,S} =
+    Fun(f.space,convert(AbstractVector{T},f.coefficients))
+
+
+Base.convert(::Type{VFun{S,T}},x::Number) where {T,S} =
+    x==0 ? zeros(T,S(AnyDomain())) : x*ones(T,S(AnyDomain()))
 Base.convert{S}(::Type{Fun{S}},x::Number) =
-    x==0?zeros(S(AnyDomain())):x*ones(S(AnyDomain()))
-Base.convert{IF<:Fun}(::Type{IF},x::Number)=Fun(x)
+    x==0 ? zeros(S(AnyDomain())) : x*ones(S(AnyDomain()))
+Base.convert{IF<:Fun}(::Type{IF},x::Number) = convert(IF,Fun(x))
 Base.promote_rule(::Type{Fun{S,T,VT1}},::Type{Fun{S,V,VT2}}) where {T,V,S,VT1,VT2} =
     Fun{S,promote_type(T,V),promote_type(VT1,VT2)}
 

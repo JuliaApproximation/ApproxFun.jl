@@ -18,18 +18,18 @@ function coefficientmatrix{N,F}(::Type{N},f::Vector{F},o...)
 end
 
 
-scalarorfuntype{S,T<:Number}(::Fun{S,T})=T
-scalarorfuntype{T<:Number}(::T)=T
-scalarorfuntype{T<:Number}(b::Vector{T})=T
-scalarorfuntype(b::Vector{Any})=promote_type(map(scalarorfuntype,b)...)
-scalarorfuntype{F<:Fun}(b::Vector{F})=promote_type(map(scalarorfuntype,b)...)
+scalarorfuntype{S,T<:Number}(::Fun{S,T}) = T
+scalarorfuntype{T<:Number}(::T) = T
+scalarorfuntype{T<:Number}(b::Vector{T}) = T
+scalarorfuntype(b::Vector{Any}) = promote_type(map(scalarorfuntype,b)...)
+scalarorfuntype{F<:Fun}(b::Vector{F}) = promote_type(map(scalarorfuntype,b)...)
 
 
 coefficientmatrix{F<:Fun}(Q::Vector{F},o...)=coefficientmatrix(scalarorfuntype(Q),Q,o...)
 coefficientmatrix(Q::Vector{Any})=(@assert isempty(Q); zeros(0,0))
 
 
-function values{D,N}(f::Vector{Fun{D,N}})
+function values(f::Vector{Fun{D,N,VN}}) where {D,N,VN}
     n=mapreduce(ncoefficients,max,f)
     m=length(f)
     R=zeros(N,n,m)
@@ -39,7 +39,7 @@ function values{D,N}(f::Vector{Fun{D,N}})
     R
 end
 
-function values{D,T}(p::Array{Fun{D,T},2})
+function values(p::Array{Fun{D,T,VT},2}) where {D,T,VT}
     @assert size(p)[1] == 1
 
    values(vec(p))
@@ -66,18 +66,18 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 
  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
      @eval begin
-         function ($op){T<:Number,V<:Number,D}(A::Array{T,2}, p::Vector{Fun{D,V}})
+         function ($op)(A::Array{T,2}, p::Vector{Fun{D,V,VT}}) where {T<:Number,V<:Number,D,VT}
              cfs=$op(A,coefficientmatrix(p).')
-             ret = Vector{Fun{D,promote_type(T,V)}}(size(cfs,1))
+             ret = Vector{VFun{D,promote_type(T,V)}}(size(cfs,1))
              for i = 1:size(cfs,1)
                  ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
              end
              ret
          end
 
-         function ($op){T<:Number,D}(p::Vector{Fun{D,T}},A::Array{T,2})
+         function ($op)(p::Vector{Fun{D,T,VT}},A::Array{T,2}) where {T<:Number,D,VT}
              cfs=$op(A,coefficientmatrix(p).')
-             ret = Vector{Fun{D,T}}(size(cfs,1))
+             ret = Vector{VFun{D,T}}(size(cfs,1))
              for i = 1:size(cfs,1)
                  ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
              end
@@ -91,7 +91,7 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 #can't just promote constant vector to a vector-valued fun because don't know the domain.
 for op = (:+,:-)
     @eval begin
-        ($op){T<:Number,S,V}(f::Fun{S,V},c::AbstractArray{T}) = devec($op(vec(f),c))
-        ($op){T<:Number,S,V}(c::AbstractArray{T},f::Fun{S,V}) = devec($op(c,vec(f)))
+        ($op)(f::Fun,c::AbstractArray{T}) where {T<:Number} = devec($op(vec(f),c))
+        ($op)(c::AbstractArray{T},f::Fun) where {T<:Number} = devec($op(c,vec(f)))
     end
 end

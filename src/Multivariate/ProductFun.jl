@@ -6,15 +6,15 @@
 export ProductFun
 
 immutable ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T}<:BivariateFun{T}
-    coefficients::Vector{Fun{S,T}}     # coefficients are in x
+    coefficients::Vector{VFun{S,T}}     # coefficients are in x
     space::SS
 end
 
-ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD,P}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{Tuple{S,V},P,DD,2}) =
+ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD,P}(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{S,V},P,DD,2}) =
     ProductFun{S,V,typeof(sp),T}(cfs,sp)
 ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
-         W<:UnivariateSpace,T<:Number,P,DD}(cfs::Vector{Fun{S,T}},sp::AbstractProductSpace{Tuple{W,V},P,DD,2}) =
-   ProductFun{W,V,typeof(sp),T}(Fun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
+         W<:UnivariateSpace,T<:Number,P,DD}(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{W,V},P,DD,2}) =
+   ProductFun{W,V,typeof(sp),T}(VFun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 
 Base.size(f::ProductFun,k::Integer) =
     k==1?mapreduce(ncoefficients,max,f.coefficients):length(f.coefficients)
@@ -27,18 +27,18 @@ function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD,P}(cfs::M
     if chopping
         ncfs,kend=norm(cfs,Inf),size(cfs,2)
         if kend > 1 while isempty(chop(cfs[:,kend],ncfs*tol)) kend-=1 end end
-        ret=Fun{S,T}[Fun(columnspace(sp,k),chop(cfs[:,k],ncfs*tol)) for k=1:max(kend,1)]
+        ret=VFun{S,T}[Fun(columnspace(sp,k),chop(cfs[:,k],ncfs*tol)) for k=1:max(kend,1)]
         ProductFun{S,V,typeof(sp),T}(ret,sp)
     else
-        ret=Fun{S,T}[Fun(columnspace(sp,k),cfs[:,k]) for k=1:size(cfs,2)]
+        ret=VFun{S,T}[Fun(columnspace(sp,k),cfs[:,k]) for k=1:size(cfs,2)]
         ProductFun{S,V,typeof(sp),T}(ret,sp)
     end
 end
 
 ## Construction in a ProductSpace via a Vector of Funs
 
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number}(M::Vector{Fun{S,T}},dy::V)
-    funs=Fun{S,T}[Mk for Mk in M]
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number}(M::Vector{VFun{S,T}},dy::V)
+    funs=VFun{S,T}[Mk for Mk in M]
     ProductFun{S,V,ProductSpace{S,V},T}(funs,ProductSpace(S[space(fun) for fun in funs],dy))
 end
 
@@ -89,7 +89,7 @@ ProductFun(f::ProductFun,sp::TensorSpace)=space(f)==sp?f:ProductFun(coefficients
 ProductFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},sp::ProductDomain)=ProductFun(f,Space(sp))
 
 function ProductFun(f::ProductFun,sp::AbstractProductSpace)
-    u=Array{Fun{typeof(columnspace(sp,1)),eltype(f)}}(length(f.coefficients))
+    u=Array{VFun{typeof(columnspace(sp,1)),eltype(f)}}(length(f.coefficients))
 
     for k=1:length(f.coefficients)
         u[k]=Fun(f.coefficients[k],columnspace(sp,k))
@@ -113,7 +113,7 @@ ProductFun(f::Fun,sp::BivariateSpace)=ProductFun([Fun(f,columnspace(sp,1))],sp)
 
 
 
-function funlist2coefficients{S,T}(f::Vector{Fun{S,T}})
+function funlist2coefficients{S,T}(f::Vector{VFun{S,T}})
     A=zeros(T,mapreduce(ncoefficients,max,f),length(f))
     for k=1:length(f)
         A[1:ncoefficients(f[k]),k]=f[k].coefficients
@@ -123,7 +123,7 @@ end
 
 
 function pad{S,V,SS,T}(f::ProductFun{S,V,SS,T},n::Integer,m::Integer)
-    ret=Array{Fun{S,T}}(m)
+    ret=Array{VFun{S,T}}(m)
     cm=min(length(f.coefficients),m)
     for k=1:cm
         ret[k]=pad(f.coefficients[k],n)
@@ -226,7 +226,7 @@ evaluate(f::ProductFun,x) = evaluate(f,x...)
 function chop{S}(f::ProductFun{S},es...)
     kend=size(f,2)
     if kend > 1 while isempty(chop(f.coefficients[kend].coefficients,es...)) kend-=1 end end
-    ret=Fun{S,eltype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients,es...)) for k=1:max(kend,1)]
+    ret=VFun{S,eltype(f)}[Fun(space(f.coefficients[k]),chop(f.coefficients[k].coefficients,es...)) for k=1:max(kend,1)]
 
     typeof(f)(ret,f.space)
 end

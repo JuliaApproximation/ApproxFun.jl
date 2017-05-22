@@ -30,7 +30,7 @@ function \(A::Operator,B::AbstractMatrix;kwds...)
         return choosespaces(A,B[:,1])\B
     end
 
-    ret=Matrix{Fun{typeof(ds),
+    ret=Matrix{VFun{typeof(ds),
                promote_type(mapreduce(eltype,promote_type,B),eltype(ds))}}(1,size(B,2))
     for j=1:size(B,2)
         ret[:,j]=\(A,B[:,j];kwds...)

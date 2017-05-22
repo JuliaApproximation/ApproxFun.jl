@@ -109,7 +109,7 @@ function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{PiecewiseSpace})
     B=promotedomainspace(Bin)
     rsp=PiecewiseSpace(map(rangespace,B))
     LowRankOperator(
-        Fun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
+        VFun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
         B)
 end
 
@@ -117,7 +117,7 @@ function LowRankOperator{FT<:Operator}(Bin::Vector{FT},::Type{VectorSpace})
     B=promotedomainspace(Bin)
     rsp=ArraySpace([map(rangespace,B);ZeroSpace()])  #TODO: Why the hack?
     LowRankOperator(
-        Fun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
+        VFun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
         B)
 end
 

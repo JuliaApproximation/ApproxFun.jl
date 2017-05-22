@@ -7,12 +7,15 @@ export LowRankFun
 """
 `LowRankFun` gives an approximation to a bivariate function in low rank form.
 """
+
 type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: BivariateFun{T}
-    A::Vector{Fun{S,T}}
-    B::Vector{Fun{M,T}}
+    A::Vector{VFun{S,T}}
+    B::Vector{VFun{M,T}}
     space::SS
 
-    function (::Type{LowRankFun{S,M,SS,T}}){S,M,SS,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS)
+    function LowRankFun{S,M,SS,T}(A::Vector{VFun{S,T}},
+                                  B::Vector{VFun{M,T}},
+                                  space::SS) where {S,M,SS,T}
         @assert length(A) == length(B)
         @assert length(A) > 0
         new{S,M,SS,T}(A,B,space)
@@ -20,10 +23,14 @@ type LowRankFun{S<:Space,M<:Space,SS<:AbstractProductSpace,T<:Number} <: Bivaria
 end
 
 
-LowRankFun{S,M,SS,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}},space::SS) = LowRankFun{S,M,SS,T}(A,B,space)
-LowRankFun{S,M,T}(A::Vector{Fun{S,T}},B::Vector{Fun{M,T}}) = LowRankFun(A,B,space(first(A))⊗space(first(B)))
-LowRankFun{S,M,T,V}(A::Vector{Fun{S,T}},B::Vector{Fun{M,V}}) =
-    LowRankFun(convert(Vector{Fun{S,promote_type(T,V)}},A),convert(Vector{Fun{M,promote_type(T,V)}},B),space(first(A))⊗space(first(B)))
+LowRankFun{S,M,SS,T}(A::Vector{VFun{S,T}},B::Vector{VFun{M,T}},space::SS) =
+    LowRankFun{S,M,SS,T}(A,B,space)
+LowRankFun{S,M,T}(A::Vector{VFun{S,T}},B::Vector{VFun{M,T}}) =
+    LowRankFun(A,B,space(first(A))⊗space(first(B)))
+LowRankFun{S,M,T,V}(A::Vector{VFun{S,T}},B::Vector{VFun{M,V}}) =
+    LowRankFun(convert(Vector{VFun{S,promote_type(T,V)}},A),
+               convert(Vector{VFun{M,promote_type(T,V)}},B),
+               space(first(A))⊗space(first(B)))
 Base.rank(f::LowRankFun) = length(f.A)
 Base.size(f::LowRankFun,k::Integer) = k==1?mapreduce(length,max,f.A):mapreduce(length,max,f.B)
 Base.size(f::LowRankFun) = size(f,1),size(f,2)
@@ -34,20 +41,20 @@ function LowRankFun{S<:Space,M<:Space,T<:Number}(X::Array{T},dx::S,dy::M)
     U,Σ,V=svd(X)
     m=max(1,count(s->s>10eps(T),Σ))
 
-    A=Fun{S,T}[Fun(dx,U[:,k].*sqrt(Σ[k])) for k=1:m]
-    B=Fun{M,T}[Fun(dy,conj(V[:,k]).*sqrt(Σ[k])) for k=1:m]
+    A=VFun{S,T}[Fun(dx,U[:,k].*sqrt(Σ[k])) for k=1:m]
+    B=VFun{M,T}[Fun(dy,conj(V[:,k]).*sqrt(Σ[k])) for k=1:m]
 
     LowRankFun(A,B)
 end
 
 ## Construction in a TensorSpace via a Vector of Funs
 
-function LowRankFun{S,T,DD,SV}(X::Vector{Fun{S,T}},d::TensorSpace{SV,T,DD,2})
+function LowRankFun{S,T,DD,SV}(X::Vector{VFun{S,T}},d::TensorSpace{SV,T,DD,2})
     @assert d[1] == space(X[1])
     LowRankFun(X,d[2])
 end
 
-function LowRankFun{S,T}(X::Vector{Fun{S,T}},dy::Space)
+function LowRankFun{S,T}(X::Vector{VFun{S,T}},dy::Space)
     m=mapreduce(ncoefficients,max,X)
     M=zeros(T,m,length(X))
     for k=1:length(X)
@@ -370,9 +377,11 @@ end
 # op(K,f) acts as operating in the y variable.
 
 for op = (:*,:/)
-    @eval ($op){S,T,U,V}(f::Fun{S,T},A::Vector{Fun{U,V}})=map(a->($op)(f,a),A)
+    @eval ($op)(f::Fun{S,T},A::Vector{Fun{U,V,VT}}) where {S,T,U,V,VT} =
+        map(a->($op)(f,a),A)
     @eval ($op)(f::Fun,K::LowRankFun) = LowRankFun(($op)(f,K.A),K.B)
-    @eval ($op){S,T,U,V}(B::Vector{Fun{U,V}},f::Fun{S,T})=map(b->($op)(b,f),B)
+    @eval ($op)(B::Vector{Fun{U,V,VT}},f::Fun{S,T}) where {S,T,U,V,VT} =
+        map(b->($op)(b,f),B)
     @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op)(K.B,f))
 end
 

@@ -31,7 +31,7 @@ end
 
 function pruneeigs(λ,V,ds,tolerance)
     retλ=eltype(λ)[]
-    retV=Fun{typeof(ds),eltype(V),typeof(V)}[]
+    retV=VFun{typeof(ds),eltype(V)}[]
     n=length(λ)
     for k=1:n
         if slnorm(V,n-3:n,k)≤tolerance
