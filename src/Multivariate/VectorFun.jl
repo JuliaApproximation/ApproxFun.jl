@@ -70,7 +70,7 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
              cfs=$op(A,coefficientmatrix(p).')
              ret = Vector{VFun{D,promote_type(T,V)}}(size(cfs,1))
              for i = 1:size(cfs,1)
-                 ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
+                 ret[i] = chop!(Fun(first(p).space,cfs[i,:]),eps())
              end
              ret
          end
@@ -79,7 +79,7 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
              cfs=$op(A,coefficientmatrix(p).')
              ret = Vector{VFun{D,T}}(size(cfs,1))
              for i = 1:size(cfs,1)
-                 ret[i] = chop!(Fun(first(p).space,vec(cfs[i,:])),eps())
+                 ret[i] = chop!(Fun(first(p).space,cfs[i,:]),eps())
              end
              ret
          end
@@ -89,9 +89,10 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 
 #Allow vecfun + constvec, etc
 #can't just promote constant vector to a vector-valued fun because don't know the domain.
+#TODO: Use Base?
 for op = (:+,:-)
     @eval begin
-        ($op)(f::Fun,c::AbstractArray{T}) where {T<:Number} = devec($op(vec(f),c))
-        ($op)(c::AbstractArray{T},f::Fun) where {T<:Number} = devec($op(c,vec(f)))
+        ($op)(f::Fun,c::AbstractArray{T}) where {T<:Number} = devec($op(Array(f),c))
+        ($op)(c::AbstractArray{T},f::Fun) where {T<:Number} = devec($op(c,Array(f)))
     end
 end

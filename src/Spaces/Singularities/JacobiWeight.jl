@@ -30,7 +30,7 @@ JacobiWeight(a::Number,b::Number,d::IntervalDomain) = JacobiWeight(Float64(a),Fl
 JacobiWeight(a::Number,b::Number,d) = JacobiWeight(Float64(a),Float64(b),Space(d))
 JacobiWeight(a::Number,b::Number) = JacobiWeight(a,b,Chebyshev())
 
-JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeight(a,b,vec(s)))
+JacobiWeight(a::Number,b::Number,s::PiecewiseSpace) = PiecewiseSpace(JacobiWeight(a,b,components(s)))
 
 identity_fun(S::JacobiWeight)=isapproxinteger(S.β)&&isapproxinteger(S.α)?Fun(x->x,S):Fun(identity,domain(S))
 

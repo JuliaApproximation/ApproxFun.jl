@@ -19,7 +19,7 @@ domainscompatible{T<:Operator}(A::Matrix{T})=domainscompatible(map(domainspace,A
 
 function spacescompatible{T<:Operator}(A::Matrix{T})
     for k=1:size(A,1)
-        if !spacescompatible(map(rangespace,vec(A[k,:])))
+        if !spacescompatible(map(rangespace,A[k,:]))
             return false
         end
     end
@@ -38,7 +38,7 @@ function domainspace{T<:Operator}(A::Matrix{T})
         error("Cannot construct domainspace for $A as spaces are not compatible")
     end
 
-    spl=map(domainspace,vec(A[1,:]))
+    spl=map(domainspace,A[1,:])
     ArraySpace(spl)
 end
 
@@ -60,7 +60,7 @@ function promotespaces{T<:Operator}(A::Matrix{T})
         A[:,j]=promotedomainspace(A[:,j])
     end
     for k=1:size(A,1)
-        A[k,:]=promoterangespace(vec(A[k,:]))
+        A[k,:]=promoterangespace(A[k,:])
     end
 
     # do a second loop as spaces might have been inferred
@@ -167,9 +167,9 @@ function InterlaceOperator{T,DS<:Space,RS<:Space}(opsin::Matrix{Operator{T}},::T
     # TODO: make consistent
     # if its a row vector, we assume scalar
     if size(ops,1) == 1
-        InterlaceOperator(ops,DS(spaces(domainspace(ops))),rangespace(ops[1]))
+        InterlaceOperator(ops,DS(components(domainspace(ops))),rangespace(ops[1]))
     else
-        InterlaceOperator(ops,DS(spaces(domainspace(ops))),RS(rangespace(ops[:,1]).spaces))
+        InterlaceOperator(ops,DS(components(domainspace(ops))),RS(rangespace(ops[:,1]).spaces))
     end
 end
 

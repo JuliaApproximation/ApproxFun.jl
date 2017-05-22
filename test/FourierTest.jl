@@ -18,12 +18,12 @@ end
 
 f=Fun(t->cos(t)+cos(3t),CosSpace)
 @test f(0.1) ≈ cos(0.1)+cos(3*0.1)
-@test (f.*f-Fun(t->(cos(t)+cos(3t))^2,CosSpace)).coefficients|>norm <100eps()
-
+@test (f*f-Fun(t->(cos(t)+cos(3t))^2,CosSpace)).coefficients|>norm <100eps()
 
 
 f=Fun(exp,Taylor(Circle()))
 @test f(exp(0.1im)) ≈ exp(exp(0.1im))
+@test f(1.0) ≈ exp(1.0)
 g=Fun(z->1./(z-.1),Hardy{false}(Circle()))
 @test (f(1.)+g(1.)) ≈ (exp(1.) + 1./(1-.1))
 
@@ -64,8 +64,6 @@ for f in (Fun(θ->sin(sin(θ)),SinSpace()),Fun(θ->cos(θ)+cos(3θ),CosSpace()),
             Fun(θ->sin(sin(θ)),Fourier()),Fun(θ->cos(θ)+cos(3θ),CosSpace()))
     @test norm(integrate(f)'-f)<10eps()
 end
-
-
 
 let f=Fun(exp,Circle())
     @test norm(f'-f)<100eps()

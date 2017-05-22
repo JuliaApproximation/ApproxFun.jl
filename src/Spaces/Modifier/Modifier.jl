@@ -18,14 +18,14 @@ function coefficients(cfs::Vector,A::SumSpace,B::SumSpace)
     if spacescompatible(A,B)
         cfs
     else
-        mapreduce(f->Fun(f,B),+,vec(Fun(A,cfs))).coefficients
+        mapreduce(f->Fun(f,B),+,components(Fun(A,cfs))).coefficients
     end
 end
 function coefficients(cfs::Vector,A::PiecewiseSpace,B::PiecewiseSpace)
     if spacescompatible(A,B)
         cfs
     else
-        mapreduce(f->Fun(f,B),+,pieces(Fun(A,cfs))).coefficients
+        mapreduce(f->Fun(f,B),+,components(Fun(A,cfs))).coefficients
     end
 end
 
@@ -52,11 +52,11 @@ end
 interlacewithzeros(cfs::Vector,k,B::DirectSumSpace) = interlacewithzeros(cfs,k,interlacer(B))
 
 function sumspacecoefficients(cfsin::Vector,A::Space,B::SumSpace)
-    m=length(B.spaces)
+    m=length(components(B))
 
     for k=1:m
-        if isconvertible(A,B[k])
-            cfs = coefficients(cfsin,A,B[k])
+        if isconvertible(A,component(B,k))
+            cfs = coefficients(cfsin,A,component(B,k))
             return interlacewithzeros(cfs,k,B)
         end
     end
@@ -65,11 +65,11 @@ function sumspacecoefficients(cfsin::Vector,A::Space,B::SumSpace)
 end
 
 function sumspacecoefficients(cfsin::Vector,A::Space,B::PiecewiseSpace)
-    m=length(B.spaces)
+    m=length(components(B))
 
     for k=1:m
-        if domain(B[k]) == domain(A) && isconvertible(A,B[k])
-            cfs = coefficients(cfsin,A,B[k])
+        if domain(component(B,k)) == domain(A) && isconvertible(A,component(B,k))
+            cfs = coefficients(cfsin,A,component(B,k))
             return interlacewithzeros(cfs,k,B)
         end
     end

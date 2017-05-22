@@ -35,6 +35,6 @@ function Base.join{IT<:Segment}(p1::AbstractVector{IT},p2::AbstractVector{IT})
 end
 
 function ∂{PD1<:ProductDomain,PD2<:ProductDomain}(d::UnionDomain{Tuple{PD1,PD2}})
-    bnd=map(d->pieces(∂(d)),d.domains)
+    bnd=map(d->components(∂(d)),d.domains)
     PiecewiseSegment(reduce(join,bnd))
 end

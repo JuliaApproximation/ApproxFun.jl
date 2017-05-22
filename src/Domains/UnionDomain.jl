@@ -1,6 +1,6 @@
 ## A domain representing a union of subdomains
 
-export UnionDomain
+export UnionDomain, components, component
 
 
 """
@@ -56,7 +56,7 @@ function Base.union(d1::Domain,d2::Domain)
     if isempty(Γ)
         UnionDomain(d1,d2)
     else
-        (d1\Γ)∪Γ∪(d2\Γ)
+        (d1\Γ) ∪ Γ ∪ (d2\Γ)
     end
 end
 
@@ -80,21 +80,18 @@ for op in (:(Base.first),:(Base.last))
 end
 
 #support tuple set
-for OP in (:(Base.start),:(Base.done),:(Base.endof),:(Base.getindex),:(Base.length),:(Base.next))
-    @eval $OP(S::UnionDomain,k...) = $OP(S.domains,k...)
-end
-
-pieces(d::UnionDomain) = [d.domains...]
-numpieces(d::UnionDomain) = length(d.domains)
+components(d::UnionDomain) = [d.domains...]
+component(d::UnionDomain,k) = d.domains[k]
+ncomponents(d::UnionDomain) = length(d.domains)
 
 arclength(d::UnionDomain) = mapreduce(arclength,+,d.domains)
 
 ==(d1::UnionDomain,d2::UnionDomain) =
-    length(d1)==length(d2)&&all(Bool[d1[k]==d2[k] for k=1:length(d1)])
+    ncomponents(d1)==ncomponents(d2) && all(Bool[component(d1,k) == component(d2,k) for k=1:ncomponents(d1)])
 
 
 Base.in(x,d::UnionDomain) = any(a->x∈a,d.domains)
-Base.issubset(a::Domain,d::UnionDomain) = (a∪d)==d
+Base.issubset(a::Domain,d::UnionDomain) = (a∪d) == d
 Base.reverse(d::UnionDomain) = UnionDomain(reverse(map(reverse,d.domains)))
 
 ∂(d::UnionDomain) = mapreduce(∂,union,d.domains)
@@ -107,7 +104,7 @@ function points(d::UnionDomain,n)
         vcat([points(d.domains[j],k) for j=r+1:length(d)]...)]
 end
 
-Base.rand(d::UnionDomain) = rand(d[rand(1:length(d))])
+Base.rand(d::UnionDomain) = rand(component(d,rand(1:length(d))))
 checkpoints(d::UnionDomain) = mapreduce(checkpoints,union,d.domains)
 
 function Base.merge(d1::UnionDomain,m::Segment)

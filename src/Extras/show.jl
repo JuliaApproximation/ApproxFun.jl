@@ -113,7 +113,8 @@ end
 
 
 
-function Base.show(io::IO,s::SumSpace)
+function Base.show(io::IO,ss::SumSpace)
+    s = components(ss)
     show(io,s[1])
     for sp in s[2:end]
         print(io,"⊕")
@@ -122,7 +123,8 @@ function Base.show(io::IO,s::SumSpace)
 end
 
 
-function Base.show(io::IO,s::PiecewiseSpace)
+function Base.show(io::IO,ss::PiecewiseSpace)
+    s = components(ss)
     show(io,s[1])
     for sp in s[2:end]
         print(io,"⨄")

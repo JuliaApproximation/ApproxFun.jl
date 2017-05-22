@@ -155,11 +155,11 @@ end
 
 
 @recipe function f{S<:ArraySpace,T<:Real}(g::Fun{S,T})
-    vec(g)
+    components(g)
 end
 
 @recipe function f{S<:PiecewiseSpace,T<:Real}(g::Fun{S,T})
-    p=pieces(g)
+    p=components(g)
     for k=1:length(p)
         @series begin
             primary := (k==1)

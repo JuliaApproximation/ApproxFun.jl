@@ -248,7 +248,7 @@ function rootsunit_coeffs{S,T<:Number}(c::Vector{T}, htol::Float64,clplan::Clens
 end
 
 
-extremal_args{S<:PiecewiseSpace}(f::Fun{S}) = cat(1,[extremal_args(fp) for fp in vec(f)]...)
+extremal_args{S<:PiecewiseSpace}(f::Fun{S}) = cat(1,[extremal_args(fp) for fp in components(f)]...)
 
 
 function extremal_args(f::Fun)
@@ -288,12 +288,12 @@ end
 for op in (:(Base.maximum),:(Base.minimum),:(Base.maxabs),:(Base.minabs))
     @eval begin
         $op{SV,DD<:UnionDomain,d,T<:Real}(f::Fun{PiecewiseSpace{SV,RealBasis,DD,d},T}) =
-            $op(map($op,vec(f)))
+            $op(map($op,components(f)))
     end
 end
 
 Base.extrema{SV,DD<:UnionDomain,d,T<:Real}(f::Fun{PiecewiseSpace{SV,RealBasis,DD,d},T}) =
-    mapreduce(extrema,(x,y)->extrema([x...;y...]),vec(f))
+    mapreduce(extrema,(x,y)->extrema([x...;y...]),components(f))
 
 
 
@@ -410,7 +410,7 @@ end
 roots{D}(f::Fun{Fourier{D}})=roots(Fun(f,Laurent))
 
 function roots{P<:PiecewiseSpace}(f::Fun{P})
-    rts=mapreduce(roots,vcat,vec(f))
+    rts=mapreduce(roots,vcat,components(f))
     k=1
     while k < length(rts)
         if isapprox(rts[k],rts[k+1])

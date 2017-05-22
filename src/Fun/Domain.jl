@@ -114,8 +114,8 @@ function Base.in(x,d::IntervalDomain)
         -100eps(T)/sc≤iy≤100eps(T)/sc
 end
 
-pieces(d::Domain)=[d]
-issubcomponent(a::Domain,b::Domain)=a in pieces(b)
+components(d::Domain) = [d]
+issubcomponent(a::Domain,b::Domain) = a in components(b)
 
 ###### Periodic domains
 

@@ -46,10 +46,10 @@ Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
 
 Evaluation(S::SumSpace,x,order) =
     EvaluationWrapper(S,x,order,
-        InterlaceOperator(hcat(map(s->Evaluation(s,x,order),S)...),SumSpace))
+        InterlaceOperator(hcat(map(s->Evaluation(s,x,order),components(S))...),SumSpace))
 
 
-ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V}) = interlace(map(ToeplitzOperator,mat(G)))
+ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V}) = interlace(map(ToeplitzOperator,Array(G)))
 
 ## Sum Space
 
@@ -115,33 +115,35 @@ end
 for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),
                         (:union_rule,:union))
     for TYP in (:SumSpace,:PiecewiseSpace)
-        @eval function $OPrule(S1::$TYP,S2::$TYP)
-            cs1,cs2=map(canonicalspace,S1.spaces),map(canonicalspace,S2.spaces)
-            if length(S1.spaces)!=length(S2.spaces)
+        @eval function $OPrule(S1sp::$TYP,S2sp::$TYP)
+            S1 = components(S1sp)
+            S2 = components(S2sp)
+            cs1,cs2=map(canonicalspace,S1),map(canonicalspace,S2)
+            if length(S1) != length(S2)
                 NoSpace()
-            elseif canonicalspace(S1)==canonicalspace(S2)  # this sorts S1 and S2
-                S1 ≤ S2?S1:S2  # choose smallest space by sorting
-            elseif cs1==cs2
+            elseif canonicalspace(S1sp) == canonicalspace(S2sp)  # this sorts S1 and S2
+                S1sp ≤ S2sp ? S1sp : S2sp  # choose smallest space by sorting
+            elseif cs1 == cs2
                 # we can just map down
                 # $TYP(map($OP,S1.spaces,S2.spaces))
                 # this is commented out due to Issue #13261
-                newspaces=[$OP(S1[k],S2[k]) for k=1:length(S1.spaces)]
+                newspaces = [$OP(S1[k],S2[k]) for k=1:length(S1)]
                 if any(b->b==NoSpace(),newspaces)
                     NoSpace()
                 else
                     $TYP(newspaces)
                 end
-            elseif sort([cs1...])== sort([cs2...])
+            elseif sort([cs1...]) == sort([cs2...])
                 # sort S1
                 p=perm(cs1,cs2)
-                $OP($TYP(S1.spaces[p]),S2)
-            elseif length(S1)==length(S2)==2  &&
-                    $OP(S1[1],S2[1])!=NoSpace() &&
-                    $OP(S1[2],S2[2])!=NoSpace()
+                $OP($TYP(S1[p]),S2)
+            elseif length(S1) == length(S2) == 2  &&
+                    $OP(S1[1],S2[1]) != NoSpace() &&
+                    $OP(S1[2],S2[2]) != NoSpace()
                 #TODO: general length
                 $TYP($OP(S1[1],S2[1]),
                      $OP(S1[2],S2[2]))
-            elseif length(S1)==length(S2)==2  &&
+            elseif length(S1) == length(S2) == 2  &&
                     $OP(S1[1],S2[2])!=NoSpace() &&
                     $OP(S1[2],S2[1])!=NoSpace()
                 #TODO: general length
@@ -164,14 +166,14 @@ end
 for TYP in (:PiecewiseSpace,:ArraySpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
                                                          (:Integral,:IntegralWrapper))
     @eval $Op(S::$TYP,k::Integer) =
-        $OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),S.spaces)...]),$TYP),k)
+        $OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),components(S))...]),$TYP),k)
 end
 
 function Derivative(S::SumSpace,k::Integer)
     # we want to map before we decompose, as the map may introduce
     # mixed bases.
     if typeof(canonicaldomain(S))==typeof(domain(S))
-        DerivativeWrapper(InterlaceOperator(Diagonal([map(s->Derivative(s,k),S.spaces)...]),SumSpace),k)
+        DerivativeWrapper(InterlaceOperator(Diagonal([map(s->Derivative(s,k),components(S))...]),SumSpace),k)
     else
         DefaultDerivative(S,k)
     end
@@ -183,36 +185,36 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->cho
 
 function Multiplication{S,T,DD,S2,T2,DD2,dim}(f::Fun{MatrixSpace{S,T,DD,dim}},sp::VectorSpace{S2,T2,DD2,dim})
     @assert size(space(f),2)==length(sp)
-    m=mat(f)
+    m=Array(f)
     MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp[j]) for k=1:size(m,1),j=1:size(m,2)]))
 end
 
 
 
 
-## Multiply pieces
+## Multiply components
 
 function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     p=perm(domain(f).domains,domain(sp).domains)  # sort f
-    vf=pieces(f)[p]
+    vf=components(f)[p]
 
     MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(Multiplication,vf,sp.spaces)...]),PiecewiseSpace))
 end
 
 Multiplication{SV1,SV2,T2,T1,D,d}(f::Fun{SumSpace{SV1,T1,D,d}},sp::SumSpace{SV2,T2,D,d}) =
-    MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,vec(f)))
+    MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,components(f)))
 Multiplication(f::Fun,sp::SumSpace) =
-    MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(s->Multiplication(f,s),vec(sp))...]),SumSpace))
+    MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(s->Multiplication(f,s),components(sp))...]),SumSpace))
 
 
 # we override coefficienttimes to split the multiplication down to components as union may combine spaes
 
-coefficienttimes{S1<:SumSpace,S2<:SumSpace}(f::Fun{S1},g::Fun{S2}) = mapreduce(ff->ff*g,+,vec(f))
-coefficienttimes{S1<:SumSpace}(f::Fun{S1},g::Fun) = mapreduce(ff->ff*g,+,vec(f))
-coefficienttimes{S2<:SumSpace}(f::Fun,g::Fun{S2}) = mapreduce(gg->f*gg,+,vec(g))
+coefficienttimes{S1<:SumSpace,S2<:SumSpace}(f::Fun{S1},g::Fun{S2}) = mapreduce(ff->ff*g,+,components(f))
+coefficienttimes{S1<:SumSpace}(f::Fun{S1},g::Fun) = mapreduce(ff->ff*g,+,components(f))
+coefficienttimes{S2<:SumSpace}(f::Fun,g::Fun{S2}) = mapreduce(gg->f*gg,+,components(g))
 
 
-coefficienttimes{S1<:PiecewiseSpace,S2<:PiecewiseSpace}(f::Fun{S1},g::Fun{S2})=depiece(map(coefficienttimes,pieces(f),pieces(g)))
+coefficienttimes{S1<:PiecewiseSpace,S2<:PiecewiseSpace}(f::Fun{S1},g::Fun{S2})=depiece(map(coefficienttimes,components(f),components(g)))
 
 
 ## Definite Integral
@@ -241,10 +243,10 @@ Base.getindex{PWS1<:PiecewiseSpace,PWS2<:PiecewiseSpace}(d::TensorSpace{Tuple{PW
 
 ##  Piecewise
 
-function pieces{PS<:PiecewiseSpace}(U::ProductFun{PS})
+function components{PS<:PiecewiseSpace}(U::ProductFun{PS})
     ps=space(U,1)
     sp2=space(U,2)
     m=length(ps)
     C=coefficients(U)
-    [ProductFun(C[k:m:end,:],ps[k],sp2) for k=1:m]
+    [ProductFun(C[k:m:end,:],component(ps,k),sp2) for k=1:m]
 end

@@ -15,7 +15,7 @@ Base.convert(::Type{HeavisideSpace},d::AbstractVector) =
     HeavisideSpace(PiecewiseSegment(sort(d)))
 
 spacescompatible{λ}(a::SplineSpace{λ},b::SplineSpace{λ}) = domainscompatible(a,b)
-canonicalspace(sp::HeavisideSpace) = PiecewiseSpace(map(Chebyshev,pieces(domain(sp))))
+canonicalspace(sp::HeavisideSpace) = PiecewiseSpace(map(Chebyshev,components(domain(sp))))
 
 
 function evaluate{T<:Real}(f::Fun{HeavisideSpace{T}},x::Real)
@@ -76,7 +76,7 @@ bandinds{HS<:HeavisideSpace}(D::ConcreteDerivative{HS})=-1,0
 rangespace{HS<:HeavisideSpace}(D::ConcreteDerivative{HS})=DiracSpace(domain(D).points)
 
 function getindex{HS<:HeavisideSpace}(D::ConcreteDerivative{HS},k::Integer,j::Integer)
-    n=numpieces(domain(D))
+    n=ncomponents(domain(D))
     if k≤n && j==k
         one(eltype(D))
     elseif j≤n && j==k-1

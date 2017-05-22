@@ -98,7 +98,8 @@ for OP in (:differentiate,:integrate)
     @eval $OP{T,D<:Circle}(f::Fun{Fourier{D},T}) = $OP(Fun(f,Laurent))
 end
 
-integrate{T,D<:PeriodicInterval}(f::Fun{Fourier{D},T}) = integrate(f[2])⊕integrate(f[1])
+integrate{T,D<:PeriodicInterval}(f::Fun{Fourier{D},T}) =
+    integrate(component(f,2))⊕integrate(component(f,1))
 
 
 

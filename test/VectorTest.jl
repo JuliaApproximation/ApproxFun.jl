@@ -101,12 +101,12 @@ f = devec([t^2, sin(t)])
 Γ=Circle() ∪ Circle(0.5)
 
 
-f=Fun(z->in(z,Γ[2])?1:z,Γ)
+f=Fun(z->in(z,component(Γ,2)) ? 1:z,Γ)
 @test f(exp(0.1im)) ≈ exp(0.1im)
 @test f(0.5exp(0.1im)) ≈ 1
 
 
-G=Fun(z->in(z,Γ[2])?[1 -z^(-1); 0 1]:
+G=Fun(z->in(z,component(Γ,2))?[1 -z^(-1); 0 1]:
                    [z 0; 0 z^(-1)],Γ);
 
 
@@ -115,7 +115,7 @@ G=Fun(z->in(z,Γ[2])?[1 -z^(-1); 0 1]:
 
 
 
-G1=demat(mat(G)[:,1])
+G1=demat(Array(G)[:,1])
 
 @test G1(exp(0.1im)) ≈ [exp(0.1im),0.]
 @test G1(0.5exp(0.1im)) ≈ [1,0.]

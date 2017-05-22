@@ -21,7 +21,7 @@ function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
     S = P.space
     n=length(vals)
     d=domain(S)
-    K=numpieces(d)
+    K=ncomponents(d)
     k=div(n,K)
 
     PT=promote_type(eltype(eltype(d)),eltype(vals))
@@ -83,28 +83,27 @@ function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
     end
 end
 
-canonicalspace(S::ContinuousSpace) = PiecewiseSpace(map(ChebyshevDirichlet{1,1},pieces(domain(S))))
+canonicalspace(S::ContinuousSpace) = PiecewiseSpace(map(ChebyshevDirichlet{1,1},components(domain(S))))
 
 
 
 
 
-blocklengths(C::ContinuousSpace) = repeated(numpieces(C.domain))
+blocklengths(C::ContinuousSpace) = repeated(ncomponents(C.domain))
 
-block(C::ContinuousSpace,k)::Block = (k-1)÷numpieces(C.domain)+1
+block(C::ContinuousSpace,k)::Block = (k-1)÷ncomponents(C.domain)+1
 
 
-## pieces
+## components
 
-Base.vec{T}(f::Fun{ContinuousSpace{T}},j::Integer) = vec(Fun(f,canonicalspace(f)),j)
-Base.vec{T}(f::Fun{ContinuousSpace{T}}) = vec(Fun(f,canonicalspace(space(f))))
-pieces{T}(f::Fun{ContinuousSpace{T}}) = vec(f)
+components{T}(f::Fun{ContinuousSpace{T}},j::Integer) = components(Fun(f,canonicalspace(f)),j)
+components{T}(f::Fun{ContinuousSpace{T}}) = components(Fun(f,canonicalspace(space(f))))
 
 
 function points{T}(f::Fun{ContinuousSpace{T}})
     n=ncoefficients(f)
     d=domain(f)
-    K=numpieces(d)
+    K=ncomponents(d)
 
     m=isperiodic(d)?max(K,n+2K-1):n+K
     points(f.space,m)
@@ -128,14 +127,14 @@ Conversion{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
 
 bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
          DD,T}(C::ConcreteConversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace{T}}) =
-    -1,numpieces(domain(rangespace(C)))
+    -1,ncomponents(domain(rangespace(C)))
 
 
 function getindex{T,DD,TT,
                   CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(C::ConcreteConversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace{TT},T},
                                                               k::Integer,j::Integer)
     d=domain(rangespace(C))
-    K=numpieces(d)
+    K=ncomponents(d)
     if isperiodic(d)
         if k==j==1
             one(T)
@@ -167,15 +166,15 @@ end
 bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
          DD,T}(C::ConcreteConversion{ContinuousSpace{T},
                                      PiecewiseSpace{CD,RealBasis,DD,1}}) =
-            isperiodic(domainspace(C)) ? (1-2numpieces(domain(rangespace(C))),1) :
-                                         (-numpieces(domain(rangespace(C))),1)
+            isperiodic(domainspace(C)) ? (1-2ncomponents(domain(rangespace(C))),1) :
+                                         (-ncomponents(domain(rangespace(C))),1)
 
 function getindex{T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},TT,
                   DD}(C::ConcreteConversion{ContinuousSpace{TT},
                                             PiecewiseSpace{CD,RealBasis,DD,1},T},
                       k::Integer,j::Integer)
     d=domain(domainspace(C))
-    K=numpieces(d)
+    K=ncomponents(d)
     if isperiodic(d)
         if k < K && (j==k || j==k+1)
             one(T)/2

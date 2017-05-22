@@ -372,7 +372,7 @@ function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},M::Matrix)
         M[:,k]=T.plan[1][1]*M[:,k]
     end
     for k=1:n
-        M[k,:]=T.plan[2][1]*vec(M[k,:])
+        M[k,:]=T.plan[2][1]*M[k,:]
     end
     M
 end
@@ -425,9 +425,9 @@ function itransform!(S::TensorSpace,M::Matrix)
         M[:,k] = planc*M[:,k]
     end
 
-    planr=plan_itransform(space(S,2),vec(M[1,:]))
+    planr=plan_itransform(space(S,2),M[1,:])
     for k=1:n
-        M[k,:]=planr*vec(M[k,:])
+        M[k,:]=planr*M[k,:]
     end
     M
 end
@@ -442,7 +442,7 @@ function itransform!(S::AbstractProductSpace,M::Matrix)
     end
 
     for k=1:n
-        M[k,:]=itransform(space(S,2),vec(M[k,:]))
+        M[k,:]=itransform(space(S,2),M[k,:])
     end
     M
 end
@@ -455,7 +455,7 @@ function transform!{T}(S::TensorSpace,M::Matrix{T})
     # For Disk Space, this is due to requiring decay
     # in function
     for k=1:n
-        M[k,:]=transform(space(S,2),vec(M[k,:]))
+        M[k,:]=transform(space(S,2),M[k,:])
     end
 
     pln=plan_column_transform(S,n)
@@ -481,7 +481,7 @@ function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
     # For Disk Space, this is due to requiring decay
     # in function
     for k=1:n
-        M[k,:]=transform(space(S,2),vec(M[k,:]))
+        M[k,:]=transform(space(S,2),M[k,:])
     end
 
     pln=plan_column_transform(S,n)
