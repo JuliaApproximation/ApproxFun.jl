@@ -32,7 +32,8 @@ function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
         r=n-K*k
 
         for j=1:r
-            cfs=transform(ChebyshevDirichlet{1,1}(d[j]),vals[(j-1)*(k+1)+1:j*(k+1)])
+            cfs=transform(ChebyshevDirichlet{1,1}(component(d,j)),
+                          vals[(j-1)*(k+1)+1:j*(k+1)])
             if j==1
                 ret[1]=cfs[1]-cfs[2]
                 ret[2]=cfs[1]+cfs[2]
@@ -43,7 +44,8 @@ function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
         end
 
         for j=r+1:K
-            cfs=transform(ChebyshevDirichlet{1,1}(d[j]),vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
+            cfs=transform(ChebyshevDirichlet{1,1}(component(d,j)),
+                          vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
             if length(cfs)==1 && j <K
                 ret[j+1]=cfs[1]
             elseif j==1
@@ -61,7 +63,8 @@ function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
         r=n-K*k
 
         for j=1:r
-            cfs=transform(ChebyshevDirichlet{1,1}(d[j]),vals[(j-1)*(k+1)+1:j*(k+1)])
+            cfs=transform(ChebyshevDirichlet{1,1}(component(d,j)),
+                          vals[(j-1)*(k+1)+1:j*(k+1)])
             if j==1
                 ret[1]=cfs[1]-cfs[2]
             end
@@ -71,7 +74,8 @@ function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
         end
 
         for j=r+1:K
-            cfs=transform(ChebyshevDirichlet{1,1}(d[j]),vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
+            cfs=transform(ChebyshevDirichlet{1,1}(component(d,j)),
+                          vals[r*(k+1)+(j-r-1)*k+1:r*(k+1)+(j-r)*k])
             if j==1
                 ret[1]=cfs[1]-cfs[2]
             end

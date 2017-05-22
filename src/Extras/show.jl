@@ -40,7 +40,8 @@ Base.show(io::IO,d::Circle)=print(io,(d.radius==1?"":string(d.radius))*(d.orient
 Base.show(io::IO,d::Point)=print(io,"Point($(d.x))")
 
 
-function Base.show(io::IO,s::UnionDomain)
+function Base.show(io::IO,d::UnionDomain)
+    s = components(d)
     show(io,s[1])
     for d in s[2:end]
         print(io,"∪")

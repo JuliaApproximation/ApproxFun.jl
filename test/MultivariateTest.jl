@@ -178,7 +178,7 @@ dx=dy=Interval()
 d=dx*dy
 
 x,y=Fun(∂(d))
-x,y=vec(x),vec(y)
+x,y=components(x),components(y)
 
 g=[real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
 B=[eye(dx)⊗ldirichlet(dy);ldirichlet(dx)⊗eye(dy);eye(dx)⊗rdirichlet(dy);rneumann(dx)⊗eye(dy)]

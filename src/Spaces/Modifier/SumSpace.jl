@@ -503,7 +503,7 @@ function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::Vector{T})
 end
 
 *{T,PS<:PiecewiseSpace}(P::ITransformPlan{T,PS,false},cfs::Vector{T}) =
-    vcat([itransform(P.space.spaces[j],Fun(P.space,cfs)[j].coefficients) for j=1:ncomponents(P.space)]...)
+    vcat([itransform(P.space.spaces[j],component(Fun(P.space,cfs),j).coefficients) for j=1:ncomponents(P.space)]...)
 
 
 

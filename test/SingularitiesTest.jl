@@ -183,7 +183,7 @@ w=sqrt(abs(first(d)-x))*sqrt(abs(last(d)-x))
 a,b=DiracDelta(0.),DiracDelta(1.)
 f=Fun(exp)
 g=a+0.2b+f
-@test pieces(g)[2](0.) ≈ 1.
+@test components(g)[2](0.) ≈ 1.
 @test g(.1) ≈ exp(.1)
 @test sum(g) ≈ (sum(f)+1.2)
 

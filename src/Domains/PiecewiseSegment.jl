@@ -30,7 +30,7 @@ end
 canonicaldomain(d::PiecewiseSegment)=d
 ncomponents(d::PiecewiseSegment)=length(d.points)-1
 component(d::PiecewiseSegment,j::Integer) = Segment(d.points[j],d.points[j+1])
-components{T}(d::PiecewiseSegment{T}) = Segment{T}[d[k] for k=1:ncomponents(d)]
+components{T}(d::PiecewiseSegment{T}) = Segment{T}[component(d,k) for k=1:ncomponents(d)]
 
 for OP in (:arclength,:complexlength)
     @eval $OP(d::PiecewiseSegment) = mapreduce($OP,+,components(d))

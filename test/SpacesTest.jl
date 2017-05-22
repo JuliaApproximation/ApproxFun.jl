@@ -152,7 +152,7 @@ o=ones(Γ)
 @test o(1.) ≈ 1.0
 @test o(0.4) ≈ 1.0
 
-G=Fun(z->in(z,Γ[2])?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
+G=Fun(z->in(z,component(Γ,2))?[1 0; -1/z 1]:[z 0; 0 1/z],Γ)
 @test (G-I)(exp(0.1im)) ≈ (G(exp(0.1im))-I)
 
 
@@ -205,10 +205,10 @@ z=Fun(identity,Arc(0.,.1,0.,π/2))
 
 Γ=Segment(-im,1.0-im) ∪ Curve(Fun(x->exp(0.8im)*(x+x^2-1+im*(x-4x^3+x^4)/6))) ∪ Circle(2.0,0.2)
 
-@test isempty(Γ[1]\Γ[1])
-@test Γ\Γ[1] == Γ[2]∪Γ[3]
+@test isempty(component(Γ,1)\component(Γ,1))
+@test Γ\component(Γ,1) == component(Γ,2) ∪ component(Γ,3)
 
-@test norm(Fun(ones(Γ[1]),Γ) - Fun(x->x ∈ Γ[1]?1.0:0.0,Γ)) == 0
+@test norm(Fun(ones(component(Γ,1)),Γ) - Fun(x->x ∈ component(Γ,1) ? 1.0 : 0.0,Γ)) == 0
 
 
 ## Line

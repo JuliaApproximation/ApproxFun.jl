@@ -50,5 +50,6 @@ println("Roots: Time should be ~0.08")
 
 
 x=Fun()
+exp(10000*im*x)
 @time exp(10000*im*x)
 println("Complex exp: Time should be 0.03")
