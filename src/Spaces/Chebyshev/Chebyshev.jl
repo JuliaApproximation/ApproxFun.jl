@@ -74,7 +74,7 @@ function clenshaw(::Chebyshev,c::AbstractVector,x)
 
     x = 2x
     bk1,bk2 = zero(T),zero(T)
-    for k = N:-1:2
+    @inbounds for k = N:-1:2
         bk2, bk1 = bk1, muladd(x,bk1,c[k]-bk2)
     end
 

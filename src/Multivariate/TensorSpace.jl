@@ -24,6 +24,8 @@ immutable Tensorizer{DMS<:Tuple}
     blocks::DMS
 end
 
+const TrivialTensorizer{d} = Tensorizer{NTuple{d,Repeated{Bool}}}
+
 Base.eltype(a::Tensorizer) = NTuple{length(a.blocks),Int}
 Base.eltype{d,T}(::Tensorizer{NTuple{d,T}}) = NTuple{d,Int}
 dimensions(a::Tensorizer) = map(sum,a.blocks)
@@ -65,7 +67,7 @@ end
 
 cache(a::Tensorizer) = CachedIterator(a)
 
-function Base.findfirst(::Tensorizer{NTuple{2,Repeated{Bool}}},kj::Tuple{Int,Int})
+function Base.findfirst(::TrivialTensorizer{2},kj::Tuple{Int,Int})
     k,j=kj
     if k > 0 && j > 0
         n=k+j-2
@@ -93,10 +95,10 @@ end
 # equivalent to sum of indices -1
 
 # block(it::Tensorizer,k)::Block = sum(it[k])-length(it.blocks)+1
-block{T}(ci::CachedIterator{T,Tensorizer{NTuple{2,Repeated{Bool}}}},k::Int)::Block =
+block{T}(ci::CachedIterator{T,TrivialTensorizer{2}},k::Int)::Block =
     k == 0 ? 0 : sum(ci[k])-length(ci.iterator.blocks)+1
 
-block(::Tensorizer{NTuple{2,Repeated{Bool}}},n::Int)::Block =
+block(::TrivialTensorizer{2},n::Int)::Block =
     floor(Integer,sqrt(2n) + 1/2)
 
 block{S,T}(sp::Tensorizer{Tuple{Repeated{S},Repeated{T}}},n::Int)::Block =
@@ -134,14 +136,14 @@ blocklength(it,k) = blocklengths(it)[k]
 blocklength(it,k::Block) = blocklength(it,k.K)
 blocklength(it,k::Range{Block}) = blocklength(it,Int.(k))
 
-blocklengths(::Tensorizer{NTuple{2,Repeated{Bool}}}) = 1:∞
+blocklengths(::TrivialTensorizer{2}) = 1:∞
 
 
 
 blocklengths(it::Tensorizer) = tensorblocklengths(it.blocks...)
 blocklengths(it::CachedIterator) = blocklengths(it.iterator)
 
-function getindex(it::Tensorizer{NTuple{2,Repeated{Bool}}},n::Integer)
+function getindex(it::TrivialTensorizer{2},n::Integer)
     m=block(it,n)
     p=findfirst(it,(1,m))
     j=1+n-p
@@ -175,10 +177,10 @@ blockrange(it,K::UnitRange{Block}) = blockstart(it,K[1]):blockstop(it,K[end])
 
 
 # convert from block, subblock to tensor
-subblock2tensor(rt::Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},K,k) =
+subblock2tensor(rt::TrivialTensorizer{2},K,k) =
     (k,K.K-k+1)
 
-subblock2tensor{II}(rt::CachedIterator{II,Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}}},K,k) =
+subblock2tensor{II}(rt::CachedIterator{II,TrivialTensorizer{2}},K,k) =
     (k,K.K-k+1)
 
 

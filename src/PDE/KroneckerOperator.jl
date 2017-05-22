@@ -376,7 +376,7 @@ end
 
 
 const Trivial2DTensorizer = CachedIterator{Tuple{Int64,Int64},
-                                             Tensorizer{Tuple{Repeated{Bool},Repeated{Bool}}},
+                                             TrivialTensorizer{2},
                                              Tuple{Tuple{Int64,Int64},Tuple{Int64,Int64},
                                                    Tuple{Int64,Int64},Tuple{Bool,Bool},
                                                    Tuple{Int64,Infinity{Bool}}}}

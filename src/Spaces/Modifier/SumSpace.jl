@@ -12,11 +12,15 @@ immutable BlockInterlacer{DMS<:Tuple}
     blocks::DMS
 end
 
+
+const TrivialInterlacer{d} = BlockInterlacer{NTuple{d,Repeated{Bool}}}
+
 BlockInterlacer(v::Vector) = BlockInterlacer(tuple(v...))
 
 Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
 
 dimensions(b::BlockInterlacer) = map(sum,b.blocks)
+dimension(b::BlockInterlacer,k) = sum(b.blocks[k])
 Base.length(b::BlockInterlacer) = mapreduce(length,+,b.blocks)
 
 # the state is always (whichblock,curblock,cursubblock,curcoefficients)
@@ -359,13 +363,14 @@ identity_fun(S::PiecewiseSpace) = depiece(map(identity_fun,S.spaces))
 
 # vec
 
-function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
-    it=interlacer(space(f))
-    N=length(f.coefficients)
-    d=dimension(space(f,k))
+interlaced_getindex(it::TrivialInterlacer{d},cfs,k) where {d} = cfs[k:d:end]
+
+function interlaced_getindex(it,cfs,k)
+    N=length(cfs)
+    d=dimension(it,k)
 
     # preallocate: we know we have at most N coefficients
-    ret=Array{eltype(f)}(N)
+    ret=Array{eltype(cfs)}(N)
     j=1  # current coefficient
     p=0  # current length
     for (n,m) in it
@@ -373,7 +378,7 @@ function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
             break
         end
         if n==k
-            ret[m]=f.coefficients[j]
+            ret[m] = cfs[j]
             p+=1
             if m ≥ d
                 # if we've reached the dimension, we are done
@@ -382,9 +387,11 @@ function Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer)
         end
         j+=1
     end
-    resize!(ret,p)  # through out extra coefficients
-    Fun(space(f,k),ret)
+    resize!(ret,p)  # throw out extra coefficients
 end
+
+Base.getindex{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer) =
+    Fun(space(f,k),interlaced_getindex(interlacer(space(f)),f.coefficients,k))
 
 
 # interlace coefficients according to iterator
