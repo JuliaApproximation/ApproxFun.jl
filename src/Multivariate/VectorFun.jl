@@ -92,7 +92,7 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 #TODO: Use Base?
 for op = (:+,:-)
     @eval begin
-        ($op)(f::Fun,c::AbstractArray{T}) where {T<:Number} = devec($op(Array(f),c))
-        ($op)(c::AbstractArray{T},f::Fun) where {T<:Number} = devec($op(c,Array(f)))
+        ($op)(f::Fun,c::AbstractArray{T}) where {T<:Number} = Fun($op(Array(f),c))
+        ($op)(c::AbstractArray{T},f::Fun) where {T<:Number} = Fun($op(c,Array(f)))
     end
 end

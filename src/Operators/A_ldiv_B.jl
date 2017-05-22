@@ -35,7 +35,7 @@ function \(A::Operator,B::AbstractMatrix;kwds...)
     for j=1:size(B,2)
         ret[:,j]=\(A,B[:,j];kwds...)
     end
-    demat(ret)
+    Fun(ret)
 end
 
 A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b;kwds...)

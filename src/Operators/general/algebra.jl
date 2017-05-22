@@ -619,7 +619,7 @@ A_mul_B_coefficients(A::PlusOperator,b::Fun) =
 for TYP in (:TimesOperator,:Operator)
     @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
         @assert size(b,1)==1
-        demat([A*bk  for bk in b])
+        Fun([A*bk  for bk in b])
     end
 end
 

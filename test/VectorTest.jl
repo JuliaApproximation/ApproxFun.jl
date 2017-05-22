@@ -90,7 +90,7 @@ L=[B;D-A]
 
 d = Interval()
 t=Fun(identity,d)
-f = devec([t^2, sin(t)])
+f = Fun([t^2, sin(t)])
 @test norm(((Derivative(space(f))*f)-Fun(t->[2t,cos(t)])).coefficients)<100eps()
 @test norm((([1 2;3 4]*f)-Fun(t->[t^2+2sin(t),3t^2+4sin(t)])).coefficients)<100eps()
 
@@ -115,7 +115,7 @@ G=Fun(z->in(z,component(Γ,2))?[1 -z^(-1); 0 1]:
 
 
 
-G1=demat(Array(G)[:,1])
+G1=Fun(Array(G)[:,1])
 
 @test G1(exp(0.1im)) ≈ [exp(0.1im),0.]
 @test G1(0.5exp(0.1im)) ≈ [1,0.]

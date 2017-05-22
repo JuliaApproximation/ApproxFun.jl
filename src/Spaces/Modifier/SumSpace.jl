@@ -1,4 +1,4 @@
-export ⊕,depiece,components,PiecewiseSpace
+export ⊕,components,PiecewiseSpace
 
 
 
@@ -321,7 +321,7 @@ function Base.cumsum{V<:PiecewiseSpace}(f::Fun{V})
         vf[k]=cumsum(vf[k]) + r
         r=last(vf[k])
     end
-    depiece(vf)
+    Fun(vf,PiecewiseSpace)
 end
 
 Base.cumsum{V<:PiecewiseSpace}(f::Fun{V},d::Domain) =
@@ -340,21 +340,21 @@ linebilinearform{S<:PiecewiseSpace,V<:PiecewiseSpace}(f::Fun{S},g::Fun{V}) =
 
 function Base.ones{T<:Number}(::Type{T},S::SumSpace)
     @assert ncomponents(S) == 2
-    if isconvertible(ConstantSpace(),S.spaces[1])
-        ones(T,S[1])⊕zeros(T,S[2])
+    if isconvertible(ConstantSpace(),component(S,1))
+        ones(T,component(S,1)) ⊕ zeros(T,component(S,2))
     else
-        zeros(T,S[1])⊕ones(T,S[2])
+        zeros(T,component(S,1)) ⊕ ones(T,component(S,2))
     end
 end
 
 Base.ones(S::SumSpace) = ones(Float64,S)
 
 Base.ones{T<:Number,SS,V}(::Type{T},S::PiecewiseSpace{SS,V}) =
-    depiece(map(ones,components(S)))
+    Fun(map(ones,components(S)),PiecewiseSpace)
 Base.ones(S::PiecewiseSpace) = ones(Float64,S)
 
 
-identity_fun(S::PiecewiseSpace) = depiece(map(identity_fun,S.spaces))
+identity_fun(S::PiecewiseSpace) = Fun(map(identity_fun,S.spaces),PiecewiseSpace)
 
 # components
 
@@ -437,22 +437,16 @@ end
 
 components{S<:DirectSumSpace}(f::Fun{S}) = Fun[component(f,j) for j=1:ncomponents(f)]
 
-for (Dep,Sp) in ((:depiece,:PiecewiseSpace),)
-    @eval begin
-        function $Dep{F<:Fun}(v::Vector{F})
-            spaces=map(space,v)
-            sp=$Sp(spaces)
-            Fun(sp,interlace(v,sp))
-        end
-        function $Dep(v::Tuple)
-            spaces=map(space,v)
-            sp=$Sp(spaces)
-            Fun(sp,interlace(v,sp))
-        end
-
-        $Dep(v::Vector{Any})=$Dep(tuple(v...))
-    end
+function Fun{F<:Fun}(v::Vector{F},::Type{PiecewiseSpace})
+    sp = PiecewiseSpace(map(space,v))
+    Fun(sp,interlace(v,sp))
 end
+function Fun(v::Tuple,::Type{PiecewiseSpace})
+    sp=PiecewiseSpace(map(space,v))
+    Fun(sp,interlace(v,sp))
+end
+
+Fun(v::Vector{Any},::Type{PiecewiseSpace}) = Fun(tuple(v...),PiecewiseSpace)
 
 interlace{FF<:Fun}(f::AbstractVector{FF}) = vcat(f...)
 

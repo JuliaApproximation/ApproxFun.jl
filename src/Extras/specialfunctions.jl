@@ -302,7 +302,8 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
     L,R = parse(ODE),parse(RHS)
     @eval begin
         # depice before doing op
-        $op{PW<:PiecewiseSpace}(f::Fun{PW}) = depiece(map(f->$op(f),components(f)))
+        $op{PW<:PiecewiseSpace}(f::Fun{PW}) =
+            Fun(map(f->$op(f),components(f)),PiecewiseSpace)
 
         # We remove the MappedSpace
         # function $op{MS<:MappedSpace}(f::Fun{MS})
@@ -621,16 +622,16 @@ end
 ## PIecewiseSpace
 # map over components
 
-/{S<:PiecewiseSpace}(c::Number,f::Fun{S}) = depiece(map(f->c/f,components(f)))
-^{S<:PiecewiseSpace}(f::Fun{S},c::Integer) = depiece(map(f->f^c,components(f)))
-^{S<:PiecewiseSpace}(f::Fun{S},c::Number) = depiece(map(f->f^c,components(f)))
+/{S<:PiecewiseSpace}(c::Number,f::Fun{S}) = Fun(map(f->c/f,components(f)),PiecewiseSpace)
+^{S<:PiecewiseSpace}(f::Fun{S},c::Integer) = Fun(map(f->f^c,components(f)),PiecewiseSpace)
+^{S<:PiecewiseSpace}(f::Fun{S},c::Number) = Fun(map(f->f^c,components(f)),PiecewiseSpace)
 
 
 
 for OP in (:(abs),:(sign),:(log))
     @eval begin
-        $OP{S,DD,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,DD,1},T}) = depiece(map($OP,components(f)))
-        $OP{S,DD,B}(f::Fun{PiecewiseSpace{S,B,DD,1}}) = depiece(map($OP,components(f)))
+        $OP{S,DD,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,DD,1},T}) = Fun(map($OP,components(f)),PiecewiseSpace)
+        $OP{S,DD,B}(f::Fun{PiecewiseSpace{S,B,DD,1}}) = Fun(map($OP,components(f)),PiecewiseSpace)
     end
 end
 
