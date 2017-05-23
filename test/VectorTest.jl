@@ -2,6 +2,115 @@ using ApproxFun,Base.Test
     import ApproxFun:interlace,Multiplication,ConstantSpace,PointSpace,ArraySpace,testblockbandedoperator
 
 
+## Vector*Vector{Fun}
+
+@test ([1 2]*f)(0.1) ≈ [1 2]*f(0.1)
+@test_broken f.'*[1,2] ≈ f(0.1).'*[1,2]
+
+## Matrix*Vector{Fun}
+
+a = [1 2; 3 4]
+# Chebyshev Vector
+f = Fun(x->[exp(x),cos(x)])
+@test (a*f)(0.1) ≈ [exp(0.1)+2cos(0.1); 3exp(0.1)+4cos(0.1)]
+@test (a*f)(0.1) ≈ a*f(0.1)
+@test Fun(a)*f ≈ a*f
+@test Fun(a*Array(f)) ≈ a*f
+
+@test (f+1)(0.1) ≈ f(0.1)+1
+
+
+# Chebyshev Matrix
+m = Fun(x->[exp(x) cos(x); sin(x) airyai(x)])
+@test (a*m)(0.1) ≈ [exp(0.1)+2sin(0.1) cos(0.1)+2airyai(0.1);
+                    3exp(0.1)+4sin(0.1) 3cos(0.1)+4airyai(0.1)]
+@test (a*m)(0.1) ≈ a*m(0.1)
+@test (m*a)(0.1) ≈ m(0.1)*a
+@test Fun(a)*m   ≈ a*m
+@test m*Fun(a)   ≈ m*a
+@test Fun(a*Array(m))   ≈ a*m
+@test Fun(Array(m)*a)   ≈ m*a
+
+@test (a+m)(0.1) ≈ a+m(0.1)
+@test (m+a)(0.1) ≈ m(0.1)+a
+
+@test (m+1)(0.1) ≈ m(0.1)+1
+@test (m+I)(0.1) ≈ m(0.1)+I
+
+
+# CosSpace Vector
+f = Fun(θ->[1,cos(θ)],CosSpace())
+@test (a*f)(0.1) ≈ [1+2cos(0.1); 3+4cos(0.1)]
+@test (a*f)(0.1) ≈ a*f(0.1)
+@test Fun(a)*f ≈ a*f
+@test Fun(a*Array(f)) ≈ a*f
+
+@test (f+1)(0.1) ≈ f(0.1)+1
+
+# CosSpace Matrix
+m = Fun(θ->[1 cos(θ); cos(2θ) cos(cos(θ))],CosSpace())
+@test (a*m)(0.1) ≈ a*m(0.1)
+@test (m*a)(0.1) ≈ m(0.1)*a
+@test Fun(a)*m   ≈ a*m
+@test Fun(a*Array(m))   ≈ a*m
+
+@test (a+m)(0.1) ≈ a+m(0.1)
+@test (m+a)(0.1) ≈ m(0.1)+a
+
+@test (m+1)(0.1) ≈ m(0.1)+1
+@test (m+I)(0.1) ≈ m(0.1)+I
+
+
+# SinSpace Vector
+f = Fun(θ->[sin(θ),sin(2θ)],SinSpace())
+@test (a*f)(0.1) ≈ a*f(0.1)
+@test Fun(a)*f ≈ a*f
+@test Fun(a*Array(f)) ≈ a*f
+
+@test all(sp -> sp isa SinSpace, space(a*f).spaces)
+
+@test (f+1)(0.1) ≈ f(0.1)+1
+
+# SinSpace Matrix
+# CosSpace Matrix
+m = Fun(θ->[sin(3θ) sin(θ); sin(2θ) sin(sin(θ))],SinSpace())
+@test (a*m)(0.1) ≈ a*m(0.1)
+@test (m*a)(0.1) ≈ m(0.1)*a
+@test Fun(a)*m   ≈ a*m
+@test Fun(a*Array(m))   ≈ a*m
+
+@test all(sp -> sp isa SinSpace, space(a*m).spaces)
+
+@test (a+m)(0.1) ≈ a+m(0.1)
+@test (m+a)(0.1) ≈ m(0.1)+a
+
+@test (m+1)(0.1) ≈ m(0.1)+1
+@test (m+I)(0.1) ≈ m(0.1)+I
+
+# Fourier Vector
+f = Fun(θ->[sin(θ),sin(2θ)],Fourier())
+@test (a*f)(0.1) ≈ a*f(0.1)
+@test Fun(a)*f ≈ a*f
+@test Fun(a*Array(f)) ≈ a*f
+
+
+
+
+## Matrix{Fun}*Matrix{Fun}
+
+x=Fun()
+
+A = [x x; x x]
+
+@test norm(map(norm,A*A-[2x^2 2x^2; 2x^2 2x^2])) <eps()
+
+@test norm((A*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
+@test norm((Fun(A)*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
+
+
+
+
+
 d=Interval()
 D=Derivative(d);
 B=ldirichlet();
@@ -192,15 +301,3 @@ D=Derivative()
 
 u=D*[Fun(exp) Fun(cos)]
 @test u(0.1) ≈ [exp(0.1) -sin(0.1)]
-
-
-## Check multiplication of matrices of Fun and Matrix fun
-
-x=Fun()
-
-A = [x x; x x]
-
-@test norm(map(norm,A*A-[2x^2 2x^2; 2x^2 2x^2])) <eps()
-
-@test norm((A*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
-@test norm((Fun(A)*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()

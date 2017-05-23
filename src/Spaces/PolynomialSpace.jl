@@ -3,7 +3,7 @@
 
 abstract type PolynomialSpace{D} <: RealUnivariateSpace{D} end
 
-
+@containsconstants PolynomialSpace
 
 Multiplication{U<:PolynomialSpace}(f::Fun{U},sp::PolynomialSpace) = ConcreteMultiplication(f,sp)
 bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) =
@@ -11,11 +11,7 @@ bandinds{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) 
 rangespace{U<:PolynomialSpace,V<:PolynomialSpace}(M::ConcreteMultiplication{U,V}) = domainspace(M)
 
 
-# All polynomials contain constant
-union_rule(A::ConstantSpace,B::PolynomialSpace) = B
-Base.promote_rule{T<:Number,S<:PolynomialSpace,V,VV}(::Type{Fun{S,V,VV}},::Type{T}) =
-    VFun{S,promote_type(V,T)}
-Base.promote_rule{T<:Number,S<:PolynomialSpace}(::Type{Fun{S}},::Type{T}) = VFun{S,T}
+
 
 ## Evaluation
 

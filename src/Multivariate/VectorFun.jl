@@ -60,39 +60,29 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 
 
 ## Algebra
-
-## scalar fun times vector
-
-
- for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
-     @eval begin
-         function ($op)(A::Array{T,2}, p::Vector{Fun{D,V,VT}}) where {T<:Number,V<:Number,D,VT}
-             cfs=$op(A,coefficientmatrix(p).')
-             ret = Vector{VFun{D,promote_type(T,V)}}(size(cfs,1))
-             for i = 1:size(cfs,1)
-                 ret[i] = chop!(Fun(first(p).space,cfs[i,:]),eps())
-             end
-             ret
-         end
-
-         function ($op)(p::Vector{Fun{D,T,VT}},A::Array{T,2}) where {T<:Number,D,VT}
-             cfs=$op(A,coefficientmatrix(p).')
-             ret = Vector{VFun{D,T}}(size(cfs,1))
-             for i = 1:size(cfs,1)
-                 ret[i] = chop!(Fun(first(p).space,cfs[i,:]),eps())
-             end
-             ret
-         end
-     end
- end
-
-
-#Allow vecfun + constvec, etc
-#can't just promote constant vector to a vector-valued fun because don't know the domain.
-#TODO: Use Base?
-for op = (:+,:-)
-    @eval begin
-        ($op)(f::Fun,c::AbstractArray{T}) where {T<:Number} = Fun($op(Array(f),c))
-        ($op)(c::AbstractArray{T},f::Fun) where {T<:Number} = Fun($op(c,Array(f)))
-    end
-end
+#
+# ## scalar fun times vector
+# #TODO: This is probably more efficient than the current implementation, but it
+# # is too hacky to keep for now
+#
+#  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
+#      @eval begin
+#          function ($op)(A::Array{T,2}, p::Vector{Fun{D,V,VT}}) where {T<:Number,V<:Number,D,VT}
+#              cfs=$op(A,coefficientmatrix(p).')
+#              ret = Vector{VFun{D,promote_type(T,V)}}(size(cfs,1))
+#              for i = 1:size(cfs,1)
+#                  ret[i] = chop!(Fun(first(p).space,cfs[i,:]),eps())
+#              end
+#              ret
+#          end
+#
+#          function ($op)(p::Vector{Fun{D,T,VT}},A::Array{T,2}) where {T<:Number,D,VT}
+#              cfs=$op(A,coefficientmatrix(p).')
+#              ret = Vector{VFun{D,T}}(size(cfs,1))
+#              for i = 1:size(cfs,1)
+#                  ret[i] = chop!(Fun(first(p).space,cfs[i,:]),eps())
+#              end
+#              ret
+#          end
+#      end
+#  end

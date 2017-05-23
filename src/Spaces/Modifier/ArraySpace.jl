@@ -140,7 +140,7 @@ Space{S<:Space}(spl::Vector{S}) = ArraySpace(spl)
 
 
 #TODO: rewrite
-function Fun{FF<:Fun}(v::Array{FF})
+function Fun(v::Array{FF}) where {FF<:Fun}
     ff=Fun(vec(v))  # A vectorized version
     Fun(ArraySpace(map(space,v)),coefficients(ff))
 end
@@ -156,7 +156,9 @@ function Fun{S,T,V,VV,DD,d}(A::Array{Fun{VectorSpace{S,T,DD,d},V,VV},2})
     Fun(M)
 end
 
-Fun{SS,n}(v::Array{Any,n},sp::ArraySpace{SS,n}) = Fun(map((f,s)->Fun(f,s),v,sp))
+Fun(v::Array{NN}) where {NN<:Number} = Fun(v,ArraySpace(ConstantSpace(),size(v)...))
+
+# Fun{SS,n}(v::Array{Any,n},sp::ArraySpace{SS,n}) = Fun(map((f,s)->Fun(f,s),v,sp))
 
 
 # convert a vector to a Fun with ArraySpace
@@ -293,11 +295,12 @@ for OP in (:*,:+,:-)
         $OP{T,S,AS<:ArraySpace,V,VT}(f::Fun{AS,V},A::Array{Fun{S,T,VT}}) = Fun($OP(Array(f),A))
         $OP{AS<:ArraySpace,V}(A::UniformScaling,f::Fun{AS,V}) = Fun($OP(A,Array(f)))
         $OP{AS<:ArraySpace,V}(f::Fun{AS,V},A::UniformScaling) = Fun($OP(Array(f),A))
+        $OP{AS<:ArraySpace,V}(A::Number,f::Fun{AS,V}) = Fun($OP(A,Array(f)))
+        $OP{AS<:ArraySpace,V}(f::Fun{AS,V},A::Number) = Fun($OP(Array(f),A))
     end
 end
 
-
-
+# use standard +, -
 *{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) =
     Fun(Array(A)*Array(f))
 

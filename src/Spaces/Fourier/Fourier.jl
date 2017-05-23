@@ -48,6 +48,10 @@ This is a type alias for `Hardy{true}`.
 const Taylor{D<:Domain} = Hardy{true,D}
 
 
+@containsconstants CosSpace
+@containsconstants Taylor
+
+
 
 Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},::Type{T}) =
     Fun{S,promote_type(V,T)}
@@ -382,9 +386,6 @@ canonicalspace{DD<:PeriodicInterval}(S::Laurent{DD})=Fourier(domain(S))
 canonicalspace{DD<:Circle}(S::Fourier{DD})=Laurent(domain(S))
 canonicalspace{DD<:PeriodicLine}(S::Laurent{DD})=S
 
-for Typ in (:CosSpace,:Taylor)
-    @eval union_rule(A::ConstantSpace,B::$Typ)=B
-end
 
 ## Ones and zeros
 

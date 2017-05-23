@@ -91,15 +91,22 @@ Base.promote_rule(::Type{Fun{S,T,VT1}},::Type{Fun{S,V,VT2}}) where {T,V,S,VT1,VT
     Fun{S,promote_type(T,V),promote_type(VT1,VT2)}
 
 
-Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{N,V,VT1}},::Type{Fun{S,T,VT2}}) where {N,V,S,T,VT1,VT2} =
-            Fun{promote_type(N,S),promote_type(T,V),promote_type(VT1,VT2)}
+Base.promote_op(::typeof(*),::Type{F1},::Type{F2}) where {F1<:Fun,F2<:Fun} =
+    promote_type(F1,F2) # assume multiplication is defined between same types
+Base.promote_op(::typeof(*),::Type{N},::Type{F2}) where {N<:Number,F2<:Fun} =
+    Base.promote_op(*,Fun{ConstantSpace{AnyDomain},N,Vector{N}},F2) # reduce to Fun promotion
+Base.promote_op(::typeof(*),::Type{F2},::Type{N}) where {N<:Number,F2<:Fun} =
+        Base.promote_op(*,F2,Fun{ConstantSpace{AnyDomain},N,Vector{N}}) # reduce to Fun promotion
 
-Base.promote_op(::typeof(*),::Type{Fun{N,V,VT1}},::Type{Fun{S,T,VT2}}) where {N,V,S,T,VT1,VT2} =
-    Fun{promote_type(N,S),promote_type(T,V),promote_type(VT1,VT2)}
-Base.promote_op(::typeof(*),::Type{N},::Type{Fun{S,T,VT2}}) where {N,S,T,VT2} =
-    promote_op(*,Fun{S,N,Vector{N}},Fun{S,T,VT2})
-Base.promote_op(::typeof(*),::Type{Matrix{N}},::Type{Matrix{Fun{S,T,VT2}}}) where {N,S,T,VT2}  =
-    Matrix{promote_op(*,N,Fun{S,T,VT2})}
+
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{F1},::Type{F2}) where {F1<:Fun,F2<:Fun} =
+            Base.promote_op(*,F1,F2)
+# Fun's are always vector spaces, so we know matprod will preserve the space
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S,T,VT}},::Type{NN}) where {S,T,VT,NN<:Number} =
+            VFun{S,promote_type(T,NN)}
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{NN},::Type{Fun{S,T,VT}}) where {S,T,VT,NN<:Number} =
+            VFun{S,promote_type(T,NN)}
+
 
 
 Base.zero(::Type{Fun}) = Fun(0.)

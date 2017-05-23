@@ -32,6 +32,21 @@ coefficients(cfs::Vector,::SequenceSpace) = cfs  # all vectors are convertible t
 
 ## Constant space defintions
 
+# setup conversions for spaces that contain constants
+macro containsconstants(SP)
+    quote
+        ApproxFun.union_rule(A::(ApproxFun.ConstantSpace),B::$SP) = B
+        Base.promote_rule{T<:Number,S<:$SP,V,VV}(::Type{ApproxFun.Fun{S,V,VV}},::Type{T}) =
+            ApproxFun.VFun{S,promote_type(V,T)}
+        Base.promote_rule{T<:Number,S<:$SP}(::Type{ApproxFun.Fun{S}},::Type{T}) = ApproxFun.VFun{S,T}
+        Base.promote_rule{T,S<:$SP,V,VV,VT}(::Type{ApproxFun.Fun{S,V,VV}},
+                          ::Type{Fun{ApproxFun.ConstantSpace{ApproxFun.AnyDomain},T,VT}}) =
+            ApproxFun.VFun{S,promote_type(V,T)}
+    end
+end
+
+
+
 Fun(c::Number) = Fun(ConstantSpace(),[c])
 Fun(c::Number,d::ConstantSpace) = Fun(d,[c])
 
