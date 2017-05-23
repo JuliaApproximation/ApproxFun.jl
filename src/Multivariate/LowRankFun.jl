@@ -334,7 +334,7 @@ evaluate{T<:Fun,M<:Fun}(A::Vector{T},B::Vector{M},x::AbstractVector,y::AbstractV
 evaluate(f::LowRankFun,x,y)=evaluate(f.A,f.B,x,y)
 evaluate(f::LowRankFun,::Colon,::Colon)=f
 evaluate(f::LowRankFun,x::Number,::Colon)=dotu(f.B,evaluate(f.A,x))
-evaluate{T<:Number}(f::LowRankFun,x::Vector{T},::Colon)=f.B.'*evaluate.(f.A,x.')
+
 function evaluate(f::LowRankFun,::Colon,y::Number)
     m = maximum(map(ncoefficients,f.A))
     r=rank(f)

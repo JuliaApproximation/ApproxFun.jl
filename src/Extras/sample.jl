@@ -174,11 +174,11 @@ samplecdf(v::Vector) = chebbisectioninv(v,rand())
 
 ##2D sample
 
-sample{TS<:AbstractProductSpace}(f::Fun{TS},k::Integer)=sample(ProductFun(f),k)
+sample{TS<:AbstractProductSpace}(f::Fun{TS},k::Integer)  =sample(ProductFun(f),k)
 
 function sample(f::LowRankFun,n::Integer)
     rx=sample(sum(f,2),n)
-    fA=evaluate(f,rx,:)
+    fA=evaluate.(f,rx,:)
     ry=map(sample,fA)
     [rx ry]
 end
