@@ -4,6 +4,7 @@ using ApproxFun,Base.Test
 
 ## Vector*Vector{Fun}
 
+f = Fun(x->[exp(x),cos(x)])
 @test ([1 2]*f)(0.1) ≈ [1 2]*f(0.1)
 @test_broken f.'*[1,2] ≈ f(0.1).'*[1,2]
 
@@ -11,7 +12,6 @@ using ApproxFun,Base.Test
 
 a = [1 2; 3 4]
 # Chebyshev Vector
-f = Fun(x->[exp(x),cos(x)])
 @test (a*f)(0.1) ≈ [exp(0.1)+2cos(0.1); 3exp(0.1)+4cos(0.1)]
 @test (a*f)(0.1) ≈ a*f(0.1)
 @test Fun(a)*f ≈ a*f
