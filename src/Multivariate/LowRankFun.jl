@@ -190,22 +190,28 @@ end
 
 LowRankFun(f::Function,args...;kwds...) = LowRankFun(F(f),args...;kwds...)
 
-LowRankFun{SV,T,DD}(f::F,S::TensorSpace{SV,T,DD,2};kwds...)=LowRankFun(f,S[1],S[2];kwds...)
-LowRankFun(f::F,dx::Domain,dy::Domain;kwds...)=LowRankFun(f,Space(dx),Space(dy);kwds...)
-LowRankFun{D,T}(f::F,d::ProductDomain{D,T,2};kwds...)=LowRankFun(f,d[1],d[2];kwds...)
+LowRankFun{SV,T,DD}(f::F,S::TensorSpace{SV,T,DD,2};kwds...) =
+    LowRankFun(f,S[1],S[2];kwds...)
+LowRankFun(f::F,dx::Domain,dy::Domain;kwds...) =
+    LowRankFun(f,Space(dx),Space(dy);kwds...)
+LowRankFun(f::F,d::ProductDomain;kwds...) =
+    LowRankFun(f,d.domains...;kwds...)
 
-LowRankFun(f::F,d1::Vector,d2::Vector;kwds...)=LowRankFun(f,convert(Domain,d1),convert(Domain,d2);kwds...)
-LowRankFun(f::F;kwds...)=LowRankFun(f,Interval(),Interval();kwds...)
+LowRankFun(f::F,d1::Vector,d2::Vector;kwds...) =
+    LowRankFun(f,convert(Domain,d1),convert(Domain,d2);kwds...)
+LowRankFun(f::F;kwds...) = LowRankFun(f,Interval(),Interval();kwds...)
 
 ## Construction from values
 
-LowRankFun{T<:Number}(A::Array{T})=LowRankFun(A,Interval{T}(),Interval{T}())
-LowRankFun(c::Number,etc...)=LowRankFun((x,y)->c,etc...)
+LowRankFun{T<:Number}(A::Array{T}) = LowRankFun(A,Interval{T}(),Interval{T}())
+LowRankFun(c::Number,etc...) = LowRankFun((x,y)->c,etc...)
 
 ## Construction from other LowRankFuns
 
-LowRankFun(f::LowRankFun,d1::IntervalDomain,d2::IntervalDomain)=LowRankFun(map(g->Fun(d1,g.coefficients),f.A),map(g->Fun(d2,g.coefficients),f.B))
-LowRankFun(f::LowRankFun)=LowRankFun(f,Interval(),Interval())
+LowRankFun(f::LowRankFun,d1::IntervalDomain,d2::IntervalDomain) =
+    LowRankFun(map(g->Fun(d1,g.coefficients),f.A),
+               map(g->Fun(d2,g.coefficients),f.B))
+LowRankFun(f::LowRankFun) = LowRankFun(f,Interval(),Interval())
 
 
 

@@ -9,7 +9,7 @@ end
 const HeavisideSpace{T} = SplineSpace{0,T}
 dimension{λ}(h::SplineSpace{λ}) = length(h.domain.points)+λ-1
 
-Base.convert(::Type{HeavisideSpace},d::PiecewiseSegment)=HeavisideSpace{eltype(d)}(d)
+Base.convert(::Type{HeavisideSpace},d::PiecewiseSegment) = HeavisideSpace{eltype(d)}(d)
 
 Base.convert(::Type{HeavisideSpace},d::AbstractVector) =
     HeavisideSpace(PiecewiseSegment(sort(d)))

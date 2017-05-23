@@ -418,7 +418,7 @@ identity_fun(S::Space) = identity_fun(domain(S))
 
 function identity_fun(d::Domain)
     cd=canonicaldomain(d)
-    if typeof(d)==typeof(cd)
+    if typeof(d) == typeof(cd)
         Fun(x->x,d) # fall back to constructor
     else
         # this allows support for singularities, that the constructor doesn't

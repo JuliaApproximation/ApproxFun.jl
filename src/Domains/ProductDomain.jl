@@ -12,23 +12,15 @@ For example, the following represents the rectangle `1 ≤ x ≤ 2 & 3 ≤ y 
 Interval(1,2)*(3,4)
 ```
 """
-immutable ProductDomain{D,T,dim} <: Domain{T,dim}
+immutable ProductDomain{D,T} <: Domain{T}
     domains::D
 end
 
 ProductDomain(d::Tuple) =
-    ProductDomain{typeof(d),Vec{length(d),mapreduce(eltype,promote_type,d)},
-                   mapreduce(dimension,+,d)}(d)
+    ProductDomain{typeof(d),Vec{length(d),mapreduce(eltype,promote_type,d)}}(d)
 
 Base.issubset(a::ProductDomain,b::ProductDomain) =
   length(a) == length(b) && all(issubset(a.domains[i],b.domains[i]) for i in eachindex(a.domains))
-
-# TODO: Remove Tuple variants
-fromcanonical(d::BivariateDomain,x::Tuple) = fromcanonical(d,Vec(x...))
-tocanonical(d::BivariateDomain,x::Tuple) = tocanonical(d,Vec(x...))
-
-fromcanonical(d::BivariateDomain,x,y) = fromcanonical(d,Vec(x,y))
-tocanonical(d::BivariateDomain,x,y) = tocanonical(d,Vec(x,y))
 
 
 canonicaldomain(d::ProductDomain) = ProductDomain(map(canonicaldomain,d.domains))

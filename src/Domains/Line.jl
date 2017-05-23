@@ -35,11 +35,6 @@ const RealLine{T} = Union{Line{false,T},Line{true,T}}
 (::Type{Line{a}}){a}() = Line{a,Float64}()
 
 Base.angle{a}(d::Line{a}) = a*π
-Base.eltype{T}(::Type{Line{true,T}}) = T
-Base.eltype{T}(::Type{Line{false,T}}) = T
-Base.eltype{a,T}(::Type{Line{a,T}}) = promote_type(T,Complex128)
-Base.eltype(d::Line) = eltype(typeof(d))
-
 
 Base.reverse(d::Line{true}) = Line{false}(d.center,d.β,d.α)
 Base.reverse(d::Line{false}) = Line{true}(d.center,d.β,d.α)
@@ -182,17 +177,13 @@ Base.convert{IT<:PeriodicLine}(::Type{IT},::AnyDomain) = PeriodicLine(NaN,NaN)
 
 Base.angle{a}(d::PeriodicLine{a})=a*π
 
-Base.eltype{T}(::Type{PeriodicLine{true,T}}) = T
-Base.eltype{T}(::Type{PeriodicLine{false,T}}) = T
-Base.eltype{T,a}(::Type{PeriodicLine{a,T}}) = promote_type(T,Complex128)
-Base.eltype(d::PeriodicLine) = eltype(typeof(d))
-
 Base.reverse(d::PeriodicLine{true})=PeriodicLine{false}(d.center,d.L)
 Base.reverse(d::PeriodicLine{false})=PeriodicLine{true}(d.center,d.L)
 Base.reverse{a}(d::PeriodicLine{a})=PeriodicLine{a-1}(d.center,d.L)
 
 tocanonical(d::PeriodicLine{false},x)= 2atan((x-d.center)/d.L)
-fromcanonical(d::PeriodicLine{false},v::AbstractArray)=eltype(d)[fromcanonical(d,vk) for vk in v]
+fromcanonical(d::PeriodicLine{false},v::AbstractArray) =
+    eltype(d)[fromcanonical(d,vk) for vk in v]
 fromcanonical(d::PeriodicLine{false},θ)=d.L*tan(θ/2) + d.center
 
 tocanonical{a}(d::PeriodicLine{a},x)=tocanonical(PeriodicLine{false,Float64}(0.,d.L),exp(-π*im*a)*(x-d.center))

@@ -8,12 +8,12 @@ export UnionDomain, components, component
 
 represents a union of multiple subdomains: `{x : x ∈ d1 || … || x ∈ dn}`.
 """
-immutable UnionDomain{DD,T,d} <: Domain{T,d}
+immutable UnionDomain{DD,T} <: Domain{T}
     domains::DD
 end
 
 UnionDomain(d::Tuple) =
-    UnionDomain{typeof(d),mapreduce(eltype,promote_type,d),mapreduce(dimension,max,d)}(d)
+    UnionDomain{typeof(d),mapreduce(eltype,promote_type,d)}(d)
 UnionDomain(d::AbstractVector) = UnionDomain(tuple(d...))
 
 
@@ -28,8 +28,8 @@ UnionDomain(d1::Domain,d2::Domain) = UnionDomain((d1,d2))
 canonicaldomain(d::UnionDomain) = d  # we could map all to canonical, but then there would be overlap
 
 isambiguous(d::UnionDomain) = isempty(d.domains)
-Base.convert{DD,T,d}(::Type{UnionDomain{DD,T,d}},::AnyDomain) =
-    UnionDomain{DD,T,d}(map(D->D(AnyDomain()),DD.parameters))
+Base.convert{DD,T}(::Type{UnionDomain{DD,T}},::AnyDomain) =
+    UnionDomain{DD,T}(map(D->D(AnyDomain()),DD.parameters))
 Base.convert{IT<:UnionDomain}(::Type{IT},::AnyDomain) = UnionDomain(tuple())
 
 

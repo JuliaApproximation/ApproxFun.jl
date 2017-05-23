@@ -5,19 +5,20 @@ export chebyshevpoints,fourierpoints,isambiguous,arclength
 
 
 # T is the numeric type used to represent the domain
-# d is the dimension
-abstract type Domain{T,d} end
-const UnivariateDomain{T} = Domain{T,1}
-const BivariateDomain{T} = Domain{T,2}
+# For d-dimensional domains, it is Vec{d,T}
+
+abstract type Domain{T} end
+const UnivariateDomain{T} = Domain{T} where {T<:Number}
+const BivariateDomain{T} = Domain{Vec{2,T}} where {T<:Number}
 
 
-Base.eltype{T}(::Domain{T}) = T
-Base.eltype{T,d}(::Type{Domain{T,d}}) = T
+eltype{T}(::Domain{T}) = T
+eltype{T}(::Type{Domain{T}}) = T
 Base.isreal{T<:Real}(::Domain{T}) = true
 Base.isreal{T}(::Domain{T}) = false
-dimension{T,d}(::Domain{T,d}) = d
-dimension{T,d}(::Type{Domain{T,d}}) = d
-dimension{DT<:Domain}(::Type{DT}) = dimension(supertype(DT))
+dimension(::Domain{<:Number}) = 1
+dimension(::Type{Domain{Vec{d,T}}}) where {T,d} = d
+dimension(::Type{DT}) where {DT<:Domain} = dimension(supertype(DT))
 
 # add indexing for all spaces, not just DirectSumSpace
 # mimicking scalar vs vector
@@ -27,7 +28,7 @@ Base.start(s::Domain) = false
 Base.next(s::Domain,st) = (s,true)
 Base.done(s::Domain,st) = st
 Base.length(s::Domain) = 1
-Base.getindex(s::Domain,::CartesianIndex{0}) = s
+getindex(s::Domain,::CartesianIndex{0}) = s
 getindex(s::Domain,k) = k == 1 ? s : throw(BoundsError())
 Base.endof(s::Domain) = 1
 
@@ -41,8 +42,8 @@ prectype(d::Domain) = eltype(eltype(d))
 
 
 #TODO: bivariate AnyDomain
-immutable AnyDomain <: Domain{UnsetNumber,Any} end
-immutable EmptyDomain <: Domain{UnsetNumber,0} end
+immutable AnyDomain <: Domain{UnsetNumber} end
+immutable EmptyDomain <: Domain{Void} end
 
 isambiguous(::AnyDomain) = true
 dimension(::AnyDomain) = 1
@@ -95,16 +96,16 @@ chebyshevpoints(n::Integer;kind::Integer=1) = chebyshevpoints(Float64,n;kind=kin
 ##TODO: Should fromcanonical be fromcanonical!?
 
 points{T}(d::IntervalDomain{T},n::Integer) =
-    fromcanonical.(d,chebyshevpoints(real(eltype(eltype(T))),n))  # eltype to handle point
+    fromcanonical.(d,chebyshevpoints(real(eltype(T)),n))  # eltype to handle point
 bary(v::AbstractVector{Float64},d::IntervalDomain,x::Float64) = bary(v,tocanonical(d,x))
 
 #TODO consider moving these
-Base.first{T}(d::IntervalDomain{T})=fromcanonical(d,-one(T))
-Base.last{T}(d::IntervalDomain{T})=fromcanonical(d,one(T))
+Base.first{T}(d::IntervalDomain{T}) = fromcanonical(d,-one(T))
+Base.last{T}(d::IntervalDomain{T}) = fromcanonical(d,one(T))
 
-Base.in(x,::AnyDomain)=true
+Base.in(x,::AnyDomain) = true
 function Base.in(x,d::IntervalDomain)
-    T=real(eltype(eltype(eltype(d))))
+    T=real(eltype(eltype(d)))
     y=tocanonical(d,x)
     ry=real(y)
     iy=imag(y)
@@ -125,7 +126,7 @@ abstract type PeriodicDomain{T} <: UnivariateDomain{T} end
 canonicaldomain(::PeriodicDomain)=PeriodicInterval()
 
 points{T}(d::PeriodicDomain{T},n::Integer) =
-    fromcanonical.(d, fourierpoints(real(eltype(eltype(T))),n))
+    fromcanonical.(d, fourierpoints(real(eltype(T)),n))
 
 fourierpoints(n::Integer) = fourierpoints(Float64,n)
 fourierpoints{T<:Number}(::Type{T},n::Integer)= convert(T,π)*collect(0:2:2n-2)/n
@@ -185,7 +186,7 @@ commondomain{T<:Number}(P::AbstractVector,g::Array{T}) = commondomain(P)
 commondomain(P::AbstractVector,g) = commondomain([P;g])
 
 
-domain(::Number)=AnyDomain()
+domain(::Number) = AnyDomain()
 
 
 
@@ -218,6 +219,7 @@ that sketches the boundary of a rectangle.
 ## map domains
 # we auto vectorize arguments
 tocanonical(d::Domain,x,y,z...) = tocanonical(d,Vec(x,y,z...))
+fromcanonical(d::Domain,x,y,z...) = fromcanonical(d,Vec(x,y,z...))
 
 
 mappoint(d1::Domain,d2::Domain,x...) = fromcanonical(d2,tocanonical(d1,x...))
@@ -238,8 +240,8 @@ end
 
 ## Other special domains
 
-immutable PositiveIntegers <: Domain{Int,0} end
-immutable Integers <: Domain{Int,0} end
+immutable PositiveIntegers <: Domain{Int} end
+immutable Integers <: Domain{Int} end
 
 const ℕ = PositiveIntegers()
 const ℤ = Integers()
