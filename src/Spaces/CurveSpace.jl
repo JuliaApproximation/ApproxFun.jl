@@ -24,22 +24,21 @@ identity_fun{C<:Curve,TT}(d::Space{TT,C})=Fun(setdomain(space(domain(d).curve),d
 #
 export Bernstein, Bézier
 
-immutable Bernstein{order,T} <: RealUnivariateSpace{T}
+struct Bernstein{order,T,R} <: Space{T,R}
     domain::Segment{T}
-    (::Type{Bernstein{order,T}}){order,T}(d) = new{order,T}(d)
-    (::Type{Bernstein{order,T}}){order,T}() = new{order,T}(Segment{T}())
+    Bernstein{order,T,R}(d) where {order,T,R} = new(d)
+    Bernstein{order,T,R}() where {order,T,R} = new(Segment{T}())
 end
 
 const Bézier = Bernstein # option+e e gives é
 
-(::Type{Bernstein{O}}){O}() = Bernstein{O,Float64}()
-(::Type{Bernstein{O}}){O}(d::Domain) = Bernstein{O,eltype(d)}(d)
-(::Type{Bernstein{O}}){O}(d::Vector) = Bernstein{O}(Segment(d))
+Bernstein{O}() where {O} = Bernstein{O,Float64,Float64}()
+Bernstein{O}(d::Domain) where {O} = Bernstein{O,eltype(d),real(eltype(d))}(d)
 
 order{O}(::Bernstein{O}) = O
-order{O,T}(::Type{Bernstein{O,T}}) = O
+order{O,T,R}(::Type{Bernstein{O,T,R}}) = O
 dimension{O}(::Bernstein{O}) = O+1
-dimension{O,T}(::Type{Bernstein{O,T}}) = O+1
+dimension{O,T,R}(::Type{Bernstein{O,T,R}}) = O+1
 
 canonicalspace(B::Bernstein) = Chebyshev(domain(B))
 canonicaldomain{O,T}(B::Bernstein{O,T}) = Segment{T}()

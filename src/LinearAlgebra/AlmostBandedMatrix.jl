@@ -2,7 +2,7 @@
 
 
 
-immutable AlmostBandedMatrix{T} <: AbstractMatrix{T}
+struct AlmostBandedMatrix{T} <: AbstractMatrix{T}
     bands::BandedMatrix{T}
     fill::LowRankMatrix{T}
     function (::Type{AlmostBandedMatrix{T}}){T}(bands::BandedMatrix{T},fill::LowRankMatrix{T})

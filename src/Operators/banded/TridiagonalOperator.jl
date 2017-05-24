@@ -32,7 +32,7 @@ function symmetrize{T}(J::TridiagonalOperator{T},n::Integer)
 end
 
 
-immutable DiagIteratorOperator{IT,T} <: DiagonalOperator{T}
+struct DiagIteratorOperator{IT,T} <: DiagonalOperator{T}
     iterator::IT
 end
 

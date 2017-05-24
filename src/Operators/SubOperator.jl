@@ -28,7 +28,7 @@ checkbounds(A::Operator,K::Range{Block},J::Range{Block}) =
 
 ## SubOperator
 
-immutable SubOperator{T,B,I,DI,BI} <: Operator{T}
+struct SubOperator{T,B,I,DI,BI} <: Operator{T}
     parent::B
     indexes::I
     dims::DI

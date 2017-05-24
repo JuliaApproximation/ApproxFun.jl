@@ -2,7 +2,7 @@ export dotu
 import Base.chop
 
 # Used for spaces not defined yet
-immutable UnsetNumber <: Number  end
+struct UnsetNumber <: Number  end
 Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N}) = N
 
 # Test the number of arguments a function takes
@@ -472,7 +472,7 @@ slnorm(m::AbstractMatrix,::Colon,j::Integer) = slnorm(m,1:size(m,1),j)
 ## New Inf
 
 # angle is π*a where a is (false==0) and (true==1)
-immutable Infinity{T}
+struct Infinity{T}
     angle::T
 end
 
@@ -568,7 +568,7 @@ end
 
 # Take -- iterate through the first n elements
 
-immutable Take{I,T} <: AbstractVector{T}
+struct Take{I,T} <: AbstractVector{T}
     xs::I
     n::Int
     function (::Type{Take{I,T}}){I,T}(xs,n)
@@ -668,14 +668,14 @@ Base.minimum(r::AbstractRepeated) = value(r)
 
 Base.sum{AR<:AbstractRepeated}(it::Take{AR}) = it.n*value(it.xs)
 
-immutable ZeroRepeated{T} <: AbstractRepeated{T} end
+struct ZeroRepeated{T} <: AbstractRepeated{T} end
 
 ZeroRepeated{T}(::Type{T}) = ZeroRepeated{T}()
 
 value{T}(::ZeroRepeated{T}) = zero(T)
 Base.sum(r::ZeroRepeated) = value(r)
 
-immutable Repeated{T} <: AbstractRepeated{T}
+struct Repeated{T} <: AbstractRepeated{T}
     x::T
     function (::Type{Repeated{T}}){T}(x::T)
         # TODO: Add ZeroRepeated type.
@@ -708,11 +708,11 @@ repeated(x,m::Integer) = take(repeated(x),m)
 
 abstract type AbstractCount{S<:Number} end
 
-immutable UnitCount{S<:Number} <: AbstractCount{S}
+struct UnitCount{S<:Number} <: AbstractCount{S}
     start::S
 end
 
-immutable Count{S<:Number} <: AbstractCount{S}
+struct Count{S<:Number} <: AbstractCount{S}
     start::S
     step::S
 end
@@ -784,7 +784,7 @@ end
 
 
 
-immutable CumSumIterator{CC}
+struct CumSumIterator{CC}
     iterator::CC
 end
 
@@ -902,7 +902,7 @@ cache(A::AbstractCount) = A
 # flatten an iterator of iterators
 # we add indexing
 
-immutable Flatten{I}
+struct Flatten{I}
     it::I
 end
 

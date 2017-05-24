@@ -2,7 +2,7 @@ export Conversion
 
 abstract type Conversion{T}<:Operator{T} end
 
-immutable ConcreteConversion{S<:Space,V<:Space,T} <: Conversion{T}
+struct ConcreteConversion{S<:Space,V<:Space,T} <: Conversion{T}
     domainspace::S
     rangespace::V
 end
@@ -53,7 +53,7 @@ Conversion()=ConversionWrapper(eye(UnsetSpace()))
 # the domain and range space
 # but continue to know its a derivative
 
-immutable ConversionWrapper{S<:Operator,T} <: Conversion{T}
+struct ConversionWrapper{S<:Operator,T} <: Conversion{T}
     op::S
 end
 

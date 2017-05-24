@@ -4,75 +4,38 @@ export Space, domainspace, rangespace, maxspace,Space,conversion_type, transform
             itransform, SequenceSpace, ConstantSpace
 
 
-##
-# "enum" types used for whether the basis is
-# Real or Complex.  AnyBasis is used when the answer
-# is unknown.
-##
 
-immutable RealBasis end
-immutable ComplexBasis end
-immutable AnyBasis end
+# Space maps the Domain to the type R
+# For example, we have
+#   Chebyshev{Interval{Float64}} <: Space{Interval{Float64},Float64}
+#   Laurent{PeriodicInterval{Float64}} <: Space{PeriodicInterval{Float64},Complex128}
+#   Fourier{Circle{Complex128}} <: Space{Circle{Complex128},Float64}
+# Note for now Space doesn't contain any information about the coefficients
 
-
-Base.promote_rule(::Type{RealBasis},::Type{ComplexBasis})=ComplexBasis
-Base.promote_rule(::Type{ComplexBasis},::Type{AnyBasis})=AnyBasis
-Base.promote_rule(::Type{RealBasis},::Type{AnyBasis})=AnyBasis
-
-# coefficient_type(basis,valuetype) gives the type for coefficients
-# for basis of type RealBasis/ComplexBasis and valuetype
-# giving the type of function values
-coefficient_type{T<:Complex}(::Type{ComplexBasis},::Type{T})=T
-coefficient_type{T<:Real}(::Type{ComplexBasis},::Type{T})=Complex{T}
-coefficient_type{T}(::Type{RealBasis},::Type{T})=T
+abstract type Space{D,R} end
 
 
-#
-# eltype for RealBasis/ComplexBasis gives the
-# default type.  Maybe should be defaulteltype?
-#
 
-Base.eltype(::RealBasis)=Float64
-Base.eltype(::ComplexBasis)=Complex{Float64}
-Base.eltype(::AnyBasis)=Number
-
-Base.eltype(::Type{RealBasis})=Float64
-Base.eltype(::Type{ComplexBasis})=Complex{Float64}
-Base.eltype(::Type{AnyBasis})=Number
+const RealSpace{D,R} = Space{D,R} where {R<:Real}
+const ComplexSpace{D,R} = Space{D,R} where {R<:Complex}
+const UnivariateSpace{D,R} = Space{D,R} where {D<:UnivariateDomain}
+const BivariateSpace{D,R} = Space{D,R}  where {D<:BivariateDomain}
+const RealUnivariateSpace{D,R} = RealSpace{D,R} where {D<:UnivariateDomain,R<:Real}
 
 
 
 
+Base.eltype{T}(::Space{T}) = error("Don't use")
+Base.eltype{D,R}(::Type{Space{D,R}}) = error("Don't use")
 
-# T is either RealBasis (cos/sin/polynomial) or ComplexBasis (laurent)
-# D is the domain
-# d is the dimension
-abstract type Space{T,D,d} end
-
-
-
-const RealSpace{D,d} = Space{RealBasis,D,d}
-const ComplexSpace{D,d} = Space{ComplexBasis,D,d}
-const UnivariateSpace{T,D} = Space{T,D,1}
-const BivariateSpace{T,DD} = Space{T,DD,2}
-const RealUnivariateSpace{D} = RealSpace{D,1}
-
-
-
-
-Base.eltype{T}(::Space{T}) = eltype(T)
-Base.eltype{T,D,d}(::Type{Space{T,D,d}}) = eltype(T)
-basistype{T}(::Space{T}) = T
-basistype{T,D,d}(::Type{Space{T,D,d}}) = T
-basistype{FT<:Space}(::Type{FT}) = basistype(supertype(FT))
-
-domaintype{T,D}(::Space{T,D}) = D
-domaintype{T,D,d}(::Type{Space{T,D,d}}) = D
+domaintype{D,R}(::Space{D,R}) = D
+domaintype{D,R}(::Type{Space{D,R}}) = D
 domaintype{FT<:Space}(::Type{FT}) = domaintype(supertype(FT))
+rangetype{D,R}(::Space{D,R}) = R
+rangetype{D,R}(::Type{Space{D,R}}) = R
+rangetype{FT<:Space}(::Type{FT}) = rangetype(supertype(FT))
 
-coefficient_type{S}(::Space{S},T) = coefficient_type(S,T)
-
-domaindimension{S,D,d}(::Space{S,D,d}) = d
+domaindimension(sp::Space) = dimension(domain(sp))
 dimension(::Space) = ∞  # We assume infinite-dimensional spaces
 
 
@@ -103,13 +66,12 @@ block(S::Space,k) = Block(k)
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
 
-abstract type AmbiguousSpace <: Space{RealBasis,AnyDomain,1} end
-
+abstract type AmbiguousSpace <: Space{AnyDomain,Void} end
 domain(::AmbiguousSpace) = AnyDomain()
 
 
-function setdomain{T,D<:Domain}(sp::Space{T,D},d::D)
-    S=typeof(sp)
+function setdomain{D<:Domain}(sp::Space{D},d::D)
+    S = typeof(sp)
     @assert length(fieldnames(S))==1
     S(d)
 end
@@ -132,9 +94,9 @@ reverseorientation(S::Space) = setdomain(S,reverse(domain(S)))
 # NoSpace is used to indicate no space exists for, e.g.,
 # conversion_type
 
-immutable UnsetSpace <: AmbiguousSpace end
-immutable NoSpace <: AmbiguousSpace end
-immutable ZeroSpace <: AmbiguousSpace end   # ZeroSpace is compatible with all spaces
+struct UnsetSpace <: AmbiguousSpace end
+struct NoSpace <: AmbiguousSpace end
+struct ZeroSpace <: AmbiguousSpace end   # ZeroSpace is compatible with all spaces
 
 
 dimension(::ZeroSpace) = 0
@@ -447,7 +409,7 @@ checkpoints(d::Space) = checkpoints(domain(d))
 # These plans are use to wrap another plan
 for Typ in (:TransformPlan,:ITransformPlan)
     @eval begin
-        immutable $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
+        struct $Typ{T,SP,inplace,PL} <: FFTW.Plan{T}
             space::SP
             plan::PL
         end
@@ -458,7 +420,7 @@ end
 
 for Typ in (:CanonicalTransformPlan,:ICanonicalTransformPlan)
     @eval begin
-        immutable $Typ{T,SP,PL,CSP} <: FFTW.Plan{T}
+        struct $Typ{T,SP,PL,CSP} <: FFTW.Plan{T}
             space::SP
             plan::PL
             canonicalspace::CSP
@@ -537,13 +499,13 @@ end
 `ConstantSpace` is the 1-dimensional scalar space.
 """
 
-immutable ConstantSpace{DD} <: UnivariateSpace{RealBasis,DD}
+struct ConstantSpace{DD,R} <: UnivariateSpace{DD,R}
     domain::DD
-    (::Type{ConstantSpace{DD}}){DD}(d::DD) = new{DD}(d)
-    (::Type{ConstantSpace{DD}}){DD}(d::AnyDomain) = new{DD}(DD(d))
+    ConstantSpace{DD,R}(d::DD) where {DD,R} = new(d)
+    ConstantSpace{DD,R}(d::AnyDomain) where {DD,R} = new(DD(d))
 end
 
-ConstantSpace(d::Domain) = ConstantSpace{typeof(d)}(d)
+ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(eltype(d))}(d)
 ConstantSpace() = ConstantSpace(AnyDomain())
 
 isconstspace(::ConstantSpace) = true
@@ -556,16 +518,17 @@ end
 # domainscompatible check.
 for OP in (:maxspace,:(Base.union))
     @eval begin
-        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace{AnyDomain})=A
-        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace)=B
-        $OP(A::ConstantSpace,B::ConstantSpace{AnyDomain})=A
-        $OP(A::ConstantSpace,B::ConstantSpace)=ConstantSpace(domain(A) ∪ domain(B))
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace{AnyDomain}) = A
+        $OP(A::ConstantSpace{AnyDomain},B::ConstantSpace) = B
+        $OP(A::ConstantSpace,B::ConstantSpace{AnyDomain}) = A
+        $OP(A::ConstantSpace,B::ConstantSpace) = ConstantSpace(domain(A) ∪ domain(B))
     end
 end
 
 
 
-immutable SequenceSpace <: Space{RealBasis,PositiveIntegers,0} end
+# Range type is Void since function evaluation is not defined
+struct SequenceSpace <: Space{PositiveIntegers,Void} end
 
 doc"""
 `SequenceSpace` is the space of all sequences, i.e., infinite vectors.

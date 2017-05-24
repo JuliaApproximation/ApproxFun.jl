@@ -14,11 +14,11 @@ macro calculus_operator(Op)
         # The SSS, TTT are to work around #9312
         abstract type $Op{SSS,OT,TTT} <: CalculusOperator{SSS,OT,TTT} end
 
-        immutable $ConcOp{S<:Space,OT,T} <: $Op{S,OT,T}
+        struct $ConcOp{S<:Space,OT,T} <: $Op{S,OT,T}
             space::S        # the domain space
             order::OT
         end
-        immutable $WrappOp{BT<:Operator,S<:Space,OT,T} <: $Op{S,OT,T}
+        struct $WrappOp{BT<:Operator,S<:Space,OT,T} <: $Op{S,OT,T}
             op::BT
             order::OT
         end

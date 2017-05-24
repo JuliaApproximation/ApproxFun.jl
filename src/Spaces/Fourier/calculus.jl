@@ -1,16 +1,16 @@
 ##Differentiation and integration
 
 
-Base.sum{DD<:PeriodicInterval}(f::Fun{Laurent{DD}}) = coefficient(f,1).*arclength(domain(f))
-Base.sum{DD<:Circle}(f::Fun{Laurent{DD}}) = coefficient(f,2).*complexlength(domain(f))
+Base.sum{DD<:PeriodicInterval,RR}(f::Fun{Laurent{DD,RR}}) = coefficient(f,1).*arclength(domain(f))
+Base.sum{DD<:Circle,RR}(f::Fun{Laurent{DD,RR}}) = coefficient(f,2).*complexlength(domain(f))
 
 
-Base.sum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}}) = coefficient(f,1).*arclength(domain(f))
-Base.sum{DD<:Circle}(f::Fun{Fourier{DD}}) =
+Base.sum{DD<:PeriodicInterval,RR}(f::Fun{Fourier{DD,RR}}) = coefficient(f,1).*arclength(domain(f))
+Base.sum{DD<:Circle,RR}(f::Fun{Fourier{DD,RR}}) =
     (im*coefficient(f,2) + coefficient(f,3))/2*complexlength(domain(f))
 
 
-function linesum{DD}(f::Fun{Laurent{DD}})
+function linesum{DD,RR}(f::Fun{Laurent{DD,RR}})
     d=domain(f)
     if isa(d,Circle)
         sum(setcanonicaldomain(f))*d.radius
@@ -19,28 +19,28 @@ function linesum{DD}(f::Fun{Laurent{DD}})
     end
 end
 
-linesum{DD<:Circle}(f::Fun{Fourier{DD}}) = sum(setcanonicaldomain(f))*domain(f).radius
-linesum{DD<:PeriodicInterval}(f::Fun{Fourier{DD}}) = sum(f) #TODO: Complex periodic interval
+linesum{DD<:Circle,RR}(f::Fun{Fourier{DD,RR}}) = sum(setcanonicaldomain(f))*domain(f).radius
+linesum{DD<:PeriodicInterval,RR}(f::Fun{Fourier{DD,RR}}) = sum(f) #TODO: Complex periodic interval
 
 
-differentiate{DD<:PeriodicInterval}(f::Fun{Taylor{DD}}) =
+differentiate{DD<:PeriodicInterval,RR}(f::Fun{Taylor{DD,RR}}) =
     Fun(f.space,im*tocanonicalD(f,0)*taylor_diff(f.coefficients))
-differentiate{DD<:PeriodicInterval}(f::Fun{Hardy{false,DD}}) =
+differentiate{DD<:PeriodicInterval,RR}(f::Fun{Hardy{false,DD,RR}}) =
     Fun(f.space,im*tocanonicalD(f,0)*hardyfalse_diff(f.coefficients))
-differentiate{DD<:PeriodicInterval}(f::Fun{Laurent{DD}}) =
+differentiate{DD<:PeriodicInterval,RR}(f::Fun{Laurent{DD,RR}}) =
     Fun(f.space,im*tocanonicalD(f,0)*laurentdiff(f.coefficients))
 
-differentiate{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) =
+differentiate{DD<:PeriodicInterval,RR}(f::Fun{CosSpace{DD,RR}}) =
     Fun(SinSpace(domain(f)),tocanonicalD(f,0)*cosspacediff(f.coefficients))
-differentiate{DD<:PeriodicInterval}(f::Fun{SinSpace{DD}}) =
+differentiate{DD<:PeriodicInterval,RR}(f::Fun{SinSpace{DD,RR}}) =
     Fun(CosSpace(domain(f)),tocanonicalD(f,0)*sinspacediff(f.coefficients))
-differentiate{DD<:PeriodicInterval}(f::Fun{Fourier{DD}}) =
+differentiate{DD<:PeriodicInterval,RR}(f::Fun{Fourier{DD,RR}}) =
     Fun(f.space,tocanonicalD(f,0)*fourierdiff(f.coefficients))
 
-differentiate{DD}(f::Fun{Laurent{DD}}) = Derivative(space(f))*f
-differentiate{DD}(f::Fun{Fourier{DD}}) = Derivative(space(f))*f
+differentiate{DD,RR}(f::Fun{Laurent{DD,RR}}) = Derivative(space(f))*f
+differentiate{DD,RR}(f::Fun{Fourier{DD,RR}}) = Derivative(space(f))*f
 
-function integrate{D}(f::Fun{Hardy{false,D}})
+function integrate{D,R}(f::Fun{Hardy{false,D,R}})
     if isa(domain(f),Circle) # drop -1 term if zero and try again
         @assert ncoefficients(f)==0 || abs(f.coefficients[1])<100eps()
         integrate(Fun(f,space(f)|(2:∞)))
@@ -49,7 +49,7 @@ function integrate{D}(f::Fun{Hardy{false,D}})
     end
 end
 
-function integrate{D}(f::Fun{Taylor{D}})
+function integrate{D,R}(f::Fun{Taylor{D,R}})
     if isa(domain(f),Circle)
         Integral(space(f))*f
     else  # Probably periodic itnerval  drop constant term if zero
@@ -59,10 +59,10 @@ function integrate{D}(f::Fun{Taylor{D}})
 end
 
 
-Base.sum{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) =
+Base.sum{DD<:PeriodicInterval,RR}(f::Fun{CosSpace{DD,RR}}) =
     f.coefficients[1]*complexlength(domain(f))
 
-linesum{DD<:PeriodicInterval}(f::Fun{CosSpace{DD}}) =
+linesum{DD<:PeriodicInterval,RR}(f::Fun{CosSpace{DD,RR}}) =
     f.coefficients[1]*arclength(domain(f))
 
 
@@ -95,10 +95,10 @@ end
 #TODO: This is a hack to make sure Fourier maps to Fourier
 # we don't have banded differentiate from CosSpace/SinSpace on a circle
 for OP in (:differentiate,:integrate)
-    @eval $OP{T,D<:Circle}(f::Fun{Fourier{D},T}) = $OP(Fun(f,Laurent))
+    @eval $OP{T,D<:Circle,R}(f::Fun{Fourier{D,R},T}) = $OP(Fun(f,Laurent))
 end
 
-integrate{T,D<:PeriodicInterval}(f::Fun{Fourier{D},T}) =
+integrate{T,D<:PeriodicInterval,R}(f::Fun{Fourier{D,R},T}) =
     integrate(component(f,2))⊕integrate(component(f,1))
 
 
@@ -106,7 +106,7 @@ integrate{T,D<:PeriodicInterval}(f::Fun{Fourier{D},T}) =
 
 # O(min(m,n)) Laurent line integral
 
-function linebilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
+function linebilinearform{T,D<:Circle,R}(f::Fun{Laurent{D,R},T},g::Fun{Laurent{D,R},T})
     @assert domain(f) == domain(g)
     u,v,mn = f.coefficients,g.coefficients,min(ncoefficients(f),ncoefficients(g))
     if mn > 1
@@ -122,7 +122,7 @@ function linebilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T}
     end
 end
 
-function bilinearform{T,D<:Circle}(f::Fun{Laurent{D},T},g::Fun{Laurent{D},T})
+function bilinearform{T,D<:Circle,R}(f::Fun{Laurent{D,R},T},g::Fun{Laurent{D,R},T})
     @assert domain(f) == domain(g)
     u,v,mn = f.coefficients,g.coefficients,min(ncoefficients(f),ncoefficients(g))
     if mn > 2

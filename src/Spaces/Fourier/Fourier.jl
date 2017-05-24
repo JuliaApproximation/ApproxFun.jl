@@ -4,12 +4,12 @@ export Fourier,Taylor,Hardy,CosSpace,SinSpace,Laurent
 
 for T in (:CosSpace,:SinSpace)
     @eval begin
-        immutable $T{D<:Domain} <: RealUnivariateSpace{D}
+        struct $T{D<:Domain,R} <: Space{D,R}
             domain::D
-            (::Type{$T{D}}){D}(d::Domain) = new{D}(D(d))
-            (::Type{$T{D}}){D}(d::D) = new{D}(d)
+            $T{D,R}(d::Domain) where {D,R} = new(D(d))
+            $T{D,R}(d::D) where{D,R} = new(d)
         end
-        $T(d::Domain) = $T{typeof(d)}(d)
+        $T(d::Domain) = $T{typeof(d),real(prectype(d))}(d)
         $T() = $T(PeriodicInterval())
         spacescompatible(a::$T,b::$T) = domainscompatible(a,b)
         hasfasttransform(::$T) = true
@@ -34,10 +34,10 @@ doc"""
 `Hardy{false}()` is the space spanned by `[1/z,1/z^2,...]`.
 `Hardy{true}()` is the space spanned by `[1,z,z^2,...]`.
 """
-immutable Hardy{s,D<:Domain} <: UnivariateSpace{ComplexBasis,D}
+struct Hardy{s,D<:Domain,R} <: Space{D,R}
     domain::D
-    (::Type{Hardy{s,D}}){s,D}(d) = new{s,D}(d)
-    (::Type{Hardy{s,D}}){s,D}() = new{s,D}(D())
+    Hardy{s,D,R}(d) where {s,D,R} = new{s,D,R}(d)
+    Hardy{s,D,R}() where {s,D,R}  = new{s,D,R}(D())
 end
 
 # The <: Domain is crucial for matching Basecall overrides
@@ -45,7 +45,7 @@ doc"""
 `Taylor()` is the space spanned by `[1,z,z^2,...]`.
 This is a type alias for `Hardy{true}`.
 """
-const Taylor{D<:Domain} = Hardy{true,D}
+const Taylor{D<:Domain,R} = Hardy{true,D,R}
 
 
 @containsconstants CosSpace
@@ -58,7 +58,7 @@ Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace},V}(::Type{Fun{S,V}},:
 Base.promote_rule{T<:Number,S<:Union{Hardy{true},CosSpace}}(::Type{Fun{S}},::Type{T}) =
     Fun{S,T}
 
-(H::Type{Hardy{s}}){s}(d::Domain) = Hardy{s,typeof(d)}(d)
+(H::Type{Hardy{s}}){s}(d::Domain) = Hardy{s,typeof(d),complex(eltype(d))}(d)
 (H::Type{Hardy{s}}){s}() = Hardy{s}(Circle())
 
 canonicalspace(S::Hardy) = S
@@ -88,13 +88,13 @@ for (Typ,Plfft!,Plfft,Pltr!,Pltr) in ((:TransformPlan,:plan_fft!,:plan_fft,:plan
 end
 
 
-*{T,DD}(P::TransformPlan{T,Hardy{true,DD},true},vals::Vector{T}) =
+*{T,DD,RR}(P::TransformPlan{T,Hardy{true,DD,RR},true},vals::Vector{T}) =
     scale!(one(T)/length(vals),P.plan*vals)
-*{T,DD}(P::ITransformPlan{T,Hardy{true,DD},true},cfs::Vector{T}) =
+*{T,DD,RR}(P::ITransformPlan{T,Hardy{true,DD,RR},true},cfs::Vector{T}) =
     scale!(length(cfs),P.plan*cfs)
-*{T,DD}(P::TransformPlan{T,Hardy{false,DD},true},vals::Vector{T}) =
+*{T,DD,RR}(P::TransformPlan{T,Hardy{false,DD,RR},true},vals::Vector{T}) =
     scale!(one(T)/length(vals),reverse!(P.plan*vals))
-*{T,DD}(P::ITransformPlan{T,Hardy{false,DD},true},cfs::Vector{T}) =
+*{T,DD,RR}(P::ITransformPlan{T,Hardy{false,DD,RR},true},cfs::Vector{T}) =
     scale!(length(cfs),P.plan*reverse!(cfs))
 
 
@@ -191,9 +191,9 @@ for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
 end
 
 
-*{T,DD}(P::TransformPlan{T,SinSpace{DD},true},vals::Vector{T}) =
+*{T,DD,RR}(P::TransformPlan{T,SinSpace{DD,RR},true},vals::Vector{T}) =
     scale!(one(T)/(length(vals)+1),P.plan*vals)
-*{T,DD}(P::ITransformPlan{T,SinSpace{DD},true},cfs::Vector{T}) =
+*{T,DD,RR}(P::ITransformPlan{T,SinSpace{DD,RR},true},cfs::Vector{T}) =
     scale!(one(T)/2,P.plan*cfs)
 
 
@@ -212,7 +212,7 @@ doc"""
 ```
 See also `Fourier`.
 """
-const Laurent{DD} = SumSpace{Tuple{Hardy{true,DD},Hardy{false,DD}},ComplexBasis,DD,1}
+const Laurent{DD,RR} = SumSpace{Tuple{Hardy{true,DD,RR},Hardy{false,DD,RR}},DD,RR}
 
 
 ##FFT That interlaces coefficients
@@ -242,13 +242,13 @@ function plan_itransform{T,DD}(sp::Laurent{DD},x::Vector{T})
     ITransformPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
 end
 
-function *{T,DD}(P::TransformPlan{T,Laurent{DD},true},vals::Vector{T})
+function *{T,DD,RR}(P::TransformPlan{T,Laurent{DD,RR},true},vals::Vector{T})
     n = length(vals)
     vals = scale!(inv(T(n)),P.plan*vals)
     reverseeven!(interlace!(vals,1))
 end
 
-function *{T,DD}(P::ITransformPlan{T,Laurent{DD},true},cfs::Vector{T})
+function *{T,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},true},cfs::Vector{T})
     n = length(cfs)
     reverseeven!(cfs)
     cfs[:]=[cfs[1:2:end];cfs[2:2:end]]  # TODO: deinterlace!
@@ -256,10 +256,10 @@ function *{T,DD}(P::ITransformPlan{T,Laurent{DD},true},cfs::Vector{T})
     P.plan*cfs
 end
 
-*{T<:Complex,DD}(P::TransformPlan{T,Laurent{DD},false},vals::Vector{T}) = P.plan*copy(vals)
-*{T,DD}(P::TransformPlan{T,Laurent{DD},false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
-*{T<:Complex,DD}(P::ITransformPlan{T,Laurent{DD},false},vals::Vector{T}) = P.plan*copy(vals)
-*{T,DD}(P::ITransformPlan{T,Laurent{DD},false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
+*{T<:Complex,DD,RR}(P::TransformPlan{T,Laurent{DD,RR},false},vals::Vector{T}) = P.plan*copy(vals)
+*{T,DD,RR}(P::TransformPlan{T,Laurent{DD,RR},false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
+*{T<:Complex,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},false},vals::Vector{T}) = P.plan*copy(vals)
+*{T,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
 
 
 
@@ -281,7 +281,7 @@ function evaluate{DD}(f::AbstractVector,S::Laurent{DD},z)
 end
 
 
-function Base.conj{DD}(f::Fun{Laurent{DD}})
+function Base.conj{DD,RR}(f::Fun{Laurent{DD,RR}})
     cfs=Array{eltype(f)}(iseven(ncoefficients(f))?ncoefficients(f)+1:ncoefficients(f))
     cfs[1]=conj(f.coefficients[1])
     cfs[ncoefficients(f)] = 0
@@ -303,7 +303,7 @@ doc"""
 ```
 See also `Laurent`.
 """
-const Fourier{DD} = SumSpace{Tuple{CosSpace{DD},SinSpace{DD}},RealBasis,DD,1}
+const Fourier{DD,RR} = SumSpace{Tuple{CosSpace{DD,RR},SinSpace{DD,RR}},DD,RR}
 
 for Typ in (:Laurent,:Fourier)
     @eval begin

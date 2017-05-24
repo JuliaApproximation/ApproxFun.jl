@@ -1,4 +1,4 @@
-immutable LowRankPertOperator{OO,LR,T} <: Operator{T}
+struct LowRankPertOperator{OO,LR,T} <: Operator{T}
     op::OO
     pert::LR
 

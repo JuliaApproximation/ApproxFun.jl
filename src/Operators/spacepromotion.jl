@@ -3,7 +3,7 @@ export →
 
 ## Space Operator is used to wrap other operators
 # and change the domain/range space
-immutable SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: Operator{T}
+struct SpaceOperator{O<:Operator,S<:Space,V<:Space,T} <: Operator{T}
     op::O
     domainspace::S
     rangespace::V

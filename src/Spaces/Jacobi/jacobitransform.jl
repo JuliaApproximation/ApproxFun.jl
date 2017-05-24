@@ -1,8 +1,8 @@
 
 points(S::Jacobi,n) = fromcanonical.(S,gaussjacobi(n,S.a,S.b)[1])
 
-immutable JacobiTransformPlan{DD,T,TT}
-    space::Jacobi{TT,DD}
+struct JacobiTransformPlan{DD,RR,T,TT}
+    space::Jacobi{TT,DD,RR}
     points::Vector{T}
     weights::Vector{T}
 end
@@ -34,8 +34,8 @@ end
 
 
 
-immutable JacobiITransformPlan{DD,T}
-    space::Jacobi{Float64,DD}
+struct JacobiITransformPlan{DD,RR,T}
+    space::Jacobi{Float64,DD,RR}
     points::Vector{T}
 end
 

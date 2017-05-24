@@ -5,7 +5,7 @@ export plan_chebyshevtransform, plan_ichebyshevtransform, chebyshevtransform, ic
 #TODO confirm that this can handle T=Complex{Float64} looks like this is a real-to-real transform
 
 
-immutable ChebyshevTransformPlan{T,kind,inplace,P} <: FFTW.Plan{T}
+struct ChebyshevTransformPlan{T,kind,inplace,P} <: FFTW.Plan{T}
     plan::P
 end
 
@@ -69,7 +69,7 @@ chebyshevtransform(x;kind::Integer=1) = chebyshevtransform!(copy(x);kind=kind)
 ## Inverse transforms take Chebyshev coefficients and produce values at Chebyshev points of the first and second kinds
 
 
-immutable IChebyshevTransformPlan{T,kind,inplace,P}
+struct IChebyshevTransformPlan{T,kind,inplace,P}
     plan::P
 end
 

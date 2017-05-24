@@ -1,4 +1,4 @@
-immutable Point{T} <: Domain{T}
+struct Point{T} <: Domain{T}
     x::T
 end
 

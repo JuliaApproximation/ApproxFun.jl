@@ -7,7 +7,7 @@ doc"""
 
 represents the disk centred at `c` with radius `r`.
 """
-immutable Disk{T} <: Domain{T}
+struct Disk{T} <: Domain{T}
     center::T
     radius::Float64
 end

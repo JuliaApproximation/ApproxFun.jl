@@ -12,16 +12,16 @@ doc"""
 Note that `λ=1` this reduces to Chebyshev polynomials of the second kind:
 `C_k^{(1)}(x) = U_k(x)`.
 """
-immutable Ultraspherical{T,D<:Domain} <: PolynomialSpace{D}
+struct Ultraspherical{T,D<:Domain,R} <: PolynomialSpace{D,R}
     order::T
     domain::D
-    (::Type{Ultraspherical{T,D}}){T,D}(m::T,d::D) = (@assert m ≠ 0; new{T,D}(m,d))
-    (::Type{Ultraspherical{T,D}}){T,D}(m::Number,d::Domain) = (@assert m ≠ 0; new{T,D}(convert(T,m),convert(D,d)))
-    (::Type{Ultraspherical{T,D}}){T,D}(d::Domain) = new{T,D}(one(T),convert(D,d))
-    (::Type{Ultraspherical{T,D}}){T,D}(m::Number) = (@assert m ≠ 0; new{T,D}(T(m),D()))
+    Ultraspherical{T,D,R}(m::T,d::D) where {T,D,R} = (@assert m ≠ 0; new(m,d))
+    Ultraspherical{T,D,R}(m::Number,d::Domain) where {T,D,R} = (@assert m ≠ 0; new(convert(T,m),convert(D,d)))
+    Ultraspherical{T,D,R}(d::Domain) where {T,D,R} = new(one(T),convert(D,d))
+    Ultraspherical{T,D,R}(m::Number) where {T,D,R} = (@assert m ≠ 0; new(T(m),D()))
 end
 
-Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d)}(m,d)
+Ultraspherical(m::Number,d::Domain) = Ultraspherical{typeof(m),typeof(d),real(prectype(d))}(m,d)
 Ultraspherical(m::Number,d) = Ultraspherical(m,Domain(d))
 Ultraspherical(m::Number) = Ultraspherical(m,Interval())
 
@@ -36,14 +36,14 @@ setdomain(S::Ultraspherical,d::Domain) = Ultraspherical(order(S),d)
 canonicalspace(S::Ultraspherical) = Chebyshev(domain(S))
 
 
-immutable UltrasphericalPlan{CT,FT}
+struct UltrasphericalPlan{CT,FT}
     chebplan::CT
     cheb2legplan::FT
 
     (::Type{UltrasphericalPlan{CT,FT}}){CT,FT}(cp,c2lp) = new{CT,FT}(cp,c2lp)
 end
 
-immutable UltrasphericalIPlan{CT,FT}
+struct UltrasphericalIPlan{CT,FT}
     chebiplan::CT
     leg2chebplan::FT
 
@@ -92,17 +92,17 @@ Base.ones(S::Ultraspherical) = Fun(S,ones(1))
 
 ## Fast evaluation
 
-function Base.first{D}(f::Fun{Ultraspherical{Int,D}})
+function Base.first{D,R}(f::Fun{Ultraspherical{Int,D,R}})
     n = length(f.coefficients)
     n == 0 && return zero(eltype(f))
     n == 1 && return first(f.coefficients)
     foldr(-,coefficients(f,Chebyshev))
 end
 
-Base.last{D}(f::Fun{Ultraspherical{Int,D}}) = reduce(+,coefficients(f,Chebyshev))
+Base.last{D,R}(f::Fun{Ultraspherical{Int,D,R}}) = reduce(+,coefficients(f,Chebyshev))
 
-Base.first{O,D}(f::Fun{Ultraspherical{O,D}}) = f(first(domain(f)))
-Base.last{O,D}(f::Fun{Ultraspherical{O,D}}) = f(last(domain(f)))
+Base.first{O,D,R}(f::Fun{Ultraspherical{O,D,R}}) = f(first(domain(f)))
+Base.last{O,D,R}(f::Fun{Ultraspherical{O,D,R}}) = f(last(domain(f)))
 
 identity_fun(d::Ultraspherical) = Fun(identity_fun(domain(d)),d)
 

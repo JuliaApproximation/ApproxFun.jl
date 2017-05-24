@@ -74,7 +74,7 @@ end
 
 ## Interlace operator
 
-immutable InterlaceOperator{T,p,DS,RS,DI,RI,BI} <: Operator{T}
+struct InterlaceOperator{T,p,DS,RS,DI,RI,BI} <: Operator{T}
     ops::Array{Operator{T},p}
     domainspace::DS
     rangespace::RS

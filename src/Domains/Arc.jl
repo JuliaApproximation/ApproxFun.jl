@@ -12,7 +12,7 @@ doc"""
 
 represents the arc centred at `c` with radius `r` from angle `θ₁` to `θ₂`.
 """
-immutable Arc{T,V<:Real,TT} <: IntervalDomain{TT}
+struct Arc{T,V<:Real,TT} <: IntervalDomain{TT}
     center::T
     radius::V
     angles::Tuple{V,V}

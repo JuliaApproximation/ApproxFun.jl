@@ -15,7 +15,7 @@ doc"""
 represents a ray at angle `a` starting at `c`, with orientation out to
 infinity (`o = true`) or back from infinity (`o = false`).
 """
-immutable Ray{angle,T<:Number} <: IntervalDomain{T}
+struct Ray{angle,T<:Number} <: IntervalDomain{T}
     center::T
     orientation::Bool
     (::Type{Ray{angle,T}}){angle,T}(c,o) = new{angle,T}(c,o)

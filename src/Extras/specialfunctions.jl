@@ -96,11 +96,11 @@ end
 
 scaleshiftdomain(f::Fun,sc,sh)=setdomain(f,sc*domain(f)+sh)
 
-/{λ,DD}(c::Number,f::Fun{Ultraspherical{λ,DD}}) = c/Fun(f,Chebyshev(domain(f)))
-/{DD}(c::Number,f::Fun{Jacobi{DD}}) = c/Fun(f,Chebyshev(domain(f)))
+/{λ,DD,RR}(c::Number,f::Fun{Ultraspherical{λ,DD,RR}}) = c/Fun(f,Chebyshev(domain(f)))
+/{DD,RR}(c::Number,f::Fun{Jacobi{DD,RR}}) = c/Fun(f,Chebyshev(domain(f)))
 
 /{C<:Chebyshev}(c::Number,f::Fun{C})=setdomain(c/setcanonicaldomain(f),domain(f))
-function /{DD<:Segment}(c::Number,f::Fun{Chebyshev{DD}})
+function /{DD<:Segment,RR}(c::Number,f::Fun{Chebyshev{DD,RR}})
     fc = setcanonicaldomain(f)
     d=domain(f)
     # if domain f is small then the pts get projected in
@@ -261,7 +261,7 @@ function log{US<:Union{Ultraspherical,Chebyshev}}(f::Fun{US})
 end
 
 
-function log{T<:Real,D}(f::Fun{Fourier{D},T})
+function log{T<:Real,D,R}(f::Fun{Fourier{D,R},T})
     if isreal(domain(f))
         cumsum(differentiate(f)/f)+log(first(f))
     else
@@ -387,10 +387,10 @@ asin(f::Fun)=cumsum(f'/sqrt(1-f^2))+asin(first(f))
 ## Second order functions
 
 
-sin{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
-cos{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
-sin{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = imag(exp(im*f))
-cos{S<:Union{Ultraspherical,Chebyshev},T<:Real}(f::Fun{S,T}) = real(exp(im*f))
+sin(f::Fun{S,T}) where {S<:RealSpace,T<:Real} = imag(exp(im*f))
+cos(f::Fun{S,T}) where {S<:RealSpace,T<:Real} = real(exp(im*f))
+sin(f::Fun{S,T}) where {S<:Union{Ultraspherical,Chebyshev},T<:Real} = imag(exp(im*f))
+cos(f::Fun{S,T}) where {S<:Union{Ultraspherical,Chebyshev},T<:Real} = real(exp(im*f))
 
 
 
@@ -630,8 +630,9 @@ end
 
 for OP in (:(abs),:(sign),:(log))
     @eval begin
-        $OP{S,DD,T<:Real}(f::Fun{PiecewiseSpace{S,RealBasis,DD,1},T}) = Fun(map($OP,components(f)),PiecewiseSpace)
-        $OP{S,DD,B}(f::Fun{PiecewiseSpace{S,B,DD,1}}) = Fun(map($OP,components(f)),PiecewiseSpace)
+        $OP(f::Fun{PiecewiseSpace{S,DD,RR},T}) where {S,DD,RR<:Real,T<:Real} =
+            Fun(map($OP,components(f)),PiecewiseSpace)
+        $OP{S,DD<:UnivariateDomain,RR}(f::Fun{PiecewiseSpace{S,DD,RR}}) = Fun(map($OP,components(f)),PiecewiseSpace)
     end
 end
 

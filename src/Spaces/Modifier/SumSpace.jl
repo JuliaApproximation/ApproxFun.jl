@@ -8,7 +8,7 @@ export ⊕,components,PiecewiseSpace
 # are grouped together, starting with the first bloc
 #
 
-immutable BlockInterlacer{DMS<:Tuple}
+struct BlockInterlacer{DMS<:Tuple}
     blocks::DMS
 end
 
@@ -71,7 +71,7 @@ end
 ## SumSpace encodes a space that can be decoupled as f(x) = a(x) + b(x) where a is in S and b is in V
 
 
-abstract type DirectSumSpace{SV,T,DD,d} <: Space{T,DD,d} end
+abstract type DirectSumSpace{SV,D,R} <: Space{D,R} end
 
 
 dimension(sp::DirectSumSpace) = mapreduce(dimension,+,sp.spaces)
@@ -98,33 +98,32 @@ block(sp::DirectSumSpace,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths
 
 
 
-immutable SumSpace{SV,T,DD,d} <: DirectSumSpace{SV,T,DD,d}
+struct SumSpace{SV,D,R} <: DirectSumSpace{SV,D,R}
     spaces::SV
-    SumSpace{SV,T,DD,d}(dom::Domain) where {SV,T,DD,d} =
-        new{SV,T,DD,d}(tuple(map(typ->typ(dom),SV.parameters)...))
-    SumSpace{SV,T,DD,d}(sp::Tuple) where {SV,T,DD,d} = new{SV,T,DD,d}(sp)
+    SumSpace{SV,D,R}(dom::Domain) where {SV,D,R} =
+        new(tuple(map(typ->typ(dom),SV.parameters)...))
+    SumSpace{SV,D,R}(sp::Tuple) where {SV,D,R} = new(sp)
 end
 
-SumSpace(sp::Tuple) = SumSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
-                     typeof(domain(first(sp))),domaindimension(first(sp))}(sp)
+SumSpace(sp::Tuple) = SumSpace{typeof(sp),domaintype(first(sp)),
+                                mapreduce(rangetype,promote_type,sp)}(sp)
 
 
-immutable PiecewiseSpace{SV,T,DD<:UnionDomain,d} <: DirectSumSpace{SV,T,DD,d}
+struct PiecewiseSpace{SV,D<:UnionDomain,R} <: DirectSumSpace{SV,D,R}
     spaces::SV
-    PiecewiseSpace{SV,T,DD,d}(dom::AnyDomain) where {SV,T,DD,d} =
-        new{SV,T,DD,d}(tuple(map(typ->typ(dom),SV.parameters)...))
-    PiecewiseSpace{SV,T,DD,d}(dom::UnionDomain) where {SV,T,DD,d} =
-        new{SV,T,DD,d}(tuple(map((typ,dom)->typ(dom),SV.parameters,dom.domains)...))
-    PiecewiseSpace{SV,T,DD,d}(sp::Tuple) where {SV,T,DD,d} =
-        new{SV,T,DD,d}(sp)
+    PiecewiseSpace{SV,D,R}(dom::AnyDomain) where {SV,D,R} =
+        new{SV,D,R}(tuple(map(typ->typ(dom),SV.parameters)...))
+    PiecewiseSpace{SV,D,R}(dom::UnionDomain) where {SV,D,R} =
+        new{SV,D,R}(tuple(map((typ,dom)->typ(dom),SV.parameters,dom.domains)...))
+    PiecewiseSpace{SV,D,R}(sp::Tuple) where {SV,D,R} =
+        new{SV,D,R}(sp)
 end
 
 function PiecewiseSpace(spin::Tuple)
     sp=tuple(union(spin)...)  # remove duplicates
 
-    PiecewiseSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
-                   typeof(UnionDomain(map(domain,sp))),
-                   domaindimension(first(sp))}(sp)
+    PiecewiseSpace{typeof(sp),typeof(UnionDomain(map(domain,sp))),
+                   mapreduce(rangetype,promote_type,sp)}(sp)
 end
 
 
@@ -166,21 +165,21 @@ function spacescompatible{S<:DirectSumSpace}(A::S,B::S)
     end
 end
 
-function Base.promote_rule{SV,B,DD,d,V,T<:Number,VV}(::Type{Fun{SumSpace{SV,B,DD,d},V,VV}},::Type{T})
+function Base.promote_rule{SV,D,R,V,T<:Number,VV}(::Type{Fun{SumSpace{SV,D,R},V,VV}},::Type{T})
     for k=1:length(SV.parameters)
         pt=promote_type(VFun{SV.parameters[k],V},T)
         if pt != Fun
             return VFun{SumSpace{Tuple{SV.parameters[1:k-1]...,pt.parameters[1],SV.parameters[k+1:end]...},
-                       B,DD,d},promote_type(V,T)}
+                       D,R},promote_type(V,T)}
         end
     end
     Fun
 end
 
-Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{SumSpace{SV,B,DD,d}}},::Type{T}) =
-    promote_rule(VFun{SumSpace{SV,B,DD,d},Float64},T)
+Base.promote_rule{SV,D,R,T<:Number}(::Type{Fun{SumSpace{SV,D,R}}},::Type{T}) =
+    promote_rule(VFun{SumSpace{SV,D,R},Float64},T)
 
-function Base.promote_rule{SV,B,DD,d,V,VV,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d},V,VV}},::Type{T})
+function Base.promote_rule{SV,D,R,V,VV,T<:Number}(::Type{Fun{PiecewiseSpace{SV,D,R},V,VV}},::Type{T})
     # if any doesn't support promoting, just leave unpromoted
 
     newfsp=map(s->promote_type(VFun{s,V},T),SV.parameters)
@@ -188,12 +187,12 @@ function Base.promote_rule{SV,B,DD,d,V,VV,T<:Number}(::Type{Fun{PiecewiseSpace{S
         Fun
     else
         newsp=map(s->s.parameters[1],newfsp)
-        VFun{PiecewiseSpace{Tuple{newsp...},B,DD,d},promote_type(V,T)}
+        VFun{PiecewiseSpace{Tuple{newsp...},D,R},promote_type(V,T)}
     end
 end
 
-Base.promote_rule{SV,B,DD,d,T<:Number}(::Type{Fun{PiecewiseSpace{SV,B,DD,d}}},::Type{T}) =
-    promote_rule(VFun{PiecewiseSpace{SV,B,DD,d},Float64},T)
+Base.promote_rule{SV,D,R,T<:Number}(::Type{Fun{PiecewiseSpace{SV,D,R}}},::Type{T}) =
+    promote_rule(VFun{PiecewiseSpace{SV,D,R},Float64},T)
 
 
 
@@ -291,8 +290,8 @@ for TYP in (:SumSpace,:PiecewiseSpace)
     end
     for OP in (:(Base.real),:(Base.imag),:(Base.conj))
         @eval begin
-            $OP{SV,DD,d}(f::Fun{$TYP{SV,RealBasis,DD,d}}) = Fun(f.space,$OP(f.coefficients))
-            function $OP{SV,T,DD,d}(f::Fun{$TYP{SV,T,DD,d}})
+            $OP(f::Fun{$TYP{SV,DD,RR}}) where {SV,DD,RR<:Real} = Fun(f.space,$OP(f.coefficients))
+            function $OP(f::Fun{$TYP{SV,DD,RR}}) where {SV,DD,RR}
                 fs=map($OP,components(f))
                 sp=$TYP(map(space,fs))
                 Fun(sp,interlace(fs,sp))

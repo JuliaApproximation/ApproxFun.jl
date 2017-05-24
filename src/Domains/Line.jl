@@ -17,7 +17,7 @@ doc"""
 
 represents the line at angle `a` in the complex plane, centred at `c`.
 """
-immutable Line{angle,T<:Number} <: IntervalDomain{T}
+struct Line{angle,T<:Number} <: IntervalDomain{T}
     center::T
     α::Float64
     β::Float64
@@ -155,7 +155,7 @@ end
 
 # angle is (false==0) and π (true==1)
 # or ranges from (-1,1]
-immutable PeriodicLine{angle,T} <: PeriodicDomain{Float64}
+struct PeriodicLine{angle,T} <: PeriodicDomain{Float64}
     center::T
     L::Float64
     (::Type{PeriodicLine{angle,T}}){angle,T}(c,L) = new{angle,T}(c,L)

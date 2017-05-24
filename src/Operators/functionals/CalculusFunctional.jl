@@ -11,10 +11,10 @@ macro calculus_functional(Op)
     WrappOp=parse(string(Op)*"Wrapper")
     return esc(quote
         abstract type $Op{SSS,TTT} <: CalculusFunctional{SSS,TTT} end
-        immutable $ConcOp{S,T} <: $Op{S,T}
+        struct $ConcOp{S,T} <: $Op{S,T}
             domainspace::S
         end
-        immutable $WrappOp{BT<:Operator,S<:Space,T} <: $Op{S,T}
+        struct $WrappOp{BT<:Operator,S<:Space,T} <: $Op{S,T}
             op::BT
         end
 

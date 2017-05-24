@@ -2,12 +2,16 @@ export DiracDelta
 
 for TYP in (:DiracSpace,:PointSpace)
     @eval begin
-        immutable $TYP{T}<:RealUnivariateSpace{AnyDomain}
+        struct $TYP{T,D,R}<:Space{D,R}
           points::Vector{T}
-          (::Type{$TYP{T}}){T}(pts::Vector{T}) = new{T}(sort(pts))
+          $TYP{T,D,R}(pts::Vector{T}) where {T,D,R} = new(sort(pts))
         end
 
-        $TYP(points::AbstractVector) = $TYP{eltype(points)}(points)
+        function $TYP(points::AbstractVector)
+            d = mapreduce(Point,union,DS.points)
+            $TYP{eltype(points),typeof(d),real(prectype(d))}(points)
+        end
+
         $TYP(points::Tuple) = $TYP([points...])
         $TYP() = $TYP(Float64[])
         $TYP(point::Number) = $TYP([point])

@@ -4,7 +4,7 @@ export PlusOperator, TimesOperator, A_mul_B_coefficients
 
 
 
-immutable PlusOperator{T,BI} <: Operator{T}
+struct PlusOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
     function (::Type{PlusOperator{T,BI}}){T,BI}(opsin::Vector{Operator{T}},bi::BI)
@@ -156,7 +156,7 @@ end
 
 ## Times Operator
 
-immutable ConstantTimesOperator{B,T} <: Operator{T}
+struct ConstantTimesOperator{B,T} <: Operator{T}
     λ::T
     op::B
     (::Type{ConstantTimesOperator{B,T}}){B,T}(c,op) = new{B,T}(c,op)
@@ -215,7 +215,7 @@ BLAS.axpy!{T,OP<:ConstantTimesOperator}(α,S::SubOperator{T,OP},A::AbstractMatri
 
 
 
-immutable TimesOperator{T,BI} <: Operator{T}
+struct TimesOperator{T,BI} <: Operator{T}
     ops::Vector{Operator{T}}
     bandinds::BI
 

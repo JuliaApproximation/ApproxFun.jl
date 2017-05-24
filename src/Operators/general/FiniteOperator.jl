@@ -3,7 +3,7 @@ export FiniteOperator
 
 
 
-immutable FiniteOperator{AT<:AbstractMatrix,T<:Number,DS,RS} <: Operator{T}
+struct FiniteOperator{AT<:AbstractMatrix,T<:Number,DS,RS} <: Operator{T}
     matrix::AT
     domainspace::DS
     rangespace::RS

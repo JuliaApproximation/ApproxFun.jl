@@ -12,7 +12,7 @@ doc"""
 represents a line segment from `a` to `b`.  In the case where `a` and `b`
 are real and `a < b`, then this is is equivalent to an `Interval(a,b)`.
 """
-immutable Segment{T} <: IntervalDomain{T}
+struct Segment{T} <: IntervalDomain{T}
 	a::T
 	b::T
 	(::Type{Segment{T}}){T}() = new{T}(-one(T),one(T))

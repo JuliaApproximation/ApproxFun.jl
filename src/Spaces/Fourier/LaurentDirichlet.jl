@@ -9,23 +9,22 @@ export LaurentDirichlet
 
 
 
-immutable LaurentDirichlet{DD} <: UnivariateSpace{ComplexBasis,DD}
+struct LaurentDirichlet{DD,RR} <: Space{DD,RR}
     domain::DD
-    (::Type{LaurentDirichlet{DD}}){DD}(d::DD) = new{DD}(d)
+    LaurentDirichlet{DD,RR}(d::DD) where {DD,RR} = new(d)
 end
-LaurentDirichlet{T<:Number}(d::Vector{T})=LaurentDirichlet(PeriodicDomain(d))
-LaurentDirichlet(d::Domain)=LaurentDirichlet{typeof(d)}(d)
-LaurentDirichlet()=LaurentDirichlet(PeriodicInterval())
+LaurentDirichlet(d::Domain) = LaurentDirichlet{typeof(d),complex(eltype(d))}(d)
+LaurentDirichlet() = LaurentDirichlet(PeriodicInterval())
 
-spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet)=domainscompatible(a,b)
+spacescompatible(a::LaurentDirichlet,b::LaurentDirichlet) = domainscompatible(a,b)
 
-canonicalspace(S::LaurentDirichlet)=Laurent(domain(S))
+canonicalspace(S::LaurentDirichlet) = Laurent(domain(S))
 
 
-Conversion{DD}(a::LaurentDirichlet{DD},b::Laurent{DD})=ConcreteConversion(a,b)
-bandinds{DD}(::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}})=0,2
+Conversion{DD,RR}(a::LaurentDirichlet{DD,RR},b::Laurent{DD,RR}) = ConcreteConversion(a,b)
+bandinds{DD,RR}(::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{DD,RR}}) = 0,2
 
-function getindex{DD}(C::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}},k::Integer,j::Integer)
+function getindex{DD,RR}(C::ConcreteConversion{LaurentDirichlet{DD,RR},Laurent{DD,RR}},k::Integer,j::Integer)
     if k==1 && j==2
         one(eltype(C))
     elseif k==j || j==k+2
@@ -35,21 +34,21 @@ function getindex{DD}(C::ConcreteConversion{LaurentDirichlet{DD},Laurent{DD}},k:
     end
 end
 
-conversion_rule{DD}(b::LaurentDirichlet,a::Laurent{DD})=b
+conversion_rule{DD,RR}(b::LaurentDirichlet,a::Laurent{DD,RR})=b
 
-differentiate{DD}(f::Fun{LaurentDirichlet{DD}}) = differentiate(Fun(f,Laurent))
+differentiate{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}}) = differentiate(Fun(f,Laurent))
 
 for op in (:+,:-,:*)
     @eval begin
-        $op{DD}(f::Fun{Laurent{DD}},g::Fun{LaurentDirichlet{DD}}) = $op(f,Fun(g,Laurent))
-        $op{DD}(f::Fun{LaurentDirichlet{DD}},g::Fun{Laurent{DD}}) = $op(Fun(f,Laurent),g)
-        $op{DD}(f::Fun{LaurentDirichlet{DD}},g::Fun{LaurentDirichlet{DD}}) = $op(Fun(f,Laurent),Fun(g,Laurent))
+        $op{DD,RR}(f::Fun{Laurent{DD,RR}},g::Fun{LaurentDirichlet{DD,RR}}) = $op(f,Fun(g,Laurent))
+        $op{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}},g::Fun{Laurent{DD,RR}}) = $op(Fun(f,Laurent),g)
+        $op{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}},g::Fun{LaurentDirichlet{DD,RR}}) = $op(Fun(f,Laurent),Fun(g,Laurent))
     end
 end
 
 
-Base.real{DD}(f::Fun{LaurentDirichlet{DD}}) = real(Fun(f,Laurent))
-Base.imag{DD}(f::Fun{LaurentDirichlet{DD}}) = imag(Fun(f,Laurent))
+Base.real{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}}) = real(Fun(f,Laurent))
+Base.imag{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}}) = imag(Fun(f,Laurent))
 
 
 coefficients(v::Vector,::Laurent,::LaurentDirichlet)=laurentdirichlettransform!(copy(v))
@@ -87,11 +86,12 @@ end
 #
 
 
-immutable CosDirichlet{DD} <: RealUnivariateSpace{DD}
+struct CosDirichlet{DD,RR} <: Space{DD,RR}
     domain::DD
 end
 
-CosDirichlet()=CosDirichlet(PeriodicInterval())
+CosDirichlet(d::Domain) = CosDirichlet{typeof(d),real(eltype(d))}(d)
+CosDirichlet() = CosDirichlet(PeriodicInterval())
 
 spacescompatible(a::CosDirichlet,b::CosDirichlet) = domainscompatible(a,b)
 

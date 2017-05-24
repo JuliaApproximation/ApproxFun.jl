@@ -8,7 +8,7 @@ doc"""
 represents a periodic interval from `a` to `b`, that is, the point
 `b` is identified with `a`.
 """
-immutable PeriodicInterval{T} <: PeriodicDomain{T}
+struct PeriodicInterval{T} <: PeriodicDomain{T}
     a::T
     b::T
     (::Type{PeriodicInterval{T}}){T}() = new{T}(0,2convert(T,π))

@@ -5,15 +5,15 @@
 
 export ProductFun
 
-immutable ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T}<:BivariateFun{T}
+struct ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,SS<:AbstractProductSpace,T}<:BivariateFun{T}
     coefficients::Vector{VFun{S,T}}     # coefficients are in x
     space::SS
 end
 
-ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD,P}(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{S,V},P,DD,2}) =
+ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD<:BivariateDomain}(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{S,V},DD}) =
     ProductFun{S,V,typeof(sp),T}(cfs,sp)
 ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,
-         W<:UnivariateSpace,T<:Number,P,DD}(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{W,V},P,DD,2}) =
+         W<:UnivariateSpace,T<:Number,DD<:BivariateDomain}(cfs::Vector{VFun{S,T}},sp::AbstractProductSpace{Tuple{W,V},DD}) =
    ProductFun{W,V,typeof(sp),T}(VFun{W,T}[Fun(cfs[k],columnspace(sp,k)) for k=1:length(cfs)],sp)
 
 Base.size(f::ProductFun,k::Integer) =
@@ -22,7 +22,7 @@ Base.size(f::ProductFun) = (size(f,1),size(f,2))
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD,P}(cfs::Matrix{T},sp::AbstractProductSpace{Tuple{S,V},P,DD,2};
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD<:BivariateDomain}(cfs::Matrix{T},sp::AbstractProductSpace{Tuple{S,V},DD};
                                                                        tol::Real=100eps(T),chopping::Bool=false)
     if chopping
         ncfs,kend=norm(cfs,Inf),size(cfs,2)
@@ -298,7 +298,7 @@ end
     Fun(space(f),transform!(space(f),values(pad(f,size(f,1)+20,size(f,2))).^k))
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op){S,V<:Space{RealBasis},SS<:TensorSpace}(f::ProductFun{S,V,SS}) =
+    @eval ($op)(f::ProductFun{S,V,SS}) where {S,V<:RealSpace,SS<:TensorSpace} =
         ProductFun(map($op,f.coefficients),space(f))
 end
 

@@ -1,12 +1,12 @@
 
-immutable SubSpace{DS,IT,T,DD,dim} <: Space{T,DD,dim}
+struct SubSpace{DS,IT,DD,RR} <: Space{DD,RR}
     space::DS
     indexes::IT
-    (::Type{SubSpace{DS,IT,T,DD,dim}}){DS,IT,T,DD,dim}(sp::DS,ind::IT) = new{DS,IT,T,DD,dim}(sp,ind)
+    SubSpace{DS,IT,DD,RR}(sp::DS,ind::IT) where {DS,IT,DD,RR} = new(sp,ind)
 end
 
 SubSpace(sp::Space,kr) =
-    SubSpace{typeof(sp),typeof(kr),basistype(sp),domaintype(sp),domaindimension(sp)}(sp,kr)
+    SubSpace{typeof(sp),typeof(kr),domaintype(sp),rangetype(sp)}(sp,kr)
 
 SubSpace(sp::SubSpace,kr) = SubSpace(sp.space,reindex(sp,sp.indexes,to_indexes(kr))[1])
 
@@ -82,10 +82,10 @@ block(::,B::SubBlock) = B.block
 ##
 
 
-spacescompatible{DS,IT,T,DD,d}(S1::SubSpace{DS,IT,T,DD,d},S2::SubSpace{DS,IT,T,DD,d}) =
+spacescompatible{DS,IT,DD,RR}(S1::SubSpace{DS,IT,DD,RR},S2::SubSpace{DS,IT,DD,RR}) =
     spacescompatible(S1.space,S2.space) && S1.indexes == S2.indexes
 
-=={DS,IT,T,DD,d}(S1::SubSpace{DS,IT,T,DD,d},S2::SubSpace{DS,IT,T,DD,d}) =
+=={DS,IT,DD,RR}(S1::SubSpace{DS,IT,DD,RR},S2::SubSpace{DS,IT,DD,RR}) =
     S1.space == S2.space && S1.indexes == S2.indexes
 
 canonicalspace(a::SubSpace) = a.space
@@ -94,23 +94,23 @@ canonicalspace(a::SubSpace) = a.space
 
 setdomain(DS::SubSpace,d::Domain) = SubSpace(setdomain(DS.space,d),DS.indexes)
 
-Conversion{S<:Space,IT,T,DD,d}(a::SubSpace{S,IT,T,DD,d},b::S) =
+Conversion{S<:Space,IT,DD,RR}(a::SubSpace{S,IT,DD,RR},b::S) =
     ConcreteConversion(a,b)
-bandinds{S,T,DD,d}(C::ConcreteConversion{SubSpace{S,UnitCount{Int},T,DD,d},S}) =
+bandinds{S,DD,RR}(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) =
     1-first(domainspace(C).indexes),0
 
-getindex{S,IT,T,DD,d}(C::ConcreteConversion{SubSpace{S,IT,T,DD,d},S},
+getindex{S,IT,DD,RR}(C::ConcreteConversion{SubSpace{S,IT,DD,RR},S},
                    k::Integer,j::Integer) =
     domainspace(C).indexes[j]==k?one(eltype(C)):zero(eltype(C))
 
 
 
 
-getindex{IT,DS,T,DD,d}(E::ConcreteEvaluation{SubSpace{DS,IT,T,DD,d},Bool},k::Integer) =
+getindex{IT,DS,DD,RR}(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR},Bool},k::Integer) =
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
-getindex{IT,DS,T,DD,d}(E::ConcreteEvaluation{SubSpace{DS,IT,T,DD,d}},k::Integer) =
+getindex{IT,DS,DD,RR}(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},k::Integer) =
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
-getindex{IT,DS,T,DD,d}(E::ConcreteEvaluation{SubSpace{DS,IT,T,DD,d}},kr::Range) =
+getindex{IT,DS,DD,RR}(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},kr::Range) =
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[kr]]
 
 
@@ -187,9 +187,9 @@ itransform(sp::SubSpace,cfs::Vector) =
 points(sp::SubSpace,n) = points(sp.space,n)
 
 
-coefficients{DS,IT,T,TT,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,Segment{Vec{2,TT}},1},::TensorSpace{SV,TTT,DD,2}) =
+coefficients{DS,IT,TT,SV,DD<:BivariateDomain}(v::Vector,::SubSpace{DS,IT,Segment{Vec{2,TT}}},::TensorSpace{SV,DD}) =
     error("Not callable, only defined for ambiguity errors.")
-coefficients{DS,IT,T,D,SV,TTT,DD}(v::Vector,::SubSpace{DS,IT,T,D,1},::TensorSpace{SV,TTT,DD,2}) =
+coefficients{DS,IT,D,SV,DD<:BivariateDomain}(v::Vector,::SubSpace{DS,IT,D},::TensorSpace{SV,DD}) =
     error("Not callable, only defined for ambiguity errors.")
 
 for TYP in (:SumSpace,:PiecewiseSpace,:TensorSpace,:ConstantSpace,:Space) # Resolve conflict
@@ -205,7 +205,7 @@ end
 # values{S<:SubSpace}(f::ProductFun{S})=values(ProductFun(f,space(f,1).space,space(f,2)))
 #
 #
-# function coefficients{n,DS,TT,DD}(f::ProductFun{SubSpace{n,1,DS,TT,DD,1}},ox::Space,oy::Space)
+# function coefficients{n,DS,TT,DD}(f::ProductFun{SubSpace{n,1,DS,DD,RR}},ox::Space,oy::Space)
 #     T=eltype(f)
 #     m=size(f,1)
 #     A=[pad!(coefficients(fx,ox),m+n) for fx in f.coefficients]

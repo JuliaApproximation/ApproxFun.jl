@@ -1,4 +1,4 @@
-immutable PiecewiseSegment{T} <: UnivariateDomain{T}
+struct PiecewiseSegment{T} <: UnivariateDomain{T}
     points::Vector{T}
     (::Type{PiecewiseSegment{T}}){T}(d::Vector{T}) = new{T}(d)
 end

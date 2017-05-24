@@ -13,7 +13,7 @@ doc"""
 represents the circle centred at `c` with radius `r` which is positively (`o=true`)
 or negatively (`o=false`) oriented.
 """
-immutable Circle{T,V<:Real,TT} <: PeriodicDomain{TT}
+struct Circle{T,V<:Real,TT} <: PeriodicDomain{TT}
 	center::T
 	radius::V
 	orientation::Bool

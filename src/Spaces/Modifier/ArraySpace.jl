@@ -10,26 +10,24 @@ f = Fun(x->[exp(x),sin(x)],-1..1)
 space(f) == ArraySpace(Chebyshev(),2)
 ```
 """
-immutable ArraySpace{S,n,T,DD,dim} <: DirectSumSpace{NTuple{n,S},T,DD,dim}
+# TODO: support general vector types
+struct ArraySpace{S,n,DD,RR} <: DirectSumSpace{NTuple{n,S},DD,Array{RR,n}}
      spaces::Array{S,n}
 end
 
-BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
-interlacer(sp::ArraySpace) = BlockInterlacer(sp)
-
-const VectorSpace{S,T,DD,dim} = ArraySpace{S,1,T,DD,dim}
-const MatrixSpace{S,T,DD,dim} = ArraySpace{S,2,T,DD,dim}
+const VectorSpace{S,DD,RR} = ArraySpace{S,1,DD,RR}
+const MatrixSpace{S,DD,RR} = ArraySpace{S,2,DD,RR}
 
 #TODO: Think through domain/domaindominsion
 ArraySpace{SS<:Space,N}(sp::Array{SS,N}) =
-    ArraySpace{SS,N,mapreduce(basistype,promote_type,sp),
-               domaintype(first(sp)),domaindimension(first(sp))}(sp)
+    ArraySpace{SS,N,domaintype(first(sp)),mapreduce(rangetype,promote_type,sp)}(sp)
 ArraySpace{N}(S::Space,n::NTuple{N,Int}) = ArraySpace(fill(S,n))
 ArraySpace(S::Space,n::Integer) = ArraySpace(S,(n,))
 ArraySpace(S::Space,n,m) = ArraySpace(fill(S,(n,m)))
 ArraySpace(d::Domain,n...) = ArraySpace(Space(d),n...)
 
-
+BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
+interlacer(sp::ArraySpace) = BlockInterlacer(sp)
 
 for OP in (:(Base.length),:(Base.start),:(Base.endof),:(Base.size))
     @eval begin
@@ -88,7 +86,7 @@ transform{SS,n,V}(AS::ArraySpace{SS,1},vals::Vector{Vec{V,n}}) =
     transform(AS,map(Vector,vals))
 
 Base.vec(AS::ArraySpace) = ArraySpace(vec(AS.spaces))
-Base.vec{S,n,T,DD,dim}(f::Fun{ArraySpace{S,n,T,DD,dim}}) =
+Base.vec{S,n,DD,RR}(f::Fun{ArraySpace{S,n,DD,RR}}) =
     [f[j] for j=1:length(f.space)]
 
 Base.convert(::Type{Array},f::Fun{AS,T}) where {AS<:ArraySpace,T} =
@@ -96,8 +94,8 @@ Base.convert(::Type{Array},f::Fun{AS,T}) where {AS<:ArraySpace,T} =
 
 Base.map{AS<:ArraySpace}(f,A::Fun{AS}) = Base.collect_similar(A, Base.Generator(f,A))
 
-Base.similar{SS,T,DD,dim}(a::Fun{ArraySpace{SS,1,T,DD,dim}}, S::Type) = Array{S,1}(size(a,1))
-Base.similar{SS,T,DD,dim}(a::Fun{ArraySpace{SS,2,T,DD,dim}}, S::Type) = Array{S,2}(size(a,1), size(a,2))
+Base.similar{SS,DD,RR}(a::Fun{ArraySpace{SS,1,DD,RR}}, S::Type) = Array{S,1}(size(a,1))
+Base.similar{SS,DD,RR}(a::Fun{ArraySpace{SS,2,DD,RR}}, S::Type) = Array{S,2}(size(a,1), size(a,2))
 
 Base.repmat(A::ArraySpace,n,m) = ArraySpace(repmat(A.spaces,n,m))
 
@@ -106,10 +104,12 @@ component(A::MatrixSpace,k::Integer,j::Integer) = A.spaces[k,j]
 Base.getindex{DSS<:ArraySpace}(f::Fun{DSS},k::Integer) = component(f,k)
 
 
-Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k::Integer,j::Integer) =
+Base.getindex{S,DD,RR}(f::Fun{MatrixSpace{S,DD,RR}},k::Integer,j::Integer) =
     f[k+stride(f,2)*(j-1)]
 
-Base.getindex{S,V,DD,d}(f::Fun{MatrixSpace{S,V,DD,d}},k::Union{Integer,Range,Colon},j::Union{Integer,Range,Colon}) =
+Base.getindex{S,DD,RR}(f::Fun{MatrixSpace{S,DD,RR}},
+                       k::Union{Integer,Range,Colon},
+                       j::Union{Integer,Range,Colon}) =
     Fun(Array(f)[k,j])
 
 
@@ -146,7 +146,7 @@ function Fun(v::Array{FF}) where {FF<:Fun}
 end
 
 
-function Fun{S,T,V,VV,DD,d}(A::Array{Fun{VectorSpace{S,T,DD,d},V,VV},2})
+function Fun{S,V,VV,DD,RR}(A::Array{Fun{VectorSpace{S,DD,RR},V,VV},2})
     @assert size(A,1)==1
 
     M=Matrix{Fun{S,V,VV}}(length(space(A[1])),size(A,2))
@@ -309,30 +309,10 @@ end
 
 
 
-## ConstantVectorSpace
-
-
-const ConstantVectorSpace = VectorSpace{ConstantSpace{AnyDomain},RealBasis,AnyDomain,1}
-
-
-function component(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T},k) where {V,TT,DD,d,T}
-    m=length(space(f)[1])
-    if k≤m
-        Fun(f.coefficients[k],ConstantSpace())
-    else
-        Fun(f.coefficients[m+1:end],space(f)[2])
-    end
-end
-
-
-
-components(f::Fun{SumSpace{Tuple{ConstantVectorSpace,V},TT,DD,d},T}) where {V,TT,DD,d,T} =
-    Any[component(f,k) for k=1:length(space(f)[1])+1]
-
-
 # avoid ambiguity
+# TODO: try removing this
 for TYP in (:SpaceOperator,:TimesOperator,:QROperatorR,:QROperatorQ,:QROperator,:Operator)
-    @eval \{S,T,DD,dim}(A::$TYP,b::Fun{MatrixSpace{S,T,DD,dim}};kwds...) =
+    @eval \{S,DD,RR}(A::$TYP,b::Fun{MatrixSpace{S,DD,RR}};kwds...) =
         \(A,Array(b);kwds...)
 end
 
@@ -341,5 +321,5 @@ end
 
 ## EuclideanSpace
 
-const EuclideanSpace = ArraySpace{ConstantSpace{AnyDomain},1,RealBasis,AnyDomain,1}
+const EuclideanSpace{RR} = VectorSpace{ConstantSpace{AnyDomain},AnyDomain,RR}
 EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(),n)

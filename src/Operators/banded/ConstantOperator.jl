@@ -1,6 +1,6 @@
 export ConstantOperator, IdentityOperator, BasisFunctional
 
-immutable ConstantOperator{T,DS} <: Operator{T}
+struct ConstantOperator{T,DS} <: Operator{T}
     λ::T
     space::DS
     (::Type{ConstantOperator{T,DS}}){T,DS}(c::Number,sp::DS) = new{T,DS}(convert(T,c),sp)
@@ -62,7 +62,7 @@ end
 
 ## Basis Functional
 
-immutable BasisFunctional{T} <: Operator{T}
+struct BasisFunctional{T} <: Operator{T}
     k::Integer
 end
 
@@ -78,7 +78,7 @@ Base.convert{T}(::Type{Operator{T}},B::BasisFunctional) = BasisFunctional{T}(B.k
 Base.getindex{T}(op::BasisFunctional{T},k::Integer) = (k==op.k)?one(T):zero(T)
 Base.getindex{T}(op::BasisFunctional{T},k::Range) = convert(Vector{T},k.==op.k)
 
-immutable FillFunctional{T} <: Operator{T}
+struct FillFunctional{T} <: Operator{T}
     λ::T
 end
 
@@ -91,7 +91,7 @@ Base.getindex(op::FillFunctional,k::Range)=fill(op.λ,length(k))
 
 ## Zero is a special operator: it makes sense on all spaces, and between all spaces
 
-immutable ZeroOperator{T,S,V} <: Operator{T}
+struct ZeroOperator{T,S,V} <: Operator{T}
     domainspace::S
     rangespace::V
 end

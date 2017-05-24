@@ -1,6 +1,6 @@
 export newton
 
-immutable DualFun{F,T}
+struct DualFun{F,T}
     f::F
     J::T
 end

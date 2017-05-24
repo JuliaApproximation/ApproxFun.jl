@@ -6,7 +6,7 @@ export KroneckerOperator
 # KroneckerOperator gives the kronecker product of two 1D operators
 #########
 
-immutable KroneckerOperator{S,V,DS,RS,DI,RI,T} <: Operator{T}
+struct KroneckerOperator{S,V,DS,RS,DI,RI,T} <: Operator{T}
     ops::Tuple{S,V}
     domainspace::DS
     rangespace::RS
@@ -265,7 +265,7 @@ Base.transpose(S::ConstantTimesOperator) = sp.c*S.op.'
 ### Calculus
 
 #TODO: general dimension
-function Derivative{SV,TT,DD}(S::TensorSpace{SV,TT,DD,2},order::Vector{Int})
+function Derivative{SV,DD<:BivariateDomain}(S::TensorSpace{SV,DD},order::Vector{Int})
     @assert length(order)==2
     if order[1]==0
         Dy=Derivative(S[2],order[2])
@@ -430,7 +430,7 @@ maxspace(a::TensorSpace,b::TensorSpace) = maxspace(a[1],b[1])⊗maxspace(a[2],b[
 
 ConcreteConversion(a::BivariateSpace,b::BivariateSpace) =
     ConcreteConversion{typeof(a),typeof(b),
-                        promote_type(eltype(a),eltype(b),real(eltype(eltype(domain(a)))),real(eltype(eltype(domain(b)))))}(a,b)
+                        promote_type(eltype(a),eltype(b),real(prectype(domain(a))),real(prectype(domain(b))))}(a,b)
 
 Conversion(a::TensorSpace,b::TensorSpace) = ConversionWrapper(promote_type(eltype(a),eltype(b)),
                 KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))

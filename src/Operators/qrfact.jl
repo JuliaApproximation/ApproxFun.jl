@@ -23,7 +23,7 @@ getindex(QR::QROperator,k::Integer,j::Integer) = QR.R.op[k,j]
 
 
 
-immutable QROperatorR{QRT,T} <: Operator{T}
+struct QROperatorR{QRT,T} <: Operator{T}
     QR::QRT
 end
 
@@ -42,7 +42,7 @@ end
 
 bandinds(R::QROperatorR) = 0,bandinds(R.QR.R,2)
 
-immutable QROperatorQ{QRT,T} <: Operator{T}
+struct QROperatorQ{QRT,T} <: Operator{T}
     QR::QRT
 end
 

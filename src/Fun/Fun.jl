@@ -394,13 +394,13 @@ end
 Base.transpose(f::Fun) = f  # default no-op
 
 for op = (:(Base.real),:(Base.imag),:(Base.conj))
-    @eval ($op)(f::Fun{S}) where {S<:Space{RealBasis}} = Fun(f.space,($op)(f.coefficients))
+    @eval ($op)(f::Fun{S}) where {S<:RealSpace} = Fun(f.space,($op)(f.coefficients))
 end
 
 Base.conj(f::Fun) = error("Override conj for $(typeof(f))")
 
-Base.abs2{S<:Space{RealBasis},T<:Real}(f::Fun{S,T}) = f^2
-Base.abs2{S<:Space{RealBasis},T<:Complex}(f::Fun{S,T}) = real(f)^2+imag(f)^2
+Base.abs2{S<:RealSpace,T<:Real}(f::Fun{S,T}) = f^2
+Base.abs2{S<:RealSpace,T<:Complex}(f::Fun{S,T}) = real(f)^2+imag(f)^2
 Base.abs2(f::Fun)=f*conj(f)
 
 ##  integration
@@ -450,8 +450,8 @@ Base.isapprox(f::Fun,g::Number)=isapprox(f,g*ones(space(f)))
 Base.isapprox(g::Number,f::Fun)=isapprox(g*ones(space(f)),f)
 
 
-Base.isreal{S,T<:Real}(f::Fun{S,T}) = basistype(S)<:RealBasis
-Base.isreal(f::Fun)=false
+Base.isreal(f::Fun{<:RealSpace,<:Real}) = true
+Base.isreal(f::Fun) = false
 
 iszero(x::Number) = x == 0
 iszero(f::Fun)    = all(iszero,f.coefficients)

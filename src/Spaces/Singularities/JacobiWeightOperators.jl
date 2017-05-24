@@ -3,12 +3,12 @@
 
 ## Calculus
 
-Base.sum{C<:Chebyshev,DD}(f::Fun{JacobiWeight{C,DD}})=sum(setdomain(f,canonicaldomain(f))*fromcanonicalD(f))
-linesum{C<:Chebyshev,DD}(f::Fun{JacobiWeight{C,DD}})=linesum(setdomain(f,canonicaldomain(f))*abs(fromcanonicalD(f)))
+Base.sum{C<:Chebyshev,DD,RR}(f::Fun{JacobiWeight{C,DD,RR}})=sum(setdomain(f,canonicaldomain(f))*fromcanonicalD(f))
+linesum{C<:Chebyshev,DD,RR}(f::Fun{JacobiWeight{C,DD,RR}})=linesum(setdomain(f,canonicaldomain(f))*abs(fromcanonicalD(f)))
 
 for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
     @eval begin
-        function $Func{C<:Chebyshev,DD<:Segment}(f::Fun{JacobiWeight{C,DD}})
+        function $Func{C<:Chebyshev,DD<:Segment,RR}(f::Fun{JacobiWeight{C,DD,RR}})
             tol=1e-10
             d,β,α,n=domain(f),f.space.β,f.space.α,ncoefficients(f)
             g=Fun(space(f).space,f.coefficients)
@@ -39,7 +39,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
                 return 0.5*$Len(d)*dotu(f.coefficients,c)
             end
         end
-        $Func{PS<:PolynomialSpace,DD}(f::Fun{JacobiWeight{PS,DD}}) = $Func(Fun(f,
+        $Func{PS<:PolynomialSpace,DD,RR}(f::Fun{JacobiWeight{PS,DD,RR}}) = $Func(Fun(f,
                                                                        JacobiWeight(space(f).β,
                                                                                     space(f).α,
                                                                                     Chebyshev(domain(f)))))
@@ -47,7 +47,7 @@ for (Func,Len) in ((:(Base.sum),:complexlength),(:linesum,:arclength))
 end
 
 
-function differentiate{J<:JacobiWeight,DD<:Segment}(f::Fun{J,DD})
+function differentiate{SS,DD<:Segment,RR}(f::Fun{JacobiWeight{SS,DD,RR}})
     S=f.space
     d=domain(f)
     ff=Fun(S.space,f.coefficients)
@@ -77,7 +77,7 @@ end
 
 
 
-function integrate{SS,DD<:Segment}(f::Fun{JacobiWeight{SS,DD}})
+function integrate{SS,DD<:Segment,RR}(f::Fun{JacobiWeight{SS,DD,RR}})
     S=space(f)
     # we integrate by solving u'=f
     D=Derivative(S)
@@ -127,7 +127,7 @@ function integrate{SS,DD<:Segment}(f::Fun{JacobiWeight{SS,DD}})
     end
 end
 
-function Base.cumsum{SS,DD<:Segment}(f::Fun{JacobiWeight{SS,DD}})
+function Base.cumsum{SS,DD<:Segment,RR}(f::Fun{JacobiWeight{SS,DD,RR}})
     g=integrate(f)
     S=space(f)
 
@@ -179,7 +179,7 @@ function jacobiweightDerivative{SS,DDD<:Segment}(S::JacobiWeight{SS,DDD})
     end
 end
 
-Derivative{SS,DDD<:Segment}(S::JacobiWeight{SS,DDD})=jacobiweightDerivative(S)
+Derivative{SS,DDD<:Segment}(S::JacobiWeight{SS,DDD}) = jacobiweightDerivative(S)
 
 function Derivative{SS,DD<:Segment}(S::JacobiWeight{SS,DD},k::Integer)
     if k==1
@@ -197,7 +197,7 @@ end
 
 #Left multiplication. Here, S is considered the domainspace and we determine rangespace accordingly.
 
-function Multiplication{S1,S2,DD<:IntervalDomain,T}(f::Fun{JacobiWeight{S1,DD},T},S::JacobiWeight{S2,DD})
+function Multiplication{S1,S2,DD<:IntervalDomain,RR,T}(f::Fun{JacobiWeight{S1,DD,RR},T},S::JacobiWeight{S2,DD,RR})
     M=Multiplication(Fun(space(f).space,f.coefficients),S.space)
     if space(f).β+S.β==space(f).α+S.α==0
         rsp=rangespace(M)
@@ -221,7 +221,7 @@ end
 
 #Right multiplication. Here, S is considered the rangespace and we determine domainspace accordingly.
 
-function Multiplication{DD<:IntervalDomain,SS,S2,T}(S::JacobiWeight{SS,DD},f::Fun{JacobiWeight{S2,DD},T})
+function Multiplication{DD<:IntervalDomain,RR,SS,S2,T}(S::JacobiWeight{SS,DD,RR},f::Fun{JacobiWeight{S2,DD,RR},T})
     M=Multiplication(Fun(space(f).space,f.coefficients),S.space)
     dsp=canonicalspace(JacobiWeight(S.β-space(f).β,S.α-space(f).α,rangespace(M)))
     MultiplicationWrapper(f,SpaceOperator(M,dsp,S))

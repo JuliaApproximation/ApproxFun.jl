@@ -36,7 +36,7 @@ function evaluatechebyshev{T<:Number}(n::Integer,x::T)
 end
 
 
-function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},j::Integer)
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},Bool},j::Integer)
     T=eltype(op)
     if op.order == 0
         ifelse(op.x || isodd(j),  # right rule
@@ -50,7 +50,7 @@ end
 
 
 
-function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Range)
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},Bool},k::Range)
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -79,7 +79,7 @@ function getindex{DD<:Segment}(op::ConcreteEvaluation{Chebyshev{DD},Bool},k::Ran
     scal!(cst,ret)
 end
 
-function getindex{DD<:Segment,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD},M,OT,T},
+function getindex{DD<:Segment,RR,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
                                              j::Integer)
     if op.order == 0
         T(evaluatechebyshev(j,tocanonical(domain(op),op.x))[end])
@@ -88,7 +88,7 @@ function getindex{DD<:Segment,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD}
     end
 end
 
-function getindex{DD<:Segment,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD},M,OT,T},
+function getindex{DD<:Segment,RR,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
                                              k::Range)
     if op.order == 0
         Array{T}(evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k])
@@ -171,12 +171,12 @@ Derivative{DD<:Segment}(sp::Chebyshev{DD},order::Integer) =
     ConcreteDerivative(sp,order)
 
 
-rangespace{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) =
+rangespace{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) =
     Ultraspherical(D.order,domain(D))
-bandinds{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = D.order,D.order
-Base.stride{DD<:Segment}(D::ConcreteDerivative{Chebyshev{DD}}) = D.order
+bandinds{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order,D.order
+Base.stride{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order
 
-function getindex{DD<:Segment,K,T}(D::ConcreteDerivative{Chebyshev{DD},K,T},k::Integer,j::Integer)
+function getindex{DD<:Segment,RR,K,T}(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Integer)
     m=D.order
     d=domain(D)
 
@@ -188,7 +188,7 @@ function getindex{DD<:Segment,K,T}(D::ConcreteDerivative{Chebyshev{DD},K,T},k::I
     end
 end
 
-linesum{DD<:Segment}(f::Fun{Chebyshev{DD}}) =
+linesum{DD<:Segment,RR}(f::Fun{Chebyshev{DD,RR}}) =
     sum(setcanonicaldomain(f))*arclength(domain(f))/2
 
 

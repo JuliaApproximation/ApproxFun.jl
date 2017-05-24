@@ -1,9 +1,11 @@
 
 
-immutable ContinuousSpace{T} <: Space{RealBasis,PiecewiseSegment{T},1}
+struct ContinuousSpace{T,R} <: Space{PiecewiseSegment{T},R}
     domain::PiecewiseSegment{T}
 end
 
+ContinuousSpace{T}(d::PiecewiseSegment{T}) =
+    ContinuousSpace{T,real(T)}(d)
 
 
 Space(d::PiecewiseSegment) = ContinuousSpace(d)
@@ -11,8 +13,8 @@ Space(d::PiecewiseSegment) = ContinuousSpace(d)
 isperiodic(C::ContinuousSpace) = isperiodic(domain(C))
 
 spacescompatible(a::ContinuousSpace,b::ContinuousSpace) = domainscompatible(a,b)
-conversion_rule{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(a::ContinuousSpace,
-                                                            b::PiecewiseSpace{CD,RealBasis}) = a
+conversion_rule(a::ContinuousSpace,
+                b::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD,RR<:Real} = a
 
 plan_transform(sp::ContinuousSpace,vals::Vector) =
     TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
@@ -24,7 +26,7 @@ function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
     K=ncomponents(d)
     k=div(n,K)
 
-    PT=promote_type(eltype(eltype(d)),eltype(vals))
+    PT=promote_type(prectype(d),eltype(vals))
     if k==0
         vals
     elseif isperiodic(d)
@@ -120,23 +122,23 @@ coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace) =
 
 
 # We implemnt conversion between continuous space and PiecewiseSpace with Chebyshev dirichlet
-Conversion{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
-           DD}(ps::PiecewiseSpace{CD,RealBasis,DD,1},cs::ContinuousSpace) =
+Conversion(ps::PiecewiseSpace{CD,DD,RR},cs::ContinuousSpace) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
+                                                                    DD<:UnivariateDomain,RR<:Real} =
                 ConcreteConversion(ps,cs)
 
-Conversion{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
-           DD}(cs::ContinuousSpace,ps::PiecewiseSpace{CD,RealBasis,DD,1}) =
+Conversion(cs::ContinuousSpace,ps::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
+                                                                    DD<:UnivariateDomain,RR<:Real} =
                 ConcreteConversion(cs,ps)
 
 
-bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
-         DD,T}(C::ConcreteConversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace{T}}) =
+bandinds(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},ContinuousSpace{T}}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
+                                                                                    DD<:UnivariateDomain,RR<:Real,T} =
     -1,ncomponents(domain(rangespace(C)))
 
 
-function getindex{T,DD,TT,
-                  CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}(C::ConcreteConversion{PiecewiseSpace{CD,RealBasis,DD,1},ContinuousSpace{TT},T},
-                                                              k::Integer,j::Integer)
+function getindex(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},ContinuousSpace{TT},T},
+                  k::Integer,j::Integer) where {T,DD<:UnivariateDomain,RR<:Real,TT,
+                                                CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}
     d=domain(rangespace(C))
     K=ncomponents(d)
     if isperiodic(d)
@@ -168,14 +170,14 @@ end
 
 
 bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
-         DD,T}(C::ConcreteConversion{ContinuousSpace{T},
-                                     PiecewiseSpace{CD,RealBasis,DD,1}}) =
+         DD<:UnivariateDomain,RR<:Real,T}(C::ConcreteConversion{ContinuousSpace{T},
+                                     PiecewiseSpace{CD,DD,RR}}) =
             isperiodic(domainspace(C)) ? (1-2ncomponents(domain(rangespace(C))),1) :
                                          (-ncomponents(domain(rangespace(C))),1)
 
 function getindex{T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},TT,
-                  DD}(C::ConcreteConversion{ContinuousSpace{TT},
-                                            PiecewiseSpace{CD,RealBasis,DD,1},T},
+                  DD<:UnivariateDomain,RR<:Real}(C::ConcreteConversion{ContinuousSpace{TT},
+                                            PiecewiseSpace{CD,DD,RR},T},
                       k::Integer,j::Integer)
     d=domain(domainspace(C))
     K=ncomponents(d)
@@ -222,17 +224,17 @@ Dirichlet{T}(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Segment{T}},
 Dirichlet{T<:Real}(d::ProductDomain{Tuple{Segment{T},Segment{T}}}) =
     Dirichlet(ChebyshevDirichlet{1,1}(d[1])*ChebyshevDirichlet{1,1}(d[2]))
 
-isblockbanded{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}}) =
+isblockbanded{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) =
     true
 
-blockbandinds{CD<:ChebyshevDirichlet,RB,DD}(::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}}) =
+blockbandinds{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}}) =
     (0,2)
 
-colstop{CD<:ChebyshevDirichlet,RB,DD}(B::Dirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}},j::Integer) =
+colstop{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(B::Dirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},j::Integer) =
     j ≤ 3 ? 4 : 4(block(domainspace(B),j).K-1)
 
 
-function getindex{CD<:ChebyshevDirichlet,RB,DD}(B::ConcreteDirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2}},
+function getindex{CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR}(B::ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR}},
                                              k::Integer,j::Integer)
     T = eltype(B)
     ds = domainspace(B)
@@ -279,8 +281,8 @@ function getindex{CD<:ChebyshevDirichlet,RB,DD}(B::ConcreteDirichlet{TensorSpace
 end
 
 
-function Base.convert{T,CD<:ChebyshevDirichlet,RB,DD,CSP,TT}(::Type{BlockBandedMatrix},
-                            S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},RB,DD,2},
+function Base.convert{T,CD<:ChebyshevDirichlet,DD<:BivariateDomain,RR,CSP,TT}(::Type{BlockBandedMatrix},
+                            S::SubOperator{T,ConcreteDirichlet{TensorSpace{Tuple{CD,CD},DD,RR},
                                                                 CSP,TT},
                                             Tuple{UnitRange{Int},UnitRange{Int}}})
     P=parent(S)

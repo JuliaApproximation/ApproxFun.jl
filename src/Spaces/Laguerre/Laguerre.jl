@@ -14,7 +14,7 @@ export Laguerre, LaguerreWeight, WeightedLaguerre
 # p_{n+1} = (A_n x + B_n)p_n - C_n p_{n-1}
 #####
 
-immutable Laguerre{T} <: PolynomialSpace{Ray{false,Float64}}
+struct Laguerre{T} <: PolynomialSpace{Ray{false,Float64},Float64}
     α::T
 end
 
@@ -87,7 +87,7 @@ laguerrel(n::Range,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 laguerrel(n,S::Laguerre,v) = laguerrel(n,S.a,S.b,v)
 
 
-immutable LaguerreTransformPlan{T,TT}
+struct LaguerreTransformPlan{T,TT}
     space::Laguerre{TT}
     points::Vector{T}
     weights::Vector{T}
@@ -141,7 +141,7 @@ end
 
 
 # x^α*exp(-L*x)
-immutable LaguerreWeight{S,T} <: WeightSpace{S,RealBasis,Ray{false,Float64},1}
+struct LaguerreWeight{S,T} <: WeightSpace{S,Ray{false,Float64},Float64}
     α::T
     L::T
     space::S
@@ -220,7 +220,7 @@ end
 
 
 Conversion{D<:Ray}(A::ConstantSpace{D},B::LaguerreWeight) = error("Cannot convert constants to LaguerreWeight.")
-Conversion{S<:LaguerreWeight,IT,DD<:Ray}(a::SubSpace{S,IT,RealBasis,DD,1},b::S) =
+Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:LaguerreWeight,IT,DD<:Ray,RR} =
     ConcreteConversion(a,b)
 Conversion{D<:Ray}(A::RealUnivariateSpace{D},B::LaguerreWeight) = ConversionWrapper(
     SpaceOperator(

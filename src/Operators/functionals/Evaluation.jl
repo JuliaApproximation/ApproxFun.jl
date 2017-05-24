@@ -7,13 +7,13 @@ abstract type Evaluation{T}<:Operator{T} end
 @functional Evaluation
 
 # M = Bool if endpoint
-immutable ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
+struct ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
     space::S
     x::M
     order::OT
 end
 
-ConcreteEvaluation(sp::Space{RealBasis},x::Number,o::Number) =
+ConcreteEvaluation(sp::RealSpace,x::Number,o::Number) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(o),eltype(domain(sp))}(sp,x,o)
 
 Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order) =
@@ -32,7 +32,7 @@ end
 Evaluation(sp::UnsetSpace,x::Bool,k) =
     ConcreteEvaluation{UnsetSpace,Bool,typeof(k),UnsetNumber}(sp,x,k)
 
-Evaluation(sp::Space{ComplexBasis},x,order) =
+Evaluation(sp::Space{DD,RR},x,order) where {DD,RR<:Complex} =
     Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
 Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
 
@@ -79,7 +79,7 @@ end
 
 ## EvaluationWrapper
 
-immutable EvaluationWrapper{S<:Space,M,FS<:Operator,OT,T<:Number} <: Evaluation{T}
+struct EvaluationWrapper{S<:Space,M,FS<:Operator,OT,T<:Number} <: Evaluation{T}
     space::S
     x::M
     order::OT
@@ -146,7 +146,7 @@ end
 abstract type Dirichlet{S,T} <: Operator{T} end
 
 
-immutable ConcreteDirichlet{S,V,T} <: Dirichlet{S,T}
+struct ConcreteDirichlet{S,V,T} <: Dirichlet{S,T}
     domainspace::S
     rangespace::V
     order::Int
@@ -160,7 +160,7 @@ Base.convert{S,V,T}(::Type{Operator{T}},B::ConcreteDirichlet{S,V}) =
     ConcreteDirichlet{S,V,T}(B.domainspace,B.rangespace,B.order)
 
 
-immutable DirichletWrapper{S,T} <: Conversion{T}
+struct DirichletWrapper{S,T} <: Conversion{T}
     op::S
     order::Int
 end

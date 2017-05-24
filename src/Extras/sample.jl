@@ -41,8 +41,9 @@ function chebbisectioninv(c::Vector{Float64},x::Float64;numits::Int=47)
 end
 
 
-chebbisectioninv(c::Vector{Float64},xl::Vector{Float64})=(n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),length(c),n)))
-function chebbisectioninv{D<:Domain}(c::Vector{Float64},xl::Vector{Float64},plan::ClenshawPlan{Chebyshev{D},Float64})
+chebbisectioninv(c::Vector{Float64},xl::Vector{Float64}) =
+    (n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),length(c),n)))
+function chebbisectioninv{D<:Domain,R}(c::Vector{Float64},xl::Vector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64})
     n = length(xl)
     a = -ones(n)
     b = ones(n)
@@ -62,7 +63,7 @@ end
 
 #here, xl is vector w/ length == #cols of c
 chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64})=(n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),size(c,1),n)))
-function chebbisectioninv{D<:Domain}(c::Array{Float64,2},xl::Vector{Float64},plan::ClenshawPlan{Chebyshev{D},Float64})
+function chebbisectioninv{D<:Domain,R}(c::Array{Float64,2},xl::Vector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64})
     @assert size(c)[2] == length(xl)
 
     n = length(xl)
@@ -183,7 +184,7 @@ function sample(f::LowRankFun,n::Integer)
     [rx ry]
 end
 
-function sample{C<:Chebyshev,DD}(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},RealBasis,DD,2},Float64},n::Integer)
+function sample(f::LowRankFun{C,C,TensorSpace{Tuple{C,C},DD,RR},Float64},n::Integer) where {C<:Chebyshev,DD<:BivariateDomain,RR<:Real}
     ry=sample(sum(f,1),n)
     fA=evaluate.(f.A,ry')
     CB=coefficientmatrix(f.B)
@@ -204,7 +205,7 @@ sample(f::MultivariateFun)=sample(f,1)[1,:]
 ## Special spaces
 
 # Rays may be schwartz at right endpoint so we project
-function sample{SS,DD<:Ray}(f::Fun{JacobiWeight{SS,DD},Float64},n::Integer)
+function sample{SS,DD<:Ray,RR}(f::Fun{JacobiWeight{SS,DD,RR},Float64},n::Integer)
     if space(f).α == 0
         samplecdf(normalizedcumsum(f),n)
     else

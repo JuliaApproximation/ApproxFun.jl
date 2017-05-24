@@ -8,7 +8,7 @@ export UnionDomain, components, component
 
 represents a union of multiple subdomains: `{x : x ∈ d1 || … || x ∈ dn}`.
 """
-immutable UnionDomain{DD,T} <: Domain{T}
+struct UnionDomain{DD,T} <: Domain{T}
     domains::DD
 end
 

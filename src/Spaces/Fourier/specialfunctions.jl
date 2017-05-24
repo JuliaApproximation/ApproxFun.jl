@@ -1,4 +1,4 @@
-function Base.real{DD}(f::Fun{Laurent{DD}})
+function Base.real{DD,RR}(f::Fun{Laurent{DD,RR}})
     n=ncoefficients(f)
     cfs=f.coefficients
 
@@ -21,7 +21,7 @@ function Base.real{DD}(f::Fun{Laurent{DD}})
 end
 
 
-function Base.imag{DD}(f::Fun{Laurent{DD}})
+function Base.imag{DD,RR}(f::Fun{Laurent{DD,RR}})
     n=ncoefficients(f)
     cfs=f.coefficients
 

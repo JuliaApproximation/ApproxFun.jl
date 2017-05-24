@@ -5,7 +5,7 @@ for TYP in (:ReverseOrientation,:Reverse)
     @eval begin
         abstract type $TYP{T} <: Operator{T} end
 
-        immutable $WRAP{OS,T} <: Operator{T}
+        struct $WRAP{OS,T} <: Operator{T}
             op::OS
         end
 

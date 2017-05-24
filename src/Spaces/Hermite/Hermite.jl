@@ -1,7 +1,7 @@
 export Hermite,GaussWeight
 
 #TODO: Add general lines
-immutable Hermite{T} <: PolynomialSpace{Line{T}}
+struct Hermite{T} <: PolynomialSpace{Line{T},T}
     L::T
 end
 Hermite()=Hermite(1.0)
@@ -59,7 +59,7 @@ identity_fun(sp::Hermite)=Fun(sp,[0.,0.5])
 
 
 # exp(-Lx^2)
-immutable GaussWeight{S,T} <: WeightSpace{S,RealBasis,Line{Float64},1}
+struct GaussWeight{S,T} <: WeightSpace{S,Line{Float64},Float64}
     space::S
     L::T
 end

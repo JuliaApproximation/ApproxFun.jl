@@ -12,7 +12,7 @@ For example, the following represents the rectangle `1 ≤ x ≤ 2 & 3 ≤ y 
 Interval(1,2)*(3,4)
 ```
 """
-immutable ProductDomain{D,T} <: Domain{T}
+struct ProductDomain{D,T} <: Domain{T}
     domains::D
 end
 

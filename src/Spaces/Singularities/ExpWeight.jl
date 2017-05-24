@@ -1,13 +1,13 @@
 export ExpWeight
 
-immutable ExpWeight{S,FF,DD} <: WeightSpace{S,RealBasis,DD,1}
+struct ExpWeight{S,FF,DD,RR} <: WeightSpace{S,DD,RR}
     exponent::FF
     space::S
 end
 
 function ExpWeight(q,sp)
     @assert domain(q) == domain(sp)
-    ExpWeight{typeof(sp),typeof(q),typeof(domain(q))}(q,sp)
+    ExpWeight{typeof(sp),typeof(q),domaintype(q),rangetype(q)}(q,sp)
 end
 
 weight(sp::ExpWeight,x) = exp(sp.exponent(x))

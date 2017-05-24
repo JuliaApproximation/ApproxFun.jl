@@ -2,7 +2,7 @@
 export TensorSpace,⊗,ProductSpace
 
 #  SV is a tuple of d spaces
-abstract type AbstractProductSpace{SV,T,DD,d} <: Space{T,DD,d} end
+abstract type AbstractProductSpace{SV,DD,RR} <: Space{DD,RR} end
 
 
 spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
@@ -20,7 +20,7 @@ spacetype{SV}(::AbstractProductSpace{SV},k) = SV.parameters[k]
 # would be Tensorizer((1:∞,2:2:∞))
 
 
-immutable Tensorizer{DMS<:Tuple}
+struct Tensorizer{DMS<:Tuple}
     blocks::DMS
 end
 
@@ -282,23 +282,22 @@ By Choosing `(k,j)` appropriately, we obtain a single basis:
 φ_0(x)T_2(y), …
 ```
 """
-immutable TensorSpace{SV,T,DD,d} <:AbstractProductSpace{SV,T,DD,d}
+struct TensorSpace{SV,D,R} <:AbstractProductSpace{SV,D,R}
     spaces::SV
 end
 
-tensorizer{SV,T,d}(sp::TensorSpace{SV,T,d}) = Tensorizer(map(blocklengths,sp.spaces))
+tensorizer(sp::TensorSpace) = Tensorizer(map(blocklengths,sp.spaces))
 blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
-    TensorSpace{typeof(sp),mapreduce(basistype,promote_type,sp),
-                typeof(mapreduce(domain,*,sp)),
-                mapreduce(domaindimension,+,sp)}(sp)
+    TensorSpace{typeof(sp),typeof(mapreduce(domain,*,sp)),
+                mapreduce(s->eltype(domain(s)),promote_type,sp)}(sp)
 
 
 dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)
 
 for OP in (:spacescompatible,:(==))
-    @eval $OP{SV,T,DD,d}(A::TensorSpace{SV,T,DD,d},B::TensorSpace{SV,T,DD,d}) =
+    @eval $OP{SV,D,R}(A::TensorSpace{SV,D,R},B::TensorSpace{SV,D,R}) =
         all(Bool[$OP(A.spaces[k],B.spaces[k]) for k=1:length(A.spaces)])
 end
 
@@ -331,14 +330,14 @@ Base.length(d::TensorSpace) = length(d.spaces)
 Base.getindex(d::TensorSpace,k::Integer) = d.spaces[k]
 
 
-immutable ProductSpace{S<:Space,V<:Space,T} <: AbstractProductSpace{Tuple{S,V},T,AnyDomain,2}
+struct ProductSpace{S<:Space,V<:Space,D,R} <: AbstractProductSpace{Tuple{S,V},D,R}
     spacesx::Vector{S}
     spacey::V
 end
 
-ProductSpace(spacesx::Vector,spacey)=ProductSpace{eltype(spacesx),
-                                                  typeof(spacey),
-                                                  promote_type(basistype(first(spacesx)),basistype(spacey))}(spacesx,spacey)
+ProductSpace(spacesx::Vector,spacey) =
+    ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,*,sp)),
+                mapreduce(s->eltype(domain(s)),promote_type,sp)}(spacesx,spacey)
 
 coefficient_type(S::ProductSpace,T) =
     promote_type(coefficient_type(S.spacesx[1],T),coefficient_type(S.spacesy,T))
@@ -502,8 +501,7 @@ end
 
 ## points
 
-points{T,DD}(d::Union{BivariateDomain,BivariateSpace{T,DD}},n,m) =
-    points(d,n,m,1),points(d,n,m,2)
+points(d::Union{BivariateDomain,BivariateSpace},n,m) = points(d,n,m,1),points(d,n,m,2)
 
 function points(d::BivariateSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
@@ -620,15 +618,15 @@ union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spa
 #      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
 #  end
 
-isconvertible{SV,TTT,DD}(sp::UnivariateSpace,ts::TensorSpace{SV,TTT,DD,2}) = length(ts.spaces) == 2 &&
+isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} = length(ts.spaces) == 2 &&
     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||
      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
 
 
-coefficients{SV,T,DD}(f::Vector,sp::ConstantSpace,ts::TensorSpace{SV,T,DD,2}) =
+coefficients(f::Vector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} =
     f[1]*ones(ts).coefficients
 
-function coefficients{SV,T,DD}(f::Vector,sp::UnivariateSpace,ts::TensorSpace{SV,T,DD,2})
+function coefficients(f::Vector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
 
     if domain(ts)[1] == Point(0.0)
@@ -641,7 +639,7 @@ function coefficients{SV,T,DD}(f::Vector,sp::UnivariateSpace,ts::TensorSpace{SV,
 end
 
 
-function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Segment{Vec{2,TT}}},ts::TensorSpace{SV,TTT,DD,2})
+function isconvertible(sp::UnivariateSpace{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
     d1 = domain(sp)
     d2 = domain(ts)
     if length(ts.spaces) ≠ 2
@@ -659,8 +657,8 @@ function isconvertible{T,TT,SV,TTT,DD}(sp::UnivariateSpace{T,Segment{Vec{2,TT}}}
 end
 
 
-function coefficients{T,TT,SV,TTT,DD}(f::Vector,sp::UnivariateSpace{T,Segment{Vec{2,TT}}},
-                            ts::TensorSpace{SV,TTT,DD,2})
+function coefficients(f::Vector,sp::UnivariateSpace{Segment{Vec{2,TT}}},
+                            ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
     d1 = domain(sp)
     d2 = domain(ts)

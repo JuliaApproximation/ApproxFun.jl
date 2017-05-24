@@ -93,7 +93,7 @@ union_rule(A::ConstantSpace,B::Space) = ConstantSpace(domain(B))⊕B
 ## Special Multiplication and Conversion for constantspace
 
 #  TODO: this is a special work around but really we want it to be blocks
-Conversion{T,D}(a::ConstantSpace,b::Space{T,D,2}) = ConcreteConversion{typeof(a),typeof(b),
+Conversion{D<:BivariateDomain}(a::ConstantSpace,b::Space{D}) = ConcreteConversion{typeof(a),typeof(b),
         promote_type(op_eltype_realdomain(a),eltype(op_eltype_realdomain(b)))}(a,b)
 
 Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
@@ -107,7 +107,8 @@ function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k:
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
 
-coefficients{TT,SV,T,DD}(f::Vector,sp::ConstantSpace{Segment{Vec{2,TT}}},ts::TensorSpace{SV,T,DD,2}) =
+coefficients(f::Vector,sp::ConstantSpace{Segment{Vec{2,TT}}},
+             ts::TensorSpace{SV,DD}) where {TT,SV,DD<:BivariateDomain} =
     f[1]*ones(ts).coefficients
 coefficients(f::Vector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
 
@@ -178,7 +179,8 @@ function Base.convert{TS<:TensorSpace,T<:Number}(::Type{T},f::Fun{TS})
     end
 end
 
-Base.convert{CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,TT,DD,d}(::Type{T},f::Fun{TensorSpace{Tuple{CS1,CS2},TT,DD,d}}) =
+Base.convert(::Type{T},
+            f::Fun{TensorSpace{Tuple{CS1,CS2},DD,RR}}) where {CS1<:ConstantSpace,CS2<:ConstantSpace,T<:Number,DD,RR} =
     convert(T,f.coefficients[1])
 
 isconstspace(sp::TensorSpace) = all(isconstspace,sp.spaces)

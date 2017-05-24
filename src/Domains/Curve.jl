@@ -4,11 +4,11 @@ export Curve
 
 
 
-immutable IntervalCurve{S<:Space,T,VT} <: IntervalDomain{T}
+struct IntervalCurve{S<:Space,T,VT} <: IntervalDomain{T}
     curve::Fun{S,T,VT}
 end
 
-immutable PeriodicCurve{S<:Space,T,VT} <: PeriodicDomain{T}
+struct PeriodicCurve{S<:Space,T,VT} <: PeriodicDomain{T}
     curve::Fun{S,T,VT}
 end
 

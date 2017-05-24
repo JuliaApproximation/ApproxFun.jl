@@ -3,7 +3,7 @@ export OperatorFunction
 
 abstract type OperatorFunction{BT,FF,T} <: Operator{T} end
 
-immutable ConcreteOperatorFunction{BT<:Operator,FF,T} <: OperatorFunction{BT,FF,T}
+struct ConcreteOperatorFunction{BT<:Operator,FF,T} <: OperatorFunction{BT,FF,T}
     op::BT
     f::FF
 end

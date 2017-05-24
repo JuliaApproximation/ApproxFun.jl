@@ -1,4 +1,4 @@
-immutable F <: Function
+struct F <: Function
     f
 end
 (f::F)(args...) = f.f(args...)
@@ -58,7 +58,7 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{false}})
     end
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
-    Tprom=choosefuneltype(typeof(f1),eltype(eltype(eltype(domain(d)))))
+    Tprom=choosefuneltype(typeof(f1),prectype(domain(d)))
     defaultFun(Tprom,f,d,pts,Val{false})
 end
 
@@ -70,7 +70,7 @@ function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{true}})
     end
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
-    Tprom=choosefuneltype(typeof(f1),eltype(eltype(eltype(domain(d)))))
+    Tprom=choosefuneltype(typeof(f1),prectype(domain(d)))
     defaultFun(Tprom,f,d,pts,Val{true})
 end
 

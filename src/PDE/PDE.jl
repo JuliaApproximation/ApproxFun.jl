@@ -8,7 +8,7 @@ lap(d::Space) = Laplacian(d)
 lap(d::Domain) = Laplacian(d)
 lap(f::Fun) = Laplacian()*f
 
-function Laplacian{T,D}(d::Union{ProductDomain{T,2},Space{T,D,2}},k::Integer)
+function Laplacian{T,TT,D<:BivariateDomain,R}(d::Union{ProductDomain{T,Vec{2,TT}},Space{D,R}},k::Integer)
     Dx2=Derivative(d,[2,0])
     Dy2=Derivative(d,[0,2])
     if k==1

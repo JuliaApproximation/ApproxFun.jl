@@ -2,7 +2,7 @@
  WeightSpace represents a space that weights another space.
  Overload weight(S,x).
 """
-abstract type WeightSpace{S,T,DD,d} <: Space{T,DD,d} end
+abstract type WeightSpace{S,DD,RR} <: Space{DD,RR} end
 
 
 domain(S::WeightSpace) = domain(S.space)
@@ -11,14 +11,14 @@ domain(S::WeightSpace) = domain(S.space)
 points(sp::WeightSpace,n) = points(sp.space,n)
 
 
-immutable WeightSpacePlan{S,P,T,V}
+struct WeightSpacePlan{S,P,T,V}
     space::S
     plan::P
     points::Vector{T}
     weights::Vector{V}
 end
 
-immutable IWeightSpacePlan{S,P,T,V}
+struct IWeightSpacePlan{S,P,T,V}
     space::S
     plan::P
     points::Vector{T}

@@ -1,5 +1,5 @@
 # FiniteRange gives the nonzero entries in a row/column
-immutable FiniteRange end
+struct FiniteRange end
 
 getindex(A::AbstractMatrix,::Type{FiniteRange},j::Integer) = A[1:colstop(A,j),j]
 getindex(A::AbstractMatrix,k::Integer,::Type{FiniteRange}) = A[k,1:rowstop(A,k)]

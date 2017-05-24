@@ -49,7 +49,7 @@ end
 
 ## Construction in a TensorSpace via a Vector of Funs
 
-function LowRankFun{S,T,DD,SV}(X::Vector{VFun{S,T}},d::TensorSpace{SV,T,DD,2})
+function LowRankFun(X::Vector{VFun{S,T}},d::TensorSpace{SV,DD}) where {S,T,DD<:BivariateDomain,SV}
     @assert d[1] == space(X[1])
     LowRankFun(X,d[2])
 end
@@ -67,7 +67,9 @@ end
 
 ## Adaptive constructor selector
 
-function LowRankFun(f::F,dx::Space,dy::Space;method::Symbol=:standard,tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
+function LowRankFun(f::F,dx::Space,dy::Space;
+                    method::Symbol=:standard,tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,
+                    retmax::Bool=false,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     if method == :standard
         F,maxabsf=standardLowRankFun(f,dx,dy;tolerance=tolerance,gridx=gridx,gridy=gridy,maxrank=maxrank)
     elseif method == :Cholesky
@@ -190,7 +192,7 @@ end
 
 LowRankFun(f::Function,args...;kwds...) = LowRankFun(F(f),args...;kwds...)
 
-LowRankFun{SV,T,DD}(f::F,S::TensorSpace{SV,T,DD,2};kwds...) =
+LowRankFun(f::F,S::TensorSpace{SV,DD,RR};kwds...) where {SV,DD<:BivariateDomain,RR} =
     LowRankFun(f,S[1],S[2];kwds...)
 LowRankFun(f::F,dx::Domain,dy::Domain;kwds...) =
     LowRankFun(f,Space(dx),Space(dy);kwds...)

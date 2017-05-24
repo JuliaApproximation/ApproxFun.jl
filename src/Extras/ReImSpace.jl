@@ -2,7 +2,7 @@
 
 
 ## just takes realpart of operator
-immutable ReOperator{O,T} <: Operator{T}
+struct ReOperator{O,T} <: Operator{T}
     op::O
 end
 

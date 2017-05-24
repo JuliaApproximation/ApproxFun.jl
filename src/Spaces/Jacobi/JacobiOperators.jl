@@ -80,7 +80,7 @@ getindex{J<:Jacobi}(T::ConcreteDerivative{J},k::Integer,j::Integer) =
 
 
 
-function Derivative{T,DDD<:Segment}(S::WeightedJacobi{T,DDD})
+function Derivative{T,DDD<:Segment,RR}(S::WeightedJacobi{T,DDD,RR})
     if S.β>0 && S.β>0 && S.β==S.space.b && S.α==S.space.a
         ConcreteDerivative(S,1)
     else
@@ -88,11 +88,12 @@ function Derivative{T,DDD<:Segment}(S::WeightedJacobi{T,DDD})
     end
 end
 
-bandinds{T,DDD<:Segment}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=-1,0
-rangespace{T,DDD<:Segment}(D::ConcreteDerivative{WeightedJacobi{T,DDD}})=WeightedJacobi(domainspace(D).β-1,domainspace(D).α-1,domain(D))
+bandinds{T,DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{T,DDD,RR}}) = -1,0
+rangespace{T,DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{T,DDD,RR}}) =
+    WeightedJacobi(domainspace(D).β-1,domainspace(D).α-1,domain(D))
 
 
-getindex{T,DDD<:Segment}(D::ConcreteDerivative{WeightedJacobi{T,DDD}},k::Integer,j::Integer) =
+getindex{T,DDD<:Segment,RR}(D::ConcreteDerivative{WeightedJacobi{T,DDD,RR}},k::Integer,j::Integer) =
     j==k-1? eltype(D)(-4(k-1)./complexlength(domain(D))) : zero(eltype(D))
 
 
@@ -472,7 +473,7 @@ hasconversion(a::Ultraspherical,b::Jacobi) = hasconversion(Jacobi(a),b)
 
 
 ## <: IntervalDomain avoids a julia bug
-function Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight{C,DD}},S::Jacobi)
+function Multiplication{C<:ConstantSpace,DD<:IntervalDomain,RR}(f::Fun{JacobiWeight{C,DD,RR}},S::Jacobi)
     # this implements (1+x)*P and (1-x)*P special case
     # see DLMF (18.9.6)
     d=domain(f)
@@ -495,10 +496,10 @@ function Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight
     end
 end
 
-Multiplication{C<:ConstantSpace,DD<:IntervalDomain}(f::Fun{JacobiWeight{C,DD}},S::Union{Ultraspherical,Chebyshev}) =
+Multiplication{C<:ConstantSpace,DD<:IntervalDomain,RR}(f::Fun{JacobiWeight{C,DD,RR}},S::Union{Ultraspherical,Chebyshev}) =
     MultiplicationWrapper(f,Multiplication(f,Jacobi(S))*Conversion(S,Jacobi(S)))
 
-function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J})
+function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J})
     S=domainspace(M)
     if space(M.f).β==1
         # multiply by (1+x)
@@ -511,9 +512,9 @@ function rangespace{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMu
     end
 end
 
-bandinds{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(::ConcreteMultiplication{JacobiWeight{C,DD},J})=-1,0
+bandinds{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}(::ConcreteMultiplication{JacobiWeight{C,DD,RR},J})=-1,0
 
-function getindex{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain}(M::ConcreteMultiplication{JacobiWeight{C,DD},J},k::Integer,j::Integer)
+function getindex{J<:Jacobi,C<:ConstantSpace,DD<:IntervalDomain,RR}(M::ConcreteMultiplication{JacobiWeight{C,DD,RR},J},k::Integer,j::Integer)
     @assert ncoefficients(M.f)==1
     a,b=domainspace(M).a,domainspace(M).b
     c=M.f.coefficients[1]
@@ -563,7 +564,7 @@ end
 
 
 # represents [b+(1+z)*d/dz] (false) or [a-(1-z)*d/dz] (true)
-immutable JacobiSD{T} <:Operator{T}
+struct JacobiSD{T} <:Operator{T}
     lr::Bool
     S::Jacobi
 end

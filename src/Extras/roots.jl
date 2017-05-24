@@ -287,12 +287,12 @@ end
 
 for op in (:(Base.maximum),:(Base.minimum),:(Base.maxabs),:(Base.minabs))
     @eval begin
-        $op{SV,DD<:UnionDomain,d,T<:Real}(f::Fun{PiecewiseSpace{SV,RealBasis,DD,d},T}) =
+        $op(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
             $op(map($op,components(f)))
     end
 end
 
-Base.extrema{SV,DD<:UnionDomain,d,T<:Real}(f::Fun{PiecewiseSpace{SV,RealBasis,DD,d},T}) =
+Base.extrema(f::Fun{PiecewiseSpace{SV,DD,RR},T}) where {SV,DD<:UnionDomain,RR<:Real,T<:Real} =
     mapreduce(extrema,(x,y)->extrema([x...;y...]),components(f))
 
 
@@ -385,14 +385,14 @@ end
 
 complexroots(neg::Vector,pos::Vector) =
     complexroots([flipdim(chop(neg,10eps()),1);pos])
-complexroots{DD}(f::Fun{Laurent{DD}}) =
+complexroots{DD,RR}(f::Fun{Laurent{DD,RR}}) =
     mappoint(Circle(),domain(f),complexroots(f.coefficients[2:2:end],f.coefficients[1:2:end]))
-complexroots{DD}(f::Fun{Taylor{DD}}) =
+complexroots{DD,RR}(f::Fun{Taylor{DD,RR}}) =
     mappoint(Circle(),domain(f),complexroots(f.coefficients))
 
 
 
-function roots{DD}(f::Fun{Laurent{DD}})
+function roots{DD,RR}(f::Fun{Laurent{DD,RR}})
     irts=filter!(z->in(z,Circle()),complexroots(Fun(Laurent(Circle()),f.coefficients)))
     if length(irts)==0
         Complex{Float64}[]
@@ -407,7 +407,7 @@ function roots{DD}(f::Fun{Laurent{DD}})
 end
 
 
-roots{D}(f::Fun{Fourier{D}})=roots(Fun(f,Laurent))
+roots{D,R}(f::Fun{Fourier{D,R}}) = roots(Fun(f,Laurent))
 
 function roots{P<:PiecewiseSpace}(f::Fun{P})
     rts=mapreduce(roots,vcat,components(f))

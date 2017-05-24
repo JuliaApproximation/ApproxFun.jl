@@ -1,6 +1,6 @@
 # Creates a operator that permutes rows, in blocks of size
 # length(perm)
-immutable PermutationOperator{T} <: Operator{T}
+struct PermutationOperator{T} <: Operator{T}
     perm::Vector{Int}
 end
 PermutationOperator(prm)=PermutationOperator{Int}(prm)
@@ -41,7 +41,7 @@ end
 PermutationOperator{T}(::Type{T},a::Tuple,b::Tuple)=PermutationOperator(T,[a...],[b...])
 
 
-immutable NegateEven{T} <: Operator{T} end
+struct NegateEven{T} <: Operator{T} end
 
 NegateEven() = NegateEven{Float64}()
 

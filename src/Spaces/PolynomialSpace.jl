@@ -1,7 +1,7 @@
 
 ## Orthogonal polynomials
 
-abstract type PolynomialSpace{D} <: RealUnivariateSpace{D} end
+abstract type PolynomialSpace{D,R} <: Space{D,R} end
 
 @containsconstants PolynomialSpace
 
@@ -42,7 +42,7 @@ extrapolate(f::AbstractVector,S::PolynomialSpace,x) = clenshaw(S,f,tocanonical(S
 # Recurrence encodes the recurrence coefficients
 # or equivalently multiplication by x
 ######
-immutable Recurrence{S,T} <: TridiagonalOperator{T}
+struct Recurrence{S,T} <: TridiagonalOperator{T}
     space::S
 end
 
@@ -75,7 +75,7 @@ end
 # JacobiZ encodes [BasisFunctional(1);(J-z*I)[2:end,:]]
 # where J is the Jacobi operator
 ######
-immutable JacobiZ{S<:Space,T} <: TridiagonalOperator{T}
+struct JacobiZ{S<:Space,T} <: TridiagonalOperator{T}
     space::S
     z::T
 end

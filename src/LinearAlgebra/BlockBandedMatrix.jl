@@ -5,7 +5,7 @@ A[Block(1),Block(2)]
 ```
 retrieves the 1 x 2 block
 """
-immutable Block <: Real
+struct Block <: Real
     K::Int
 end
 
@@ -64,7 +64,7 @@ A[Block(1)[1:3],Block(2)[3:4]]
 ```
 retrieves 1:3 × 3:4 entries of the 1 × 2 block
 """
-immutable SubBlock{R}
+struct SubBlock{R}
     block::Block
     sub::R
 end

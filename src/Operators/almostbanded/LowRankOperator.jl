@@ -2,7 +2,7 @@ export AbstractLowRankOperator, LowRankOperator
 
 abstract type AbstractLowRankOperator{T} <: Operator{T} end
 
-immutable LowRankOperator{S<:Space,T} <: AbstractLowRankOperator{T}
+struct LowRankOperator{S<:Space,T} <: AbstractLowRankOperator{T}
     U::Vector{VFun{S,T}}
     V::Vector{Operator{T}}
 

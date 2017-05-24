@@ -39,11 +39,12 @@ Base.size(::Domain) = ()
 
 # prectype gives the precision, including for Vec
 prectype(d::Domain) = eltype(eltype(d))
+prectype(::Type{D}) where {D<:Domain} = eltype(eltype(D))
 
 
 #TODO: bivariate AnyDomain
-immutable AnyDomain <: Domain{UnsetNumber} end
-immutable EmptyDomain <: Domain{Void} end
+struct AnyDomain <: Domain{UnsetNumber} end
+struct EmptyDomain <: Domain{Void} end
 
 isambiguous(::AnyDomain) = true
 dimension(::AnyDomain) = 1
@@ -73,7 +74,7 @@ Base.setdiff(a::Domain,b) = a == b ? EmptyDomain() : a
 
 abstract type IntervalDomain{T} <: UnivariateDomain{T} end
 
-canonicaldomain(d::IntervalDomain) = Segment{real(eltype(eltype(d)))}()
+canonicaldomain(d::IntervalDomain) = Segment{real(prectype(d))}()
 
 Base.isapprox(a::Domain,b::Domain) = a==b
 domainscompatible(a,b) = domainscompatible(domain(a),domain(b))
@@ -105,7 +106,7 @@ Base.last{T}(d::IntervalDomain{T}) = fromcanonical(d,one(T))
 
 Base.in(x,::AnyDomain) = true
 function Base.in(x,d::IntervalDomain)
-    T=real(eltype(eltype(d)))
+    T=real(prectype(d))
     y=tocanonical(d,x)
     ry=real(y)
     iy=imag(y)
@@ -153,7 +154,7 @@ Base.first(d::PeriodicDomain) = fromcanonical(d,0)
 Base.last(d::PeriodicDomain) = fromcanonical(d,2π)
 
 
-immutable AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
+struct AnyPeriodicDomain <: PeriodicDomain{UnsetNumber} end
 isambiguous(::AnyPeriodicDomain)=true
 
 Base.convert{D<:PeriodicDomain}(::Type{D},::AnyDomain)=AnyPeriodicDomain()
@@ -240,8 +241,8 @@ end
 
 ## Other special domains
 
-immutable PositiveIntegers <: Domain{Int} end
-immutable Integers <: Domain{Int} end
+struct PositiveIntegers <: Domain{Int} end
+struct Integers <: Domain{Int} end
 
 const ℕ = PositiveIntegers()
 const ℤ = Integers()

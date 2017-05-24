@@ -49,7 +49,7 @@ Evaluation(S::SumSpace,x,order) =
         InterlaceOperator(hcat(map(s->Evaluation(s,x,order),components(S))...),SumSpace))
 
 
-ToeplitzOperator{S,T,V,DD}(G::Fun{MatrixSpace{S,T,DD,1},V}) = interlace(map(ToeplitzOperator,Array(G)))
+ToeplitzOperator{S,RR,V,DD}(G::Fun{MatrixSpace{S,DD,RR},V}) = interlace(map(ToeplitzOperator,Array(G)))
 
 ## Sum Space
 
@@ -183,7 +183,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->cho
 
 ## Multiplcation for Array*Vector
 
-function Multiplication{S,T,DD,S2,T2,DD2,dim}(f::Fun{MatrixSpace{S,T,DD,dim}},sp::VectorSpace{S2,T2,DD2,dim})
+function Multiplication{S,DD,RR,S2,DD2,RR2}(f::Fun{MatrixSpace{S,DD,RR}},sp::VectorSpace{S2,DD2,RR2})
     @assert size(space(f),2)==length(sp)
     m=Array(f)
     MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp[j]) for k=1:size(m,1),j=1:size(m,2)]))
@@ -201,7 +201,7 @@ function Multiplication{PW<:PiecewiseSpace}(f::Fun{PW},sp::PiecewiseSpace)
     MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(Multiplication,vf,sp.spaces)...]),PiecewiseSpace))
 end
 
-Multiplication{SV1,SV2,T2,T1,D,d}(f::Fun{SumSpace{SV1,T1,D,d}},sp::SumSpace{SV2,T2,D,d}) =
+Multiplication(f::Fun{SumSpace{SV1,D,R1}},sp::SumSpace{SV2,D,R2}) where {SV1,SV2,D,R1,R2} =
     MultiplicationWrapper(f,mapreduce(g->Multiplication(g,sp),+,components(f)))
 Multiplication(f::Fun,sp::SumSpace) =
     MultiplicationWrapper(f,InterlaceOperator(Diagonal([map(s->Multiplication(f,s),components(sp))...]),SumSpace))
