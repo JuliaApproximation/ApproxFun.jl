@@ -17,7 +17,7 @@ Evaluation(S::Chebyshev,x::Bool,o::Integer) =
     ConcreteEvaluation(S,x,o)
 
 Evaluation(S::Chebyshev,x::Number,o::Integer) =
-    o==0?ConcreteEvaluation(S,x,o):EvaluationWrapper(S,x,o,Evaluation(x,o)*Derivative(S,o))
+    o==0?ConcreteEvaluation(S,x,o):EvaluationWrapper(S,x,o,Evaluation(x)*Derivative(S,o))
 
 function evaluatechebyshev{T<:Number}(n::Integer,x::T)
     if n == 1
@@ -199,7 +199,7 @@ for (Func,Len) in ((:DefiniteIntegral,:complexlength),(:DefiniteLineIntegral,:ar
     ConcFunc = parse("Concrete"*string(Func))
     @eval begin
         $Func{D<:Segment}(S::Chebyshev{D}) = $ConcFunc(S)
-        function getindex{D<:Segment,T}(Σ::$ConcFunc{Chebyshev{D},T},k::Integer)
+        function getindex{D<:Segment,R,T}(Σ::$ConcFunc{Chebyshev{D,R},T},k::Integer)
             d = domain(Σ)
             C = $Len(d)/2
 

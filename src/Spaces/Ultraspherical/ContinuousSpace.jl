@@ -122,23 +122,23 @@ coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace) =
 
 
 # We implemnt conversion between continuous space and PiecewiseSpace with Chebyshev dirichlet
-Conversion(ps::PiecewiseSpace{CD,DD,RR},cs::ContinuousSpace) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
-                                                                    DD<:UnivariateDomain,RR<:Real} =
+Conversion(ps::PiecewiseSpace{CD,DD,RR},cs::ContinuousSpace) where {CD<:NTuple{4,ChebyshevDirichlet{1,1,DDD,RRR}},
+                                                                    DD,RR<:Real} where {DDD,RRR} =
                 ConcreteConversion(ps,cs)
 
-Conversion(cs::ContinuousSpace,ps::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
-                                                                    DD<:UnivariateDomain,RR<:Real} =
+Conversion(cs::ContinuousSpace,ps::PiecewiseSpace{CD,DD,RR}) where {CD<:NTuple{4,ChebyshevDirichlet{1,1,DDD,RRR}},
+                                                                    DD,RR<:Real} where {DDD,RRR} =
                 ConcreteConversion(cs,ps)
 
 
-bandinds(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},ContinuousSpace{T}}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
-                                                                                    DD<:UnivariateDomain,RR<:Real,T} =
+bandinds(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},ContinuousSpace{T}}) where {CD<:NTuple{4,ChebyshevDirichlet{1,1,DDD,RRR}},
+                                                                                    DD,RR<:Real,T} where {DDD,RRR} =
     -1,ncomponents(domain(rangespace(C)))
 
 
 function getindex(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},ContinuousSpace{TT},T},
-                  k::Integer,j::Integer) where {T,DD<:UnivariateDomain,RR<:Real,TT,
-                                                CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}}}
+                  k::Integer,j::Integer) where {T,DD,RR<:Real,TT,
+                                                CD<:NTuple{4,ChebyshevDirichlet{1,1,DDD,RRR}}}  where {DDD,RRR}
     d=domain(rangespace(C))
     K=ncomponents(d)
     if isperiodic(d)
@@ -169,16 +169,16 @@ function getindex(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},ContinuousSpace
 end
 
 
-bandinds{CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},
-         DD<:UnivariateDomain,RR<:Real,T}(C::ConcreteConversion{ContinuousSpace{T},
-                                     PiecewiseSpace{CD,DD,RR}}) =
+bandinds(C::ConcreteConversion{ContinuousSpace{T},
+                                     PiecewiseSpace{CD,DD,RR}}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
+                                              DD,RR<:Real,T}  where {DDD,RRR} =
             isperiodic(domainspace(C)) ? (1-2ncomponents(domain(rangespace(C))),1) :
                                          (-ncomponents(domain(rangespace(C))),1)
 
-function getindex{T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},TT,
-                  DD<:UnivariateDomain,RR<:Real}(C::ConcreteConversion{ContinuousSpace{TT},
+function getindex(C::ConcreteConversion{ContinuousSpace{TT},
                                             PiecewiseSpace{CD,DD,RR},T},
-                      k::Integer,j::Integer)
+                      k::Integer,j::Integer) where {T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},TT,
+                                        DD,RR<:Real} where {DDD,RRR}
     d=domain(domainspace(C))
     K=ncomponents(d)
     if isperiodic(d)

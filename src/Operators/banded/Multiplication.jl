@@ -22,7 +22,7 @@ function ConcreteMultiplication{D,T}(f::Fun{D,T},sp::Space)
     if !domainscompatible(space(f),sp)
         error("Domain mismatch: cannot multiply function on $(domain(f)) to function on $(domain(sp))")
     end
-    V = promote_type(T,eltype(sp))
+    V = promote_type(T,rangetype(sp))
     ConcreteMultiplication{D,typeof(sp),V}(convert(Fun{D,V},chop(f,maximum(abs,f.coefficients)*40*eps(eltype(f)))),sp)
 end
 

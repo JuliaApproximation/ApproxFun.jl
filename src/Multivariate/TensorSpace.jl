@@ -305,10 +305,6 @@ canonicalspace(T::TensorSpace) = TensorSpace(map(canonicalspace,T.spaces))
 
 
 
-
-coefficient_type(S::TensorSpace,T) =
-    mapreduce(sp->coefficient_type(sp,T),promote_type,S.spaces)
-
 TensorSpace(A...) = TensorSpace(tuple(A...))
 TensorSpace(A::ProductDomain) = TensorSpace(tuple(map(Space,A.domains)...))
 ⊗(A::TensorSpace,B::TensorSpace) = TensorSpace(A.spaces...,B.spaces...)
@@ -339,8 +335,6 @@ ProductSpace(spacesx::Vector,spacey) =
     ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,*,sp)),
                 mapreduce(s->eltype(domain(s)),promote_type,sp)}(spacesx,spacey)
 
-coefficient_type(S::ProductSpace,T) =
-    promote_type(coefficient_type(S.spacesx[1],T),coefficient_type(S.spacesy,T))
 
 ⊗{S<:Space}(A::Vector{S},B::Space) = ProductSpace(A,B)
 domain(f::ProductSpace) = domain(f.spacesx[1])*domain(f.spacesy)
@@ -609,7 +603,7 @@ union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spa
 ## Convert from 1D to 2D
 
 
-# function isconvertible{T,TT}(sp::UnivariateSpace{T,Segment{Vec{2,TT}}},ts::TensorSpace)
+# function isconvertible{T,TT}(sp::Space{Segment{Vec{2,TT}},<:Real},ts::TensorSpace)
 #     d1 = domain(sp)
 #     d2 = domain(ts)
 #     if d2
@@ -639,7 +633,7 @@ function coefficients(f::Vector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) whe
 end
 
 
-function isconvertible(sp::UnivariateSpace{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
+function isconvertible(sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
     d1 = domain(sp)
     d2 = domain(ts)
     if length(ts.spaces) ≠ 2
@@ -657,7 +651,7 @@ function isconvertible(sp::UnivariateSpace{Segment{Vec{2,TT}}},ts::TensorSpace{S
 end
 
 
-function coefficients(f::Vector,sp::UnivariateSpace{Segment{Vec{2,TT}}},
+function coefficients(f::Vector,sp::Space{Segment{Vec{2,TT}}},
                             ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
     d1 = domain(sp)

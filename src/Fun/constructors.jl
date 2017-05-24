@@ -109,7 +109,7 @@ Fun(f,d::Domain,n) = Fun(f,Space(d),n)
 # We do zero special since zero exists even when one doesn't
 Fun{T<:Space}(c::Number,::Type{T}) = c==0?zeros(T(AnyDomain())):c*ones(T(AnyDomain()))
 Fun(c::Number,d::Domain) = c==0?c*zeros(d):c*ones(d)
-Fun(c::Number,d::Space) = c==0?c*zeros(eltype(d),d):c*ones(eltype(d),d)
+Fun(c::Number,d::Space) = c==0?c*zeros(prectype(d),d):c*ones(prectype(d),d)
 
 
 ## List constructor

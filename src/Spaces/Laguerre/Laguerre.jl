@@ -187,7 +187,7 @@ function conversion_rule(A::LaguerreWeight,B::LaguerreWeight)
 end
 
 
-conversion_rule{T,D<:Ray}(A::LaguerreWeight,B::UnivariateSpace{T,D}) = conversion_type(A,LaguerreWeight(0,0,B))
+conversion_rule{D<:Ray}(A::LaguerreWeight,B::Space{D}) = conversion_type(A,LaguerreWeight(0,0,B))
 
 
 function Conversion(A::LaguerreWeight,B::LaguerreWeight)
@@ -222,11 +222,11 @@ end
 Conversion{D<:Ray}(A::ConstantSpace{D},B::LaguerreWeight) = error("Cannot convert constants to LaguerreWeight.")
 Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:LaguerreWeight,IT,DD<:Ray,RR} =
     ConcreteConversion(a,b)
-Conversion{D<:Ray}(A::RealUnivariateSpace{D},B::LaguerreWeight) = ConversionWrapper(
+Conversion{D<:Ray,RR<:Real}(A::Space{D,RR},B::LaguerreWeight) = ConversionWrapper(
     SpaceOperator(
         Conversion(LaguerreWeight(0,0,A),B),
         A,B))
-Conversion{D<:Ray}(A::LaguerreWeight,B::RealUnivariateSpace{D})=ConversionWrapper(
+Conversion{D<:Ray,RR<:Real}(A::LaguerreWeight,B::Space{D,RR}) = ConversionWrapper(
     SpaceOperator(
         Conversion(A,LaguerreWeight(0,0,B)),
         A,B))

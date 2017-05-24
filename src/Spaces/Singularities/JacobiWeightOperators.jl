@@ -213,7 +213,7 @@ function Multiplication{D,T,SS,DD<:IntervalDomain}(f::Fun{D,T},S::JacobiWeight{S
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
-function Multiplication{SS,T,ID<:IntervalDomain}(f::Fun{JacobiWeight{SS,ID},T},S::PolynomialSpace{ID})
+function Multiplication{SS,T,ID<:IntervalDomain,RR}(f::Fun{JacobiWeight{SS,ID,RR},T},S::PolynomialSpace{ID})
     M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rsp=JacobiWeight(space(f).β,space(f).α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
@@ -240,10 +240,6 @@ end
 # end
 
 ## Conversion
-
-# The second case handles zero
-isapproxinteger(x) = isapprox(x,round(Int,x))  || isapprox(x+1,round(Int,x+1))
-
 for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
     @eval begin
         function $OPrule(A::JacobiWeight,B::JacobiWeight)
@@ -257,19 +253,20 @@ for (OPrule,OP) in ((:maxspace_rule,:maxspace),(:union_rule,:union))
             end
             NoSpace()
         end
-        $OPrule{T,D<:IntervalDomain}(A::JacobiWeight,B::Space{T,D})=$OPrule(A,JacobiWeight(0.,0.,B))
+        $OPrule{D<:IntervalDomain}(A::JacobiWeight,B::Space{D}) = $OPrule(A,JacobiWeight(0.,0.,B))
     end
 end
 
 
 for FUNC in (:hasconversion,:isconvertible)
     @eval begin
-        $FUNC{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D})=isapproxinteger(A.β-B.β) &&
+        $FUNC{S1,S2,D<:IntervalDomain}(A::JacobiWeight{S1,D},B::JacobiWeight{S2,D}) =
+            isapproxinteger(A.β-B.β) &&
             isapproxinteger(A.α-B.α) && A.β ≥ B.β && A.α ≥ B.α && $FUNC(A.space,B.space)
 
-        $FUNC{T,S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::UnivariateSpace{T,D}) =
+        $FUNC{S,D<:IntervalDomain}(A::JacobiWeight{S,D},B::Space{D}) =
             $FUNC(A,JacobiWeight(0.,0.,B))
-        $FUNC{T,S,D<:IntervalDomain}(B::UnivariateSpace{T,D},A::JacobiWeight{S,D}) =
+        $FUNC{S,D<:IntervalDomain}(B::Space{D},A::JacobiWeight{S,D}) =
             $FUNC(JacobiWeight(0.,0.,B),A)
     end
 end
@@ -286,7 +283,7 @@ function conversion_rule(A::JacobiWeight,B::JacobiWeight)
     end
 end
 
-conversion_rule{T,D<:IntervalDomain}(A::JacobiWeight,B::UnivariateSpace{T,D}) = conversion_type(A,JacobiWeight(0,0,B))
+conversion_rule{D<:IntervalDomain}(A::JacobiWeight,B::Space{D}) = conversion_type(A,JacobiWeight(0,0,B))
 
 
 # override defaultConversion instead of Conversion to avoid ambiguity errors
@@ -319,11 +316,11 @@ function defaultConversion{JS1,JS2,DD<:IntervalDomain}(A::JacobiWeight{JS1,DD},B
     end
 end
 
-defaultConversion{JS,D<:IntervalDomain}(A::RealUnivariateSpace{D},B::JacobiWeight{JS,D})=ConversionWrapper(
+defaultConversion{JS,D<:IntervalDomain,R<:Real}(A::Space{D,R},B::JacobiWeight{JS,D})=ConversionWrapper(
     SpaceOperator(
         Conversion(JacobiWeight(0,0,A),B),
         A,B))
-defaultConversion{JS,D<:IntervalDomain}(A::JacobiWeight{JS,D},B::RealUnivariateSpace{D})=ConversionWrapper(
+defaultConversion{JS,D<:IntervalDomain,R<:Real}(A::JacobiWeight{JS,D},B::Space{D,R})=ConversionWrapper(
     SpaceOperator(
         Conversion(A,JacobiWeight(0,0,B)),
         A,B))
@@ -377,10 +374,10 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
     ConcFunc = parse("Concrete"*string(Func))
 
     @eval begin
-        $Func{LT,D<:Segment}(S::JacobiWeight{Ultraspherical{LT,D},D}) = $ConcFunc(S)
-        $Func{D<:Segment}(S::JacobiWeight{Chebyshev{D},D}) = $ConcFunc(S)
+        $Func{LT,D<:Segment,R}(S::JacobiWeight{Ultraspherical{LT,D,R},D}) = $ConcFunc(S)
+        $Func{D<:Segment,R}(S::JacobiWeight{Chebyshev{D,R},D}) = $ConcFunc(S)
 
-        function getindex{LT,D<:Segment,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D},D},T},k::Integer)
+        function getindex{LT,D<:Segment,R,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},k::Integer)
             λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
@@ -393,7 +390,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function getindex{LT,D<:Segment,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D},D},T},kr::Range)
+        function getindex{LT,D<:Segment,R,T}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R},T},kr::Range)
             λ = order(domainspace(Σ).space)
             dsp = domainspace(Σ)
             d = domain(Σ)
@@ -406,7 +403,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function bandinds{LT,D<:Segment}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D},D}})
+        function bandinds{LT,D<:Segment,R}(Σ::$ConcFunc{JacobiWeight{Ultraspherical{LT,D,R},D,R}})
             λ = order(domainspace(Σ).space)
             β,α = domainspace(Σ).β,domainspace(Σ).α
             if β==α && isapproxinteger(β-0.5-λ) && λ ≤ ceil(Int,β)
@@ -417,7 +414,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
         end
 
 
-        function getindex{D<:Segment,T}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D},D},T},k::Integer)
+        function getindex{D<:Segment,R,T}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},k::Integer)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -429,7 +426,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function getindex{D<:Segment,T}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D},D},T},kr::Range)
+        function getindex{D<:Segment,R,T}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R},T},kr::Range)
             dsp = domainspace(Σ)
             d = domain(Σ)
             C = $Len(d)/2
@@ -441,7 +438,7 @@ for (Func,Len,Sum) in ((:DefiniteIntegral,:complexlength,:sum),(:DefiniteLineInt
             end
         end
 
-        function bandinds{D<:Segment}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D},D}})
+        function bandinds{D<:Segment,R}(Σ::$ConcFunc{JacobiWeight{Chebyshev{D,R},D,R}})
             β,α = domainspace(Σ).β,domainspace(Σ).α
             if β==α && isapproxinteger(β-0.5) && 0 ≤ ceil(Int,β)
                 0,2ceil(Int,β)

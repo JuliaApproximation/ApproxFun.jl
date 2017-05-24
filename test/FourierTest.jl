@@ -1,6 +1,7 @@
 using ApproxFun, Base.Test
     import ApproxFun: testspace, testtransforms, testmultiplication, testbandedoperator, testcalculus
 
+
 for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
     testtransforms(CosSpace(d);minpoints=2)
     testtransforms(SinSpace(d))

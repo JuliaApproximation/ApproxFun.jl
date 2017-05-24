@@ -27,7 +27,7 @@ macro calculus_operator(Op)
 
 
         ## Constructors
-        $ConcOp(sp::Space,k) = $ConcOp{typeof(sp),typeof(k),op_eltype(sp)}(sp,k)
+        $ConcOp(sp::Space,k) = $ConcOp{typeof(sp),typeof(k),prectype(sp)}(sp,k)
 
         $Op(sp::UnsetSpace,k) = $ConcOp(sp,k)
         $Op(sp::UnsetSpace,k::Real) = $ConcOp(sp,k)

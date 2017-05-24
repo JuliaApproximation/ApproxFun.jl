@@ -474,7 +474,7 @@ function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::Vector{T})
     n=length(vals)
     K=length(S)
     k=div(n,K)
-    PT=coefficient_type(P.space,eltype(vals))
+    PT=promote_type(prectype(P.space),eltype(vals))
     if k==0
         M=Array{Vector{PT}}(n)
         for j=1:n

@@ -42,7 +42,7 @@ end
 function continuity(d::Union{Vector,Tuple},order::Integer)
 
     m=length(d)
-    B=zeros(Operator{mapreduce(eltype,promote_type,d)},m-1,m)
+    B=zeros(Operator{mapreduce(prectype,promote_type,d)},m-1,m)
 
     for k=1:m-1
         B[k,k]=Evaluation(d[k],true,order)
@@ -54,7 +54,7 @@ end
 function continuity(d::Union{Vector,Tuple},kr::UnitRange)
     @assert first(kr)==0
     m=length(d)
-    B=zeros(Operator{mapreduce(eltype,promote_type,d)},length(kr)*(m-1),m)
+    B=zeros(Operator{mapreduce(prectype,promote_type,d)},length(kr)*(m-1),m)
     for r in kr
         B[(m-1)*r+1:(m-1)*(r+1),:]=continuity(d,r)
     end
@@ -70,7 +70,7 @@ for DT in (:IntervalDomain,:Space)
     @eval begin
         function dirichlet{T<:$DT}(d::Vector{T})
             m=length(d)
-            B=zeros(Operator{mapreduce(eltype,promote_type,d)},2,m)
+            B=zeros(Operator{mapreduce(prectype,promote_type,d)},2,m)
             B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
             [B;
             continuity(d,0:1)]
@@ -78,7 +78,7 @@ for DT in (:IntervalDomain,:Space)
 
         function neumann{T<:$DT}(d::Vector{T})
             m=length(d)
-            B=zeros(Operator{mapreduce(eltype,promote_type,d)},2,m)
+            B=zeros(Operator{mapreduce(prectype,promote_type,d)},2,m)
             B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
             [B;
             continuity(d,0:1)]
@@ -87,7 +87,7 @@ for DT in (:IntervalDomain,:Space)
 
         function periodic{T<:$DT}(d::Vector{T})
             m=length(d)
-            B=zeros(Operator{mapreduce(eltype,promote_type,d)},2,m)
+            B=zeros(Operator{mapreduce(prectype,promote_type,d)},2,m)
             B[1,1]=ldirichlet(d[1]);B[1,end]=-rdirichlet(d[end])
             B[2,1]=lneumann(d[1]);B[2,end]=-rneumann(d[end])
             [B;

@@ -46,7 +46,7 @@ struct Recurrence{S,T} <: TridiagonalOperator{T}
     space::S
 end
 
-Recurrence(sp) = Recurrence{typeof(sp),promote_type(eltype(sp),eltype(domain(sp)))}(sp)
+Recurrence(sp) = Recurrence{typeof(sp),rangetype(sp)}(sp)
 
 Base.convert{T,S}(::Type{Operator{T}},J::Recurrence{S}) = Recurrence{S,T}(J.space)
 

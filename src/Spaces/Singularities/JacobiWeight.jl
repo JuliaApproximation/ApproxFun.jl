@@ -25,7 +25,7 @@ struct JacobiWeight{S,DD,RR} <: WeightSpace{S,DD,RR}
     end
 end
 
-JacobiWeight(a::Number,b::Number,d::RealUnivariateSpace) =
+JacobiWeight(a::Number,b::Number,d::Space) =
     JacobiWeight{typeof(d),domaintype(d),rangetype(d)}(Float64(a),Float64(b),d)
 JacobiWeight(β::Number,α::Number,d::JacobiWeight) =  JacobiWeight(β+d.β,α+d.α,d.space)
 JacobiWeight(a::Number,b::Number,d::IntervalDomain) = JacobiWeight(Float64(a),Float64(b),Space(d))
@@ -41,9 +41,9 @@ order{D,R}(S::JacobiWeight{Ultraspherical{Int,D,R},D,R}) = order(S.space)
 
 spacescompatible(A::JacobiWeight,B::JacobiWeight) =
     A.β ≈ B.β && A.α ≈ B.α && spacescompatible(A.space,B.space)
-spacescompatible{DD<:IntervalDomain}(A::JacobiWeight,B::RealUnivariateSpace{DD}) =
+spacescompatible{DD<:IntervalDomain,RR<:Real}(A::JacobiWeight,B::Space{DD,RR}) =
     spacescompatible(A,JacobiWeight(0,0,B))
-spacescompatible{DD<:IntervalDomain}(B::RealUnivariateSpace{DD},A::JacobiWeight) =
+spacescompatible{DD<:IntervalDomain,RR<:Real}(B::Space{DD,RR},A::JacobiWeight) =
     spacescompatible(A,JacobiWeight(0,0,B))
 
 transformtimes{JW1<:JacobiWeight,JW2<:JacobiWeight}(f::Fun{JW1},g::Fun{JW2})=
@@ -94,11 +94,11 @@ coefficients(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,DD,RR}) where {SJ
 coefficients(f::Vector,sp::JacobiWeight{SJ,Segment{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD}) where {SJ,TT,SV,TTT,DD<:BivariateDomain} =
     coefficients(f,sp,JacobiWeight(0,0,S2))
 
-coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::JacobiWeight{SJ,DD},S2::RealUnivariateSpace{DD}) =
+coefficients{SJ,DD<:IntervalDomain,RR<:Real}(f::Vector,sp::JacobiWeight{SJ,DD},S2::Space{DD,RR}) =
     coefficients(f,sp,JacobiWeight(0,0,S2))
 coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) =
     f.coefficients[1]*ones(ts).coefficients
-coefficients{SJ,DD<:IntervalDomain}(f::Vector,S2::RealUnivariateSpace{DD},sp::JacobiWeight{SJ,DD}) =
+coefficients{SJ,DD<:IntervalDomain,RR<:Real}(f::Vector,S2::Space{DD,RR},sp::JacobiWeight{SJ,DD}) =
     coefficients(f,JacobiWeight(0,0,S2),sp)
 
 

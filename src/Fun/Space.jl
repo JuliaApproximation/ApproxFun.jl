@@ -16,11 +16,11 @@ abstract type Space{D,R} end
 
 
 
-const RealSpace{D,R} = Space{D,R} where {R<:Real}
-const ComplexSpace{D,R} = Space{D,R} where {R<:Complex}
-const UnivariateSpace{D,R} = Space{D,R} where {D<:UnivariateDomain}
-const BivariateSpace{D,R} = Space{D,R}  where {D<:BivariateDomain}
-const RealUnivariateSpace{D,R} = RealSpace{D,R} where {D<:UnivariateDomain,R<:Real}
+const RealSpace = Space{D,R} where {D,R<:Real}
+const ComplexSpace = Space{D,R} where {D,R<:Complex}
+const UnivariateSpace = Space{D,R} where {D<:UnivariateDomain,R}
+const BivariateSpace = Space{D,R}  where {D<:BivariateDomain,R}
+const RealUnivariateSpace = RealSpace{D,R} where {D<:UnivariateDomain,R<:Real}
 
 
 
@@ -61,12 +61,13 @@ Base.broadcast(f,x::Union{Number,Domain,Space}...) = f(x...)
 
 # the default is all spaces have one-coefficient blocks
 blocklengths(S::Space) = repeated(true,dimension(S))
+nblocks(S::Space) = length(blocklengths(S))
 block(S::Space,k) = Block(k)
 
 Space{D<:Number}(d::AbstractVector{D}) = Space(convert(Domain,d))
 
 
-abstract type AmbiguousSpace <: Space{AnyDomain,Void} end
+abstract type AmbiguousSpace <: Space{AnyDomain,UnsetNumber} end
 domain(::AmbiguousSpace) = AnyDomain()
 
 
@@ -499,13 +500,13 @@ end
 `ConstantSpace` is the 1-dimensional scalar space.
 """
 
-struct ConstantSpace{DD,R} <: UnivariateSpace{DD,R}
+struct ConstantSpace{DD,R} <: Space{DD,R}
     domain::DD
     ConstantSpace{DD,R}(d::DD) where {DD,R} = new(d)
     ConstantSpace{DD,R}(d::AnyDomain) where {DD,R} = new(DD(d))
 end
 
-ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(eltype(d))}(d)
+ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(prectype(d))}(d)
 ConstantSpace() = ConstantSpace(AnyDomain())
 
 isconstspace(::ConstantSpace) = true

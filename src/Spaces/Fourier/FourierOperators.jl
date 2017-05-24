@@ -3,18 +3,18 @@
 ## Converison
 
 #ensure that COnversion is called
-coefficients{DD,RR}(cfs::Vector,A::Fourier{DD,RR},B::Laurent{DD,RR}) =
+coefficients{DD,R1,R2}(cfs::Vector,A::Fourier{DD,R1},B::Laurent{DD,R2}) =
     A_mul_B_coefficients(Conversion(A,B),cfs)
-coefficients{DD,RR}(cfs::Vector,A::Laurent{DD,RR},B::Fourier{DD,RR}) =
+coefficients{DD,R1,R2}(cfs::Vector,A::Laurent{DD,R1},B::Fourier{DD,R2}) =
     A_mul_B_coefficients(Conversion(A,B),cfs)
 
-hasconversion{DD,RR}(::Fourier{DD,RR},::Laurent{DD,RR}) = true
-hasconversion{DD,RR}(::Laurent{DD,RR},::Fourier{DD,RR}) = true
+hasconversion{DD,R1,R2}(::Fourier{DD,R1},::Laurent{DD,R2}) = true
+hasconversion{DD,R1,R2}(::Laurent{DD,R1},::Fourier{DD,R2}) = true
 
-Conversion{DD,RR}(a::Laurent{DD,RR},b::Fourier{DD,RR}) = ConcreteConversion(a,b)
-Conversion{DD,RR}(a::Fourier{DD,RR},b::Laurent{DD,RR}) = ConcreteConversion(a,b)
+Conversion{DD,R1,R2}(a::Laurent{DD,R1},b::Fourier{DD,R2}) = ConcreteConversion(a,b)
+Conversion{DD,R1,R2}(a::Fourier{DD,R1},b::Laurent{DD,R2}) = ConcreteConversion(a,b)
 
-function getindex{DD,RR,T}(C::ConcreteConversion{Laurent{DD,RR},Fourier{DD,RR},T},k::Integer,j::Integer)
+function getindex{DD,R1,R2,T}(C::ConcreteConversion{Laurent{DD,R1},Fourier{DD,R2},T},k::Integer,j::Integer)
     if k==j==1
         one(T)
     elseif iseven(k) && k==j
@@ -29,7 +29,7 @@ function getindex{DD,RR,T}(C::ConcreteConversion{Laurent{DD,RR},Fourier{DD,RR},T
 end
 
 
-function getindex{DD,RR,T}(C::ConcreteConversion{Fourier{DD,RR},Laurent{DD,RR},T},k::Integer,j::Integer)
+function getindex{DD,R1,R2,T}(C::ConcreteConversion{Fourier{DD,R1},Laurent{DD,R2},T},k::Integer,j::Integer)
     if k==j==1
         one(T)
     elseif iseven(k) && k==j
@@ -46,27 +46,27 @@ function getindex{DD,RR,T}(C::ConcreteConversion{Fourier{DD,RR},Laurent{DD,RR},T
 end
 
 
-bandinds{DD,RR}(::ConcreteConversion{Laurent{DD,RR},Fourier{DD,RR}})=-1,1
-bandinds{DD,RR}(::ConcreteConversion{Fourier{DD,RR},Laurent{DD,RR}})=-1,1
+bandinds{DD,R1,R2}(::ConcreteConversion{Laurent{DD,R1},Fourier{DD,R2}})=-1,1
+bandinds{DD,R1,R2}(::ConcreteConversion{Fourier{DD,R1},Laurent{DD,R2}})=-1,1
 
 for RULE in (:conversion_rule,:maxspace_rule,:union_rule)
     @eval begin
         # override both to avoid SumSpace overrides
-        function $RULE{DD,RR}(A::Laurent{DD,RR},B::Fourier{DD,RR})
+        function $RULE{DD,R1,R2}(A::Laurent{DD,R1},B::Fourier{DD,R2})
             @assert domainscompatible(A,B)
             B
         end
-        function $RULE{DD,RR}(A::Fourier{DD,RR},B::Laurent{DD,RR})
+        function $RULE{DD,R1,R2}(A::Fourier{DD,R1},B::Laurent{DD,R2})
             @assert domainscompatible(A,B)
             A
         end
     end
 end
 
-conversion_type{DD<:Circle,RR}(A::Fourier{DD,RR},B::Fourier{DD,RR}) = domain(A).orientation?A:B
+conversion_type{DD<:Circle,R1,R2}(A::Fourier{DD,R1},B::Fourier{DD,R2}) = domain(A).orientation?A:B
 
-hasconversion{DD,RR}(A::Fourier{DD,RR},B::Fourier{DD,RR}) = domain(A) == reverse(domain(B))
-function Conversion{DD,RR}(A::Fourier{DD,RR},B::Fourier{DD,RR})
+hasconversion{DD,R1,R2}(A::Fourier{DD,R1},B::Fourier{DD,R2}) = domain(A) == reverse(domain(B))
+function Conversion{DD,R1,R2}(A::Fourier{DD,R1},B::Fourier{DD,R2})
     if A==B
         ConversionWrapper(eye(A))
     else
@@ -74,9 +74,9 @@ function Conversion{DD,RR}(A::Fourier{DD,RR},B::Fourier{DD,RR})
         ConcreteConversion(A,B)
     end
 end
-bandinds{DD,RR}(::ConcreteConversion{Fourier{DD,RR},Fourier{DD,RR}})=0,0
+bandinds{DD,R1,R2}(::ConcreteConversion{Fourier{DD,R1},Fourier{DD,R2}})=0,0
 
-getindex{DD,RR,T}(C::ConcreteConversion{Fourier{DD,RR},Fourier{DD,RR},T},k::Integer,j::Integer) =
+getindex{DD,R1,R2,T}(C::ConcreteConversion{Fourier{DD,R1},Fourier{DD,R2},T},k::Integer,j::Integer) =
     k==j?(iseven(k)?(-one(T)):one(T)):zero(T)
 
 
@@ -274,9 +274,9 @@ end
 for SP in (:CosSpace,:SinSpace,:Fourier)
     @eval begin
         DefiniteIntegral{D,R}(S::$SP{D,R}) =
-            ConcreteDefiniteIntegral{typeof(S),promote_type(eltype(S),eltype(D))}(S)
+            ConcreteDefiniteIntegral{typeof(S),prectype(S)}(S)
         DefiniteLineIntegral{D,R}(S::$SP{D,R}) =
-            ConcreteDefiniteLineIntegral{typeof(S),real(promote_type(eltype(S),eltype(D)))}(S)
+            ConcreteDefiniteLineIntegral{typeof(S),real(prectype(S))}(S)
     end
 end
 
@@ -350,12 +350,12 @@ Reverse{D}(S::Fourier{D}) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
 
 for TYP in (:Fourier,:Laurent,:CosSpace,:SinSpace,:Taylor)
     @eval begin
-        function Dirichlet{PS,T}(S::TensorSpace{Tuple{$TYP{PeriodicInterval{T}},PS}})
+        function Dirichlet{PS,T,R}(S::TensorSpace{Tuple{$TYP{PeriodicInterval{T},R},PS}})
             op = interlace([eye(S[1])⊗ldirichlet(S[2]);
                             ReverseOrientation(S[1])⊗rdirichlet(S[2]) ])
             DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)
         end
-        function Dirichlet{PS,T}(S::TensorSpace{Tuple{PS,$TYP{PeriodicInterval{T}}}})
+        function Dirichlet{PS,T,R}(S::TensorSpace{Tuple{PS,$TYP{PeriodicInterval{T},R}}})
             op = interlace([ldirichlet(S[1])⊗eye(S[2]);
                             rdirichlet(S[1])⊗ReverseOrientation(S[2]) ])
             DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),1)

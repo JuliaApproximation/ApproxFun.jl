@@ -186,7 +186,7 @@ choosedomainspace(M::CalculusOperator{UnsetSpace},sp::SumSpace)=mapreduce(s->cho
 function Multiplication{S,DD,RR,S2,DD2,RR2}(f::Fun{MatrixSpace{S,DD,RR}},sp::VectorSpace{S2,DD2,RR2})
     @assert size(space(f),2)==length(sp)
     m=Array(f)
-    MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),eltype(sp))}[Multiplication(m[k,j],sp[j]) for k=1:size(m,1),j=1:size(m,2)]))
+    MultiplicationWrapper(f,interlace(Operator{promote_type(eltype(f),prectype(sp))}[Multiplication(m[k,j],sp[j]) for k=1:size(m,1),j=1:size(m,2)]))
 end
 
 

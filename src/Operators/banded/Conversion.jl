@@ -9,7 +9,7 @@ end
 
 
 ConcreteConversion(a::Space,b::Space)=ConcreteConversion{typeof(a),typeof(b),
-        promote_type(op_eltype_realdomain(a),op_eltype_realdomain(b))}(a,b)
+        promote_type(rangetype(a),rangetype(b))}(a,b)
 
 
 function Base.convert{T,S,V}(::Type{Operator{T}},C::ConcreteConversion{S,V})

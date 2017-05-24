@@ -9,6 +9,10 @@ testbandedoperator(Derivative(Ultraspherical(1)))
 testfunctional(Evaluation(Chebyshev(),0.1,1))
 testfunctional(Evaluation(Chebyshev(),0.1,1)-Evaluation(Chebyshev(),0.1,1))
 
+let f = Fun(cos)
+    @test (Evaluation(Chebyshev(),0.1,1)*f)(0.1)  ≈ f'(0.1)
+end
+
 
 # test fast copy is consistent with getindex
 
@@ -235,7 +239,6 @@ u = D[1:ApproxFun.∞,2:ApproxFun.∞] \ f
 
 A = InterlaceOperator(Diagonal([eye(2),Derivative(Chebyshev())]))
 testblockbandedoperator(A)
-
 
 ## Projection
 

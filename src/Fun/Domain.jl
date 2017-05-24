@@ -41,7 +41,6 @@ Base.size(::Domain) = ()
 prectype(d::Domain) = eltype(eltype(d))
 prectype(::Type{D}) where {D<:Domain} = eltype(eltype(D))
 
-
 #TODO: bivariate AnyDomain
 struct AnyDomain <: Domain{UnsetNumber} end
 struct EmptyDomain <: Domain{Void} end

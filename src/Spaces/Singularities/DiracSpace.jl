@@ -8,7 +8,7 @@ for TYP in (:DiracSpace,:PointSpace)
         end
 
         function $TYP(points::AbstractVector)
-            d = mapreduce(Point,union,DS.points)
+            d = mapreduce(Point,union,points)
             $TYP{eltype(points),typeof(d),real(prectype(d))}(points)
         end
 

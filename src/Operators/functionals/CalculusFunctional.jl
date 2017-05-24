@@ -22,7 +22,7 @@ macro calculus_functional(Op)
 
 
         # We expect the operator to be real/complex if the basis is real/complex
-        $ConcOp(dsp::Space) = $ConcOp{typeof(dsp),op_eltype(dsp)}(dsp)
+        $ConcOp(dsp::Space) = $ConcOp{typeof(dsp),prectype(dsp)}(dsp)
 
         $Op() = $Op(UnsetSpace())
         $Op(dsp) = $ConcOp(dsp)

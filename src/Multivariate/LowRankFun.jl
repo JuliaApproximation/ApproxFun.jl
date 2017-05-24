@@ -88,7 +88,7 @@ end
 
 function standardLowRankFun(f::F,dx::Space,dy::Space;tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,gridx::Integer=64,gridy::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dy)
-    T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)),eltype(dy),eltype(domain(dy)))
+    T = promote_type(eltype(f(first(xy)...)),prectype(dx),prectype(dy))
 
     # We start by sampling on the given grid, find the approximate maximum and create the first rank-one approximation.
     ptsx,ptsy=points(dx,gridx),points(dy,gridy)
@@ -142,7 +142,7 @@ end
 
 function CholeskyLowRankFun(f::F,dx::Space;tolerance::Union{Symbol,Tuple{Symbol,Number}}=:relative,grid::Integer=64,maxrank::Integer=100)
     xy = checkpoints(dx⊗dx)
-    T = promote_type(eltype(f(first(xy)...)),eltype(dx),eltype(domain(dx)))
+    T = promote_type(eltype(f(first(xy)...)),prectype(dx))
 
     # We start by sampling on the given grid, find the approximate maximum and create the first rank-one approximation.
     pts=points(dx,grid)

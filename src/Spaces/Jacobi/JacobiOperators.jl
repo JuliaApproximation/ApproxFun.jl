@@ -122,7 +122,7 @@ function getindex{J<:Jacobi}(T::ConcreteIntegral{J},k::Integer,j::Integer)
     if k≥2 && j==k-1
         complexlength(domain(T))./(k+T.space.a+T.space.b-2)
     else
-        zero(eltype(J))
+        zero(eltype(T))
     end
 end
 

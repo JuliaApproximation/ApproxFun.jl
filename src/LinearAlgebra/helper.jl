@@ -28,6 +28,9 @@ function isapprox_atol{T<:Number,S<:Number}(x::AbstractArray{T}, y::AbstractArra
     end
 end
 
+# The second case handles zero
+isapproxinteger(x) = isapprox(x,round(Int,x))  || isapprox(x+1,round(Int,x+1))
+
 
 # This creates ApproxFun.real, ApproxFun.eps and ApproxFun.dou
 # which we override for default julia types

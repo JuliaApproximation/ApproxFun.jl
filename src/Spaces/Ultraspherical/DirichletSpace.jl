@@ -13,10 +13,10 @@ for TYP in (:Number,:AbstractArray,:Vec,:Fun)
     @eval evaluate(f::AbstractVector,S::ChebyshevDirichlet,x::$TYP) =
         evaluate(Fun(Fun(S,f),canonicalspace(S)),x)
 end
-(::Type{ChebyshevDirichlet{l,r}}){l,r}() =
-    ChebyshevDirichlet{l,r,Segment{Float64}}()
-(::Type{ChebyshevDirichlet{l,r}}){l,r}(d::Domain) =
-    ChebyshevDirichlet{l,r,typeof(d)}(d)
+ChebyshevDirichlet{l,r}() where {l,r} =
+    ChebyshevDirichlet{l,r,Segment{Float64},Float64}()
+ChebyshevDirichlet{l,r}(d::Domain) where {l,r} =
+    ChebyshevDirichlet{l,r,typeof(d),prectype(d)}(d)
 
 spacescompatible{l,r,D,R}(a::ChebyshevDirichlet{l,r,D,R},b::ChebyshevDirichlet{l,r,D,R}) =
     domainscompatible(a,b)

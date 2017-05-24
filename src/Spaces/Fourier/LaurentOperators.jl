@@ -55,8 +55,8 @@ function blockbandinds{DD,RR}(T::ConcreteMultiplication{Laurent{DD,RR},Laurent{D
 end
 
 
-Multiplication{DD,RR}(f::Fun{Fourier{DD,RR}},sp::Laurent{DD,RR}) = Multiplication(Fun(f,sp),sp)
-Multiplication{DD,RR}(f::Fun{Laurent{DD,RR}},sp::Fourier{DD,RR}) = Multiplication(Fun(f,sp),sp)
+Multiplication{DD,R1,R2}(f::Fun{Fourier{DD,R1}},sp::Laurent{DD,R2}) = Multiplication(Fun(f,sp),sp)
+Multiplication{DD,R1,R2}(f::Fun{Laurent{DD,R1}},sp::Fourier{DD,R2}) = Multiplication(Fun(f,sp),sp)
 
 # override SumSpace default
 coefficienttimes{DD,RR}(f::Fun{Laurent{DD,RR}},g::Fun{Laurent{DD,RR}}) = Multiplication(f,space(g))*g
@@ -69,7 +69,7 @@ coefficienttimes{DD,RR}(f::Fun{Laurent{DD,RR}},g::Fun{Laurent{DD,RR}}) = Multipl
 # override map definition
 Derivative{s,DD<:Circle}(S::Hardy{s,DD},k::Integer) = ConcreteDerivative(S,k)
 Derivative{s,DD<:PeriodicInterval}(S::Hardy{s,DD},k::Integer) = ConcreteDerivative(S,k)
-Derivative{DD<:Circle}(S::Laurent{DD},k::Integer) =
+Derivative{DD<:Circle,RR}(S::Laurent{DD,RR},k::Integer) =
     DerivativeWrapper(InterlaceOperator(Diagonal([map(s->Derivative(s,k),S.spaces)...]),SumSpace),k)
 
 bandinds{s,DD<:PeriodicInterval,RR}(D::ConcreteDerivative{Hardy{s,DD,RR}})=(0,0)
@@ -137,10 +137,10 @@ getindex{DD,RR,OT,T}(D::ConcreteDerivative{Hardy{false,DD,RR},OT,T},k::Integer,j
 # end
 
 
-Integral{s,DD<:Circle,RR}(S::Hardy{s,DD,RR},k::Integer)=ConcreteIntegral(S,k)
+Integral{s,DD<:Circle,RR}(S::Hardy{s,DD,RR},k::Integer) = ConcreteIntegral(S,k)
 
-bandinds{DD<:Circle,RR}(D::ConcreteIntegral{Taylor{DD,RR}})=(-D.order,0)
-rangespace{s,DD<:Circle,RR}(Q::ConcreteIntegral{Hardy{s,DD,RR}})=Q.space
+bandinds{DD<:Circle,RR}(D::ConcreteIntegral{Taylor{DD,RR}}) = (-D.order,0)
+rangespace{s,DD<:Circle,RR}(Q::ConcreteIntegral{Hardy{s,DD,RR}}) = Q.space
 
 function getindex{DD<:Circle,RR}(D::ConcreteIntegral{Taylor{DD,RR}},k::Integer,j::Integer)
     d=domain(D)
@@ -238,10 +238,10 @@ end
 
 for SP in (:Taylor,:(Hardy{false}),:Laurent)
     @eval begin
-        DefiniteIntegral{D}(S::$SP{D}) =
-            ConcreteDefiniteIntegral{typeof(S),promote_type(eltype(S),eltype(D))}(S)
-        DefiniteLineIntegral{D}(S::$SP{D}) =
-            ConcreteDefiniteLineIntegral{typeof(S),real(promote_type(eltype(S),eltype(D)))}(S)
+        DefiniteIntegral{D,R}(S::$SP{D,R}) =
+            ConcreteDefiniteIntegral{typeof(S),prectype(S)}(S)
+        DefiniteLineIntegral{D,R}(S::$SP{D,R}) =
+            ConcreteDefiniteLineIntegral{typeof(S),real(prectype(S))}(S)
     end
 end
 

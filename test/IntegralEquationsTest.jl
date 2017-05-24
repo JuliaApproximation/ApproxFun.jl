@@ -42,7 +42,7 @@ d=domain(x)
 bandinds(Σ)
 
 @test domainspace(Σ) ==
-    JacobiWeight{Chebyshev{Segment{Float64}},Segment{Float64}}(-0.5,-0.5,Chebyshev())
+    JacobiWeight{Chebyshev{Segment{Float64}},Segment{Float64},Float64}(-0.5,-0.5,Chebyshev())
 
 L=I+Σ[exp(x)*w]
 bandinds(L)

@@ -14,7 +14,7 @@ struct ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
 end
 
 ConcreteEvaluation(sp::RealSpace,x::Number,o::Number) =
-    ConcreteEvaluation{typeof(sp),typeof(x),typeof(o),eltype(domain(sp))}(sp,x,o)
+    ConcreteEvaluation{typeof(sp),typeof(x),typeof(o),rangetype(sp)}(sp,x,o)
 
 Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
@@ -32,9 +32,7 @@ end
 Evaluation(sp::UnsetSpace,x::Bool,k) =
     ConcreteEvaluation{UnsetSpace,Bool,typeof(k),UnsetNumber}(sp,x,k)
 
-Evaluation(sp::Space{DD,RR},x,order) where {DD,RR<:Complex} =
-    Evaluation(Complex{real(eltype(domain(sp)))},sp,x,order)
-Evaluation(sp::Space,x,order) = Evaluation(eltype(domain(sp)),sp,x,order)
+Evaluation(sp::Space,x,order) = Evaluation(rangetype(sp),sp,x,order)
 
 #Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
 Evaluation(d::Space,x::Union{Number,Bool}) = Evaluation(d,x,0)
@@ -122,11 +120,11 @@ rneumann(d) = rdiffbc(d,1)
 dirichlet(d) = diffbcs(d,0)
 neumann(d) = diffbcs(d,1)
 
-ivp(d,k) = Operator{eltype(d)}[ldiffbc(d,i) for i=0:k-1]
-bvp(d,k) = vcat(Operator{eltype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],
-                Operator{eltype(d)}[rdiffbc(d,i) for i=0:div(k,2)-1])
+ivp(d,k) = Operator{prectype(d)}[ldiffbc(d,i) for i=0:k-1]
+bvp(d,k) = vcat(Operator{prectype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],
+                Operator{prectype(d)}[rdiffbc(d,i) for i=0:div(k,2)-1])
 
-periodic(d,k) = Operator{eltype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
+periodic(d,k) = Operator{prectype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
 
 
 
@@ -153,7 +151,7 @@ struct ConcreteDirichlet{S,V,T} <: Dirichlet{S,T}
 end
 
 ConcreteDirichlet(sp::Space,rs::Space,order) =
-    ConcreteDirichlet{typeof(sp),typeof(rs),eltype(sp)}(sp,rs,order)
+    ConcreteDirichlet{typeof(sp),typeof(rs),rangetype(sp)}(sp,rs,order)
 ConcreteDirichlet(sp::Space,order) = ConcreteDirichlet(sp,Space(∂(domain(sp))),order)
 
 Base.convert{S,V,T}(::Type{Operator{T}},B::ConcreteDirichlet{S,V}) =

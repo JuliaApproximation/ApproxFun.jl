@@ -31,10 +31,13 @@ f=Fun(x->exp(x)/sqrt(1-x.^2),JacobiWeight(-.5,-.5))
 
 
 S=JacobiWeight(-1.,-1.,Chebyshev(0..1))
-D=Derivative(S)
 
+# Checks bug in Derivative(S)
+@test typeof(ConstantSpace(Domain(0..1))) <: Space{Segment{Float64},Float64}
+
+D=Derivative(S)
 f=Fun(S,Fun(exp,0..1).coefficients)
-x=.1
+x=0.1
 @test f(x) ≈ exp(x)*x^(-1)*(1-x)^(-1)/4
 @test (D*f)(x) ≈ -exp(x)*(1+(x-3)*x)/(4*(x-1)^2*x^2)
 

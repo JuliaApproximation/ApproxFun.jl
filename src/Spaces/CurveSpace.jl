@@ -33,7 +33,7 @@ end
 const Bézier = Bernstein # option+e e gives é
 
 Bernstein{O}() where {O} = Bernstein{O,Float64,Float64}()
-Bernstein{O}(d::Domain) where {O} = Bernstein{O,eltype(d),real(eltype(d))}(d)
+Bernstein{O}(d::Domain) where {O} = Bernstein{O,eltype(d),real(prectype(d))}(d)
 
 order{O}(::Bernstein{O}) = O
 order{O,T,R}(::Type{Bernstein{O,T,R}}) = O

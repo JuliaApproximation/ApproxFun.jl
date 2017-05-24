@@ -94,7 +94,7 @@ union_rule(A::ConstantSpace,B::Space) = ConstantSpace(domain(B))⊕B
 
 #  TODO: this is a special work around but really we want it to be blocks
 Conversion{D<:BivariateDomain}(a::ConstantSpace,b::Space{D}) = ConcreteConversion{typeof(a),typeof(b),
-        promote_type(op_eltype_realdomain(a),eltype(op_eltype_realdomain(b)))}(a,b)
+        promote_type(real(prectype(a)),real(prectype(b)))}(a,b)
 
 Conversion(a::ConstantSpace,b::Space) = ConcreteConversion(a,b)
 bandinds{CS<:ConstantSpace,S<:Space}(C::ConcreteConversion{CS,S}) =
