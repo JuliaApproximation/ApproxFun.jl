@@ -282,6 +282,9 @@ QR1 = qrfact(A)
 
 @test norm((Dirichlet(d)*u-ones(∂(d))).coefficients) < 1E-7
 @test norm((A*u-Fun([ones(∂(d));0.])).coefficients) < 1E-7
+@test norm(((A*u)[2]-(Laplacian(space(u))+100I)*u).coefficients) < 1E-10
+@test eltype(ApproxFun.promotedomainspace(Laplacian(),space(u))) == Float64
+@test eltype(ApproxFun.promotedomainspace(Laplacian()+100I,space(u))) == Float64
 @test norm(((A*u)[2]-(Laplacian()+100I)*u).coefficients) < 1E-10
 @test norm((Laplacian()*u+100*u - (A*u)[2]).coefficients) < 1E-10
 @time v=\(A,[ones(∂(d));0.];tolerance=1E-7)
@@ -337,7 +340,7 @@ S=Space(d)
 
 
 f=Fun((x,y)->exp(-10(sin(x/2)^2+sin(y/2)^2)),d)
-A=Laplacian(d)+.1I
+A=Laplacian(d)+0.1I
 testbandedblockbandedoperator(A)
 @time u=A\f
 @test u(.1,.2) ≈ u(.2,.1)

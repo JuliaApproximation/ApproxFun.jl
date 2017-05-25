@@ -637,7 +637,8 @@ function promotedomainspace{T}(P::PlusOperator{T},sp::Space,cursp::Space)
     if sp==cursp
         P
     else
-        promoteplus(Operator{T}[promotedomainspace(op,sp) for op in P.ops])
+        ops = [promotedomainspace(op,sp) for op in P.ops]
+        promoteplus(Vector{Operator{mapreduce(eltype,promote_type,ops)}}(ops))
     end
 end
 
