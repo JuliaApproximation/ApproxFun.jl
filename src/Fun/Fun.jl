@@ -427,6 +427,12 @@ end
 
 coefficientnorm(f::Fun,p::Real=2) = norm(f.coefficients,p)
 
+
+Base.rtoldefault(::Type{F}) where {F<:Fun} = Base.rtoldefault(eltype(F))
+Base.rtoldefault(x::Union{T,Type{T}}, y::Union{S,Type{S}}) where {T<:Union{Number,Fun},S<:Union{Number,Fun}} =
+    Base.rtoldefault(eltype(x),eltype(y))
+
+
 function Base.isapprox{S1,S2,T,S}(f::Fun{S1,T},g::Fun{S2,S};rtol::Real=Base.rtoldefault(T,S), atol::Real=0, norm::Function=coefficientnorm)
     if spacescompatible(f,g)
         d = norm(f - g)

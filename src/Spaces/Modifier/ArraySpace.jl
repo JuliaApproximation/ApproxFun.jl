@@ -285,24 +285,31 @@ end
 
 ## Algebra
 
+
+const ArrayFun = Fun{S} where {S<:Space{D,R}} where {D,R<:AbstractArray}
+const ScalarFun = Fun{S} where {S<:Space{D,R}} where {D,R<:Number}
+
 for OP in (:*,:+,:-)
     @eval begin
-        $OP{T<:Number,AS<:ArraySpace,V}(A::Array{T},f::Fun{AS,V}) = Fun($OP(A,Array(f)))
-        $OP{T<:Number,AS<:ArraySpace,V}(f::Fun{AS,V},A::Array{T}) = Fun($OP(Array(f),A))
-        $OP{T,S,AS<:ArraySpace,V,VT}(A::Vector{Fun{S,T,VT}},f::Fun{AS,V}) = Fun($OP(A,Array(f)))
-        $OP{T,S,AS<:ArraySpace,V}(f::Fun{AS,V},A::Vector{Fun{S,T}}) = Fun($OP(Array(f),A))
-        $OP{T,S,AS<:ArraySpace,V,VT}(A::Array{Fun{S,T,VT}},f::Fun{AS,V}) = Fun($OP(A,Array(f)))
-        $OP{T,S,AS<:ArraySpace,V,VT}(f::Fun{AS,V},A::Array{Fun{S,T,VT}}) = Fun($OP(Array(f),A))
-        $OP{AS<:ArraySpace,V}(A::UniformScaling,f::Fun{AS,V}) = Fun($OP(A,Array(f)))
-        $OP{AS<:ArraySpace,V}(f::Fun{AS,V},A::UniformScaling) = Fun($OP(Array(f),A))
-        $OP{AS<:ArraySpace,V}(A::Number,f::Fun{AS,V}) = Fun($OP(A,Array(f)))
-        $OP{AS<:ArraySpace,V}(f::Fun{AS,V},A::Number) = Fun($OP(Array(f),A))
+        $OP(A::Array{<:Number},f::ArrayFun) = Fun($OP(A,Array(f)))
+        $OP(f::ArrayFun,       A::Array{<:Number}) = Fun($OP(Array(f),A))
+        $OP(A::Array{<:Fun},   f::ArrayFun) = Fun($OP(A,Array(f)))
+        $OP(f::ArrayFun,       A::Array{<:Fun}) = Fun($OP(Array(f),A))
+        $OP(A::UniformScaling, f::ArrayFun) = Fun($OP(A,Array(f)))
+        $OP(f::ArrayFun,       A::UniformScaling) = Fun($OP(Array(f),A))
+        $OP(A::Number,         f::ArrayFun) = Fun($OP(A,Array(f)))
+        $OP(f::ArrayFun,       A::Number) = Fun($OP(Array(f),A))
+
+        $OP(f::ScalarFun,      A::Array) = Fun(broadcast($OP,f,A))
+        $OP(A::Array,          f::ScalarFun) = Fun(broadcast($OP,A,f))
+
+        $OP(f::ScalarFun,      A::ArrayFun) = $OP(f,Array(A))
+        $OP(A::ArrayFun,       f::ScalarFun) = $OP(Array(A),f)
     end
 end
 
 # use standard +, -
-*{BS<:ArraySpace,T,AS<:ArraySpace,V}(A::Fun{BS,T},f::Fun{AS,V}) =
-    Fun(Array(A)*Array(f))
+*(A::ArrayFun,f::ArrayFun) = Fun(Array(A)*Array(f))
 
 
 

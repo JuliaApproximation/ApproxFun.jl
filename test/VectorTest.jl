@@ -2,10 +2,43 @@ using ApproxFun,Base.Test
     import ApproxFun:interlace,Multiplication,ConstantSpace,PointSpace,ArraySpace,testblockbandedoperator
 
 
+x = Fun()
+
+@test x .+ [1,2] ≈ [x+1,x+2]
+@test [1,2] .+ x ≈ [x+1,x+2]
+
+@test (x + [1,2])(0.1) ≈ [1.1,2.1]
+@test ([1,2] + x)(0.1) ≈ [1.1,2.1]
+
+
+@test (x + Fun([1,2]))(0.1) ≈ [1.1,2.1]
+@test (Fun([1,2]) + x)(0.1) ≈ [1.1,2.1]
+
+
+
+@test x.*[1,2] ≈ [x,2x]
+@test [1,2].*x ≈ [x,2x]
+@test (x*[1,2])(0.1) ≈ [0.1,0.2]
+@test ([1,2]*x)(0.1) ≈ [0.1,0.2]
+
+
+@test (x*[1,2])(0.1) ≈ [0.1,0.2]
+@test ([1,2]*x)(0.1) ≈ [0.1,0.2]
+
+@test (x*Fun([1,2]))(0.1) ≈ [0.1,0.2]
+@test (Fun([1,2])*x)(0.1) ≈ [0.1,0.2]
+
 ## Vector*Vector{Fun}
 
 f = Fun(x->[exp(x),cos(x)])
+@test f(0.1) ≈ [exp(0.1),cos(0.1)]
 @test ([1 2]*f)(0.1) ≈ [1 2]*f(0.1)
+@test (f*3)(0.1) ≈ f(0.1)*3
+@test (3*f)(0.1) ≈ f(0.1)*3
+
+@test (f+1)(0.1) ≈ f(0.1)+1
+@test (1+f)(0.1) ≈ f(0.1)+1
+
 @test_broken f.'*[1,2] ≈ f(0.1).'*[1,2]
 
 ## Matrix*Vector{Fun}
@@ -16,8 +49,6 @@ a = [1 2; 3 4]
 @test (a*f)(0.1) ≈ a*f(0.1)
 @test Fun(a)*f ≈ a*f
 @test Fun(a*Array(f)) ≈ a*f
-
-@test (f+1)(0.1) ≈ f(0.1)+1
 
 
 # Chebyshev Matrix
