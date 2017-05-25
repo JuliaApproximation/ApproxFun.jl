@@ -1,13 +1,13 @@
 export Hermite,GaussWeight
 
 #TODO: Add general lines
-struct Hermite{T} <: PolynomialSpace{Line{T},T}
+struct Hermite{T} <: PolynomialSpace{Line{false,Float64},Float64}
     L::T
 end
 Hermite()=Hermite(1.0)
 
-domain(::Hermite)=Line()
-canonicalspace(H::Hermite)=Hermite()
+domain(::Hermite) = Line()
+canonicalspace(H::Hermite) = Hermite()
 spacescompatible(::Hermite,::Hermite)=true #TODO:L
 canonicaldomain(H::Hermite)=Line()
 tocanonical(H::Hermite,x)=x

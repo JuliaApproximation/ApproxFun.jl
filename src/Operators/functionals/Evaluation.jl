@@ -13,12 +13,16 @@ struct ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
     order::OT
 end
 
-ConcreteEvaluation(sp::RealSpace,x::Number,o::Number) =
+ConcreteEvaluation(sp::Space,x::Number,o::Number) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(o),rangetype(sp)}(sp,x,o)
 
-Evaluation{T}(::Type{T},sp::UnivariateSpace,x::Bool,order) =
+Evaluation(::Type{T},sp::UnivariateSpace,x::Bool,order) where {T} =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
-function Evaluation{T}(::Type{T},sp::UnivariateSpace,x,order)
+
+
+Evaluation(::Type{T},sp::Space,x,order) where {T} =
+    ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
+function Evaluation(::Type{T},sp::UnivariateSpace,x,order) where {T}
     d=domain(sp)
     if isa(d,IntervalDomain) && isapprox(first(d),x)
         Evaluation(T,sp,false,order)

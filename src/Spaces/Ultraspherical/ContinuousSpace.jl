@@ -4,7 +4,7 @@ struct ContinuousSpace{T,R} <: Space{PiecewiseSegment{T},R}
     domain::PiecewiseSegment{T}
 end
 
-ContinuousSpace{T}(d::PiecewiseSegment{T}) =
+ContinuousSpace(d::PiecewiseSegment{T}) where {T} =
     ContinuousSpace{T,real(T)}(d)
 
 
@@ -14,12 +14,12 @@ isperiodic(C::ContinuousSpace) = isperiodic(domain(C))
 
 spacescompatible(a::ContinuousSpace,b::ContinuousSpace) = domainscompatible(a,b)
 conversion_rule(a::ContinuousSpace,
-                b::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1}}},DD,RR<:Real} = a
+                b::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},DD,RR<:Real} where {DDD,RRR} = a
 
 plan_transform(sp::ContinuousSpace,vals::Vector) =
     TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
 
-function *{T,SS<:ContinuousSpace}(P::TransformPlan{T,SS,false},vals::Vector{T})
+function *(P::TransformPlan{T,SS,false},vals::Vector{T}) where {T,SS<:ContinuousSpace}
     S = P.space
     n=length(vals)
     d=domain(S)
@@ -102,11 +102,11 @@ block(C::ContinuousSpace,k)::Block = (k-1)÷ncomponents(C.domain)+1
 
 ## components
 
-components{T}(f::Fun{ContinuousSpace{T}},j::Integer) = components(Fun(f,canonicalspace(f)),j)
-components{T}(f::Fun{ContinuousSpace{T}}) = components(Fun(f,canonicalspace(space(f))))
+components(f::Fun{CS},j::Integer) where {CS<:ContinuousSpace} = components(Fun(f,canonicalspace(f)),j)
+components(f::Fun{CS}) where {CS<:ContinuousSpace} = components(Fun(f,canonicalspace(space(f))))
 
 
-function points{T}(f::Fun{ContinuousSpace{T}})
+function points(f::Fun{CS}) where {CS<:ContinuousSpace}
     n=ncoefficients(f)
     d=domain(f)
     K=ncomponents(d)
@@ -122,23 +122,23 @@ coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace) =
 
 
 # We implemnt conversion between continuous space and PiecewiseSpace with Chebyshev dirichlet
-Conversion(ps::PiecewiseSpace{CD,DD,RR},cs::ContinuousSpace) where {CD<:NTuple{4,ChebyshevDirichlet{1,1,DDD,RRR}},
+Conversion(ps::PiecewiseSpace{CD,DD,RR},cs::ContinuousSpace) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
                                                                     DD,RR<:Real} where {DDD,RRR} =
                 ConcreteConversion(ps,cs)
 
-Conversion(cs::ContinuousSpace,ps::PiecewiseSpace{CD,DD,RR}) where {CD<:NTuple{4,ChebyshevDirichlet{1,1,DDD,RRR}},
+Conversion(cs::ContinuousSpace,ps::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
                                                                     DD,RR<:Real} where {DDD,RRR} =
                 ConcreteConversion(cs,ps)
 
 
-bandinds(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},ContinuousSpace{T}}) where {CD<:NTuple{4,ChebyshevDirichlet{1,1,DDD,RRR}},
-                                                                                    DD,RR<:Real,T} where {DDD,RRR} =
+bandinds(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},CS}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
+                                                                                    DD,RR<:Real,CS<:ContinuousSpace} where {DDD,RRR} =
     -1,ncomponents(domain(rangespace(C)))
 
 
-function getindex(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},ContinuousSpace{TT},T},
-                  k::Integer,j::Integer) where {T,DD,RR<:Real,TT,
-                                                CD<:NTuple{4,ChebyshevDirichlet{1,1,DDD,RRR}}}  where {DDD,RRR}
+function getindex(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},CS,T},
+                  k::Integer,j::Integer) where {T,DD,RR<:Real,CS<:ContinuousSpace,
+                                                CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}}}  where {DDD,RRR}
     d=domain(rangespace(C))
     K=ncomponents(d)
     if isperiodic(d)
@@ -169,15 +169,15 @@ function getindex(C::ConcreteConversion{PiecewiseSpace{CD,DD,RR},ContinuousSpace
 end
 
 
-bandinds(C::ConcreteConversion{ContinuousSpace{T},
+bandinds(C::ConcreteConversion{<:ContinuousSpace,
                                      PiecewiseSpace{CD,DD,RR}}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
-                                              DD,RR<:Real,T}  where {DDD,RRR} =
+                                              DD,RR<:Real}  where {DDD,RRR} =
             isperiodic(domainspace(C)) ? (1-2ncomponents(domain(rangespace(C))),1) :
                                          (-ncomponents(domain(rangespace(C))),1)
 
-function getindex(C::ConcreteConversion{ContinuousSpace{TT},
+function getindex(C::ConcreteConversion{<:ContinuousSpace,
                                             PiecewiseSpace{CD,DD,RR},T},
-                      k::Integer,j::Integer) where {T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},TT,
+                      k::Integer,j::Integer) where {T,CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},
                                         DD,RR<:Real} where {DDD,RRR}
     d=domain(domainspace(C))
     K=ncomponents(d)
@@ -217,8 +217,8 @@ end
 # Dirichlet for Squares
 
 
-Dirichlet{T}(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Segment{T}},
-                                  ChebyshevDirichlet{1,1,Segment{T}}}}) =
+Dirichlet{T,R1,R2}(S::TensorSpace{Tuple{ChebyshevDirichlet{1,1,Segment{T},R1},
+                                  ChebyshevDirichlet{1,1,Segment{T},R2}}}) =
     ConcreteDirichlet(S,0)
 
 Dirichlet{T<:Real}(d::ProductDomain{Tuple{Segment{T},Segment{T}}}) =

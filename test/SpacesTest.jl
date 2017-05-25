@@ -114,6 +114,16 @@ u=[ldirichlet(S),D-I]\[exp(1.),0]
 
 
 d=PiecewiseSegment(0,1.,1.+im,im,0.)
+s=Space(d)
+
+# narrow down bug
+@test s isa ContinuousSpace
+@test ApproxFun.rangetype(s) == Float64
+cs=ApproxFun.canonicalspace(s)
+@test ApproxFun.rangetype(cs) == Float64
+
+@test conversion_type(s,cs) == s
+
 @test Fun(exp,d)(.1) ≈ exp(.1)
 
 
@@ -190,7 +200,10 @@ Fun(f,JacobiWeight(1.,0.,0..1))
 f=Fun(x->x+x^2,Hermite())
 @test f(1.) ≈ 2.
 
-g=Derivative(Hermite()) * f
+D = Derivative(Hermite())
+testbandedoperator(D)
+
+g = D*f
 @test g(1.) ≈ 3.
 
 

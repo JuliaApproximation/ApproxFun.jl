@@ -16,12 +16,12 @@ end
 ChebyshevDirichlet{l,r}() where {l,r} =
     ChebyshevDirichlet{l,r,Segment{Float64},Float64}()
 ChebyshevDirichlet{l,r}(d::Domain) where {l,r} =
-    ChebyshevDirichlet{l,r,typeof(d),prectype(d)}(d)
+    ChebyshevDirichlet{l,r,typeof(d),real(prectype(d))}(d)
 
 spacescompatible{l,r,D,R}(a::ChebyshevDirichlet{l,r,D,R},b::ChebyshevDirichlet{l,r,D,R}) =
     domainscompatible(a,b)
 
-ChebyshevDirichlet() = ChebyshevDirichlet{1,1,Segment{Float64}}()
+ChebyshevDirichlet() = ChebyshevDirichlet{1,1,Segment{Float64},Float64}()
 ZeroChebyshevDirichlet(d) =
     ChebyshevDirichlet{1,1,Segment{Float64}}(d)|(3:∞)
 ZeroChebyshevDirichlet() =
