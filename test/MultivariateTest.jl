@@ -2,6 +2,17 @@ using ApproxFun, Base.Test
     import ApproxFun: testbandedblockbandedoperator
 
 
+d=Domain(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(1.,1.))
+x=Fun()
+@test ((d.b - d.a)x/2)(0.1)  ≈ (d.b - d.a)*0.1/2
+@test ApproxFun.fromcanonical(d,x)(0.1) ≈ (d.b+d.a)/2 + (d.b - d.a)*0.1/2
+
+
+x,y = Fun(ApproxFun.Vec(0.,0.) .. ApproxFun.Vec(2.,1.))
+@test x(0.2,0.1) ≈ 0.2
+@test y(0.2,0.1) ≈ 0.1
+
+
 @time for k=0:5,j=0:5
     ff=(x,y)->cos(k*acos(x))*cos(j*acos(y))
     f=Fun(ff,Interval()^2)

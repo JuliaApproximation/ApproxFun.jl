@@ -15,8 +15,8 @@ are real and `a < b`, then this is is equivalent to an `Interval(a,b)`.
 struct Segment{T} <: IntervalDomain{T}
 	a::T
 	b::T
-	(::Type{Segment{T}}){T}() = new{T}(-one(T),one(T))
-	(::Type{Segment{T}}){T}(a,b) = new{T}(a,b)
+	Segment{T}() where {T} = new{T}(-one(T),one(T))
+	Segment{T}(a,b) where {T} = new{T}(a,b)
 end
 
 
@@ -80,7 +80,7 @@ mobius(d::Segment,x) = (d.a + d.b - 2x)/(d.a - d.b)
 tocanonical{T<:Real}(d::Segment{T},x) = mobius(d,x)
 tocanonicalD{T<:Real}(d::Segment{T},x) = 2/(d.b- d.a)
 fromcanonical{T<:Number}(d::Segment{T},x) = (d.a + d.b)/2 + (d.b - d.a)x/2
-fromcanonical{T<:Vec}(d::Segment{T},x::Number) = (d.a + d.b)/2 + (d.b - d.a)x/2
+fromcanonical{T<:Vec}(d::Segment{T},x) = (d.a + d.b)/2 + (d.b - d.a)x/2
 fromcanonicalD(d::Segment,x) = (d.b- d.a) / 2
 
 

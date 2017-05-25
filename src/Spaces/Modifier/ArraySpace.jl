@@ -55,6 +55,8 @@ dimension(AS::ArraySpace) = mapreduce(dimension,+,AS.spaces)
 
 # TODO: union domain
 domain(AS::ArraySpace) = domain(AS.spaces[1])
+setdomain(A::ArraySpace,d::Domain) = ArraySpace(map(sp->setdomain(sp,d),A.spaces))
+
 
 isambiguous(AS::ArraySpace) = isambiguous(AS.spaces[1])
 ## transforms
@@ -140,11 +142,10 @@ Space{S<:Space}(spl::Vector{S}) = ArraySpace(spl)
 
 
 #TODO: rewrite
-function Fun(v::Array{FF}) where {FF<:Fun}
+function Fun(v::AbstractArray{<:Fun})
     ff=Fun(vec(v))  # A vectorized version
     Fun(ArraySpace(map(space,v)),coefficients(ff))
 end
-
 
 function Fun{S,V,VV,DD,RR}(A::Array{Fun{VectorSpace{S,DD,RR},V,VV},2})
     @assert size(A,1)==1
@@ -157,6 +158,8 @@ function Fun{S,V,VV,DD,RR}(A::Array{Fun{VectorSpace{S,DD,RR},V,VV},2})
 end
 
 Fun(v::Array{NN}) where {NN<:Number} = Fun(v,ArraySpace(ConstantSpace(),size(v)...))
+
+Fun(v::AbstractArray{Any}) = Fun(Fun.([v...]) :: AbstractArray{<:Fun})
 
 # Fun{SS,n}(v::Array{Any,n},sp::ArraySpace{SS,n}) = Fun(map((f,s)->Fun(f,s),v,sp))
 
@@ -291,20 +294,20 @@ const ScalarFun = Fun{S} where {S<:Space{D,R}} where {D,R<:Number}
 
 for OP in (:*,:+,:-)
     @eval begin
-        $OP(A::Array{<:Number},f::ArrayFun) = Fun($OP(A,Array(f)))
-        $OP(f::ArrayFun,       A::Array{<:Number}) = Fun($OP(Array(f),A))
-        $OP(A::Array{<:Fun},   f::ArrayFun) = Fun($OP(A,Array(f)))
-        $OP(f::ArrayFun,       A::Array{<:Fun}) = Fun($OP(Array(f),A))
-        $OP(A::UniformScaling, f::ArrayFun) = Fun($OP(A,Array(f)))
-        $OP(f::ArrayFun,       A::UniformScaling) = Fun($OP(Array(f),A))
-        $OP(A::Number,         f::ArrayFun) = Fun($OP(A,Array(f)))
-        $OP(f::ArrayFun,       A::Number) = Fun($OP(Array(f),A))
+        $OP(A::AbstractArray{<:Number}, f::ArrayFun) = Fun($OP(A,Array(f)))
+        $OP(f::ArrayFun,                A::AbstractArray{<:Number}) = Fun($OP(Array(f),A))
+        $OP(A::AbstractArray{<:Fun},    f::ArrayFun) = Fun($OP(A,Array(f)))
+        $OP(f::ArrayFun,                A::AbstractArray{<:Fun}) = Fun($OP(Array(f),A))
+        $OP(A::UniformScaling,          f::ArrayFun) = Fun($OP(A,Array(f)))
+        $OP(f::ArrayFun,                A::UniformScaling) = Fun($OP(Array(f),A))
+        $OP(A::Number,                  f::ArrayFun) = Fun($OP(A,Array(f)))
+        $OP(f::ArrayFun,                A::Number) = Fun($OP(Array(f),A))
 
-        $OP(f::ScalarFun,      A::Array) = Fun(broadcast($OP,f,A))
-        $OP(A::Array,          f::ScalarFun) = Fun(broadcast($OP,A,f))
+        $OP(f::ScalarFun,               A::AbstractArray) = Fun(broadcast($OP,f,A))
+        $OP(A::AbstractArray,           f::ScalarFun) = Fun(broadcast($OP,A,f))
 
-        $OP(f::ScalarFun,      A::ArrayFun) = $OP(f,Array(A))
-        $OP(A::ArrayFun,       f::ScalarFun) = $OP(Array(A),f)
+        $OP(f::ScalarFun,               A::ArrayFun) = $OP(f,Array(A))
+        $OP(A::ArrayFun,                f::ScalarFun) = $OP(Array(A),f)
     end
 end
 
