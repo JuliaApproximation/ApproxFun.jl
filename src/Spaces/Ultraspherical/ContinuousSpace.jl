@@ -5,7 +5,7 @@ struct ContinuousSpace{T,R} <: Space{PiecewiseSegment{T},R}
 end
 
 ContinuousSpace(d::PiecewiseSegment{T}) where {T} =
-    ContinuousSpace{T,real(T)}(d)
+    ContinuousSpace{T,real(eltype(T))}(d)
 
 
 Space(d::PiecewiseSegment) = ContinuousSpace(d)

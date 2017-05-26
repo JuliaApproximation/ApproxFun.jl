@@ -302,7 +302,7 @@ for (op,ODE,RHS,growth) in ((:(exp),"D-f'","0",:(real)),
     L,R = parse(ODE),parse(RHS)
     @eval begin
         # depice before doing op
-        $op{PW<:PiecewiseSpace}(f::Fun{PW}) =
+        $op{PW<:Union{PiecewiseSpace,ContinuousSpace}}(f::Fun{PW}) =
             Fun(map(f->$op(f),components(f)),PiecewiseSpace)
 
         # We remove the MappedSpace

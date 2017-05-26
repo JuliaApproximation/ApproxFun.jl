@@ -235,3 +235,17 @@ testbandedblockbandedoperator(rDr)
 
 
 ## Cheby * Interval
+
+
+d = Interval()^2
+x,y = Fun(∂(d))
+
+
+@test ApproxFun.rangetype(Space(∂(d))) == Float64
+@test ApproxFun.rangetype(space(y)) == Float64
+
+
+@test (im*y)(1.0,0.1) ≈ 0.1im
+@test (x+im*y)(1.0,0.1) ≈ 1+0.1im
+
+@test exp(x+im*y)(1.0,0.1) ≈ exp(1.0+0.1im)

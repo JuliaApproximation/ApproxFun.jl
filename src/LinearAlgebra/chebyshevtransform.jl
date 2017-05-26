@@ -90,7 +90,7 @@ function plan_ichebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind
 end
 
 function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1)
-    plan = plan_ichebyshevtransform!(x;kind=kind)
+    plan = plan_ichebyshevtransform!(similar(Vector{T},indices(x));kind=kind)
     IChebyshevTransformPlan{T,kind,false,typeof(plan)}(plan)
 end
 

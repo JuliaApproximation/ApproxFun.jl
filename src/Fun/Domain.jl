@@ -111,7 +111,8 @@ function Base.in(x,d::IntervalDomain)
     iy=imag(y)
     sc=norm(fromcanonicalD(d,ry<-1?-one(ry):(ry>1?one(ry):ry)))  # scale based on stretch of map on projection to interal
     dy=fromcanonical(d,y)
-    norm(dy-x) ≤ 1000eps(T)*norm(x) &&
+    # TODO: use Base.isapprox once keywords are fast
+    ((isinf(norm(dy)) && isinf(norm(x))) ||  norm(dy-x) ≤ 1000eps(T)*norm(x)) &&
         -one(T)-100eps(T)/sc ≤ ry ≤ one(T)+100eps(T)/sc &&
         -100eps(T)/sc ≤ iy ≤ 100eps(T)/sc
 end

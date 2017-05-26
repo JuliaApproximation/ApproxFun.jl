@@ -55,7 +55,8 @@ end
 
 
 #TODO: fix for complex
-evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for Akj in A]
+evaluate{T<:Fun}(A::AbstractArray{T},x::Number) =
+    typeof(first(A)(x))[Akj(x) for Akj in A]
 
 
 
