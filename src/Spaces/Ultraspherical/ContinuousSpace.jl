@@ -16,10 +16,10 @@ spacescompatible(a::ContinuousSpace,b::ContinuousSpace) = domainscompatible(a,b)
 conversion_rule(a::ContinuousSpace,
                 b::PiecewiseSpace{CD,DD,RR}) where {CD<:Tuple{Vararg{ChebyshevDirichlet{1,1,DDD,RRR}}},DD,RR<:Real} where {DDD,RRR} = a
 
-plan_transform(sp::ContinuousSpace,vals::Vector) =
+plan_transform(sp::ContinuousSpace,vals::AbstractVector) =
     TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
 
-function *(P::TransformPlan{T,SS,false},vals::Vector{T}) where {T,SS<:ContinuousSpace}
+function *(P::TransformPlan{T,SS,false},vals::AbstractVector{T}) where {T,SS<:ContinuousSpace}
     S = P.space
     n=length(vals)
     d=domain(S)
@@ -117,7 +117,7 @@ end
 
 ## Conversion
 
-coefficients(cfsin::Vector,A::ContinuousSpace,B::PiecewiseSpace) =
+coefficients(cfsin::AbstractVector,A::ContinuousSpace,B::PiecewiseSpace) =
     defaultcoefficients(cfsin,A,B)
 
 

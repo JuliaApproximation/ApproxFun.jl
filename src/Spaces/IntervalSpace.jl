@@ -68,7 +68,7 @@ end
 
 for DT in (:IntervalDomain,:Space)
     @eval begin
-        function dirichlet{T<:$DT}(d::Vector{T})
+        function dirichlet{T<:$DT}(d::AbstractVector{T})
             m=length(d)
             B=zeros(Operator{mapreduce(prectype,promote_type,d)},2,m)
             B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
@@ -76,7 +76,7 @@ for DT in (:IntervalDomain,:Space)
             continuity(d,0:1)]
         end
 
-        function neumann{T<:$DT}(d::Vector{T})
+        function neumann{T<:$DT}(d::AbstractVector{T})
             m=length(d)
             B=zeros(Operator{mapreduce(prectype,promote_type,d)},2,m)
             B[1,1]=ldirichlet(d[1]);B[2,end]=rdirichlet(d[end])
@@ -85,7 +85,7 @@ for DT in (:IntervalDomain,:Space)
         end
 
 
-        function periodic{T<:$DT}(d::Vector{T})
+        function periodic{T<:$DT}(d::AbstractVector{T})
             m=length(d)
             B=zeros(Operator{mapreduce(prectype,promote_type,d)},2,m)
             B[1,1]=ldirichlet(d[1]);B[1,end]=-rdirichlet(d[end])

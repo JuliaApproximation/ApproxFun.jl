@@ -54,11 +54,11 @@ points(sp::SplineSpace{1},n) = sp.domain.points[1:n]
 
 for λ = [0,1]
     @eval begin
-        function transform(S::SplineSpace{$λ},vals::Vector,plan...)
+        function transform(S::SplineSpace{$λ},vals::AbstractVector,plan...)
             @assert length(vals) ≤ dimension(S)
             vals
         end
-        itransform(S::SplineSpace{$λ},cfs::Vector,plan...) = pad(cfs,dimension(S))
+        itransform(S::SplineSpace{$λ},cfs::AbstractVector,plan...) = pad(cfs,dimension(S))
     end
 end
 

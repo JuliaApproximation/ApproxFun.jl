@@ -3,7 +3,7 @@
 ## This file has methods to stably divide the jacobi singularity
 
 
-function dirichlet_divide_singularity{T<:Number}(b::Bool,v::Vector{T})
+function dirichlet_divide_singularity{T<:Number}(b::Bool,v::AbstractVector{T})
     n=length(v)
     w=zeros(T,n-1)
     s=b?1:-1
@@ -37,7 +37,7 @@ end
 # the output coefficients are Chebyshev
 
 
-function dirichlet_divide_singularity{T<:Number}(v::Vector{T})
+function dirichlet_divide_singularity{T<:Number}(v::AbstractVector{T})
     n=length(v)
     if n ≤ 2    # assumes v[1]==v[2]==0 which is deleted
         return zeros(T,1)

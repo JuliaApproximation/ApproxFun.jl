@@ -47,7 +47,7 @@ rangespace(S::SpaceOperator) = S.rangespace
 
 
 ##TODO: Do we need both max and min?
-function findmindomainspace(ops::Vector)
+function findmindomainspace(ops::AbstractVector)
     sp = UnsetSpace()
 
     for op in ops
@@ -57,7 +57,7 @@ function findmindomainspace(ops::Vector)
     sp
 end
 
-function findmaxrangespace(ops::Vector)
+function findmaxrangespace(ops::AbstractVector)
     sp = UnsetSpace()
 
     for op in ops
@@ -89,21 +89,21 @@ promotedomainspace(P::Operator,sp::Space,cursp::Space) =
 
 
 
-function promoterangespace{O<:Operator}(ops::Vector{O})
+function promoterangespace{O<:Operator}(ops::AbstractVector{O})
     isempty(ops) && return ops
     k=findmaxrangespace(ops)
     #TODO: T might be incorrect
     T=mapreduce(eltype,promote_type,ops)
     Operator{T}[promoterangespace(op,k) for op in ops]
 end
-function promotedomainspace{O<:Operator}(ops::Vector{O})
+function promotedomainspace{O<:Operator}(ops::AbstractVector{O})
     isempty(ops) && return ops
     k=findmindomainspace(ops)
     #TODO: T might be incorrect
     T=mapreduce(eltype,promote_type,ops)
     Operator{T}[promotedomainspace(op,k) for op in ops]
 end
-function promotedomainspace{O<:Operator}(ops::Vector{O},S::Space)
+function promotedomainspace{O<:Operator}(ops::AbstractVector{O},S::Space)
     isempty(ops) && return ops
     k=conversion_type(findmindomainspace(ops),S)
     #TODO: T might be incorrect
@@ -128,7 +128,7 @@ end
 choosedomainspace(A::Operator,sp::Space) = default_choosedomainspace(A,sp)
 
 choosedomainspace(A::Operator,f::Fun) = choosedomainspace(A,space(f))
-choosedomainspace{FF<:Fun}(A::Operator,f::Vector{FF}) =
+choosedomainspace{FF<:Fun}(A::Operator,f::AbstractVector{FF}) =
     choosedomainspace(A,Fun(f))
 choosedomainspace(A::Operator,::) = choosedomainspace(A)
 

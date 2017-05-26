@@ -97,8 +97,11 @@ end
 Base.factorize(A::Operator) = qrfact(A)
 
 for OP in (:(Base.qrfact),:(Base.qr),:(Base.factorize))
-    @eval $OP{OO<:Operator}(A::Matrix{OO}) = $OP(interlace(A))
-    @eval $OP{OO<:Operator}(A::Array{OO}) = $OP(interlace(A))
+    @eval begin
+        $OP(A::AbstractVector{<:Operator}) = $OP(interlace(A))
+        $OP(A::AbstractMatrix{<:Operator}) = $OP(interlace(A))
+        $OP(A::AbstractArray{<:Operator}) = $OP(interlace(A))
+    end
 end
 
 
@@ -130,13 +133,14 @@ Base.det(A::Operator) = det(qrfact(A))
 
 # Q
 
-At_mul_B_coefficients{T<:Real}(A::QROperatorQ{T},B::Union{Vector{T},Matrix{T}}) = Ac_mul_B(A,B)
+At_mul_B_coefficients{T<:Real}(A::QROperatorQ{T},B::AbstractVector{T}) = Ac_mul_B(A,B)
+At_mul_B_coefficients{T<:Real}(A::QROperatorQ{T},B::AbstractMatrix{T}) = Ac_mul_B(A,B)
 
-Ac_mul_B_coefficients(A::QROperatorQ,B::Vector;tolerance=eps(eltype(A))/10,maxlength=1000000) =
+Ac_mul_B_coefficients{QR,T}(A::QROperatorQ{QR,T},B::AbstractVector{T};tolerance=eps(eltype(A))/10,maxlength=1000000) =
         Ac_mul_Bpars(A,B,tolerance,maxlength)
 
-Ac_mul_B_coefficients{QR,T,V<:Number}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) =
-    Ac_mul_B_coefficients(A,Vector{T}(B);opts...)
+Ac_mul_B_coefficients{QR,T,V}(A::QROperatorQ{QR,T},B::AbstractVector{V};opts...) =
+    Ac_mul_B_coefficients(A,AbstractVector{T}(B);opts...)
 
 Base.Ac_mul_B(A::QROperatorQ,b;kwds...) =
     Fun(domainspace(A),Ac_mul_B_coefficients(A,coefficients(b,rangespace(A));kwds...))
@@ -147,7 +151,7 @@ A_ldiv_B_coefficients(A::QROperatorQ,B;opts...) = Ac_mul_B_coefficients(A,B;opts
 
 
 # R
-function A_ldiv_B_coefficients(R::QROperatorR,b::Vector)
+function A_ldiv_B_coefficients(R::QROperatorR,b::AbstractVector)
     if length(b) > R.QR.ncols
         # upper triangularize columns
         resizedata!(R.QR,:,length(b))
@@ -163,23 +167,23 @@ end
 # QR
 
 for TYP in (:Real,:Complex,:Number)
-    @eval A_ldiv_B_coefficients{CO,MT,T<:$TYP}(QR::QROperator{CO,MT,T},b::Vector{T};kwds...) =
+    @eval A_ldiv_B_coefficients{CO,MT,T<:$TYP}(QR::QROperator{CO,MT,T},b::AbstractVector{T};kwds...) =
         A_ldiv_B_coefficients(QR[:R],Ac_mul_B_coefficients(QR[:Q],b;kwds...))
 end
 
 
-function A_ldiv_B_coefficients{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...)
+function A_ldiv_B_coefficients{CO,MT,T,V<:Number}(QR::QROperator{CO,MT,T},b::AbstractVector{V};kwds...)
     TV = promote_type(T,V)
     A_ldiv_B_coefficients(Operator{TV}(QR),Vector{TV}(b);kwds...)
 end
 
-function A_ldiv_B_coefficients{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...)
+function A_ldiv_B_coefficients{CO,MT,T<:Real,V<:Complex}(QR::QROperator{CO,MT,T},b::AbstractVector{V};kwds...)
     a=A_ldiv_B_coefficients(QR,real(b);kwds...)
     b=im*A_ldiv_B_coefficients(QR,imag(b);kwds...)
     n=max(length(a),length(b))
     pad!(a,n)+pad!(b,n)
 end
-A_ldiv_B_coefficients{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::Vector{V};kwds...) =
+A_ldiv_B_coefficients{CO,MT,T<:Complex,V<:Real}(QR::QROperator{CO,MT,T},b::AbstractVector{V};kwds...) =
     A_ldiv_B_coefficients(QR,Vector{T}(b);kwds...)
 
 

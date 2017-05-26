@@ -9,7 +9,7 @@ Base.promote_rule{N<:Number}(::Type{UnsetNumber},::Type{N}) = N
 hasnumargs(f,k) = applicable(f,zeros(k)...)
 
 
-isapprox(a...;kwds...) = Base.isapprox(a...;kwds...)
+isapprox(a,b;kwds...) = Base.isapprox(a,b;kwds...)
 isapprox(a::Vec,b::Vec;kwds...) = isapprox([a...],[b...];kwds...)
 
 # fast implementation of isapprox with atol a non-keyword argument in most cases
@@ -45,6 +45,7 @@ real{N,T<:Complex}(::Type{Vec{N,T}}) = Vec{N,real(T)}
 
 
 eps(x...) = Base.eps(x...)
+eps(x) = Base.eps(x)
 eps{T<:Real}(::Type{Complex{T}}) = eps(real(T))
 eps{T<:Real}(z::Complex{T}) = eps(abs(z))
 eps{T<:Real}(::Type{Dual{Complex{T}}}) = eps(real(T))
@@ -88,7 +89,7 @@ scal!(cst::Number,v::AbstractArray) = scal!(length(v),cst,v,1)
 
 # Helper routines
 
-function reverseeven!(x::Vector)
+function reverseeven!(x::AbstractVector)
     n = length(x)
     if iseven(n)
         @inbounds @simd for k=2:2:n÷2
@@ -102,7 +103,7 @@ function reverseeven!(x::Vector)
     x
 end
 
-function negateeven!(x::Vector)
+function negateeven!(x::AbstractVector)
     @inbounds @simd for k = 2:2:length(x)
         x[k] *= -1
     end
@@ -110,7 +111,7 @@ function negateeven!(x::Vector)
 end
 
 #checkerboard, same as applying negativeeven! to all rows then all columns
-function negateeven!(X::Matrix)
+function negateeven!(X::AbstractMatrix)
     for j = 1:2:size(X,2)
         @inbounds @simd for k = 2:2:size(X,1)
             X[k,j] *= -1
@@ -126,11 +127,11 @@ end
 
 const alternatesign! = negateeven!
 
-alternatesign(v::Vector)=alternatesign!(copy(v))
+alternatesign(v::AbstractVector) = alternatesign!(copy(v))
 
 alternatingvector(n::Integer) = 2*mod([1:n],2) .- 1
 
-function alternatingsum(v::Vector)
+function alternatingsum(v::AbstractVector)
     ret = zero(eltype(v))
     s = 1
     @inbounds for k=1:length(v)
@@ -142,7 +143,7 @@ function alternatingsum(v::Vector)
 end
 
 # Sum Hadamard product of vectors up to minimum over lengths
-function mindotu(a::Vector,b::Vector)
+function mindotu(a::AbstractVector,b::AbstractVector)
     ret,m = zero(promote_type(eltype(a),eltype(b))),min(length(a),length(b))
     @inbounds @simd for i=m:-1:1 ret += a[i]*b[i] end
     ret
@@ -150,7 +151,7 @@ end
 
 
 # efficiently resize a Matrix.  Note it doesn't change the input ptr
-function unsafe_resize!(W::Matrix,::Colon,m::Integer)
+function unsafe_resize!(W::AbstractMatrix,::Colon,m::Integer)
     if m == size(W,2)
         W
     else
@@ -159,7 +160,7 @@ function unsafe_resize!(W::Matrix,::Colon,m::Integer)
     end
 end
 
-function unsafe_resize!(W::Matrix,n::Integer,::Colon)
+function unsafe_resize!(W::AbstractMatrix,n::Integer,::Colon)
     N=size(W,1)
     if n == N
         W
@@ -173,7 +174,7 @@ function unsafe_resize!(W::Matrix,n::Integer,::Colon)
     end
 end
 
-function unsafe_resize!(W::Matrix,n::Integer,m::Integer)
+function unsafe_resize!(W::AbstractMatrix,n::Integer,m::Integer)
     N=size(W,1)
     if n == N
         unsafe_resize!(W,:,m)
@@ -183,7 +184,7 @@ function unsafe_resize!(W::Matrix,n::Integer,m::Integer)
 end
 
 
-function pad!{T}(f::Vector{T},n::Integer)
+function pad!{T}(f::AbstractVector{T},n::Integer)
 	if n > length(f)
 		append!(f,zeros(T,n - length(f)))
 	else
@@ -192,7 +193,7 @@ function pad!{T}(f::Vector{T},n::Integer)
 end
 
 
-function pad{T}(f::Vector{T},n::Integer)
+function pad{T}(f::AbstractVector{T},n::Integer)
 	if n > length(f)
 	   ret=Vector{T}(n)
 	   ret[1:length(f)]=f
@@ -205,7 +206,7 @@ function pad{T}(f::Vector{T},n::Integer)
 	end
 end
 
-function pad(f::Vector{Any},n::Integer)
+function pad(f::AbstractVector{Any},n::Integer)
 	if n > length(f)
         Any[f...,zeros(n - length(f))...]
 	else
@@ -213,12 +214,12 @@ function pad(f::Vector{Any},n::Integer)
 	end
 end
 
-function pad(v::Vector,n::Integer,m::Integer)
+function pad(v::AbstractVector,n::Integer,m::Integer)
     @assert m==1
     pad(v,n)
 end
 
-function pad(A::Matrix,n::Integer,m::Integer)
+function pad(A::AbstractMatrix,n::Integer,m::Integer)
     T=eltype(A)
 	if n <= size(A,1) && m <= size(A,2)
         A[1:n,1:m]
@@ -245,12 +246,14 @@ function pad(A::Matrix,n::Integer,m::Integer)
 	end
 end
 
-pad(A::Matrix,::Colon,m::Integer)=pad(A,size(A,1),m)
-pad(A::Matrix,n::Integer,::Colon)=pad(A,n,size(A,2))
+pad(A::AbstractMatrix,::Colon,m::Integer) = pad(A,size(A,1),m)
+pad(A::AbstractMatrix,n::Integer,::Colon) = pad(A,n,size(A,2))
+
+
 
 #TODO:padleft!
 
-function padleft(f::Vector,n::Integer)
+function padleft(f::AbstractVector,n::Integer)
 	if (n > length(f))
         [zeros(n - length(f)),f]
 	else
@@ -261,7 +264,7 @@ end
 
 
 ##chop!
-function chop!(c::Vector,tol::Real)
+function chop!(c::AbstractVector,tol::Real)
     @assert tol >= 0
 
     for k=length(c):-1:1
@@ -275,11 +278,11 @@ function chop!(c::Vector,tol::Real)
     c
 end
 
-chop(f::Vector,tol)=chop!(copy(f),tol)
-chop!(f::Vector)=chop!(f,eps())
+chop(f::AbstractVector,tol) = chop!(copy(f),tol)
+chop!(f::AbstractVector) = chop!(f,eps())
 
 
-function chop!(A::Array,tol)
+function chop!(A::AbstractArray,tol)
     for k=size(A,1):-1:1
         if norm(A[k,:])>tol
             A=A[1:k,:]
@@ -294,7 +297,7 @@ function chop!(A::Array,tol)
     end
     return A
 end
-chop(A::Array,tol)=chop!(A,tol)#replace by chop!(copy(A),tol) when chop! is actually in-place.
+chop(A::AbstractArray,tol)=chop!(A,tol)#replace by chop!(copy(A),tol) when chop! is actually in-place.
 
 
 
@@ -317,7 +320,7 @@ function interlace(v::Union{Vector{Any},Tuple})
     interlace(b)
 end
 
-function interlace{S<:Number,V<:Number}(a::Vector{S},b::Vector{V})
+function interlace{S<:Number,V<:Number}(a::AbstractVector{S},b::AbstractVector{V})
     na=length(a);nb=length(b)
     T=promote_type(S,V)
     if nb≥na
@@ -335,7 +338,7 @@ function interlace{S<:Number,V<:Number}(a::Vector{S},b::Vector{V})
     end
 end
 
-function interlace(a::Vector,b::Vector)
+function interlace(a::AbstractVector,b::AbstractVector)
     na=length(a);nb=length(b)
     T=promote_type(eltype(a),eltype(b))
     if nb≥na
@@ -370,7 +373,7 @@ function nextindex(i::Int,n::Int)
     i
 end
 
-function cycle_rotate!(v::Vector, leader::Int, it::Int, twom::Int)
+function cycle_rotate!(v::AbstractVector, leader::Int, it::Int, twom::Int)
     i = nextindex(leader, twom)
     while i != leader
         idx1, idx2 = it + i - 1, it + leader - 1
@@ -380,7 +383,7 @@ function cycle_rotate!(v::Vector, leader::Int, it::Int, twom::Int)
     v
 end
 
-function right_cyclic_shift!(v::Vector, it::Int, m::Int, n::Int)
+function right_cyclic_shift!(v::AbstractVector, it::Int, m::Int, n::Int)
     itpm = it + m
     itpmm1 = itpm - 1
     itpmpnm1 = itpmm1 + n
@@ -395,7 +398,7 @@ This function implements the algorithm described in:
 
     P. Jain, "A simple in-place algorithm for in-shuffle," arXiv:0805.1598, 2008.
 """
-function interlace!(v::Vector,offset::Int)
+function interlace!(v::AbstractVector,offset::Int)
     N = length(v)
     if N < 2 + offset
         return v
@@ -450,8 +453,8 @@ function slnorm(m::AbstractMatrix,kr::Range,jr::Range)
     ret
 end
 
-slnorm(m::Matrix,kr::Range,jr::Integer) = slnorm(m,kr,jr:jr)
-slnorm(m::Matrix,kr::Integer,jr::Range) = slnorm(m,kr:kr,jr)
+slnorm(m::AbstractMatrix,kr::Range,jr::Integer) = slnorm(m,kr,jr:jr)
+slnorm(m::AbstractMatrix,kr::Integer,jr::Range) = slnorm(m,kr:kr,jr)
 
 
 function slnorm{T}(B::BandedMatrix{T},r::Range,::Colon)
@@ -893,7 +896,7 @@ Base.length(A::CachedIterator) = length(A.iterator)
 
 
 # The following don't need caching
-cache{T<:Number}(A::Vector{T}) = A
+cache{T<:Number}(A::AbstractVector{T}) = A
 cache(A::Range) = A
 cache(A::AbstractCount) = A
 
@@ -1176,6 +1179,14 @@ end
 
 
 function pad(v,::Infinity{Bool})
+    if isinf(length(v))
+        v
+    else
+        flatten((v,ZeroRepeated(Int)))
+    end
+end
+
+function pad(v::AbstractArray,::Infinity{Bool})
     if isinf(length(v))
         v
     else

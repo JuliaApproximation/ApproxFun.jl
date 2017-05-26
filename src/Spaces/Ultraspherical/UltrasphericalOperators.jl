@@ -237,7 +237,7 @@ conversion_rule{LT}(a::Ultraspherical{LT},b::Ultraspherical{LT}) =
 
 
 
-function coefficients(g::Vector,sp::Ultraspherical{Int},C::Chebyshev)
+function coefficients(g::AbstractVector,sp::Ultraspherical{Int},C::Chebyshev)
     if order(sp) == 1
         ultraiconversion(g)
     else
@@ -245,7 +245,7 @@ function coefficients(g::Vector,sp::Ultraspherical{Int},C::Chebyshev)
         coefficients(g,sp,Ultraspherical(1,domain(sp)),C)
     end
 end
-function coefficients(g::Vector,C::Chebyshev,sp::Ultraspherical)
+function coefficients(g::AbstractVector,C::Chebyshev,sp::Ultraspherical)
     if order(sp) == 1
         ultraconversion(g)
     else

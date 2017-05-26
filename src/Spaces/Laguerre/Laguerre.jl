@@ -93,7 +93,7 @@ struct LaguerreTransformPlan{T,TT}
     weights::Vector{T}
 end
 
-plan_transform(S::Laguerre,v::Vector) = LaguerreTransformPlan(S,gausslaguerre(length(v),1.0S.α)...)
+plan_transform(S::Laguerre,v::AbstractVector) = LaguerreTransformPlan(S,gausslaguerre(length(v),1.0S.α)...)
 function *(plan::LaguerreTransformPlan,vals)
 #    @assert S==plan.space
     x,w = plan.points, plan.weights

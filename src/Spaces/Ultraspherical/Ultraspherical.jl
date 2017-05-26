@@ -76,10 +76,10 @@ end
     UP.chebiplan*(UP.leg2chebplan*v)
 
 
-plan_transform(sp::Ultraspherical{Int},vals::Vector) = CanonicalTransformPlan(sp,vals)
-plan_transform(sp::Ultraspherical,vals::Vector) = UltrasphericalPlan(order(sp),vals)
-plan_itransform(sp::Ultraspherical{Int},cfs::Vector) = ICanonicalTransformPlan(sp,cfs)
-plan_itransform(sp::Ultraspherical,cfs::Vector) = UltrasphericalIPlan(order(sp),cfs)
+plan_transform(sp::Ultraspherical{Int},vals::AbstractVector) = CanonicalTransformPlan(sp,vals)
+plan_transform(sp::Ultraspherical,vals::AbstractVector) = UltrasphericalPlan(order(sp),vals)
+plan_itransform(sp::Ultraspherical{Int},cfs::AbstractVector) = ICanonicalTransformPlan(sp,cfs)
+plan_itransform(sp::Ultraspherical,cfs::AbstractVector) = UltrasphericalIPlan(order(sp),cfs)
 
 ## Construction
 

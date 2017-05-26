@@ -21,7 +21,7 @@ weight(sp::LogWeight,x)=logweight(sp.β,sp.α,tocanonical(sp,x))
 
 setdomain(sp::LogWeight,d::Domain)=LogWeight(sp.β,sp.α,setdomain(sp.space,d))
 
-function coefficients(f::Vector,sp1::LogWeight,sp2::LogWeight)
+function coefficients(f::AbstractVector,sp1::LogWeight,sp2::LogWeight)
     β,α=sp1.β,sp1.α
     c,d=sp2.β,sp2.α
 

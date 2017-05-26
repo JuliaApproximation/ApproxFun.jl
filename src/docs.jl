@@ -7,11 +7,11 @@
 # Constructors
 
 doc"""
-    Fun(s::Space,coefficients::Vector)
+    Fun(s::Space,coefficients::AbstractVector)
 
 returns a `Fun` with the specified `coefficients` in the space `s`
 """
-Fun(::Space,::Vector)
+Fun(::Space,::AbstractVector)
 
 doc"""
     Fun(f,s::Space)
@@ -144,11 +144,11 @@ may not be the same as `space(f)`.
 coefficients(::Fun,::Space)
 
 """
-    coefficients(cfs::Vector,fromspace::Space,tospace::Space) -> Vector
+    coefficients(cfs::AbstractVector,fromspace::Space,tospace::Space) -> Vector
 
 converts coefficients in `fromspace` to coefficients in `tospace`
 """
-coefficients(::Vector,::Space,::Space)
+coefficients(::AbstractVector,::Space,::Space)
 
 
 doc"""
@@ -204,20 +204,20 @@ Defaults to `coefficients(transform(canonicalspace(space),values),canonicalspace
 transform(::Space,::Vector)
 
 doc"""
-    itransform(s::Space,coefficients::Vector)
+    itransform(s::Space,coefficients::AbstractVector)
 
 Transform coefficients back to values.  Defaults to using `canonicalspace` as in `transform`.
 """
-itransform(::Space,::Vector)
+itransform(::Space,::AbstractVector)
 
 
 doc"""
-    evaluate(sp::Space,coefficients::Vector,x)
+    evaluate(sp::Space,coefficients::AbstractVector,x)
 
 Evaluates the expansion at a point `x`.
 If `x` is in the domain, then this should return zero.
 """
-evaluate(::Space,::Vector,::)
+evaluate(::Space,::AbstractVector,::)
 
 
 

@@ -131,7 +131,7 @@ function conversion_rule(a::SubSpace,b::Space)
 end
 
 
-function subspace_coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace)
+function subspace_coefficients(v::AbstractVector,sp::SubSpace,dropsp::SubSpace)
     if sp == dropsp
         v
     else
@@ -140,7 +140,7 @@ function subspace_coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace)
 end
 
 
-function subspace_coefficients(v::Vector,sp::Space,dropsp::SubSpace)
+function subspace_coefficients(v::AbstractVector,sp::Space,dropsp::SubSpace)
     n=length(v)
     if sp == dropsp.space
         ret = Array{eltype(v)}(0)
@@ -155,7 +155,7 @@ function subspace_coefficients(v::Vector,sp::Space,dropsp::SubSpace)
     end
 end
 
-function subspace_coefficients(v::Vector,dropsp::SubSpace,sp::Space)
+function subspace_coefficients(v::AbstractVector,dropsp::SubSpace,sp::Space)
     if sp==dropsp.space
         ret = zeros(eltype(v),dropsp.indexes[length(v)])
         for k = eachindex(v)
@@ -168,7 +168,7 @@ function subspace_coefficients(v::Vector,dropsp::SubSpace,sp::Space)
 end
 
 
-coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
+coefficients(v::AbstractVector,sp::SubSpace,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
 
 
 
@@ -176,26 +176,26 @@ coefficients(v::Vector,sp::SubSpace,dropsp::SubSpace) = subspace_coefficients(v,
 
 
 ## transform
-function transform(sp::SubSpace,vals::Vector)
+function transform(sp::SubSpace,vals::AbstractVector)
     ret=transform(sp.space,vals)
     coefficients(ret,sp.space,sp)
 end
 
-itransform(sp::SubSpace,cfs::Vector) =
+itransform(sp::SubSpace,cfs::AbstractVector) =
     itransform(sp.space,coefficients(cfs,sp,sp.space))
 
 points(sp::SubSpace,n) = points(sp.space,n)
 
 
-coefficients{DS,IT,TT,SV,DD<:BivariateDomain}(v::Vector,::SubSpace{DS,IT,Segment{Vec{2,TT}}},::TensorSpace{SV,DD}) =
+coefficients{DS,IT,TT,SV,DD<:BivariateDomain}(v::AbstractVector,::SubSpace{DS,IT,Segment{Vec{2,TT}}},::TensorSpace{SV,DD}) =
     error("Not callable, only defined for ambiguity errors.")
-coefficients{DS,IT,D,SV,DD<:BivariateDomain}(v::Vector,::SubSpace{DS,IT,D},::TensorSpace{SV,DD}) =
+coefficients{DS,IT,D,SV,DD<:BivariateDomain}(v::AbstractVector,::SubSpace{DS,IT,D},::TensorSpace{SV,DD}) =
     error("Not callable, only defined for ambiguity errors.")
 
 for TYP in (:SumSpace,:PiecewiseSpace,:TensorSpace,:ConstantSpace,:Space) # Resolve conflict
     @eval begin
-        coefficients(v::Vector,sp::$TYP,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
-        coefficients(v::Vector,dropsp::SubSpace,sp::$TYP) = subspace_coefficients(v,dropsp,sp)
+        coefficients(v::AbstractVector,sp::$TYP,dropsp::SubSpace) = subspace_coefficients(v,sp,dropsp)
+        coefficients(v::AbstractVector,dropsp::SubSpace,sp::$TYP) = subspace_coefficients(v,dropsp,sp)
     end
 end
 

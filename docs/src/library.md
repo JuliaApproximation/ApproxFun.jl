@@ -84,7 +84,7 @@ transform
 ```
 
 ```@docs
-evaluate(::Space,::Vector,::)
+evaluate(::Space,::AbstractVector,::)
 ```
 
 ```@docs

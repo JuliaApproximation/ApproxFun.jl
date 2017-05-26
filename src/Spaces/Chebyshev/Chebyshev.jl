@@ -43,12 +43,12 @@ spacescompatible(a::Chebyshev,b::Chebyshev) = domainscompatible(a,b)
 hasfasttransform(::Chebyshev) = true
 
 
-function coefficients(g::Vector,::ConstantSpace,::Chebyshev)
+function coefficients(g::AbstractVector,::ConstantSpace,::Chebyshev)
     @assert length(g)==1
     g
 end
 
-function coefficients(g::Vector,::Chebyshev,::ConstantSpace)
+function coefficients(g::AbstractVector,::Chebyshev,::ConstantSpace)
     @assert length(g)==1
     g
 end
@@ -56,10 +56,10 @@ end
 
 ## Transform
 
-transform(::Chebyshev,vals::Vector,plan) = plan*vals
-itransform(::Chebyshev,cfs::Vector,plan) = plan*cfs
-plan_transform(::Chebyshev,vals::Vector) = plan_chebyshevtransform(vals)
-plan_itransform(::Chebyshev,cfs::Vector) = plan_ichebyshevtransform(cfs)
+transform(::Chebyshev,vals::AbstractVector,plan) = plan*vals
+itransform(::Chebyshev,cfs::AbstractVector,plan) = plan*cfs
+plan_transform(::Chebyshev,vals::AbstractVector) = plan_chebyshevtransform(vals)
+plan_itransform(::Chebyshev,cfs::AbstractVector) = plan_ichebyshevtransform(cfs)
 
 ## Evaluation
 
@@ -181,7 +181,7 @@ end
 
 # overwrite x
 
-function clenshaw!{S<:Chebyshev,V}(c::Vector,x::Vector,plan::ClenshawPlan{S,V})
+function clenshaw!{S<:Chebyshev,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
     N,n = length(c),length(x)
 
     if isempty(c)
@@ -247,16 +247,16 @@ function points{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},N)
     end
 end
 
-plan_transform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::Vector) =
+plan_transform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) =
     plan_paduatransform!(v,Val{false})
 
-transform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::Vector,
+transform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
              plan=plan_transform(S,v)) = plan*copy(v)
 
-plan_itransform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::Vector) =
+plan_itransform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector) =
      plan_ipaduatransform!(eltype(v),sum(1:nblocks(Fun(S,v))),Val{false})
 
-itransform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::Vector,
+itransform{D,R}(S::TensorSpace{Tuple{Chebyshev{D,R},Chebyshev{D,R}}},v::AbstractVector,
               plan=plan_itransform(S,v)) = plan*pad(v,sum(1:nblocks(Fun(S,v))))
 
 

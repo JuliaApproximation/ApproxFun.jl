@@ -87,20 +87,24 @@ Base.convert(::Type{VFun{S,T}},x::Number) where {T,S} =
 Base.convert{S}(::Type{Fun{S}},x::Number) =
     x==0 ? zeros(S(AnyDomain())) : x*ones(S(AnyDomain()))
 Base.convert{IF<:Fun}(::Type{IF},x::Number) = convert(IF,Fun(x))
+
+# if we are promoting, we need to change to a VFun
 Base.promote_rule(::Type{Fun{S,T,VT1}},::Type{Fun{S,V,VT2}}) where {T,V,S,VT1,VT2} =
-    Fun{S,promote_type(T,V),promote_type(VT1,VT2)}
+    VFun{S,promote_type(T,V)}
 
 
+# TODO: Never assume!
 Base.promote_op(::typeof(*),::Type{F1},::Type{F2}) where {F1<:Fun,F2<:Fun} =
     promote_type(F1,F2) # assume multiplication is defined between same types
-Base.promote_op(::typeof(*),::Type{N},::Type{F2}) where {N<:Number,F2<:Fun} =
-    Base.promote_op(*,Fun{ConstantSpace{AnyDomain},N,Vector{N}},F2) # reduce to Fun promotion
-Base.promote_op(::typeof(*),::Type{F2},::Type{N}) where {N<:Number,F2<:Fun} =
-        Base.promote_op(*,F2,Fun{ConstantSpace{AnyDomain},N,Vector{N}}) # reduce to Fun promotion
 
+# we know multiplication by numbers preserves types
+Base.promote_op(::typeof(*),::Type{N},::Type{Fun{S,T,VT}}) where {N<:Number,S,T,VT} =
+    VFun{S,promote_type(T,N)}
+Base.promote_op(::typeof(*),::Type{Fun{S,T,VT}},::Type{N}) where {N<:Number,S,T,VT} =
+    VFun{S,promote_type(T,N)}
 
-Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{F1},::Type{F2}) where {F1<:Fun,F2<:Fun} =
-            Base.promote_op(*,F1,F2)
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1,T1,VT1,S2,T2,VT2} =
+            VFun{promote_type(S1,S2),promote_type(T1,T2)}
 # Fun's are always vector spaces, so we know matprod will preserve the space
 Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S,T,VT}},::Type{NN}) where {S,T,VT,NN<:Number} =
             VFun{S,promote_type(T,NN)}
@@ -281,7 +285,7 @@ end
 
 # equivalent to Y+=a*X
 axpy!(a,X::Fun,Y::Fun)=axpy!(a,coefficients(X,space(Y)),Y)
-function axpy!(a,xcfs::Vector,Y::Fun)
+function axpy!(a,xcfs::AbstractVector,Y::Fun)
     if a!=0
         n=ncoefficients(Y); m=length(xcfs)
 

@@ -617,7 +617,7 @@ A_mul_B_coefficients(A::PlusOperator,b::Fun) =
     mapreduce(x->A_mul_B_coefficients(x,b),+,A.ops)
 
 for TYP in (:TimesOperator,:Operator)
-    @eval function *{F<:Fun}(A::$TYP,b::Matrix{F})
+    @eval function *{F<:Fun}(A::$TYP,b::AbstractMatrix{F})
         @assert size(b,1)==1
         Fun([A*bk  for bk in b])
     end

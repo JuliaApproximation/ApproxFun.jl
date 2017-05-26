@@ -15,7 +15,7 @@ end
 
 const TrivialInterlacer{d} = BlockInterlacer{NTuple{d,Repeated{Bool}}}
 
-BlockInterlacer(v::Vector) = BlockInterlacer(tuple(v...))
+BlockInterlacer(v::AbstractVector) = BlockInterlacer(tuple(v...))
 
 Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
 
@@ -135,7 +135,7 @@ for TYP in (:SumSpace,:PiecewiseSpace)
         $TYP(A::Space,B::$TYP) = $TYP(tuple(A,B.spaces...))
         $TYP(A::$TYP,B::Space) = $TYP(tuple(A.spaces...,B))
         $TYP(A::Space...) = $TYP(A)
-        $TYP(sp::Array) = $TYP(tuple(sp...))
+        $TYP(sp::AbstractArray) = $TYP(tuple(sp...))
 
         canonicalspace(A::$TYP) = $TYP(sort([A.spaces...]))
     end
@@ -250,6 +250,41 @@ function union_rule(A::SumSpace,B::Space)
 end
 
 
+## components
+
+# We use a view when it's avaiable to avoid allocation
+component_coefficients(it::TrivialInterlacer{d},cfs,k) where {d} = (@view cfs[k:d:end])
+
+function component_coefficients(it,cfs,k)
+    N=length(cfs)
+    d=dimension(it,k)
+
+    # preallocate: we know we have at most N coefficients
+    ret=Array{eltype(cfs)}(N)
+    j=1  # current coefficient
+    p=0  # current length
+    for (n,m) in it
+        if j > N
+            break
+        end
+        if n==k
+            ret[m] = cfs[j]
+            p+=1
+            if m ≥ d
+                # if we've reached the dimension, we are done
+                break
+            end
+        end
+        j+=1
+    end
+    resize!(ret,p)  # throw out extra coefficients
+end
+
+component_coefficients(sp::Space,cfs,k) = component_coefficients(interlacer(sp),cfs,k)
+
+component{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer) =
+    Fun(component(space(f),k),component_coefficients(space(f),f.coefficients,k))
+
 
 ## evaluate
 
@@ -261,8 +296,23 @@ for OP in (:(Base.last),:(Base.first))
     end
 end
 
-evaluate(f::AbstractVector,S::SumSpace,x) =
-    mapreduce(vf->evaluate(vf,x),+,components(Fun(S,f)))
+# this is a type-stable version
+# TODO: replace with generated function
+function evaluate(f::AbstractVector,S::SumSpace{Tuple{A,B}},x) where {A,B}
+    it = interlacer(S)
+    a,b = S.spaces
+    evaluate(component_coefficients(it,f,1),a,x) +
+        evaluate(component_coefficients(it,f,2),b,x)
+end
+
+function evaluate(f::AbstractVector,S::SumSpace,x)
+    ret = zero(rangetype(S))
+    it = interlacer(S)
+    for k=1:ncomponents(S)
+        ret += evaluate(component_coefficients(it,f,k),component(S,k),x)
+    end
+    ret
+end
 
 
 function evaluate(f::AbstractVector,S::PiecewiseSpace,x)
@@ -355,38 +405,6 @@ Base.ones(S::PiecewiseSpace) = ones(Float64,S)
 
 identity_fun(S::PiecewiseSpace) = Fun(map(identity_fun,S.spaces),PiecewiseSpace)
 
-# components
-
-interlaced_component(it::TrivialInterlacer{d},cfs,k) where {d} = cfs[k:d:end]
-
-function interlaced_component(it,cfs,k)
-    N=length(cfs)
-    d=dimension(it,k)
-
-    # preallocate: we know we have at most N coefficients
-    ret=Array{eltype(cfs)}(N)
-    j=1  # current coefficient
-    p=0  # current length
-    for (n,m) in it
-        if j > N
-            break
-        end
-        if n==k
-            ret[m] = cfs[j]
-            p+=1
-            if m ≥ d
-                # if we've reached the dimension, we are done
-                break
-            end
-        end
-        j+=1
-    end
-    resize!(ret,p)  # throw out extra coefficients
-end
-
-component{DSS<:DirectSumSpace}(f::Fun{DSS},k::Integer) =
-    Fun(component(space(f),k),interlaced_component(interlacer(space(f)),f.coefficients,k))
-
 
 # interlace coefficients according to iterator
 function interlace{T,V<:AbstractVector}(::Type{T},v::AbstractVector{V},it::BlockInterlacer)
@@ -436,7 +454,7 @@ end
 
 components{S<:DirectSumSpace}(f::Fun{S}) = Fun[component(f,j) for j=1:ncomponents(f)]
 
-function Fun{F<:Fun}(v::Vector{F},::Type{PiecewiseSpace})
+function Fun{F<:Fun}(v::AbstractVector{F},::Type{PiecewiseSpace})
     sp = PiecewiseSpace(map(space,v))
     Fun(sp,interlace(v,sp))
 end
@@ -445,7 +463,7 @@ function Fun(v::Tuple,::Type{PiecewiseSpace})
     Fun(sp,interlace(v,sp))
 end
 
-Fun(v::Vector{Any},::Type{PiecewiseSpace}) = Fun(tuple(v...),PiecewiseSpace)
+Fun(v::AbstractVector{Any},::Type{PiecewiseSpace}) = Fun(tuple(v...),PiecewiseSpace)
 
 interlace{FF<:Fun}(f::AbstractVector{FF}) = vcat(f...)
 
@@ -461,15 +479,15 @@ function points(d::PiecewiseSpace,n)
         vcat([points(d.spaces[j],k) for j=r+1:ncomponents(d)]...)]
 end
 
-plan_transform(sp::PiecewiseSpace,vals::Vector) =
+plan_transform(sp::PiecewiseSpace,vals::AbstractVector) =
     TransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
 
-plan_itransform(sp::PiecewiseSpace,vals::Vector) =
+plan_itransform(sp::PiecewiseSpace,vals::AbstractVector) =
     ITransformPlan{eltype(vals),typeof(sp),false,Void}(sp,nothing)
 
 
 
-function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::Vector{T})
+function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::AbstractVector{T})
     S=components(P.space)
     n=length(vals)
     K=length(S)
@@ -495,7 +513,7 @@ function *{PS<:PiecewiseSpace,T}(P::TransformPlan{T,PS,false},vals::Vector{T})
     interlace(M,P.space)
 end
 
-*{T,PS<:PiecewiseSpace}(P::ITransformPlan{T,PS,false},cfs::Vector{T}) =
+*{T,PS<:PiecewiseSpace}(P::ITransformPlan{T,PS,false},cfs::AbstractVector{T}) =
     vcat([itransform(P.space.spaces[j],component(Fun(P.space,cfs),j).coefficients) for j=1:ncomponents(P.space)]...)
 
 

@@ -50,7 +50,7 @@ Base.isless(a::ChebyshevDirichlet,b::Chebyshev)=false
 
 # converts to f_0 T_0 + f_1 T_1 +  \sum f_k (T_k - T_{k-2})
 
-function dirichlettransform!(w::Vector)
+function dirichlettransform!(w::AbstractVector)
     for k=length(w)-2:-1:1
         @inbounds w[k] += w[k+2]
     end
@@ -58,7 +58,7 @@ function dirichlettransform!(w::Vector)
     w
 end
 
-function idirichlettransform!(w::Vector)
+function idirichlettransform!(w::AbstractVector)
     for k=3:length(w)
         @inbounds w[k-2]-= w[k]
     end
@@ -69,7 +69,7 @@ end
 
 # converts to f_0 T_0 + \sum f_k (T_k ± T_{k-1})
 
-function idirichlettransform!(s::Bool,w::Vector)
+function idirichlettransform!(s::Bool,w::AbstractVector)
     for k=2:length(w)
         @inbounds w[k-1]+= (s?-1:1)*w[k]
     end
@@ -78,7 +78,7 @@ function idirichlettransform!(s::Bool,w::Vector)
 end
 
 
-function dirichlettransform!(s::Bool,w::Vector)
+function dirichlettransform!(s::Bool,w::AbstractVector)
     for k=length(w)-1:-1:1
         @inbounds w[k] += (s?1:-1)*w[k+1]
     end
@@ -88,13 +88,13 @@ end
 
 
 
-coefficients(v::Vector,::Chebyshev,::ChebyshevDirichlet{1,1})=dirichlettransform!(copy(v))
-coefficients(v::Vector,::Chebyshev,::ChebyshevDirichlet{0,1})=dirichlettransform!(true,copy(v))
-coefficients(v::Vector,::Chebyshev,::ChebyshevDirichlet{1,0})=dirichlettransform!(false,copy(v))
+coefficients(v::AbstractVector,::Chebyshev,::ChebyshevDirichlet{1,1})=dirichlettransform!(copy(v))
+coefficients(v::AbstractVector,::Chebyshev,::ChebyshevDirichlet{0,1})=dirichlettransform!(true,copy(v))
+coefficients(v::AbstractVector,::Chebyshev,::ChebyshevDirichlet{1,0})=dirichlettransform!(false,copy(v))
 
-coefficients(v::Vector,::ChebyshevDirichlet{1,1},::Chebyshev)=idirichlettransform!(copy(v))
-coefficients(v::Vector,::ChebyshevDirichlet{0,1},::Chebyshev)=idirichlettransform!(true,copy(v))
-coefficients(v::Vector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransform!(false,copy(v))
+coefficients(v::AbstractVector,::ChebyshevDirichlet{1,1},::Chebyshev)=idirichlettransform!(copy(v))
+coefficients(v::AbstractVector,::ChebyshevDirichlet{0,1},::Chebyshev)=idirichlettransform!(true,copy(v))
+coefficients(v::AbstractVector,::ChebyshevDirichlet{1,0},::Chebyshev)=idirichlettransform!(false,copy(v))
 
 # recurrence
 recα{T}(::Type{T},::ChebyshevDirichlet{1,1},n) = zero(T)

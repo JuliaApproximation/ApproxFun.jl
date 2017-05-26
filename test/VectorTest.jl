@@ -50,7 +50,6 @@ a = [1 2; 3 4]
 @test Fun(a)*f ≈ a*f
 @test Fun(a*Array(f)) ≈ a*f
 
-
 # Chebyshev Matrix
 m = Fun(x->[exp(x) cos(x); sin(x) airyai(x)])
 @test (a*m)(0.1) ≈ [exp(0.1)+2sin(0.1) cos(0.1)+2airyai(0.1);
@@ -128,17 +127,28 @@ f = Fun(θ->[sin(θ),sin(2θ)],Fourier())
 
 
 ## Matrix{Fun}*Matrix{Fun}
-
+# note that 2x2 and 3x3 mult are special cases
 x=Fun()
-
 A = [x x; x x]
 
 @test norm(map(norm,A*A-[2x^2 2x^2; 2x^2 2x^2])) <eps()
-
 @test norm((A*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
+@test norm((Fun(A)*A-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
 @test norm((Fun(A)*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
 
 
+A = fill(x,3,3)
+@test norm(map(norm,A^3-fill(9x^3,3,3))) <eps()
+@test norm((A^2*Fun(A)-fill(9x^3,3,3)).coefficients) < eps()
+@test norm((A*Fun(A)^2-fill(9x^3,3,3)).coefficients) < eps()
+@test norm((Fun(A)^3-fill(9x^3,3,3)).coefficients) < eps()
+
+
+A = fill(x,4,4)
+@test norm(map(norm,A^2-fill(4x^2,4,4))) <eps()
+@test norm((A*Fun(A)-fill(4x^2,4,4)).coefficients) < eps()
+@test norm((Fun(A)*A-fill(4x^2,4,4)).coefficients) < eps()
+@test norm((Fun(A)^2-fill(4x^2,4,4)).coefficients) < eps()
 
 
 

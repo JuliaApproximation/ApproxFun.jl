@@ -43,10 +43,10 @@ function choosefuneltype(ftype,Td)
 end
 
 # last argument is whether to splat or not
-defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::Vector,::Type{Val{true}}) =
+defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{true}}) =
     Fun(d,transform(d,T[f(x...) for x in pts]))
 
-defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::Vector,::Type{Val{false}}) =
+defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val{false}}) =
     Fun(d,transform(d,T[f(x) for x in pts]))
 
 

@@ -8,7 +8,7 @@ end
 
 # Solve P*Y*R' + S*Y*T' = F
 # where P,R,S and T are upper triangular
-function lyapuptriang{N}(P,R,S,T,F::Array{N})
+function lyapuptriang{N}(P,R,S,T,F::AbstractArray{N})
     m=size(P,2); n = size(T,2)
     Y=Matrix{N}(m,n)
     PY = Matrix{N}(m,n); SY = Matrix{N}(m,n)

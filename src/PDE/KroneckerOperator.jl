@@ -231,13 +231,13 @@ end
 Base.kron(A::Operator,B::Operator) = KroneckerOperator(A,B)
 Base.kron(A::Operator,B) = KroneckerOperator(A,B)
 Base.kron(A,B::Operator) = KroneckerOperator(A,B)
-Base.kron{T<:Operator}(A::Vector{T},B::Operator) =
+Base.kron{T<:Operator}(A::AbstractVector{T},B::Operator) =
     Operator{promote_type(eltype(T),eltype(B))}[kron(a,B) for a in A]
-Base.kron{T<:Operator}(A::Operator,B::Vector{T}) =
+Base.kron{T<:Operator}(A::Operator,B::AbstractVector{T}) =
     Operator{promote_type(eltype(T),eltype(A))}[kron(A,b) for b in B]
-Base.kron{T<:Operator}(A::Vector{T},B::UniformScaling) =
+Base.kron{T<:Operator}(A::AbstractVector{T},B::UniformScaling) =
     Operator{promote_type(eltype(T),eltype(B))}[kron(a,1.0B) for a in A]
-Base.kron{T<:Operator}(A::UniformScaling,B::Vector{T}) =
+Base.kron{T<:Operator}(A::UniformScaling,B::AbstractVector{T}) =
     Operator{promote_type(eltype(T),eltype(A))}[kron(1.0A,b) for b in B]
 
 

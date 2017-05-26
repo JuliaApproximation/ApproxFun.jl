@@ -10,20 +10,20 @@ struct FiniteOperator{AT<:AbstractMatrix,T<:Number,DS,RS} <: Operator{T}
 end
 
 
-FiniteOperator(M::AbstractMatrix,ds::Space,rs::Space) =
+FiniteOperator(M::AbstractMatrix{<:Number},ds::Space,rs::Space) =
     FiniteOperator{typeof(M),eltype(M),typeof(ds),typeof(rs)}(M,ds,rs)
 
-FiniteOperator(M::AbstractMatrix) =
+FiniteOperator(M::AbstractMatrix{<:Number}) =
     FiniteOperator(M,EuclideanSpace(size(M,2)),EuclideanSpace(size(M,1)))
 
-Base.convert{T}(::Type{Operator{T}},F::FiniteOperator) =
+Base.convert(::Type{Operator{T}},F::FiniteOperator) where {T} =
     FiniteOperator(convert(AbstractMatrix{T},F.matrix),F.domainspace,F.rangespace)::Operator{T}
 
 
 Base.promote_rule{OT<:Operator,MT<:AbstractMatrix}(::Type{OT},::Type{MT}) = Operator{promote_type(eltype(OT),eltype(MT))}
 
-Base.convert{T}(::Type{Operator{T}},M::AbstractMatrix) = FiniteOperator(AbstractMatrix{T}(M))
-Base.convert(::Type{Operator},M::AbstractMatrix) = Operator{eltype(M)}(M)
+Base.convert(::Type{Operator{T}},M::AbstractMatrix{<:Number}) where {T} = FiniteOperator(AbstractMatrix{T}(M))
+Base.convert(::Type{Operator},M::AbstractMatrix{<:Number}) = Operator{eltype(M)}(M)
 
 domainspace(F::FiniteOperator) = F.domainspace
 rangespace(F::FiniteOperator) = F.rangespace

@@ -152,7 +152,7 @@ end
 
 # overwrite x
 
-function clenshaw!{S,V}(c::Vector,x::Vector,plan::ClenshawPlan{S,V})
+function clenshaw!{S,V}(c::AbstractVector,x::AbstractVector,plan::ClenshawPlan{S,V})
     N,n = length(c),length(x)
     if isempty(c)
         for k=1:n
@@ -189,18 +189,18 @@ function clenshaw!{S,V}(c::Vector,x::Vector,plan::ClenshawPlan{S,V})
 end
 
 
-function sineshaw(c::Vector,θ)
+function sineshaw(c::AbstractVector,θ)
     if isempty(c)
         return zero(θ)
     end
 
     x = 2cos(θ)
     bk1,bk2 = zero(x),zero(x)
-    for k = length(c):-1:1
+    @inbounds for k = length(c):-1:1
         bk2, bk1 = bk1, muladd(x,bk1,c[k]-bk2)
     end
 
     sin(θ)*bk1
 end
-sineshaw(c::Vector,θ::Vector) = promote_type(eltype(c),eltype(θ))[sineshaw(c,θ[k]) for k=1:length(θ)]
-sineshaw(c::Vector,θ::Matrix) = promote_type(eltype(c),eltype(θ))[sineshaw(c,θ[k,j]) for k=1:size(θ,1),j=1:size(θ,2)]
+sineshaw(c::AbstractVector,θ::AbstractVector) = promote_type(eltype(c),eltype(θ))[sineshaw(c,θ[k]) for k=1:length(θ)]
+sineshaw(c::AbstractVector,θ::AbstractMatrix) = promote_type(eltype(c),eltype(θ))[sineshaw(c,θ[k,j]) for k=1:size(θ,1),j=1:size(θ,2)]

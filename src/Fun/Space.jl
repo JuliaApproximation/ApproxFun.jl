@@ -126,7 +126,7 @@ spacescompatible(f,g) = false
 spacesequal(A::Space,B::Space) = A==B
 
 # check a list of spaces for compatibility
-for OP in (:spacescompatible,:domainscompatible,:spacesequal),TYP in (:Array,:Tuple)
+for OP in (:spacescompatible,:domainscompatible,:spacesequal),TYP in (:AbstractArray,:Tuple)
     @eval function $OP(v::$TYP)
         for k=1:length(v)-1
             if !$OP(v[k],v[k+1])
@@ -307,19 +307,19 @@ hasconversion(a,b) = maxspace(a,b)==b
 isconvertible(a,b) = hasconversion(a,b)
 
 ## Conversion routines
-#       coefficients(v::Vector,a,b)
+#       coefficients(v::AbstractVector,a,b)
 # converts from space a to space b
 #       coefficients(v::Fun,a)
 # is equivalent to coefficients(v.coefficients,v.space,a)
-#       coefficients(v::Vector,a,b,c)
+#       coefficients(v::AbstractVector,a,b,c)
 # uses an intermediate space b
 
 coefficients(f,sp1,sp2,sp3) = coefficients(coefficients(f,sp1,sp2),sp2,sp3)
 
-coefficients{T1<:Space,T2<:Space}(f::Vector,::Type{T1},::Type{T2}) =
+coefficients{T1<:Space,T2<:Space}(f::AbstractVector,::Type{T1},::Type{T2}) =
     coefficients(f,T1(),T2())
-coefficients{T1<:Space}(f::Vector,::Type{T1},sp2::Space) = coefficients(f,T1(),sp2)
-coefficients{T2<:Space}(f::Vector,sp1::Space,::Type{T2}) = coefficients(f,sp1,T2())
+coefficients{T1<:Space}(f::AbstractVector,::Type{T1},sp2::Space) = coefficients(f,T1(),sp2)
+coefficients{T2<:Space}(f::AbstractVector,sp1::Space,::Type{T2}) = coefficients(f,sp1,T2())
 
 ## coefficients defaults to calling Conversion, otherwise it tries to pipe through Chebyshev
 
@@ -473,8 +473,8 @@ plan_itransform!(sp::Space,cfs) = error("Override for $sp")
 transform(S::Space,vals) = plan_transform(S,vals)*vals
 itransform(S::Space,cfs) = plan_itransform(S,cfs)*cfs
 
-*(P::CanonicalTransformPlan,vals::Vector) = coefficients(P.plan*vals,P.canonicalspace,P.space)
-*(P::ICanonicalTransformPlan,cfs::Vector) = P.plan*coefficients(cfs,P.space,P.canonicalspace)
+*(P::CanonicalTransformPlan,vals::AbstractVector) = coefficients(P.plan*vals,P.canonicalspace,P.space)
+*(P::ICanonicalTransformPlan,cfs::AbstractVector) = P.plan*coefficients(cfs,P.space,P.canonicalspace)
 
 
 
@@ -512,7 +512,7 @@ ConstantSpace() = ConstantSpace(AnyDomain())
 isconstspace(::ConstantSpace) = true
 
 for pl in (:plan_transform,:plan_transform!,:plan_itransform,:plan_itransform!)
-    @eval $pl(sp::ConstantSpace,vals::Vector) = I
+    @eval $pl(sp::ConstantSpace,vals::AbstractVector) = I
 end
 
 # we override maxspace instead of maxspace_rule to avoid

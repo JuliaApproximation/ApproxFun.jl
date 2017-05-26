@@ -25,37 +25,36 @@ struct IWeightSpacePlan{S,P,T,V}
     weights::Vector{V}
 end
 
-function plan_transform(S::WeightSpace,vals::Vector)
+function plan_transform(S::WeightSpace,vals::AbstractVector)
     pts=points(S,length(vals))
     WeightSpacePlan(S,plan_transform(S.space,vals),pts,weight.(S,pts))
 end
 
-function plan_itransform(S::WeightSpace,vals::Vector)
+function plan_itransform(S::WeightSpace,vals::AbstractVector)
     pts=points(S,length(vals))
     IWeightSpacePlan(S,plan_itransform(S.space,vals),pts,weight.(S,pts))
 end
 
-*(P::WeightSpacePlan,vals::Vector) = P.plan*(vals./P.weights)
-*(P::IWeightSpacePlan,cfs::Vector) = P.weights.*(P.plan*cfs)
+*(P::WeightSpacePlan,vals::AbstractVector) = P.plan*(vals./P.weights)
+*(P::IWeightSpacePlan,cfs::AbstractVector) = P.weights.*(P.plan*cfs)
 
 
 # used for ProductFun
-transform(sp::WeightSpace,vals::Vector,plan::WeightSpacePlan) =
+transform(sp::WeightSpace,vals::AbstractVector,plan::WeightSpacePlan) =
     transform(sp.space,vals./(sp==plan.space?plan.weights:weight.(sp,plan.points)),plan.plan)
-itransform(sp::WeightSpace,cfs::Vector,plan::WeightSpacePlan) =
+itransform(sp::WeightSpace,cfs::AbstractVector,plan::WeightSpacePlan) =
     itransform(sp.space,cfs,plan.plan).*(sp==plan.space?plan.weights:weight.(sp,plan.points))
 
 
 
+function evaluate(f::AbstractVector,S::WeightSpace,x)
+    fv=evaluate(f,S.space,x)
+    weight(S,x).*fv
+end
+
 function evaluate(f::AbstractVector,S::WeightSpace,x...)
-    tol=1.0E-14
-    fv=Fun(S.space,f)(x...)
-    if isa(fv,Number)&&abs(fv)<tol
-        #TODO: Why this special case??
-        zero(eltype(fv))
-    else
-        weight(S,x...).*fv
-    end
+    fv=evaluate(f,S.space,x...)
+    weight(S,x...).*fv
 end
 
 # recurrence is inhereted

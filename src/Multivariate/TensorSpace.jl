@@ -353,12 +353,12 @@ Base.transpose(d::TensorSpace) = TensorSpace(d[2],d[1])
 
 
 ## Transforms
-plan_transform!(S::TensorSpace,M::Matrix) = TransformPlan(S,((plan_transform(S[1],size(M,1)),size(M,1)),
+plan_transform!(S::TensorSpace,M::AbstractMatrix) = TransformPlan(S,((plan_transform(S[1],size(M,1)),size(M,1)),
                                                              (plan_transform(S[2],size(M,2)),size(M,2))),
                                                              Val{true})
 
 
-function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},M::Matrix)
+function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},M::AbstractMatrix)
     n=size(M,1)
 
     for k=1:size(M,2)
@@ -370,13 +370,13 @@ function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},M::Matrix)
     M
 end
 
-function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},v::Vector)
+function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,true},v::AbstractVector)
     N,M = T.plan[1][2],T.plan[2][2]
     V=reshape(v,N,M)
     fromtensor(T.space,T*V)
 end
 
-function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,false},v::Vector)
+function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,false},v::AbstractVector)
     P = TransformPlan(T.space,T.plan,Val{true})
     P*copy(v)
 end
@@ -401,7 +401,7 @@ function plan_transform(sp::TensorSpace,n::Integer)
 end
 
 
-plan_transform(sp::TensorSpace,v::Vector) = plan_transform(sp,length(v))
+plan_transform(sp::TensorSpace,v::AbstractVector) = plan_transform(sp,length(v))
 
 
 
@@ -410,7 +410,7 @@ plan_transform(sp::TensorSpace,v::Vector) = plan_transform(sp,length(v))
 plan_column_transform(S,v) = plan_transform(columnspace(S,1),v)
 plan_column_itransform(S,v) = plan_itransform(columnspace(S,1),v)
 
-function itransform!(S::TensorSpace,M::Matrix)
+function itransform!(S::TensorSpace,M::AbstractMatrix)
     n=size(M,1)
 
     planc=plan_itransform(space(S,1),M[:,1])
@@ -425,7 +425,7 @@ function itransform!(S::TensorSpace,M::Matrix)
     M
 end
 
-function itransform!(S::AbstractProductSpace,M::Matrix)
+function itransform!(S::AbstractProductSpace,M::AbstractMatrix)
     n=size(M,1)
 
     ## The order matters
@@ -441,7 +441,7 @@ function itransform!(S::AbstractProductSpace,M::Matrix)
 end
 
 
-function transform!{T}(S::TensorSpace,M::Matrix{T})
+function transform!{T}(S::TensorSpace,M::AbstractMatrix{T})
     n=size(M,1)
 
     ## The order matters!!
@@ -467,7 +467,7 @@ end
 
 
 
-function transform!{T}(S::AbstractProductSpace,M::Matrix{T})
+function transform!{T}(S::AbstractProductSpace,M::AbstractMatrix{T})
     n=size(M,1)
 
     ## The order matters!!
@@ -509,11 +509,11 @@ end
 
 ##  Fun routines
 
-fromtensor(S::Space,M::Matrix) = fromtensor(tensorizer(S),M)
-totensor(S::Space,M::Vector) = totensor(tensorizer(S),M)
+fromtensor(S::Space,M::AbstractMatrix) = fromtensor(tensorizer(S),M)
+totensor(S::Space,M::AbstractVector) = totensor(tensorizer(S),M)
 
 # we only copy upper triangular of coefficients
-function fromtensor(it::Tensorizer,M::Matrix)
+function fromtensor(it::Tensorizer,M::AbstractMatrix)
     n,m=size(M)
     ret=zeros(eltype(M),blockstop(it,max(n,m)))
     k = 1
@@ -530,7 +530,7 @@ function fromtensor(it::Tensorizer,M::Matrix)
 end
 
 
-function totensor(it::Tensorizer,M::Vector)
+function totensor(it::Tensorizer,M::AbstractVector)
     n=length(M)
     B=block(it,n)
     ds = dimensions(it)
@@ -617,10 +617,10 @@ isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Bivariat
      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
 
 
-coefficients(f::Vector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} =
+coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} =
     f[1]*ones(ts).coefficients
 
-function coefficients(f::Vector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
+function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
 
     if domain(ts)[1] == Point(0.0)
@@ -651,7 +651,7 @@ function isconvertible(sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) wh
 end
 
 
-function coefficients(f::Vector,sp::Space{Segment{Vec{2,TT}}},
+function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},
                             ts::TensorSpace{SV,D,R}) where {TT,SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
     d1 = domain(sp)

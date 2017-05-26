@@ -67,6 +67,8 @@ for f in (Fun(θ->sin(sin(θ)),SinSpace()),Fun(θ->cos(θ)+cos(3θ),CosSpace()),
 end
 
 let f=Fun(exp,Circle())
+    @test component(f,1)(exp(0.1im)) ≈ exp(exp(0.1im))
+    @test f(exp(0.1im)) ≈ exp(exp(0.1im))
     @test norm(f'-f)<100eps()
     @test norm(integrate(f)+1-f)<100eps()
 end

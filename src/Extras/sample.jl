@@ -22,12 +22,12 @@ function bisectioninv{S,T}(f::Fun{S,T},x::Float64;numits::Int=47)
     .5*(a+b)
 end
 
-bisectioninv{S,T}(f::Fun{S,T},x::Vector;opts...) = Float64[bisectioninv(f,xx;opts...) for xx in x]
+bisectioninv{S,T}(f::Fun{S,T},x::AbstractVector;opts...) = Float64[bisectioninv(f,xx;opts...) for xx in x]
 
 
 ## Clenshaw bisection
 
-function chebbisectioninv(c::Vector{Float64},x::Float64;numits::Int=47)
+function chebbisectioninv(c::AbstractVector{Float64},x::Float64;numits::Int=47)
     a = -1.;b = 1.
 
     C=Chebyshev()
@@ -41,9 +41,9 @@ function chebbisectioninv(c::Vector{Float64},x::Float64;numits::Int=47)
 end
 
 
-chebbisectioninv(c::Vector{Float64},xl::Vector{Float64}) =
+chebbisectioninv(c::AbstractVector{Float64},xl::AbstractVector{Float64}) =
     (n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),length(c),n)))
-function chebbisectioninv{D<:Domain,R}(c::Vector{Float64},xl::Vector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64})
+function chebbisectioninv{D<:Domain,R}(c::AbstractVector{Float64},xl::AbstractVector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64})
     n = length(xl)
     a = -ones(n)
     b = ones(n)
@@ -62,8 +62,9 @@ end
 
 
 #here, xl is vector w/ length == #cols of c
-chebbisectioninv(c::Array{Float64,2},xl::Vector{Float64})=(n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),size(c,1),n)))
-function chebbisectioninv{D<:Domain,R}(c::Array{Float64,2},xl::Vector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64})
+chebbisectioninv(c::AbstractMatrix{Float64},xl::AbstractVector{Float64}) =
+    (n=length(xl);chebbisectioninv(c,xl,ClenshawPlan(Float64,Chebyshev(),size(c,1),n)))
+function chebbisectioninv{D<:Domain,R}(c::AbstractMatrix{Float64},xl::AbstractVector{Float64},plan::ClenshawPlan{Chebyshev{D,R},Float64})
     @assert size(c)[2] == length(xl)
 
     n = length(xl)
@@ -100,7 +101,7 @@ function normalizedcumsum(f::Fun)
     cf
 end
 
-function subtract_zeroatleft!(f::Vector{Float64})
+function subtract_zeroatleft!(f::AbstractVector{Float64})
     for k=2:length(f)
         @inbounds f[1] += (-1.)^k.*f[k]
     end
@@ -108,7 +109,7 @@ function subtract_zeroatleft!(f::Vector{Float64})
     f
 end
 
-function subtract_zeroatleft!(f::Array{Float64,2})
+function subtract_zeroatleft!(f::AbstractMatrix{Float64})
     for k=2:size(f)[1],j=1:size(f)[2]
         @inbounds f[1,j] += (-1.)^k.*f[k,j]
     end
@@ -116,7 +117,7 @@ function subtract_zeroatleft!(f::Array{Float64,2})
     f
 end
 
-function multiply_oneatright!(f::Vector{Float64})
+function multiply_oneatright!(f::AbstractVector{Float64})
     val=0.
     for k=1:length(f)
         val+=f[k]
@@ -131,7 +132,7 @@ function multiply_oneatright!(f::Vector{Float64})
     f
 end
 
-function multiply_oneatright!(f::Array{Float64,2})
+function multiply_oneatright!(f::AbstractMatrix{Float64})
 
     for j=1:size(f)[2]
         val=0.
@@ -157,7 +158,7 @@ function chebnormalizedcumsum!(f)
 end
 
 # For RandomMatrices compatibility
-normalizedcumsum!(f::Vector{Float64})=chebnormalizedcumsum!(f)
+normalizedcumsum!(f::AbstractVector{Float64})=chebnormalizedcumsum!(f)
 
 ## Sampling
 
@@ -168,7 +169,7 @@ samplecdf(cf::Fun,n::Integer) = bisectioninv(cf,rand(n))
 
 sample(f::Fun) = sample(f,1)[1]
 samplecdf(f::Fun) = samplecdf(f,1)[1]
-samplecdf(v::Vector) = chebbisectioninv(v,rand())
+samplecdf(v::AbstractVector) = chebbisectioninv(v,rand())
 
 
 

@@ -52,5 +52,5 @@ for TYP in (:Vector,:Matrix)
             \(interlace(A),b;kwds...)
     end
 end
-A_ldiv_B_coefficients{OO<:Operator}(A::Array{OO},b;kwds...) =
+A_ldiv_B_coefficients{OO<:Operator}(A::AbstractArray{OO},b;kwds...) =
     A_ldiv_B_coefficients(interlace(A),b;kwds...)

@@ -14,7 +14,7 @@ end
 
 
 
-function plan_chebyshevtransform!{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
+function plan_chebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1)
     if kind == 1
         plan = FFTW.plan_r2r!(x, FFTW.REDFT10)
         ChebyshevTransformPlan{1,true}(plan)
@@ -27,12 +27,12 @@ function plan_chebyshevtransform!{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer
     end
 end
 
-function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
+function plan_chebyshevtransform{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1)
     plan = plan_chebyshevtransform!(x;kind=kind)
     ChebyshevTransformPlan{kind,false}(plan)
 end
 
-function *{T}(P::ChebyshevTransformPlan{T,1,true},x::Vector{T})
+function *{T}(P::ChebyshevTransformPlan{T,1,true},x::AbstractVector{T})
     n = length(x)
     if n == 1
         x
@@ -43,7 +43,7 @@ function *{T}(P::ChebyshevTransformPlan{T,1,true},x::Vector{T})
     end
 end
 
-function *{T}(P::ChebyshevTransformPlan{T,2,true},x::Vector{T})
+function *{T}(P::ChebyshevTransformPlan{T,2,true},x::AbstractVector{T})
     n = length(x)
     if n == 1
         x
@@ -59,12 +59,12 @@ function *{T}(P::ChebyshevTransformPlan{T,2,true},x::Vector{T})
     end
 end
 
-chebyshevtransform!{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1) =
+chebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1) =
     plan_chebyshevtransform!(x;kind=kind)*x
 
 chebyshevtransform(x;kind::Integer=1) = chebyshevtransform!(copy(x);kind=kind)
 
-*{T,k}(P::ChebyshevTransformPlan{T,k,false},x::Vector{T}) = P.plan*copy(x)
+*{T,k}(P::ChebyshevTransformPlan{T,k,false},x::AbstractVector{T}) = P.plan*copy(x)
 
 ## Inverse transforms take Chebyshev coefficients and produce values at Chebyshev points of the first and second kinds
 
@@ -73,7 +73,7 @@ struct IChebyshevTransformPlan{T,kind,inplace,P}
     plan::P
 end
 
-function plan_ichebyshevtransform!{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
+function plan_ichebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1)
     if kind == 1
         if length(x) == 0
             error("Cannot create a length 0 inverse chebyshev transform")
@@ -89,18 +89,18 @@ function plan_ichebyshevtransform!{T<:FFTW.fftwNumber}(x::Vector{T};kind::Intege
     end
 end
 
-function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1)
+function plan_ichebyshevtransform{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1)
     plan = plan_ichebyshevtransform!(x;kind=kind)
     IChebyshevTransformPlan{T,kind,false,typeof(plan)}(plan)
 end
 
-function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{T,1,true},x::Vector{T})
+function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{T,1,true},x::AbstractVector{T})
     x[1] *=2
     x = scale!(T(0.5),P.plan*x)
     x
 end
 
-function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{T,2,true},x::Vector{T})
+function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{T,2,true},x::AbstractVector{T})
     n = length(x)
     if n == 1
         x
@@ -113,24 +113,24 @@ function *{T<:FFTW.fftwNumber}(P::IChebyshevTransformPlan{T,2,true},x::Vector{T}
     end
 end
 
-ichebyshevtransform!{T<:FFTW.fftwNumber}(x::Vector{T};kind::Integer=1) =
+ichebyshevtransform!{T<:FFTW.fftwNumber}(x::AbstractVector{T};kind::Integer=1) =
     plan_ichebyshevtransform!(x;kind=kind)*x
 
 ichebyshevtransform(x;kind::Integer=1) = ichebyshevtransform!(copy(x);kind=kind)
 
-*{T,k}(P::IChebyshevTransformPlan{T,k,false},x::Vector{T}) = P.plan*copy(x)
+*{T,k}(P::IChebyshevTransformPlan{T,k,false},x::AbstractVector{T}) = P.plan*copy(x)
 
 ## Code generation for integer inputs
 
 for func in (:chebyshevtransform,:ichebyshevtransform)
-    @eval $func{T<:Integer}(x::Vector{T};kind::Integer=1) = $func(convert(Float64,x);kind=kind)
+    @eval $func{T<:Integer}(x::AbstractVector{T};kind::Integer=1) = $func(convert(Float64,x);kind=kind)
 end
 
 
 # Matrix inputs
 
 
-function chebyshevtransform!{T<:FFTW.fftwNumber}(X::Matrix{T};kind::Integer=1)
+function chebyshevtransform!{T<:FFTW.fftwNumber}(X::AbstractMatrix{T};kind::Integer=1)
     if kind == 1
         if size(X) == (1,1)
             X
@@ -152,7 +152,7 @@ function chebyshevtransform!{T<:FFTW.fftwNumber}(X::Matrix{T};kind::Integer=1)
     end
 end
 
-function ichebyshevtransform!{T<:FFTW.fftwNumber}(X::Matrix{T};kind::Integer=1)
+function ichebyshevtransform!{T<:FFTW.fftwNumber}(X::AbstractMatrix{T};kind::Integer=1)
     if kind == 1
         if size(X) == (1,1)
             X

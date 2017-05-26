@@ -19,7 +19,7 @@ const VectorSpace{S,DD,RR} = ArraySpace{S,1,DD,RR}
 const MatrixSpace{S,DD,RR} = ArraySpace{S,2,DD,RR}
 
 #TODO: Think through domain/domaindominsion
-ArraySpace{SS<:Space,N}(sp::Array{SS,N}) =
+ArraySpace{SS<:Space,N}(sp::AbstractArray{SS,N}) =
     ArraySpace{SS,N,domaintype(first(sp)),mapreduce(rangetype,promote_type,sp)}(sp)
 ArraySpace{N}(S::Space,n::NTuple{N,Int}) = ArraySpace(fill(S,n))
 ArraySpace(S::Space,n::Integer) = ArraySpace(S,(n,))
@@ -65,11 +65,11 @@ isambiguous(AS::ArraySpace) = isambiguous(AS.spaces[1])
 points(d::ArraySpace,n) = points(d.spaces[1],n)
 
 
-transform{SS,V}(AS::ArraySpace{SS,1},vals::Vector{Vector{V}}) =
+transform{SS,V}(AS::ArraySpace{SS,1},vals::AbstractVector{Vector{V}}) =
     transform(AS,transpose(hcat(vals...)))
 
 #TODO: rework for different spaces
-function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
+function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::AbstractArray{V,2})
     n=length(AS)
 
     @assert size(M,2)==n
@@ -80,11 +80,11 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::Array{V,2})
 end
 
 # transform of array is same order as vectorizing and then transforming
-transform{SS,n,V}(AS::ArraySpace{SS,n},vals::Vector{Array{V,n}}) =
+transform{SS,n,V}(AS::ArraySpace{SS,n},vals::AbstractVector{Array{V,n}}) =
     transform(vec(AS),map(vec,vals))
-transform{SS,AV<:AbstractVector}(AS::ArraySpace{SS,1},vals::Vector{AV}) =
+transform{SS,AV<:AbstractVector}(AS::ArraySpace{SS,1},vals::AbstractVector{AV}) =
     transform(AS,map(Vector,vals))
-transform{SS,n,V}(AS::ArraySpace{SS,1},vals::Vector{Vec{V,n}}) =
+transform{SS,n,V}(AS::ArraySpace{SS,1},vals::AbstractVector{Vec{V,n}}) =
     transform(AS,map(Vector,vals))
 
 Base.vec(AS::ArraySpace) = ArraySpace(vec(AS.spaces))
@@ -133,12 +133,12 @@ end
 
 Base.vcat(v::Union{Fun,Number}...) = vcat(map(Fun,v)...)
 
-function Fun{F<:Fun}(v::Vector{F})
+function Fun{F<:Fun}(v::AbstractVector{F})
     S = ArraySpace(space.(v))
     Fun(S,interlace(v,S))
 end
 
-Space{S<:Space}(spl::Vector{S}) = ArraySpace(spl)
+Space{S<:Space}(spl::AbstractVector{S}) = ArraySpace(spl)
 
 
 #TODO: rewrite
@@ -147,7 +147,7 @@ function Fun(v::AbstractArray{<:Fun})
     Fun(ArraySpace(map(space,v)),coefficients(ff))
 end
 
-function Fun{S,V,VV,DD,RR}(A::Array{Fun{VectorSpace{S,DD,RR},V,VV},2})
+function Fun{S,V,VV,DD,RR}(A::AbstractArray{Fun{VectorSpace{S,DD,RR},V,VV},2})
     @assert size(A,1)==1
 
     M=Matrix{Fun{S,V,VV}}(length(space(A[1])),size(A,2))
@@ -157,22 +157,22 @@ function Fun{S,V,VV,DD,RR}(A::Array{Fun{VectorSpace{S,DD,RR},V,VV},2})
     Fun(M)
 end
 
-Fun(v::Array{NN}) where {NN<:Number} = Fun(v,ArraySpace(ConstantSpace(),size(v)...))
+Fun(v::AbstractArray{NN}) where {NN<:Number} = Fun(v,ArraySpace(ConstantSpace(),size(v)...))
 
 Fun(v::AbstractArray{Any}) = Fun(Fun.([v...]) :: AbstractArray{<:Fun})
 
-# Fun{SS,n}(v::Array{Any,n},sp::ArraySpace{SS,n}) = Fun(map((f,s)->Fun(f,s),v,sp))
+# Fun{SS,n}(v::AbstractArray{Any,n},sp::ArraySpace{SS,n}) = Fun(map((f,s)->Fun(f,s),v,sp))
 
 
 # convert a vector to a Fun with ArraySpace
 
-function Fun{TT,SS,n}(v::Array{TT,n},sp::ArraySpace{SS,n})
+function Fun{TT,SS,n}(v::AbstractArray{TT,n},sp::ArraySpace{SS,n})
     if size(v) ≠ size(sp)
         throw(DimensionMismatch("Cannot convert $v to a Fun in space $sp"))
     end
     Fun(map(Fun,v,sp.spaces))
 end
-coefficients{TT,SS,n}(v::Array{TT,n},sp::ArraySpace{SS,n}) = coefficients(Fun(v,sp))
+coefficients{TT,SS,n}(v::AbstractArray{TT,n},sp::ArraySpace{SS,n}) = coefficients(Fun(v,sp))
 
 
 for (OPrule,OP) in ((:conversion_rule,:conversion_type),(:maxspace_rule,:maxspace),
@@ -221,17 +221,17 @@ Base.diff{AS<:ArraySpace,T}(f::Fun{AS,T},n...) = Fun(diff(Array(f),n...))
 
 ## conversion
 
-coefficients(f::Vector,a::VectorSpace,b::VectorSpace) =
+coefficients(f::AbstractVector,a::VectorSpace,b::VectorSpace) =
     interlace(map(coefficients,Fun(a,f),b),b)
 
-coefficients{F<:Fun}(Q::Vector{F},rs::VectorSpace) =
+coefficients{F<:Fun}(Q::AbstractVector{F},rs::VectorSpace) =
     interlace(map(coefficients,Q,rs),rs)
 
 
 
 
-Fun{FF<:Fun}(f::Vector{FF},d::VectorSpace) = Fun(d,coefficients(f,d))
-Fun{FF<:Fun}(f::Matrix{FF},d::MatrixSpace) = Fun(d,coefficients(f,d))
+Fun{FF<:Fun}(f::AbstractVector{FF},d::VectorSpace) = Fun(d,coefficients(f,d))
+Fun{FF<:Fun}(f::AbstractMatrix{FF},d::MatrixSpace) = Fun(d,coefficients(f,d))
 
 
 
@@ -245,7 +245,7 @@ Fun{AS<:ArraySpace}(f::Fun{AS},d::Space) = Fun(f,ArraySpace(d,size(space(f))))
 
 
 # columns are coefficients
-function Fun{T<:Number}(M::Array{T,2},sp::MatrixSpace)
+function Fun{T<:Number}(M::AbstractMatrix{T},sp::MatrixSpace)
     if size(M) ≠ size(sp)
         throw(DimensionMismatch())
     end
@@ -255,7 +255,7 @@ end
 Fun(M::UniformScaling,sp::MatrixSpace) = Fun(M.λ*eye(size(sp)...),sp)
 
 
-Fun{T<:Number}(M::Array{T,2},sp::Space) = Fun([Fun(M[:,k],sp) for k=1:size(M,2)])
+Fun{T<:Number}(M::AbstractMatrix{T},sp::Space) = Fun([Fun(M[:,k],sp) for k=1:size(M,2)])
 
 
 

@@ -15,9 +15,9 @@ end
 
 
 
-domainscompatible{T<:Operator}(A::Matrix{T})=domainscompatible(map(domainspace,A))
+domainscompatible{T<:Operator}(A::AbstractMatrix{T}) = domainscompatible(map(domainspace,A))
 
-function spacescompatible{T<:Operator}(A::Matrix{T})
+function spacescompatible{T<:Operator}(A::AbstractMatrix{T})
     for k=1:size(A,1)
         if !spacescompatible(map(rangespace,A[k,:]))
             return false
@@ -31,9 +31,9 @@ function spacescompatible{T<:Operator}(A::Matrix{T})
     true
 end
 
-spacescompatible{T<:Operator}(A::Vector{T}) = spacescompatible(map(domainspace,A))
+spacescompatible{T<:Operator}(A::AbstractVector{T}) = spacescompatible(map(domainspace,A))
 
-function domainspace{T<:Operator}(A::Matrix{T})
+function domainspace{T<:Operator}(A::AbstractMatrix{T})
     if !spacescompatible(A)
         error("Cannot construct domainspace for $A as spaces are not compatible")
     end
@@ -42,7 +42,7 @@ function domainspace{T<:Operator}(A::Matrix{T})
     ArraySpace(spl)
 end
 
-function rangespace{T<:Operator}(A::Vector{T})
+function rangespace{T<:Operator}(A::AbstractVector{T})
     if !spacescompatible(A)
         error("Cannot construct rangespace for $A as domain spaces are not compatible")
     end
@@ -55,20 +55,20 @@ promotespaces{T<:Operator}(A::AbstractMatrix{T}) = promotespaces(Matrix(A))
 
 function promotespaces{T<:Operator}(A::Matrix{T})
     isempty(A) && return A
-    A=copy(A)#TODO: promote might have different Array type
+    ret = similar(A) #TODO: promote might have different Array type
     for j=1:size(A,2)
-        A[:,j]=promotedomainspace(A[:,j])
+        ret[:,j] = promotedomainspace(A[:,j])
     end
     for k=1:size(A,1)
-        A[k,:]=promoterangespace(A[k,:])
+        ret[k,:] = promoterangespace(ret[k,:])
     end
 
     # do a second loop as spaces might have been inferred
     # during range space
     for j=1:size(A,2)
-        A[:,j]=promotedomainspace(A[:,j])
+        ret[:,j] = promotedomainspace(ret[:,j])
     end
-    A
+    ret
 end
 
 
@@ -88,7 +88,7 @@ InterlaceOperator{T,p}(ops::Array{T,p},ds,rs,di,ri,bi) =
     InterlaceOperator{T,p,typeof(ds),typeof(rs),
                         typeof(di),typeof(ri),typeof(bi)}(ops,ds,rs,di,ri,bi)
 
-function InterlaceOperator{T}(ops::Matrix{Operator{T}},ds::Space,rs::Space)
+function InterlaceOperator{T}(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Space)
     # calculate bandinds TODO: generalize
     p=size(ops,1)
     dsi = interlacer(ds)
@@ -147,7 +147,7 @@ function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
                         (l,u))
 end
 
-function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
+function InterlaceOperator{T}(opsin::AbstractMatrix{Operator{T}})
     isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
 
     ops=promotespaces(opsin)
@@ -160,7 +160,7 @@ function InterlaceOperator{T}(opsin::Matrix{Operator{T}})
     end
 end
 
-function InterlaceOperator{T,DS<:Space,RS<:Space}(opsin::Matrix{Operator{T}},::Type{DS},::Type{RS})
+function InterlaceOperator{T,DS<:Space,RS<:Space}(opsin::AbstractMatrix{Operator{T}},::Type{DS},::Type{RS})
     isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
 
     ops=promotespaces(opsin)
@@ -173,7 +173,7 @@ function InterlaceOperator{T,DS<:Space,RS<:Space}(opsin::Matrix{Operator{T}},::T
     end
 end
 
-InterlaceOperator{T,DS<:Space}(opsin::Matrix{Operator{T}},::Type{DS}) =
+InterlaceOperator{T,DS<:Space}(opsin::AbstractMatrix{Operator{T}},::Type{DS}) =
     InterlaceOperator(opsin,DS,DS)
 
 InterlaceOperator(opsin::AbstractMatrix,S...) =
@@ -184,7 +184,7 @@ function InterlaceOperator{T}(opsin::Vector{Operator{T}})
     InterlaceOperator(ops,domainspace(first(ops)),rangespace(ops))
 end
 
-InterlaceOperator{T,p}(ops::Array{T,p}) =
+InterlaceOperator{T,p}(ops::AbstractArray{T,p}) =
     InterlaceOperator(Array{Operator{mapreduce(eltype,promote_type,ops)},p}(ops))
 
 
@@ -442,13 +442,13 @@ promotedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
     InterlaceOperator(map(op->promotedomainspace(op,sp),A.ops))
 
 
-interlace{T<:Operator}(A::Array{T}) = length(A)==1?A[1]:InterlaceOperator(A)
+interlace{T<:Operator}(A::AbstractArray{T}) = length(A)==1?A[1]:InterlaceOperator(A)
 
 
 
 ## Convert Matrix operator to operators
 
-Base.convert{OO<:Operator}(::Type{Operator},M::Array{OO}) = InterlaceOperator(M)
+Base.convert{OO<:Operator}(::Type{Operator},M::AbstractArray{OO}) = InterlaceOperator(M)
 
 
 

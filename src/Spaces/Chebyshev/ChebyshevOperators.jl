@@ -104,7 +104,7 @@ Base.stride{U<:Chebyshev,V<:Chebyshev}(M::ConcreteMultiplication{U,V}) =
     stride(M.f)
 
 
-function chebmult_getindex(cfs::Vector,k::Integer,j::Integer)
+function chebmult_getindex(cfs::AbstractVector,k::Integer,j::Integer)
     n=length(cfs)
 
     ret=zero(eltype(cfs))

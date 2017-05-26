@@ -52,4 +52,4 @@ function transpose_nullspace(QR::QROperator,tolerance,maxlength)
 end
 
 
-Base.nullspace{OO<:Operator}(A::Array{OO};kwds...) = nullspace(interlace(A);kwds...)
+Base.nullspace{OO<:Operator}(A::AbstractArray{OO};kwds...) = nullspace(interlace(A);kwds...)

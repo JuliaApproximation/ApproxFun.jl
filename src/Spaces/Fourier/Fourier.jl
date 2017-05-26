@@ -72,34 +72,34 @@ hasfasttransform(::Hardy) = true
 for (Typ,Plfft!,Plfft,Pltr!,Pltr) in ((:TransformPlan,:plan_fft!,:plan_fft,:plan_transform!,:plan_transform),
                            (:ITransformPlan,:plan_ifft!,:plan_ifft,:plan_itransform!,:plan_itransform))
     @eval begin
-        $Pltr!{T<:Complex}(sp::Hardy,x::Vector{T}) = $Typ(sp,$Plfft!(x),Val{true})
-        $Pltr!{T<:Real}(::Hardy,x::Vector{T}) =
+        $Pltr!{T<:Complex}(sp::Hardy,x::AbstractVector{T}) = $Typ(sp,$Plfft!(x),Val{true})
+        $Pltr!{T<:Real}(::Hardy,x::AbstractVector{T}) =
             error("In place variants not possible with real data.")
 
-        $Pltr{T<:Complex}(sp::Hardy,x::Vector{T}) = $Typ(sp,$Pltr!(sp,x),Val{false})
-        function $Pltr{T}(sp::Hardy,x::Vector{T})
+        $Pltr{T<:Complex}(sp::Hardy,x::AbstractVector{T}) = $Typ(sp,$Pltr!(sp,x),Val{false})
+        function $Pltr{T}(sp::Hardy,x::AbstractVector{T})
             plan = $Pltr(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
             $Typ{T,typeof(sp),false,typeof(plan)}(sp,plan)
         end
 
-        *{T<:Complex,HS<:Hardy}(P::$Typ{T,HS,false},vals::Vector{T}) = P.plan*copy(vals)
-        *{T,HS<:Hardy}(P::$Typ{T,HS,false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
+        *{T<:Complex,HS<:Hardy}(P::$Typ{T,HS,false},vals::AbstractVector{T}) = P.plan*copy(vals)
+        *{T,HS<:Hardy}(P::$Typ{T,HS,false},vals::AbstractVector{T}) = P.plan*Vector{Complex{T}}(vals)
     end
 end
 
 
-*{T,DD,RR}(P::TransformPlan{T,Hardy{true,DD,RR},true},vals::Vector{T}) =
+*{T,DD,RR}(P::TransformPlan{T,Hardy{true,DD,RR},true},vals::AbstractVector{T}) =
     scale!(one(T)/length(vals),P.plan*vals)
-*{T,DD,RR}(P::ITransformPlan{T,Hardy{true,DD,RR},true},cfs::Vector{T}) =
+*{T,DD,RR}(P::ITransformPlan{T,Hardy{true,DD,RR},true},cfs::AbstractVector{T}) =
     scale!(length(cfs),P.plan*cfs)
-*{T,DD,RR}(P::TransformPlan{T,Hardy{false,DD,RR},true},vals::Vector{T}) =
+*{T,DD,RR}(P::TransformPlan{T,Hardy{false,DD,RR},true},vals::AbstractVector{T}) =
     scale!(one(T)/length(vals),reverse!(P.plan*vals))
-*{T,DD,RR}(P::ITransformPlan{T,Hardy{false,DD,RR},true},cfs::Vector{T}) =
+*{T,DD,RR}(P::ITransformPlan{T,Hardy{false,DD,RR},true},cfs::AbstractVector{T}) =
     scale!(length(cfs),P.plan*reverse!(cfs))
 
 
-transform(sp::Hardy,vals::Vector,plan) = plan*vals
-itransform(sp::Hardy,vals::Vector,plan) = plan*vals
+transform(sp::Hardy,vals::AbstractVector,plan) = plan*vals
+itransform(sp::Hardy,vals::AbstractVector,plan) = plan*vals
 
 evaluate{D<:Domain,R}(f::AbstractVector,S::Taylor{D,R},z) = horner(f,fromcanonical(Circle(),tocanonical(S,z)))
 function evaluate{D<:Circle,R}(f::AbstractVector,S::Taylor{D,R},z)
@@ -164,12 +164,12 @@ points(sp::CosSpace,n) = points(domain(sp),2n-2)[1:n]
 
 
 
-plan_transform(::CosSpace,x::Vector) = plan_chebyshevtransform(x;kind=2)
-plan_itransform(::CosSpace,x::Vector) = plan_ichebyshevtransform(x;kind=2)
+plan_transform(::CosSpace,x::AbstractVector) = plan_chebyshevtransform(x;kind=2)
+plan_itransform(::CosSpace,x::AbstractVector) = plan_ichebyshevtransform(x;kind=2)
 transform(::CosSpace,vals,plan) = plan*vals
 itransform(::CosSpace,cfs,plan) = plan*cfs
 
-evaluate(f::Vector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
+evaluate(f::AbstractVector,S::CosSpace,t) = clenshaw(Chebyshev(),f,cos(tocanonical(S,t)))
 
 
 points(sp::SinSpace,n)=points(domain(sp),2n+2)[2:n+1]
@@ -177,28 +177,28 @@ points(sp::SinSpace,n)=points(domain(sp),2n+2)[2:n+1]
 for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
                          (:ITransformPlan,:plan_itransform!,:plan_itransform))
     @eval begin
-        $Pltr!{DD,T<:FFTW.fftwNumber}(sp::SinSpace{DD},x::Vector{T}) =
+        $Pltr!{DD,T<:FFTW.fftwNumber}(sp::SinSpace{DD},x::AbstractVector{T}) =
             $Typ(sp,FFTW.plan_r2r!(x,FFTW.RODFT00),Val{true})
-        $Pltr{DD,T<:FFTW.fftwNumber}(sp::SinSpace{DD},x::Vector{T}) =
+        $Pltr{DD,T<:FFTW.fftwNumber}(sp::SinSpace{DD},x::AbstractVector{T}) =
             $Typ(sp,$Pltr!(sp,x),Val{false})
-        $Pltr!{DD,T}(sp::SinSpace{DD},x::Vector{T}) =
+        $Pltr!{DD,T}(sp::SinSpace{DD},x::AbstractVector{T}) =
             error("transform for SinSpace only implemented for fftwNumbers")
-        $Pltr{DD,T}(sp::SinSpace{DD},x::Vector{T}) =
+        $Pltr{DD,T}(sp::SinSpace{DD},x::AbstractVector{T}) =
             error("transform for SinSpace only implemented for fftwNumbers")
 
-        *{T,D,R}(P::$Typ{T,SinSpace{D,R},false},vals::Vector{T}) = P.plan*copy(vals)
+        *{T,D,R}(P::$Typ{T,SinSpace{D,R},false},vals::AbstractVector{T}) = P.plan*copy(vals)
     end
 end
 
 
-*{T,DD,RR}(P::TransformPlan{T,SinSpace{DD,RR},true},vals::Vector{T}) =
+*{T,DD,RR}(P::TransformPlan{T,SinSpace{DD,RR},true},vals::AbstractVector{T}) =
     scale!(one(T)/(length(vals)+1),P.plan*vals)
-*{T,DD,RR}(P::ITransformPlan{T,SinSpace{DD,RR},true},cfs::Vector{T}) =
+*{T,DD,RR}(P::ITransformPlan{T,SinSpace{DD,RR},true},cfs::AbstractVector{T}) =
     scale!(one(T)/2,P.plan*cfs)
 
 
-transform(sp::SinSpace,vals::Vector,plan) = plan*vals
-itransform(sp::SinSpace,vals::Vector,plan) = plan*vals
+transform(sp::SinSpace,vals::AbstractVector,plan) = plan*vals
+itransform(sp::SinSpace,vals::AbstractVector,plan) = plan*vals
 
 evaluate(f::AbstractVector,S::SinSpace,t) = sineshaw(f,tocanonical(S,t))
 
@@ -217,38 +217,38 @@ const Laurent{DD,RR} = SumSpace{Tuple{Hardy{true,DD,RR},Hardy{false,DD,RR}},DD,R
 
 ##FFT That interlaces coefficients
 
-plan_transform!{DD,RR,T<:Complex}(sp::Laurent{DD,RR},x::Vector{T}) =
+plan_transform!{DD,RR,T<:Complex}(sp::Laurent{DD,RR},x::AbstractVector{T}) =
     TransformPlan(sp,plan_fft!(x),Val{true})
-plan_itransform!{DD,RR,T<:Complex}(sp::Laurent{DD,RR},x::Vector{T}) =
+plan_itransform!{DD,RR,T<:Complex}(sp::Laurent{DD,RR},x::AbstractVector{T}) =
     ITransformPlan(sp,plan_ifft!(x),Val{true})
 
-plan_transform!{DD,RR,T}(sp::Laurent{DD,RR},x::Vector{T}) =
+plan_transform!{DD,RR,T}(sp::Laurent{DD,RR},x::AbstractVector{T}) =
     error("In place variants not possible with real data.")
-plan_itransform!{DD,RR,T}(sp::Laurent{DD,RR},x::Vector{T}) =
+plan_itransform!{DD,RR,T}(sp::Laurent{DD,RR},x::AbstractVector{T}) =
     error("In place variants not possible with real data.")
 
 
-plan_transform{T<:Complex,DD,RR}(sp::Laurent{DD,RR},x::Vector{T}) =
+plan_transform{T<:Complex,DD,RR}(sp::Laurent{DD,RR},x::AbstractVector{T}) =
     TransformPlan(sp,plan_transform!(sp,x),Val{false})
-plan_itransform{T<:Complex,DD,RR}(sp::Laurent{DD,RR},x::Vector{T}) =
+plan_itransform{T<:Complex,DD,RR}(sp::Laurent{DD,RR},x::AbstractVector{T}) =
     ITransformPlan(sp,plan_itransform!(sp,x),Val{false})
 
-function plan_transform{T,DD,RR}(sp::Laurent{DD,RR},x::Vector{T})
+function plan_transform{T,DD,RR}(sp::Laurent{DD,RR},x::AbstractVector{T})
     plan = plan_transform(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
     TransformPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
 end
-function plan_itransform{T,DD,RR}(sp::Laurent{DD,RR},x::Vector{T})
+function plan_itransform{T,DD,RR}(sp::Laurent{DD,RR},x::AbstractVector{T})
     plan = plan_itransform(sp,Array{Complex{T}}(length(x))) # we can reuse vector in itransform
     ITransformPlan{T,typeof(sp),false,typeof(plan)}(sp,plan)
 end
 
-function *{T,DD,RR}(P::TransformPlan{T,Laurent{DD,RR},true},vals::Vector{T})
+function *{T,DD,RR}(P::TransformPlan{T,Laurent{DD,RR},true},vals::AbstractVector{T})
     n = length(vals)
     vals = scale!(inv(T(n)),P.plan*vals)
     reverseeven!(interlace!(vals,1))
 end
 
-function *{T,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},true},cfs::Vector{T})
+function *{T,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},true},cfs::AbstractVector{T})
     n = length(cfs)
     reverseeven!(cfs)
     cfs[:]=[cfs[1:2:end];cfs[2:2:end]]  # TODO: deinterlace!
@@ -256,18 +256,18 @@ function *{T,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},true},cfs::Vector{T})
     P.plan*cfs
 end
 
-*{T<:Complex,DD,RR}(P::TransformPlan{T,Laurent{DD,RR},false},vals::Vector{T}) = P.plan*copy(vals)
-*{T,DD,RR}(P::TransformPlan{T,Laurent{DD,RR},false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
-*{T<:Complex,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},false},vals::Vector{T}) = P.plan*copy(vals)
-*{T,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},false},vals::Vector{T}) = P.plan*Vector{Complex{T}}(vals)
+*{T<:Complex,DD,RR}(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) = P.plan*copy(vals)
+*{T,DD,RR}(P::TransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) = P.plan*Vector{Complex{T}}(vals)
+*{T<:Complex,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) = P.plan*copy(vals)
+*{T,DD,RR}(P::ITransformPlan{T,Laurent{DD,RR},false},vals::AbstractVector{T}) = P.plan*Vector{Complex{T}}(vals)
 
 
 
 transform{DD,RR}(::Laurent{DD,RR},vals,plan) = plan*vals
 itransform{DD,RR}(::Laurent{DD,RR},cfs,plan) = plan*cfs
 
-transform{DD,RR}(sp::Laurent{DD,RR},vals::Vector) = plan_transform(sp,vals)*vals
-itransform{DD,RR}(sp::Laurent{DD,RR},cfs::Vector) = plan_itransform(sp,cfs)*cfs
+transform{DD,RR}(sp::Laurent{DD,RR},vals::AbstractVector) = plan_transform(sp,vals)*vals
+itransform{DD,RR}(sp::Laurent{DD,RR},cfs::AbstractVector) = plan_itransform(sp,cfs)*cfs
 
 
 
@@ -331,27 +331,27 @@ end
 
 points{D,R}(sp::Fourier{D,R},n)=points(domain(sp),n)
 
-plan_transform!{T<:FFTW.fftwNumber,D,R}(sp::Fourier{D,R},x::Vector{T}) =
+plan_transform!{T<:FFTW.fftwNumber,D,R}(sp::Fourier{D,R},x::AbstractVector{T}) =
     TransformPlan(sp,FFTW.plan_r2r!(x, FFTW.R2HC),Val{true})
-plan_itransform!{T<:FFTW.fftwNumber,D,R}(sp::Fourier{D,R},x::Vector{T}) =
+plan_itransform!{T<:FFTW.fftwNumber,D,R}(sp::Fourier{D,R},x::AbstractVector{T}) =
     ITransformPlan(sp,FFTW.plan_r2r!(x, FFTW.HC2R),Val{true})
 
 for (Typ,Pltr!,Pltr) in ((:TransformPlan,:plan_transform!,:plan_transform),
                          (:ITransformPlan,:plan_itransform!,:plan_itransform))
     @eval begin
-        $Pltr{T<:FFTW.fftwNumber,DD,RR}(sp::Fourier{DD,RR},x::Vector{T}) =
+        $Pltr{T<:FFTW.fftwNumber,DD,RR}(sp::Fourier{DD,RR},x::AbstractVector{T}) =
             $Typ(sp,$Pltr!(sp,x),Val{false})
-        $Pltr!{T,DD,RR}(sp::Fourier{DD,RR},x::Vector{T}) =
+        $Pltr!{T,DD,RR}(sp::Fourier{DD,RR},x::AbstractVector{T}) =
             error("transform for Fourier only implemented for fftwNumbers")
-        $Pltr{T,DD,RR}(sp::Fourier{DD,RR},x::Vector{T}) =
+        $Pltr{T,DD,RR}(sp::Fourier{DD,RR},x::AbstractVector{T}) =
             error("transform for Fourier only implemented for fftwNumbers")
 
-        *{T,DD,RR}(P::$Typ{T,Fourier{DD,RR},false},vals::Vector{T}) = P.plan*copy(vals)
+        *{T,DD,RR}(P::$Typ{T,Fourier{DD,RR},false},vals::AbstractVector{T}) = P.plan*copy(vals)
     end
 end
 
 
-function *{T,DD,RR}(P::TransformPlan{T,Fourier{DD,RR},true},vals::Vector{T})
+function *{T,DD,RR}(P::TransformPlan{T,Fourier{DD,RR},true},vals::AbstractVector{T})
     n = length(vals)
     cfs = scale!(T(2)/n,P.plan*vals)
     cfs[1] /= 2
@@ -362,7 +362,7 @@ function *{T,DD,RR}(P::TransformPlan{T,Fourier{DD,RR},true},vals::Vector{T})
     negateeven!(reverseeven!(interlace!(cfs,1)))
 end
 
-function *{T,DD,RR}(P::ITransformPlan{T,Fourier{DD,RR},true},cfs::Vector{T})
+function *{T,DD,RR}(P::ITransformPlan{T,Fourier{DD,RR},true},cfs::AbstractVector{T})
     n = length(cfs)
     reverseeven!(negateeven!(cfs))
     cfs[:] = [cfs[1:2:end];cfs[2:2:end]]
@@ -374,11 +374,11 @@ function *{T,DD,RR}(P::ITransformPlan{T,Fourier{DD,RR},true},cfs::Vector{T})
 end
 
 
-transform{DD,RR}(sp::Fourier{DD,RR},vals::Vector,plan) = plan*vals
-itransform{DD,RR}(sp::Fourier{DD,RR},cfs::Vector,plan) = plan*cfs
+transform{DD,RR}(sp::Fourier{DD,RR},vals::AbstractVector,plan) = plan*vals
+itransform{DD,RR}(sp::Fourier{DD,RR},cfs::AbstractVector,plan) = plan*cfs
 
-transform{DD,RR}(sp::Fourier{DD,RR},vals::Vector) = plan_transform(sp,vals)*vals
-itransform{DD,RR}(sp::Fourier{DD,RR},cfs::Vector) = plan_itransform(sp,cfs)*cfs
+transform{DD,RR}(sp::Fourier{DD,RR},vals::AbstractVector) = plan_transform(sp,vals)*vals
+itransform{DD,RR}(sp::Fourier{DD,RR},cfs::AbstractVector) = plan_itransform(sp,cfs)*cfs
 
 
 

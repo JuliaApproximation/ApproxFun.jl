@@ -103,7 +103,7 @@ Fun(f::Function,S::Bernstein) = Fun(Fun(f,canonicalspace(S),dimension(S)),S)
 #
 #    A. Rababah, "Transformation of Chebyshev–Bernstein polynomial basis", Comp. Meth. Appl. Math. 3:608–622, 2003.
 #
-function coefficients(f::Vector,a::Chebyshev,b::Bernstein)
+function coefficients(f::AbstractVector,a::Chebyshev,b::Bernstein)
     if domain(a) == domain(b)
         n = length(f)-1
         @assert n == order(b)
@@ -123,7 +123,7 @@ function coefficients(f::Vector,a::Chebyshev,b::Bernstein)
     end
 end
 
-function coefficients(f::Vector,a::Bernstein,b::Chebyshev)
+function coefficients(f::AbstractVector,a::Bernstein,b::Chebyshev)
     if domain(a) == domain(b)
         n = length(f)-1
         @assert n == order(a)

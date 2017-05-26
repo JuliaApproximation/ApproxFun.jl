@@ -22,7 +22,7 @@ Base.size(f::ProductFun) = (size(f,1),size(f,2))
 
 ## Construction in an AbstractProductSpace via a Matrix of coefficients
 
-function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD<:BivariateDomain}(cfs::Matrix{T},sp::AbstractProductSpace{Tuple{S,V},DD};
+function ProductFun{S<:UnivariateSpace,V<:UnivariateSpace,T<:Number,DD<:BivariateDomain}(cfs::AbstractMatrix{T},sp::AbstractProductSpace{Tuple{S,V},DD};
                                                                        tol::Real=100eps(T),chopping::Bool=false)
     if chopping
         ncfs,kend=norm(cfs,Inf),size(cfs,2)
@@ -319,7 +319,7 @@ end
 
 ## ProductFun transform
 
-# function transform{ST<:Space,N<:Number}(::Type{N},S::Vector{ST},T::Space,V::Matrix)
+# function transform{ST<:Space,N<:Number}(::Type{N},S::Vector{ST},T::Space,V::AbstractMatrix)
 #     @assert length(S)==size(V,2)
 #     # We assume all S spaces have same domain/points
 #     C=Vector{N}(size(V)...)
@@ -331,8 +331,8 @@ end
 #     end
 #     C
 # end
-# transform{ST<:Space,N<:Real}(S::Vector{ST},T::Space{Float64},V::Matrix{N})=transform(Float64,S,T,V)
-# transform{ST<:Space}(S::Vector{ST},T::Space,V::Matrix)=transform(Complex{Float64},S,T,V)
+# transform{ST<:Space,N<:Real}(S::Vector{ST},T::Space{Float64},V::AbstractMatrix{N})=transform(Float64,S,T,V)
+# transform{ST<:Space}(S::Vector{ST},T::Space,V::AbstractMatrix)=transform(Complex{Float64},S,T,V)
 
 
 

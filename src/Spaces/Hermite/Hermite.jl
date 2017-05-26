@@ -51,9 +51,6 @@ function hermitep(r::Range,x::Number)
     v[r+1]
 end
 hermitep(n::Integer,v::Number)=hermitep(n:n,v)[1]
-hermitep(n::Range,v::Vector)=transpose(hcat(map(x->hermitep(n,x),v)...))
-hermitep(n::Integer,v::Vector)=map(x->hermitep(n,x),v)
-
 
 identity_fun(sp::Hermite)=Fun(sp,[0.,0.5])
 

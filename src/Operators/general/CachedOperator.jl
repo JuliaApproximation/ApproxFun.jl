@@ -104,7 +104,7 @@ resizedata!(B::CachedOperator,::Colon,m::Integer) = resizedata!(B,size(B,1),m)
 resizedata!(B::CachedOperator,n::Integer,::Colon) = resizedata!(B,n,size(B,2))
 
 
-function A_mul_B_coefficients{T<:Number}(B::CachedOperator,v::Vector{T})
+function A_mul_B_coefficients{T<:Number}(B::CachedOperator,v::AbstractVector{T})
     resizedata!(B,:,length(v))
 
     B.data*pad(v,size(B.data,2))

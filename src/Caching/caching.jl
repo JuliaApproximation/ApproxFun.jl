@@ -10,7 +10,7 @@ trtrs!(::Type{Val{'U'}},co::CachedOperator,u::Array) =
 
 ## Ac_mul_B! for QROperatorQ
 
-function Ac_mul_Bpars(A::QROperatorQ,B::Vector,tolerance,maxlength)
+function Ac_mul_Bpars(A::QROperatorQ,B::AbstractVector,tolerance,maxlength)
     T = promote_type(eltype(A),eltype(B))
     Ac_mul_Bpars(Operator{T}(A),Array{T}(B),tolerance,maxlength)
 end

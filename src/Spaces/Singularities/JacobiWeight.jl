@@ -72,7 +72,7 @@ setdomain(sp::JacobiWeight,d::Domain)=JacobiWeight(sp.β,sp.α,setdomain(sp.spac
 
 
 ##TODO: paradigm for same space
-function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD})
+function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::AbstractVector,sp1::JacobiWeight{SJ1,DD},sp2::JacobiWeight{SJ2,DD})
     β,α=sp1.β,sp1.α
     c,d=sp2.β,sp2.α
 
@@ -84,21 +84,21 @@ function coefficients{SJ1,SJ2,DD<:IntervalDomain}(f::Vector,sp1::JacobiWeight{SJ
         defaultcoefficients(f,sp1,sp2)
     end
 end
-coefficients(f::Vector,sp::JacobiWeight{SJ,DD},
+coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},
              S2::SubSpace{S,IT,DD,RR}) where {SJ,S,IT,DD<:IntervalDomain,RR<:Real} = subspace_coefficients(f,sp,S2)
-coefficients(f::Vector,S2::SubSpace{S,IT,DD,RR},
+coefficients(f::AbstractVector,S2::SubSpace{S,IT,DD,RR},
              sp::JacobiWeight{SJ,DD}) where {SJ,S,IT,DD<:IntervalDomain,RR<:Real} = subspace_coefficients(f,S2,sp)
 #TODO: it could be possible that we want to JacobiWeight a SumSpace....
-coefficients(f::Vector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,DD,RR}) where {SJ,SV,DD<:IntervalDomain,RR<:Real} =
+coefficients(f::AbstractVector,sp::JacobiWeight{SJ,DD},S2::SumSpace{SV,DD,RR}) where {SJ,SV,DD<:IntervalDomain,RR<:Real} =
     sumspacecoefficients(f,sp,S2)
-coefficients(f::Vector,sp::JacobiWeight{SJ,Segment{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD}) where {SJ,TT,SV,TTT,DD<:BivariateDomain} =
+coefficients(f::AbstractVector,sp::JacobiWeight{SJ,Segment{Vec{2,TT}}},S2::TensorSpace{SV,TTT,DD}) where {SJ,TT,SV,TTT,DD<:BivariateDomain} =
     coefficients(f,sp,JacobiWeight(0,0,S2))
 
-coefficients{SJ,DD<:IntervalDomain,RR<:Real}(f::Vector,sp::JacobiWeight{SJ,DD},S2::Space{DD,RR}) =
+coefficients{SJ,DD<:IntervalDomain,RR<:Real}(f::AbstractVector,sp::JacobiWeight{SJ,DD},S2::Space{DD,RR}) =
     coefficients(f,sp,JacobiWeight(0,0,S2))
-coefficients{SJ,DD<:IntervalDomain}(f::Vector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) =
+coefficients{SJ,DD<:IntervalDomain}(f::AbstractVector,sp::ConstantSpace{DD},ts::JacobiWeight{SJ,DD}) =
     f.coefficients[1]*ones(ts).coefficients
-coefficients{SJ,DD<:IntervalDomain,RR<:Real}(f::Vector,S2::Space{DD,RR},sp::JacobiWeight{SJ,DD}) =
+coefficients{SJ,DD<:IntervalDomain,RR<:Real}(f::AbstractVector,S2::Space{DD,RR},sp::JacobiWeight{SJ,DD}) =
     coefficients(f,JacobiWeight(0,0,S2),sp)
 
 
@@ -165,7 +165,7 @@ end
 
 # O(min(m,n)) Ultraspherical conjugated inner product
 
-function conjugatedinnerproduct{S,V}(sp::Ultraspherical,u::Vector{S},v::Vector{V})
+function conjugatedinnerproduct{S,V}(sp::Ultraspherical,u::AbstractVector{S},v::AbstractVector{V})
     λ=order(sp)
     if λ==1
         mn = min(length(u),length(v))
@@ -193,7 +193,7 @@ function conjugatedinnerproduct{S,V}(sp::Ultraspherical,u::Vector{S},v::Vector{V
     end
 end
 
-function conjugatedinnerproduct(::Chebyshev,u::Vector,v::Vector)
+function conjugatedinnerproduct(::Chebyshev,u::AbstractVector,v::AbstractVector)
     mn = min(length(u),length(v))
     if mn > 1
         return (2u[1]*v[1]+dotu(u[2:mn],v[2:mn]))*π/2

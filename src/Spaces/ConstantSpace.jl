@@ -25,8 +25,8 @@ Base.norm(f::Fun{SequenceSpace},k::Int) = norm(f.coefficients,k)
 Base.norm(f::Fun{SequenceSpace},k::Number) = norm(f.coefficients,k)
 
 
-Fun(cfs::Vector,S::SequenceSpace) = Fun(S,cfs)
-coefficients(cfs::Vector,::SequenceSpace) = cfs  # all vectors are convertible to SequenceSpace
+Fun(cfs::AbstractVector,S::SequenceSpace) = Fun(S,cfs)
+coefficients(cfs::AbstractVector,::SequenceSpace) = cfs  # all vectors are convertible to SequenceSpace
 
 
 
@@ -36,6 +36,8 @@ coefficients(cfs::Vector,::SequenceSpace) = cfs  # all vectors are convertible t
 macro containsconstants(SP)
     quote
         ApproxFun.union_rule(A::(ApproxFun.ConstantSpace),B::$SP) = B
+        Base.promote_rule(A::Type{<:(ApproxFun.ConstantSpace)},B::Type{<:($SP)}) = B
+
         Base.promote_rule{T<:Number,S<:$SP,V,VV}(::Type{ApproxFun.Fun{S,V,VV}},::Type{T}) =
             ApproxFun.VFun{S,promote_type(V,T)}
         Base.promote_rule{T<:Number,S<:$SP}(::Type{ApproxFun.Fun{S}},::Type{T}) = ApproxFun.VFun{S,T}
@@ -76,6 +78,22 @@ Base.promote_rule{CS<:ConstantSpace,T<:Number,V}(::Type{Fun{CS,V}},::Type{T}) =
 Base.promote_rule{T<:Number,IF<:Fun}(::Type{IF},::Type{T}) = Fun
 
 
+# we know multiplication by constants preserves types
+Base.promote_op(::typeof(*),::Type{Fun{CS,T,VT}},::Type{F}) where {CS<:ConstantSpace,T,VT,F<:Fun} =
+    promote_op(*,T,F)
+Base.promote_op(::typeof(*),::Type{F},::Type{Fun{CS,T,VT}}) where {CS<:ConstantSpace,T,VT,F<:Fun} =
+    promote_op(*,F,T)
+
+
+
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1<:ConstantSpace,T1,VT1,S2<:ConstantSpace,T2,VT2} =
+            VFun{promote_type(S1,S2),promote_type(T1,T2)}
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1<:ConstantSpace,T1,VT1,S2,T2,VT2} =
+            VFun{S2,promote_type(T1,T2)}
+Base.promote_op(::typeof(Base.LinAlg.matprod),::Type{Fun{S1,T1,VT1}},::Type{Fun{S2,T2,VT2}}) where {S1,T1,VT1,S2<:ConstantSpace,T2,VT2} =
+            VFun{S1,promote_type(T1,T2)}
+
+
 # When the union of A and B is a ConstantSpace, then it contains a one
 conversion_rule(A::ConstantSpace,B::UnsetSpace)=NoSpace()
 conversion_rule(A::ConstantSpace,B::Space)=(union_rule(A,B)==B||union_rule(B,A)==B)?A:NoSpace()
@@ -107,10 +125,10 @@ function getindex{CS<:ConstantSpace,S<:Space,T}(C::ConcreteConversion{CS,S,T},k:
     k ≤ ncoefficients(on)?T(on.coefficients[k]):zero(T)
 end
 
-coefficients(f::Vector,sp::ConstantSpace{Segment{Vec{2,TT}}},
+coefficients(f::AbstractVector,sp::ConstantSpace{Segment{Vec{2,TT}}},
              ts::TensorSpace{SV,DD}) where {TT,SV,DD<:BivariateDomain} =
     f[1]*ones(ts).coefficients
-coefficients(f::Vector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
+coefficients(f::AbstractVector,sp::ConstantSpace,ts::Space) = f[1]*ones(ts).coefficients
 
 
 # this is identity operator, but we don't use MultiplicationWrapper to avoid

@@ -3,7 +3,7 @@
 
 ## Vector of fun routines
 
-function coefficientmatrix{N,F}(::Type{N},f::Vector{F},o...)
+function coefficientmatrix{N,F}(::Type{N},f::AbstractVector{F},o...)
     if isempty(f)
         return Matrix{N}(0,0)
     end
@@ -20,16 +20,16 @@ end
 
 scalarorfuntype{S,T<:Number}(::Fun{S,T}) = T
 scalarorfuntype{T<:Number}(::T) = T
-scalarorfuntype{T<:Number}(b::Vector{T}) = T
-scalarorfuntype(b::Vector{Any}) = promote_type(map(scalarorfuntype,b)...)
-scalarorfuntype{F<:Fun}(b::Vector{F}) = promote_type(map(scalarorfuntype,b)...)
+scalarorfuntype{T<:Number}(b::AbstractVector{T}) = T
+scalarorfuntype(b::AbstractVector{Any}) = promote_type(map(scalarorfuntype,b)...)
+scalarorfuntype{F<:Fun}(b::AbstractVector{F}) = promote_type(map(scalarorfuntype,b)...)
 
 
-coefficientmatrix{F<:Fun}(Q::Vector{F},o...)=coefficientmatrix(scalarorfuntype(Q),Q,o...)
-coefficientmatrix(Q::Vector{Any})=(@assert isempty(Q); zeros(0,0))
+coefficientmatrix{F<:Fun}(Q::AbstractVector{F},o...)=coefficientmatrix(scalarorfuntype(Q),Q,o...)
+coefficientmatrix(Q::AbstractVector{Any})=(@assert isempty(Q); zeros(0,0))
 
 
-function values(f::Vector{Fun{D,N,VN}}) where {D,N,VN}
+function values(f::AbstractVector{Fun{D,N,VN}}) where {D,N,VN}
     n=mapreduce(ncoefficients,max,f)
     m=length(f)
     R=zeros(N,n,m)
@@ -39,7 +39,7 @@ function values(f::Vector{Fun{D,N,VN}}) where {D,N,VN}
     R
 end
 
-function values(p::Array{Fun{D,T,VT},2}) where {D,T,VT}
+function values(p::AbstractMatrix{Fun{D,T,VT}}) where {D,T,VT}
     @assert size(p)[1] == 1
 
    values(vec(p))
@@ -67,7 +67,7 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 #
 #  for op in (:*,:(Base.Ac_mul_B),:(Base.At_mul_B))
 #      @eval begin
-#          function ($op)(A::Array{T,2}, p::Vector{Fun{D,V,VT}}) where {T<:Number,V<:Number,D,VT}
+#          function ($op)(A::Array{T,2}, p::AbstractVector{Fun{D,V,VT}}) where {T<:Number,V<:Number,D,VT}
 #              cfs=$op(A,coefficientmatrix(p).')
 #              ret = Vector{VFun{D,promote_type(T,V)}}(size(cfs,1))
 #              for i = 1:size(cfs,1)
@@ -76,7 +76,7 @@ evaluate{T<:Fun}(A::AbstractArray{T},x::Number)=typeof(first(A)(x))[Akj(x) for A
 #              ret
 #          end
 #
-#          function ($op)(p::Vector{Fun{D,T,VT}},A::Array{T,2}) where {T<:Number,D,VT}
+#          function ($op)(p::AbstractVector{Fun{D,T,VT}},A::Array{T,2}) where {T<:Number,D,VT}
 #              cfs=$op(A,coefficientmatrix(p).')
 #              ret = Vector{VFun{D,T}}(size(cfs,1))
 #              for i = 1:size(cfs,1)

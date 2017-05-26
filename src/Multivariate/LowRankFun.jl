@@ -219,7 +219,7 @@ LowRankFun(f::LowRankFun) = LowRankFun(f,Interval(),Interval())
 
 ## Utilities
 
-function findapproxmax!(f::F,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
+function findapproxmax!(f::F,X::AbstractMatrix,ptsx::AbstractVector,ptsy::Vector,gridx,gridy)
     for j=1:gridy
         ptsyj = ptsy[j]
         @simd for k=1:gridx
@@ -231,7 +231,7 @@ function findapproxmax!(f::F,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
     maxabsf,[ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
-function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
+function findapproxmax!(A::Fun,B::Fun,X::AbstractMatrix,ptsx::Vector,ptsy::Vector,gridx,gridy)
     Ax,By = A.(ptsx),B.(ptsy)
     subtractrankone!(Ax,By,X,gridx,gridy)
     maxabsf,impt = findmaxabs(X)
@@ -239,7 +239,7 @@ function findapproxmax!(A::Fun,B::Fun,X::Matrix,ptsx::Vector,ptsy::Vector,gridx,
     [ptsx[imptple[1]],ptsy[imptple[2]]]
 end
 
-function findcholeskyapproxmax!(f::F,X::Vector,pts::Vector,grid)
+function findcholeskyapproxmax!(f::F,X::AbstractVector,pts::Vector,grid)
     @simd for k=1:grid
         @inbounds X[k]+=f(pts[k],pts[k])
     end

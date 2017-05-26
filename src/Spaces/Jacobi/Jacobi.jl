@@ -73,24 +73,6 @@ for (REC,JREC) in ((:recα,:jacobirecα),(:recβ,:jacobirecβ),(:recγ,:jacobire
 end
 
 
-function jacobip(r::Range,α,β,x)
-    n=r[end]+1
-    if n<=2
-        v=[1.,.5*(α-β+(2+α+β)*x)]
-    else
-        T=promote_type(Float64,typeof(x))
-        v=Vector{T}(n)  # x may be complex
-        v[1]=1.
-        v[2]=.5*(α-β+(2+α+β)*x)
-
-        @inbounds for k=2:n-1
-            v[k+1]=((x-jacobirecα(T,α,β,k))*v[k] - jacobirecγ(T,α,β,k)*v[k-1])/jacobirecβ(T,α,β,k)
-        end
-    end
-    v[r+1]
-end
-
-
 function jacobip{T}(::Type{T},r::Range,α,β,x::Number)
     if x==1 && α==0
         ones(T,length(r))
@@ -119,10 +101,6 @@ jacobip(r::Range,α,β,x::Number) = jacobip(promote_type(typeof(α),typeof(β),t
 
 jacobip{T}(::Type{T},n::Integer,α,β,v) = jacobip(T,n:n,α,β,v)[1]
 jacobip(n::Integer,α,β,v) = jacobip(n:n,α,β,v)[1]
-jacobip{T}(::Type{T},n::Range,α,β,v::Vector) = transpose(hcat(map(x->jacobip(T,n,α,β,x),v)...))
-jacobip(n::Range,α,β,v::Vector) = transpose(hcat(map(x->jacobip(n,α,β,x),v)...))
-jacobip{T}(::Type{T},n::Integer,α,β,v::Vector) = map(x->jacobip(T,n,α,β,x),v)
-jacobip(n::Integer,α,β,v::Vector) = map(x->jacobip(n,α,β,x),v)
 jacobip{T}(::Type{T},n,S::Jacobi,v) = jacobip(T,n,S.a,S.b,v)
 jacobip(n,S::Jacobi,v) = jacobip(n,S.a,S.b,v)
 
@@ -155,7 +133,7 @@ setdomain(S::Jacobi,d::Domain)=Jacobi(S.b,S.a,d)
 
 # O(min(m,n)) Jacobi conjugated inner product
 
-function conjugatedinnerproduct{S,V}(sp::Jacobi,u::Vector{S},v::Vector{V})
+function conjugatedinnerproduct{S,V}(sp::Jacobi,u::AbstractVector{S},v::AbstractVector{V})
     T,mn = promote_type(S,V),min(length(u),length(v))
     α,β = sp.a,sp.b
     if mn > 1

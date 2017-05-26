@@ -109,10 +109,11 @@ function Base.in(x,d::IntervalDomain)
     y=tocanonical(d,x)
     ry=real(y)
     iy=imag(y)
-    sc=norm(fromcanonicalD(d,ry<-1?-1:(ry>1?1:ry)))  # scale based on stretch of map on projection to interal
-    isapprox(fromcanonical(d,y),x) &&
-        -one(T)-100eps(T)/sc≤ry≤one(T)+100eps(T)/sc &&
-        -100eps(T)/sc≤iy≤100eps(T)/sc
+    sc=norm(fromcanonicalD(d,ry<-1?-one(ry):(ry>1?one(ry):ry)))  # scale based on stretch of map on projection to interal
+    dy=fromcanonical(d,y)
+    norm(dy-x) ≤ 1000eps(T)*norm(x) &&
+        -one(T)-100eps(T)/sc ≤ ry ≤ one(T)+100eps(T)/sc &&
+        -100eps(T)/sc ≤ iy ≤ 100eps(T)/sc
 end
 
 components(d::Domain) = [d]
@@ -182,7 +183,7 @@ function commondomain(P::AbstractVector)
     ret
 end
 
-commondomain{T<:Number}(P::AbstractVector,g::Array{T}) = commondomain(P)
+commondomain{T<:Number}(P::AbstractVector,g::AbstractArray{T}) = commondomain(P)
 commondomain(P::AbstractVector,g) = commondomain([P;g])
 
 

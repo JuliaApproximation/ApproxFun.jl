@@ -51,10 +51,10 @@ Base.real{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}}) = real(Fun(f,Laurent))
 Base.imag{DD,RR}(f::Fun{LaurentDirichlet{DD,RR}}) = imag(Fun(f,Laurent))
 
 
-coefficients(v::Vector,::Laurent,::LaurentDirichlet)=laurentdirichlettransform!(copy(v))
-coefficients(v::Vector,::LaurentDirichlet,::Laurent)=laurentidirichlettransform!(copy(v))
+coefficients(v::AbstractVector,::Laurent,::LaurentDirichlet) = laurentdirichlettransform!(copy(v))
+coefficients(v::AbstractVector,::LaurentDirichlet,::Laurent) = laurentidirichlettransform!(copy(v))
 
-function laurentdirichlettransform!(w::Vector)
+function laurentdirichlettransform!(w::AbstractVector)
     if length(w) > 1
         for k=length(w)-2:-1:1
             @inbounds w[k] -= w[k+2]
@@ -65,7 +65,7 @@ function laurentdirichlettransform!(w::Vector)
     w
 end
 
-function laurentidirichlettransform!(w::Vector)
+function laurentidirichlettransform!(w::AbstractVector)
     if length(w) == 1
     elseif length(w) == 2
         @inbounds w[1] += w[2]
