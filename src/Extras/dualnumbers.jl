@@ -11,8 +11,6 @@ Base.in{DD<:Dual}(x::Number,d::Segment{DD}) = in(x,realpart(d))
 Base.in{DD<:Dual}(x::Dual,d::Segment{DD}) = in(realpart(x),d)
 
 
-sign(dual(0.0,1.0))
-
 # for QR Factorization.  These have been submitted to DualNumbers
 # but we need these duplicates so that they call ApproxFun.flipsign
 flipsign(x::Dual,y::Dual) = y == 0 ? flipsign(x, epsilon(y)) : flipsign(x, realpart(y))
@@ -95,8 +93,8 @@ function dualcfsFun(f,S)
     r=checkpoints(S)
     f0=f(first(r))
 
-    if !isa(S,ArraySpace) && isa(f0,Array)
-        return dualcfsFun(f,ArraySpace(S,size(f0)...))
+    if isa(f0,AbstractArray) && size(S) ≠ size(f0)
+        return dualcfsFun(f,Space(fill(S,size(f0))))
     end
 
     tol =T==Any?100eps():100eps(T)

@@ -115,7 +115,7 @@ end
 
 function LowRankOperator{FT<:Operator}(Bin::AbstractVector{FT},::Type{VectorSpace})
     B=promotedomainspace(Bin)
-    rsp=ArraySpace([map(rangespace,B);ZeroSpace()])  #TODO: Why the hack?
+    rsp=Space([map(rangespace,B);ZeroSpace()])  #TODO: Why the hack?
     LowRankOperator(
         VFun{typeof(rsp),Float64}[Fun(rsp,[zeros(k-1);1]) for k=1:length(B)],
         B)

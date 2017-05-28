@@ -199,7 +199,11 @@ B=[eye(dx)⊗ldirichlet(dy);ldirichlet(dx)⊗eye(dy);eye(dx)⊗rdirichlet(dy);rn
 
 
 A=ApproxFun.interlace([B;Δ])
+
+@test eltype([g;0.0]) == Float64
 g2=Fun([g;0.0],rangespace(A))
+@test eltype(g2) == Float64
+
 
 @test g2[1](-0.1,-1.0) ≈ g[1](-0.1,-1.0)
 @test g2[3](-0.1,1.0)  ≈ g[3](-0.1,1.0)

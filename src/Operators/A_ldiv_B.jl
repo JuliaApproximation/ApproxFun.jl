@@ -38,6 +38,8 @@ function \(A::Operator,B::AbstractMatrix;kwds...)
     Fun(ret)
 end
 
+\(A::Operator,B::MatrixFun;kwds...) = \(A,Array(B);kwds...)
+
 A_ldiv_B_coefficients(A::Operator,b;kwds...) = A_ldiv_B_coefficients(qrfact(A),b;kwds...)
 
 

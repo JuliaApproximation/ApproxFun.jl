@@ -39,7 +39,7 @@ function domainspace{T<:Operator}(A::AbstractMatrix{T})
     end
 
     spl=map(domainspace,A[1,:])
-    ArraySpace(spl)
+    Space(spl)
 end
 
 function rangespace{T<:Operator}(A::AbstractVector{T})
@@ -48,7 +48,7 @@ function rangespace{T<:Operator}(A::AbstractVector{T})
     end
 
     spl=map(rangespace,A)
-    ArraySpace(spl)
+    Space(spl)
 end
 
 promotespaces{T<:Operator}(A::AbstractMatrix{T}) = promotespaces(Matrix(A))
@@ -94,7 +94,7 @@ function InterlaceOperator{T}(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Spa
     dsi = interlacer(ds)
 
     if p == 1  # Assume rs corresonds to a scalar space, so wrap in a ArraySpace to get right interlacing
-        rsi = interlacer(ArraySpace(rs,1))
+        rsi = interlacer(Space(fill(rs,1)))
     else  # assume this is a correctly tupled
         rsi = interlacer(rs)
     end
@@ -481,4 +481,4 @@ choosedomainspace{T}(A::InterlaceOperator{T,1},rs::Space) =
 
 
 choosedomainspace{T}(A::InterlaceOperator{T,2},rs::Space) =
-    ArraySpace([interlace_choosedomainspace(A.ops[:,k],rs) for k=1:size(A.ops,2)])
+    Space([interlace_choosedomainspace(A.ops[:,k],rs) for k=1:size(A.ops,2)])

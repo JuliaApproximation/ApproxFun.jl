@@ -53,8 +53,8 @@ defaultFun{T,ReComp}(::Type{T},f,d::Space{ReComp},pts::AbstractVector,::Type{Val
 function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{false}})
     pts=points(d, n)
     f1=f(pts[1])
-    if (isa(f1,AbstractArray) || isa(f1,Vec)) && !isa(d,ArraySpace)
-        return Fun(f,ArraySpace(d,size(f1)...),n)
+    if isa(f1,AbstractArray) && size(d) ≠ size(f1)
+        return Fun(f,Space(fill(d,size(f1))),n)
     end
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
@@ -65,8 +65,8 @@ end
 function defaultFun{ReComp}(f,d::Space{ReComp},n::Integer,::Type{Val{true}})
     pts=points(d, n)
     f1=f(pts[1]...)
-    if (isa(f1,AbstractArray) || isa(f1,Vec)) && !isa(d,ArraySpace)
-        return Fun(f,ArraySpace(d,size(f1)...),n)
+    if isa(f1,AbstractArray) && size(d) ≠ size(f1)
+        return Fun(f,Space(fill(d,size(f1))),n)
     end
 
     # we need 3 eltype calls for the case Interval(Point([1.,1.]))
@@ -140,8 +140,8 @@ function zerocfsFun(f, d::Space)
     r=checkpoints(d)
     f0=f(first(r))
 
-    if !isa(d,ArraySpace) && isa(f0,Array)
-        return zerocfsFun(f,ArraySpace(d,size(f0)...))
+    if isa(f0,AbstractArray) && size(d) ≠ size(f0)
+        return zerocfsFun(f,Space(fill(d,size(f0))))
     end
 
     tol =T==Any?20eps():20eps(T)
