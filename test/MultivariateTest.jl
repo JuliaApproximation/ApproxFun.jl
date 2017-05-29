@@ -222,5 +222,7 @@ rDr = Mr * Dr
 testbandedblockbandedoperator(rDr)
 
 
+## Taylor()^2, checks bug in type of plan_transform
 
-## Cheby * Interval
+f = Fun((x,y)->exp((x-0.1)*cos(y-0.2)),Taylor()^2)
+@test f(0.2,0.3) ≈ exp(0.1*cos(0.1))

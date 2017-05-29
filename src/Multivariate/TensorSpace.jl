@@ -387,7 +387,7 @@ function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,false},v::Vector)
 end
 
 
-function plan_transform(sp::TensorSpace,n::Integer)
+function plan_transform(sp::TensorSpace,::Type{T},n::Integer) where {T}
     NM=n
     if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
         N,M=dimension(sp[1]),dimension(sp[2])
@@ -401,12 +401,14 @@ function plan_transform(sp::TensorSpace,n::Integer)
         N=M=round(Int,sqrt(n))
     end
 
-    TransformPlan(sp,((plan_transform(sp[1],N),N),(plan_transform(sp[2],M),M)),
+    TransformPlan(sp,((plan_transform(sp[1],T,N),N),(plan_transform(sp[2],T,M),M)),
                 Val{false})
 end
 
 
-plan_transform(sp::TensorSpace,v::Vector) = plan_transform(sp,length(v))
+
+plan_transform(sp::TensorSpace,v::Vector) = plan_transform(sp,eltype(v),length(v))
+
 
 
 
