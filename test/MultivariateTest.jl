@@ -253,3 +253,9 @@ x,y = Fun(∂(d))
 @test (x+im*y)(1.0,0.1) ≈ 1+0.1im
 
 @test exp(x+im*y)(1.0,0.1) ≈ exp(1.0+0.1im)
+
+
+## Taylor()^2, checks bug in type of plan_transform
+
+f = Fun((x,y)->exp((x-0.1)*cos(y-0.2)),Taylor()^2)
+@test f(0.2,0.3) ≈ exp(0.1*cos(0.1))
