@@ -63,7 +63,7 @@ function DefiniteIntegral(sp::Space)
         # try using `Integral`
         Q = Integral(sp)
         rsp = rangespace(Q)
-        DefiniteIntegralWrapper((Evaluation(rsp,true)-Evaluation(rsp,false))*Q)
+        DefiniteIntegralWrapper((Evaluation(rsp,last)-Evaluation(rsp,first))*Q)
     else
         # try mapping to canonical domain
         M = Multiplication(fromcanonicalD(sp),setcanonicaldomain(sp))

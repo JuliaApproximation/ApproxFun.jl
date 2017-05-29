@@ -36,10 +36,10 @@ function evaluatechebyshev{T<:Number}(n::Integer,x::T)
 end
 
 
-function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},Bool},j::Integer)
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},j::Integer)
     T=eltype(op)
     if op.order == 0
-        ifelse(op.x || isodd(j),  # right rule
+        ifelse(isodd(j),  # right rule
             one(T),
             -one(T))
     else
@@ -48,9 +48,19 @@ function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},Bool},
     end
 end
 
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},j::Integer)
+    T=eltype(op)
+    if op.order == 0
+        one(T)
+    else
+        #TODO: Fast version
+        op[j:j][1]
+    end
+end
 
 
-function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},Bool},k::Range)
+
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(first)},k::Range)
     T=eltype(op)
     x = op.x
     d = domain(op)
@@ -58,15 +68,32 @@ function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},Bool},
     cst = T((2/(d.b-d.a))^p)
     n=length(k)
 
-    if x
-        ret = ones(T,n)
-    else
-        ret = Array{T}(n)
+    ret = Array{T}(n)
+    k1=1-first(k)
+    @simd for j=k
+        @inbounds ret[j+k1]=(-1)^(p+1)*(-one(T))^j
+    end
+
+    for m=0:p-1
         k1=1-first(k)
         @simd for j=k
-            @inbounds ret[j+k1]=(-1)^(p+1)*(-one(T))^j
+            @inbounds ret[j+k1] *= (j-1)^2-m^2
         end
+        scal!(T(1/(2m+1)), ret)
     end
+
+    scal!(cst,ret)
+end
+
+function getindex{DD<:Segment,RR}(op::ConcreteEvaluation{Chebyshev{DD,RR},typeof(last)},k::Range)
+    T=eltype(op)
+    x = op.x
+    d = domain(op)
+    p = op.order
+    cst = T((2/(d.b-d.a))^p)
+    n=length(k)
+
+    ret = ones(T,n)
 
     for m=0:p-1
         k1=1-first(k)

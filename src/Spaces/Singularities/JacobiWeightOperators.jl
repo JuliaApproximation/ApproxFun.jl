@@ -332,38 +332,42 @@ defaultConversion{JS,D<:IntervalDomain,R<:Real}(A::JacobiWeight{JS,D},B::Space{D
 
 ## Evaluation
 
-function  Base.getindex{J<:JacobiWeight}(op::ConcreteEvaluation{J,Bool},kr::Range)
+function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(first)},kr::Range)
     S=op.space
     @assert op.order<=1
     d=domain(op)
 
-    if op.x
-        @assert S.α>=0
-        if S.α==0
-            if op.order==0
-                2^S.β*getindex(Evaluation(S.space,op.x),kr)
-            else #op.order ===1
-                @assert isa(d,IntervalDomain)
-                2^S.β*getindex(Evaluation(S.space,op.x,1),kr)+
-                    (tocanonicalD(d,d.a)*S.β*2^(S.β-1))*getindex(Evaluation(S.space,op.x),kr)
-            end
-        else
-            @assert op.order==0
-            zeros(kr)
+    @assert S.β>=0
+    if S.β==0
+        if op.order==0
+            2^S.α*getindex(Evaluation(S.space,op.x),kr)
+        else #op.order ===1
+            @assert isa(d,IntervalDomain)
+            2^S.α*getindex(Evaluation(S.space,op.x,1),kr)-(tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
         end
     else
-        @assert S.β>=0
-        if S.β==0
-            if op.order==0
-                2^S.α*getindex(Evaluation(S.space,op.x),kr)
-            else #op.order ===1
-                @assert isa(d,IntervalDomain)
-                2^S.α*getindex(Evaluation(S.space,op.x,1),kr)-(tocanonicalD(d,d.a)*S.α*2^(S.α-1))*getindex(Evaluation(S.space,op.x),kr)
-            end
-        else
-            @assert op.order==0
-            zeros(kr)
+        @assert op.order==0
+        zeros(kr)
+    end
+end
+
+function  Base.getindex(op::ConcreteEvaluation{<:JacobiWeight,typeof(last)},kr::Range)
+    S=op.space
+    @assert op.order<=1
+    d=domain(op)
+
+    @assert S.α>=0
+    if S.α==0
+        if op.order==0
+            2^S.β*getindex(Evaluation(S.space,op.x),kr)
+        else #op.order ===1
+            @assert isa(d,IntervalDomain)
+            2^S.β*getindex(Evaluation(S.space,op.x,1),kr)+
+                (tocanonicalD(d,d.a)*S.β*2^(S.β-1))*getindex(Evaluation(S.space,op.x),kr)
         end
+    else
+        @assert op.order==0
+        zeros(kr)
     end
 end
 

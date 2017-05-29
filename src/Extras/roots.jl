@@ -63,6 +63,8 @@ function roots(f::Fun)
     end
 end
 
+roots(f::Fun{<:Chebyshev}) = fromcanonical.(f,roots(setcanonicaldomain(f)))
+
 
 for (BF,FF) in ((BigFloat,Float64),(Complex{BigFloat},Complex128))
     @eval function roots{C<:Chebyshev}( f::Fun{C,$BF} )

@@ -309,12 +309,18 @@ function Evaluation(S::PolynomialSpace,x,order)
 end
 
 
-function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,Bool},kr::Range)
+function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,typeof(first)},kr::Range)
     sp=op.space
     T=eltype(op)
-    x=op.x
 
-    forwardrecurrence(T,sp,kr-1,x?one(T):-one(T))
+    forwardrecurrence(T,sp,kr-1,-one(T))
+end
+
+function getindex{J<:PolynomialSpace}(op::ConcreteEvaluation{J,typeof(last)},kr::Range)
+    sp=op.space
+    T=eltype(op)
+
+    forwardrecurrence(T,sp,kr-1,one(T))
 end
 
 

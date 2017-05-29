@@ -104,13 +104,14 @@ getindex{S,IT,DD,RR}(C::ConcreteConversion{SubSpace{S,IT,DD,RR},S},
     domainspace(C).indexes[j]==k?one(eltype(C)):zero(eltype(C))
 
 
-
-
-getindex{IT,DS,DD,RR}(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR},Bool},k::Integer) =
+# avoid ambiguity
+for OP in (:first,:last)
+    @eval getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR},typeof($OP)},k::Integer) where {IT,DS,DD,RR}=
+        Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
+end
+getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},k::Integer) where {IT,DS,DD,RR}=
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
-getindex{IT,DS,DD,RR}(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},k::Integer) =
-    Evaluation(E.space.space,E.x,E.order)[E.space.indexes[k]]
-getindex{IT,DS,DD,RR}(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},kr::Range) =
+getindex(E::ConcreteEvaluation{SubSpace{DS,IT,DD,RR}},kr::Range) where {IT,DS,DD,RR} =
     Evaluation(E.space.space,E.x,E.order)[E.space.indexes[kr]]
 
 

@@ -45,8 +45,8 @@ function continuity(d::Union{Vector,Tuple},order::Integer)
     B=zeros(Operator{mapreduce(prectype,promote_type,d)},m-1,m)
 
     for k=1:m-1
-        B[k,k]=Evaluation(d[k],true,order)
-        B[k,k+1]=-Evaluation(d[k+1],false,order)
+        B[k,k]=Evaluation(d[k],last,order)
+        B[k,k+1]=-Evaluation(d[k+1],first,order)
     end
     B
 end

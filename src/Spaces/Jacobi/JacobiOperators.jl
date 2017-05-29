@@ -1,7 +1,7 @@
 ## Evaluation
 
 
-function Evaluation(S::Jacobi,x::Bool,order)
+function Evaluation(S::Jacobi,x::Union{typeof(first),typeof(last)},order)
     if order ≤ 2
         ConcreteEvaluation(S,x,order)
     else
@@ -21,26 +21,25 @@ function Evaluation(S::Jacobi,x,order)
     end
 end
 
+# avoid ambiguity
+for OP in (:first,:last)
+    @eval getindex(op::ConcreteEvaluation{<:Jacobi,typeof($OP)},k::Integer) =
+        op[k:k][1]
+end
 
-getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},k::Integer) =
-    op[k:k][1]
-
-getindex{J<:Jacobi}(op::ConcreteEvaluation{J},k::Integer) =
-    op[k:k][1]
+getindex(op::ConcreteEvaluation{<:Jacobi},k::Integer) = op[k:k][1]
 
 
-function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
+function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(first)},kr::Range)
     @assert op.order <= 2
     sp=op.space
     T=eltype(op)
     RT=real(T)
     a=RT(sp.a);b=RT(sp.b)
-    x=op.x
-
 
     if op.order == 0
-        jacobip(T,kr-1,a,b,x?one(T):-one(T))
-    elseif op.order == 1&& !x && b==0
+        jacobip(T,kr-1,a,b,-one(T))
+    elseif op.order == 1&&  b==0
         d=domain(op)
         @assert isa(d,Segment)
         T[tocanonicalD(d,d.a)/2*(a+k)*(k-1)*(-1)^k for k=kr]
@@ -48,19 +47,48 @@ function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Bool},kr::Range)
         d=domain(op)
         @assert isa(d,Segment)
         if kr[1]==1 && kr[end] ≥ 2
-            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,x?one(T):-one(T))]/2
+            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,-one(T))]/2
         elseif kr[1]==1  # kr[end] ≤ 1
             zeros(T,length(kr))
         else
-            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,x?one(T):-one(T))/2
+            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,-one(T))/2
         end
     elseif op.order == 2
-        @assert !x && b==0
-        @assert domain(op)==Segment()
+        @assert b==0
+        @assert domain(op) == Segment()
         T[-0.125*(a+k)*(a+k+1)*(k-2)*(k-1)*(-1)^k for k=kr]
+    else
+        error("Not implemented")
     end
 end
-function getindex{J<:Jacobi}(op::ConcreteEvaluation{J,Float64},kr::Range)
+
+function getindex(op::ConcreteEvaluation{<:Jacobi,typeof(last)},kr::Range)
+    @assert op.order <= 2
+    sp=op.space
+    T=eltype(op)
+    RT=real(T)
+    a=RT(sp.a);b=RT(sp.b)
+
+
+    if op.order == 0
+        jacobip(T,kr-1,a,b,one(T))
+    elseif op.order == 1
+        d=domain(op)
+        @assert isa(d,Segment)
+        if kr[1]==1 && kr[end] ≥ 2
+            tocanonicalD(d,d.a)*(a+b+kr).*T[zero(T);jacobip(T,0:kr[end]-2,1+a,1+b,one(T))]/2
+        elseif kr[1]==1  # kr[end] ≤ 1
+            zeros(T,length(kr))
+        else
+            tocanonicalD(d,d.a)*(a+b+kr).*jacobip(T,kr-1,1+a,1+b,one(T))/2
+        end
+    else
+        error("Not implemented")
+    end
+end
+
+
+function getindex(op::ConcreteEvaluation{<:Jacobi,<:Number},kr::Range)
     @assert op.order == 0
     jacobip(eltype(op),kr-1,op.space.a,op.space.b,tocanonical(domain(op),op.x))
 end
@@ -371,7 +399,7 @@ function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{US,J,T},
     if j==k
         S=rangespace(C)
         jp=jacobip(T,k-1,S.a,S.b,one(T))
-        um=Evaluation(setcanonicaldomain(domainspace(C)),true,0)[k]
+        um=Evaluation(setcanonicaldomain(domainspace(C)),last,0)[k]
         um/jp::T
     else
         zero(T)
@@ -386,7 +414,7 @@ function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
 
     sp=rangespace(parent(S))
     jp=jacobip(T,k-1,sp.a,sp.b,one(T))
-    um=Evaluation(T,setcanonicaldomain(domainspace(parent(S))),true,0)[k]
+    um=Evaluation(T,setcanonicaldomain(domainspace(parent(S))),last,0)[k]
     vals = um./jp
 
     ret[band(bandshift(S))] = vals
@@ -399,7 +427,7 @@ function getindex{US<:Ultraspherical,J<:Jacobi,T}(C::ConcreteConversion{J,US,T},
     if j==k
         S=domainspace(C)
         jp=jacobip(T,k-1,S.a,S.b,one(T))
-        um=Evaluation(T,setcanonicaldomain(rangespace(C)),true,0)[k]
+        um=Evaluation(T,setcanonicaldomain(rangespace(C)),last,0)[k]
         jp/um::T
     else
         zero(T)
@@ -414,7 +442,7 @@ function Base.convert{US<:Ultraspherical,J<:Jacobi,T}(::Type{BandedMatrix},
 
     sp=domainspace(parent(S))
     jp=jacobip(T,k-1,sp.a,sp.b,one(T))
-    um=Evaluation(T,setcanonicaldomain(rangespace(parent(S))),true,0)[k]
+    um=Evaluation(T,setcanonicaldomain(rangespace(parent(S))),last,0)[k]
     vals = jp./um
 
     ret[band(bandshift(S))] = vals

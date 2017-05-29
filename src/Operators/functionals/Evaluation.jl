@@ -6,49 +6,44 @@ abstract type Evaluation{T}<:Operator{T} end
 
 @functional Evaluation
 
-# M = Bool if endpoint
+# M = first/last if endpoint
 struct ConcreteEvaluation{S,M,OT,T} <: Evaluation{T}
     space::S
     x::M
     order::OT
 end
 
-ConcreteEvaluation(sp::Space,x::Number,o::Number) =
+ConcreteEvaluation(sp::Space,x,o::Number) =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(o),rangetype(sp)}(sp,x,o)
-
-Evaluation(::Type{T},sp::UnivariateSpace,x::Bool,order) where {T} =
-    ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
 
 
 Evaluation(::Type{T},sp::Space,x,order) where {T} =
     ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
-function Evaluation(::Type{T},sp::UnivariateSpace,x,order) where {T}
+# TODO: This seems like a bad idea: if you are specifying x, just go with the generic version
+function Evaluation(::Type{T},sp::UnivariateSpace,x::Number,order) where {T}
     d=domain(sp)
     if isa(d,IntervalDomain) && isapprox(first(d),x)
-        Evaluation(T,sp,false,order)
+        Evaluation(T,sp,first,order)
     elseif isa(d,IntervalDomain) && isapprox(last(d),x)
-        Evaluation(T,sp,true,order)
+        Evaluation(T,sp,last,order)
     else
         ConcreteEvaluation{typeof(sp),typeof(x),typeof(order),T}(sp,x,order)
     end
 end
 
-Evaluation(sp::UnsetSpace,x::Bool,k) =
-    ConcreteEvaluation{UnsetSpace,Bool,typeof(k),UnsetNumber}(sp,x,k)
-
 Evaluation(sp::Space,x,order) = Evaluation(rangetype(sp),sp,x,order)
 
-#Evaluation(sp::UnsetSpace,x::Bool)=Evaluation(sp,x,0)
-Evaluation(d::Space,x::Union{Number,Bool}) = Evaluation(d,x,0)
+Evaluation(d::Space,x::Union{Number,typeof(first),typeof(last)}) = Evaluation(d,x,0)
 Evaluation{T}(::Type{T},d::Space,n...) = error("Override Evaluation for $(typeof(d))")
 Evaluation{T}(::Type{T},d,n...) = Evaluation(T,Space(d),n...)
 Evaluation(d,n...) = Evaluation(Space(d),n...)
-Evaluation(x::Union{Number,Bool}) = Evaluation(UnsetSpace(),x,0)
-Evaluation(x::Union{Number,Bool},k::Integer) = Evaluation(UnsetSpace(),x,k)
-Evaluation{T<:Number}(d::Vector{T},x::Union{Number,Bool},o::Integer) = Evaluation(Interval(d),x,o)
+Evaluation(x::Union{Number,typeof(first),typeof(last)}) = Evaluation(UnsetSpace(),x,0)
+Evaluation(x::Union{Number,typeof(first),typeof(last)},k::Integer) =
+    Evaluation(UnsetSpace(),x,k)
+Evaluation{T<:Number}(d::Vector{T},x::Union{Number,typeof(first),typeof(last)},o::Integer) =
+    Evaluation(Interval(d),x,o)
 
-rangespace{S<:AmbiguousSpace}(E::ConcreteEvaluation{S,Bool}) = ConstantSpace()
-rangespace{S}(E::ConcreteEvaluation{S,Bool}) = ConstantSpace(Point(E.x?last(domain(E)):first(domain(E))))
+rangespace(E::ConcreteEvaluation{<:AmbiguousSpace}) = ConstantSpace()
 rangespace(E::ConcreteEvaluation) = ConstantSpace(Point(E.x))
 
 
@@ -66,15 +61,20 @@ end
 getindex(D::ConcreteEvaluation,k::Integer) =
     eltype(D)(differentiate(Fun(D.space,[zeros(eltype(D),k-1);one(eltype(D))]),D.order)(D.x))
 
+#special first/last overrides
+for OP in (:first,:last)
+    @eval begin
+        rangespace(E::ConcreteEvaluation{<:AmbiguousSpace,typeof($OP)}) = ConstantSpace()
+        rangespace(E::ConcreteEvaluation{S,typeof($OP)}) where {S} = ConstantSpace(Point($OP(domain(E))))
+        function getindex(D::ConcreteEvaluation{S,typeof($OP)},k::Integer) where {S}
+            T=eltype(D)
 
-function getindex{S}(D::ConcreteEvaluation{S,Bool},k::Integer)
-    T=eltype(D)
-    if !D.x
-        T(first(differentiate(Fun(D.space,[zeros(T,k-1);one(T)]),D.order)))
-    else
-        T(last(differentiate(Fun(D.space,[zeros(T,k-1);one(T)]),D.order)))
+            T($OP(differentiate(Fun(D.space,[zeros(T,k-1);one(T)]),D.order)))
+        end
     end
 end
+
+
 
 
 
@@ -112,8 +112,8 @@ end
 
 
 evaluate(d::Domain,x) = Evaluation(d,x)
-ldiffbc(d,k) = Evaluation(d,false,k)
-rdiffbc(d,k) = Evaluation(d,true,k)
+ldiffbc(d,k) = Evaluation(d,first,k)
+rdiffbc(d,k) = Evaluation(d,last,k)
 diffbcs(d,k) = [ldiffbc(d,k),rdiffbc(d,k)]
 
 ldirichlet(d) = ldiffbc(d,0)
@@ -128,7 +128,7 @@ ivp(d,k) = Operator{prectype(d)}[ldiffbc(d,i) for i=0:k-1]
 bvp(d,k) = vcat(Operator{prectype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],
                 Operator{prectype(d)}[rdiffbc(d,i) for i=0:div(k,2)-1])
 
-periodic(d,k) = Operator{prectype(d)}[Evaluation(d,false,i)-Evaluation(d,true,i) for i=0:k]
+periodic(d,k) = Operator{prectype(d)}[Evaluation(d,first,i)-Evaluation(d,last,i) for i=0:k]
 
 
 
