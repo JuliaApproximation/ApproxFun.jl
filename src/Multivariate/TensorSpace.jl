@@ -387,7 +387,7 @@ function *{SS<:TensorSpace,TT}(T::TransformPlan{TT,SS,false},v::Vector)
 end
 
 
-function plan_transform(sp::TensorSpace,::Type{T},n::Integer) where {T}
+function plan_transform{T}(sp::TensorSpace,::Type{T},n::Integer)
     NM=n
     if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
         N,M=dimension(sp[1]),dimension(sp[2])
