@@ -39,7 +39,7 @@ end
 
 function PlusOperator(ops::Vector)
     # calculate bandinds
-    b1,b2=0,0
+    b1,b2=720,-720  # approximates ∞,-∞
     for op in ops
         br=bandinds(op)
         b1=min(br[1],b1)

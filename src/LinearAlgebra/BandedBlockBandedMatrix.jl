@@ -15,9 +15,12 @@ type BandedBlockBandedMatrix{T,RI,CI} <: AbstractBlockBandedMatrix{T,BandedMatri
     colblocks::Vector{Int}
 
     function (::Type{BandedBlockBandedMatrix{T,RI,CI}}){T,RI,CI}(data::Matrix{T},l,u,λ,μ,rows,cols)
-        @assert size(data,1) == λ+μ+1
-        @assert size(data,2) == (l+u+1)*sum(cols)
-        new{T,RI,CI}(data,l,u,λ,μ,rows,cols,blocklookup(rows),blocklookup(cols))
+        if (size(data,1) ≠ λ+μ+1  && !(size(data,1) == 0 && -λ > μ)) ||
+            (size(data,2) ≠ (l+u+1)*sum(cols) && !(size(data,2) == 0 && -l > u))
+            error("Data matrix must have number rows equal to number of bands")
+        else
+            new{T,RI,CI}(data,l,u,λ,μ,rows,cols,blocklookup(rows),blocklookup(cols))
+        end
     end
 end
 
@@ -25,12 +28,12 @@ BandedBlockBandedMatrix(data::Matrix,l,u,λ,μ,rows,cols) =
     BandedBlockBandedMatrix{eltype(data),typeof(rows),typeof(cols)}(data,l,u,λ,μ,rows,cols)
 
 BandedBlockBandedMatrix{T}(::Type{T},l,u,λ,μ,rows,cols) =
-    BandedBlockBandedMatrix(Matrix{T}(λ+μ+1,(l+u+1)*sum(cols)),l,u,λ,μ,rows,cols)
+    BandedBlockBandedMatrix(Matrix{T}(max(0,λ+μ+1),max(0,(l+u+1)*sum(cols))),l,u,λ,μ,rows,cols)
 
 for FUNC in (:zeros,:rand,:ones)
     BFUNC = parse("bbb"*string(FUNC))
     @eval function $BFUNC{T}(::Type{T},l,u,λ,μ,rows,cols)
-        data = $FUNC(T,λ+μ+1,(l+u+1)*sum(cols))::Matrix{T}
+        data = $FUNC(T,max(0,λ+μ+1),max(0,(l+u+1)*sum(cols)))::Matrix{T}
         BandedBlockBandedMatrix(data,l,u,λ,μ,rows,cols)
     end
 end

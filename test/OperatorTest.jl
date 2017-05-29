@@ -263,3 +263,11 @@ f=(1-x^2)*exp(x)
 u=[B;C]\[0.;0.;f]
 
 @test u ≈ f
+
+
+
+
+## Test Zero operator has correct bandinds
+
+Z=ApproxFun.ZeroOperator(Chebyshev())
+@test ApproxFun.bandinds(Z) == ApproxFun.bandinds(Z+Z)
