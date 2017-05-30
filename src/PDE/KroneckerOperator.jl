@@ -286,6 +286,7 @@ function Derivative{SV,DD<:BivariateDomain}(S::TensorSpace{SV,DD},order::Vector{
 end
 
 
+DefiniteIntegral(S::TensorSpace) = DefiniteIntegralWrapper(mapreduce(DefiniteIntegral,⊗,S.spaces))
 
 
 
