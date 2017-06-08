@@ -80,3 +80,8 @@ r=ApproxFun.sample(f,5000)
 #We can compare the histogram to the 1-point correlation
 g=sum(f,1)/sum(f)
 @test  g(0.1) ≈ 0.2004758624973169
+
+# check bisection inv
+f = Fun(x -> exp(-x^2/2),-5..5)
+g = cumsum(f)
+@test g(ApproxFun.bisectioninv(g,0.5)) ≈ 0.5
