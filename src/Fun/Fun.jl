@@ -493,6 +493,20 @@ end
 
 ## broadcasting
 
+
+Base.Broadcast._containertype(::Type{<:Fun}) = Fun
+
+Base.Broadcast.promote_containertype(::Type{Fun}, ::Type{Fun}) = Fun
+Base.Broadcast.promote_containertype(::Type{Array}, ::Type{Fun}) = Array
+Base.Broadcast.promote_containertype(::Type{Fun}, ::Type{Array}) = Array
+Base.Broadcast.promote_containertype(::Type{Fun}, ct) = Fun
+Base.Broadcast.promote_containertype(ct, ::Type{Fun}) = Fun
+
+
+
+
+Base.Broadcast.broadcast_c(op,
+
 broadcast(op,f::Fun) = Fun(x -> op(f(x)), domain(f))
 broadcast(op,f::Fun,c::Number) = Fun(x -> op(f(x),c), domain(f))
 broadcast(op,c::Number,f::Fun) = Fun(x -> op(c,f(x)), domain(f))
