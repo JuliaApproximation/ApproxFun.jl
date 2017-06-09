@@ -385,11 +385,7 @@ end
 # op(K,f) acts as operating in the y variable.
 
 for op = (:*,:/)
-    @eval ($op)(f::Fun{S,T},A::Vector{Fun{U,V,VT}}) where {S,T,U,V,VT} =
-        map(a->($op)(f,a),A)
     @eval ($op)(f::Fun,K::LowRankFun) = LowRankFun(($op)(f,K.A),K.B)
-    @eval ($op)(B::Vector{Fun{U,V,VT}},f::Fun{S,T}) where {S,T,U,V,VT} =
-        map(b->($op)(b,f),B)
     @eval ($op)(K::LowRankFun,f::Fun) = LowRankFun(K.A,($op)(K.B,f))
 end
 
