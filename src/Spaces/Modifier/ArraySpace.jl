@@ -103,6 +103,9 @@ Base.getindex(f::Fun{DSS},k::Integer) where {DSS<:ArraySpace} = component(f,k)
 Base.getindex{S,DD,RR}(f::Fun{MatrixSpace{S,DD,RR}},k::Integer,j::Integer) =
     f[k+stride(f,2)*(j-1)]
 
+Base.getindex(f::Fun{DSS},kj::CartesianIndex{1}) where {DSS<:ArraySpace} = f[kj[1]]
+Base.getindex(f::Fun{DSS},kj::CartesianIndex{2}) where {DSS<:ArraySpace} = f[kj[1],kj[2]]
+
 
 function Fun{S,V,VV,DD,RR}(A::AbstractArray{Fun{VectorSpace{S,DD,RR},V,VV},2})
     @assert size(A,1)==1

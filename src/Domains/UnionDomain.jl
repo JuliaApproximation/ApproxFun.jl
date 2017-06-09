@@ -47,6 +47,10 @@ Base.union(d1::EmptyDomain,d2::EmptyDomain) = d1
 Base.union(d1::EmptyDomain,d2::Domain) = d2
 Base.union(d1::Domain,d2::EmptyDomain) = d1
 
+Base.union(d1::AnyDomain,d2::AnyDomain) = d1
+Base.union(d1::AnyDomain,d2::Domain) = d2
+Base.union(d1::Domain,d2::AnyDomain) = d1
+
 function Base.union(d1::Domain,d2::Domain)
     if d1==d2
         return d1
