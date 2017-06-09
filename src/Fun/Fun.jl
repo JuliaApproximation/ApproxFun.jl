@@ -492,7 +492,32 @@ for op in (:+,:-,:*,:/,:^)
 end
 
 ## broadcasting
-
+# for broadcasting, we support broadcasting over `Fun`s, e.g.
+#
+#       exp.(f) is equivalent to Fun(x->exp(f(x)),domain(f)),
+#       exp.(f .+ g) is equivalent to Fun(x->exp(f(x)+g(x)),domain(f) ∪ domain(g)),
+#       exp.(f .+ 2) is equivalent to Fun(x->exp(f(x)+2),domain(f)),
+#
+# When we are broadcasting over arrays and scalar Fun's together,
+# it broadcasts over the Array and treats the scalar Fun's as constants, so will not
+# necessarily call the constructor:
+#
+#       exp.( x .+ [1,2,3]) is equivalent to [exp(x + 1),exp(x+2),exp(x+3)]
+#
+# When broadcasting over Fun's with array values, it treats them like Fun's:
+#
+#   exp.( [x;x]) throws an error as it is equivalent to Fun(x->exp([x;x](x)),domain(f))
+#
+# This is consistent with the deprecation thrown by exp.([[1,2],[3,4]). Note that
+#
+#   exp.( [x,x]) is equivalent to [exp(x),exp(x)]
+#
+# does not throw the same error. When array values are mixed with arrays, the Array
+# takes presidence:
+#
+#   exp.([x;x] .+ [x,x]) is equivalent to exp.(Array([x;x]) .+ [x,x])
+#
+# This presidence is picked by the `promote_containertype` overrides.
 
 Base.Broadcast._containertype(::Type{<:Fun}) = Fun
 
@@ -502,17 +527,22 @@ Base.Broadcast.promote_containertype(::Type{Fun}, ::Type{Array}) = Array
 Base.Broadcast.promote_containertype(::Type{Fun}, ct) = Fun
 Base.Broadcast.promote_containertype(ct, ::Type{Fun}) = Fun
 
+# Treat Array Fun's like Arrays when broadcasting with an Array
+# note this only gets called when containertype returns Array,
+# so will not be used when no argument is an Array
+Base.Broadcast.broadcast_indices(::Type{Fun}, A) = indices(A)
 
+# This makes sure the result of the broadcast is typed correctly
+Base.Broadcast._broadcast_getindex_eltype(::Type{Fun}, A) = typeof(A)
 
+# TODO: use generated function to improve the following
+function Base.Broadcast.broadcast_c(f, ::Type{Fun}, A, Bs...)
+    args = (Fun(A),Fun.(Bs)...)  # convert all to funs
+    d = mapreduce(domain,∪,args)  # find joint domain, note that AnyDomain is olsot
+    Fun(x -> f.(map(fun -> fun(x),args)...), d)
+end
 
-Base.Broadcast.broadcast_c(op,
-
-broadcast(op,f::Fun) = Fun(x -> op(f(x)), domain(f))
-broadcast(op,f::Fun,c::Number) = Fun(x -> op(f(x),c), domain(f))
-broadcast(op,c::Number,f::Fun) = Fun(x -> op(c,f(x)), domain(f))
-broadcast(op,f::Fun,g::Fun) = Fun(x -> op(f(x),g(x)), domain(f) ∪ domain(g))
-
-
+# TODO: Why two overrides?
 function broadcast!(op,dest::Fun,f::Fun)
     if domain(f) ≠ domain(dest)
         throw(ArgumentError("Domain of right-hand side incompatible with destination"))
