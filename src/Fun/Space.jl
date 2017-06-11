@@ -94,14 +94,12 @@ reverseorientation(S::Space) = setdomain(S,reverse(domain(S)))
 
 struct UnsetSpace <: AmbiguousSpace end
 struct NoSpace <: AmbiguousSpace end
-struct ZeroSpace <: AmbiguousSpace end   # ZeroSpace is compatible with all spaces
 
+isambiguous(::) = false
+isambiguous(::Type{UnsetNumber}) = true
+isambiguous(::Type{Array{T}}) where {T} = isambiguous(T)
+isambiguous(sp::Space) = isambiguous(rangetype(sp))
 
-dimension(::ZeroSpace) = 0
-
-
-isambiguous(::)=false
-isambiguous(::AmbiguousSpace) = true
 
 #TODO: should it default to canonicalspace?
 points(d::Space,n) = points(domain(d),n)
@@ -117,7 +115,6 @@ canonicaldomain(S::Space) = canonicaldomain(domain(S))
 spacescompatible{D<:Space}(f::D,g::D) = error("Override spacescompatible for "*string(D))
 spacescompatible(::UnsetSpace,::UnsetSpace) = true
 spacescompatible(::NoSpace,::NoSpace) = true
-spacescompatible(::ZeroSpace,::ZeroSpace) = true
 spacescompatible(f,g) = false
 ==(A::Space,B::Space) = spacescompatible(A,B)&&domain(A)==domain(B)
 spacesequal(A::Space,B::Space) = A==B
@@ -163,10 +160,9 @@ for FUNC in (:conversion_rule,:maxspace_rule,:union_rule)
 end
 
 
+
 for FUNC in (:conversion_type,:maxspace)
     @eval begin
-        $FUNC(::ZeroSpace,::UnsetSpace) = UnsetSpace()
-        $FUNC(::UnsetSpace,::ZeroSpace) = UnsetSpace()
         $FUNC(a::UnsetSpace,b::UnsetSpace) = a
         $FUNC(a::UnsetSpace,b::Space) = b
         $FUNC(a::Space,b::UnsetSpace) = a
@@ -491,9 +487,29 @@ for OP in (:<,:(<=),:>,:(>=),:(Base.isless))
     @eval $OP(a::Space,b::Space)=$OP(string(a),string(b))
 end
 
-
-
 ## Important special spaces
+
+
+struct ZeroSpace{DD,R} <: Space{DD,R}
+    domain::DD
+    ZeroSpace{DD,R}(d::DD) where {DD,R} = new(d)
+    ZeroSpace{DD,R}(d::AnyDomain) where {DD,R} = new(DD(d))
+end
+
+
+ZeroSpace(S::Space) = ZeroSpace{domaintype(S),rangetype(S)}(domain(S))
+ZeroSpace() = ZeroSpace{AnyDomain,UnsetNumber}(AnyDomain())
+domain(S::ZeroSpace) = S.domain
+
+dimension(::ZeroSpace) = 0
+
+spacescompatible(::ZeroSpace,::ZeroSpace) = true
+for FUNC in (:conversion_type,:maxspace)
+    @eval begin
+        $FUNC(::ZeroSpace,::UnsetSpace) = UnsetSpace()
+        $FUNC(::UnsetSpace,::ZeroSpace) = UnsetSpace()
+    end
+end
 
 
 """
@@ -508,6 +524,7 @@ end
 
 ConstantSpace(d::Domain) = ConstantSpace{typeof(d),real(prectype(d))}(d)
 ConstantSpace() = ConstantSpace(AnyDomain())
+ConstantSpace(::Type{N}) where {N<:Number} = ConstantSpace{AnyDomain,real(N)}(AnyDomain())
 
 isconstspace(::ConstantSpace) = true
 

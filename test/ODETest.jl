@@ -58,8 +58,8 @@ D=Derivative(domain(f))
 
 ##Test versus exp
 
-f=Fun(x->-x.^2)
-g=Fun(t->exp(-t.^2))
+f=Fun(x->-x^2)
+g=Fun(t->exp(-t^2))
 
 @test norm(Fun(t->exp(f(t)))-g)<= 100eps()
 
@@ -75,8 +75,9 @@ u=[Bm,Derivative(domain(f)) - fp]\[exp(f(domain(f).a)),0.];
 f=Fun(exp);
 D=Derivative(domain(f));
 w=10.;
-B=ApproxFun.SpaceOperator(BasisFunctional(floor(w)),Chebyshev(),ApproxFun.ConstantSpace());
+B=ApproxFun.SpaceOperator(BasisFunctional(floor(w)),Chebyshev(),ApproxFun.ConstantSpace(Float64));
 A=[B;D+1im*w*I];
+
 @time u = A\[0.,f];
 @test (u(1.)exp(1im*w)-u(-1.)exp(-1im*w)) ≈ (-0.18575766879136255 + 0.17863980562549928im)
 

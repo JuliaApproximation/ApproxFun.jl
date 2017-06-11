@@ -97,9 +97,9 @@ struct ZeroOperator{T,S,V} <: Operator{T}
 end
 
 ZeroOperator{T}(::Type{T},d::Space,v::Space) = ZeroOperator{T,typeof(d),typeof(v)}(d,v)
-ZeroOperator{T}(::Type{T},d::Space) = ZeroOperator(T,d,ZeroSpace())
+ZeroOperator{T}(::Type{T},S::Space) = ZeroOperator(T,S,ZeroSpace(S))
 ZeroOperator(d::Space,v::Space) = ZeroOperator(Float64,d,v)
-ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace())
+ZeroOperator(S::Space) = ZeroOperator(S,ZeroSpace(S))
 ZeroOperator() = ZeroOperator(UnsetSpace(),ZeroSpace())
 ZeroOperator{T}(::Type{T}) = ZeroOperator(T,UnsetSpace(),ZeroSpace())
 

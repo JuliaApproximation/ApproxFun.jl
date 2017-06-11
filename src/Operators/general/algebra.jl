@@ -556,7 +556,7 @@ function *(f::Fun,A::Operator)
     if isafunctional(A)
         if bandwidth(A)<Inf
             # We get a banded operator, so we take that into account
-            TimesOperator(Multiplication(f,ConstantSpace()),A)
+            TimesOperator(Multiplication(f,rangespace(A)),A)
         else
             LowRankOperator(f,A)
         end

@@ -229,9 +229,9 @@ DefiniteLineIntegral(d::UnionDomain) =
 
 
 DefiniteIntegral(sp::PiecewiseSpace) =
-    DefiniteIntegralWrapper(InterlaceOperator(hcat(map(DefiniteIntegral,sp.spaces)...),sp,ConstantSpace()))
+    DefiniteIntegralWrapper(InterlaceOperator(hcat(map(DefiniteIntegral,sp.spaces)...),sp,ConstantSpace(rangetype(sp))))
 DefiniteLineIntegral(sp::PiecewiseSpace) =
-    DefiniteLineIntegralWrapper(InterlaceOperator(hcat(map(DefiniteLineIntegral,sp.spaces)...),sp,ConstantSpace()))
+    DefiniteLineIntegralWrapper(InterlaceOperator(hcat(map(DefiniteLineIntegral,sp.spaces)...),sp,ConstantSpace(rangetype(sp))))
 
 ## TensorSpace of two PiecewiseSpaces
 

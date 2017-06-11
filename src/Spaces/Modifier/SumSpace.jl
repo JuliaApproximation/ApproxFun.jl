@@ -97,6 +97,8 @@ block(sp::DirectSumSpace,k::Int)::Block = findfirst(x->x≥k,cumsum(blocklengths
 
 
 
+isambiguous(sp::DirectSumSpace) = any(isambiguous,components(sp))
+
 
 struct SumSpace{SV,D,R} <: DirectSumSpace{SV,D,R}
     spaces::SV

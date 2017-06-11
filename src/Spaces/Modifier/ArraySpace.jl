@@ -59,8 +59,6 @@ dimension(AS::ArraySpace) = mapreduce(dimension,+,AS.spaces)
 domain(AS::ArraySpace) = domain(AS.spaces[1])
 setdomain(A::ArraySpace,d::Domain) = ArraySpace(map(sp->setdomain(sp,d),A.spaces))
 
-
-isambiguous(AS::ArraySpace) = isambiguous(AS.spaces[1])
 ## transforms
 
 
@@ -212,4 +210,4 @@ Base.ones(A::ArraySpace) = Fun(ones.(spaces(A)))
 ## EuclideanSpace
 
 const EuclideanSpace{RR} = VectorSpace{ConstantSpace{AnyDomain},AnyDomain,RR}
-EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(),n)
+EuclideanSpace(n::Integer) = ArraySpace(ConstantSpace(Float64),n)

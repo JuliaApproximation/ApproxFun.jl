@@ -49,7 +49,7 @@ end
 
 
 
-Fun(c::Number) = Fun(ConstantSpace(),[c])
+Fun(c::Number) = Fun(ConstantSpace(typeof(c)),[c])
 Fun(c::Number,d::ConstantSpace) = Fun(d,[c])
 
 dimension(::ConstantSpace) = 1

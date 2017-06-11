@@ -50,7 +50,7 @@ hasconstblocks(A::Operator) = hasconstblocks(domainspace(A)) && hasconstblocks(r
 macro functional(FF)
     quote
         Base.size(A::$FF,k::Integer) = k==1?1:∞
-        ApproxFun.rangespace(::$FF) = ConstantSpace()
+        ApproxFun.rangespace(F::$FF) = ConstantSpace(eltype(F))
         ApproxFun.isafunctional(::$FF) = true
         ApproxFun.blockbandinds(A::$FF) = 0,hastrivialblocks(domainspace(A))?bandinds(A,2):∞
         function ApproxFun.defaultgetindex(f::$FF,k::Integer,j::Integer)
@@ -613,7 +613,7 @@ Base.promote_rule{N<:Number}(::Type{UniformScaling{N}},::Type{Operator}) =
     Operator{N}
 Base.promote_rule{S,N<:Number,VN}(::Type{Fun{S,N,VN}},::Type{Operator}) = Operator{N}
 Base.promote_rule{N<:Number,O<:Operator}(::Type{N},::Type{O}) =
-    Operator{promote_type(N,eltype(O))}
+    Operator{promote_type(float(N),eltype(O))}  # float because numbers are promoted to Fun
 Base.promote_rule{N<:Number,O<:Operator}(::Type{UniformScaling{N}},::Type{O}) =
     Operator{promote_type(N,eltype(O))}
 Base.promote_rule{S,N<:Number,O<:Operator,VN}(::Type{Fun{S,N,VN}},::Type{O}) =

@@ -274,3 +274,10 @@ u=[B;C]\[0.;0.;f]
 
 Z=ApproxFun.ZeroOperator(Chebyshev())
 @test ApproxFun.bandinds(Z) == ApproxFun.bandinds(Z+Z)
+
+
+## Issue 407
+
+B = [1 ldirichlet()]
+A = ApproxFun.interlace(B)
+@test A*[1;x] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])
