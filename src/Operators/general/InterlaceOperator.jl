@@ -442,7 +442,7 @@ promotedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
     InterlaceOperator(map(op->promotedomainspace(op,sp),A.ops))
 
 
-interlace{T<:Operator}(A::AbstractArray{T}) = length(A)==1?A[1]:InterlaceOperator(A)
+interlace{T<:Operator}(A::AbstractArray{T}) = InterlaceOperator(A)
 
 
 
