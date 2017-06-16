@@ -1193,3 +1193,22 @@ function pad(v::AbstractArray,::Infinity{Bool})
         flatten((v,ZeroRepeated(Int)))
     end
 end
+
+
+## nocat
+vnocat(A...) = [A...]
+hnocat(A...) = reshape(vnocat(A...),(1,length(A)))
+hvnocat(dims,A...) = reshape(vnocat(A...),dims)
+
+macro nocat(x)
+    ex = expand(x)
+    if ex.args[1] == :vcat
+        ex.args[1] = :vnocat
+    elseif ex.args[1] == :hcat
+        ex.args[1] = :hnocat
+    else
+        @assert ex.args[1] == :hvcat
+        ex.args[1] = :hvnocat
+    end
+    ex
+end

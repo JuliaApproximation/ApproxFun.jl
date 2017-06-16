@@ -64,8 +64,8 @@ L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
 testbandedblockbandedoperator(L)
 
-A=[dirichlet(dx)⊗eye(dy);
-        eye(dx)⊗dirichlet(dy);
+A=[Dirichlet(dx)⊗eye(dy);
+        eye(dx)⊗Dirichlet(dy);
         neumann(dx)⊗eye(dy);
         eye(dx)⊗neumann(dy);
          L]
@@ -305,8 +305,8 @@ for KO in [eye(S[1])⊗rdirichlet(S[1]),rdirichlet(S[1])⊗eye(S[2])]
 end
 
 
-B=[dirichlet(S[1])⊗eye(S[2]);
-   eye(S[1])⊗dirichlet(S[2]);
+B=[Dirichlet(S[1])⊗eye(S[2]);
+   eye(S[1])⊗Dirichlet(S[2]);
    Laplacian()]
 
 u=\(B,[ones(4);0];tolerance=1E-14)
@@ -358,8 +358,8 @@ Dx=Derivative(dx);Dy=Derivative(dy)
 L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
 
 
-A=[dirichlet(dx)⊗eye(dy);
-        eye(dx)⊗dirichlet(dy);
+A=[Dirichlet(dx)⊗eye(dy);
+        eye(dx)⊗Dirichlet(dy);
         neumann(dx)⊗eye(dy);
         eye(dx)⊗neumann(dy);
          L]

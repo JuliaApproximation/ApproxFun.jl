@@ -1,4 +1,4 @@
-export Evaluation,ivp,bvp,Dirichlet
+export Evaluation,ivp,bvp,Dirichlet,Neumann
 
 ## Evaluation constructors
 
@@ -114,15 +114,12 @@ end
 evaluate(d::Domain,x) = Evaluation(d,x)
 ldiffbc(d,k) = Evaluation(d,first,k)
 rdiffbc(d,k) = Evaluation(d,last,k)
-diffbcs(d,k) = [ldiffbc(d,k),rdiffbc(d,k)]
 
 ldirichlet(d) = ldiffbc(d,0)
 rdirichlet(d) = rdiffbc(d,0)
 lneumann(d) = ldiffbc(d,1)
 rneumann(d) = rdiffbc(d,1)
 
-dirichlet(d) = diffbcs(d,0)
-neumann(d) = diffbcs(d,1)
 
 ivp(d,k) = Operator{prectype(d)}[ldiffbc(d,i) for i=0:k-1]
 bvp(d,k) = vcat(Operator{prectype(d)}[ldiffbc(d,i) for i=0:div(k,2)-1],
@@ -132,15 +129,15 @@ periodic(d,k) = Operator{prectype(d)}[Evaluation(d,first,i)-Evaluation(d,last,i)
 
 
 
-for op in (:rdirichlet,:ldirichlet,:dirichlet,:lneumann,:rneumann,:neumann,:ivp,:bvp)
+for op in (:rdirichlet,:ldirichlet,:lneumann,:rneumann,:ivp,:bvp)
     @eval begin
-        $op()=$op(UnsetSpace())
-        $op(::PeriodicDomain)=[]
+        $op() = $op(UnsetSpace())
+        $op(::PeriodicDomain) = error("Periodic domains do not have boundaries")
     end
 end
 
-for op in (:ldiffbc,:rdiffbc,:diffbcs,:ivp,:bvp,:periodic)
-    @eval $op(k::Integer)=$op(UnsetSpace(),k)
+for op in (:ldiffbc,:rdiffbc,:ivp,:bvp,:periodic)
+    @eval $op(k::Integer) = $op(UnsetSpace(),k)
 end
 
 
@@ -174,8 +171,10 @@ DirichletWrapper(B::Operator,λ=0) = DirichletWrapper{typeof(B),eltype(B)}(B,λ)
 Base.convert{T}(::Type{Operator{T}},B::DirichletWrapper) =
     DirichletWrapper(Operator{T}(B.op),B.order)::Operator{T}
 
+# Default is to use diffbca
+Dirichlet(sp::Space,λ) = DirichletWrapper([ldiffbc(sp,λ);rdiffbc(sp,λ)],λ)
+Dirichlet(sp::Space) = Dirichlet(sp,0)
 
-Dirichlet(sp::Space,λ=0) = error("Override getindex for Dirichlet($sp,$λ)")
 Dirichlet(d::Domain,λ...) = Dirichlet(Space(d),λ...)
 Neumann(sp::Space) = Dirichlet(sp,1)
 Neumann(d::Domain) = Neumann(Space(d))

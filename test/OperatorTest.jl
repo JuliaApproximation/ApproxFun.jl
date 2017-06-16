@@ -249,9 +249,9 @@ S=Chebyshev()
 C=eye(S)[3:end,:]
 @test ApproxFun.domaindimension(domainspace(C)) == 1
 
-B=dirichlet(S)
+B=Dirichlet(S)
 
-Ai=ApproxFun.interlace([B;C])
+Ai=[B;C]
 @test ApproxFun.colstop(Ai,1) == 2
 
 x=Fun()

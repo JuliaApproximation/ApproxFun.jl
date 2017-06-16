@@ -21,12 +21,12 @@ end
 
 S=Chebyshev()
 @time for io in (
-        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)]),
-        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)]),
-        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())]),
-        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)]),
-        InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))]),
-        InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))]))
+        InterlaceOperator([Dirichlet(S);Derivative(Chebyshev());lneumann(S)]),
+        InterlaceOperator([Dirichlet(S);Derivative(Chebyshev())+Fun(cos);lneumann(S)]),
+        InterlaceOperator([Dirichlet(S);Derivative(Chebyshev())]),
+        InterlaceOperator([Dirichlet(S);Derivative(Chebyshev())+Fun(cos)]),
+        InterlaceOperator([Derivative(Chebyshev());Dirichlet(S)]),
+        InterlaceOperator([Derivative(Chebyshev())+Fun(cos);Dirichlet(S)]))
     testraggedbelowoperator(io)
 end
 

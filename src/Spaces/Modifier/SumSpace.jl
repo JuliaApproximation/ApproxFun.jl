@@ -7,6 +7,8 @@ export ⊕,components,PiecewiseSpace
 # this has the property that all the coefficients of a block of a subspace
 # are grouped together, starting with the first bloc
 #
+# TODO: cache sums
+
 
 struct BlockInterlacer{DMS<:Tuple}
     blocks::DMS
@@ -21,7 +23,7 @@ Base.eltype(it::BlockInterlacer) = Tuple{Int,Int}
 
 dimensions(b::BlockInterlacer) = map(sum,b.blocks)
 dimension(b::BlockInterlacer,k) = sum(b.blocks[k])
-Base.length(b::BlockInterlacer) = mapreduce(length,+,b.blocks)
+Base.length(b::BlockInterlacer) = mapreduce(sum,+,b.blocks)
 
 # the state is always (whichblock,curblock,cursubblock,curcoefficients)
 Base.start(it::BlockInterlacer) = (1,1,map(start,it.blocks),ntuple(zero,length(it.blocks)))
@@ -31,7 +33,7 @@ function Base.next(it::BlockInterlacer,st)
 
     if N>length(it.blocks)
         # increment to next block
-        blkst = map((blit,blst)->done(blit,blst)?blst:next(blit,blst)[2],it.blocks,blkst)
+        blkst = map((blit,blst)->done(blit,blst) ? blst : next(blit,blst)[2],it.blocks,blkst)
         return next(it,(1,1,blkst,lngs))
     end
 
@@ -56,7 +58,7 @@ end
 # are all Ints, so finite dimensional
 function Base.done(it::BlockInterlacer,st)
     for k=1:length(it.blocks)
-        if st[end][k] < length(it.blocks[k])
+        if st[end][k] < sum(it.blocks[k])
             return false
         end
     end

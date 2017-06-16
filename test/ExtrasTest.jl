@@ -48,7 +48,7 @@ end
 
 d = Interval(0.,π)
 A=Derivative(d)^2
-λ=eigvals([dirichlet(d);A],100)
+λ=eigvals([Dirichlet(d);A],100)
 @test sort(λ)[end-5:end] ≈ -(-6:-1).^2
 
 
