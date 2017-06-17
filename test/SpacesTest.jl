@@ -8,19 +8,15 @@ testtransforms(ChebyshevDirichlet{1,1}())
 
 d=Interval()
 sp=ChebyshevDirichlet{1,1}(d)
-B=dirichlet(sp)
+B=Dirichlet(sp)
 D=Derivative(d)
 L=D^2+I
+@test B[1:2,1:4] ≈ [1 -1 0 0; 1 1 0 0]
 
-@test B[1][1:3] ≈ [1.;-1.;0.]
-@test B[2][1:3] ≈ [1.;1.;0.]
-@test B[2][1:1,1:3] ≈ [1. 1. 0.]
+@test csc(2)sin(1 - 0.1)  ≈ ([Dirichlet(d);L]\[[1.,0.],0.])(0.1)
+@test csc(2)sin(1 - 0.1)  ≈ ([B;L]\[[1.,0.],0.])(0.1)
 
-
-@test csc(2)sin(1 - 0.1)  ≈ ([dirichlet(d);L]\[1.,0.,0.])(0.1)
-@test csc(2)sin(1 - 0.1)  ≈ ([B;L]\[1.,0.,0.])(0.1)
-
-@test norm(([B;L]\[1.,0,0])-([dirichlet(d);L]\[1.,0,0])) <10eps()
+@test norm(([B;L]\[[1.,0],0])-([Dirichlet(d);L]\[[1.,0],0])) <10eps()
 
 
 
@@ -34,18 +30,20 @@ testtransforms(sp;minpoints=2)
 D=Derivative(sp)
 testbandedoperator(D)
 
-B=dirichlet(sp)
+B=[Dirichlet(sp);continuity(sp,0:1)]
 u=[B;
-    D^2]\Any[[1;zeros(size(B,1)-1)],0];
-u2=[dirichlet();Derivative(Chebyshev())^2]\[1.,0,0]
+    D^2]\Any[[1,0],zeros(2),0];
+u2=[Dirichlet();Derivative(Chebyshev())^2]\[[1.,0],0]
 @test u(0.) ≈ u2(0.)
 
 x=Fun(identity,Domain(-10..15) \ [0,1])
 sp=space(x)
 D=Derivative(sp)
-B=dirichlet(sp)
+B=Dirichlet(sp)
+
 u=[B;
-    D^2-x]\Any[[airyai(-10.);zeros(size(B,1)-1)],0];
+    continuity(sp,0:1);
+    D^2-x]\[[airyai(-10.),0],zeros(4),0];
 
 @test u(0.) ≈ airyai(0.)
 

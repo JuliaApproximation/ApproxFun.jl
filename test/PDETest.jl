@@ -43,8 +43,7 @@ testblockbandedoperator(B)
 testbandedblockbandedoperator(Laplacian(d)+0.0I)
 
 A=[Dirichlet(d);Laplacian(d)+0.0I]
-
-testblockbandedoperator(ApproxFun.interlace(A))
+testblockbandedoperator(A)
 
 @time u=A\[g,0.]
 
@@ -71,18 +70,17 @@ println("    Bilaplacian tests")
 dx=dy=Interval()
 d=dx*dy
 Dx=Derivative(dx);Dy=Derivative(dy)
-L=Dx^4⊗I+2*Dx^2⊗Dy^2+I⊗Dy^4
+L=Dx^4⊗I + 2*Dx^2⊗Dy^2 + I⊗Dy^4
 
 testbandedblockbandedoperator(L)
 
-A=[dirichlet(dx)⊗eye(dy);
-        eye(dx)⊗dirichlet(dy);
-        neumann(dx)⊗eye(dy);
-        eye(dx)⊗neumann(dy);
+A=[Dirichlet(dx) ⊗ eye(dy);
+        eye(dx)  ⊗ Dirichlet(dy);
+        Neumann(dx) ⊗ eye(dy);
+        eye(dx) ⊗ Neumann(dy);
          L]
 
-
-@time u=\(A,[ones(4);zeros(5)];tolerance=1E-5)
+@time u=\(A,[[1,1],[1,1],[0,0],[0,0],0];tolerance=1E-5)
 @test u(0.1,0.2) ≈ 1.0
 
 
@@ -94,10 +92,11 @@ println("    Periodic x Interval tests")
 d=PeriodicInterval()*Interval()
 
 u_ex=Fun((x,y)->real(cos(x+im*y)),d)
-@test ≈(u_ex(1.0,0.1),real(cos(1.0+im*0.1));atol=10eps())
-
+@test u_ex(1.0,0.1) ≈ real(cos(1.0+im*0.1)) atol=10eps()
 
 B=Dirichlet(Space(d))
+
+@test B.order == 0  # tests stupid bug
 g=Fun((x,y)->real(cos(x+im*y)),rangespace(B))  # boundary data
 
 @test norm((B*u_ex-g).coefficients) < 100eps()

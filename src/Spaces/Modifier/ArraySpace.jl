@@ -120,12 +120,19 @@ end
 
 # convert a vector to a Fun with ArraySpace
 
-function Fun{TT,SS,n}(v::AbstractArray{TT,n},sp::ArraySpace{SS,n})
+
+
+function Fun(v::AbstractVector,sp::Space{D,R}) where {D,R<:AbstractVector}
     if size(v) ≠ size(sp)
         throw(DimensionMismatch("Cannot convert $v to a Fun in space $sp"))
     end
-    Fun(map(Fun,v,sp.spaces))
+    Fun(map(Fun,v,components(sp)))
 end
+
+Fun(v::AbstractArray{TT,n},sp::Space{D,R}) where {D,R<:AbstractArray{SS,n}} where {TT,SS,n} =
+    reshape(Fun(vec(v),vec(sp)),size(sp))
+
+
 coefficients{TT,SS,n}(v::AbstractArray{TT,n},sp::ArraySpace{SS,n}) = coefficients(Fun(v,sp))
 
 

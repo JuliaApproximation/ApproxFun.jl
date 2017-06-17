@@ -194,11 +194,11 @@ x,y=components(x),components(y)
 g=[real(exp(x[1]-1im));0.0y[2];real(exp(x[3]+1im));real(exp(-1+1im*y[4]))]
 B=[eye(dx)⊗ldirichlet(dy);ldirichlet(dx)⊗eye(dy);eye(dx)⊗rdirichlet(dy);rneumann(dx)⊗eye(dy)]
 
-@test Fun(g[1],rangespace(B[1]))(-0.1,-1.0) ≈ g[1](-0.1,-1.0)
-@test Fun(g[3],rangespace(B[3]))(-0.1,1.0)  ≈ g[3](-0.1,1.0)
+@test Fun(g[1],component(rangespace(B),1))(-0.1,-1.0) ≈ g[1](-0.1,-1.0)
+@test Fun(g[3],component(rangespace(B),3))(-0.1,1.0)  ≈ g[3](-0.1,1.0)
 
 
-A=ApproxFun.interlace([B;Δ])
+A=[B;Δ]
 
 @test eltype([g;0.0]) == Float64
 g2=Fun([g;0.0],rangespace(A))

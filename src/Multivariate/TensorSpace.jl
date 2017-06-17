@@ -291,7 +291,7 @@ blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),typeof(mapreduce(domain,*,sp)),
-                mapreduce(s->eltype(domain(s)),promote_type,sp)}(sp)
+                mapreduce(rangetype,(a,b)->Base.promote_op(*,a,b),sp)}(sp)
 
 
 dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)
@@ -318,6 +318,21 @@ Space(sp::ProductDomain) = TensorSpace(sp)
 *(A::Space,B::Space) = A⊗B
 
 
+## TODO: generalize
+components(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    [s ⊗ sp[2] for s in components(sp[1])]
+
+components(sp::TensorSpace{Tuple{S1,S2}}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    [sp[1] ⊗ s for s in components(sp[2])]
+
+Base.size(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    size(sp[1])
+
+Base.size(sp::TensorSpace{Tuple{S1,S2}}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    size(sp[2])
+
+
+
 # every column is in the same space for a TensorSpace
 #TODO: remove
 columnspace(S::TensorSpace,::) = S.spaces[1]
@@ -335,15 +350,15 @@ ProductSpace(spacesx::Vector,spacey) =
     ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,*,sp)),
                 mapreduce(s->eltype(domain(s)),promote_type,sp)}(spacesx,spacey)
 
-
+#TODO: This is a weird definition
 ⊗{S<:Space}(A::Vector{S},B::Space) = ProductSpace(A,B)
 domain(f::ProductSpace) = domain(f.spacesx[1])*domain(f.spacesy)
 
-Base.getindex(d::ProductSpace,k::Integer) = k==1?d.spacesx:d.spacey
+Base.getindex(d::ProductSpace,k::Integer) = k==1 ? d.spacesx : d.spacey
 
 
 space(d::AbstractProductSpace,k) = d[k]
-isambiguous(A::TensorSpace) = isambiguous(A[1])||isambiguous(A[2])
+isambiguous(A::TensorSpace) = isambiguous(A[1]) || isambiguous(A[2])
 
 
 Base.transpose(d::TensorSpace) = TensorSpace(d[2],d[1])

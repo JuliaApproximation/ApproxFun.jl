@@ -159,7 +159,7 @@ Base.convert{S,V,T}(::Type{Operator{T}},B::ConcreteDirichlet{S,V}) =
     ConcreteDirichlet{S,V,T}(B.domainspace,B.rangespace,B.order)
 
 
-struct DirichletWrapper{S,T} <: Conversion{T}
+struct DirichletWrapper{S,T} <: Dirichlet{S,T}
     op::S
     order::Int
 end
@@ -174,6 +174,7 @@ Base.convert{T}(::Type{Operator{T}},B::DirichletWrapper) =
 # Default is to use diffbca
 Dirichlet(sp::Space,λ) = DirichletWrapper([ldiffbc(sp,λ);rdiffbc(sp,λ)],λ)
 Dirichlet(sp::Space) = Dirichlet(sp,0)
+Dirichlet() = Dirichlet(UnsetSpace())
 
 Dirichlet(d::Domain,λ...) = Dirichlet(Space(d),λ...)
 Neumann(sp::Space) = Dirichlet(sp,1)
@@ -182,3 +183,5 @@ Neumann(d::Domain) = Neumann(Space(d))
 
 domainspace(B::ConcreteDirichlet) = B.domainspace
 rangespace(B::ConcreteDirichlet) = B.rangespace
+
+promotedomainspace(E::Dirichlet,sp::Space) = Dirichlet(sp,E.order)

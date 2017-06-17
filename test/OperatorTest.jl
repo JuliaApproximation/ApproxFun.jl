@@ -256,19 +256,16 @@ Ai=[B;C]
 
 x=Fun()
 f=exp(x)
-u=[B;C]\[0.;0.;f]
+u=[B;C]\[[0.,0.],f]
 
 @test abs(u(-1)) ≤ 10eps()
 @test abs(u(1)) ≤ 10eps()
 
 
 f=(1-x^2)*exp(x)
-u=[B;C]\[0.;0.;f]
+u=[B;C]\[[0.,0.],f]
 
 @test u ≈ f
-
-
-
 
 ## Test Zero operator has correct bandinds
 
