@@ -1196,19 +1196,18 @@ end
 
 
 ## nocat
-vnocat(A...) = [A...]
-hnocat(A...) = reshape(vnocat(A...),(1,length(A)))
-hvnocat(dims,A...) = reshape(vnocat(A...),dims)
-
+vnocat(A...) = Base.vect(A...)
+hnocat(A...) = Base.typed_hcat(mapreduce(typeof,promote_type,A),A...)
+hvnocat(rows,A...) = Base.typed_hvcat(mapreduce(typeof,promote_type,A),rows,A...)
 macro nocat(x)
     ex = expand(x)
     if ex.args[1] == :vcat
-        ex.args[1] = :vnocat
+        ex.args[1] = :(ApproxFun.vnocat)
     elseif ex.args[1] == :hcat
-        ex.args[1] = :hnocat
+        ex.args[1] = :(ApproxFun.hnocat)
     else
         @assert ex.args[1] == :hvcat
-        ex.args[1] = :hvnocat
+        ex.args[1] = :(ApproxFun.hvnocat)
     end
-    ex
+    esc(ex)
 end

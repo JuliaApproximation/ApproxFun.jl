@@ -36,7 +36,9 @@ A=[Dirichlet(d);Laplacian(d)]
 
 
 d=Interval()^2
-@time u=\([neumann(d);Laplacian(d)-100.0I],[ones(4);0.];tolerance=1E-12)
+
+# TODO: piecewise space
+@time u=\([Neumann(d);Laplacian(d)-100.0I],[[[1,1],[1,1]],0.];tolerance=1E-12)
 @test u(.1,.9) ≈ 0.03679861429138079
 
 
@@ -66,16 +68,20 @@ testbandedblockbandedoperator(L)
 
 A=[Dirichlet(dx)⊗eye(dy);
         eye(dx)⊗Dirichlet(dy);
-        neumann(dx)⊗eye(dy);
-        eye(dx)⊗neumann(dy);
+        Neumann(dx)⊗eye(dy);
+        eye(dx)⊗Neumann(dy);
          L]
 
 
 # Checks bug in constructor
-f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]),22)
+f=Fun((x,y)->real(exp(x+1.0im*y)),component(rangespace(A)[1],1),22)
 @test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
-f=Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]))
+f=Fun((x,y)->real(exp(x+1.0im*y)),component(rangespace(A)[1],1))
 @test f(-1.,0.1) ≈ real(exp(-1.+0.1im))
+
+rangespace(A)[1]
+rangespace(A)[1].spaces
+Fun((x,y)->[real(exp(x+1.0im*y)),real(exp(x+1.0im*y))],rangespace(A)[1])
 
 F=[Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[1]));
     Fun((x,y)->real(exp(x+1.0im*y)),rangespace(A[2]));

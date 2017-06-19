@@ -351,13 +351,13 @@ Reverse{D}(S::Fourier{D}) = ReverseWrapper(SpaceOperator(NegateEven(),S,S))
 for TYP in (:Fourier,:Laurent,:CosSpace,:SinSpace,:Taylor)
     @eval begin
         function Dirichlet(S::TensorSpace{Tuple{$TYP{PeriodicInterval{T},R},PS}},k) where {PS,T,R}
-            op = [eye(S[1])⊗Evaluation(S[2],first,k);
-                            ReverseOrientation(S[1])⊗Evaluation(S[2],last,k) ]
+            op = [eye(S.spaces[1])⊗Evaluation(S.spaces[2],first,k);
+                            ReverseOrientation(S.spaces[1])⊗Evaluation(S.spaces[2],last,k) ]
             DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),k)
         end
         function Dirichlet(S::TensorSpace{Tuple{PS,$TYP{PeriodicInterval{T},R}}},k) where {PS,T,R}
-            op = [Evaluation(S[1],first,k)⊗eye(S[2]);
-                            Evaluation(S[1],last,k)⊗ReverseOrientation(S[2]) ]
+            op = [Evaluation(S.spaces[1],first,k)⊗eye(S.spaces[2]);
+                            Evaluation(S.spaces[1],last,k)⊗ReverseOrientation(S[2]) ]
             DirichletWrapper(SpaceOperator(op,S,PiecewiseSpace(rangespace(op).spaces)),k)
         end
     end

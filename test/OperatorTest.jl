@@ -274,7 +274,6 @@ Z=ApproxFun.ZeroOperator(Chebyshev())
 
 
 ## Issue 407
-
+x = Fun()
 B = [1 ldirichlet()]
-A = ApproxFun.interlace(B)
-@test A*[1;x] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])
+@test B*[1;x] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])

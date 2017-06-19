@@ -18,13 +18,13 @@ Base.getindex(f::MatrixFun,
     Fun(Array(f)[k,j])
 
 
-
-function Base.vcat(vin::Fun...)
+const FunTypes = Union{Fun,Number}
+function Base.vcat(vin::FunTypes...)
     #  remove tuple spaces
     v=Vector{Fun}(0)
     for f in vin
         if rangetype(space(f)) <: AbstractVector
-            push!(v,vec(f)...)
+            append!(v,vec(f))
         else
             push!(v,f)
         end
@@ -35,7 +35,16 @@ function Base.vcat(vin::Fun...)
     Fun(S,interlace(v,S))
 end
 
-Base.vcat(v::Union{Fun,Number}...) = vcat(map(Fun,v)...)
+
+function Base.hcat(v::FunTypes...)
+    ff = vcat(v...)  # A vectorized version
+    ff.'
+end
+
+Base.hvcat(rows::Tuple{Vararg{Int}},v::FunTypes...) = Fun(hvnocat(rows,v...))
+
+
+
 
 function Fun{F<:Fun}(v::AbstractVector{F})
     S = Space(space.(v))
@@ -59,7 +68,10 @@ Fun(f::ArrayFun,d::Space) = Fun(f,Space(fill(d,size(space(f)))))
 Fun(M::AbstractMatrix{<:Number},sp::Space) = Fun([Fun(M[:,k],sp) for k=1:size(M,2)])
 
 for OP in (:(Base.transpose),)
-    @eval $OP(f::ArrayFun) = Fun($OP(Array(f)))
+    @eval begin
+        $OP(f::ArrayFun) = Fun($OP(Array(f)))
+        $OP(sp::Space{D,R}) where {D,R<:AbstractArray} = Space($OP(Array(sp)))
+    end
 end
 
 ## calculus

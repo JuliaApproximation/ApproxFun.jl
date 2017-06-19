@@ -39,14 +39,14 @@ KroneckerOperator(A::Fun,B) = KroneckerOperator(Multiplication(A),B)
 
 
 function promotedomainspace(K::KroneckerOperator,ds::TensorSpace)
-    A=promotedomainspace(K.ops[1],ds[1])
-    B=promotedomainspace(K.ops[2],ds[2])
+    A=promotedomainspace(K.ops[1],ds.spaces[1])
+    B=promotedomainspace(K.ops[2],ds.spaces[2])
     KroneckerOperator(A,B,ds,rangespace(A)⊗rangespace(B))
 end
 
 function promoterangespace(K::KroneckerOperator,rs::TensorSpace)
-    A=promoterangespace(K.ops[1],rs[1])
-    B=promoterangespace(K.ops[2],rs[2])
+    A=promoterangespace(K.ops[1],rs.spaces[1])
+    B=promoterangespace(K.ops[2],rs.spaces[2])
     KroneckerOperator(A,B,domainspace(K),rs)
 end
 
@@ -268,16 +268,16 @@ Base.transpose(S::ConstantTimesOperator) = sp.c*S.op.'
 function Derivative{SV,DD<:BivariateDomain}(S::TensorSpace{SV,DD},order::Vector{Int})
     @assert length(order)==2
     if order[1]==0
-        Dy=Derivative(S[2],order[2])
-        K=eye(S[1])⊗Dy
+        Dy=Derivative(S.spaces[2],order[2])
+        K=eye(S.spaces[1])⊗Dy
         T=eltype(Dy)
     elseif order[2]==0
-        Dx=Derivative(S[1],order[1])
-        K=Dx⊗eye(S[2])
+        Dx=Derivative(S.spaces[1],order[1])
+        K=Dx⊗eye(S.spaces[2])
         T=eltype(Dx)
     else
-        Dx=Derivative(S[1],order[1])
-        Dy=Derivative(S[2],order[2])
+        Dx=Derivative(S.spaces[1],order[1])
+        Dy=Derivative(S.spaces[2],order[2])
         K=Dx⊗Dy
         T=promote_type(eltype(Dx),eltype(Dy))
     end
@@ -424,8 +424,8 @@ end
 
 
 
-conversion_rule(a::TensorSpace,b::TensorSpace) = conversion_type(a[1],b[1])⊗conversion_type(a[2],b[2])
-maxspace(a::TensorSpace,b::TensorSpace) = maxspace(a[1],b[1])⊗maxspace(a[2],b[2])
+conversion_rule(a::TensorSpace,b::TensorSpace) = conversion_type(a.spaces[1],b.spaces[1])⊗conversion_type(a.spaces[2],b.spaces[2])
+maxspace(a::TensorSpace,b::TensorSpace) = maxspace(a.spaces[1],b.spaces[1])⊗maxspace(a.spaces[2],b.spaces[2])
 
 # TODO: we explicetly state type to avoid type inference bug in 0.4
 
@@ -434,13 +434,13 @@ ConcreteConversion(a::BivariateSpace,b::BivariateSpace) =
                         promote_type(prectype(a),prectype(b))}(a,b)
 
 Conversion(a::TensorSpace,b::TensorSpace) = ConversionWrapper(promote_type(prectype(a),prectype(b)),
-                KroneckerOperator(Conversion(a[1],b[1]),Conversion(a[2],b[2])))
+                KroneckerOperator(Conversion(a.spaces[1],b.spaces[1]),Conversion(a.spaces[2],b.spaces[2])))
 
 
 
-function Multiplication{TS<:TensorSpace}(f::Fun{TS},S::TensorSpace)
+function Multiplication(f::Fun{TS},S::TensorSpace) where {TS<:TensorSpace}
     lr=LowRankFun(f)
-    ops=map(kron,map(a->Multiplication(a,S[1]),lr.A),map(a->Multiplication(a,S[2]),lr.B))
+    ops=map(kron,map(a->Multiplication(a,S.spaces[1]),lr.A),map(a->Multiplication(a,S.spaces[2]),lr.B))
     MultiplicationWrapper(f,+(ops...))
 end
 

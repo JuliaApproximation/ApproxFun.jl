@@ -49,10 +49,10 @@ testfunctional(Evaluation(S,0))
 testfunctional(Evaluation(S,ω)-Evaluation(S,0))
 testfunctional(Evaluation(S,ω,1)-Evaluation(S,0,1))
 
-A=ApproxFun.interlace([Z                      Evaluation(S,0);
+A=[Z                      Evaluation(S,0);
                      u'(ω)    Evaluation(S,ω)-Evaluation(S,0);
                      u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
-                      0         D^2+I+3u^2])
+                      0         D^2+I+3u^2]
 
 ApproxFun.backend_testinfoperator(A)
 
@@ -72,7 +72,7 @@ A=D^2-I
 @time κ=nullspace(A)
 @test length(κ) == 2
 
-c=[κ(0.);κ'(0.)]\[exp(0.);exp(0.)]
+c=[κ(0.),κ'(0.)]\[exp(0.),exp(0.)]
 u=(κ*c)[1]
 
 @test u(1.0) ≈ e
@@ -82,7 +82,7 @@ d=Interval(-50.,5.)
 x=Fun(identity,d)
 D=Derivative(d)
 @time u=nullspace(D^2-x)
-c=[u(d.a); u(d.b)]\[airyai(d.a),airyai(d.b)]
+c=[u(d.a), u(d.b)]\[airyai(d.a),airyai(d.b)]
 @test norm((u*c)[1]-Fun(airyai,d))<10000eps()
 
 
@@ -114,9 +114,6 @@ println("    Bessel tests")
     u=\([rdirichlet(S);rneumann(S);L],[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test ≈(u(.1),bessely(ν,.1);atol=eps(1000000.)*max(abs(u(.1)),1))
-    u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
-                tolerance=1E-10)
-    @test ≈(u(.1),besselj(ν,.1);atol=eps(1000000.)*max(abs(u(.1)),1))
     u=Fun(x->bessely(ν,x),S)
     @test ≈(u(.1),bessely(ν,.1);atol=eps(10000.)*max(abs(u(.1)),1))
     u=Fun(x->besselj(ν,x),S)
@@ -130,7 +127,7 @@ end
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
 
-    u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
+    u=\([rdirichlet(S);rneumann(S);L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test ≈(u(.1),besselj(ν,.1);atol=eps(1000000.)*max(abs(u(.1)),1))
     u=Fun(x->besselj(ν,x),S)

@@ -445,7 +445,10 @@ promotedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
 
 
 interlace{T<:Operator}(A::AbstractArray{T}) = InterlaceOperator(A)
-function Base.vcat(A::Operator...)
+
+const OperatorTypes = Union{Operator,Fun,Number,UniformScaling}
+
+function Base.vcat(A::OperatorTypes...)
     Av = Vector{Operator{mapreduce(eltype,promote_type,A)}}()
     for a in A
         if a isa VectorInterlaceOperator
@@ -456,8 +459,8 @@ function Base.vcat(A::Operator...)
     end
     InterlaceOperator(vnocat(Av...))
 end
-Base.hcat(A::Operator...) = InterlaceOperator(hnocat(A...))
-Base.hvcat(dims,A::Operator...) = InterlaceOperator(hvnocat(dims,A...))
+Base.hcat(A::OperatorTypes...) = InterlaceOperator(hnocat(A...))
+Base.hvcat(rows::Tuple{Vararg{Int}},A::OperatorTypes...) = InterlaceOperator(hvnocat(rows,A...))
 
 
 ## Convert Matrix operator to operators

@@ -179,10 +179,15 @@ end
 
 #TODO: do in @calculus_operator?
 
-for TYP in (:PiecewiseSpace,:ArraySpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
-                                                         (:Integral,:IntegralWrapper))
-    @eval $Op(S::$TYP,k::Integer) =
-        $OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),components(S))...]),$TYP),k)
+for (Op,OpWrap) in ((:Derivative,:DerivativeWrapper),(:Integral,:IntegralWrapper))
+    @eval begin
+        $Op(S::PiecewiseSpace,k::Integer) =
+            $OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),components(S))...]),PiecewiseSpace),k)
+        function $Op(S::ArraySpace,k::Integer)
+            ops = map(s->$Op(s,k),S)
+            $OpWrap(InterlaceOperator(Diagonal(ops),S,ArraySpace(reshape(rangespace.(ops),size(S)))),k)
+        end
+    end
 end
 
 function Derivative(S::SumSpace,k::Integer)

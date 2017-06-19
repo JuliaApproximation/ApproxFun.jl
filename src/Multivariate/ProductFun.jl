@@ -211,7 +211,7 @@ evaluate(f::ProductFun,x,y) = canonicalevaluate(f,tocanonical(f,x,y)...)
 
 # TensorSpace does not use map
 evaluate{S<:UnivariateSpace,V<:UnivariateSpace,SS<:TensorSpace,T}(f::ProductFun{S,V,SS,T},x::Number,::Colon) =
-    Fun(space(f,2),T[g(x) for g in f.coefficients])
+    Fun(factor(space(f),2),T[g(x) for g in f.coefficients])
 
 evaluate{S<:UnivariateSpace,V<:UnivariateSpace,SS<:TensorSpace,T}(f::ProductFun{S,V,SS,T},x::Number,y::Number) =
     evaluate(f,x,:)(y)
@@ -269,13 +269,13 @@ end
 *(f::ProductFun,B::Fun) = (B*f.').'
 
 
-LowRankFun{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS}) = LowRankFun(f.coefficients,space(f,2))
+LowRankFun(f::ProductFun{S,V,SS}) where {S,V,SS<:TensorSpace} = LowRankFun(f.coefficients,factor(space(f),2))
 LowRankFun(f::Fun) = LowRankFun(ProductFun(f))
 
 function differentiate{S,V,SS<:TensorSpace}(f::ProductFun{S,V,SS},j::Integer)
     if j==1
         df=map(differentiate,f.coefficients)
-        ProductFun(df,space(first(df)),space(f,2))
+        ProductFun(df,space(first(df)),factor(space(f),2))
     else
         differentiate(f.',1).'
     end

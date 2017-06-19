@@ -37,10 +37,10 @@ ProductDomain(A,B) = ProductDomain((A,B))
 *(A::Domain,B::ProductDomain) = ProductDomain(tuple(A,B.domains...))
 *(A::Domain,B::Domain) = ProductDomain(A,B)
 
-Base.length(d::ProductDomain)=length(d.domains)
-Base.transpose(d::ProductDomain)=ProductDomain(d[2],d[1])
-Base.getindex(d::ProductDomain,k::Integer)=d.domains[k]
-==(d1::ProductDomain,d2::ProductDomain)=d1.domains==d2.domains
+Base.transpose(d::ProductDomain) = ProductDomain(d[2],d[1])
+nfactors(d::ProductDomain) = length(d.domains)
+factor(d::ProductDomain,k::Integer) = d.domains[k]
+==(d1::ProductDomain,d2::ProductDomain) = d1.domains==d2.domains
 
 Base.first(d::ProductDomain) = (first(d[1]),first(d[2]))
 

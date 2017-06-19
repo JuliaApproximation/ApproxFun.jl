@@ -172,7 +172,10 @@ A=[B 0;
    Bn 0;
    0 B;
    D^2-I 2.0I;
-   0 D+I];
+   0 D+I]
+
+# makes sure ops are in right order
+@test A.ops[4,1] isa ApproxFun.PlusOperator
 QR=qrfact(A)
 v=Any[0.,0.,0.,f...]
 @test (QR\v)(0.0) ≈ [0.0826967758420519,0.5553968826533497]

@@ -134,12 +134,12 @@ function Base.show(io::IO,ss::PiecewiseSpace)
 end
 
 function Base.show(io::IO,s::TensorSpace)
-    d = length(s)
+    d = length(s.spaces)
     for i=1:d-1
-        show(io,s[i])
+        show(io,s.spaces[i])
         print(io,"⊗")
     end
-    show(io,s[d])
+    show(io,s.spaces[d])
 end
 
 function Base.show(io::IO,s::SubSpace)
