@@ -135,7 +135,8 @@ u0=Fun(x->exp(-100*(x-.5)^2)*exp(-1./(5*ϵ)*log(2cosh(5*(x-.5)))),dx)
 L=ϵ*Dt+(.5im*ϵ^2*Dx^2)
 testbandedblockbandedoperator(L)
 
-@time u=\([timedirichlet(d);L],[u0;zeros(3)];tolerance=1E-5)
+
+@time u=\([timedirichlet(d);L],[u0,[0.,0.],0.];tolerance=1E-5)
 @test u(0.5,0.001) ≈ 0.857215539785593+0.08694948835021317im  # empircal from ≈ schurfact
 
 

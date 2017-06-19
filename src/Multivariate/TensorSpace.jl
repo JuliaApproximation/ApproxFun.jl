@@ -641,9 +641,9 @@ coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where 
 function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
 
-    if domain(ts)[1] == Point(0.0)
+    if factor(domain(ts),1) == Point(0.0)
         coefficients(f,sp,ts.spaces[2])
-    elseif domain(ts)[2] == Point(0.0)
+    elseif factor(domain(ts),2) == Point(0.0)
         coefficients(f,sp,ts.spaces[1])
     else
         error("Cannot convert coefficients from $sp to $ts")
@@ -658,10 +658,10 @@ function isconvertible(sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) wh
         return false
     end
     if d1.a[2] ≈ d1.b[2]
-        isa(d2[2],Point) && d2[2].x ≈ d1.a[2] &&
+        isa(factor(d2,2),Point) && factor(d2,2).x ≈ d1.a[2] &&
             isconvertible(setdomain(sp,Segment(d1.a[1],d1.b[1])),ts[1])
     elseif d1.a[1] ≈ d1.b[1]
-        isa(d2[1],Point) && d2[1].x ≈ d1.a[1] &&
+        isa(factor(d2,1),Point) && factor(d2,1).x ≈ d1.a[1] &&
             isconvertible(setdomain(sp,Segment(d1.a[2],d1.b[2])),ts[2])
     else
         return false
