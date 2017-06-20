@@ -331,8 +331,12 @@ Base.size(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:A
 Base.size(sp::TensorSpace{Tuple{S1,S2}}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
     size(sp.spaces[2])
 
-getindex(::TensorSpace,k) = error("No longer supported")
 
+getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    sp.spaces[1][k] ⊗ sp.spaces[2]
+
+getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    sp.spaces[1] ⊗ sp.spaces[2][k]
 
 
 # every column is in the same space for a TensorSpace
@@ -638,6 +642,17 @@ isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:Bivariat
 coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} =
     f[1]*ones(ts).coefficients
 
+#
+# function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{Tuple{S,V},D,R}) where {S,V<:ConstantSpace,D<:BivariateDomain,R,TT} where {T<:Number}
+#     a = domain(sp)
+#     b = domain(ts)
+#     # make sure we are the same domain. This will be replaced by isisomorphic
+#     @assert first(a) ≈ Vec(first(factor(b,1)),factor(b,2).x) &&
+#         last(a) ≈ Vec(last(factor(b,1)),factor(b,2).x)
+#
+#     coefficients(f,sp,setdomain(factor(ts,1),a))
+# end
+
 function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
 
@@ -675,9 +690,9 @@ function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},
     d1 = domain(sp)
     d2 = domain(ts)
     if d1.a[2] ≈ d1.b[2]
-        coefficients(f,setdomain(sp,Segment(d1.a[1],d1.b[1])),ts[1])
+        coefficients(f,setdomain(sp,Segment(d1.a[1],d1.b[1])),factor(ts,1))
     elseif d1.a[1] ≈ d1.b[1]
-        coefficients(f,setdomain(sp,Segment(d1.a[2],d1.b[2])),ts[2])
+        coefficients(f,setdomain(sp,Segment(d1.a[2],d1.b[2])),factor(ts,2))
     else
         error("Cannot convert coefficients from $sp to $ts")
     end
