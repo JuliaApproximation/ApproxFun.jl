@@ -59,9 +59,15 @@ end
 # Same as JacobiWeight
 
 # avoid redundency
-function Multiplication{SS,LWS,DD<:IntervalDomain,RR,T}(f::Fun{JacobiWeight{SS,DD,RR},T},S::LogWeight{LWS,DD,RR})
+function Multiplication(f::Fun{JacobiWeight{SS,DD,RR},T},S::LogWeight{LWS,DD,RR}) where {SS,LWS,DD<:IntervalDomain,RR,T}
     M=Multiplication(Fun(space(f).space,f.coefficients),S)
     rsp=JacobiWeight(space(f).β,space(f).α,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+end
+
+function Multiplication(f::Fun{<:LogWeight},S::JacobiWeight{SS,DD}) where {SS,DD<:IntervalDomain}
+    M=Multiplication(f,S.space)
+    rsp=JacobiWeight(S.β,S.α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end
 
@@ -69,5 +75,19 @@ end
 function Multiplication(f::Fun,S::LogWeight)
     M=Multiplication(f,S.space)
     rsp=LogWeight(S.β,S.α,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+end
+
+function Multiplication(f::Fun{<:LogWeight},S::LogWeight)
+    M=Multiplication(f,S.space)
+    rsp=LogWeight(S.β,S.α,rangespace(M))
+    MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
+end
+
+
+
+function Multiplication(f::Fun{<:LogWeight},S::Space)
+    M=Multiplication(Fun(space(f).space,f.coefficients),S)
+    rsp=LogWeight(space(f).β,space(f).α,rangespace(M))
     MultiplicationWrapper(f,SpaceOperator(M,S,rsp))
 end

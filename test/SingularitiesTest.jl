@@ -274,3 +274,10 @@ f=abs(x+1.2)
 
 @test log(f)(-1.3) ≈ log(abs(-1.3+1.2))
 @test log(f)(-1.1) ≈ log(abs(-1.1+1.2))
+
+
+#393
+
+x=Fun(0..1)
+f = exp(x)*sqrt(x)*log(1-x)
+@test f(0.1) ≈ exp(0.1)*sqrt(0.1)*log(1-0.1)

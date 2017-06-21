@@ -30,7 +30,7 @@ end
 # without ambiguity errors
 function defaultMultiplication(f::Fun,sp::Space)
     csp=space(f)
-    if csp==sp
+    if csp==sp || !hasconversion(sp,csp)
         error("Implement Multiplication(::Fun{$(typeof(space(f)))},::$(typeof(sp)))")
     end
     MultiplicationWrapper(f,Multiplication(f,csp)*Conversion(sp,csp))
