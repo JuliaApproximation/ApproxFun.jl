@@ -469,9 +469,6 @@ end
 
 Fun(v::AbstractVector{Any},::Type{PiecewiseSpace}) = Fun(tuple(v...),PiecewiseSpace)
 
-interlace{FF<:Fun}(f::AbstractVector{FF}) = vcat(f...)
-
-
 ## transforms
 
 

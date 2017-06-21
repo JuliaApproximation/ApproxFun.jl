@@ -179,7 +179,7 @@ Dirichlet() = Dirichlet(UnsetSpace())
 Dirichlet(d::Domain,λ...) = Dirichlet(Space(d),λ...)
 Neumann(sp::Space) = Dirichlet(sp,1)
 Neumann(d::Domain) = Neumann(Space(d))
-
+Neumann() = Dirichlet(UnsetSpace(),1)
 
 domainspace(B::ConcreteDirichlet) = B.domainspace
 rangespace(B::ConcreteDirichlet) = B.rangespace

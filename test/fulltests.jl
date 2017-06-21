@@ -1,6 +1,6 @@
 using ApproxFun, Base.Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
-                        testbandedbelowoperator, testbandedblockbandedoperator, testfunctional
+                        testbandedbelowoperator, testbandedblockbandedoperator, testfunctional, factor
 ## This includes extra tests that are too time consuming for Travis
 
 
@@ -72,7 +72,7 @@ A=D^2-I
 @time κ=nullspace(A)
 @test length(κ) == 2
 
-c=[κ(0.),κ'(0.)]\[exp(0.),exp(0.)]
+c=[κ(0.);κ'(0.)]\[exp(0.),exp(0.)]
 u=(κ*c)[1]
 
 @test u(1.0) ≈ e
@@ -82,7 +82,7 @@ d=Interval(-50.,5.)
 x=Fun(identity,d)
 D=Derivative(d)
 @time u=nullspace(D^2-x)
-c=[u(d.a), u(d.b)]\[airyai(d.a),airyai(d.b)]
+c=[u(d.a); u(d.b)]\[airyai(d.a),airyai(d.b)]
 @test norm((u*c)[1]-Fun(airyai,d))<10000eps()
 
 
@@ -290,13 +290,13 @@ f = LowRankFun((x,y)->1/(2π*(x^2+y^2+1)^(3/2)),JacobiWeight(2.,2.,Line())^2)
 
     @test (L*f)(0.2,0.3) ≈ (fx(0.2,0.3)+fy(0.2,0.3))
 
-    B=ldirichlet(d[1])⊗ldirichlet(d[2])
+    B=ldirichlet(factor(d,1))⊗ldirichlet(factor(d,2))
     @test Number(B*f) ≈ f(-1.,-1.)
 
-    B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
+    B=Evaluation(factor(d,1),0.1)⊗ldirichlet(factor(d,2))
     @test Number(B*f) ≈ f(0.1,-1.)
 
-    B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
+    B=Evaluation(factor(d,1),0.1)⊗Evaluation(factor(d,2),0.3)
     @test Number(B*f) ≈ f(0.1,0.3)
 
     B=Evaluation(d,(0.1,0.3))

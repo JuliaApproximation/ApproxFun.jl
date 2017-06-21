@@ -18,7 +18,7 @@ dualpart(f.coefficients[1])
 h=0.00001;(Fun(exp,Segment(1.0+h,2.0)).coefficients[1]-Fun(exp,Segment(1.0,2.0)).coefficients[1])/h
 
 # Or an ApproxFun calculation:
-Fun(h->Fun(exp,Segment(1.0+h,2.0)).coefficients[1],[0.,.1])'(0.)
+Fun(h->Fun(exp,Segment(1.0+h,2.0)).coefficients[1],0..1)'(0.)
 
 # What is the derivative of the first coefficient with respect to the exponential's constant?
 f=Fun(x->exp(dual(x,x)),-1..1)

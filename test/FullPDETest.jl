@@ -483,11 +483,6 @@ println("    Rectangle tests")
 # Screened Poisson
 
 d=Interval()^2
-Fun([[1,1],[1,1],0.],rangespace(Neumann(d)))
-
-
-
-
 @time u=\([Neumann(d);Laplacian(d)-100.0I],[[[1,1],[1,1]],0.];tolerance=1E-12)
 @test u(.1,.9) ≈ 0.03679861429138079
 
