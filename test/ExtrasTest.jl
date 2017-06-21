@@ -48,11 +48,11 @@ end
 
 d = Interval(0.,π)
 A=Derivative(d)^2
-λ=eigvals([dirichlet(d);A],100)
+λ=eigvals(Dirichlet(d),A,100)
 @test sort(λ)[end-5:end] ≈ -(-6:-1).^2
 
 
-F = x->x.^8
+F = x->x^8
 d = Interval(0.0,1.0)
 f = Fun(F,d)
 ginf = Fun(x->exp(-x),d)
@@ -62,11 +62,11 @@ transport_ = Fun(x-> x - 1,d)
 damping = Fun(x-> 1 - f(x),d)
 A = transport_*Derivative(d) + damping
 P = -DefiniteIntegral(Chebyshev(d))[LowRankFun((x,y)->gp(x)*(y+f(y)),d^2)];
-λ,V = ApproxFun.eigs([A],100)
+λ,V = ApproxFun.eigs(A,100)
 @test norm(sort(real(filter(x->isreal(x),λ)))[1:5]-(0:4)) ≤ 100000eps()
 
-λ,V = ApproxFun.eigs([A+P],100)
-@test ≈(sort(real(filter(x->isreal(x),λ)))[5],3.93759261234502;atol=1E-3)
+λ,V = ApproxFun.eigs(A+P,100)
+@test sort(real(filter(x->isreal(x),λ)))[5] ≈ 3.93759261234502 atol=1E-3
 
 
 ## Sampling

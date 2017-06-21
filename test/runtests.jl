@@ -1,7 +1,7 @@
 versioninfo()
 
 using ApproxFun, Base.Test
-
+    import ApproxFun: Infinity, ∞
 
 println("Helper tests")
 @test ApproxFun.interlace!([-1.0],0) == [-1.0]
@@ -13,8 +13,6 @@ println("Helper tests")
 @test ApproxFun.interlace!([1.0,2.0],1) == [1.0,2.0]
 @test ApproxFun.interlace!([1,2,3],1) == [1,3,2]
 @test ApproxFun.interlace!([1,2,3,4],1) == [1,3,2,4]
-
-import ApproxFun: Infinity, ∞
 
 @test exp(im*π/4)*∞ == Inf+im*Inf
 @test exp(im*π/4)+∞ == ∞
@@ -40,6 +38,16 @@ cumsum(ApproxFun.repeated(2)) == 2:2:ApproxFun.∞
 
 @test 2*(1:∞) == 2:2:∞
 @test 2+(1:∞) == 3:∞
+
+# BlockInterlacer tests
+@test cache(ApproxFun.BlockInterlacer((1:∞,[2],[2])))[1:6] ==
+    [(1,1),(2,1),(2,2),(3,1),(3,2),(1,2)]
+
+@test collect(ApproxFun.BlockInterlacer(([2],[2],[2]))) ==
+    [(1,1),(1,2),(2,1),(2,2),(3,1),(3,2)]
+
+
+# TODO: Tensorizer tests
 
 println("Domain tests")
 

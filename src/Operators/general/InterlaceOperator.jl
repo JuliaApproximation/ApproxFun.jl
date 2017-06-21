@@ -83,6 +83,8 @@ struct InterlaceOperator{T,p,DS,RS,DI,RI,BI} <: Operator{T}
     bandinds::BI
 end
 
+const VectorInterlaceOperator = InterlaceOperator{T,1,DS,RS} where {T,DS,RS<:Space{D,R}} where {D,R<:AbstractVector}
+
 
 InterlaceOperator{T,p}(ops::Array{T,p},ds,rs,di,ri,bi) =
     InterlaceOperator{T,p,typeof(ds),typeof(rs),
@@ -160,7 +162,7 @@ function InterlaceOperator{T}(opsin::AbstractMatrix{Operator{T}})
     end
 end
 
-function InterlaceOperator{T,DS<:Space,RS<:Space}(opsin::AbstractMatrix{Operator{T}},::Type{DS},::Type{RS})
+function InterlaceOperator(opsin::AbstractMatrix{Operator{T}},::Type{DS},::Type{RS}) where {T,DS<:Space,RS<:Space}
     isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
 
     ops=promotespaces(opsin)
@@ -247,7 +249,7 @@ israggedbelow(M::InterlaceOperator) = all(israggedbelow,M.ops)
 getindex(op::InterlaceOperator,k::Integer,j::Integer) =
     error("Higher tensor InterlaceOperators not supported")
 
-function getindex{T}(op::InterlaceOperator{T,2},k::Integer,j::Integer)
+function getindex(op::InterlaceOperator{T,2},k::Integer,j::Integer) where {T}
     M,J = op.domaininterlacer[j]
     N,K = op.rangeinterlacer[k]
     op.ops[N,M][K,J]::T
@@ -444,6 +446,21 @@ promotedomainspace{T}(A::InterlaceOperator{T,1},sp::Space) =
 
 interlace{T<:Operator}(A::AbstractArray{T}) = InterlaceOperator(A)
 
+const OperatorTypes = Union{Operator,Fun,Number,UniformScaling}
+
+function Base.vcat(A::OperatorTypes...)
+    Av = Vector{Operator{mapreduce(eltype,promote_type,A)}}()
+    for a in A
+        if a isa VectorInterlaceOperator
+            append!(Av,a.ops)
+        else
+            push!(Av,a)
+        end
+    end
+    InterlaceOperator(vnocat(Av...))
+end
+Base.hcat(A::OperatorTypes...) = InterlaceOperator(hnocat(A...))
+Base.hvcat(rows::Tuple{Vararg{Int}},A::OperatorTypes...) = InterlaceOperator(hvnocat(rows,A...))
 
 
 ## Convert Matrix operator to operators

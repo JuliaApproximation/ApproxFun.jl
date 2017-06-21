@@ -36,8 +36,8 @@ println("Laplace: should be ~0.06, 0.001")
 
 
 d=Interval()^2
-@time [neumann(d);lap(d)+100I]\[ones(4);0]
-@time [neumann(d);lap(d)+100I]\[ones(4);0]
+@time [Neumann(d);lap(d)+100I]\[[[1,1],[1,1]],0]
+@time [Neumann(d);lap(d)+100I]\[[[1,1],[1,1]],0]
 println("Neumann Helmholtz: should be ~0.032")
 
 

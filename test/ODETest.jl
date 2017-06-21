@@ -39,9 +39,9 @@ u=[B;D2-X]\[airyai(d.a),airyai(d.b),0.];
 
 
 
-B=neumann(d);
+B=Neumann(d);
 A=[B;D2-X];
-b=[airyaiprime(d.a),airyaiprime(d.b),0.];
+b=[[airyaiprime(d.a),airyaiprime(d.b)],0.];
 
 @time u=A\b;
 
@@ -92,7 +92,7 @@ testbandedoperator(x^2*D^2)
 testbandedoperator(ToeplitzOperator([0.5],[0.0,0.5]))
 testbandedoperator(HankelOperator(Float64[]))
 testbandedoperator(A)
-u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
+u=[ldirichlet(d);A]\[besselj(0,d.a),0.];
 
 
 
@@ -112,51 +112,51 @@ u=[dirichlet(d)[1];A]\[besselj(0,d.a),0.];
 
 
 S=Chebyshev()
-B=dirichlet(S)
+B=Dirichlet(S)
 D=Derivative(S)
 
 Q,R=qr([B;D^2+I])
-u=R\(Q'*[cos(-1.0);cos(1.0);0.0])
+@test Q[1,1] == -0.5773502691896257
+u=R\(Q'*[[cos(-1.0),cos(1.0)],0.0])
 
 
 @test u(0.) ≈ cos(0.0)
 
 
 S=Chebyshev()
-A=[dirichlet(S);Derivative(S)^2 - I]
+A=[Dirichlet(S);Derivative(S)^2 - I]
 QR=qrfact(A)
-@test (QR\[1.,0,0])(0.0) ≈ 0.3240271368319427
+@test (QR\[[1.,0],0])(0.0) ≈ 0.3240271368319427
 Q,R=qr(A)
-u=(R\(Q'*[1.,0.0,0.0]))
+u=(R\(Q'*[[1.,0.0],0.0]))
 @test u(0.0)  ≈ 0.3240271368319427
 
 x=Fun(S)
-A=[dirichlet(S);Derivative(S)^2 - exp(im*x)]
+A=[Dirichlet(S);Derivative(S)^2 - exp(im*x)]
 QR=qrfact(A)
 
-u=(QR\[1.,0.0,0.0])
+u=(QR\[[1.,0.0],0.0])
 @test u(0.0) ≈ (0.3329522068795961 + 0.024616008954634165im)
 
 # Union of intervals are constructed for now with \
 x=Fun(identity,Domain(-2..15) \ [-1,0])
 sp=space(x)
 
-# Check bug in promote
 
-@which ApproxFun.promotedomainspace(dirichlet(sp),sp)
-@test domainspace(ApproxFun.promotedomainspace(dirichlet(sp),sp)) == sp
+B = [Dirichlet(sp);continuity(sp,0:1)]
+
+# We don't want to concat piecewise space
+@test !(continuity(sp,0) isa ApproxFun.VectorInterlaceOperator)
+@test B isa ApproxFun.VectorInterlaceOperator
+
 
 D=Derivative(sp)
-B=dirichlet(sp)
 A=[B;D^2-x]
 
-Ai = ApproxFun.interlace(A)
-ApproxFun.testraggedbelowoperator(Ai)
-
+ApproxFun.testraggedbelowoperator(A)
 QR=qrfact(A)
-@time u=QR\Any[[airyai(-2.);zeros(size(B,1)-1)],0.0]
 
-
+@time u=QR\[[airyai(-2.),0.0],zeros(4),0.0]
 
 @test u(0.0) ≈ airyai(0.)
 
@@ -172,7 +172,10 @@ A=[B 0;
    Bn 0;
    0 B;
    D^2-I 2.0I;
-   0 D+I];
+   0 D+I]
+
+# makes sure ops are in right order
+@test A.ops[4,1] isa ApproxFun.PlusOperator
 QR=qrfact(A)
 v=Any[0.,0.,0.,f...]
 @test (QR\v)(0.0) ≈ [0.0826967758420519,0.5553968826533497]
@@ -196,11 +199,11 @@ u=[ivp();L]\[0.;0.;cos(100t)]
 
 x=Fun(identity,1..2000)
 d=domain(x)
-B=dirichlet()
+B=Dirichlet()
 ν=100.
 L=(x^2*𝒟^2) + x*𝒟 + (x^2 - ν^2)   # our differential operator
 
-@time u=[B;L]\[besselj(ν,first(d)),besselj(ν,last(d)),0.]
+@time u=[B;L]\[[besselj(ν,first(d)),besselj(ν,last(d))],0.]
 
 
 @test ≈(u(1900.),besselj(ν,1900.);atol=1000eps())

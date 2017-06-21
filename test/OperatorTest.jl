@@ -249,26 +249,23 @@ S=Chebyshev()
 C=eye(S)[3:end,:]
 @test ApproxFun.domaindimension(domainspace(C)) == 1
 
-B=dirichlet(S)
+B=Dirichlet(S)
 
-Ai=ApproxFun.interlace([B;C])
+Ai=[B;C]
 @test ApproxFun.colstop(Ai,1) == 2
 
 x=Fun()
 f=exp(x)
-u=[B;C]\[0.;0.;f]
+u=[B;C]\[[0.,0.],f]
 
 @test abs(u(-1)) ≤ 10eps()
 @test abs(u(1)) ≤ 10eps()
 
 
 f=(1-x^2)*exp(x)
-u=[B;C]\[0.;0.;f]
+u=[B;C]\[[0.,0.],f]
 
 @test u ≈ f
-
-
-
 
 ## Test Zero operator has correct bandinds
 
@@ -277,7 +274,6 @@ Z=ApproxFun.ZeroOperator(Chebyshev())
 
 
 ## Issue 407
-
+x = Fun()
 B = [1 ldirichlet()]
-A = ApproxFun.interlace(B)
-@test A*[1;x] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])
+@test B*[1;x] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])

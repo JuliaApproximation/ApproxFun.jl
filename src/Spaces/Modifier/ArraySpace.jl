@@ -27,6 +27,10 @@ ArraySpace(S::Space,n,m) = ArraySpace(fill(S,(n,m)))
 ArraySpace(d::Domain,n...) = ArraySpace(Space(d),n...)
 
 Base.convert(::Type{Space},sp::AbstractArray{<:Space}) = ArraySpace(sp)
+Base.convert(::Type{Array},sp::ArraySpace) = sp.spaces
+Base.convert(::Type{Vector},sp::VectorSpace) = sp.spaces
+Base.convert(::Type{Matrix},sp::MatrixSpace) = sp.spaces
+
 
 BlockInterlacer(sp::ArraySpace) = BlockInterlacer(blocklengths.(tuple(sp.spaces...)))
 interlacer(sp::ArraySpace) = BlockInterlacer(sp)
@@ -61,15 +65,15 @@ setdomain(A::ArraySpace,d::Domain) = ArraySpace(map(sp->setdomain(sp,d),A.spaces
 
 ## transforms
 
-
+#TODO: rework for different spaces
 points(d::ArraySpace,n) = points(d.spaces[1],n)
 
 
-transform{SS,V}(AS::ArraySpace{SS,1},vals::AbstractVector{Vector{V}}) =
+transform(AS::ArraySpace{SS,1},vals::AbstractVector{Vector{V}}) where {SS,V} =
     transform(AS,transpose(hcat(vals...)))
 
-#TODO: rework for different spaces
-function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::AbstractArray{V,2})
+
+function transform(AS::ArraySpace{SS,1,T},M::AbstractArray{V,2}) where {SS,T,V<:Number}
     n=length(AS)
 
     @assert size(M,2)==n
@@ -80,11 +84,11 @@ function transform{SS,T,V<:Number}(AS::ArraySpace{SS,1,T},M::AbstractArray{V,2})
 end
 
 # transform of array is same order as vectorizing and then transforming
-transform{SS,n,V}(AS::ArraySpace{SS,n},vals::AbstractVector{Array{V,n}}) =
+transform(AS::ArraySpace{SS,n},vals::AbstractVector{Array{V,n}}) where {SS,n,V} =
     transform(vec(AS),map(vec,vals))
-transform{SS,AV<:AbstractVector}(AS::ArraySpace{SS,1},vals::AbstractVector{AV}) =
+transform(AS::VectorSpace{SS},vals::AbstractVector{AV}) where {SS,AV<:AbstractVector} =
     transform(AS,map(Vector,vals))
-transform{SS,n,V}(AS::ArraySpace{SS,1},vals::AbstractVector{Vec{V,n}}) =
+transform(AS::VectorSpace{SS},vals::AbstractVector{Vec{V,n}}) where {SS,n,V} =
     transform(AS,map(Vector,vals))
 
 Base.vec(AS::ArraySpace) = ArraySpace(vec(AS.spaces))
@@ -120,12 +124,19 @@ end
 
 # convert a vector to a Fun with ArraySpace
 
-function Fun{TT,SS,n}(v::AbstractArray{TT,n},sp::ArraySpace{SS,n})
+
+
+function Fun(v::AbstractVector,sp::Space{D,R}) where {D,R<:AbstractVector}
     if size(v) ≠ size(sp)
         throw(DimensionMismatch("Cannot convert $v to a Fun in space $sp"))
     end
-    Fun(map(Fun,v,sp.spaces))
+    Fun(map(Fun,v,components(sp)))
 end
+
+Fun(v::AbstractArray{TT,n},sp::Space{D,R}) where {D,R<:AbstractArray{SS,n}} where {TT,SS,n} =
+    reshape(Fun(vec(v),vec(sp)),size(sp))
+
+
 coefficients{TT,SS,n}(v::AbstractArray{TT,n},sp::ArraySpace{SS,n}) = coefficients(Fun(v,sp))
 
 

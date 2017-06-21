@@ -121,7 +121,8 @@ subblockbandinds(T::ZeroOperator,k::Integer) = k == 1 ? 720 : -720
 isbandedblockbandedabove(::ZeroOperator) = true
 isbandedblockbandedbelow(::ZeroOperator) = true
 
-getindex(C::ZeroOperator,k::Integer,j::Integer)=zero(eltype(C))
+getindex(C::ZeroOperator,k::Integer) = zero(eltype(C))
+getindex(C::ZeroOperator,k::Integer,j::Integer) = zero(eltype(C))
 
 promotedomainspace(Z::ZeroOperator,sp::UnsetSpace) = Z
 promoterangespace(Z::ZeroOperator,sp::UnsetSpace) = Z

@@ -4,17 +4,17 @@ include("ProductDomain.jl")
 ## boundary
 
 ∂{A<:Segment,B<:Segment}(d::ProductDomain{Tuple{A,B}}) =
-    PiecewiseSegment([Vec(d[1].a,d[2].a),
-                      Vec(d[1].b,d[2].a),
-                      Vec(d[1].b,d[2].b),
-                      Vec(d[1].a,d[2].b),
-                      Vec(d[1].a,d[2].a)])
+    PiecewiseSegment([Vec(factor(d,1).a,factor(d,2).a),
+                      Vec(factor(d,1).b,factor(d,2).a),
+                      Vec(factor(d,1).b,factor(d,2).b),
+                      Vec(factor(d,1).a,factor(d,2).b),
+                      Vec(factor(d,1).a,factor(d,2).a)])
 ∂{A<:Segment,B<:PeriodicInterval}(d::ProductDomain{Tuple{A,B}}) =
-    UnionDomain((PeriodicInterval(Vec(d[1].b,d[2].a),Vec(d[1].b,d[2].b)),
-        PeriodicInterval(Vec(d[1].a,d[2].b),Vec(d[1].a,d[2].a))))
+    UnionDomain((PeriodicInterval(Vec(factor(d,1).b,factor(d,2).a),Vec(factor(d,1).b,factor(d,2).b)),
+        PeriodicInterval(Vec(factor(d,1).a,factor(d,2).b),Vec(factor(d,1).a,factor(d,2).a))))
 ∂{A<:PeriodicInterval,B<:Segment}(d::ProductDomain{Tuple{A,B}}) =
-    UnionDomain((PeriodicInterval(Vec(d[1].a,d[2].a),Vec(d[1].b,d[2].a)),
-        PeriodicInterval(Vec(d[1].b,d[2].b),Vec(d[1].a,d[2].b))))
+    UnionDomain((PeriodicInterval(Vec(factor(d,1).a,factor(d,2).a),Vec(factor(d,1).b,factor(d,2).a)),
+        PeriodicInterval(Vec(factor(d,1).b,factor(d,2).b),Vec(factor(d,1).a,factor(d,2).b))))
 ∂{A<:PeriodicInterval,B<:PeriodicInterval}(d::ProductDomain{Tuple{A,B}}) = EmptyDomain()
 
 

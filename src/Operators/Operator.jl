@@ -1,6 +1,6 @@
 export Operator
 export bandinds, bandrange, \, periodic
-export dirichlet, neumann
+export neumann
 export ldirichlet,rdirichlet,lneumann,rneumann
 export ldiffbc,rdiffbc,diffbcs
 export domainspace,rangespace

@@ -55,6 +55,8 @@ Base.endof(s::Space) = 1
 #supports broadcasting, overloaded for ArraySpace
 Base.size(::Space) = ()
 
+Base.transpose(sp::Space) = sp  # default no-op
+
 
 # the default is all spaces have one-coefficient blocks
 blocklengths(S::Space) = repeated(true,dimension(S))
@@ -542,6 +544,8 @@ for OP in (:maxspace,:(Base.union))
         $OP(A::ConstantSpace,B::ConstantSpace) = ConstantSpace(domain(A) ∪ domain(B))
     end
 end
+
+space(x::Number) = ConstantSpace(typeof(x))
 
 
 

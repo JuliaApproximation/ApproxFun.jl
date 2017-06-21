@@ -5,20 +5,20 @@ using ApproxFun, Base.Test
 
 d=Interval(-20000.,20000.)
 x=Fun(identity,d)
-u=[dirichlet(d);Derivative(d)^2+I]\[1,0,0]
-u=[dirichlet(d);Derivative(d)^2+I]\[1,0,0]
-@time u=[dirichlet(d);Derivative(d)^2+I]\[1,0,0]
+u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
+@time u=[Dirichlet(d);Derivative(d)^2+I]\[[1,0],0]
 println("Cos/Sin: should be ~0.017")
 
 
 d=Interval(-1000.,5.)
 x=Fun(identity,d)
-u=[dirichlet(d);Derivative(d)^2-x]\[1,0,0]
-u=[dirichlet(d);Derivative(d)^2-x]\[1,0,0]
-@time u=[dirichlet(d);Derivative(d)^2-x]\[1,0,0]
+u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
+u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
+@time u=[Dirichlet(d);Derivative(d)^2-x]\[[1,0],0]
 println("Airy: 0.014356 seconds (1.08 k allocations: 8.015 MB)")
 
-M=cache(ApproxFun.InterlaceOperator([dirichlet(d);Derivative(d)^2-x]);padding=true)
+M=cache([Dirichlet(d);Derivative(d)^2-x];padding=true)
 @time ApproxFun.resizedata!(M,12500,:)
 println("Airy construct op: 0.005417 seconds (81 allocations: 5.279 MB)")
 
@@ -28,7 +28,7 @@ S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)
 L=D^2+(7+2x+6x^2)
-B=dirichlet(S)
+B=Dirichlet(S)
 n=20000
 rhs=ones(n+2)
 u=A_ldiv_B_coefficients([B;L],rhs)
@@ -41,7 +41,7 @@ S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)
 L=D^2+cos(x)
-B=dirichlet(S)
+B=Dirichlet(S)
 n=2000
 rhs=ones(n+2)
 u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
@@ -53,7 +53,7 @@ S=Chebyshev()
 x=Fun(identity,S)
 D=Derivative(S)
 L=D^2+sin(x)
-B=dirichlet(S)
+B=Dirichlet(S)
 n=2000
 rhs=ones(n+2)
 u=A_ldiv_B_coefficients([B;L],rhs;maxlength=Inf)
@@ -66,11 +66,11 @@ println("Sin: should be ~0.008663 seconds (660 allocations: 2.987 MB)")
 x=Fun(identity,Domain(-20..15) \ [-10.,-5.,0.,1.])
 sp=space(x)
 D=Derivative(sp)
-B=dirichlet(sp)
+B=[Dirichlet(sp);continuity(sp,0:1)]
 u=[B;
-    D^2-x]\Any[[airyai(-20.);zeros(size(B,1)-1)],0];
-@time u=[dirichlet(sp);
-    D^2-x]\Any[[airyai(-20.);zeros(size(B,1)-1)],0]
+    D^2-x]\[[airyai(-20.),0.],zeros(8),0];
+@time u=[B;
+    D^2-x]\[[airyai(-20.),0.],zeros(8),0]
 
 
 println("Piecewise Airy: should be ~0.008")

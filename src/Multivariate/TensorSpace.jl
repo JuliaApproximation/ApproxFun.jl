@@ -291,7 +291,7 @@ blocklengths(S::TensorSpace) = tensorblocklengths(map(blocklengths,S.spaces)...)
 
 TensorSpace(sp::Tuple) =
     TensorSpace{typeof(sp),typeof(mapreduce(domain,*,sp)),
-                mapreduce(s->eltype(domain(s)),promote_type,sp)}(sp)
+                mapreduce(rangetype,(a,b)->Base.promote_op(*,a,b),sp)}(sp)
 
 
 dimension(sp::TensorSpace) = mapreduce(dimension,*,sp.spaces)
@@ -318,12 +318,30 @@ Space(sp::ProductDomain) = TensorSpace(sp)
 *(A::Space,B::Space) = A⊗B
 
 
+## TODO: generalize
+components(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    [s ⊗ sp.spaces[2] for s in components(sp.spaces[1])]
+
+components(sp::TensorSpace{Tuple{S1,S2}}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    [sp.spaces[1] ⊗ s for s in components(sp.spaces[2])]
+
+Base.size(sp::TensorSpace{Tuple{S1,S2}}) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    size(sp.spaces[1])
+
+Base.size(sp::TensorSpace{Tuple{S1,S2}}) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    size(sp.spaces[2])
+
+
+getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1<:Space{D,R},S2} where {D,R<:AbstractArray} =
+    sp.spaces[1][k] ⊗ sp.spaces[2]
+
+getindex(sp::TensorSpace{Tuple{S1,S2}},k::Integer) where {S1,S2<:Space{D,R}} where {D,R<:AbstractArray} =
+    sp.spaces[1] ⊗ sp.spaces[2][k]
+
+
 # every column is in the same space for a TensorSpace
 #TODO: remove
 columnspace(S::TensorSpace,::) = S.spaces[1]
-
-Base.length(d::TensorSpace) = length(d.spaces)
-Base.getindex(d::TensorSpace,k::Integer) = d.spaces[k]
 
 
 struct ProductSpace{S<:Space,V<:Space,D,R} <: AbstractProductSpace{Tuple{S,V},D,R}
@@ -335,26 +353,27 @@ ProductSpace(spacesx::Vector,spacey) =
     ProductSpace{eltype(spacesx),typeof(spacey),typeof(mapreduce(domain,*,sp)),
                 mapreduce(s->eltype(domain(s)),promote_type,sp)}(spacesx,spacey)
 
-
+#TODO: This is a weird definition
 ⊗{S<:Space}(A::Vector{S},B::Space) = ProductSpace(A,B)
 domain(f::ProductSpace) = domain(f.spacesx[1])*domain(f.spacesy)
 
-Base.getindex(d::ProductSpace,k::Integer) = k==1?d.spacesx:d.spacey
+
+nfactors(d::AbstractProductSpace) = length(d.spaces)
+factor(d::AbstractProductSpace,k) = d.spaces[k]
 
 
-space(d::AbstractProductSpace,k) = d[k]
-isambiguous(A::TensorSpace) = isambiguous(A[1])||isambiguous(A[2])
+isambiguous(A::TensorSpace) = isambiguous(A.spaces[1]) || isambiguous(A.spaces[2])
 
 
-Base.transpose(d::TensorSpace) = TensorSpace(d[2],d[1])
+Base.transpose(d::TensorSpace) = TensorSpace(d.spaces[2],d.spaces[1])
 
 
 
 
 
 ## Transforms
-plan_transform!(S::TensorSpace,M::AbstractMatrix) = TransformPlan(S,((plan_transform(S[1],size(M,1)),size(M,1)),
-                                                             (plan_transform(S[2],size(M,2)),size(M,2))),
+plan_transform!(S::TensorSpace,M::AbstractMatrix) = TransformPlan(S,((plan_transform(S.spaces[1],size(M,1)),size(M,1)),
+                                                             (plan_transform(S.spaces[2],size(M,2)),size(M,2))),
                                                              Val{true})
 
 
@@ -384,19 +403,20 @@ end
 
 function plan_transform(sp::TensorSpace,::Type{T},n::Integer) where {T}
     NM=n
-    if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
-        N,M=dimension(sp[1]),dimension(sp[2])
-    elseif isfinite(dimension(sp[1]))
-        N=dimension(sp[1])
+    if isfinite(dimension(sp.spaces[1])) && isfinite(dimension(sp.spaces[2]))
+        N,M=dimension(sp.spaces[1]),dimension(sp.spaces[2])
+    elseif isfinite(dimension(sp.spaces[1]))
+        N=dimension(sp.spaces[1])
         M=NM÷N
-    elseif isfinite(dimension(sp[2]))
-        M=dimension(sp[2])
+    elseif isfinite(dimension(sp.spaces[2]))
+        M=dimension(sp.spaces[2])
         N=NM÷M
     else
         N=M=round(Int,sqrt(n))
     end
 
-    TransformPlan(sp,((plan_transform(sp[1],T,N),N),(plan_transform(sp[2],T,M),M)),
+    TransformPlan(sp,((plan_transform(sp.spaces[1],T,N),N),
+                      (plan_transform(sp.spaces[2],T,M),M)),
                 Val{false})
 end
 
@@ -414,12 +434,12 @@ plan_column_itransform(S,v) = plan_itransform(columnspace(S,1),v)
 function itransform!(S::TensorSpace,M::AbstractMatrix)
     n=size(M,1)
 
-    planc=plan_itransform(space(S,1),M[:,1])
+    planc=plan_itransform(factor(S,1),M[:,1])
     for k=1:size(M,2)
         M[:,k] = planc*M[:,k]
     end
 
-    planr=plan_itransform(space(S,2),M[1,:])
+    planr=plan_itransform(factor(S,2),M[1,:])
     for k=1:n
         M[k,:]=planr*M[k,:]
     end
@@ -436,7 +456,7 @@ function itransform!(S::AbstractProductSpace,M::AbstractMatrix)
     end
 
     for k=1:n
-        M[k,:]=itransform(space(S,2),M[k,:])
+        M[k,:]=itransform(factor(S,2),M[k,:])
     end
     M
 end
@@ -449,7 +469,7 @@ function transform!{T}(S::TensorSpace,M::AbstractMatrix{T})
     # For Disk Space, this is due to requiring decay
     # in function
     for k=1:n
-        M[k,:]=transform(space(S,2),M[k,:])
+        M[k,:]=transform(factor(S,2),M[k,:])
     end
 
     pln=plan_column_transform(S,n)
@@ -475,7 +495,7 @@ function transform!{T}(S::AbstractProductSpace,M::AbstractMatrix{T})
     # For Disk Space, this is due to requiring decay
     # in function
     for k=1:n
-        M[k,:]=transform(space(S,2),M[k,:])
+        M[k,:]=transform(factor(S,2),M[k,:])
     end
 
     pln=plan_column_transform(S,n)
@@ -500,7 +520,7 @@ points(d::Union{BivariateDomain,BivariateSpace},n,m) = points(d,n,m,1),points(d,
 
 function points(d::BivariateSpace,n,m,k)
     ptsx=points(columnspace(d,1),n)
-    ptst=points(space(d,2),m)
+    ptst=points(factor(d,2),m)
 
     promote_type(eltype(ptsx),eltype(ptst))[fromcanonical(d,x,t)[k] for x in ptsx, t in ptst]
 end
@@ -559,20 +579,21 @@ end
 
 function points(sp::TensorSpace,n)
     pts=Array{eltype(domain(sp))}(0)
-    if isfinite(dimension(sp[1])) && isfinite(dimension(sp[2]))
-        N,M=dimension(sp[1]),dimension(sp[2])
-    elseif isfinite(dimension(sp[1]))
-        N=dimension(sp[1])
+    a,b = sp.spaces
+    if isfinite(dimension(a)) && isfinite(dimension(b))
+        N,M=dimension(a),dimension(b)
+    elseif isfinite(dimension(a))
+        N=dimension(a)
         M=n÷N
-    elseif isfinite(dimension(sp[2]))
-        M=dimension(sp[2])
+    elseif isfinite(dimension(b))
+        M=dimension(b)
         N=n÷M
     else
         N=M=round(Int,sqrt(n))
     end
 
-    for y in points(sp[2],M),
-        x in points(sp[1],N)
+    for y in points(b,M),
+        x in points(a,N)
         push!(pts,Vec(x,y))
     end
     pts
@@ -609,25 +630,36 @@ union_rule(a::TensorSpace,b::TensorSpace) = TensorSpace(map(union,a.spaces,b.spa
 #     d2 = domain(ts)
 #     if d2
 #     length(ts.spaces) == 2 &&
-#     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||
-#      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
+#     ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts.spaces[2])) ||
+#      (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts.spaces[1])))
 #  end
 
 isconvertible(sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} = length(ts.spaces) == 2 &&
-    ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts[2])) ||
-     (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts[1])))
+    ((domain(ts)[1] == Point(0.0) && isconvertible(sp,ts.spaces[2])) ||
+     (domain(ts)[2] == Point(0.0) && isconvertible(sp,ts.spaces[1])))
 
 
 coefficients(f::AbstractVector,sp::ConstantSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R} =
     f[1]*ones(ts).coefficients
 
+#
+# function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{Tuple{S,V},D,R}) where {S,V<:ConstantSpace,D<:BivariateDomain,R,TT} where {T<:Number}
+#     a = domain(sp)
+#     b = domain(ts)
+#     # make sure we are the same domain. This will be replaced by isisomorphic
+#     @assert first(a) ≈ Vec(first(factor(b,1)),factor(b,2).x) &&
+#         last(a) ≈ Vec(last(factor(b,1)),factor(b,2).x)
+#
+#     coefficients(f,sp,setdomain(factor(ts,1),a))
+# end
+
 function coefficients(f::AbstractVector,sp::UnivariateSpace,ts::TensorSpace{SV,D,R}) where {SV,D<:BivariateDomain,R}
     @assert length(ts.spaces) == 2
 
-    if domain(ts)[1] == Point(0.0)
-        coefficients(f,sp,ts[2])
-    elseif domain(ts)[2] == Point(0.0)
-        coefficients(f,sp,ts[1])
+    if factor(domain(ts),1) == Point(0.0)
+        coefficients(f,sp,ts.spaces[2])
+    elseif factor(domain(ts),2) == Point(0.0)
+        coefficients(f,sp,ts.spaces[1])
     else
         error("Cannot convert coefficients from $sp to $ts")
     end
@@ -641,10 +673,10 @@ function isconvertible(sp::Space{Segment{Vec{2,TT}}},ts::TensorSpace{SV,D,R}) wh
         return false
     end
     if d1.a[2] ≈ d1.b[2]
-        isa(d2[2],Point) && d2[2].x ≈ d1.a[2] &&
+        isa(factor(d2,2),Point) && factor(d2,2).x ≈ d1.a[2] &&
             isconvertible(setdomain(sp,Segment(d1.a[1],d1.b[1])),ts[1])
     elseif d1.a[1] ≈ d1.b[1]
-        isa(d2[1],Point) && d2[1].x ≈ d1.a[1] &&
+        isa(factor(d2,1),Point) && factor(d2,1).x ≈ d1.a[1] &&
             isconvertible(setdomain(sp,Segment(d1.a[2],d1.b[2])),ts[2])
     else
         return false
@@ -658,9 +690,9 @@ function coefficients(f::AbstractVector,sp::Space{Segment{Vec{2,TT}}},
     d1 = domain(sp)
     d2 = domain(ts)
     if d1.a[2] ≈ d1.b[2]
-        coefficients(f,setdomain(sp,Segment(d1.a[1],d1.b[1])),ts[1])
+        coefficients(f,setdomain(sp,Segment(d1.a[1],d1.b[1])),factor(ts,1))
     elseif d1.a[1] ≈ d1.b[1]
-        coefficients(f,setdomain(sp,Segment(d1.a[2],d1.b[2])),ts[2])
+        coefficients(f,setdomain(sp,Segment(d1.a[2],d1.b[2])),factor(ts,2))
     else
         error("Cannot convert coefficients from $sp to $ts")
     end

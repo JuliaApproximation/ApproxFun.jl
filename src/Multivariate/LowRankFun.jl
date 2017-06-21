@@ -193,7 +193,7 @@ end
 LowRankFun(f::Function,args...;kwds...) = LowRankFun(F(f),args...;kwds...)
 
 LowRankFun(f::F,S::TensorSpace{SV,DD,RR};kwds...) where {SV,DD<:BivariateDomain,RR} =
-    LowRankFun(f,S[1],S[2];kwds...)
+    LowRankFun(f,factor(S,1),factor(S,2);kwds...)
 LowRankFun(f::F,dx::Domain,dy::Domain;kwds...) =
     LowRankFun(f,Space(dx),Space(dy);kwds...)
 LowRankFun(f::F,d::ProductDomain;kwds...) =

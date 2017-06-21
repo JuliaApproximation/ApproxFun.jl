@@ -1,6 +1,6 @@
 using ApproxFun, Base.Test
     import ApproxFun: testbandedoperator, testraggedbelowoperator, InterlaceOperator, testspace,
-                        testbandedbelowoperator, testbandedblockbandedoperator, testfunctional
+                        testbandedbelowoperator, testbandedblockbandedoperator, testfunctional, factor
 ## This includes extra tests that are too time consuming for Travis
 
 
@@ -21,12 +21,12 @@ end
 
 S=Chebyshev()
 @time for io in (
-        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev());lneumann(S)]),
-        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos);lneumann(S)]),
-        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())]),
-        InterlaceOperator([InterlaceOperator(dirichlet(S));Derivative(Chebyshev())+Fun(cos)]),
-        InterlaceOperator([Derivative(Chebyshev());InterlaceOperator(dirichlet(S))]),
-        InterlaceOperator([Derivative(Chebyshev())+Fun(cos);InterlaceOperator(dirichlet(S))]))
+        InterlaceOperator([Dirichlet(S);Derivative(Chebyshev());lneumann(S)]),
+        InterlaceOperator([Dirichlet(S);Derivative(Chebyshev())+Fun(cos);lneumann(S)]),
+        InterlaceOperator([Dirichlet(S);Derivative(Chebyshev())]),
+        InterlaceOperator([Dirichlet(S);Derivative(Chebyshev())+Fun(cos)]),
+        InterlaceOperator([Derivative(Chebyshev());Dirichlet(S)]),
+        InterlaceOperator([Derivative(Chebyshev())+Fun(cos);Dirichlet(S)]))
     testraggedbelowoperator(io)
 end
 
@@ -49,10 +49,10 @@ testfunctional(Evaluation(S,0))
 testfunctional(Evaluation(S,ω)-Evaluation(S,0))
 testfunctional(Evaluation(S,ω,1)-Evaluation(S,0,1))
 
-A=ApproxFun.interlace([Z                      Evaluation(S,0);
+A=[Z                      Evaluation(S,0);
                      u'(ω)    Evaluation(S,ω)-Evaluation(S,0);
                      u''(ω)   Evaluation(S,ω,1)-Evaluation(S,0,1);
-                      0         D^2+I+3u^2])
+                      0         D^2+I+3u^2]
 
 ApproxFun.backend_testinfoperator(A)
 
@@ -72,7 +72,7 @@ A=D^2-I
 @time κ=nullspace(A)
 @test length(κ) == 2
 
-c=[κ(0.);κ'(0.)]\[exp(0.);exp(0.)]
+c=[κ(0.);κ'(0.)]\[exp(0.),exp(0.)]
 u=(κ*c)[1]
 
 @test u(1.0) ≈ e
@@ -114,9 +114,6 @@ println("    Bessel tests")
     u=\([rdirichlet(S);rneumann(S);L],[bessely(ν,1.),.5*(bessely(ν-1.,1.)-bessely(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test ≈(u(.1),bessely(ν,.1);atol=eps(1000000.)*max(abs(u(.1)),1))
-    u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
-                tolerance=1E-10)
-    @test ≈(u(.1),besselj(ν,.1);atol=eps(1000000.)*max(abs(u(.1)),1))
     u=Fun(x->bessely(ν,x),S)
     @test ≈(u(.1),bessely(ν,.1);atol=eps(10000.)*max(abs(u(.1)),1))
     u=Fun(x->besselj(ν,x),S)
@@ -130,7 +127,7 @@ end
     x=Fun(identity,domain(S))
     L=(x^2)*D^2+x*D+(x^2-ν^2);
 
-    u=\([rdirichlet(S),rneumann(S),L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
+    u=\([rdirichlet(S);rneumann(S);L],[besselj(ν,1.),.5*(besselj(ν-1.,1.)-besselj(ν+1.,1.)),0];
                 tolerance=1E-10)
     @test ≈(u(.1),besselj(ν,.1);atol=eps(1000000.)*max(abs(u(.1)),1))
     u=Fun(x->besselj(ν,x),S)
@@ -293,13 +290,13 @@ f = LowRankFun((x,y)->1/(2π*(x^2+y^2+1)^(3/2)),JacobiWeight(2.,2.,Line())^2)
 
     @test (L*f)(0.2,0.3) ≈ (fx(0.2,0.3)+fy(0.2,0.3))
 
-    B=ldirichlet(d[1])⊗ldirichlet(d[2])
+    B=ldirichlet(factor(d,1))⊗ldirichlet(factor(d,2))
     @test Number(B*f) ≈ f(-1.,-1.)
 
-    B=Evaluation(d[1],0.1)⊗ldirichlet(d[2])
+    B=Evaluation(factor(d,1),0.1)⊗ldirichlet(factor(d,2))
     @test Number(B*f) ≈ f(0.1,-1.)
 
-    B=Evaluation(d[1],0.1)⊗Evaluation(d[2],0.3)
+    B=Evaluation(factor(d,1),0.1)⊗Evaluation(factor(d,2),0.3)
     @test Number(B*f) ≈ f(0.1,0.3)
 
     B=Evaluation(d,(0.1,0.3))

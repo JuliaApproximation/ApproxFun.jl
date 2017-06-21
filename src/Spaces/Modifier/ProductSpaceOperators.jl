@@ -29,24 +29,40 @@ end
 
 
 
+function continuity(sp::PiecewiseSpace,order::Integer)
+    m=ncomponents(sp)
+    B=zeros(Operator{prectype(sp)},m-1,m)
 
+    for k=1:m-1
+        B[k,k] = Evaluation(component(sp,k),last,order)
+        B[k,k+1] = -Evaluation(component(sp,k+1),first,order)
+    end
 
+    InterlaceOperator(B,PiecewiseSpace,ArraySpace)
+end
 
-for op in (:dirichlet,:neumann,:continuity,:ivp)
-    @eval $op(d::PiecewiseSpace,k...) = InterlaceOperator($op(d.spaces,k...),PiecewiseSpace,ArraySpace)
-    @eval $op(d::UnionDomain,k...) = InterlaceOperator($op(d.domains,k...),PiecewiseSpace,ArraySpace)
+function continuity(sp::PiecewiseSpace,kr::UnitRange)
+    @assert first(kr)==0
+    m=ncomponents(sp)
+    B=zeros(Operator{prectype(sp)},length(kr)*(m-1),m)
+    for r in kr
+        B[(m-1)*r+1:(m-1)*(r+1),:] = continuity(sp,r).ops
+    end
+    InterlaceOperator(B,PiecewiseSpace,ArraySpace)
 end
 
 
+continuity(d::UnionDomain,k) = continuity(Space(d),k)
+continuity(d) = continuity(d,0)
 
-Base.blkdiag(A::PlusOperator)=mapreduce(blkdiag,+,A.ops)
-Base.blkdiag(A::TimesOperator)=mapreduce(blkdiag,.*,A.ops)
+Base.blkdiag(A::PlusOperator) = mapreduce(blkdiag,+,A.ops)
+Base.blkdiag(A::TimesOperator) = mapreduce(blkdiag,.*,A.ops)
 
 # TODO: general wrappers
 
 Evaluation(S::SumSpace,x,order) =
     EvaluationWrapper(S,x,order,
-        InterlaceOperator(hcat(map(s->Evaluation(s,x,order),components(S))...),SumSpace))
+        InterlaceOperator(hnocat(map(s->Evaluation(s,x,order),components(S))...),SumSpace))
 
 
 ToeplitzOperator{S,RR,V,DD}(G::Fun{MatrixSpace{S,DD,RR},V}) = interlace(map(ToeplitzOperator,Array(G)))
@@ -163,10 +179,15 @@ end
 
 #TODO: do in @calculus_operator?
 
-for TYP in (:PiecewiseSpace,:ArraySpace),(Op,OpWrap) in ((:Derivative,:DerivativeWrapper),
-                                                         (:Integral,:IntegralWrapper))
-    @eval $Op(S::$TYP,k::Integer) =
-        $OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),components(S))...]),$TYP),k)
+for (Op,OpWrap) in ((:Derivative,:DerivativeWrapper),(:Integral,:IntegralWrapper))
+    @eval begin
+        $Op(S::PiecewiseSpace,k::Integer) =
+            $OpWrap(InterlaceOperator(Diagonal([map(s->$Op(s,k),components(S))...]),PiecewiseSpace),k)
+        function $Op(S::ArraySpace,k::Integer)
+            ops = map(s->$Op(s,k),S)
+            $OpWrap(InterlaceOperator(Diagonal(ops),S,ArraySpace(reshape(rangespace.(ops),size(S)))),k)
+        end
+    end
 end
 
 function Derivative(S::SumSpace,k::Integer)
@@ -229,9 +250,9 @@ DefiniteLineIntegral(d::UnionDomain) =
 
 
 DefiniteIntegral(sp::PiecewiseSpace) =
-    DefiniteIntegralWrapper(InterlaceOperator(hcat(map(DefiniteIntegral,sp.spaces)...),sp,ConstantSpace(rangetype(sp))))
+    DefiniteIntegralWrapper(InterlaceOperator(hnocat(map(DefiniteIntegral,sp.spaces)...),sp,ConstantSpace(rangetype(sp))))
 DefiniteLineIntegral(sp::PiecewiseSpace) =
-    DefiniteLineIntegralWrapper(InterlaceOperator(hcat(map(DefiniteLineIntegral,sp.spaces)...),sp,ConstantSpace(rangetype(sp))))
+    DefiniteLineIntegralWrapper(InterlaceOperator(hnocat(map(DefiniteLineIntegral,sp.spaces)...),sp,ConstantSpace(rangetype(sp))))
 
 ## TensorSpace of two PiecewiseSpaces
 

@@ -131,10 +131,12 @@ f = Fun(θ->[sin(θ),sin(2θ)],Fourier())
 x=Fun()
 A = [x x; x x]
 
+@test A isa Fun
+
 @test norm(map(norm,A*A-[2x^2 2x^2; 2x^2 2x^2])) <eps()
-@test norm((A*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
-@test norm((Fun(A)*A-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
-@test norm((Fun(A)*Fun(A)-Fun([2x^2 2x^2; 2x^2 2x^2])).coefficients) < eps()
+@test norm(map(norm,A*Array(A)-[2x^2 2x^2; 2x^2 2x^2])) < eps()
+@test norm(map(norm,Array(A)*A-[2x^2 2x^2; 2x^2 2x^2])) < eps()
+@test norm(map(norm,Array(A)*Array(A)-Array([2x^2 2x^2; 2x^2 2x^2]))) < eps()
 
 
 A = fill(x,3,3)
@@ -337,8 +339,11 @@ f=Fun(TS,collect(1:10))
 @test f[5] == Fun(TS[5],[5.,9.])
 
 ## Operator * Matrix
+f = [Fun(exp) Fun(cos)]
+@test f(0.1) ≈ [exp(0.1) cos(0.1)]
 
 D=Derivative()
-
-u=D*[Fun(exp) Fun(cos)]
+u=D*f
+@test u(0.1) ≈ [exp(0.1) -sin(0.1)]
+u=D*Array(f)
 @test u(0.1) ≈ [exp(0.1) -sin(0.1)]
