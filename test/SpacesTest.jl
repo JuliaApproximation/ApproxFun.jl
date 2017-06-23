@@ -257,12 +257,12 @@ x=Fun()
 
 ### QuotientSpace test
 
-import ApproxFun: InterlaceOperator, SpaceOperator
+import ApproxFun: SpaceOperator
 
 for (bcs,ret) in ((Dirichlet(Chebyshev()),[1 -1 0 0 0;1 1 0 0 0]),
                   (Neumann(Chebyshev()),[0 1 -4 0 0;0 1 4 0 0]),
-                  (InterlaceOperator([DefiniteIntegral(Chebyshev());SpaceOperator(BasisFunctional(2),Chebyshev(),ConstantSpace())]),[2 0 0 0 0;0 1 0 0 0]),
-                  (InterlaceOperator(bvp(Chebyshev(),4)),[1 -1 1 -1 0;0 1 -4 9 0;1 1 1 1 0;0 1 4 9 0]))
+                  ([DefiniteIntegral(Chebyshev());SpaceOperator(BasisFunctional(2),Chebyshev(),ConstantSpace())],[2 0 0 0 0;0 1 0 0 0]),
+                  (vcat(bvp(Chebyshev(),4)...),[1 -1 1 -1 0;0 1 -4 9 0;1 1 1 1 0;0 1 4 9 0]))
     QS = QuotientSpace(bcs)
     C = Conversion(QS, QS.space)
 
