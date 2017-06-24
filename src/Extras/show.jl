@@ -112,6 +112,11 @@ function Base.show(io::IO,s::LogWeight)
     print(io,"]")
 end
 
+function Base.show(io::IO,s::QuotientSpace)
+    show(io,s.space)
+    print(io," /\n")
+    show(io,s.bcs;header=false)
+end
 
 
 function Base.show(io::IO,ss::SumSpace)

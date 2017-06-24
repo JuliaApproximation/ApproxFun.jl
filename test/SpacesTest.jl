@@ -253,3 +253,18 @@ x=Fun()
 
 ## ChebyshevDirichlet Integral
 @test Integral(S,1)*Fun(S,[1.,2.,3.]) ≈ integrate(Fun(Fun(S,[1.,2.,3.]),Chebyshev()))
+
+
+### QuotientSpace test
+
+import ApproxFun: SpaceOperator
+
+for (bcs,ret) in ((Dirichlet(Chebyshev()),[1 -1 0 0 0;1 1 0 0 0]),
+                  (Neumann(Chebyshev()),[0 1 -4 0 0;0 1 4 0 0]),
+                  ([DefiniteIntegral(Chebyshev());SpaceOperator(BasisFunctional(2),Chebyshev(),ConstantSpace())],[2 0 0 0 0;0 1 0 0 0]),
+                  (vcat(bvp(Chebyshev(),4)...),[1 -1 1 -1 0;0 1 -4 9 0;1 1 1 1 0;0 1 4 9 0]))
+    QS = QuotientSpace(bcs)
+    C = Conversion(QS, QS.space)
+
+    norm((bcs*C)[1:size(bcs, 1),1:5] - ret) < 1000eps()
+end

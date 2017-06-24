@@ -3,6 +3,7 @@ include("SumSpace.jl")
 include("ArraySpace.jl")
 include("ProductSpaceOperators.jl")
 include("SubSpace.jl")
+include("QuotientSpace.jl")
 
 
 ⊕(A::Space,B::Space) = domainscompatible(A,B) ? SumSpace(A,B) : PiecewiseSpace(A,B)
