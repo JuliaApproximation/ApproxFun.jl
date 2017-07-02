@@ -154,6 +154,7 @@ end
 ConcreteDirichlet(sp::Space,rs::Space,order) =
     ConcreteDirichlet{typeof(sp),typeof(rs),rangetype(sp)}(sp,rs,order)
 ConcreteDirichlet(sp::Space,order) = ConcreteDirichlet(sp,Space(∂(domain(sp))),order)
+ConcreteDirichlet(sp::Space) = ConcreteDirichlet(sp,0)
 
 Base.convert{S,V,T}(::Type{Operator{T}},B::ConcreteDirichlet{S,V}) =
     ConcreteDirichlet{S,V,T}(B.domainspace,B.rangespace,B.order)
@@ -172,7 +173,8 @@ Base.convert{T}(::Type{Operator{T}},B::DirichletWrapper) =
     DirichletWrapper(Operator{T}(B.op),B.order)::Operator{T}
 
 # Default is to use diffbca
-Dirichlet(sp::Space,λ) = DirichletWrapper([ldiffbc(sp,λ);rdiffbc(sp,λ)],λ)
+default_Dirichlet(sp::Space,λ) = DirichletWrapper([ldiffbc(sp,λ);rdiffbc(sp,λ)],λ)
+Dirichlet(sp::Space,λ) = default_Dirichlet(sp,λ)
 Dirichlet(sp::Space) = Dirichlet(sp,0)
 Dirichlet() = Dirichlet(UnsetSpace())
 

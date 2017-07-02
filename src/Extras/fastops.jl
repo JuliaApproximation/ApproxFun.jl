@@ -21,7 +21,7 @@ end
 
 # default copy is to loop through
 # override this for most operators.
-function default_raggedmatrix(S::Operator)
+function default_RaggedMatrix(S::Operator)
     data=Array{eltype(S)}(0)
     cols=Array{Int}(size(S,2)+1)
     cols[1]=1
@@ -37,6 +37,15 @@ function default_raggedmatrix(S::Operator)
     end
 
     RaggedMatrix(data,cols,size(S,1))
+end
+
+function default_Matrix(S::Operator)
+    n, m = size(S)
+    if isinf(n) || isinf(m)
+        error("Cannot convert $S to a Matrix")
+    end
+
+    eltype(S)[S[k,j] for k=1:n, j=1:m]
 end
 
 

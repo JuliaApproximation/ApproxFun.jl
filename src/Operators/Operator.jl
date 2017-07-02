@@ -475,11 +475,12 @@ macro wrappergetindex(Wrap)
             A_mul_B_coefficients(view(parent(A).op,S.indexes[1],S.indexes[2]),b)
     end
 
-    for TYP in (:(BandedMatrices.BandedMatrix),:Matrix,:Vector,:AbstractVector)
+    for TYP in (:(BandedMatrices.BandedMatrix),:(ApproxFun.RaggedMatrix),
+                :Matrix,:Vector,:AbstractVector)
         ret = quote
             $ret
 
-            Base.convert{T,OP<:$Wrap}(::Type{$TYP},P::ApproxFun.SubOperator{T,OP}) =
+            Base.convert(::Type{$TYP},P::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap} =
                 $TYP(view(parent(P).op,P.indexes[1],P.indexes[2]))
         end
     end
@@ -488,8 +489,9 @@ macro wrappergetindex(Wrap)
         $ret
 
         # fast converts to banded matrices would be based on indices, not blocks
-        function Base.convert{T,OP<:$Wrap}(::Type{BandedMatrices.BandedMatrix},
-                                S::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{ApproxFun.Block},UnitRange{ApproxFun.Block}}})
+        function Base.convert(::Type{BandedMatrices.BandedMatrix},
+                              S::ApproxFun.SubOperator{T,OP,Tuple{UnitRange{ApproxFun.Block},
+                                                                  UnitRange{ApproxFun.Block}}}) where {T,OP<:$Wrap}
             A = parent(S)
             ds = domainspace(A)
             rs = rangespace(A)
@@ -501,7 +503,8 @@ macro wrappergetindex(Wrap)
 
 
         # if the spaces change, then we need to be smarter
-        function Base.convert{T,OP<:$Wrap}(::Type{ApproxFun.BlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
+        function Base.convert(::Type{ApproxFun.BlockBandedMatrix},
+                              S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
             if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
@@ -511,7 +514,8 @@ macro wrappergetindex(Wrap)
             end
         end
 
-        function Base.convert{T,OP<:$Wrap}(::Type{ApproxFun.BandedBlockBandedMatrix},S::ApproxFun.SubOperator{T,OP})
+        function Base.convert(::Type{ApproxFun.BandedBlockBandedMatrix},
+                              S::ApproxFun.SubOperator{T,OP}) where {T,OP<:$Wrap}
             P = parent(S)
             if blocklengths(domainspace(P)) == blocklengths(domainspace(P.op)) &&
                     blocklengths(rangespace(P)) == blocklengths(rangespace(P.op))
@@ -664,23 +668,6 @@ end
 
 
 
-
-function Base.convert(::Type{Matrix},S::Operator)
-   if isinf(size(S,1)) || isinf(size(S,2))
-       error("Cannot convert $S to a Matrix")
-   end
-
-   if isbanded(S)
-       Matrix(BandedMatrix(S))
-   elseif isbandedblockbanded(S)
-       Matrix(BandedBlockBandedMatrix(S))
-   elseif isblockbanded(S)
-       Matrix(BlockBandedMatrix(S))
-   else
-       eltype(S)[S[k,j] for k=1:size(S,1),j=1:size(S,2)]
-   end
-end
-
 Base.convert(::Type{BandedMatrix},S::Operator) = default_bandedmatrix(S)
 
 function Base.convert(::Type{BlockBandedMatrix},S::Operator)
@@ -691,15 +678,24 @@ function Base.convert(::Type{BlockBandedMatrix},S::Operator)
     end
 end
 
-function Base.convert(::Type{RaggedMatrix},S::Operator)
-    if isbanded(S)
-        RaggedMatrix(BandedMatrix(S))
-    elseif isbandedblockbanded(S)
-        RaggedMatrix(BandedBlockBandedMatrix(S))
-    elseif isblockbanded(S)
-        RaggedMatrix(BlockBandedMatrix(S))
-    else
-        default_raggedmatrix(S)
+
+# TODO: Unify with SubOperator
+for TYP in (:RaggedMatrix,:Matrix)
+    def_TYP = parse("default_" * string(TYP))
+    @eval function Base.convert(::Type{$TYP},S::Operator)
+        if isinf(size(S,1)) || isinf(size(S,2))
+            error("Cannot convert $S to a $TYP")
+        end
+
+        if isbanded(S)
+            $TYP(BandedMatrix(S))
+        elseif isbandedblockbanded(S)
+            $TYP(BandedBlockBandedMatrix(S))
+        elseif isblockbanded(S)
+            $TYP(BlockBandedMatrix(S))
+        else
+            $def_TYP(S)
+        end
     end
 end
 
@@ -725,7 +721,7 @@ function Base.convert(::Type{AbstractMatrix},S::SubOperator)
         BandedBlockBandedMatrix(S)
     elseif isblockbanded(parent(S))
         BlockBandedMatrix(S)
-    elseif israggedbelow(parent(S))
+    elseif isinf(size(parent(S),1)) && israggedbelow(parent(S))
         RaggedMatrix(S)
     else
         Matrix(S)

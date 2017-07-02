@@ -115,8 +115,8 @@ function getindex{DD<:Segment,RR,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{
     end
 end
 
-function getindex{DD<:Segment,RR,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
-                                             k::Range)
+function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
+                                             k::Range) where {DD<:Segment,RR,M<:Real,OT,T}
     if op.order == 0
         Array{T}(evaluatechebyshev(k[end],tocanonical(domain(op),op.x))[k])
     else
@@ -124,6 +124,41 @@ function getindex{DD<:Segment,RR,M<:Real,OT,T}(op::ConcreteEvaluation{Chebyshev{
     end
 end
 
+Dirichlet(S::Chebyshev) = ConcreteDirichlet(S,ArraySpace(ConstantSpace(rangetype(S)),2),0)
+
+
+function getindex(op::ConcreteDirichlet{<:Chebyshev},
+                                             k::Integer,j::Integer)
+    if op.order == 0
+        k == 1 && iseven(j) && return -one(T)
+        return one(T)
+    else
+        error("Only zero Dirichlet conditions implemented")
+    end
+end
+
+function convert(::Type{Matrix},
+                 S::SubOperator{T,ConcreteDirichlet{C,V,T},
+                                Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,V,T}
+    ret = Array{T}(size(S)...)
+    kr,jr = parentindexes(S)
+    isempty(kr) && return ret
+    isempty(jr) && return ret
+    if first(kr) == 1
+        if isodd(jr[1])
+            ret[1,1:2:end] = one(T)
+            ret[1,2:2:end] = -one(T)
+        else
+            ret[1,1:2:end] = -one(T)
+            ret[1,2:2:end] = one(T)
+        end
+    end
+    if last(kr) == 2
+        ret[end,:] = one(T)
+    end
+    return ret
+end
+#
 
 # Multiplication
 
@@ -161,7 +196,7 @@ getindex{PS<:PolynomialSpace,T,C<:Chebyshev}(M::ConcreteMultiplication{C,PS,T},k
     M[k:k,j:j][1,1]
 
 
-function Base.convert{C<:Chebyshev,T}(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}})
+function convert(::Type{BandedMatrix},S::SubOperator{T,ConcreteMultiplication{C,C,T},Tuple{UnitRange{Int},UnitRange{Int}}}) where {C<:Chebyshev,T}
     ret=bzeros(S)
 
     kr,jr=parentindexes(S)

@@ -280,15 +280,24 @@ end
 
 # TODO: These should be removed as the general purpose case will work,
 # once the notion of bandedness of finite dimensional operators is made sense of
-function Base.convert(::Type{RaggedMatrix},S::SubOperator)
-    if isbanded(parent(S))
-        RaggedMatrix(BandedMatrix(S))
-    elseif isbandedblockbanded(parent(S))
-        RaggedMatrix(BandedBlockBandedMatrix(S))
-    elseif isblockbanded(parent(S))
-        RaggedMatrix(BlockBandedMatrix(S))
-    else
-        default_raggedmatrix(S)
+
+
+for TYP in (:RaggedMatrix,:Matrix)
+    def_TYP = parse("default_" * string(TYP))
+    @eval function Base.convert(::Type{$TYP},S::SubOperator)
+        if isinf(size(S,1)) || isinf(size(S,2))
+            error("Cannot convert $S to a $TYP")
+        end
+
+        if isbanded(parent(S))
+            $TYP(BandedMatrix(S))
+        elseif isbandedblockbanded(parent(S))
+            $TYP(BandedBlockBandedMatrix(S))
+        elseif isblockbanded(parent(S))
+            $TYP(BlockBandedMatrix(S))
+        else
+            $def_TYP(S)
+        end
     end
 end
 
