@@ -280,8 +280,8 @@ atan(f::Fun)=cumsum(f'/(1+f^2))+atan(first(f))
 # condition in calculating secial functions
 function specialfunctionnormalizationpoint(op,growth,f)
     g=chop(growth(f),eps(eltype(f)))
-    xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
-    xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
+    xmin = isempty(g.coefficients) ? first(domain(g)) : indmin(g)
+    xmax = isempty(g.coefficients) ? last(domain(g)) : indmax(g)
     opfxmin,opfxmax = op(f(xmin)),op(f(xmax))
     opmax = maximum(abs,(opfxmin,opfxmax))
     if abs(opfxmin) == opmax xmax,opfxmax = xmin,opfxmin end
@@ -410,8 +410,8 @@ for (op,ODE,RHS,growth) in ((:(erf),"f'*D^2+(2f*f'^2-f'')*D","0",:(imag)),
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
-            xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
+            xmin = isempty(g.coefficients) ? first(domain(g)) : indmin(g)
+            xmax = isempty(g.coefficients) ? last(domain(g)) : indmax(g)
             opfxmin,opfxmax = $op(f(xmin)),$op(f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
@@ -448,8 +448,8 @@ for (op,ODE,RHS,growth) in ((:(hankelh1),"f^2*f'*D^2+(f*f'^2-f^2*f'')*D+(f^2-ν^
             f=setcanonicaldomain(fin)
 
             g=chop($growth(f),eps(T))
-            xmin=g.coefficients==[0.]?first(domain(g)):indmin(g)
-            xmax=g.coefficients==[0.]?last(domain(g)):indmax(g)
+            xmin = isempty(g.coefficients) ? first(domain(g)) : indmin(g)
+            xmax = isempty(g.coefficients) ? last(domain(g)) : indmax(g)
             opfxmin,opfxmax = $op(ν,f(xmin)),$op(ν,f(xmax))
             opmax = maximum(abs,(opfxmin,opfxmax))
             while opmax≤10eps(T) || abs(f(xmin)-f(xmax))≤10eps(T)
