@@ -124,14 +124,17 @@ function getindex(op::ConcreteEvaluation{Chebyshev{DD,RR},M,OT,T},
     end
 end
 
-Dirichlet(S::Chebyshev) = ConcreteDirichlet(S,ArraySpace(ConstantSpace(rangetype(S)),2),0)
+function Dirichlet(S::Chebyshev,order)
+    order == 0 && return ConcreteDirichlet(S,ArraySpace(ConstantSpace(rangetype(S)),2),0)
+    default_Dirichlet(S,order)
+end
 
 
 function getindex(op::ConcreteDirichlet{<:Chebyshev},
                                              k::Integer,j::Integer)
     if op.order == 0
-        k == 1 && iseven(j) && return -one(T)
-        return one(T)
+        k == 1 && iseven(j) && return -one(eltype(op))
+        return one(eltype(op))
     else
         error("Only zero Dirichlet conditions implemented")
     end
