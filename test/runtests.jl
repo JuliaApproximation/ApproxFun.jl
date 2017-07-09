@@ -56,6 +56,12 @@ println("Domain tests")
 @test reverse(Arc(1,2,(0.1,0.2))) == Arc(1,2,(0.2,0.1))
 @test in(0.1,PeriodicInterval(2π,0))
 
+@test isambiguous(convert(ApproxFun.Point,ApproxFun.AnyDomain()))
+@test isambiguous(ApproxFun.Point(ApproxFun.AnyDomain()))
+
+@test ApproxFun.AnySegment() == ApproxFun.AnySegment()
+@test ApproxFun.Point(NaN) == ApproxFun.Point(NaN)
+
 @time include("MatrixTest.jl")
 
 

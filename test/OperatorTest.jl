@@ -246,26 +246,28 @@ testblockbandedoperator(A)
 ## SubSpace test
 
 S=Chebyshev()
-C=eye(S)[3:end,:]
-@test ApproxFun.domaindimension(domainspace(C)) == 1
+for C in (eye(S)[3:end,:], eye(S)[3:end,1:end])
+    @test ApproxFun.domaindimension(domainspace(C)) == 1
 
-B=Dirichlet(S)
+    B=Dirichlet(S)
 
-Ai=[B;C]
-@test ApproxFun.colstop(Ai,1) == 2
+    Ai=[B;C]
 
-x=Fun()
-f=exp(x)
-u=[B;C]\[[0.,0.],f]
+    @test ApproxFun.colstop(Ai,1) == 2
 
-@test abs(u(-1)) ≤ 10eps()
-@test abs(u(1)) ≤ 10eps()
+    x=Fun()
+    f=exp(x)
+    u=[B;C]\[[0.,0.],f]
+
+    @test abs(u(-1)) ≤ 10eps()
+    @test abs(u(1)) ≤ 10eps()
 
 
-f=(1-x^2)*exp(x)
-u=[B;C]\[[0.,0.],f]
+    f=(1-x^2)*exp(x)
+    u=[B;C]\[[0.,0.],f]
 
-@test u ≈ f
+    @test u ≈ f
+end
 
 ## Test Zero operator has correct bandinds
 
@@ -276,4 +278,4 @@ Z=ApproxFun.ZeroOperator(Chebyshev())
 ## Issue 407
 x = Fun()
 B = [1 ldirichlet()]
-@test B*[1;x] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])
+@test (B*[1;x])[1] == Fun(ConstantSpace(ApproxFun.Point(-1.0)),[0.0])

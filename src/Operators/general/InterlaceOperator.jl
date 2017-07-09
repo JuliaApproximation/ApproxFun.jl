@@ -84,6 +84,7 @@ struct InterlaceOperator{T,p,DS,RS,DI,RI,BI} <: Operator{T}
 end
 
 const VectorInterlaceOperator = InterlaceOperator{T,1,DS,RS} where {T,DS,RS<:Space{D,R}} where {D,R<:AbstractVector}
+const MatrixInterlaceOperator = InterlaceOperator{T,2,DS,RS} where {T,DS,RS<:Space{D,R}} where {D,R<:AbstractVector}
 
 
 InterlaceOperator{T,p}(ops::Array{T,p},ds,rs,di,ri,bi) =
@@ -94,12 +95,7 @@ function InterlaceOperator{T}(ops::AbstractMatrix{Operator{T}},ds::Space,rs::Spa
     # calculate bandinds TODO: generalize
     p=size(ops,1)
     dsi = interlacer(ds)
-
-    if p == 1  # Assume rs corresonds to a scalar space, so wrap in a ArraySpace to get right interlacing
-        rsi = interlacer(Space(fill(rs,1)))
-    else  # assume this is a correctly tupled
-        rsi = interlacer(rs)
-    end
+    rsi = interlacer(rs)
 
     if size(ops,2) == p && all(isbanded,ops) &&# only support blocksize 1 for now
             all(i->isa(i,Repeated) && i.x == 1, dsi.blocks) &&
@@ -149,31 +145,34 @@ function InterlaceOperator{T}(ops::Vector{Operator{T}},ds::Space,rs::Space)
                         (l,u))
 end
 
-function InterlaceOperator{T}(opsin::AbstractMatrix{Operator{T}})
+function InterlaceOperator(opsin::AbstractMatrix{Operator{T}}) where {T}
     isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
-
     ops=promotespaces(opsin)
-    # TODO: make consistent
-    # if its a row vector, we assume scalar
-    if size(ops,1) == 1
-        InterlaceOperator(ops,domainspace(ops),rangespace(ops[1]))
-    else
-        InterlaceOperator(ops,domainspace(ops),rangespace(ops[:,1]))
-    end
+    InterlaceOperator(ops,domainspace(ops),rangespace(ops[:,1]))
 end
 
 function InterlaceOperator(opsin::AbstractMatrix{Operator{T}},::Type{DS},::Type{RS}) where {T,DS<:Space,RS<:Space}
     isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
+    ops=promotespaces(opsin)
+    InterlaceOperator(ops,DS(components(domainspace(ops))),RS(rangespace(ops[:,1]).spaces))
+end
+
+
+function InterlaceOperator(opsin::RowVector{Operator{T}}) where {T}
+    isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
 
     ops=promotespaces(opsin)
-    # TODO: make consistent
-    # if its a row vector, we assume scalar
-    if size(ops,1) == 1
-        InterlaceOperator(ops,DS(components(domainspace(ops))),rangespace(ops[1]))
-    else
-        InterlaceOperator(ops,DS(components(domainspace(ops))),RS(rangespace(ops[:,1]).spaces))
-    end
+    InterlaceOperator(ops,domainspace(ops),rangespace(ops[1]))
 end
+
+function InterlaceOperator(opsin::RowVector{Operator{T}},::Type{DS},::Type{RS}) where {T,DS<:Space,RS<:Space}
+    isempty(opsin) && throw(ArgumentError("Cannot create InterlaceOperator from empty Matrix"))
+    ops=promotespaces(opsin)
+    InterlaceOperator(ops,DS(components(domainspace(ops))),rangespace(ops[1]))
+end
+
+
+
 
 InterlaceOperator{T,DS<:Space}(opsin::AbstractMatrix{Operator{T}},::Type{DS}) =
     InterlaceOperator(opsin,DS,DS)
@@ -448,6 +447,14 @@ interlace{T<:Operator}(A::AbstractArray{T}) = InterlaceOperator(A)
 
 const OperatorTypes = Union{Operator,Fun,Number,UniformScaling}
 
+
+
+operators(A::InterlaceOperator) = A.ops
+operators(A::Matrix{<:Operator}) = A
+operators(A::Operator) = [A]
+
+Base.vcat(A::MatrixInterlaceOperator...) =
+    InterlaceOperator(vcat(map(operators,A)...))
 function Base.vcat(A::OperatorTypes...)
     Av = Vector{Operator{mapreduce(eltype,promote_type,A)}}()
     for a in A
@@ -459,8 +466,21 @@ function Base.vcat(A::OperatorTypes...)
     end
     InterlaceOperator(vnocat(Av...))
 end
+
+Base.hcat(A::Union{VectorInterlaceOperator,MatrixInterlaceOperator}...) =
+    InterlaceOperator(hcat(map(A->A.ops,A)...))
 Base.hcat(A::OperatorTypes...) = InterlaceOperator(hnocat(A...))
-Base.hvcat(rows::Tuple{Vararg{Int}},A::OperatorTypes...) = InterlaceOperator(hvnocat(rows,A...))
+function Base.hvcat(rows::Tuple{Vararg{Int}},as::OperatorTypes...)
+    # Based on Base
+    nbr = length(rows)  # number of block rows
+    rs = Array{Any,1}(nbr)
+    a = 1
+    for i = 1:nbr
+        rs[i] = hcat(map(Operator,as[a:a-1+rows[i]])...)
+        a += rows[i]
+    end
+    vcat(rs...)
+end
 
 
 ## Convert Matrix operator to operators

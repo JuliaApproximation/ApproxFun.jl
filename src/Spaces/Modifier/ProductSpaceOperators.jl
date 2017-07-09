@@ -62,7 +62,7 @@ Base.blkdiag(A::TimesOperator) = mapreduce(blkdiag,.*,A.ops)
 
 Evaluation(S::SumSpace,x,order) =
     EvaluationWrapper(S,x,order,
-        InterlaceOperator(hnocat(map(s->Evaluation(s,x,order),components(S))...),SumSpace))
+        InterlaceOperator(RowVector(vnocat(map(s->Evaluation(s,x,order),components(S))...)),SumSpace))
 
 
 ToeplitzOperator{S,RR,V,DD}(G::Fun{MatrixSpace{S,DD,RR},V}) = interlace(map(ToeplitzOperator,Array(G)))

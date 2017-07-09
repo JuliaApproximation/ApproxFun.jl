@@ -1,5 +1,6 @@
 using ApproxFun, Base.Test
-    import ApproxFun: testspace, testtransforms, testmultiplication, testbandedoperator, testcalculus
+    import ApproxFun: testspace, testtransforms, testmultiplication,
+                      testbandedoperator, testcalculus
 
 
 for d in (PeriodicInterval(0.1,0.5),Circle(1.0+im,2.0))
@@ -222,6 +223,7 @@ cfs=exp(z).coefficients[1:2:end]
 for k=1:length(cfs)
     @test abs(cfs[k]-1/factorial(1.0(k-1))) ≤ 1E-10
 end
+
 
 
 ##  Norms

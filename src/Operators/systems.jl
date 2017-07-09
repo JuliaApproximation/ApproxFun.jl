@@ -31,7 +31,7 @@ end
 
 ## Construction
 
-function Base.diagm{T<:Operator}(d::AbstractVector{T})
+function Base.diagm(d::AbstractVector{T}) where {T<:Operator}
     D=zeros(Operator{mapreduce(eltype,promote_type,d)},length(d),length(d))
     for k=1:length(d)
         D[k,k]=d[k]

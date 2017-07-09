@@ -21,3 +21,6 @@ include("AlmostBandedMatrix.jl")
 include("BlockBandedMatrix.jl")
 include("BandedBlockBandedMatrix.jl")
 include("RaggedMatrix.jl")
+
+
+include("rowvector.jl")

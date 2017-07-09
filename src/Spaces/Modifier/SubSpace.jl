@@ -94,8 +94,14 @@ canonicalspace(a::SubSpace) = a.space
 
 setdomain(DS::SubSpace,d::Domain) = SubSpace(setdomain(DS.space,d),DS.indexes)
 
-Conversion{S<:Space,IT,DD,RR}(a::SubSpace{S,IT,DD,RR},b::S) =
+Conversion(a::SubSpace{S,IT,DD,RR},b::S) where {S<:Space,IT,DD,RR} =
     ConcreteConversion(a,b)
+
+function Conversion(a::S,b::SubSpace{S,IT,DD,RR}) where {S<:Space,IT<:UnitCount{Int},DD,RR}
+    @assert first(b.indexes) == 1
+    ConversionWrapper(SpaceOperator(eye(a),a,b))
+end
+
 bandinds{S,DD,RR}(C::ConcreteConversion{SubSpace{S,UnitCount{Int},DD,RR},S}) =
     1-first(domainspace(C).indexes),0
 

@@ -51,7 +51,7 @@ function findmindomainspace(ops::AbstractVector)
     sp = UnsetSpace()
 
     for op in ops
-        sp = conversion_type(sp,domainspace(op))
+        sp = union(sp,domainspace(op))
     end
 
     sp

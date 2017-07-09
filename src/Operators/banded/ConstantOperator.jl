@@ -22,6 +22,7 @@ for OP in (:domainspace,:rangespace)
 end
 
 promotedomainspace(C::ConstantOperator,sp::Space) = ConstantOperator(C.λ,sp)
+promoterangespace(C::ConstantOperator,sp::Space,cursp::UnsetSpace) = ConstantOperator(C.λ,sp)
 
 bandinds(T::ConstantOperator) = 0,0
 

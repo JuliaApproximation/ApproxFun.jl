@@ -241,7 +241,7 @@ rangespace{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) =
 bandinds{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order,D.order
 Base.stride{DD<:Segment,RR}(D::ConcreteDerivative{Chebyshev{DD,RR}}) = D.order
 
-function getindex{DD<:Segment,RR,K,T}(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Integer)
+function getindex(D::ConcreteDerivative{Chebyshev{DD,RR},K,T},k::Integer,j::Integer) where {DD<:Segment,RR,K,T}
     m=D.order
     d=domain(D)
 
